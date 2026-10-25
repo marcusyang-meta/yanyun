@@ -2,6 +2,7 @@ import {
   Environment, Network, RecordSource, Store, fetchQuery,
   type FetchFunction, type GraphQLResponse,
 } from 'relay-runtime';
+import { blockOperationLoader } from '@yanyun/blocks-core';
 import { API_URL } from './config';
 import { getToken } from './storage';
 import { effectiveLocaleTag, onLocaleChanged } from './locale';
@@ -66,6 +67,9 @@ const storeOptions = {
 export const relayEnvironment = new Environment({
   network: Network.create(fetchFn),
   getDataID,
+  // server 3D: @match/@module 的拆分操作经 operationLoader 按服务端
+  // 回传的引用解析 (积木词汇的拆分工件注册表在 blocks-core)。
+  operationLoader: blockOperationLoader,
   store: new Store(new RecordSource(), storeOptions),
 });
 
