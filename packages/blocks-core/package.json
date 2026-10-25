@@ -1,5 +1,5 @@
 {
-  "description": "Bloks-lite 平台中立核心: Block/Action 类型、递归 fragment 集、walker (createBlockRenderer)、dispatchAction。禁止 import react-native / DOM (平台叶子由宿主经 BlockLeafRegistry 注入)。",
+  "description": "Bloks-lite 平台中立核心: Block/Action 类型、server 3D 三层 @match fragment 集、MatchContainer 遍历器 (createBlockRenderer)、拆分操作注册表 (operationLoader)、dispatchAction。禁止 import react-native / DOM (平台叶子由宿主经 loader 按 @module 引用名懒加载)。",
   "exports": {
     ".": {
       "default": "./src/index.ts",
