@@ -1,23 +1,14 @@
 // ============================================================
 // 平台中立核心 — 积木系统的可复用边界 (桌面 overlay 等其它端复用这里,
-// 只需另写一套叶子渲染器; 本目录禁止 import react-native / DOM 等平台 API)。
+// 只需另写一套叶子渲染器模块; 本目录禁止 import react-native / DOM 等平台 API)。
 //
-// 属于核心的: GraphQL fragment 契约 (core/fragments.ts)、块/动作类型、
-// 树遍历器 (core/renderer.tsx)、动作分发 (core/actions.ts)。
-// 不属于核心的: 具体叶子长什么样 (各端自己的注册表实现)、确认弹窗的呈现
-// (通过 ConfirmFn 注入)、导航与 mutation 的落地 (通过 ActionHandlers 注入)。
+// 属于核心的: GraphQL fragment 契约 (fragments.ts, 含 server 3D 的三层
+// match fragment)、树遍历器 (renderer.tsx, MatchContainer)、拆分操作
+// 注册表 (operations.ts)、动作分发 (actions.ts)。
+// 不属于核心的: 具体叶子长什么样 (各端自己的 @module 渲染组件, 经
+// loader 按服务端回传的引用名解析)、确认弹窗的呈现 (通过 ConfirmFn
+// 注入)、导航与 mutation 的落地 (通过 ActionHandlers 注入)。
 // ============================================================
-import type { ComponentType, ReactNode } from 'react';
-import type { fragments_TextBlock$key } from './__generated__/fragments_TextBlock.graphql';
-import type { fragments_BannerBlock$key } from './__generated__/fragments_BannerBlock.graphql';
-import type { fragments_SectionHeaderBlock$key } from './__generated__/fragments_SectionHeaderBlock.graphql';
-import type { fragments_ChipRowBlock$key } from './__generated__/fragments_ChipRowBlock.graphql';
-import type { fragments_EmptyStateBlock$key } from './__generated__/fragments_EmptyStateBlock.graphql';
-import type { fragments_SpacerBlock$key } from './__generated__/fragments_SpacerBlock.graphql';
-import type { fragments_FallbackBlock$key } from './__generated__/fragments_FallbackBlock.graphql';
-import type { fragments_GroupingCardBlock$key } from './__generated__/fragments_GroupingCardBlock.graphql';
-import type { fragments_SeatGridBlock$key } from './__generated__/fragments_SeatGridBlock.graphql';
-import type { fragments_ActionButtonBlock$key } from './__generated__/fragments_ActionButtonBlock.graphql';
 
 // 页面级文案 (宿主从页面 shell 查询后注入, 叶子只消费不自造):
 // 印章字与状态开/关判定文案在列表页 shell, 空位文案在详情页 shell。
@@ -50,20 +41,8 @@ export interface ConfirmRequest {
 }
 export type ConfirmFn = (req: ConfirmRequest) => void;
 
-// 叶子渲染器注册表: 遍历器按具体块类型把 fragment ref 交给对应组件;
-// 纯展示叶子不需要 handlers, 可交互叶子 (卡片/座位/按钮) 才收 handlers。
-// Section 是容器外壳 (标题 + children 的排版), 同样归各端实现。
-export interface BlockLeafRegistry {
-  Section: ComponentType<{ title: string | null; children: ReactNode }>;
-  TextBlock: ComponentType<{ block: fragments_TextBlock$key }>;
-  BannerBlock: ComponentType<{ block: fragments_BannerBlock$key }>;
-  SectionHeaderBlock: ComponentType<{ block: fragments_SectionHeaderBlock$key }>;
-  ChipRowBlock: ComponentType<{ block: fragments_ChipRowBlock$key }>;
-  EmptyStateBlock: ComponentType<{ block: fragments_EmptyStateBlock$key }>;
-  SpacerBlock: ComponentType<{ block: fragments_SpacerBlock$key }>;
-  FallbackBlock: ComponentType<{ block: fragments_FallbackBlock$key }>;
-  GroupingCardBlock: ComponentType<{ block: fragments_GroupingCardBlock$key; handlers: ActionHandlers }>;
-  SeatGridBlock: ComponentType<{ block: fragments_SeatGridBlock$key; handlers: ActionHandlers }>;
-  ActionButtonBlock: ComponentType<{ block: fragments_ActionButtonBlock$key; handlers: ActionHandlers }>;
-  Unknown: ComponentType;
-}
+// 宿主渲染组件 (@module 命中后由 loader 载入) 的统一 props 形状:
+// 以 fragment 名后缀为键的数据引用 (如 TextBlock / SectionNode1) 由
+// MatchContainer 注入, handlers 经 MatchContainer 的 props 透传。
+// 纯展示叶子可以只声明自己那一份, 可交互叶子 (卡片/座位/按钮) 另收
+// handlers。各端模块组件按此形状各自定义 props 类型即可。
