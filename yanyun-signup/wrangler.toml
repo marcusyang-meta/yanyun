@@ -38,3 +38,23 @@ new_sqlite_classes = ["GuildHub"]
 # 本地开发用 D1 本地实例, 变量示例(上线用 wrangler secret put 设置):
 # [vars]
 # ADMIN_PASSWORD = "dev-only-change-me"   # 仅本地调试用! 线上务必用 secret
+
+# ===== Previews (wrangler preview) =====
+[[previews.durable_objects.bindings]]
+name = "SEAT_HUB"
+class_name = "SeatHub"
+
+[[previews.durable_objects.bindings]]
+name = "GUILD_HUB"
+class_name = "GuildHub"
+
+# D1: 官方语义按 database_id 绑定 —— 同 id 即共享行数据, 隔离必须绑另一个库。
+# 本账号 token 无 D1 API 权限 (d1 list 报 10000, 且 preview 部署强制要求
+# database_id, 无自动配给), 建不了隔离 staging 库; 故 Preview 绑同一生产库,
+# 验收纪律为匿名只读浏览 (不登录、不提交 mutation): 匿名查询全是读, WS 在
+# worker 层先验会话 (匿名 403, 进不到 DO), DO 本身由平台按 Preview 自动隔离
+# namespace/存储, Cron 不在 Preview 运行 —— 生产数据与提醒链零写入。
+[[previews.d1_databases]]
+binding = "DB"
+database_name = "yanyun-signup"
+database_id = "aa475d0e-8410-47eb-823b-0ddd346733e8"
