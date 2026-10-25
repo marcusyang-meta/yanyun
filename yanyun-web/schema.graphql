@@ -5,12 +5,14 @@ enum GroupingTab {
   ACTIVITY
   TALENT
   RACE
+  TOWER
 }
 
 enum GroupingType {
   ACTIVITY
   TALENT
   RACE
+  TOWER
 }
 
 enum DexTab {
@@ -235,9 +237,11 @@ type GroupingListPage {
   tabActivityLabel: String!
   tabTalentLabel: String!
   tabRaceLabel: String!
+  tabTowerLabel: String!
   typeShortActivity: String!
   typeShortTalent: String!
   typeShortRace: String!
+  typeShortTower: String!
   typeShortGather: String!
   typeShortExplore: String!
   prevWeekLabel: String!
@@ -255,11 +259,13 @@ type GroupingListPage {
   formTypeActivityLabel: String!
   formTypeTalentLabel: String!
   formTypeRaceLabel: String!
+  formTypeTowerLabel: String!
   formCapacityTemplate: String!
   formHintActivity: String!
   formHintDungeonTemplate: String!
   formHintTalent: String!
   formHintRace: String!
+  formHintTower: String!
   formTitleLabel: String!
   formTitlePlaceholder: String!
   formStartsLabel: String!
@@ -321,6 +327,7 @@ type GroupingDetailPage {
   typeShortActivity: String!
   typeShortTalent: String!
   typeShortRace: String!
+  typeShortTower: String!
   typeShortGather: String!
   typeShortExplore: String!
   seatEmptyJoinLabel: String!
@@ -347,11 +354,13 @@ type GroupingDetailPage {
   formTypeActivityLabel: String!
   formTypeTalentLabel: String!
   formTypeRaceLabel: String!
+  formTypeTowerLabel: String!
   formCapacityTemplate: String!
   formHintActivity: String!
   formHintDungeonTemplate: String!
   formHintTalent: String!
   formHintRace: String!
+  formHintTower: String!
   formTitleLabel: String!
   formTitlePlaceholder: String!
   formStartsLabel: String!

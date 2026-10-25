@@ -5,12 +5,14 @@ enum GroupingTab {
   ACTIVITY
   TALENT
   RACE
+  TOWER
 }
 
 enum GroupingType {
   ACTIVITY
   TALENT
   RACE
+  TOWER
 }
 
 enum DexTab {
@@ -106,34 +108,42 @@ type GuildPage {
   tabs: [String!]!
 }
 
+scalar JSDependency
+
 interface Block {
   children: [Block!]!
+  js(module: String!, id: String): JSDependency
 }
 
 type SectionBlock implements Block {
   title: String
   children: [Block!]!
+  js(module: String!, id: String): JSDependency
 }
 
 type SectionHeaderBlock implements Block {
   text: String!
   children: [Block!]!
+  js(module: String!, id: String): JSDependency
 }
 
 type TextBlock implements Block {
   text: String!
   variant: String!
   children: [Block!]!
+  js(module: String!, id: String): JSDependency
 }
 
 type BannerBlock implements Block {
   text: String!
   children: [Block!]!
+  js(module: String!, id: String): JSDependency
 }
 
 type ChipRowBlock implements Block {
   chips: [String!]!
   children: [Block!]!
+  js(module: String!, id: String): JSDependency
 }
 
 type GroupingCardBlock implements Block {
@@ -146,11 +156,13 @@ type GroupingCardBlock implements Block {
   statusText: String!
   action: Action
   children: [Block!]!
+  js(module: String!, id: String): JSDependency
 }
 
 type SeatGridBlock implements Block {
   seats: [SeatEntry!]!
   children: [Block!]!
+  js(module: String!, id: String): JSDependency
 }
 
 type SeatEntry {
@@ -168,21 +180,25 @@ type ActionButtonBlock implements Block {
   style: String!
   action: Action
   children: [Block!]!
+  js(module: String!, id: String): JSDependency
 }
 
 type EmptyStateBlock implements Block {
   text: String!
   children: [Block!]!
+  js(module: String!, id: String): JSDependency
 }
 
 type SpacerBlock implements Block {
   size: Int!
   children: [Block!]!
+  js(module: String!, id: String): JSDependency
 }
 
 type FallbackBlock implements Block {
   text: String!
   children: [Block!]!
+  js(module: String!, id: String): JSDependency
 }
 
 interface Action {
@@ -235,9 +251,11 @@ type GroupingListPage {
   tabActivityLabel: String!
   tabTalentLabel: String!
   tabRaceLabel: String!
+  tabTowerLabel: String!
   typeShortActivity: String!
   typeShortTalent: String!
   typeShortRace: String!
+  typeShortTower: String!
   typeShortGather: String!
   typeShortExplore: String!
   prevWeekLabel: String!
@@ -255,11 +273,13 @@ type GroupingListPage {
   formTypeActivityLabel: String!
   formTypeTalentLabel: String!
   formTypeRaceLabel: String!
+  formTypeTowerLabel: String!
   formCapacityTemplate: String!
   formHintActivity: String!
   formHintDungeonTemplate: String!
   formHintTalent: String!
   formHintRace: String!
+  formHintTower: String!
   formTitleLabel: String!
   formTitlePlaceholder: String!
   formStartsLabel: String!
@@ -321,6 +341,7 @@ type GroupingDetailPage {
   typeShortActivity: String!
   typeShortTalent: String!
   typeShortRace: String!
+  typeShortTower: String!
   typeShortGather: String!
   typeShortExplore: String!
   seatEmptyJoinLabel: String!
@@ -347,11 +368,13 @@ type GroupingDetailPage {
   formTypeActivityLabel: String!
   formTypeTalentLabel: String!
   formTypeRaceLabel: String!
+  formTypeTowerLabel: String!
   formCapacityTemplate: String!
   formHintActivity: String!
   formHintDungeonTemplate: String!
   formHintTalent: String!
   formHintRace: String!
+  formHintTower: String!
   formTitleLabel: String!
   formTitlePlaceholder: String!
   formStartsLabel: String!

@@ -14,7 +14,7 @@ import type { documentsDetailPageTextQuery } from '../__generated__/documentsDet
 
 // 发车 / 编辑车队表单 (与 Web GroupingForm 同语义、同文案包):
 // 文案全部来自页面 shell 的 form* 字段 (打开它的页面查询下发), 本组件
-// 不持有任何 UI 文案。规则以后端为准: 双十恒 10 人且不挂副本; 天赋/
+// 不持有任何 UI 文案。规则以后端为准: 双十/爬塔恒 10 人且不挂副本; 天赋/
 // 竞速选副本按副本 size 定人数 (未选默认天赋 5 / 竞速 10); 默认标题
 // "{昵称}的{类型}车队" 跟随昵称/类型直到用户手动改标题; 编辑只交
 // title + startsAt (类型不可改, 与 Web 编辑形态一致)。
@@ -26,11 +26,13 @@ export interface GroupingFormText {
   formTypeActivityLabel: string;
   formTypeTalentLabel: string;
   formTypeRaceLabel: string;
+  formTypeTowerLabel: string;
   formCapacityTemplate: string;
   formHintActivity: string;
   formHintDungeonTemplate: string;
   formHintTalent: string;
   formHintRace: string;
+  formHintTower: string;
   formTitleLabel: string;
   formTitlePlaceholder: string;
   formStartsLabel: string;
@@ -56,6 +58,7 @@ export interface GroupingFormText {
   typeShortActivity: string;
   typeShortTalent: string;
   typeShortRace: string;
+  typeShortTower: string;
 }
 
 export interface GroupingFormInitial {
@@ -83,7 +86,7 @@ function fill(template: string, params: Record<string, string | number>): string
   return out;
 }
 
-const TYPE_KEYS = ['ACTIVITY', 'TALENT', 'RACE'] as const;
+const TYPE_KEYS = ['ACTIVITY', 'TALENT', 'RACE', 'TOWER'] as const;
 type GroupingTypeKey = (typeof TYPE_KEYS)[number];
 
 export default function GroupingForm({
@@ -125,20 +128,21 @@ export default function GroupingForm({
   const dungeons = dexData?.dexPage?.current ?? [];
 
   const typeLabels: Record<GroupingTypeKey, string> = {
-    ACTIVITY: text.formTypeActivityLabel, TALENT: text.formTypeTalentLabel, RACE: text.formTypeRaceLabel,
+    ACTIVITY: text.formTypeActivityLabel, TALENT: text.formTypeTalentLabel, RACE: text.formTypeRaceLabel, TOWER: text.formTypeTowerLabel,
   };
   const typeShorts: Record<string, string> = {
-    ACTIVITY: text.typeShortActivity, TALENT: text.typeShortTalent, RACE: text.typeShortRace,
+    ACTIVITY: text.typeShortActivity, TALENT: text.typeShortTalent, RACE: text.typeShortRace, TOWER: text.typeShortTower,
   };
   const autoTitle = fill(text.formTitleTemplate, { nickname: nickname.trim(), type: typeShorts[type] ?? '' });
   const shownTitle = isEdit || titleTouched ? title : autoTitle;
 
   const selectedDungeon = dungeons.find((d) => String(d.id) === String(dungeonId));
-  const maxSlots = type === 'ACTIVITY' ? 10
+  const maxSlots = type === 'ACTIVITY' || type === 'TOWER' ? 10
     : selectedDungeon && (Number(selectedDungeon.size) === 5 || Number(selectedDungeon.size) === 10)
       ? Number(selectedDungeon.size)
       : type === 'TALENT' ? 5 : 10;
   const slotsHint = type === 'ACTIVITY' ? text.formHintActivity
+    : type === 'TOWER' ? text.formHintTower
     : selectedDungeon ? fill(text.formHintDungeonTemplate, { name: selectedDungeon.name, max: maxSlots })
     : type === 'TALENT' ? text.formHintTalent
     : text.formHintRace;
@@ -163,7 +167,7 @@ export default function GroupingForm({
       } else {
         const r = await createGrouping({
           slug, title: t, type, startsAt,
-          dungeonId: type === 'ACTIVITY' ? null : (dungeonId || null),
+          dungeonId: type === 'ACTIVITY' || type === 'TOWER' ? null : (dungeonId || null),
           seats: [{ nickname: nickname.trim(), weapon: sect }],
         });
         if (r.ok) { onDone(); return; }
@@ -237,7 +241,7 @@ export default function GroupingForm({
           {numRow('', Array.from({ length: 24 }, (_, i) => i), hour, setHour, (n) => fill(text.formHourTemplate, { n }))}
           {numRow('', [0, 15, 30, 45], minute, setMinute, (n) => fill(text.formMinuteTemplate, { n }))}
 
-          {!isEdit && type !== 'ACTIVITY' && (
+          {!isEdit && type !== 'ACTIVITY' && type !== 'TOWER' && (
             <>
               <Text style={s.label}>{text.formDungeonLabel}</Text>
               <View style={s.chips}>
@@ -305,7 +309,7 @@ export function CreateGroupingFormMount({
   slug, tab, defaultNickname, onClose, onDone,
 }: {
   slug: string;
-  tab: 'ACTIVITY' | 'TALENT' | 'RACE';
+  tab: 'ACTIVITY' | 'TALENT' | 'RACE' | 'TOWER';
   defaultNickname?: string;
   onClose: () => void;
   onDone: () => void;
@@ -321,7 +325,7 @@ function CreateGroupingFormInner({
   slug, tab, defaultNickname, onClose, onDone,
 }: {
   slug: string;
-  tab: 'ACTIVITY' | 'TALENT' | 'RACE';
+  tab: 'ACTIVITY' | 'TALENT' | 'RACE' | 'TOWER';
   defaultNickname?: string;
   onClose: () => void;
   onDone: () => void;

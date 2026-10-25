@@ -162,7 +162,7 @@ export type GroupingPayload = {
 export async function createGrouping(input: {
   slug: string;
   title: string;
-  type: 'ACTIVITY' | 'TALENT' | 'RACE';
+  type: 'ACTIVITY' | 'TALENT' | 'RACE' | 'TOWER';
   startsAt: string;
   dungeonId?: string | null;
   seats?: { nickname: string; weapon: string }[];
