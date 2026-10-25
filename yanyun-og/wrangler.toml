@@ -1,0 +1,25 @@
+name = "yanyun-og"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["global_fetch_strictly_public"]
+
+# Pre-rendered generic brand image shipped as data/text modules so the
+# fallback/hub path never renders (or fetches fonts) at request time.
+[[rules]]
+type = "Data"
+globs = ["**/*.png"]
+fallthrough = true
+
+[[rules]]
+type = "Text"
+globs = ["**/*.svg"]
+fallthrough = true
+
+[[rules]]
+type = "CompiledWasm"
+globs = ["**/*.wasm"]
+
+# Guild share images stay warm in the edge cache so crawler fetches are
+# static reads instead of cold renders (see `scheduled` in worker.js).
+[triggers]
+crons = ["*/20 * * * *"]

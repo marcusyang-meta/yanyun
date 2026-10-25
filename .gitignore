@@ -1,0 +1,46 @@
+# ============ dependencies / build output (any depth) ============
+node_modules/
+dist/
+dist-ssr/
+web-build/
+.expo/
+.metro-health-check*
+expo-env.d.ts
+*.tsbuildinfo
+
+# ============ wrangler / local env ============
+.wrangler/
+.dev.vars
+.dev.vars.*
+.env*.local
+
+# ============ secrets & signing — NEVER commit ============
+credentials.json
+android-credentials/
+.eas-run/
+*.keystore
+*.jks
+*.p8
+*.p12
+*.key
+*.pem
+*.mobileprovision
+
+# ============ per-project generated / backup material ============
+# yanyun-signup/public: admin pages (hub-admin.*, gadmin.*, style.css) are
+# source and stay tracked; index.html + assets/ are copies of the web build.
+yanyun-signup/public/assets/
+yanyun-signup/public/index.html
+yanyun-signup/public-legacy-backup/
+# mobile verification screenshots stay on disk, not in history
+yanyun-mobile/screenshots/
+
+# ============ local agent/tool config ============
+.claude/
+
+# ============ misc ============
+.DS_Store
+*.log
+.idea/
+.vscode/*
+!.vscode/extensions.json

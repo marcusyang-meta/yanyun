@@ -1,0 +1,23 @@
+{
+  "description": "燕云十六声百业工具 monorepo (npm workspaces) — 见 README",
+  "name": "yanyun",
+  "private": true,
+  "scripts": {
+    "build:web": "npm run build --workspace=yanyun-web",
+    "deploy:backend": "cd yanyun-signup && npx wrangler deploy",
+    "mobile:lint": "npm run lint --workspace=yanyun-mobile",
+    "mobile:start": "npm run start --workspace=yanyun-mobile",
+    "mobile:typecheck": "cd yanyun-mobile && npx tsc --noEmit",
+    "sync-schema": "npm run sync-schema --workspace=yanyun-signup && npm run sync-schema --workspace=yanyun-web",
+    "relay": "relay-compiler"
+  },
+  "version": "0.0.0",
+  "workspaces": [
+    "yanyun-signup",
+    "yanyun-web",
+    "yanyun-mobile",
+    "yanyun-og",
+    "yanyun-overlay",
+    "packages/*"
+  ]
+}

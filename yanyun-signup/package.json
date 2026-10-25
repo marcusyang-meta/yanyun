@@ -1,0 +1,21 @@
+{
+  "name": "yanyun-signup",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "sync-schema": "node scripts/sync-schema.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "wrangler": "^4.151.2"
+  },
+  "dependencies": {
+    "graphql": "^17.0.2",
+    "graphql-yoga": "^5.24.6",
+    "hono": "^4.13.13"
+  }
+}

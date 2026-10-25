@@ -1,0 +1,22 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>profile harness</title></head>
+<body>
+<div id="root"></div>
+<script>window.process = { env: { NODE_ENV: 'production' } };</script>
+<script>
+  // 移动端用例 (?mobile=1): 在 bundle 执行前注入 matchMedia 桩,
+  // 使 useIsMobile 判定为移动宽度 -> 设置表面应呈 pushPage 形态。
+  if (new URLSearchParams(location.search).has('mobile')) {
+    window.matchMedia = function (q) {
+      return {
+        matches: true, media: q,
+        addEventListener: function () {}, removeEventListener: function () {},
+        addListener: function () {}, removeListener: function () {},
+      };
+    };
+  }
+</script>
+<script src="./harness.js"></script>
+</body>
+</html>

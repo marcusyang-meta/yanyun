@@ -1,0 +1,1768 @@
+# 燕云百业工具 v2 GraphQL Schema
+# 按页面组织，非对象导向
+# 当期 = version 字段匹配当前版本（如 intl-v2.3），无 isCurrent 布尔值
+# 实体命名：Grouping（组队），非 Car
+
+# ============ 枚举 ============
+
+enum GroupingTab {
+  ACTIVITY  # 双十人本
+  TALENT    # 天赋组队
+  RACE      # 竞速报名
+}
+
+enum GroupingType {
+  ACTIVITY
+  TALENT
+  RACE
+}
+
+enum DexTab {
+  MECHANICS  # 机制
+  TALENTS    # 天赋
+  SHOUTS     # 喊话
+}
+
+# ============ 通用类型 ============
+
+type Seat {
+  index: Int!
+  nickname: String
+  weapon: String  # 流派，如 破竹·樽
+  role: String    # 输出 / 奶（服务端按流派推导）
+  uid: String
+  occupied: Boolean!
+}
+
+type Dungeon {
+  id: ID!
+  name: String!
+  version: String!      # 如 intl-v2.3
+  playerCount: Int!     # 10人 / 5人
+  size: Int!            # 同 playerCount (D1 dungeons.size), 供发车表单按副本定人数
+  season: String        # 赛季码 S1..S5 (后端 dex 迁移写入, 未分类为 null)
+  seasonName: String    # 赛季展示名 (后端赛季表: S1 出鞘之刃 / S2 Rewind / S3 Seek Within / S4 Forge Ahead / S5 Ever Aflame)
+  category: String      # 游戏内分类 (试锋 / 梦洄 / 鉴心 / 铸矩 / 传薪), 与赛季等级档一一对应
+  level: Int            # 副本等级档 (51/56/61/66/71/81/86/91/96/100)
+  bosses: [Boss!]!
+}
+
+type Boss {
+  id: ID!
+  name: String!
+  dungeon: Dungeon!
+  mechanics: [Mechanic!]!  # 结构化机制
+  talents: [Talent!]!      # 1-x / 2-x 天赋
+  shouts: [Shout!]!        # 喊话宏
+}
+
+type Mechanic {
+  phase: String!        # 如 "P1", "P2", "P3"
+  title: String!
+  description: String!  # 中文
+}
+
+type Talent {
+  code: String!         # 如 "1-1", "2-3"
+  description: String!  # 中文，视频确认标注
+  verified: Boolean!    # 是否视频确认
+}
+
+type Shout {
+  text: String!         # 喊话内容
+  copyable: Boolean!
+}
+
+# ============ 页面：百业集结 Hub ============
+# URL: /
+
+type Query {
+  hubPage: HubPage!
+}
+
+type HubPage {
+  guilds: [GuildCard!]!
+}
+
+type GuildCard {
+  slug: String!
+  name: String!
+  slogan: String
+  gameVersion: String!
+  memberCount: Int!
+}
+
+# ============ 页面：公会主页 ============
+# URL: /{slug}
+
+extend type Query {
+  guildPage(slug: String!): GuildPage!
+}
+
+type GuildPage {
+  slug: String!
+  name: String!
+  gameVersion: String!
+  currentVersion: String!
+  tabs: [String!]!  # ["双十人本", "天赋组队", "竞速报名", "攻略", "流派攻略"]
+}
+
+# ============ 移动端 Bloks-lite: 带类型积木对象 ============
+# 内容区不是 JSON blob: 每个积木是一个带类型的 GraphQL object, 容器带
+# children, 前端以 Relay fragment 递归渲染直到叶子 (basic element)。
+# 服务端组合什么对象就是权限与分发决定本身: 车头的树里才有解散按钮
+# 对象, 本人座位才有离队动作对象, 客户端零权限分支。
+
+interface Block {
+  children: [Block!]!
+}
+
+# 容器积木: 分区 (可选标题 + 子积木), 递归在此继续
+type SectionBlock implements Block {
+  title: String
+  children: [Block!]!
+}
+
+type SectionHeaderBlock implements Block {
+  text: String!
+  children: [Block!]!
+}
+
+type TextBlock implements Block {
+  text: String!
+  variant: String! # title | meta | muted | body
+  children: [Block!]!
+}
+
+type BannerBlock implements Block {
+  text: String!
+  children: [Block!]!
+}
+
+type ChipRowBlock implements Block {
+  chips: [String!]!
+  children: [Block!]!
+}
+
+type GroupingCardBlock implements Block {
+  groupingId: ID!
+  title: String!
+  badgeText: String!
+  timeText: String!
+  dungeonName: String
+  peopleText: String!
+  statusText: String!
+  action: Action
+  children: [Block!]!
+}
+
+type SeatGridBlock implements Block {
+  seats: [SeatEntry!]!
+  children: [Block!]!
+}
+
+# 座位条目 (数据叶子, 非积木): 动作对象按观看者在服务端生成
+type SeatEntry {
+  index: Int!
+  occupied: Boolean!
+  nickname: String
+  weapon: String
+  role: String
+  healer: Boolean!
+  action: Action
+}
+
+type ActionButtonBlock implements Block {
+  label: String!
+  style: String! # primary | ghost | danger
+  action: Action
+  children: [Block!]!
+}
+
+type EmptyStateBlock implements Block {
+  text: String!
+  children: [Block!]!
+}
+
+type SpacerBlock implements Block {
+  size: Int!
+  children: [Block!]!
+}
+
+# 版本兜底: 客户端 blocksVersion 低于某积木所需版本时, 服务端以此对象
+# 替代下发 (最老的客户端也能把它渲染成一条提示), 绝不下发未知类型。
+type FallbackBlock implements Block {
+  text: String!
+  children: [Block!]!
+}
+
+# ---------- 动作 (带类型对象; 客户端按类型映射到已知 mutation/导航) ----------
+interface Action {
+  actionType: String!
+}
+
+type NavigateAction implements Action {
+  actionType: String!
+  slug: String!
+  groupingId: ID!
+  name: String!
+  readOnly: Boolean!
+  nick: String!
+}
+
+type JoinAction implements Action {
+  actionType: String!
+  groupingId: ID!
+  seatIndex: Int!
+}
+
+type LeaveAction implements Action {
+  actionType: String!
+  groupingId: ID!
+  uid: String!
+  confirmTitle: String!
+  confirmMessage: String!
+  okLabel: String!
+  cancelLabel: String!
+}
+
+type DisbandAction implements Action {
+  actionType: String!
+  groupingId: ID!
+  confirmTitle: String!
+  confirmMessage: String!
+  okLabel: String!
+  cancelLabel: String!
+}
+
+# 编辑车队动作 (词汇 v3): 只有车头的详情树里才有挂它的按钮对象,
+# 与 DisbandAction 同一条服务端组合规则; 点开后宿主打开编辑表单,
+# 保存走 updateGrouping (服务端再验车头)。
+type EditAction implements Action {
+  actionType: String!
+  groupingId: ID!
+}
+
+# ============ 页面：组队列表 ============
+# URL: /{slug}?tab=activity (嵌入公会主页)
+
+extend type Query {
+  groupingListPage(slug: String!, tab: GroupingTab!): GroupingListPage!
+}
+
+type GroupingListPage {
+  groupings: [Grouping!]!
+  currentVersion: String!
+  # 移动端 Bloks-lite: 本页内容区积木对象树 (带类型 object, 非 JSON);
+  # blocksVersion = 客户端声明的积木词汇版本, 低于某积木所需版本时服务端
+  # 以 FallbackBlock 替代下发; weekOffset 相对当前周 (周界与全站同口径:
+  # 周一 05:00 北京时间)。组合即权限: 观看者拿到的对象就是他能看的全部。
+  blocks(blocksVersion: Int, weekOffset: Int): [Block!]!
+  # UI 文案: 全部由本页 shell 的 gen 方法按请求 locale 生成 (未选中不生成)
+  tabActivityLabel: String!
+  tabTalentLabel: String!
+  tabRaceLabel: String!
+  typeShortActivity: String!
+  typeShortTalent: String!
+  typeShortRace: String!
+  typeShortGather: String!
+  typeShortExplore: String!
+  prevWeekLabel: String!
+  nextWeekLabel: String!
+  weekHeaderTemplate: String!
+  emptyInteractiveText: String!
+  emptyReadonlyText: String!
+  statusOpenLabel: String!
+  peopleTemplate: String!
+  newCarLabel: String!
+  sealText: String!
+  # 发车表单文案 (表单从列表页打开; 详情页 shell 同名同口径)
+  formCreateTitle: String!
+  formEditTitle: String!
+  formTypeLabel: String!
+  formTypeActivityLabel: String!
+  formTypeTalentLabel: String!
+  formTypeRaceLabel: String!
+  formCapacityTemplate: String!
+  formHintActivity: String!
+  formHintDungeonTemplate: String!
+  formHintTalent: String!
+  formHintRace: String!
+  formTitleLabel: String!
+  formTitlePlaceholder: String!
+  formStartsLabel: String!
+  formMonthTemplate: String!
+  formDayTemplate: String!
+  formHourTemplate: String!
+  formMinuteTemplate: String!
+  formDungeonLabel: String!
+  formDungeonNoneLabel: String!
+  formNicknameLabel: String!
+  formNicknamePlaceholder: String!
+  formSectLabel: String!
+  formCancelLabel: String!
+  formSubmitCreateLabel: String!
+  formSubmitEditLabel: String!
+  formSubmittingLabel: String!
+  formToastSect: String!
+  formToastSaved: String!
+  formToastSaveFailedTemplate: String!
+  formToastPosted: String!
+  formToastCreateFailedTemplate: String!
+  formTitleTemplate: String!
+}
+
+type Grouping {
+  id: ID!
+  title: String!
+  type: GroupingType!
+  startsAt: String!
+  dungeon: Dungeon
+  seats: [Seat!]!
+  occupiedCount: Int!
+  maxSlots: Int!
+  status: String!  # open / closed / draft
+  creatorDiscordId: String  # 车头 (创建者) 的 Discord id; 旧车/REST 车未记录为 null
+}
+
+# ============ 页面：组队详情 ============
+# URL: /{slug}/grouping/{id}
+
+extend type Query {
+  groupingDetailPage(slug: String, id: ID!): GroupingDetailPage!
+}
+
+type GroupingDetailPage {
+  grouping: Grouping!
+  # 移动端 Bloks-lite: 本页内容区积木对象树 (同 GroupingListPage.blocks);
+  # 逐座动作与解散按钮按观看者在服务端生成, 客户端不重建权限。
+  blocks(blocksVersion: Int): [Block!]!
+  # 无管理码，人人可管
+  # UI 文案: 全部由本页 shell 的 gen 方法按请求 locale 生成
+  detailNotFoundText: String!
+  detailBackToListLabel: String!
+  detailShareLabel: String!
+  detailEditLabel: String!
+  detailDisbandLabel: String!
+  detailDisbandingLabel: String!
+  detailStatusOpenLabel: String!
+  detailPeopleTemplate: String!
+  detailOpenHint: String!
+  detailReadonlyHint: String!
+  detailToastDisbanded: String!
+  detailToastDisbandFailedTemplate: String!
+  detailLinkCopied: String!
+  detailCopyFailedManual: String!
+  detailDisbandConfirmTitle: String!
+  detailDisbandConfirmMessageTemplate: String!
+  confirmOkLabel: String!
+  confirmCancelLabel: String!
+  typeShortActivity: String!
+  typeShortTalent: String!
+  typeShortRace: String!
+  typeShortGather: String!
+  typeShortExplore: String!
+  # 座位文案
+  seatEmptyJoinLabel: String!
+  seatEmptyLabel: String!
+  seatModalTitleTemplate: String!
+  seatModalSubtitle: String!
+  seatNameLabel: String!
+  seatNamePlaceholder: String!
+  seatNameRequired: String!
+  seatSectLabel: String!
+  seatCancelLabel: String!
+  seatConfirmJoinLabel: String!
+  seatJoiningLabel: String!
+  seatToastSect: String!
+  seatToastJoined: String!
+  seatToastJoinFailedTemplate: String!
+  seatToastLeft: String!
+  seatToastLeaveFailedTemplate: String!
+  seatLeaveConfirmTitle: String!
+  seatLeaveConfirmMessageTemplate: String!
+  # 编辑表单文案 (与列表页 shell 同名同口径)
+  formCreateTitle: String!
+  formEditTitle: String!
+  formTypeLabel: String!
+  formTypeActivityLabel: String!
+  formTypeTalentLabel: String!
+  formTypeRaceLabel: String!
+  formCapacityTemplate: String!
+  formHintActivity: String!
+  formHintDungeonTemplate: String!
+  formHintTalent: String!
+  formHintRace: String!
+  formTitleLabel: String!
+  formTitlePlaceholder: String!
+  formStartsLabel: String!
+  formMonthTemplate: String!
+  formDayTemplate: String!
+  formHourTemplate: String!
+  formMinuteTemplate: String!
+  formDungeonLabel: String!
+  formDungeonNoneLabel: String!
+  formNicknameLabel: String!
+  formNicknamePlaceholder: String!
+  formSectLabel: String!
+  formCancelLabel: String!
+  formSubmitCreateLabel: String!
+  formSubmitEditLabel: String!
+  formSubmittingLabel: String!
+  formToastSect: String!
+  formToastSaved: String!
+  formToastSaveFailedTemplate: String!
+  formToastPosted: String!
+  formToastCreateFailedTemplate: String!
+  formTitleTemplate: String!
+}
+
+# ============ 页面：攻略（图鉴） ============
+# URL: /{slug}/dex
+
+extend type Query {
+  dexPage: DexPage!
+}
+
+type DexPage {
+  current: [Dungeon!]!  # server 按 dungeons.version = settings.game_version_code (版本码, 如 intl-v2.3) 过滤
+  past: [Dungeon!]!     # version != game_version_code
+  currentVersion: String!  # 展示串 (settings.game_version, 如「国际服 V2.3「青州」」), 非版本码, 勿用于比较
+  categories: [DexCategory!]!  # 游戏内分类分组 (传薪→铸矩→鉴心→梦洄→试锋), 组内按等级降序
+  # UI 文案 (shell gen 方法按请求 locale 生成)
+  dexBackLabel: String!
+  dexBossesLineTemplate: String!
+  dexNoBossDataText: String!
+  dexEmptyText: String!
+  dexCurrentGuidesTemplate: String!
+  dexCatSubTemplate: String!
+  dexCatSubCurrentTemplate: String!
+  dexSize10Label: String!
+  dexSize5Label: String!
+  dexSizeNTemplate: String!
+  dexBossUnit: String!
+  dexPartMechanicsLabel: String!
+  dexPartShoutsLabel: String!
+  dexPartTalentsLabel: String!
+  dexLabelAllTemplate: String!
+  dexLabelPartsTemplate: String!
+  dexLabelPendingTemplate: String!
+  dexLabelNoBossesText: String!
+  dexSealBossText: String!
+}
+
+# 攻略分类组: 游戏内分类 (试锋/梦洄/鉴心/铸矩/传薪) 与赛季一一对应, 标签全部由后端下发
+type DexCategory {
+  category: String!     # 试锋 / 梦洄 / 鉴心 / 铸矩 / 传薪
+  season: String!       # S1..S5
+  seasonName: String!   # 赛季展示名 (同 Dungeon.seasonName 口径)
+  isCurrent: Boolean!   # 传薪 = 当期分类
+  dungeons: [Dungeon!]!
+}
+
+# ============ 页面：Boss 攻略详情 ============
+# URL: /{slug}/boss/{id}
+
+extend type Query {
+  bossPage(bossId: ID!): BossPage!
+}
+
+type BossPage {
+  boss: Boss!
+  defaultTab: DexTab!
+  # UI 文案 (shell gen 方法按请求 locale 生成)
+  bossBackLabel: String!
+  bossNotFoundText: String!
+  bossTabMechanicsLabel: String!
+  bossTabTalentsLabel: String!
+  bossShoutsTitle: String!
+  bossCopyLabel: String!
+  bossShoutCopiedText: String!
+  bossCopyFailedText: String!
+  bossCopyManualText: String!
+  bossNoMechanicsText: String!
+  bossNoTalentsText: String!
+  bossTalentTitleTemplate: String!
+  bossTalentPendingSuffix: String!
+}
+
+# ============ 页面：流派攻略 ============
+# URL: /{slug}/sects (嵌入公会主页 Tab)
+
+extend type Query {
+  sectPage: SectPage!
+  affixMaxList: [AffixMax!]!
+  slotAffixList(build: String!): [SlotAffix!]!
+}
+
+type AffixMax {
+  key: String!
+  name: String!
+  maxValue: Float!
+  unit: String!
+}
+
+type SlotAffix {
+  slot: String!
+  affixKey: String!
+}
+
+type SectPage {
+  sects: [Sect!]!
+  # UI 文案 (shell gen 方法按请求 locale 生成)
+  sectEmptyText: String!
+  sectBackLabel: String!
+  sectTabBisLabel: String!
+  sectTabRotationLabel: String!
+  sectTabRatesLabel: String!
+  sectTabTiaolvLabel: String!
+  sectTabGradLabel: String!
+  sectNoBisText: String!
+  sectNoRotationText: String!
+  sectNoRatesText: String!
+  sectRotGreydustLabel: String!
+  sectRotOpenerLabel: String!
+  sectRotLoopLabel: String!
+  sectRotKeyPointsLabel: String!
+  sectRotInnerSkillsLabel: String!
+  sectRotVideoLabel: String!
+  sectRateAccuracyLabel: String!
+  sectRateCritLabel: String!
+  sectRateCritDamageLabel: String!
+  sectBisMainWeaponLabel: String!
+  sectBisOffWeaponLabel: String!
+  sectBisAccessoriesLabel: String!
+  sectBisHeadBodyLabel: String!
+  sectBisLegsWristsLabel: String!
+}
+
+type Sect {
+  slug: String!       # 英文 slug，如 pozhu-zun
+  name: String!        # 中文名，如 破竹·樽
+  weapons: String!
+  buildType: String!  # 会心流 / 会意流 / 治疗
+  bis: BisTable        # 毕业词条
+  rotation: Rotation   # 输出轴
+  rateTargets: RateTargets  # 三率目标
+}
+
+type BisTable {
+  # 按部位：主武器/副武器/环佩/头衣/腿腕
+  # 每部位 5 词条，首个为初始锁定
+  mainWeapon: [String!]!
+  offWeapon: [String!]!
+  accessories: [String!]!
+  headBody: [String!]!
+  legsWrists: [String!]!
+}
+
+type Rotation {
+  greydust: String     # greydust 1分钟木桩轴
+  opener: String       # 起手（详细版）
+  loop: String         # 循环（详细版）
+  keyPoints: String    # 要点（详细版）
+  innerSkills: String  # 心法（详细版）
+  videoUrl: String
+}
+
+type RateTargets {
+  accuracy: String
+  crit: String
+  critDamage: String  # 会意
+  note: String
+}
+
+# ============ 页面：调律推演 ============
+# URL: /{slug}/tiaolv
+
+extend type Query {
+  tiaolvPage: TiaolvPage!
+}
+
+type TiaolvPage {
+  sects: [SectOption!]!
+  innerSkills: [String!]!
+  suits: [String!]!
+  # 毕业满值常量（服务端下发，前端不硬编码）
+  maxValues: TiaolvMaxValues!
+  # 流派权重（服务端下发）
+  sectWeights: [SectWeight!]!
+  # UI 文案 (shell gen 方法按请求 locale 生成)
+  tlIntroText: String!
+  tlInnerSkillTemplate: String!
+  tlInnerSkillPlaceholder: String!
+  tlWuxueLabel: String!
+  tlWukuLabel: String!
+  tlWukuSelfLabel: String!
+  tlWukuCommonLabel: String!
+  tlSuitLabel: String!
+  tlBowLabel: String!
+  tlNoneLabel: String!
+  tlTuneAreaLabel: String!
+  tlCalcLabel: String!
+  tlCalculatingLabel: String!
+  tlToastFailedText: String!
+  tlToastFailedWithTemplate: String!
+  tlColAttrLabel: String!
+  tlColBaseLabel: String!
+  tlColPanelLabel: String!
+  tlColFinalLabel: String!
+}
+
+# ============ 页面：武库鉴宝 (毕业率) ============
+# UI 文案专用 shell (数据走 affixMaxList / slotAffixList / calcGraduation)
+
+extend type Query {
+  gradPage: GradPage!
+}
+
+# ============ 页面：设置 (账号级语言偏好) ============
+# 文案字段直接长在 SettingsPage shell 上, 由其 gen 方法按请求 locale 生成;
+# localePref = 账号存储的偏好 (null = 自动/跟随浏览器), effectiveLocale =
+# 本请求实际生效 locale (偏好压过浏览器语言)。
+
+extend type Query {
+  settingsPage: SettingsPage!
+}
+
+type SettingsPage {
+  settingsTitle: String!
+  settingsDiscordLabel: String!
+  settingsLanguageLabel: String!
+  settingsLanguageHint: String!
+  settingsAutoLabel: String!
+  settingsLangZhCnLabel: String!
+  settingsLangZhTwLabel: String!
+  settingsLangEnLabel: String!
+  settingsLangEsLabel: String!
+  settingsLangFrLabel: String!
+  settingsSavedText: String!
+  localePref: String
+  effectiveLocale: String!
+}
+
+type UpdateLocalePayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  localePref: String
+  effectiveLocale: String!
+}
+
+extend type Mutation {
+  # locale 为 null 时清除偏好 (回自动); 有值必须是受支持 locale id
+  updateMyLocale(locale: String): UpdateLocalePayload!
+}
+
+type PushTokenPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+}
+
+extend type Mutation {
+  # App 推送令牌 (发车提醒的 Expo 通道): 身份只从会话解析, 令牌格式服务端校验
+  registerPushToken(token: String!, platform: String): PushTokenPayload!
+  unregisterPushToken(token: String!): PushTokenPayload!
+}
+
+type GradPage {
+  gradEnteringText: String!
+  gradTitle: String!
+  gradSubtitle: String!
+  gradMingjinNote: String!
+  gradBuildBigLabel: String!
+  gradBuildSmallLabel: String!
+  gradRingLabel: String!
+  gradScoreCountLabel: String!
+  gradScoreValueLabel: String!
+  gradScoreRateLabel: String!
+  gradTier1: String!
+  gradTier2: String!
+  gradTier3: String!
+  gradTier4: String!
+  gradTier5: String!
+  gradTier6: String!
+  gradTapHint: String!
+  gradRefTitle: String!
+  gradMaxTableTitle: String!
+  gradColAffixLabel: String!
+  gradColMaxLabel: String!
+  gradColResonanceLabel: String!
+  gradSlotTableTitleTemplate: String!
+  gradRateTitle: String!
+  gradRateOkTemplate: String!
+  gradRateGapTemplate: String!
+  gradRateOverflowTemplate: String!
+  gradCompareTitle: String!
+  gradSaveSchemeLabel: String!
+  gradSchemeNameTemplate: String!
+  gradNoSchemesText: String!
+  gradLoadLabel: String!
+  gradDeleteSchemeLabel: String!
+  gradCloseLabel: String!
+  gradItemScoreTemplate: String!
+  gradRowMainLabel: String!
+  gradRowSubTemplate: String!
+  gradRowResonanceLabel: String!
+  gradAffixPlaceholder: String!
+  gradAffixLoadingText: String!
+  gradValuePlaceholderMaxTemplate: String!
+  gradValuePlaceholder: String!
+  gradResonanceLabel: String!
+  gradOverMaxTemplate: String!
+  gradToastSavedTemplate: String!
+  gradToastLoadedTemplate: String!
+  gradToastOldSchemeText: String!
+  gradConfirmLabel: String!
+  gradCancelLabel: String!
+  # ---- 配装台 (gear-planner 移植; 并入本页, 数据/文案均由 GradPage shell gen) ----
+  gearSlots: [String!]!
+  gearGearSlots: [String!]!
+  gearAffixes: [GearAffixRow!]!
+  gearBuilds: [GearBuild!]!
+  gearSlotsBig: [GearSlotRow!]!
+  gearSlotsSmall: [GearSlotRow!]!
+  gearBaseFields: [GearBaseField!]!
+  gearXinfa: [GearXinfaRow!]!
+  gearTalentRows: [GearTalentRow!]!
+  gearDingyinRows: [GearDingyinRow!]!
+  gearDingyinLeft: [GearNameMax!]!
+  gearDingyinRightMax: Float!
+  gearWuxueNames: [String!]!
+  gearBows: [GearBowRow!]!
+  gearPasteNames: [GearNameKey!]!
+  gearNameToClass: [GearNameCls!]!
+  gearSlotAliases: [GearNameKey!]!
+  gearOcrAliases: [GearNameKey!]!
+  gearLegacyKeys: [GearNameKey!]!
+  gearClassLabels: [GearNameCls!]!
+  gearSchoolTags: [String!]!
+  gearDemoKit: [GearDemoItem!]!
+  gearDimRows: [GearDimRow!]!
+  gearQuickBarNames: [String!]!
+  gearResDefault: Float!
+  gearBenchTitle: String!
+  gearCalcLabel: String!
+  gearBenchIntro: String!
+  gearTargetLabel: String!
+  gearBowLabel: String!
+  gearBowNoneLabel: String!
+  gearExtrasTitle: String!
+  gearResLabel: String!
+  gearExtraAccLabel: String!
+  gearExtraCritLabel: String!
+  gearExtraIntLabel: String!
+  gearBaseTitle: String!
+  gearUnlockLabel: String!
+  gearLockLabel: String!
+  gearModifiedTag: String!
+  gearBaseResetLabel: String!
+  gearBaseResetTitle: String!
+  gearBaseResetBody: String!
+  gearXinfaLabelTemplate: String!
+  gearXinfaNoneLabel: String!
+  gearLibTitle: String!
+  gearMyLibTitle: String!
+  gearMyBuildsTitle: String!
+  gearLoginHint: String!
+  gearLibCountTemplate: String!
+  gearFormSlotLabel: String!
+  gearFormNameLabel: String!
+  gearFormNamePlaceholder: String!
+  gearAffixPlaceholder: String!
+  gearValuePlaceholder: String!
+  gearRefTemplate: String!
+  gearFillMaxLabel: String!
+  gearFillCyLabel: String!
+  gearDelRowLabel: String!
+  gearAddRowLabel: String!
+  gearDyNameLabel: String!
+  gearDyNamePlaceholder: String!
+  gearDyValLabel: String!
+  gearSchoolsLabel: String!
+  gearAddGearLabel: String!
+  gearUpdateGearLabel: String!
+  gearCancelEditLabel: String!
+  gearDemoLabel: String!
+  gearClearLibLabel: String!
+  gearClearConfirmTitle: String!
+  gearClearConfirmBody: String!
+  gearEquipLabel: String!
+  gearUnequipLabel: String!
+  gearEditLabel: String!
+  gearDeleteLabel: String!
+  gearSimLabel: String!
+  gearSimRealLabel: String!
+  gearSimCyLabel: String!
+  gearSimMaxLabel: String!
+  gearVerdictHeirloom: String!
+  gearVerdictDud: String!
+  gearScoreTemplate: String!
+  gearQualityLabel: String!
+  gearExportLabel: String!
+  gearImportLabel: String!
+  gearImportFailedToast: String!
+  gearImportedToastTemplate: String!
+  gearPasteTitle: String!
+  gearPastePlaceholder: String!
+  gearPasteButtonLabel: String!
+  gearPasteDemoLabel: String!
+  gearPasteEmptyText: String!
+  gearPasteOkTemplate: String!
+  gearPasteUnknownTemplate: String!
+  gearPasteFailText: String!
+  gearPasteFullText: String!
+  gearOcrTitle: String!
+  gearOcrDropText: String!
+  gearOcrPreparingText: String!
+  gearOcrRunningText: String!
+  gearOcrSecondText: String!
+  gearOcrFailedText: String!
+  gearOcrBadTypeText: String!
+  gearOcrTooBigText: String!
+  gearOcrNoEngineText: String!
+  gearOcrDoneTemplate: String!
+  gearOcrSlotLabel: String!
+  gearOcrNameLabel: String!
+  gearOcrEquipLabel: String!
+  gearOcrConfirmLabel: String!
+  gearOcrCancelLabel: String!
+  gearOcrUnknownTitle: String!
+  gearOcrSavedTemplate: String!
+  gearOcrNeedLineToast: String!
+  gearOcrLowConfTag: String!
+  gearOcrAddRowLabel: String!
+  gearOcrImportSlotTemplate: String!
+  gearOcrBatchTitle: String!
+  gearOcrBatchDropText: String!
+  gearOcrBatchQueuedText: String!
+  gearOcrBatchRunningText: String!
+  gearOcrBatchReadyText: String!
+  gearOcrBatchFailedText: String!
+  gearOcrBatchImportedText: String!
+  gearOcrBatchRetryLabel: String!
+  gearOcrBatchRemoveLabel: String!
+  gearOcrBatchAdjustLabel: String!
+  gearOcrBatchApplyBoxLabel: String!
+  gearOcrBatchDetectedText: String!
+  gearOcrBatchFullImageText: String!
+  gearOcrBatchDupTag: String!
+  gearOcrBatchDupLibText: String!
+  gearOcrBatchDupRowText: String!
+  gearOcrBatchIncludeLabel: String!
+  gearOcrBatchNoLinesText: String!
+  gearOcrBatchImportTemplate: String!
+  gearOcrBatchResultTemplate: String!
+  gearLibEmptyText: String!
+  gearEquippedTag: String!
+  gearLoadoutTitle: String!
+  gearAutoLabel: String!
+  gearAutoDoneToast: String!
+  gearAutoFallbackToast: String!
+  gearUnequipAllLabel: String!
+  gearSlotEmptyText: String!
+  gearPanelTitle: String!
+  gearGradLabel: String!
+  gearGradCountLabel: String!
+  gearGradValueLabel: String!
+  gearGradDyLabel: String!
+  gearGradDyToggleLabel: String!
+  gearLoanLabel: String!
+  gearSimActiveTag: String!
+  gearCopySummaryLabel: String!
+  gearCopiedToast: String!
+  gearCopyFailedToast: String!
+  gearYAccLabel: String!
+  gearYCritLabel: String!
+  gearYIntLabel: String!
+  gearFinalCritLabel: String!
+  gearWhiteLabel: String!
+  gearDawaiLabel: String!
+  gearXiaowaiLabel: String!
+  gearDashuLabel: String!
+  gearXiaoshuLabel: String!
+  gearHpLabel: String!
+  gearDefLabel: String!
+  gearTalentLabel: String!
+  gearDiffTitle: String!
+  gearDiffLackTemplate: String!
+  gearDiffExactText: String!
+  gearDiffOverTemplate: String!
+  gearDiffExtraTitle: String!
+  gearDiffLowTitle: String!
+  gearDiffDoneText: String!
+  gearDiffEmptyText: String!
+  gearDiffInvalidTemplate: String!
+  gearSuggestTitle: String!
+  gearSuggestSwapTemplate: String!
+  gearSuggestWashTemplate: String!
+  gearSuggestNoneText: String!
+  gearSuggestHeadTemplate: String!
+  gearDySummaryTitle: String!
+  gearDyCorrectText: String!
+  gearDyWrongText: String!
+  gearSchemeTitle: String!
+  gearSchemeSaveLabel: String!
+  gearSchemeNameTemplate: String!
+  gearSchemeLoadLabel: String!
+  gearSchemeDeleteLabel: String!
+  gearSchemeEmptyText: String!
+  gearSchemeComposeFirstText: String!
+  gearSchemeSavedToastTemplate: String!
+  gearSchemeLoadedToastTemplate: String!
+  gearSchemeGroupCountTemplate: String!
+  gearQuickTitle: String!
+  gearQuickResLabel: String!
+  gearQuickSyncLabel: String!
+  gearQuickSyncedToast: String!
+  gearQuickOkText: String!
+  gearQuickOverTemplate: String!
+  gearQuickGapTemplate: String!
+  gearRecipesTitle: String!
+  gearRecipeSearchPlaceholder: String!
+  gearRecipeAllLabel: String!
+  gearRecipeColCat: String!
+  gearRecipeColSchool: String!
+  gearRecipeColSet: String!
+  gearRecipeColRecipe: String!
+  gearRecipeColBow: String!
+  gearRecipeSetTargetLabel: String!
+  gearRecipeEmptyText: String!
+  gearRecipeTargetToastTemplate: String!
+  gearSectRecipesTitle: String!
+  gearAffixTableTitle: String!
+  gearColCyLabel: String!
+  gearColCyPctLabel: String!
+  gearColRecipeNamesLabel: String!
+  gearSurvivalNote: String!
+  gearSlotTableTitle: String!
+  gearSlotsBigTitle: String!
+  gearSlotsSmallTitle: String!
+  gearFormulaTitle: String!
+  gearFormulaRatesTitle: String!
+  gearFormulaDimsTitle: String!
+  gearFormulaOrderTitle: String!
+  gearFormulaAccTemplate: String!
+  gearFormulaCritTemplate: String!
+  gearFormulaIntTemplate: String!
+  gearFormulaBarsTemplate: String!
+  gearFormulaBowTemplate: String!
+  gearFormulaOrderText: String!
+  gearColDimLabel: String!
+  gearColConvLabel: String!
+  gearColFullBarTemplate: String!
+  gearCalcFailedText: String!
+  gearDemoLoadedToast: String!
+  gearSavedToastTemplate: String!
+  gearDeletedToast: String!
+  gearClearedToast: String!
+}
+
+type SectOption {
+  slug: String!
+  name: String!
+}
+
+type TiaolvMaxValues {
+  mainAttr: Float!   # 88.4
+  outerAtk: Float!   # 139.6
+  accuracy: Float!   # 0.144
+  crit: Float!       # 0.162
+  critDamage: Float! # 0.081
+  sectAttr: Float!   # 79.2
+}
+
+type SectWeight {
+  sectSlug: String!
+  critWeight: Float!
+  critDamageWeight: Float!
+  # 其他权重...
+}
+
+# ============ Mutations ============
+
+type Mutation {
+  # 组队（无管理码，人人可管；唯一例外：解散仅车头可为）
+  createGrouping(input: CreateGroupingInput!): GroupingPayload!
+  updateGrouping(id: ID!, input: UpdateGroupingInput!): GroupingPayload!
+  disbandGrouping(id: ID!): DeletePayload!  # 解散车队：仅车头（创建者）可为，服务端复验
+  joinGrouping(input: JoinGroupingInput!): SeatPayload!
+  leaveGrouping(input: LeaveGroupingInput!): SeatPayload!
+  updateSeatWeapon(input: UpdateSeatWeaponInput!): SeatPayload!
+
+  # 调律推演（服务端严格按 Excel 公式计算）
+  calcTiaolv(input: TiaolvInput!): TiaolvResult!
+
+  # 毕业率计算（6格平均，服务端计算）
+  calcGraduation(input: GraduationInput!): GraduationResult!
+}
+
+# 毕业率输入：8部位，每部位6格（1主+4副+1定音）
+# 口径：50%条数匹配 + 30%数值达成 + 20%三率达标（参考 gear-planner）
+input GraduationInput {
+  sectSlug: String!  # 流派slug，用于获取目标配方
+  items: [GraduationItemInput!]!
+  precision: Float  # 三率：精准
+  crit: Float       # 三率：会心
+  affinity: Float    # 三率：会意
+}
+
+input GraduationItemInput {
+  slot: String!  # 部位：主武器/副武器/冠胄/胸甲/胫甲/腕甲/环/佩
+  affixes: [AffixValueInput!]!
+}
+
+input AffixValueInput {
+  key: String!      # 词条key，如 max_atk
+  value: Float!     # 数值
+  resonance: Boolean! # 是否承音
+}
+
+type GraduationResult {
+  total: Float!           # 总毕业率 0-100
+  countScore: Float!      # 条数匹配度 0-100
+  valueScore: Float!      # 数值达成度 0-100
+  rateScore: Float!       # 三率达标度 0-100
+  items: [GraduationItemResult!]!
+}
+
+type GraduationItemResult {
+  slot: String!
+  score: Float!           # 单件 0-100
+}
+
+input CreateGroupingInput {
+  slug: String!
+  title: String!
+  type: GroupingType!
+  startsAt: String!
+  dungeonId: ID
+  seats: [SeatInput!]
+}
+
+input SeatInput {
+  nickname: String!
+  weapon: String!
+}
+
+input UpdateGroupingInput {
+  title: String
+  startsAt: String
+  seats: [SeatInput!]
+}
+
+input JoinGroupingInput {
+  groupingId: ID!
+  nickname: String!
+  weapon: String!
+  seatIndex: Int!
+}
+
+input LeaveGroupingInput {
+  groupingId: ID!
+  uid: String!
+}
+
+input UpdateSeatWeaponInput {
+  groupingId: ID!
+  uid: String!
+  weapon: String!
+}
+
+# 调律推演输入 — 严格对应 片雲 DIY 0.10.2 Excel 可编辑区
+# 心法(F4:F7) 武学(F14) 武库(G9) 属性需求(H14) 套装(T2) 弓决(S2) 调律(K3:R5, K6:R24)
+input TiaolvCellInput {
+  cell: String!   # Excel 单元格，如 "K3", "R5", "K21"（仅 K:R 用户调律区有效）
+  value: Float!
+}
+
+input TiaolvInput {
+  innerSkills: [String!]!  # 4个心法名；"N/A" 表示空
+  wuxue: String            # 武学名，如 "破竹鸢"（Excel F14）
+  wuku: String             # "本系" | "通用"（Excel G9）
+  attrRequire: Float       # 属性需求数值（Excel H14，默认 492）
+  suit: String!            # 套装（Excel T2），如 "撼天"
+  bowSkill: String         # 弓决（Excel S2）：会心 / 精准 / 会意
+  tunes: [TiaolvCellInput!]
+}
+
+type GroupingPayload {
+  ok: Boolean!
+  grouping: Grouping
+  error: String      # 按请求 locale 由 errorCode 在服务端生成
+  errorCode: String  # 稳定错误码 (文案可变, 码不变)
+}
+
+type SeatPayload {
+  ok: Boolean!
+  seats: [Seat!]
+  error: String
+  errorCode: String
+}
+
+type DeletePayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+}
+
+# Excel 原术语：基础白值(B列) / 面板白值(C列) / 最终面板(D列)
+type TiaolvRow {
+  key: String!      # 行键，如 minAtk
+  label: String!    # Excel 原标签，如 最小外攻
+  base: Float       # 基础白值
+  panel: Float      # 面板白值（无公式的行返回 null）
+  final: Float      # 最终面板
+}
+
+type TiaolvResult {
+  rows: [TiaolvRow!]!
+}
+
+# ============ 登录 / Viewer 层级 (root = user) ============
+# 结构: Query.viewer -> guilds / guild(slug) -> groupings 等页面数据
+# 权限不用状态标志表达 (flag 可 forge), 用「响应的类型」表达:
+#   成员        -> Guild        (完整数据, 写入口只存在于该类型的组件里)
+#   未绑定百业  -> GuildReadOnly(公开只读数据, 无写入口)
+#   非成员/不存在 -> GuildLocked (不携带任何百业内容数据)
+# 前端按 __typename 分发组件; 没数据 = 没能力。mutation 在 resolver 内独立复验。
+
+type DiscordUser {
+  discordId: String!
+  name: String!
+  avatar: String
+}
+
+# 当前用户有管理权限 (Administrator/ManageGuild/服主) 的 Discord 服务器。
+# 服务端已过滤: 下发的每一台都可用于建业/绑定, 不下发权限位给前端判断。
+type DiscordServer {
+  id: String!
+  name: String!
+  icon: String
+}
+
+# 已绑定服务器 + 当前用户是成员: 完整数据
+type Guild {
+  slug: String!
+  name: String
+  slogan: String
+  gameVersion: String!
+  memberCount: Int!
+  groupings(tab: GroupingTab!): GroupingListPage!
+  viewerNick: String
+  # 百业主页外壳文案 (shell gen 方法按请求 locale 生成)
+  homeBackToHubLabel: String!
+  homeTabTeamLabel: String!
+  homeTabDexLabel: String!
+  homeTabSectLabel: String!
+  detailNotFoundText: String!
+  detailBackToListLabel: String!
+}
+
+# 未绑定 Discord 服务器: 公开可读, 写功能锁死 (该类型不含任何写入口)
+type GuildReadOnly {
+  slug: String!
+  name: String
+  slogan: String
+  gameVersion: String!
+  memberCount: Int!
+  groupings(tab: GroupingTab!): GroupingListPage!
+  viewerNick: String
+  # 百业主页外壳文案 (shell gen 方法按请求 locale 生成)
+  homeBackToHubLabel: String!
+  homeTabTeamLabel: String!
+  homeTabDexLabel: String!
+  homeTabSectLabel: String!
+  homeReadOnlyBanner: String!
+  detailNotFoundText: String!
+  detailBackToListLabel: String!
+}
+
+# 已绑定但非成员 / 百业不存在: 不携带任何百业内容数据 (仅 slug 与本页文案)
+type GuildLocked {
+  slug: String!
+  lockedBackLinkLabel: String!
+  lockedTitle: String!
+  lockedBody1: String!
+  lockedBody2: String!
+  lockedBackButtonLabel: String!
+}
+
+union GuildResult = Guild | GuildReadOnly | GuildLocked
+
+type Viewer {
+  user: DiscordUser             # 未登录为 null
+  guilds: [Guild!]!             # 我可用的百业 (成员; 服务端过滤, 前端不许拉全量再筛)
+  publicGuilds: [GuildReadOnly!]!  # 未绑定服务器的公开百业 (只读)
+  guild(slug: String!): GuildResult!
+  discordServers: [DiscordServer!]!  # 我有管理权限的服务器 (服务端过滤)
+  # UI 文案: 站点/登录/选择页/创建页/通用 — 全部由 Viewer shell 的 gen
+  # 方法按请求 locale 生成, 未选中永不生成 (无 Strings 类型, 文案字段
+  # 直接长在 shell 类型上)。
+  siteTitle: String!
+  siteSubtitle: String!
+  siteHeroAlt: String!
+  loginCardTitle: String!
+  loginCardBody1: String!
+  loginCardBody2: String!
+  loginButtonLabel: String!
+  loginPrivacyText: String!
+  userBarLogoutLabel: String!
+  userBarLoggingOutLabel: String!
+  userBarSettingsLabel: String!
+  # 账号级语言偏好 (null = 自动跟随浏览器) 与本请求实际生效 locale
+  myLocalePref: String
+  myEffectiveLocale: String!
+  pickerMyGuildsLabel: String!
+  pickerMyGuildsEnLabel: String!
+  pickerPublicGuildsLabel: String!
+  pickerPublicGuildsEnLabel: String!
+  pickerReadOnlyBadge: String!
+  pickerEmptyTitle: String!
+  pickerEmptyBody: String!
+  pickerCreateGuildLabel: String!
+  pickerCreateGuildMoreLabel: String!
+  createBackLinkLabel: String!
+  createTitle: String!
+  createSubtitle: String!
+  createNameLabel: String!
+  createNamePlaceholder: String!
+  createSlugLabel: String!
+  createSlugPlaceholder: String!
+  createSlugCheckingText: String!
+  createSlugTakenText: String!
+  createSlugNote: String!
+  createServerLabel: String!
+  createNoServers1: String!
+  createNoServers2: String!
+  createSubmitLabel: String!
+  createSubmittingLabel: String!
+  createToastNameShort: String!
+  createToastSlugRequired: String!
+  createToastSlugBad: String!
+  createToastServerRequired: String!
+  createToastCreated: String!
+  createToastFailed: String!
+  slugAvailableMessage(slug: String!): String!
+  commonCancelLabel: String!
+  commonConfirmLabel: String!
+  commonUnknownErrorText: String!
+  commonRenderErrorTemplate: String!
+  commonRenderErrorHint: String!
+  commonBackToHubLabel: String!
+  commonLoadingGuildText: String!
+}
+
+extend type Query {
+  viewer: Viewer!
+  slugAvailable(slug: String!): Boolean!
+}
+
+input CreateGuildInput {
+  name: String!
+  slug: String!
+  discordGuildId: String!  # 必须是当前用户有管理权限的 Discord 服务器 (服务端复验)
+}
+
+type CreateGuildPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  guild: Guild
+}
+
+
+extend type Mutation {
+  createGuild(input: CreateGuildInput!): CreateGuildPayload!
+}
+
+# ============ 配装台数据/计算 (gear-planner 移植, src/gearplanner.js) ============
+# 口径与 calcGraduation 不同: 毕业度 = (40% 条数 + 24% 数值 + 20% 定音) / 84
+# (关定音 / 64); 单件评分 = round((60 × 核心凑齐 + 40 × 数值加权) × 条数因子)。
+
+type GearBuild {
+  idx: Int!
+  cat: String!
+  school: String!
+  set: String!
+  bow: String!
+  bowKind: String!
+  bowLabel: String!
+  note: String
+  recipe: String!
+  sectName: String!
+  totalBars: Int!
+  targets: [GearTarget!]!
+}
+
+type GearTarget {
+  cls: String!
+  label: String!
+  n: Int!
+  flex: [String!]
+}
+
+type GearAffixRow {
+  key: String!
+  label: String!
+  short: String!
+  max: Float!
+  cy: Float!
+  unit: String!
+  sys: String
+  size: String
+  cyPct: Float!
+  recipeNames: [String!]!
+}
+
+type GearSlotRow {
+  slot: String!
+  lines: [String!]!
+}
+
+type GearBaseField {
+  key: String!
+  label: String!
+  preset: Float!
+}
+
+type GearXinfaRow {
+  name: String!
+  xiao: Float
+  da: Float
+  acc: Float
+  crit: Float
+  int: Float
+  dcrit: Float
+  dint: Float
+  dmg: Float
+  pierce: Float
+  critDmg: Float
+  intDmg: Float
+  shuSys: String
+  shuXiao: Float
+  shuDa: Float
+  sysPierceSys: String
+  sysPierceVal: Float
+  shuBonusSys: String
+  shuBonusVal: Float
+}
+
+type GearTalentRow {
+  name: String!
+  text: String!
+  xiao: Float!
+  da: Float!
+  acc: Float!
+  crit: Float!
+  int: Float!
+}
+
+type GearDingyinRow {
+  school: String!
+  name: String
+  wuxue: String
+  verified: Boolean!
+  category: String
+}
+
+type GearNameMax {
+  name: String!
+  max: Float!
+}
+
+type GearBowRow {
+  kind: String!
+  label: String!
+  acc: Float!
+  crit: Float!
+  int: Float!
+}
+
+type GearNameKey {
+  name: String!
+  key: String!
+}
+
+type GearNameCls {
+  name: String!
+  cls: String!
+}
+
+type GearDemoItem {
+  slot: String!
+  name: String!
+  keys: [String!]!
+  dingyinName: String!
+  dingyinVal: Float!
+}
+
+type GearDimRow {
+  name: String!
+  conv: String!
+  full: String!
+}
+
+input GearLineInput {
+  key: String!
+  val: Float!
+}
+
+input GearDingyinInput {
+  name: String!
+  val: Float!
+}
+
+input GearItemInput {
+  id: Int!
+  slot: String!
+  name: String
+  lines: [GearLineInput!]!
+  dingyin: GearDingyinInput
+  schools: [String!]
+}
+
+input GearBaseValueInput {
+  key: String!
+  val: Float
+}
+
+input GearSimInput {
+  id: Int!
+  tier: String!
+}
+
+input GearLoadoutEntryInput {
+  slot: String!
+  gearId: Int!
+}
+
+input GearPlanInput {
+  targetIdx: Int!
+  baseValues: [GearBaseValueInput!]
+  xinfa: [String!]
+  res: Float
+  extraAcc: Float
+  extraCrit: Float
+  extraInt: Float
+  bowKind: String
+  gradDingyinOn: Boolean
+  sim: [GearSimInput!]
+  lib: [GearItemInput!]!
+  loadout: [GearLoadoutEntryInput!]
+}
+
+type GearKV {
+  key: String!
+  val: Float!
+}
+
+type GearOtherShu {
+  key: String!
+  label: String!
+  val: Float!
+  count: Int!
+}
+
+type GearInvalidLine {
+  gearId: Int!
+  key: String!
+  val: Float!
+}
+
+type GearPanel {
+  whiteAcc: Float!
+  whiteCrit: Float!
+  whiteInt: Float!
+  yAcc: Float!
+  yCrit: Float!
+  yInt: Float!
+  finalCrit: Float!
+  dawai: Float!
+  xiaowai: Float!
+  dashu: Float!
+  xiaoshu: Float!
+  hp: Float!
+  def: Float!
+  ti: Float!
+  jin: Float!
+  yu: Float!
+  min: Float!
+  shi: Float!
+  talentCrit: Float!
+  talentXiaowai: Float!
+  talentInt: Float!
+  talentDawai: Float!
+  talentIntStat: String!
+  talentDawaiStat: String!
+  equippedIds: [Int!]!
+  sums: [GearKV!]!
+  classCounts: [GearKV!]!
+  otherShu: [GearOtherShu!]!
+  dingyinTotals: [GearKV!]!
+  invalidLines: [GearInvalidLine!]!
+}
+
+type GearGradRow {
+  cls: String!
+  label: String!
+  n: Int!
+  cur: Int!
+  flex: Boolean!
+}
+
+type GearLowLine {
+  gearId: Int!
+  key: String!
+  val: Float!
+  score: Float!
+}
+
+type GearDingyinScoreRow {
+  slot: String!
+  name: String!
+  val: Float
+  max: Float
+  correct: Boolean!
+  score: Float!
+  has: Boolean!
+}
+
+type GearGrad {
+  total: Float!
+  a: Float!
+  b: Float!
+  d: Float!
+  got: Int!
+  totalBars: Int!
+  rows: [GearGradRow!]!
+  lowLines: [GearLowLine!]!
+  dingyinRows: [GearDingyinScoreRow!]!
+}
+
+type GearSuggestion {
+  kind: String!
+  slot: String!
+  gearId: Int
+  name: String
+  lineIdx: Int
+  fromCls: String
+  toCls: String
+  toKey: String
+  gain: Float!
+  score: Float!
+}
+
+type GearSuggestions {
+  cur: Float!
+  final: Float!
+  list: [GearSuggestion!]!
+}
+
+type GearExtraClass {
+  cls: String!
+  label: String!
+  count: Int!
+}
+
+type GearEval {
+  id: Int!
+  score: Int!
+  quality: Float!
+  hits: Int!
+  verdict: String!
+}
+
+type GearPlanResult {
+  panel: GearPanel!
+  grad: GearGrad!
+  realPanel: GearPanel!
+  realGrad: GearGrad!
+  loanGrad: GearGrad!
+  suggestions: GearSuggestions!
+  extraClasses: [GearExtraClass!]!
+  gearEvals: [GearEval!]!
+  baseNotes: [String!]!
+  xinfaPicked: [String!]!
+  xinfaDuplicates: [String!]!
+}
+
+type GearAutoResult {
+  loadout: [GearLoadoutEntry!]!
+  fallbackUsed: Boolean!
+}
+
+type GearLoadoutEntry {
+  slot: String!
+  gearId: Int!
+}
+
+type GearParsedItem {
+  slot: String!
+  name: String!
+  lines: [GearLine!]!
+  dingyin: GearDingyin
+}
+
+type GearLine {
+  key: String!
+  val: Float!
+}
+
+type GearDingyin {
+  name: String!
+  val: Float!
+}
+
+type GearParseResult {
+  mode: String!
+  unknown: Int!
+  gears: [GearParsedItem!]!
+  fullExportJson: String
+}
+
+input GearQuickInput {
+  whiteAcc: Float!
+  whiteCrit: Float!
+  whiteInt: Float!
+  res: Float
+}
+
+type GearRateStatus {
+  yellow: Float!
+  capped: Boolean!
+  over: Float!
+  lack: Float!
+  needWhite: Float!
+  bars: Int!
+}
+
+type GearQuickResult {
+  res: Float!
+  acc: GearRateStatus!
+  crit: GearRateStatus!
+  int: GearRateStatus!
+}
+
+extend type Mutation {
+  # 配装台整表计算 (面板/毕业度/满值模拟/建议/单件评估)
+  gearPlan(input: GearPlanInput!): GearPlanResult!
+  # 一键最优组合
+  gearAutoCombine(targetIdx: Int!, lib: [GearItemInput!]!): GearAutoResult!
+  # 粘贴代码解析 (与原站解析器同口径; 未知词条跳过并计数)
+  gearParsePaste(text: String!): GearParseResult!
+  # 三率速算
+  gearQuickCalc(input: GearQuickInput!): GearQuickResult!
+}
+
+# ============ 配装台装备库 (D1 按账号存储; 匿名无库, 查询只回自己的) ============
+
+type GearItem {
+  id: Int!
+  slot: String!
+  name: String!
+  lines: [GearLine!]!
+  dingyin: GearDingyin
+  schools: [String!]!
+  warnings: [String!]!
+}
+
+type GearBaseValue {
+  key: String!
+  val: Float
+}
+
+type GearSavedBuild {
+  id: Int!
+  name: String!
+  targetIdx: Int!
+  buildLabel: String!
+  school: String!
+  loadout: [GearLoadoutEntry!]!
+  baseValues: [GearBaseValue!]!
+  xinfa: [String!]!
+  res: Float!
+  extraAcc: Float!
+  extraCrit: Float!
+  extraInt: Float!
+  bowKind: String!
+  gradDingyinOn: Boolean!
+  snapTotal: Float!
+  snapA: Float!
+  snapB: Float!
+  snapD: Float!
+  snapLoan: Float!
+  snapYAcc: Float!
+  snapYCrit: Float!
+  snapYInt: Float!
+  snapDawai: Float!
+  snapXiaowai: Float!
+  createdAt: Int!
+}
+
+extend type Query {
+  myGearItems: [GearItem!]!
+  myGearBuilds: [GearSavedBuild!]!
+}
+
+input GearItemCreateInput {
+  slot: String!
+  name: String
+  lines: [GearLineInput!]!
+  dingyin: GearDingyinInput
+  schools: [String!]
+}
+
+type GearItemPayload {
+  ok: Boolean!
+  item: GearItem
+  error: String
+  errorCode: String
+}
+
+type GearOkPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+}
+
+type GearImportResult {
+  ok: Boolean!
+  items: [GearItem!]!
+  autoSelect: [GearLoadoutEntry!]!
+  error: String
+  errorCode: String
+}
+
+input GearBuildSaveInput {
+  name: String!
+  targetIdx: Int!
+  loadout: [GearLoadoutEntryInput!]
+  baseValues: [GearBaseValueInput!]
+  xinfa: [String!]
+  res: Float
+  extraAcc: Float
+  extraCrit: Float
+  extraInt: Float
+  bowKind: String
+  gradDingyinOn: Boolean
+}
+
+type GearBuildPayload {
+  ok: Boolean!
+  build: GearSavedBuild
+  error: String
+  errorCode: String
+}
+
+extend type Mutation {
+  addGearItem(input: GearItemCreateInput!): GearItemPayload!
+  updateGearItem(id: Int!, input: GearItemCreateInput!): GearItemPayload!
+  deleteGearItem(id: Int!): GearOkPayload!
+  # 批量导入 (文件导入/粘贴导入/OCR 批量共用); autoSelect 按传入的当前搭配
+  # 复刻原站「导入后自动选入空位」: 武器先主后副, 其余取空位。
+  importGearItems(items: [GearItemCreateInput!]!, loadout: [GearLoadoutEntryInput!]): GearImportResult!
+  saveGearBuild(input: GearBuildSaveInput!): GearBuildPayload!
+  deleteGearBuild(id: Int!): GearOkPayload!
+}

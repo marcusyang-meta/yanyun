@@ -1,0 +1,250 @@
+// Expo 推送通道验收 (本地 wrangler dev + stub webhook 接收端):
+//  A) GraphQL registerPushToken: 合法令牌落表 / 非法令牌拒 / 匿名拒;
+//     unregisterPushToken: 行消失; 再注册回来供 B 用。
+//  B) 发车提醒双通道: 夹具车 T-9min (已盖戳座位 + 假令牌), WS 连接触发
+//     GuildHub 重排 alarm -> 到点发送: Discord stub 收到原文 (通道未破坏),
+//     events.reminder_sent_at 落定, Expo 对假令牌回 DeviceNotRegistered
+//     ticket -> push_tokens 自清。
+import http from 'node:http';
+import fs from 'node:fs';
+import crypto from 'node:crypto';
+import { spawn, execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+
+const execFileP = promisify(execFile);
+const ROOT = new URL('../', import.meta.url).pathname;
+const WORKER = 'http://localhost:8797';
+const STUB_PORT = 18755;
+const SLUG = 'pushtest';
+const DGID = '555000111222333444';
+const FAKE_TOKEN = 'ExponentPushToken[push-harness-fake-0001]';
+const devVars = fs.readFileSync(new URL('../.dev.vars', import.meta.url), 'utf8');
+const SECRET = (devVars.match(/^SESSION_SECRET=(.*)$/m) || [])[1]?.trim();
+if (!SECRET) { console.log('NO SESSION_SECRET'); process.exit(1); }
+
+let pass = 0, fail = 0;
+function check(name, ok, extra = '') {
+  if (ok) pass++; else fail++;
+  console.log((ok ? 'PASS  ' : 'FAIL  ') + name + (extra ? ' — ' + extra : ''));
+}
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/* ---------- JWT (与 auth.js 同格式 HS256) ---------- */
+const b64u = (buf) => Buffer.from(buf).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+function mintJwt() {
+  const now = Math.floor(Date.now() / 1000);
+  const head = b64u(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+  const body = b64u(JSON.stringify({ sub: '2001', name: '车头甲', avatar: '', guilds: [DGID], iat: now, exp: now + 3600 }));
+  const sig = crypto.createHmac('sha256', SECRET).update(`${head}.${body}`).digest();
+  return `${head}.${body}.${b64u(sig)}`;
+}
+const JWT = mintJwt();
+
+/* ---------- D1 直写 (本地) ---------- */
+async function d1(sql) {
+  const { stdout } = await execFileP('npx', ['wrangler', 'd1', 'execute', 'yanyun-signup', '--local', '--json', '--command', sql], { cwd: ROOT });
+  const i = stdout.indexOf('[');
+  const arr = i >= 0 ? JSON.parse(stdout.slice(i)) : [];
+  return arr[0]?.results || [];
+}
+async function d1Try(sql) { try { return await d1(sql); } catch { return []; } }
+
+/* ---------- stub 接收端 (Discord webhook + Expo Push API 回放) ----------
+ * 本地 workerd 出站 fetch exp.host 会被本机出口代理打坏 TLS (实测 corrupt
+ * message), 故 Expo 走 EXPO_PUSH_BASE 本地回放; 回放的 ticket 是先前 curl
+ * 直调真实 exp.host 拿到的原文 (同一假令牌):
+ * {"data":[{"status":"error","message":"\"ExponentPushToken[...]\" is not a
+ * registered push notification recipient or it is associated with a project
+ * that does not exist.","details":{"error":"DeviceNotRegistered",...}}]} */
+const received = [];
+const expoCalls = [];
+const stub = http.createServer((req, res) => {
+  const chunks = [];
+  req.on('data', (c) => chunks.push(c));
+  req.on('end', () => {
+    const text = Buffer.concat(chunks).toString('utf8');
+    if (req.url.startsWith('/--/api/v2/push/send')) {
+      try { expoCalls.push(JSON.parse(text)); } catch { /* */ }
+      res.writeHead(200, { 'content-type': 'application/json' });
+      res.end(JSON.stringify({
+        data: [{
+          status: 'error',
+          message: `"${FAKE_TOKEN}" is not a registered push notification recipient or it is associated with a project that does not exist.`,
+          details: { error: 'DeviceNotRegistered', expoPushToken: FAKE_TOKEN },
+        }],
+      }));
+      return;
+    }
+    if (req.url.startsWith('/--/api/v2/push/getReceipts')) {
+      res.writeHead(200, { 'content-type': 'application/json' });
+      res.end(JSON.stringify({ data: {} }));
+      return;
+    }
+    try { received.push(JSON.parse(text)); } catch { /* */ }
+    res.writeHead(204); res.end();
+  });
+});
+await new Promise((r) => stub.listen(STUB_PORT, r));
+
+/* ---------- 夹具播种 ---------- */
+const nowSec = Math.floor(Date.now() / 1000);
+// 先 T-11 分钟播种 (提醒时刻在未来): 避免本地 DO 残留 alarm 在 dev 冷启动
+// 时抢先把车结算掉; B 阶段再把出发时间改到 T-9 分钟并主动触发。
+const startsAt = nowSec + 660;
+await d1Try(`DELETE FROM signups WHERE event_id IN (SELECT id FROM events WHERE tenant='${SLUG}')`);
+await d1Try(`DELETE FROM events WHERE tenant='${SLUG}'`);
+await d1Try(`DELETE FROM settings WHERE tenant='${SLUG}'`);
+await d1Try(`DELETE FROM guild_members WHERE tenant='${SLUG}'`);
+await d1Try(`DELETE FROM push_tokens WHERE discord_id='2001'`);
+await d1Try(`DELETE FROM tenants WHERE slug='${SLUG}'`);
+await d1(`INSERT INTO tenants (slug, guild_name, password_hash, discord_webhook)
+  VALUES ('${SLUG}', '推送验收百业', 'x', 'http://localhost:${STUB_PORT}/hook')`);
+await d1(`INSERT INTO settings (tenant, key, value) VALUES ('${SLUG}', 'reminder_enabled', '1')
+  ON CONFLICT(tenant, key) DO UPDATE SET value = excluded.value`);
+await d1(`INSERT INTO settings (tenant, key, value) VALUES ('${SLUG}', 'discord_guild_id', '${DGID}')
+  ON CONFLICT(tenant, key) DO UPDATE SET value = excluded.value`);
+await d1(`INSERT INTO users (discord_id, username, avatar, guilds_json)
+  VALUES ('2001', '车头甲', '', '["${DGID}"]')
+  ON CONFLICT(discord_id) DO UPDATE SET username = excluded.username, guilds_json = excluded.guilds_json`);
+await d1(`INSERT INTO user_oauth (discord_id, refresh_token, scope, refresh_state)
+  VALUES ('2001', 'fake-refresh', 'identify guilds guilds.members.read', 'ok')
+  ON CONFLICT(discord_id) DO UPDATE SET refresh_token = excluded.refresh_token, scope = excluded.scope, refresh_state = 'ok'`);
+await d1(`INSERT INTO guild_members (tenant, discord_id, nick, global_name, updated_at)
+  VALUES ('${SLUG}', '2001', '车头甲', 'GlobalA', ${nowSec})
+  ON CONFLICT(tenant, discord_id) DO UPDATE SET nick = excluded.nick, global_name = excluded.global_name`);
+await d1(`INSERT INTO events (tenant, title, type, description, starts_at_utc, max_slots, status, origin, created_by, creator_discord_id, dungeon)
+  VALUES ('${SLUG}', '推送验收车 · 今晚双十', 'activity', '', ${startsAt}, 10, 'open', 'member', '车头甲', '2001', '玉魄染青苍')`);
+const evRows = await d1(`SELECT id FROM events WHERE tenant='${SLUG}' ORDER BY id DESC LIMIT 1`);
+const eventId = evRows[0]?.id;
+check('夹具车已播种', !!eventId, `event=${eventId}`);
+await d1(`INSERT INTO signups (event_id, nickname, uid, weapon, discord_id)
+  VALUES (${eventId}, '车头甲', 'u2001', '破竹·樽', '2001')`);
+
+/* ---------- 起 wrangler dev ---------- */
+// 端口必须空闲: 上一轮残留的 dev 进程会冒名顶替 (kill 只杀 npx 包装层,
+// workerd 子进程会成孤儿), 先预检再起, 收尾按进程组杀干净。
+const portFree = await new Promise((resolve) => {
+  const s = http.createServer();
+  s.once('error', () => resolve(false));
+  s.listen(8797, () => s.close(() => resolve(true)));
+});
+if (!portFree) { console.log('FAIL  端口 8797 被占用 (残留 wrangler dev?), 先清理'); process.exit(1); }
+const devLog = [];
+const dev = spawn('npx', ['wrangler', 'dev', '--port', '8797', '--local',
+  '--var', `EXPO_PUSH_BASE:http://localhost:${STUB_PORT}`], { cwd: ROOT, detached: true });
+dev.stdout.on('data', (d) => devLog.push(String(d)));
+dev.stderr.on('data', (d) => devLog.push(String(d)));
+let up = false;
+for (let i = 0; i < 60 && !up; i++) {
+  try { const r = await fetch(WORKER + '/'); if (r.status) up = true; } catch { await sleep(1000); }
+}
+check('wrangler dev 已启动', up);
+await sleep(6000); // 排掉本地 DO 残留 alarm 的冷启动触发 (此时夹具车未到点, 无副作用)
+
+/* ---------- A) 注册/注销 ---------- */
+async function gql(query, variables, auth = true) {
+  const r = await fetch(WORKER + '/graphql', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', ...(auth ? { authorization: `Bearer ${JWT}` } : {}) },
+    body: JSON.stringify({ query, variables }),
+  });
+  return r.json();
+}
+const REG = 'mutation($t: String!, $p: String) { registerPushToken(token: $t, platform: $p) { ok error errorCode } }';
+const UNREG = 'mutation($t: String!) { unregisterPushToken(token: $t) { ok error errorCode } }';
+
+const r1 = await gql(REG, { t: FAKE_TOKEN, p: 'ios' });
+check('registerPushToken 合法令牌 ok', r1?.data?.registerPushToken?.ok === true, JSON.stringify(r1).slice(0, 160));
+let rows = await d1(`SELECT discord_id, token, platform FROM push_tokens WHERE discord_id='2001'`);
+check('push_tokens 落表 1 行', rows.length === 1 && rows[0].token === FAKE_TOKEN && rows[0].platform === 'ios', JSON.stringify(rows));
+
+const r2 = await gql(REG, { t: 'not-a-token', p: 'ios' });
+check('非法令牌被拒 (pushTokenInvalid)', r2?.data?.registerPushToken?.ok === false
+  && r2?.data?.registerPushToken?.errorCode === 'pushTokenInvalid', JSON.stringify(r2?.data?.registerPushToken || {}));
+
+const r3 = await gql(REG, { t: FAKE_TOKEN, p: 'ios' }, false);
+check('匿名注册被拒 (loginRequired)', r3?.data?.registerPushToken?.ok === false
+  && r3?.data?.registerPushToken?.errorCode === 'loginRequired', JSON.stringify(r3?.data?.registerPushToken || {}));
+
+const r4 = await gql(UNREG, { t: FAKE_TOKEN });
+check('unregisterPushToken ok', r4?.data?.unregisterPushToken?.ok === true);
+rows = await d1(`SELECT token FROM push_tokens WHERE discord_id='2001'`);
+check('注销后行消失', rows.length === 0);
+
+const r5 = await gql(REG, { t: FAKE_TOKEN, p: 'ios' });
+check('重新注册供 alarm 验收', r5?.data?.registerPushToken?.ok === true);
+
+/* ---------- B) WS 触发重排 -> alarm 双通道发送 ---------- */
+// 令牌就位 (直写模拟已注册状态) + 出发时间拨到 T-9 分钟 (提醒时刻已过)
+await d1(`INSERT INTO push_tokens (discord_id, token, platform, updated_at)
+  VALUES ('2001', '${FAKE_TOKEN}', 'ios', ${Math.floor(Date.now() / 1000)})
+  ON CONFLICT(discord_id, token) DO UPDATE SET platform = excluded.platform`);
+await d1(`UPDATE events SET starts_at_utc = ${Math.floor(Date.now() / 1000) + 540} WHERE id = ${eventId}`);
+const wsResult = await new Promise((resolve) => {
+  const key = crypto.randomBytes(16).toString('base64');
+  const req = http.request({
+    host: 'localhost', port: 8797, path: `/ws/guild/${SLUG}`,
+    headers: {
+      Connection: 'Upgrade', Upgrade: 'websocket',
+      'Sec-WebSocket-Key': key, 'Sec-WebSocket-Version': '13',
+      Cookie: `yy_session=${JWT}`,
+    },
+  });
+  req.on('upgrade', (res, socket) => { socket.destroy(); resolve('upgraded'); });
+  req.on('response', (res) => resolve('http-' + res.statusCode));
+  req.on('error', (e) => resolve('error-' + e.message));
+  req.end();
+  setTimeout(() => resolve('timeout'), 8000);
+});
+check('WS 连接触发 DO (101)', wsResult === 'upgraded', wsResult);
+
+let stubHit = null;
+for (let i = 0; i < 40 && !stubHit; i++) {
+  if (received.length) stubHit = received[0];
+  else await sleep(1000);
+}
+check('Discord stub 收到提醒 (通道未破坏)', !!stubHit);
+if (stubHit) {
+  check('Discord 文案含车名与就位确认首行',
+    String(stubHit.content || '').includes('推送验收车') && String(stubHit.content || '').includes('发起了就位确认'),
+    String(stubHit.content || '').split('\n')[0]);
+}
+const evAfter = await d1(`SELECT reminder_sent_at, reminder_error FROM events WHERE id=${eventId}`);
+check('events.reminder_sent_at 已落定', !!(evAfter[0] && evAfter[0].reminder_sent_at), JSON.stringify(evAfter[0] || {}));
+
+let cleaned = false;
+for (let i = 0; i < 60 && !cleaned; i++) {
+  rows = await d1(`SELECT token FROM push_tokens WHERE discord_id='2001'`);
+  if (rows.length === 0) cleaned = true;
+  else await sleep(1500);
+}
+check('Expo DeviceNotRegistered -> 假令牌自清', cleaned);
+check('Expo 发送端点被调用', expoCalls.length >= 1, `calls=${expoCalls.length}`);
+if (expoCalls.length) {
+  const msg = (expoCalls[0] || [])[0] || {};
+  check('Expo payload: to/文案/data 跳转齐全',
+    msg.to === FAKE_TOKEN
+    && String(msg.title || '').includes('推送验收百业')
+    && String(msg.body || '').includes('推送验收车')
+    && msg.data && msg.data.slug === SLUG && String(msg.data.groupingId) === String(eventId),
+    JSON.stringify(msg).slice(0, 220));
+}
+const pushLogLines = devLog.join('').split('\n').filter((l) => l.includes('[push]'));
+console.log('--- worker [push] 日志 ---');
+for (const l of pushLogLines) console.log(l.trim());
+check('worker 日志含 [push] 发送记录', pushLogLines.length > 0);
+if (fail > 0) {
+  console.log('--- worker 日志尾部 (诊断) ---');
+  for (const l of devLog.join('').split('\n').slice(-15)) console.log(l);
+}
+
+/* ---------- 收尾 ---------- */
+try { process.kill(-dev.pid, 'SIGTERM'); } catch { dev.kill('SIGTERM'); }
+stub.close();
+await d1Try(`DELETE FROM signups WHERE event_id=${eventId}`);
+await d1Try(`DELETE FROM events WHERE tenant='${SLUG}'`);
+await d1Try(`DELETE FROM settings WHERE tenant='${SLUG}'`);
+await d1Try(`DELETE FROM guild_members WHERE tenant='${SLUG}'`);
+await d1Try(`DELETE FROM tenants WHERE slug='${SLUG}'`);
+console.log(`\n== ${pass} passed, ${fail} failed ==`);
+process.exit(fail ? 1 : 0);

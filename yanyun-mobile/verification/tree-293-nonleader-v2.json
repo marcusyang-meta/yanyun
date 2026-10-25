@@ -1,0 +1,120 @@
+[
+  {
+    "__typename": "TextBlock",
+    "text": "今晚天赋车 · 冲层"
+  },
+  {
+    "__typename": "ChipRowBlock",
+    "chips": [
+      "天赋",
+      "报名中"
+    ]
+  },
+  {
+    "__typename": "TextBlock",
+    "text": "10/25周日 21:30 · 2/10 人"
+  },
+  {
+    "__typename": "TextBlock",
+    "text": "人人可管 · 无需管理码 — 点空位即可落座"
+  },
+  {
+    "__typename": "SectionBlock",
+    "secTitle": null,
+    "children": [
+      {
+        "__typename": "SectionHeaderBlock",
+        "text": "队伍名册"
+      },
+      {
+        "__typename": "SeatGridBlock",
+        "seats": [
+          {
+            "index": 0,
+            "occupied": true,
+            "nickname": "车头甲",
+            "action": null
+          },
+          {
+            "index": 1,
+            "occupied": true,
+            "nickname": "成员乙",
+            "action": null
+          },
+          {
+            "index": 2,
+            "occupied": false,
+            "nickname": null,
+            "action": {
+              "__typename": "JoinAction",
+              "seatIndex": 2
+            }
+          },
+          {
+            "index": 3,
+            "occupied": false,
+            "nickname": null,
+            "action": {
+              "__typename": "JoinAction",
+              "seatIndex": 3
+            }
+          },
+          {
+            "index": 4,
+            "occupied": false,
+            "nickname": null,
+            "action": {
+              "__typename": "JoinAction",
+              "seatIndex": 4
+            }
+          },
+          {
+            "index": 5,
+            "occupied": false,
+            "nickname": null,
+            "action": {
+              "__typename": "JoinAction",
+              "seatIndex": 5
+            }
+          },
+          {
+            "index": 6,
+            "occupied": false,
+            "nickname": null,
+            "action": {
+              "__typename": "JoinAction",
+              "seatIndex": 6
+            }
+          },
+          {
+            "index": 7,
+            "occupied": false,
+            "nickname": null,
+            "action": {
+              "__typename": "JoinAction",
+              "seatIndex": 7
+            }
+          },
+          {
+            "index": 8,
+            "occupied": false,
+            "nickname": null,
+            "action": {
+              "__typename": "JoinAction",
+              "seatIndex": 8
+            }
+          },
+          {
+            "index": 9,
+            "occupied": false,
+            "nickname": null,
+            "action": {
+              "__typename": "JoinAction",
+              "seatIndex": 9
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

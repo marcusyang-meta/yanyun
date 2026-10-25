@@ -1,0 +1,295 @@
+// 百业报名站 · 管理后台逻辑
+const $ = (s) => document.querySelector(s);
+const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const TYPE_NAME = { activity: '双十人本', talent: '天赋组队', race: '竞速' };
+const SLUG = (location.pathname.split('/').filter(Boolean)[0] || '');
+const API = '/api/' + SLUG + '/admin';
+const PUB = '/api/' + SLUG;
+let token = localStorage.getItem('yy_admin_token_' + SLUG) || '';
+let curEvId = null;
+let curEv = null;
+
+async function api(path, opts = {}) {
+  opts.headers = { ...(opts.headers || {}), authorization: 'Bearer ' + token };
+  const r = await fetch(path, opts);
+  if (r.status === 401) { logout(); throw new Error('登录已过期, 请重新登录'); }
+  const ct = r.headers.get('content-type') || '';
+  if (ct.includes('application/json')) {
+    const j = await r.json();
+    if (!j.ok) throw new Error(j.message || '请求失败');
+    return j;
+  }
+  return r;
+}
+function logout() {
+  token = ''; localStorage.removeItem('yy_admin_token_' + SLUG);
+  $('#dash').style.display = 'none'; $('#loginBox').style.display = 'block';
+}
+
+/* ---- 登录 ---- */
+$('#loginForm').onsubmit = async (e) => {
+  e.preventDefault();
+  const msg = $('#loginMsg');
+  msg.className = 'msg'; msg.textContent = '登录中…';
+  try {
+    const r = await fetch(API + '/login', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ password: new FormData(e.target).get('password') }),
+    });
+    const j = await r.json();
+    if (!j.ok) throw new Error(j.message);
+    token = j.token; localStorage.setItem('yy_admin_token_' + SLUG, token);
+    $('#loginBox').style.display = 'none'; $('#dash').style.display = 'block';
+    boot();
+  } catch (err) { msg.className = 'msg bad'; msg.textContent = err.message; }
+};
+$('#logoutBtn').onclick = logout;
+
+async function boot() {
+  await loadProfile();
+  await loadEvents();
+  await loadTeams();
+}
+
+async function loadProfile() {
+  const { profile } = await api(API + '/profile');
+  const f = $('#settingsForm');
+  f.guild_name.value = profile.guild_name || '';
+  f.announcement.value = profile.announcement || '';
+  try {
+    const d = await api(API + '/discord');
+    f.discord_webhook.value = d.discord_webhook || '';
+    f.discord_guild_id.value = d.discord_guild_id || '';
+  } catch {}
+  try {
+    const s = await api(PUB + '/settings');
+    $('#featTeams').checked = !!s.feature_fixed_teams;
+  } catch {}
+}
+
+$('#featTeams').onchange = async (e) => {
+  try {
+    await api(API + '/features', { method: 'PUT',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ feature_fixed_teams: e.target.checked }) });
+  } catch (err) { alert(err.message); e.target.checked = !e.target.checked; }
+};
+
+$('#settingsForm').onsubmit = async (e) => {
+  e.preventDefault();
+  const msg = $('#setMsg');
+  const fd = new FormData(e.target);
+  const data = Object.fromEntries(fd.entries());
+  try {
+    await api(API + '/profile', { method: 'PUT', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ guild_name: data.guild_name, announcement: data.announcement }) });
+    await api(API + '/discord', { method: 'PUT', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ discord_webhook: data.discord_webhook || '', discord_guild_id: (data.discord_guild_id || '').trim() }) });
+    msg.className = 'msg ok'; msg.textContent = '已保存';
+  } catch (err) { msg.className = 'msg bad'; msg.textContent = err.message; }
+};
+
+/* ---- 活动列表 ---- */
+async function loadEvents() {
+  const { events } = await api(API + '/events');
+  $('#evList').innerHTML = events.length ? events.map((e) => `
+    <div class="ev-row">
+      <div><div class="t">${esc(e.title)}</div>
+      <div class="m"><span class="badge ${e.type}">${TYPE_NAME[e.type]}</span> ${e.origin === 'member' ? '<span class="badge car">车友发车</span>' : ''} ${e.status === 'open' ? '报名中' : '已截止'} · ${e.signup_count}/${e.max_slots}人 ${e.starts_at_utc ? '· ' + new Date(e.starts_at_utc * 1000).toLocaleString(undefined, { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }) : (e.starts_at ? '· ' + esc(e.starts_at.replace('T', ' ')) : '')}</div></div>
+      <button class="ghost" data-id="${e.id}">管理 →</button>
+    </div>`).join('') : '<div class="empty">还没有活动, 点右上新建一个</div>';
+  $('#evList').querySelectorAll('button').forEach((b) => b.onclick = () => openManage(b.dataset.id, events));
+}
+
+/* ---- 新建/编辑 ---- */
+$('#newEvBtn').onclick = () => {
+  $('#evModalTitle').textContent = '新建活动';
+  $('#evForm').reset(); $('#evForm').id.value = '';
+  $('#evModal').classList.add('open');
+};
+$('#evCancel').onclick = () => $('#evModal').classList.remove('open');
+$('#evForm').onsubmit = async (e) => {
+  e.preventDefault();
+  const msg = $('#evMsg');
+  const fd = new FormData(e.target);
+  const data = Object.fromEntries(fd.entries());
+  const id = data.id; delete data.id;
+  if (data.starts_at) {
+    data.starts_at_utc = Math.floor(new Date(data.starts_at).getTime() / 1000);
+    data.starts_at = data.starts_at.replace('T', ' ') + ':00';
+  }
+  try {
+    if (id) await api(API + '/events/' + id, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify(data) });
+    else await api(API + '/events', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(data) });
+    $('#evModal').classList.remove('open');
+    loadEvents();
+    if (curEvId) openManage(curEvId);
+  } catch (err) { msg.className = 'msg bad'; msg.textContent = err.message; }
+};
+
+/* ---- 单个活动管理 ---- */
+async function openManage(id, cache) {
+  curEvId = id;
+  const { events } = cache ? { events: cache } : await api(API + '/events');
+  curEv = events.find((e) => e.id == id);
+  if (!curEv) return;
+  $('#evTitle').textContent = curEv.title;
+  $('#evDetailBox').hidden = false;
+  $('#evDetailBox').scrollIntoView({ behavior: 'smooth' });
+  await loadSignups();
+  $('#raceBox').hidden = curEv.type !== 'race';
+  if (curEv.type === 'race') await loadResults();
+}
+$('#evBack').onclick = () => { $('#evDetailBox').hidden = true; curEvId = null; loadEvents(); };
+
+$('#editEvBtn').onclick = () => {
+  $('#evModalTitle').textContent = '编辑活动';
+  const f = $('#evForm');
+  f.id.value = curEv.id; f.title.value = curEv.title; f.type.value = curEv.type;
+  f.starts_at.value = (curEv.starts_at || '').slice(0, 16).replace(' ', 'T');
+  f.max_slots.value = curEv.max_slots; f.meet_info.value = curEv.meet_info || '';
+  f.description.value = curEv.description || '';
+  $('#evModal').classList.add('open');
+};
+$('#closeEvBtn').onclick = async () => {
+  const to = curEv.status === 'open' ? 'closed' : 'open';
+  if (!confirm(curEv.status === 'open' ? '截止该活动报名?' : '重新开放报名?')) return;
+  await api(API + '/events/' + curEvId, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ status: to }) });
+  openManage(curEvId);
+};
+$('#delEvBtn').onclick = async () => {
+  if (!confirm('删除活动及全部报名/成绩? 不可恢复!')) return;
+  await api(API + '/events/' + curEvId, { method: 'DELETE' });
+  $('#evDetailBox').hidden = true; curEvId = null; loadEvents();
+};
+$('#exportBtn').onclick = async () => {
+  const r = await api(API + '/events/' + curEvId + '/export.csv');
+  const blob = await r.blob();
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '报名表.csv'; a.click();
+  URL.revokeObjectURL(a.href);
+};
+
+async function loadSignups() {
+  const { signups } = await api(`${API}/events/${curEvId}/signups`);
+  $('#sgCount').textContent = signups.length + '人';
+  $('#sgTable').innerHTML = `<tr><th>#</th><th>昵称</th><th>UID</th><th>职责</th><th>流派</th><th>联系方式</th><th>队伍/队员</th><th>备注</th><th></th></tr>` +
+    signups.map((x, i) => `<tr>
+      <td>${i+1}</td><td>${esc(x.nickname)}</td><td>${esc(x.uid)}</td><td>${esc(x.role)}</td>
+      <td>${esc(x.weapon)}</td><td>${esc(x.contact)}</td>
+      <td>${esc([x.team_name, x.members].filter(Boolean).join(' / '))}</td>
+      <td>${esc(x.note)}</td>
+      <td><button class="danger" data-id="${x.id}">移除</button></td>
+    </tr>`).join('');
+  $('#sgTable').querySelectorAll('button').forEach((b) => b.onclick = async () => {
+    if (!confirm('移除该报名?')) return;
+    await api(API + '/signups/' + b.dataset.id, { method: 'DELETE' });
+    loadSignups();
+  });
+}
+
+$('#resultForm').onsubmit = async (e) => {
+  e.preventDefault();
+  const msg = $('#resMsg');
+  const data = Object.fromEntries(new FormData(e.target).entries());
+  msg.className = 'msg'; msg.textContent = '登记中…';
+  try {
+    await api(`${API}/events/${curEvId}/results`, { method: 'POST',
+      headers: { 'content-type': 'application/json' }, body: JSON.stringify(data) });
+    msg.className = 'msg ok'; msg.textContent = '已登记';
+    e.target.reset(); loadResults();
+  } catch (err) { msg.className = 'msg bad'; msg.textContent = err.message; }
+};
+async function loadResults() {
+  const { results } = await api(PUB + '/events/' + curEvId);
+  $('#resTable').innerHTML = `<tr><th>名次</th><th>队伍</th><th>成绩</th><th>队员</th><th></th></tr>` +
+    (results.results || []).map((r, i) => `<tr>
+      <td class="${i === 0 ? 'rank1' : ''}">${i+1}</td><td>${esc(r.team_name)}</td>
+      <td>${esc(r.time_str)}</td><td>${esc(r.members)}</td>
+      <td><button class="danger" data-id="${r.id}">删除</button></td>
+    </tr>`).join('');
+  $('#resTable').querySelectorAll('button').forEach((b) => b.onclick = async () => {
+    if (!confirm('删除该成绩?')) return;
+    await api(API + '/results/' + b.dataset.id, { method: 'DELETE' });
+    loadResults();
+  });
+}
+
+if (token) { $('#loginBox').style.display = 'none'; $('#dash').style.display = 'block'; boot().catch(() => logout()); }
+
+/* ---- 固定队管理 ---- */
+async function loadTeams() {
+  const { teams } = await api(PUB + '/fixed-teams');
+  const box = $('#teamList');
+  if (!teams.length) { box.innerHTML = '<div class="empty">暂无固定队</div>'; return; }
+  box.innerHTML = teams.map((t) => `
+    <div class="ev-row" style="display:block">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><div class="t">${esc(t.name)}</div>
+        <div class="m">${esc(t.description || '')} · ${(t.members || []).length}人</div></div>
+        <div style="display:flex;gap:6px">
+          <button class="ghost" data-act="addm" data-id="${t.id}">+ 队员</button>
+          <button class="ghost" data-act="edit" data-id="${t.id}">✏️</button>
+          <button class="danger" data-act="del" data-id="${t.id}">删除</button>
+        </div>
+      </div>
+      <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px">
+        ${(t.members || []).map((m) => `
+          <span class="seat filled" style="min-width:0;padding:6px 10px">
+            <span class="sn">${esc(m.nickname)}</span>
+            <span class="sr">${esc(m.weapon || '')}${m.role ? '·' + esc(m.role) : ''}</span>
+            <button class="ghost" style="padding:2px 6px;margin-left:4px" data-act="delm" data-id="${m.id}" title="删除">×</button>
+          </span>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+  box.querySelectorAll('button').forEach((b) => {
+    const id = parseInt(b.dataset.id, 10);
+    if (b.dataset.act === 'del') b.onclick = async () => {
+      if (!confirm('删除该固定队?')) return;
+      await api(API + '/fixed-teams/' + id, { method: 'DELETE' });
+      loadTeams();
+    };
+    if (b.dataset.act === 'edit') b.onclick = async () => {
+      const t = teams.find((x) => x.id === id);
+      const name = prompt('队伍名', t.name);
+      if (name === null) return;
+      const desc = prompt('队伍描述', t.description || '');
+      if (desc === null) return;
+      await api(API + '/fixed-teams/' + id, { method: 'PUT',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ name, description: desc }) });
+      loadTeams();
+    };
+    if (b.dataset.act === 'addm') b.onclick = async () => {
+      const nickname = prompt('游戏昵称');
+      if (!nickname) return;
+      const weapon = prompt('流派 (如 破竹·鸢，奶妈填 牵丝·霖)', '');
+      if (weapon === null) return;
+      const note = prompt('备注 (可选)', '') || '';
+      try {
+        await api(API + '/fixed-teams/' + id + '/members', { method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ nickname, weapon, note }) });
+        loadTeams();
+      } catch (e) { alert(e.message); }
+    };
+    if (b.dataset.act === 'delm') b.onclick = async () => {
+      if (!confirm('删除该队员?')) return;
+      await api(API + '/fixed-teams/members/' + id, { method: 'DELETE' });
+      loadTeams();
+    };
+  });
+}
+
+$('#newTeamBtn').onclick = async () => {
+  const name = prompt('固定队名称 (如 周六固定团)');
+  if (!name) return;
+  const description = prompt('描述 (如 每周六晚8点 双十)', '') || '';
+  const { id } = await api(API + '/fixed-teams', { method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ name, description }) });
+  loadTeams();
+};

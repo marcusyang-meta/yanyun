@@ -1,0 +1,1 @@
+{"description":"燕云 GraphQL 契约: schema.graphql 为 canonical SDL 唯一源; scripts/merge-schema.mjs 生成 relay-compiler 用的合并 schema","main":"schema.graphql","name":"@yanyun/schema","private":true,"version":"0.0.0"}

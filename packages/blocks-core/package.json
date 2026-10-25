@@ -1,0 +1,28 @@
+{
+  "description": "Bloks-lite 平台中立核心: Block/Action 类型、递归 fragment 集、walker (createBlockRenderer)、dispatchAction。禁止 import react-native / DOM (平台叶子由宿主经 BlockLeafRegistry 注入)。",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts",
+      "types": "./src/index.ts"
+    }
+  },
+  "main": "src/index.ts",
+  "name": "@yanyun/blocks-core",
+  "peerDependencies": {
+    "react": ">=18",
+    "react-relay": ">=18",
+    "relay-runtime": ">=18"
+  },
+  "private": true,
+  "scripts": {
+    "relay": "relay-compiler ../../relay.config.json",
+    "typecheck": "tsc --noEmit"
+  },
+  "types": "src/index.ts",
+  "version": "0.0.0",
+  "dependencies": {
+    "react": "19.3.0",
+    "react-relay": "^21.0.1",
+    "relay-runtime": "^21.0.1"
+  }
+}
