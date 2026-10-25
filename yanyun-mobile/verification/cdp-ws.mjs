@@ -4,11 +4,11 @@
 import { createRequire } from 'node:module';
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
-const require = createRequire('/home/hatch/workspace/yanyun-mobile/package.json');
+const require = createRequire('/home/hatch/workspace/yanyun/yanyun-mobile/package.json');
 const WebSocket = require('ws');
 const APP = 'http://127.0.0.1:8902';
 const BACKEND = 'http://127.0.0.1:8787';
-const OUT = '/home/hatch/workspace/yanyun-mobile/screenshots';
+const OUT = '/home/hatch/workspace/yanyun/yanyun-mobile/screenshots';
 const CHROME = '/home/hatch/.cache/ms-playwright/chromium_headless_shell-1248/chrome-headless-shell-linux64/chrome-headless-shell';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let pass = 0, fail = 0;
