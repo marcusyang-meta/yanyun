@@ -9,12 +9,14 @@ enum GroupingTab {
   ACTIVITY  # 双十人本
   TALENT    # 天赋组队
   RACE      # 竞速报名
+  TOWER     # 爬塔
 }
 
 enum GroupingType {
   ACTIVITY
   TALENT
   RACE
+  TOWER
 }
 
 enum DexTab {
@@ -113,35 +115,47 @@ type GuildPage {
 # 服务端组合什么对象就是权限与分发决定本身: 车头的树里才有解散按钮
 # 对象, 本人座位才有离队动作对象, 客户端零权限分支。
 
+# Relay server 3D (@module) 协议标量: js 字段的返回值是不透明引用,
+# 服务端把 module 参数原样回传, 客户端据此经 operationLoader /
+# MatchContainer loader 解析出拆分操作与渲染组件。
+scalar JSDependency
+
 interface Block {
   children: [Block!]!
+  # server 3D: 每个具体积木经此字段回传 @module 选中的组件/操作引用。
+  js(module: String!, id: String): JSDependency
 }
 
 # 容器积木: 分区 (可选标题 + 子积木), 递归在此继续
 type SectionBlock implements Block {
   title: String
   children: [Block!]!
+  js(module: String!, id: String): JSDependency
 }
 
 type SectionHeaderBlock implements Block {
   text: String!
   children: [Block!]!
+  js(module: String!, id: String): JSDependency
 }
 
 type TextBlock implements Block {
   text: String!
   variant: String! # title | meta | muted | body
   children: [Block!]!
+  js(module: String!, id: String): JSDependency
 }
 
 type BannerBlock implements Block {
   text: String!
   children: [Block!]!
+  js(module: String!, id: String): JSDependency
 }
 
 type ChipRowBlock implements Block {
   chips: [String!]!
   children: [Block!]!
+  js(module: String!, id: String): JSDependency
 }
 
 type GroupingCardBlock implements Block {
@@ -154,11 +168,13 @@ type GroupingCardBlock implements Block {
   statusText: String!
   action: Action
   children: [Block!]!
+  js(module: String!, id: String): JSDependency
 }
 
 type SeatGridBlock implements Block {
   seats: [SeatEntry!]!
   children: [Block!]!
+  js(module: String!, id: String): JSDependency
 }
 
 # 座位条目 (数据叶子, 非积木): 动作对象按观看者在服务端生成
@@ -177,16 +193,19 @@ type ActionButtonBlock implements Block {
   style: String! # primary | ghost | danger
   action: Action
   children: [Block!]!
+  js(module: String!, id: String): JSDependency
 }
 
 type EmptyStateBlock implements Block {
   text: String!
   children: [Block!]!
+  js(module: String!, id: String): JSDependency
 }
 
 type SpacerBlock implements Block {
   size: Int!
   children: [Block!]!
+  js(module: String!, id: String): JSDependency
 }
 
 # 版本兜底: 客户端 blocksVersion 低于某积木所需版本时, 服务端以此对象
@@ -194,6 +213,7 @@ type SpacerBlock implements Block {
 type FallbackBlock implements Block {
   text: String!
   children: [Block!]!
+  js(module: String!, id: String): JSDependency
 }
 
 # ---------- 动作 (带类型对象; 客户端按类型映射到已知 mutation/导航) ----------
@@ -262,9 +282,11 @@ type GroupingListPage {
   tabActivityLabel: String!
   tabTalentLabel: String!
   tabRaceLabel: String!
+  tabTowerLabel: String!
   typeShortActivity: String!
   typeShortTalent: String!
   typeShortRace: String!
+  typeShortTower: String!
   typeShortGather: String!
   typeShortExplore: String!
   prevWeekLabel: String!
@@ -283,11 +305,13 @@ type GroupingListPage {
   formTypeActivityLabel: String!
   formTypeTalentLabel: String!
   formTypeRaceLabel: String!
+  formTypeTowerLabel: String!
   formCapacityTemplate: String!
   formHintActivity: String!
   formHintDungeonTemplate: String!
   formHintTalent: String!
   formHintRace: String!
+  formHintTower: String!
   formTitleLabel: String!
   formTitlePlaceholder: String!
   formStartsLabel: String!
@@ -360,6 +384,7 @@ type GroupingDetailPage {
   typeShortActivity: String!
   typeShortTalent: String!
   typeShortRace: String!
+  typeShortTower: String!
   typeShortGather: String!
   typeShortExplore: String!
   # 座位文案
@@ -388,11 +413,13 @@ type GroupingDetailPage {
   formTypeActivityLabel: String!
   formTypeTalentLabel: String!
   formTypeRaceLabel: String!
+  formTypeTowerLabel: String!
   formCapacityTemplate: String!
   formHintActivity: String!
   formHintDungeonTemplate: String!
   formHintTalent: String!
   formHintRace: String!
+  formHintTower: String!
   formTitleLabel: String!
   formTitlePlaceholder: String!
   formStartsLabel: String!

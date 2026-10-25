@@ -29,8 +29,8 @@ import type { documentsGroupingListBlocksQuery } from '../__generated__/document
 // 页内页签同义), 不走路由, 登录态与当前百业不丢。
 // 刷新 (WS ping / 下拉) 走命令式 network 重查写入 store 的同一路径,
 // 已挂载的查询订阅 store 更新直接重渲染, 不闪 Suspense 回退。
-const TAB_KEYS = ['ACTIVITY', 'TALENT', 'RACE'] as const;
-const TAB_FALLBACK_LABELS = ['双十人本', '天赋组队', '竞速报名'];
+const TAB_KEYS = ['ACTIVITY', 'TALENT', 'RACE', 'TOWER'] as const;
+const TAB_FALLBACK_LABELS = ['双十人本', '天赋组队', '竞速报名', '爬塔'];
 
 type TabKey = (typeof TAB_KEYS)[number];
 type Props = { slug: string; name: string; readOnly: boolean; nick: string; gameVersion?: string };
@@ -208,7 +208,7 @@ function CreateCarButton({ slug, onPress }: { slug: string; onPress: () => void 
 }
 
 // 类型选择: Web 的 .yy-fchip 幽灵片行 (非整宽分段控件),
-// 标签 tabActivityLabel/tabTalentLabel/tabRaceLabel 由列表页 shell 下发。
+// 标签 tabActivityLabel/tabTalentLabel/tabRaceLabel/tabTowerLabel 由列表页 shell 下发。
 function ChipsRow({ labels, tab, onChange }: { labels: string[]; tab: TabKey; onChange: (t: TabKey) => void }) {
   return (
     <View style={s.chips}>
@@ -239,6 +239,7 @@ function TypeChips({ slug, tab, onChange }: { slug: string; tab: TabKey; onChang
     page?.tabActivityLabel ?? TAB_FALLBACK_LABELS[0],
     page?.tabTalentLabel ?? TAB_FALLBACK_LABELS[1],
     page?.tabRaceLabel ?? TAB_FALLBACK_LABELS[2],
+    page?.tabTowerLabel ?? TAB_FALLBACK_LABELS[3],
   ];
   return <ChipsRow labels={labels} tab={tab} onChange={onChange} />;
 }

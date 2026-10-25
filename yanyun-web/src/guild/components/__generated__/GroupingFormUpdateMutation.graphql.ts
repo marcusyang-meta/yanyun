@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<88ee0c3111f6d51da45461bc2325b8d8>>
+ * @generated SignedSource<<5622f4b479e00e1644d9aaf45bacac88>>
  * @lightSyntaxTransform
  */
 
@@ -8,7 +8,7 @@
 // @ts-nocheck
 
 import { ConcreteRequest } from 'relay-runtime';
-export type GroupingType = "ACTIVITY" | "RACE" | "TALENT" | "%future added value";
+export type GroupingType = "ACTIVITY" | "RACE" | "TALENT" | "TOWER" | "%future added value";
 export type UpdateGroupingInput = {
   seats?: ReadonlyArray<SeatInput> | null | undefined;
   startsAt?: string | null | undefined;

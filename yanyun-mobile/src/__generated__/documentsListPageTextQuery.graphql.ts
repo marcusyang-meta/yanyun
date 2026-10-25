@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<de2c08a7da1a0c4e9195c3b20e9f035e>>
+ * @generated SignedSource<<be03e81d107e29938b7a3f017c22b483>>
  * @lightSyntaxTransform
  */
 
@@ -8,7 +8,7 @@
 // @ts-nocheck
 
 import { ConcreteRequest } from 'relay-runtime';
-export type GroupingTab = "ACTIVITY" | "RACE" | "TALENT" | "%future added value";
+export type GroupingTab = "ACTIVITY" | "RACE" | "TALENT" | "TOWER" | "%future added value";
 export type documentsListPageTextQuery$variables = {
   slug: string;
   tab: GroupingTab;
@@ -27,6 +27,7 @@ export type documentsListPageTextQuery$data = {
     readonly formHintDungeonTemplate: string;
     readonly formHintRace: string;
     readonly formHintTalent: string;
+    readonly formHintTower: string;
     readonly formHourTemplate: string;
     readonly formMinuteTemplate: string;
     readonly formMonthTemplate: string;
@@ -49,15 +50,18 @@ export type documentsListPageTextQuery$data = {
     readonly formTypeLabel: string;
     readonly formTypeRaceLabel: string;
     readonly formTypeTalentLabel: string;
+    readonly formTypeTowerLabel: string;
     readonly newCarLabel: string;
     readonly sealText: string;
     readonly statusOpenLabel: string;
     readonly tabActivityLabel: string;
     readonly tabRaceLabel: string;
     readonly tabTalentLabel: string;
+    readonly tabTowerLabel: string;
     readonly typeShortActivity: string;
     readonly typeShortRace: string;
     readonly typeShortTalent: string;
+    readonly typeShortTower: string;
     readonly weekHeaderTemplate: string;
   };
   readonly viewer: {
@@ -152,6 +156,13 @@ v1 = [
         "alias": null,
         "args": null,
         "kind": "ScalarField",
+        "name": "tabTowerLabel",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
         "name": "sealText",
         "storageKey": null
       },
@@ -222,6 +233,13 @@ v1 = [
         "alias": null,
         "args": null,
         "kind": "ScalarField",
+        "name": "formTypeTowerLabel",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
         "name": "formCapacityTemplate",
         "storageKey": null
       },
@@ -251,6 +269,13 @@ v1 = [
         "args": null,
         "kind": "ScalarField",
         "name": "formHintRace",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "formHintTower",
         "storageKey": null
       },
       {
@@ -427,6 +452,13 @@ v1 = [
         "kind": "ScalarField",
         "name": "typeShortRace",
         "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "typeShortTower",
+        "storageKey": null
       }
     ],
     "storageKey": null
@@ -450,16 +482,16 @@ return {
     "selections": (v1/*:: as any*/)
   },
   "params": {
-    "cacheID": "c8dcd05ac560a16eb76aa085b52339f7",
+    "cacheID": "8ed027b05354b8148317fc72aca17c2b",
     "id": null,
     "metadata": {},
     "name": "documentsListPageTextQuery",
     "operationKind": "query",
-    "text": "query documentsListPageTextQuery(\n  $slug: String!\n  $tab: GroupingTab!\n) {\n  viewer {\n    commonUnknownErrorText\n  }\n  groupingListPage(slug: $slug, tab: $tab) {\n    newCarLabel\n    tabActivityLabel\n    tabTalentLabel\n    tabRaceLabel\n    sealText\n    statusOpenLabel\n    weekHeaderTemplate\n    currentVersion\n    formCreateTitle\n    formEditTitle\n    formTypeLabel\n    formTypeActivityLabel\n    formTypeTalentLabel\n    formTypeRaceLabel\n    formCapacityTemplate\n    formHintActivity\n    formHintDungeonTemplate\n    formHintTalent\n    formHintRace\n    formTitleLabel\n    formTitlePlaceholder\n    formStartsLabel\n    formMonthTemplate\n    formDayTemplate\n    formHourTemplate\n    formMinuteTemplate\n    formDungeonLabel\n    formDungeonNoneLabel\n    formNicknameLabel\n    formNicknamePlaceholder\n    formSectLabel\n    formCancelLabel\n    formSubmitCreateLabel\n    formSubmitEditLabel\n    formSubmittingLabel\n    formToastSect\n    formToastSaved\n    formToastSaveFailedTemplate\n    formToastPosted\n    formToastCreateFailedTemplate\n    formTitleTemplate\n    typeShortActivity\n    typeShortTalent\n    typeShortRace\n  }\n}\n"
+    "text": "query documentsListPageTextQuery(\n  $slug: String!\n  $tab: GroupingTab!\n) {\n  viewer {\n    commonUnknownErrorText\n  }\n  groupingListPage(slug: $slug, tab: $tab) {\n    newCarLabel\n    tabActivityLabel\n    tabTalentLabel\n    tabRaceLabel\n    tabTowerLabel\n    sealText\n    statusOpenLabel\n    weekHeaderTemplate\n    currentVersion\n    formCreateTitle\n    formEditTitle\n    formTypeLabel\n    formTypeActivityLabel\n    formTypeTalentLabel\n    formTypeRaceLabel\n    formTypeTowerLabel\n    formCapacityTemplate\n    formHintActivity\n    formHintDungeonTemplate\n    formHintTalent\n    formHintRace\n    formHintTower\n    formTitleLabel\n    formTitlePlaceholder\n    formStartsLabel\n    formMonthTemplate\n    formDayTemplate\n    formHourTemplate\n    formMinuteTemplate\n    formDungeonLabel\n    formDungeonNoneLabel\n    formNicknameLabel\n    formNicknamePlaceholder\n    formSectLabel\n    formCancelLabel\n    formSubmitCreateLabel\n    formSubmitEditLabel\n    formSubmittingLabel\n    formToastSect\n    formToastSaved\n    formToastSaveFailedTemplate\n    formToastPosted\n    formToastCreateFailedTemplate\n    formTitleTemplate\n    typeShortActivity\n    typeShortTalent\n    typeShortRace\n    typeShortTower\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "3277a53172f8851c2eef61ed09d4d4d3";
+(node as any).hash = "9bd39440d947b49d6d0e02d91de67973";
 
 export default node;

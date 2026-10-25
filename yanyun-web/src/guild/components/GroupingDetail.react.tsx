@@ -41,6 +41,7 @@ const GroupingDetailQueryNode = graphql`
       typeShortActivity
       typeShortTalent
       typeShortRace
+      typeShortTower
       typeShortGather
       typeShortExplore
       seatEmptyJoinLabel
@@ -67,11 +68,13 @@ const GroupingDetailQueryNode = graphql`
       formTypeActivityLabel
       formTypeTalentLabel
       formTypeRaceLabel
+      formTypeTowerLabel
       formCapacityTemplate
       formHintActivity
       formHintDungeonTemplate
       formHintTalent
       formHintRace
+      formHintTower
       formTitleLabel
       formTitlePlaceholder
       formStartsLabel
@@ -144,7 +147,7 @@ const page: any = (data as any)?.groupingDetailPage ?? {};
 const g = page?.grouping;
 const unknownErrorText: string = (data as any)?.viewer?.commonUnknownErrorText ?? '';
 const typeShort: Record<string, string> = {
-ACTIVITY: page.typeShortActivity, TALENT: page.typeShortTalent, RACE: page.typeShortRace,
+ACTIVITY: page.typeShortActivity, TALENT: page.typeShortTalent, RACE: page.typeShortRace, TOWER: page.typeShortTower,
 GATHER: page.typeShortGather, EXPLORE: page.typeShortExplore,
 };
 const seatText = { ...page, unknownErrorText };

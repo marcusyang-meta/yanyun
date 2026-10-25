@@ -15,7 +15,7 @@ import {
 } from './reminder.js';
 import { getHeirloomConfig, sendHeirloomTest, heirloomStatusFor } from './heirloompush.js';
 
-const TYPES = { activity: '双十人本', talent: '天赋组队', race: '竞速', gather: '采集', explore: '探索' };
+const TYPES = { activity: '双十人本', talent: '天赋组队', race: '竞速', tower: '爬塔', gather: '采集', explore: '探索' };
 const ROLES = ['输出', '承伤', '奶', '治疗', '随意'];
 const RESERVED = new Set(['api', 'admin', 'hub', 'hub-admin', 'gadmin', 'index',
   'bosses', 'tenants', 'onboard', 'login', 'settings', 'events', 'static',
@@ -1809,7 +1809,7 @@ function fmtCarTimeUtc(sec) {
   return `${week[d.getUTCDay()]} ${p(d.getUTCHours())}:${p(d.getUTCMinutes())}`;
 }
 
-const CAR_TYPE_LABEL = { activity: '双十人本', talent: '天赋组队', race: '竞速报名' };
+const CAR_TYPE_LABEL = { activity: '双十人本', talent: '天赋组队', race: '竞速报名', tower: '爬塔' };
 
 function hubOgTags() {
   return [
