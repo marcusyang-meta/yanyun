@@ -192,7 +192,7 @@ function bearerToken(c) {
 
 // dev 表面识别 (与 graphql.js 同规则): 预览站 / 本地开发来源能看到 dev_only 百业,
 // 生产来源看不到。依据 Origin / Referer 的 hostname —— 展示层 gate, 非安全边界。
-const DEV_HOSTS = new Set(['yanyun-web-preview.tbdlab.workers.dev', 'localhost', '127.0.0.1']);
+const DEV_HOSTS = new Set(['yanyun-web-preview.tbdlab.workers.dev', 'release-yanyun.tbdlab.workers.dev', 'localhost', '127.0.0.1']);
 function isDevRequestC(c) {
   try {
     const h = c.req.header('origin') || c.req.header('referer') || '';

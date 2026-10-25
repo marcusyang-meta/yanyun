@@ -146,7 +146,7 @@ async function setTenantSetting(db, slug, key, value) {
  * 请求能照常看到它: 预览站 (yanyun-web-preview) 与本地开发 (localhost/127.0.0.1)。
  * 依据请求 Origin (跨源 fetch 必带) / Referer 的 hostname 判断 —— 这是
  * 展示层 gate, 不是安全边界 (demo 本就不含真实数据)。 */
-const DEV_HOSTS = new Set(['yanyun-web-preview.tbdlab.workers.dev', 'localhost', '127.0.0.1']);
+const DEV_HOSTS = new Set(['yanyun-web-preview.tbdlab.workers.dev', 'release-yanyun.tbdlab.workers.dev', 'localhost', '127.0.0.1']);
 function isDevRequest(request) {
   try {
     const h = (request && request.headers && (request.headers.get('origin') || request.headers.get('referer'))) || '';
