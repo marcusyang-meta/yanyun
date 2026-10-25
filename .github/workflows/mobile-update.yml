@@ -2,10 +2,11 @@ name: mobile-update
 
 # 发布 Expo OTA 更新到 preview 频道 (稳定链接 exp://u.expo.dev/...?channel-name=preview)。
 # 本机出口网络不稳, 发布统一走 CI (GitHub 网络直连 Expo)。
+# 发布前先 expo export 冒烟: 本地构建不过就不许发 OTA。
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [master]
     paths:
       - 'yanyun-mobile/**'
       - 'packages/blocks-core/**'
@@ -23,6 +24,11 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
+      - name: Smoke build (expo export must pass before publishing)
+        working-directory: yanyun-mobile
+        env:
+          EXPO_PUBLIC_API_URL: https://yanyun.tbdlab.workers.dev
+        run: npx expo export --platform ios --output-dir /tmp/expo-smoke
       - name: EAS Update (preview)
         working-directory: yanyun-mobile
         env:
