@@ -12,6 +12,7 @@ const TABS = [
   { key: 'ACTIVITY' },
   { key: 'TALENT' },
   { key: 'RACE' },
+  { key: 'TOWER' },
 ] as const;
 
 type TabKey = typeof TABS[number]['key'];
@@ -29,9 +30,11 @@ const GroupingListQueryNode = graphql`
             tabActivityLabel
             tabTalentLabel
             tabRaceLabel
+            tabTowerLabel
             typeShortActivity
             typeShortTalent
             typeShortRace
+            typeShortTower
             typeShortGather
             typeShortExplore
             prevWeekLabel
@@ -49,11 +52,13 @@ const GroupingListQueryNode = graphql`
             formTypeActivityLabel
             formTypeTalentLabel
             formTypeRaceLabel
+            formTypeTowerLabel
             formCapacityTemplate
             formHintActivity
             formHintDungeonTemplate
             formHintTalent
             formHintRace
+            formHintTower
             formTitleLabel
             formTitlePlaceholder
             formStartsLabel
@@ -96,9 +101,11 @@ const GroupingListQueryNode = graphql`
             tabActivityLabel
             tabTalentLabel
             tabRaceLabel
+            tabTowerLabel
             typeShortActivity
             typeShortTalent
             typeShortRace
+            typeShortTower
             typeShortGather
             typeShortExplore
             prevWeekLabel
@@ -116,11 +123,13 @@ const GroupingListQueryNode = graphql`
             formTypeActivityLabel
             formTypeTalentLabel
             formTypeRaceLabel
+            formTypeTowerLabel
             formCapacityTemplate
             formHintActivity
             formHintDungeonTemplate
             formHintTalent
             formHintRace
+            formHintTower
             formTitleLabel
             formTitlePlaceholder
             formStartsLabel
@@ -175,10 +184,10 @@ function GroupingList({ queryRef, tab, onTabChange, onSelect, interactive = true
   const page: any = (data as any)?.viewer?.guild?.groupings ?? {};
   const all: any[] = page?.groupings ?? [];
   const tabLabel: Record<string, string> = {
-    ACTIVITY: page.tabActivityLabel, TALENT: page.tabTalentLabel, RACE: page.tabRaceLabel,
+    ACTIVITY: page.tabActivityLabel, TALENT: page.tabTalentLabel, RACE: page.tabRaceLabel, TOWER: page.tabTowerLabel,
   };
   const typeShort: Record<string, string> = {
-    ACTIVITY: page.typeShortActivity, TALENT: page.typeShortTalent, RACE: page.typeShortRace,
+    ACTIVITY: page.typeShortActivity, TALENT: page.typeShortTalent, RACE: page.typeShortRace, TOWER: page.typeShortTower,
     GATHER: page.typeShortGather, EXPLORE: page.typeShortExplore,
   };
   const { start, end } = getWeekRange(weekOffset);

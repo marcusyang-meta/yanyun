@@ -10,7 +10,7 @@ import { parseStartsAt } from './format';
  * 影响 mutation 本身的完成回调。
  */
 
-const TABS = ['ACTIVITY', 'TALENT', 'RACE'] as const;
+const TABS = ['ACTIVITY', 'TALENT', 'RACE', 'TOWER'] as const;
 
 function guildRecord(store: any, slug: string): any {
   try {

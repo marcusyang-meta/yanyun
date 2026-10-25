@@ -68,7 +68,7 @@ export const GroupingListBlocksQuery = graphql`
     groupingListPage(slug: $slug, tab: $tab) {
       blocks(blocksVersion: $blocksVersion, weekOffset: $weekOffset) {
         __typename
-        ...fragments_BlockNode1
+        ...fragments_BlockNode1Match
       }
     }
   }
@@ -78,7 +78,7 @@ export const GroupingDetailBlocksQuery = graphql`
   query documentsGroupingDetailBlocksQuery($slug: String, $id: ID!, $blocksVersion: Int) {
     groupingDetailPage(slug: $slug, id: $id) {
       blocks(blocksVersion: $blocksVersion) {
-        ...fragments_BlockNode1
+        ...fragments_BlockNode1Match
       }
     }
   }
@@ -141,6 +141,7 @@ export const ListPageTextQuery = graphql`
       tabActivityLabel
       tabTalentLabel
       tabRaceLabel
+      tabTowerLabel
       sealText
       statusOpenLabel
       weekHeaderTemplate
@@ -151,11 +152,13 @@ export const ListPageTextQuery = graphql`
       formTypeActivityLabel
       formTypeTalentLabel
       formTypeRaceLabel
+      formTypeTowerLabel
       formCapacityTemplate
       formHintActivity
       formHintDungeonTemplate
       formHintTalent
       formHintRace
+      formHintTower
       formTitleLabel
       formTitlePlaceholder
       formStartsLabel
@@ -181,6 +184,7 @@ export const ListPageTextQuery = graphql`
       typeShortActivity
       typeShortTalent
       typeShortRace
+      typeShortTower
     }
   }
 `;
@@ -222,11 +226,13 @@ export const DetailPageTextQuery = graphql`
       formTypeActivityLabel
       formTypeTalentLabel
       formTypeRaceLabel
+      formTypeTowerLabel
       formCapacityTemplate
       formHintActivity
       formHintDungeonTemplate
       formHintTalent
       formHintRace
+      formHintTower
       formTitleLabel
       formTitlePlaceholder
       formStartsLabel
@@ -252,6 +258,7 @@ export const DetailPageTextQuery = graphql`
       typeShortActivity
       typeShortTalent
       typeShortRace
+      typeShortTower
     }
   }
 `;

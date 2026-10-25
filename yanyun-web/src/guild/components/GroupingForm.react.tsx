@@ -89,11 +89,13 @@ export interface GroupingFormText {
   formTypeActivityLabel: string;
   formTypeTalentLabel: string;
   formTypeRaceLabel: string;
+  formTypeTowerLabel: string;
   formCapacityTemplate: string;
   formHintActivity: string;
   formHintDungeonTemplate: string;
   formHintTalent: string;
   formHintRace: string;
+  formHintTower: string;
   formTitleLabel: string;
   formTitlePlaceholder: string;
   formStartsLabel: string;
@@ -119,6 +121,7 @@ export interface GroupingFormText {
   typeShortActivity: string;
   typeShortTalent: string;
   typeShortRace: string;
+  typeShortTower: string;
   unknownErrorText: string;
 }
 
@@ -159,7 +162,7 @@ export default function GroupingForm({ slug, text, mode, groupingId, initial, de
   }, [initial, now]);
 
   const [title, setTitle] = useState(initial?.title || '');
-  // 默认标题 (用户裁决): "{车头}的{双十/竞速/天赋}车队" — 仅预填, 跟随
+  // 默认标题 (用户裁决): "{车头}的{双十/竞速/天赋/爬塔}车队" — 仅预填, 跟随
   // 昵称/类型实时变; 用户手动改过标题后 (titleTouched) 不再自动跟随。
   const [titleTouched, setTitleTouched] = useState(isEdit);
   const [type, setType] = useState(initial?.type || defaultType || 'ACTIVITY');
@@ -172,12 +175,13 @@ export default function GroupingForm({ slug, text, mode, groupingId, initial, de
   const [sect, setSect] = useState('');
   // 类型短标签走后端 typeShort* 字段; 编辑模式恒用车队原标题, 不套默认。
   const typeShorts: Record<string, string> = {
-    ACTIVITY: text.typeShortActivity, TALENT: text.typeShortTalent, RACE: text.typeShortRace,
+    ACTIVITY: text.typeShortActivity, TALENT: text.typeShortTalent, RACE: text.typeShortRace, TOWER: text.typeShortTower,
   };
   const TYPE_OPTS = [
     { key: 'ACTIVITY', label: text.formTypeActivityLabel },
     { key: 'TALENT', label: text.formTypeTalentLabel },
     { key: 'RACE', label: text.formTypeRaceLabel },
+    { key: 'TOWER', label: text.formTypeTowerLabel },
   ];
   const autoTitle = fill(text.formTitleTemplate, { nickname: nickname.trim(), type: typeShorts[type] ?? '' });
   const shownTitle = isEdit || titleTouched ? title : autoTitle;
@@ -195,15 +199,16 @@ export default function GroupingForm({ slug, text, mode, groupingId, initial, de
   const [commitCreate, creating] = useMutation<GroupingFormCreateMutationType>(GroupingFormCreateMutationNode);
   const [commitUpdate, updating] = useMutation<GroupingFormUpdateMutationType>(GroupingFormUpdateMutationNode);
 
-  // 人数规则与后端 createGrouping 一致: 双十恒 10 人且不挂副本; 天赋/竞速
+  // 人数规则与后端 createGrouping 一致: 双十/爬塔恒 10 人且不挂副本; 天赋/竞速
   // 选了副本按副本 size, 不指定走默认 (天赋 5 / 竞速 10)。编辑模式不提交
   // 人数, 此值仅作提示展示。
   const selectedDungeon = (dungeons as any[]).find((d) => String(d.id) === String(dungeonId));
-  const maxSlots = type === 'ACTIVITY' ? 10
+  const maxSlots = type === 'ACTIVITY' || type === 'TOWER' ? 10
     : selectedDungeon && (Number(selectedDungeon.size) === 5 || Number(selectedDungeon.size) === 10)
       ? Number(selectedDungeon.size)
       : type === 'TALENT' ? 5 : 10;
   const slotsHint = type === 'ACTIVITY' ? text.formHintActivity
+    : type === 'TOWER' ? text.formHintTower
     : selectedDungeon ? fill(text.formHintDungeonTemplate, { name: selectedDungeon.name, max: maxSlots })
     : type === 'TALENT' ? text.formHintTalent
     : text.formHintRace;
@@ -234,7 +239,7 @@ export default function GroupingForm({ slug, text, mode, groupingId, initial, de
         variables: {
           input: {
             slug, title: t, type: type as any, startsAt,
-            dungeonId: type === 'ACTIVITY' ? null : (dungeonId || null),
+            dungeonId: type === 'ACTIVITY' || type === 'TOWER' ? null : (dungeonId || null),
             seats: [{ nickname: nickname.trim(), weapon: sect }],
           },
         },
@@ -302,7 +307,7 @@ export default function GroupingForm({ slug, text, mode, groupingId, initial, de
           </div>
         </div>
 
-        {!isEdit && type !== 'ACTIVITY' && (
+        {!isEdit && type !== 'ACTIVITY' && type !== 'TOWER' && (
           <div style={{ marginBottom: 14 }}>
             <label style={labelStyle}>{text.formDungeonLabel}</label>
             <select value={dungeonId} onChange={(e) => setDungeonId(e.target.value)} style={inputStyle}>

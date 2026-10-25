@@ -304,8 +304,8 @@ const noIntrospectionPlugin = {
 const s = (v, max = 200) => String(v ?? '').trim().slice(0, max);
 const roleOf = (weapon) => (s(weapon, 40) === '牵丝·霖' ? '奶' : '输出');
 const newUid = () => 'q' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-const TAB_TO_TYPE = { ACTIVITY: 'activity', TALENT: 'talent', RACE: 'race' };
-const TYPE_TO_ENUM = { activity: 'ACTIVITY', talent: 'TALENT', race: 'RACE' };
+const TAB_TO_TYPE = { ACTIVITY: 'activity', TALENT: 'talent', RACE: 'race', TOWER: 'tower' };
+const TYPE_TO_ENUM = { activity: 'ACTIVITY', talent: 'TALENT', race: 'RACE', tower: 'TOWER' };
 const GUILD_TABS = ['双十人本', '天赋组队', '竞速报名', '攻略', '流派攻略'];
 
 // 调律满值常量 (与 Excel/记忆一致, 服务端下发)
@@ -1001,11 +1001,13 @@ const FORM_TEXT_SPEC = [
   ['formTypeActivityLabel', 'groupingType', 'tabActivity'],
   ['formTypeTalentLabel', 'groupingType', 'tabTalent'],
   ['formTypeRaceLabel', 'groupingType', 'tabRace'],
+  ['formTypeTowerLabel', 'groupingType', 'tabTower'],
   ['formCapacityTemplate', 'groupingForm', 'capacity'],
   ['formHintActivity', 'groupingForm', 'hintActivity'],
   ['formHintDungeonTemplate', 'groupingForm', 'hintDungeon'],
   ['formHintTalent', 'groupingForm', 'hintTalent'],
   ['formHintRace', 'groupingForm', 'hintRace'],
+  ['formHintTower', 'groupingForm', 'hintTower'],
   ['formTitleLabel', 'groupingForm', 'titleLabel'],
   ['formTitlePlaceholder', 'groupingForm', 'titlePlaceholder'],
   ['formStartsLabel', 'groupingForm', 'startsLabel'],
@@ -1033,6 +1035,7 @@ const TYPE_SHORT_SPEC = [
   ['typeShortActivity', 'groupingType', 'shortActivity'],
   ['typeShortTalent', 'groupingType', 'shortTalent'],
   ['typeShortRace', 'groupingType', 'shortRace'],
+  ['typeShortTower', 'groupingType', 'shortTower'],
   ['typeShortGather', 'groupingType', 'shortGather'],
   ['typeShortExplore', 'groupingType', 'shortExplore'],
 ];
@@ -1041,6 +1044,7 @@ const LIST_TEXT_RESOLVERS = {
     ['tabActivityLabel', 'groupingType', 'tabActivity'],
     ['tabTalentLabel', 'groupingType', 'tabTalent'],
     ['tabRaceLabel', 'groupingType', 'tabRace'],
+    ['tabTowerLabel', 'groupingType', 'tabTower'],
     ...TYPE_SHORT_SPEC,
     ['prevWeekLabel', 'groupingList', 'prevWeek'],
     ['nextWeekLabel', 'groupingList', 'nextWeek'],
@@ -2413,10 +2417,11 @@ const resolvers = {
       if (!utc || utc < now - 3600) return gFail(ctx, 'badStartTime');
       if (utc > now + 60 * 86400) return gFail(ctx, 'startTimeTooFar');
       // 人数规则 (用户裁决): 双十不写副本名、恒 10 人 (带 dungeonId 也忽略);
+      // 爬塔镜像双十: 同样不写副本名、恒 10 人 (带 dungeonId 也忽略);
       // 天赋/竞速选了副本按副本 size 定人数, 不指定走默认 (天赋 5 / 竞速 10)。
       let maxSlots = type === 'talent' ? 5 : 10;
       let dungeonName = '';
-      if (type !== 'activity' && input.dungeonId) {
+      if (type !== 'activity' && type !== 'tower' && input.dungeonId) {
         const d = await db.prepare('SELECT name, size FROM dungeons WHERE id = ?').bind(parseInt(input.dungeonId, 10) || 0).first();
         if (d) {
           dungeonName = d.name;
@@ -2830,32 +2835,32 @@ const resolvers = {
   // ===== Bloks-lite 积木/动作 (类型即分发; shell 自带 __typename) =====
   Block: { __resolveType: (p) => p.__typename },
   Action: { __resolveType: (p) => p.__typename },
-  SectionBlock: { title: (p) => p.genTitle(), children: (p) => p.genChildren() },
-  SectionHeaderBlock: { text: (p) => p.genText(), children: (p) => p.genChildren() },
-  TextBlock: { text: (p) => p.genText(), variant: (p) => p.genVariant(), children: (p) => p.genChildren() },
-  BannerBlock: { text: (p) => p.genText(), children: (p) => p.genChildren() },
-  ChipRowBlock: { chips: (p) => p.genChips(), children: (p) => p.genChildren() },
-  GroupingCardBlock: {
+  SectionBlock: { js: (p, a) => a.module, title: (p) => p.genTitle(), children: (p) => p.genChildren() },
+  SectionHeaderBlock: { js: (p, a) => a.module, text: (p) => p.genText(), children: (p) => p.genChildren() },
+  TextBlock: { js: (p, a) => a.module, text: (p) => p.genText(), variant: (p) => p.genVariant(), children: (p) => p.genChildren() },
+  BannerBlock: { js: (p, a) => a.module, text: (p) => p.genText(), children: (p) => p.genChildren() },
+  ChipRowBlock: { js: (p, a) => a.module, chips: (p) => p.genChips(), children: (p) => p.genChildren() },
+  GroupingCardBlock: { js: (p, a) => a.module,
     groupingId: (p) => p.genGroupingId(), title: (p) => p.genTitle(),
     badgeText: (p) => p.genBadgeText(), timeText: (p) => p.genTimeText(),
     dungeonName: (p) => p.genDungeonName(), peopleText: (p) => p.genPeopleText(),
     statusText: (p) => p.genStatusText(), action: (p) => p.genAction(),
     children: (p) => p.genChildren(),
   },
-  SeatGridBlock: { seats: (p) => p.genSeats(), children: (p) => p.genChildren() },
+  SeatGridBlock: { js: (p, a) => a.module, seats: (p) => p.genSeats(), children: (p) => p.genChildren() },
   SeatEntry: {
     index: (p) => p.genIndex(), occupied: (p) => p.genOccupied(),
     nickname: (p) => p.genNickname(), weapon: (p) => p.genWeapon(),
     role: (p) => p.genRole(), healer: (p) => p.genHealer(),
     action: (p) => p.genAction(),
   },
-  ActionButtonBlock: {
+  ActionButtonBlock: { js: (p, a) => a.module,
     label: (p) => p.genLabel(), style: (p) => p.genStyle(),
     action: (p) => p.genAction(), children: (p) => p.genChildren(),
   },
-  EmptyStateBlock: { text: (p) => p.genText(), children: (p) => p.genChildren() },
-  SpacerBlock: { size: (p) => p.genSize(), children: (p) => p.genChildren() },
-  FallbackBlock: { text: (p) => p.genText(), children: (p) => p.genChildren() },
+  EmptyStateBlock: { js: (p, a) => a.module, text: (p) => p.genText(), children: (p) => p.genChildren() },
+  SpacerBlock: { js: (p, a) => a.module, size: (p) => p.genSize(), children: (p) => p.genChildren() },
+  FallbackBlock: { js: (p, a) => a.module, text: (p) => p.genText(), children: (p) => p.genChildren() },
   NavigateAction: {
     actionType: (p) => p.genActionType(), slug: (p) => p.genSlug(),
     groupingId: (p) => p.genGroupingId(), name: (p) => p.genName(),

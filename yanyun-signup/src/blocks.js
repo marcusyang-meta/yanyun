@@ -96,7 +96,7 @@ export function fmtStartsAt(epochSec, locale, tz) {
 
 // events.type -> groupingType 目录短名 key
 export const TYPE_SHORT_KEY = {
-  activity: 'shortActivity', talent: 'shortTalent', race: 'shortRace',
+  activity: 'shortActivity', talent: 'shortTalent', race: 'shortRace', tower: 'shortTower',
   gather: 'shortGather', explore: 'shortExplore',
 };
 export const HEALER_SECT = '牵丝·霖';
