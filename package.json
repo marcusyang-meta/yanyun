@@ -5,6 +5,7 @@
   "scripts": {
     "build:web": "npm run build --workspace=yanyun-web",
     "deploy:backend": "cd yanyun-signup && npx wrangler deploy",
+    "sync-public": "node yanyun-signup/scripts/sync-public.mjs",
     "mobile:lint": "npm run lint --workspace=yanyun-mobile",
     "mobile:start": "npm run start --workspace=yanyun-mobile",
     "mobile:typecheck": "cd yanyun-mobile && npx tsc --noEmit",
