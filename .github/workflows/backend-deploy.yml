@@ -39,18 +39,18 @@ jobs:
         run: npm run build --workspace=yanyun-web
       - name: Stage build artifact (index.html + assets + manifest)
         run: |
-          mkdir -p .ci-artifact
-          cp yanyun-web/dist/index.html .ci-artifact/index.html
-          cp -r yanyun-web/dist/assets .ci-artifact/assets
-          cat > .ci-artifact/manifest.json <<EOF
+          mkdir -p ci-artifact
+          cp yanyun-web/dist/index.html ci-artifact/index.html
+          cp -r yanyun-web/dist/assets ci-artifact/assets
+          cat > ci-artifact/manifest.json <<EOF
           {"sha":"${{ github.sha }}","run_id":"${{ github.run_id }}","ref":"${{ github.ref_name }}"}
           EOF
-          cat .ci-artifact/manifest.json
+          cat ci-artifact/manifest.json
       - name: Upload build artifact for backend-promote
         uses: actions/upload-artifact@v4
         with:
           name: backend-public
-          path: .ci-artifact
+          path: ci-artifact
           retention-days: 30
       - name: Sync dist into backend public (sync-style, keeps admin sources)
         run: node yanyun-signup/scripts/sync-public.mjs
@@ -61,8 +61,10 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           set -o pipefail
-          npx wrangler preview --name release --message "CI ${{ github.sha }}" --json | tee /tmp/preview.json
-          URL=$(jq -r '.url // empty' /tmp/preview.json)
+          npx wrangler preview --name release --message "CI ${{ github.sha }}" | tee /tmp/preview.log
+          # wrangler 输出头部带横幅/日志、不是纯 JSON, 不用 jq 硬解 (会连累整步失败):
+          # 直接从输出抓 release 的 Preview URL, 抓不到用稳定地址兜底, 提取失败不许挂步骤。
+          URL=$(grep -oE 'https://release-yanyun\.tbdlab\.workers\.dev' /tmp/preview.log | head -1 || true)
           if [ -z "$URL" ]; then URL="https://release-yanyun.tbdlab.workers.dev"; fi
           echo "preview_url=$URL" >> "$GITHUB_ENV"
           {

@@ -29,13 +29,13 @@ jobs:
           name: backend-public
           run-id: ${{ inputs.deploy_run_id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          path: .ci-artifact
+          path: ci-artifact
       - name: Read source commit from artifact manifest
         id: manifest
         run: |
-          if [ ! -f .ci-artifact/manifest.json ]; then echo "::error::artifact has no manifest.json — was deploy_run_id a backend-deploy run?"; exit 1; fi
-          cat .ci-artifact/manifest.json
-          SHA=$(jq -r '.sha // empty' .ci-artifact/manifest.json)
+          if [ ! -f ci-artifact/manifest.json ]; then echo "::error::artifact has no manifest.json — was deploy_run_id a backend-deploy run?"; exit 1; fi
+          cat ci-artifact/manifest.json
+          SHA=$(jq -r '.sha // empty' ci-artifact/manifest.json)
           if ! echo "$SHA" | grep -qE '^[0-9a-f]{40}$'; then echo "::error::manifest.json has no valid sha"; exit 1; fi
           echo "sha=$SHA" >> "$GITHUB_OUTPUT"
 
@@ -57,9 +57,9 @@ jobs:
           name: backend-public
           run-id: ${{ inputs.deploy_run_id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          path: .ci-artifact
+          path: ci-artifact
       - name: Place verified frontend bytes into backend public
-        run: node yanyun-signup/scripts/sync-public.mjs --dist .ci-artifact
+        run: node yanyun-signup/scripts/sync-public.mjs --dist ci-artifact
       - name: Deploy to production
         working-directory: yanyun-signup
         env:
