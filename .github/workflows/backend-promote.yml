@@ -1,36 +1,76 @@
 name: backend-promote
 
-# 后端发布第二段: 把一个已上传的版本晋级到 100% 生产流量。
-# 只能手动触发, 必须填 backend-deploy 上传时给出的 version_id。
+# 后端发布第二段 (人工门): 把某次 backend-deploy run 存下的 artifact
+# (backend-public: index.html + assets/ + manifest.json) 原样部署到 prod。
+# 部署的 worker 代码 checkout 到 manifest 里记录的源 commit, 前端产物用
+# artifact 本体 —— 即 preview (release) 上验收过的同一批字节, 不重新构建。
+# 只能手动触发, 必须填 backend-deploy 的 run ID (在其 run summary 里)。
 on:
   workflow_dispatch:
     inputs:
-      version_id:
-        description: 'Worker Version ID to promote to 100% production traffic'
+      deploy_run_id:
+        description: 'backend-deploy run ID whose verified artifact to deploy to production'
         required: true
         type: string
 
+permissions:
+  actions: read # 跨 run 下载 artifact 需要
+  contents: read
+
 jobs:
-  promote:
+  fetch-manifest:
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.manifest.outputs.sha }}
+    steps:
+      - name: Download artifact from the backend-deploy run
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-public
+          run-id: ${{ inputs.deploy_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: .ci-artifact
+      - name: Read source commit from artifact manifest
+        id: manifest
+        run: |
+          if [ ! -f .ci-artifact/manifest.json ]; then echo "::error::artifact has no manifest.json — was deploy_run_id a backend-deploy run?"; exit 1; fi
+          cat .ci-artifact/manifest.json
+          SHA=$(jq -r '.sha // empty' .ci-artifact/manifest.json)
+          if ! echo "$SHA" | grep -qE '^[0-9a-f]{40}$'; then echo "::error::manifest.json has no valid sha"; exit 1; fi
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    needs: fetch-manifest
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.fetch-manifest.outputs.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - name: Promote version to 100%
+      - name: Download the same artifact again for deployment
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-public
+          run-id: ${{ inputs.deploy_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: .ci-artifact
+      - name: Place verified frontend bytes into backend public
+        run: node yanyun-signup/scripts/sync-public.mjs --dist .ci-artifact
+      - name: Deploy to production
         working-directory: yanyun-signup
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          VERSION_ID: ${{ inputs.version_id }}
         run: |
-          if ! echo "$VERSION_ID" | grep -qE '^[0-9a-f-]{36}$'; then echo "::error::version_id is not a UUID"; exit 1; fi
-          npx wrangler versions deploy --version-id "$VERSION_ID" --percentage 100 --yes --message "promote via CI (run ${{ github.run_id }})"
+          npx wrangler deploy --message "promote CI run ${{ inputs.deploy_run_id }} (sha ${{ needs.fetch-manifest.outputs.sha }})"
           {
-            echo "## Backend version promoted to production"
+            echo "## Backend promoted to production"
             echo ""
-            echo "- Version ID: \`$VERSION_ID\` is now serving 100% of traffic"
+            echo "- Source backend-deploy run: \`${{ inputs.deploy_run_id }}\`"
+            echo "- Commit: \`${{ needs.fetch-manifest.outputs.sha }}\`"
+            echo "- Frontend bytes: the exact artifact verified on the release preview (not rebuilt)"
           } >> "$GITHUB_STEP_SUMMARY"

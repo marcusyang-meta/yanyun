@@ -79,29 +79,40 @@ web `format.ts` 与 mobile 各有一份实现，抽取需单独一轮改造，�
 
 ## 部署（以 CI 为准）
 
-GitHub 仓库建好后（远程待 marcus 提供），部署全走 Actions，本地不再手动部署：
+部署全走 GitHub Actions。后端/OG 实行两段式发布（marcus 裁决 2026-10-25）：
+**先上 preview 真渲染验收，人工 promote 才进 prod**，push 永远不直达 prod。
 
 | workflow | 触发 | 做什么 |
 |---|---|---|
-| `backend-deploy.yml` | push 到 `yanyun-signup/**`、`yanyun-web/**` | build web → `cp -r dist/.` 进 `yanyun-signup/public/`（cp 不删文件，admin 源文件天然保留）→ wrangler deploy |
-| `og-deploy.yml` | push 到 `yanyun-og/**` | wrangler deploy（yanyun-og） |
+| `backend-deploy.yml` | push（master）到 `yanyun-signup/**`、`yanyun-web/**`、`packages/schema/**` | build web 一次 → 同步 dist 进 `public/` → `wrangler preview` 发到稳定 Preview `release`（https://release-yanyun.tbdlab.workers.dev），并把产物存为 artifact `backend-public`（含源 commit 的 manifest） |
+| `backend-promote.yml` | 手动，填 backend-deploy 的 run ID | 按 run ID 取回**同一批 artifact**，在 manifest 记录的源 commit 上 `wrangler deploy` 进 prod（不重新构建） |
+| `og-deploy.yml` / `og-promote.yml` | push（master）到 `yanyun-og/**` / 手动填 version_id | versions upload → 手动 versions deploy 晋级。OG 无 Durable Object，Version 机制可用，故不走 Preview 式 |
 | `mobile-update.yml` | push 到 `yanyun-mobile/**`、`packages/{blocks-core,theme,schema}/**` 或手动 | `eas update --channel preview`（稳定链接） |
-| `web-check.yml` | push 到 `yanyun-web/**` | 只构建验证，不部署 |
+| `web-check.yml` | push（master）到 `yanyun-web/**` | 只构建验证，不部署 |
 
-需要的 GitHub Secrets（值由 marcus 在仓库 Settings 里加）：`EXPO_TOKEN`、
-`CLOUDFLARE_API_TOKEN`、`CLOUDFLARE_ACCOUNT_ID`。
+后端为什么不用 Version URL 验收：本 Worker 实现了 Durable Object
+（SeatHub/GuildHub），Cloudflare 不为 DO Worker 生成 Version URL。Preview
+（`wrangler preview`）是官方的 DO 预览路线：DO 按 Preview 自动隔离、Cron
+不在 Preview 运行；但 D1 按 database_id 与生产共享（账号建不了隔离库，
+见 `yanyun-signup/wrangler.toml` 的 `[previews]` 块），所以 preview 验收
+纪律是**匿名只读浏览**，不登录、不发 mutation。
 
-本地手动部署（CI 未就绪时的兜底，流程不变）：
+需要的 GitHub Secrets（已配）：`EXPO_TOKEN`、`CLOUDFLARE_API_TOKEN`、
+`CLOUDFLARE_ACCOUNT_ID`。
+
+本地手动部署（CI 故障时的兜底）：
 ```bash
 source ~/.bashrc   # CLOUDFLARE_API_TOKEN
 npm run build:web
-cp -r yanyun-web/dist/. yanyun-signup/public/
+npm run sync-public
 cd yanyun-signup && npx wrangler deploy   # 看完整输出, 有 ERROR 就是没上
 ```
 
 `yanyun-signup/public/` 里混着源码与构建产物：`hub-admin.*`、`gadmin.*`、
 `style.css`、`favicon.svg`、`icons.svg` 是手写源码（进仓）；`index.html` 与
-`assets/` 是 web 构建的拷贝（.gitignore 已挡，不进仓）。
+`assets/` 是 web 构建产物（.gitignore 已挡，不进仓），由
+`yanyun-signup/scripts/sync-public.mjs` 同步——以 dist 为准对齐，旧哈希
+文件会被删除，admin 源文件不碰（旧 `cp -r` 只叠不删的做法已废弃）。
 
 ## 密钥规矩（硬规矩）
 

@@ -1,10 +1,20 @@
 name: backend-deploy
 
-# 后端发布第一段 (marcus 裁决 2026-10-25: 先 preview 验证, 再进 prod):
-# build web -> 把 dist 拷进 yanyun-signup/public -> 只做 wrangler versions upload
-# (上传为新版本, 不部署、不接流量)。验收通过后, 用 backend-promote workflow
-# 拿 version_id 手动晋级到 100% 流量。
-# 拷贝用 cp -r (不删除目标文件), public 里的 admin 源文件天然保留。
+# 后端发布第一段 (marcus 裁决 2026-10-25: 先 preview 真渲染验收, 再 promote 进 prod):
+# build web 一次 -> 同步 dist 进 yanyun-signup/public -> wrangler preview 发到
+# 名为 release 的稳定 Preview (https://release-yanyun.tbdlab.workers.dev),
+# 并把这批产物 (index.html + assets/) 存为 artifact backend-public。
+# 本 workflow 绝不部署 prod。验收通过后, 用 backend-promote workflow 填本
+# run 的 ID, 取回同一批 artifact 部署 prod —— promote 的就是 preview 验过的字节。
+#
+# 为什么用 wrangler preview 而不是 versions upload: 本 Worker 实现了
+# Durable Object (SeatHub/GuildHub), Cloudflare 平台不为 DO Worker 生成
+# Version URL (previews_enabled 开着也没有)。Previews 是官方给 DO Worker
+# 的预览路线: DO 按 Preview 自动隔离, Cron 不运行; D1 按 database_id 与
+# 生产共享 (见 yanyun-signup/wrangler.toml 的 [previews] 块注释), 故验收
+# 纪律是匿名只读浏览。
+# 同步拷贝走 scripts/sync-public.mjs: 以 dist 为准对齐 index.html + assets/,
+# 删除旧哈希残留; public 里的 admin 源文件不碰。
 on:
   workflow_dispatch:
   push:
@@ -16,7 +26,7 @@ on:
       - '.github/workflows/backend-deploy.yml'
 
 jobs:
-  upload:
+  build-preview:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -27,21 +37,39 @@ jobs:
       - run: npm ci
       - name: Build web
         run: npm run build --workspace=yanyun-web
-      - name: Copy web dist into backend public (preserves admin sources)
-        run: cp -r yanyun-web/dist/. yanyun-signup/public/
-      - name: Upload worker version (preview only, NOT deployed)
+      - name: Stage build artifact (index.html + assets + manifest)
+        run: |
+          mkdir -p .ci-artifact
+          cp yanyun-web/dist/index.html .ci-artifact/index.html
+          cp -r yanyun-web/dist/assets .ci-artifact/assets
+          cat > .ci-artifact/manifest.json <<EOF
+          {"sha":"${{ github.sha }}","run_id":"${{ github.run_id }}","ref":"${{ github.ref_name }}"}
+          EOF
+          cat .ci-artifact/manifest.json
+      - name: Upload build artifact for backend-promote
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-public
+          path: .ci-artifact
+          retention-days: 30
+      - name: Sync dist into backend public (sync-style, keeps admin sources)
+        run: node yanyun-signup/scripts/sync-public.mjs
+      - name: Publish to release Preview (NOT production)
         working-directory: yanyun-signup
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           set -o pipefail
-          npx wrangler versions upload --message "CI ${{ github.sha }}" 2>&1 | tee /tmp/upload.log
-          VID=$(grep -oE 'Worker Version ID: [0-9a-f-]{36}' /tmp/upload.log | awk '{print $4}')
-          if [ -z "$VID" ]; then echo "::error::could not parse Worker Version ID from wrangler output"; exit 1; fi
+          npx wrangler preview --name release --message "CI ${{ github.sha }}" --json | tee /tmp/preview.json
+          URL=$(jq -r '.url // empty' /tmp/preview.json)
+          if [ -z "$URL" ]; then URL="https://release-yanyun.tbdlab.workers.dev"; fi
+          echo "preview_url=$URL" >> "$GITHUB_ENV"
           {
-            echo "## Backend version uploaded — NOT deployed"
+            echo "## Backend preview published — production untouched"
             echo ""
-            echo "- Version ID: \`$VID\`"
-            echo "- Verify it first, then promote: run the **backend-promote** workflow with \`version_id\` = \`$VID\`"
+            echo "- Preview: $URL"
+            echo "- Commit: \`${{ github.sha }}\`"
+            echo "- Verify the preview (real render, anonymous read-only), then promote THIS run's artifact:"
+            echo "  run **backend-promote** with \`deploy_run_id\` = \`${{ github.run_id }}\`"
           } >> "$GITHUB_STEP_SUMMARY"
