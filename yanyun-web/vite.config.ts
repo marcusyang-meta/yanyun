@@ -21,6 +21,12 @@ export default defineConfig({
     react(),
   ],
   resolve: {
+    // Monorepo guard: never bundle a second React copy. If a nested
+    // node_modules/react ever reappears (version drift between workspaces),
+    // dedupe forces every importer onto the single hoisted instance —
+    // a split React makes Relay hooks read a null dispatcher
+    // ("Cannot read properties of null (reading 'useMemo')").
+    dedupe: ['react', 'react-dom', 'react-relay', 'relay-runtime'],
     extensions: ['.react.tsx', '.tsx', '.ts', '.jsx', '.js', '.json'],
     alias: [
       {
