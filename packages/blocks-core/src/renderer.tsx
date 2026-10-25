@@ -1,79 +1,62 @@
 import React from 'react';
+import type { ComponentType, ReactNode } from 'react';
 import { useFragment } from 'react-relay';
-import { BlockLeafFragment, BlockNode1Fragment, BlockNode2Fragment } from './fragments';
-import type { ActionHandlers, BlockLeafRegistry } from './types';
-import type { fragments_BlockNode1$key } from './__generated__/fragments_BlockNode1.graphql';
-import type { fragments_BlockNode2$key } from './__generated__/fragments_BlockNode2.graphql';
-import type { fragments_BlockLeaf$key } from './__generated__/fragments_BlockLeaf.graphql';
+import type { MatchContainerProps } from 'react-relay/relay-hooks/MatchContainer';
 
-// 递归遍历器 (平台中立): 拿到带类型的 Block 对象, 递归 children 直到叶子,
-// 叶子交给宿主注册表里的组件渲染。这里没有任何权限判断 —— 树里有什么就
-// 渲染什么, 权限由服务端组树时决定。未知 __typename → 注册表的 Unknown
+// MatchContainer 未从 react-relay 主入口导出 (npm 包的类型放在
+// relay-hooks/MatchContainer.d.ts, 运行时实现只在 lib/ 路径,
+// module.exports = MatchContainer 本人), 故经实现路径引入, 类型按
+// 官方签名标注。Metro/Web 打包器对 lib 深路径的解析已实测可达。
+const MatchContainer = require('react-relay/lib/relay-hooks/MatchContainer') as ComponentType<
+  MatchContainerProps<Record<string, unknown>, ReactNode>
+>;
+import { BlockLeafMatchFragment, BlockNode1MatchFragment, BlockNode2MatchFragment } from './fragments';
+import type { ActionHandlers } from './types';
+import type { fragments_BlockLeafMatch$key } from './__generated__/fragments_BlockLeafMatch.graphql';
+import type { fragments_BlockNode1Match$key } from './__generated__/fragments_BlockNode1Match.graphql';
+import type { fragments_BlockNode2Match$key } from './__generated__/fragments_BlockNode2Match.graphql';
+
+// 递归遍历器 (平台中立) — Relay server 3D 形态:
+// 每层 useFragment 读出的是 match 指针 (服务端经 Block.js 回传的
+// __module_component 引用决定命中哪个 @module 臂), MatchContainer 经
+// 宿主 loader 把引用解析为该具体类型的渲染组件, 组件以 fragment 名
+// 后缀为 prop 名收到自己的数据引用 (如 TextBlock=..., SectionNode1=...),
+// 并经 props 收到 handlers。这里没有任何类型判断与权限判断 —— 服务端
+// 组什么树、回传什么引用, 就渲染什么; 客户端没有臂可命中的新类型
+// (无 __module_component) 由 MatchContainer 走 fallback = 宿主 Unknown
 // 占位, 其余兄弟节点照常渲染, 永不白屏。
 //
-// 容器递归用“层级 fragment”实现 (GraphQL 不允许 fragment 循环引用):
-// Node1 (根) → SectionBlock 的 children 走 Node2 → 再下一层走 Leaf。
-// 服务端真实树深 ≤ 3 层, 三层足够; 更深的 SectionBlock 落到 Unknown 占位。
-//
-// 数据掩码纪律: 往下传的必须是本层 useFragment 的返回值 (它才携带本层
-// fragment 内 spread 的下层引用), 不能传原始 prop, 否则 Relay 找不到引用报错。
-export function createBlockRenderer(leaves: BlockLeafRegistry) {
-  function LeafView({ block, handlers }: { block: fragments_BlockLeaf$key; handlers: ActionHandlers }) {
-    const data = useFragment(BlockLeafFragment, block);
-    // 按对象类型分发到注册表组件 —— 这是渲染分发, 不是权限/含义判断。
-    switch (data.__typename) {
-      case 'TextBlock':
-        return data.textBlock ? <leaves.TextBlock block={data.textBlock} /> : <leaves.Unknown />;
-      case 'BannerBlock':
-        return data.bannerBlock ? <leaves.BannerBlock block={data.bannerBlock} /> : <leaves.Unknown />;
-      case 'SectionHeaderBlock':
-        return data.sectionHeaderBlock ? <leaves.SectionHeaderBlock block={data.sectionHeaderBlock} /> : <leaves.Unknown />;
-      case 'ChipRowBlock':
-        return data.chipRowBlock ? <leaves.ChipRowBlock block={data.chipRowBlock} /> : <leaves.Unknown />;
-      case 'GroupingCardBlock':
-        return data.groupingCardBlock ? <leaves.GroupingCardBlock block={data.groupingCardBlock} handlers={handlers} /> : <leaves.Unknown />;
-      case 'SeatGridBlock':
-        return data.seatGridBlock ? <leaves.SeatGridBlock block={data.seatGridBlock} handlers={handlers} /> : <leaves.Unknown />;
-      case 'ActionButtonBlock':
-        return data.actionButtonBlock ? <leaves.ActionButtonBlock block={data.actionButtonBlock} handlers={handlers} /> : <leaves.Unknown />;
-      case 'EmptyStateBlock':
-        return data.emptyStateBlock ? <leaves.EmptyStateBlock block={data.emptyStateBlock} /> : <leaves.Unknown />;
-      case 'SpacerBlock':
-        return data.spacerBlock ? <leaves.SpacerBlock block={data.spacerBlock} /> : <leaves.Unknown />;
-      case 'FallbackBlock':
-        return data.fallbackBlock ? <leaves.FallbackBlock block={data.fallbackBlock} /> : <leaves.Unknown />;
-      default:
-        return <leaves.Unknown />;
-    }
+// 容器递归靠 Section 臂组件自己继续渲染 children (children 在其
+// fragment 里走下一层 match), 层级与 fragments.ts 的三层结构对应:
+// Node1 (根) → SectionNode1 的 children 走 Node2 → SectionNode2 的
+// children 走 Leaf。数据掩码纪律不变: 向下传的是 fragment 读出的
+// 引用/指针, 不传原始对象。
+
+export type BlockModuleLoader = (moduleRef: unknown) => ComponentType<any>;
+
+export interface BlockRendererDeps {
+  // 把服务端回传的组件引用 (如 "TextBlock") 解析为渲染组件;
+  // 宿主以懒 require 注册表实现, 未知引用应返回 Unknown 组件本身。
+  loader: BlockModuleLoader;
+  // 无臂命中时的占位 (宿主视觉)。
+  Unknown: ComponentType;
+}
+
+export function createBlockRenderer({ loader, Unknown }: BlockRendererDeps) {
+  function BlockLeafView({ block, handlers }: { block: fragments_BlockLeafMatch$key; handlers: ActionHandlers }) {
+    const match = useFragment(BlockLeafMatchFragment, block);
+    return <MatchContainer match={match} loader={loader} props={{ handlers }} fallback={<Unknown />} />;
   }
 
-  function BlockNode2View({ block, handlers }: { block: fragments_BlockNode2$key; handlers: ActionHandlers }) {
-    const data = useFragment(BlockNode2Fragment, block);
-    if (data.__typename === 'SectionBlock') {
-      return (
-        <leaves.Section title={data.title ?? null}>
-          {(data.children ?? []).map((child, i) => (
-            <LeafView key={i} block={child as unknown as fragments_BlockLeaf$key} handlers={handlers} />
-          ))}
-        </leaves.Section>
-      );
-    }
-    return <LeafView block={data as unknown as fragments_BlockLeaf$key} handlers={handlers} />;
+  function BlockNode2View({ block, handlers }: { block: fragments_BlockNode2Match$key; handlers: ActionHandlers }) {
+    const match = useFragment(BlockNode2MatchFragment, block);
+    return <MatchContainer match={match} loader={loader} props={{ handlers }} fallback={<Unknown />} />;
   }
 
-  function BlockNode1View({ block, handlers }: { block: fragments_BlockNode1$key; handlers: ActionHandlers }) {
-    const data = useFragment(BlockNode1Fragment, block);
-    if (data.__typename === 'SectionBlock') {
-      return (
-        <leaves.Section title={data.title ?? null}>
-          {(data.children ?? []).map((child, i) => (
-            <BlockNode2View key={i} block={child} handlers={handlers} />
-          ))}
-        </leaves.Section>
-      );
-    }
-    return <LeafView block={data as unknown as fragments_BlockLeaf$key} handlers={handlers} />;
+  function BlockNode1View({ block, handlers }: { block: fragments_BlockNode1Match$key; handlers: ActionHandlers }) {
+    const match = useFragment(BlockNode1MatchFragment, block);
+    return <MatchContainer match={match} loader={loader} props={{ handlers }} fallback={<Unknown />} />;
   }
 
-  return { BlockNode1View, BlockNode2View };
+  return { BlockNode1View, BlockNode2View, BlockLeafView };
 }
