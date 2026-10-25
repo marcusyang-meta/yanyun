@@ -1,0 +1,2 @@
+-- v5: 首领机制攻略字段 (2026-10-20)
+ALTER TABLE bosses ADD COLUMN guide TEXT NOT NULL DEFAULT '';

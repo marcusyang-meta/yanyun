@@ -1,0 +1,40 @@
+# 燕云十六声 百业报名小工具
+# 全免费套餐: Workers(10万请求/天) + D1(500万行读/天, 10万行写/天, 5GB) + 静态资源托管
+name = "yanyun"
+main = "src/worker.js"
+compatibility_date = "2025-06-01"
+
+# 静态前端: public/ 目录直接由 Cloudflare 托管
+# run_worker_first = true: Worker 先接管路由(主站导航 /<slug> 多租户), 静态资源走 env.ASSETS
+[assets]
+directory = "./public"
+binding = "ASSETS"
+run_worker_first = true
+
+# D1 数据库绑定 (上线前创建数据库后把 database_id 填进来)
+[[d1_databases]]
+binding = "DB"
+database_name = "yanyun-signup"
+database_id = "aa475d0e-8410-47eb-823b-0ddd346733e8"
+
+# SeatHub 广播中枢 (Durable Object): 每个活动一个实例, WS 推送 seat 变化
+[[durable_objects.bindings]]
+name = "SEAT_HUB"
+class_name = "SeatHub"
+
+# GuildHub 实时推送中枢 (Durable Object): 每个百业一个实例, WS 推送车队变化
+[[durable_objects.bindings]]
+name = "GUILD_HUB"
+class_name = "GuildHub"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["SeatHub"]
+
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["GuildHub"]
+
+# 本地开发用 D1 本地实例, 变量示例(上线用 wrangler secret put 设置):
+# [vars]
+# ADMIN_PASSWORD = "dev-only-change-me"   # 仅本地调试用! 线上务必用 secret

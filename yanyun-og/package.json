@@ -1,0 +1,9 @@
+{
+  "name": "yanyun-og",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "@resvg/resvg-wasm": "^2.6.2",
+    "satori": "^0.12.0"
+  }
+}

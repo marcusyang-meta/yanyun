@@ -1,0 +1,36 @@
+name: backend-deploy
+
+# 后端部署 (CI 为准, 取代本地手动 wrangler):
+# build web -> 把 dist 拷进 yanyun-signup/public -> wrangler deploy。
+# 拷贝用 cp -r (不删除目标文件), public 里的 admin 源文件
+# (hub-admin.html / gadmin.html 等) 不在 dist 里, 天然保留。
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'yanyun-signup/**'
+      - 'yanyun-web/**'
+      - 'packages/schema/**'
+      - '.github/workflows/backend-deploy.yml'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Build web
+        run: npm run build --workspace=yanyun-web
+      - name: Copy web dist into backend public (preserves admin sources)
+        run: cp -r yanyun-web/dist/. yanyun-signup/public/
+      - name: Deploy worker
+        working-directory: yanyun-signup
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx wrangler deploy

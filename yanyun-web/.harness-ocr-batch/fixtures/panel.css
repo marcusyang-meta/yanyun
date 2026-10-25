@@ -1,0 +1,8 @@
+.panel { position:absolute; width:430px; box-sizing:border-box; padding:22px 26px;
+  background:rgba(14,13,11,.94); border:1px solid rgba(201,163,92,.65); border-radius:6px;
+  font-family:"Noto Serif CJK SC","Noto Sans CJK SC",serif; color:#e9e1c9; }
+.panel .nm { font-size:30px; color:#ecd28f; font-weight:700; letter-spacing:2px; }
+.panel .slot { font-size:21px; color:#b7a678; margin-top:4px; }
+.panel .ln { font-size:25px; line-height:1.95; display:flex; justify-content:space-between; }
+.panel .ln b { color:#fff; font-weight:600; }
+.panel .dy { font-size:24px; color:#d8b25c; margin-top:8px; }
