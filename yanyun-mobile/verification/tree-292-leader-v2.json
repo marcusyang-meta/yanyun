@@ -1,0 +1,127 @@
+[
+  {
+    "__typename": "TextBlock",
+    "text": "周日晚双十 · 染青苍开荒"
+  },
+  {
+    "__typename": "ChipRowBlock",
+    "chips": [
+      "双十",
+      "玉魄染青苍",
+      "报名中"
+    ]
+  },
+  {
+    "__typename": "TextBlock",
+    "text": "10/25周日 20:00 · 5/10 人"
+  },
+  {
+    "__typename": "TextBlock",
+    "text": "人人可管 · 无需管理码 — 点空位即可落座"
+  },
+  {
+    "__typename": "SectionBlock",
+    "secTitle": null,
+    "children": [
+      {
+        "__typename": "SectionHeaderBlock",
+        "text": "队伍名册"
+      },
+      {
+        "__typename": "SeatGridBlock",
+        "seats": [
+          {
+            "index": 0,
+            "occupied": true,
+            "nickname": "夹具昵称",
+            "action": {
+              "__typename": "LeaveAction",
+              "uid": "fx-a1"
+            }
+          },
+          {
+            "index": 1,
+            "occupied": true,
+            "nickname": "车头甲",
+            "action": null
+          },
+          {
+            "index": 2,
+            "occupied": true,
+            "nickname": "成员乙",
+            "action": null
+          },
+          {
+            "index": 3,
+            "occupied": true,
+            "nickname": "路人C",
+            "action": null
+          },
+          {
+            "index": 4,
+            "occupied": true,
+            "nickname": "成员乙",
+            "action": null
+          },
+          {
+            "index": 5,
+            "occupied": false,
+            "nickname": null,
+            "action": {
+              "__typename": "JoinAction",
+              "seatIndex": 5
+            }
+          },
+          {
+            "index": 6,
+            "occupied": false,
+            "nickname": null,
+            "action": {
+              "__typename": "JoinAction",
+              "seatIndex": 6
+            }
+          },
+          {
+            "index": 7,
+            "occupied": false,
+            "nickname": null,
+            "action": {
+              "__typename": "JoinAction",
+              "seatIndex": 7
+            }
+          },
+          {
+            "index": 8,
+            "occupied": false,
+            "nickname": null,
+            "action": {
+              "__typename": "JoinAction",
+              "seatIndex": 8
+            }
+          },
+          {
+            "index": 9,
+            "occupied": false,
+            "nickname": null,
+            "action": {
+              "__typename": "JoinAction",
+              "seatIndex": 9
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "__typename": "SpacerBlock"
+  },
+  {
+    "__typename": "ActionButtonBlock",
+    "label": "解散车队",
+    "style": "danger",
+    "action": {
+      "__typename": "DisbandAction",
+      "groupingId": "292"
+    }
+  }
+]

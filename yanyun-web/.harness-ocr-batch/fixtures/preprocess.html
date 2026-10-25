@@ -1,0 +1,31 @@
+<!doctype html><meta charset="utf-8"><body style="margin:0">
+<canvas id="cv"></canvas>
+<script>
+const q = new URLSearchParams(location.search);
+const mode = q.get('mode'); // prep | enh | small
+const img = new Image();
+img.onload = () => {
+  const W = img.naturalWidth, H = img.naturalHeight;
+  let scale;
+  if (mode === 'prep') scale = Math.min(2, Math.max(1, 1600 / Math.max(1, W)));
+  else if (mode === 'enh') scale = Math.min(2.5, Math.max(1.4, 2000 / Math.max(1, W)));
+  else scale = Math.min(1, 1200 / Math.max(W, H));
+  const w = Math.round(W * scale), h = Math.round(H * scale);
+  const cv = document.getElementById('cv'); cv.width = w; cv.height = h;
+  const cx = cv.getContext('2d');
+  cx.fillStyle = '#fff'; cx.fillRect(0, 0, w, h);
+  cx.drawImage(img, 0, 0, w, h);
+  if (mode === 'enh') {
+    const id = cx.getImageData(0, 0, w, h), d = id.data;
+    for (let i = 0; i < d.length; i += 4) {
+      const g = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+      let v = (g - 128) * 1.6 + 128;
+      v = v < 110 ? 0 : v > 190 ? 255 : v;
+      d[i] = d[i + 1] = d[i + 2] = v; d[i + 3] = 255;
+    }
+    cx.putImageData(id, 0, 0);
+  }
+  document.title = w + 'x' + h;
+};
+img.src = q.get('src');
+</script>

@@ -1,0 +1,57 @@
+{
+  "expo": {
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0c0b09",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "backgroundColor": "#0c0b09",
+      "package": "dev.tbdlab.yanyun",
+      "predictiveBackGestureEnabled": false
+    },
+    "backgroundColor": "#0c0b09",
+    "extra": {
+      "apiUrl": "https://yanyun.tbdlab.workers.dev",
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "a0ea6b82-5331-40e4-a8d6-d131e4d18792"
+      }
+    },
+    "icon": "./assets/icon.png",
+    "ios": {
+      "backgroundColor": "#0c0b09",
+      "bundleIdentifier": "dev.tbdlab.yanyun",
+      "supportsTablet": false
+    },
+    "name": "燕云百业",
+    "orientation": "portrait",
+    "plugins": [
+      "expo-notifications",
+      "expo-web-browser",
+      "expo-secure-store",
+      "expo-router",
+      "expo-font"
+    ],
+    "scheme": "yanyun",
+    "slug": "yanyun-mobile",
+    "userInterfaceStyle": "dark",
+    "version": "0.1.0",
+    "web": {
+      "backgroundColor": "#0c0b09",
+      "favicon": "./assets/favicon.png"
+    },
+    "owner": "jyang285s-team",
+    "runtimeVersion": {
+      "policy": "sdkVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/a0ea6b82-5331-40e4-a8d6-d131e4d18792"
+    }
+  }
+}

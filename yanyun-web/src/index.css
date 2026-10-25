@@ -1,0 +1,593 @@
+/* 燕云百业 · Ink-wash design system */
+@import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&display=swap');
+
+:root {
+  --ink: #0c0b09;
+  --ink-2: #14120e;
+  --gold: #c9a35c;
+  --gold-hi: #ecd28f;
+  --paper: #ece2cb;
+  --muted: #ab9c7d;
+  --seal: #a02c1a;
+  --border: rgba(201, 163, 92, .22);
+  --card-bg: linear-gradient(160deg, rgba(201,163,92,.07), rgba(0,0,0,.25));
+  --font-brush: 'Ma Shan Zheng', 'Noto Serif SC', serif;
+  --font-serif: 'Noto Serif SC', serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-serif);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+  width: 100%;
+}
+
+/* ---------- keyframes ---------- */
+@keyframes yy-fade-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes yy-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes yy-scale-in {
+  from { opacity: 0; transform: scale(.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes yy-shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+@keyframes yy-seal-stamp {
+  0% { opacity: 0; transform: scale(1.6) rotate(-8deg); }
+  60% { opacity: 1; transform: scale(.94) rotate(-8deg); }
+  100% { opacity: 1; transform: scale(1) rotate(-8deg); }
+}
+@keyframes yy-brush-sweep {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+@keyframes yy-sheet-up {
+  from { transform: translateY(60px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* ---------- utility animation classes ---------- */
+.yy-anim-fade-up { animation: yy-fade-up .55s cubic-bezier(.22,.9,.28,1) both; }
+.yy-anim-fade-in { animation: yy-fade-in .4s ease both; }
+.yy-anim-scale-in { animation: yy-scale-in .35s cubic-bezier(.22,.9,.28,1) both; }
+
+/* stagger children: apply --i custom prop for delay */
+.yy-stagger > * {
+  animation: yy-fade-up .5s cubic-bezier(.22,.9,.28,1) both;
+  animation-delay: calc(var(--i, 0) * 70ms);
+}
+
+/* ---------- modal ----------
+ * 浮层一律 createPortal 到 document.body 渲染: 页面容器带入场动画
+ * (yy-anim-* 的 transform + fill both 会长期生成包含块), 未 portal 的
+ * position:fixed 会被困在容器盒子里 —— 表现为面板偏左、遮罩盖不满。
+ * 桌面: 遮罩全视口均匀变暗, 面板水平+垂直居中, 高度上限 85vh 内滚。
+ * 移动 (<=640px): 保持既定贴底 sheet 形态。 */
+.yy-modal-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0, 0, 0, .7);
+  padding: 16px; box-sizing: border-box;
+}
+.yy-modal-panel {
+  position: relative; width: 100%; max-width: 520px; max-height: 85vh; overflow-y: auto;
+  background: #14120e; border: 1px solid rgba(201, 163, 92, .4); border-top: 2px solid #c9a35c;
+  border-radius: 16px; padding: 20px 20px 32px; box-sizing: border-box;
+}
+@media (max-width: 640px) {
+  .yy-modal-overlay { align-items: flex-end; padding: 0; }
+  .yy-modal-panel { border-radius: 20px 20px 0 0; border-bottom: none; }
+}
+
+/* ---------- push page (移动端全屏推页) ----------
+ * 桌面走 modal dialog 的表面, 在移动宽度改以整页推入呈现: 全视口固定
+ * 层 + 粘性页眉 (返回 + 标题), 内容区独立滚动, 如同导航到一个新页面。 */
+.yy-push-page {
+  position: fixed; inset: 0; z-index: 200; overflow-y: auto;
+  background: #0c0b09; box-sizing: border-box;
+}
+.yy-push-header {
+  position: sticky; top: 0; z-index: 1;
+  display: flex; align-items: center; gap: 6px;
+  padding: 12px 16px; background: rgba(12, 11, 9, .94);
+  border-bottom: 1px solid rgba(201, 163, 92, .25);
+}
+
+/* ---------- cards ---------- */
+.yy-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  transition: transform .25s cubic-bezier(.22,.9,.28,1), box-shadow .25s ease, border-color .25s ease;
+}
+.yy-card-hover:hover {
+  transform: translateY(-3px);
+  border-color: rgba(201,163,92,.55);
+  box-shadow: 0 12px 32px rgba(201,163,92,.14), 0 2px 8px rgba(0,0,0,.4);
+}
+.yy-card-hover:active { transform: translateY(-1px) scale(.995); }
+
+/* ---------- buttons ---------- */
+.yy-btn {
+  font-family: var(--font-serif);
+  cursor: pointer;
+  border-radius: 10px;
+  transition: transform .15s ease, box-shadow .2s ease, background .2s ease, color .2s ease;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+.yy-btn:active { transform: scale(.96); }
+.yy-btn-gold {
+  background: linear-gradient(160deg, #d9b26a, #b98f45);
+  color: #1a1814;
+  border: 1px solid rgba(236,210,143,.5);
+  font-weight: 700;
+}
+.yy-btn-gold:hover { box-shadow: 0 6px 20px rgba(201,163,92,.35); }
+.yy-btn-ghost {
+  background: transparent;
+  color: var(--paper);
+  border: 1px solid var(--border);
+}
+.yy-btn-ghost:hover { border-color: var(--gold); color: var(--gold-hi); }
+
+/* ---------- tabs (一级页签: 分段控件, 层级必须压过二级筛选项) ---------- */
+.yy-tabs {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  background: rgba(201,163,92,.06);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  position: relative;
+}
+.yy-tab {
+  font-family: var(--font-serif);
+  font-size: 16px;
+  padding: 9px 26px;
+  border-radius: 999px;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  position: relative;
+  transition: color .25s ease, background .25s ease, box-shadow .25s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.yy-tab:hover { color: var(--paper); }
+.yy-tab.active {
+  color: var(--gold-hi);
+  font-weight: 600;
+  background: linear-gradient(160deg, rgba(217,178,106,.30), rgba(185,143,69,.18));
+  box-shadow: inset 0 0 0 1px rgba(236,210,143,.38);
+}
+
+/* ---------- filter chips (二级筛选: 小号描边幽灵片, 不与一级页签抢层级) ---------- */
+.yy-fchip {
+  padding: 6px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(201,163,92,.32);
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--font-serif);
+  font-size: 13px;
+  cursor: pointer;
+  transition: color .2s ease, border-color .2s ease, background .2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.yy-fchip:hover { color: var(--paper); border-color: rgba(201,163,92,.6); }
+.yy-fchip:active { transform: scale(.95); }
+.yy-fchip.active {
+  color: var(--gold-hi);
+  border-color: var(--gold);
+  background: rgba(201,163,92,.10);
+  font-weight: 600;
+}
+
+/* ---------- skeleton shimmer ---------- */
+.yy-skeleton {
+  border-radius: 12px;
+  background: linear-gradient(90deg, rgba(201,163,92,.06) 25%, rgba(201,163,92,.14) 50%, rgba(201,163,92,.06) 75%);
+  background-size: 800px 100%;
+  animation: yy-shimmer 1.6s infinite linear;
+  border: 1px solid var(--border);
+}
+.yy-skeleton-row { height: 76px; margin-bottom: 12px; }
+
+/* ---------- seal stamp ---------- */
+.yy-seal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px; height: 56px;
+  background: var(--seal);
+  color: var(--paper);
+  font-family: var(--font-brush);
+  font-size: 28px;
+  border-radius: 8px;
+  animation: yy-seal-stamp .5s cubic-bezier(.22,.9,.28,1) both;
+  box-shadow: 0 4px 16px rgba(160,44,26,.4);
+}
+
+/* ---------- site backdrop ---------- */
+.yy-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.yy-backdrop img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 18%;
+  display: block;
+}
+.yy-backdrop::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom,
+    rgba(12,11,9,.58) 0%,
+    rgba(12,11,9,.80) 30%,
+    rgba(12,11,9,.95) 58%,
+    var(--ink) 80%);
+}
+.yy-app-main {
+  position: relative;
+  z-index: 1;
+}
+/* 底部氛围底: 同一张山水锚在视口底缘, 只透出很淡的山影,
+   让短页面"落在山上"而不是坠进纯黑 (与顶部底图同一层, 内容永远在上) */
+.yy-backdrop-bottom {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  height: 34vh;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.yy-backdrop-bottom img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 100%;
+  display: block;
+  opacity: .55;
+}
+.yy-backdrop-bottom::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top,
+    rgba(12,11,9,.34) 0%,
+    rgba(12,11,9,.68) 52%,
+    var(--ink) 98%);
+}
+
+/* ---------- hero ---------- */
+.yy-hero {
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+  padding: 72px 20px 48px;
+}
+.yy-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(201,163,92,.09), transparent 70%),
+    radial-gradient(ellipse 60% 40% at 50% 100%, rgba(160,44,26,.06), transparent 70%);
+  pointer-events: none;
+}
+.yy-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(to bottom,
+    rgba(12,11,9,.34) 0%,
+    rgba(12,11,9,.05) 34%,
+    rgba(12,11,9,.10) 62%,
+    rgba(12,11,9,.78) 88%,
+    var(--ink) 100%);
+  pointer-events: none;
+}
+.yy-hero-title {
+  position: relative;
+  z-index: 2;
+  font-family: var(--font-brush);
+  font-size: clamp(56px, 12vw, 96px);
+  color: var(--gold-hi);
+  letter-spacing: .18em;
+  margin: 0;
+  text-shadow: 0 4px 32px rgba(201,163,92,.25);
+  animation: yy-fade-up .7s cubic-bezier(.22,.9,.28,1) both;
+}
+.yy-hero-sub {
+  position: relative;
+  z-index: 2;
+  color: var(--paper);
+  opacity: .85;
+  text-shadow: 0 2px 14px rgba(0,0,0,.85);
+  font-size: 15px;
+  letter-spacing: .12em;
+  margin: 18px 0 0;
+  animation: yy-fade-up .7s cubic-bezier(.22,.9,.28,1) .12s both;
+}
+.yy-hero-img {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 32%;
+  display: block;
+}
+/* 全屏 hero (登录页): 山水铺满整屏, 登录卡浮在画上 */
+.yy-hero-full {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 56px 20px 26px;
+}
+.yy-card.yy-login-card {
+  background: rgba(14,12,9,.66);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(201,163,92,.30);
+  box-shadow: 0 24px 60px rgba(0,0,0,.5);
+}
+
+/* ---------- section heading ---------- */
+.yy-section-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin: 40px 0 20px;
+  animation: yy-fade-up .5s ease both;
+}
+.yy-section-head h2 {
+  font-family: var(--font-brush);
+  font-size: 28px;
+  color: var(--gold-hi);
+  margin: 0;
+  letter-spacing: .1em;
+}
+.yy-section-head .en {
+  font-size: 11px;
+  letter-spacing: .3em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+/* ---------- page transition wrapper ---------- */
+.yy-page {
+  animation: yy-fade-in .35s ease both;
+  min-height: 100vh;
+}
+
+/* ---------- bottom sheet (mobile form) ---------- */
+.yy-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.6);
+  backdrop-filter: blur(2px);
+  animation: yy-fade-in .25s ease both;
+  z-index: 50;
+}
+.yy-sheet {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  max-height: 85vh;
+  overflow-y: auto;
+  background: var(--ink-2);
+  border-top: 1px solid var(--border);
+  border-radius: 20px 20px 0 0;
+  padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
+  z-index: 51;
+  animation: yy-sheet-up .35s cubic-bezier(.22,.9,.28,1) both;
+}
+
+/* ---------- toast ---------- */
+.yy-toast-wrap {
+  position: fixed;
+  bottom: calc(24px + env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  pointer-events: none;
+}
+.yy-toast {
+  background: rgba(20,18,14,.95);
+  border: 1px solid var(--gold);
+  color: var(--gold-hi);
+  padding: 12px 24px;
+  border-radius: 999px;
+  font-size: 14px;
+  animation: yy-fade-up .3s cubic-bezier(.22,.9,.28,1) both;
+  box-shadow: 0 8px 24px rgba(0,0,0,.5);
+  max-width: 90vw;
+}
+
+/* ---------- team row ---------- */
+.yy-team-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+}
+.yy-team-row .dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 12px rgba(201,163,92,.6);
+  flex-shrink: 0;
+  animation: yy-fade-in .4s ease both;
+}
+.yy-team-row .seats {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* ---------- seat grid ---------- */
+.yy-seat {
+  aspect-ratio: 1;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  cursor: pointer;
+  transition: transform .15s ease, border-color .2s ease, background .2s ease;
+  background: rgba(201,163,92,.04);
+  color: var(--muted);
+  min-height: 48px;
+  -webkit-tap-highlight-color: transparent;
+}
+.yy-seat:active { transform: scale(.92); }
+.yy-seat.taken {
+  background: linear-gradient(160deg, rgba(201,163,92,.25), rgba(201,163,92,.08));
+  border-color: var(--gold);
+  color: var(--gold-hi);
+}
+.yy-seat.empty:hover { border-color: var(--gold); color: var(--paper); }
+
+/* ---------- chip ---------- */
+.yy-chip {
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--paper);
+  font-family: var(--font-serif);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all .2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.yy-chip:active { transform: scale(.94); }
+.yy-chip.selected {
+  background: linear-gradient(160deg, #d9b26a, #b98f45);
+  color: #1a1814;
+  border-color: rgba(236,210,143,.5);
+  font-weight: 700;
+}
+
+/* ---------- form controls ---------- */
+.yy-input, .yy-select {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(0,0,0,.3);
+  color: var(--paper);
+  font-family: var(--font-serif);
+  font-size: 16px;
+  outline: none;
+  transition: border-color .2s ease;
+}
+.yy-input:focus, .yy-select:focus { border-color: var(--gold); }
+.yy-label {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+  margin: 16px 0 8px;
+  letter-spacing: .08em;
+}
+
+/* route transition for tab content */
+.yy-tabpanel { animation: yy-fade-up .4s cubic-bezier(.22,.9,.28,1) both; }
+
+@media (max-width: 640px) {
+  .yy-hero { padding: 48px 16px 32px; }
+  .yy-tab { padding: 9px 16px; font-size: 15px; }
+}
+
+/* ---------- 传家宝印章 (配装台第 27/30 节复刻) ----------
+ * 金漆牌: 深红漆底渐变 + 双层描金边 + 角口金菱 + 金字光晕, 歪 -3°;
+ * 灰素印 (拉完了): 无光泽, 歪 +2.5°。传家宝卡片本体另加细金边与淡金光晕。
+ * 玉佩挂穗悬于卡片右角外沿缓慢轻摆; 金粉粒子层供点击撒粉/集齐庆祝共用。
+ * 卡片的 border 走组件 inline style, 故 heirloom 描边用 !important 压过。 */
+.heirloom-seal {
+  position: relative; display: inline-block;
+  font-family: "Noto Serif SC", serif; font-weight: 900; font-size: 13px;
+  letter-spacing: .24em; text-indent: .24em; color: #EFC96E;
+  background: linear-gradient(135deg, #93301F 0%, #70160D 52%, #86251A 100%);
+  border: 1px solid #C9A24B; border-radius: 4px; padding: 2px 9px; line-height: 1.5;
+  white-space: nowrap; transform: rotate(-3deg);
+  box-shadow: inset 0 0 0 1px #5E130B, inset 0 0 0 2.5px rgba(201,162,75,.75),
+    inset 0 1px 0 rgba(255,225,160,.35), 0 0 10px rgba(201,162,75,.45);
+  text-shadow: 0 0 6px rgba(239,201,110,.65), 0 1px 1px rgba(0,0,0,.45);
+}
+.heirloom-seal::before, .heirloom-seal::after {
+  content: ""; position: absolute; width: 5px; height: 5px; background: #C9A24B;
+  transform: rotate(45deg); box-shadow: 0 0 4px rgba(201,162,75,.85);
+}
+.heirloom-seal::before { top: -2.5px; left: -2.5px; }
+.heirloom-seal::after { bottom: -2.5px; right: -2.5px; }
+.dud-seal {
+  display: inline-block;
+  font-family: "Noto Serif SC", serif; font-weight: 700; font-size: 12.5px;
+  letter-spacing: .18em; text-indent: .18em; color: var(--muted);
+  background: #2B2B30; border: 1.5px solid var(--muted); border-radius: 4px;
+  padding: 2px 8px; line-height: 1.5; white-space: nowrap;
+  transform: rotate(2.5deg); opacity: .82;
+}
+.yy-gear-card, .yy-slotbox { position: relative; }
+.yy-gear-card.heirloom {
+  border-color: var(--gold) !important;
+  box-shadow: 0 0 0 1px var(--gold), 0 0 14px rgba(201,163,92,.25);
+}
+.yy-slotbox.heirloom {
+  border-color: var(--gold) !important;
+  box-shadow: inset 0 0 0 1px var(--gold), 0 0 12px rgba(201,163,92,.22);
+}
+.jade-pendant {
+  position: absolute; top: -14px; right: -4px; width: 30px; height: 62px; z-index: 4;
+  pointer-events: none; transform-origin: 50% 3px;
+  animation: pendantSway 5.2s ease-in-out infinite;
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,.4));
+}
+.jade-pendant svg { display: block; width: 100%; height: 100%; }
+@keyframes pendantSway {
+  0%, 100% { transform: rotate(2.6deg); }
+  50% { transform: rotate(-2.6deg); }
+}
+@media (prefers-reduced-motion: reduce) { .jade-pendant { animation: none; } }
+@media (max-width: 640px) { .jade-pendant { width: 24px; height: 50px; top: -11px; right: -2px; } }
+#goldDustLayer { position: fixed; inset: 0; pointer-events: none; z-index: 200; overflow: hidden; }
+.gd-p { position: absolute; border-radius: 50%; pointer-events: none; box-shadow: 0 0 5px rgba(239,201,110,.8); }

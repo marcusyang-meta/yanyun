@@ -1,0 +1,1 @@
+{"description":"燕云设计令牌单一来源: src/tokens.json 为数据, scripts/gen.mjs 生成 tokens.ts 与 tokens.css","exports":{".":{"default":"./src/index.ts","types":"./src/index.ts"}},"main":"src/index.ts","name":"@yanyun/theme","private":true,"scripts":{"gen":"node scripts/gen.mjs"},"type":"module","types":"src/index.ts","version":"0.0.0"}

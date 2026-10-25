@@ -1,0 +1,23 @@
+-- boss 副本回填 (source -> dungeon)
+UPDATE bosses SET dungeon = '霜催落月' WHERE source = '试剑·霜催落月';
+UPDATE bosses SET dungeon = '笃山衔蝉' WHERE source = '试剑·笃山衔蝉';
+UPDATE bosses SET dungeon = '煞地惊雷' WHERE source = '试剑·煞地惊雷';
+UPDATE bosses SET dungeon = '流火袭星' WHERE source = '试剑·流火袭星';
+UPDATE bosses SET dungeon = '沧流走虺' WHERE source = '试剑·沧流走虺';
+UPDATE bosses SET dungeon = '沉棺泊梦' WHERE source = '试剑·沉棺泊梦';
+UPDATE bosses SET dungeon = '幽牙蛇影' WHERE source = '试剑·幽牙蛇影';
+UPDATE bosses SET dungeon = '山河醉影' WHERE source = '试剑·山河醉影';
+UPDATE bosses SET dungeon = '定极分更' WHERE source = '试剑·定极分更(100级)';
+UPDATE bosses SET dungeon = '赤霄惊梦' WHERE source = '试剑·赤霄惊梦';
+UPDATE bosses SET dungeon = '白驹飞霞' WHERE source = '试剑·白驹飞霞';
+UPDATE bosses SET dungeon = '俣俣神浒' WHERE source = '试剑·俣俣神浒(96级)';
+UPDATE bosses SET dungeon = '俣俣神浒' WHERE source = '试剑·俣俣神浒';
+UPDATE bosses SET dungeon = '风饕五残灾' WHERE source = '侠境·风饕五残灾(91级)';
+UPDATE bosses SET dungeon = '锋锷断迷狂' WHERE source = '侠境·锋锷断迷狂(9月新)';
+UPDATE bosses SET dungeon = '笑渡苦行舟' WHERE source = '侠境·笑渡苦行舟(100级)';
+UPDATE bosses SET dungeon = '玉魄染青苍' WHERE source = '侠境·玉魄染青苍(100级)';
+UPDATE bosses SET dungeon = '点雪断恩仇' WHERE source = '侠境·点雪断恩仇(100级)';
+UPDATE bosses SET dungeon = '啸风峙玉' WHERE source = '侠境·啸风峙玉(8月)';
+UPDATE bosses SET dungeon = '鲲鹏图千山' WHERE source = '侠境·鲲鹏图千山';
+UPDATE bosses SET dungeon = '望月婵媛' WHERE source = '侠境·望月婵媛';
+INSERT OR IGNORE INTO dungeons (name, size, is_current, sort_order) VALUES ('鲲鹏图千山', 10, 0, 4), ('望月婵媛', 10, 0, 3);

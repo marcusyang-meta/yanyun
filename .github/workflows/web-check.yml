@@ -1,0 +1,23 @@
+name: web-check
+
+# Web 前端构建验证 (sync-schema -> relay-compiler -> tsc -> vite build)。
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'yanyun-web/**'
+      - 'packages/schema/**'
+      - '.github/workflows/web-check.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run build --workspace=yanyun-web
