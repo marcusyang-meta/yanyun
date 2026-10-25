@@ -1,7 +1,7 @@
 // (c) WS 验收: Bearer 连接 GuildHub → API 报名触发 grouping-changed 帧 → 离队还原
 import { createRequire } from 'node:module';
 import fs from 'node:fs';
-const require = createRequire('/home/hatch/workspace/yanyun-mobile/package.json');
+const require = createRequire('/home/hatch/workspace/yanyun/yanyun-mobile/package.json');
 const WebSocket = require('ws');
 const BACKEND = 'http://127.0.0.1:8787';
 const token = fs.readFileSync('/tmp/mobile-e2e/token.txt', 'utf8').trim();
