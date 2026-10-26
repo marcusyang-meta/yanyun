@@ -25,11 +25,16 @@ function GuildCard({ g }: { g: GuildItem }) {
           readOnly: g.readOnly ? '1' : '0',
           nick: g.viewerNick || '',
           version: g.gameVersion || '',
+          avatar: g.avatarUrl || '',
         },
       })}
     >
       <CardFill />
-      <Seal char="燕" size={48} />
+      {g.avatarUrl ? (
+        <Image source={{ uri: g.avatarUrl }} style={s.avatar} />
+      ) : (
+        <Seal char="燕" size={48} />
+      )}
       <View style={s.cardMain}>
         <View style={s.nameRow}>
           <Text style={s.gname}>{g.name || g.slug}</Text>
@@ -117,6 +122,10 @@ export default function GuildsScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: theme.bg },
+  avatar: {
+    width: 48, height: 48, borderRadius: 24,
+    borderWidth: 1, borderColor: 'rgba(201,163,92,.45)', backgroundColor: 'rgba(201,163,92,.08)',
+  },
   hero: {
     position: 'relative', overflow: 'hidden',
     alignItems: 'center', paddingHorizontal: 20, paddingBottom: 48,

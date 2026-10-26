@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<44351b6e63f8cbe8894db29d435cbbda>>
+ * @generated SignedSource<<4798e0dbb69273da318885c46464a647>>
  * @lightSyntaxTransform
  */
 
@@ -10,6 +10,7 @@
 import { ReaderFragment } from 'relay-runtime';
 import { FragmentRefs } from "relay-runtime";
 export type PublicGuildHome_guild$data = {
+  readonly avatarUrl: string | null | undefined;
   readonly detailBackToListLabel: string;
   readonly detailNotFoundText: string;
   readonly gameVersion: string;
@@ -66,6 +67,13 @@ const node: ReaderFragment = {
       "alias": null,
       "args": null,
       "kind": "ScalarField",
+      "name": "avatarUrl",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
       "name": "homeBackToHubLabel",
       "storageKey": null
     },
@@ -116,6 +124,6 @@ const node: ReaderFragment = {
   "abstractKey": null
 };
 
-(node as any).hash = "2770780c21302de6eae2472d82914d20";
+(node as any).hash = "d8ec9568aadda8eaf55bb39fce0bffcc";
 
 export default node;

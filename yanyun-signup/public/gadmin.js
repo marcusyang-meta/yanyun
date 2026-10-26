@@ -47,9 +47,73 @@ $('#logoutBtn').onclick = logout;
 
 async function boot() {
   await loadProfile();
+  await loadAvatar();
   await loadEvents();
   await loadTeams();
 }
+
+/* ---- 百业头像 (直传: 前端裁方/缩放/压到 ≤400KB, 服务端复验类型与大小) ---- */
+async function loadAvatar() {
+  try {
+    const j = await api(API + '/avatar');
+    const img = $('#avatarPreview'), empty = $('#avatarEmpty'), del = $('#avatarDelBtn');
+    if (j.hasAvatar && j.avatarUrl) {
+      img.src = j.avatarUrl; img.style.display = 'block';
+      empty.style.display = 'none'; del.style.display = '';
+    } else {
+      img.removeAttribute('src'); img.style.display = 'none';
+      empty.style.display = 'flex'; del.style.display = 'none';
+    }
+  } catch {}
+}
+
+// 选图 -> 居中裁方 -> canvas 缩到 ≤512 -> 按原格式编码; 超 400KB 先
+// 降边长再降质量, 仍超限报错让用户换图 (服务端还会以 400KB 复验)。
+async function prepareAvatarBlob(file) {
+  const bmp = await createImageBitmap(file);
+  const side = Math.min(bmp.width, bmp.height);
+  const sx = (bmp.width - side) / 2, sy = (bmp.height - side) / 2;
+  const type = ['image/png', 'image/jpeg', 'image/webp'].includes(file.type) ? file.type : 'image/png';
+  const toBlob = (size, quality) => new Promise((resolve) => {
+    const cv = document.createElement('canvas');
+    cv.width = size; cv.height = size;
+    cv.getContext('2d').drawImage(bmp, sx, sy, side, side, 0, 0, size, size);
+    cv.toBlob(resolve, type, quality);
+  });
+  let size = Math.min(512, side);
+  let blob = await toBlob(size, 0.92);
+  while (blob && blob.size > 400 * 1024 && size > 96) {
+    size = Math.floor(size * 0.75);
+    blob = await toBlob(size, 0.85);
+  }
+  if (blob && blob.size > 400 * 1024 && type !== 'image/png') blob = await toBlob(size, 0.6);
+  if (!blob) throw new Error('图片处理失败, 请换一张图重试');
+  if (blob.size > 400 * 1024) throw new Error('图片压缩后仍超过 400KB, 请换一张更简单的图');
+  return { blob, type };
+}
+
+$('#avatarPickBtn').onclick = () => $('#avatarFile').click();
+$('#avatarFile').onchange = async (e) => {
+  const file = e.target.files[0];
+  e.target.value = '';
+  if (!file) return;
+  const msg = $('#avatarMsg');
+  msg.className = 'msg'; msg.textContent = '处理中…';
+  try {
+    const { blob, type } = await prepareAvatarBlob(file);
+    await api(API + '/avatar', { method: 'PUT', headers: { 'content-type': type }, body: blob });
+    msg.textContent = '头像已更新';
+    await loadAvatar();
+  } catch (err) { msg.className = 'msg bad'; msg.textContent = err.message; }
+};
+$('#avatarDelBtn').onclick = async () => {
+  const msg = $('#avatarMsg');
+  try {
+    await api(API + '/avatar', { method: 'DELETE' });
+    msg.className = 'msg'; msg.textContent = '头像已删除';
+    await loadAvatar();
+  } catch (err) { msg.className = 'msg bad'; msg.textContent = err.message; }
+};
 
 async function loadProfile() {
   const { profile } = await api(API + '/profile');

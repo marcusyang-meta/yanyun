@@ -11,6 +11,7 @@ const MemberGuildHome_guild = graphql`
     name
     slogan
     gameVersion
+    avatarUrl
     viewerNick
     homeBackToHubLabel
     homeTabTeamLabel

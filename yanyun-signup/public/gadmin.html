@@ -42,6 +42,20 @@
         <div class="msg" id="setMsg"></div>
       </form>
       <p style="color:var(--muted);font-size:12.5px;margin:10px 0 0">游戏版本与江湖快讯为全站统一，由超管维护。设置 Discord Webhook 后，新建活动/发车会自动推送到 Discord 频道。</p>
+      <div style="margin-top:16px;border-top:1px solid rgba(255,255,255,.08);padding-top:14px">
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+          <img id="avatarPreview" alt="" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:1px solid rgba(201,163,92,.45);display:none">
+          <div id="avatarEmpty" style="width:64px;height:64px;border-radius:50%;border:1px dashed var(--muted);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;flex-shrink:0">无头像</div>
+          <div style="flex:1;min-width:220px">
+            <div style="font-weight:600;margin-bottom:4px">百业头像</div>
+            <div style="color:var(--muted);font-size:12.5px;margin-bottom:8px">显示在百业页眉、选择页、Discord 提醒与分享图上。选图后自动裁成正方形并压缩（≤512×512、≤400KB），支持 PNG / JPEG / WebP。</div>
+            <input type="file" id="avatarFile" accept="image/png,image/jpeg,image/webp" style="display:none">
+            <button type="button" class="primary" id="avatarPickBtn" style="width:auto">上传 / 更换头像</button>
+            <button type="button" id="avatarDelBtn" style="width:auto;display:none">删除头像</button>
+          </div>
+        </div>
+        <div class="msg" id="avatarMsg"></div>
+      </div>
       <div style="margin-top:12px;display:flex;align-items:center;gap:8px">
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
           <input type="checkbox" id="featTeams" style="width:18px;height:18px">

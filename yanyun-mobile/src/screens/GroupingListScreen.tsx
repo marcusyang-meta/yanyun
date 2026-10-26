@@ -37,7 +37,7 @@ const TAB_KEYS = ['ACTIVITY', 'TALENT', 'RACE', 'TOWER'] as const;
 const TAB_FALLBACK_LABELS = ['双十人本', '天赋组队', '竞速报名', '爬塔'];
 
 type TabKey = (typeof TAB_KEYS)[number];
-type Props = { slug: string; name: string; readOnly: boolean; nick: string; gameVersion?: string };
+type Props = { slug: string; name: string; readOnly: boolean; nick: string; gameVersion?: string; avatarUrl?: string };
 
 function fill(template: string, params: Record<string, string | number>): string {
   let out = template;
@@ -47,7 +47,7 @@ function fill(template: string, params: Record<string, string | number>): string
 
 type SectionKey = 'team' | 'dex' | 'sect';
 
-export default function GroupingListScreen({ slug, name, readOnly, nick, gameVersion }: Props) {
+export default function GroupingListScreen({ slug, name, readOnly, nick, gameVersion, avatarUrl }: Props) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { guilds, publicGuilds } = useSession();
@@ -105,8 +105,8 @@ export default function GroupingListScreen({ slug, name, readOnly, nick, gameVer
       <Backdrop />
       <View style={[s.headZone, { paddingTop: 12 + insets.top }]}>
         <SiteChrome displayName={nick || undefined} />
-        <Suspense fallback={<GuildHeader name={name} version={gameVersion} />}>
-          <GuildHeaderLive slug={slug} name={name} fallbackVersion={gameVersion} />
+        <Suspense fallback={<GuildHeader name={name} version={gameVersion} avatarUrl={avatarUrl} />}>
+          <GuildHeaderLive slug={slug} name={name} fallbackVersion={gameVersion} avatarUrl={avatarUrl} />
         </Suspense>
       </View>
 
@@ -189,13 +189,13 @@ export default function GroupingListScreen({ slug, name, readOnly, nick, gameVer
 
 // 百业名 + 版本行: 版本优先用列表页 shell 的 currentVersion
 // (与 Web GuildHome 同源), 路由参数只作首帧回退。
-function GuildHeaderLive({ slug, name, fallbackVersion }: { slug: string; name: string; fallbackVersion?: string }) {
+function GuildHeaderLive({ slug, name, fallbackVersion, avatarUrl }: { slug: string; name: string; fallbackVersion?: string; avatarUrl?: string }) {
   const data = useLazyLoadQuery<documentsListPageTextQuery>(
     ListPageTextQuery,
     { slug, tab: 'ACTIVITY' },
     { fetchPolicy: 'store-or-network' },
   );
-  return <GuildHeader name={name} version={data.groupingListPage?.currentVersion ?? fallbackVersion} />;
+  return <GuildHeader name={name} version={data.groupingListPage?.currentVersion ?? fallbackVersion} avatarUrl={avatarUrl} />;
 }
 
 // 发车入口: 位置与 Web 列表页一致 (列表上方右对齐金按钮), 文案
