@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fonts, theme } from '../theme';
-import { Backdrop, CardFill, Seal, UserBar } from '../components/ui';
+import { Backdrop, CardFill, GoldFill, Seal, UserBar } from '../components/ui';
 import { useSession } from '../session';
 import type { GuildItem } from '../api';
 
@@ -62,6 +62,7 @@ function SectionHead({ zh, en, first = false }: { zh?: string | null; en?: strin
 
 export default function GuildsScreen() {
   const { guilds, publicGuilds, text } = useSession();
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   return (
     <View style={s.root}>
@@ -98,12 +99,23 @@ export default function GuildsScreen() {
                 <CardFill />
                 <Text style={s.emptyTitle}>{text.pickerEmptyTitle ?? '还没有加入任何百业'}</Text>
                 <Text style={s.emptyBody}>{text.pickerEmptyBody ?? '你所在的 Discord 服务器绑定百业后会出现在这里。'}</Text>
+                {/* 与 Web 选择器同位: 空状态卡内金按钮 -> 创建百业 */}
+                <Pressable style={s.createBtn} onPress={() => router.push('/create')}>
+                  <GoldFill />
+                  <Text style={s.createBtnText}>{text.pickerCreateGuildLabel ?? '创建百业'}</Text>
+                </Pressable>
               </View>
             )
             : (
-              <View style={s.cards}>
-                {guilds.map((g) => <GuildCard key={g.slug} g={g} />)}
-              </View>
+              <>
+                <View style={s.cards}>
+                  {guilds.map((g) => <GuildCard key={g.slug} g={g} />)}
+                </View>
+                {/* 与 Web 选择器同位: 有百业时卡片下居中弱链 */}
+                <Pressable style={s.moreWrap} onPress={() => router.push('/create')}>
+                  <Text style={s.moreText}>{text.pickerCreateGuildMoreLabel ?? '+ 创建新百业'}</Text>
+                </Pressable>
+              </>
             )}
 
           {publicGuilds.length > 0 && (
@@ -174,4 +186,11 @@ const s = StyleSheet.create({
   },
   emptyTitle: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 18, textAlign: 'center' },
   emptyBody: { fontFamily: fonts.serif, color: theme.muted, fontSize: 14, lineHeight: 27, textAlign: 'center', marginTop: 10 },
+  createBtn: {
+    position: 'relative', overflow: 'hidden', borderRadius: 10,
+    marginTop: 22, paddingVertical: 12, paddingHorizontal: 32, alignItems: 'center',
+  },
+  createBtnText: { fontFamily: fonts.serif, color: theme.onGold, fontSize: 15, fontWeight: '700' },
+  moreWrap: { alignItems: 'center', marginTop: 16, paddingVertical: 4 },
+  moreText: { fontFamily: fonts.serif, color: theme.muted, fontSize: 13.5 },
 });

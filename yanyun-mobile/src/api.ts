@@ -3,6 +3,7 @@ import { relayEnvironment } from './relay';
 import {
   CompleteGroupingMutation,
   CreateGroupingMutation,
+  CreateGuildMutation,
   DisbandGroupingMutation,
   JoinGroupingMutation,
   LeaveGroupingMutation,
@@ -20,6 +21,7 @@ import type { documentsDisbandGroupingMutation } from './__generated__/documents
 import type { documentsCompleteGroupingMutation } from './__generated__/documentsCompleteGroupingMutation.graphql';
 import type { documentsReopenGroupingMutation } from './__generated__/documentsReopenGroupingMutation.graphql';
 import type { documentsCreateGroupingMutation } from './__generated__/documentsCreateGroupingMutation.graphql';
+import type { documentsCreateGuildMutation } from './__generated__/documentsCreateGuildMutation.graphql';
 import type { documentsUpdateGroupingMutation } from './__generated__/documentsUpdateGroupingMutation.graphql';
 import type { documentsUpdateMyLocaleMutation } from './__generated__/documentsUpdateMyLocaleMutation.graphql';
 import type { documentsRegisterPushTokenMutation } from './__generated__/documentsRegisterPushTokenMutation.graphql';
@@ -70,6 +72,8 @@ export type SiteText = {
   pickerReadOnlyBadge?: string | null;
   pickerEmptyTitle?: string | null;
   pickerEmptyBody?: string | null;
+  pickerCreateGuildLabel?: string | null;
+  pickerCreateGuildMoreLabel?: string | null;
   commonUnknownErrorText?: string | null;
   commonRenderErrorTemplate?: string | null;
   commonRenderErrorHint?: string | null;
@@ -123,6 +127,8 @@ export async function fetchViewer(): Promise<ViewerData> {
       pickerReadOnlyBadge: viewer?.pickerReadOnlyBadge,
       pickerEmptyTitle: viewer?.pickerEmptyTitle,
       pickerEmptyBody: viewer?.pickerEmptyBody,
+      pickerCreateGuildLabel: viewer?.pickerCreateGuildLabel,
+      pickerCreateGuildMoreLabel: viewer?.pickerCreateGuildMoreLabel,
       commonUnknownErrorText: viewer?.commonUnknownErrorText,
       commonRenderErrorTemplate: viewer?.commonRenderErrorTemplate,
       commonRenderErrorHint: viewer?.commonRenderErrorHint,
@@ -213,6 +219,14 @@ export type LocalePayload = {
   localePref?: string | null;
   effectiveLocale?: string | null;
 };
+
+// 创建百业: 与 Web 同一 mutation; 服务器可管理性/slug/限流均由后端复验。
+export async function createGuild(input: {
+  name: string; slug: string; discordGuildId: string;
+}): Promise<{ ok: boolean; error?: string | null; guild?: { slug: string; name?: string | null } | null }> {
+  const res = await commit<documentsCreateGuildMutation>(CreateGuildMutation, { input });
+  return res.createGuild ?? { ok: false };
+}
 
 export async function updateMyLocale(locale: string | null): Promise<LocalePayload> {
   const r = await commit<documentsUpdateMyLocaleMutation>(UpdateMyLocaleMutation, { locale });
