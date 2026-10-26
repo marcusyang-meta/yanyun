@@ -18,6 +18,7 @@ import { hubOgTags, guildOgTags, carOgTags } from './domains/platform/og.ts';
 import { getTenantSlug } from './domains/guilds/index.ts';
 import { hubRoutes } from './domains/platform/hub-routes.ts';
 import { guildAvatarRoutes } from './domains/guilds/avatar-routes.ts';
+import { shortLinkRoutes } from './domains/groupings/shortlink-routes.ts';
 
 /* Hono app */
 const app = new Hono();
@@ -39,6 +40,7 @@ app.use('/api/*', async (c: any, next: any) => {
 
 app.route('/api/hub', hubRoutes);
 app.route('/', guildAvatarRoutes); // avatar public path /guilds/:slug/avatar (standalone, survives the REST shutdown)
+app.route('/', shortLinkRoutes); // share short links /c/:code -> 302 to the canonical car URL
 
 app.all('/graphql', async (c: any) => {
   // Sessions with incomplete Discord authorization are voided here
@@ -125,7 +127,7 @@ async function handleFetch(request: Request, env: Env, ctx: ExecutionContext) {
       return handleGuildLive(request, env, slug);
     }
 
-    if (path.startsWith('/api/') || path === '/graphql' || /^\/guilds\/[^/]+\/avatar$/.test(path)) {
+    if (path.startsWith('/api/') || path === '/graphql' || /^\/guilds\/[^/]+\/avatar$/.test(path) || /^\/c\/[^/]+$/.test(path)) {
       return app.fetch(request, env, ctx);
     }
 

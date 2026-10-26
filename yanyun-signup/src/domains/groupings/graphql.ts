@@ -1,6 +1,7 @@
 import type { Context } from '../platform/context.ts';
 import { vcOf } from '../platform/context.ts';
 import { ensureEventCreatorColumn as ensureEventCreatorColumnRepo } from './events.ts';
+import { mintShortLink, shortLinkUrl, canonicalGroupingUrl } from './shortlinks.ts';
 /* groupings domain GraphQL: grouping shells, list/detail pages, and all grouping mutations. */
 import {
   clampBlocksVersion, substituteForVersion, weekWindowUtc, startsAtEpoch,
@@ -344,6 +345,21 @@ export class GroupingDetailPageShell extends ShellBase {
       completeConfirmTitle: this.t('groupingDetail', 'completeConfirmTitle'),
       completeConfirmMessageTemplate: this.t('groupingDetail', 'completeConfirmMessage'),
     };
+  }
+  // Share URL for this car: the stable short link (lazily minted on
+  // first read, then reused forever). Clients share exactly this
+  // string and never compose URLs themselves; if minting fails, the
+  // canonical long URL is served instead so sharing never breaks.
+  async genShareUrl(){
+    return this.memo('shareUrl', async () => {
+      const ev = this.data;
+      try {
+        const link = await mintShortLink(this.db, ev.tenant, ev.id);
+        return shortLinkUrl(link.code);
+      } catch {
+        return canonicalGroupingUrl(ev.tenant, ev.id);
+      }
+    });
   }
   // Mobile Bloks-lite: block tree for this page's content area. Per-seat actions and the disband button are composed per viewer (identity-stamp / leader-or-guild-admin checks all server-side), then substituted by blocksVersion.
   async genBlocks({ blocksVersion }: any = {}){
@@ -830,6 +846,7 @@ export const groupingsResolvers = {
   },
   GroupingDetailPage: {
     grouping: (p: any) => p.genGrouping(),
+    shareUrl: (p: GroupingDetailPageShell) => p.genShareUrl(),
     blocks: (p: any, args: any) => p.genBlocks(args),
     manageActions: (p: any) => p.genManageActions(),
     ...DETAIL_TEXT_RESOLVERS,

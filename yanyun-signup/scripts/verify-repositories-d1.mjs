@@ -12,10 +12,11 @@
  * unchanged; this is only a local verification fixture).
  *
  * Usage: node scripts/verify-repositories-d1.mjs [section]
- *   Omitting section = all; currently thirteen sections: tenants /
- *   events / gear / users / members / results / dex / state / ddl /
- *   guard / stamp / membercount / atomic, extended as the data-layer
- *   migration progresses. Non-zero exit = an assertion failed.
+ *   Omitting section = all; currently fifteen sections: tenants /
+ *   events / gear / users / members / results / dex / reference /
+ *   state / ddl / guard / stamp / membercount / atomic / audit /
+ *   shortlinks, extended as the data-layer migration progresses.
+ *   Non-zero exit = an assertion failed.
  * =================================================== */
 import { Miniflare, convertV4MiniflareOptions } from 'miniflare';
 
@@ -900,6 +901,52 @@ if (want('audit')) {
   const broken = { prepare() { throw new Error('down'); } };
   eq('auditHub broken db -> false, no throw', await svc.auditHub(broken, { action: 'x' }), false);
   eq('listHubAuditPage broken db -> empty', (await svc.listHubAuditPage(broken, {})).total, 0);
+}
+
+/* ---------------- short_links ---------------- */
+if (want('shortlinks')) {
+  console.log('== short_links repository on real D1 ==');
+  const repo = await import('../src/domains/groupings/shortlinks.ts');
+
+  // The table is created by the repository's own lazy DDL on first use.
+  const a = await repo.mintShortLink(db, 'alpha', 101);
+  check('mint returns a 7-char base62 code', /^[0-9A-Za-z]{7}$/.test(a.code), a.code);
+  eq('mint row target', [a.tenant, a.event_id], ['alpha', 101]);
+  check('mint row created_at is epoch seconds', a.created_at > 1700000000, String(a.created_at));
+
+  const again = await repo.mintShortLink(db, 'alpha', 101);
+  eq('second mint for same target is stable (same code)', again.code, a.code);
+  eq('getShortLinkByTarget roundtrip', (await repo.getShortLinkByTarget(db, 'alpha', 101))?.code, a.code);
+  eq('getShortLinkByCode roundtrip', (await repo.getShortLinkByCode(db, a.code))?.event_id, 101);
+  eq('getShortLinkByCode unknown -> null', await repo.getShortLinkByCode(db, 'ZZZZZZZ'), null);
+  eq('getShortLinkByTarget unknown -> null', await repo.getShortLinkByTarget(db, 'alpha', 999), null);
+
+  const b = await repo.mintShortLink(db, 'alpha', 102);
+  check('different target mints a different code', b.code !== a.code, `${a.code} vs ${b.code}`);
+
+  // Collision retry: the first candidate code is already taken by car
+  // 101; the mint must skip it and land on the second candidate.
+  const seq = [a.code, 'Fr3sh99'];
+  const c = await repo.mintShortLink(db, 'beta', 201, () => seq.shift() || repo.generateShortCode());
+  eq('code collision retries with a fresh code', c.code, 'Fr3sh99');
+  eq('collided code still resolves to its original target', (await repo.getShortLinkByCode(db, a.code))?.event_id, 101);
+
+  // Same-target race: a concurrent mint for the same target lands
+  // first (simulated inside the code generator); the outer mint must
+  // adopt the winner's code instead of failing or duplicating.
+  let winner = null;
+  const d = await repo.mintShortLink(db, 'beta', 202, () => {
+    if (!winner) {
+      winner = repo.mintShortLink(db, 'beta', 202);
+      return 'Tak3n00';
+    }
+    return repo.generateShortCode();
+  });
+  eq('same-target race adopts the winner code', d.code, (await winner)?.code);
+  eq('race leaves exactly one row for the target', (await repo.getShortLinkByTarget(db, 'beta', 202))?.code, d.code);
+
+  eq('shortLinkUrl shape', repo.shortLinkUrl('Ab3dEf9'), 'https://yanyun.app/c/Ab3dEf9');
+  eq('canonicalGroupingUrl shape', repo.canonicalGroupingUrl('alpha', 101), 'https://yanyun.app/alpha/car/101');
 }
 
 await mf.dispose();

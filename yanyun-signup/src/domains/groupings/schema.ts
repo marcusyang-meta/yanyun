@@ -59,6 +59,20 @@ export const signups = sqliteTable('signups', {
   index('idx_signups_event').on(t.eventId),
 ]);
 
+/* ---------------- short_links [lazy DDL in shortlinks.ts] -------------
+ * Share-link aliases: one stable random code per grouping (car).
+ * code is the public alias (base62, 7 chars, random — never derived
+ * from the sequential event id); (tenant, event_id) is unique so a
+ * car mints exactly one code and reuses it forever. */
+export const shortLinks = sqliteTable('short_links', {
+  code: text('code').primaryKey(),
+  tenant: text('tenant').notNull().default(''),
+  eventId: integer('event_id').notNull(),
+  createdAt: integer('created_at').notNull().default(0),
+}, (t) => [
+  uniqueIndex('short_links_target_unique').on(t.tenant, t.eventId),
+]);
+
 /* ---------------- results [ddl schema.sql] ---------------------------- */
 export const results = sqliteTable('results', {
   id: integer('id').primaryKey({ autoIncrement: true }),
