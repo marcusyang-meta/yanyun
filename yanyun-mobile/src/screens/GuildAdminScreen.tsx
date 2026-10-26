@@ -79,7 +79,7 @@ function AdminLoader({ slug, epoch, refresh }: { slug: string; epoch: number; re
 function AdminMain({ admin, unknownError, refresh, router }: {
   admin: Admin; unknownError: string; refresh: () => void; router: ReturnType<typeof useRouter>;
 }) {
-  const [tab, setTab] = useState<'profile' | 'discord' | 'teams' | 'events' | 'guides'>('profile');
+  const [tab, setTab] = useState<'profile' | 'discord' | 'teams' | 'events' | 'guides' | 'stats'>('profile');
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
 
@@ -97,6 +97,7 @@ function AdminMain({ admin, unknownError, refresh, router }: {
     { key: 'teams', label: admin.adminTabTeamsLabel },
     { key: 'events', label: admin.adminTabEventsLabel },
     { key: 'guides', label: admin.adminTabGuidesLabel },
+    { key: 'stats', label: admin.adminTabStatsLabel },
   ];
   return (
     <ScrollView contentContainerStyle={s.content}>
@@ -121,6 +122,7 @@ function AdminMain({ admin, unknownError, refresh, router }: {
       {tab === 'teams' && <TeamsPanel admin={admin} run={run} />}
       {tab === 'events' && <EventsPanel admin={admin} run={run} />}
       {tab === 'guides' && <GuidesPanel admin={admin} run={run} />}
+      {tab === 'stats' && <StatsPanel admin={admin} />}
     </ScrollView>
   );
 }
@@ -697,6 +699,109 @@ function RotationEditor({ admin, school, rotationJson, run }: {
   );
 }
 
+/* ---------- stats (attendance / activity, isomorphic with Web) ---------- */
+
+function StatBar({ ratio }: { ratio: number }) {
+  const w = Math.max(0, Math.min(100, ratio * 100));
+  return (
+    <View style={s.statBarTrack}>
+      <View style={[s.statBarFill, { width: `${w}%` }]} />
+    </View>
+  );
+}
+
+function StatMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={s.statMetric}>
+      <Text style={s.statMetricLabel}>{label}</Text>
+      <Text style={s.statMetricValue}>{value}</Text>
+    </View>
+  );
+}
+
+function StatBoard({ title, unitLabel, emptyText, rows }: {
+  title: string;
+  unitLabel: string;
+  emptyText: string;
+  rows: { discordId: string; displayName: string; count: number }[];
+}) {
+  const top = rows.length ? rows[0].count : 0;
+  return (
+    <View>
+      <View style={s.statBoardHead}>
+        <Text style={s.sectionTitle}>{title}</Text>
+        {rows.length > 0 && <Text style={s.statUnit}>{unitLabel}</Text>}
+      </View>
+      {rows.length === 0 ? (
+        <Text style={s.muted}>{emptyText}</Text>
+      ) : rows.map((row, i) => (
+        <View key={row.discordId} style={[s.statRow, i > 0 && s.statRowDiv]}>
+          <Text style={s.statRank}>{i + 1}</Text>
+          <Text style={s.statName}>{row.displayName}</Text>
+          <StatBar ratio={top ? row.count / top : 0} />
+          <Text style={s.statCount}>{row.count}</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+function StatsPanel({ admin }: { admin: Admin }) {
+  const stats = admin.stats;
+  const weeks = stats?.weeks ?? [];
+  const allEmpty = weeks.every((w) => w.carsTotal === 0);
+  const typeLine = (w: NonNullable<Admin['stats']>['weeks'][number]) => [
+    [admin.adminTypeActivityText, w.carsActivity],
+    [admin.adminTypeTalentText, w.carsTalent],
+    [admin.adminTypeRaceText, w.carsRace],
+    [admin.adminTypeTowerText, w.carsTower],
+  ].filter(([, n]) => (n as number) > 0).map(([label, n]) => `${label} ${n}`).join(' · ');
+  return (
+    <View>
+      <Text style={s.sectionTitle}>{admin.adminStatsTitle}</Text>
+      {allEmpty ? (
+        <Text style={s.muted}>{admin.adminStatsEmptyText}</Text>
+      ) : weeks.map((w, i) => (
+        <View key={w.weekLabel + i} style={s.card}>
+          <View style={s.statWeekHead}>
+            <Text style={s.eventTitle}>{w.weekLabel}</Text>
+            {w.isCurrent && (
+              <View style={s.statChip}>
+                <Text style={s.statChipText}>{admin.adminStatsCurrentWeekLabel}</Text>
+              </View>
+            )}
+          </View>
+          <View style={s.statMetrics}>
+            <StatMetric label={admin.adminStatsCarsLabel} value={String(w.carsTotal)} />
+            <StatMetric label={admin.adminStatsCompletedLabel} value={String(w.completedCount)} />
+            <StatMetric label={admin.adminStatsSeatsLabel} value={`${w.filledSeats}/${w.totalSeats}`} />
+            <StatMetric label={admin.adminStatsParticipantsLabel} value={String(w.participantCount)} />
+            <StatMetric label={admin.adminStatsPerCapitaLabel} value={String(Math.round(w.perCapita * 100) / 100)} />
+          </View>
+          <View style={s.statFillRow}>
+            <Text style={s.statMetricLabel}>{admin.adminStatsFillRateLabel}</Text>
+            <StatBar ratio={w.fillRate} />
+            <Text style={s.statCount}>{`${Math.round(w.fillRate * 100)}%`}</Text>
+          </View>
+          {!!typeLine(w) && <Text style={[s.muted, { marginTop: 8 }]}>{typeLine(w)}</Text>}
+        </View>
+      ))}
+      <StatBoard
+        title={admin.adminStatsMembersTitle}
+        unitLabel={admin.adminStatsSeatCountLabel}
+        emptyText={admin.adminStatsBoardEmptyText}
+        rows={(stats?.memberLeaders ?? []).map((m) => ({ discordId: m.discordId, displayName: m.displayName, count: m.seatCount }))}
+      />
+      <StatBoard
+        title={admin.adminStatsLeadersTitle}
+        unitLabel={admin.adminStatsCarCountLabel}
+        emptyText={admin.adminStatsBoardEmptyText}
+        rows={(stats?.leaderLeaders ?? []).map((m) => ({ discordId: m.discordId, displayName: m.displayName, count: m.carCount }))}
+      />
+    </View>
+  );
+}
+
 /* ---------- styles ---------- */
 
 const s = StyleSheet.create({
@@ -710,6 +815,23 @@ const s = StyleSheet.create({
   tabOn: { backgroundColor: 'rgba(201,163,92,.16)', borderColor: theme.gold },
   tabText: { fontFamily: fonts.serif, color: theme.muted, fontSize: 13.5 },
   tabTextOn: { color: theme.goldHi },
+  statBarTrack: { flex: 1, height: 6, borderRadius: 3, backgroundColor: 'rgba(236,226,203,.10)', overflow: 'hidden' },
+  statBarFill: { height: '100%', backgroundColor: theme.gold, borderRadius: 3 },
+  statMetric: { minWidth: 62 },
+  statMetricLabel: { fontFamily: fonts.serif, color: theme.muted, fontSize: 11, marginBottom: 2 },
+  statMetricValue: { fontFamily: fonts.serif, color: theme.paper, fontSize: 16 },
+  statBoardHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
+  statUnit: { fontFamily: fonts.serif, color: theme.muted, fontSize: 11 },
+  statRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 7 },
+  statRowDiv: { borderTopWidth: 1, borderTopColor: 'rgba(201,163,92,.10)' },
+  statRank: { width: 22, fontFamily: fonts.serif, color: theme.muted, fontSize: 13 },
+  statName: { minWidth: 100, fontFamily: fonts.serif, color: theme.paper, fontSize: 14 },
+  statCount: { width: 36, textAlign: 'right', fontFamily: fonts.serif, color: theme.goldHi, fontSize: 14 },
+  statWeekHead: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
+  statChip: { borderWidth: 1, borderColor: 'rgba(201,163,92,.5)', borderRadius: 999, paddingVertical: 1, paddingHorizontal: 8 },
+  statChipText: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 11 },
+  statMetrics: { flexDirection: 'row', flexWrap: 'wrap', gap: 16 },
+  statFillRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 10 },
   sectionTitle: { fontFamily: fonts.brush, color: theme.gold, fontSize: 16, letterSpacing: 2, marginTop: 20, marginBottom: 10 },
   card: {
     borderWidth: 1, borderColor: 'rgba(201,163,92,.25)', borderRadius: 12,
