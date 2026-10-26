@@ -48,6 +48,8 @@ import {
   listBossesFullByDungeon, listOrphanBossesByName, countBosses,
   listDungeonsPublic, getDungeonByName, getDungeonById, insertDungeonDex, updateDungeonFields,
   deleteDungeonById, countDungeons,
+  listSchoolsFull, getSchoolNameBySlug, listSchoolBis, listSchoolBisBySchool,
+  listSchoolRotations, getSchoolRotationBySchool, upsertSchoolBis, upsertSchoolRotation,
 } from './domains/dex/index.ts';
 
 const TYPES = { activity: '双十人本', talent: '天赋组队', race: '竞速', tower: '爬塔', gather: '采集', explore: '探索' };
@@ -303,10 +305,7 @@ pub.get('/bosses/:id', async (c) => {
 
 // GET /api/schools 流派列表(全站共用)
 pub.get('/schools', async (c) => {
-  const { results } = await c.env.DB.prepare(
-    'SELECT name, slug, short, family, color, attr, talent_desc FROM schools ORDER BY name ASC'
-  ).all();
-  return json({ ok: true, schools: results });
+  return json({ ok: true, schools: await listSchoolsFull(c.env.DB) });
 });
 
 // GET /api/dungeons 副本列表(全站共用, 按规模/排序)
@@ -999,12 +998,8 @@ guild.get('/:slug/settings', async (c) => {
 
 // GET /api/:slug/school-guides 流派攻略(毕业词条+输出轴, 公开) - 保留兼容
 guild.get('/:slug/school-guides', async (c) => {
-  const { results: bis } = await c.env.DB.prepare(
-    'SELECT school, build, attr, rate, bis_json FROM school_bis'
-  ).all();
-  const { results: rots } = await c.env.DB.prepare(
-    'SELECT school, rotation_json FROM school_rotations'
-  ).all();
+  const bis = await listSchoolBis(c.env.DB);
+  const rots = await listSchoolRotations(c.env.DB);
   const bisMap = {};
   for (const r of bis) {
     if (!bisMap[r.school]) bisMap[r.school] = {};
@@ -1020,14 +1015,10 @@ guild.get('/:slug/school-guides', async (c) => {
 // GET /api/:slug/schools/:schoolSlug/bis 单个流派毕业词条
 guild.get('/:slug/schools/:schoolSlug/bis', async (c) => {
   const schoolSlug = c.req.param('schoolSlug');
-  const schoolRow = await c.env.DB.prepare(
-    'SELECT name FROM schools WHERE slug = ?'
-  ).bind(schoolSlug).first();
+  const schoolRow = await getSchoolNameBySlug(c.env.DB, schoolSlug);
   if (!schoolRow) return err('流派不存在', 404);
   const school = schoolRow.name;
-  const { results } = await c.env.DB.prepare(
-    'SELECT build, attr, rate, bis_json FROM school_bis WHERE school = ?'
-  ).bind(school).all();
+  const results = await listSchoolBisBySchool(c.env.DB, school);
   if (!results.length) return err('流派不存在', 404);
   const bis = {};
   for (const r of results) {
@@ -1039,14 +1030,10 @@ guild.get('/:slug/schools/:schoolSlug/bis', async (c) => {
 // GET /api/:slug/schools/:schoolSlug/rotations 单个流派输出轴
 guild.get('/:slug/schools/:schoolSlug/rotations', async (c) => {
   const schoolSlug = c.req.param('schoolSlug');
-  const schoolRow = await c.env.DB.prepare(
-    'SELECT name FROM schools WHERE slug = ?'
-  ).bind(schoolSlug).first();
+  const schoolRow = await getSchoolNameBySlug(c.env.DB, schoolSlug);
   if (!schoolRow) return err('流派不存在', 404);
   const school = schoolRow.name;
-  const row = await c.env.DB.prepare(
-    'SELECT rotation_json FROM school_rotations WHERE school = ?'
-  ).bind(school).first();
+  const row = await getSchoolRotationBySchool(c.env.DB, school);
   if (!row) return err('流派不存在', 404);
   return json({ ok: true, school, slug: schoolSlug, rotations: JSON.parse(row.rotation_json) });
 });
@@ -1424,16 +1411,12 @@ guild.put('/:slug/admin/school-guides', needGuildAdmin, async (c) => {
   if (!school) return json({ ok: false, error: 'missing school' }, 400);
   const buildName = build || '小外流';
   if (bis !== undefined) {
-    await c.env.DB.prepare(
-      'INSERT INTO school_bis (school, build, attr, rate, bis_json, updated_at) VALUES (?, ?, ?, ?, ?, strftime(\'%s\',\'now\')) ' +
-      'ON CONFLICT(school, build) DO UPDATE SET attr=excluded.attr, rate=excluded.rate, bis_json=excluded.bis_json, updated_at=excluded.updated_at'
-    ).bind(school, buildName, attr || '', rate || '', JSON.stringify(bis)).run();
+    await upsertSchoolBis(c.env.DB, {
+      school, build: buildName, attr: attr || '', rate: rate || '', bisJson: JSON.stringify(bis),
+    });
   }
   if (rotation !== undefined) {
-    await c.env.DB.prepare(
-      'INSERT INTO school_rotations (school, rotation_json, updated_at) VALUES (?, ?, strftime(\'%s\',\'now\')) ' +
-      'ON CONFLICT(school) DO UPDATE SET rotation_json=excluded.rotation_json, updated_at=excluded.updated_at'
-    ).bind(school, JSON.stringify(rotation)).run();
+    await upsertSchoolRotation(c.env.DB, { school, rotationJson: JSON.stringify(rotation) });
   }
   return json({ ok: true });
 });
