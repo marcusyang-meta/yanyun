@@ -1,38 +1,187 @@
 name: og-deploy
 
-# OG 分享图 Worker 发布第一段: 只做 wrangler versions upload (不部署)。
-# 验收通过后用 og-promote workflow 拿 version_id 手动晋级。
+# Post-merge auto-promote — the ONLY path to production for the OG worker.
+# Triggered solely by a merged pull request; no workflow_dispatch and no
+# manual promote entry exists (emergency fixes land as PRs, like everything
+# else). Verification happened on the PR (pr-og uploaded the version and
+# probed its version-preview URL). This workflow promotes exactly that
+# uploaded version — it never re-uploads — after checking the merged tree
+# is identical to the verified tree, records the previous production
+# version, applies triggers, runs production probes, and rolls back to the
+# previous version on any failure. A direct push to master triggers
+# nothing.
 on:
-  workflow_dispatch:
-  push:
+  pull_request:
+    types: [closed]
     branches: [master]
     paths:
       - 'yanyun-og/**'
+      - '.github/workflows/pr-og.yml'
       - '.github/workflows/og-deploy.yml'
 
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: og-production
+  cancel-in-progress: false
+
 jobs:
-  upload:
+  promote:
+    name: promote the PR-verified version
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
+    env:
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+      CF_API: https://api.cloudflare.com/client/v4/accounts/${{ secrets.CLOUDFLARE_ACCOUNT_ID }}/workers/scripts/yanyun-og/deployments
     steps:
+      - name: Locate the green pr-og run for this PR head
+        id: locate
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RUN_ID=$(gh api "repos/${{ github.repository }}/actions/workflows/pr-og.yml/runs?head_sha=$HEAD_SHA&status=success&per_page=20" \
+            --jq '[.workflow_runs[] | select(.event == "pull_request")][0].id // empty')
+          if [ -z "$RUN_ID" ]; then
+            echo "::error::No successful pr-og run found for PR head $HEAD_SHA — refusing to promote an unverified version."
+            exit 1
+          fi
+          echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+          echo "Verified by pr-og run $RUN_ID"
+      - name: Refuse unless the merged tree is the verified tree
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          HEAD_TREE=$(gh api "repos/${{ github.repository }}/git/commits/$HEAD_SHA" --jq .tree.sha)
+          MERGE_TREE=$(gh api "repos/${{ github.repository }}/git/commits/$MERGE_SHA" --jq .tree.sha)
+          echo "verified tree: $HEAD_TREE"
+          echo "merged tree:   $MERGE_TREE"
+          if [ "$HEAD_TREE" != "$MERGE_TREE" ]; then
+            echo "::error::Merged tree differs from the PR-verified tree (master moved under the PR). Push to the branch so pr-og re-verifies the updated tree, then merge again."
+            exit 1
+          fi
+      - name: Download the verified version record
+        uses: actions/download-artifact@v4
+        with:
+          name: og-version
+          path: og-version
+          run-id: ${{ steps.locate.outputs.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Read the version to promote
+        id: target
+        run: |
+          cat og-version/manifest.txt
+          VID=$(grep '^version_id=' og-version/manifest.txt | cut -d= -f2)
+          MSHA=$(grep '^sha=' og-version/manifest.txt | cut -d= -f2)
+          if [ -z "$VID" ] || [ "$MSHA" != "$HEAD_SHA" ]; then
+            echo "::error::Version record does not match this PR head — failing closed."
+            exit 1
+          fi
+          echo "version_id=$VID" >> "$GITHUB_OUTPUT"
+          echo "Promoting version $VID"
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - name: Upload OG worker version (preview only, NOT deployed)
+      - name: Record the current production version
+        id: prev
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          PREV=$(curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "$CF_API" | jq -r '
+            if (.result.deployments[0].versions | length) == 1 and .result.deployments[0].versions[0].percentage == 100
+            then .result.deployments[0].versions[0].version_id else empty end')
+          if [ -z "$PREV" ]; then
+            echo "::error::Cannot pin the current OG production version — failing closed, nothing deployed."
+            exit 1
+          fi
+          echo "version=$PREV" >> "$GITHUB_OUTPUT"
+          echo "OG production version before promote: $PREV"
+      - name: Promote the verified version to 100% and apply triggers
+        id: deploy
         working-directory: yanyun-og
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          set -o pipefail
-          npx wrangler versions upload --message "CI ${{ github.sha }}" 2>&1 | tee /tmp/upload.log
-          VID=$(grep -oE 'Worker Version ID: [0-9a-f-]{36}' /tmp/upload.log | awk '{print $4}')
-          if [ -z "$VID" ]; then echo "::error::could not parse Worker Version ID from wrangler output"; exit 1; fi
+          npx wrangler versions deploy --version-id "${{ steps.target.outputs.version_id }}" --percentage 100 --yes \
+            --message "auto-promote PR #$PR_NUMBER (og-deploy run ${{ github.run_id }})"
+          npx wrangler triggers deploy
+      - name: Confirm production now serves the promoted version
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          TARGET="${{ steps.target.outputs.version_id }}"
+          NOW=""
+          for i in $(seq 1 12); do
+            NOW=$(curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "$CF_API" | jq -r '
+              if (.result.deployments[0].versions | length) == 1 and .result.deployments[0].versions[0].percentage == 100
+              then .result.deployments[0].versions[0].version_id else empty end')
+            if [ "$NOW" = "$TARGET" ]; then break; fi
+            sleep 5
+          done
+          if [ "$NOW" != "$TARGET" ]; then
+            echo "::error::Production deployment does not show the promoted version $TARGET at 100% (got: $NOW) — failing so the rollback step runs."
+            exit 1
+          fi
+          echo "Confirmed: production serves $TARGET at 100%"
+      - name: Production probes (read-only)
+        id: prod_probes
+        run: |
+          ok=0
+          for i in $(seq 1 12); do
+            CODE=$(curl -s -o /tmp/og-prod.png -w '%{http_code}' "https://og.yanyun.app/og/jijiguagua.png" || true)
+            CT=$(curl -s -o /dev/null -D - "https://og.yanyun.app/og/jijiguagua.png" 2>/dev/null | grep -i '^content-type:' | tr -d '\r' || true)
+            SIZE=$(stat -c%s /tmp/og-prod.png 2>/dev/null || echo 0)
+            echo "attempt $i: https://og.yanyun.app/og/jijiguagua.png -> $CODE, $CT, $SIZE bytes"
+            if [ "$CODE" = "200" ] && echo "$CT" | grep -qi 'image/png' && [ "$SIZE" -gt 10000 ]; then ok=1; break; fi
+            sleep 5
+          done
+          if [ "$ok" != "1" ]; then echo "::error::Production OG image probe failed"; exit 1; fi
+          CODE=$(curl -s -o /dev/null -w '%{http_code}' "https://og.yanyun.app/og/doesnotexist12345.png")
+          echo "https://og.yanyun.app/og/doesnotexist12345.png -> $CODE (want 404)"
+          if [ "$CODE" != "404" ]; then echo "::error::Unknown guild did not return 404 in production"; exit 1; fi
+      - name: Roll back to the previous version
+        if: ${{ steps.prev.outputs.version != '' && (failure() || steps.prod_probes.outcome == 'failure') }}
+        working-directory: yanyun-og
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          PREV="${{ steps.prev.outputs.version }}"
           {
-            echo "## OG worker version uploaded — NOT deployed"
-            echo ""
-            echo "- Version ID: \`$VID\`"
-            echo "- Verify it first, then promote: run the **og-promote** workflow with \`version_id\` = \`$VID\`"
+            echo "## ⚠️ AUTO-ROLLBACK (OG)"
+            echo "Promote of PR #$PR_NUMBER failed a production step. Rolling OG production back to version \`$PREV\`."
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "::error::OG promote failed — rolling back to $PREV"
+          npx wrangler versions deploy --version-id "$PREV" --percentage 100 --yes \
+            --message "auto-rollback of PR #$PR_NUMBER (og-deploy run ${{ github.run_id }})"
+          NOW=""
+          for i in $(seq 1 12); do
+            NOW=$(curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "$CF_API" | jq -r '.result.deployments[0].versions[0].version_id // empty')
+            if [ "$NOW" = "$PREV" ]; then break; fi
+            sleep 5
+          done
+          if [ "$NOW" != "$PREV" ]; then
+            echo "::error::Rollback attempted but OG production is still on $NOW, not $PREV — manual intervention required."
+            exit 1
+          fi
+          echo "Rollback confirmed: OG production is back on $PREV"
+      - name: Promote summary
+        if: always()
+        run: |
+          {
+            echo "## og-deploy (auto-promote)"
+            echo "- PR: #$PR_NUMBER (head \`$HEAD_SHA\`, merge \`$MERGE_SHA\`)"
+            echo "- verified by pr-og run: ${{ steps.locate.outputs.run_id }}"
+            echo "- production version before: \`${{ steps.prev.outputs.version }}\`"
+            echo "- production version after: \`${{ steps.target.outputs.version_id }}\`"
+            echo "- production probes: ${{ steps.prod_probes.outcome }}"
           } >> "$GITHUB_STEP_SUMMARY"
