@@ -2,7 +2,7 @@
 // (tenant-scoped key/value; tenant '' is the global scope).
 //
 // This replaces the hand-written settings SQL that used to be scattered
-// across worker.js / graphql.js / prim.js / reminder.js / auth.js.
+// across worker.js / graphql.js / reminder.js / auth.js.
 // Semantics intentionally mirror the legacy helpers they replace:
 //   - getSettingValue swallows all errors and returns '' (the legacy
 //     getTenantSetting / getReminderSetting contract);

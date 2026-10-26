@@ -148,13 +148,6 @@ type GuildPage {
 # MatchContainer loader 解析出拆分操作与渲染组件。
 scalar JSDependency
 
-# 原语面 (C 路线) 的树载体: 服务端拼好的极简 JSON 节点数组 (短键
-# t/s/c/x/a), 客户端以冻结的原语解释器渲染。它不是积木对象树的替代
-# 契约, 而是同一份领域数据的另一种下发形态 — 权限与内容仍由服务端
-# 拼树决定; 协商 (primitivesVersion) 或百业×页面开关任一不满足时为
-# null, 客户端回落 blocks 树。词汇与格式见后端 src/prim.js。
-scalar JSON
-
 interface Block {
   children: [Block!]!
   # server 3D: 每个具体积木经此字段回传 @module 选中的组件/操作引用。
@@ -331,10 +324,6 @@ type GroupingListPage {
   # 以 FallbackBlock 替代下发; weekOffset 相对当前周 (周界与全站同口径:
   # 周一 05:00 北京时间)。组合即权限: 观看者拿到的对象就是他能看的全部。
   blocks(blocksVersion: Int, weekOffset: Int): [Block!]!
-  # 移动端原语面 (C 路线): 与 blocks 同源同数据的极简 JSON 原语树;
-  # primitivesVersion = 客户端声明的原语词汇版本, 未协商/版本不合或
-  # 该百业列表页开关未开时返回 null (默认 OFF, 开关在超管 portal)。
-  primTree(primitivesVersion: Int, weekOffset: Int): JSON
   # UI 文案: 全部由本页 shell 的 gen 方法按请求 locale 生成 (未选中不生成)
   tabActivityLabel: String!
   tabTalentLabel: String!
@@ -425,9 +414,6 @@ type GroupingDetailPage {
   # 移动端 Bloks-lite: 本页内容区积木对象树 (同 GroupingListPage.blocks);
   # 逐座动作与解散按钮按观看者在服务端生成, 客户端不重建权限。
   blocks(blocksVersion: Int): [Block!]!
-  # 移动端原语面 (C 路线): 同 GroupingListPage.primTree 口径 (协商 +
-  # 该百业详情页开关, 默认 OFF)。
-  primTree(primitivesVersion: Int): JSON
   # 无管理码，人人可管
   # UI 文案: 全部由本页 shell 的 gen 方法按请求 locale 生成
   detailNotFoundText: String!
