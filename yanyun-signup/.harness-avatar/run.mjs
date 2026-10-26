@@ -9,7 +9,7 @@ import {
   AVATAR_MAX_BYTES, sniffAvatarType, webhookIdentity, avatarPublicUrl,
   putGuildAvatar, deleteGuildAvatar,
 } from '../src/guildavatar.ts';
-import { postWebhook, REMINDER_USERNAME, REMINDER_AVATAR_URL } from '../src/reminder.js';
+import { postWebhook, REMINDER_USERNAME, REMINDER_AVATAR_URL } from '../src/reminder.ts';
 import { sendHeirloomTest } from '../src/heirloompush.js';
 
 let pass = 0, fail = 0; const fails = [];
