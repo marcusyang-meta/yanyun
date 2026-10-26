@@ -7,6 +7,7 @@ import {
   nextPendingReminderStart, listDueReminderEvents, markReminderSent, markReminderError,
 } from './db/repositories/events.ts';
 import { listSignupSeatsForReminder } from './db/repositories/signups.ts';
+import { getUsernameRow, listUsersDirectory, listNicksByGuild } from './db/repositories/users.ts';
 
 // Discord 开车提醒 (2026-10-24 用户定型)
 // 形态: 管理员 portal 按百业配一个频道 Webhook (tenants.discord_webhook,
@@ -172,15 +173,12 @@ return listDueReminderEvents(db, slug, nowSec, REMINDER_LEAD_SEC);
 async function memberPool(db: any, dgid: string) {
 const pool = new Map(); // discord_id -> { globalName, nick}
 if (!dgid) return pool;
-const nicks = await db.prepare(
-'SELECT discord_id, nick FROM user_guild_nicks WHERE guild_id =?'
-).bind(dgid).all().catch(() => ({ results: []}));
-for (const r of nicks.results || []) {
+const nicks = await listNicksByGuild(db, dgid).catch(() => []);
+for (const r of nicks || []) {
 pool.set(String(r.discord_id), { globalName: '', nick: String(r.nick || '')});
 }
-const users = await db.prepare('SELECT discord_id, username, guilds_json FROM users').all()
-.catch(() => ({ results: []}));
-for (const u of users.results || []) {
+const users = await listUsersDirectory(db).catch(() => []);
+for (const u of users || []) {
 let member = pool.has(String(u.discord_id));
 if (!member) {
 try {
@@ -222,8 +220,7 @@ const nickRow = await db.prepare(
 ).bind(id, dgid).first().catch(() => null);
 if (nickRow && String(nickRow.nick || '').trim()) return String(nickRow.nick).trim();
 }
-const u = await db.prepare('SELECT username FROM users WHERE discord_id =?')
-.bind(id).first().catch(() => null);
+const u = await getUsernameRow(db, id).catch(() => null);
 if (u && String(u.username || '').trim()) return String(u.username).trim();
 }
 const cb = String(ev.created_by?? '').trim();

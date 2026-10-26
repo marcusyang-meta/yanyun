@@ -123,6 +123,15 @@ function makeDb(fx = {}) {
           const row = tables.events.find((e) => e.id === Number(b[0])) || null;
           return { results: row ? [row] : [] };
         }
+        if (/FROM user_guild_nicks/.test(sql)) {
+          // users repository 点查走 .all() 通道: 形状同 first() 的昵称分支
+          const r = tables.nicks.find((n) => n.discord_id === String(b[0]) && n.guild_id === String(b[1]));
+          return { results: r ? [{ nick: r.nick }] : [] };
+        }
+        if (/SELECT username FROM users/.test(sql)) {
+          const u = tables.users.get(String(b[0]));
+          return { results: u === undefined ? [] : [{ username: u }] };
+        }
         if (/FROM events/.test(sql) && /origin = 'member'/.test(sql)) {
           return { results: tables.events.filter((e) => e.origin === 'member' && (e.creator_discord_id == null || e.creator_discord_id === '')).sort((a, c) => a.id - c.id) };
         }

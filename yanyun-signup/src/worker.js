@@ -40,6 +40,7 @@ import {
   getSignupTenant, insertSignups, deleteSignupById, deleteSignupByIdAndEvent,
   deleteSignupByEventNickUid, deleteSignupsByEvent, updateSignupWeaponRoleById,
 } from './db/repositories/signups.ts';
+import { listUsersDirectory, listNicksByGuild, listAllNicks } from './db/repositories/users.ts';
 
 const TYPES = { activity: '双十人本', talent: '天赋组队', race: '竞速', tower: '爬塔', gather: '采集', explore: '探索' };
 const ROLES = ['输出', '承伤', '奶', '治疗', '随意'];
@@ -560,7 +561,7 @@ hub.post('/backfill/reminder-identity', async (c) => {
   await ensureSignupDiscordColumn(db);
   await ensureGuildMembersTable(db);
   const bindRows = await listNonEmptySettingsByKey(db, 'discord_guild_id');
-  const { results: allUsers } = await db.prepare('SELECT discord_id, username, guilds_json FROM users').all();
+  const allUsers = await listUsersDirectory(db);
   const userInGuild = (u, dgid) => {
     try {
       const gs = JSON.parse(u.guilds_json || '[]');
@@ -572,9 +573,7 @@ hub.post('/backfill/reminder-identity', async (c) => {
   for (const b of bindRows) {
     const slug = String(b.tenant), dgid = String(b.value);
     const members = (allUsers || []).filter((u) => userInGuild(u, dgid));
-    const { results: nickRows } = await db.prepare(
-      'SELECT discord_id, nick FROM user_guild_nicks WHERE guild_id = ?'
-    ).bind(dgid).all();
+    const nickRows = await listNicksByGuild(db, dgid);
     const nickOf = new Map((nickRows || []).map((r) => [String(r.discord_id), String(r.nick || '')]));
     // 1) 名册播种
     let rosterSeeded = 0;
@@ -858,9 +857,7 @@ hub.post('/events/backfill-creators', async (c) => {
   const PLACEHOLDERS = new Set(['', '热心侠客', '热心车友']);
 
   // 用户目录: 全局名 -> discord_id 集合; 成员关系: discord_id -> 服务器集合
-  const { results: userRows } = await db.prepare(
-    'SELECT discord_id, username, guilds_json FROM users'
-  ).all();
+  const userRows = await listUsersDirectory(db);
   const byGlobalName = new Map();
   const memberOf = new Map();
   for (const u of userRows) {
@@ -880,9 +877,7 @@ hub.post('/events/backfill-creators', async (c) => {
   // 服务器昵称快照: `${guild_id}|${nick}` -> discord_id 集合
   const nickIndex = new Map();
   try {
-    const { results: nickRows } = await db.prepare(
-      'SELECT discord_id, guild_id, nick FROM user_guild_nicks'
-    ).all();
+    const nickRows = await listAllNicks(db);
     for (const n of nickRows) {
       const nick = String(n.nick || '').trim();
       if (!nick) continue;
