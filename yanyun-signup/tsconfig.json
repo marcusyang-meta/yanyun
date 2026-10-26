@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "ESNext",
+    "types": ["@cloudflare/workers-types"],
+
+    /* Mixed JS/TS migration: legacy .js stays untyped (checkJs off) and is
+       converted file by file; every .ts file is held to full strict. */
+    "strict": true,
+    "allowJs": true,
+    "checkJs": false,
+    "skipLibCheck": true,
+
+    /* Bundler mode (wrangler/esbuild does the actual bundling). TS sources
+       import each other with explicit .ts specifiers so the same files also
+       load under Node's type stripping in the .harness-* suites. */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+
+    /* Erasable syntax only: no enums / parameter properties / namespaces,
+       so .ts data-layer modules run under Node type stripping unchanged. */
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["src"]
+}
