@@ -103,9 +103,11 @@ const GradCalcMutationNode = graphql`
   }
 `;
 
-// 武库鉴宝 · 毕业率计算器
-// 口径：条数匹配 50% + 数值达成 30% + 三率达标 20%（服务端 calcGraduation 计算，参考 gear-planner）
-// 词条满值走 affixMaxList、部位可选词条走 slotAffixList，前端不硬编码游戏数据。
+// Graduation-rate calculator.
+// Formula: affix-count match 50% + value attainment 30% + three-rate
+// attainment 20%, computed server-side by calcGraduation (reference:
+// gear-planner). Affix max values come from affixMaxList and per-slot
+// selectable affixes from slotAffixList — the frontend hardcodes no game data.
 
 type Build = 'big' | 'small';
 type AffixRow = { key: string; value: string; res: boolean };
@@ -126,7 +128,7 @@ type SavedBuild = {
   rates?: Rates;
 };
 
-// 8 部位（顺序与图标沿用旧版界面；部位名须与服务端 slot_affix 表一致）
+// 8 slots (order and icons follow the legacy UI; slot names must match the server's slot_affix table)
 const SLOTS = [
   { name: '主武器', icon: '⚔' },
   { name: '副武器', icon: '🗡' },
@@ -137,9 +139,10 @@ const SLOTS = [
   { name: '环', icon: '💍' },
   { name: '佩', icon: '📿' },
 ];
-// 第 6 行「定音」是调律领域术语 (游戏数据口径, 同 TUNE_ROWS 的属性名行标);
+// The 6th row's label is a tuning-domain term (game-data caliber, like the
+// attribute row labels in TUNE_ROWS) — data, not UI copy;
 const ROW_LABEL_LAST = '定音';
-// 境界名是 UI 文案, 由后端 gradTier1..6 字段下发 (此处只留阈值顺序)
+// tier names are UI copy, delivered by the backend gradTier1..6 fields (only the threshold order lives here)
 const TIER_MIN = [90, 75, 60, 40, 20, 0];
 const RATE_CAPS: { key: keyof Rates; label: string; cap: number }[] = [
   { key: 'precision', label: '精准', cap: 100 },
@@ -152,7 +155,7 @@ const emptyRows = (): AffixRow[] =>
 const emptySlots = (): AffixRow[][] => SLOTS.map(() => emptyRows());
 
 export default function GradCalc({ sectSlug, sectName }: { sectSlug: string; sectName?: string }) {
-  // 鸣金 = 大外会意流，永远大外，不给小外切换
+  // Mingjin is the big-external affinity build — always big-external, no small-external switch
   const isMingjin = sectSlug.startsWith('mingjin');
   const [build, setBuild] = useState<Build>('big');
 
@@ -261,7 +264,9 @@ function GradCalcMain({
   const [openSec, setOpenSec] = useState({ ref: false, rate: false, cmp: false });
   const [commit] = useMutation<GradCalcMutationType>(GradCalcMutationNode);
 
-  // 切换大外/小外：旧版行为是清空已镌刻词条（两版位词条不同）；载入方案时跳过一次
+  // Switching big/small external: the legacy behavior clears engraved affixes
+  // (the two layouts have different affixes); skip the clear once when
+  // loading a build
   const skipClearRef = useRef(false);
   const firstBuildRef = useRef(true);
   useEffect(() => {
@@ -271,7 +276,6 @@ function GradCalcMain({
     setOpenSlot(null);
   }, [build]);
 
-  // 计算（防抖 450ms，服务端计算）
   const runCalcRef = useRef<() => void>(() => {});
   runCalcRef.current = () => {
     const items = SLOTS.map((s, si) => ({
@@ -305,7 +309,7 @@ function GradCalcMain({
           items: g.items.map((i) => ({ slot: i.slot, score: i.score })),
         });
       },
-      onError: () => { /* 静默：与旧版一致 */ },
+      onError: () => { /* silent, matching the legacy behavior */ },
     });
   };
   useEffect(() => {
@@ -332,7 +336,6 @@ function GradCalcMain({
     onBuildChange(b);
   };
 
-  // ---------- 方案对比（localStorage） ----------
   const storeKey = `grad-builds-${sectSlug}`;
   const [builds, setBuilds] = useState<SavedBuild[]>(() => {
     try {
@@ -375,7 +378,6 @@ function GradCalcMain({
 
   return (
     <div className="yy-anim-fade-up">
-      {/* 标题 */}
       <div style={{ textAlign: 'center' }}>
         <h3 style={{
           fontFamily: "'Ma Shan Zheng','Noto Serif SC',serif", fontSize: 26,
@@ -407,7 +409,6 @@ function GradCalcMain({
         )}
       </div>
 
-      {/* 毕业率圆环 */}
       <div style={{ textAlign: 'center', margin: '18px 0 6px' }}>
         <div style={{ width: 140, height: 140, margin: '0 auto', position: 'relative' }}>
           <svg
@@ -443,7 +444,6 @@ function GradCalcMain({
         }}>{tier}</div>
       </div>
 
-      {/* 三项分 */}
       <div style={{ maxWidth: 420, margin: '10px auto 4px', display: 'flex', flexDirection: 'column', gap: 8 }}>
         {([
           [text.gradScoreCountLabel, '50%', result?.countScore ?? 0],
@@ -467,7 +467,6 @@ function GradCalcMain({
         ))}
       </div>
 
-      {/* 8 部位格 */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginTop: 20 }}>
         {SLOTS.map((s, si) => {
           const sc = scoreOf(s.name);
@@ -504,14 +503,13 @@ function GradCalcMain({
         marginTop: 14, letterSpacing: 1,
       }}>{text.gradTapHint}</div>
 
-      {/* 配装台 (gear-planner 移植, 独立口径; 装备库/方案存服务端账号) */}
+      {/* Gear bench (ported from gear-planner, separate formula basis; library/builds live server-side per account) */}
       <div style={{ marginTop: 22, borderTop: '1px solid rgba(201,163,92,.25)', paddingTop: 16 }}>
         <Suspense fallback={null}>
           <GearBench onWhites={setBenchWhites} defaultTargetSect={sectName} />
         </Suspense>
       </div>
 
-      {/* 参考数据 */}
       <Section
         title={text.gradRefTitle}
         open={openSec.ref}
@@ -562,7 +560,6 @@ function GradCalcMain({
         </Suspense>
       </Section>
 
-      {/* 三率速算 */}
       <Section
         title={text.gradRateTitle}
         open={openSec.rate}
@@ -606,7 +603,6 @@ function GradCalcMain({
         </Suspense>
       </Section>
 
-      {/* 方案对比 */}
       <Section
         title={text.gradCompareTitle}
         open={openSec.cmp}
@@ -677,7 +673,6 @@ function GradCalcMain({
         ))}
       </Section>
 
-      {/* 镌刻面板（底部弹层） */}
       {openSlot !== null && (
         <>
           <div className="yy-sheet-backdrop" onClick={() => setOpenSlot(null)} />
@@ -704,7 +699,8 @@ function GradCalcMain({
               const max = d.key ? affixMaxMap[d.key] : undefined;
               const v = parseFloat(d.value);
               const over = max !== undefined && !isNaN(v) && v > max;
-              // 已选词条不在当前版位内时（如载入了另一版方案）也要能显示
+              // A selected affix outside the current layout (e.g. a loaded
+              // build from the other layout) must still be displayable
               const extraKey = d.key && affixNameMap[d.key] && !allowed.includes(d.key) ? d.key : null;
               return (
                 <div key={ri} style={{ padding: '10px 0', borderBottom: '1px solid rgba(201,163,92,.1)' }}>

@@ -171,7 +171,6 @@ function SectDetail({ queryRef }: { queryRef: PreloadedQuery<SectDetailQueryType
   );
 }
 
-// 路由 Entrypoint
 export function SectDetailRoute() {
   const queryRef = useMemo(
     () => loadQuery<SectDetailQueryType>(

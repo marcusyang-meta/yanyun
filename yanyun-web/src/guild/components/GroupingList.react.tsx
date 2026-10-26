@@ -17,7 +17,6 @@ const TABS = [
 
 type TabKey = typeof TABS[number]['key'];
 
-// 组件声明自己的数据需求 (viewer.guild.groupings, 后端按成员类型下发)
 const GroupingListQueryNode = graphql`
   query ViewerGuildGroupingsQuery($slug: String!, $tab: GroupingTab!) {
     viewer {
@@ -186,7 +185,6 @@ function GroupingList({ queryRef, tab, onTabChange, onSelect, interactive = true
 }) {
   const [weekOffset, setWeekOffset] = useState(0);
   const data = usePreloadedQuery<GroupingListQueryType>(GroupingListQueryNode, queryRef);
-  // 数据根 = viewer.guild(slug).groupings (Guild / GuildReadOnly 两种类型同形)
   const page: any = (data as any)?.viewer?.guild?.groupings ?? {};
   const all: any[] = page?.groupings ?? [];
   const tabLabel: Record<string, string> = {
@@ -198,23 +196,27 @@ function GroupingList({ queryRef, tab, onTabChange, onSelect, interactive = true
   };
   const { start, end } = getWeekRange(weekOffset);
   const events = all.filter((e) => {
-    // 无出发时间: 保持原行为, 各周都列出。
+    // No start time: keep the legacy behavior — listed in every week.
     if (!e.startsAt) return true;
     const d = parseStartsAt(e.startsAt);
-    // 有时间但解析不了: 从所有周视图排除。此前这里解析失败时 return true,
-    // 配合旧解析对 epoch 秒字符串必失败 ("1792963800Z" 不是合法日期),
-    // epoch 车被毒进了每一周 —— 这是"同一辆车本周下周都有"的根源,
-    // 不许再用"解析不了就到处显示"兜底。
+    // Has a time but it won't parse: exclude from every week view. This used
+    // to return true on parse failure, and the old parser always failed on
+    // epoch-seconds strings ("1792963800Z" is not a valid date), so epoch
+    // groupings were poisoned into every week — the root cause of "the same
+    // grouping shows up this week and next". Never fall back to "show it
+    // everywhere" again.
     if (!d) return false;
     return d >= start && d < end;
   });
 
-  // 一屏 (一周) 之内按查看者本地时区的自然日分组 (2026-10-25 裁决):
-  // 组按日期升序, 组内按出发时间升序; 组头文案 = 后端模板 dayGroupHeader
-  // Template + 后端 weekdayNames 表 (下标与 getDay 对齐), 客户端只填数字,
-  // 不拼文案。没定出发时间的车沿用既有"各周都列"的语义, 归入末尾一个
-  // 「未定时间」组 (undatedGroupLabel 亦为后端文案) — 具体日期的车优先
-  // 呈现, 未定时间的排最后。
+  // Within one screen (one week), group by natural day in the viewer's local
+  // timezone (ruling, 2026-10-25): groups ascending by date, items ascending
+  // by start time. Group headers come from the backend dayGroupHeaderTemplate
+  // plus the backend weekdayNames table (indexes aligned with getDay) — the
+  // client only fills in numbers, never assembles copy. Groupings without a
+  // start time keep the legacy "listed every week" semantics and go into one
+  // trailing "undated" group (undatedGroupLabel is also backend copy): dated
+  // groupings present first, undated last.
   type ListSection = { key: string; header: string; items: any[] };
   const sections: ListSection[] = (() => {
     const dated: { e: any; d: Date }[] = [];
@@ -290,7 +292,7 @@ function GroupingList({ queryRef, tab, onTabChange, onSelect, interactive = true
 
   return (
     <div>
-      {/* 类型筛选 (二级): 小号描边幽灵片, 层级低于一级页签 */}
+      {/* Type filter (secondary level): small outlined ghost chips, lower in the hierarchy than the primary tabs */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
         {TABS.map((t) => (
           <button
@@ -301,8 +303,9 @@ function GroupingList({ queryRef, tab, onTabChange, onSelect, interactive = true
         ))}
       </div>
 
-      {/* 周导航: 标签直接标起止时间 (weekRangeLabel 与筛选共用 getWeekRange;
-          显示终点减 1 分钟读作闭区间, 筛选边界仍是上方 start/end 本身) */}
+      {/* Week navigation: weekRangeLabel shares getWeekRange with the filter
+          above; the displayed end minus 1 minute reads as a closed interval,
+          while the filter boundary stays start/end themselves */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 12 }}>
         <button onClick={() => setWeekOffset((w) => w - 1)} style={navBtn} aria-label={page.prevWeekLabel}>‹</button>
         <span style={{ color: theme.goldHi, fontSize: 13, textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -311,7 +314,7 @@ function GroupingList({ queryRef, tab, onTabChange, onSelect, interactive = true
         <button onClick={() => setWeekOffset((w) => w + 1)} style={navBtn} aria-label={page.nextWeekLabel}>›</button>
       </div>
 
-      {/* 车队列表: 按日分组 (组头 = 日期 + 一条金色细线, 与卡片同主题) */}
+      {/* Grouping list, grouped by day (group header = date + a thin gold rule, same theme as the cards) */}
       <div className="yy-stagger" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {!events.length && (
           <div style={{ color: theme.muted, textAlign: 'center', padding: 32 }}>{interactive ? page.emptyInteractiveText : page.emptyReadonlyText}</div>
@@ -330,8 +333,7 @@ function GroupingList({ queryRef, tab, onTabChange, onSelect, interactive = true
   );
 }
 
-// 路由 Entrypoint：tab 切换时重新 preload；点车跳可分享的详情 URL
-// interactive=false (GuildReadOnly 分支): 不渲染发车按钮与发车表单
+// interactive=false (GuildReadOnly branch): the create button and form are not rendered
 export function GroupingListRoute({ slug, interactive = true, defaultNickname }: { slug: string; interactive?: boolean; defaultNickname?: string }) {
   const [tab, setTab] = useState<TabKey>('ACTIVITY');
   const [showForm, setShowForm] = useState(false);
@@ -347,12 +349,15 @@ export function GroupingListRoute({ slug, interactive = true, defaultNickname }:
     [slug, tab]
   );
 
-  // 实时刷新: 任一车队变化事件 (含本人操作的推送回声) / 重连 resync ->
-  // 三个 tab 的列表各执行一次查询回填 store, 已挂载列表原地更新。
-  // 注意不能靠"refreshKey + loadQuery(store-or-network)"刷新: store 里
-  // 数据齐全时它根本不发网络请求 —— 这正是此前"发车后列表不刷新"的
-  // 根源。executeQueryRefresh 必走网络且不经 Suspense, 不会挂起循环;
-  // 回填本身不产生新事件, 不会自激。短时多次事件合并为一轮。
+  // Live refresh: any grouping-changed event (including the push echo of own
+  // actions) / reconnect resync -> run each tab's list query once to backfill
+  // the store; mounted lists update in place. Do not rely on "refreshKey +
+  // loadQuery(store-or-network)" for this: when the store already has the
+  // data it issues no network request at all — the root cause of the earlier
+  // "list doesn't refresh after posting a grouping". executeQueryRefresh
+  // always hits the network and bypasses Suspense, so no suspend loop; the
+  // backfill emits no new events, so no self-excitation. Burst events are
+  // coalesced into one round.
   const liveState = useRef({ inFlight: false, dirty: false });
   const refreshAllTabs = useCallback(() => {
     const st = liveState.current;
@@ -366,7 +371,6 @@ export function GroupingListRoute({ slug, interactive = true, defaultNickname }:
   }, [slug]);
   useGuildLive(slug, () => { refreshAllTabs(); });
 
-  // 列表页文案 (发车按钮 + 表单文案包) 与列表本体同一次查询读取
   const routeData = usePreloadedQuery<GroupingListQueryType>(GroupingListQueryNode, queryRef);
   const pageText: any = (routeData as any)?.viewer?.guild?.groupings ?? {};
   const unknownErrorText: string = (routeData as any)?.viewer?.commonUnknownErrorText ?? '';
@@ -396,7 +400,7 @@ export function GroupingListRoute({ slug, interactive = true, defaultNickname }:
           defaultType={tab}
           defaultNickname={defaultNickname}
           onClose={() => setShowForm(false)}
-          onDone={() => { setShowForm(false); /* 新车已由表单 updater 即时插入列表, 推送回声再触发重查对齐 */ }}
+          onDone={() => { setShowForm(false); /* the form's updater already inserted the new grouping into the list; the push echo refetch realigns ordering */ }}
         />
       )}
     </>

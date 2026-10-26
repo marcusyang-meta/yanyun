@@ -7,9 +7,9 @@ export interface FooterText {
   privacyLabel: string;
 }
 
-// 全站页脚: 非官方声明 + 服务条款/隐私政策入口。
-// 全部文案由后端 viewer 文案字段下发 (props), 本组件不持有 UI 文案。
-// 由 AppRoot 在路由下方统一渲染一次, 覆盖登录页/选择页/百业页/法律页。
+// Site-wide footer, rendered once by AppRoot below the routes so it covers
+// the login, picker, guild and legal pages. All copy comes from backend
+// viewer text fields via props.
 export default function SiteFooter({ text }: { text: FooterText }) {
   if (!text || !text.disclaimer) return null;
   return (

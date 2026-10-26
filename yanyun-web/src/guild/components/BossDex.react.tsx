@@ -133,7 +133,9 @@ function BossDex({ queryRef }: { queryRef: PreloadedQuery<BossDexQueryType> }) {
     const bossCount = d.bosses.length;
     const sizeTag = d.playerCount === 10 ? (dex as any).dexSize10Label : d.playerCount === 5 ? (dex as any).dexSize5Label : fill((dex as any).dexSizeNTemplate ?? '', { n: d.playerCount });
     const levelTag = d.level ? `Lv.${d.level} · ` : '';
-    // 内容标注从真实结构化数据推导: 某类内容在该副本每位首领都有才列出, 三类齐全才称"俱全"
+    // Content annotations are derived from the real structured data: a
+    // content type is listed only if every boss in the dungeon has it, and
+    // "complete" requires all three types
     const partDefs: Array<[string, (b: DungeonRow['bosses'][number]) => number]> = [
       [(dex as any).dexPartMechanicsLabel, (b) => b.mechanics.length],
       [(dex as any).dexPartShoutsLabel, (b) => b.shouts.length],
@@ -192,7 +194,6 @@ function BossDex({ queryRef }: { queryRef: PreloadedQuery<BossDexQueryType> }) {
   );
 }
 
-// 路由 Entrypoint
 export function BossDexRoute() {
   const queryRef = useMemo(
     () => loadQuery<BossDexQueryType>(
@@ -205,8 +206,6 @@ export function BossDexRoute() {
   );
   return <BossDex queryRef={queryRef} />;
 }
-
-// ---- Boss 详情（独立 preload） ----
 
 const BossDexBossQueryNode = graphql`
   query BossDexBossQuery($bossId: ID!) {

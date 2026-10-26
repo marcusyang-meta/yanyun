@@ -13,7 +13,7 @@ const SCHOOL2WUXUE: Record<string, string> = {
 const SUITS = ['无', '燕归', '撼天', '连星', '裁云', '断岳', '玉斗', '时雨', '烟柳', '浣花', '飞隼'];
 const BOWS = ['无', '精准', '会心', '会意'];
 const COLS = ['K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R'];
-// 调律行：Excel 行号 -> 标签（K3:R5, K6:R24）
+// Tuning rows: Excel row number -> label (K3:R5, K6:R24)
 const TUNE_ROWS: [number, string][] = [
   [3, '劲'], [4, '敏'], [5, '势'],
   [6, '最小外攻'], [7, '最大外攻'], [8, '精准'], [9, '会心'], [10, '会意'],

@@ -1,8 +1,10 @@
 import heroImg from '../assets/hero.jpg';
 
-// 全站氛围底: 水墨山水固定铺底, 重压暗并向下融进墨色。
-// 顶部一层透出山影; 底部再锚一层同图 (底缘山影), 短页面收尾落在山上,
-// 不再坠进纯黑。内容永远在两层之上 (z-index), 两层皆 pointer-events:none。
+// Site-wide ambient backdrop: a fixed ink-wash landscape, heavily darkened
+// and fading into ink at the bottom. One layer shows the mountains at the
+// top; a second anchors the same image at the bottom edge so short pages end
+// on the mountains instead of dropping into pure black. Content always sits
+// above both layers (z-index); both are pointer-events:none.
 export default function SiteBackdrop() {
   return (
     <>

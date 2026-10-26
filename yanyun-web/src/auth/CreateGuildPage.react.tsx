@@ -69,9 +69,10 @@ const CreateGuildMutationNode = graphql`
   }
 `;
 
-// 创建百业 (自助 onboarding): 名称 + slug + 选一个我有管理权限的 Discord 服务器绑定。
-// 服务器列表由后端过滤后下发 (只有可管理的), slug 可用性由后端查询判定, 建业时后端再复验。
-// 全部文案由后端 viewer 的 create* 文案字段下发, 本页不持有 UI 文案。
+// Create a guild (self-serve onboarding): name + slug + binding one Discord
+// server the user can manage. The server list is backend-filtered (manageable
+// ones only); slug availability is judged by a backend query and re-verified
+// at creation time. All copy comes from the viewer's create* text fields.
 export default function CreateGuildPage({ user }: { user: ViewerUser }) {
   const queryRef = useMemo(
     () => loadQuery(relayEnvironment, CreateGuildPageQueryNode, {}, { fetchPolicy: 'store-or-network' }),
@@ -103,7 +104,8 @@ function CreateForm({ queryRef, user }: { queryRef: any; user: ViewerUser }) {
   const [commit, committing] = useMutation<CreateGuildMutationType>(CreateGuildMutationNode);
   const timer = useRef<any>(null);
 
-  // slug 输入: 规范化 + 防抖问后端是否可用 (判定与可用文案都在后端, 这里只展示结果)
+  // Slug input: normalize + debounce, then ask the backend — both the verdict
+  // and the availability copy live on the backend; this only shows the result
   useEffect(() => {
     const v = slug.trim().toLowerCase();
     if (!v) { setSlugState('idle'); return; }

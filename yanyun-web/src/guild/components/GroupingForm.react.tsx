@@ -21,8 +21,10 @@ const GroupingFormDungeonsQueryNode = graphql`
   }
 `;
 
-// grouping 选全列表/详情要渲染的字段: 规范化后记录即完整, 发车 updater
-// 把它插进列表时卡片直接可渲染; 改车则靠规范化原地更新详情与列表卡。
+// The mutation selects every field the list/detail render: after
+// normalization the record is complete, so the create updater can insert it
+// into the list and the card renders directly; edits update the detail and
+// list cards in place via normalization.
 const GroupingFormCreateMutationNode = graphql`
   mutation GroupingFormCreateMutation($input: CreateGroupingInput!) {
     createGrouping(input: $input) {
@@ -77,11 +79,12 @@ const GroupingFormUpdateMutationNode = graphql`
 export interface GroupingFormInitial {
   title: string;
   type: string;
-  startsAt: string; // 后端返回的 startsAt 文本
+  startsAt: string; // startsAt text as returned by the backend
 }
 
-// 表单文案包: 由打开它的页面 shell 下发 (列表页/详情页的 form* 字段 +
-// typeShort* 短标签 + 通用未知错误文案), 本组件不持有任何 UI 文案。
+// Form copy bundle, delivered by the shell of the page that opens it (the
+// list/detail pages' form* fields + typeShort* labels + the generic
+// unknown-error text); this component holds no UI copy.
 export interface GroupingFormText {
   formCreateTitle: string;
   formEditTitle: string;
@@ -132,7 +135,7 @@ interface Props {
   groupingId?: string;
   initial?: GroupingFormInitial;
   defaultType?: string;
-  // 昵称预填: 该百业服务器昵称 (无则全局名), 仅作初始值, 用户可改
+  // Nickname prefill: the guild server nickname (else the global name); initial value only, editable
   defaultNickname?: string;
   onClose: () => void;
   onDone: () => void;
@@ -151,9 +154,10 @@ export default function GroupingForm({ slug, text, mode, groupingId, initial, de
   const isEdit = mode === 'edit';
   const now = useMemo(() => new Date(), []);
   const initDate = useMemo(() => {
-    // 走共享 parseStartsAt: 旧写法 replace(' ','T') 不带 Z 会按本地时区误读
-    // UTC 文本, 且 epoch 秒字符串解析必失败 -> 编辑 epoch 车时日期被静默
-    // 重置成今天, 一保存就把出发时间改掉。
+    // Go through the shared parseStartsAt: the old replace(' ','T') without a
+    // 'Z' misread UTC text in the local timezone, and epoch-seconds strings
+    // always failed to parse — editing an epoch grouping silently reset the
+    // date to today, and saving then moved the start time.
     if (initial?.startsAt) {
       const d = parseStartsAt(initial.startsAt);
       if (d) return d;
@@ -162,20 +166,23 @@ export default function GroupingForm({ slug, text, mode, groupingId, initial, de
   }, [initial, now]);
 
   const [title, setTitle] = useState(initial?.title || '');
-  // 默认标题 (用户裁决): "{车头}的{双十/竞速/天赋/爬塔}车队" — 仅预填, 跟随
-  // 昵称/类型实时变; 用户手动改过标题后 (titleTouched) 不再自动跟随。
+  // Default title (user ruling): "{leader}'s {type} team" — prefill only; it
+  // follows nickname/type live until the user edits the title manually
+  // (titleTouched), after which it no longer auto-follows.
   const [titleTouched, setTitleTouched] = useState(isEdit);
   const [type, setType] = useState(initial?.type || defaultType || 'ACTIVITY');
   const [month, setMonth] = useState(initDate.getMonth() + 1);
   const [day, setDay] = useState(initDate.getDate());
   const [hour, setHour] = useState(isEdit ? initDate.getHours() : 20);
-  // 编辑保留原车分钟 (与 mobile 同口径): 恒 0 会在只改标题保存时把出发
-  // 时间悄悄挪到整点。分钟档位仍只给 [0,15,30,45], 档外分钟靠 state 保真。
+  // Editing preserves the original minute (same rule as mobile): always 0
+  // would silently shift the start time to the hour when saving a title-only
+  // edit. The picker still only offers [0,15,30,45]; off-step minutes are
+  // preserved via state.
   const [minute, setMinute] = useState(isEdit ? initDate.getMinutes() : 0);
   const [dungeonId, setDungeonId] = useState('');
   const [nickname, setNickname] = useState(defaultNickname || '');
   const [sect, setSect] = useState('');
-  // 类型短标签走后端 typeShort* 字段; 编辑模式恒用车队原标题, 不套默认。
+  // Type short labels come from the backend typeShort* fields; edit mode always uses the grouping's original title, never the default.
   const typeShorts: Record<string, string> = {
     ACTIVITY: text.typeShortActivity, TALENT: text.typeShortTalent, RACE: text.typeShortRace, TOWER: text.typeShortTower,
   };
@@ -190,7 +197,6 @@ export default function GroupingForm({ slug, text, mode, groupingId, initial, de
   const [titleErr, setTitleErr] = useState(false);
   const [nickErr, setNickErr] = useState(false);
 
-  // 副本下拉
   const dexData = useLazyLoadQuery<GroupingFormDungeonsQueryType>(
     GroupingFormDungeonsQueryNode,
     {},
@@ -201,9 +207,10 @@ export default function GroupingForm({ slug, text, mode, groupingId, initial, de
   const [commitCreate, creating] = useMutation<GroupingFormCreateMutationType>(GroupingFormCreateMutationNode);
   const [commitUpdate, updating] = useMutation<GroupingFormUpdateMutationType>(GroupingFormUpdateMutationNode);
 
-  // 人数规则与后端 createGrouping 一致: 双十/爬塔恒 10 人且不挂副本; 天赋/竞速
-  // 选了副本按副本 size, 不指定走默认 (天赋 5 / 竞速 10)。编辑模式不提交
-  // 人数, 此值仅作提示展示。
+  // Capacity rules must match the backend createGrouping: ACTIVITY/TOWER are
+  // always 10 with no dungeon; TALENT/RACE use the chosen dungeon's size, or
+  // the default when unspecified (TALENT 5 / RACE 10). Edit mode doesn't
+  // submit capacity — this value is display-only hint text there.
   const selectedDungeon = (dungeons as any[]).find((d) => String(d.id) === String(dungeonId));
   const maxSlots = type === 'ACTIVITY' || type === 'TOWER' ? 10
     : selectedDungeon && (Number(selectedDungeon.size) === 5 || Number(selectedDungeon.size) === 10)
@@ -245,8 +252,10 @@ export default function GroupingForm({ slug, text, mode, groupingId, initial, de
             seats: [{ nickname: nickname.trim(), weapon: sect }],
           },
         },
-        // 本人发车即时上列表: 把新车记录插进已缓存的对应 tab 列表,
-        // 不等推送回声 (断线时也成立); 回声到达后重查再对齐排序。
+        // Own post appears in the list immediately: insert the new record
+        // into the cached list for its tab without waiting for the push echo
+        // (holds even while disconnected); when the echo arrives, a refetch
+        // realigns ordering.
         updater: (store) => {
           const payload = store.getRootField('createGrouping');
           const g = payload && payload.getLinkedRecord('grouping');
@@ -263,9 +272,10 @@ export default function GroupingForm({ slug, text, mode, groupingId, initial, de
 
   const busy = creating || updating;
 
-  // portal 到 body: 页面容器的入场动画 transform 会把 position:fixed 困在
-  // 容器盒内 (面板偏左/遮罩盖不满); 布局走 .yy-modal-* 类 (桌面居中 85vh,
-  // 移动贴底), 见 index.css。
+  // Portal to body: the page container's entrance-animation transform would
+  // trap position:fixed inside the container box (panel offset / overlay not
+  // covering). Layout uses the .yy-modal-* classes (desktop centered 85vh,
+  // mobile bottom-sheet), see index.css.
   return createPortal(
     <div className="yy-modal-overlay" onClick={onClose}>
       <div className="yy-modal-panel" onClick={(e) => e.stopPropagation()}>

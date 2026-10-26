@@ -1,13 +1,16 @@
 import { parseStartsAt } from './format';
 
-/* ================= 本人 mutation 的即时 store 写入 =================
- * 自己发车/改车/删车/落座要在完成瞬间反映到已挂载的列表/详情上, 不等
- * 服务端推送回声 (自己也会收到回声, 届时再走 GraphQL 重查对齐)。
- * 列表不是 Relay connection (Guild.groupings(tab:) 是普通带参字段),
- * 故不用 @appendNode, 而是按存储键导航到字段记录后改链接数组 ——
- * Relay 官方支持的手动 store 更新方式。所有导航都容错: 目标列表没
- * 加载过 / 结构对不上就静默跳过 (重查会兜底), 绝不让 updater 抛错
- * 影响 mutation 本身的完成回调。
+/* ================= Immediate store writes for own mutations =================
+ * Creating/editing/disbanding a grouping or taking/leaving a seat must
+ * reflect on mounted lists/details the moment the mutation completes, without
+ * waiting for the server push echo (the echo arrives for own actions too and
+ * realigns via a GraphQL refetch then). The list is not a Relay connection
+ * (Guild.groupings(tab:) is a plain argumented field), so instead of
+ * @appendNode this navigates by storage key to the field record and rewrites
+ * its link array — Relay's supported manual store update. All navigation is
+ * fault-tolerant: if the target list was never loaded or the shape doesn't
+ * match, skip silently (a refetch will backfill), and never let an updater
+ * throw into the mutation's own completion callback.
  */
 
 const TABS = ['ACTIVITY', 'TALENT', 'RACE', 'TOWER'] as const;
@@ -27,7 +30,7 @@ function listPageRecord(store: any, slug: string, tab: string): any {
   try { return g.getLinkedRecord('groupings', { tab }) ?? null; } catch { return null; }
 }
 
-// 与后端 fetchGroupingList 的排序一致: open 在前, 出发时间升序, 同刻 id 降序
+// Must match the backend fetchGroupingList ordering: open first, startsAt ascending, id descending on ties
 function compareGroupings(a: any, b: any): number {
   const rank = (r: any) => (r && r.getValue('status') === 'open' ? 0 : 1);
   const dr = rank(a) - rank(b);
@@ -40,7 +43,6 @@ function compareGroupings(a: any, b: any): number {
   return Number(b?.getValue('id') ?? 0) - Number(a?.getValue('id') ?? 0);
 }
 
-/** 发车成功: 把新车记录按序插入该 tab 已缓存的列表 (没缓存则跳过)。 */
 export function appendGroupingToList(store: any, slug: string, tab: string, grouping: any): boolean {
   try {
     if (!grouping) return false;
@@ -57,7 +59,6 @@ export function appendGroupingToList(store: any, slug: string, tab: string, grou
   } catch { return false; }
 }
 
-/** 删车成功: 从该百业全部 tab 的已缓存列表里摘掉这辆车。 */
 export function removeGroupingFromLists(store: any, slug: string, groupingId: string): void {
   for (const tab of TABS) {
     try {
@@ -66,13 +67,15 @@ export function removeGroupingFromLists(store: any, slug: string, groupingId: st
       const existing = page.getLinkedRecords('groupings') ?? [];
       const next = existing.filter((r: any) => !r || String(r.getValue('id')) !== String(groupingId));
       if (next.length !== existing.length) page.setLinkedRecords(next, 'groupings');
-    } catch { /* 单个 tab 失败不影响其他 tab */ }
+    } catch { /* one tab's failure must not affect the others */ }
   }
 }
 
-/** 落座/取消/换流派成功: payload 里的 seats 不是挂在 Grouping 记录下的,
- *  规范化无法自动归位; 手动把 seats 链接与 occupiedCount 写到车记录上。
- *  记录键用 lib/relay.ts 的 getDataID 口径: `${__typename}:${id}`。 */
+/** After seat/leave/switch-sect success: the payload's seats are not nested
+ *  under the Grouping record, so normalization cannot place them
+ *  automatically; write the seats links and occupiedCount onto the grouping
+ *  record manually. The record key uses lib/relay.ts's getDataID format:
+ *  `${__typename}:${id}`. */
 export function applySeatsToGrouping(store: any, rootField: string, groupingId: string): boolean {
   try {
     const payload = store.getRootField(rootField);

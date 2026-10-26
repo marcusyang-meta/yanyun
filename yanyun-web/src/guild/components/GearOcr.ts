@@ -1,7 +1,10 @@
-// 截图 OCR 导入 — 引擎与原站同一: tesseract.js 5.0.5 (chi_sim+eng, 两遍识别:
-// 原图 + 增强图 PSM 6), 图像全程不出浏览器。文本解析流程逐段对照原站移植
-// (ocrClean / 候选词条表 / ocrFindHits / 段匹配 / 定音解析 / 部位识别 /
-// parseOcrData 多路合并 / ocrPrepare+ocrEnhance 预处理)。名称→键映射表由后端下发。
+// Screenshot OCR import — same engine as the original site: tesseract.js
+// 5.0.5 (chi_sim+eng, two recognition passes: original image + enhanced image
+// at PSM 6); images never leave the browser. The text-parsing pipeline is a
+// section-by-section port of the original (ocrClean / candidate affix table /
+// ocrFindHits / segment matching / dingyin parsing / slot detection /
+// parseOcrData multi-path merge / ocrPrepare+ocrEnhance preprocessing). The
+// name->key mapping tables are delivered by the backend.
 import Tesseract from 'tesseract.js';
 import type { GearLine, GearDingyin } from './gearStore.ts';
 
@@ -63,8 +66,10 @@ function ocrKeyVariants(maps: OcrMaps): Array<{ name: string; key: string; cls: 
   return [...seen.values()].sort((a, b) => b.name.length - a.name.length);
 }
 
-/* 与原站一致的 OCR 文本归一化: ocrClean 后转小写并剔除全部空白
- * (tesseract 对中文常逐字加空格输出, 不剔除空白则词条名子串匹配全灭) */
+/* OCR text normalization, same as the original: ocrClean, lowercase, then
+ * strip all whitespace (tesseract often emits Chinese character-by-character
+ * with spaces; without stripping, affix-name substring matching fails
+ * entirely) */
 function ocrNorm(raw: string): string {
   return ocrClean(raw).toLowerCase().replace(/\s+/g, '');
 }
@@ -160,7 +165,7 @@ export function parseOcrData(data: { text?: string; words?: Array<{ text: string
   const seg = matchOcrSegments(raw, maps);
   const lowConf: Record<string, string> = {};
   if (words.length) {
-    // 置信度按词条键收集 (finalizeOcr 据此打低置信标记)
+    // Confidence is collected per affix key (finalizeOcr marks low-confidence entries from it)
     const merged: Array<{ key: string; val: number; conf?: number; seg?: string }> = [];
     const norm = ocrNorm(raw);
     for (const l of seg.lines) {
@@ -192,7 +197,7 @@ function finalizeOcr(parsed: OcrParsed, raw: string, maps: OcrMaps, lowConf: Rec
     if (a && classOf.get(a.name) === 'shu') {
       const rest = txt.replace(new RegExp(escapeRegExp(a.name), 'g'), ' ');
       const nearShu = /无相|鸣金|牵丝|裂石|破竹/.test(rest) ? rest.match(/(无相|鸣金|牵丝|裂石|破竹)/)?.[1] : null;
-      // 属攻行备注: 保留原键 (无相/本系由服务端面板计算处理)
+      // Elemental-attack line note: keep the original key (formless/own-element handling is done by the server-side panel computation)
       void nearShu;
     }
     if (lowConf[l.key]) l.seg = (l.seg || '') + ' · lowConf';
@@ -220,8 +225,6 @@ function mergeOcrParsed(list: OcrParsed[]): OcrParsed {
     unknowns: [...unknowns], schools: [], name, candidates: list.length,
   };
 }
-
-/* ---------------- 图像预处理 + 识别 ---------------- */
 
 async function blobToImage(blob: Blob): Promise<HTMLImageElement> {
   const url = URL.createObjectURL(blob);
@@ -299,12 +302,16 @@ export async function runOcr(file: File | Blob, maps: OcrMaps, onStatus?: (s: st
 
 export type { GearLine };
 
-/* ---------------- 全屏截图面板定位 (自动框选) ----------------
- * 快定位遍: 图缩到长边 <=1200 后跑一遍 tesseract 取词框, 用词条名/部位名/
- * 定音等锚点词找文本簇, 按行高启发式外扩成面板框 (原图坐标)。锚点不足
- * 或框几乎覆盖整图时返回 null — 调用方按整图走原有两遍识别, 与旧行为
- * 完全一致 (预裁好的面板图不受影响)。computePanelBox 是纯函数 (词框进、
- * 面板框出), 与引擎解耦可单测。 */
+/* ---------------- Full-screenshot panel location (auto-framing) ----------------
+ * Fast location pass: shrink the image to a long edge <=1200, run tesseract
+ * once for word boxes, find text clusters via anchor words (affix names /
+ * slot names / dingyin), and expand by line-height heuristics into a panel
+ * box (original-image coordinates). Returns null when anchors are
+ * insufficient or the box would cover nearly the whole image — the caller
+ * then runs the existing two-pass recognition on the full image, exactly the
+ * old behavior (pre-cropped panel images are unaffected). computePanelBox is
+ * a pure function (word boxes in, panel box out), decoupled from the engine
+ * and unit-testable. */
 export type PanelBox = { x: number; y: number; w: number; h: number };
 export type OcrWordBox = {
   text: string; confidence: number;
@@ -328,9 +335,12 @@ function anchorVocabulary(maps: OcrMaps): Array<{ name: string; key: string }> {
 
 type WordIn = { text: string; bbox?: { x0: number; y0: number; x1: number; y1: number } };
 
-/* 词框按行分组: tesseract 对中文常逐字/逐词组切分, 单词框里没有完整词条名,
- * 必须先按 y 聚成文本行、拼出行文本再匹配锚点。命中行的框只取锚点词附近的
- * 连续词段 (词间距 < 2.2 倍行高), 避免同行远处 HUD 文字把框拉长。 */
+/* Group word boxes into lines: tesseract often splits Chinese per character
+ * or word group, so a single word box never holds a complete affix name —
+ * boxes must first be clustered by y into text lines and the line text
+ * assembled before anchor matching. A matched line's box takes only the
+ * contiguous word run near the anchor word (word gaps < 2.2x line height),
+ * so distant HUD text on the same line doesn't stretch the box. */
 function groupWordLines(words: WordIn[]): Array<{ text: string; words: WordIn[]; x0: number; y0: number; x1: number; y1: number }> {
   const ws = words
     .filter((w) => w.bbox && ocrClean(w.text || '').trim())
@@ -374,8 +384,10 @@ export function computePanelBox(
       if (at >= 0) { matched = { key: v.key, name: v.name, at }; break; }
     }
     if (!matched) continue;
-    // 命中段: 锚点名在行文本中的字符区间对应的词为核心, 再向两侧吞并
-    // 间距不大的相邻词 (同行的数值等); 远处同行词 (HUD) 间距大, 不并入。
+    // Hit segment: the words covering the anchor name's character range in
+    // the line text are the core; absorb close-spaced neighbors on both
+    // sides (same-line values etc.). Distant same-line words (HUD) have
+    // large gaps and are not absorbed.
     const lineH = Math.max(6, line.y1 - line.y0);
     const end = matched.at + matched.name.length;
     let lo = -1, hi = -1, pos = 0;
@@ -393,8 +405,10 @@ export function computePanelBox(
       const gap = line.words[hi + 1].bbox!.x0 - line.words[hi].bbox!.x1;
       if (gap < lineH * 2.2) hi++; else break;
     }
-    // 数值词无条件吞并: 面板数值右对齐, 与词条名间距远大于字距,
-    // 但同行尾部的纯数值词几乎必然是该行的值 (行尾定音数值同理)。
+    // Numeric words are absorbed unconditionally: panel values are
+    // right-aligned, far from the affix name relative to character spacing,
+    // but a pure-numeric word at a line's tail is almost certainly that
+    // line's value (same for a trailing dingyin value).
     while (hi < line.words.length - 1) {
       const nt = ocrClean(line.words[hi + 1].text || '').replace(/\s+/g, '');
       if (/^[\d.,:%‰+-]+$/.test(nt)) hi++; else break;
@@ -430,7 +444,7 @@ export function computePanelBox(
   const by1 = Math.min(imgH, Math.round(y1 + mh * 2.6));
   const bw = bx1 - bx, bh = by1 - by;
   if (bw < 60 || bh < 60) return null;
-  if (bw * bh > 0.92 * imgW * imgH) return null; // 锚点铺满整图 = 没有可定位的局部面板
+  if (bw * bh > 0.92 * imgW * imgH) return null; // anchors spread over the whole image = no localizable panel
   return { x: bx, y: by, w: bw, h: bh };
 }
 
@@ -482,7 +496,7 @@ async function imageSize(file: Blob): Promise<{ width: number; height: number }>
   return { width: img.naturalWidth, height: img.naturalHeight };
 }
 
-/* ---------------- 批量识别引擎 (定位 + 两遍识别; 可注入替身供验收) -------- */
+/* ---------------- Batch recognition engine (location + two-pass recognition; a stand-in can be injected for verification) -------- */
 export type OcrEngineResult = {
   parsed: OcrParsed; text: string;
   box: PanelBox | null; width: number; height: number;
@@ -511,8 +525,9 @@ export const defaultOcrEngine: OcrEngine = {
   },
 };
 
-/* 装备内容指纹 (部位 + 词条键值 + 定音): 批量核对判重用 —
- * 与库内已有装备或本批其他行同指纹即判重复。 */
+/* Gear content fingerprint (slot + affix key/values + dingyin), used for
+ * duplicate detection in batch review — sharing a fingerprint with a library
+ * item or another row in this batch means duplicate. */
 export function gearContentKey(
   slot: string,
   lines: Array<{ key: string; val: number }>,

@@ -15,10 +15,10 @@ export interface LoginText {
   privacyText: string;
 }
 
-// 登录页: 未登录访客唯一可见的页面 (Discord 认证先行)
-// 登录成功后 Discord 回调会带回 returnTo (深链回跳)
-// 全屏山水为底, 标题与登录卡浮于画上。全部文案由后端 viewer 文案字段
-// 下发 (props), 本组件不持有任何 UI 文案。
+// Login page: the only page a logged-out visitor can see (Discord auth
+// first). After a successful login the Discord callback returns with
+// returnTo, deep-linking back. All copy comes from backend viewer text
+// fields via props.
 export default function LoginPage({ returnTo = '/', site, text }: {
   returnTo?: string;
   site: SiteText;

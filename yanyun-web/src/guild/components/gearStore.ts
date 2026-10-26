@@ -1,5 +1,7 @@
-// 配装台工作状态 (当前搭配/固定源字段等会话态) — 装备库与方案已按裁决存服务端 D1,
-// 这里只存工作台的当前选择, 设备本地。导出/导入文件格式与原站 gear-planner-100 一致。
+// Gear bench work state (current build / fixed-source fields and other
+// session state). The gear library and builds live server-side in D1 (per
+// ruling); only the bench's current selections are stored here, device-local.
+// The export/import file format matches the original gear-planner-100.
 
 export type GearLine = { key: string; val: number };
 export type GearDingyin = { name: string; val: number } | null;
@@ -66,10 +68,10 @@ export function hasWorkState(): boolean {
 }
 
 export function saveWorkState(w: GearWorkState): void {
-  try { localStorage.setItem(KEY, JSON.stringify(w)); } catch { /* 存储满等情况静默 */ }
+  try { localStorage.setItem(KEY, JSON.stringify(w)); } catch { /* stay silent on quota-full etc. */ }
 }
 
-// 导出文件 (原站同构: app/version/lib/loadout…, 导入端只取 lib 追加进 DB 库)
+// Export file (same shape as the original: app/version/lib/loadout…; the importer only takes `lib` and appends it to the DB library)
 export function buildExportFile(args: {
   lib: GearItem[];
   work: GearWorkState;
@@ -91,7 +93,7 @@ export type ImportFileResult =
   | { ok: true; items: Array<{ slot: string; name: string; lines: GearLine[]; dingyin: GearDingyin; schools: string[] }> }
   | { ok: false };
 
-// 解析导入文件: 取 lib 数组 (词条键/别名归一化在服务端 sanitize 完成)
+// Parse an import file: take the lib array (affix-key/alias normalization is done by server-side sanitize)
 export function parseImportFile(text: string): ImportFileResult {
   let data: unknown;
   try { data = JSON.parse(text); } catch { return { ok: false }; }
@@ -115,8 +117,10 @@ export function parseImportFile(text: string): ImportFileResult {
   return { ok: true, items };
 }
 
-// 「设为目标」跨组件通道: 配方表 (GradCalc 参考区 / 流派页 BiS 区) 点设为目标 →
-// 配装台切目标。配装台未挂载时暂存, 挂载时消费。
+// "Set as target" cross-component channel: clicking set-as-target in a
+// recipe table (GradCalc reference section / sect page BiS section) switches
+// the gear bench's target. If the bench isn't mounted, the request is stashed
+// and consumed on mount.
 let pendingTarget: number | null = null;
 const targetListeners = new Set<(idx: number) => void>();
 export function requestGearTarget(idx: number): void {
@@ -133,7 +137,7 @@ export function onGearTarget(f: (idx: number) => void): () => void {
   return () => { targetListeners.delete(f); };
 }
 
-/* 已保存方案 (服务端 D1 user_gear_builds 的客户端形状; 配装台与 Profile 共用) */
+/* A saved build (client shape of the server D1 user_gear_builds; shared by the gear bench and Profile) */
 export type SavedBuild = {
   id: number; name: string; targetIdx: number; buildLabel: string; school: string;
   loadout: Record<string, number>; baseValues: Record<string, number | null>;
@@ -143,11 +147,13 @@ export type SavedBuild = {
   snapYAcc: number; snapYCrit: number; snapYInt: number; snapDawai: number; snapXiaowai: number;
 };
 
-/* 部位的装备池: 武器池含主/副武器位 */
+/* The gear pool for a slot: the weapon pool covers the main/offhand weapon positions */
 export const poolOf = (slot: string): string[] => (slot === '武器' ? ['主武器', '副武器'] : [slot]);
 
-/* ---- Profile 表面对已存工作态的操作 (配装台未挂载时, 载入/装备落到本地
- * 工作态里, 配装台下次挂载即读到; 与配装台内的实时操作语义一致) ---- */
+/* ---- Profile-surface operations on the saved work state (used while the
+ * gear bench is unmounted: load/equip lands in the local work state and the
+ * bench reads it on its next mount; semantics match the bench's live
+ * operations) ---- */
 export function applyEquipToSavedWork(gear: { id: number; slot: string }, pos?: string): void {
   const w = loadWorkState();
   const lo = { ...w.loadout };
@@ -199,8 +205,9 @@ export function clearSavedWorkLoadout(): void {
   saveWorkState(w);
 }
 
-/* 「按部位 OCR 导入」跨组件通道: 配装台搭配格的按钮点下后, 由已挂载的
- * GearLibrary (bench 模式) 承接 (打开它自己的 OCR 区与文件选择)。 */
+/* "OCR import by slot" cross-component channel: a button in a gear-bench
+ * build cell requests it; the mounted GearLibrary (bench mode) handles it
+ * (opens its own OCR section and file picker). */
 const ocrSlotListeners = new Set<(pos: string) => void>();
 export function requestOcrSlot(pos: string): void {
   ocrSlotListeners.forEach((f) => f(pos));
