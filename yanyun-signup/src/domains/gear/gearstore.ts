@@ -9,7 +9,7 @@ import {
   deleteGearItemRow as deleteGearItemRowData, listGearBuildRows, insertGearBuildRow,
   deleteGearBuildRow as deleteGearBuildRowData,
   ensureGearTables as ensureGearTablesRepo,
-} from './domains/gear/index.ts';
+} from './gear.ts';
 
 // 懒 DDL 已归 gear 域 gear 仓库 (三期); 此处保留旧名导出作委托。
 export function ensureGearTables(db: any) {

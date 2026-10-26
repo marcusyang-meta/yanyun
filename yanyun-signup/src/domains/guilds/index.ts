@@ -5,3 +5,5 @@ export * from './tenants.ts';
 export * from './settings.ts';
 export * from './guildAvatars.ts';
 export * from './fixedTeams.ts';
+export * from './guildavatar.ts';
+export { ensureGuildAvatarsTable } from './guildavatar.ts';

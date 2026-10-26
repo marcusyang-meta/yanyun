@@ -18,22 +18,22 @@
 // 真触发播报带 @everyone + @ 本人 (allowed_mentions parse=['everyone']
 // 且 users 只放行动者本人); 测试消息不 @ (只验通路, 不吵全服)。
 
-import { GP_SLOTS, GP_AFFIX_BY_KEY, gpBuild } from './gearplanner.js';
+import { GP_SLOTS, GP_AFFIX_BY_KEY, gpBuild } from './gearplanner.ts';
 import {
   getReminderSetting, setReminderSetting, postWebhook, ensureGuildMembersTable,
-} from './reminder.ts';
-import { getGuildNick } from './auth.js';
-import { webhookIdentity } from './guildavatar.ts';
-import { getTenantRow, listTenantNames } from './domains/guilds/index.ts';
-import { getUsernameRow } from './domains/identity/index.ts';
-import { getGuildMember, hasGuildMember } from './domains/identity/index.ts';
+} from '../groupings/index.ts';
+import { getGuildNick } from '../../auth.js';
+import { webhookIdentity } from '../guilds/index.ts';
+import { getTenantRow, listTenantNames } from '../guilds/index.ts';
+import { getUsernameRow } from '../identity/index.ts';
+import { getGuildMember, hasGuildMember } from '../identity/index.ts';
 import {
   ensureHeirloomTables as ensureHeirloomTablesRepo, listPushedItemHashes,
   insertHeirloomItemPush, getHeirloomSetState, upsertHeirloomSetState,
-} from './domains/gear/index.ts';
+} from './heirloom.ts';
 
 /* ---------- 配置 (settings, tenant=slug) ---------- */
-export async function getHeirloomConfig(db, slug) {
+export async function getHeirloomConfig(db: D1Database, slug: string) {
   const t = await getTenantRow(db, slug).catch(() => null);
   if (!t) return null;
   return {
@@ -43,7 +43,7 @@ export async function getHeirloomConfig(db, slug) {
   };
 }
 
-async function recordHeirloomStatus(db, slug, { ok, error, atSec, event, test }) {
+async function recordHeirloomStatus(db: D1Database, slug: string, { ok, error, atSec, event, test }: any) {
   await setReminderSetting(db, slug, 'heirloom_last_at', String(atSec));
   await setReminderSetting(db, slug, 'heirloom_last_status', test ? (ok ? 'test-ok' : 'test-error') : (ok ? 'ok' : 'error'));
   await setReminderSetting(db, slug, 'heirloom_last_error', ok ? '' : String(error || '未知错误').slice(0, 300));
@@ -51,16 +51,16 @@ async function recordHeirloomStatus(db, slug, { ok, error, atSec, event, test })
 }
 
 /* ---------- 去重 / 集齐状态表 (懒 DDL 已归 gear 域 heirloom 仓库) ---------- */
-export function ensureHeirloomTables(db) {
+export function ensureHeirloomTables(db: D1Database) {
   return ensureHeirloomTablesRepo(db);
 }
 
 /* 装备内容哈希: 部位 + 词条 (键+值) + 定音 — 不含行 id 与装备名,
  * 删掉重录/换设备导入同一件 => 同一哈希 => 不重复播报。 */
-export async function heirloomItemHash(g) {
+export async function heirloomItemHash(g: any) {
   const canon = JSON.stringify({
     s: String(g.slot || ''),
-    l: (g.lines || []).map((l) => [String(l.key), Math.round((Number(l.val) || 0) * 100) / 100]),
+    l: (g.lines || []).map((l: any) => [String(l.key), Math.round((Number(l.val) || 0) * 100) / 100]),
     d: g.dingyin && g.dingyin.name
       ? [String(g.dingyin.name), Math.round((Number(g.dingyin.val) || 0) * 100) / 100]
       : null,
@@ -72,7 +72,7 @@ export async function heirloomItemHash(g) {
 /* ---------- 播报对象显示名 ----------
  * 本百业名册 (guild_members) 昵称 -> 全局名 -> 该服昵称快照 ->
  * users 全局名 -> 会话名 -> 兜底。与提醒的车头显示名同一梯队。 */
-async function memberDisplayName(db, slug, dgid, discordId, userName) {
+async function memberDisplayName(db: D1Database, slug: string, dgid: any, discordId: string, userName: any) {
   await ensureGuildMembersTable(db);
   const rm = await getGuildMember(db, slug, discordId).catch(() => null);
   if (rm && String(rm.nick || '').trim()) return String(rm.nick).trim();
@@ -88,12 +88,12 @@ async function memberDisplayName(db, slug, dgid, discordId, userName) {
 }
 
 /* ---------- 文案 (Discord 固定文案, 用户定调: 给足情绪价值) ---------- */
-function fmtNum(v) {
+function fmtNum(v: any) {
   return String(Math.round((Number(v) || 0) * 10) / 10);
 }
 
-export function heirloomAffixSummary(g) {
-  const parts = (g.lines || []).map((l) => {
+export function heirloomAffixSummary(g: any) {
+  const parts = (g.lines || []).map((l: any) => {
     const a = GP_AFFIX_BY_KEY[l.key];
     return `${a ? a.label : l.key} ${fmtNum(l.val)}`;
   });
@@ -102,7 +102,7 @@ export function heirloomAffixSummary(g) {
   return s;
 }
 
-export function buildHeirloomItemMessage({ displayName, mention, items, build }) {
+export function buildHeirloomItemMessage({ displayName, mention, items, build }: any) {
   const opener = [
     '@everyone',
     '',
@@ -124,7 +124,7 @@ export function buildHeirloomItemMessage({ displayName, mention, items, build })
     ].join('\n');
   }
   const shown = items.slice(0, 8);
-  const blocks = shown.map((g) => `${g.slot}「${g.name || '未命名'}」\n${heirloomAffixSummary(g)}`);
+  const blocks = shown.map((g: any) => `${g.slot}「${g.name || '未命名'}」\n${heirloomAffixSummary(g)}`);
   if (items.length > shown.length) blocks.push(`（另有 ${items.length - shown.length} 件同批录入）`);
   return [
     ...opener,
@@ -137,7 +137,7 @@ export function buildHeirloomItemMessage({ displayName, mention, items, build })
   ].join('\n');
 }
 
-export function buildHeirloomSetMessage({ displayName, mention, build, gradTotal }) {
+export function buildHeirloomSetMessage({ displayName, mention, build, gradTotal }: any) {
   const pct = Math.round((Number(gradTotal) || 0) * 1000) / 10;
   return [
     '@everyone',
@@ -152,14 +152,14 @@ export function buildHeirloomSetMessage({ displayName, mention, build, gradTotal
   ].join('\n');
 }
 
-export function buildHeirloomTestMessage(guildName) {
+export function buildHeirloomTestMessage(guildName: any) {
   return `🎉 测试消息：${guildName} 的传家宝推送已接通。有人录得传家宝、或集齐全套传家宝时，我会在这里播报。`;
 }
 
 /* ---------- 评估入口 (gearPlan 路径, waitUntil 异步调用) ----------
  * 对每个「已启用传家宝推送」的百业: 行动者是其成员 (会话服务器列表含
  * 绑定服务器, 或已在该百业名册中) 才评估。单百业失败静默, 不影响其他。 */
-export async function evaluateHeirloomPushes(db, args) {
+export async function evaluateHeirloomPushes(db: D1Database, args: any) {
   if (!db || !args || !args.discordId) return;
   const results = await listTenantNames(db).catch(() => []);
   for (const t of results || []) {
@@ -169,7 +169,7 @@ export async function evaluateHeirloomPushes(db, args) {
   }
 }
 
-async function evaluateForTenant(db, t, args) {
+async function evaluateForTenant(db: D1Database, t: any, args: any) {
   const slug = t.slug;
   const cfg = await getHeirloomConfig(db, slug);
   if (!cfg || !cfg.enabled || !cfg.webhook) return;
@@ -184,14 +184,14 @@ async function evaluateForTenant(db, t, args) {
   await ensureHeirloomTables(db);
   const build = gpBuild(args.targetIdx || 0);
   const buildSig = `${build.school}|${build.set}`;
-  const evalById = new Map((args.evals || []).map((e) => [e.id, e.verdict]));
+  const evalById = new Map((args.evals || []).map((e: any) => [e.id, e.verdict]));
   const nowSec = Math.floor(Date.now() / 1000);
   const displayName = await memberDisplayName(db, slug, dgid, args.discordId, args.userName);
   // 发送身份 per-百业 (有自定义头像才切换; 见 guildavatar.webhookIdentity)
   const identity = await webhookIdentity(db, slug).catch(() => null);
 
   /* (a) 新传家宝: 本次评估里判定为传家宝且从未推过的, 合并一条播报 */
-  const heirloomItems = (args.lib || []).filter((g) => g && g.id != null && evalById.get(g.id) === 'heirloom');
+  const heirloomItems = (args.lib || []).filter((g: any) => g && g.id != null && evalById.get(g.id) === 'heirloom');
   if (heirloomItems.length) {
     const hashed = [];
     for (const g of heirloomItems) hashed.push({ g, hash: await heirloomItemHash(g) });
@@ -215,7 +215,7 @@ async function evaluateForTenant(db, t, args) {
   }
 
   /* (b) 集齐跃迁: 状态与当前搭配比对, 只在 未齐 -> 集齐 时播报 */
-  const complete = GP_SLOTS.every((pos) => {
+  const complete = GP_SLOTS.every((pos: any) => {
     const id = args.loadout ? args.loadout[pos] : null;
     return id != null && evalById.get(id) === 'heirloom';
   });
@@ -238,7 +238,7 @@ async function evaluateForTenant(db, t, args) {
 }
 
 /* portal 测试发送与状态读取共用 */
-export async function sendHeirloomTest(db, slug) {
+export async function sendHeirloomTest(db: D1Database, slug: string) {
   const cfg = await getHeirloomConfig(db, slug);
   if (!cfg) return { ok: false, error: '百业不存在', missing: true };
   if (!cfg.webhook) return { ok: false, error: '尚未配置 Webhook URL', missing: true };
@@ -251,7 +251,7 @@ export async function sendHeirloomTest(db, slug) {
   return res;
 }
 
-export async function heirloomStatusFor(db, slug) {
+export async function heirloomStatusFor(db: D1Database, slug: string) {
   return {
     lastAt: await getReminderSetting(db, slug, 'heirloom_last_at'),
     lastStatus: await getReminderSetting(db, slug, 'heirloom_last_status'),

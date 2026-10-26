@@ -356,7 +356,7 @@ if (want('events')) {
 if (want('gear')) {
   console.log('== gear repository + gearstore on real D1 ==');
   const repo = await import('../src/domains/gear/gear.ts');
-  const store = await import('../src/gearstore.ts');
+  const store = await import('../src/domains/gear/gearstore.ts');
 
   const ins = await repo.insertGearItemRow(db, {
     discordId: 'U1', slot: 'weapon', name: '测试剑', payload: '{"lines":[1]}', createdAt: 1000,

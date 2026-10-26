@@ -8,9 +8,9 @@ import { CATALOG } from '../src/domains/platform/i18n.ts';
 import {
   AVATAR_MAX_BYTES, sniffAvatarType, webhookIdentity, avatarPublicUrl,
   putGuildAvatar, deleteGuildAvatar,
-} from '../src/guildavatar.ts';
+} from '../src/domains/guilds/guildavatar.ts';
 import { postWebhook, REMINDER_USERNAME, REMINDER_AVATAR_URL } from '../src/reminder.ts';
-import { sendHeirloomTest } from '../src/heirloompush.js';
+import { sendHeirloomTest } from '../src/domains/gear/index.ts';
 
 let pass = 0, fail = 0; const fails = [];
 function check(name, ok, extra = '') {

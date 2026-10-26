@@ -11,9 +11,9 @@
 //      落库而业务文案错误不落、GET /api/hub/errors 鉴权后可读。
 // FakeDB 按 SQL 形状路由, error_log 与 tenants 更新真落内存表。
 import { yoga } from '../src/graphql.js';
-import { typeDefs } from '../src/graphql-schema.js';
+import { typeDefs } from '../src/graphql-schema.ts';
 import { CATALOG } from '../src/domains/platform/i18n.ts';
-import { logError, recentErrors } from '../src/errorlog.js';
+import { logError, recentErrors } from '../src/domains/platform/index.ts';
 
 let pass = 0, fail = 0; const fails = [];
 function check(name, ok, extra = '') {

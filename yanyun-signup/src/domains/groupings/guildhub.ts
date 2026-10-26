@@ -17,12 +17,14 @@
 import {
   ensureReminderColumns, getReminderConfig, nextReminderAt, dueReminders, sendReminderForEvent,
 } from './reminder.ts';
-import { logError } from './errorlog.js';
+import { logError } from '../platform/index.ts';
 
 const KINDS = new Set(['created', 'updated', 'deleted', 'seats']);
 
 export class GuildHub {
-  constructor(ctx, env) {
+  ctx: any;
+  env: any;
+  constructor(ctx: any, env: any) {
     this.ctx = ctx;
     this.env = env;
   }
@@ -36,7 +38,7 @@ export class GuildHub {
     }
     return slug || null;
   }
-  async rememberSlug(slug) {
+  async rememberSlug(slug: any) {
     if (slug) await this.ctx.storage.put('slug', String(slug)).catch(() => {});
   }
 
@@ -89,7 +91,7 @@ export class GuildHub {
     }
   }
 
-  async fetch(request) {
+  async fetch(request: any) {
     const url = new URL(request.url);
 
     // 客户端订阅: WS 握手 (worker.js 已完成会话与成员校验)
@@ -148,18 +150,18 @@ export class GuildHub {
   }
 
   // hibernation 回调: 客户端心跳
-  async webSocketMessage(ws, message) {
+  async webSocketMessage(ws: any, message: any) {
     try {
       const d = JSON.parse(message);
       if (d && d.type === 'ping') ws.send(JSON.stringify({ type: 'pong' }));
     } catch { /* 忽略非 JSON 消息 */ }
   }
 
-  async webSocketClose(ws, code, reason, wasClean) {
+  async webSocketClose(ws: any, code: any, reason: any, wasClean: any) {
     // hibernation 下连接自动从集合移除, 无需手动清理
   }
 
-  async webSocketError(ws, error) {
+  async webSocketError(ws: any, error: any) {
     try { ws.close(1011, 'internal error'); } catch {}
   }
 }
