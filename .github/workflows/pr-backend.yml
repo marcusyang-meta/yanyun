@@ -46,7 +46,7 @@ jobs:
         run: npm run typecheck --workspace=yanyun-signup
       - name: i18n codegen drift check (fbtee)
         run: node yanyun-signup/scripts/i18n-codegen.mjs --check
-      - name: any budget gate (no new any in domains; ctx: any banned)
+      - name: 'any budget gate (no new any in domains; ctx:any banned)'
         run: node yanyun-signup/scripts/ci/check-any-budget.mjs
       - name: Harness suite (all 13 suites, incl. the heirloom fixture)
         run: node yanyun-signup/scripts/ci/run-harnesses.mjs
