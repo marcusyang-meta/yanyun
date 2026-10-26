@@ -55,6 +55,19 @@ export function dispatchAction(
     case 'EditAction':
       handlers.edit({ groupingId: action.groupingId ?? '' });
       break;
+    case 'CompleteAction':
+      confirm({
+        title: action.confirmTitle ?? '',
+        message: action.confirmMessage ?? '',
+        okLabel: action.okLabel ?? '确定',
+        cancelLabel: action.cancelLabel ?? '取消',
+        destructive: false,
+        onConfirm: () => handlers.complete({ groupingId: action.groupingId ?? '' }),
+      });
+      break;
+    case 'UncompleteAction':
+      handlers.uncomplete({ groupingId: action.groupingId ?? '' });
+      break;
     default:
       // 未知动作类型: 安全忽略 (版本协商在服务端, 这里只是兜底)
       break;

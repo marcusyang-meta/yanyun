@@ -40,6 +40,9 @@ const GroupingListQueryNode = graphql`
             prevWeekLabel
             nextWeekLabel
             weekHeaderTemplate
+            dayGroupHeaderTemplate
+            weekdayNames
+            undatedGroupLabel
             emptyInteractiveText
             emptyReadonlyText
             statusOpenLabel
@@ -111,6 +114,9 @@ const GroupingListQueryNode = graphql`
             prevWeekLabel
             nextWeekLabel
             weekHeaderTemplate
+            dayGroupHeaderTemplate
+            weekdayNames
+            undatedGroupLabel
             emptyInteractiveText
             emptyReadonlyText
             statusOpenLabel
@@ -203,35 +209,45 @@ function GroupingList({ queryRef, tab, onTabChange, onSelect, interactive = true
     return d >= start && d < end;
   });
 
-  return (
-    <div>
-      {/* 类型筛选 (二级): 小号描边幽灵片, 层级低于一级页签 */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            className={`yy-fchip${tab === t.key ? ' active' : ''}`}
-            onClick={() => { onTabChange(t.key); setWeekOffset(0); }}
-          >{tabLabel[t.key]}</button>
-        ))}
-      </div>
+  // 一屏 (一周) 之内按查看者本地时区的自然日分组 (2026-10-25 裁决):
+  // 组按日期升序, 组内按出发时间升序; 组头文案 = 后端模板 dayGroupHeader
+  // Template + 后端 weekdayNames 表 (下标与 getDay 对齐), 客户端只填数字,
+  // 不拼文案。没定出发时间的车沿用既有"各周都列"的语义, 归入末尾一个
+  // 「未定时间」组 (undatedGroupLabel 亦为后端文案) — 具体日期的车优先
+  // 呈现, 未定时间的排最后。
+  type ListSection = { key: string; header: string; items: any[] };
+  const sections: ListSection[] = (() => {
+    const dated: { e: any; d: Date }[] = [];
+    const undated: any[] = [];
+    for (const e of events) {
+      if (!e.startsAt) { undated.push(e); continue; }
+      const d = parseStartsAt(e.startsAt);
+      if (d) dated.push({ e, d });
+    }
+    dated.sort((a, b) => a.d.getTime() - b.d.getTime());
+    const out: ListSection[] = [];
+    for (const { e, d } of dated) {
+      const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+      const last = out[out.length - 1];
+      if (last && last.key === key) { last.items.push(e); continue; }
+      out.push({
+        key,
+        header: fill(page.dayGroupHeaderTemplate ?? '', {
+          month: d.getMonth() + 1,
+          day: d.getDate(),
+          weekday: (page.weekdayNames ?? [])[d.getDay()] ?? '',
+        }),
+        items: [e],
+      });
+    }
+    if (undated.length) out.push({ key: 'undated', header: page.undatedGroupLabel ?? '', items: undated });
+    return out;
+  })();
 
-      {/* 周导航: 标签直接标起止时间 (weekRangeLabel 与筛选共用 getWeekRange;
-          显示终点减 1 分钟读作闭区间, 筛选边界仍是上方 start/end 本身) */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 12 }}>
-        <button onClick={() => setWeekOffset((w) => w - 1)} style={navBtn} aria-label={page.prevWeekLabel}>‹</button>
-        <span style={{ color: theme.goldHi, fontSize: 13, textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {fill(page.weekHeaderTemplate ?? '', { range: weekRangeLabel(weekOffset), count: events.length })}
-        </span>
-        <button onClick={() => setWeekOffset((w) => w + 1)} style={navBtn} aria-label={page.nextWeekLabel}>›</button>
-      </div>
-
-      {/* 车队列表 */}
-      <div className="yy-stagger" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {!events.length && (
-          <div style={{ color: theme.muted, textAlign: 'center', padding: 32 }}>{interactive ? page.emptyInteractiveText : page.emptyReadonlyText}</div>
-        )}
-        {events.map((e, i) => (
+  let cardIdx = 0;
+  const renderCard = (e: any) => {
+    const i = cardIdx++;
+    return (
           <button
             key={e.id}
             onClick={() => onSelect(e.id)}
@@ -269,6 +285,45 @@ function GroupingList({ queryRef, tab, onTabChange, onSelect, interactive = true
             }}>{e.status === 'open' ? page.statusOpenLabel : e.status}</span>
             <span style={{ color: theme.gold, fontSize: 18 }}>›</span>
           </button>
+    );
+  };
+
+  return (
+    <div>
+      {/* 类型筛选 (二级): 小号描边幽灵片, 层级低于一级页签 */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+        {TABS.map((t) => (
+          <button
+            key={t.key}
+            className={`yy-fchip${tab === t.key ? ' active' : ''}`}
+            onClick={() => { onTabChange(t.key); setWeekOffset(0); }}
+          >{tabLabel[t.key]}</button>
+        ))}
+      </div>
+
+      {/* 周导航: 标签直接标起止时间 (weekRangeLabel 与筛选共用 getWeekRange;
+          显示终点减 1 分钟读作闭区间, 筛选边界仍是上方 start/end 本身) */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 12 }}>
+        <button onClick={() => setWeekOffset((w) => w - 1)} style={navBtn} aria-label={page.prevWeekLabel}>‹</button>
+        <span style={{ color: theme.goldHi, fontSize: 13, textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          {fill(page.weekHeaderTemplate ?? '', { range: weekRangeLabel(weekOffset), count: events.length })}
+        </span>
+        <button onClick={() => setWeekOffset((w) => w + 1)} style={navBtn} aria-label={page.nextWeekLabel}>›</button>
+      </div>
+
+      {/* 车队列表: 按日分组 (组头 = 日期 + 一条金色细线, 与卡片同主题) */}
+      <div className="yy-stagger" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {!events.length && (
+          <div style={{ color: theme.muted, textAlign: 'center', padding: 32 }}>{interactive ? page.emptyInteractiveText : page.emptyReadonlyText}</div>
+        )}
+        {sections.map((sec, si) => (
+          <div key={sec.key} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: si === 0 ? 2 : 10, padding: '0 2px' }}>
+              <span style={{ color: theme.goldHi, fontSize: 13, letterSpacing: 1, whiteSpace: 'nowrap' }}>{sec.header}</span>
+              <span style={{ flex: 1, height: 1, background: 'rgba(201,163,92,.18)' }} />
+            </div>
+            {sec.items.map((e) => renderCard(e))}
+          </div>
         ))}
       </div>
     </div>

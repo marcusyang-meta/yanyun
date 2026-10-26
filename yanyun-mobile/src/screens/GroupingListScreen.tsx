@@ -77,6 +77,8 @@ export default function GroupingListScreen({ slug, name, readOnly, nick, gameVer
     leave: () => {},
     disband: () => {},
     edit: () => {},
+    complete: () => {},
+    uncomplete: () => {},
   };
 
   // 分区胶囊文案: 会话里该百业的 shell 标签 (与 Web GuildHome 同源字段);

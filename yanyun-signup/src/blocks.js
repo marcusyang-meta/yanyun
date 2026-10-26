@@ -10,7 +10,7 @@
  * FallbackBlock (最老客户端可渲染的提示叶子); 高于版本的动作置空
  * (积木保留、不可点)。GraphQL schema 是契约本体, 此注册表只负责
  * "老客户端安全降级"这一件事。 */
-export const BLOCK_VOCAB_MAX = 3;
+export const BLOCK_VOCAB_MAX = 4;
 export const BLOCK_TYPE_SINCE = {
   FallbackBlock: 0,
   SectionBlock: 1, SectionHeaderBlock: 1, TextBlock: 1, GroupingCardBlock: 1,
@@ -20,6 +20,7 @@ export const BLOCK_TYPE_SINCE = {
 export const ACTION_TYPE_SINCE = {
   NavigateAction: 1, JoinAction: 1, LeaveAction: 1, DisbandAction: 1,
   EditAction: 3,
+  CompleteAction: 4, UncompleteAction: 4,
 };
 
 export function clampBlocksVersion(v) {
@@ -92,6 +93,43 @@ export function fmtStartsAt(epochSec, locale, tz) {
     _fmtCache.set(key, fmt);
   }
   return fmt.format(new Date(epochSec * 1000));
+}
+
+/* ---------- 按日分组 (列表呈现维度, 2026-10-25) ----------
+ * 浏览框架仍是周 (weekWindowUtc 不动, 那是数据语义); 一屏之内把车按
+ * 查看者本地时区 (tz, 缺省 Asia/Shanghai 与 fmtStartsAt 同口径) 的自然日
+ * 分组: 组按日期升序、组内按出发时刻升序。localDayParts 给出某时刻在
+ * tz 下的年/月/日与星期序号 (0=周日, 与 JS getDay 对齐, 供目录 weekday0..6 取名)。 */
+const _dayFmtCache = new Map();
+export function localDayParts(epochSec, tz) {
+  const zone = tz || 'Asia/Shanghai';
+  let fmt = _dayFmtCache.get(zone);
+  if (!fmt) {
+    const opts = { year: 'numeric', month: 'numeric', day: 'numeric', timeZone: zone };
+    try { fmt = new Intl.DateTimeFormat('en-US', opts); }
+    catch { fmt = new Intl.DateTimeFormat('en-US', { ...opts, timeZone: 'Asia/Shanghai' }); }
+    _dayFmtCache.set(zone, fmt);
+  }
+  const parts = {};
+  for (const p of fmt.formatToParts(new Date(epochSec * 1000))) parts[p.type] = p.value;
+  const year = Number(parts.year), month = Number(parts.month), day = Number(parts.day);
+  const weekday = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+  return { key: `${year}-${month}-${day}`, year, month, day, weekday };
+}
+
+// 已带 epoch 的车队条目 [{g, ts}] -> [{ parts, items:[...] }] (日期升序,
+// 组内时刻升序)。ts 单调不减时本地日也单调不减, 一趟分组即可; 这里先按
+// ts 排序再分桶, 不依赖调用方的入序。
+export function groupByLocalDay(items, tz) {
+  const sorted = [...items].sort((a, b) => a.ts - b.ts);
+  const groups = [];
+  let cur = null;
+  for (const it of sorted) {
+    const parts = localDayParts(it.ts, tz);
+    if (!cur || cur.parts.key !== parts.key) { cur = { parts, items: [] }; groups.push(cur); }
+    cur.items.push(it);
+  }
+  return groups;
 }
 
 // events.type -> groupingType 目录短名 key

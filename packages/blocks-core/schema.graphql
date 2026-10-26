@@ -244,6 +244,20 @@ type EditAction implements Action {
   groupingId: ID!
 }
 
+type CompleteAction implements Action {
+  actionType: String!
+  groupingId: ID!
+  confirmTitle: String!
+  confirmMessage: String!
+  okLabel: String!
+  cancelLabel: String!
+}
+
+type UncompleteAction implements Action {
+  actionType: String!
+  groupingId: ID!
+}
+
 type GroupingListPage {
   groupings: [Grouping!]!
   currentVersion: String!
@@ -261,6 +275,9 @@ type GroupingListPage {
   prevWeekLabel: String!
   nextWeekLabel: String!
   weekHeaderTemplate: String!
+  dayGroupHeaderTemplate: String!
+  weekdayNames: [String!]!
+  undatedGroupLabel: String!
   emptyInteractiveText: String!
   emptyReadonlyText: String!
   statusOpenLabel: String!
@@ -336,6 +353,17 @@ type GroupingDetailPage {
   detailCopyFailedManual: String!
   detailDisbandConfirmTitle: String!
   detailDisbandConfirmMessageTemplate: String!
+  detailCompleteLabel: String!
+  detailCompletingLabel: String!
+  detailStatusCompletedLabel: String!
+  detailRestoreLabel: String!
+  detailCompleteConfirmTitle: String!
+  detailCompleteConfirmMessageTemplate: String!
+  detailToastCompleted: String!
+  detailToastCompleteFailedTemplate: String!
+  detailToastRestored: String!
+  detailToastRestoreFailedTemplate: String!
+  detailCompletedHint: String!
   confirmOkLabel: String!
   confirmCancelLabel: String!
   typeShortActivity: String!
@@ -898,6 +926,8 @@ type Mutation {
   createGrouping(input: CreateGroupingInput!): GroupingPayload!
   updateGrouping(id: ID!, input: UpdateGroupingInput!): GroupingPayload!
   disbandGrouping(id: ID!): DeletePayload!
+  completeGrouping(id: ID!): GroupingPayload!
+  reopenGrouping(id: ID!): GroupingPayload!
   joinGrouping(input: JoinGroupingInput!): SeatPayload!
   leaveGrouping(input: LeaveGroupingInput!): SeatPayload!
   updateSeatWeapon(input: UpdateSeatWeaponInput!): SeatPayload!

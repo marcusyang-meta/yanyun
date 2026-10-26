@@ -36,6 +36,17 @@ const GroupingDetailQueryNode = graphql`
       detailCopyFailedManual
       detailDisbandConfirmTitle
       detailDisbandConfirmMessageTemplate
+      detailCompleteLabel
+      detailCompletingLabel
+      detailStatusCompletedLabel
+      detailRestoreLabel
+      detailCompleteConfirmTitle
+      detailCompleteConfirmMessageTemplate
+      detailToastCompleted
+      detailToastCompleteFailedTemplate
+      detailToastRestored
+      detailToastRestoreFailedTemplate
+      detailCompletedHint
       confirmOkLabel
       confirmCancelLabel
       typeShortActivity
@@ -131,6 +142,32 @@ const GroupingDetailDeleteMutationNode = graphql`
   }
 `;
 
+const GroupingDetailCompleteMutationNode = graphql`
+  mutation GroupingDetailCompleteMutation($id: ID!) {
+    completeGrouping(id: $id) {
+      ok
+      error
+      grouping {
+        id
+        status
+      }
+    }
+  }
+`;
+
+const GroupingDetailReopenMutationNode = graphql`
+  mutation GroupingDetailReopenMutation($id: ID!) {
+    reopenGrouping(id: $id) {
+      ok
+      error
+      grouping {
+        id
+        status
+      }
+    }
+  }
+`;
+
 function GroupingDetail({ queryRef, slug, onBack, onChanged, interactive = true, defaultNickname}: {
 queryRef: PreloadedQuery<GroupingDetailQueryType>;
 slug: string;
@@ -141,6 +178,7 @@ interactive?: boolean;
 defaultNickname?: string;
 }) {
 const [confirmDelete, setConfirmDelete] = useState(false);
+const [confirmComplete, setConfirmComplete] = useState(false);
 const [showEdit, setShowEdit] = useState(false);
 const data = usePreloadedQuery<GroupingDetailQueryType>(GroupingDetailQueryNode, queryRef);
 const page: any = (data as any)?.groupingDetailPage ?? {};
@@ -178,6 +216,44 @@ toast(fill(page.detailToastDisbandFailedTemplate ?? '', { error: res.disbandGrou
 }
 },
 onError: (e: Error) => toast(fill(page.detailToastDisbandFailedTemplate ?? '', { error: e.message })),
+});
+};
+
+// 完成车队 (仅车头; 服务端 completeGrouping 复验): 成功后本页原地切到
+// 已完成态 (onChanged 重查), 并把这辆车从已缓存列表摘掉 — 完成车不进
+// 列表, 返回列表时不该再闪现。
+const [commitComplete, completing] = useMutation(GroupingDetailCompleteMutationNode);
+const doComplete = () => {
+commitComplete({
+variables: { id: g!.id},
+updater: (store) => { removeGroupingFromLists(store, slug, g!.id); },
+onCompleted: (res: any) => {
+if (res.completeGrouping?.ok) {
+toast(page.detailToastCompleted);
+onChanged();
+} else {
+toast(fill(page.detailToastCompleteFailedTemplate ?? '', { error: res.completeGrouping?.error || unknownErrorText }));
+}
+},
+onError: (e: Error) => toast(fill(page.detailToastCompleteFailedTemplate ?? '', { error: e.message })),
+});
+};
+
+// 恢复车队 (撤销完成, 仅车头; 服务端 reopenGrouping 复验): 无确认,
+// 成功后重查 — 车回到 open 并重新出现在列表里。
+const [commitReopen, restoring] = useMutation(GroupingDetailReopenMutationNode);
+const doRestore = () => {
+commitReopen({
+variables: { id: g!.id},
+onCompleted: (res: any) => {
+if (res.reopenGrouping?.ok) {
+toast(page.detailToastRestored);
+onChanged();
+} else {
+toast(fill(page.detailToastRestoreFailedTemplate ?? '', { error: res.reopenGrouping?.error || unknownErrorText }));
+}
+},
+onError: (e: Error) => toast(fill(page.detailToastRestoreFailedTemplate ?? '', { error: e.message })),
 });
 };
 
@@ -243,16 +319,24 @@ verticalAlign: 'middle',
 </h2>
 <div style={{ color: theme.muted, fontSize: 13, marginBottom: 12}}>
 {fmtDate(g.startsAt)} · {fill(page.detailPeopleTemplate ?? '', { occupied: g.occupiedCount, max: g.maxSlots })}
-{g.dungeon?.name? ` · ${g.dungeon.name}`: ''} · {g.status === 'open'? page.detailStatusOpenLabel: g.status}
+{g.dungeon?.name? ` · ${g.dungeon.name}`: ''} · {g.status === 'open'? page.detailStatusOpenLabel: g.status === 'completed'? page.detailStatusCompletedLabel: g.status}
 </div>
 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap'}}>
 <button onClick={share} className="yy-btn yy-btn-gold" style={{ padding: '6px 16px', fontSize: 13 }}>{page.detailShareLabel}</button>
 {interactive && (
 <>
-{isLeader && (
+{isLeader && g.status !== 'completed' && (
 <button onClick={() => setShowEdit(true)} style={smBtn}>{page.detailEditLabel}</button>
 )}
-{isLeader && (
+{isLeader && g.status !== 'completed' && (
+<button onClick={() => setConfirmComplete(true)} disabled={completing} style={smBtn}>
+{completing? page.detailCompletingLabel: page.detailCompleteLabel}
+</button>
+)}
+{isLeader && g.status === 'completed' && (
+<button onClick={doRestore} disabled={restoring} style={smBtn}>{page.detailRestoreLabel}</button>
+)}
+{isLeader && g.status !== 'completed' && (
 <button onClick={() => setConfirmDelete(true)} disabled={deleting} style={{...smBtn, color: '#e08080', borderColor: '#a02c1a'}}>
 {deleting? page.detailDisbandingLabel: page.detailDisbandLabel}
 </button>
@@ -260,7 +344,9 @@ verticalAlign: 'middle',
 </>
 )}
 </div>
-{interactive
+{g.status === 'completed'
+? <div style={{ color: theme.muted, fontSize: 12, marginTop: 8}}>{page.detailCompletedHint}</div>
+: interactive
 ? <div style={{ color: theme.muted, fontSize: 12, marginTop: 8}}>{page.detailOpenHint}</div>
 : <div style={{ color: theme.muted, fontSize: 12, marginTop: 8}}>{page.detailReadonlyHint}</div>}
 </div>
@@ -273,6 +359,16 @@ title={page.detailDisbandConfirmTitle}
 message={fill(page.detailDisbandConfirmMessageTemplate ?? '', { title: g.title })}
 onOk={() => { setConfirmDelete(false); doDelete();}}
 onCancel={() => setConfirmDelete(false)}
+okLabel={page.confirmOkLabel}
+cancelLabel={page.confirmCancelLabel}
+/>
+)}
+{confirmComplete && (
+<ConfirmDialog
+title={page.detailCompleteConfirmTitle}
+message={fill(page.detailCompleteConfirmMessageTemplate ?? '', { title: g.title })}
+onOk={() => { setConfirmComplete(false); doComplete();}}
+onCancel={() => setConfirmComplete(false)}
 okLabel={page.confirmOkLabel}
 cancelLabel={page.confirmCancelLabel}
 />
