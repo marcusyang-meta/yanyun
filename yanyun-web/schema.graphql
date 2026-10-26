@@ -361,6 +361,7 @@ type Grouping {
 type GroupingDetailPage {
   grouping: Grouping!
   blocks(blocksVersion: Int): [Block!]!
+  manageActions: GroupingManageActions
   detailNotFoundText: String!
   detailBackToListLabel: String!
   detailShareLabel: String!
@@ -456,6 +457,19 @@ type GroupingDetailPage {
   formToastPosted: String!
   formToastCreateFailedTemplate: String!
   formTitleTemplate: String!
+}
+
+type GroupingManageActions {
+  editLabel: String!
+  completeLabel: String!
+  completingLabel: String!
+  restoreLabel: String!
+  disbandLabel: String!
+  disbandingLabel: String!
+  disbandConfirmTitle: String!
+  disbandConfirmMessageTemplate: String!
+  completeConfirmTitle: String!
+  completeConfirmMessageTemplate: String!
 }
 
 type DexPage {

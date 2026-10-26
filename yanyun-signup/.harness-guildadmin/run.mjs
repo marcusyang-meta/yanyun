@@ -210,6 +210,9 @@ function makeDb(fx = {}) {
       if (/ORDER BY e\.id DESC/i.test(sql)) rows.sort((a, c) => c.id - a.id);
       return all(rows.map((e) => ({ ...e, signup_count: tables.signups.filter((r) => r.event_id === e.id).length })));
     }
+    if (/SELECT id, tenant, creator_discord_id FROM events WHERE id = \?/i.test(sql)) {
+      return first(tables.events.find((e) => e.id === Number(b[0])));
+    }
     if (/SELECT \* FROM events WHERE id = \? AND tenant = \?/i.test(sql)) {
       return first(tables.events.find((e) => e.id === Number(b[0]) && e.tenant === b[1]));
     }
@@ -224,6 +227,11 @@ function makeDb(fx = {}) {
       return first({ c: tables.signups.filter((r) => r.event_id === Number(b[0])).length });
     }
     if (/SELECT \* FROM signups WHERE event_id/i.test(sql)) {
+      return all(tables.signups.filter((r) => r.event_id === Number(b[0])).sort((a, c) => a.id - c.id));
+    }
+    if (/FROM signups WHERE event_id/i.test(sql)) {
+      // Column-subset seat reads (listSignupSeats): rows are full
+      // objects in this FakeDB; consumers pick their columns.
       return all(tables.signups.filter((r) => r.event_id === Number(b[0])).sort((a, c) => a.id - c.id));
     }
     if (/FROM signups s JOIN events/i.test(sql)) {
@@ -242,6 +250,7 @@ function makeDb(fx = {}) {
     if (/FROM school_bis/i.test(sql)) return all(tables.schoolBis);
     if (/FROM school_rotations/i.test(sql)) return all(tables.schoolRotations);
     if (/FROM guild_members/i.test(sql)) return kind === 'first' ? null : all([]);
+    if (/FROM user_guild_nicks/i.test(sql)) return kind === 'first' ? null : all([]);
     if (/COUNT\(DISTINCT/i.test(sql)) return first({ c: 0 });
     unknownSql.add(kind + ': ' + sql.slice(0, 110));
     return kind === 'first' ? null : (kind === 'all' ? { results: [] } : { meta: { changes: 0 } });
@@ -591,6 +600,168 @@ eq('omni 功能开关已落库', A.tables.settings.get('admintest|feature_fixed_
 r = await gql(setAv, { ...OMNI, variables: { d: pngB64 } });
 eq('omni 设头像 ok', r.data?.setGuildAvatar?.ok, true);
 eq('omni 头像已落库', A.tables.avatars.has('admintest'), true);
+
+/* ---------------- grouping manage verdict (ruling 2026-10-26) ----------------
+ * Guild admins manage EVERY grouping in their own guild with the
+ * leader's rights; the verdict is per-guild, resolved against the
+ * grouping's own guild — an admin of another guild gains nothing
+ * here, even as a plain member of this guild. Separate FakeDB so the
+ * admin-surface fixtures above stay untouched. */
+const DGID2 = '555555555555555555';
+const B = makeDb({
+  tenants: [
+    tenantRow(),
+    tenantRow({ slug: 'othertest', guild_name: '他业测试' }),
+  ],
+  settings: [
+    ['admintest|discord_guild_id', DGID],
+    ['othertest|discord_guild_id', DGID2],
+    ['|game_version', 'intl-v2.3'],
+  ],
+  users: [
+    ['UA', serversJson([{ id: DGID, name: '测试服', icon: '', permissions: '0', owner: true }])],
+    ['UM', serversJson([{ id: DGID, name: '测试服', icon: '', permissions: '32', owner: false }])],
+    ['UB', serversJson([{ id: DGID, name: '测试服', icon: '', permissions: '0', owner: false }])],
+    ['UL', serversJson([{ id: DGID, name: '测试服', icon: '', permissions: '0', owner: false }])],
+    ['UC', serversJson([
+      { id: DGID, name: '测试服', icon: '', permissions: '0', owner: false },
+      { id: DGID2, name: '他服', icon: '', permissions: '0', owner: true },
+    ])],
+    ['UO', serversJson([{ id: DGID2, name: '他服', icon: '', permissions: '0', owner: true }])],
+  ],
+  events: [
+    evRow(201, { title: '管理员全链车', creator_discord_id: 'UL', starts_at_utc: WEEK_FROM + 3600 }),
+    evRow(202, { title: '拒绝矩阵车', creator_discord_id: 'UL', starts_at_utc: WEEK_FROM + 3600 }),
+    evRow(203, { title: '无车头老车', creator_discord_id: null, starts_at_utc: WEEK_FROM + 3600 }),
+    evRow(204, { title: '车头自己的车', creator_discord_id: 'UL', starts_at_utc: WEEK_FROM + 3600 }),
+    evRow(205, { title: '车头解散车', creator_discord_id: 'UL', starts_at_utc: WEEK_FROM + 3600 }),
+    evRow(206, { tenant: 'othertest', title: '他业的车', creator_discord_id: 'UL', starts_at_utc: WEEK_FROM + 3600 }),
+  ],
+  signups: [
+    { id: 51, event_id: 201, nickname: '阿青', uid: '2001', role: '输出', weapon: '鸣金·虹', discord_id: 'UB' },
+    { id: 52, event_id: 201, nickname: '阿红', uid: '2002', role: '输出', weapon: '破竹·樽', discord_id: null },
+  ],
+});
+const envB = { DB: B.db };
+async function gqlB(query, { user = null, variables, vc } = {}) {
+  const ctx = { env: envB, request: new Request('http://local/graphql'), user, locale: 'zh-CN', browserLocale: 'zh-CN', tz: 'Asia/Shanghai', executionCtx: undefined };
+  if (vc) ctx.vc = vc;
+  const res = await yoga.fetch(new Request('http://local/graphql', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ query, variables }),
+  }), ctx);
+  return res.json();
+}
+const B_ADMIN = { discordId: 'UA', name: '服主', guilds: [DGID] };
+const B_MANAGER = { discordId: 'UM', name: '管理员', guilds: [DGID] };
+const B_MEMBER = { discordId: 'UB', name: '成员', guilds: [DGID] };
+const B_LEADER = { discordId: 'UL', name: '车头', guilds: [DGID] };
+const B_CROSS = { discordId: 'UC', name: '双业成员', guilds: [DGID, DGID2] };
+const B_OTHER = { discordId: 'UO', name: '他业服主', guilds: [DGID2] };
+const evB = (id) => B.tables.events.find((e) => e.id === id);
+
+/* composition: manage actions exist only for leader / guild admin */
+const detailQ2 = `query($slug: String, $id: ID!) {
+  groupingDetailPage(slug: $slug, id: $id) {
+    detailEditLabel
+    manageActions { editLabel disbandLabel }
+    blocks(blocksVersion: 4) { __typename ... on ActionButtonBlock { action { __typename } } }
+  }
+}`;
+const actionTypes = (blocks) => (blocks || [])
+  .filter((b) => b.__typename === 'ActionButtonBlock').map((b) => b.action?.__typename);
+let r2 = await gqlB(detailQ2, { user: B_MANAGER, variables: { slug: 'admintest', id: '201' } });
+check('管理员详情: manageActions 在场', !!r2.data?.groupingDetailPage?.manageActions, JSON.stringify(r2.errors || r2.data).slice(0, 200));
+eq('管理员详情: manageActions.editLabel 与页内文案同源', r2.data?.groupingDetailPage?.manageActions?.editLabel, r2.data?.groupingDetailPage?.detailEditLabel);
+check('管理员详情: 积木含 Edit/Complete/Disband 动作',
+  ['EditAction', 'CompleteAction', 'DisbandAction'].every((t) => actionTypes(r2.data?.groupingDetailPage?.blocks).includes(t)),
+  JSON.stringify(actionTypes(r2.data?.groupingDetailPage?.blocks)));
+r2 = await gqlB(detailQ2, { user: B_MEMBER, variables: { slug: 'admintest', id: '201' } });
+eq('成员详情: manageActions 为 null', r2.data?.groupingDetailPage?.manageActions, null);
+check('成员详情: 积木无管理动作', actionTypes(r2.data?.groupingDetailPage?.blocks).length === 0,
+  JSON.stringify(actionTypes(r2.data?.groupingDetailPage?.blocks)));
+r2 = await gqlB(detailQ2, { user: B_LEADER, variables: { slug: 'admintest', id: '204' } });
+check('车头详情: manageActions 在场', !!r2.data?.groupingDetailPage?.manageActions);
+
+const updMut2 = `mutation($id: ID!, $input: UpdateGroupingInput!) { updateGrouping(id: $id, input: $input) { ok errorCode grouping { id title status } } }`;
+const disbMut2 = `mutation($id: ID!) { disbandGrouping(id: $id) { ok errorCode } }`;
+const compMut2 = `mutation($id: ID!) { completeGrouping(id: $id) { ok errorCode grouping { id status } } }`;
+const reopenMut2 = `mutation($id: ID!) { reopenGrouping(id: $id) { ok errorCode grouping { id status } } }`;
+
+/* admin chain: edit -> complete -> reopen -> disband on another's car */
+r2 = await gqlB(updMut2, { user: B_MANAGER, variables: { id: '201', input: { title: '管理员改名车' } } });
+eq('管理员编辑他人车 ok', r2.data?.updateGrouping?.ok, true, JSON.stringify(r2.data || r2.errors).slice(0, 200));
+eq('管理员编辑已落库', evB(201)?.title, '管理员改名车');
+r2 = await gqlB(compMut2, { user: B_MANAGER, variables: { id: '201' } });
+eq('管理员完成他人车 ok', r2.data?.completeGrouping?.ok, true);
+eq('管理员完成已落库', evB(201)?.status, 'completed');
+r2 = await gqlB(reopenMut2, { user: B_MANAGER, variables: { id: '201' } });
+eq('管理员恢复他人车 ok', r2.data?.reopenGrouping?.ok, true);
+eq('管理员恢复已落库', evB(201)?.status, 'open');
+r2 = await gqlB(disbMut2, { user: B_MANAGER, variables: { id: '201' } });
+eq('管理员解散他人车 ok', r2.data?.disbandGrouping?.ok, true);
+eq('管理员解散已落库 (车消失)', evB(201), undefined);
+eq('解散级联清座位', B.tables.signups.filter((x) => x.event_id === 201).length, 0);
+
+/* plain member: everything denied, state untouched */
+r2 = await gqlB(updMut2, { user: B_MEMBER, variables: { id: '202', input: { title: '成员改名' } } });
+eq('成员编辑他人车被拒', r2.data?.updateGrouping?.ok, false);
+eq('成员编辑错误码', r2.data?.updateGrouping?.errorCode, 'leaderOnlyEdit');
+r2 = await gqlB(compMut2, { user: B_MEMBER, variables: { id: '202' } });
+eq('成员完成他人车被拒', r2.data?.completeGrouping?.ok, false);
+eq('成员完成错误码', r2.data?.completeGrouping?.errorCode, 'leaderOnlyComplete');
+r2 = await gqlB(disbMut2, { user: B_MEMBER, variables: { id: '202' } });
+eq('成员解散他人车被拒', r2.data?.disbandGrouping?.ok, false);
+eq('成员解散错误码', r2.data?.disbandGrouping?.errorCode, 'leaderOnlyDisband');
+eq('拒绝后车名未改', evB(202)?.title, '拒绝矩阵车');
+eq('拒绝后状态仍 open', evB(202)?.status, 'open');
+
+/* cross-guild admin: member here + admin elsewhere still denied */
+r2 = await gqlB(updMut2, { user: B_CROSS, variables: { id: '202', input: { title: '串权改名' } } });
+eq('他业管理员编辑本业车被拒', r2.data?.updateGrouping?.ok, false);
+eq('他业管理员编辑错误码 (按本业判定)', r2.data?.updateGrouping?.errorCode, 'leaderOnlyEdit');
+r2 = await gqlB(compMut2, { user: B_CROSS, variables: { id: '202' } });
+eq('他业管理员完成本业车被拒', r2.data?.completeGrouping?.errorCode, 'leaderOnlyComplete');
+r2 = await gqlB(disbMut2, { user: B_CROSS, variables: { id: '202' } });
+eq('他业管理员解散本业车被拒', r2.data?.disbandGrouping?.errorCode, 'leaderOnlyDisband');
+r2 = await gqlB(updMut2, { user: B_OTHER, variables: { id: '202', input: { title: '外人改名' } } });
+eq('非本业成员编辑被拒', r2.data?.updateGrouping?.ok, false);
+eq('非本业成员错误码 (写闸)', r2.data?.updateGrouping?.errorCode, 'memberOnly');
+
+/* leaderless legacy car: admin channel = the guild admin now */
+r2 = await gqlB(compMut2, { user: B_MEMBER, variables: { id: '203' } });
+eq('成员完成无车头车被拒', r2.data?.completeGrouping?.errorCode, 'noCreatorRecordedComplete');
+r2 = await gqlB(updMut2, { user: B_MANAGER, variables: { id: '203', input: { title: '管理员接管老车' } } });
+eq('管理员编辑无车头车 ok', r2.data?.updateGrouping?.ok, true);
+r2 = await gqlB(disbMut2, { user: B_ADMIN, variables: { id: '203' } });
+eq('服主解散无车头车 ok', r2.data?.disbandGrouping?.ok, true);
+eq('无车头车解散已落库', evB(203), undefined);
+
+/* leader path: unchanged */
+r2 = await gqlB(updMut2, { user: B_LEADER, variables: { id: '204', input: { title: '车头改名车' } } });
+eq('车头编辑自己的车 ok', r2.data?.updateGrouping?.ok, true);
+r2 = await gqlB(compMut2, { user: B_LEADER, variables: { id: '204' } });
+eq('车头完成自己的车 ok', r2.data?.completeGrouping?.ok, true);
+r2 = await gqlB(reopenMut2, { user: B_LEADER, variables: { id: '204' } });
+eq('车头恢复自己的车 ok', r2.data?.reopenGrouping?.ok, true);
+r2 = await gqlB(disbMut2, { user: B_LEADER, variables: { id: '205' } });
+eq('车头解散自己的车 ok', r2.data?.disbandGrouping?.ok, true);
+eq('车头解散已落库', evB(205), undefined);
+
+/* the cross admin DOES manage cars in the guild they administer */
+r2 = await gqlB(updMut2, { user: B_CROSS, variables: { id: '206', input: { title: '本业管理员改名' } } });
+eq('他业管理员管自己百业的车 ok', r2.data?.updateGrouping?.ok, true, JSON.stringify(r2.data || r2.errors).slice(0, 200));
+eq('他业车辆已落库', evB(206)?.title, '本业管理员改名');
+
+/* omni: passes the manage gate in full (all-accessible doctrine) */
+const OMNI2 = { user: null, vc: OMNISCIENT_VIEWER };
+r2 = await gqlB(compMut2, { ...OMNI2, variables: { id: '202' } });
+eq('omni 完成他人车 ok', r2.data?.completeGrouping?.ok, true, JSON.stringify(r2.data || r2.errors).slice(0, 200));
+r2 = await gqlB(reopenMut2, { ...OMNI2, variables: { id: '202' } });
+eq('omni 恢复他人车 ok', r2.data?.reopenGrouping?.ok, true);
+eq('omni 操作后状态 open', evB(202)?.status, 'open');
+
+check('B 库无未路由 SQL', B.unknownSql.size === 0, [...B.unknownSql].join(' | '));
 
 check('无未路由 SQL', A.unknownSql.size === 0, [...A.unknownSql].join(' | '));
 

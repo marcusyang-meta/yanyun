@@ -32,8 +32,8 @@
     "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary"
   },
   "src/domains/groupings/graphql.ts": {
-    "max": 77,
-    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context)"
+    "max": 88,
+    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context); +11 for the GroupingManageActions plain-data resolver map and the detail page manageActions resolver (same (p: any) delegation shape as the Seat map)"
   },
   "src/domains/groupings/grouping-routes.ts": {
     "max": 30,
@@ -108,8 +108,8 @@
     "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary"
   },
   "src/domains/platform/graphql-base.ts": {
-    "max": 62,
-    "reason": "framework internals: dynamic prototype generation (defineTextGens) and shell source records (ShellBase.data)"
+    "max": 68,
+    "reason": "framework internals: dynamic prototype generation (defineTextGens) and shell source records (ShellBase.data); +6 for the shared grouping-manage verdict/gate signatures (db/user/request params, same shape as getGuildAdminAccess)"
   },
   "src/domains/platform/graphql.ts": {
     "max": 149,

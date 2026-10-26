@@ -1,4 +1,5 @@
 import type { Context } from '../platform/context.ts';
+import { vcOf } from '../platform/context.ts';
 import { ensureEventCreatorColumn as ensureEventCreatorColumnRepo } from './events.ts';
 /* groupings domain GraphQL: grouping shells, list/detail pages, and all grouping mutations. */
 import {
@@ -59,6 +60,7 @@ import {
   ShellBase, defineTextGens, loadMyLocalePref, errText, assertTenant,
   getTenantSetting, setTenantSetting, isDevRequest, getServersForUser,
   serverCanManage, getGuildAccess, publishGroupingEvent, requireWrite,
+  getGroupingManageVerdict, groupingManageGate,
   sha256hexLocal, rateLimitGql as rateLimit, getClientIp, s, roleOf, newUid,
   TAB_TO_TYPE, TYPE_TO_ENUM, GUILD_TABS, getGameVersion, getCurrentVersionCode,
   PayloadBase, GroupingPayloadShell, SeatPayloadShell, DeletePayloadShell,
@@ -315,7 +317,35 @@ export class GroupingDetailPageShell extends ShellBase {
   genGrouping(){
     return this.memo('grouping', () => new GroupingShell(this.ctx, this.data));
   }
-  // Mobile Bloks-lite: block tree for this page's content area. Per-seat actions and the disband button are composed per viewer (identity-stamp / leader checks all server-side), then substituted by blocksVersion.
+  // Manage verdict for this page's grouping (leader, or an admin of
+  // the grouping's own guild — the single shared verdict in
+  // graphql-base). Drives both the block-tree action composition and
+  // the web manageActions object below.
+  genManageVerdict(){
+    return this.memo('manageVerdict', async () => {
+      return getGroupingManageVerdict(this.db, this.ctx.user, this.ctx.request, this.vc, this.data);
+    });
+  }
+  // The manage action set as a composed object: present only when the
+  // viewer may manage this grouping (the mutations re-verify with the
+  // same verdict). Labels reuse the page's own catalog strings.
+  async genManageActions(){
+    const verdict = await this.genManageVerdict();
+    if (!verdict.canManage) return null;
+    return {
+      editLabel: this.t('groupingDetail', 'edit'),
+      completeLabel: this.t('groupingDetail', 'complete'),
+      completingLabel: this.t('groupingDetail', 'completing'),
+      restoreLabel: this.t('groupingDetail', 'restore'),
+      disbandLabel: this.t('groupingDetail', 'disband'),
+      disbandingLabel: this.t('groupingDetail', 'disbanding'),
+      disbandConfirmTitle: this.t('groupingDetail', 'disbandConfirmTitle'),
+      disbandConfirmMessageTemplate: this.t('groupingDetail', 'disbandConfirmMessage'),
+      completeConfirmTitle: this.t('groupingDetail', 'completeConfirmTitle'),
+      completeConfirmMessageTemplate: this.t('groupingDetail', 'completeConfirmMessage'),
+    };
+  }
+  // Mobile Bloks-lite: block tree for this page's content area. Per-seat actions and the disband button are composed per viewer (identity-stamp / leader-or-guild-admin checks all server-side), then substituted by blocksVersion.
   async genBlocks({ blocksVersion }: any = {}){
     const v = clampBlocksVersion(blocksVersion);
     return this.memo(`blocks:${v}`, async () => {
@@ -347,9 +377,8 @@ export class GroupingDetailPageShell extends ShellBase {
           new SeatGridBlockShell(this.ctx, { entries }),
         ],
       }));
-      const isLeader = !!(this.ctx.user && ev.creator_discord_id
-        && String(ev.creator_discord_id) === String(this.ctx.user.discordId));
-      if (isLeader && access.canWrite) {
+      const manage = await this.genManageVerdict();
+      if (manage.canManage && access.canWrite) {
         blocks.push(new SpacerBlockShell(this.ctx, { size: 18 }));
         if (ev.status === 'completed') {
           // Completed: only the reopen entry is offered (edit/disband/complete are no longer sent).
@@ -537,19 +566,16 @@ export const groupingsResolvers = {
       const gid = parseInt(id, 10) || 0;
       const ev = await getEventRow(db, gid);
       if (!ev) return gFail(ctx, 'groupingNotFound');
-      const gate = await requireWrite(db, ctx.user, ev.tenant, ctx.request);
-      if (gate) return gFail(ctx, gate);
+      const manage = await groupingManageGate(db, ctx.user, ctx.request, vcOf(ctx), ev);
+      if (manage.writeCode) return gFail(ctx, manage.writeCode);
       if (ev.origin !== 'member') return gFail(ctx, 'officialEvent');
-      // Edit gating (2026-10-25): only the leader may edit a grouping —
-      // the same rule as disbandGrouping. Identity is solely
-      // creator_discord_id vs the session discord_id; seat-list edits go
-      // through this mutation too. Legacy groupings with no recorded
-      // leader can be edited by no one — admin channel only.
-      if (!ev.creator_discord_id) {
-        return gFail(ctx, 'noCreatorRecordedEdit');
-      }
-      if (String(ev.creator_discord_id) !== String(ctx.user!.discordId)) {
-        return gFail(ctx, 'leaderOnlyEdit');
+      // Edit gating: the leader, or an admin of this grouping's own
+      // guild (ruling 2026-10-26: guild admins manage every grouping in
+      // their guild with the leader's rights; seat-list edits go
+      // through this mutation too). Legacy groupings with no recorded
+      // leader can be edited by a guild admin; with neither, no one.
+      if (!manage.canManage) {
+        return gFail(ctx, ev.creator_discord_id ? 'leaderOnlyEdit' : 'noCreatorRecordedEdit');
       }
       const patch: Record<string, any> = {};
       const set = (col: any, val: any) => { patch[col] = val; };
@@ -604,11 +630,11 @@ export const groupingsResolvers = {
     },
 
     // Disband (2026-10-24): the sole exception to "anyone can manage" —
-    // leader only. Identity is solely events.creator_discord_id vs
-    // the session discord_id, re-verified server-side regardless of
-    // what the frontend shows. Legacy groupings with no recorded
-    // leader can be disbanded by no one — admin channel only (REST
-    // admin delete unchanged).
+    // the leader, or an admin of the grouping's own guild (ruling
+    // 2026-10-26), re-verified server-side via the shared manage gate
+    // regardless of what the frontend shows. Legacy groupings with no
+    // recorded leader can be disbanded by a guild admin; with neither,
+    // no one.
     disbandGrouping: async (_: any, { id }: any, ctx: Context) => {
       const db = ctx.env.DB;
       if (!rateLimit('mut:disband:' + getClientIp(ctx.request), 10)) {
@@ -618,13 +644,10 @@ export const groupingsResolvers = {
       const gid = parseInt(id, 10) || 0;
       const ev = await getEventTenantCreator(db, gid);
       if (!ev) return dFail(ctx, 'groupingNotFound');
-      const gate = await requireWrite(db, ctx.user, ev.tenant, ctx.request);
-      if (gate) return dFail(ctx, gate);
-      if (!ev.creator_discord_id) {
-        return dFail(ctx, 'noCreatorRecorded');
-      }
-      if (String(ev.creator_discord_id) !== String(ctx.user!.discordId)) {
-        return dFail(ctx, 'leaderOnlyDisband');
+      const manage = await groupingManageGate(db, ctx.user, ctx.request, vcOf(ctx), ev);
+      if (manage.writeCode) return dFail(ctx, manage.writeCode);
+      if (!manage.canManage) {
+        return dFail(ctx, ev.creator_discord_id ? 'leaderOnlyDisband' : 'noCreatorRecorded');
       }
       await deleteEventCascade(db, gid, null);
       publishGroupingEvent(ctx, ev.tenant, gid, 'deleted');
@@ -637,8 +660,8 @@ export const groupingsResolvers = {
     // reminder/push definitions (PENDING_WHERE accepts only
     // open/closed) stop firing automatically — even a queued alarm is
     // filtered when GuildHub re-reads D1 at fire time. Same gate as
-    // edit/disband: leader only; leaderless legacy groupings go
-    // through the admin channel. Completable from open or closed.
+    // edit/disband: the leader, or an admin of the grouping's own
+    // guild. Completable from open or closed.
     completeGrouping: async (_: any, { id }: any, ctx: Context) => {
       const db = ctx.env.DB;
       if (!rateLimit('mut:complete:' + getClientIp(ctx.request), 10)) {
@@ -648,14 +671,11 @@ export const groupingsResolvers = {
       const gid = parseInt(id, 10) || 0;
       const ev = await getEventRow(db, gid);
       if (!ev) return gFail(ctx, 'groupingNotFound');
-      const gate = await requireWrite(db, ctx.user, ev.tenant, ctx.request);
-      if (gate) return gFail(ctx, gate);
+      const manage = await groupingManageGate(db, ctx.user, ctx.request, vcOf(ctx), ev);
+      if (manage.writeCode) return gFail(ctx, manage.writeCode);
       if (ev.origin !== 'member') return gFail(ctx, 'officialEvent');
-      if (!ev.creator_discord_id) {
-        return gFail(ctx, 'noCreatorRecordedComplete');
-      }
-      if (String(ev.creator_discord_id) !== String(ctx.user!.discordId)) {
-        return gFail(ctx, 'leaderOnlyComplete');
+      if (!manage.canManage) {
+        return gFail(ctx, ev.creator_discord_id ? 'leaderOnlyComplete' : 'noCreatorRecordedComplete');
       }
       if (ev.status === 'completed') return gFail(ctx, 'groupingAlreadyCompleted');
       // draft is invisible across the whole GraphQL surface (lists filter it): treat as nonexistent.
@@ -680,14 +700,11 @@ export const groupingsResolvers = {
       const gid = parseInt(id, 10) || 0;
       const ev = await getEventRow(db, gid);
       if (!ev) return gFail(ctx, 'groupingNotFound');
-      const gate = await requireWrite(db, ctx.user, ev.tenant, ctx.request);
-      if (gate) return gFail(ctx, gate);
+      const manage = await groupingManageGate(db, ctx.user, ctx.request, vcOf(ctx), ev);
+      if (manage.writeCode) return gFail(ctx, manage.writeCode);
       if (ev.origin !== 'member') return gFail(ctx, 'officialEvent');
-      if (!ev.creator_discord_id) {
-        return gFail(ctx, 'noCreatorRecordedReopen');
-      }
-      if (String(ev.creator_discord_id) !== String(ctx.user!.discordId)) {
-        return gFail(ctx, 'leaderOnlyReopen');
+      if (!manage.canManage) {
+        return gFail(ctx, ev.creator_discord_id ? 'leaderOnlyReopen' : 'noCreatorRecordedReopen');
       }
       if (ev.status !== 'completed') return gFail(ctx, 'groupingNotCompleted');
       await setEventStatus(db, gid, 'open');
@@ -814,7 +831,23 @@ export const groupingsResolvers = {
   GroupingDetailPage: {
     grouping: (p: any) => p.genGrouping(),
     blocks: (p: any, args: any) => p.genBlocks(args),
+    manageActions: (p: any) => p.genManageActions(),
     ...DETAIL_TEXT_RESOLVERS,
+  },
+  // Plain-data action set: fields delegate to the same-named property
+  // of the object the detail shell composed (present only for viewers
+  // who may manage the grouping).
+  GroupingManageActions: {
+    editLabel: (p: any) => p.editLabel,
+    completeLabel: (p: any) => p.completeLabel,
+    completingLabel: (p: any) => p.completingLabel,
+    restoreLabel: (p: any) => p.restoreLabel,
+    disbandLabel: (p: any) => p.disbandLabel,
+    disbandingLabel: (p: any) => p.disbandingLabel,
+    disbandConfirmTitle: (p: any) => p.disbandConfirmTitle,
+    disbandConfirmMessageTemplate: (p: any) => p.disbandConfirmMessageTemplate,
+    completeConfirmTitle: (p: any) => p.completeConfirmTitle,
+    completeConfirmMessageTemplate: (p: any) => p.completeConfirmMessageTemplate,
   },
   // ===== Bloks-lite blocks/actions (dispatch by type; shells carry __typename) =====
   GroupingPayload: {
