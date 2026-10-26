@@ -79,6 +79,19 @@
     </div>
 
     <div class="detail" style="margin-top:16px">
+      <h3 style="margin-top:0">💾 数据备份（R2 快照）</h3>
+      <p class="muted">每日 02:23（北京）自动导出全量数据到私有 R2 桶，保留最近 14 份；也可立即备份或导出下载到本地。⚠️ 备份文件含登录 refresh token、密码哈希与 Webhook 等机密，只能经本页（超管鉴权）下载，下载到本地后请按机密文件保管，切勿外传或公开存放。</p>
+      <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px">
+        <button class="primary" id="backupRun" style="width:auto">立即备份到 R2</button>
+        <button class="ghost" id="backupExport">导出下载（当前数据）</button>
+        <button class="ghost" id="backupRefresh">刷新列表</button>
+        <span class="muted" id="backupSummary"></span>
+      </div>
+      <div style="overflow-x:auto"><table class="list" id="backupTable"></table></div>
+      <div class="msg" id="backupMsg"></div>
+    </div>
+
+    <div class="detail" style="margin-top:16px">
       <h3 style="margin-top:0">🗡️ 首领天赋图鉴管理（全站共用）</h3>
       <form id="bossForm">
         <div class="grid2">
