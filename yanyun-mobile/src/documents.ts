@@ -30,6 +30,8 @@ export const ViewerQuery = graphql`
       pickerReadOnlyBadge
       pickerEmptyTitle
       pickerEmptyBody
+      pickerCreateGuildLabel
+      pickerCreateGuildMoreLabel
       user {
         name
         discordId
@@ -1226,6 +1228,63 @@ export const SectPageQuery = graphql`
           critDamage
           note
         }
+      }
+    }
+  }
+`;
+
+// 创建百业 (自助 onboarding, 与 Web CreateGuildPage 同一组后端契约):
+// 服务器列表后端已按「我可管理」过滤; slug 可用性与文案均由后端判定。
+export const CreateGuildPageQuery = graphql`
+  query documentsCreateGuildPageQuery {
+    viewer {
+      discordServers {
+        id
+        name
+        icon
+      }
+      createBackLinkLabel
+      createTitle
+      createSubtitle
+      createNameLabel
+      createNamePlaceholder
+      createSlugLabel
+      createSlugPlaceholder
+      createSlugCheckingText
+      createSlugTakenText
+      createSlugNote
+      createServerLabel
+      createNoServers1
+      createNoServers2
+      createSubmitLabel
+      createSubmittingLabel
+      createToastNameShort
+      createToastSlugRequired
+      createToastSlugBad
+      createToastServerRequired
+      createToastCreated
+      createToastFailed
+    }
+  }
+`;
+
+export const SlugAvailableQuery = graphql`
+  query documentsSlugAvailableQuery($slug: String!) {
+    slugAvailable(slug: $slug)
+    viewer {
+      slugAvailableMessage(slug: $slug)
+    }
+  }
+`;
+
+export const CreateGuildMutation = graphql`
+  mutation documentsCreateGuildMutation($input: CreateGuildInput!) {
+    createGuild(input: $input) {
+      ok
+      error
+      guild {
+        slug
+        name
       }
     }
   }
