@@ -117,6 +117,7 @@ type GuildCard {
   slogan: String
   gameVersion: String!
   memberCount: Int!
+  avatarUrl: String
 }
 
 type GuildPage {
@@ -1120,6 +1121,7 @@ type Guild {
   slogan: String
   gameVersion: String!
   memberCount: Int!
+  avatarUrl: String
   groupings(tab: GroupingTab!): GroupingListPage!
   viewerNick: String
   memberRoster: [GuildRosterMember!]!
@@ -1137,6 +1139,7 @@ type GuildReadOnly {
   slogan: String
   gameVersion: String!
   memberCount: Int!
+  avatarUrl: String
   groupings(tab: GroupingTab!): GroupingListPage!
   viewerNick: String
   homeBackToHubLabel: String!
