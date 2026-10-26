@@ -107,7 +107,7 @@ return { webhook: String(t.discord_webhook || ''), guildName: String(t.guild_nam
 }
 
 /* ---- Multi-offset configuration ----
- * Admins pick any subset of the preset lead times. The setting stores
+ * Admins pick a subset of the preset lead times. The setting stores
  * a comma-joined descending list ("60,30,10"); absent = the legacy
  * default [10]; the literal 'none' = explicitly no reminder beats. */
 export const REMINDER_OFFSET_PRESETS: number[] = [60, 30, 10, 5];
@@ -481,7 +481,7 @@ if (eventTitle) await setReminderSetting(db, slug, 'reminder_last_event', String
  * success/failure lands in event_reminders for (event, offset);
  * a failed beat never blocks the later beats of the same grouping.
  * When every configured beat has settled, the legacy whole-grouping
- * marks follow (any success -> reminder_sent_at; all failed ->
+ * marks follow (one success -> reminder_sent_at; all failed ->
  * reminder_error), so every existing "settled" predicate keeps
  * working. Push fires only on the LAST beat and only to members
  * who have not marked themselves ready. Returns the send result. */
