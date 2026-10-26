@@ -3,10 +3,6 @@ import {
   clampBlocksVersion, substituteForVersion, weekWindowUtc, startsAtEpoch,
   fmtStartsAt, groupByLocalDay, TYPE_SHORT_KEY, HEALER_SECT,
 } from '../platform/index.ts';
-import {
-  clampPrimitivesVersion, primEnabled, primNav, primJoin, primEdit,
-  primUncomplete, primLeave, primDisband, primComplete,
-} from '../platform/index.ts';
 import { tlCalculateExcel } from './index.ts';
 import { getUserServers, getGuildNick, maybeRefreshGuildNicks, getUserLocalePref, setUserLocalePref } from '../../auth.js';
 import { ensureSignupDiscordColumn, ensureGuildMembersTable, upsertGuildMember } from '../groupings/index.ts';
