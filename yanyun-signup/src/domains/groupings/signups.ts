@@ -255,9 +255,17 @@ export async function insertSignup(d1: D1Database, row: Record<string, unknown>)
   return metaOf(r);
 }
 
-/* 批量排座 (旧 db.batch 多语句的等价: 逐条执行, 顺序不变)。 */
+/* 批量排座: 仓库内 D1 batch 成组执行 (恢复二期逐条执行时丢失的
+ * 组原子性: 任一行失败整批回滚, 不留半排的座位)。 */
 export async function insertSignups(d1: D1Database, rows: Record<string, unknown>[]): Promise<void> {
-  for (const row of rows) await insertSignup(d1, row);
+  if (!rows.length) return;
+  const stmts = rows.map((row) => {
+    const cols = checkedColumns(row);
+    return d1
+      .prepare(`INSERT INTO signups (${cols.join(', ')}) VALUES (${cols.map(() => '?').join(', ')})`)
+      .bind(...cols.map((c) => row[c]));
+  });
+  await d1.batch(stmts);
 }
 
 export async function deleteSignupById(d1: D1Database, id: number): Promise<RunMeta> {

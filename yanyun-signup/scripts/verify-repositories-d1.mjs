@@ -8,7 +8,7 @@
  * 实体定义镜像 (生产结构零变更, 这里只是本地验证夹具)。
  *
  * 用法: node scripts/verify-repositories-d1.mjs [section]
- *   section 省略 = 全部; 目前有 tenants / events / gear / users / members / results / dex / state / ddl / guard / stamp / membercount 十二段,
+ *   section 省略 = 全部; 目前有 tenants / events / gear / users / members / results / dex / state / ddl / guard / stamp / membercount / atomic 十三段,
  *   随数据层迁移进度增补。退出码非 0 = 有断言失败。
  * =================================================== */
 import { Miniflare, convertV4MiniflareOptions } from 'miniflare';
@@ -751,6 +751,74 @@ if (want('membercount')) {
   await suRepo.insertSignup(db, { event_id: e2.last_row_id, nickname: '另一人', uid: 'c3', role: '奶', weapon: '' });
   eq('distinct nicknames across cars', await suRepo.countDistinctNicknamesByTenant(db, 'count'), 2);
   eq('empty tenant counts 0', await suRepo.countDistinctNicknamesByTenant(db, 'ghost'), 0);
+}
+
+/* ---------------- grouped-execution atomicity ([16/16]) ---------------- */
+if (want('atomic')) {
+  console.log('== grouped execution atomicity on real D1 ==');
+  const evRepo = await import('../src/domains/groupings/events.ts');
+  const suRepo = await import('../src/domains/groupings/signups.ts');
+  const rsRepo = await import('../src/domains/groupings/results.ts');
+  const tnRepo = await import('../src/domains/guilds/tenants.ts');
+
+  // Batch seating: the second row violates the (event_id, uid) unique
+  // index, so the whole batch must roll back — no half-seated rows.
+  const seatEv = await evRepo.insertEvent(db, {
+    tenant: 'atom', title: '原子车', type: 'activity', description: '', starts_at: '',
+    starts_at_utc: 1800000000, max_slots: 10, status: 'open', origin: 'member', created_by: 'x',
+  });
+  let threw = false;
+  try {
+    await suRepo.insertSignups(db, [
+      { event_id: seatEv.last_row_id, nickname: '一', uid: 'a1', role: '输出', weapon: '' },
+      { event_id: seatEv.last_row_id, nickname: '二', uid: 'a1', role: '奶', weapon: '' },
+    ]);
+  } catch { threw = true; }
+  check('batch seating mid-group failure throws', threw);
+  eq('batch seating rolled back fully', await suRepo.countSignupsByEvent(db, seatEv.last_row_id), 0);
+  await suRepo.insertSignups(db, [
+    { event_id: seatEv.last_row_id, nickname: '一', uid: 'a1', role: '输出', weapon: '' },
+    { event_id: seatEv.last_row_id, nickname: '二', uid: 'a2', role: '奶', weapon: '' },
+  ]);
+  eq('batch seating success lands all rows', await suRepo.countSignupsByEvent(db, seatEv.last_row_id), 2);
+
+  // Disband cascade: inject a failure on the results delete (trigger
+  // RAISE ABORT); the earlier signups delete must roll back with it.
+  const disEv = await evRepo.insertEvent(db, {
+    tenant: 'atom', title: '解散车', type: 'activity', description: '', starts_at: '',
+    starts_at_utc: 1800000000, max_slots: 10, status: 'open', origin: 'member', created_by: 'x',
+  });
+  await suRepo.insertSignup(db, { event_id: disEv.last_row_id, nickname: '留守', uid: 'd1', role: '输出', weapon: '' });
+  await rsRepo.insertResult(db, { eventId: disEv.last_row_id, teamName: '', members: '留守', timeMs: 12345, proofUrl: '', note: '' });
+  await db.prepare("CREATE TRIGGER fail_res_del BEFORE DELETE ON results BEGIN SELECT RAISE(ABORT, 'injected'); END").run();
+  threw = false;
+  try { await evRepo.deleteEventCascade(db, disEv.last_row_id, 'atom'); } catch { threw = true; }
+  check('disband with injected failure throws', threw);
+  eq('disband rolled back: signups survive', await suRepo.countSignupsByEvent(db, disEv.last_row_id), 1);
+  check('disband rolled back: event survives', !!(await evRepo.getEventRow(db, disEv.last_row_id)));
+  await db.prepare('DROP TRIGGER fail_res_del').run();
+  await evRepo.deleteEventCascade(db, disEv.last_row_id, 'atom');
+  eq('disband success removes event', await evRepo.getEventRow(db, disEv.last_row_id), null);
+  eq('disband success removes signups', await suRepo.countSignupsByEvent(db, disEv.last_row_id), 0);
+
+  // Tenant cascade: inject a failure on the events delete; signups,
+  // events and the tenant row must all survive.
+  await tnRepo.insertTenant(db, { slug: 'atomguild', guildName: '原子百业', passwordHash: 'x', announcement: '' });
+  const tEv = await evRepo.insertEvent(db, {
+    tenant: 'atomguild', title: '租户车', type: 'activity', description: '', starts_at: '',
+    starts_at_utc: 1800000000, max_slots: 10, status: 'open', origin: 'member', created_by: 'x',
+  });
+  await suRepo.insertSignup(db, { event_id: tEv.last_row_id, nickname: '成员', uid: 't1', role: '输出', weapon: '' });
+  await db.prepare("CREATE TRIGGER fail_ev_del BEFORE DELETE ON events BEGIN SELECT RAISE(ABORT, 'injected'); END").run();
+  threw = false;
+  try { await tnRepo.deleteTenantCascade(db, 'atomguild'); } catch { threw = true; }
+  check('tenant delete with injected failure throws', threw);
+  check('tenant delete rolled back: tenant survives', !!(await tnRepo.getTenantRow(db, 'atomguild')));
+  eq('tenant delete rolled back: signups survive', await suRepo.countSignupsByEvent(db, tEv.last_row_id), 1);
+  await db.prepare('DROP TRIGGER fail_ev_del').run();
+  await tnRepo.deleteTenantCascade(db, 'atomguild');
+  eq('tenant delete success removes tenant', await tnRepo.getTenantRow(db, 'atomguild'), null);
+  eq('tenant delete success removes events', await evRepo.getEventRow(db, tEv.last_row_id), null);
 }
 
 if (want('ddl')) {
