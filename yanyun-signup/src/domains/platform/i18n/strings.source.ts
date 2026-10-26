@@ -223,6 +223,7 @@ export const seat_leaveConfirmMessage = (fbs: FbsAPI, p?: StringParams) =>
   fbs(["确定取消「", fbs.param("nickname", pv(p, "nickname")), "」的报名吗？"], "seat.leaveConfirmMessage");
 export const seat_roleHealer = (fbs: FbsAPI) =>fbs("奶", "seat.roleHealer");
 export const seat_roleDps = (fbs: FbsAPI) =>fbs("输出", "seat.roleDps");
+export const seat_leader = (fbs: FbsAPI) =>fbs("车头", "seat.leader");
 export const appBlocks_rosterTitle = (fbs: FbsAPI) =>fbs("队伍名册", "appBlocks.rosterTitle");
 export const appBlocks_closedStatus = (fbs: FbsAPI) =>fbs("已关闭", "appBlocks.closedStatus");
 export const appBlocks_completedStatus = (fbs: FbsAPI) =>fbs("已完成", "appBlocks.completedStatus");
@@ -876,6 +877,7 @@ export const STRING_FNS: Record<string, (fbs: FbsAPI, p?: StringParams) => strin
   "seat.leaveConfirmMessage": seat_leaveConfirmMessage,
   "seat.roleHealer": seat_roleHealer,
   "seat.roleDps": seat_roleDps,
+  "seat.leader": seat_leader,
   "appBlocks.rosterTitle": appBlocks_rosterTitle,
   "appBlocks.closedStatus": appBlocks_closedStatus,
   "appBlocks.completedStatus": appBlocks_completedStatus,

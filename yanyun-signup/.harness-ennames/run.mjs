@@ -133,10 +133,10 @@ const Q_GROUP = `{ groupingListPage(slug: "livetest", tab: ACTIVITY) {
 const Q_DETAIL = `{ groupingDetailPage(slug: "livetest", id: "42") {
   blocks(blocksVersion: 2) { __typename
     ... on ChipRowBlock { chips }
-    ... on SeatGridBlock { seats { weapon nickname } }
+    ... on SeatGridBlock { seats { weapon nickname isLeader } }
     ... on SectionBlock { children { __typename
       ... on ChipRowBlock { chips }
-      ... on SeatGridBlock { seats { weapon nickname } }
+      ... on SeatGridBlock { seats { weapon nickname isLeader } }
     } }
   }
 } }`;
@@ -267,6 +267,8 @@ for (const loc of [...OVERLAY, ...CHINESE]) {
     check(`detail chips 含副本名 ${tag}`, (chipRow?.chips || []).includes(exp('玉魄染青苍', 'Liminal Ascension')), JSON.stringify(chipRow?.chips));
     const grid = flat.find((b) => b.__typename === 'SeatGridBlock');
     eq(`detail seat weapon ${tag}`, grid?.seats?.[0]?.weapon, exp('牵丝·霖', 'Silkbind - Deluge'));
+    // isLeader: 奶妈甲座位无 discord 戳 (null) 且车头是 '9001' -> 非车头
+    eq(`detail seat isLeader 无戳非车头 ${tag}`, grid?.seats?.[0]?.isLeader, false);
   }
 
   /* 已存方案: school/buildLabel 本地化, name(UGC) 不动 */

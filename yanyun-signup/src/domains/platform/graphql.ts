@@ -149,6 +149,11 @@ export class SeatEntryShell extends ShellBase {
     return r.role === '奶' || r.role === '治疗' ? this.t('seat', 'roleHealer') : this.t('seat', 'roleDps');
   }
   genHealer(){ return !!this.data.row && this.data.row.weapon === HEALER_SECT; }
+  genIsLeader(){
+    const { row, ev } = this.data;
+    return !!row && !!row.discord_id && !!ev.creator_discord_id
+      && String(row.discord_id) === String(ev.creator_discord_id);
+  }
   genAction(){
     return this.memo('action', () => {
       const { row, ev, access } = this.data;
@@ -357,6 +362,7 @@ export const platformResolvers = {
     index: (p: any) => p.genIndex(), occupied: (p: any) => p.genOccupied(),
     nickname: (p: any) => p.genNickname(), weapon: (p: any) => p.genWeapon(),
     role: (p: any) => p.genRole(), healer: (p: any) => p.genHealer(),
+    isLeader: (p: any) => p.genIsLeader(),
     action: (p: any) => p.genAction(),
   },
   ActionButtonBlock: { js: (p: any, a: any) => a.module,

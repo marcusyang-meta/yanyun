@@ -199,6 +199,7 @@ export const seat_leaveConfirmTitle = (fbs: FbsRuntime) => fbs._("取消报名",
 export const seat_leaveConfirmMessage = (fbs: FbsRuntime, p?: StringParams) => fbs._("确定取消「{nickname}」的报名吗？", [fbs._param("nickname", pv(p, "nickname"))], { hk: "3GdYy7" });
 export const seat_roleHealer = (fbs: FbsRuntime) => fbs._("奶", null, { hk: "zfX8r" });
 export const seat_roleDps = (fbs: FbsRuntime) => fbs._("输出", null, { hk: "1edxEf" });
+export const seat_leader = (fbs: FbsRuntime) => fbs._("车头", null, { hk: "19Ds5R" });
 export const appBlocks_rosterTitle = (fbs: FbsRuntime) => fbs._("队伍名册", null, { hk: "JxG6Y" });
 export const appBlocks_closedStatus = (fbs: FbsRuntime) => fbs._("已关闭", null, { hk: "wv86r" });
 export const appBlocks_completedStatus = (fbs: FbsRuntime) => fbs._("已完成", null, { hk: "487lL4" });
@@ -831,6 +832,7 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"seat.leaveConfirmMessage": seat_leaveConfirmMessage,
 	"seat.roleHealer": seat_roleHealer,
 	"seat.roleDps": seat_roleDps,
+	"seat.leader": seat_leader,
 	"appBlocks.rosterTitle": appBlocks_rosterTitle,
 	"appBlocks.closedStatus": appBlocks_closedStatus,
 	"appBlocks.completedStatus": appBlocks_completedStatus,

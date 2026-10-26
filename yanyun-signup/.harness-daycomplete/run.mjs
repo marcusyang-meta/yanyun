@@ -318,6 +318,31 @@ const cOfficial = await gql(completeMut, { variables: { id: '209' } });
 eq('官方车完成被拒', cOfficial.data?.completeGrouping?.ok, false);
 eq('官方车错误文案 (officialEvent)', cOfficial.data?.completeGrouping?.error, '官方活动请联系管理员');
 
+/* ---------------- A2: 座位车头标记 isLeader ---------------- */
+const seatQ = `query($slug: String, $id: ID!) {
+  groupingDetailPage(slug: $slug, id: $id) {
+    blocks(blocksVersion: 4) {
+      __typename
+      ... on SeatGridBlock { seats { index occupied nickname isLeader } }
+      ... on SectionBlock { children { __typename
+        ... on SeatGridBlock { seats { index occupied nickname isLeader } }
+      } }
+    }
+  }
+}`;
+function findSeats(page) {
+  const flat = [];
+  const walk = (bs) => { for (const b of bs || []) { flat.push(b); if (b.children) walk(b.children); } };
+  walk(page?.blocks);
+  return flat.find((b) => b.__typename === 'SeatGridBlock')?.seats || [];
+}
+const seats201 = findSeats((await gql(seatQ, { variables: { slug: SLUG, id: '201' } })).data?.groupingDetailPage);
+eq('isLeader 车头座位 (201#0)', seats201[0]?.isLeader, true);
+eq('isLeader 空位 (201#1)', seats201[1]?.isLeader, false);
+eq('isLeader 全场恰一位车头 (201)', seats201.filter((s) => s.isLeader).length, 1);
+const seats207 = findSeats((await gql(seatQ, { variables: { slug: SLUG, id: '207' } })).data?.groupingDetailPage);
+eq('isLeader 无车头记录车全 false (207)', seats207.every((s) => s.isLeader === false), true);
+
 // 完成前详情树: 车头有 CompleteAction
 const dBefore = await gql(detailQ, { variables: { slug: SLUG, id: '201' } });
 const actsBefore = (dBefore.data?.groupingDetailPage?.blocks || []).filter((b) => b.__typename === 'ActionButtonBlock').map((b) => b.action?.__typename);
