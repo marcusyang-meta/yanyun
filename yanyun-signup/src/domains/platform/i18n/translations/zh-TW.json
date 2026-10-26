@@ -1,0 +1,6319 @@
+{
+  "fb-locale": "zh-TW",
+  "translations": {
+    "+0U6mYYdvz+wLWH3Jrqu7Q==": {
+      "description": "gear.lockLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "鎖定",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+0pSgfTMdy37X0HoUlrKEA==": {
+      "description": "groupingList.nextWeek",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "下一週",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+9FPHyDVlb3uePhvVZkd9w==": {
+      "description": "gear.recipeEmptyText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "沒有符合的配方。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+Cu8vxOG+YgLzIh28DGShg==": {
+      "description": "groupingType.tabRace",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "競速報名",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+JDE1sDNCv+J5cxeOOFhSA==": {
+      "description": "errors.officialEvent",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "官方活動請聯繫管理員",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+MwqqV49cRdm1TFSpSoINA==": {
+      "description": "errors.bossNotFound",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "首領不存在",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+QFUY+hgmMangcVniCcQCA==": {
+      "description": "groupingForm.submitCreate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "發布",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+WMmlNTrGN2hRU1mJNoyww==": {
+      "description": "seat.selfTab",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "自己報名",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+ZrGRiv6gyG51AXVfxuZOA==": {
+      "description": "boss.shoutCopied",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "喊話已複製",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+tcm4cEZmU3VAw0v6ruV9g==": {
+      "description": "create.subtitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "綁定一個你管理的 Discord 伺服器 —— 之後只有該伺服器的成員能看到並使用這個百業。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+zuFivHNUDJZNfOiCI7e8w==": {
+      "description": "groupingType.tabActivity",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "雙十人本",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "/5GLZKYtPphHVD4tIlBiVQ==": {
+      "description": "grad.tapHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "輕觸裝備以鐫刻詞條",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "/5KWF7bNK2gZt37muD+N0g==": {
+      "description": "gear.unequipAllLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "全部卸下",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "/AWOQzY1eZcQ05vXUn01rw==": {
+      "description": "gear.gradLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "畢業度",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "/GEOQyYTnp3kSm0trp475A==": {
+      "description": "errors.titleRequired",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "請填寫標題",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "/PsfnMgR3/LkRK/uOwbXmA==": {
+      "description": "errors.groupingNotCompleted",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "該車隊尚未完成",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "/cYMWf+oGkkBA2Tur0QzGA==": {
+      "description": "gear.slotTableTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "部位版位表（配裝台）",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "/m2V+vICsljPUvxQ7Q2xeQ==": {
+      "description": "sect.rotInnerSkills",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "心法",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "0CSsQQ5XjU4NQbm+ZCnIAA==": {
+      "description": "groupingForm.toastCreateFailed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "建立失敗：{error}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "0J/DlDtw2E19ziHwY3IKLw==": {
+      "description": "gear.equipLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "選入",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "0l1WkRmUdT2oJgjg9bnj0g==": {
+      "description": "grad.tier6",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "凡鐵未煉",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "0mrmxfxzJ+k2hYzsEsMIlQ==": {
+      "description": "gear.importFailedToast",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "匯入失敗：檔案無效",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "0qc+GLEPvS1+vGZW08T2RQ==": {
+      "description": "site.title",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "百業集結",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "0vuWGrEVlINQgM+g3i90aA==": {
+      "description": "errors.proxyTargetNotInRoster",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "所選成員不在本百業名冊中",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "0zi49ScOq3pLyDr8nDRGlQ==": {
+      "description": "sect.rotVideo",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "影片攻略",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "1+kLFVK8m+QC5pAA+uFq3g==": {
+      "description": "gear.unlockLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "解鎖",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "11d0KA/uMI+F6er9oTS3mg==": {
+      "description": "gear.diffExtraTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "配方外",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "14O6biesEbYxhDL5zrH++g==": {
+      "description": "gear.panelTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "面板與畢業度",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "15WLoR41lmu68AJbnYFNyw==": {
+      "description": "sect.rotLoop",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "循環",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "197qS8fPBsx/iroNe3H0dA==": {
+      "description": "grad.compareTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "⚔️ 方案對比",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "199iH7OHrVtoS3NGBPf0kg==": {
+      "description": "appBlocks.completedStatus",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "已完成",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "1BktHl+C12NbE4pTKMywAA==": {
+      "description": "groupingDetail.disbanding",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "解散中…",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "1XX3aWVDu9+XEfoH5lb4aQ==": {
+      "description": "gear.colRecipeNamesLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "配方叫法",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "1bV9l16tmRBB0AtiR5up5A==": {
+      "description": "groupingDetail.readonlyHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "唯讀瀏覽 · 該百業尚未綁定 Discord 伺服器",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "1lPu+oXa4nZ9JbvI3pQZPg==": {
+      "description": "gear.fillMaxLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "填滿值",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "1lRu1Blh1ehnBVsEATlhrQ==": {
+      "description": "sect.tabRotation",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "輸出軸",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "1s3/GCrBga5PWdBQhGGLWw==": {
+      "description": "grad.rateTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "⚡ 三率速算",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "1tuFL7y0/3N5HN4PRGbLyg==": {
+      "description": "seat.modalSubtitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "人人可管 · 無需管理碼",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "27PHfpd3WDS8BpscsVczEQ==": {
+      "description": "gear.clearConfirmTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "清空裝備庫？",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "2ILeZ5ocot0qeap9aD2x2g==": {
+      "description": "site.heroAlt",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "水墨山水",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "2MGAdBEiAJqCh600In1B1A==": {
+      "description": "appBlocks.unknownBlock",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "該內容需要更新 App 後顯示",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "2XX+pIn+zwI3g6Unc1rKog==": {
+      "description": "grad.tier4",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "小有所成",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "2YCS+PRWwdQGL8SbsLoSSQ==": {
+      "description": "gear.extraIntLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "白字會意（手填）",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "2ebzL32CKO+lS9YLLeCdzA==": {
+      "description": "create.toastCreated",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "百業建立成功",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "2kfzXanEjKCaB97T6DZHmw==": {
+      "description": "login.cardTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "先登入，再入江湖",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "2xzNXUTd+DnmypQts0IGug==": {
+      "description": "gear.survivalNote",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "生存向，配方未列",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "2yprHGJ3/exCKTAgB74gFg==": {
+      "description": "errors.nicknameRequired",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "請填寫遊戲暱稱",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "3+ZJ1eYmm4DwDQCCOjfBKw==": {
+      "description": "errors.generic",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "操作失敗，請稍後再試",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "353QacjNGPV58CoYyyP9vA==": {
+      "description": "grad.scoreCount",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "條數匹配",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "36t3VoEVGoUqS/c5Am11Sw==": {
+      "description": "grad.toastLoaded",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "已載入方案「{name}」",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "3Foa8iqNEAZdhXoscF1dxg==": {
+      "description": "grad.schemeName",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "方案{n}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "3PHQYL/hpifJ1Ko4tnuKog==": {
+      "description": "grad.rateOverflow",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "⚠️ 會心+會意={sum}>100，會意擠佔會心",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "3UdGVQYZisCSiXyNw5wMQg==": {
+      "description": "grad.noSchemes",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "暫無方案，先填好裝備再儲存",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "3m8PHPIi5YUWFOgHbLE6Aw==": {
+      "description": "groupingForm.startsLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "出發時間",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "3zBTnzfjvVX3Cx4srEQjTA==": {
+      "description": "create.backLink",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "‹ 我的百業",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "4/XHuZvvY9CWMhIhzE+1eA==": {
+      "description": "grad.tier1",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "天人合一",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "4M7s18YxMAraVBjRcb2flQ==": {
+      "description": "groupingList.statusOpen",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "報名中",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "4Wlg6NEyfttxNa8YkhblAg==": {
+      "description": "gear.formulaDimsTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "五維換算（每 1 點）",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "4oUAOcMh94cc9dA7sz8srw==": {
+      "description": "gear.baseResetTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "恢復預設？",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "4seEW4Ua/fccxD/JUGtZ9w==": {
+      "description": "legal.disclaimer",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "本站為玩家自發維護的非官方工具，與《燕雲十六聲》及其開發、發行方無隸屬或背書關係；遊戲名稱與相關素材的權利歸其各自權利方所有。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "59/CkDKU/7GdilEsBen9qw==": {
+      "description": "grad.refTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "📖 參考資料 · 詞條滿值與版位",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "5mtXamxl2TXxD0uOph1oeg==": {
+      "description": "settings.langZhTw",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "繁體中文",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "5wD1RcFscV8Wunco4Gg1Kw==": {
+      "description": "sect.noRotation",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "暫無輸出軸",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "61/PK4NCcedQOkSnaXjnsw==": {
+      "description": "sect.empty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "暫無流派",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "6JOTieICIMQEY1lIvfWU0g==": {
+      "description": "gear.ocrBatchResultTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "✓ 批量匯入完成：已匯入 {n} 件，跳過 {m} 件。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "6fNjaSGeSePMTYWZtZFywg==": {
+      "description": "gear.baseTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "角色基礎",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "6kLtcVE40AUg9muGe+75cA==": {
+      "description": "errors.gearEmptyBuild",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "搭配為空",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "6rNGV6EPVtXkrdRZ5AvyEg==": {
+      "description": "dex.empty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "暫無攻略",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "6x/miMHgCnqt136lGwDHmA==": {
+      "description": "settings.savedText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "已儲存",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "71Q7A99u1XbReuEHl/leWA==": {
+      "description": "errors.avatarTooLarge",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "頭像圖片不能超過 400KB",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "71lxrPnYe/UC1xCxuI/0Sw==": {
+      "description": "groupingForm.nicknamePlaceholder",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "遊戲內暱稱",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "7CjbPZvlENuCu8HqTbmDEg==": {
+      "description": "gear.slotEmptyText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "未選",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "7Cq5Dm+0eXWpMk+x9I66Sw==": {
+      "description": "errors.lastSeatHealer",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "最後一個名額需要奶",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "7PHXbZI5H8YPX2O5YtW8Rw==": {
+      "description": "gear.affixPlaceholder",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "選詞條",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "7bRnP/rT+XuwtG0ThkTkMQ==": {
+      "description": "gear.refTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "滿值 {max} / 承音 {cy}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "7bkhCCxfyfoC2Vfav9MmnQ==": {
+      "description": "gear.gradDyLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "定音",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "8DhIoHf0HAGOEhaWGIc9Nw==": {
+      "description": "groupingForm.minuteOption",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{n}分",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "8N/118f6HebrKLrttWa1OQ==": {
+      "description": "gear.slotsSmallTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "小外流派",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "8RRK+QpeVHXLceeLnWTp/w==": {
+      "description": "gear.ocrBadTypeText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "這張圖格式不對，只支援 PNG / JPEG / WebP 截圖。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "8UjCv9fjpO8npzfqzLHchQ==": {
+      "description": "gear.recipeSearchPlaceholder",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "搜流派 / 套裝 / 詞條",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "8kgpKjO5+BeZ2ufQ+qN7cw==": {
+      "description": "gear.simLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "模擬",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "8wfsIYHSTdlBuTazsVXo0g==": {
+      "description": "gear.quickTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "三率速算器",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "92yiXZVSBGVojHnyMNaasA==": {
+      "description": "grad.affixLoading",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "詞條資料載入中…",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "95rOkgGBTFJi+gdp9D1WEg==": {
+      "description": "gear.schemeTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "配裝方案對比",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "97nFoJQusFBbK4FEuvaLew==": {
+      "description": "gear.diffLackTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "還差 {n}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "9AAOq0APVA50XY3vwzEM1A==": {
+      "description": "groupingDetail.statusCompleted",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "已完成",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "9JS2SLbDGWDiH6b8T7uEbA==": {
+      "description": "groupingDetail.notFound",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "車隊不存在或已解散",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "9LWSvcL2kokR2fShExLDpg==": {
+      "description": "sect.rotOpener",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "起手",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "9TlREBWbIiXPMhlO19Oc2A==": {
+      "description": "errors.localeUnsupported",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "不支援的語言",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "9W2EwYGdBUM471rnBcc47Q==": {
+      "description": "gear.ocrEquipLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "存入後直接選入搭配",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "9WJS9KEOR7cBIaPBxkY2gQ==": {
+      "description": "gear.copiedToast",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "已複製",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "A6YD+cQk3BiQzA9jWKz5yw==": {
+      "description": "legal.termsLink",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "服務條款",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "AAsb7kV847gjIEBrpTnRuA==": {
+      "description": "errors.cannotManageServer",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "你需要在該 Discord 伺服器擁有管理員或「管理伺服器」權限才能綁定它",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "AJZ6Jw29nRamqm+D5gv6HA==": {
+      "description": "settings.title",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "個人資料",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "AKts0g1uNfZkdPllPwEdCw==": {
+      "description": "errors.groupingAlreadyCompleted",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "該車隊已是完成狀態",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "AtikPIDEb+r7nhVh+5Qkzg==": {
+      "description": "tiaolv.colAttr",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "屬性",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "AwkCWbLmHazLyKI+5GCm9A==": {
+      "description": "gear.ocrFailedText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "識別失敗了。常見原因：網路不通下不到識別包、圖片太模糊。可以換一張更清晰、完整的詳情頁截圖再試。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "B7P7AIQoC7HoRWQEA2GYUw==": {
+      "description": "gear.ocrBatchDupTag",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "重複",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "BIVxWtxHr1K4HtQ4+ijUoA==": {
+      "description": "gear.quickSyncedToast",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "已同步",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "BTCpeQMfpCpJfr+V7bimVQ==": {
+      "description": "groupingType.shortExplore",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "探索",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "BVMSuTHO7P00nXLI6zsRbQ==": {
+      "description": "gear.importLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "匯入資料",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "BaR+NREK8rCowYI9S7ueug==": {
+      "description": "gear.loginHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "裝備庫與方案按你的 Discord 帳號保存，登入後可用（計算與參考資料無需登入）。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "BxTr3f3cskBvBWT6oRijkw==": {
+      "description": "settings.languageHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "介面語言。選擇「自動」時跟隨瀏覽器語言；手動選擇後會保存在你的帳號裡，優先於瀏覽器語言。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ByqE5yMW+YSgOq9vwEXYTA==": {
+      "description": "boss.copyManual",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "請手動複製",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "C8MPKu9bwJKKyuhI9/pspw==": {
+      "description": "errors.serverRequired",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "請選擇要綁定的 Discord 伺服器",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "C8RtJmw+wKWAWA+fJpoaFw==": {
+      "description": "boss.shoutsTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "📢 喊話宏",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "C9Y76R0lVPQpiQGGj/C93g==": {
+      "description": "gear.addRowLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "加一行",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "CCiRwa2ySNEoLaKcNaXm1Q==": {
+      "description": "sect.bisHeadBody",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "頭衣",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "CHXmwq+5mWVf0rqUPGsUqA==": {
+      "description": "grad.tier3",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "爐火純青",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "CMABtQJuu0wG39lVbmMJQg==": {
+      "description": "seat.joining",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "落座中…",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "CObLa74mO6vIor04hlbIIA==": {
+      "description": "common.close",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "關閉",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "CridpU9uowVzNn+PNz3BFw==": {
+      "description": "gear.libEmptyText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "裝備庫是空的。手動錄入、貼上代碼或截圖識別都可以加裝備。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "D+kYHrXeMxa0gSskq1nxsQ==": {
+      "description": "gear.autoLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "一鍵最優組合",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "DQ74pDt09tMVVhh8/LmcxQ==": {
+      "description": "gear.valuePlaceholder",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "數值",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "DTUKJdZIpgZ+Coz0xOgMTA==": {
+      "description": "tiaolv.tuneArea",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "調律區（K:R 列，對應 Excel K3:R5, K6:R24）",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "DU44gNmE4O2Gu0jurCUWoA==": {
+      "description": "gear.diffLowTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "未滿承音的詞條",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "DZK/tBIyk3T9P+OAemKpYw==": {
+      "description": "groupingList.dayGroupHeader",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{month}月{day}日 {weekday}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Dg33wbGmKr3BH82d4wDdeg==": {
+      "description": "boss.back",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "‹ 返回",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "DipXb2yugpJqMWEm5YRq2w==": {
+      "description": "errors.leaderOnlyDisband",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "只有車頭可以解散車隊",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Du0yPK72PqDB8h+rhJTLtQ==": {
+      "description": "gear.ocrBatchRunningText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "識別中…",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "E+F2e1l0pOQeZFrKMLwHBA==": {
+      "description": "gear.suggestTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "建議",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "E415G1DOUemZNpA21nk7PA==": {
+      "description": "groupingType.shortTalent",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "天賦",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "EG0D3OPBEQ0Vql2MAUslIg==": {
+      "description": "create.slugChecking",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "檢查中…",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "EPm4ACYVcGaXBa1fCuhcMw==": {
+      "description": "gear.ocrBatchReadyText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "待核對",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "EZ5CP3H01Ax4HyIMChUxzg==": {
+      "description": "gear.ocrConfirmLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "確認存入",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Ecg1DRD8GMSvMHHtGt/kGA==": {
+      "description": "dex.catSubCurrent",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{season} · {seasonName} · 版本 {version}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "EmQP9VA+4WGDcilCc2PSRw==": {
+      "description": "gear.ocrTooBigText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "圖片超過 15MB，換一張小一點的截圖。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "EoEJu6xmd6Mb9uIx0eG4jg==": {
+      "description": "dex.labelPending",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{count}位首領 · 攻略待補",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Ex73qWxqdxaSX7YweujY0w==": {
+      "description": "errors.alreadyJoined",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "已報過名",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Ey+dz5yOU4OoTm0Wwa57hw==": {
+      "description": "seat.proxySearchPlaceholder",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "搜尋成員名字",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Ez20PQDhtHA9fpr7FNE11g==": {
+      "description": "gear.recipeAllLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "全部",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "F+MLB5gUULCaD95TjY7njA==": {
+      "description": "groupingForm.toastSaved",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "已儲存",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "F0AdJCG0d4QNI7DhBp204A==": {
+      "description": "sect.tabBis",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "畢業詞條",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "FCZW/VAoJFE4OOtjC5hPBQ==": {
+      "description": "gear.ocrBatchDupRowText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "與本批另一張相同，預設不匯入",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "FMNEQZhNV8kijy5sejvyvw==": {
+      "description": "errors.leaderOnlyComplete",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "只有車頭可以完成車隊",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Fa26kbrzCND8CKUzj3AT8g==": {
+      "description": "sect.rateCritDamage",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "會意",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Fhj2b/S/ysxg7Q9U5DGDHA==": {
+      "description": "dex.size5",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "五人本",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "FivPBA1xDl+8KuQI0xiThQ==": {
+      "description": "gear.ocrNameLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "名稱",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Flc43zljVnthVIsqCBMv/g==": {
+      "description": "gear.ocrNeedLineToast",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "至少保留一條有效詞條再確認",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "FtcXbZYldT3ZQPVMLfJfWw==": {
+      "description": "dex.labelParts",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{count}位首領 · {parts}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Fwfr7jr0V1J+2hJRSi0EdQ==": {
+      "description": "gear.benchIntro",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "100 階配裝：按流派配方拼裝備、算面板與畢業度（口徑：條數 40% + 數值 24% + 定音 20%，與上方畢業計算的口徑不同）。裝備庫與方案保存在你的 Discord 帳號下，換設備也能用。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "G0KOns51WXmNSW1O+TIAtQ==": {
+      "description": "grad.resonance",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "承音",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "GFbEImkPW9MzFOJxmrUDVA==": {
+      "description": "grad.rowMain",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "主詞條",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "GTJdQRRBFvyIEFNuzEUsIQ==": {
+      "description": "groupingDetail.backToList",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "‹ 返回車隊列表",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "GfbVKl7TBeGA/9vfLpCXcA==": {
+      "description": "gear.recipeColCat",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "類別",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "GhoWrDwrCR52A8sMBmP70g==": {
+      "description": "create.submit",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "建立百業",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Gk+29NlEm0JqKAD4LNnVUQ==": {
+      "description": "gear.ocrBatchTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "批量截圖識別（全屏截圖自動框選 · 本地識別，不上傳）",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Gwd9a10mpxLxVaH/dR5LWg==": {
+      "description": "errors.guildNameShort",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "百業名稱至少 2 個字",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "GyzlpyR4Vjmq3rcOZXf/eQ==": {
+      "description": "groupingForm.dungeonLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "副本（可選）",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "HOfiwr4yNUhI4ULD1dICng==": {
+      "description": "gear.pasteDemoLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "填入示例代碼",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "HWpFVE2XmpxlBdc4yDk9UA==": {
+      "description": "gear.importedToastTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "已匯入 {n} 件",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "HX9S7s9XVdwEotePm00DPg==": {
+      "description": "create.title",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "建立百業",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "HfnXU899eaOzfMAHZffmXw==": {
+      "description": "seat.empty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "空位",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Hy5wmPoCll+3mMTQO6qApQ==": {
+      "description": "gear.exportLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "匯出資料",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "I09o/f6B8R72dUJF4FuNgw==": {
+      "description": "gear.baseResetBody",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "角色基礎將回到預設值，心法選擇保留。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "I9mhr+ZTLmTokE4sdqYq2Q==": {
+      "description": "gear.pasteButtonLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "解析並匯入裝備庫",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ITgrVmYpDyB2kb83gPUBjg==": {
+      "description": "gear.ocrBatchRemoveLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "移除",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "IXSo9xFX5DZv47fpOuq02w==": {
+      "description": "sect.tabGrad",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "武庫鑑寶",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "IZkr6joCBlnyeEHdpoZOyw==": {
+      "description": "grad.toastOldScheme",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "舊方案只儲存了分數，無法載入配裝",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "IaNtNeKiPCi0CbfejWQg3g==": {
+      "description": "seat.leaveConfirmTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "取消報名",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "IgDYBIShALUp47q1FG8VvQ==": {
+      "description": "create.noServers2",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "先在 Discord 裡建一個伺服器（或拿到管理員權限），重新登入刷新列表後再來建立。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "IoA9MsdW+EYjaRKZHBOtHw==": {
+      "description": "create.slugPlaceholder",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "如：my-guild",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "IrjnxW0HJFkTu5td0FC12Q==": {
+      "description": "groupingForm.typeLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "類型",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "J169aJZkK/3FaNL1f6P21A==": {
+      "description": "tiaolv.toastFailedWith",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "計算失敗：{error}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "J92EDK6gbA/26kCG6L8/jQ==": {
+      "description": "groupingList.weekHeader",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{range} · {count} 隊",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "J9xNQr/33npDPi6WwTngug==": {
+      "description": "gear.formulaIntTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "黃字會意 = 白字會意 ÷ 抗性，白字 {white}% 滿值 40%。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "JC706mVBZQGIV65q/t07LQ==": {
+      "description": "grad.maxTableTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "詞條滿值表（100階）",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "JRRmnZ5L8sJDOhZahNQIPw==": {
+      "description": "create.noServers1",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "你還沒有任何可管理的 Discord 伺服器。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "JV2IsxgcjY8raj6/ak+6Yw==": {
+      "description": "gear.clearLibLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "清空裝備庫",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "JZ1esFUfn6kZaikznvwmkg==": {
+      "description": "groupingForm.toastSect",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "請選擇你的流派",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Ji6sBvbG/T2ANnrqtqbNkA==": {
+      "description": "gear.pasteTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "貼上代碼匯入",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "JjLkdcOLafsBx2ILdQDllQ==": {
+      "description": "grad.buildBig",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "大外",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "JtzoASZyF78KKwvY2XZZaw==": {
+      "description": "gear.talentLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "天賦",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "JzAyc+Gu1gyM0WYkZs8JHw==": {
+      "description": "grad.rateOk",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{v} ✓",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "JzpcueFyMngXbooL70WYIA==": {
+      "description": "gear.recipeColBow",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "推薦弓",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "KXFDQcT3n2y5dRCr292cDg==": {
+      "description": "gear.modifiedTag",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "已改",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "KYrT0zNFWWNXfRvYWIx1Zw==": {
+      "description": "userBar.settings",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "個人資料",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Kdu60GV3DVs4JFIL7hBwPQ==": {
+      "description": "gear.targetLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "目標流派",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Klu4JGVAWnAgUeEKh0/j9w==": {
+      "description": "gear.dyWrongText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "類型不符",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "L4rTToXwWJ2aLymNqa1doA==": {
+      "description": "boss.talentTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "天賦 {code}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "LZMdiXAgC7i8ultIeq6pcQ==": {
+      "description": "seat.nameLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "名字",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Lap+MH7h5/MCqY6tvgjP9Q==": {
+      "description": "gear.gradValueLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "數值",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "LhkYz77LQ+3qKegYyUJfFA==": {
+      "description": "gear.ocrBatchImportedText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "已匯入",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "LnSem0g5dZh/O+2LxO+lQQ==": {
+      "description": "gear.equippedTag",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "已選入",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "LuMyGMoosyschWToen8H+Q==": {
+      "description": "groupingType.shortRace",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "競速",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "M0gpJOz4AZN4yv4OqiEV2Q==": {
+      "description": "dex.bossUnit",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "首領",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "M39mY1iCyni6OMTNxcgbzA==": {
+      "description": "dex.sizeN",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{n}人本",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "MAk+Wd0p/151Mzm+JG/nYA==": {
+      "description": "gear.ocrSavedTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "✓ 已存入裝備庫：{slot}（{n} 條詞條）",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Mds8nbmbQYCqWUMPwJFpmA==": {
+      "description": "groupingDetail.completeConfirmMessage",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "確定完成「{title}」嗎？完成後將從車隊列表隱藏，也不再發送發車提醒；之後仍可在本頁恢復。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "MgLMBmojBb67XhlwOydndA==": {
+      "description": "seat.proxyPickRequired",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "請選擇要代報的成員",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "MizjSGlH7Biqvb6fFwe2Pw==": {
+      "description": "gear.verdictHeirloom",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "傳家寶",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "MsAtQUUnT2nhnnFvdGcAFg==": {
+      "description": "groupingForm.editTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "編輯告示",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Mt+CIEyEQ2xHAipgWDx0iQ==": {
+      "description": "create.toastFailed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "建立失敗，請稍後再試",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "N0EaJ1TR3YFWLng/Q0syZw==": {
+      "description": "gear.recipeSetTargetLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "設為目標",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "N29AjaLf1OYL1KZVfclRjQ==": {
+      "description": "login.button",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "使用 Discord 登入",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "N6zk/eOE4+1PbYL4ESZ1Rw==": {
+      "description": "gear.yIntLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "黃字會意",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "N9Iy/RsP5eT00FE8QVx84Q==": {
+      "description": "tiaolv.calculating",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "推演中…",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "NJ+qGjJOpPW1mwi6ytKWHg==": {
+      "description": "gear.copyFailedToast",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "複製失敗，請手動記錄",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "NPnmmoaSdcv5YSjZBfD4bg==": {
+      "description": "gear.cancelEditLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "取消編輯",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "NRz9C29yF8SS0GXgCTkPag==": {
+      "description": "groupingDetail.toastDisbandFailed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "解散失敗：{error}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Nlef9lCBYXPNkvvw7bSIdA==": {
+      "description": "gear.defLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "防禦",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "NmW7MxG+SHkZTdGyfvIfmw==": {
+      "description": "groupingForm.nicknameLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "你的暱稱（發車人自動落座 0 號位）",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "NpDYJErAG8lY7fz1QCWvdQ==": {
+      "description": "groupingForm.hintDungeon",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "按所選副本「{name}」{max} 人",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Ns9ry+VOnWXAxAau5/u5dQ==": {
+      "description": "gear.quickResLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "抗性",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "OJePBXqHlgqnhztYi0UpIg==": {
+      "description": "gear.xiaowaiLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "小外",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "OKWrpeucCcFmwZyGBIOwrg==": {
+      "description": "gear.colFullBarTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "滿條 {v} 折合",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "OLa06/mUKM5KE0NetrQ9Fw==": {
+      "description": "gear.ocrBatchIncludeLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "匯入這件",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "OMwZKDFNOZ1clzV+beRdNA==": {
+      "description": "dex.partMechanics",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "機制",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ONhuzhcW1RKriBowbCkXCQ==": {
+      "description": "gear.delRowLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "刪此行",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "OQUrGielHRdD3gwBlDheuw==": {
+      "description": "dex.noBossData",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "暫無 Boss 資料",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "OTStw1aAi1AfKAmIW+TVDQ==": {
+      "description": "gear.deleteLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "刪除",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "OWhzZkA3/eomYlJzh0qnKA==": {
+      "description": "gear.colConvLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "換算",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "OaShTqeSSPQ6lFewZZNGtw==": {
+      "description": "gear.xinfaNoneLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "— 不選 —",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "OeAbXWxjmEMZoar/90108g==": {
+      "description": "guildHome.tabTeam",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "組隊",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "PAKnz87y0flweM5P0urzIA==": {
+      "description": "sect.tabTiaolv",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "調律推演",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "PK8uw3yJCFfZ29ka9mYoeQ==": {
+      "description": "sect.rotKeyPoints",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "要點",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "PLRodaM8LVtu3rSyCTN35Q==": {
+      "description": "tiaolv.wukuSelf",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "本系",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "PVBd8j7I9sggGkw4RY1Qjw==": {
+      "description": "gear.schemeLoadedToastTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "已載入：{name}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "PehYSAoCTu6X77a3vhURcw==": {
+      "description": "gear.simCyLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "承音",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "PfMAlM6c5iO2tngA6Xf8TQ==": {
+      "description": "gear.xiaoshuLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "小屬",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Pr4wIU1bXYzmsX83ODBCzQ==": {
+      "description": "groupingList.weekday6",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "週六",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Pu0rIxxk8JoQd7GkexUqJw==": {
+      "description": "seat.leaveConfirmMessage",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "確定取消「{nickname}」的報名嗎？",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "PyOHELOZVaQyJmoiSvw6AQ==": {
+      "description": "errors.rateLimited",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "操作過於頻繁, 請稍後再試",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "PzIsIbql+xQR4mK4zqvFiA==": {
+      "description": "gear.simRealLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "實際",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "QMSQyS2e81I/ERd7b1TccQ==": {
+      "description": "gear.ocrBatchNoLinesText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "沒認出詞條：請核對部位、補詞條行，或調整框選後重新識別（不會自動丟棄）",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "QRfo63aJB2Br3fVOTPg7AA==": {
+      "description": "create.slugAvailable",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "✓ yanyun.app/{slug} 可用",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "QYc7MUetCKb6+Uf6YMoI6w==": {
+      "description": "gear.formNameLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "名稱",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Qcj02hpqt44r4XJuOEMj0w==": {
+      "description": "gear.schoolsLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "流派標籤（武器）",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Qe+a9nyTq0Wk6OVgai1ygw==": {
+      "description": "common.backToHub",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "返回百業集結",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Qmk6Uc+SBpDuEeTrh7OPAw==": {
+      "description": "errors.groupingClosed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "該組隊已截止報名",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "QuAWFFF848AoaoCb18O8HA==": {
+      "description": "errors.memberOnly",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "只有該百業 Discord 伺服器的成員可以操作",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "R6jclOGiNkKWT3+weuO3wg==": {
+      "description": "tiaolv.wuxue",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "武學",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "R8ffAsVp3uMdCqv01Us+hA==": {
+      "description": "errors.pushTokenInvalid",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "推送令牌無效",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "RBhoDzcKU9Xj4ha1etIWdQ==": {
+      "description": "gear.ocrBatchDupLibText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "與裝備庫已有裝備相同，預設不匯入",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "RG8LYGcj/o1C03WXltT4kQ==": {
+      "description": "sect.back",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "‹ 返回流派",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "RKF0Hbsyducx1fwVhWvynQ==": {
+      "description": "gear.dyNameLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "定音名稱",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "RRf/aT0H3UNLSqi9NU/SaA==": {
+      "description": "errors.loginRequired",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "請先登入 Discord 後再操作",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "RUWSGgZweI1MfERT//f1mw==": {
+      "description": "groupingForm.toastSaveFailed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "儲存失敗：{error}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "RVfpPVgrBO+mWxImEPUuog==": {
+      "description": "gear.clearConfirmBody",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "你帳號下的全部裝備與方案都會刪除，目前搭配也會清空，此操作不可恢復。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "RdDNLPtU1+4lRM+5+Jf4Zg==": {
+      "description": "login.cardBody2",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "登入後將按你所在的 Discord 伺服器，展示你有權限存取的百業。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "RdY6RbIGATejw79KHPdWFw==": {
+      "description": "boss.talentPending",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "· 待確認",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "RgbIajK1+vKtnKdgymFJow==": {
+      "description": "groupingDetail.copyFailedManual",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "複製失敗，請手動複製網址列連結",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "RmtZLyKFq62XfgiWDP8E/g==": {
+      "description": "gear.extraAccLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "白字精準（手填）",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "S1PoB926M4euNf/EuokytA==": {
+      "description": "errors.noCreatorRecordedComplete",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "該車隊未記錄車頭，無法完成，請聯繫管理員處理",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "S1u5DmiSjpWSJxnksdlkug==": {
+      "description": "groupingForm.titleTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{nickname}的{type}車隊",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "S2zrTjElQSG4ze1DQts18A==": {
+      "description": "settings.langFr",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Français",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "SKkqq6xa19jz53m89z+soQ==": {
+      "description": "gear.demoLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "載入示例套",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "SUW9baRvpWtfOtha7gvnFQ==": {
+      "description": "sect.rotGreydust",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "一分鐘木樁軸",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Se9wvk0soQ8VifywE5XTAw==": {
+      "description": "create.toastSlugBad",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "這個 slug 不可用，換一個",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "SosF9YS1slDnSvUESQxRHQ==": {
+      "description": "gear.loadoutTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "組合搭配 · 8 個部位",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "SxcWpizGsFc03kFGtYJH4g==": {
+      "description": "userBar.logout",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "登出",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Sy1SudtIeFvE/PvtgUcAoA==": {
+      "description": "groupingList.seal",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "募",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "T4ajI/iTWeLsApus0cx6HA==": {
+      "description": "seat.confirmJoin",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "確認落座",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "TBk/ILw5rODLhYDSKttRvw==": {
+      "description": "create.toastSlugRequired",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "請填寫存取標識 slug",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "TFQsM7at/0RSXHTYiURaCA==": {
+      "description": "gear.ocrRunningText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "正在識別（首次會下載中文 + 英文識別包，可能要十幾秒）…",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "TJoW0reg8/RKA/tqXKZ/Fg==": {
+      "description": "sect.bisMainWeapon",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "主武器",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "TOyxqcuaXu97tr/VvQJkuA==": {
+      "description": "groupingDetail.toastDisbanded",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "車隊已解散",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "TQ/OBRyU45hvHr732lx8Ug==": {
+      "description": "groupingForm.hintTower",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "爬塔固定 10 人，不選副本",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "TSLAeXrLCvWfA+U6pNWFNw==": {
+      "description": "grad.buildSmall",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "小外",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "TihQcEIlHPGBhAxKFk6xwg==": {
+      "description": "groupingDetail.people",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{occupied}/{max} 人",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "TjjnLgs0/vwtECxSWpjqzg==": {
+      "description": "legal.updatedText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "最後更新：2026 年 10 月 25 日",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "TkNqVymlA/k6GFFpzXSXZg==": {
+      "description": "groupingDetail.completing",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "完成中…",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Tqc86ERqXFdnJIc15sFwXA==": {
+      "description": "gear.formulaAccTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "黃字精準 = 65% +（白字精準 − 65%）÷ 抗性，白字 {white}% 滿值 100%。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "TzIJIaf06s1W54RE/engCA==": {
+      "description": "sect.bisAccessories",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "環佩",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "U0CBuCvbSVV/syoqjeXYag==": {
+      "description": "gear.scoreTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "評分 {score}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "U9UiUsvUeH59+lgYVCCJ6g==": {
+      "description": "create.submitting",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "建立中…",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "UMvY03jknFC8BNpnm0PW6A==": {
+      "description": "gear.suggestHeadTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "當前 {cur}% → 全做 {final}%",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "UbIih1i1DPpKTOj2zgIPJQ==": {
+      "description": "groupingForm.sectLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "你的流派",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "UbKXgiRYS1yrzEdwlVnvlA==": {
+      "description": "create.toastNameShort",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "百業名至少 2 個字",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "UfSK+TJkXzTeJZyYW34XAQ==": {
+      "description": "gear.ocrUnknownTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "下面這些行沒認出詞條，已原樣列出（不會丟行）：需要的話點「補一條詞條行」手動加上；純介面文字可忽略。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "UxB+BKBD2BfOhqI26LGgJg==": {
+      "description": "grad.deleteScheme",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "刪除方案",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "V2eQ2sKT6XLGdPhgkutkKg==": {
+      "description": "groupingType.shortActivity",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "雙十",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "V32YqkD/8NEfemn4g56+DA==": {
+      "description": "dex.currentGuides",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "當期攻略 · {category}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "VFJ5ilKtkNEK2Q+yOro8vA==": {
+      "description": "groupingForm.hourOption",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{n}時",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "VT6T/7QZjbtijlPtgMlRgQ==": {
+      "description": "gear.libTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "裝備庫",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "VYEMd2csxYWCjeS4ygPqPw==": {
+      "description": "gear.gradCountLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "條數",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "VoDeTNT7XepZbSnqqlJmvQ==": {
+      "description": "boss.noTalents",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "暫無天賦",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "VohmvGmpD8ozX1QLxK9+qQ==": {
+      "description": "errors.paramsIncomplete",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "參數不完整",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "VpNLZv4R7rj9sxjPdVjtUA==": {
+      "description": "groupingList.weekday4",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "週四",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Vs6NyhZ+L+35NdgLeijn0A==": {
+      "description": "tiaolv.wukuCommon",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "通用",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "VxC712IUw3FlPMUmD1Ooug==": {
+      "description": "gear.colCyPctLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "承音/滿值",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "W0N5TJBIcdZ7qrrqs22lmg==": {
+      "description": "gear.pasteOkTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "✓ 已按「{mode}」解析，匯入 {n} 件裝備 / {lines} 條詞條，已自動選入搭配。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "W5ug+dQfuhHeMVzEr4unPA==": {
+      "description": "gear.finalCritLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "最終會心",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "W5xiLVY2ibVl15o7tXVANA==": {
+      "description": "gear.deletedToast",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "已刪除",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "W9Bilbt+YTFca+CSRUnAyw==": {
+      "description": "gear.xinfaLabelTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "心法 {n}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "WLBpfcuKRVaW7CwXFVT7Ww==": {
+      "description": "sect.noBis",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "暫無畢業詞條",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "WNzFqiP3S+SIeO5Q+m9TEg==": {
+      "description": "groupingList.weekday0",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "週日",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "WQDqkyJmmGZXe2YU+LUscQ==": {
+      "description": "gear.pasteFailText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "沒能從這段代碼裡認出裝備。常見原因：複製時漏了一頭一尾、複製的是角色外觀分享碼（不含裝備數值）、或這份資料的欄位格式本站還沒適配。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "WYHLBa3Hl2AHWsjm3/un7Q==": {
+      "description": "gear.diffDoneText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "✓ 畢業。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "WaU14ygRryAZxKS0m7r/mw==": {
+      "description": "dex.backToDex",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "‹ 返回攻略",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Wsbk5H70XX4zyViWwfRDWg==": {
+      "description": "gear.colDimLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "五維",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Wv4qVjMeqyS+fWUYWkDFBg==": {
+      "description": "create.slugLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "存取標識 slug（網址後綴，只能小寫字母 / 數字 / 連字號）",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "X/a6k4to26++d05dN3CtPA==": {
+      "description": "grad.toastSaved",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "已儲存方案「{name}」",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "XGDRyv7Q2+sC5CNUEgCa+A==": {
+      "description": "gear.ocrBatchApplyBoxLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "按此框重新識別",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "XH1nzldSWdJ1bc8Md2Qdyw==": {
+      "description": "picker.publicGuildsEn",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Public · Read Only",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "XRAfquSwGYrNfdhVWuM9CQ==": {
+      "description": "common.loadingGuild",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "正在展開百業…",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "XhlisInLoaZ5OBmRA2HKyg==": {
+      "description": "gear.savedToastTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "已存入：{name}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Xou+QBLgwOZKx6VpGF4sxA==": {
+      "description": "groupingForm.capacity",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "人數上限 {max} 人（{hint}）",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Y+/l0DFQdnTt5b5ul6saTA==": {
+      "description": "gear.suggestSwapTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{slot}：換上「{name}」",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Y3/3CTqFGTIBradfSgIV9Q==": {
+      "description": "sect.tabRates",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "三率目標",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Y31lVhZuWogFg8L05avqYQ==": {
+      "description": "gear.ocrBatchImportTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "全部匯入（{n} 件）",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Y8NMuG21pqa52jLaNeQcqQ==": {
+      "description": "common.unknownError",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "未知錯誤",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Y8htqvyllKaNpozNx1Ia3g==": {
+      "description": "create.namePlaceholder",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "如：嘰哩呱啦",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "YaFx2zehmbh9ovjvHwqMFA==": {
+      "description": "seat.roleDps",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "輸出",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "YdiH5F33W+iwLTtD7hFjxA==": {
+      "description": "grad.saveScheme",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "💾 儲存目前配裝為方案",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Ykic+sN6gBRPx75Ka4SfKA==": {
+      "description": "gear.autoDoneToast",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "已拼好",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "YnBoJtTHvr5//VUGLnJDJw==": {
+      "description": "groupingDetail.complete",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "完成車隊",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "YqIjOlcbf74KImJYZNB7QA==": {
+      "description": "gear.myBuildsTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "我的方案",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "YrE9Gr8pfrpHqixq+/l4WQ==": {
+      "description": "groupingList.prevWeek",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "上一週",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Z8k2Fag4foHPNf0j93uvFQ==": {
+      "description": "groupingList.weekday2",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "週二",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ZBOp1dLOlVRUSiW3EolHqQ==": {
+      "description": "gear.quickOkText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "✓ 已滿值",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ZE7PqctgldiuNgsQt/VqPw==": {
+      "description": "sect.rateCrit",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "會心",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ZFM4phPVvWfQeFl6R5WEdA==": {
+      "description": "gear.schemeNameTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "方案 {n}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ZL+PgK8a9L7oJT6FAL8CpQ==": {
+      "description": "seat.emptyJoin",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "空位 · 點擊落座",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ZOMGVZn6cbgM2dOaXLkVqQ==": {
+      "description": "errors.notInServer",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "你不在這個 Discord 伺服器中",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ZPcNlQTEHrnuEPKRu++dGA==": {
+      "description": "settings.discordLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Discord 帳號",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ZihpGXob7NTvHNYUNELiuQ==": {
+      "description": "groupingForm.submitEdit",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "儲存",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ZiqChhQpLVEhIySFGpS7Pg==": {
+      "description": "sect.rateAccuracy",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "精準",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Zo1cNYVzDaW7QotEyCo9Ag==": {
+      "description": "groupingForm.toastPosted",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "告示已張貼",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Zq9aHBf/J1jO//HLKDievQ==": {
+      "description": "gear.formSlotLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "部位",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "a0VSLow5dcbyZR/7KsQ7ng==": {
+      "description": "groupingForm.monthOption",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{n}月",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "a20X/svJejgm3Vq0pXMqtQ==": {
+      "description": "gear.dySummaryTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "定音彙總",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "a8u1Jn0FDJJi1rjywxVtZA==": {
+      "description": "tiaolv.bow",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "弓訣",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "aB5eJg6Rpo7W43I8E6TJtQ==": {
+      "description": "gear.formulaBowTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "弓（弓玦）加成計入白字：精準弓 白字精準 +{acc} / 會心弓 白字會心 +{crit} / 會意弓 白字會意 +{int}，再按抗性換算黃字。抗性 {res}（當前版本）。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "aI/0r3DzfE/oEqQakDAo+w==": {
+      "description": "grad.scoreValue",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "數值達成",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "aQSXfUPzuf6arjdSPyMyhA==": {
+      "description": "common.cancel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "取消",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "aTKVCRvd8fArSbdY9ovGWw==": {
+      "description": "locked.backButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "回到我的百業",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "aX/yIOOOH5UKE0XB0Jh1bQ==": {
+      "description": "grad.colAffix",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "詞條",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "aYOmyDG5ul7JraT4MNa00A==": {
+      "description": "seat.toastLeft",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "已取消報名",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "aew2XjKDnFreb1O+a6Iw8Q==": {
+      "description": "boss.noMechanics",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "暫無機制",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "amwcn+BGoJzjJ19sP1Vcug==": {
+      "description": "seat.proxyEmpty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "名冊裡還沒有成員",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "autHQflkREKv6RLCZOGviA==": {
+      "description": "gear.ocrBatchDropText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "把多張截圖拖到這裡，或點選多張 / Ctrl+V 貼上（全屏截圖也可以，會自動找裝備面板）",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "awdPoBf4aC87eRf8jSL61w==": {
+      "description": "gear.hpLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "氣血",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "b0Tw5xrbfPDqLOdvk1S/OQ==": {
+      "description": "guildHome.tabSect",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "流派攻略",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "b0yMQOrS9lkurjucOGZPZw==": {
+      "description": "grad.rateGap",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{v} （差{gap}）",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "bJSaayVvE65H+cPgQNvg8Q==": {
+      "description": "groupingDetail.toastCompleteFailed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "完成失敗：{error}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "bK//ebiPsSr1nBcS2+W/AQ==": {
+      "description": "groupingForm.titleLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "標題",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "bK/PBtKid0QqqxzPEYbX5g==": {
+      "description": "gear.dawaiLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "大外",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "bMWQA3lT7l6gszbjEisyPw==": {
+      "description": "errors.loginRequiredShort",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "請先登入 Discord",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "bRhGEz2fv+D8SQzXoqadTg==": {
+      "description": "groupingDetail.openHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "人人可管 · 無需管理碼 — 點空位即可落座",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "bbuN1FjAb7eJETv+5KSNWA==": {
+      "description": "seat.roleHealer",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "奶",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "bhy5zBYnssJS3ceCJdhKmg==": {
+      "description": "gear.calcFailedText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "計算失敗，請稍後再試",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "biNbmCuUiv17HGlwN98tFg==": {
+      "description": "guildHome.tabDex",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "攻略",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "c5tWhA0ewxXX1tUH0qwZKQ==": {
+      "description": "groupingType.shortGather",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "採集",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "c8jwSxcXoWLtuNWuER26Sg==": {
+      "description": "gear.resLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "抗性",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "c9TswfSc+nDmust1OzYk4A==": {
+      "description": "gear.schemeSaveLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "存為方案",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "cA9b6Avlu5i237wzfWSQYQ==": {
+      "description": "groupingList.emptyInteractive",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "暫無車隊，來發第一車吧",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "cL2xH0kOCjLMSlzAEzIR8A==": {
+      "description": "groupingDetail.toastRestored",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "車隊已恢復",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ca/R7SU7xN8grzzieOo+lg==": {
+      "description": "gear.calcLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "計算",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "cdHskdie4PntEZewGQbz3A==": {
+      "description": "groupingList.emptyReadonly",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "暫無車隊",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "cwRWw5gmeT0EOwsllG814w==": {
+      "description": "gear.schemeComposeFirstText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "先在配裝台拼好一套搭配，才能存為方案。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "d0w8RxfxWO6Lb0bGzOzolw==": {
+      "description": "dex.catSub",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{season} · {seasonName}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "d6YQYV3tjbayOMP9cKJG+A==": {
+      "description": "groupingDetail.disbandConfirmMessage",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "確定解散「{title}」嗎？所有報名將被清空。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "dJXwSPruhyOF4CdO0dIxOA==": {
+      "description": "gear.pasteUnknownTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "另有 {n} 條沒認出的欄位被跳過（多半是氣血、防禦、外功穿透這類本站不計的詞條）。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "dN96NRpZ+wFMrs2yDE0E+Q==": {
+      "description": "boss.copyFailed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "複製失敗",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "dR+Wqv0gLMrkiTNWFJ5ZKA==": {
+      "description": "gear.gradDyToggleLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "定音計入畢業度",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "dfzPu1pwb5ELT5bhOoI0VA==": {
+      "description": "errors.noCreatorRecorded",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "該車隊未記錄車頭，無法解散，請聯繫管理員處理",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "dhbxRm5ol9qDL5UOOuTlow==": {
+      "description": "errors.memberOnlyView",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "該百業僅對 Discord 伺服器成員開放",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "droqmY78jVuT4Outwrvx1Q==": {
+      "description": "dex.sealBoss",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "將",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "duIrSDYagYWXRJ0ex1jubQ==": {
+      "description": "gear.ocrPreparingText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "正在準備圖片…",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "dvZ/fwPZjxatynJIIgwFvg==": {
+      "description": "picker.readOnlyBadge",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "唯讀",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "dwy3NaOw+pOzEQuXGuiJsg==": {
+      "description": "gear.ocrAddRowLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "補一條詞條行",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "e/QadatZH1KmtrkrEIV1vg==": {
+      "description": "groupingForm.hintActivity",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "雙十固定 10 人，不選副本",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "eNQlIKaJ6RKpUg6VEtkl7w==": {
+      "description": "gear.ocrBatchRetryLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "重試",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "eNViECY+o9aVZKhoz8SC7Q==": {
+      "description": "gear.recipeColSet",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "套裝",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "eXsgwjhY8ct15EIiltBjgQ==": {
+      "description": "errors.slugTaken",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "該地址已被占用, 請換一個",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "efuW3iwHC9UK4KnL70tO7w==": {
+      "description": "groupingList.newCar",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "📯 張貼告示 · 發新車",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "eql0d2Sv0dHTHsoyz8YTdQ==": {
+      "description": "create.slugNote",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "建立後不可更改",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "erDzCw9S5sss0IkWOfo1Mw==": {
+      "description": "groupingDetail.share",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "🔗 分享車隊",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "etf6ruZB61LROP/dFy60hg==": {
+      "description": "gear.whiteLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "白字",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "f3XFTMQF15KaUbWXoaKLFQ==": {
+      "description": "gear.recipeColRecipe",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "詞條搭配（承音）",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "f3ux2/Of11TTVFANBErpIQ==": {
+      "description": "boss.copy",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "複製",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "f4t4xmJ2TzDknBgL1slArg==": {
+      "description": "gear.formulaOrderTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "選裝順序",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "fCzgrrRDwjI97yzWmD9y5g==": {
+      "description": "create.toastServerRequired",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "請選擇要綁定的 Discord 伺服器",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "fHX5f7GFqKyIg/EQ29Zy+A==": {
+      "description": "gear.slotsBigTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "大外流派",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "fRdkGkMuzsVjLTMLZgJ4uw==": {
+      "description": "seat.namePlaceholder",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "你的名字",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "fp5qufHZob7kj/Kc8Nqtng==": {
+      "description": "gear.bowLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "弓玦",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "fsPQAtZeuV2UKUf5KNX/dA==": {
+      "description": "gear.schemeDeleteLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "刪除",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "g10H5+gC7sRznu5Xya/Rrw==": {
+      "description": "dex.partTalents",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "天賦",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "g9xg47F3tc8gY5looY7KrQ==": {
+      "description": "gear.benchTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "配裝台",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "gEs5einIdhnNzLOjMsr2jQ==": {
+      "description": "errors.guildUnboundWrite",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "該百業尚未綁定 Discord 伺服器，寫入功能已鎖定",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "gMfszrAa/HDGfvn2E+UQmA==": {
+      "description": "gear.copySummaryLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "複製摘要",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "gRi8Qhi5+ORatyDBeGzpHg==": {
+      "description": "groupingType.shortTower",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "爬塔",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "gY5psoq859Ct42FNd/x3xA==": {
+      "description": "gear.qualityLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "數值達成",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "gZdBDx4jUc+CUQLpzw6Z/g==": {
+      "description": "gear.dyValLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "定音數值",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "gosWqJYo4zfFq+p19sMbgQ==": {
+      "description": "gear.clearedToast",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "已清空",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "h1KquiyV4pvFE8cdKwTZnA==": {
+      "description": "gear.ocrBatchQueuedText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "排隊中",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "h3xNwnMgychKChAq5AYi5A==": {
+      "description": "grad.scoreRate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "三率達標",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "hChHFvanpUI9g36tALkdTg==": {
+      "description": "gear.updateGearLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "保存修改",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "hLVJSoWpj3DxABlGpdKxrQ==": {
+      "description": "gear.suggestWashTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{slot}：把第 {line} 條 {from} 洗成 {to}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "hNgDu4Vx40FESN3OAHxGpw==": {
+      "description": "grad.slotTableTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "部位版位表（{build}）",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "hOekplSVL3CYwWzrlA/Tvw==": {
+      "description": "gear.schemeGroupCountTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{n} 套",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "hc0JndK72a9/MyXSp8SGhQ==": {
+      "description": "grad.subtitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "條數50% · 數值30% · 三率20%",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "hhWy9NNRa41oUu9bFD8KCA==": {
+      "description": "groupingList.weekday3",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "週三",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "hhaMEbghgYk/7pP02KQoQA==": {
+      "description": "gear.dashuLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "大屬",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "huV9ro0ouTsC3Vq2HkgGXg==": {
+      "description": "gear.recipesTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "全流派配方表（100 階 · 承音）",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "i3iBwR6b6sOFNY2unlq2wA==": {
+      "description": "errors.createRateLimited",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "建立太頻繁, 請稍後再試",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "i4FoVp7mJs08nVxXbIVClQ==": {
+      "description": "gear.ocrTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "截圖匯入（本地識別，不上傳）",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "i7psdH6rpOKOImziTpBN+Q==": {
+      "description": "gear.ocrCancelLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "放棄",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "iCqyI0iY8xpYOEak0QlifQ==": {
+      "description": "groupingDetail.toastCompleted",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "車隊已完成",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "iHCATqfV/jxGcg+e7L74ag==": {
+      "description": "common.renderError",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "渲染出錯: {message}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "iJKzaxKRona4U6QlarYh8g==": {
+      "description": "gear.verdictDud",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "拉完了",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "iM+B0D6G9WOJAizCJelL8g==": {
+      "description": "gear.sectRecipesTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "100 階配方（配裝台口徑）",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "iOpnk8FHohvovbD8k/M7wQ==": {
+      "description": "errors.guildNotFound",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "百業不存在",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "iUBJp68z4ZK8hVSnUlM2kg==": {
+      "description": "grad.tier2",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "登峰造極",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "iUHm6HGjM5DgwFBo+XMTtw==": {
+      "description": "groupingType.tabTower",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "爬塔",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "iZPrHJhk22FVui+NfvptQQ==": {
+      "description": "sect.bisLegsWrists",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "腿腕",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "iau4AGm6tRzZLEw/Waj5iA==": {
+      "description": "gear.ocrBatchFullImageText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "未定位到面板，按整圖識別",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ihRwDQrNGKjq0vTujZtpug==": {
+      "description": "errors.avatarEmpty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "沒有收到圖片資料",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ike2RFdiAbHduZgG+j5i4w==": {
+      "description": "errors.seatNotFound",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "未找到該報名",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ipIYYknpoSZjgLFBk36iJA==": {
+      "description": "gear.editLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "編輯",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "izVuJSO3eE1OmYrSMwA1lg==": {
+      "description": "gear.pastePlaceholder",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "把裝備資料代碼貼到這裡（JSON / Base64 / 文字均可）",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "j1fqbU2yaBCdEPvpuAxBPg==": {
+      "description": "grad.tier5",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "初窺門徑",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "jZvslEKJfFniBJWvdgpDEA==": {
+      "description": "tiaolv.none",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "無",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "jdvdQ2HPld/tgI8sc3iGcA==": {
+      "description": "gear.formulaBarsTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "差幾條估算（按承音每條）：精準 {acc} / 會心 {crit} / 會意 {int}；敏補會心 ≈ +{minCrit}% 白字 / 條，勢補會意 ≈ +{shiInt}% 白字 / 條。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "jh3h3GkIQbFTNT0FoLR5Gg==": {
+      "description": "gear.quickSyncLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "從配裝台同步",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "jiNePnv5Sur6Dg+w+itJXA==": {
+      "description": "gear.ocrBatchFailedText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "識別失敗",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "jvDndEPyFqLxKUj1TfLdRQ==": {
+      "description": "dex.labelNoBosses",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "首領待補",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "kNp54Vk1K7V8/Yko0l1Z+A==": {
+      "description": "locked.body1",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "該百業不存在，或僅對某個 Discord 伺服器的成員開放。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "kYAMoMLD7il60O3pgrtrgA==": {
+      "description": "appBlocks.closedStatus",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "已關閉",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "kqS5vlpRoNP9wqujnrl7kQ==": {
+      "description": "guildHome.readOnlyBanner",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "該百業尚未綁定 Discord 伺服器 · 唯讀瀏覽",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "kxINeh/IsqP6Fh9sIHyWXg==": {
+      "description": "dex.size10",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "十人本",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "l19SswwvQ5NB9YlpnY/i/g==": {
+      "description": "gear.ocrSlotLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "部位",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "l2zKlR8h3TVJ33OH5agWpA==": {
+      "description": "create.serverLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "綁定 Discord 伺服器（僅列出你有管理權限的）",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "lBJpUmQYlNEq4EdXqmZlow==": {
+      "description": "gear.ocrBatchAdjustLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "調整框選",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "lGnqI+RJJWdCQr+wLPBSGA==": {
+      "description": "errors.leaderOnlyReopen",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "只有車頭可以恢復車隊",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "lLbxK2CCJqkxwT/JWy3e5A==": {
+      "description": "gear.suggestNoneText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "這套暫時挑不出毛病",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "lOB2BBzS217KGYnuaVhcYg==": {
+      "description": "groupingDetail.linkCopied",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "連結已複製",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "lgUkGFG6v8/xw/+DKcVBug==": {
+      "description": "gear.fillCyLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "填承音",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "lls0oh6JYQILBRwmyv06rQ==": {
+      "description": "gear.extrasTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "其他來源加成",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ltjEfIS0AVtySaGuVg6uNQ==": {
+      "description": "grad.valuePlaceholder",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "數值",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "luawsX/6u7U8joDsMtUhVg==": {
+      "description": "guildHome.backToHub",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "← 百業集結",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "lw4TL0r9meYMhzopTA5AMA==": {
+      "description": "picker.publicGuilds",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "公開百業",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "m0goxACr4K3NVRFneuHCqw==": {
+      "description": "gear.quickOverTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "，溢出 {v}%",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "m5dm92vgYaI62vT4y9CSkQ==": {
+      "description": "tiaolv.colBase",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "基礎白值",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "mEY6z3ikTQkK7fspS8HC6g==": {
+      "description": "grad.itemScore",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "本件 {score}%",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "mP4kyyUi6rNuKw0LdkHy0A==": {
+      "description": "tiaolv.colPanel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "面板白值",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "mV5BtppBqsTAkWZPsC39wg==": {
+      "description": "seat.toastLeaveFailed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "取消失敗：{error}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "mX3keWSoU+Q+b0rDBQEqsQ==": {
+      "description": "groupingDetail.statusOpen",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "報名中",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "mYZCNp1lqmCUlHuGHkhVhQ==": {
+      "description": "site.subtitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "燕雲十六聲 · 國際服百業車隊與攻略集散地 —— 擇一業而入，共赴雙十。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "mZunjBjoy29VF1cDqj9ULA==": {
+      "description": "gear.ocrDropText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "點這裡選一張裝備詳情截圖，或拖進來 / Ctrl+V 貼上",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "maDBGTg8EaIA8slGrR9Hdw==": {
+      "description": "gear.bowNoneLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "無",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "mhlY27miIMU5hTfprlvJRA==": {
+      "description": "picker.myGuildsEn",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "My Guilds",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "mickzXUfwf4a/ho0ZdCRiA==": {
+      "description": "gear.myLibTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "我的裝備庫",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "mkgIjwzgIFh1RzhpjMYNtA==": {
+      "description": "userBar.loggingOut",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "登出中…",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "mluH9785SeaNOj1rdkKNZQ==": {
+      "description": "common.renderErrorHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "這一頁出了問題，其他頁面不受影響。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "mriyYTPTOek1xjuf76wA0w==": {
+      "description": "grad.overMax",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "超過滿值 {max}，將按滿值計算",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "mwtT1NbIoZRk3CJHfYttmA==": {
+      "description": "gear.ocrSecondText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "正在增強識別（第二遍）…",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "mxXGU+ymmpHhMMUPwwwmaQ==": {
+      "description": "gear.baseResetLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "恢復預設",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "n+toP14reF5rFU+EX5Ym4A==": {
+      "description": "gear.pasteEmptyText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "先把代碼貼到上面的框裡再點解析。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "n1vTwDc0R+P2ke/Z3KztiQ==": {
+      "description": "groupingList.people",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{occupied}/{max} 人",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "n46c+S9ZYfBXXK4MJjUkWA==": {
+      "description": "groupingDetail.completeConfirmTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "完成車隊",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "n6q76e+zO+0o3H/OIa41Gw==": {
+      "description": "legal.privacyTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "隱私政策",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "nCFIBWTUC61Jip4EZ763Ag==": {
+      "description": "grad.load",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "載入",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "nK497ViqIWHw820/ZzjRfA==": {
+      "description": "grad.colMax",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "滿值",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "nWRavNs0yvy1M32lt7876w==": {
+      "description": "gear.diffInvalidTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "異常：{n} 條無相在非武器部位，未計入。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "nfojMu+tLcx/wRYz9sZs7A==": {
+      "description": "create.nameLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "百業名",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "nfpigfP/mC2nasEQ4s41pw==": {
+      "description": "legal.termsTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "服務條款",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ng7r1bZ/HF6A4/XDHyGLpQ==": {
+      "description": "picker.emptyBody",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "百業按 Discord 伺服器劃分：你所在的伺服器若已綁定百業，它會出現在這裡。若還沒有，你可以把自己管理的伺服器綁成一個新百業。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ni4W3iwI2M7yFA1DnWXAbw==": {
+      "description": "sect.bisOffWeapon",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "副武器",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "o/6Qn0YEtodE2n1B0M5BnQ==": {
+      "description": "gear.formNamePlaceholder",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "裝備名（可空）",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "o3WKrQvE7gd9DJxuWyfDkA==": {
+      "description": "login.cardBody1",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "本站需用 Discord 帳號認證後使用。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "o69GxIGJRp2ydaf3ifs2jQ==": {
+      "description": "errors.leaderOnlyEdit",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "只有車頭可以編輯車隊",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "o6Ee+AsPRc48Fr2cbLArMQ==": {
+      "description": "appBlocks.rosterTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "隊伍名冊",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "oHjilhYo0ZNoXg5AfbBYtw==": {
+      "description": "groupingType.tabTalent",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "天賦組隊",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "oL2LXum+M4Xrpylqk5jqIg==": {
+      "description": "gear.affixTableTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "詞條滿值 / 承音對照表（配裝台）",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "oSolE7ZK6WWX22fIQR7kag==": {
+      "description": "gear.libCountTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "共 {n} 件",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "oXIuoBEtJ4kN5p15WKx7bA==": {
+      "description": "groupingForm.hintTalent",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "天賦預設 5 人，選副本後按副本人数",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "odsb5RMwMiyShFKG/+cynA==": {
+      "description": "legal.privacyLink",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "隱私政策",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "osKkWqXpQNKo/X1qDV92Xw==": {
+      "description": "gear.schemeSavedToastTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "已存方案：{name}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "oxdgSfKDqNmGv8AgHtnqBQ==": {
+      "description": "settings.languageLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "語言",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "pAFvKUdMYJ8J6pp2id3xpg==": {
+      "description": "gear.diffEmptyText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "還沒選裝備。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "pGDPsnYe/NYvDNIen9euIg==": {
+      "description": "grad.ringLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "畢業率",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "pMyWX41zgWHax1j7b8oVag==": {
+      "description": "settings.langZhCn",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "简体中文",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "pnBZoguVftpBGfuE4xsVOw==": {
+      "description": "gear.diffTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "差缺清單：離畢業還差什麼",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ppXAllQvorFUP7jQPDNW5g==": {
+      "description": "grad.rowResonance",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "定音",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "pua2Af+MTDU9ISVv9Cnbcw==": {
+      "description": "gear.formulaCritTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "黃字會心 = 白字會心 ÷ 抗性，白字 {white}% 滿值 80%。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "pw47q256fGo5mHlBHnAoOg==": {
+      "description": "locked.title",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "無權存取這個百業",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "q+FJXIz4dQdK2hjyWHNMDg==": {
+      "description": "groupingForm.dungeonNone",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "不指定",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "q87kgLxXIX0Ay/5z6c0BzQ==": {
+      "description": "gear.addGearLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "存入裝備庫",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "qG+IXMqXQFkALWlc++8JGg==": {
+      "description": "tiaolv.wuku",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "武庫",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "qI7beL21PcJ/GWOuAx5lmA==": {
+      "description": "gear.simActiveTag",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "模擬中",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "qJ4vo7eywC18qfaduffEmQ==": {
+      "description": "settings.langEs",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Español",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "qL/LMveKhbL7W7wukgo2XA==": {
+      "description": "errors.badStartTime",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "請選擇有效的出發時間",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "qNDSue8pP+/nOKLgUhlDCA==": {
+      "description": "gear.recipeColSchool",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "流派",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "qWfx7QeXGOnVOjISuYojGg==": {
+      "description": "seat.modalTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "落座 · {n} 號位",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "qXZ6VXTNH+hEmTR5a54gnQ==": {
+      "description": "gear.schemeLoadLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "載入",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "qiE7xlzSdPIB6ir2ZMpQtg==": {
+      "description": "gear.formulaTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "公式與五維換算速查",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "qjnc7fxrHCAvY/cbugC7Ag==": {
+      "description": "groupingList.weekday5",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "週五",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "qs9mFVEnHzThvdqgyed9dg==": {
+      "description": "picker.createGuildMore",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "+ 建立新百業",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "qsq2gjQuxfnFrUTOdvCPbw==": {
+      "description": "errors.gearNotFound",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "裝備不存在或不屬於你",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "r4O4FkSmrWMsiWPz26Evsw==": {
+      "description": "seat.toastSect",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "請選擇流派",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "rEUyvUGtn2WhYE6neb1Mbw==": {
+      "description": "login.privacy",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "我們會讀取並保存你的 Discord 暱稱、頭像、伺服器列表與登入授權，用於成員驗證與提醒功能，詳見隱私政策",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "rFJLzcfrJbpDPnhBsGjeVA==": {
+      "description": "boss.notFound",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Boss 不存在",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "rHrERf/l9j5TKDYkKNFZaA==": {
+      "description": "groupingForm.titlePlaceholder",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "如：週六晚雙十來奶",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "rLUTfDre8j6n/nTbnNjWnA==": {
+      "description": "grad.valuePlaceholderMax",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "數值 / {max}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "rQGqLaGHY7HP3br4jj2R3Q==": {
+      "description": "tiaolv.innerSkill",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "心法{n}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "rUH7fPIgClhGF2BHAwb/dA==": {
+      "description": "gear.colCyLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "承音",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "raQHXMrU4rZ1tYzCuBO/ZQ==": {
+      "description": "gear.extraCritLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "白字會心（手填）",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "riTm1Cm4JKnHWCenhuo3pw==": {
+      "description": "errors.slugInvalid",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "站點地址只能用小寫字母/數字/連字號, 2-40 位",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "rlKj0rP/In3IlUfT0a0zag==": {
+      "description": "seat.toastJoined",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "落座成功",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "s67Vb39CwmA/eW1zVD83LA==": {
+      "description": "grad.colResonance",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "承音（95%)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "s6whvLyjBE8m8PkTq8f04g==": {
+      "description": "gear.recipeTargetToastTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "目標已設為：{school} · {set}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "sFpYzp3w3xcKJQ01nJOtcA==": {
+      "description": "grad.affixPlaceholder",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "— 待鐫刻 —",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "sJekQtRGul4I92QLH5oTSg==": {
+      "description": "gear.formulaOrderText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "定流派 → 對配方 → 錄裝備。一鍵最優拼一版 → 看差缺清單補缺。精準先堆滿 100%；會心 148% / 會意 74% 封頂，溢出換勁 / 勢 / 增傷。兩套拿不準，存方案比總分。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "sY4tAVSGnImaEeNHtMxkCQ==": {
+      "description": "errors.noCreatorRecordedReopen",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "該車隊未記錄車頭，無法恢復，請聯繫管理員處理",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "subv/LLnjKYpYQcqUwpq7w==": {
+      "description": "errors.avatarBadType",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "頭像只支援 PNG、JPEG 或 WebP 圖片",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "t0mUIvamXjTqA2CBRczjNg==": {
+      "description": "gear.ocrNoEngineText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "識別元件沒能載入（OCR 引擎需要連網從 CDN 載入）。檢查網路後重新整理頁面再試；貼上代碼匯入不受影響。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "t2qBAQBKqTZHYvB/cPm11w==": {
+      "description": "groupingDetail.restore",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "恢復車隊",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "tEjLWD3v+OlSM+H0rgbSWw==": {
+      "description": "groupingDetail.edit",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "✏️ 編輯",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "tPZ+Sl8XQ0jpBd9mYcXM2g==": {
+      "description": "gear.quickGapTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "還差白字 {lack}%（滿值 {need}%）≈ {bars} 條{barName}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "tWIQr4X05kv0v6FlFfnAgQ==": {
+      "description": "tiaolv.toastFailed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "計算失敗",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "tZfNGtwBezMFKkJ9vTICRA==": {
+      "description": "seat.nameRequired",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "請填寫名字",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "tf2SD/n6osk5lozQyEnhNg==": {
+      "description": "boss.tabMechanics",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "機制",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "tn16KntCd89sO4gp8MSxpw==": {
+      "description": "gear.ocrImportSlotTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "匯入{slot}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "tnUWfyfYTTvKmiB+FQD+Zw==": {
+      "description": "gear.unequipLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "卸下",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "toKkWZb711UgPgKPGz4Ejg==": {
+      "description": "gear.dyCorrectText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "對",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "tu7yTa+LfQ/oZf6S6S7XwQ==": {
+      "description": "gear.ocrDoneTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "✓ 識別完成：認出 {n} 條詞條{slotPart}{dyPart}。請逐行核對數值再確認存入。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "u/6C3e1OBs5jyy5m2Sa3Sw==": {
+      "description": "groupingList.weekday1",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "週一",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "u0XYL+B2psAWUCIOXes0nA==": {
+      "description": "grad.rowSub",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "副詞條{n}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "uBNxPwrzPHyxhQqEtoCA3w==": {
+      "description": "groupingDetail.toastRestoreFailed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "恢復失敗：{error}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "uLEA9sPbQkB/YS3DZ4a6Tw==": {
+      "description": "seat.toastJoinFailed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "報名失敗：{error}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "uQ22KhcTX0eIh132Tu+lpg==": {
+      "description": "groupingForm.hintRace",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "競速預設 10 人，選副本後按副本人数",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "uV3GkYC1i1n/MTMUkCV/Zw==": {
+      "description": "grad.entering",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "正在進入武庫…",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ug5ggSKen5LIgoTqe6d6Ng==": {
+      "description": "errors.slugReserved",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "該地址為保留字, 請換一個",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ugDrTt9DHOevJTRsG3DHjA==": {
+      "description": "groupingDetail.completedHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "該車隊已完成 · 已從列表隱藏，不再發送發車提醒",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ujqRwkdNyQy38FeEMAdEgw==": {
+      "description": "picker.myGuilds",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "我的百業",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "uvGQ0QJl0t1ZMy3nLZs4vw==": {
+      "description": "tiaolv.colFinal",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "最終面板",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "v6R/HR+9FP5348OMIKvEbg==": {
+      "description": "gear.autoFallbackToast",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "已拼好（含兜底選裝）",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "vEZ1xVkNiUPaDbB+oPbZZQ==": {
+      "description": "gear.ocrLowConfTag",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "低信心，請核對",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "vH8l4m3mzT4Mnysd1sL8Cw==": {
+      "description": "gear.diffExactText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "正好",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "vRIq0jXU1047SPwP39KSDQ==": {
+      "description": "picker.createGuild",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "建立百業",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "vbwRD47QpWUy8cRZJW3Scg==": {
+      "description": "settings.autoLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "自動（跟隨瀏覽器）",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "vjduux8zzTR3PgYIkiJUfg==": {
+      "description": "seat.selfNameHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "名字取自你的 Discord 暱稱，不可修改",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "vyPKIDN+0CtaPEy2QN86WA==": {
+      "description": "seat.proxyTab",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "代報名",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "w3S++/IjZv5gP+KudU5V4g==": {
+      "description": "seat.sectLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "流派",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "w8ojp6jVR2ljwTYgkqLgBg==": {
+      "description": "common.confirm",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "確定",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "wB7Pg9KtdWKs4PK2Lt7h+g==": {
+      "description": "tiaolv.intro",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "調律推演 · 復刻 bilibili@片雲 DIY 0.10.2（100級）傷害計算器邏輯",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "wDjKvCL15FwoD9FZv9rqBQ==": {
+      "description": "gear.simMaxLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "滿值",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "wEGEtHa3cq7lBdztFH1zTw==": {
+      "description": "dex.partShouts",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "喊話",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "wFUY7J3cSsW4bBXql9TVgw==": {
+      "description": "gear.yAccLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "黃字精準",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "wMl+cYLbJ02cIgEexqQscg==": {
+      "description": "gear.ocrBatchDetectedText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "已自動框選面板",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "wnELuvtRS8RyXAhkSOiz2Q==": {
+      "description": "errors.groupingNotFound",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "組隊不存在",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "wnz07D4bK28+yU+pG2odcg==": {
+      "description": "create.slugTaken",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "✗ 已被占用或不符合規則",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "wuGNq/yi4x2Ua2/Q1UiDeQ==": {
+      "description": "gear.diffOverTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "多 {n}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "x+Oua4hTI0pgYK8ui5mW1A==": {
+      "description": "groupingForm.createTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "張貼告示",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "xFLusmWc/55JGZn6n8jK+w==": {
+      "description": "tiaolv.suit",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "套裝",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "xJtGZ99gpkBmiIDKUcAz7A==": {
+      "description": "gear.pasteFullText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "識別為本工具匯出的資料，已按整庫匯入處理。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "xOGr5qt8R4MC3RyzCp7xOA==": {
+      "description": "tiaolv.innerSkillPlaceholder",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "心法名",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "xR4buOcjoTW6gwqFbcaiTg==": {
+      "description": "sect.noRates",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "暫無三率目標",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "xTM8JXZCE6EQDDLvGEFUbA==": {
+      "description": "groupingDetail.disbandConfirmTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "解散車隊",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "xTi6HQvcVAcWjgSlruPGiA==": {
+      "description": "gear.dyNamePlaceholder",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "如 外功穿透 / 無名劍法·蓄力技增傷",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "xUz2PgeSKvVLil7S4o8LIA==": {
+      "description": "errors.groupingFull",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "名額已滿或報名已截止",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "xdqf2aiACiOaqXwlBZBv+w==": {
+      "description": "errors.startTimeTooFar",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "出發時間不能超過 60 天後",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "xqfZV9ZpUepwxdgHeajCoQ==": {
+      "description": "boss.tabTalents",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "天賦",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "xrOe2MmiSxRBFiH41BR7Kg==": {
+      "description": "groupingForm.dayOption",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{n}日",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "xtnTcFrchT6Lk75TaYYD7w==": {
+      "description": "locked.body2",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "加入對應的 Discord 伺服器後，用同一個帳號登入即可存取。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "xyFkWc5P5HG27hUhiW7U3A==": {
+      "description": "gear.formulaRatesTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "三率換算",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "y1/qNUHlYSIMbEQwh9WN1A==": {
+      "description": "dex.bossesLine",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{count} 位首領",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "y2KTnLn/AZNH/fYRRsECIA==": {
+      "description": "errors.noCreatorRecordedEdit",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "該車隊未記錄車頭，無法編輯，請聯繫管理員處理",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "y95WUMLU4PXzC3zMlOQjvw==": {
+      "description": "grad.title",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "武庫鑑寶",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "yBaRDCg6ZcDHqb/9jf/6ug==": {
+      "description": "settings.langEn",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "English",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "yGJGynDwlHNC1LOnqjYVFg==": {
+      "description": "groupingDetail.disband",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "解散車隊",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "yJ6BnEOSG9WT1uHvkER4oQ==": {
+      "description": "gear.demoLoadedToast",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "示例已載入",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "yNAdEXVxhENU7FMfRLgp8w==": {
+      "description": "picker.emptyTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "你還沒有可用的百業",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "yQtfWTQEiez1xFpcTPyXXw==": {
+      "description": "groupingForm.submitting",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "提交中…",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "yRa9iWo7GqGZ8fvfKKKNIw==": {
+      "description": "grad.mingjinNote",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "鳴金 · 大外會意流",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ySwad21OhzuNdWmZRyK8Jw==": {
+      "description": "gear.loanLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "滿值模擬（全套滿值時的畢業度）",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "yXbk7XDOJMAr3yrufkZdSQ==": {
+      "description": "groupingList.undatedGroup",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "未定時間",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "z1Zc5HZFSisCLfqa5cuZAw==": {
+      "description": "dex.labelAll",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{count}位首領 · {parts}俱全",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "z7g14PqWEVHJBVwtIVJnBQ==": {
+      "description": "tiaolv.calc",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "開始推演",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "zBgel/+GWLUlqbgWSP/6iA==": {
+      "description": "locked.backLink",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "‹ 我的百業",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "zIeAY5pyJk3s3Iy+KRYV8Q==": {
+      "description": "gear.schemeEmptyText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "還沒有保存的方案。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "zz5IXf3E/z37hobsAkB3Kg==": {
+      "description": "gear.yCritLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "黃字會心",
+          "variations": {}
+        }
+      ],
+      "types": []
+    }
+  }
+}
