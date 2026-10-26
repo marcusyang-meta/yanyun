@@ -6435,6 +6435,1029 @@
         }
       ],
       "types": []
+    },
+    "kwVk8mvbIPPR9NiQDfek+Q==": {
+      "description": "guildHome.adminLink",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Gestionar",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "zLfBckj9O6qZhD/2mI94Cw==": {
+      "description": "guildAdmin.title",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Gestionar gremio",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "x2pTUZ4W2e5sucYPI91gZQ==": {
+      "description": "guildAdmin.lockedTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "No puedes gestionar este gremio",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "1uoR64hPPaSns7EyOPoclA==": {
+      "description": "guildAdmin.lockedBody",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Solo los administradores del servidor de Discord vinculado a este gremio (el propietario o quienes tengan permiso de gestionar el servidor) pueden abrir la página de administración.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "INxBK4wTJeTi3f98nOdUbQ==": {
+      "description": "guildAdmin.backLink",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "‹ Volver al gremio",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "FMBie0lFJBDYjplxhN5gCQ==": {
+      "description": "guildAdmin.tabProfile",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Perfil",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "cHGHuO1ThspZ/XvHZCsu3w==": {
+      "description": "guildAdmin.tabDiscord",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Discord",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "kyhSKO7tirYw+bX745wS9g==": {
+      "description": "guildAdmin.tabTeams",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Equipos fijos",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "dG01MOBCGpZeQUxif54rpg==": {
+      "description": "guildAdmin.tabEvents",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Eventos",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "l6kq3uuwk+Ie/RnGmBHUnQ==": {
+      "description": "guildAdmin.tabGuides",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Datos de guías",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "5qWoVe8WYVxPNOs9teBwmg==": {
+      "description": "guildAdmin.saveButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Guardar",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "0UkD+RImlafEe2WIMXHpKg==": {
+      "description": "guildAdmin.savedText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Guardado",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Za1QuBFbkIn14Q+D+IfcmQ==": {
+      "description": "guildAdmin.deleteButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Eliminar",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "emEpAS77gkC7AP00MAGQbw==": {
+      "description": "guildAdmin.editButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Editar",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "15T9KqV8R16VoV6MZvu2FQ==": {
+      "description": "guildAdmin.addButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Añadir",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ddj74pEv9PVTNmmnnQg7Zw==": {
+      "description": "guildAdmin.profileTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Perfil del gremio",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "5j3rg1t6fE+vc4Rx3A8LSg==": {
+      "description": "guildAdmin.nameLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Nombre del gremio",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "xLbWyxpChCTaYf9CFL1Urg==": {
+      "description": "guildAdmin.announcementLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Anuncio",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Acrp8ym1S2pkVB95j6jIlg==": {
+      "description": "guildAdmin.sloganLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Eslogan",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "RJMT3Sb6KTBTD1AnxAFumA==": {
+      "description": "guildAdmin.masterNameLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Maestro del gremio",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "L4JcHljlCuVbbtKfTam+Vg==": {
+      "description": "guildAdmin.logoUrlLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "URL del logo",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ELFn0or9kJhlNxYNdlk7Uw==": {
+      "description": "guildAdmin.bgImageUrlLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "URL de la imagen de fondo",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "fhRsWWwTncp6X0gQ9DO5gA==": {
+      "description": "guildAdmin.avatarTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Avatar del gremio",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "lF8TLPXGDBIDEPPT7nPvCA==": {
+      "description": "guildAdmin.avatarUpload",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Subir avatar",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "/5NkiPc6C909jm2Zjwot1g==": {
+      "description": "guildAdmin.avatarReplace",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Reemplazar avatar",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "KDAb6VxD6psK1VZ9EnKETQ==": {
+      "description": "guildAdmin.avatarDelete",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Eliminar avatar",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "izZbBZMDtIteVA46j75g0A==": {
+      "description": "guildAdmin.avatarNone",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Aún no hay avatar; se muestra el sello predeterminado.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "M94Oz2QbMdCwLPzGF+J1Lg==": {
+      "description": "guildAdmin.avatarHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Una imagen cuadrada funciona mejor, hasta 400 KB (PNG / JPEG / WebP).",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "xVRV8O0UIQHCm8jySIJQ/Q==": {
+      "description": "guildAdmin.discordTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Integración con Discord",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "eSe0ZgizoQlcUDVSjPrzbA==": {
+      "description": "guildAdmin.webhookLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Webhook de recordatorios de salida",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "vX9hRJ5VVeD5UlLNYfROog==": {
+      "description": "guildAdmin.webhookSet",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Configurado (ID de webhook {id})",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "xVHMGxWNRPjoLlKU/p7y0g==": {
+      "description": "guildAdmin.webhookUnset",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Sin configurar",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "CFSn5UeUhHPaZRw0fbWxVg==": {
+      "description": "guildAdmin.webhookHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "La URL completa no vuelve a mostrarse tras guardar. Guarda con el campo vacío para mantenerla, o usa Borrar para eliminarla.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "y3tP5ALdSJ4iw1RQp4H00Q==": {
+      "description": "guildAdmin.webhookClear",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Borrar webhook",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "lHku0ZmIJzQNx5vYlF3eSA==": {
+      "description": "guildAdmin.guildIdLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "ID del servidor vinculado",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Z114JTriKNt2DMyNO84VJw==": {
+      "description": "guildAdmin.guildIdUnbound",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Sin vincular",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "MRom0wxHtfOXXt7XA8tvLw==": {
+      "description": "guildAdmin.featuresTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Funciones",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "DSO/z3OBcBwS5xQx6Q2VqQ==": {
+      "description": "guildAdmin.fixedTeamsLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Equipos fijos",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "eGAE2fH0Do5fjqmJD2cPUA==": {
+      "description": "guildAdmin.visibilityTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Visibilidad",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "F2HcC3WBbacLIhMVqqaDbw==": {
+      "description": "guildAdmin.devOnlyLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Solo entornos de desarrollo",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Px9Q8hZE2hVAXbG75nD+bQ==": {
+      "description": "guildAdmin.teamsTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Gestión de equipos fijos",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "TNXO8K7BNKu/4hB3/1gjtw==": {
+      "description": "guildAdmin.teamNameLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Nombre del equipo",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "MWb2HwM2A9LQRe5oxnyYMg==": {
+      "description": "guildAdmin.teamDescLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Descripción del equipo",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "8cFHTM1Q3LA/jSLwIgciyA==": {
+      "description": "guildAdmin.teamEmpty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Aún no hay equipos fijos.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "MxqMxmme5HXxuLCSddPVqg==": {
+      "description": "guildAdmin.memberNicknameLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Apodo",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+4QZgxMInUTStkw6eX8efg==": {
+      "description": "guildAdmin.memberWeaponLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Secta (arma)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "J5qDy1AYdOgDJ+AwKXFExg==": {
+      "description": "guildAdmin.memberNoteLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Nota",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "SRjXgh98tc1XNg4mRy58uA==": {
+      "description": "guildAdmin.addMemberButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Añadir miembro",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "jEKpIbyccjMOgwU2WFHkcA==": {
+      "description": "guildAdmin.eventsTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Gestión de eventos",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "almdNxjR9fdM+V+Xkq78iA==": {
+      "description": "guildAdmin.eventEmpty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Aún no hay eventos.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "5Bucj7sgY4Nh8Pb9i/M4NA==": {
+      "description": "guildAdmin.eventTitleLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Título",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "TmM5ckMb5W5EMZ3CurcZig==": {
+      "description": "guildAdmin.eventTypeLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Tipo",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "uCYmfUK9E+J/hhhn7C8Zng==": {
+      "description": "guildAdmin.eventStatusLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Estado",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "bln+anfYVj3Ujgl0aOfxgg==": {
+      "description": "guildAdmin.eventTimeLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Hora de salida",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "v6/VRj4AjKxlxSnxypK6OQ==": {
+      "description": "guildAdmin.eventSlotsLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Límite de plazas",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "9FPr5ut/qNuoKI8oAgcn8Q==": {
+      "description": "guildAdmin.eventMeetLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Información de encuentro",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "1hNROFj87YdE9xrfV/K0Cg==": {
+      "description": "guildAdmin.eventDescLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Descripción",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "h0ATubgz2nboe9UKZNHLtg==": {
+      "description": "guildAdmin.eventDungeonLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Mazmorra",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "WlR4fXpNzsJJC7HbmO0Heg==": {
+      "description": "guildAdmin.statusOpen",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Abierto",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "11iXH7a3v+jcn2DiMXz3dQ==": {
+      "description": "guildAdmin.statusClosed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Cerrado",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ULalEsW1W83Xzdlzu57MNw==": {
+      "description": "guildAdmin.statusCompleted",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Completado",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Re6lkCWSLJ95m/DkjA5fFA==": {
+      "description": "guildAdmin.statusDraft",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Borrador",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "uOASjboVRIpC8VdBTaVYoA==": {
+      "description": "guildAdmin.signupsTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Inscripciones",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "lpc3I97Vmt0LzK9820uEeQ==": {
+      "description": "guildAdmin.signupEmpty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Aún no hay inscripciones.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "gG7F4s77iuizg3xqMKSyTQ==": {
+      "description": "guildAdmin.exportCsvButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Exportar CSV",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "kLZft3MBSjlE3VkeiEokeg==": {
+      "description": "guildAdmin.removeSignupButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Quitar",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "youYyF+b9o8cg/uWuoP8VA==": {
+      "description": "guildAdmin.resultsTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Resultados de carrera",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "NSQZnjcHrqre5i2kqwaHgw==": {
+      "description": "guildAdmin.resultTeamLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Nombre del equipo",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "gVazlJrcmksy016xbi7BNw==": {
+      "description": "guildAdmin.resultMembersLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Miembros (separados por comas)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "oUm327OHqTY3wIKLQ5S3Ig==": {
+      "description": "guildAdmin.resultTimeLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Tiempo (p. ej. 12:34.567)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "DIWaRBkiYJFi8GVN/ia8GQ==": {
+      "description": "guildAdmin.resultProofLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "URL de la prueba",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "9BStwvGtgPLHwVBTMdhJIQ==": {
+      "description": "guildAdmin.resultNoteLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Nota",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "gQ5ASks98LtLlVpiSNNYGg==": {
+      "description": "guildAdmin.guidesTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Datos de guías de secta (BiS / rotaciones)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "gb+KlV0B7tau/Dy2aTr3DA==": {
+      "description": "guildAdmin.guidesHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Completa por secta: nombre de la build, línea de atributos, línea de porcentajes, BiS (JSON) y rotación (JSON). Las páginas de secta se actualizan al guardar.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "639wvInqiZYj9Bcjh3bZVQ==": {
+      "description": "guildAdmin.guideSchoolLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Secta",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "4X0muGIZrUFF1c4rgLkfRQ==": {
+      "description": "guildAdmin.guideBuildLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Nombre de la build",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "qHJnN97xriWxDyLbzgQ0iQ==": {
+      "description": "guildAdmin.guideAttrLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Línea de atributos",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "GCWJO7vXmKibYfPG/Vp3zw==": {
+      "description": "guildAdmin.guideRateLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Línea de porcentajes",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "NdC8fgze933itTmp40ATcw==": {
+      "description": "guildAdmin.guideBisLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "BiS (JSON)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+yVRBg5Yl8Cyl+slF26YMw==": {
+      "description": "guildAdmin.guideRotationLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Rotación (JSON)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "lm/biBTd8kCsgeTnx+KtpQ==": {
+      "description": "errors.adminOnly",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Solo los administradores del servidor vinculado pueden hacer esto",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "aYMxSGpgRmwjoTODTk64vg==": {
+      "description": "errors.webhookInvalid",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Formato de URL de webhook no válido",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "tCFfMIUpKLbfCJRCouGxGQ==": {
+      "description": "errors.discordIdInvalid",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Formato de ID de servidor de Discord no válido",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "SvenWiVmfNUoFONmCJ8eGA==": {
+      "description": "errors.teamNameRequired",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Falta el nombre del equipo",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "/vMhQHVFrHfDbFNO0AjPNw==": {
+      "description": "errors.noFieldsToUpdate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "No hay campos para actualizar",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "51/agEDkEeUCupvvCVjGmg==": {
+      "description": "errors.teamNotFound",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Equipo fijo no encontrado",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "L6s2q64GP4/yd5lyYsklJw==": {
+      "description": "errors.teamMemberNotFound",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Miembro del equipo no encontrado",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "IKazwmdF32i3FQYabLjzyw==": {
+      "description": "errors.signupNotFound",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Inscripción no encontrada",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "QhQL8hK1lmoi2jNyvarOgg==": {
+      "description": "errors.resultNotFound",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Resultado no encontrado",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "r3PHsMs4R0mZ48XYlxyhkA==": {
+      "description": "errors.resultTeamRequired",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Falta el nombre del equipo",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "RPtGb6EUg6GtBaVHXHg3YA==": {
+      "description": "errors.resultTimeInvalid",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Formato de tiempo no válido (p. ej. 12:34.567)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "t0cLWVDgfhNhl0WXg+bKvA==": {
+      "description": "errors.avatarDataInvalid",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Datos de imagen no válidos",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "EHYQgMfnsIVgRRfYKaTikw==": {
+      "description": "errors.schoolRequired",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Falta la secta",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

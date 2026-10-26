@@ -6435,6 +6435,1029 @@
         }
       ],
       "types": []
+    },
+    "kwVk8mvbIPPR9NiQDfek+Q==": {
+      "description": "guildHome.adminLink",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "管理",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "zLfBckj9O6qZhD/2mI94Cw==": {
+      "description": "guildAdmin.title",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "管理百業",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "x2pTUZ4W2e5sucYPI91gZQ==": {
+      "description": "guildAdmin.lockedTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "無權管理這個百業",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "1uoR64hPPaSns7EyOPoclA==": {
+      "description": "guildAdmin.lockedBody",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "只有該百業所綁 Discord 伺服器的管理員（伺服器主或擁有管理權限）可以進入管理頁。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "INxBK4wTJeTi3f98nOdUbQ==": {
+      "description": "guildAdmin.backLink",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "‹ 返回百業",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "FMBie0lFJBDYjplxhN5gCQ==": {
+      "description": "guildAdmin.tabProfile",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "資料",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "cHGHuO1ThspZ/XvHZCsu3w==": {
+      "description": "guildAdmin.tabDiscord",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Discord",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "kyhSKO7tirYw+bX745wS9g==": {
+      "description": "guildAdmin.tabTeams",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "固定隊",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "dG01MOBCGpZeQUxif54rpg==": {
+      "description": "guildAdmin.tabEvents",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "活動",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "l6kq3uuwk+Ie/RnGmBHUnQ==": {
+      "description": "guildAdmin.tabGuides",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "攻略數據",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "5qWoVe8WYVxPNOs9teBwmg==": {
+      "description": "guildAdmin.saveButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "保存",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "0UkD+RImlafEe2WIMXHpKg==": {
+      "description": "guildAdmin.savedText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "已保存",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Za1QuBFbkIn14Q+D+IfcmQ==": {
+      "description": "guildAdmin.deleteButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "刪除",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "emEpAS77gkC7AP00MAGQbw==": {
+      "description": "guildAdmin.editButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "編輯",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "15T9KqV8R16VoV6MZvu2FQ==": {
+      "description": "guildAdmin.addButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "新增",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ddj74pEv9PVTNmmnnQg7Zw==": {
+      "description": "guildAdmin.profileTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "百業資料",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "5j3rg1t6fE+vc4Rx3A8LSg==": {
+      "description": "guildAdmin.nameLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "百業名稱",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "xLbWyxpChCTaYf9CFL1Urg==": {
+      "description": "guildAdmin.announcementLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "公告",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Acrp8ym1S2pkVB95j6jIlg==": {
+      "description": "guildAdmin.sloganLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "標語",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "RJMT3Sb6KTBTD1AnxAFumA==": {
+      "description": "guildAdmin.masterNameLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "掌門",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "L4JcHljlCuVbbtKfTam+Vg==": {
+      "description": "guildAdmin.logoUrlLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "標誌圖連結",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ELFn0or9kJhlNxYNdlk7Uw==": {
+      "description": "guildAdmin.bgImageUrlLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "背景圖連結",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "fhRsWWwTncp6X0gQ9DO5gA==": {
+      "description": "guildAdmin.avatarTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "百業頭像",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "lF8TLPXGDBIDEPPT7nPvCA==": {
+      "description": "guildAdmin.avatarUpload",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "上傳頭像",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "/5NkiPc6C909jm2Zjwot1g==": {
+      "description": "guildAdmin.avatarReplace",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "更換頭像",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "KDAb6VxD6psK1VZ9EnKETQ==": {
+      "description": "guildAdmin.avatarDelete",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "刪除頭像",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "izZbBZMDtIteVA46j75g0A==": {
+      "description": "guildAdmin.avatarNone",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "尚未設定頭像，目前顯示預設印章。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "M94Oz2QbMdCwLPzGF+J1Lg==": {
+      "description": "guildAdmin.avatarHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "正方形圖片效果最佳，大小 ≤ 400KB（PNG / JPEG / WebP）。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "xVRV8O0UIQHCm8jySIJQ/Q==": {
+      "description": "guildAdmin.discordTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Discord 整合",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "eSe0ZgizoQlcUDVSjPrzbA==": {
+      "description": "guildAdmin.webhookLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "發車提醒 Webhook",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "vX9hRJ5VVeD5UlLNYfROog==": {
+      "description": "guildAdmin.webhookSet",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "已設置（Webhook 編號 {id}）",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "xVHMGxWNRPjoLlKU/p7y0g==": {
+      "description": "guildAdmin.webhookUnset",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "未設置",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "CFSn5UeUhHPaZRw0fbWxVg==": {
+      "description": "guildAdmin.webhookHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "保存後不回顯完整地址；留空並保存 = 保持不變，點「清除」移除。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "y3tP5ALdSJ4iw1RQp4H00Q==": {
+      "description": "guildAdmin.webhookClear",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "清除 Webhook",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "lHku0ZmIJzQNx5vYlF3eSA==": {
+      "description": "guildAdmin.guildIdLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "綁定的伺服器 ID",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Z114JTriKNt2DMyNO84VJw==": {
+      "description": "guildAdmin.guildIdUnbound",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "未綁定",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "MRom0wxHtfOXXt7XA8tvLw==": {
+      "description": "guildAdmin.featuresTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "功能開關",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "DSO/z3OBcBwS5xQx6Q2VqQ==": {
+      "description": "guildAdmin.fixedTeamsLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "固定隊",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "eGAE2fH0Do5fjqmJD2cPUA==": {
+      "description": "guildAdmin.visibilityTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "可見性",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "F2HcC3WBbacLIhMVqqaDbw==": {
+      "description": "guildAdmin.devOnlyLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "僅開發環境可見",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Px9Q8hZE2hVAXbG75nD+bQ==": {
+      "description": "guildAdmin.teamsTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "固定隊管理",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "TNXO8K7BNKu/4hB3/1gjtw==": {
+      "description": "guildAdmin.teamNameLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "隊伍名",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "MWb2HwM2A9LQRe5oxnyYMg==": {
+      "description": "guildAdmin.teamDescLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "隊伍簡介",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "8cFHTM1Q3LA/jSLwIgciyA==": {
+      "description": "guildAdmin.teamEmpty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "暫無固定隊。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "MxqMxmme5HXxuLCSddPVqg==": {
+      "description": "guildAdmin.memberNicknameLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "暱稱",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+4QZgxMInUTStkw6eX8efg==": {
+      "description": "guildAdmin.memberWeaponLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "流派（武器）",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "J5qDy1AYdOgDJ+AwKXFExg==": {
+      "description": "guildAdmin.memberNoteLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "備註",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "SRjXgh98tc1XNg4mRy58uA==": {
+      "description": "guildAdmin.addMemberButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "加隊員",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "jEKpIbyccjMOgwU2WFHkcA==": {
+      "description": "guildAdmin.eventsTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "活動管理",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "almdNxjR9fdM+V+Xkq78iA==": {
+      "description": "guildAdmin.eventEmpty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "暫無活動。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "5Bucj7sgY4Nh8Pb9i/M4NA==": {
+      "description": "guildAdmin.eventTitleLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "標題",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "TmM5ckMb5W5EMZ3CurcZig==": {
+      "description": "guildAdmin.eventTypeLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "類型",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "uCYmfUK9E+J/hhhn7C8Zng==": {
+      "description": "guildAdmin.eventStatusLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "狀態",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "bln+anfYVj3Ujgl0aOfxgg==": {
+      "description": "guildAdmin.eventTimeLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "發車時間",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "v6/VRj4AjKxlxSnxypK6OQ==": {
+      "description": "guildAdmin.eventSlotsLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "席位上限",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "9FPr5ut/qNuoKI8oAgcn8Q==": {
+      "description": "guildAdmin.eventMeetLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "集合信息",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "1hNROFj87YdE9xrfV/K0Cg==": {
+      "description": "guildAdmin.eventDescLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "說明",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "h0ATubgz2nboe9UKZNHLtg==": {
+      "description": "guildAdmin.eventDungeonLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "副本",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "WlR4fXpNzsJJC7HbmO0Heg==": {
+      "description": "guildAdmin.statusOpen",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "開放報名",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "11iXH7a3v+jcn2DiMXz3dQ==": {
+      "description": "guildAdmin.statusClosed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "已截止",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ULalEsW1W83Xzdlzu57MNw==": {
+      "description": "guildAdmin.statusCompleted",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "已完成",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Re6lkCWSLJ95m/DkjA5fFA==": {
+      "description": "guildAdmin.statusDraft",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "草稿",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "uOASjboVRIpC8VdBTaVYoA==": {
+      "description": "guildAdmin.signupsTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "報名名單",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "lpc3I97Vmt0LzK9820uEeQ==": {
+      "description": "guildAdmin.signupEmpty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "暫無報名。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "gG7F4s77iuizg3xqMKSyTQ==": {
+      "description": "guildAdmin.exportCsvButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "導出 CSV",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "kLZft3MBSjlE3VkeiEokeg==": {
+      "description": "guildAdmin.removeSignupButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "移除",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "youYyF+b9o8cg/uWuoP8VA==": {
+      "description": "guildAdmin.resultsTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "競速成績",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "NSQZnjcHrqre5i2kqwaHgw==": {
+      "description": "guildAdmin.resultTeamLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "隊伍名",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "gVazlJrcmksy016xbi7BNw==": {
+      "description": "guildAdmin.resultMembersLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "隊員（逗號分隔）",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "oUm327OHqTY3wIKLQ5S3Ig==": {
+      "description": "guildAdmin.resultTimeLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "用時（如 12:34.567）",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "DIWaRBkiYJFi8GVN/ia8GQ==": {
+      "description": "guildAdmin.resultProofLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "憑證連結",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "9BStwvGtgPLHwVBTMdhJIQ==": {
+      "description": "guildAdmin.resultNoteLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "備註",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "gQ5ASks98LtLlVpiSNNYGg==": {
+      "description": "guildAdmin.guidesTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "流派攻略數據（BiS / 循環）",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "gb+KlV0B7tau/Dy2aTr3DA==": {
+      "description": "guildAdmin.guidesHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "按流派填寫：build 名稱、屬性行、佔比行、BiS（JSON）與循環（JSON）。保存後流派頁即時生效。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "639wvInqiZYj9Bcjh3bZVQ==": {
+      "description": "guildAdmin.guideSchoolLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "流派",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "4X0muGIZrUFF1c4rgLkfRQ==": {
+      "description": "guildAdmin.guideBuildLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Build 名稱",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "qHJnN97xriWxDyLbzgQ0iQ==": {
+      "description": "guildAdmin.guideAttrLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "屬性行",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "GCWJO7vXmKibYfPG/Vp3zw==": {
+      "description": "guildAdmin.guideRateLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "佔比行",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "NdC8fgze933itTmp40ATcw==": {
+      "description": "guildAdmin.guideBisLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "BiS（JSON）",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+yVRBg5Yl8Cyl+slF26YMw==": {
+      "description": "guildAdmin.guideRotationLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "循環（JSON）",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "lm/biBTd8kCsgeTnx+KtpQ==": {
+      "description": "errors.adminOnly",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "只有所綁伺服器的管理員可以執行此操作",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "aYMxSGpgRmwjoTODTk64vg==": {
+      "description": "errors.webhookInvalid",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Webhook 地址格式不正確",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "tCFfMIUpKLbfCJRCouGxGQ==": {
+      "description": "errors.discordIdInvalid",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Discord 伺服器 ID 格式不正確",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "SvenWiVmfNUoFONmCJ8eGA==": {
+      "description": "errors.teamNameRequired",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "缺少隊伍名",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "/vMhQHVFrHfDbFNO0AjPNw==": {
+      "description": "errors.noFieldsToUpdate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "沒有可更新的欄位",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "51/agEDkEeUCupvvCVjGmg==": {
+      "description": "errors.teamNotFound",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "未找到該固定隊",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "L6s2q64GP4/yd5lyYsklJw==": {
+      "description": "errors.teamMemberNotFound",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "未找到該隊員",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "IKazwmdF32i3FQYabLjzyw==": {
+      "description": "errors.signupNotFound",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "未找到該報名記錄",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "QhQL8hK1lmoi2jNyvarOgg==": {
+      "description": "errors.resultNotFound",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "未找到該成績",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "r3PHsMs4R0mZ48XYlxyhkA==": {
+      "description": "errors.resultTeamRequired",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "缺少隊伍名",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "RPtGb6EUg6GtBaVHXHg3YA==": {
+      "description": "errors.resultTimeInvalid",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "用時格式不正確（如 12:34.567）",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "t0cLWVDgfhNhl0WXg+bKvA==": {
+      "description": "errors.avatarDataInvalid",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "圖片數據無效",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "EHYQgMfnsIVgRRfYKaTikw==": {
+      "description": "errors.schoolRequired",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "缺少流派",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

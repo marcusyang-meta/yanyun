@@ -10,7 +10,87 @@ export type GuildsStringKey =
   | 'guildHome.tabTeam'
   | 'guildHome.tabDex'
   | 'guildHome.tabSect'
-  | 'guildHome.readOnlyBanner';
+  | 'guildHome.readOnlyBanner'
+  | 'guildHome.adminLink'
+  | 'guildAdmin.title'
+  | 'guildAdmin.lockedTitle'
+  | 'guildAdmin.lockedBody'
+  | 'guildAdmin.backLink'
+  | 'guildAdmin.tabProfile'
+  | 'guildAdmin.tabDiscord'
+  | 'guildAdmin.tabTeams'
+  | 'guildAdmin.tabEvents'
+  | 'guildAdmin.tabGuides'
+  | 'guildAdmin.saveButton'
+  | 'guildAdmin.savedText'
+  | 'guildAdmin.deleteButton'
+  | 'guildAdmin.editButton'
+  | 'guildAdmin.addButton'
+  | 'guildAdmin.profileTitle'
+  | 'guildAdmin.nameLabel'
+  | 'guildAdmin.announcementLabel'
+  | 'guildAdmin.sloganLabel'
+  | 'guildAdmin.masterNameLabel'
+  | 'guildAdmin.logoUrlLabel'
+  | 'guildAdmin.bgImageUrlLabel'
+  | 'guildAdmin.avatarTitle'
+  | 'guildAdmin.avatarUpload'
+  | 'guildAdmin.avatarReplace'
+  | 'guildAdmin.avatarDelete'
+  | 'guildAdmin.avatarNone'
+  | 'guildAdmin.avatarHint'
+  | 'guildAdmin.discordTitle'
+  | 'guildAdmin.webhookLabel'
+  | 'guildAdmin.webhookSet'
+  | 'guildAdmin.webhookUnset'
+  | 'guildAdmin.webhookHint'
+  | 'guildAdmin.webhookClear'
+  | 'guildAdmin.guildIdLabel'
+  | 'guildAdmin.guildIdUnbound'
+  | 'guildAdmin.featuresTitle'
+  | 'guildAdmin.fixedTeamsLabel'
+  | 'guildAdmin.visibilityTitle'
+  | 'guildAdmin.devOnlyLabel'
+  | 'guildAdmin.teamsTitle'
+  | 'guildAdmin.teamNameLabel'
+  | 'guildAdmin.teamDescLabel'
+  | 'guildAdmin.teamEmpty'
+  | 'guildAdmin.memberNicknameLabel'
+  | 'guildAdmin.memberWeaponLabel'
+  | 'guildAdmin.memberNoteLabel'
+  | 'guildAdmin.addMemberButton'
+  | 'guildAdmin.eventsTitle'
+  | 'guildAdmin.eventEmpty'
+  | 'guildAdmin.eventTitleLabel'
+  | 'guildAdmin.eventTypeLabel'
+  | 'guildAdmin.eventStatusLabel'
+  | 'guildAdmin.eventTimeLabel'
+  | 'guildAdmin.eventSlotsLabel'
+  | 'guildAdmin.eventMeetLabel'
+  | 'guildAdmin.eventDescLabel'
+  | 'guildAdmin.eventDungeonLabel'
+  | 'guildAdmin.statusOpen'
+  | 'guildAdmin.statusClosed'
+  | 'guildAdmin.statusCompleted'
+  | 'guildAdmin.statusDraft'
+  | 'guildAdmin.signupsTitle'
+  | 'guildAdmin.signupEmpty'
+  | 'guildAdmin.exportCsvButton'
+  | 'guildAdmin.removeSignupButton'
+  | 'guildAdmin.resultsTitle'
+  | 'guildAdmin.resultTeamLabel'
+  | 'guildAdmin.resultMembersLabel'
+  | 'guildAdmin.resultTimeLabel'
+  | 'guildAdmin.resultProofLabel'
+  | 'guildAdmin.resultNoteLabel'
+  | 'guildAdmin.guidesTitle'
+  | 'guildAdmin.guidesHint'
+  | 'guildAdmin.guideSchoolLabel'
+  | 'guildAdmin.guideBuildLabel'
+  | 'guildAdmin.guideAttrLabel'
+  | 'guildAdmin.guideRateLabel'
+  | 'guildAdmin.guideBisLabel'
+  | 'guildAdmin.guideRotationLabel';
 
 export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'locked.backLink',
@@ -23,4 +103,84 @@ export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'guildHome.tabDex',
   'guildHome.tabSect',
   'guildHome.readOnlyBanner',
+  'guildHome.adminLink',
+  'guildAdmin.title',
+  'guildAdmin.lockedTitle',
+  'guildAdmin.lockedBody',
+  'guildAdmin.backLink',
+  'guildAdmin.tabProfile',
+  'guildAdmin.tabDiscord',
+  'guildAdmin.tabTeams',
+  'guildAdmin.tabEvents',
+  'guildAdmin.tabGuides',
+  'guildAdmin.saveButton',
+  'guildAdmin.savedText',
+  'guildAdmin.deleteButton',
+  'guildAdmin.editButton',
+  'guildAdmin.addButton',
+  'guildAdmin.profileTitle',
+  'guildAdmin.nameLabel',
+  'guildAdmin.announcementLabel',
+  'guildAdmin.sloganLabel',
+  'guildAdmin.masterNameLabel',
+  'guildAdmin.logoUrlLabel',
+  'guildAdmin.bgImageUrlLabel',
+  'guildAdmin.avatarTitle',
+  'guildAdmin.avatarUpload',
+  'guildAdmin.avatarReplace',
+  'guildAdmin.avatarDelete',
+  'guildAdmin.avatarNone',
+  'guildAdmin.avatarHint',
+  'guildAdmin.discordTitle',
+  'guildAdmin.webhookLabel',
+  'guildAdmin.webhookSet',
+  'guildAdmin.webhookUnset',
+  'guildAdmin.webhookHint',
+  'guildAdmin.webhookClear',
+  'guildAdmin.guildIdLabel',
+  'guildAdmin.guildIdUnbound',
+  'guildAdmin.featuresTitle',
+  'guildAdmin.fixedTeamsLabel',
+  'guildAdmin.visibilityTitle',
+  'guildAdmin.devOnlyLabel',
+  'guildAdmin.teamsTitle',
+  'guildAdmin.teamNameLabel',
+  'guildAdmin.teamDescLabel',
+  'guildAdmin.teamEmpty',
+  'guildAdmin.memberNicknameLabel',
+  'guildAdmin.memberWeaponLabel',
+  'guildAdmin.memberNoteLabel',
+  'guildAdmin.addMemberButton',
+  'guildAdmin.eventsTitle',
+  'guildAdmin.eventEmpty',
+  'guildAdmin.eventTitleLabel',
+  'guildAdmin.eventTypeLabel',
+  'guildAdmin.eventStatusLabel',
+  'guildAdmin.eventTimeLabel',
+  'guildAdmin.eventSlotsLabel',
+  'guildAdmin.eventMeetLabel',
+  'guildAdmin.eventDescLabel',
+  'guildAdmin.eventDungeonLabel',
+  'guildAdmin.statusOpen',
+  'guildAdmin.statusClosed',
+  'guildAdmin.statusCompleted',
+  'guildAdmin.statusDraft',
+  'guildAdmin.signupsTitle',
+  'guildAdmin.signupEmpty',
+  'guildAdmin.exportCsvButton',
+  'guildAdmin.removeSignupButton',
+  'guildAdmin.resultsTitle',
+  'guildAdmin.resultTeamLabel',
+  'guildAdmin.resultMembersLabel',
+  'guildAdmin.resultTimeLabel',
+  'guildAdmin.resultProofLabel',
+  'guildAdmin.resultNoteLabel',
+  'guildAdmin.guidesTitle',
+  'guildAdmin.guidesHint',
+  'guildAdmin.guideSchoolLabel',
+  'guildAdmin.guideBuildLabel',
+  'guildAdmin.guideAttrLabel',
+  'guildAdmin.guideRateLabel',
+  'guildAdmin.guideBisLabel',
+  'guildAdmin.guideRotationLabel',
 ];
