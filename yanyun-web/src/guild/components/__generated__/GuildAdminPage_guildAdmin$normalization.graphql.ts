@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<fd9184717fb4da3bb9a9750f7ec134f1>>
+ * @generated SignedSource<<0ca5d653504b7be4ba6eb58d92505fa5>>
  * @lightSyntaxTransform
  */
 
@@ -148,6 +148,20 @@ return {
       "args": null,
       "kind": "ScalarField",
       "name": "reminderWebhookId",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "reminderOffsets",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "reminderCustomText",
       "storageKey": null
     },
     {
@@ -393,6 +407,41 @@ return {
       "args": null,
       "kind": "ScalarField",
       "name": "adminGuildIdUnboundText",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminReminderTitle",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminReminderOffsetsLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminReminderOffsetTemplate",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminReminderCustomTextLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminReminderCustomTextHint",
       "storageKey": null
     },
     {
@@ -1005,6 +1054,6 @@ return {
 };
 })();
 
-(node as any).hash = "618007c9324bf463e899383cbada13b3";
+(node as any).hash = "aa66028ef174589b3e50e805648270b1";
 
 export default node;

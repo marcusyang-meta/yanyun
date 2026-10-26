@@ -80,6 +80,13 @@ const GroupingDetailQueryNode = graphql`
       seatToastLeaveFailedTemplate
       seatLeaveConfirmTitle
       seatLeaveConfirmMessageTemplate
+      detailReadyProgressTemplate
+      seatReadyLabel
+      seatReadyActionLabel
+      seatUnreadyActionLabel
+      seatToastReady
+      seatToastUnready
+      seatToastReadyFailedTemplate
       formCreateTitle
       formEditTitle
       formTypeLabel
@@ -137,6 +144,7 @@ const GroupingDetailQueryNode = graphql`
           name
         }
         occupiedCount
+        readyCount
         maxSlots
         status
         seats {
@@ -146,6 +154,8 @@ const GroupingDetailQueryNode = graphql`
           role
           uid
           occupied
+          ready
+          mine
         }
       }
     }
@@ -323,6 +333,8 @@ weapon: s.weapon,
 role: s.role,
 uid: s.uid,
 occupied: s.occupied,
+ready: s.ready,
+mine: s.mine,
 }));
 
 return (
@@ -342,6 +354,7 @@ verticalAlign: 'middle',
 </h2>
 <div style={{ color: theme.muted, fontSize: 13, marginBottom: 12}}>
 {fmtDate(g.startsAt)} · {fill(page.detailPeopleTemplate ?? '', { occupied: g.occupiedCount, max: g.maxSlots })}
+{g.occupiedCount > 0 ? ` · ${fill(page.detailReadyProgressTemplate ?? '', { ready: g.readyCount, occupied: g.occupiedCount })}` : ''}
 {g.dungeon?.name? ` · ${g.dungeon.name}`: ''} · {g.status === 'open'? page.detailStatusOpenLabel: g.status === 'completed'? page.detailStatusCompletedLabel: g.status}
 </div>
 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap'}}>

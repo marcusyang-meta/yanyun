@@ -4,7 +4,7 @@ import { graphql, useFragment, useMutation } from 'react-relay';
 import type { ViewerUser } from '../../lib/user';
 import type { GuildAdminPage_guildAdmin$key } from './__generated__/GuildAdminPage_guildAdmin.graphql';
 import UserBar, { type UserBarText } from '../../auth/UserBar.react.tsx';
-import { theme } from '../../lib/format';
+import { theme, fill } from '../../lib/format';
 import { toast } from './Toast.react.tsx';
 import { refetchGuildAdminQueries } from '../../lib/relay';
 import {
@@ -33,6 +33,8 @@ const GuildAdminPage_guildAdmin = graphql`
     discordGuildId
     reminderWebhookSet
     reminderWebhookId
+    reminderOffsets
+    reminderCustomText
     featureFixedTeams
     devOnly
     adminTitle
@@ -68,6 +70,11 @@ const GuildAdminPage_guildAdmin = graphql`
     adminWebhookClearLabel
     adminGuildIdLabel
     adminGuildIdUnboundText
+    adminReminderTitle
+    adminReminderOffsetsLabel
+    adminReminderOffsetTemplate
+    adminReminderCustomTextLabel
+    adminReminderCustomTextHint
     adminFeaturesTitle
     adminFixedTeamsLabel
     adminVisibilityTitle
@@ -189,6 +196,11 @@ const DiscordMutation = graphql`
     updateGuildDiscord(slug: $slug, input: $input) { ok error }
   }
 `;
+const ReminderMutation = graphql`
+  mutation GuildAdminPageReminderMutation($slug: String!, $offsets: [Int!]!, $customText: String) {
+    updateGuildReminderSettings(slug: $slug, offsets: $offsets, customText: $customText) { ok error }
+  }
+`;
 const FeaturesMutation = graphql`
   mutation GuildAdminPageFeaturesMutation($slug: String!, $v: Boolean!) {
     updateGuildFeatures(slug: $slug, fixedTeams: $v) { ok error }
@@ -265,12 +277,14 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
 
   const [commitProfile] = useMutation(ProfileMutation);
   const [commitDiscord] = useMutation(DiscordMutation);
+  const [commitReminder] = useMutation(ReminderMutation);
   const [commitFeatures] = useMutation(FeaturesMutation);
   const [commitVisibility] = useMutation(VisibilityMutation);
   const [commitSetAvatar] = useMutation(SetAvatarMutation);
   const [commitDeleteAvatar] = useMutation(DeleteAvatarMutation);
   const runProfile = useAdminMutation(commitProfile, 'updateGuildProfile', refresh, commonText.unknownError);
   const runDiscord = useAdminMutation(commitDiscord, 'updateGuildDiscord', refresh, commonText.unknownError);
+  const runReminder = useAdminMutation(commitReminder, 'updateGuildReminderSettings', refresh, commonText.unknownError);
   const runFeatures = useAdminMutation(commitFeatures, 'updateGuildFeatures', refresh, commonText.unknownError);
   const runVisibility = useAdminMutation(commitVisibility, 'updateGuildVisibility', refresh, commonText.unknownError);
   const runSetAvatar = useAdminMutation(commitSetAvatar, 'setGuildAvatar', refresh, commonText.unknownError);
@@ -286,6 +300,8 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
   const [bgImageUrl, setBgImageUrl] = useState(data.bgImageUrl || '');
   const [webhook, setWebhook] = useState('');
   const [guildId, setGuildId] = useState(data.discordGuildId || '');
+  const [reminderOffsets, setReminderOffsets] = useState<number[]>(Array.isArray(data.reminderOffsets) ? data.reminderOffsets : [10]);
+  const [reminderText, setReminderText] = useState(data.reminderCustomText || '');
   const fileRef = useRef<HTMLInputElement>(null);
   const [avatarBusy, setAvatarBusy] = useState(false);
 
@@ -416,6 +432,28 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
                 <input style={adminInputStyle} value={guildId} placeholder={text.adminGuildIdUnboundText}
                   onChange={(e) => setGuildId(e.target.value)} autoComplete="off" />
               </Field>
+            </section>
+
+            <section style={adminSectionStyle}>
+              <h2 style={adminSectionTitleStyle}>{text.adminReminderTitle}</h2>
+              <Field label={text.adminReminderOffsetsLabel}>
+                <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+                  {[60, 30, 10, 5].map((m) => (
+                    <label key={m} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, color: theme.paper, cursor: 'pointer' }}>
+                      <input type="checkbox" checked={reminderOffsets.includes(m)}
+                        onChange={(e) => setReminderOffsets((prev) => e.target.checked ? [...prev, m] : prev.filter((x) => x !== m))} />
+                      {fill(text.adminReminderOffsetTemplate, { minutes: m })}
+                    </label>
+                  ))}
+                </div>
+              </Field>
+              <Field label={text.adminReminderCustomTextLabel}>
+                <input style={adminInputStyle} value={reminderText} maxLength={100}
+                  onChange={(e) => setReminderText(e.target.value)} autoComplete="off" />
+              </Field>
+              <p style={{ color: theme.muted, fontSize: 12, margin: '-6px 0 12px' }}>{text.adminReminderCustomTextHint}</p>
+              <SaveButton label={text.adminSaveLabel} savedLabel={text.adminSavedText}
+                onSave={() => runReminder({ slug, offsets: reminderOffsets, customText: reminderText })} />
             </section>
 
             <section style={adminSectionStyle}>
