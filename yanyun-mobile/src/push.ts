@@ -6,12 +6,15 @@ import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { registerPushTokenRemote, unregisterPushTokenRemote } from './api';
 
-// App 推送 (发车提醒的 Expo 通道): 登录/会话恢复后静默注册令牌到后端
-// (registerPushToken), 登出时注销。权限被拒/平台不支持一律静默跳过,
-// 下次启动再试, 绝不打扰用户。后端在发车前 10 分钟与 Discord 提醒并行
-// 发送, 通知 data = { slug, groupingId }, 点击直达车队详情。
+// App push (Expo channel for grouping reminders): after sign-in/session
+// restore, silently register the token with the backend
+// (registerPushToken) and unregister on sign-out. Denied permission or
+// unsupported platforms are skipped silently and retried next launch --
+// never nag the user. The backend sends 10 minutes before start, in
+// parallel with the Discord reminder; notification data is
+// { slug, groupingId } and taps deep-link to the grouping detail.
 
-// 前台收到通知的呈现: 显示横幅与通知列表, 不响铃不加角标 (简单策略)。
+// Foreground notification presentation: show banner and notification list, no sound, no badge (simple policy).
 try {
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -21,7 +24,7 @@ try {
       shouldShowList: true,
     }),
   });
-} catch { /* Web 运行时等无通知环境: 忽略 */ }
+} catch { /* No notification environment (e.g. Web runtime): ignore */ }
 
 let registeredToken: string | null = null;
 let syncing = false;
@@ -35,7 +38,7 @@ async function obtainExpoPushToken(): Promise<string | null> {
   }
   if (status !== 'granted') return null;
   if (Platform.OS === 'android') {
-    // Android 13+: 必须先建通知渠道才能拿令牌 (官方文档要求)
+    // Android 13+: a notification channel must exist before a token can be obtained (official docs requirement)
     await Notifications.setNotificationChannelAsync('default', {
       name: '发车提醒',
       importance: AndroidImportance.DEFAULT,
@@ -49,10 +52,10 @@ async function obtainExpoPushToken(): Promise<string | null> {
   return res && typeof res.data === 'string' && res.data ? res.data : null;
 }
 
-// 会话有效时调用 (session.tsx 在 viewer 拉到 user 后触发): 拿令牌并注册。
-// 同一令牌本进程内只注册一次; 令牌变化 (系统轮换) 由监听器重跑本流程。
+// Call when the session is valid (session.tsx triggers it once the viewer yields a user): fetch and register the token.
+// Each token registers once per process; token rotation is handled by the listener re-running this flow.
 export async function ensurePushRegistration(): Promise<void> {
-  if (Platform.OS === 'web') return; // Web 无 Expo 推送通道, 优雅降级
+  if (Platform.OS === 'web') return; // Web has no Expo push channel; degrade gracefully
   if (syncing) return;
   syncing = true;
   try {
@@ -66,28 +69,27 @@ export async function ensurePushRegistration(): Promise<void> {
       tokenListenerBound = true;
       try {
         Notifications.addPushTokenListener(() => {
-          // 底层设备令牌变化 -> Expo 令牌可能随之变化, 重跑注册流程
+          // Underlying device token changed -> the Expo token may change too; re-run registration
           registeredToken = null;
           void ensurePushRegistration();
         });
-      } catch { /* 不支持的环境忽略 */ }
+      } catch { /* Ignore in unsupported environments */ }
     }
   } catch {
-    // 权限被拒 / Expo Go 不支持的环境 / 网络失败: 全部静默
+    // Denied permission / unsupported Expo Go environment / network failure: all silent
   } finally {
     syncing = false;
   }
 }
 
-// 登出时调用 (必须在本地会话令牌清掉之前, mutation 要靠它鉴权)。
+// Call on sign-out (must run before the local session token is cleared; the mutation needs it for auth).
 export async function unregisterCurrentPushToken(): Promise<void> {
   const token = registeredToken;
   registeredToken = null;
   if (!token || Platform.OS === 'web') return;
-  try { await unregisterPushTokenRemote(token); } catch { /* 静默 */ }
+  try { await unregisterPushTokenRemote(token); } catch { /* Silent */ }
 }
 
-/* ---------- 通知点击跳转 ---------- */
 
 function routeFromResponse(response: Notifications.NotificationResponse | null | undefined) {
   try {
@@ -98,11 +100,12 @@ function routeFromResponse(response: Notifications.NotificationResponse | null |
       router.push(`/guild/${slug}/grouping/${String(groupingId)}`);
       Notifications.clearLastNotificationResponse();
     }
-  } catch { /* 数据不合预期就留在当前页 */ }
+  } catch { /* Unexpected payload: stay on the current page */ }
 }
 
-// 根布局挂载: 冷启动被通知点开 (getLastNotificationResponse) 与运行中
-// 点击 (response 监听) 都落到车队详情页。Web 运行时直接跳过。
+// Mounted in the root layout: cold-start notification opens
+// (getLastNotificationResponse) and runtime taps (response listener)
+// both land on the grouping detail page. Skipped on the Web runtime.
 export function useNotificationObserver() {
   useEffect(() => {
     if (Platform.OS === 'web') return;
@@ -110,7 +113,7 @@ export function useNotificationObserver() {
     try {
       routeFromResponse(Notifications.getLastNotificationResponse());
       sub = Notifications.addNotificationResponseReceivedListener(routeFromResponse);
-    } catch { /* 无通知环境忽略 */ }
+    } catch { /* Ignore when no notification environment */ }
     return () => { try { sub?.remove(); } catch { /* */ } };
   }, []);
 }

@@ -32,11 +32,13 @@ import type { documentsGearLibraryImportMutation } from '../__generated__/docume
 import type { documentsGearLibrarySaveBuildMutation } from '../__generated__/documentsGearLibrarySaveBuildMutation.graphql';
 import type { documentsGearLibraryDeleteBuildMutation } from '../__generated__/documentsGearLibraryDeleteBuildMutation.graphql';
 
-// 装备库 + 我的方案 (服务端 D1, 按 Discord 账号) 的唯一 UI 实现 (与 Web
-// GearLibrary 同构): 配装台 (bench 模式, 带装备/模拟接线) 与 Profile
-// (profile 模式, 纯管理 + 载入落到已存工作态) 共用同一组件、同一批
-// GraphQL 查询/变更。改动后命令式重取本查询 (Web refetchGearLibraryQueries
-// 的移动端等价), 另一表面随 store 更新同步。
+// The single UI implementation for the gear library + my builds (server
+// D1, per Discord account; mirrors Web GearLibrary): the bench (bench
+// mode, with gear/sim wiring) and Profile (profile mode, management only
+// + loading into saved work state) share this component and the same
+// GraphQL queries/mutations. After a change, imperatively refetch this
+// query (the mobile equivalent of Web refetchGearLibraryQueries); the
+// other surface syncs via store updates.
 
 type LibData = documentsGearLibraryQuery['response'];
 type LibItemRaw = LibData['myGearItems'][number];
@@ -107,8 +109,9 @@ export default function GearLibrary(props: {
   const loggedIn = !!data.viewer?.user;
   const [items, setItems] = useState<GearItem[]>(() => data.myGearItems.map(mapItem));
   const [builds, setBuilds] = useState<SavedBuild[]>(() => data.myGearBuilds.map(mapBuild));
-  // 已存工作态版本号: profile 模式每次写已存搭配后 +1 (含水合完成),
-  // 驱动「存为方案」可用态重算 (与 Web workTick 同义)。
+  // Saved work-state version: +1 on every saved-loadout write in profile
+  // mode (incl. hydration), driving recomputation of the save-as-build
+  // availability (same meaning as Web workTick).
   const [workTick, setWorkTick] = useState(0);
   const bumpWork = () => setWorkTick((n) => n + 1);
   useEffect(() => {
@@ -116,8 +119,9 @@ export default function GearLibrary(props: {
     void hydrateGearWorkState().then(() => { if (on) bumpWork(); });
     return () => { on = false; };
   }, []);
-  // 服务端数据变更时同步本地副本 (render 期派生调整, React 官方模式;
-  // refetch 落地新引用即替换, 本地 CRUD 的乐观更新走 setItems 直改)。
+  // Sync the local copy when server data changes (render-phase derived
+  // adjustment, the official React pattern; a refetch landing a new
+  // reference replaces it, while local CRUD optimistic updates use setItems).
   const [prevLibData, setPrevLibData] = useState({ items: data.myGearItems, builds: data.myGearBuilds });
   if (prevLibData.items !== data.myGearItems || prevLibData.builds !== data.myGearBuilds) {
     setPrevLibData({ items: data.myGearItems, builds: data.myGearBuilds });
@@ -125,7 +129,7 @@ export default function GearLibrary(props: {
     setBuilds(data.myGearBuilds.map(mapBuild));
   }
   useEffect(() => { props.onItemsChange?.(items); }, [items]); // eslint-disable-line react-hooks/exhaustive-deps
-  // 打开即重取: 另一表面的改动在打开时拉齐 (与 Web 同)
+  // Refetch on open: changes made on other surfaces are pulled in on open (same as Web)
   useEffect(() => { refetchGearLibrary(); }, []);
 
   const affixByKey = useMemo(() => new Map(t.gearAffixes.map((a) => [a.key, a])), [t.gearAffixes]);
@@ -136,7 +140,6 @@ export default function GearLibrary(props: {
     return null;
   };
 
-  /* ---------------- CRUD ---------------- */
   const [commitAdd] = useMutation<documentsGearLibraryAddItemMutation>(GearLibraryAddItemMutation);
   const [commitUpdate] = useMutation<documentsGearLibraryUpdateItemMutation>(GearLibraryUpdateItemMutation);
   const [commitDelete] = useMutation<documentsGearLibraryDeleteItemMutation>(GearLibraryDeleteItemMutation);
@@ -196,7 +199,6 @@ export default function GearLibrary(props: {
     });
   };
 
-  /* ---------------- 录装表单 ---------------- */
   type FormState = {
     id: number | null; slot: string; name: string;
     rows: { key: string; val: string }[];
@@ -253,7 +255,6 @@ export default function GearLibrary(props: {
     }
   };
 
-  /* ---------------- 粘贴导入 / 文件 / 示例 / 清空 ---------------- */
   const [pasteText, setPasteText] = useState('');
   const [commitPaste] = useMutation<documentsGearLibraryPasteMutation>(GearLibraryPasteMutation);
   const [confirmClear, setConfirmClear] = useState(false);
@@ -351,7 +352,6 @@ export default function GearLibrary(props: {
     gearToast(t.gearClearedToast);
   };
 
-  /* ---------------- OCR ---------------- */
   const ocrMaps: OcrMaps = useMemo(() => ({
     pasteNames: t.gearPasteNames.map((r) => ({ name: r.name, key: r.key })),
     nameToClass: t.gearNameToClass.map((r) => ({ name: r.name, cls: r.cls })),
@@ -405,13 +405,14 @@ export default function GearLibrary(props: {
     if (files === null) { gearToast(t.gearOcrNoEngineText); return; }
     if (files[0]) void startOcr(files[0]);
   };
-  // 批量队列入队口 (与 Web registerEnqueue 同义; 本端由批量组件自身选图,
-  // 通道保留给配装台「按部位」等外部来源)
+  // Enqueue entry for the batch queue (same meaning as Web registerEnqueue;
+  // here the batch component picks its own images; this channel is kept for
+  // external sources such as the bench's per-slot import)
   const batchEnqueueRef = useRef<((files: (File | Blob)[]) => void) | null>(null);
   const registerBatchEnqueue = (fn: ((files: (File | Blob)[]) => void) | null) => {
     batchEnqueueRef.current = fn;
   };
-  // 配装台搭配格的「按部位导入」按钮经通道请求本组件承接 (仅 bench 模式)
+  // The bench loadout cell's per-slot import button is routed through this channel to this component (bench mode only)
   useEffect(() => {
     if (mode !== 'bench') return undefined;
     return onOcrSlotRequest((pos) => {
@@ -448,7 +449,6 @@ export default function GearLibrary(props: {
     });
   };
 
-  /* ---------------- 方案 ---------------- */
   const [schemeName, setSchemeName] = useState('');
   const [commitSaveBuild] = useMutation<documentsGearLibrarySaveBuildMutation>(GearLibrarySaveBuildMutation);
   const [commitDeleteBuild] = useMutation<documentsGearLibraryDeleteBuildMutation>(GearLibraryDeleteBuildMutation);
@@ -536,8 +536,9 @@ export default function GearLibrary(props: {
   const libShown = items.filter((g) => !libFilter || g.slot === libFilter);
   const libHeading = mode === 'profile' ? t.gearMyLibTitle : t.gearLibTitle;
   const buildsHeading = mode === 'profile' ? t.gearMyBuildsTitle : t.gearSchemeTitle;
-  /* 方案按流派分组 (与 Web 同规则): 组序 = 配方目录中流派首次出现顺序,
-   * 组内最新在前; 无方案的流派不出现。school 由后端按 targetIdx 下发。 */
+  /* Builds grouped by sect (same rule as Web): group order = first
+   * appearance in the recipe catalog, newest first within a group; sects
+   * without builds are omitted. school is supplied by the backend per targetIdx. */
   const buildGroups = useMemo(() => {
     const catalogOrder: string[] = [];
     for (const gb of t.gearBuilds) if (!catalogOrder.includes(gb.school)) catalogOrder.push(gb.school);
@@ -862,7 +863,7 @@ export default function GearLibrary(props: {
         })}
       </View>
 
-      {/* ---------- 方案 ---------- */}
+      {}
       <SecTitle style={{ marginTop: 18 }}>{buildsHeading}</SecTitle>
       <View style={[s.btnRow, { alignItems: 'center' }]}>
         <TextInp

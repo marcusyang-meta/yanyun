@@ -1,8 +1,10 @@
-// 截图 OCR 文本解析 — 与 Web GearOcr.ts 逐段对照移植 (ocrClean / 候选
-// 词条表 / ocrFindHits / 段匹配 / 定音解析 / 部位识别 / parseOcrData
-// 多路合并 / computePanelBox 面板定位 / gearContentKey 指纹)。
-// 引擎 (识别本体) 在 GearOcrEngine.ts: 本模块只处理文本与词框, 与引擎
-// 解耦。名称→键映射表由后端下发 (OcrMaps), 本文件不持有游戏数据表。
+// Screenshot OCR text parsing -- ported section-by-section from Web
+// GearOcr.ts (ocrClean / candidate affix table / ocrFindHits / segment
+// matching / dingyin parsing / slot detection / parseOcrData multi-path
+// merge / computePanelBox panel location / gearContentKey fingerprint).
+// The engine itself lives in GearOcrEngine.ts: this module handles only
+// text and word boxes, decoupled from the engine. Name->key maps are
+// supplied by the backend (OcrMaps); this file holds no game data tables.
 import type { GearDingyin, GearLine } from './gearStore';
 
 export type OcrMaps = {
@@ -59,7 +61,7 @@ function ocrKeyVariants(maps: OcrMaps): { name: string; key: string; cls: string
   return [...seen.values()].sort((a, b) => b.name.length - a.name.length);
 }
 
-/* 与 Web 一致的 OCR 文本归一化: ocrClean 后转小写并剔除全部空白 */
+/* OCR text normalization (same as Web): lowercase after ocrClean and strip all whitespace */
 function ocrNorm(raw: string): string {
   return ocrClean(raw).toLowerCase().replace(/\s+/g, '');
 }
@@ -208,7 +210,7 @@ export function mergeOcrParsed(list: OcrParsed[]): OcrParsed {
   };
 }
 
-/* ---------------- 全屏截图面板定位 (自动框选, 与 Web computePanelBox 同算法) ---------------- */
+/* Full-screen panel location (auto box; same algorithm as Web computePanelBox) */
 export type PanelBox = { x: number; y: number; w: number; h: number };
 export type OcrWordBox = {
   text: string; confidence: number;
@@ -331,7 +333,7 @@ export function computePanelBox(
   return { x: bx, y: by, w: bw, h: bh };
 }
 
-/* ---------------- 批量识别引擎接口 (与 Web 同; 实现在 GearOcrEngine.ts) -------- */
+/* Batch-recognition engine interface (same as Web; implementation in GearOcrEngine.ts) */
 export type OcrEngineResult = {
   parsed: OcrParsed; text: string;
   box: PanelBox | null; width: number; height: number;
@@ -341,7 +343,7 @@ export interface OcrEngine {
   rerunBox(file: Blob, box: PanelBox, maps: OcrMaps, onStatus?: (s: string) => void): Promise<OcrEngineResult>;
 }
 
-/* 装备内容指纹 (部位 + 词条键值 + 定音): 批量核对判重用 (与 Web 同) */
+/* Gear content fingerprint (slot + affix key/values + dingyin): used for batch dedupe (same as Web) */
 export function gearContentKey(
   slot: string,
   lines: { key: string; val: number }[],

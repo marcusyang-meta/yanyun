@@ -8,9 +8,10 @@ import { fmt1 } from './gearStore';
 import type { documentsGearQuickQuery } from '../__generated__/documentsGearQuickQuery.graphql';
 import type { documentsGearQuickCalcMutation } from '../__generated__/documentsGearQuickCalcMutation.graphql';
 
-// 三率速算器 (与 Web GearQuick 同构, 嵌在毕业计算的「三率」区, 配装台
-// 口径): 白字→黄字换算 + 差条估算走后端 gearQuickCalc; 可从配装台
-// 同步当前搭配的白字三率。
+// Stat-ratio quick calculator (mirrors Web GearQuick, embedded in the
+// graduation view's ratio section, bench semantics): white->yellow
+// conversion + gap estimates run on the backend gearQuickCalc; can sync
+// the current loadout's white ratios from the bench.
 
 type Whites = { acc: number; crit: number; int: number; res: number } | null;
 type Status = { yellow: number; capped: boolean; over: number; lack: number; needWhite: number; bars: number };

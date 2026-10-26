@@ -3,8 +3,9 @@ import { dispatchAction as dispatchActionCore, useActionData } from '@yanyun/blo
 import type { ActionHandlers, ConfirmFn } from '@yanyun/blocks-core';
 import type { BlockActionData } from '@yanyun/blocks-core';
 
-// RN 侧绑定: 核心分发逻辑在 core/actions (平台中立), 这里只注入 RN 的
-// 确认呈现 (Alert)。类型与 hook 直接转发核心定义, 保持单一事实来源。
+// RN binding: core dispatch logic is in core/actions (platform-neutral);
+// this file only injects RN's confirm presentation (Alert). Types and
+// the hook re-export the core definitions (single source of truth).
 export type { ActionHandlers } from '@yanyun/blocks-core';
 export type { BlockActionData } from '@yanyun/blocks-core';
 export { useActionData };

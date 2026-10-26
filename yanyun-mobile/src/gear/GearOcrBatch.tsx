@@ -14,11 +14,14 @@ import {
 import { defaultOcrEngine, objectUrlForBlob, pickImageFiles, revokeObjectUrl } from './GearOcrEngine';
 import type { documentsGearLibraryQuery } from '../__generated__/documentsGearLibraryQuery.graphql';
 
-// 批量截图识别 (与 Web GearOcrBatch 同流程同文案): 多图排队 → 逐张本地
-// 识别 (自动框选面板, 找不到回退整图) → 一行一图批量核对 (可改部位/
-// 词条/定音, 低置信与未识别内容标红, 重复件默认不导入) → 一次「全部
-// 导入」走与粘贴导入相同的 importGearItems 持久化路径。图片全程只在
-// 本机, 不上传。Web 端点选文件框选图; 原生图片选择待 expo-image-picker。
+// Batch screenshot recognition (same flow and copy as Web GearOcrBatch):
+// queue multiple images -> recognize locally one by one (auto panel box,
+// falling back to the full image) -> review one row per image (slot,
+// affixes and dingyin editable; low-confidence and unrecognized content
+// flagged red; duplicates excluded from import by default) -> a single
+// import-all goes through the same importGearItems persistence path as
+// paste import. Images never leave the device. Web picks files in a
+// dialog; native image picking awaits expo-image-picker.
 
 type LibText = documentsGearLibraryQuery['response']['gradPage'];
 type LineRow = { key: string; val: string; conf?: number; seg?: string };
@@ -63,7 +66,7 @@ function rowKey(r: BatchRow): string {
   );
 }
 
-/* 框选调整器: 在原图上拖动/缩放/重画框, 按此框重新识别 (与 Web 同交互) */
+/* Box adjuster: drag/resize/redraw the box on the original image and re-recognize with it (same interaction as Web) */
 function BatchAdjuster(props: {
   url: string; imgW: number; imgH: number; box: PanelBox | null;
   applyLabel: string;
@@ -73,7 +76,7 @@ function BatchAdjuster(props: {
   const editRef = useRef<PanelBox | null>(props.box);
   const setEdit = (b: PanelBox | null) => { editRef.current = b; setEditState(b); };
   useEffect(() => { editRef.current = edit; }, [edit]);
-  // props.box 变更时同步编辑态 (render 期派生调整)
+  // Sync edit state when props.box changes (render-phase derived adjustment)
   const [prevBox, setPrevBox] = useState(props.box);
   if (prevBox !== props.box) { setPrevBox(props.box); setEditState(props.box); }
   const dispRef = useRef({ w: 0, h: 0 });
@@ -89,8 +92,8 @@ function BatchAdjuster(props: {
     };
   };
 
-  /* eslint-disable react-hooks/refs -- PanResponder 回调只在手势事件里
-     读 ref (editRef/dragRef), 不在渲染期执行 */
+  /* eslint-disable react-hooks/refs -- PanResponder callbacks read refs
+     (editRef/dragRef) only inside gesture events, never during render */
   const [pan] = useState(() =>
     PanResponder.create({
       onStartShouldSetPanResponder: () => props.imgW > 0,

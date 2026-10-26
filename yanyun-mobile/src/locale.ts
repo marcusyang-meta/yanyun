@@ -1,11 +1,13 @@
 import { Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 
-// 界面语言偏好管道 (照 Web src/lib/locale 的同一套语义搬到 RN):
-// 真相在服务端 users.locale_pref (账号级, null = 自动跟随设备), 经
-// GraphQL viewer.myLocalePref / settingsPage.localePref 下发; 本地镜像
-// 只为让首屏请求就带上尽量正确的 x-locale。服务端对已登录请求以存储
-// 偏好为准 (压过请求头), 对账后镜像向服务端看齐。
+// UI locale preference pipeline (same semantics as Web src/lib/locale,
+// ported to RN): the truth is server-side users.locale_pref (per account,
+// null = follow device), supplied via GraphQL viewer.myLocalePref /
+// settingsPage.localePref; the local mirror exists only so the first
+// request already carries a near-correct x-locale. For signed-in requests
+// the stored preference wins (over the header); after reconciliation the
+// mirror aligns to the server.
 const PREF_KEY = 'yy_locale_pref';
 export const SUPPORTED_LOCALES = ['zh-CN', 'zh-TW', 'en', 'es', 'fr'];
 
@@ -27,7 +29,7 @@ export async function initLocaleMirror(): Promise<void> {
       v = await SecureStore.getItemAsync(PREF_KEY);
     }
     if (v && SUPPORTED_LOCALES.includes(v)) prefMirror = v;
-  } catch { /* 读不到就按自动处理 */ }
+  } catch { /* Unreadable: treat as auto */ }
 }
 
 export function writePrefMirror(v: string | null) {
@@ -38,23 +40,24 @@ export function writePrefMirror(v: string | null) {
         try {
           if (prefMirror) window.localStorage.setItem(PREF_KEY, prefMirror);
           else window.localStorage.removeItem(PREF_KEY);
-        } catch { /* 静默 */ }
+        } catch { /* Silent */ }
         return;
       }
       if (prefMirror) await SecureStore.setItemAsync(PREF_KEY, prefMirror);
       else await SecureStore.deleteItemAsync(PREF_KEY);
-    } catch { /* 静默 */ }
+    } catch { /* Silent */ }
   })();
 }
 
-// 设备语言 → 生效标记: 与后端 negotiateLocale 的映射口径一致
-// (zh-TW 独立, en/es/fr 直达, 其余回退 zh-CN)。偏好镜像优先。
+// Device language -> effective tag: same mapping as backend
+// negotiateLocale (zh-TW distinct, en/es/fr direct, everything else
+// falls back to zh-CN). The preference mirror takes priority.
 export function effectiveLocaleTag(): string {
   if (prefMirror) return prefMirror;
   let tag = 'zh-CN';
   try {
     tag = Intl.DateTimeFormat().resolvedOptions().locale || 'zh-CN';
-  } catch { /* 保持 zh-CN */ }
+  } catch { /* Keep zh-CN */ }
   const lower = tag.toLowerCase();
   if (lower.startsWith('zh')) return /tw|hk|mo|hant/.test(lower) ? 'zh-TW' : 'zh-CN';
   if (lower.startsWith('en')) return 'en';
@@ -63,9 +66,11 @@ export function effectiveLocaleTag(): string {
   return 'zh-CN';
 }
 
-// 语言切换事件: Profile 保存成功后发出。relay.ts 订阅后以新 x-locale
-// 命令式重取全部已登记查询 (新文案写回同一批 store 记录, 挂载组件随
-// 订阅自动重渲染); session 订阅后重拉 viewer 对齐账号状态。
+// Locale-switch event: fired after Profile saves successfully. relay.ts
+// subscribes and imperatively refetches all registered queries with the
+// new x-locale (new copy writes back into the same store records, so
+// mounted components re-render via subscriptions); session subscribes
+// and refetches the viewer to align account state.
 const listeners = new Set<() => void>();
 export function onLocaleChanged(fn: () => void) {
   listeners.add(fn);

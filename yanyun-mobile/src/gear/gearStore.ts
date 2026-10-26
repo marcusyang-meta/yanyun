@@ -1,11 +1,13 @@
 import { Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 
-// 配装台工作状态 (与 Web gearStore 同一份形状与语义): 装备库与方案存
-// 服务端 D1 (按账号), 这里只存工作台的当前选择, 设备本地。
-// Web 端与网站同键同格式 (localStorage 'yy-gear-planner-v1');
-// 原生端 SecureStore 分两键存放 (单值大小上限), 内存缓存同步读、
-// 写入异步落盘 —— 挂载面先调用 hydrateGearWorkState() 再读。
+// Bench work state (same shape and semantics as Web gearStore): the
+// library and builds live server-side in D1 (per account); only the
+// bench's current selection is kept here, on-device. Web uses the same
+// key and format as the site (localStorage 'yy-gear-planner-v1'); native
+// uses two SecureStore keys (per-value size cap), with a synchronous
+// in-memory cache and async writes -- mount surfaces must call
+// hydrateGearWorkState() before reading.
 
 export type GearLine = { key: string; val: number };
 export type GearDingyin = { name: string; val: number } | null;
@@ -105,7 +107,7 @@ export function loadWorkState(): GearWorkState {
     hydrated = true;
     return cache;
   }
-  // 原生未水合时先给默认态; 水合完成后挂载面应重读 (见 useGearWorkState)
+  // Before native hydration, serve defaults; mount surfaces should re-read after hydration (see useGearWorkState)
   return defaultWorkState();
 }
 
@@ -121,7 +123,7 @@ export function saveWorkState(w: GearWorkState): void {
   cache = w;
   hydrated = true;
   if (Platform.OS === 'web') {
-    try { window.localStorage.setItem(KEY, JSON.stringify(w)); } catch { /* 静默 */ }
+    try { window.localStorage.setItem(KEY, JSON.stringify(w)); } catch { /* Silent */ }
     return;
   }
   nativeRawExisted = true;
@@ -130,7 +132,7 @@ export function saveWorkState(w: GearWorkState): void {
   void SecureStore.setItemAsync(KEY_B, JSON.stringify({ loadout, sim })).catch(() => undefined);
 }
 
-// 导出文件 (与 Web/原站 gear-planner-100 同构; 导入端只取 lib 追加进 DB 库)
+// Export file (same shape as Web / the original gear-planner-100; importers only take lib and append it to the DB library)
 export function buildExportFile(args: {
   lib: GearItem[];
   work: GearWorkState;
@@ -152,7 +154,7 @@ export type ImportFileResult =
   | { ok: true; items: { slot: string; name: string; lines: GearLine[]; dingyin: GearDingyin; schools: string[] }[] }
   | { ok: false };
 
-// 解析导入文件: 取 lib 数组 (词条键/别名归一化在服务端 sanitize 完成)
+// Parse an import file: take the lib array (affix key/alias normalization happens in server-side sanitize)
 export function parseImportFile(text: string): ImportFileResult {
   let data: unknown;
   try { data = JSON.parse(text); } catch { return { ok: false }; }
@@ -176,8 +178,9 @@ export function parseImportFile(text: string): ImportFileResult {
   return { ok: true, items };
 }
 
-/* 「设为目标」跨组件通道 (与 Web 同语义): 配方表/流派页 BiS 区点设为目标 →
- * 配装台切目标。配装台未挂载时暂存, 挂载时消费。 */
+/* "Set as target" cross-component channel (same semantics as Web):
+ * tapping set-as-target in the recipe table / sect-page BiS area switches
+ * the bench target. Stashed while the bench is unmounted, consumed on mount. */
 let pendingTarget: number | null = null;
 const targetListeners = new Set<(idx: number) => void>();
 export function requestGearTarget(idx: number): void {
@@ -194,7 +197,7 @@ export function onGearTarget(f: (idx: number) => void): () => void {
   return () => { targetListeners.delete(f); };
 }
 
-/* 已保存方案 (服务端 D1 user_gear_builds 的客户端形状; 与 Web 同) */
+/* Saved builds (client shape of server D1 user_gear_builds; same as Web) */
 export type SavedBuild = {
   id: number; name: string; targetIdx: number; buildLabel: string; school: string;
   loadout: Record<string, number>; baseValues: Record<string, number | null>;
@@ -204,10 +207,10 @@ export type SavedBuild = {
   snapYAcc: number; snapYCrit: number; snapYInt: number; snapDawai: number; snapXiaowai: number;
 };
 
-/* 部位的装备池: 武器池含主/副武器位 (与 Web 同) */
+/* Per-slot gear pool: the weapon pool includes main and off-hand weapon slots (same as Web) */
 export const poolOf = (slot: string): string[] => (slot === '武器' ? ['主武器', '副武器'] : [slot]);
 
-/* ---- Profile 表面对已存工作态的操作 (与 Web 同语义; 本端为内存缓存+落盘) ---- */
+/* Profile-surface operations on the saved work state (same semantics as Web; here: memory cache + persistence) */
 export function applyEquipToSavedWork(gear: { id: number; slot: string }, pos?: string): void {
   const w = loadWorkState();
   const lo = { ...w.loadout };
@@ -259,8 +262,8 @@ export function clearSavedWorkLoadout(): void {
   saveWorkState(w);
 }
 
-/* 「按部位 OCR 导入」跨组件通道 (与 Web 同): 配装台搭配格按钮点下后,
- * 由已挂载的 GearLibrary (bench 模式) 承接。 */
+/* Per-slot OCR import channel (same as Web): requested by a bench
+ * loadout-cell button and handled by the mounted GearLibrary (bench mode). */
 const ocrSlotListeners = new Set<(pos: string) => void>();
 export function requestOcrSlot(pos: string): void {
   ocrSlotListeners.forEach((f) => f(pos));

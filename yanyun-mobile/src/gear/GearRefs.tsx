@@ -8,8 +8,9 @@ import { fmt1, requestGearTarget } from './gearStore';
 import type { documentsGearRefsQuery } from '../__generated__/documentsGearRefsQuery.graphql';
 import type { documentsGearSectRecipesQuery } from '../__generated__/documentsGearSectRecipesQuery.graphql';
 
-// 参考数据 (与 Web GearRefs 同构): 全流派配方表 / 词条满值承音对照表 /
-// 部位版位表 / 公式与五维速查。嵌在毕业计算的「参考数据」区。
+// Reference data (mirrors Web GearRefs): all-sect recipe table / affix
+// max-value chengyin table / slot layout table / formulas and stat
+// quick reference. Embedded in the graduation view's reference section.
 export default function GearRefs() {
   const data = useLazyLoadQuery<documentsGearRefsQuery>(GearRefsQuery, {}, { fetchPolicy: 'store-or-network' });
   const t = data.gradPage;
@@ -140,8 +141,9 @@ export default function GearRefs() {
   );
 }
 
-// 流派页 BiS 区下方的 100 阶配方 (与 Web GearSectRecipes 同构): 「设为
-// 目标」切到配装台口径并跳到毕业页签 (onPicked 由流派详情承接)。
+// The tier-100 recipes below the sect page's BiS section (mirrors Web
+// GearSectRecipes): "set as target" switches to bench semantics and jumps
+// to the graduation tab (onPicked is handled by the sect detail).
 export function GearSectRecipes({ sectName, onPicked }: { sectName: string; onPicked: () => void }) {
   const data = useLazyLoadQuery<documentsGearSectRecipesQuery>(GearSectRecipesQuery, {}, { fetchPolicy: 'store-or-network' });
   const t = data.gradPage;

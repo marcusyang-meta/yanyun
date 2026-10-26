@@ -1,7 +1,7 @@
-// 与网站 format.ts 同口径的时间/周界逻辑（MVP 固定 zh-CN 格式）：
-// - startsAt 三种格式（epoch 秒串 / UTC 文本 / ISO）统一按 UTC 语义解析；
-// - 周界 = 北京时间周一 05:00，筛选为左闭右开 [start, end)；
-// - 周标签直接标起止时间，显示结尾减 1 分钟（仅显示口径）。
+// Time/week-boundary logic with the same rules as Web format.ts (MVP fixes zh-CN formatting):
+// - startsAt's three formats (epoch-seconds string / UTC text / ISO) are all parsed with UTC semantics;
+// - week boundary = Monday 05:00 Beijing time; filtering is half-open [start, end);
+// - week labels show start/end directly, with the displayed end minus 1 minute (display only).
 
 export function parseStartsAt(startsAt?: string | null): Date | null {
   if (startsAt == null) return null;
@@ -60,7 +60,7 @@ export function fmtDate(startsAt?: string | null): string {
 
 export function inWeek(startsAt: string | null | undefined, weekOffset: number): boolean {
   const d = parseStartsAt(startsAt);
-  if (!d) return false; // 与网站一致：解析不出的非空时间不进任何周视图
+  if (!d) return false; // Same as Web: a non-empty time that fails to parse belongs to no week view
   const { start, end } = getWeekRange(weekOffset);
   return d >= start && d < end;
 }

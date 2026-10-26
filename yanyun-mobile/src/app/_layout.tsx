@@ -11,10 +11,10 @@ import { theme } from '../theme';
 import { useNotificationObserver } from '../push';
 
 export default function RootLayout() {
-  // 推送通知点击 (含冷启动被点开) -> 直达对应车队详情页
+  // Push notification taps (incl. cold-start opens) deep-link to the grouping detail page
   useNotificationObserver();
-  // 与 Web 同一套字体: Ma Shan Zheng 只做展示 (标题/印章),
-  // Noto Serif SC 做正文 (同族四权重, 样式里以 fontWeight 选面)。
+  // Same fonts as Web: Ma Shan Zheng is display-only (titles/seals);
+  // Noto Serif SC is body text (four weights in one family, picked via fontWeight).
   const [fontsLoaded, fontError] = useFonts([
     {
       fontFamily: 'MaShanZheng',

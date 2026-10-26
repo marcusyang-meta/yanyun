@@ -3,7 +3,7 @@ import * as Linking from 'expo-linking';
 import { API_URL, APP_AUTH_REDIRECT } from './config';
 import { setToken } from './storage';
 
-// Web 端 auth session 的回跳收尾（原生无此需求，调用无副作用）
+// Web auth-session return cleanup (not needed on native; calling it is a no-op)
 WebBrowser.maybeCompleteAuthSession();
 
 export function extractToken(url: string): string | null {
@@ -12,9 +12,10 @@ export function extractToken(url: string): string | null {
   return typeof t === 'string' && t ? t : null;
 }
 
-// 用系统安全浏览器（iOS ASWebAuthenticationSession / Android Custom Tab）
-// 打开后端登录入口并带上 app 交接参数；后端回调成功后 302 跳回
-// yanyun://auth-callback?token=<JWT>，本函数取下令牌存好即完成登录。
+// Opens the backend login entry in the system secure browser (iOS
+// ASWebAuthenticationSession / Android Custom Tab) with the app handoff
+// params; on success the backend 302-redirects to
+// yanyun://auth-callback?token=<JWT>, and this function stores the token.
 export async function loginWithDiscord(): Promise<void> {
   const loginUrl = `${API_URL}/auth/discord/login?app=${encodeURIComponent(APP_AUTH_REDIRECT)}`;
   const result = await WebBrowser.openAuthSessionAsync(loginUrl, APP_AUTH_REDIRECT);
@@ -31,7 +32,8 @@ export async function loginWithDiscord(): Promise<void> {
 
 export async function logout(): Promise<void> {
   await setToken(null);
-  // 服务端会话是无状态 JWT：本地清掉即退出（与网站同口径，令牌到期前
-  // 服务端不单独吊销；网站退出也只是清 cookie）。
-  try { await fetch(`${API_URL}/auth/logout`, { method: 'POST' }); } catch { /* 不阻塞退出 */ }
+  // Server sessions are stateless JWTs: clearing locally is sign-out (same
+  // as Web; the server does not revoke separately before expiry, and Web
+  // sign-out only clears the cookie).
+  try { await fetch(`${API_URL}/auth/logout`, { method: 'POST' }); } catch { /* Don't block sign-out */ }
 }

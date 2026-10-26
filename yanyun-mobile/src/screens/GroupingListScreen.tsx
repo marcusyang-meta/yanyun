@@ -19,16 +19,18 @@ import { weekRangeLabel } from '../week';
 import { useGuildLive } from '../live';
 import type { documentsGroupingListBlocksQuery } from '../__generated__/documentsGroupingListBlocksQuery.graphql';
 
-// 页面骨架与 Web 百业主页 (GuildHome) 同构: 页眉行 (← 站点名 +
-// UserBar) → 百业名 (书法 42) + 版本行 → 分区胶囊页签 (.yy-tabs:
-// 组队/攻略/流派攻略, 文案是 Guild/GuildReadOnly shell 的 homeTab*Label,
-// 与 Web 同源) → 当前分区面板。组队面板 = 发新车金按钮 (右对齐) →
-// 类型幽灵 chips → 周导航行 → 服务端下发的带类型积木对象树
-// (GroupingListPage.blocks); 攻略面板 = 图鉴/首领攻略 (DexView);
-// 流派攻略面板 = 流派列表/详情 (SectView)。三面同屏切换 (与 Web 的
-// 页内页签同义), 不走路由, 登录态与当前百业不丢。
-// 刷新 (WS ping / 下拉) 走命令式 network 重查写入 store 的同一路径,
-// 已挂载的查询订阅 store 更新直接重渲染, 不闪 Suspense 回退。
+// Page skeleton mirrors Web GuildHome: header row (back link + UserBar)
+// -> guild name (calligraphy 42) + version row -> section pill tabs
+// (.yy-tabs: grouping/dex/sect guides; labels are the Guild/
+// GuildReadOnly shell's homeTab*Label, same source as Web) -> the active
+// section panel. Grouping panel = new-grouping gold button (right-
+// aligned) -> type ghost chips -> week nav row -> the server-supplied
+// typed block tree (GroupingListPage.blocks); dex panel = DexView; sect
+// panel = SectView. The three surfaces switch in-page (like Web's
+// in-page tabs), not via routing, so session and current guild persist.
+// Refresh (WS ping / pull) refetches over the network into the store via
+// the same imperative path; mounted queries re-render from store
+// updates without flashing the Suspense fallback.
 const TAB_KEYS = ['ACTIVITY', 'TALENT', 'RACE', 'TOWER'] as const;
 const TAB_FALLBACK_LABELS = ['双十人本', '天赋组队', '竞速报名', '爬塔'];
 
@@ -56,7 +58,7 @@ export default function GroupingListScreen({ slug, name, readOnly, nick, gameVer
   const refresh = useCallback(() => setRefreshTick((k) => k + 1), []);
   const retry = useCallback(() => { setEpoch((e) => e + 1); setRefreshTick((k) => k + 1); }, []);
 
-  // WS 实时: grouping-changed ping → 与下拉刷新走同一条重拉路径
+  // WS live: grouping-changed ping -> same refetch path as pull-to-refresh
   useGuildLive(slug, refresh);
 
   const handlers: ActionHandlers = {
@@ -72,7 +74,7 @@ export default function GroupingListScreen({ slug, name, readOnly, nick, gameVer
         guildName: name,
       },
     }),
-    // 列表树只会下发 NavigateAction; 其余动作在详情面才出现
+    // The list tree only ever supplies NavigateAction; other actions appear on the detail surface
     join: () => {},
     leave: () => {},
     disband: () => {},
@@ -81,8 +83,9 @@ export default function GroupingListScreen({ slug, name, readOnly, nick, gameVer
     uncomplete: () => {},
   };
 
-  // 分区胶囊文案: 会话里该百业的 shell 标签 (与 Web GuildHome 同源字段);
-  // 三个标签齐全才渲染页签 (不写死冒充), 缺失时只呈现组队面。
+  // Section pill labels: the shell labels for this guild in the session
+  // (same fields as Web GuildHome); tabs render only when all three are
+  // present (never fake them) -- otherwise only the grouping surface shows.
   const guildItem = [...guilds, ...publicGuilds].find((g) => g.slug === slug);
   const sectionLabels: [SectionKey, string][] | null =
     guildItem?.homeTabTeamLabel && guildItem?.homeTabDexLabel && guildItem?.homeTabSectLabel
@@ -180,8 +183,9 @@ export default function GroupingListScreen({ slug, name, readOnly, nick, gameVer
   );
 }
 
-// 百业名 + 版本行: 版本优先用列表页 shell 的 currentVersion
-// (与 Web GuildHome 同源), 路由参数只作首帧回退。
+// Guild name + version row: version prefers the list shell's
+// currentVersion (same source as Web GuildHome); route params are only
+// a first-frame fallback.
 function GuildHeaderLive({ slug, name, fallbackVersion, avatarUrl }: { slug: string; name: string; fallbackVersion?: string; avatarUrl?: string }) {
   const data = useLazyLoadQuery<documentsListPageTextQuery>(
     ListPageTextQuery,
@@ -191,8 +195,9 @@ function GuildHeaderLive({ slug, name, fallbackVersion, avatarUrl }: { slug: str
   return <GuildHeader name={name} version={data.groupingListPage?.currentVersion ?? fallbackVersion} avatarUrl={avatarUrl} />;
 }
 
-// 发车入口: 位置与 Web 列表页一致 (列表上方右对齐金按钮), 文案
-// newCarLabel 由列表页 shell 按 locale 下发; 只在可写百业出现。
+// New-grouping entry: same position as Web's list page (gold button,
+// right-aligned above the list); newCarLabel is supplied by the list
+// shell per locale; shown only for writable guilds.
 function CreateCarButton({ slug, onPress }: { slug: string; onPress: () => void }) {
   const data = useLazyLoadQuery<documentsListPageTextQuery>(
     ListPageTextQuery,
@@ -209,8 +214,8 @@ function CreateCarButton({ slug, onPress }: { slug: string; onPress: () => void 
   );
 }
 
-// 类型选择: Web 的 .yy-fchip 幽灵片行 (非整宽分段控件),
-// 标签 tabActivityLabel/tabTalentLabel/tabRaceLabel/tabTowerLabel 由列表页 shell 下发。
+// Type filter: Web's .yy-fchip ghost-chip row (not a full-width segmented control);
+// labels tabActivityLabel/tabTalentLabel/tabRaceLabel/tabTowerLabel come from the list shell.
 function ChipsRow({ labels, tab, onChange }: { labels: string[]; tab: TabKey; onChange: (t: TabKey) => void }) {
   return (
     <View style={s.chips}>
@@ -280,7 +285,7 @@ function ListBlocks({
     if (firstTick.current) { firstTick.current = false; return; }
     let live = true;
     fetchQuery(environment, GroupingListBlocksQuery, variables, { fetchPolicy: 'network-only' }).toPromise()
-      .catch(() => { /* 刷新失败保留当前内容 */ })
+      .catch(() => { /* On refresh failure, keep current content */ })
       .finally(() => { if (live) setRefreshing(false); });
     return () => { live = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -290,8 +295,9 @@ function ListBlocks({
     ...handlers,
     pageText: { sealText: page?.sealText ?? undefined, statusOpenLabel: page?.statusOpenLabel ?? undefined },
   };
-  // 模板拿不到 (数据未到) 时只显示日期范围本身 —— 计数单位无 shell 字段
-  // 支撑, 不前端拼造 (见回报的缺失字段清单)。
+  // When the template is unavailable (data not yet loaded), show only the
+  // date range itself -- no shell field backs a count unit, so the client
+  // never fabricates one (see the missing-fields list in the report).
   const weekLabel = page?.weekHeaderTemplate
     ? fill(page.weekHeaderTemplate, { range: weekRangeLabel(weekOffset), count: cardCount })
     : weekRangeLabel(weekOffset);
@@ -329,8 +335,8 @@ function ListBlocks({
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: theme.bg },
   headZone: { paddingHorizontal: 20 },
-  // 分区胶囊照 Web .yy-tabs (窄屏值): 容器 padding 4/gap 4, 页签 9/16、15px,
-  // 激活 = 金渐变 + 金亮字 600 + 内描边; 左对齐 hug 宽, 位于百业头之下
+  // Section pills mirror Web .yy-tabs (narrow values): container padding 4/gap 4, tabs 9/16 at 15px;
+  // active = gold gradient + bright gold text 600 + inner border; left-aligned hug width, below the guild header
   tabsZone: { paddingHorizontal: 20, marginTop: 20, flexDirection: 'row' },
   tabs: {
     flexDirection: 'row', gap: 4, padding: 4,
@@ -347,7 +353,7 @@ const s = StyleSheet.create({
     paddingHorizontal: 22, paddingVertical: 10,
   },
   createBtnText: { fontFamily: fonts.serif, color: theme.onGold, fontSize: 14, fontWeight: '700' },
-  // .yy-fchip 行: 左对齐幽灵片, 激活 = 金字 + 金边 + 浅金底 + 600
+  // .yy-fchip row: left-aligned ghost chips; active = gold text + gold border + pale gold fill + 600
   chipsZone: { paddingHorizontal: 20, marginBottom: 16 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   fchip: {
@@ -357,7 +363,7 @@ const s = StyleSheet.create({
   fchipOn: { borderColor: theme.gold, backgroundColor: 'rgba(201,163,92,.10)' },
   fchipText: { fontFamily: fonts.serif, color: theme.muted, fontSize: 13 },
   fchipTextOn: { color: theme.goldHi, fontWeight: '600' },
-  // 周导航: 两端描边方钮 (navBtn), 中间标题文案 13px 金
+  // Week nav: outlined square buttons at both ends (navBtn), centered title copy at 13px gold
   weekBar: { flexDirection: 'row', alignItems: 'center', marginBottom: 12, paddingHorizontal: 20, gap: 10 },
   weekBtn: {
     borderWidth: 1, borderColor: 'rgba(201,163,92,.4)', borderRadius: 8,

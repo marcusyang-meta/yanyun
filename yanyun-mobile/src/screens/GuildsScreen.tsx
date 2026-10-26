@@ -8,9 +8,10 @@ import { Backdrop, CardFill, GoldFill, Seal, UserBar } from '../components/ui';
 import { useSession } from '../session';
 import type { GuildItem } from '../api';
 
-// 百业选择页与 Web GuildPicker 同构: hero 区 (品牌标题/副标题居中,
-// UserBar 毛玻璃 pill 浮在右上角) → 分区头 (中文书法 + EN 小标) →
-// 印章卡 (燕印 + 百业名 + 只读 badge + slogan)。文案全部走 viewer 字段。
+// Guild picker mirrors Web GuildPicker: hero (centered brand title/
+// subtitle, UserBar frosted pill floating top-right) -> section head
+// (Chinese calligraphy + EN small label) -> seal cards (seal + guild
+// name + read-only badge + slogan). All copy comes from viewer fields.
 function GuildCard({ g }: { g: GuildItem }) {
   const router = useRouter();
   const { text } = useSession();
@@ -71,7 +72,7 @@ export default function GuildsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 + insets.bottom }}
       >
-        {/* .yy-hero: 山水带 + 品牌标题/副标题居中, 用户 pill 浮动右上 */}
+        {/* .yy-hero: landscape band + centered brand title/subtitle, user pill floating top-right */}
         <View style={[s.hero, { paddingTop: 34 + insets.top }]}>
           <Image
             source={require('../../assets/hero.jpg')}
@@ -99,7 +100,7 @@ export default function GuildsScreen() {
                 <CardFill />
                 <Text style={s.emptyTitle}>{text.pickerEmptyTitle ?? '还没有加入任何百业'}</Text>
                 <Text style={s.emptyBody}>{text.pickerEmptyBody ?? '你所在的 Discord 服务器绑定百业后会出现在这里。'}</Text>
-                {/* 与 Web 选择器同位: 空状态卡内金按钮 -> 创建百业 */}
+                {/* Same spot as the Web picker: gold button inside the empty-state card -> create guild */}
                 <Pressable style={s.createBtn} onPress={() => router.push('/create')}>
                   <GoldFill />
                   <Text style={s.createBtnText}>{text.pickerCreateGuildLabel ?? '创建百业'}</Text>
@@ -111,7 +112,7 @@ export default function GuildsScreen() {
                 <View style={s.cards}>
                   {guilds.map((g) => <GuildCard key={g.slug} g={g} />)}
                 </View>
-                {/* 与 Web 选择器同位: 有百业时卡片下居中弱链 */}
+                {/* Same spot as the Web picker: centered weak link below the cards when guilds exist */}
                 <Pressable style={s.moreWrap} onPress={() => router.push('/create')}>
                   <Text style={s.moreText}>{text.pickerCreateGuildMoreLabel ?? '+ 创建新百业'}</Text>
                 </Pressable>
@@ -142,7 +143,7 @@ const s = StyleSheet.create({
     position: 'relative', overflow: 'hidden',
     alignItems: 'center', paddingHorizontal: 20, paddingBottom: 48,
   },
-  heroImg: { top: '-30%' }, // 近似 Web object-position: center 32%
+  heroImg: { top: '-30%' }, // Approximates Web object-position: center 32%
   pill: { position: 'absolute', right: 16, zIndex: 2 },
   heroTitle: {
     fontFamily: fonts.brush, color: theme.goldHi, fontSize: 56,
@@ -155,12 +156,12 @@ const s = StyleSheet.create({
     textShadowColor: 'rgba(0,0,0,.85)', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 14,
   },
   body: { paddingHorizontal: 20 },
-  // .yy-section-head: 中文书法 28 + EN 11px 字距 .3em, baseline 对齐
+  // .yy-section-head: Chinese calligraphy 28 + EN 11px with .3em tracking, baseline aligned
   sectionHead: { flexDirection: 'row', alignItems: 'baseline', marginBottom: 20 },
   sectionFirst: { marginTop: 40 },
   sectionNext: { marginTop: 34 },
   sectionZh: { fontFamily: fonts.brush, color: theme.goldHi, fontSize: 28, letterSpacing: 3 },
-  // .yy-section-head .en 带 text-transform: uppercase, 服务端原文是 Title Case
+  // .yy-section-head .en uses text-transform: uppercase; the server text is Title Case
   sectionEn: { fontFamily: fonts.serif, color: theme.muted, fontSize: 11, letterSpacing: 3, marginLeft: 12, textTransform: 'uppercase' },
   cards: { gap: 14 },
   card: {

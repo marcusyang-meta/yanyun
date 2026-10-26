@@ -2,9 +2,11 @@ import React from 'react';
 import { Text, View } from 'react-native';
 import { blockStyles } from './styles';
 
-// 无 @module 臂命中时的占位 (MatchContainer fallback / loader 未知引用):
-// 服务端下发了本客户端不认识的积木类型 —— 只占位这一格, 不影响其余
-// 内容。文案是宿主本地兜底, 与服务端 FallbackBlock 的后端文案区分。
+// Placeholder when no @module arm matches (MatchContainer fallback /
+// unknown loader reference): the server sent a block type this client
+// doesn't know -- only this cell is stubbed, the rest is unaffected.
+// Copy is a local host fallback, distinct from the backend copy of the
+// server-sent FallbackBlock.
 export default function UnknownBlockView() {
   return (
     <View style={blockStyles.fallback}>

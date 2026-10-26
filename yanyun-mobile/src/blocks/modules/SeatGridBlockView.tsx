@@ -9,9 +9,10 @@ import { blockStyles } from './styles';
 type SeatEntryData = fragments_SeatGridBlock$data['seats'][number];
 
 function SeatCell({ seat, handlers }: { seat: SeatEntryData; handlers: ActionHandlers }) {
-  // 照 Web SeatGrid 的格子解剖: 占座 = 昵称 (15 金) + 「流派 · 角色」
-  // (12 素行), 无序号无角色片; 空位 = 虚线格居中单行文案
-  // (可落座 seatEmptyJoinLabel / 否则 seatEmptyLabel, 均由详情页 shell 下发)。
+  // Mirrors Web SeatGrid cell anatomy: taken seat = nickname (15, gold) +
+  // sect/role line (12, plain), no index or role chip; empty seat = dashed
+  // cell with centered single-line copy (seatEmptyJoinLabel if joinable,
+  // else seatEmptyLabel; both supplied by the detail page shell).
   const pt = handlers.pageText;
   const cellStyle = [
     blockStyles.seatCell,
@@ -54,8 +55,9 @@ export default function SeatGridBlockView(props: {
 }) {
   const data = useFragment(SeatGridBlockFragment, props.SeatGridBlock);
   const seats = data.seats ?? [];
-  // 照 Web SeatGrid: 两列座位网格 (auto-fill minmax(150px,1fr) 在手机宽即两列),
-  // 逐行成对排, 奇数尾行补一个等宽空占位保持列宽。
+  // Mirrors Web SeatGrid: two-column seat grid (auto-fill minmax(150px,1fr)
+  // is two columns at phone width), filled pairwise by row; an odd tail row
+  // gets an equal-width spacer to keep column widths.
   const rows: SeatEntryData[][] = [];
   for (let i = 0; i < seats.length; i += 2) rows.push(seats.slice(i, i + 2));
   return (

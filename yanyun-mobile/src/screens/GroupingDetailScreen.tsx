@@ -20,13 +20,15 @@ import type { documentsGroupingDetailBlocksQuery } from '../__generated__/docume
 import type { documentsDetailPageTextQuery } from '../__generated__/documentsDetailPageTextQuery.graphql';
 import type { documentsGuildRosterQuery } from '../__generated__/documentsGuildRosterQuery.graphql';
 
-// 页面骨架与 Web 详情页同构: 页眉行 (← 站点名 + UserBar) → 百业名 +
-// 版本行 → 「‹ 返回车队列表」金字链 → 积木树 (标题/元信息/提示/名册/
-// 动作钮)。内容区 = 服务端下发的带类型积木对象树
-// (GroupingDetailPage.blocks)。权限不在客户端重建: 车头才收得到解散
-// ActionButtonBlock+DisbandAction; 本人的座位才带 LeaveAction; 可写
-// 且车未关, 空位才带 JoinAction。客户端只按 Action 对象类型分发到
-// 已知处理器 (确认文案也来自动作对象)。
+// Page skeleton mirrors the Web detail page: header row (back link +
+// UserBar) -> guild name + version row -> back-to-list gold link -> block
+// tree (title/meta/hint/roster/action buttons). The content area is the
+// server-supplied typed block tree (GroupingDetailPage.blocks).
+// Permissions are not rebuilt client-side: only the leader receives the
+// disband ActionButtonBlock+DisbandAction; only your own seat carries
+// LeaveAction; empty seats carry JoinAction only when writable and the
+// grouping is open. The client only dispatches Action objects by type to
+// known handlers (confirm copy also comes from the action object).
 type Props = { slug: string; id: string; readOnly: boolean; nick: string; guildName?: string; gameVersion?: string };
 
 function fill(template: string, params: Record<string, string | number>): string {
@@ -47,17 +49,18 @@ export default function GroupingDetailScreen({ slug, id, nick, guildName, gameVe
 
   useGuildLive(slug, refresh);
 
-  // 编辑表单 (由服务端下发的 EditAction 打开; 非车头的树里没有这个
-  // 动作对象, 入口自然不存在 — 客户端不做任何车头判断)
+  // Edit form (opened by the server-supplied EditAction; trees for
+  // non-leaders contain no such action, so the entry simply doesn't exist
+  // -- the client makes no leader check)
   const [editId, setEditId] = useState<string | null>(null);
 
-  // 报名弹窗 (Web SeatGrid 的落座 modal 同构; 由 JoinAction 打开,
-  // seatIndex 来自动作对象)
+  // Signup dialog (mirrors the Web SeatGrid seat modal; opened by JoinAction, seatIndex comes from the action object)
   const [joinSeat, setJoinSeat] = useState<number | null>(null);
 
-  // 失败提示走详情页 shell 的 toast 模板 (与 Web toast 同源字段):
-  // 模板整句即提示内容, {error} 填服务端报错, 无报错时填
-  // commonUnknownErrorText; 模板本身拿不到才退到服务端报错原文。
+  // Failure hints use the detail shell's toast template (same field as the
+  // Web toast): the template sentence is the message, {error} is filled
+  // with the server error, or commonUnknownErrorText when there is none;
+  // if the template itself is unavailable, fall back to the raw server error.
   const failText = async (which: 'leave' | 'disband' | 'complete' | 'uncomplete', serverError?: string | null): Promise<string> => {
     try {
       const d = await fetchQuery<documentsDetailPageTextQuery>(env, DetailPageTextQuery, { slug, id }, { fetchPolicy: 'store-or-network' }).toPromise();
@@ -98,8 +101,9 @@ export default function GroupingDetailScreen({ slug, id, nick, guildName, gameVe
       })();
     },
     edit: (a) => setEditId(a.groupingId),
-    // 完成: 成功后原地刷新 — 树会切到已完成态 (状态片 + 恢复按钮),
-    // 列表侧该车已消失 (服务端过滤), 无需弹成功提示。
+    // Complete: refresh in place on success -- the tree switches to the
+    // completed state (status chip + restore button) and the grouping is
+    // already gone from lists (server-filtered); no success toast needed.
     complete: (a) => {
       void (async () => {
         try {
@@ -161,7 +165,7 @@ export default function GroupingDetailScreen({ slug, id, nick, guildName, gameVe
   );
 }
 
-// 「‹ 返回车队列表」: 文案 detailBackToListLabel 由详情页 shell 下发。
+// Back-to-list label (detailBackToListLabel) is supplied by the detail page shell.
 function BackLink({ label }: { label: string }) {
   const router = useRouter();
   return (
@@ -171,9 +175,10 @@ function BackLink({ label }: { label: string }) {
   );
 }
 
-// 页眉行: 左「‹ 返回车队列表」, 右「分享车队」 (文案均由详情页 shell
-// 下发)。分享走系统分享面板, 内容 = 与 Web/OG 分享卡同一条车队链接
-// (App 的 API 基址 + /<slug>/car/<id>; 生产频道基址即 https://yanyun.app)。
+// Header row: left back-to-list, right share (both labels supplied by the
+// detail page shell). Sharing uses the system sheet with the same
+// grouping link as Web/OG share cards (API base + /<slug>/car/<id>; the
+// production base is https://yanyun.app).
 function BackLinkLive({ slug, id }: { slug: string; id: string }) {
   const data = useLazyLoadQuery<documentsDetailPageTextQuery>(
     DetailPageTextQuery,
@@ -198,11 +203,13 @@ function BackLinkLive({ slug, id }: { slug: string; id: string }) {
   );
 }
 
-// 落座弹窗: 与 Web SeatGrid modal 同结构 — 标题 (座位模板) / 副标题 /
-// 双模式 (自己报名 / 代报名) / 流派片 / 右对齐按钮行 (取消幽灵 + 确认
-// 金)。报名身份收口: 自己报名名字锁定展示 (服务端定名, 不可改);
-// 代报名从本百业名册选人 (可搜索), 落座名与身份戳都是被选者。
-// 文案全部来自详情页 shell 的 seat* 字段。
+// Seat dialog: same structure as the Web SeatGrid modal -- title (seat
+// template) / subtitle / two modes (self / proxy signup) / sect chips /
+// right-aligned button row (ghost cancel + gold confirm). Signup identity
+// is pinned: self signup shows a locked name (server-assigned, not
+// editable); proxy signup picks from this guild's roster (searchable),
+// and both the seat name and identity stamp are the picked member's.
+// All copy comes from the detail shell's seat* fields.
 type RosterMember = { discordId: string; displayName: string; globalName?: string | null };
 
 function JoinModal({
@@ -234,8 +241,9 @@ function JoinModal({
   const [joining, setJoining] = useState(false);
   const [notice, setNotice] = useState('');
 
-  // 报名失败提示走 shell 的 seatToastJoinFailedTemplate (与 Web toast
-  // 同源), {error} 填服务端报错, 网络异常时填 commonUnknownErrorText。
+  // Signup failure hints use the shell's seatToastJoinFailedTemplate (same
+  // source as the Web toast): {error} is the server error, or
+  // commonUnknownErrorText on network failure.
   const joinFailText = (serverError?: string | null) => {
     const unknown = data.viewer?.commonUnknownErrorText;
     const tpl = page?.seatToastJoinFailedTemplate;
@@ -387,7 +395,7 @@ function DetailBlocks({
     if (firstTick.current) { firstTick.current = false; return; }
     let live = true;
     fetchQuery(environment, GroupingDetailBlocksQuery, variables, { fetchPolicy: 'network-only' }).toPromise()
-      .catch(() => { /* 刷新失败保留当前内容 */ })
+      .catch(() => { /* On refresh failure, keep current content */ })
       .finally(() => { if (live) setRefreshing(false); });
     return () => { live = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -427,7 +435,7 @@ const s = StyleSheet.create({
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   backWrap: { marginTop: 14, marginBottom: 12 },
   back: { fontFamily: fonts.serif, color: theme.gold, fontSize: 15 },
-  // 落座弹窗照 Web modal: 暗罩居中 + 面板 (墨二底 + 金描边 + 2px 金顶边)
+  // Seat dialog mirrors the Web modal: centered over a dark scrim; panel with ink-2 background, gold border and 2px gold top edge
   overlay: {
     flex: 1, backgroundColor: 'rgba(6,5,4,.72)',
     alignItems: 'center', justifyContent: 'center', padding: 20,
@@ -449,7 +457,7 @@ const s = StyleSheet.create({
     paddingHorizontal: 12, paddingVertical: 10,
   },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 20 },
-  // modal 内流派片: Web 为圆角 8 的方片; 选中 = 金渐变 + 墨字加粗
+  // Sect chips inside the modal: Web uses radius-8 squares; selected = gold gradient + ink bold text
   chip: {
     position: 'relative', overflow: 'hidden',
     borderWidth: 1, borderColor: theme.border, borderRadius: 8,
@@ -470,7 +478,7 @@ const s = StyleSheet.create({
     paddingVertical: 8, paddingHorizontal: 20, alignItems: 'center',
   },
   submitText: { fontFamily: fonts.serif, color: theme.onGold, fontSize: 14, fontWeight: '700' },
-  // 报名身份收口: 自己报名锁定名展示盒 / 提示行 / 代报名名册列表
+  // Signup identity: locked-name box for self signup / hint row / roster list for proxy signup
   lockedNameBox: {
     backgroundColor: 'rgba(201,163,92,.08)', borderWidth: 1, borderColor: theme.border,
     borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10,

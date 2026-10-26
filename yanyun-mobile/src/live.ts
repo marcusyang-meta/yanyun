@@ -3,13 +3,17 @@ import { AppState, Platform } from 'react-native';
 import { API_URL } from './config';
 import { getToken } from './storage';
 
-// 实时更新：与网站 guildLive 同协议 —— 连上 /ws/guild/:slug（GuildHub DO），
-// 每 25s 发 {type:'ping'} 保活；收到 {type:'grouping-changed'} 只当信号，
-// 回调让当前表面按下拉刷新同一路径重拉积木树（数据仍以 GraphQL 为准）。
-// 鉴权：Authorization Bearer（与 GraphQL 同一张 JWT；后端 WS 端点同一校验路径）。
+// Live updates: same protocol as Web guildLive -- connect to
+// /ws/guild/:slug (GuildHub DO), send {type:'ping'} every 25s to keep
+// alive; a {type:'grouping-changed'} message is only a signal -- the
+// callback refetches the block tree via the same path as pull-to-refresh
+// (GraphQL remains the source of truth). Auth: Authorization Bearer
+// (same JWT as GraphQL; the backend WS endpoint uses the same check).
 //
-// 前台/后台纪律（与用户讨论定的）：只在 App 前台时保持连接；切后台立即关
-// socket（移动系统本来也会杀后台 socket），回前台重连 + 全量 resync 一次。
+// Foreground/background rule (agreed with the user): keep the connection
+// only while the app is foregrounded; close the socket immediately on
+// backgrounding (the OS would kill it anyway); on foregrounding,
+// reconnect + one full resync.
 export function useGuildLive(slug: string | null, onChange: () => void) {
   const cbRef = useRef(onChange);
   useEffect(() => { cbRef.current = onChange; });
@@ -48,8 +52,9 @@ export function useGuildLive(slug: string | null, onChange: () => void) {
       if (disposed || AppState.currentState !== 'active') return;
       const url = `${API_URL.replace(/^http/, 'ws')}/ws/guild/${encodeURIComponent(slug)}`;
       try {
-        // RN 的 WebSocket 支持 headers 选项；Web 浏览器不支持 —— Web 端仅作
-        // 本地预览运行时，实时靠下拉刷新兜底（原生端不受影响）。
+        // RN's WebSocket supports the headers option; Web browsers don't -- the
+        // Web runtime is local-preview only and relies on pull-to-refresh
+        // (native is unaffected).
         ws = Platform.OS === 'web'
           ? new WebSocket(url)
           : new (WebSocket as unknown as new (u: string, p?: string, o?: object) => WebSocket)(
@@ -58,26 +63,26 @@ export function useGuildLive(slug: string | null, onChange: () => void) {
       ws.onopen = () => {
         attempt = 0;
         ping = setInterval(() => {
-          try { ws?.send(JSON.stringify({ type: 'ping' })); } catch { /* 已断开走重连 */ }
+          try { ws?.send(JSON.stringify({ type: 'ping' })); } catch { /* Already disconnected: go through reconnect */ }
         }, 25000);
       };
       ws.onmessage = (ev) => {
         try {
           const d = JSON.parse(String(ev.data)) as { type?: string };
           if (d?.type === 'grouping-changed') cbRef.current();
-        } catch { /* 非 JSON 帧忽略 */ }
+        } catch { /* Ignore non-JSON frames */ }
       };
       ws.onclose = () => { if (ping) { clearInterval(ping); ping = null; } ws = null; schedule(); };
-      ws.onerror = () => { try { ws?.close(); } catch { /* onclose 里重连 */ } };
+      ws.onerror = () => { try { ws?.close(); } catch { /* Reconnect in onclose */ } };
     };
 
     const sub = AppState.addEventListener('change', (state) => {
       if (state === 'active') {
-        // 回前台: 重连 + 立即全量对齐一次
+        // Back to foreground: reconnect + one immediate full resync
         void connect();
         cbRef.current();
       } else {
-        // 切后台: 主动关 socket，不留后台连接
+        // To background: close the socket proactively; keep no background connection
         disconnect();
       }
     });
