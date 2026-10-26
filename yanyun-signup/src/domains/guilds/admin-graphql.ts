@@ -47,6 +47,8 @@ import {
   sanitizeReminderCustomText, REMINDER_OFFSET_PRESETS,
 } from '../groupings/index.ts';
 import { listSchoolBis, listSchoolRotations, upsertSchoolBis, upsertSchoolRotation } from '../dex/index.ts';
+import { computeGuildStats } from './stats.ts';
+import type { GuildStatsWeek, GuildStatsBoardEntry } from './stats.ts';
 
 export async function guildAdminResult(ctx: Context, slug: string) {
   // The VC rides along so the verdict can apply the omniscient
@@ -177,6 +179,63 @@ export class GuildAdminSchoolGuidesShell extends ShellBase {
   }
 }
 
+/* ---------------- stats sub shells (computed rows from stats.ts) ---------------- */
+
+export class GuildAdminStatsWeekShell extends ShellBase {
+  genWeekStartUtc(){ return this.data.weekStartUtc; }
+  genWeekLabel(){
+    const tz = this.ctx.tz || 'Asia/Shanghai';
+    const opts: Intl.DateTimeFormatOptions = {
+      month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit',
+      hourCycle: 'h23', timeZone: tz,
+    };
+    let fmt: Intl.DateTimeFormat;
+    try { fmt = new Intl.DateTimeFormat(this.locale, opts); }
+    catch { fmt = new Intl.DateTimeFormat('zh-CN', { ...opts, timeZone: 'Asia/Shanghai' }); }
+    const part = (sec: number) => fmt.format(new Date(sec * 1000));
+    // The product week label shows the actual range; the end reads
+    // one minute before the next week's start (the list-page rule).
+    return part(this.data.weekStartUtc) + ' – ' + part(this.data.weekEndUtc - 60);
+  }
+  genIsCurrent(){ return this.data.isCurrent; }
+  genCarsActivity(){ return this.data.carsActivity; }
+  genCarsTalent(){ return this.data.carsTalent; }
+  genCarsRace(){ return this.data.carsRace; }
+  genCarsTower(){ return this.data.carsTower; }
+  genCarsTotal(){ return this.data.carsTotal; }
+  genCompletedCount(){ return this.data.completedCount; }
+  genTotalSeats(){ return this.data.totalSeats; }
+  genFilledSeats(){ return this.data.filledSeats; }
+  genFillRate(){ return this.data.fillRate; }
+  genParticipantCount(){ return this.data.participantCount; }
+  genParticipationCount(){ return this.data.participationCount; }
+  genPerCapita(){ return this.data.perCapita; }
+}
+
+export class GuildAdminStatsMemberShell extends ShellBase {
+  genDiscordId(){ return this.data.discordId; }
+  genDisplayName(){ return this.data.displayName; }
+  genSeatCount(){ return this.data.count; }
+}
+
+export class GuildAdminStatsLeaderShell extends ShellBase {
+  genDiscordId(){ return this.data.discordId; }
+  genDisplayName(){ return this.data.displayName; }
+  genCarCount(){ return this.data.count; }
+}
+
+export class GuildAdminStatsShell extends ShellBase {
+  genWeeks(){
+    return this.data.weeks.map((w: GuildStatsWeek) => new GuildAdminStatsWeekShell(this.ctx, w));
+  }
+  genMemberLeaders(){
+    return this.data.memberLeaders.map((e: GuildStatsBoardEntry) => new GuildAdminStatsMemberShell(this.ctx, e));
+  }
+  genLeaderLeaders(){
+    return this.data.leaderLeaders.map((e: GuildStatsBoardEntry) => new GuildAdminStatsLeaderShell(this.ctx, e));
+  }
+}
+
 /* ---------------- the admin shell ---------------- */
 
 const ADMIN_TEXT_SPEC: [string, string, string][] = [
@@ -265,6 +324,21 @@ const ADMIN_TEXT_SPEC: [string, string, string][] = [
   ['adminGuideRateLabel', 'guildAdmin', 'guideRateLabel'],
   ['adminGuideBisLabel', 'guildAdmin', 'guideBisLabel'],
   ['adminGuideRotationLabel', 'guildAdmin', 'guideRotationLabel'],
+  ['adminTabStatsLabel', 'guildAdmin', 'tabStats'],
+  ['adminStatsTitle', 'guildAdmin', 'statsTitle'],
+  ['adminStatsCurrentWeekLabel', 'guildAdmin', 'statsCurrentWeek'],
+  ['adminStatsCarsLabel', 'guildAdmin', 'statsCars'],
+  ['adminStatsCompletedLabel', 'guildAdmin', 'statsCompleted'],
+  ['adminStatsSeatsLabel', 'guildAdmin', 'statsSeats'],
+  ['adminStatsFillRateLabel', 'guildAdmin', 'statsFillRate'],
+  ['adminStatsParticipantsLabel', 'guildAdmin', 'statsParticipants'],
+  ['adminStatsPerCapitaLabel', 'guildAdmin', 'statsPerCapita'],
+  ['adminStatsMembersTitle', 'guildAdmin', 'statsMembersTitle'],
+  ['adminStatsLeadersTitle', 'guildAdmin', 'statsLeadersTitle'],
+  ['adminStatsSeatCountLabel', 'guildAdmin', 'statsSeatCount'],
+  ['adminStatsCarCountLabel', 'guildAdmin', 'statsCarCount'],
+  ['adminStatsEmptyText', 'guildAdmin', 'statsEmpty'],
+  ['adminStatsBoardEmptyText', 'guildAdmin', 'statsBoardEmpty'],
 ];
 
 const ADMIN_LOCKED_TEXT_SPEC: [string, string, string][] = [
@@ -337,6 +411,9 @@ export class GuildAdminShell extends ShellBase {
     });
   }
   genSchoolGuides(){ return new GuildAdminSchoolGuidesShell(this.ctx, {}); }
+  genStats(){
+    return this.memo('stats', async () => new GuildAdminStatsShell(this.ctx, await computeGuildStats(this.db, this.genSlug())));
+  }
 }
 
 export const GUILD_ADMIN_TEXT_RESOLVERS = defineTextGens(GuildAdminShell, ADMIN_TEXT_SPEC);
@@ -365,6 +442,7 @@ function contentResolvers() {
     fixedTeams: (p: any) => p.genFixedTeams(),
     events: (p: any) => p.genEvents(),
     schoolGuides: (p: any) => p.genSchoolGuides(),
+    stats: (p: GuildAdminShell) => p.genStats(),
   };
 }
 
@@ -411,6 +489,38 @@ export const guildAdminTypes = {
   GuildAdminSchoolBuild: {
     build: (p: any) => p.genBuild(), attr: (p: any) => p.genAttr(),
     rate: (p: any) => p.genRate(), bisJson: (p: any) => p.genBisJson(),
+  },
+  GuildAdminStats: {
+    weeks: (p: GuildAdminStatsShell) => p.genWeeks(),
+    memberLeaders: (p: GuildAdminStatsShell) => p.genMemberLeaders(),
+    leaderLeaders: (p: GuildAdminStatsShell) => p.genLeaderLeaders(),
+  },
+  GuildAdminStatsWeek: {
+    weekStartUtc: (p: GuildAdminStatsWeekShell) => p.genWeekStartUtc(),
+    weekLabel: (p: GuildAdminStatsWeekShell) => p.genWeekLabel(),
+    isCurrent: (p: GuildAdminStatsWeekShell) => p.genIsCurrent(),
+    carsActivity: (p: GuildAdminStatsWeekShell) => p.genCarsActivity(),
+    carsTalent: (p: GuildAdminStatsWeekShell) => p.genCarsTalent(),
+    carsRace: (p: GuildAdminStatsWeekShell) => p.genCarsRace(),
+    carsTower: (p: GuildAdminStatsWeekShell) => p.genCarsTower(),
+    carsTotal: (p: GuildAdminStatsWeekShell) => p.genCarsTotal(),
+    completedCount: (p: GuildAdminStatsWeekShell) => p.genCompletedCount(),
+    totalSeats: (p: GuildAdminStatsWeekShell) => p.genTotalSeats(),
+    filledSeats: (p: GuildAdminStatsWeekShell) => p.genFilledSeats(),
+    fillRate: (p: GuildAdminStatsWeekShell) => p.genFillRate(),
+    participantCount: (p: GuildAdminStatsWeekShell) => p.genParticipantCount(),
+    participationCount: (p: GuildAdminStatsWeekShell) => p.genParticipationCount(),
+    perCapita: (p: GuildAdminStatsWeekShell) => p.genPerCapita(),
+  },
+  GuildAdminStatsMember: {
+    discordId: (p: GuildAdminStatsMemberShell) => p.genDiscordId(),
+    displayName: (p: GuildAdminStatsMemberShell) => p.genDisplayName(),
+    seatCount: (p: GuildAdminStatsMemberShell) => p.genSeatCount(),
+  },
+  GuildAdminStatsLeader: {
+    discordId: (p: GuildAdminStatsLeaderShell) => p.genDiscordId(),
+    displayName: (p: GuildAdminStatsLeaderShell) => p.genDisplayName(),
+    carCount: (p: GuildAdminStatsLeaderShell) => p.genCarCount(),
   },
 };
 

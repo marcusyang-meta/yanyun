@@ -7458,6 +7458,171 @@
         }
       ],
       "types": []
+    },
+    "hkfT5R7N0G9Ld6A1pe7M+A==": {
+      "description": "guildAdmin.tabStats",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Statistiques",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+MNGv0a0SkRa5+ZkNwRvpg==": {
+      "description": "guildAdmin.statsTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Présence et activité",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "V9bXl3wtQaO25Run0I9Dvw==": {
+      "description": "guildAdmin.statsCurrentWeek",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Cette semaine",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "XVwtph/kSlY8D+HQ9EyaTg==": {
+      "description": "guildAdmin.statsCars",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Sorties",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "eshN46PP4JG/91jMw324mw==": {
+      "description": "guildAdmin.statsCompleted",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Terminées",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+2NPJB5sBL6t/ye5Bi8k3w==": {
+      "description": "guildAdmin.statsSeats",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Places",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "tLqNlemKRH+wvv1hym31MQ==": {
+      "description": "guildAdmin.statsFillRate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Taux de remplissage",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "DRkD/L6qoh7DCU7csAtCsQ==": {
+      "description": "guildAdmin.statsParticipants",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Participants",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "2TgX3ua0VN5ae9TKvqbUyg==": {
+      "description": "guildAdmin.statsPerCapita",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Par participant",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "wgnjiVxRzPWGL390tN2ycg==": {
+      "description": "guildAdmin.statsMembersTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Classement des membres · 4 dernières semaines",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "xeE9MJeEAQXupm+26Oz9Tg==": {
+      "description": "guildAdmin.statsLeadersTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Classement des meneurs · 4 dernières semaines",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "jWLkcCNBIJbgKNR2j+by7w==": {
+      "description": "guildAdmin.statsSeatCount",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Places prises",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "RtRP9gtd7Vso8W5Q9UPe+Q==": {
+      "description": "guildAdmin.statsCarCount",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Sorties menées",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "4aUdeOfb0u1x0/St62C+kQ==": {
+      "description": "guildAdmin.statsEmpty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Aucune donnée de groupe sur les 4 dernières semaines.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "aTESLbGBqMzUnqoVGW/cPQ==": {
+      "description": "guildAdmin.statsBoardEmpty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Aucun enregistrement.",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

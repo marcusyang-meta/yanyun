@@ -15,6 +15,7 @@
 // by SQL shape into real in-memory tables.
 import { yoga } from '../src/graphql.ts';
 import { avatarPath } from '../src/domains/guilds/guildavatar.ts';
+import { weekWindowUtc } from '../src/domains/platform/blocks.ts';
 import { OMNISCIENT_VIEWER } from '../src/domains/platform/context.ts';
 
 let pass = 0, fail = 0; const fails = [];
@@ -62,6 +63,7 @@ function makeDb(fx = {}) {
     avatars: new Map(), // tenant -> { content_type, bytes, hash, updated_at }
     schoolBis: (fx.schoolBis || []).map((r) => ({ ...r })),
     schoolRotations: (fx.schoolRotations || []).map((r) => ({ ...r })),
+    guildMembers: (fx.guildMembers || []).map((m) => ({ ...m })),
   };
   let nextId = 5000;
   const unknownSql = new Set();
@@ -249,7 +251,16 @@ function makeDb(fx = {}) {
     }
     if (/FROM school_bis/i.test(sql)) return all(tables.schoolBis);
     if (/FROM school_rotations/i.test(sql)) return all(tables.schoolRotations);
-    if (/FROM guild_members/i.test(sql)) return kind === 'first' ? null : all([]);
+    if (/FROM events WHERE tenant = \? AND starts_at_utc >= \? AND starts_at_utc < \?/i.test(sql)) {
+      // admin stats window read (listEventsInWindow)
+      return all(tables.events.filter((e) => e.tenant === b[0] && e.starts_at_utc != null && e.starts_at_utc >= b[1] && e.starts_at_utc < b[2])
+        .sort((a, c) => a.id - c.id));
+    }
+    if (/FROM guild_members/i.test(sql)) {
+      let rows = tables.guildMembers.filter((m) => m.tenant === b[0]);
+      if (/discord_id = \?/i.test(sql) && b.length > 1) rows = rows.filter((m) => m.discord_id === String(b[1]));
+      return kind === 'first' ? (rows[0] ?? null) : all(rows);
+    }
     if (/FROM user_guild_nicks/i.test(sql)) return kind === 'first' ? null : all([]);
     if (/COUNT\(DISTINCT/i.test(sql)) return first({ c: 0 });
     unknownSql.add(kind + ': ' + sql.slice(0, 110));
@@ -791,6 +802,138 @@ eq('omni 恢复他人车 ok', r2.data?.reopenGrouping?.ok, true);
 eq('omni 操作后状态 open', evB(202)?.status, 'open');
 
 check('B 库无未路由 SQL', B.unknownSql.size === 0, [...B.unknownSql].join(' | '));
+
+/* ---------------- admin stats (Premium tier 1: attendance/activity) ----------------
+ * Hand-computed fixture: cars are placed by weekWindowUtc offsets, so
+ * the expected values below are fixed by construction, not derived
+ * from the implementation.
+ * Window layout (W0 = current week ... W3 = three weeks ago):
+ *   W0: 201 activity open 10 slots (seats U1,U2,U3-proxy), 202 talent
+ *       completed 5 slots (seats U1,U4), 203 race DRAFT (seat U1 —
+ *       excluded everywhere), 204 tower open 10 slots creator=null
+ *       (no seats), 205 activity timeless (excluded, no week)
+ *   W1: 206 activity closed 10 slots (seats U1,U2 + one unstamped),
+ *       207 race open 20 slots creator U3 (no seats)
+ *   W2: (nothing)
+ *   W3: 208 talent completed 5 slots creator U2 (seat U3)
+ * Boards total the 4-week span; ties break by display name. */
+const [SW0] = weekWindowUtc(0);
+const [SW1] = weekWindowUtc(-1);
+const [SW2] = weekWindowUtc(-2);
+const [SW3] = weekWindowUtc(-3);
+function seatRow(id, eventId, nickname, discordId) {
+  return {
+    id, event_id: eventId, nickname, uid: 'u' + id, role: '输出', weapon: '鸣金·虹',
+    contact: '', note: '', team_name: '', members: '', created_at: '2026-01-02 03:04:05', discord_id: discordId,
+  };
+}
+const S = makeDb({
+  tenants: [
+    tenantRow({ slug: 'statsguild', guild_name: '统计测试百业' }),
+    tenantRow({ slug: 'emptyguild', guild_name: '空百业' }),
+  ],
+  settings: [
+    ['statsguild|discord_guild_id', DGID],
+    ['emptyguild|discord_guild_id', DGID],
+    ['|game_version', 'intl-v2.3'],
+  ],
+  users: [
+    ['UA', serversJson([{ id: DGID, name: '测试服', icon: '', permissions: '0', owner: true }])],
+    ['UB', serversJson([{ id: DGID, name: '测试服', icon: '', permissions: '0', owner: false }])],
+  ],
+  events: [
+    evRow(201, { tenant: 'statsguild', type: 'activity', status: 'open', max_slots: 10, starts_at_utc: SW0 + 3600, creator_discord_id: 'U1' }),
+    evRow(202, { tenant: 'statsguild', type: 'talent', status: 'completed', max_slots: 5, starts_at_utc: SW0 + 7200, creator_discord_id: 'U2' }),
+    evRow(203, { tenant: 'statsguild', type: 'race', status: 'draft', max_slots: 10, starts_at_utc: SW0 + 8000, creator_discord_id: 'U1' }),
+    evRow(204, { tenant: 'statsguild', type: 'tower', status: 'open', max_slots: 10, starts_at_utc: SW0 + 9000, creator_discord_id: null }),
+    evRow(205, { tenant: 'statsguild', type: 'activity', status: 'open', max_slots: 10, starts_at_utc: null, creator_discord_id: 'U1' }),
+    evRow(206, { tenant: 'statsguild', type: 'activity', status: 'closed', max_slots: 10, starts_at_utc: SW1 + 3600, creator_discord_id: 'U1' }),
+    evRow(207, { tenant: 'statsguild', type: 'race', status: 'open', max_slots: 20, starts_at_utc: SW1 + 4000, creator_discord_id: 'U3' }),
+    evRow(208, { tenant: 'statsguild', type: 'talent', status: 'completed', max_slots: 5, starts_at_utc: SW3 + 100, creator_discord_id: 'U2' }),
+  ],
+  signups: [
+    seatRow(301, 201, '阿青', 'U1'),
+    seatRow(302, 201, 'Bob', 'U2'),
+    seatRow(303, 201, '小三', 'U3'), // proxy seat: the stamp is the proxied member
+    seatRow(304, 202, '阿青', 'U1'),
+    seatRow(305, 202, '野人', 'U4'),
+    seatRow(306, 203, '阿青', 'U1'), // draft car seat — must never count
+    seatRow(307, 206, '阿青', 'U1'),
+    seatRow(308, 206, 'Bob', 'U2'),
+    seatRow(309, 206, '路人甲', null), // unstamped: fills a seat, earns no participation
+    seatRow(310, 208, '小三', 'U3'),
+  ],
+  guildMembers: [
+    { tenant: 'statsguild', discord_id: 'U1', nick: '阿青', global_name: 'Alice' },
+    { tenant: 'statsguild', discord_id: 'U2', nick: '', global_name: 'Bob' },
+    { tenant: 'statsguild', discord_id: 'U3', nick: '小三', global_name: '' },
+  ],
+});
+const envS = { DB: S.db };
+async function gqlS(query, { user = null, variables, vc } = {}) {
+  const ctx = { env: envS, request: new Request('http://local/graphql'), user, locale: 'zh-CN', browserLocale: 'zh-CN', tz: 'Asia/Shanghai', executionCtx: undefined };
+  if (vc) ctx.vc = vc;
+  const res = await yoga.fetch(new Request('http://local/graphql', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ query, variables }),
+  }), ctx);
+  return res.json();
+}
+const statsQ = `{ viewer { guildAdmin(slug: "statsguild") { __typename ... on GuildAdmin {
+  adminTabStatsLabel adminStatsTitle adminStatsMembersTitle adminStatsLeadersTitle adminStatsEmptyText adminStatsBoardEmptyText
+  stats { weeks { weekStartUtc weekLabel isCurrent carsActivity carsTalent carsRace carsTower carsTotal completedCount totalSeats filledSeats fillRate participantCount participationCount perCapita }
+          memberLeaders { discordId displayName seatCount }
+          leaderLeaders { discordId displayName carCount } }
+} } } }`;
+const weekNums = (w) => ({
+  carsActivity: w.carsActivity, carsTalent: w.carsTalent, carsRace: w.carsRace, carsTower: w.carsTower,
+  carsTotal: w.carsTotal, completedCount: w.completedCount, totalSeats: w.totalSeats, filledSeats: w.filledSeats,
+  fillRate: w.fillRate, participantCount: w.participantCount, participationCount: w.participationCount, perCapita: w.perCapita,
+});
+r = await gqlS(statsQ, { user: ADMIN });
+const ga = r.data?.viewer?.guildAdmin;
+eq('统计: 管理员 -> GuildAdmin', ga?.__typename, 'GuildAdmin');
+eq('统计 W0 (本周)', JSON.stringify(weekNums(ga?.stats?.weeks?.[0] || {})),
+  JSON.stringify({ carsActivity: 1, carsTalent: 1, carsRace: 0, carsTower: 1, carsTotal: 3, completedCount: 1, totalSeats: 25, filledSeats: 5, fillRate: 0.2, participantCount: 4, participationCount: 5, perCapita: 1.25 }));
+eq('统计 W1', JSON.stringify(weekNums(ga?.stats?.weeks?.[1] || {})),
+  JSON.stringify({ carsActivity: 1, carsTalent: 0, carsRace: 1, carsTower: 0, carsTotal: 2, completedCount: 0, totalSeats: 30, filledSeats: 3, fillRate: 0.1, participantCount: 2, participationCount: 2, perCapita: 1 }));
+eq('统计 W2 (全零)', JSON.stringify(weekNums(ga?.stats?.weeks?.[2] || {})),
+  JSON.stringify({ carsActivity: 0, carsTalent: 0, carsRace: 0, carsTower: 0, carsTotal: 0, completedCount: 0, totalSeats: 0, filledSeats: 0, fillRate: 0, participantCount: 0, participationCount: 0, perCapita: 0 }));
+eq('统计 W3', JSON.stringify(weekNums(ga?.stats?.weeks?.[3] || {})),
+  JSON.stringify({ carsActivity: 0, carsTalent: 1, carsRace: 0, carsTower: 0, carsTotal: 1, completedCount: 1, totalSeats: 5, filledSeats: 1, fillRate: 0.2, participantCount: 1, participationCount: 1, perCapita: 1 }));
+eq('统计 周起始序列', JSON.stringify(ga?.stats?.weeks?.map((w) => w.weekStartUtc)), JSON.stringify([SW0, SW1, SW2, SW3]));
+eq('统计 isCurrent 序列', JSON.stringify(ga?.stats?.weeks?.map((w) => w.isCurrent)), '[true,false,false,false]');
+check('统计 weekLabel 为区间文案', typeof ga?.stats?.weeks?.[0]?.weekLabel === 'string' && ga.stats.weeks[0].weekLabel.includes('–'));
+eq('统计 成员参与榜', JSON.stringify(ga?.stats?.memberLeaders),
+  JSON.stringify([
+    { discordId: 'U1', displayName: '阿青', seatCount: 3 },
+    { discordId: 'U2', displayName: 'Bob', seatCount: 2 },
+    { discordId: 'U3', displayName: '小三', seatCount: 2 },
+    { discordId: 'U4', displayName: '野人', seatCount: 1 },
+  ]));
+eq('统计 车头榜', JSON.stringify(ga?.stats?.leaderLeaders),
+  JSON.stringify([
+    { discordId: 'U2', displayName: 'Bob', carCount: 2 },
+    { discordId: 'U1', displayName: '阿青', carCount: 2 },
+    { discordId: 'U3', displayName: '小三', carCount: 1 },
+  ]));
+eq('统计 文案 tabStats', ga?.adminTabStatsLabel, '统计');
+eq('统计 文案 statsTitle', ga?.adminStatsTitle, '出勤与活跃');
+eq('统计 文案 membersTitle', ga?.adminStatsMembersTitle, '成员参与榜 · 近 4 周');
+eq('统计 文案 leadersTitle', ga?.adminStatsLeadersTitle, '车头榜 · 近 4 周');
+r = await gqlS(statsQ.replaceAll('statsguild', 'emptyguild'), { user: ADMIN });
+eq('空百业 周序列全零', JSON.stringify(r.data?.viewer?.guildAdmin?.stats?.weeks?.map((w) => w.carsTotal)), '[0,0,0,0]');
+eq('空百业 成员榜为空', JSON.stringify(r.data?.viewer?.guildAdmin?.stats?.memberLeaders), '[]');
+eq('空百业 车头榜为空', JSON.stringify(r.data?.viewer?.guildAdmin?.stats?.leaderLeaders), '[]');
+eq('空百业 空态文案', r.data?.viewer?.guildAdmin?.adminStatsEmptyText, '近 4 周暂无组队数据。');
+eq('空百业 榜单空态文案', r.data?.viewer?.guildAdmin?.adminStatsBoardEmptyText, '暂无记录。');
+r = await gqlS(`{ viewer { guildAdmin(slug: "statsguild") { ... on GuildAdminLocked { stats { weeks { carsTotal } } } } } }`, { user: MEMBER });
+check('统计: Locked 类型查 stats -> schema 校验错误', Array.isArray(r.errors) && r.errors.length > 0);
+r = await gqlS(statsQ, { user: null });
+eq('统计: 匿名 -> GuildAdminLocked', r.data?.viewer?.guildAdmin?.__typename, 'GuildAdminLocked');
+r = await gqlS(statsQ, { user: null, vc: OMNISCIENT_VIEWER });
+check('统计: omni 与管理员一致', JSON.stringify(r.data?.viewer?.guildAdmin?.stats) === JSON.stringify(ga?.stats));
+check('统计: 无未路由 SQL', S.unknownSql.size === 0, [...S.unknownSql].join(' | '));
 
 check('无未路由 SQL', A.unknownSql.size === 0, [...A.unknownSql].join(' | '));
 

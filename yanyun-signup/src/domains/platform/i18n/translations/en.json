@@ -7722,6 +7722,171 @@
         }
       ],
       "types": []
+    },
+    "hkfT5R7N0G9Ld6A1pe7M+A==": {
+      "description": "guildAdmin.tabStats",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Stats",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+MNGv0a0SkRa5+ZkNwRvpg==": {
+      "description": "guildAdmin.statsTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Attendance & activity",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "V9bXl3wtQaO25Run0I9Dvw==": {
+      "description": "guildAdmin.statsCurrentWeek",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "This week",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "XVwtph/kSlY8D+HQ9EyaTg==": {
+      "description": "guildAdmin.statsCars",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Runs",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "eshN46PP4JG/91jMw324mw==": {
+      "description": "guildAdmin.statsCompleted",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Completed",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+2NPJB5sBL6t/ye5Bi8k3w==": {
+      "description": "guildAdmin.statsSeats",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Seats",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "tLqNlemKRH+wvv1hym31MQ==": {
+      "description": "guildAdmin.statsFillRate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Fill rate",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "DRkD/L6qoh7DCU7csAtCsQ==": {
+      "description": "guildAdmin.statsParticipants",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Participants",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "2TgX3ua0VN5ae9TKvqbUyg==": {
+      "description": "guildAdmin.statsPerCapita",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Per participant",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "wgnjiVxRzPWGL390tN2ycg==": {
+      "description": "guildAdmin.statsMembersTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Member leaderboard · last 4 weeks",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "xeE9MJeEAQXupm+26Oz9Tg==": {
+      "description": "guildAdmin.statsLeadersTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Leader leaderboard · last 4 weeks",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "jWLkcCNBIJbgKNR2j+by7w==": {
+      "description": "guildAdmin.statsSeatCount",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Seats taken",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "RtRP9gtd7Vso8W5Q9UPe+Q==": {
+      "description": "guildAdmin.statsCarCount",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Runs led",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "4aUdeOfb0u1x0/St62C+kQ==": {
+      "description": "guildAdmin.statsEmpty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "No grouping data in the last 4 weeks.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "aTESLbGBqMzUnqoVGW/cPQ==": {
+      "description": "guildAdmin.statsBoardEmpty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "No entries yet.",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

@@ -4939,6 +4939,111 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "es": "Rotación (JSON)",
       "fr": "Rotation (JSON)",
       "zh-TW": "循環（JSON）"
+    },
+    "tabStats": {
+      "zh-CN": "统计",
+      "en": "Stats",
+      "es": "Estadísticas",
+      "fr": "Statistiques",
+      "zh-TW": "統計"
+    },
+    "statsTitle": {
+      "zh-CN": "出勤与活跃",
+      "en": "Attendance & activity",
+      "es": "Asistencia y actividad",
+      "fr": "Présence et activité",
+      "zh-TW": "出勤與活躍"
+    },
+    "statsCurrentWeek": {
+      "zh-CN": "本周",
+      "en": "This week",
+      "es": "Esta semana",
+      "fr": "Cette semaine",
+      "zh-TW": "本週"
+    },
+    "statsCars": {
+      "zh-CN": "开车",
+      "en": "Runs",
+      "es": "Salidas",
+      "fr": "Sorties",
+      "zh-TW": "開車"
+    },
+    "statsCompleted": {
+      "zh-CN": "完成",
+      "en": "Completed",
+      "es": "Completadas",
+      "fr": "Terminées",
+      "zh-TW": "完成"
+    },
+    "statsSeats": {
+      "zh-CN": "席位",
+      "en": "Seats",
+      "es": "Plazas",
+      "fr": "Places",
+      "zh-TW": "席位"
+    },
+    "statsFillRate": {
+      "zh-CN": "满员率",
+      "en": "Fill rate",
+      "es": "Ocupación",
+      "fr": "Taux de remplissage",
+      "zh-TW": "滿員率"
+    },
+    "statsParticipants": {
+      "zh-CN": "参与人数",
+      "en": "Participants",
+      "es": "Participantes",
+      "fr": "Participants",
+      "zh-TW": "參與人數"
+    },
+    "statsPerCapita": {
+      "zh-CN": "人均参与",
+      "en": "Per participant",
+      "es": "Por participante",
+      "fr": "Par participant",
+      "zh-TW": "人均參與"
+    },
+    "statsMembersTitle": {
+      "zh-CN": "成员参与榜 · 近 4 周",
+      "en": "Member leaderboard · last 4 weeks",
+      "es": "Participación · últimas 4 semanas",
+      "fr": "Classement des membres · 4 dernières semaines",
+      "zh-TW": "成員參與榜 · 近 4 週"
+    },
+    "statsLeadersTitle": {
+      "zh-CN": "车头榜 · 近 4 周",
+      "en": "Leader leaderboard · last 4 weeks",
+      "es": "Líderes · últimas 4 semanas",
+      "fr": "Classement des meneurs · 4 dernières semaines",
+      "zh-TW": "車頭榜 · 近 4 週"
+    },
+    "statsSeatCount": {
+      "zh-CN": "落座次数",
+      "en": "Seats taken",
+      "es": "Plazas ocupadas",
+      "fr": "Places prises",
+      "zh-TW": "落座次數"
+    },
+    "statsCarCount": {
+      "zh-CN": "开车数",
+      "en": "Runs led",
+      "es": "Salidas lideradas",
+      "fr": "Sorties menées",
+      "zh-TW": "開車數"
+    },
+    "statsEmpty": {
+      "zh-CN": "近 4 周暂无组队数据。",
+      "en": "No grouping data in the last 4 weeks.",
+      "es": "Sin datos de grupos en las últimas 4 semanas.",
+      "fr": "Aucune donnée de groupe sur les 4 dernières semaines.",
+      "zh-TW": "近 4 週暫無組隊數據。"
+    },
+    "statsBoardEmpty": {
+      "zh-CN": "暂无记录。",
+      "en": "No entries yet.",
+      "es": "Sin registros.",
+      "fr": "Aucun enregistrement.",
+      "zh-TW": "暫無記錄。"
     }
   }
 };

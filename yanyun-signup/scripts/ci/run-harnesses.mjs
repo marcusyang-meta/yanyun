@@ -27,7 +27,7 @@ const SUITES = [
   ['avatar', 58], ['compliance', 61], ['daycomplete', 78], ['ennames', 299],
   ['gear', 50], ['i18n', 134], ['identity', 61], ['manualfix', 47],
   ['remindercard', 81], ['tower', 38], ['laziness', 23], ['audit', 36],
-  ['backup', 23], ['guildadmin', 166], ['shortlink', 27],
+  ['backup', 23], ['guildadmin', 189], ['shortlink', 27],
 ];
 const onlyArg = (process.argv.find((a) => a.startsWith('--only=')) || '').slice(7);
 const ONLY = onlyArg ? new Set(onlyArg.split(',')) : null;

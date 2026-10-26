@@ -116,3 +116,18 @@ export const guildAdmin_guideAttrLabel = (fbs: FbsAPI) =>fbs("属性行", "guild
 export const guildAdmin_guideRateLabel = (fbs: FbsAPI) =>fbs("占比行", "guildAdmin.guideRateLabel");
 export const guildAdmin_guideBisLabel = (fbs: FbsAPI) =>fbs("BiS（JSON）", "guildAdmin.guideBisLabel");
 export const guildAdmin_guideRotationLabel = (fbs: FbsAPI) =>fbs("循环（JSON）", "guildAdmin.guideRotationLabel");
+export const guildAdmin_tabStats = (fbs: FbsAPI) =>fbs("统计", "guildAdmin.tabStats");
+export const guildAdmin_statsTitle = (fbs: FbsAPI) =>fbs("出勤与活跃", "guildAdmin.statsTitle");
+export const guildAdmin_statsCurrentWeek = (fbs: FbsAPI) =>fbs("本周", "guildAdmin.statsCurrentWeek");
+export const guildAdmin_statsCars = (fbs: FbsAPI) =>fbs("开车", "guildAdmin.statsCars");
+export const guildAdmin_statsCompleted = (fbs: FbsAPI) =>fbs("完成", "guildAdmin.statsCompleted");
+export const guildAdmin_statsSeats = (fbs: FbsAPI) =>fbs("席位", "guildAdmin.statsSeats");
+export const guildAdmin_statsFillRate = (fbs: FbsAPI) =>fbs("满员率", "guildAdmin.statsFillRate");
+export const guildAdmin_statsParticipants = (fbs: FbsAPI) =>fbs("参与人数", "guildAdmin.statsParticipants");
+export const guildAdmin_statsPerCapita = (fbs: FbsAPI) =>fbs("人均参与", "guildAdmin.statsPerCapita");
+export const guildAdmin_statsMembersTitle = (fbs: FbsAPI) =>fbs("成员参与榜 · 近 4 周", "guildAdmin.statsMembersTitle");
+export const guildAdmin_statsLeadersTitle = (fbs: FbsAPI) =>fbs("车头榜 · 近 4 周", "guildAdmin.statsLeadersTitle");
+export const guildAdmin_statsSeatCount = (fbs: FbsAPI) =>fbs("落座次数", "guildAdmin.statsSeatCount");
+export const guildAdmin_statsCarCount = (fbs: FbsAPI) =>fbs("开车数", "guildAdmin.statsCarCount");
+export const guildAdmin_statsEmpty = (fbs: FbsAPI) =>fbs("近 4 周暂无组队数据。", "guildAdmin.statsEmpty");
+export const guildAdmin_statsBoardEmpty = (fbs: FbsAPI) =>fbs("暂无记录。", "guildAdmin.statsBoardEmpty");
