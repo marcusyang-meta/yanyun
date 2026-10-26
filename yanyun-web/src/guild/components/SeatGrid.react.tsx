@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { graphql, useMutation, useLazyLoadQuery } from 'react-relay';
 import type { SeatGridJoinMutation as SeatGridJoinMutationType } from './__generated__/SeatGridJoinMutation.graphql';
 import type { SeatGridLeaveMutation as SeatGridLeaveMutationType } from './__generated__/SeatGridLeaveMutation.graphql';
+import type { SeatGridReadyMutation as SeatGridReadyMutationType } from './__generated__/SeatGridReadyMutation.graphql';
 import type { SeatGridRosterQuery as SeatGridRosterQueryType } from './__generated__/SeatGridRosterQuery.graphql';
 import { SECTS, theme, fill } from '../../lib/format';
 import { applySeatsToGrouping } from '../../lib/groupingStore';
@@ -25,6 +26,8 @@ const SeatGridJoinMutationNode = graphql`
         role
         uid
         occupied
+        ready
+        mine
       }
     }
   }
@@ -42,6 +45,27 @@ const SeatGridLeaveMutationNode = graphql`
         role
         uid
         occupied
+        ready
+        mine
+      }
+    }
+  }
+`;
+
+const SeatGridReadyMutationNode = graphql`
+  mutation SeatGridReadyMutation($input: SetSeatReadyInput!) {
+    setSeatReady(input: $input) {
+      ok
+      error
+      seats {
+        index
+        nickname
+        weapon
+        role
+        uid
+        occupied
+        ready
+        mine
       }
     }
   }
@@ -101,6 +125,12 @@ export interface SeatText {
   seatToastLeaveFailedTemplate: string;
   seatLeaveConfirmTitle: string;
   seatLeaveConfirmMessageTemplate: string;
+  seatReadyLabel: string;
+  seatReadyActionLabel: string;
+  seatUnreadyActionLabel: string;
+  seatToastReady: string;
+  seatToastUnready: string;
+  seatToastReadyFailedTemplate: string;
   confirmOkLabel: string;
   confirmCancelLabel: string;
   unknownErrorText: string;
@@ -113,6 +143,8 @@ export interface SeatData {
   role?: string | null;
   uid?: string | null;
   occupied: boolean;
+  ready?: boolean;
+  mine?: boolean;
 }
 
 export default function SeatGrid({ groupingId, slug, seats, maxSlots, onChanged, interactive = true, defaultNickname, text }: {
@@ -133,6 +165,26 @@ export default function SeatGrid({ groupingId, slug, seats, maxSlots, onChanged,
   const [leaveUid, setLeaveUid] = useState<{ uid: string; nickname: string } | null>(null);
 
   const [commitLeave, leaving] = useMutation<SeatGridLeaveMutationType>(SeatGridLeaveMutationNode);
+  const [commitReady] = useMutation<SeatGridReadyMutationType>(SeatGridReadyMutationNode);
+
+  // Readiness toggle for the departure reminders: only rendered on the
+  // viewer's own seat (the server marks it `mine`); the mutation flips
+  // the target state and the payload seats rewrite the store in place.
+  const toggleReady = (s: SeatData) => {
+    commitReady({
+      variables: { input: { groupingId, ready: !s.ready } },
+      updater: (store) => { applySeatsToGrouping(store, 'setSeatReady', groupingId); },
+      onCompleted: (res) => {
+        if (res.setSeatReady?.ok) {
+          toast(s.ready ? text.seatToastUnready : text.seatToastReady);
+          onChanged();
+        } else {
+          toast(fill(text.seatToastReadyFailedTemplate, { error: res.setSeatReady?.error || text.unknownErrorText }));
+        }
+      },
+      onError: (e) => toast(fill(text.seatToastReadyFailedTemplate, { error: e.message })),
+    });
+  };
 
   const confirmLeave = () => {
     if (!leaveUid) return;
@@ -176,12 +228,7 @@ export default function SeatGrid({ groupingId, slug, seats, maxSlots, onChanged,
               border: theme.border, background: 'rgba(201,163,92,.12)', color: theme.paper,
             }}
           >
-            <div style={{ fontSize: 15, color: theme.goldHi, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {s.nickname}
-            </div>
-            <div style={{ fontSize: 12, color: theme.muted, marginTop: 4 }}>
-              {s.weapon}{s.role ? ` · ${s.role}` : ''}
-            </div>
+            <SeatCellBody s={s} text={text} onToggleReady={toggleReady} />
           </button>
           ) : (
           <div
@@ -191,12 +238,7 @@ export default function SeatGrid({ groupingId, slug, seats, maxSlots, onChanged,
               border: theme.border, background: 'rgba(201,163,92,.12)', color: theme.paper,
             }}
           >
-            <div style={{ fontSize: 15, color: theme.goldHi, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {s.nickname}
-            </div>
-            <div style={{ fontSize: 12, color: theme.muted, marginTop: 4 }}>
-              {s.weapon}{s.role ? ` · ${s.role}` : ''}
-            </div>
+            <SeatCellBody s={s} text={text} />
           </div>
           )
         ) : (
@@ -251,6 +293,39 @@ export default function SeatGrid({ groupingId, slug, seats, maxSlots, onChanged,
         />
       )}
     </div>
+  );
+}
+
+/* Occupied-seat cell body: name, sect/role, the ready marker, and —
+ * on the viewer's own seat — the readiness toggle (a span-button: the
+ * cell itself is the leave button, so the toggle must not nest one). */
+function SeatCellBody({ s, text, onToggleReady }: {
+  s: SeatData;
+  text: SeatText;
+  onToggleReady?: (s: SeatData) => void;
+}) {
+  return (
+    <>
+      <div style={{ fontSize: 15, color: theme.goldHi, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        {s.nickname}
+      </div>
+      <div style={{ fontSize: 12, color: theme.muted, marginTop: 4 }}>
+        {s.weapon}{s.role ? ` · ${s.role}` : ''}
+      </div>
+      {s.ready && (
+        <div style={{ fontSize: 12, color: theme.gold, marginTop: 4 }}>✓ {text.seatReadyLabel}</div>
+      )}
+      {s.mine && onToggleReady && (
+        <span
+          role="button"
+          onClick={(e) => { e.stopPropagation(); onToggleReady(s); }}
+          style={{
+            display: 'inline-block', marginTop: 6, fontSize: 12, color: theme.gold,
+            border: `1px solid ${theme.gold}`, borderRadius: 6, padding: '2px 8px', cursor: 'pointer',
+          }}
+        >{s.ready ? text.seatUnreadyActionLabel : text.seatReadyActionLabel}</span>
+      )}
+    </>
   );
 }
 

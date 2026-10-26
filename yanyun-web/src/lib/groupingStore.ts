@@ -86,6 +86,8 @@ export function applySeatsToGrouping(store: any, rootField: string, groupingId: 
     rec.setLinkedRecords(seats, 'seats');
     const occ = seats.filter((s: any) => s && s.getValue('occupied')).length;
     rec.setValue(occ, 'occupiedCount');
+    const ready = seats.filter((s: any) => s && s.getValue('ready')).length;
+    rec.setValue(ready, 'readyCount');
     return true;
   } catch { return false; }
 }

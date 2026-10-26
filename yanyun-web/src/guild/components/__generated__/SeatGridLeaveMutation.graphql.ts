@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<9534ccbdba0e83a4910e1a0940c66ebc>>
+ * @generated SignedSource<<092e63800d08b774f96e254007684e28>>
  * @lightSyntaxTransform
  */
 
@@ -21,8 +21,10 @@ export type SeatGridLeaveMutation$data = {
     readonly ok: boolean;
     readonly seats: ReadonlyArray<{
       readonly index: number;
+      readonly mine: boolean;
       readonly nickname: string | null | undefined;
       readonly occupied: boolean;
+      readonly ready: boolean;
       readonly role: string | null | undefined;
       readonly uid: string | null | undefined;
       readonly weapon: string | null | undefined;
@@ -120,6 +122,20 @@ v1 = [
             "kind": "ScalarField",
             "name": "occupied",
             "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "ready",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "mine",
+            "storageKey": null
           }
         ],
         "storageKey": null
@@ -146,16 +162,16 @@ return {
     "selections": (v1/*:: as any*/)
   },
   "params": {
-    "cacheID": "83ca874114ed388a5d9d5b0d97968ec7",
+    "cacheID": "29a130d9151e52850c7b2679c25d8d11",
     "id": null,
     "metadata": {},
     "name": "SeatGridLeaveMutation",
     "operationKind": "mutation",
-    "text": "mutation SeatGridLeaveMutation(\n  $input: LeaveGroupingInput!\n) {\n  leaveGrouping(input: $input) {\n    ok\n    error\n    seats {\n      index\n      nickname\n      weapon\n      role\n      uid\n      occupied\n    }\n  }\n}\n"
+    "text": "mutation SeatGridLeaveMutation(\n  $input: LeaveGroupingInput!\n) {\n  leaveGrouping(input: $input) {\n    ok\n    error\n    seats {\n      index\n      nickname\n      weapon\n      role\n      uid\n      occupied\n      ready\n      mine\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "82fe4f12153108fd5b48e18651b445df";
+(node as any).hash = "ba58c794127ea20c7b4ee86aff3e32f8";
 
 export default node;

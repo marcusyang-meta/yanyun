@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<92f9a50b809d81ffc01b26f9c6c3dfbb>>
+ * @generated SignedSource<<a855e7c1cb2cd63d60cc0f72db6a64b5>>
  * @lightSyntaxTransform
  */
 
@@ -56,6 +56,11 @@ export type GuildAdminPage_guildAdmin$data = {
   readonly adminMemberWeaponLabel: string;
   readonly adminNameLabel: string;
   readonly adminProfileTitle: string;
+  readonly adminReminderCustomTextHint: string;
+  readonly adminReminderCustomTextLabel: string;
+  readonly adminReminderOffsetTemplate: string;
+  readonly adminReminderOffsetsLabel: string;
+  readonly adminReminderTitle: string;
   readonly adminRemoveSignupLabel: string;
   readonly adminResultMembersLabel: string;
   readonly adminResultNoteLabel: string;
@@ -149,6 +154,8 @@ export type GuildAdminPage_guildAdmin$data = {
   readonly logoUrl: string;
   readonly masterName: string;
   readonly name: string | null | undefined;
+  readonly reminderCustomText: string;
+  readonly reminderOffsets: ReadonlyArray<number>;
   readonly reminderWebhookId: string | null | undefined;
   readonly reminderWebhookSet: boolean;
   readonly schoolGuides: {
@@ -311,6 +318,20 @@ return {
       "args": null,
       "kind": "ScalarField",
       "name": "reminderWebhookId",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "reminderOffsets",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "reminderCustomText",
       "storageKey": null
     },
     {
@@ -556,6 +577,41 @@ return {
       "args": null,
       "kind": "ScalarField",
       "name": "adminGuildIdUnboundText",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminReminderTitle",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminReminderOffsetsLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminReminderOffsetTemplate",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminReminderCustomTextLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminReminderCustomTextHint",
       "storageKey": null
     },
     {
@@ -1170,6 +1226,6 @@ return {
 };
 })();
 
-(node as any).hash = "618007c9324bf463e899383cbada13b3";
+(node as any).hash = "aa66028ef174589b3e50e805648270b1";
 
 export default node;
