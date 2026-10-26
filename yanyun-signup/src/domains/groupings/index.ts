@@ -7,3 +7,4 @@ export * from './reminder.ts';
 export { GuildHub } from './guildhub.ts';
 export { SeatHub } from './seathub.ts';
 export { ensureReminderColumns, ensureSignupDiscordColumn } from './reminder.ts';
+export * from './rest-shared.ts';

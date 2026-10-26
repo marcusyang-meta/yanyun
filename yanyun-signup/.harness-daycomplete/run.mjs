@@ -10,7 +10,7 @@
 //     跨周边界 (周末尾车在内、下周车不在本周/在下周); Web 契约字段
 //     (dayGroupHeaderTemplate / weekdayNames / undatedGroupLabel)。
 import { yoga } from '../src/graphql.js';
-import { typeDefs } from '../src/graphql-schema.js';
+import { typeDefs } from '../src/graphql-schema.ts';
 import { nextReminderAt, dueReminders } from '../src/reminder.ts';
 import { weekWindowUtc, localDayParts } from '../src/domains/platform/blocks.ts';
 import { translate } from '../src/domains/platform/i18n.ts';
@@ -373,7 +373,7 @@ eq('无车头记录恢复被拒 (闸门先于状态)', rNoLeader.data?.reopenGro
 
 // REST 列表: 完成车消失 (与 GraphQL 一致)
 try {
-  const worker = (await import('../src/worker.js')).default;
+  const worker = (await import('../src/worker.ts')).default;
   const res = await worker.fetch(new Request(`http://local/api/${SLUG}/events?type=activity`), env, { waitUntil() {} });
   const j = await res.json();
   const ids = (j.events || []).map((e) => e.id);
