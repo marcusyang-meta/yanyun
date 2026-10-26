@@ -296,8 +296,12 @@ export const platformResolvers = {
     // Self-service guild creation: logged in + admin/owner of the bound Discord server
   },
   types: {
-  Block: { __resolveType: (p: any) => p.__typename },
-  Action: { __resolveType: (p: any) => p.__typename },
+    // Explicit field resolvers for plain-data result types: every field
+    // delegates to the same-named property of the computed result object
+    // (previously these relied on GraphQL default field resolution).
+    PushTokenPayload: { ok: (p: any) => p.ok, error: (p: any) => p.error, errorCode: (p: any) => p.errorCode },
+  Block: { __resolveType: (p: any) => p.__typename, children: (p: any) => p.genChildren(), js: (p: any, a: any) => a.module },
+  Action: { __resolveType: (p: any) => p.__typename, actionType: (p: any) => p.actionType },
   SectionBlock: { js: (p: any, a: any) => a.module, title: (p: any) => p.genTitle(), children: (p: any) => p.genChildren() },
   SectionHeaderBlock: { js: (p: any, a: any) => a.module, text: (p: any) => p.genText(), children: (p: any) => p.genChildren() },
   TextBlock: { js: (p: any, a: any) => a.module, text: (p: any) => p.genText(), variant: (p: any) => p.genVariant(), children: (p: any) => p.genChildren() },

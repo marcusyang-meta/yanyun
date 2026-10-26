@@ -530,6 +530,18 @@ export const dexResolvers = {
     sectPage: (_: any, __: any, ctx: any) => new SectPageShell(ctx, {}),
   },
   types: {
+    // Explicit field resolvers for plain-data result types: every field
+    // delegates to the same-named property of the computed result object
+    // (previously these relied on GraphQL default field resolution).
+    AffixMax: { key: (p: any) => p.key, name: (p: any) => p.name, maxValue: (p: any) => p.maxValue, unit: (p: any) => p.unit },
+    BisTable: { mainWeapon: (p: any) => p.mainWeapon, offWeapon: (p: any) => p.offWeapon, accessories: (p: any) => p.accessories, headBody: (p: any) => p.headBody, legsWrists: (p: any) => p.legsWrists },
+    Mechanic: { phase: (p: any) => p.phase, title: (p: any) => p.title, description: (p: any) => p.description },
+    RateTargets: { accuracy: (p: any) => p.accuracy, crit: (p: any) => p.crit, critDamage: (p: any) => p.critDamage, note: (p: any) => p.note },
+    Rotation: { greydust: (p: any) => p.greydust, opener: (p: any) => p.opener, loop: (p: any) => p.loop, keyPoints: (p: any) => p.keyPoints, innerSkills: (p: any) => p.innerSkills, videoUrl: (p: any) => p.videoUrl },
+    SectOption: { slug: (p: any) => p.slug, name: (p: any) => p.name },
+    Shout: { text: (p: any) => p.text, copyable: (p: any) => p.copyable },
+    SlotAffix: { slot: (p: any) => p.slot, affixKey: (p: any) => p.affixKey },
+    Talent: { code: (p: any) => p.code, description: (p: any) => p.description, verified: (p: any) => p.verified },
   Dungeon: {
     id: (p: any) => p.genId(),
     name: (p: any) => p.genName(),

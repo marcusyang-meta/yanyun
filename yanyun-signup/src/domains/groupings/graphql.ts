@@ -788,6 +788,10 @@ export const groupingsResolvers = {
     },
   },
   types: {
+    // Explicit field resolvers for plain-data result types: every field
+    // delegates to the same-named property of the computed result object
+    // (previously these relied on GraphQL default field resolution).
+    Seat: { index: (p: any) => p.index, nickname: (p: any) => p.nickname, weapon: (p: any) => p.weapon, role: (p: any) => p.role, uid: (p: any) => p.uid, occupied: (p: any) => p.occupied },
   Grouping: {
     id: (p: any) => p.genId(),
     title: (p: any) => p.genTitle(),
