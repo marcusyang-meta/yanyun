@@ -12,8 +12,8 @@
 import { yoga } from '../src/graphql.js';
 import { typeDefs } from '../src/graphql-schema.js';
 import { nextReminderAt, dueReminders } from '../src/reminder.ts';
-import { weekWindowUtc, localDayParts } from '../src/blocks.js';
-import { translate } from '../src/i18n.js';
+import { weekWindowUtc, localDayParts } from '../src/domains/platform/blocks.ts';
+import { translate } from '../src/domains/platform/i18n.ts';
 
 let pass = 0, fail = 0; const fails = [];
 function check(name, ok, extra = '') {

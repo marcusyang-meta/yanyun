@@ -17,7 +17,7 @@ import { getHeirloomConfig, sendHeirloomTest, heirloomStatusFor } from './heirlo
 import { maybeRunCreatorBackfill } from './creatorbackfill.js';
 import { maybeRunCreatorManualFix } from './creatormanualfix.js';
 import { logError, recentErrors } from './errorlog.js';
-import { translate } from './i18n.js';
+import { translate } from './domains/platform/index.ts';
 import {
   AVATAR_MAX_BYTES, sniffAvatarType, getGuildAvatar, getGuildAvatarMeta,
   putGuildAvatar, deleteGuildAvatar, avatarPath,

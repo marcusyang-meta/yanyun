@@ -3,3 +3,4 @@
  * 其他 domain 只许从这里 import。 */
 export * from './gear.ts';
 export * from './heirloom.ts';
+export * from './tiaolv.ts';

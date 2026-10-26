@@ -2,7 +2,7 @@
 // FakeDB 按 SQL 子串路由; user/pref 走真实 auth.js 帮助函数 + 真实 yoga。
 import { yoga } from '../src/graphql.js';
 import { getUserLocalePref } from '../src/auth.js';
-import { negotiateLocale, CATALOG, SUPPORTED_LOCALES, i18nProbe } from '../src/i18n.js';
+import { negotiateLocale, CATALOG, SUPPORTED_LOCALES, i18nProbe } from '../src/domains/platform/i18n.ts';
 import { typeDefs } from '../src/graphql-schema.js';
 
 let pass = 0, fail = 0; const fails = [];

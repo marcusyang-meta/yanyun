@@ -7,7 +7,7 @@
 // 列顺序: 小外,大外,精准,会心,直接会心,会意,直接会意,外功穿透,外功伤害,会心伤害,会意伤害,
 // 最小鸣金,最大鸣金,鸣金穿透,鸣金加成,最小裂石,最大裂石,裂石穿透,裂石加成,最小牵丝,最大牵丝,
 // 牵丝穿透,牵丝加成,最小破竹,最大破竹,破竹穿透,破竹加成,最小无相,最大无相,无相穿透
-const TL_XINFA = {
+const TL_XINFA: Record<string, number[]> = {
   "N/A": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
   "千营一呼": [0,0,0,0.15,0,0,0,0,0.028,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
   "易水歌": [43.4,86.8,0,0,0.046,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -48,7 +48,7 @@ const TL_XINFA = {
   "燕别云岫": [39.0,78.0,0,0,0,0,0,0,0.025,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
   "大卷微身": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,22.1,44.3,6.0],
 };// 武学天赋表 (Excel 武学天赋 sheet)
-const TL_WUXUE = {
+const TL_WUXUE: Record<string, any> = {
   "鸣金影": { minAtk:0, maxAtk:129.9, crit:0, insight:0.075, req:"劲", el:"鸣金", elem:{"鸣金": [328.0, 656.0], "裂石": [0, 0], "牵丝": [0, 0], "破竹": [0, 0]} },
   "鸣金虹": { minAtk:0, maxAtk:129.9, crit:0, insight:0.075, req:"势", el:"鸣金", elem:{"鸣金": [328.0, 656.0], "裂石": [0, 0], "牵丝": [0, 0], "破竹": [0, 0]} },
   "裂石威": { minAtk:129.9, maxAtk:129.9, crit:0, insight:0, req:"劲", el:"裂石", elem:{"鸣金": [0, 0], "裂石": [328.0, 656.0], "牵丝": [0, 0], "破竹": [0, 0]} },
@@ -78,7 +78,7 @@ const TL = {
   wxMaxB: 92.4,   // B22
   G17: 447, G18: 893,
 };
-const TL_EL_COLS = { '鸣金': [8,9], '裂石': [10,11], '牵丝': [12,13], '破竹': [14,15] };
+const TL_EL_COLS: Record<string, number[]> = { '鸣金': [8,9], '裂石': [10,11], '牵丝': [12,13], '破竹': [14,15] };
 
 // 心法列索引 (0-based): 0小外 1大外 2精准 3会心 4直接会心 5会意 6直接会意 7外功穿透 8外功伤害
 // 9会心伤害 10会意伤害 11最小鸣金 12最大鸣金 13鸣金穿透 14鸣金加成 15最小裂石 16最大裂石
@@ -87,15 +87,15 @@ const TL_EL_COLS = { '鸣金': [8,9], '裂石': [10,11], '牵丝': [12,13], '破
 
 // 输入: { innerSkills:[4心法名], wuxue, wuku:'本系'|'通用', attrRequire, suit, bowSkill, tunes:{CELL:val} }
 // 输出: [{ key, label, base(基础白值), panel(面板白值|null), final(最终面板) }]
-export function tlCalculateExcel(inp) {
-  const tunes = {};
+export function tlCalculateExcel(inp: any) {
+  const tunes: Record<string, number> = {};
   for (const [cell, v] of Object.entries(inp.tunes || {})) {
     const c = String(cell).toUpperCase().trim();
     const n = Number(v);
     tunes[c] = Number.isFinite(n) ? n : 0;
   }
-  const Tv = (cell) => tunes[cell] || 0;
-  const sumKR = (row) => {
+  const Tv = (cell: string) => tunes[cell] || 0;
+  const sumKR = (row: number) => {
     let s = 0;
     for (let c = 0; c < 8; c++) s += Tv(String.fromCharCode(75 + c) + row); // K..R
     return s;
@@ -103,12 +103,12 @@ export function tlCalculateExcel(inp) {
 
   const xf = (inp.innerSkills || []).slice(0, 4);
   while (xf.length < 4) xf.push('N/A');
-  const xrow = (name) => TL_XINFA[name] || TL_XINFA['N/A'];
-  const xsum = (idx) => xf.reduce((s, n) => s + (xrow(n)[idx] || 0), 0);
+  const xrow = (name: string) => TL_XINFA[name] || TL_XINFA['N/A'];
+  const xsum = (idx: number) => xf.reduce((s: number, n: string) => s + (xrow(n)[idx] || 0), 0);
   // V19 原表笔误: F6 用 col30(最大无相) 而非 col29, 严格复刻
-  const xsumV19 = () => xf.reduce((s, n, i) => s + (xrow(n)[i === 2 ? 28 : 27] || 0), 0);
+  const xsumV19 = () => xf.reduce((s: number, n: string, i: number) => s + (xrow(n)[i === 2 ? 28 : 27] || 0), 0);
 
-  const wx = TL_WUXUE[inp.wuxue] || TL_WUXUE['破竹鸢'];
+  const wx: any = TL_WUXUE[inp.wuxue] || TL_WUXUE['破竹鸢'];
   const wuku = inp.wuku === '通用' ? '通用' : '本系';
   const H14 = (typeof inp.attrRequire === 'number' && Number.isFinite(inp.attrRequire)) ? inp.attrRequire : 492;
   const suit = inp.suit || '';
@@ -134,7 +134,7 @@ export function tlCalculateExcel(inp) {
   const S10 = bow === '会意' ? 0.04 : 0;
 
   // ---------- 基础白值 B列 ----------
-  const B = {};
+  const B: Record<string, any> = {};
   B.minAtk = TL.minAtkB; B.maxAtk = TL.maxAtkB;
   B.accuracy = TL.precB; B.crit = TL.critB; B.dCrit = 0; B.critDmg = TL.critDmgB;
   B.insight = TL.insightB; B.dInsight = 0; B.insightDmg = TL.insightDmgB;
@@ -153,11 +153,11 @@ export function tlCalculateExcel(inp) {
   }
 
   // ---------- 最终面板 D列: 主属性先行 (D23/D24/D25) ----------
-  const D = {};
+  const D: Record<string, any> = {};
   D.jin = B.jin + sumKR(3);   // D23=B23+SUM(K3:R3)
   D.min = B.min + sumKR(4);   // D24
   D.shi = B.shi + sumKR(5);   // D25
-  const attrFinal = { '劲': D.jin, '敏': D.min, '势': D.shi };
+  const attrFinal: Record<string, number> = { '劲': D.jin, '敏': D.min, '势': D.shi };
   // U列: VLOOKUP(F14,武学天赋,col)*MIN(VLOOKUP(G14,$A$23:$D$25,4)/H14,1)
   const uRatio = Math.min((attrFinal[G14] || 0) / H14, 1);
   const U6 = (wx.minAtk || 0) * uRatio, U7 = (wx.maxAtk || 0) * uRatio;
@@ -168,8 +168,8 @@ export function tlCalculateExcel(inp) {
   const V15 = xsum(19), V16 = xsum(20), V17 = xsum(23), V18 = xsum(24);
   const V19 = xsumV19(), V20 = xsum(28);
 
-  const rows = [];
-  const push = (key, label, base, panel, fin) => rows.push({ key, label, base, panel, final: fin });
+  const rows: Array<Record<string, any>> = [];
+  const push = (key: string, label: string, base: any, panel: any, fin: any) => rows.push({ key, label, base, panel, final: fin });
 
   push('jin', '劲', B.jin, null, D.jin);
   push('min', '敏', B.min, null, D.min);
@@ -213,11 +213,11 @@ export function tlCalculateExcel(inp) {
   push('insightDmg', '会意伤', B.insightDmg, null, dInsightDmg);
 
   // 各系 D13-D20 = B + SUM(K:V)
-  const elV = { '鸣金': [V11, V12], '裂石': [V13, V14], '牵丝': [V15, V16], '破竹': [V17, V18] };
-  const elLabels = { '鸣金': ['最小鸣金','最大鸣金'], '裂石': ['最小裂石','最大裂石'], '牵丝': ['最小牵丝','最大牵丝'], '破竹': ['最小破竹','最大破竹'] };
-  const elKeys = { '鸣金': ['elemMin_mj','elemMax_mj'], '裂石': ['elemMin_ls','elemMax_ls'], '牵丝': ['elemMin_qs','elemMax_qs'], '破竹': ['elemMin_pz','elemMax_pz'] };
-  const elRows = { '鸣金': [11,12], '裂石': [13,14], '牵丝': [15,16], '破竹': [17,18] };
-  const D_elemMax = {};
+  const elV: Record<string, number[]> = { '鸣金': [V11, V12], '裂石': [V13, V14], '牵丝': [V15, V16], '破竹': [V17, V18] };
+  const elLabels: Record<string, string[]> = { '鸣金': ['最小鸣金','最大鸣金'], '裂石': ['最小裂石','最大裂石'], '牵丝': ['最小牵丝','最大牵丝'], '破竹': ['最小破竹','最大破竹'] };
+  const elKeys: Record<string, string[]> = { '鸣金': ['elemMin_mj','elemMax_mj'], '裂石': ['elemMin_ls','elemMax_ls'], '牵丝': ['elemMin_qs','elemMax_qs'], '破竹': ['elemMin_pz','elemMax_pz'] };
+  const elRows: Record<string, number[]> = { '鸣金': [11,12], '裂石': [13,14], '牵丝': [15,16], '破竹': [17,18] };
+  const D_elemMax: Record<string, number> = {};
   for (const el of Object.keys(TL_EL_COLS)) {
     const [rMin, rMax] = elRows[el];
     const dMin = B.elemMin[el] + sumKR(rMin) + elV[el][0];
@@ -235,13 +235,13 @@ export function tlCalculateExcel(inp) {
   push('dmg', '外伤增加', B.dmg, null, xsum(8));
 
   // 本系穿透/加成 D28-D35
-  const elPenDiv = { '鸣金': TL.G18, '裂石': TL.G17, '牵丝': TL.G17, '破竹': TL.G17 };
-  const elPenCol = { '鸣金': 13, '裂石': 17, '牵丝': 21, '破竹': 25 };
-  const elDmgCol = { '鸣金': 14, '裂石': 18, '牵丝': 22, '破竹': 26 };
-  const elPenLabels = { '鸣金': '鸣金穿透', '裂石': '裂石穿透', '牵丝': '牵丝穿透', '破竹': '破竹穿透' };
-  const elDmgLabels = { '鸣金': '鸣金加成', '裂石': '裂石加成', '牵丝': '牵丝加成', '破竹': '破竹加成' };
-  const elPenKeys = { '鸣金': 'pen_mj', '裂石': 'pen_ls', '牵丝': 'pen_qs', '破竹': 'pen_pz' };
-  const elDmgKeys = { '鸣金': 'dmg_mj', '裂石': 'dmg_ls', '牵丝': 'dmg_qs', '破竹': 'dmg_pz' };
+  const elPenDiv: Record<string, number> = { '鸣金': TL.G18, '裂石': TL.G17, '牵丝': TL.G17, '破竹': TL.G17 };
+  const elPenCol: Record<string, number> = { '鸣金': 13, '裂石': 17, '牵丝': 21, '破竹': 25 };
+  const elDmgCol: Record<string, number> = { '鸣金': 14, '裂石': 18, '牵丝': 22, '破竹': 26 };
+  const elPenLabels: Record<string, string> = { '鸣金': '鸣金穿透', '裂石': '裂石穿透', '牵丝': '牵丝穿透', '破竹': '破竹穿透' };
+  const elDmgLabels: Record<string, string> = { '鸣金': '鸣金加成', '裂石': '裂石加成', '牵丝': '牵丝加成', '破竹': '破竹加成' };
+  const elPenKeys: Record<string, string> = { '鸣金': 'pen_mj', '裂石': 'pen_ls', '牵丝': 'pen_qs', '破竹': 'pen_pz' };
+  const elDmgKeys: Record<string, string> = { '鸣金': 'dmg_mj', '裂石': 'dmg_ls', '牵丝': 'dmg_qs', '破竹': 'dmg_pz' };
   for (const el of Object.keys(TL_EL_COLS)) {
     const div = elPenDiv[el];
     const dPen = B.elPenB[el] * Math.min(D_elemMax[el] / div, 1) + xsum(elPenCol[el]);
