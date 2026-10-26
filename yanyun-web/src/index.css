@@ -24,11 +24,21 @@ html, body {
   color: var(--paper);
   font-family: var(--font-serif);
   -webkit-font-smoothing: antialiased;
-  min-height: 100vh;
 }
 
+/* App shell lock: the browser window itself never scrolls. html/body/#root
+   are pinned to the viewport height and body overflow is hidden; the only
+   vertical scroller is .yy-scroll-region inside the shell column. */
+html {
+  height: 100vh;
+  height: 100dvh;
+}
+body {
+  height: 100%;
+  overflow: hidden;
+}
 #root {
-  min-height: 100vh;
+  height: 100%;
   width: 100%;
 }
 
@@ -254,6 +264,17 @@ html, body {
 .yy-app-main {
   position: relative;
   z-index: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+/* The shell's scroll container: routed pages render inside it and scroll
+   here; the site footer stays in flow below it, always fully on screen. */
+.yy-scroll-region {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 /* 底部氛围底: 同一张山水锚在视口底缘, 只透出很淡的山影,
    让短页面"落在山上"而不是坠进纯黑 (与顶部底图同一层, 内容永远在上) */
@@ -345,9 +366,10 @@ html, body {
   object-position: center 32%;
   display: block;
 }
-/* 全屏 hero (登录页): 山水铺满整屏, 登录卡浮在画上 */
+/* 全屏 hero (登录页): 山水铺满整屏, 登录卡浮在画上。
+   高度来自 .yy-page 的 flex 列 (撑满滚动区), 不再用视口单位。 */
 .yy-hero-full {
-  min-height: 100svh;
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -385,9 +407,14 @@ html, body {
 }
 
 /* ---------- page transition wrapper ---------- */
+/* A page fills at least the scroll region's height (never the viewport's);
+   taller content grows the page and the region scrolls it. The flex column
+   lets full-bleed pages (login hero) stretch to the region height. */
 .yy-page {
   animation: yy-fade-in .35s ease both;
-  min-height: 100vh;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 /* ---------- bottom sheet (mobile form) ---------- */
