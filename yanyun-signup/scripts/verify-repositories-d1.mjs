@@ -8,7 +8,7 @@
  * 实体定义镜像 (生产结构零变更, 这里只是本地验证夹具)。
  *
  * 用法: node scripts/verify-repositories-d1.mjs [section]
- *   section 省略 = 全部; 目前有 tenants / events / gear / users / members / results / dex / state / ddl / guard 十段,
+ *   section 省略 = 全部; 目前有 tenants / events / gear / users / members / results / dex / state / ddl / guard / stamp 十一段,
  *   随数据层迁移进度增补。退出码非 0 = 有断言失败。
  * =================================================== */
 import { Miniflare, convertV4MiniflareOptions } from 'miniflare';
@@ -706,6 +706,31 @@ if (want('guard')) {
     event_id: closed.last_row_id, nickname: '迟到', uid: 'late1', role: '奶', weapon: '牵丝·霖',
   });
   eq('closed event -> full', closedJoin.outcome, 'full');
+}
+
+/* ---------------- mention stamp unit (red-line [14/16]) ---------------- */
+if (want('stamp')) {
+  console.log('== mention stamp unit on real D1 ==');
+  const evRepo = await import('../src/domains/groupings/events.ts');
+  const suRepo = await import('../src/domains/groupings/signups.ts');
+  const ev = await evRepo.insertEvent(db, {
+    tenant: 'stamp', title: '盖戳车', type: 'activity', description: '', starts_at: '',
+    starts_at_utc: 1800000000, max_slots: 10, status: 'open', origin: 'member', created_by: 'x',
+  });
+  const evId = ev.last_row_id;
+  await suRepo.insertSignup(db, { event_id: evId, nickname: '旧座甲', uid: 'old1', role: '输出', weapon: '' });
+  await suRepo.insertSignup(db, { event_id: evId, nickname: '旧座乙', uid: 'old2', role: '输出', weapon: '', discord_id: '' });
+  await suRepo.insertSignup(db, { event_id: evId, nickname: '新座', uid: 'new1', role: '奶', weapon: '', discord_id: '999' });
+  const unstamped = await suRepo.listUnstampedSeatsByTenant(db, 'stamp');
+  eq('unstamped seats listed (NULL + empty)', unstamped.map((r) => r.nickname).sort(), ['旧座乙', '旧座甲']);
+  eq('other tenant has none', await suRepo.listUnstampedSeatsByTenant(db, 'nope'), []);
+  const target = unstamped.find((r) => r.nickname === '旧座甲');
+  const st = await suRepo.stampSignupDiscordId(db, target.id, '424242');
+  eq('stamp changes=1', st.changes, 1);
+  const after = await suRepo.listUnstampedSeatsByTenant(db, 'stamp');
+  eq('stamped seat leaves the list', after.map((r) => r.nickname), ['旧座乙']);
+  const seats = await suRepo.listSignupSeats(db, evId);
+  eq('stamp persisted on the seat', seats.find((r) => r.nickname === '旧座甲').discord_id, '424242');
 }
 
 if (want('ddl')) {

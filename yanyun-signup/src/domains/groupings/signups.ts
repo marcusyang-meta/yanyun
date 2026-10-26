@@ -187,6 +187,27 @@ export async function insertSignupWithCapacityGuard(
   return { outcome: 'inserted', signupId: meta.last_row_id };
 }
 
+/* ---------- 红线收口 (三期 [14/16]): 提及解析的座位盖戳单元 ----------
+ * 旧座位 (身份收口前落座) 没有 discord_id 戳: 门户补登记按昵称唯一
+ * 命中后逐座盖戳, 提醒的 @ 解析才能命中本人。待盖戳座位清单
+ * (跨 events 的 JOIN) 与盖戳 UPDATE 是一条单元。 */
+export async function listUnstampedSeatsByTenant(
+  d1: D1Database, tenant: string,
+): Promise<{ id: number; nickname: string }[]> {
+  const db = createDb(d1);
+  return db.all<{ id: number; nickname: string }>(
+    sql`SELECT s.id, s.nickname FROM ${signups} s JOIN ${events} e ON e.id = s.event_id WHERE e.tenant = ${tenant} AND (s.discord_id IS NULL OR s.discord_id = '')`,
+  );
+}
+
+export async function stampSignupDiscordId(
+  d1: D1Database, signupId: number, discordId: string,
+): Promise<RunMeta> {
+  const db = createDb(d1);
+  const r = await db.run(sql`UPDATE ${signups} SET ${col('discord_id')} = ${discordId} WHERE ${col('id')} = ${signupId}`);
+  return metaOf(r);
+}
+
 /* 管理员删座前的归属校验 (该座位所属车确属本百业)。 */
 export async function getSignupTenant(d1: D1Database, signupId: number, tenant: string): Promise<{ id: number } | null> {
   const db = createDb(d1);
