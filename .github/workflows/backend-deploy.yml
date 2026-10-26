@@ -37,6 +37,8 @@ jobs:
       - run: npm ci
       - name: Typecheck backend (tsc --noEmit gate)
         run: npm run typecheck --workspace=yanyun-signup
+      - name: Check i18n generated files (fbtee codegen drift gate)
+        run: node yanyun-signup/scripts/i18n-codegen.mjs --check
       - name: Build web
         run: npm run build --workspace=yanyun-web
       - name: Stage build artifact (index.html + assets + manifest)
