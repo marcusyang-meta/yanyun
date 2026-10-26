@@ -271,6 +271,7 @@ export const DetailPageTextQuery = graphql`
       seatEmptyLabel
       seatLeaderLabel
       detailShareLabel
+      shareUrl
       seatModalTitleTemplate
       seatModalSubtitle
       seatNameLabel

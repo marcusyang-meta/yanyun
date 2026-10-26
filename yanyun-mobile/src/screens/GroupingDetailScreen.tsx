@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fetchQuery, useLazyLoadQuery, useRelayEnvironment } from 'react-relay';
 import { fonts, theme, SECTS } from '../theme';
 import { Backdrop, GoldFill, GuildHeader, SiteChrome } from '../components/ui';
-import { API_URL, BLOCKS_VERSION } from '../config';
+import { BLOCKS_VERSION } from '../config';
 import { DetailPageTextQuery, GroupingDetailBlocksQuery, GuildRosterQuery } from '../documents';
 import { EditGroupingFormMount } from '../components/GroupingForm';
 import { BlockNode1View } from '../blocks/BlockRenderer';
@@ -176,9 +176,8 @@ function BackLink({ label }: { label: string }) {
 }
 
 // Header row: left back-to-list, right share (both labels supplied by the
-// detail page shell). Sharing uses the system sheet with the same
-// grouping link as Web/OG share cards (API base + /<slug>/car/<id>; the
-// production base is https://yanyun.app).
+// detail page shell). Sharing uses the system sheet with the share URL
+// supplied by the detail page shell (the car's stable short link).
 function BackLinkLive({ slug, id }: { slug: string; id: string }) {
   const data = useLazyLoadQuery<documentsDetailPageTextQuery>(
     DetailPageTextQuery,
@@ -187,10 +186,11 @@ function BackLinkLive({ slug, id }: { slug: string; id: string }) {
   );
   const page = data.groupingDetailPage;
   const shareLabel = page?.detailShareLabel;
+  const shareUrl = page?.shareUrl;
   const onShare = useCallback(() => {
-    const url = `${API_URL}/${slug}/car/${id}`;
-    Share.share({ url, message: url }).catch(() => {});
-  }, [slug, id]);
+    if (!shareUrl) return;
+    Share.share({ url: shareUrl, message: shareUrl }).catch(() => {});
+  }, [shareUrl]);
   return (
     <View style={s.headerRow}>
       <BackLink label={page?.detailBackToListLabel ?? '‹ 返回车队列表'} />
