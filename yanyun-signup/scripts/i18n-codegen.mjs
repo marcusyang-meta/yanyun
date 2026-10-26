@@ -46,7 +46,7 @@ const SECTION_OWNER = {
   termsBody: 'platform', privacyBody: 'platform', appBlocks: 'platform',
   site: 'identity', login: 'identity', userBar: 'identity',
   settings: 'identity', picker: 'identity', create: 'identity',
-  guildHome: 'guilds', locked: 'guilds',
+  guildHome: 'guilds', locked: 'guilds', guildAdmin: 'guilds',
   groupingList: 'groupings', groupingDetail: 'groupings',
   groupingForm: 'groupings', groupingType: 'groupings', seat: 'groupings',
   dex: 'dex', boss: 'dex', sect: 'dex',
@@ -59,7 +59,7 @@ const SECTION_ORDER = [
   'common', 'site', 'login', 'userBar', 'settings', 'picker', 'create',
   'locked', 'guildHome', 'groupingType', 'groupingList', 'groupingDetail',
   'groupingForm', 'seat', 'appBlocks', 'dex', 'boss', 'sect', 'tiaolv',
-  'grad', 'gear', 'legal', 'termsBody', 'privacyBody', 'errors',
+  'grad', 'gear', 'legal', 'termsBody', 'privacyBody', 'errors', 'guildAdmin',
 ];
 const DOMAINS = ['identity', 'guilds', 'groupings', 'dex', 'gear', 'platform'];
 const domainSourcePath = (d) => join(APP, 'src', 'domains', d, 'i18n', 'strings.source.ts');

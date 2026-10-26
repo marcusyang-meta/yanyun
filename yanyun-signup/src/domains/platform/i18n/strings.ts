@@ -87,6 +87,7 @@ export const guildHome_tabTeam = (fbs: FbsRuntime) => fbs._("组队", null, { hk
 export const guildHome_tabDex = (fbs: FbsRuntime) => fbs._("攻略", null, { hk: "3xrJT5" });
 export const guildHome_tabSect = (fbs: FbsRuntime) => fbs._("流派攻略", null, { hk: "39iHUL" });
 export const guildHome_readOnlyBanner = (fbs: FbsRuntime) => fbs._("该百业尚未绑定 Discord 服务器 · 只读浏览", null, { hk: "3AuuxG" });
+export const guildHome_adminLink = (fbs: FbsRuntime) => fbs._("管理", null, { hk: "24ndE2" });
 export const groupingType_tabActivity = (fbs: FbsRuntime) => fbs._("双十人本", null, { hk: "4ED85v" });
 export const groupingType_tabTalent = (fbs: FbsRuntime) => fbs._("天赋组队", null, { hk: "2mJIoT" });
 export const groupingType_tabRace = (fbs: FbsRuntime) => fbs._("竞速报名", null, { hk: "LJwuK" });
@@ -661,7 +662,99 @@ export const errors_slugTaken = (fbs: FbsRuntime) => fbs._("该地址已被占�
 export const errors_serverRequired = (fbs: FbsRuntime) => fbs._("请选择要绑定的 Discord 服务器", null, { hk: "2jw5Zw" });
 export const errors_notInServer = (fbs: FbsRuntime) => fbs._("你不在这个 Discord 服务器中", null, { hk: "14tdzd" });
 export const errors_cannotManageServer = (fbs: FbsRuntime) => fbs._("你需要在该 Discord 服务器拥有管理员或「管理服务器」权限才能绑定它", null, { hk: "36dmx6" });
+export const errors_adminOnly = (fbs: FbsRuntime) => fbs._("只有所绑服务器的管理员可以执行此操作", null, { hk: "2HbOE6" });
+export const errors_webhookInvalid = (fbs: FbsRuntime) => fbs._("Webhook 地址格式不正确", null, { hk: "4lZy7D" });
+export const errors_discordIdInvalid = (fbs: FbsRuntime) => fbs._("Discord 服务器 ID 格式不正确", null, { hk: "RA9O9" });
+export const errors_teamNameRequired = (fbs: FbsRuntime) => fbs._("缺少队伍名", null, { hk: "4ljqHt" });
+export const errors_noFieldsToUpdate = (fbs: FbsRuntime) => fbs._("没有可更新的字段", null, { hk: "2ogJaD" });
+export const errors_teamNotFound = (fbs: FbsRuntime) => fbs._("未找到该固定队", null, { hk: "47SHIv" });
+export const errors_teamMemberNotFound = (fbs: FbsRuntime) => fbs._("未找到该队员", null, { hk: "444VWS" });
+export const errors_signupNotFound = (fbs: FbsRuntime) => fbs._("未找到该报名记录", null, { hk: "3459CS" });
+export const errors_resultNotFound = (fbs: FbsRuntime) => fbs._("未找到该成绩", null, { hk: "20venj" });
+export const errors_resultTeamRequired = (fbs: FbsRuntime) => fbs._("缺少队伍名", null, { hk: "2JgPSF" });
+export const errors_resultTimeInvalid = (fbs: FbsRuntime) => fbs._("用时格式不正确（如 12:34.567）", null, { hk: "4aaXwS" });
+export const errors_avatarDataInvalid = (fbs: FbsRuntime) => fbs._("图片数据无效", null, { hk: "24II5Y" });
+export const errors_schoolRequired = (fbs: FbsRuntime) => fbs._("缺少流派", null, { hk: "1VK4KE" });
 export const errors_generic = (fbs: FbsRuntime) => fbs._("操作失败，请稍后再试", null, { hk: "3K1pLh" });
+export const guildAdmin_title = (fbs: FbsRuntime) => fbs._("管理百业", null, { hk: "23Vynb" });
+export const guildAdmin_lockedTitle = (fbs: FbsRuntime) => fbs._("无权管理这个百业", null, { hk: "4eqp6f" });
+export const guildAdmin_lockedBody = (fbs: FbsRuntime) => fbs._("只有该百业所绑 Discord 服务器的管理员（服务器主或拥有管理权限）可以进入管理页。", null, { hk: "248TMj" });
+export const guildAdmin_backLink = (fbs: FbsRuntime) => fbs._("‹ 返回百业", null, { hk: "4EGMEL" });
+export const guildAdmin_tabProfile = (fbs: FbsRuntime) => fbs._("资料", null, { hk: "3uMNas" });
+export const guildAdmin_tabDiscord = (fbs: FbsRuntime) => fbs._("Discord", null, { hk: "3CuaG7" });
+export const guildAdmin_tabTeams = (fbs: FbsRuntime) => fbs._("固定队", null, { hk: "2dVALF" });
+export const guildAdmin_tabEvents = (fbs: FbsRuntime) => fbs._("活动", null, { hk: "26reCQ" });
+export const guildAdmin_tabGuides = (fbs: FbsRuntime) => fbs._("攻略数据", null, { hk: "2Nr9CU" });
+export const guildAdmin_saveButton = (fbs: FbsRuntime) => fbs._("保存", null, { hk: "qQ7uT" });
+export const guildAdmin_savedText = (fbs: FbsRuntime) => fbs._("已保存", null, { hk: "1W7oZS" });
+export const guildAdmin_deleteButton = (fbs: FbsRuntime) => fbs._("删除", null, { hk: "3GZg6n" });
+export const guildAdmin_editButton = (fbs: FbsRuntime) => fbs._("编辑", null, { hk: "DniRb" });
+export const guildAdmin_addButton = (fbs: FbsRuntime) => fbs._("新增", null, { hk: "yxsUz" });
+export const guildAdmin_profileTitle = (fbs: FbsRuntime) => fbs._("百业资料", null, { hk: "a48QV" });
+export const guildAdmin_nameLabel = (fbs: FbsRuntime) => fbs._("百业名称", null, { hk: "hhAjt" });
+export const guildAdmin_announcementLabel = (fbs: FbsRuntime) => fbs._("公告", null, { hk: "25a5pC" });
+export const guildAdmin_sloganLabel = (fbs: FbsRuntime) => fbs._("标语", null, { hk: "28mfAB" });
+export const guildAdmin_masterNameLabel = (fbs: FbsRuntime) => fbs._("掌门", null, { hk: "3Hoc3s" });
+export const guildAdmin_logoUrlLabel = (fbs: FbsRuntime) => fbs._("标志图链接", null, { hk: "3NLTG9" });
+export const guildAdmin_bgImageUrlLabel = (fbs: FbsRuntime) => fbs._("背景图链接", null, { hk: "49U9ot" });
+export const guildAdmin_avatarTitle = (fbs: FbsRuntime) => fbs._("百业头像", null, { hk: "zZZbX" });
+export const guildAdmin_avatarUpload = (fbs: FbsRuntime) => fbs._("上传头像", null, { hk: "2F5CHj" });
+export const guildAdmin_avatarReplace = (fbs: FbsRuntime) => fbs._("更换头像", null, { hk: "1IkqfU" });
+export const guildAdmin_avatarDelete = (fbs: FbsRuntime) => fbs._("删除头像", null, { hk: "1zrF5u" });
+export const guildAdmin_avatarNone = (fbs: FbsRuntime) => fbs._("尚未设置头像，当前显示默认印章。", null, { hk: "2BYfu5" });
+export const guildAdmin_avatarHint = (fbs: FbsRuntime) => fbs._("正方形图片效果最佳，大小 ≤ 400KB（PNG / JPEG / WebP）。", null, { hk: "1G1mNe" });
+export const guildAdmin_discordTitle = (fbs: FbsRuntime) => fbs._("Discord 集成", null, { hk: "1LxGti" });
+export const guildAdmin_webhookLabel = (fbs: FbsRuntime) => fbs._("发车提醒 Webhook", null, { hk: "392zYT" });
+export const guildAdmin_webhookSet = (fbs: FbsRuntime, p?: StringParams) => fbs._("已设置（Webhook 编号 {id}）", [fbs._param("id", pv(p, "id"))], { hk: "4CYB03" });
+export const guildAdmin_webhookUnset = (fbs: FbsRuntime) => fbs._("未设置", null, { hk: "2wQhyp" });
+export const guildAdmin_webhookHint = (fbs: FbsRuntime) => fbs._("保存后不回显完整地址；留空并保存 = 保持不变，点「清除」移除。", null, { hk: "1Yf03v" });
+export const guildAdmin_webhookClear = (fbs: FbsRuntime) => fbs._("清除 Webhook", null, { hk: "4j6sH2" });
+export const guildAdmin_guildIdLabel = (fbs: FbsRuntime) => fbs._("绑定的服务器 ID", null, { hk: "1yQyMQ" });
+export const guildAdmin_guildIdUnbound = (fbs: FbsRuntime) => fbs._("未绑定", null, { hk: "PrMZj" });
+export const guildAdmin_featuresTitle = (fbs: FbsRuntime) => fbs._("功能开关", null, { hk: "2Zv8dC" });
+export const guildAdmin_fixedTeamsLabel = (fbs: FbsRuntime) => fbs._("固定队", null, { hk: "spJBO" });
+export const guildAdmin_visibilityTitle = (fbs: FbsRuntime) => fbs._("可见性", null, { hk: "3J6SQ2" });
+export const guildAdmin_devOnlyLabel = (fbs: FbsRuntime) => fbs._("仅开发环境可见", null, { hk: "12OF7C" });
+export const guildAdmin_teamsTitle = (fbs: FbsRuntime) => fbs._("固定队管理", null, { hk: "1UlfD7" });
+export const guildAdmin_teamNameLabel = (fbs: FbsRuntime) => fbs._("队伍名", null, { hk: "1PHIDW" });
+export const guildAdmin_teamDescLabel = (fbs: FbsRuntime) => fbs._("队伍简介", null, { hk: "3ExsmT" });
+export const guildAdmin_teamEmpty = (fbs: FbsRuntime) => fbs._("暂无固定队。", null, { hk: "ARcPe" });
+export const guildAdmin_memberNicknameLabel = (fbs: FbsRuntime) => fbs._("昵称", null, { hk: "4pnjFB" });
+export const guildAdmin_memberWeaponLabel = (fbs: FbsRuntime) => fbs._("流派（武器）", null, { hk: "1jgmxy" });
+export const guildAdmin_memberNoteLabel = (fbs: FbsRuntime) => fbs._("备注", null, { hk: "k4vnp" });
+export const guildAdmin_addMemberButton = (fbs: FbsRuntime) => fbs._("加队员", null, { hk: "1VKTY1" });
+export const guildAdmin_eventsTitle = (fbs: FbsRuntime) => fbs._("活动管理", null, { hk: "4xCOb0" });
+export const guildAdmin_eventEmpty = (fbs: FbsRuntime) => fbs._("暂无活动。", null, { hk: "3CAWZW" });
+export const guildAdmin_eventTitleLabel = (fbs: FbsRuntime) => fbs._("标题", null, { hk: "Z67in" });
+export const guildAdmin_eventTypeLabel = (fbs: FbsRuntime) => fbs._("类型", null, { hk: "1CCpeN" });
+export const guildAdmin_eventStatusLabel = (fbs: FbsRuntime) => fbs._("状态", null, { hk: "cm4HT" });
+export const guildAdmin_eventTimeLabel = (fbs: FbsRuntime) => fbs._("发车时间", null, { hk: "3yAej9" });
+export const guildAdmin_eventSlotsLabel = (fbs: FbsRuntime) => fbs._("席位上限", null, { hk: "2TrBEx" });
+export const guildAdmin_eventMeetLabel = (fbs: FbsRuntime) => fbs._("集合信息", null, { hk: "2yoAeI" });
+export const guildAdmin_eventDescLabel = (fbs: FbsRuntime) => fbs._("说明", null, { hk: "J6otd" });
+export const guildAdmin_eventDungeonLabel = (fbs: FbsRuntime) => fbs._("副本", null, { hk: "4GQUn" });
+export const guildAdmin_statusOpen = (fbs: FbsRuntime) => fbs._("开放报名", null, { hk: "3cSPo1" });
+export const guildAdmin_statusClosed = (fbs: FbsRuntime) => fbs._("已截止", null, { hk: "1ii010" });
+export const guildAdmin_statusCompleted = (fbs: FbsRuntime) => fbs._("已完成", null, { hk: "40rbSg" });
+export const guildAdmin_statusDraft = (fbs: FbsRuntime) => fbs._("草稿", null, { hk: "40FGl9" });
+export const guildAdmin_signupsTitle = (fbs: FbsRuntime) => fbs._("报名名单", null, { hk: "gUogc" });
+export const guildAdmin_signupEmpty = (fbs: FbsRuntime) => fbs._("暂无报名。", null, { hk: "J3AzD" });
+export const guildAdmin_exportCsvButton = (fbs: FbsRuntime) => fbs._("导出 CSV", null, { hk: "3uvhR8" });
+export const guildAdmin_removeSignupButton = (fbs: FbsRuntime) => fbs._("移除", null, { hk: "1YSDyJ" });
+export const guildAdmin_resultsTitle = (fbs: FbsRuntime) => fbs._("竞速成绩", null, { hk: "2ha0RQ" });
+export const guildAdmin_resultTeamLabel = (fbs: FbsRuntime) => fbs._("队伍名", null, { hk: "FCzZT" });
+export const guildAdmin_resultMembersLabel = (fbs: FbsRuntime) => fbs._("队员（逗号分隔）", null, { hk: "llZLw" });
+export const guildAdmin_resultTimeLabel = (fbs: FbsRuntime) => fbs._("用时（如 12:34.567）", null, { hk: "4BzK7V" });
+export const guildAdmin_resultProofLabel = (fbs: FbsRuntime) => fbs._("凭证链接", null, { hk: "eFQVj" });
+export const guildAdmin_resultNoteLabel = (fbs: FbsRuntime) => fbs._("备注", null, { hk: "2aFNM9" });
+export const guildAdmin_guidesTitle = (fbs: FbsRuntime) => fbs._("流派攻略数据（BiS / 循环）", null, { hk: "4cJisQ" });
+export const guildAdmin_guidesHint = (fbs: FbsRuntime) => fbs._("按流派填写：build 名称、属性行、占比行、BiS（JSON）与循环（JSON）。保存后流派页即时生效。", null, { hk: "1bDNx" });
+export const guildAdmin_guideSchoolLabel = (fbs: FbsRuntime) => fbs._("流派", null, { hk: "kxSOl" });
+export const guildAdmin_guideBuildLabel = (fbs: FbsRuntime) => fbs._("Build 名称", null, { hk: "4f5yn9" });
+export const guildAdmin_guideAttrLabel = (fbs: FbsRuntime) => fbs._("属性行", null, { hk: "2oRBNY" });
+export const guildAdmin_guideRateLabel = (fbs: FbsRuntime) => fbs._("占比行", null, { hk: "b4Xqn" });
+export const guildAdmin_guideBisLabel = (fbs: FbsRuntime) => fbs._("BiS（JSON）", null, { hk: "4FUXhX" });
+export const guildAdmin_guideRotationLabel = (fbs: FbsRuntime) => fbs._("循环（JSON）", null, { hk: "vkSW6" });
 export const STRING_FNS: Record<string, StringFn> = {
 	"common.cancel": common_cancel,
 	"common.confirm": common_confirm,
@@ -734,6 +827,7 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"guildHome.tabDex": guildHome_tabDex,
 	"guildHome.tabSect": guildHome_tabSect,
 	"guildHome.readOnlyBanner": guildHome_readOnlyBanner,
+	"guildHome.adminLink": guildHome_adminLink,
 	"groupingType.tabActivity": groupingType_tabActivity,
 	"groupingType.tabTalent": groupingType_tabTalent,
 	"groupingType.tabRace": groupingType_tabRace,
@@ -1271,5 +1365,97 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"errors.serverRequired": errors_serverRequired,
 	"errors.notInServer": errors_notInServer,
 	"errors.cannotManageServer": errors_cannotManageServer,
-	"errors.generic": errors_generic
+	"errors.adminOnly": errors_adminOnly,
+	"errors.webhookInvalid": errors_webhookInvalid,
+	"errors.discordIdInvalid": errors_discordIdInvalid,
+	"errors.teamNameRequired": errors_teamNameRequired,
+	"errors.noFieldsToUpdate": errors_noFieldsToUpdate,
+	"errors.teamNotFound": errors_teamNotFound,
+	"errors.teamMemberNotFound": errors_teamMemberNotFound,
+	"errors.signupNotFound": errors_signupNotFound,
+	"errors.resultNotFound": errors_resultNotFound,
+	"errors.resultTeamRequired": errors_resultTeamRequired,
+	"errors.resultTimeInvalid": errors_resultTimeInvalid,
+	"errors.avatarDataInvalid": errors_avatarDataInvalid,
+	"errors.schoolRequired": errors_schoolRequired,
+	"errors.generic": errors_generic,
+	"guildAdmin.title": guildAdmin_title,
+	"guildAdmin.lockedTitle": guildAdmin_lockedTitle,
+	"guildAdmin.lockedBody": guildAdmin_lockedBody,
+	"guildAdmin.backLink": guildAdmin_backLink,
+	"guildAdmin.tabProfile": guildAdmin_tabProfile,
+	"guildAdmin.tabDiscord": guildAdmin_tabDiscord,
+	"guildAdmin.tabTeams": guildAdmin_tabTeams,
+	"guildAdmin.tabEvents": guildAdmin_tabEvents,
+	"guildAdmin.tabGuides": guildAdmin_tabGuides,
+	"guildAdmin.saveButton": guildAdmin_saveButton,
+	"guildAdmin.savedText": guildAdmin_savedText,
+	"guildAdmin.deleteButton": guildAdmin_deleteButton,
+	"guildAdmin.editButton": guildAdmin_editButton,
+	"guildAdmin.addButton": guildAdmin_addButton,
+	"guildAdmin.profileTitle": guildAdmin_profileTitle,
+	"guildAdmin.nameLabel": guildAdmin_nameLabel,
+	"guildAdmin.announcementLabel": guildAdmin_announcementLabel,
+	"guildAdmin.sloganLabel": guildAdmin_sloganLabel,
+	"guildAdmin.masterNameLabel": guildAdmin_masterNameLabel,
+	"guildAdmin.logoUrlLabel": guildAdmin_logoUrlLabel,
+	"guildAdmin.bgImageUrlLabel": guildAdmin_bgImageUrlLabel,
+	"guildAdmin.avatarTitle": guildAdmin_avatarTitle,
+	"guildAdmin.avatarUpload": guildAdmin_avatarUpload,
+	"guildAdmin.avatarReplace": guildAdmin_avatarReplace,
+	"guildAdmin.avatarDelete": guildAdmin_avatarDelete,
+	"guildAdmin.avatarNone": guildAdmin_avatarNone,
+	"guildAdmin.avatarHint": guildAdmin_avatarHint,
+	"guildAdmin.discordTitle": guildAdmin_discordTitle,
+	"guildAdmin.webhookLabel": guildAdmin_webhookLabel,
+	"guildAdmin.webhookSet": guildAdmin_webhookSet,
+	"guildAdmin.webhookUnset": guildAdmin_webhookUnset,
+	"guildAdmin.webhookHint": guildAdmin_webhookHint,
+	"guildAdmin.webhookClear": guildAdmin_webhookClear,
+	"guildAdmin.guildIdLabel": guildAdmin_guildIdLabel,
+	"guildAdmin.guildIdUnbound": guildAdmin_guildIdUnbound,
+	"guildAdmin.featuresTitle": guildAdmin_featuresTitle,
+	"guildAdmin.fixedTeamsLabel": guildAdmin_fixedTeamsLabel,
+	"guildAdmin.visibilityTitle": guildAdmin_visibilityTitle,
+	"guildAdmin.devOnlyLabel": guildAdmin_devOnlyLabel,
+	"guildAdmin.teamsTitle": guildAdmin_teamsTitle,
+	"guildAdmin.teamNameLabel": guildAdmin_teamNameLabel,
+	"guildAdmin.teamDescLabel": guildAdmin_teamDescLabel,
+	"guildAdmin.teamEmpty": guildAdmin_teamEmpty,
+	"guildAdmin.memberNicknameLabel": guildAdmin_memberNicknameLabel,
+	"guildAdmin.memberWeaponLabel": guildAdmin_memberWeaponLabel,
+	"guildAdmin.memberNoteLabel": guildAdmin_memberNoteLabel,
+	"guildAdmin.addMemberButton": guildAdmin_addMemberButton,
+	"guildAdmin.eventsTitle": guildAdmin_eventsTitle,
+	"guildAdmin.eventEmpty": guildAdmin_eventEmpty,
+	"guildAdmin.eventTitleLabel": guildAdmin_eventTitleLabel,
+	"guildAdmin.eventTypeLabel": guildAdmin_eventTypeLabel,
+	"guildAdmin.eventStatusLabel": guildAdmin_eventStatusLabel,
+	"guildAdmin.eventTimeLabel": guildAdmin_eventTimeLabel,
+	"guildAdmin.eventSlotsLabel": guildAdmin_eventSlotsLabel,
+	"guildAdmin.eventMeetLabel": guildAdmin_eventMeetLabel,
+	"guildAdmin.eventDescLabel": guildAdmin_eventDescLabel,
+	"guildAdmin.eventDungeonLabel": guildAdmin_eventDungeonLabel,
+	"guildAdmin.statusOpen": guildAdmin_statusOpen,
+	"guildAdmin.statusClosed": guildAdmin_statusClosed,
+	"guildAdmin.statusCompleted": guildAdmin_statusCompleted,
+	"guildAdmin.statusDraft": guildAdmin_statusDraft,
+	"guildAdmin.signupsTitle": guildAdmin_signupsTitle,
+	"guildAdmin.signupEmpty": guildAdmin_signupEmpty,
+	"guildAdmin.exportCsvButton": guildAdmin_exportCsvButton,
+	"guildAdmin.removeSignupButton": guildAdmin_removeSignupButton,
+	"guildAdmin.resultsTitle": guildAdmin_resultsTitle,
+	"guildAdmin.resultTeamLabel": guildAdmin_resultTeamLabel,
+	"guildAdmin.resultMembersLabel": guildAdmin_resultMembersLabel,
+	"guildAdmin.resultTimeLabel": guildAdmin_resultTimeLabel,
+	"guildAdmin.resultProofLabel": guildAdmin_resultProofLabel,
+	"guildAdmin.resultNoteLabel": guildAdmin_resultNoteLabel,
+	"guildAdmin.guidesTitle": guildAdmin_guidesTitle,
+	"guildAdmin.guidesHint": guildAdmin_guidesHint,
+	"guildAdmin.guideSchoolLabel": guildAdmin_guideSchoolLabel,
+	"guildAdmin.guideBuildLabel": guildAdmin_guideBuildLabel,
+	"guildAdmin.guideAttrLabel": guildAdmin_guideAttrLabel,
+	"guildAdmin.guideRateLabel": guildAdmin_guideRateLabel,
+	"guildAdmin.guideBisLabel": guildAdmin_guideBisLabel,
+	"guildAdmin.guideRotationLabel": guildAdmin_guideRotationLabel
 };

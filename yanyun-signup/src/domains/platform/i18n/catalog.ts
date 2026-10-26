@@ -518,6 +518,13 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "es": "Este gremio aún no está vinculado a un servidor de Discord · Solo lectura",
       "fr": "Cette guilde n’est pas encore liée à un serveur Discord · Lecture seule",
       "zh-TW": "該百業尚未綁定 Discord 伺服器 · 唯讀瀏覽"
+    },
+    "adminLink": {
+      "zh-CN": "管理",
+      "en": "Manage",
+      "es": "Gestionar",
+      "fr": "Gérer",
+      "zh-TW": "管理"
     }
   },
   "groupingType": {
@@ -4238,12 +4245,658 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "fr": "Vous devez avoir la permission Administrateur ou « Gérer le serveur » dans ce serveur Discord pour le lier",
       "zh-TW": "你需要在該 Discord 伺服器擁有管理員或「管理伺服器」權限才能綁定它"
     },
+    "adminOnly": {
+      "zh-CN": "只有所绑服务器的管理员可以执行此操作",
+      "en": "Only administrators of the bound server can do this",
+      "es": "Solo los administradores del servidor vinculado pueden hacer esto",
+      "fr": "Seuls les administrateurs du serveur lié peuvent faire cela",
+      "zh-TW": "只有所綁伺服器的管理員可以執行此操作"
+    },
+    "webhookInvalid": {
+      "zh-CN": "Webhook 地址格式不正确",
+      "en": "Invalid webhook URL format",
+      "es": "Formato de URL de webhook no válido",
+      "fr": "Format d’URL de webhook invalide",
+      "zh-TW": "Webhook 地址格式不正確"
+    },
+    "discordIdInvalid": {
+      "zh-CN": "Discord 服务器 ID 格式不正确",
+      "en": "Invalid Discord server ID format",
+      "es": "Formato de ID de servidor de Discord no válido",
+      "fr": "Format d’ID de serveur Discord invalide",
+      "zh-TW": "Discord 伺服器 ID 格式不正確"
+    },
+    "teamNameRequired": {
+      "zh-CN": "缺少队伍名",
+      "en": "Team name is required",
+      "es": "Falta el nombre del equipo",
+      "fr": "Le nom de l’équipe est requis",
+      "zh-TW": "缺少隊伍名"
+    },
+    "noFieldsToUpdate": {
+      "zh-CN": "没有可更新的字段",
+      "en": "No fields to update",
+      "es": "No hay campos para actualizar",
+      "fr": "Aucun champ à mettre à jour",
+      "zh-TW": "沒有可更新的欄位"
+    },
+    "teamNotFound": {
+      "zh-CN": "未找到该固定队",
+      "en": "Fixed team not found",
+      "es": "Equipo fijo no encontrado",
+      "fr": "Équipe fixe introuvable",
+      "zh-TW": "未找到該固定隊"
+    },
+    "teamMemberNotFound": {
+      "zh-CN": "未找到该队员",
+      "en": "Team member not found",
+      "es": "Miembro del equipo no encontrado",
+      "fr": "Membre de l’équipe introuvable",
+      "zh-TW": "未找到該隊員"
+    },
+    "signupNotFound": {
+      "zh-CN": "未找到该报名记录",
+      "en": "Signup not found",
+      "es": "Inscripción no encontrada",
+      "fr": "Inscription introuvable",
+      "zh-TW": "未找到該報名記錄"
+    },
+    "resultNotFound": {
+      "zh-CN": "未找到该成绩",
+      "en": "Result not found",
+      "es": "Resultado no encontrado",
+      "fr": "Résultat introuvable",
+      "zh-TW": "未找到該成績"
+    },
+    "resultTeamRequired": {
+      "zh-CN": "缺少队伍名",
+      "en": "Team name is required",
+      "es": "Falta el nombre del equipo",
+      "fr": "Le nom de l’équipe est requis",
+      "zh-TW": "缺少隊伍名"
+    },
+    "resultTimeInvalid": {
+      "zh-CN": "用时格式不正确（如 12:34.567）",
+      "en": "Invalid time format (e.g. 12:34.567)",
+      "es": "Formato de tiempo no válido (p. ej. 12:34.567)",
+      "fr": "Format de temps invalide (ex. 12:34.567)",
+      "zh-TW": "用時格式不正確（如 12:34.567）"
+    },
+    "avatarDataInvalid": {
+      "zh-CN": "图片数据无效",
+      "en": "Invalid image data",
+      "es": "Datos de imagen no válidos",
+      "fr": "Données d’image invalides",
+      "zh-TW": "圖片數據無效"
+    },
+    "schoolRequired": {
+      "zh-CN": "缺少流派",
+      "en": "Sect is required",
+      "es": "Falta la secta",
+      "fr": "La secte est requise",
+      "zh-TW": "缺少流派"
+    },
     "generic": {
       "zh-CN": "操作失败，请稍后再试",
       "en": "Something went wrong — please try again later",
       "es": "Algo salió mal; inténtalo más tarde",
       "fr": "Un problème est survenu — réessayez plus tard",
       "zh-TW": "操作失敗，請稍後再試"
+    }
+  },
+  "guildAdmin": {
+    "title": {
+      "zh-CN": "管理百业",
+      "en": "Manage guild",
+      "es": "Gestionar gremio",
+      "fr": "Gérer la guilde",
+      "zh-TW": "管理百業"
+    },
+    "lockedTitle": {
+      "zh-CN": "无权管理这个百业",
+      "en": "You cannot manage this guild",
+      "es": "No puedes gestionar este gremio",
+      "fr": "Vous ne pouvez pas gérer cette guilde",
+      "zh-TW": "無權管理這個百業"
+    },
+    "lockedBody": {
+      "zh-CN": "只有该百业所绑 Discord 服务器的管理员（服务器主或拥有管理权限）可以进入管理页。",
+      "en": "Only administrators of the Discord server bound to this guild (the server owner or members with Manage Server permission) can open the admin page.",
+      "es": "Solo los administradores del servidor de Discord vinculado a este gremio (el propietario o quienes tengan permiso de gestionar el servidor) pueden abrir la página de administración.",
+      "fr": "Seuls les administrateurs du serveur Discord lié à cette guilde (le propriétaire ou les membres ayant la permission de gérer le serveur) peuvent ouvrir la page d’administration.",
+      "zh-TW": "只有該百業所綁 Discord 伺服器的管理員（伺服器主或擁有管理權限）可以進入管理頁。"
+    },
+    "backLink": {
+      "zh-CN": "‹ 返回百业",
+      "en": "‹ Back to guild",
+      "es": "‹ Volver al gremio",
+      "fr": "‹ Retour à la guilde",
+      "zh-TW": "‹ 返回百業"
+    },
+    "tabProfile": {
+      "zh-CN": "资料",
+      "en": "Profile",
+      "es": "Perfil",
+      "fr": "Profil",
+      "zh-TW": "資料"
+    },
+    "tabDiscord": {
+      "zh-CN": "Discord",
+      "en": "Discord",
+      "es": "Discord",
+      "fr": "Discord",
+      "zh-TW": "Discord"
+    },
+    "tabTeams": {
+      "zh-CN": "固定队",
+      "en": "Fixed teams",
+      "es": "Equipos fijos",
+      "fr": "Équipes fixes",
+      "zh-TW": "固定隊"
+    },
+    "tabEvents": {
+      "zh-CN": "活动",
+      "en": "Events",
+      "es": "Eventos",
+      "fr": "Événements",
+      "zh-TW": "活動"
+    },
+    "tabGuides": {
+      "zh-CN": "攻略数据",
+      "en": "Guide data",
+      "es": "Datos de guías",
+      "fr": "Données de guides",
+      "zh-TW": "攻略數據"
+    },
+    "saveButton": {
+      "zh-CN": "保存",
+      "en": "Save",
+      "es": "Guardar",
+      "fr": "Enregistrer",
+      "zh-TW": "保存"
+    },
+    "savedText": {
+      "zh-CN": "已保存",
+      "en": "Saved",
+      "es": "Guardado",
+      "fr": "Enregistré",
+      "zh-TW": "已保存"
+    },
+    "deleteButton": {
+      "zh-CN": "删除",
+      "en": "Delete",
+      "es": "Eliminar",
+      "fr": "Supprimer",
+      "zh-TW": "刪除"
+    },
+    "editButton": {
+      "zh-CN": "编辑",
+      "en": "Edit",
+      "es": "Editar",
+      "fr": "Modifier",
+      "zh-TW": "編輯"
+    },
+    "addButton": {
+      "zh-CN": "新增",
+      "en": "Add",
+      "es": "Añadir",
+      "fr": "Ajouter",
+      "zh-TW": "新增"
+    },
+    "profileTitle": {
+      "zh-CN": "百业资料",
+      "en": "Guild profile",
+      "es": "Perfil del gremio",
+      "fr": "Profil de la guilde",
+      "zh-TW": "百業資料"
+    },
+    "nameLabel": {
+      "zh-CN": "百业名称",
+      "en": "Guild name",
+      "es": "Nombre del gremio",
+      "fr": "Nom de la guilde",
+      "zh-TW": "百業名稱"
+    },
+    "announcementLabel": {
+      "zh-CN": "公告",
+      "en": "Announcement",
+      "es": "Anuncio",
+      "fr": "Annonce",
+      "zh-TW": "公告"
+    },
+    "sloganLabel": {
+      "zh-CN": "标语",
+      "en": "Slogan",
+      "es": "Eslogan",
+      "fr": "Slogan",
+      "zh-TW": "標語"
+    },
+    "masterNameLabel": {
+      "zh-CN": "掌门",
+      "en": "Guild master",
+      "es": "Maestro del gremio",
+      "fr": "Maître de guilde",
+      "zh-TW": "掌門"
+    },
+    "logoUrlLabel": {
+      "zh-CN": "标志图链接",
+      "en": "Logo image URL",
+      "es": "URL del logo",
+      "fr": "URL du logo",
+      "zh-TW": "標誌圖連結"
+    },
+    "bgImageUrlLabel": {
+      "zh-CN": "背景图链接",
+      "en": "Background image URL",
+      "es": "URL de la imagen de fondo",
+      "fr": "URL de l’image de fond",
+      "zh-TW": "背景圖連結"
+    },
+    "avatarTitle": {
+      "zh-CN": "百业头像",
+      "en": "Guild avatar",
+      "es": "Avatar del gremio",
+      "fr": "Avatar de la guilde",
+      "zh-TW": "百業頭像"
+    },
+    "avatarUpload": {
+      "zh-CN": "上传头像",
+      "en": "Upload avatar",
+      "es": "Subir avatar",
+      "fr": "Téléverser un avatar",
+      "zh-TW": "上傳頭像"
+    },
+    "avatarReplace": {
+      "zh-CN": "更换头像",
+      "en": "Replace avatar",
+      "es": "Reemplazar avatar",
+      "fr": "Remplacer l’avatar",
+      "zh-TW": "更換頭像"
+    },
+    "avatarDelete": {
+      "zh-CN": "删除头像",
+      "en": "Delete avatar",
+      "es": "Eliminar avatar",
+      "fr": "Supprimer l’avatar",
+      "zh-TW": "刪除頭像"
+    },
+    "avatarNone": {
+      "zh-CN": "尚未设置头像，当前显示默认印章。",
+      "en": "No avatar set yet; the default seal is shown.",
+      "es": "Aún no hay avatar; se muestra el sello predeterminado.",
+      "fr": "Aucun avatar défini pour le moment ; le sceau par défaut est affiché.",
+      "zh-TW": "尚未設定頭像，目前顯示預設印章。"
+    },
+    "avatarHint": {
+      "zh-CN": "正方形图片效果最佳，大小 ≤ 400KB（PNG / JPEG / WebP）。",
+      "en": "A square image works best, up to 400KB (PNG / JPEG / WebP).",
+      "es": "Una imagen cuadrada funciona mejor, hasta 400 KB (PNG / JPEG / WebP).",
+      "fr": "Une image carrée est idéale, jusqu’à 400 Ko (PNG / JPEG / WebP).",
+      "zh-TW": "正方形圖片效果最佳，大小 ≤ 400KB（PNG / JPEG / WebP）。"
+    },
+    "discordTitle": {
+      "zh-CN": "Discord 集成",
+      "en": "Discord integration",
+      "es": "Integración con Discord",
+      "fr": "Intégration Discord",
+      "zh-TW": "Discord 整合"
+    },
+    "webhookLabel": {
+      "zh-CN": "发车提醒 Webhook",
+      "en": "Departure reminder webhook",
+      "es": "Webhook de recordatorios de salida",
+      "fr": "Webhook de rappel de départ",
+      "zh-TW": "發車提醒 Webhook"
+    },
+    "webhookSet": {
+      "zh-CN": "已设置（Webhook 编号 {id}）",
+      "en": "Set (webhook ID {id})",
+      "es": "Configurado (ID de webhook {id})",
+      "fr": "Défini (ID du webhook {id})",
+      "zh-TW": "已設置（Webhook 編號 {id}）"
+    },
+    "webhookUnset": {
+      "zh-CN": "未设置",
+      "en": "Not set",
+      "es": "Sin configurar",
+      "fr": "Non défini",
+      "zh-TW": "未設置"
+    },
+    "webhookHint": {
+      "zh-CN": "保存后不回显完整地址；留空并保存 = 保持不变，点「清除」移除。",
+      "en": "The full URL is never shown again after saving. Save with the field empty to keep it unchanged, or use Clear to remove it.",
+      "es": "La URL completa no vuelve a mostrarse tras guardar. Guarda con el campo vacío para mantenerla, o usa Borrar para eliminarla.",
+      "fr": "L’URL complète n’est plus jamais affichée après l’enregistrement. Enregistrez avec le champ vide pour la conserver, ou utilisez Effacer pour la supprimer.",
+      "zh-TW": "保存後不回顯完整地址；留空並保存 = 保持不變，點「清除」移除。"
+    },
+    "webhookClear": {
+      "zh-CN": "清除 Webhook",
+      "en": "Clear webhook",
+      "es": "Borrar webhook",
+      "fr": "Effacer le webhook",
+      "zh-TW": "清除 Webhook"
+    },
+    "guildIdLabel": {
+      "zh-CN": "绑定的服务器 ID",
+      "en": "Bound server ID",
+      "es": "ID del servidor vinculado",
+      "fr": "ID du serveur lié",
+      "zh-TW": "綁定的伺服器 ID"
+    },
+    "guildIdUnbound": {
+      "zh-CN": "未绑定",
+      "en": "Not bound",
+      "es": "Sin vincular",
+      "fr": "Non lié",
+      "zh-TW": "未綁定"
+    },
+    "featuresTitle": {
+      "zh-CN": "功能开关",
+      "en": "Features",
+      "es": "Funciones",
+      "fr": "Fonctionnalités",
+      "zh-TW": "功能開關"
+    },
+    "fixedTeamsLabel": {
+      "zh-CN": "固定队",
+      "en": "Fixed teams",
+      "es": "Equipos fijos",
+      "fr": "Équipes fixes",
+      "zh-TW": "固定隊"
+    },
+    "visibilityTitle": {
+      "zh-CN": "可见性",
+      "en": "Visibility",
+      "es": "Visibilidad",
+      "fr": "Visibilité",
+      "zh-TW": "可見性"
+    },
+    "devOnlyLabel": {
+      "zh-CN": "仅开发环境可见",
+      "en": "Development environments only",
+      "es": "Solo entornos de desarrollo",
+      "fr": "Environnements de développement uniquement",
+      "zh-TW": "僅開發環境可見"
+    },
+    "teamsTitle": {
+      "zh-CN": "固定队管理",
+      "en": "Fixed team management",
+      "es": "Gestión de equipos fijos",
+      "fr": "Gestion des équipes fixes",
+      "zh-TW": "固定隊管理"
+    },
+    "teamNameLabel": {
+      "zh-CN": "队伍名",
+      "en": "Team name",
+      "es": "Nombre del equipo",
+      "fr": "Nom de l’équipe",
+      "zh-TW": "隊伍名"
+    },
+    "teamDescLabel": {
+      "zh-CN": "队伍简介",
+      "en": "Team description",
+      "es": "Descripción del equipo",
+      "fr": "Description de l’équipe",
+      "zh-TW": "隊伍簡介"
+    },
+    "teamEmpty": {
+      "zh-CN": "暂无固定队。",
+      "en": "No fixed teams yet.",
+      "es": "Aún no hay equipos fijos.",
+      "fr": "Aucune équipe fixe pour le moment.",
+      "zh-TW": "暫無固定隊。"
+    },
+    "memberNicknameLabel": {
+      "zh-CN": "昵称",
+      "en": "Nickname",
+      "es": "Apodo",
+      "fr": "Pseudo",
+      "zh-TW": "暱稱"
+    },
+    "memberWeaponLabel": {
+      "zh-CN": "流派（武器）",
+      "en": "Sect (weapon)",
+      "es": "Secta (arma)",
+      "fr": "Secte (arme)",
+      "zh-TW": "流派（武器）"
+    },
+    "memberNoteLabel": {
+      "zh-CN": "备注",
+      "en": "Note",
+      "es": "Nota",
+      "fr": "Note",
+      "zh-TW": "備註"
+    },
+    "addMemberButton": {
+      "zh-CN": "加队员",
+      "en": "Add member",
+      "es": "Añadir miembro",
+      "fr": "Ajouter un membre",
+      "zh-TW": "加隊員"
+    },
+    "eventsTitle": {
+      "zh-CN": "活动管理",
+      "en": "Event management",
+      "es": "Gestión de eventos",
+      "fr": "Gestion des événements",
+      "zh-TW": "活動管理"
+    },
+    "eventEmpty": {
+      "zh-CN": "暂无活动。",
+      "en": "No events yet.",
+      "es": "Aún no hay eventos.",
+      "fr": "Aucun événement pour le moment.",
+      "zh-TW": "暫無活動。"
+    },
+    "eventTitleLabel": {
+      "zh-CN": "标题",
+      "en": "Title",
+      "es": "Título",
+      "fr": "Titre",
+      "zh-TW": "標題"
+    },
+    "eventTypeLabel": {
+      "zh-CN": "类型",
+      "en": "Type",
+      "es": "Tipo",
+      "fr": "Type",
+      "zh-TW": "類型"
+    },
+    "eventStatusLabel": {
+      "zh-CN": "状态",
+      "en": "Status",
+      "es": "Estado",
+      "fr": "Statut",
+      "zh-TW": "狀態"
+    },
+    "eventTimeLabel": {
+      "zh-CN": "发车时间",
+      "en": "Departure time",
+      "es": "Hora de salida",
+      "fr": "Heure de départ",
+      "zh-TW": "發車時間"
+    },
+    "eventSlotsLabel": {
+      "zh-CN": "席位上限",
+      "en": "Seat limit",
+      "es": "Límite de plazas",
+      "fr": "Limite de places",
+      "zh-TW": "席位上限"
+    },
+    "eventMeetLabel": {
+      "zh-CN": "集合信息",
+      "en": "Meeting info",
+      "es": "Información de encuentro",
+      "fr": "Informations de rendez-vous",
+      "zh-TW": "集合信息"
+    },
+    "eventDescLabel": {
+      "zh-CN": "说明",
+      "en": "Description",
+      "es": "Descripción",
+      "fr": "Description",
+      "zh-TW": "說明"
+    },
+    "eventDungeonLabel": {
+      "zh-CN": "副本",
+      "en": "Dungeon",
+      "es": "Mazmorra",
+      "fr": "Donjon",
+      "zh-TW": "副本"
+    },
+    "statusOpen": {
+      "zh-CN": "开放报名",
+      "en": "Open",
+      "es": "Abierto",
+      "fr": "Ouvert",
+      "zh-TW": "開放報名"
+    },
+    "statusClosed": {
+      "zh-CN": "已截止",
+      "en": "Closed",
+      "es": "Cerrado",
+      "fr": "Fermé",
+      "zh-TW": "已截止"
+    },
+    "statusCompleted": {
+      "zh-CN": "已完成",
+      "en": "Completed",
+      "es": "Completado",
+      "fr": "Terminé",
+      "zh-TW": "已完成"
+    },
+    "statusDraft": {
+      "zh-CN": "草稿",
+      "en": "Draft",
+      "es": "Borrador",
+      "fr": "Brouillon",
+      "zh-TW": "草稿"
+    },
+    "signupsTitle": {
+      "zh-CN": "报名名单",
+      "en": "Signups",
+      "es": "Inscripciones",
+      "fr": "Inscriptions",
+      "zh-TW": "報名名單"
+    },
+    "signupEmpty": {
+      "zh-CN": "暂无报名。",
+      "en": "No signups yet.",
+      "es": "Aún no hay inscripciones.",
+      "fr": "Aucune inscription pour le moment.",
+      "zh-TW": "暫無報名。"
+    },
+    "exportCsvButton": {
+      "zh-CN": "导出 CSV",
+      "en": "Export CSV",
+      "es": "Exportar CSV",
+      "fr": "Exporter en CSV",
+      "zh-TW": "導出 CSV"
+    },
+    "removeSignupButton": {
+      "zh-CN": "移除",
+      "en": "Remove",
+      "es": "Quitar",
+      "fr": "Retirer",
+      "zh-TW": "移除"
+    },
+    "resultsTitle": {
+      "zh-CN": "竞速成绩",
+      "en": "Race results",
+      "es": "Resultados de carrera",
+      "fr": "Résultats de course",
+      "zh-TW": "競速成績"
+    },
+    "resultTeamLabel": {
+      "zh-CN": "队伍名",
+      "en": "Team name",
+      "es": "Nombre del equipo",
+      "fr": "Nom de l’équipe",
+      "zh-TW": "隊伍名"
+    },
+    "resultMembersLabel": {
+      "zh-CN": "队员（逗号分隔）",
+      "en": "Members (comma separated)",
+      "es": "Miembros (separados por comas)",
+      "fr": "Membres (séparés par des virgules)",
+      "zh-TW": "隊員（逗號分隔）"
+    },
+    "resultTimeLabel": {
+      "zh-CN": "用时（如 12:34.567）",
+      "en": "Time (e.g. 12:34.567)",
+      "es": "Tiempo (p. ej. 12:34.567)",
+      "fr": "Temps (ex. 12:34.567)",
+      "zh-TW": "用時（如 12:34.567）"
+    },
+    "resultProofLabel": {
+      "zh-CN": "凭证链接",
+      "en": "Proof URL",
+      "es": "URL de la prueba",
+      "fr": "URL de la preuve",
+      "zh-TW": "憑證連結"
+    },
+    "resultNoteLabel": {
+      "zh-CN": "备注",
+      "en": "Note",
+      "es": "Nota",
+      "fr": "Note",
+      "zh-TW": "備註"
+    },
+    "guidesTitle": {
+      "zh-CN": "流派攻略数据（BiS / 循环）",
+      "en": "Sect guide data (BiS / rotations)",
+      "es": "Datos de guías de secta (BiS / rotaciones)",
+      "fr": "Données de guides de secte (BiS / rotations)",
+      "zh-TW": "流派攻略數據（BiS / 循環）"
+    },
+    "guidesHint": {
+      "zh-CN": "按流派填写：build 名称、属性行、占比行、BiS（JSON）与循环（JSON）。保存后流派页即时生效。",
+      "en": "Fill in per sect: build name, attribute line, share line, BiS (JSON) and rotation (JSON). Sect pages update as soon as you save.",
+      "es": "Completa por secta: nombre de la build, línea de atributos, línea de porcentajes, BiS (JSON) y rotación (JSON). Las páginas de secta se actualizan al guardar.",
+      "fr": "Renseignez par secte : nom de la build, ligne d’attributs, ligne de répartition, BiS (JSON) et rotation (JSON). Les pages de secte sont mises à jour dès l’enregistrement.",
+      "zh-TW": "按流派填寫：build 名稱、屬性行、佔比行、BiS（JSON）與循環（JSON）。保存後流派頁即時生效。"
+    },
+    "guideSchoolLabel": {
+      "zh-CN": "流派",
+      "en": "Sect",
+      "es": "Secta",
+      "fr": "Secte",
+      "zh-TW": "流派"
+    },
+    "guideBuildLabel": {
+      "zh-CN": "Build 名称",
+      "en": "Build name",
+      "es": "Nombre de la build",
+      "fr": "Nom de la build",
+      "zh-TW": "Build 名稱"
+    },
+    "guideAttrLabel": {
+      "zh-CN": "属性行",
+      "en": "Attribute line",
+      "es": "Línea de atributos",
+      "fr": "Ligne d’attributs",
+      "zh-TW": "屬性行"
+    },
+    "guideRateLabel": {
+      "zh-CN": "占比行",
+      "en": "Share line",
+      "es": "Línea de porcentajes",
+      "fr": "Ligne de répartition",
+      "zh-TW": "佔比行"
+    },
+    "guideBisLabel": {
+      "zh-CN": "BiS（JSON）",
+      "en": "BiS (JSON)",
+      "es": "BiS (JSON)",
+      "fr": "BiS (JSON)",
+      "zh-TW": "BiS（JSON）"
+    },
+    "guideRotationLabel": {
+      "zh-CN": "循环（JSON）",
+      "en": "Rotation (JSON)",
+      "es": "Rotación (JSON)",
+      "fr": "Rotation (JSON)",
+      "zh-TW": "循環（JSON）"
     }
   }
 };

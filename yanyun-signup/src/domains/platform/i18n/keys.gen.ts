@@ -89,6 +89,19 @@ export type PlatformStringKey =
   | 'errors.serverRequired'
   | 'errors.notInServer'
   | 'errors.cannotManageServer'
+  | 'errors.adminOnly'
+  | 'errors.webhookInvalid'
+  | 'errors.discordIdInvalid'
+  | 'errors.teamNameRequired'
+  | 'errors.noFieldsToUpdate'
+  | 'errors.teamNotFound'
+  | 'errors.teamMemberNotFound'
+  | 'errors.signupNotFound'
+  | 'errors.resultNotFound'
+  | 'errors.resultTeamRequired'
+  | 'errors.resultTimeInvalid'
+  | 'errors.avatarDataInvalid'
+  | 'errors.schoolRequired'
   | 'errors.generic';
 
 export const PLATFORM_STRING_KEYS: readonly PlatformStringKey[] = [
@@ -180,5 +193,18 @@ export const PLATFORM_STRING_KEYS: readonly PlatformStringKey[] = [
   'errors.serverRequired',
   'errors.notInServer',
   'errors.cannotManageServer',
+  'errors.adminOnly',
+  'errors.webhookInvalid',
+  'errors.discordIdInvalid',
+  'errors.teamNameRequired',
+  'errors.noFieldsToUpdate',
+  'errors.teamNotFound',
+  'errors.teamMemberNotFound',
+  'errors.signupNotFound',
+  'errors.resultNotFound',
+  'errors.resultTeamRequired',
+  'errors.resultTimeInvalid',
+  'errors.avatarDataInvalid',
+  'errors.schoolRequired',
   'errors.generic',
 ];
