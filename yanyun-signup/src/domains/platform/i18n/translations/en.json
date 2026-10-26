@@ -1,0 +1,6583 @@
+{
+  "fb-locale": "en",
+  "translations": {
+    "+0U6mYYdvz+wLWH3Jrqu7Q==": {
+      "description": "gear.lockLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Lock",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+0pSgfTMdy37X0HoUlrKEA==": {
+      "description": "groupingList.nextWeek",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Next week",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+8ri14lYoensaW2pbLORxg==": {
+      "description": "privacyBody.s2h",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "How we use information",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+9FPHyDVlb3uePhvVZkd9w==": {
+      "description": "gear.recipeEmptyText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "No matching recipes.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+Cu8vxOG+YgLzIh28DGShg==": {
+      "description": "groupingType.tabRace",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Speedrun Signups",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+JDE1sDNCv+J5cxeOOFhSA==": {
+      "description": "errors.officialEvent",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Official events — please contact an admin",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+MwqqV49cRdm1TFSpSoINA==": {
+      "description": "errors.bossNotFound",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Boss not found",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+QFUY+hgmMangcVniCcQCA==": {
+      "description": "groupingForm.submitCreate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Post",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+WMmlNTrGN2hRU1mJNoyww==": {
+      "description": "seat.selfTab",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Myself",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+ZrGRiv6gyG51AXVfxuZOA==": {
+      "description": "boss.shoutCopied",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Callout copied",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+tcm4cEZmU3VAw0v6ruV9g==": {
+      "description": "create.subtitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Bind a Discord server you manage — afterwards, only members of that server can see and use this guild.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+zuFivHNUDJZNfOiCI7e8w==": {
+      "description": "groupingType.tabActivity",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "10-Man Raids",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "/5GLZKYtPphHVD4tIlBiVQ==": {
+      "description": "grad.tapHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Tap a piece of gear to inscribe affixes",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "/5KWF7bNK2gZt37muD+N0g==": {
+      "description": "gear.unequipAllLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Unequip all",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "/AWOQzY1eZcQ05vXUn01rw==": {
+      "description": "gear.gradLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Graduation",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "/GEOQyYTnp3kSm0trp475A==": {
+      "description": "errors.titleRequired",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Please enter a title",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "/PsfnMgR3/LkRK/uOwbXmA==": {
+      "description": "errors.groupingNotCompleted",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "This squad is not completed",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "/cYMWf+oGkkBA2Tur0QzGA==": {
+      "description": "gear.slotTableTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Slot layout tables (gear bench)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "/m2V+vICsljPUvxQ7Q2xeQ==": {
+      "description": "sect.rotInnerSkills",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Inner Arts",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "08wDvCMpig9FKTTUtvVb4w==": {
+      "description": "privacyBody.s5b",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "You may request access to, correction of, or deletion of your personal data. This site does not yet offer a self-service account-deletion feature; please submit your request through the contact channel below, and we will handle it within a reasonable period. You may also disconnect this site’s authorization at any time in your Discord settings; once the authorization lapses, your session on this site is automatically invalidated.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "0CSsQQ5XjU4NQbm+ZCnIAA==": {
+      "description": "groupingForm.toastCreateFailed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Creation failed: {error}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "0J/DlDtw2E19ziHwY3IKLw==": {
+      "description": "gear.equipLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Equip",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "0l1WkRmUdT2oJgjg9bnj0g==": {
+      "description": "grad.tier6",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Raw Iron",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "0mrmxfxzJ+k2hYzsEsMIlQ==": {
+      "description": "gear.importFailedToast",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Import failed: invalid file",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "0qc+GLEPvS1+vGZW08T2RQ==": {
+      "description": "site.title",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Guild Rally",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "0vuWGrEVlINQgM+g3i90aA==": {
+      "description": "errors.proxyTargetNotInRoster",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "The selected member is not in this guild’s roster",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "0zi49ScOq3pLyDr8nDRGlQ==": {
+      "description": "sect.rotVideo",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Video Guide",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "1+kLFVK8m+QC5pAA+uFq3g==": {
+      "description": "gear.unlockLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Unlock",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "11d0KA/uMI+F6er9oTS3mg==": {
+      "description": "gear.diffExtraTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Off-recipe",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "14O6biesEbYxhDL5zrH++g==": {
+      "description": "gear.panelTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Panel & graduation",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "15WLoR41lmu68AJbnYFNyw==": {
+      "description": "sect.rotLoop",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Loop",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "197qS8fPBsx/iroNe3H0dA==": {
+      "description": "grad.compareTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "⚔️ Build Comparison",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "199iH7OHrVtoS3NGBPf0kg==": {
+      "description": "appBlocks.completedStatus",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Completed",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "1BktHl+C12NbE4pTKMywAA==": {
+      "description": "groupingDetail.disbanding",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Disbanding…",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "1XX3aWVDu9+XEfoH5lb4aQ==": {
+      "description": "gear.colRecipeNamesLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Recipe names",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "1bV9l16tmRBB0AtiR5up5A==": {
+      "description": "groupingDetail.readonlyHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Read-only · This guild is not bound to a Discord server yet",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "1lPu+oXa4nZ9JbvI3pQZPg==": {
+      "description": "gear.fillMaxLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Fill max",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "1lRu1Blh1ehnBVsEATlhrQ==": {
+      "description": "sect.tabRotation",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Rotation",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "1s3/GCrBga5PWdBQhGGLWw==": {
+      "description": "grad.rateTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "⚡ Quick Stat Check",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "1tuFL7y0/3N5HN4PRGbLyg==": {
+      "description": "seat.modalSubtitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Anyone can manage · No code needed",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "27PHfpd3WDS8BpscsVczEQ==": {
+      "description": "gear.clearConfirmTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Clear the gear library?",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "2ILeZ5ocot0qeap9aD2x2g==": {
+      "description": "site.heroAlt",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Ink-wash landscape",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "2MGAdBEiAJqCh600In1B1A==": {
+      "description": "appBlocks.unknownBlock",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Update the app to view this content",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "2XX+pIn+zwI3g6Unc1rKog==": {
+      "description": "grad.tier4",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Accomplished",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "2YCS+PRWwdQGL8SbsLoSSQ==": {
+      "description": "gear.extraIntLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "White affinity (manual)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "2ebzL32CKO+lS9YLLeCdzA==": {
+      "description": "create.toastCreated",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Guild created",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "2kfzXanEjKCaB97T6DZHmw==": {
+      "description": "login.cardTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Sign in to enter the jianghu",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "2xzNXUTd+DnmypQts0IGug==": {
+      "description": "gear.survivalNote",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Survival affix, not in recipes",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "2yprHGJ3/exCKTAgB74gFg==": {
+      "description": "errors.nicknameRequired",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Please enter your in-game nickname",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "3+ZJ1eYmm4DwDQCCOjfBKw==": {
+      "description": "errors.generic",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Something went wrong — please try again later",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "353QacjNGPV58CoYyyP9vA==": {
+      "description": "grad.scoreCount",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Count Match",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "36t3VoEVGoUqS/c5Am11Sw==": {
+      "description": "grad.toastLoaded",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Build “{name}” loaded",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "3Foa8iqNEAZdhXoscF1dxg==": {
+      "description": "grad.schemeName",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Build {n}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "3PHQYL/hpifJ1Ko4tnuKog==": {
+      "description": "grad.rateOverflow",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "⚠️ Crit + Affinity = {sum} > 100 — affinity crowds out crit",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "3UdGVQYZisCSiXyNw5wMQg==": {
+      "description": "grad.noSchemes",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "No builds yet — fill in your gear, then save",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "3m8PHPIi5YUWFOgHbLE6Aw==": {
+      "description": "groupingForm.startsLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Start time",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "3zBTnzfjvVX3Cx4srEQjTA==": {
+      "description": "create.backLink",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "‹ My Guilds",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "4/XHuZvvY9CWMhIhzE+1eA==": {
+      "description": "grad.tier1",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Transcendent",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "4M7s18YxMAraVBjRcb2flQ==": {
+      "description": "groupingList.statusOpen",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Open",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "4Wlg6NEyfttxNa8YkhblAg==": {
+      "description": "gear.formulaDimsTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Stat conversion (per point)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "4oUAOcMh94cc9dA7sz8srw==": {
+      "description": "gear.baseResetTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Restore preset?",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "4seEW4Ua/fccxD/JUGtZ9w==": {
+      "description": "legal.disclaimer",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "This is an unofficial tool maintained by players. It is not affiliated with or endorsed by Where Winds Meet or its developers and publishers; game names and related materials belong to their respective owners.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "59/CkDKU/7GdilEsBen9qw==": {
+      "description": "grad.refTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "📖 Reference · Affix Caps & Slot Layouts",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "5mtXamxl2TXxD0uOph1oeg==": {
+      "description": "settings.langZhTw",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "繁體中文",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "5wD1RcFscV8Wunco4Gg1Kw==": {
+      "description": "sect.noRotation",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "No rotation yet",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "61/PK4NCcedQOkSnaXjnsw==": {
+      "description": "sect.empty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "No schools yet",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "6JOTieICIMQEY1lIvfWU0g==": {
+      "description": "gear.ocrBatchResultTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "✓ Batch import done: {n} imported, {m} skipped.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "6fNjaSGeSePMTYWZtZFywg==": {
+      "description": "gear.baseTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Character base",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "6kLtcVE40AUg9muGe+75cA==": {
+      "description": "errors.gearEmptyBuild",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Loadout is empty",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "6rNGV6EPVtXkrdRZ5AvyEg==": {
+      "description": "dex.empty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "No guides yet",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "6x/miMHgCnqt136lGwDHmA==": {
+      "description": "settings.savedText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Saved",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "71Q7A99u1XbReuEHl/leWA==": {
+      "description": "errors.avatarTooLarge",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Avatar image must be at most 400 KB",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "71lxrPnYe/UC1xCxuI/0Sw==": {
+      "description": "groupingForm.nicknamePlaceholder",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "In-game nickname",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "7CjbPZvlENuCu8HqTbmDEg==": {
+      "description": "gear.slotEmptyText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Empty",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "7Cq5Dm+0eXWpMk+x9I66Sw==": {
+      "description": "errors.lastSeatHealer",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "The last seat is reserved for a healer",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "7PHXbZI5H8YPX2O5YtW8Rw==": {
+      "description": "gear.affixPlaceholder",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Pick affix",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "7bRnP/rT+XuwtG0ThkTkMQ==": {
+      "description": "gear.refTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Max {max} / Resonance {cy}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "7bkhCCxfyfoC2Vfav9MmnQ==": {
+      "description": "gear.gradDyLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Attunement",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "8DhIoHf0HAGOEhaWGIc9Nw==": {
+      "description": "groupingForm.minuteOption",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": ":{n} min",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "8N/118f6HebrKLrttWa1OQ==": {
+      "description": "gear.slotsSmallTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Min-ATK builds",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "8RRK+QpeVHXLceeLnWTp/w==": {
+      "description": "gear.ocrBadTypeText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Unsupported image format — only PNG / JPEG / WebP screenshots.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "8UjCv9fjpO8npzfqzLHchQ==": {
+      "description": "gear.recipeSearchPlaceholder",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Search build / set / affix",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "8kgpKjO5+BeZ2ufQ+qN7cw==": {
+      "description": "gear.simLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Simulate",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "8wfsIYHSTdlBuTazsVXo0g==": {
+      "description": "gear.quickTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Rate quick calculator",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "92yiXZVSBGVojHnyMNaasA==": {
+      "description": "grad.affixLoading",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Loading affix data…",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "95rOkgGBTFJi+gdp9D1WEg==": {
+      "description": "gear.schemeTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Saved builds",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "97nFoJQusFBbK4FEuvaLew==": {
+      "description": "gear.diffLackTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{n} short",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "9AAOq0APVA50XY3vwzEM1A==": {
+      "description": "groupingDetail.statusCompleted",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Completed",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "9JS2SLbDGWDiH6b8T7uEbA==": {
+      "description": "groupingDetail.notFound",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "This squad does not exist or has been disbanded",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "9LWSvcL2kokR2fShExLDpg==": {
+      "description": "sect.rotOpener",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Opener",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "9TlREBWbIiXPMhlO19Oc2A==": {
+      "description": "errors.localeUnsupported",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Unsupported language",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "9W2EwYGdBUM471rnBcc47Q==": {
+      "description": "gear.ocrEquipLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Equip right after saving",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "9WJS9KEOR7cBIaPBxkY2gQ==": {
+      "description": "gear.copiedToast",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Copied",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "9sX3ltSG2FWzZlVXrTk5Jw==": {
+      "description": "termsBody.s5h",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Limitation of liability",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "A6YD+cQk3BiQzA9jWKz5yw==": {
+      "description": "legal.termsLink",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Terms of Service",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "AAsb7kV847gjIEBrpTnRuA==": {
+      "description": "errors.cannotManageServer",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "You need Administrator or “Manage Server” permission in that Discord server to bind it",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "AJZ6Jw29nRamqm+D5gv6HA==": {
+      "description": "settings.title",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Profile",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "AKts0g1uNfZkdPllPwEdCw==": {
+      "description": "errors.groupingAlreadyCompleted",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "This squad is already completed",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "AtikPIDEb+r7nhVh+5Qkzg==": {
+      "description": "tiaolv.colAttr",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Attribute",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "AwkCWbLmHazLyKI+5GCm9A==": {
+      "description": "gear.ocrFailedText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Recognition failed. Common causes: no network for the language packs, or a blurry image. Try a clearer, complete detail screenshot.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "B7P7AIQoC7HoRWQEA2GYUw==": {
+      "description": "gear.ocrBatchDupTag",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Duplicate",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "BIVxWtxHr1K4HtQ4+ijUoA==": {
+      "description": "gear.quickSyncedToast",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Synced",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "BTCpeQMfpCpJfr+V7bimVQ==": {
+      "description": "groupingType.shortExplore",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Exploration",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "BVMSuTHO7P00nXLI6zsRbQ==": {
+      "description": "gear.importLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Import data",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "BaR+NREK8rCowYI9S7ueug==": {
+      "description": "gear.loginHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "The gear library and saved builds are stored under your Discord account — sign in to use them (calculations and reference data work without signing in).",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "BxTr3f3cskBvBWT6oRijkw==": {
+      "description": "settings.languageHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Interface language. With \"Auto\", the app follows your browser language; a manual choice is saved to your account and overrides the browser.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ByqE5yMW+YSgOq9vwEXYTA==": {
+      "description": "boss.copyManual",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Please copy manually",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "C8MPKu9bwJKKyuhI9/pspw==": {
+      "description": "errors.serverRequired",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Please choose a Discord server to bind",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "C8RtJmw+wKWAWA+fJpoaFw==": {
+      "description": "boss.shoutsTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "📢 Callout Macros",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "C9Y76R0lVPQpiQGGj/C93g==": {
+      "description": "gear.addRowLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Add row",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "CCiRwa2ySNEoLaKcNaXm1Q==": {
+      "description": "sect.bisHeadBody",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Head & Body",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "CHXmwq+5mWVf0rqUPGsUqA==": {
+      "description": "grad.tier3",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Masterful",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "CMABtQJuu0wG39lVbmMJQg==": {
+      "description": "seat.joining",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Seating…",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "CObLa74mO6vIor04hlbIIA==": {
+      "description": "common.close",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Close",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "CridpU9uowVzNn+PNz3BFw==": {
+      "description": "gear.libEmptyText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "The library is empty. Add gear manually, by paste code, or by screenshot OCR.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "D+kYHrXeMxa0gSskq1nxsQ==": {
+      "description": "gear.autoLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Auto best combo",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "DLxzGBPHJaxtAfSq3mM7YA==": {
+      "description": "privacyBody.s3h",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Sharing and third parties",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "DQ74pDt09tMVVhh8/LmcxQ==": {
+      "description": "gear.valuePlaceholder",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Value",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "DTUKJdZIpgZ+Coz0xOgMTA==": {
+      "description": "tiaolv.tuneArea",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Tuning Area (columns K:R, Excel K3:R5, K6:R24)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "DU44gNmE4O2Gu0jurCUWoA==": {
+      "description": "gear.diffLowTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Lines below resonance value",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "DZK/tBIyk3T9P+OAemKpYw==": {
+      "description": "groupingList.dayGroupHeader",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{weekday}, {month}/{day}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Dg33wbGmKr3BH82d4wDdeg==": {
+      "description": "boss.back",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "‹ Back",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "DipXb2yugpJqMWEm5YRq2w==": {
+      "description": "errors.leaderOnlyDisband",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Only the squad leader can disband the squad",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Du0yPK72PqDB8h+rhJTLtQ==": {
+      "description": "gear.ocrBatchRunningText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Recognizing…",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "E+F2e1l0pOQeZFrKMLwHBA==": {
+      "description": "gear.suggestTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Suggestions",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "E415G1DOUemZNpA21nk7PA==": {
+      "description": "groupingType.shortTalent",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Talent",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "EG0D3OPBEQ0Vql2MAUslIg==": {
+      "description": "create.slugChecking",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Checking…",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "EPm4ACYVcGaXBa1fCuhcMw==": {
+      "description": "gear.ocrBatchReadyText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Ready to review",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "EZ5CP3H01Ax4HyIMChUxzg==": {
+      "description": "gear.ocrConfirmLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Confirm & save",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Ecg1DRD8GMSvMHHtGt/kGA==": {
+      "description": "dex.catSubCurrent",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{season} · {seasonName} · Version {version}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "EmQP9VA+4WGDcilCc2PSRw==": {
+      "description": "gear.ocrTooBigText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Image exceeds 15MB — use a smaller screenshot.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "EoEJu6xmd6Mb9uIx0eG4jg==": {
+      "description": "dex.labelPending",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{count} bosses · Guide pending",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Ex73qWxqdxaSX7YweujY0w==": {
+      "description": "errors.alreadyJoined",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Already signed up",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Ey+dz5yOU4OoTm0Wwa57hw==": {
+      "description": "seat.proxySearchPlaceholder",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Search members",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Ez20PQDhtHA9fpr7FNE11g==": {
+      "description": "gear.recipeAllLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "All",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "F+MLB5gUULCaD95TjY7njA==": {
+      "description": "groupingForm.toastSaved",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Saved",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "F0AdJCG0d4QNI7DhBp204A==": {
+      "description": "sect.tabBis",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "BiS Affixes",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "FCZW/VAoJFE4OOtjC5hPBQ==": {
+      "description": "gear.ocrBatchDupRowText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Same as another screenshot in this batch — excluded by default",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "FMNEQZhNV8kijy5sejvyvw==": {
+      "description": "errors.leaderOnlyComplete",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Only the squad leader can complete the squad",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Fa26kbrzCND8CKUzj3AT8g==": {
+      "description": "sect.rateCritDamage",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Affinity",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Fhj2b/S/ysxg7Q9U5DGDHA==": {
+      "description": "dex.size5",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "5-player",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "FivPBA1xDl+8KuQI0xiThQ==": {
+      "description": "gear.ocrNameLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Name",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Flc43zljVnthVIsqCBMv/g==": {
+      "description": "gear.ocrNeedLineToast",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Keep at least one valid affix row first",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "FtcXbZYldT3ZQPVMLfJfWw==": {
+      "description": "dex.labelParts",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{count} bosses · {parts}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Fwfr7jr0V1J+2hJRSi0EdQ==": {
+      "description": "gear.benchIntro",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Level-100 gear planner: build sets against school recipes and compute panel & graduation (weights: count 40% + value 24% + attunement 20% — a different formula from the graduation calculator above). Your gear library and builds are saved under your Discord account and follow you across devices.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "G0KOns51WXmNSW1O+TIAtQ==": {
+      "description": "grad.resonance",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Resonance",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "GFbEImkPW9MzFOJxmrUDVA==": {
+      "description": "grad.rowMain",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Main Affix",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "GTJdQRRBFvyIEFNuzEUsIQ==": {
+      "description": "groupingDetail.backToList",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "‹ Back to squad list",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "GfbVKl7TBeGA/9vfLpCXcA==": {
+      "description": "gear.recipeColCat",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Category",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "GhoWrDwrCR52A8sMBmP70g==": {
+      "description": "create.submit",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Create Guild",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Gk+29NlEm0JqKAD4LNnVUQ==": {
+      "description": "gear.ocrBatchTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Batch screenshot OCR (auto-crops panels from full screenshots · on-device, nothing uploaded)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Gwd9a10mpxLxVaH/dR5LWg==": {
+      "description": "errors.guildNameShort",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Guild name must be at least 2 characters",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "GyzlpyR4Vjmq3rcOZXf/eQ==": {
+      "description": "groupingForm.dungeonLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Dungeon (optional)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "HMsrLZbaOkOzfsyYycpOhA==": {
+      "description": "termsBody.s2b",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "This site uses Discord OAuth for sign-in. By using this site, you agree to these terms. You are responsible for safeguarding your Discord account, and actions taken through your account are treated as your own. Whether a guild’s content is visible or writable to you depends on your membership of the Discord server bound to that guild.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "HOfiwr4yNUhI4ULD1dICng==": {
+      "description": "gear.pasteDemoLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Fill demo code",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "HWpFVE2XmpxlBdc4yDk9UA==": {
+      "description": "gear.importedToastTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Imported {n} items",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "HX9S7s9XVdwEotePm00DPg==": {
+      "description": "create.title",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Create Guild",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "HfnXU899eaOzfMAHZffmXw==": {
+      "description": "seat.empty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Empty",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Hy5wmPoCll+3mMTQO6qApQ==": {
+      "description": "gear.exportLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Export data",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "I09o/f6B8R72dUJF4FuNgw==": {
+      "description": "gear.baseResetBody",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Character base returns to preset values; inner-skill picks are kept.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "I9mhr+ZTLmTokE4sdqYq2Q==": {
+      "description": "gear.pasteButtonLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Parse & import",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "IPCLBGcHt4z3mSZ/QEZEgQ==": {
+      "description": "privacyBody.s6h",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Contact us",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ITgrVmYpDyB2kb83gPUBjg==": {
+      "description": "gear.ocrBatchRemoveLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Remove",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "IXSo9xFX5DZv47fpOuq02w==": {
+      "description": "sect.tabGrad",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Arsenal Appraisal",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "IZkr6joCBlnyeEHdpoZOyw==": {
+      "description": "grad.toastOldScheme",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "This old build only saved its score — the gear cannot be loaded",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "IaNtNeKiPCi0CbfejWQg3g==": {
+      "description": "seat.leaveConfirmTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Cancel Signup",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "IgDYBIShALUp47q1FG8VvQ==": {
+      "description": "create.noServers2",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Create a server in Discord first (or get admin rights), then sign in again to refresh this list and come back.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "IoA9MsdW+EYjaRKZHBOtHw==": {
+      "description": "create.slugPlaceholder",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "e.g. my-guild",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "IrjnxW0HJFkTu5td0FC12Q==": {
+      "description": "groupingForm.typeLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Type",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "J169aJZkK/3FaNL1f6P21A==": {
+      "description": "tiaolv.toastFailedWith",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Calculation failed: {error}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "J92EDK6gbA/26kCG6L8/jQ==": {
+      "description": "groupingList.weekHeader",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{range} · {count} squads",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "J9xNQr/33npDPi6WwTngug==": {
+      "description": "gear.formulaIntTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Yellow affinity = white affinity ÷ resistance; white caps at {white}% for 40%.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "JC706mVBZQGIV65q/t07LQ==": {
+      "description": "grad.maxTableTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Affix Cap Table (Tier 100)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "JRRmnZ5L8sJDOhZahNQIPw==": {
+      "description": "create.noServers1",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "You do not manage any Discord server yet.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "JV2IsxgcjY8raj6/ak+6Yw==": {
+      "description": "gear.clearLibLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Clear library",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "JZ1esFUfn6kZaikznvwmkg==": {
+      "description": "groupingForm.toastSect",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Please choose your school",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Ji6sBvbG/T2ANnrqtqbNkA==": {
+      "description": "gear.pasteTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Paste-code import",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "JjLkdcOLafsBx2ILdQDllQ==": {
+      "description": "grad.buildBig",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Big Outer",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "JtzoASZyF78KKwvY2XZZaw==": {
+      "description": "gear.talentLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Talent",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "JzAyc+Gu1gyM0WYkZs8JHw==": {
+      "description": "grad.rateOk",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{v} ✓",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "JzpcueFyMngXbooL70WYIA==": {
+      "description": "gear.recipeColBow",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Bow",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "KXFDQcT3n2y5dRCr292cDg==": {
+      "description": "gear.modifiedTag",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Edited",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "KYrT0zNFWWNXfRvYWIx1Zw==": {
+      "description": "userBar.settings",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Profile",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Kdu60GV3DVs4JFIL7hBwPQ==": {
+      "description": "gear.targetLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Target build",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Klu4JGVAWnAgUeEKh0/j9w==": {
+      "description": "gear.dyWrongText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Wrong type",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "L4rTToXwWJ2aLymNqa1doA==": {
+      "description": "boss.talentTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Talent {code}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "LZMdiXAgC7i8ultIeq6pcQ==": {
+      "description": "seat.nameLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Name",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Lap+MH7h5/MCqY6tvgjP9Q==": {
+      "description": "gear.gradValueLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Value",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "LhkYz77LQ+3qKegYyUJfFA==": {
+      "description": "gear.ocrBatchImportedText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Imported",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "LnSem0g5dZh/O+2LxO+lQQ==": {
+      "description": "gear.equippedTag",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Equipped",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "LuMyGMoosyschWToen8H+Q==": {
+      "description": "groupingType.shortRace",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Speedrun",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "M0gpJOz4AZN4yv4OqiEV2Q==": {
+      "description": "dex.bossUnit",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "bosses",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "M39mY1iCyni6OMTNxcgbzA==": {
+      "description": "dex.sizeN",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{n}-player",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "MAk+Wd0p/151Mzm+JG/nYA==": {
+      "description": "gear.ocrSavedTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "✓ Saved to library: {slot} ({n} affixes)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Mds8nbmbQYCqWUMPwJFpmA==": {
+      "description": "groupingDetail.completeConfirmMessage",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Mark “{title}” as completed? It will be hidden from squad lists and no departure reminder will be sent. You can restore it from this page later.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "MgLMBmojBb67XhlwOydndA==": {
+      "description": "seat.proxyPickRequired",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Please choose the member to sign up",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "MizjSGlH7Biqvb6fFwe2Pw==": {
+      "description": "gear.verdictHeirloom",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Heirloom",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "MsAtQUUnT2nhnnFvdGcAFg==": {
+      "description": "groupingForm.editTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Edit Notice",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Mt+CIEyEQ2xHAipgWDx0iQ==": {
+      "description": "create.toastFailed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Creation failed — please try again later",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "N0EaJ1TR3YFWLng/Q0syZw==": {
+      "description": "gear.recipeSetTargetLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Set target",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "N29AjaLf1OYL1KZVfclRjQ==": {
+      "description": "login.button",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Sign in with Discord",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "N6zk/eOE4+1PbYL4ESZ1Rw==": {
+      "description": "gear.yIntLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Yellow affinity",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "N9Iy/RsP5eT00FE8QVx84Q==": {
+      "description": "tiaolv.calculating",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Simulating…",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "NJ+qGjJOpPW1mwi6ytKWHg==": {
+      "description": "gear.copyFailedToast",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Copy failed — note it down manually",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "NPnmmoaSdcv5YSjZBfD4bg==": {
+      "description": "gear.cancelEditLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Cancel edit",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "NRz9C29yF8SS0GXgCTkPag==": {
+      "description": "groupingDetail.toastDisbandFailed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Disband failed: {error}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Nlef9lCBYXPNkvvw7bSIdA==": {
+      "description": "gear.defLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Defense",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "NmW7MxG+SHkZTdGyfvIfmw==": {
+      "description": "groupingForm.nicknameLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Your nickname (the poster auto-takes seat 0)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "NpDYJErAG8lY7fz1QCWvdQ==": {
+      "description": "groupingForm.hintDungeon",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{max} players for “{name}”",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Ns9ry+VOnWXAxAau5/u5dQ==": {
+      "description": "gear.quickResLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Resistance",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "OJePBXqHlgqnhztYi0UpIg==": {
+      "description": "gear.xiaowaiLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Min ATK",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "OKWrpeucCcFmwZyGBIOwrg==": {
+      "description": "gear.colFullBarTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Full bar ({v}) equals",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "OLa06/mUKM5KE0NetrQ9Fw==": {
+      "description": "gear.ocrBatchIncludeLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Import this one",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "OMwZKDFNOZ1clzV+beRdNA==": {
+      "description": "dex.partMechanics",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Mechanics",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ONhuzhcW1RKriBowbCkXCQ==": {
+      "description": "gear.delRowLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Delete row",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "OQUrGielHRdD3gwBlDheuw==": {
+      "description": "dex.noBossData",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "No boss data yet",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "OTStw1aAi1AfKAmIW+TVDQ==": {
+      "description": "gear.deleteLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Delete",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "OWhzZkA3/eomYlJzh0qnKA==": {
+      "description": "gear.colConvLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Conversion",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "OaShTqeSSPQ6lFewZZNGtw==": {
+      "description": "gear.xinfaNoneLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "— None —",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "OeAbXWxjmEMZoar/90108g==": {
+      "description": "guildHome.tabTeam",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Squads",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "PAKnz87y0flweM5P0urzIA==": {
+      "description": "sect.tabTiaolv",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Tuning Simulator",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "PK8uw3yJCFfZ29ka9mYoeQ==": {
+      "description": "sect.rotKeyPoints",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Key Points",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "PLRodaM8LVtu3rSyCTN35Q==": {
+      "description": "tiaolv.wukuSelf",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Own School",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "PVBd8j7I9sggGkw4RY1Qjw==": {
+      "description": "gear.schemeLoadedToastTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Loaded: {name}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "PehYSAoCTu6X77a3vhURcw==": {
+      "description": "gear.simCyLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Resonance",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "PfMAlM6c5iO2tngA6Xf8TQ==": {
+      "description": "gear.xiaoshuLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Min elem.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Pr4wIU1bXYzmsX83ODBCzQ==": {
+      "description": "groupingList.weekday6",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Sat",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Pu0rIxxk8JoQd7GkexUqJw==": {
+      "description": "seat.leaveConfirmMessage",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Cancel the signup of “{nickname}”?",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "PyOHELOZVaQyJmoiSvw6AQ==": {
+      "description": "errors.rateLimited",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Too many requests — please try again later",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "PzIsIbql+xQR4mK4zqvFiA==": {
+      "description": "gear.simRealLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Actual",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "QMSQyS2e81I/ERd7b1TccQ==": {
+      "description": "gear.ocrBatchNoLinesText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "No affixes recognized: check the slot, add rows, or adjust the crop and re-recognize (nothing is dropped automatically)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "QRfo63aJB2Br3fVOTPg7AA==": {
+      "description": "create.slugAvailable",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "✓ yanyun.app/{slug} is available",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "QYc7MUetCKb6+Uf6YMoI6w==": {
+      "description": "gear.formNameLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Name",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Qcj02hpqt44r4XJuOEMj0w==": {
+      "description": "gear.schoolsLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "School tags (weapons)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Qe+a9nyTq0Wk6OVgai1ygw==": {
+      "description": "common.backToHub",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Back to Guild Rally",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Qmk6Uc+SBpDuEeTrh7OPAw==": {
+      "description": "errors.groupingClosed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Signups for this squad are closed",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "QuAWFFF848AoaoCb18O8HA==": {
+      "description": "errors.memberOnly",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Only members of this guild’s Discord server can do this",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "R6jclOGiNkKWT3+weuO3wg==": {
+      "description": "tiaolv.wuxue",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Martial Art",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "R8ffAsVp3uMdCqv01Us+hA==": {
+      "description": "errors.pushTokenInvalid",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Invalid push token",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "RBhoDzcKU9Xj4ha1etIWdQ==": {
+      "description": "gear.ocrBatchDupLibText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Same as an item already in the library — excluded by default",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "RDwWL/mXNWN2wVSzY7YfZw==": {
+      "description": "privacyBody.s1h",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Information we collect",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "RG8LYGcj/o1C03WXltT4kQ==": {
+      "description": "sect.back",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "‹ Back to schools",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "RKF0Hbsyducx1fwVhWvynQ==": {
+      "description": "gear.dyNameLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Attunement name",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "RRf/aT0H3UNLSqi9NU/SaA==": {
+      "description": "errors.loginRequired",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Please sign in with Discord first",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "RSwTBsxfD57y0+6cTt8FFQ==": {
+      "description": "termsBody.s5b",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "To the maximum extent permitted by applicable law, this site is not liable for indirect, incidental, or consequential losses arising from the use of, or inability to use, this site.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "RUWSGgZweI1MfERT//f1mw==": {
+      "description": "groupingForm.toastSaveFailed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Save failed: {error}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "RVfpPVgrBO+mWxImEPUuog==": {
+      "description": "gear.clearConfirmBody",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "All gear and saved builds under your account will be deleted and the current loadout cleared. This cannot be undone.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "RdDNLPtU1+4lRM+5+Jf4Zg==": {
+      "description": "login.cardBody2",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "After signing in, you will see the guilds you can access, based on the Discord servers you belong to.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "RdY6RbIGATejw79KHPdWFw==": {
+      "description": "boss.talentPending",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "· Unverified",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "RgbIajK1+vKtnKdgymFJow==": {
+      "description": "groupingDetail.copyFailedManual",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Copy failed — please copy the address bar link manually",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "RmtZLyKFq62XfgiWDP8E/g==": {
+      "description": "gear.extraAccLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "White precision (manual)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Rqcfzq7cNIzZduvDyRCdnA==": {
+      "description": "termsBody.s1b",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Yanyun Guilds (yanyun.app) is an unofficial, fan-maintained guild team-up tool. It is not affiliated with, endorsed by, or connected to Where Winds Meet or its developers and publishers. Game names, dungeons, sects, and other game data appearing on this site belong to their respective rights holders.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "S1PoB926M4euNf/EuokytA==": {
+      "description": "errors.noCreatorRecordedComplete",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "No leader is recorded for this squad, so it cannot be completed — please contact an admin",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "S1u5DmiSjpWSJxnksdlkug==": {
+      "description": "groupingForm.titleTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{nickname}’s {type} Squad",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "S2zrTjElQSG4ze1DQts18A==": {
+      "description": "settings.langFr",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Français",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "SKkqq6xa19jz53m89z+soQ==": {
+      "description": "gear.demoLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Load demo set",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "SUW9baRvpWtfOtha7gvnFQ==": {
+      "description": "sect.rotGreydust",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "1-Minute Dummy Rotation",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Se9wvk0soQ8VifywE5XTAw==": {
+      "description": "create.toastSlugBad",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "This slug is unavailable — try another",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "SosF9YS1slDnSvUESQxRHQ==": {
+      "description": "gear.loadoutTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Loadout · 8 slots",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "SxcWpizGsFc03kFGtYJH4g==": {
+      "description": "userBar.logout",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Sign out",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Sy1SudtIeFvE/PvtgUcAoA==": {
+      "description": "groupingList.seal",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Go",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "T4ajI/iTWeLsApus0cx6HA==": {
+      "description": "seat.confirmJoin",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Take Seat",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "TBk/ILw5rODLhYDSKttRvw==": {
+      "description": "create.toastSlugRequired",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Please enter a slug",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "TFQsM7at/0RSXHTYiURaCA==": {
+      "description": "gear.ocrRunningText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Recognizing (first run downloads Chinese + English packs, may take a while)…",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "TJoW0reg8/RKA/tqXKZ/Fg==": {
+      "description": "sect.bisMainWeapon",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Main Weapon",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "TOyxqcuaXu97tr/VvQJkuA==": {
+      "description": "groupingDetail.toastDisbanded",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Squad disbanded",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "TQ/OBRyU45hvHr732lx8Ug==": {
+      "description": "groupingForm.hintTower",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Tower climbs are always 10 players, no dungeon pick",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "TSLAeXrLCvWfA+U6pNWFNw==": {
+      "description": "grad.buildSmall",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Small Outer",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "TWYYGaMVNtfqEbPhIOurlA==": {
+      "description": "termsBody.s3h",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Acceptable use",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "TihQcEIlHPGBhAxKFk6xwg==": {
+      "description": "groupingDetail.people",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{occupied}/{max} members",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "TjjnLgs0/vwtECxSWpjqzg==": {
+      "description": "legal.updatedText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Last updated: October 25, 2026",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "TkNqVymlA/k6GFFpzXSXZg==": {
+      "description": "groupingDetail.completing",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Completing…",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Tqc86ERqXFdnJIc15sFwXA==": {
+      "description": "gear.formulaAccTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Yellow precision = 65% + (white precision − 65%) ÷ resistance; white caps at {white}% for 100%.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "TzIJIaf06s1W54RE/engCA==": {
+      "description": "sect.bisAccessories",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Ring & Pendant",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "U0CBuCvbSVV/syoqjeXYag==": {
+      "description": "gear.scoreTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Score {score}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "U9UiUsvUeH59+lgYVCCJ6g==": {
+      "description": "create.submitting",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Creating…",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "UMvY03jknFC8BNpnm0PW6A==": {
+      "description": "gear.suggestHeadTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Now {cur}% → {final}% if all applied",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "UbIih1i1DPpKTOj2zgIPJQ==": {
+      "description": "groupingForm.sectLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Your school",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "UbKXgiRYS1yrzEdwlVnvlA==": {
+      "description": "create.toastNameShort",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Guild name must be at least 2 characters",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "UfSK+TJkXzTeJZyYW34XAQ==": {
+      "description": "gear.ocrUnknownTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "These lines were not recognized and are listed verbatim (nothing is dropped). Add rows manually if needed; pure UI text can be ignored.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "UxB+BKBD2BfOhqI26LGgJg==": {
+      "description": "grad.deleteScheme",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Delete build",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "V2eQ2sKT6XLGdPhgkutkKg==": {
+      "description": "groupingType.shortActivity",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "10-Man",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "V32YqkD/8NEfemn4g56+DA==": {
+      "description": "dex.currentGuides",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Current Guides · {category}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "VFJ5ilKtkNEK2Q+yOro8vA==": {
+      "description": "groupingForm.hourOption",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{n}:00",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "VT6T/7QZjbtijlPtgMlRgQ==": {
+      "description": "gear.libTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Gear library",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "VYEMd2csxYWCjeS4ygPqPw==": {
+      "description": "gear.gradCountLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Count",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "VoDeTNT7XepZbSnqqlJmvQ==": {
+      "description": "boss.noTalents",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "No talents yet",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "VohmvGmpD8ozX1QLxK9+qQ==": {
+      "description": "errors.paramsIncomplete",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Incomplete parameters",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "VpNLZv4R7rj9sxjPdVjtUA==": {
+      "description": "groupingList.weekday4",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Thu",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Vs6NyhZ+L+35NdgLeijn0A==": {
+      "description": "tiaolv.wukuCommon",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "General",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "VxC712IUw3FlPMUmD1Ooug==": {
+      "description": "gear.colCyPctLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Res./Max",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "W0N5TJBIcdZ7qrrqs22lmg==": {
+      "description": "gear.pasteOkTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "✓ Parsed as “{mode}”: imported {n} items / {lines} affixes and auto-equipped them.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "W5ug+dQfuhHeMVzEr4unPA==": {
+      "description": "gear.finalCritLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Final crit",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "W5xiLVY2ibVl15o7tXVANA==": {
+      "description": "gear.deletedToast",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Deleted",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "W9Bilbt+YTFca+CSRUnAyw==": {
+      "description": "gear.xinfaLabelTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Inner skill {n}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "WLBpfcuKRVaW7CwXFVT7Ww==": {
+      "description": "sect.noBis",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "No BiS affixes yet",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "WNzFqiP3S+SIeO5Q+m9TEg==": {
+      "description": "groupingList.weekday0",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Sun",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "WQDqkyJmmGZXe2YU+LUscQ==": {
+      "description": "gear.pasteFailText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "No gear could be recognized in this code. Common causes: truncated copy, an appearance share code (no gear stats), or an unsupported field format.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "WYHLBa3Hl2AHWsjm3/un7Q==": {
+      "description": "gear.diffDoneText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "✓ Graduated.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "WaU14ygRryAZxKS0m7r/mw==": {
+      "description": "dex.backToDex",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "‹ Back to guides",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Wsbk5H70XX4zyViWwfRDWg==": {
+      "description": "gear.colDimLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Stat",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Wv4qVjMeqyS+fWUYWkDFBg==": {
+      "description": "create.slugLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Slug (URL suffix; lowercase letters / digits / hyphens only)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "X/a6k4to26++d05dN3CtPA==": {
+      "description": "grad.toastSaved",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Build “{name}” saved",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "XGDRyv7Q2+sC5CNUEgCa+A==": {
+      "description": "gear.ocrBatchApplyBoxLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Re-recognize with this crop",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "XH1nzldSWdJ1bc8Md2Qdyw==": {
+      "description": "picker.publicGuildsEn",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Public · Read Only",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "XRAfquSwGYrNfdhVWuM9CQ==": {
+      "description": "common.loadingGuild",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Opening guild…",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "XY46SDSl62qPAXt4BbhPdQ==": {
+      "description": "termsBody.s4b",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "This site is currently provided free of charge and on an \"as is\" basis. We do not promise uninterrupted availability, unchanged features, or that data will never be lost. Features may be adjusted, suspended, or discontinued, in principle without prior notice. Please keep your own copies of anything important.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "XhlisInLoaZ5OBmRA2HKyg==": {
+      "description": "gear.savedToastTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Saved: {name}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Xou+QBLgwOZKx6VpGF4sxA==": {
+      "description": "groupingForm.capacity",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Capacity {max} ({hint})",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Y+/l0DFQdnTt5b5ul6saTA==": {
+      "description": "gear.suggestSwapTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{slot}: equip “{name}”",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Y0rzpCJsheF/Uos5sF2XuQ==": {
+      "description": "privacyBody.s6b",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "If you have questions about this policy, or wish to request access, correction, or deletion, please contact an administrator through the Discord server of the “叽哩呱啦” guild, this site’s community guild. We will verify your Discord account identity before handling your request.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Y3/3CTqFGTIBradfSgIV9Q==": {
+      "description": "sect.tabRates",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Stat Targets",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Y31lVhZuWogFg8L05avqYQ==": {
+      "description": "gear.ocrBatchImportTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Import all ({n})",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Y8NMuG21pqa52jLaNeQcqQ==": {
+      "description": "common.unknownError",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Unknown error",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Y8htqvyllKaNpozNx1Ia3g==": {
+      "description": "create.namePlaceholder",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "e.g. The Wandering Blades",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "YaFx2zehmbh9ovjvHwqMFA==": {
+      "description": "seat.roleDps",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "DPS",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "YdiH5F33W+iwLTtD7hFjxA==": {
+      "description": "grad.saveScheme",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "💾 Save current gear as a build",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Ykic+sN6gBRPx75Ka4SfKA==": {
+      "description": "gear.autoDoneToast",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Combo built",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "YnBoJtTHvr5//VUGLnJDJw==": {
+      "description": "groupingDetail.complete",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Complete Squad",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "YqIjOlcbf74KImJYZNB7QA==": {
+      "description": "gear.myBuildsTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "My builds",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "YrE9Gr8pfrpHqixq+/l4WQ==": {
+      "description": "groupingList.prevWeek",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Previous week",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Z8k2Fag4foHPNf0j93uvFQ==": {
+      "description": "groupingList.weekday2",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Tue",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ZBOp1dLOlVRUSiW3EolHqQ==": {
+      "description": "gear.quickOkText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "✓ Capped",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ZE7PqctgldiuNgsQt/VqPw==": {
+      "description": "sect.rateCrit",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Critical",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ZFM4phPVvWfQeFl6R5WEdA==": {
+      "description": "gear.schemeNameTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Build {n}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ZL+PgK8a9L7oJT6FAL8CpQ==": {
+      "description": "seat.emptyJoin",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Empty · Tap to take this seat",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ZOMGVZn6cbgM2dOaXLkVqQ==": {
+      "description": "errors.notInServer",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "You are not a member of this Discord server",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ZPcNlQTEHrnuEPKRu++dGA==": {
+      "description": "settings.discordLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Discord account",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ZihpGXob7NTvHNYUNELiuQ==": {
+      "description": "groupingForm.submitEdit",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Save",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ZiqChhQpLVEhIySFGpS7Pg==": {
+      "description": "sect.rateAccuracy",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Accuracy",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Zo1cNYVzDaW7QotEyCo9Ag==": {
+      "description": "groupingForm.toastPosted",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Notice posted",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Zq9aHBf/J1jO//HLKDievQ==": {
+      "description": "gear.formSlotLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Slot",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "a0VSLow5dcbyZR/7KsQ7ng==": {
+      "description": "groupingForm.monthOption",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Month {n}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "a20X/svJejgm3Vq0pXMqtQ==": {
+      "description": "gear.dySummaryTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Attunement summary",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "a8u1Jn0FDJJi1rjywxVtZA==": {
+      "description": "tiaolv.bow",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Bow Art",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "aB5eJg6Rpo7W43I8E6TJtQ==": {
+      "description": "gear.formulaBowTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Bow bonuses count into white values: precision bow +{acc} white precision / crit bow +{crit} white crit / affinity bow +{int} white affinity, then converted by resistance. Resistance {res} (current version).",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "aI/0r3DzfE/oEqQakDAo+w==": {
+      "description": "grad.scoreValue",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Value Reached",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "aQSXfUPzuf6arjdSPyMyhA==": {
+      "description": "common.cancel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Cancel",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "aTKVCRvd8fArSbdY9ovGWw==": {
+      "description": "locked.backButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Back to My Guilds",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "aX/yIOOOH5UKE0XB0Jh1bQ==": {
+      "description": "grad.colAffix",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Affix",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "aYOmyDG5ul7JraT4MNa00A==": {
+      "description": "seat.toastLeft",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Signup cancelled",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "aew2XjKDnFreb1O+a6Iw8Q==": {
+      "description": "boss.noMechanics",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "No mechanics yet",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "amwcn+BGoJzjJ19sP1Vcug==": {
+      "description": "seat.proxyEmpty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "No members in the roster yet",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "autHQflkREKv6RLCZOGviA==": {
+      "description": "gear.ocrBatchDropText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Drop several screenshots here, or click to pick many / Ctrl+V paste (full screenshots are fine — the gear panel is located automatically)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "awdPoBf4aC87eRf8jSL61w==": {
+      "description": "gear.hpLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "HP",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "b0Tw5xrbfPDqLOdvk1S/OQ==": {
+      "description": "guildHome.tabSect",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "School Guides",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "b0yMQOrS9lkurjucOGZPZw==": {
+      "description": "grad.rateGap",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{v} ({gap} short)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "bJSaayVvE65H+cPgQNvg8Q==": {
+      "description": "groupingDetail.toastCompleteFailed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Complete failed: {error}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "bK//ebiPsSr1nBcS2+W/AQ==": {
+      "description": "groupingForm.titleLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Title",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "bK/PBtKid0QqqxzPEYbX5g==": {
+      "description": "gear.dawaiLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Max ATK",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "bMWQA3lT7l6gszbjEisyPw==": {
+      "description": "errors.loginRequiredShort",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Please sign in with Discord",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "bRhGEz2fv+D8SQzXoqadTg==": {
+      "description": "groupingDetail.openHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Anyone can manage · No code needed — tap an empty seat to join",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "bbuN1FjAb7eJETv+5KSNWA==": {
+      "description": "seat.roleHealer",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Healer",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "bhy5zBYnssJS3ceCJdhKmg==": {
+      "description": "gear.calcFailedText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Calculation failed — please try again later",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "biNbmCuUiv17HGlwN98tFg==": {
+      "description": "guildHome.tabDex",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Guides",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "blrq3hKrgT5BQumYFTRpZw==": {
+      "description": "privacyBody.s3b",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "This site runs on Cloudflare infrastructure, and its data is stored in Cloudflare’s database services. Sign-in and membership verification are provided by Discord. Mobile push notifications are relayed by the Expo push service to Apple’s or Google’s push channels. Departure reminders and heirloom messages are posted to the Discord channel configured by the relevant guild’s administrator, and those messages include your in-game nickname. Apart from what is necessary for the functions above, we do not provide your personal data to other third parties, except where required by law.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "bqEeXM+mE0Tb9cGyTQ9auw==": {
+      "description": "termsBody.s3b",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "You must not use this site to impersonate any person or guild, register or claim guild identities that are not yours, post unlawful or infringing content, interfere with the operation of this site, or circumvent membership checks. Content posted by users, such as team titles and signup names, is the responsibility of the person who posted it.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "c5tWhA0ewxXX1tUH0qwZKQ==": {
+      "description": "groupingType.shortGather",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Gathering",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "c8jwSxcXoWLtuNWuER26Sg==": {
+      "description": "gear.resLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Resistance",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "c9TswfSc+nDmust1OzYk4A==": {
+      "description": "gear.schemeSaveLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Save as build",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "cA9b6Avlu5i237wzfWSQYQ==": {
+      "description": "groupingList.emptyInteractive",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "No squads yet — post the first one!",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "cHSizFbAbjI9rnxqIW2PoA==": {
+      "description": "privacyBody.s4b",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Your data is kept in this site’s database until you request its deletion or it is no longer needed for the site’s functions. Historical records such as signups and teams are currently retained on an ongoing basis; if our retention practices change, we will update this policy.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "cL2xH0kOCjLMSlzAEzIR8A==": {
+      "description": "groupingDetail.toastRestored",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Squad restored",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ca/R7SU7xN8grzzieOo+lg==": {
+      "description": "gear.calcLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Calculate",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "cdHskdie4PntEZewGQbz3A==": {
+      "description": "groupingList.emptyReadonly",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "No squads yet",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "cwRWw5gmeT0EOwsllG814w==": {
+      "description": "gear.schemeComposeFirstText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Put a loadout together on the gear bench first — then you can save it as a build here.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "d0w8RxfxWO6Lb0bGzOzolw==": {
+      "description": "dex.catSub",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{season} · {seasonName}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "d6YQYV3tjbayOMP9cKJG+A==": {
+      "description": "groupingDetail.disbandConfirmMessage",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Disband “{title}”? All signups will be cleared.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "dJXwSPruhyOF4CdO0dIxOA==": {
+      "description": "gear.pasteUnknownTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{n} unrecognized fields were skipped (usually HP, defense or penetration stats this tool does not count).",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "dN96NRpZ+wFMrs2yDE0E+Q==": {
+      "description": "boss.copyFailed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Copy failed",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "dR+Wqv0gLMrkiTNWFJ5ZKA==": {
+      "description": "gear.gradDyToggleLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Count attunement in graduation",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "dfzPu1pwb5ELT5bhOoI0VA==": {
+      "description": "errors.noCreatorRecorded",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "No leader is recorded for this squad, so it cannot be disbanded — please contact an admin",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "dhbxRm5ol9qDL5UOOuTlow==": {
+      "description": "errors.memberOnlyView",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "This guild is open only to members of its Discord server",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "dmBkNao1LRlw+D+ZHOa3Ng==": {
+      "description": "privacyBody.s1b",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "When you sign in with Discord, we read and store: your Discord user ID, username and avatar, the list of Discord servers you belong to, your nickname in those servers, and the OAuth credential (refresh token) used to keep you signed in. Data you create while using this site is also stored, including guild roster records, team and signup records (including the identity marker on a seat), your gear library and saved builds, your language preference, and the push token registered when you enable notifications in the mobile app.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "droqmY78jVuT4Outwrvx1Q==": {
+      "description": "dex.sealBoss",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "B",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "duIrSDYagYWXRJ0ex1jubQ==": {
+      "description": "gear.ocrPreparingText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Preparing image…",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "dvZ/fwPZjxatynJIIgwFvg==": {
+      "description": "picker.readOnlyBadge",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Read-only",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "dwy3NaOw+pOzEQuXGuiJsg==": {
+      "description": "gear.ocrAddRowLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Add an affix row",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "dxHOSUPMFzuEphZZcEAVYQ==": {
+      "description": "privacyBody.s5h",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Your rights",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "e/QadatZH1KmtrkrEIV1vg==": {
+      "description": "groupingForm.hintActivity",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "10-man raids are always 10 players, no dungeon pick",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "eNQlIKaJ6RKpUg6VEtkl7w==": {
+      "description": "gear.ocrBatchRetryLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Retry",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "eNViECY+o9aVZKhoz8SC7Q==": {
+      "description": "gear.recipeColSet",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Set",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "eXsgwjhY8ct15EIiltBjgQ==": {
+      "description": "errors.slugTaken",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "This address is already taken — please pick another",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "efuW3iwHC9UK4KnL70tO7w==": {
+      "description": "groupingList.newCar",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "📯 Post Notice · New Squad",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "eql0d2Sv0dHTHsoyz8YTdQ==": {
+      "description": "create.slugNote",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Cannot be changed after creation",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "erDzCw9S5sss0IkWOfo1Mw==": {
+      "description": "groupingDetail.share",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "🔗 Share Squad",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "etf6ruZB61LROP/dFy60hg==": {
+      "description": "gear.whiteLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "White",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "f3XFTMQF15KaUbWXoaKLFQ==": {
+      "description": "gear.recipeColRecipe",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Affix recipe (resonance)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "f3ux2/Of11TTVFANBErpIQ==": {
+      "description": "boss.copy",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Copy",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "f4t4xmJ2TzDknBgL1slArg==": {
+      "description": "gear.formulaOrderTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Gearing order",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "fCzgrrRDwjI97yzWmD9y5g==": {
+      "description": "create.toastServerRequired",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Please choose a Discord server to bind",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "fHX5f7GFqKyIg/EQ29Zy+A==": {
+      "description": "gear.slotsBigTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Max-ATK builds",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "fRdkGkMuzsVjLTMLZgJ4uw==": {
+      "description": "seat.namePlaceholder",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Your name",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "fp5qufHZob7kj/Kc8Nqtng==": {
+      "description": "gear.bowLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Bow",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "fsPQAtZeuV2UKUf5KNX/dA==": {
+      "description": "gear.schemeDeleteLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Delete",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "g10H5+gC7sRznu5Xya/Rrw==": {
+      "description": "dex.partTalents",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Talents",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "g9xg47F3tc8gY5looY7KrQ==": {
+      "description": "gear.benchTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Gear Bench",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "gEs5einIdhnNzLOjMsr2jQ==": {
+      "description": "errors.guildUnboundWrite",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "This guild is not bound to a Discord server yet — writing is locked",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "gMfszrAa/HDGfvn2E+UQmA==": {
+      "description": "gear.copySummaryLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Copy summary",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "gRi8Qhi5+ORatyDBeGzpHg==": {
+      "description": "groupingType.shortTower",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Tower",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "gY5psoq859Ct42FNd/x3xA==": {
+      "description": "gear.qualityLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Value quality",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "gZdBDx4jUc+CUQLpzw6Z/g==": {
+      "description": "gear.dyValLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Attunement value",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "gosWqJYo4zfFq+p19sMbgQ==": {
+      "description": "gear.clearedToast",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Cleared",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "h1KquiyV4pvFE8cdKwTZnA==": {
+      "description": "gear.ocrBatchQueuedText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Queued",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "h3xNwnMgychKChAq5AYi5A==": {
+      "description": "grad.scoreRate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Stats Met",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "hChHFvanpUI9g36tALkdTg==": {
+      "description": "gear.updateGearLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Save changes",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "hLVJSoWpj3DxABlGpdKxrQ==": {
+      "description": "gear.suggestWashTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{slot}: reforge line {line} {from} → {to}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "hNgDu4Vx40FESN3OAHxGpw==": {
+      "description": "grad.slotTableTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Slot Layout Table ({build})",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "hOekplSVL3CYwWzrlA/Tvw==": {
+      "description": "gear.schemeGroupCountTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{n} builds",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "hc0JndK72a9/MyXSp8SGhQ==": {
+      "description": "grad.subtitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Count 50% · Value 30% · Stats 20%",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "hhWy9NNRa41oUu9bFD8KCA==": {
+      "description": "groupingList.weekday3",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Wed",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "hhaMEbghgYk/7pP02KQoQA==": {
+      "description": "gear.dashuLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Max elem.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "huV9ro0ouTsC3Vq2HkgGXg==": {
+      "description": "gear.recipesTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "All-build recipe table (Lv.100 · resonance)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "i3iBwR6b6sOFNY2unlq2wA==": {
+      "description": "errors.createRateLimited",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Creating too often — please try again later",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "i4FoVp7mJs08nVxXbIVClQ==": {
+      "description": "gear.ocrTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Screenshot import (on-device OCR)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "i7psdH6rpOKOImziTpBN+Q==": {
+      "description": "gear.ocrCancelLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Discard",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "iCqyI0iY8xpYOEak0QlifQ==": {
+      "description": "groupingDetail.toastCompleted",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Squad completed",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "iHCATqfV/jxGcg+e7L74ag==": {
+      "description": "common.renderError",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Render error: {message}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "iJKzaxKRona4U6QlarYh8g==": {
+      "description": "gear.verdictDud",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Dud",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "iM+B0D6G9WOJAizCJelL8g==": {
+      "description": "gear.sectRecipesTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Lv.100 recipes (gear bench)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "iOpnk8FHohvovbD8k/M7wQ==": {
+      "description": "errors.guildNotFound",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Guild not found",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "iUBJp68z4ZK8hVSnUlM2kg==": {
+      "description": "grad.tier2",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Pinnacle",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "iUHm6HGjM5DgwFBo+XMTtw==": {
+      "description": "groupingType.tabTower",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Tower Climb",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "iZPrHJhk22FVui+NfvptQQ==": {
+      "description": "sect.bisLegsWrists",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Legs & Wrists",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "iau4AGm6tRzZLEw/Waj5iA==": {
+      "description": "gear.ocrBatchFullImageText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Panel not located — recognized as a full image",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ihRwDQrNGKjq0vTujZtpug==": {
+      "description": "errors.avatarEmpty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "No image data received",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ike2RFdiAbHduZgG+j5i4w==": {
+      "description": "errors.seatNotFound",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Signup not found",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ipIYYknpoSZjgLFBk36iJA==": {
+      "description": "gear.editLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Edit",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "izVuJSO3eE1OmYrSMwA1lg==": {
+      "description": "gear.pastePlaceholder",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Paste gear data here (JSON / Base64 / text)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "j1fqbU2yaBCdEPvpuAxBPg==": {
+      "description": "grad.tier5",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Initiate",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "jZvslEKJfFniBJWvdgpDEA==": {
+      "description": "tiaolv.none",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "None",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "jdvdQ2HPld/tgI8sc3iGcA==": {
+      "description": "gear.formulaBarsTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Bars short (per resonance bar): precision {acc} / crit {crit} / affinity {int}; an Agility bar adds ≈ +{minCrit}% white crit, a Momentum bar ≈ +{shiInt}% white affinity.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "jh3h3GkIQbFTNT0FoLR5Gg==": {
+      "description": "gear.quickSyncLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Sync from gear bench",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "jiNePnv5Sur6Dg+w+itJXA==": {
+      "description": "gear.ocrBatchFailedText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Recognition failed",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "jvDndEPyFqLxKUj1TfLdRQ==": {
+      "description": "dex.labelNoBosses",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Bosses pending",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "kNp54Vk1K7V8/Yko0l1Z+A==": {
+      "description": "locked.body1",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "This guild does not exist, or is open only to members of a specific Discord server.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "kYAMoMLD7il60O3pgrtrgA==": {
+      "description": "appBlocks.closedStatus",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Closed",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "kqS5vlpRoNP9wqujnrl7kQ==": {
+      "description": "guildHome.readOnlyBanner",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "This guild is not bound to a Discord server yet · Read-only browsing",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "kxINeh/IsqP6Fh9sIHyWXg==": {
+      "description": "dex.size10",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "10-player",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "l19SswwvQ5NB9YlpnY/i/g==": {
+      "description": "gear.ocrSlotLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Slot",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "l2zKlR8h3TVJ33OH5agWpA==": {
+      "description": "create.serverLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Discord server to bind (only servers you can manage are listed)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "lBJpUmQYlNEq4EdXqmZlow==": {
+      "description": "gear.ocrBatchAdjustLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Adjust crop",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "lC25KGNQfAZdV+VbDn20nA==": {
+      "description": "termsBody.s6b",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "These terms may be updated from time to time. The updated version takes effect when published on this site, and your continued use of this site constitutes acceptance of the updated terms.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "lGnqI+RJJWdCQr+wLPBSGA==": {
+      "description": "errors.leaderOnlyReopen",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Only the squad leader can restore the squad",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "lLbxK2CCJqkxwT/JWy3e5A==": {
+      "description": "gear.suggestNoneText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Nothing to improve in this set for now",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "lOB2BBzS217KGYnuaVhcYg==": {
+      "description": "groupingDetail.linkCopied",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Link copied",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "lgUkGFG6v8/xw/+DKcVBug==": {
+      "description": "gear.fillCyLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Fill resonance",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "lls0oh6JYQILBRwmyv06rQ==": {
+      "description": "gear.extrasTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Other sources",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ltjEfIS0AVtySaGuVg6uNQ==": {
+      "description": "grad.valuePlaceholder",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Value",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "luawsX/6u7U8joDsMtUhVg==": {
+      "description": "guildHome.backToHub",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "← Guild Rally",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "lw4TL0r9meYMhzopTA5AMA==": {
+      "description": "picker.publicGuilds",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Public Guilds",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "m0goxACr4K3NVRFneuHCqw==": {
+      "description": "gear.quickOverTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": ", overflow {v}%",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "m5dm92vgYaI62vT4y9CSkQ==": {
+      "description": "tiaolv.colBase",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Base Value",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "m8z4NFcUuvRSIvZR02yQZw==": {
+      "description": "privacyBody.s4h",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Retention",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "mEY6z3ikTQkK7fspS8HC6g==": {
+      "description": "grad.itemScore",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "This piece {score}%",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "mP4kyyUi6rNuKw0LdkHy0A==": {
+      "description": "tiaolv.colPanel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Panel Value",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "mV5BtppBqsTAkWZPsC39wg==": {
+      "description": "seat.toastLeaveFailed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Cancellation failed: {error}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "mX3keWSoU+Q+b0rDBQEqsQ==": {
+      "description": "groupingDetail.statusOpen",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Open",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "mYZCNp1lqmCUlHuGHkhVhQ==": {
+      "description": "site.subtitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Where Winds Meet · Global server — guild squads and strategy hub. Choose your guild, and ride together.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "mZunjBjoy29VF1cDqj9ULA==": {
+      "description": "gear.ocrDropText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Click to pick a gear-detail screenshot, or drop / Ctrl+V paste it",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "maDBGTg8EaIA8slGrR9Hdw==": {
+      "description": "gear.bowNoneLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "None",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "mhlY27miIMU5hTfprlvJRA==": {
+      "description": "picker.myGuildsEn",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "My Guilds",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "mickzXUfwf4a/ho0ZdCRiA==": {
+      "description": "gear.myLibTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "My gear library",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "mkgIjwzgIFh1RzhpjMYNtA==": {
+      "description": "userBar.loggingOut",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Signing out…",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "mluH9785SeaNOj1rdkKNZQ==": {
+      "description": "common.renderErrorHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Something went wrong on this page. Other pages are unaffected.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "mriyYTPTOek1xjuf76wA0w==": {
+      "description": "grad.overMax",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Above the cap {max} — will be counted as the cap",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "mwtT1NbIoZRk3CJHfYttmA==": {
+      "description": "gear.ocrSecondText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Enhanced pass (2nd)…",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "mxXGU+ymmpHhMMUPwwwmaQ==": {
+      "description": "gear.baseResetLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Restore preset",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "n+toP14reF5rFU+EX5Ym4A==": {
+      "description": "gear.pasteEmptyText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Paste a code into the box above first.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "n1vTwDc0R+P2ke/Z3KztiQ==": {
+      "description": "groupingList.people",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{occupied}/{max} members",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "n46c+S9ZYfBXXK4MJjUkWA==": {
+      "description": "groupingDetail.completeConfirmTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Complete Squad",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "n6q76e+zO+0o3H/OIa41Gw==": {
+      "description": "legal.privacyTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Privacy Policy",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "nCFIBWTUC61Jip4EZ763Ag==": {
+      "description": "grad.load",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Load",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "nK497ViqIWHw820/ZzjRfA==": {
+      "description": "grad.colMax",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Cap",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "nWRavNs0yvy1M32lt7876w==": {
+      "description": "gear.diffInvalidTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Warning: {n} formless lines on non-weapon slots were not counted.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "nfojMu+tLcx/wRYz9sZs7A==": {
+      "description": "create.nameLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Guild name",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "nfpigfP/mC2nasEQ4s41pw==": {
+      "description": "legal.termsTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Terms of Service",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ng7r1bZ/HF6A4/XDHyGLpQ==": {
+      "description": "picker.emptyBody",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Guilds are organized by Discord server: if a server you belong to is bound to a guild, it will appear here. If not, you can bind a server you manage as a new guild.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ni4W3iwI2M7yFA1DnWXAbw==": {
+      "description": "sect.bisOffWeapon",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Off Weapon",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "o/6Qn0YEtodE2n1B0M5BnQ==": {
+      "description": "gear.formNamePlaceholder",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Gear name (optional)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "o3WKrQvE7gd9DJxuWyfDkA==": {
+      "description": "login.cardBody1",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "This site requires signing in with a Discord account.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "o69GxIGJRp2ydaf3ifs2jQ==": {
+      "description": "errors.leaderOnlyEdit",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Only the squad leader can edit the squad",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "o6Ee+AsPRc48Fr2cbLArMQ==": {
+      "description": "appBlocks.rosterTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Roster",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "oHjilhYo0ZNoXg5AfbBYtw==": {
+      "description": "groupingType.tabTalent",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Talent Squads",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "oL2LXum+M4Xrpylqk5jqIg==": {
+      "description": "gear.affixTableTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Affix max / resonance table (gear bench)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "oSolE7ZK6WWX22fIQR7kag==": {
+      "description": "gear.libCountTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{n} items",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "oXIuoBEtJ4kN5p15WKx7bA==": {
+      "description": "groupingForm.hintTalent",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Talent squads default to 5; picking a dungeon uses its size",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "odsb5RMwMiyShFKG/+cynA==": {
+      "description": "legal.privacyLink",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Privacy Policy",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "osKkWqXpQNKo/X1qDV92Xw==": {
+      "description": "gear.schemeSavedToastTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Build saved: {name}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "oxdgSfKDqNmGv8AgHtnqBQ==": {
+      "description": "settings.languageLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Language",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "pAFvKUdMYJ8J6pp2id3xpg==": {
+      "description": "gear.diffEmptyText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "No gear equipped yet.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "pGDPsnYe/NYvDNIen9euIg==": {
+      "description": "grad.ringLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Graduation",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "pMyWX41zgWHax1j7b8oVag==": {
+      "description": "settings.langZhCn",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "简体中文",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "pnBZoguVftpBGfuE4xsVOw==": {
+      "description": "gear.diffTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Gap list: what is missing",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ppXAllQvorFUP7jQPDNW5g==": {
+      "description": "grad.rowResonance",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Attunement",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "pua2Af+MTDU9ISVv9Cnbcw==": {
+      "description": "gear.formulaCritTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Yellow crit = white crit ÷ resistance; white caps at {white}% for 80%.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "pw47q256fGo5mHlBHnAoOg==": {
+      "description": "locked.title",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "You cannot access this guild",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "q+FJXIz4dQdK2hjyWHNMDg==": {
+      "description": "groupingForm.dungeonNone",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Not specified",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "q87kgLxXIX0Ay/5z6c0BzQ==": {
+      "description": "gear.addGearLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Save to library",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "qG+IXMqXQFkALWlc++8JGg==": {
+      "description": "tiaolv.wuku",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Arsenal",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "qI7beL21PcJ/GWOuAx5lmA==": {
+      "description": "gear.simActiveTag",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Simulating",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "qJ4vo7eywC18qfaduffEmQ==": {
+      "description": "settings.langEs",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Español",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "qL/LMveKhbL7W7wukgo2XA==": {
+      "description": "errors.badStartTime",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Please choose a valid start time",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "qNDSue8pP+/nOKLgUhlDCA==": {
+      "description": "gear.recipeColSchool",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Build",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "qWfx7QeXGOnVOjISuYojGg==": {
+      "description": "seat.modalTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Take Seat · #{n}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "qXZ6VXTNH+hEmTR5a54gnQ==": {
+      "description": "gear.schemeLoadLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Load",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "qiE7xlzSdPIB6ir2ZMpQtg==": {
+      "description": "gear.formulaTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Formulas & stat conversions",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "qjnc7fxrHCAvY/cbugC7Ag==": {
+      "description": "groupingList.weekday5",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Fri",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "qs9mFVEnHzThvdqgyed9dg==": {
+      "description": "picker.createGuildMore",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "+ Create a new guild",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "qsq2gjQuxfnFrUTOdvCPbw==": {
+      "description": "errors.gearNotFound",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Gear not found or not yours",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "r4O4FkSmrWMsiWPz26Evsw==": {
+      "description": "seat.toastSect",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Please choose a school",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "rEUyvUGtn2WhYE6neb1Mbw==": {
+      "description": "login.privacy",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "We read and store your Discord nickname, avatar, server list, and sign-in authorization for membership checks and reminders — see the Privacy Policy",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "rFJLzcfrJbpDPnhBsGjeVA==": {
+      "description": "boss.notFound",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Boss not found",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "rHrERf/l9j5TKDYkKNFZaA==": {
+      "description": "groupingForm.titlePlaceholder",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "e.g. Sat night 10-man, need a healer",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "rLUTfDre8j6n/nTbnNjWnA==": {
+      "description": "grad.valuePlaceholderMax",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Value / {max}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "rQGqLaGHY7HP3br4jj2R3Q==": {
+      "description": "tiaolv.innerSkill",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Inner Art {n}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "rUH7fPIgClhGF2BHAwb/dA==": {
+      "description": "gear.colCyLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Resonance",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "raQHXMrU4rZ1tYzCuBO/ZQ==": {
+      "description": "gear.extraCritLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "White crit (manual)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "riTm1Cm4JKnHWCenhuo3pw==": {
+      "description": "errors.slugInvalid",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "The site address may only use lowercase letters/digits/hyphens, 2–40 characters",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "rlKj0rP/In3IlUfT0a0zag==": {
+      "description": "seat.toastJoined",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Seat taken",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "s67Vb39CwmA/eW1zVD83LA==": {
+      "description": "grad.colResonance",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Resonance (95%)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "s6whvLyjBE8m8PkTq8f04g==": {
+      "description": "gear.recipeTargetToastTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Target set: {school} · {set}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "sFpYzp3w3xcKJQ01nJOtcA==": {
+      "description": "grad.affixPlaceholder",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "— Not inscribed —",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "sJekQtRGul4I92QLH5oTSg==": {
+      "description": "gear.formulaOrderText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Pick a build → match the recipe → log your gear. Auto-combo a first version → fill gaps from the gap list. Cap precision at 100% first; crit 148% / affinity 74% are the ceilings — overflow goes to Power / Momentum / damage. Torn between two sets? Save both as builds and compare totals.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "sY4tAVSGnImaEeNHtMxkCQ==": {
+      "description": "errors.noCreatorRecordedReopen",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "No leader is recorded for this squad, so it cannot be restored — please contact an admin",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "subv/LLnjKYpYQcqUwpq7w==": {
+      "description": "errors.avatarBadType",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Avatar must be a PNG, JPEG, or WebP image",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "t0mUIvamXjTqA2CBRczjNg==": {
+      "description": "gear.ocrNoEngineText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "The OCR engine could not load (it is fetched from a CDN). Check your network and refresh; paste-code import is unaffected.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "t2qBAQBKqTZHYvB/cPm11w==": {
+      "description": "groupingDetail.restore",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Restore Squad",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "tEjLWD3v+OlSM+H0rgbSWw==": {
+      "description": "groupingDetail.edit",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "✏️ Edit",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "tPZ+Sl8XQ0jpBd9mYcXM2g==": {
+      "description": "gear.quickGapTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{lack}% white short (cap at {need}%) ≈ {bars} × {barName}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "tWIQr4X05kv0v6FlFfnAgQ==": {
+      "description": "tiaolv.toastFailed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Calculation failed",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "tZfNGtwBezMFKkJ9vTICRA==": {
+      "description": "seat.nameRequired",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Please enter your name",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "tZifyGJahQ5wBWLSTWKKGg==": {
+      "description": "termsBody.s4h",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "The service as-is",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "tf2SD/n6osk5lozQyEnhNg==": {
+      "description": "boss.tabMechanics",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Mechanics",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "tn16KntCd89sO4gp8MSxpw==": {
+      "description": "gear.ocrImportSlotTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Import {slot}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "tnID1g80Kl90fCIVjSgU/Q==": {
+      "description": "termsBody.s1h",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "About this site and its unofficial status",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "tnUWfyfYTTvKmiB+FQD+Zw==": {
+      "description": "gear.unequipLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Unequip",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "toKkWZb711UgPgKPGz4Ejg==": {
+      "description": "gear.dyCorrectText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Correct",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "tu7yTa+LfQ/oZf6S6S7XwQ==": {
+      "description": "gear.ocrDoneTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "✓ Done: {n} affixes recognized{slotPart}{dyPart}. Check each value before saving.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "u/6C3e1OBs5jyy5m2Sa3Sw==": {
+      "description": "groupingList.weekday1",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Mon",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "u0XYL+B2psAWUCIOXes0nA==": {
+      "description": "grad.rowSub",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Sub Affix {n}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "uBNxPwrzPHyxhQqEtoCA3w==": {
+      "description": "groupingDetail.toastRestoreFailed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Restore failed: {error}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "uLEA9sPbQkB/YS3DZ4a6Tw==": {
+      "description": "seat.toastJoinFailed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Signup failed: {error}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "uQ22KhcTX0eIh132Tu+lpg==": {
+      "description": "groupingForm.hintRace",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Speedruns default to 10; picking a dungeon uses its size",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "uV3GkYC1i1n/MTMUkCV/Zw==": {
+      "description": "grad.entering",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Entering the arsenal…",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ug5ggSKen5LIgoTqe6d6Ng==": {
+      "description": "errors.slugReserved",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "This address is reserved — please pick another",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ugDrTt9DHOevJTRsG3DHjA==": {
+      "description": "groupingDetail.completedHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "This squad is completed · Hidden from lists; no departure reminder will be sent",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ujqRwkdNyQy38FeEMAdEgw==": {
+      "description": "picker.myGuilds",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "My Guilds",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "uvGQ0QJl0t1ZMy3nLZs4vw==": {
+      "description": "tiaolv.colFinal",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Final Panel",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "v6R/HR+9FP5348OMIKvEbg==": {
+      "description": "gear.autoFallbackToast",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Combo built (with fallback picks)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "vEZ1xVkNiUPaDbB+oPbZZQ==": {
+      "description": "gear.ocrLowConfTag",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Low confidence — verify",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "vH8l4m3mzT4Mnysd1sL8Cw==": {
+      "description": "gear.diffExactText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Exact",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "vRIq0jXU1047SPwP39KSDQ==": {
+      "description": "picker.createGuild",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Create Guild",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "vUCcm0T/J/hvCufMZLI3lw==": {
+      "description": "termsBody.s2h",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Accounts and access",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "vYsMqguQhqZ9+/UZaMvsjw==": {
+      "description": "privacyBody.s2b",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "The information above is used only for: sign-in and identity recognition; verifying your membership of the Discord server bound to a guild; team signups; departure reminders and app push notifications; heirloom-achievement pushes; and displaying the site in your preferred language. We do not sell your personal data, and we do not use it for advertising.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "vbwRD47QpWUy8cRZJW3Scg==": {
+      "description": "settings.autoLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Auto (follow browser)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "vjduux8zzTR3PgYIkiJUfg==": {
+      "description": "seat.selfNameHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Your name comes from your Discord nickname and can’t be changed",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "vyPKIDN+0CtaPEy2QN86WA==": {
+      "description": "seat.proxyTab",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "For a member",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "w3S++/IjZv5gP+KudU5V4g==": {
+      "description": "seat.sectLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "School",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "w8ojp6jVR2ljwTYgkqLgBg==": {
+      "description": "common.confirm",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Confirm",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "wB7Pg9KtdWKs4PK2Lt7h+g==": {
+      "description": "tiaolv.intro",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Tuning Simulator · Faithful port of bilibili@片雲 DIY 0.10.2 (Lv.100) damage calculator logic",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "wDjKvCL15FwoD9FZv9rqBQ==": {
+      "description": "gear.simMaxLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Max",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "wEGEtHa3cq7lBdztFH1zTw==": {
+      "description": "dex.partShouts",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Callouts",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "wFUY7J3cSsW4bBXql9TVgw==": {
+      "description": "gear.yAccLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Yellow precision",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "wMl+cYLbJ02cIgEexqQscg==": {
+      "description": "gear.ocrBatchDetectedText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Panel auto-cropped",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "wnELuvtRS8RyXAhkSOiz2Q==": {
+      "description": "errors.groupingNotFound",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Squad not found",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "wnz07D4bK28+yU+pG2odcg==": {
+      "description": "create.slugTaken",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "✗ Taken or invalid",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "wuGNq/yi4x2Ua2/Q1UiDeQ==": {
+      "description": "gear.diffOverTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{n} over",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "x+Oua4hTI0pgYK8ui5mW1A==": {
+      "description": "groupingForm.createTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Post a Notice",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "xFLusmWc/55JGZn6n8jK+w==": {
+      "description": "tiaolv.suit",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Set",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "xJtGZ99gpkBmiIDKUcAz7A==": {
+      "description": "gear.pasteFullText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Recognized as a full export of this tool; imported as a whole library.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "xOGr5qt8R4MC3RyzCp7xOA==": {
+      "description": "tiaolv.innerSkillPlaceholder",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Inner art name",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "xR4buOcjoTW6gwqFbcaiTg==": {
+      "description": "sect.noRates",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "No stat targets yet",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "xTM8JXZCE6EQDDLvGEFUbA==": {
+      "description": "groupingDetail.disbandConfirmTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Disband Squad",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "xTi6HQvcVAcWjgSlruPGiA==": {
+      "description": "gear.dyNamePlaceholder",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "e.g. 外功穿透 / 无名剑法·蓄力技增伤",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "xUz2PgeSKvVLil7S4o8LIA==": {
+      "description": "errors.groupingFull",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "The squad is full or signups are closed",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "xdqf2aiACiOaqXwlBZBv+w==": {
+      "description": "errors.startTimeTooFar",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Start time cannot be more than 60 days ahead",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "xqfZV9ZpUepwxdgHeajCoQ==": {
+      "description": "boss.tabTalents",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Talents",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "xrOe2MmiSxRBFiH41BR7Kg==": {
+      "description": "groupingForm.dayOption",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Day {n}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "xtnTcFrchT6Lk75TaYYD7w==": {
+      "description": "locked.body2",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Join the corresponding Discord server, then sign in with the same account to access it.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "xyFkWc5P5HG27hUhiW7U3A==": {
+      "description": "gear.formulaRatesTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Rate conversion",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "y1/qNUHlYSIMbEQwh9WN1A==": {
+      "description": "dex.bossesLine",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{count} bosses",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "y2KTnLn/AZNH/fYRRsECIA==": {
+      "description": "errors.noCreatorRecordedEdit",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "No leader is recorded for this squad, so it cannot be edited — please contact an admin",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "y95WUMLU4PXzC3zMlOQjvw==": {
+      "description": "grad.title",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Arsenal Appraisal",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "yBaRDCg6ZcDHqb/9jf/6ug==": {
+      "description": "settings.langEn",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "English",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "yGJGynDwlHNC1LOnqjYVFg==": {
+      "description": "groupingDetail.disband",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Disband Squad",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "yJ6BnEOSG9WT1uHvkER4oQ==": {
+      "description": "gear.demoLoadedToast",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Demo set loaded",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "yNAdEXVxhENU7FMfRLgp8w==": {
+      "description": "picker.emptyTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "You have no guilds yet",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "yQtfWTQEiez1xFpcTPyXXw==": {
+      "description": "groupingForm.submitting",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Submitting…",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "yRa9iWo7GqGZ8fvfKKKNIw==": {
+      "description": "grad.mingjinNote",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Mingjin · Big-Outer Affinity Build",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ySwad21OhzuNdWmZRyK8Jw==": {
+      "description": "gear.loanLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Max simulation (graduation if all values were max)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "yXbk7XDOJMAr3yrufkZdSQ==": {
+      "description": "groupingList.undatedGroup",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Time TBD",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "z1Zc5HZFSisCLfqa5cuZAw==": {
+      "description": "dex.labelAll",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{count} bosses · Full {parts} coverage",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "z7g14PqWEVHJBVwtIVJnBQ==": {
+      "description": "tiaolv.calc",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Run Simulation",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "zBgel/+GWLUlqbgWSP/6iA==": {
+      "description": "locked.backLink",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "‹ My Guilds",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "zCDSab6plAWJgMMwSr7QzQ==": {
+      "description": "termsBody.s6h",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Changes to these terms",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "zIeAY5pyJk3s3Iy+KRYV8Q==": {
+      "description": "gear.schemeEmptyText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "No saved builds yet.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "zz5IXf3E/z37hobsAkB3Kg==": {
+      "description": "gear.yCritLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Yellow crit",
+          "variations": {}
+        }
+      ],
+      "types": []
+    }
+  }
+}
