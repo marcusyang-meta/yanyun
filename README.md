@@ -10,7 +10,6 @@ yanyun/
 ├─ yanyun-web/        Web 前端: Vite + React + Relay 21 (构建产物拷进 signup/public 部署)
 ├─ yanyun-mobile/     手机版: Expo SDK 58 + React Native + Relay (EAS Update 分发)
 ├─ yanyun-og/         OG 分享图 Worker (satori/resvg 渲染, Cron 预热)
-├─ yanyun-overlay/    桌面 overlay (旧 Electron 只读攻略窗; Tauri 迁移规划见 BLOCKS-PLAN.md)
 └─ packages/
    ├─ blocks-core/    @yanyun/blocks-core — Bloks-lite 平台中立核心
    ├─ theme/          @yanyun/theme — 设计令牌单一来源
@@ -35,8 +34,7 @@ npm run relay          # Relay 多项目 codegen (根 relay.config.json, 见下)
 Bloks-lite 的平台中立核心：Block/Action 类型、递归 fragment 集、树 walker
 （`createBlockRenderer`）、`dispatchAction`。**禁止 import react-native / DOM**——
 平台叶子（RN/Web/Tauri 渲染器）由宿主经 `BlockLeafRegistry` 注入。
-- 消费者：yanyun-mobile（`src/blocks/` 是宿主垫片：RN 叶子 + 动作绑定）。overlay 的
-  blocks 迁移（Tauri）将是第二个消费者。
+- 消费者：yanyun-mobile（`src/blocks/` 是宿主垫片：RN 叶子 + 动作绑定）。
 - 不在本包的东西：Relay Environment 工厂留在 mobile `src/relay.ts`（绑了 App 的
   session/语言重查逻辑，非平台中立）；`BLOCKS_VERSION` 的**值**留在 mobile
   `src/config.ts`（每端协商），包里只持有版本契约（FallbackBlock 等）。
@@ -131,4 +129,3 @@ secret 类配置（`wrangler secret`）：仍由人工经安全通道处理，�
 ## 其他
 
 - Node 版本见 `.nvmrc`（24）。
-- overlay 的 blocks 迁移计划：`yanyun-overlay/BLOCKS-PLAN.md`。

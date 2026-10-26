@@ -17,7 +17,6 @@
     "yanyun-web",
     "yanyun-mobile",
     "yanyun-og",
-    "yanyun-overlay",
     "packages/*"
   ]
 }
