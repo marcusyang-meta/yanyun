@@ -12,11 +12,11 @@
  * unchanged; this is only a local verification fixture).
  *
  * Usage: node scripts/verify-repositories-d1.mjs [section]
- *   Omitting section = all; currently fifteen sections: tenants /
+ *   Omitting section = all; currently seventeen sections: tenants /
  *   events / gear / users / members / results / dex / reference /
  *   state / ddl / guard / stamp / membercount / atomic / audit /
- *   shortlinks, extended as the data-layer migration progresses.
- *   Non-zero exit = an assertion failed.
+ *   shortlinks / beats, extended as the data-layer migration
+ *   progresses. Non-zero exit = an assertion failed.
  * =================================================== */
 import { Miniflare, convertV4MiniflareOptions } from 'miniflare';
 
@@ -222,6 +222,7 @@ if (want('events')) {
   const evRepo = await import('../src/domains/groupings/events.ts');
   const suRepo = await import('../src/domains/groupings/signups.ts');
   const NOW = 1_800_000_000;
+  await suRepo.ensureSignupReadyColumn(db);
 
   const ins1 = await evRepo.insertEvent(db, {
     tenant: 'gamma', title: '草稿车', type: 'talent', description: '', starts_at: '', starts_at_utc: NOW + 3600,
@@ -285,6 +286,17 @@ if (want('events')) {
   check('listSignupNamesStamps', stamps.length === 2 && stamps.some((r) => r.nickname === '乙' && r.discord_id === '222'));
   const remSeats = await suRepo.listSignupSeatsForReminder(db, ins1.last_row_id);
   check('listSignupSeatsForReminder', remSeats.length === 2 && remSeats[0].weapon === '破竹·风');
+  // readiness roundtrip: set by (event, discord stamp), read back, clear
+  const readyUpd = await suRepo.updateSignupReadyByEventDiscord(db, ins1.last_row_id, '222', NOW + 5);
+  eq('updateSignupReady changes', readyUpd.changes, 1);
+  const remSeats2 = await suRepo.listSignupSeatsForReminder(db, ins1.last_row_id);
+  eq('reminder seats carry ready_at', remSeats2[1].ready_at, NOW + 5);
+  const seatsReady = await suRepo.listSignupSeats(db, ins1.last_row_id);
+  eq('listSignupSeats carries ready_at', seatsReady[1].ready_at, NOW + 5);
+  const readyClear = await suRepo.updateSignupReadyByEventDiscord(db, ins1.last_row_id, '222', null);
+  eq('updateSignupReady clear changes', readyClear.changes, 1);
+  eq('ready_at cleared', (await suRepo.listSignupSeats(db, ins1.last_row_id))[1].ready_at, null);
+  eq('updateSignupReady non-seated -> 0', (await suRepo.updateSignupReadyByEventDiscord(db, ins1.last_row_id, '404', NOW)).changes, 0);
   const stats = await suRepo.getSignupCapacityStats(db, ins1.last_row_id);
   eq('capacity stats c/h/m', stats, { c: 2, h: 1, m: 5 });
   check('getSignupTenant hit', !!(await suRepo.getSignupTenant(db, s1.last_row_id, 'gamma')));
@@ -841,7 +853,9 @@ if (want('ddl')) {
   for (let i = 0; i < 2; i++) {
     await ev.ensureEventCreatorColumn(db);
     await ev.ensureReminderColumns(db);
+    await ev.ensureReminderBeatsTable(db);
     await su.ensureSignupDiscordColumn(db);
+    await su.ensureSignupReadyColumn(db);
     await pt.ensurePushTokensTable(db);
     await el.ensureErrorLogTable(db);
     await gr.ensureGearTables(db);
@@ -849,12 +863,56 @@ if (want('ddl')) {
   }
   const tables = await db.prepare("SELECT name FROM sqlite_master WHERE type = 'table'").all();
   const names = new Set(tables.results.map((r) => r.name));
-  check('ensures created/kept all lazy tables', ['push_tokens', 'error_log', 'user_gear_items', 'user_gear_builds', 'guild_avatars'].every((t) => names.has(t)));
+  check('ensures created/kept all lazy tables', ['push_tokens', 'error_log', 'user_gear_items', 'user_gear_builds', 'guild_avatars', 'event_reminders'].every((t) => names.has(t)));
   const evCols = await db.prepare('PRAGMA table_info(events)').all();
   const colNames = new Set(evCols.results.map((r) => r.name));
   check('events carries creator + reminder columns', ['creator_discord_id', 'reminder_sent_at', 'reminder_error'].every((c) => colNames.has(c)));
   const suCols = await db.prepare('PRAGMA table_info(signups)').all();
   check('signups carries discord_id column', suCols.results.some((r) => r.name === 'discord_id'));
+  check('signups carries ready_at column', suCols.results.some((r) => r.name === 'ready_at'));
+}
+
+/* ---------------- reminder beats (event_reminders) ---------------- */
+if (want('beats')) {
+  console.log('== reminder beats + pending queries on real D1 ==');
+  const evRepo = await import('../src/domains/groupings/events.ts');
+  await evRepo.ensureReminderBeatsTable(db);
+  await evRepo.ensureReminderBeatsTable(db); // idempotent
+  const NOWB = 1_800_100_000;
+  const bEv = await evRepo.insertEvent(db, {
+    tenant: 'beats', title: '拍车', type: 'activity', description: '', starts_at: '', starts_at_utc: NOWB + 1800,
+    max_slots: 10, status: 'open', origin: 'member', created_by: 'x', creator_discord_id: '111',
+  });
+  const bDone = await evRepo.insertEvent(db, {
+    tenant: 'beats', title: '已结算车', type: 'activity', description: '', starts_at: '', starts_at_utc: NOWB + 1800,
+    max_slots: 10, status: 'open', origin: 'member', created_by: 'x', creator_discord_id: null,
+  });
+  await evRepo.markReminderSent(db, bDone.last_row_id, NOWB); // legacy-settled -> leaves the pending set
+  const bCompleted = await evRepo.insertEvent(db, {
+    tenant: 'beats', title: '完成车', type: 'activity', description: '', starts_at: '', starts_at_utc: NOWB + 1800,
+    max_slots: 10, status: 'completed', origin: 'member', created_by: 'x', creator_discord_id: null,
+  });
+  const bPast = await evRepo.insertEvent(db, {
+    tenant: 'beats', title: '已发车', type: 'activity', description: '', starts_at: '', starts_at_utc: NOWB - 60,
+    max_slots: 10, status: 'open', origin: 'member', created_by: 'x', creator_discord_id: null,
+  });
+  const pending = await evRepo.listPendingReminderEvents(db, 'beats', NOWB);
+  eq('pending = unsettled open future cars only', pending.map((p) => p.id), [bEv.last_row_id]);
+  eq('settled beats start empty', await evRepo.listSettledBeats(db, [bEv.last_row_id]), []);
+  eq('settled beats empty ids -> []', await evRepo.listSettledBeats(db, []), []);
+  await evRepo.markBeatSent(db, bEv.last_row_id, 30, NOWB + 1);
+  await evRepo.markBeatError(db, bEv.last_row_id, 10, 'boom');
+  const beats = await evRepo.listSettledBeats(db, [bEv.last_row_id]);
+  check('beats roundtrip sent+error', beats.length === 2
+    && beats.find((b) => b.offset_min === 30)?.sent_at === NOWB + 1
+    && beats.find((b) => b.offset_min === 10)?.error === 'boom', JSON.stringify(beats));
+  await evRepo.markBeatSent(db, bEv.last_row_id, 10, NOWB + 2);
+  const beats2 = await evRepo.listSettledBeats(db, [bEv.last_row_id]);
+  check('beat upsert error->sent clears error', beats2.find((b) => b.offset_min === 10)?.sent_at === NOWB + 2
+    && beats2.find((b) => b.offset_min === 10)?.error == null, JSON.stringify(beats2));
+  const rows = await evRepo.listPendingReminderEventRows(db, 'beats', [bEv.last_row_id, bDone.last_row_id]);
+  eq('pending rows fetch by ids', rows.map((r) => r.id), [bEv.last_row_id, bDone.last_row_id]);
+  eq('pending rows empty ids -> []', await evRepo.listPendingReminderEventRows(db, 'beats', []), []);
 }
 
 /* ---------------- hub audit ---------------- */
