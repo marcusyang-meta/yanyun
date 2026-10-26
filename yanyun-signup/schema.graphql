@@ -1362,7 +1362,10 @@ type Guild {
   homeTabTeamLabel: String!
   homeTabDexLabel: String!
   homeTabSectLabel: String!
-  homeAdminLabel: String!
+  # 管理入口文案: 仅通过管理判定 (getGuildAdminAccess, 与管理面同一
+  # 口径, 含 omni) 的查看者才下发; 其余成员为 null, 主页不渲染入口 —
+  # 进不去的入口不广告。可空即为此意, 勿改回 String!。
+  homeAdminLabel: String
   detailNotFoundText: String!
   detailBackToListLabel: String!
 }
