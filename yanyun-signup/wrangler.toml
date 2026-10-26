@@ -4,6 +4,15 @@ name = "yanyun"
 main = "src/worker.js"
 compatibility_date = "2025-06-01"
 
+# 对外主域名 (Custom Domain): yanyun.app 全部路径指向本 Worker;
+# workers_dev 必须显式 true —— 有 routes 时默认会变 false, 会误关旧
+# yanyun.tbdlab.workers.dev (迁移期双绑保留, 不跳转)。
+workers_dev = true
+
+[[routes]]
+pattern = "yanyun.app"
+custom_domain = true
+
 # 静态前端: public/ 目录直接由 Cloudflare 托管
 # run_worker_first = true: Worker 先接管路由(主站导航 /<slug> 多租户), 静态资源走 env.ASSETS
 [assets]

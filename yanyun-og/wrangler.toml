@@ -3,6 +3,14 @@ main = "worker.js"
 compatibility_date = "2024-01-01"
 compatibility_flags = ["global_fetch_strictly_public"]
 
+# OG 图片子域名 (Custom Domain): og.yanyun.app 全部路径指向本 Worker;
+# workers_dev 必须显式 true, 保留旧 yanyun-og.tbdlab.workers.dev 双绑。
+workers_dev = true
+
+[[routes]]
+pattern = "og.yanyun.app"
+custom_domain = true
+
 # Pre-rendered generic brand image shipped as data/text modules so the
 # fallback/hub path never renders (or fetches fonts) at request time.
 [[rules]]

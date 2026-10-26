@@ -79,6 +79,8 @@ web `format.ts` 与 mobile 各有一份实现，抽取需单独一轮改造，�
 
 ## 部署（以 CI 为准）
 
+生产入口：主站/API `https://yanyun.app`，OG 图片 `https://og.yanyun.app`（Custom Domain 分别绑 Worker `yanyun` / `yanyun-og`，绑定写在各自 wrangler.toml）。旧 `yanyun.tbdlab.workers.dev` / `yanyun-og.tbdlab.workers.dev` 迁移期双绑保留、不跳转。
+
 部署全走 GitHub Actions。后端/OG 实行两段式发布（marcus 裁决 2026-10-25）：
 **先上 preview 真渲染验收，人工 promote 才进 prod**，push 永远不直达 prod。
 

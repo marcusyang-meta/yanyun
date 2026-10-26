@@ -10,7 +10,7 @@ import { sendDeparturePush } from './push.js';
 
 export const REMINDER_LEAD_SEC = 600; // 开车前 10 分钟
 export const REMINDER_USERNAME = '燕云百业';
-export const REMINDER_AVATAR_URL = 'https://yanyun-og.tbdlab.workers.dev/og/hub.png';
+export const REMINDER_AVATAR_URL = 'https://og.yanyun.app/og/hub.png';
 export const WEBHOOK_RE = /^https:\/\/discord\.com\/api\/webhooks\/\d+\/[\w-]+$/;
 
 /* ---------- events 提醒状态列 (懒 DDL, 与 ensureEventCreatorColumn 同套路) ----------
