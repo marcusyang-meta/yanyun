@@ -41,6 +41,7 @@ import {
   deleteSignupByEventNickUid, deleteSignupsByEvent, updateSignupWeaponRoleById,
 } from './db/repositories/signups.ts';
 import { listUsersDirectory, listNicksByGuild, listAllNicks } from './db/repositories/users.ts';
+import { listResultsByEvent, insertResult, getResultIdOwnedByTenant, deleteResultById } from './db/repositories/results.ts';
 
 const TYPES = { activity: '双十人本', talent: '天赋组队', race: '竞速', tower: '爬塔', gather: '采集', explore: '探索' };
 const ROLES = ['输出', '承伤', '奶', '治疗', '随意'];
@@ -1123,9 +1124,7 @@ guild.get('/:slug/events/:id', async (c) => {
   const event = await getEventRowByTenant(c.env.DB, id, slug);
   if (!event) return err('活动不存在', 404);
   const signups = await listSignupDetailRows(c.env.DB, id);
-  const { results: results } = await c.env.DB.prepare(
-    'SELECT id, team_name, members, time_ms, proof_url, note, created_at FROM results WHERE event_id = ? ORDER BY time_ms ASC'
-  ).bind(id).all();
+  const results = await listResultsByEvent(c.env.DB, id);
   return json({ ok: true, event, signups, results: results.map((r) => ({ ...r, time_str: fmtMs(r.time_ms) })) });
 });
 
@@ -1622,21 +1621,20 @@ guild.post('/:slug/admin/events/:id/results', needGuildAdmin, async (c) => {
   const ms = parseTimeMs(body.time);
   if (!s(body.team_name, 40)) return err('队伍名不能为空', 400);
   if (ms === null || ms <= 0) return err('成绩格式不对, 例: 3:42.15', 400);
-  const r = await c.env.DB.prepare(
-    'INSERT INTO results (event_id, team_name, members, time_ms, proof_url, note) VALUES (?, ?, ?, ?, ?, ?)'
-  ).bind(id, s(body.team_name, 40), s(body.members, 300), ms, s(body.proof_url, 300), s(body.note, 200)).run();
-  return json({ ok: true, id: r.meta.last_row_id });
+  const r = await insertResult(c.env.DB, {
+    eventId: id, teamName: s(body.team_name, 40), members: s(body.members, 300),
+    timeMs: ms, proofUrl: s(body.proof_url, 300), note: s(body.note, 200),
+  });
+  return json({ ok: true, id: r.last_row_id });
 });
 
 // DELETE /api/:slug/admin/results/:id
 guild.delete('/:slug/admin/results/:id', needGuildAdmin, async (c) => {
   const slug = c.get('slug');
   const rid = parseInt(c.req.param('id'), 10);
-  const own = await c.env.DB.prepare(
-    'SELECT r.id FROM results r JOIN events e ON r.event_id = e.id WHERE r.id = ? AND e.tenant = ?'
-  ).bind(rid, slug).first();
+  const own = await getResultIdOwnedByTenant(c.env.DB, rid, slug);
   if (!own) return err('记录不存在', 404);
-  await c.env.DB.prepare('DELETE FROM results WHERE id = ?').bind(rid).run();
+  await deleteResultById(c.env.DB, rid);
   return json({ ok: true });
 });
 

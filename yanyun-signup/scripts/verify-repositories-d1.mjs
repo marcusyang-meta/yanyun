@@ -8,7 +8,7 @@
  * 实体定义镜像 (生产结构零变更, 这里只是本地验证夹具)。
  *
  * 用法: node scripts/verify-repositories-d1.mjs [section]
- *   section 省略 = 全部; 目前有 tenants / events / gear / users / members 五段,
+ *   section 省略 = 全部; 目前有 tenants / events / gear / users / members / results 六段,
  *   随数据层迁移进度增补。退出码非 0 = 有断言失败。
  * =================================================== */
 import { Miniflare, convertV4MiniflareOptions } from 'miniflare';
@@ -456,6 +456,40 @@ if (want('members')) {
   check('listGuildMembers other tenant separate', betaList.length === 1 && betaList[0].nick === '乙服甲');
   eq('hasGuildMember true', await repo.hasGuildMember(db, 'alpha', 'U2'), true);
   eq('hasGuildMember false', await repo.hasGuildMember(db, 'beta', 'U2'), false);
+}
+
+/* ---------------- results ---------------- */
+if (want('results')) {
+  console.log('== results repository on real D1 ==');
+  const repo = await import('../src/db/repositories/results.ts');
+  const evRepo = await import('../src/db/repositories/events.ts');
+  const tnRepo = await import('../src/db/repositories/tenants.ts');
+
+  await tnRepo.insertTenant(db, { slug: 'r-one', guildName: '丙百业', passwordHash: 'h3', announcement: '' });
+  await tnRepo.insertTenant(db, { slug: 'r-two', guildName: '丁百业', passwordHash: 'h4', announcement: '' });
+  const ev1 = await evRepo.insertEvent(db, {
+    tenant: 'r-one', title: '丙车', type: 'race', description: '', starts_at: '', starts_at_utc: 1700000000,
+    max_slots: 5, status: 'open', origin: 'admin', created_by: 't', creator_discord_id: null,
+  });
+  const ev2 = await evRepo.insertEvent(db, {
+    tenant: 'r-two', title: '丁车', type: 'race', description: '', starts_at: '', starts_at_utc: 1700000000,
+    max_slots: 5, status: 'open', origin: 'admin', created_by: 't', creator_discord_id: null,
+  });
+
+  const rSlow = await repo.insertResult(db, { eventId: ev1.last_row_id, teamName: '慢队', members: 'a,b', timeMs: 300000, proofUrl: '', note: '' });
+  const rFast = await repo.insertResult(db, { eventId: ev1.last_row_id, teamName: '快队', members: 'c,d', timeMs: 200000, proofUrl: 'p', note: 'n' });
+  check('insertResult last_row_id', rSlow.last_row_id > 0 && rFast.last_row_id > rSlow.last_row_id);
+  const list = await repo.listResultsByEvent(db, ev1.last_row_id);
+  eq('listResultsByEvent ordered by time_ms', list.map((r) => r.team_name), ['快队', '慢队']);
+  eq('listResultsByEvent empty for other event', await repo.listResultsByEvent(db, ev2.last_row_id), []);
+
+  eq('ownership check wrong tenant -> null', await repo.getResultIdOwnedByTenant(db, rFast.last_row_id, 'r-two'), null);
+  const own = await repo.getResultIdOwnedByTenant(db, rFast.last_row_id, 'r-one');
+  check('ownership check right tenant', !!own && own.id === rFast.last_row_id);
+  const del = await repo.deleteResultById(db, rFast.last_row_id);
+  eq('deleteResultById changes', del.changes, 1);
+  eq('deleteResultById again changes=0', (await repo.deleteResultById(db, rFast.last_row_id)).changes, 0);
+  eq('list after delete', (await repo.listResultsByEvent(db, ev1.last_row_id)).map((r) => r.team_name), ['慢队']);
 }
 
 await mf.dispose();
