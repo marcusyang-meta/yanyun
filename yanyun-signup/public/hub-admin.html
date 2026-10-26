@@ -65,6 +65,20 @@
     </div>
 
     <div class="detail" style="margin-top:16px">
+      <h3 style="margin-top:0">🧾 超管审计（操作留痕）</h3>
+      <p class="muted">超管登录、配置变更、身份回填、数据重写与敏感查看（错误日志/审计/备份导出）逐条留痕；摘要只记非敏感参数（如 Webhook 只记「已替换」），绝不记录密码与 Webhook 全文。保留 180 天，上限 20000 条。</p>
+      <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px">
+        <input id="auditTenant" placeholder="按百业 slug 筛选（空 = 全部）" style="width:220px">
+        <button class="ghost" id="auditQuery">查询</button>
+        <button class="ghost" id="auditPrev">← 上一页</button>
+        <button class="ghost" id="auditNext">下一页 →</button>
+        <span class="muted" id="auditSummary"></span>
+      </div>
+      <div style="overflow-x:auto"><table class="list" id="auditTable"></table></div>
+      <div class="msg" id="auditMsg"></div>
+    </div>
+
+    <div class="detail" style="margin-top:16px">
       <h3 style="margin-top:0">🗡️ 首领天赋图鉴管理（全站共用）</h3>
       <form id="bossForm">
         <div class="grid2">
