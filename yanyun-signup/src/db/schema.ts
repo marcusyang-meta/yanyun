@@ -40,6 +40,7 @@ export const tenants = sqliteTable('tenants', {
   slogan: text('slogan'),
   masterName: text('master_name'),
   logoUrl: text('logo_url'),
+  bgImageUrl: text('bg_image_url'),
   featureFixedTeams: integer('feature_fixed_teams'),
 });
 
@@ -138,6 +139,9 @@ export const dungeons = sqliteTable('dungeons', {
   season: text('season'),
   category: text('category'),
   level: integer('level'),
+  // [qry] version code (e.g. intl-v2.3), written by the dungeon-watch
+  // data pipeline; read by getCurrentVersionCode / dex surfaces.
+  version: text('version'),
 });
 
 /* ---------------- affix_max [ddl schema.sql] -------------------------- */
@@ -173,12 +177,18 @@ export const fixedTeamMembers = sqliteTable('fixed_team_members', {
 
 /* ---------------- school reference data [ddl v8] ---------------------- */
 export const schoolBis = sqliteTable('school_bis', {
-  school: text('school').primaryKey(),
+  school: text('school').notNull(),
+  // [qry] the surviving v8 DDL predates the per-build dimension; live
+  // queries select (school, build, ...) and key rows by both, so the
+  // production table carries one row per (school, build).
+  build: text('build').notNull().default(''),
   attr: text('attr'),
   rate: text('rate'),
   bisJson: text('bis_json').notNull(),
   updatedAt: integer('updated_at').default(sql`(strftime('%s','now'))`),
-});
+}, (t) => [
+  primaryKey({ columns: [t.school, t.build] }),
+]);
 
 export const schoolRotations = sqliteTable('school_rotations', {
   school: text('school').primaryKey(),

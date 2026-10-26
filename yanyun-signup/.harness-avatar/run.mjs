@@ -34,6 +34,9 @@ function makeDb({ tenants = [], settings = {} } = {}) {
     avatars: new Map(), // tenant -> { content_type, bytes, hash, updated_at }
   };
   function route(kind, sql, b) {
+    // 数据层 (Drizzle) 生成的 SQL 带引号标识符与表限定前缀, 规范化回旧
+    // 形状再匹配 (仅路由匹配泛化, 断言与状态语义不变)。
+    sql = sql.replace(/"/g, '').replace(/settings\./g, '');
     if (/guild_avatars/.test(sql)) {
       if (/INSERT INTO guild_avatars/.test(sql)) {
         state.avatars.set(b[0], { content_type: b[1], bytes: b[2], hash: b[3], updated_at: b[4] });

@@ -1,6 +1,7 @@
 import { sendDeparturePush } from './push.js';
 import { logError } from './errorlog.js';
 import { webhookIdentity } from './guildavatar.js';
+import { getSettingValue, setSettingValue } from './db/repositories/settings.ts';
 
 // Discord 开车提醒 (2026-10-24 用户定型)
 // 形态: 管理员 portal 按百业配一个频道 Webhook (tenants.discord_webhook,
@@ -115,18 +116,12 @@ async function rosterPool(db, slug) {
   return pool;
 }
 
-/* ---------- settings 小工具 (tenant 级) ---------- */
+/* ---------- settings 小工具 (tenant 级): 走数据层仓库 ---------- */
 export async function getReminderSetting(db, slug, key) {
-try {
-const row = await db.prepare('SELECT value FROM settings WHERE tenant =? AND key =?')
-.bind(slug, key).first();
-return row? String(row.value || ''): '';
-} catch { return '';}
+  return getSettingValue(db, slug, key);
 }
 export async function setReminderSetting(db, slug, key, value) {
-await db.prepare(
-'INSERT INTO settings(tenant, key, value) VALUES(?,?,?) ON CONFLICT(tenant, key) DO UPDATE SET value = excluded.value'
-).bind(slug, key, String(value?? '')).run();
+  await setSettingValue(db, slug, key, value);
 }
 
 /* ---------- 配置 ---------- */

@@ -18,6 +18,7 @@ import { evaluateHeirloomPushes } from './heirloompush.js';
 import { translate, negotiateLocale, SUPPORTED_LOCALES, CATALOG } from './i18n.js';
 import { logError } from './errorlog.js';
 import { getGuildAvatarMeta, avatarPath } from './guildavatar.js';
+import { getSettingValue, setSettingValue, listSettingsByKey } from './db/repositories/settings.ts';
 import {
   listGearItems, insertGearItem, updateGearItemRow, deleteGearItemRow,
   listGearBuilds, insertGearBuild, deleteGearBuildRow,
@@ -134,17 +135,14 @@ const CREATE_RESERVED = new Set([
   'events', 'static', 'assets', 'app', 'style', 'favicon', 'robots', 'www',
 ]);
 
+// Settings access goes through the data layer (src/db/repositories/
+// settings.ts); these local names remain for the many call sites below.
 async function getTenantSetting(db, slug, key) {
-  try {
-    const row = await db.prepare('SELECT value FROM settings WHERE tenant = ? AND key = ?').bind(slug, key).first();
-    return row ? String(row.value || '') : '';
-  } catch { return ''; }
+  return getSettingValue(db, slug, key);
 }
 
 async function setTenantSetting(db, slug, key, value) {
-  await db.prepare(
-    'INSERT INTO settings(tenant, key, value) VALUES(?, ?, ?) ON CONFLICT(tenant, key) DO UPDATE SET value = excluded.value'
-  ).bind(slug, key, value).run();
+  await setSettingValue(db, slug, key, value);
 }
 
 /* ---------- dev 表面识别 (dev_only 百业可见性例外) ----------
@@ -333,10 +331,7 @@ const SECT_WEIGHTS = [
 const SUITS = ['飞隼', '白虹', '青衿', '素问'];
 
 async function getGameVersion(db) {
-  try {
-    const row = await db.prepare("SELECT value FROM settings WHERE tenant = '' AND key = 'game_version'").first();
-    return (row && row.value) || 'intl-v2.3';
-  } catch { return 'intl-v2.3'; }
+  return (await getSettingValue(db, '', 'game_version')) || 'intl-v2.3';
 }
 
 // 当期版本码 (如 intl-v2.3): 与 dungeons.version 同一命名空间, 供当期/往期分类比较。
@@ -346,10 +341,8 @@ async function getGameVersion(db) {
 // 推导规则: 当期 tier 是唯一的非 legacy 版本码 (新副本监控 cron 轮换时新 tier 打新码、
 // 旧 tier 降为 legacy), 取含最新 dungeon 的那个码, 轮换后自动跟随、无需改 settings。
 async function getCurrentVersionCode(db) {
-  try {
-    const row = await db.prepare("SELECT value FROM settings WHERE tenant = '' AND key = 'game_version_code'").first();
-    if (row && row.value) return row.value;
-  } catch { /* 继续推导 */ }
+  const configured = await getSettingValue(db, '', 'game_version_code');
+  if (configured) return configured;
   try {
     const row = await db.prepare(
       "SELECT version FROM dungeons WHERE version IS NOT NULL AND version != '' AND version != 'legacy' GROUP BY version ORDER BY MAX(id) DESC LIMIT 1"
@@ -1545,16 +1538,12 @@ class HubPageShell extends ShellBase {
         'SELECT slug, guild_name, announcement, slogan, created_at FROM tenants ORDER BY created_at ASC'
       ).all();
       // 已绑定百业仅对其 Discord 服务器成员可见: 匿名/非成员在此层就过滤掉
-      const { results: bindRows } = await db.prepare(
-        "SELECT tenant, value FROM settings WHERE key = 'discord_guild_id'"
-      ).all().catch(() => ({ results: [] }));
+      const bindRows = await listSettingsByKey(db, 'discord_guild_id').catch(() => []);
       const bindMap = {};
       for (const r of bindRows || []) if (r.value) bindMap[r.tenant] = String(r.value);
       // dev_only 百业: 非 dev 表面来源不出现在导航里
-      const { results: devRows } = await db.prepare(
-        "SELECT tenant FROM settings WHERE key = 'dev_only' AND value = '1'"
-      ).all().catch(() => ({ results: [] }));
-      const devSet = new Set((devRows || []).map((r) => r.tenant));
+      const devRows = await listSettingsByKey(db, 'dev_only').catch(() => []);
+      const devSet = new Set((devRows || []).filter((r) => String(r.value) === '1').map((r) => r.tenant));
       const devVisible = isDevRequest(this.ctx.request);
       const gameVersion = await this.ctxMemo('gameVersion', () => getGameVersion(db));
       const guilds = [];

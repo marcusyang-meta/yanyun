@@ -1,4 +1,5 @@
 import { SUPPORTED_LOCALES } from './i18n.js';
+import { listDistinctSettingValues } from './db/repositories/settings.ts';
 
 // Discord OAuth + 无状态 JWT 会话 (yy_session cookie)
 // 会话载荷: { sub: discord_id, name, avatar, guilds: [服务器 id...], gm?: [{i, p}], iat, exp }
@@ -256,12 +257,7 @@ async function fetchMemberNick(env, accessToken, guildId) {
 }
 
 async function boundGuildIds(db) {
-  try {
-    const { results } = await db.prepare(
-      "SELECT DISTINCT value FROM settings WHERE key = 'discord_guild_id'"
-    ).all();
-    return results.map((r) => String(r.value || '')).filter(Boolean);
-  } catch { return []; }
+  return listDistinctSettingValues(db, 'discord_guild_id');
 }
 
 async function upsertNick(db, discordId, guildId, nick) {
