@@ -72,6 +72,8 @@ function toRawRows(sqlText, rows) {
 
 /* ---------------- FakeDB ---------------- */
 function stmt(sql) {
+  // 数据层 (Drizzle) SQL 规范化: 去引号 (仅路由匹配, 断言不变)
+  sql = sql.replace(/"/g, '');
   const q = {
     _binds: [], bind(...a) { this._binds = a; return this; },
     async raw() { const res = await this.all(); return toRawRows(sql, (res && res.results) || []); },

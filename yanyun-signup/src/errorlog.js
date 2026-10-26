@@ -61,7 +61,11 @@ export async function logError(db, entry = {}) {
   try {
     if (!db || typeof db.prepare !== 'function') return false;
     await ensureErrorLogTable(db);
-    const e = entry.error;
+    // 数据层 (Drizzle) 抛出的错误是 DrizzleQueryError 包装: message 是
+    // "Failed query: <SQL>", 原始错误在 cause 里。落库口径取最深一层
+    // cause 的 name/message/stack —— 门户要看的是原始失败, 不是 SQL 包装。
+    let e = entry.error;
+    while (e && e.cause && (e.cause.message || e.cause.name)) e = e.cause;
     const name = clip(entry.name || (e && e.name) || '', 80);
     const message = clip(entry.message || (e && e.message) || (e ? String(e) : ''), 500);
     const stack = clip(e && e.stack ? e.stack : '', 1500);

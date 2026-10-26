@@ -8,7 +8,7 @@ import { CATALOG } from '../src/i18n.js';
 import {
   AVATAR_MAX_BYTES, sniffAvatarType, webhookIdentity, avatarPublicUrl,
   putGuildAvatar, deleteGuildAvatar,
-} from '../src/guildavatar.js';
+} from '../src/guildavatar.ts';
 import { postWebhook, REMINDER_USERNAME, REMINDER_AVATAR_URL } from '../src/reminder.js';
 import { sendHeirloomTest } from '../src/heirloompush.js';
 
