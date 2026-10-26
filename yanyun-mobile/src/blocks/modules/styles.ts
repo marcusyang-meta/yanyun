@@ -57,6 +57,9 @@ export const blockStyles = StyleSheet.create({
   seatLeaderTag: { borderWidth: 1, borderColor: 'rgba(201,163,92,.55)', borderRadius: 8, paddingHorizontal: 5, paddingVertical: 0.5 },
   seatLeaderText: { fontFamily: fonts.serif, color: theme.gold, fontSize: 10.5, lineHeight: 15 },
   seatSub: { fontFamily: fonts.serif, color: theme.muted, fontSize: 12, lineHeight: 16, marginTop: 4 },
+  seatReadyText: { fontFamily: fonts.serif, color: theme.gold, fontSize: 12, lineHeight: 16, marginTop: 4 },
+  seatReadyBtn: { borderWidth: 1, borderColor: theme.gold, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2, marginTop: 6, alignSelf: 'flex-start' },
+  seatReadyBtnText: { fontFamily: fonts.serif, color: theme.gold, fontSize: 12, lineHeight: 16 },
   seatEmptyText: { fontFamily: fonts.serif, color: theme.muted, fontSize: 14, lineHeight: 19, textAlign: 'center' },
   // Action button mirrors the Web detail button row small button (.yy-btn sm): hug width, padding 6/16, 13px;
   // position is still set by tree order (the server puts the disband button last); the client never reorders blocks.

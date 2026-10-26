@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<9ec9fdbd8f3994615ec0410055de6f55>>
+ * @generated SignedSource<<0a2ad6a54bd73110e9aea9530f38abdb>>
  * @lightSyntaxTransform
  */
 
@@ -215,6 +215,21 @@ return {
           "kind": "InlineFragment",
           "selections": (v6/*:: as any*/),
           "type": "UncompleteAction",
+          "abstractKey": null
+        },
+        {
+          "kind": "InlineFragment",
+          "selections": [
+            (v0/*:: as any*/),
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "ready",
+              "storageKey": null
+            }
+          ],
+          "type": "SetReadyAction",
           "abstractKey": null
         }
       ],

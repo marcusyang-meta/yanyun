@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<2ceedd6c56f2fdec41cc93fa2068a0fe>>
+ * @generated SignedSource<<41ac27cee2d4cf35cbc5bf2f0281e96b>>
  * @lightSyntaxTransform
  */
 
@@ -24,8 +24,10 @@ export type documentsJoinGroupingMutation$data = {
     readonly ok: boolean;
     readonly seats: ReadonlyArray<{
       readonly index: number;
+      readonly mine: boolean;
       readonly nickname: string | null | undefined;
       readonly occupied: boolean;
+      readonly ready: boolean;
       readonly role: string | null | undefined;
       readonly uid: string | null | undefined;
       readonly weapon: string | null | undefined;
@@ -123,6 +125,20 @@ v1 = [
             "kind": "ScalarField",
             "name": "occupied",
             "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "ready",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "mine",
+            "storageKey": null
           }
         ],
         "storageKey": null
@@ -149,16 +165,16 @@ return {
     "selections": (v1/*:: as any*/)
   },
   "params": {
-    "cacheID": "1c08516419f9f922020ead9b1a2c4ee2",
+    "cacheID": "3ddfcf38ba67f96b90ee80a491a601ce",
     "id": null,
     "metadata": {},
     "name": "documentsJoinGroupingMutation",
     "operationKind": "mutation",
-    "text": "mutation documentsJoinGroupingMutation(\n  $input: JoinGroupingInput!\n) {\n  joinGrouping(input: $input) {\n    ok\n    error\n    seats {\n      index\n      nickname\n      weapon\n      role\n      uid\n      occupied\n    }\n  }\n}\n"
+    "text": "mutation documentsJoinGroupingMutation(\n  $input: JoinGroupingInput!\n) {\n  joinGrouping(input: $input) {\n    ok\n    error\n    seats {\n      index\n      nickname\n      weapon\n      role\n      uid\n      occupied\n      ready\n      mine\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "1f871bef89bd599f478d6c77a09a7d22";
+(node as any).hash = "b77160c43f1b1a8bcc66e7d53f10fddd";
 
 export default node;

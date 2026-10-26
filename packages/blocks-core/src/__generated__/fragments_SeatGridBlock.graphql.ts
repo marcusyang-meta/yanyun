@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<c78581436979b2cea4c0f9e53a5c9619>>
+ * @generated SignedSource<<2e7b2e4ba8762380924e134d3d471c44>>
  * @lightSyntaxTransform
  */
 
@@ -19,6 +19,10 @@ export type fragments_SeatGridBlock$data = {
     readonly isLeader: boolean;
     readonly nickname: string | null | undefined;
     readonly occupied: boolean;
+    readonly ready: boolean;
+    readonly readyAction: {
+      readonly " $fragmentSpreads": FragmentRefs<"fragments_BlockAction">;
+    } | null | undefined;
     readonly role: string | null | undefined;
     readonly weapon: string | null | undefined;
   }>;
@@ -29,7 +33,15 @@ export type fragments_SeatGridBlock$key = {
   readonly " $fragmentSpreads": FragmentRefs<"fragments_SeatGridBlock">;
 };
 
-const node: ReaderFragment = {
+const node: ReaderFragment = (function(){
+var v0 = [
+  {
+    "args": null,
+    "kind": "FragmentSpread",
+    "name": "fragments_BlockAction"
+  }
+];
+return {
   "argumentDefinitions": [],
   "kind": "Fragment",
   "metadata": null,
@@ -95,17 +107,28 @@ const node: ReaderFragment = {
         {
           "alias": null,
           "args": null,
+          "kind": "ScalarField",
+          "name": "ready",
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "concreteType": null,
+          "kind": "LinkedField",
+          "name": "readyAction",
+          "plural": false,
+          "selections": (v0/*:: as any*/),
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
           "concreteType": null,
           "kind": "LinkedField",
           "name": "action",
           "plural": false,
-          "selections": [
-            {
-              "args": null,
-              "kind": "FragmentSpread",
-              "name": "fragments_BlockAction"
-            }
-          ],
+          "selections": (v0/*:: as any*/),
           "storageKey": null
         }
       ],
@@ -115,7 +138,8 @@ const node: ReaderFragment = {
   "type": "SeatGridBlock",
   "abstractKey": null
 };
+})();
 
-(node as any).hash = "9b8faf9240ea39909a633fdf3e2fc932";
+(node as any).hash = "6eb94950cd4bb51c09dd0410dabd9ccd";
 
 export default node;

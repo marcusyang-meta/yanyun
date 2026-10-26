@@ -7,6 +7,7 @@ import {
   DisbandGroupingMutation,
   JoinGroupingMutation,
   LeaveGroupingMutation,
+  SetSeatReadyMutation,
   RegisterPushTokenMutation,
   ReopenGroupingMutation,
   UnregisterPushTokenMutation,
@@ -17,6 +18,7 @@ import {
   SetGuildAvatarAdminMutation,
   DeleteGuildAvatarAdminMutation,
   UpdateGuildDiscordAdminMutation,
+  UpdateGuildReminderSettingsAdminMutation,
   UpdateGuildFeaturesAdminMutation,
   UpdateGuildVisibilityAdminMutation,
   CreateFixedTeamAdminMutation,
@@ -36,6 +38,7 @@ import {
 import type { documentsViewerQuery } from './__generated__/documentsViewerQuery.graphql';
 import type { documentsJoinGroupingMutation } from './__generated__/documentsJoinGroupingMutation.graphql';
 import type { documentsLeaveGroupingMutation } from './__generated__/documentsLeaveGroupingMutation.graphql';
+import type { documentsSetSeatReadyMutation } from './__generated__/documentsSetSeatReadyMutation.graphql';
 import type { documentsDisbandGroupingMutation } from './__generated__/documentsDisbandGroupingMutation.graphql';
 import type { documentsCompleteGroupingMutation } from './__generated__/documentsCompleteGroupingMutation.graphql';
 import type { documentsReopenGroupingMutation } from './__generated__/documentsReopenGroupingMutation.graphql';
@@ -105,6 +108,8 @@ export type Seat = {
   role?: string | null;
   uid?: string | null;
   occupied: boolean;
+  ready?: boolean;
+  mine?: boolean;
 };
 export type SeatPayload = { ok: boolean; error?: string | null; seats?: Seat[] | null };
 
@@ -191,6 +196,13 @@ export async function leaveGrouping(groupingId: string, uid: string): Promise<Se
     input: { groupingId, uid },
   });
   return r.leaveGrouping as SeatPayload;
+}
+
+export async function setSeatReady(groupingId: string, ready: boolean): Promise<SeatPayload> {
+  const r = await commit<documentsSetSeatReadyMutation>(SetSeatReadyMutation, {
+    input: { groupingId, ready },
+  });
+  return r.setSeatReady as SeatPayload;
 }
 
 export async function disbandGrouping(id: string): Promise<{ ok: boolean; error?: string | null }> {
@@ -283,6 +295,7 @@ export const adminUpdateProfile = (slug: string, input: any) => adminRun(UpdateG
 export const adminSetAvatar = (slug: string, dataBase64: string) => adminRun(SetGuildAvatarAdminMutation, { slug, dataBase64 }, 'setGuildAvatar');
 export const adminDeleteAvatar = (slug: string) => adminRun(DeleteGuildAvatarAdminMutation, { slug }, 'deleteGuildAvatar');
 export const adminUpdateDiscord = (slug: string, input: any) => adminRun(UpdateGuildDiscordAdminMutation, { slug, input }, 'updateGuildDiscord');
+export const adminUpdateReminderSettings = (slug: string, offsets: number[], customText: string) => adminRun(UpdateGuildReminderSettingsAdminMutation, { slug, offsets, customText }, 'updateGuildReminderSettings');
 export const adminUpdateFeatures = (slug: string, fixedTeams: boolean) => adminRun(UpdateGuildFeaturesAdminMutation, { slug, fixedTeams }, 'updateGuildFeatures');
 export const adminUpdateVisibility = (slug: string, devOnly: boolean) => adminRun(UpdateGuildVisibilityAdminMutation, { slug, devOnly }, 'updateGuildVisibility');
 export const adminCreateTeam = (slug: string, input: any) => adminRun(CreateFixedTeamAdminMutation, { slug, input }, 'createFixedTeam');

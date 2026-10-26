@@ -13,7 +13,7 @@ import { EditGroupingFormMount } from '../components/GroupingForm';
 import { BlockNode1View } from '../blocks/BlockRenderer';
 import type { ActionHandlers } from '../blocks/actions';
 import { AsyncBoundary, LoadingView } from '../components/AsyncBoundary';
-import { completeGrouping, disbandGrouping, joinGrouping, leaveGrouping, reopenGrouping } from '../api';
+import { completeGrouping, disbandGrouping, joinGrouping, leaveGrouping, reopenGrouping, setSeatReady } from '../api';
 import { useGuildLive } from '../live';
 import { useSession } from '../session';
 import type { documentsGroupingDetailBlocksQuery } from '../__generated__/documentsGroupingDetailBlocksQuery.graphql';
@@ -61,7 +61,7 @@ export default function GroupingDetailScreen({ slug, id, nick, guildName, gameVe
   // Web toast): the template sentence is the message, {error} is filled
   // with the server error, or commonUnknownErrorText when there is none;
   // if the template itself is unavailable, fall back to the raw server error.
-  const failText = async (which: 'leave' | 'disband' | 'complete' | 'uncomplete', serverError?: string | null): Promise<string> => {
+  const failText = async (which: 'leave' | 'disband' | 'complete' | 'uncomplete' | 'ready', serverError?: string | null): Promise<string> => {
     try {
       const d = await fetchQuery<documentsDetailPageTextQuery>(env, DetailPageTextQuery, { slug, id }, { fetchPolicy: 'store-or-network' }).toPromise();
       const tpl = which === 'leave'
@@ -70,7 +70,9 @@ export default function GroupingDetailScreen({ slug, id, nick, guildName, gameVe
           ? d?.groupingDetailPage?.detailToastCompleteFailedTemplate
           : which === 'uncomplete'
             ? d?.groupingDetailPage?.detailToastRestoreFailedTemplate
-            : d?.groupingDetailPage?.detailToastDisbandFailedTemplate;
+            : which === 'ready'
+              ? d?.groupingDetailPage?.seatToastReadyFailedTemplate
+              : d?.groupingDetailPage?.detailToastDisbandFailedTemplate;
       const unknown = d?.viewer?.commonUnknownErrorText;
       if (tpl) return fill(tpl, { error: serverError || unknown || '' });
       return serverError || unknown || '';
@@ -120,6 +122,17 @@ export default function GroupingDetailScreen({ slug, id, nick, guildName, gameVe
           if (!r.ok) { Alert.alert(await failText('uncomplete', r.error)); return; }
           refresh();
         } catch { Alert.alert(await failText('uncomplete')); }
+      })();
+    },
+    // Readiness toggle (departure reminders): quiet success — the tree
+    // refresh shows the new state; failures surface via the toast template.
+    setReady: (a) => {
+      void (async () => {
+        try {
+          const r = await setSeatReady(a.groupingId, a.ready);
+          if (!r.ok) { Alert.alert(await failText('ready', r.error)); return; }
+          refresh();
+        } catch { Alert.alert(await failText('ready')); }
       })();
     },
   };
@@ -407,6 +420,9 @@ function DetailBlocks({
       seatEmptyJoinLabel: page?.seatEmptyJoinLabel ?? undefined,
       seatEmptyLabel: page?.seatEmptyLabel ?? undefined,
       seatLeaderLabel: page?.seatLeaderLabel ?? undefined,
+      seatReadyLabel: page?.seatReadyLabel ?? undefined,
+      seatReadyActionLabel: page?.seatReadyActionLabel ?? undefined,
+      seatUnreadyActionLabel: page?.seatUnreadyActionLabel ?? undefined,
     },
   };
 

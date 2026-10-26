@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<9b8aeac21a5f1cedbd7f7da8030b395e>>
+ * @generated SignedSource<<f18632cbde03c2f36bc7f384050af460>>
  * @lightSyntaxTransform
  */
 
@@ -15,46 +15,169 @@ var v0 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "groupingId",
+  "name": "ready",
   "storageKey": null
 },
 v1 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "confirmTitle",
+  "name": "groupingId",
   "storageKey": null
 },
 v2 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "confirmMessage",
+  "name": "confirmTitle",
   "storageKey": null
 },
 v3 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "okLabel",
+  "name": "confirmMessage",
   "storageKey": null
 },
 v4 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
+  "name": "okLabel",
+  "storageKey": null
+},
+v5 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
   "name": "cancelLabel",
   "storageKey": null
 },
-v5 = [
-  (v0/*:: as any*/),
+v6 = [
   (v1/*:: as any*/),
   (v2/*:: as any*/),
   (v3/*:: as any*/),
-  (v4/*:: as any*/)
+  (v4/*:: as any*/),
+  (v5/*:: as any*/)
 ],
-v6 = [
-  (v0/*:: as any*/)
+v7 = [
+  (v1/*:: as any*/)
+],
+v8 = [
+  {
+    "alias": null,
+    "args": null,
+    "kind": "ScalarField",
+    "name": "__typename",
+    "storageKey": null
+  },
+  {
+    "kind": "TypeDiscriminator",
+    "abstractKey": "__isAction"
+  },
+  {
+    "kind": "InlineFragment",
+    "selections": [
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "slug",
+        "storageKey": null
+      },
+      (v1/*:: as any*/),
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "name",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "readOnly",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "nick",
+        "storageKey": null
+      }
+    ],
+    "type": "NavigateAction",
+    "abstractKey": null
+  },
+  {
+    "kind": "InlineFragment",
+    "selections": [
+      (v1/*:: as any*/),
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "seatIndex",
+        "storageKey": null
+      }
+    ],
+    "type": "JoinAction",
+    "abstractKey": null
+  },
+  {
+    "kind": "InlineFragment",
+    "selections": [
+      (v1/*:: as any*/),
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "uid",
+        "storageKey": null
+      },
+      (v2/*:: as any*/),
+      (v3/*:: as any*/),
+      (v4/*:: as any*/),
+      (v5/*:: as any*/)
+    ],
+    "type": "LeaveAction",
+    "abstractKey": null
+  },
+  {
+    "kind": "InlineFragment",
+    "selections": (v6/*:: as any*/),
+    "type": "DisbandAction",
+    "abstractKey": null
+  },
+  {
+    "kind": "InlineFragment",
+    "selections": (v7/*:: as any*/),
+    "type": "EditAction",
+    "abstractKey": null
+  },
+  {
+    "kind": "InlineFragment",
+    "selections": (v6/*:: as any*/),
+    "type": "CompleteAction",
+    "abstractKey": null
+  },
+  {
+    "kind": "InlineFragment",
+    "selections": (v7/*:: as any*/),
+    "type": "UncompleteAction",
+    "abstractKey": null
+  },
+  {
+    "kind": "InlineFragment",
+    "selections": [
+      (v1/*:: as any*/),
+      (v0/*:: as any*/)
+    ],
+    "type": "SetReadyAction",
+    "abstractKey": null
+  }
 ];
 return {
   "kind": "SplitOperation",
@@ -118,6 +241,17 @@ return {
           "name": "isLeader",
           "storageKey": null
         },
+        (v0/*:: as any*/),
+        {
+          "alias": null,
+          "args": null,
+          "concreteType": null,
+          "kind": "LinkedField",
+          "name": "readyAction",
+          "plural": false,
+          "selections": (v8/*:: as any*/),
+          "storageKey": null
+        },
         {
           "alias": null,
           "args": null,
@@ -125,113 +259,7 @@ return {
           "kind": "LinkedField",
           "name": "action",
           "plural": false,
-          "selections": [
-            {
-              "alias": null,
-              "args": null,
-              "kind": "ScalarField",
-              "name": "__typename",
-              "storageKey": null
-            },
-            {
-              "kind": "TypeDiscriminator",
-              "abstractKey": "__isAction"
-            },
-            {
-              "kind": "InlineFragment",
-              "selections": [
-                {
-                  "alias": null,
-                  "args": null,
-                  "kind": "ScalarField",
-                  "name": "slug",
-                  "storageKey": null
-                },
-                (v0/*:: as any*/),
-                {
-                  "alias": null,
-                  "args": null,
-                  "kind": "ScalarField",
-                  "name": "name",
-                  "storageKey": null
-                },
-                {
-                  "alias": null,
-                  "args": null,
-                  "kind": "ScalarField",
-                  "name": "readOnly",
-                  "storageKey": null
-                },
-                {
-                  "alias": null,
-                  "args": null,
-                  "kind": "ScalarField",
-                  "name": "nick",
-                  "storageKey": null
-                }
-              ],
-              "type": "NavigateAction",
-              "abstractKey": null
-            },
-            {
-              "kind": "InlineFragment",
-              "selections": [
-                (v0/*:: as any*/),
-                {
-                  "alias": null,
-                  "args": null,
-                  "kind": "ScalarField",
-                  "name": "seatIndex",
-                  "storageKey": null
-                }
-              ],
-              "type": "JoinAction",
-              "abstractKey": null
-            },
-            {
-              "kind": "InlineFragment",
-              "selections": [
-                (v0/*:: as any*/),
-                {
-                  "alias": null,
-                  "args": null,
-                  "kind": "ScalarField",
-                  "name": "uid",
-                  "storageKey": null
-                },
-                (v1/*:: as any*/),
-                (v2/*:: as any*/),
-                (v3/*:: as any*/),
-                (v4/*:: as any*/)
-              ],
-              "type": "LeaveAction",
-              "abstractKey": null
-            },
-            {
-              "kind": "InlineFragment",
-              "selections": (v5/*:: as any*/),
-              "type": "DisbandAction",
-              "abstractKey": null
-            },
-            {
-              "kind": "InlineFragment",
-              "selections": (v6/*:: as any*/),
-              "type": "EditAction",
-              "abstractKey": null
-            },
-            {
-              "kind": "InlineFragment",
-              "selections": (v5/*:: as any*/),
-              "type": "CompleteAction",
-              "abstractKey": null
-            },
-            {
-              "kind": "InlineFragment",
-              "selections": (v6/*:: as any*/),
-              "type": "UncompleteAction",
-              "abstractKey": null
-            }
-          ],
+          "selections": (v8/*:: as any*/),
           "storageKey": null
         }
       ],
@@ -241,6 +269,6 @@ return {
 };
 })();
 
-(node as any).hash = "9b8faf9240ea39909a633fdf3e2fc932";
+(node as any).hash = "6eb94950cd4bb51c09dd0410dabd9ccd";
 
 export default node;

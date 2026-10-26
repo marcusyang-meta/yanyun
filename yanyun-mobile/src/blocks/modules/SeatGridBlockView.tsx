@@ -33,6 +33,16 @@ function SeatCell({ seat, handlers }: { seat: SeatEntryData; handlers: ActionHan
           {seat.weapon ?? ''}{seat.role ? `${seat.weapon ? ' · ' : ''}${seat.role}` : ''}
         </Text>
       ) : null}
+      {seat.ready && pt?.seatReadyLabel ? (
+        <Text style={blockStyles.seatReadyText}>✓ {pt.seatReadyLabel}</Text>
+      ) : null}
+      {seat.readyAction ? (
+        <ActionPressable actionRef={seat.readyAction} handlers={handlers} style={blockStyles.seatReadyBtn}>
+          <Text style={blockStyles.seatReadyBtnText}>
+            {seat.ready ? (pt?.seatUnreadyActionLabel ?? '') : (pt?.seatReadyActionLabel ?? '')}
+          </Text>
+        </ActionPressable>
+      ) : null}
     </>
   ) : (
     <Text style={blockStyles.seatEmptyText}>

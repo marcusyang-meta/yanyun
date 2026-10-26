@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<9e3301d12d06f335933c440a130f346c>>
+ * @generated SignedSource<<782dc1ce4a0e83cf5b063e00b935b92d>>
  * @lightSyntaxTransform
  */
 
@@ -50,6 +50,11 @@ export type fragments_BlockAction$data = {
   readonly nick: string;
   readonly readOnly: boolean;
   readonly slug: string;
+  readonly " $fragmentType": "fragments_BlockAction";
+} | {
+  readonly __typename: "SetReadyAction";
+  readonly groupingId: string;
+  readonly ready: boolean;
   readonly " $fragmentType": "fragments_BlockAction";
 } | {
   readonly __typename: "UncompleteAction";
@@ -218,6 +223,21 @@ return {
       "selections": (v6/*:: as any*/),
       "type": "UncompleteAction",
       "abstractKey": null
+    },
+    {
+      "kind": "InlineFragment",
+      "selections": [
+        (v0/*:: as any*/),
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "ready",
+          "storageKey": null
+        }
+      ],
+      "type": "SetReadyAction",
+      "abstractKey": null
     }
   ],
   "type": "Action",
@@ -225,6 +245,6 @@ return {
 };
 })();
 
-(node as any).hash = "52242cc8199fb89046d83148ef382658";
+(node as any).hash = "43ea66700d1b96fae0321305a21cfe68";
 
 export default node;

@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<fb35a80dab84b4d9a681c9ce8edde613>>
+ * @generated SignedSource<<673b9347eabf91900a5f7391dfe2450c>>
  * @lightSyntaxTransform
  */
 
@@ -57,6 +57,11 @@ export type documentsGuildAdminQuery$data = {
       readonly adminMemberWeaponLabel: string;
       readonly adminNameLabel: string;
       readonly adminProfileTitle: string;
+      readonly adminReminderCustomTextHint: string;
+      readonly adminReminderCustomTextLabel: string;
+      readonly adminReminderOffsetTemplate: string;
+      readonly adminReminderOffsetsLabel: string;
+      readonly adminReminderTitle: string;
       readonly adminRemoveSignupLabel: string;
       readonly adminReplaceAvatarLabel: string;
       readonly adminResultMembersLabel: string;
@@ -152,6 +157,8 @@ export type documentsGuildAdminQuery$data = {
       readonly logoUrl: string;
       readonly masterName: string;
       readonly name: string | null | undefined;
+      readonly reminderCustomText: string;
+      readonly reminderOffsets: ReadonlyArray<number>;
       readonly reminderWebhookId: string | null | undefined;
       readonly reminderWebhookSet: boolean;
       readonly schoolGuides: {
@@ -495,6 +502,41 @@ v12 = [
                 "args": null,
                 "kind": "ScalarField",
                 "name": "adminGuildIdLabel",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminReminderTitle",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminReminderOffsetsLabel",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminReminderOffsetTemplate",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminReminderCustomTextLabel",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminReminderCustomTextHint",
                 "storageKey": null
               },
               {
@@ -908,6 +950,20 @@ v12 = [
                 "alias": null,
                 "args": null,
                 "kind": "ScalarField",
+                "name": "reminderOffsets",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "reminderCustomText",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
                 "name": "featureFixedTeams",
                 "storageKey": null
               },
@@ -1252,16 +1308,16 @@ return {
     "selections": (v12/*:: as any*/)
   },
   "params": {
-    "cacheID": "b97cf312be1e4348e54125f73680b433",
+    "cacheID": "a07baf7c3d5faac35a78e1728862e1f0",
     "id": null,
     "metadata": {},
     "name": "documentsGuildAdminQuery",
     "operationKind": "query",
-    "text": "query documentsGuildAdminQuery(\n  $slug: String!\n) {\n  viewer {\n    commonUnknownErrorText\n    commonConfirmLabel\n    guildAdmin(slug: $slug) {\n      __typename\n      ... on GuildAdminLocked {\n        slug\n        adminLockedTitle\n        adminLockedBody\n        adminBackLinkLabel\n      }\n      ... on GuildAdmin {\n        slug\n        avatarUrl\n        adminTitle\n        adminBackLinkLabel\n        adminProfileTitle\n        adminNameLabel\n        adminAnnouncementLabel\n        adminSloganLabel\n        adminMasterLabel: adminMasterNameLabel\n        adminLogoLabel: adminLogoUrlLabel\n        adminBgLabel: adminBgImageUrlLabel\n        adminSaveLabel\n        adminSavedText\n        adminAvatarLabel: adminAvatarTitle\n        adminUploadAvatarLabel: adminAvatarUploadLabel\n        adminReplaceAvatarLabel: adminAvatarReplaceLabel\n        adminDeleteAvatarLabel: adminAvatarDeleteLabel\n        adminAvatarNoneText\n        adminDiscordTitle\n        adminWebhookLabel\n        adminWebhookSetText\n        adminWebhookUnsetText\n        adminWebhookClearLabel\n        adminDiscordIdLabel: adminGuildIdLabel\n        adminFeaturesTitle\n        adminFeatureFixedTeamsLabel: adminFixedTeamsLabel\n        adminVisibilityTitle\n        adminVisibilityLabel: adminDevOnlyLabel\n        adminTeamsTitle\n        adminTeamNameLabel\n        adminTeamDescLabel\n        adminTeamEmptyText\n        adminMemberNicknameLabel\n        adminMemberWeaponLabel\n        adminMemberNoteLabel\n        adminAddLabel\n        adminEditLabel\n        adminDeleteLabel\n        adminEventsTitle\n        adminEventEmptyText\n        adminEventTitleLabel\n        adminEventTypeLabel\n        adminEventTimeLabel\n        adminEventDungeonLabel\n        adminEventSlotsLabel\n        adminEventMeetLabel\n        adminEventDescLabel\n        adminEventStatusLabel\n        adminStatusOpenText\n        adminStatusClosedText\n        adminStatusCompletedText\n        adminStatusDraftText\n        adminExportCsvLabel\n        adminSignupsTitle\n        adminSignupEmptyText\n        adminRemoveSignupLabel\n        adminResultsTitle\n        adminResultTeamLabel\n        adminResultMembersLabel\n        adminResultTimeLabel\n        adminResultProofLabel\n        adminResultNoteLabel\n        adminGuidesTitle\n        adminGuidesHint\n        adminGuideSchoolLabel\n        adminGuideBuildLabel\n        adminGuideAttrLabel\n        adminGuideRateLabel\n        adminGuideBisLabel\n        adminGuideRotationLabel\n        adminTypeActivityText\n        adminTypeTalentText\n        adminTypeRaceText\n        adminTypeTowerText\n        name\n        announcement\n        slogan\n        masterName\n        logoUrl\n        bgImageUrl\n        discordGuildId\n        reminderWebhookSet\n        reminderWebhookId\n        featureFixedTeams\n        devOnly\n        adminTabProfileLabel\n        adminTabDiscordLabel\n        adminTabTeamsLabel\n        adminTabEventsLabel\n        adminTabGuidesLabel\n        fixedTeams {\n          id\n          name\n          description\n          members {\n            id\n            nickname\n            weapon\n            role\n            note\n          }\n        }\n        events {\n          id\n          title\n          type\n          status\n          origin\n          startsAtUtc\n          startsAtText\n          dungeon\n          maxSlots\n          meetInfo\n          description\n          signupCount\n          signups {\n            id\n            nickname\n            uid\n            role\n            weapon\n            contact\n            teamName\n            members\n            note\n            createdAt\n          }\n          results {\n            id\n            teamName\n            members\n            timeMs\n            timeText\n            proofUrl\n            note\n          }\n          signupsCsv\n        }\n        schoolGuides {\n          schools {\n            school\n            builds {\n              build\n              attr\n              rate\n              bisJson\n            }\n            rotationJson\n          }\n        }\n      }\n    }\n  }\n}\n"
+    "text": "query documentsGuildAdminQuery(\n  $slug: String!\n) {\n  viewer {\n    commonUnknownErrorText\n    commonConfirmLabel\n    guildAdmin(slug: $slug) {\n      __typename\n      ... on GuildAdminLocked {\n        slug\n        adminLockedTitle\n        adminLockedBody\n        adminBackLinkLabel\n      }\n      ... on GuildAdmin {\n        slug\n        avatarUrl\n        adminTitle\n        adminBackLinkLabel\n        adminProfileTitle\n        adminNameLabel\n        adminAnnouncementLabel\n        adminSloganLabel\n        adminMasterLabel: adminMasterNameLabel\n        adminLogoLabel: adminLogoUrlLabel\n        adminBgLabel: adminBgImageUrlLabel\n        adminSaveLabel\n        adminSavedText\n        adminAvatarLabel: adminAvatarTitle\n        adminUploadAvatarLabel: adminAvatarUploadLabel\n        adminReplaceAvatarLabel: adminAvatarReplaceLabel\n        adminDeleteAvatarLabel: adminAvatarDeleteLabel\n        adminAvatarNoneText\n        adminDiscordTitle\n        adminWebhookLabel\n        adminWebhookSetText\n        adminWebhookUnsetText\n        adminWebhookClearLabel\n        adminDiscordIdLabel: adminGuildIdLabel\n        adminReminderTitle\n        adminReminderOffsetsLabel\n        adminReminderOffsetTemplate\n        adminReminderCustomTextLabel\n        adminReminderCustomTextHint\n        adminFeaturesTitle\n        adminFeatureFixedTeamsLabel: adminFixedTeamsLabel\n        adminVisibilityTitle\n        adminVisibilityLabel: adminDevOnlyLabel\n        adminTeamsTitle\n        adminTeamNameLabel\n        adminTeamDescLabel\n        adminTeamEmptyText\n        adminMemberNicknameLabel\n        adminMemberWeaponLabel\n        adminMemberNoteLabel\n        adminAddLabel\n        adminEditLabel\n        adminDeleteLabel\n        adminEventsTitle\n        adminEventEmptyText\n        adminEventTitleLabel\n        adminEventTypeLabel\n        adminEventTimeLabel\n        adminEventDungeonLabel\n        adminEventSlotsLabel\n        adminEventMeetLabel\n        adminEventDescLabel\n        adminEventStatusLabel\n        adminStatusOpenText\n        adminStatusClosedText\n        adminStatusCompletedText\n        adminStatusDraftText\n        adminExportCsvLabel\n        adminSignupsTitle\n        adminSignupEmptyText\n        adminRemoveSignupLabel\n        adminResultsTitle\n        adminResultTeamLabel\n        adminResultMembersLabel\n        adminResultTimeLabel\n        adminResultProofLabel\n        adminResultNoteLabel\n        adminGuidesTitle\n        adminGuidesHint\n        adminGuideSchoolLabel\n        adminGuideBuildLabel\n        adminGuideAttrLabel\n        adminGuideRateLabel\n        adminGuideBisLabel\n        adminGuideRotationLabel\n        adminTypeActivityText\n        adminTypeTalentText\n        adminTypeRaceText\n        adminTypeTowerText\n        name\n        announcement\n        slogan\n        masterName\n        logoUrl\n        bgImageUrl\n        discordGuildId\n        reminderWebhookSet\n        reminderWebhookId\n        reminderOffsets\n        reminderCustomText\n        featureFixedTeams\n        devOnly\n        adminTabProfileLabel\n        adminTabDiscordLabel\n        adminTabTeamsLabel\n        adminTabEventsLabel\n        adminTabGuidesLabel\n        fixedTeams {\n          id\n          name\n          description\n          members {\n            id\n            nickname\n            weapon\n            role\n            note\n          }\n        }\n        events {\n          id\n          title\n          type\n          status\n          origin\n          startsAtUtc\n          startsAtText\n          dungeon\n          maxSlots\n          meetInfo\n          description\n          signupCount\n          signups {\n            id\n            nickname\n            uid\n            role\n            weapon\n            contact\n            teamName\n            members\n            note\n            createdAt\n          }\n          results {\n            id\n            teamName\n            members\n            timeMs\n            timeText\n            proofUrl\n            note\n          }\n          signupsCsv\n        }\n        schoolGuides {\n          schools {\n            school\n            builds {\n              build\n              attr\n              rate\n              bisJson\n            }\n            rotationJson\n          }\n        }\n      }\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "9cbd19d3511ecc782a70fa0ded327934";
+(node as any).hash = "c18a6da4c4592aea0d15afcb4e774923";
 
 export default node;
