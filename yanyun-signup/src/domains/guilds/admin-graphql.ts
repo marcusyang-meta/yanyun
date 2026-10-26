@@ -7,6 +7,8 @@
  * Discord session + the viewer manages the bound Discord server (the
  * createGuild check). Every admin mutation re-runs the same verdict
  * server-side (see admin-mutations in this file's resolver export).
+ * The system-path OmniscientViewer passes the same verdict in full
+ * (all-accessible, ruling 2026-10-26): reads and mutations alike.
  *
  * Data notes:
  * - The reminder webhook URL is a secret: only its set-state and the
@@ -18,6 +20,7 @@
  * - School guides edit the same dex school_bis / school_rotations data
  *   the public sect pages read. */
 import type { Context } from '../platform/context.ts';
+import { vcOf } from '../platform/context.ts';
 import {
   ShellBase, defineTextGens, getGuildAdminAccess, getTenantSetting,
   setTenantSetting, getGameVersion, TYPE_TO_ENUM, PayloadBase, s, roleOf,
@@ -44,7 +47,9 @@ import {
 import { listSchoolBis, listSchoolRotations, upsertSchoolBis, upsertSchoolRotation } from '../dex/index.ts';
 
 export async function guildAdminResult(ctx: Context, slug: string) {
-  const access = await getGuildAdminAccess(ctx.env.DB, ctx.user, slug, ctx.request);
+  // The VC rides along so the verdict can apply the omniscient
+  // doctrine (see getGuildAdminAccess).
+  const access = await getGuildAdminAccess(ctx.env.DB, ctx.user, slug, ctx.request, vcOf(ctx));
   return new GuildAdminShell(ctx, access);
 }
 
@@ -395,7 +400,10 @@ export const guildAdminTypes = {
 /* ---------------- admin mutations ----------------
  * Every mutation re-runs getGuildAdminAccess server-side; the client
  * is never trusted. Validation order and field caps mirror the
- * retired REST handlers they replace. */
+ * retired REST handlers they replace. The gate passes the VC through
+ * to the same verdict the read path uses: under the omniscient
+ * doctrine a system-path VC passes in full, while session callers are
+ * judged on their stored server row exactly as before. */
 
 export class GuildAdminPayloadShell extends PayloadBase {
   genAvatarUrl(){ return this.data.avatarUrl ?? null; }
@@ -405,7 +413,7 @@ const aOk = (ctx: Context, extra: any = {}) => new GuildAdminPayloadShell(ctx, {
 const aFail = (ctx: Context, code: string) => new GuildAdminPayloadShell(ctx, { ok: false, errorCode: code });
 
 async function adminGate(ctx: Context, slug: string) {
-  const a = await getGuildAdminAccess(ctx.env.DB, ctx.user, slug, ctx.request);
+  const a = await getGuildAdminAccess(ctx.env.DB, ctx.user, slug, ctx.request, vcOf(ctx));
   if (!a.exists) return { fail: aFail(ctx, 'guildNotFound') };
   if (!a.isAdmin) return { fail: aFail(ctx, 'adminOnly') };
   return { access: a };
