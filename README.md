@@ -88,7 +88,7 @@ web `format.ts` 与 mobile 各有一份实现，抽取需单独一轮改造，�
 |---|---|---|
 | `backend-deploy.yml` | push（master）到 `yanyun-signup/**`、`yanyun-web/**`、`packages/schema/**` | build web 一次 → 同步 dist 进 `public/` → `wrangler preview` 发到稳定 Preview `release`（https://release-yanyun.tbdlab.workers.dev），并把产物存为 artifact `backend-public`（含源 commit 的 manifest） |
 | `backend-promote.yml` | 手动，填 backend-deploy 的 run ID | 按 run ID 取回**同一批 artifact**，在 manifest 记录的源 commit 上 `wrangler deploy` 进 prod（不重新构建） |
-| `og-deploy.yml` / `og-promote.yml` | push（master）到 `yanyun-og/**` / 手动填 version_id | versions upload → 手动 versions deploy 晋级。OG 无 Durable Object，Version 机制可用，故不走 Preview 式 |
+| `og-deploy.yml` / `og-promote.yml` | push（master）到 `yanyun-og/**` / 手动填 version_id | versions upload → 手动 versions deploy 晋级，promote 同 job 内接着 `wrangler triggers deploy` 应用 routes/自定义域名/cron（versions deploy 不应用 triggers，平台行为）。OG 无 Durable Object，Version 机制可用，故不走 Preview 式 |
 | `mobile-update.yml` | push 到 `yanyun-mobile/**`、`packages/{blocks-core,theme,schema}/**` 或手动 | `eas update --channel preview`（稳定链接） |
 | `web-check.yml` | push（master）到 `yanyun-web/**` | 只构建验证，不部署 |
 
@@ -102,13 +102,14 @@ web `format.ts` 与 mobile 各有一份实现，抽取需单独一轮改造，�
 需要的 GitHub Secrets（已配）：`EXPO_TOKEN`、`CLOUDFLARE_API_TOKEN`、
 `CLOUDFLARE_ACCOUNT_ID`。
 
-本地手动部署（CI 故障时的兜底）：
-```bash
-source ~/.bashrc   # CLOUDFLARE_API_TOKEN
-npm run build:web
-npm run sync-public
-cd yanyun-signup && npx wrangler deploy   # 看完整输出, 有 ERROR 就是没上
-```
+**生产变更只走 CI（marcus 规矩，2026-10-25）**：所有生产变更只经
+GitHub Actions（`backend-deploy` → `backend-promote`、`og-deploy` →
+`og-promote`、`mobile-update`）。**禁止在本地用 `wrangler deploy` /
+`wrangler triggers deploy` / `wrangler versions *` 等命令直接作用于
+生产**——CI 故障时先修 CI，不得本地直部署兜底。promote 的人工
+dispatch 是审批闸（人做决定、CI 执行），不算手动部署。例外只有
+secret 类配置（`wrangler secret`）：仍由人工经安全通道处理，不进 CI。
+本地 wrangler 只许用于 dev / preview 等非生产用途。
 
 `yanyun-signup/public/` 里混着源码与构建产物：`hub-admin.*`、`gadmin.*`、
 `style.css`、`favicon.svg`、`icons.svg` 是手写源码（进仓）；`index.html` 与
