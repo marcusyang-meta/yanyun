@@ -351,21 +351,22 @@ try {
   check('提醒文案生成不报错', false, String(e && e.message));
 }
 
-/* ---------------- (g) REST draft rules (real worker fetch) ---------------- */
+/* ---------------- (g) 建车默认口径 (GraphQL, 取代已退役的 REST 草稿) ---------------- */
 try {
-  const worker = (await import('../src/worker.ts')).default;
-  const before = tables.events.length;
-  const res = await worker.fetch(new Request(`http://local/api/${SLUG}/cars/draft`, {
-    method: 'POST', headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ type: 'tower' }),
-  }), env, { waitUntil() {} });
-  const j = await res.json();
-  const draft = tables.events.slice(before).find((e) => e.status === 'draft');
-  check('REST 草稿创建 ok', j.ok === true, JSON.stringify(j).slice(0, 120));
-  eq('REST 草稿 type=tower', draft?.type, 'tower');
-  eq('REST 草稿 max_slots=10', draft?.max_slots, 10);
+  const cg = await gql(createMut, {
+    user: member,
+    variables: {
+      input: {
+        slug: SLUG, title: '成员爬塔车', type: 'TOWER', startsAt,
+        seats: [{ nickname: '队员', weapon: '鸣金·虹' }],
+      },
+    },
+  });
+  check('GraphQL 成员建爬塔车 ok', cg.data?.createGrouping?.ok === true, JSON.stringify(cg.errors || cg.data).slice(0, 160));
+  eq('GraphQL 爬塔车 type=tower', String(cg.data?.createGrouping?.grouping?.type || '').toLowerCase(), 'tower');
+  eq('GraphQL 爬塔车 maxSlots=10 (无副本默认)', cg.data?.createGrouping?.grouping?.maxSlots, 10);
 } catch (e) {
-  check('REST 草稿创建 ok', false, String(e && e.message));
+  check('GraphQL 成员建爬塔车 ok', false, String(e && e.message));
 }
 
 if (unknownSql.size) console.log('\n[FakeDB 未路由 SQL — 已走默认空结果]\n' + [...unknownSql].join('\n'));

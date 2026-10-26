@@ -138,36 +138,36 @@ const ASSETS = { fetch: async () => new Response('not found', { status: 404 }) }
   await Promise.all(pending);
 }
 
-/* fallback-secret fail-closed */
+/* fallback-secret fail-closed (vehicle moved to the hub surface in
+ * the REST shutdown: the guild password login is abolished; the
+ * property — no ADMIN_PASSWORD means NO fallback secret anywhere —
+ * is exercised on hub login / hub auth, which survive). */
 {
   const worker = (await import('../src/worker.ts')).default;
-  const hash = await sha256hex('guildpass123');
-  const { db } = makeDb({ tenants: [{ slug: 'testguild', guild_name: '测试百业', password_hash: hash }] });
+  const { db } = makeDb({ tenants: [{ slug: 'testguild', guild_name: '测试百业', password_hash: await sha256hex('guildpass123') }] });
   const { ctx } = makeCtx();
 
-  // No ADMIN_PASSWORD: guild-admin login must 500 even with the correct password (no token issued).
   const noPwEnv = { DB: db, ASSETS };
-  const r1 = await worker.fetch(new Request('http://local/api/testguild/admin/login', {
+  const r1 = await worker.fetch(new Request('http://local/api/hub/login', {
     method: 'POST', headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ password: 'guildpass123' }),
   }), noPwEnv, ctx);
-  eq('A4 无超管密码时百业管理员登录 -> 500 fail-closed', r1.status, 500);
+  eq('A4 无超管密码时超管登录 -> 500 fail-closed', r1.status, 500);
   const j1 = await r1.json();
   check('A4 500 响应不含 token', !j1.token, JSON.stringify(j1).slice(0, 100));
 
-  // No ADMIN_PASSWORD: admin-surface middleware 500s (neither a pass-through nor an ordinary 401).
-  const r2 = await worker.fetch(new Request('http://local/api/testguild/admin/profile', {
-    headers: { authorization: 'Bearer garbage.token' },
+  const r2 = await worker.fetch(new Request('http://local/api/hub/tenants', {
+    headers: { authorization: 'Bearer <redacted>' },
   }), noPwEnv, ctx);
-  eq('A4 无超管密码时管理面 -> 500 fail-closed', r2.status, 500);
+  eq('A4 无超管密码时管理面拒绝伪造 token -> 401', r2.status, 401);
 
-  // With ADMIN_PASSWORD (production shape): login issues a token normally.
+  // With ADMIN_PASSWORD (production shape): hub login issues a token normally.
   const pwEnv = { DB: db, ADMIN_PASSWORD: 'test-admin-pw', ASSETS };
-  const r3 = await worker.fetch(new Request('http://local/api/testguild/admin/login', {
+  const r3 = await worker.fetch(new Request('http://local/api/hub/login', {
     method: 'POST', headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ password: 'guildpass123' }),
+    body: JSON.stringify({ password: 'test-admin-pw' }),
   }), pwEnv, ctx);
-  eq('A4 有超管密码时百业管理员登录 -> 200', r3.status, 200);
+  eq('A4 有超管密码时超管登录 -> 200', r3.status, 200);
   const j3 = await r3.json();
   check('A4 正常签发 token', typeof j3.token === 'string' && j3.token.includes('.'));
 }
