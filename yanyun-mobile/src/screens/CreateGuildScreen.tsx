@@ -47,11 +47,16 @@ function CreateGuildForm() {
   const [committing, setCommitting] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // slug 输入: 规范化后防抖问后端是否可用 (判定与文案都在后端)
+  // slug 输入: 规范化后防抖问后端是否可用 (判定与文案都在后端);
+  // checking 态在输入事件里置位, effect 只负责防抖取数与回填结果。
+  const onSlugChange = (t: string) => {
+    const v = t.toLowerCase().replace(/[^a-z0-9-]/g, '');
+    setSlug(v);
+    setSlugState(v ? 'checking' : 'idle');
+  };
   useEffect(() => {
     const v = slug.trim().toLowerCase();
-    if (!v) { setSlugState('idle'); return; }
-    setSlugState('checking');
+    if (!v) return;
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(() => {
       fetchQuery<documentsSlugAvailableQuery>(relayEnvironment, SlugAvailableQuery, { slug: v })
@@ -136,7 +141,7 @@ function CreateGuildForm() {
             maxLength={40}
             autoCapitalize="none"
             autoCorrect={false}
-            onChangeText={(t) => setSlug(t.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+            onChangeText={onSlugChange}
             placeholder={viewer?.createSlugPlaceholder ?? undefined}
             placeholderTextColor={theme.muted}
           />
