@@ -35,6 +35,8 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
+      - name: Typecheck backend (tsc --noEmit gate)
+        run: npm run typecheck --workspace=yanyun-signup
       - name: Build web
         run: npm run build --workspace=yanyun-web
       - name: Stage build artifact (index.html + assets + manifest)
