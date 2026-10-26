@@ -286,7 +286,7 @@ export async function listSettledBeats(
   return rows || [];
 }
 
-/* Beat settlement: success writes sent_at (and clears any error),
+/* Beat settlement: success writes sent_at (and clears the error),
  * failure writes the error. Settled beats are never resent. */
 export async function markBeatSent(d1: D1Database, eventId: number, offsetMin: number, atSec: number): Promise<RunMeta> {
   const db = createDb(d1);
