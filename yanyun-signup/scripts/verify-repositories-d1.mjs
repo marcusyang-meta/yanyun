@@ -8,7 +8,7 @@
  * 实体定义镜像 (生产结构零变更, 这里只是本地验证夹具)。
  *
  * 用法: node scripts/verify-repositories-d1.mjs [section]
- *   section 省略 = 全部; 目前有 tenants / events / gear / users 四段,
+ *   section 省略 = 全部; 目前有 tenants / events / gear / users / members 五段,
  *   随数据层迁移进度增补。退出码非 0 = 有断言失败。
  * =================================================== */
 import { Miniflare, convertV4MiniflareOptions } from 'miniflare';
@@ -433,6 +433,29 @@ if (want('users')) {
   eq('listNicksByGuild', byGuild.map((r) => r.discord_id).sort(), ['U1', 'U2', 'U3']);
   const allNicks = await repo.listAllNicks(db);
   eq('listAllNicks count', allNicks.length, 4);
+}
+
+/* ---------------- guild_members ---------------- */
+if (want('members')) {
+  console.log('== guild_members repository on real D1 ==');
+  const repo = await import('../src/db/repositories/guildMembers.ts');
+
+  await repo.ensureGuildMembersTable(db);
+  await repo.upsertGuildMember(db, 'alpha', 'U1', '服内甲', '全局甲');
+  await repo.upsertGuildMember(db, 'alpha', 'U1', '服内甲改', '全局甲改');
+  await repo.upsertGuildMember(db, 'alpha', 'U2', '', '全局乙');
+  await repo.upsertGuildMember(db, 'beta', 'U1', '乙服甲', '全局甲');
+
+  const m = await repo.getGuildMember(db, 'alpha', 'U1');
+  check('upsertGuildMember conflict updates nick/global', !!m && m.nick === '服内甲改' && m.global_name === '全局甲改');
+  eq('getGuildMember missing -> null', await repo.getGuildMember(db, 'alpha', 'nope'), null);
+  eq('getGuildMember tenant isolation', await repo.getGuildMember(db, 'beta', 'U2'), null);
+  const list = await repo.listGuildMembers(db, 'alpha');
+  eq('listGuildMembers tenant-scoped', list.map((r) => r.discord_id).sort(), ['U1', 'U2']);
+  const betaList = await repo.listGuildMembers(db, 'beta');
+  check('listGuildMembers other tenant separate', betaList.length === 1 && betaList[0].nick === '乙服甲');
+  eq('hasGuildMember true', await repo.hasGuildMember(db, 'alpha', 'U2'), true);
+  eq('hasGuildMember false', await repo.hasGuildMember(db, 'beta', 'U2'), false);
 }
 
 await mf.dispose();

@@ -20,6 +20,7 @@ import { logError } from './errorlog.js';
 import { getGuildAvatarMeta, avatarPath } from './guildavatar.ts';
 import { getSettingValue, setSettingValue, listSettingsByKey } from './db/repositories/settings.ts';
 import { getUsernameRow } from './db/repositories/users.ts';
+import { listGuildMembers, getGuildMember } from './db/repositories/guildMembers.ts';
 import {
   getTenantRow, getTenantSlug, listTenantSlugs, listTenantsDirectory, insertTenant,
 } from './db/repositories/tenants.ts';
@@ -1326,9 +1327,7 @@ class GuildShell extends ShellBase {
   genMemberRoster() {
     return this.memo('memberRoster', async () => {
       await ensureGuildMembersTable(this.db);
-      const { results } = await this.db.prepare(
-        'SELECT discord_id, nick, global_name FROM guild_members WHERE tenant = ?'
-      ).bind(this.genSlug()).all().catch(() => ({ results: [] }));
+      const results = await listGuildMembers(this.db, this.genSlug()).catch(() => []);
       const out = [];
       for (const r of results || []) {
         const displayName = String(r.nick || '').trim() || String(r.global_name || '').trim();
@@ -3065,9 +3064,7 @@ const resolvers = {
       const forId = input.forDiscordId ? String(input.forDiscordId).trim() : '';
       if (forId) {
         await ensureGuildMembersTable(db);
-        const m = await db.prepare(
-          'SELECT nick, global_name FROM guild_members WHERE tenant = ? AND discord_id = ?'
-        ).bind(ev.tenant, forId).first().catch(() => null);
+        const m = await getGuildMember(db, ev.tenant, forId).catch(() => null);
         if (!m) return sFail(ctx, 'proxyTargetNotInRoster');
         nickname = String(m.nick || '').trim() || String(m.global_name || '').trim();
         if (!nickname) return sFail(ctx, 'nicknameRequired');
