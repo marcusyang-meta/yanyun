@@ -1,12 +1,11 @@
 /* ===================================================
- * bosses 实体的数据层访问 (Repository)。
+ * Data-layer access (Repository) for the bosses entity.
  *
- * 三期迁入: 此前散在 graphql.js (shell 点查、bossPage、结构化列懒
- * DDL) 与 worker.js (pub 列表/详情、hub CRUD、结构化物化、赛季图
- * 一次性迁移) 的全部 bosses 语句。结构化列 (mechanics_json 等) 的
- * 懒 DDL 归本仓库, graphql.js 的 ensureBossStructuredColumns 保留
- * 旧名导出作委托。
- * 返回行沿用 snake_case 键, 调用点零感知。
+ * All bosses statements live here (previously scattered across
+ * graphql.js and worker.js). Lazy DDL for the structured columns
+ * (mechanics_json etc.) belongs to this repository; graphql.js
+ * keeps the old ensureBossStructuredColumns name as a delegating
+ * export. Rows keep snake_case keys, so call sites are unaffected.
  * =================================================== */
 import { sql } from 'drizzle-orm';
 import { createDb, schema } from '../../db/client.ts';
@@ -38,7 +37,7 @@ function metaOf(r: unknown): RunMeta {
   return { changes: m?.changes ?? 0, last_row_id: m?.last_row_id ?? 0 };
 }
 
-/* ---------- 懒 DDL: 结构化攻略列 ---------- */
+/* ---------- Lazy DDL: structured guide columns ---------- */
 
 let bossColsReady: Promise<void> | null = null;
 export function ensureBossStructuredColumns(d1: D1Database): Promise<void> {
@@ -51,13 +50,13 @@ export function ensureBossStructuredColumns(d1: D1Database): Promise<void> {
         for (const c of ['mechanics_json', 'talents_json', 'shouts_json']) {
           if (!cols.has(c)) await db.run(sql`ALTER TABLE ${bosses} ADD COLUMN ${col(c)} TEXT`);
         }
-      } catch { /* 列已存在等情况静默: 读取侧有 guide 解析兜底 */ }
+      } catch { /* silent if columns already exist etc.; reads fall back to parsing guide */ }
     })();
   }
   return bossColsReady;
 }
 
-/* ---------- 读取 ---------- */
+/* ---------- Reads ---------- */
 
 export async function getBossById(d1: D1Database, id: number): Promise<BossRow | null> {
   const db = createDb(d1);
@@ -73,7 +72,7 @@ export async function listAllBosses(d1: D1Database): Promise<BossRow[]> {
   return rows || [];
 }
 
-/** 公开列表 (轻量, 不含攻略正文; has_guide 为表达式列)。 */
+/** Public list (lightweight, no guide body; has_guide is an expression column). */
 export async function listBossesLight(d1: D1Database): Promise<Array<Record<string, unknown>>> {
   const db = createDb(d1);
   const rows = await db.all<Record<string, unknown>>(
@@ -142,7 +141,7 @@ export async function countBosses(d1: D1Database): Promise<number> {
   return row?.n ?? 0;
 }
 
-/* ---------- 写入 ---------- */
+/* ---------- Writes ---------- */
 
 const BOSS_COLUMNS = new Set([
   'name', 'talent', 'source', 'note', 'sort_order', 'dungeon', 'guide',
@@ -183,7 +182,7 @@ export async function updateBossFields(
   return metaOf(r);
 }
 
-/** 副本改名时 boss 归属按副本名关联, 整表迁移。 */
+/** Bosses link to dungeons by name, so a dungeon rename rewrites the whole table. */
 export async function renameBossesDungeon(
   d1: D1Database, oldName: string, newName: string,
 ): Promise<RunMeta> {

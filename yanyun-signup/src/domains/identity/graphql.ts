@@ -1,10 +1,10 @@
-/* identity 域 GraphQL (三期域拆分): Viewer/Discord shells、设置页与 updateMyLocale。 */
+/* Identity GraphQL: Viewer/Discord shells, settings page and updateMyLocale. */
 import {
   clampBlocksVersion, substituteForVersion, weekWindowUtc, startsAtEpoch,
   fmtStartsAt, groupByLocalDay, TYPE_SHORT_KEY, HEALER_SECT,
 } from '../platform/index.ts';
 import { tlCalculateExcel } from '../gear/index.ts';
-import { getUserServers, getGuildNick, maybeRefreshGuildNicks, getUserLocalePref, setUserLocalePref } from '../../auth.js';
+import { getUserServers, getGuildNick, maybeRefreshGuildNicks, getUserLocalePref, setUserLocalePref } from './auth.ts';
 import { ensureSignupDiscordColumn, ensureGuildMembersTable, upsertGuildMember } from '../groupings/index.ts';
 import { ensurePushTokensTable, isValidPushToken, savePushToken, deletePushToken } from '../platform/index.ts';
 import { evaluateHeirloomPushes } from '../gear/index.ts';
@@ -77,7 +77,6 @@ export async function identityNamesFor(db: any, discordId: any, dgid: any) {
   return names;
 }
 
-// 本人落座判定: 昵称命中会话用户自己的身份名 -> 返回其 discord_id, 否则 null
 export async function selfStampFor(db: any, user: any, slug: any, nickname: any) {
   if (!user || !user.discordId || !nickname) return null;
   const dgid = await getTenantSetting(db, slug, 'discord_guild_id');
@@ -86,12 +85,14 @@ export async function selfStampFor(db: any, user: any, slug: any, nickname: any)
   return names.has(nickname) ? String(user.discordId) : null;
 }
 
-/* ---------- 报名身份收口 (2026-10-25 用户裁决) ----------
- * 自报名落座名由服务端定: 报名者在该百业绑定服务器的 Discord 昵称
- * (user_guild_nicks 快照), 回退全局名 (users.username, 再回退会话名)。
- * 前端不再能改名, 客户端传来的昵称一律不作数 (覆盖, 不报错); 座位
- * 无条件落本人 discord_id 戳 — 旧「昵称恰等于身份名集合才盖戳」的
- * 条件盖戳就此废除 (那套只剩发车预排座位与整表编辑的保守沿用在用)。 */
+/* ---------- Signup identity (ruling) ----------
+ * The server decides a self-signup's seat name: the member's Discord nick
+ * in the guild's bound server (user_guild_nicks snapshot), falling back to
+ * the global name (users.username, then the session name). Client-sent
+ * nicknames are ignored (overwritten, not an error), and the seat is
+ * unconditionally stamped with the user's own discord_id — the old
+ * conditional stamping (nick must equal an identity name) is abolished;
+ * it survives only in pre-arranged seats and full-table edits. */
 export async function canonicalSignupName(db: any, user: any, slug: any) {
   if (!user || !user.discordId) return '';
   const dgid = await getTenantSetting(db, slug, 'discord_guild_id');
@@ -104,11 +105,12 @@ export async function canonicalSignupName(db: any, user: any, slug: any) {
   return String(user.name || '').trim();
 }
 
-/* ---------- 百业成员名册记录 (用户进入百业时) ----------
- * 读取路径在确认可读 (canView) 后顺手把当前用户记进该百业名册
- * (guild_members): 只用登录已拿到的数据 (全局名 + 该服昵称快照), 不新增
- * 抓取。全程容错且走 waitUntil, 记录失败绝不影响页面读取; 匿名/被锁
- * (GuildLocked) 不记录。 */
+/* ---------- Guild roster recording (on entering a guild) ----------
+ * After a read confirms canView, record the current user in the guild
+ * roster (guild_members), using only data login already fetched (global
+ * name + that server's nick snapshot) — no new fetching. Fully tolerant
+ * and via waitUntil; recording failure never affects the page read.
+ * Anonymous / locked (GuildLocked) visits are not recorded. */
 
 export class DiscordUserShell extends ShellBase {
   genDiscordId(){ return String(this.data.discordId); }
@@ -135,7 +137,7 @@ export class ViewerShell extends ShellBase {
       const out = [];
       for (const t of results || []) {
         const a = await getGuildAccess(this.db, this.ctx.user, t.slug, this.ctx.request);
-        // 可用百业 = 已绑定 Discord 服务器且我是其成员 (服务端过滤)
+        // Usable guilds = bound Discord server and I am a member (filtered server-side)
         if (a.bound && a.isMember) out.push(guildResult(this.ctx, a));
       }
       return out;
@@ -147,7 +149,7 @@ export class ViewerShell extends ShellBase {
       const out = [];
       for (const t of results || []) {
         const a = await getGuildAccess(this.db, this.ctx.user, t.slug, this.ctx.request);
-        // 未绑定服务器的百业: 公开只读类型下发
+        // Unbound guilds are served as the public read-only type
         if (a.exists && !a.bound) out.push(guildResult(this.ctx, a));
       }
       return out;
@@ -155,20 +157,20 @@ export class ViewerShell extends ShellBase {
   }
   async genGuild({ slug }: any){
     const a = await getGuildAccess(this.db, this.ctx.user, slug, this.ctx.request);
-    touchGuildRoster(this.ctx, a); // 进入百业 -> 名册记录 (被锁/匿名在 helper 内过滤)
-    // 不存在也返回 GuildLocked (类型即结论, 不下发内容)
+    touchGuildRoster(this.ctx, a); // entering a guild records the roster (locked/anonymous filtered inside the helper)
+    // A missing guild also returns GuildLocked (the type is the verdict; no content)
     return guildResult(this.ctx, a);
   }
   async genDiscordServers(){
     if (!this.ctx.user) return [];
     return this.memo('discordServers', async () => {
       const servers = await getServersForUser(this.db, this.ctx.user);
-      // 服务端过滤: 只下发我有管理权限的服务器 (不下发权限位给前端判断)
+      // Server-side filter: only servers I can manage (permission bits are never sent for frontend judging)
       return servers.filter(serverCanManage).map((sv: any) => new DiscordServerShell(this.ctx, sv));
     });
   }
-  // 账号级语言偏好 (null = 自动) 与本请求实际生效 locale (ctx.locale 已由
-  // worker 按 偏好 > 浏览器语言 > zh-CN 解析完毕)
+  // Account locale preference (null = automatic) and this request's effective
+  // locale (ctx.locale already resolved: preference > browser language > zh-CN)
   genMyLocalePref(){ return loadMyLocalePref(this.ctx); }
   genMyEffectiveLocale(){ return this.locale; }
 }
@@ -223,13 +225,13 @@ export const VIEWER_TEXT_RESOLVERS = defineTextGens(ViewerShell, [
   ['commonRenderErrorHint', 'common', 'renderErrorHint'],
   ['commonBackToHubLabel', 'common', 'backToHub'],
   ['commonLoadingGuildText', 'common', 'loadingGuild'],
-  // 全站页脚: 非官方声明 (审计 A3) + 条款/隐私入口文案 (审计 A2)
+  // Site footer: unofficial disclaimer + terms/privacy entry labels
   ['footerDisclaimerText', 'legal', 'disclaimer'],
   ['footerTermsLabel', 'legal', 'termsLink'],
   ['footerPrivacyLabel', 'legal', 'privacyLink'],
 ]);
 
-/* ---------- Hub 页 (导航) ---------- */
+/* ---------- Hub page (navigation) ---------- */
 
 export class SettingsPageShell extends ShellBase {
   genLocalePref(){ return loadMyLocalePref(this.ctx); }
@@ -250,16 +252,18 @@ export const SETTINGS_TEXT_RESOLVERS = defineTextGens(SettingsPageShell, [
 ]);
 
 /* ---------- Mutation payload shell ----------
- * ok/grouping/seats/guild 是数据; error 文案由 genError 按 errorCode +
- * 请求 locale 生成 (码稳定, 文案可变); 无码时 error 为 null。 */
+ * ok/grouping/seats/guild are data; error text is generated by genError
+ * from errorCode + request locale (codes stable, text may vary); no code
+ * means error is null. */
 
 
 export const identityResolvers = {
   Query: {
     viewer: async (_: any, __: any, ctx: any) => {
-      // 懒刷新: 用户打开应用走 viewer 校验时, 顺带把缺失/超 24h 的服务器昵称
-      // 快照用 refresh token 现拉 (本次请求内完成); 失败静默, 用旧快照继续。
-      if (ctx.user) { try { await maybeRefreshGuildNicks(ctx.env, ctx.user); } catch { /* 忽略 */ } }
+      // Lazy refresh: a viewer check also refetches missing / >24h server
+      // nick snapshots with the refresh token, in-request; failure is silent
+      // and the old snapshot is used.
+      if (ctx.user) { try { await maybeRefreshGuildNicks(ctx.env, ctx.user); } catch { /* ignore */ } }
       return new ViewerShell(ctx, {});
     },
 
@@ -279,8 +283,8 @@ export const identityResolvers = {
       });
     },
 
-    // App 推送令牌注册/注销 (发车提醒的 Expo 通道): 身份只认会话
-    // ctx.user, 客户端传什么都不信; 令牌格式不合直接拒。
+    // App push-token register/unregister (Expo departure channel): identity
+    // comes only from the session ctx.user; malformed tokens are rejected.
   },
   types: {
   SettingsPage: {
@@ -296,7 +300,6 @@ export const identityResolvers = {
     effectiveLocale: (p: any) => p.genEffectiveLocale(),
   },
 
-  // ===== Viewer 层级字段 =====
   Viewer: {
     myLocalePref: (p: any) => p.genMyLocalePref(),
     myEffectiveLocale: (p: any) => p.genMyEffectiveLocale(),
@@ -318,9 +321,10 @@ export const identityResolvers = {
     icon: (p: any) => p.genIcon(),
   },
 
-  // Guild / GuildReadOnly 字段实现相同 (只读类型只是不挂写入口组件, 数据本就公开);
-  // GuildLocked 只有 slug 与锁定页文案, 不解析任何内容字段。
-  // memberRoster 只注册在完整 Guild 上: schema 里 GuildReadOnly /
-  // GuildLocked 没有这个字段, 名册权限由响应类型表达。
+  // Guild / GuildReadOnly share field implementations (read-only types just
+  // mount no write-entry components; the data is public anyway). GuildLocked
+  // resolves only slug and locked-page text, no content fields. memberRoster
+  // is registered only on full Guild: GuildReadOnly / GuildLocked lack the
+  // field in the schema — roster permission is expressed by response type.
   },
 };

@@ -7,7 +7,7 @@ import { sql } from 'drizzle-orm';
 import { createDb } from '../../db/client.ts';
 import { guildAvatars } from './schema.ts';
 
-/* ---------- 懒 DDL ---------- */
+/* ---------- Lazy DDL ---------- */
 
 let guildAvatarsTableReady: Promise<void> | null = null;
 export function ensureGuildAvatarsTable(d1: D1Database): Promise<void> {
@@ -22,7 +22,7 @@ export function ensureGuildAvatarsTable(d1: D1Database): Promise<void> {
           hash TEXT NOT NULL,
           updated_at INTEGER NOT NULL
         )`);
-      } catch { /* 建表失败静默: 头像面不可用不能拖垮业务 */ }
+      } catch { /* Table-creation failure is silent: the avatar surface being unavailable must not take down the business. */ }
     })();
   }
   return guildAvatarsTableReady;
@@ -81,7 +81,7 @@ export async function putGuildAvatarRow(
   updatedAt: number,
 ): Promise<void> {
   const db = createDb(d1);
-  // 列名单 / ON CONFLICT 目标 / SET 左值须用裸列名 (SQLite 语法), 见 settings.ts 注。
+  // Column lists / ON CONFLICT targets / SET left-hand sides must be bare column names (SQLite syntax) — see the note in settings.ts.
   await db.run(
     sql`INSERT INTO ${guildAvatars} (${sql.identifier('tenant')}, ${sql.identifier('content_type')}, ${sql.identifier('bytes')}, ${sql.identifier('hash')}, ${sql.identifier('updated_at')})
         VALUES (${tenant}, ${contentType}, ${bytes}, ${hash}, ${updatedAt})

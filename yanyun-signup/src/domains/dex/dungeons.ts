@@ -1,12 +1,11 @@
 /* ===================================================
- * dungeons 实体的数据层访问 (Repository)。
+ * Data-layer access (Repository) for the dungeons entity.
  *
- * 三期迁入: 此前散在 graphql.js (shell 点查、图鉴列表、当前版本、
- * 赛季列懒 DDL、发车时按 id 取名) 与 worker.js (pub/hub 列表、
- * 当期更新、赛季图一次性迁移、OG 副本名) 的全部 dungeons 语句。
- * 赛季/分类/等级列的懒 DDL 归本仓库, graphql.js 的
- * ensureDungeonDexColumns 保留旧名导出作委托。
- * 返回行沿用 snake_case 键, 调用点零感知。
+ * All dungeons statements live here (previously scattered across
+ * graphql.js and worker.js). Lazy DDL for the season/category/level
+ * columns belongs to this repository; graphql.js keeps the old
+ * ensureDungeonDexColumns name as a delegating export.
+ * Rows keep snake_case keys, so call sites are unaffected.
  * =================================================== */
 import { sql } from 'drizzle-orm';
 import { createDb, schema } from '../../db/client.ts';
@@ -38,7 +37,7 @@ function metaOf(r: unknown): RunMeta {
   return { changes: m?.changes ?? 0, last_row_id: m?.last_row_id ?? 0 };
 }
 
-/* ---------- 懒 DDL: 赛季/分类/等级列 ---------- */
+/* ---------- Lazy DDL: season/category/level columns ---------- */
 
 let dungeonDexColsReady: Promise<void> | null = null;
 export function ensureDungeonDexColumns(d1: D1Database): Promise<void> {
@@ -51,13 +50,13 @@ export function ensureDungeonDexColumns(d1: D1Database): Promise<void> {
         if (!cols.has('season')) await db.run(sql`ALTER TABLE ${dungeons} ADD COLUMN ${col('season')} TEXT`);
         if (!cols.has('category')) await db.run(sql`ALTER TABLE ${dungeons} ADD COLUMN ${col('category')} TEXT`);
         if (!cols.has('level')) await db.run(sql`ALTER TABLE ${dungeons} ADD COLUMN ${col('level')} INTEGER`);
-      } catch { /* 列已存在等情况静默 */ }
+      } catch { /* silent if columns already exist etc. */ }
     })();
   }
   return dungeonDexColsReady;
 }
 
-/* ---------- 读取 ---------- */
+/* ---------- Reads ---------- */
 
 export async function getDungeonByName(d1: D1Database, name: string): Promise<DungeonRow | null> {
   const db = createDb(d1);
@@ -84,7 +83,7 @@ export async function getDungeonNameSizeById(
 const PUBLIC_COLUMNS = sql`${col('id')}, ${col('name')}, ${col('size')}, ${col('is_current')}, ${col('version')}, ${col('video_url')}, ${col('video_title')}`;
 const PUBLIC_ORDER = sql`${col('size')} DESC, ${col('sort_order')} DESC, ${col('id')} ASC`;
 
-/** 公开/hub 列表 (轻量列集)。 */
+/** Public/hub list (lightweight column set). */
 export async function listDungeonsPublic(d1: D1Database): Promise<Array<Record<string, unknown>>> {
   const db = createDb(d1);
   const rows = await db.all<Record<string, unknown>>(
@@ -93,14 +92,14 @@ export async function listDungeonsPublic(d1: D1Database): Promise<Array<Record<s
   return rows || [];
 }
 
-/** 图鉴页列表 (整行)。 */
+/** Dex page list (full rows). */
 export async function listDungeonsDex(d1: D1Database): Promise<DungeonRow[]> {
   const db = createDb(d1);
   const rows = await db.all<DungeonRow>(sql`SELECT * FROM ${dungeons} ORDER BY ${PUBLIC_ORDER}`);
   return rows || [];
 }
 
-/** 当前游戏版本: 取最新一条带真实 version 的副本行。 */
+/** Current game version: the newest dungeon row carrying a real version. */
 export async function getLatestDungeonVersion(d1: D1Database): Promise<string | null> {
   const db = createDb(d1);
   const row = await db.get<{ version: string }>(
@@ -115,7 +114,7 @@ export async function countDungeons(d1: D1Database): Promise<number> {
   return row?.n ?? 0;
 }
 
-/* ---------- 写入 ---------- */
+/* ---------- Writes ---------- */
 
 const DUNGEON_COLUMNS = new Set([
   'name', 'size', 'is_current', 'sort_order', 'video_url', 'video_title',

@@ -1,19 +1,22 @@
 #!/usr/bin/env node
-// sync-public.mjs — 把 web 构建产物同步进 yanyun-signup/public/（同步式）。
+// sync-public.mjs — sync the web build output into yanyun-signup/public/
+// (synchronous).
 //
-// 仓库约定（见根 .gitignore 与 README「部署」节）：
-//   - public/ 里只有 index.html 与 assets/ 是构建产物（不进仓）；
-//   - 其余文件（hub-admin.*、gadmin.*、style.css、favicon.svg、icons.svg）
-//     都是进仓的手写源码，本脚本绝不碰。
-// 同步语义：以 dist 为准——index.html 直接覆盖；assets/ 全量对齐，
-// dist 里没有的旧哈希文件从 public/assets 删除（旧 cp -r 只叠不删，
-// 曾累积到 3 代 110 个文件）。
+// Repo convention (see root .gitignore and the README deploy section):
+//   - In public/, only index.html and assets/ are build output (not committed);
+//   - everything else (hub-admin.*, gadmin.*, style.css, favicon.svg,
+//     icons.svg) is committed hand-written source this script never touches.
+// Sync semantics: dist wins — index.html is overwritten outright;
+// assets/ is fully aligned, and stale hashed files absent from dist are
+// deleted from public/assets (the old `cp -r` only layered files on and
+// once accumulated 3 generations / 110 files).
 //
-// 用法：
+// Usage:
 //   node scripts/sync-public.mjs [--dist <dir>] [--public <dir>]
-// 默认 --dist = ../../yanyun-web/dist（相对 signup 目录），
-//      --public = ../public（相对 scripts/）。CI promote 时用 --dist
-// 指向从 artifact 解出的目录（内含 index.html + assets/）即可复用同一逻辑。
+// Defaults: --dist = ../../yanyun-web/dist (relative to the signup dir),
+// --public = ../public (relative to scripts/). In CI promote, point
+// --dist at the directory unpacked from the artifact (containing
+// index.html + assets/) to reuse the same logic.
 
 import { existsSync, readdirSync, readFileSync, writeFileSync, copyFileSync, mkdirSync, rmSync, statSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
@@ -53,11 +56,11 @@ function walkFiles(root) {
   return out;
 }
 
-// 1) index.html 覆盖
+// 1) Overwrite index.html.
 writeFileSync(join(publicDir, 'index.html'), readFileSync(join(distDir, 'index.html')));
 console.log('index.html: copied from dist');
 
-// 2) assets/ 对齐：复制 dist 全部文件，删除 public 里多余的
+// 2) Align assets/: copy everything from dist, delete extras in public.
 mkdirSync(publicAssets, { recursive: true });
 const distFiles = new Set(walkFiles(distAssets));
 const publicFiles = walkFiles(publicAssets);
@@ -69,7 +72,7 @@ for (const rel of publicFiles) {
     console.log(`assets: deleted stale ${rel}`);
   }
 }
-// 删完文件后清掉空目录（dist 里没有对应目录的）
+// After deleting files, prune now-empty directories.
 (function pruneEmptyDirs(dir) {
   for (const name of readdirSync(dir)) {
     const p = join(dir, name);
@@ -89,7 +92,7 @@ for (const rel of distFiles) {
 }
 console.log(`assets: ${copied} files in sync, ${deleted} stale deleted`);
 
-// 3) 摘要：新 index.html 引用的入口，供 CI/本地核对
+// 3) Summary: the entry refs of the new index.html, for CI/local verification.
 const html = readFileSync(join(publicDir, 'index.html'), 'utf8');
 const refs = [...html.matchAll(/(?:src|href)="(\/assets\/[^"]+)"/g)].map((m) => m[1]);
 console.log(`index.html asset refs: ${refs.join(', ')}`);

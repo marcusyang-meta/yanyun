@@ -6,7 +6,7 @@ import { sql } from 'drizzle-orm';
 import { createDb } from '../../db/client.ts';
 import { errorLog } from './schema.ts';
 
-/* ---------- 懒 DDL ---------- */
+/* ---------- Lazy DDL ---------- */
 
 let errorLogTableReady: Promise<void> | null = null;
 export function ensureErrorLogTable(d1: D1Database): Promise<void> {
@@ -25,7 +25,7 @@ export function ensureErrorLogTable(d1: D1Database): Promise<void> {
           stack TEXT NOT NULL DEFAULT ''
         )`);
         await db.run(sql`CREATE INDEX IF NOT EXISTS idx_error_log_at ON ${errorLog} (${sql.identifier('at')})`);
-      } catch { /* 建表失败静默: 监控不可用不能拖垮业务 */ }
+      } catch { /* silent: monitoring must never take down the business path */ }
     })();
   }
   return errorLogTableReady;
@@ -51,7 +51,7 @@ export async function insertErrorLog(
   },
 ): Promise<void> {
   const db = createDb(d1);
-  // INSERT 列名单须用裸列名 (SQLite 语法), 见 settings.ts 注。
+  // INSERT column lists must use bare column names (SQLite syntax); see settings.ts note.
   await db.run(
     sql`INSERT INTO ${errorLog} (${sql.identifier('at')}, ${sql.identifier('source')}, ${sql.identifier('name')}, ${sql.identifier('message')}, ${sql.identifier('tenant')}, ${sql.identifier('context')}, ${sql.identifier('stack')})
         VALUES (${row.at}, ${row.source}, ${row.name}, ${row.message}, ${row.tenant}, ${row.context}, ${row.stack})`,

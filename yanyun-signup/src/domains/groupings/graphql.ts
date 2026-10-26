@@ -1,11 +1,11 @@
 import { ensureEventCreatorColumn as ensureEventCreatorColumnRepo } from './events.ts';
-/* groupings 域 GraphQL (三期域拆分): 车队 shells、列表/详情页与全部车队 mutation。 */
+/* groupings domain GraphQL: grouping shells, list/detail pages, and all grouping mutations. */
 import {
   clampBlocksVersion, substituteForVersion, weekWindowUtc, startsAtEpoch,
   fmtStartsAt, groupByLocalDay, TYPE_SHORT_KEY, HEALER_SECT,
 } from '../platform/index.ts';
 import { tlCalculateExcel } from '../gear/index.ts';
-import { getUserServers, getGuildNick, maybeRefreshGuildNicks, getUserLocalePref, setUserLocalePref } from '../../auth.js';
+import { getUserServers, getGuildNick, maybeRefreshGuildNicks, getUserLocalePref, setUserLocalePref } from '../identity/auth.ts';
 import { ensureSignupDiscordColumn, ensureGuildMembersTable, upsertGuildMember } from './index.ts';
 import { ensurePushTokensTable, isValidPushToken, savePushToken, deletePushToken } from '../platform/index.ts';
 import { evaluateHeirloomPushes } from '../gear/index.ts';
@@ -114,18 +114,22 @@ export function toGrouping(ctx: any, ev: any) {
   return new GroupingShell(ctx, ev);
 }
 
-// 从 guide 文本解析 1-x/2-x 天赋行 (兼容真实换行与字面 \n 序列)
+// Parse 1-x/2-x talent rows from guide text (accepts real newlines and literal \n sequences).
 
 export function ensureEventCreatorColumn(db: any) {
   return ensureEventCreatorColumnRepo(db);
 }
 
-/* ---------- 落座身份戳 (signups.discord_id, 2026-10-24 用户裁决) ----------
- * 本人登录报名且提交昵称与本人身份一致 (表单预填值: 该百业绑定服务器的
- * 昵称快照, 或全局名) 才盖戳 = 这是本人落座, 开车提醒可精确 @。替别人
- * 报名 (昵称是别人的名字) 绝不盖戳 — 盖了会 @ 错人。拿不准就不盖,
- * 发送时还有名册/昵称唯一匹配兜底。 */
-// 某 discord 用户在某服务器语境下的身份名集合 (全局名 + 该服昵称)
+/* ---------- Seat identity stamp (signups.discord_id) ----------
+ * Stamped only when the signed-in user signs up for themselves and
+ * the submitted nickname matches their own identity (the form's
+ * prefilled value: their nickname snapshot on the guild's bound
+ * server, or their global name) — only then may departure
+ * reminders @ them precisely. Signing up someone else (their
+ * name) is never stamped: that would @ the wrong person. When
+ * unsure, don't stamp; sending falls back to roster/nickname
+ * unique matching. */
+// Identity names of a Discord user in one server's context (global name + that server's nickname).
 
 export function touchGuildRoster(ctx: any, access: any) {
   const run = (async () => {
@@ -145,7 +149,7 @@ export function touchGuildRoster(ctx: any, access: any) {
       if (u && String(u.username || '').trim()) globalName = String(u.username).trim();
       await ensureGuildMembersTable(db);
       await upsertGuildMember(db, slug, user.discordId, nick, globalName);
-    } catch { /* 名册记录失败静默 */ }
+    } catch { /* roster recording failures are silent */ }
   })();
   if (ctx.executionCtx && typeof ctx.executionCtx.waitUntil === 'function') {
     ctx.executionCtx.waitUntil(run);
@@ -155,8 +159,7 @@ export function touchGuildRoster(ctx: any, access: any) {
 
 export class GroupingListPageShell extends ShellBase {
   constructor(ctx: any, slug: any, tab: any){ super(ctx, { slug, tab }); }
-  // 移动端 Bloks-lite: 本页内容区的积木对象树。按观看者组合 (导航参数/
-  // 空态口径都由 access 决定), 再按客户端 blocksVersion 做版本替代。
+  // Mobile Bloks-lite: block tree for this page's content area, composed per viewer (access decides nav params and empty states), then substituted by the client's blocksVersion.
   async genBlocks({ blocksVersion, weekOffset }: any = {}){
     const v = clampBlocksVersion(blocksVersion);
     const wo = Number.isFinite(weekOffset) ? weekOffset | 0 : 0;
@@ -180,11 +183,12 @@ export class GroupingListPageShell extends ShellBase {
           textRef: access.canWrite ? ['groupingList', 'emptyInteractive'] : ['groupingList', 'emptyReadonly'],
         }));
       } else {
-        // 一屏 (一周) 之内按查看者本地时区的自然日分组呈现 (2026-10-25
-        // 裁决): 组头 = SectionHeaderBlock (v1 既有积木), 文案由目录模板
-        // 在此拼好整句下发, 客户端不重排不拼文案; 组按日期升序, 组内按
-        // 出发时刻升序。无时间的车在移动端口径里本就不入周 (ts!=null),
-        // 不存在未定时间组。
+        // Grouped by natural day in the viewer's local timezone within one
+        // screen (one week): the header is a SectionHeaderBlock with its
+        // text fully composed here from the catalog template — clients
+        // neither reorder nor compose copy. Groups ascend by date,
+        // groupings by start time. Timeless groupings never enter the
+        // mobile week (ts != null), so there is no undated group.
         const items = inWeek.map((g: any) => ({ g, ts: startsAtEpoch(g.ev) }));
         for (const group of groupByLocalDay(items, this.ctx.tz)) {
           const p = group.parts;
@@ -208,14 +212,12 @@ export class GroupingListPageShell extends ShellBase {
   async genGroupings(){
     return this.memo('groupings', async () => {
       const type = TAB_TO_TYPE[this.data.tab] || 'activity';
-      // completed (已完成) 与 draft 一样不进任何列表 (2026-10-25): 完成车只
-      // 经详情直达打开。closed 仍在列表 (只是截止报名), 与完成态分开。
+      // completed, like draft, appears in no list: a completed grouping opens only via a direct detail link. closed stays listed (it merely closed signups) — a separate state from completed.
       const results = await listEventsByTenantType(this.db, s(this.data.slug, 40), type);
       return results.map((ev: any) => new GroupingShell(this.ctx, ev));
     });
   }
-  // 星期短名表 (下标 0=周日, 与 JS getDay / 服务端 localDayParts 对齐):
-  // Web 组头模板的 {weekday} 填充料, 整表由目录按 locale 生成。
+  // Weekday short names (index 0 = Sunday, aligned with JS getDay and the server's localDayParts): fills the {weekday} slot in web group-header templates; the whole table is generated per locale.
   genWeekdayNames(){
     return this.memo('weekdayNames', () => [0, 1, 2, 3, 4, 5, 6].map((i: any) => this.t('groupingList', 'weekday' + i)));
   }
@@ -224,12 +226,12 @@ export class GroupingListPageShell extends ShellBase {
   }
 }
 
-// 组队列表数据入口 (groupingListPage 与 Guild.groupings 共用; gate 由调用方负责)
+// Grouping list data entry (shared by groupingListPage and Guild.groupings; gating is the caller's job).
 export function groupingListPage(ctx: any, slug: any, tab: any) {
   return new GroupingListPageShell(ctx, slug, tab);
 }
 
-// 发车/编辑表单文案 spec (列表页 shell 与详情页 shell 共用, 同名同口径)
+// Create/edit form copy spec (shared by the list-page and detail-page shells, same names, same meaning).
 export const FORM_TEXT_SPEC = [
   ['formCreateTitle', 'groupingForm', 'createTitle'],
   ['formEditTitle', 'groupingForm', 'editTitle'],
@@ -295,22 +297,24 @@ export const LIST_TEXT_RESOLVERS = {
     ['sealText', 'groupingList', 'seal'],
     ...FORM_TEXT_SPEC,
   ]),
-  // 数组字段不走 defineTextGens (目录条目恒为字符串): 整表生成在此
+  // Array fields bypass defineTextGens (catalog entries are always strings): the whole table is generated here.
   weekdayNames: (p: any) => p.genWeekdayNames(),
 };
 
-/* ---------- 百业成员名册条目 (代报名选人) ----------
- * 名册 = guild_members (用户进入百业时由读取路径记录)。条目只经完整
- * Guild 面的 memberRoster 字段下发; displayName 口径与服务端落座名
- * 一致 (名册昵称, 回退全局名), 选择器选中的就是将落座的名字。 */
+/* ---------- Guild member roster entries (proxy-signup picker) ----------
+ * Roster = guild_members (recorded by the read path when a user
+ * enters the guild). Entries ship only via the full Guild
+ * surface's memberRoster field; displayName matches the
+ * server-side seat name (roster nickname, falling back to global
+ * name), so the name the picker shows is the name that gets
+ * seated. */
 
 export class GroupingDetailPageShell extends ShellBase {
   constructor(ctx: any, ev: any){ super(ctx, ev); }
   genGrouping(){
     return this.memo('grouping', () => new GroupingShell(this.ctx, this.data));
   }
-  // 移动端 Bloks-lite: 本页内容区的积木对象树。逐座动作与解散按钮按
-  // 观看者组合 (身份戳/车头比对都在服务端), 再按 blocksVersion 替代。
+  // Mobile Bloks-lite: block tree for this page's content area. Per-seat actions and the disband button are composed per viewer (identity-stamp / leader checks all server-side), then substituted by blocksVersion.
   async genBlocks({ blocksVersion }: any = {}){
     const v = clampBlocksVersion(blocksVersion);
     return this.memo(`blocks:${v}`, async () => {
@@ -347,7 +351,7 @@ export class GroupingDetailPageShell extends ShellBase {
       if (isLeader && access.canWrite) {
         blocks.push(new SpacerBlockShell(this.ctx, { size: 18 }));
         if (ev.status === 'completed') {
-          // 已完成: 只给恢复入口 (编辑/解散/完成都不再下发)
+          // Completed: only the reopen entry is offered (edit/disband/complete are no longer sent).
           blocks.push(new ActionButtonBlockShell(this.ctx, {
             labelRef: ['groupingDetail', 'restore'], style: 'ghost',
             action: new UncompleteActionShell(this.ctx, { groupingId: String(ev.id) }),
@@ -435,14 +439,13 @@ export const DETAIL_TEXT_RESOLVERS = {
   ]),
 };
 
-/* ---------- 图鉴页 (dex) ---------- */
 
 
 export const groupingsResolvers = {
   Query: {
     groupingListPage: async (_: any, { slug, tab }: any, ctx: any) => {
       const db = ctx.env.DB;
-      // 校验租户存在 + 已绑定百业仅成员可见 (服务端拦截, 非成员拿不到数据)
+      // Tenant must exist; bound guilds are members-only (enforced server-side — non-members get no data).
       const a = await getGuildAccess(db, ctx.user, slug, ctx.request);
       if (!a.exists) throw new Error(errText(ctx, 'guildNotFound'));
       if (!a.canView) throw new Error(errText(ctx, 'memberOnlyView'));
@@ -454,21 +457,20 @@ export const groupingsResolvers = {
       const db = ctx.env.DB;
       const ev = await getEventRow(db, parseInt(id, 10) || 0);
       if (!ev) throw new Error(errText(ctx, 'groupingNotFound'));
-      // 租户隔离: 传入 slug 时必须与车队所属百业一致, 否则视为不存在 (不泄露他会数据)
+      // Tenant isolation: a supplied slug must match the grouping's own guild, else treat as nonexistent (never leak another guild's data).
       if (slug != null && s(slug, 40) !== ev.tenant) throw new Error(errText(ctx, 'groupingNotFound'));
-      // 已绑定百业: 非成员视为不存在, 不泄露车队内容
+      // Bound guild: non-members are treated as nonexistent — no grouping content leaks.
       const a = await getGuildAccess(db, ctx.user, ev.tenant, ctx.request);
       if (!a.canView) throw new Error(errText(ctx, 'groupingNotFound'));
       touchGuildRoster(ctx, a);
       return new GroupingDetailPageShell(ctx, ev);
     },
 
-    // ===== Viewer 层级 (root = user) =====
+    // ===== Viewer hierarchy (root = user) =====
   },
   Mutation: {
     createGrouping: async (_: any, { input }: any, ctx: any) => {
       const db = ctx.env.DB;
-      // 限流: 每 IP 每分钟最多 10 次发车
       if (!rateLimit('mut:create:' + getClientIp(ctx.request), 10)) {
         return gFail(ctx, 'rateLimited');
       }
@@ -486,9 +488,10 @@ export const groupingsResolvers = {
       const now = Math.floor(Date.now() / 1000);
       if (!utc || utc < now - 3600) return gFail(ctx, 'badStartTime');
       if (utc > now + 60 * 86400) return gFail(ctx, 'startTimeTooFar');
-      // 人数规则 (用户裁决): 双十不写副本名、恒 10 人 (带 dungeonId 也忽略);
-      // 爬塔镜像双十: 同样不写副本名、恒 10 人 (带 dungeonId 也忽略);
-      // 天赋/竞速选了副本按副本 size 定人数, 不指定走默认 (天赋 5 / 竞速 10)。
+      // Headcount rules: double-ten writes no dungeon name and is always
+      // 10 (a dungeonId is ignored); tower mirrors double-ten the same
+      // way; talent/race with a dungeon use the dungeon's size, without
+      // one the default (talent 5 / race 10).
       let maxSlots = type === 'talent' ? 5 : 10;
       let dungeonName = '';
       if (type !== 'activity' && type !== 'tower' && input.dungeonId) {
@@ -499,7 +502,7 @@ export const groupingsResolvers = {
           if (sz === 5 || sz === 10) maxSlots = sz;
         }
       }
-      // 车头身份落库: 取会话 discord_id (requireWrite 已保证登录), 解散时复验
+      // Persist leader identity from the session discord_id (requireWrite guarantees login); re-verified at disband.
       await ensureEventCreatorColumn(db);
       const r = await insertEvent(db, {
         tenant: slug, title, type, description: '', starts_at: '', starts_at_utc: utc,
@@ -513,7 +516,7 @@ export const groupingsResolvers = {
         for (const st of input.seats.slice(0, maxSlots)) {
           const nm = s(st.nickname, 30), wp = s(st.weapon, 20);
           if (!nm || !wp) continue;
-          // 发车预排座位同 join 口径: 昵称是发车人本人身份才盖他的戳
+          // Pre-seating at creation follows the join rule: stamp only when the nickname is the creator's own identity.
           const stamp = await selfStampFor(db, ctx.user, slug, nm);
           seatRows.push({ event_id: eventId, nickname: nm, uid: newUid(), role: roleOf(wp), weapon: wp, discord_id: stamp });
         }
@@ -536,10 +539,11 @@ export const groupingsResolvers = {
       const gate = await requireWrite(db, ctx.user, ev.tenant, ctx.request);
       if (gate) return gFail(ctx, gate);
       if (ev.origin !== 'member') return gFail(ctx, 'officialEvent');
-      // 编辑收口 (2026-10-25 用户裁决: 编辑车队也只有车头可以): 与
-      // disbandGrouping 同一条规则 — 身份只认 creator_discord_id 与会话
-      // discord_id 的比对; 座位名单编辑同走本 mutation, 一并收口。
-      // 未记录车头的旧车谁都不能编辑, 只能走管理员通道。
+      // Edit gating (2026-10-25): only the leader may edit a grouping —
+      // the same rule as disbandGrouping. Identity is solely
+      // creator_discord_id vs the session discord_id; seat-list edits go
+      // through this mutation too. Legacy groupings with no recorded
+      // leader can be edited by no one — admin channel only.
       if (!ev.creator_discord_id) {
         return gFail(ctx, 'noCreatorRecordedEdit');
       }
@@ -560,10 +564,12 @@ export const groupingsResolvers = {
       }
       if (Array.isArray(input.seats)) {
         await ensureSignupDiscordColumn(db);
-        // 身份戳在整表重写时的去留 (保守口径): 旧座位里该昵称有且仅有一个
-        // 戳, 且戳主的当前身份名仍与该昵称一致 -> 沿用; 昵称被改成别人、
-        // 旧戳有歧义、或戳主已改名 -> 一律不带戳。编辑动作本身不新盖戳
-        // (点保存的人不是在落座)。
+        // Identity stamps when the seat table is rewritten wholesale
+        // (conservative): keep a stamp only if the old seats held exactly
+        // one stamp for that nickname and the stamp owner's current
+        // identity name still equals it. A nickname changed to someone
+        // else, an ambiguous old stamp, or a renamed owner all drop the
+        // stamp. Editing itself never stamps (saving is not seating).
         const oldSeats = await listSignupNamesStamps(db, gid);
         const stampByNick = new Map();
         for (const os of oldSeats || []) {
@@ -596,10 +602,12 @@ export const groupingsResolvers = {
       return new GroupingPayloadShell(ctx, { ok: true, grouping: toGrouping(ctx, nev) });
     },
 
-    // 解散车队 (2026-10-24 用户裁决): "人人可管" 的唯一例外 — 仅车头可为。
-    // 身份只认 events.creator_discord_id 与会话 discord_id 的比对 (服务端
-    // 复验, 与前端是否显示按钮无关); 未记录车头的旧车谁都无法解散,
-    // 只能走管理员通道 (REST admin 删除保持不变)。
+    // Disband (2026-10-24): the sole exception to "anyone can manage" —
+    // leader only. Identity is solely events.creator_discord_id vs
+    // the session discord_id, re-verified server-side regardless of
+    // what the frontend shows. Legacy groupings with no recorded
+    // leader can be disbanded by no one — admin channel only (REST
+    // admin delete unchanged).
     disbandGrouping: async (_: any, { id }: any, ctx: any) => {
       const db = ctx.env.DB;
       if (!rateLimit('mut:disband:' + getClientIp(ctx.request), 10)) {
@@ -622,12 +630,14 @@ export const groupingsResolvers = {
       return new DeletePayloadShell(ctx, { ok: true });
     },
 
-    // 完成车队 (2026-10-25): 开完的车标记 completed — 与 closed 语义不同:
-    // closed 只是截止报名, 仍在列表且仍发提醒; completed 从所有列表消失,
-    // 且提醒/推送口径 (reminder PENDING_WHERE 只认 open/closed) 自动不再
-    // 触发 — 即使闹钟已排队, GuildHub 到点重查 D1 时也会被过滤掉。
-    // 权限与编辑/解散同门: 仅车头 (creator_discord_id); 无车头记录的存量
-    // 车谁都不能完成, 走管理员通道。从 open / closed 都可完成。
+    // Complete (2026-10-25): a finished grouping is marked completed —
+    // unlike closed, which merely stops signups, stays listed, and
+    // still reminds. completed vanishes from every list, and the
+    // reminder/push definitions (PENDING_WHERE accepts only
+    // open/closed) stop firing automatically — even a queued alarm is
+    // filtered when GuildHub re-reads D1 at fire time. Same gate as
+    // edit/disband: leader only; leaderless legacy groupings go
+    // through the admin channel. Completable from open or closed.
     completeGrouping: async (_: any, { id }: any, ctx: any) => {
       const db = ctx.env.DB;
       if (!rateLimit('mut:complete:' + getClientIp(ctx.request), 10)) {
@@ -647,18 +657,19 @@ export const groupingsResolvers = {
         return gFail(ctx, 'leaderOnlyComplete');
       }
       if (ev.status === 'completed') return gFail(ctx, 'groupingAlreadyCompleted');
-      // draft 在 GraphQL 表面处处不可见 (列表已过滤), 按不存在处理
+      // draft is invisible across the whole GraphQL surface (lists filter it): treat as nonexistent.
       if (ev.status !== 'open' && ev.status !== 'closed') return gFail(ctx, 'groupingNotFound');
       await setEventStatus(db, gid, 'completed');
       const nev = await getEventRow(db, gid);
-      // kind=updated: 列表实时摘除 + GuildHub 重排闹钟 (完成车不再是待提醒)
+      // kind=updated: live-remove from lists + GuildHub reschedules alarms (a completed grouping is no longer a pending reminder).
       publishGroupingEvent(ctx, ev.tenant, gid, 'updated');
       return new GroupingPayloadShell(ctx, { ok: true, grouping: toGrouping(ctx, nev) });
     },
 
-    // 恢复车队 (撤销完成): 与 completeGrouping 成对, 同门校验。恢复一律
-    // 回到 open (不还原完成前的 closed 态 — 保持简单, 车头可再手动关闭
-    // 报名口径由 REST close / 状态机承担)。
+    // Reopen (undo complete): pairs with completeGrouping, same gate.
+    // Always returns to open — the pre-complete closed state is not
+    // restored (keep it simple; the leader can close again, via REST
+    // close / the state machine).
     reopenGrouping: async (_: any, { id }: any, ctx: any) => {
       const db = ctx.env.DB;
       if (!rateLimit('mut:reopen:' + getClientIp(ctx.request), 10)) {
@@ -698,12 +709,15 @@ export const groupingsResolvers = {
       const weapon = s(input.weapon, 40);
       const uid = newUid();
       await ensureSignupDiscordColumn(db);
-      // 报名身份收口 (2026-10-25 用户裁决): 落座名与身份戳都由服务端定,
-      // 客户端传来的 nickname 不作数 (覆盖, 不报错)。
-      //  - 自己报名: 名 = 本人 Discord 服务器昵称 (回退全局名), 戳 = 本人。
-      //  - 代报名 (forDiscordId): 目标必须在本百业名册 (guild_members)
-      //    内, 服务端复验; 名 = 名册昵称 (回退全局名), 戳 = 被代报者 —
-      //    这样提醒 @ 与推送都能精确找到本人。
+      // Signup identity (2026-10-25): seat name and identity stamp are
+      // decided server-side; the client-sent nickname is ignored
+      // (overwritten, not an error).
+      //  - Self signup: name = the user's Discord server nickname
+      //    (fallback global name), stamp = the user.
+      //  - Proxy signup (forDiscordId): the target must be in this
+      //    guild's roster (guild_members), re-verified server-side;
+      //    name = roster nickname (fallback global name), stamp = the
+      //    target — so reminder @s and pushes reach the real person.
       let nickname = '';
       let stamp = null;
       const forId = input.forDiscordId ? String(input.forDiscordId).trim() : '';
@@ -797,7 +811,7 @@ export const groupingsResolvers = {
     blocks: (p: any, args: any) => p.genBlocks(args),
     ...DETAIL_TEXT_RESOLVERS,
   },
-  // ===== Bloks-lite 积木/动作 (类型即分发; shell 自带 __typename) =====
+  // ===== Bloks-lite blocks/actions (dispatch by type; shells carry __typename) =====
   GroupingPayload: {
     ok: (p: any) => p.genOk(),
     grouping: (p: any) => p.genGrouping(),

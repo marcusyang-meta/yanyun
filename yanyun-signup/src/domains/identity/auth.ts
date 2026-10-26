@@ -8,15 +8,16 @@ import {
   upsertNick as upsertNickRepo, touchNick as touchNickRepo, getNickRow, listNickRowsByUser,
 } from './index.ts';
 
-// Discord OAuth + 无状态 JWT 会话 (yy_session cookie)
-// 会话载荷: { sub: discord_id, name, avatar, guilds: [服务器 id...], gm?: [{i, p}], iat, exp }
-// gm (guilds meta) 仅供运维/测试签发使用, 正式登录流程不写入 (保持 cookie 体积小);
-// createGuild 的管理员权限校验优先读 users.guilds_json, 缺行时回退到 gm。
+// Discord OAuth + stateless JWT session (yy_session cookie).
+// Payload: { sub: discord_id, name, avatar, guilds: [server ids...], gm?: [{i, p}], iat, exp }
+// gm is only for ops/test-issued sessions; the real login flow never writes
+// it (keeps the cookie small). createGuild's admin check reads
+// users.guilds_json first and falls back to gm only when that row is missing.
 
 export const SESSION_COOKIE = 'yy_session';
 const SESSION_TTL_SEC = 14 * 24 * 3600;
 
-/* ================= 编码小工具 ================= */
+/* ================= Encoding helpers ================= */
 const enc = new TextEncoder();
 const dec = new TextDecoder();
 export function b64uEncode(bytes: any) {
@@ -47,7 +48,6 @@ export async function signJwt(secret: string, payload: any, ttlSec = SESSION_TTL
   return data + '.' + b64uEncode(sig);
 }
 
-// 成功返回 payload, 失败返回 null
 export async function verifyJwt(secret: string, token: any): Promise<any> {
   try {
     if (!secret || !token) return null;
@@ -78,10 +78,9 @@ export function sessionCookieHeader(jwt: string, maxAgeSec: number) {
   return `${SESSION_COOKIE}=${jwt}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAgeSec}`;
 }
 
-// 从请求解析当前登录用户; 未登录/密钥未配置 -> null
-// 令牌来源: yy_session cookie (网页) 或 Authorization: Bearer (移动端,
-// 与 cookie 同一枚会话 JWT、同一下游校验路径; cookie 优先, 无 cookie
-// 才看 Bearer — 浏览器请求不带这个头, 网页行为逐字节不变)。
+// Token source: yy_session cookie (web) or Authorization: Bearer (mobile) —
+// the same session JWT and downstream validation either way. Cookie wins;
+// Bearer is consulted only without a cookie, so web behavior is unchanged.
 export async function getSessionUser(request: any, env: any) {
   if (!env || !env.SESSION_SECRET) return null;
   let token = parseCookies(request)[SESSION_COOKIE];
@@ -97,17 +96,18 @@ export async function getSessionUser(request: any, env: any) {
     name: p.name || '',
     avatar: p.avatar || '',
     guilds: Array.isArray(p.guilds) ? p.guilds.map(String) : [],
-    guildsMeta: Array.isArray(p.gm) ? p.gm : null, // 仅测试签发时存在
+    guildsMeta: Array.isArray(p.gm) ? p.gm : null, // present only on test-issued sessions
   };
 }
 
-/* ============ 会话有效性: Discord 授权必须完整 (用户裁决) ============
- * 不挂"请重新登录"横幅 — 授权不完整的老会话直接作废: 无 user_oauth 行 /
- * 没存 refresh token / scope 缺 guilds.members.read / refresh_state =
- * needs_relogin (仅 invalid_grant 永久失败才会置此状态), 任一成立即视为
- * 未登录, 并让调用方清掉 yy_session cookie; 用户落到登录页重新登录
- * (带 returnTo) 后即恢复完整授权。查询本身异常时 fail-open, 不因
- * D1 抖动误踢完整授权的用户。 */
+/* ============ Session validity: the Discord grant must be complete (ruling) ============
+ * No "please log in again" banner — an incomplete old session is voided
+ * outright: no user_oauth row / no stored refresh token / scope missing
+ * guilds.members.read / refresh_state = needs_relogin (set only on
+ * permanent invalid_grant failure). Any of these means logged out, and
+ * the caller clears the yy_session cookie; re-login (with returnTo)
+ * restores a complete grant. Query errors fail open, so a D1 hiccup
+ * never kicks out a fully-authorized user. */
 export async function hasCompleteDiscordGrant(env: any, discordId: string) {
   try {
     if (!env || !env.DB || !discordId) return false;
@@ -120,9 +120,9 @@ export async function hasCompleteDiscordGrant(env: any, discordId: string) {
   } catch { return true; }
 }
 
-// getSessionUser + 授权完整性校验: 返回 { user, clearCookie }。
-// JWT 本身无效/缺失 -> 与旧行为一致 (user=null, 不清 cookie);
-// JWT 有效但授权不完整 -> user=null 且 clearCookie=true。
+// getSessionUser + grant-completeness check -> { user, clearCookie }.
+// Invalid/missing JWT: user=null, cookie kept. Valid JWT but incomplete
+// grant: user=null and clearCookie=true.
 export async function getSessionUserChecked(request: any, env: any) {
   const user = await getSessionUser(request, env);
   if (!user) return { user: null, clearCookie: false };
@@ -130,13 +130,14 @@ export async function getSessionUserChecked(request: any, env: any) {
   return ok ? { user, clearCookie: false } : { user: null, clearCookie: true };
 }
 
-/* ================= D1: users 表 (懒迁移已归数据层 users repository) =================
- * ensureSchema / ensureUsersLocaleColumn 保留旧名导出, 本体在仓库内
- * (src/domains/identity/users.ts), 缓存/重试语义与旧实现一致。 */
+/* ================= users table =================
+ * ensureSchema / ensureUsersLocaleColumn are legacy-name delegates to
+ * the users repository (identity/users.ts). */
 
-/* ---------- 界面语言偏好 (账号级, 存 users.locale_pref) ----------
- * null = 自动 (跟随浏览器语言); 有值时压过浏览器语言。懒 DDL 加列,
- * 读写都校验值在受支持集合内, 脏值按未设置处理。 */
+/* ---------- UI language preference (account-level, users.locale_pref) ----------
+ * null = automatic (follow browser language); a set value beats the
+ * browser. Reads and writes validate against the supported set; dirty
+ * values count as unset. */
 export function ensureSchema(db: D1Database) {
   return ensureUsersTable(db);
 }
@@ -159,7 +160,7 @@ export async function setUserLocalePref(env: any, discordId: string, pref: any) 
   await setUserLocalePrefRepo(env.DB, String(discordId), pref);
 }
 
-// 读 users 行的服务器明细 [{id, name, icon, permissions, owner}]; 无行 -> null
+// Read the users row's server details [{id, name, icon, permissions, owner}]; no row -> null
 export async function getUserServers(db: D1Database, discordId: string) {
   try {
     await ensureSchema(db);
@@ -171,29 +172,32 @@ export async function getUserServers(db: D1Database, discordId: string) {
 }
 
 /* ================= Discord OAuth ================= */
-// 移动端登录交接: App 用系统浏览器打开 /auth/discord/login?app=<回调> 发起
-// 登录, 回调地址必须精确等于下面这个 App 自定义 scheme (白名单精确匹配,
-// 防开放重定向把会话令牌送去别处)。命中时登录 state 里带 app 标记, 回调
-// 成功后 302 跳回 App 并在查询串里带上会话 JWT; 不带 app 参数的网页登录
-// 流程与之前逐字节一致 (仍是 returnTo + set-cookie)。
+// Mobile login handoff: the app opens /auth/discord/login?app=<callback> in
+// the system browser. The callback must exactly equal the app scheme below
+// (exact-match whitelist, so an open redirect cannot leak the session token).
+// On a hit, login state carries an app flag and success 302s back to the app
+// with the session JWT in the query string; web login without `app` is
+// unchanged (returnTo + set-cookie).
 export const APP_AUTH_REDIRECT = 'yanyun://auth-callback';
 const DISCORD_API = 'https://discord.com/api/v10';
-// 服务端调用 (token / API) 的根地址; 默认真实 Discord。
-// DISCORD_API_BASE 仅供本地打桩验收覆盖, 生产不设此变量。
+// Root for server-side token/API calls; defaults to real Discord.
+// DISCORD_API_BASE exists only for local stub testing; unset in production.
 function discordRoot(env: any) {
   return (env && env.DISCORD_API_BASE) || 'https://discord.com';
 }
 
-/* ============ 服务器昵称快照 + refresh token (懒刷新模型) ============
- * 不做后台批量抓取 / cron / bot: 登录回调拉一次已绑定服务器的昵称;
- * 之后用户打开应用走 viewer 校验时, 快照缺失或超过 24h 才用存下的
- * refresh token 现拉 (本次请求内同步完成)。refresh token 是凭证:
- * 只存 D1 (user_oauth), 绝不进 JWT、绝不下发前端; Discord 每次刷新
- * 轮换 refresh token, 新的必须覆盖存回。刷新只有永久失败 (Discord 明确回
- * invalid_grant = refresh token 被撤销/已失效) 才标 needs_relogin — 该状态
- * 会使会话失效 (见 getSessionUserChecked), 逼用户重新登录换新授权;
- * 暂时故障 (网络/超时/5xx 等) 不动 refresh_state, 本次跳过, 下次打开再试,
- * 绝不因 Discord 抖动把用户踢下线。 */
+/* ============ Server nick snapshots + refresh token (lazy refresh) ============
+ * No background scraping / cron / bot: nicks for bound servers are fetched
+ * once at login callback; afterwards, viewer checks refetch in-request only
+ * when a snapshot is missing or older than 24h, using the stored refresh
+ * token. The refresh token is a credential: stored only in D1
+ * (user_oauth), never in the JWT, never sent to the frontend; Discord
+ * rotates it on every refresh, so the new one must overwrite the stored
+ * copy. Only a permanent failure (invalid_grant = revoked/expired) marks
+ * needs_relogin, which invalidates the session (see
+ * getSessionUserChecked). Transient failures (network/timeout/5xx) leave
+ * refresh_state untouched and retry on the next visit — never log a user
+ * out over Discord flakiness. */
 const NICK_TTL_SEC = 24 * 3600;
 
 export function ensureNickStore(db: D1Database) {
@@ -207,7 +211,6 @@ async function fetchWithTimeout(url: string, init: any, ms = 3500) {
   finally { clearTimeout(t); }
 }
 
-// 成功返回昵称 (无昵称为 ''), 失败返回 null
 async function fetchMemberNick(env: any, accessToken: string, guildId: string) {
   try {
     const r = await fetchWithTimeout(`${discordRoot(env)}/api/v10/users/@me/guilds/${guildId}/member`, {
@@ -228,13 +231,11 @@ async function upsertNick(db: D1Database, discordId: string, guildId: string, ni
   await upsertNickRepo(db, discordId, guildId, nick, now);
 }
 
-// 拉取失败时只刷新时间戳 (无行则落一条空快照), 不覆盖已有昵称
 async function touchNick(db: D1Database, discordId: string, guildId: string) {
   const now = Math.floor(Date.now() / 1000);
   await touchNickRepo(db, discordId, guildId, now);
 }
 
-// 读快照昵称: 有行返回 nick (可能 ''), 无行返回 null
 export async function getGuildNick(db: D1Database, discordId: string, guildId: string) {
   try {
     await ensureNickStore(db);
@@ -243,7 +244,7 @@ export async function getGuildNick(db: D1Database, discordId: string, guildId: s
   } catch { return null; }
 }
 
-// 懒刷新入口: viewer 校验时调用。全程容错, 任何失败都静默用旧快照。
+// Lazy-refresh entry, called from viewer checks. Fully tolerant: any failure silently keeps the old snapshot.
 export async function maybeRefreshGuildNicks(env: any, user: any) {
   try {
     if (!env || !env.DB || !user || !user.discordId) return;
@@ -260,7 +261,7 @@ export async function maybeRefreshGuildNicks(env: any, user: any) {
     const freshAt = new Map(results.map((r) => [String(r.guild_id), Number(r.updated_at) || 0]));
     const stale = targets.filter((g: string) => !freshAt.has(g) || now - (freshAt.get(g) ?? 0) > NICK_TTL_SEC);
     if (!stale.length) return;
-    // refresh token 换 access token (轮换: 响应里的新 refresh token 覆盖存回)
+    // Exchange the refresh token (rotation: the response's new refresh token overwrites the stored one)
     const tokenRes = await fetchWithTimeout(`${discordRoot(env)}/api/oauth2/token`, {
       method: 'POST',
       headers: { 'content-type': 'application/x-www-form-urlencoded' },
@@ -273,8 +274,8 @@ export async function maybeRefreshGuildNicks(env: any, user: any) {
     }, 5000).catch(() => null);
     const token: any = tokenRes && tokenRes.ok ? await tokenRes.json().catch(() => null) : null;
     if (!token || !token.access_token) {
-      // 失败分类: 只有 invalid_grant 是永久失败 (授权已死) -> 标 needs_relogin;
-      // tokenRes 为 null (网络/超时) 或其他错误 (5xx 等) 都是暂时故障, 状态不动。
+      // Failure split: only invalid_grant is permanent (grant dead) -> needs_relogin;
+      // null tokenRes (network/timeout) or other errors (5xx) are transient; state untouched.
       let permanent = false;
       if (tokenRes && !tokenRes.ok) {
         const errBody: any = await tokenRes.json().catch(() => null);
@@ -294,7 +295,7 @@ export async function maybeRefreshGuildNicks(env: any, user: any) {
       if (nick !== null) await upsertNick(db, user.discordId, gid, nick).catch(() => {});
       else await touchNick(db, user.discordId, gid).catch(() => {});
     }));
-  } catch { /* 懒刷新绝不影响主请求 */ }
+  } catch { /* lazy refresh must never affect the main request */ }
 }
 
 function htmlPage(title: string, bodyHtml: string, status = 200) {
@@ -308,7 +309,7 @@ ${bodyHtml}
 </div></body></html>`, { status, headers: { 'content-type': 'text/html; charset=utf-8' } });
 }
 
-// returnTo 只允许站内绝对路径, 防开放重定向
+// returnTo allows only in-site absolute paths (open-redirect guard)
 function safeReturnTo(raw: any) {
   const v = String(raw || '/').slice(0, 300);
   if (!v.startsWith('/') || v.startsWith('//') || v.includes('\\')) return '/';
@@ -388,17 +389,17 @@ export async function handleDiscordCallback(request: any, env: any) {
     : '';
   const displayName = me.global_name || me.username || '';
 
-  // 落库 (服务器明细含权限位, 供 viewer.discordServers / createGuild 校验)
+  // Persist (server details incl. permission bits, for viewer.discordServers / createGuild checks)
   try {
     await ensureSchema(env.DB);
     await upsertUserOnLogin(env.DB, {
       discordId: String(me.id), username: displayName, avatar,
       guildsJson: JSON.stringify(servers), checkedAtSec: Math.floor(Date.now() / 1000),
     });
-  } catch { /* 落库失败不阻塞登录, 会话里有服务器 id 列表 */ }
+  } catch { /* persistence failure must not block login; the session already carries the server ids */ }
 
-  // refresh token 入库 (凭证, 只存 D1, 绝不进 JWT/前端) + 已绑定服务器昵称拉一次。
-  // 全程容错: 任一步失败/超时都不能让登录失败; 失败落空快照继续。
+  // Store the refresh token (D1 only, never JWT/frontend) + fetch bound-server
+  // nicks once. Fully tolerant: no step's failure or timeout may fail the login.
   try {
     await ensureNickStore(env.DB);
     const nowSec = Math.floor(Date.now() / 1000);
@@ -408,7 +409,7 @@ export async function handleDiscordCallback(request: any, env: any) {
         scope: String(token.scope || ''), nowSec,
       });
     }
-    // token 响应没给这个 scope (老授权/被拒) 就跳过拉取
+    // Skip the fetch when the token response lacks this scope (old/denied grant)
     if (String(token.scope || '').includes('guilds.members.read')) {
       const bound = new Set(await boundGuildIds(env.DB));
       const targets = servers.filter((g) => bound.has(g.id));
@@ -416,11 +417,11 @@ export async function handleDiscordCallback(request: any, env: any) {
         try {
           const nick = await fetchMemberNick(env, token.access_token, g.id);
           if (nick !== null) await upsertNick(env.DB, String(me.id), g.id, nick);
-          else await touchNick(env.DB, String(me.id), g.id); // 失败落空快照, 不阻塞
-        } catch { /* 单个服务器失败不影响其他服务器与登录 */ }
+          else await touchNick(env.DB, String(me.id), g.id); // failure leaves an empty snapshot; non-blocking
+        } catch { /* one server's failure affects neither other servers nor the login */ }
       }));
     }
-  } catch { /* 昵称链路故障不阻塞登录 */ }
+  } catch { /* nick-chain failure must not block login */ }
 
   const jwt = await signJwt(env.SESSION_SECRET, {
     sub: String(me.id),
@@ -428,8 +429,9 @@ export async function handleDiscordCallback(request: any, env: any) {
     avatar,
     guilds: servers.map((g) => g.id),
   });
-  // 移动端交接: state 带 app 标记时跳回 App scheme 并带上令牌 (cookie 照常
-  // 种下, 与网页流程无差异); App 侧拿到 JWT 后以 Cookie 头调 GraphQL/WS。
+  // Mobile handoff: with the app flag in state, redirect to the app scheme
+  // carrying the token (cookie is still set, as on web); the app then calls
+  // GraphQL/WS with the JWT in a Cookie header.
   if (state.app === 1) {
     return new Response(null, {
       status: 302,

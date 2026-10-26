@@ -1,13 +1,20 @@
-/* fbtee 声明面 (人工维护): 全部 UI 文案的源声明, 一条 = 一个 fbs 调用。
- * - desc 即 'section.field', 与旧手搓目录的键一一对应 (唯一且稳定, 是翻译的锚)。
- * - 源语言 zh-CN; 其余 locale 的译文在 ./translations/*.json (fbtee 格式)。
- * - 带参条目用「字面分段 + fbs.param」形态 (fbtee 编译器要求), 参数编组 pv():
- *   未传参 -> 字面量 '{name}' (复现旧 translate 的占位符保留行为); 其余 String(v)
- *   (复现旧替换口径, 且绕开 fbtee 对 number 的 Intl 格式化)。
- * - fbtee 收集时会 trim 源文首尾空白: 带首尾空白的条目 (仅 boss.talentPending)
- *   把空白放在 fbs 调用外拼接, 其译文在 translations 里同样存 trim 后的文本。
- * 改文案后必须重跑: node scripts/i18n-codegen.mjs (生成 strings.ts / catalogs /
- * catalog.ts), --check 已进 CI。生成物勿手改。
+/* fbtee declaration surface (hand-maintained): the source declarations of
+ * all UI copy, one entry = one fbs call.
+ * - desc is 'section.field', matching the legacy hand-rolled catalog keys
+ *   one-to-one (unique and stable; the anchor translations hang off).
+ * - Source locale zh-CN; other locales' translations live in
+ *   ./translations/*.json (fbtee format).
+ * - Parameterized entries use literal segments + fbs.param (required by the
+ *   fbtee compiler); parameter packing is pv(): a missing param stays the
+ *   literal '{name}' (the legacy translate placeholder-preserving behavior),
+ *   anything else is String(v) (the legacy substitution rule, and it avoids
+ *   fbtee's Intl number formatting).
+ * - fbtee collection trims source whitespace: the one entry with outer
+ *   whitespace (boss.talentPending) concatenates the space outside the fbs
+ *   call, and its translations store the trimmed text too.
+ * After editing copy, rerun: node scripts/i18n-codegen.mjs (regenerates
+ * strings.ts / catalogs / catalog.ts); --check runs in CI. Never hand-edit
+ * the generated files.
  */
 import type { FbsAPI } from 'fbtee/server';
 

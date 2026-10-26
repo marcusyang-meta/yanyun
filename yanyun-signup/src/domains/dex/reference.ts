@@ -1,10 +1,11 @@
 /* ===================================================
- * dex 参考数据的数据层访问 (Repository): schools (只读参考)、
- * school_bis / school_rotations (流派攻略)、slot_affix / affix_max
- * (词条参考)。三期迁入: 此前散在 graphql.js (流派页/调律页/图鉴
- * 查询/配装计算) 与 worker.js (公开流派接口、百业攻略读写)。
- * 读取侧多处调用点保留「表可能不存在 -> 空」的容错 (.catch),
- * 容错仍归调用点。返回行沿用 snake_case 键。
+ * Data-layer access (Repository) for dex reference data: schools
+ * (read-only reference), school_bis / school_rotations (sect
+ * guides), slot_affix / affix_max (affix reference). All statements
+ * live here (previously scattered across graphql.js and worker.js).
+ * Several read call sites keep their "table may not exist -> empty"
+ * tolerance (.catch); that tolerance stays with the call sites.
+ * Rows keep snake_case keys.
  * =================================================== */
 import { sql } from 'drizzle-orm';
 import { createDb, schema } from '../../db/client.ts';
@@ -30,7 +31,7 @@ export interface SchoolBisRow {
   bis_json: string;
 }
 
-/* ---------- schools (只读参考数据) ---------- */
+/* ---------- schools (read-only reference data) ---------- */
 
 export async function listSchoolsFull(d1: D1Database): Promise<SchoolRow[]> {
   const db = createDb(d1);
@@ -130,7 +131,7 @@ export async function upsertSchoolRotation(
   );
 }
 
-/* ---------- slot_affix / affix_max (只读参考) ---------- */
+/* ---------- slot_affix / affix_max (read-only reference) ---------- */
 
 export async function listSlotAffixByBuild(
   d1: D1Database, build: string,

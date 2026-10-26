@@ -1,16 +1,23 @@
-// 商业化审计 A2/A3/A4/A7 修复验收 (2026-10-25):
-//  A4: POST /api/onboard 匿名建业端点删除 —— 真 worker.fetch 探针应 404
-//      且租户表零新增; 百业管理员 token 的 'fallback-secret' 回退改
-//      fail-closed (ADMIN_PASSWORD 缺失时登录 500、无 secret 时管理面 500)。
-//  A2: legalPage(TERMS/PRIVACY) 公开可达; 正文 zh-CN 源文 + en 全译,
-//      es/fr/zh-TW 逐字段回退源文 (标题等 UI 文案仍 ×5 语本地化)。
-//  A3: viewer 页脚字段 (非官方声明 + 条款/隐私入口) ×5 语与目录一致;
-//      登录页隐私行已换成与实际处理一致的文案。
-//  A7: error_log 落库/截断/门户读取全链路 —— logError 直写、worker 层
-//      注入未捕获异常 (REST 500 + 落库)、GraphQL 未捕获异常经 yoga 插件
-//      落库而业务文案错误不落、GET /api/hub/errors 鉴权后可读。
-// FakeDB 按 SQL 形状路由, error_log 与 tenants 更新真落内存表。
-import { yoga } from '../src/graphql.js';
+// Commercialization-audit A2/A3/A4/A7 fix acceptance (2026-10-25):
+//  A4: the anonymous guild-creation endpoint POST /api/onboard is
+//      deleted — a real worker.fetch probe must 404 and add zero
+//      tenants; the guild-admin token's 'fallback-secret' fallback is
+//      now fail-closed (no ADMIN_PASSWORD -> login 500; no secret ->
+//      admin surface 500).
+//  A2: legalPage(TERMS/PRIVACY) is publicly reachable; body = zh-CN
+//      source + full en translation, es/fr/zh-TW fall back per-field
+//      to the source (titles and other UI copy still localize in all 5).
+//  A3: viewer footer fields (unofficial disclaimer + terms/privacy
+//      links) match the catalog in all 5 locales; the login-page
+//      privacy line now matches actual data handling.
+//  A7: error_log write/truncate/portal-read full chain — direct
+//      logError writes, worker-level injected uncaught exceptions
+//      (REST 500 + logged), GraphQL uncaught exceptions logged via the
+//      yoga plugin while business-copy errors are not, and
+//      GET /api/hub/errors readable after auth.
+// FakeDB routes by SQL shape; error_log and tenant updates land in
+// real in-memory tables.
+import { yoga } from '../src/graphql.ts';
 import { typeDefs } from '../src/graphql-schema.ts';
 import { CATALOG } from '../src/domains/platform/i18n.ts';
 import { logError, recentErrors } from '../src/domains/platform/index.ts';
@@ -59,7 +66,7 @@ function toRawRows(sqlText, rows) {
 function makeDb({ tenants = [], throwOnTenantsList = false } = {}) {
   const state = { tenants: tenants.map((t) => ({ ...t })), errorLog: [], tenantInserts: 0 };
   function route(kind, sql, b) {
-    // 数据层 (Drizzle) SQL 规范化: 去引号 + 去 error_log. 限定前缀 (仅路由匹配)
+    // Data-layer (Drizzle) SQL normalization: strip quotes + error_log. qualifiers (routing match only).
     sql = sql.replace(/"/g, '').replace(/error_log\./g, '');
     if (/error_log/.test(sql)) {
       if (/INSERT INTO error_log/.test(sql)) {
@@ -67,7 +74,7 @@ function makeDb({ tenants = [], throwOnTenantsList = false } = {}) {
         return { meta: {} };
       }
       if (/COUNT\(\*\)/.test(sql)) {
-        // 旧 .first() 通道回 {c}; 数据层计数走 .all() 通道, 回 {results:[{c}]}
+        // Legacy .first() channel returns {c}; data-layer counting uses the .all() channel, returning {results:[{c}]}.
         return kind === 'all' ? { results: [{ c: state.errorLog.length }] } : { c: state.errorLog.length };
       }
       if (/FROM error_log/.test(sql)) return { results: [...state.errorLog].sort((x, y) => y.id - x.id).slice(0, b[0] || 50) };
@@ -109,7 +116,7 @@ function makeCtx() {
 }
 const ASSETS = { fetch: async () => new Response('not found', { status: 404 }) };
 
-/* ================= A4: onboard 删除 + fallback fail-closed ================= */
+/* ================= A4: onboard removal + fallback fail-closed ================= */
 {
   const worker = (await import('../src/worker.ts')).default;
   const { db, state } = makeDb({ tenants: [{ slug: 'jijiguagua', guild_name: '叽哩呱啦', password_hash: 'x' }] });
@@ -135,7 +142,7 @@ const ASSETS = { fetch: async () => new Response('not found', { status: 404 }) }
   const { db } = makeDb({ tenants: [{ slug: 'testguild', guild_name: '测试百业', password_hash: hash }] });
   const { ctx } = makeCtx();
 
-  // 无 ADMIN_PASSWORD: 百业管理员登录拿到正确密码也必须 500 (不再发 token)
+  // No ADMIN_PASSWORD: guild-admin login must 500 even with the correct password (no token issued).
   const noPwEnv = { DB: db, ASSETS };
   const r1 = await worker.fetch(new Request('http://local/api/testguild/admin/login', {
     method: 'POST', headers: { 'content-type': 'application/json' },
@@ -145,13 +152,13 @@ const ASSETS = { fetch: async () => new Response('not found', { status: 404 }) }
   const j1 = await r1.json();
   check('A4 500 响应不含 token', !j1.token, JSON.stringify(j1).slice(0, 100));
 
-  // 无 ADMIN_PASSWORD: 管理面中间件 500 (不是放行也不是普通 401)
+  // No ADMIN_PASSWORD: admin-surface middleware 500s (neither a pass-through nor an ordinary 401).
   const r2 = await worker.fetch(new Request('http://local/api/testguild/admin/profile', {
     headers: { authorization: 'Bearer garbage.token' },
   }), noPwEnv, ctx);
   eq('A4 无超管密码时管理面 -> 500 fail-closed', r2.status, 500);
 
-  // 有 ADMIN_PASSWORD (生产形态): 登录正常签发 token
+  // With ADMIN_PASSWORD (production shape): login issues a token normally.
   const pwEnv = { DB: db, ADMIN_PASSWORD: 'test-admin-pw', ASSETS };
   const r3 = await worker.fetch(new Request('http://local/api/testguild/admin/login', {
     method: 'POST', headers: { 'content-type': 'application/json' },
@@ -162,7 +169,7 @@ const ASSETS = { fetch: async () => new Response('not found', { status: 404 }) }
   check('A4 正常签发 token', typeof j3.token === 'string' && j3.token.includes('.'));
 }
 
-/* ================= A2/A3: 法律页 + 页脚字段 ================= */
+/* ================= A2/A3: legal pages + footer fields ================= */
 async function gql(query, { locale = 'zh-CN', db } = {}) {
   const { db: d } = db ? { db } : makeDb({});
   const ctx = { env: { DB: d }, request: new Request('http://local/graphql'), user: null, locale, browserLocale: locale, executionCtx: undefined };
@@ -191,7 +198,7 @@ async function gql(query, { locale = 'zh-CN', db } = {}) {
   check('A2 隐私 en 首节含 refresh token', (pp?.sections?.[0]?.body || '').includes('refresh token'));
   check('A2 隐私 en 权利节如实写无自助注销', (pp?.sections?.[4]?.body || '').includes('does not yet offer a self-service'));
 
-  // 回退: es/fr/zh-TW 的正文 = zh-CN 源文; 标题是 UI 文案, 照常本地化
+  // Fallback: es/fr/zh-TW body = zh-CN source; titles are UI copy and localize as usual.
   const zhBody = tp.sections.map((s) => s.body).join('|');
   for (const [loc, title] of [['es', 'Términos del servicio'], ['fr', "Conditions d'utilisation"], ['zh-TW', '服務條款']]) {
     const r = await gql(termsQ, { locale: loc });
@@ -199,7 +206,7 @@ async function gql(query, { locale = 'zh-CN', db } = {}) {
     eq(`A2 条款正文回退源文 @${loc}`, r.data?.legalPage?.sections?.map((s) => s.body).join('|'), zhBody);
   }
 
-  // 页脚字段 ×5 与目录一致
+  // Footer fields match the catalog in all 5 locales.
   for (const loc of ['zh-CN', 'en', 'es', 'fr', 'zh-TW']) {
     const v = await gql('{ viewer { footerDisclaimerText footerTermsLabel footerPrivacyLabel loginPrivacyText } }', { locale: loc });
     eq(`A3 disclaimer @${loc}`, v.data?.viewer?.footerDisclaimerText, CATALOG.legal.disclaimer[loc]);
@@ -210,9 +217,9 @@ async function gql(query, { locale = 'zh-CN', db } = {}) {
   check('A2 登录隐私行与实际一致 (含登录授权/详见隐私政策)', lp.data?.viewer?.loginPrivacyText.includes('登录授权') && lp.data.viewer.loginPrivacyText.includes('隐私政策'), lp.data?.viewer?.loginPrivacyText);
 }
 
-/* ================= A7: error_log 全链路 ================= */
+/* ================= A7: error_log full chain ================= */
 {
-  // 直写 + 截断 + 读取
+  // Direct write + truncation + read-back.
   const { db, state } = makeDb({});
   const longErr = new Error('x'.repeat(50));
   longErr.stack = 'Error: x\n' + 's'.repeat(4000);
@@ -225,14 +232,14 @@ async function gql(query, { locale = 'zh-CN', db } = {}) {
   eq('A7 recentErrors 读回一条', rec.errors.length, 1);
   check('A7 last24h 计数 >=1', rec.last24h >= 1, `n=${rec.last24h}`);
 
-  // 写库失败静默: logError 永不抛
+  // Write failures stay silent: logError never throws.
   const badDb = { prepare() { throw new Error('db down'); } };
   let threw = false;
   try { await logError(badDb, { source: 'x', message: 'y' }); } catch { threw = true; }
   check('A7 logError 对坏 DB 不抛错', !threw);
 }
 {
-  // worker 层注入: REST 处理器未捕获异常 -> 500 + error_log(source=rest)
+  // Worker-level injection: uncaught REST-handler exception -> 500 + error_log(source=rest).
   const worker = (await import('../src/worker.ts')).default;
   const { db, state } = makeDb({ throwOnTenantsList: true });
   const env = { DB: db, ADMIN_PASSWORD: 'test-admin-pw', ASSETS };
@@ -244,7 +251,7 @@ async function gql(query, { locale = 'zh-CN', db } = {}) {
   check('A7 REST 异常落 error_log', !!restRow, JSON.stringify(state.errorLog).slice(0, 200));
   check('A7 REST 落库含原始消息', (restRow?.message || '').includes('boom-test'), restRow?.message);
 
-  // 门户读取: 登录拿 token -> GET /api/hub/errors; 无 token -> 401
+  // Portal read: log in for a token -> GET /api/hub/errors; no token -> 401.
   const login = await worker.fetch(new Request('http://local/api/hub/login', {
     method: 'POST', headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ password: 'test-admin-pw' }),
@@ -262,7 +269,7 @@ async function gql(query, { locale = 'zh-CN', db } = {}) {
   eq('A7 hub errors 无 token -> 401', er401.status, 401);
 }
 {
-  // GraphQL: 未捕获异常经插件落库; 业务文案错误 (guildNotFound) 不落
+  // GraphQL: uncaught exceptions are logged via the plugin; business-copy errors (guildNotFound) are not.
   const { db, state } = makeDb({ throwOnTenantsList: true });
   const before = state.errorLog.length;
   await gql('{ hubPage { guilds { slug } } }', { db });

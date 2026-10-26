@@ -1,15 +1,16 @@
 /* ===================================================
- * signups 实体的数据层访问 (Repository)。
+ * Data-layer access (Repository) for the signups entity.
  *
- * 业务代码禁止直接拼 SQL 访问 signups: 全部走本文件的函数。返回
- * 行沿用旧形态的 snake_case 键; 写操作返回 D1 的 meta (changes /
- * last_row_id), 与旧 .run() 结果同形。写法沿用一期 sql 模板惯用
- * 法 + sql.identifier 裸列名内插。
+ * Business code must not hand-roll SQL against signups;
+ * everything goes through this file. Rows keep the legacy
+ * snake_case keys; writes return the D1 meta (changes /
+ * last_row_id), same shape as the old .run() results.
  *
- * 红线收口 (三期 [13/16]): 容量守卫的原子 INSERT ... SELECT ...
- * WHERE COUNT < max_slots 与其满员治疗回滚判断是一条原子性单元,
- * 由 insertSignupWithCapacityGuard 封装 (GraphQL joinGrouping 与
- * REST 报名两处共用)。
+ * Red-line unit: the capacity guard's atomic INSERT ... SELECT
+ * ... WHERE COUNT < max_slots, together with its full-car healer
+ * rollback check, is one atomicity unit, encapsulated in
+ * insertSignupWithCapacityGuard (shared by GraphQL joinGrouping
+ * and the REST signup path).
  * =================================================== */
 import { sql } from 'drizzle-orm';
 import { createDb, schema } from '../../db/client.ts';
@@ -42,10 +43,9 @@ function metaOf(r: unknown): RunMeta {
   return { changes: m?.changes ?? 0, last_row_id: m?.last_row_id ?? 0 };
 }
 
-/* ---------- 懒 DDL: 身份戳列 ---------- */
 
 let signupDiscordColReady: Promise<void> | null = null;
-/** signups.discord_id 增列 (落座身份戳)。 */
+/** Adds signups.discord_id (seat identity stamp). */
 export function ensureSignupDiscordColumn(d1: D1Database): Promise<void> {
   if (!signupDiscordColReady) {
     signupDiscordColReady = (async () => {
@@ -56,15 +56,13 @@ export function ensureSignupDiscordColumn(d1: D1Database): Promise<void> {
         if (!cols.has('discord_id')) {
           await db.run(sql`ALTER TABLE ${signups} ADD COLUMN ${col('discord_id')} TEXT`);
         }
-      } catch { /* 列已存在等情况静默 */ }
+      } catch { /* already-exists and similar: ignore */ }
     })();
   }
   return signupDiscordColReady;
 }
 
-/* ---------- 读取 ---------- */
 
-/* 全行列表 (管理员名册/导出用), 按座位顺序。 */
 export async function listSignupsByEvent(d1: D1Database, eventId: number): Promise<SignupRow[]> {
   const db = createDb(d1);
   const rows = await db.all<SignupRow>(
@@ -73,7 +71,6 @@ export async function listSignupsByEvent(d1: D1Database, eventId: number): Promi
   return rows || [];
 }
 
-/* REST 详情页座位子集。 */
 export async function listSignupDetailRows(d1: D1Database, eventId: number): Promise<{
   id: number; nickname: string; role: string; weapon: string;
   team_name: string | null; members: string | null; note: string; created_at: string;
@@ -88,7 +85,6 @@ export async function listSignupDetailRows(d1: D1Database, eventId: number): Pro
   return rows || [];
 }
 
-/* GraphQL 详情座位子集 (带身份戳)。 */
 export async function listSignupSeats(d1: D1Database, eventId: number): Promise<{
   id: number; nickname: string; uid: string; role: string; weapon: string; discord_id: string | null;
 }[]> {
@@ -101,7 +97,6 @@ export async function listSignupSeats(d1: D1Database, eventId: number): Promise<
   return rows || [];
 }
 
-/* GraphQL 座位子集 (无身份戳的旧面)。 */
 export async function listSignupSeatsBasic(d1: D1Database, eventId: number): Promise<{
   id: number; nickname: string; uid: string; role: string; weapon: string;
 }[]> {
@@ -114,7 +109,7 @@ export async function listSignupSeatsBasic(d1: D1Database, eventId: number): Pro
   return rows || [];
 }
 
-/* 编辑页名册整表读 (昵称 + 身份戳, 无序 — 与旧查询一致)。 */
+/* Edit-page roster read (nickname + identity stamp, unordered — matches the legacy query). */
 export async function listSignupNamesStamps(d1: D1Database, eventId: number): Promise<{
   nickname: string; discord_id: string | null;
 }[]> {
@@ -125,7 +120,6 @@ export async function listSignupNamesStamps(d1: D1Database, eventId: number): Pr
   return rows || [];
 }
 
-/* 提醒拼装用座位 (昵称/身份戳/流派, 按座位顺序)。 */
 export async function listSignupSeatsForReminder(d1: D1Database, eventId: number): Promise<{
   nickname: string; discord_id: string | null; weapon: string;
 }[]> {
@@ -136,7 +130,6 @@ export async function listSignupSeatsForReminder(d1: D1Database, eventId: number
   return rows || [];
 }
 
-/* 已占座数。 */
 export async function countSignupsByEvent(d1: D1Database, eventId: number): Promise<number> {
   const db = createDb(d1);
   const row = await db.get<{ c: number }>(
@@ -145,8 +138,10 @@ export async function countSignupsByEvent(d1: D1Database, eventId: number): Prom
   return row ? Number(row.c) || 0 : 0;
 }
 
-/* 满员治疗校验的三联计数 (总座/治疗数/容量上限), 与守卫插入的回滚
- * 判断配套 (graphql.js / worker.js 两处同一旧查询)。 */
+/* Triple count for the full-car healer check (total seats /
+ * healers / capacity cap), paired with the guard insert's
+ * rollback decision (the same legacy query in graphql.js /
+ * worker.js). */
 export async function getSignupCapacityStats(
   d1: D1Database, eventId: number,
 ): Promise<{ c: number; h: number; m: number | null } | null> {
@@ -157,11 +152,13 @@ export async function getSignupCapacityStats(
   return row ?? null;
 }
 
-/* ---------- 红线收口: 容量守卫原子插入 + 满员治疗回滚对 ----------
- * 名额判断与插入在一条语句内完成 (SQLite 单语句原子执行, 并发
- * 报名不可能超卖); 插入后若车已满员且全队无治疗, 本次落座回滚
- * (最后一席必须是治疗的旧规则)。UNIQUE 冲突 (同 uid 重复报名)
- * 照旧抛给调用方映射文案。 */
+/* ---------- Red-line unit: capacity-guard atomic insert + full-car healer rollback ----------
+ * Capacity check and insert complete in a single statement
+ * (SQLite runs one statement atomically, so concurrent signups
+ * cannot oversell); if the car is then full with no healer in the
+ * whole team, this seat is rolled back (the legacy rule that the
+ * last seat must be a healer). UNIQUE conflicts (same uid signing
+ * up twice) still propagate to the caller for copy mapping. */
 export type GuardedSignupOutcome =
   | { outcome: 'inserted'; signupId: number }
   | { outcome: 'full' }
@@ -187,9 +184,11 @@ export async function insertSignupWithCapacityGuard(
   return { outcome: 'inserted', signupId: meta.last_row_id };
 }
 
-/* ---------- 红线收口 (三期 [15/16]): 成员数聚合 ----------
- * 百业成员数 = 该百业全部车队里出现过的不同昵称数 (GuildShell
- * memberCount 与 HubPageShell  guild 卡片两处同一旧查询)。 */
+/* ---------- Red-line unit: member-count aggregate ----------
+ * Guild member count = the number of distinct nicknames that have
+ * appeared across all of the guild's groupings (the same legacy
+ * query behind GuildShell memberCount and the HubPageShell guild
+ * cards). */
 export async function countDistinctNicknamesByTenant(
   d1: D1Database, tenant: string,
 ): Promise<number> {
@@ -200,10 +199,12 @@ export async function countDistinctNicknamesByTenant(
   return row ? Number(row.c) || 0 : 0;
 }
 
-/* ---------- 红线收口 (三期 [14/16]): 提及解析的座位盖戳单元 ----------
- * 旧座位 (身份收口前落座) 没有 discord_id 戳: 门户补登记按昵称唯一
- * 命中后逐座盖戳, 提醒的 @ 解析才能命中本人。待盖戳座位清单
- * (跨 events 的 JOIN) 与盖戳 UPDATE 是一条单元。 */
+/* ---------- Red-line unit: mention-resolution seat stamping ----------
+ * Legacy seats (taken before the identity gating) have no
+ * discord_id stamp: when the portal's backfill registration hits
+ * a unique nickname match it stamps seat by seat, so reminder @
+ * resolution can reach the person. The to-stamp seat list (a JOIN
+ * across events) and the stamping UPDATE form one unit. */
 export async function listUnstampedSeatsByTenant(
   d1: D1Database, tenant: string,
 ): Promise<{ id: number; nickname: string }[]> {
@@ -221,7 +222,6 @@ export async function stampSignupDiscordId(
   return metaOf(r);
 }
 
-/* 管理员删座前的归属校验 (该座位所属车确属本百业)。 */
 export async function getSignupTenant(d1: D1Database, signupId: number, tenant: string): Promise<{ id: number } | null> {
   const db = createDb(d1);
   const row = await db.get<{ id: number }>(
@@ -230,7 +230,6 @@ export async function getSignupTenant(d1: D1Database, signupId: number, tenant: 
   return row ?? null;
 }
 
-/* ---------- 写入 ---------- */
 
 const SIGNUP_COLUMNS = new Set([
   'event_id', 'nickname', 'uid', 'role', 'weapon', 'contact', 'note',
@@ -246,7 +245,7 @@ function checkedColumns(row: Record<string, unknown>): string[] {
   return cols;
 }
 
-/* 通用插入 (非守卫路径: 初始排座/代报名落座等)。返回 meta。 */
+/* Plain insert (non-guard paths: initial seating, proxy signups). Returns meta. */
 export async function insertSignup(d1: D1Database, row: Record<string, unknown>): Promise<RunMeta> {
   const db = createDb(d1);
   const cols = checkedColumns(row);
@@ -255,8 +254,9 @@ export async function insertSignup(d1: D1Database, row: Record<string, unknown>)
   return metaOf(r);
 }
 
-/* 批量排座: 仓库内 D1 batch 成组执行 (恢复二期逐条执行时丢失的
- * 组原子性: 任一行失败整批回滚, 不留半排的座位)。 */
+/* Batch seating: one D1 batch inside the repository (restores
+ * the group atomicity lost when run statement-by-statement: any
+ * failure rolls back the whole batch — no half-seated rows). */
 export async function insertSignups(d1: D1Database, rows: Record<string, unknown>[]): Promise<void> {
   if (!rows.length) return;
   const stmts = rows.map((row) => {
@@ -304,7 +304,7 @@ export async function deleteSignupsByEvent(d1: D1Database, eventId: number): Pro
   return metaOf(r);
 }
 
-/* 改流派 (流派->职责的换算在调用方, 这里只落两列)。 */
+/* Change school (the school->role conversion happens in the caller; this writes only the two columns). */
 export async function updateSignupWeaponRoleById(
   d1: D1Database, id: number, eventId: number, weapon: string, role: string,
 ): Promise<RunMeta> {

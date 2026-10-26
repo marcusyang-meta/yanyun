@@ -1,6 +1,7 @@
-// 燕云百业 GraphQL 装配层 (三期域拆分): typeDefs + 各域 resolver 片段
-// 合并 + schema/yoga 构造与错误汇聚插件。业务 shells/resolvers 在
-// src/domains/<域>/graphql.ts, 框架基座在 platform/graphql-base.ts。
+// GraphQL assembly layer: typeDefs + merged per-domain resolver
+// fragments + schema/yoga construction and the error-sink plugin.
+// Business shells/resolvers live in src/domains/<domain>/graphql.ts;
+// the framework base is platform/graphql-base.ts.
 import { createSchema, createYoga } from 'graphql-yoga';
 import { typeDefs } from './graphql-schema.ts';
 import { logError, CATALOG } from './domains/platform/index.ts';
@@ -25,11 +26,14 @@ const resolvers = {
 
 const schema = createSchema({ typeDefs, resolvers });
 
-/* GraphQL 错误汇聚插件 (商业化审计 A7): 执行结果里的错误落 error_log。
- * 本 API 的业务失败都经 payload error 字段或目录文案 throw 表达 —— 后者
- * 的消息必是 i18n errors 段某语言的文案 (或下面两个历史硬编码字面量),
- * 属预期控制流, 不记; 其余 (TypeError / D1 错误 / 空指针等) 才是要汇聚
- * 的未捕获异常。logError 永不抛错; 在此不 await, 不拖慢响应。 */
+/* GraphQL error-sink plugin (audit A7): errors in execution results land
+ * in error_log. Business failures here are expressed via payload error
+ * fields or thrown catalog copy — the latter's message is always i18n
+ * errors-section copy in some language (or the two legacy hardcoded
+ * literals below), i.e. expected control flow, so it is not logged.
+ * Everything else (TypeError, D1 errors, null derefs) is an uncaught
+ * exception to sink. logError never throws; not awaited, so responses
+ * are not slowed. */
 const BUSINESS_ERROR_TEXTS = new Set(['百业不存在', 'Introspection 已禁用']);
 for (const entry of Object.values(CATALOG.errors || {})) {
   for (const v of Object.values(entry)) BUSINESS_ERROR_TEXTS.add(v);
@@ -54,7 +58,7 @@ const errorLogPlugin = {
               context: { path: e.path ? e.path.join('.') : '' },
             });
           }
-        } catch { /* 汇聚失败静默 */ }
+        } catch { /* sink failures stay silent */ }
       },
     };
   },
@@ -63,11 +67,10 @@ const errorLogPlugin = {
 export const yoga = createYoga({
   schema,
   graphqlEndpoint: '/graphql',
-  // 生产环境隐藏错误细节
+  // Hide error details in production.
   maskedErrors: true,
-  // 禁用 introspection (防 API 结构暴露)
-  // 开发时可将 graphql.js 顶部的 DISABLE_INTROSPECTION 设为 false
+  // Introspection disabled (do not expose the API structure).
   plugins: [noIntrospectionPlugin, errorLogPlugin],
-  // 禁用 GraphiQL (生产环境不需要)
+  // GraphiQL disabled (not needed in production).
   graphiql: false,
 });

@@ -1,7 +1,9 @@
-/* 生成物, 勿手改: node scripts/i18n-codegen.mjs
- * CATALOG 兼容投影: 由 fbtee 声明面 + 译文机械导出, 供 src/graphql.ts 的
- * 业务错误文案集合与 i18n harness 的目录级断言消费。运行时文本路径不读它
- * (运行时走 strings.ts 编译产物 + catalogs/*.json 的 fbtee 目录)。 */
+/* Generated, do not hand-edit: node scripts/i18n-codegen.mjs
+ * CATALOG compatibility projection: mechanically derived from the fbtee
+ * declarations + translations, for the business-error text set of
+ * src/graphql.ts and the catalog-level assertions of the i18n harness.
+ * The runtime text path
+ * never reads it (runtime uses the compiled strings.ts + catalogs/*.json). */
 export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
   "common": {
     "cancel": {

@@ -1,5 +1,6 @@
-/* 平台 OG 数据面 (三期域拆分): SPA 入口注入的分享卡标签 (主页/百业/
- * 车队三级), 数据直接查各域服务面, 与 OG worker 同口径。 */
+/* Platform OG data surface: share-card tags injected at the SPA entry
+ * (hub / guild / team levels), read via domain services, same semantics
+ * as the OG worker. */
 import { getTenantRow } from '../guilds/index.ts';
 import { isDevOnlyTenant } from './http.ts';
 import { getDungeonByName } from '../dex/index.ts';
@@ -12,7 +13,7 @@ const SITE_URL = 'https://yanyun.app';
 const escHtml = (str: any) => String(str ?? '')
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-// 车时间: unix 秒(UTC) -> "周六 20:00" (与 OG worker 同款 UTC 墙钟格式)
+// Team time: unix seconds (UTC) -> weekday + HH:MM, same UTC wall-clock format as the OG worker
 export function fmtCarTimeUtc(sec: any) {
   const n = parseInt(sec, 10);
   if (!n) return '';
@@ -36,10 +37,10 @@ export function hubOgTags() {
   ].join('\n');
 }
 
-// 分享卡片口径 (2026-10-25 用户裁决): 所有真实百业一律真实卡片 —
-// OG 标签与图都带百业名/口号/本周车队数, 不再按是否绑定 Discord 降级。
-// 成员昵称/名册永不出现在公开卡片上。
-// 本周窗与站点周逻辑一致: 周一 05:00 (北京时间) 起, [start, start+7d)
+// Share-card ruling: every real guild gets a real card — OG tags and
+// image carry the guild name/slogan/this-week team count, with no
+// downgrade for unbound guilds. Member nicks/rosters never appear on
+// public cards. Week window matches the site: Monday 05:00 Beijing, [start, start+7d).
 export function ogWeekWindowUtc() {
   const now = Math.floor(Date.now() / 1000);
   const cst = now + 8 * 3600;
@@ -53,12 +54,12 @@ export function ogWeekWindowUtc() {
 
 export async function guildOgTags(env: any, slug: string) {
   try {
-    // dev_only 百业在生产视为不存在: 不注入任何带名称的 OG 标签
+    // dev_only guilds count as nonexistent in production: inject no named OG tags
     if (await isDevOnlyTenant(env.DB, slug)) return null;
     const t = await getTenantRow(env.DB, slug);
     if (!t || !t.guild_name) return null;
     const name = t.guild_name;
-    // 本周双十车队数 (装饰性字段, 查不到按 0 不带出, 不阻塞标签注入)
+    // This-week team count is decorative: lookup failure means 0 / omitted, never blocks tag injection
     let teamCount = 0;
     try {
       const [from, to] = ogWeekWindowUtc();
@@ -83,7 +84,7 @@ export async function carOgTags(env: any, slug: string, carId: any) {
   try {
     if (await isDevOnlyTenant(env.DB, slug)) return null;
     const ev = await getEventRow(env.DB, parseInt(carId, 10) || 0);
-    // 租户隔离: 车队不存在或不属于该 slug 时不注入, 不泄露他会数据
+    // Tenant isolation: no injection when the team is missing or belongs to another slug
     if (!ev || ev.tenant !== slug) return null;
     const t = await getTenantRow(env.DB, slug);
     if (!t || !t.guild_name) return null;
@@ -106,10 +107,10 @@ export async function carOgTags(env: any, slug: string, carId: any) {
   } catch { return null; }
 }
 
-/* ---------- 实时推送订阅: GET /ws/guild/:slug (WebSocket) ----------
- * 鉴权与 GraphQL 读权限完全同源: yy_session 会话 (含授权完整性校验) +
- * graphql.js 的 getGuildAccess —— 已绑定百业仅成员可订阅, 未绑定百业
- * 公开可读即可订阅; 非成员/匿名/不存在一律 403, 请求根本到不了
- * GuildHub。通过后把原始升级请求转给该百业的 GuildHub 实例 (hibernation
- * WS)。事件本身只有 {slug, groupingId, kind}, 客户端靠它触发 GraphQL
- * 重查, 数据面不经过这条通道。 */
+/* ---------- Realtime subscription: GET /ws/guild/:slug (WebSocket) ----------
+ * Auth is exactly the GraphQL read path: yy_session session (with grant
+ * completeness check) + getGuildAccess — bound guilds are members-only,
+ * unbound guilds are subscribable when publicly readable; non-members,
+ * anonymous and missing guilds get 403 before reaching GuildHub. Events
+ * are only {slug, groupingId, kind}; clients re-query GraphQL on them,
+ * no data flows over this channel. */

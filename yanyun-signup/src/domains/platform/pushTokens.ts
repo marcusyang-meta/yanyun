@@ -6,7 +6,7 @@ import { sql } from 'drizzle-orm';
 import { createDb } from '../../db/client.ts';
 import { pushTokens } from './schema.ts';
 
-/* ---------- 懒 DDL ---------- */
+/* ---------- Lazy DDL ---------- */
 
 let pushTokensTableReady: Promise<void> | null = null;
 export function ensurePushTokensTable(d1: D1Database): Promise<void> {
@@ -21,7 +21,7 @@ export function ensurePushTokensTable(d1: D1Database): Promise<void> {
           updated_at INTEGER NOT NULL DEFAULT 0,
           PRIMARY KEY (discord_id, token)
         )`);
-      } catch { /* 表已存在等情况静默 */ }
+      } catch { /* silent: table may already exist */ }
     })();
   }
   return pushTokensTableReady;
@@ -37,7 +37,7 @@ export async function upsertPushToken(
   updatedAt: number,
 ): Promise<void> {
   const db = createDb(d1);
-  // 列名单 / ON CONFLICT 目标 / SET 左值须用裸列名 (SQLite 语法), 见 settings.ts 注。
+  // Column lists / ON CONFLICT targets / SET LHS must use bare column names (SQLite syntax); see settings.ts note.
   await db.run(
     sql`INSERT INTO ${pushTokens} (${sql.identifier('discord_id')}, ${sql.identifier('token')}, ${sql.identifier('platform')}, ${sql.identifier('updated_at')})
         VALUES (${discordId}, ${token}, ${platform}, ${updatedAt})

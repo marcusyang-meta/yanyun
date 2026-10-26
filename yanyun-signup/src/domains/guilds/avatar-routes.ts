@@ -1,5 +1,6 @@
-/* guilds 域头像公开读路由 (三期域拆分): GET /api/guilds/:slug/avatar。
- * 头像是公开品牌图, 匿名可读; 无头像 404。 */
+/* guilds domain public avatar read route: GET
+ * /api/guilds/:slug/avatar. Avatars are public brand images,
+ * readable anonymously; no avatar -> 404. */
 import { Hono } from 'hono';
 import { getGuildAvatar } from './index.ts';
 

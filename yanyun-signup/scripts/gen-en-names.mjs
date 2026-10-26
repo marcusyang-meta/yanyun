@@ -73,44 +73,44 @@ expect('gearSets', gearSets, 11);
 const version = 'names-' + (src.meta && src.meta.generated ? src.meta.generated : 'unknown');
 const fmt = (m) => JSON.stringify(m, null, 2);
 
-const out = `// 官方英文名覆盖层 — 生成文件, 不要手改 (改数据改 names.json 后重跑生成器)。
-// 生成器: scripts/gen-en-names.mjs; 数据源: research_notes/official-en-names/names.json
-// 版本: ${version}
+const out = `// Official English name overlay — generated file, do not hand-edit (edit the names.json data and rerun the generator).
+// Generator: scripts/gen-en-names.mjs; data source: research_notes/official-en-names/names.json
+// Version: ${version}
 //
-// 口径 (用户裁决 2026-10-25):
-// - 这是「显示覆盖层」: 只在 GraphQL 显示字段解析时按 locale 替换名字,
-//   存储值/匹配键/计算键/mutation 入参一律仍是中文原文。
-// - 适用 locale: en / es / fr (西/法语的 UI 文案仍走 i18n 目录的西/法文,
-//   只有游戏名跟英文客户端); zh-CN / zh-TW 保持中文名。
-// - names.json 里 en=null (无官方源) 的条目不在本模块中 → 回退显示中文。
-// - Discord 提醒与 OG 卡不经此层, 恒中文。
+// Rules (user ruling, 2026-10-25):
+// - Display overlay only: names are swapped by locale when GraphQL display
+//   fields resolve; stored values, match/compute keys and mutation inputs always stay the Chinese originals.
+// - Applies to en / es / fr (es/fr UI copy still comes from the i18n
+//   catalog in Spanish/French; only game names follow the EN client); zh-CN / zh-TW keep the Chinese names.
+// - Entries with en=null in names.json (no official source) are absent from this module -> display falls back to Chinese.
+// - Discord reminders and OG cards never pass through this layer; always Chinese.
 export const EN_NAMES_VERSION = ${JSON.stringify(version)};
 
-// 副本 (键 = D1 dungeons.name; 极难档为独立的 \`·极\` 后缀行)
+// Dungeons (key = D1 dungeons.name; the extreme tier is a separate \`·极\` suffix row)
 export const EN_DUNGEONS: Record<string, string> = ${fmt(dungeons)};
 
-// 首领 (键 = D1 bosses.name)
+// Bosses (key = D1 bosses.name)
 export const EN_BOSSES: Record<string, string> = ${fmt(bosses)};
 
-// 流派 (键 = 规范名 \`·\` 形, 如 鸣金·虹)
+// Sects (key = canonical name in \`·\` form, e.g. 鸣金·虹)
 export const EN_PATHS: Record<string, string> = ${fmt(paths)};
 
-// 学校 (键 = 鸣金/牵丝/裂石/破竹; 无相不收录: 客户端攻击族作 Void、
-// 定音作 Formless, 由上下文决定, 见 enAffixSys)
+// Schools (key = Chinese school name); the formless family is not
+// recorded here (the client uses Void for its attack family and Formless for attunement, by context; see enAffixSys)
 export const EN_SCHOOLS: Record<string, string> = ${fmt(schools)};
 
-// 武学 (键 = 中文武学名)
+// Martial arts (key = Chinese martial-art name)
 export const EN_MARTIAL_ARTS: Record<string, string> = ${fmt(martialArts)};
 
-// 词条 + 定音串 (键 = 中文全名; 定音客户端串逐字照抄, 不规范化)
+// Affixes + attunement strings (key = full Chinese name; attunement client strings copied verbatim, never normalized)
 export const EN_AFFIXES: Record<string, string> = ${fmt(affixes)};
 
-// 装备套装 (键 = 中文套装名, 单套; 组合套在 enGearSetName 里拆分处理)
+// Gear sets (key = Chinese set name, single sets; combo sets are split in enGearSetName)
 export const EN_GEAR_SETS: Record<string, string> = ${fmt(gearSets)};
 
-// 词条类短标签 (targets.label / GP_CLASS_LABEL 的值) → 官方 EN。
-// 这些短名本身不是客户端串, 取其对应词条全名的官方 EN; 玩家 (玩家增伤
-// 无官方源) 与 属攻（本系/无相）(planner 内部复合标签) 故意不收 → 回退中文。
+// Affix-class short labels (values of targets.label / GP_CLASS_LABEL) -> official EN.
+// These short labels are not client strings; each takes the official EN of its full affix name. The player label (no
+// official source) and the elemental-family composite labels (planner-internal) are deliberately excluded -> Chinese.
 export const EN_CLASS_LABELS: Record<string, string> = {
   '大外': 'Max Physical Attack',
   '小外': 'Min Physical Attack',
@@ -128,8 +128,8 @@ export const EN_CLASS_LABELS: Record<string, string> = {
   '全奇术': 'Mystic Skill DMG Boost',
 };
 
-/* ---------- 解析助手 (显示层专用) ---------- */
-// 覆盖层适用 locale: en/es/fr — 其余 (zh-CN/zh-TW 及未知值) 一律原样。
+/* ---------- Resolution helpers (display layer only) ---------- */
+// Overlay locales: en/es/fr — anything else (zh-CN/zh-TW, unknown) passes through unchanged.
 const EN_OVERLAY_LOCALES = new Set(['en', 'es', 'fr']);
 export function enOverlayOn(locale: string | null | undefined) { return EN_OVERLAY_LOCALES.has(locale || ''); }
 
@@ -149,8 +149,8 @@ export function enClassLabel(locale: string | null | undefined, zh: string | nul
   return en !== undefined ? en : zh;
 }
 
-// 属攻系名 (GP_AFFIX.sys): 学校名; 无相在攻击词条族里客户端作 Void
-// (定音族作 Formless 已逐字收录在 EN_AFFIXES 的定音串中, 不走这里)。
+// Elemental-attack family name (GP_AFFIX.sys): the school name; the formless family is Void in the client attack-affix family
+// (Formless in the attunement family, recorded verbatim in EN_AFFIXES; not handled here).
 export function enAffixSys(locale: string | null | undefined, sys: string | null | undefined) {
   if (!enOverlayOn(locale) || sys == null) return sys;
   if (EN_SCHOOLS[sys] !== undefined) return EN_SCHOOLS[sys];
@@ -158,12 +158,12 @@ export function enAffixSys(locale: string | null | undefined, sys: string | null
   return sys;
 }
 
-// 流派变体串 (配装 builds 的 school / 定音表的 school 键) → 官方 EN。
-// 形态: 规范流派名 (\`-\` 或 \`·\` 分隔) + 可选变体注记: 全角括号注记
-// (（飞天）/（走地）/（纯奶）/（火拳）/（易水歌）) 或 -唐/-陌 后缀 (裂石·钧
-// 的武器变体)。注记本身无官方 EN → 原样保留在 EN 名之后 (回退约定),
-// 保证不同变体在 EN 下仍可区分 (前端按 school 串相等匹配定音行时,
-// 同一函数同口径本地化, 等式关系不变)。
+// Sect variant strings (build school keys / attunement-table school keys) -> official EN.
+// Shape: canonical sect name (\`-\` or \`·\` separated) + optional variant note: a full-width parenthesis note
+// ((飞天)/(走地)/(纯奶)/(火拳)/(易水歌)) or a -唐/-陌 suffix (weapon variants of the Stonesplit sect)
+// Notes have no official EN -> kept verbatim after the EN name (fallback convention),
+// so variants stay distinguishable in EN (when attunement rows are matched by school-string equality,
+// the same function localizes both sides, so equality is preserved).
 export function enBuildSchool(locale: string | null | undefined, zh: string | null | undefined) {
   if (!enOverlayOn(locale) || zh == null) return zh;
   if (EN_PATHS[zh] !== undefined) return EN_PATHS[zh];
@@ -175,23 +175,23 @@ export function enBuildSchool(locale: string | null | undefined, zh: string | nu
   if (/[-·]唐$/.test(base)) { variant = '（唐）'; base = base.replace(/[-·]唐$/, ''); }
   else if (/[-·]陌$/.test(base)) { variant = '（陌）'; base = base.replace(/[-·]陌$/, ''); }
   let cand = base.replace(/-/g, '·');
-  // 裂石钧 的几种写法 (裂石钧 / 裂石-唐 的词干) 规范化到 裂石·钧
+  // Normalize the Stonesplit spelling variants (bare / -唐 stems) to the canonical sect key
   if (cand === '裂石钧' || (cand === '裂石' && variant)) cand = '裂石·钧';
   const en = EN_PATHS[cand];
   if (en === undefined) return zh;
   return en + (suffix || variant);
 }
 
-// 流派显示名: 先规范名直查, 再走变体解析 (座位 weapon 存的是规范名,
-// 这里只是对历史/变体写法的兜底)。
+// Sect display name: canonical-name lookup first, then variant parsing (seat weapon stores the canonical name;
+// this only covers legacy/variant spellings).
 export function enSectName(locale: string | null | undefined, zh: string | null | undefined) {
   if (!enOverlayOn(locale) || zh == null) return zh;
   if (EN_PATHS[zh] !== undefined) return EN_PATHS[zh];
   return enBuildSchool(locale, zh);
 }
 
-// 套装名: 支持 \`时雨+易相\` 组合与 \`（高级版）\` 后缀; 逐件查表, 查不到
-// 的件原样保留 (如 撼天 无官方源)。
+// Set names: supports \`时雨+易相\` combos and the \`（高级版）\` suffix; lookup is per piece, and pieces with no entry
+// stay as-is (e.g. a set with no official source).
 export function enGearSetName(locale: string | null | undefined, zh: string | null | undefined) {
   if (!enOverlayOn(locale) || zh == null) return zh;
   return String(zh).split('+').map((part) => {

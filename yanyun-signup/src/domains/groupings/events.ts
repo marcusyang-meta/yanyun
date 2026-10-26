@@ -1,17 +1,19 @@
 /* ===================================================
- * events 实体的数据层访问 (Repository)。
+ * Data-layer access (Repository) for the events entity.
  *
- * 业务代码禁止直接拼 SQL 访问 events: 全部走本文件的函数。返回行
- * 沿用旧形态的 snake_case 键, 调用点零感知。单行读取未命中返回
- * null。写操作返回 D1 的 meta (changes / last_row_id), 与旧
- * .run() 结果同形, 调用方的满员/回滚判断口径不变。
+ * Business code must not hand-roll SQL against events; everything
+ * goes through this file. Rows keep the legacy snake_case keys,
+ * single-row reads return null on a miss, and writes return the
+ * D1 meta (changes / last_row_id), same shape as the old .run()
+ * results, so callers' capacity/rollback checks are unchanged.
  *
- * 写法沿用一期 sql 模板惯用法 + sql.identifier 裸列名内插, 生成
- * SQL 与被替代的旧语句同形 (harness FakeDB 按形路由无需感知)。
+ * Generated SQL keeps the shape of the statements it replaced
+ * (the harness FakeDB routes by shape).
  *
- * 红线项 (三期收尾笔收口): 提及解析的 JOIN 单元、容量守卫的原子
- * INSERT ... SELECT、COUNT(DISTINCT nickname) 名册聚合。
- * deleteEventCascade 在数据层内部组合 signups / results 的删除。
+ * Red-line units: the mention-resolution JOIN, the capacity
+ * guard's atomic INSERT ... SELECT, and the COUNT(DISTINCT
+ * nickname) roster aggregate. deleteEventCascade composes the
+ * signups / results deletes inside the data layer.
  * =================================================== */
 import { sql } from 'drizzle-orm';
 import { createDb, schema } from '../../db/client.ts';
@@ -49,7 +51,7 @@ function metaOf(r: unknown): RunMeta {
   return { changes: m?.changes ?? 0, last_row_id: m?.last_row_id ?? 0 };
 }
 
-/* ---------- 懒 DDL: 增列 (creator 身份列 / 提醒状态列) ---------- */
+/* ---------- Lazy DDL: added columns (creator identity / reminder state) ---------- */
 
 async function pragmaColumns(d1: D1Database): Promise<Set<string>> {
   const db = createDb(d1);
@@ -58,7 +60,7 @@ async function pragmaColumns(d1: D1Database): Promise<Set<string>> {
 }
 
 let eventCreatorColReady: Promise<void> | null = null;
-/** events.creator_discord_id 增列 (车头身份, 解散/编辑/完成只认此列)。 */
+/** Adds events.creator_discord_id (leader identity; disband/edit/complete check only this column). */
 export function ensureEventCreatorColumn(d1: D1Database): Promise<void> {
   if (!eventCreatorColReady) {
     eventCreatorColReady = (async () => {
@@ -68,14 +70,14 @@ export function ensureEventCreatorColumn(d1: D1Database): Promise<void> {
         if (!cols.has('creator_discord_id')) {
           await db.run(sql`ALTER TABLE ${events} ADD COLUMN ${col('creator_discord_id')} TEXT`);
         }
-      } catch { /* 列已存在等情况静默 */ }
+      } catch { /* already-exists and similar: ignore */ }
     })();
   }
   return eventCreatorColReady;
 }
 
 let reminderColsReady: Promise<void> | null = null;
-/** events.reminder_sent_at / reminder_error 增列 (提醒结算状态)。 */
+/** Adds events.reminder_sent_at / reminder_error (reminder settlement state). */
 export function ensureReminderColumns(d1: D1Database): Promise<void> {
   if (!reminderColsReady) {
     reminderColsReady = (async () => {
@@ -88,13 +90,12 @@ export function ensureReminderColumns(d1: D1Database): Promise<void> {
         if (!cols.has('reminder_error')) {
           await db.run(sql`ALTER TABLE ${events} ADD COLUMN ${col('reminder_error')} TEXT`);
         }
-      } catch { /* 列已存在等情况静默 */ }
+      } catch { /* already-exists and similar: ignore */ }
     })();
   }
   return reminderColsReady;
 }
 
-/* ---------- 读取 ---------- */
 
 export async function getEventRow(d1: D1Database, id: number): Promise<EventRow | null> {
   const db = createDb(d1);
@@ -146,9 +147,9 @@ export async function getEventTenant(d1: D1Database, id: number): Promise<{ id: 
   return row ?? null;
 }
 
-/* REST 周视图列表: 带 signup_count 计算列; type/from/to 为可选过滤,
- * 在仓库内组装 (旧 handler 的动态拼接整体搬入)。排序口径逐字保留:
- * open 优先, 无时间垫底, 同组新车在前。 */
+/* REST weekly list: signup_count computed column; type/from/to are
+ * optional filters assembled here. Ordering preserved: open first,
+ * timeless last, newest first within a group. */
 export async function listEventsWeekView(
   d1: D1Database,
   q: { tenant: string; type?: string; from?: number; to?: number },
@@ -163,7 +164,7 @@ export async function listEventsWeekView(
   return rows || [];
 }
 
-/* 管理员列表: 全部状态, 带 signup_count, 新车在前。 */
+/* Admin list: all statuses, with signup_count, newest first. */
 export async function listEventsAdmin(
   d1: D1Database, tenant: string,
 ): Promise<(EventRow & { signup_count: number })[]> {
@@ -174,15 +175,16 @@ export async function listEventsAdmin(
   return rows || [];
 }
 
-/* GraphQL 列表页: 某百业某类型的在招车 (完成/草稿不进列表; open 优先,
- * 无时间垫底, 同组新车在前 — 旧 genGroupings 排序逐字保留)。 */
+/* GraphQL list page: recruiting groupings of one type in one guild
+ * (completed/draft never listed; open first, timeless last, newest
+ * first within a group). */
 export async function listEventsByTenantType(d1: D1Database, tenant: string, type: string): Promise<EventRow[]> {
   const db = createDb(d1);
   const rows = await db.all<EventRow>(sql`SELECT * FROM ${events} WHERE ${col('tenant')} = ${tenant} AND ${col('type')} = ${type} AND ${col('status')} NOT IN ('draft', 'completed') ORDER BY CASE ${col('status')} WHEN 'open' THEN 0 ELSE 1 END, COALESCE(${col('starts_at_utc')}, 9999999999) ASC, ${col('id')} DESC`);
   return rows || [];
 }
 
-/* OG 百业卡用: 本周 activity 在招车数 (完成/草稿不计; 旧 guildOgTags 口径)。 */
+/* OG guild card: this week's recruiting activity count (completed/draft excluded). */
 export async function countActivityEventsInWindow(
   d1: D1Database, tenant: string, fromUtc: number, toUtc: number,
 ): Promise<number> {
@@ -193,10 +195,10 @@ export async function countActivityEventsInWindow(
   return row ? Number(row.c) || 0 : 0;
 }
 
-/* ---------- 提醒调度 (待提醒口径与 reminder.js 旧 PENDING_WHERE 逐字一致) ----------
- * 待提醒 = 已发布 (open/closed)、有出发时间、未结算 (没发过也没失败过)。 */
+/* ---------- Reminder scheduling (pending = PENDING_WHERE) ----------
+ * Pending = published (open/closed), has a start time, unsettled
+ * (never sent, never failed). */
 
-/* 下一台待提醒车的最早出发时刻 (未做 -LEAD 的原始 MIN 值)。 */
 export async function nextPendingReminderStart(
   d1: D1Database, slug: string, nowSec: number,
 ): Promise<number | null> {
@@ -207,7 +209,7 @@ export async function nextPendingReminderStart(
   return row && row.m != null ? Number(row.m) : null;
 }
 
-/* 到点待发的车 (提醒时刻已到): 全行, 按出发时间升序。 */
+/* Due groupings (reminder time reached): full rows, ascending by start time. */
 export async function listDueReminderEvents(
   d1: D1Database, slug: string, nowSec: number, leadSec: number,
 ): Promise<EventRow[]> {
@@ -218,10 +220,10 @@ export async function listDueReminderEvents(
   return rows || [];
 }
 
-/* ---------- 写入 ---------- */
 
-/* events 可写列白名单 (snake 名 -> 入参键)。insert/update 只接受表内键,
- * 未知键直接抛错, 防止调用方把任意列名拼进 SQL。 */
+/* Writable-column whitelist (snake name -> input key). insert/update
+ * accept only in-table keys; unknown keys throw, so callers cannot
+ * splice arbitrary column names into SQL. */
 const EVENT_COLUMNS = new Set([
   'tenant', 'title', 'type', 'description', 'starts_at', 'starts_at_utc',
   'meet_info', 'max_slots', 'status', 'origin', 'created_by', 'manage_code',
@@ -237,8 +239,9 @@ function checkedColumns(row: Record<string, unknown>): string[] {
   return cols;
 }
 
-/* 通用插入: 列集由入参决定 (各创建路径的列集不同, 字面默认值由调用方
- * 作为普通值传入)。返回 last_row_id。 */
+/* Generic insert: the column set comes from the input (each creation
+ * path has a different set; literal defaults are passed in as plain
+ * values). Returns last_row_id. */
 export async function insertEvent(d1: D1Database, row: Record<string, unknown>): Promise<RunMeta> {
   const db = createDb(d1);
   const cols = checkedColumns(row);
@@ -247,8 +250,8 @@ export async function insertEvent(d1: D1Database, row: Record<string, unknown>):
   return metaOf(r);
 }
 
-/* 通用字段更新: patch 的键序即 SET 顺序 (与旧 handler 的 fields 拼接
- * 顺序一致); tenant 传 null = 不带租户条件 (管理员/GraphQL 路径)。 */
+/* Generic field update: patch key order = SET order; tenant null =
+ * no tenant condition (admin / GraphQL paths). */
 export async function updateEventFields(
   d1: D1Database, id: number, tenant: string | null, patch: Record<string, unknown>,
 ): Promise<RunMeta> {
@@ -261,14 +264,13 @@ export async function updateEventFields(
   return metaOf(r);
 }
 
-/* 状态流转 (close/reopen/complete/uncomplete 与 GraphQL 同名 mutation 共用)。 */
 export async function setEventStatus(d1: D1Database, id: number, status: string): Promise<RunMeta> {
   const db = createDb(d1);
   const r = await db.run(sql`UPDATE ${events} SET ${col('status')} = ${status} WHERE ${col('id')} = ${id}`);
   return metaOf(r);
 }
 
-/* 提醒结算: 成功写 sent_at, 失败写 error (结算后永不重试)。 */
+/* Reminder settlement: success writes sent_at, failure writes error; settled rows are never retried. */
 export async function markReminderSent(d1: D1Database, id: number, atSec: number): Promise<RunMeta> {
   const db = createDb(d1);
   const r = await db.run(sql`UPDATE ${events} SET ${col('reminder_sent_at')} = ${atSec} WHERE ${col('id')} = ${id}`);
@@ -281,9 +283,9 @@ export async function markReminderError(d1: D1Database, id: number, errorText: s
   return metaOf(r);
 }
 
-/* 解散级联: 报名 + 成绩 + 车本身, 仓库内 D1 batch 成组执行
- * (恢复二期逐条执行时丢失的组原子性: 任一语句失败整组回滚)。
- * tenant 传 null = 不带租户条件。 */
+/* Disband cascade: signups + results + the grouping itself, executed
+ * as one D1 batch (any failure rolls back the whole group).
+ * tenant null = no tenant condition. */
 export async function deleteEventCascade(d1: D1Database, id: number, tenant: string | null): Promise<void> {
   await d1.batch([
     d1.prepare('DELETE FROM signups WHERE event_id = ?').bind(id),

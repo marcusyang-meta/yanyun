@@ -1,7 +1,9 @@
-// 官方英文名覆盖层 locale 矩阵验收 (后端层)。
-// 口径: en/es/fr → 游戏名显示官方 EN (无官方源回退中文); zh-CN/zh-TW →
-// 与接入前逐字一致的中文规范值。FakeDB 喂与生产同形的种子数据, 走真实 yoga。
-import { yoga } from '../src/graphql.js';
+// Official-English-name overlay locale matrix acceptance (backend layer).
+// Rule: en/es/fr -> game names show the official EN (no official source
+// -> fall back to Chinese); zh-CN/zh-TW -> the canonical Chinese values,
+// byte-identical to before the overlay. FakeDB is fed production-shaped
+// seed data; runs through the real yoga.
+import { yoga } from '../src/graphql.ts';
 
 
 let pass = 0, fail = 0; const fails = [];
@@ -9,7 +11,7 @@ function check(name, ok, extra = '') { if (ok) pass++; else { fail++; fails.push
 function eq(name, got, want) { check(name, got === want, `got=${JSON.stringify(got)} want=${JSON.stringify(want)}`); }
 function deepEq(name, got, want) { check(name, JSON.stringify(got) === JSON.stringify(want), `got=${JSON.stringify(got)} want=${JSON.stringify(want)}`); }
 
-/* ---------------- 种子数据 (与生产同形) ---------------- */
+/* ---------------- Seed data (production-shaped) ---------------- */
 const NOW = Math.floor(Date.now() / 1000);
 const DUNGEONS = [
   { id: 1, name: '玉魄染青苍', version: 'intl-v2.3', size: 10, sort_order: 30, category: '传薪', season: 'S5', level: 100 },
@@ -72,7 +74,7 @@ function toRawRows(sqlText, rows) {
 
 /* ---------------- FakeDB ---------------- */
 function stmt(sql) {
-  // 数据层 (Drizzle) SQL 规范化: 去引号 (仅路由匹配, 断言不变)
+  // Data-layer (Drizzle) SQL normalization: strip quotes (routing match only; assertions unchanged).
   sql = sql.replace(/"/g, '');
   const q = {
     _binds: [], bind(...a) { this._binds = a; return this; },
@@ -86,7 +88,7 @@ function stmt(sql) {
       return null;
     },
     async all() {
-      // 数据层点查/版本推导走 .all() 通道 (drizzle db.get): 形状同 first() 分支
+      // Data-layer point lookups / version derivation use the .all() channel (drizzle db.get): same shape as the first() branch.
       if (sql.includes('GROUP BY version')) return { results: [{ version: 'intl-v2.3' }] };
       if (sql.includes('FROM dungeons WHERE name')) { const d = DUNGEONS.find((x) => x.name === q._binds[0]); return { results: d ? [d] : [] }; }
       if (sql.includes('SELECT * FROM dungeons ORDER BY')) return { results: DUNGEONS };
@@ -114,7 +116,7 @@ async function gql(query, { user = null, locale = 'zh-CN' } = {}) {
   return res.json();
 }
 
-/* ---------------- 查询 ---------------- */
+/* ---------------- Queries ---------------- */
 const Q_DEX = `{ dexPage { categories { category dungeons { name bosses { name } } } } }`;
 const Q_SECT = `{ sectPage { sects { slug name weapons buildType } } }`;
 const Q_TIAOLV = `{ tiaolvPage { sects { slug name } suits innerSkills } }`;
@@ -145,10 +147,10 @@ const Q_SAVED = `{ myGearBuilds { name school buildLabel } }`;
 const OVERLAY = ['en', 'es', 'fr'];
 const CHINESE = ['zh-CN', 'zh-TW'];
 
-// 期望值: [规范中文, 覆盖层 EN]
+// Expected values: [canonical Chinese, overlay EN].
 const DUNGEON_EXP = [
   ['玉魄染青苍', 'Liminal Ascension'],
-  ['白驹飞霞', '白驹飞霞'], // en=null → 回退
+  ['白驹飞霞', '白驹飞霞'], // en=null -> falls back
   ['云梦金明池·极', 'Dream Jinming Pool Supreme'],
 ];
 const BOSS_EXP = { '柏楚玉': 'Bai Chuyu', '青': 'Halcyon', '舞马人': 'Horse Tamer', '冯如之': 'Feng Ruzhi', '睡道人': 'Sleeping Daoist', '容鸢': 'Murong Yuan' };
@@ -159,7 +161,7 @@ for (const loc of [...OVERLAY, ...CHINESE]) {
   const exp = (zh, en) => (on ? en : zh);
   const tag = `@${loc}`;
 
-  /* dex: 副本 + 首领名 */
+  /* dex: dungeon + boss names */
   {
     const j = await gql(Q_DEX, { locale: loc });
     check(`dex ${tag} 无 errors`, !j.errors, JSON.stringify(j.errors || '').slice(0, 300));
@@ -176,7 +178,7 @@ for (const loc of [...OVERLAY, ...CHINESE]) {
     }
   }
 
-  /* 流派页 */
+  /* Sect page */
   {
     const j = await gql(Q_SECT, { locale: loc });
     check(`sect ${tag} 无 errors`, !j.errors, JSON.stringify(j.errors || '').slice(0, 300));
@@ -190,7 +192,7 @@ for (const loc of [...OVERLAY, ...CHINESE]) {
     eq(`sect buildType 不本地化 ${tag}`, lin?.buildType, '治疗');
   }
 
-  /* 调律页: sects 名本地化, slug/suits/innerSkills 规范不变 */
+  /* Tuning page: sect names localize; slug/suits/innerSkills stay canonical */
   {
     const j = await gql(Q_TIAOLV, { locale: loc });
     check(`tiaolv ${tag} 无 errors`, !j.errors, JSON.stringify(j.errors || '').slice(0, 300));
@@ -204,7 +206,7 @@ for (const loc of [...OVERLAY, ...CHINESE]) {
       ['千营一呼', '易水歌', '征人归', '断石之构', '大唐歌', '极乐泣血', '忘川绝响', '花上月令', '剑气纵横']);
   }
 
-  /* 配装台数据 */
+  /* Gear-bench data */
   {
     const j = await gql(Q_GRAD, { locale: loc });
     check(`grad ${tag} 无 errors`, !j.errors, JSON.stringify(j.errors || '').slice(0, 300));
@@ -247,7 +249,7 @@ for (const loc of [...OVERLAY, ...CHINESE]) {
     eq(`classLabel wanjia 回退 ${tag}`, cls.wanjia, '玩家');
   }
 
-  /* 组队: 网页字段 + 列表积木 + 详情积木 */
+  /* Groupings: web fields + list blocks + detail blocks */
   {
     const j = await gql(Q_GROUP, { locale: loc });
     check(`group ${tag} 无 errors`, !j.errors, JSON.stringify(j.errors || '').slice(0, 300));
@@ -267,11 +269,11 @@ for (const loc of [...OVERLAY, ...CHINESE]) {
     check(`detail chips 含副本名 ${tag}`, (chipRow?.chips || []).includes(exp('玉魄染青苍', 'Liminal Ascension')), JSON.stringify(chipRow?.chips));
     const grid = flat.find((b) => b.__typename === 'SeatGridBlock');
     eq(`detail seat weapon ${tag}`, grid?.seats?.[0]?.weapon, exp('牵丝·霖', 'Silkbind - Deluge'));
-    // isLeader: 奶妈甲座位无 discord 戳 (null) 且车头是 '9001' -> 非车头
+    // isLeader: the healer seat has no discord stamp (null) and the creator is '9001' -> not the leader
     eq(`detail seat isLeader 无戳非车头 ${tag}`, grid?.seats?.[0]?.isLeader, false);
   }
 
-  /* 已存方案: school/buildLabel 本地化, name(UGC) 不动 */
+  /* Saved builds: school/buildLabel localize; name (UGC) untouched */
   {
     const j = await gql(Q_SAVED, { locale: loc, user: USER });
     check(`saved ${tag} 无 errors`, !j.errors, JSON.stringify(j.errors || '').slice(0, 300));
@@ -282,7 +284,7 @@ for (const loc of [...OVERLAY, ...CHINESE]) {
   }
 }
 
-/* zh-CN 与 zh-TW 数据面逐字一致 (仅抽查纯数据查询) */
+/* zh-CN and zh-TW data surfaces are byte-identical (spot-checked on pure data queries only) */
 for (const q of [Q_DEX, Q_SECT, Q_TIAOLV, Q_GRAD]) {
   const a = await gql(q, { locale: 'zh-CN' });
   const b = await gql(q, { locale: 'zh-TW' });

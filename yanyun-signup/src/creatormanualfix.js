@@ -1,48 +1,59 @@
-/* ---------- 一次性人工归属修正 (2026-10-25 用户口头指令) ----------
- * 背景: creatorbackfill 的 1 号位规则没能解析出 39 / 40 号车 (租户
- * jijiguagua) 的车头 — 39 号 1 号位 Pianlan、40 号 1 号位柧 在座位戳与
- * 本百业名册里都对不上唯一账号。用户直接指定归属, 本 job 只做这两辆
- * 车的一次性修正, 不是规则变更:
+/* ---------- One-off manual ownership fix (user's verbal instruction, 2026-10-25) ----------
+ * Background: creatorbackfill's seat-1 rule could not resolve the
+ * creators of cars 39 / 40 (tenant jijiguagua) — seat 1 of car 39
+ * (Pianlan) and of car 40 (柧) matched no unique account in the stamps
+ * or this guild's roster. The user designated the ownership directly;
+ * this job is a one-off fix for these two cars only, not a rule change:
  *
- *   39 号: owner 暂时设为「橘橘如笙」的账号 (她不在 39 号车里, 是
- *   38 号车 2 号位)。解析口径 (优先级, 唯一才落):
- *     a) 本百业内 nickname 恰为「橘橘如笙」的 signups 已有 discord_id
- *        戳, 去重后恰一个 -> 用它 (seat-stamp);
- *     b) 否则 guild_members 名册按展示名 (nick 回退 global_name) 恰等
- *        「橘橘如笙」唯一匹配 -> 用它 (roster-unique);
- *     c) 都不行 -> 跳过记审计。
+ *   Car 39: owner is temporarily set to the account of '橘橘如笙'
+ *   (she is not in car 39; she is seat 2 of car 38). Resolution, in
+ *   priority order, unique match only:
+ *     a) signups in this guild whose nickname is exactly '橘橘如笙'
+ *        already carry a discord_id stamp, deduplicated to exactly
+ *        one -> use it (seat-stamp);
+ *     b) else a unique guild_members roster match on display name
+ *        (nick, falling back to global_name) exactly equal to
+ *        '橘橘如笙' -> use it (roster-unique);
+ *     c) otherwise skip and audit.
  *
- *   40 号: 找人「be8bo / 木瓜PAPAYA」 (疑似同一人的两个名字: DC 名
- *   be8bo、昵称木瓜PAPAYA; 四个车的报名昵称里都没有, 只能在账号侧
- *   找)。在 users.username、guild_members.nick、guild_members
- *   .global_name、该百业绑定服务器的 user_guild_nicks.nick 四个来源
- *   里对两个名字做不分大小写恰等匹配, 汇总去重 discord_id:
- *   恰一个 -> 设为 owner (account-match); 零个 -> not-found;
- *   多个 -> ambiguous 跳过, 审计 detail 按名字分开记录各命中账号/来源。
+ *   Car 40: find 'be8bo / 木瓜PAPAYA' (believed to be two names for
+ *   the same person: Discord name be8bo, nickname 木瓜PAPAYA; neither
+ *   appears among the signup nicknames, so search the account side
+ *   only). Case-insensitive exact match for both names across four
+ *   sources — users.username, guild_members.nick,
+ *   guild_members.global_name, and user_guild_nicks.nick for this
+ *   guild's bound server — collecting deduplicated discord_ids:
+ *   exactly one -> set as owner (account-match); zero -> not-found;
+ *   more than one -> ambiguous, skip; the audit detail records the
+ *   hit accounts/sources per name.
  *
- * 与 creatorbackfill 同套安全模型: settings 全局标志
- * creator_manual_fix_v1 守卫 + 幂等 (只在 creator 仍为 NULL/'' 时写,
- * 并发/重复触发不覆盖已有值); 审计复用 creator_backfill_log (reason
- * 以 manual-fix: 前缀标明 job 与来源, detail 列记解析明细, 本文件懒
- * DDL 补列)。host 安全闸与 backfill 完全一致: 仅生产 host
- * (yanyun.app / yanyun.tbdlab.workers.dev) 触发, preview
- * (release-yanyun) 与生产共用 D1, 绝不在 preview/localhost 跑、
- * 绝不写标志。名单/账号数据只在 Worker 侧查。 */
-import { ensureEventCreatorColumn } from './graphql.js';
-import { ensureGuildMembersTable } from './reminder.ts';
+ * Same safety model as creatorbackfill: guarded by the global settings
+ * flag creator_manual_fix_v1 and idempotent (writes only while the
+ * creator is still NULL/''; concurrent/repeat triggers never overwrite
+ * an existing value). Auditing reuses creator_backfill_log (reason
+ * carries a manual-fix: prefix naming the job and source; the detail
+ * column records the resolution trail and is added here via lazy DDL).
+ * The host safety gate is identical to backfill's: only production
+ * hosts (yanyun.app / yanyun.tbdlab.workers.dev) trigger it; preview
+ * (release-yanyun) shares the same D1 as production, so it must never
+ * run on preview/localhost and must never write the flag there.
+ * Roster/account data is looked up only on the Worker side. */
+import { ensureEventCreatorColumn } from './domains/groupings/graphql.ts';
+import { ensureGuildMembersTable } from './domains/groupings/reminder.ts';
 import { ensureCreatorBackfillLog } from './creatorbackfill.js';
-import { ensureSchema as ensureUsersTable, ensureNickStore } from './auth.js';
+import { ensureSchema as ensureUsersTable, ensureNickStore } from './domains/identity/auth.ts';
 
 const PROD_HOSTS = new Set(['yanyun.app', 'yanyun.tbdlab.workers.dev']);
 const FLAG_KEY = 'creator_manual_fix_v1';
 const TENANT = 'jijiguagua';
 const CAR39 = { eventId: 39, name: '橘橘如笙' };
 const CAR40 = { eventId: 40, names: ['be8bo', '木瓜PAPAYA'] };
-// 同 isolate 内同一 DB 只尝试一次 (与 backfill 同法)。
+// One attempt per DB per isolate (same approach as backfill).
 const attemptedDbs = new WeakSet();
 
-/* creator_backfill_log.detail 列 (懒 DDL, 与 ensureEventCreatorColumn
- * 同模式): 存解析明细 JSON (每辆车一行审计, detail 说清命中过程)。 */
+/* creator_backfill_log.detail column (lazy DDL, same pattern as
+ * ensureEventCreatorColumn): holds the resolution trail as JSON
+ * (one audit row per car; detail explains how the match was reached). */
 let logDetailColReady = null;
 function ensureBackfillLogDetailColumn(db) {
   if (!logDetailColReady) {
@@ -54,7 +65,7 @@ function ensureBackfillLogDetailColumn(db) {
         if (!cols.has('detail')) {
           await db.prepare('ALTER TABLE creator_backfill_log ADD COLUMN detail TEXT').run();
         }
-      } catch { /* 列已存在等情况静默 */ }
+      } catch { /* silent, e.g. column already exists */ }
     })();
   }
   return logDetailColReady;
@@ -86,7 +97,8 @@ async function loadEvent(db, eventId) {
     .bind(eventId).first().catch(() => null);
 }
 
-/* 守卫式落戳: creator 仍为空才写, 返回是否真的写入。 */
+/* Guarded stamp: write only while the creator is still empty;
+ * returns whether it actually wrote. */
 async function stampCreator(db, eventId, discordId) {
   const r = await db.prepare(
     `UPDATE events SET creator_discord_id = ?
@@ -95,7 +107,8 @@ async function stampCreator(db, eventId, discordId) {
   return !!(r.meta && r.meta.changes);
 }
 
-/* 39 号解析: 座位戳 (本百业内恰名) -> 名册展示名唯一, 唯一才落。 */
+/* Car 39 resolution: seat stamp (exact name in this guild) ->
+ * unique roster display-name match; unique only. */
 async function resolveCar39(db) {
   const { results: stampRows } = await db.prepare(
     `SELECT s.discord_id AS did FROM signups s JOIN events e ON e.id = s.event_id
@@ -123,10 +136,11 @@ async function resolveCar39(db) {
   return { resolved: null, reason: ambiguous ? 'manual-fix:ambiguous' : 'manual-fix:no-match', detail: detail(null) };
 }
 
-/* 40 号解析: 两个名字在账号侧四来源不分大小写恰等匹配, 汇总去重。 */
+/* Car 40 resolution: case-insensitive exact match for both names
+ * across the four account-side sources, deduplicated. */
 async function resolveCar40(db) {
   const wanted = CAR40.names.map((n) => n.toLowerCase());
-  // perName: 名字 -> Map(discord_id -> Set(来源))
+  // perName: name -> Map(discord_id -> Set(source))
   const perName = new Map(CAR40.names.map((n) => [n, new Map()]));
   const hit = (nameIdx, discordId, source) => {
     const m = perName.get(CAR40.names[nameIdx]);
@@ -136,14 +150,14 @@ async function resolveCar40(db) {
     m.get(id).add(source);
   };
   const matchIdx = (value) => wanted.indexOf(String(value || '').trim().toLowerCase());
-  // 来源 1: users.username (全站账号)
+  // Source 1: users.username (site-wide accounts).
   const { results: users } = await db.prepare('SELECT discord_id, username FROM users')
     .all().catch(() => ({ results: [] }));
   for (const u of users || []) {
     const i = matchIdx(u.username);
     if (i >= 0) hit(i, u.discord_id, 'users.username');
   }
-  // 来源 2/3: 本百业名册 nick / global_name (任一列恰等任一名字)
+  // Sources 2/3: this guild's roster nick / global_name (either column exactly equal to either name).
   const { results: roster } = await db.prepare(
     'SELECT discord_id, nick, global_name FROM guild_members WHERE tenant = ?'
   ).bind(TENANT).all().catch(() => ({ results: [] }));
@@ -153,7 +167,7 @@ async function resolveCar40(db) {
     const iGlobal = matchIdx(r.global_name);
     if (iGlobal >= 0) hit(iGlobal, r.discord_id, 'guild_members.global_name');
   }
-  // 来源 4: 该百业绑定服务器的昵称快照 user_guild_nicks.nick
+  // Source 4: nickname snapshot for this guild's bound server, user_guild_nicks.nick.
   const dgidRow = await db.prepare('SELECT value FROM settings WHERE tenant = ? AND key = ?')
     .bind(TENANT, 'discord_guild_id').first().catch(() => null);
   const dgid = dgidRow ? String(dgidRow.value || '').trim() : '';
@@ -181,7 +195,8 @@ async function resolveCar40(db) {
   return { resolved: null, reason: 'manual-fix:ambiguous', detail };
 }
 
-/* 单车处理: 无论结果如何恰写一行审计; 只在 creator 仍为空时落戳。 */
+/* Per-car handling: exactly one audit row whatever the outcome;
+ * stamps only while the creator is still empty. */
 async function processCar(db, spec, resolver, now) {
   const ev = await loadEvent(db, spec.eventId);
   const label = spec.label;
@@ -233,8 +248,9 @@ async function processCar(db, spec, resolver, now) {
   return 'skipped';
 }
 
-/* 核心 job (不含 host/isolate 闸, 供验收 harness 直接调用)。
- * 返回 { done:true, stamped, skipped } 或 { done:false, reason }。 */
+/* Core job, without the host/isolate gates, so the acceptance harness
+ * can call it directly. Returns { done:true, stamped, skipped } or
+ * { done:false, reason }. */
 export async function runCreatorManualFixOnce(db) {
   if ((await getGlobalFlag(db)) === '1') return { done: false, reason: 'flag-set' };
   await ensureEventCreatorColumn(db);
@@ -255,8 +271,9 @@ export async function runCreatorManualFixOnce(db) {
   return { done: true, stamped, skipped };
 }
 
-/* 触发入口: worker 在 /graphql 上以 waitUntil 调用, 与 backfill 同法。
- * 全程容错, 失败静默 (标志未置位则下个生产请求再试)。 */
+/* Trigger entry: the worker calls this on /graphql via waitUntil, as
+ * with backfill. Fully fault-tolerant, failures silent (with the flag
+ * unset, the next production request retries). */
 export async function maybeRunCreatorManualFix(env, request) {
   try {
     if (!env || !env.DB || !request) return { done: false, reason: 'no-env' };

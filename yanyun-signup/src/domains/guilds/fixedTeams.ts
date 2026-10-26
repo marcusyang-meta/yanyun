@@ -1,9 +1,10 @@
 /* ===================================================
- * 固定队的数据层访问 (Repository, guilds 域): fixed_teams /
- * fixed_team_members。三期迁入: 此前全部语句在 worker.js 的 guild
- * 路由里。删队的「先删队员再删队」在仓库内以 D1 batch 成组执行
- * (与旧调用点的 batch 语义一致)。
- * 返回行沿用 snake_case 键, 调用点零感知。
+ * Data-layer access (Repository, guilds domain) for fixed
+ * teams: fixed_teams / fixed_team_members. Previously all
+ * statements lived in worker.js's guild routes. Team deletion
+ * (members first, then the team) runs as one D1 batch inside
+ * the repository, matching the old call sites' batch semantics.
+ * Rows keep the legacy snake_case keys.
  * =================================================== */
 import { sql } from 'drizzle-orm';
 import { createDb, schema } from '../../db/client.ts';
@@ -61,7 +62,7 @@ export async function insertFixedTeam(
   return metaOf(r);
 }
 
-/** 归属校验: 队伍属于该百业才返回其 id。 */
+/** Ownership check: returns the id only if the team belongs to this guild. */
 export async function getFixedTeamIdForTenant(
   d1: D1Database, id: number, tenant: string,
 ): Promise<{ id: number } | null> {
@@ -88,7 +89,7 @@ export async function updateFixedTeamFields(
   return metaOf(r);
 }
 
-/** 删队: 先删队员再删队, D1 batch 成组执行 (原子)。 */
+/** Delete a team: members first, then the team, as one D1 batch (atomic). */
 export async function deleteFixedTeamWithMembers(d1: D1Database, id: number): Promise<void> {
   await d1.batch([
     d1.prepare('DELETE FROM fixed_team_members WHERE team_id = ?').bind(id),
@@ -107,7 +108,7 @@ export async function insertFixedTeamMember(
   return metaOf(r);
 }
 
-/** 归属校验: 队员所属队伍属于该百业才返回其 id (JOIN 探针)。 */
+/** Ownership check: returns the id only if the member's team belongs to this guild (JOIN probe). */
 export async function getFixedTeamMemberIdOwned(
   d1: D1Database, memberId: number, tenant: string,
 ): Promise<{ id: number } | null> {

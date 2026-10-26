@@ -1,14 +1,18 @@
-// 发车提醒 embed 改版验收 (2026-10-26): buildReminderMessage / postWebhook /
-// sendReminderForEvent 真函数 + FakeDB 按 SQL 形状忠实路由 + 全局 fetch
-// stub 捕获发送体 (绝不发真消息)。断言面: 卡面结构 (主题金/thumbnail/
-// 详情链接/字段)、两条钦定行逐字冻结、N 分钟口径、名册语义标记 (编号/
-// @/车头/流派/治疗 ✚)、allowed_mentions 口径不变 (只解析 ID, 永不
-// @everyone)、无副本/满员/未满三形态、postWebhook 无 embeds 时旧形态不变。
+// Departure-reminder embed redesign acceptance (2026-10-26): the real
+// buildReminderMessage / postWebhook / sendReminderForEvent functions +
+// FakeDB routed faithfully by SQL shape + a global fetch stub capturing
+// send bodies (never sends a real message). Asserted surface: card
+// structure (theme gold / thumbnail / detail link / fields), the two
+// mandated lines frozen verbatim, the N-minutes rule, roster semantic
+// markers (numbering / @ / creator / sect / healer ✚), the
+// allowed_mentions rule unchanged (IDs only, never @everyone), the
+// three shapes (no dungeon / full / not full), and postWebhook's old
+// shape unchanged when no embeds are passed.
 import {
 buildReminderMessage, postWebhook, sendReminderForEvent,
 REMINDER_EMBED_COLOR, REMINDER_USERNAME, REMINDER_AVATAR_URL,
 carDetailUrl, carOgImageUrl,
-} from '../src/reminder.ts';
+} from '../src/domains/groupings/reminder.ts';
 
 let pass = 0, fail = 0; const fails = [];
 function check(name, ok, extra = '') {
@@ -53,7 +57,7 @@ const unknownSql = new Set();
 function makeDb(fx) {
 const state = { eventUpdates: [], settingsWrites: []};
 function route(kind, sql, b) {
-// 数据层 (Drizzle) SQL 规范化: 去引号 + 去 settings. 限定前缀 (仅路由匹配)
+// Data-layer (Drizzle) SQL normalization: strip quotes + settings. qualifiers (routing match only).
 sql = sql.replace(/"/g, '').replace(/settings\./g, '');
 if (/PRAGMA table_info/.test(sql)) {
 return { results: ['id', 'discord_id', 'reminder_sent_at', 'reminder_error'].map((name) => ({ name}))};
@@ -115,7 +119,7 @@ async run() { return route('run', sql, this._b);},
 return { db: { prepare: (sql) => stmt(sql)}, state};
 }
 
-/* ---------------- 夹具 ---------------- */
+/* ---------------- Fixtures ---------------- */
 const SLUG = 'cardtest';
 const DGID = '777000111222333444';
 const NOW = Math.floor(Date.now() / 1000);
@@ -144,23 +148,23 @@ signups: [
 };
 const { db, state} = makeDb(fx);
 
-/* 车 A: 满员 3/3 + 有副本 + 车头盖戳 + 治疗位 + 同人双座 (去重) */
+/* Car A: full 3/3 + has a dungeon + stamped creator + healer seat + same person in two seats (deduplicated) */
 const evA = {
 id: 501, tenant: SLUG, title: '今晚双十·冲层', type: 'activity', dungeon: '玉魄染青苍',
 max_slots: 3, starts_at_utc: NOW + 540, creator_discord_id: '9001', created_by: '',
 };
-/* 车 B: 未满 2/10 + 无副本 + 无车头记录 (created_by 原文回退标车头) */
+/* Car B: not full 2/10 + no dungeon + no creator record (created_by text fallback marks the creator) */
 const evB = {
 id: 502, tenant: SLUG, title: '爬塔试水', type: 'tower', dungeon: '',
 max_slots: 10, starts_at_utc: NOW + 1500, creator_discord_id: '', created_by: '热心侠客',
 };
 
-/* ================= URL 构造 ================= */
+/* ================= URL construction ================= */
 eq('详情页 URL', carDetailUrl(SLUG, 501), 'https://yanyun.app/cardtest/car/501');
 eq('车 OG 图 URL', carOgImageUrl(SLUG, 501), 'https://og.yanyun.app/og/cardtest/car/501.png');
 eq('embed 主题金 = 0xC9A35C', REMINDER_EMBED_COLOR, 0xC9A35C);
 
-/* ================= 车 A: 满员 + 副本 ================= */
+/* ================= Car A: full + dungeon ================= */
 const msgA = await buildReminderMessage(db, evA, SLUG, NOW);
 const [lineA1, lineA2] = msgA.content.split('\n');
 eq('钦定行 1 逐字 (content 首行)', lineA1, '路怀 发起了就位确认：你准备好了吗？');
@@ -187,7 +191,7 @@ check('全载荷含钦定行 2 逐字', JSON.stringify(msgA).includes('还有 9 
 check('旧文案已退场 (队伍名册/还差/副本：)',!JSON.stringify(msgA).includes('队伍名册')
 &&!JSON.stringify(msgA).includes('还差') &&!JSON.stringify(msgA).includes('副本：'));
 
-/* ================= 车 B: 未满 + 无副本 + 车头回退 ================= */
+/* ================= Car B: not full + no dungeon + creator fallback ================= */
 const msgB = await buildReminderMessage(db, evB, SLUG, NOW);
 eq('车 B 钦定行 1 (created_by 显示名)', msgB.content.split('\n')[0], '热心侠客 发起了就位确认：你准备好了吗？');
 const emB = msgB.embeds[0];
@@ -200,12 +204,12 @@ eq('车 B 未满尾行 (尚缺 8)', emB.footer?.text, '尚缺 8 位同道未至�
 deepEq('车 B userIds 只含解析成功者', msgB.userIds, ['9002']);
 eq('车 B 卡 url/thumbnail 按本车 id', emB.url, 'https://yanyun.app/cardtest/car/502');
 
-/* ================= 分钟下限口径 ================= */
+/* ================= Minutes floor rule ================= */
 const msgC = await buildReminderMessage(db, {...evB, starts_at_utc: NOW + 20}, SLUG, NOW);
 check('分钟下限 = 1 (既有口径)', String(msgC.embeds[0].description).includes('还有 1 分钟就发车咯，笨笨要加油哦！'),
 msgC.embeds[0].description);
 
-/* ================= 端到端发送 (stub fetch 捕获) ================= */
+/* ================= End-to-end send (captured by the fetch stub) ================= */
 {
 const sent = [];
 const realFetch = globalThis.fetch;
@@ -227,7 +231,7 @@ eq('无头像身份回退: username', body.username, REMINDER_USERNAME);
 eq('无头像身份回退: avatar_url', body.avatar_url, REMINDER_AVATAR_URL);
 deepEq('结算: reminder_sent_at 已写', state.eventUpdates, [{ sentAt: NOW, id: 501}]);
 
-// postWebhook 旧形态回 compat: 不传 embeds -> 载荷无 embeds 键 (传家宝/测试同路)
+// postWebhook legacy-shape compat: no embeds passed -> the payload has no embeds key (heirloom/test sends take the same path).
 sent.length = 0;
 await postWebhook('https://discord.com/api/webhooks/123456/abcdef', '纯文本消息', ['42'], ['everyone'], null);
 check('无 embeds 时载荷不含 embeds 键', sent[0] &&!('embeds' in sent[0].body));

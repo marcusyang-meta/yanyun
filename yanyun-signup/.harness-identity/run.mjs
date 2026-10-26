@@ -1,16 +1,26 @@
-// 报名身份收口验收 (2026-10-25 用户裁决三条):
-//  1) 自报名锁名: 服务端定名 (Discord 服务器昵称 -> 全局名 -> 会话名),
-//     客户端传假名被覆盖; 座位无条件落本人 discord_id 戳。
-//  2) 代报名选人: forDiscordId 必须在本百业名册 (guild_members) 内,
-//     落座名 = 名册昵称回退全局名, 戳 = 被代报者; 不在册被拒。
-//     名册读取面 memberRoster 只在完整 Guild 类型上 (响应类型即权限):
-//     GuildReadOnly / GuildLocked 上查此字段是 schema 校验错误。
-//  3) 无车头车补登记迁移: 1 号位座位戳 / 名册唯一昵称匹配才补,
-//     歧义/空座/无匹配跳过并审计, 已有车头与官方车不碰, 幂等,
-//     非生产 host (preview/localhost) 绝不触发。
-// 真实 yoga + graphql.js resolver + creatorbackfill.js 真函数, FakeDB 按
-// SQL 形状忠实路由 (插入/更新真落到内存表, 不是写死结果)。
-import { yoga } from '../src/graphql.js';
+// Signup identity tightening acceptance (the user's three rulings,
+// 2026-10-25):
+//  1) Self-signup name locking: the server decides the name (Discord
+//     server nickname -> global name -> session name); a fake name
+//     sent by the client is overwritten; the seat unconditionally
+//     carries the signer's own discord_id stamp.
+//  2) Proxy signup: forDiscordId must be in this guild's roster
+//     (guild_members); the seated name = roster nickname, falling back
+//     to the global name; the stamp = the person signed up for; anyone
+//     not in the roster is rejected. The roster read surface
+//     memberRoster exists only on the full Guild type (response type
+//     is the permission): querying it on GuildReadOnly / GuildLocked
+//     is a schema validation error.
+//  3) Creator backfill migration for cars with no creator: stamp only
+//     from the seat-1 stamp / a unique roster nickname match;
+//     ambiguity / empty seat / no match are skipped and audited; cars
+//     with an existing creator and official cars are untouched;
+//     idempotent; never triggers on non-production hosts
+//     (preview/localhost).
+// Real yoga + graphql.ts resolvers + the real creatorbackfill
+// functions; FakeDB routes faithfully by SQL shape (inserts/updates
+// land in real in-memory tables, not hardcoded results).
+import { yoga } from '../src/graphql.ts';
 import { typeDefs } from '../src/graphql-schema.ts';
 import { runCreatorBackfillOnce, maybeRunCreatorBackfill } from '../src/creatorbackfill.js';
 
@@ -63,7 +73,7 @@ function makeDb(fx = {}) {
   let nextSignupId = 1000;
   const unknownSql = new Set();
   function stmt(sql) {
-    // 数据层 (Drizzle) SQL 规范化: 去引号 + 去 settings. 限定前缀 (仅路由匹配)
+    // Data-layer (Drizzle) SQL normalization: strip quotes + settings. qualifiers (routing match only).
     sql = sql.replace(/"/g, '').replace(/settings\./g, '');
     const q = {
       _binds: [],
@@ -73,7 +83,7 @@ function makeDb(fx = {}) {
         const b = this._binds;
         if (/FROM tenants WHERE slug/.test(sql)) return tables.tenants.find((t) => t.slug === b[0]) || null;
         if (/FROM settings/.test(sql)) {
-          // 两种形状: tenant/key 双参绑定; 或 tenant = '' 字面量只绑 key
+          // Two shapes: tenant/key two-binding form; or a tenant = '' literal binding only the key.
           const k = /tenant = ''/.test(sql) ? `|${b[0]}` : `${b[0]}|${b[1]}`;
           const v = tables.settings.get(k);
           return v === undefined ? null : { value: v };
@@ -106,7 +116,7 @@ function makeDb(fx = {}) {
       async all() {
         const b = this._binds;
         if (/FROM settings/.test(sql)) {
-          // 数据层经 .all() 通道读 settings (drizzle db.get/all): 点查与按 key 扫描
+          // The data layer reads settings via the .all() channel (drizzle db.get/all): point lookups and per-key scans.
           if (/tenant = \?/.test(sql)) {
             const v = tables.settings.get(`${b[0]}|${b[1]}`);
             return { results: v === undefined ? [] : [{ value: v }] };
@@ -119,12 +129,12 @@ function makeDb(fx = {}) {
           return { results: rows };
         }
         if (/FROM events WHERE id = \?/.test(sql)) {
-          // 数据层点查走 .all() 通道 (drizzle db.get): 形状同 first() 的按 id 分支
+          // Data-layer point lookups use the .all() channel (drizzle db.get): same shape as first()'s by-id branch.
           const row = tables.events.find((e) => e.id === Number(b[0])) || null;
           return { results: row ? [row] : [] };
         }
         if (/FROM user_guild_nicks/.test(sql)) {
-          // users repository 点查走 .all() 通道: 形状同 first() 的昵称分支
+          // users repository point lookups use the .all() channel: same shape as first()'s nickname branch.
           const r = tables.nicks.find((n) => n.discord_id === String(b[0]) && n.guild_id === String(b[1]));
           return { results: r ? [{ nick: r.nick }] : [] };
         }
@@ -139,8 +149,9 @@ function makeDb(fx = {}) {
           return { results: tables.signups.filter((r) => r.event_id === Number(b[0])).sort((a, c) => a.id - c.id) };
         }
         if (/FROM guild_members/.test(sql) && /discord_id = \?/.test(sql)) {
-          // 数据层点查走 .all() 通道 (drizzle db.get): 须按 discord_id 过滤,
-          // 不能落到下面的整表分支 (db.get 只取首行)。
+          // Data-layer point lookups use the .all() channel (drizzle
+          // db.get): must filter by discord_id and must not fall through
+          // to the whole-table branch below (db.get takes only the first row).
           const r = tables.guildMembers.find((m) => m.tenant === b[0] && m.discord_id === String(b[1]));
           return { results: r ? [r] : [] };
         }
@@ -156,7 +167,7 @@ function makeDb(fx = {}) {
         const b = this._binds;
         if (/CREATE|ALTER/.test(sql)) return { meta: { changes: 0 } };
         if (/INSERT INTO signups/.test(sql) && /SELECT \?/.test(sql)) {
-          // join 的条件插入: 未满且 open 才落座
+          // join's conditional insert: seat only when not full and open.
           const [gid, nickname, uid, role, weapon, stamp] = b;
           const ev = tables.events.find((e) => e.id === Number(gid));
           const count = tables.signups.filter((r) => r.event_id === Number(gid)).length;
@@ -214,7 +225,7 @@ function ev(id, over = {}) {
   };
 }
 
-/* ---------------- schema 契约 ---------------- */
+/* ---------------- Schema contract ---------------- */
 check('schema: JoinGroupingInput.forDiscordId', /input JoinGroupingInput \{[^}]*forDiscordId: ID/.test(typeDefs));
 check('schema: type GuildRosterMember', typeDefs.includes('type GuildRosterMember'));
 check('schema: Guild.memberRoster', /type Guild \{[^]*?memberRoster: \[GuildRosterMember!\]!/.test(typeDefs));
@@ -228,7 +239,7 @@ for (const f of ['seatSelfTabLabel', 'seatProxyTabLabel', 'seatSelfNameHint', 's
   check('schema: 字段 ' + f, typeDefs.includes(f + ': String!'));
 }
 
-/* ---------------- 报名路径 (join) ---------------- */
+/* ---------------- Signup path (join) ---------------- */
 const A = makeDb({
   tenants: [
     { slug: 'idtest', guild_name: '身份测试百业', slogan: '' },
@@ -264,35 +275,35 @@ const joinMut = `mutation($input: JoinGroupingInput!) {
 const join = (user, input) => gql(joinMut, { user, variables: { input } });
 const seatsOf = (eventId) => A.tables.signups.filter((r) => r.event_id === eventId).sort((a, b) => a.id - b.id);
 
-// 1) 自报名传假名 -> 落座为服务器昵称 + 本人戳
+// 1) Self-signup with a fake name -> seated under the server nickname + own stamp.
 let r = await join(userA, { groupingId: '101', nickname: '假名', weapon: '破竹·樽', seatIndex: 0 });
 check('自报名 ok', r.data?.joinGrouping?.ok === true, JSON.stringify(r).slice(0, 200));
 eq('自报名落座名 = 服昵 (覆盖假名)', seatsOf(101)[0]?.nickname, '服昵A');
 eq('自报名戳 = 本人', seatsOf(101)[0]?.discord_id, 'UA');
 eq('自报名响应座位名 = 服昵', r.data?.joinGrouping?.seats?.[0]?.nickname, '服昵A');
 
-// 2) 自报名无服昵 -> 回退全局名 (users.username 压过会话名)
+// 2) Self-signup with no server nickname -> fall back to the global name (users.username beats the session name).
 r = await join(userB, { groupingId: '101', nickname: '随便写', weapon: '裂石·钧', seatIndex: 1 });
 eq('无服昵落座名 = 全局名', seatsOf(101)[1]?.nickname, '全局B');
 eq('无服昵戳 = 本人', seatsOf(101)[1]?.discord_id, 'UB');
 
-// 3) 自报名无服昵无 users 行 -> 回退会话名
+// 3) Self-signup with no server nickname and no users row -> fall back to the session name.
 r = await join(userC, { groupingId: '102', nickname: 'x', weapon: '鸣金·影', seatIndex: 0 });
 eq('三级回退落座名 = 会话名', seatsOf(102)[0]?.nickname, '会话名C');
 eq('三级回退戳 = 本人', seatsOf(102)[0]?.discord_id, 'UC0');
 
-// 4) 代报名选在册者 (名册昵称) -> 名/戳都是被选者
+// 4) Proxy signup picking a roster member (roster nickname) -> name/stamp are both the picked person's.
 r = await join(userA, { groupingId: '101', nickname: '乱填', weapon: '牵丝·霖', seatIndex: 2, forDiscordId: 'UC' });
 check('代报名 ok', r.data?.joinGrouping?.ok === true, JSON.stringify(r).slice(0, 200));
 eq('代报名落座名 = 名册昵称', seatsOf(101)[2]?.nickname, '服昵C');
 eq('代报名戳 = 被代报者', seatsOf(101)[2]?.discord_id, 'UC');
 
-// 5) 代报名在册者昵称为空 -> 回退名册全局名
+// 5) Proxy signup where the roster member's nickname is empty -> fall back to the roster global name.
 r = await join(userA, { groupingId: '102', nickname: '乱填', weapon: '破竹·风', seatIndex: 1, forDiscordId: 'UD' });
 eq('代报名落座名 = 名册全局名 (昵称为空)', seatsOf(102)[1]?.nickname, '全局D');
 eq('代报名戳 = 被代报者 UD', seatsOf(102)[1]?.discord_id, 'UD');
 
-// 6) 代报名选不在册 id -> 被拒, 不落座
+// 6) Proxy signup picking an id not in the roster -> rejected, no seat taken.
 const before103 = seatsOf(103).length;
 r = await join(userA, { groupingId: '103', nickname: '乱填', weapon: '破竹·樽', seatIndex: 0, forDiscordId: 'UX' });
 eq('不在册代报名 ok=false', r.data?.joinGrouping?.ok, false);
@@ -300,7 +311,7 @@ eq('不在册代报名 errorCode', r.data?.joinGrouping?.errorCode, 'proxyTarget
 eq('不在册代报名文案 (zh)', r.data?.joinGrouping?.error, '所选成员不在本百业名册中');
 eq('不在册代报名未落座', seatsOf(103).length, before103);
 
-/* ---------------- 名册读取面 ---------------- */
+/* ---------------- Roster read surface ---------------- */
 const rosterQ = `query($slug: String!) { viewer { guild(slug: $slug) {
   __typename
   ... on Guild { memberRoster { discordId displayName globalName } }
@@ -313,7 +324,7 @@ const rd = roster.find((m) => m.discordId === 'UD');
 check('名册含 UC 且展示名 = 服昵C', !!rc && rc.displayName === '服昵C' && rc.globalName === '全局C', JSON.stringify(roster));
 check('名册含 UD 且展示名回退全局D', !!rd && rd.displayName === '全局D', JSON.stringify(roster));
 
-// 只读面 (未绑定百业): memberRoster 字段不存在 -> 校验错误形态
+// Read-only surface (unbound guild): the memberRoster field does not exist -> validation-error shape.
 const rosterOnRo = `query($slug: String!) { viewer { guild(slug: $slug) {
   ... on GuildReadOnly { memberRoster { discordId } }
 } } }`;
@@ -322,7 +333,7 @@ check('GuildReadOnly 上 memberRoster = 校验错误',
   Array.isArray(r.errors) && /Cannot query field "memberRoster" on type "GuildReadOnly"/.test(r.errors[0]?.message || ''),
   JSON.stringify(r).slice(0, 240));
 
-// 锁定面 (已绑定非成员): 同样字段不存在
+// Locked surface (bound, non-member): the field likewise does not exist.
 const rosterOnLocked = `query($slug: String!) { viewer { guild(slug: $slug) {
   ... on GuildLocked { memberRoster { discordId } }
 } } }`;
@@ -331,7 +342,7 @@ check('GuildLocked 上 memberRoster = 校验错误',
   Array.isArray(r.errors) && /Cannot query field "memberRoster" on type "GuildLocked"/.test(r.errors[0]?.message || ''),
   JSON.stringify(r).slice(0, 240));
 
-// 详情页新文案字段 (双模式)
+// New detail-page copy fields (both modes).
 const detailTextQ = `query($slug: String, $id: ID!) { groupingDetailPage(slug: $slug, id: $id) {
   seatSelfTabLabel seatProxyTabLabel seatSelfNameHint seatProxySearchPlaceholder seatProxyPickRequired seatProxyEmptyText
 } }`;
@@ -340,7 +351,7 @@ eq('seatSelfTabLabel (zh)', r.data?.groupingDetailPage?.seatSelfTabLabel, '自�
 eq('seatProxyTabLabel (zh)', r.data?.groupingDetailPage?.seatProxyTabLabel, '代报名');
 eq('seatProxyEmptyText (zh)', r.data?.groupingDetailPage?.seatProxyEmptyText, '名册里还没有成员');
 
-/* ---------------- 迁移 ---------------- */
+/* ---------------- Migration ---------------- */
 function migDb() {
   return makeDb({
     tenants: [{ slug: 'migtest', guild_name: '迁移百业', slogan: '' }],
@@ -397,7 +408,7 @@ sum = await runCreatorBackfillOnce(M.db);
 check('迁移幂等: 二次运行 flag-set 跳过', sum.done === false && sum.reason === 'flag-set', JSON.stringify(sum));
 eq('迁移幂等: 审计不增行', M.tables.audit.length, 6);
 
-// host 安全闸: preview / localhost 绝不触发, 生产 host 才跑
+// Host safety gate: preview / localhost never trigger; only production hosts run it.
 const H = makeDb({
   events: [ev(301, { tenant: 'migtest', creator_discord_id: null })],
   signups: [{ id: 1, event_id: 301, nickname: '甲', uid: 'a', role: '输出', weapon: '破竹·樽', discord_id: 'U1' }],

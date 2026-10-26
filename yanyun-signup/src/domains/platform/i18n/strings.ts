@@ -1,8 +1,10 @@
-/* 生成物, 勿手改: 源 = strings.source.ts, 重跑 node scripts/i18n-codegen.mjs */
+/* Generated, do not hand-edit: source = strings.source.ts; rerun node scripts/i18n-codegen.mjs */
 import type { FbsAPI } from "fbtee/server";
-/* fbtee 编译产物调用 fbs._ / fbs._param (运行时内部口, 不在 FbsAPI 公开
- * 类型内): 参数类型在此放宽为带内部口的 FbsRuntime。运行时对象本身即
- * fbtee 的 fbs, 本来就带这两个口, 此处只是把类型说实。 */
+/* Compiled fbtee output calls fbs._ / fbs._param (runtime internals, not
+ * part of the public FbsAPI types): parameter annotations are widened to
+ * the local FbsRuntime, which carries those internal entry points. The
+ * runtime object is fbtee's fbs and has them natively; this only states
+ * the type honestly. */
 export type FbsRuntime = FbsAPI & {
   _: (pattern: string, args: ReadonlyArray<unknown> | null, opts: { hk: string }) => string;
   _param: (name: string, value: unknown) => unknown;

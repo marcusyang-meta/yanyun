@@ -1,27 +1,35 @@
-/* ---------- 无车头存量车按 1 号位补登记车头 (2026-10-25 用户裁决) ----------
- * 背景: creator_discord_id 落库之前建的成员车没有车头记录, 编辑/完成/
- * 解散的车头闸对谁都不放行。用户裁决归属按「第一个座位是谁」定:
- * 对 origin='member' 且未记录车头的车, 取详情页渲染顺序 (signups
- * ORDER BY id ASC) 的第 1 个座位落座者, 按
- *   座位已有 discord_id 戳 → 本百业名册 (guild_members) 唯一昵称匹配
- * 解析 (名册展示名口径: nick 回退 global_name)。全服/全局匹配不够格
- * 定归属, 不用。唯一解析出账号才补 creator_discord_id; 空座 / 无匹配 /
- * 重名歧义一律跳过并记审计 (creator_backfill_log), 已有车头的车不碰。
+/* ---------- Backfill creator for legacy cars with none (user ruling, 2026-10-25) ----------
+ * Background: member cars created before creator_discord_id was stored
+ * have no creator record, so the creator gate for edit/complete/disband
+ * lets nobody through. The user's ruling: ownership follows seat 1.
+ * For origin='member' cars with no recorded creator, take the occupant
+ * of seat 1 in detail-page render order (signups ORDER BY id ASC) and
+ * resolve, in order:
+ *   seat's existing discord_id stamp -> unique nickname match in this
+ *   guild's own roster (guild_members; display name = nick, falling
+ *   back to global_name).
+ * Cross-guild/global matches do not qualify and are not used. Only a
+ * unique resolution stamps creator_discord_id; empty seat / no match /
+ * ambiguous duplicates are skipped and audited (creator_backfill_log).
+ * Cars that already have a creator are never touched.
  *
- * 一次性懒迁移: settings 全局标志 creator_backfill_v1 守卫 + 幂等
- * (UPDATE 带 creator 为空的守卫条件; 标志位置位后不再跑)。
+ * One-off lazy migration: guarded by the global settings flag
+ * creator_backfill_v1 and idempotent (the UPDATE is conditional on the
+ * creator still being empty; once the flag is set it never runs again).
  *
- * 安全闸 (关键): 只能在生产 host 触发。preview (release-yanyun
- * .tbdlab.workers.dev) 与生产共用同一个 D1 (database_id 相同), 从
- * preview 误跑 = 未经 promote 直接写生产数据 — 故 host 不在白名单
- * (yanyun.app / yanyun.tbdlab.workers.dev) 时绝对不跑, 连标志都不写。 */
-import { ensureEventCreatorColumn } from './graphql.js';
-import { ensureGuildMembersTable } from './reminder.ts';
+ * SAFETY GATE (critical): may only trigger on a production host.
+ * Preview (release-yanyun.tbdlab.workers.dev) and production share the
+ * same D1 (same database_id), so running it from preview would write
+ * production data without going through promote. If the host is not on
+ * the allowlist (yanyun.app / yanyun.tbdlab.workers.dev) it must not
+ * run at all — not even to write the flag. */
+import { ensureEventCreatorColumn } from './domains/groupings/graphql.ts';
+import { ensureGuildMembersTable } from './domains/groupings/reminder.ts';
 
 const PROD_HOSTS = new Set(['yanyun.app', 'yanyun.tbdlab.workers.dev']);
 const FLAG_KEY = 'creator_backfill_v1';
-// 同 isolate 内同一 DB 只尝试一次 (WeakSet 按 DB 对象记, 测试里换
-// FakeDB 天然隔离; 生产同一 env.DB 对象恒定, 闸门语义不变)。
+// One attempt per DB per isolate (WeakSet keyed by DB object; tests
+// swapping in a FakeDB stay isolated; production env.DB is constant).
 const attemptedDbs = new WeakSet();
 
 let logTableReady = null;
@@ -39,7 +47,7 @@ export function ensureCreatorBackfillLog(db) {
           reason TEXT,
           created_at INTEGER NOT NULL DEFAULT 0
         )`).run();
-      } catch { /* 表已存在等情况静默 */ }
+      } catch { /* silent, e.g. table already exists */ }
     })();
   }
   return logTableReady;
@@ -57,8 +65,9 @@ async function setGlobalFlag(db) {
   ).bind(FLAG_KEY).run();
 }
 
-/* 核心迁移 (不含 host/isolate 闸, 供验收 harness 直接调用)。
- * 返回 { done:true, stamped, skipped } 或 { done:false, reason }。 */
+/* Core migration, without the host/isolate gates, so the acceptance
+ * harness can call it directly. Returns { done:true, stamped, skipped }
+ * or { done:false, reason }. */
 export async function runCreatorBackfillOnce(db) {
   if ((await getGlobalFlag(db)) === '1') return { done: false, reason: 'flag-set' };
   await ensureEventCreatorColumn(db);
@@ -70,7 +79,8 @@ export async function runCreatorBackfillOnce(db) {
      WHERE origin = 'member' AND (creator_discord_id IS NULL OR creator_discord_id = '')
      ORDER BY id ASC`
   ).all();
-  // 名册按租户整表取一次 (展示名口径建索引: tenant|name -> discord_id 集合)
+  // Fetch each tenant's roster once; index by display name:
+  // tenant|name -> set of discord_ids.
   const rosterByTenant = new Map();
   const rosterOf = async (tenant) => {
     if (!rosterByTenant.has(tenant)) {
@@ -112,7 +122,7 @@ export async function runCreatorBackfillOnce(db) {
       }
     }
     if (outcome === 'stamped' && resolved) {
-      // 守卫式更新: 并发下若已被别处补上, 不覆盖
+      // Guarded update: if another writer stamped it concurrently, do not overwrite.
       const r = await db.prepare(
         `UPDATE events SET creator_discord_id = ?
          WHERE id = ? AND (creator_discord_id IS NULL OR creator_discord_id = '')`
@@ -131,8 +141,10 @@ export async function runCreatorBackfillOnce(db) {
   return { done: true, stamped, skipped };
 }
 
-/* 触发入口: worker 在 /graphql 上以 waitUntil 调用。全程容错, 任何
- * 失败都静默 (迁移失败不影响正常请求; 标志未置位则下个请求再试)。 */
+/* Trigger entry: the worker calls this on /graphql via waitUntil.
+ * Fully fault-tolerant — any failure is silent (a failed migration
+ * must not affect the request; with the flag unset, the next request
+ * retries). */
 export async function maybeRunCreatorBackfill(env, request) {
   try {
     if (!env || !env.DB || !request) return { done: false, reason: 'no-env' };
