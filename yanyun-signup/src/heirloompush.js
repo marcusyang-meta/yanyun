@@ -27,6 +27,10 @@ import { webhookIdentity } from './guildavatar.ts';
 import { getTenantRow, listTenantNames } from './domains/guilds/index.ts';
 import { getUsernameRow } from './domains/identity/index.ts';
 import { getGuildMember, hasGuildMember } from './domains/identity/index.ts';
+import {
+  ensureHeirloomTables as ensureHeirloomTablesRepo, listPushedItemHashes,
+  insertHeirloomItemPush, getHeirloomSetState, upsertHeirloomSetState,
+} from './domains/gear/index.ts';
 
 /* ---------- 配置 (settings, tenant=slug) ---------- */
 export async function getHeirloomConfig(db, slug) {
@@ -46,32 +50,9 @@ async function recordHeirloomStatus(db, slug, { ok, error, atSec, event, test })
   if (event) await setReminderSetting(db, slug, 'heirloom_last_event', String(event).slice(0, 60));
 }
 
-/* ---------- 去重 / 集齐状态表 (懒 DDL) ---------- */
-let heirloomTablesReady = null;
+/* ---------- 去重 / 集齐状态表 (懒 DDL 已归 gear 域 heirloom 仓库) ---------- */
 export function ensureHeirloomTables(db) {
-  if (!heirloomTablesReady) {
-    heirloomTablesReady = (async () => {
-      try {
-        await db.prepare(`CREATE TABLE IF NOT EXISTS heirloom_item_pushes (
-          tenant TEXT NOT NULL,
-          discord_id TEXT NOT NULL,
-          build_sig TEXT NOT NULL,
-          item_hash TEXT NOT NULL,
-          created_at INTEGER NOT NULL DEFAULT 0,
-          PRIMARY KEY (tenant, discord_id, build_sig, item_hash)
-        )`).run();
-        await db.prepare(`CREATE TABLE IF NOT EXISTS heirloom_set_state (
-          tenant TEXT NOT NULL,
-          discord_id TEXT NOT NULL,
-          build_sig TEXT NOT NULL,
-          complete INTEGER NOT NULL DEFAULT 0,
-          updated_at INTEGER NOT NULL DEFAULT 0,
-          PRIMARY KEY (tenant, discord_id, build_sig)
-        )`).run();
-      } catch { /* 表已存在等情况静默 */ }
-    })();
-  }
-  return heirloomTablesReady;
+  return ensureHeirloomTablesRepo(db);
 }
 
 /* 装备内容哈希: 部位 + 词条 (键+值) + 定音 — 不含行 id 与装备名,
@@ -214,17 +195,16 @@ async function evaluateForTenant(db, t, args) {
   if (heirloomItems.length) {
     const hashed = [];
     for (const g of heirloomItems) hashed.push({ g, hash: await heirloomItemHash(g) });
-    const { results: pushed } = await db.prepare(
-      'SELECT item_hash FROM heirloom_item_pushes WHERE tenant = ? AND discord_id = ? AND build_sig = ?'
-    ).bind(slug, args.discordId, buildSig).all().catch(() => ({ results: [] }));
-    const seen = new Set((pushed || []).map((r) => String(r.item_hash)));
+    const pushed = await listPushedItemHashes(db, slug, args.discordId, buildSig).catch(() => []);
+    const seen = new Set(pushed);
     const fresh = hashed.filter((h) => !seen.has(h.hash));
     if (fresh.length) {
       const content = buildHeirloomItemMessage({ displayName, mention: `<@${args.discordId}>`, items: fresh.map((h) => h.g), build });
       const res = await postWebhook(cfg.webhook, content, [args.discordId], ['everyone'], identity);
       for (const h of fresh) {
-        await db.prepare('INSERT OR IGNORE INTO heirloom_item_pushes (tenant, discord_id, build_sig, item_hash, created_at) VALUES (?, ?, ?, ?, ?)')
-          .bind(slug, args.discordId, buildSig, h.hash, nowSec).run().catch(() => {});
+        await insertHeirloomItemPush(db, {
+          tenant: slug, discordId: args.discordId, buildSig, itemHash: h.hash, createdAt: nowSec,
+        }).catch(() => {});
       }
       await recordHeirloomStatus(db, slug, {
         ok: res.ok, error: res.error, atSec: nowSec,
@@ -239,14 +219,12 @@ async function evaluateForTenant(db, t, args) {
     const id = args.loadout ? args.loadout[pos] : null;
     return id != null && evalById.get(id) === 'heirloom';
   });
-  const stRow = await db.prepare('SELECT complete FROM heirloom_set_state WHERE tenant = ? AND discord_id = ? AND build_sig = ?')
-    .bind(slug, args.discordId, buildSig).first().catch(() => null);
+  const stRow = await getHeirloomSetState(db, slug, args.discordId, buildSig).catch(() => null);
   const wasComplete = !!(stRow && Number(stRow.complete) === 1);
   if (complete !== wasComplete) {
-    await db.prepare(`INSERT INTO heirloom_set_state (tenant, discord_id, build_sig, complete, updated_at)
-      VALUES (?, ?, ?, ?, ?)
-      ON CONFLICT(tenant, discord_id, build_sig) DO UPDATE SET complete = excluded.complete, updated_at = excluded.updated_at`)
-      .bind(slug, args.discordId, buildSig, complete ? 1 : 0, nowSec).run().catch(() => {});
+    await upsertHeirloomSetState(db, {
+      tenant: slug, discordId: args.discordId, buildSig, complete: complete ? 1 : 0, updatedAt: nowSec,
+    }).catch(() => {});
     if (complete) {
       const content = buildHeirloomSetMessage({ displayName, mention: `<@${args.discordId}>`, build, gradTotal: args.gradTotal });
       const res = await postWebhook(cfg.webhook, content, [args.discordId], ['everyone'], identity);
