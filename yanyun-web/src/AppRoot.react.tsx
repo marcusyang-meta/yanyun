@@ -11,6 +11,7 @@ import GuildRouteLoader from './guild/GuildRouteLoader.react.tsx';
 import GuildAdminRouteLoader from './guild/GuildAdminRouteLoader.react.tsx';
 import LegalRoute from './LegalRoute.react.tsx';
 import SiteFooter from './lib/SiteFooter.react.tsx';
+import ImpersonationBanner from './lib/ImpersonationBanner.react.tsx';
 import { readPrefMirror, writePrefMirror, emitLocaleChanged, lastSentLocaleTag } from './lib/locale';
 import { canonicalLocaleOf } from './lib/format';
 import SiteBackdrop from './lib/SiteBackdrop.react.tsx';
@@ -57,6 +58,10 @@ const AppViewerQueryNode = graphql`
       userBarSettingsLabel
       myLocalePref
       myEffectiveLocale
+      impersonation {
+        bannerLabel
+        exitLabel
+      }
       pickerMyGuildsLabel
       pickerMyGuildsEnLabel
       pickerPublicGuildsLabel
@@ -125,6 +130,14 @@ export default function AppRoot({ queries }: {
     <>
       <SiteBackdrop />
       <div className="yy-app-main">
+        {/* LoginAs banner: in flow above the scroll region, always on
+            screen while a hub-minted impersonation session is active. */}
+        {viewer.impersonation ? (
+          <ImpersonationBanner
+            bannerLabel={viewer.impersonation.bannerLabel}
+            exitLabel={viewer.impersonation.exitLabel}
+          />
+        ) : null}
         <div className="yy-scroll-region" ref={scrollRegionRef}>
         <Routes>
       <Route

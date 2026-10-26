@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<a0be83aaedec95b261421e4187c16e34>>
+ * @generated SignedSource<<ddda409cae4310193690d799838b89fc>>
  * @lightSyntaxTransform
  */
 
@@ -22,6 +22,10 @@ export type AppViewerQuery$data = {
       readonly slogan: string | null | undefined;
       readonly slug: string;
     }>;
+    readonly impersonation: {
+      readonly bannerLabel: string;
+      readonly exitLabel: string;
+    } | null | undefined;
     readonly loginButtonLabel: string;
     readonly loginCardBody1: string;
     readonly loginCardBody2: string;
@@ -280,6 +284,31 @@ v2 = [
       {
         "alias": null,
         "args": null,
+        "concreteType": "ImpersonationSession",
+        "kind": "LinkedField",
+        "name": "impersonation",
+        "plural": false,
+        "selections": [
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "bannerLabel",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "exitLabel",
+            "storageKey": null
+          }
+        ],
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
         "kind": "ScalarField",
         "name": "pickerMyGuildsLabel",
         "storageKey": null
@@ -362,16 +391,16 @@ return {
     "selections": (v2/*:: as any*/)
   },
   "params": {
-    "cacheID": "4cf73b180b62bb2e345de8a2dd4237eb",
+    "cacheID": "159ba418b0873dfc212b3dd71aaf02a7",
     "id": null,
     "metadata": {},
     "name": "AppViewerQuery",
     "operationKind": "query",
-    "text": "query AppViewerQuery {\n  viewer {\n    user {\n      discordId\n      name\n      avatar\n    }\n    guilds {\n      slug\n      name\n      slogan\n      gameVersion\n      memberCount\n      avatarUrl\n    }\n    publicGuilds {\n      slug\n      name\n      slogan\n      gameVersion\n      memberCount\n      avatarUrl\n    }\n    siteTitle\n    siteSubtitle\n    siteHeroAlt\n    loginCardTitle\n    loginCardBody1\n    loginCardBody2\n    loginButtonLabel\n    loginPrivacyText\n    footerDisclaimerText\n    footerTermsLabel\n    footerPrivacyLabel\n    userBarLogoutLabel\n    userBarLoggingOutLabel\n    userBarSettingsLabel\n    myLocalePref\n    myEffectiveLocale\n    pickerMyGuildsLabel\n    pickerMyGuildsEnLabel\n    pickerPublicGuildsLabel\n    pickerPublicGuildsEnLabel\n    pickerReadOnlyBadge\n    pickerEmptyTitle\n    pickerEmptyBody\n    pickerCreateGuildLabel\n    pickerCreateGuildMoreLabel\n  }\n}\n"
+    "text": "query AppViewerQuery {\n  viewer {\n    user {\n      discordId\n      name\n      avatar\n    }\n    guilds {\n      slug\n      name\n      slogan\n      gameVersion\n      memberCount\n      avatarUrl\n    }\n    publicGuilds {\n      slug\n      name\n      slogan\n      gameVersion\n      memberCount\n      avatarUrl\n    }\n    siteTitle\n    siteSubtitle\n    siteHeroAlt\n    loginCardTitle\n    loginCardBody1\n    loginCardBody2\n    loginButtonLabel\n    loginPrivacyText\n    footerDisclaimerText\n    footerTermsLabel\n    footerPrivacyLabel\n    userBarLogoutLabel\n    userBarLoggingOutLabel\n    userBarSettingsLabel\n    myLocalePref\n    myEffectiveLocale\n    impersonation {\n      bannerLabel\n      exitLabel\n    }\n    pickerMyGuildsLabel\n    pickerMyGuildsEnLabel\n    pickerPublicGuildsLabel\n    pickerPublicGuildsEnLabel\n    pickerReadOnlyBadge\n    pickerEmptyTitle\n    pickerEmptyBody\n    pickerCreateGuildLabel\n    pickerCreateGuildMoreLabel\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "4d43e945b455de6dd8d21e9a10ff97fe";
+(node as any).hash = "31e0b930a441a212eeed6339e182b211";
 
 export default node;
