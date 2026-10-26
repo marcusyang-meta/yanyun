@@ -51,6 +51,11 @@ export const OMNISCIENT_VIEWER: OmniscientViewer = {
   viewerId: null,
 };
 
+/** True when a VC is the system-path OmniscientViewer. */
+export function isOmniscientViewer(vc: ViewerContext | null | undefined): vc is OmniscientViewer {
+  return !!vc && (vc as OmniscientViewer).omniscient === true;
+}
+
 export function viewerContextOf(user: ViewerRef | null | undefined): ViewerContext {
   return { viewer: user ?? null, viewerId: user ? user.discordId : null };
 }

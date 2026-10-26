@@ -2,7 +2,7 @@
  * generators, access checks (getGuildAccess), publish/gate helpers and
  * payload bases. Domain GraphQL modules import this file directly;
  * cross-domain services still go through the barrels. */
-import { vcOf } from './context.ts';
+import { vcOf, isOmniscientViewer } from './context.ts';
 import type { Context, ViewerContext } from './context.ts';
 import { translate, negotiateLocale, SUPPORTED_LOCALES, CATALOG } from './i18n.ts';
 import { getSettingValue, setSettingValue, listSettingsByKey } from '../guilds/settings.ts';
@@ -156,17 +156,29 @@ export function serverCanManage(sv: any) {
  * to getGuildAccess), a Discord server is bound, and the viewer's stored
  * server row for that server passes serverCanManage — the exact check
  * createGuild uses. The old guild-password login is gone: the Discord
- * session is the only identity. */
-export async function getGuildAdminAccess(db: any, user: any, slug: any, request: any): Promise<any> {
+ * session is the only identity.
+ *
+ * Omniscient doctrine (ruling 2026-10-26): the OmniscientViewer is
+ * all-accessible — when the VC is omniscient, this verdict passes in
+ * full: the dev_only visibility gate, the read payload and the
+ * mutation gate all consult this one verdict, with no read/write
+ * split. The security boundary sits on the construction side: the
+ * omniscient VC is produced only by in-process system code. The
+ * request assembly edge builds the VC from the session snapshot via
+ * viewerContextOf, which yields a plain identity VC; the flag lives
+ * on the VC itself, never on the user snapshot, so HTTP callers have
+ * no path to an OmniscientViewer. */
+export async function getGuildAdminAccess(db: any, user: any, slug: any, request: any, vc?: ViewerContext | null): Promise<any> {
   const t = await getTenantRow(db, s(slug, 40));
   if (!t) return { exists: false, slug, tenant: null, discordGuildId: '', isAdmin: false };
+  const omni = isOmniscientViewer(vc);
   const devOnly = (await getTenantSetting(db, t.slug, 'dev_only')) === '1';
-  if (devOnly && !isDevRequest(request)) {
+  if (devOnly && !omni && !isDevRequest(request)) {
     return { exists: false, slug, tenant: null, discordGuildId: '', isAdmin: false, devOnly: true };
   }
   const dgid = (await getTenantSetting(db, t.slug, 'discord_guild_id')) || '';
-  let isAdmin = false;
-  if (user && dgid) {
+  let isAdmin = omni;
+  if (!isAdmin && user && dgid) {
     const servers = await getServersForUser(db, user);
     const sv = (servers || []).find((g: any) => String(g.id) === String(dgid));
     isAdmin = serverCanManage(sv);

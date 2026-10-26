@@ -3,7 +3,8 @@
 // viewer manages the bound Discord server (same check as createGuild),
 // expressed ONLY by the GuildAdmin / GuildAdminLocked response types.
 // Covers: verdict matrix (anonymous / member / ManageGuild bit / owner /
-// unbound / missing / dev_only), webhook secrecy (full URL never read
+// unbound / missing / dev_only), the omniscient doctrine (system-path
+// VC passes the admin verdict in full, writes included), webhook secrecy (full URL never read
 // back, only set-state + numeric id), profile/discord/features/
 // visibility mutations, base64 avatar flow with the same server-side
 // validation as the retired binary upload, fixed-team CRUD with
@@ -14,6 +15,7 @@
 // by SQL shape into real in-memory tables.
 import { yoga } from '../src/graphql.ts';
 import { avatarPath } from '../src/domains/guilds/guildavatar.ts';
+import { OMNISCIENT_VIEWER } from '../src/domains/platform/context.ts';
 
 let pass = 0, fail = 0; const fails = [];
 function check(name, ok, extra = '') {
@@ -328,8 +330,9 @@ const A = makeDb({
 });
 const env = { DB: A.db };
 
-async function gql(query, { user = null, variables } = {}) {
+async function gql(query, { user = null, variables, vc } = {}) {
   const ctx = { env, request: new Request('http://local/graphql'), user, locale: 'zh-CN', browserLocale: 'zh-CN', tz: 'Asia/Shanghai', executionCtx: undefined };
+  if (vc) ctx.vc = vc;
   const res = await yoga.fetch(new Request('http://local/graphql', {
     method: 'POST', headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ query, variables }),
@@ -541,6 +544,53 @@ eq('OG 车卡 occupiedCount', r.data?.ogCarCard?.occupiedCount, 1); // signup 31
 eq('OG 车卡 maxSlots', r.data?.ogCarCard?.maxSlots, 10);
 r = await gql(`{ ogCarCard(slug: "admintest", id: "99999") { title } }`, { user: null });
 eq('OG 车卡不存在 -> null', r.data?.ogCarCard, null);
+
+/* ---------------- omniscient all-accessible (ruling 2026-10-26) ----------------
+ * The system-path OmniscientViewer (flag on the VC, no signed-in
+ * user) passes the admin verdict in full: read payload field-for-
+ * field what a server admin sees, mutations included, dev_only gate
+ * included. The security boundary is construction-side: the flag
+ * lives on the VC, never on the user snapshot — a user object
+ * carrying a forged flag grants nothing, because the assembly edge
+ * derives the VC from the snapshot (viewerContextOf) and drops it. */
+const OMNI = { user: null, vc: OMNISCIENT_VIEWER };
+r = await gql(adminQ, { user: ADMIN });
+const adminView = r.data?.viewer?.guildAdmin;
+r = await gql(adminQ, OMNI);
+eq('omni -> GuildAdmin', r.data?.viewer?.guildAdmin?.__typename, 'GuildAdmin');
+check('omni 载荷与管理员逐字段一致', JSON.stringify(r.data?.viewer?.guildAdmin) === JSON.stringify(adminView),
+  JSON.stringify(r.data?.viewer?.guildAdmin));
+const omniContentQ = `{ viewer { guildAdmin(slug: "admintest") { ... on GuildAdmin { fixedTeams { id name members { id nickname role } } events { id title signupCount signups { id nickname } signupsCsv } schoolGuides { schools { school builds { build bisJson } rotationJson } } } } } }`;
+r = await gql(omniContentQ, { user: ADMIN });
+const adminContent = r.data?.viewer?.guildAdmin;
+r = await gql(omniContentQ, OMNI);
+check('omni 五面板内容与管理员一致', JSON.stringify(r.data?.viewer?.guildAdmin) === JSON.stringify(adminContent));
+r = await gql(adminQ.replaceAll('admintest', 'unbound'), OMNI);
+eq('omni 未绑定百业 -> GuildAdmin', r.data?.viewer?.guildAdmin?.__typename, 'GuildAdmin');
+r = await gql(adminQ.replaceAll('admintest', 'devtest'), OMNI);
+eq('omni dev_only 百业 -> GuildAdmin (全通口径)', r.data?.viewer?.guildAdmin?.__typename, 'GuildAdmin');
+const FORGED = { ...MEMBER, omniscient: true };
+r = await gql(adminQ, { user: FORGED });
+eq('user 快照伪造 omniscient 标记 -> Locked (边界在构造侧)', r.data?.viewer?.guildAdmin?.__typename, 'GuildAdminLocked');
+r = await gql(profMut, { user: FORGED, variables: { input: { name: '伪造改名' } } });
+eq('user 快照伪造标记改资料 -> adminOnly', r.data?.updateGuildProfile?.errorCode, 'adminOnly');
+r = await gql(profMut, { ...OMNI, variables: { input: { slogan: 'omni标语' } } });
+eq('omni 改标语 ok', r.data?.updateGuildProfile?.ok, true);
+eq('omni 标语已落库', A.tables.tenants[0].slogan, 'omni标语');
+r = await gql(adminQ, OMNI);
+eq('omni 回读标语一致', r.data?.viewer?.guildAdmin?.slogan, 'omni标语');
+r = await gql(discordMut, { ...OMNI, variables: { input: { webhook: HOOK } } });
+eq('omni 改 webhook ok', r.data?.updateGuildDiscord?.ok, true);
+r = await gql(adminQ, OMNI);
+eq('omni webhook 回读 set', r.data?.viewer?.guildAdmin?.reminderWebhookSet, true);
+eq('omni webhook 回读只露编号', r.data?.viewer?.guildAdmin?.reminderWebhookId, '123456789012345678');
+check('omni webhook 响应不含密钥段', !JSON.stringify(r).includes('abcdef-XYZ_123'));
+r = await gql(featMut, { ...OMNI, variables: { v: false } });
+eq('omni 改功能开关 ok', r.data?.updateGuildFeatures?.ok, true);
+eq('omni 功能开关已落库', A.tables.settings.get('admintest|feature_fixed_teams'), '0');
+r = await gql(setAv, { ...OMNI, variables: { d: pngB64 } });
+eq('omni 设头像 ok', r.data?.setGuildAvatar?.ok, true);
+eq('omni 头像已落库', A.tables.avatars.has('admintest'), true);
 
 check('无未路由 SQL', A.unknownSql.size === 0, [...A.unknownSql].join(' | '));
 
