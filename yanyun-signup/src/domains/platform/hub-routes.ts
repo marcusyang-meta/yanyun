@@ -3,7 +3,7 @@
  * validate and orchestrate; all data goes through domain services. */
 import { Hono } from 'hono';
 import { json, err, s, getBody, rateLimit, bearerToken, checkToken, makeToken, sha256hex, timingSafeEqual, isDevRequestC, getDevOnlySlugs, restCheckedUser, TYPES, ROLES, RESERVED } from './http.ts';
-import { logError, recentErrors, translate } from './index.ts';
+import { logError, recentErrors, translate, auditHub, listHubAuditPage } from './index.ts';
 import {
   getTenantRow, getTenantSlug, listTenantSlugs, listTenantsHubAdmin, deleteTenantCascade,
   getSettingValue, setSettingValue, listGlobalSettings, listNonEmptySettingsByKey, updateTenantWebhook, listSettingsByKey,
@@ -29,13 +29,31 @@ import { maybeRunCreatorManualFix } from '../../creatormanualfix.js';
 
 export const hubRoutes = new Hono();
 
+/* Audit helper: records one hub_audit_log row for a sensitive portal
+ * operation. The summary is a digest built by the caller — it must never
+ * carry a password, a webhook URL, or a secret value. auditHub itself
+ * never throws, so auditing cannot break the operation it records. */
+function audit(c: any, action: string, tenant: string, summary: Record<string, unknown>) {
+  return auditHub(c.env.DB, { action, tenant, summary, ip: c.get('ip') || '' });
+}
+
 // POST /api/hub/login (no auth)
 hubRoutes.post('/login', async (c: any) => {
   const ip = c.get('ip');
   const body = await getBody(c);
-  if (!c.env.ADMIN_PASSWORD) return err('服务端未设置超管密码', 500);
-  if (!rateLimit(ip, 'hublogin', 10, 10 * 60 * 1000)) return err('尝试太频繁', 429);
-  if (!timingSafeEqual(s(body.password, 200), c.env.ADMIN_PASSWORD)) return err('密码错误', 401);
+  if (!c.env.ADMIN_PASSWORD) {
+    await audit(c, 'auth.login_failed', '', { reason: 'no_admin_password' });
+    return err('服务端未设置超管密码', 500);
+  }
+  if (!rateLimit(ip, 'hublogin', 10, 10 * 60 * 1000)) {
+    await audit(c, 'auth.login_failed', '', { reason: 'rate_limited' });
+    return err('尝试太频繁', 429);
+  }
+  if (!timingSafeEqual(s(body.password, 200), c.env.ADMIN_PASSWORD)) {
+    await audit(c, 'auth.login_failed', '', { reason: 'bad_password' });
+    return err('密码错误', 401);
+  }
+  await audit(c, 'auth.login', '', {});
   return json({ ok: true, token: await makeToken(c.env.ADMIN_PASSWORD, '__hub__') });
 });
 
@@ -53,14 +71,29 @@ hubRoutes.get('/tenants', async (c: any) => {
 });
 
 // recentErrors swallows failures internally; an unavailable table yields an empty list.
+// The error log is a sensitive read (it carries failure context from every
+// tenant), so viewing it leaves an audit row.
 hubRoutes.get('/errors', async (c: any) => {
   const { errors, last24h } = await recentErrors(c.env.DB, 50);
+  await audit(c, 'errors.view', '', { shown: errors.length });
   return json({ ok: true, errors, last24h });
+});
+
+// The audit trail itself is a sensitive read, so viewing it is audited too.
+hubRoutes.get('/audit', async (c: any) => {
+  const q = c.req.query();
+  const tenant = s(q.tenant, 40);
+  const limit = parseInt(q.limit, 10) || 50;
+  const offset = parseInt(q.offset, 10) || 0;
+  const page = await listHubAuditPage(c.env.DB, { tenant, limit, offset });
+  await audit(c, 'audit.view', tenant, { shown: page.entries.length, offset });
+  return json({ ok: true, entries: page.entries, total: page.total });
 });
 
 hubRoutes.delete('/tenants/:slug', async (c: any) => {
   const slug = s(c.req.param('slug'), 30);
   await deleteTenantCascade(c.env.DB, slug);
+  await audit(c, 'tenant.delete', slug, {});
   return json({ ok: true });
 });
 
@@ -116,15 +149,19 @@ hubRoutes.put('/tenants/:slug/reminder', async (c: any) => {
   const t = await getTenantSlug(c.env.DB, slug);
   if (!t) return err('百业不存在', 404);
   const body = await getBody(c);
+  const changes: Record<string, unknown> = {};
   if (body.webhook !== undefined) {
     const wh = s(body.webhook, 300);
     if (wh && !WEBHOOK_RE.test(wh)) return err('Webhook URL 格式不对（应为 https://discord.com/api/webhooks/...）', 400);
     await updateTenantWebhook(c.env.DB, slug, wh);
+    changes.webhook = wh ? 'replaced' : 'cleared';
   }
   if (body.enabled !== undefined) {
     await setReminderSetting(c.env.DB, slug, 'reminder_enabled', body.enabled ? '1' : '0');
+    changes.enabled = !!body.enabled;
   }
   nudgeReminderHub(c, slug); // a config change re-arms the reminder alarm immediately
+  await audit(c, 'reminder.update', slug, changes);
   return json({ ok: true, reminder: await reminderStateFor(c, slug) });
 });
 
@@ -141,6 +178,7 @@ hubRoutes.post('/tenants/:slug/reminder/test', async (c: any) => {
   await setReminderSetting(c.env.DB, slug, 'reminder_last_at', String(nowSec));
   await setReminderSetting(c.env.DB, slug, 'reminder_last_status', res.ok ? 'test-ok' : 'test-error');
   await setReminderSetting(c.env.DB, slug, 'reminder_last_error', res.ok ? '' : String(res.error || '发送失败').slice(0, 300));
+  await audit(c, 'reminder.test', slug, { ok: res.ok });
   if (!res.ok) return json({ ok: false, message: '测试发送失败: ' + res.error }, 200);
   return json({ ok: true, reminder: await reminderStateFor(c, slug) });
 });
@@ -185,14 +223,18 @@ hubRoutes.put('/tenants/:slug/heirloom', async (c: any) => {
   const t = await getTenantSlug(c.env.DB, slug);
   if (!t) return err('百业不存在', 404);
   const body = await getBody(c);
+  const changes: Record<string, unknown> = {};
   if (body.webhook !== undefined) {
     const wh = s(body.webhook, 300);
     if (wh && !WEBHOOK_RE.test(wh)) return err('Webhook URL 格式不对（应为 https://discord.com/api/webhooks/...）', 400);
     await setReminderSetting(c.env.DB, slug, 'heirloom_webhook', wh);
+    changes.webhook = wh ? 'replaced' : 'cleared';
   }
   if (body.enabled !== undefined) {
     await setReminderSetting(c.env.DB, slug, 'heirloom_enabled', body.enabled ? '1' : '0');
+    changes.enabled = !!body.enabled;
   }
+  await audit(c, 'heirloom.update', slug, changes);
   return json({ ok: true, heirloom: await heirloomStateFor(c, slug) });
 });
 
@@ -202,6 +244,7 @@ hubRoutes.post('/tenants/:slug/heirloom/test', async (c: any) => {
   if (!rateLimit(ip, 'heirloomtest', 10, 10 * 60 * 1000)) return err('测试太频繁', 429);
   const res = await sendHeirloomTest(c.env.DB, slug);
   if ((res as any).missing) return err(res.error, res.error === '百业不存在' ? 404 : 400);
+  await audit(c, 'heirloom.test', slug, { ok: !!res.ok });
   if (!res.ok) return json({ ok: false, message: '测试发送失败: ' + res.error }, 200);
   return json({ ok: true, heirloom: await heirloomStateFor(c, slug) });
 });
@@ -275,6 +318,7 @@ hubRoutes.post('/backfill/reminder-identity', async (c: any) => {
     totals.seatsTotal += (seats || []).length;
     totals.stamped += stamped; totals.ambiguous += ambiguous; totals.unmatched += unmatched;
   }
+  await audit(c, 'backfill.reminder_identity', '', { dryRun, ...totals });
   return json({ ok: true, dryRun, guilds, totals });
 });
 
@@ -286,11 +330,14 @@ hubRoutes.get('/settings', async (c: any) => {
 });
 hubRoutes.put('/settings', async (c: any) => {
   const body = await getBody(c);
+  const changed: string[] = [];
   for (const k of ['game_version', 'game_notice', 'game_version_code']) {
     if (body[k] !== undefined) {
       await setSettingValue(c.env.DB, '', k, s(body[k], 2000));
+      changed.push(k);
     }
   }
+  await audit(c, 'settings.update', '', { keys: changed });
   return json({ ok: true });
 });
 
@@ -305,6 +352,7 @@ hubRoutes.post('/bosses', async (c: any) => {
     name, talent: s(body.talent, 40), source: s(body.source, 40),
     note: s(body.note, 200), sortOrder: parseInt(body.sort_order, 10) || 0,
   });
+  await audit(c, 'boss.create', '', { id: r.last_row_id, name });
   return json({ ok: true, id: r.last_row_id });
 });
 hubRoutes.put('/bosses/:id', async (c: any) => {
@@ -325,6 +373,7 @@ hubRoutes.put('/bosses/:id', async (c: any) => {
   }
   if (!Object.keys(patch).length) return err('没有要更新的字段', 400);
   await updateBossFields(c.env.DB, id, patch);
+  await audit(c, 'boss.update', '', { id, fields: Object.keys(patch) });
   return json({ ok: true });
 });
 
@@ -346,10 +395,13 @@ hubRoutes.post('/bosses/migrate-structured', async (c: any) => {
     });
     migrated.push({ id: b.id, name: b.name, mechanics: st.mechanics.length, talents: st.talents.length, shouts: st.shouts.length });
   }
+  await audit(c, 'boss.migrate_structured', '', { count: migrated.length });
   return json({ ok: true, migrated });
 });
 hubRoutes.delete('/bosses/:id', async (c: any) => {
-  await deleteBossById(c.env.DB, parseInt(c.req.param('id'), 10));
+  const id = parseInt(c.req.param('id'), 10);
+  await deleteBossById(c.env.DB, id);
+  await audit(c, 'boss.delete', '', { id });
   return json({ ok: true });
 });
 
@@ -487,6 +539,11 @@ hubRoutes.post('/dex/apply-season-map', async (c: any) => {
   }
 
   const after = await countAll();
+  await audit(c, 'dex.apply_season_map', '', {
+    createdDungeons: rep.createdDungeons.length, createdBosses: rep.createdBosses.length,
+    deletedDungeons: rep.deletedDungeons.length, deletedBosses: rep.deletedBosses.length,
+    warnings: rep.warnings.length,
+  });
   return json({ ok: true, before, after, ...rep });
 });
 
@@ -607,6 +664,9 @@ hubRoutes.post('/events/backfill-creators', async (c: any) => {
       "UPDATE events SET creator_discord_id = ? WHERE id = ? AND (creator_discord_id IS NULL OR creator_discord_id = '')"
     ).bind(did, id)));
   }
+  await audit(c, 'backfill.creator_stamps', '', {
+    dryRun, considered: rep.totals.considered, backfilled: rep.totals.backfilled,
+  });
   return json({ ok: true, ...rep });
 });
 
@@ -622,5 +682,6 @@ hubRoutes.put('/dungeons/:id', async (c: any) => {
   if (body.video_title !== undefined) patch.video_title = String(body.video_title || '').slice(0, 80);
   if (!Object.keys(patch).length) return err('没有要更新的字段', 400);
   await updateDungeonFields(c.env.DB, id, patch);
+  await audit(c, 'dungeon.update', '', { id, fields: Object.keys(patch) });
   return json({ ok: true });
 });
