@@ -84,6 +84,30 @@ export const GroupingDetailBlocksQuery = graphql`
   }
 `;
 
+// 原语面查询 (C 路线): 与积木查询并行取数。primTree 在服务端协商
+// (primitivesVersion) 与页面 × 百业开关都满足时返回原语树 (极简
+// JSON), 否则为 null — 屏幕据此在原语 / 积木两条渲染通道间选择。
+export const GroupingListPrimQuery = graphql`
+  query documentsGroupingListPrimQuery(
+    $slug: String!
+    $tab: GroupingTab!
+    $weekOffset: Int
+    $primitivesVersion: Int
+  ) {
+    groupingListPage(slug: $slug, tab: $tab) {
+      primTree(primitivesVersion: $primitivesVersion, weekOffset: $weekOffset)
+    }
+  }
+`;
+
+export const GroupingDetailPrimQuery = graphql`
+  query documentsGroupingDetailPrimQuery($slug: String, $id: ID!, $primitivesVersion: Int) {
+    groupingDetailPage(slug: $slug, id: $id) {
+      primTree(primitivesVersion: $primitivesVersion)
+    }
+  }
+`;
+
 export const JoinGroupingMutation = graphql`
   mutation documentsJoinGroupingMutation($input: JoinGroupingInput!) {
     joinGrouping(input: $input) {
