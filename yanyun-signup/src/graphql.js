@@ -36,6 +36,7 @@ import {
 import {
   getEventRow, getEventTenant, getEventTenantCreator, listEventsByTenantType,
   insertEvent, updateEventFields, setEventStatus, deleteEventCascade,
+  ensureEventCreatorColumn as ensureEventCreatorColumnRepo,
 } from './domains/groupings/index.ts';
 import {
   listSignupSeats, listSignupSeatsBasic, listSignupNamesStamps, getSignupCapacityStats,
@@ -599,20 +600,10 @@ export function ensureDungeonDexColumns(db) {
  * events.creator_discord_id: GraphQL 发车时由会话 discord_id 写入 (权威身份)。
  * 旧车与 REST/overlay 建的车此列为空 = 未记录车头: 解散一律拒绝, 不回退
  * created_by/昵称匹配 (昵称是用户手填文本, 可冒名)。 */
-let eventCreatorColReady = null;
+// 懒 DDL 已归 groupings 域 events 仓库 (三期); 此处保留旧名导出作委托
+// (creatorbackfill / creatormanualfix 从本模块 import 此名)。
 export function ensureEventCreatorColumn(db) {
-  if (!eventCreatorColReady) {
-    eventCreatorColReady = (async () => {
-      try {
-        const { results } = await db.prepare('PRAGMA table_info(events)').all();
-        const cols = new Set(results.map((r) => r.name));
-        if (!cols.has('creator_discord_id')) {
-          await db.prepare('ALTER TABLE events ADD COLUMN creator_discord_id TEXT').run();
-        }
-      } catch { /* 列已存在等情况静默 */ }
-    })();
-  }
-  return eventCreatorColReady;
+  return ensureEventCreatorColumnRepo(db);
 }
 
 /* ---------- 落座身份戳 (signups.discord_id, 2026-10-24 用户裁决) ----------

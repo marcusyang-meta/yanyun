@@ -18,6 +18,38 @@ interface RunMeta {
   last_row_id: number;
 }
 
+/* ---------- 懒 DDL: 装备库两表 (三期归位, gearstore 只剩委托) ---------- */
+
+let gearTablesReady: Promise<void> | null = null;
+export function ensureGearTables(d1: D1Database): Promise<void> {
+  if (!gearTablesReady) {
+    gearTablesReady = (async () => {
+      try {
+        const db = createDb(d1);
+        await db.run(sql`CREATE TABLE IF NOT EXISTS ${userGearItems} (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          discord_id TEXT NOT NULL,
+          slot TEXT NOT NULL DEFAULT '',
+          name TEXT NOT NULL DEFAULT '',
+          payload TEXT NOT NULL DEFAULT '{}',
+          created_at INTEGER NOT NULL DEFAULT 0
+        )`);
+        await db.run(sql`CREATE INDEX IF NOT EXISTS idx_user_gear_items_owner ON ${userGearItems} (${col('discord_id')})`);
+        await db.run(sql`CREATE TABLE IF NOT EXISTS ${userGearBuilds} (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          discord_id TEXT NOT NULL,
+          name TEXT NOT NULL DEFAULT '',
+          target_idx INTEGER NOT NULL DEFAULT 0,
+          payload TEXT NOT NULL DEFAULT '{}',
+          created_at INTEGER NOT NULL DEFAULT 0
+        )`);
+        await db.run(sql`CREATE INDEX IF NOT EXISTS idx_user_gear_builds_owner ON ${userGearBuilds} (${col('discord_id')})`);
+      } catch { /* 表已存在等情况静默 */ }
+    })();
+  }
+  return gearTablesReady;
+}
+
 function metaOf(r: unknown): RunMeta {
   const m = (r as { meta?: { changes?: number; last_row_id?: number } } | null)?.meta;
   return { changes: m?.changes ?? 0, last_row_id: m?.last_row_id ?? 0 };

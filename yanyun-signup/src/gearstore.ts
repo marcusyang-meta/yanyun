@@ -8,35 +8,12 @@ import {
   listGearItemRows, insertGearItemRow, updateGearItemRow as updateGearItemRowData,
   deleteGearItemRow as deleteGearItemRowData, listGearBuildRows, insertGearBuildRow,
   deleteGearBuildRow as deleteGearBuildRowData,
+  ensureGearTables as ensureGearTablesRepo,
 } from './domains/gear/index.ts';
 
-let gearTablesReady: Promise<void> | null = null;
+// 懒 DDL 已归 gear 域 gear 仓库 (三期); 此处保留旧名导出作委托。
 export function ensureGearTables(db: any) {
-  if (!gearTablesReady) {
-    gearTablesReady = (async () => {
-      try {
-        await db.prepare(`CREATE TABLE IF NOT EXISTS user_gear_items (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          discord_id TEXT NOT NULL,
-          slot TEXT NOT NULL DEFAULT '',
-          name TEXT NOT NULL DEFAULT '',
-          payload TEXT NOT NULL DEFAULT '{}',
-          created_at INTEGER NOT NULL DEFAULT 0
-        )`).run();
-        await db.prepare('CREATE INDEX IF NOT EXISTS idx_user_gear_items_owner ON user_gear_items (discord_id)').run();
-        await db.prepare(`CREATE TABLE IF NOT EXISTS user_gear_builds (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          discord_id TEXT NOT NULL,
-          name TEXT NOT NULL DEFAULT '',
-          target_idx INTEGER NOT NULL DEFAULT 0,
-          payload TEXT NOT NULL DEFAULT '{}',
-          created_at INTEGER NOT NULL DEFAULT 0
-        )`).run();
-        await db.prepare('CREATE INDEX IF NOT EXISTS idx_user_gear_builds_owner ON user_gear_builds (discord_id)').run();
-      } catch { /* 表已存在等情况静默 */ }
-    })();
-  }
-  return gearTablesReady;
+  return ensureGearTablesRepo(db);
 }
 
 function itemRowToGear(row: any) {

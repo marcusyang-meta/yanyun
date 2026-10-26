@@ -7,7 +7,7 @@
 import { logError } from './errorlog.js';
 import {
   upsertPushToken, deletePushTokenForUser, deletePushTokenEverywhere as deleteTokenEverywhere,
-  listPushTokensForUsers,
+  listPushTokensForUsers, ensurePushTokensTable as ensurePushTokensTableRepo,
 } from './domains/platform/index.ts';
 
 // 发送走 Expo Push Service HTTP API; DeviceNotRegistered 的令牌立即自清
@@ -33,22 +33,9 @@ export function isValidPushToken(token) {
 /* ---------- push_tokens 表 (懒 DDL, 与 reminder.js 同套路) ----------
  * 一人可多设备多令牌; (discord_id, token) 唯一, 同令牌重注册只刷新
  * platform/updated_at。注销按 (discord_id, token) 删, 不误删他人设备。 */
-let pushTokensReady = null;
+// 懒 DDL 已归 platform 域 pushTokens 仓库 (三期); 此处保留旧名导出作委托。
 export function ensurePushTokensTable(db) {
-  if (!pushTokensReady) {
-    pushTokensReady = (async () => {
-      try {
-        await db.prepare(`CREATE TABLE IF NOT EXISTS push_tokens (
-          discord_id TEXT NOT NULL,
-          token TEXT NOT NULL,
-          platform TEXT NOT NULL DEFAULT '',
-          updated_at INTEGER NOT NULL DEFAULT 0,
-          PRIMARY KEY (discord_id, token)
-        )`).run();
-      } catch { /* 表已存在等情况静默 */ }
-    })();
-  }
-  return pushTokensReady;
+  return ensurePushTokensTableRepo(db);
 }
 
 export async function savePushToken(db, discordId, token, platform) {

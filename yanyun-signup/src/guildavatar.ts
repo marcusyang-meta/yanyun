@@ -7,6 +7,7 @@
 
 import {
   getGuildAvatarMetaRow, getGuildAvatarRow, putGuildAvatarRow, deleteGuildAvatarRow,
+  ensureGuildAvatarsTable as ensureGuildAvatarsTableRepo,
 } from './domains/guilds/index.ts';
 import { getTenantRow } from './domains/guilds/index.ts';
 
@@ -14,23 +15,9 @@ export const AVATAR_MAX_BYTES = 400 * 1024; // 存入 blob 上限 (前端已裁�
 export const AVATAR_CONTENT_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
 const SITE_ORIGIN = 'https://yanyun.app'; // 与 worker.js 的 SITE_URL 同口径 (规范域名)
 
-/* ---------- 懒 DDL (与 error_log / push_tokens 同套路) ---------- */
-let tableReady: Promise<void> | null = null;
+/* ---------- 懒 DDL 已归 guilds 域 guildAvatars 仓库 (三期); 旧名委托 ---------- */
 export function ensureGuildAvatarsTable(db: any) {
-  if (!tableReady) {
-    tableReady = (async () => {
-      try {
-        await db.prepare(`CREATE TABLE IF NOT EXISTS guild_avatars (
-          tenant TEXT PRIMARY KEY,
-          content_type TEXT NOT NULL,
-          bytes BLOB NOT NULL,
-          hash TEXT NOT NULL,
-          updated_at INTEGER NOT NULL
-        )`).run();
-      } catch { /* 建表失败静默: 头像面不可用不能拖垮业务 */ }
-    })();
-  }
-  return tableReady;
+  return ensureGuildAvatarsTableRepo(db);
 }
 
 /* ---------- 类型嗅探: 只认魔数, 不信客户端声明的 content-type ---------- */

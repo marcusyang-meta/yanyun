@@ -1,10 +1,35 @@
-// Error-log repository: row operations for the error_log entity.
-// The module-level contract (never throw, clip fields, prune throttling)
-// stays in errorlog.js; this file owns only the statements. Table DDL
-// remains the lazy ensureErrorLogTable in errorlog.js this phase.
+// Error-log repository: the error_log entity's lazy DDL and row
+// operations. The module-level contract (never throw, clip fields,
+// prune throttling) stays in platform's errorlog service module;
+// this file owns the statements.
 import { sql } from 'drizzle-orm';
 import { createDb } from '../../db/client.ts';
 import { errorLog } from './schema.ts';
+
+/* ---------- 懒 DDL ---------- */
+
+let errorLogTableReady: Promise<void> | null = null;
+export function ensureErrorLogTable(d1: D1Database): Promise<void> {
+  if (!errorLogTableReady) {
+    errorLogTableReady = (async () => {
+      try {
+        const db = createDb(d1);
+        await db.run(sql`CREATE TABLE IF NOT EXISTS ${errorLog} (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          at INTEGER NOT NULL,
+          source TEXT NOT NULL DEFAULT '',
+          name TEXT NOT NULL DEFAULT '',
+          message TEXT NOT NULL DEFAULT '',
+          tenant TEXT NOT NULL DEFAULT '',
+          context TEXT NOT NULL DEFAULT '',
+          stack TEXT NOT NULL DEFAULT ''
+        )`);
+        await db.run(sql`CREATE INDEX IF NOT EXISTS idx_error_log_at ON ${errorLog} (${sql.identifier('at')})`);
+      } catch { /* 建表失败静默: 监控不可用不能拖垮业务 */ }
+    })();
+  }
+  return errorLogTableReady;
+}
 
 export interface ErrorLogRow {
   id: number;

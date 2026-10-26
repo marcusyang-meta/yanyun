@@ -42,6 +42,26 @@ function metaOf(r: unknown): RunMeta {
   return { changes: m?.changes ?? 0, last_row_id: m?.last_row_id ?? 0 };
 }
 
+/* ---------- 懒 DDL: 身份戳列 ---------- */
+
+let signupDiscordColReady: Promise<void> | null = null;
+/** signups.discord_id 增列 (落座身份戳)。 */
+export function ensureSignupDiscordColumn(d1: D1Database): Promise<void> {
+  if (!signupDiscordColReady) {
+    signupDiscordColReady = (async () => {
+      try {
+        const db = createDb(d1);
+        const results = await db.all<{ name: string }>(sql`PRAGMA table_info(${signups})`);
+        const cols = new Set((results || []).map((r) => r.name));
+        if (!cols.has('discord_id')) {
+          await db.run(sql`ALTER TABLE ${signups} ADD COLUMN ${col('discord_id')} TEXT`);
+        }
+      } catch { /* 列已存在等情况静默 */ }
+    })();
+  }
+  return signupDiscordColReady;
+}
+
 /* ---------- 读取 ---------- */
 
 /* 全行列表 (管理员名册/导出用), 按座位顺序。 */

@@ -1,10 +1,31 @@
-// Push-token repository: row operations for the push_tokens entity.
-// Error tolerance stays with the caller (push.js), mirroring the legacy
-// behavior of each function it backs. Table DDL remains the lazy
-// ensurePushTokensTable in push.js this phase.
+// Push-token repository: the push_tokens entity's lazy DDL and row
+// operations. Error tolerance stays with the caller (the platform
+// push service), mirroring the legacy behavior of each function it
+// backs.
 import { sql } from 'drizzle-orm';
 import { createDb } from '../../db/client.ts';
 import { pushTokens } from './schema.ts';
+
+/* ---------- 懒 DDL ---------- */
+
+let pushTokensTableReady: Promise<void> | null = null;
+export function ensurePushTokensTable(d1: D1Database): Promise<void> {
+  if (!pushTokensTableReady) {
+    pushTokensTableReady = (async () => {
+      try {
+        const db = createDb(d1);
+        await db.run(sql`CREATE TABLE IF NOT EXISTS ${pushTokens} (
+          discord_id TEXT NOT NULL,
+          token TEXT NOT NULL,
+          platform TEXT NOT NULL DEFAULT '',
+          updated_at INTEGER NOT NULL DEFAULT 0,
+          PRIMARY KEY (discord_id, token)
+        )`);
+      } catch { /* 表已存在等情况静默 */ }
+    })();
+  }
+  return pushTokensTableReady;
+}
 
 interface TokenRow { discord_id: string; token: string }
 
