@@ -13,6 +13,25 @@ import {
   UpdateGroupingMutation,
   UpdateMyLocaleMutation,
   ViewerQuery,
+  UpdateGuildProfileAdminMutation,
+  SetGuildAvatarAdminMutation,
+  DeleteGuildAvatarAdminMutation,
+  UpdateGuildDiscordAdminMutation,
+  UpdateGuildFeaturesAdminMutation,
+  UpdateGuildVisibilityAdminMutation,
+  CreateFixedTeamAdminMutation,
+  UpdateFixedTeamAdminMutation,
+  DeleteFixedTeamAdminMutation,
+  AddFixedTeamMemberAdminMutation,
+  UpdateFixedTeamMemberAdminMutation,
+  DeleteFixedTeamMemberAdminMutation,
+  CreateAdminEventMutation,
+  UpdateAdminEventMutation,
+  DeleteAdminEventMutation,
+  RemoveEventSignupAdminMutation,
+  AddEventResultAdminMutation,
+  DeleteEventResultAdminMutation,
+  UpdateSchoolGuideAdminMutation,
 } from './documents';
 import type { documentsViewerQuery } from './__generated__/documentsViewerQuery.graphql';
 import type { documentsJoinGroupingMutation } from './__generated__/documentsJoinGroupingMutation.graphql';
@@ -247,3 +266,35 @@ export async function unregisterPushTokenRemote(token: string): Promise<PushToke
   const r = await commit<documentsUnregisterPushTokenMutation>(UnregisterPushTokenMutation, { token });
   return r.unregisterPushToken as PushTokenPayload;
 }
+
+
+/* Guild admin wrappers (GraphQL admin surface; payloads carry the
+   backend-localized error). One generic runner keeps the 19 admin
+   mutations uniform: the screen refreshes the admin query after any
+   ok payload. */
+export type AdminPayload = { ok: boolean; error?: string | null; avatarUrl?: string | null; id?: string | null };
+
+async function adminRun(mutation: any, variables: any, key: string): Promise<AdminPayload> {
+  const res: any = await commit<any>(mutation, variables);
+  return (res?.[key] as AdminPayload) ?? { ok: false };
+}
+
+export const adminUpdateProfile = (slug: string, input: any) => adminRun(UpdateGuildProfileAdminMutation, { slug, input }, 'updateGuildProfile');
+export const adminSetAvatar = (slug: string, dataBase64: string) => adminRun(SetGuildAvatarAdminMutation, { slug, dataBase64 }, 'setGuildAvatar');
+export const adminDeleteAvatar = (slug: string) => adminRun(DeleteGuildAvatarAdminMutation, { slug }, 'deleteGuildAvatar');
+export const adminUpdateDiscord = (slug: string, input: any) => adminRun(UpdateGuildDiscordAdminMutation, { slug, input }, 'updateGuildDiscord');
+export const adminUpdateFeatures = (slug: string, fixedTeams: boolean) => adminRun(UpdateGuildFeaturesAdminMutation, { slug, fixedTeams }, 'updateGuildFeatures');
+export const adminUpdateVisibility = (slug: string, devOnly: boolean) => adminRun(UpdateGuildVisibilityAdminMutation, { slug, devOnly }, 'updateGuildVisibility');
+export const adminCreateTeam = (slug: string, input: any) => adminRun(CreateFixedTeamAdminMutation, { slug, input }, 'createFixedTeam');
+export const adminUpdateTeam = (slug: string, teamId: string, input: any) => adminRun(UpdateFixedTeamAdminMutation, { slug, teamId, input }, 'updateFixedTeam');
+export const adminDeleteTeam = (slug: string, teamId: string) => adminRun(DeleteFixedTeamAdminMutation, { slug, teamId }, 'deleteFixedTeam');
+export const adminAddMember = (slug: string, teamId: string, input: any) => adminRun(AddFixedTeamMemberAdminMutation, { slug, teamId, input }, 'addFixedTeamMember');
+export const adminUpdateMember = (slug: string, teamId: string, memberId: string, input: any) => adminRun(UpdateFixedTeamMemberAdminMutation, { slug, teamId, memberId, input }, 'updateFixedTeamMember');
+export const adminDeleteMember = (slug: string, teamId: string, memberId: string) => adminRun(DeleteFixedTeamMemberAdminMutation, { slug, teamId, memberId }, 'deleteFixedTeamMember');
+export const adminCreateEvent = (slug: string, input: any) => adminRun(CreateAdminEventMutation, { slug, input }, 'createAdminEvent');
+export const adminUpdateEvent = (slug: string, eventId: string, input: any) => adminRun(UpdateAdminEventMutation, { slug, eventId, input }, 'updateAdminEvent');
+export const adminDeleteEvent = (slug: string, eventId: string) => adminRun(DeleteAdminEventMutation, { slug, eventId }, 'deleteAdminEvent');
+export const adminRemoveSignup = (slug: string, signupId: string) => adminRun(RemoveEventSignupAdminMutation, { slug, signupId }, 'removeEventSignup');
+export const adminAddResult = (slug: string, eventId: string, input: any) => adminRun(AddEventResultAdminMutation, { slug, eventId, input }, 'addEventResult');
+export const adminDeleteResult = (slug: string, resultId: string) => adminRun(DeleteEventResultAdminMutation, { slug, resultId }, 'deleteEventResult');
+export const adminUpdateGuide = (slug: string, input: any) => adminRun(UpdateSchoolGuideAdminMutation, { slug, input }, 'updateSchoolGuide');

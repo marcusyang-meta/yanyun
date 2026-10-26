@@ -187,6 +187,11 @@ export const ListPageTextQuery = graphql`
   query documentsListPageTextQuery($slug: String!, $tab: GroupingTab!) {
     viewer {
       commonUnknownErrorText
+      guild(slug: $slug) {
+        ... on Guild {
+          homeAdminLabel
+        }
+      }
     }
     groupingListPage(slug: $slug, tab: $tab) {
       newCarLabel
@@ -1293,5 +1298,276 @@ export const CreateGuildMutation = graphql`
         name
       }
     }
+  }
+`;
+
+/* Guild admin (replaces the retired gadmin pages; isomorphic with the
+   Web admin page). One query returns the whole admin surface when the
+   viewer may manage the guild; otherwise the Locked branch. All copy
+   is backend fields on the admin types. */
+
+export const GuildAdminQuery = graphql`
+  query documentsGuildAdminQuery($slug: String!) {
+    viewer {
+      commonUnknownErrorText
+      commonConfirmLabel
+      guildAdmin(slug: $slug) {
+        __typename
+        ... on GuildAdminLocked {
+          slug
+          adminLockedTitle
+          adminLockedBody
+          adminBackLinkLabel
+        }
+        ... on GuildAdmin {
+          slug
+          avatarUrl
+          adminTitle
+          adminBackLinkLabel
+          adminProfileTitle
+          adminNameLabel
+          adminAnnouncementLabel
+          adminSloganLabel
+          adminMasterLabel: adminMasterNameLabel
+          adminLogoLabel: adminLogoUrlLabel
+          adminBgLabel: adminBgImageUrlLabel
+          adminSaveLabel
+          adminSavedText
+          adminAvatarLabel: adminAvatarTitle
+          adminUploadAvatarLabel: adminAvatarUploadLabel
+          adminReplaceAvatarLabel: adminAvatarReplaceLabel
+          adminDeleteAvatarLabel: adminAvatarDeleteLabel
+          adminAvatarNoneText
+          adminDiscordTitle
+          adminWebhookLabel
+          adminWebhookSetText
+          adminWebhookUnsetText
+          adminWebhookClearLabel
+          adminDiscordIdLabel: adminGuildIdLabel
+          adminFeaturesTitle
+          adminFeatureFixedTeamsLabel: adminFixedTeamsLabel
+          adminVisibilityTitle
+          adminVisibilityLabel: adminDevOnlyLabel
+          adminTeamsTitle
+          adminTeamNameLabel
+          adminTeamDescLabel
+          adminTeamEmptyText
+          adminMemberNicknameLabel
+          adminMemberWeaponLabel
+          adminMemberNoteLabel
+          adminAddLabel
+          adminEditLabel
+          adminDeleteLabel
+          adminEventsTitle
+          adminEventEmptyText
+          adminEventTitleLabel
+          adminEventTypeLabel
+          adminEventTimeLabel
+          adminEventDungeonLabel
+          adminEventSlotsLabel
+          adminEventMeetLabel
+          adminEventDescLabel
+          adminEventStatusLabel
+          adminStatusOpenText
+          adminStatusClosedText
+          adminStatusCompletedText
+          adminStatusDraftText
+          adminExportCsvLabel
+          adminSignupsTitle
+          adminSignupEmptyText
+          adminRemoveSignupLabel
+          adminResultsTitle
+          adminResultTeamLabel
+          adminResultMembersLabel
+          adminResultTimeLabel
+          adminResultProofLabel
+          adminResultNoteLabel
+          adminGuidesTitle
+          adminGuidesHint
+          adminGuideSchoolLabel
+          adminGuideBuildLabel
+          adminGuideAttrLabel
+          adminGuideRateLabel
+          adminGuideBisLabel
+          adminGuideRotationLabel
+          adminTypeActivityText
+          adminTypeTalentText
+          adminTypeRaceText
+          adminTypeTowerText
+          name
+          announcement
+          slogan
+          masterName
+          logoUrl
+          bgImageUrl
+          discordGuildId
+          reminderWebhookSet
+          reminderWebhookId
+          featureFixedTeams
+          devOnly
+          adminTabProfileLabel
+          adminTabDiscordLabel
+          adminTabTeamsLabel
+          adminTabEventsLabel
+          adminTabGuidesLabel
+          fixedTeams {
+            id
+            name
+            description
+            members {
+              id
+              nickname
+              weapon
+              role
+              note
+            }
+          }
+          events {
+            id
+            title
+            type
+            status
+            origin
+            startsAtUtc
+            startsAtText
+            dungeon
+            maxSlots
+            meetInfo
+            description
+            signupCount
+            signups {
+              id
+              nickname
+              uid
+              role
+              weapon
+              contact
+              teamName
+              members
+              note
+              createdAt
+            }
+            results {
+              id
+              teamName
+              members
+              timeMs
+              timeText
+              proofUrl
+              note
+            }
+            signupsCsv
+          }
+          schoolGuides {
+            schools {
+              school
+              builds {
+                build
+                attr
+                rate
+                bisJson
+              }
+              rotationJson
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
+export const UpdateGuildProfileAdminMutation = graphql`
+  mutation documentsUpdateGuildProfileAdminMutation($slug: String!, $input: UpdateGuildProfileInput!) {
+    updateGuildProfile(slug: $slug, input: $input) { ok error }
+  }
+`;
+export const SetGuildAvatarAdminMutation = graphql`
+  mutation documentsSetGuildAvatarAdminMutation($slug: String!, $dataBase64: String!) {
+    setGuildAvatar(slug: $slug, dataBase64: $dataBase64) { ok error avatarUrl }
+  }
+`;
+export const DeleteGuildAvatarAdminMutation = graphql`
+  mutation documentsDeleteGuildAvatarAdminMutation($slug: String!) {
+    deleteGuildAvatar(slug: $slug) { ok error }
+  }
+`;
+export const UpdateGuildDiscordAdminMutation = graphql`
+  mutation documentsUpdateGuildDiscordAdminMutation($slug: String!, $input: UpdateGuildDiscordInput!) {
+    updateGuildDiscord(slug: $slug, input: $input) { ok error }
+  }
+`;
+export const UpdateGuildFeaturesAdminMutation = graphql`
+  mutation documentsUpdateGuildFeaturesAdminMutation($slug: String!, $fixedTeams: Boolean!) {
+    updateGuildFeatures(slug: $slug, fixedTeams: $fixedTeams) { ok error }
+  }
+`;
+export const UpdateGuildVisibilityAdminMutation = graphql`
+  mutation documentsUpdateGuildVisibilityAdminMutation($slug: String!, $devOnly: Boolean!) {
+    updateGuildVisibility(slug: $slug, devOnly: $devOnly) { ok error }
+  }
+`;
+export const CreateFixedTeamAdminMutation = graphql`
+  mutation documentsCreateFixedTeamAdminMutation($slug: String!, $input: CreateFixedTeamInput!) {
+    createFixedTeam(slug: $slug, input: $input) { ok error id }
+  }
+`;
+export const UpdateFixedTeamAdminMutation = graphql`
+  mutation documentsUpdateFixedTeamAdminMutation($slug: String!, $teamId: ID!, $input: UpdateFixedTeamInput!) {
+    updateFixedTeam(slug: $slug, teamId: $teamId, input: $input) { ok error }
+  }
+`;
+export const DeleteFixedTeamAdminMutation = graphql`
+  mutation documentsDeleteFixedTeamAdminMutation($slug: String!, $teamId: ID!) {
+    deleteFixedTeam(slug: $slug, teamId: $teamId) { ok error }
+  }
+`;
+export const AddFixedTeamMemberAdminMutation = graphql`
+  mutation documentsAddFixedTeamMemberAdminMutation($slug: String!, $teamId: ID!, $input: FixedTeamMemberInput!) {
+    addFixedTeamMember(slug: $slug, teamId: $teamId, input: $input) { ok error id }
+  }
+`;
+export const UpdateFixedTeamMemberAdminMutation = graphql`
+  mutation documentsUpdateFixedTeamMemberAdminMutation($slug: String!, $teamId: ID!, $memberId: ID!, $input: FixedTeamMemberInput!) {
+    updateFixedTeamMember(slug: $slug, teamId: $teamId, memberId: $memberId, input: $input) { ok error }
+  }
+`;
+export const DeleteFixedTeamMemberAdminMutation = graphql`
+  mutation documentsDeleteFixedTeamMemberAdminMutation($slug: String!, $teamId: ID!, $memberId: ID!) {
+    deleteFixedTeamMember(slug: $slug, teamId: $teamId, memberId: $memberId) { ok error }
+  }
+`;
+export const CreateAdminEventMutation = graphql`
+  mutation documentsCreateAdminEventMutation($slug: String!, $input: CreateAdminEventInput!) {
+    createAdminEvent(slug: $slug, input: $input) { ok error id }
+  }
+`;
+export const UpdateAdminEventMutation = graphql`
+  mutation documentsUpdateAdminEventMutation($slug: String!, $eventId: ID!, $input: UpdateAdminEventInput!) {
+    updateAdminEvent(slug: $slug, eventId: $eventId, input: $input) { ok error }
+  }
+`;
+export const DeleteAdminEventMutation = graphql`
+  mutation documentsDeleteAdminEventMutation($slug: String!, $eventId: ID!) {
+    deleteAdminEvent(slug: $slug, eventId: $eventId) { ok error }
+  }
+`;
+export const RemoveEventSignupAdminMutation = graphql`
+  mutation documentsRemoveEventSignupAdminMutation($slug: String!, $signupId: ID!) {
+    removeEventSignup(slug: $slug, signupId: $signupId) { ok error }
+  }
+`;
+export const AddEventResultAdminMutation = graphql`
+  mutation documentsAddEventResultAdminMutation($slug: String!, $eventId: ID!, $input: AddEventResultInput!) {
+    addEventResult(slug: $slug, eventId: $eventId, input: $input) { ok error id }
+  }
+`;
+export const DeleteEventResultAdminMutation = graphql`
+  mutation documentsDeleteEventResultAdminMutation($slug: String!, $resultId: ID!) {
+    deleteEventResult(slug: $slug, resultId: $resultId) { ok error }
+  }
+`;
+export const UpdateSchoolGuideAdminMutation = graphql`
+  mutation documentsUpdateSchoolGuideAdminMutation($slug: String!, $input: UpdateSchoolGuideInput!) {
+    updateSchoolGuide(slug: $slug, input: $input) { ok error }
   }
 `;
