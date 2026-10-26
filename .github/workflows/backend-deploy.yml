@@ -71,6 +71,18 @@ jobs:
             echo "::error::Merged tree differs from the PR-verified tree (master moved under the PR). Push to the branch so pr-backend re-verifies the updated tree, then merge again."
             exit 1
           fi
+      # Checkout must precede the artifact download: actions/checkout
+      # cleans the workspace, and when it ran after the download it wiped
+      # ci-artifact (backend-deploy run 40319126570 failed in sync-public
+      # with "dist index.html not found" — production was never touched).
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
       - name: Download the verified artifact
         uses: actions/download-artifact@v4
         with:
@@ -88,14 +100,6 @@ jobs:
             if (Number(m.pr) !== Number(process.env.PR_NUMBER)) { console.error(`manifest PR ${m.pr} != ${process.env.PR_NUMBER}`); process.exit(1); }
             console.log("manifest OK: sha and PR match");
           '
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.merge_commit_sha }}
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-          cache: npm
-      - run: npm ci
       - name: Record the current production version
         id: prev
         env:
