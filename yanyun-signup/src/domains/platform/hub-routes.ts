@@ -3,7 +3,10 @@
  * validate and orchestrate; all data goes through domain services. */
 import { Hono } from 'hono';
 import { json, err, s, getBody, rateLimit, bearerToken, checkToken, makeToken, sha256hex, timingSafeEqual, isDevRequestC, getDevOnlySlugs, restCheckedUser, TYPES, ROLES, RESERVED } from './http.ts';
-import { logError, recentErrors, translate, auditHub, listHubAuditPage } from './index.ts';
+import {
+  logError, recentErrors, translate, auditHub, listHubAuditPage,
+  streamBackupJson, runBackupToR2, listBackups, getBackupObject,
+} from './index.ts';
 import {
   getTenantRow, getTenantSlug, listTenantSlugs, listTenantsHubAdmin, deleteTenantCascade,
   getSettingValue, setSettingValue, listGlobalSettings, listNonEmptySettingsByKey, updateTenantWebhook, listSettingsByKey,
@@ -88,6 +91,50 @@ hubRoutes.get('/audit', async (c: any) => {
   const page = await listHubAuditPage(c.env.DB, { tenant, limit, offset });
   await audit(c, 'audit.view', tenant, { shown: page.entries.length, offset });
   return json({ ok: true, entries: page.entries, total: page.total });
+});
+
+/* ---------- Database backup (R2 snapshots + streaming export) ----------
+ * A backup file contains live secrets (OAuth refresh tokens, password
+ * hashes, webhook URLs): the bucket stays private, every path here is
+ * hub-authenticated, and exports/downloads leave audit rows. */
+hubRoutes.get('/backup/export', async (c: any) => {
+  const stamp = new Date().toISOString().slice(0, 19).replace(/[T:]/g, '-');
+  const stream = streamBackupJson(c.env.DB, async (counts) => {
+    const rows = Object.values(counts).reduce((a, b) => a + b, 0);
+    await audit(c, 'backup.export', '', { rows, entities: Object.keys(counts).length });
+  });
+  return new Response(stream, {
+    headers: {
+      'content-type': 'application/json',
+      'content-disposition': `attachment; filename="yanyun-backup-${stamp}.json"`,
+    },
+  });
+});
+
+hubRoutes.post('/backup/run', async (c: any) => {
+  if (!c.env.BACKUPS) return err('备份存储（R2 BACKUPS 绑定）未配置', 500);
+  const res = await runBackupToR2(c.env, 'manual');
+  await audit(c, 'backup.run', '', { key: res.key, rows: res.totalRows, bytes: res.bytes });
+  return json({ ok: true, backup: res });
+});
+
+hubRoutes.get('/backup/list', async (c: any) => {
+  if (!c.env.BACKUPS) return json({ ok: true, available: false, backups: [] });
+  return json({ ok: true, available: true, backups: await listBackups(c.env.BACKUPS) });
+});
+
+hubRoutes.get('/backup/download', async (c: any) => {
+  if (!c.env.BACKUPS) return err('备份存储（R2 BACKUPS 绑定）未配置', 500);
+  const key = s(c.req.query('key'), 120);
+  const obj = await getBackupObject(c.env.BACKUPS, key);
+  if (!obj) return err('备份不存在', 404);
+  await audit(c, 'backup.download', '', { key, bytes: obj.size });
+  return new Response(obj.body, {
+    headers: {
+      'content-type': 'application/json',
+      'content-disposition': `attachment; filename="${key.split('/').pop()}"`,
+    },
+  });
 });
 
 hubRoutes.delete('/tenants/:slug', async (c: any) => {
