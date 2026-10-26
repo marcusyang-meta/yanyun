@@ -1,0 +1,142 @@
+{
+ "src/domains/dex/graphql.ts": {
+  "max": 118,
+  "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context)"
+ },
+ "src/domains/dex/public-routes.ts": {
+  "max": 4,
+  "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary"
+ },
+ "src/domains/gear/gearplanner.ts": {
+  "max": 457,
+  "reason": "planner algorithm internals: loosely-typed computed gear structures cross function boundaries as any; narrowed at the GraphQL boundary"
+ },
+ "src/domains/gear/gearstore.ts": {
+  "max": 16,
+  "reason": "repository-adjacent gear row handling at the data edge"
+ },
+ "src/domains/gear/graphql.ts": {
+  "max": 363,
+  "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context)"
+ },
+ "src/domains/gear/heirloompush.ts": {
+  "max": 18,
+  "reason": "webhook payload assembly from computed gear results"
+ },
+ "src/domains/gear/tiaolv.ts": {
+  "max": 9,
+  "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary"
+ },
+ "src/domains/groupings/events.ts": {
+  "max": 1,
+  "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary"
+ },
+ "src/domains/groupings/graphql.ts": {
+  "max": 77,
+  "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context)"
+ },
+ "src/domains/groupings/grouping-routes.ts": {
+  "max": 30,
+  "reason": "REST legacy route handlers: parsed JSON bodies at the framework boundary"
+ },
+ "src/domains/groupings/guildhub.ts": {
+  "max": 10,
+  "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary"
+ },
+ "src/domains/groupings/reminder.ts": {
+  "max": 23,
+  "reason": "reminder payload construction from repository rows at the data edge"
+ },
+ "src/domains/groupings/rest-shared.ts": {
+  "max": 6,
+  "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary"
+ },
+ "src/domains/groupings/seathub.ts": {
+  "max": 10,
+  "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary"
+ },
+ "src/domains/groupings/signups.ts": {
+  "max": 1,
+  "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary"
+ },
+ "src/domains/guilds/admin-auth.ts": {
+  "max": 2,
+  "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary"
+ },
+ "src/domains/guilds/avatar-routes.ts": {
+  "max": 2,
+  "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary"
+ },
+ "src/domains/guilds/graphql.ts": {
+  "max": 49,
+  "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context)"
+ },
+ "src/domains/guilds/guild-routes.ts": {
+  "max": 34,
+  "reason": "REST legacy route handlers: parsed JSON bodies at the framework boundary"
+ },
+ "src/domains/guilds/guildavatar.ts": {
+  "max": 9,
+  "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary"
+ },
+ "src/domains/guilds/public-routes.ts": {
+  "max": 1,
+  "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary"
+ },
+ "src/domains/guilds/tenants.ts": {
+  "max": 1,
+  "reason": "repository row handling at the data edge"
+ },
+ "src/domains/identity/auth.ts": {
+  "max": 36,
+  "reason": "Discord OAuth payloads and JWT claims at the external boundary; narrowed immediately after parsing"
+ },
+ "src/domains/identity/graphql.ts": {
+  "max": 40,
+  "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context)"
+ },
+ "src/domains/platform/blocks.ts": {
+  "max": 10,
+  "reason": "block-tree composition values at the rendering boundary"
+ },
+ "src/domains/platform/context.ts": {
+  "max": 2,
+  "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary"
+ },
+ "src/domains/platform/error-log.ts": {
+  "max": 2,
+  "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary"
+ },
+ "src/domains/platform/graphql-base.ts": {
+  "max": 56,
+  "reason": "framework internals: dynamic prototype generation (defineTextGens) and shell source records (ShellBase.data)"
+ },
+ "src/domains/platform/graphql.ts": {
+  "max": 149,
+  "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context)"
+ },
+ "src/domains/platform/http.ts": {
+  "max": 11,
+  "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary"
+ },
+ "src/domains/platform/hub-routes.ts": {
+  "max": 50,
+  "reason": "hub portal edge: Hono request/response handling and JSON bodies at the framework boundary"
+ },
+ "src/domains/platform/i18n.ts": {
+  "max": 2,
+  "reason": "fbtee runtime interop: generated catalog access at the data edge"
+ },
+ "src/domains/platform/i18n/catalog.ts": {
+  "max": 3,
+  "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary"
+ },
+ "src/domains/platform/og.ts": {
+  "max": 5,
+  "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary"
+ },
+ "src/domains/platform/push.ts": {
+  "max": 18,
+  "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary"
+ }
+}
