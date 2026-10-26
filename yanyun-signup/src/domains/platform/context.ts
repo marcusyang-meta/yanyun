@@ -67,6 +67,7 @@ export interface Env {
   DISCORD_API_BASE?: string;
   EXPO_PUSH_BASE?: string;
   ADMIN_PASSWORD?: string;
+  BACKUPS?: R2Bucket;
 }
 
 /** Framework layer: raw infrastructure, assembly edges only. */

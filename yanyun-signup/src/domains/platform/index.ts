@@ -4,6 +4,8 @@ export * from './pushTokens.ts';
 export * from './errorLog.ts';
 export * from './hubAudit.ts';
 export * from './hub-audit.ts';
+export * from './backup.ts';
+export * from './backup-service.ts';
 export * from './i18n.ts';
 export * from './i18n/text.ts';
 export * from './blocks.ts';
