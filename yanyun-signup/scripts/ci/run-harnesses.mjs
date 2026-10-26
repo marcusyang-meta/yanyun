@@ -25,7 +25,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 // name -> baseline pass count at the time the pipeline was automated
 const SUITES = [
   ['avatar', 56], ['compliance', 61], ['daycomplete', 78], ['ennames', 299],
-  ['gear', 35], ['i18n', 134], ['identity', 61], ['manualfix', 47],
+  ['gear', 50], ['i18n', 134], ['identity', 61], ['manualfix', 47],
   ['remindercard', 43], ['tower', 38], ['laziness', 23],
 ];
 const onlyArg = (process.argv.find((a) => a.startsWith('--only=')) || '').slice(7);
