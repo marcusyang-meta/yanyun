@@ -113,7 +113,7 @@ async function fetchGuildAvatar(cache, slug) {
   try {
     const buf = await cachedFetchBytes(
       cache,
-      `${SITE_API}/api/guilds/${encodeURIComponent(slug)}/avatar`,
+      `${SITE_API}/guilds/${encodeURIComponent(slug)}/avatar`,
       { timeoutMs: 4000, cacheMaxAge: 3600 },
     );
     const mime = sniffImageMime(new Uint8Array(buf));
@@ -157,35 +157,26 @@ function sealElement(size = 88) {
 
 /* 百业数据: 返回 { name, slogan } / null (不存在 -> 404) / throw (基础设施
  * 故障 -> 上层兜底通用图, 绝不误判 404)。
- * 通道 1: GraphQL guildPage — 公开/未绑定百业直接有; 已绑定百业对匿名
- * 会抛错 (data=null), 落到通道 2。
- * 通道 2: /api/tenants 公开导航 — 含全部非 dev 百业的 guild_name/slogan,
- * 已绑定百业同样在列 (2026-10-25 起分享卡口径: 百业名公开)。 */
+ * 数据通道 = GraphQL ogGuildCard (公开卡面窄口): 百业名/标语本就
+ * 公开 (2026-10-25 分享卡口径), 已绑定百业同样可读; dev_only 百业
+ * 从非 dev 来源视为不存在。旧双通道 (guildPage + /api/tenants) 已
+ * 随产品 REST 关停迁走。 */
 async function fetchGuildData(slug) {
-  try {
-    const json = await fetchJson(`${SITE_API}/graphql`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        query: `
-          query($slug: String!) {
-            guildPage(slug: $slug) { name gameVersion }
-            hubPage { guilds { slug slogan } }
-          }
-        `,
-        variables: { slug },
-      }),
-    });
-    const gp = json.data?.guildPage || null;
-    if (gp && gp.name) {
-      const slogan = (json.data?.hubPage?.guilds || []).find((x) => x.slug === slug)?.slogan || '';
-      return { name: gp.name, slogan };
-    }
-  } catch { /* GraphQL 通道失败 -> 落到 tenants 通道 */ }
-  const tJson = await fetchJson(`${SITE_API}/api/tenants`);
-  const t = (tJson.tenants || []).find((x) => x.slug === slug);
-  if (!t) return null;
-  return { name: t.guild_name || slug, slogan: t.slogan || '' };
+  const json = await fetchJson(`${SITE_API}/graphql`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      query: `
+        query($slug: String!) {
+          ogGuildCard(slug: $slug) { exists name slogan }
+        }
+      `,
+      variables: { slug },
+    }),
+  });
+  const card = json.data?.ogGuildCard;
+  if (!card || !card.exists) return null;
+  return { name: card.name || slug, slogan: card.slogan || '' };
 }
 
 // 本周窗口: 周一 05:00 (北京时间) 起 7 天 — 与主站周逻辑同界
@@ -200,15 +191,24 @@ function weekWindowUtc() {
   return [startUtc, startUtc + 7 * 86400];
 }
 
-// 本周双十车队数: 走公开 REST (GraphQL groupingListPage 对已绑定百业
-// 匿名抛错, 不可用)。失败只让计数归零 (卡面降级为品牌句), 不拖垮整图。
+// 本周双十车队数: ogGuildCard.weekActivityCount (与旧 REST 周列表
+// 同谓词的服务端计数)。失败只让计数归零 (卡面降级为品牌句), 不拖垮整图。
 async function fetchTeamCount(slug) {
   try {
     const [from, to] = weekWindowUtc();
-    const json = await fetchJson(
-      `${SITE_API}/api/${encodeURIComponent(slug)}/events?from=${from}&to=${to}`
-    );
-    return (json.events || []).filter((e) => e.type === 'activity').length;
+    const json = await fetchJson(`${SITE_API}/graphql`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: `
+          query($slug: String!, $from: Int!, $to: Int!) {
+            ogGuildCard(slug: $slug) { weekActivityCount(fromUtc: $from, toUtc: $to) }
+          }
+        `,
+        variables: { slug, from, to },
+      }),
+    });
+    return json.data?.ogGuildCard?.weekActivityCount ?? 0;
   } catch {
     return 0;
   }
@@ -230,27 +230,34 @@ function formatCarTime(startsAt) {
   return `${week[d.getUTCDay()]} ${hh}:${mm}`;
 }
 
-/* 取车数据: 走公开 REST GET /api/:slug/events/:id — 该端点自身按
- * tenant 隔离 (WHERE id AND tenant), 跨会/不存在 -> 404, 不泄露;
- * GraphQL groupingDetailPage 对已绑定百业匿名抛错, 已弃用。
- * 只取卡面字段 (标题/类型/时间/副本/人数), 绝不取成员昵称上卡。
+/* 取车数据: 走 GraphQL ogCarCard (公开卡面窄口) — 服务端按 tenant
+ * 隔离取行, 跨会/不存在 -> null, 不泄露。只取卡面字段 (标题/类型/
+ * 时间/副本/人数), 绝不取成员昵称上卡。
  * 返回 grouping 对象 / null (车不存在) / throw (基础设施故障)。 */
 async function fetchGroupingData(slug, id) {
-  const res = await fetch(`${SITE_API}/api/${encodeURIComponent(slug)}/events/${encodeURIComponent(id)}`, {
-    signal: AbortSignal.timeout(5000),
+  const json = await fetchJson(`${SITE_API}/graphql`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      query: `
+        query($slug: String!, $id: ID!) {
+          ogCarCard(slug: $slug, id: $id) {
+            title type startsAtUtc dungeonName occupiedCount maxSlots status
+          }
+        }
+      `,
+      variables: { slug, id: String(id) },
+    }),
   });
-  if (res.status === 404) return null;
-  if (!res.ok) throw new Error(`events api -> ${res.status}`);
-  const json = await res.json();
-  const ev = json.event;
+  const ev = json.data?.ogCarCard;
   if (!ev) return null;
   return {
     title: ev.title || '',
     type: String(ev.type || '').toUpperCase(),
-    startsAt: ev.starts_at_utc ? String(ev.starts_at_utc) : '',
-    dungeon: ev.dungeon ? { name: ev.dungeon } : null,
-    occupiedCount: (json.signups || []).length,
-    maxSlots: ev.max_slots || 0,
+    startsAt: ev.startsAtUtc != null ? String(ev.startsAtUtc) : '',
+    dungeon: ev.dungeonName ? { name: ev.dungeonName } : null,
+    occupiedCount: ev.occupiedCount || 0,
+    maxSlots: ev.maxSlots || 0,
     status: ev.status || '',
   };
 }
@@ -656,12 +663,16 @@ export default {
   async scheduled(event, env, ctx) {
     ctx.waitUntil((async () => {
       try {
-        const res = await fetch(`${SITE_API}/api/tenants`);
+        const res = await fetch(`${SITE_API}/graphql`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: `{ ogGuildSlugs }` }),
+        });
         if (!res.ok) return;
         const json = await res.json();
-        for (const t of json.tenants || []) {
+        for (const slug of json.data?.ogGuildSlugs || []) {
           try {
-            await fetch(`https://yanyun-og.tbdlab.workers.dev/og/${encodeURIComponent(t.slug)}.png`);
+            await fetch(`https://yanyun-og.tbdlab.workers.dev/og/${encodeURIComponent(slug)}.png`);
           } catch { /* 单个百业预热失败不影响其他 */ }
         }
       } catch (e) {

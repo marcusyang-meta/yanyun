@@ -66,24 +66,27 @@ globalThis.fetch = async (url, opts = {}) => {
   if (u.includes('fonts.gstatic.com/s/mashanzheng')) return new Response(brushBytes.slice(0), { status: 200 });
   if (u.endsWith('/graphql')) {
     const body = JSON.parse(opts.body || '{}');
+    const q = body.query || '';
     const slug = body.variables?.slug;
-    if (slug === 'ghost') {
-      return Response.json({ data: { guildPage: null, hubPage: { guilds: [] } } });
+    if (q.includes('ogGuildSlugs')) {
+      return Response.json({ data: { ogGuildSlugs: ['test1'] } });
     }
-    return Response.json({
-      data: {
-        guildPage: { name: '测试一业', gameVersion: 'V2.3' },
-        hubPage: { guilds: [{ slug: 'test1', slogan: '同舟共济' }] },
-      },
-    });
+    if (q.includes('ogCarCard')) {
+      return Response.json({ data: { ogCarCard: null } });
+    }
+    if (q.includes('weekActivityCount')) {
+      // fixture 口径与旧 REST 列表桩一致: 2 activity + 1 talent -> 计数 2
+      return Response.json({ data: { ogGuildCard: { weekActivityCount: 2 } } });
+    }
+    if (q.includes('ogGuildCard')) {
+      if (slug === 'ghost') {
+        return Response.json({ data: { ogGuildCard: { exists: false, name: '', slogan: '' } } });
+      }
+      return Response.json({ data: { ogGuildCard: { exists: true, name: '测试一业', slogan: '同舟共济' } } });
+    }
+    throw new Error('unstubbed graphql: ' + q);
   }
-  if (u.endsWith('/api/tenants')) {
-    return Response.json({ tenants: [{ slug: 'test1', guild_name: '测试一业', slogan: '同舟共济' }] });
-  }
-  if (u.includes('/api/test1/events')) {
-    return Response.json({ events: [{ type: 'activity' }, { type: 'activity' }, { type: 'talent' }] });
-  }
-  if (u.includes('/api/guilds/test1/avatar')) {
+  if (u.includes('/guilds/test1/avatar')) {
     if (state.avatarMode === 'on') {
       return new Response(avatarBytes.slice(0), { status: 200, headers: { 'Content-Type': 'image/png' } });
     }
@@ -133,7 +136,7 @@ if (process.env.OG_BASELINE_HASH) {
 /* ---------- 场景 2: 有头像 ---------- */
 state.avatarMode = 'on';
 clearRenderCache();
-cacheStore.delete('https://yanyun.tbdlab.workers.dev/api/guilds/test1/avatar');
+cacheStore.delete('https://yanyun.tbdlab.workers.dev/guilds/test1/avatar');
 const withAvatar = await ogGet('/og/test1.png');
 eq('有头像 -> 200', withAvatar.res.status, 200);
 eq('有头像 content-type', withAvatar.res.headers.get('content-type'), 'image/png');
@@ -161,7 +164,7 @@ console.log(`TIMING  暖渲染 median: 无头像 ${median([...warmNoAvatar]).toF
 /* ---------- 场景 3: 头像拉取失败 -> 当无头像渲染 ---------- */
 state.avatarMode = 'fail';
 clearRenderCache();
-cacheStore.delete('https://yanyun.tbdlab.workers.dev/api/guilds/test1/avatar');
+cacheStore.delete('https://yanyun.tbdlab.workers.dev/guilds/test1/avatar');
 const failRes = await ogGet('/og/test1.png');
 eq('头像拉取失败 -> 200', failRes.res.status, 200);
 eq('头像拉取失败输出 = 无头像输出', await sha256hex(failRes.buf), noAvatarHash);
