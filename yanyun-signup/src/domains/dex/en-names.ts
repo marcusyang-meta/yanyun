@@ -12,7 +12,7 @@
 export const EN_NAMES_VERSION = "names-2026-10-25";
 
 // 副本 (键 = D1 dungeons.name; 极难档为独立的 `·极` 后缀行)
-export const EN_DUNGEONS = {
+export const EN_DUNGEONS: Record<string, string> = {
   "玉魄染青苍": "Liminal Ascension",
   "点雪断恩仇": "Snowfall's Reckoning",
   "笑渡苦行舟": "Carnival Voyage",
@@ -41,7 +41,7 @@ export const EN_DUNGEONS = {
 };
 
 // 首领 (键 = D1 bosses.name)
-export const EN_BOSSES = {
+export const EN_BOSSES: Record<string, string> = {
   "柏楚玉": "Bai Chuyu",
   "青": "Halcyon",
   "郑鄂": "Zheng E",
@@ -80,7 +80,7 @@ export const EN_BOSSES = {
 };
 
 // 流派 (键 = 规范名 `·` 形, 如 鸣金·虹)
-export const EN_PATHS = {
+export const EN_PATHS: Record<string, string> = {
   "鸣金·虹": "Bellstrike - Splendor",
   "鸣金·影": "Bellstrike - Umbra",
   "牵丝·玉": "Silkbind - Jade",
@@ -96,7 +96,7 @@ export const EN_PATHS = {
 
 // 学校 (键 = 鸣金/牵丝/裂石/破竹; 无相不收录: 客户端攻击族作 Void、
 // 定音作 Formless, 由上下文决定, 见 enAffixSys)
-export const EN_SCHOOLS = {
+export const EN_SCHOOLS: Record<string, string> = {
   "鸣金": "Bellstrike",
   "牵丝": "Silkbind",
   "裂石": "Stonesplit",
@@ -104,7 +104,7 @@ export const EN_SCHOOLS = {
 };
 
 // 武学 (键 = 中文武学名)
-export const EN_MARTIAL_ARTS = {
+export const EN_MARTIAL_ARTS: Record<string, string> = {
   "无名剑法": "Nameless Sword",
   "无名枪法": "Nameless Spear",
   "积矩九剑": "Strategic Sword",
@@ -124,7 +124,7 @@ export const EN_MARTIAL_ARTS = {
 };
 
 // 词条 + 定音串 (键 = 中文全名; 定音客户端串逐字照抄, 不规范化)
-export const EN_AFFIXES = {
+export const EN_AFFIXES: Record<string, string> = {
   "大外功": "Max Physical Attack",
   "小外功": "Min Physical Attack",
   "最大鸣金攻击": "Max Bellstrike Attack",
@@ -168,7 +168,7 @@ export const EN_AFFIXES = {
 };
 
 // 装备套装 (键 = 中文套装名, 单套; 组合套在 enGearSetName 里拆分处理)
-export const EN_GEAR_SETS = {
+export const EN_GEAR_SETS: Record<string, string> = {
   "玉斗": "Jadeware",
   "飞隼": "Hawkwing",
   "烟柳": "Veil of the Willow",
@@ -185,7 +185,7 @@ export const EN_GEAR_SETS = {
 // 词条类短标签 (targets.label / GP_CLASS_LABEL 的值) → 官方 EN。
 // 这些短名本身不是客户端串, 取其对应词条全名的官方 EN; 玩家 (玩家增伤
 // 无官方源) 与 属攻（本系/无相）(planner 内部复合标签) 故意不收 → 回退中文。
-export const EN_CLASS_LABELS = {
+export const EN_CLASS_LABELS: Record<string, string> = {
   '大外': 'Max Physical Attack',
   '小外': 'Min Physical Attack',
   '体': 'Body',
@@ -205,19 +205,19 @@ export const EN_CLASS_LABELS = {
 /* ---------- 解析助手 (显示层专用) ---------- */
 // 覆盖层适用 locale: en/es/fr — 其余 (zh-CN/zh-TW 及未知值) 一律原样。
 const EN_OVERLAY_LOCALES = new Set(['en', 'es', 'fr']);
-export function enOverlayOn(locale) { return EN_OVERLAY_LOCALES.has(locale || ''); }
+export function enOverlayOn(locale: string | null | undefined) { return EN_OVERLAY_LOCALES.has(locale || ''); }
 
-function pick(locale, map, zh) {
+function pick(locale: string | null | undefined, map: Record<string, string>, zh: string | null | undefined) {
   if (!enOverlayOn(locale) || zh == null) return zh;
   const en = map[zh];
   return en !== undefined ? en : zh;
 }
 
-export function enDungeonName(locale, zh) { return pick(locale, EN_DUNGEONS, zh); }
-export function enBossName(locale, zh) { return pick(locale, EN_BOSSES, zh); }
-export function enAffixName(locale, zh) { return pick(locale, EN_AFFIXES, zh); }
-export function enMartialArtName(locale, zh) { return pick(locale, EN_MARTIAL_ARTS, zh); }
-export function enClassLabel(locale, zh) {
+export function enDungeonName(locale: string | null | undefined, zh: string | null | undefined) { return pick(locale, EN_DUNGEONS, zh); }
+export function enBossName(locale: string | null | undefined, zh: string | null | undefined) { return pick(locale, EN_BOSSES, zh); }
+export function enAffixName(locale: string | null | undefined, zh: string | null | undefined) { return pick(locale, EN_AFFIXES, zh); }
+export function enMartialArtName(locale: string | null | undefined, zh: string | null | undefined) { return pick(locale, EN_MARTIAL_ARTS, zh); }
+export function enClassLabel(locale: string | null | undefined, zh: string | null | undefined) {
   if (!enOverlayOn(locale) || zh == null) return zh;
   const en = EN_CLASS_LABELS[zh] !== undefined ? EN_CLASS_LABELS[zh] : EN_AFFIXES[zh];
   return en !== undefined ? en : zh;
@@ -225,7 +225,7 @@ export function enClassLabel(locale, zh) {
 
 // 属攻系名 (GP_AFFIX.sys): 学校名; 无相在攻击词条族里客户端作 Void
 // (定音族作 Formless 已逐字收录在 EN_AFFIXES 的定音串中, 不走这里)。
-export function enAffixSys(locale, sys) {
+export function enAffixSys(locale: string | null | undefined, sys: string | null | undefined) {
   if (!enOverlayOn(locale) || sys == null) return sys;
   if (EN_SCHOOLS[sys] !== undefined) return EN_SCHOOLS[sys];
   if (sys === '无相') return 'Void';
@@ -238,7 +238,7 @@ export function enAffixSys(locale, sys) {
 // 的武器变体)。注记本身无官方 EN → 原样保留在 EN 名之后 (回退约定),
 // 保证不同变体在 EN 下仍可区分 (前端按 school 串相等匹配定音行时,
 // 同一函数同口径本地化, 等式关系不变)。
-export function enBuildSchool(locale, zh) {
+export function enBuildSchool(locale: string | null | undefined, zh: string | null | undefined) {
   if (!enOverlayOn(locale) || zh == null) return zh;
   if (EN_PATHS[zh] !== undefined) return EN_PATHS[zh];
   let base = String(zh);
@@ -258,7 +258,7 @@ export function enBuildSchool(locale, zh) {
 
 // 流派显示名: 先规范名直查, 再走变体解析 (座位 weapon 存的是规范名,
 // 这里只是对历史/变体写法的兜底)。
-export function enSectName(locale, zh) {
+export function enSectName(locale: string | null | undefined, zh: string | null | undefined) {
   if (!enOverlayOn(locale) || zh == null) return zh;
   if (EN_PATHS[zh] !== undefined) return EN_PATHS[zh];
   return enBuildSchool(locale, zh);
@@ -266,7 +266,7 @@ export function enSectName(locale, zh) {
 
 // 套装名: 支持 `时雨+易相` 组合与 `（高级版）` 后缀; 逐件查表, 查不到
 // 的件原样保留 (如 撼天 无官方源)。
-export function enGearSetName(locale, zh) {
+export function enGearSetName(locale: string | null | undefined, zh: string | null | undefined) {
   if (!enOverlayOn(locale) || zh == null) return zh;
   return String(zh).split('+').map((part) => {
     const t = part.trim();

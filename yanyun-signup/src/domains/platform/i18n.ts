@@ -15,7 +15,7 @@ export const SUPPORTED_LOCALES = ['zh-CN', 'en', 'es', 'fr', 'zh-TW'];
 
 // 语言协商: 请求头 x-locale (浏览器 navigator.language) -> 支持的 locale。
 // zh-TW/zh-HK/zh-Hant* -> zh-TW; en* -> en; es* -> es; fr* -> fr; 其余 zh-CN。
-export function negotiateLocale(raw) {
+export function negotiateLocale(raw: any) {
   const v = String(raw || '').trim().toLowerCase();
   if (!v) return SOURCE_LOCALE;
   const first = v.split(',')[0].trim();
@@ -32,13 +32,13 @@ export function negotiateLocale(raw) {
 /* 惰性验证探针 (默认关): 开启后 translate 记录每个 (section.field) 的调用
  * 次数, 供本地 harness 证明 "未选中的 gen 方法永不被调用、选中字段每
  * 请求只生成一次 (shell memo)"。生产恒关, 仅一次布尔判断开销。 */
-export const i18nProbe = {
+export const i18nProbe: { enabled: boolean; counts: Map<string, number>; reset(): void } = {
   enabled: false,
   counts: new Map(),
   reset() { this.counts = new Map(); },
 };
 
-export function translate(section, field, locale, params) {
+export function translate(section: string, field: string, locale: string, params?: Record<string, any>) {
   if (i18nProbe.enabled) {
     const k = section + '.' + field;
     i18nProbe.counts.set(k, (i18nProbe.counts.get(k) || 0) + 1);
@@ -55,7 +55,7 @@ export function translate(section, field, locale, params) {
 }
 
 /* ================= 文案目录 ================= */
-export const CATALOG = {
+export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
   /* ---------- 通用 ---------- */
   common: {
     cancel: { 'zh-CN': '取消', en: 'Cancel', es: 'Cancelar', fr: 'Annuler', 'zh-TW': '取消' },
@@ -729,7 +729,6 @@ export const CATALOG = {
     loginRequiredShort: { 'zh-CN': '请先登录 Discord', en: 'Please sign in with Discord', es: 'Inicia sesión con Discord', fr: 'Connectez-vous avec Discord', 'zh-TW': '請先登入 Discord' },
     localeUnsupported: { 'zh-CN': '不支持的语言', en: 'Unsupported language', es: 'Idioma no compatible', fr: 'Langue non prise en charge', 'zh-TW': '不支援的語言' },
     pushTokenInvalid: { 'zh-CN': '推送令牌无效', en: 'Invalid push token', es: 'Token de notificaciones no válido', fr: 'Jeton de notification invalide', 'zh-TW': '推送令牌無效' },
-    loginRequiredShort: { 'zh-CN': '请先登录 Discord', en: 'Please sign in with Discord', es: 'Inicia sesión con Discord', fr: 'Connectez-vous avec Discord', 'zh-TW': '請先登入 Discord' },
     guildUnboundWrite: { 'zh-CN': '该百业尚未绑定 Discord 服务器，写功能已锁定', en: 'This guild is not bound to a Discord server yet — writing is locked', es: 'Este gremio aún no está vinculado a un servidor de Discord: la escritura está bloqueada', fr: 'Cette guilde n’est pas encore liée à un serveur Discord — l’écriture est verrouillée', 'zh-TW': '該百業尚未綁定 Discord 伺服器，寫入功能已鎖定' },
     memberOnly: { 'zh-CN': '只有该百业 Discord 服务器的成员可以操作', en: 'Only members of this guild’s Discord server can do this', es: 'Solo los miembros del servidor de Discord de este gremio pueden hacer esto', fr: 'Seuls les membres du serveur Discord de cette guilde peuvent faire cela', 'zh-TW': '只有該百業 Discord 伺服器的成員可以操作' },
     memberOnlyView: { 'zh-CN': '该百业仅对 Discord 服务器成员开放', en: 'This guild is open only to members of its Discord server', es: 'Este gremio solo está abierto a los miembros de su servidor de Discord', fr: 'Cette guilde est réservée aux membres de son serveur Discord', 'zh-TW': '該百業僅對 Discord 伺服器成員開放' },

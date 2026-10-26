@@ -11,19 +11,19 @@
  * (积木保留、不可点)。GraphQL schema 是契约本体, 此注册表只负责
  * "老客户端安全降级"这一件事。 */
 export const BLOCK_VOCAB_MAX = 4;
-export const BLOCK_TYPE_SINCE = {
+export const BLOCK_TYPE_SINCE: Record<string, number> = {
   FallbackBlock: 0,
   SectionBlock: 1, SectionHeaderBlock: 1, TextBlock: 1, GroupingCardBlock: 1,
   SeatGridBlock: 1, ActionButtonBlock: 1, EmptyStateBlock: 1, SpacerBlock: 1,
   BannerBlock: 2, ChipRowBlock: 2,
 };
-export const ACTION_TYPE_SINCE = {
+export const ACTION_TYPE_SINCE: Record<string, number> = {
   NavigateAction: 1, JoinAction: 1, LeaveAction: 1, DisbandAction: 1,
   EditAction: 3,
   CompleteAction: 4, UncompleteAction: 4,
 };
 
-export function clampBlocksVersion(v) {
+export function clampBlocksVersion(v: any) {
   const n = parseInt(v, 10);
   if (!Number.isFinite(n) || n < 1) return 1;
   return Math.min(n, BLOCK_VOCAB_MAX);
@@ -32,8 +32,8 @@ export function clampBlocksVersion(v) {
 // 对已组合的积木 shell 数组做版本替代 (递归进 children)。shell 鸭子
 // 类型: { __typename, _children: [], _action: shell|null }。座位条目里的
 // 动作 (SeatEntry.action) 按构造恒为 v1 动作, 不在本走查范围内。
-export function substituteForVersion(blocks, version, makeFallback) {
-  const out = [];
+export function substituteForVersion(blocks: any, version: number, makeFallback: () => any) {
+  const out: any[] = [];
   for (const b of blocks || []) {
     const since = BLOCK_TYPE_SINCE[b.__typename];
     if (since != null && since > version) { out.push(makeFallback()); continue; }
@@ -52,7 +52,7 @@ export function substituteForVersion(blocks, version, makeFallback) {
 /* ---------- 时间/周界 (与网站同口径) ---------- */
 // 周窗: 周一 05:00 (北京时间) 起, 左闭右开 [start, start+7d) — 与
 // worker.js ogWeekWindowUtc 同一算法, weekOffset 平移整周。
-export function weekWindowUtc(weekOffset = 0) {
+export function weekWindowUtc(weekOffset = 0): [number, number] {
   const now = Math.floor(Date.now() / 1000);
   const cst = now + 8 * 3600;
   const d = new Date(cst * 1000);
@@ -64,7 +64,7 @@ export function weekWindowUtc(weekOffset = 0) {
 }
 
 // events 行 -> epoch 秒 (starts_at_utc 优先; 文本按网站 parseStartsAt 语义)
-export function startsAtEpoch(ev) {
+export function startsAtEpoch(ev: any) {
   if (ev.starts_at_utc != null && ev.starts_at_utc !== '') {
     const n = Number(ev.starts_at_utc);
     if (Number.isFinite(n) && n > 0) return n;
@@ -78,13 +78,13 @@ export function startsAtEpoch(ev) {
   return Number.isNaN(ms) ? null : Math.floor(ms / 1000);
 }
 
-const _fmtCache = new Map();
-export function fmtStartsAt(epochSec, locale, tz) {
+const _fmtCache = new Map<string, Intl.DateTimeFormat>();
+export function fmtStartsAt(epochSec: number, locale: string, tz?: string) {
   const zone = tz || 'Asia/Shanghai';
   const key = `${locale}|${zone}`;
   let fmt = _fmtCache.get(key);
   if (!fmt) {
-    const opts = {
+    const opts: Intl.DateTimeFormatOptions = {
       month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit',
       hourCycle: 'h23', weekday: 'short', timeZone: zone,
     };
@@ -100,17 +100,17 @@ export function fmtStartsAt(epochSec, locale, tz) {
  * 查看者本地时区 (tz, 缺省 Asia/Shanghai 与 fmtStartsAt 同口径) 的自然日
  * 分组: 组按日期升序、组内按出发时刻升序。localDayParts 给出某时刻在
  * tz 下的年/月/日与星期序号 (0=周日, 与 JS getDay 对齐, 供目录 weekday0..6 取名)。 */
-const _dayFmtCache = new Map();
-export function localDayParts(epochSec, tz) {
+const _dayFmtCache = new Map<string, Intl.DateTimeFormat>();
+export function localDayParts(epochSec: number, tz?: string) {
   const zone = tz || 'Asia/Shanghai';
   let fmt = _dayFmtCache.get(zone);
   if (!fmt) {
-    const opts = { year: 'numeric', month: 'numeric', day: 'numeric', timeZone: zone };
+    const opts: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'numeric', day: 'numeric', timeZone: zone };
     try { fmt = new Intl.DateTimeFormat('en-US', opts); }
     catch { fmt = new Intl.DateTimeFormat('en-US', { ...opts, timeZone: 'Asia/Shanghai' }); }
     _dayFmtCache.set(zone, fmt);
   }
-  const parts = {};
+  const parts: Record<string, string> = {};
   for (const p of fmt.formatToParts(new Date(epochSec * 1000))) parts[p.type] = p.value;
   const year = Number(parts.year), month = Number(parts.month), day = Number(parts.day);
   const weekday = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
@@ -120,10 +120,10 @@ export function localDayParts(epochSec, tz) {
 // 已带 epoch 的车队条目 [{g, ts}] -> [{ parts, items:[...] }] (日期升序,
 // 组内时刻升序)。ts 单调不减时本地日也单调不减, 一趟分组即可; 这里先按
 // ts 排序再分桶, 不依赖调用方的入序。
-export function groupByLocalDay(items, tz) {
+export function groupByLocalDay(items: Array<{ ts: number } & Record<string, any>>, tz?: string) {
   const sorted = [...items].sort((a, b) => a.ts - b.ts);
-  const groups = [];
-  let cur = null;
+  const groups: Array<{ parts: any; items: any[] }> = [];
+  let cur: { parts: any; items: any[] } | null = null;
   for (const it of sorted) {
     const parts = localDayParts(it.ts, tz);
     if (!cur || cur.parts.key !== parts.key) { cur = { parts, items: [] }; groups.push(cur); }
@@ -133,7 +133,7 @@ export function groupByLocalDay(items, tz) {
 }
 
 // events.type -> groupingType 目录短名 key
-export const TYPE_SHORT_KEY = {
+export const TYPE_SHORT_KEY: Record<string, string> = {
   activity: 'shortActivity', talent: 'shortTalent', race: 'shortRace', tower: 'shortTower',
   gather: 'shortGather', explore: 'shortExplore',
 };

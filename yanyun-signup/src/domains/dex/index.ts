@@ -4,3 +4,4 @@
 export * from './dungeons.ts';
 export * from './bosses.ts';
 export * from './reference.ts';
+export * from './en-names.ts';

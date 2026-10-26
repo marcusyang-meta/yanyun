@@ -2,7 +2,7 @@
 // (2) 匿名无库; (3) 导入自动选入; (4) 方案快照服务端计算; (5) gear 文案矩阵
 // (目录级 189×5 + GraphQL 级全字段双语解析); (6) GraphQL 计算冒烟与引擎直算一致。
 import { yoga } from '../src/graphql.js';
-import { CATALOG, translate } from '../src/i18n.js';
+import { CATALOG, translate } from '../src/domains/platform/i18n.ts';
 import * as GP from '../src/gearplanner.js';
 
 let pass = 0, fail = 0; const fails = [];

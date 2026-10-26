@@ -9,7 +9,7 @@
 // 与功能块拼树 (genBlocks) 同源同数据 — 权限仍由「服务端给谁什么树」
 // 决定, 解释器只画树, 不做任何表面/权限选择。
 //
-import { getSettingValue } from './domains/guilds/index.ts';
+import { getSettingValue } from '../guilds/index.ts';
 
 // 线格式 (冻结词汇 v1, 节点短键 t/s/c/x/a):
 //   col  {t,s?,gap?,c}      纵向 flex 容器 (带样式的单子容器也是它)
@@ -42,7 +42,7 @@ export const PRIM_ACTION_TYPES = [
   'nav', 'join', 'leave', 'disband', 'edit', 'complete', 'uncomplete', 'copy', 'url',
 ];
 
-export function clampPrimitivesVersion(v) {
+export function clampPrimitivesVersion(v: any) {
   const n = parseInt(v, 10);
   if (!Number.isFinite(n) || n < 1) return 0;
   return Math.min(n, PRIMITIVES_VOCAB_MAX);
@@ -53,16 +53,16 @@ export function clampPrimitivesVersion(v) {
  * value='1' 才开; 缺省 = 关 (默认 OFF)。另有全局急停: tenant='',
  * key='primitives_global_off'='1' 时全部百业强制关 (回滚免发版)。
  * 开关经超管 portal 的 /api/hub/primitives 端点翻动。 */
-async function getSetting(db, tenant, key) {
+async function getSetting(db: D1Database, tenant: string, key: string) {
   return getSettingValue(db, tenant, key);
 }
 
-export async function primEnabled(db, slug, page) {
+export async function primEnabled(db: D1Database, slug: string, page: string) {
   if ((await getSetting(db, '', 'primitives_global_off')) === '1') return false;
   return (await getSetting(db, slug, page === 'detail' ? 'primitives_detail' : 'primitives_list')) === '1';
 }
 
-export async function primSwitchState(db, slug) {
+export async function primSwitchState(db: D1Database, slug: string) {
   return {
     list: (await getSetting(db, slug, 'primitives_list')) === '1',
     detail: (await getSetting(db, slug, 'primitives_detail')) === '1',
@@ -74,20 +74,20 @@ export async function primSwitchState(db, slug) {
  * nav/join/edit/uncomplete 直达; leave/disband/complete 先确认 (文案四件套
  * 随动作下发, 与 LeaveAction 等对象同源); copy/url 为展示面扩展的两个
  * 通用动作 (喊话复制 / 外链打开), 本期核心面未用, 词汇先行冻结。 */
-export const primNav = (d) => ({
+export const primNav = (d: any) => ({
   t: 'nav', slug: d.slug, groupingId: d.groupingId, name: d.name,
   readOnly: !!d.readOnly, nick: d.nick || '',
 });
-export const primJoin = (d) => ({ t: 'join', groupingId: d.groupingId, seatIndex: d.seatIndex });
-export const primEdit = (d) => ({ t: 'edit', groupingId: d.groupingId });
-export const primUncomplete = (d) => ({ t: 'uncomplete', groupingId: d.groupingId });
-const withConfirm = (t, d) => ({
+export const primJoin = (d: any) => ({ t: 'join', groupingId: d.groupingId, seatIndex: d.seatIndex });
+export const primEdit = (d: any) => ({ t: 'edit', groupingId: d.groupingId });
+export const primUncomplete = (d: any) => ({ t: 'uncomplete', groupingId: d.groupingId });
+const withConfirm = (t: string, d: any) => ({
   t, groupingId: d.groupingId,
   confirmTitle: d.confirmTitle, confirmMessage: d.confirmMessage,
   okLabel: d.okLabel, cancelLabel: d.cancelLabel,
 });
-export const primLeave = (d) => ({ ...withConfirm('leave', d), uid: d.uid });
-export const primDisband = (d) => withConfirm('disband', d);
-export const primComplete = (d) => withConfirm('complete', d);
-export const primCopy = (d) => ({ t: 'copy', text: d.text });
-export const primUrl = (d) => ({ t: 'url', url: d.url });
+export const primLeave = (d: any) => ({ ...withConfirm('leave', d), uid: d.uid });
+export const primDisband = (d: any) => withConfirm('disband', d);
+export const primComplete = (d: any) => withConfirm('complete', d);
+export const primCopy = (d: any) => ({ t: 'copy', text: d.text });
+export const primUrl = (d: any) => ({ t: 'url', url: d.url });

@@ -5,17 +5,17 @@ import { typeDefs } from './graphql-schema.js';
 import {
   clampBlocksVersion, substituteForVersion, weekWindowUtc, startsAtEpoch,
   fmtStartsAt, groupByLocalDay, TYPE_SHORT_KEY, HEALER_SECT,
-} from './blocks.js';
+} from './domains/platform/index.ts';
 import {
   clampPrimitivesVersion, primEnabled, primNav, primJoin, primEdit,
   primUncomplete, primLeave, primDisband, primComplete,
-} from './prim.js';
-import { tlCalculateExcel } from './tiaolv.js';
+} from './domains/platform/index.ts';
+import { tlCalculateExcel } from './domains/gear/index.ts';
 import { getUserServers, getGuildNick, maybeRefreshGuildNicks, getUserLocalePref, setUserLocalePref } from './auth.js';
 import { ensureSignupDiscordColumn, ensureGuildMembersTable, upsertGuildMember } from './reminder.ts';
 import { ensurePushTokensTable, isValidPushToken, savePushToken, deletePushToken } from './push.js';
 import { evaluateHeirloomPushes } from './heirloompush.js';
-import { translate, negotiateLocale, SUPPORTED_LOCALES, CATALOG } from './i18n.js';
+import { translate, negotiateLocale, SUPPORTED_LOCALES, CATALOG } from './domains/platform/index.ts';
 import { logError } from './errorlog.js';
 import { getGuildAvatarMeta, avatarPath } from './guildavatar.ts';
 import { getSettingValue, setSettingValue, listSettingsByKey } from './domains/guilds/index.ts';
@@ -60,7 +60,7 @@ import {
 import {
   enDungeonName, enBossName, enSectName, enBuildSchool, enAffixName,
   enAffixSys, enMartialArtName, enClassLabel, enGearSetName,
-} from './en-names.js';
+} from './domains/dex/index.ts';
 
 export { negotiateLocale };
 

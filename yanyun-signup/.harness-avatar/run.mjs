@@ -4,7 +4,7 @@
 // webhook 发送身份 / OG 卡面绘入。FakeDB 按 SQL 形状路由, guild_avatars
 // 真落内存表; REST 走真 worker.fetch, GraphQL 走真 yoga。
 import { yoga } from '../src/graphql.js';
-import { CATALOG } from '../src/i18n.js';
+import { CATALOG } from '../src/domains/platform/i18n.ts';
 import {
   AVATAR_MAX_BYTES, sniffAvatarType, webhookIdentity, avatarPublicUrl,
   putGuildAvatar, deleteGuildAvatar,

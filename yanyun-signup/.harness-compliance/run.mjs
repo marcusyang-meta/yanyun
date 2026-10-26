@@ -12,7 +12,7 @@
 // FakeDB 按 SQL 形状路由, error_log 与 tenants 更新真落内存表。
 import { yoga } from '../src/graphql.js';
 import { typeDefs } from '../src/graphql-schema.js';
-import { CATALOG } from '../src/i18n.js';
+import { CATALOG } from '../src/domains/platform/i18n.ts';
 import { logError, recentErrors } from '../src/errorlog.js';
 
 let pass = 0, fail = 0; const fails = [];
