@@ -1,4 +1,5 @@
 /* gear domain GraphQL: gear-planner/tiaolv shells and all gear mutations/calculations. */
+import type { Context } from '../platform/context.ts';
 import {
   clampBlocksVersion, substituteForVersion, weekWindowUtc, startsAtEpoch,
   fmtStartsAt, groupByLocalDay, TYPE_SHORT_KEY, HEALER_SECT,
@@ -491,22 +492,22 @@ export const GEAR_TEXT_RESOLVERS = defineTextGens(GradPageShell, [
 
 export const gearResolvers = {
   Query: {
-    gradPage: (_: any, __: any, ctx: any) => new GradPageShell(ctx, {}),
+    gradPage: (_: any, __: any, ctx: Context) => new GradPageShell(ctx, {}),
 
     // Gear library: only the caller's own (anonymous callers have no library -> empty)
-    myGearItems: async (_: any, __: any, ctx: any) => {
+    myGearItems: async (_: any, __: any, ctx: Context) => {
       if (!ctx.user) return [];
       return listGearItems(ctx.env.DB, ctx.user.discordId);
     },
-    myGearBuilds: async (_: any, __: any, ctx: any) => {
+    myGearBuilds: async (_: any, __: any, ctx: Context) => {
       if (!ctx.user) return [];
       return listGearBuilds(ctx.env.DB, ctx.user.discordId);
     },
 
-    tiaolvPage: (_: any, __: any, ctx: any) => new TiaolvPageShell(ctx, {}),
+    tiaolvPage: (_: any, __: any, ctx: Context) => new TiaolvPageShell(ctx, {}),
   },
   Mutation: {
-    gearPlan: async (_: any, { input }: any, ctx: any) => {
+    gearPlan: async (_: any, { input }: any, ctx: Context) => {
       if (!rateLimit('mut:gearplan:' + getClientIp(ctx.request), 20)) {
         throw new Error(errText(ctx, 'rateLimited'));
       }
@@ -548,7 +549,7 @@ export const gearResolvers = {
       };
     },
 
-    gearAutoCombine: async (_: any, { targetIdx, lib }: any, ctx: any) => {
+    gearAutoCombine: async (_: any, { targetIdx, lib }: any, ctx: Context) => {
       if (!rateLimit('mut:gearauto:' + getClientIp(ctx.request), 20)) {
         throw new Error(errText(ctx, 'rateLimited'));
       }
@@ -563,7 +564,7 @@ export const gearResolvers = {
       };
     },
 
-    gearParsePaste: async (_: any, { text }: any, ctx: any) => {
+    gearParsePaste: async (_: any, { text }: any, ctx: Context) => {
       if (!rateLimit('mut:gearpaste:' + getClientIp(ctx.request), 20)) {
         throw new Error(errText(ctx, 'rateLimited'));
       }
@@ -574,7 +575,7 @@ export const gearResolvers = {
       };
     },
 
-    gearQuickCalc: async (_: any, { input }: any, ctx: any) => {
+    gearQuickCalc: async (_: any, { input }: any, ctx: Context) => {
       if (!rateLimit('mut:gearquick:' + getClientIp(ctx.request), 30)) {
         throw new Error(errText(ctx, 'rateLimited'));
       }
@@ -582,7 +583,7 @@ export const gearResolvers = {
     },
 
     // ---- Gear-library writes (session re-verified + scoped by discord_id; other users' rows count as nonexistent) ----
-    addGearItem: async (_: any, { input }: any, ctx: any) => {
+    addGearItem: async (_: any, { input }: any, ctx: Context) => {
       if (!ctx.user) return { ok: false, item: null, error: errText(ctx, 'loginRequired'), errorCode: 'loginRequired' };
       if (!rateLimit('mut:gearitem:' + getClientIp(ctx.request), 60)) {
         return { ok: false, item: null, error: errText(ctx, 'rateLimited'), errorCode: 'rateLimited' };
@@ -595,7 +596,7 @@ export const gearResolvers = {
       return { ok: true, item: saved, error: null, errorCode: null };
     },
 
-    updateGearItem: async (_: any, { id, input }: any, ctx: any) => {
+    updateGearItem: async (_: any, { id, input }: any, ctx: Context) => {
       if (!ctx.user) return { ok: false, item: null, error: errText(ctx, 'loginRequired'), errorCode: 'loginRequired' };
       if (!rateLimit('mut:gearitem:' + getClientIp(ctx.request), 60)) {
         return { ok: false, item: null, error: errText(ctx, 'rateLimited'), errorCode: 'rateLimited' };
@@ -617,14 +618,14 @@ export const gearResolvers = {
       return { ok: true, item: saved, error: null, errorCode: null };
     },
 
-    deleteGearItem: async (_: any, { id }: any, ctx: any) => {
+    deleteGearItem: async (_: any, { id }: any, ctx: Context) => {
       if (!ctx.user) return { ok: false, error: errText(ctx, 'loginRequired'), errorCode: 'loginRequired' };
       const done = await deleteGearItemRow(ctx.env.DB, ctx.user.discordId, id);
       if (!done) return { ok: false, error: errText(ctx, 'gearNotFound'), errorCode: 'gearNotFound' };
       return { ok: true, error: null, errorCode: null };
     },
 
-    importGearItems: async (_: any, { items, loadout }: any, ctx: any) => {
+    importGearItems: async (_: any, { items, loadout }: any, ctx: Context) => {
       if (!ctx.user) return { ok: false, items: [], autoSelect: [], error: errText(ctx, 'loginRequired'), errorCode: 'loginRequired' };
       if (!rateLimit('mut:gearimport:' + getClientIp(ctx.request), 20)) {
         return { ok: false, items: [], autoSelect: [], error: errText(ctx, 'rateLimited'), errorCode: 'rateLimited' };
@@ -651,7 +652,7 @@ export const gearResolvers = {
       return { ok: true, items: saved, autoSelect, error: null, errorCode: null };
     },
 
-    saveGearBuild: async (_: any, { input }: any, ctx: any) => {
+    saveGearBuild: async (_: any, { input }: any, ctx: Context) => {
       if (!ctx.user) return { ok: false, build: null, error: errText(ctx, 'loginRequired'), errorCode: 'loginRequired' };
       if (!rateLimit('mut:gearbuild:' + getClientIp(ctx.request), 30)) {
         return { ok: false, build: null, error: errText(ctx, 'rateLimited'), errorCode: 'rateLimited' };
@@ -687,14 +688,14 @@ export const gearResolvers = {
       return { ok: true, build: saved, error: null, errorCode: null };
     },
 
-    deleteGearBuild: async (_: any, { id }: any, ctx: any) => {
+    deleteGearBuild: async (_: any, { id }: any, ctx: Context) => {
       if (!ctx.user) return { ok: false, error: errText(ctx, 'loginRequired'), errorCode: 'loginRequired' };
       const done = await deleteGearBuildRow(ctx.env.DB, ctx.user.discordId, id);
       if (!done) return { ok: false, error: errText(ctx, 'gearNotFound'), errorCode: 'gearNotFound' };
       return { ok: true, error: null, errorCode: null };
     },
 
-    calcTiaolv: async (_: any, { input }: any, ctx: any) => {
+    calcTiaolv: async (_: any, { input }: any, ctx: Context) => {
       // Rate limit: compute-heavy — 30 per minute per IP
       if (!rateLimit('mut:tiaolv:' + getClientIp(ctx.request), 30)) {
         throw new Error(errText(ctx, 'rateLimited'));
@@ -719,7 +720,7 @@ export const gearResolvers = {
       return { rows };
     },
 
-    calcGraduation: async (_: any, { input }: any, ctx: any) => {
+    calcGraduation: async (_: any, { input }: any, ctx: Context) => {
       if (!rateLimit('mut:grad:' + getClientIp(ctx.request), 30)) {
         throw new Error(errText(ctx, 'rateLimited'));
       }
@@ -923,8 +924,8 @@ export const gearResolvers = {
     // Display overlay: school / buildLabel are localized per request locale
     // (the stored buildLabel stays canonical Chinese; under a non-overlay
     // locale the reassembled result is byte-identical to the stored value).
-    school: (p: any, _a: any, ctx: any) => enBuildSchool(ctx.locale, (GP_BUILDS[p.targetIdx] || GP_BUILDS[0]).school),
-    buildLabel: (p: any, _a: any, ctx: any) => {
+    school: (p: any, _a: any, ctx: Context) => enBuildSchool(ctx.locale, (GP_BUILDS[p.targetIdx] || GP_BUILDS[0]).school),
+    buildLabel: (p: any, _a: any, ctx: Context) => {
       const b = GP_BUILDS[p.targetIdx] || GP_BUILDS[0];
       return enBuildSchool(ctx.locale, b.school) + ' · ' + enGearSetName(ctx.locale, b.set);
     },

@@ -1,4 +1,5 @@
 /* Identity GraphQL: Viewer/Discord shells, settings page and updateMyLocale. */
+import type { Context } from '../platform/context.ts';
 import {
   clampBlocksVersion, substituteForVersion, weekWindowUtc, startsAtEpoch,
   fmtStartsAt, groupByLocalDay, TYPE_SHORT_KEY, HEALER_SECT,
@@ -259,7 +260,7 @@ export const SETTINGS_TEXT_RESOLVERS = defineTextGens(SettingsPageShell, [
 
 export const identityResolvers = {
   Query: {
-    viewer: async (_: any, __: any, ctx: any) => {
+    viewer: async (_: any, __: any, ctx: Context) => {
       // Lazy refresh: a viewer check also refetches missing / >24h server
       // nick snapshots with the refresh token, in-request; failure is silent
       // and the old snapshot is used.
@@ -267,10 +268,10 @@ export const identityResolvers = {
       return new ViewerShell(ctx, {});
     },
 
-    settingsPage: (_: any, __: any, ctx: any) => new SettingsPageShell(ctx, {}),
+    settingsPage: (_: any, __: any, ctx: Context) => new SettingsPageShell(ctx, {}),
   },
   Mutation: {
-    updateMyLocale: async (_: any, { locale }: any, ctx: any) => {
+    updateMyLocale: async (_: any, { locale }: any, ctx: Context) => {
       const browser = ctx.browserLocale || ctx.locale || 'zh-CN';
       if (!ctx.user) return uFail(ctx, 'loginRequired', browser);
       if (locale !== null && locale !== undefined && !SUPPORTED_LOCALES.includes(locale)) {

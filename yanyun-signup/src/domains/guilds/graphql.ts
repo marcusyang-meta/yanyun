@@ -1,4 +1,5 @@
 /* guilds domain GraphQL: Guild shells, the rally page, and guild creation. */
+import type { Context } from '../platform/context.ts';
 import {
   clampBlocksVersion, substituteForVersion, weekWindowUtc, startsAtEpoch,
   fmtStartsAt, groupByLocalDay, TYPE_SHORT_KEY, HEALER_SECT,
@@ -76,7 +77,7 @@ export const CREATE_RESERVED = new Set([
 // Settings access goes through the data layer (src/domains/guilds/
 // settings.ts); these local names remain for the many call sites below.
 
-export function guildResult(ctx: any, access: any) {
+export function guildResult(ctx: Context, access: any) {
   return new GuildShell(ctx, access);
 }
 
@@ -96,7 +97,7 @@ export class GuildRosterMemberShell extends ShellBase {
  * class and dispatch resolvers by type. */
 export class GuildShell extends ShellBase {
   __typename: any;
-  constructor(ctx: any, access: any){
+  constructor(ctx: Context, access: any){
     super(ctx, access);
     this.__typename = !access.exists || !access.canView ? 'GuildLocked'
       : access.canWrite ? 'Guild' : 'GuildReadOnly';
@@ -262,10 +263,10 @@ export class GuildPageShell extends ShellBase {
 
 export const guildsResolvers = {
   Query: {
-    hubPage: (_: any, __: any, ctx: any) => new HubPageShell(ctx, {}),
+    hubPage: (_: any, __: any, ctx: Context) => new HubPageShell(ctx, {}),
 
     // Legal pages (terms/privacy): public pages, reachable anonymously (login-page footer entry).
-    guildPage: async (_: any, { slug }: any, ctx: any) => {
+    guildPage: async (_: any, { slug }: any, ctx: Context) => {
       const db = ctx.env.DB;
       const a = await getGuildAccess(db, ctx.user, slug, ctx.request);
       if (!a.exists) throw new Error(errText(ctx, 'guildNotFound'));
@@ -277,7 +278,7 @@ export const guildsResolvers = {
       });
     },
 
-    slugAvailable: async (_: any, { slug }: any, ctx: any) => {
+    slugAvailable: async (_: any, { slug }: any, ctx: Context) => {
       const db = ctx.env.DB;
       const v = String(slug || '').trim().toLowerCase();
       if (!/^[a-z0-9][a-z0-9-]{0,38}[a-z0-9]$/.test(v) || v.length < 2 || v.length > 40) return false;
@@ -287,7 +288,7 @@ export const guildsResolvers = {
     },
   },
   Mutation: {
-    createGuild: async (_: any, { input }: any, ctx: any) => {
+    createGuild: async (_: any, { input }: any, ctx: Context) => {
       const db = ctx.env.DB;
       if (!rateLimit('mut:createGuild:' + getClientIp(ctx.request), 5, 3600000)) {
         return cFail(ctx, 'createRateLimited');

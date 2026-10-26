@@ -1,4 +1,5 @@
 /* Platform GraphQL: Block/Action shells, legal page and push-token mutations. */
+import type { Context } from './context.ts';
 import {
   clampBlocksVersion, substituteForVersion, weekWindowUtc, startsAtEpoch,
   fmtStartsAt, groupByLocalDay, TYPE_SHORT_KEY, HEALER_SECT,
@@ -68,7 +69,7 @@ export class BlockShell extends ShellBase {
   __typename: any;
   _children: any;
   _action: any;
-  constructor(ctx: any, typename: any, data: any){
+  constructor(ctx: Context, typename: any, data: any){
     super(ctx, data);
     this.__typename = typename;
     this._children = (data && data.children) || [];
@@ -79,17 +80,17 @@ export class BlockShell extends ShellBase {
 }
 
 export class SectionBlockShell extends BlockShell {
-  constructor(ctx: any, data: any){ super(ctx, 'SectionBlock', data); }
-  genTitle(){ return this.data.titleRef ? this.t(...this.data.titleRef) : (this.data.title ?? null); }
+  constructor(ctx: Context, data: any){ super(ctx, 'SectionBlock', data); }
+  genTitle(){ return this.data.titleRef ? this.t(...(this.data.titleRef as [string, string, any?])) : (this.data.title ?? null); }
 }
 export class SectionHeaderBlockShell extends BlockShell {
-  constructor(ctx: any, data: any){ super(ctx, 'SectionHeaderBlock', data); }
-  genText(){ return this.data.textRef ? this.t(...this.data.textRef) : this.data.text; }
+  constructor(ctx: Context, data: any){ super(ctx, 'SectionHeaderBlock', data); }
+  genText(){ return this.data.textRef ? this.t(...(this.data.textRef as [string, string, any?])) : this.data.text; }
 }
 export class TextBlockShell extends BlockShell {
-  constructor(ctx: any, data: any){ super(ctx, 'TextBlock', data); }
+  constructor(ctx: Context, data: any){ super(ctx, 'TextBlock', data); }
   genText(){
-    if (this.data.textRef) return this.t(...this.data.textRef);
+    if (this.data.textRef) return this.t(...(this.data.textRef as [string, string, any?]));
     if (this.data.variant === 'meta') {
       const parts = [];
       if (this.data.epoch != null) parts.push(fmtStartsAt(this.data.epoch, this.locale, this.ctx.tz));
@@ -101,11 +102,11 @@ export class TextBlockShell extends BlockShell {
   genVariant(){ return this.data.variant || 'body'; }
 }
 export class BannerBlockShell extends BlockShell {
-  constructor(ctx: any, data: any){ super(ctx, 'BannerBlock', data); }
+  constructor(ctx: Context, data: any){ super(ctx, 'BannerBlock', data); }
   genText(){ return this.data.text; }
 }
 export class ChipRowBlockShell extends BlockShell {
-  constructor(ctx: any, data: any){ super(ctx, 'ChipRowBlock', data); }
+  constructor(ctx: Context, data: any){ super(ctx, 'ChipRowBlock', data); }
   genChips(){
     const chips: any[] = [this.t('groupingType', TYPE_SHORT_KEY[this.data.evType] || 'shortActivity')];
     if (this.data.dungeonName) chips.push(enDungeonName(this.locale, this.data.dungeonName as any));
@@ -116,7 +117,7 @@ export class ChipRowBlockShell extends BlockShell {
   }
 }
 export class GroupingCardBlockShell extends BlockShell {
-  constructor(ctx: any, data: any){ super(ctx, 'GroupingCardBlock', data); }
+  constructor(ctx: Context, data: any){ super(ctx, 'GroupingCardBlock', data); }
   get g() { return this.data.g; }
   genGroupingId(){ return this.g.genId(); }
   genTitle(){ return this.g.genTitle(); }
@@ -168,35 +169,35 @@ export class SeatEntryShell extends ShellBase {
   }
 }
 export class SeatGridBlockShell extends BlockShell {
-  constructor(ctx: any, data: any){ super(ctx, 'SeatGridBlock', data); }
+  constructor(ctx: Context, data: any){ super(ctx, 'SeatGridBlock', data); }
   genSeats(){ return this.data.entries; }
 }
 export class ActionButtonBlockShell extends BlockShell {
-  constructor(ctx: any, data: any){ super(ctx, 'ActionButtonBlock', data); }
-  genLabel(){ return this.t(...this.data.labelRef); }
+  constructor(ctx: Context, data: any){ super(ctx, 'ActionButtonBlock', data); }
+  genLabel(){ return this.t(...(this.data.labelRef as [string, string, any?])); }
   genStyle(){ return this.data.style; }
 }
 export class EmptyStateBlockShell extends BlockShell {
-  constructor(ctx: any, data: any){ super(ctx, 'EmptyStateBlock', data); }
-  genText(){ return this.t(...this.data.textRef); }
+  constructor(ctx: Context, data: any){ super(ctx, 'EmptyStateBlock', data); }
+  genText(){ return this.t(...(this.data.textRef as [string, string, any?])); }
 }
 export class SpacerBlockShell extends BlockShell {
-  constructor(ctx: any, data: any){ super(ctx, 'SpacerBlock', data); }
+  constructor(ctx: Context, data: any){ super(ctx, 'SpacerBlock', data); }
   genSize(){ return this.data.size; }
 }
 export class FallbackBlockShell extends BlockShell {
-  constructor(ctx: any){ super(ctx, 'FallbackBlock', {}); }
+  constructor(ctx: Context){ super(ctx, 'FallbackBlock', {}); }
   genText(){ return this.t('appBlocks', 'unknownBlock'); }
 }
 
 /* ---------- Bloks-lite action shells ---------- */
 export class ActionShell extends ShellBase {
   __typename: any;
-  constructor(ctx: any, typename: any, data: any){ super(ctx, data); this.__typename = typename; }
+  constructor(ctx: Context, typename: any, data: any){ super(ctx, data); this.__typename = typename; }
   genActionType(){ return this.__typename; }
 }
 export class NavigateActionShell extends ActionShell {
-  constructor(ctx: any, data: any){ super(ctx, 'NavigateAction', data); }
+  constructor(ctx: Context, data: any){ super(ctx, 'NavigateAction', data); }
   genSlug(){ return this.data.slug; }
   genGroupingId(){ return this.data.groupingId; }
   genName(){ return this.data.name; }
@@ -204,12 +205,12 @@ export class NavigateActionShell extends ActionShell {
   genNick(){ return this.data.nick || ''; }
 }
 export class JoinActionShell extends ActionShell {
-  constructor(ctx: any, data: any){ super(ctx, 'JoinAction', data); }
+  constructor(ctx: Context, data: any){ super(ctx, 'JoinAction', data); }
   genGroupingId(){ return this.data.groupingId; }
   genSeatIndex(){ return this.data.seatIndex; }
 }
 export class LeaveActionShell extends ActionShell {
-  constructor(ctx: any, data: any){ super(ctx, 'LeaveAction', data); }
+  constructor(ctx: Context, data: any){ super(ctx, 'LeaveAction', data); }
   genGroupingId(){ return this.data.groupingId; }
   genUid(){ return this.data.uid; }
   genConfirmTitle(){ return this.t('seat', 'leaveConfirmTitle'); }
@@ -218,7 +219,7 @@ export class LeaveActionShell extends ActionShell {
   genCancelLabel(){ return this.t('common', 'cancel'); }
 }
 export class DisbandActionShell extends ActionShell {
-  constructor(ctx: any, data: any){ super(ctx, 'DisbandAction', data); }
+  constructor(ctx: Context, data: any){ super(ctx, 'DisbandAction', data); }
   genGroupingId(){ return this.data.groupingId; }
   genConfirmTitle(){ return this.t('groupingDetail', 'disbandConfirmTitle'); }
   genConfirmMessage(){ return this.t('groupingDetail', 'disbandConfirmMessage', { title: this.data.title }); }
@@ -226,13 +227,13 @@ export class DisbandActionShell extends ActionShell {
   genCancelLabel(){ return this.t('common', 'cancel'); }
 }
 export class EditActionShell extends ActionShell {
-  constructor(ctx: any, data: any){ super(ctx, 'EditAction', data); }
+  constructor(ctx: Context, data: any){ super(ctx, 'EditAction', data); }
   genGroupingId(){ return this.data.groupingId; }
 }
 // Complete action (vocab v4): same shape as DisbandAction (confirm text on
 // the action object); emitted only for the leader while the team is not completed.
 export class CompleteActionShell extends ActionShell {
-  constructor(ctx: any, data: any){ super(ctx, 'CompleteAction', data); }
+  constructor(ctx: Context, data: any){ super(ctx, 'CompleteAction', data); }
   genGroupingId(){ return this.data.groupingId; }
   genConfirmTitle(){ return this.t('groupingDetail', 'completeConfirmTitle'); }
   genConfirmMessage(){ return this.t('groupingDetail', 'completeConfirmMessage', { title: this.data.title }); }
@@ -242,7 +243,7 @@ export class CompleteActionShell extends ActionShell {
 // Uncomplete action (vocab v4): undoes completion, no confirmation
 // (reversible, low risk); emitted only for the leader once completed.
 export class UncompleteActionShell extends ActionShell {
-  constructor(ctx: any, data: any){ super(ctx, 'UncompleteAction', data); }
+  constructor(ctx: Context, data: any){ super(ctx, 'UncompleteAction', data); }
   genGroupingId(){ return this.data.groupingId; }
 }
 
@@ -272,10 +273,10 @@ export class LegalPageShell extends ShellBase {
 
 export const platformResolvers = {
   Query: {
-    legalPage: (_: any, { kind }: any, ctx: any) => new LegalPageShell(ctx, { kind }),
+    legalPage: (_: any, { kind }: any, ctx: Context) => new LegalPageShell(ctx, { kind }),
   },
   Mutation: {
-    registerPushToken: async (_: any, { token, platform }: any, ctx: any) => {
+    registerPushToken: async (_: any, { token, platform }: any, ctx: Context) => {
       if (!ctx.user) return { ok: false, error: errText(ctx, 'loginRequired'), errorCode: 'loginRequired' };
       const t = String(token || '').trim();
       if (!isValidPushToken(t)) {
@@ -286,7 +287,7 @@ export const platformResolvers = {
       return { ok: true, error: null, errorCode: null };
     },
 
-    unregisterPushToken: async (_: any, { token }: any, ctx: any) => {
+    unregisterPushToken: async (_: any, { token }: any, ctx: Context) => {
       if (!ctx.user) return { ok: false, error: errText(ctx, 'loginRequired'), errorCode: 'loginRequired' };
       await ensurePushTokensTable(ctx.env.DB);
       await deletePushToken(ctx.env.DB, ctx.user.discordId, String(token || '').trim());

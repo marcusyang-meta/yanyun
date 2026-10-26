@@ -2,6 +2,8 @@
  * generators, access checks (getGuildAccess), publish/gate helpers and
  * payload bases. Domain GraphQL modules import this file directly;
  * cross-domain services still go through the barrels. */
+import { vcOf } from './context.ts';
+import type { Context, ViewerContext } from './context.ts';
 import { translate, negotiateLocale, SUPPORTED_LOCALES, CATALOG } from './i18n.ts';
 import { getSettingValue, setSettingValue, listSettingsByKey } from '../guilds/settings.ts';
 import { getTenantRow, getTenantSlug, listTenantSlugs, listTenantsDirectory } from '../guilds/tenants.ts';
@@ -21,26 +23,28 @@ export { negotiateLocale };
  * methods read the i18n catalog by locale. ctx.locale is negotiated from
  * the x-locale header before injection. */
 export class ShellBase {
-  ctx: any;
+  ctx: Context;
   data: any;
   _memo: Map<string, any>;
-  constructor(ctx: any, data: any){
+  constructor(ctx: Context, data: any){
     this.ctx = ctx;
     this.data = data || {};
     this._memo = new Map();
   }
   get db() { return this.ctx.env.DB; }
   get locale() { return this.ctx.locale || 'zh-CN'; }
-  t(...args: any[]){ return translate(args[0], args[1], this.locale, args[2]); }
-  memo(key: any, producer: any){
+  /** The identity layer (ViewerContext): viewer ref + id, nothing else. */
+  get vc(): ViewerContext { return vcOf(this.ctx); }
+  t(section: string, field: string, params?: any){ return translate(section, field, this.locale, params); }
+  memo<T>(key: string, producer: () => T): T {
     if (!this._memo.has(key)) this._memo.set(key, producer());
     return this._memo.get(key);
   }
   // Request-level memo shared across shells (e.g. gameVersion): stored on ctx
-  ctxMemo(key: any, producer: any){
+  ctxMemo<T>(key: string, producer: () => T): T {
     const store = this.ctx._memo || (this.ctx._memo = new Map());
     if (!store.has(key)) store.set(key, producer());
-    return store.get(key);
+    return store.get(key) as T;
   }
 }
 
@@ -64,7 +68,7 @@ export function defineTextGens(Class: any, spec: any) {
 // Account locale preference (request-memoized, one query shared by shells):
 // users.locale_pref; null = automatic (follow browser). ctx.locale already
 // reflects it (preference beats the header).
-export function loadMyLocalePref(ctx: any) {
+export function loadMyLocalePref(ctx: Context) {
   const store = ctx._memo || (ctx._memo = new Map());
   if (!store.has('myLocalePref')) {
     store.set('myLocalePref', (async () => {
@@ -76,7 +80,7 @@ export function loadMyLocalePref(ctx: any) {
 }
 
 // Server error text: generated from the catalog by stable code + request locale
-export function errText(ctx: any, code: any) {
+export function errText(ctx: Context, code: any) {
   return translate('errors', code, (ctx && ctx.locale) || 'zh-CN');
 }
 
@@ -180,7 +184,7 @@ export async function getGuildAccess(db: any, user: any, slug: any, request: any
  * business data; clients re-query GraphQL (resolvers remain the authority
  * on permissions). Best-effort: failures are silent and never affect the
  * mutation result; reconnect resync covers dropped events. */
-export function publishGroupingEvent(ctx: any, slug: any, groupingId: any, kind: any) {
+export function publishGroupingEvent(ctx: Context, slug: any, groupingId: any, kind: any) {
   try {
     const hub = ctx && ctx.env && ctx.env.GUILD_HUB;
     if (!hub || !slug) return;
@@ -320,12 +324,12 @@ export class UpdateLocalePayloadShell extends PayloadBase {
   genLocalePref(){ return this.data.localePref ?? null; }
   genEffectiveLocale(){ return this.data.effectiveLocale || 'zh-CN'; }
 }
-export const uFail = (ctx: any, code: any, effectiveLocale: any) => new UpdateLocalePayloadShell(ctx, {
+export const uFail = (ctx: Context, code: any, effectiveLocale: any) => new UpdateLocalePayloadShell(ctx, {
   ok: false, errorCode: code, localePref: undefined, effectiveLocale,
 });
-export const gFail = (ctx: any, code: any) => new GroupingPayloadShell(ctx, { ok: false, errorCode: code });
-export const sFail = (ctx: any, code: any) => new SeatPayloadShell(ctx, { ok: false, errorCode: code });
-export const dFail = (ctx: any, code: any) => new DeletePayloadShell(ctx, { ok: false, errorCode: code });
-export const cFail = (ctx: any, code: any) => new CreateGuildPayloadShell(ctx, { ok: false, errorCode: code });
+export const gFail = (ctx: Context, code: any) => new GroupingPayloadShell(ctx, { ok: false, errorCode: code });
+export const sFail = (ctx: Context, code: any) => new SeatPayloadShell(ctx, { ok: false, errorCode: code });
+export const dFail = (ctx: Context, code: any) => new DeletePayloadShell(ctx, { ok: false, errorCode: code });
+export const cFail = (ctx: Context, code: any) => new CreateGuildPayloadShell(ctx, { ok: false, errorCode: code });
 
 /* ================= Resolvers ================= */

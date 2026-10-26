@@ -1,4 +1,5 @@
 /* dex domain GraphQL: dungeon/boss shells, dex & sect pages, structured guides. */
+import type { Context } from '../platform/context.ts';
 import {
   clampBlocksVersion, substituteForVersion, weekWindowUtc, startsAtEpoch,
   fmtStartsAt, groupByLocalDay, TYPE_SHORT_KEY, HEALER_SECT,
@@ -66,7 +67,7 @@ import {
 } from '../platform/graphql-base.ts';
 
 export class DungeonShell extends ShellBase {
-  constructor(ctx: any, row: any){ super(ctx, row); }
+  constructor(ctx: Context, row: any){ super(ctx, row); }
   get row() { return this.data; }
   genId(){ return String(this.row.id); }
   genName(){ return enDungeonName(this.locale, this.row.name); }
@@ -501,12 +502,12 @@ export const SECT_TEXT_RESOLVERS = defineTextGens(SectPageShell, [
 
 export const dexResolvers = {
   Query: {
-    slotAffixList: async (_: any, { build }: any, ctx: any) => {
+    slotAffixList: async (_: any, { build }: any, ctx: Context) => {
       const db = ctx.env.DB;
       const results = await listSlotAffixByBuild(db, build);
       return results.map(r => ({ slot: r.slot, affixKey: r.affix_key }));
     },
-    affixMaxList: async (_: any, __: any, ctx: any) => {
+    affixMaxList: async (_: any, __: any, ctx: Context) => {
       const db = ctx.env.DB;
       const results = await listAffixMax(db);
       return results.map(r => ({
@@ -516,9 +517,9 @@ export const dexResolvers = {
         unit: r.unit || ''
       }));
     },
-    dexPage: (_: any, __: any, ctx: any) => new DexPageShell(ctx, {}),
+    dexPage: (_: any, __: any, ctx: Context) => new DexPageShell(ctx, {}),
 
-    bossPage: async (_: any, { bossId }: any, ctx: any) => {
+    bossPage: async (_: any, { bossId }: any, ctx: Context) => {
       const db = ctx.env.DB;
       const b = await getBossById(db, parseInt(bossId, 10) || 0);
       if (!b) throw new Error(errText(ctx, 'bossNotFound'));
@@ -527,7 +528,7 @@ export const dexResolvers = {
       });
     },
 
-    sectPage: (_: any, __: any, ctx: any) => new SectPageShell(ctx, {}),
+    sectPage: (_: any, __: any, ctx: Context) => new SectPageShell(ctx, {}),
   },
   types: {
     // Explicit field resolvers for plain-data result types: every field
