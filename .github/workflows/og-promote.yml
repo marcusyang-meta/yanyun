@@ -1,6 +1,7 @@
 name: og-promote
 
-# OG Worker 发布第二段: 把一个已上传的版本晋级到 100% 生产流量。
+# OG Worker 发布第二段: 把一个已上传的版本晋级到 100% 生产流量,
+# 并同 job 内应用 triggers (routes/自定义域名/cron)。
 # 只能手动触发, 必须填 og-deploy 上传时给出的 version_id。
 on:
   workflow_dispatch:
@@ -33,4 +34,18 @@ jobs:
             echo "## OG worker version promoted to production"
             echo ""
             echo "- Version ID: \`$VERSION_ID\` is now serving 100% of traffic"
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Apply triggers (routes / custom domains / cron)
+        working-directory: yanyun-og
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          # versions deploy 不应用 triggers (routes/自定义域名/cron, 平台行为),
+          # 必须在晋级后显式应用 wrangler.toml 里的 triggers 才算完整上线。
+          # 2026-10-25 绑 og.yanyun.app 时曾在本地手动补跑过这一步, 现按
+          # marcus 规矩 (生产变更只走 CI) 收进本 workflow; 本步骤失败即整 run 失败。
+          npx wrangler triggers deploy
+          {
+            echo "- Triggers applied from \`yanyun-og/wrangler.toml\` (routes / custom domain og.yanyun.app / cron schedules)"
           } >> "$GITHUB_STEP_SUMMARY"
