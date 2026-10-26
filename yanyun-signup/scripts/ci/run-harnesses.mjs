@@ -26,8 +26,8 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const SUITES = [
   ['avatar', 58], ['compliance', 61], ['daycomplete', 78], ['ennames', 299],
   ['gear', 50], ['i18n', 134], ['identity', 61], ['manualfix', 47],
-  ['remindercard', 43], ['tower', 38], ['laziness', 23], ['audit', 36],
-  ['backup', 23], ['guildadmin', 149], ['shortlink', 27],
+  ['remindercard', 81], ['tower', 38], ['laziness', 23], ['audit', 36],
+  ['backup', 23], ['guildadmin', 166], ['shortlink', 27],
 ];
 const onlyArg = (process.argv.find((a) => a.startsWith('--only=')) || '').slice(7);
 const ONLY = onlyArg ? new Set(onlyArg.split(',')) : null;
@@ -263,10 +263,10 @@ if (want('push')) {
   } catch (e) {
     pushReady = false;
     allOk = false;
-    report('push', 17, 0, 0, false, 'fixture failed: ' + (e?.message || e));
+    report('push', 33, 0, 0, false, 'fixture failed: ' + (e?.message || e));
   }
   if (pushReady) {
-    if (!await runSuite('push', 17)) allOk = false;
+    if (!await runSuite('push', 33)) allOk = false;
   }
 }
 

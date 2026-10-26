@@ -59,6 +59,8 @@ export const groupingDetail_disbanding = (fbs: FbsAPI) =>fbs("解散中…", "gr
 export const groupingDetail_statusOpen = (fbs: FbsAPI) =>fbs("报名中", "groupingDetail.statusOpen");
 export const groupingDetail_people = (fbs: FbsAPI, p?: StringParams) =>
   fbs([fbs.param("occupied", pv(p, "occupied")), "/", fbs.param("max", pv(p, "max")), " 人"], "groupingDetail.people");
+export const groupingDetail_readyProgress = (fbs: FbsAPI, p?: StringParams) =>
+  fbs(["已就位 ", fbs.param("ready", pv(p, "ready")), "/", fbs.param("occupied", pv(p, "occupied"))], "groupingDetail.readyProgress");
 export const groupingDetail_openHint = (fbs: FbsAPI) =>fbs("人人可管 · 无需管理码 — 点空位即可落座", "groupingDetail.openHint");
 export const groupingDetail_readonlyHint = (fbs: FbsAPI) =>fbs("只读浏览 · 该百业尚未绑定 Discord 服务器", "groupingDetail.readonlyHint");
 export const groupingDetail_toastDisbanded = (fbs: FbsAPI) =>fbs("车队已解散", "groupingDetail.toastDisbanded");
@@ -152,3 +154,10 @@ export const seat_leaveConfirmMessage = (fbs: FbsAPI, p?: StringParams) =>
 export const seat_roleHealer = (fbs: FbsAPI) =>fbs("奶", "seat.roleHealer");
 export const seat_roleDps = (fbs: FbsAPI) =>fbs("输出", "seat.roleDps");
 export const seat_leader = (fbs: FbsAPI) =>fbs("车头", "seat.leader");
+export const seat_readyMark = (fbs: FbsAPI) =>fbs("已就位", "seat.readyMark");
+export const seat_readyAction = (fbs: FbsAPI) =>fbs("我已就位", "seat.readyAction");
+export const seat_unreadyAction = (fbs: FbsAPI) =>fbs("取消就位", "seat.unreadyAction");
+export const seat_toastReady = (fbs: FbsAPI) =>fbs("已标记就位", "seat.toastReady");
+export const seat_toastUnready = (fbs: FbsAPI) =>fbs("已取消就位", "seat.toastUnready");
+export const seat_toastReadyFailed = (fbs: FbsAPI, p?: StringParams) =>
+  fbs(["操作失败：", fbs.param("error", pv(p, "error"))], "seat.toastReadyFailed");

@@ -47,6 +47,11 @@ export type GuildsStringKey =
   | 'guildAdmin.webhookClear'
   | 'guildAdmin.guildIdLabel'
   | 'guildAdmin.guildIdUnbound'
+  | 'guildAdmin.reminderTitle'
+  | 'guildAdmin.reminderOffsetsLabel'
+  | 'guildAdmin.reminderOffsetOption'
+  | 'guildAdmin.reminderCustomTextLabel'
+  | 'guildAdmin.reminderCustomTextHint'
   | 'guildAdmin.featuresTitle'
   | 'guildAdmin.fixedTeamsLabel'
   | 'guildAdmin.visibilityTitle'
@@ -139,6 +144,11 @@ export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'guildAdmin.webhookClear',
   'guildAdmin.guildIdLabel',
   'guildAdmin.guildIdUnbound',
+  'guildAdmin.reminderTitle',
+  'guildAdmin.reminderOffsetsLabel',
+  'guildAdmin.reminderOffsetOption',
+  'guildAdmin.reminderCustomTextLabel',
+  'guildAdmin.reminderCustomTextHint',
   'guildAdmin.featuresTitle',
   'guildAdmin.fixedTeamsLabel',
   'guildAdmin.visibilityTitle',

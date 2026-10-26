@@ -77,6 +77,8 @@ export type PlatformStringKey =
   | 'errors.lastSeatHealer'
   | 'errors.alreadyJoined'
   | 'errors.seatNotFound'
+  | 'errors.notSeated'
+  | 'errors.reminderOffsetsInvalid'
   | 'errors.paramsIncomplete'
   | 'errors.bossNotFound'
   | 'errors.guildNameShort'
@@ -181,6 +183,8 @@ export const PLATFORM_STRING_KEYS: readonly PlatformStringKey[] = [
   'errors.lastSeatHealer',
   'errors.alreadyJoined',
   'errors.seatNotFound',
+  'errors.notSeated',
+  'errors.reminderOffsetsInvalid',
   'errors.paramsIncomplete',
   'errors.bossNotFound',
   'errors.guildNameShort',

@@ -43,6 +43,8 @@ import {
   updateEventFields, deleteEventCascade, getSignupTenant, deleteSignupById,
   insertResult, getResultIdOwnedByTenant, deleteResultById,
   notifyDiscord, parseTimeMs, utcToText, nudgeReminderHub,
+  getReminderOffsets, getReminderCustomText, serializeReminderOffsets,
+  sanitizeReminderCustomText, REMINDER_OFFSET_PRESETS,
 } from '../groupings/index.ts';
 import { listSchoolBis, listSchoolRotations, upsertSchoolBis, upsertSchoolRotation } from '../dex/index.ts';
 
@@ -210,6 +212,11 @@ const ADMIN_TEXT_SPEC: [string, string, string][] = [
   ['adminWebhookClearLabel', 'guildAdmin', 'webhookClear'],
   ['adminGuildIdLabel', 'guildAdmin', 'guildIdLabel'],
   ['adminGuildIdUnboundText', 'guildAdmin', 'guildIdUnbound'],
+  ['adminReminderTitle', 'guildAdmin', 'reminderTitle'],
+  ['adminReminderOffsetsLabel', 'guildAdmin', 'reminderOffsetsLabel'],
+  ['adminReminderOffsetTemplate', 'guildAdmin', 'reminderOffsetOption'],
+  ['adminReminderCustomTextLabel', 'guildAdmin', 'reminderCustomTextLabel'],
+  ['adminReminderCustomTextHint', 'guildAdmin', 'reminderCustomTextHint'],
   ['adminFeaturesTitle', 'guildAdmin', 'featuresTitle'],
   ['adminFixedTeamsLabel', 'guildAdmin', 'fixedTeamsLabel'],
   ['adminVisibilityTitle', 'guildAdmin', 'visibilityTitle'],
@@ -304,6 +311,14 @@ export class GuildAdminShell extends ShellBase {
   genAdminWebhookSetText(){
     return this.t('guildAdmin', 'webhookSet', { id: this.genReminderWebhookId() || '' });
   }
+  /* Advanced reminders: configured lead offsets (default [10] when
+   * unset) and the custom embed line ('' = none). */
+  async genReminderOffsets(){
+    return getReminderOffsets(this.db, this.genSlug());
+  }
+  async genReminderCustomText(){
+    return getReminderCustomText(this.db, this.genSlug());
+  }
   async genFeatureFixedTeams(){
     return (await getTenantSetting(this.db, this.genSlug(), 'feature_fixed_teams')) === '1';
   }
@@ -342,6 +357,8 @@ function contentResolvers() {
     reminderWebhookSet: (p: any) => p.genReminderWebhookSet(),
     reminderWebhookId: (p: any) => p.genReminderWebhookId(),
     adminWebhookSetText: (p: any) => p.genAdminWebhookSetText(),
+    reminderOffsets: (p: any) => p.genReminderOffsets(),
+    reminderCustomText: (p: any) => p.genReminderCustomText(),
     featureFixedTeams: (p: any) => p.genFeatureFixedTeams(),
     devOnly: (p: any) => p.genDevOnly(),
     gameVersion: (p: any) => p.genGameVersion(),
@@ -462,6 +479,22 @@ export const guildAdminMutations = {
       await setTenantSetting(db, g.access.slug, 'discord_guild_id', d);
     }
     if (webhookChanged) nudgeHub(ctx, g.access.slug);
+    return aOk(ctx);
+  },
+
+  /* Advanced reminder settings: multi-select lead offsets (subset
+   * of the presets; empty = no beats) + the custom embed line.
+   * Always nudges the hub — the alarm schedule depends on these. */
+  updateGuildReminderSettings: async (_: any, { slug, offsets, customText }: any, ctx: Context) => {
+    const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
+    const db = ctx.env.DB;
+    const list = Array.isArray(offsets) ? offsets.map((n: any) => Number(n)) : [];
+    if (list.some((n: number) => !REMINDER_OFFSET_PRESETS.includes(n))) return aFail(ctx, 'reminderOffsetsInvalid');
+    await setTenantSetting(db, g.access.slug, 'reminder_offsets', serializeReminderOffsets(list));
+    if (customText != null) {
+      await setTenantSetting(db, g.access.slug, 'reminder_custom_text', sanitizeReminderCustomText(customText));
+    }
+    nudgeHub(ctx, g.access.slug);
     return aOk(ctx);
   },
 

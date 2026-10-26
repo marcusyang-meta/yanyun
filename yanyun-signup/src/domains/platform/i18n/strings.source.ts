@@ -96,6 +96,8 @@ export const errors_groupingFull = (fbs: FbsAPI) =>fbs("名额已满或报名已
 export const errors_lastSeatHealer = (fbs: FbsAPI) =>fbs("最后一个名额需要奶", "errors.lastSeatHealer");
 export const errors_alreadyJoined = (fbs: FbsAPI) =>fbs("已报过名", "errors.alreadyJoined");
 export const errors_seatNotFound = (fbs: FbsAPI) =>fbs("未找到该报名", "errors.seatNotFound");
+export const errors_notSeated = (fbs: FbsAPI) =>fbs("你还没有落座这辆车", "errors.notSeated");
+export const errors_reminderOffsetsInvalid = (fbs: FbsAPI) =>fbs("提醒提前量不在可选范围内", "errors.reminderOffsetsInvalid");
 export const errors_paramsIncomplete = (fbs: FbsAPI) =>fbs("参数不完整", "errors.paramsIncomplete");
 export const errors_bossNotFound = (fbs: FbsAPI) =>fbs("首领不存在", "errors.bossNotFound");
 export const errors_guildNameShort = (fbs: FbsAPI) =>fbs("百业名称至少 2 个字", "errors.guildNameShort");

@@ -152,6 +152,20 @@ export class SeatEntryShell extends ShellBase {
     return !!row && !!row.discord_id && !!ev.creator_discord_id
       && String(row.discord_id) === String(ev.creator_discord_id);
   }
+  genReady(){ return !!this.data.row && !!(this.data.row as any).ready_at; }
+  /* Readiness toggle rides beside the main seat action: only the
+   * seat's own holder gets one (same identity test as LeaveAction),
+   * and only while the grouping can still depart (open/closed).
+   * `ready` on the action is the TARGET state (tap to flip). */
+  genReadyAction(){
+    return this.memo('readyAction', () => {
+      const { row, ev } = this.data;
+      const user = this.ctx.user;
+      if (!row || !user || !row.discord_id || String(row.discord_id) !== String(user.discordId)) return null;
+      if (ev.status !== 'open' && ev.status !== 'closed') return null;
+      return new SetReadyActionShell(this.ctx, { groupingId: String(ev.id), ready: !(row as any).ready_at });
+    });
+  }
   genAction(){
     return this.memo('action', () => {
       const { row, ev, access } = this.data;
@@ -247,6 +261,13 @@ export class UncompleteActionShell extends ActionShell {
   constructor(ctx: Context, data: any){ super(ctx, 'UncompleteAction', data); }
   genGroupingId(){ return this.data.groupingId; }
 }
+// Set-ready action: the seat holder's readiness toggle for departure
+// reminders. `ready` is the target state to set (not the current one).
+export class SetReadyActionShell extends ActionShell {
+  constructor(ctx: Context, data: any){ super(ctx, 'SetReadyAction', data); }
+  genGroupingId(){ return this.data.groupingId; }
+  genReady(){ return !!this.data.ready; }
+}
 
 /* ---------- Page shell: grouping list ----------
  * groupings/currentVersion are data fields (lazy query + memo); the rest
@@ -324,6 +345,8 @@ export const platformResolvers = {
     nickname: (p: any) => p.genNickname(), weapon: (p: any) => p.genWeapon(),
     role: (p: any) => p.genRole(), healer: (p: any) => p.genHealer(),
     isLeader: (p: any) => p.genIsLeader(),
+    ready: (p: any) => p.genReady(),
+    readyAction: (p: any) => p.genReadyAction(),
     action: (p: any) => p.genAction(),
   },
   ActionButtonBlock: { js: (p: any, a: any) => a.module,
@@ -363,6 +386,10 @@ export const platformResolvers = {
   },
   UncompleteAction: {
     actionType: (p: any) => p.genActionType(), groupingId: (p: any) => p.genGroupingId(),
+  },
+  SetReadyAction: {
+    actionType: (p: any) => p.genActionType(), groupingId: (p: any) => p.genGroupingId(),
+    ready: (p: any) => p.genReady(),
   },
   LegalPage: {
     kind: (p: any) => p.genKind(),

@@ -35,10 +35,10 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 /* ---------- JWT (same HS256 format as auth) ---------- */
 const b64u = (buf) => Buffer.from(buf).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-function mintJwt() {
+function mintJwt(sub = '2001', name = '车头甲') {
   const now = Math.floor(Date.now() / 1000);
   const head = b64u(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
-  const body = b64u(JSON.stringify({ sub: '2001', name: '车头甲', avatar: '', guilds: [DGID], iat: now, exp: now + 3600 }));
+  const body = b64u(JSON.stringify({ sub, name, avatar: '', guilds: [DGID], iat: now, exp: now + 3600 }));
   const sig = crypto.createHmac('sha256', SECRET).update(`${head}.${body}`).digest();
   return `${head}.${body}.${b64u(sig)}`;
 }
@@ -98,6 +98,7 @@ const nowSec = Math.floor(Date.now() / 1000);
 // stops a leftover local DO alarm from settling the car early during a
 // dev cold start; phase B then moves departure to T-9 and triggers it.
 const startsAt = nowSec + 660;
+await d1Try(`DELETE FROM event_reminders WHERE event_id IN (SELECT id FROM events WHERE tenant='${SLUG}')`);
 await d1Try(`DELETE FROM signups WHERE event_id IN (SELECT id FROM events WHERE tenant='${SLUG}')`);
 await d1Try(`DELETE FROM events WHERE tenant='${SLUG}'`);
 await d1Try(`DELETE FROM settings WHERE tenant='${SLUG}'`);
@@ -247,9 +248,117 @@ if (fail > 0) {
   for (const l of devLog.join('').split('\n').slice(-15)) console.log(l);
 }
 
+/* ---------- C) Advanced reminders: multi-beat + nag-only-not-ready ----------
+ * Offsets [30,10]: the 30-minute beat @s everyone and sends NO push;
+ * after the leader marks ready, the 10-minute beat @s only the
+ * not-ready member and the push goes only to that member's token. */
+await sleep(2000);
+const TOKEN2 = 'ExponentPushToken[push-harness-fake-0002]';
+const nowC = Math.floor(Date.now() / 1000);
+await d1(`INSERT INTO users (discord_id, username, avatar, guilds_json)
+  VALUES ('2002', '队员乙', '', '["${DGID}"]')
+  ON CONFLICT(discord_id) DO UPDATE SET username = excluded.username, guilds_json = excluded.guilds_json`);
+await d1(`INSERT INTO user_oauth (discord_id, refresh_token, scope, refresh_state)
+  VALUES ('2002', 'fake-refresh', 'identify guilds guilds.members.read', 'ok')
+  ON CONFLICT(discord_id) DO UPDATE SET refresh_token = excluded.refresh_token, scope = excluded.scope, refresh_state = 'ok'`);
+await d1(`INSERT INTO guild_members (tenant, discord_id, nick, global_name, updated_at)
+  VALUES ('${SLUG}', '2002', '队员乙', 'GlobalB', ${nowC})
+  ON CONFLICT(tenant, discord_id) DO UPDATE SET nick = excluded.nick, global_name = excluded.global_name`);
+await d1(`INSERT INTO settings (tenant, key, value) VALUES ('${SLUG}', 'reminder_offsets', '30,10')
+  ON CONFLICT(tenant, key) DO UPDATE SET value = excluded.value`);
+await d1(`INSERT INTO settings (tenant, key, value) VALUES ('${SLUG}', 'reminder_custom_text', '今晚稳住')
+  ON CONFLICT(tenant, key) DO UPDATE SET value = excluded.value`);
+await d1(`INSERT INTO events (tenant, title, type, description, starts_at_utc, max_slots, status, origin, created_by, creator_discord_id, dungeon)
+  VALUES ('${SLUG}', '多拍验收车', 'activity', '', ${nowC + 1500}, 10, 'open', 'member', '车头甲', '2001', '')`);
+const evCRows = await d1(`SELECT id FROM events WHERE tenant='${SLUG}' AND title='多拍验收车' ORDER BY id DESC LIMIT 1`);
+const eventCId = evCRows[0]?.id;
+check('多拍夹具车已播种', !!eventCId, `event=${eventCId}`);
+await d1(`INSERT INTO signups (event_id, nickname, uid, weapon, discord_id)
+  VALUES (${eventCId}, '车头甲', 'u2001c', '破竹·樽', '2001'), (${eventCId}, '队员乙', 'u2002c', '鸣金·虹', '2002')`);
+await d1(`INSERT INTO push_tokens (discord_id, token, platform, updated_at)
+  VALUES ('2001', '${FAKE_TOKEN}', 'ios', ${nowC}), ('2002', '${TOKEN2}', 'android', ${nowC})
+  ON CONFLICT(discord_id, token) DO UPDATE SET platform = excluded.platform`);
+
+async function wsTrigger() {
+  return new Promise((resolve) => {
+    const key = crypto.randomBytes(16).toString('base64');
+    const req = http.request({
+      host: 'localhost', port: 8797, path: `/ws/guild/${SLUG}`,
+      headers: {
+        Connection: 'Upgrade', Upgrade: 'websocket',
+        'Sec-WebSocket-Key': key, 'Sec-WebSocket-Version': '13',
+        Cookie: `yy_session=${JWT}`,
+      },
+    });
+    req.on('upgrade', (res, socket) => { socket.destroy(); resolve('upgraded'); });
+    req.on('response', (res) => resolve('http-' + res.statusCode));
+    req.on('error', (e) => resolve('error-' + e.message));
+    req.end();
+    setTimeout(() => resolve('timeout'), 8000);
+  });
+}
+async function waitDiscord(count, timeoutMs = 45000) {
+  const t0 = Date.now();
+  while (Date.now() - t0 < timeoutMs) {
+    if (received.length >= count) return true;
+    await sleep(1000);
+  }
+  return received.length >= count;
+}
+
+const baseDiscord = received.length;
+const baseExpo = expoCalls.length;
+await wsTrigger();
+check('多拍: 第一拍 Discord 已达 (30 分钟提前量)', await waitDiscord(baseDiscord + 1));
+const beat1 = received[baseDiscord] || {};
+const beat1Users = beat1?.allowed_mentions?.users || [];
+check('多拍: 第一拍 @ 全部落座者', beat1Users.includes('2001') && beat1Users.includes('2002'), JSON.stringify(beat1Users));
+check('多拍: 自定义文案进入真实卡片', String(beat1?.embeds?.[0]?.description || '').includes('今晚稳住'),
+  String(beat1?.embeds?.[0]?.description || ''));
+check('多拍: 第一拍不发 Expo 推送', expoCalls.length === baseExpo, `calls=${expoCalls.length} base=${baseExpo}`);
+let beatRows = await d1(`SELECT offset_min, sent_at FROM event_reminders WHERE event_id=${eventCId} ORDER BY offset_min`);
+check('多拍: (车,30) 拍已结算', beatRows.length === 1 && Number(beatRows[0].offset_min) === 30 && !!beatRows[0].sent_at, JSON.stringify(beatRows));
+const evCMid = await d1(`SELECT reminder_sent_at FROM events WHERE id=${eventCId}`);
+check('多拍: 第一拍后整车未结算', !!(evCMid[0] && !evCMid[0].reminder_sent_at), JSON.stringify(evCMid[0] || {}));
+
+/* The leader marks ready through the real GraphQL mutation. */
+async function gqlAs(query, variables, jwt) {
+  const r = await fetch(WORKER + '/graphql', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', authorization: `Bearer ${jwt}` },
+    body: JSON.stringify({ query, variables }),
+  });
+  return r.json();
+}
+const READY = 'mutation($i: SetSeatReadyInput!) { setSeatReady(input: $i) { ok error errorCode seats { nickname ready mine } } }';
+const rr = await gqlAs(READY, { i: { groupingId: String(eventCId), ready: true } }, JWT);
+check('setSeatReady ok (车头本人)', rr?.data?.setSeatReady?.ok === true, JSON.stringify(rr?.data?.setSeatReady || rr?.errors || {}).slice(0, 200));
+const readySeat = (rr?.data?.setSeatReady?.seats || []).find((s) => s.nickname === '车头甲');
+check('setSeatReady 回带座位 ready/mine', !!readySeat && readySeat.ready === true && readySeat.mine === true, JSON.stringify(readySeat || {}));
+const suRow = await d1(`SELECT ready_at FROM signups WHERE event_id=${eventCId} AND discord_id='2001'`);
+check('就位已落库 (signups.ready_at)', !!(suRow[0] && suRow[0].ready_at), JSON.stringify(suRow[0] || {}));
+
+/* Move departure inside the 10-minute window and trigger the last beat. */
+await d1(`UPDATE events SET starts_at_utc = ${Math.floor(Date.now() / 1000) + 540} WHERE id = ${eventCId}`);
+await wsTrigger();
+check('多拍: 第二拍 Discord 已达 (10 分钟提前量)', await waitDiscord(baseDiscord + 2));
+const beat2 = received[baseDiscord + 1] || {};
+const beat2Users = beat2?.allowed_mentions?.users || [];
+check('多拍: 第二拍只 @ 未就位者', !beat2Users.includes('2001') && beat2Users.includes('2002'), JSON.stringify(beat2Users));
+check('多拍: 末拍 Expo 推送已发', expoCalls.length > baseExpo, `calls=${expoCalls.length} base=${baseExpo}`);
+const phaseCMsgs = expoCalls.slice(baseExpo).flat();
+check('多拍: 末拍推送只达未就位者令牌', phaseCMsgs.length >= 1 && phaseCMsgs.every((m) => m.to === TOKEN2),
+  JSON.stringify(phaseCMsgs.map((m) => m.to)));
+beatRows = await d1(`SELECT offset_min FROM event_reminders WHERE event_id=${eventCId} ORDER BY offset_min`);
+check('多拍: 两拍结算行齐备', beatRows.length === 2, JSON.stringify(beatRows));
+const evCEnd = await d1(`SELECT reminder_sent_at FROM events WHERE id=${eventCId}`);
+check('多拍: 末拍后整车结算 reminder_sent_at', !!(evCEnd[0] && evCEnd[0].reminder_sent_at), JSON.stringify(evCEnd[0] || {}));
+
 /* ---------- Teardown ---------- */
 try { process.kill(-dev.pid, 'SIGTERM'); } catch { dev.kill('SIGTERM'); }
 stub.close();
+await d1Try(`DELETE FROM event_reminders WHERE event_id IN (SELECT id FROM events WHERE tenant='${SLUG}')`);
+await d1Try(`DELETE FROM push_tokens WHERE discord_id='2002'`);
 await d1Try(`DELETE FROM signups WHERE event_id=${eventId}`);
 await d1Try(`DELETE FROM events WHERE tenant='${SLUG}'`);
 await d1Try(`DELETE FROM settings WHERE tenant='${SLUG}'`);

@@ -37,6 +37,7 @@ export type GroupingsStringKey =
   | 'groupingDetail.disbanding'
   | 'groupingDetail.statusOpen'
   | 'groupingDetail.people'
+  | 'groupingDetail.readyProgress'
   | 'groupingDetail.openHint'
   | 'groupingDetail.readonlyHint'
   | 'groupingDetail.toastDisbanded'
@@ -111,7 +112,13 @@ export type GroupingsStringKey =
   | 'seat.leaveConfirmMessage'
   | 'seat.roleHealer'
   | 'seat.roleDps'
-  | 'seat.leader';
+  | 'seat.leader'
+  | 'seat.readyMark'
+  | 'seat.readyAction'
+  | 'seat.unreadyAction'
+  | 'seat.toastReady'
+  | 'seat.toastUnready'
+  | 'seat.toastReadyFailed';
 
 export const GROUPINGS_STRING_KEYS: readonly GroupingsStringKey[] = [
   'groupingType.tabActivity',
@@ -150,6 +157,7 @@ export const GROUPINGS_STRING_KEYS: readonly GroupingsStringKey[] = [
   'groupingDetail.disbanding',
   'groupingDetail.statusOpen',
   'groupingDetail.people',
+  'groupingDetail.readyProgress',
   'groupingDetail.openHint',
   'groupingDetail.readonlyHint',
   'groupingDetail.toastDisbanded',
@@ -225,4 +233,10 @@ export const GROUPINGS_STRING_KEYS: readonly GroupingsStringKey[] = [
   'seat.roleHealer',
   'seat.roleDps',
   'seat.leader',
+  'seat.readyMark',
+  'seat.readyAction',
+  'seat.unreadyAction',
+  'seat.toastReady',
+  'seat.toastUnready',
+  'seat.toastReadyFailed',
 ];
