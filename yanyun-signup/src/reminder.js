@@ -1,5 +1,6 @@
 import { sendDeparturePush } from './push.js';
 import { logError } from './errorlog.js';
+import { webhookIdentity } from './guildavatar.js';
 
 // Discord 开车提醒 (2026-10-24 用户定型)
 // 形态: 管理员 portal 按百业配一个频道 Webhook (tenants.discord_webhook,
@@ -300,11 +301,13 @@ return { content: lines.join('\n'), userIds};
 }
 
 /* ---------- Webhook 发送 ---------- */
-export async function postWebhook(webhook, content, userIds, parseTypes) {
+export async function postWebhook(webhook, content, userIds, parseTypes, identity) {
 const body = {
 content,
-username: REMINDER_USERNAME,
-avatar_url: REMINDER_AVATAR_URL,
+// 发送身份 per-百业: 该百业有自定义头像时用百业名 + 头像 URL,
+// 没有时 (identity=null) 回退平台默认身份。只换身份字段, 文案不动。
+username: (identity && identity.username) || REMINDER_USERNAME,
+avatar_url: (identity && identity.avatarUrl) || REMINDER_AVATAR_URL,
 allowed_mentions: { parse: parseTypes || [], users: userIds || []},
 };
 const ctl = new AbortController();
@@ -340,7 +343,8 @@ if (eventTitle) await setReminderSetting(db, slug, 'reminder_last_event', String
 export async function sendReminderForEvent(db, slug, ev, cfg, nowSec, expoBase) {
 await ensureReminderColumns(db);
 const { content, userIds} = await buildReminderMessage(db, ev, slug, nowSec);
-const res = await postWebhook(cfg.webhook, content, userIds);
+const identity = await webhookIdentity(db, slug).catch(() => null);
+const res = await postWebhook(cfg.webhook, content, userIds, undefined, identity);
 if (res.ok) {
 await db.prepare('UPDATE events SET reminder_sent_at =? WHERE id =?').bind(nowSec, ev.id).run();
 } else {

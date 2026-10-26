@@ -23,6 +23,7 @@ import {
   getReminderSetting, setReminderSetting, postWebhook, ensureGuildMembersTable,
 } from './reminder.js';
 import { getGuildNick } from './auth.js';
+import { webhookIdentity } from './guildavatar.js';
 
 /* ---------- 配置 (settings, tenant=slug) ---------- */
 export async function getHeirloomConfig(db, slug) {
@@ -208,6 +209,8 @@ async function evaluateForTenant(db, t, args) {
   const evalById = new Map((args.evals || []).map((e) => [e.id, e.verdict]));
   const nowSec = Math.floor(Date.now() / 1000);
   const displayName = await memberDisplayName(db, slug, dgid, args.discordId, args.userName);
+  // 发送身份 per-百业 (有自定义头像才切换; 见 guildavatar.webhookIdentity)
+  const identity = await webhookIdentity(db, slug).catch(() => null);
 
   /* (a) 新传家宝: 本次评估里判定为传家宝且从未推过的, 合并一条播报 */
   const heirloomItems = (args.lib || []).filter((g) => g && g.id != null && evalById.get(g.id) === 'heirloom');
@@ -221,7 +224,7 @@ async function evaluateForTenant(db, t, args) {
     const fresh = hashed.filter((h) => !seen.has(h.hash));
     if (fresh.length) {
       const content = buildHeirloomItemMessage({ displayName, mention: `<@${args.discordId}>`, items: fresh.map((h) => h.g), build });
-      const res = await postWebhook(cfg.webhook, content, [args.discordId], ['everyone']);
+      const res = await postWebhook(cfg.webhook, content, [args.discordId], ['everyone'], identity);
       for (const h of fresh) {
         await db.prepare('INSERT OR IGNORE INTO heirloom_item_pushes (tenant, discord_id, build_sig, item_hash, created_at) VALUES (?, ?, ?, ?, ?)')
           .bind(slug, args.discordId, buildSig, h.hash, nowSec).run().catch(() => {});
@@ -249,7 +252,7 @@ async function evaluateForTenant(db, t, args) {
       .bind(slug, args.discordId, buildSig, complete ? 1 : 0, nowSec).run().catch(() => {});
     if (complete) {
       const content = buildHeirloomSetMessage({ displayName, mention: `<@${args.discordId}>`, build, gradTotal: args.gradTotal });
-      const res = await postWebhook(cfg.webhook, content, [args.discordId], ['everyone']);
+      const res = await postWebhook(cfg.webhook, content, [args.discordId], ['everyone'], identity);
       await recordHeirloomStatus(db, slug, {
         ok: res.ok, error: res.error, atSec: nowSec,
         event: `集齐全套 · ${build.school} · ${build.set}`,
@@ -265,7 +268,8 @@ export async function sendHeirloomTest(db, slug) {
   if (!cfg) return { ok: false, error: '百业不存在', missing: true };
   if (!cfg.webhook) return { ok: false, error: '尚未配置 Webhook URL', missing: true };
   const nowSec = Math.floor(Date.now() / 1000);
-  const res = await postWebhook(cfg.webhook, buildHeirloomTestMessage(cfg.guildName), []);
+  const identity = await webhookIdentity(db, slug).catch(() => null);
+  const res = await postWebhook(cfg.webhook, buildHeirloomTestMessage(cfg.guildName), [], undefined, identity);
   await recordHeirloomStatus(db, slug, {
     ok: res.ok, error: res.error, atSec: nowSec, event: '', test: true,
   });

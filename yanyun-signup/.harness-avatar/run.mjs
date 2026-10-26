@@ -7,7 +7,10 @@ import { yoga } from '../src/graphql.js';
 import { CATALOG } from '../src/i18n.js';
 import {
   AVATAR_MAX_BYTES, sniffAvatarType, webhookIdentity, avatarPublicUrl,
+  putGuildAvatar, deleteGuildAvatar,
 } from '../src/guildavatar.js';
+import { postWebhook, REMINDER_USERNAME, REMINDER_AVATAR_URL } from '../src/reminder.js';
+import { sendHeirloomTest } from '../src/heirloompush.js';
 
 let pass = 0, fail = 0; const fails = [];
 function check(name, ok, extra = '') {
@@ -52,11 +55,11 @@ function makeDb({ tenants = [], settings = {} } = {}) {
       return kind === 'first' ? (state.tenants[0] || null) : { results: state.tenants };
     }
     if (/FROM settings/.test(sql)) {
-      if (/WHERE tenant = \? AND key = \?/.test(sql)) {
+      if (/WHERE tenant\s*=\s*\? AND key\s*=\s*\?/.test(sql)) {
         const v = state.settings.get(`${b[0]}::${b[1]}`);
         return kind === 'first' ? (v == null ? null : { value: v }) : { results: v == null ? [] : [{ value: v }] };
       }
-      if (/WHERE key = \?/.test(sql)) {
+      if (/WHERE key\s*=\s*\?/.test(sql)) {
         const rows = [];
         for (const [k, v] of state.settings) {
           const [tenant, key] = k.split('::');
@@ -64,7 +67,7 @@ function makeDb({ tenants = [], settings = {} } = {}) {
         }
         return kind === 'first' ? (rows[0] || null) : { results: rows };
       }
-      if (/WHERE tenant = \?/.test(sql)) {
+      if (/WHERE tenant\s*=\s*\?/.test(sql)) {
         const rows = [];
         for (const [k, v] of state.settings) {
           const [tenant, key] = k.split('::');
@@ -279,6 +282,50 @@ g = await gql(guildQ, { slug: 'test1' });
 eq('删除后 avatarUrl 回 null', g.data?.viewer?.guild?.avatarUrl, null);
 ident = await webhookIdentity(db, 'test1');
 eq('删除后 webhookIdentity 回 null', ident, null);
+
+/* ================= [3/3] webhook 发送体: 身份两态切换 ================= */
+{
+  const { db: db2 } = makeDb({
+    tenants: [{ slug: 'test1', guild_name: '测试一业', slogan: '', password_hash: pwHash }],
+    settings: { 'test1::heirloom_webhook': 'https://discord.test/webhook' },
+  });
+  const sent = [];
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = async (url, opts) => {
+    sent.push({ url: String(url), body: JSON.parse(opts.body) });
+    return new Response(null, { status: 204 });
+  };
+  try {
+    // 无头像: postWebhook 直调 (identity=null) -> 平台默认身份
+    await postWebhook('https://discord.test/webhook', 'hi', [], undefined, null);
+    eq('无头像发送体 username = 平台默认', sent[0].body.username, REMINDER_USERNAME);
+    eq('无头像发送体 avatar_url = OG hub 图', sent[0].body.avatar_url, REMINDER_AVATAR_URL);
+
+    // 有头像: 身份切换为百业名 + 头像公开 URL, 其余字段不动
+    const { hash } = await putGuildAvatar(db2, 'test1', 'image/png', pngBytes());
+    const ident2 = await webhookIdentity(db2, 'test1');
+    await postWebhook('https://discord.test/webhook', 'hi', ['42'], undefined, ident2);
+    eq('有头像发送体 username = 百业名', sent[1].body.username, '测试一业');
+    eq('有头像发送体 avatar_url = 头像公开 URL', sent[1].body.avatar_url, `https://yanyun.app/api/guilds/test1/avatar?v=${hash.slice(0, 8)}`);
+    eq('身份切换不影响 allowed_mentions', JSON.stringify(sent[1].body.allowed_mentions), JSON.stringify({ parse: [], users: ['42'] }));
+
+    // 传家宝测试发送全链路 (sendHeirloomTest -> postWebhook): 有头像态
+    sent.length = 0;
+    const hr = await sendHeirloomTest(db2, 'test1');
+    check('传家宝测试发送 ok', hr.ok === true, JSON.stringify(hr));
+    eq('传家宝发送体 username = 百业名', sent[0]?.body.username, '测试一业');
+    eq('传家宝发送体 avatar_url = 头像公开 URL', sent[0]?.body.avatar_url, `https://yanyun.app/api/guilds/test1/avatar?v=${hash.slice(0, 8)}`);
+
+    // 删除头像后传家宝发送回退默认身份
+    await deleteGuildAvatar(db2, 'test1');
+    sent.length = 0;
+    await sendHeirloomTest(db2, 'test1');
+    eq('删头像后传家宝 username 回默认', sent[0]?.body.username, REMINDER_USERNAME);
+    eq('删头像后传家宝 avatar_url 回默认', sent[0]?.body.avatar_url, REMINDER_AVATAR_URL);
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+}
 
 await Promise.all(pending);
 console.log(`\n== avatar harness: ${pass} passed, ${fail} failed ==`);

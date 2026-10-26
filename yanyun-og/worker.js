@@ -39,7 +39,7 @@ function ensureWasm() {
  * 字体是冷路径最大成本 (Noto Sans SC 全量 TTF 十几 MB, 每 isolate 内存
  * 缓存互相不通)。拉到的字节同时写入 caches.default, 同 colo 的新
  * isolate 可直接命中边缘缓存, 不再重复全量下载。 */
-async function cachedFetchBytes(cache, url, { timeoutMs = 10000, headers = null } = {}) {
+async function cachedFetchBytes(cache, url, { timeoutMs = 10000, headers = null, cacheMaxAge = 86400 } = {}) {
   const key = new Request(url, { method: 'GET' });
   try {
     const hit = await cache.match(key);
@@ -53,7 +53,7 @@ async function cachedFetchBytes(cache, url, { timeoutMs = 10000, headers = null 
   const buf = await res.arrayBuffer();
   try {
     await cache.put(key, new Response(buf.slice(0), {
-      headers: { 'Content-Type': 'application/octet-stream', 'Cache-Control': 'public, max-age=86400' },
+      headers: { 'Content-Type': 'application/octet-stream', 'Cache-Control': `public, max-age=${cacheMaxAge}` },
     }));
   } catch { /* 缓存写失败不致命 */ }
   return buf;
@@ -88,6 +88,40 @@ async function getBrushFont(cache) {
   } catch { /* keep fallback URL */ }
   brushFontData = await cachedFetchBytes(cache, ttfUrl);
   return brushFontData;
+}
+
+/* 百业自定义头像 (主站公开出图路径, 无头像 404): 取字节内嵌为 data
+ * URI 给 satori 的 img。头像是 ≤400KB 小图, 边缘缓存 1 小时 (与百业
+ * 图本身的缓存同口径); 任何失败 (404/超时/坏字节) 都当没头像 —
+ * 返回 null, 卡面回退到无头像版式, 绝不拖垮整图。 */
+function sniffImageMime(b) {
+  if (b.length >= 8 && b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47) return 'image/png';
+  if (b.length >= 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return 'image/jpeg';
+  if (b.length >= 12 && b[8] === 0x57 && b[9] === 0x45 && b[10] === 0x42 && b[11] === 0x50) return 'image/webp';
+  return null;
+}
+function bytesToBase64(buf) {
+  const bytes = new Uint8Array(buf);
+  let bin = '';
+  const CHUNK = 0x8000;
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    bin += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
+  }
+  return btoa(bin);
+}
+async function fetchGuildAvatar(cache, slug) {
+  try {
+    const buf = await cachedFetchBytes(
+      cache,
+      `${SITE_API}/api/guilds/${encodeURIComponent(slug)}/avatar`,
+      { timeoutMs: 4000, cacheMaxAge: 3600 },
+    );
+    const mime = sniffImageMime(new Uint8Array(buf));
+    if (!mime) return null;
+    return `data:${mime};base64,${bytesToBase64(buf)}`;
+  } catch {
+    return null;
+  }
 }
 
 async function fetchJson(url, init = {}, timeoutMs = 5000) {
@@ -416,6 +450,9 @@ async function handleGuildImage(request, url, slug) {
 
   const teamCount = await fetchTeamCount(slug);
   const guildName = guild.name || slug;
+  // 头像在进渲染闸之前取 (网络等待不占渲染槽); 无头像/取失败 -> null,
+  // 卡面与从前逐字节一致。
+  const avatarDataUri = await fetchGuildAvatar(cache, slug);
 
   await acquireRenderSlot();
   try {
@@ -526,8 +563,25 @@ async function handleGuildImage(request, url, slug) {
     });
   }
 
+  // 百业自定义头像: 绘在徽章与百业名之间 (居中圆图 + 金边)。记住下标,
+  // 带头像渲染万一失败时剔除它、按无头像版式重渲 (不直接掉通用图)。
+  let avatarIdx = -1;
+  if (avatarDataUri) {
+    avatarIdx = 2;
+    guildChildren.splice(2, 0, {
+      type: 'img',
+      props: {
+        src: avatarDataUri,
+        style: {
+          width: '120px', height: '120px', borderRadius: '60px', objectFit: 'cover',
+          border: '3px solid #c9a35c', marginBottom: '22px', backgroundColor: 'rgba(201,163,92,0.08)',
+        },
+      },
+    });
+  }
+
   // Satori element tree (React-like objects)
-  const element = {
+  const buildElement = () => ({
     type: 'div',
     props: {
       style: {
@@ -543,16 +597,24 @@ async function handleGuildImage(request, url, slug) {
       },
       children: guildChildren,
     },
-  };
-
-  // Render with Satori (SVG output)
-  const svg = await satori(element, {
+  });
+  const SATORI_OPTS = {
     width: 1200, height: 630,
     fonts: [
       { name: 'Noto Sans SC', data: font, weight: 700, style: 'normal' },
       { name: 'Ma Shan Zheng', data: brushFont, weight: 400, style: 'normal' },
     ],
-  });
+  };
+
+  // Render with Satori (SVG output)
+  let svg;
+  try {
+    svg = await satori(buildElement(), SATORI_OPTS);
+  } catch (e) {
+    if (avatarIdx < 0) throw e;
+    guildChildren.splice(avatarIdx, 1);
+    svg = await satori(buildElement(), SATORI_OPTS);
+  }
 
   const response = await svgToPngResponse(svg, url, 3600);
   await cache.put(cacheKey, response.clone());
