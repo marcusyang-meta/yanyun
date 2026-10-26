@@ -34,7 +34,57 @@ $('#loginForm').onsubmit = async (e) => {
 };
 $('#logoutBtn').onclick = logout;
 
-async function boot() { await loadSettings(); await loadTenants(); await loadReminders(); await loadHeirlooms(); await loadErrors(); await loadAudit(); await loadBosses(); await loadDungeons(); }
+async function boot() { await loadSettings(); await loadTenants(); await loadReminders(); await loadHeirlooms(); await loadErrors(); await loadAudit(); await loadBackups(); await loadBosses(); await loadDungeons(); }
+
+async function downloadAuthed(path, filename) {
+  const r = await fetch(path, { headers: { authorization: 'Bearer ' + token } });
+  if (r.status === 401) { logout(); throw new Error('登录已过期, 请重新登录'); }
+  if (!r.ok) throw new Error('下载失败 (' + r.status + ')');
+  const blob = await r.blob();
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+}
+
+async function loadBackups() {
+  const msg = $('#backupMsg');
+  try {
+    const { available, backups } = await api('/api/hub/backup/list');
+    $('#backupSummary').textContent = available ? `共 ${backups.length} 份快照` : '备份存储未配置（BACKUPS 绑定缺失）';
+    $('#backupTable').innerHTML = `<tr><th>快照</th><th>大小</th><th>时间</th><th></th></tr>` +
+      (backups.map((b) => `<tr>
+        <td style="font-family:monospace">${esc(b.key)}</td>
+        <td>${(b.size / 1024).toFixed(1)} KB</td>
+        <td style="white-space:nowrap">${esc(new Date(b.uploaded * 1000).toLocaleString())}</td>
+        <td><button class="ghost" data-b="dl" data-key="${esc(b.key)}">下载</button></td>
+      </tr>`).join('') || '<tr><td colspan="4" class="empty">暂无快照</td></tr>');
+    $('#backupTable').querySelectorAll('button[data-b=dl]').forEach((btn) => btn.onclick = async () => {
+      try { await downloadAuthed('/api/hub/backup/download?key=' + encodeURIComponent(btn.dataset.key), btn.dataset.key.split('/').pop()); }
+      catch (e) { msg.className = 'msg bad'; msg.textContent = e.message; }
+    });
+    msg.className = 'msg'; msg.textContent = '';
+  } catch (e) { msg.className = 'msg bad'; msg.textContent = e.message; }
+}
+$('#backupRefresh').onclick = () => loadBackups();
+$('#backupRun').onclick = async () => {
+  const msg = $('#backupMsg');
+  const btn = $('#backupRun');
+  btn.disabled = true; btn.textContent = '备份中…';
+  try {
+    const { backup } = await api('/api/hub/backup/run', { method: 'POST' });
+    msg.className = 'msg ok';
+    msg.textContent = `已备份：${backup.key}（${backup.totalRows} 行，${(backup.bytes / 1024).toFixed(1)} KB）`;
+    loadBackups();
+  } catch (e) { msg.className = 'msg bad'; msg.textContent = e.message; }
+  btn.disabled = false; btn.textContent = '立即备份到 R2';
+};
+$('#backupExport').onclick = async () => {
+  const msg = $('#backupMsg');
+  try { await downloadAuthed('/api/hub/backup/export', 'yanyun-backup-export.json'); }
+  catch (e) { msg.className = 'msg bad'; msg.textContent = e.message; }
+};
 
 let auditOffset = 0;
 const AUDIT_PAGE = 50;
