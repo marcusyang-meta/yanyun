@@ -25,6 +25,7 @@ import {
 import { getGuildNick } from './auth.js';
 import { webhookIdentity } from './guildavatar.ts';
 import { getTenantRow, listTenantNames } from './db/repositories/tenants.ts';
+import { getUsernameRow } from './db/repositories/users.ts';
 
 /* ---------- 配置 (settings, tenant=slug) ---------- */
 export async function getHeirloomConfig(db, slug) {
@@ -99,8 +100,7 @@ async function memberDisplayName(db, slug, dgid, discordId, userName) {
     const n = await getGuildNick(db, discordId, dgid).catch(() => null);
     if (n && String(n).trim()) return String(n).trim();
   }
-  const u = await db.prepare('SELECT username FROM users WHERE discord_id = ?')
-    .bind(discordId).first().catch(() => null);
+  const u = await getUsernameRow(db, discordId).catch(() => null);
   if (u && String(u.username || '').trim()) return String(u.username).trim();
   if (userName && String(userName).trim()) return String(userName).trim();
   return '百业侠客';

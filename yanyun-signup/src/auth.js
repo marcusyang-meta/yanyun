@@ -1,5 +1,12 @@
 import { SUPPORTED_LOCALES } from './i18n.js';
 import { listDistinctSettingValues } from './db/repositories/settings.ts';
+import {
+  ensureUsersTable, ensureUsersLocaleColumn as ensureUsersLocaleColumnRepo,
+  ensureNickStoreTables, upsertUserOnLogin, getUserLocalePref as getUserLocalePrefRepo,
+  setUserLocalePref as setUserLocalePrefRepo, getUserGuildsJson, getOAuthGrant,
+  getOAuthRefresh, upsertOAuthOnLogin, updateOAuthAfterRefresh, markOAuthNeedsRelogin,
+  upsertNick as upsertNickRepo, touchNick as touchNickRepo, getNickRow, listNickRowsByUser,
+} from './db/repositories/users.ts';
 
 // Discord OAuth + 无状态 JWT 会话 (yy_session cookie)
 // 会话载荷: { sub: discord_id, name, avatar, guilds: [服务器 id...], gm?: [{i, p}], iat, exp }
@@ -105,9 +112,7 @@ export async function hasCompleteDiscordGrant(env, discordId) {
   try {
     if (!env || !env.DB || !discordId) return false;
     await ensureNickStore(env.DB);
-    const row = await env.DB.prepare(
-      'SELECT refresh_token, scope, refresh_state FROM user_oauth WHERE discord_id = ?'
-    ).bind(discordId).first();
+    const row = await getOAuthGrant(env.DB, discordId);
     if (!row || !row.refresh_token) return false;
     if (row.refresh_state === 'needs_relogin') return false;
     const scopes = String(row.scope || '').split(/\s+/).filter(Boolean);
@@ -125,64 +130,42 @@ export async function getSessionUserChecked(request, env) {
   return ok ? { user, clearCookie: false } : { user: null, clearCookie: true };
 }
 
-/* ================= D1: users 表 (懒迁移, 经 Worker 的 D1 binding 执行) ================= */
-let _schemaReady = null;
-export function ensureSchema(db) {
-  if (!_schemaReady) {
-    _schemaReady = (async () => {
-      await db.prepare(`CREATE TABLE IF NOT EXISTS users (
-        discord_id TEXT PRIMARY KEY,
-        username TEXT NOT NULL DEFAULT '',
-        avatar TEXT NOT NULL DEFAULT '',
-        guilds_json TEXT NOT NULL DEFAULT '[]',
-        guilds_checked_at INTEGER NOT NULL DEFAULT 0,
-        created_at TEXT NOT NULL DEFAULT (strftime('%s','now')),
-        updated_at TEXT NOT NULL DEFAULT (strftime('%s','now'))
-      )`).run();
-    })().catch((e) => { _schemaReady = null; throw e; });
-  }
-  return _schemaReady;
-}
+/* ================= D1: users 表 (懒迁移已归数据层 users repository) =================
+ * ensureSchema / ensureUsersLocaleColumn 保留旧名导出, 本体在仓库内
+ * (src/db/repositories/users.ts), 缓存/重试语义与旧实现一致。 */
 
 /* ---------- 界面语言偏好 (账号级, 存 users.locale_pref) ----------
  * null = 自动 (跟随浏览器语言); 有值时压过浏览器语言。懒 DDL 加列,
  * 读写都校验值在受支持集合内, 脏值按未设置处理。 */
-let _localeColReady = null;
+export function ensureSchema(db) {
+  return ensureUsersTable(db);
+}
+
 export function ensureUsersLocaleColumn(db) {
-  if (!_localeColReady) {
-    _localeColReady = (async () => {
-      await ensureSchema(db);
-      try { await db.prepare('ALTER TABLE users ADD COLUMN locale_pref TEXT').run(); }
-      catch (e) { if (!/duplicate column/i.test(String(e && e.message))) throw e; }
-    })().catch((e) => { _localeColReady = null; throw e; });
-  }
-  return _localeColReady;
+  return ensureUsersLocaleColumnRepo(db);
 }
 
 export async function getUserLocalePref(env, discordId) {
   try {
     if (!env || !env.DB || !discordId) return null;
     await ensureUsersLocaleColumn(env.DB);
-    const row = await env.DB.prepare('SELECT locale_pref FROM users WHERE discord_id = ?')
-      .bind(String(discordId)).first();
-    const v = row && row.locale_pref;
+    const v = await getUserLocalePrefRepo(env.DB, String(discordId));
     return SUPPORTED_LOCALES.includes(v) ? v : null;
   } catch { return null; }
 }
 
 export async function setUserLocalePref(env, discordId, pref) {
   await ensureUsersLocaleColumn(env.DB);
-  await env.DB.prepare('UPDATE users SET locale_pref = ? WHERE discord_id = ?')
-    .bind(pref, String(discordId)).run();
+  await setUserLocalePrefRepo(env.DB, String(discordId), pref);
 }
 
 // 读 users 行的服务器明细 [{id, name, icon, permissions, owner}]; 无行 -> null
 export async function getUserServers(db, discordId) {
   try {
     await ensureSchema(db);
-    const row = await db.prepare('SELECT guilds_json FROM users WHERE discord_id = ?').bind(discordId).first();
-    if (!row) return null;
-    const arr = JSON.parse(row.guilds_json || '[]');
+    const guildsJson = await getUserGuildsJson(db, discordId);
+    if (guildsJson === null) return null;
+    const arr = JSON.parse(guildsJson || '[]');
     return Array.isArray(arr) ? arr : [];
   } catch { return null; }
 }
@@ -213,28 +196,8 @@ function discordRoot(env) {
  * 绝不因 Discord 抖动把用户踢下线。 */
 const NICK_TTL_SEC = 24 * 3600;
 
-let _nickSchemaReady = null;
 export function ensureNickStore(db) {
-  if (!_nickSchemaReady) {
-    _nickSchemaReady = (async () => {
-      await db.prepare(`CREATE TABLE IF NOT EXISTS user_oauth (
-        discord_id TEXT PRIMARY KEY,
-        refresh_token TEXT NOT NULL DEFAULT '',
-        scope TEXT NOT NULL DEFAULT '',
-        refresh_state TEXT NOT NULL DEFAULT 'ok',
-        last_refresh_at INTEGER NOT NULL DEFAULT 0,
-        updated_at INTEGER NOT NULL DEFAULT 0
-      )`).run();
-      await db.prepare(`CREATE TABLE IF NOT EXISTS user_guild_nicks (
-        discord_id TEXT NOT NULL,
-        guild_id TEXT NOT NULL,
-        nick TEXT NOT NULL DEFAULT '',
-        updated_at INTEGER NOT NULL DEFAULT 0,
-        PRIMARY KEY (discord_id, guild_id)
-      )`).run();
-    })().catch((e) => { _nickSchemaReady = null; throw e; });
-  }
-  return _nickSchemaReady;
+  return ensureNickStoreTables(db);
 }
 
 async function fetchWithTimeout(url, init, ms = 3500) {
@@ -262,26 +225,20 @@ async function boundGuildIds(db) {
 
 async function upsertNick(db, discordId, guildId, nick) {
   const now = Math.floor(Date.now() / 1000);
-  await db.prepare(`INSERT INTO user_guild_nicks (discord_id, guild_id, nick, updated_at) VALUES (?, ?, ?, ?)
-    ON CONFLICT(discord_id, guild_id) DO UPDATE SET nick = excluded.nick, updated_at = excluded.updated_at`)
-    .bind(discordId, guildId, nick, now).run();
+  await upsertNickRepo(db, discordId, guildId, nick, now);
 }
 
 // 拉取失败时只刷新时间戳 (无行则落一条空快照), 不覆盖已有昵称
 async function touchNick(db, discordId, guildId) {
   const now = Math.floor(Date.now() / 1000);
-  await db.prepare(`INSERT INTO user_guild_nicks (discord_id, guild_id, nick, updated_at) VALUES (?, ?, '', ?)
-    ON CONFLICT(discord_id, guild_id) DO UPDATE SET updated_at = excluded.updated_at`)
-    .bind(discordId, guildId, now).run();
+  await touchNickRepo(db, discordId, guildId, now);
 }
 
 // 读快照昵称: 有行返回 nick (可能 ''), 无行返回 null
 export async function getGuildNick(db, discordId, guildId) {
   try {
     await ensureNickStore(db);
-    const row = await db.prepare(
-      'SELECT nick FROM user_guild_nicks WHERE discord_id = ? AND guild_id = ?'
-    ).bind(discordId, guildId).first();
+    const row = await getNickRow(db, discordId, guildId);
     return row ? String(row.nick || '') : null;
   } catch { return null; }
 }
@@ -293,17 +250,13 @@ export async function maybeRefreshGuildNicks(env, user) {
     if (!env.DISCORD_CLIENT_ID || !env.DISCORD_CLIENT_SECRET) return;
     const db = env.DB;
     await ensureNickStore(db);
-    const row = await db.prepare(
-      'SELECT refresh_token, refresh_state FROM user_oauth WHERE discord_id = ?'
-    ).bind(user.discordId).first().catch(() => null);
+    const row = await getOAuthRefresh(db, user.discordId).catch(() => null);
     if (!row || !row.refresh_token || row.refresh_state === 'needs_relogin') return;
     const bound = new Set(await boundGuildIds(db));
     const targets = (user.guilds || []).map(String).filter((g) => bound.has(g));
     if (!targets.length) return;
     const now = Math.floor(Date.now() / 1000);
-    const { results } = await db.prepare(
-      'SELECT guild_id, updated_at FROM user_guild_nicks WHERE discord_id = ?'
-    ).bind(user.discordId).all().catch(() => ({ results: [] }));
+    const results = await listNickRowsByUser(db, user.discordId).catch(() => []);
     const freshAt = new Map(results.map((r) => [String(r.guild_id), Number(r.updated_at) || 0]));
     const stale = targets.filter((g) => !freshAt.has(g) || now - freshAt.get(g) > NICK_TTL_SEC);
     if (!stale.length) return;
@@ -328,18 +281,14 @@ export async function maybeRefreshGuildNicks(env, user) {
         permanent = !!errBody && errBody.error === 'invalid_grant';
       }
       if (permanent) {
-        await db.prepare(
-          "UPDATE user_oauth SET refresh_state = 'needs_relogin', updated_at = ? WHERE discord_id = ?"
-        ).bind(now, user.discordId).run().catch(() => {});
+        await markOAuthNeedsRelogin(db, user.discordId, now).catch(() => {});
       }
       return;
     }
-    await db.prepare(
-      'UPDATE user_oauth SET refresh_token = ?, scope = ?, refresh_state = \'ok\', last_refresh_at = ?, updated_at = ? WHERE discord_id = ?'
-    ).bind(
-      String(token.refresh_token || row.refresh_token),
-      String(token.scope || ''), now, now, user.discordId
-    ).run().catch(() => {});
+    await updateOAuthAfterRefresh(db, user.discordId, {
+      refreshToken: String(token.refresh_token || row.refresh_token),
+      scope: String(token.scope || ''), nowSec: now,
+    }).catch(() => {});
     await Promise.all(stale.map(async (gid) => {
       const nick = await fetchMemberNick(env, token.access_token, gid);
       if (nick !== null) await upsertNick(db, user.discordId, gid, nick).catch(() => {});
@@ -442,11 +391,10 @@ export async function handleDiscordCallback(request, env) {
   // 落库 (服务器明细含权限位, 供 viewer.discordServers / createGuild 校验)
   try {
     await ensureSchema(env.DB);
-    await env.DB.prepare(`INSERT INTO users (discord_id, username, avatar, guilds_json, guilds_checked_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, strftime('%s','now'))
-      ON CONFLICT(discord_id) DO UPDATE SET username = excluded.username, avatar = excluded.avatar,
-        guilds_json = excluded.guilds_json, guilds_checked_at = excluded.guilds_checked_at, updated_at = excluded.updated_at`
-    ).bind(String(me.id), displayName, avatar, JSON.stringify(servers), Math.floor(Date.now() / 1000)).run();
+    await upsertUserOnLogin(env.DB, {
+      discordId: String(me.id), username: displayName, avatar,
+      guildsJson: JSON.stringify(servers), checkedAtSec: Math.floor(Date.now() / 1000),
+    });
   } catch { /* 落库失败不阻塞登录, 会话里有服务器 id 列表 */ }
 
   // refresh token 入库 (凭证, 只存 D1, 绝不进 JWT/前端) + 已绑定服务器昵称拉一次。
@@ -455,11 +403,10 @@ export async function handleDiscordCallback(request, env) {
     await ensureNickStore(env.DB);
     const nowSec = Math.floor(Date.now() / 1000);
     if (token.refresh_token) {
-      await env.DB.prepare(`INSERT INTO user_oauth (discord_id, refresh_token, scope, refresh_state, last_refresh_at, updated_at)
-        VALUES (?, ?, ?, 'ok', ?, ?)
-        ON CONFLICT(discord_id) DO UPDATE SET refresh_token = excluded.refresh_token, scope = excluded.scope,
-          refresh_state = 'ok', last_refresh_at = excluded.last_refresh_at, updated_at = excluded.updated_at`)
-        .bind(String(me.id), String(token.refresh_token), String(token.scope || ''), nowSec, nowSec).run();
+      await upsertOAuthOnLogin(env.DB, {
+        discordId: String(me.id), refreshToken: String(token.refresh_token),
+        scope: String(token.scope || ''), nowSec,
+      });
     }
     // token 响应没给这个 scope (老授权/被拒) 就跳过拉取
     if (String(token.scope || '').includes('guilds.members.read')) {
