@@ -1373,6 +1373,10 @@ type GuildAdmin {
   adminEventMeetLabel: String!
   adminEventDescLabel: String!
   adminEventDungeonLabel: String!
+  adminTypeActivityText: String!
+  adminTypeTalentText: String!
+  adminTypeRaceText: String!
+  adminTypeTowerText: String!
   adminStatusOpenText: String!
   adminStatusClosedText: String!
   adminStatusCompletedText: String!
