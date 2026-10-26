@@ -1,17 +1,14 @@
 import React, { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import {
-  Alert, Linking, Modal, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View,
+  Alert, Modal, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fetchQuery, useLazyLoadQuery, useRelayEnvironment } from 'react-relay';
-import * as Clipboard from 'expo-clipboard';
 import { fonts, theme, SECTS } from '../theme';
 import { Backdrop, GoldFill, GuildHeader, SiteChrome } from '../components/ui';
-import { BLOCKS_VERSION, PRIMITIVES_VERSION } from '../config';
-import { DetailPageTextQuery, GroupingDetailBlocksQuery, GroupingDetailPrimQuery, GuildRosterQuery } from '../documents';
-import { PrimTreeView } from '../prims/PrimTree';
-import type { PrimNode } from '@yanyun/blocks-core';
+import { BLOCKS_VERSION } from '../config';
+import { DetailPageTextQuery, GroupingDetailBlocksQuery, GuildRosterQuery } from '../documents';
 import { EditGroupingFormMount } from '../components/GroupingForm';
 import { BlockNode1View } from '../blocks/BlockRenderer';
 import type { ActionHandlers } from '../blocks/actions';
@@ -20,7 +17,6 @@ import { completeGrouping, disbandGrouping, joinGrouping, leaveGrouping, reopenG
 import { useGuildLive } from '../live';
 import { useSession } from '../session';
 import type { documentsGroupingDetailBlocksQuery } from '../__generated__/documentsGroupingDetailBlocksQuery.graphql';
-import type { documentsGroupingDetailPrimQuery } from '../__generated__/documentsGroupingDetailPrimQuery.graphql';
 import type { documentsDetailPageTextQuery } from '../__generated__/documentsDetailPageTextQuery.graphql';
 import type { documentsGuildRosterQuery } from '../__generated__/documentsGuildRosterQuery.graphql';
 
@@ -122,9 +118,6 @@ export default function GroupingDetailScreen({ slug, id, nick, guildName, gameVe
         } catch { Alert.alert(await failText('uncomplete')); }
       })();
     },
-    // 原语面通用动作 (详情本期不用, 处理器随冻结词汇一并就位)
-    copyText: (a) => { void Clipboard.setStringAsync(a.text); },
-    openUrl: (a) => { void Linking.openURL(a.url).catch(() => {}); },
   };
 
   return (
@@ -362,13 +355,6 @@ function DetailBlocks({
     variables,
     { fetchPolicy: 'store-or-network' },
   );
-  // 原语面 (C 路线): primTree 非 null 时走原语解释器, 否则积木树。
-  const primData = useLazyLoadQuery<documentsGroupingDetailPrimQuery>(
-    GroupingDetailPrimQuery,
-    { slug, id, primitivesVersion: PRIMITIVES_VERSION },
-    { fetchPolicy: 'store-or-network' },
-  );
-  const primTree = (primData.groupingDetailPage?.primTree ?? null) as PrimNode[] | null;
   const pageText = useLazyLoadQuery<documentsDetailPageTextQuery>(
     DetailPageTextQuery,
     { slug, id },
@@ -382,15 +368,7 @@ function DetailBlocks({
   useEffect(() => {
     if (firstTick.current) { firstTick.current = false; return; }
     let live = true;
-    Promise.all([
-      fetchQuery(environment, GroupingDetailBlocksQuery, variables, { fetchPolicy: 'network-only' }).toPromise(),
-      fetchQuery(
-        environment,
-        GroupingDetailPrimQuery,
-        { slug, id, primitivesVersion: PRIMITIVES_VERSION },
-        { fetchPolicy: 'network-only' },
-      ).toPromise(),
-    ])
+    fetchQuery(environment, GroupingDetailBlocksQuery, variables, { fetchPolicy: 'network-only' }).toPromise()
       .catch(() => { /* 刷新失败保留当前内容 */ })
       .finally(() => { if (live) setRefreshing(false); });
     return () => { live = false; };
@@ -417,13 +395,9 @@ function DetailBlocks({
         />
       }
     >
-      {primTree ? (
-        <PrimTreeView nodes={primTree} handlers={leafHandlers} />
-      ) : (
-        blocks.map((b, i) => (
-          <BlockNode1View key={i} block={b} handlers={leafHandlers} />
-        ))
-      )}
+      {blocks.map((b, i) => (
+        <BlockNode1View key={i} block={b} handlers={leafHandlers} />
+      ))}
     </ScrollView>
   );
 }

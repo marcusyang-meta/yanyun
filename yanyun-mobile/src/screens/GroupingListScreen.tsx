@@ -1,15 +1,12 @@
 import React, { Suspense, useCallback, useEffect, useRef, useState } from 'react';
-import { Linking, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fetchQuery, useLazyLoadQuery, useRelayEnvironment } from 'react-relay';
-import * as Clipboard from 'expo-clipboard';
 import { fonts, theme } from '../theme';
 import { Backdrop, GoldFill, GuildHeader, SiteChrome, TabFill } from '../components/ui';
-import { BLOCKS_VERSION, PRIMITIVES_VERSION } from '../config';
-import { GroupingListBlocksQuery, GroupingListPrimQuery, ListPageTextQuery } from '../documents';
-import { PrimTreeView } from '../prims/PrimTree';
-import type { PrimNode } from '@yanyun/blocks-core';
+import { BLOCKS_VERSION } from '../config';
+import { GroupingListBlocksQuery, ListPageTextQuery } from '../documents';
 import { CreateGroupingFormMount } from '../components/GroupingForm';
 import DexView from './DexView';
 import SectView from './SectView';
@@ -21,7 +18,6 @@ import { AsyncBoundary, LoadingView } from '../components/AsyncBoundary';
 import { weekRangeLabel } from '../week';
 import { useGuildLive } from '../live';
 import type { documentsGroupingListBlocksQuery } from '../__generated__/documentsGroupingListBlocksQuery.graphql';
-import type { documentsGroupingListPrimQuery } from '../__generated__/documentsGroupingListPrimQuery.graphql';
 
 // 页面骨架与 Web 百业主页 (GuildHome) 同构: 页眉行 (← 站点名 +
 // UserBar) → 百业名 (书法 42) + 版本行 → 分区胶囊页签 (.yy-tabs:
@@ -83,9 +79,6 @@ export default function GroupingListScreen({ slug, name, readOnly, nick, gameVer
     edit: () => {},
     complete: () => {},
     uncomplete: () => {},
-    // 原语面通用动作 (列表本期不用, 处理器随冻结词汇一并就位)
-    copyText: (a) => { void Clipboard.setStringAsync(a.text); },
-    openUrl: (a) => { void Linking.openURL(a.url).catch(() => {}); },
   };
 
   // 分区胶囊文案: 会话里该百业的 shell 标签 (与 Web GuildHome 同源字段);
@@ -272,14 +265,6 @@ function ListBlocks({
     variables,
     { fetchPolicy: 'store-or-network' },
   );
-  // 原语面 (C 路线): primTree 非 null 时走原语解释器, 否则积木树。
-  // 服务端协商 + 页面 × 百业开关决定, 客户端只看结果。
-  const primData = useLazyLoadQuery<documentsGroupingListPrimQuery>(
-    GroupingListPrimQuery,
-    { slug, tab, weekOffset, primitivesVersion: PRIMITIVES_VERSION },
-    { fetchPolicy: 'store-or-network' },
-  );
-  const primTree = (primData.groupingListPage?.primTree ?? null) as PrimNode[] | null;
   const pageText = useLazyLoadQuery<documentsListPageTextQuery>(
     ListPageTextQuery,
     { slug, tab },
@@ -287,27 +272,14 @@ function ListBlocks({
   );
   const page = pageText.groupingListPage;
   const blocks = data.groupingListPage?.blocks ?? [];
-  const primCardCount = primTree
-    ? primTree.reduce((n, node) => n + (node.t === 'list' ? (node.items?.length ?? 0) : 0), 0)
-    : 0;
-  const cardCount = primTree
-    ? primCardCount
-    : blocks.filter((b) => b.__typename === 'GroupingCardBlock').length;
+  const cardCount = blocks.filter((b) => b.__typename === 'GroupingCardBlock').length;
   const [refreshing, setRefreshing] = useState(false);
 
   const firstTick = useRef(true);
   useEffect(() => {
     if (firstTick.current) { firstTick.current = false; return; }
     let live = true;
-    Promise.all([
-      fetchQuery(environment, GroupingListBlocksQuery, variables, { fetchPolicy: 'network-only' }).toPromise(),
-      fetchQuery(
-        environment,
-        GroupingListPrimQuery,
-        { slug, tab, weekOffset, primitivesVersion: PRIMITIVES_VERSION },
-        { fetchPolicy: 'network-only' },
-      ).toPromise(),
-    ])
+    fetchQuery(environment, GroupingListBlocksQuery, variables, { fetchPolicy: 'network-only' }).toPromise()
       .catch(() => { /* 刷新失败保留当前内容 */ })
       .finally(() => { if (live) setRefreshing(false); });
     return () => { live = false; };
@@ -346,13 +318,9 @@ function ListBlocks({
           />
         }
       >
-        {primTree ? (
-          <PrimTreeView nodes={primTree} handlers={leafHandlers} />
-        ) : (
-          blocks.map((b, i) => (
-            <BlockNode1View key={i} block={b} handlers={leafHandlers} />
-          ))
-        )}
+        {blocks.map((b, i) => (
+          <BlockNode1View key={i} block={b} handlers={leafHandlers} />
+        ))}
       </ScrollView>
     </>
   );
