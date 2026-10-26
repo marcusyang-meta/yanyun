@@ -446,6 +446,13 @@ type GroupingDetailPage {
   seatNameLabel: String!
   seatNamePlaceholder: String!
   seatNameRequired: String!
+  # 报名身份收口: 自己报名 (名字锁定) / 代报名 (名册选人) 双模式文案
+  seatSelfTabLabel: String!
+  seatProxyTabLabel: String!
+  seatSelfNameHint: String!
+  seatProxySearchPlaceholder: String!
+  seatProxyPickRequired: String!
+  seatProxyEmptyText: String!
   seatSectLabel: String!
   seatCancelLabel: String!
   seatConfirmJoinLabel: String!
@@ -1134,9 +1141,14 @@ input UpdateGroupingInput {
 
 input JoinGroupingInput {
   groupingId: ID!
+  # 兼容保留: 落座名字一律由服务端定 (自己报名 = 本人 Discord 服务器
+  # 昵称回退全局名; 代报名 = 名册名), 客户端传值不作数。
   nickname: String!
   weapon: String!
   seatIndex: Int!
+  # 代报名: 被代报成员的 Discord ID (必须在本百业名册内, 服务端复验);
+  # 缺省 = 为自己报名, 座位恒落本人身份戳。
+  forDiscordId: ID
 }
 
 input LeaveGroupingInput {
@@ -1222,6 +1234,14 @@ type DiscordServer {
   icon: String
 }
 
+# 百业成员名册条目 (代报名选人用): 名字口径与服务端落座一致
+# (名册昵称, 回退全局名); globalName 供选择器在昵称重名时消歧。
+type GuildRosterMember {
+  discordId: ID!
+  displayName: String!
+  globalName: String
+}
+
 # 已绑定服务器 + 当前用户是成员: 完整数据
 type Guild {
   slug: String!
@@ -1231,6 +1251,9 @@ type Guild {
   memberCount: Int!
   groupings(tab: GroupingTab!): GroupingListPage!
   viewerNick: String
+  # 成员名册: 仅完整 Guild 面声明 — GuildReadOnly / GuildLocked 无此
+  # 字段, 权限由响应类型本身表达 (不下发任何权限标志位)。
+  memberRoster: [GuildRosterMember!]!
   # 百业主页外壳文案 (shell gen 方法按请求 locale 生成)
   homeBackToHubLabel: String!
   homeTabTeamLabel: String!

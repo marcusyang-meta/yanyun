@@ -138,9 +138,15 @@ export async function joinGrouping(
   nickname: string,
   weapon: string,
   seatIndex: number,
+  // 代报名: 被代报成员的 Discord ID (须在本百业名册内, 服务端复验)。
+  // 缺省 = 自己报名: 落座名与身份戳由服务端按会话定, nickname 传值
+  // 只作兼容保留, 服务端以规范名为准。
+  forDiscordId?: string,
 ): Promise<SeatPayload> {
   const r = await commit<documentsJoinGroupingMutation>(JoinGroupingMutation, {
-    input: { groupingId, nickname, weapon, seatIndex },
+    input: forDiscordId
+      ? { groupingId, nickname, weapon, seatIndex, forDiscordId }
+      : { groupingId, nickname, weapon, seatIndex },
   });
   return r.joinGrouping as SeatPayload;
 }

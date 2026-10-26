@@ -383,6 +383,12 @@ type GroupingDetailPage {
   seatNameLabel: String!
   seatNamePlaceholder: String!
   seatNameRequired: String!
+  seatSelfTabLabel: String!
+  seatProxyTabLabel: String!
+  seatSelfNameHint: String!
+  seatProxySearchPlaceholder: String!
+  seatProxyPickRequired: String!
+  seatProxyEmptyText: String!
   seatSectLabel: String!
   seatCancelLabel: String!
   seatConfirmJoinLabel: String!
@@ -1010,6 +1016,7 @@ input JoinGroupingInput {
   nickname: String!
   weapon: String!
   seatIndex: Int!
+  forDiscordId: ID
 }
 
 input LeaveGroupingInput {
@@ -1082,6 +1089,12 @@ type DiscordServer {
   icon: String
 }
 
+type GuildRosterMember {
+  discordId: ID!
+  displayName: String!
+  globalName: String
+}
+
 type Guild {
   slug: String!
   name: String
@@ -1090,6 +1103,7 @@ type Guild {
   memberCount: Int!
   groupings(tab: GroupingTab!): GroupingListPage!
   viewerNick: String
+  memberRoster: [GuildRosterMember!]!
   homeBackToHubLabel: String!
   homeTabTeamLabel: String!
   homeTabDexLabel: String!
