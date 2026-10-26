@@ -1180,6 +1180,16 @@ export const SectPageQuery = graphql`
       sectBisAccessoriesLabel
       sectBisHeadBodyLabel
       sectBisLegsWristsLabel
+      sectTabAffixLabel
+      sectAffixEmptyText
+      sectAffixSetLabel
+      sectAffixBowLabel
+      sectAffixDingyinLabel
+      sectAffixColAffixLabel
+      sectAffixColCountLabel
+      sectAffixColMaxLabel
+      sectAffixColCyLabel
+      sectAffixSourceText
       sects {
         slug
         name
@@ -1205,6 +1215,24 @@ export const SectPageQuery = graphql`
           crit
           critDamage
           note
+        }
+        gradBuilds {
+          name
+          cat
+          setName
+          bowLabel
+          recipe
+          note
+          dingyinName
+          totalBars
+          targets {
+            label
+            count
+            maxValue
+            cyValue
+            unit
+            flexLabels
+          }
         }
       }
     }

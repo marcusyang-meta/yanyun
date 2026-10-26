@@ -15,10 +15,11 @@ import type { documentsSectPageQuery } from '../__generated__/documentsSectPageQ
 // Sect guides: mirrors Web SectDetail -- sects are grouped by family
 // (same grouping rule as Web: by name prefix); a sect's detail has BiS
 // (per-slot cards + affix chips, with the tier-100 recipe section below)
-// / rotation (dummy rotation/opener/loop/notes/mindset/video) / stat
-// targets / tuning / graduation (incl. bench + library + builds, the
-// gradPage surface) -- the same five tabs as Web. All copy comes from
-// backend shell fields.
+// / graduation affixes (per-build affix composition tables) / rotation
+// (dummy rotation/opener/loop/notes/mindset/video) / stat targets /
+// tuning / graduation (incl. bench + library + builds, the gradPage
+// surface) -- the same six tabs as Web. All copy comes from backend
+// shell fields.
 
 // Same MENPAI group order as Web SectDetail
 const MENPAI = ['鸣金', '牵丝', '裂石', '破竹'];
@@ -83,7 +84,7 @@ function SectList({ sectSlug, setSectSlug }: { sectSlug: string | null; setSectS
 }
 
 function SectDetail({ sect, text, onBack }: { sect: SectRow; text: SectData; onBack: () => void }) {
-  const [stab, setStab] = useState<'bis' | 'rot' | 'rate' | 'tiaolv' | 'grad'>('bis');
+  const [stab, setStab] = useState<'bis' | 'affix' | 'rot' | 'rate' | 'tiaolv' | 'grad'>('bis');
 
   const bisSlots: [string | null | undefined, readonly string[]][] = sect.bis ? [
     [text?.sectBisMainWeaponLabel, sect.bis.mainWeapon],
@@ -101,8 +102,9 @@ function SectDetail({ sect, text, onBack }: { sect: SectRow; text: SectData; onB
     [text?.sectRotInnerSkillsLabel, sect.rotation.innerSkills],
   ] : [];
 
-  const tabs: ['bis' | 'rot' | 'rate' | 'tiaolv' | 'grad', string | null | undefined][] = [
+  const tabs: ['bis' | 'affix' | 'rot' | 'rate' | 'tiaolv' | 'grad', string | null | undefined][] = [
     ['bis', text?.sectTabBisLabel],
+    ['affix', text?.sectTabAffixLabel],
     ['rot', text?.sectTabRotationLabel],
     ['rate', text?.sectTabRatesLabel],
     ['tiaolv', text?.sectTabTiaolvLabel],
@@ -144,6 +146,48 @@ function SectDetail({ sect, text, onBack }: { sect: SectRow; text: SectData; onB
           <React.Suspense fallback={null}>
             <GearSectRecipes sectName={sect.name} onPicked={() => setStab('grad')} />
           </React.Suspense>
+        </View>
+      )}
+
+      {stab === 'affix' && (
+        <View style={{ gap: 12 }}>
+          {!sect.gradBuilds.length && <Text style={s.emptySmall}>{text?.sectAffixEmptyText}</Text>}
+          {sect.gradBuilds.map((b) => (
+            <View key={b.name + '|' + b.setName} style={s.card}>
+              <CardFill />
+              <View style={s.affixHead}>
+                <Text style={s.affixBuildName}>{b.name}</Text>
+                <View style={s.catChip}>
+                  <Text style={s.catChipText}>{b.cat}</Text>
+                </View>
+              </View>
+              <Text style={s.affixMeta}>
+                <Text style={s.affixMetaLabel}>{text?.sectAffixSetLabel} </Text>{b.setName}
+                {b.bowLabel ? <><Text style={s.affixMetaLabel}>{' · '}{text?.sectAffixBowLabel} </Text>{b.bowLabel}</> : null}
+                {b.dingyinName ? <><Text style={s.affixMetaLabel}>{' · '}{text?.sectAffixDingyinLabel} </Text>{b.dingyinName}</> : null}
+              </Text>
+              <Text style={s.affixRecipe}>{b.recipe}</Text>
+              <View style={[s.affixRow, s.affixRowHead]}>
+                <Text style={[s.affixCellLabel, s.affixHeadText]}>{text?.sectAffixColAffixLabel}</Text>
+                <Text style={[s.affixCellNum, s.affixHeadText]}>{text?.sectAffixColCountLabel}</Text>
+                <Text style={[s.affixCellNum, s.affixHeadText]}>{text?.sectAffixColMaxLabel}</Text>
+                <Text style={[s.affixCellNum, s.affixHeadText]}>{text?.sectAffixColCyLabel}</Text>
+              </View>
+              {b.targets.map((t) => (
+                <View key={t.label} style={s.affixRow}>
+                  <Text style={s.affixCellLabel}>
+                    <Text style={s.affixName}>{t.label}</Text>
+                    {t.flexLabels.length > 0 && <Text style={s.affixFlex}>（{t.flexLabels.join(' / ')}）</Text>}
+                  </Text>
+                  <Text style={s.affixCellNum}>{t.count}</Text>
+                  <Text style={s.affixCellNum}>{t.maxValue != null ? fmtVal(t.maxValue) + t.unit : '—'}</Text>
+                  <Text style={s.affixCellNum}>{t.cyValue != null ? fmtVal(t.cyValue) + t.unit : '—'}</Text>
+                </View>
+              ))}
+              {b.note && <Text style={s.affixNote}>{b.note}</Text>}
+            </View>
+          ))}
+          {sect.gradBuilds.length > 0 && <Text style={s.affixSource}>{text?.sectAffixSourceText}</Text>}
         </View>
       )}
 
@@ -257,4 +301,25 @@ const s = StyleSheet.create({
   rateLabel: { fontFamily: fonts.serif, color: theme.gold, fontSize: 14, fontWeight: '600', minWidth: 40 },
   rateValue: { fontFamily: fonts.serif, color: theme.paper, fontSize: 14 },
   rateNote: { fontFamily: fonts.serif, color: theme.muted, fontSize: 13, lineHeight: 22, marginTop: 4 },
+  // Graduation-affix tab mirrors Web: build card + composition table
+  affixHead: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 4 },
+  affixBuildName: { fontFamily: fonts.serif, color: theme.gold, fontSize: 15, fontWeight: '600' },
+  catChip: { borderWidth: 1, borderColor: 'rgba(201,163,92,.4)', borderRadius: 999, paddingVertical: 2, paddingHorizontal: 9 },
+  catChipText: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 11 },
+  affixMeta: { fontFamily: fonts.serif, color: theme.muted, fontSize: 12.5, lineHeight: 24 },
+  affixMetaLabel: { color: theme.goldHi },
+  affixRecipe: { fontFamily: fonts.serif, color: theme.paper, fontSize: 12.5, lineHeight: 22, marginTop: 2, marginBottom: 8 },
+  affixRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(201,163,92,.1)' },
+  affixRowHead: { borderBottomColor: 'rgba(201,163,92,.25)' },
+  affixHeadText: { color: theme.muted, fontSize: 11.5 },
+  affixCellLabel: { flex: 1, fontFamily: fonts.serif, color: theme.paper, fontSize: 12.5 },
+  affixCellNum: { width: 52, textAlign: 'right', fontFamily: fonts.serif, color: theme.paper, fontSize: 12.5 },
+  affixName: { color: theme.goldHi },
+  affixFlex: { color: theme.muted, fontSize: 11.5 },
+  affixNote: { fontFamily: fonts.serif, color: theme.muted, fontSize: 12, lineHeight: 20, marginTop: 8 },
+  affixSource: { fontFamily: fonts.serif, color: theme.muted, fontSize: 12, lineHeight: 20 },
 });
+
+function fmtVal(v: number): string {
+  return String(Math.round(v * 10) / 10);
+}
