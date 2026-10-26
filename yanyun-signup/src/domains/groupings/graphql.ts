@@ -642,6 +642,7 @@ export const DETAIL_TEXT_RESOLVERS = {
     ['seatCancelLabel', 'common', 'cancel'],
     ['seatConfirmJoinLabel', 'seat', 'confirmJoin'],
     ['seatJoiningLabel', 'seat', 'joining'],
+    ['seatLeaderLabel', 'seat', 'leader'],
     ['seatToastSect', 'seat', 'toastSect'],
     ['seatToastJoined', 'seat', 'toastJoined'],
     ['seatToastJoinFailedTemplate', 'seat', 'toastJoinFailed'],

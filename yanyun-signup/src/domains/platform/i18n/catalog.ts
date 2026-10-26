@@ -1296,6 +1296,13 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "es": "DPS",
       "fr": "DPS",
       "zh-TW": "輸出"
+    },
+    "leader": {
+      "zh-CN": "车头",
+      "en": "Leader",
+      "es": "Líder",
+      "fr": "Chef",
+      "zh-TW": "車頭"
     }
   },
   "appBlocks": {

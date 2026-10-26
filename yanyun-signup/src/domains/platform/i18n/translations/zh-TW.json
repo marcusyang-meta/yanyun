@@ -6314,6 +6314,17 @@
         }
       ],
       "types": []
+    },
+    "/0feQzfZ+f7khb4xJxyfKg==": {
+      "description": "seat.leader",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "車頭",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }
