@@ -118,6 +118,11 @@ function makeDb(fx = {}) {
           }
           return { results: rows };
         }
+        if (/FROM events WHERE id = \?/.test(sql)) {
+          // 数据层点查走 .all() 通道 (drizzle db.get): 形状同 first() 的按 id 分支
+          const row = tables.events.find((e) => e.id === Number(b[0])) || null;
+          return { results: row ? [row] : [] };
+        }
         if (/FROM events/.test(sql) && /origin = 'member'/.test(sql)) {
           return { results: tables.events.filter((e) => e.origin === 'member' && (e.creator_discord_id == null || e.creator_discord_id === '')).sort((a, c) => a.id - c.id) };
         }

@@ -89,6 +89,7 @@ function stmt(sql) {
       if (sql.includes('SELECT * FROM dungeons ORDER BY')) return { results: DUNGEONS };
       if (sql.includes('FROM bosses WHERE dungeon')) return { results: BOSSES[q._binds[0]] || [] };
       if (sql.includes('FROM schools')) return { results: SCHOOLS };
+      if (sql.includes('FROM events WHERE id')) return { results: Number(q._binds[0]) === 42 ? [EVENT] : [] };
       if (sql.includes('FROM events WHERE tenant')) return { results: [EVENT] };
       if (sql.includes('FROM signups')) return { results: SIGNUPS };
       if (sql.includes('FROM user_gear_builds')) return { results: SAVED };

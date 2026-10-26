@@ -5,7 +5,7 @@
 // 五语种文案字段 -> 发车提醒文案 (buildReminderMessage 真函数) -> REST 草稿口径。
 import { yoga } from '../src/graphql.js';
 import { typeDefs } from '../src/graphql-schema.js';
-import { buildReminderMessage } from '../src/reminder.js';
+import { buildReminderMessage } from '../src/reminder.ts';
 
 let pass = 0, fail = 0; const fails = [];
 function check(name, ok, extra = '') {
@@ -145,6 +145,18 @@ function stmt(sql) {
           if (key === b[0]) rows.push({ tenant: t, value: v });
         }
         return { results: rows };
+      }
+      if (/FROM events WHERE id = \?/.test(sql)) {
+        // 数据层点查走 .all() 通道 (drizzle db.get): 形状同 first() 的按 id 分支
+        const row = tables.events.find((e) => e.id === Number(b[0])) || null;
+        return { results: row ? [row] : [] };
+      }
+      if (/AS c,/.test(sql) && /FROM signups/.test(sql)) {
+        // 数据层点查走 .all() 通道: 形状同 first() 的容量三联分支
+        const gid = Number(b[0]);
+        const rows = tables.signups.filter((r) => r.event_id === gid);
+        const ev = tables.events.find((e) => e.id === gid);
+        return { results: [{ c: rows.length, h: rows.filter((r) => r.role === '奶' || r.role === '治疗').length, m: ev ? ev.max_slots : 0 }] };
       }
       if (/FROM events WHERE tenant = \? AND type = \?/.test(sql)) {
         return { results: tables.events.filter((e) => e.tenant === b[0] && e.type === b[1]) };
