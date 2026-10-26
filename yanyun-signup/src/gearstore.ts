@@ -1,9 +1,17 @@
-// 配装台装备库存储 (D1, 按 Discord 账号归属; 2026-10-24 用户裁决: 不用 localStorage)
+// 配装台装备库存储 (按 Discord 账号归属; 2026-10-24 用户裁决: 不用 localStorage)
+// 行级读写走数据层 (src/db/repositories/gear.ts); 本文件只剩懒 DDL、
+// payload JSON 序列化与行->领域对象映射。
 // user_gear_items: 单件装备 (词条/定音/流派标签存 payload JSON, 已经过 gearplanner sanitize)
 // user_gear_builds: 保存的方案 (搭配 item-id 组合 + 固定源字段状态 + 服务端算出的快照)
 // 所有读写一律以 discord_id 限定: 查不到即不存在, 不区分「他人的」与「没有」。
-let gearTablesReady = null;
-export function ensureGearTables(db) {
+import {
+  listGearItemRows, insertGearItemRow, updateGearItemRow as updateGearItemRowData,
+  deleteGearItemRow as deleteGearItemRowData, listGearBuildRows, insertGearBuildRow,
+  deleteGearBuildRow as deleteGearBuildRowData,
+} from './db/repositories/gear.ts';
+
+let gearTablesReady: Promise<void> | null = null;
+export function ensureGearTables(db: any) {
   if (!gearTablesReady) {
     gearTablesReady = (async () => {
       try {
@@ -31,8 +39,8 @@ export function ensureGearTables(db) {
   return gearTablesReady;
 }
 
-function itemRowToGear(row) {
-  let p = {};
+function itemRowToGear(row: any) {
+  let p: any = {};
   try { p = JSON.parse(row.payload || '{}'); } catch { p = {}; }
   return {
     id: row.id,
@@ -44,7 +52,7 @@ function itemRowToGear(row) {
     warnings: Array.isArray(p.warnings) ? p.warnings : [],
   };
 }
-function gearPayload(gear) {
+function gearPayload(gear: any) {
   return JSON.stringify({
     lines: gear.lines || [],
     dingyin: gear.dingyin || null,
@@ -53,42 +61,38 @@ function gearPayload(gear) {
   });
 }
 
-export async function listGearItems(db, discordId) {
+export async function listGearItems(db: any, discordId: string) {
   await ensureGearTables(db);
-  const { results } = await db.prepare(
-    'SELECT id, slot, name, payload FROM user_gear_items WHERE discord_id = ? ORDER BY id ASC'
-  ).bind(discordId).all();
-  return (results || []).map(itemRowToGear);
+  const rows = await listGearItemRows(db, discordId);
+  return rows.map(itemRowToGear);
 }
 
-export async function insertGearItem(db, discordId, gear) {
+export async function insertGearItem(db: any, discordId: string, gear: any) {
   await ensureGearTables(db);
-  const r = await db.prepare(
-    'INSERT INTO user_gear_items (discord_id, slot, name, payload, created_at) VALUES (?, ?, ?, ?, ?)'
-  ).bind(discordId, gear.slot || '', gear.name || '', gearPayload(gear), Date.now()).run();
-  const id = r && r.meta ? (r.meta.last_row_id ?? null) : null;
+  const meta = await insertGearItemRow(db, {
+    discordId, slot: gear.slot || '', name: gear.name || '',
+    payload: gearPayload(gear), createdAt: Date.now(),
+  });
+  const id = meta.last_row_id || null;
   return { ...gear, id };
 }
 
-export async function updateGearItemRow(db, discordId, id, gear) {
+export async function updateGearItemRow(db: any, discordId: string, id: number, gear: any) {
   await ensureGearTables(db);
-  const r = await db.prepare(
-    'UPDATE user_gear_items SET slot = ?, name = ?, payload = ? WHERE id = ? AND discord_id = ?'
-  ).bind(gear.slot || '', gear.name || '', gearPayload(gear), id, discordId).run();
-  const changed = r && r.meta ? (r.meta.changes ?? 0) : 0;
-  return changed > 0 ? { ...gear, id } : null;
+  const meta = await updateGearItemRowData(db, discordId, id, {
+    slot: gear.slot || '', name: gear.name || '', payload: gearPayload(gear),
+  });
+  return meta.changes > 0 ? { ...gear, id } : null;
 }
 
-export async function deleteGearItemRow(db, discordId, id) {
+export async function deleteGearItemRow(db: any, discordId: string, id: number) {
   await ensureGearTables(db);
-  const r = await db.prepare(
-    'DELETE FROM user_gear_items WHERE id = ? AND discord_id = ?'
-  ).bind(id, discordId).run();
-  return r && r.meta ? (r.meta.changes ?? 0) > 0 : false;
+  const meta = await deleteGearItemRowData(db, discordId, id);
+  return meta.changes > 0;
 }
 
-function buildRowToSaved(row) {
-  let p = {};
+function buildRowToSaved(row: any) {
+  let p: any = {};
   try { p = JSON.parse(row.payload || '{}'); } catch { p = {}; }
   return {
     id: row.id,
@@ -106,15 +110,13 @@ function buildRowToSaved(row) {
   };
 }
 
-export async function listGearBuilds(db, discordId) {
+export async function listGearBuilds(db: any, discordId: string) {
   await ensureGearTables(db);
-  const { results } = await db.prepare(
-    'SELECT id, name, target_idx, payload, created_at FROM user_gear_builds WHERE discord_id = ? ORDER BY id ASC'
-  ).bind(discordId).all();
-  return (results || []).map(buildRowToSaved);
+  const rows = await listGearBuildRows(db, discordId);
+  return rows.map(buildRowToSaved);
 }
 
-export async function insertGearBuild(db, discordId, build) {
+export async function insertGearBuild(db: any, discordId: string, build: any) {
   await ensureGearTables(db);
   const payload = JSON.stringify({
     buildLabel: build.buildLabel || '',
@@ -126,17 +128,16 @@ export async function insertGearBuild(db, discordId, build) {
     gradDingyinOn: build.gradDingyinOn !== false,
     snapshot: build.snapshot || null,
   });
-  const r = await db.prepare(
-    'INSERT INTO user_gear_builds (discord_id, name, target_idx, payload, created_at) VALUES (?, ?, ?, ?, ?)'
-  ).bind(discordId, build.name || '', build.targetIdx || 0, payload, Date.now()).run();
-  const id = r && r.meta ? (r.meta.last_row_id ?? null) : null;
-  return { ...build, id, createdAt: Date.now() };
+  const now = Date.now();
+  const meta = await insertGearBuildRow(db, {
+    discordId, name: build.name || '', targetIdx: build.targetIdx || 0, payload, createdAt: now,
+  });
+  const id = meta.last_row_id || null;
+  return { ...build, id, createdAt: now };
 }
 
-export async function deleteGearBuildRow(db, discordId, id) {
+export async function deleteGearBuildRow(db: any, discordId: string, id: number) {
   await ensureGearTables(db);
-  const r = await db.prepare(
-    'DELETE FROM user_gear_builds WHERE id = ? AND discord_id = ?'
-  ).bind(id, discordId).run();
-  return r && r.meta ? (r.meta.changes ?? 0) > 0 : false;
+  const meta = await deleteGearBuildRowData(db, discordId, id);
+  return meta.changes > 0;
 }

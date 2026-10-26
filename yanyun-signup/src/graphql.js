@@ -34,7 +34,7 @@ import {
 import {
   listGearItems, insertGearItem, updateGearItemRow, deleteGearItemRow,
   listGearBuilds, insertGearBuild, deleteGearBuildRow,
-} from './gearstore.js';
+} from './gearstore.ts';
 import {
   GP_SLOTS, GP_GEAR_SLOTS, GP_AFFIX, GP_BUILDS, GP_SLOTS_BIG, GP_SLOTS_SMALL,
   GP_BASE_FIELDS, GP_BASE_PRESET, GP_BASE_FIELD_LABELS, GP_XINFA, GP_TALENT_ROWS,
