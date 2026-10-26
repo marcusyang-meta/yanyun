@@ -7,3 +7,4 @@ export * from './guildAvatars.ts';
 export * from './fixedTeams.ts';
 export * from './guildavatar.ts';
 export { ensureGuildAvatarsTable } from './guildavatar.ts';
+export * from './admin-auth.ts';

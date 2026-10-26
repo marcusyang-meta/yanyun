@@ -111,7 +111,7 @@ const ASSETS = { fetch: async () => new Response('not found', { status: 404 }) }
 
 /* ================= A4: onboard 删除 + fallback fail-closed ================= */
 {
-  const worker = (await import('../src/worker.js')).default;
+  const worker = (await import('../src/worker.ts')).default;
   const { db, state } = makeDb({ tenants: [{ slug: 'jijiguagua', guild_name: '叽哩呱啦', password_hash: 'x' }] });
   const env = { DB: db, ADMIN_PASSWORD: 'test-admin-pw', ASSETS };
   const { ctx, pending } = makeCtx();
@@ -130,7 +130,7 @@ const ASSETS = { fetch: async () => new Response('not found', { status: 404 }) }
 
 /* fallback-secret fail-closed */
 {
-  const worker = (await import('../src/worker.js')).default;
+  const worker = (await import('../src/worker.ts')).default;
   const hash = await sha256hex('guildpass123');
   const { db } = makeDb({ tenants: [{ slug: 'testguild', guild_name: '测试百业', password_hash: hash }] });
   const { ctx } = makeCtx();
@@ -233,7 +233,7 @@ async function gql(query, { locale = 'zh-CN', db } = {}) {
 }
 {
   // worker 层注入: REST 处理器未捕获异常 -> 500 + error_log(source=rest)
-  const worker = (await import('../src/worker.js')).default;
+  const worker = (await import('../src/worker.ts')).default;
   const { db, state } = makeDb({ throwOnTenantsList: true });
   const env = { DB: db, ADMIN_PASSWORD: 'test-admin-pw', ASSETS };
   const { ctx, pending } = makeCtx();

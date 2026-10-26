@@ -157,7 +157,7 @@ eq('sniff webp', sniffAvatarType(new Uint8Array([0x52, 0x49, 0x46, 0x46, 0, 0, 0
 eq('sniff 文本伪图 -> null', sniffAvatarType(new TextEncoder().encode('not an image at all')), null);
 
 /* ================= REST: 上传/出图/鉴权/限额/删除 ================= */
-const worker = (await import('../src/worker.js')).default;
+const worker = (await import('../src/worker.ts')).default;
 const pwHash = await sha256hex('guildpass123');
 const { db, state } = makeDb({
   tenants: [

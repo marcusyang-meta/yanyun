@@ -347,7 +347,7 @@ try {
 
 /* ---------------- (g) REST 草稿口径 (worker.js 真 fetch) ---------------- */
 try {
-  const worker = (await import('../src/worker.js')).default;
+  const worker = (await import('../src/worker.ts')).default;
   const before = tables.events.length;
   const res = await worker.fetch(new Request(`http://local/api/${SLUG}/cars/draft`, {
     method: 'POST', headers: { 'content-type': 'application/json' },
