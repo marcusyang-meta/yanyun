@@ -13,6 +13,9 @@
 // 铁律: 记日志本身失败绝不影响主请求 — 本模块所有导出函数内部吞掉
 // 一切异常; 调用点也不需要再包 try/catch (包了也无妨)。
 // 留存封顶: 30 天 + 总行数上限, 写入时按计数节流触发懒清理, 不设 cron。
+import {
+  insertErrorLog, pruneErrorLog, listRecentErrors, countErrorsSince,
+} from './db/repositories/errorLog.ts';
 
 const KEEP_DAYS = 30;
 const MAX_ROWS = 5000;
@@ -45,10 +48,7 @@ export function ensureErrorLogTable(db) {
 async function prune(db) {
   try {
     const cutoff = Math.floor(Date.now() / 1000) - KEEP_DAYS * 86400;
-    await db.prepare('DELETE FROM error_log WHERE at < ?').bind(cutoff).run();
-    await db.prepare(
-      'DELETE FROM error_log WHERE id IN (SELECT id FROM error_log ORDER BY id DESC LIMIT -1 OFFSET ?)'
-    ).bind(MAX_ROWS).run();
+    await pruneErrorLog(db, cutoff, MAX_ROWS);
   } catch { /* 清理失败静默, 下次写入再试 */ }
 }
 
@@ -71,12 +71,11 @@ export async function logError(db, entry = {}) {
         ? clip(entry.context, 500)
         : clip(JSON.stringify(entry.context), 500);
     }
-    await db.prepare(
-      'INSERT INTO error_log(at, source, name, message, tenant, context, stack) VALUES(?, ?, ?, ?, ?, ?, ?)'
-    ).bind(
-      Math.floor(Date.now() / 1000),
-      clip(entry.source, 40), name, message, clip(entry.tenant, 40), context, stack,
-    ).run();
+    await insertErrorLog(db, {
+      at: Math.floor(Date.now() / 1000),
+      source: clip(entry.source, 40), name, message,
+      tenant: clip(entry.tenant, 40), context, stack,
+    });
     writeCount++;
     if (writeCount % PRUNE_EVERY === 0) await prune(db);
     return true;
@@ -87,12 +86,10 @@ export async function logError(db, entry = {}) {
 export async function recentErrors(db, limit = 50) {
   try {
     await ensureErrorLogTable(db);
-    const { results } = await db.prepare(
-      'SELECT id, at, source, name, message, tenant, context FROM error_log ORDER BY id DESC LIMIT ?'
-    ).bind(limit).all();
+    const errors = await listRecentErrors(db, limit);
     const dayAgo = Math.floor(Date.now() / 1000) - 86400;
-    const cnt = await db.prepare('SELECT COUNT(*) AS c FROM error_log WHERE at >= ?').bind(dayAgo).first();
-    return { errors: results || [], last24h: cnt ? Number(cnt.c) || 0 : 0 };
+    const last24h = await countErrorsSince(db, dayAgo);
+    return { errors, last24h };
   } catch {
     return { errors: [], last24h: 0 };
   }
