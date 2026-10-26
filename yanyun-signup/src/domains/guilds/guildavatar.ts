@@ -47,7 +47,7 @@ export async function sha256hex(bytes: any): Promise<string> {
  * default brand surface). */
 export function avatarPath(slug: string, hash: string | null | undefined): string | null {
   if (!hash) return null;
-  return `/api/guilds/${encodeURIComponent(slug)}/avatar?v=${String(hash).slice(0, 8)}`;
+  return `/guilds/${encodeURIComponent(slug)}/avatar?v=${String(hash).slice(0, 8)}`;
 }
 export function avatarPublicUrl(slug: string, hash: string | null | undefined): string | null {
   const p = avatarPath(slug, hash);

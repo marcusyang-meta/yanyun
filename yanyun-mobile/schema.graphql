@@ -86,6 +86,7 @@ type Query {
   viewer: Viewer!
   slugAvailable(slug: String!): Boolean!
   ogGuildCard(slug: String!): OgGuildCard!
+  ogGuildSlugs: [String!]!
   ogCarCard(slug: String!, id: ID!): OgCarCard
   myGearItems: [GearItem!]!
   myGearBuilds: [GearSavedBuild!]!

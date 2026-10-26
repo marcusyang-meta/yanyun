@@ -1771,6 +1771,8 @@ type OgCarCard {
 
 extend type Query {
   ogGuildCard(slug: String!): OgGuildCard!
+  # OG 预热枚举: 全部百业 slug (dev_only 仅 dev 来源可见, 与旧 /api/tenants 同门控)
+  ogGuildSlugs: [String!]!
   ogCarCard(slug: String!, id: ID!): OgCarCard
 }
 

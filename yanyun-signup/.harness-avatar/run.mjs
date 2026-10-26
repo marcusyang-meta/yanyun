@@ -185,7 +185,7 @@ const token2 = await login('test2');
 check('管理员登录签发 token', typeof token1 === 'string' && token1.includes('.'));
 
 // No avatar: public serving 404s.
-let r = await call('/api/guilds/test1/avatar');
+let r = await call('/guilds/test1/avatar');
 eq('无头像出图 -> 404', r.status, 404);
 await r.text();
 
@@ -210,10 +210,10 @@ eq('本业管理员 PUT PNG -> 200', r.status, 200);
 let j = await r.json();
 const pngHash = await sha256hex(png);
 eq('上传返回 hash = 内容 sha256', j.hash, pngHash);
-eq('上传返回 avatarUrl 带 hash8', j.avatarUrl, `/api/guilds/test1/avatar?v=${pngHash.slice(0, 8)}`);
+eq('上传返回 avatarUrl 带 hash8', j.avatarUrl, `/guilds/test1/avatar?v=${pngHash.slice(0, 8)}`);
 
 // Serving round-trip: identical bytes + content-type + long cache + ETag.
-r = await call('/api/guilds/test1/avatar?v=' + pngHash.slice(0, 8));
+r = await call('/guilds/test1/avatar?v=' + pngHash.slice(0, 8));
 eq('出图 -> 200', r.status, 200);
 eq('出图 content-type', r.headers.get('content-type'), 'image/png');
 check('出图长缓存 immutable', (r.headers.get('cache-control') || '').includes('immutable'), r.headers.get('cache-control'));
@@ -221,7 +221,7 @@ eq('出图 ETag = hash', r.headers.get('etag'), `"${pngHash}"`);
 const served = new Uint8Array(await r.arrayBuffer());
 check('出图字节与上传一致', served.length === png.length && served.every((v, i) => v === png[i]));
 // Conditional request -> 304.
-r = await call('/api/guilds/test1/avatar?v=' + pngHash.slice(0, 8), { headers: { 'if-none-match': `"${pngHash}"` } });
+r = await call('/guilds/test1/avatar?v=' + pngHash.slice(0, 8), { headers: { 'if-none-match': `"${pngHash}"` } });
 eq('If-None-Match -> 304', r.status, 304);
 await r.text();
 
@@ -263,8 +263,8 @@ r = await call('/api/test1/admin/avatar', {
 eq('换 JPEG -> 200', r.status, 200);
 j = await r.json();
 const jpgHash = await sha256hex(jpg);
-eq('换图后 avatarUrl 更新', j.avatarUrl, `/api/guilds/test1/avatar?v=${jpgHash.slice(0, 8)}`);
-r = await call('/api/guilds/test1/avatar?v=' + jpgHash.slice(0, 8));
+eq('换图后 avatarUrl 更新', j.avatarUrl, `/guilds/test1/avatar?v=${jpgHash.slice(0, 8)}`);
+r = await call('/guilds/test1/avatar?v=' + jpgHash.slice(0, 8));
 eq('换图后出图 content-type', r.headers.get('content-type'), 'image/jpeg');
 await r.arrayBuffer();
 
@@ -290,13 +290,13 @@ const guildQ = `query($slug: String!) { viewer { guild(slug: $slug) { __typename
 let g = await gql(guildQ, { slug: 'test1' });
 check('GraphQL 无 errors', !g.errors, JSON.stringify(g.errors || '').slice(0, 200));
 eq('未绑定百业匿名面 = GuildReadOnly', g.data?.viewer?.guild?.__typename, 'GuildReadOnly');
-eq('有头像 avatarUrl = origin + 版本化路径', g.data?.viewer?.guild?.avatarUrl, `http://local/api/guilds/test1/avatar?v=${jpgHash.slice(0, 8)}`);
+eq('有头像 avatarUrl = origin + 版本化路径', g.data?.viewer?.guild?.avatarUrl, `http://local/guilds/test1/avatar?v=${jpgHash.slice(0, 8)}`);
 
 const hubQ = `query { hubPage { guilds { slug avatarUrl } } }`;
 g = await gql(hubQ, {});
 const card = (g.data?.hubPage?.guilds || []).find((x) => x.slug === 'test1');
 check('hubPage GuildCard 在列', !!card, JSON.stringify(g.data || g.errors || '').slice(0, 200));
-eq('GuildCard.avatarUrl 同值', card?.avatarUrl, `http://local/api/guilds/test1/avatar?v=${jpgHash.slice(0, 8)}`);
+eq('GuildCard.avatarUrl 同值', card?.avatarUrl, `http://local/guilds/test1/avatar?v=${jpgHash.slice(0, 8)}`);
 
 /* ================= Webhook identity (module level; send-body switching is in the [3/3] section) ================= */
 let ident = await webhookIdentity(db, 'test1');
@@ -309,7 +309,7 @@ eq('无头像 webhookIdentity = null (回退平台默认)', ident, null);
 r = await call('/api/test1/admin/avatar', { method: 'DELETE', headers: { authorization: 'Bearer ' + token1 } });
 eq('管理员 DELETE 头像 -> 200', r.status, 200);
 await r.json();
-r = await call('/api/guilds/test1/avatar?v=' + jpgHash.slice(0, 8));
+r = await call('/guilds/test1/avatar?v=' + jpgHash.slice(0, 8));
 eq('删除后出图 -> 404', r.status, 404);
 await r.text();
 g = await gql(guildQ, { slug: 'test1' });
@@ -340,7 +340,7 @@ eq('删除后 webhookIdentity 回 null', ident, null);
     const ident2 = await webhookIdentity(db2, 'test1');
     await postWebhook('https://discord.test/webhook', 'hi', ['42'], undefined, ident2);
     eq('有头像发送体 username = 百业名', sent[1].body.username, '测试一业');
-    eq('有头像发送体 avatar_url = 头像公开 URL', sent[1].body.avatar_url, `https://yanyun.app/api/guilds/test1/avatar?v=${hash.slice(0, 8)}`);
+    eq('有头像发送体 avatar_url = 头像公开 URL', sent[1].body.avatar_url, `https://yanyun.app/guilds/test1/avatar?v=${hash.slice(0, 8)}`);
     eq('身份切换不影响 allowed_mentions', JSON.stringify(sent[1].body.allowed_mentions), JSON.stringify({ parse: [], users: ['42'] }));
 
     // Heirloom test send, full chain (sendHeirloomTest -> postWebhook): with-avatar state.
@@ -348,7 +348,7 @@ eq('删除后 webhookIdentity 回 null', ident, null);
     const hr = await sendHeirloomTest(db2, 'test1');
     check('传家宝测试发送 ok', hr.ok === true, JSON.stringify(hr));
     eq('传家宝发送体 username = 百业名', sent[0]?.body.username, '测试一业');
-    eq('传家宝发送体 avatar_url = 头像公开 URL', sent[0]?.body.avatar_url, `https://yanyun.app/api/guilds/test1/avatar?v=${hash.slice(0, 8)}`);
+    eq('传家宝发送体 avatar_url = 头像公开 URL', sent[0]?.body.avatar_url, `https://yanyun.app/guilds/test1/avatar?v=${hash.slice(0, 8)}`);
 
     // After avatar deletion, heirloom sends fall back to the default identity.
     await deleteGuildAvatar(db2, 'test1');

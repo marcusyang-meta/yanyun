@@ -8,6 +8,8 @@
 import type { Context } from './context.ts';
 import { ShellBase, getTenantSetting, isDevRequest, s } from './graphql-base.ts';
 import { getTenantRow } from '../guilds/index.ts';
+import { listTenantsDirectory } from '../guilds/tenants.ts';
+import { getDevOnlySlugs } from './http.ts';
 import {
   listEventsWeekView, getEventRowByTenant, countSignupsByEvent,
 } from '../groupings/index.ts';
@@ -49,6 +51,15 @@ export class OgCarCardShell extends ShellBase {
 
 export const ogCardResolvers = {
   Query: {
+    /* Slug enumeration for the OG cache warmer — the retired
+     * /api/tenants list's exact visibility rule (dev_only guilds
+     * only from dev origins), narrowed to slugs only. */
+    ogGuildSlugs: async (_: any, _a: any, ctx: Context) => {
+      const rows = await listTenantsDirectory(ctx.env.DB);
+      if (isDevRequest(ctx.request)) return rows.map((r: any) => r.slug);
+      const devSet = await getDevOnlySlugs(ctx.env.DB);
+      return rows.filter((r: any) => !devSet.has(r.slug)).map((r: any) => r.slug);
+    },
     ogGuildCard: async (_: any, { slug }: any, ctx: Context) => {
       const tenant = await ogTenant(ctx, slug);
       return new OgGuildCardShell(ctx, { tenant });
