@@ -20,7 +20,7 @@ export function loadChromeText(): Promise<ChromeText | null> {
     cached = (async () => {
       try {
         const graphqlUrl = typeof window !== 'undefined' && window.location.hostname.includes('workers.dev')
-          ? 'https://yanyun.tbdlab.workers.dev/graphql'
+          ? 'https://yanyun.app/graphql'
           : '/graphql';
         const res = await fetch(graphqlUrl, {
           method: 'POST',

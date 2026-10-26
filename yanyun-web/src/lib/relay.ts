@@ -72,7 +72,7 @@ export async function refetchGearLibraryQueries(): Promise<void> {
 async function fetchGraphQL(operation: any, variables: any) {
   // Production preview: call backend directly (avoids worker-to-worker fetch limits)
   const graphqlUrl = typeof window !== 'undefined' && window.location.hostname.includes('workers.dev')
-    ? 'https://yanyun.tbdlab.workers.dev/graphql'
+    ? 'https://yanyun.app/graphql'
     : '/graphql';
   const res = await fetch(graphqlUrl, {
     method: 'POST',

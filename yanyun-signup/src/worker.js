@@ -1847,8 +1847,8 @@ app.notFound((c) => err('接口不存在', 404));
    OG 标签注入逻辑由 preview worker (yanyun-web-preview) 移植, 数据直接查 D1,
    og:url / 图片均指向生产域名。 */
 
-const OG_WORKER = 'https://yanyun-og.tbdlab.workers.dev';
-const SITE_URL = 'https://yanyun.tbdlab.workers.dev';
+const OG_WORKER = 'https://og.yanyun.app';
+const SITE_URL = 'https://yanyun.app';
 
 const escHtml = (str) => String(str ?? '')
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
