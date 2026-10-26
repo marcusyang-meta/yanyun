@@ -1,0 +1,136 @@
+name: pr-backend
+
+# Pre-merge verification for backend + web changes. Everything that gates a
+# release runs here, on the pull request: static gates (tsc, fbtee codegen),
+# the full harness suite, the real-D1 repository verification, a preview
+# deploy of the exact bytes that would ship, HTTP/GraphQL probes and a
+# real-browser render smoke. A PR merges only when this workflow is green;
+# backend-deploy then promotes the artifact built here without rebuilding
+# (it first checks the merged tree is identical to the tree verified here).
+#
+# Preview note: all PRs share the single `release` preview — the worker's
+# dev-surface allowlist names that host explicitly and the demo tenant is
+# only visible from it. The concurrency group serializes this workflow so
+# concurrent PRs cannot overwrite each other's preview mid-verification.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [master]
+    paths:
+      - 'yanyun-signup/**'
+      - 'yanyun-web/**'
+      - 'packages/schema/**'
+      - '.github/workflows/pr-backend.yml'
+      - '.github/workflows/backend-deploy.yml'
+
+concurrency:
+  group: pr-backend
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    name: gate (static checks, harness, build)
+    runs-on: ubuntu-latest
+    outputs:
+      tree: ${{ steps.stage.outputs.tree }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Typecheck backend
+        run: npm run typecheck --workspace=yanyun-signup
+      - name: i18n codegen drift check (fbtee)
+        run: node yanyun-signup/scripts/i18n-codegen.mjs --check
+      - name: Harness suite (all 12 suites, incl. the heirloom fixture)
+        run: node yanyun-signup/scripts/ci/run-harnesses.mjs
+      - name: Repository verification against a real D1 (Miniflare)
+        run: node yanyun-signup/scripts/verify-repositories-d1.mjs
+      - name: Build web
+        run: npm run build --workspace=yanyun-web
+      - name: Stage the exact artifact that will ship
+        id: stage
+        run: |
+          rm -rf ci-artifact && mkdir -p ci-artifact
+          cp -r yanyun-web/dist/. ci-artifact/
+          TREE=$(git rev-parse 'HEAD^{tree}')
+          echo "tree=$TREE" >> "$GITHUB_OUTPUT"
+          printf '{\n  "sha": "%s",\n  "tree": "%s",\n  "run_id": "%s",\n  "pr": %s\n}\n' \
+            "${{ github.event.pull_request.head.sha }}" "$TREE" "${{ github.run_id }}" "${{ github.event.pull_request.number }}" \
+            > ci-artifact/manifest.json
+          cat ci-artifact/manifest.json
+      - name: Upload the shippable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-public
+          path: ci-artifact
+          retention-days: 30
+      - name: Gate summary
+        if: always()
+        run: |
+          {
+            echo "## pr-backend gate"
+            echo "- PR: #${{ github.event.pull_request.number }}"
+            echo "- head sha: \`${{ github.event.pull_request.head.sha }}\`"
+            echo "- tree: \`${{ steps.stage.outputs.tree }}\`"
+            echo "- artifact: \`backend-public\` (run ${{ github.run_id }}), kept 30 days for the post-merge promote"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  preview:
+    name: preview (deploy, probes, render smoke)
+    needs: gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Download the gated artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-public
+          path: ci-artifact
+      - name: Stage public/ from the artifact and publish the preview
+        working-directory: yanyun-signup
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          node scripts/sync-public.mjs --dist "$GITHUB_WORKSPACE/ci-artifact"
+          npx wrangler preview --name release
+      - name: Preview probes (HTTP + GraphQL, read-only)
+        run: >-
+          node yanyun-signup/scripts/ci/probes.mjs
+          --base https://release-yanyun.tbdlab.workers.dev
+          --tenant jijiguagua --list-tenant demo --also-tenant demo
+      - name: Prepare Chromium for the render smoke
+        run: |
+          if command -v google-chrome >/dev/null 2>&1; then
+            echo "CHROME_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
+          elif command -v chromium >/dev/null 2>&1; then
+            echo "CHROME_PATH=$(command -v chromium)" >> "$GITHUB_ENV"
+          else
+            npx -y playwright@1.57.0 install --with-deps chromium
+          fi
+      - name: Render smoke (real Chromium, anonymous pages)
+        run: >-
+          node yanyun-signup/scripts/ci/render-smoke.mjs
+          --base https://release-yanyun.tbdlab.workers.dev
+          --page /:Discord --page /demo:百业集结 --page /privacy:隐私政策
+      - name: Preview summary
+        if: always()
+        run: |
+          {
+            echo "## pr-backend preview"
+            echo "- preview: https://release-yanyun.tbdlab.workers.dev (shared \`release\` preview, serialized by the workflow concurrency group)"
+            echo "- probes: SPA shell, legalPage x5 locales + TERMS, tenant directory, grouping list/detail, avatar 404 shape"
+            echo "- render smoke (anonymous): \`/\` shows 'Discord', \`/demo\` shows the server-driven login gate ('百业集结'), \`/privacy\` shows '隐私政策'; zero JS exceptions required on all three"
+          } >> "$GITHUB_STEP_SUMMARY"

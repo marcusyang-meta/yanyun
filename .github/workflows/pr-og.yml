@@ -1,0 +1,88 @@
+name: pr-og
+
+# Pre-merge verification for the OG image worker: upload the version from
+# the PR head and probe its version-preview URL (real guild image renders,
+# unknown guild 404s). The uploaded version id is kept as an artifact; the
+# og-deploy workflow promotes exactly that version after merge — it never
+# re-uploads — once it has checked the merged tree matches the tree
+# verified here.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [master]
+    paths:
+      - 'yanyun-og/**'
+      - '.github/workflows/pr-og.yml'
+      - '.github/workflows/og-deploy.yml'
+
+jobs:
+  verify:
+    name: verify (upload + probe the version)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Upload the OG worker version (does not touch production traffic)
+        id: upload
+        working-directory: yanyun-og
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npx wrangler versions upload 2>&1 | tee /tmp/og-upload.log
+          VID=$(grep -oE 'Worker Version ID: [0-9a-f-]+' /tmp/og-upload.log | awk '{print $4}' | tail -1)
+          if [ -z "$VID" ]; then echo "::error::wrangler versions upload did not print a Worker Version ID"; exit 1; fi
+          echo "version_id=$VID" >> "$GITHUB_OUTPUT"
+          echo "Uploaded version: $VID"
+      - name: Probe the uploaded version
+        env:
+          VID: ${{ steps.upload.outputs.version_id }}
+        run: |
+          SHORT=$(echo "$VID" | cut -c1-8)
+          BASE="https://${SHORT}-yanyun-og.tbdlab.workers.dev"
+          echo "Version preview: $BASE"
+          ok=0
+          for i in $(seq 1 12); do
+            CODE=$(curl -s -o /tmp/og.png -w '%{http_code}' "$BASE/og/jijiguagua.png" || true)
+            CT=$(curl -s -o /dev/null -D - "$BASE/og/jijiguagua.png" 2>/dev/null | grep -i '^content-type:' | tr -d '\r' || true)
+            SIZE=$(stat -c%s /tmp/og.png 2>/dev/null || echo 0)
+            echo "attempt $i: /og/jijiguagua.png -> $CODE, $CT, $SIZE bytes"
+            if [ "$CODE" = "200" ] && echo "$CT" | grep -qi 'image/png' && [ "$SIZE" -gt 10000 ]; then ok=1; break; fi
+            sleep 5
+          done
+          if [ "$ok" != "1" ]; then echo "::error::Version preview did not render a real guild image"; exit 1; fi
+          CODE=$(curl -s -o /dev/null -w '%{http_code}' "$BASE/og/doesnotexist12345.png")
+          echo "/og/doesnotexist12345.png -> $CODE (want 404)"
+          if [ "$CODE" != "404" ]; then echo "::error::Unknown guild did not return 404 on the version preview"; exit 1; fi
+      - name: Record the verified version for the post-merge promote
+        run: |
+          mkdir -p og-version
+          {
+            echo "version_id=${{ steps.upload.outputs.version_id }}"
+            echo "sha=${{ github.event.pull_request.head.sha }}"
+            echo "tree=$(git rev-parse 'HEAD^{tree}')"
+            echo "pr=${{ github.event.pull_request.number }}"
+            echo "run_id=${{ github.run_id }}"
+          } > og-version/manifest.txt
+          cat og-version/manifest.txt
+      - name: Upload the version record
+        uses: actions/upload-artifact@v4
+        with:
+          name: og-version
+          path: og-version
+          retention-days: 30
+      - name: Verify summary
+        if: always()
+        run: |
+          {
+            echo "## pr-og verify"
+            echo "- PR: #${{ github.event.pull_request.number }}"
+            echo "- uploaded version: \`${{ steps.upload.outputs.version_id }}\` (no production traffic)"
+            echo "- probes: real guild PNG 200 + image/png + >10KB; unknown guild 404"
+          } >> "$GITHUB_STEP_SUMMARY"
