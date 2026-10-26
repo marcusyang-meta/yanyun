@@ -489,7 +489,7 @@ export const groupingsResolvers = {
       // 人数规则 (用户裁决): 双十不写副本名、恒 10 人 (带 dungeonId 也忽略);
       // 爬塔镜像双十: 同样不写副本名、恒 10 人 (带 dungeonId 也忽略);
       // 天赋/竞速选了副本按副本 size 定人数, 不指定走默认 (天赋 5 / 竞速 10)。
-      let maxSlots = type === 'talent' ? 5 : 10;
+      let maxSlots = type === 'talent' ? 5 : 9;
       let dungeonName = '';
       if (type !== 'activity' && type !== 'tower' && input.dungeonId) {
         const d = await getDungeonNameSizeById(db, parseInt(input.dungeonId, 10) || 0);
