@@ -66,6 +66,12 @@ export const guildAdmin_webhookHint = (fbs: FbsAPI) =>fbs("保存后不回显完
 export const guildAdmin_webhookClear = (fbs: FbsAPI) =>fbs("清除 Webhook", "guildAdmin.webhookClear");
 export const guildAdmin_guildIdLabel = (fbs: FbsAPI) =>fbs("绑定的服务器 ID", "guildAdmin.guildIdLabel");
 export const guildAdmin_guildIdUnbound = (fbs: FbsAPI) =>fbs("未绑定", "guildAdmin.guildIdUnbound");
+export const guildAdmin_reminderTitle = (fbs: FbsAPI) =>fbs("发车提醒设置", "guildAdmin.reminderTitle");
+export const guildAdmin_reminderOffsetsLabel = (fbs: FbsAPI) =>fbs("提醒提前量（可多选）", "guildAdmin.reminderOffsetsLabel");
+export const guildAdmin_reminderOffsetOption = (fbs: FbsAPI, p?: StringParams) =>
+  fbs(["提前 ", fbs.param("minutes", pv(p, "minutes")), " 分钟"], "guildAdmin.reminderOffsetOption");
+export const guildAdmin_reminderCustomTextLabel = (fbs: FbsAPI) =>fbs("自定义提醒文案", "guildAdmin.reminderCustomTextLabel");
+export const guildAdmin_reminderCustomTextHint = (fbs: FbsAPI) =>fbs("一行文字，会出现在提醒卡片里；最多 100 字，留空不显示。第一次提前提醒会通知所有人，之后的只催还没就位的人。", "guildAdmin.reminderCustomTextHint");
 export const guildAdmin_featuresTitle = (fbs: FbsAPI) =>fbs("功能开关", "guildAdmin.featuresTitle");
 export const guildAdmin_fixedTeamsLabel = (fbs: FbsAPI) =>fbs("固定队", "guildAdmin.fixedTeamsLabel");
 export const guildAdmin_visibilityTitle = (fbs: FbsAPI) =>fbs("可见性", "guildAdmin.visibilityTitle");

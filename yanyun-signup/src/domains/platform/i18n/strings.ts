@@ -128,6 +128,7 @@ export const groupingDetail_disband = (fbs: FbsRuntime) => fbs._("解散车队",
 export const groupingDetail_disbanding = (fbs: FbsRuntime) => fbs._("解散中…", null, { hk: "3tSTNx" });
 export const groupingDetail_statusOpen = (fbs: FbsRuntime) => fbs._("报名中", null, { hk: "1kZOyd" });
 export const groupingDetail_people = (fbs: FbsRuntime, p?: StringParams) => fbs._("{occupied}/{max} 人", [fbs._param("occupied", pv(p, "occupied")), fbs._param("max", pv(p, "max"))], { hk: "Ki47X" });
+export const groupingDetail_readyProgress = (fbs: FbsRuntime, p?: StringParams) => fbs._("已就位 {ready}/{occupied}", [fbs._param("ready", pv(p, "ready")), fbs._param("occupied", pv(p, "occupied"))], { hk: "4vHS1S" });
 export const groupingDetail_openHint = (fbs: FbsRuntime) => fbs._("人人可管 · 无需管理码 — 点空位即可落座", null, { hk: "3JBGa6" });
 export const groupingDetail_readonlyHint = (fbs: FbsRuntime) => fbs._("只读浏览 · 该百业尚未绑定 Discord 服务器", null, { hk: "3PXFAD" });
 export const groupingDetail_toastDisbanded = (fbs: FbsRuntime) => fbs._("车队已解散", null, { hk: "24o5Qg" });
@@ -203,6 +204,12 @@ export const seat_leaveConfirmMessage = (fbs: FbsRuntime, p?: StringParams) => f
 export const seat_roleHealer = (fbs: FbsRuntime) => fbs._("奶", null, { hk: "zfX8r" });
 export const seat_roleDps = (fbs: FbsRuntime) => fbs._("输出", null, { hk: "1edxEf" });
 export const seat_leader = (fbs: FbsRuntime) => fbs._("车头", null, { hk: "19Ds5R" });
+export const seat_readyMark = (fbs: FbsRuntime) => fbs._("已就位", null, { hk: "vv411" });
+export const seat_readyAction = (fbs: FbsRuntime) => fbs._("我已就位", null, { hk: "pHPym" });
+export const seat_unreadyAction = (fbs: FbsRuntime) => fbs._("取消就位", null, { hk: "3xXyNj" });
+export const seat_toastReady = (fbs: FbsRuntime) => fbs._("已标记就位", null, { hk: "1yVbN" });
+export const seat_toastUnready = (fbs: FbsRuntime) => fbs._("已取消就位", null, { hk: "4vkkBj" });
+export const seat_toastReadyFailed = (fbs: FbsRuntime, p?: StringParams) => fbs._("操作失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "4aEHrF" });
 export const appBlocks_rosterTitle = (fbs: FbsRuntime) => fbs._("队伍名册", null, { hk: "JxG6Y" });
 export const appBlocks_closedStatus = (fbs: FbsRuntime) => fbs._("已关闭", null, { hk: "wv86r" });
 export const appBlocks_completedStatus = (fbs: FbsRuntime) => fbs._("已完成", null, { hk: "487lL4" });
@@ -650,6 +657,8 @@ export const errors_groupingFull = (fbs: FbsRuntime) => fbs._("名额已满或�
 export const errors_lastSeatHealer = (fbs: FbsRuntime) => fbs._("最后一个名额需要奶", null, { hk: "2Engm3" });
 export const errors_alreadyJoined = (fbs: FbsRuntime) => fbs._("已报过名", null, { hk: "17GYOJ" });
 export const errors_seatNotFound = (fbs: FbsRuntime) => fbs._("未找到该报名", null, { hk: "1bbhpq" });
+export const errors_notSeated = (fbs: FbsRuntime) => fbs._("你还没有落座这辆车", null, { hk: "2Cxo0e" });
+export const errors_reminderOffsetsInvalid = (fbs: FbsRuntime) => fbs._("提醒提前量不在可选范围内", null, { hk: "hJIJy" });
 export const errors_paramsIncomplete = (fbs: FbsRuntime) => fbs._("参数不完整", null, { hk: "bUpBp" });
 export const errors_bossNotFound = (fbs: FbsRuntime) => fbs._("首领不存在", null, { hk: "1anzkq" });
 export const errors_guildNameShort = (fbs: FbsRuntime) => fbs._("百业名称至少 2 个字", null, { hk: "4oO92j" });
@@ -711,6 +720,11 @@ export const guildAdmin_webhookHint = (fbs: FbsRuntime) => fbs._("保存后不�
 export const guildAdmin_webhookClear = (fbs: FbsRuntime) => fbs._("清除 Webhook", null, { hk: "4j6sH2" });
 export const guildAdmin_guildIdLabel = (fbs: FbsRuntime) => fbs._("绑定的服务器 ID", null, { hk: "1yQyMQ" });
 export const guildAdmin_guildIdUnbound = (fbs: FbsRuntime) => fbs._("未绑定", null, { hk: "PrMZj" });
+export const guildAdmin_reminderTitle = (fbs: FbsRuntime) => fbs._("发车提醒设置", null, { hk: "sR14M" });
+export const guildAdmin_reminderOffsetsLabel = (fbs: FbsRuntime) => fbs._("提醒提前量（可多选）", null, { hk: "2CsoVG" });
+export const guildAdmin_reminderOffsetOption = (fbs: FbsRuntime, p?: StringParams) => fbs._("提前 {minutes} 分钟", [fbs._param("minutes", pv(p, "minutes"))], { hk: "2snnwp" });
+export const guildAdmin_reminderCustomTextLabel = (fbs: FbsRuntime) => fbs._("自定义提醒文案", null, { hk: "10PDxk" });
+export const guildAdmin_reminderCustomTextHint = (fbs: FbsRuntime) => fbs._("一行文字，会出现在提醒卡片里；最多 100 字，留空不显示。第一次提前提醒会通知所有人，之后的只催还没就位的人。", null, { hk: "3D79h6" });
 export const guildAdmin_featuresTitle = (fbs: FbsRuntime) => fbs._("功能开关", null, { hk: "2Zv8dC" });
 export const guildAdmin_fixedTeamsLabel = (fbs: FbsRuntime) => fbs._("固定队", null, { hk: "spJBO" });
 export const guildAdmin_visibilityTitle = (fbs: FbsRuntime) => fbs._("可见性", null, { hk: "3J6SQ2" });
@@ -864,6 +878,7 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"groupingDetail.disbanding": groupingDetail_disbanding,
 	"groupingDetail.statusOpen": groupingDetail_statusOpen,
 	"groupingDetail.people": groupingDetail_people,
+	"groupingDetail.readyProgress": groupingDetail_readyProgress,
 	"groupingDetail.openHint": groupingDetail_openHint,
 	"groupingDetail.readonlyHint": groupingDetail_readonlyHint,
 	"groupingDetail.toastDisbanded": groupingDetail_toastDisbanded,
@@ -939,6 +954,12 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"seat.roleHealer": seat_roleHealer,
 	"seat.roleDps": seat_roleDps,
 	"seat.leader": seat_leader,
+	"seat.readyMark": seat_readyMark,
+	"seat.readyAction": seat_readyAction,
+	"seat.unreadyAction": seat_unreadyAction,
+	"seat.toastReady": seat_toastReady,
+	"seat.toastUnready": seat_toastUnready,
+	"seat.toastReadyFailed": seat_toastReadyFailed,
 	"appBlocks.rosterTitle": appBlocks_rosterTitle,
 	"appBlocks.closedStatus": appBlocks_closedStatus,
 	"appBlocks.completedStatus": appBlocks_completedStatus,
@@ -1353,6 +1374,8 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"errors.lastSeatHealer": errors_lastSeatHealer,
 	"errors.alreadyJoined": errors_alreadyJoined,
 	"errors.seatNotFound": errors_seatNotFound,
+	"errors.notSeated": errors_notSeated,
+	"errors.reminderOffsetsInvalid": errors_reminderOffsetsInvalid,
 	"errors.paramsIncomplete": errors_paramsIncomplete,
 	"errors.bossNotFound": errors_bossNotFound,
 	"errors.guildNameShort": errors_guildNameShort,
@@ -1414,6 +1437,11 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"guildAdmin.webhookClear": guildAdmin_webhookClear,
 	"guildAdmin.guildIdLabel": guildAdmin_guildIdLabel,
 	"guildAdmin.guildIdUnbound": guildAdmin_guildIdUnbound,
+	"guildAdmin.reminderTitle": guildAdmin_reminderTitle,
+	"guildAdmin.reminderOffsetsLabel": guildAdmin_reminderOffsetsLabel,
+	"guildAdmin.reminderOffsetOption": guildAdmin_reminderOffsetOption,
+	"guildAdmin.reminderCustomTextLabel": guildAdmin_reminderCustomTextLabel,
+	"guildAdmin.reminderCustomTextHint": guildAdmin_reminderCustomTextHint,
 	"guildAdmin.featuresTitle": guildAdmin_featuresTitle,
 	"guildAdmin.fixedTeamsLabel": guildAdmin_fixedTeamsLabel,
 	"guildAdmin.visibilityTitle": guildAdmin_visibilityTitle,

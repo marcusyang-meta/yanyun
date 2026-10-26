@@ -420,6 +420,35 @@ r = await gql(visMut, { user: ADMIN, variables: { v: false } });
 eq('已 dev_only 时连管理员也进不去 (同 REST 门控, 预期)', r.data?.updateGuildVisibility?.errorCode, 'guildNotFound');
 A.tables.settings.set('admintest|dev_only', ''); // 复位 (生产中由 dev 来源操作)
 
+/* ---------------- advanced reminder settings ---------------- */
+const remindQ = `{ viewer { guildAdmin(slug: "admintest") { ... on GuildAdmin { reminderOffsets reminderCustomText adminReminderTitle adminReminderOffsetsLabel adminReminderOffsetTemplate adminReminderCustomTextLabel adminReminderCustomTextHint } } } }`;
+r = await gql(remindQ, { user: ADMIN });
+eq('提醒提前量默认 [10]', JSON.stringify(r.data?.viewer?.guildAdmin?.reminderOffsets), '[10]');
+eq('提醒自定义文案默认空', r.data?.viewer?.guildAdmin?.reminderCustomText, '');
+eq('提醒设置文案: 标题', r.data?.viewer?.guildAdmin?.adminReminderTitle, '发车提醒设置');
+eq('提醒设置文案: 提前量标签', r.data?.viewer?.guildAdmin?.adminReminderOffsetsLabel, '提醒提前量（可多选）');
+eq('提醒设置文案: 提前量模板', r.data?.viewer?.guildAdmin?.adminReminderOffsetTemplate, '提前 {minutes} 分钟');
+eq('提醒设置文案: 自定义文案标签', r.data?.viewer?.guildAdmin?.adminReminderCustomTextLabel, '自定义提醒文案');
+check('提醒设置文案: 自定义文案提示非空', !!r.data?.viewer?.guildAdmin?.adminReminderCustomTextHint);
+const remindMut = `mutation($o: [Int!]!, $c: String) { updateGuildReminderSettings(slug: "admintest", offsets: $o, customText: $c) { ok errorCode } }`;
+r = await gql(remindMut, { user: MEMBER, variables: { o: [30], c: '' } });
+eq('成员改提醒设置 -> adminOnly', r.data?.updateGuildReminderSettings?.errorCode, 'adminOnly');
+r = await gql(remindMut, { user: ADMIN, variables: { o: [45], c: '' } });
+eq('非法提前量 -> reminderOffsetsInvalid', r.data?.updateGuildReminderSettings?.errorCode, 'reminderOffsetsInvalid');
+r = await gql(remindMut, { user: ADMIN, variables: { o: [30, 60], c: '今晚提前集合\n带好药' } });
+eq('保存提醒设置 ok', r.data?.updateGuildReminderSettings?.ok, true);
+eq('提前量已落库 (降序逗号)', A.tables.settings.get('admintest|reminder_offsets'), '60,30');
+eq('自定义文案已落库 (单行化)', A.tables.settings.get('admintest|reminder_custom_text'), '今晚提前集合 带好药');
+r = await gql(remindQ, { user: ADMIN });
+eq('读回提前量 [60,30]', JSON.stringify(r.data?.viewer?.guildAdmin?.reminderOffsets), '[60,30]');
+eq('读回自定义文案', r.data?.viewer?.guildAdmin?.reminderCustomText, '今晚提前集合 带好药');
+r = await gql(remindMut, { user: ADMIN, variables: { o: [], c: '' } });
+eq('清空提前量 ok', r.data?.updateGuildReminderSettings?.ok, true);
+eq('清空后落库为 none', A.tables.settings.get('admintest|reminder_offsets'), 'none');
+r = await gql(remindQ, { user: ADMIN });
+eq('读回提前量 [] (全关)', JSON.stringify(r.data?.viewer?.guildAdmin?.reminderOffsets), '[]');
+A.tables.settings.set('admintest|reminder_offsets', '60,30'); // 复位给后续段落
+
 /* ---------------- avatar (base64) ---------------- */
 const PNG = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1, 2, 3, 4]);
 const pngB64 = Buffer.from(PNG).toString('base64');

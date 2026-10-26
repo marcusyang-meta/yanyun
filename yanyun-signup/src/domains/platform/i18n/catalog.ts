@@ -784,6 +784,9 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "fr": "{occupied}/{max} membres",
       "zh-TW": "{occupied}/{max} 人"
     },
+    "readyProgress": {
+      "zh-CN": "已就位 {ready}/{occupied}"
+    },
     "openHint": {
       "zh-CN": "人人可管 · 无需管理码 — 点空位即可落座",
       "en": "Anyone can manage · No code needed — tap an empty seat to join",
@@ -1312,6 +1315,24 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "es": "Líder",
       "fr": "Chef",
       "zh-TW": "車頭"
+    },
+    "readyMark": {
+      "zh-CN": "已就位"
+    },
+    "readyAction": {
+      "zh-CN": "我已就位"
+    },
+    "unreadyAction": {
+      "zh-CN": "取消就位"
+    },
+    "toastReady": {
+      "zh-CN": "已标记就位"
+    },
+    "toastUnready": {
+      "zh-CN": "已取消就位"
+    },
+    "toastReadyFailed": {
+      "zh-CN": "操作失败：{error}"
     }
   },
   "appBlocks": {
@@ -4161,6 +4182,12 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "fr": "Inscription introuvable",
       "zh-TW": "未找到該報名"
     },
+    "notSeated": {
+      "zh-CN": "你还没有落座这辆车"
+    },
+    "reminderOffsetsInvalid": {
+      "zh-CN": "提醒提前量不在可选范围内"
+    },
     "paramsIncomplete": {
       "zh-CN": "参数不完整",
       "en": "Incomplete parameters",
@@ -4589,6 +4616,21 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "es": "Sin vincular",
       "fr": "Non lié",
       "zh-TW": "未綁定"
+    },
+    "reminderTitle": {
+      "zh-CN": "发车提醒设置"
+    },
+    "reminderOffsetsLabel": {
+      "zh-CN": "提醒提前量（可多选）"
+    },
+    "reminderOffsetOption": {
+      "zh-CN": "提前 {minutes} 分钟"
+    },
+    "reminderCustomTextLabel": {
+      "zh-CN": "自定义提醒文案"
+    },
+    "reminderCustomTextHint": {
+      "zh-CN": "一行文字，会出现在提醒卡片里；最多 100 字，留空不显示。第一次提前提醒会通知所有人，之后的只催还没就位的人。"
     },
     "featuresTitle": {
       "zh-CN": "功能开关",

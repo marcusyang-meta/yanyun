@@ -34,6 +34,8 @@ type Seat {
   role: String    # 输出 / 奶（服务端按流派推导）
   uid: String
   occupied: Boolean!
+  ready: Boolean!  # 就位标记 (发车提醒用): 落座成员已确认就位
+  mine: Boolean!   # 本座是否为当前观看者本人的座位 (身份戳比对, 服务端判定)
 }
 
 type Dungeon {
@@ -214,6 +216,8 @@ type SeatEntry {
   role: String
   healer: Boolean!
   isLeader: Boolean!
+  ready: Boolean!  # 就位标记 (发车提醒用)
+  readyAction: Action  # 就位切换动作: 仅本人座位且车未完成/未出发时下发
   action: Action
 }
 
@@ -310,6 +314,15 @@ type UncompleteAction implements Action {
   groupingId: ID!
 }
 
+# 就位切换动作: 只有座位本人 (身份戳命中) 且车为 open/closed 时,
+# 随 SeatEntry.readyAction 下发; ready 为点击后要设置的目标状态;
+# 落地走 setSeatReady (服务端按身份戳再验)。
+type SetReadyAction implements Action {
+  actionType: String!
+  groupingId: ID!
+  ready: Boolean!
+}
+
 # ============ 页面：组队列表 ============
 # URL: /{slug}?tab=activity (嵌入公会主页)
 
@@ -398,6 +411,7 @@ type Grouping {
   dungeon: Dungeon
   seats: [Seat!]!
   occupiedCount: Int!
+  readyCount: Int!  # 已就位人数 (发车提醒就位进度)
   maxSlots: Int!
   status: String!  # open / closed / draft / completed (已完成: 不进列表、不发提醒, 详情直达可打开)
   creatorDiscordId: String  # 车头 (创建者) 的 Discord id; 旧车/REST 车未记录为 null
@@ -487,6 +501,14 @@ type GroupingDetailPage {
   seatToastLeaveFailedTemplate: String!
   seatLeaveConfirmTitle: String!
   seatLeaveConfirmMessageTemplate: String!
+  # 就位 (发车提醒) 文案
+  detailReadyProgressTemplate: String!
+  seatReadyLabel: String!
+  seatReadyActionLabel: String!
+  seatUnreadyActionLabel: String!
+  seatToastReady: String!
+  seatToastUnready: String!
+  seatToastReadyFailedTemplate: String!
   # 编辑表单文案 (与列表页 shell 同名同口径)
   formCreateTitle: String!
   formEditTitle: String!
@@ -1148,6 +1170,7 @@ type Mutation {
   joinGrouping(input: JoinGroupingInput!): SeatPayload!
   leaveGrouping(input: LeaveGroupingInput!): SeatPayload!
   updateSeatWeapon(input: UpdateSeatWeaponInput!): SeatPayload!
+  setSeatReady(input: SetSeatReadyInput!): SeatPayload!  # 就位/取消就位: 仅本人身份戳座位, 服务端复验
 
   # 调律推演（服务端严格按 Excel 公式计算）
   calcTiaolv(input: TiaolvInput!): TiaolvResult!
@@ -1231,6 +1254,12 @@ input UpdateSeatWeaponInput {
   groupingId: ID!
   uid: String!
   weapon: String!
+}
+
+# 就位切换: 按调用者身份戳命中其在本车的全部座位 (一人多座同进退)
+input SetSeatReadyInput {
+  groupingId: ID!
+  ready: Boolean!
 }
 
 # 调律推演输入 — 严格对应 片雲 DIY 0.10.2 Excel 可编辑区
@@ -1493,6 +1522,8 @@ type GuildAdmin {
   discordGuildId: String!
   reminderWebhookSet: Boolean!
   reminderWebhookId: String
+  reminderOffsets: [Int!]!  # 发车提醒提前量 (分钟, 管理员多选; 默认 [10])
+  reminderCustomText: String!  # 发车提醒自定义文案 (一行, 空 = 不显示)
   featureFixedTeams: Boolean!
   devOnly: Boolean!
   gameVersion: String!
@@ -1533,6 +1564,11 @@ type GuildAdmin {
   adminWebhookClearLabel: String!
   adminGuildIdLabel: String!
   adminGuildIdUnboundText: String!
+  adminReminderTitle: String!
+  adminReminderOffsetsLabel: String!
+  adminReminderOffsetTemplate: String!
+  adminReminderCustomTextLabel: String!
+  adminReminderCustomTextHint: String!
   adminFeaturesTitle: String!
   adminFixedTeamsLabel: String!
   adminVisibilityTitle: String!
@@ -1744,6 +1780,7 @@ extend type Mutation {
   # 百业管理 (全部在 resolver 内复验服务器管理员结论)
   updateGuildProfile(slug: String!, input: UpdateGuildProfileInput!): GuildAdminPayload!
   updateGuildDiscord(slug: String!, input: UpdateGuildDiscordInput!): GuildAdminPayload!
+  updateGuildReminderSettings(slug: String!, offsets: [Int!]!, customText: String): GuildAdminPayload!
   updateGuildVisibility(slug: String!, devOnly: Boolean!): GuildAdminPayload!
   updateGuildFeatures(slug: String!, fixedTeams: Boolean!): GuildAdminPayload!
   # 头像以 base64 文本上传 (GraphQL 无二进制通道); 服务端解码后仍走

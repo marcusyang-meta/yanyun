@@ -9,7 +9,7 @@ import {
 } from '../platform/index.ts';
 import { tlCalculateExcel } from '../gear/index.ts';
 import { getUserServers, getGuildNick, maybeRefreshGuildNicks, getUserLocalePref, setUserLocalePref } from '../identity/auth.ts';
-import { ensureSignupDiscordColumn, ensureGuildMembersTable, upsertGuildMember } from './index.ts';
+import { ensureSignupDiscordColumn, ensureSignupReadyColumn, ensureGuildMembersTable, upsertGuildMember } from './index.ts';
 import { ensurePushTokensTable, isValidPushToken, savePushToken, deletePushToken } from '../platform/index.ts';
 import { evaluateHeirloomPushes } from '../gear/index.ts';
 import { translate, negotiateLocale, SUPPORTED_LOCALES, CATALOG } from '../platform/index.ts';
@@ -37,7 +37,7 @@ import {
 import {
   listSignupSeats, listSignupSeatsBasic, listSignupNamesStamps,
   insertSignups, insertSignupWithCapacityGuard, deleteSignupByEventUid, deleteSignupsByEvent,
-  updateSignupWeaponRoleByUid,
+  updateSignupWeaponRoleByUid, updateSignupReadyByEventDiscord,
 } from './index.ts';
 import {
   listGearItems, insertGearItem, updateGearItemRow, deleteGearItemRow,
@@ -83,12 +83,15 @@ export class GroupingShell extends ShellBase {
   genCreatorDiscordId(){ return this.ev.creator_discord_id ? String(this.ev.creator_discord_id) : null; }
   genSeatRows(){
     return this.memo('seatRows', async () => {
-      return listSignupSeatsBasic(this.db, this.ev.id);
+      await ensureSignupDiscordColumn(this.db);
+      await ensureSignupReadyColumn(this.db);
+      return listSignupSeats(this.db, this.ev.id);
     });
   }
   genSeats(){
     return this.memo('seats', async () => {
       const rows = await this.genSeatRows();
+      const myId = this.ctx.user ? String((this.ctx.user as any).discordId) : '';
       const seats = [];
       for (let i = 0; i < this.ev.max_slots; i++) {
         const r = rows[i];
@@ -96,13 +99,18 @@ export class GroupingShell extends ShellBase {
           index: i, nickname: r.nickname, weapon: enSectName(this.locale, r.weapon),
           role: r.role === '奶' || r.role === '治疗' ? this.t('seat', 'roleHealer') : this.t('seat', 'roleDps'),
           uid: r.uid, occupied: true,
-        } : { index: i, nickname: null, weapon: null, role: null, uid: null, occupied: false });
+          ready: !!r.ready_at,
+          mine: !!(myId && r.discord_id && String(r.discord_id) === myId),
+        } : { index: i, nickname: null, weapon: null, role: null, uid: null, occupied: false, ready: false, mine: false });
       }
       return seats;
     });
   }
   genOccupiedCount(){
     return this.memo('occupiedCount', async () => (await this.genSeatRows()).length);
+  }
+  genReadyCount(){
+    return this.memo('readyCount', async () => (await this.genSeatRows()).filter((r: any) => r.ready_at).length);
   }
   genDungeon(){
     return this.memo('dungeon', async () => {
@@ -369,6 +377,7 @@ export class GroupingDetailPageShell extends ShellBase {
       const access = await getGuildAccess(this.db, this.ctx.user, ev.tenant, this.ctx.request);
       const tRow = await getTenantRow(this.db, ev.tenant).catch(() => null);
       await ensureSignupDiscordColumn(this.db);
+      await ensureSignupReadyColumn(this.db);
       const rows = await listSignupSeats(this.db, ev.id);
       const entries = [];
       for (let i = 0; i < ev.max_slots; i++) {
@@ -479,6 +488,13 @@ export const DETAIL_TEXT_RESOLVERS = {
     ['seatToastJoinFailedTemplate', 'seat', 'toastJoinFailed'],
     ['seatToastLeft', 'seat', 'toastLeft'],
     ['seatToastLeaveFailedTemplate', 'seat', 'toastLeaveFailed'],
+    ['detailReadyProgressTemplate', 'groupingDetail', 'readyProgress'],
+    ['seatReadyLabel', 'seat', 'readyMark'],
+    ['seatReadyActionLabel', 'seat', 'readyAction'],
+    ['seatUnreadyActionLabel', 'seat', 'unreadyAction'],
+    ['seatToastReady', 'seat', 'toastReady'],
+    ['seatToastUnready', 'seat', 'toastUnready'],
+    ['seatToastReadyFailedTemplate', 'seat', 'toastReadyFailed'],
     ['seatLeaveConfirmTitle', 'seat', 'leaveConfirmTitle'],
     ['seatLeaveConfirmMessageTemplate', 'seat', 'leaveConfirmMessage'],
     ...FORM_TEXT_SPEC,
@@ -820,12 +836,36 @@ export const groupingsResolvers = {
       publishGroupingEvent(ctx, ev0.tenant, gid, 'seats');
       return new SeatPayloadShell(ctx, { ok: true, seats: g ? await g.genSeats() : null });
     },
+
+    /* Readiness toggle: marks every seat stamped with the caller's
+     * own discord_id in this grouping (one person may hold two
+     * seats — one readiness fact). Zero touched seats = the caller
+     * is not seated here. Later reminder beats skip ready members. */
+    setSeatReady: async (_: any, { input }: any, ctx: Context) => {
+      const db = ctx.env.DB;
+      if (!rateLimit('mut:ready:' + getClientIp(ctx.request), 30)) {
+        return sFail(ctx, 'rateLimited');
+      }
+      const gid = parseInt(input.groupingId, 10) || 0;
+      const ev0 = await getEventTenant(db, gid);
+      if (!ev0) return sFail(ctx, 'groupingNotFound');
+      const gate = await requireWrite(db, ctx.user, ev0.tenant, ctx.request);
+      if (gate) return sFail(ctx, gate);
+      await ensureSignupReadyColumn(db);
+      const readyAt = input.ready ? Math.floor(Date.now() / 1000) : null;
+      const r = await updateSignupReadyByEventDiscord(db, gid, String(ctx.user!.discordId), readyAt);
+      if (!r.changes) return sFail(ctx, 'notSeated');
+      const ev = await getEventRow(db, gid);
+      const g = ev ? toGrouping(ctx, ev) : null;
+      publishGroupingEvent(ctx, ev0.tenant, gid, 'seats');
+      return new SeatPayloadShell(ctx, { ok: true, seats: g ? await g.genSeats() : null });
+    },
   },
   types: {
     // Explicit field resolvers for plain-data result types: every field
     // delegates to the same-named property of the computed result object
     // (previously these relied on GraphQL default field resolution).
-    Seat: { index: (p: any) => p.index, nickname: (p: any) => p.nickname, weapon: (p: any) => p.weapon, role: (p: any) => p.role, uid: (p: any) => p.uid, occupied: (p: any) => p.occupied },
+    Seat: { index: (p: any) => p.index, nickname: (p: any) => p.nickname, weapon: (p: any) => p.weapon, role: (p: any) => p.role, uid: (p: any) => p.uid, occupied: (p: any) => p.occupied, ready: (p: any) => p.ready, mine: (p: any) => p.mine },
   Grouping: {
     id: (p: any) => p.genId(),
     title: (p: any) => p.genTitle(),
@@ -834,6 +874,7 @@ export const groupingsResolvers = {
     dungeon: (p: any) => p.genDungeon(),
     seats: (p: any) => p.genSeats(),
     occupiedCount: (p: any) => p.genOccupiedCount(),
+    readyCount: (p: any) => p.genReadyCount(),
     maxSlots: (p: any) => p.genMaxSlots(),
     status: (p: any) => p.genStatus(),
     creatorDiscordId: (p: any) => p.genCreatorDiscordId(),
