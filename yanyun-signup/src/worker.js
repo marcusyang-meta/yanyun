@@ -1074,7 +1074,7 @@ guild.get('/:slug/events', async (c) => {
   const from = parseInt(url.searchParams.get('from'), 10) || 0;
   const to = parseInt(url.searchParams.get('to'), 10) || 0;
   let q = `SELECT e.*, (SELECT COUNT(*) FROM signups s WHERE s.event_id = e.id) AS signup_count
-           FROM events e WHERE e.tenant = ? AND e.status != 'draft'`;
+           FROM events e WHERE e.tenant = ? AND e.status NOT IN ('draft', 'completed')`;
   const params = [slug];
   if (type && TYPES[type]) { q += ' AND e.type = ?'; params.push(type); }
   if (from) { q += ' AND e.starts_at_utc >= ?'; params.push(from); }
@@ -1310,7 +1310,7 @@ guild.post('/:slug/events/:id/manage', async (c) => {
   if (!ev) return err('车队不存在', 404);
   if (ev.origin !== 'member') return err('官方活动请联系管理员', 403);
   const action = s(body.action, 20);
-  const VERB = { update: '编辑', close: '关闭', reopen: '重开', delete: '删除' };
+  const VERB = { update: '编辑', close: '关闭', reopen: '重开', delete: '删除', complete: '完成', uncomplete: '恢复' };
   if (!VERB[action]) return err('未知操作', 400);
   // 车头闸门 (与 GraphQL disbandGrouping / updateGrouping 同一条规则):
   // 必须带有效 yy_session (与 /graphql 同源的授权完整性校验), 且会话
@@ -1331,6 +1331,18 @@ guild.post('/:slug/events/:id/manage', async (c) => {
   if (action === 'close' || action === 'reopen') {
     await c.env.DB.prepare('UPDATE events SET status = ? WHERE id = ?')
       .bind(action === 'close' ? 'closed' : 'open', id).run();
+  } else if (action === 'complete' || action === 'uncomplete') {
+    // 完成态 (与 GraphQL completeGrouping / reopenGrouping 同语义): 完成
+    // 只从 open/closed 进入; 恢复只从 completed 回到 open。完成车从列表
+    // 消失且不再发提醒 (提醒口径只认 open/closed), 与 GraphQL 一致。
+    if (action === 'complete') {
+      if (ev.status === 'completed') return err('该车队已是完成状态', 400);
+      if (ev.status !== 'open' && ev.status !== 'closed') return err('该车队当前状态不可完成', 400);
+      await c.env.DB.prepare("UPDATE events SET status = 'completed' WHERE id = ?").bind(id).run();
+    } else {
+      if (ev.status !== 'completed') return err('该车队尚未完成', 400);
+      await c.env.DB.prepare("UPDATE events SET status = 'open' WHERE id = ?").bind(id).run();
+    }
   } else if (action === 'delete') {
     await c.env.DB.batch([
       c.env.DB.prepare('DELETE FROM signups WHERE event_id = ?').bind(id),
@@ -1849,7 +1861,7 @@ async function guildOgTags(env, slug) {
     try {
       const [from, to] = ogWeekWindowUtc();
       const row = await env.DB.prepare(
-        "SELECT COUNT(*) AS c FROM events WHERE tenant = ? AND type = 'activity' AND status != 'draft' AND starts_at_utc >= ? AND starts_at_utc < ?"
+        "SELECT COUNT(*) AS c FROM events WHERE tenant = ? AND type = 'activity' AND status NOT IN ('draft', 'completed') AND starts_at_utc >= ? AND starts_at_utc < ?"
       ).bind(slug, from, to).first();
       teamCount = (row && row.c) || 0;
     } catch { teamCount = 0; }

@@ -1,11 +1,13 @@
 import { commitMutation, fetchQuery, type GraphQLTaggedNode, type MutationParameters } from 'relay-runtime';
 import { relayEnvironment } from './relay';
 import {
+  CompleteGroupingMutation,
   CreateGroupingMutation,
   DisbandGroupingMutation,
   JoinGroupingMutation,
   LeaveGroupingMutation,
   RegisterPushTokenMutation,
+  ReopenGroupingMutation,
   UnregisterPushTokenMutation,
   UpdateGroupingMutation,
   UpdateMyLocaleMutation,
@@ -15,6 +17,8 @@ import type { documentsViewerQuery } from './__generated__/documentsViewerQuery.
 import type { documentsJoinGroupingMutation } from './__generated__/documentsJoinGroupingMutation.graphql';
 import type { documentsLeaveGroupingMutation } from './__generated__/documentsLeaveGroupingMutation.graphql';
 import type { documentsDisbandGroupingMutation } from './__generated__/documentsDisbandGroupingMutation.graphql';
+import type { documentsCompleteGroupingMutation } from './__generated__/documentsCompleteGroupingMutation.graphql';
+import type { documentsReopenGroupingMutation } from './__generated__/documentsReopenGroupingMutation.graphql';
 import type { documentsCreateGroupingMutation } from './__generated__/documentsCreateGroupingMutation.graphql';
 import type { documentsUpdateGroupingMutation } from './__generated__/documentsUpdateGroupingMutation.graphql';
 import type { documentsUpdateMyLocaleMutation } from './__generated__/documentsUpdateMyLocaleMutation.graphql';
@@ -151,6 +155,16 @@ export async function leaveGrouping(groupingId: string, uid: string): Promise<Se
 export async function disbandGrouping(id: string): Promise<{ ok: boolean; error?: string | null }> {
   const r = await commit<documentsDisbandGroupingMutation>(DisbandGroupingMutation, { id });
   return r.disbandGrouping;
+}
+
+export async function completeGrouping(id: string): Promise<{ ok: boolean; error?: string | null }> {
+  const r = await commit<documentsCompleteGroupingMutation>(CompleteGroupingMutation, { id });
+  return r.completeGrouping;
+}
+
+export async function reopenGrouping(id: string): Promise<{ ok: boolean; error?: string | null }> {
+  const r = await commit<documentsReopenGroupingMutation>(ReopenGroupingMutation, { id });
+  return r.reopenGrouping;
 }
 
 export type GroupingPayload = {

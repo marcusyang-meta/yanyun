@@ -27,6 +27,8 @@ export interface ActionHandlers {
   leave: (a: { groupingId: string; uid: string }) => void;
   disband: (a: { groupingId: string }) => void;
   edit: (a: { groupingId: string }) => void;
+  complete: (a: { groupingId: string }) => void;
+  uncomplete: (a: { groupingId: string }) => void;
 }
 
 // 确认呈现注入点: 文案全部来自 Action 对象 (服务端 i18n),

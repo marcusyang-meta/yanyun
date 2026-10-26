@@ -4,7 +4,7 @@ import { createSchema, createYoga } from 'graphql-yoga';
 import { typeDefs } from './graphql-schema.js';
 import {
   clampBlocksVersion, substituteForVersion, weekWindowUtc, startsAtEpoch,
-  fmtStartsAt, TYPE_SHORT_KEY, HEALER_SECT,
+  fmtStartsAt, groupByLocalDay, TYPE_SHORT_KEY, HEALER_SECT,
 } from './blocks.js';
 import { tlCalculateExcel } from './tiaolv.js';
 import { getUserServers, getGuildNick, maybeRefreshGuildNicks, getUserLocalePref, setUserLocalePref } from './auth.js';
@@ -821,7 +821,9 @@ class ChipRowBlockShell extends BlockShell {
   genChips() {
     const chips = [this.t('groupingType', TYPE_SHORT_KEY[this.data.evType] || 'shortActivity')];
     if (this.data.dungeonName) chips.push(enDungeonName(this.locale, this.data.dungeonName));
-    chips.push(this.data.status === 'open' ? this.t('groupingDetail', 'statusOpen') : this.t('appBlocks', 'closedStatus'));
+    chips.push(this.data.status === 'open' ? this.t('groupingDetail', 'statusOpen')
+      : this.data.status === 'completed' ? this.t('appBlocks', 'completedStatus')
+      : this.t('appBlocks', 'closedStatus'));
     return chips;
   }
 }
@@ -837,7 +839,11 @@ class GroupingCardBlockShell extends BlockShell {
   }
   genDungeonName() { return enDungeonName(this.locale, this.g.ev.dungeon || null); }
   genPeopleText() { return this.t('groupingList', 'people', { occupied: this.data.occupied, max: this.g.ev.max_slots }); }
-  genStatusText() { return this.g.ev.status === 'open' ? this.t('groupingList', 'statusOpen') : this.t('appBlocks', 'closedStatus'); }
+  genStatusText() {
+    return this.g.ev.status === 'open' ? this.t('groupingList', 'statusOpen')
+      : this.g.ev.status === 'completed' ? this.t('appBlocks', 'completedStatus')
+      : this.t('appBlocks', 'closedStatus');
+  }
 }
 class SeatEntryShell extends ShellBase {
   // data: { row|null, index, ev, access } — 动作按观看者在此生成
@@ -929,6 +935,22 @@ class EditActionShell extends ActionShell {
   constructor(ctx, data) { super(ctx, 'EditAction', data); }
   genGroupingId() { return this.data.groupingId; }
 }
+// 完成车队动作 (词汇 v4): 与 DisbandAction 同形 (确认文案走动作对象),
+// 只有车头且车未完成时详情树才下发。
+class CompleteActionShell extends ActionShell {
+  constructor(ctx, data) { super(ctx, 'CompleteAction', data); }
+  genGroupingId() { return this.data.groupingId; }
+  genConfirmTitle() { return this.t('groupingDetail', 'completeConfirmTitle'); }
+  genConfirmMessage() { return this.t('groupingDetail', 'completeConfirmMessage', { title: this.data.title }); }
+  genOkLabel() { return this.t('common', 'confirm'); }
+  genCancelLabel() { return this.t('common', 'cancel'); }
+}
+// 恢复车队动作 (词汇 v4): 撤销完成, 无确认 (恢复本身可逆且低风险),
+// 只有车头且车已完成时详情树才下发。
+class UncompleteActionShell extends ActionShell {
+  constructor(ctx, data) { super(ctx, 'UncompleteAction', data); }
+  genGroupingId() { return this.data.groupingId; }
+}
 
 /* ---------- 页面 shell: 组队列表 ----------
  * groupings/currentVersion 是数据字段 (惰性查库+memo), 其余全是文案
@@ -962,12 +984,26 @@ class GroupingListPageShell extends ShellBase {
           textRef: access.canWrite ? ['groupingList', 'emptyInteractive'] : ['groupingList', 'emptyReadonly'],
         }));
       } else {
-        for (const g of inWeek) {
-          const nav = new NavigateActionShell(this.ctx, {
-            slug: access.slug, groupingId: g.genId(), name: tRow ? tRow.guild_name : access.slug,
-            readOnly: !access.canWrite, nick: viewerNick || '',
-          });
-          blocks.push(new GroupingCardBlockShell(this.ctx, { g, occupied: await g.genOccupiedCount(), action: nav }));
+        // 一屏 (一周) 之内按查看者本地时区的自然日分组呈现 (2026-10-25
+        // 裁决): 组头 = SectionHeaderBlock (v1 既有积木), 文案由目录模板
+        // 在此拼好整句下发, 客户端不重排不拼文案; 组按日期升序, 组内按
+        // 出发时刻升序。无时间的车在移动端口径里本就不入周 (ts!=null),
+        // 不存在未定时间组。
+        const items = inWeek.map((g) => ({ g, ts: startsAtEpoch(g.ev) }));
+        for (const group of groupByLocalDay(items, this.ctx.tz)) {
+          const p = group.parts;
+          blocks.push(new SectionHeaderBlockShell(this.ctx, {
+            text: this.t('groupingList', 'dayGroupHeader', {
+              month: p.month, day: p.day, weekday: this.t('groupingList', 'weekday' + p.weekday),
+            }),
+          }));
+          for (const { g } of group.items) {
+            const nav = new NavigateActionShell(this.ctx, {
+              slug: access.slug, groupingId: g.genId(), name: tRow ? tRow.guild_name : access.slug,
+              readOnly: !access.canWrite, nick: viewerNick || '',
+            });
+            blocks.push(new GroupingCardBlockShell(this.ctx, { g, occupied: await g.genOccupiedCount(), action: nav }));
+          }
         }
       }
       return substituteForVersion(blocks, v, () => new FallbackBlockShell(this.ctx));
@@ -976,12 +1012,19 @@ class GroupingListPageShell extends ShellBase {
   async genGroupings() {
     return this.memo('groupings', async () => {
       const type = TAB_TO_TYPE[this.data.tab] || 'activity';
+      // completed (已完成) 与 draft 一样不进任何列表 (2026-10-25): 完成车只
+      // 经详情直达打开。closed 仍在列表 (只是截止报名), 与完成态分开。
       const { results } = await this.db.prepare(
-        `SELECT * FROM events WHERE tenant = ? AND type = ? AND status != 'draft'
+        `SELECT * FROM events WHERE tenant = ? AND type = ? AND status NOT IN ('draft', 'completed')
          ORDER BY CASE status WHEN 'open' THEN 0 ELSE 1 END, COALESCE(starts_at_utc, 9999999999) ASC, id DESC`
       ).bind(s(this.data.slug, 40), type).all();
       return (results || []).map((ev) => new GroupingShell(this.ctx, ev));
     });
+  }
+  // 星期短名表 (下标 0=周日, 与 JS getDay / 服务端 localDayParts 对齐):
+  // Web 组头模板的 {weekday} 填充料, 整表由目录按 locale 生成。
+  genWeekdayNames() {
+    return this.memo('weekdayNames', () => [0, 1, 2, 3, 4, 5, 6].map((i) => this.t('groupingList', 'weekday' + i)));
   }
   genCurrentVersion() {
     return this.ctxMemo('gameVersion', () => getGameVersion(this.db));
@@ -1049,6 +1092,8 @@ const LIST_TEXT_RESOLVERS = {
     ['prevWeekLabel', 'groupingList', 'prevWeek'],
     ['nextWeekLabel', 'groupingList', 'nextWeek'],
     ['weekHeaderTemplate', 'groupingList', 'weekHeader'],
+    ['dayGroupHeaderTemplate', 'groupingList', 'dayGroupHeader'],
+    ['undatedGroupLabel', 'groupingList', 'undatedGroup'],
     ['emptyInteractiveText', 'groupingList', 'emptyInteractive'],
     ['emptyReadonlyText', 'groupingList', 'emptyReadonly'],
     ['statusOpenLabel', 'groupingList', 'statusOpen'],
@@ -1057,6 +1102,8 @@ const LIST_TEXT_RESOLVERS = {
     ['sealText', 'groupingList', 'seal'],
     ...FORM_TEXT_SPEC,
   ]),
+  // 数组字段不走 defineTextGens (目录条目恒为字符串): 整表生成在此
+  weekdayNames: (p) => p.genWeekdayNames(),
 };
 
 /* ---------- 实体 shell: Guild (Guild / GuildReadOnly / GuildLocked) ----------
@@ -1339,7 +1386,8 @@ class GroupingDetailPageShell extends ShellBase {
       }));
       blocks.push(new TextBlockShell(this.ctx, {
         variant: 'muted',
-        textRef: access.canWrite ? ['groupingDetail', 'openHint'] : ['groupingDetail', 'readonlyHint'],
+        textRef: ev.status === 'completed' ? ['groupingDetail', 'completedHint']
+          : access.canWrite ? ['groupingDetail', 'openHint'] : ['groupingDetail', 'readonlyHint'],
       }));
       blocks.push(new SectionBlockShell(this.ctx, {
         title: null,
@@ -1352,15 +1400,28 @@ class GroupingDetailPageShell extends ShellBase {
         && String(ev.creator_discord_id) === String(this.ctx.user.discordId));
       if (isLeader && access.canWrite) {
         blocks.push(new SpacerBlockShell(this.ctx, { size: 18 }));
-        blocks.push(new ActionButtonBlockShell(this.ctx, {
-          labelRef: ['groupingDetail', 'edit'], style: 'ghost',
-          action: new EditActionShell(this.ctx, { groupingId: String(ev.id) }),
-        }));
-        blocks.push(new SpacerBlockShell(this.ctx, { size: 10 }));
-        blocks.push(new ActionButtonBlockShell(this.ctx, {
-          labelRef: ['groupingDetail', 'disband'], style: 'danger',
-          action: new DisbandActionShell(this.ctx, { groupingId: String(ev.id), title: ev.title }),
-        }));
+        if (ev.status === 'completed') {
+          // 已完成: 只给恢复入口 (编辑/解散/完成都不再下发)
+          blocks.push(new ActionButtonBlockShell(this.ctx, {
+            labelRef: ['groupingDetail', 'restore'], style: 'ghost',
+            action: new UncompleteActionShell(this.ctx, { groupingId: String(ev.id) }),
+          }));
+        } else {
+          blocks.push(new ActionButtonBlockShell(this.ctx, {
+            labelRef: ['groupingDetail', 'edit'], style: 'ghost',
+            action: new EditActionShell(this.ctx, { groupingId: String(ev.id) }),
+          }));
+          blocks.push(new SpacerBlockShell(this.ctx, { size: 10 }));
+          blocks.push(new ActionButtonBlockShell(this.ctx, {
+            labelRef: ['groupingDetail', 'complete'], style: 'ghost',
+            action: new CompleteActionShell(this.ctx, { groupingId: String(ev.id), title: ev.title }),
+          }));
+          blocks.push(new SpacerBlockShell(this.ctx, { size: 10 }));
+          blocks.push(new ActionButtonBlockShell(this.ctx, {
+            labelRef: ['groupingDetail', 'disband'], style: 'danger',
+            action: new DisbandActionShell(this.ctx, { groupingId: String(ev.id), title: ev.title }),
+          }));
+        }
       }
       return substituteForVersion(blocks, v, () => new FallbackBlockShell(this.ctx));
     });
@@ -1381,6 +1442,17 @@ const DETAIL_TEXT_RESOLVERS = {
     ['detailReadonlyHint', 'groupingDetail', 'readonlyHint'],
     ['detailToastDisbanded', 'groupingDetail', 'toastDisbanded'],
     ['detailToastDisbandFailedTemplate', 'groupingDetail', 'toastDisbandFailed'],
+    ['detailCompleteLabel', 'groupingDetail', 'complete'],
+    ['detailCompletingLabel', 'groupingDetail', 'completing'],
+    ['detailStatusCompletedLabel', 'groupingDetail', 'statusCompleted'],
+    ['detailRestoreLabel', 'groupingDetail', 'restore'],
+    ['detailCompleteConfirmTitle', 'groupingDetail', 'completeConfirmTitle'],
+    ['detailCompleteConfirmMessageTemplate', 'groupingDetail', 'completeConfirmMessage'],
+    ['detailToastCompleted', 'groupingDetail', 'toastCompleted'],
+    ['detailToastCompleteFailedTemplate', 'groupingDetail', 'toastCompleteFailed'],
+    ['detailToastRestored', 'groupingDetail', 'toastRestored'],
+    ['detailToastRestoreFailedTemplate', 'groupingDetail', 'toastRestoreFailed'],
+    ['detailCompletedHint', 'groupingDetail', 'completedHint'],
     ['detailLinkCopied', 'groupingDetail', 'linkCopied'],
     ['detailCopyFailedManual', 'groupingDetail', 'copyFailedManual'],
     ['detailDisbandConfirmTitle', 'groupingDetail', 'disbandConfirmTitle'],
@@ -2562,6 +2634,68 @@ const resolvers = {
       return new DeletePayloadShell(ctx, { ok: true });
     },
 
+    // 完成车队 (2026-10-25): 开完的车标记 completed — 与 closed 语义不同:
+    // closed 只是截止报名, 仍在列表且仍发提醒; completed 从所有列表消失,
+    // 且提醒/推送口径 (reminder PENDING_WHERE 只认 open/closed) 自动不再
+    // 触发 — 即使闹钟已排队, GuildHub 到点重查 D1 时也会被过滤掉。
+    // 权限与编辑/解散同门: 仅车头 (creator_discord_id); 无车头记录的存量
+    // 车谁都不能完成, 走管理员通道。从 open / closed 都可完成。
+    completeGrouping: async (_, { id }, ctx) => {
+      const db = ctx.env.DB;
+      if (!rateLimit('mut:complete:' + getClientIp(ctx.request), 10)) {
+        return gFail(ctx, 'rateLimited');
+      }
+      await ensureEventCreatorColumn(db);
+      const gid = parseInt(id, 10) || 0;
+      const ev = await db.prepare('SELECT * FROM events WHERE id = ?').bind(gid).first();
+      if (!ev) return gFail(ctx, 'groupingNotFound');
+      const gate = await requireWrite(db, ctx.user, ev.tenant, ctx.request);
+      if (gate) return gFail(ctx, gate);
+      if (ev.origin !== 'member') return gFail(ctx, 'officialEvent');
+      if (!ev.creator_discord_id) {
+        return gFail(ctx, 'noCreatorRecordedComplete');
+      }
+      if (String(ev.creator_discord_id) !== String(ctx.user.discordId)) {
+        return gFail(ctx, 'leaderOnlyComplete');
+      }
+      if (ev.status === 'completed') return gFail(ctx, 'groupingAlreadyCompleted');
+      // draft 在 GraphQL 表面处处不可见 (列表已过滤), 按不存在处理
+      if (ev.status !== 'open' && ev.status !== 'closed') return gFail(ctx, 'groupingNotFound');
+      await db.prepare("UPDATE events SET status = 'completed' WHERE id = ?").bind(gid).run();
+      const nev = await db.prepare('SELECT * FROM events WHERE id = ?').bind(gid).first();
+      // kind=updated: 列表实时摘除 + GuildHub 重排闹钟 (完成车不再是待提醒)
+      publishGroupingEvent(ctx, ev.tenant, gid, 'updated');
+      return new GroupingPayloadShell(ctx, { ok: true, grouping: toGrouping(ctx, nev) });
+    },
+
+    // 恢复车队 (撤销完成): 与 completeGrouping 成对, 同门校验。恢复一律
+    // 回到 open (不还原完成前的 closed 态 — 保持简单, 车头可再手动关闭
+    // 报名口径由 REST close / 状态机承担)。
+    reopenGrouping: async (_, { id }, ctx) => {
+      const db = ctx.env.DB;
+      if (!rateLimit('mut:reopen:' + getClientIp(ctx.request), 10)) {
+        return gFail(ctx, 'rateLimited');
+      }
+      await ensureEventCreatorColumn(db);
+      const gid = parseInt(id, 10) || 0;
+      const ev = await db.prepare('SELECT * FROM events WHERE id = ?').bind(gid).first();
+      if (!ev) return gFail(ctx, 'groupingNotFound');
+      const gate = await requireWrite(db, ctx.user, ev.tenant, ctx.request);
+      if (gate) return gFail(ctx, gate);
+      if (ev.origin !== 'member') return gFail(ctx, 'officialEvent');
+      if (!ev.creator_discord_id) {
+        return gFail(ctx, 'noCreatorRecordedReopen');
+      }
+      if (String(ev.creator_discord_id) !== String(ctx.user.discordId)) {
+        return gFail(ctx, 'leaderOnlyReopen');
+      }
+      if (ev.status !== 'completed') return gFail(ctx, 'groupingNotCompleted');
+      await db.prepare("UPDATE events SET status = 'open' WHERE id = ?").bind(gid).run();
+      const nev = await db.prepare('SELECT * FROM events WHERE id = ?').bind(gid).first();
+      publishGroupingEvent(ctx, ev.tenant, gid, 'updated');
+      return new GroupingPayloadShell(ctx, { ok: true, grouping: toGrouping(ctx, nev) });
+    },
+
     joinGrouping: async (_, { input }, ctx) => {
       const db = ctx.env.DB;
       if (!rateLimit('mut:join:' + getClientIp(ctx.request), 30)) {
@@ -2882,6 +3016,14 @@ const resolvers = {
     okLabel: (p) => p.genOkLabel(), cancelLabel: (p) => p.genCancelLabel(),
   },
   EditAction: {
+    actionType: (p) => p.genActionType(), groupingId: (p) => p.genGroupingId(),
+  },
+  CompleteAction: {
+    actionType: (p) => p.genActionType(), groupingId: (p) => p.genGroupingId(),
+    confirmTitle: (p) => p.genConfirmTitle(), confirmMessage: (p) => p.genConfirmMessage(),
+    okLabel: (p) => p.genOkLabel(), cancelLabel: (p) => p.genCancelLabel(),
+  },
+  UncompleteAction: {
     actionType: (p) => p.genActionType(), groupingId: (p) => p.genGroupingId(),
   },
   HubPage: {

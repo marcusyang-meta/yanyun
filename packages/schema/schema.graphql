@@ -263,6 +263,24 @@ type EditAction implements Action {
   groupingId: ID!
 }
 
+# 完成车队动作 (词汇 v4): 与 DisbandAction 同形 (确认文案走动作对象);
+# 只有车头且车未完成时详情树才下发, 落地走 completeGrouping (服务端再验)。
+type CompleteAction implements Action {
+  actionType: String!
+  groupingId: ID!
+  confirmTitle: String!
+  confirmMessage: String!
+  okLabel: String!
+  cancelLabel: String!
+}
+
+# 恢复车队动作 (词汇 v4): 撤销完成, 无确认字段 (恢复可逆、低风险);
+# 只有车头且车已完成时详情树才下发, 落地走 reopenGrouping (服务端再验)。
+type UncompleteAction implements Action {
+  actionType: String!
+  groupingId: ID!
+}
+
 # ============ 页面：组队列表 ============
 # URL: /{slug}?tab=activity (嵌入公会主页)
 
@@ -292,6 +310,13 @@ type GroupingListPage {
   prevWeekLabel: String!
   nextWeekLabel: String!
   weekHeaderTemplate: String!
+  # 按日分组组头 (周框架不变, 一屏内按查看者本地自然日分组):
+  # 模板含 {month}/{day}/{weekday} 占位; weekdayNames 下标 0=周日 (与
+  # JS getDay 对齐), 整表按 locale 生成。移动端的组头由服务端在 Block
+  # 树里拼好整句 (SectionHeaderBlock), 不经这两个字段。
+  dayGroupHeaderTemplate: String!
+  weekdayNames: [String!]!
+  undatedGroupLabel: String!
   emptyInteractiveText: String!
   emptyReadonlyText: String!
   statusOpenLabel: String!
@@ -345,7 +370,7 @@ type Grouping {
   seats: [Seat!]!
   occupiedCount: Int!
   maxSlots: Int!
-  status: String!  # open / closed / draft
+  status: String!  # open / closed / draft / completed (已完成: 不进列表、不发提醒, 详情直达可打开)
   creatorDiscordId: String  # 车头 (创建者) 的 Discord id; 旧车/REST 车未记录为 null
 }
 
@@ -379,6 +404,18 @@ type GroupingDetailPage {
   detailCopyFailedManual: String!
   detailDisbandConfirmTitle: String!
   detailDisbandConfirmMessageTemplate: String!
+  # 完成 / 恢复 (完成态: 列表隐藏 + 不再提醒; 详情直达可打开, 车头可恢复)
+  detailCompleteLabel: String!
+  detailCompletingLabel: String!
+  detailStatusCompletedLabel: String!
+  detailRestoreLabel: String!
+  detailCompleteConfirmTitle: String!
+  detailCompleteConfirmMessageTemplate: String!
+  detailToastCompleted: String!
+  detailToastCompleteFailedTemplate: String!
+  detailToastRestored: String!
+  detailToastRestoreFailedTemplate: String!
+  detailCompletedHint: String!
   confirmOkLabel: String!
   confirmCancelLabel: String!
   typeShortActivity: String!
@@ -1014,6 +1051,8 @@ type Mutation {
   createGrouping(input: CreateGroupingInput!): GroupingPayload!
   updateGrouping(id: ID!, input: UpdateGroupingInput!): GroupingPayload!
   disbandGrouping(id: ID!): DeletePayload!  # 解散车队：仅车头（创建者）可为，服务端复验
+  completeGrouping(id: ID!): GroupingPayload!  # 完成车队：仅车头可为，服务端复验；完成车不进列表、不发提醒
+  reopenGrouping(id: ID!): GroupingPayload!  # 恢复车队（撤销完成，回到 open）：仅车头可为，服务端复验
   joinGrouping(input: JoinGroupingInput!): SeatPayload!
   leaveGrouping(input: LeaveGroupingInput!): SeatPayload!
   updateSeatWeapon(input: UpdateSeatWeaponInput!): SeatPayload!

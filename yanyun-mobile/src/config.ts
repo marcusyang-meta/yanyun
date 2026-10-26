@@ -15,4 +15,5 @@ export const APP_AUTH_REDIRECT = 'yanyun://auth-callback';
 // 积木词表版本: 本 App 认识的 Block/Action 对象版本 (服务端据此做
 // FallbackBlock 替代, 见后端 BLOCK_TYPE_SINCE)。新词表上线时 +1。
 // v3: EditAction (编辑车队, 仅车头的详情树下发)。
-export const BLOCKS_VERSION = 3;
+// v4: CompleteAction / UncompleteAction (完成/恢复车队, 仅车头的详情树下发)。
+export const BLOCKS_VERSION = 4;

@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<3cbde734cfcb68f41a04a095bf4f0b94>>
+ * @generated SignedSource<<9e3301d12d06f335933c440a130f346c>>
  * @lightSyntaxTransform
  */
 
@@ -10,6 +10,14 @@
 import { ReaderFragment } from 'relay-runtime';
 import { FragmentRefs } from "relay-runtime";
 export type fragments_BlockAction$data = {
+  readonly __typename: "CompleteAction";
+  readonly cancelLabel: string;
+  readonly confirmMessage: string;
+  readonly confirmTitle: string;
+  readonly groupingId: string;
+  readonly okLabel: string;
+  readonly " $fragmentType": "fragments_BlockAction";
+} | {
   readonly __typename: "DisbandAction";
   readonly cancelLabel: string;
   readonly confirmMessage: string;
@@ -42,6 +50,10 @@ export type fragments_BlockAction$data = {
   readonly nick: string;
   readonly readOnly: boolean;
   readonly slug: string;
+  readonly " $fragmentType": "fragments_BlockAction";
+} | {
+  readonly __typename: "UncompleteAction";
+  readonly groupingId: string;
   readonly " $fragmentType": "fragments_BlockAction";
 } | {
   // This will never be '%other', but we need some
@@ -89,7 +101,17 @@ v4 = {
   "kind": "ScalarField",
   "name": "cancelLabel",
   "storageKey": null
-};
+},
+v5 = [
+  (v0/*:: as any*/),
+  (v1/*:: as any*/),
+  (v2/*:: as any*/),
+  (v3/*:: as any*/),
+  (v4/*:: as any*/)
+],
+v6 = [
+  (v0/*:: as any*/)
+];
 return {
   "argumentDefinitions": [],
   "kind": "Fragment",
@@ -175,22 +197,26 @@ return {
     },
     {
       "kind": "InlineFragment",
-      "selections": [
-        (v0/*:: as any*/),
-        (v1/*:: as any*/),
-        (v2/*:: as any*/),
-        (v3/*:: as any*/),
-        (v4/*:: as any*/)
-      ],
+      "selections": (v5/*:: as any*/),
       "type": "DisbandAction",
       "abstractKey": null
     },
     {
       "kind": "InlineFragment",
-      "selections": [
-        (v0/*:: as any*/)
-      ],
+      "selections": (v6/*:: as any*/),
       "type": "EditAction",
+      "abstractKey": null
+    },
+    {
+      "kind": "InlineFragment",
+      "selections": (v5/*:: as any*/),
+      "type": "CompleteAction",
+      "abstractKey": null
+    },
+    {
+      "kind": "InlineFragment",
+      "selections": (v6/*:: as any*/),
+      "type": "UncompleteAction",
       "abstractKey": null
     }
   ],
@@ -199,6 +225,6 @@ return {
 };
 })();
 
-(node as any).hash = "a467f25508749a55d677e34bc76a604f";
+(node as any).hash = "52242cc8199fb89046d83148ef382658";
 
 export default node;
