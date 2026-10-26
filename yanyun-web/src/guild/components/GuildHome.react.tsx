@@ -30,7 +30,9 @@ export interface GuildHomeNode {
   // Home shell copy (backend Guild/GuildReadOnly text fields)
   homeBackToHubLabel: string;
   homeTabTeamLabel: string;
-  homeAdminLabel?: string;
+  // Admin entry label: the backend emits it only for viewers who pass
+  // the admin verdict; null (entry not rendered) for everyone else.
+  homeAdminLabel?: string | null;
   homeTabDexLabel: string;
   homeTabSectLabel: string;
   detailNotFoundText: string;
