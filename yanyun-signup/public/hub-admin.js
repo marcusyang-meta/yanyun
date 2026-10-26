@@ -34,7 +34,34 @@ $('#loginForm').onsubmit = async (e) => {
 };
 $('#logoutBtn').onclick = logout;
 
-async function boot() { await loadSettings(); await loadTenants(); await loadReminders(); await loadHeirlooms(); await loadErrors(); await loadBosses(); await loadDungeons(); }
+async function boot() { await loadSettings(); await loadTenants(); await loadReminders(); await loadHeirlooms(); await loadErrors(); await loadAudit(); await loadBosses(); await loadDungeons(); }
+
+let auditOffset = 0;
+const AUDIT_PAGE = 50;
+async function loadAudit() {
+  const msg = $('#auditMsg');
+  try {
+    const tenant = $('#auditTenant').value.trim();
+    const q = `?limit=${AUDIT_PAGE}&offset=${auditOffset}` + (tenant ? `&tenant=${encodeURIComponent(tenant)}` : '');
+    const { entries, total } = await api('/api/hub/audit' + q);
+    $('#auditSummary').textContent = `共 ${total} 条，第 ${total ? Math.floor(auditOffset / AUDIT_PAGE) + 1 : 0} 页`;
+    $('#auditTable').innerHTML = `<tr><th>时间</th><th>操作者</th><th>动作</th><th>百业</th><th>摘要</th><th>IP</th></tr>` +
+      (entries.map((r) => `<tr>
+        <td style="white-space:nowrap">${esc(new Date(r.at * 1000).toLocaleString())}</td>
+        <td>${esc(r.actor)}</td>
+        <td style="font-family:monospace">${esc(r.action)}</td>
+        <td>${esc(r.tenant || '')}</td>
+        <td><span class="muted" style="font-family:monospace">${esc(r.summary || '')}</span></td>
+        <td style="font-family:monospace">${esc(r.ip || '')}</td>
+      </tr>`).join('') || '<tr><td colspan="6" class="empty">暂无审计记录</td></tr>');
+    $('#auditPrev').disabled = auditOffset <= 0;
+    $('#auditNext').disabled = auditOffset + entries.length >= total;
+    msg.className = 'msg'; msg.textContent = '';
+  } catch (e) { msg.className = 'msg bad'; msg.textContent = e.message; }
+}
+$('#auditQuery').onclick = () => { auditOffset = 0; loadAudit(); };
+$('#auditPrev').onclick = () => { auditOffset = Math.max(0, auditOffset - AUDIT_PAGE); loadAudit(); };
+$('#auditNext').onclick = () => { auditOffset += AUDIT_PAGE; loadAudit(); };
 
 async function loadErrors() {
   const msg = $('#errorMsg');
