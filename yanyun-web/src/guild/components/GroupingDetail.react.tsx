@@ -62,6 +62,12 @@ const GroupingDetailQueryNode = graphql`
       seatNameLabel
       seatNamePlaceholder
       seatNameRequired
+      seatSelfTabLabel
+      seatProxyTabLabel
+      seatSelfNameHint
+      seatProxySearchPlaceholder
+      seatProxyPickRequired
+      seatProxyEmptyText
       seatSectLabel
       seatCancelLabel
       seatConfirmJoinLabel
@@ -351,7 +357,7 @@ verticalAlign: 'middle',
 : <div style={{ color: theme.muted, fontSize: 12, marginTop: 8}}>{page.detailReadonlyHint}</div>}
 </div>
 
-<SeatGrid groupingId={g.id} seats={seats} maxSlots={g.maxSlots} onChanged={onChanged} interactive={interactive} defaultNickname={defaultNickname} text={seatText} />
+<SeatGrid groupingId={g.id} slug={slug} seats={seats} maxSlots={g.maxSlots} onChanged={onChanged} interactive={interactive} defaultNickname={defaultNickname} text={seatText} />
 
 {confirmDelete && (
 <ConfirmDialog
