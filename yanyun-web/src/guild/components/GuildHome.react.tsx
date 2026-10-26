@@ -30,6 +30,7 @@ export interface GuildHomeNode {
   // Home shell copy (backend Guild/GuildReadOnly text fields)
   homeBackToHubLabel: string;
   homeTabTeamLabel: string;
+  homeAdminLabel?: string;
   homeTabDexLabel: string;
   homeTabSectLabel: string;
   detailNotFoundText: string;
@@ -68,9 +69,16 @@ export default function GuildHome({ node, slug, carId, user, userBarText, intera
       <div style={{ maxWidth: 860, margin: '0 auto', padding: '0 20px' }}>
         <header className="yy-anim-fade-up" style={{ padding: '36px 0 8px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
-            <Link to="/" style={{ color: theme.muted, fontSize: 13, textDecoration: 'none', letterSpacing: '.1em' }}>
-              {node.homeBackToHubLabel}
-            </Link>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <Link to="/" style={{ color: theme.muted, fontSize: 13, textDecoration: 'none', letterSpacing: '.1em' }}>
+                {node.homeBackToHubLabel}
+              </Link>
+              {interactive && node.homeAdminLabel && (
+                <Link to={`/${slug}/admin`} style={{ color: theme.gold, fontSize: 13, textDecoration: 'none', letterSpacing: '.1em' }}>
+                  {node.homeAdminLabel}
+                </Link>
+              )}
+            </span>
             <UserBar user={barUser} text={userBarText} />
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
