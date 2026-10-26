@@ -367,7 +367,7 @@ body {
   display: block;
 }
 /* 全屏 hero (登录页): 山水铺满整屏, 登录卡浮在画上。
-   高度来自 .yy-page 的 flex 列 (撑满滚动区), 不再用视口单位。 */
+   高度来自登录页 .yy-page 的 flex 列 (撑满滚动区), 不再用视口单位。 */
 .yy-hero-full {
   flex: 1 0 auto;
   display: flex;
@@ -408,11 +408,17 @@ body {
 
 /* ---------- page transition wrapper ---------- */
 /* A page fills at least the scroll region's height (never the viewport's);
-   taller content grows the page and the region scrolls it. The flex column
-   lets full-bleed pages (login hero) stretch to the region height. */
+   taller content grows the page and the region scrolls it. The page itself
+   stays a plain block: pages center their content in a max-width column
+   (margin: 0 auto), and as a flex item that column shrink-wraps to
+   fit-content (~440px), collapsing the desktop layout to phone width.
+   Only the login page is a flex column, so its full-bleed hero can stretch
+   to the region height (see .yy-hero-full). */
 .yy-page {
   animation: yy-fade-in .35s ease both;
   min-height: 100%;
+}
+.yy-page:has(> .yy-hero-full) {
   display: flex;
   flex-direction: column;
 }
