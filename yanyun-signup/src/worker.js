@@ -494,6 +494,49 @@ hub.post('/tenants/:slug/heirloom/test', async (c) => {
   return json({ ok: true, heirloom: await heirloomStateFor(c, slug) });
 });
 
+/* ---------- 原语面开关 (超管 portal, C 路线灰度/回滚) ----------
+ * 组队列表 / 车队详情的原语树 (primTree) 按百业 × 页面开关, 存
+ * settings.primitives_list / primitives_detail ('1' 开), 默认 OFF。
+ * 关掉即回落功能块树 — 客户端双通道都在, 回滚不需要发版。另有全局
+ * 急停 settings('', primitives_global_off) 在 prim.js 的 primEnabled
+ * 里判, 本组端点只管百业级开关。 */
+async function primitivesStateFor(c, slug) {
+  const t = await c.env.DB.prepare('SELECT guild_name FROM tenants WHERE slug = ?').bind(slug).first().catch(() => null);
+  if (!t) return null;
+  return {
+    slug,
+    guild_name: String(t.guild_name || slug),
+    list: (await getReminderSetting(c.env.DB, slug, 'primitives_list')) === '1',
+    detail: (await getReminderSetting(c.env.DB, slug, 'primitives_detail')) === '1',
+  };
+}
+
+// GET /api/hub/primitives 全部百业的原语面开关状态
+hub.get('/primitives', async (c) => {
+  const { results } = await c.env.DB.prepare('SELECT slug FROM tenants ORDER BY created_at ASC').all();
+  const out = [];
+  for (const t of results) {
+    const st = await primitivesStateFor(c, t.slug);
+    if (st) out.push(st);
+  }
+  return json({ ok: true, primitives: out });
+});
+
+// PUT /api/hub/tenants/:slug/primitives {list?, detail?} 不传 = 保持原样
+hub.put('/tenants/:slug/primitives', async (c) => {
+  const slug = s(c.req.param('slug'), 40);
+  const t = await c.env.DB.prepare('SELECT slug FROM tenants WHERE slug = ?').bind(slug).first();
+  if (!t) return err('百业不存在', 404);
+  const body = await getBody(c);
+  if (body.list !== undefined) {
+    await setReminderSetting(c.env.DB, slug, 'primitives_list', body.list ? '1' : '0');
+  }
+  if (body.detail !== undefined) {
+    await setReminderSetting(c.env.DB, slug, 'primitives_detail', body.detail ? '1' : '0');
+  }
+  return json({ ok: true, primitives: await primitivesStateFor(c, slug) });
+});
+
 /* POST /api/hub/backfill/reminder-identity 开车提醒身份回填 (2026-10-24
  * 用户裁决: 现在就 backfill)。与车头回填同一纪律: 幂等、{dryRun:true} 只报
  * 不写、只认唯一无歧义匹配、绝不猜。两件事:
