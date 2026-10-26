@@ -18,6 +18,7 @@ const MemberGuildHome_guild = graphql`
     homeTabTeamLabel
     homeTabDexLabel
     homeTabSectLabel
+    homeAdminLabel
     detailNotFoundText
     detailBackToListLabel
   }

@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<d8c570e71fa95c5f2b666cde97a50da3>>
+ * @generated SignedSource<<67deb47e5a14562692b05db5d02380e2>>
  * @lightSyntaxTransform
  */
 
@@ -14,6 +14,7 @@ export type MemberGuildHome_guild$data = {
   readonly detailBackToListLabel: string;
   readonly detailNotFoundText: string;
   readonly gameVersion: string;
+  readonly homeAdminLabel: string;
   readonly homeBackToHubLabel: string;
   readonly homeTabDexLabel: string;
   readonly homeTabSectLabel: string;
@@ -109,6 +110,13 @@ const node: ReaderFragment = {
       "alias": null,
       "args": null,
       "kind": "ScalarField",
+      "name": "homeAdminLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
       "name": "detailNotFoundText",
       "storageKey": null
     },
@@ -124,6 +132,6 @@ const node: ReaderFragment = {
   "abstractKey": null
 };
 
-(node as any).hash = "a89a2464051abb411bc9e4ee88fd1dda";
+(node as any).hash = "4457810355f6f4e0b9955aa88fc25e9e";
 
 export default node;

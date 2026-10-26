@@ -78,6 +78,30 @@ export async function refetchGearLibraryQueries(): Promise<void> {
   await Promise.all(jobs);
 }
 
+/* Guild admin surface: after an admin mutation commits, refetch the
+ * mounted GuildAdminRouteQuery imperatively (same serialized-chain
+ * mechanism as the gear library refetch) so the page re-renders from
+ * the updated store records. */
+const adminRefetchChains = new Map<string, Promise<unknown>>();
+export async function refetchGuildAdminQueries(): Promise<void> {
+  const jobs: Promise<unknown>[] = [];
+  for (const [key, entry] of executedQueries.entries()) {
+    if (!entry.node?.params || entry.node.params.name !== 'GuildAdminRouteQuery') continue;
+    entry.at = Date.now();
+    const prev = adminRefetchChains.get(key);
+    const job = (async () => {
+      if (prev) { try { await prev; } catch { /* a failed predecessor must not block */ } }
+      try {
+        await fetchQuery(relayEnvironment, entry.node, entry.variables, { fetchPolicy: 'network-only' })
+          .toPromise();
+      } catch { /* ignore individual failures */ }
+    })();
+    adminRefetchChains.set(key, job);
+    jobs.push(job);
+  }
+  await Promise.all(jobs);
+}
+
 async function fetchGraphQL(operation: any, variables: any) {
   // Production preview: call backend directly (avoids worker-to-worker fetch limits)
   const graphqlUrl = typeof window !== 'undefined' && window.location.hostname.includes('workers.dev')

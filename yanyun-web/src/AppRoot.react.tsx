@@ -8,6 +8,7 @@ import LoginPage from './auth/LoginPage.react.tsx';
 import GuildPicker from './auth/GuildPicker.react.tsx';
 import CreateGuildPage from './auth/CreateGuildPage.react.tsx';
 import GuildRouteLoader from './guild/GuildRouteLoader.react.tsx';
+import GuildAdminRouteLoader from './guild/GuildAdminRouteLoader.react.tsx';
 import LegalRoute from './LegalRoute.react.tsx';
 import SiteFooter from './lib/SiteFooter.react.tsx';
 import { readPrefMirror, writePrefMirror, emitLocaleChanged, lastSentLocaleTag } from './lib/locale';
@@ -139,6 +140,10 @@ export default function AppRoot({ queries }: {
       <Route
         path="/:slug/car/:carId"
         element={user ? <GuildRouteLoader /> : <LoginGateWithText site={siteText} text={loginText} />}
+      />
+      <Route
+        path="/:slug/admin"
+        element={user ? <GuildAdminRouteLoader /> : <LoginGateWithText site={siteText} text={loginText} />}
       />
       <Route path="/:slug" element={user ? <GuildRouteLoader /> : <LoginGateWithText site={siteText} text={loginText} />} />
         </Routes>
