@@ -26,6 +26,7 @@ import { getGuildNick } from './auth.js';
 import { webhookIdentity } from './guildavatar.ts';
 import { getTenantRow, listTenantNames } from './db/repositories/tenants.ts';
 import { getUsernameRow } from './db/repositories/users.ts';
+import { getGuildMember, hasGuildMember } from './db/repositories/guildMembers.ts';
 
 /* ---------- 配置 (settings, tenant=slug) ---------- */
 export async function getHeirloomConfig(db, slug) {
@@ -92,8 +93,7 @@ export async function heirloomItemHash(g) {
  * users 全局名 -> 会话名 -> 兜底。与提醒的车头显示名同一梯队。 */
 async function memberDisplayName(db, slug, dgid, discordId, userName) {
   await ensureGuildMembersTable(db);
-  const rm = await db.prepare('SELECT nick, global_name FROM guild_members WHERE tenant = ? AND discord_id = ?')
-    .bind(slug, discordId).first().catch(() => null);
+  const rm = await getGuildMember(db, slug, discordId).catch(() => null);
   if (rm && String(rm.nick || '').trim()) return String(rm.nick).trim();
   if (rm && String(rm.global_name || '').trim()) return String(rm.global_name).trim();
   if (dgid) {
@@ -196,9 +196,7 @@ async function evaluateForTenant(db, t, args) {
   let member = !!(dgid && (args.userGuilds || []).includes(String(dgid)));
   if (!member) {
     await ensureGuildMembersTable(db);
-    const row = await db.prepare('SELECT discord_id FROM guild_members WHERE tenant = ? AND discord_id = ?')
-      .bind(slug, args.discordId).first().catch(() => null);
-    member = !!row;
+    member = await hasGuildMember(db, slug, args.discordId).catch(() => false);
   }
   if (!member) return;
 

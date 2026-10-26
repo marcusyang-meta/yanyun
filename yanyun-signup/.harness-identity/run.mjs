@@ -138,6 +138,12 @@ function makeDb(fx = {}) {
         if (/FROM signups WHERE event_id/.test(sql)) {
           return { results: tables.signups.filter((r) => r.event_id === Number(b[0])).sort((a, c) => a.id - c.id) };
         }
+        if (/FROM guild_members/.test(sql) && /discord_id = \?/.test(sql)) {
+          // 数据层点查走 .all() 通道 (drizzle db.get): 须按 discord_id 过滤,
+          // 不能落到下面的整表分支 (db.get 只取首行)。
+          const r = tables.guildMembers.find((m) => m.tenant === b[0] && m.discord_id === String(b[1]));
+          return { results: r ? [r] : [] };
+        }
         if (/FROM guild_members WHERE tenant = \?/.test(sql)) {
           return { results: tables.guildMembers.filter((m) => m.tenant === b[0]) };
         }
