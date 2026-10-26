@@ -4,7 +4,7 @@ import Constants from 'expo-constants';
 export const API_URL: string =
   process.env.EXPO_PUBLIC_API_URL ??
   (Constants.expoConfig?.extra?.apiUrl as string | undefined) ??
-  'https://yanyun.tbdlab.workers.dev';
+  'https://yanyun.app';
 
 // 移动端 OAuth 交接回调（后端白名单精确匹配这个值，才会把 JWT 深链回 App）
 export const APP_AUTH_REDIRECT = 'yanyun://auth-callback';
