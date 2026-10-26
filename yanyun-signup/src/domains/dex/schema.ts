@@ -43,8 +43,10 @@ export const dungeons = sqliteTable('dungeons', {
   season: text('season'),
   category: text('category'),
   level: integer('level'),
-  // [qry] version code (e.g. intl-v2.3), written by the dungeon-watch
-  // data pipeline; read by getCurrentVersionCode / dex surfaces.
+  // Version code (e.g. intl-v2.3); values are written by the
+  // dungeon-watch data pipeline, the column itself is converged lazily
+  // by ensureDungeonDexColumns (dungeons.ts); read by
+  // getCurrentVersionCode / dex surfaces.
   version: text('version'),
 });
 
