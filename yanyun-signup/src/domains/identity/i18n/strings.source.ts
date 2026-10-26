@@ -30,6 +30,9 @@ export const login_privacy = (fbs: FbsAPI) =>fbs("我们会读取并保存你的
 export const userBar_logout = (fbs: FbsAPI) =>fbs("退出登录", "userBar.logout");
 export const userBar_loggingOut = (fbs: FbsAPI) =>fbs("退出中…", "userBar.loggingOut");
 export const userBar_settings = (fbs: FbsAPI) =>fbs("个人资料", "userBar.settings");
+export const userBar_impersonationBanner = (fbs: FbsAPI, p?: StringParams) =>
+  fbs(["正在以 ", fbs.param("name", pv(p, "name")), " 身份浏览"], "userBar.impersonationBanner");
+export const userBar_impersonationExit = (fbs: FbsAPI) =>fbs("退出代登录", "userBar.impersonationExit");
 export const settings_title = (fbs: FbsAPI) =>fbs("个人资料", "settings.title");
 export const settings_discordLabel = (fbs: FbsAPI) =>fbs("Discord 账号", "settings.discordLabel");
 export const settings_languageLabel = (fbs: FbsAPI) =>fbs("语言", "settings.languageLabel");

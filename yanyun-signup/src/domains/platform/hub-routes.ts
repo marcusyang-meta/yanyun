@@ -24,6 +24,7 @@ import {
   getBossIdByNameAndDungeon, getOrphanBossIdByName, listBossesFullByDungeon, listOrphanBossesByName,
 } from '../dex/index.ts';
 import { listUsersDirectory, listAllNicks, listNicksByGuild } from '../identity/index.ts';
+import { hubLoginAsUsers, hubLoginAsMint } from './login-as.ts';
 import { parseGuideStructured, ensureBossStructuredColumns, ensureDungeonDexColumns } from '../dex/graphql.ts';
 import { ensureEventCreatorColumn } from '../groupings/graphql.ts';
 import { ensureNickStore } from '../identity/auth.ts';
@@ -92,6 +93,13 @@ hubRoutes.get('/audit', async (c: any) => {
   await audit(c, 'audit.view', tenant, { shown: page.entries.length, offset });
   return json({ ok: true, entries: page.entries, total: page.total });
 });
+
+/* ---------- LoginAs (impersonation) ----------
+ * Hub-token-gated user search + session mint (full session, 30 min,
+ * imp-marked, audited). Handler logic lives in ./login-as.ts; the exit
+ * endpoint is session-cookie based and mounted in worker.ts. */
+hubRoutes.get('/users', async (c: any) => hubLoginAsUsers(c));
+hubRoutes.post('/login-as', async (c: any) => hubLoginAsMint(c));
 
 /* ---------- Database backup (R2 snapshots + streaming export) ----------
  * A backup file contains live secrets (OAuth refresh tokens, password

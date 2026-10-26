@@ -86,6 +86,36 @@ $('#backupExport').onclick = async () => {
   catch (e) { msg.className = 'msg bad'; msg.textContent = e.message; }
 };
 
+async function searchLoginAs() {
+  const msg = $('#loginAsMsg');
+  const q = $('#loginAsQuery').value.trim();
+  if (!q) { msg.className = 'msg bad'; msg.textContent = '先输入昵称或 Discord ID'; return; }
+  msg.className = 'msg'; msg.textContent = '搜索中…';
+  try {
+    const { users } = await api('/api/hub/users?q=' + encodeURIComponent(q));
+    $('#loginAsSummary').textContent = `共 ${users.length} 人`;
+    $('#loginAsTable').innerHTML = `<tr><th>用户</th><th>Discord ID</th><th>命中服昵称</th><th></th></tr>` +
+      (users.map((u) => `<tr>
+        <td>${u.avatar ? '<img src="' + esc(u.avatar) + '" alt="" style="width:24px;height:24px;border-radius:50%;vertical-align:-6px;margin-right:6px">' : ''}${esc(u.name || '(无名)')}</td>
+        <td style="font-family:monospace">${esc(u.discordId)}</td>
+        <td>${esc(u.nick || '')}</td>
+        <td><button class="primary" data-la="${esc(u.discordId)}" style="width:auto">以此身份登录</button></td>
+      </tr>`).join('') || '<tr><td colspan="4" class="empty">没有匹配的用户</td></tr>');
+    $('#loginAsTable').querySelectorAll('button[data-la]').forEach((b) => b.onclick = async () => {
+      const hit = users.find((x) => x.discordId === b.dataset.la);
+      if (!confirm(`以「${hit ? (hit.name || hit.discordId) : b.dataset.la}」的身份打开站点？代登录会话 30 分钟、完整读写，开始与退出都会留痕。`)) return;
+      b.disabled = true; b.textContent = '登录中…';
+      try {
+        await api('/api/hub/login-as', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ discordId: b.dataset.la }) });
+        location.href = '/';
+      } catch (e) { msg.className = 'msg bad'; msg.textContent = e.message; b.disabled = false; b.textContent = '以此身份登录'; }
+    });
+    msg.className = 'msg'; msg.textContent = '';
+  } catch (e) { msg.className = 'msg bad'; msg.textContent = e.message; }
+}
+$('#loginAsSearch').onclick = searchLoginAs;
+$('#loginAsQuery').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); searchLoginAs(); } });
+
 let auditOffset = 0;
 const AUDIT_PAGE = 50;
 async function loadAudit() {

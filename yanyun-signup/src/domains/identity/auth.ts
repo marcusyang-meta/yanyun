@@ -16,6 +16,9 @@ import {
 
 export const SESSION_COOKIE = 'yy_session';
 const SESSION_TTL_SEC = 14 * 24 * 3600;
+/* Hub LoginAs sessions: minted by the hub super-admin tool only, marked
+ * with an imp claim and capped at 30 minutes (vs the normal 14 days). */
+export const IMPERSONATION_TTL_SEC = 30 * 60;
 
 /* ================= Encoding helpers ================= */
 const enc = new TextEncoder();
@@ -97,7 +100,39 @@ export async function getSessionUser(request: any, env: any) {
     avatar: p.avatar || '',
     guilds: Array.isArray(p.guilds) ? p.guilds.map(String) : [],
     guildsMeta: Array.isArray(p.gm) ? p.gm : null, // present only on test-issued sessions
+    // Hub LoginAs mark: present only on hub-minted impersonation sessions.
+    impersonation: (p.imp && typeof p.imp === 'object')
+      ? { by: String(p.imp.by || ''), at: Number(p.imp.at) || 0 }
+      : null,
   };
+}
+
+/* Mint a LoginAs session for a stored user row: the same snapshot shape
+ * the OAuth callback issues (server ids from the stored guilds_json),
+ * plus the imp mark and the short impersonation TTL. */
+export async function signImpersonationSession(
+  secret: string,
+  row: { discord_id: string; username: string; avatar: string; guilds_json: string },
+) {
+  const guilds: string[] = [];
+  try {
+    const parsed: unknown = JSON.parse(row.guilds_json || '[]');
+    if (Array.isArray(parsed)) {
+      for (const g of parsed) {
+        const raw = (g && typeof g === 'object') ? (g as { id?: unknown }).id : g;
+        if (raw != null && String(raw)) guilds.push(String(raw));
+      }
+    }
+  } catch { /* a corrupt snapshot mints a session with no server list */ }
+  const at = Math.floor(Date.now() / 1000);
+  const jwt = await signJwt(secret, {
+    sub: String(row.discord_id),
+    name: row.username || '',
+    avatar: row.avatar || '',
+    guilds,
+    imp: { by: 'hub-admin', at },
+  }, IMPERSONATION_TTL_SEC);
+  return { jwt, at };
 }
 
 /* ============ Session validity: the Discord grant must be complete (ruling) ============

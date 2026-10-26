@@ -501,6 +501,21 @@ if (want('users')) {
   eq('listNicksByGuild', byGuild.map((r) => r.discord_id).sort(), ['U1', 'U2', 'U3']);
   const allNicks = await repo.listAllNicks(db);
   eq('listAllNicks count', allNicks.length, 4);
+
+  // LoginAs reads: the session-mint row + the hub user search.
+  const sessRow = await repo.getUserSessionRow(db, 'U1');
+  eq('getUserSessionRow username', sessRow && sessRow.username, '全局甲改');
+  eq('getUserSessionRow avatar', sessRow && sessRow.avatar, 'b.png');
+  eq('getUserSessionRow guilds_json', sessRow && sessRow.guilds_json, '[{"id":"G1"},{"id":"G2"}]');
+  eq('getUserSessionRow missing -> null', await repo.getUserSessionRow(db, 'nope'), null);
+  const byName = await repo.searchUsersDirectory(db, '全局甲', 20);
+  eq('searchUsersDirectory by global name', byName.map((r) => r.discord_id), ['U1']);
+  const byNick = await repo.searchUsersDirectory(db, '服内乙', 20);
+  eq('searchUsersDirectory by nick', byNick.map((r) => r.discord_id), ['U2']);
+  eq('searchUsersDirectory nick evidence', byNick[0] && byNick[0].nick, '服内乙');
+  const byId = await repo.searchUsersDirectory(db, 'U2', 20);
+  eq('searchUsersDirectory by id', byId.map((r) => r.discord_id), ['U2']);
+  eq('searchUsersDirectory empty query', await repo.searchUsersDirectory(db, '  ', 20), []);
 }
 
 /* ---------------- guild_members ---------------- */

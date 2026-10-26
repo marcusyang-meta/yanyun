@@ -12,6 +12,8 @@ export type IdentityStringKey =
   | 'userBar.logout'
   | 'userBar.loggingOut'
   | 'userBar.settings'
+  | 'userBar.impersonationBanner'
+  | 'userBar.impersonationExit'
   | 'settings.title'
   | 'settings.discordLabel'
   | 'settings.languageLabel'
@@ -67,6 +69,8 @@ export const IDENTITY_STRING_KEYS: readonly IdentityStringKey[] = [
   'userBar.logout',
   'userBar.loggingOut',
   'userBar.settings',
+  'userBar.impersonationBanner',
+  'userBar.impersonationExit',
   'settings.title',
   'settings.discordLabel',
   'settings.languageLabel',

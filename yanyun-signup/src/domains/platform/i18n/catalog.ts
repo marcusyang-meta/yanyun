@@ -144,6 +144,20 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "es": "Perfil",
       "fr": "Profil",
       "zh-TW": "個人資料"
+    },
+    "impersonationBanner": {
+      "zh-CN": "正在以 {name} 身份浏览",
+      "en": "Browsing as {name}",
+      "es": "Viendo como {name}",
+      "fr": "Navigation en tant que {name}",
+      "zh-TW": "正在以 {name} 身份瀏覽"
+    },
+    "impersonationExit": {
+      "zh-CN": "退出代登录",
+      "en": "Exit impersonation",
+      "es": "Salir de la sesión delegada",
+      "fr": "Quitter la session déléguée",
+      "zh-TW": "退出代登入"
     }
   },
   "settings": {

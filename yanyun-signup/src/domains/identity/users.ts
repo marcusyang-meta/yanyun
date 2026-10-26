@@ -163,6 +163,80 @@ export async function listUsersDirectory(d1: D1Database): Promise<UserDirectoryR
   return rows || [];
 }
 
+export interface UserSessionRow {
+  discord_id: string;
+  username: string;
+  avatar: string;
+  guilds_json: string;
+}
+
+/** Session-mint read for the hub LoginAs tool: the stored identity row a
+ * session snapshot is built from (same fields the OAuth callback writes).
+ * Null when the discord id never logged in here. */
+export async function getUserSessionRow(d1: D1Database, discordId: string): Promise<UserSessionRow | null> {
+  await ensureUsersTable(d1);
+  const db = createDb(d1);
+  const row = await db.get<UserSessionRow>(
+    sql`SELECT ${col('discord_id')}, ${col('username')}, ${col('avatar')}, ${col('guilds_json')} FROM ${users} WHERE ${col('discord_id')} = ${discordId}`,
+  );
+  return row ?? null;
+}
+
+export interface UserSearchHit {
+  discord_id: string;
+  username: string;
+  avatar: string;
+  /** Matched per-server nickname (search evidence); '' when the hit came
+   * from the global name / discord id instead of a nick snapshot. */
+  nick: string;
+}
+
+interface UserSearchBaseRow {
+  discord_id: string;
+  username: string;
+  avatar: string;
+}
+
+/* Hub LoginAs user search: substring match over the global name and the
+ * discord id, plus per-server nick snapshots (joined back to the user
+ * row). An exact discord-id hit is promoted to the front. LIKE wildcards
+ * in the query are escaped so a search stays a plain substring search. */
+export async function searchUsersDirectory(
+  d1: D1Database, query: string, limit: number,
+): Promise<UserSearchHit[]> {
+  const q = query.trim();
+  if (!q) return [];
+  await ensureUsersTable(d1);
+  await ensureNickStoreTables(d1);
+  const lim = Math.min(Math.max(Math.floor(limit) || 20, 1), 50);
+  const pat = '%' + q.replace(/[\\%_]/g, (ch) => '\\' + ch) + '%';
+  const db = createDb(d1);
+  const userRows = await db.all<UserSearchBaseRow>(
+    sql`SELECT ${col('discord_id')}, ${col('username')}, ${col('avatar')} FROM ${users}
+        WHERE ${col('username')} LIKE ${pat} ESCAPE '\\' OR ${col('discord_id')} LIKE ${pat} ESCAPE '\\'
+        ORDER BY ${col('username')} ASC LIMIT ${lim}`,
+  );
+  const nickRows = await db.all<UserSearchHit>(
+    sql`SELECT ${users.discordId}, ${users.username}, ${users.avatar}, ${userGuildNicks.nick} AS ${col('nick')}
+        FROM ${userGuildNicks} INNER JOIN ${users} ON ${users.discordId} = ${userGuildNicks.discordId}
+        WHERE ${userGuildNicks.nick} LIKE ${pat} ESCAPE '\\'
+        ORDER BY ${userGuildNicks.nick} ASC LIMIT ${lim}`,
+  );
+  const seen = new Set<string>();
+  const out: UserSearchHit[] = [];
+  for (const r of userRows || []) {
+    seen.add(String(r.discord_id));
+    out.push({ discord_id: r.discord_id, username: r.username, avatar: r.avatar, nick: '' });
+  }
+  for (const r of nickRows || []) {
+    if (seen.has(String(r.discord_id))) continue;
+    seen.add(String(r.discord_id));
+    out.push(r);
+  }
+  out.sort((a, b) => (String(a.discord_id) === q ? 0 : 1) - (String(b.discord_id) === q ? 0 : 1));
+  return out.slice(0, lim);
+}
+
 /* ---------- user_oauth reads / writes ---------- */
 
 export async function getOAuthGrant(d1: D1Database, discordId: string): Promise<OAuthGrantRow | null> {

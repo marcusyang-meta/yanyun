@@ -38,6 +38,18 @@
     </div>
 
     <div class="detail" style="margin-top:16px">
+      <h3 style="margin-top:0">🎭 代登录（LoginAs）</h3>
+      <p class="muted">以某个已注册用户的身份打开站点（完整读写，与本人登录同权），用来复现成员视角的问题。代登录会话 30 分钟过期，站点顶部会常驻横幅提醒；开始与退出都会写入下方超管审计。</p>
+      <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px">
+        <input id="loginAsQuery" placeholder="按昵称或 Discord ID 搜索用户" style="width:260px">
+        <button class="ghost" id="loginAsSearch">搜索</button>
+        <span class="muted" id="loginAsSummary"></span>
+      </div>
+      <div style="overflow-x:auto"><table class="list" id="loginAsTable"></table></div>
+      <div class="msg" id="loginAsMsg"></div>
+    </div>
+
+    <div class="detail" style="margin-top:16px">
       <h3 style="margin-top:0">🏮 入驻百业管理</h3>
       <div style="overflow-x:auto"><table class="list" id="tenantTable"></table></div>
     </div>

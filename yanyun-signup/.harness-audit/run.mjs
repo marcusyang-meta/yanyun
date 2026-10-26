@@ -55,10 +55,17 @@ function makeDb({ failAudit = false } = {}) {
     audit: [],    // {id, at, actor, action, tenant, summary, ip}
     events: [{ id: 1, tenant: 'alpha' }, { id: 2, tenant: 'beta' }],
     signups: [{ id: 1, event_id: 1 }, { id: 2, event_id: 2 }],
+    users: [
+      { discord_id: '3001', username: '代登目标', avatar: 'https://cdn.example/a.png', guilds_json: JSON.stringify([{ id: 'G9', name: '服九', icon: '', permissions: '0', owner: false }]) },
+      { discord_id: '3002', username: '另一个人', avatar: '', guilds_json: '[]' },
+    ],
+    nicks: [
+      { discord_id: '3002', guild_id: 'G9', nick: '服昵乙' },
+    ],
   };
   function route(kind, sql, b) {
     const raw = sql;
-    sql = sql.replace(/"/g, '').replace(/hub_audit_log\./g, '').replace(/tenants\./g, '').replace(/settings\./g, '');
+    sql = sql.replace(/"/g, '').replace(/hub_audit_log\./g, '').replace(/tenants\./g, '').replace(/settings\./g, '').replace(/user_guild_nicks\./g, '').replace(/users\./g, '');
     if (/hub_audit_log/.test(sql)) {
       if (/INSERT INTO hub_audit_log/.test(sql)) {
         if (failAudit) throw new Error('audit store down');
@@ -133,6 +140,26 @@ function makeDb({ failAudit = false } = {}) {
     if (/DELETE FROM events/.test(sql)) {
       state.events = state.events.filter((e) => e.tenant !== b[0]);
       return { meta: {} };
+    }
+    if (/user_guild_nicks/.test(sql)) {
+      // LoginAs search: nick snapshot join back to the user row.
+      const needle = String(b[0] || '').replace(/[%\\]/g, '');
+      const rows = state.nicks.filter((n) => n.nick.includes(needle)).map((n) => {
+        const u = state.users.find((x) => x.discord_id === n.discord_id);
+        return u ? { discord_id: u.discord_id, username: u.username, avatar: u.avatar, nick: n.nick } : null;
+      }).filter(Boolean);
+      return { results: rows };
+    }
+    if (/FROM users/.test(sql)) {
+      if (/WHERE discord_id =/.test(sql)) {
+        const u = state.users.find((x) => x.discord_id === String(b[0])) || null;
+        return { results: u ? [u] : [] };
+      }
+      if (/LIKE/.test(sql)) {
+        const needle = String(b[0] || '').replace(/[%\\]/g, '');
+        return { results: state.users.filter((u) => u.username.includes(needle) || u.discord_id.includes(needle)) };
+      }
+      return { results: state.users };
     }
     if (/DELETE FROM results/.test(sql)) return { meta: {} };
     if (/error_log/.test(sql)) {
@@ -261,6 +288,66 @@ const WEBHOOK = 'https://discord.com/api/webhooks/1234567890/SECRET_TOKEN_DO_NOT
   // page 2 must start with page 1's last row, then continue older rows.
   eq('分页窗口因自审计恰好移位一条', p2.entries[0].id, p1.entries[2].id);
   check('分页第二页其余为更旧行', p2.entries.slice(1).every((r) => r.id < p1.entries[2].id));
+}
+
+/* ================= LoginAs: search, mint, exit — all audited ================= */
+{
+  const { db, state } = makeDb({});
+  const env = { DB: db, ADMIN_PASSWORD: 'test-admin-pw', SESSION_SECRET: 'harness-session-secret', ASSETS };
+  const { ctx } = makeCtx();
+  const login = await worker.fetch(req('/api/hub/login', { method: 'POST', body: { password: 'test-admin-pw' } }), env, ctx);
+  const { token } = await login.json();
+
+  // Mint without a hub token -> 401 (a session cookie never authorizes a mint).
+  const noTok = await worker.fetch(req('/api/hub/login-as', { method: 'POST', body: { discordId: '3001' } }), env, ctx);
+  eq('无 hub token 代登录 -> 401', noTok.status, 401);
+
+  // User search: global-name hit, nick-snapshot hit, discord-id hit.
+  const byName = await (await worker.fetch(req('/api/hub/users?q=' + encodeURIComponent('代登'), { token }), env, ctx)).json();
+  check('按全局名搜到目标', byName.users?.length === 1 && byName.users[0].discordId === '3001', JSON.stringify(byName).slice(0, 160));
+  const byNick = await (await worker.fetch(req('/api/hub/users?q=' + encodeURIComponent('服昵乙'), { token }), env, ctx)).json();
+  check('按服昵称搜到目标', byNick.users?.length === 1 && byNick.users[0].discordId === '3002' && byNick.users[0].nick === '服昵乙', JSON.stringify(byNick).slice(0, 160));
+  const byId = await (await worker.fetch(req('/api/hub/users?q=3001', { token }), env, ctx)).json();
+  check('按 ID 搜到目标', byId.users?.length === 1 && byId.users[0].discordId === '3001');
+
+  // Mint for a never-registered user -> 404 and no audit row.
+  const ghost = await worker.fetch(req('/api/hub/login-as', { method: 'POST', token, body: { discordId: '9999' } }), env, ctx);
+  eq('未注册用户代登录 -> 404', ghost.status, 404);
+  check('404 不留 mint 审计', !state.audit.some((r) => r.action === 'auth.login_as'));
+
+  // Mint success: the cookie JWT carries sub + imp mark + 30-min window.
+  const mint = await worker.fetch(req('/api/hub/login-as', { method: 'POST', token, body: { discordId: '3001' } }), env, ctx);
+  eq('代登录 mint -> 200', mint.status, 200);
+  const setCookie = mint.headers.get('set-cookie') || '';
+  check('mint 下发 yy_session cookie', setCookie.startsWith('yy_session='));
+  const jwt = setCookie.slice('yy_session='.length).split(';')[0];
+  const payload = JSON.parse(Buffer.from(jwt.split('.')[1], 'base64url').toString('utf8'));
+  eq('JWT sub = 目标', payload.sub, '3001');
+  eq('JWT imp.by = hub-admin', payload.imp?.by, 'hub-admin');
+  check('JWT imp.at 是签发时刻', Math.abs((payload.imp?.at || 0) - Math.floor(Date.now() / 1000)) <= 5);
+  eq('JWT 有效期 = 30 分钟', payload.exp - payload.iat, 1800);
+  eq('JWT 服务器列表来自 guilds_json', JSON.stringify(payload.guilds), '["G9"]');
+  const mintRow = state.audit.find((r) => r.action === 'auth.login_as');
+  check('mint 留痕', !!mintRow);
+  const mintSummary = mintRow ? JSON.parse(mintRow.summary) : {};
+  eq('mint 摘要记目标 ID', mintSummary.targetDiscordId, '3001');
+  eq('mint 摘要记目标昵称', mintSummary.targetName, '代登目标');
+  check('审计不含 cookie/JWT', !JSON.stringify(state.audit).includes(jwt) && !JSON.stringify(state.audit).includes('yy_session'));
+
+  // Exit with the impersonated cookie: audited, cookie cleared.
+  const exit = await worker.fetch(new Request('http://local/auth/login-as/exit', {
+    method: 'POST', headers: { cookie: 'yy_session=' + jwt },
+  }), env, ctx);
+  eq('代登录退出 -> 200', exit.status, 200);
+  check('退出清除 cookie', (exit.headers.get('set-cookie') || '').includes('Max-Age=0'));
+  const exitRow = state.audit.find((r) => r.action === 'auth.login_as_exit');
+  check('退出留痕', !!exitRow && JSON.parse(exitRow.summary).targetDiscordId === '3001');
+
+  // Exit with no session: still 200 + clears, but no audit row is added.
+  const exitRowsBefore = state.audit.filter((r) => r.action === 'auth.login_as_exit').length;
+  const anonExit = await worker.fetch(new Request('http://local/auth/login-as/exit', { method: 'POST' }), env, ctx);
+  eq('无会话退出 -> 200', anonExit.status, 200);
+  eq('无会话退出不留痕', state.audit.filter((r) => r.action === 'auth.login_as_exit').length, exitRowsBefore);
 }
 
 /* ================= audit store failure never breaks the op ================= */

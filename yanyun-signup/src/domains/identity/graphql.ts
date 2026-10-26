@@ -125,6 +125,17 @@ export class DiscordServerShell extends ShellBase {
   genIcon(){ return this.data.icon || null; }
 }
 
+/* Hub LoginAs session state: built only when the session snapshot
+ * carries the imp mark (ViewerShell.genImpersonation gates it). Copy
+ * comes from the identity catalog like every other shell string; the
+ * target name is the session's own display name. */
+export class ImpersonationSessionShell extends ShellBase {
+  genBannerLabel(){ return this.t('userBar', 'impersonationBanner', { name: this.data.name || '' }); }
+  genExitLabel(){ return this.t('userBar', 'impersonationExit'); }
+  genStartedAt(){ return Number(this.data.at) || 0; }
+  genActorLabel(){ return String(this.data.by || ''); }
+}
+
 export class ViewerShell extends ShellBase {
   genUser(){
     return this.ctx.user
@@ -178,6 +189,14 @@ export class ViewerShell extends ShellBase {
   // locale (ctx.locale already resolved: preference > browser language > zh-CN)
   genMyLocalePref(){ return loadMyLocalePref(this.ctx); }
   genMyEffectiveLocale(){ return this.locale; }
+  // LoginAs session state: null on regular sessions (the field's absence
+  // is the signal; no flag is ever shipped for normal logins).
+  genImpersonation(){
+    const user = this.ctx.user;
+    const imp = user?.impersonation;
+    if (!user || !imp) return null;
+    return new ImpersonationSessionShell(this.ctx, { by: imp.by, at: imp.at, name: user.name });
+  }
 }
 
 export const VIEWER_TEXT_RESOLVERS = defineTextGens(ViewerShell, [
@@ -308,6 +327,7 @@ export const identityResolvers = {
   Viewer: {
     myLocalePref: (p: any) => p.genMyLocalePref(),
     myEffectiveLocale: (p: any) => p.genMyEffectiveLocale(),
+    impersonation: (p: ViewerShell) => p.genImpersonation(),
     user: (p: any) => p.genUser(),
     guilds: (p: any) => p.genGuilds(),
     publicGuilds: (p: any) => p.genPublicGuilds(),
@@ -320,6 +340,12 @@ export const identityResolvers = {
     discordId: (p: any) => p.genDiscordId(),
     name: (p: any) => p.genName(),
     avatar: (p: any) => p.genAvatar(),
+  },
+  ImpersonationSession: {
+    bannerLabel: (p: ImpersonationSessionShell) => p.genBannerLabel(),
+    exitLabel: (p: ImpersonationSessionShell) => p.genExitLabel(),
+    startedAt: (p: ImpersonationSessionShell) => p.genStartedAt(),
+    actorLabel: (p: ImpersonationSessionShell) => p.genActorLabel(),
   },
   DiscordServer: {
     id: (p: any) => p.genId(),

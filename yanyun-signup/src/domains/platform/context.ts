@@ -22,6 +22,16 @@
  * disguise.
  */
 
+/** Hub LoginAs mark: carried only by hub-minted impersonation sessions,
+ * never by OAuth-issued ones. Lets shells banner the session and keeps
+ * writes inside the window attributable to the impersonation. */
+export interface ImpersonationMark {
+  /** Who minted the session ('hub-admin' for the hub LoginAs tool). */
+  by: string;
+  /** Mint time, epoch seconds. */
+  at: number;
+}
+
 /** Identity snapshot of the signed-in viewer (from the session JWT). */
 export interface ViewerRef {
   discordId: string;
@@ -30,6 +40,8 @@ export interface ViewerRef {
   /** Discord server ids the viewer belongs to (session snapshot). */
   guilds: string[];
   guildsMeta?: unknown;
+  /** Set only on hub-minted LoginAs sessions; null on regular sessions. */
+  impersonation?: ImpersonationMark | null;
 }
 
 /** Identity only. Null viewer = signed out. */

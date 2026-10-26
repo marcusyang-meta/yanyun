@@ -7887,6 +7887,28 @@
         }
       ],
       "types": []
+    },
+    "Jt8A2QafFAz5baJLc9YIzA==": {
+      "description": "userBar.impersonationBanner",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Browsing as {name}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "MMotrub393HaLGUTkTIXRQ==": {
+      "description": "userBar.impersonationExit",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Exit impersonation",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

@@ -423,6 +423,21 @@ hr = await maybeRunCreatorBackfill(envH, new Request('https://yanyun.app/graphql
 check('生产 host 触发', hr.done === true, JSON.stringify(hr));
 eq('生产 host 已补登记', H.tables.events[0].creator_discord_id, 'U1');
 
+// 5) Viewer.impersonation: present only on hub-minted LoginAs sessions
+// (session snapshot carries the imp mark); a regular session gets null
+// and never sees the banner copy. Session state, not a permission flag.
+{
+  const impQuery = `{ viewer { impersonation { bannerLabel exitLabel startedAt actorLabel } } }`;
+  const impUser = { ...userA, impersonation: { by: 'hub-admin', at: 1700000000 } };
+  const ri = await gql(impQuery, { user: impUser });
+  eq('代登录横幅文案', ri.data?.viewer?.impersonation?.bannerLabel, '正在以 全局A 身份浏览');
+  eq('代登录退出文案', ri.data?.viewer?.impersonation?.exitLabel, '退出代登录');
+  eq('代登录开始时间', ri.data?.viewer?.impersonation?.startedAt, 1700000000);
+  eq('代登录签发者', ri.data?.viewer?.impersonation?.actorLabel, 'hub-admin');
+  const rn = await gql(impQuery, { user: userA });
+  eq('普通会话 impersonation = null', rn.data?.viewer?.impersonation, null);
+}
+
 console.log(`\n身份收口 harness: ${pass} PASS / ${fail} FAIL`);
 if (A.unknownSql.size || M.unknownSql.size || H.unknownSql.size) {
   console.log('未路由 SQL (供核对):', [...A.unknownSql, ...M.unknownSql, ...H.unknownSql]);

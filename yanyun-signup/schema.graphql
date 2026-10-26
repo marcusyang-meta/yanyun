@@ -1402,6 +1402,15 @@ type GuildLocked {
 
 union GuildResult = Guild | GuildReadOnly | GuildLocked
 
+# Hub 代登录 (LoginAs) 会话状态: 仅代登录会话携带 (普通会话为 null),
+# 供 web 全站横幅与将来写操作归因。会话状态数据, 不是权限结论。
+type ImpersonationSession {
+  bannerLabel: String!
+  exitLabel: String!
+  startedAt: Int!
+  actorLabel: String!
+}
+
 type Viewer {
   user: DiscordUser             # 未登录为 null
   guilds: [Guild!]!             # 我可用的百业 (成员; 服务端过滤, 前端不许拉全量再筛)
@@ -1430,6 +1439,7 @@ type Viewer {
   # 账号级语言偏好 (null = 自动跟随浏览器) 与本请求实际生效 locale
   myLocalePref: String
   myEffectiveLocale: String!
+  impersonation: ImpersonationSession  # 代登录会话状态 (普通会话为 null)
   pickerMyGuildsLabel: String!
   pickerMyGuildsEnLabel: String!
   pickerPublicGuildsLabel: String!

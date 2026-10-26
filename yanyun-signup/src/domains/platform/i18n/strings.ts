@@ -35,6 +35,8 @@ export const login_privacy = (fbs: FbsRuntime) => fbs._("我们会读取并保�
 export const userBar_logout = (fbs: FbsRuntime) => fbs._("退出登录", null, { hk: "3i0SR7" });
 export const userBar_loggingOut = (fbs: FbsRuntime) => fbs._("退出中…", null, { hk: "36yEnv" });
 export const userBar_settings = (fbs: FbsRuntime) => fbs._("个人资料", null, { hk: "4bHrOb" });
+export const userBar_impersonationBanner = (fbs: FbsRuntime, p?: StringParams) => fbs._("正在以 {name} 身份浏览", [fbs._param("name", pv(p, "name"))], { hk: "25v802" });
+export const userBar_impersonationExit = (fbs: FbsRuntime) => fbs._("退出代登录", null, { hk: "4B0raN" });
 export const settings_title = (fbs: FbsRuntime) => fbs._("个人资料", null, { hk: "2cuWgQ" });
 export const settings_discordLabel = (fbs: FbsRuntime) => fbs._("Discord 账号", null, { hk: "2NgYil" });
 export const settings_languageLabel = (fbs: FbsRuntime) => fbs._("语言", null, { hk: "1RyUQH" });
@@ -804,6 +806,8 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"userBar.logout": userBar_logout,
 	"userBar.loggingOut": userBar_loggingOut,
 	"userBar.settings": userBar_settings,
+	"userBar.impersonationBanner": userBar_impersonationBanner,
+	"userBar.impersonationExit": userBar_impersonationExit,
 	"settings.title": settings_title,
 	"settings.discordLabel": settings_discordLabel,
 	"settings.languageLabel": settings_languageLabel,

@@ -17,6 +17,7 @@ import { err } from './domains/platform/http.ts';
 import { hubOgTags, guildOgTags, carOgTags } from './domains/platform/og.ts';
 import { getTenantSlug } from './domains/guilds/index.ts';
 import { hubRoutes } from './domains/platform/hub-routes.ts';
+import { handleLoginAsExit } from './domains/platform/login-as.ts';
 import { guildAvatarRoutes } from './domains/guilds/avatar-routes.ts';
 import { shortLinkRoutes } from './domains/groupings/shortlink-routes.ts';
 
@@ -120,6 +121,9 @@ async function handleFetch(request: Request, env: Env, ctx: ExecutionContext) {
     if (path === '/auth/discord/login') return handleDiscordLogin(request, env);
     if (path === '/auth/discord/callback') return handleDiscordCallback(request, env);
     if (path === '/auth/logout') return handleLogout(request);
+    // LoginAs exit: session-cookie based (no hub token); audits the exit
+    // when the session carries the imp mark, then clears the cookie.
+    if (path === '/auth/login-as/exit') return handleLoginAsExit(request, env);
 
     // Live push subscription (WS): separate from Hono REST/GraphQL routing.
     if (path.startsWith('/ws/guild/')) {
