@@ -40,6 +40,8 @@ function toRawRows(sqlText, rows) {
 }
 
 /* ---------------- FakeDB (in-memory tables routed by SQL shape) ---------------- */
+const SECT_NAMES = ['鸣金·虹', '鸣金·影', '牵丝·玉', '牵丝·霖', '牵丝·翊', '裂石·威', '裂石·钧', '破竹·樽', '破竹·鸢', '破竹·尘', '破竹·风'];
+const schoolRows = SECT_NAMES.map((name, i) => ({ name, slug: 'sect-' + i, short: '', family: name.split('·')[0], color: null, attr: '', talent_desc: null }));
 const tables = { user_gear_items: [], user_gear_builds: [] };
 let rowId = 0;
 function stmt(sql) {
@@ -55,6 +57,9 @@ function stmt(sql) {
       }
       if (sql.includes('FROM user_gear_builds')) {
         return { results: tables.user_gear_builds.filter((r) => r.discord_id === String(q._b[0])) };
+      }
+      if (sql.includes('FROM schools')) {
+        return { results: schoolRows };
       }
       return { results: [] };
     },
@@ -236,6 +241,36 @@ r = await gql('mutation($t: String!) { gearParsePaste(text: $t) { mode unknown g
   variables: { t: JSON.stringify({ equipments: [{ slot: '环', affixes: [{ name: '大外功', value: 90.6 }, { name: '气血', value: 100 }] }] }) },
 });
 eq('paste smoke', [r.data.gearParsePaste.gears.length, r.data.gearParsePaste.unknown], [1, 1]);
+
+/* ---------------- (11) Sect graduation-affix builds (sectPage.gradBuilds) ---------------- */
+// Pure-data integrity of the recipe table the page derives from.
+eq('GP builds = 25', GP.GP_BUILDS.length, 25);
+const sectCounts = {};
+GP.GP_BUILD_SECT.forEach((s) => { sectCounts[s] = (sectCounts[s] || 0) + 1; });
+const WANT_SECT_COUNTS = { '鸣金·虹': 1, '鸣金·影': 1, '牵丝·玉': 2, '牵丝·霖': 5, '牵丝·翊': 2, '裂石·威': 2, '裂石·钧': 4, '破竹·樽': 2, '破竹·鸢': 2, '破竹·尘': 2, '破竹·风': 2 };
+check('GP_BUILD_SECT covers exactly the 11 sects', Object.keys(sectCounts).length === 11 && Object.entries(WANT_SECT_COUNTS).every(([k, v]) => sectCounts[k] === v), JSON.stringify(sectCounts));
+check('every build target counts sum to totalBars = 40', GP.GP_BUILDS.every((b) => b.total === 40 && b.targets.reduce((a, t) => a + t.n, 0) === b.total));
+const affixKeys = new Set(GP.GP_AFFIX.map((a) => a.key));
+check('every non-flex target class resolves to GP_AFFIX or shugong', GP.GP_BUILDS.every((b) => b.targets.every((t) => t.flex || affixKeys.has(t.cls) || t.cls === 'shugong')));
+eq('exactly one flex target across all builds', GP.GP_BUILDS.reduce((a, b) => a + b.targets.filter((t) => t.flex).length, 0), 1);
+// GraphQL surface: sectPage with gradBuilds over fixture schools.
+const GRAD_Q = '{ sectPage { sectTabAffixLabel sectAffixSourceText sects { name gradBuilds { name cat setName bowLabel dingyinName totalBars targets { label count maxValue cyValue flexLabels } } } } }';
+r = await gql(GRAD_Q);
+check('sectPage grad query has no errors', !r.errors, r.errors ? JSON.stringify(r.errors).slice(0, 200) : '');
+const gsects = (r.data || {}).sectPage?.sects || [];
+eq('sectPage returns 11 sects', gsects.length, 11);
+check('every sect has at least one grad build', gsects.every((s) => s.gradBuilds.length >= 1));
+eq('total grad builds across sects = 25', gsects.reduce((a, s) => a + s.gradBuilds.length, 0), 25);
+eq('牵丝·霖 has 5 grad builds', gsects.find((s) => s.name === '牵丝·霖')?.gradBuilds.length, 5);
+const hongBuild = gsects.find((s) => s.name === '鸣金·虹')?.gradBuilds[0] || { targets: [] };
+const hongDawai = hongBuild.targets.find((t) => t.label === '大外功') || {};
+eq('鸣金·虹 大外功 target = 12 lines, cap 90.6, resonance 85.2', [hongDawai.count, hongDawai.maxValue, hongDawai.cyValue], [12, 90.6, 85.2]);
+const junFlex = (gsects.find((s) => s.name === '裂石·钧')?.gradBuilds || []).flatMap((b) => b.targets).find((t) => t.flexLabels.length) || {};
+eq('裂石·钧 flex target labels + null caps', [junFlex.flexLabels, junFlex.maxValue, junFlex.cyValue], [['小外功', '属攻'], null, null]);
+eq('zh affix tab label + source text', [r.data.sectPage.sectTabAffixLabel, r.data.sectPage.sectAffixSourceText.includes('100 阶')], ['毕业词缀', true]);
+r = await gql(GRAD_Q, { locale: 'en' });
+eq('en affix tab label', r.data.sectPage.sectTabAffixLabel, 'Graduation Affixes');
+eq('en sect + build names localized', (() => { const s = (r.data.sectPage.sects || []).find((x) => x.name === 'Bellstrike - Splendor'); return s ? s.gradBuilds[0].name : null; })(), 'Bellstrike - Splendor');
 
 console.log(`GEAR HARNESS pass=${pass} fail=${fail}`);
 fails.forEach((f) => console.log('FAIL', f));
