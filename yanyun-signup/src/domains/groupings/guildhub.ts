@@ -21,6 +21,7 @@
 // nudge a reschedule via /nudge; connects and broadcasts
 // reschedule too, so a lost nudge cannot drift for long.
 
+import type { Env } from '../platform/context.ts';
 import {
   ensureReminderColumns, getReminderConfig, nextReminderAt, dueReminders, sendReminderForEvent,
 } from './reminder.ts';
@@ -29,16 +30,16 @@ import { logError } from '../platform/index.ts';
 const KINDS = new Set(['created', 'updated', 'deleted', 'seats']);
 
 export class GuildHub {
-  ctx: any;
-  env: any;
-  constructor(ctx: any, env: any) {
+  ctx: DurableObjectState;
+  env: Env;
+  constructor(ctx: DurableObjectState, env: Env) {
     this.ctx = ctx;
     this.env = env;
   }
 
   /* This guild's slug: prefer the stored one (brought in by whichever entry ran), else parse the DO id name guild:<slug>. */
   async slug() {
-    let slug = await this.ctx.storage.get('slug').catch(() => null);
+    let slug: string | null = (await this.ctx.storage.get<string>('slug').catch(() => null)) ?? null;
     if (!slug && this.ctx.id && this.ctx.id.name) {
       const n = String(this.ctx.id.name);
       if (n.startsWith('guild:')) slug = n.slice('guild:'.length);

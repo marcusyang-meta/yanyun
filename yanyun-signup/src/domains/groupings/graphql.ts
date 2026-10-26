@@ -1,3 +1,4 @@
+import type { Context } from '../platform/context.ts';
 import { ensureEventCreatorColumn as ensureEventCreatorColumnRepo } from './events.ts';
 /* groupings domain GraphQL: grouping shells, list/detail pages, and all grouping mutations. */
 import {
@@ -68,7 +69,7 @@ import { DungeonShell } from '../dex/index.ts';
 import { selfStampFor, identityNamesFor, canonicalSignupName } from '../identity/index.ts';
 
 export class GroupingShell extends ShellBase {
-  constructor(ctx: any, ev: any){ super(ctx, ev); }
+  constructor(ctx: Context, ev: any){ super(ctx, ev); }
   get ev() { return this.data; }
   genId(){ return String(this.ev.id); }
   genTitle(){ return this.ev.title; }
@@ -110,7 +111,7 @@ export class GroupingShell extends ShellBase {
   }
 }
 
-export function toGrouping(ctx: any, ev: any) {
+export function toGrouping(ctx: Context, ev: any) {
   return new GroupingShell(ctx, ev);
 }
 
@@ -131,7 +132,7 @@ export function ensureEventCreatorColumn(db: any) {
  * unique matching. */
 // Identity names of a Discord user in one server's context (global name + that server's nickname).
 
-export function touchGuildRoster(ctx: any, access: any) {
+export function touchGuildRoster(ctx: Context, access: any) {
   const run = (async () => {
     try {
       const user = ctx.user;
@@ -158,7 +159,7 @@ export function touchGuildRoster(ctx: any, access: any) {
 }
 
 export class GroupingListPageShell extends ShellBase {
-  constructor(ctx: any, slug: any, tab: any){ super(ctx, { slug, tab }); }
+  constructor(ctx: Context, slug: any, tab: any){ super(ctx, { slug, tab }); }
   // Mobile Bloks-lite: block tree for this page's content area, composed per viewer (access decides nav params and empty states), then substituted by the client's blocksVersion.
   async genBlocks({ blocksVersion, weekOffset }: any = {}){
     const v = clampBlocksVersion(blocksVersion);
@@ -189,7 +190,7 @@ export class GroupingListPageShell extends ShellBase {
         // neither reorder nor compose copy. Groups ascend by date,
         // groupings by start time. Timeless groupings never enter the
         // mobile week (ts != null), so there is no undated group.
-        const items = inWeek.map((g: any) => ({ g, ts: startsAtEpoch(g.ev) }));
+        const items = inWeek.map((g: any) => ({ g, ts: startsAtEpoch(g.ev) })).filter((x): x is { g: any; ts: number } & Record<string, any> => x.ts != null);
         for (const group of groupByLocalDay(items, this.ctx.tz)) {
           const p = group.parts;
           blocks.push(new SectionHeaderBlockShell(this.ctx, {
@@ -227,7 +228,7 @@ export class GroupingListPageShell extends ShellBase {
 }
 
 // Grouping list data entry (shared by groupingListPage and Guild.groupings; gating is the caller's job).
-export function groupingListPage(ctx: any, slug: any, tab: any) {
+export function groupingListPage(ctx: Context, slug: any, tab: any) {
   return new GroupingListPageShell(ctx, slug, tab);
 }
 
@@ -310,7 +311,7 @@ export const LIST_TEXT_RESOLVERS = {
  * seated. */
 
 export class GroupingDetailPageShell extends ShellBase {
-  constructor(ctx: any, ev: any){ super(ctx, ev); }
+  constructor(ctx: Context, ev: any){ super(ctx, ev); }
   genGrouping(){
     return this.memo('grouping', () => new GroupingShell(this.ctx, this.data));
   }
@@ -443,7 +444,7 @@ export const DETAIL_TEXT_RESOLVERS = {
 
 export const groupingsResolvers = {
   Query: {
-    groupingListPage: async (_: any, { slug, tab }: any, ctx: any) => {
+    groupingListPage: async (_: any, { slug, tab }: any, ctx: Context) => {
       const db = ctx.env.DB;
       // Tenant must exist; bound guilds are members-only (enforced server-side — non-members get no data).
       const a = await getGuildAccess(db, ctx.user, slug, ctx.request);
@@ -453,7 +454,7 @@ export const groupingsResolvers = {
       return groupingListPage(ctx, a.tenant.slug, tab);
     },
 
-    groupingDetailPage: async (_: any, { slug, id }: any, ctx: any) => {
+    groupingDetailPage: async (_: any, { slug, id }: any, ctx: Context) => {
       const db = ctx.env.DB;
       const ev = await getEventRow(db, parseInt(id, 10) || 0);
       if (!ev) throw new Error(errText(ctx, 'groupingNotFound'));
@@ -469,7 +470,7 @@ export const groupingsResolvers = {
     // ===== Viewer hierarchy (root = user) =====
   },
   Mutation: {
-    createGrouping: async (_: any, { input }: any, ctx: any) => {
+    createGrouping: async (_: any, { input }: any, ctx: Context) => {
       const db = ctx.env.DB;
       if (!rateLimit('mut:create:' + getClientIp(ctx.request), 10)) {
         return gFail(ctx, 'rateLimited');
@@ -507,7 +508,7 @@ export const groupingsResolvers = {
       const r = await insertEvent(db, {
         tenant: slug, title, type, description: '', starts_at: '', starts_at_utc: utc,
         max_slots: maxSlots, status: 'open', origin: 'member', created_by: '热心侠客',
-        dungeon: dungeonName, creator_discord_id: String(ctx.user.discordId),
+        dungeon: dungeonName, creator_discord_id: String(ctx.user!.discordId),
       });
       const eventId = r.last_row_id;
       if (Array.isArray(input.seats)) {
@@ -527,7 +528,7 @@ export const groupingsResolvers = {
       return new GroupingPayloadShell(ctx, { ok: true, grouping: toGrouping(ctx, ev) });
     },
 
-    updateGrouping: async (_: any, { id, input }: any, ctx: any) => {
+    updateGrouping: async (_: any, { id, input }: any, ctx: Context) => {
       const db = ctx.env.DB;
       if (!rateLimit('mut:update:' + getClientIp(ctx.request), 20)) {
         return gFail(ctx, 'rateLimited');
@@ -547,7 +548,7 @@ export const groupingsResolvers = {
       if (!ev.creator_discord_id) {
         return gFail(ctx, 'noCreatorRecordedEdit');
       }
-      if (String(ev.creator_discord_id) !== String(ctx.user.discordId)) {
+      if (String(ev.creator_discord_id) !== String(ctx.user!.discordId)) {
         return gFail(ctx, 'leaderOnlyEdit');
       }
       const patch: Record<string, any> = {};
@@ -608,7 +609,7 @@ export const groupingsResolvers = {
     // what the frontend shows. Legacy groupings with no recorded
     // leader can be disbanded by no one — admin channel only (REST
     // admin delete unchanged).
-    disbandGrouping: async (_: any, { id }: any, ctx: any) => {
+    disbandGrouping: async (_: any, { id }: any, ctx: Context) => {
       const db = ctx.env.DB;
       if (!rateLimit('mut:disband:' + getClientIp(ctx.request), 10)) {
         return dFail(ctx, 'rateLimited');
@@ -622,7 +623,7 @@ export const groupingsResolvers = {
       if (!ev.creator_discord_id) {
         return dFail(ctx, 'noCreatorRecorded');
       }
-      if (String(ev.creator_discord_id) !== String(ctx.user.discordId)) {
+      if (String(ev.creator_discord_id) !== String(ctx.user!.discordId)) {
         return dFail(ctx, 'leaderOnlyDisband');
       }
       await deleteEventCascade(db, gid, null);
@@ -638,7 +639,7 @@ export const groupingsResolvers = {
     // filtered when GuildHub re-reads D1 at fire time. Same gate as
     // edit/disband: leader only; leaderless legacy groupings go
     // through the admin channel. Completable from open or closed.
-    completeGrouping: async (_: any, { id }: any, ctx: any) => {
+    completeGrouping: async (_: any, { id }: any, ctx: Context) => {
       const db = ctx.env.DB;
       if (!rateLimit('mut:complete:' + getClientIp(ctx.request), 10)) {
         return gFail(ctx, 'rateLimited');
@@ -653,7 +654,7 @@ export const groupingsResolvers = {
       if (!ev.creator_discord_id) {
         return gFail(ctx, 'noCreatorRecordedComplete');
       }
-      if (String(ev.creator_discord_id) !== String(ctx.user.discordId)) {
+      if (String(ev.creator_discord_id) !== String(ctx.user!.discordId)) {
         return gFail(ctx, 'leaderOnlyComplete');
       }
       if (ev.status === 'completed') return gFail(ctx, 'groupingAlreadyCompleted');
@@ -670,7 +671,7 @@ export const groupingsResolvers = {
     // Always returns to open — the pre-complete closed state is not
     // restored (keep it simple; the leader can close again, via REST
     // close / the state machine).
-    reopenGrouping: async (_: any, { id }: any, ctx: any) => {
+    reopenGrouping: async (_: any, { id }: any, ctx: Context) => {
       const db = ctx.env.DB;
       if (!rateLimit('mut:reopen:' + getClientIp(ctx.request), 10)) {
         return gFail(ctx, 'rateLimited');
@@ -685,7 +686,7 @@ export const groupingsResolvers = {
       if (!ev.creator_discord_id) {
         return gFail(ctx, 'noCreatorRecordedReopen');
       }
-      if (String(ev.creator_discord_id) !== String(ctx.user.discordId)) {
+      if (String(ev.creator_discord_id) !== String(ctx.user!.discordId)) {
         return gFail(ctx, 'leaderOnlyReopen');
       }
       if (ev.status !== 'completed') return gFail(ctx, 'groupingNotCompleted');
@@ -695,7 +696,7 @@ export const groupingsResolvers = {
       return new GroupingPayloadShell(ctx, { ok: true, grouping: toGrouping(ctx, nev) });
     },
 
-    joinGrouping: async (_: any, { input }: any, ctx: any) => {
+    joinGrouping: async (_: any, { input }: any, ctx: Context) => {
       const db = ctx.env.DB;
       if (!rateLimit('mut:join:' + getClientIp(ctx.request), 30)) {
         return sFail(ctx, 'rateLimited');
@@ -732,7 +733,7 @@ export const groupingsResolvers = {
       } else {
         nickname = (await canonicalSignupName(db, ctx.user, ev.tenant)).slice(0, 30);
         if (!nickname) return sFail(ctx, 'nicknameRequired');
-        stamp = String(ctx.user.discordId);
+        stamp = String(ctx.user!.discordId);
       }
       try {
         const r = await insertSignupWithCapacityGuard(db, {
@@ -749,7 +750,7 @@ export const groupingsResolvers = {
       return new SeatPayloadShell(ctx, { ok: true, seats: await g.genSeats() });
     },
 
-    leaveGrouping: async (_: any, { input }: any, ctx: any) => {
+    leaveGrouping: async (_: any, { input }: any, ctx: Context) => {
       const db = ctx.env.DB;
       if (!rateLimit('mut:leave:' + getClientIp(ctx.request), 30)) {
         return sFail(ctx, 'rateLimited');
@@ -767,7 +768,7 @@ export const groupingsResolvers = {
       return new SeatPayloadShell(ctx, { ok: true, seats: g ? await g.genSeats() : null });
     },
 
-    updateSeatWeapon: async (_: any, { input }: any, ctx: any) => {
+    updateSeatWeapon: async (_: any, { input }: any, ctx: Context) => {
       const db = ctx.env.DB;
       if (!rateLimit('mut:seat:' + getClientIp(ctx.request), 30)) {
         return sFail(ctx, 'rateLimited');

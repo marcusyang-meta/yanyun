@@ -76,7 +76,7 @@ export function startsAtEpoch(ev: any) {
 }
 
 const _fmtCache = new Map<string, Intl.DateTimeFormat>();
-export function fmtStartsAt(epochSec: number, locale: string, tz?: string) {
+export function fmtStartsAt(epochSec: number, locale: string, tz?: string | null) {
   const zone = tz || 'Asia/Shanghai';
   const key = `${locale}|${zone}`;
   let fmt = _fmtCache.get(key);
@@ -98,7 +98,7 @@ export function fmtStartsAt(epochSec: number, locale: string, tz?: string) {
  * Asia/Shanghai): days ascending, start times ascending within a day.
  * localDayParts weekday is 0=Sunday, matching JS getDay / catalog weekday0..6. */
 const _dayFmtCache = new Map<string, Intl.DateTimeFormat>();
-export function localDayParts(epochSec: number, tz?: string) {
+export function localDayParts(epochSec: number, tz?: string | null) {
   const zone = tz || 'Asia/Shanghai';
   let fmt = _dayFmtCache.get(zone);
   if (!fmt) {
@@ -115,7 +115,7 @@ export function localDayParts(epochSec: number, tz?: string) {
 }
 
 // Sort by ts, then bucket by local day; do not rely on caller ordering.
-export function groupByLocalDay(items: Array<{ ts: number } & Record<string, any>>, tz?: string) {
+export function groupByLocalDay(items: Array<{ ts: number } & Record<string, any>>, tz?: string | null) {
   const sorted = [...items].sort((a, b) => a.ts - b.ts);
   const groups: Array<{ parts: any; items: any[] }> = [];
   let cur: { parts: any; items: any[] } | null = null;

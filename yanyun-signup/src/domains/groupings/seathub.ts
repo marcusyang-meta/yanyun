@@ -1,3 +1,4 @@
+import type { Env } from '../platform/context.ts';
 // SeatHub — Durable Object broadcast hub (one instance per event).
 // Holds the WebSocket connections of the event's detail page;
 // after a successful signup it broadcasts seat changes.
@@ -5,9 +6,9 @@
 // burn no duration.
 
 export class SeatHub {
-  ctx: any;
-  env: any;
-  constructor(ctx: any, env: any) {
+  ctx: DurableObjectState;
+  env: Env;
+  constructor(ctx: DurableObjectState, env: Env) {
     this.ctx = ctx;
     this.env = env;
   }

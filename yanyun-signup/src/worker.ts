@@ -4,6 +4,8 @@
 // access goes through the other domain's service surface (index.ts).
 
 export { SeatHub, GuildHub } from './domains/groupings/index.ts';
+import { buildContext } from './domains/platform/context.ts';
+import type { Env } from './domains/platform/context.ts';
 import { Hono } from 'hono';
 import { yoga } from './graphql.ts';
 import { getGuildAccess, negotiateLocale } from './domains/platform/graphql-base.ts';
@@ -61,17 +63,20 @@ app.all('/graphql', async (c: any) => {
   const pref = checked.user
     ? await getUserLocalePref(c.env, checked.user.discordId).catch(() => null)
     : null;
-  const res = await yoga.fetch(c.req.raw, {
-    env: c.env,
-    executionCtx: c.executionCtx,
-    request: c.req.raw,
-    user: checked.user,
-    locale: pref || browserLocale,
-    browserLocale,
-    // Client timezone (IANA): used only so time copy in the mobile block
-    // tree is rendered in the viewer's timezone; web sends none.
-    tz: c.req.header('x-tz') || null,
-  });
+  // Assembly edge: build the three-layer context once — RequestContext
+  // (framework) wraps env/request/executionCtx, ViewerContext carries
+  // identity only; resolvers and shells receive the Context layer.
+  const res = await yoga.fetch(c.req.raw, buildContext(
+    { env: c.env, request: c.req.raw, executionCtx: c.executionCtx },
+    {
+      user: checked.user,
+      locale: pref || browserLocale,
+      browserLocale,
+      // Client timezone (IANA): used only so time copy in the mobile block
+      // tree is rendered in the viewer's timezone; web sends none.
+      tz: c.req.header('x-tz') || null,
+    },
+  ));
   // One-off lazy backfill (legacy cars without a creator get seat 1
   // registered): guarded inside by a production-host gate + settings
   // flag, never fires on preview/localhost; runs via waitUntil and
@@ -115,7 +120,7 @@ async function handleGuildLive(request: any, env: any, slug: string) {
   const stub = env.GUILD_HUB.get(env.GUILD_HUB.idFromName('guild:' + access.slug));
   return stub.fetch(request);
 }
-async function handleFetch(request: any, env: any, ctx: any) {
+async function handleFetch(request: Request, env: Env, ctx: ExecutionContext) {
     const url = new URL(request.url);
     const path = url.pathname;
 
@@ -212,7 +217,7 @@ export default {
   // Whole-request sink (audit A7): uncaught errors from handleFetch land
   // in error_log with a uniform 500; logging failures stay silent and
   // must never throw a second error.
-  async fetch(request: any, env: any, ctx: any) {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext) {
     try {
       return await handleFetch(request, env, ctx);
     } catch (e) {
