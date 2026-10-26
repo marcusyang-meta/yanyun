@@ -187,6 +187,19 @@ export async function insertSignupWithCapacityGuard(
   return { outcome: 'inserted', signupId: meta.last_row_id };
 }
 
+/* ---------- 红线收口 (三期 [15/16]): 成员数聚合 ----------
+ * 百业成员数 = 该百业全部车队里出现过的不同昵称数 (GuildShell
+ * memberCount 与 HubPageShell  guild 卡片两处同一旧查询)。 */
+export async function countDistinctNicknamesByTenant(
+  d1: D1Database, tenant: string,
+): Promise<number> {
+  const db = createDb(d1);
+  const row = await db.get<{ c: number }>(
+    sql`SELECT COUNT(DISTINCT s.nickname) AS c FROM ${signups} s JOIN ${events} e ON s.event_id = e.id WHERE e.tenant = ${tenant}`,
+  );
+  return row ? Number(row.c) || 0 : 0;
+}
+
 /* ---------- 红线收口 (三期 [14/16]): 提及解析的座位盖戳单元 ----------
  * 旧座位 (身份收口前落座) 没有 discord_id 戳: 门户补登记按昵称唯一
  * 命中后逐座盖戳, 提醒的 @ 解析才能命中本人。待盖戳座位清单

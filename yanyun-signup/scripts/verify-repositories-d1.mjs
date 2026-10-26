@@ -8,7 +8,7 @@
  * 实体定义镜像 (生产结构零变更, 这里只是本地验证夹具)。
  *
  * 用法: node scripts/verify-repositories-d1.mjs [section]
- *   section 省略 = 全部; 目前有 tenants / events / gear / users / members / results / dex / state / ddl / guard / stamp 十一段,
+ *   section 省略 = 全部; 目前有 tenants / events / gear / users / members / results / dex / state / ddl / guard / stamp / membercount 十二段,
  *   随数据层迁移进度增补。退出码非 0 = 有断言失败。
  * =================================================== */
 import { Miniflare, convertV4MiniflareOptions } from 'miniflare';
@@ -731,6 +731,26 @@ if (want('stamp')) {
   eq('stamped seat leaves the list', after.map((r) => r.nickname), ['旧座乙']);
   const seats = await suRepo.listSignupSeats(db, evId);
   eq('stamp persisted on the seat', seats.find((r) => r.nickname === '旧座甲').discord_id, '424242');
+}
+
+/* ---------------- member count aggregation (red-line [15/16]) ---------------- */
+if (want('membercount')) {
+  console.log('== member count aggregation on real D1 ==');
+  const evRepo = await import('../src/domains/groupings/events.ts');
+  const suRepo = await import('../src/domains/groupings/signups.ts');
+  const e1 = await evRepo.insertEvent(db, {
+    tenant: 'count', title: '计数车一', type: 'activity', description: '', starts_at: '',
+    starts_at_utc: 1800000000, max_slots: 10, status: 'open', origin: 'member', created_by: 'x',
+  });
+  const e2 = await evRepo.insertEvent(db, {
+    tenant: 'count', title: '计数车二', type: 'activity', description: '', starts_at: '',
+    starts_at_utc: 1800000000, max_slots: 10, status: 'open', origin: 'member', created_by: 'x',
+  });
+  await suRepo.insertSignup(db, { event_id: e1.last_row_id, nickname: '同名', uid: 'c1', role: '输出', weapon: '' });
+  await suRepo.insertSignup(db, { event_id: e2.last_row_id, nickname: '同名', uid: 'c2', role: '输出', weapon: '' });
+  await suRepo.insertSignup(db, { event_id: e2.last_row_id, nickname: '另一人', uid: 'c3', role: '奶', weapon: '' });
+  eq('distinct nicknames across cars', await suRepo.countDistinctNicknamesByTenant(db, 'count'), 2);
+  eq('empty tenant counts 0', await suRepo.countDistinctNicknamesByTenant(db, 'ghost'), 0);
 }
 
 if (want('ddl')) {
