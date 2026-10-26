@@ -131,6 +131,14 @@ export async function listEventsAdmin(
   return rows || [];
 }
 
+/* GraphQL 列表页: 某百业某类型的在招车 (完成/草稿不进列表; open 优先,
+ * 无时间垫底, 同组新车在前 — 旧 genGroupings 排序逐字保留)。 */
+export async function listEventsByTenantType(d1: D1Database, tenant: string, type: string): Promise<EventRow[]> {
+  const db = createDb(d1);
+  const rows = await db.all<EventRow>(sql`SELECT * FROM ${events} WHERE ${col('tenant')} = ${tenant} AND ${col('type')} = ${type} AND ${col('status')} NOT IN ('draft', 'completed') ORDER BY CASE ${col('status')} WHEN 'open' THEN 0 ELSE 1 END, COALESCE(${col('starts_at_utc')}, 9999999999) ASC, ${col('id')} DESC`);
+  return rows || [];
+}
+
 /* OG 百业卡用: 本周 activity 在招车数 (完成/草稿不计; 旧 guildOgTags 口径)。 */
 export async function countActivityEventsInWindow(
   d1: D1Database, tenant: string, fromUtc: number, toUtc: number,

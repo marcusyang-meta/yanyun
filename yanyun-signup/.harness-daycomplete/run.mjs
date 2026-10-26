@@ -152,8 +152,8 @@ function stmt(sql) {
         const rows = pendingFilter(b, false);
         return { results: [{ m: rows.length ? Math.min(...rows.map((e) => e.starts_at_utc)) : null }] };
       }
-      if (/SELECT \* FROM events WHERE id = \?/.test(sql)) {
-        // 数据层点查走 .all() 通道 (drizzle db.get): 形状同 first() 的按 id 分支
+      if (/FROM events WHERE id = \?/.test(sql)) {
+        // 数据层点查走 .all() 通道 (drizzle db.get): 全行/子集同 first() 的按 id 分支
         const row = tables.events.find((e) => e.id === Number(b[0])) || null;
         return { results: row ? [row] : [] };
       }
@@ -183,6 +183,12 @@ function stmt(sql) {
       if (um) {
         const row = tables.events.find((e) => e.id === Number(b[0]));
         if (row) row.status = um[1];
+        return { meta: { changes: row ? 1 : 0 } };
+      }
+      if (/^UPDATE events SET status = \? WHERE id = \?/.test(sql)) {
+        // 数据层 setEventStatus: 状态走绑定 (旧字面量形态的等价分支)
+        const row = tables.events.find((e) => e.id === Number(b[1]));
+        if (row) row.status = b[0];
         return { meta: { changes: row ? 1 : 0 } };
       }
       if (/^UPDATE/.test(sql)) return { meta: { changes: 1 } };

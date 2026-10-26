@@ -23,6 +23,15 @@ import {
   getTenantRow, getTenantSlug, listTenantSlugs, listTenantsDirectory, insertTenant,
 } from './db/repositories/tenants.ts';
 import {
+  getEventRow, getEventTenant, getEventTenantCreator, listEventsByTenantType,
+  insertEvent, updateEventFields, setEventStatus, deleteEventCascade,
+} from './db/repositories/events.ts';
+import {
+  listSignupSeats, listSignupSeatsBasic, listSignupNamesStamps, getSignupCapacityStats,
+  insertSignups, deleteSignupById, deleteSignupByEventUid, deleteSignupsByEvent,
+  updateSignupWeaponRoleByUid,
+} from './db/repositories/signups.ts';
+import {
   listGearItems, insertGearItem, updateGearItemRow, deleteGearItemRow,
   listGearBuilds, insertGearBuild, deleteGearBuildRow,
 } from './gearstore.js';
@@ -371,10 +380,7 @@ class GroupingShell extends ShellBase {
   genCreatorDiscordId() { return this.ev.creator_discord_id ? String(this.ev.creator_discord_id) : null; }
   genSeatRows() {
     return this.memo('seatRows', async () => {
-      const { results } = await this.db.prepare(
-        'SELECT id, nickname, uid, role, weapon FROM signups WHERE event_id = ? ORDER BY id ASC'
-      ).bind(this.ev.id).all();
-      return results || [];
+      return listSignupSeatsBasic(this.db, this.ev.id);
     });
   }
   genSeats() {
@@ -1179,11 +1185,8 @@ class GroupingListPageShell extends ShellBase {
       const type = TAB_TO_TYPE[this.data.tab] || 'activity';
       // completed (已完成) 与 draft 一样不进任何列表 (2026-10-25): 完成车只
       // 经详情直达打开。closed 仍在列表 (只是截止报名), 与完成态分开。
-      const { results } = await this.db.prepare(
-        `SELECT * FROM events WHERE tenant = ? AND type = ? AND status NOT IN ('draft', 'completed')
-         ORDER BY CASE status WHEN 'open' THEN 0 ELSE 1 END, COALESCE(starts_at_utc, 9999999999) ASC, id DESC`
-      ).bind(s(this.data.slug, 40), type).all();
-      return (results || []).map((ev) => new GroupingShell(this.ctx, ev));
+      const results = await listEventsByTenantType(this.db, s(this.data.slug, 40), type);
+      return results.map((ev) => new GroupingShell(this.ctx, ev));
     });
   }
   // 星期短名表 (下标 0=周日, 与 JS getDay / 服务端 localDayParts 对齐):
@@ -1606,10 +1609,7 @@ class GroupingDetailPageShell extends ShellBase {
       const access = await getGuildAccess(this.db, this.ctx.user, ev.tenant, this.ctx.request);
       const tRow = await getTenantRow(this.db, ev.tenant).catch(() => null);
       await ensureSignupDiscordColumn(this.db);
-      const { results } = await this.db.prepare(
-        'SELECT id, nickname, uid, role, weapon, discord_id FROM signups WHERE event_id = ? ORDER BY id ASC'
-      ).bind(ev.id).all();
-      const rows = results || [];
+      const rows = await listSignupSeats(this.db, ev.id);
       const entries = [];
       for (let i = 0; i < ev.max_slots; i++) {
         entries.push(new SeatEntryShell(this.ctx, { row: rows[i] || null, index: i, ev, access }));
@@ -1680,10 +1680,7 @@ class GroupingDetailPageShell extends ShellBase {
       if (!(await primEnabled(this.db, access.slug, 'detail'))) return null;
       const tRow = await getTenantRow(this.db, ev.tenant).catch(() => null);
       await ensureSignupDiscordColumn(this.db);
-      const { results } = await this.db.prepare(
-        'SELECT id, nickname, uid, role, weapon, discord_id FROM signups WHERE event_id = ? ORDER BY id ASC'
-      ).bind(ev.id).all();
-      const rows = results || [];
+      const rows = await listSignupSeats(this.db, ev.id);
       const entries = [];
       for (let i = 0; i < ev.max_slots; i++) {
         entries.push(new SeatEntryShell(this.ctx, { row: rows[i] || null, index: i, ev, access }));
@@ -2508,7 +2505,7 @@ const resolvers = {
 
     groupingDetailPage: async (_, { slug, id }, ctx) => {
       const db = ctx.env.DB;
-      const ev = await db.prepare('SELECT * FROM events WHERE id = ?').bind(parseInt(id, 10) || 0).first();
+      const ev = await getEventRow(db, parseInt(id, 10) || 0);
       if (!ev) throw new Error(errText(ctx, 'groupingNotFound'));
       // 租户隔离: 传入 slug 时必须与车队所属百业一致, 否则视为不存在 (不泄露他会数据)
       if (slug != null && s(slug, 40) !== ev.tenant) throw new Error(errText(ctx, 'groupingNotFound'));
@@ -2862,26 +2859,25 @@ const resolvers = {
       }
       // 车头身份落库: 取会话 discord_id (requireWrite 已保证登录), 解散时复验
       await ensureEventCreatorColumn(db);
-      const r = await db.prepare(
-        `INSERT INTO events (tenant, title, type, description, starts_at, starts_at_utc, max_slots, status, origin, created_by, dungeon, creator_discord_id)
-         VALUES (?, ?, ?, '', '', ?, ?, 'open', 'member', '热心侠客', ?, ?)`
-      ).bind(slug, title, type, utc, maxSlots, dungeonName, String(ctx.user.discordId)).run();
-      const eventId = r.meta.last_row_id;
+      const r = await insertEvent(db, {
+        tenant: slug, title, type, description: '', starts_at: '', starts_at_utc: utc,
+        max_slots: maxSlots, status: 'open', origin: 'member', created_by: '热心侠客',
+        dungeon: dungeonName, creator_discord_id: String(ctx.user.discordId),
+      });
+      const eventId = r.last_row_id;
       if (Array.isArray(input.seats)) {
         await ensureSignupDiscordColumn(db);
-        const stmts = [];
+        const seatRows = [];
         for (const st of input.seats.slice(0, maxSlots)) {
           const nm = s(st.nickname, 30), wp = s(st.weapon, 20);
           if (!nm || !wp) continue;
           // 发车预排座位同 join 口径: 昵称是发车人本人身份才盖他的戳
           const stamp = await selfStampFor(db, ctx.user, slug, nm);
-          stmts.push(db.prepare(
-            'INSERT INTO signups (event_id, nickname, uid, role, weapon, discord_id) VALUES (?, ?, ?, ?, ?, ?)'
-          ).bind(eventId, nm, newUid(), roleOf(wp), wp, stamp));
+          seatRows.push({ event_id: eventId, nickname: nm, uid: newUid(), role: roleOf(wp), weapon: wp, discord_id: stamp });
         }
-        if (stmts.length) await db.batch(stmts);
+        if (seatRows.length) await insertSignups(db, seatRows);
       }
-      const ev = await db.prepare('SELECT * FROM events WHERE id = ?').bind(eventId).first();
+      const ev = await getEventRow(db, eventId);
       publishGroupingEvent(ctx, slug, eventId, 'created');
       return new GroupingPayloadShell(ctx, { ok: true, grouping: toGrouping(ctx, ev) });
     },
@@ -2893,7 +2889,7 @@ const resolvers = {
       }
       await ensureEventCreatorColumn(db);
       const gid = parseInt(id, 10) || 0;
-      const ev = await db.prepare('SELECT * FROM events WHERE id = ?').bind(gid).first();
+      const ev = await getEventRow(db, gid);
       if (!ev) return gFail(ctx, 'groupingNotFound');
       const gate = await requireWrite(db, ctx.user, ev.tenant, ctx.request);
       if (gate) return gFail(ctx, gate);
@@ -2908,8 +2904,8 @@ const resolvers = {
       if (String(ev.creator_discord_id) !== String(ctx.user.discordId)) {
         return gFail(ctx, 'leaderOnlyEdit');
       }
-      const fields = [], params = [];
-      const set = (col, val) => { fields.push(col + ' = ?'); params.push(val); };
+      const patch = {};
+      const set = (col, val) => { patch[col] = val; };
       if (input.title !== undefined && input.title !== null) set('title', s(input.title, 40));
       if (input.startsAt !== undefined && input.startsAt !== null) {
         let u = parseInt(input.startsAt, 10) || 0;
@@ -2917,9 +2913,8 @@ const resolvers = {
         if (u > 0) set('starts_at_utc', u);
       }
       if (ev.status === 'draft') set('status', 'open');
-      if (fields.length) {
-        params.push(gid);
-        await db.prepare(`UPDATE events SET ${fields.join(', ')} WHERE id = ?`).bind(...params).run();
+      if (Object.keys(patch).length) {
+        await updateEventFields(db, gid, null, patch);
       }
       if (Array.isArray(input.seats)) {
         await ensureSignupDiscordColumn(db);
@@ -2927,9 +2922,7 @@ const resolvers = {
         // 戳, 且戳主的当前身份名仍与该昵称一致 -> 沿用; 昵称被改成别人、
         // 旧戳有歧义、或戳主已改名 -> 一律不带戳。编辑动作本身不新盖戳
         // (点保存的人不是在落座)。
-        const { results: oldSeats } = await db.prepare(
-          'SELECT nickname, discord_id FROM signups WHERE event_id = ?'
-        ).bind(gid).all();
+        const oldSeats = await listSignupNamesStamps(db, gid);
         const stampByNick = new Map();
         for (const os of oldSeats || []) {
           if (!os.discord_id) continue;
@@ -2946,19 +2939,17 @@ const resolvers = {
           if (!carryCache.has(d)) carryCache.set(d, await identityNamesFor(db, d, dgidU));
           return carryCache.get(d).has(nm) ? d : null;
         };
-        await db.prepare('DELETE FROM signups WHERE event_id = ?').bind(gid).run();
-        const stmts = [];
+        await deleteSignupsByEvent(db, gid);
+        const seatRows = [];
         for (const st of input.seats.slice(0, ev.max_slots)) {
           const nm = s(st.nickname, 30), wp = s(st.weapon, 20);
           if (!nm || !wp) continue;
           const stamp = await carryStamp(nm);
-          stmts.push(db.prepare(
-            'INSERT INTO signups (event_id, nickname, uid, role, weapon, discord_id) VALUES (?, ?, ?, ?, ?, ?)'
-          ).bind(gid, nm, newUid(), roleOf(wp), wp, stamp));
+          seatRows.push({ event_id: gid, nickname: nm, uid: newUid(), role: roleOf(wp), weapon: wp, discord_id: stamp });
         }
-        if (stmts.length) await db.batch(stmts);
+        if (seatRows.length) await insertSignups(db, seatRows);
       }
-      const nev = await db.prepare('SELECT * FROM events WHERE id = ?').bind(gid).first();
+      const nev = await getEventRow(db, gid);
       publishGroupingEvent(ctx, ev.tenant, gid, 'updated');
       return new GroupingPayloadShell(ctx, { ok: true, grouping: toGrouping(ctx, nev) });
     },
@@ -2974,7 +2965,7 @@ const resolvers = {
       }
       await ensureEventCreatorColumn(db);
       const gid = parseInt(id, 10) || 0;
-      const ev = await db.prepare('SELECT id, tenant, creator_discord_id FROM events WHERE id = ?').bind(gid).first();
+      const ev = await getEventTenantCreator(db, gid);
       if (!ev) return dFail(ctx, 'groupingNotFound');
       const gate = await requireWrite(db, ctx.user, ev.tenant, ctx.request);
       if (gate) return dFail(ctx, gate);
@@ -2984,11 +2975,7 @@ const resolvers = {
       if (String(ev.creator_discord_id) !== String(ctx.user.discordId)) {
         return dFail(ctx, 'leaderOnlyDisband');
       }
-      await db.batch([
-        db.prepare('DELETE FROM signups WHERE event_id = ?').bind(gid),
-        db.prepare('DELETE FROM results WHERE event_id = ?').bind(gid),
-        db.prepare('DELETE FROM events WHERE id = ?').bind(gid),
-      ]);
+      await deleteEventCascade(db, gid, null);
       publishGroupingEvent(ctx, ev.tenant, gid, 'deleted');
       return new DeletePayloadShell(ctx, { ok: true });
     },
@@ -3006,7 +2993,7 @@ const resolvers = {
       }
       await ensureEventCreatorColumn(db);
       const gid = parseInt(id, 10) || 0;
-      const ev = await db.prepare('SELECT * FROM events WHERE id = ?').bind(gid).first();
+      const ev = await getEventRow(db, gid);
       if (!ev) return gFail(ctx, 'groupingNotFound');
       const gate = await requireWrite(db, ctx.user, ev.tenant, ctx.request);
       if (gate) return gFail(ctx, gate);
@@ -3020,8 +3007,8 @@ const resolvers = {
       if (ev.status === 'completed') return gFail(ctx, 'groupingAlreadyCompleted');
       // draft 在 GraphQL 表面处处不可见 (列表已过滤), 按不存在处理
       if (ev.status !== 'open' && ev.status !== 'closed') return gFail(ctx, 'groupingNotFound');
-      await db.prepare("UPDATE events SET status = 'completed' WHERE id = ?").bind(gid).run();
-      const nev = await db.prepare('SELECT * FROM events WHERE id = ?').bind(gid).first();
+      await setEventStatus(db, gid, 'completed');
+      const nev = await getEventRow(db, gid);
       // kind=updated: 列表实时摘除 + GuildHub 重排闹钟 (完成车不再是待提醒)
       publishGroupingEvent(ctx, ev.tenant, gid, 'updated');
       return new GroupingPayloadShell(ctx, { ok: true, grouping: toGrouping(ctx, nev) });
@@ -3037,7 +3024,7 @@ const resolvers = {
       }
       await ensureEventCreatorColumn(db);
       const gid = parseInt(id, 10) || 0;
-      const ev = await db.prepare('SELECT * FROM events WHERE id = ?').bind(gid).first();
+      const ev = await getEventRow(db, gid);
       if (!ev) return gFail(ctx, 'groupingNotFound');
       const gate = await requireWrite(db, ctx.user, ev.tenant, ctx.request);
       if (gate) return gFail(ctx, gate);
@@ -3049,8 +3036,8 @@ const resolvers = {
         return gFail(ctx, 'leaderOnlyReopen');
       }
       if (ev.status !== 'completed') return gFail(ctx, 'groupingNotCompleted');
-      await db.prepare("UPDATE events SET status = 'open' WHERE id = ?").bind(gid).run();
-      const nev = await db.prepare('SELECT * FROM events WHERE id = ?').bind(gid).first();
+      await setEventStatus(db, gid, 'open');
+      const nev = await getEventRow(db, gid);
       publishGroupingEvent(ctx, ev.tenant, gid, 'updated');
       return new GroupingPayloadShell(ctx, { ok: true, grouping: toGrouping(ctx, nev) });
     },
@@ -3061,7 +3048,7 @@ const resolvers = {
         return sFail(ctx, 'rateLimited');
       }
       const gid = parseInt(input.groupingId, 10) || 0;
-      const ev = await db.prepare('SELECT * FROM events WHERE id = ?').bind(gid).first();
+      const ev = await getEventRow(db, gid);
       if (!ev) return sFail(ctx, 'groupingNotFound');
       if (ev.status !== 'open') return sFail(ctx, 'groupingClosed');
       const gate = await requireWrite(db, ctx.user, ev.tenant, ctx.request);
@@ -3101,13 +3088,9 @@ const resolvers = {
                < (SELECT max_slots FROM events WHERE id = ? AND status = 'open')`
         ).bind(gid, nickname, uid, roleOf(weapon), weapon, stamp, gid, gid).run();
         if (!r.meta.changes) return sFail(ctx, 'groupingFull');
-        const full = await db.prepare(
-          `SELECT (SELECT COUNT(*) FROM signups WHERE event_id = ?) AS c,
-                  (SELECT COUNT(*) FROM signups WHERE event_id = ? AND role IN ('奶', '治疗')) AS h,
-                  (SELECT max_slots FROM events WHERE id = ?) AS m`
-        ).bind(gid, gid, gid).first();
+        const full = await getSignupCapacityStats(db, gid);
         if (full && full.c >= full.m && full.h === 0) {
-          await db.prepare('DELETE FROM signups WHERE id = ?').bind(r.meta.last_row_id).run();
+          await deleteSignupById(db, r.meta.last_row_id);
           return sFail(ctx, 'lastSeatHealer');
         }
       } catch (e) {
@@ -3125,14 +3108,13 @@ const resolvers = {
         return sFail(ctx, 'rateLimited');
       }
       const gid = parseInt(input.groupingId, 10) || 0;
-      const ev0 = await db.prepare('SELECT id, tenant FROM events WHERE id = ?').bind(gid).first();
+      const ev0 = await getEventTenant(db, gid);
       if (!ev0) return sFail(ctx, 'groupingNotFound');
       const gate = await requireWrite(db, ctx.user, ev0.tenant, ctx.request);
       if (gate) return sFail(ctx, gate);
-      const r = await db.prepare('DELETE FROM signups WHERE event_id = ? AND uid = ?')
-        .bind(gid, s(input.uid, 30)).run();
-      if (!r.meta.changes) return sFail(ctx, 'seatNotFound');
-      const ev = await db.prepare('SELECT * FROM events WHERE id = ?').bind(gid).first();
+      const r = await deleteSignupByEventUid(db, gid, s(input.uid, 30));
+      if (!r.changes) return sFail(ctx, 'seatNotFound');
+      const ev = await getEventRow(db, gid);
       const g = ev ? toGrouping(ctx, ev) : null;
       publishGroupingEvent(ctx, ev0.tenant, gid, 'seats');
       return new SeatPayloadShell(ctx, { ok: true, seats: g ? await g.genSeats() : null });
@@ -3146,14 +3128,13 @@ const resolvers = {
       const gid = parseInt(input.groupingId, 10) || 0;
       const weapon = s(input.weapon, 40);
       if (!weapon) return sFail(ctx, 'paramsIncomplete');
-      const ev0 = await db.prepare('SELECT id, tenant FROM events WHERE id = ?').bind(gid).first();
+      const ev0 = await getEventTenant(db, gid);
       if (!ev0) return sFail(ctx, 'groupingNotFound');
       const gate = await requireWrite(db, ctx.user, ev0.tenant, ctx.request);
       if (gate) return sFail(ctx, gate);
-      const r = await db.prepare('UPDATE signups SET weapon = ?, role = ? WHERE event_id = ? AND uid = ?')
-        .bind(weapon, roleOf(weapon), gid, s(input.uid, 30)).run();
-      if (!r.meta.changes) return sFail(ctx, 'seatNotFound');
-      const ev = await db.prepare('SELECT * FROM events WHERE id = ?').bind(gid).first();
+      const r = await updateSignupWeaponRoleByUid(db, gid, s(input.uid, 30), weapon, roleOf(weapon));
+      if (!r.changes) return sFail(ctx, 'seatNotFound');
+      const ev = await getEventRow(db, gid);
       const g = ev ? toGrouping(ctx, ev) : null;
       publishGroupingEvent(ctx, ev0.tenant, gid, 'seats');
       return new SeatPayloadShell(ctx, { ok: true, seats: g ? await g.genSeats() : null });
