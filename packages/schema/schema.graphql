@@ -1710,7 +1710,8 @@ input AddEventResultInput {
 
 input UpdateSchoolGuideInput {
   school: String!
-  build: String!
+  # build 省略 = 只更新循环; 给出 build = upsert 该 build 的 BiS 行。
+  build: String
   attr: String
   rate: String
   bisJson: String
