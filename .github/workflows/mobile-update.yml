@@ -3,9 +3,11 @@ name: mobile-update
 # 发布 Expo OTA 更新到 preview 频道 (稳定链接 exp://u.expo.dev/...?channel-name=preview)。
 # 本机出口网络不稳, 发布统一走 CI (GitHub 网络直连 Expo)。
 # 发布前先 expo export 冒烟: 本地构建不过就不许发 OTA。
+# 触发 (2026-10-26 起): 只认 PR merge 事件 (+ 手动 dispatch 兜底); 直推 master 不再发布。
 on:
   workflow_dispatch:
-  push:
+  pull_request:
+    types: [closed]
     branches: [master]
     paths:
       - 'yanyun-mobile/**'
@@ -16,9 +18,16 @@ on:
 
 jobs:
   update:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
+      # On a merged-PR run, check out the exact landed commits (for a
+      # rebase-merge, merge_commit_sha is the tip of what actually landed);
+      # the default pull_request ref is a hypothetical merge that can drift
+      # from master. workflow_dispatch falls back to the branch head.
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha || github.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
@@ -34,4 +43,4 @@ jobs:
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           EXPO_PUBLIC_API_URL: https://yanyun.app
-        run: npx eas update --channel preview --environment preview --non-interactive --message "${{ github.event.head_commit.message || 'CI update' }}"
+        run: npx eas update --channel preview --environment preview --non-interactive --message "${{ github.event.pull_request.title || 'CI update' }}"
