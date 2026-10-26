@@ -9,7 +9,9 @@ import {
 } from '../platform/index.ts';
 import { tlCalculateExcel } from '../gear/index.ts';
 import { getUserServers, getGuildNick, maybeRefreshGuildNicks, getUserLocalePref, setUserLocalePref } from '../../auth.js';
-import { ensureSignupDiscordColumn, ensureGuildMembersTable, upsertGuildMember } from '../groupings/index.ts';
+import { ensureSignupDiscordColumn, ensureGuildMembersTable, upsertGuildMember,
+  countDistinctNicknamesByTenant,
+} from '../groupings/index.ts';
 import { ensurePushTokensTable, isValidPushToken, savePushToken, deletePushToken } from '../platform/index.ts';
 import { evaluateHeirloomPushes } from '../gear/index.ts';
 import { translate, negotiateLocale, SUPPORTED_LOCALES, CATALOG } from '../platform/index.ts';
@@ -118,10 +120,7 @@ export class GuildShell extends ShellBase {
   genGameVersion(){ return this.ctxMemo('gameVersion', () => getGameVersion(this.db)); }
   genMemberCount(){
     return this.memo('memberCount', async () => {
-      const mc = await this.db.prepare(
-        'SELECT COUNT(DISTINCT s.nickname) AS c FROM signups s JOIN events e ON s.event_id = e.id WHERE e.tenant = ?'
-      ).bind(this.genSlug()).first().catch(() => ({ c: 0 }));
-      return mc ? mc.c : 0;
+      return countDistinctNicknamesByTenant(this.db, this.genSlug()).catch(() => 0);
     });
   }
   genGroupings({ tab }: any){
@@ -236,11 +235,9 @@ export class HubPageShell extends ShellBase {
         if (devSet.has(t.slug) && !devVisible) continue;
         const dgid = bindMap[t.slug];
         if (dgid && !(this.ctx.user && (this.ctx.user.guilds || []).includes(dgid))) continue;
-        const mc = await db.prepare(
-          'SELECT COUNT(DISTINCT s.nickname) AS c FROM signups s JOIN events e ON s.event_id = e.id WHERE e.tenant = ?'
-        ).bind(t.slug).first().catch(() => ({ c: 0 }));
+        const mc = await countDistinctNicknamesByTenant(db, t.slug).catch(() => 0);
         guilds.push(new GuildCardShell(this.ctx, {
-          slug: t.slug, name: t.guild_name, slogan: t.slogan || '', gameVersion, memberCount: mc ? mc.c : 0,
+          slug: t.slug, name: t.guild_name, slogan: t.slogan || '', gameVersion, memberCount: mc,
         }));
       }
       return guilds;
