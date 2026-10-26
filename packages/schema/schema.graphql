@@ -1533,6 +1533,7 @@ type GuildAdmin {
   fixedTeams: [GuildAdminFixedTeam!]!
   events: [GuildAdminEvent!]!
   schoolGuides: GuildAdminSchoolGuides!
+  stats: GuildAdminStats!
   # 管理页文案 (guildAdmin 目录, 按请求 locale 生成)
   adminTitle: String!
   adminBackLinkLabel: String!
@@ -1620,6 +1621,21 @@ type GuildAdmin {
   adminGuideRateLabel: String!
   adminGuideBisLabel: String!
   adminGuideRotationLabel: String!
+  adminTabStatsLabel: String!
+  adminStatsTitle: String!
+  adminStatsCurrentWeekLabel: String!
+  adminStatsCarsLabel: String!
+  adminStatsCompletedLabel: String!
+  adminStatsSeatsLabel: String!
+  adminStatsFillRateLabel: String!
+  adminStatsParticipantsLabel: String!
+  adminStatsPerCapitaLabel: String!
+  adminStatsMembersTitle: String!
+  adminStatsLeadersTitle: String!
+  adminStatsSeatCountLabel: String!
+  adminStatsCarCountLabel: String!
+  adminStatsEmptyText: String!
+  adminStatsBoardEmptyText: String!
 }
 
 type GuildAdminFixedTeam {
@@ -1696,6 +1712,49 @@ type GuildAdminSchoolBuild {
   attr: String!
   rate: String!
   bisJson: String!
+}
+
+# 管理面统计 (出勤/活跃, Premium 第一梯队): 数字全部由后端按既有实体
+# 聚合, 只挂 GuildAdmin (Locked 零统计字段)。周期 = 本周 + 近 4 周逐周
+# 序列, 产品周界 (周一 05:00 北京时间, 半开区间); 两榜为同一 4 周窗口
+# 合计。计数口径: 车按 starts_at_utc 归周, 草稿车与无时间车不计;
+# 总座位 = max_slots 之和, 已坐 = 报名行数; 参与只计带 discord_id 戳
+# 的报名 (代报名的戳是被代报者, 参与记在被代报者名下); 车头榜按
+# creator_discord_id 计开车数, 无戳车跳过。
+type GuildAdminStats {
+  weeks: [GuildAdminStatsWeek!]!
+  memberLeaders: [GuildAdminStatsMember!]!
+  leaderLeaders: [GuildAdminStatsLeader!]!
+}
+
+type GuildAdminStatsWeek {
+  weekStartUtc: Int!
+  weekLabel: String!
+  isCurrent: Boolean!
+  carsActivity: Int!
+  carsTalent: Int!
+  carsRace: Int!
+  carsTower: Int!
+  carsTotal: Int!
+  completedCount: Int!
+  totalSeats: Int!
+  filledSeats: Int!
+  fillRate: Float!
+  participantCount: Int!
+  participationCount: Int!
+  perCapita: Float!
+}
+
+type GuildAdminStatsMember {
+  discordId: String!
+  displayName: String!
+  seatCount: Int!
+}
+
+type GuildAdminStatsLeader {
+  discordId: String!
+  displayName: String!
+  carCount: Int!
 }
 
 type GuildAdminPayload {

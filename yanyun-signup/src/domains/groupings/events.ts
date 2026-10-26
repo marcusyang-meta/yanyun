@@ -175,6 +175,20 @@ export async function listEventsAdmin(
   return rows || [];
 }
 
+/* Admin stats: one tenant's events starting inside [fromUtc, toUtc).
+ * starts_at_utc is the window key (the week view's rule), so timeless
+ * rows belong to no window and never come back. Every status comes
+ * back; the stats service decides which statuses count. */
+export async function listEventsInWindow(
+  d1: D1Database, tenant: string, fromUtc: number, toUtc: number,
+): Promise<EventRow[]> {
+  const db = createDb(d1);
+  const rows = await db.all<EventRow>(
+    sql`SELECT * FROM ${events} WHERE ${col('tenant')} = ${tenant} AND ${col('starts_at_utc')} >= ${fromUtc} AND ${col('starts_at_utc')} < ${toUtc} ORDER BY ${col('id')} ASC`,
+  );
+  return rows || [];
+}
+
 /* GraphQL list page: recruiting groupings of one type in one guild
  * (completed/draft never listed; open first, timeless last, newest
  * first within a group). */

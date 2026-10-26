@@ -769,6 +769,21 @@ export const guildAdmin_guideAttrLabel = (fbs: FbsRuntime) => fbs._("属性行",
 export const guildAdmin_guideRateLabel = (fbs: FbsRuntime) => fbs._("占比行", null, { hk: "b4Xqn" });
 export const guildAdmin_guideBisLabel = (fbs: FbsRuntime) => fbs._("BiS（JSON）", null, { hk: "4FUXhX" });
 export const guildAdmin_guideRotationLabel = (fbs: FbsRuntime) => fbs._("循环（JSON）", null, { hk: "vkSW6" });
+export const guildAdmin_tabStats = (fbs: FbsRuntime) => fbs._("统计", null, { hk: "3WvV8a" });
+export const guildAdmin_statsTitle = (fbs: FbsRuntime) => fbs._("出勤与活跃", null, { hk: "iuqgf" });
+export const guildAdmin_statsCurrentWeek = (fbs: FbsRuntime) => fbs._("本周", null, { hk: "2wJGBe" });
+export const guildAdmin_statsCars = (fbs: FbsRuntime) => fbs._("开车", null, { hk: "4Ey6h5" });
+export const guildAdmin_statsCompleted = (fbs: FbsRuntime) => fbs._("完成", null, { hk: "3hK2MZ" });
+export const guildAdmin_statsSeats = (fbs: FbsRuntime) => fbs._("席位", null, { hk: "3VjKJO" });
+export const guildAdmin_statsFillRate = (fbs: FbsRuntime) => fbs._("满员率", null, { hk: "3v2PvZ" });
+export const guildAdmin_statsParticipants = (fbs: FbsRuntime) => fbs._("参与人数", null, { hk: "3Skv6R" });
+export const guildAdmin_statsPerCapita = (fbs: FbsRuntime) => fbs._("人均参与", null, { hk: "2cv4C4" });
+export const guildAdmin_statsMembersTitle = (fbs: FbsRuntime) => fbs._("成员参与榜 · 近 4 周", null, { hk: "3M1O4a" });
+export const guildAdmin_statsLeadersTitle = (fbs: FbsRuntime) => fbs._("车头榜 · 近 4 周", null, { hk: "ZdSKh" });
+export const guildAdmin_statsSeatCount = (fbs: FbsRuntime) => fbs._("落座次数", null, { hk: "4Fc5Hi" });
+export const guildAdmin_statsCarCount = (fbs: FbsRuntime) => fbs._("开车数", null, { hk: "13S23b" });
+export const guildAdmin_statsEmpty = (fbs: FbsRuntime) => fbs._("近 4 周暂无组队数据。", null, { hk: "2FAHYi" });
+export const guildAdmin_statsBoardEmpty = (fbs: FbsRuntime) => fbs._("暂无记录。", null, { hk: "3hDYU9" });
 export const STRING_FNS: Record<string, StringFn> = {
 	"common.cancel": common_cancel,
 	"common.confirm": common_confirm,
@@ -1485,5 +1500,20 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"guildAdmin.guideAttrLabel": guildAdmin_guideAttrLabel,
 	"guildAdmin.guideRateLabel": guildAdmin_guideRateLabel,
 	"guildAdmin.guideBisLabel": guildAdmin_guideBisLabel,
-	"guildAdmin.guideRotationLabel": guildAdmin_guideRotationLabel
+	"guildAdmin.guideRotationLabel": guildAdmin_guideRotationLabel,
+	"guildAdmin.tabStats": guildAdmin_tabStats,
+	"guildAdmin.statsTitle": guildAdmin_statsTitle,
+	"guildAdmin.statsCurrentWeek": guildAdmin_statsCurrentWeek,
+	"guildAdmin.statsCars": guildAdmin_statsCars,
+	"guildAdmin.statsCompleted": guildAdmin_statsCompleted,
+	"guildAdmin.statsSeats": guildAdmin_statsSeats,
+	"guildAdmin.statsFillRate": guildAdmin_statsFillRate,
+	"guildAdmin.statsParticipants": guildAdmin_statsParticipants,
+	"guildAdmin.statsPerCapita": guildAdmin_statsPerCapita,
+	"guildAdmin.statsMembersTitle": guildAdmin_statsMembersTitle,
+	"guildAdmin.statsLeadersTitle": guildAdmin_statsLeadersTitle,
+	"guildAdmin.statsSeatCount": guildAdmin_statsSeatCount,
+	"guildAdmin.statsCarCount": guildAdmin_statsCarCount,
+	"guildAdmin.statsEmpty": guildAdmin_statsEmpty,
+	"guildAdmin.statsBoardEmpty": guildAdmin_statsBoardEmpty
 };

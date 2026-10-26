@@ -95,7 +95,22 @@ export type GuildsStringKey =
   | 'guildAdmin.guideAttrLabel'
   | 'guildAdmin.guideRateLabel'
   | 'guildAdmin.guideBisLabel'
-  | 'guildAdmin.guideRotationLabel';
+  | 'guildAdmin.guideRotationLabel'
+  | 'guildAdmin.tabStats'
+  | 'guildAdmin.statsTitle'
+  | 'guildAdmin.statsCurrentWeek'
+  | 'guildAdmin.statsCars'
+  | 'guildAdmin.statsCompleted'
+  | 'guildAdmin.statsSeats'
+  | 'guildAdmin.statsFillRate'
+  | 'guildAdmin.statsParticipants'
+  | 'guildAdmin.statsPerCapita'
+  | 'guildAdmin.statsMembersTitle'
+  | 'guildAdmin.statsLeadersTitle'
+  | 'guildAdmin.statsSeatCount'
+  | 'guildAdmin.statsCarCount'
+  | 'guildAdmin.statsEmpty'
+  | 'guildAdmin.statsBoardEmpty';
 
 export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'locked.backLink',
@@ -193,4 +208,19 @@ export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'guildAdmin.guideRateLabel',
   'guildAdmin.guideBisLabel',
   'guildAdmin.guideRotationLabel',
+  'guildAdmin.tabStats',
+  'guildAdmin.statsTitle',
+  'guildAdmin.statsCurrentWeek',
+  'guildAdmin.statsCars',
+  'guildAdmin.statsCompleted',
+  'guildAdmin.statsSeats',
+  'guildAdmin.statsFillRate',
+  'guildAdmin.statsParticipants',
+  'guildAdmin.statsPerCapita',
+  'guildAdmin.statsMembersTitle',
+  'guildAdmin.statsLeadersTitle',
+  'guildAdmin.statsSeatCount',
+  'guildAdmin.statsCarCount',
+  'guildAdmin.statsEmpty',
+  'guildAdmin.statsBoardEmpty',
 ];

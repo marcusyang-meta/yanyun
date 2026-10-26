@@ -7458,6 +7458,171 @@
         }
       ],
       "types": []
+    },
+    "hkfT5R7N0G9Ld6A1pe7M+A==": {
+      "description": "guildAdmin.tabStats",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "統計",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+MNGv0a0SkRa5+ZkNwRvpg==": {
+      "description": "guildAdmin.statsTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "出勤與活躍",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "V9bXl3wtQaO25Run0I9Dvw==": {
+      "description": "guildAdmin.statsCurrentWeek",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "本週",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "XVwtph/kSlY8D+HQ9EyaTg==": {
+      "description": "guildAdmin.statsCars",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "開車",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "eshN46PP4JG/91jMw324mw==": {
+      "description": "guildAdmin.statsCompleted",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "完成",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+2NPJB5sBL6t/ye5Bi8k3w==": {
+      "description": "guildAdmin.statsSeats",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "席位",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "tLqNlemKRH+wvv1hym31MQ==": {
+      "description": "guildAdmin.statsFillRate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "滿員率",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "DRkD/L6qoh7DCU7csAtCsQ==": {
+      "description": "guildAdmin.statsParticipants",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "參與人數",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "2TgX3ua0VN5ae9TKvqbUyg==": {
+      "description": "guildAdmin.statsPerCapita",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "人均參與",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "wgnjiVxRzPWGL390tN2ycg==": {
+      "description": "guildAdmin.statsMembersTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "成員參與榜 · 近 4 週",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "xeE9MJeEAQXupm+26Oz9Tg==": {
+      "description": "guildAdmin.statsLeadersTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "車頭榜 · 近 4 週",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "jWLkcCNBIJbgKNR2j+by7w==": {
+      "description": "guildAdmin.statsSeatCount",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "落座次數",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "RtRP9gtd7Vso8W5Q9UPe+Q==": {
+      "description": "guildAdmin.statsCarCount",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "開車數",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "4aUdeOfb0u1x0/St62C+kQ==": {
+      "description": "guildAdmin.statsEmpty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "近 4 週暫無組隊數據。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "aTESLbGBqMzUnqoVGW/cPQ==": {
+      "description": "guildAdmin.statsBoardEmpty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "暫無記錄。",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }
