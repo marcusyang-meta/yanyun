@@ -17,11 +17,7 @@ import { err } from './domains/platform/http.ts';
 import { hubOgTags, guildOgTags, carOgTags } from './domains/platform/og.ts';
 import { getTenantSlug } from './domains/guilds/index.ts';
 import { hubRoutes } from './domains/platform/hub-routes.ts';
-import { guildPublicRoutes } from './domains/guilds/public-routes.ts';
-import { dexPublicRoutes } from './domains/dex/public-routes.ts';
-import { guildRoutes } from './domains/guilds/guild-routes.ts';
 import { guildAvatarRoutes } from './domains/guilds/avatar-routes.ts';
-import { groupingRoutes } from './domains/groupings/grouping-routes.ts';
 
 /* Hono app */
 const app = new Hono();
@@ -41,14 +37,8 @@ app.use('/api/*', async (c: any, next: any) => {
   await next();
 });
 
-/* Route mounts: keep the pre-split order (public reads -> hub admin ->
-   avatars -> guilds). */
-app.route('/api', guildPublicRoutes);
-app.route('/api', dexPublicRoutes);
 app.route('/api/hub', hubRoutes);
 app.route('/', guildAvatarRoutes); // avatar public path /guilds/:slug/avatar (standalone, survives the REST shutdown)
-app.route('/api', guildRoutes);
-app.route('/api', groupingRoutes);
 
 app.all('/graphql', async (c: any) => {
   // Sessions with incomplete Discord authorization are voided here
@@ -181,10 +171,6 @@ async function handleFetch(request: Request, env: Env, ctx: ExecutionContext) {
 
     const seg = path.split('/').filter(Boolean);
     const slugRe = /^[a-z0-9-]{2,30}$/;
-    // /<slug>/admin.html -> legacy guild admin.
-    if (seg.length === 2 && seg[1] === 'admin.html' && slugRe.test(seg[0])) {
-      if (await findTenant(seg[0])) return serveAsset('/gadmin.html');
-    }
     // Legacy share path /<slug>/cars/:id -> /<slug>/car/:id.
     if (seg.length === 3 && seg[1] === 'cars' && slugRe.test(seg[0]) && /^\d+$/.test(seg[2])) {
       if (await findTenant(seg[0])) {
