@@ -165,7 +165,7 @@ const fullLoadout = { '主武器': W1.id, '副武器': W2.id, '冠胄': GZ.id, '
     m1.content.includes('玉斗长剑') && m1.content.includes('鸣金-虹 · 玉斗')
     && m1.content.includes('大外功') && m1.content.includes('恭喜'), m1.content);
   check('B1 身份: 燕云百业 + 品牌头像, @everyone + @本人', m1.username === '燕云百业'
-    && (m1.avatar_url || '').includes('yanyun-og')
+    && (m1.avatar_url || '').includes('og.yanyun.app')
     && m1.content.startsWith('@everyone') && m1.content.includes('<@2001>')
     && JSON.stringify(m1.allowed_mentions) === JSON.stringify({ parse: ['everyone'], users: ['2001'] }), JSON.stringify(m1.allowed_mentions));
 
