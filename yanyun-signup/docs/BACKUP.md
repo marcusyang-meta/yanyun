@@ -6,7 +6,7 @@
   BLOB 列编码为 `{ "$blob": "<base64>" }`（目前只有 `guild_avatars.bytes`）。
   实现在数据层 `src/domains/platform/backup.ts`，全程只走 repository/drizzle，
   不裸读库。
-- **覆盖范围**：全部 26 个实体中的 25 个。唯一排除的是 `error_log`——它本身
+- **覆盖范围**：全部 27 个实体中的 26 个。唯一排除的是 `error_log`——它本身
   就是 30 天保留的临时监控数据，恢复陈旧错误行没有意义。
 - **⚠️ 机密性**：备份文件含 `user_oauth` 的 refresh token、租户密码哈希、
   Discord webhook 全文。备份文件与 R2 桶按机密材料对待：桶不公开、只经

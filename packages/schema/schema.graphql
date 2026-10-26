@@ -412,6 +412,9 @@ extend type Query {
 
 type GroupingDetailPage {
   grouping: Grouping!
+  # 分享 URL: 本车的稳定短链 (后端懒铸造, 首次下发时生成、之后恒同);
+  # 客户端分享动作只用这个字符串, 不自拼 URL。
+  shareUrl: String!
   # 移动端 Bloks-lite: 本页内容区积木对象树 (同 GroupingListPage.blocks);
   # 逐座动作与解散按钮按观看者在服务端生成, 客户端不重建权限。
   blocks(blocksVersion: Int): [Block!]!
