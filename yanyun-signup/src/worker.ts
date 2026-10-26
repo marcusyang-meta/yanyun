@@ -12,7 +12,7 @@ import { getGuildAccess, negotiateLocale } from './domains/platform/graphql-base
 import { getSessionUserChecked, sessionCookieHeader, handleDiscordLogin, handleDiscordCallback, handleLogout, getUserLocalePref } from './domains/identity/auth.ts';
 import { maybeRunCreatorBackfill } from './creatorbackfill.js';
 import { maybeRunCreatorManualFix } from './creatormanualfix.js';
-import { logError } from './domains/platform/index.ts';
+import { logError, runScheduledBackup } from './domains/platform/index.ts';
 import { err } from './domains/platform/http.ts';
 import { hubOgTags, guildOgTags, carOgTags } from './domains/platform/og.ts';
 import { getTenantSlug } from './domains/guilds/index.ts';
@@ -225,5 +225,12 @@ export default {
       catch { void logError(env.DB, { source: 'worker', error: e }); }
       return err('服务器内部错误', 500);
     }
+  },
+  // Daily backup snapshot to the private R2 bucket (see wrangler.toml
+  // [triggers]); the run leaves a system audit row, failures land in
+  // error_log via the backup service.
+  async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext) {
+    void event;
+    ctx.waitUntil(runScheduledBackup(env));
   },
 };

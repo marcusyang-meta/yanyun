@@ -26,6 +26,18 @@ binding = "DB"
 database_name = "yanyun-signup"
 database_id = "aa475d0e-8410-47eb-823b-0ddd346733e8"
 
+# 备份快照 (R2, 私有桶): 每日定时导出全量实体数据, 保留最近 14 份;
+# 桶 yanyun-backups 已于 2026-10-26 经 API 创建 (R2 在本账户已开通)。
+# 备份文件含 refresh token / 密码哈希 / webhook 等机密, 严禁公开访问,
+# 只经 hub 超管鉴权的 /api/hub/backup/* 路径读写。
+[[r2_buckets]]
+binding = "BACKUPS"
+bucket_name = "yanyun-backups"
+
+# 定时备份: 每日 18:23 UTC (北京 02:23, 避开整点与业务高峰)
+[triggers]
+crons = ["23 18 * * *"]
+
 # SeatHub 广播中枢 (Durable Object): 每个活动一个实例, WS 推送 seat 变化
 [[durable_objects.bindings]]
 name = "SEAT_HUB"
