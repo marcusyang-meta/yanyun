@@ -36,6 +36,24 @@ type Sect = {
     critDamage: string | null;
     note: string | null;
   } | null;
+  gradBuilds: ReadonlyArray<{
+    name: string;
+    cat: string;
+    setName: string;
+    bowLabel: string | null;
+    recipe: string;
+    note: string | null;
+    dingyinName: string | null;
+    totalBars: number;
+    targets: ReadonlyArray<{
+      label: string;
+      count: number;
+      maxValue: number | null;
+      cyValue: number | null;
+      unit: string;
+      flexLabels: ReadonlyArray<string>;
+    }>;
+  }>;
 };
 
 const SectDetailQueryNode = graphql`
@@ -65,6 +83,16 @@ const SectDetailQueryNode = graphql`
       sectBisAccessoriesLabel
       sectBisHeadBodyLabel
       sectBisLegsWristsLabel
+      sectTabAffixLabel
+      sectAffixEmptyText
+      sectAffixSetLabel
+      sectAffixBowLabel
+      sectAffixDingyinLabel
+      sectAffixColAffixLabel
+      sectAffixColCountLabel
+      sectAffixColMaxLabel
+      sectAffixColCyLabel
+      sectAffixSourceText
       sects {
         slug
         name
@@ -90,6 +118,24 @@ const SectDetailQueryNode = graphql`
           crit
           critDamage
           note
+        }
+        gradBuilds {
+          name
+          cat
+          setName
+          bowLabel
+          recipe
+          note
+          dingyinName
+          totalBars
+          targets {
+            label
+            count
+            maxValue
+            cyValue
+            unit
+            flexLabels
+          }
         }
       }
     }
@@ -126,6 +172,24 @@ function SectDetail({ queryRef }: { queryRef: PreloadedQuery<SectDetailQueryType
       critDamage: s.rateTargets.critDamage ?? null,
       note: s.rateTargets.note ?? null,
     } : null,
+    gradBuilds: (s.gradBuilds ?? []).map((b) => ({
+      name: b.name,
+      cat: b.cat,
+      setName: b.setName,
+      bowLabel: b.bowLabel ?? null,
+      recipe: b.recipe,
+      note: b.note ?? null,
+      dingyinName: b.dingyinName ?? null,
+      totalBars: b.totalBars,
+      targets: (b.targets ?? []).map((t) => ({
+        label: t.label,
+        count: t.count,
+        maxValue: t.maxValue ?? null,
+        cyValue: t.cyValue ?? null,
+        unit: t.unit,
+        flexLabels: t.flexLabels ?? [],
+      })),
+    })),
   }));
 
   const text: any = (data as any)?.sectPage ?? {};
@@ -185,7 +249,7 @@ export function SectDetailRoute() {
 }
 
 function SectPageView({ sect, text, onBack }: { sect: Sect; text: any; onBack: () => void }) {
-  const [stab, setStab] = useState<'bis' | 'rot' | 'rate' | 'tiaolv' | 'grad'>('bis');
+  const [stab, setStab] = useState<'bis' | 'affix' | 'rot' | 'rate' | 'tiaolv' | 'grad'>('bis');
 
   const bisSlots: [string, ReadonlyArray<string>][] = sect.bis ? [
     [text.sectBisMainWeaponLabel, sect.bis.mainWeapon],
@@ -212,7 +276,7 @@ function SectPageView({ sect, text, onBack }: { sect: Sect; text: any; onBack: (
       </div>
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-        {(['bis', 'rot', 'rate', 'tiaolv', 'grad'] as const).map((t) => (
+        {(['bis', 'affix', 'rot', 'rate', 'tiaolv', 'grad'] as const).map((t) => (
           <button
             key={t}
             onClick={() => setStab(t)}
@@ -223,7 +287,7 @@ function SectPageView({ sect, text, onBack }: { sect: Sect; text: any; onBack: (
               color: stab === t ? '#1a1814' : theme.paper,
               fontWeight: stab === t ? 600 : 400,
             }}
-          >{t === 'bis' ? text.sectTabBisLabel : t === 'rot' ? text.sectTabRotationLabel : t === 'rate' ? text.sectTabRatesLabel : t === 'tiaolv' ? text.sectTabTiaolvLabel : text.sectTabGradLabel}</button>
+          >{t === 'bis' ? text.sectTabBisLabel : t === 'affix' ? text.sectTabAffixLabel : t === 'rot' ? text.sectTabRotationLabel : t === 'rate' ? text.sectTabRatesLabel : t === 'tiaolv' ? text.sectTabTiaolvLabel : text.sectTabGradLabel}</button>
         ))}
       </div>
 
@@ -246,6 +310,58 @@ function SectPageView({ sect, text, onBack }: { sect: Sect; text: any; onBack: (
           <Suspense fallback={null}>
             <GearSectRecipes sectName={sect.name} onPicked={() => setStab('grad')} />
           </Suspense>
+        </div>
+      )}
+
+      {stab === 'affix' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {!sect.gradBuilds.length && <div style={{ color: theme.muted, textAlign: 'center', padding: 24 }}>{text.sectAffixEmptyText}</div>}
+          {sect.gradBuilds.map((b) => (
+            <div key={b.name + '|' + b.setName} style={card}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
+                <span style={{ color: '#c9a35c', fontSize: 15, fontWeight: 600 }}>{b.name}</span>
+                <span style={{
+                  fontSize: 11, color: theme.goldHi, border: '1px solid rgba(201,163,92,.4)',
+                  borderRadius: 999, padding: '2px 9px',
+                }}>{b.cat}</span>
+              </div>
+              <div style={{ fontSize: 12.5, color: theme.muted, lineHeight: 1.9 }}>
+                <span style={{ color: theme.goldHi }}>{text.sectAffixSetLabel}</span> {b.setName}
+                {b.bowLabel ? <>{' · '}<span style={{ color: theme.goldHi }}>{text.sectAffixBowLabel}</span> {b.bowLabel}</> : null}
+                {b.dingyinName ? <>{' · '}<span style={{ color: theme.goldHi }}>{text.sectAffixDingyinLabel}</span> {b.dingyinName}</> : null}
+              </div>
+              <div style={{ fontSize: 12.5, color: theme.paper, lineHeight: 1.8, margin: '2px 0 8px' }}>{b.recipe}</div>
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: 420 }}>
+                  <thead><tr>
+                    <th style={affixTh}>{text.sectAffixColAffixLabel}</th>
+                    <th style={affixTh}>{text.sectAffixColCountLabel}</th>
+                    <th style={affixTh}>{text.sectAffixColMaxLabel}</th>
+                    <th style={affixTh}>{text.sectAffixColCyLabel}</th>
+                  </tr></thead>
+                  <tbody>
+                    {b.targets.map((t) => (
+                      <tr key={t.label}>
+                        <td style={affixTd}>
+                          <span style={{ color: theme.goldHi }}>{t.label}</span>
+                          {t.flexLabels.length > 0 && (
+                            <span style={{ color: theme.muted, fontSize: 11.5 }}>（{t.flexLabels.join(' / ')}）</span>
+                          )}
+                        </td>
+                        <td style={affixTd}>{t.count}</td>
+                        <td style={affixTd}>{t.maxValue != null ? fmtVal(t.maxValue) + t.unit : '—'}</td>
+                        <td style={affixTd}>{t.cyValue != null ? fmtVal(t.cyValue) + t.unit : '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {b.note && <div style={{ fontSize: 12, color: theme.muted, lineHeight: 1.7, marginTop: 8 }}>{b.note}</div>}
+            </div>
+          ))}
+          {sect.gradBuilds.length > 0 && (
+            <div style={{ fontSize: 12, color: theme.muted, lineHeight: 1.7 }}>{text.sectAffixSourceText}</div>
+          )}
         </div>
       )}
 
@@ -329,3 +445,14 @@ const rateRow: React.CSSProperties = {
 const rateLabel: React.CSSProperties = {
   color: '#c9a35c', minWidth: 40, fontWeight: 600,
 };
+const affixTh: React.CSSProperties = {
+  textAlign: 'left', color: theme.muted, fontWeight: 400, fontSize: 11.5,
+  padding: '5px 7px', borderBottom: '1px solid rgba(201,163,92,.25)',
+};
+const affixTd: React.CSSProperties = {
+  padding: '6px 7px', borderBottom: '1px solid rgba(201,163,92,.1)',
+  fontSize: 12.5, color: theme.paper, verticalAlign: 'top',
+};
+function fmtVal(v: number): string {
+  return String(Math.round(v * 10) / 10);
+}
