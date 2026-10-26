@@ -34,7 +34,24 @@ $('#loginForm').onsubmit = async (e) => {
 };
 $('#logoutBtn').onclick = logout;
 
-async function boot() { await loadSettings(); await loadTenants(); await loadReminders(); await loadHeirlooms(); await loadPrimitives(); await loadBosses(); await loadDungeons(); }
+async function boot() { await loadSettings(); await loadTenants(); await loadReminders(); await loadHeirlooms(); await loadPrimitives(); await loadErrors(); await loadBosses(); await loadDungeons(); }
+
+async function loadErrors() {
+  const msg = $('#errorMsg');
+  try {
+    const { errors, last24h } = await api('/api/hub/errors');
+    $('#errorSummary').textContent = `近 24 小时共 ${last24h} 条。`;
+    $('#errorTable').innerHTML = `<tr><th>时间</th><th>来源</th><th>错误</th><th>百业</th><th>上下文</th></tr>` +
+      (errors.map((r) => `<tr>
+        <td style="white-space:nowrap">${esc(new Date(r.at * 1000).toLocaleString())}</td>
+        <td>${esc(r.source)}</td>
+        <td>${esc(r.name ? r.name + ': ' : '')}${esc(r.message)}</td>
+        <td>${esc(r.tenant || '')}</td>
+        <td><span class="muted" style="font-family:monospace">${esc(r.context || '')}</span></td>
+      </tr>`).join('') || '<tr><td colspan="5" class="empty">暂无错误记录</td></tr>');
+    msg.className = 'msg'; msg.textContent = '';
+  } catch (e) { msg.className = 'msg bad'; msg.textContent = e.message; }
+}
 
 async function loadPrimitives() {
   const { primitives } = await api('/api/hub/primitives');

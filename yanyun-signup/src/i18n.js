@@ -81,7 +81,7 @@ export const CATALOG = {
     cardBody1: { 'zh-CN': '本站需用 Discord 账号认证后使用。', en: 'This site requires signing in with a Discord account.', es: 'Este sitio requiere iniciar sesión con una cuenta de Discord.', fr: 'Ce site nécessite une connexion avec un compte Discord.', 'zh-TW': '本站需用 Discord 帳號認證後使用。' },
     cardBody2: { 'zh-CN': '登录后将按你所在的 Discord 服务器，展示你有权限访问的百业。', en: 'After signing in, you will see the guilds you can access, based on the Discord servers you belong to.', es: 'Al iniciar sesión, verás los gremios a los que tienes acceso según tus servidores de Discord.', fr: 'Après connexion, vous verrez les guildes auxquelles vous avez accès, selon vos serveurs Discord.', 'zh-TW': '登入後將按你所在的 Discord 伺服器，展示你有權限存取的百業。' },
     button: { 'zh-CN': '用 Discord 登录', en: 'Sign in with Discord', es: 'Iniciar sesión con Discord', fr: 'Se connecter avec Discord', 'zh-TW': '使用 Discord 登入' },
-    privacy: { 'zh-CN': '我们只读取你的 Discord 昵称、头像与所在的服务器列表', en: 'We only read your Discord nickname, avatar, and server list', es: 'Solo leemos tu apodo, avatar y lista de servidores de Discord', fr: 'Nous lisons uniquement votre pseudo, votre avatar et votre liste de serveurs Discord', 'zh-TW': '我們只讀取你的 Discord 暱稱、頭像與所在的伺服器列表' },
+    privacy: { 'zh-CN': '我们会读取并保存你的 Discord 昵称、头像、服务器列表与登录授权，用于成员校验与提醒功能，详见隐私政策', en: 'We read and store your Discord nickname, avatar, server list, and sign-in authorization for membership checks and reminders — see the Privacy Policy', es: 'Leemos y guardamos tu apodo, avatar, lista de servidores y autorización de acceso de Discord para la verificación de miembros y los recordatorios; consulta la Política de privacidad', fr: 'Nous lisons et conservons votre pseudo, avatar, liste de serveurs et autorisation de connexion Discord pour la vérification des membres et les rappels — voir la Politique de confidentialité', 'zh-TW': '我們會讀取並保存你的 Discord 暱稱、頭像、伺服器列表與登入授權，用於成員驗證與提醒功能，詳見隱私政策' },
   },
 
   /* ---------- 用户条 ---------- */
@@ -671,6 +671,52 @@ export const CATALOG = {
     savedToastTemplate: { 'zh-CN': '已存入：{name}', en: 'Saved: {name}', es: 'Guardado: {name}', fr: 'Enregistré : {name}', 'zh-TW': '已存入：{name}' },
     deletedToast: { 'zh-CN': '已删除', en: 'Deleted', es: 'Eliminado', fr: 'Supprimé', 'zh-TW': '已刪除' },
     clearedToast: { 'zh-CN': '已清空', en: 'Cleared', es: 'Vaciado', fr: 'Vidé', 'zh-TW': '已清空' },
+  },
+
+  /* ---------- 法律页 (服务条款 / 隐私政策 / 非官方声明) ----------
+   * legal 段是页面 UI 文案 (标题/链接/更新日期/免责声明), 照常 ×5 语。
+   * termsBody / privacyBody 是正文: 按用户 2026-10-25 裁决只备 zh-CN
+   * 源文 + en 全译, es/fr/zh-TW 不填 —— translate() 逐字段回退 zh-CN
+   * 源文 (不整页回退), 与全站缺译回退机制一致。 */
+  legal: {
+    termsTitle: { 'zh-CN': '服务条款', en: 'Terms of Service', es: 'Términos del servicio', fr: "Conditions d'utilisation", 'zh-TW': '服務條款' },
+    privacyTitle: { 'zh-CN': '隐私政策', en: 'Privacy Policy', es: 'Política de privacidad', fr: 'Politique de confidentialité', 'zh-TW': '隱私政策' },
+    termsLink: { 'zh-CN': '服务条款', en: 'Terms of Service', es: 'Términos del servicio', fr: "Conditions d'utilisation", 'zh-TW': '服務條款' },
+    privacyLink: { 'zh-CN': '隐私政策', en: 'Privacy Policy', es: 'Política de privacidad', fr: 'Politique de confidentialité', 'zh-TW': '隱私政策' },
+    updatedText: { 'zh-CN': '最后更新：2026 年 10 月 25 日', en: 'Last updated: October 25, 2026', es: 'Última actualización: 25 de octubre de 2026', fr: 'Dernière mise à jour : 25 octobre 2026', 'zh-TW': '最後更新：2026 年 10 月 25 日' },
+    disclaimer: { 'zh-CN': '本站为玩家自发维护的非官方工具，与《燕云十六声》及其开发、发行方无隶属或背书关系；游戏名称与相关素材的权利归其各自权利方所有。', en: 'This is an unofficial tool maintained by players. It is not affiliated with or endorsed by Where Winds Meet or its developers and publishers; game names and related materials belong to their respective owners.', es: 'Esta es una herramienta no oficial mantenida por jugadores, sin afiliación ni respaldo de Where Winds Meet ni de sus desarrolladores y editores; los nombres del juego y los materiales relacionados pertenecen a sus respectivos titulares.', fr: "Outil non officiel maintenu par des joueurs, sans affiliation ni approbation de Where Winds Meet, de ses développeurs ou éditeurs ; les noms du jeu et les contenus associés appartiennent à leurs titulaires respectifs.", 'zh-TW': '本站為玩家自發維護的非官方工具，與《燕雲十六聲》及其開發、發行方無隸屬或背書關係；遊戲名稱與相關素材的權利歸其各自權利方所有。' },
+  },
+
+  /* ---------- 服务条款正文 (zh-CN 源文 + en 全译, 其余回退源文) ---------- */
+  termsBody: {
+    s1h: { 'zh-CN': '关于本站与非官方声明', en: 'About this site and its unofficial status' },
+    s1b: { 'zh-CN': '燕云百业（yanyun.app）是一个由玩家自发维护的非官方百业（公会）组队工具，与《燕云十六声》及其开发、发行方没有任何隶属或背书关系。本站中出现的游戏名称、副本、流派等资料，其权利归各自权利方所有。', en: 'Yanyun Guilds (yanyun.app) is an unofficial, fan-maintained guild team-up tool. It is not affiliated with, endorsed by, or connected to Where Winds Meet or its developers and publishers. Game names, dungeons, sects, and other game data appearing on this site belong to their respective rights holders.' },
+    s2h: { 'zh-CN': '账号与访问', en: 'Accounts and access' },
+    s2b: { 'zh-CN': '本站通过 Discord OAuth 登录。使用本站即表示你同意本条款。你应妥善保管自己的 Discord 账号，通过你的账号进行的操作视为你本人行为。各百业内容的可见与可写范围，由你是否属于该百业绑定的 Discord 服务器决定。', en: 'This site uses Discord OAuth for sign-in. By using this site, you agree to these terms. You are responsible for safeguarding your Discord account, and actions taken through your account are treated as your own. Whether a guild\u2019s content is visible or writable to you depends on your membership of the Discord server bound to that guild.' },
+    s3h: { 'zh-CN': '使用规范', en: 'Acceptable use' },
+    s3b: { 'zh-CN': '不得利用本站冒充他人或其它百业、抢注或占用与你无关的百业标识、发布违法或侵权内容、干扰本站运行，或绕过成员校验。车队标题、报名昵称等由用户发布的内容，由发布者自行负责。', en: 'You must not use this site to impersonate any person or guild, register or claim guild identities that are not yours, post unlawful or infringing content, interfere with the operation of this site, or circumvent membership checks. Content posted by users, such as team titles and signup names, is the responsibility of the person who posted it.' },
+    s4h: { 'zh-CN': '服务现状', en: 'The service as-is' },
+    s4b: { 'zh-CN': '本站目前免费提供，并按现状（as is）运行。我们不承诺服务持续可用、功能保持不变，或数据永不丢失；功能可能被调整、中断或终止，原则上不另行通知。重要数据请自行留存备份。', en: 'This site is currently provided free of charge and on an "as is" basis. We do not promise uninterrupted availability, unchanged features, or that data will never be lost. Features may be adjusted, suspended, or discontinued, in principle without prior notice. Please keep your own copies of anything important.' },
+    s5h: { 'zh-CN': '责任限制', en: 'Limitation of liability' },
+    s5b: { 'zh-CN': '在适用法律允许的最大范围内，本站对因使用或无法使用本站而产生的间接、附带或后果性损失不承担责任。', en: 'To the maximum extent permitted by applicable law, this site is not liable for indirect, incidental, or consequential losses arising from the use of, or inability to use, this site.' },
+    s6h: { 'zh-CN': '条款变更', en: 'Changes to these terms' },
+    s6b: { 'zh-CN': '本条款可能不时更新，更新后的版本在本站公布即生效；你继续使用本站即视为接受更新后的条款。', en: 'These terms may be updated from time to time. The updated version takes effect when published on this site, and your continued use of this site constitutes acceptance of the updated terms.' },
+  },
+
+  /* ---------- 隐私政策正文 (zh-CN 源文 + en 全译, 其余回退源文) ---------- */
+  privacyBody: {
+    s1h: { 'zh-CN': '我们收集的信息', en: 'Information we collect' },
+    s1b: { 'zh-CN': '当你使用 Discord 登录时，我们会读取并保存：你的 Discord 用户 ID、用户名与头像、你加入的 Discord 服务器列表、你在这些服务器中的昵称，以及用于保持登录状态的 OAuth 授权凭据（refresh token）。你在使用本站过程中产生的数据也会被保存，包括百业名册记录、车队与报名记录（包括座位上的身份标识）、装备库与配装方案、语言偏好，以及你在移动端开启通知后注册的推送令牌。', en: 'When you sign in with Discord, we read and store: your Discord user ID, username and avatar, the list of Discord servers you belong to, your nickname in those servers, and the OAuth credential (refresh token) used to keep you signed in. Data you create while using this site is also stored, including guild roster records, team and signup records (including the identity marker on a seat), your gear library and saved builds, your language preference, and the push token registered when you enable notifications in the mobile app.' },
+    s2h: { 'zh-CN': '我们如何使用信息', en: 'How we use information' },
+    s2b: { 'zh-CN': '上述信息仅用于：登录与身份识别；校验你是否为某百业所绑定 Discord 服务器的成员；组队报名；发车提醒与应用推送；传家宝达成推送；以及按你的偏好显示语言。我们不出售你的个人数据，也不将其用于广告投放。', en: 'The information above is used only for: sign-in and identity recognition; verifying your membership of the Discord server bound to a guild; team signups; departure reminders and app push notifications; heirloom-achievement pushes; and displaying the site in your preferred language. We do not sell your personal data, and we do not use it for advertising.' },
+    s3h: { 'zh-CN': '信息的共享与第三方', en: 'Sharing and third parties' },
+    s3b: { 'zh-CN': '本站运行在 Cloudflare 的基础设施上，数据存储于其数据库服务；登录与成员校验由 Discord 提供；移动端推送经 Expo 推送服务转发至 Apple 或 Google 的推送通道。发车提醒与传家宝消息会发送到对应百业管理员配置的 Discord 频道，消息中会包含你的游戏昵称。除上述功能所必需的情形外，我们不会向其他第三方提供你的个人数据（法律法规要求除外）。', en: 'This site runs on Cloudflare infrastructure, and its data is stored in Cloudflare\u2019s database services. Sign-in and membership verification are provided by Discord. Mobile push notifications are relayed by the Expo push service to Apple\u2019s or Google\u2019s push channels. Departure reminders and heirloom messages are posted to the Discord channel configured by the relevant guild\u2019s administrator, and those messages include your in-game nickname. Apart from what is necessary for the functions above, we do not provide your personal data to other third parties, except where required by law.' },
+    s4h: { 'zh-CN': '保存期限', en: 'Retention' },
+    s4b: { 'zh-CN': '你的数据保存在本站数据库中，直至你申请删除，或相关数据对本站功能不再需要为止。报名、车队等历史记录目前会持续保留；如保存规则发生变化，我们会更新本政策。', en: 'Your data is kept in this site\u2019s database until you request its deletion or it is no longer needed for the site\u2019s functions. Historical records such as signups and teams are currently retained on an ongoing basis; if our retention practices change, we will update this policy.' },
+    s5h: { 'zh-CN': '你的权利', en: 'Your rights' },
+    s5b: { 'zh-CN': '你可以申请查询、更正或删除你的个人数据。目前本站尚未提供自助注销功能，请通过下方联系渠道提出申请，我们会在合理期限内处理。你也可以随时在 Discord 的设置中断开本站的授权；授权失效后，你在本站的会话会自动作废。', en: 'You may request access to, correction of, or deletion of your personal data. This site does not yet offer a self-service account-deletion feature; please submit your request through the contact channel below, and we will handle it within a reasonable period. You may also disconnect this site\u2019s authorization at any time in your Discord settings; once the authorization lapses, your session on this site is automatically invalidated.' },
+    s6h: { 'zh-CN': '联系我们', en: 'Contact us' },
+    s6b: { 'zh-CN': '如对本政策有疑问，或需提出查询、更正、删除申请，请通过本站社区百业「叽哩呱啦」的 Discord 服务器联系管理员。我们会先核实你的 Discord 账号身份，再处理你的申请。', en: 'If you have questions about this policy, or wish to request access, correction, or deletion, please contact an administrator through the Discord server of the “叽哩呱啦” guild, this site\u2019s community guild. We will verify your Discord account identity before handling your request.' },
   },
 
   errors: {

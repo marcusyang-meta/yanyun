@@ -62,7 +62,8 @@ export default function LoginScreen() {
                 : <Text style={s.btnText}>{text.loginButtonLabel ?? '使用 Discord 登录'}</Text>}
             </Pressable>
             {!!error && <Text style={s.error}>{error}</Text>}
-            <Text style={s.foot}>{text.loginPrivacyText ?? '本站使用 Discord 登录。我们只读取你的昵称、头像和已加入的服务器列表，用于匹配百业成员身份，不会获取你的密码。'}</Text>
+            <Text style={s.foot}>{text.loginPrivacyText ?? '我们会读取并保存你的 Discord 昵称、头像、服务器列表与登录授权，用于成员校验与提醒功能，详见隐私政策'}</Text>
+            {!!text.footerDisclaimerText && <Text style={s.disclaimer}>{text.footerDisclaimerText}</Text>}
           </BlurView>
         </View>
       </View>
@@ -117,5 +118,9 @@ const s = StyleSheet.create({
   foot: {
     fontFamily: fonts.serif, color: theme.muted, fontSize: 12,
     lineHeight: 18, textAlign: 'center', marginTop: 18, maxWidth: 320,
+  },
+  disclaimer: {
+    fontFamily: fonts.serif, color: theme.muted, fontSize: 11, opacity: 0.75,
+    lineHeight: 16, textAlign: 'center', marginTop: 10, maxWidth: 320,
   },
 });

@@ -8,6 +8,8 @@ import LoginPage from './auth/LoginPage.react.tsx';
 import GuildPicker from './auth/GuildPicker.react.tsx';
 import CreateGuildPage from './auth/CreateGuildPage.react.tsx';
 import GuildRouteLoader from './guild/GuildRouteLoader.react.tsx';
+import LegalRoute from './LegalRoute.react.tsx';
+import SiteFooter from './lib/SiteFooter.react.tsx';
 import { readPrefMirror, writePrefMirror, emitLocaleChanged, lastSentLocaleTag } from './lib/locale';
 import { canonicalLocaleOf } from './lib/format';
 import SiteBackdrop from './lib/SiteBackdrop.react.tsx';
@@ -44,6 +46,9 @@ const AppViewerQueryNode = graphql`
       loginCardBody2
       loginButtonLabel
       loginPrivacyText
+      footerDisclaimerText
+      footerTermsLabel
+      footerPrivacyLabel
       userBarLogoutLabel
       userBarLoggingOutLabel
       userBarSettingsLabel
@@ -78,6 +83,11 @@ export default function AppRoot({ queries }: {
   const userBarText = {
     logoutLabel: viewer.userBarLogoutLabel, loggingOutLabel: viewer.userBarLoggingOutLabel,
     settingsLabel: viewer.userBarSettingsLabel,
+  };
+  const footerText = {
+    disclaimer: viewer.footerDisclaimerText,
+    termsLabel: viewer.footerTermsLabel,
+    privacyLabel: viewer.footerPrivacyLabel,
   };
   const pickerText = {
     myGuildsLabel: viewer.pickerMyGuildsLabel, myGuildsEnLabel: viewer.pickerMyGuildsEnLabel,
@@ -116,6 +126,9 @@ export default function AppRoot({ queries }: {
       {/* 个人资料 (Profile) 改为用户条打开的对话框 (桌面 modal / 移动 pushPage),
           旧 /settings 直链一律回首页, 避免被 /:slug 当作百业 slug */}
       <Route path="/settings" element={<Navigate to="/" replace />} />
+      {/* 法律页: 公开可达 (未登录亦可), 静态段优先于 /:slug */}
+      <Route path="/terms" element={<LegalRoute kind="TERMS" />} />
+      <Route path="/privacy" element={<LegalRoute kind="PRIVACY" />} />
       <Route
         path="/create"
         element={user ? <CreateGuildPage user={user} /> : <LoginPage returnTo="/create" site={siteText} text={loginText} />}
@@ -126,6 +139,8 @@ export default function AppRoot({ queries }: {
       />
       <Route path="/:slug" element={user ? <GuildRouteLoader /> : <LoginGateWithText site={siteText} text={loginText} />} />
         </Routes>
+        {/* 全站页脚: 非官方声明 + 条款/隐私入口 (文案全部后端下发) */}
+        <SiteFooter text={footerText} />
       </div>
     </>
   );

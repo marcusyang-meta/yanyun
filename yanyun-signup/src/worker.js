@@ -16,6 +16,7 @@ import {
 import { getHeirloomConfig, sendHeirloomTest, heirloomStatusFor } from './heirloompush.js';
 import { maybeRunCreatorBackfill } from './creatorbackfill.js';
 import { maybeRunCreatorManualFix } from './creatormanualfix.js';
+import { logError, recentErrors } from './errorlog.js';
 
 const TYPES = { activity: '双十人本', talent: '天赋组队', race: '竞速', tower: '爬塔', gather: '采集', explore: '探索' };
 const ROLES = ['输出', '承伤', '奶', '治疗', '随意'];
@@ -227,13 +228,21 @@ async function getBody(c) {
 /* ================= Hono 应用 ================= */
 const app = new Hono();
 
+// 未捕获异常汇聚 (商业化审计 A7): REST 处理器逃逸的异常落 error_log,
+// 响应保持统一 err 形态。业务代码内部的预期失败都走 err() 返回, 不到这。
+app.onError((e, c) => {
+  try { c.executionCtx.waitUntil(logError(c.env.DB, { source: 'rest', error: e, context: { path: new URL(c.req.url).pathname } })); }
+  catch { void logError(c.env.DB, { source: 'rest', error: e }); }
+  return err('服务器内部错误', 500);
+});
+
 // 限流用 IP: 每个 /api 请求先取一次
 app.use('/api/*', async (c, next) => {
   c.set('ip', c.req.header('cf-connecting-ip') || 'local');
   await next();
 });
 
-/* ---------- 公开 API: /api/tenants /onboard /bosses /schools /dungeons ---------- */
+/* ---------- 公开 API: /api/tenants /bosses /schools /dungeons ---------- */
 const pub = new Hono();
 
 // GET /api/tenants 百业导航
@@ -249,28 +258,12 @@ pub.get('/tenants', async (c) => {
   return json({ ok: true, tenants: results });
 });
 
-// POST /api/onboard 百业自助入驻
-pub.post('/onboard', async (c) => {
-  const ip = c.get('ip');
-  const body = await getBody(c);
-  if (!rateLimit(ip, 'onboard', 5, 3600 * 1000)) return err('创建太频繁, 请稍后再试', 429);
-  if (s(body.hp, 10)) return err('创建失败', 400);
-  const slug = s(body.slug, 30).toLowerCase();
-  const guild_name = s(body.guild_name, 20);
-  const password = String(body.password ?? '');
-  if (!/^[a-z0-9]([a-z0-9-]{0,28}[a-z0-9])?$/.test(slug) || slug.length < 2) {
-    return err('站点地址只能用小写字母/数字/连字符, 2-30 位', 400);
-  }
-  if (RESERVED.has(slug)) return err('该地址为保留字, 请换一个', 400);
-  if (guild_name.length < 2) return err('百业名称至少 2 个字', 400);
-  if (password.length < 8) return err('管理密码至少 8 位', 400);
-  const exists = await c.env.DB.prepare('SELECT 1 FROM tenants WHERE slug = ?').bind(slug).first();
-  if (exists) return err('该地址已被占用, 请换一个', 400);
-  await c.env.DB.prepare(
-    'INSERT INTO tenants(slug, guild_name, password_hash, announcement) VALUES(?, ?, ?, ?)'
-  ).bind(slug, guild_name, await sha256hex(password), '').run();
-  return json({ ok: true, slug });
-});
+// POST /api/onboard 匿名自助入驻 —— 已删除 (2026-10-25 商业化审计 A4):
+// 该端点匿名可建租户, 与 GraphQL createGuild 的「必须是目标 Discord
+// 服务器管理员」校验自相矛盾, 可抢注 slug / 冒名建业。全仓无在用调用
+// 方 (唯一引用在未部署的 public-legacy-backup/hub.js), 故整段下线;
+// 建业唯一路径 = GraphQL createGuild (登录 + 服务器管理员校验)。
+// slug 'onboard' 仍留在 RESERVED 保留字表里, 防被注册成百业地址。
 
 // GET /api/bosses 首领列表(轻量, 不含攻略正文)
 pub.get('/bosses', async (c) => {
@@ -337,6 +330,13 @@ hub.get('/tenants', async (c) => {
      FROM tenants t ORDER BY t.created_at ASC`
   ).all();
   return json({ ok: true, tenants: results });
+});
+
+// GET /api/hub/errors 最近错误 (error_log 只读, 超管门户「最近错误」区)
+// 失败口径在 errorlog.recentErrors 内吞掉, 表不可用时返回空列表。
+hub.get('/errors', async (c) => {
+  const { errors, last24h } = await recentErrors(c.env.DB, 50);
+  return json({ ok: true, errors, last24h });
 });
 
 // DELETE /api/hub/tenants/:slug
@@ -1447,13 +1447,18 @@ guild.post('/:slug/admin/login', async (c) => {
   if (!row || !timingSafeEqual(await sha256hex(s(body.password, 200)), row.password_hash)) {
     return err('密码错误', 401);
   }
-  return json({ ok: true, token: await makeToken(c.env.ADMIN_PASSWORD || 'fallback-secret', slug) });
+  // 管理员 token 以 ADMIN_PASSWORD 为 HMAC 签名根: 未配置即 fail-closed
+  // 拒绝签发 (原 'fallback-secret' 字面量回退已删, 2026-10-25 审计 B2)。
+  if (!c.env.ADMIN_PASSWORD) return err('服务端未设置超管密码, 管理员登录不可用', 500);
+  return json({ ok: true, token: await makeToken(c.env.ADMIN_PASSWORD, slug) });
 });
 
 // 其余 /api/:slug/admin/* 均需百业管理员鉴权
 const needGuildAdmin = async (c, next) => {
   const slug = c.get('slug');
-  const key = c.env.ADMIN_PASSWORD || 'fallback-secret';
+  // 签名根缺失即 fail-closed (原 'fallback-secret' 回退已删, 同上)。
+  const key = c.env.ADMIN_PASSWORD;
+  if (!key) return err('服务端未设置超管密码, 管理员接口不可用', 500);
   if ((await checkToken(key, bearerToken(c))) !== slug) {
     return err('未登录或登录已过期', 401);
   }
@@ -1839,6 +1844,12 @@ app.all('/graphql', async (c) => {
   // 一次性人工归属修正 (39/40 号车, 用户 2026-10-25 口头指定): 同上,
   // 函数内有生产 host 安全闸 + settings 标志守卫, preview 恒不触发。
   try { c.executionCtx.waitUntil(maybeRunCreatorManualFix(c.env, c.req.raw)); } catch { /* 无 executionCtx 的上下文静默 */ }
+  // GraphQL 层 5xx 汇聚 (单字段未捕获异常由 graphql.js 的 yoga 插件落库,
+  // 这里兜的是整请求级失败, 如 yoga 本身抛错被 Hono onError 接住前的形态)
+  if (res.status >= 500) {
+    try { c.executionCtx.waitUntil(logError(c.env.DB, { source: 'graphql', name: 'HttpError', message: `GraphQL 请求返回 ${res.status}` })); }
+    catch { /* 无 executionCtx 时静默 */ }
+  }
   if (checked.clearCookie) {
     const headers = new Headers(res.headers);
     headers.append('set-cookie', sessionCookieHeader('', 0));
@@ -1985,8 +1996,7 @@ async function handleGuildLive(request, env, slug) {
   return stub.fetch(request);
 }
 
-export default {
-  async fetch(request, env, ctx) {
+async function handleFetch(request, env, ctx) {
     const url = new URL(request.url);
     const path = url.pathname;
 
@@ -2075,5 +2085,18 @@ export default {
       return serveSpa(null);
     }
     return res;
+}
+
+export default {
+  // 全请求兜底 (商业化审计 A7): handleFetch 内部各路径的未捕获异常在此
+  // 落 error_log 并回统一 500; 记日志失败静默, 绝不二次抛错。
+  async fetch(request, env, ctx) {
+    try {
+      return await handleFetch(request, env, ctx);
+    } catch (e) {
+      try { ctx.waitUntil(logError(env.DB, { source: 'worker', error: e, context: { path: new URL(request.url).pathname } })); }
+      catch { void logError(env.DB, { source: 'worker', error: e }); }
+      return err('服务器内部错误', 500);
+    }
   },
 };

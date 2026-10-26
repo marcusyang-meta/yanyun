@@ -1,5 +1,5 @@
 import React, { Suspense, useState } from 'react';
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLazyLoadQuery } from 'react-relay';
@@ -168,6 +168,24 @@ function ProfileInner({ topInset, bottomInset }: { topInset: number; bottomInset
           </Text>
         </Pressable>
       </View>
+
+      {/* 页脚: 非官方声明 + 条款/隐私入口 (文案后端下发; 链接打开站点
+          法律页, App 内不打包正文) */}
+      <View style={s.footer}>
+        {!!viewer?.footerDisclaimerText && <Text style={s.footerText}>{viewer.footerDisclaimerText}</Text>}
+        <View style={s.footerLinks}>
+          {!!viewer?.footerTermsLabel && (
+            <Pressable onPress={() => void Linking.openURL('https://yanyun.app/terms')}>
+              <Text style={s.footerLink}>{viewer.footerTermsLabel}</Text>
+            </Pressable>
+          )}
+          {!!viewer?.footerPrivacyLabel && (
+            <Pressable onPress={() => void Linking.openURL('https://yanyun.app/privacy')}>
+              <Text style={s.footerLink}>{viewer.footerPrivacyLabel}</Text>
+            </Pressable>
+          )}
+        </View>
+      </View>
     </ScrollView>
   );
 }
@@ -204,4 +222,8 @@ const s = StyleSheet.create({
     paddingVertical: 13, alignItems: 'center',
   },
   logoutText: { fontFamily: fonts.serif, color: theme.paper, fontSize: 15 },
+  footer: { marginTop: 30 },
+  footerText: { fontFamily: fonts.serif, color: theme.muted, fontSize: 11, lineHeight: 16, textAlign: 'center' },
+  footerLinks: { flexDirection: 'row', justifyContent: 'center', gap: 22, marginTop: 10 },
+  footerLink: { fontFamily: fonts.serif, color: theme.gold, fontSize: 13 },
 });
