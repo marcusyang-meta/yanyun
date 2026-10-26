@@ -8,7 +8,7 @@
  * 实体定义镜像 (生产结构零变更, 这里只是本地验证夹具)。
  *
  * 用法: node scripts/verify-repositories-d1.mjs [section]
- *   section 省略 = 全部; 目前有 tenants / events / gear / users / members / results / dex / state / ddl 九段,
+ *   section 省略 = 全部; 目前有 tenants / events / gear / users / members / results / dex / state / ddl / guard 十段,
  *   随数据层迁移进度增补。退出码非 0 = 有断言失败。
  * =================================================== */
 import { Miniflare, convertV4MiniflareOptions } from 'miniflare';
@@ -661,6 +661,53 @@ if (want('state')) {
 }
 
 /* ---------------- lazy DDL ownership (ensures live in repositories) --- */
+/* ---------------- capacity guard (red-line [13/16]) ---------------- */
+if (want('guard')) {
+  console.log('== capacity guard on real D1 ==');
+  const evRepo = await import('../src/domains/groupings/events.ts');
+  const suRepo = await import('../src/domains/groupings/signups.ts');
+
+  const race = await evRepo.insertEvent(db, {
+    tenant: 'guard', title: '竞速车', type: 'activity', description: '', starts_at: '',
+    starts_at_utc: 1800000000, max_slots: 1, status: 'open', origin: 'member', created_by: 'x',
+  });
+  const raceId = race.last_row_id;
+  // 8 concurrent joins race for a single seat: exactly one may land.
+  const outcomes = await Promise.all(Array.from({ length: 8 }, (_, i) =>
+    suRepo.insertSignupWithCapacityGuard(db, {
+      event_id: raceId, nickname: '竞速' + i, uid: 'race' + i, role: '奶', weapon: '牵丝·霖',
+    })));
+  eq('race: exactly one inserted', outcomes.filter((o) => o.outcome === 'inserted').length, 1);
+  eq('race: seven rejected full', outcomes.filter((o) => o.outcome === 'full').length, 7);
+  eq('race: final seat count is 1', await suRepo.countSignupsByEvent(db, raceId), 1);
+
+  // Last seat with no healer in the car rolls back.
+  const heal = await evRepo.insertEvent(db, {
+    tenant: 'guard', title: '治疗校验车', type: 'activity', description: '', starts_at: '',
+    starts_at_utc: 1800000000, max_slots: 1, status: 'open', origin: 'member', created_by: 'x',
+  });
+  const healId = heal.last_row_id;
+  const dps = await suRepo.insertSignupWithCapacityGuard(db, {
+    event_id: healId, nickname: '输出君', uid: 'dps1', role: '输出', weapon: '破竹·风',
+  });
+  eq('no-healer last seat -> needsHealer', dps.outcome, 'needsHealer');
+  eq('rollback removed the row', await suRepo.countSignupsByEvent(db, healId), 0);
+  const healerJoin = await suRepo.insertSignupWithCapacityGuard(db, {
+    event_id: healId, nickname: '奶妈', uid: 'heal1', role: '奶', weapon: '牵丝·霖',
+  });
+  eq('healer takes the seat', healerJoin.outcome, 'inserted');
+
+  // Closed events reject through the same guard.
+  const closed = await evRepo.insertEvent(db, {
+    tenant: 'guard', title: '已截止车', type: 'activity', description: '', starts_at: '',
+    starts_at_utc: 1800000000, max_slots: 5, status: 'closed', origin: 'member', created_by: 'x',
+  });
+  const closedJoin = await suRepo.insertSignupWithCapacityGuard(db, {
+    event_id: closed.last_row_id, nickname: '迟到', uid: 'late1', role: '奶', weapon: '牵丝·霖',
+  });
+  eq('closed event -> full', closedJoin.outcome, 'full');
+}
+
 if (want('ddl')) {
   console.log('== repository-owned lazy DDL on real D1 ==');
   const ev = await import('../src/domains/groupings/events.ts');

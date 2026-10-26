@@ -6,10 +6,10 @@
  * last_row_id), 与旧 .run() 结果同形。写法沿用一期 sql 模板惯用
  * 法 + sql.identifier 裸列名内插。
  *
- * 本期红线 (有意不迁, 仍在调用方): 容量守卫的原子
- * INSERT ... SELECT ... WHERE COUNT < max_slots (graphql.js /
- * worker.js 各一份, 与其满员回滚判断是一条原子性单元) 与提及解析
- * 的身份戳 UPDATE (worker.js 提及单元)。
+ * 红线收口 (三期 [13/16]): 容量守卫的原子 INSERT ... SELECT ...
+ * WHERE COUNT < max_slots 与其满员治疗回滚判断是一条原子性单元,
+ * 由 insertSignupWithCapacityGuard 封装 (GraphQL joinGrouping 与
+ * REST 报名两处共用)。
  * =================================================== */
 import { sql } from 'drizzle-orm';
 import { createDb, schema } from '../../db/client.ts';
@@ -155,6 +155,36 @@ export async function getSignupCapacityStats(
     sql`SELECT (SELECT COUNT(*) FROM ${signups} WHERE ${col('event_id')} = ${eventId}) AS c, (SELECT COUNT(*) FROM ${signups} WHERE ${col('event_id')} = ${eventId} AND ${col('role')} IN ('奶', '治疗')) AS h, (SELECT ${col('max_slots')} FROM ${events} WHERE ${col('id')} = ${eventId}) AS m`,
   );
   return row ?? null;
+}
+
+/* ---------- 红线收口: 容量守卫原子插入 + 满员治疗回滚对 ----------
+ * 名额判断与插入在一条语句内完成 (SQLite 单语句原子执行, 并发
+ * 报名不可能超卖); 插入后若车已满员且全队无治疗, 本次落座回滚
+ * (最后一席必须是治疗的旧规则)。UNIQUE 冲突 (同 uid 重复报名)
+ * 照旧抛给调用方映射文案。 */
+export type GuardedSignupOutcome =
+  | { outcome: 'inserted'; signupId: number }
+  | { outcome: 'full' }
+  | { outcome: 'needsHealer' };
+
+export async function insertSignupWithCapacityGuard(
+  d1: D1Database, row: Record<string, unknown>,
+): Promise<GuardedSignupOutcome> {
+  const db = createDb(d1);
+  const cols = checkedColumns(row);
+  const eventId = row.event_id;
+  const r = await db.run(sql`INSERT INTO ${signups} (${sql.join(cols.map((c) => col(c)), sql`, `)})
+    SELECT ${sql.join(cols.map((c) => sql`${row[c]}`), sql`, `)}
+    WHERE (SELECT COUNT(*) FROM ${signups} WHERE ${col('event_id')} = ${eventId})
+        < (SELECT ${col('max_slots')} FROM ${events} WHERE ${col('id')} = ${eventId} AND ${col('status')} = 'open')`);
+  const meta = metaOf(r);
+  if (!meta.changes) return { outcome: 'full' };
+  const full = await getSignupCapacityStats(d1, Number(eventId));
+  if (full && full.c >= (full.m as number) && full.h === 0) {
+    await deleteSignupById(d1, meta.last_row_id);
+    return { outcome: 'needsHealer' };
+  }
+  return { outcome: 'inserted', signupId: meta.last_row_id };
 }
 
 /* 管理员删座前的归属校验 (该座位所属车确属本百业)。 */

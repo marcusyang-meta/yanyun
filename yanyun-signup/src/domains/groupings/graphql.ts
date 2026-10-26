@@ -36,8 +36,8 @@ import {
   insertEvent, updateEventFields, setEventStatus, deleteEventCascade,
 } from './index.ts';
 import {
-  listSignupSeats, listSignupSeatsBasic, listSignupNamesStamps, getSignupCapacityStats,
-  insertSignups, deleteSignupById, deleteSignupByEventUid, deleteSignupsByEvent,
+  listSignupSeats, listSignupSeatsBasic, listSignupNamesStamps,
+  insertSignups, insertSignupWithCapacityGuard, deleteSignupByEventUid, deleteSignupsByEvent,
   updateSignupWeaponRoleByUid,
 } from './index.ts';
 import {
@@ -939,18 +939,11 @@ export const groupingsResolvers = {
         stamp = String(ctx.user.discordId);
       }
       try {
-        const r = await db.prepare(
-          `INSERT INTO signups (event_id, nickname, uid, role, weapon, discord_id)
-           SELECT ?, ?, ?, ?, ?, ?
-           WHERE (SELECT COUNT(*) FROM signups WHERE event_id = ?)
-               < (SELECT max_slots FROM events WHERE id = ? AND status = 'open')`
-        ).bind(gid, nickname, uid, roleOf(weapon), weapon, stamp, gid, gid).run();
-        if (!r.meta.changes) return sFail(ctx, 'groupingFull');
-        const full = await getSignupCapacityStats(db, gid);
-        if (full && full.c >= (full.m as number) && full.h === 0) {
-          await deleteSignupById(db, r.meta.last_row_id);
-          return sFail(ctx, 'lastSeatHealer');
-        }
+        const r = await insertSignupWithCapacityGuard(db, {
+          event_id: gid, nickname, uid, role: roleOf(weapon), weapon, discord_id: stamp,
+        });
+        if (r.outcome === 'full') return sFail(ctx, 'groupingFull');
+        if (r.outcome === 'needsHealer') return sFail(ctx, 'lastSeatHealer');
       } catch (e) {
         if (String((e as any).message).includes('UNIQUE')) return sFail(ctx, 'alreadyJoined');
         throw e;
