@@ -15,6 +15,7 @@ import {
 } from './reminder.js';
 import { getHeirloomConfig, sendHeirloomTest, heirloomStatusFor } from './heirloompush.js';
 import { maybeRunCreatorBackfill } from './creatorbackfill.js';
+import { maybeRunCreatorManualFix } from './creatormanualfix.js';
 
 const TYPES = { activity: '双十人本', talent: '天赋组队', race: '竞速', tower: '爬塔', gather: '采集', explore: '探索' };
 const ROLES = ['输出', '承伤', '奶', '治疗', '随意'];
@@ -1835,6 +1836,9 @@ app.all('/graphql', async (c) => {
   // 安全闸 + settings 标志守卫, preview/localhost 恒不触发; waitUntil
   // 异步执行, 失败静默不影响本次请求。
   try { c.executionCtx.waitUntil(maybeRunCreatorBackfill(c.env, c.req.raw)); } catch { /* 无 executionCtx 的上下文静默 */ }
+  // 一次性人工归属修正 (39/40 号车, 用户 2026-10-25 口头指定): 同上,
+  // 函数内有生产 host 安全闸 + settings 标志守卫, preview 恒不触发。
+  try { c.executionCtx.waitUntil(maybeRunCreatorManualFix(c.env, c.req.raw)); } catch { /* 无 executionCtx 的上下文静默 */ }
   if (checked.clearCookie) {
     const headers = new Headers(res.headers);
     headers.append('set-cookie', sessionCookieHeader('', 0));
