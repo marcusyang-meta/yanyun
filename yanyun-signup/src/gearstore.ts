@@ -1,5 +1,5 @@
 // 配装台装备库存储 (按 Discord 账号归属; 2026-10-24 用户裁决: 不用 localStorage)
-// 行级读写走数据层 (src/db/repositories/gear.ts); 本文件只剩懒 DDL、
+// 行级读写走数据层 (src/domains/gear/gear.ts); 本文件只剩懒 DDL、
 // payload JSON 序列化与行->领域对象映射。
 // user_gear_items: 单件装备 (词条/定音/流派标签存 payload JSON, 已经过 gearplanner sanitize)
 // user_gear_builds: 保存的方案 (搭配 item-id 组合 + 固定源字段状态 + 服务端算出的快照)
@@ -8,7 +8,7 @@ import {
   listGearItemRows, insertGearItemRow, updateGearItemRow as updateGearItemRowData,
   deleteGearItemRow as deleteGearItemRowData, listGearBuildRows, insertGearBuildRow,
   deleteGearBuildRow as deleteGearBuildRowData,
-} from './db/repositories/gear.ts';
+} from './domains/gear/index.ts';
 
 let gearTablesReady: Promise<void> | null = null;
 export function ensureGearTables(db: any) {

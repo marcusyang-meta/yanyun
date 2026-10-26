@@ -16,7 +16,7 @@
  * (results 本期无独立 repository, 只作为级联一环出现在这里)。
  * =================================================== */
 import { sql } from 'drizzle-orm';
-import { createDb, schema } from '../client.ts';
+import { createDb, schema } from '../../db/client.ts';
 
 const { events, signups, results } = schema;
 const col = (name: string) => sql.identifier(name);
@@ -41,7 +41,7 @@ export interface EventRow {
   reminder_error: string | null;
 }
 
-export interface RunMeta {
+interface RunMeta {
   changes: number;
   last_row_id: number;
 }

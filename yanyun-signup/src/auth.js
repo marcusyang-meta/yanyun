@@ -1,12 +1,12 @@
 import { SUPPORTED_LOCALES } from './i18n.js';
-import { listDistinctSettingValues } from './db/repositories/settings.ts';
+import { listDistinctSettingValues } from './domains/guilds/index.ts';
 import {
   ensureUsersTable, ensureUsersLocaleColumn as ensureUsersLocaleColumnRepo,
   ensureNickStoreTables, upsertUserOnLogin, getUserLocalePref as getUserLocalePrefRepo,
   setUserLocalePref as setUserLocalePrefRepo, getUserGuildsJson, getOAuthGrant,
   getOAuthRefresh, upsertOAuthOnLogin, updateOAuthAfterRefresh, markOAuthNeedsRelogin,
   upsertNick as upsertNickRepo, touchNick as touchNickRepo, getNickRow, listNickRowsByUser,
-} from './db/repositories/users.ts';
+} from './domains/identity/index.ts';
 
 // Discord OAuth + 无状态 JWT 会话 (yy_session cookie)
 // 会话载荷: { sub: discord_id, name, avatar, guilds: [服务器 id...], gm?: [{i, p}], iat, exp }
@@ -132,7 +132,7 @@ export async function getSessionUserChecked(request, env) {
 
 /* ================= D1: users 表 (懒迁移已归数据层 users repository) =================
  * ensureSchema / ensureUsersLocaleColumn 保留旧名导出, 本体在仓库内
- * (src/db/repositories/users.ts), 缓存/重试语义与旧实现一致。 */
+ * (src/domains/identity/users.ts), 缓存/重试语义与旧实现一致。 */
 
 /* ---------- 界面语言偏好 (账号级, 存 users.locale_pref) ----------
  * null = 自动 (跟随浏览器语言); 有值时压过浏览器语言。懒 DDL 加列,

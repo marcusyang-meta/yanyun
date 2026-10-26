@@ -8,7 +8,7 @@ import { logError } from './errorlog.js';
 import {
   upsertPushToken, deletePushTokenForUser, deletePushTokenEverywhere as deleteTokenEverywhere,
   listPushTokensForUsers,
-} from './db/repositories/pushTokens.ts';
+} from './domains/platform/index.ts';
 
 // 发送走 Expo Push Service HTTP API; DeviceNotRegistered 的令牌立即自清
 // (tickets 与 receipts 两处都查)。全模块失败隔离: 任何异常只记日志, 绝不

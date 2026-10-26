@@ -7,8 +7,8 @@
 
 import {
   getGuildAvatarMetaRow, getGuildAvatarRow, putGuildAvatarRow, deleteGuildAvatarRow,
-} from './db/repositories/guildAvatars.ts';
-import { getTenantRow } from './db/repositories/tenants.ts';
+} from './domains/guilds/index.ts';
+import { getTenantRow } from './domains/guilds/index.ts';
 
 export const AVATAR_MAX_BYTES = 400 * 1024; // 存入 blob 上限 (前端已裁方缩到 ≤512)
 export const AVATAR_CONTENT_TYPES = ['image/png', 'image/jpeg', 'image/webp'];

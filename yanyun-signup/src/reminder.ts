@@ -1,18 +1,18 @@
 import { sendDeparturePush } from './push.js';
 import { logError } from './errorlog.js';
 import { webhookIdentity } from './guildavatar.ts';
-import { getTenantRow } from './db/repositories/tenants.ts';
-import { getSettingValue, setSettingValue } from './db/repositories/settings.ts';
+import { getTenantRow } from './domains/guilds/index.ts';
+import { getSettingValue, setSettingValue } from './domains/guilds/index.ts';
 import {
   nextPendingReminderStart, listDueReminderEvents, markReminderSent, markReminderError,
-} from './db/repositories/events.ts';
-import { listSignupSeatsForReminder } from './db/repositories/signups.ts';
-import { getUsernameRow, listUsersDirectory, listNicksByGuild, getNickRow } from './db/repositories/users.ts';
+} from './domains/groupings/index.ts';
+import { listSignupSeatsForReminder } from './domains/groupings/index.ts';
+import { getUsernameRow, listUsersDirectory, listNicksByGuild, getNickRow } from './domains/identity/index.ts';
 import {
   ensureGuildMembersTable as ensureGuildMembersTableRepo,
   upsertGuildMember as upsertGuildMemberRepo,
   listGuildMembers, getGuildMember,
-} from './db/repositories/guildMembers.ts';
+} from './domains/identity/index.ts';
 
 // Discord 开车提醒 (2026-10-24 用户定型)
 // 形态: 管理员 portal 按百业配一个频道 Webhook (tenants.discord_webhook,
@@ -85,7 +85,7 @@ export function ensureSignupDiscordColumn(db: any) {
 /* ---------- 百业成员名册 (guild_members): 本体已归数据层 ----------
  * ensureGuildMembersTable / upsertGuildMember 保留旧名导出作委托
  * (creatorbackfill / creatormanualfix 等仍从本模块引); 实现与懒 DDL
- * 在 src/db/repositories/guildMembers.ts。 */
+ * 在 src/domains/identity/guildMembers.ts。 */
 export function ensureGuildMembersTable(db: any) {
   return ensureGuildMembersTableRepo(db);
 }

@@ -3,8 +3,8 @@
 // behavior of each function it backs. Table DDL remains the lazy
 // ensurePushTokensTable in push.js this phase.
 import { sql } from 'drizzle-orm';
-import { createDb } from '../client.ts';
-import { pushTokens } from '../schema.ts';
+import { createDb } from '../../db/client.ts';
+import { pushTokens } from './schema.ts';
 
 interface TokenRow { discord_id: string; token: string }
 

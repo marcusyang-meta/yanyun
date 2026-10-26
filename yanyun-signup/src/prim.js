@@ -9,7 +9,7 @@
 // 与功能块拼树 (genBlocks) 同源同数据 — 权限仍由「服务端给谁什么树」
 // 决定, 解释器只画树, 不做任何表面/权限选择。
 //
-import { getSettingValue } from './db/repositories/settings.ts';
+import { getSettingValue } from './domains/guilds/index.ts';
 
 // 线格式 (冻结词汇 v1, 节点短键 t/s/c/x/a):
 //   col  {t,s?,gap?,c}      纵向 flex 容器 (带样式的单子容器也是它)

@@ -97,7 +97,7 @@ const want = (s) => section === 'all' || section === s;
 /* ---------------- tenants ---------------- */
 if (want('tenants')) {
   console.log('== tenants repository on real D1 ==');
-  const repo = await import('../src/db/repositories/tenants.ts');
+  const repo = await import('../src/domains/guilds/tenants.ts');
 
   await repo.insertTenant(db, { slug: 'alpha', guildName: '甲百业', passwordHash: 'h1', announcement: '' });
   await repo.insertTenant(db, { slug: 'beta', guildName: '乙百业', passwordHash: 'h2', announcement: '公告乙' });
@@ -163,8 +163,8 @@ if (want('tenants')) {
 /* ---------------- events + signups ---------------- */
 if (want('events')) {
   console.log('== events/signups repositories on real D1 ==');
-  const evRepo = await import('../src/db/repositories/events.ts');
-  const suRepo = await import('../src/db/repositories/signups.ts');
+  const evRepo = await import('../src/domains/groupings/events.ts');
+  const suRepo = await import('../src/domains/groupings/signups.ts');
   const NOW = 1_800_000_000;
 
   const ins1 = await evRepo.insertEvent(db, {
@@ -306,7 +306,7 @@ if (want('events')) {
 /* ---------------- gear ---------------- */
 if (want('gear')) {
   console.log('== gear repository + gearstore on real D1 ==');
-  const repo = await import('../src/db/repositories/gear.ts');
+  const repo = await import('../src/domains/gear/gear.ts');
   const store = await import('../src/gearstore.ts');
 
   const ins = await repo.insertGearItemRow(db, {
@@ -368,7 +368,7 @@ if (want('gear')) {
 /* ---------------- users / oauth / nicks ---------------- */
 if (want('users')) {
   console.log('== users repository on real D1 ==');
-  const repo = await import('../src/db/repositories/users.ts');
+  const repo = await import('../src/domains/identity/users.ts');
 
   // 懒 DDL 本体在真 D1 上可执行 (表已由夹具建好, IF NOT EXISTS 幂等)
   await repo.ensureUsersTable(db);
@@ -438,7 +438,7 @@ if (want('users')) {
 /* ---------------- guild_members ---------------- */
 if (want('members')) {
   console.log('== guild_members repository on real D1 ==');
-  const repo = await import('../src/db/repositories/guildMembers.ts');
+  const repo = await import('../src/domains/identity/guildMembers.ts');
 
   await repo.ensureGuildMembersTable(db);
   await repo.upsertGuildMember(db, 'alpha', 'U1', '服内甲', '全局甲');
@@ -461,9 +461,9 @@ if (want('members')) {
 /* ---------------- results ---------------- */
 if (want('results')) {
   console.log('== results repository on real D1 ==');
-  const repo = await import('../src/db/repositories/results.ts');
-  const evRepo = await import('../src/db/repositories/events.ts');
-  const tnRepo = await import('../src/db/repositories/tenants.ts');
+  const repo = await import('../src/domains/groupings/results.ts');
+  const evRepo = await import('../src/domains/groupings/events.ts');
+  const tnRepo = await import('../src/domains/guilds/tenants.ts');
 
   await tnRepo.insertTenant(db, { slug: 'r-one', guildName: '丙百业', passwordHash: 'h3', announcement: '' });
   await tnRepo.insertTenant(db, { slug: 'r-two', guildName: '丁百业', passwordHash: 'h4', announcement: '' });

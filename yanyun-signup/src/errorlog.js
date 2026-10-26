@@ -15,7 +15,7 @@
 // 留存封顶: 30 天 + 总行数上限, 写入时按计数节流触发懒清理, 不设 cron。
 import {
   insertErrorLog, pruneErrorLog, listRecentErrors, countErrorsSince,
-} from './db/repositories/errorLog.ts';
+} from './domains/platform/index.ts';
 
 const KEEP_DAYS = 30;
 const MAX_ROWS = 5000;

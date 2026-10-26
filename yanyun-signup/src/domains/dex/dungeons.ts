@@ -1,0 +1,154 @@
+/* ===================================================
+ * dungeons 实体的数据层访问 (Repository)。
+ *
+ * 三期迁入: 此前散在 graphql.js (shell 点查、图鉴列表、当前版本、
+ * 赛季列懒 DDL、发车时按 id 取名) 与 worker.js (pub/hub 列表、
+ * 当期更新、赛季图一次性迁移、OG 副本名) 的全部 dungeons 语句。
+ * 赛季/分类/等级列的懒 DDL 归本仓库, graphql.js 的
+ * ensureDungeonDexColumns 保留旧名导出作委托。
+ * 返回行沿用 snake_case 键, 调用点零感知。
+ * =================================================== */
+import { sql } from 'drizzle-orm';
+import { createDb, schema } from '../../db/client.ts';
+
+const { dungeons } = schema;
+const col = (name: string) => sql.identifier(name);
+
+export interface DungeonRow {
+  id: number;
+  name: string;
+  size: number;
+  is_current: number;
+  sort_order: number;
+  video_url: string;
+  video_title: string;
+  season: string | null;
+  category: string | null;
+  level: number | null;
+  version: string | null;
+}
+
+interface RunMeta {
+  changes: number;
+  last_row_id: number;
+}
+
+function metaOf(r: unknown): RunMeta {
+  const m = (r as { meta?: { changes?: number; last_row_id?: number } } | null)?.meta;
+  return { changes: m?.changes ?? 0, last_row_id: m?.last_row_id ?? 0 };
+}
+
+/* ---------- 懒 DDL: 赛季/分类/等级列 ---------- */
+
+let dungeonDexColsReady: Promise<void> | null = null;
+export function ensureDungeonDexColumns(d1: D1Database): Promise<void> {
+  if (!dungeonDexColsReady) {
+    dungeonDexColsReady = (async () => {
+      try {
+        const db = createDb(d1);
+        const results = await db.all<{ name: string }>(sql`PRAGMA table_info(${dungeons})`);
+        const cols = new Set((results || []).map((r) => r.name));
+        if (!cols.has('season')) await db.run(sql`ALTER TABLE ${dungeons} ADD COLUMN ${col('season')} TEXT`);
+        if (!cols.has('category')) await db.run(sql`ALTER TABLE ${dungeons} ADD COLUMN ${col('category')} TEXT`);
+        if (!cols.has('level')) await db.run(sql`ALTER TABLE ${dungeons} ADD COLUMN ${col('level')} INTEGER`);
+      } catch { /* 列已存在等情况静默 */ }
+    })();
+  }
+  return dungeonDexColsReady;
+}
+
+/* ---------- 读取 ---------- */
+
+export async function getDungeonByName(d1: D1Database, name: string): Promise<DungeonRow | null> {
+  const db = createDb(d1);
+  const row = await db.get<DungeonRow>(sql`SELECT * FROM ${dungeons} WHERE ${col('name')} = ${name}`);
+  return row ?? null;
+}
+
+export async function getDungeonById(d1: D1Database, id: number): Promise<DungeonRow | null> {
+  const db = createDb(d1);
+  const row = await db.get<DungeonRow>(sql`SELECT * FROM ${dungeons} WHERE ${col('id')} = ${id}`);
+  return row ?? null;
+}
+
+export async function getDungeonNameSizeById(
+  d1: D1Database, id: number,
+): Promise<{ name: string; size: number } | null> {
+  const db = createDb(d1);
+  const row = await db.get<{ name: string; size: number }>(
+    sql`SELECT ${col('name')}, ${col('size')} FROM ${dungeons} WHERE ${col('id')} = ${id}`,
+  );
+  return row ?? null;
+}
+
+const PUBLIC_COLUMNS = sql`${col('id')}, ${col('name')}, ${col('size')}, ${col('is_current')}, ${col('version')}, ${col('video_url')}, ${col('video_title')}`;
+const PUBLIC_ORDER = sql`${col('size')} DESC, ${col('sort_order')} DESC, ${col('id')} ASC`;
+
+/** 公开/hub 列表 (轻量列集)。 */
+export async function listDungeonsPublic(d1: D1Database): Promise<Array<Record<string, unknown>>> {
+  const db = createDb(d1);
+  const rows = await db.all<Record<string, unknown>>(
+    sql`SELECT ${PUBLIC_COLUMNS} FROM ${dungeons} ORDER BY ${PUBLIC_ORDER}`,
+  );
+  return rows || [];
+}
+
+/** 图鉴页列表 (整行)。 */
+export async function listDungeonsDex(d1: D1Database): Promise<DungeonRow[]> {
+  const db = createDb(d1);
+  const rows = await db.all<DungeonRow>(sql`SELECT * FROM ${dungeons} ORDER BY ${PUBLIC_ORDER}`);
+  return rows || [];
+}
+
+/** 当前游戏版本: 取最新一条带真实 version 的副本行。 */
+export async function getLatestDungeonVersion(d1: D1Database): Promise<string | null> {
+  const db = createDb(d1);
+  const row = await db.get<{ version: string }>(
+    sql`SELECT ${col('version')} FROM ${dungeons} WHERE ${col('version')} IS NOT NULL AND ${col('version')} != '' AND ${col('version')} != 'legacy' GROUP BY ${col('version')} ORDER BY MAX(${col('id')}) DESC LIMIT 1`,
+  );
+  return row?.version ?? null;
+}
+
+export async function countDungeons(d1: D1Database): Promise<number> {
+  const db = createDb(d1);
+  const row = await db.get<{ n: number }>(sql`SELECT COUNT(*) AS ${col('n')} FROM ${dungeons}`);
+  return row?.n ?? 0;
+}
+
+/* ---------- 写入 ---------- */
+
+const DUNGEON_COLUMNS = new Set([
+  'name', 'size', 'is_current', 'sort_order', 'video_url', 'video_title',
+  'season', 'category', 'level', 'version',
+]);
+
+export async function insertDungeonDex(
+  d1: D1Database,
+  row: { name: string; size: number; season: string; category: string; level: number },
+): Promise<RunMeta> {
+  const db = createDb(d1);
+  const r = await db.run(
+    sql`INSERT INTO ${dungeons} (${col('name')}, ${col('size')}, ${col('is_current')}, ${col('version')}, ${col('video_url')}, ${col('video_title')}, ${col('sort_order')}, ${col('season')}, ${col('category')}, ${col('level')}) VALUES (${row.name}, ${row.size}, 0, 'legacy', '', '', 0, ${row.season}, ${row.category}, ${row.level})`,
+  );
+  return metaOf(r);
+}
+
+export async function updateDungeonFields(
+  d1: D1Database, id: number, patch: Record<string, unknown>,
+): Promise<RunMeta> {
+  const db = createDb(d1);
+  const cols = Object.keys(patch);
+  for (const c of cols) {
+    if (!DUNGEON_COLUMNS.has(c)) throw new Error(`dungeons repository: unknown column ${c}`);
+  }
+  if (!cols.length) throw new Error('dungeons repository: empty patch');
+  const sets = sql.join(cols.map((c) => sql`${col(c)} = ${patch[c]}`), sql`,`);
+  const r = await db.run(sql`UPDATE ${dungeons} SET ${sets} WHERE ${col('id')} = ${id}`);
+  return metaOf(r);
+}
+
+export async function deleteDungeonById(d1: D1Database, id: number): Promise<RunMeta> {
+  const db = createDb(d1);
+  const r = await db.run(sql`DELETE FROM ${dungeons} WHERE ${col('id')} = ${id}`);
+  return metaOf(r);
+}

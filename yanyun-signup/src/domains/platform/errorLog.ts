@@ -3,8 +3,8 @@
 // stays in errorlog.js; this file owns only the statements. Table DDL
 // remains the lazy ensureErrorLogTable in errorlog.js this phase.
 import { sql } from 'drizzle-orm';
-import { createDb } from '../client.ts';
-import { errorLog } from '../schema.ts';
+import { createDb } from '../../db/client.ts';
+import { errorLog } from './schema.ts';
 
 export interface ErrorLogRow {
   id: number;

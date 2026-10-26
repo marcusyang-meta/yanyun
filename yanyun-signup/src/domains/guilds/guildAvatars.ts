@@ -4,8 +4,8 @@
 // mirroring the legacy .catch(() => null) call sites. Table DDL remains
 // the lazy ensureGuildAvatarsTable in guildavatar.js this phase.
 import { sql } from 'drizzle-orm';
-import { createDb } from '../client.ts';
-import { guildAvatars } from '../schema.ts';
+import { createDb } from '../../db/client.ts';
+import { guildAvatars } from './schema.ts';
 
 export interface GuildAvatarMeta {
   contentType: string;

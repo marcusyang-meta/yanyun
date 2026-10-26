@@ -8,12 +8,12 @@
  * 写法沿用一期 sql 模板惯用法 + sql.identifier 裸列名内插。
  * =================================================== */
 import { sql } from 'drizzle-orm';
-import { createDb, schema } from '../client.ts';
+import { createDb, schema } from '../../db/client.ts';
 
 const { userGearItems, userGearBuilds } = schema;
 const col = (name: string) => sql.identifier(name);
 
-export interface RunMeta {
+interface RunMeta {
   changes: number;
   last_row_id: number;
 }

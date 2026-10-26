@@ -16,8 +16,8 @@
 // src/db/schema.ts while execution stays on the prepare/bind/all/run
 // surface that D1 (and the harness FakeDBs) implement.
 import { sql } from 'drizzle-orm';
-import { createDb } from '../client.ts';
-import { settings } from '../schema.ts';
+import { createDb } from '../../db/client.ts';
+import { settings } from './schema.ts';
 
 interface ValueRow { value: string }
 interface TenantValueRow { tenant: string; value: string }

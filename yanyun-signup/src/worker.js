@@ -25,23 +25,23 @@ import {
 import {
   getSettingValue, setSettingValue, listSettingsByKey,
   listNonEmptySettingsByKey, listGlobalSettings,
-} from './db/repositories/settings.ts';
+} from './domains/guilds/index.ts';
 import {
   getTenantRow, getTenantSlug, listTenantSlugs, listTenantsDirectory, listTenantsHubAdmin,
   updateTenantWebhook, updateTenantProfile, updateTenantFixedTeams, deleteTenantCascade,
-} from './db/repositories/tenants.ts';
+} from './domains/guilds/index.ts';
 import {
   getEventRow, getEventRowByTenant, getEventIdByTenant, getEventIdStatusByTenant,
   listEventsWeekView, listEventsAdmin, countActivityEventsInWindow,
   insertEvent, updateEventFields, setEventStatus, deleteEventCascade,
-} from './db/repositories/events.ts';
+} from './domains/groupings/index.ts';
 import {
   listSignupsByEvent, listSignupDetailRows, countSignupsByEvent, getSignupCapacityStats,
   getSignupTenant, insertSignups, deleteSignupById, deleteSignupByIdAndEvent,
   deleteSignupByEventNickUid, deleteSignupsByEvent, updateSignupWeaponRoleById,
-} from './db/repositories/signups.ts';
-import { listUsersDirectory, listNicksByGuild, listAllNicks } from './db/repositories/users.ts';
-import { listResultsByEvent, insertResult, getResultIdOwnedByTenant, deleteResultById } from './db/repositories/results.ts';
+} from './domains/groupings/index.ts';
+import { listUsersDirectory, listNicksByGuild, listAllNicks } from './domains/identity/index.ts';
+import { listResultsByEvent, insertResult, getResultIdOwnedByTenant, deleteResultById } from './domains/groupings/index.ts';
 
 const TYPES = { activity: '双十人本', talent: '天赋组队', race: '竞速', tower: '爬塔', gather: '采集', explore: '探索' };
 const ROLES = ['输出', '承伤', '奶', '治疗', '随意'];
