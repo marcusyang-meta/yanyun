@@ -128,6 +128,7 @@ export const SeatGridBlockFragment = graphql`
       weapon
       role
       healer
+      isLeader
       action {
         ...fragments_BlockAction
       }

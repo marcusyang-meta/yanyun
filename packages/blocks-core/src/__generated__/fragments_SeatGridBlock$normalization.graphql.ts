@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<5113012f3eb2083a4c1c4336c78ba24e>>
+ * @generated SignedSource<<9b8aeac21a5f1cedbd7f7da8030b395e>>
  * @lightSyntaxTransform
  */
 
@@ -109,6 +109,13 @@ return {
           "args": null,
           "kind": "ScalarField",
           "name": "healer",
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "isLeader",
           "storageKey": null
         },
         {
@@ -234,6 +241,6 @@ return {
 };
 })();
 
-(node as any).hash = "c866f27d55214d759795c6d0ec78ca94";
+(node as any).hash = "9b8faf9240ea39909a633fdf3e2fc932";
 
 export default node;

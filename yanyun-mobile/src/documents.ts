@@ -285,6 +285,7 @@ export const DetailPageTextQuery = graphql`
       seatToastLeaveFailedTemplate
       seatEmptyJoinLabel
       seatEmptyLabel
+      seatLeaderLabel
       seatModalTitleTemplate
       seatModalSubtitle
       seatNameLabel

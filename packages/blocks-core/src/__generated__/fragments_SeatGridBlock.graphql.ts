@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<5f9fb5356910d4e25b02d327ac88eb3d>>
+ * @generated SignedSource<<c78581436979b2cea4c0f9e53a5c9619>>
  * @lightSyntaxTransform
  */
 
@@ -16,6 +16,7 @@ export type fragments_SeatGridBlock$data = {
     } | null | undefined;
     readonly healer: boolean;
     readonly index: number;
+    readonly isLeader: boolean;
     readonly nickname: string | null | undefined;
     readonly occupied: boolean;
     readonly role: string | null | undefined;
@@ -87,6 +88,13 @@ const node: ReaderFragment = {
         {
           "alias": null,
           "args": null,
+          "kind": "ScalarField",
+          "name": "isLeader",
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
           "concreteType": null,
           "kind": "LinkedField",
           "name": "action",
@@ -108,6 +116,6 @@ const node: ReaderFragment = {
   "abstractKey": null
 };
 
-(node as any).hash = "c866f27d55214d759795c6d0ec78ca94";
+(node as any).hash = "9b8faf9240ea39909a633fdf3e2fc932";
 
 export default node;

@@ -17,6 +17,7 @@ export interface LeafPageText {
   statusOpenLabel?: string;
   seatEmptyJoinLabel?: string;
   seatEmptyLabel?: string;
+  seatLeaderLabel?: string;
 }
 
 // 动作处理器: 由宿主端实现 (导航去向、mutation 落地各端自理)。

@@ -194,6 +194,7 @@ type SeatEntry {
   weapon: String
   role: String
   healer: Boolean!
+  isLeader: Boolean!
   action: Action
 }
 
@@ -413,6 +414,7 @@ type GroupingDetailPage {
   seatCancelLabel: String!
   seatConfirmJoinLabel: String!
   seatJoiningLabel: String!
+  seatLeaderLabel: String!
   seatToastSect: String!
   seatToastJoined: String!
   seatToastJoinFailedTemplate: String!
