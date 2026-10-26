@@ -48,6 +48,16 @@ export const BlockActionFragment = graphql`
     ... on EditAction {
       groupingId
     }
+    ... on CompleteAction {
+      groupingId
+      confirmTitle
+      confirmMessage
+      okLabel
+      cancelLabel
+    }
+    ... on UncompleteAction {
+      groupingId
+    }
   }
 `;
 

@@ -13,7 +13,7 @@ import { EditGroupingFormMount } from '../components/GroupingForm';
 import { BlockNode1View } from '../blocks/BlockRenderer';
 import type { ActionHandlers } from '../blocks/actions';
 import { AsyncBoundary, LoadingView } from '../components/AsyncBoundary';
-import { disbandGrouping, joinGrouping, leaveGrouping } from '../api';
+import { completeGrouping, disbandGrouping, joinGrouping, leaveGrouping, reopenGrouping } from '../api';
 import { useGuildLive } from '../live';
 import { useSession } from '../session';
 import type { documentsGroupingDetailBlocksQuery } from '../__generated__/documentsGroupingDetailBlocksQuery.graphql';
@@ -57,12 +57,16 @@ export default function GroupingDetailScreen({ slug, id, nick, guildName, gameVe
   // 失败提示走详情页 shell 的 toast 模板 (与 Web toast 同源字段):
   // 模板整句即提示内容, {error} 填服务端报错, 无报错时填
   // commonUnknownErrorText; 模板本身拿不到才退到服务端报错原文。
-  const failText = async (which: 'leave' | 'disband', serverError?: string | null): Promise<string> => {
+  const failText = async (which: 'leave' | 'disband' | 'complete' | 'uncomplete', serverError?: string | null): Promise<string> => {
     try {
       const d = await fetchQuery<documentsDetailPageTextQuery>(env, DetailPageTextQuery, { slug, id }, { fetchPolicy: 'store-or-network' }).toPromise();
       const tpl = which === 'leave'
         ? d?.groupingDetailPage?.seatToastLeaveFailedTemplate
-        : d?.groupingDetailPage?.detailToastDisbandFailedTemplate;
+        : which === 'complete'
+          ? d?.groupingDetailPage?.detailToastCompleteFailedTemplate
+          : which === 'uncomplete'
+            ? d?.groupingDetailPage?.detailToastRestoreFailedTemplate
+            : d?.groupingDetailPage?.detailToastDisbandFailedTemplate;
       const unknown = d?.viewer?.commonUnknownErrorText;
       if (tpl) return fill(tpl, { error: serverError || unknown || '' });
       return serverError || unknown || '';
@@ -93,6 +97,26 @@ export default function GroupingDetailScreen({ slug, id, nick, guildName, gameVe
       })();
     },
     edit: (a) => setEditId(a.groupingId),
+    // 完成: 成功后原地刷新 — 树会切到已完成态 (状态片 + 恢复按钮),
+    // 列表侧该车已消失 (服务端过滤), 无需弹成功提示。
+    complete: (a) => {
+      void (async () => {
+        try {
+          const r = await completeGrouping(a.groupingId);
+          if (!r.ok) { Alert.alert(await failText('complete', r.error)); return; }
+          refresh();
+        } catch { Alert.alert(await failText('complete')); }
+      })();
+    },
+    uncomplete: (a) => {
+      void (async () => {
+        try {
+          const r = await reopenGrouping(a.groupingId);
+          if (!r.ok) { Alert.alert(await failText('uncomplete', r.error)); return; }
+          refresh();
+        } catch { Alert.alert(await failText('uncomplete')); }
+      })();
+    },
   };
 
   return (

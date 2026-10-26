@@ -127,6 +127,32 @@ export const DisbandGroupingMutation = graphql`
   }
 `;
 
+export const CompleteGroupingMutation = graphql`
+  mutation documentsCompleteGroupingMutation($id: ID!) {
+    completeGrouping(id: $id) {
+      ok
+      error
+      grouping {
+        id
+        status
+      }
+    }
+  }
+`;
+
+export const ReopenGroupingMutation = graphql`
+  mutation documentsReopenGroupingMutation($id: ID!) {
+    reopenGrouping(id: $id) {
+      ok
+      error
+      grouping {
+        id
+        status
+      }
+    }
+  }
+`;
+
 /* ---------- 发车 / 编辑 (与 Web GroupingForm 同一份契约与文案包) ---------- */
 
 // 发车表单的文案全部由页面 shell 的 form* 字段按 locale 下发 (本文件不
@@ -204,6 +230,8 @@ export const DetailPageTextQuery = graphql`
       detailBackToListLabel
       detailToastDisbanded
       detailToastDisbandFailedTemplate
+      detailToastCompleteFailedTemplate
+      detailToastRestoreFailedTemplate
       seatToastJoined
       seatToastJoinFailedTemplate
       seatToastLeft

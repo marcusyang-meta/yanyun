@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<e9a0c263aebd7edf3913c22f312ec73c>>
+ * @generated SignedSource<<9ec9fdbd8f3994615ec0410055de6f55>>
  * @lightSyntaxTransform
  */
 
@@ -45,7 +45,17 @@ v4 = {
   "kind": "ScalarField",
   "name": "cancelLabel",
   "storageKey": null
-};
+},
+v5 = [
+  (v0/*:: as any*/),
+  (v1/*:: as any*/),
+  (v2/*:: as any*/),
+  (v3/*:: as any*/),
+  (v4/*:: as any*/)
+],
+v6 = [
+  (v0/*:: as any*/)
+];
 return {
   "kind": "SplitOperation",
   "metadata": {},
@@ -185,22 +195,26 @@ return {
         },
         {
           "kind": "InlineFragment",
-          "selections": [
-            (v0/*:: as any*/),
-            (v1/*:: as any*/),
-            (v2/*:: as any*/),
-            (v3/*:: as any*/),
-            (v4/*:: as any*/)
-          ],
+          "selections": (v5/*:: as any*/),
           "type": "DisbandAction",
           "abstractKey": null
         },
         {
           "kind": "InlineFragment",
-          "selections": [
-            (v0/*:: as any*/)
-          ],
+          "selections": (v6/*:: as any*/),
           "type": "EditAction",
+          "abstractKey": null
+        },
+        {
+          "kind": "InlineFragment",
+          "selections": (v5/*:: as any*/),
+          "type": "CompleteAction",
+          "abstractKey": null
+        },
+        {
+          "kind": "InlineFragment",
+          "selections": (v6/*:: as any*/),
+          "type": "UncompleteAction",
           "abstractKey": null
         }
       ],

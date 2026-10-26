@@ -108,34 +108,42 @@ type GuildPage {
   tabs: [String!]!
 }
 
+scalar JSDependency
+
 interface Block {
   children: [Block!]!
+  js(module: String!, id: String): JSDependency
 }
 
 type SectionBlock implements Block {
   title: String
   children: [Block!]!
+  js(module: String!, id: String): JSDependency
 }
 
 type SectionHeaderBlock implements Block {
   text: String!
   children: [Block!]!
+  js(module: String!, id: String): JSDependency
 }
 
 type TextBlock implements Block {
   text: String!
   variant: String!
   children: [Block!]!
+  js(module: String!, id: String): JSDependency
 }
 
 type BannerBlock implements Block {
   text: String!
   children: [Block!]!
+  js(module: String!, id: String): JSDependency
 }
 
 type ChipRowBlock implements Block {
   chips: [String!]!
   children: [Block!]!
+  js(module: String!, id: String): JSDependency
 }
 
 type GroupingCardBlock implements Block {
@@ -148,11 +156,13 @@ type GroupingCardBlock implements Block {
   statusText: String!
   action: Action
   children: [Block!]!
+  js(module: String!, id: String): JSDependency
 }
 
 type SeatGridBlock implements Block {
   seats: [SeatEntry!]!
   children: [Block!]!
+  js(module: String!, id: String): JSDependency
 }
 
 type SeatEntry {
@@ -170,21 +180,25 @@ type ActionButtonBlock implements Block {
   style: String!
   action: Action
   children: [Block!]!
+  js(module: String!, id: String): JSDependency
 }
 
 type EmptyStateBlock implements Block {
   text: String!
   children: [Block!]!
+  js(module: String!, id: String): JSDependency
 }
 
 type SpacerBlock implements Block {
   size: Int!
   children: [Block!]!
+  js(module: String!, id: String): JSDependency
 }
 
 type FallbackBlock implements Block {
   text: String!
   children: [Block!]!
+  js(module: String!, id: String): JSDependency
 }
 
 interface Action {
@@ -230,6 +244,20 @@ type EditAction implements Action {
   groupingId: ID!
 }
 
+type CompleteAction implements Action {
+  actionType: String!
+  groupingId: ID!
+  confirmTitle: String!
+  confirmMessage: String!
+  okLabel: String!
+  cancelLabel: String!
+}
+
+type UncompleteAction implements Action {
+  actionType: String!
+  groupingId: ID!
+}
+
 type GroupingListPage {
   groupings: [Grouping!]!
   currentVersion: String!
@@ -247,6 +275,9 @@ type GroupingListPage {
   prevWeekLabel: String!
   nextWeekLabel: String!
   weekHeaderTemplate: String!
+  dayGroupHeaderTemplate: String!
+  weekdayNames: [String!]!
+  undatedGroupLabel: String!
   emptyInteractiveText: String!
   emptyReadonlyText: String!
   statusOpenLabel: String!
@@ -322,6 +353,17 @@ type GroupingDetailPage {
   detailCopyFailedManual: String!
   detailDisbandConfirmTitle: String!
   detailDisbandConfirmMessageTemplate: String!
+  detailCompleteLabel: String!
+  detailCompletingLabel: String!
+  detailStatusCompletedLabel: String!
+  detailRestoreLabel: String!
+  detailCompleteConfirmTitle: String!
+  detailCompleteConfirmMessageTemplate: String!
+  detailToastCompleted: String!
+  detailToastCompleteFailedTemplate: String!
+  detailToastRestored: String!
+  detailToastRestoreFailedTemplate: String!
+  detailCompletedHint: String!
   confirmOkLabel: String!
   confirmCancelLabel: String!
   typeShortActivity: String!
@@ -884,6 +926,8 @@ type Mutation {
   createGrouping(input: CreateGroupingInput!): GroupingPayload!
   updateGrouping(id: ID!, input: UpdateGroupingInput!): GroupingPayload!
   disbandGrouping(id: ID!): DeletePayload!
+  completeGrouping(id: ID!): GroupingPayload!
+  reopenGrouping(id: ID!): GroupingPayload!
   joinGrouping(input: JoinGroupingInput!): SeatPayload!
   leaveGrouping(input: LeaveGroupingInput!): SeatPayload!
   updateSeatWeapon(input: UpdateSeatWeaponInput!): SeatPayload!

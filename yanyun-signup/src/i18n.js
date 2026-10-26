@@ -194,6 +194,17 @@ export const CATALOG = {
     people: { 'zh-CN': '{occupied}/{max} 人', en: '{occupied}/{max} members', es: '{occupied}/{max} miembros', fr: '{occupied}/{max} membres', 'zh-TW': '{occupied}/{max} 人' },
     newCar: { 'zh-CN': '📯 张贴告示 · 发新车', en: '📯 Post Notice · New Squad', es: '📯 Publicar aviso · Nuevo equipo', fr: '📯 Publier une annonce · Nouvelle équipe', 'zh-TW': '📯 張貼告示 · 發新車' },
     seal: { 'zh-CN': '募', en: 'Go', es: 'Ir', fr: 'Go', 'zh-TW': '募' },
+    // 按日分组组头 (2026-10-25): 模板在此下发, {month}/{day} 为查看者本地
+    // 时区的数字, {weekday} 取下方 weekday0..6 (0=周日, 与 JS getDay 对齐)。
+    dayGroupHeader: { 'zh-CN': '{month}月{day}日 {weekday}', en: '{weekday}, {month}/{day}', es: '{weekday}, {day}/{month}', fr: '{weekday} {day}/{month}', 'zh-TW': '{month}月{day}日 {weekday}' },
+    weekday0: { 'zh-CN': '周日', en: 'Sun', es: 'dom', fr: 'dim.', 'zh-TW': '週日' },
+    weekday1: { 'zh-CN': '周一', en: 'Mon', es: 'lun', fr: 'lun.', 'zh-TW': '週一' },
+    weekday2: { 'zh-CN': '周二', en: 'Tue', es: 'mar', fr: 'mar.', 'zh-TW': '週二' },
+    weekday3: { 'zh-CN': '周三', en: 'Wed', es: 'mié', fr: 'mer.', 'zh-TW': '週三' },
+    weekday4: { 'zh-CN': '周四', en: 'Thu', es: 'jue', fr: 'jeu.', 'zh-TW': '週四' },
+    weekday5: { 'zh-CN': '周五', en: 'Fri', es: 'vie', fr: 'ven.', 'zh-TW': '週五' },
+    weekday6: { 'zh-CN': '周六', en: 'Sat', es: 'sáb', fr: 'sam.', 'zh-TW': '週六' },
+    undatedGroup: { 'zh-CN': '未定时间', en: 'Time TBD', es: 'Hora por definir', fr: 'Horaire à définir', 'zh-TW': '未定時間' },
   },
 
   /* ---------- 车队详情 ---------- */
@@ -214,6 +225,19 @@ export const CATALOG = {
     copyFailedManual: { 'zh-CN': '复制失败，请手动复制地址栏链接', en: 'Copy failed — please copy the address bar link manually', es: 'La copia falló; copia el enlace de la barra de direcciones manualmente', fr: 'Échec de la copie — copiez le lien dans la barre d’adresse manuellement', 'zh-TW': '複製失敗，請手動複製網址列連結' },
     disbandConfirmTitle: { 'zh-CN': '解散车队', en: 'Disband Squad', es: 'Disolver equipo', fr: 'Dissoudre l’équipe', 'zh-TW': '解散車隊' },
     disbandConfirmMessage: { 'zh-CN': '确定解散「{title}」吗？所有报名将被清空。', en: 'Disband “{title}”? All signups will be cleared.', es: '¿Disolver «{title}»? Se borrarán todas las inscripciones.', fr: 'Dissoudre « {title} » ? Toutes les inscriptions seront effacées.', 'zh-TW': '確定解散「{title}」嗎？所有報名將被清空。' },
+    // 完成 / 恢复 (2026-10-25): 完成态与 closed 不同 — 从列表隐藏且不再提醒,
+    // 详情页直达仍可打开, 车头可在详情页恢复 (状态回到 open)。
+    complete: { 'zh-CN': '完成车队', en: 'Complete Squad', es: 'Completar equipo', fr: 'Terminer l’équipe', 'zh-TW': '完成車隊' },
+    completing: { 'zh-CN': '完成中…', en: 'Completing…', es: 'Completando…', fr: 'Terminaison…', 'zh-TW': '完成中…' },
+    statusCompleted: { 'zh-CN': '已完成', en: 'Completed', es: 'Completado', fr: 'Terminé', 'zh-TW': '已完成' },
+    restore: { 'zh-CN': '恢复车队', en: 'Restore Squad', es: 'Restaurar equipo', fr: 'Restaurer l’équipe', 'zh-TW': '恢復車隊' },
+    completeConfirmTitle: { 'zh-CN': '完成车队', en: 'Complete Squad', es: 'Completar equipo', fr: 'Terminer l’équipe', 'zh-TW': '完成車隊' },
+    completeConfirmMessage: { 'zh-CN': '确定完成「{title}」吗？完成后将从车队列表隐藏，也不再发送发车提醒；之后仍可在本页恢复。', en: 'Mark “{title}” as completed? It will be hidden from squad lists and no departure reminder will be sent. You can restore it from this page later.', es: '¿Marcar «{title}» como completado? Se ocultará de las listas y no se enviará el recordatorio de salida. Podrás restaurarlo desde esta página.', fr: 'Marquer « {title} » comme terminée ? Elle sera masquée des listes et aucun rappel de départ ne sera envoyé. Vous pourrez la restaurer depuis cette page.', 'zh-TW': '確定完成「{title}」嗎？完成後將從車隊列表隱藏，也不再發送發車提醒；之後仍可在本頁恢復。' },
+    toastCompleted: { 'zh-CN': '车队已完成', en: 'Squad completed', es: 'Equipo completado', fr: 'Équipe terminée', 'zh-TW': '車隊已完成' },
+    toastCompleteFailed: { 'zh-CN': '完成失败：{error}', en: 'Complete failed: {error}', es: 'No se pudo completar: {error}', fr: 'Échec de la terminaison : {error}', 'zh-TW': '完成失敗：{error}' },
+    toastRestored: { 'zh-CN': '车队已恢复', en: 'Squad restored', es: 'Equipo restaurado', fr: 'Équipe restaurée', 'zh-TW': '車隊已恢復' },
+    toastRestoreFailed: { 'zh-CN': '恢复失败：{error}', en: 'Restore failed: {error}', es: 'No se pudo restaurar: {error}', fr: 'Échec de la restauration : {error}', 'zh-TW': '恢復失敗：{error}' },
+    completedHint: { 'zh-CN': '该车队已完成 · 已从列表隐藏，不再发送发车提醒', en: 'This squad is completed · Hidden from lists; no departure reminder will be sent', es: 'Este equipo está completado · Oculto de las listas; no se enviará recordatorio de salida', fr: 'Cette équipe est terminée · Masquée des listes ; aucun rappel de départ ne sera envoyé', 'zh-TW': '該車隊已完成 · 已從列表隱藏，不再發送發車提醒' },
   },
 
   /* ---------- 发车 / 编辑表单 ---------- */
@@ -276,6 +300,7 @@ export const CATALOG = {
   appBlocks: {
     rosterTitle: { 'zh-CN': '队伍名册', en: 'Roster', es: 'Integrantes', fr: 'Effectif', 'zh-TW': '隊伍名冊' },
     closedStatus: { 'zh-CN': '已关闭', en: 'Closed', es: 'Cerrado', fr: 'Fermé', 'zh-TW': '已關閉' },
+    completedStatus: { 'zh-CN': '已完成', en: 'Completed', es: 'Completado', fr: 'Terminé', 'zh-TW': '已完成' },
     unknownBlock: { 'zh-CN': '该内容需要更新 App 后显示', en: 'Update the app to view this content', es: 'Actualiza la app para ver este contenido', fr: 'Mettez à jour l’app pour afficher ce contenu', 'zh-TW': '該內容需要更新 App 後顯示' },
   },
 
@@ -665,6 +690,12 @@ export const CATALOG = {
     leaderOnlyDisband: { 'zh-CN': '只有车头可以解散车队', en: 'Only the squad leader can disband the squad', es: 'Solo el líder del equipo puede disolverlo', fr: 'Seul le chef d’équipe peut dissoudre l’équipe', 'zh-TW': '只有車頭可以解散車隊' },
     noCreatorRecordedEdit: { 'zh-CN': '该车队未记录车头，无法编辑，请联系管理员处理', en: 'No leader is recorded for this squad, so it cannot be edited — please contact an admin', es: 'Este equipo no tiene líder registrado y no se puede editar; contacta a un administrador', fr: 'Aucun chef n’est enregistré pour cette équipe, elle ne peut pas être modifiée — contactez un administrateur', 'zh-TW': '該車隊未記錄車頭，無法編輯，請聯繫管理員處理' },
     leaderOnlyEdit: { 'zh-CN': '只有车头可以编辑车队', en: 'Only the squad leader can edit the squad', es: 'Solo el líder del equipo puede editarlo', fr: 'Seul le chef d’équipe peut modifier l’équipe', 'zh-TW': '只有車頭可以編輯車隊' },
+    noCreatorRecordedComplete: { 'zh-CN': '该车队未记录车头，无法完成，请联系管理员处理', en: 'No leader is recorded for this squad, so it cannot be completed — please contact an admin', es: 'Este equipo no tiene líder registrado y no se puede completar; contacta a un administrador', fr: 'Aucun chef n’est enregistré pour cette équipe, elle ne peut pas être marquée terminée — contactez un administrateur', 'zh-TW': '該車隊未記錄車頭，無法完成，請聯繫管理員處理' },
+    leaderOnlyComplete: { 'zh-CN': '只有车头可以完成车队', en: 'Only the squad leader can complete the squad', es: 'Solo el líder del equipo puede completarlo', fr: 'Seul le chef d’équipe peut terminer l’équipe', 'zh-TW': '只有車頭可以完成車隊' },
+    noCreatorRecordedReopen: { 'zh-CN': '该车队未记录车头，无法恢复，请联系管理员处理', en: 'No leader is recorded for this squad, so it cannot be restored — please contact an admin', es: 'Este equipo no tiene líder registrado y no se puede restaurar; contacta a un administrador', fr: 'Aucun chef n’est enregistré pour cette équipe, elle ne peut pas être restaurée — contactez un administrateur', 'zh-TW': '該車隊未記錄車頭，無法恢復，請聯繫管理員處理' },
+    leaderOnlyReopen: { 'zh-CN': '只有车头可以恢复车队', en: 'Only the squad leader can restore the squad', es: 'Solo el líder del equipo puede restaurarlo', fr: 'Seul le chef d’équipe peut restaurer l’équipe', 'zh-TW': '只有車頭可以恢復車隊' },
+    groupingAlreadyCompleted: { 'zh-CN': '该车队已是完成状态', en: 'This squad is already completed', es: 'Este equipo ya está completado', fr: 'Cette équipe est déjà terminée', 'zh-TW': '該車隊已是完成狀態' },
+    groupingNotCompleted: { 'zh-CN': '该车队尚未完成', en: 'This squad is not completed', es: 'Este equipo aún no está completado', fr: 'Cette équipe n’est pas encore terminée', 'zh-TW': '該車隊尚未完成' },
     groupingClosed: { 'zh-CN': '该组队已截止报名', en: 'Signups for this squad are closed', es: 'Las inscripciones de este equipo están cerradas', fr: 'Les inscriptions pour cette équipe sont fermées', 'zh-TW': '該組隊已截止報名' },
     nicknameRequired: { 'zh-CN': '请填写游戏昵称', en: 'Please enter your in-game nickname', es: 'Introduce tu apodo en el juego', fr: 'Veuillez saisir votre pseudo en jeu', 'zh-TW': '請填寫遊戲暱稱' },
     groupingFull: { 'zh-CN': '名额已满或报名已截止', en: 'The squad is full or signups are closed', es: 'El equipo está lleno o las inscripciones están cerradas', fr: 'L’équipe est complète ou les inscriptions sont fermées', 'zh-TW': '名額已滿或報名已截止' },
