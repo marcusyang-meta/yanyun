@@ -1,81 +1,182 @@
 name: backend-deploy
 
-# 后端发布第一段 (marcus 裁决 2026-10-25: 先 preview 真渲染验收, 再 promote 进 prod):
-# build web 一次 -> 同步 dist 进 yanyun-signup/public -> wrangler preview 发到
-# 名为 release 的稳定 Preview (https://release-yanyun.tbdlab.workers.dev),
-# 并把这批产物 (index.html + assets/) 存为 artifact backend-public。
-# 本 workflow 绝不部署 prod。验收通过后, 用 backend-promote workflow 填本
-# run 的 ID, 取回同一批 artifact 部署 prod —— promote 的就是 preview 验过的字节。
-#
-# 为什么用 wrangler preview 而不是 versions upload: 本 Worker 实现了
-# Durable Object (SeatHub/GuildHub), Cloudflare 平台不为 DO Worker 生成
-# Version URL (previews_enabled 开着也没有)。Previews 是官方给 DO Worker
-# 的预览路线: DO 按 Preview 自动隔离, Cron 不运行; D1 按 database_id 与
-# 生产共享 (见 yanyun-signup/wrangler.toml 的 [previews] 块注释), 故验收
-# 纪律是匿名只读浏览。
-# 同步拷贝走 scripts/sync-public.mjs: 以 dist 为准对齐 index.html + assets/,
-# 删除旧哈希残留; public 里的 admin 源文件不碰。
+# Post-merge auto-promote — the ONLY path to production for the backend.
+# Triggered solely by a merged pull request. There is deliberately no
+# workflow_dispatch and no manual promote entry anywhere: an emergency fix
+# lands the same way everything else does, as a PR that goes green and
+# merges. Verification already happened on the PR (pr-backend: static gates,
+# the full harness suite, real-D1 verification, preview probes, real-browser
+# render smoke). This workflow:
+#   1. finds the successful pr-backend run for the PR head and downloads the
+#      exact artifact it built (never rebuilds),
+#   2. refuses to run unless the merged tree is identical to the tree that
+#      run verified (fail-closed if master moved under the PR),
+#   3. records the current production version, deploys the artifact,
+#   4. runs the read-only production probes and, on any failure, rolls
+#      production back to the recorded version and fails the run.
+# A direct push to master triggers nothing (no push trigger anywhere), so
+# the PR gate cannot be bypassed by pushing.
 on:
-  workflow_dispatch:
-  push:
+  pull_request:
+    types: [closed]
     branches: [master]
     paths:
       - 'yanyun-signup/**'
       - 'yanyun-web/**'
       - 'packages/schema/**'
+      - '.github/workflows/pr-backend.yml'
       - '.github/workflows/backend-deploy.yml'
 
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: backend-production
+  cancel-in-progress: false
+
 jobs:
-  build-preview:
+  promote:
+    name: promote the PR-verified artifact
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
+    env:
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+      CF_API: https://api.cloudflare.com/client/v4/accounts/${{ secrets.CLOUDFLARE_ACCOUNT_ID }}/workers/scripts/yanyun/deployments
     steps:
+      - name: Locate the green pr-backend run for this PR head
+        id: locate
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RUN_ID=$(gh api "repos/${{ github.repository }}/actions/workflows/pr-backend.yml/runs?head_sha=$HEAD_SHA&status=success&per_page=20" \
+            --jq '[.workflow_runs[] | select(.event == "pull_request")][0].id // empty')
+          if [ -z "$RUN_ID" ]; then
+            echo "::error::No successful pr-backend run found for PR head $HEAD_SHA — refusing to promote unverified code."
+            exit 1
+          fi
+          echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+          echo "Verified by pr-backend run $RUN_ID"
+      - name: Refuse unless the merged tree is the verified tree
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          HEAD_TREE=$(gh api "repos/${{ github.repository }}/git/commits/$HEAD_SHA" --jq .tree.sha)
+          MERGE_TREE=$(gh api "repos/${{ github.repository }}/git/commits/$MERGE_SHA" --jq .tree.sha)
+          echo "verified tree: $HEAD_TREE"
+          echo "merged tree:   $MERGE_TREE"
+          if [ "$HEAD_TREE" != "$MERGE_TREE" ]; then
+            echo "::error::Merged tree differs from the PR-verified tree (master moved under the PR). Push to the branch so pr-backend re-verifies the updated tree, then merge again."
+            exit 1
+          fi
+      - name: Download the verified artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-public
+          path: ci-artifact
+          run-id: ${{ steps.locate.outputs.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Check the artifact manifest matches this PR
+        run: |
+          cat ci-artifact/manifest.json
+          node -e '
+            const fs = require("fs");
+            const m = JSON.parse(fs.readFileSync("ci-artifact/manifest.json", "utf8"));
+            if (m.sha !== process.env.HEAD_SHA) { console.error(`manifest sha ${m.sha} != PR head ${process.env.HEAD_SHA}`); process.exit(1); }
+            if (Number(m.pr) !== Number(process.env.PR_NUMBER)) { console.error(`manifest PR ${m.pr} != ${process.env.PR_NUMBER}`); process.exit(1); }
+            console.log("manifest OK: sha and PR match");
+          '
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - name: Typecheck backend (tsc --noEmit gate)
-        run: npm run typecheck --workspace=yanyun-signup
-      - name: Check i18n generated files (fbtee codegen drift gate)
-        run: node yanyun-signup/scripts/i18n-codegen.mjs --check
-      - name: Build web
-        run: npm run build --workspace=yanyun-web
-      - name: Stage build artifact (index.html + assets + manifest)
+      - name: Record the current production version
+        id: prev
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
-          mkdir -p ci-artifact
-          cp yanyun-web/dist/index.html ci-artifact/index.html
-          cp -r yanyun-web/dist/assets ci-artifact/assets
-          cat > ci-artifact/manifest.json <<EOF
-          {"sha":"${{ github.sha }}","run_id":"${{ github.run_id }}","ref":"${{ github.ref_name }}"}
-          EOF
-          cat ci-artifact/manifest.json
-      - name: Upload build artifact for backend-promote
-        uses: actions/upload-artifact@v4
-        with:
-          name: backend-public
-          path: ci-artifact
-          retention-days: 30
-      - name: Sync dist into backend public (sync-style, keeps admin sources)
-        run: node yanyun-signup/scripts/sync-public.mjs
-      - name: Publish to release Preview (NOT production)
+          PREV=$(curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "$CF_API" | jq -r '
+            if (.result.deployments[0].versions | length) == 1 and .result.deployments[0].versions[0].percentage == 100
+            then .result.deployments[0].versions[0].version_id else empty end')
+          if [ -z "$PREV" ]; then
+            echo "::error::Cannot pin the current production version (deployments API shape unexpected) — failing closed, nothing deployed."
+            exit 1
+          fi
+          echo "version=$PREV" >> "$GITHUB_OUTPUT"
+          echo "Production version before promote: $PREV"
+      - name: Deploy the verified bytes to production
+        id: deploy
         working-directory: yanyun-signup
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          set -o pipefail
-          npx wrangler preview --name release --message "CI ${{ github.sha }}" | tee /tmp/preview.log
-          # wrangler 输出头部带横幅/日志、不是纯 JSON, 不用 jq 硬解 (会连累整步失败):
-          # 直接从输出抓 release 的 Preview URL, 抓不到用稳定地址兜底, 提取失败不许挂步骤。
-          URL=$(grep -oE 'https://release-yanyun\.tbdlab\.workers\.dev' /tmp/preview.log | head -1 || true)
-          if [ -z "$URL" ]; then URL="https://release-yanyun.tbdlab.workers.dev"; fi
-          echo "preview_url=$URL" >> "$GITHUB_ENV"
+          node scripts/sync-public.mjs --dist "$GITHUB_WORKSPACE/ci-artifact"
+          npx wrangler deploy --message "auto-promote PR #$PR_NUMBER (backend-deploy run ${{ github.run_id }})"
+      - name: Record the new production version
+        id: newver
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          PREV="${{ steps.prev.outputs.version }}"
+          NEW=""
+          for i in $(seq 1 12); do
+            NEW=$(curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "$CF_API" | jq -r '.result.deployments[0].versions[0].version_id // empty')
+            if [ -n "$NEW" ] && [ "$NEW" != "$PREV" ]; then break; fi
+            sleep 5
+          done
+          if [ -z "$NEW" ] || [ "$NEW" = "$PREV" ]; then
+            echo "::error::Production version did not change after deploy — treating as a failed promote."
+            exit 1
+          fi
+          echo "version=$NEW" >> "$GITHUB_OUTPUT"
+          echo "Production version after promote: $NEW"
+      - name: Production probes (read-only)
+        id: prod_probes
+        run: >-
+          node yanyun-signup/scripts/ci/probes.mjs
+          --base https://yanyun.app
+          --tenant jijiguagua --list-tenant jijiguagua
+      - name: Roll back to the previous version
+        if: ${{ steps.prev.outputs.version != '' && (failure() || steps.prod_probes.outcome == 'failure') }}
+        working-directory: yanyun-signup
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          PREV="${{ steps.prev.outputs.version }}"
           {
-            echo "## Backend preview published — production untouched"
-            echo ""
-            echo "- Preview: $URL"
-            echo "- Commit: \`${{ github.sha }}\`"
-            echo "- Verify the preview (real render, anonymous read-only), then promote THIS run's artifact:"
-            echo "  run **backend-promote** with \`deploy_run_id\` = \`${{ github.run_id }}\`"
+            echo "## ⚠️ AUTO-ROLLBACK"
+            echo "Promote of PR #$PR_NUMBER failed a production step. Rolling production back to version \`$PREV\`."
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "::error::Promote failed — rolling back to $PREV"
+          npx wrangler versions deploy --version-id "$PREV" --percentage 100 --yes \
+            --message "auto-rollback of PR #$PR_NUMBER (backend-deploy run ${{ github.run_id }})"
+          NOW=""
+          for i in $(seq 1 12); do
+            NOW=$(curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "$CF_API" | jq -r '.result.deployments[0].versions[0].version_id // empty')
+            if [ "$NOW" = "$PREV" ]; then break; fi
+            sleep 5
+          done
+          if [ "$NOW" != "$PREV" ]; then
+            echo "::error::Rollback attempted but production is still on $NOW, not $PREV — manual intervention required."
+            exit 1
+          fi
+          echo "Rollback confirmed: production is back on $PREV"
+      - name: Promote summary
+        if: always()
+        run: |
+          {
+            echo "## backend-deploy (auto-promote)"
+            echo "- PR: #$PR_NUMBER (head \`$HEAD_SHA\`, merge \`$MERGE_SHA\`)"
+            echo "- verified by pr-backend run: ${{ steps.locate.outputs.run_id }}"
+            echo "- production version before: \`${{ steps.prev.outputs.version }}\`"
+            echo "- production version after: \`${{ steps.newver.outputs.version }}\`"
+            echo "- production probes: ${{ steps.prod_probes.outcome }}"
           } >> "$GITHUB_STEP_SUMMARY"
