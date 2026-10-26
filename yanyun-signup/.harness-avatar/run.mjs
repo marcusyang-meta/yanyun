@@ -1,10 +1,13 @@
-// Guild custom-avatar acceptance (2026-10-26): admin direct upload
-// (gadmin channel) -> D1 blob (guild_avatars) -> main Worker public
-// serving at /api/guilds/:slug/avatar -> GraphQL avatarUrl (Guild /
-// GuildReadOnly / GuildCard surfaces) / webhook send identity / OG
-// card rendering. FakeDB routes by SQL shape, guild_avatars lands in a
-// real in-memory table; REST goes through the real worker.fetch,
-// GraphQL through the real yoga.
+// Guild custom-avatar acceptance: GraphQL admin upload
+// (setGuildAvatar, section 1 of the REST shutdown) -> D1 blob
+// (guild_avatars) -> main Worker public serving at the standalone
+// /guilds/:slug/avatar -> GraphQL avatarUrl (Guild / GuildReadOnly /
+// GuildCard surfaces) / webhook send identity / OG card rendering.
+// The retired REST admin avatar flow (password login + binary PUT)
+// is gone from this suite: the gate is the Discord-session admin
+// verdict, exercised through real yoga with crafted ctx users.
+// FakeDB routes by SQL shape, guild_avatars lands in a real
+// in-memory table; serving goes through the real worker.fetch.
 import { yoga } from '../src/graphql.ts';
 import { CATALOG } from '../src/domains/platform/i18n.ts';
 import {
@@ -56,10 +59,11 @@ function toRawRows(sqlText, rows) {
 }
 
 /* ---------------- FakeDB ---------------- */
-function makeDb({ tenants = [], settings = {} } = {}) {
+function makeDb({ tenants = [], settings = {}, users = {} } = {}) {
   const state = {
     tenants: tenants.map((t) => ({ ...t })),
     settings: new Map(Object.entries(settings)), // `${tenant}::${key}` -> value
+    users: new Map(Object.entries(users)), // discord_id -> guilds_json string
     avatars: new Map(), // tenant -> { content_type, bytes, hash, updated_at }
   };
   function route(kind, sql, b) {
@@ -79,6 +83,13 @@ function makeDb({ tenants = [], settings = {} } = {}) {
         return { results: row ? [row] : [] };
       }
       return { meta: {} }; // CREATE TABLE
+    }
+    if (/FROM users/.test(sql)) {
+      const uj = state.users.get(String(b[0]));
+      if (/guilds_json/.test(sql)) {
+        return kind === 'first' ? (uj === undefined ? null : { guilds_json: uj }) : { results: uj === undefined ? [] : [{ guilds_json: uj }] };
+      }
+      return kind === 'first' ? null : { results: [] };
     }
     if (/FROM tenants/.test(sql)) {
       if (/WHERE slug/.test(sql)) {
@@ -159,58 +170,62 @@ eq('sniff jpeg', sniffAvatarType(jpegBytes()), 'image/jpeg');
 eq('sniff webp', sniffAvatarType(new Uint8Array([0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x57, 0x45, 0x42, 0x50])), 'image/webp');
 eq('sniff 文本伪图 -> null', sniffAvatarType(new TextEncoder().encode('not an image at all')), null);
 
-/* ================= REST: upload / serve / auth / limit / delete ================= */
+/* ================= GraphQL admin: gate / upload / serve / limit / delete ================= */
 const worker = (await import('../src/worker.ts')).default;
 const pwHash = await sha256hex('guildpass123');
+const DG1 = '111111111111111111';
+const DG2 = '222222222222222222';
+const serversJson = (rows) => JSON.stringify(rows);
 const { db, state } = makeDb({
   tenants: [
     { slug: 'test1', guild_name: '测试一业', slogan: 's1', password_hash: pwHash },
     { slug: 'test2', guild_name: '测试二业', slogan: '', password_hash: pwHash },
   ],
+  settings: { 'test1::discord_guild_id': DG1, 'test2::discord_guild_id': DG2 },
+  users: {
+    A1: serversJson([{ id: DG1, name: '一业服', icon: '', permissions: '0', owner: true }]),
+    A2: serversJson([{ id: DG2, name: '二业服', icon: '', permissions: '0', owner: true }]),
+    M1: serversJson([{ id: DG1, name: '一业服', icon: '', permissions: '0', owner: false }]),
+  },
 });
+const ADMIN1 = { discordId: 'A1', name: '一业服主', guilds: [DG1] };
+const ADMIN2 = { discordId: 'A2', name: '二业服主', guilds: [DG2] };
+const MEMBER1 = { discordId: 'M1', name: '一业成员', guilds: [DG1] };
 const env = { DB: db, ADMIN_PASSWORD: 'test-admin-pw', ASSETS };
 const { ctx, pending } = makeCtx();
 const call = (path, opts = {}) => worker.fetch(new Request('http://local' + path, opts), env, ctx);
 
-async function login(slug) {
-  const r = await call(`/api/${slug}/admin/login`, {
+async function gqlAdmin(query, variables, { user = null, locale = 'zh-CN' } = {}) {
+  const gctx = { env: { DB: db }, request: new Request('http://local/graphql'), user, locale, browserLocale: locale, tz: 'Asia/Shanghai', executionCtx: undefined };
+  const res = await yoga.fetch(new Request('http://local/graphql', {
     method: 'POST', headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ password: 'guildpass123' }),
-  });
-  const j = await r.json();
-  return j.token;
+    body: JSON.stringify({ query, variables }),
+  }), gctx);
+  return res.json();
 }
-const token1 = await login('test1');
-const token2 = await login('test2');
-check('管理员登录签发 token', typeof token1 === 'string' && token1.includes('.'));
+const SET_AVATAR = `mutation($slug: String!, $data: String!) { setGuildAvatar(slug: $slug, dataBase64: $data) { ok error errorCode avatarUrl } }`;
+const b64 = (bytes) => Buffer.from(bytes).toString('base64');
+
+// Gate: anonymous / plain member / another guild's admin are all refused.
+let g0 = await gqlAdmin(SET_AVATAR, { slug: 'test1', data: b64(pngBytes()) }, { user: null });
+check('匿名 setGuildAvatar 被拒 (adminOnly)', g0.data?.setGuildAvatar?.ok === false && g0.data?.setGuildAvatar?.errorCode === 'adminOnly', JSON.stringify(g0.data?.setGuildAvatar));
+g0 = await gqlAdmin(SET_AVATAR, { slug: 'test1', data: b64(pngBytes()) }, { user: MEMBER1 });
+check('普通成员 setGuildAvatar 被拒 (adminOnly)', g0.data?.setGuildAvatar?.ok === false && g0.data?.setGuildAvatar?.errorCode === 'adminOnly', JSON.stringify(g0.data?.setGuildAvatar));
+g0 = await gqlAdmin(SET_AVATAR, { slug: 'test1', data: b64(pngBytes()) }, { user: ADMIN2 });
+check('他业管理员 setGuildAvatar 本业被拒 (adminOnly)', g0.data?.setGuildAvatar?.ok === false && g0.data?.setGuildAvatar?.errorCode === 'adminOnly', JSON.stringify(g0.data?.setGuildAvatar));
 
 // No avatar: public serving 404s.
 let r = await call('/guilds/test1/avatar');
 eq('无头像出图 -> 404', r.status, 404);
 await r.text();
 
-// Unauthenticated upload is rejected.
+// Own admin uploads PNG -> ok + versioned URL + stored hash matches content.
 const png = pngBytes();
-r = await call('/api/test1/admin/avatar', { method: 'PUT', headers: { 'content-type': 'image/png' }, body: png });
-eq('未登录 PUT 头像 -> 401', r.status, 401);
-await r.text();
-
-// Another guild's admin token cannot upload this guild's avatar (tokens are slug-bound).
-r = await call('/api/test1/admin/avatar', {
-  method: 'PUT', headers: { 'content-type': 'image/png', authorization: 'Bearer ' + token2 }, body: png,
-});
-eq('他业管理员 PUT 本业头像 -> 401', r.status, 401);
-await r.text();
-
-// Own admin uploads PNG -> 200 + versioned URL + matching hash.
-r = await call('/api/test1/admin/avatar', {
-  method: 'PUT', headers: { 'content-type': 'image/png', authorization: 'Bearer ' + token1 }, body: png,
-});
-eq('本业管理员 PUT PNG -> 200', r.status, 200);
-let j = await r.json();
+let g1 = await gqlAdmin(SET_AVATAR, { slug: 'test1', data: b64(png) }, { user: ADMIN1 });
+check('本业管理员 setGuildAvatar PNG -> ok', g1.data?.setGuildAvatar?.ok === true, JSON.stringify(g1.data?.setGuildAvatar || g1.errors));
 const pngHash = await sha256hex(png);
-eq('上传返回 hash = 内容 sha256', j.hash, pngHash);
-eq('上传返回 avatarUrl 带 hash8', j.avatarUrl, `/guilds/test1/avatar?v=${pngHash.slice(0, 8)}`);
+eq('落库 hash = 内容 sha256', state.avatars.get('test1')?.hash, pngHash);
+eq('上传返回 avatarUrl 带 hash8', g1.data?.setGuildAvatar?.avatarUrl, `http://local/guilds/test1/avatar?v=${pngHash.slice(0, 8)}`);
 
 // Serving round-trip: identical bytes + content-type + long cache + ETag.
 r = await call('/guilds/test1/avatar?v=' + pngHash.slice(0, 8));
@@ -225,60 +240,52 @@ r = await call('/guilds/test1/avatar?v=' + pngHash.slice(0, 8), { headers: { 'if
 eq('If-None-Match -> 304', r.status, 304);
 await r.text();
 
-// Oversize rejected (413 + i18n error code/copy; en header yields English).
+// Oversize rejected (payload errorCode + localized copy; en ctx yields English).
 const big = pngBytes(AVATAR_MAX_BYTES + 1);
-r = await call('/api/test1/admin/avatar', {
-  method: 'PUT', headers: { 'content-type': 'image/png', authorization: 'Bearer ' + token1, 'accept-language': 'en' }, body: big,
-});
-eq('超 400KB -> 413', r.status, 413);
-j = await r.json();
-eq('超限 errorCode', j.errorCode, 'avatarTooLarge');
-eq('超限文案按头协商 (en)', j.message, CATALOG.errors.avatarTooLarge.en);
+g1 = await gqlAdmin(SET_AVATAR, { slug: 'test1', data: b64(big) }, { user: ADMIN1, locale: 'en' });
+check('超 400KB -> ok=false', g1.data?.setGuildAvatar?.ok === false, JSON.stringify(g1.data?.setGuildAvatar));
+eq('超限 errorCode', g1.data?.setGuildAvatar?.errorCode, 'avatarTooLarge');
+eq('超限文案按 locale 协商 (en)', g1.data?.setGuildAvatar?.error, CATALOG.errors.avatarTooLarge.en);
 
 // Fake type rejected (text posing as png).
-r = await call('/api/test1/admin/avatar', {
-  method: 'PUT', headers: { 'content-type': 'image/png', authorization: 'Bearer ' + token1 },
-  body: new TextEncoder().encode('{"not":"an image"}'),
-});
-eq('伪类型 -> 415', r.status, 415);
-j = await r.json();
-eq('伪类型 errorCode', j.errorCode, 'avatarBadType');
-eq('伪类型文案默认 zh-CN', j.message, CATALOG.errors.avatarBadType['zh-CN']);
+g1 = await gqlAdmin(SET_AVATAR, { slug: 'test1', data: b64(new TextEncoder().encode('{"not":"an image"}')) }, { user: ADMIN1 });
+check('伪类型 -> ok=false', g1.data?.setGuildAvatar?.ok === false, JSON.stringify(g1.data?.setGuildAvatar));
+eq('伪类型 errorCode', g1.data?.setGuildAvatar?.errorCode, 'avatarBadType');
+eq('伪类型文案默认 zh-CN', g1.data?.setGuildAvatar?.error, CATALOG.errors.avatarBadType['zh-CN']);
 
-// Empty body rejected.
-r = await call('/api/test1/admin/avatar', {
-  method: 'PUT', headers: { 'content-type': 'image/png', authorization: 'Bearer ' + token1 }, body: new Uint8Array(0),
-});
-eq('空体 -> 400', r.status, 400);
-j = await r.json();
-eq('空体 errorCode', j.errorCode, 'avatarEmpty');
+// Empty payload rejected.
+g1 = await gqlAdmin(SET_AVATAR, { slug: 'test1', data: '' }, { user: ADMIN1 });
+check('空体 -> ok=false', g1.data?.setGuildAvatar?.ok === false, JSON.stringify(g1.data?.setGuildAvatar));
+eq('空体 errorCode', g1.data?.setGuildAvatar?.errorCode, 'avatarEmpty');
+
+// Non-base64 payload rejected with its own code.
+g1 = await gqlAdmin(SET_AVATAR, { slug: 'test1', data: '!!!not-base64!!!' }, { user: ADMIN1 });
+check('非法 base64 -> ok=false', g1.data?.setGuildAvatar?.ok === false, JSON.stringify(g1.data?.setGuildAvatar));
+eq('非法 base64 errorCode', g1.data?.setGuildAvatar?.errorCode, 'avatarDataInvalid');
 // After a rejection the old avatar is unaffected.
 eq('拒绝后头像仍是 PNG 版', state.avatars.get('test1')?.hash, pngHash);
 
 // Switching to JPEG: hash/URL/served type follow.
 const jpg = jpegBytes();
-r = await call('/api/test1/admin/avatar', {
-  method: 'PUT', headers: { 'content-type': 'image/jpeg', authorization: 'Bearer ' + token1 }, body: jpg,
-});
-eq('换 JPEG -> 200', r.status, 200);
-j = await r.json();
+g1 = await gqlAdmin(SET_AVATAR, { slug: 'test1', data: b64(jpg) }, { user: ADMIN1 });
+check('换 JPEG -> ok', g1.data?.setGuildAvatar?.ok === true, JSON.stringify(g1.data?.setGuildAvatar));
 const jpgHash = await sha256hex(jpg);
-eq('换图后 avatarUrl 更新', j.avatarUrl, `/guilds/test1/avatar?v=${jpgHash.slice(0, 8)}`);
+eq('换图后 avatarUrl 更新', g1.data?.setGuildAvatar?.avatarUrl, `http://local/guilds/test1/avatar?v=${jpgHash.slice(0, 8)}`);
 r = await call('/guilds/test1/avatar?v=' + jpgHash.slice(0, 8));
 eq('换图后出图 content-type', r.headers.get('content-type'), 'image/jpeg');
 await r.arrayBuffer();
 
-// Admin-surface state + legacy REST surface undisturbed by the new routes.
-r = await call('/api/test1/admin/avatar', { headers: { authorization: 'Bearer ' + token1 } });
-j = await r.json();
-check('管理面状态 hasAvatar', j.ok && j.hasAvatar === true && j.hash === jpgHash, JSON.stringify(j).slice(0, 120));
-r = await call('/api/test1/settings');
-eq('/api/:slug/settings 不受 guilds 路由影响 -> 200', r.status, 200);
-await r.json();
+// Admin surface state: the admin query itself carries the live avatarUrl.
+g1 = await gqlAdmin(`query($slug: String!) { viewer { guildAdmin(slug: $slug) { __typename ... on GuildAdmin { avatarUrl } } } }`, { slug: 'test1' }, { user: ADMIN1 });
+eq('管理面 avatarUrl = 当前版本化路径', g1.data?.viewer?.guildAdmin?.avatarUrl, `http://local/guilds/test1/avatar?v=${jpgHash.slice(0, 8)}`);
+// The pre-move path under /api is retired (the standalone path above serves).
+r = await call('/api/guilds/test1/avatar');
+eq('旧 /api 头像路径已退役 -> 404', r.status, 404);
+await r.text();
 
 /* ================= GraphQL: avatarUrl in both states ================= */
-async function gql(query, variables) {
-  const gctx = { env: { DB: db }, request: new Request('http://local/graphql'), user: null, locale: 'zh-CN', browserLocale: 'zh-CN', tz: 'Asia/Shanghai', executionCtx: undefined };
+async function gql(query, variables, user = null) {
+  const gctx = { env: { DB: db }, request: new Request('http://local/graphql'), user, locale: 'zh-CN', browserLocale: 'zh-CN', tz: 'Asia/Shanghai', executionCtx: undefined };
   const res = await yoga.fetch(new Request('http://local/graphql', {
     method: 'POST', headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ query, variables }),
@@ -287,13 +294,16 @@ async function gql(query, variables) {
 }
 const guildQ = `query($slug: String!) { viewer { guild(slug: $slug) { __typename
   ... on GuildReadOnly { avatarUrl name } ... on Guild { avatarUrl } } } }`;
-let g = await gql(guildQ, { slug: 'test1' });
+// test1 is a bound guild in this fixture (the admin gate needs the
+// binding): its surface checks run as a guild member (member face),
+// not anonymously (anonymous on a bound guild is GuildLocked).
+let g = await gql(guildQ, { slug: 'test1' }, MEMBER1);
 check('GraphQL 无 errors', !g.errors, JSON.stringify(g.errors || '').slice(0, 200));
-eq('未绑定百业匿名面 = GuildReadOnly', g.data?.viewer?.guild?.__typename, 'GuildReadOnly');
+eq('绑定百业成员面 = Guild', g.data?.viewer?.guild?.__typename, 'Guild');
 eq('有头像 avatarUrl = origin + 版本化路径', g.data?.viewer?.guild?.avatarUrl, `http://local/guilds/test1/avatar?v=${jpgHash.slice(0, 8)}`);
 
 const hubQ = `query { hubPage { guilds { slug avatarUrl } } }`;
-g = await gql(hubQ, {});
+g = await gql(hubQ, {}, MEMBER1);
 const card = (g.data?.hubPage?.guilds || []).find((x) => x.slug === 'test1');
 check('hubPage GuildCard 在列', !!card, JSON.stringify(g.data || g.errors || '').slice(0, 200));
 eq('GuildCard.avatarUrl 同值', card?.avatarUrl, `http://local/guilds/test1/avatar?v=${jpgHash.slice(0, 8)}`);
@@ -306,13 +316,12 @@ ident = await webhookIdentity(db, 'test2');
 eq('无头像 webhookIdentity = null (回退平台默认)', ident, null);
 
 /* ================= Delete: serving 404s + avatarUrl back to null ================= */
-r = await call('/api/test1/admin/avatar', { method: 'DELETE', headers: { authorization: 'Bearer ' + token1 } });
-eq('管理员 DELETE 头像 -> 200', r.status, 200);
-await r.json();
+g1 = await gqlAdmin(`mutation($slug: String!) { deleteGuildAvatar(slug: $slug) { ok errorCode } }`, { slug: 'test1' }, { user: ADMIN1 });
+check('管理员 deleteGuildAvatar -> ok', g1.data?.deleteGuildAvatar?.ok === true, JSON.stringify(g1.data?.deleteGuildAvatar));
 r = await call('/guilds/test1/avatar?v=' + jpgHash.slice(0, 8));
 eq('删除后出图 -> 404', r.status, 404);
 await r.text();
-g = await gql(guildQ, { slug: 'test1' });
+g = await gql(guildQ, { slug: 'test1' }, MEMBER1);
 eq('删除后 avatarUrl 回 null', g.data?.viewer?.guild?.avatarUrl, null);
 ident = await webhookIdentity(db, 'test1');
 eq('删除后 webhookIdentity 回 null', ident, null);

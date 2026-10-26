@@ -24,7 +24,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // name -> baseline pass count at the time the pipeline was automated
 const SUITES = [
-  ['avatar', 56], ['compliance', 61], ['daycomplete', 78], ['ennames', 299],
+  ['avatar', 58], ['compliance', 61], ['daycomplete', 78], ['ennames', 299],
   ['gear', 50], ['i18n', 134], ['identity', 61], ['manualfix', 47],
   ['remindercard', 43], ['tower', 38], ['laziness', 23], ['audit', 36],
   ['backup', 23], ['guildadmin', 87],
@@ -217,7 +217,10 @@ async function heirloomFixture({ sessionSecret, adminPassword }) {
     method: 'POST', headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ ['pass' + 'word']: adminPassword }),
   }).catch(() => null);
-  await fetch('http://127.0.0.1:8799/api/tenants').catch(() => null);
+  await fetch('http://127.0.0.1:8799/graphql', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ query: '{ ogGuildSlugs }' }),
+  }).catch(() => null);
 
   const now = Math.floor(Date.now() / 1000);
   await d1exec(`
