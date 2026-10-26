@@ -9,6 +9,33 @@ let pass = 0, fail = 0; const fails = [];
 function check(name, ok, extra = '') { if (ok) pass++; else { fail++; fails.push(name + (extra ? ' — ' + extra : '')); } }
 function eq(name, got, want) { check(name, got === want, `got=${JSON.stringify(got)} want=${JSON.stringify(want)}`); }
 
+/* Drizzle query-builder channel: selects/gets with field mapping run in
+   values mode on the D1 driver, i.e. stmt.bind(...).raw(), which returns
+   value arrays in SELECT column order. Convert this FakeDB's routed
+   object rows into that shape; unparseable column lists (functions /
+   subqueries) fall back to the row objects' own value order. */
+function toRawRows(sqlText, rows) {
+  if (!rows || !rows.length) return [];
+  let cols = null;
+  const m = /select\s+([\s\S]+?)\s+from\s/i.exec(sqlText);
+  if (m) {
+    const parts = m[1].split(',').map((s) => s.trim()).filter(Boolean);
+    if (parts.length && parts.every((p) => !p.includes('(') && !p.includes(')'))) {
+      cols = parts.map((p) => {
+        const as = /\bas\s+"?([A-Za-z0-9_]+)"?\s*$/i.exec(p);
+        if (as) return as[1];
+        const clean = p.replace(/"/g, '');
+        const dot = clean.lastIndexOf('.');
+        return (dot >= 0 ? clean.slice(dot + 1) : clean).trim();
+      });
+      if (cols.some((c) => !c || c === '*')) cols = null;
+    }
+  }
+  return rows.map((r) => (cols
+    ? cols.map((c) => (r[c] === undefined ? null : r[c]))
+    : Object.values(r)));
+}
+
 /* ---------------- FakeDB ---------------- */
 const users = new Map(); // discord_id -> { locale_pref }
 users.set('2001', { locale_pref: null });
@@ -17,6 +44,7 @@ const tenants = [{ slug: 'livetest', guild_name: '测试百业', slogan: '', ann
 function stmt(sql) {
   const q = {
     _binds: [], bind(...a) { this._binds = a; return this; },
+    async raw() { const res = await this.all(); return toRawRows(sql, (res && res.results) || []); },
     async first() {
       if (sql.includes('SELECT locale_pref FROM users')) { const u = users.get(String(q._binds[0])); return u ? { locale_pref: u.locale_pref } : null; }
       if (sql.includes('FROM tenants WHERE slug')) return tenants.find(t => t.slug === q._binds[0]) || null;
