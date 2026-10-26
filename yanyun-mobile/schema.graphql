@@ -110,6 +110,8 @@ type GuildPage {
 
 scalar JSDependency
 
+scalar JSON
+
 interface Block {
   children: [Block!]!
   js(module: String!, id: String): JSDependency
@@ -262,6 +264,7 @@ type GroupingListPage {
   groupings: [Grouping!]!
   currentVersion: String!
   blocks(blocksVersion: Int, weekOffset: Int): [Block!]!
+  primTree(primitivesVersion: Int, weekOffset: Int): JSON
   tabActivityLabel: String!
   tabTalentLabel: String!
   tabRaceLabel: String!
@@ -337,6 +340,7 @@ type Grouping {
 type GroupingDetailPage {
   grouping: Grouping!
   blocks(blocksVersion: Int): [Block!]!
+  primTree(primitivesVersion: Int): JSON
   detailNotFoundText: String!
   detailBackToListLabel: String!
   detailShareLabel: String!

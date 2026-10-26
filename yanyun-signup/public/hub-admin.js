@@ -34,7 +34,25 @@ $('#loginForm').onsubmit = async (e) => {
 };
 $('#logoutBtn').onclick = logout;
 
-async function boot() { await loadSettings(); await loadTenants(); await loadReminders(); await loadHeirlooms(); await loadBosses(); await loadDungeons(); }
+async function boot() { await loadSettings(); await loadTenants(); await loadReminders(); await loadHeirlooms(); await loadPrimitives(); await loadBosses(); await loadDungeons(); }
+
+async function loadPrimitives() {
+  const { primitives } = await api('/api/hub/primitives');
+  $('#primTable').innerHTML = `<tr><th>百业</th><th>组队列表</th><th>车队详情</th></tr>` +
+    (primitives.map((r) => `<tr>
+      <td><a href="/${esc(r.slug)}" target="_blank">${esc(r.guild_name)}</a><br><span class="muted" style="font-family:monospace">/${esc(r.slug)}</span></td>
+      <td><input type="checkbox" data-p="list" data-slug="${esc(r.slug)}"${r.list ? ' checked' : ''}></td>
+      <td><input type="checkbox" data-p="detail" data-slug="${esc(r.slug)}"${r.detail ? ' checked' : ''}></td>
+    </tr>`).join('') || '<tr><td colspan="3" class="empty">暂无入驻百业</td></tr>');
+  const msg = $('#primMsg');
+  const say = (ok, text) => { msg.className = 'msg ' + (ok ? 'ok' : 'bad'); msg.textContent = text; };
+  $('#primTable').querySelectorAll('input[data-p]').forEach((cb) => cb.onchange = async () => {
+    try {
+      await api('/api/hub/tenants/' + cb.dataset.slug + '/primitives', { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ [cb.dataset.p]: cb.checked }) });
+      say(true, cb.checked ? '原语面已开启' : '原语面已关闭（回落积木树）'); loadPrimitives();
+    } catch (e) { say(false, e.message); cb.checked = !cb.checked; }
+  });
+}
 
 async function loadHeirlooms() {
   const { heirlooms } = await api('/api/hub/heirlooms');
