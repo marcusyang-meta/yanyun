@@ -15,6 +15,19 @@ export const REMINDER_USERNAME = '燕云百业';
 export const REMINDER_AVATAR_URL = 'https://og.yanyun.app/og/hub.png';
 export const WEBHOOK_RE = /^https:\/\/discord\.com\/api\/webhooks\/\d+\/[\w-]+$/;
 
+/* ---------- embed 卡面常量 (2026-10-26 改版) ---------- */
+export const REMINDER_EMBED_COLOR = 0xC9A35C; // 站点主题金 (与 web 主题金同值)
+const SITE_URL = 'https://yanyun.app'; // 与 worker.js 的 SITE_URL 同口径 (规范域名)
+const OG_WORKER = 'https://og.yanyun.app'; // 与 worker.js 的 OG_WORKER 同口径
+/* 车辆详情页链接 (与 carOgTags 的 og:url 同一构造) */
+export function carDetailUrl(slug, eventId) {
+  return `${SITE_URL}/${encodeURIComponent(slug)}/car/${eventId}`;
+}
+/* 该车 OG 图 (与 carOgTags 的 og:image 同一构造), 作 embed thumbnail */
+export function carOgImageUrl(slug, eventId) {
+  return `${OG_WORKER}/og/${encodeURIComponent(slug)}/car/${eventId}.png`;
+}
+
 /* ---------- events 提醒状态列 (懒 DDL, 与 ensureEventCreatorColumn 同套路) ----------
 * reminder_sent_at: 成功发送的 epoch 秒; reminder_error: 失败原因 (非空 =
 * 该车已结算, 永不重试 — 防死 webhook 重试风暴)。两列皆空 = 尚未提醒。 */
@@ -226,17 +239,19 @@ if (cb) return cb;
 return guildName || '车头';
 }
 
-/* 拼消息: 返回 { content, userIds} (userIds = 实际被 <@> 到的 discord_id 集, 去重)
- * 结构 (2026-10-24 用户定型, 一字不改):
- *   {车头显示名} 发起了就位确认：你准备好了吗？
- *   【{车名}】
- *   还有 {N} 分钟就发车咯，笨笨要加油哦！
- *   [副本：{dungeon}]              仅有副本时出现
- *   (空行)
- *   队伍名册（{occupied}/{total}）：
- *   {i}. {<@id>|昵称}[（车头）][ · 流派][ ✚]
- *   (空行)
- *   {还差 K 个人就齐咯，还没上线的要快一点哦 | 全员到齐咯，出发！}
+/* 拼消息: 返回 { content, embeds, userIds} (userIds = 实际被 <@> 到的
+ * discord_id 集, 去重)。结构 (2026-10-26 改版为 embed 卡面; marcus
+ * 2026-10-25 23:41 裁决: 两条钦定行逐字冻结, 其余行按武侠口吻重写):
+ *   content (卡片上方抬头, 纯文本两行):
+ *     {车头显示名} 发起了就位确认：你准备好了吗？     ← 钦定行 1, 逐字
+ *     【{车名}】
+ *   embed (主题金描边; title = 车名, 链详情页; thumbnail = 该车 OG 图):
+ *     description:
+ *       还有 {N} 分钟就发车咯，笨笨要加油哦！          ← 钦定行 2, 逐字
+ *       [此行险地：{dungeon}]                          仅有副本时出现
+ *     field「同行名册（{occupied}/{total}）」:
+ *       {i}. {<@id>|昵称}[（车头）][ · 流派][ ✚]
+ *     footer: {尚缺 K 位同道未至，江湖路远，望速来同行哦 | 全员到齐，拔寨启程！}
  * @ 内联在名册行里, 不再有独立的 @ 行; 时间只写相对分钟数, 无绝对时间行。
  * 名册行: 一行一个已占座位 (座位顺序); token 的解析梯队与旧版相同 —
  * (a) 身份戳; (b) 本百业名册唯一匹配; (c) 全服唯一匹配; (d) 纯文本。
@@ -287,21 +302,38 @@ return line;
 const occupied = rows.length;
 const total = Number(ev.max_slots) || occupied; // 容量口径与站点 toGrouping 一致: events.max_slots
 const mins = Math.max(1, Math.round((Number(ev.starts_at_utc) - nowSec) / 60));
-const lines = [
+// 抬头 (纯文本 content): 钦定行 1 逐字 + 车名行 — 卡片上方即见,
+// 也是纯文本读者第一眼拿到的两件关键信息。
+const content = [
 `${leader} 发起了就位确认：你准备好了吗？`,
 `【${ev.title}】`,
-`还有 ${mins} 分钟就发车咯，笨笨要加油哦！`,
-];
-if (ev.dungeon && String(ev.dungeon).trim()) lines.push(`副本：${String(ev.dungeon).trim()}`);
-lines.push('', `队伍名册（${occupied}/${total}）：`, ...rows, '');
-lines.push(occupied < total
-? `还差 ${total - occupied} 个人就齐咯，还没上线的要快一点哦`
-: '全员到齐咯，出发！');
-return { content: lines.join('\n'), userIds};
+].join('\n');
+// 卡面正文: 钦定行 2 逐字; 副本行换武侠口吻。
+const descLines = [`还有 ${mins} 分钟就发车咯，笨笨要加油哦！`];
+if (ev.dungeon && String(ev.dungeon).trim()) descLines.push(`此行险地：${String(ev.dungeon).trim()}`);
+const embed = {
+title: String(ev.title || ''),
+url: carDetailUrl(slug, ev.id),
+color: REMINDER_EMBED_COLOR,
+thumbnail: { url: carOgImageUrl(slug, ev.id) },
+description: descLines.join('\n'),
+fields: [{
+name: `同行名册（${occupied}/${total}）`,
+// 空名册时 field value 不可为空串 (Discord 拒), 以一句占位保形
+value: rows.length ? rows.join('\n') : '虚位以待，静候同道',
+inline: false,
+}],
+footer: {
+text: occupied < total
+? `尚缺 ${total - occupied} 位同道未至，江湖路远，望速来同行哦`
+: '全员到齐，拔寨启程！',
+},
+};
+return { content, embeds: [embed], userIds };
 }
 
 /* ---------- Webhook 发送 ---------- */
-export async function postWebhook(webhook, content, userIds, parseTypes, identity) {
+export async function postWebhook(webhook, content, userIds, parseTypes, identity, embeds) {
 const body = {
 content,
 // 发送身份 per-百业: 该百业有自定义头像时用百业名 + 头像 URL,
@@ -310,6 +342,9 @@ username: (identity && identity.username) || REMINDER_USERNAME,
 avatar_url: (identity && identity.avatarUrl) || REMINDER_AVATAR_URL,
 allowed_mentions: { parse: parseTypes || [], users: userIds || []},
 };
+// 卡面 (可选, 仅发车提醒传): 不传 = 载荷不含 embeds 键 — 传家宝/测试
+// 消息等旧调用方的发送形态逐字不变。
+if (Array.isArray(embeds) && embeds.length) body.embeds = embeds;
 const ctl = new AbortController();
 const timer = setTimeout(() => ctl.abort(), 8000);
 try {
@@ -342,9 +377,9 @@ if (eventTitle) await setReminderSetting(db, slug, 'reminder_last_event', String
 * (结算, 不重试)。返回发送结果。 */
 export async function sendReminderForEvent(db, slug, ev, cfg, nowSec, expoBase) {
 await ensureReminderColumns(db);
-const { content, userIds} = await buildReminderMessage(db, ev, slug, nowSec);
+const { content, embeds, userIds} = await buildReminderMessage(db, ev, slug, nowSec);
 const identity = await webhookIdentity(db, slug).catch(() => null);
-const res = await postWebhook(cfg.webhook, content, userIds, undefined, identity);
+const res = await postWebhook(cfg.webhook, content, userIds, undefined, identity, embeds);
 if (res.ok) {
 await db.prepare('UPDATE events SET reminder_sent_at =? WHERE id =?').bind(nowSec, ev.id).run();
 } else {
