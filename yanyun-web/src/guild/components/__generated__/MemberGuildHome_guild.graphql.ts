@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<67deb47e5a14562692b05db5d02380e2>>
+ * @generated SignedSource<<621b87a7993b1889880d231918b80862>>
  * @lightSyntaxTransform
  */
 
@@ -14,7 +14,7 @@ export type MemberGuildHome_guild$data = {
   readonly detailBackToListLabel: string;
   readonly detailNotFoundText: string;
   readonly gameVersion: string;
-  readonly homeAdminLabel: string;
+  readonly homeAdminLabel: string | null | undefined;
   readonly homeBackToHubLabel: string;
   readonly homeTabDexLabel: string;
   readonly homeTabSectLabel: string;
