@@ -14,6 +14,7 @@ import {
 import GuildAdminTeams from './GuildAdminTeams.react.tsx';
 import GuildAdminEvents from './GuildAdminEvents.react.tsx';
 import GuildAdminGuides from './GuildAdminGuides.react.tsx';
+import GuildAdminStats from './GuildAdminStats.react.tsx';
 
 // Guild admin page (@match branch of viewer.guildAdmin): every label
 // comes from the GuildAdmin type's own copy fields; every write is a
@@ -44,6 +45,7 @@ const GuildAdminPage_guildAdmin = graphql`
     adminTabTeamsLabel
     adminTabEventsLabel
     adminTabGuidesLabel
+    adminTabStatsLabel
     adminSaveLabel
     adminSavedText
     adminDeleteLabel
@@ -123,6 +125,20 @@ const GuildAdminPage_guildAdmin = graphql`
     adminGuideRateLabel
     adminGuideBisLabel
     adminGuideRotationLabel
+    adminStatsTitle
+    adminStatsCurrentWeekLabel
+    adminStatsCarsLabel
+    adminStatsCompletedLabel
+    adminStatsSeatsLabel
+    adminStatsFillRateLabel
+    adminStatsParticipantsLabel
+    adminStatsPerCapitaLabel
+    adminStatsMembersTitle
+    adminStatsLeadersTitle
+    adminStatsSeatCountLabel
+    adminStatsCarCountLabel
+    adminStatsEmptyText
+    adminStatsBoardEmptyText
     fixedTeams {
       id
       name
@@ -181,6 +197,34 @@ const GuildAdminPage_guildAdmin = graphql`
           bisJson
         }
         rotationJson
+      }
+    }
+    stats {
+      weeks {
+        weekLabel
+        isCurrent
+        carsActivity
+        carsTalent
+        carsRace
+        carsTower
+        carsTotal
+        completedCount
+        totalSeats
+        filledSeats
+        fillRate
+        participantCount
+        participationCount
+        perCapita
+      }
+      memberLeaders {
+        discordId
+        displayName
+        seatCount
+      }
+      leaderLeaders {
+        discordId
+        displayName
+        carCount
       }
     }
   }
@@ -311,6 +355,7 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
     { key: 'teams', label: text.adminTabTeamsLabel },
     { key: 'events', label: text.adminTabEventsLabel },
     { key: 'guides', label: text.adminTabGuidesLabel },
+    { key: 'stats', label: text.adminTabStatsLabel },
   ];
 
   return (
@@ -484,6 +529,9 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
         )}
         {tab === 'guides' && (
           <GuildAdminGuides slug={slug} text={text} commonText={commonText} guides={data.schoolGuides} refresh={refresh} />
+        )}
+        {tab === 'stats' && (
+          <GuildAdminStats text={text} stats={data.stats} />
         )}
       </div>
     </div>
