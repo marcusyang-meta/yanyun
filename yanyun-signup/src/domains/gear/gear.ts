@@ -1,11 +1,13 @@
 /* ===================================================
- * user_gear_items / user_gear_builds 实体的数据层访问 (Repository)。
+ * Data-layer access (Repository) for the user_gear_items /
+ * user_gear_builds entities.
  *
- * 配装台装备库与保存方案的存储面: 一律按 discord_id 归属限定
- * (查不到即不存在, 不区分「他人的」与「没有」)。本文件只管行级
- * 读写; payload 的 JSON 序列化与行->领域对象映射留在 gearstore.ts。
- * 返回行沿用旧形态的 snake_case 键; 写操作返回 D1 的 meta。
- * 写法沿用一期 sql 模板惯用法 + sql.identifier 裸列名内插。
+ * Storage side of the gear library and saved builds: everything is
+ * scoped by discord_id ownership (a miss means "does not exist" —
+ * another user's row is indistinguishable from no row). This file
+ * does row-level reads/writes only; payload JSON serialization and
+ * row->domain mapping stay in gearstore.ts. Rows keep the legacy
+ * snake_case keys; writes return the D1 meta.
  * =================================================== */
 import { sql } from 'drizzle-orm';
 import { createDb, schema } from '../../db/client.ts';
@@ -18,7 +20,7 @@ interface RunMeta {
   last_row_id: number;
 }
 
-/* ---------- 懒 DDL: 装备库两表 (三期归位, gearstore 只剩委托) ---------- */
+/* ---------- Lazy DDL: the two gear-library tables (gearstore keeps only a delegation) ---------- */
 
 let gearTablesReady: Promise<void> | null = null;
 export function ensureGearTables(d1: D1Database): Promise<void> {
@@ -44,7 +46,7 @@ export function ensureGearTables(d1: D1Database): Promise<void> {
           created_at INTEGER NOT NULL DEFAULT 0
         )`);
         await db.run(sql`CREATE INDEX IF NOT EXISTS idx_user_gear_builds_owner ON ${userGearBuilds} (${col('discord_id')})`);
-      } catch { /* 表已存在等情况静默 */ }
+      } catch { /* silent if tables already exist etc. */ }
     })();
   }
   return gearTablesReady;
@@ -70,7 +72,7 @@ export interface GearBuildRow {
   created_at: number;
 }
 
-/* ---------- 装备单件 ---------- */
+/* ---------- Gear items ---------- */
 
 export async function listGearItemRows(d1: D1Database, discordId: string): Promise<GearItemRow[]> {
   const db = createDb(d1);
@@ -104,7 +106,7 @@ export async function deleteGearItemRow(d1: D1Database, discordId: string, id: n
   return metaOf(r);
 }
 
-/* ---------- 保存方案 ---------- */
+/* ---------- Saved builds ---------- */
 
 export async function listGearBuildRows(d1: D1Database, discordId: string): Promise<GearBuildRow[]> {
   const db = createDb(d1);

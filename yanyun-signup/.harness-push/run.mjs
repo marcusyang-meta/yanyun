@@ -1,10 +1,14 @@
-// Expo 推送通道验收 (本地 wrangler dev + stub webhook 接收端):
-//  A) GraphQL registerPushToken: 合法令牌落表 / 非法令牌拒 / 匿名拒;
-//     unregisterPushToken: 行消失; 再注册回来供 B 用。
-//  B) 发车提醒双通道: 夹具车 T-9min (已盖戳座位 + 假令牌), WS 连接触发
-//     GuildHub 重排 alarm -> 到点发送: Discord stub 收到原文 (通道未破坏),
-//     events.reminder_sent_at 落定, Expo 对假令牌回 DeviceNotRegistered
-//     ticket -> push_tokens 自清。
+// Expo push channel acceptance (local wrangler dev + stub webhook
+// receiver):
+//  A) GraphQL registerPushToken: valid token lands in the table /
+//     invalid token rejected / anonymous rejected; unregisterPushToken:
+//     the row disappears; register again for B.
+//  B) Departure-reminder dual channel: fixture car at T-9min (stamped
+//     seat + fake token); a WS connection triggers GuildHub to
+//     reschedule the alarm -> sends when due: the Discord stub receives
+//     the original text (channel intact), events.reminder_sent_at is
+//     settled, and Expo's DeviceNotRegistered ticket for the fake
+//     token self-cleans push_tokens.
 import http from 'node:http';
 import fs from 'node:fs';
 import crypto from 'node:crypto';
@@ -29,7 +33,7 @@ function check(name, ok, extra = '') {
 }
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-/* ---------- JWT (与 auth.js 同格式 HS256) ---------- */
+/* ---------- JWT (same HS256 format as auth) ---------- */
 const b64u = (buf) => Buffer.from(buf).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 function mintJwt() {
   const now = Math.floor(Date.now() / 1000);
@@ -40,7 +44,7 @@ function mintJwt() {
 }
 const JWT = mintJwt();
 
-/* ---------- D1 直写 (本地) ---------- */
+/* ---------- Direct D1 writes (local) ---------- */
 async function d1(sql) {
   const { stdout } = await execFileP('npx', ['wrangler', 'd1', 'execute', 'yanyun-signup', '--local', '--json', '--command', sql], { cwd: ROOT });
   const i = stdout.indexOf('[');
@@ -49,10 +53,12 @@ async function d1(sql) {
 }
 async function d1Try(sql) { try { return await d1(sql); } catch { return []; } }
 
-/* ---------- stub 接收端 (Discord webhook + Expo Push API 回放) ----------
- * 本地 workerd 出站 fetch exp.host 会被本机出口代理打坏 TLS (实测 corrupt
- * message), 故 Expo 走 EXPO_PUSH_BASE 本地回放; 回放的 ticket 是先前 curl
- * 直调真实 exp.host 拿到的原文 (同一假令牌):
+/* ---------- Stub receiver (Discord webhook + Expo Push API replay) ----------
+ * A local workerd outbound fetch to exp.host has its TLS broken by this
+ * machine's egress proxy (observed: corrupt message), so Expo goes
+ * through a local EXPO_PUSH_BASE replay; the replayed ticket is the
+ * verbatim response previously obtained by curling the real exp.host
+ * directly (same fake token):
  * {"data":[{"status":"error","message":"\"ExponentPushToken[...]\" is not a
  * registered push notification recipient or it is associated with a project
  * that does not exist.","details":{"error":"DeviceNotRegistered",...}}]} */
@@ -86,10 +92,11 @@ const stub = http.createServer((req, res) => {
 });
 await new Promise((r) => stub.listen(STUB_PORT, r));
 
-/* ---------- 夹具播种 ---------- */
+/* ---------- Fixture seeding ---------- */
 const nowSec = Math.floor(Date.now() / 1000);
-// 先 T-11 分钟播种 (提醒时刻在未来): 避免本地 DO 残留 alarm 在 dev 冷启动
-// 时抢先把车结算掉; B 阶段再把出发时间改到 T-9 分钟并主动触发。
+// Seed at T-11 minutes first (reminder time still in the future): this
+// stops a leftover local DO alarm from settling the car early during a
+// dev cold start; phase B then moves departure to T-9 and triggers it.
 const startsAt = nowSec + 660;
 await d1Try(`DELETE FROM signups WHERE event_id IN (SELECT id FROM events WHERE tenant='${SLUG}')`);
 await d1Try(`DELETE FROM events WHERE tenant='${SLUG}'`);
@@ -120,9 +127,11 @@ check('夹具车已播种', !!eventId, `event=${eventId}`);
 await d1(`INSERT INTO signups (event_id, nickname, uid, weapon, discord_id)
   VALUES (${eventId}, '车头甲', 'u2001', '破竹·樽', '2001')`);
 
-/* ---------- 起 wrangler dev ---------- */
-// 端口必须空闲: 上一轮残留的 dev 进程会冒名顶替 (kill 只杀 npx 包装层,
-// workerd 子进程会成孤儿), 先预检再起, 收尾按进程组杀干净。
+/* ---------- Start wrangler dev ---------- */
+// The port must be free: a leftover dev process from a previous round
+// would impersonate this one (kill only kills the npx wrapper; the
+// workerd child is orphaned), so pre-check before starting and kill by
+// process group at teardown.
 const portFree = await new Promise((resolve) => {
   const s = http.createServer();
   s.once('error', () => resolve(false));
@@ -139,9 +148,9 @@ for (let i = 0; i < 60 && !up; i++) {
   try { const r = await fetch(WORKER + '/'); if (r.status) up = true; } catch { await sleep(1000); }
 }
 check('wrangler dev 已启动', up);
-await sleep(6000); // 排掉本地 DO 残留 alarm 的冷启动触发 (此时夹具车未到点, 无副作用)
+await sleep(6000); // Drain cold-start firings of leftover local DO alarms (the fixture car is not due yet, so no side effects).
 
-/* ---------- A) 注册/注销 ---------- */
+/* ---------- A) Register / unregister ---------- */
 async function gql(query, variables, auth = true) {
   const r = await fetch(WORKER + '/graphql', {
     method: 'POST',
@@ -174,8 +183,8 @@ check('注销后行消失', rows.length === 0);
 const r5 = await gql(REG, { t: FAKE_TOKEN, p: 'ios' });
 check('重新注册供 alarm 验收', r5?.data?.registerPushToken?.ok === true);
 
-/* ---------- B) WS 触发重排 -> alarm 双通道发送 ---------- */
-// 令牌就位 (直写模拟已注册状态) + 出发时间拨到 T-9 分钟 (提醒时刻已过)
+/* ---------- B) WS-triggered reschedule -> alarm dual-channel send ---------- */
+// Token in place (direct write simulating registered state) + departure moved to T-9 minutes (reminder time already past).
 await d1(`INSERT INTO push_tokens (discord_id, token, platform, updated_at)
   VALUES ('2001', '${FAKE_TOKEN}', 'ios', ${Math.floor(Date.now() / 1000)})
   ON CONFLICT(discord_id, token) DO UPDATE SET platform = excluded.platform`);
@@ -238,7 +247,7 @@ if (fail > 0) {
   for (const l of devLog.join('').split('\n').slice(-15)) console.log(l);
 }
 
-/* ---------- 收尾 ---------- */
+/* ---------- Teardown ---------- */
 try { process.kill(-dev.pid, 'SIGTERM'); } catch { dev.kill('SIGTERM'); }
 stub.close();
 await d1Try(`DELETE FROM signups WHERE event_id=${eventId}`);

@@ -1,28 +1,39 @@
-// 传家宝 Discord 推送 (2026-10-24 用户裁决新增, 与开车提醒相互独立)
-// 形态: 管理员 portal 按百业单独配一个频道 Webhook (settings.heirloom_webhook,
-// 与开车提醒的 tenants.discord_webhook 是两条独立配置, 互不替换), 开关与
-// 状态同样存 settings(tenant=slug)。触发在 gearPlan 计算路径服务端评估
-// (会话用户 + 目标流派 + 全库判定都现成), 全程 waitUntil 异步、失败只落
-// 状态, 绝不影响配装计算本身。
-// 触发 (用户裁决两者都要):
-//  (a) 成员录得传家宝: 某件装备对当前目标流派判定为传家宝 (gearEvals 口径)
-//      且 (用户, 流派签名, 装备内容哈希) 从未推过 — 内容哈希不认行 id,
-//      删掉重录同一件不重复播报; 同一次评估新出多件合并成一条消息。
-//  (b) 集齐: 搭配 8 个部位全为传家宝 — 只在 未齐 -> 集齐 跃迁时推,
-//      破齐后自动重新待命 (状态存 heirloom_set_state)。
-// 去重落库与提醒的"结算"纪律一致: 发送无论成败都记已推 (防死 webhook 在
-// 每次计算时重试风暴), 成败与原因记 heirloom_last_* 供 portal 查看。
-// 发送身份与开车提醒相同 (燕云百业 + 品牌头像, postWebhook 复用)。
-// 文案为 Discord 固定文案 (与提醒文案同性质, 不走 i18n 目录), 用户定调:
-// 给足情绪价值; 2026-10-24 续裁「离谱一点, 要 at 所有人和那个人」—
-// 真触发播报带 @everyone + @ 本人 (allowed_mentions parse=['everyone']
-// 且 users 只放行动者本人); 测试消息不 @ (只验通路, 不吵全服)。
+// Heirloom Discord pushes (added by user ruling, 2026-10-24; fully
+// independent of the event reminders).
+// Shape: the admin portal configures one channel Webhook per guild
+// (settings.heirloom_webhook — a separate config from the reminders'
+// tenants.discord_webhook; neither replaces the other); the toggle and
+// status also live in settings (tenant=slug). Evaluation happens
+// server-side on the gearPlan path (session user + target build +
+// whole-library verdicts are all at hand), entirely via waitUntil;
+// failures only record status and never affect the gear calculation.
+// Triggers (user ruled both):
+//  (a) A member records an heirloom: an item judged heirloom for the
+//      current target build (gearEvals yardstick) whose (user, build
+//      signature, item content hash) was never pushed — the content
+//      hash ignores row ids, so deleting and re-recording the same
+//      item does not re-announce; several new items in one evaluation
+//      merge into a single message.
+//  (b) Set completion: all 8 loadout slots are heirlooms — pushed only
+//      on the incomplete -> complete transition; breaking the set
+//      re-arms it automatically (state in heirloom_set_state).
+// Dedup follows the reminders' settlement discipline: a send is
+// recorded as pushed whether it succeeds or fails (a dead webhook must
+// not retry-storm on every calculation); outcome and reason go to
+// heirloom_last_* for the portal.
+// Sender identity matches the reminders (guild name + brand avatar,
+// reusing postWebhook). Copy is fixed Discord copy (same nature as the
+// reminder copy, not i18n-catalog); tone set by the user: generous
+// hype — 2026-10-24 follow-up ruling "go over the top, @ everyone and
+// the person": real announcements carry @everyone + @ the actor
+// (allowed_mentions parse=['everyone'], users = the actor only); test
+// messages @ nobody (path check only, don't wake the server).
 
 import { GP_SLOTS, GP_AFFIX_BY_KEY, gpBuild } from './gearplanner.ts';
 import {
   getReminderSetting, setReminderSetting, postWebhook, ensureGuildMembersTable,
 } from '../groupings/index.ts';
-import { getGuildNick } from '../../auth.js';
+import { getGuildNick } from '../identity/auth.ts';
 import { webhookIdentity } from '../guilds/index.ts';
 import { getTenantRow, listTenantNames } from '../guilds/index.ts';
 import { getUsernameRow } from '../identity/index.ts';
@@ -32,7 +43,7 @@ import {
   insertHeirloomItemPush, getHeirloomSetState, upsertHeirloomSetState,
 } from './heirloom.ts';
 
-/* ---------- 配置 (settings, tenant=slug) ---------- */
+/* ---------- Config (settings, tenant=slug) ---------- */
 export async function getHeirloomConfig(db: D1Database, slug: string) {
   const t = await getTenantRow(db, slug).catch(() => null);
   if (!t) return null;
@@ -50,13 +61,14 @@ async function recordHeirloomStatus(db: D1Database, slug: string, { ok, error, a
   if (event) await setReminderSetting(db, slug, 'heirloom_last_event', String(event).slice(0, 60));
 }
 
-/* ---------- 去重 / 集齐状态表 (懒 DDL 已归 gear 域 heirloom 仓库) ---------- */
+/* ---------- Dedup / set-state tables (lazy DDL lives in the gear domain's heirloom repository) ---------- */
 export function ensureHeirloomTables(db: D1Database) {
   return ensureHeirloomTablesRepo(db);
 }
 
-/* 装备内容哈希: 部位 + 词条 (键+值) + 定音 — 不含行 id 与装备名,
- * 删掉重录/换设备导入同一件 => 同一哈希 => 不重复播报。 */
+/* Item content hash: slot + affixes (key+value) + attunement — excludes
+ * the row id and the item name, so deleting/re-recording or importing
+ * the same item on another device yields the same hash and no repeat. */
 export async function heirloomItemHash(g: any) {
   const canon = JSON.stringify({
     s: String(g.slot || ''),
@@ -69,9 +81,10 @@ export async function heirloomItemHash(g: any) {
   return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('').slice(0, 40);
 }
 
-/* ---------- 播报对象显示名 ----------
- * 本百业名册 (guild_members) 昵称 -> 全局名 -> 该服昵称快照 ->
- * users 全局名 -> 会话名 -> 兜底。与提醒的车头显示名同一梯队。 */
+/* ---------- Announced member's display name ----------
+ * This guild's roster (guild_members) nickname -> global name -> that
+ * server's nickname snapshot -> users global name -> session name ->
+ * fallback. Same ladder as the reminders' creator display name. */
 async function memberDisplayName(db: D1Database, slug: string, dgid: any, discordId: string, userName: any) {
   await ensureGuildMembersTable(db);
   const rm = await getGuildMember(db, slug, discordId).catch(() => null);
@@ -87,7 +100,7 @@ async function memberDisplayName(db: D1Database, slug: string, dgid: any, discor
   return '百业侠客';
 }
 
-/* ---------- 文案 (Discord 固定文案, 用户定调: 给足情绪价值) ---------- */
+/* ---------- Copy (fixed Discord copy; tone set by the user: generous hype) ---------- */
 function fmtNum(v: any) {
   return String(Math.round((Number(v) || 0) * 10) / 10);
 }
@@ -156,16 +169,18 @@ export function buildHeirloomTestMessage(guildName: any) {
   return `🎉 测试消息：${guildName} 的传家宝推送已接通。有人录得传家宝、或集齐全套传家宝时，我会在这里播报。`;
 }
 
-/* ---------- 评估入口 (gearPlan 路径, waitUntil 异步调用) ----------
- * 对每个「已启用传家宝推送」的百业: 行动者是其成员 (会话服务器列表含
- * 绑定服务器, 或已在该百业名册中) 才评估。单百业失败静默, 不影响其他。 */
+/* ---------- Evaluation entry (gearPlan path, called via waitUntil) ----------
+ * For each guild with heirloom pushes enabled: evaluate only when the
+ * actor is a member (the session's server list contains the bound
+ * server, or they are already in that guild's roster). One guild's
+ * failure stays silent and does not affect the others. */
 export async function evaluateHeirloomPushes(db: D1Database, args: any) {
   if (!db || !args || !args.discordId) return;
   const results = await listTenantNames(db).catch(() => []);
   for (const t of results || []) {
     try {
       await evaluateForTenant(db, t, args);
-    } catch { /* 单个百业的推送评估失败绝不外溢 */ }
+    } catch { /* one guild's push evaluation failure must never leak out */ }
   }
 }
 
@@ -187,10 +202,10 @@ async function evaluateForTenant(db: D1Database, t: any, args: any) {
   const evalById = new Map((args.evals || []).map((e: any) => [e.id, e.verdict]));
   const nowSec = Math.floor(Date.now() / 1000);
   const displayName = await memberDisplayName(db, slug, dgid, args.discordId, args.userName);
-  // 发送身份 per-百业 (有自定义头像才切换; 见 guildavatar.webhookIdentity)
+  // Sender identity is per-guild (switches only when a custom avatar exists; see guildavatar.webhookIdentity)
   const identity = await webhookIdentity(db, slug).catch(() => null);
 
-  /* (a) 新传家宝: 本次评估里判定为传家宝且从未推过的, 合并一条播报 */
+  /* (a) New heirlooms: judged heirloom in this evaluation and never pushed before -> one merged announcement */
   const heirloomItems = (args.lib || []).filter((g: any) => g && g.id != null && evalById.get(g.id) === 'heirloom');
   if (heirloomItems.length) {
     const hashed = [];
@@ -214,7 +229,7 @@ async function evaluateForTenant(db: D1Database, t: any, args: any) {
     }
   }
 
-  /* (b) 集齐跃迁: 状态与当前搭配比对, 只在 未齐 -> 集齐 时播报 */
+  /* (b) Set-completion transition: compare state with the current loadout; announce only on incomplete -> complete */
   const complete = GP_SLOTS.every((pos: any) => {
     const id = args.loadout ? args.loadout[pos] : null;
     return id != null && evalById.get(id) === 'heirloom';
@@ -237,7 +252,7 @@ async function evaluateForTenant(db: D1Database, t: any, args: any) {
   }
 }
 
-/* portal 测试发送与状态读取共用 */
+/* Shared by the portal test-send and the status read */
 export async function sendHeirloomTest(db: D1Database, slug: string) {
   const cfg = await getHeirloomConfig(db, slug);
   if (!cfg) return { ok: false, error: '百业不存在', missing: true };

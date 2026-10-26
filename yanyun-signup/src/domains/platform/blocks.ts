@@ -1,15 +1,12 @@
-// Bloks-lite 服务端组合层 · 纯工具 (移动端内容区积木对象树, 2026-10-25
-// 用户裁决): 积木是带类型的 GraphQL object (Block 接口 + 具体类型),
-// 组合逻辑在 graphql.js 的 shell 类上 (每个积木/动作都是 shell, 字段由
-// 各自 gen 方法按 locale 经 i18n 目录惰性生成)。本模块只放无状态工具:
-// 词汇版本注册表、版本替代、周界与时间格式 (与网站同口径)。
+// Bloks-lite stateless helpers only: vocab-version registry, version
+// substitution, week windows and time formatting. Composition lives in
+// the GraphQL shells (blocks are typed objects: Block interface + concretes).
 
-/* ---------- 词汇版本注册表 ----------
- * 每个具体积木/动作类型标注引入版本。客户端经 blocks(blocksVersion:)
- * 声明自己支持的版本; 高于该版本的积木不下发原对象 — 由服务端替代为
- * FallbackBlock (最老客户端可渲染的提示叶子); 高于版本的动作置空
- * (积木保留、不可点)。GraphQL schema 是契约本体, 此注册表只负责
- * "老客户端安全降级"这一件事。 */
+/* ---------- Vocab version registry ----------
+ * Each block/action type records the version that introduced it. Blocks
+ * above the client's declared blocksVersion are replaced with
+ * FallbackBlock; actions above it are nulled (block kept, not tappable).
+ * This registry owns only safe downgrade for old clients. */
 export const BLOCK_VOCAB_MAX = 4;
 export const BLOCK_TYPE_SINCE: Record<string, number> = {
   FallbackBlock: 0,
@@ -29,9 +26,9 @@ export function clampBlocksVersion(v: any) {
   return Math.min(n, BLOCK_VOCAB_MAX);
 }
 
-// 对已组合的积木 shell 数组做版本替代 (递归进 children)。shell 鸭子
-// 类型: { __typename, _children: [], _action: shell|null }。座位条目里的
-// 动作 (SeatEntry.action) 按构造恒为 v1 动作, 不在本走查范围内。
+// Version-substitute composed block shells, recursing into children.
+// Shell shape: { __typename, _children: [], _action: shell|null }.
+// SeatEntry.action is always a v1 action by construction; out of scope here.
 export function substituteForVersion(blocks: any, version: number, makeFallback: () => any) {
   const out: any[] = [];
   for (const b of blocks || []) {
@@ -49,9 +46,9 @@ export function substituteForVersion(blocks: any, version: number, makeFallback:
   return out;
 }
 
-/* ---------- 时间/周界 (与网站同口径) ---------- */
-// 周窗: 周一 05:00 (北京时间) 起, 左闭右开 [start, start+7d) — 与
-// worker.js ogWeekWindowUtc 同一算法, weekOffset 平移整周。
+/* ---------- Time / week window ---------- */
+// Week window: Monday 05:00 Beijing time, half-open [start, start+7d);
+// same algorithm as ogWeekWindowUtc; weekOffset shifts whole weeks.
 export function weekWindowUtc(weekOffset = 0): [number, number] {
   const now = Math.floor(Date.now() / 1000);
   const cst = now + 8 * 3600;
@@ -63,7 +60,7 @@ export function weekWindowUtc(weekOffset = 0): [number, number] {
   return [startUtc, startUtc + 7 * 86400];
 }
 
-// events 行 -> epoch 秒 (starts_at_utc 优先; 文本按网站 parseStartsAt 语义)
+// events row -> epoch seconds (starts_at_utc first; text follows parseStartsAt semantics)
 export function startsAtEpoch(ev: any) {
   if (ev.starts_at_utc != null && ev.starts_at_utc !== '') {
     const n = Number(ev.starts_at_utc);
@@ -95,11 +92,11 @@ export function fmtStartsAt(epochSec: number, locale: string, tz?: string) {
   return fmt.format(new Date(epochSec * 1000));
 }
 
-/* ---------- 按日分组 (列表呈现维度, 2026-10-25) ----------
- * 浏览框架仍是周 (weekWindowUtc 不动, 那是数据语义); 一屏之内把车按
- * 查看者本地时区 (tz, 缺省 Asia/Shanghai 与 fmtStartsAt 同口径) 的自然日
- * 分组: 组按日期升序、组内按出发时刻升序。localDayParts 给出某时刻在
- * tz 下的年/月/日与星期序号 (0=周日, 与 JS getDay 对齐, 供目录 weekday0..6 取名)。 */
+/* ---------- Grouping by local day (presentation only) ----------
+ * The browsing frame stays the week (weekWindowUtc is data semantics);
+ * within a screen, group by the viewer's local day (tz, default
+ * Asia/Shanghai): days ascending, start times ascending within a day.
+ * localDayParts weekday is 0=Sunday, matching JS getDay / catalog weekday0..6. */
 const _dayFmtCache = new Map<string, Intl.DateTimeFormat>();
 export function localDayParts(epochSec: number, tz?: string) {
   const zone = tz || 'Asia/Shanghai';
@@ -117,9 +114,7 @@ export function localDayParts(epochSec: number, tz?: string) {
   return { key: `${year}-${month}-${day}`, year, month, day, weekday };
 }
 
-// 已带 epoch 的车队条目 [{g, ts}] -> [{ parts, items:[...] }] (日期升序,
-// 组内时刻升序)。ts 单调不减时本地日也单调不减, 一趟分组即可; 这里先按
-// ts 排序再分桶, 不依赖调用方的入序。
+// Sort by ts, then bucket by local day; do not rely on caller ordering.
 export function groupByLocalDay(items: Array<{ ts: number } & Record<string, any>>, tz?: string) {
   const sorted = [...items].sort((a, b) => a.ts - b.ts);
   const groups: Array<{ parts: any; items: any[] }> = [];
@@ -132,7 +127,7 @@ export function groupByLocalDay(items: Array<{ ts: number } & Record<string, any
   return groups;
 }
 
-// events.type -> groupingType 目录短名 key
+// events.type -> groupingType catalog short-name key
 export const TYPE_SHORT_KEY: Record<string, string> = {
   activity: 'shortActivity', talent: 'shortTalent', race: 'shortRace', tower: 'shortTower',
   gather: 'shortGather', explore: 'shortExplore',

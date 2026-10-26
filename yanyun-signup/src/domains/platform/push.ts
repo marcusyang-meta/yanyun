@@ -1,21 +1,23 @@
-// Expo 推送 · 发车提醒的 App 通道 (2026-10-25)
-// 与 Discord webhook 提醒并行: 同一个 T-10min 触发点 (GuildHub alarm ->
-// reminder.js sendReminderForEvent), 对象 = 提醒身份解析已命中账号的参与者
-// (buildReminderMessage 返回的 userIds), 再映射到这些账号在 App 里注册的
-// ExponentPushToken。解析不到账号的座位没有 App 身份, 天然收不到 —— 不
-// 伪造覆盖率, Discord 那条仍是全覆盖通道。
+// Expo push: the app channel for departure reminders. Runs parallel to
+// the Discord webhook reminder from the same T-10 trigger (GuildHub
+// alarm), targeting participants whose accounts were resolved during
+// reminder identity resolution, mapped to their registered
+// ExponentPushTokens. Seats without a resolved account have no app
+// identity and simply receive nothing — coverage is never faked; the
+// Discord channel remains the full-coverage one.
 import { logError } from './error-log.ts';
 import {
   upsertPushToken, deletePushTokenForUser, deletePushTokenEverywhere as deleteTokenEverywhere,
   listPushTokensForUsers, ensurePushTokensTable as ensurePushTokensTableRepo,
 } from './pushTokens.ts';
 
-// 发送走 Expo Push Service HTTP API; DeviceNotRegistered 的令牌立即自清
-// (tickets 与 receipts 两处都查)。全模块失败隔离: 任何异常只记日志, 绝不
-// 冒泡影响 Discord 发送与 alarm 结算。
+// Sends via the Expo Push Service HTTP API; DeviceNotRegistered tokens
+// are deleted immediately (checked in both tickets and receipts). Fully
+// failure-isolated: any exception is only logged, never bubbles into the
+// Discord send or alarm settlement.
 
-// EXPO_PUSH_BASE 仅供本地打桩验收覆盖 (与 auth.js 的 DISCORD_API_BASE 同
-// 套路), 生产不设此变量, 恒走 exp.host。
+// EXPO_PUSH_BASE exists only for local stub testing; production never
+// sets it and always uses exp.host.
 function expoEndpoints(base: any) {
   const b = (base && String(base).trim()) || 'https://exp.host';
   return {
@@ -23,17 +25,18 @@ function expoEndpoints(base: any) {
     receipts: b + '/--/api/v2/push/getReceipts',
   };
 }
-const EXPO_CHUNK = 100; // Expo 单请求上限
+const EXPO_CHUNK = 100; // Expo per-request limit
 const PUSH_TOKEN_RE = /^(ExponentPushToken|ExpoPushToken)\[[^\]\s]+\]$/;
 
 export function isValidPushToken(token: any) {
   return typeof token === 'string' && PUSH_TOKEN_RE.test(token.trim());
 }
 
-/* ---------- push_tokens 表 (懒 DDL, 与 reminder.js 同套路) ----------
- * 一人可多设备多令牌; (discord_id, token) 唯一, 同令牌重注册只刷新
- * platform/updated_at。注销按 (discord_id, token) 删, 不误删他人设备。 */
-// 懒 DDL 已归 platform 域 pushTokens 仓库 (三期); 此处保留旧名导出作委托。
+/* ---------- push_tokens ----------
+ * One user may hold many device tokens; (discord_id, token) is unique
+ * and re-registering a token only refreshes platform/updated_at.
+ * Unregister deletes by (discord_id, token), never another user's device. */
+// Lazy DDL lives in the pushTokens repository; this export delegates.
 export function ensurePushTokensTable(db: D1Database) {
   return ensurePushTokensTableRepo(db);
 }
@@ -51,7 +54,7 @@ export async function deletePushToken(db: D1Database, discordId: string, token: 
   await deletePushTokenForUser(db, String(discordId), String(token));
 }
 
-// 令牌失效自清: 按令牌本身删 (回执只认令牌不认人)
+// Invalid-token cleanup deletes by token itself (receipts name tokens, not users)
 async function deletePushTokenEverywhere(db: D1Database, token: string) {
   await ensurePushTokensTable(db);
   await deleteTokenEverywhere(db, String(token));
@@ -72,10 +75,10 @@ export async function pushTokensForUsers(db: D1Database, discordIds: any) {
   return out;
 }
 
-/* ---------- Expo Push Service 发送 ---------- */
+/* ---------- Expo Push Service sending ---------- */
 async function expoFetchJson(url: string, payload: any, timeoutMs = 15000, attempts = 1): Promise<any> {
-  // 出口网络偶发卡顿 (实测 exp.host 首连可卡 20s): 发送允许重试一次,
-  // 仍失败按 null 返回, 由调用方记账, 不冒泡。
+  // Egress can stall (exp.host first connect has been seen stuck 20s):
+  // one retry allowed; still failing returns null for the caller to record.
   for (let a = 0; a < attempts; a++) {
     if (a > 0) await new Promise((r) => setTimeout(r, 1500));
     const ctl = new AbortController();
@@ -94,16 +97,16 @@ async function expoFetchJson(url: string, payload: any, timeoutMs = 15000, attem
       if (!r.ok) continue;
       const j = await r.json().catch(() => null);
       if (j) return j;
-    } catch { /* 超时/网络抖动: 按 attempts 重试 */ } finally {
+    } catch { /* timeout/network jitter: retry per attempts */ } finally {
       clearTimeout(timer);
     }
   }
   return null;
 }
 
-/* 批量发送 messages: [{to, title, body, data}]。tickets 先行过滤明显的
- * DeviceNotRegistered; 其余拿到 ticket id 再查 receipts 二次确认, 命中
- * 的令牌自清。返回统计, 永不抛错。 */
+/* Batch-send messages [{to, title, body, data}]. Tickets filter obvious
+ * DeviceNotRegistered first; surviving ticket ids are confirmed via
+ * receipts and hit tokens are deleted. Returns stats; never throws. */
 export async function sendExpoPush(db: D1Database, messages: any, expoBase: any) {
   const EP = expoEndpoints(expoBase);
   const summary: { attempted: number; ticketOk: number; removed: number; errors: string[] } = { attempted: 0, ticketOk: 0, removed: 0, errors: [] };
@@ -133,8 +136,8 @@ export async function sendExpoPush(db: D1Database, messages: any, expoBase: any)
       }
     }
   }
-  // receipts: Expo 建议 15 分钟后查, 但失效令牌通常即刻可见; 这里立即查
-  // 一次作为自清的第二道网, 查不到/未就绪不算失败。
+  // Receipts: Expo suggests waiting 15 min, but dead tokens are usually
+  // visible at once; check immediately as a second cleanup net. Not-ready is not a failure.
   if (receiptIds.size) {
     const ids = [...receiptIds.keys()];
     for (let i = 0; i < ids.length; i += EXPO_CHUNK) {
@@ -157,8 +160,9 @@ export async function sendExpoPush(db: D1Database, messages: any, expoBase: any)
   return summary;
 }
 
-/* 发车提醒的 App 通道: userIds = buildReminderMessage 已解析到账号的参与
- * 者。文案与 Discord 版同信息 (车名/分钟数/副本/百业), 简洁版不带名册。 */
+/* Departure-reminder app channel: userIds are participants already
+ * resolved to accounts. Same information as the Discord version
+ * (title/minutes/dungeon/guild), in a concise form without the roster. */
 export async function sendDeparturePush(db: D1Database, slug: string, ev: any, cfg: any, userIds: any, nowSec: number, expoBase: any) {
   const byUser = await pushTokensForUsers(db, userIds || []);
   if (!byUser.size) return { attempted: 0, ticketOk: 0, removed: 0, errors: [] };
@@ -182,7 +186,7 @@ export async function sendDeparturePush(db: D1Database, slug: string, ev: any, c
   const summary = await sendExpoPush(db, messages, expoBase);
   if (summary.errors.length) {
     console.log(`[push] event ${ev.id} (${slug}): attempted=${summary.attempted} ok=${summary.ticketOk} removed=${summary.removed} errors=${summary.errors.slice(0, 3).join(' | ')}`);
-    // 全站错误汇聚 (审计 A7): 推送失败除 console 外同步落 error_log
+    // Error sink: push failures also land in error_log, not only console
     void logError(db, {
       source: 'push', name: 'PushError', tenant: slug,
       message: summary.errors.slice(0, 3).join(' | '),

@@ -1,10 +1,10 @@
-/* guilds 域 GraphQL (三期域拆分): Guild shells、集结页与建业。 */
+/* guilds domain GraphQL: Guild shells, the rally page, and guild creation. */
 import {
   clampBlocksVersion, substituteForVersion, weekWindowUtc, startsAtEpoch,
   fmtStartsAt, groupByLocalDay, TYPE_SHORT_KEY, HEALER_SECT,
 } from '../platform/index.ts';
 import { tlCalculateExcel } from '../gear/index.ts';
-import { getUserServers, getGuildNick, maybeRefreshGuildNicks, getUserLocalePref, setUserLocalePref } from '../../auth.js';
+import { getUserServers, getGuildNick, maybeRefreshGuildNicks, getUserLocalePref, setUserLocalePref } from '../identity/auth.ts';
 import { ensureSignupDiscordColumn, ensureGuildMembersTable, upsertGuildMember,
   countDistinctNicknamesByTenant,
 } from '../groupings/index.ts';
@@ -86,11 +86,14 @@ export class GuildRosterMemberShell extends ShellBase {
   genGlobalName(){ return this.data.globalName || null; }
 }
 
-/* ---------- 实体 shell: Guild (Guild / GuildReadOnly / GuildLocked) ----------
- * 一个 class, 三个 __typename (权限结论由类型表达, 与从前一致): 实例
- * 携带 getGuildAccess 的结论, 字段 gen 方法按需解析 — 内容字段仅在
- * 对应类型上声明, Locked 实例永远不会被问到内容。文案字段 (主页
- * 外壳/详情页缺失提示/锁定页) 直接长在本类上, 按类型分发 resolver。 */
+/* ---------- Entity shell: Guild (Guild / GuildReadOnly / GuildLocked) ----------
+ * One class, three __typenames (the permission conclusion is
+ * expressed by type, as before): instances carry the
+ * getGuildAccess conclusion, field generators resolve on demand —
+ * content fields are declared only on the types that have them,
+ * and a Locked instance is never asked for content. Copy fields
+ * (home shell / detail-missing notice / locked page) live on this
+ * class and dispatch resolvers by type. */
 export class GuildShell extends ShellBase {
   __typename: any;
   constructor(ctx: any, access: any){
@@ -101,14 +104,13 @@ export class GuildShell extends ShellBase {
   get access() { return this.data; }
   genSlug(){ return this.access.tenant ? this.access.tenant.slug : this.access.slug; }
   genName(){ return this.access.tenant.guild_name; }
-  // 百业自定义头像: 有头像才给带 hash 的版本化 URL (相对本站 origin),
-  // 没有给 null — 客户端照字段渲染, 不许自己拼 URL。
+  // Custom guild avatar: only with an avatar, a versioned URL carrying the hash (relative to this origin); otherwise null — clients render the field as-is and must not build URLs themselves.
   genAvatarUrl(){
     return this.memo('avatarUrl', async () => {
       const meta = await getGuildAvatarMeta(this.db, this.genSlug()).catch(() => null);
       if (!meta) return null;
       let origin = '';
-      try { origin = new URL(this.ctx.request.url).origin; } catch { /* 无 request 时退相对路径 */ }
+      try { origin = new URL(this.ctx.request.url).origin; } catch { /* Without a request, fall back to a relative path. */ }
       return origin + avatarPath(this.genSlug(), meta.hash);
     });
   }
@@ -122,9 +124,11 @@ export class GuildShell extends ShellBase {
   genGroupings({ tab }: any){
     return groupingListPage(this.ctx, this.genSlug(), tab);
   }
-  // 本百业成员名册 (代报名选人面): 只挂在完整 Guild 类型上
-  // (GuildReadOnly / GuildLocked 的 schema 里没有这个字段)。按展示名
-  // 排序下发; 展示名为空 (昵称与全局名都缺) 的行不下发 — 选了也落不了座。
+  // This guild's member roster (proxy-signup picker): attached only
+  // to the full Guild type (GuildReadOnly / GuildLocked have no such
+  // field in the schema). Sent sorted by display name; rows whose
+  // display name is empty (no nickname and no global name) are not
+  // sent — picking one could never seat.
   genMemberRoster(){
     return this.memo('memberRoster', async () => {
       await ensureGuildMembersTable(this.db);
@@ -143,8 +147,7 @@ export class GuildShell extends ShellBase {
       return out;
     });
   }
-  // 当前用户在该百业绑定服务器的 Discord 昵称 (数据, 非权限标记);
-  // 未登录/未绑定/无绑定服务器 -> null; 昵称为空 -> null (前端回退全局名)
+  // The current user's Discord nickname on this guild's bound server (data, not a permission flag); null when logged out / unbound / no bound server, and null for an empty nickname (the frontend falls back to the global name).
   genViewerNick(){
     return this.memo('viewerNick', async () => {
       if (!this.ctx.user || !this.access.bound || !this.access.discordGuildId) return null;
@@ -174,7 +177,7 @@ export const GUILD_LOCKED_TEXT_RESOLVERS = defineTextGens(GuildShell, [
   ['lockedBackButtonLabel', 'locked', 'backButton'],
 ]);
 
-// Guild / GuildReadOnly 的内容字段 (两者数据面相同; 区别只在类型与前端挂载的组件)
+// Content fields of Guild / GuildReadOnly (identical data surface; they differ only in type and in which components the frontend mounts).
 export function guildContentResolvers() {
   return {
     slug: (p: any) => p.genSlug(),
@@ -191,9 +194,7 @@ export function guildContentResolvers() {
 
 
 
-/* ================= 页面 shell ================= */
 
-/* ---------- Viewer (站点/登录/用户栏/选择页/创建页/通用文案 + 用户层级) ---------- */
 
 export class GuildCardShell extends ShellBase {
   genSlug(){ return this.data.slug; }
@@ -206,7 +207,7 @@ export class GuildCardShell extends ShellBase {
       const meta = await getGuildAvatarMeta(this.db, this.genSlug()).catch(() => null);
       if (!meta) return null;
       let origin = '';
-      try { origin = new URL(this.ctx.request.url).origin; } catch { /* 同 GuildShell */ }
+      try { origin = new URL(this.ctx.request.url).origin; } catch { /* as in GuildShell: origin stays empty */ }
       return origin + avatarPath(this.genSlug(), meta.hash);
     });
   }
@@ -217,11 +218,11 @@ export class HubPageShell extends ShellBase {
     return this.memo('guilds', async () => {
       const db = this.db;
       const results = await listTenantsDirectory(db);
-      // 已绑定百业仅对其 Discord 服务器成员可见: 匿名/非成员在此层就过滤掉
+      // Bound guilds are visible only to members of their Discord server: anonymous users and non-members are filtered out at this layer.
       const bindRows = await listSettingsByKey(db, 'discord_guild_id').catch(() => []);
       const bindMap: Record<string, any> = {};
       for (const r of bindRows || []) if (r.value) bindMap[r.tenant] = String(r.value);
-      // dev_only 百业: 非 dev 表面来源不出现在导航里
+      // dev_only guilds: do not appear in navigation from non-dev surfaces.
       const devRows = await listSettingsByKey(db, 'dev_only').catch(() => []);
       const devSet = new Set((devRows || []).filter((r: any) => String(r.value) === '1').map((r: any) => r.tenant));
       const devVisible = isDevRequest(this.ctx.request);
@@ -241,10 +242,13 @@ export class HubPageShell extends ShellBase {
   }
 }
 
-/* ---------- 法律页 (服务条款 / 隐私政策, 2026-10-25 审计 A2) ----------
- * 正文按实际数据处理写 (见 i18n.js 的 termsBody/privacyBody 段):
- * zh-CN 源文 + en 全译, es/fr/zh-TW 经 translate() 逐字段回退源文。
- * 页面公开可达 (未登录访客从登录页页脚进入), resolver 不做登录校验。 */
+/* ---------- Legal pages (terms / privacy, audit A2) ----------
+ * The body copy is written against the actual data handling (see
+ * the termsBody/privacyBody sections in i18n): zh-CN source + full
+ * en translation; es/fr/zh-TW fall back field-by-field to the
+ * source via translate(). Pages are publicly reachable (logged-out
+ * visitors enter from the login page footer); the resolver does
+ * no login check. */
 
 export class GuildPageShell extends ShellBase {
   genSlug(){ return this.data.slug; }
@@ -254,14 +258,13 @@ export class GuildPageShell extends ShellBase {
   genTabs(){ return this.data.tabs; }
 }
 
-/* ---------- 组队详情页 ---------- */
 
 
 export const guildsResolvers = {
   Query: {
     hubPage: (_: any, __: any, ctx: any) => new HubPageShell(ctx, {}),
 
-    // 法律页 (服务条款/隐私政策): 公开页面, 匿名可达 (登录页页脚入口)
+    // Legal pages (terms/privacy): public pages, reachable anonymously (login-page footer entry).
     guildPage: async (_: any, { slug }: any, ctx: any) => {
       const db = ctx.env.DB;
       const a = await getGuildAccess(db, ctx.user, slug, ctx.request);
@@ -308,8 +311,12 @@ export const guildsResolvers = {
       if (!serverCanManage(sv)) {
         return cFail(ctx, 'cannotManageServer');
       }
-      // 租户结构与 tenants 表一致; password_hash 随机生成 (Discord 建的业暂不走密码登录)。
-      // 注: REST /api/onboard 匿名建业已于 2026-10-25 下线 (审计 A4), 本 mutation 是唯一建业路径。
+      // Tenant structure matches the tenants table; password_hash is
+      // randomly generated (Discord-created guilds do not use password
+      // login for now).
+      // Note: REST /api/onboard anonymous guild creation was removed
+      // on 2026-10-25 (audit A4); this mutation is the only creation
+      // path.
       const hash = await sha256hexLocal(crypto.randomUUID() + ':' + user.discordId + ':' + Date.now());
       await insertTenant(db, { slug, guildName: name, passwordHash: hash, announcement: '' });
       await setTenantSetting(db, slug, 'discord_guild_id', dgid);
@@ -317,7 +324,7 @@ export const guildsResolvers = {
       return new CreateGuildPayloadShell(ctx, { ok: true, guild: guildResult(ctx, a) });
     },
 
-    // 写操作 gate (requireWrite): 登录 + 已绑定 + 成员; 未绑定百业写功能锁死
+    // Write gate (requireWrite): logged in + bound + member; an unbound guild's writes are fully locked.
   },
   types: {
   HubPage: {

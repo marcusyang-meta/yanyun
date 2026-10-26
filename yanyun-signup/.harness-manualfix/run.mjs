@@ -1,14 +1,21 @@
-// 一次性人工归属修正验收 (2026-10-25 用户口头指令):
-//  39 号车 owner 暂设「橘橘如笙」: 本百业内恰名 signups 戳去重唯一
-//    (seat-stamp) 优先, 否则名册展示名唯一 (roster-unique), 都不行跳过。
-//  40 号车找人「be8bo / 木瓜PAPAYA」: users.username / guild_members
-//    .nick / guild_members.global_name / 绑定服务器 user_guild_nicks
-//    .nick 四来源不分大小写恰等, 汇总去重恰一个才落 (account-match),
-//    零个 not-found, 多个 ambiguous 且审计 detail 按名字分开记录。
-//  两车只在 creator 仍为空时写; settings 标志 creator_manual_fix_v1
-//  幂等; 生产 host 安全闸与 creatorbackfill 完全一致 (preview /
-//  localhost 绝不触发、绝不写标志)。
-// 真函数 + FakeDB 按 SQL 形状忠实路由 (更新真落到内存表)。
+// One-off manual ownership fix acceptance (user's verbal instruction,
+// 2026-10-25):
+//  Car 39: owner temporarily set to '橘橘如笙' — exact-name signups
+//    stamps in this guild, deduplicated to a unique one (seat-stamp),
+//    take priority; else a unique roster display-name match
+//    (roster-unique); otherwise skip.
+//  Car 40: find 'be8bo / 木瓜PAPAYA' — case-insensitive exact match
+//    across four sources (users.username / guild_members.nick /
+//    guild_members.global_name / bound server's user_guild_nicks.nick),
+//    deduplicated; stamp only when exactly one (account-match); zero
+//    -> not-found; several -> ambiguous, with the audit detail recorded
+//    per name.
+//  Both cars write only while the creator is still empty; the settings
+//  flag creator_manual_fix_v1 makes it idempotent; the production-host
+//  safety gate is identical to creatorbackfill's (never triggers on
+//  preview/localhost, never writes the flag there).
+// Real functions + FakeDB routed faithfully by SQL shape (updates land
+// in real in-memory tables).
 import { runCreatorManualFixOnce, maybeRunCreatorManualFix } from '../src/creatormanualfix.js';
 
 let pass = 0, fail = 0; const fails = [];
@@ -148,8 +155,8 @@ const creatorOf = (M, id) => M.tables.events.find((e) => e.id === id)?.creator_d
 const auditOf = (M, id) => M.tables.audit.find((a) => a.event_id === id);
 const detailOf = (M, id) => { try { return JSON.parse(auditOf(M, id)?.detail || ''); } catch { return null; } };
 
-/* -------- DB1: 39 座位戳命中 (同名同人两戳去重 + 跨租户同名不算);
- *          40 users.username 单名命中 (大小写不同照中) -------- */
+/* -------- DB1: car 39 seat-stamp hit (two stamps, same name and person, deduplicated; same name in another tenant does not count);
+ *          car 40 single-name hit on users.username (different case still matches) -------- */
 const M1 = makeDb({
   settings: [['jijiguagua|discord_guild_id', 'G1']],
   events: [ev(38, { creator_discord_id: 'UX' }), ev(39), ev(40), ev(41, { tenant: 'othert' })],
@@ -181,8 +188,8 @@ check('DB1 幂等: 二次运行 flag-set', sum.done === false && sum.reason === 
 eq('DB1 幂等: 审计不增行', M1.tables.audit.length, 2);
 eq('DB1 幂等: 39 不被覆盖', creatorOf(M1, 39), 'UJ');
 
-/* -------- DB2: 39 名册展示名唯一命中 (戳缺位, 全局名回退);
- *          40 两名同指一人 (三来源合流仍是同一账号) -------- */
+/* -------- DB2: car 39 unique roster display-name hit (no stamp; global-name fallback);
+ *          car 40 both names point to one person (three sources converge on the same account) -------- */
 const M2 = makeDb({
   settings: [['jijiguagua|discord_guild_id', 'G1']],
   events: [ev(38), ev(39), ev(40)],
@@ -209,7 +216,7 @@ check('DB2 40 detail 木瓜PAPAYA 两来源同指 UX',
     === '["guild_members.global_name","user_guild_nicks.nick"]',
   auditOf(M2, 40)?.detail);
 
-/* -------- DB3: 39 两路都不中跳过; 40 两名两个人 ambiguous -------- */
+/* -------- DB3: car 39 both routes miss -> skip; car 40 two names, two people -> ambiguous -------- */
 const M3 = makeDb({
   settings: [['jijiguagua|discord_guild_id', 'G1']],
   events: [ev(38), ev(39), ev(40)],
@@ -235,7 +242,7 @@ eq('DB3 40 detail 木瓜PAPAYA 命中 UB2', JSON.stringify(detailOf(M3, 40)?.['�
 eq('DB3 审计行数 = 2', M3.tables.audit.length, 2);
 eq('DB3 标志已置位 (跳过也是定论)', M3.tables.settings.get('|creator_manual_fix_v1'), '1');
 
-/* -------- DB4: 39 已有车头不覆盖; 40 零命中 not-found -------- */
+/* -------- DB4: car 39 existing creator not overwritten; car 40 zero hits -> not-found -------- */
 const M4 = makeDb({
   settings: [['jijiguagua|discord_guild_id', 'G1']],
   events: [ev(39, { creator_discord_id: 'UKEEP' }), ev(40)],
@@ -253,7 +260,7 @@ eq('DB4 40 不补', creatorOf(M4, 40), null);
 eq('DB4 40 审计 outcome/reason', `${auditOf(M4, 40)?.outcome}/${auditOf(M4, 40)?.reason}`, 'skipped/manual-fix:not-found');
 eq('DB4 审计行数 = 2', M4.tables.audit.length, 2);
 
-/* -------- DB5: host 安全闸 (preview/localhost 不触发不写, 生产才跑)
+/* -------- DB5: host safety gate (preview/localhost neither trigger nor write; production runs)
  *          + isolate latch -------- */
 const M5 = makeDb({
   settings: [['jijiguagua|discord_guild_id', 'G1']],

@@ -1,18 +1,25 @@
-// GuildHub · Durable Object 实时推送中枢 (每个百业一个实例, id = guild:<slug>)
-// 职责: 维护该百业页面 (列表/详情) 的 WebSocket 连接; GraphQL mutation 在
-// D1 落库成功后 POST /publish 进来, 这里把最小事件 {slug, groupingId, kind}
-// 广播给全部连接。事件不带业务数据 —— 客户端收到后走正常 GraphQL 重查,
-// 权限规则仍以 resolver 为唯一真相源。
-// 鉴权不在本类做: WS 升级请求先经 worker.js 的 /ws/guild/:slug 路由
-// (yy_session 会话 + getGuildAccess 成员校验), 非成员/匿名根本到不了这里。
-// 使用 WebSocket Hibernation API: 无消息时休眠, 不烧 duration。
-//
-// 开车提醒调度 (2026-10-24 用户裁决: 不用每分钟 cron 扫描, 用 DO alarm
-// 定点预约): 本 DO 至多挂一个 alarm = 本百业下一台待提醒车的提醒时刻
-// (starts_at-10min)。alarm 只是唤醒铃, D1 是唯一真相: 每次重排都现查
-// D1; 触发时再查一遍到点车辆并逐台复验 (改时间跟新时间、已解散查无此车、
-// 已发/已失败不重发)。发车/改车/解散等写路径经 /nudge 催促重排, 连接与
-// 广播唤醒时也顺手重排, 偶发丢 nudge 不会漂移太久。
+// GuildHub — Durable Object realtime push hub (one instance per
+// guild, id = guild:<slug>).
+// Holds the WebSocket connections of the guild's pages (list /
+// detail); after a GraphQL mutation commits to D1 it POSTs
+// /publish here, and the minimal event {slug, groupingId, kind} is
+// broadcast to all connections. Events carry no business data —
+// clients re-query through normal GraphQL, and resolvers remain
+// the single source of truth for permissions.
+// No auth in this class: WS upgrades pass the worker's
+// /ws/guild/:slug route first (yy_session + getGuildAccess member
+// check); non-members and anonymous users never reach here.
+// Uses the WebSocket Hibernation API: idle connections sleep and
+// burn no duration.
+// Departure-reminder scheduling (no per-minute cron scan): this DO
+// holds at most one alarm = the next pending reminder time of this
+// guild (starts_at - 10min). The alarm is only a wake-up bell; D1
+// is the single source of truth — every reschedule re-reads D1,
+// and at fire time due groupings are re-read and re-verified one
+// by one (a changed time follows the new time, a disbanded
+// grouping is gone, sent/failed ones never resend). Write paths
+// nudge a reschedule via /nudge; connects and broadcasts
+// reschedule too, so a lost nudge cannot drift for long.
 
 import {
   ensureReminderColumns, getReminderConfig, nextReminderAt, dueReminders, sendReminderForEvent,
@@ -29,7 +36,7 @@ export class GuildHub {
     this.env = env;
   }
 
-  /* 本百业 slug: 优先取已存的 (任一入口带入), 回退到 DO id 名 guild:<slug> */
+  /* This guild's slug: prefer the stored one (brought in by whichever entry ran), else parse the DO id name guild:<slug>. */
   async slug() {
     let slug = await this.ctx.storage.get('slug').catch(() => null);
     if (!slug && this.ctx.id && this.ctx.id.name) {
@@ -42,7 +49,7 @@ export class GuildHub {
     if (slug) await this.ctx.storage.put('slug', String(slug)).catch(() => {});
   }
 
-  /* 重排 alarm: 现查 D1 算下一提醒时刻; 未配 webhook / 未启用直接撤铃 */
+  /* Reschedule the alarm: re-read D1 for the next reminder time; no webhook configured / reminders off clears the alarm. */
   async recomputeAlarm() {
     const slug = await this.slug();
     if (!slug || !this.env.DB) return null;
@@ -62,8 +69,9 @@ export class GuildHub {
     return atMs;
   }
 
-  /* alarm 触发: 发所有到点车辆 (逐台在发送函数内复验 D1 现状), 然后重排。
-   * 单台失败只落该车的 reminder_error, 不许中断铃链。 */
+  /* Alarm fired: send every due grouping (each re-verified against
+ * D1 inside the send function), then reschedule. One grouping's
+ * failure only records its reminder_error — never break the chain. */
   async alarm() {
     const slug = await this.slug();
     try {
@@ -76,14 +84,14 @@ export class GuildHub {
           for (const ev of due) {
             try { await sendReminderForEvent(this.env.DB, slug, ev, cfg, nowSec, this.env.EXPO_PUSH_BASE); }
             catch (e) {
-              /* 单车异常不许拖垮后续车辆与重排; 但要留痕 (审计 A7 汇聚) */
+              /* One grouping's failure must not take down later groupings or the reschedule; but leave a trace (audit A7 sink). */
               void logError(this.env.DB, { source: 'guildhub-alarm', error: e, tenant: slug, context: { eventId: ev.id } });
             }
           }
         }
       }
     } catch (e) {
-      // 铃链级异常: 落库留痕后照旧抛出, 不改变 DO 运行时的既有处理
+      // Alarm-chain-level error: record it, then rethrow — do not change the DO runtime's existing handling.
       void logError(this.env.DB, { source: 'guildhub-alarm', error: e, tenant: slug || '' });
       throw e;
     } finally {
@@ -94,18 +102,17 @@ export class GuildHub {
   async fetch(request: any) {
     const url = new URL(request.url);
 
-    // 客户端订阅: WS 握手 (worker.js 已完成会话与成员校验)
+    // Client subscribe: WS handshake (worker route already did session + member checks).
     if (request.headers.get('Upgrade') === 'websocket') {
       const m = url.pathname.match(/^\/ws\/guild\/([^/]+)/);
       if (m) await this.rememberSlug(decodeURIComponent(m[1]));
       const pair = new WebSocketPair();
       const [client, server] = Object.values(pair);
-      this.ctx.acceptWebSocket(server); // hibernation: 空闲自动休眠
-      this.ctx.waitUntil(this.recomputeAlarm().catch(() => {})); // 唤醒顺手重排
+      this.ctx.acceptWebSocket(server);
+      this.ctx.waitUntil(this.recomputeAlarm().catch(() => {}));
       return new Response(null, { status: 101, webSocket: client });
     }
 
-    // 服务端广播: POST /publish {slug, groupingId, kind}
     if (url.pathname.endsWith('/publish') && request.method === 'POST') {
       const data = await request.json().catch(() => null);
       if (!data || typeof data.slug !== 'string' || !data.slug
@@ -123,14 +130,13 @@ export class GuildHub {
       });
       let n = 0;
       for (const ws of this.ctx.getWebSockets()) {
-        try { ws.send(msg); n++; } catch { /* 断开的连接由 close 回调清理 */ }
+        try { ws.send(msg); n++; } catch { /* Disconnected sockets are cleaned up by the close callback. */ }
       }
-      // 车辆增删改顺带重排提醒铃 (seats 不影响时刻, 跳过省一次查询)
+      // Grouping changes also reschedule the reminder alarm (seats don't affect timing — skip, saves a query).
       if (data.kind !== 'seats') this.ctx.waitUntil(this.recomputeAlarm().catch(() => {}));
       return Response.json({ ok: true, delivered: n });
     }
 
-    // 提醒重排催促: POST /nudge {slug} (写路径落库后调用, 尽力而为)
     if (url.pathname.endsWith('/nudge') && request.method === 'POST') {
       const data = await request.json().catch(() => null);
       if (data && typeof data.slug === 'string' && data.slug) await this.rememberSlug(data.slug);
@@ -138,7 +144,6 @@ export class GuildHub {
       return Response.json({ ok: true, alarm });
     }
 
-    // 提醒状态查询: POST /alarm-state {slug?} -> 当前挂铃时刻 (portal 展示)
     if (url.pathname.endsWith('/alarm-state') && request.method === 'POST') {
       const data = await request.json().catch(() => null);
       if (data && typeof data.slug === 'string' && data.slug) await this.rememberSlug(data.slug);
@@ -149,16 +154,15 @@ export class GuildHub {
     return new Response('not found', { status: 404 });
   }
 
-  // hibernation 回调: 客户端心跳
   async webSocketMessage(ws: any, message: any) {
     try {
       const d = JSON.parse(message);
       if (d && d.type === 'ping') ws.send(JSON.stringify({ type: 'pong' }));
-    } catch { /* 忽略非 JSON 消息 */ }
+    } catch { }
   }
 
   async webSocketClose(ws: any, code: any, reason: any, wasClean: any) {
-    // hibernation 下连接自动从集合移除, 无需手动清理
+    // Under hibernation, connections are removed from the set automatically — no manual cleanup needed.
   }
 
   async webSocketError(ws: any, error: any) {

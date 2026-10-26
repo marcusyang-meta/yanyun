@@ -1,12 +1,21 @@
-// 调律计算引擎 — 严格复刻 bilibili@片雲 DIY 0.10.2 (100级) Excel 公式
-// 术语用 Excel 原话: 基础白值(B列) / 面板白值(C列) / 最终面板(D列)
-// 输入对应 Excel 可编辑区: 心法(F4:F7) 武学(F14) 武库(G9) 属性需求(H14) 套装(T2) 弓决(S2) 调律(K3:R5, K6:R24)
-// 公式逐项对照 Excel DIY sheet 移植, 包括 V19 的 F6->col30 原表笔误.
+// Attunement (tiaolv) calculation engine — a faithful port of the
+// bilibili@片雲 DIY 0.10.2 (level 100) Excel formulas.
+// Terminology follows the Excel sheet: base white values (column B) /
+// panel white values (column C) / final panel (column D).
+// Inputs map to the Excel editable areas: inner skills (F4:F7),
+// martial art (F14), arsenal (G9), attribute requirement (H14), suit
+// (T2), bow skill (S2), attunement (K3:R5, K6:R24).
+// Formulas are ported cell-by-cell against the Excel DIY sheet,
+// including the source typo at V19 (F6 -> col30).
 
-// 心法表 (Excel 心法 sheet A:AE, data_only=True 导出)
-// 列顺序: 小外,大外,精准,会心,直接会心,会意,直接会意,外功穿透,外功伤害,会心伤害,会意伤害,
-// 最小鸣金,最大鸣金,鸣金穿透,鸣金加成,最小裂石,最大裂石,裂石穿透,裂石加成,最小牵丝,最大牵丝,
-// 牵丝穿透,牵丝加成,最小破竹,最大破竹,破竹穿透,破竹加成,最小无相,最大无相,无相穿透
+// Inner-skill table (Excel inner-skills sheet A:AE, exported with data_only=True)
+// Column order: minPhys, maxPhys, precision, crit, directCrit, affinity,
+// directAffinity, physPen, physDmg, critDmg, affinityDmg,
+// minBellstrike, maxBellstrike, BellstrikePen, BellstrikeBonus,
+// minStonesplit, maxStonesplit, StonesplitPen, StonesplitBonus,
+// minSilkbind, maxSilkbind, SilkbindPen, SilkbindBonus,
+// minBamboocut, maxBamboocut, BamboocutPen, BamboocutBonus,
+// minFormless, maxFormless, FormlessPen
 const TL_XINFA: Record<string, number[]> = {
   "N/A": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
   "千营一呼": [0,0,0,0.15,0,0,0,0,0.028,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -47,7 +56,7 @@ const TL_XINFA: Record<string, number[]> = {
   "飞仙醉言": [0,0,0,0.135,0,0,0,0,0,0.04,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
   "燕别云岫": [39.0,78.0,0,0,0,0,0,0,0.025,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
   "大卷微身": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,22.1,44.3,6.0],
-};// 武学天赋表 (Excel 武学天赋 sheet)
+};// Martial-arts talent table (Excel martial-talents sheet)
 const TL_WUXUE: Record<string, any> = {
   "鸣金影": { minAtk:0, maxAtk:129.9, crit:0, insight:0.075, req:"劲", el:"鸣金", elem:{"鸣金": [328.0, 656.0], "裂石": [0, 0], "牵丝": [0, 0], "破竹": [0, 0]} },
   "鸣金虹": { minAtk:0, maxAtk:129.9, crit:0, insight:0.075, req:"势", el:"鸣金", elem:{"鸣金": [328.0, 656.0], "裂石": [0, 0], "牵丝": [0, 0], "破竹": [0, 0]} },
@@ -61,12 +70,12 @@ const TL_WUXUE: Record<string, any> = {
   "破竹樽": { minAtk:129.9, maxAtk:0, crit:0.15, insight:0, req:"敏", el:"破竹", elem:{"鸣金": [0, 0], "裂石": [0, 0], "牵丝": [0, 0], "破竹": [328.0, 656.0]} },
 };
 
-// Excel 常量
+// Excel constants
 const TL = {
-  B1: 2.8,        // 判定抗性
-  D1: 1.3225,     // 增伤抗性
-  minAtkB: 1377.4, // 基础属性!E2
-  maxAtkB: 2565.8, // 基础属性!F2
+  B1: 2.8,        // resistance divisor (hit checks)
+  D1: 1.3225,     // resistance divisor (damage bonus)
+  minAtkB: 1377.4, // base-stats sheet!E2
+  maxAtkB: 2565.8, // base-stats sheet!F2
   precB: 0.65 + 0.484, // B6 =65%+48.4%
   critB: 0.28,    // B7
   critDmgB: 0.5,  // B9
@@ -80,13 +89,16 @@ const TL = {
 };
 const TL_EL_COLS: Record<string, number[]> = { '鸣金': [8,9], '裂石': [10,11], '牵丝': [12,13], '破竹': [14,15] };
 
-// 心法列索引 (0-based): 0小外 1大外 2精准 3会心 4直接会心 5会意 6直接会意 7外功穿透 8外功伤害
-// 9会心伤害 10会意伤害 11最小鸣金 12最大鸣金 13鸣金穿透 14鸣金加成 15最小裂石 16最大裂石
-// 17裂石穿透 18裂石加成 19最小牵丝 20最大牵丝 21牵丝穿透 22牵丝加成 23最小破竹 24最大破竹
-// 25破竹穿透 26破竹加成 27最小无相 28最大无相 29无相穿透
+// Inner-skill column indices (0-based): 0 minPhys 1 maxPhys 2 precision
+// 3 crit 4 directCrit 5 affinity 6 directAffinity 7 physPen 8 physDmg
+// 9 critDmg 10 affinityDmg 11 minBellstrike 12 maxBellstrike 13 BellstrikePen
+// 14 BellstrikeBonus 15 minStonesplit 16 maxStonesplit 17 StonesplitPen
+// 18 StonesplitBonus 19 minSilkbind 20 maxSilkbind 21 SilkbindPen
+// 22 SilkbindBonus 23 minBamboocut 24 maxBamboocut 25 BamboocutPen
+// 26 BamboocutBonus 27 minFormless 28 maxFormless 29 FormlessPen
 
-// 输入: { innerSkills:[4心法名], wuxue, wuku:'本系'|'通用', attrRequire, suit, bowSkill, tunes:{CELL:val} }
-// 输出: [{ key, label, base(基础白值), panel(面板白值|null), final(最终面板) }]
+// Input: { innerSkills: [4 inner-skill names], wuxue, wuku: '本系'|'通用', attrRequire, suit, bowSkill, tunes: {CELL: val} }
+// Output: [{ key, label, base (base white value), panel (panel white value|null), final (final panel) }]
 export function tlCalculateExcel(inp: any) {
   const tunes: Record<string, number> = {};
   for (const [cell, v] of Object.entries(inp.tunes || {})) {
@@ -105,7 +117,7 @@ export function tlCalculateExcel(inp: any) {
   while (xf.length < 4) xf.push('N/A');
   const xrow = (name: string) => TL_XINFA[name] || TL_XINFA['N/A'];
   const xsum = (idx: number) => xf.reduce((s: number, n: string) => s + (xrow(n)[idx] || 0), 0);
-  // V19 原表笔误: F6 用 col30(最大无相) 而非 col29, 严格复刻
+  // Source-sheet typo at V19: F6 uses col30 (max Formless) instead of col29 — replicated faithfully.
   const xsumV19 = () => xf.reduce((s: number, n: string, i: number) => s + (xrow(n)[i === 2 ? 28 : 27] || 0), 0);
 
   const wx: any = TL_WUXUE[inp.wuxue] || TL_WUXUE['破竹鸢'];
@@ -114,26 +126,26 @@ export function tlCalculateExcel(inp: any) {
   const suit = inp.suit || '';
   const bow = inp.bowSkill || '';
 
-  // 武库 G10/H10/G11/H11
+  // Arsenal G10/H10/G11/H11
   const G10 = wuku === '通用' ? 186 : 0;
   const H10 = wuku === '通用' ? 373 : 0;
   const G11 = wuku === '本系' ? 211 : 0;
   const H11 = wuku === '本系' ? 423 : 0;
   const G14 = wx.req;
 
-  // T列 套装: T6=IF(OR(燕归,撼天,连星,裁云,断岳),140,0) T7=IF(玉斗,140,0)
+  // Column T (suits): T6=IF(OR(燕归,撼天,连星,裁云,断岳),140,0) T7=IF(玉斗,140,0)
   // T8=IF(OR(时雨,烟柳),14.3%,0) T9=IF(浣花,16.1%,0) T10=IF(飞隼,8%,0)
   const T6 = ['燕归','撼天','连星','裁云','断岳'].includes(suit) ? 140 : 0;
   const T7 = suit === '玉斗' ? 140 : 0;
   const T8 = ['时雨','烟柳'].includes(suit) ? 0.143 : 0;
   const T9 = suit === '浣花' ? 0.161 : 0;
   const T10 = suit === '飞隼' ? 0.08 : 0;
-  // S列 弓决: S8=IF(精准,7.2%,0) S9=IF(会心,8%,0) S10=IF(会意,4%,0)
+  // Column S (bow skills): S8=IF(精准,7.2%,0) S9=IF(会心,8%,0) S10=IF(会意,4%,0)
   const S8 = bow === '精准' ? 0.072 : 0;
   const S9 = bow === '会心' ? 0.08 : 0;
   const S10 = bow === '会意' ? 0.04 : 0;
 
-  // ---------- 基础白值 B列 ----------
+  // ---------- Base white values (column B) ----------
   const B: Record<string, any> = {};
   B.minAtk = TL.minAtkB; B.maxAtk = TL.maxAtkB;
   B.accuracy = TL.precB; B.crit = TL.critB; B.dCrit = 0; B.critDmg = TL.critDmgB;
@@ -146,23 +158,23 @@ export function tlCalculateExcel(inp: any) {
   for (const el of Object.keys(TL_EL_COLS)) {
     const [mn, mx] = wx.elem[el] || [0, 0];
     const match = wx.el === el;
-    B.elemMin[el] = mn + (match ? G11 : 0); // B13=天赋+IF(本系,211,0)
-    B.elemMax[el] = mx + (match ? H11 : 0); // B14=天赋+IF(本系,423,0)
+    B.elemMin[el] = mn + (match ? G11 : 0); // B13=talent+IF(same-system,211,0)
+    B.elemMax[el] = mx + (match ? H11 : 0); // B14=talent+IF(same-system,423,0)
     B.elPenB[el] = match ? 30 : 0;   // B28/B30/B32/B34
     B.elDmgB[el] = match ? 0.15 : 0; // B29/B31/B33/B35
   }
 
-  // ---------- 最终面板 D列: 主属性先行 (D23/D24/D25) ----------
+  // ---------- Final panel (column D): main attributes first (D23/D24/D25) ----------
   const D: Record<string, any> = {};
   D.jin = B.jin + sumKR(3);   // D23=B23+SUM(K3:R3)
   D.min = B.min + sumKR(4);   // D24
   D.shi = B.shi + sumKR(5);   // D25
   const attrFinal: Record<string, number> = { '劲': D.jin, '敏': D.min, '势': D.shi };
-  // U列: VLOOKUP(F14,武学天赋,col)*MIN(VLOOKUP(G14,$A$23:$D$25,4)/H14,1)
+  // Column U: VLOOKUP(F14, martial-talents sheet, col)*MIN(VLOOKUP(G14,$A$23:$D$25,4)/H14,1)
   const uRatio = Math.min((attrFinal[G14] || 0) / H14, 1);
   const U6 = (wx.minAtk || 0) * uRatio, U7 = (wx.maxAtk || 0) * uRatio;
   const U9 = (wx.crit || 0) * uRatio, U10 = (wx.insight || 0) * uRatio;
-  // V列 心法和
+  // Column V: inner-skill sums
   const V6 = xsum(0), V7 = xsum(1), V8 = xsum(2), V9 = xsum(3), V10 = xsum(5);
   const V11 = xsum(11), V12 = xsum(12), V13 = xsum(15), V14 = xsum(16);
   const V15 = xsum(19), V16 = xsum(20), V17 = xsum(23), V18 = xsum(24);
@@ -184,25 +196,25 @@ export function tlCalculateExcel(inp: any) {
   const dMaxAtk = B.maxAtk + H10 + D.jin * 1.36 + D.shi * 0.9 + sumK7V7;
   push('maxAtk', '最大外攻', B.maxAtk, null, dMaxAtk);
 
-  // 精准: C6=B6+SUM(K8:V8); D6=65%+(B6-65%+SUM(K8:V8))/B1
+  // Precision: C6=B6+SUM(K8:V8); D6=65%+(B6-65%+SUM(K8:V8))/B1
   const sumK8V8 = sumKR(8) + S8 + T8 + V8;
   const cAcc = B.accuracy + sumK8V8;
   const dAcc = 0.65 + (B.accuracy - 0.65 + sumK8V8) / TL.B1;
   push('accuracy', '精准率', B.accuracy, cAcc, dAcc);
 
-  // 会心: C7=B7+D24*0.076/100+SUM(K9:V9); D7=C7/B1
+  // Crit: C7=B7+D24*0.076/100+SUM(K9:V9); D7=C7/B1
   const sumK9V9 = sumKR(9) + S9 + T9 + U9 + V9;
   const cCrit = B.crit + D.min * 0.076 / 100 + sumK9V9;
   const dCrit = cCrit / TL.B1;
   push('crit', '会心率', B.crit, cCrit, dCrit);
-  // D8=心法直接会心和
+  // D8 = sum of inner-skill direct crit
   const dDCrit = xsum(4);
   push('dCrit', '直接会心', B.dCrit, null, dDCrit);
-  // D9=B9+心法会心伤害+IF(套装=时雨,10%,0)
+  // D9=B9+inner-skill crit damage+IF(suit=时雨,10%,0)
   const dCritDmg = B.critDmg + xsum(9) + (suit === '时雨' ? 0.10 : 0);
   push('critDmg', '会伤', B.critDmg, null, dCritDmg);
 
-  // 会意: C10=B10+D25*0.038/100+SUM(K10:V10); D10=C10/B1
+  // Affinity: C10=B10+D25*0.038/100+SUM(K10:V10); D10=C10/B1
   const sumK10V10 = sumKR(10) + S10 + T10 + U10 + V10;
   const cInsight = B.insight + D.shi * 0.038 / 100 + sumK10V10;
   const dInsight = cInsight / TL.B1;
@@ -212,7 +224,7 @@ export function tlCalculateExcel(inp: any) {
   const dInsightDmg = B.insightDmg + xsum(10);
   push('insightDmg', '会意伤', B.insightDmg, null, dInsightDmg);
 
-  // 各系 D13-D20 = B + SUM(K:V)
+  // Each system: D13-D20 = B + SUM(K:V)
   const elV: Record<string, number[]> = { '鸣金': [V11, V12], '裂石': [V13, V14], '牵丝': [V15, V16], '破竹': [V17, V18] };
   const elLabels: Record<string, string[]> = { '鸣金': ['最小鸣金','最大鸣金'], '裂石': ['最小裂石','最大裂石'], '牵丝': ['最小牵丝','最大牵丝'], '破竹': ['最小破竹','最大破竹'] };
   const elKeys: Record<string, string[]> = { '鸣金': ['elemMin_mj','elemMax_mj'], '裂石': ['elemMin_ls','elemMax_ls'], '牵丝': ['elemMin_qs','elemMax_qs'], '破竹': ['elemMin_pz','elemMax_pz'] };
@@ -226,15 +238,15 @@ export function tlCalculateExcel(inp: any) {
     push(elKeys[el][0], elLabels[el][0], B.elemMin[el], null, dMin);
     push(elKeys[el][1], elLabels[el][1], B.elemMax[el], null, dMax);
   }
-  // 无相 D21/D22
+  // Formless D21/D22
   push('wxMin', '最小无相', B.wxMin, null, B.wxMin + sumKR(19) + V19);
   push('wxMax', '最大无相', B.wxMax, null, B.wxMax + sumKR(20) + V20);
 
-  // D26=B26/D1+心法外功穿透; D27=心法外功伤害
+  // D26=B26/D1+inner-skill phys pen; D27=inner-skill phys dmg bonus
   push('pen', '外攻穿透', B.pen, null, B.pen / TL.D1 + xsum(7));
   push('dmg', '外伤增加', B.dmg, null, xsum(8));
 
-  // 本系穿透/加成 D28-D35
+  // Same-system penetration/bonus D28-D35
   const elPenDiv: Record<string, number> = { '鸣金': TL.G18, '裂石': TL.G17, '牵丝': TL.G17, '破竹': TL.G17 };
   const elPenCol: Record<string, number> = { '鸣金': 13, '裂石': 17, '牵丝': 21, '破竹': 25 };
   const elDmgCol: Record<string, number> = { '鸣金': 14, '裂石': 18, '牵丝': 22, '破竹': 26 };
@@ -245,15 +257,15 @@ export function tlCalculateExcel(inp: any) {
   for (const el of Object.keys(TL_EL_COLS)) {
     const div = elPenDiv[el];
     const dPen = B.elPenB[el] * Math.min(D_elemMax[el] / div, 1) + xsum(elPenCol[el]);
-    // D34 破竹穿透用 ROUNDUP(...,1)
+    // D34 Bamboocut penetration uses ROUNDUP(...,1)
     const dPenOut = el === '破竹' ? Math.ceil(dPen * 10 - 1e-9) / 10 : dPen;
     const dDmg = B.elDmgB[el] * Math.min(D_elemMax[el] / div, 1) + xsum(elDmgCol[el]);
     push(elPenKeys[el], elPenLabels[el], B.elPenB[el], null, dPenOut);
     push(elDmgKeys[el], elDmgLabels[el], B.elDmgB[el], null, dDmg);
   }
-  // D36 无相穿透
+  // D36 Formless penetration
   push('wxPen', '无相穿透', 0, null, xsum(29));
-  // D37-D40 增伤 = SUM(K:V)/D1
+  // D37-D40 damage bonus = SUM(K:V)/D1
   push('wuxueDmg', '武学增伤', 0, null, sumKR(21) / TL.D1);
   push('qishuDmg', '奇术增伤', 0, null, sumKR(22) / TL.D1);
   push('shoulingDmg', '首领增', 0, null, sumKR(23) / TL.D1);

@@ -1,8 +1,8 @@
-/* 平台 HTTP 基础设施 (三期域拆分): REST 响应形态、令牌签发/校验、内存
- * 限流、dev 表面识别与 REST 会话解析。各域路由只从这里取这些原语,
- * 不再各自复制。 */
+/* Platform HTTP infrastructure: REST response shapes, token issue/verify,
+ * in-memory rate limiting, dev-surface detection and REST session parsing.
+ * Domain routes take these primitives from here; never copy them. */
 import { listSettingsByKey, getSettingValue } from '../guilds/index.ts';
-import { getSessionUserChecked } from '../../auth.js';
+import { getSessionUserChecked } from '../identity/auth.ts';
 
 export const TYPES: Record<string, string> = { activity: '双十人本', talent: '天赋组队', race: '竞速', tower: '爬塔', gather: '采集', explore: '探索' };
 export const ROLES = ['输出', '承伤', '奶', '治疗', '随意'];
@@ -10,7 +10,7 @@ export const RESERVED = new Set(['api', 'admin', 'hub', 'hub-admin', 'gadmin', '
   'bosses', 'tenants', 'onboard', 'login', 'settings', 'events', 'static',
   'assets', 'app', 'style', 'favicon', 'robots', 'www', 'guilds']);
 
-/* ================= 小工具 ================= */export const json = (data: any, status = 200, headers: any = {}) =>
+/* ================= Small helpers ================= */export const json = (data: any, status = 200, headers: any = {}) =>
   new Response(JSON.stringify(data), {
     status,
     headers: { 'content-type': 'application/json; charset=utf-8', ...headers },
@@ -30,7 +30,7 @@ export async function sha256hex(str: string) {
   return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
-/* ---------- Token (HMAC, 含 tenant, 无需 KV) ---------- */
+/* ---------- Token (HMAC, carries tenant, no KV) ---------- */
 async function hmacKey(secret: string) {
   return crypto.subtle.importKey(
     'raw', new TextEncoder().encode('yanyun-signup:' + secret),
@@ -45,7 +45,6 @@ export async function makeToken(secret: string, tenant: string) {
   const sig = b64u(await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(payload)));
   return payload + '.' + sig;
 }
-// 成功返回 tenant 字符串, 失败返回 false
 export async function checkToken(secret: string, token: any) {
   try {
     const [payload, sig] = String(token || '').split('.');
@@ -66,7 +65,7 @@ export function timingSafeEqual(a: string, b: string) {
   return d === 0;
 }
 
-/* ---------- 简易限流(内存) ---------- */
+/* ---------- Simple rate limit (in-memory) ---------- */
 const buckets = new Map<string, any>();
 export function rateLimit(ip: string, key: string, max: number, windowMs: number) {
   const now = Date.now();
@@ -79,19 +78,20 @@ export function rateLimit(ip: string, key: string, max: number, windowMs: number
   return b.count <= max;
 }
 
-/* ---------- 成绩解析 ---------- */export async function restCheckedUser(c: any) {
+/* ---------- Session resolution ---------- */export async function restCheckedUser(c: any) {
   return getSessionUserChecked(c.req.raw, c.env)
     .catch(() => ({ user: null, clearCookie: false }));
 }
 
-/* ---------- Hono 上下文小工具 ---------- */
+/* ---------- Hono context helpers ---------- */
 export function bearerToken(c: any) {
   const auth = c.req.header('authorization') || '';
   return auth.startsWith('Bearer ') ? auth.slice(7) : '';
 }
 
-// dev 表面识别 (与 graphql.js 同规则): 预览站 / 本地开发来源能看到 dev_only 百业,
-// 生产来源看不到。依据 Origin / Referer 的 hostname —— 展示层 gate, 非安全边界。
+// Dev-surface detection (same rule as graphql-base): preview / localhost
+// origins can see dev_only guilds, production origins cannot. Judged by
+// Origin/Referer hostname — a presentation gate, not a security boundary.
 const DEV_HOSTS = new Set(['yanyun-web-preview.tbdlab.workers.dev', 'release-yanyun.tbdlab.workers.dev', 'localhost', '127.0.0.1']);
 export function isDevRequestC(c: any) {
   try {
@@ -109,7 +109,7 @@ export async function getDevOnlySlugs(db: D1Database) {
 export async function isDevOnlyTenant(db: D1Database, slug: string) {
   return (await getSettingValue(db, slug, 'dev_only')) === '1';
 }
-// 与原 handleApi 一致: POST/PUT/PATCH 才读 body, 解析失败默认为 {}
+// Only POST/PUT/PATCH read a body; parse failure defaults to {}
 export async function getBody(c: any): Promise<any> {
   if (!['POST', 'PUT', 'PATCH'].includes(c.req.method)) return {};
   try { return await c.req.json(); } catch { return {}; }

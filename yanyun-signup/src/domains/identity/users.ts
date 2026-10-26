@@ -1,17 +1,7 @@
-/* ===================================================
- * users / user_oauth / user_guild_nicks 实体的数据层访问 (Repository)。
- *
- * 三期迁入: 此前散在 auth.js 的全部语句与懒 DDL (users 建表、
- * locale_pref 加列、user_oauth / user_guild_nicks 建表), 以及
- * graphql.js / reminder.ts / heirloompush.js / worker.js 里对这三张
- * 表的直查。业务代码禁止再直查这三张表。
- *
- * 懒 DDL 的模块级 promise 缓存语义与旧 auth.js 完全一致 (单例、
- * 失败自清重试); DDL 本体归仓库所有, auth.js 的 ensureSchema /
- * ensureNickStore / ensureUsersLocaleColumn 只剩委托。
- * 返回行沿用 snake_case 键, 调用点零感知; 容错 (catch 吞异常) 留在
- * 调用方, 与旧口径一致。
- * =================================================== */
+/* users / user_oauth / user_guild_nicks repository. Business code must
+ * not query these entities directly. Lazy-DDL promise caches are
+ * singletons that clear themselves on failure for retry; error tolerance
+ * (catch-and-swallow) stays with callers. Rows keep snake_case keys. */
 import { sql } from 'drizzle-orm';
 import { createDb, schema } from '../../db/client.ts';
 
@@ -41,7 +31,7 @@ export interface NickRow {
   nick: string;
 }
 
-/* ---------- 懒 DDL: users ---------- */
+/* ---------- Lazy DDL: users ---------- */
 
 let usersSchemaReady: Promise<void> | null = null;
 export function ensureUsersTable(d1: D1Database): Promise<void> {
@@ -71,8 +61,8 @@ export function ensureUsersLocaleColumn(d1: D1Database): Promise<void> {
         const db = createDb(d1);
         await db.run(sql`ALTER TABLE ${users} ADD COLUMN ${col('locale_pref')} TEXT`);
       } catch (e) {
-        // drizzle 把 D1 错误包进 DrizzleQueryError, 原始消息在 cause 链
-        // 深处 — 逐层解包再匹配 (二期 errorlog 同一教训)。
+        // Drizzle wraps D1 errors in DrizzleQueryError; the original
+        // message is deep in the cause chain — unwrap layer by layer to match.
         let msg = '';
         let cur: unknown = e;
         while (cur && typeof cur === 'object') {
@@ -87,7 +77,7 @@ export function ensureUsersLocaleColumn(d1: D1Database): Promise<void> {
   return usersLocaleColReady;
 }
 
-/* ---------- 懒 DDL: user_oauth + user_guild_nicks ---------- */
+/* ---------- Lazy DDL: user_oauth + user_guild_nicks ---------- */
 
 let nickStoreReady: Promise<void> | null = null;
 export function ensureNickStoreTables(d1: D1Database): Promise<void> {
@@ -114,9 +104,9 @@ export function ensureNickStoreTables(d1: D1Database): Promise<void> {
   return nickStoreReady;
 }
 
-/* ---------- users 读写 ---------- */
+/* ---------- users reads / writes ---------- */
 
-/** 登录回调落库: 服务器明细含权限位, 供 viewer / createGuild 校验。 */
+/** Persisted at login callback: server details incl. permission bits, used by viewer / createGuild checks. */
 export async function upsertUserOnLogin(
   d1: D1Database,
   row: { discordId: string; username: string; avatar: string; guildsJson: string; checkedAtSec: number },
@@ -155,7 +145,7 @@ export async function getUserGuildsJson(d1: D1Database, discordId: string): Prom
   return row ? String(row.guilds_json ?? '') : null;
 }
 
-/** 全局名读取 (身份名集合 / 落座名回退 / 显示名梯队共用)。 */
+/** Global-name read, shared by identity-name sets, seat-name fallback and display-name tiers. */
 export async function getUsernameRow(d1: D1Database, discordId: string): Promise<{ username: string } | null> {
   const db = createDb(d1);
   const row = await db.get<{ username: string }>(
@@ -164,7 +154,7 @@ export async function getUsernameRow(d1: D1Database, discordId: string): Promise
   return row ?? null;
 }
 
-/** 全量用户目录 (hub 回填端点与提醒成员池的候选来源)。 */
+/** Full user directory: candidate source for hub backfills and the reminder member pool. */
 export async function listUsersDirectory(d1: D1Database): Promise<UserDirectoryRow[]> {
   const db = createDb(d1);
   const rows = await db.all<UserDirectoryRow>(
@@ -173,7 +163,7 @@ export async function listUsersDirectory(d1: D1Database): Promise<UserDirectoryR
   return rows || [];
 }
 
-/* ---------- user_oauth 读写 ---------- */
+/* ---------- user_oauth reads / writes ---------- */
 
 export async function getOAuthGrant(d1: D1Database, discordId: string): Promise<OAuthGrantRow | null> {
   const db = createDb(d1);
@@ -191,7 +181,7 @@ export async function getOAuthRefresh(d1: D1Database, discordId: string): Promis
   return row ?? null;
 }
 
-/** 登录回调落 refresh token (凭证只存 D1); 同时置 refresh_state='ok'。 */
+/** Store the refresh token at login (credential lives only in D1); also sets refresh_state='ok'. */
 export async function upsertOAuthOnLogin(
   d1: D1Database,
   row: { discordId: string; refreshToken: string; scope: string; nowSec: number },
@@ -207,7 +197,7 @@ export async function upsertOAuthOnLogin(
   );
 }
 
-/** 刷新成功: 轮换 refresh token 覆盖存回 + 状态复位 ok。 */
+/** On refresh success: overwrite with the rotated refresh token and reset state to ok. */
 export async function updateOAuthAfterRefresh(
   d1: D1Database,
   discordId: string,
@@ -221,7 +211,7 @@ export async function updateOAuthAfterRefresh(
   );
 }
 
-/** 只有永久失败 (invalid_grant) 才置此状态 — 会话随之失效。 */
+/** Set only on permanent failure (invalid_grant) — it invalidates the session. */
 export async function markOAuthNeedsRelogin(d1: D1Database, discordId: string, nowSec: number): Promise<void> {
   const db = createDb(d1);
   await db.run(
@@ -230,7 +220,7 @@ export async function markOAuthNeedsRelogin(d1: D1Database, discordId: string, n
   );
 }
 
-/* ---------- user_guild_nicks 读写 ---------- */
+/* ---------- user_guild_nicks reads / writes ---------- */
 
 export async function upsertNick(
   d1: D1Database, discordId: string, guildId: string, nick: string, nowSec: number,
@@ -244,7 +234,7 @@ export async function upsertNick(
   );
 }
 
-/** 拉取失败时只刷新时间戳 (无行则落一条空快照), 不覆盖已有昵称。 */
+/** On fetch failure, only bump the timestamp (inserting an empty snapshot if no row); never overwrite an existing nick. */
 export async function touchNick(
   d1: D1Database, discordId: string, guildId: string, nowSec: number,
 ): Promise<void> {
@@ -257,7 +247,7 @@ export async function touchNick(
   );
 }
 
-/** 有行返回 { nick } (可能 ''), 无行返回 null。 */
+/** Returns { nick } when a row exists (nick may be ''), otherwise null. */
 export async function getNickRow(
   d1: D1Database, discordId: string, guildId: string,
 ): Promise<{ nick: string } | null> {

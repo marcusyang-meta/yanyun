@@ -1,9 +1,13 @@
-// 配装台装备库存储 (按 Discord 账号归属; 2026-10-24 用户裁决: 不用 localStorage)
-// 行级读写走数据层 (src/domains/gear/gear.ts); 本文件只剩懒 DDL、
-// payload JSON 序列化与行->领域对象映射。
-// user_gear_items: 单件装备 (词条/定音/流派标签存 payload JSON, 已经过 gearplanner sanitize)
-// user_gear_builds: 保存的方案 (搭配 item-id 组合 + 固定源字段状态 + 服务端算出的快照)
-// 所有读写一律以 discord_id 限定: 查不到即不存在, 不区分「他人的」与「没有」。
+// Gear-library storage (owned per Discord account; user ruling
+// 2026-10-24: no localStorage). Row-level reads/writes go through the
+// data layer (src/domains/gear/gear.ts); this file keeps only the lazy
+// DDL delegation, payload JSON serialization and row->domain mapping.
+// user_gear_items: single items (affixes/attunement/school tags live in
+// the payload JSON, already sanitized by gearplanner).
+// user_gear_builds: saved builds (an item-id loadout + fixed-source
+// field state + a server-computed snapshot).
+// Every read/write is scoped by discord_id: a miss means "does not
+// exist" — another user's row is indistinguishable from no row.
 import {
   listGearItemRows, insertGearItemRow, updateGearItemRow as updateGearItemRowData,
   deleteGearItemRow as deleteGearItemRowData, listGearBuildRows, insertGearBuildRow,
@@ -11,7 +15,7 @@ import {
   ensureGearTables as ensureGearTablesRepo,
 } from './gear.ts';
 
-// 懒 DDL 已归 gear 域 gear 仓库 (三期); 此处保留旧名导出作委托。
+// The lazy DDL lives in the gear domain's gear repository; this legacy name is kept as a delegating export.
 export function ensureGearTables(db: any) {
   return ensureGearTablesRepo(db);
 }

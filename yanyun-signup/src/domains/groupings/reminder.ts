@@ -16,37 +16,42 @@ import {
   listGuildMembers, getGuildMember,
 } from '../identity/index.ts';
 
-// Discord 开车提醒 (2026-10-24 用户定型)
-// 形态: 管理员 portal 按百业配一个频道 Webhook (tenants.discord_webhook,
-// 与旧"新车通知"同一条), 开关与状态存 settings(tenant=slug)。开车前 10 分钟
-// 往频道发一条就位确认消息 @ 全车人。调度不用 cron 扫描: GuildHub DO 的
-// alarm 定点唤醒 (见 guildhub.js), D1 始终是唯一真相, alarm 只是唤醒铃。
-// 发送身份: Webhook 自身, 每条消息以 username 覆盖为「燕云百业」+ 品牌头像,
-// 不冒充任何成员。文案首行是用户钦定的魔兽原句, 一字不改。
+// Discord departure reminder.
+// Shape: admins configure one channel webhook per guild in the
+// portal (tenants.discord_webhook, the same one as the legacy
+// "new grouping" notice); the toggle and state live in settings
+// (tenant=slug). Ten minutes before departure, one readiness-check
+// message @s everyone seated. Scheduling is not a cron scan: the
+// GuildHub DO alarm wakes at the set time (see guildhub), and D1
+// is always the single source of truth — the alarm is just a bell.
+// Sender identity: the webhook itself, with the username
+// overridden per message to the platform brand + brand avatar; it
+// never impersonates a member. The first copy line is a
+// user-mandated quote, verbatim — do not alter it.
 
-export const REMINDER_LEAD_SEC = 600; // 开车前 10 分钟
+export const REMINDER_LEAD_SEC = 600;
 export const REMINDER_USERNAME = '燕云百业';
 export const REMINDER_AVATAR_URL = 'https://og.yanyun.app/og/hub.png';
 export const WEBHOOK_RE = /^https:\/\/discord\.com\/api\/webhooks\/\d+\/[\w-]+$/;
 
-/* ---------- embed 卡面常量 (2026-10-26 改版) ---------- */
-export const REMINDER_EMBED_COLOR = 0xC9A35C; // 站点主题金 (与 web 主题金同值)
-const SITE_URL = 'https://yanyun.app'; // 与 worker.js 的 SITE_URL 同口径 (规范域名)
-const OG_WORKER = 'https://og.yanyun.app'; // 与 worker.js 的 OG_WORKER 同口径
-/* 车辆详情页链接 (与 carOgTags 的 og:url 同一构造) */
+export const REMINDER_EMBED_COLOR = 0xC9A35C; // Site theme gold (same value as the web theme gold).
+const SITE_URL = 'https://yanyun.app'; // Same canonical-domain definition as worker.js SITE_URL.
+const OG_WORKER = 'https://og.yanyun.app'; // Same definition as worker.js OG_WORKER.
+/* Grouping detail URL (same construction as carOgTags' og:url). */
 export function carDetailUrl(slug: string, eventId: number): string {
   return `${SITE_URL}/${encodeURIComponent(slug)}/car/${eventId}`;
 }
-/* 该车 OG 图 (与 carOgTags 的 og:image 同一构造), 作 embed thumbnail */
+/* This grouping's OG image (same construction as carOgTags' og:image); used as the embed thumbnail. */
 export function carOgImageUrl(slug: string, eventId: number): string {
   return `${OG_WORKER}/og/${encodeURIComponent(slug)}/car/${eventId}.png`;
 }
 
-/* ---------- events 提醒状态列 (懒 DDL, 与 ensureEventCreatorColumn 同套路) ----------
-* reminder_sent_at: 成功发送的 epoch 秒; reminder_error: 失败原因 (非空 =
-* 该车已结算, 永不重试 — 防死 webhook 重试风暴)。两列皆空 = 尚未提醒。 */
-// 懒 DDL 已归 groupings 域仓库 (三期); 此处保留旧名导出作委托
-// (worker.ts 从本模块 import ensureSignupDiscordColumn)。
+/* ---------- events reminder-state columns (lazy DDL) ----------
+ * reminder_sent_at: epoch seconds of a successful send;
+ * reminder_error: failure reason (non-empty = settled, never
+ * retried — prevents a retry storm against a dead webhook).
+ * Both empty = not yet reminded. */
+// Lazy DDL now lives in the groupings repository; the old name is kept here as a delegating re-export (worker.ts imports ensureSignupDiscordColumn from this module).
 export function ensureReminderColumns(db: any) {
   return ensureReminderColumnsRepo(db);
 }
@@ -55,10 +60,11 @@ export function ensureSignupDiscordColumn(db: any) {
   return ensureSignupDiscordColumnRepo(db);
 }
 
-/* ---------- 百业成员名册 (guild_members): 本体已归数据层 ----------
- * ensureGuildMembersTable / upsertGuildMember 保留旧名导出作委托
- * (creatorbackfill / creatormanualfix 等仍从本模块引); 实现与懒 DDL
- * 在 src/domains/identity/guildMembers.ts。 */
+/* ---------- Guild member roster (guild_members) ----------
+ * ensureGuildMembersTable / upsertGuildMember are kept here as
+ * delegating re-exports (creatorbackfill / creatormanualfix still
+ * import them from this module); the implementation and lazy DDL
+ * live in src/domains/identity/guildMembers.ts. */
 export function ensureGuildMembersTable(db: any) {
   return ensureGuildMembersTableRepo(db);
 }
@@ -77,7 +83,6 @@ async function rosterPool(db: any, slug: string) {
   return pool;
 }
 
-/* ---------- settings 小工具 (tenant 级): 走数据层仓库 ---------- */
 export async function getReminderSetting(db: any, slug: string, key: string) {
   return getSettingValue(db, slug, key);
 }
@@ -85,7 +90,6 @@ export async function setReminderSetting(db: any, slug: string, key: string, val
   await setSettingValue(db, slug, key, value);
 }
 
-/* ---------- 配置 ---------- */
 export async function getReminderConfig(db: any, slug: string) {
 const t = await getTenantRow(db, slug).catch(() => null);
 if (!t) return null;
@@ -93,7 +97,7 @@ const enabled = (await getReminderSetting(db, slug, 'reminder_enabled')) === '1'
 return { webhook: String(t.discord_webhook || ''), guildName: String(t.guild_name || slug), enabled};
 }
 
-// portal 展示用掩码: 只露 host + webhook id + token 末 4 位
+// Portal display mask: only host + webhook id + last 4 chars of the token are shown.
 export function maskWebhook(url: string): string {
 const m = String(url || '').match(/^https:\/\/discord\.com\/api\/webhooks\/(\d+)\/([\w-]+)$/);
 if (!m) return url? '已配置（自定义地址）': '';
@@ -101,10 +105,11 @@ const tail = m[2].slice(-4);
 return `discord.com/api/webhooks/${m[1]}/…${tail}`;
 }
 
-/* ---------- 调度计算 (D1 为唯一真相) ----------
-* 待提醒口径 (已发布 open/closed、有出发时间、未结算) 在 events
-* repository 的 nextPendingReminderStart / listDueReminderEvents 内;
-* 下一提醒时刻 = 最早一台的 starts_at_utc - 600。 */
+/* ---------- Scheduling math (D1 is the single source of truth) ----------
+ * The pending definition (published open/closed, has a start time,
+ * unsettled) lives in the events repository
+ * (nextPendingReminderStart / listDueReminderEvents); the next
+ * reminder time = the earliest one's starts_at_utc - 600. */
 
 export async function nextReminderAt(db: any, slug: string, nowSec: number): Promise<number | null> {
 await ensureReminderColumns(db);
@@ -113,18 +118,22 @@ if (!m) return null;
 return m - REMINDER_LEAD_SEC;
 }
 
-// 到点待发的车 (提醒时刻已到、出发时间未到)
+// Due groupings: reminder time reached, departure time not yet.
 export async function dueReminders(db: any, slug: string, nowSec: number) {
 await ensureReminderColumns(db);
 return listDueReminderEvents(db, slug, nowSec, REMINDER_LEAD_SEC);
 }
 
-/* ---------- 名字与 @ 解析 ----------
-* 发送时逐座解析: (a) signups.discord_id 身份戳 (本人登录报名时盖的) 直接
-* 精确 @; (b) 无戳才把昵称拿去和该百业绑定服务器的已知用户做匹配 — 全局名
-* (users.username) 与服务器昵称快照 (user_guild_nicks) 任一命中都算候选,
-* 候选恰好唯一才 <@id>; (c) 歧义/查无只写纯文本名字。候选池限定为该服务器
-* 成员 (有昵称快照, 或 users 的 guilds_json 含该服务器 id)。 */
+/* ---------- Name & @ resolution ----------
+ * Resolved per seat at send time: (a) the signups.discord_id
+ * identity stamp (stamped on self signups) @s precisely; (b) with
+ * no stamp, match the nickname against the bound server's known
+ * users — a hit on the global name (users.username) or the server
+ * nickname snapshot (user_guild_nicks) makes a candidate, and only
+ * a unique candidate becomes <@id>; (c) ambiguous / not found
+ * stays plain text. The candidate pool is limited to that server's
+ * members (has a nickname snapshot, or users.guilds_json contains
+ * the server id). */
 async function memberPool(db: any, dgid: string) {
 const pool = new Map(); // discord_id -> { globalName, nick}
 if (!dgid) return pool;
@@ -139,7 +148,7 @@ if (!member) {
 try {
 const gs = JSON.parse(u.guilds_json || '[]');
 member = Array.isArray(gs) && gs.some((g) => String(g.id) === String(dgid));
-} catch { /* 非成员 */}
+} catch { /* unparseable -> not a member */}
 }
 if (!member) continue;
 const cur = pool.get(String(u.discord_id)) || { globalName: '', nick: ''};
@@ -157,12 +166,14 @@ if ((u.globalName && u.globalName === nickname) || (u.nick && u.nick === nicknam
 return hits.length === 1? hits[0]: null;
 }
 
-/* 车头显示名: creator_discord_id -> 该服昵称 (优先) -> 全局名;
-* 无车头记录的老车 -> created_by 原文; 再无 -> 百业名兜底。 */
+/* Leader display name: creator_discord_id -> that server's
+ * nickname (preferred) -> global name; legacy groupings with no
+ * leader record -> the created_by text; failing that, the guild
+ * name. */
 export async function leaderDisplayName(db: any, ev: any, slug: string, dgid: string, guildName: string): Promise<string> {
 if (ev.creator_discord_id) {
 const id = String(ev.creator_discord_id);
-// 名册优先: 车头进过这个百业时, 名册里的昵称就是本百业语境的显示名
+// Roster first: if the leader has entered this guild, their roster nickname is their display name in this guild's context.
 await ensureGuildMembersTable(db);
 const rm = await getGuildMember(db, slug, id).catch(() => null);
 if (rm && String(rm.nick || '').trim()) return String(rm.nick).trim();
@@ -179,26 +190,32 @@ if (cb) return cb;
 return guildName || '车头';
 }
 
-/* 拼消息: 返回 { content, embeds, userIds} (userIds = 实际被 <@> 到的
- * discord_id 集, 去重)。结构 (2026-10-26 改版为 embed 卡面; marcus
- * 2026-10-25 23:41 裁决: 两条钦定行逐字冻结, 其余行按武侠口吻重写):
- *   content (卡片上方抬头, 纯文本两行):
- *     {车头显示名} 发起了就位确认：你准备好了吗？     ← 钦定行 1, 逐字
- *     【{车名}】
- *   embed (主题金描边; title = 车名, 链详情页; thumbnail = 该车 OG 图):
- *     description:
- *       还有 {N} 分钟就发车咯，笨笨要加油哦！          ← 钦定行 2, 逐字
- *       [此行险地：{dungeon}]                          仅有副本时出现
- *     field「同行名册（{occupied}/{total}）」:
- *       {i}. {<@id>|昵称}[（车头）][ · 流派][ ✚]
- *     footer: {尚缺 K 位同道未至，江湖路远，望速来同行哦 | 全员到齐，拔寨启程！}
- * @ 内联在名册行里, 不再有独立的 @ 行; 时间只写相对分钟数, 无绝对时间行。
- * 名册行: 一行一个已占座位 (座位顺序); token 的解析梯队与旧版相同 —
- * (a) 身份戳; (b) 本百业名册唯一匹配; (c) 全服唯一匹配; (d) 纯文本。
- * 同一人占两个座 = 两行 (按座位出), allowed_mentions 的 id 集仍去重。
- * 车头标记: 先认解析结果恰为 creator_discord_id 的座位 (多个时标第一个);
- * 一个都没有时回退 — 恰好一个座位的昵称等于首行车头显示名才标 (老车无
- * creator 记录时 created_by 原文即为该名, 同口径); 否则不标。 */
+/* Compose the message: returns { content, embeds, userIds }
+ * (userIds = the set of discord_ids actually <@>-ed, deduped).
+ * Structure (embed card since the 2026-10-26 redesign; two lines
+ * are user-mandated and frozen verbatim — the literals in the code
+ * below — everything else was rewritten in a wuxia tone):
+ *   content (plain-text header above the card, two lines):
+ *     frozen line 1, then the grouping name in brackets.
+ *   embed (theme-gold border; title = grouping name, linked to
+ *     the detail page; thumbnail = the grouping's OG image):
+ *     description: frozen line 2, then — only when a dungeon
+ *       exists — a dungeon line.
+ *     field "roster (occupied/total)": one line per occupied seat,
+ *       in seat order: {i}. {<@id>|nickname}[(leader)][ - school][ healer mark]
+ *     footer: either the still-missing-K line or the all-aboard line.
+ * @s are inline in the roster lines — there is no separate @ line;
+ * time is relative minutes only, no absolute-time line.
+ * Token resolution ladder, unchanged from the old version:
+ * (a) identity stamp; (b) unique match in this guild's roster;
+ * (c) unique match server-wide; (d) plain text.
+ * One person in two seats = two lines (by seat); allowed_mentions
+ * ids still dedupe.
+ * Leader marker: first, a seat whose resolution is exactly
+ * creator_discord_id (the first, if several); failing that, fall
+ * back to the unique seat whose nickname equals the header's
+ * leader display name (legacy groupings without a creator record
+ * carry that name as created_by — same definition); else none. */
 export async function buildReminderMessage(db: any, ev: any, slug: string, nowSec: number) {
 const dgid = await getReminderSetting(db, slug, 'discord_guild_id');
 const t = await getTenantRow(db, slug).catch(() => null);
@@ -224,7 +241,7 @@ sect: String(seat.weapon || '').trim(),
 isCreator: !!(creatorId && id && id === creatorId),
 });
 }
-// 车头标记定位: 梯队解析命中 creator 优先; 否则唯一同名回退; 都不成立不标
+// Leader-marker placement: a creator resolution hit wins; else the unique same-name fallback; else no marker.
 let leaderIdx = parsed.findIndex((p) => p.isCreator);
 if (leaderIdx < 0) {
 const sameName = parsed.map((p, i) => (p.nick === leader ? i : -1)).filter((i) => i >= 0);
@@ -234,19 +251,18 @@ const rows = parsed.map((p, i) => {
 let line = `${i + 1}. ${p.token}`;
 if (i === leaderIdx) line += '（车头）';
 if (p.sect) line += ` · ${p.sect}`;
-if (p.sect === '牵丝·霖') line += ' ✚'; // 全游戏唯一治疗流派
+if (p.sect === '牵丝·霖') line += ' ✚'; // The game's only healer school.
 return line;
 });
 const occupied = rows.length;
-const total = Number(ev.max_slots) || occupied; // 容量口径与站点 toGrouping 一致: events.max_slots
+const total = Number(ev.max_slots) || occupied; // Capacity matches the site's toGrouping: events.max_slots.
 const mins = Math.max(1, Math.round((Number(ev.starts_at_utc) - nowSec) / 60));
-// 抬头 (纯文本 content): 钦定行 1 逐字 + 车名行 — 卡片上方即见,
-// 也是纯文本读者第一眼拿到的两件关键信息。
+// Header (plain-text content): frozen line 1 verbatim + the grouping-name line — the two key facts a plain-text reader gets first, visible above the card.
 const content = [
 `${leader} 发起了就位确认：你准备好了吗？`,
 `【${ev.title}】`,
 ].join('\n');
-// 卡面正文: 钦定行 2 逐字; 副本行换武侠口吻。
+// Card body: frozen line 2 verbatim; the dungeon line in wuxia tone.
 const descLines = [`还有 ${mins} 分钟就发车咯，笨笨要加油哦！`];
 if (ev.dungeon && String(ev.dungeon).trim()) descLines.push(`此行险地：${String(ev.dungeon).trim()}`);
 const embed = {
@@ -257,7 +273,7 @@ thumbnail: { url: carOgImageUrl(slug, ev.id) },
 description: descLines.join('\n'),
 fields: [{
 name: `同行名册（${occupied}/${total}）`,
-// 空名册时 field value 不可为空串 (Discord 拒), 以一句占位保形
+// With an empty roster the field value cannot be an empty string (Discord rejects it) — a placeholder line keeps the shape.
 value: rows.length ? rows.join('\n') : '虚位以待，静候同道',
 inline: false,
 }],
@@ -270,18 +286,15 @@ text: occupied < total
 return { content, embeds: [embed], userIds };
 }
 
-/* ---------- Webhook 发送 ---------- */
 export async function postWebhook(webhook: string, content: string, userIds?: string[], parseTypes?: string[], identity?: any, embeds?: any[]) {
 const body: any = {
 content,
-// 发送身份 per-百业: 该百业有自定义头像时用百业名 + 头像 URL,
-// 没有时 (identity=null) 回退平台默认身份。只换身份字段, 文案不动。
+// Sender identity is per-guild: with a custom avatar, use the guild name + avatar URL; without one (identity=null) fall back to the platform default identity. Only identity fields change — never the copy.
 username: (identity && identity.username) || REMINDER_USERNAME,
 avatar_url: (identity && identity.avatarUrl) || REMINDER_AVATAR_URL,
 allowed_mentions: { parse: parseTypes || [], users: userIds || []},
 };
-// 卡面 (可选, 仅发车提醒传): 不传 = 载荷不含 embeds 键 — 传家宝/测试
-// 消息等旧调用方的发送形态逐字不变。
+// Card (optional; only departure reminders pass one): omitting it means the payload has no embeds key — legacy callers (heirloom / test messages) keep their exact send shape.
 if (Array.isArray(embeds) && embeds.length) body.embeds = embeds;
 const ctl = new AbortController();
 const timer = setTimeout(() => ctl.abort(), 8000);
@@ -312,8 +325,9 @@ await setReminderSetting(db, slug, 'reminder_last_error', ok? '': String(error |
 if (eventTitle) await setReminderSetting(db, slug, 'reminder_last_event', String(eventTitle).slice(0, 60));
 }
 
-/* 发一台车的提醒并落状态: 成功写 reminder_sent_at, 失败写 reminder_error
-* (结算, 不重试)。返回发送结果。 */
+/* Send one grouping's reminder and record the outcome: success
+ * writes reminder_sent_at, failure writes reminder_error
+ * (settled, never retried). Returns the send result. */
 export async function sendReminderForEvent(db: any, slug: string, ev: any, cfg: any, nowSec: number, expoBase?: string) {
 await ensureReminderColumns(db);
 const { content, embeds, userIds} = await buildReminderMessage(db, ev, slug, nowSec);
@@ -323,13 +337,15 @@ if (res.ok) {
 await markReminderSent(db, ev.id, nowSec);
 } else {
 await markReminderError(db, ev.id, String(res.error || '发送失败').slice(0, 300));
-// 全站错误汇聚 (审计 A7): 与 reminder_error 并存, 供 hub 门户统一看板
+// Site-wide error sink (audit A7): alongside reminder_error, for the hub portal's unified board.
 void logError(db, { source: 'reminder', name: 'WebhookError', message: String(res.error || '发送失败'), tenant: slug, context: { eventId: ev.id } });
 }
 await recordStatus(db, slug, { ok: res.ok, error: res.error, atSec: nowSec, eventTitle: ev.title, test: false});
-// App 推送通道 (2026-10-25 与 Discord 并行加挂): 对象 = 上面已解析到账号
-// 的参与者 userIds, 映射其 App 注册令牌。失败全隔离: 推送异常不改变
-// Discord 的结算状态 (reminder_sent_at / reminder_error 已先行落定)。
-try { await sendDeparturePush(db, slug, ev, cfg, userIds, nowSec, expoBase); } catch { /* 推送失败静默 */ }
+// App push channel (added 2026-10-25 alongside Discord): targets
+// the participants already resolved to accounts above (userIds),
+// mapped to their app device tokens. Fully isolated: a push
+// failure never changes the Discord settlement state
+// (reminder_sent_at / reminder_error are written first).
+try { await sendDeparturePush(db, slug, ev, cfg, userIds, nowSec, expoBase); } catch { /* Push failures are silent. */ }
 return res;
 }

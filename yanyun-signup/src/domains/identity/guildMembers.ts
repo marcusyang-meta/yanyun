@@ -1,17 +1,7 @@
-/* ===================================================
- * guild_members 实体的数据层访问 (Repository)。
- *
- * 三期迁入: 百业成员名册 (区别于按 Discord 服务器维度的
- * users/user_guild_nicks — 两个百业可绑同一服务器, 名册各不相同)。
- * 此前实现散在 reminder.ts (建表 + upsert + 名册池/车头名读取) 与
- * heirloompush.js / graphql.js / worker.js 的直查。
- *
- * 懒 DDL 与 upsert 的容错口径与旧 reminder.ts 一致 (建表失败静默、
- * 单例 promise 缓存); reminder.ts 的 ensureGuildMembersTable /
- * upsertGuildMember 保留旧名导出作委托 (creatorbackfill /
- * creatormanualfix 仍从 reminder.ts 引)。
- * 返回行沿用 snake_case 键, 调用点零感知。
- * =================================================== */
+/* guild_members repository: per-guild roster — distinct from the
+ * per-Discord-server users/user_guild_nicks (two guilds may bind the same
+ * server with different rosters). Lazy DDL failures are silent, with a
+ * singleton promise cache. Rows keep snake_case keys. */
 import { sql } from 'drizzle-orm';
 import { createDb, schema } from '../../db/client.ts';
 
@@ -24,7 +14,7 @@ export interface GuildMemberRow {
   global_name: string;
 }
 
-/* ---------- 懒 DDL ---------- */
+/* ---------- Lazy DDL ---------- */
 
 let guildMembersReady: Promise<void> | null = null;
 export function ensureGuildMembersTable(d1: D1Database): Promise<void> {
@@ -40,13 +30,13 @@ export function ensureGuildMembersTable(d1: D1Database): Promise<void> {
           ${col('updated_at')} INTEGER NOT NULL DEFAULT 0,
           PRIMARY KEY (${col('tenant')}, ${col('discord_id')})
         )`);
-      } catch { /* 表已存在等情况静默 */ }
+      } catch { /* silent: table may already exist */ }
     })();
   }
   return guildMembersReady;
 }
 
-/* ---------- 读写 ---------- */
+/* ---------- Reads / writes ---------- */
 
 export async function upsertGuildMember(
   d1: D1Database, tenant: string, discordId: string, nick: string, globalName: string,

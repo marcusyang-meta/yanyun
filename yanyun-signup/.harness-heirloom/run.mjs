@@ -1,11 +1,18 @@
-// 传家宝推送验收 (本地 wrangler dev + stub webhook 接收端):
-//  A) hub 端点: 登录 -> GET 列表 (未配置) -> PUT 保存 (掩码不回显全文,
-//     非法 URL 400) -> 启用 -> SQL 把地址换成 stub -> POST test (test-ok)。
-//  B) 触发 (gearPlan 服务端评估, 用户 2001, livetest 名册昵称 车头甲):
-//     新传家宝 1 条 -> 重复评估不重发 -> 换行 id 同内容不重发 -> dud 不发
-//     -> 批量 3 件合并 1 条 -> 集齐 (新件批次 + 集齐播报各 1) -> 重复不发
-//     -> 破齐不发 -> 再集齐只补集齐播报 -> 停用不发 -> 复启补发。
-//  C) 开车提醒配置 (settings reminder_* + tenants.discord_webhook) 全程不变。
+// Heirloom push acceptance (local wrangler dev + stub webhook receiver):
+//  A) hub endpoints: login -> GET list (unconfigured) -> PUT save
+//     (masked, never echoes the full value; invalid URL -> 400) ->
+//     enable -> SQL swaps the stored address for the stub -> POST test
+//     (test-ok).
+//  B) Triggering (gearPlan server-side evaluation, user 2001, livetest
+//     roster nickname 车头甲): 1 new heirloom -> repeat evaluation does
+//     not resend -> new row id with identical content does not resend
+//     -> a dud does not send -> a batch of 3 merges into 1 message ->
+//     set completion (1 new-item batch + 1 completion announcement) ->
+//     repeat does not send -> breaking the set does not send ->
+//     completing again sends only the completion announcement ->
+//     disabled does not send -> re-enabling backfills the send.
+//  C) Departure-reminder config (settings reminder_* +
+//     tenants.discord_webhook) stays unchanged throughout.
 import http from 'node:http';
 import fs from 'node:fs';
 import { execFile } from 'node:child_process';
@@ -27,7 +34,7 @@ function check(name, ok, extra = '') {
 }
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-/* ---------- D1 直写 (本地) ---------- */
+/* ---------- Direct D1 writes (local) ---------- */
 async function d1(sql) {
   const { stdout } = await execFileP('npx', ['wrangler', 'd1', 'execute', 'yanyun-signup', '--local', '--command', sql], { cwd: new URL('../', import.meta.url).pathname });
   const m = stdout.match(/\[\s*\{[\s\S]*\}\s*\]/);
@@ -36,7 +43,7 @@ async function d1(sql) {
 }
 async function d1Try(sql) { try { return await d1(sql); } catch { return []; } }
 
-/* ---------- stub webhook 接收端 ---------- */
+/* ---------- Stub webhook receiver ---------- */
 const received = [];
 const stub = http.createServer((req, res) => {
   const chunks = [];
@@ -56,7 +63,7 @@ async function waitCount(n, label, timeout = 8000) {
   }
 }
 
-/* ---------- HTTP 帮手 ---------- */
+/* ---------- HTTP helpers ---------- */
 async function gql(query, variables, cookie = JWT) {
   const r = await fetch(WORKER + '/graphql', {
     method: 'POST',
@@ -74,7 +81,7 @@ async function hub(path, init = {}) {
   return { status: r.status, body: await r.json().catch(() => null) };
 }
 
-/* ---------- 夹具准备 ---------- */
+/* ---------- Fixture setup ---------- */
 await d1Try(`DELETE FROM heirloom_item_pushes WHERE tenant='${SLUG}'`);
 await d1Try(`DELETE FROM heirloom_set_state WHERE tenant='${SLUG}'`);
 await d1(`DELETE FROM settings WHERE tenant='${SLUG}' AND key LIKE 'heirloom_%'`);
@@ -118,7 +125,7 @@ const plan = async (lib, loadoutMap) => {
 };
 const fullLoadout = { '主武器': W1.id, '副武器': W2.id, '冠胄': GZ.id, '胸甲': XJ.id, '环': HUAN.id, '佩': PEI.id, '胫甲': JING.id, '腕甲': WAN.id };
 
-/* ---------- A) hub 端点 ---------- */
+/* ---------- A) hub endpoints ---------- */
 {
   const login = await fetch(WORKER + '/api/hub/login', {
     method: 'POST', headers: { 'content-type': 'application/json' },
@@ -145,7 +152,7 @@ const fullLoadout = { '主武器': W1.id, '副武器': W2.id, '冠胄': GZ.id, '
   const en = await hub(`/tenants/${SLUG}/heirloom`, { method: 'PUT', body: JSON.stringify({ enabled: true }) });
   check('A5 PUT 启用开关', en.body?.heirloom?.enabled === true);
 
-  // 把服务端存的地址换成 stub (直写 D1, 绕开格式校验 — 端点本身不重验已存值)
+  // Swap the server-stored address for the stub (direct D1 write, bypassing format validation — the endpoint itself does not re-validate stored values).
   await d1(`UPDATE settings SET value='${STUB_URL}' WHERE tenant='${SLUG}' AND key='heirloom_webhook'`);
   const test = await hub(`/tenants/${SLUG}/heirloom/test`, { method: 'POST' });
   await waitCount(1, 'test message');
@@ -154,7 +161,7 @@ const fullLoadout = { '主武器': W1.id, '副武器': W2.id, '冠胄': GZ.id, '
   received.length = 0;
 }
 
-/* ---------- B) 触发 ---------- */
+/* ---------- B) Triggering ---------- */
 {
   await plan([W1], {});
   await waitCount(1, 'T1');
@@ -228,7 +235,7 @@ const fullLoadout = { '主武器': W1.id, '副武器': W2.id, '冠胄': GZ.id, '
   check('B11 portal 状态: lastStatus=ok 且有事件摘要', rowEnd?.lastStatus === 'ok' && !!rowEnd?.lastEvent, JSON.stringify(rowEnd));
 }
 
-/* ---------- C) 提醒配置未动 ---------- */
+/* ---------- C) Reminder config untouched ---------- */
 {
   const after = await reminderSnap();
   check('C1 开车提醒配置全程未变', after === reminderBefore, after === reminderBefore ? '' : `before=${reminderBefore} after=${after}`);

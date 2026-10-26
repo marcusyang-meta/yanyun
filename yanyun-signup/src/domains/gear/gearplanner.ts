@@ -1,8 +1,12 @@
-// 配装台计算引擎 — 移植自 gear-planner-100.pages.dev「装备调率助手」(100 阶)
-// 数据与公式逐项对照原站脚本移植 (提取说明: ~/workspace/research_notes/gear-planner-100/extraction.md)。
-// 与调律 GradCalc 口径不同: 本引擎毕业度 = (40% 条数 + 24% 数值 + 20% 定音) / 84
-// (关定音时 / 64); 单件评分 = round((60 × coreFrac + 40 × Q) × linesFactor) (原站第 44 节口径)。
-// 全部纯函数: 状态 (目标流派/角色基础/其他来源/搭配/模拟档) 由调用方显式传入, 不读全局。
+// Gear-planner calculation engine — ported from gear-planner-100.pages.dev (tier 100).
+// Data and formulas were ported item-by-item against the original site's
+// script (extraction notes: ~/workspace/research_notes/gear-planner-100/extraction.md).
+// Different yardstick from the tiaolv GradCalc: graduation here =
+// (40% line count + 24% value + 20% attunement) / 84 (/ 64 when attunement
+// is off); per-item score = round((60 × coreFrac + 40 × Q) × linesFactor)
+// (original site, section 44).
+// All pure functions: state (target build / character base / other sources
+// / loadout / sim tier) is passed in explicitly; nothing reads globals.
 export const GP_SLOTS: any = ["主武器","副武器","冠胄","胸甲","环","佩","胫甲","腕甲"];
 export const GP_GEAR_SLOTS: any = ["武器","冠胄","胸甲","环","佩","胫甲","腕甲"];
 export const GP_AFFIX: any = [{"key":"dawai","label":"大外功","short":"大外","max":90.6,"cy":85.2,"unit":""},{"key":"xiaowai","label":"小外功","short":"小外","max":90.6,"cy":85.2,"unit":""},{"key":"shu_mj_da","label":"最大鸣金攻击","short":"大鸣金","max":51.4,"cy":48.3,"unit":"","sys":"鸣金","size":"da"},{"key":"shu_mj_xiao","label":"最小鸣金攻击","short":"小鸣金","max":51.4,"cy":48.3,"unit":"","sys":"鸣金","size":"xiao"},{"key":"shu_ls_da","label":"最大裂石攻击","short":"大裂石","max":51.4,"cy":48.3,"unit":"","sys":"裂石","size":"da"},{"key":"shu_ls_xiao","label":"最小裂石攻击","short":"小裂石","max":51.4,"cy":48.3,"unit":"","sys":"裂石","size":"xiao"},{"key":"shu_pz_da","label":"最大破竹攻击","short":"大破竹","max":51.4,"cy":48.3,"unit":"","sys":"破竹","size":"da"},{"key":"shu_pz_xiao","label":"最小破竹攻击","short":"小破竹","max":51.4,"cy":48.3,"unit":"","sys":"破竹","size":"xiao"},{"key":"shu_qs_da","label":"最大牵丝攻击","short":"大牵丝","max":51.4,"cy":48.3,"unit":"","sys":"牵丝","size":"da"},{"key":"shu_qs_xiao","label":"最小牵丝攻击","short":"小牵丝","max":51.4,"cy":48.3,"unit":"","sys":"牵丝","size":"xiao"},{"key":"shu_wx_da","label":"最大无相攻击","short":"大无相","max":51.4,"cy":48.3,"unit":"","sys":"无相","size":"da"},{"key":"shu_wx_xiao","label":"最小无相攻击","short":"小无相","max":51.4,"cy":48.3,"unit":"","sys":"无相","size":"xiao"},{"key":"ti","label":"体","short":"体","max":57.4,"cy":54,"unit":""},{"key":"jin","label":"劲","short":"劲","max":57.4,"cy":54,"unit":""},{"key":"yu","label":"御","short":"御","max":57.4,"cy":54,"unit":""},{"key":"min","label":"敏","short":"敏","max":57.4,"cy":54,"unit":""},{"key":"shi","label":"势","short":"势","max":57.4,"cy":54,"unit":""},{"key":"jingzhun","label":"精准率","short":"精准","max":9.4,"cy":8.8,"unit":"%"},{"key":"huixin","label":"会心率","short":"会心","max":10.4,"cy":9.8,"unit":"%"},{"key":"huiyi","label":"会意率","short":"会意","max":5.2,"cy":4.9,"unit":"%"},{"key":"wuqizeng","label":"武器增效","short":"武器增","max":7.4,"cy":7,"unit":"%"},{"key":"quanwu","label":"全武学增效","short":"全武","max":3.6,"cy":3.4,"unit":"%"},{"key":"shouling","label":"首领增伤","short":"首领","max":3.8,"cy":3.6,"unit":"%"},{"key":"wanjia","label":"玩家增伤","short":"玩家","max":3.8,"cy":3.6,"unit":"%"},{"key":"quanqi","label":"全奇术增伤","short":"全奇术","max":11.4,"cy":10.7,"unit":"%"}];
@@ -42,7 +46,7 @@ export function gpTalentText(rowName: any) {
   if (t.acc) parts.push('精准 ' + t.acc + '%');
   return parts.join('、');
 }
-// 五维换算速查行 (原站公式区原文, 满条 = 57.4)
+// Five-dimension conversion quick rows (verbatim from the original formula section; a full line = 57.4)
 export const GP_DIM_ROWS: any = [
   { name: '体', conv: '60 气血', full: '3444 气血' },
   { name: '劲', conv: '1.36 大外 + 0.225 小外', full: '78 大外 + 12.9 小外' },
@@ -52,7 +56,7 @@ export const GP_DIM_ROWS: any = [
 ];
 export const GP_QUICK_BAR_NAMES: any = ['承音精准', '承音会心', '承音会意'];
 
-/* ================= 派生表 / 基础判定 (对照原站) ================= */
+/* ================= Derived tables / basic checks (per original site) ================= */
 export const GP_AFFIX_BY_KEY: any = {};
 GP_AFFIX.forEach((a: any) => { GP_AFFIX_BY_KEY[a.key] = a; });
 const SHU_SYSTEMS: any[] = ['鸣金', '裂石', '破竹', '牵丝', '无相'];
@@ -66,8 +70,10 @@ const CLASS_OF_KEY: Record<string, any> = {};
 Object.keys(SHU_KEY_INFO).forEach((k: any) => { CLASS_OF_KEY[k] = 'shugong'; });
 export function gpClassOf(key: any) { return CLASS_OF_KEY[key] || key; }
 export function gpBuildSystem(build: any) {
-  // 逐字对照原站: 只按 "-" 切分。故「牵丝·翊」得到全名、不在 SHU_SYSTEMS 中 → null,
-  // 其牵丝属攻词条在原站口径下不归 shugong (面板亦归 otherShu) — 原样保留, 不擅改。
+  // Verbatim from the original: split only on "-". So 「牵丝·翊」 yields the
+  // full name, which is not in SHU_SYSTEMS -> null, and its Silkbind affix
+  // lines do not count as shugong (the panel files them under otherShu
+  // too) — kept as-is; do not "fix" it.
   const sch = (build && build.school) || '';
   const sys = sch.split('-')[0];
   return SHU_SYSTEMS.indexOf(sys) > -1 ? sys : null;
@@ -112,7 +118,7 @@ export function gpGearSlotOf(slot: any) {
 }
 export function gpIsWeaponSlot(slot: any) { return slot === '武器' || slot === '主武器' || slot === '副武器'; }
 
-/* ================= 定音 ================= */
+/* ================= Attunement ================= */
 const DINGYIN_LEFT_SLOT_SET = new Set(GP_DINGYIN_LEFT_SLOTS);
 export function gpIsLeftDingyinSlot(slot: any) { return !!DINGYIN_LEFT_SLOT_SET.has(slot); }
 export function gpIsMartialDingyinName(name: any) {
@@ -168,7 +174,7 @@ export function gpSanitizeDingyin(d: any, slot: any) {
   return { name, val: v };
 }
 
-/* ================= 武器流派标签 ================= */
+/* ================= Weapon school tags ================= */
 const WUXUE_LIST: any[] = [];
 Object.keys(GP_BUILD_DINGYIN).forEach((k: any) => { const w = GP_BUILD_DINGYIN[k].wuxue; if (w && WUXUE_LIST.indexOf(w) < 0) WUXUE_LIST.push(w); });
 if (WUXUE_LIST.indexOf('玉飞天') < 0) WUXUE_LIST.push('玉飞天');
@@ -215,7 +221,7 @@ export function gpWeaponUsableForBuild(g: any, build: any) {
   return tags.indexOf(build.school) > -1;
 }
 
-/* ================= 装备校验 / 归一化 ================= */
+/* ================= Gear validation / normalization ================= */
 function sanitizeLineData(l: any, slot: any, warnings: any) {
   if (!l || typeof l !== 'object') return null;
   const key = GP_LEGACY_KEY[l.key] || l.key;
@@ -273,7 +279,7 @@ export function gpNormalizeGearList(rawList: any) {
   return { list: out, firstMap, nextId: usedMax + 1 };
 }
 
-/* ================= 角色基础 + 心法 (对照 getBase / xinfaSummary) ================= */
+/* ================= Character base + inner skills (per getBase / xinfaSummary) ================= */
 const XINFA_BY_NAME: Record<string, any> = {};
 GP_XINFA.forEach((x: any) => { XINFA_BY_NAME[x.n] = x; });
 export function gpXinfaSummary(pickedNames: any) {
@@ -304,7 +310,7 @@ export function gpXinfaSummary(pickedNames: any) {
 function zeroBase(): any {
   return { ti: 0, jin: 0, yu: 0, min: 0, shi: 0, xiaowai: 0, dawai: 0, acc: 0, crit: 0, int: 0, dcrit: 0, dint: 0, hp: 0, shuXiao: 0, shuDa: 0, wkXiao: 0, wkDa: 0, wkShuXiao: 0, wkShuDa: 0, wkHp: 0, wxXiao: 0, wxDa: 0, dmg: 0, shuDmg: 0 };
 }
-// values: {field: number|null}; null/缺失 → 0, 但武库/无相底子字段回退预设 (原站口径)
+// values: {field: number|null}; null/missing -> 0, except arsenal / Formless-base fields, which fall back to presets (original site).
 export function gpGetBase(values: any, xinfaNames: any) {
   const z = zeroBase();
   const vals = values || {};
@@ -332,7 +338,7 @@ export function gpExtrasFrom(extras: any) {
   };
 }
 
-/* ================= 单件评分 / 品质 (对照第 44 节口径) ================= */
+/* ================= Per-item score / quality (per section 44) ================= */
 export function gpLineValueScore(l: any) {
   const a = GP_AFFIX_BY_KEY[l && l.key]; if (!a) return 0;
   const v = (typeof l.val === 'number') ? l.val : gpParseVal(l.val);
@@ -430,7 +436,7 @@ export function gpGearScore(g: any, build: any) {
   return Math.round((60 * gearScoreCoreFrac44(g, build, valid) + 40 * Q) * linesFactor);
 }
 
-/* ================= 传家宝 / 拉完了 (对照原站 DFS 口径) ================= */
+/* ================= Heirloom / dud (per the original DFS) ================= */
 function heirloomLineClass(g: any, l: any, build: any) {
   if (!l || !l.key) return null;
   if (gpIsWuxiangKey(l.key) && !gpIsWeaponSlot(g.slot)) return null;
@@ -584,7 +590,7 @@ export function gpIsDud(g: any, build: any) {
   return gpGearRecipeHits(g, build) === 0;
 }
 
-/* ================= 满值模拟有效值 ================= */
+/* ================= Effective values under max simulation ================= */
 export function gpEffLineVal(g: any, l: any, sim: any) {
   const v = (typeof l.val === 'number') ? l.val : gpParseVal(l.val);
   if (v == null || !isFinite(v) || v < 0) return v;
@@ -609,7 +615,7 @@ export function gpEffDingyinVal(g: any, sim: any) {
   return tier === 'max' ? mx : Math.round(mx * 0.94 * 10) / 10;
 }
 
-/* ================= 天赋缩放节点 ================= */
+/* ================= Talent scaling nodes ================= */
 export function gpTalentNodesFor(build: any) {
   if (!build) return [];
   if (GP_TALENT.bySchool && GP_TALENT.bySchool[build.school]) return GP_TALENT.bySchool[build.school];
@@ -617,8 +623,8 @@ export function gpTalentNodesFor(build: any) {
   return (build.cat && build.cat.indexOf('会心') > -1) ? GP_TALENT.template : [];
 }
 
-/* ================= 面板 (对照 computePanel; 状态显式传入) ================= */
-// lib: 装备数组; loadout: {位置: id}; state: {targetIdx, baseValues, xinfa, extras(raw), sim}
+/* ================= Panel (per computePanel; state passed in explicitly) ================= */
+// lib: gear array; loadout: {slot: id}; state: {targetIdx, baseValues, xinfa, extras(raw), sim}
 export function gpComputePanel(lib: any, loadout: any, state: any) {
   const gearMap: Record<string, any> = {};
   (lib || []).forEach((g: any) => { if (g && g.id != null) gearMap[g.id] = g; });
@@ -717,7 +723,7 @@ export function gpDingyinScore(panel: any, build: any) {
   });
   return { score: total / 8, rows };
 }
-/* 毕业度 (原站口径): 条数 40 + 数值 24 + 定音 20, 合计 84 折算; 关定音 /64 */
+/* Graduation (original yardstick): line count 40 + value 24 + attunement 20, normalized over 84; attunement off -> /64 */
 export function gpGraduation(panel: any, build: any, gradDingyinOn: any, sim: any) {
   const rows: any[] = []; let sumMatch = 0;
   build.targets.forEach((t: any) => {
@@ -767,7 +773,7 @@ export function gpLoanGraduation(lib: any, loadout: any, state: any) {
   return gpGraduation(panel, build, state.gradDingyinOn !== false, {});
 }
 
-/* ================= 档位 / 一键最优 / 建议 ================= */
+/* ================= Tiers / auto-best / suggestions ================= */
 const TIER_RATE: any = { jingzhun: 1, huixin: 1, huiyi: 1 };
 const TIER_DIVINE: any = { shouling: 1, quanwu: 1, wuqizeng: 1, wanjia: 1, quanqi: 1 };
 const FIVE_DIM_CLS: any[] = ['ti', 'jin', 'yu', 'min', 'shi'];
@@ -968,7 +974,7 @@ export function gpComputeSuggestions(lib: any, loadout: any, state: any) {
   };
 }
 
-/* ================= 三率速算 (对照 rateStatus, 返回结构化数据) ================= */
+/* ================= Three-rate quick calc (per rateStatus; returns structured data) ================= */
 export function gpRateStatus(white: any, cap: any, base: any, res: any, perBarVal: any) {
   const yellow = Math.max(0, Math.min(cap, base + (white - base) / res));
   const needWhite = base + (cap - base) * res;
@@ -989,7 +995,7 @@ export function gpQuickCalc(whiteAcc: any, whiteCrit: any, whiteInt: any, resIn:
   };
 }
 
-/* ================= 计划总装 (对照 renderPanel 的数据部分) ================= */
+/* ================= Plan assembly (the data part of renderPanel) ================= */
 function stripPanel(p: any) {
   if (!p) return null;
   const { _equipped, ...rest } = p;
@@ -1006,11 +1012,11 @@ export function gpPlan(lib: any, loadout: any, state: any) {
   const realGrad = gpGraduation(realPanel, build, dyOn, {});
   const loanGrad = gpLoanGraduation(lib, loadout, state);
   const suggestions = gpComputeSuggestions(lib, loadout, state);
-  // 差缺: 配方外类别 (classCounts 中不在 targets 的)
+  // Off-recipe classes (present in classCounts but not in targets)
   const wantedCls: Record<string, any> = {};
   build.targets.forEach((t: any) => { (t.flex ? t.flex : [t.cls]).forEach((c: any) => { wantedCls[c] = true; }); });
   const extraClasses = Object.keys(panel.classCounts).filter((c: any) => !wantedCls[c]).map((c: any) => ({ cls: c, label: GP_CLASS_LABEL[c] || c, count: panel.classCounts[c] }));
-  // 单件评估 (全库, 对当前流派)
+  // Per-item evaluation (whole library, against the current build)
   const gearEvals = (lib || []).map((g: any) => ({
     id: g.id,
     score: gpGearScore(g, build),
@@ -1026,7 +1032,7 @@ export function gpPlan(lib: any, loadout: any, state: any) {
   };
 }
 
-/* ================= 粘贴代码导入 (对照原站解析器) ================= */
+/* ================= Paste-code import (per the original parser) ================= */
 export function gpOcrClean(s: any) {
 return String(s == null? '': s)
 .replace(/[０-９]/g, (c: any) => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
@@ -1232,7 +1238,7 @@ return { text: txt, mode: 'Base64 文本'};
 }
 return { text: s, mode: '文本'};
 }
-// 顶层入口 (对照 btnPasteImport 处理): 返回 {mode, gears, unknown} 或 {fullExport: data}
+// Top-level entry (per the btnPasteImport handler): returns {mode, gears, unknown} or {fullExport: data}
 export function gpParsePaste(raw: any) {
 const dec = gpDecodePasteCode(raw);
 if (!dec) return { mode: '', gears: [], unknown: 0};
@@ -1258,7 +1264,7 @@ if (!found) return { mode: dec.mode, gears: [], unknown: 0};
 return { mode: dec.mode, gears: found.gears, unknown: found.unknown};
 }
 
-// OCR 专用别名 (原站 OCR_EXTRA_ALIAS, 供前端 OCR 候选名表; 后端解析器不用)
+// OCR-only aliases (the original OCR_EXTRA_ALIAS; feeds the frontend OCR candidate table — the backend parser does not use these)
 export const GP_OCR_EXTRA_ALIAS: any = {"最大外功攻击":"dawai","最小外功攻击":"xiaowai","最大外功":"dawai","最小外功":"xiaowai","max physical atk":"dawai","min physical atk":"xiaowai","physical atk":"dawai","最大属攻":"shu_wx_da","最小属攻":"shu_wx_xiao","最大屬攻":"shu_wx_da","最小屬攻":"shu_wx_xiao","最大无相攻击":"shu_wx_da","最小无相攻击":"shu_wx_xiao","最大無相攻擊":"shu_wx_da","最小無相攻擊":"shu_wx_xiao","最大鸣金攻击":"shu_mj_da","最小鸣金攻击":"shu_mj_xiao","最大裂石攻击":"shu_ls_da","最小裂石攻击":"shu_ls_xiao","最大破竹攻击":"shu_pz_da","最小破竹攻击":"shu_pz_xiao","最大牵丝攻击":"shu_qs_da","最小牵丝攻击":"shu_qs_xiao","會心率":"huixin","會意率":"huiyi","精準率":"jingzhun","體":"ti","勁":"jin","禦":"yu","敏":"min","勢":"shi","对首领增伤":"shouling","对首领单位增伤":"shouling","首领伤害":"shouling","全武学增伤":"quanwu","全武学增效":"quanwu","武器增伤":"wuqizeng","武器增效":"wuqizeng","手甲武学增伤":"wuqizeng"};
 export const GP_BUILD_SECT: any = ["鸣金·虹","鸣金·影","牵丝·玉","牵丝·玉","牵丝·霖","牵丝·霖","牵丝·霖","牵丝·翊","裂石·威","裂石·钧","裂石·钧","破竹·鸢","破竹·樽","破竹·尘","破竹·风","牵丝·霖","牵丝·翊","裂石·钧","裂石·钧","破竹·鸢","破竹·樽","破竹·尘","破竹·风","牵丝·霖","裂石·威"];
 export const GP_DEMO_KIT: any = [{"slot":"武器","name":"示例 · 玉斗长剑","keys":["dawai","dawai","jin","huiyi","wuqizeng"],"dingyin":{"name":"外功穿透","val":12.6}},{"slot":"武器","name":"示例 · 玉斗副剑","keys":["dawai","dawai","jin","huiyi","shi"],"dingyin":{"name":"外功穿透","val":11.4}},{"slot":"冠胄","name":"示例 · 玉斗冠胄","keys":["huiyi","dawai","jin","shi","huiyi"],"dingyin":{"name":"无名剑法·蓄力技增伤","val":5.6}},{"slot":"胸甲","name":"示例 · 玉斗胸甲","keys":["huiyi","dawai","jin","shi","huiyi"],"dingyin":{"name":"无名剑法·蓄力技增伤","val":4.2}},{"slot":"环","name":"示例 · 玉斗环","keys":["dawai","dawai","shi","jin","quanwu"],"dingyin":{"name":"外功穿透","val":10.8}},{"slot":"佩","name":"示例 · 玉斗佩","keys":["dawai","dawai","shi","jin","quanwu"],"dingyin":{"name":"外功穿透","val":12.1}},{"slot":"胫甲","name":"示例 · 玉斗胫甲","keys":["jin","dawai","shi","jin","shouling"],"dingyin":{"name":"无名剑法·蓄力技增伤","val":5.1}},{"slot":"腕甲","name":"示例 · 玉斗腕甲","keys":["jin","dawai","shi","jin","shouling"],"dingyin":{"name":"无名剑法·蓄力技增伤","val":4.7}}];

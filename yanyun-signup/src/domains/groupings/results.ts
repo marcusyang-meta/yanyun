@@ -1,10 +1,12 @@
 /* ===================================================
- * results 实体的数据层访问 (Repository)。
+ * Data-layer access (Repository) for the results entity.
  *
- * 三期迁入: 此前只有 worker.js 三处直查 (车队详情成绩读、管理员
- * 录成绩、管理员删成绩的归属校验 + 删除)。events repository 的
- * deleteEventCascade 内部组合 results 删除仍是级联一环, 不经这里。
- * 返回行沿用 snake_case 键, 调用点零感知。
+ * Previously queried directly from three places in worker.js
+ * (grouping-detail results read, admin result entry, and the
+ * ownership check + delete for admin result deletion). The
+ * results delete inside events' deleteEventCascade remains part
+ * of that cascade and does not go through here. Rows keep the
+ * legacy snake_case keys.
  * =================================================== */
 import { sql } from 'drizzle-orm';
 import { createDb, schema } from '../../db/client.ts';
@@ -32,7 +34,7 @@ function metaOf(r: unknown): RunMeta {
   return { changes: m?.changes ?? 0, last_row_id: m?.last_row_id ?? 0 };
 }
 
-/** 车队详情成绩列表: 按用时升序 (与旧 REST 详情同形)。 */
+/** Grouping-detail results: ascending by clear time (same shape as the legacy REST detail). */
 export async function listResultsByEvent(d1: D1Database, eventId: number): Promise<ResultRow[]> {
   const db = createDb(d1);
   const rows = await db.all<ResultRow>(
@@ -52,7 +54,7 @@ export async function insertResult(
   return metaOf(r);
 }
 
-/** 删除前的租户归属校验: 成绩属于该百业的车队才返回其 id。 */
+/** Pre-delete tenant ownership check: returns the id only if the result belongs to a grouping of this guild. */
 export async function getResultIdOwnedByTenant(
   d1: D1Database, resultId: number, tenant: string,
 ): Promise<{ id: number } | null> {

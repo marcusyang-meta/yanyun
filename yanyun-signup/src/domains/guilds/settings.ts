@@ -47,8 +47,10 @@ export async function setSettingValue(
   value: string,
 ): Promise<void> {
   const db = createDb(d1);
-  // INSERT 列名单 / ON CONFLICT 目标 / SET 左值在 SQLite 里必须是裸列名
-  // (表限定名会语法错误), 故这三处用 sql.identifier 而非列对象内插。
+  // INSERT column lists / ON CONFLICT targets / SET left-hand sides
+  // must be bare column names in SQLite (a table-qualified name is
+  // a syntax error), so these three spots interpolate
+  // sql.identifier rather than column objects.
   await db.run(
     sql`INSERT INTO ${settings} (${sql.identifier('tenant')}, ${sql.identifier('key')}, ${sql.identifier('value')})
         VALUES (${tenant}, ${key}, ${String(value ?? '')})

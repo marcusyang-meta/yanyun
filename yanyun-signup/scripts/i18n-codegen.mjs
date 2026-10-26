@@ -1,18 +1,20 @@
 #!/usr/bin/env node
-/* i18n codegen (fbtee): 从人工维护的两份源派生全部生成物。
+/* i18n codegen (fbtee): derive all generated files from the two
+ * hand-maintained sources.
  *
- * 源 (src/domains/platform/i18n/):
- *   strings.source.ts        fbtee 声明面 (fbs 调用, desc = 'section.field')
- *   translations/<locale>.json  fbtee 可编辑译文 (md5(pattern+desc) 为键)
- * 生成物 (同目录, 勿手改):
- *   strings.ts                 transformSync 编译产物 (+ FbsRuntime 类型后处理)
- *   catalogs/<locale>.json     translate 编译目录 { hk: pattern }
- *   catalog.ts                 CATALOG 兼容投影 (错误文案集合 / harness 消费)
+ * Sources (src/domains/platform/i18n/):
+ *   strings.source.ts           fbtee declaration surface (fbs calls, desc = 'section.field')
+ *   translations/<locale>.json  editable fbtee translations (keyed by md5(pattern+desc))
+ * Generated (same directory, do not hand-edit):
+ *   strings.ts                  transformSync output (+ FbsRuntime type post-processing)
+ *   catalogs/<locale>.json      translate-compiled catalogs { hk: pattern }
+ *   catalog.ts                  CATALOG compatibility projection (error-copy set / harness use)
  *
- * 用法: node scripts/i18n-codegen.mjs [--check]
- *   --check 只比对不落盘, 有漂移 exit 1 (CI 用)。
- * 依赖 @nkzw/fbtee-compiler 的 collect/transform 走编程 API; translate 一步
- * 走其官方 CLI (bin.mjs), 因为编程接口未暴露等价函数。
+ * Usage: node scripts/i18n-codegen.mjs [--check]
+ *   --check only compares, writes nothing; exits 1 on drift (for CI).
+ * collect/transform use @nkzw/fbtee-compiler's programmatic API; the
+ * translate step uses its official CLI (bin.mjs) because the
+ * programmatic API exposes no equivalent function.
  */
 import { execFileSync } from 'node:child_process';
 import { createRequire } from 'node:module';
@@ -33,20 +35,24 @@ const CHECK = process.argv.includes('--check');
 
 const fail = (msg) => { console.error('[i18n-codegen] ' + msg); process.exit(1); };
 
-// ---------- strings.ts: 编译 + 类型后处理 ----------
+// ---------- strings.ts: compile + type post-processing ----------
 function genStringsTs(sourceText) {
   const out = transformSync('strings.source.ts', sourceText);
   if (out.errors && out.errors.length) fail('transform errors: ' + JSON.stringify(out.errors).slice(0, 1000));
   let code = out.code;
-  // 剥掉源文件的声明面头注释 (它描述的是源文件, 不是生成物)
+  // Strip the source file's declaration-surface header comment (it
+  // describes the source file, not the generated output).
   const importAt = code.indexOf('import type');
-  if (importAt > 0 && code.slice(0, importAt).includes('fbtee 声明面')) code = code.slice(importAt);
-  // fbs._ / fbs._param 是 fbtee 运行时内部口, 不在 FbsAPI 公开类型里:
-  // 生成代码的参数注解统一放宽为本地 FbsRuntime, 使其过 tsc 严格模式。
+  if (importAt > 0 && code.slice(0, importAt).includes('fbtee declaration surface')) code = code.slice(importAt);
+  // fbs._ / fbs._param are fbtee runtime internals, absent from the
+  // public FbsAPI types: widen generated parameter annotations to the
+  // local FbsRuntime so they pass tsc strict mode.
   const typeBlock = `
-/* fbtee 编译产物调用 fbs._ / fbs._param (运行时内部口, 不在 FbsAPI 公开
- * 类型内): 参数类型在此放宽为带内部口的 FbsRuntime。运行时对象本身即
- * fbtee 的 fbs, 本来就带这两个口, 此处只是把类型说实。 */
+/* Compiled fbtee output calls fbs._ / fbs._param (runtime internals, not
+ * part of the public FbsAPI types): parameter annotations are widened to
+ * the local FbsRuntime, which carries those internal entry points. The
+ * runtime object is fbtee's fbs and has them natively; this only states
+ * the type honestly. */
 export type FbsRuntime = FbsAPI & {
   _: (pattern: string, args: ReadonlyArray<unknown> | null, opts: { hk: string }) => string;
   _param: (name: string, value: unknown) => unknown;
@@ -62,18 +68,18 @@ export type StringFn = (fbs: FbsRuntime, p?: StringParams) => string;
   );
   if (code.includes('(fbs: FbsAPI')) fail('annotation rewrite incomplete');
   if (!code.includes('fbs._(')) fail('transform produced no compiled fbs._ calls');
-  const header = '/* 生成物, 勿手改: 源 = strings.source.ts, 重跑 node scripts/i18n-codegen.mjs */\n';
+  const header = '/* Generated, do not hand-edit: source = strings.source.ts; rerun node scripts/i18n-codegen.mjs */\n';
   return header + code;
 }
 
-// ---------- 从声明面解析: 条目顺序 + 首尾空白 pad ----------
+// ---------- Parse the declaration surface: entry order + lead/trail padding ----------
 function parseSourceMeta(sourceText) {
-  // 条目顺序 = STRING_FNS 记录里的键序
+  // Entry order = key order in the STRING_FNS record.
   const recAt = sourceText.indexOf('export const STRING_FNS');
   if (recAt < 0) fail('STRING_FNS not found');
   const order = [...sourceText.slice(recAt).matchAll(/"([^"]+)":\s*[A-Za-z0-9_]+,/g)].map((m) => m[1]);
   if (!order.length) fail('STRING_FNS empty');
-  // 每条 fn 的外层 pad: `=> " " + fbs(...)` / `fbs(...) + " "` 形态
+  // Each fn's outer padding, in the `=> " " + fbs(...)` / `fbs(...) + " "` shape.
   const pads = new Map();
   const fnRe = /export const ([A-Za-z0-9_]+) = \(fbs: FbsAPI(?:, p\?: StringParams)?\) =>\s*([\s\S]*?);\n/g;
   for (const m of sourceText.matchAll(fnRe)) {
@@ -91,7 +97,7 @@ function parseSourceMeta(sourceText) {
   return { order, pads };
 }
 
-// ---------- catalogs + catalog.ts: 走 CLI collect/translate ----------
+// ---------- catalogs + catalog.ts: CLI collect/translate ----------
 function genCatalogsAndProjection(sourceText) {
   const bin = join(dirname(require.resolve('@nkzw/fbtee-compiler')), 'bin.mjs');
   const tmp = mkdtempSync(join(tmpdir(), 'i18n-codegen-'));
@@ -110,7 +116,7 @@ function genCatalogsAndProjection(sourceText) {
   const { order, pads } = parseSourceMeta(sourceText);
   const pad = (desc, txt) => { const p = pads.get(desc); return p ? p.lead + txt + p.trail : txt; };
 
-  // catalogs/<locale>.json: { hk: pattern } (CLI 输出去掉外层 locale 键)
+  // catalogs/<locale>.json: { hk: pattern } (CLI output with the outer locale key removed).
   const catalogs = {};
   const perLocaleText = new Map(); // locale -> Map(desc -> full text)
   for (const locale of LOCALES) {
@@ -118,7 +124,8 @@ function genCatalogsAndProjection(sourceText) {
     const inner = raw[locale];
     if (!inner) fail('translate output missing locale ' + locale);
     catalogs[locale] = JSON.stringify(inner, null, 2) + '\n';
-    // desc 级文本 (供投影): 读可编辑译文, 校验哈希都属于源, 再补 pad
+    // Per-desc text (for the projection): read the editable translations,
+    // verify every hash belongs to the source, then apply padding.
     const editable = JSON.parse(readFileSync(join(TRANSLATIONS_DIR, locale + '.json'), 'utf8'));
     const byHash = new Map();
     for (const [desc, v] of byDesc) byHash.set(v.hash, desc);
@@ -132,7 +139,7 @@ function genCatalogsAndProjection(sourceText) {
     perLocaleText.set(locale, m);
   }
 
-  // catalog.ts 投影: 结构与旧 CATALOG 完全一致 (section -> field -> locale -> text)
+  // catalog.ts projection: structure identical to the old CATALOG (section -> field -> locale -> text).
   const catalog = {};
   for (const key of order) {
     const dot = key.indexOf('.');
@@ -146,16 +153,18 @@ function genCatalogsAndProjection(sourceText) {
     }
     (catalog[section] ??= {})[field] = cell;
   }
-  const catalogTs = '/* 生成物, 勿手改: node scripts/i18n-codegen.mjs\n'
-    + ' * CATALOG 兼容投影: 由 fbtee 声明面 + 译文机械导出, 供 src/graphql.ts 的\n'
-    + ' * 业务错误文案集合与 i18n harness 的目录级断言消费。运行时文本路径不读它\n'
-    + ' * (运行时走 strings.ts 编译产物 + catalogs/*.json 的 fbtee 目录)。 */\n'
+  const catalogTs = '/* Generated, do not hand-edit: node scripts/i18n-codegen.mjs\n'
+    + ' * CATALOG compatibility projection: mechanically derived from the fbtee\n'
+    + ' * declarations + translations, for the business-error text set of\n'
+    + ' * src/graphql.ts and the catalog-level assertions of the i18n harness.\n'
+    + ' * The runtime text path\n'
+    + ' * never reads it (runtime uses the compiled strings.ts + catalogs/*.json). */\n'
     + 'export const CATALOG: Record<string, Record<string, Record<string, string>>> = '
     + JSON.stringify(catalog, null, 2) + ';\n';
   return { catalogs, catalogTs };
 }
 
-// ---------- 主流程 ----------
+// ---------- Main flow ----------
 const sourceText = readFileSync(SOURCE, 'utf8');
 const outputs = new Map();
 outputs.set(join(I18N_DIR, 'strings.ts'), genStringsTs(sourceText));

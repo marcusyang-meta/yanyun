@@ -1,7 +1,9 @@
-// i18n 验收 (后端层): 设置页语言偏好全链路 + 文案矩阵抽查 + 惰性证明。
-// FakeDB 按 SQL 子串路由; user/pref 走真实 auth.js 帮助函数 + 真实 yoga。
-import { yoga } from '../src/graphql.js';
-import { getUserLocalePref } from '../src/auth.js';
+// i18n acceptance (backend layer): settings-page language preference
+// full chain + copy-matrix spot checks + laziness proof.
+// FakeDB routes by SQL substring; user/pref go through the real auth
+// helpers + real yoga.
+import { yoga } from '../src/graphql.ts';
+import { getUserLocalePref } from '../src/domains/identity/auth.ts';
 import { negotiateLocale, CATALOG, SUPPORTED_LOCALES, i18nProbe } from '../src/domains/platform/i18n.ts';
 import { typeDefs } from '../src/graphql-schema.ts';
 
@@ -42,7 +44,7 @@ users.set('2001', { locale_pref: null });
 users.set('2002', { locale_pref: 'zh-CN' });
 const tenants = [{ slug: 'livetest', guild_name: '测试百业', slogan: '', announcement: '', discord_guild_id: '', created_at: 1 }];
 function stmt(sql) {
-  // 数据层 (Drizzle) SQL 规范化: 去引号 (仅路由匹配, 与 identity 套件同口径)
+  // Data-layer (Drizzle) SQL normalization: strip quotes (routing match only; same rule as the identity suite).
   sql = sql.replace(/"/g, '');
   const q = {
     _binds: [], bind(...a) { this._binds = a; return this; },
@@ -54,7 +56,7 @@ function stmt(sql) {
       return null;
     },
     async all() {
-      // 数据层点查走 .all() 通道 (drizzle db.get): users.locale_pref 读
+      // Data-layer point lookups use the .all() channel (drizzle db.get): users.locale_pref read.
       if (sql.includes('SELECT locale_pref FROM users')) { const u = users.get(String(q._binds[0])); return { results: u ? [{ locale_pref: u.locale_pref }] : [] }; }
       if (sql.includes('FROM tenants')) return { results: tenants };
       return { results: [] };
@@ -83,7 +85,7 @@ check('schema 含 SettingsPage', typeDefs.includes('type SettingsPage'));
 check('schema 含 updateMyLocale', typeDefs.includes('updateMyLocale'));
 check('schema 含 myLocalePref/myEffectiveLocale', typeDefs.includes('myLocalePref') && typeDefs.includes('myEffectiveLocale'));
 
-/* ---------------- (b) 设置页文案 × 5 locale ---------------- */
+/* ---------------- (b) Settings-page copy x 5 locales ---------------- */
 const SETTINGS_FIELDS = [
   ['settingsTitle', 'title'], ['settingsLanguageLabel', 'languageLabel'], ['settingsLanguageHint', 'languageHint'],
   ['settingsAutoLabel', 'autoLabel'], ['settingsLangZhCnLabel', 'langZhCn'], ['settingsLangZhTwLabel', 'langZhTw'],
@@ -102,8 +104,8 @@ for (const loc of SUPPORTED_LOCALES) {
   eq(`settings.localePref @${loc} (匿名)`, page?.localePref, null);
 }
 
-/* ---------------- (c) 偏好压过浏览器语言 (worker 同款组合) ---------------- */
-// 模拟 worker.js: effective = pref || negotiateLocale(header), pref 走真实 auth 帮助函数
+/* ---------------- (c) Preference beats browser language (same composition as the worker) ---------------- */
+// Simulate worker.ts: effective = pref || negotiateLocale(header); pref goes through the real auth helper.
 async function workerLocale(user, headerTag) {
   const browser = negotiateLocale(headerTag);
   const pref = user ? await getUserLocalePref(env, user.discordId) : null;
@@ -129,13 +131,13 @@ async function workerLocale(user, headerTag) {
 /* ---------------- (d) updateMyLocale ---------------- */
 const u2001 = { discordId: '2001', name: '甲', guilds: [] };
 {
-  // 匿名 → loginRequired (五语 error 文案)
+  // Anonymous -> loginRequired (error copy in all 5 locales).
   for (const loc of SUPPORTED_LOCALES) {
     const j = await gql(`mutation { updateMyLocale(locale: "fr") { ok error errorCode } }`, { locale: loc });
     eq(`匿名 updateMyLocale code @${loc}`, j.data?.updateMyLocale?.errorCode, 'loginRequired');
     eq(`匿名 updateMyLocale error @${loc}`, j.data?.updateMyLocale?.error, CATALOG.errors.loginRequired[loc]);
   }
-  // 不支持的值 → localeUnsupported (五语)
+  // Unsupported value -> localeUnsupported (all 5 locales).
   for (const loc of SUPPORTED_LOCALES) {
     const j = await gql(`mutation { updateMyLocale(locale: "xx") { ok error errorCode } }`, { user: u2001, locale: loc });
     eq(`非法 locale code @${loc}`, j.data?.updateMyLocale?.errorCode, 'localeUnsupported');
@@ -143,16 +145,16 @@ const u2001 = { discordId: '2001', name: '甲', guilds: [] };
     eq(`非法 locale ok @${loc}`, j.data?.updateMyLocale?.ok, false);
   }
   eq('非法值未落库', users.get('2001').locale_pref, null);
-  // 设置 fr → 落库 + 回带 pref/effective
+  // Set fr -> persisted + returns pref/effective.
   const set = await gql(`mutation { updateMyLocale(locale: "fr") { ok errorCode localePref effectiveLocale } }`, { user: u2001, locale: 'en', browserLocale: 'en' });
   eq('设置 fr ok', set.data?.updateMyLocale?.ok, true);
   eq('设置 fr 回带 localePref', set.data?.updateMyLocale?.localePref, 'fr');
   eq('设置 fr 回带 effectiveLocale', set.data?.updateMyLocale?.effectiveLocale, 'fr');
   eq('fr 已落库', users.get('2001').locale_pref, 'fr');
-  // 设置后 worker 组合: 浏览器 en 也说法文
+  // After setting, the worker composition speaks French even with an en browser.
   const w = await workerLocale(u2001, 'en-US');
   eq('落库后 effective 被偏好压过', w.effective, 'fr');
-  // 清除 → 回自动, effective 回到浏览器协商值
+  // Clearing -> back to automatic; effective returns to the browser-negotiated value.
   const clear = await gql(`mutation { updateMyLocale(locale: null) { ok localePref effectiveLocale } }`, { user: u2001, locale: 'fr', browserLocale: 'es' });
   eq('清除 ok', clear.data?.updateMyLocale?.ok, true);
   eq('清除回带 localePref', clear.data?.updateMyLocale?.localePref, null);
@@ -162,7 +164,7 @@ const u2001 = { discordId: '2001', name: '甲', guilds: [] };
   eq('清除后 effective 跟随浏览器', w2.effective, 'es');
 }
 
-/* ---------------- (e) 惰性: 只选 settingsTitle 只生成一条 ---------------- */
+/* ---------------- (e) Laziness: selecting only settingsTitle generates exactly one entry ---------------- */
 {
   i18nProbe.enabled = true; i18nProbe.reset();
   const j = await gql(`{ settingsPage { settingsTitle } }`, { locale: 'en' });
@@ -172,7 +174,7 @@ const u2001 = { discordId: '2001', name: '甲', guilds: [] };
   i18nProbe.enabled = false;
 }
 
-/* ---------------- (f) 抽查矩阵回归 (viewer 常用字段 × 5) ---------------- */
+/* ---------------- (f) Spot-check matrix regression (common viewer fields x 5) ---------------- */
 for (const loc of SUPPORTED_LOCALES) {
   const j = await gql(`{ viewer { siteTitle loginButtonLabel userBarSettingsLabel commonLoadingGuildText } }`, { locale: loc });
   eq(`viewer.siteTitle @${loc}`, j.data?.viewer?.siteTitle, CATALOG.site.title[loc]);

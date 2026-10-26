@@ -1,11 +1,15 @@
-// 爬塔 (TOWER) 类别验收: 真实 yoga + graphql.js resolver + FakeDB (内存表)。
-// 口径: 爬塔 = 新增组队类型, 规则镜像 ACTIVITY (无副本、恒 10 人)。
-// 覆盖: schema 枚举/字段 -> createGrouping 服务端规则 (带 dungeonId 也忽略)
-// -> 列表筛选 (tab 隔离) -> joinGrouping 报名 -> 列表/详情 Block 徽标 ->
-// 五语种文案字段 -> 发车提醒文案 (buildReminderMessage 真函数) -> REST 草稿口径。
-import { yoga } from '../src/graphql.js';
+// Tower (TOWER) category acceptance: real yoga + graphql.ts resolvers
+// + FakeDB (in-memory tables).
+// Rule: Tower is a new grouping type whose rules mirror ACTIVITY
+// (no dungeon, always 10 seats).
+// Coverage: schema enums/fields -> createGrouping server rules (a
+// dungeonId is ignored even when passed) -> list filtering (tab
+// isolation) -> joinGrouping signup -> list/detail Block badges ->
+// copy fields in 5 locales -> departure-reminder copy
+// (buildReminderMessage, real function) -> REST draft rules.
+import { yoga } from '../src/graphql.ts';
 import { typeDefs } from '../src/graphql-schema.ts';
-import { buildReminderMessage } from '../src/reminder.ts';
+import { buildReminderMessage } from '../src/domains/groupings/reminder.ts';
 
 let pass = 0, fail = 0; const fails = [];
 function check(name, ok, extra = '') {
@@ -41,7 +45,7 @@ function toRawRows(sqlText, rows) {
     : Object.values(r)));
 }
 
-/* ---------------- FakeDB: 按 SQL 形状路由的内存表 ---------------- */
+/* ---------------- FakeDB: in-memory tables routed by SQL shape ---------------- */
 const SLUG = 'towertest';
 const tables = {
   events: [], signups: [], guild_members: [],
@@ -66,9 +70,11 @@ function parseInsert(sql) {
   if (!m) return null;
   return { table: m[1], cols: m[2].split(',').map((x) => x.trim()) };
 }
-// VALUES (...): 逐 token 解析 — '?' 吃一个 bind, '字面量'/NULL/数字按字面值。
-// 后端 INSERT 混排字面量 ('open', '热心侠客', '') 与占位符, 必须按 token 对位,
-// 否则列整体错位 (本次首跑 25 fail 的根源, 是 harness 的问题不是产品)。
+// VALUES (...): parse token by token — '?' consumes one bind;
+// 'literals'/NULL/numbers are taken at face value. Backend INSERTs mix
+// literals ('open', '热心侠客', '') with placeholders, so tokens must
+// align positionally or every column shifts (the root cause of the 25
+// failures on this harness's first run — a harness bug, not a product bug).
 function parseValues(sql, binds) {
   const vm = sql.match(/VALUES\s*\(([\s\S]*?)\)\s*(?:ON CONFLICT|RETURNING|$|;)/);
   if (!vm) {
@@ -102,7 +108,7 @@ function splitTokens(body, binds) {
 }
 
 function stmt(sql) {
-  // 数据层 (Drizzle) SQL 规范化: 去引号 + 去 settings. 限定前缀 (仅路由匹配)
+  // Data-layer (Drizzle) SQL normalization: strip quotes + settings. qualifiers (routing match only).
   sql = sql.replace(/"/g, '').replace(/settings\./g, '');
   const q = {
     _binds: [],
@@ -134,7 +140,7 @@ function stmt(sql) {
     async all() {
       const b = this._binds;
       if (/FROM settings/.test(sql)) {
-        // 数据层点查走 .all() 通道 (drizzle db.get): 形状同 first() 的 settings 分支
+        // Data-layer point lookups use the .all() channel (drizzle db.get): same shape as first()'s settings branch.
         if (/tenant = \?/.test(sql)) {
           const v = settings.get(`${b[0]}|${b[1]}`);
           return { results: v === undefined ? [] : [{ value: v }] };
@@ -147,12 +153,12 @@ function stmt(sql) {
         return { results: rows };
       }
       if (/FROM events WHERE id = \?/.test(sql)) {
-        // 数据层点查走 .all() 通道 (drizzle db.get): 形状同 first() 的按 id 分支
+        // Data-layer point lookups use the .all() channel (drizzle db.get): same shape as first()'s by-id branch.
         const row = tables.events.find((e) => e.id === Number(b[0])) || null;
         return { results: row ? [row] : [] };
       }
       if (/AS c,/.test(sql) && /FROM signups/.test(sql)) {
-        // 数据层点查走 .all() 通道: 形状同 first() 的容量三联分支
+        // Data-layer point lookups use the .all() channel: same shape as first()'s capacity-triple branch.
         const gid = Number(b[0]);
         const rows = tables.signups.filter((r) => r.event_id === gid);
         const ev = tables.events.find((e) => e.id === gid);
@@ -175,8 +181,8 @@ function stmt(sql) {
       if (/^INSERT INTO/.test(sql)) {
         const ins = parseInsert(sql);
         if (!ins) { unknownSql.add('run-insert: ' + sql.slice(0, 90)); return { meta: { changes: 0 } }; }
-        // joinGrouping 的条件插入: INSERT ... SELECT ?,?,... WHERE (COUNT) < (max_slots)
-        // (无 VALUES 子句, binds 前段即列值)
+        // joinGrouping's conditional insert: INSERT ... SELECT ?,?,... WHERE (COUNT) < (max_slots)
+        // (no VALUES clause; the leading binds are the column values).
         if (/INSERT INTO signups/.test(sql) && /COUNT\(\*\) FROM signups/.test(sql) && !/VALUES/.test(sql)) {
           const gid = Number(b[0]);
           const ev = tables.events.find((e) => e.id === gid);
@@ -227,7 +233,7 @@ for (const f of ['tabTowerLabel', 'typeShortTower', 'formTypeTowerLabel', 'formH
   check('schema: 字段 ' + f, typeDefs.includes(f + ': String!'));
 }
 
-/* ---------------- (b) 创建: 爬塔镜像双十 ---------------- */
+/* ---------------- (b) Creation: Tower mirrors the ten-seat shape ---------------- */
 const startsAt = String(Math.floor(Date.now() / 1000) + 3600);
 const createMut = `mutation($input: CreateGroupingInput!) {
   createGrouping(input: $input) { ok error grouping { id title type maxSlots dungeon { name } } }
@@ -250,14 +256,14 @@ eq('DB 行 dungeon 为空', towerRow?.dungeon, '');
 eq('DB 行 max_slots=10', towerRow?.max_slots, 10);
 const towerId = c1.data?.createGrouping?.grouping?.id;
 
-// 对照: ACTIVITY 带 dungeonId 同样被忽略 (既有行为未回归)
+// Control: ACTIVITY with a dungeonId is likewise ignored (existing behavior, no regression).
 const c2 = await gql(createMut, {
   variables: { input: { slug: SLUG, title: '对照双十车', type: 'ACTIVITY', startsAt, dungeonId: '7', seats: [] } },
 });
 check('create ACTIVITY 对照 ok', c2.data?.createGrouping?.ok === true);
 eq('ACTIVITY maxSlots 仍 10', c2.data?.createGrouping?.grouping?.maxSlots, 10);
 
-/* ---------------- (c) 列表筛选与文案 ---------------- */
+/* ---------------- (c) List filtering and copy ---------------- */
 const listQ = `query($slug: String!, $tab: GroupingTab!) {
   groupingListPage(slug: $slug, tab: $tab) {
     tabTowerLabel typeShortTower formTypeTowerLabel formHintTower formTitleTemplate
@@ -276,16 +282,16 @@ eq('列表中爬塔车 type', towerInList?.type, 'TOWER');
 const la = await gql(listQ, { variables: { slug: SLUG, tab: 'ACTIVITY' } });
 check('ACTIVITY tab 不含爬塔车', !(la.data?.groupingListPage?.groupings || []).some((g) => g.id === towerId));
 
-// 默认标题模板: {昵称}的{类型}车队 + typeShortTower -> X的爬塔车队
+// Default title template: {nickname}'s {type} squad + typeShortTower -> X's Tower squad.
 const tpl = lt.data?.groupingListPage?.formTitleTemplate || '';
 eq('默认标题拼装', tpl.replace('{nickname}', '塔主').replace('{type}', lt.data?.groupingListPage?.typeShortTower || ''), '塔主的爬塔车队');
 
-// 英文文案 (官方风格译名, 非游戏数据名)
+// English copy (official-style renderings, not game data names).
 const ltEn = await gql(listQ, { variables: { slug: SLUG, tab: 'TOWER' }, locale: 'en' });
 eq('tabTowerLabel (en)', ltEn.data?.groupingListPage?.tabTowerLabel, 'Tower Climb');
 eq('typeShortTower (en)', ltEn.data?.groupingListPage?.typeShortTower, 'Tower');
 
-/* ---------------- (d) 报名 ---------------- */
+/* ---------------- (d) Signup ---------------- */
 const joinMut = `mutation($input: JoinGroupingInput!) {
   joinGrouping(input: $input) { ok error seats { nickname occupied } }
 }`;
@@ -297,7 +303,7 @@ check('joinGrouping 爬塔车 ok', j1.data?.joinGrouping?.ok === true, JSON.stri
 const lt2 = await gql(listQ, { variables: { slug: SLUG, tab: 'TOWER' } });
 eq('报名后 occupiedCount=2', (lt2.data?.groupingListPage?.groupings || []).find((g) => g.id === towerId)?.occupiedCount, 2);
 
-/* ---------------- (e) Block 树徽标 (mobile) ---------------- */
+/* ---------------- (e) Block tree badges (mobile) ---------------- */
 const blocksQ = `query($slug: String!, $tab: GroupingTab!) {
   groupingListPage(slug: $slug, tab: $tab) {
     blocks(blocksVersion: 3, weekOffset: 0) {
@@ -329,12 +335,12 @@ const chipTexts = [];
 (function walk(bs) { for (const b of bs || []) { if (b.chips) chipTexts.push(...b.chips); if (b.children) walk(b.children); } })(dt.data?.groupingDetailPage?.blocks);
 check('详情 chips 首项为爬塔短名', chipTexts[0] === '爬塔', JSON.stringify(chipTexts));
 
-/* ---------------- (f) 发车提醒文案 ---------------- */
+/* ---------------- (f) Departure-reminder copy ---------------- */
 try {
   const nowSec = Math.floor(Date.now() / 1000);
   const msg = await buildReminderMessage(db, { ...towerRow }, SLUG, nowSec);
   check('提醒文案生成不报错', typeof msg.content === 'string' && msg.content.length > 0);
-  // 2026-10-26 embed 改版: 名册进卡面 field (同行名册), 按全载荷文本口径查
+  // 2026-10-26 embed redesign: the roster is a card field (traveling roster); check against the full-payload text.
   const allText = [msg.content, ...((msg.embeds || []).flatMap((e) => [
     e.description || '', e.footer?.text || '',
     ...((e.fields || []).flatMap((f) => [f.name, f.value])),
@@ -345,7 +351,7 @@ try {
   check('提醒文案生成不报错', false, String(e && e.message));
 }
 
-/* ---------------- (g) REST 草稿口径 (worker.js 真 fetch) ---------------- */
+/* ---------------- (g) REST draft rules (real worker fetch) ---------------- */
 try {
   const worker = (await import('../src/worker.ts')).default;
   const before = tables.events.length;

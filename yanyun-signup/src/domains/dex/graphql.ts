@@ -1,10 +1,10 @@
-/* dex 域 GraphQL (三期域拆分): 副本/首领 shells、图鉴与流派页、攻略结构化。 */
+/* dex domain GraphQL: dungeon/boss shells, dex & sect pages, structured guides. */
 import {
   clampBlocksVersion, substituteForVersion, weekWindowUtc, startsAtEpoch,
   fmtStartsAt, groupByLocalDay, TYPE_SHORT_KEY, HEALER_SECT,
 } from '../platform/index.ts';
 import { tlCalculateExcel } from '../gear/index.ts';
-import { getUserServers, getGuildNick, maybeRefreshGuildNicks, getUserLocalePref, setUserLocalePref } from '../../auth.js';
+import { getUserServers, getGuildNick, maybeRefreshGuildNicks, getUserLocalePref, setUserLocalePref } from '../identity/auth.ts';
 import { ensureSignupDiscordColumn, ensureGuildMembersTable, upsertGuildMember } from '../groupings/index.ts';
 import { ensurePushTokensTable, isValidPushToken, savePushToken, deletePushToken } from '../platform/index.ts';
 import { evaluateHeirloomPushes } from '../gear/index.ts';
@@ -86,7 +86,7 @@ export class DungeonShell extends ShellBase {
 }
 
 export class BossShell extends ShellBase {
-  // data: { id, name, row?(bosses 全行), dungeonShell?, dungeonName? }
+  // data: { id, name, row? (full bosses row), dungeonShell?, dungeonName? }
   genId(){ return String(this.data.id); }
   genName(){ return enBossName(this.locale, this.data.name); }
   genDungeon(){
@@ -113,8 +113,6 @@ export class BossShell extends ShellBase {
   async genShouts(){ return (await this.genStructured()).shouts; }
 }
 
-// events 行 -> GroupingShell (mutation 返回新车时用; 字段仍惰性解析)
-
 export function parseTalents(guide: any) {
   const out: any[] = [];
   if (!guide) return out;
@@ -127,20 +125,21 @@ export function parseTalents(guide: any) {
   return out;
 }
 
-// 旧前端 (public-legacy-backup/guild-app.js openBoss) 的 guide 文本拆分规则, 结构化复刻:
-// - 【...】为章节头; 含"天赋"的章节不进机制视图
-// - 【机制】章节内 "N.标题" 行开启一个机制条目, 后续行 (看到什么/怎么做/注意/列表) 为描述
-// - 📢 行抽为喊话 (去掉 📢 与 喊话： 前缀), 不进机制描述 (旧前端也是单独渲染喊话框)
-// - 【机制】之前的章节 (战前分工/核心规则/说明等) 连同其散行合并为一个条目 (标题=章节名), 不丢文本
-// - 【天赋·逐条说明】内 "X-Y：..." 行为天赋; (视频确认) 标记 -> verified=true 并从文本摘除
-// - 机制描述沿用旧前端清理: 去掉行内的天赋引用 (=天赋1-1 / (天赋2-1) / 天赋1-1)
+// Structured replica of the legacy frontend's guide-splitting rules
+// (public-legacy-backup/guild-app.js openBoss):
+// - 【...】 is a section header; sections containing "天赋" stay out of the mechanics view
+// - Inside 【机制】, an "N.title" line opens a mechanic entry; following lines are its description
+// - 📢 lines become shouts (strip the 📢 and 喊话： prefixes), never mechanic text (the legacy UI rendered shouts separately)
+// - Sections before 【机制】 (assignments/core rules/notes etc.) merge with their loose lines into one entry titled by the section name — no text is dropped
+// - Inside 【天赋·逐条说明】, "X-Y：..." lines are talents; a (视频确认) marker -> verified=true and is stripped from the text
+// - Mechanic descriptions use the legacy cleanup: inline talent references are removed (=天赋1-1 / (天赋2-1) / 天赋1-1)
 export function parseGuideStructured(guide: any) {
   const empty = { mechanics: [], talents: [], shouts: [] };
   if (!guide) return empty;
   const text = String(guide).replace(/\\n/g, '\n');
   const lines = text.split('\n');
 
-  // ---- 天赋: 只取 【...天赋...】且含"逐条说明"的章节 (同旧前端) ----
+  // ---- Talents: only 【...天赋...】 sections that also contain "逐条说明" (as in the legacy frontend) ----
   const talentMap: Record<string, any> = {};
   let inTalentDetail = false;
   for (const raw of lines) {
@@ -163,14 +162,14 @@ export function parseGuideStructured(guide: any) {
       };
     });
 
-  // ---- 机制 + 喊话 ----
+  // ---- Mechanics + shouts ----
   const mechanics: any[] = [];
   const shouts: any[] = [];
   const cleanLine = (l: any) => l.replace(/[=（(]天赋[12]-[123][)）]/g, '').replace(/天赋[12]-[123]/g, '');
   let inTalentSection = false;
-  let pendingHeader: any = null; // 【机制】之前的章节名
-  let pendingLines: any[] = [];    // 该章节的散行
-  let cur: any = null;           // 当前机制条目 {title, lines[]}
+  let pendingHeader: any = null; // section name before 【机制】
+  let pendingLines: any[] = [];    // loose lines of that section
+  let cur: any = null;           // current mechanic entry {title, lines[]}
   const flushPending = () => {
     if (pendingHeader !== null) {
       const desc = pendingLines.join('\n').trim();
@@ -215,33 +214,38 @@ export function parseGuideStructured(guide: any) {
   return { mechanics, talents, shouts };
 }
 
-// bosses 结构化列懒 DDL 已归 bosses repository (三期); 此处保留旧名导出作委托
+// Lazy DDL for the structured boss columns lives in the bosses repository; this legacy name is kept as a delegating export.
 export function ensureBossStructuredColumns(db: any) {
   return ensureBossStructuredColumnsRepo(db);
 }
 
-/* ---------- 攻略赛季/分类 (2026-10-24 用户定型) ----------
- * 游戏内分类与赛季等级档一一对应: 试锋=S1(51/56/61/66/71) 梦洄=S2(81/86)
- * 鉴心=S3(91) 铸矩=S4(96) 传薪=S5(100, 当期)。赛季展示名只有 S1 有官方
- * 中文名「出鞘之刃」(PS Blog), S2–S5 官方从未发布中文名, 用英文名;
- * 禁用国服赛季名 (节奏不同)。分类/赛季/等级全部后端下发, 前端不写死。 */
+/* ---------- Guide seasons/categories (user ruling, 2026-10-24) ----------
+ * In-game categories map 1:1 to season level tiers: 试锋=S1(51/56/61/66/71)
+ * 梦洄=S2(81/86) 鉴心=S3(91) 铸矩=S4(96) 传薪=S5(100, current). Only S1 has
+ * an official Chinese season name, 「出鞘之刃」 (PS Blog); S2–S5 were never
+ * officially named in Chinese, so English names are used. Never use the
+ * CN-server season names (different cadence). Category/season/level all
+ * come from the backend; the frontend hardcodes none of them. */
 export const SEASON_NAMES: Record<string, string> = {
   S1: '出鞘之刃', S2: 'Rewind', S3: 'Seek Within', S4: 'Forge Ahead', S5: 'Ever Aflame',
 };
 export const DEX_CATEGORY_ORDER = ['传薪', '铸矩', '鉴心', '梦洄', '试锋'];
 export const DEX_CATEGORY_SEASON: Record<string, string> = { '传薪': 'S5', '铸矩': 'S4', '鉴心': 'S3', '梦洄': 'S2', '试锋': 'S1' };
 
-// dungeons 赛季/分类/等级列懒 DDL 已归 dungeons repository (三期); 旧名委托
+// Lazy DDL for the dungeon season/category/level columns lives in the dungeons repository; legacy-name delegation.
 export function ensureDungeonDexColumns(db: any) {
   return ensureDungeonDexColumnsRepo(db);
 }
 
-/* ---------- 车头 (创建者) 身份列 (2026-10-24 用户裁决: 解散仅车头可为) ----------
- * events.creator_discord_id: GraphQL 发车时由会话 discord_id 写入 (权威身份)。
- * 旧车与 REST/overlay 建的车此列为空 = 未记录车头: 解散一律拒绝, 不回退
- * created_by/昵称匹配 (昵称是用户手填文本, 可冒名)。 */
-// 懒 DDL 已归 groupings 域 events 仓库 (三期); 此处保留旧名导出作委托
-// (creatorbackfill / creatormanualfix 从本模块 import 此名)。
+/* ---------- Event creator identity (user ruling, 2026-10-24: only the creator may disband) ----------
+ * events.creator_discord_id is written from the session discord_id when a
+ * GraphQL event is created (the authoritative identity). Legacy events and
+ * REST/overlay-created events leave it empty = no recorded creator: disband
+ * is always refused, with no fallback to created_by/nickname matching
+ * (nicknames are user-typed text and can be impersonated). */
+// The lazy DDL lives in the groupings domain's events repository; this
+// legacy name is kept as a delegating export (creatorbackfill /
+// creatormanualfix import this name from this module).
 
 export function parseStoredArray(text: any, fallback: any) {
   if (!text) return fallback;
@@ -249,8 +253,9 @@ export function parseStoredArray(text: any, fallback: any) {
   return Array.isArray(v) ? v : fallback;
 }
 
-// Boss 结构化数据: 优先读存储列 (由 /api/hub/bosses/migrate-structured 物化),
-// 列为空时回退到对 guide 文本的同规则解析 — 两条路径输出一致
+// Boss structured data: prefer the stored columns (materialized by
+// /api/hub/bosses/migrate-structured); when a column is empty, fall back to
+// parsing the guide text with the same rules — both paths yield identical output.
 export async function bossStructured(db: any, row: any) {
   if (!row) return { mechanics: [], talents: [], shouts: [] };
   await ensureBossStructuredColumns(db);
@@ -266,10 +271,9 @@ export function parseJsonSafe(text: any, fallback: any) {
   try { return JSON.parse(text); } catch { return fallback; }
 }
 
-// bis_json -> BisTable (防御式映射)
-// bis_json -> BisTable
-// D1 格式: [["主武器（剑）","大外（初始）、大外、劲、势、剑增伤"], ["副武器（枪）","..."], ...]
-// 也兼容对象格式
+// bis_json -> BisTable (defensive mapping)
+// D1 format: [["主武器（剑）","大外（初始）、大外、劲、势、剑增伤"], ["副武器（枪）","..."], ...]
+// Object format is also accepted.
 export function toBisTable(bisJson: any) {
   const raw = parseJsonSafe(bisJson, null);
   const split = (v: any) => (v == null ? [] : String(v).split('、').map((x: any) => x.trim()).filter(Boolean));
@@ -304,8 +308,8 @@ export function toBisTable(bisJson: any) {
 }
 
 // rotation_json -> Rotation
-// D1 格式: [["1分钟木桩轴","..."],["核心机制","..."],["循环","..."],["流派","..."],["视频","..."]]
-// 也兼容 {greydust, opener, loop, keyPoints, innerSkills, videoUrl} 对象格式
+// D1 format: [["1分钟木桩轴","..."],["核心机制","..."],["循环","..."],["流派","..."],["视频","..."]]
+// The {greydust, opener, loop, keyPoints, innerSkills, videoUrl} object format is also accepted.
 export function toRotation(rotJson: any) {
   const raw = parseJsonSafe(rotJson, null);
   const str = (v: any) => (v == null ? null : String(v));
@@ -331,13 +335,6 @@ export function toRotation(rotJson: any) {
   };
 }
 
-/* ---------- Bloks-lite 积木/动作 shell (移动端内容区) ----------
- * 每个积木/动作都是 shell 类: 只携 ctx + 源数据, 字段由各自 gen 方法
- * 惰性生成 (文案经 i18n 目录按 locale; 时间经 blocks.js 同口径格式器)。
- * 组合发生在页面 shell 的 genBlocks: 服务端组合什么对象就是权限与
- * 分发决定 — 车头的树才有解散 ActionButtonBlock, 本人座位才有
- * LeaveAction; 客户端只按 __typename 分发渲染, 零权限分支。 */
-
 export class DexCategoryShell extends ShellBase {
   genCategory(){ return this.data.category; }
   genSeason(){ return this.data.season; }
@@ -358,10 +355,10 @@ export class DexPageShell extends ShellBase {
       for (const d of results || []) {
         const dd = new DungeonShell(this.ctx, d);
         all.push(dd);
-        // 按 version 码判断当期 (与 game_version_code 比较, 非展示串), 无 is_current 布尔值
+        // Current is decided by version code (compared with game_version_code, not the display string); there is no is_current boolean.
         (d.version === versionCode ? current : past).push(dd);
       }
-      // 游戏内分类分组: 传薪(当期)→铸矩→鉴心→梦洄→试锋; 组内等级降序, 同级十人本优先
+      // In-game category order: 传薪 (current) -> 铸矩 -> 鉴心 -> 梦洄 -> 试锋; within a category, level descending, 10-player dungeons first on ties.
       const categories: any[] = [];
       for (const cat of DEX_CATEGORY_ORDER) {
         const season = DEX_CATEGORY_SEASON[cat];
@@ -406,7 +403,7 @@ export const DEX_TEXT_RESOLVERS = defineTextGens(DexPageShell, [
   ['dexSealBossText', 'dex', 'sealBoss'],
 ]);
 
-/* ---------- Boss 页 ---------- */
+/* ---------- Boss page ---------- */
 export class BossPageShell extends ShellBase {
   genBoss(){ return this.data.bossShell; }
   genDefaultTab(){ return 'MECHANICS'; }
@@ -428,9 +425,10 @@ export const BOSS_TEXT_RESOLVERS = defineTextGens(BossPageShell, [
   ['bossTalentPendingSuffix', 'boss', 'talentPending'],
 ]);
 
-/* ---------- 流派页 ---------- */
-// Sect 的 bis/rotation/rateTargets 是存储数据的叶子记录 (toBisTable/
-// toRotation 的输出), 无文案、无惰性查库需求, 由 gen 方法直接返回。
+/* ---------- Sect page ---------- */
+// A Sect's bis/rotation/rateTargets are leaf records of stored data (the
+// output of toBisTable/toRotation) — no copy, no lazy queries; the gen
+// methods return them directly.
 export class SectShell extends ShellBase {
   genSlug(){ return this.data.slug; }
   genName(){ return enSectName(this.locale, this.data.name); }
@@ -450,7 +448,7 @@ export class SectPageShell extends ShellBase {
       const rotRows = await listSchoolRotations(db).catch(() => []);
       const rotMap: Record<string, any> = {};
       for (const r of rotRows || []) rotMap[r.school] = r.rotation_json;
-      // 每个流派取第一个 build 的 bis (与 REST /bis 默认一致取全量, 这里取首个)
+      // First build's bis per sect (REST /bis returns the full set by default; here only the first).
       const bisMap: Record<string, any> = {};
       for (const r of bisRows || []) if (!bisMap[r.school]) bisMap[r.school] = r;
       return (schools || []).map((sc: any) => {
@@ -496,9 +494,9 @@ export const SECT_TEXT_RESOLVERS = defineTextGens(SectPageShell, [
   ['sectBisLegsWristsLabel', 'sect', 'bisLegsWrists'],
 ]);
 
-/* ---------- 调律页 ---------- */
-// sects/innerSkills/suits/maxValues/sectWeights 是游戏数据与服务端常量
-// (叶子记录), 文案字段单独走 gen 方法。
+/* ---------- Tiaolv page ---------- */
+// sects/innerSkills/suits/maxValues/sectWeights are game data and server
+// constants (leaf records); copy fields go through gen methods separately.
 
 
 export const dexResolvers = {

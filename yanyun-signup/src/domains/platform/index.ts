@@ -1,5 +1,5 @@
-/* platform 域对外服务面: 推送 token 与错误日志仓库、i18n 基础设施
- * (文案目录/协商)、积木词汇。其他 domain 只许从这里 import。 */
+/* Platform domain service surface: push-token and error-log repositories,
+ * i18n infrastructure, block vocab. Other domains import only from here. */
 export * from './pushTokens.ts';
 export * from './errorLog.ts';
 export * from './i18n.ts';

@@ -1,21 +1,27 @@
 /* ===================================================
- * tenants 实体的数据层访问 (Repository)。
+ * Data-layer access (Repository) for the tenants entity.
  *
- * 业务代码禁止直接拼 SQL 访问 tenants: 全部走本文件的函数。返回行
- * 沿用旧形态的 snake_case 键, 调用点零感知。单行读取未命中返回 null
- * (drizzle 模板模式的 .get() 未命中为 null/undefined, 在此归一)。
- * 错误容忍仍归调用方 (与一期口径一致: 调用点 .catch 照旧)。
+ * Business code must not hand-roll SQL against tenants;
+ * everything goes through this file. Rows keep the legacy
+ * snake_case keys; a single-row read miss returns null (.get()
+ * misses are null/undefined in the drizzle template pattern and
+ * are normalized here). Error tolerance stays with the caller
+ * (call sites keep their .catch, as before).
  *
- * 写法沿用一期 settings 的 sql 模板惯用法, 且列引用一律用
- * sql.identifier 裸列名内插: 生成的 SQL 与被替代的旧语句同形
- * (大写关键字 + 裸列名), harness FakeDB 的按形路由因此无需感知
- * 数据层; 同时 INSERT 列名单 / SET 左值本就必须是裸列名 (一期
- * 表限定列名 bug 的教训)。
+ * Column references are all interpolated as bare names via
+ * sql.identifier: the generated SQL keeps the shape of the
+ * statements it replaced (uppercase keywords + bare column
+ * names), so the harness FakeDB's shape routing needs no
+ * awareness of the data layer; INSERT column lists / SET
+ * left-hand sides must be bare names anyway (the lesson of the
+ * table-qualified-column bug).
  *
- * deleteTenantCascade 是租户生命周期的组合操作: 在数据层内部
- * 组合 signups / results / events / tenants 四实体的删除 (results
- * 本期没有独立 repository, 其删除只作为级联的一环出现在这里),
- * 保持旧 batch 的顺序语义 (先报名/结果, 再车队, 最后租户本身)。
+ * deleteTenantCascade is the tenant lifecycle's composite
+ * operation: it composes the signups / results / events /
+ * tenants deletes inside the data layer (results has no
+ * standalone repository; its delete appears only as part of this
+ * cascade), preserving the old batch order (signups/results
+ * first, then groupings, then the tenant itself).
  * =================================================== */
 import { sql } from 'drizzle-orm';
 import { createDb, schema } from '../../db/client.ts';
@@ -37,7 +43,7 @@ export interface TenantRow {
   feature_fixed_teams: number | null;
 }
 
-/* 全行读取 (旧各处 SELECT 子集读取的超集; 消费方只读自己要的字段)。 */
+/* Full-row read (a superset of the legacy per-site SELECT subsets; consumers read only the fields they need). */
 export async function getTenantRow(d1: D1Database, slug: string): Promise<TenantRow | null> {
   const db = createDb(d1);
   const row = await db.get<TenantRow>(
@@ -46,7 +52,6 @@ export async function getTenantRow(d1: D1Database, slug: string): Promise<Tenant
   return row ?? null;
 }
 
-/* 仅存在性读取 (旧 SELECT slug FROM tenants)。 */
 export async function getTenantSlug(d1: D1Database, slug: string): Promise<{ slug: string } | null> {
   const db = createDb(d1);
   const row = await db.get<{ slug: string }>(
@@ -55,7 +60,7 @@ export async function getTenantSlug(d1: D1Database, slug: string): Promise<{ slu
   return row ?? null;
 }
 
-/* 全部租户 slug, 按创建时间升序 (旧 SELECT slug ... ORDER BY created_at)。 */
+/* All tenant slugs, ascending by creation time. */
 export async function listTenantSlugs(d1: D1Database): Promise<{ slug: string }[]> {
   const db = createDb(d1);
   const rows = await db.all<{ slug: string }>(
@@ -64,7 +69,7 @@ export async function listTenantSlugs(d1: D1Database): Promise<{ slug: string }[
   return rows || [];
 }
 
-/* 租户目录行 (公开导航与门户百业列表共用同一旧形态)。 */
+/* Tenant directory rows (shared by public navigation and the portal guild list, same legacy shape). */
 export async function listTenantsDirectory(d1: D1Database): Promise<{
   slug: string; guild_name: string; announcement: string;
   slogan: string | null; created_at: string;
@@ -80,7 +85,7 @@ export async function listTenantsDirectory(d1: D1Database): Promise<{
   return rows || [];
 }
 
-/* slug + 名称全表 (传家宝评估遍历用; 旧查询无排序, 保持无排序)。 */
+/* slug + name across the table (heirloom evaluation traversal; the legacy query had no ordering — keep it unordered). */
 export async function listTenantNames(d1: D1Database): Promise<{
   slug: string; guild_name: string;
 }[]> {
@@ -91,7 +96,7 @@ export async function listTenantNames(d1: D1Database): Promise<{
   return rows || [];
 }
 
-/* 超管门户租户列表: 带每租户车队数的组合读 (旧查询含 t/e 别名, 逐字保形)。 */
+/* Super-admin portal tenant list: combined read with per-tenant grouping counts (legacy query with t/e aliases, shape preserved). */
 export async function listTenantsHubAdmin(d1: D1Database): Promise<{
   slug: string; guild_name: string; announcement: string;
   created_at: string; event_count: number;
@@ -108,7 +113,7 @@ export async function listTenantsHubAdmin(d1: D1Database): Promise<{
   return rows || [];
 }
 
-/* 建业 (唯一建业路径 GraphQL createGuild 用; 字段与旧 INSERT 一致)。 */
+/* Create a guild (used by the only creation path, GraphQL createGuild; fields match the legacy INSERT). */
 export async function insertTenant(
   d1: D1Database,
   row: { slug: string; guildName: string; passwordHash: string; announcement: string },
@@ -120,7 +125,6 @@ export async function insertTenant(
   );
 }
 
-/* 提醒/百业管理员共用的 webhook 更新 (旧 UPDATE ... SET discord_webhook)。 */
 export async function updateTenantWebhook(d1: D1Database, slug: string, webhook: string): Promise<void> {
   const db = createDb(d1);
   await db.run(
@@ -128,7 +132,7 @@ export async function updateTenantWebhook(d1: D1Database, slug: string, webhook:
   );
 }
 
-/* 百业资料更新 (管理员 profile 端点; 六字段整组覆盖, 与旧 UPDATE 一致)。 */
+/* Guild profile update (admin profile endpoint; six fields overwritten as a group, matching the legacy UPDATE). */
 export async function updateTenantProfile(
   d1: D1Database,
   slug: string,
@@ -146,7 +150,6 @@ export async function updateTenantProfile(
   );
 }
 
-/* 固定队功能开关列 (旧 UPDATE ... SET feature_fixed_teams = ?; 值由调用方给 1/0)。 */
 export async function updateTenantFixedTeams(d1: D1Database, slug: string, flag: number): Promise<void> {
   const db = createDb(d1);
   await db.run(
@@ -154,8 +157,10 @@ export async function updateTenantFixedTeams(d1: D1Database, slug: string, flag:
   );
 }
 
-/* 删除租户级联: 仓库内 D1 batch 成组执行 (恢复二期逐条执行时
- * 丢失的组原子性: 任一语句失败整组回滚)。 */
+/* Delete-tenant cascade: one D1 batch inside the repository
+ * (restores the group atomicity lost when run
+ * statement-by-statement: any failure rolls back the whole
+ * batch). */
 export async function deleteTenantCascade(d1: D1Database, slug: string): Promise<void> {
   await d1.batch([
     d1.prepare('DELETE FROM signups WHERE event_id IN (SELECT id FROM events WHERE tenant = ?)').bind(slug),

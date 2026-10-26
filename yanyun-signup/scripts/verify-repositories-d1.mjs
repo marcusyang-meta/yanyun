@@ -1,15 +1,21 @@
 /* ===================================================
- * 数据层 repository 真 D1 验证 (本地 Miniflare D1, 真 SQLite 语义)。
+ * Data-layer repository verification against real D1 (local Miniflare
+ * D1, real SQLite semantics).
  *
- * 背景: harness 的 FakeDB 是按 SQL 形状路由的内存替身, 测不出真
- * SQLite 的语法/语义问题 (一期表限定列名 upsert bug 就是假库全绿、
- * 真 D1 首跑才暴露)。本脚本把各 repository 的写路径与关键读路径
- * 在真 D1 上逐条跑一遍并断言结果。表结构按 src/db/schema.ts 的
- * 实体定义镜像 (生产结构零变更, 这里只是本地验证夹具)。
+ * Background: the harness FakeDB is an in-memory double routed by SQL
+ * shape; it cannot catch real SQLite syntax/semantics problems (the
+ * phase-1 table-qualified-column upsert bug was all-green on the fake
+ * DB and only surfaced on the first real-D1 run). This script runs
+ * each repository's write paths and key read paths against real D1
+ * one by one and asserts the results. The table structure mirrors the
+ * entity definitions in src/db/schema.ts (production structure is
+ * unchanged; this is only a local verification fixture).
  *
- * 用法: node scripts/verify-repositories-d1.mjs [section]
- *   section 省略 = 全部; 目前有 tenants / events / gear / users / members / results / dex / state / ddl / guard / stamp / membercount / atomic 十三段,
- *   随数据层迁移进度增补。退出码非 0 = 有断言失败。
+ * Usage: node scripts/verify-repositories-d1.mjs [section]
+ *   Omitting section = all; currently thirteen sections: tenants /
+ *   events / gear / users / members / results / dex / state / ddl /
+ *   guard / stamp / membercount / atomic, extended as the data-layer
+ *   migration progresses. Non-zero exit = an assertion failed.
  * =================================================== */
 import { Miniflare, convertV4MiniflareOptions } from 'miniflare';
 
@@ -419,7 +425,7 @@ if (want('users')) {
   console.log('== users repository on real D1 ==');
   const repo = await import('../src/domains/identity/users.ts');
 
-  // 懒 DDL 本体在真 D1 上可执行 (表已由夹具建好, IF NOT EXISTS 幂等)
+  // The lazy DDL itself executes on real D1 (tables pre-built by the fixture; IF NOT EXISTS is idempotent).
   await repo.ensureUsersTable(db);
   await repo.ensureUsersLocaleColumn(db);
   await repo.ensureNickStoreTables(db);
@@ -830,7 +836,7 @@ if (want('ddl')) {
   const gr = await import('../src/domains/gear/gear.ts');
   const ga = await import('../src/domains/guilds/guildAvatars.ts');
 
-  // 每项连跑两次: 第二次必须幂等无错 (列/表已存在)。
+  // Run each ensure twice: the second run must be idempotent and error-free (columns/tables already exist).
   for (let i = 0; i < 2; i++) {
     await ev.ensureEventCreatorColumn(db);
     await ev.ensureReminderColumns(db);

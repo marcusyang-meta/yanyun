@@ -1,7 +1,10 @@
-// 配装台验收: (1) 存储隔离 — 伪造会话 A/B, A 的装备/方案 B 不可见不可改;
-// (2) 匿名无库; (3) 导入自动选入; (4) 方案快照服务端计算; (5) gear 文案矩阵
-// (目录级 189×5 + GraphQL 级全字段双语解析); (6) GraphQL 计算冒烟与引擎直算一致。
-import { yoga } from '../src/graphql.js';
+// Gear-bench acceptance: (1) storage isolation — forged sessions A/B,
+// B can neither see nor modify A's gear/builds; (2) anonymous = no
+// library; (3) import auto-selects; (4) build snapshots computed
+// server-side; (5) gear copy matrix (catalog-level 189x5 + GraphQL-level
+// full-field bilingual resolution); (6) GraphQL compute smoke matches
+// direct engine computation.
+import { yoga } from '../src/graphql.ts';
 import { CATALOG, translate } from '../src/domains/platform/i18n.ts';
 import * as GP from '../src/domains/gear/gearplanner.ts';
 
@@ -36,11 +39,11 @@ function toRawRows(sqlText, rows) {
     : Object.values(r)));
 }
 
-/* ---------------- FakeDB (按 SQL 形态路由的内存表) ---------------- */
+/* ---------------- FakeDB (in-memory tables routed by SQL shape) ---------------- */
 const tables = { user_gear_items: [], user_gear_builds: [] };
 let rowId = 0;
 function stmt(sql) {
-  // 数据层 (Drizzle) SQL 规范化: 去引号 (仅路由匹配, 断言不变)
+  // Data-layer (Drizzle) SQL normalization: strip quotes (routing match only; assertions unchanged).
   sql = sql.replace(/"/g, '');
   const q = {
     _b: [], bind(...a) { this._b = a; return this; },
@@ -107,14 +110,14 @@ async function gql(query, { user = null, locale = 'zh-CN', variables } = {}) {
 const A = { discordId: 'user-a', name: 'A' };
 const B = { discordId: 'user-b', name: 'B' };
 
-/* ---------------- (1) 匿名无库 ---------------- */
+/* ---------------- (1) Anonymous = no library ---------------- */
 let r = await gql('{ myGearItems { id } myGearBuilds { id } }');
 eq('anon items empty', r.data.myGearItems, []);
 eq('anon builds empty', r.data.myGearBuilds, []);
 r = await gql('mutation { addGearItem(input: {slot: "武器", lines: [{key: "dawai", val: 80}]}) { ok errorCode } }');
 eq('anon addGearItem rejected', [r.data.addGearItem.ok, r.data.addGearItem.errorCode], [false, 'loginRequired']);
 
-/* ---------------- (2) A 建库 ---------------- */
+/* ---------------- (2) A builds a library ---------------- */
 const addItem = (user, input) => gql('mutation($i: GearItemCreateInput!) { addGearItem(input: $i) { ok item { id slot name schools warnings lines { key val } dingyin { name val } } errorCode } }', { user, variables: { i: input } });
 r = await addItem(A, { slot: '武器', name: 'A剑', lines: [{ key: 'dawai', val: 85.2 }, { key: 'jin', val: 54 }], dingyin: { name: '外功穿透', val: 12 }, schools: ['鸣金-虹'] });
 check('A add weapon ok', r.data.addGearItem.ok === true, JSON.stringify(r));
@@ -125,7 +128,7 @@ const aHatId = r.data.addGearItem.item.id;
 r = await gql('{ myGearItems { id name } }', { user: A });
 eq('A sees own 2 items', r.data.myGearItems.map((i) => i.id), [aWeaponId, aHatId]);
 
-/* ---------------- (3) B 隔离 ---------------- */
+/* ---------------- (3) B isolation ---------------- */
 r = await gql('{ myGearItems { id } myGearBuilds { id } }', { user: B });
 eq('B items empty', r.data.myGearItems, []);
 eq('B builds empty', r.data.myGearBuilds, []);
@@ -136,15 +139,15 @@ eq('B delete A item rejected', [r.data.deleteGearItem.ok, r.data.deleteGearItem.
 r = await gql('{ myGearItems { id name } }', { user: A });
 eq('A items untouched after B attacks', r.data.myGearItems.map((i) => i.name), ['A剑', 'A冠']);
 
-/* ---------------- (4) 换设备 (同会话新请求) ---------------- */
+/* ---------------- (4) Device switch (new request, same session) ---------------- */
 r = await gql('{ myGearItems { id name } }', { user: { discordId: 'user-a', name: 'A' } });
 eq('device switch: same items', r.data.myGearItems.map((i) => i.id), [aWeaponId, aHatId]);
 
-/* ---------------- (5) A 更新自己的 (schools 省略保留) ---------------- */
+/* ---------------- (5) A updates its own (omitted schools are kept) ---------------- */
 r = await gql('mutation($id: Int!, $i: GearItemCreateInput!) { updateGearItem(id: $id, input: $i) { ok item { schools lines { key val } } } }', { user: A, variables: { id: aWeaponId, i: { slot: '武器', name: 'A剑', lines: [{ key: 'dawai', val: 90.6 }] } } });
 eq('A update keeps schools', r.data.updateGearItem.item.schools, ['鸣金-虹']);
 
-/* ---------------- (6) 批量导入 + 自动选入 ---------------- */
+/* ---------------- (6) Bulk import + auto-select ---------------- */
 r = await gql('mutation($items: [GearItemCreateInput!]!, $lo: [GearLoadoutEntryInput!]) { importGearItems(items: $items, loadout: $lo) { ok items { id slot } autoSelect { slot gearId } } }', {
   user: A,
   variables: {
@@ -162,7 +165,7 @@ check('import ok 4 items', imp.ok && imp.items.length === 4, JSON.stringify(imp)
 eq('autoSelect first-per-slot', imp.autoSelect.map((e) => e.slot), ['主武器', '副武器', '环']);
 eq('autoSelect ids match order', imp.autoSelect.map((e) => e.gearId), [imp.items[0].id, imp.items[1].id, imp.items[2].id]);
 
-/* ---------------- (7) 方案: 服务端快照 + 隔离 ---------------- */
+/* ---------------- (7) Builds: server-side snapshot + isolation ---------------- */
 const loEntries = [{ slot: '主武器', gearId: aWeaponId }, { slot: '冠胄', gearId: aHatId }];
 r = await gql('mutation($i: GearBuildSaveInput!) { saveGearBuild(input: $i) { ok build { id name targetIdx buildLabel snapTotal loadout { slot gearId } } errorCode } }', {
   user: A,
@@ -183,7 +186,7 @@ eq('B delete A build rejected', [r.data.deleteGearBuild.ok, r.data.deleteGearBui
 r = await gql('{ myGearBuilds { id name snapTotal } }', { user: A });
 eq('A build survives', r.data.myGearBuilds.map((b) => b.id), [aBuild.id]);
 
-/* ---------------- (8) gearPlan GraphQL 冒烟 == 引擎直算 ---------------- */
+/* ---------------- (8) gearPlan GraphQL smoke == direct engine computation ---------------- */
 r = await gql('{ myGearItems { id slot name lines { key val } dingyin { name val } schools } }', { user: A });
 const lib = r.data.myGearItems;
 const planVars = {
@@ -203,7 +206,7 @@ eq('GraphQL grad.total == engine', Math.round(r.data.gearPlan.grad.total * 1e12)
 eq('GraphQL panel.dawai == engine', Math.round(r.data.gearPlan.panel.dawai * 1e9), Math.round(direct.panel.dawai * 1e9));
 eq('GraphQL gearEvals == engine', r.data.gearPlan.gearEvals.map((e) => e.score), direct.gearEvals.map((e) => e.score));
 
-/* ---------------- (9) 参考数据 + 文案矩阵 ---------------- */
+/* ---------------- (9) Reference data + copy matrix ---------------- */
 r = await gql('{ gradPage { gearBuilds { idx } gearAffixes { key } gearSlotsBig { slot } } }');
 eq('gearBuilds = 25', r.data.gradPage.gearBuilds.length, 25);
 eq('gearAffixes = 25', r.data.gradPage.gearAffixes.length, 25);
@@ -228,7 +231,7 @@ for (const loc of ['zh-CN', 'en']) {
 r = await gql('{ gradPage { gearBenchTitle } }', { locale: 'en' });
 eq('en benchTitle translated', r.data.gradPage.gearBenchTitle, 'Gear Bench');
 
-/* ---------------- (10) 粘贴解析冒烟 ---------------- */
+/* ---------------- (10) Paste-parsing smoke ---------------- */
 r = await gql('mutation($t: String!) { gearParsePaste(text: $t) { mode unknown gears { slot lines { key val } } } }', {
   variables: { t: JSON.stringify({ equipments: [{ slot: '环', affixes: [{ name: '大外功', value: 90.6 }, { name: '气血', value: 100 }] }] }) },
 });

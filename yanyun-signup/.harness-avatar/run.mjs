@@ -1,15 +1,17 @@
-// 百业自定义头像验收 (2026-10-26): 管理员直传 (gadmin 通道) -> D1
-// blob (guild_avatars) -> 主 Worker 公开出图 /api/guilds/:slug/avatar
-// -> GraphQL avatarUrl (Guild / GuildReadOnly / GuildCard 三面) /
-// webhook 发送身份 / OG 卡面绘入。FakeDB 按 SQL 形状路由, guild_avatars
-// 真落内存表; REST 走真 worker.fetch, GraphQL 走真 yoga。
-import { yoga } from '../src/graphql.js';
+// Guild custom-avatar acceptance (2026-10-26): admin direct upload
+// (gadmin channel) -> D1 blob (guild_avatars) -> main Worker public
+// serving at /api/guilds/:slug/avatar -> GraphQL avatarUrl (Guild /
+// GuildReadOnly / GuildCard surfaces) / webhook send identity / OG
+// card rendering. FakeDB routes by SQL shape, guild_avatars lands in a
+// real in-memory table; REST goes through the real worker.fetch,
+// GraphQL through the real yoga.
+import { yoga } from '../src/graphql.ts';
 import { CATALOG } from '../src/domains/platform/i18n.ts';
 import {
   AVATAR_MAX_BYTES, sniffAvatarType, webhookIdentity, avatarPublicUrl,
   putGuildAvatar, deleteGuildAvatar,
 } from '../src/domains/guilds/guildavatar.ts';
-import { postWebhook, REMINDER_USERNAME, REMINDER_AVATAR_URL } from '../src/reminder.ts';
+import { postWebhook, REMINDER_USERNAME, REMINDER_AVATAR_URL } from '../src/domains/groupings/reminder.ts';
 import { sendHeirloomTest } from '../src/domains/gear/index.ts';
 
 let pass = 0, fail = 0; const fails = [];
@@ -61,8 +63,9 @@ function makeDb({ tenants = [], settings = {} } = {}) {
     avatars: new Map(), // tenant -> { content_type, bytes, hash, updated_at }
   };
   function route(kind, sql, b) {
-    // 数据层 (Drizzle) 生成的 SQL 带引号标识符与表限定前缀, 规范化回旧
-    // 形状再匹配 (仅路由匹配泛化, 断言与状态语义不变)。
+    // Data-layer (Drizzle) SQL carries quoted identifiers and
+    // table-qualified prefixes; normalize back to the old shape before
+    // matching (routing match only; assertions and state semantics unchanged).
     sql = sql.replace(/"/g, '').replace(/settings\./g, '');
     if (/guild_avatars/.test(sql)) {
       if (/INSERT INTO guild_avatars/.test(sql)) {
@@ -130,7 +133,7 @@ function makeCtx() {
 }
 const ASSETS = { fetch: async () => new Response('not found', { status: 404 }) };
 
-/* 合成测试图: 只有魔数是真的 (服务端嗅探只认魔数, 与生产同口径) */
+/* Synthetic test image: only the magic bytes are real (the server sniffs magic bytes only, same rule as production). */
 function pngBytes(n = 128) {
   const b = new Uint8Array(n);
   b.set([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
@@ -144,19 +147,19 @@ function jpegBytes(n = 96) {
   return b;
 }
 
-/* ================= i18n: 头像错误文案 ×5 语齐备 ================= */
+/* ================= i18n: avatar error copy complete in all 5 locales ================= */
 for (const key of ['avatarTooLarge', 'avatarBadType', 'avatarEmpty']) {
   const entry = CATALOG.errors[key];
   check(`i18n errors.${key} 五语齐备`, !!entry && ['zh-CN', 'en', 'es', 'fr', 'zh-TW'].every((l) => entry[l]));
 }
 
-/* ================= 嗅探单元 ================= */
+/* ================= Sniffing units ================= */
 eq('sniff png', sniffAvatarType(pngBytes()), 'image/png');
 eq('sniff jpeg', sniffAvatarType(jpegBytes()), 'image/jpeg');
 eq('sniff webp', sniffAvatarType(new Uint8Array([0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x57, 0x45, 0x42, 0x50])), 'image/webp');
 eq('sniff 文本伪图 -> null', sniffAvatarType(new TextEncoder().encode('not an image at all')), null);
 
-/* ================= REST: 上传/出图/鉴权/限额/删除 ================= */
+/* ================= REST: upload / serve / auth / limit / delete ================= */
 const worker = (await import('../src/worker.ts')).default;
 const pwHash = await sha256hex('guildpass123');
 const { db, state } = makeDb({
@@ -181,25 +184,25 @@ const token1 = await login('test1');
 const token2 = await login('test2');
 check('管理员登录签发 token', typeof token1 === 'string' && token1.includes('.'));
 
-// 无头像: 公开出图 404
+// No avatar: public serving 404s.
 let r = await call('/api/guilds/test1/avatar');
 eq('无头像出图 -> 404', r.status, 404);
 await r.text();
 
-// 未登录上传拒绝
+// Unauthenticated upload is rejected.
 const png = pngBytes();
 r = await call('/api/test1/admin/avatar', { method: 'PUT', headers: { 'content-type': 'image/png' }, body: png });
 eq('未登录 PUT 头像 -> 401', r.status, 401);
 await r.text();
 
-// 他业管理员 token 传本业头像拒绝 (token 绑 slug)
+// Another guild's admin token cannot upload this guild's avatar (tokens are slug-bound).
 r = await call('/api/test1/admin/avatar', {
   method: 'PUT', headers: { 'content-type': 'image/png', authorization: 'Bearer ' + token2 }, body: png,
 });
 eq('他业管理员 PUT 本业头像 -> 401', r.status, 401);
 await r.text();
 
-// 本业管理员上传 PNG -> 200 + 版本化 URL + hash 对
+// Own admin uploads PNG -> 200 + versioned URL + matching hash.
 r = await call('/api/test1/admin/avatar', {
   method: 'PUT', headers: { 'content-type': 'image/png', authorization: 'Bearer ' + token1 }, body: png,
 });
@@ -209,7 +212,7 @@ const pngHash = await sha256hex(png);
 eq('上传返回 hash = 内容 sha256', j.hash, pngHash);
 eq('上传返回 avatarUrl 带 hash8', j.avatarUrl, `/api/guilds/test1/avatar?v=${pngHash.slice(0, 8)}`);
 
-// 出图 round-trip: 字节一致 + content-type + 长缓存 + ETag
+// Serving round-trip: identical bytes + content-type + long cache + ETag.
 r = await call('/api/guilds/test1/avatar?v=' + pngHash.slice(0, 8));
 eq('出图 -> 200', r.status, 200);
 eq('出图 content-type', r.headers.get('content-type'), 'image/png');
@@ -217,12 +220,12 @@ check('出图长缓存 immutable', (r.headers.get('cache-control') || '').includ
 eq('出图 ETag = hash', r.headers.get('etag'), `"${pngHash}"`);
 const served = new Uint8Array(await r.arrayBuffer());
 check('出图字节与上传一致', served.length === png.length && served.every((v, i) => v === png[i]));
-// 条件请求 304
+// Conditional request -> 304.
 r = await call('/api/guilds/test1/avatar?v=' + pngHash.slice(0, 8), { headers: { 'if-none-match': `"${pngHash}"` } });
 eq('If-None-Match -> 304', r.status, 304);
 await r.text();
 
-// 超限拒绝 (413 + i18n 错误码/文案; en 头给英文)
+// Oversize rejected (413 + i18n error code/copy; en header yields English).
 const big = pngBytes(AVATAR_MAX_BYTES + 1);
 r = await call('/api/test1/admin/avatar', {
   method: 'PUT', headers: { 'content-type': 'image/png', authorization: 'Bearer ' + token1, 'accept-language': 'en' }, body: big,
@@ -232,7 +235,7 @@ j = await r.json();
 eq('超限 errorCode', j.errorCode, 'avatarTooLarge');
 eq('超限文案按头协商 (en)', j.message, CATALOG.errors.avatarTooLarge.en);
 
-// 伪类型拒绝 (文本冒充 png)
+// Fake type rejected (text posing as png).
 r = await call('/api/test1/admin/avatar', {
   method: 'PUT', headers: { 'content-type': 'image/png', authorization: 'Bearer ' + token1 },
   body: new TextEncoder().encode('{"not":"an image"}'),
@@ -242,17 +245,17 @@ j = await r.json();
 eq('伪类型 errorCode', j.errorCode, 'avatarBadType');
 eq('伪类型文案默认 zh-CN', j.message, CATALOG.errors.avatarBadType['zh-CN']);
 
-// 空体拒绝
+// Empty body rejected.
 r = await call('/api/test1/admin/avatar', {
   method: 'PUT', headers: { 'content-type': 'image/png', authorization: 'Bearer ' + token1 }, body: new Uint8Array(0),
 });
 eq('空体 -> 400', r.status, 400);
 j = await r.json();
 eq('空体 errorCode', j.errorCode, 'avatarEmpty');
-// 拒绝后旧头像不受影响
+// After a rejection the old avatar is unaffected.
 eq('拒绝后头像仍是 PNG 版', state.avatars.get('test1')?.hash, pngHash);
 
-// 换 JPEG: hash/URL/出图类型随之切换
+// Switching to JPEG: hash/URL/served type follow.
 const jpg = jpegBytes();
 r = await call('/api/test1/admin/avatar', {
   method: 'PUT', headers: { 'content-type': 'image/jpeg', authorization: 'Bearer ' + token1 }, body: jpg,
@@ -265,7 +268,7 @@ r = await call('/api/guilds/test1/avatar?v=' + jpgHash.slice(0, 8));
 eq('换图后出图 content-type', r.headers.get('content-type'), 'image/jpeg');
 await r.arrayBuffer();
 
-// 管理面状态 + 旧 REST 面未被新路由干扰
+// Admin-surface state + legacy REST surface undisturbed by the new routes.
 r = await call('/api/test1/admin/avatar', { headers: { authorization: 'Bearer ' + token1 } });
 j = await r.json();
 check('管理面状态 hasAvatar', j.ok && j.hasAvatar === true && j.hash === jpgHash, JSON.stringify(j).slice(0, 120));
@@ -273,7 +276,7 @@ r = await call('/api/test1/settings');
 eq('/api/:slug/settings 不受 guilds 路由影响 -> 200', r.status, 200);
 await r.json();
 
-/* ================= GraphQL: avatarUrl 两态 ================= */
+/* ================= GraphQL: avatarUrl in both states ================= */
 async function gql(query, variables) {
   const gctx = { env: { DB: db }, request: new Request('http://local/graphql'), user: null, locale: 'zh-CN', browserLocale: 'zh-CN', tz: 'Asia/Shanghai', executionCtx: undefined };
   const res = await yoga.fetch(new Request('http://local/graphql', {
@@ -295,14 +298,14 @@ const card = (g.data?.hubPage?.guilds || []).find((x) => x.slug === 'test1');
 check('hubPage GuildCard 在列', !!card, JSON.stringify(g.data || g.errors || '').slice(0, 200));
 eq('GuildCard.avatarUrl 同值', card?.avatarUrl, `http://local/api/guilds/test1/avatar?v=${jpgHash.slice(0, 8)}`);
 
-/* ================= webhook 身份 (模块级; 发送体切换在 [3/3] 段) ================= */
+/* ================= Webhook identity (module level; send-body switching is in the [3/3] section) ================= */
 let ident = await webhookIdentity(db, 'test1');
 eq('有头像 webhookIdentity.username = 百业名', ident?.username, '测试一业');
 eq('有头像 webhookIdentity.avatarUrl = 规范域名公开 URL', ident?.avatarUrl, avatarPublicUrl('test1', jpgHash));
 ident = await webhookIdentity(db, 'test2');
 eq('无头像 webhookIdentity = null (回退平台默认)', ident, null);
 
-/* ================= 删除: 出图 404 + avatarUrl 回 null ================= */
+/* ================= Delete: serving 404s + avatarUrl back to null ================= */
 r = await call('/api/test1/admin/avatar', { method: 'DELETE', headers: { authorization: 'Bearer ' + token1 } });
 eq('管理员 DELETE 头像 -> 200', r.status, 200);
 await r.json();
@@ -314,7 +317,7 @@ eq('删除后 avatarUrl 回 null', g.data?.viewer?.guild?.avatarUrl, null);
 ident = await webhookIdentity(db, 'test1');
 eq('删除后 webhookIdentity 回 null', ident, null);
 
-/* ================= [3/3] webhook 发送体: 身份两态切换 ================= */
+/* ================= [3/3] Webhook send body: identity switching between both states ================= */
 {
   const { db: db2 } = makeDb({
     tenants: [{ slug: 'test1', guild_name: '测试一业', slogan: '', password_hash: pwHash }],
@@ -327,12 +330,12 @@ eq('删除后 webhookIdentity 回 null', ident, null);
     return new Response(null, { status: 204 });
   };
   try {
-    // 无头像: postWebhook 直调 (identity=null) -> 平台默认身份
+    // No avatar: direct postWebhook (identity=null) -> platform default identity.
     await postWebhook('https://discord.test/webhook', 'hi', [], undefined, null);
     eq('无头像发送体 username = 平台默认', sent[0].body.username, REMINDER_USERNAME);
     eq('无头像发送体 avatar_url = OG hub 图', sent[0].body.avatar_url, REMINDER_AVATAR_URL);
 
-    // 有头像: 身份切换为百业名 + 头像公开 URL, 其余字段不动
+    // With avatar: identity switches to guild name + avatar public URL; other fields unchanged.
     const { hash } = await putGuildAvatar(db2, 'test1', 'image/png', pngBytes());
     const ident2 = await webhookIdentity(db2, 'test1');
     await postWebhook('https://discord.test/webhook', 'hi', ['42'], undefined, ident2);
@@ -340,14 +343,14 @@ eq('删除后 webhookIdentity 回 null', ident, null);
     eq('有头像发送体 avatar_url = 头像公开 URL', sent[1].body.avatar_url, `https://yanyun.app/api/guilds/test1/avatar?v=${hash.slice(0, 8)}`);
     eq('身份切换不影响 allowed_mentions', JSON.stringify(sent[1].body.allowed_mentions), JSON.stringify({ parse: [], users: ['42'] }));
 
-    // 传家宝测试发送全链路 (sendHeirloomTest -> postWebhook): 有头像态
+    // Heirloom test send, full chain (sendHeirloomTest -> postWebhook): with-avatar state.
     sent.length = 0;
     const hr = await sendHeirloomTest(db2, 'test1');
     check('传家宝测试发送 ok', hr.ok === true, JSON.stringify(hr));
     eq('传家宝发送体 username = 百业名', sent[0]?.body.username, '测试一业');
     eq('传家宝发送体 avatar_url = 头像公开 URL', sent[0]?.body.avatar_url, `https://yanyun.app/api/guilds/test1/avatar?v=${hash.slice(0, 8)}`);
 
-    // 删除头像后传家宝发送回退默认身份
+    // After avatar deletion, heirloom sends fall back to the default identity.
     await deleteGuildAvatar(db2, 'test1');
     sent.length = 0;
     await sendHeirloomTest(db2, 'test1');

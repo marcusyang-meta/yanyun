@@ -1,10 +1,12 @@
 /* ===================================================
- * 传家宝推送状态的数据层访问 (Repository, gear 域)。
+ * Data-layer access (Repository, gear domain) for heirloom push state.
  *
- * 三期迁入: 去重表 heirloom_item_pushes 与集齐状态表
- * heirloom_set_state 的懒 DDL 与全部读写此前在 heirloompush.js。
- * heirloompush.js 的 ensureHeirloomTables 保留旧名导出作委托。
- * 写路径的容错 (单条失败静默) 仍归调用点。
+ * The lazy DDL and all reads/writes for the dedup table
+ * heirloom_item_pushes and the set-completion table
+ * heirloom_set_state live here (previously in heirloompush.js, whose
+ * ensureHeirloomTables keeps the old name as a delegating export).
+ * Write-path tolerance (a single failure stays silent) remains with
+ * the call sites.
  * =================================================== */
 import { sql } from 'drizzle-orm';
 import { createDb, schema } from '../../db/client.ts';
@@ -12,7 +14,7 @@ import { createDb, schema } from '../../db/client.ts';
 const { heirloomItemPushes, heirloomSetState } = schema;
 const col = (name: string) => sql.identifier(name);
 
-/* ---------- 懒 DDL ---------- */
+/* ---------- Lazy DDL ---------- */
 
 let heirloomTablesReady: Promise<void> | null = null;
 export function ensureHeirloomTables(d1: D1Database): Promise<void> {
@@ -36,15 +38,15 @@ export function ensureHeirloomTables(d1: D1Database): Promise<void> {
           updated_at INTEGER NOT NULL DEFAULT 0,
           PRIMARY KEY (tenant, discord_id, build_sig)
         )`);
-      } catch { /* 表已存在等情况静默 */ }
+      } catch { /* silent if tables already exist etc. */ }
     })();
   }
   return heirloomTablesReady;
 }
 
-/* ---------- 去重 / 集齐状态 ---------- */
+/* ---------- Dedup / set-completion state ---------- */
 
-/** 某搭配下已播报过的装备哈希全集。 */
+/** All already-announced item hashes under one loadout signature. */
 export async function listPushedItemHashes(
   d1: D1Database, tenant: string, discordId: string, buildSig: string,
 ): Promise<string[]> {
