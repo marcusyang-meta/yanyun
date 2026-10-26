@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<a1d37fc798031519135d9aa892112ca2>>
+ * @generated SignedSource<<9ec26d1ea081f5b8a287d3e124d8655e>>
  * @lightSyntaxTransform
  */
 
@@ -11,6 +11,15 @@ import { ConcreteRequest } from 'relay-runtime';
 export type documentsSectPageQuery$variables = Record<PropertyKey, never>;
 export type documentsSectPageQuery$data = {
   readonly sectPage: {
+    readonly sectAffixBowLabel: string;
+    readonly sectAffixColAffixLabel: string;
+    readonly sectAffixColCountLabel: string;
+    readonly sectAffixColCyLabel: string;
+    readonly sectAffixColMaxLabel: string;
+    readonly sectAffixDingyinLabel: string;
+    readonly sectAffixEmptyText: string;
+    readonly sectAffixSetLabel: string;
+    readonly sectAffixSourceText: string;
     readonly sectBackLabel: string;
     readonly sectBisAccessoriesLabel: string;
     readonly sectBisHeadBodyLabel: string;
@@ -30,6 +39,7 @@ export type documentsSectPageQuery$data = {
     readonly sectRotLoopLabel: string;
     readonly sectRotOpenerLabel: string;
     readonly sectRotVideoLabel: string;
+    readonly sectTabAffixLabel: string;
     readonly sectTabBisLabel: string;
     readonly sectTabGradLabel: string;
     readonly sectTabRatesLabel: string;
@@ -44,6 +54,24 @@ export type documentsSectPageQuery$data = {
         readonly offWeapon: ReadonlyArray<string>;
       } | null | undefined;
       readonly buildType: string;
+      readonly gradBuilds: ReadonlyArray<{
+        readonly bowLabel: string | null | undefined;
+        readonly cat: string;
+        readonly dingyinName: string | null | undefined;
+        readonly name: string;
+        readonly note: string | null | undefined;
+        readonly recipe: string;
+        readonly setName: string;
+        readonly targets: ReadonlyArray<{
+          readonly count: number;
+          readonly cyValue: number | null | undefined;
+          readonly flexLabels: ReadonlyArray<string>;
+          readonly label: string;
+          readonly maxValue: number | null | undefined;
+          readonly unit: string;
+        }>;
+        readonly totalBars: number;
+      }>;
       readonly name: string;
       readonly rateTargets: {
         readonly accuracy: string | null | undefined;
@@ -70,7 +98,21 @@ export type documentsSectPageQuery = {
 };
 
 const node: ConcreteRequest = (function(){
-var v0 = [
+var v0 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "name",
+  "storageKey": null
+},
+v1 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "note",
+  "storageKey": null
+},
+v2 = [
   {
     "alias": null,
     "args": null,
@@ -250,6 +292,76 @@ var v0 = [
       {
         "alias": null,
         "args": null,
+        "kind": "ScalarField",
+        "name": "sectTabAffixLabel",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "sectAffixEmptyText",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "sectAffixSetLabel",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "sectAffixBowLabel",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "sectAffixDingyinLabel",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "sectAffixColAffixLabel",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "sectAffixColCountLabel",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "sectAffixColMaxLabel",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "sectAffixColCyLabel",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "sectAffixSourceText",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
         "concreteType": "Sect",
         "kind": "LinkedField",
         "name": "sects",
@@ -262,13 +374,7 @@ var v0 = [
             "name": "slug",
             "storageKey": null
           },
-          {
-            "alias": null,
-            "args": null,
-            "kind": "ScalarField",
-            "name": "name",
-            "storageKey": null
-          },
+          (v0/*:: as any*/),
           {
             "alias": null,
             "args": null,
@@ -411,11 +517,113 @@ var v0 = [
                 "name": "critDamage",
                 "storageKey": null
               },
+              (v1/*:: as any*/)
+            ],
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "concreteType": "SectGradBuild",
+            "kind": "LinkedField",
+            "name": "gradBuilds",
+            "plural": true,
+            "selections": [
+              (v0/*:: as any*/),
               {
                 "alias": null,
                 "args": null,
                 "kind": "ScalarField",
-                "name": "note",
+                "name": "cat",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "setName",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "bowLabel",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "recipe",
+                "storageKey": null
+              },
+              (v1/*:: as any*/),
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "dingyinName",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "totalBars",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "concreteType": "SectGradTarget",
+                "kind": "LinkedField",
+                "name": "targets",
+                "plural": true,
+                "selections": [
+                  {
+                    "alias": null,
+                    "args": null,
+                    "kind": "ScalarField",
+                    "name": "label",
+                    "storageKey": null
+                  },
+                  {
+                    "alias": null,
+                    "args": null,
+                    "kind": "ScalarField",
+                    "name": "count",
+                    "storageKey": null
+                  },
+                  {
+                    "alias": null,
+                    "args": null,
+                    "kind": "ScalarField",
+                    "name": "maxValue",
+                    "storageKey": null
+                  },
+                  {
+                    "alias": null,
+                    "args": null,
+                    "kind": "ScalarField",
+                    "name": "cyValue",
+                    "storageKey": null
+                  },
+                  {
+                    "alias": null,
+                    "args": null,
+                    "kind": "ScalarField",
+                    "name": "unit",
+                    "storageKey": null
+                  },
+                  {
+                    "alias": null,
+                    "args": null,
+                    "kind": "ScalarField",
+                    "name": "flexLabels",
+                    "storageKey": null
+                  }
+                ],
                 "storageKey": null
               }
             ],
@@ -434,7 +642,7 @@ return {
     "kind": "Fragment",
     "metadata": null,
     "name": "documentsSectPageQuery",
-    "selections": (v0/*:: as any*/),
+    "selections": (v2/*:: as any*/),
     "type": "Query",
     "abstractKey": null
   },
@@ -443,19 +651,19 @@ return {
     "argumentDefinitions": [],
     "kind": "Operation",
     "name": "documentsSectPageQuery",
-    "selections": (v0/*:: as any*/)
+    "selections": (v2/*:: as any*/)
   },
   "params": {
-    "cacheID": "9063b954c621d99fca7e525290e1d541",
+    "cacheID": "cdac1dbb2fc9b66577fcdefc4fdb062e",
     "id": null,
     "metadata": {},
     "name": "documentsSectPageQuery",
     "operationKind": "query",
-    "text": "query documentsSectPageQuery {\n  sectPage {\n    sectEmptyText\n    sectBackLabel\n    sectTabBisLabel\n    sectTabRotationLabel\n    sectTabRatesLabel\n    sectTabTiaolvLabel\n    sectTabGradLabel\n    sectNoBisText\n    sectNoRotationText\n    sectNoRatesText\n    sectRotGreydustLabel\n    sectRotOpenerLabel\n    sectRotLoopLabel\n    sectRotKeyPointsLabel\n    sectRotInnerSkillsLabel\n    sectRotVideoLabel\n    sectRateAccuracyLabel\n    sectRateCritLabel\n    sectRateCritDamageLabel\n    sectBisMainWeaponLabel\n    sectBisOffWeaponLabel\n    sectBisAccessoriesLabel\n    sectBisHeadBodyLabel\n    sectBisLegsWristsLabel\n    sects {\n      slug\n      name\n      weapons\n      buildType\n      bis {\n        mainWeapon\n        offWeapon\n        accessories\n        headBody\n        legsWrists\n      }\n      rotation {\n        greydust\n        opener\n        loop\n        keyPoints\n        innerSkills\n        videoUrl\n      }\n      rateTargets {\n        accuracy\n        crit\n        critDamage\n        note\n      }\n    }\n  }\n}\n"
+    "text": "query documentsSectPageQuery {\n  sectPage {\n    sectEmptyText\n    sectBackLabel\n    sectTabBisLabel\n    sectTabRotationLabel\n    sectTabRatesLabel\n    sectTabTiaolvLabel\n    sectTabGradLabel\n    sectNoBisText\n    sectNoRotationText\n    sectNoRatesText\n    sectRotGreydustLabel\n    sectRotOpenerLabel\n    sectRotLoopLabel\n    sectRotKeyPointsLabel\n    sectRotInnerSkillsLabel\n    sectRotVideoLabel\n    sectRateAccuracyLabel\n    sectRateCritLabel\n    sectRateCritDamageLabel\n    sectBisMainWeaponLabel\n    sectBisOffWeaponLabel\n    sectBisAccessoriesLabel\n    sectBisHeadBodyLabel\n    sectBisLegsWristsLabel\n    sectTabAffixLabel\n    sectAffixEmptyText\n    sectAffixSetLabel\n    sectAffixBowLabel\n    sectAffixDingyinLabel\n    sectAffixColAffixLabel\n    sectAffixColCountLabel\n    sectAffixColMaxLabel\n    sectAffixColCyLabel\n    sectAffixSourceText\n    sects {\n      slug\n      name\n      weapons\n      buildType\n      bis {\n        mainWeapon\n        offWeapon\n        accessories\n        headBody\n        legsWrists\n      }\n      rotation {\n        greydust\n        opener\n        loop\n        keyPoints\n        innerSkills\n        videoUrl\n      }\n      rateTargets {\n        accuracy\n        crit\n        critDamage\n        note\n      }\n      gradBuilds {\n        name\n        cat\n        setName\n        bowLabel\n        recipe\n        note\n        dingyinName\n        totalBars\n        targets {\n          label\n          count\n          maxValue\n          cyValue\n          unit\n          flexLabels\n        }\n      }\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "6de71c6e2a5dececad1eb2065c49515e";
+(node as any).hash = "2a50e1efe18c28bbcf522e44a31d5eee";
 
 export default node;
