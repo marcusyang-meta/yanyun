@@ -9,3 +9,4 @@ export * from './error-log.ts';
 export * from './push.ts';
 export { ensureErrorLogTable } from './error-log.ts';
 export { ensurePushTokensTable } from './push.ts';
+export * from './graphql.ts';

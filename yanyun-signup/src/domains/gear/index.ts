@@ -10,3 +10,4 @@ export * from './gearstore.ts';
 export { ensureGearTables } from './gearstore.ts';
 export { ensureHeirloomTables } from './heirloompush.ts';
 export { deleteGearBuildRow, deleteGearItemRow, updateGearItemRow } from './gearstore.ts';
+export * from './graphql.ts';
