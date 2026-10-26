@@ -1,6 +1,7 @@
 import { sendDeparturePush } from './push.js';
 import { logError } from './errorlog.js';
-import { webhookIdentity } from './guildavatar.js';
+import { webhookIdentity } from './guildavatar.ts';
+import { getTenantRow } from './db/repositories/tenants.ts';
 import { getSettingValue, setSettingValue } from './db/repositories/settings.ts';
 
 // Discord 开车提醒 (2026-10-24 用户定型)
@@ -126,8 +127,7 @@ export async function setReminderSetting(db, slug, key, value) {
 
 /* ---------- 配置 ---------- */
 export async function getReminderConfig(db, slug) {
-const t = await db.prepare('SELECT discord_webhook, guild_name FROM tenants WHERE slug =?')
-.bind(slug).first().catch(() => null);
+const t = await getTenantRow(db, slug).catch(() => null);
 if (!t) return null;
 const enabled = (await getReminderSetting(db, slug, 'reminder_enabled')) === '1';
 return { webhook: String(t.discord_webhook || ''), guildName: String(t.guild_name || slug), enabled};
@@ -256,7 +256,7 @@ return guildName || '车头';
  * creator 记录时 created_by 原文即为该名, 同口径); 否则不标。 */
 export async function buildReminderMessage(db, ev, slug, nowSec) {
 const dgid = await getReminderSetting(db, slug, 'discord_guild_id');
-const t = await db.prepare('SELECT guild_name FROM tenants WHERE slug =?').bind(slug).first().catch(() => null);
+const t = await getTenantRow(db, slug).catch(() => null);
 const guildName = t? String(t.guild_name || slug): slug;
 const leader = await leaderDisplayName(db, ev, slug, dgid, guildName);
 const roster = await rosterPool(db, slug);

@@ -17,8 +17,11 @@ import { ensurePushTokensTable, isValidPushToken, savePushToken, deletePushToken
 import { evaluateHeirloomPushes } from './heirloompush.js';
 import { translate, negotiateLocale, SUPPORTED_LOCALES, CATALOG } from './i18n.js';
 import { logError } from './errorlog.js';
-import { getGuildAvatarMeta, avatarPath } from './guildavatar.js';
+import { getGuildAvatarMeta, avatarPath } from './guildavatar.ts';
 import { getSettingValue, setSettingValue, listSettingsByKey } from './db/repositories/settings.ts';
+import {
+  getTenantRow, getTenantSlug, listTenantSlugs, listTenantsDirectory, insertTenant,
+} from './db/repositories/tenants.ts';
 import {
   listGearItems, insertGearItem, updateGearItemRow, deleteGearItemRow,
   listGearBuilds, insertGearBuild, deleteGearBuildRow,
@@ -119,7 +122,7 @@ function errText(ctx, code) {
 /* ---------- 租户校验 ---------- */
 async function assertTenant(db, slug) {
   const sslug = s(slug, 30);
-  const t = await db.prepare('SELECT slug FROM tenants WHERE slug = ?').bind(sslug).first();
+  const t = await getTenantRow(db, sslug);
   if (!t) throw new Error('百业不存在');
   return t;
 }
@@ -184,8 +187,7 @@ function serverCanManage(sv) {
 // export: worker.js 的 /ws/guild/:slug 订阅路由复用同一份访问判定,
 // 不许另抄一份成员规则 (权限单点真相)。
 export async function getGuildAccess(db, user, slug, request) {
-  const t = await db.prepare('SELECT slug, guild_name, slogan FROM tenants WHERE slug = ?')
-    .bind(s(slug, 40)).first();
+  const t = await getTenantRow(db, s(slug, 40));
   if (!t) return { exists: false, slug, bound: false, isMember: false, canView: false, canWrite: false, tenant: null, discordGuildId: '' };
   // dev_only 百业: 非 dev 表面来源一律按不存在处理 (列表自然过滤, 直达走 Locked/不存在)
   const devOnly = (await getTenantSetting(db, t.slug, 'dev_only')) === '1';
@@ -1025,8 +1027,7 @@ class GroupingListPageShell extends ShellBase {
     const wo = Number.isFinite(weekOffset) ? weekOffset | 0 : 0;
     return this.memo(`blocks:${v}:${wo}`, async () => {
       const access = await getGuildAccess(this.db, this.ctx.user, this.data.slug, this.ctx.request);
-      const tRow = await this.db.prepare('SELECT guild_name, announcement FROM tenants WHERE slug = ?')
-        .bind(access.slug).first().catch(() => null);
+      const tRow = await getTenantRow(this.db, access.slug).catch(() => null);
       let viewerNick = null;
       if (this.ctx.user && access.bound && access.discordGuildId) {
         viewerNick = await getGuildNick(this.db, this.ctx.user.discordId, access.discordGuildId).catch(() => null);
@@ -1080,8 +1081,7 @@ class GroupingListPageShell extends ShellBase {
     return this.memo(`primTree:${v}:${wo}`, async () => {
       const access = await getGuildAccess(this.db, this.ctx.user, this.data.slug, this.ctx.request);
       if (!(await primEnabled(this.db, access.slug, 'list'))) return null;
-      const tRow = await this.db.prepare('SELECT guild_name, announcement FROM tenants WHERE slug = ?')
-        .bind(access.slug).first().catch(() => null);
+      const tRow = await getTenantRow(this.db, access.slug).catch(() => null);
       let viewerNick = null;
       if (this.ctx.user && access.bound && access.discordGuildId) {
         viewerNick = await getGuildNick(this.db, this.ctx.user.discordId, access.discordGuildId).catch(() => null);
@@ -1414,7 +1414,7 @@ class ViewerShell extends ShellBase {
   async genGuilds() {
     if (!this.ctx.user) return [];
     return this.memo('guilds', async () => {
-      const { results } = await this.db.prepare('SELECT slug FROM tenants ORDER BY created_at ASC').all();
+      const results = await listTenantSlugs(this.db);
       const out = [];
       for (const t of results || []) {
         const a = await getGuildAccess(this.db, this.ctx.user, t.slug, this.ctx.request);
@@ -1426,7 +1426,7 @@ class ViewerShell extends ShellBase {
   }
   async genPublicGuilds() {
     return this.memo('publicGuilds', async () => {
-      const { results } = await this.db.prepare('SELECT slug FROM tenants ORDER BY created_at ASC').all();
+      const results = await listTenantSlugs(this.db);
       const out = [];
       for (const t of results || []) {
         const a = await getGuildAccess(this.db, this.ctx.user, t.slug, this.ctx.request);
@@ -1534,9 +1534,7 @@ class HubPageShell extends ShellBase {
   async genGuilds() {
     return this.memo('guilds', async () => {
       const db = this.db;
-      const { results } = await db.prepare(
-        'SELECT slug, guild_name, announcement, slogan, created_at FROM tenants ORDER BY created_at ASC'
-      ).all();
+      const results = await listTenantsDirectory(db);
       // 已绑定百业仅对其 Discord 服务器成员可见: 匿名/非成员在此层就过滤掉
       const bindRows = await listSettingsByKey(db, 'discord_guild_id').catch(() => []);
       const bindMap = {};
@@ -1606,8 +1604,7 @@ class GroupingDetailPageShell extends ShellBase {
     return this.memo(`blocks:${v}`, async () => {
       const ev = this.data;
       const access = await getGuildAccess(this.db, this.ctx.user, ev.tenant, this.ctx.request);
-      const tRow = await this.db.prepare('SELECT announcement FROM tenants WHERE slug = ?')
-        .bind(ev.tenant).first().catch(() => null);
+      const tRow = await getTenantRow(this.db, ev.tenant).catch(() => null);
       await ensureSignupDiscordColumn(this.db);
       const { results } = await this.db.prepare(
         'SELECT id, nickname, uid, role, weapon, discord_id FROM signups WHERE event_id = ? ORDER BY id ASC'
@@ -1681,8 +1678,7 @@ class GroupingDetailPageShell extends ShellBase {
       const ev = this.data;
       const access = await getGuildAccess(this.db, this.ctx.user, ev.tenant, this.ctx.request);
       if (!(await primEnabled(this.db, access.slug, 'detail'))) return null;
-      const tRow = await this.db.prepare('SELECT announcement FROM tenants WHERE slug = ?')
-        .bind(ev.tenant).first().catch(() => null);
+      const tRow = await getTenantRow(this.db, ev.tenant).catch(() => null);
       await ensureSignupDiscordColumn(this.db);
       const { results } = await this.db.prepare(
         'SELECT id, nickname, uid, role, weapon, discord_id FROM signups WHERE event_id = ? ORDER BY id ASC'
@@ -2550,7 +2546,7 @@ const resolvers = {
       const v = String(slug || '').trim().toLowerCase();
       if (!/^[a-z0-9][a-z0-9-]{0,38}[a-z0-9]$/.test(v) || v.length < 2 || v.length > 40) return false;
       if (CREATE_RESERVED.has(v)) return false;
-      const t = await db.prepare('SELECT slug FROM tenants WHERE slug = ?').bind(v).first();
+      const t = await getTenantSlug(db, v);
       return !t;
     },
 
@@ -2811,7 +2807,7 @@ const resolvers = {
         return cFail(ctx, 'slugInvalid');
       }
       if (CREATE_RESERVED.has(slug)) return cFail(ctx, 'slugReserved');
-      const exists = await db.prepare('SELECT slug FROM tenants WHERE slug = ?').bind(slug).first();
+      const exists = await getTenantSlug(db, slug);
       if (exists) return cFail(ctx, 'slugTaken');
       const dgid = String(input.discordGuildId || '');
       if (!/^\d{5,25}$/.test(dgid)) return cFail(ctx, 'serverRequired');
@@ -2824,9 +2820,7 @@ const resolvers = {
       // 租户结构与 tenants 表一致; password_hash 随机生成 (Discord 建的业暂不走密码登录)。
       // 注: REST /api/onboard 匿名建业已于 2026-10-25 下线 (审计 A4), 本 mutation 是唯一建业路径。
       const hash = await sha256hexLocal(crypto.randomUUID() + ':' + user.discordId + ':' + Date.now());
-      await db.prepare(
-        'INSERT INTO tenants(slug, guild_name, password_hash, announcement) VALUES(?, ?, ?, ?)'
-      ).bind(slug, name, hash, '').run();
+      await insertTenant(db, { slug, guildName: name, passwordHash: hash, announcement: '' });
       await setTenantSetting(db, slug, 'discord_guild_id', dgid);
       const a = await getGuildAccess(db, user, slug, ctx.request);
       return new CreateGuildPayloadShell(ctx, { ok: true, guild: guildResult(ctx, a) });
@@ -3621,7 +3615,6 @@ const errorLogPlugin = {
             void logError(db, {
               source: 'graphql',
               error: orig instanceof Error ? orig : e,
-              message: msg,
               context: { path: e.path ? e.path.join('.') : '' },
             });
           }

@@ -21,11 +21,15 @@ import { translate } from './i18n.js';
 import {
   AVATAR_MAX_BYTES, sniffAvatarType, getGuildAvatar, getGuildAvatarMeta,
   putGuildAvatar, deleteGuildAvatar, avatarPath,
-} from './guildavatar.js';
+} from './guildavatar.ts';
 import {
   getSettingValue, setSettingValue, listSettingsByKey,
   listNonEmptySettingsByKey, listGlobalSettings,
 } from './db/repositories/settings.ts';
+import {
+  getTenantRow, getTenantSlug, listTenantSlugs, listTenantsDirectory, listTenantsHubAdmin,
+  updateTenantWebhook, updateTenantProfile, updateTenantFixedTeams, deleteTenantCascade,
+} from './db/repositories/tenants.ts';
 
 const TYPES = { activity: '双十人本', talent: '天赋组队', race: '竞速', tower: '爬塔', gather: '采集', explore: '探索' };
 const ROLES = ['输出', '承伤', '奶', '治疗', '随意'];
@@ -129,7 +133,7 @@ const utcToText = (utc) => {
 /* ---------- Discord webhook 推送 ---------- */
 async function notifyDiscord(env, slug, event) {
   try {
-    const t = await env.DB.prepare('SELECT discord_webhook, guild_name FROM tenants WHERE slug = ?').bind(slug).first();
+    const t = await getTenantRow(env.DB, slug);
     const wh = t?.discord_webhook;
     if (!wh) return;
     const timeStr = event.starts_at_utc
@@ -249,9 +253,7 @@ const pub = new Hono();
 
 // GET /api/tenants 百业导航
 pub.get('/tenants', async (c) => {
-  const { results } = await c.env.DB.prepare(
-    'SELECT slug, guild_name, announcement, slogan, created_at FROM tenants ORDER BY created_at ASC'
-  ).all();
+  const results = await listTenantsDirectory(c.env.DB);
   // dev_only 百业 (如 demo): 非 dev 表面来源一律不列出 (OG worker 也靠这份名单判存在)
   if (!isDevRequestC(c)) {
     const devSet = await getDevOnlySlugs(c.env.DB);
@@ -326,11 +328,7 @@ hub.use(async (c, next) => {
 
 // GET /api/hub/tenants
 hub.get('/tenants', async (c) => {
-  const { results } = await c.env.DB.prepare(
-    `SELECT t.slug, t.guild_name, t.announcement, t.created_at,
-      (SELECT COUNT(*) FROM events e WHERE e.tenant = t.slug) AS event_count
-     FROM tenants t ORDER BY t.created_at ASC`
-  ).all();
+  const results = await listTenantsHubAdmin(c.env.DB);
   return json({ ok: true, tenants: results });
 });
 
@@ -344,12 +342,7 @@ hub.get('/errors', async (c) => {
 // DELETE /api/hub/tenants/:slug
 hub.delete('/tenants/:slug', async (c) => {
   const slug = s(c.req.param('slug'), 30);
-  await c.env.DB.batch([
-    c.env.DB.prepare('DELETE FROM signups WHERE event_id IN (SELECT id FROM events WHERE tenant = ?)').bind(slug),
-    c.env.DB.prepare('DELETE FROM results WHERE event_id IN (SELECT id FROM events WHERE tenant = ?)').bind(slug),
-    c.env.DB.prepare('DELETE FROM events WHERE tenant = ?').bind(slug),
-    c.env.DB.prepare('DELETE FROM tenants WHERE slug = ?').bind(slug),
-  ]);
+  await deleteTenantCascade(c.env.DB, slug);
   return json({ ok: true });
 });
 
@@ -389,7 +382,7 @@ async function reminderStateFor(c, slug) {
 
 // GET /api/hub/reminders 全部百业的提醒配置与状态
 hub.get('/reminders', async (c) => {
-  const { results } = await c.env.DB.prepare('SELECT slug FROM tenants ORDER BY created_at ASC').all();
+  const results = await listTenantSlugs(c.env.DB);
   const out = [];
   for (const t of results) {
     const st = await reminderStateFor(c, t.slug);
@@ -402,13 +395,13 @@ hub.get('/reminders', async (c) => {
 // webhook 传字符串 = 替换 (空串 = 清除), 不传 = 保持原样
 hub.put('/tenants/:slug/reminder', async (c) => {
   const slug = s(c.req.param('slug'), 40);
-  const t = await c.env.DB.prepare('SELECT slug FROM tenants WHERE slug = ?').bind(slug).first();
+  const t = await getTenantSlug(c.env.DB, slug);
   if (!t) return err('百业不存在', 404);
   const body = await getBody(c);
   if (body.webhook !== undefined) {
     const wh = s(body.webhook, 300);
     if (wh && !WEBHOOK_RE.test(wh)) return err('Webhook URL 格式不对（应为 https://discord.com/api/webhooks/...）', 400);
-    await c.env.DB.prepare('UPDATE tenants SET discord_webhook = ? WHERE slug = ?').bind(wh, slug).run();
+    await updateTenantWebhook(c.env.DB, slug, wh);
   }
   if (body.enabled !== undefined) {
     await setReminderSetting(c.env.DB, slug, 'reminder_enabled', body.enabled ? '1' : '0');
@@ -444,7 +437,7 @@ async function heirloomStateFor(c, slug) {
   const cfg = await getHeirloomConfig(c.env.DB, slug);
   if (!cfg) return null;
   const st = await heirloomStatusFor(c.env.DB, slug);
-  const t = await c.env.DB.prepare('SELECT guild_name FROM tenants WHERE slug = ?').bind(slug).first().catch(() => null);
+  const t = await getTenantRow(c.env.DB, slug).catch(() => null);
   return {
     slug,
     guild_name: t ? String(t.guild_name || slug) : slug,
@@ -460,7 +453,7 @@ async function heirloomStateFor(c, slug) {
 
 // GET /api/hub/heirlooms 全部百业的传家宝推送配置与状态
 hub.get('/heirlooms', async (c) => {
-  const { results } = await c.env.DB.prepare('SELECT slug FROM tenants ORDER BY created_at ASC').all();
+  const results = await listTenantSlugs(c.env.DB);
   const out = [];
   for (const t of results) {
     const st = await heirloomStateFor(c, t.slug);
@@ -473,7 +466,7 @@ hub.get('/heirlooms', async (c) => {
 // webhook 传字符串 = 替换 (空串 = 清除), 不传 = 保持原样
 hub.put('/tenants/:slug/heirloom', async (c) => {
   const slug = s(c.req.param('slug'), 40);
-  const t = await c.env.DB.prepare('SELECT slug FROM tenants WHERE slug = ?').bind(slug).first();
+  const t = await getTenantSlug(c.env.DB, slug);
   if (!t) return err('百业不存在', 404);
   const body = await getBody(c);
   if (body.webhook !== undefined) {
@@ -505,7 +498,7 @@ hub.post('/tenants/:slug/heirloom/test', async (c) => {
  * 急停 settings('', primitives_global_off) 在 prim.js 的 primEnabled
  * 里判, 本组端点只管百业级开关。 */
 async function primitivesStateFor(c, slug) {
-  const t = await c.env.DB.prepare('SELECT guild_name FROM tenants WHERE slug = ?').bind(slug).first().catch(() => null);
+  const t = await getTenantRow(c.env.DB, slug).catch(() => null);
   if (!t) return null;
   return {
     slug,
@@ -517,7 +510,7 @@ async function primitivesStateFor(c, slug) {
 
 // GET /api/hub/primitives 全部百业的原语面开关状态
 hub.get('/primitives', async (c) => {
-  const { results } = await c.env.DB.prepare('SELECT slug FROM tenants ORDER BY created_at ASC').all();
+  const results = await listTenantSlugs(c.env.DB);
   const out = [];
   for (const t of results) {
     const st = await primitivesStateFor(c, t.slug);
@@ -529,7 +522,7 @@ hub.get('/primitives', async (c) => {
 // PUT /api/hub/tenants/:slug/primitives {list?, detail?} 不传 = 保持原样
 hub.put('/tenants/:slug/primitives', async (c) => {
   const slug = s(c.req.param('slug'), 40);
-  const t = await c.env.DB.prepare('SELECT slug FROM tenants WHERE slug = ?').bind(slug).first();
+  const t = await getTenantSlug(c.env.DB, slug);
   if (!t) return err('百业不存在', 404);
   const body = await getBody(c);
   if (body.list !== undefined) {
@@ -984,9 +977,7 @@ const guild = new Hono();
 // 百业租户查找: /api/:slug/* 先确认百业存在, 不存在 -> 404
 guild.use('/:slug/*', async (c, next) => {
   const slug = s(c.req.param('slug'), 30);
-  const tenant = await c.env.DB.prepare(
-    'SELECT slug, guild_name, announcement, feature_fixed_teams FROM tenants WHERE slug = ?'
-  ).bind(slug).first();
+  const tenant = await getTenantRow(c.env.DB, slug);
   if (!tenant) return err('百业不存在', 404);
   c.set('slug', slug);
   c.set('tenant', tenant);
@@ -1435,7 +1426,7 @@ guild.post('/:slug/admin/login', async (c) => {
   const ip = c.get('ip');
   const body = await getBody(c);
   if (!rateLimit(ip, 'glogin', 10, 10 * 60 * 1000)) return err('尝试太频繁', 429);
-  const row = await c.env.DB.prepare('SELECT password_hash FROM tenants WHERE slug = ?').bind(slug).first();
+  const row = await getTenantRow(c.env.DB, slug);
   if (!row || !timingSafeEqual(await sha256hex(s(body.password, 200)), row.password_hash)) {
     return err('密码错误', 401);
   }
@@ -1500,8 +1491,10 @@ guild.put('/:slug/admin/profile', needGuildAdmin, async (c) => {
   const guild_name = s(body.guild_name, 20), announcement = s(body.announcement, 200), slogan = s(body.slogan, 50);
   const master_name = s(body.master_name, 20), logo_url = s(body.logo_url, 300), bg_image_url = s(body.bg_image_url, 300);
   if (guild_name.length < 2) return err('百业名称至少 2 个字', 400);
-  await c.env.DB.prepare('UPDATE tenants SET guild_name = ?, announcement = ?, slogan = ?, master_name = ?, logo_url = ?, bg_image_url = ? WHERE slug = ?')
-    .bind(guild_name, announcement, slogan, master_name, logo_url, bg_image_url, slug).run();
+  await updateTenantProfile(c.env.DB, slug, {
+    guildName: guild_name, announcement, slogan,
+    masterName: master_name, logoUrl: logo_url, bgImageUrl: bg_image_url,
+  });
   return json({ ok: true });
 });
 
@@ -1688,7 +1681,7 @@ guild.delete('/:slug/admin/results/:id', needGuildAdmin, async (c) => {
 // 决定前台登录后的可见性与写权限 (成员 gate)。管理员在此自配, 不集中配置。
 guild.get('/:slug/admin/discord', needGuildAdmin, async (c) => {
   const slug = c.get('slug');
-  const t = await c.env.DB.prepare('SELECT discord_webhook FROM tenants WHERE slug = ?').bind(slug).first();
+  const t = await getTenantRow(c.env.DB, slug);
   const dgid = await getSettingValue(c.env.DB, slug, 'discord_guild_id');
   return json({ ok: true, discord_webhook: t?.discord_webhook || '', discord_guild_id: dgid });
 });
@@ -1700,7 +1693,7 @@ guild.put('/:slug/admin/discord', needGuildAdmin, async (c) => {
     if (wh && !/^https:\/\/discord\.com\/api\/webhooks\/\d+\/[\w-]+$/.test(wh)) {
       return err('Webhook URL 格式不对', 400);
     }
-    await c.env.DB.prepare('UPDATE tenants SET discord_webhook = ? WHERE slug = ?').bind(wh, slug).run();
+    await updateTenantWebhook(c.env.DB, slug, wh);
   }
   if (body.discord_guild_id !== undefined) {
     const dgid = s(body.discord_guild_id, 25);
@@ -1734,8 +1727,7 @@ guild.put('/:slug/admin/features', needGuildAdmin, async (c) => {
   const slug = c.get('slug');
   const body = await getBody(c);
   if (body.feature_fixed_teams !== undefined) {
-    await c.env.DB.prepare('UPDATE tenants SET feature_fixed_teams = ? WHERE slug = ?')
-      .bind(body.feature_fixed_teams ? 1 : 0, slug).run();
+    await updateTenantFixedTeams(c.env.DB, slug, body.feature_fixed_teams ? 1 : 0);
   }
   return json({ ok: true });
 });
@@ -1958,7 +1950,7 @@ async function guildOgTags(env, slug) {
   try {
     // dev_only 百业在生产视为不存在: 不注入任何带名称的 OG 标签
     if (await isDevOnlyTenant(env.DB, slug)) return null;
-    const t = await env.DB.prepare('SELECT guild_name, slogan FROM tenants WHERE slug = ?').bind(slug).first();
+    const t = await getTenantRow(env.DB, slug);
     if (!t || !t.guild_name) return null;
     const name = t.guild_name;
     // 本周双十车队数 (装饰性字段, 查不到按 0 不带出, 不阻塞标签注入)
@@ -1992,7 +1984,7 @@ async function carOgTags(env, slug, carId) {
       .bind(parseInt(carId, 10) || 0).first();
     // 租户隔离: 车队不存在或不属于该 slug 时不注入, 不泄露他会数据
     if (!ev || ev.tenant !== slug) return null;
-    const t = await env.DB.prepare('SELECT guild_name FROM tenants WHERE slug = ?').bind(slug).first();
+    const t = await getTenantRow(env.DB, slug);
     if (!t || !t.guild_name) return null;
     const cnt = await env.DB.prepare('SELECT COUNT(*) AS c FROM signups WHERE event_id = ?').bind(ev.id).first();
     let dungeonName = '';
@@ -2070,7 +2062,7 @@ async function handleFetch(request, env, ctx) {
     };
     const findTenant = async (slug) => {
       try {
-        return await env.DB.prepare('SELECT slug FROM tenants WHERE slug = ?').bind(slug).first();
+        return await getTenantSlug(env.DB, slug);
       } catch { return null; } // 表未建时视为无租户
     };
     // React SPA 入口: 返回 index.html 并注入 OG 标签 (无标签时传 null)

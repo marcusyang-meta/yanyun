@@ -23,12 +23,12 @@ import {
   getReminderSetting, setReminderSetting, postWebhook, ensureGuildMembersTable,
 } from './reminder.js';
 import { getGuildNick } from './auth.js';
-import { webhookIdentity } from './guildavatar.js';
+import { webhookIdentity } from './guildavatar.ts';
+import { getTenantRow, listTenantNames } from './db/repositories/tenants.ts';
 
 /* ---------- 配置 (settings, tenant=slug) ---------- */
 export async function getHeirloomConfig(db, slug) {
-  const t = await db.prepare('SELECT guild_name FROM tenants WHERE slug = ?')
-    .bind(slug).first().catch(() => null);
+  const t = await getTenantRow(db, slug).catch(() => null);
   if (!t) return null;
   return {
     webhook: await getReminderSetting(db, slug, 'heirloom_webhook'),
@@ -180,8 +180,7 @@ export function buildHeirloomTestMessage(guildName) {
  * 绑定服务器, 或已在该百业名册中) 才评估。单百业失败静默, 不影响其他。 */
 export async function evaluateHeirloomPushes(db, args) {
   if (!db || !args || !args.discordId) return;
-  const { results } = await db.prepare('SELECT slug, guild_name FROM tenants')
-    .all().catch(() => ({ results: [] }));
+  const results = await listTenantNames(db).catch(() => []);
   for (const t of results || []) {
     try {
       await evaluateForTenant(db, t, args);
