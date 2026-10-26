@@ -17,6 +17,9 @@ export const ViewerQuery = graphql`
       loginCardBody2
       loginButtonLabel
       loginPrivacyText
+      footerDisclaimerText
+      footerTermsLabel
+      footerPrivacyLabel
       userBarSettingsLabel
       userBarLogoutLabel
       userBarLoggingOutLabel
@@ -409,6 +412,9 @@ export const ProfilePageQuery = graphql`
       userBarLogoutLabel
       userBarLoggingOutLabel
       commonUnknownErrorText
+      footerDisclaimerText
+      footerTermsLabel
+      footerPrivacyLabel
     }
     settingsPage {
       settingsTitle

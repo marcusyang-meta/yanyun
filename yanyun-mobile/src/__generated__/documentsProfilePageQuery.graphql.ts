@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<1de7ef6c6db598d7d065d27f1c09543c>>
+ * @generated SignedSource<<a561fae1ff0b670a3f760331f1dd1818>>
  * @lightSyntaxTransform
  */
 
@@ -27,6 +27,9 @@ export type documentsProfilePageQuery$data = {
   };
   readonly viewer: {
     readonly commonUnknownErrorText: string;
+    readonly footerDisclaimerText: string;
+    readonly footerPrivacyLabel: string;
+    readonly footerTermsLabel: string;
     readonly userBarLoggingOutLabel: string;
     readonly userBarLogoutLabel: string;
   };
@@ -65,6 +68,27 @@ var v0 = [
         "args": null,
         "kind": "ScalarField",
         "name": "commonUnknownErrorText",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "footerDisclaimerText",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "footerTermsLabel",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "footerPrivacyLabel",
         "storageKey": null
       }
     ],
@@ -191,16 +215,16 @@ return {
     "selections": (v0/*:: as any*/)
   },
   "params": {
-    "cacheID": "95e1c15684ecdad3d2bb268f90100373",
+    "cacheID": "6695db6ad16bd9a237c68eec53412f73",
     "id": null,
     "metadata": {},
     "name": "documentsProfilePageQuery",
     "operationKind": "query",
-    "text": "query documentsProfilePageQuery {\n  viewer {\n    userBarLogoutLabel\n    userBarLoggingOutLabel\n    commonUnknownErrorText\n  }\n  settingsPage {\n    settingsTitle\n    settingsDiscordLabel\n    settingsLanguageLabel\n    settingsLanguageHint\n    settingsAutoLabel\n    settingsLangZhCnLabel\n    settingsLangZhTwLabel\n    settingsLangEnLabel\n    settingsLangEsLabel\n    settingsLangFrLabel\n    settingsSavedText\n    localePref\n    effectiveLocale\n  }\n}\n"
+    "text": "query documentsProfilePageQuery {\n  viewer {\n    userBarLogoutLabel\n    userBarLoggingOutLabel\n    commonUnknownErrorText\n    footerDisclaimerText\n    footerTermsLabel\n    footerPrivacyLabel\n  }\n  settingsPage {\n    settingsTitle\n    settingsDiscordLabel\n    settingsLanguageLabel\n    settingsLanguageHint\n    settingsAutoLabel\n    settingsLangZhCnLabel\n    settingsLangZhTwLabel\n    settingsLangEnLabel\n    settingsLangEsLabel\n    settingsLangFrLabel\n    settingsSavedText\n    localePref\n    effectiveLocale\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "a82cb559abe619996858a005f24da37a";
+(node as any).hash = "06a2c69023c82fd6390a8194bb4db748";
 
 export default node;

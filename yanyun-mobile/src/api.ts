@@ -55,6 +55,9 @@ export type SiteText = {
   loginCardBody2?: string | null;
   loginButtonLabel?: string | null;
   loginPrivacyText?: string | null;
+  footerDisclaimerText?: string | null;
+  footerTermsLabel?: string | null;
+  footerPrivacyLabel?: string | null;
   userBarSettingsLabel?: string | null;
   userBarLogoutLabel?: string | null;
   userBarLoggingOutLabel?: string | null;
@@ -105,6 +108,9 @@ export async function fetchViewer(): Promise<ViewerData> {
       loginCardBody2: viewer?.loginCardBody2,
       loginButtonLabel: viewer?.loginButtonLabel,
       loginPrivacyText: viewer?.loginPrivacyText,
+      footerDisclaimerText: viewer?.footerDisclaimerText,
+      footerTermsLabel: viewer?.footerTermsLabel,
+      footerPrivacyLabel: viewer?.footerPrivacyLabel,
       userBarSettingsLabel: viewer?.userBarSettingsLabel,
       userBarLogoutLabel: viewer?.userBarLogoutLabel,
       userBarLoggingOutLabel: viewer?.userBarLoggingOutLabel,
