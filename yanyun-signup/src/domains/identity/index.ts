@@ -3,3 +3,4 @@
  * 这里 import 本域能力, 不许直引本域的仓库文件。 */
 export * from './users.ts';
 export * from './guildMembers.ts';
+export * from './graphql.ts';

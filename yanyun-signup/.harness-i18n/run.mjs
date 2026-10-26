@@ -3,7 +3,7 @@
 import { yoga } from '../src/graphql.js';
 import { getUserLocalePref } from '../src/auth.js';
 import { negotiateLocale, CATALOG, SUPPORTED_LOCALES, i18nProbe } from '../src/domains/platform/i18n.ts';
-import { typeDefs } from '../src/graphql-schema.js';
+import { typeDefs } from '../src/graphql-schema.ts';
 
 let pass = 0, fail = 0; const fails = [];
 function check(name, ok, extra = '') { if (ok) pass++; else { fail++; fails.push(name + (extra ? ' — ' + extra : '')); } }
