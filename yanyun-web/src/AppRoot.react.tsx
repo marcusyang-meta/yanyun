@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { graphql, usePreloadedQuery } from 'react-relay';
 import type { PreloadedQuery } from 'react-relay';
@@ -75,6 +75,15 @@ export default function AppRoot({ queries }: {
 }) {
   const data = usePreloadedQuery<AppViewerQueryType>(AppViewerQueryNode, queries.viewerQuery);
   const viewer = data.viewer as any;
+
+  // The window never scrolls (see index.css shell lock); routed content
+  // scrolls inside .yy-scroll-region. Each navigation starts that region
+  // back at the top, like a native app shell.
+  const scrollRegionRef = useRef<HTMLDivElement | null>(null);
+  const location = useLocation();
+  useEffect(() => {
+    scrollRegionRef.current?.scrollTo(0, 0);
+  }, [location.pathname]);
   const user: ViewerUser | null = viewer.user ?? null;
 
   const siteText = { title: viewer.siteTitle, subtitle: viewer.siteSubtitle, heroAlt: viewer.siteHeroAlt };
@@ -116,6 +125,7 @@ export default function AppRoot({ queries }: {
     <>
       <SiteBackdrop />
       <div className="yy-app-main">
+        <div className="yy-scroll-region" ref={scrollRegionRef}>
         <Routes>
       <Route
         path="/"
@@ -147,7 +157,9 @@ export default function AppRoot({ queries }: {
       />
       <Route path="/:slug" element={user ? <GuildRouteLoader /> : <LoginGateWithText site={siteText} text={loginText} />} />
         </Routes>
-        {/* Site-wide footer: unofficial disclaimer + terms/privacy links (all copy backend-delivered) */}
+        </div>
+        {/* Site-wide footer: unofficial disclaimer + terms/privacy links (all copy backend-delivered).
+            In flow below the scroll region, so it is always fully on screen. */}
         <SiteFooter text={footerText} />
       </div>
     </>
