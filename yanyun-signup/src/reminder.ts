@@ -5,6 +5,8 @@ import { getTenantRow } from './domains/guilds/index.ts';
 import { getSettingValue, setSettingValue } from './domains/guilds/index.ts';
 import {
   nextPendingReminderStart, listDueReminderEvents, markReminderSent, markReminderError,
+  ensureReminderColumns as ensureReminderColumnsRepo,
+  ensureSignupDiscordColumn as ensureSignupDiscordColumnRepo,
 } from './domains/groupings/index.ts';
 import { listSignupSeatsForReminder } from './domains/groupings/index.ts';
 import { getUsernameRow, listUsersDirectory, listNicksByGuild, getNickRow } from './domains/identity/index.ts';
@@ -43,43 +45,14 @@ export function carOgImageUrl(slug: string, eventId: number): string {
 /* ---------- events 提醒状态列 (懒 DDL, 与 ensureEventCreatorColumn 同套路) ----------
 * reminder_sent_at: 成功发送的 epoch 秒; reminder_error: 失败原因 (非空 =
 * 该车已结算, 永不重试 — 防死 webhook 重试风暴)。两列皆空 = 尚未提醒。 */
-let reminderColsReady: Promise<void> | null = null;
+// 懒 DDL 已归 groupings 域仓库 (三期); 此处保留旧名导出作委托
+// (worker.ts 从本模块 import ensureSignupDiscordColumn)。
 export function ensureReminderColumns(db: any) {
-if (!reminderColsReady) {
-reminderColsReady = (async () => {
-try {
-const { results} = await db.prepare('PRAGMA table_info(events)').all();
-const cols = new Set(results.map((r: any) => r.name));
-if (!cols.has('reminder_sent_at')) {
-await db.prepare('ALTER TABLE events ADD COLUMN reminder_sent_at INTEGER').run();
-}
-if (!cols.has('reminder_error')) {
-await db.prepare('ALTER TABLE events ADD COLUMN reminder_error TEXT').run();
-}
-} catch { /* 列已存在等情况静默 */}
-})();
-}
-return reminderColsReady;
+  return ensureReminderColumnsRepo(db);
 }
 
-/* ---------- signups 身份戳列 (懒 DDL) ----------
- * signups.discord_id: 落座者本人登录报名时由服务端按会话盖戳 (写入规则在
- * graphql.js: 昵称与本人身份一致才盖)。有戳 = 精确身份, 提醒时直接 <@id>,
- * 不再依赖昵称匹配; 无戳 (代报名/REST/旧数据) 才回退昵称唯一匹配。 */
-let signupDiscordColReady: Promise<void> | null = null;
 export function ensureSignupDiscordColumn(db: any) {
-  if (!signupDiscordColReady) {
-    signupDiscordColReady = (async () => {
-      try {
-        const { results } = await db.prepare('PRAGMA table_info(signups)').all();
-        const cols = new Set(results.map((r: any) => r.name));
-        if (!cols.has('discord_id')) {
-          await db.prepare('ALTER TABLE signups ADD COLUMN discord_id TEXT').run();
-        }
-      } catch { /* 列已存在等情况静默 */ }
-    })();
-  }
-  return signupDiscordColReady;
+  return ensureSignupDiscordColumnRepo(db);
 }
 
 /* ---------- 百业成员名册 (guild_members): 本体已归数据层 ----------

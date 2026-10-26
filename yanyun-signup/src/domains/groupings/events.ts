@@ -9,11 +9,9 @@
  * 写法沿用一期 sql 模板惯用法 + sql.identifier 裸列名内插, 生成
  * SQL 与被替代的旧语句同形 (harness FakeDB 按形路由无需感知)。
  *
- * 本期红线 (有意不迁, 仍在调用方): 提及解析的 JOIN 单元、容量守卫
- * 的原子 INSERT ... SELECT (graphql.js / worker.js 各一份)、hub
- * 车头回填端点的守卫式盖戳、COUNT(DISTINCT nickname) 名册聚合。
- * deleteEventCascade 在数据层内部组合 signups / results 的删除
- * (results 本期无独立 repository, 只作为级联一环出现在这里)。
+ * 红线项 (三期收尾笔收口): 提及解析的 JOIN 单元、容量守卫的原子
+ * INSERT ... SELECT、COUNT(DISTINCT nickname) 名册聚合。
+ * deleteEventCascade 在数据层内部组合 signups / results 的删除。
  * =================================================== */
 import { sql } from 'drizzle-orm';
 import { createDb, schema } from '../../db/client.ts';
@@ -49,6 +47,51 @@ interface RunMeta {
 function metaOf(r: unknown): RunMeta {
   const m = (r as { meta?: { changes?: number; last_row_id?: number } } | null)?.meta;
   return { changes: m?.changes ?? 0, last_row_id: m?.last_row_id ?? 0 };
+}
+
+/* ---------- 懒 DDL: 增列 (creator 身份列 / 提醒状态列) ---------- */
+
+async function pragmaColumns(d1: D1Database): Promise<Set<string>> {
+  const db = createDb(d1);
+  const results = await db.all<{ name: string }>(sql`PRAGMA table_info(${events})`);
+  return new Set((results || []).map((r) => r.name));
+}
+
+let eventCreatorColReady: Promise<void> | null = null;
+/** events.creator_discord_id 增列 (车头身份, 解散/编辑/完成只认此列)。 */
+export function ensureEventCreatorColumn(d1: D1Database): Promise<void> {
+  if (!eventCreatorColReady) {
+    eventCreatorColReady = (async () => {
+      try {
+        const db = createDb(d1);
+        const cols = await pragmaColumns(d1);
+        if (!cols.has('creator_discord_id')) {
+          await db.run(sql`ALTER TABLE ${events} ADD COLUMN ${col('creator_discord_id')} TEXT`);
+        }
+      } catch { /* 列已存在等情况静默 */ }
+    })();
+  }
+  return eventCreatorColReady;
+}
+
+let reminderColsReady: Promise<void> | null = null;
+/** events.reminder_sent_at / reminder_error 增列 (提醒结算状态)。 */
+export function ensureReminderColumns(d1: D1Database): Promise<void> {
+  if (!reminderColsReady) {
+    reminderColsReady = (async () => {
+      try {
+        const db = createDb(d1);
+        const cols = await pragmaColumns(d1);
+        if (!cols.has('reminder_sent_at')) {
+          await db.run(sql`ALTER TABLE ${events} ADD COLUMN ${col('reminder_sent_at')} INTEGER`);
+        }
+        if (!cols.has('reminder_error')) {
+          await db.run(sql`ALTER TABLE ${events} ADD COLUMN ${col('reminder_error')} TEXT`);
+        }
+      } catch { /* 列已存在等情况静默 */ }
+    })();
+  }
+  return reminderColsReady;
 }
 
 /* ---------- 读取 ---------- */

@@ -15,34 +15,18 @@
 // 留存封顶: 30 天 + 总行数上限, 写入时按计数节流触发懒清理, 不设 cron。
 import {
   insertErrorLog, pruneErrorLog, listRecentErrors, countErrorsSince,
+  ensureErrorLogTable as ensureErrorLogTableRepo,
 } from './domains/platform/index.ts';
 
 const KEEP_DAYS = 30;
 const MAX_ROWS = 5000;
 const PRUNE_EVERY = 50; // 每 50 次写入顺手清理一次 (单 isolate 计数)
 
-let tableReady = null;
 let writeCount = 0;
 
+// 懒 DDL 已归 platform 域 errorLog 仓库 (三期); 此处保留旧名导出作委托。
 export function ensureErrorLogTable(db) {
-  if (!tableReady) {
-    tableReady = (async () => {
-      try {
-        await db.prepare(`CREATE TABLE IF NOT EXISTS error_log (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          at INTEGER NOT NULL,
-          source TEXT NOT NULL DEFAULT '',
-          name TEXT NOT NULL DEFAULT '',
-          message TEXT NOT NULL DEFAULT '',
-          tenant TEXT NOT NULL DEFAULT '',
-          context TEXT NOT NULL DEFAULT '',
-          stack TEXT NOT NULL DEFAULT ''
-        )`).run();
-        await db.prepare('CREATE INDEX IF NOT EXISTS idx_error_log_at ON error_log(at)').run();
-      } catch { /* 建表失败静默: 监控不可用不能拖垮业务 */ }
-    })();
-  }
-  return tableReady;
+  return ensureErrorLogTableRepo(db);
 }
 
 async function prune(db) {

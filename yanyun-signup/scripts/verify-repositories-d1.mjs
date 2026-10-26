@@ -8,7 +8,7 @@
  * 实体定义镜像 (生产结构零变更, 这里只是本地验证夹具)。
  *
  * 用法: node scripts/verify-repositories-d1.mjs [section]
- *   section 省略 = 全部; 目前有 tenants / events / gear / users / members / results / dex / state 八段,
+ *   section 省略 = 全部; 目前有 tenants / events / gear / users / members / results / dex / state / ddl 九段,
  *   随数据层迁移进度增补。退出码非 0 = 有断言失败。
  * =================================================== */
 import { Miniflare, convertV4MiniflareOptions } from 'miniflare';
@@ -658,6 +658,36 @@ if (want('state')) {
   await ft.deleteFixedTeamWithMembers(db, t1.last_row_id);
   eq('deleteFixedTeamWithMembers removes team', await ft.listFixedTeams(db, 'g1'), []);
   eq('deleteFixedTeamWithMembers removes members', await ft.listFixedTeamMembers(db, t1.last_row_id), []);
+}
+
+/* ---------------- lazy DDL ownership (ensures live in repositories) --- */
+if (want('ddl')) {
+  console.log('== repository-owned lazy DDL on real D1 ==');
+  const ev = await import('../src/domains/groupings/events.ts');
+  const su = await import('../src/domains/groupings/signups.ts');
+  const pt = await import('../src/domains/platform/pushTokens.ts');
+  const el = await import('../src/domains/platform/errorLog.ts');
+  const gr = await import('../src/domains/gear/gear.ts');
+  const ga = await import('../src/domains/guilds/guildAvatars.ts');
+
+  // 每项连跑两次: 第二次必须幂等无错 (列/表已存在)。
+  for (let i = 0; i < 2; i++) {
+    await ev.ensureEventCreatorColumn(db);
+    await ev.ensureReminderColumns(db);
+    await su.ensureSignupDiscordColumn(db);
+    await pt.ensurePushTokensTable(db);
+    await el.ensureErrorLogTable(db);
+    await gr.ensureGearTables(db);
+    await ga.ensureGuildAvatarsTable(db);
+  }
+  const tables = await db.prepare("SELECT name FROM sqlite_master WHERE type = 'table'").all();
+  const names = new Set(tables.results.map((r) => r.name));
+  check('ensures created/kept all lazy tables', ['push_tokens', 'error_log', 'user_gear_items', 'user_gear_builds', 'guild_avatars'].every((t) => names.has(t)));
+  const evCols = await db.prepare('PRAGMA table_info(events)').all();
+  const colNames = new Set(evCols.results.map((r) => r.name));
+  check('events carries creator + reminder columns', ['creator_discord_id', 'reminder_sent_at', 'reminder_error'].every((c) => colNames.has(c)));
+  const suCols = await db.prepare('PRAGMA table_info(signups)').all();
+  check('signups carries discord_id column', suCols.results.some((r) => r.name === 'discord_id'));
 }
 
 await mf.dispose();

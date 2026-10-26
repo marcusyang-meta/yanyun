@@ -1,11 +1,32 @@
-// Guild-avatar repository: row operations for the guild_avatars entity.
-// Public shapes (camelCase, nullable-on-missing) are produced here; the
-// error-to-null tolerance of the read paths stays in guildavatar.js,
-// mirroring the legacy .catch(() => null) call sites. Table DDL remains
-// the lazy ensureGuildAvatarsTable in guildavatar.js this phase.
+// Guild-avatar repository: the guild_avatars entity's lazy DDL and
+// row operations. Public shapes (camelCase, nullable-on-missing) are
+// produced here; the error-to-null tolerance of the read paths stays
+// in the guilds avatar service, mirroring the legacy
+// .catch(() => null) call sites.
 import { sql } from 'drizzle-orm';
 import { createDb } from '../../db/client.ts';
 import { guildAvatars } from './schema.ts';
+
+/* ---------- 懒 DDL ---------- */
+
+let guildAvatarsTableReady: Promise<void> | null = null;
+export function ensureGuildAvatarsTable(d1: D1Database): Promise<void> {
+  if (!guildAvatarsTableReady) {
+    guildAvatarsTableReady = (async () => {
+      try {
+        const db = createDb(d1);
+        await db.run(sql`CREATE TABLE IF NOT EXISTS ${guildAvatars} (
+          tenant TEXT PRIMARY KEY,
+          content_type TEXT NOT NULL,
+          bytes BLOB NOT NULL,
+          hash TEXT NOT NULL,
+          updated_at INTEGER NOT NULL
+        )`);
+      } catch { /* 建表失败静默: 头像面不可用不能拖垮业务 */ }
+    })();
+  }
+  return guildAvatarsTableReady;
+}
 
 export interface GuildAvatarMeta {
   contentType: string;
