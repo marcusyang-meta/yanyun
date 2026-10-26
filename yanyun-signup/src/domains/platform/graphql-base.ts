@@ -186,6 +186,38 @@ export async function getGuildAdminAccess(db: any, user: any, slug: any, request
   return { exists: true, slug: t.slug, tenant: t, discordGuildId: dgid, devOnly, isAdmin };
 }
 
+/* Grouping manage verdict (ruling 2026-10-26): a grouping is managed
+ * by its leader (events.creator_discord_id) OR by an admin of the
+ * grouping's OWN guild — the guild-admin verdict above, resolved
+ * against the guild the grouping belongs to, never against a guild
+ * the caller happens to administer elsewhere. This one verdict backs
+ * the four manage mutations (edit / disband / complete / reopen) and
+ * the detail surfaces' action composition; do not re-derive it per
+ * call site. */
+export async function getGroupingManageVerdict(db: any, user: any, request: any, vc: ViewerContext | null | undefined, ev: { tenant: string; creator_discord_id?: string | null }): Promise<{ isLeader: boolean; isAdmin: boolean; canManage: boolean }> {
+  const isLeader = !!(user && ev.creator_discord_id
+    && String(ev.creator_discord_id) === String(user.discordId));
+  if (isLeader) return { isLeader: true, isAdmin: false, canManage: true };
+  const a = await getGuildAdminAccess(db, user, ev.tenant, request, vc);
+  const isAdmin = !!a.isAdmin;
+  return { isLeader: false, isAdmin, canManage: isAdmin };
+}
+
+/* The manage mutations' full gate: the membership write gate plus the
+ * manage verdict. The write gate is skipped for the omniscient VC —
+ * its session model cannot express a system viewer (user is null),
+ * and the verdict below still decides, passing omni in full per the
+ * omniscient doctrine. writeCode is the write gate's rejection code,
+ * null when the caller passed it. */
+export async function groupingManageGate(db: any, user: any, request: any, vc: ViewerContext | null | undefined, ev: { tenant: string; creator_discord_id?: string | null }): Promise<{ writeCode: string | null; isLeader: boolean; isAdmin: boolean; canManage: boolean }> {
+  if (!isOmniscientViewer(vc)) {
+    const w = await requireWrite(db, user, ev.tenant, request);
+    if (w) return { writeCode: w, isLeader: false, isAdmin: false, canManage: false };
+  }
+  const v = await getGroupingManageVerdict(db, user, request, vc, ev);
+  return { writeCode: null, ...v };
+}
+
 // The /ws/guild/:slug subscription route reuses this same check —
 // never copy the membership rules elsewhere (single source of truth).
 export async function getGuildAccess(db: any, user: any, slug: any, request: any): Promise<any> {

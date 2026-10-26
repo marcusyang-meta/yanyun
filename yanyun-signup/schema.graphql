@@ -415,6 +415,10 @@ type GroupingDetailPage {
   # 移动端 Bloks-lite: 本页内容区积木对象树 (同 GroupingListPage.blocks);
   # 逐座动作与解散按钮按观看者在服务端生成, 客户端不重建权限。
   blocks(blocksVersion: Int): [Block!]!
+  # 管理动作对象: 仅当观看者可管理本车时存在 (车头本人, 或本百业的
+  # 管理员——2026-10-26 裁决与车头同权); 否则为 null, 客户端不渲染
+  # 编辑/完成/恢复/解散入口。服务端在 mutation 处独立复验。
+  manageActions: GroupingManageActions
   # 无管理码，人人可管
   # UI 文案: 全部由本页 shell 的 gen 方法按请求 locale 生成
   detailNotFoundText: String!
@@ -516,6 +520,21 @@ type GroupingDetailPage {
   formToastPosted: String!
   formToastCreateFailedTemplate: String!
   formTitleTemplate: String!
+}
+
+# 管理动作 (编辑/完成/恢复/解散) 的文案组: 只随 GroupingDetailPage
+# .manageActions 下发, 对象在场本身即管理判定结果 (非权限标志)。
+type GroupingManageActions {
+  editLabel: String!
+  completeLabel: String!
+  completingLabel: String!
+  restoreLabel: String!
+  disbandLabel: String!
+  disbandingLabel: String!
+  disbandConfirmTitle: String!
+  disbandConfirmMessageTemplate: String!
+  completeConfirmTitle: String!
+  completeConfirmMessageTemplate: String!
 }
 
 # ============ 页面：攻略（图鉴） ============
@@ -1117,12 +1136,12 @@ type SectWeight {
 # ============ Mutations ============
 
 type Mutation {
-  # 组队（无管理码，人人可管；唯一例外：解散仅车头可为）
+  # 组队（无管理码，人人可管；唯一例外：编辑/解散/完成/恢复仅车头或本百业管理员可为）
   createGrouping(input: CreateGroupingInput!): GroupingPayload!
   updateGrouping(id: ID!, input: UpdateGroupingInput!): GroupingPayload!
-  disbandGrouping(id: ID!): DeletePayload!  # 解散车队：仅车头（创建者）可为，服务端复验
-  completeGrouping(id: ID!): GroupingPayload!  # 完成车队：仅车头可为，服务端复验；完成车不进列表、不发提醒
-  reopenGrouping(id: ID!): GroupingPayload!  # 恢复车队（撤销完成，回到 open）：仅车头可为，服务端复验
+  disbandGrouping(id: ID!): DeletePayload!  # 解散车队：仅车头或本百业管理员可为，服务端复验
+  completeGrouping(id: ID!): GroupingPayload!  # 完成车队：仅车头或本百业管理员可为，服务端复验；完成车不进列表、不发提醒
+  reopenGrouping(id: ID!): GroupingPayload!  # 恢复车队（撤销完成，回到 open）：仅车头或本百业管理员可为，服务端复验
   joinGrouping(input: JoinGroupingInput!): SeatPayload!
   leaveGrouping(input: LeaveGroupingInput!): SeatPayload!
   updateSeatWeapon(input: UpdateSeatWeaponInput!): SeatPayload!
