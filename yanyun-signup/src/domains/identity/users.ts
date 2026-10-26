@@ -13,7 +13,7 @@
  * 调用方, 与旧口径一致。
  * =================================================== */
 import { sql } from 'drizzle-orm';
-import { createDb, schema } from '../client.ts';
+import { createDb, schema } from '../../db/client.ts';
 
 const { users, userOauth, userGuildNicks } = schema;
 const col = (name: string) => sql.identifier(name);

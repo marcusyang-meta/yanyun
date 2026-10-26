@@ -18,7 +18,7 @@
  * 保持旧 batch 的顺序语义 (先报名/结果, 再车队, 最后租户本身)。
  * =================================================== */
 import { sql } from 'drizzle-orm';
-import { createDb, schema } from '../client.ts';
+import { createDb, schema } from '../../db/client.ts';
 
 const { tenants, events, signups, results } = schema;
 const col = (name: string) => sql.identifier(name);

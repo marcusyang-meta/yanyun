@@ -24,9 +24,9 @@ import {
 } from './reminder.ts';
 import { getGuildNick } from './auth.js';
 import { webhookIdentity } from './guildavatar.ts';
-import { getTenantRow, listTenantNames } from './db/repositories/tenants.ts';
-import { getUsernameRow } from './db/repositories/users.ts';
-import { getGuildMember, hasGuildMember } from './db/repositories/guildMembers.ts';
+import { getTenantRow, listTenantNames } from './domains/guilds/index.ts';
+import { getUsernameRow } from './domains/identity/index.ts';
+import { getGuildMember, hasGuildMember } from './domains/identity/index.ts';
 
 /* ---------- 配置 (settings, tenant=slug) ---------- */
 export async function getHeirloomConfig(db, slug) {

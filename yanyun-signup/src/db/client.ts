@@ -1,7 +1,7 @@
 // Data-layer client factory.
 //
 // Business code never touches the D1 binding directly; it goes through
-// the repositories in src/db/repositories/, which take the raw binding
+// the domain repositories in src/domains/<domain>/, which take the raw binding
 // (env.DB, or a D1-shaped test double in the .harness-* suites) and wrap
 // it here. The drizzle instance is cached per binding object so wrapping
 // on every call stays free.

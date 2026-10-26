@@ -12,7 +12,7 @@
  * 的身份戳 UPDATE (worker.js 提及单元)。
  * =================================================== */
 import { sql } from 'drizzle-orm';
-import { createDb, schema } from '../client.ts';
+import { createDb, schema } from '../../db/client.ts';
 
 const { signups, events } = schema;
 const col = (name: string) => sql.identifier(name);
@@ -32,7 +32,7 @@ export interface SignupRow {
   discord_id: string | null;
 }
 
-export interface RunMeta {
+interface RunMeta {
   changes: number;
   last_row_id: number;
 }

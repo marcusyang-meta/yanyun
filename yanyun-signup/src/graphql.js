@@ -18,21 +18,28 @@ import { evaluateHeirloomPushes } from './heirloompush.js';
 import { translate, negotiateLocale, SUPPORTED_LOCALES, CATALOG } from './i18n.js';
 import { logError } from './errorlog.js';
 import { getGuildAvatarMeta, avatarPath } from './guildavatar.ts';
-import { getSettingValue, setSettingValue, listSettingsByKey } from './db/repositories/settings.ts';
-import { getUsernameRow } from './db/repositories/users.ts';
-import { listGuildMembers, getGuildMember } from './db/repositories/guildMembers.ts';
+import { getSettingValue, setSettingValue, listSettingsByKey } from './domains/guilds/index.ts';
+import { getUsernameRow } from './domains/identity/index.ts';
+import { listGuildMembers, getGuildMember } from './domains/identity/index.ts';
+import {
+  getBossById, listBossesByDungeon, ensureBossStructuredColumns as ensureBossStructuredColumnsRepo,
+} from './domains/dex/index.ts';
+import {
+  getDungeonByName, getDungeonNameSizeById, listDungeonsDex, getLatestDungeonVersion,
+  ensureDungeonDexColumns as ensureDungeonDexColumnsRepo,
+} from './domains/dex/index.ts';
 import {
   getTenantRow, getTenantSlug, listTenantSlugs, listTenantsDirectory, insertTenant,
-} from './db/repositories/tenants.ts';
+} from './domains/guilds/index.ts';
 import {
   getEventRow, getEventTenant, getEventTenantCreator, listEventsByTenantType,
   insertEvent, updateEventFields, setEventStatus, deleteEventCascade,
-} from './db/repositories/events.ts';
+} from './domains/groupings/index.ts';
 import {
   listSignupSeats, listSignupSeatsBasic, listSignupNamesStamps, getSignupCapacityStats,
   insertSignups, deleteSignupById, deleteSignupByEventUid, deleteSignupsByEvent,
   updateSignupWeaponRoleByUid,
-} from './db/repositories/signups.ts';
+} from './domains/groupings/index.ts';
 import {
   listGearItems, insertGearItem, updateGearItemRow, deleteGearItemRow,
   listGearBuilds, insertGearBuild, deleteGearBuildRow,
@@ -149,7 +156,7 @@ const CREATE_RESERVED = new Set([
   'events', 'static', 'assets', 'app', 'style', 'favicon', 'robots', 'www',
 ]);
 
-// Settings access goes through the data layer (src/db/repositories/
+// Settings access goes through the data layer (src/domains/guilds/
 // settings.ts); these local names remain for the many call sites below.
 async function getTenantSetting(db, slug, key) {
   return getSettingValue(db, slug, key);
@@ -357,10 +364,8 @@ async function getCurrentVersionCode(db) {
   const configured = await getSettingValue(db, '', 'game_version_code');
   if (configured) return configured;
   try {
-    const row = await db.prepare(
-      "SELECT version FROM dungeons WHERE version IS NOT NULL AND version != '' AND version != 'legacy' GROUP BY version ORDER BY MAX(id) DESC LIMIT 1"
-    ).first();
-    if (row && row.version) return row.version;
+    const derived = await getLatestDungeonVersion(db);
+    if (derived) return derived;
   } catch { /* 用默认值 */ }
   return 'intl-v2.3';
 }
@@ -407,7 +412,7 @@ class GroupingShell extends ShellBase {
     return this.memo('dungeon', async () => {
       if (!this.ev.dungeon) return null;
       await ensureDungeonDexColumns(this.db);
-      const d = await this.db.prepare('SELECT * FROM dungeons WHERE name = ?').bind(this.ev.dungeon).first();
+      const d = await getDungeonByName(this.db, this.ev.dungeon);
       return d ? new DungeonShell(this.ctx, d) : null;
     });
   }
@@ -427,9 +432,7 @@ class DungeonShell extends ShellBase {
   genLevel() { return (this.row.level === null || this.row.level === undefined) ? null : Number(this.row.level); }
   genBosses() {
     return this.memo('bosses', async () => {
-      const { results } = await this.db.prepare(
-        'SELECT id, name FROM bosses WHERE dungeon = ? ORDER BY sort_order ASC, id ASC'
-      ).bind(this.row.name).all();
+      const results = await listBossesByDungeon(this.db, this.row.name);
       return (results || []).map((b) => new BossShell(this.ctx, { id: b.id, name: b.name, dungeonShell: this }));
     });
   }
@@ -445,7 +448,7 @@ class BossShell extends ShellBase {
       const name = (this.data.row && this.data.row.dungeon) || this.data.dungeonName || null;
       if (!name) return null;
       await ensureDungeonDexColumns(this.db);
-      const d = await this.db.prepare('SELECT * FROM dungeons WHERE name = ?').bind(name).first();
+      const d = await getDungeonByName(this.db, name);
       return d ? new DungeonShell(this.ctx, d) : null;
     });
   }
@@ -453,7 +456,7 @@ class BossShell extends ShellBase {
     return this.memo('structured', async () => {
       let row = this.data.row || null;
       if (!row) {
-        row = await this.db.prepare('SELECT * FROM bosses WHERE id = ?').bind(parseInt(this.data.id, 10) || 0).first();
+        row = await getBossById(this.db, parseInt(this.data.id, 10) || 0);
       }
       return bossStructured(this.db, row);
     });
@@ -569,22 +572,9 @@ export function parseGuideStructured(guide) {
   return { mechanics, talents, shouts };
 }
 
-// bosses 结构化列 (mechanics_json/talents_json/shouts_json) 惰性补齐:
-// API token 无 D1 写权限, DDL 只能由 Worker 经 binding 执行 (与 users 表同套路)
-let bossColsReady = null;
+// bosses 结构化列懒 DDL 已归 bosses repository (三期); 此处保留旧名导出作委托
 export function ensureBossStructuredColumns(db) {
-  if (!bossColsReady) {
-    bossColsReady = (async () => {
-      try {
-        const { results } = await db.prepare('PRAGMA table_info(bosses)').all();
-        const cols = new Set(results.map((r) => r.name));
-        for (const col of ['mechanics_json', 'talents_json', 'shouts_json']) {
-          if (!cols.has(col)) await db.prepare(`ALTER TABLE bosses ADD COLUMN ${col} TEXT`).run();
-        }
-      } catch { /* 列已存在等情况静默: 读取侧有 guide 解析兜底 */ }
-    })();
-  }
-  return bossColsReady;
+  return ensureBossStructuredColumnsRepo(db);
 }
 
 /* ---------- 攻略赛季/分类 (2026-10-24 用户定型) ----------
@@ -598,21 +588,9 @@ export const SEASON_NAMES = {
 export const DEX_CATEGORY_ORDER = ['传薪', '铸矩', '鉴心', '梦洄', '试锋'];
 export const DEX_CATEGORY_SEASON = { '传薪': 'S5', '铸矩': 'S4', '鉴心': 'S3', '梦洄': 'S2', '试锋': 'S1' };
 
-// dungeons 赛季/分类/等级列惰性补齐 (同 bosses 结构化列套路: DDL 只能由 Worker 执行)
-let dungeonDexColsReady = null;
+// dungeons 赛季/分类/等级列懒 DDL 已归 dungeons repository (三期); 旧名委托
 export function ensureDungeonDexColumns(db) {
-  if (!dungeonDexColsReady) {
-    dungeonDexColsReady = (async () => {
-      try {
-        const { results } = await db.prepare('PRAGMA table_info(dungeons)').all();
-        const cols = new Set(results.map((r) => r.name));
-        if (!cols.has('season')) await db.prepare('ALTER TABLE dungeons ADD COLUMN season TEXT').run();
-        if (!cols.has('category')) await db.prepare('ALTER TABLE dungeons ADD COLUMN category TEXT').run();
-        if (!cols.has('level')) await db.prepare('ALTER TABLE dungeons ADD COLUMN level INTEGER').run();
-      } catch { /* 列已存在等情况静默 */ }
-    })();
-  }
-  return dungeonDexColsReady;
+  return ensureDungeonDexColumnsRepo(db);
 }
 
 /* ---------- 车头 (创建者) 身份列 (2026-10-24 用户裁决: 解散仅车头可为) ----------
@@ -1848,9 +1826,7 @@ class DexPageShell extends ShellBase {
       const db = this.db;
       await ensureDungeonDexColumns(db);
       const versionCode = await this.ctxMemo('versionCode', () => getCurrentVersionCode(db));
-      const { results } = await db.prepare(
-        'SELECT * FROM dungeons ORDER BY size DESC, sort_order DESC, id ASC'
-      ).all();
+      const results = await listDungeonsDex(db);
       const current = [], past = [];
       const all = [];
       for (const d of results || []) {
@@ -2548,7 +2524,7 @@ const resolvers = {
 
     bossPage: async (_, { bossId }, ctx) => {
       const db = ctx.env.DB;
-      const b = await db.prepare('SELECT * FROM bosses WHERE id = ?').bind(parseInt(bossId, 10) || 0).first();
+      const b = await getBossById(db, parseInt(bossId, 10) || 0);
       if (!b) throw new Error(errText(ctx, 'bossNotFound'));
       return new BossPageShell(ctx, {
         bossShell: new BossShell(ctx, { id: b.id, name: b.name, row: b, dungeonName: b.dungeon || null }),
@@ -2847,7 +2823,7 @@ const resolvers = {
       let maxSlots = type === 'talent' ? 5 : 10;
       let dungeonName = '';
       if (type !== 'activity' && type !== 'tower' && input.dungeonId) {
-        const d = await db.prepare('SELECT name, size FROM dungeons WHERE id = ?').bind(parseInt(input.dungeonId, 10) || 0).first();
+        const d = await getDungeonNameSizeById(db, parseInt(input.dungeonId, 10) || 0);
         if (d) {
           dungeonName = d.name;
           const sz = Number(d.size);

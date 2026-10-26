@@ -86,6 +86,9 @@ function stmt(sql) {
       return null;
     },
     async all() {
+      // 数据层点查/版本推导走 .all() 通道 (drizzle db.get): 形状同 first() 分支
+      if (sql.includes('GROUP BY version')) return { results: [{ version: 'intl-v2.3' }] };
+      if (sql.includes('FROM dungeons WHERE name')) { const d = DUNGEONS.find((x) => x.name === q._binds[0]); return { results: d ? [d] : [] }; }
       if (sql.includes('SELECT * FROM dungeons ORDER BY')) return { results: DUNGEONS };
       if (sql.includes('FROM bosses WHERE dungeon')) return { results: BOSSES[q._binds[0]] || [] };
       if (sql.includes('FROM schools')) return { results: SCHOOLS };

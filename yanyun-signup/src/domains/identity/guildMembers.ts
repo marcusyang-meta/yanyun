@@ -13,7 +13,7 @@
  * 返回行沿用 snake_case 键, 调用点零感知。
  * =================================================== */
 import { sql } from 'drizzle-orm';
-import { createDb, schema } from '../client.ts';
+import { createDb, schema } from '../../db/client.ts';
 
 const { guildMembers } = schema;
 const col = (name: string) => sql.identifier(name);
