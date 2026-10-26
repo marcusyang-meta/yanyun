@@ -360,6 +360,7 @@ type Grouping {
 
 type GroupingDetailPage {
   grouping: Grouping!
+  shareUrl: String!
   blocks(blocksVersion: Int): [Block!]!
   manageActions: GroupingManageActions
   detailNotFoundText: String!

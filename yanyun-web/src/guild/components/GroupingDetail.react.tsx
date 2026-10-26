@@ -23,6 +23,7 @@ const GroupingDetailQueryNode = graphql`
       detailNotFoundText
       detailBackToListLabel
       detailShareLabel
+      shareUrl
       detailEditLabel
       detailDisbandLabel
       detailDisbandingLabel
@@ -280,7 +281,7 @@ onError: (e: Error) => toast(fill(page.detailToastRestoreFailedTemplate ?? '', {
 };
 
 const share = async () => {
-const shareUrl = `${window.location.origin}/${slug}/car/${g!.id}`;
+const shareUrl = page.shareUrl;
 try {
 if (navigator.clipboard) {
 await navigator.clipboard.writeText(shareUrl);
