@@ -17,6 +17,7 @@
 import {
   ensureReminderColumns, getReminderConfig, nextReminderAt, dueReminders, sendReminderForEvent,
 } from './reminder.js';
+import { logError } from './errorlog.js';
 
 const KINDS = new Set(['created', 'updated', 'deleted', 'seats']);
 
@@ -72,10 +73,17 @@ export class GuildHub {
           const due = await dueReminders(this.env.DB, slug, nowSec).catch(() => []);
           for (const ev of due) {
             try { await sendReminderForEvent(this.env.DB, slug, ev, cfg, nowSec, this.env.EXPO_PUSH_BASE); }
-            catch { /* 单车异常不许拖垮后续车辆与重排 */ }
+            catch (e) {
+              /* 单车异常不许拖垮后续车辆与重排; 但要留痕 (审计 A7 汇聚) */
+              void logError(this.env.DB, { source: 'guildhub-alarm', error: e, tenant: slug, context: { eventId: ev.id } });
+            }
           }
         }
       }
+    } catch (e) {
+      // 铃链级异常: 落库留痕后照旧抛出, 不改变 DO 运行时的既有处理
+      void logError(this.env.DB, { source: 'guildhub-alarm', error: e, tenant: slug || '' });
+      throw e;
     } finally {
       await this.recomputeAlarm().catch(() => {});
     }

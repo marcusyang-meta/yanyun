@@ -1,4 +1,5 @@
 import { sendDeparturePush } from './push.js';
+import { logError } from './errorlog.js';
 
 // Discord 开车提醒 (2026-10-24 用户定型)
 // 形态: 管理员 portal 按百业配一个频道 Webhook (tenants.discord_webhook,
@@ -345,6 +346,8 @@ await db.prepare('UPDATE events SET reminder_sent_at =? WHERE id =?').bind(nowSe
 } else {
 await db.prepare('UPDATE events SET reminder_error =? WHERE id =?')
 .bind(String(res.error || '发送失败').slice(0, 300), ev.id).run();
+// 全站错误汇聚 (审计 A7): 与 reminder_error 并存, 供 hub 门户统一看板
+void logError(db, { source: 'reminder', name: 'WebhookError', message: String(res.error || '发送失败'), tenant: slug, context: { eventId: ev.id } });
 }
 await recordStatus(db, slug, { ok: res.ok, error: res.error, atSec: nowSec, eventTitle: ev.title, test: false});
 // App 推送通道 (2026-10-25 与 Discord 并行加挂): 对象 = 上面已解析到账号

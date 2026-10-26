@@ -4,6 +4,8 @@
 // (buildReminderMessage 返回的 userIds), 再映射到这些账号在 App 里注册的
 // ExponentPushToken。解析不到账号的座位没有 App 身份, 天然收不到 —— 不
 // 伪造覆盖率, Discord 那条仍是全覆盖通道。
+import { logError } from './errorlog.js';
+
 // 发送走 Expo Push Service HTTP API; DeviceNotRegistered 的令牌立即自清
 // (tickets 与 receipts 两处都查)。全模块失败隔离: 任何异常只记日志, 绝不
 // 冒泡影响 Discord 发送与 alarm 结算。
@@ -195,6 +197,12 @@ export async function sendDeparturePush(db, slug, ev, cfg, userIds, nowSec, expo
   const summary = await sendExpoPush(db, messages, expoBase);
   if (summary.errors.length) {
     console.log(`[push] event ${ev.id} (${slug}): attempted=${summary.attempted} ok=${summary.ticketOk} removed=${summary.removed} errors=${summary.errors.slice(0, 3).join(' | ')}`);
+    // 全站错误汇聚 (审计 A7): 推送失败除 console 外同步落 error_log
+    void logError(db, {
+      source: 'push', name: 'PushError', tenant: slug,
+      message: summary.errors.slice(0, 3).join(' | '),
+      context: { eventId: ev.id, attempted: summary.attempted, ticketOk: summary.ticketOk },
+    });
   }
   return summary;
 }

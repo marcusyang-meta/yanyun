@@ -86,6 +86,33 @@ type HubPage {
   guilds: [GuildCard!]!
 }
 
+# ============ 页面：法律页 (服务条款 / 隐私政策) ============
+# URL: /terms 与 /privacy — 公开页面, 匿名可达 (登录页页脚入口)。
+# 正文由 LegalPageShell 的 gen 方法按 locale 从后端文案目录生成
+# (zh-CN 源文 + en 全译, 其余语言逐字段回退源文), 前端不打包正文。
+
+enum LegalKind {
+  TERMS
+  PRIVACY
+}
+
+extend type Query {
+  legalPage(kind: LegalKind!): LegalPage!
+}
+
+type LegalPage {
+  kind: LegalKind!
+  title: String!
+  updatedText: String!
+  backLabel: String!
+  sections: [LegalSection!]!
+}
+
+type LegalSection {
+  heading: String!
+  body: String!
+}
+
 type GuildCard {
   slug: String!
   name: String!
@@ -1311,6 +1338,10 @@ type Viewer {
   loginCardBody2: String!
   loginButtonLabel: String!
   loginPrivacyText: String!
+  # 全站页脚: 非官方声明正文 + 服务条款/隐私政策入口文案 (后端生成)
+  footerDisclaimerText: String!
+  footerTermsLabel: String!
+  footerPrivacyLabel: String!
   userBarLogoutLabel: String!
   userBarLoggingOutLabel: String!
   userBarSettingsLabel: String!

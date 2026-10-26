@@ -15,7 +15,8 @@ import { getUserServers, getGuildNick, maybeRefreshGuildNicks, getUserLocalePref
 import { ensureSignupDiscordColumn, ensureGuildMembersTable, upsertGuildMember } from './reminder.js';
 import { ensurePushTokensTable, isValidPushToken, savePushToken, deletePushToken } from './push.js';
 import { evaluateHeirloomPushes } from './heirloompush.js';
-import { translate, negotiateLocale, SUPPORTED_LOCALES } from './i18n.js';
+import { translate, negotiateLocale, SUPPORTED_LOCALES, CATALOG } from './i18n.js';
+import { logError } from './errorlog.js';
 import {
   listGearItems, insertGearItem, updateGearItemRow, deleteGearItemRow,
   listGearBuilds, insertGearBuild, deleteGearBuildRow,
@@ -1499,6 +1500,10 @@ const VIEWER_TEXT_RESOLVERS = defineTextGens(ViewerShell, [
   ['commonRenderErrorHint', 'common', 'renderErrorHint'],
   ['commonBackToHubLabel', 'common', 'backToHub'],
   ['commonLoadingGuildText', 'common', 'loadingGuild'],
+  // 全站页脚: 非官方声明 (审计 A3) + 条款/隐私入口文案 (审计 A2)
+  ['footerDisclaimerText', 'legal', 'disclaimer'],
+  ['footerTermsLabel', 'legal', 'termsLink'],
+  ['footerPrivacyLabel', 'legal', 'privacyLink'],
 ]);
 
 /* ---------- Hub 页 (导航) ---------- */
@@ -1544,6 +1549,27 @@ class HubPageShell extends ShellBase {
       }
       return guilds;
     });
+  }
+}
+
+/* ---------- 法律页 (服务条款 / 隐私政策, 2026-10-25 审计 A2) ----------
+ * 正文按实际数据处理写 (见 i18n.js 的 termsBody/privacyBody 段):
+ * zh-CN 源文 + en 全译, es/fr/zh-TW 经 translate() 逐字段回退源文。
+ * 页面公开可达 (未登录访客从登录页页脚进入), resolver 不做登录校验。 */
+const LEGAL_SECTION_KEYS = ['s1', 's2', 's3', 's4', 's5', 's6'];
+class LegalSectionShell extends ShellBase {
+  genHeading() { return this.t(this.data.section, this.data.key + 'h'); }
+  genBody() { return this.t(this.data.section, this.data.key + 'b'); }
+}
+class LegalPageShell extends ShellBase {
+  get isTerms() { return this.data.kind === 'TERMS'; }
+  genKind() { return this.data.kind; }
+  genTitle() { return this.t('legal', this.isTerms ? 'termsTitle' : 'privacyTitle'); }
+  genUpdatedText() { return this.t('legal', 'updatedText'); }
+  genBackLabel() { return this.t('common', 'backToHub'); }
+  genSections() {
+    const section = this.isTerms ? 'termsBody' : 'privacyBody';
+    return LEGAL_SECTION_KEYS.map((key) => new LegalSectionShell(this.ctx, { section, key }));
   }
 }
 
@@ -2448,6 +2474,9 @@ const resolvers = {
     },
     hubPage: (_, __, ctx) => new HubPageShell(ctx, {}),
 
+    // 法律页 (服务条款/隐私政策): 公开页面, 匿名可达 (登录页页脚入口)
+    legalPage: (_, { kind }, ctx) => new LegalPageShell(ctx, { kind }),
+
     guildPage: async (_, { slug }, ctx) => {
       const db = ctx.env.DB;
       const a = await getGuildAccess(db, ctx.user, slug, ctx.request);
@@ -2781,7 +2810,8 @@ const resolvers = {
       if (!serverCanManage(sv)) {
         return cFail(ctx, 'cannotManageServer');
       }
-      // 与 REST /api/onboard 同一租户结构; password_hash 随机生成 (Discord 建的业暂不走密码登录)
+      // 租户结构与 tenants 表一致; password_hash 随机生成 (Discord 建的业暂不走密码登录)。
+      // 注: REST /api/onboard 匿名建业已于 2026-10-25 下线 (审计 A4), 本 mutation 是唯一建业路径。
       const hash = await sha256hexLocal(crypto.randomUUID() + ':' + user.discordId + ':' + Date.now());
       await db.prepare(
         'INSERT INTO tenants(slug, guild_name, password_hash, announcement) VALUES(?, ?, ?, ?)'
@@ -3374,6 +3404,17 @@ const resolvers = {
   HubPage: {
     guilds: (p) => p.genGuilds(),
   },
+  LegalPage: {
+    kind: (p) => p.genKind(),
+    title: (p) => p.genTitle(),
+    updatedText: (p) => p.genUpdatedText(),
+    backLabel: (p) => p.genBackLabel(),
+    sections: (p) => p.genSections(),
+  },
+  LegalSection: {
+    heading: (p) => p.genHeading(),
+    body: (p) => p.genBody(),
+  },
   GuildCard: {
     slug: (p) => p.genSlug(),
     name: (p) => p.genName(),
@@ -3542,6 +3583,42 @@ const resolvers = {
 
 const schema = createSchema({ typeDefs, resolvers });
 
+/* GraphQL 错误汇聚插件 (商业化审计 A7): 执行结果里的错误落 error_log。
+ * 本 API 的业务失败都经 payload error 字段或目录文案 throw 表达 —— 后者
+ * 的消息必是 i18n errors 段某语言的文案 (或下面两个历史硬编码字面量),
+ * 属预期控制流, 不记; 其余 (TypeError / D1 错误 / 空指针等) 才是要汇聚
+ * 的未捕获异常。logError 永不抛错; 在此不 await, 不拖慢响应。 */
+const BUSINESS_ERROR_TEXTS = new Set(['百业不存在', 'Introspection 已禁用']);
+for (const entry of Object.values(CATALOG.errors || {})) {
+  for (const v of Object.values(entry)) BUSINESS_ERROR_TEXTS.add(v);
+}
+const errorLogPlugin = {
+  onExecute({ args }) {
+    const ctx = args && args.contextValue;
+    return {
+      onExecuteDone({ result }) {
+        try {
+          const errs = result && result.errors;
+          if (!errs || !errs.length) return;
+          const db = ctx && ctx.env && ctx.env.DB;
+          if (!db) return;
+          for (const e of errs) {
+            const orig = e.originalError || e;
+            const msg = String((orig && orig.message) || e.message || '');
+            if (BUSINESS_ERROR_TEXTS.has(msg)) continue;
+            void logError(db, {
+              source: 'graphql',
+              error: orig instanceof Error ? orig : e,
+              message: msg,
+              context: { path: e.path ? e.path.join('.') : '' },
+            });
+          }
+        } catch { /* 汇聚失败静默 */ }
+      },
+    };
+  },
+};
+
 export const yoga = createYoga({
   schema,
   graphqlEndpoint: '/graphql',
@@ -3549,7 +3626,7 @@ export const yoga = createYoga({
   maskedErrors: true,
   // 禁用 introspection (防 API 结构暴露)
   // 开发时可将 graphql.js 顶部的 DISABLE_INTROSPECTION 设为 false
-  plugins: [noIntrospectionPlugin],
+  plugins: [noIntrospectionPlugin, errorLogPlugin],
   // 禁用 GraphiQL (生产环境不需要)
   graphiql: false,
 });

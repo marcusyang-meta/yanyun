@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<19ccdc381cb8f621b6f8ca07e57ee613>>
+ * @generated SignedSource<<9a1a9d071f6752a9405c12dc51c8f16b>>
  * @lightSyntaxTransform
  */
 
@@ -11,6 +11,9 @@ import { ConcreteRequest } from 'relay-runtime';
 export type AppViewerQuery$variables = Record<PropertyKey, never>;
 export type AppViewerQuery$data = {
   readonly viewer: {
+    readonly footerDisclaimerText: string;
+    readonly footerPrivacyLabel: string;
+    readonly footerTermsLabel: string;
     readonly guilds: ReadonlyArray<{
       readonly gameVersion: string;
       readonly memberCount: number;
@@ -213,6 +216,27 @@ v2 = [
         "alias": null,
         "args": null,
         "kind": "ScalarField",
+        "name": "footerDisclaimerText",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "footerTermsLabel",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "footerPrivacyLabel",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
         "name": "userBarLogoutLabel",
         "storageKey": null
       },
@@ -329,16 +353,16 @@ return {
     "selections": (v2/*:: as any*/)
   },
   "params": {
-    "cacheID": "5f8fb3b4ed6ba9d8dc3c48585f0c3211",
+    "cacheID": "d60bea9d92e1abf2b8570c5fab5d02b0",
     "id": null,
     "metadata": {},
     "name": "AppViewerQuery",
     "operationKind": "query",
-    "text": "query AppViewerQuery {\n  viewer {\n    user {\n      discordId\n      name\n      avatar\n    }\n    guilds {\n      slug\n      name\n      slogan\n      gameVersion\n      memberCount\n    }\n    publicGuilds {\n      slug\n      name\n      slogan\n      gameVersion\n      memberCount\n    }\n    siteTitle\n    siteSubtitle\n    siteHeroAlt\n    loginCardTitle\n    loginCardBody1\n    loginCardBody2\n    loginButtonLabel\n    loginPrivacyText\n    userBarLogoutLabel\n    userBarLoggingOutLabel\n    userBarSettingsLabel\n    myLocalePref\n    myEffectiveLocale\n    pickerMyGuildsLabel\n    pickerMyGuildsEnLabel\n    pickerPublicGuildsLabel\n    pickerPublicGuildsEnLabel\n    pickerReadOnlyBadge\n    pickerEmptyTitle\n    pickerEmptyBody\n    pickerCreateGuildLabel\n    pickerCreateGuildMoreLabel\n  }\n}\n"
+    "text": "query AppViewerQuery {\n  viewer {\n    user {\n      discordId\n      name\n      avatar\n    }\n    guilds {\n      slug\n      name\n      slogan\n      gameVersion\n      memberCount\n    }\n    publicGuilds {\n      slug\n      name\n      slogan\n      gameVersion\n      memberCount\n    }\n    siteTitle\n    siteSubtitle\n    siteHeroAlt\n    loginCardTitle\n    loginCardBody1\n    loginCardBody2\n    loginButtonLabel\n    loginPrivacyText\n    footerDisclaimerText\n    footerTermsLabel\n    footerPrivacyLabel\n    userBarLogoutLabel\n    userBarLoggingOutLabel\n    userBarSettingsLabel\n    myLocalePref\n    myEffectiveLocale\n    pickerMyGuildsLabel\n    pickerMyGuildsEnLabel\n    pickerPublicGuildsLabel\n    pickerPublicGuildsEnLabel\n    pickerReadOnlyBadge\n    pickerEmptyTitle\n    pickerEmptyBody\n    pickerCreateGuildLabel\n    pickerCreateGuildMoreLabel\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "0d354befe9dab8f13d0c2800c7a27d14";
+(node as any).hash = "7095e584b615c64502e5a7383f720f8f";
 
 export default node;

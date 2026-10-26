@@ -71,6 +71,7 @@ type Shout {
 
 type Query {
   hubPage: HubPage!
+  legalPage(kind: LegalKind!): LegalPage!
   guildPage(slug: String!): GuildPage!
   groupingListPage(slug: String!, tab: GroupingTab!): GroupingListPage!
   groupingDetailPage(slug: String, id: ID!): GroupingDetailPage!
@@ -90,6 +91,24 @@ type Query {
 
 type HubPage {
   guilds: [GuildCard!]!
+}
+
+enum LegalKind {
+  TERMS
+  PRIVACY
+}
+
+type LegalPage {
+  kind: LegalKind!
+  title: String!
+  updatedText: String!
+  backLabel: String!
+  sections: [LegalSection!]!
+}
+
+type LegalSection {
+  heading: String!
+  body: String!
 }
 
 type GuildCard {
@@ -1154,6 +1173,9 @@ type Viewer {
   loginCardBody2: String!
   loginButtonLabel: String!
   loginPrivacyText: String!
+  footerDisclaimerText: String!
+  footerTermsLabel: String!
+  footerPrivacyLabel: String!
   userBarLogoutLabel: String!
   userBarLoggingOutLabel: String!
   userBarSettingsLabel: String!
