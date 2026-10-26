@@ -114,6 +114,18 @@ const GroupingDetailQueryNode = graphql`
       formToastPosted
       formToastCreateFailedTemplate
       formTitleTemplate
+      manageActions {
+        editLabel
+        completeLabel
+        completingLabel
+        restoreLabel
+        disbandLabel
+        disbandingLabel
+        disbandConfirmTitle
+        disbandConfirmMessageTemplate
+        completeConfirmTitle
+        completeConfirmMessageTemplate
+      }
       grouping {
         id
         title
@@ -196,16 +208,16 @@ GATHER: page.typeShortGather, EXPLORE: page.typeShortExplore,
 };
 const seatText = { ...page, unknownErrorText };
 const formText = { ...page, unknownErrorText };
-// Edit and disband are both leader-only (ruling, 2026-10-25: editing a
-// grouping is also leader-only). Visibility is decided by comparing identity
-// data (the leader's discord id vs the current viewer's), not a permission
-// flag; the server re-verifies independently in updateGrouping /
-// disbandGrouping, so hiding the buttons here is UI tidiness, not a security
-// boundary. Legacy groupings without creatorDiscordId show them to no one
-// (matching the server's "unrecorded leader cannot edit/disband").
-const viewerDiscordId = (data as any)?.viewer?.user?.discordId;
-const isLeader = !!(g?.creatorDiscordId && viewerDiscordId
-&& String(g.creatorDiscordId) === String(viewerDiscordId));
+// Manage actions (edit / complete / restore / disband) are composed
+// by the server: page.manageActions exists only when the viewer may
+// manage this grouping — the leader, or an admin of this guild
+// (ruling 2026-10-26: guild admins manage every grouping in their
+// guild with the leader's rights). The client renders what it is
+// given and holds no permission logic of its own; the server
+// re-verifies independently in the four mutations, so the buttons'
+// presence here is composition, not a security boundary.
+const ma = page?.manageActions ?? null;
+const canManage = !!ma;
 
 const [commitDelete, deleting] = useMutation<GroupingDetailDeleteMutationType>(GroupingDetailDeleteMutationNode);
 
@@ -228,7 +240,7 @@ onError: (e: Error) => toast(fill(page.detailToastDisbandFailedTemplate ?? '', {
 });
 };
 
-// Complete the grouping (leader only; the server re-verifies in
+// Complete the grouping (leader or guild admin; the server re-verifies in
 // completeGrouping): on success this page switches in place to the completed
 // state (onChanged refetch) and the grouping is removed from cached lists —
 // completed groupings don't appear in lists and must not flash on return.
@@ -249,7 +261,7 @@ onError: (e: Error) => toast(fill(page.detailToastCompleteFailedTemplate ?? '', 
 });
 };
 
-// Restore the grouping (undo completion; leader only, server re-verifies in
+// Restore the grouping (undo completion; leader or guild admin, server re-verifies in
 // reopenGrouping): no confirmation; on success, refetch.
 const [commitReopen, restoring] = useMutation(GroupingDetailReopenMutationNode);
 const doRestore = () => {
@@ -335,20 +347,20 @@ verticalAlign: 'middle',
 <button onClick={share} className="yy-btn yy-btn-gold" style={{ padding: '6px 16px', fontSize: 13 }}>{page.detailShareLabel}</button>
 {interactive && (
 <>
-{isLeader && g.status !== 'completed' && (
-<button onClick={() => setShowEdit(true)} style={smBtn}>{page.detailEditLabel}</button>
+{canManage && g.status !== 'completed' && (
+<button onClick={() => setShowEdit(true)} style={smBtn}>{ma.editLabel}</button>
 )}
-{isLeader && g.status !== 'completed' && (
+{canManage && g.status !== 'completed' && (
 <button onClick={() => setConfirmComplete(true)} disabled={completing} style={smBtn}>
-{completing? page.detailCompletingLabel: page.detailCompleteLabel}
+{completing? ma.completingLabel: ma.completeLabel}
 </button>
 )}
-{isLeader && g.status === 'completed' && (
-<button onClick={doRestore} disabled={restoring} style={smBtn}>{page.detailRestoreLabel}</button>
+{canManage && g.status === 'completed' && (
+<button onClick={doRestore} disabled={restoring} style={smBtn}>{ma.restoreLabel}</button>
 )}
-{isLeader && g.status !== 'completed' && (
+{canManage && g.status !== 'completed' && (
 <button onClick={() => setConfirmDelete(true)} disabled={deleting} style={{...smBtn, color: '#e08080', borderColor: '#a02c1a'}}>
-{deleting? page.detailDisbandingLabel: page.detailDisbandLabel}
+{deleting? ma.disbandingLabel: ma.disbandLabel}
 </button>
 )}
 </>
@@ -363,27 +375,27 @@ verticalAlign: 'middle',
 
 <SeatGrid groupingId={g.id} slug={slug} seats={seats} maxSlots={g.maxSlots} onChanged={onChanged} interactive={interactive} defaultNickname={defaultNickname} text={seatText} />
 
-{confirmDelete && (
+{confirmDelete && ma && (
 <ConfirmDialog
-title={page.detailDisbandConfirmTitle}
-message={fill(page.detailDisbandConfirmMessageTemplate ?? '', { title: g.title })}
+title={ma.disbandConfirmTitle}
+message={fill(ma.disbandConfirmMessageTemplate ?? '', { title: g.title })}
 onOk={() => { setConfirmDelete(false); doDelete();}}
 onCancel={() => setConfirmDelete(false)}
 okLabel={page.confirmOkLabel}
 cancelLabel={page.confirmCancelLabel}
 />
 )}
-{confirmComplete && (
+{confirmComplete && ma && (
 <ConfirmDialog
-title={page.detailCompleteConfirmTitle}
-message={fill(page.detailCompleteConfirmMessageTemplate ?? '', { title: g.title })}
+title={ma.completeConfirmTitle}
+message={fill(ma.completeConfirmMessageTemplate ?? '', { title: g.title })}
 onOk={() => { setConfirmComplete(false); doComplete();}}
 onCancel={() => setConfirmComplete(false)}
 okLabel={page.confirmOkLabel}
 cancelLabel={page.confirmCancelLabel}
 />
 )}
-{showEdit && g && isLeader && (
+{showEdit && g && canManage && (
 <GroupingForm
 slug=""
 text={formText}
