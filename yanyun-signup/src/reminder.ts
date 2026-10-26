@@ -7,7 +7,12 @@ import {
   nextPendingReminderStart, listDueReminderEvents, markReminderSent, markReminderError,
 } from './db/repositories/events.ts';
 import { listSignupSeatsForReminder } from './db/repositories/signups.ts';
-import { getUsernameRow, listUsersDirectory, listNicksByGuild } from './db/repositories/users.ts';
+import { getUsernameRow, listUsersDirectory, listNicksByGuild, getNickRow } from './db/repositories/users.ts';
+import {
+  ensureGuildMembersTable as ensureGuildMembersTableRepo,
+  upsertGuildMember as upsertGuildMemberRepo,
+  listGuildMembers, getGuildMember,
+} from './db/repositories/guildMembers.ts';
 
 // Discord 开车提醒 (2026-10-24 用户定型)
 // 形态: 管理员 portal 按百业配一个频道 Webhook (tenants.discord_webhook,
@@ -77,45 +82,22 @@ export function ensureSignupDiscordColumn(db: any) {
   return signupDiscordColReady;
 }
 
-/* ---------- 百业成员名册 (guild_members, 懒 DDL) ----------
- * 用户进入百业时由读取路径顺手记录 (graphql.js captureGuildMember): 这是
- * 该百业自己的成员名单 (区别于按 Discord 服务器维度的 users/昵称快照 —
- * 两个百业可绑同一服务器, 名册各不相同)。提醒 @ 解析第二梯队用它。 */
-let guildMembersReady: Promise<void> | null = null;
+/* ---------- 百业成员名册 (guild_members): 本体已归数据层 ----------
+ * ensureGuildMembersTable / upsertGuildMember 保留旧名导出作委托
+ * (creatorbackfill / creatormanualfix 等仍从本模块引); 实现与懒 DDL
+ * 在 src/db/repositories/guildMembers.ts。 */
 export function ensureGuildMembersTable(db: any) {
-  if (!guildMembersReady) {
-    guildMembersReady = (async () => {
-      try {
-        await db.prepare(`CREATE TABLE IF NOT EXISTS guild_members (
-          tenant TEXT NOT NULL,
-          discord_id TEXT NOT NULL,
-          nick TEXT NOT NULL DEFAULT '',
-          global_name TEXT NOT NULL DEFAULT '',
-          updated_at INTEGER NOT NULL DEFAULT 0,
-          PRIMARY KEY (tenant, discord_id)
-        )`).run();
-      } catch { /* 表已存在等情况静默 */ }
-    })();
-  }
-  return guildMembersReady;
+  return ensureGuildMembersTableRepo(db);
 }
 
 export async function upsertGuildMember(db: any, slug: string, discordId: unknown, nick: unknown, globalName: unknown) {
-  await ensureGuildMembersTable(db);
-  const now = Math.floor(Date.now() / 1000);
-  await db.prepare(`INSERT INTO guild_members (tenant, discord_id, nick, global_name, updated_at)
-    VALUES (?, ?, ?, ?, ?)
-    ON CONFLICT(tenant, discord_id) DO UPDATE SET nick = excluded.nick,
-      global_name = excluded.global_name, updated_at = excluded.updated_at`)
-    .bind(slug, String(discordId), String(nick || ''), String(globalName || ''), now).run();
+  await upsertGuildMemberRepo(db, slug, String(discordId), String(nick || ''), String(globalName || ''));
 }
 
 async function rosterPool(db: any, slug: string) {
   await ensureGuildMembersTable(db);
   const pool = new Map();
-  const { results } = await db.prepare(
-    'SELECT discord_id, nick, global_name FROM guild_members WHERE tenant = ?'
-  ).bind(slug).all().catch(() => ({ results: [] }));
+  const results = await listGuildMembers(db, slug).catch(() => []);
   for (const r of results || []) {
     pool.set(String(r.discord_id), { globalName: String(r.global_name || ''), nick: String(r.nick || '') });
   }
@@ -209,15 +191,11 @@ if (ev.creator_discord_id) {
 const id = String(ev.creator_discord_id);
 // 名册优先: 车头进过这个百业时, 名册里的昵称就是本百业语境的显示名
 await ensureGuildMembersTable(db);
-const rm = await db.prepare(
-'SELECT nick, global_name FROM guild_members WHERE tenant =? AND discord_id =?'
-).bind(slug, id).first().catch(() => null);
+const rm = await getGuildMember(db, slug, id).catch(() => null);
 if (rm && String(rm.nick || '').trim()) return String(rm.nick).trim();
 if (rm && String(rm.global_name || '').trim()) return String(rm.global_name).trim();
 if (dgid) {
-const nickRow = await db.prepare(
-'SELECT nick FROM user_guild_nicks WHERE discord_id =? AND guild_id =?'
-).bind(id, dgid).first().catch(() => null);
+const nickRow = await getNickRow(db, id, dgid).catch(() => null);
 if (nickRow && String(nickRow.nick || '').trim()) return String(nickRow.nick).trim();
 }
 const u = await getUsernameRow(db, id).catch(() => null);
