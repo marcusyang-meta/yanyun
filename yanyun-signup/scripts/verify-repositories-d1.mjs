@@ -856,6 +856,52 @@ if (want('ddl')) {
   check('signups carries discord_id column', suCols.results.some((r) => r.name === 'discord_id'));
 }
 
+/* ---------------- hub audit ---------------- */
+if (want('audit')) {
+  console.log('== hub audit repository + service on real D1 ==');
+  const repo = await import('../src/domains/platform/hubAudit.ts');
+  const svc = await import('../src/domains/platform/hub-audit.ts');
+
+  await repo.ensureHubAuditTable(db);
+  await repo.ensureHubAuditTable(db); // idempotent
+
+  const okWrite = await svc.auditHub(db, { action: 'reminder.update', tenant: 'alpha', summary: { webhook: 'replaced', enabled: true }, ip: '203.0.113.7' });
+  check('auditHub write ok', okWrite === true);
+  await svc.auditHub(db, { action: 'settings.update', tenant: '', summary: { keys: ['game_version'] } });
+  await svc.auditHub(db, { action: 'auth.login_failed', tenant: '', summary: { reason: 'bad_password' } });
+
+  const page = await svc.listHubAuditPage(db, { limit: 50, offset: 0 });
+  eq('audit page total', page.total, 3);
+  eq('audit page newest first', page.entries[0].action, 'auth.login_failed');
+  const row = page.entries.find((e) => e.action === 'reminder.update');
+  check('audit row fields roundtrip', !!row && row.tenant === 'alpha' && row.actor === 'hub' && row.ip === '203.0.113.7'
+    && JSON.parse(row.summary).webhook === 'replaced', JSON.stringify(row));
+
+  const filtered = await svc.listHubAuditPage(db, { tenant: 'alpha' });
+  eq('audit tenant filter total', filtered.total, 1);
+  eq('audit tenant filter row', filtered.entries[0].action, 'reminder.update');
+
+  const paged = await svc.listHubAuditPage(db, { limit: 2, offset: 2 });
+  eq('audit pagination tail size', paged.entries.length, 1);
+  eq('audit pagination tail row', paged.entries[0].action, 'reminder.update');
+
+  // Prune: an old row dies by the age cutoff; the row cap keeps newest N.
+  await repo.insertHubAudit(db, { at: 1000000, actor: 'hub', action: 'old.row', tenant: '', summary: '', ip: '' });
+  await repo.pruneHubAudit(db, 2000000, 20000);
+  const afterAge = await svc.listHubAuditPage(db, {});
+  check('audit prune drops aged rows', afterAge.entries.every((e) => e.action !== 'old.row'));
+  eq('audit prune keeps fresh rows', afterAge.total, 3);
+  await repo.pruneHubAudit(db, 0, 2);
+  const afterCap = await svc.listHubAuditPage(db, {});
+  eq('audit prune enforces row cap', afterCap.total, 2);
+  eq('audit prune cap keeps newest', afterCap.entries[0].action, 'auth.login_failed');
+
+  // Service never throws on a broken DB handle.
+  const broken = { prepare() { throw new Error('down'); } };
+  eq('auditHub broken db -> false, no throw', await svc.auditHub(broken, { action: 'x' }), false);
+  eq('listHubAuditPage broken db -> empty', (await svc.listHubAuditPage(broken, {})).total, 0);
+}
+
 await mf.dispose();
 console.log(`\n== verify-repositories-d1: ${pass} passed, ${fail} failed ==`);
 if (fail) { console.log('FAILS:', fails.join(' | ')); process.exit(1); }

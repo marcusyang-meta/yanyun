@@ -38,3 +38,17 @@ export const errorLog = sqliteTable('error_log', {
 }, (t) => [
   index('idx_error_log_at').on(t.at),
 ]);
+
+/* ---------------- hub audit log [ddl hubAudit.ts lazy] ---------------- */
+export const hubAuditLog = sqliteTable('hub_audit_log', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  at: integer('at').notNull(),
+  actor: text('actor').notNull().default(''),
+  action: text('action').notNull().default(''),
+  tenant: text('tenant').notNull().default(''),
+  summary: text('summary').notNull().default(''),
+  ip: text('ip').notNull().default(''),
+}, (t) => [
+  index('idx_hub_audit_at').on(t.at),
+  index('idx_hub_audit_tenant').on(t.tenant),
+]);
