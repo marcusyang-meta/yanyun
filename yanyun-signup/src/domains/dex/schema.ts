@@ -59,9 +59,10 @@ export const affixMax = sqliteTable('affix_max', {
 /* ---------------- school reference data [ddl v8] ---------------------- */
 export const schoolBis = sqliteTable('school_bis', {
   school: text('school').notNull(),
-  // [qry] the surviving v8 DDL predates the per-build dimension; live
-  // queries select (school, build, ...) and key rows by both, so the
-  // production table carries one row per (school, build).
+  // One row per (school, build). The v8 DDL originally keyed the table
+  // by school alone and was later aligned to this shape;
+  // ensureSchoolBisShape (reference.ts) lazily rebuilds databases
+  // still carrying the original school-only key.
   build: text('build').notNull().default(''),
   attr: text('attr'),
   rate: text('rate'),
