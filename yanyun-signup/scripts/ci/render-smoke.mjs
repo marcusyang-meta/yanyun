@@ -91,7 +91,7 @@ function send(method, params = {}, sessionId) {
   });
 }
 
-async function renderPage({ path: p, marker }) {
+async function renderPageOnce(p, marker) {
   // Always drive a fresh target per page. Reusing the browser's initial
   // page target races with the previous page's Target.closeTarget: the
   // target list can still carry the dying id and attach then fails with
@@ -135,11 +135,26 @@ async function renderPage({ path: p, marker }) {
     if (text.includes(marker)) break;
     await sleep(750);
   }
-  check(`render ${p} shows "${marker}"`, text.includes(marker), 'body starts: ' + text.slice(0, 160).replace(/\s+/g, ' '));
-  check(`render ${p} has no JS exceptions`, exceptions.length === 0, exceptions.join(' | '));
-  check(`render ${p} has no console errors`, consoleErrors.length === 0, consoleErrors.join(' | '));
   await send('Target.closeTarget', { targetId });
   listeners.splice(listeners.indexOf(onEvent), 1);
+  return { text, exceptions, consoleErrors };
+}
+
+async function renderPage({ path: p, marker }) {
+  let r = await renderPageOnce(p, marker);
+  // Cold-start flake signature: completely empty body with zero JS
+  // exceptions and zero console errors — the bundle never got a chance
+  // to run (isolate/asset cold start in the preview environment). A real
+  // rendering regression (the 2026-10-25 double-React class) throws on
+  // every attempt, so retry exactly once in a fresh target; the text,
+  // exception and console-error assertions are NOT relaxed.
+  if (!r.text.includes(marker) && r.text === '' && r.exceptions.length === 0 && r.consoleErrors.length === 0) {
+    console.log(`NOTE  render ${p}: empty body with no errors — retrying once (cold-start flake signature)`);
+    r = await renderPageOnce(p, marker);
+  }
+  check(`render ${p} shows "${marker}"`, r.text.includes(marker), 'body starts: ' + r.text.slice(0, 160).replace(/\s+/g, ' '));
+  check(`render ${p} has no JS exceptions`, r.exceptions.length === 0, r.exceptions.join(' | '));
+  check(`render ${p} has no console errors`, r.consoleErrors.length === 0, r.consoleErrors.join(' | '));
 }
 
 try {
