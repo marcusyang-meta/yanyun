@@ -11,6 +11,7 @@ import { ensurePushTokensTable, isValidPushToken, savePushToken, deletePushToken
 import { evaluateHeirloomPushes } from '../gear/index.ts';
 import { translate, negotiateLocale, SUPPORTED_LOCALES, CATALOG } from './index.ts';
 import { logError } from './index.ts';
+import { ogCardResolvers } from './og-graphql.ts';
 import { getGuildAvatarMeta, avatarPath } from '../guilds/index.ts';
 import { getSettingValue, setSettingValue, listSettingsByKey } from '../guilds/index.ts';
 import { getUsernameRow } from '../identity/index.ts';
@@ -274,6 +275,7 @@ export class LegalPageShell extends ShellBase {
 export const platformResolvers = {
   Query: {
     legalPage: (_: any, { kind }: any, ctx: Context) => new LegalPageShell(ctx, { kind }),
+    ...ogCardResolvers.Query,
   },
   Mutation: {
     registerPushToken: async (_: any, { token, platform }: any, ctx: Context) => {
@@ -297,6 +299,7 @@ export const platformResolvers = {
     // Self-service guild creation: logged in + admin/owner of the bound Discord server
   },
   types: {
+    ...ogCardResolvers.types,
     // Explicit field resolvers for plain-data result types: every field
     // delegates to the same-named property of the computed result object
     // (previously these relied on GraphQL default field resolution).

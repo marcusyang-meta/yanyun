@@ -64,7 +64,7 @@ import {
   PayloadBase, GroupingPayloadShell, SeatPayloadShell, DeletePayloadShell,
   CreateGuildPayloadShell, UpdateLocalePayloadShell, uFail, gFail, sFail, dFail, cFail,
 } from '../platform/graphql-base.ts';
-import { guildResult } from '../guilds/index.ts';
+import { guildResult, guildAdminResult } from '../guilds/index.ts';
 import { touchGuildRoster } from '../groupings/index.ts';
 
 export async function identityNamesFor(db: any, discordId: any, dgid: any) {
@@ -161,6 +161,10 @@ export class ViewerShell extends ShellBase {
     touchGuildRoster(this.ctx, a); // entering a guild records the roster (locked/anonymous filtered inside the helper)
     // A missing guild also returns GuildLocked (the type is the verdict; no content)
     return guildResult(this.ctx, a);
+  }
+  async genGuildAdmin({ slug }: any){
+    // Admin surface: the GuildAdmin / GuildAdminLocked type is the verdict.
+    return guildAdminResult(this.ctx, slug);
   }
   async genDiscordServers(){
     if (!this.ctx.user) return [];
@@ -308,6 +312,7 @@ export const identityResolvers = {
     guilds: (p: any) => p.genGuilds(),
     publicGuilds: (p: any) => p.genPublicGuilds(),
     guild: (p: any, { slug }: any) => p.genGuild({ slug }),
+    guildAdmin: (p: any, { slug }: any) => p.genGuildAdmin({ slug }),
     discordServers: (p: any) => p.genDiscordServers(),
     ...VIEWER_TEXT_RESOLVERS,
   },

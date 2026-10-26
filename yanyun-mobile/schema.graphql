@@ -85,6 +85,8 @@ type Query {
   settingsPage: SettingsPage!
   viewer: Viewer!
   slugAvailable(slug: String!): Boolean!
+  ogGuildCard(slug: String!): OgGuildCard!
+  ogCarCard(slug: String!, id: ID!): OgCarCard
   myGearItems: [GearItem!]!
   myGearBuilds: [GearSavedBuild!]!
 }
@@ -997,6 +999,25 @@ type Mutation {
   registerPushToken(token: String!, platform: String): PushTokenPayload!
   unregisterPushToken(token: String!): PushTokenPayload!
   createGuild(input: CreateGuildInput!): CreateGuildPayload!
+  updateGuildProfile(slug: String!, input: UpdateGuildProfileInput!): GuildAdminPayload!
+  updateGuildDiscord(slug: String!, input: UpdateGuildDiscordInput!): GuildAdminPayload!
+  updateGuildVisibility(slug: String!, devOnly: Boolean!): GuildAdminPayload!
+  updateGuildFeatures(slug: String!, fixedTeams: Boolean!): GuildAdminPayload!
+  setGuildAvatar(slug: String!, dataBase64: String!): GuildAdminPayload!
+  deleteGuildAvatar(slug: String!): GuildAdminPayload!
+  createFixedTeam(slug: String!, input: CreateFixedTeamInput!): GuildAdminPayload!
+  updateFixedTeam(slug: String!, teamId: ID!, input: UpdateFixedTeamInput!): GuildAdminPayload!
+  deleteFixedTeam(slug: String!, teamId: ID!): GuildAdminPayload!
+  addFixedTeamMember(slug: String!, teamId: ID!, input: FixedTeamMemberInput!): GuildAdminPayload!
+  updateFixedTeamMember(slug: String!, teamId: ID!, memberId: ID!, input: FixedTeamMemberInput!): GuildAdminPayload!
+  deleteFixedTeamMember(slug: String!, teamId: ID!, memberId: ID!): GuildAdminPayload!
+  createAdminEvent(slug: String!, input: CreateAdminEventInput!): GuildAdminPayload!
+  updateAdminEvent(slug: String!, eventId: ID!, input: UpdateAdminEventInput!): GuildAdminPayload!
+  deleteAdminEvent(slug: String!, eventId: ID!): GuildAdminPayload!
+  removeEventSignup(slug: String!, signupId: ID!): GuildAdminPayload!
+  addEventResult(slug: String!, eventId: ID!, input: AddEventResultInput!): GuildAdminPayload!
+  deleteEventResult(slug: String!, resultId: ID!): GuildAdminPayload!
+  updateSchoolGuide(slug: String!, input: UpdateSchoolGuideInput!): GuildAdminPayload!
   gearPlan(input: GearPlanInput!): GearPlanResult!
   gearAutoCombine(targetIdx: Int!, lib: [GearItemInput!]!): GearAutoResult!
   gearParsePaste(text: String!): GearParseResult!
@@ -1159,6 +1180,7 @@ type Guild {
   homeTabTeamLabel: String!
   homeTabDexLabel: String!
   homeTabSectLabel: String!
+  homeAdminLabel: String!
   detailNotFoundText: String!
   detailBackToListLabel: String!
 }
@@ -1197,6 +1219,7 @@ type Viewer {
   guilds: [Guild!]!
   publicGuilds: [GuildReadOnly!]!
   guild(slug: String!): GuildResult!
+  guildAdmin(slug: String!): GuildAdminResult!
   discordServers: [DiscordServer!]!
   siteTitle: String!
   siteSubtitle: String!
@@ -1265,6 +1288,282 @@ type CreateGuildPayload {
   error: String
   errorCode: String
   guild: Guild
+}
+
+union GuildAdminResult = GuildAdmin | GuildAdminLocked
+
+type GuildAdminLocked {
+  slug: String!
+  adminLockedTitle: String!
+  adminLockedBody: String!
+  adminBackLinkLabel: String!
+}
+
+type GuildAdmin {
+  slug: String!
+  name: String
+  announcement: String!
+  slogan: String
+  masterName: String!
+  logoUrl: String!
+  bgImageUrl: String!
+  avatarUrl: String
+  avatarUpdatedAt: String
+  discordGuildId: String!
+  reminderWebhookSet: Boolean!
+  reminderWebhookId: String
+  featureFixedTeams: Boolean!
+  devOnly: Boolean!
+  gameVersion: String!
+  fixedTeams: [GuildAdminFixedTeam!]!
+  events: [GuildAdminEvent!]!
+  schoolGuides: GuildAdminSchoolGuides!
+  adminTitle: String!
+  adminBackLinkLabel: String!
+  adminTabProfileLabel: String!
+  adminTabDiscordLabel: String!
+  adminTabTeamsLabel: String!
+  adminTabEventsLabel: String!
+  adminTabGuidesLabel: String!
+  adminSaveLabel: String!
+  adminSavedText: String!
+  adminDeleteLabel: String!
+  adminEditLabel: String!
+  adminAddLabel: String!
+  adminProfileTitle: String!
+  adminNameLabel: String!
+  adminAnnouncementLabel: String!
+  adminSloganLabel: String!
+  adminMasterNameLabel: String!
+  adminLogoUrlLabel: String!
+  adminBgImageUrlLabel: String!
+  adminAvatarTitle: String!
+  adminAvatarUploadLabel: String!
+  adminAvatarReplaceLabel: String!
+  adminAvatarDeleteLabel: String!
+  adminAvatarNoneText: String!
+  adminAvatarHint: String!
+  adminDiscordTitle: String!
+  adminWebhookLabel: String!
+  adminWebhookSetText: String!
+  adminWebhookUnsetText: String!
+  adminWebhookHint: String!
+  adminWebhookClearLabel: String!
+  adminGuildIdLabel: String!
+  adminGuildIdUnboundText: String!
+  adminFeaturesTitle: String!
+  adminFixedTeamsLabel: String!
+  adminVisibilityTitle: String!
+  adminDevOnlyLabel: String!
+  adminTeamsTitle: String!
+  adminTeamNameLabel: String!
+  adminTeamDescLabel: String!
+  adminTeamEmptyText: String!
+  adminMemberNicknameLabel: String!
+  adminMemberWeaponLabel: String!
+  adminMemberNoteLabel: String!
+  adminAddMemberLabel: String!
+  adminEventsTitle: String!
+  adminEventEmptyText: String!
+  adminEventTitleLabel: String!
+  adminEventTypeLabel: String!
+  adminEventStatusLabel: String!
+  adminEventTimeLabel: String!
+  adminEventSlotsLabel: String!
+  adminEventMeetLabel: String!
+  adminEventDescLabel: String!
+  adminEventDungeonLabel: String!
+  adminStatusOpenText: String!
+  adminStatusClosedText: String!
+  adminStatusCompletedText: String!
+  adminStatusDraftText: String!
+  adminSignupsTitle: String!
+  adminSignupEmptyText: String!
+  adminExportCsvLabel: String!
+  adminRemoveSignupLabel: String!
+  adminResultsTitle: String!
+  adminResultTeamLabel: String!
+  adminResultMembersLabel: String!
+  adminResultTimeLabel: String!
+  adminResultProofLabel: String!
+  adminResultNoteLabel: String!
+  adminGuidesTitle: String!
+  adminGuidesHint: String!
+  adminGuideSchoolLabel: String!
+  adminGuideBuildLabel: String!
+  adminGuideAttrLabel: String!
+  adminGuideRateLabel: String!
+  adminGuideBisLabel: String!
+  adminGuideRotationLabel: String!
+}
+
+type GuildAdminFixedTeam {
+  id: ID!
+  name: String!
+  description: String!
+  members: [GuildAdminFixedTeamMember!]!
+}
+
+type GuildAdminFixedTeamMember {
+  id: ID!
+  nickname: String!
+  weapon: String!
+  role: String!
+  note: String!
+}
+
+type GuildAdminEvent {
+  id: ID!
+  title: String!
+  type: GroupingType!
+  status: String!
+  origin: String!
+  startsAtUtc: Int
+  startsAtText: String!
+  dungeon: String!
+  maxSlots: Int!
+  meetInfo: String!
+  description: String!
+  signupCount: Int!
+  signups: [GuildAdminSignup!]!
+  results: [GuildAdminRaceResult!]!
+  signupsCsv: String!
+}
+
+type GuildAdminSignup {
+  id: ID!
+  nickname: String!
+  uid: String!
+  role: String!
+  weapon: String!
+  contact: String!
+  teamName: String!
+  members: String!
+  note: String!
+  createdAt: String!
+}
+
+type GuildAdminRaceResult {
+  id: ID!
+  teamName: String!
+  members: String!
+  timeMs: Int!
+  timeText: String!
+  proofUrl: String!
+  note: String!
+}
+
+type GuildAdminSchoolGuides {
+  schools: [GuildAdminSchoolGuide!]!
+}
+
+type GuildAdminSchoolGuide {
+  school: String!
+  builds: [GuildAdminSchoolBuild!]!
+  rotationJson: String!
+}
+
+type GuildAdminSchoolBuild {
+  build: String!
+  attr: String!
+  rate: String!
+  bisJson: String!
+}
+
+type GuildAdminPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  avatarUrl: String
+  id: ID
+}
+
+input UpdateGuildProfileInput {
+  name: String
+  announcement: String
+  slogan: String
+  masterName: String
+  logoUrl: String
+  bgImageUrl: String
+}
+
+input UpdateGuildDiscordInput {
+  webhook: String
+  discordGuildId: String
+}
+
+input CreateFixedTeamInput {
+  name: String!
+  description: String
+}
+
+input UpdateFixedTeamInput {
+  name: String
+  description: String
+}
+
+input FixedTeamMemberInput {
+  nickname: String!
+  weapon: String
+  note: String
+  sortOrder: Int
+}
+
+input CreateAdminEventInput {
+  title: String!
+  type: GroupingType!
+  startsAtUtc: Int
+  dungeon: String
+  maxSlots: Int
+  meetInfo: String
+  description: String
+  status: String
+}
+
+input UpdateAdminEventInput {
+  title: String
+  type: GroupingType
+  startsAtUtc: Int
+  dungeon: String
+  maxSlots: Int
+  meetInfo: String
+  description: String
+  status: String
+}
+
+input AddEventResultInput {
+  teamName: String!
+  members: String
+  timeText: String!
+  proofUrl: String
+  note: String
+}
+
+input UpdateSchoolGuideInput {
+  school: String!
+  build: String!
+  attr: String
+  rate: String
+  bisJson: String
+  rotationJson: String
+}
+
+type OgGuildCard {
+  exists: Boolean!
+  name: String!
+  slogan: String!
+  weekActivityCount(fromUtc: Int!, toUtc: Int!): Int!
+}
+
+type OgCarCard {
+  title: String!
+  type: String!
+  startsAtUtc: Int
+  startsAtText: String!
+  dungeonName: String!
+  occupiedCount: Int!
+  maxSlots: Int!
+  status: String!
 }
 
 type GearBuild {

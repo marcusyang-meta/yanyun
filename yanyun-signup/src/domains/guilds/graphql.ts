@@ -67,6 +67,7 @@ import {
   CreateGuildPayloadShell, UpdateLocalePayloadShell, uFail, gFail, sFail, dFail, cFail,
 } from '../platform/graphql-base.ts';
 import { groupingListPage, touchGuildRoster } from '../groupings/index.ts';
+import { guildAdminTypes, guildAdminMutations, guildAdminPayloadResolvers } from './admin-graphql.ts';
 
 export const CREATE_RESERVED = new Set([
   'admin', 'api', 'auth', 'hub', 'login', 'logout', 'og', 'graphql', 'create',
@@ -167,6 +168,11 @@ export const GUILD_HOME_TEXT_SPEC = [
   ['detailBackToListLabel', 'groupingDetail', 'backToList'],
 ];
 export const GUILD_TEXT_RESOLVERS = defineTextGens(GuildShell, GUILD_HOME_TEXT_SPEC);
+// Admin entry label: declared only on the full Guild type (member
+// branch), so its resolver must not leak into the shared content map.
+export const GUILD_ADMIN_LINK_RESOLVERS = defineTextGens(GuildShell, [
+  ['homeAdminLabel', 'guildHome', 'adminLink'],
+]);
 export const GUILD_READONLY_TEXT_RESOLVERS = defineTextGens(GuildShell, [
   ['homeReadOnlyBanner', 'guildHome', 'readOnlyBanner'],
 ]);
@@ -325,6 +331,8 @@ export const guildsResolvers = {
       return new CreateGuildPayloadShell(ctx, { ok: true, guild: guildResult(ctx, a) });
     },
 
+    ...guildAdminMutations,
+
     // Write gate (requireWrite): logged in + bound + member; an unbound guild's writes are fully locked.
   },
   types: {
@@ -354,6 +362,7 @@ export const guildsResolvers = {
   },
   Guild: {
     ...guildContentResolvers(),
+    ...GUILD_ADMIN_LINK_RESOLVERS,
     memberRoster: (p: any) => p.genMemberRoster(),
   },
   GuildRosterMember: {
@@ -366,5 +375,7 @@ export const guildsResolvers = {
     slug: (p: any) => p.genSlug(),
     ...GUILD_LOCKED_TEXT_RESOLVERS,
   },
+  ...guildAdminTypes,
+  ...guildAdminPayloadResolvers,
   },
 };
