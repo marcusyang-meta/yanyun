@@ -92,14 +92,22 @@ function send(method, params = {}, sessionId) {
 }
 
 async function renderPage({ path: p, marker }) {
+  // Always drive a fresh target per page. Reusing the browser's initial
+  // page target races with the previous page's Target.closeTarget: the
+  // target list can still carry the dying id and attach then fails with
+  // -32602 "No target with given id found" (seen on CI for the second
+  // page). One retry on a second fresh target covers transient churn.
   let targetId = '';
-  const targets = await send('Target.getTargets');
-  const page = (targets?.targetInfos || []).find((t) => t.type === 'page');
-  if (page) targetId = page.targetId;
-  if (!targetId) targetId = (await send('Target.createTarget', { url: 'about:blank' }))?.targetId;
-  const attach = await send('Target.attachToTarget', { targetId, flatten: true });
-  const sessionId = attach?.sessionId;
-  if (!sessionId) { check(`render ${p} attaches to a CDP session`, false, JSON.stringify(attach)); return; }
+  let sessionId = '';
+  let lastAttach = null;
+  for (let attempt = 0; attempt < 2 && !sessionId; attempt++) {
+    targetId = (await send('Target.createTarget', { url: 'about:blank' }))?.targetId || '';
+    if (!targetId) break;
+    lastAttach = await send('Target.attachToTarget', { targetId, flatten: true });
+    sessionId = lastAttach?.sessionId || '';
+    if (!sessionId) await send('Target.closeTarget', { targetId });
+  }
+  if (!sessionId) { check(`render ${p} attaches to a CDP session`, false, JSON.stringify(lastAttach)); return; }
   if (process.env.SMOKE_INSECURE === '1') await send('Security.setIgnoreCertificateErrors', { ignore: true }, sessionId);
   const exceptions = [];
   const consoleErrors = [];
