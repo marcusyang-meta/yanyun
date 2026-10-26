@@ -1,9 +1,11 @@
 name: web-check
 
 # Web 前端构建验证 (sync-schema -> relay-compiler -> tsc -> vite build)。
+# 验证前置到 PR (2026-10-26): PR 上跑, merge 后不再重复; 直推 master 不触发。
 on:
   workflow_dispatch:
-  push:
+  pull_request:
+    types: [opened, synchronize, reopened]
     branches: [master]
     paths:
       - 'yanyun-web/**'
