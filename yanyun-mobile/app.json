@@ -13,7 +13,7 @@
     },
     "backgroundColor": "#0c0b09",
     "extra": {
-      "apiUrl": "https://yanyun.tbdlab.workers.dev",
+      "apiUrl": "https://yanyun.app",
       "router": {
         "asyncRoutes": {
           "web": true
