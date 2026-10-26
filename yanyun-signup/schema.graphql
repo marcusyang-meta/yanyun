@@ -635,6 +635,16 @@ type SectPage {
   sectBisAccessoriesLabel: String!
   sectBisHeadBodyLabel: String!
   sectBisLegsWristsLabel: String!
+  sectTabAffixLabel: String!
+  sectAffixEmptyText: String!
+  sectAffixSetLabel: String!
+  sectAffixBowLabel: String!
+  sectAffixDingyinLabel: String!
+  sectAffixColAffixLabel: String!
+  sectAffixColCountLabel: String!
+  sectAffixColMaxLabel: String!
+  sectAffixColCyLabel: String!
+  sectAffixSourceText: String!
 }
 
 type Sect {
@@ -645,6 +655,29 @@ type Sect {
   bis: BisTable        # 毕业词条
   rotation: Rotation   # 输出轴
   rateTargets: RateTargets  # 三率目标
+  gradBuilds: [SectGradBuild!]!  # 毕业词缀：本流派 100 阶毕业配方的词缀构成（配装台口径）
+}
+
+# 一个流派的一条毕业配方（构筑变体）：词缀构成 = targets 条数表
+type SectGradBuild {
+  name: String!        # 构筑名，如 牵丝-霖（纯奶）（按 locale 本地化流派名）
+  cat: String!         # 流派大类：大外会意 / 大外会心 / 小外会心
+  setName: String!     # 套装
+  bowLabel: String     # 推荐弓玦，如 精准弓
+  recipe: String!      # 配方原文，如 "1剑增 + 2首领 + 2全武 + 12大外 + ..."
+  note: String         # 配方备注（原站注记，可空）
+  dingyinName: String  # 武学定音名（已证实者才有；未证实为 null）
+  totalBars: Int!      # 总条数（恒 40）
+  targets: [SectGradTarget!]!
+}
+
+type SectGradTarget {
+  label: String!          # 词缀全名，如 大外功（按 locale 本地化）
+  count: Int!             # 条数
+  maxValue: Float         # 单条满值（属攻/二选一类无统一满值，为 null）
+  cyValue: Float          # 单条承音值（同上）
+  unit: String!           # 单位（% 或空串）
+  flexLabels: [String!]! # 二选一目标的候选词缀全名（非二选一时为空）
 }
 
 type BisTable {

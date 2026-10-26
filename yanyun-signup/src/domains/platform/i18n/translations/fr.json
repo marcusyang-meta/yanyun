@@ -6325,6 +6325,116 @@
         }
       ],
       "types": []
+    },
+    "UCMTFditBNPiRCcaoNQcbQ==": {
+      "description": "sect.tabAffix",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Affixes de graduation",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "bXeQqE3ULtKiYxJ+y8I+Kw==": {
+      "description": "sect.affixEmpty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Aucun affixe de graduation pour le moment",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "PmgMs1y4x/GOiYL4MRY1/A==": {
+      "description": "sect.affixSetLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Ensemble",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "c0JwF5fIJfM0ok9qaGGlkQ==": {
+      "description": "sect.affixBowLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Arc",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "pSW684TAnojleviXNP2FkA==": {
+      "description": "sect.affixDingyinLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Accord",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "YieiTZ1gQcO+lD0gHyhYsQ==": {
+      "description": "sect.affixColAffix",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Affixe",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "C3YUXR12zuhZIJwMYMtkZw==": {
+      "description": "sect.affixColCount",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Lignes",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "zN5pDEbE98XUnoxjFYK+Qw==": {
+      "description": "sect.affixColMax",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Plafond",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "x4k3Omn64XvaKpXMI2m40Q==": {
+      "description": "sect.affixColCy",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Résonance (95 %)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "B/wTysMPEN0GcZaaXrhvKg==": {
+      "description": "sect.affixSource",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "D'après les recettes de graduation de niveau 100 — la même source que l'établi. Le plafond et la résonance sont des maximums par ligne.",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

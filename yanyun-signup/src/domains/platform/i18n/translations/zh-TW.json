@@ -6325,6 +6325,116 @@
         }
       ],
       "types": []
+    },
+    "UCMTFditBNPiRCcaoNQcbQ==": {
+      "description": "sect.tabAffix",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "畢業詞綴",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "bXeQqE3ULtKiYxJ+y8I+Kw==": {
+      "description": "sect.affixEmpty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "暫無畢業詞綴",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "PmgMs1y4x/GOiYL4MRY1/A==": {
+      "description": "sect.affixSetLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "套裝",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "c0JwF5fIJfM0ok9qaGGlkQ==": {
+      "description": "sect.affixBowLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "弓玦",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "pSW684TAnojleviXNP2FkA==": {
+      "description": "sect.affixDingyinLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "定音",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "YieiTZ1gQcO+lD0gHyhYsQ==": {
+      "description": "sect.affixColAffix",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "詞條",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "C3YUXR12zuhZIJwMYMtkZw==": {
+      "description": "sect.affixColCount",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "條數",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "zN5pDEbE98XUnoxjFYK+Qw==": {
+      "description": "sect.affixColMax",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "滿值",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "x4k3Omn64XvaKpXMI2m40Q==": {
+      "description": "sect.affixColCy",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "承音（95%)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "B/wTysMPEN0GcZaaXrhvKg==": {
+      "description": "sect.affixSource",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "按 100 階畢業配方整理，與配裝台同一口徑；滿值、承音為單條詞條上限。",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

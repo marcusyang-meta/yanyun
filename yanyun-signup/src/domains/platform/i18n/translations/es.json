@@ -6325,6 +6325,116 @@
         }
       ],
       "types": []
+    },
+    "UCMTFditBNPiRCcaoNQcbQ==": {
+      "description": "sect.tabAffix",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Afijos de graduación",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "bXeQqE3ULtKiYxJ+y8I+Kw==": {
+      "description": "sect.affixEmpty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Aún no hay afijos de graduación",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "PmgMs1y4x/GOiYL4MRY1/A==": {
+      "description": "sect.affixSetLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Conjunto",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "c0JwF5fIJfM0ok9qaGGlkQ==": {
+      "description": "sect.affixBowLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Arco",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "pSW684TAnojleviXNP2FkA==": {
+      "description": "sect.affixDingyinLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Afinación",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "YieiTZ1gQcO+lD0gHyhYsQ==": {
+      "description": "sect.affixColAffix",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Afijo",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "C3YUXR12zuhZIJwMYMtkZw==": {
+      "description": "sect.affixColCount",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Líneas",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "zN5pDEbE98XUnoxjFYK+Qw==": {
+      "description": "sect.affixColMax",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Tope",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "x4k3Omn64XvaKpXMI2m40Q==": {
+      "description": "sect.affixColCy",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Resonancia (95%)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "B/wTysMPEN0GcZaaXrhvKg==": {
+      "description": "sect.affixSource",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Recopilado de las recetas de graduación de nivel 100: la misma fuente que el banco de equipo. El tope y la resonancia son máximos por línea.",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }
