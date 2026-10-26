@@ -403,25 +403,21 @@ eq('非车头恢复文案 (leaderOnlyReopen)', rMember.data?.reopenGrouping?.err
 const rNoLeader = await gql(reopenMut, { variables: { id: '207' } });
 eq('无车头记录恢复被拒 (闸门先于状态)', rNoLeader.data?.reopenGrouping?.error, '该车队未记录车头，无法恢复，请联系管理员处理');
 
-// REST list: completed cars disappear (consistent with GraphQL).
+// Public-surface consistency at the same flow point (the REST list
+// checks retired with product REST — the GraphQL list disappearance
+// is asserted above; here the OG card channel and the mutation
+// gates carry the equivalent properties).
 try {
-  const worker = (await import('../src/worker.ts')).default;
-  const res = await worker.fetch(new Request(`http://local/api/${SLUG}/events?type=activity`), env, { waitUntil() {} });
-  const j = await res.json();
-  const ids = (j.events || []).map((e) => e.id);
-  check('REST 列表不再含 201', !ids.includes(201), JSON.stringify(ids));
-  check('REST 列表仍含 207', ids.includes(207));
-  // REST manage: complete is a registered action under the same gate — no session hits 401 first; unknown action -> 400.
-  const m1 = await worker.fetch(new Request(`http://local/api/${SLUG}/events/207/manage`, {
-    method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action: 'complete' }),
-  }), env, { waitUntil() {} });
-  eq('REST manage complete 无会话 -> 401 (同闸门)', m1.status, 401);
-  const m2 = await worker.fetch(new Request(`http://local/api/${SLUG}/events/207/manage`, {
-    method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action: 'bogus' }),
-  }), env, { waitUntil() {} });
-  eq('REST manage 未知动作 -> 400', m2.status, 400);
+  const anon = await gql(completeMut, { user: null, variables: { id: '207' } });
+  check('无会话 completeGrouping 被拒 (与旧 manage 同闸门)', anon.data?.completeGrouping?.ok === false, JSON.stringify(anon.data || anon.errors).slice(0, 160));
+  const bogus = await gql(`mutation { bogusAction(id: "207") { ok } }`, { variables: {} });
+  check('未知动作被 schema 拒绝 (与旧 manage 400 等价)', Array.isArray(bogus.errors) && bogus.errors.length > 0, JSON.stringify(bogus).slice(0, 160));
+  const card201 = await gql(`query($slug: String!, $id: ID!) { ogCarCard(slug: $slug, id: $id) { status } }`, { user: null, variables: { slug: SLUG, id: '201' } });
+  eq('OG 车卡 201 状态 = completed', card201.data?.ogCarCard?.status, 'completed');
+  const card207 = await gql(`query($slug: String!, $id: ID!) { ogCarCard(slug: $slug, id: $id) { title status } }`, { user: null, variables: { slug: SLUG, id: '207' } });
+  check('OG 车卡 207 可读且 open', card207.data?.ogCarCard?.status === 'open' && typeof card207.data?.ogCarCard?.title === 'string', JSON.stringify(card207.data || card207.errors).slice(0, 160));
 } catch (e) {
-  check('REST 列表/manage 验证', false, String(e && e.message));
+  check('公开面/manage 等价验证', false, String(e && e.message));
 }
 
 // Creator restores 201 -> it reappears.
