@@ -1221,7 +1221,7 @@ type Guild {
   homeTabTeamLabel: String!
   homeTabDexLabel: String!
   homeTabSectLabel: String!
-  homeAdminLabel: String!
+  homeAdminLabel: String
   detailNotFoundText: String!
   detailBackToListLabel: String!
 }
