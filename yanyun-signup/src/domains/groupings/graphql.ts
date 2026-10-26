@@ -4,10 +4,6 @@ import {
   clampBlocksVersion, substituteForVersion, weekWindowUtc, startsAtEpoch,
   fmtStartsAt, groupByLocalDay, TYPE_SHORT_KEY, HEALER_SECT,
 } from '../platform/index.ts';
-import {
-  clampPrimitivesVersion, primEnabled, primNav, primJoin, primEdit,
-  primUncomplete, primLeave, primDisband, primComplete,
-} from '../platform/index.ts';
 import { tlCalculateExcel } from '../gear/index.ts';
 import { getUserServers, getGuildNick, maybeRefreshGuildNicks, getUserLocalePref, setUserLocalePref } from '../../auth.js';
 import { ensureSignupDiscordColumn, ensureGuildMembersTable, upsertGuildMember } from './index.ts';
@@ -67,7 +63,7 @@ import {
   PayloadBase, GroupingPayloadShell, SeatPayloadShell, DeletePayloadShell,
   CreateGuildPayloadShell, UpdateLocalePayloadShell, uFail, gFail, sFail, dFail, cFail,
 } from '../platform/graphql-base.ts';
-import { BannerBlockShell, EmptyStateBlockShell, SectionHeaderBlockShell, NavigateActionShell, GroupingCardBlockShell, FallbackBlockShell, TextBlockShell, ChipRowBlockShell, SectionBlockShell, SeatGridBlockShell, SpacerBlockShell, ActionButtonBlockShell, UncompleteActionShell, EditActionShell, DisbandActionShell, CompleteActionShell, encodePrimAction, SeatEntryShell } from '../platform/index.ts';
+import { BannerBlockShell, EmptyStateBlockShell, SectionHeaderBlockShell, NavigateActionShell, GroupingCardBlockShell, FallbackBlockShell, TextBlockShell, ChipRowBlockShell, SectionBlockShell, SeatGridBlockShell, SpacerBlockShell, ActionButtonBlockShell, UncompleteActionShell, EditActionShell, DisbandActionShell, CompleteActionShell, SeatEntryShell } from '../platform/index.ts';
 import { DungeonShell } from '../dex/index.ts';
 import { selfStampFor, identityNamesFor, canonicalSignupName } from '../identity/index.ts';
 
@@ -207,110 +203,6 @@ export class GroupingListPageShell extends ShellBase {
         }
       }
       return substituteForVersion(blocks, v, () => new FallbackBlockShell(this.ctx));
-    });
-  }
-  // 移动端原语面 (C 路线): 与 genBlocks 同源同数据的原语树。协商
-  // (primitivesVersion) 与开关 (百业 × 列表页, 默认 OFF) 任一不满足返回
-  // null — 客户端据此回落功能块树。组合顺序与 genBlocks 一一对应:
-  // 公告横幅 → 空态 / 按日分组 (组头 + 卡片 Collection)。
-  async genPrimTree({ primitivesVersion, weekOffset }: any = {}){
-    const v = clampPrimitivesVersion(primitivesVersion);
-    if (!v) return null;
-    const wo = Number.isFinite(weekOffset) ? weekOffset | 0 : 0;
-    return this.memo(`primTree:${v}:${wo}`, async () => {
-      const access = await getGuildAccess(this.db, this.ctx.user, this.data.slug, this.ctx.request);
-      if (!(await primEnabled(this.db, access.slug, 'list'))) return null;
-      const tRow = await getTenantRow(this.db, access.slug).catch(() => null);
-      let viewerNick = null;
-      if (this.ctx.user && access.bound && access.discordGuildId) {
-        viewerNick = await getGuildNick(this.db, this.ctx.user.discordId, access.discordGuildId).catch(() => null);
-      }
-      const [ws, we] = weekWindowUtc(wo);
-      const shells = await this.genGroupings();
-      const nodes = [];
-      if (tRow && tRow.announcement) {
-        nodes.push({ t: 'col', s: 'banner', c: [{ t: 'txt', s: 'bannerText', x: '📣 ' + tRow.announcement }] });
-      }
-      const inWeek = shells.filter((g: any) => {
-        const ts = startsAtEpoch(g.ev);
-        return ts != null && ts >= ws && ts < we;
-      });
-      if (!inWeek.length) {
-        nodes.push({
-          t: 'txt', s: 'empty',
-          x: this.t('groupingList', access.canWrite ? 'emptyInteractive' : 'emptyReadonly'),
-        });
-        return nodes;
-      }
-      // 卡片模板 (Collection): 印章列仅当印章字非空时进模板 (与功能块
-      // 渲染的 sealText 有无同口径); 模板每组只下发一次, 每卡只付数据行。
-      // meta 行 / 状态片令牌 / 印章字都在服务端预拼 (现状在客户端做的组合,
-      // 原语面归服务端 — 这正是「服务端拼好即上线」的含义)。
-      const seal = this.t('groupingList', 'seal');
-      const cardTpl = {
-        t: 'press', a: '$action',
-        c: [{
-          t: 'col', s: 'card',
-          c: [{
-            t: 'row', s: 'cardRow',
-            c: [
-              ...(seal ? [{ t: 'col', s: 'seal', c: [{ t: 'txt', s: 'sealChar', x: '$seal' }] }] : []),
-              {
-                t: 'col', s: 'cardMain',
-                c: [
-                  {
-                    t: 'row', s: 'cardTitleRow',
-                    c: [
-                      { t: 'chip', s: 'typeChip', x: '$badge' },
-                      { t: 'txt', s: 'cardTitle', x: '$title' },
-                    ],
-                  },
-                  { t: 'txt', s: 'cardMeta', x: '$meta' },
-                ],
-              },
-              { t: 'chip', s: '$statusStyle', x: '$status' },
-              { t: 'txt', s: 'chev', x: '›' },
-            ],
-          }],
-        }],
-      };
-      const items = inWeek.map((g: any) => ({ g, ts: startsAtEpoch(g.ev) }));
-      for (const group of groupByLocalDay(items, this.ctx.tz)) {
-        const p = group.parts;
-        nodes.push({
-          t: 'txt', s: 'sectionHeader',
-          x: this.t('groupingList', 'dayGroupHeader', {
-            month: p.month, day: p.day, weekday: this.t('groupingList', 'weekday' + p.weekday),
-          }),
-        });
-        const rows = [];
-        for (const { g } of group.items) {
-          const nav = new NavigateActionShell(this.ctx, {
-            slug: access.slug, groupingId: g.genId(), name: tRow ? tRow.guild_name : access.slug,
-            readOnly: !access.canWrite, nick: viewerNick || '',
-          });
-          const ev = g.ev;
-          const ts = startsAtEpoch(ev);
-          const meta = [
-            ts != null ? fmtStartsAt(ts, this.locale, this.ctx.tz) : '',
-            this.t('groupingList', 'people', { occupied: await g.genOccupiedCount(), max: ev.max_slots }),
-            enDungeonName(this.locale, ev.dungeon || null),
-          ].filter(Boolean).join(' · ');
-          rows.push({
-            ...(seal ? { seal } : {}),
-            badge: this.t('groupingType', TYPE_SHORT_KEY[ev.type] || 'shortActivity'),
-            title: g.genTitle(),
-            meta,
-            status: ev.status === 'open' ? this.t('groupingList', 'statusOpen')
-              : ev.status === 'completed' ? this.t('appBlocks', 'completedStatus')
-              : this.t('appBlocks', 'closedStatus'),
-            statusStyle: ev.status === 'open' ? 'statusOpen' : 'statusClosed',
-            action: encodePrimAction(nav),
-          });
-        }
-        nodes.push({ t: 'list', s: 'cardList', tpl: cardTpl, items: rows });
-      }
-      return nodes;
     });
   }
   async genGroupings(){
@@ -478,117 +370,6 @@ export class GroupingDetailPageShell extends ShellBase {
         }
       }
       return substituteForVersion(blocks, v, () => new FallbackBlockShell(this.ctx));
-    });
-  }
-  // 移动端原语面 (C 路线): 与 genBlocks 同源同数据的原语树 (协商 + 开关
-  // 不满足返回 null)。结构对应: 公告横幅 → 标题 → 类型/状态片行 → meta
-  // → 提示 → 名册区 (区头 + 座位 Collection) → 车头动作钮组 (完成态只给
-  // 恢复)。座位格的占/空差异在服务端预消化成数据行的 line1/line2/
-  // cellStyle/line1Style 四字段, 模板结构恒定; 逐座动作与车头闸门走与
-  // genBlocks 完全相同的 SeatEntryShell / isLeader 结论, 再经
-  // encodePrimAction 转短键。Spacer 尺寸量化到间距标度: 18 → md(16)、
-  // 10 → sm(10) (STUDY §4.3 的毫米级取舍)。
-  async genPrimTree({ primitivesVersion }: any = {}){
-    const v = clampPrimitivesVersion(primitivesVersion);
-    if (!v) return null;
-    return this.memo(`primTree:${v}`, async () => {
-      const ev = this.data;
-      const access = await getGuildAccess(this.db, this.ctx.user, ev.tenant, this.ctx.request);
-      if (!(await primEnabled(this.db, access.slug, 'detail'))) return null;
-      const tRow = await getTenantRow(this.db, ev.tenant).catch(() => null);
-      await ensureSignupDiscordColumn(this.db);
-      const rows = await listSignupSeats(this.db, ev.id);
-      const entries = [];
-      for (let i = 0; i < ev.max_slots; i++) {
-        entries.push(new SeatEntryShell(this.ctx, { row: rows[i] || null, index: i, ev, access }));
-      }
-      const nodes = [];
-      if (tRow && tRow.announcement) {
-        nodes.push({ t: 'col', s: 'banner', c: [{ t: 'txt', s: 'bannerText', x: '📣 ' + tRow.announcement }] });
-      }
-      nodes.push({ t: 'txt', s: 'bTitle', x: ev.title });
-      // 片行与 ChipRowBlockShell.genChips 同源: [类型短名, 副本?, 状态]
-      const chipTexts: any[] = [this.t('groupingType', TYPE_SHORT_KEY[ev.type] || 'shortActivity')];
-      if (ev.dungeon) chipTexts.push(enDungeonName(this.locale, ev.dungeon));
-      chipTexts.push(ev.status === 'open' ? this.t('groupingDetail', 'statusOpen')
-        : ev.status === 'completed' ? this.t('appBlocks', 'completedStatus')
-        : this.t('appBlocks', 'closedStatus'));
-      nodes.push({ t: 'row', s: 'chipRow', c: chipTexts.map((x: any) => ({ t: 'chip', s: 'chip', x })) });
-      const metaParts = [];
-      const ts = startsAtEpoch(ev);
-      if (ts != null) metaParts.push(fmtStartsAt(ts, this.locale, this.ctx.tz));
-      metaParts.push(this.t('groupingDetail', 'people', { occupied: rows.length, max: ev.max_slots }));
-      nodes.push({ t: 'txt', s: 'bMeta', x: metaParts.join(' · ') });
-      nodes.push({
-        t: 'txt', s: 'bMuted',
-        x: this.t('groupingDetail', ev.status === 'completed' ? 'completedHint' : access.canWrite ? 'openHint' : 'readonlyHint'),
-      });
-      // 名册: 座位 Collection (grid2)。空位文案按动作有无选
-      // emptyJoin/empty, 与功能块客户端的 pageText 口径一致 (改由服务端定)。
-      const seatItems = entries.map((e: any) => {
-        const action = encodePrimAction(e.genAction());
-        if (e.genOccupied()) {
-          const weapon = e.genWeapon();
-          const role = e.genRole();
-          const line2 = weapon || role
-            ? `${weapon ?? ''}${role ? `${weapon ? ' · ' : ''}${role}` : ''}` : null;
-          // line1Lines: 与积木版 SeatCell 同构 — 昵称/副行截断 1 行,
-          // 空位文案不截断 (格内居中换行)。
-          return { line1: e.genNickname(), line2, line1Lines: 1, cellStyle: 'seatTaken', line1Style: 'seatName', action };
-        }
-        return {
-          line1: action ? this.t('seat', 'emptyJoin') : this.t('seat', 'empty'),
-          line2: null,
-          line1Lines: null,
-          cellStyle: action ? 'seatFreeJoin' : 'seatFree',
-          line1Style: 'seatEmptyText',
-          action,
-        };
-      });
-      const seatTpl = {
-        t: 'press', a: '$action',
-        c: [{
-          t: 'col', s: '$cellStyle',
-          c: [
-            { t: 'txt', s: '$line1Style', x: '$line1', lines: '$line1Lines' },
-            { t: 'txt', s: 'seatSub', x: '$line2', lines: 1 },
-          ],
-        }],
-      };
-      nodes.push({
-        t: 'col', s: 'section',
-        c: [
-          { t: 'txt', s: 'sectionHeader', x: this.t('appBlocks', 'rosterTitle') },
-          { t: 'list', s: 'grid2', tpl: seatTpl, items: seatItems },
-        ],
-      });
-      const isLeader = !!(this.ctx.user && ev.creator_discord_id
-        && String(ev.creator_discord_id) === String(this.ctx.user.discordId));
-      if (isLeader && access.canWrite) {
-        const btn = (labelRef: any, styleToken: any, actionShell: any) => ({
-          t: 'press', a: encodePrimAction(actionShell),
-          c: [{
-            t: 'col', s: styleToken,
-            c: [{ t: 'txt', s: styleToken + 'Text', x: this.t(...labelRef) }],
-          }],
-        });
-        nodes.push({ t: 'sp', s: 'md' });
-        if (ev.status === 'completed') {
-          // 已完成: 只给恢复入口 (与 genBlocks 同口径)
-          nodes.push(btn(['groupingDetail', 'restore'], 'btnGhost',
-            new UncompleteActionShell(this.ctx, { groupingId: String(ev.id) })));
-        } else {
-          nodes.push(btn(['groupingDetail', 'edit'], 'btnGhost',
-            new EditActionShell(this.ctx, { groupingId: String(ev.id) })));
-          nodes.push({ t: 'sp', s: 'sm' });
-          nodes.push(btn(['groupingDetail', 'complete'], 'btnGhost',
-            new CompleteActionShell(this.ctx, { groupingId: String(ev.id), title: ev.title })));
-          nodes.push({ t: 'sp', s: 'sm' });
-          nodes.push(btn(['groupingDetail', 'disband'], 'btnDanger',
-            new DisbandActionShell(this.ctx, { groupingId: String(ev.id), title: ev.title })));
-        }
-      }
-      return nodes;
     });
   }
 }
@@ -1009,13 +790,11 @@ export const groupingsResolvers = {
     groupings: (p: any) => p.genGroupings(),
     currentVersion: (p: any) => p.genCurrentVersion(),
     blocks: (p: any, args: any) => p.genBlocks(args),
-    primTree: (p: any, args: any) => p.genPrimTree(args),
     ...LIST_TEXT_RESOLVERS,
   },
   GroupingDetailPage: {
     grouping: (p: any) => p.genGrouping(),
     blocks: (p: any, args: any) => p.genBlocks(args),
-    primTree: (p: any, args: any) => p.genPrimTree(args),
     ...DETAIL_TEXT_RESOLVERS,
   },
   // ===== Bloks-lite 积木/动作 (类型即分发; shell 自带 __typename) =====

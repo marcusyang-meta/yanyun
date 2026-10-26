@@ -3,10 +3,6 @@ import {
   clampBlocksVersion, substituteForVersion, weekWindowUtc, startsAtEpoch,
   fmtStartsAt, groupByLocalDay, TYPE_SHORT_KEY, HEALER_SECT,
 } from './index.ts';
-import {
-  clampPrimitivesVersion, primEnabled, primNav, primJoin, primEdit,
-  primUncomplete, primLeave, primDisband, primComplete,
-} from './index.ts';
 import { tlCalculateExcel } from '../gear/index.ts';
 import { getUserServers, getGuildNick, maybeRefreshGuildNicks, getUserLocalePref, setUserLocalePref } from '../../auth.js';
 import { ensureSignupDiscordColumn, ensureGuildMembersTable, upsertGuildMember } from '../groupings/index.ts';
@@ -248,48 +244,6 @@ export class CompleteActionShell extends ActionShell {
 export class UncompleteActionShell extends ActionShell {
   constructor(ctx: any, data: any){ super(ctx, 'UncompleteAction', data); }
   genGroupingId(){ return this.data.groupingId; }
-}
-
-/* ---------- 原语面: 动作 shell → 短键动作 ----------
- * 原语树 (C 路线, src/prim.js) 的动作与功能块的带类型 Action 对象同源:
- * 同一 shell 的 gen 方法产出确认文案, 编码只是换一套短键线格式。拼树侧
- * 永远先构造 Action shell (与 genBlocks 完全相同的权限结论), 需要原语
- * 形态时经此函数转码, 保证两棵树动作集合逐项等价。 */
-export function encodePrimAction(shell: any) {
-  if (!shell) return null;
-  switch (shell.__typename) {
-    case 'NavigateAction':
-      return primNav({
-        slug: shell.genSlug(), groupingId: shell.genGroupingId(), name: shell.genName(),
-        readOnly: shell.genReadOnly(), nick: shell.genNick(),
-      });
-    case 'JoinAction':
-      return primJoin({ groupingId: shell.genGroupingId(), seatIndex: shell.genSeatIndex() });
-    case 'LeaveAction':
-      return primLeave({
-        groupingId: shell.genGroupingId(), uid: shell.genUid(),
-        confirmTitle: shell.genConfirmTitle(), confirmMessage: shell.genConfirmMessage(),
-        okLabel: shell.genOkLabel(), cancelLabel: shell.genCancelLabel(),
-      });
-    case 'DisbandAction':
-      return primDisband({
-        groupingId: shell.genGroupingId(),
-        confirmTitle: shell.genConfirmTitle(), confirmMessage: shell.genConfirmMessage(),
-        okLabel: shell.genOkLabel(), cancelLabel: shell.genCancelLabel(),
-      });
-    case 'EditAction':
-      return primEdit({ groupingId: shell.genGroupingId() });
-    case 'CompleteAction':
-      return primComplete({
-        groupingId: shell.genGroupingId(),
-        confirmTitle: shell.genConfirmTitle(), confirmMessage: shell.genConfirmMessage(),
-        okLabel: shell.genOkLabel(), cancelLabel: shell.genCancelLabel(),
-      });
-    case 'UncompleteAction':
-      return primUncomplete({ groupingId: shell.genGroupingId() });
-    default:
-      return null;
-  }
 }
 
 /* ---------- 页面 shell: 组队列表 ----------
