@@ -23,6 +23,8 @@ function TabFallback() {
 export interface GuildHomeNode {
   name?: string | null;
   gameVersion: string;
+  // 百业自定义头像 (后端 avatarUrl 字段; 无头像为 null, 页眉回退现状)
+  avatarUrl?: string | null;
   // 当前用户在该百业绑定服务器的昵称 (后端下发; 无/未绑定为 null)
   viewerNick?: string | null;
   // 主页外壳文案 (后端 Guild/GuildReadOnly 文案字段下发)
@@ -68,10 +70,24 @@ export default function GuildHome({ node, slug, carId, user, userBarText, intera
             </Link>
             <UserBar user={barUser} text={userBarText} />
           </div>
-          <h1 style={{ fontFamily: 'var(--font-brush)', fontSize: 42, color: '#ecd28f', margin: '12px 0 4px', letterSpacing: '.08em' }}>
-            {node.name}
-          </h1>
-          <p style={{ color: theme.muted, fontSize: 13, letterSpacing: '.06em' }}>{node.gameVersion}</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            {node.avatarUrl && (
+              <img
+                src={node.avatarUrl}
+                alt=""
+                style={{
+                  width: 64, height: 64, borderRadius: '50%', objectFit: 'cover', flexShrink: 0,
+                  border: '2px solid rgba(201,163,92,.55)', background: 'rgba(201,163,92,.08)',
+                }}
+              />
+            )}
+            <div style={{ minWidth: 0 }}>
+              <h1 style={{ fontFamily: 'var(--font-brush)', fontSize: 42, color: '#ecd28f', margin: '12px 0 4px', letterSpacing: '.08em' }}>
+                {node.name}
+              </h1>
+              <p style={{ color: theme.muted, fontSize: 13, letterSpacing: '.06em', margin: 0 }}>{node.gameVersion}</p>
+            </div>
+          </div>
           {banner && (
             <div style={{
               marginTop: 12, padding: '9px 14px', borderRadius: 8, fontSize: 13,

@@ -3,7 +3,7 @@ import { useLocalSearchParams } from 'expo-router';
 import GroupingListScreen from '../../../screens/GroupingListScreen';
 
 export default function GuildGroupings() {
-  const p = useLocalSearchParams<{ slug: string; name?: string; readOnly?: string; nick?: string; version?: string }>();
+  const p = useLocalSearchParams<{ slug: string; name?: string; readOnly?: string; nick?: string; version?: string; avatar?: string }>();
   return (
     <GroupingListScreen
       slug={p.slug}
@@ -11,6 +11,7 @@ export default function GuildGroupings() {
       readOnly={p.readOnly === '1'}
       nick={p.nick || ''}
       gameVersion={p.version || undefined}
+      avatarUrl={p.avatar || undefined}
     />
   );
 }

@@ -186,16 +186,28 @@ export function SiteChrome({ displayName }: { displayName?: string | null }) {
   );
 }
 
-// Web 百业头部: 百业名 (书法 42 金) + gameVersion 行。
-export function GuildHeader({ name, version }: { name: string; version?: string | null }) {
+// Web 百业头部: 百业名 (书法 42 金) + gameVersion 行。有百业自定义
+// 头像 (avatarUrl, 后端字段经选择页路由参数带入) 时在名左侧出圆图。
+export function GuildHeader({ name, version, avatarUrl }: { name: string; version?: string | null; avatarUrl?: string | null }) {
   return (
-    <View>
-      <Text style={{ fontFamily: fonts.brush, fontSize: 42, color: theme.goldHi, letterSpacing: 3, marginTop: 12, marginBottom: 4 }}>
-        {name}
-      </Text>
-      {version ? (
-        <Text style={{ color: theme.muted, fontSize: 13, letterSpacing: 1, fontFamily: fonts.serif }}>{version}</Text>
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+      {avatarUrl ? (
+        <Image
+          source={{ uri: avatarUrl }}
+          style={{
+            width: 56, height: 56, borderRadius: 28, marginTop: 12,
+            borderWidth: 1, borderColor: 'rgba(201,163,92,.5)', backgroundColor: 'rgba(201,163,92,.08)',
+          }}
+        />
       ) : null}
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Text style={{ fontFamily: fonts.brush, fontSize: 42, color: theme.goldHi, letterSpacing: 3, marginTop: 12, marginBottom: 4 }}>
+          {name}
+        </Text>
+        {version ? (
+          <Text style={{ color: theme.muted, fontSize: 13, letterSpacing: 1, fontFamily: fonts.serif }}>{version}</Text>
+        ) : null}
+      </View>
     </View>
   );
 }

@@ -37,6 +37,8 @@ export type GuildItem = {
   slogan?: string | null;
   gameVersion?: string | null;
   memberCount: number;
+  // 百业自定义头像 (后端 avatarUrl 字段; 无头像为 null, 展示面回退燕字印)
+  avatarUrl?: string | null;
   viewerNick?: string | null;
   // 百业主页分区胶囊文案 (Guild/GuildReadOnly shell 按 locale 下发, 与 Web GuildHome 同源)
   homeTabTeamLabel?: string | null;

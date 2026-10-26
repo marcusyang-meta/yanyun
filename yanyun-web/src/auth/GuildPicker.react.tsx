@@ -23,6 +23,7 @@ export interface PickerGuild {
   slogan?: string | null;
   gameVersion: string;
   memberCount: number;
+  avatarUrl?: string | null;
 }
 
 // 登录后落地页: 「我可用的百业」+「公开百业」
@@ -51,7 +52,18 @@ export default function GuildPicker({
         marginBottom: 12,
       }}
     >
-      <span className="yy-seal" style={{ width: 48, height: 48, fontSize: 24 }}>燕</span>
+      {t.avatarUrl ? (
+        <img
+          src={t.avatarUrl}
+          alt=""
+          style={{
+            width: 48, height: 48, borderRadius: '50%', objectFit: 'cover', flexShrink: 0,
+            border: '1px solid rgba(201,163,92,.45)', background: 'rgba(201,163,92,.08)',
+          }}
+        />
+      ) : (
+        <span className="yy-seal" style={{ width: 48, height: 48, fontSize: 24 }}>燕</span>
+      )}
       <span style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 18, color: theme.goldHi, fontWeight: 600 }}>
           {t.name}

@@ -41,6 +41,7 @@ export const ViewerQuery = graphql`
         slogan
         gameVersion
         memberCount
+        avatarUrl
         viewerNick
         homeTabTeamLabel
         homeTabDexLabel
@@ -52,6 +53,7 @@ export const ViewerQuery = graphql`
         slogan
         gameVersion
         memberCount
+        avatarUrl
         viewerNick
         homeTabTeamLabel
         homeTabDexLabel

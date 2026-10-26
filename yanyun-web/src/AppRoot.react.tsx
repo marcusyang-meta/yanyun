@@ -30,6 +30,7 @@ const AppViewerQueryNode = graphql`
         slogan
         gameVersion
         memberCount
+        avatarUrl
       }
       publicGuilds {
         slug
@@ -37,6 +38,7 @@ const AppViewerQueryNode = graphql`
         slogan
         gameVersion
         memberCount
+        avatarUrl
       }
       siteTitle
       siteSubtitle

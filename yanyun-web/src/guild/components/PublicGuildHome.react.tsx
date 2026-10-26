@@ -11,6 +11,7 @@ const PublicGuildHome_guild = graphql`
     name
     slogan
     gameVersion
+    avatarUrl
     homeBackToHubLabel
     homeTabTeamLabel
     homeTabDexLabel

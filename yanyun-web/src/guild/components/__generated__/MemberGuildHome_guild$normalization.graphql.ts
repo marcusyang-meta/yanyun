@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<3df4f433ff39f94d9c620360a1d53b25>>
+ * @generated SignedSource<<b25421c54fbdc4b46c5d9a67277330f5>>
  * @lightSyntaxTransform
  */
 
@@ -41,6 +41,13 @@ const node: NormalizationSplitOperation = {
       "args": null,
       "kind": "ScalarField",
       "name": "gameVersion",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "avatarUrl",
       "storageKey": null
     },
     {
@@ -95,6 +102,6 @@ const node: NormalizationSplitOperation = {
   ]
 };
 
-(node as any).hash = "0696581976afd787dca6d30053d4c5d8";
+(node as any).hash = "a89a2464051abb411bc9e4ee88fd1dda";
 
 export default node;
