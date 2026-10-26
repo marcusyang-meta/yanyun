@@ -100,6 +100,23 @@ const DDL = [
      note TEXT NOT NULL DEFAULT '', sort_order INTEGER NOT NULL DEFAULT 0,
      dungeon TEXT NOT NULL DEFAULT '', guide TEXT NOT NULL DEFAULT '',
      mechanics_json TEXT, talents_json TEXT, shouts_json TEXT)`,
+  `CREATE TABLE schools (
+     name TEXT, slug TEXT PRIMARY KEY, short TEXT, family TEXT,
+     color TEXT, attr TEXT, talent_desc TEXT)`,
+  `CREATE TABLE school_bis (
+     school TEXT NOT NULL, build TEXT NOT NULL DEFAULT '',
+     attr TEXT, rate TEXT, bis_json TEXT NOT NULL,
+     updated_at INTEGER DEFAULT (strftime('%s','now')),
+     PRIMARY KEY (school, build))`,
+  `CREATE TABLE school_rotations (
+     school TEXT PRIMARY KEY, rotation_json TEXT NOT NULL,
+     updated_at INTEGER DEFAULT (strftime('%s','now')))`,
+  `CREATE TABLE slot_affix (
+     build TEXT NOT NULL, slot TEXT NOT NULL, affix_key TEXT NOT NULL,
+     PRIMARY KEY (build, slot, affix_key))`,
+  `CREATE TABLE affix_max (
+     affix_key TEXT PRIMARY KEY, name_cn TEXT NOT NULL,
+     max_value REAL NOT NULL, unit TEXT DEFAULT '')`,
 ];
 for (const ddl of DDL) await db.prepare(ddl).run();
 
@@ -550,6 +567,39 @@ if (want('dex')) {
   eq('deleteBossById changes', (await bs.deleteBossById(db, b1.last_row_id)).changes, 1);
   eq('deleteDungeonById changes', (await dg.deleteDungeonById(db, d2.last_row_id)).changes, 1);
   eq('counts after deletes', [await bs.countBosses(db), await dg.countDungeons(db)], [1, 1]);
+}
+
+/* ---------------- dex reference data ---------------- */
+if (want('reference')) {
+  console.log('== dex reference repository on real D1 ==');
+  const ref = await import('../src/domains/dex/reference.ts');
+
+  await db.prepare('INSERT INTO schools (name, slug, short, family, color, attr, talent_desc) VALUES (?, ?, ?, ?, ?, ?, ?)').bind('鸣金·虹', 'mingjin-hong', '虹', '鸣金', '#c9a35c', '外功', 'td').run();
+  await db.prepare('INSERT INTO schools (name, slug) VALUES (?, ?)').bind('牵丝·霖', 'qiansi-lin').run();
+  eq('listSchoolsFull ordered', (await ref.listSchoolsFull(db)).map((r) => r.name), ['牵丝·霖', '鸣金·虹']);
+  eq('listSchoolsNameSlug', (await ref.listSchoolsNameSlug(db)).map((r) => r.slug), ['qiansi-lin', 'mingjin-hong']);
+  eq('getSchoolNameBySlug', (await ref.getSchoolNameBySlug(db, 'qiansi-lin'))?.name, '牵丝·霖');
+  eq('getSchoolNameBySlug missing -> null', await ref.getSchoolNameBySlug(db, 'nope'), null);
+
+  await ref.upsertSchoolBis(db, { school: '鸣金·虹', build: '大外流', attr: 'a1', rate: 'r1', bisJson: '{"x":1}' });
+  await ref.upsertSchoolBis(db, { school: '鸣金·虹', build: '大外流', attr: 'a2', rate: 'r2', bisJson: '{"x":2}' });
+  const bisRows = await ref.listSchoolBisBySchool(db, '鸣金·虹');
+  check('upsertSchoolBis conflict updates in place', bisRows.length === 1 && bisRows[0].attr === 'a2' && bisRows[0].bis_json === '{"x":2}');
+  eq('listSchoolBis all', (await ref.listSchoolBis(db)).length, 1);
+  eq('getSchoolBisJsonBySchool', (await ref.getSchoolBisJsonBySchool(db, '鸣金·虹'))?.bis_json, '{"x":2}');
+
+  await ref.upsertSchoolRotation(db, { school: '鸣金·虹', rotationJson: '["s1"]' });
+  await ref.upsertSchoolRotation(db, { school: '鸣金·虹', rotationJson: '["s2"]' });
+  eq('upsertSchoolRotation conflict updates', (await ref.getSchoolRotationBySchool(db, '鸣金·虹'))?.rotation_json, '["s2"]');
+  eq('listSchoolRotations', (await ref.listSchoolRotations(db)).length, 1);
+
+  await db.prepare('INSERT INTO slot_affix (build, slot, affix_key) VALUES (?, ?, ?)').bind('默认', '武器', 'max_atk').run();
+  await db.prepare('INSERT INTO slot_affix (build, slot, affix_key) VALUES (?, ?, ?)').bind('默认', '头盔', 'crit_rate').run();
+  eq('listSlotAffixByBuild ordered by slot', (await ref.listSlotAffixByBuild(db, '默认')).map((r) => r.affix_key), ['crit_rate', 'max_atk']);
+  await db.prepare('INSERT INTO affix_max (affix_key, name_cn, max_value, unit) VALUES (?, ?, ?, ?)').bind('max_atk', '大外', 100, '').run();
+  await db.prepare('INSERT INTO affix_max (affix_key, name_cn, max_value, unit) VALUES (?, ?, ?, ?)').bind('crit_rate', '会心', 50, '%').run();
+  eq('listAffixMax ordered', (await ref.listAffixMax(db)).map((r) => r.affix_key), ['crit_rate', 'max_atk']);
+  eq('listAffixMaxValues', (await ref.listAffixMaxValues(db)).length, 2);
 }
 
 await mf.dispose();

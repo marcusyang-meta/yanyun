@@ -23,6 +23,8 @@ import { getUsernameRow } from './domains/identity/index.ts';
 import { listGuildMembers, getGuildMember } from './domains/identity/index.ts';
 import {
   getBossById, listBossesByDungeon, ensureBossStructuredColumns as ensureBossStructuredColumnsRepo,
+  listSchoolsFull, listSchoolsNameSlug, getSchoolNameBySlug, listSchoolBis,
+  getSchoolBisJsonBySchool, listSchoolRotations, listSlotAffixByBuild, listAffixMax, listAffixMaxValues,
 } from './domains/dex/index.ts';
 import {
   getDungeonByName, getDungeonNameSizeById, listDungeonsDex, getLatestDungeonVersion,
@@ -1919,11 +1921,9 @@ class SectPageShell extends ShellBase {
   async genSects() {
     return this.memo('sects', async () => {
       const db = this.db;
-      const { results: schools } = await db.prepare(
-        'SELECT name, slug, short, family, color, attr, talent_desc FROM schools ORDER BY name ASC'
-      ).all().catch(() => ({ results: [] }));
-      const { results: bisRows } = await db.prepare('SELECT school, build, attr, rate, bis_json FROM school_bis').all().catch(() => ({ results: [] }));
-      const { results: rotRows } = await db.prepare('SELECT school, rotation_json FROM school_rotations').all().catch(() => ({ results: [] }));
+      const schools = await listSchoolsFull(db).catch(() => []);
+      const bisRows = await listSchoolBis(db).catch(() => []);
+      const rotRows = await listSchoolRotations(db).catch(() => []);
       const rotMap = {};
       for (const r of rotRows || []) rotMap[r.school] = r.rotation_json;
       // 每个流派取第一个 build 的 bis (与 REST /bis 默认一致取全量, 这里取首个)
@@ -1978,9 +1978,7 @@ const SECT_TEXT_RESOLVERS = defineTextGens(SectPageShell, [
 class TiaolvPageShell extends ShellBase {
   async genSects() {
     return this.memo('sects', async () => {
-      const { results: schools } = await this.db.prepare(
-        'SELECT name, slug FROM schools ORDER BY name ASC'
-      ).all().catch(() => ({ results: [] }));
+      const schools = await listSchoolsNameSlug(this.db).catch(() => []);
       return (schools || []).map((sc) => ({ slug: sc.slug, name: enSectName(this.locale, sc.name) }));
     });
   }
@@ -2432,16 +2430,12 @@ const resolvers = {
   Query: {
     slotAffixList: async (_, { build }, ctx) => {
       const db = ctx.env.DB;
-      const { results } = await db.prepare(
-        'SELECT slot, affix_key FROM slot_affix WHERE build = ? ORDER BY slot'
-      ).bind(build).all();
+      const results = await listSlotAffixByBuild(db, build);
       return results.map(r => ({ slot: r.slot, affixKey: r.affix_key }));
     },
     affixMaxList: async (_, __, ctx) => {
       const db = ctx.env.DB;
-      const { results } = await db.prepare(
-        'SELECT affix_key, name_cn, max_value, unit FROM affix_max ORDER BY affix_key'
-      ).all();
+      const results = await listAffixMax(db);
       return results.map(r => ({
         key: r.affix_key,
         name: r.name_cn,
@@ -3142,27 +3136,21 @@ const resolvers = {
       }
       // 口径：50%条数匹配 + 30%数值达成 + 20%三率达标（参考 gear-planner）
       const db = ctx.env.DB;
-      const { results: maxRows } = await db.prepare(
-        'SELECT affix_key, max_value FROM affix_max'
-      ).all();
+      const maxRows = await listAffixMaxValues(db);
       const maxMap = {};
       for (const r of maxRows) maxMap[r.affix_key] = r.max_value;
 
       // slug -> 中文名
       let schoolName = input.sectSlug;
-      const { results: schoolRows } = await db.prepare(
-        'SELECT name FROM schools WHERE slug = ? LIMIT 1'
-      ).bind(input.sectSlug).all().catch(() => ({ results: [] }));
-      if (schoolRows.length) schoolName = schoolRows[0].name;
+      const schoolRow = await getSchoolNameBySlug(db, input.sectSlug).catch(() => null);
+      if (schoolRow) schoolName = schoolRow.name;
 
       // 获取目标配方的词条类别（从 school_bis）
-      const { results: bisRows } = await db.prepare(
-        'SELECT bis_json FROM school_bis WHERE school = ? LIMIT 1'
-      ).bind(schoolName).all().catch(() => ({ results: [] }));
+      const bisRow = await getSchoolBisJsonBySchool(db, schoolName).catch(() => null);
       let targetCats = {};
-      if (bisRows.length && bisRows[0].bis_json) {
+      if (bisRow && bisRow.bis_json) {
         try {
-          const bis = JSON.parse(bisRows[0].bis_json);
+          const bis = JSON.parse(bisRow.bis_json);
           // 中文名 -> key 映射
           const nameToKey = {
             '大外': 'max_atk', '小外': 'min_atk',
