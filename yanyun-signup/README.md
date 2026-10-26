@@ -26,32 +26,15 @@ npx wrangler dev --local --var ADMIN_PASSWORD:你的密码
 
 打开 http://127.0.0.1:8787 , 管理后台在 `/admin.html`。
 
-## 上线步骤(约 5 分钟)
+## 上线步骤 — 已作废 (2026-10-25 起 CI-only)
 
-1. 注册 Cloudflare 账号(免费): https://dash.cloudflare.com/sign-up
-2. 本机登录: `npx wrangler login`
-3. 创建线上数据库:
-   ```bash
-   npx wrangler d1 create yanyun-signup
-   ```
-   把输出里的 `database_id` 填到 `wrangler.toml` 里替换 `REPLACE_WITH_YOUR_D1_DATABASE_ID`。
-4. 建表:
-   ```bash
-   npx wrangler d1 execute yanyun-signup --remote --file=./schema.sql
-   ```
-5. 设置管理员密码(存在 Cloudflare 加密存储, 不会进代码):
-   ```bash
-   npx wrangler secret put ADMIN_PASSWORD
-   ```
-6. 部署:
-   ```bash
-   npx wrangler deploy
-   ```
-
-部署成功后会给一个地址, 如 `https://yanyun-signup.你的账号.workers.dev`,
-直接发到百业群里就能用。管理后台: 网址 + `/admin.html`, 用第 5 步设的密码登录。
-
-可选: 在 Cloudflare 面板里给 Worker 绑定自己的域名, 也是免费的。
+> **本节的手动部署步骤已全部作废, 不要照做。** 按现行发布纪律 (marcus
+> 2026-10-25 裁决), 一切生产变更只走 GitHub Actions: push 到 master 触发
+> `backend-deploy` 发布 release Preview 并真渲染验收, 再人工 dispatch
+> `backend-promote` 把同一批产物部署到生产 (https://yanyun.app)。
+> 本地 `wrangler deploy` 直接作用于生产是禁止的; 唯一例外是 secret 类
+> 配置 (`wrangler secret`), 仍由人工经安全通道处理。本地开发见上文
+> 「本地运行」一节 (wrangler dev, 与生产无关)。
 
 ## 功能说明
 
