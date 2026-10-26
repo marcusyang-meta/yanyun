@@ -18,8 +18,3 @@ export const APP_AUTH_REDIRECT = 'yanyun://auth-callback';
 // v4: CompleteAction / UncompleteAction (完成/恢复车队, 仅车头的详情树下发)。
 export const BLOCKS_VERSION = 4;
 
-// 原语词表版本 (C 路线): 本 App 解释器认识的原语词汇/动作集版本。
-// 协商语义: 带上这个参数且服务端该百业 × 页面的原语开关开着时,
-// primTree 返回原语树; 否则为 null, 屏幕回落积木树渲染。v1 已冻结
-// (10 原语 + Fallback、7 动作、全集样式令牌), 扩词汇 = 发版事件。
-export const PRIMITIVES_VERSION = 1;

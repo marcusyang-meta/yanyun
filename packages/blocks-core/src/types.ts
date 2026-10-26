@@ -30,9 +30,6 @@ export interface ActionHandlers {
   edit: (a: { groupingId: string }) => void;
   complete: (a: { groupingId: string }) => void;
   uncomplete: (a: { groupingId: string }) => void;
-  // 原语面通用动作 (prim.ts 的 copy/url): 可选 — 未提供的宿主忽略。
-  copyText?: (a: { text: string }) => void;
-  openUrl?: (a: { url: string }) => void;
 }
 
 // 确认呈现注入点: 文案全部来自 Action 对象 (服务端 i18n),

@@ -6,7 +6,6 @@ export * from './fragments';
 export * from './actions';
 export * from './renderer';
 export * from './operations';
-export * from './prim';
 
 // fragment 工件类型转出 (宿主叶子渲染组件需要 $key/$data 类型;
 // 工件本体由包内 relay 项目生成, 见仓根 relay.config.json)
