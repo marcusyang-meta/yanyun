@@ -17,12 +17,17 @@ import { getHeirloomConfig, sendHeirloomTest, heirloomStatusFor } from './heirlo
 import { maybeRunCreatorBackfill } from './creatorbackfill.js';
 import { maybeRunCreatorManualFix } from './creatormanualfix.js';
 import { logError, recentErrors } from './errorlog.js';
+import { translate } from './i18n.js';
+import {
+  AVATAR_MAX_BYTES, sniffAvatarType, getGuildAvatar, getGuildAvatarMeta,
+  putGuildAvatar, deleteGuildAvatar, avatarPath,
+} from './guildavatar.js';
 
 const TYPES = { activity: '双十人本', talent: '天赋组队', race: '竞速', tower: '爬塔', gather: '采集', explore: '探索' };
 const ROLES = ['输出', '承伤', '奶', '治疗', '随意'];
 const RESERVED = new Set(['api', 'admin', 'hub', 'hub-admin', 'gadmin', 'index',
   'bosses', 'tenants', 'onboard', 'login', 'settings', 'events', 'static',
-  'assets', 'app', 'style', 'favicon', 'robots', 'www']);
+  'assets', 'app', 'style', 'favicon', 'robots', 'www', 'guilds']);
 
 /* ================= 小工具 ================= */
 const json = (data, status = 200, headers = {}) =>
@@ -1513,6 +1518,44 @@ guild.put('/:slug/admin/profile', needGuildAdmin, async (c) => {
   return json({ ok: true });
 });
 
+// 百业头像 (管理员直传, blob 存 D1 guild_avatars; 存储/嗅探/身份在 guildavatar.js)
+// 错误文案走 i18n 目录 errors 段 (×5 语), 按请求头协商 locale。
+const avatarErr = (c, code, status = 400) => {
+  const locale = negotiateLocale(c.req.header('x-locale') || c.req.header('accept-language'));
+  return json({ ok: false, message: translate('errors', code, locale), errorCode: code }, status);
+};
+// GET /api/:slug/admin/avatar 当前头像状态 (管理页预览/删除按钮据此渲染)
+guild.get('/:slug/admin/avatar', needGuildAdmin, async (c) => {
+  const slug = c.get('slug');
+  const meta = await getGuildAvatarMeta(c.env.DB, slug);
+  return json({
+    ok: true,
+    hasAvatar: !!meta,
+    avatarUrl: meta ? avatarPath(slug, meta.hash) : null,
+    hash: meta ? meta.hash : null,
+    updatedAt: meta ? meta.updatedAt : null,
+  });
+});
+// PUT /api/:slug/admin/avatar 上传/更换 (请求体 = 图片原始字节, 前端已裁方缩到 ≤512)
+guild.put('/:slug/admin/avatar', needGuildAdmin, async (c) => {
+  const slug = c.get('slug');
+  const declared = parseInt(c.req.header('content-length') || '0', 10);
+  if (declared > AVATAR_MAX_BYTES) return avatarErr(c, 'avatarTooLarge', 413);
+  const buf = new Uint8Array(await c.req.arrayBuffer());
+  if (!buf.byteLength) return avatarErr(c, 'avatarEmpty');
+  if (buf.byteLength > AVATAR_MAX_BYTES) return avatarErr(c, 'avatarTooLarge', 413);
+  const type = sniffAvatarType(buf); // 只认魔数, 伪类型 (改后缀的假图) 在此拒绝
+  if (!type) return avatarErr(c, 'avatarBadType', 415);
+  const { hash } = await putGuildAvatar(c.env.DB, slug, type, buf);
+  return json({ ok: true, avatarUrl: avatarPath(slug, hash), hash });
+});
+// DELETE /api/:slug/admin/avatar 删除 (删后出图 404, avatarUrl 回 null)
+guild.delete('/:slug/admin/avatar', needGuildAdmin, async (c) => {
+  const slug = c.get('slug');
+  await deleteGuildAvatar(c.env.DB, slug);
+  return json({ ok: true });
+});
+
 // GET /api/:slug/admin/events
 guild.get('/:slug/admin/events', needGuildAdmin, async (c) => {
   const slug = c.get('slug');
@@ -1809,6 +1852,26 @@ guild.delete('/:slug/admin/fixed-teams/members/:mid', needGuildAdmin, async (c) 
   if (!own) return err('队员不存在', 404);
   await c.env.DB.prepare('DELETE FROM fixed_team_members WHERE id = ?').bind(mid).run();
   return json({ ok: true });
+});
+
+// GET /api/guilds/:slug/avatar 百业头像公开出图 (品牌图, 与 OG 图同性质,
+// 可匿名读)。URL 带 ?v=<hash8>: 与当前 hash 一致时回不可变长缓存,
+// 头像更换后 GraphQL avatarUrl 给出新 URL, 旧 URL 自然失效; 无头像/
+// 百业不存在一律 404。'guilds' 已入 RESERVED, 不与 /api/:slug/* 冲突。
+app.get('/api/guilds/:slug/avatar', async (c) => {
+  const slug = c.req.param('slug');
+  const row = await getGuildAvatar(c.env.DB, slug);
+  if (!row) return new Response('Not found', { status: 404 });
+  const etag = `"${row.hash}"`;
+  if (c.req.header('if-none-match') === etag) return new Response(null, { status: 304 });
+  const versioned = new URL(c.req.url).searchParams.get('v') === String(row.hash).slice(0, 8);
+  return new Response(row.bytes, {
+    headers: {
+      'Content-Type': row.contentType,
+      'Cache-Control': versioned ? 'public, max-age=31536000, immutable' : 'public, max-age=60',
+      ETag: etag,
+    },
+  });
 });
 
 app.route('/api', guild);

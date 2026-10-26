@@ -17,6 +17,7 @@ import { ensurePushTokensTable, isValidPushToken, savePushToken, deletePushToken
 import { evaluateHeirloomPushes } from './heirloompush.js';
 import { translate, negotiateLocale, SUPPORTED_LOCALES, CATALOG } from './i18n.js';
 import { logError } from './errorlog.js';
+import { getGuildAvatarMeta, avatarPath } from './guildavatar.js';
 import {
   listGearItems, insertGearItem, updateGearItemRow, deleteGearItemRow,
   listGearBuilds, insertGearBuild, deleteGearBuildRow,
@@ -1301,6 +1302,17 @@ class GuildShell extends ShellBase {
   get access() { return this.data; }
   genSlug() { return this.access.tenant ? this.access.tenant.slug : this.access.slug; }
   genName() { return this.access.tenant.guild_name; }
+  // 百业自定义头像: 有头像才给带 hash 的版本化 URL (相对本站 origin),
+  // 没有给 null — 客户端照字段渲染, 不许自己拼 URL。
+  genAvatarUrl() {
+    return this.memo('avatarUrl', async () => {
+      const meta = await getGuildAvatarMeta(this.db, this.genSlug()).catch(() => null);
+      if (!meta) return null;
+      let origin = '';
+      try { origin = new URL(this.ctx.request.url).origin; } catch { /* 无 request 时退相对路径 */ }
+      return origin + avatarPath(this.genSlug(), meta.hash);
+    });
+  }
   genSlogan() { return this.access.tenant.slogan || ''; }
   genGameVersion() { return this.ctxMemo('gameVersion', () => getGameVersion(this.db)); }
   genMemberCount() {
@@ -1376,6 +1388,7 @@ function guildContentResolvers() {
     slogan: (p) => p.genSlogan(),
     gameVersion: (p) => p.genGameVersion(),
     memberCount: (p) => p.genMemberCount(),
+    avatarUrl: (p) => p.genAvatarUrl(),
     groupings: (p, { tab }) => p.genGroupings({ tab }),
     viewerNick: (p) => p.genViewerNick(),
     ...GUILD_TEXT_RESOLVERS,
@@ -1513,6 +1526,15 @@ class GuildCardShell extends ShellBase {
   genSlogan() { return this.data.slogan || ''; }
   genGameVersion() { return this.data.gameVersion; }
   genMemberCount() { return this.data.memberCount; }
+  genAvatarUrl() {
+    return this.memo('avatarUrl', async () => {
+      const meta = await getGuildAvatarMeta(this.db, this.genSlug()).catch(() => null);
+      if (!meta) return null;
+      let origin = '';
+      try { origin = new URL(this.ctx.request.url).origin; } catch { /* 同 GuildShell */ }
+      return origin + avatarPath(this.genSlug(), meta.hash);
+    });
+  }
 }
 
 class HubPageShell extends ShellBase {
@@ -3421,6 +3443,7 @@ const resolvers = {
     slogan: (p) => p.genSlogan(),
     gameVersion: (p) => p.genGameVersion(),
     memberCount: (p) => p.genMemberCount(),
+    avatarUrl: (p) => p.genAvatarUrl(),
   },
   GuildPage: {
     slug: (p) => p.genSlug(),

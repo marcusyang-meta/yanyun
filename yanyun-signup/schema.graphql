@@ -119,6 +119,7 @@ type GuildCard {
   slogan: String
   gameVersion: String!
   memberCount: Int!
+  avatarUrl: String
 }
 
 # ============ 页面：公会主页 ============
@@ -1276,6 +1277,9 @@ type Guild {
   slogan: String
   gameVersion: String!
   memberCount: Int!
+  # 百业自定义头像 (管理员上传) 的版本化公开 URL; 无头像为 null。
+  # 公开品牌图, Guild / GuildReadOnly 两面都下发 (Locked 不带内容数据)。
+  avatarUrl: String
   groupings(tab: GroupingTab!): GroupingListPage!
   viewerNick: String
   # 成员名册: 仅完整 Guild 面声明 — GuildReadOnly / GuildLocked 无此
@@ -1297,6 +1301,7 @@ type GuildReadOnly {
   slogan: String
   gameVersion: String!
   memberCount: Int!
+  avatarUrl: String
   groupings(tab: GroupingTab!): GroupingListPage!
   viewerNick: String
   # 百业主页外壳文案 (shell gen 方法按请求 locale 生成)
