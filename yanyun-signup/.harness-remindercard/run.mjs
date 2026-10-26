@@ -9,7 +9,10 @@
 // three shapes (no dungeon / full / not full), and postWebhook's old
 // shape unchanged when no embeds are passed.
 import {
-buildReminderMessage, postWebhook, sendReminderForEvent,
+buildReminderMessage, postWebhook, sendReminderForEvent, sendReminderBeat,
+dueReminderBeats, nextReminderAt,
+parseReminderOffsets, serializeReminderOffsets,
+sanitizeReminderCustomText, neutralizeMentions,
 REMINDER_EMBED_COLOR, REMINDER_USERNAME, REMINDER_AVATAR_URL,
 carDetailUrl, carOgImageUrl,
 } from '../src/domains/groupings/reminder.ts';
@@ -55,12 +58,35 @@ function toRawRows(sqlText, rows) {
 /* ---------------- FakeDB ---------------- */
 const unknownSql = new Set();
 function makeDb(fx) {
-const state = { eventUpdates: [], settingsWrites: []};
+const state = { eventUpdates: [], settingsWrites: [], beats: []};
 function route(kind, sql, b) {
 // Data-layer (Drizzle) SQL normalization: strip quotes + settings. qualifiers (routing match only).
 sql = sql.replace(/"/g, '').replace(/settings\./g, '');
 if (/PRAGMA table_info/.test(sql)) {
-return { results: ['id', 'discord_id', 'reminder_sent_at', 'reminder_error'].map((name) => ({ name}))};
+return { results: ['id', 'discord_id', 'ready_at', 'reminder_sent_at', 'reminder_error'].map((name) => ({ name}))};
+}
+if (/INSERT INTO event_reminders/.test(sql)) {
+const isSent = /sent_at/.test(sql.split('VALUES')[0]);
+const prev = state.beats.find((r) => r.event_id === b[0] && r.offset_min === b[1]);
+const row = isSent
+? { event_id: b[0], offset_min: b[1], sent_at: b[2], error: null }
+: { event_id: b[0], offset_min: b[1], sent_at: prev ? prev.sent_at : null, error: b[2] };
+if (prev) Object.assign(prev, row); else state.beats.push(row);
+return { meta: {}};
+}
+if (/FROM event_reminders/.test(sql)) {
+return { results: state.beats.filter((r) => b.includes(r.event_id))};
+}
+if (/FROM events/.test(sql)) {
+const pending = fx.events.filter((e) => e.tenant === b[0] && (e.status === 'open' || e.status === 'closed')
+&& e.starts_at_utc != null && e.reminder_sent_at == null && e.reminder_error == null);
+if (/SELECT id, starts_at_utc/.test(sql)) {
+return { results: pending.filter((e) => e.starts_at_utc > b[1]).map((e) => ({ id: e.id, starts_at_utc: e.starts_at_utc }))};
+}
+if (/id IN/.test(sql)) {
+return { results: pending.filter((e) => b.slice(1).includes(e.id))};
+}
+return { results: []};
 }
 if (/guild_members/.test(sql)) {
 if (/CREATE TABLE/.test(sql)) return { meta: {}};
@@ -144,6 +170,13 @@ signups: [
 { event_id: 501, nickname: '路怀', discord_id: '9001', weapon: ''},
 { event_id: 502, nickname: '热心侠客', discord_id: '', weapon: '鸣金·虹'},
 { event_id: 502, nickname: '鱼崽', discord_id: '', weapon: ''},
+{ event_id: 503, nickname: '路怀', discord_id: '9001', weapon: '', ready_at: NOW},
+{ event_id: 503, nickname: '鱼崽', discord_id: '', weapon: ''},
+],
+events: [
+{ id: 501, tenant: SLUG, title: '今晚双十·冲层', type: 'activity', dungeon: '玉魄染青苍', max_slots: 3, starts_at_utc: NOW + 540, creator_discord_id: '9001', created_by: '', status: 'open', reminder_sent_at: null, reminder_error: null},
+{ id: 502, tenant: SLUG, title: '爬塔试水', type: 'tower', dungeon: '', max_slots: 10, starts_at_utc: NOW + 1500, creator_discord_id: '', created_by: '热心侠客', status: 'open', reminder_sent_at: null, reminder_error: null},
+{ id: 503, tenant: SLUG, title: '就位验收车', type: 'activity', dungeon: '', max_slots: 2, starts_at_utc: NOW + 1500, creator_discord_id: '9001', created_by: '', status: 'open', reminder_sent_at: null, reminder_error: null},
 ],
 };
 const { db, state} = makeDb(fx);
@@ -209,6 +242,54 @@ const msgC = await buildReminderMessage(db, {...evB, starts_at_utc: NOW + 20}, S
 check('分钟下限 = 1 (既有口径)', String(msgC.embeds[0].description).includes('还有 1 分钟就发车咯，笨笨要加油哦！'),
 msgC.embeds[0].description);
 
+/* ================= Advanced reminders: offset config ================= */
+deepEq('提前量: 未设置 = 默认 [10]', parseReminderOffsets(''), [10]);
+deepEq('提前量: null = 默认 [10]', parseReminderOffsets(null), [10]);
+deepEq('提前量: none =  explicit 空', parseReminderOffsets('none'), []);
+deepEq('提前量: 多选保序 (降序)', parseReminderOffsets('30,60'), [60, 30]);
+deepEq('提前量: 去重 + 过滤非预置', parseReminderOffsets('10,10,45,5'), [10, 5]);
+deepEq('提前量: 全非法 = 默认 [10]', parseReminderOffsets('abc'), [10]);
+eq('提前量序列化: 降序逗号', serializeReminderOffsets([30, 60]), '60,30');
+eq('提前量序列化: 空 = none', serializeReminderOffsets([]), 'none');
+eq('提前量序列化: 非法项剔除后为空 = none', serializeReminderOffsets([7]), 'none');
+eq('自定义文案: 换行折叠为一行', sanitizeReminderCustomText('第一行\n第二行\r\n第三行'), '第一行 第二行 第三行');
+eq('自定义文案: 100 字上限', [...sanitizeReminderCustomText('长'.repeat(150))].length, 100);
+check('提及中和: @everyone 被零宽空格打断', neutralizeMentions('@everyone').includes('@\u200beveryone') &&!neutralizeMentions('@everyone').includes('@everyone'));
+
+/* ================= Advanced reminders: ready-aware compose ================= */
+/* Car C: leader (9001) already ready, member (9002) not ready. */
+const evC = fx.events.find((e) => e.id === 503);
+const msgCFirst = await buildReminderMessage(db, evC, SLUG, NOW, { isFirst: true });
+deepEq('首拍 @ 全部落座者 (含已就位)', msgCFirst.userIds, ['9001', '9002']);
+deepEq('推送目标恒为未就位者 (首拍)', msgCFirst.pushUserIds, ['9002']);
+const msgCLater = await buildReminderMessage(db, evC, SLUG, NOW, { isFirst: false });
+deepEq('后续拍只 @ 未就位者', msgCLater.userIds, ['9002']);
+const rowsCLater = String(msgCLater.embeds[0].fields?.[0]?.value || '').split('\n');
+eq('后续拍: 已就位者名册行降为纯文本 (仍在册)', rowsCLater[0], '1. 路怀（车头）');
+eq('后续拍: 未就位者仍被 @', rowsCLater[1], '2. <@9002>');
+deepEq('推送目标恒为未就位者 (后续拍)', msgCLater.pushUserIds, ['9002']);
+/* Custom line: inside the embed, after the frozen line, mention-safe. */
+const msgCustom = await buildReminderMessage(db, evA, SLUG, NOW, { isFirst: true, customText: '记得带药 @everyone <@9001>' });
+const descCustom = String(msgCustom.embeds[0].description || '').split('\n');
+eq('自定义行: 钦定行 2 仍逐字居首', descCustom[0], '还有 9 分钟就发车咯，笨笨要加油哦！');
+eq('自定义行: 紧随险地行之后', descCustom[1], '此行险地：玉魄染青苍');
+check('自定义行: 原文保留但提及已中和', descCustom[2].startsWith('记得带药') &&!descCustom[2].includes('@everyone') &&!descCustom[2].includes('<@9001>'), descCustom[2]);
+const msgNoCustom = await buildReminderMessage(db, evA, SLUG, NOW, { isFirst: true, customText: '  ' });
+eq('自定义行空白 = 旧观感 (正文两行)', String(msgNoCustom.embeds[0].description).split('\n').length, 2);
+
+/* ================= Advanced reminders: beat scheduling ================= */
+eq('下一拍时刻 = 最早车的 30 分钟拍 (已过点)', await nextReminderAt(db, SLUG, NOW, [30, 10]), NOW + 540 - 1800);
+const dueBeats = await dueReminderBeats(db, SLUG, NOW, [30, 10]);
+eq('到期拍数 (501 合并双拍 + 502/503 各一拍)', dueBeats.length, 3);
+const beat501 = dueBeats.find((b) => b.ev.id === 501);
+check('501: 双拍同到期只发最晚一拍', !!beat501 && beat501.offsetMin === 10, JSON.stringify(beat501 && beat501.offsetMin));
+deepEq('501: 被合并的早拍标记 superseded', beat501 ? beat501.superseded : null, [30]);
+check('501: 首拍语义 + 末拍语义', !!beat501 && beat501.isFirst === true && beat501.isLast === true);
+const beat503 = dueBeats.find((b) => b.ev.id === 503);
+check('503: 只 30 分钟拍到期 (25 分钟后发车)', !!beat503 && beat503.offsetMin === 30 && beat503.isLast === false, JSON.stringify(beat503 && beat503.offsetMin));
+deepEq('提前量全关: 无到期拍', await dueReminderBeats(db, SLUG, NOW, []), []);
+eq('提前量全关: 无下一拍', await nextReminderAt(db, SLUG, NOW, []), null);
+
 /* ================= End-to-end send (captured by the fetch stub) ================= */
 {
 const sent = [];
@@ -237,6 +318,33 @@ await postWebhook('https://discord.com/api/webhooks/123456/abcdef', '纯文本�
 check('无 embeds 时载荷不含 embeds 键', sent[0] &&!('embeds' in sent[0].body));
 deepEq('旧调用 parse 透传不变', sent[0]?.body.allowed_mentions, { parse: ['everyone'], users: ['42']});
 eq('旧调用 content 透传', sent[0]?.body.content, '纯文本消息');
+} finally {
+globalThis.fetch = realFetch;
+}
+}
+
+/* ================= Advanced reminders: per-beat send + settlement ================= */
+{
+const sent = [];
+const realFetch = globalThis.fetch;
+globalThis.fetch = async (url, opts) => {
+sent.push({ url: String(url), body: JSON.parse(opts.body) });
+return new Response(null, { status: 204 });
+};
+try {
+const cfg = { webhook: 'https://discord.com/api/webhooks/123456/abcdef', guildName: '卡面验收百业', enabled: true, offsets: [30, 10], customText: '' };
+const r1 = await sendReminderBeat(db, SLUG, evC, { offsetMin: 30, isFirst: true, isLast: false, superseded: [] }, cfg, NOW);
+check('拍 30 发送 ok', r1.ok === true, JSON.stringify(r1));
+eq('拍 30: 首拍 @ 全部', sent[0]?.body.allowed_mentions?.users?.join(','), '9001,9002');
+deepEq('拍 30 后未写整车结算 (后续拍未到)', state.eventUpdates.filter((u) => u.id === 503), []);
+const r2 = await sendReminderBeat(db, SLUG, evC, { offsetMin: 10, isFirst: false, isLast: true, superseded: [] }, cfg, NOW);
+check('拍 10 发送 ok', r2.ok === true, JSON.stringify(r2));
+eq('拍 10: 只 @ 未就位者', sent[1]?.body.allowed_mentions?.users?.join(','), '9002');
+deepEq('末拍后写整车结算 reminder_sent_at', state.eventUpdates.filter((u) => u.id === 503), [{ sentAt: NOW, id: 503 }]);
+deepEq('逐拍结算行齐备 (30/10 均 sent)', state.beats.filter((r) => r.event_id === 503).map((r) => `${r.offset_min}:${r.sent_at === NOW ? 'sent' : r.sent_at}`).sort(), ['10:sent', '30:sent']);
+/* After full settlement the grouping leaves the pending set: no more beats. */
+const dueAfter = await dueReminderBeats(db, SLUG, NOW, [30, 10]);
+check('整车结算后不再产生到期拍 (503)', !dueAfter.some((b) => b.ev.id === 503));
 } finally {
 globalThis.fetch = realFetch;
 }

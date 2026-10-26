@@ -18,7 +18,7 @@
 //     (dayGroupHeaderTemplate / weekdayNames / undatedGroupLabel).
 import { yoga } from '../src/graphql.ts';
 import { typeDefs } from '../src/graphql-schema.ts';
-import { nextReminderAt, dueReminders } from '../src/domains/groupings/reminder.ts';
+import { nextReminderAt, dueReminderBeats } from '../src/domains/groupings/reminder.ts';
 import { weekWindowUtc, localDayParts } from '../src/domains/platform/blocks.ts';
 import { translate } from '../src/domains/platform/i18n.ts';
 
@@ -175,6 +175,22 @@ function stmt(sql) {
       if (/SELECT \* FROM events WHERE/.test(sql) && /reminder_sent_at IS NULL/.test(sql)) {
         return { results: pendingFilter(b, true).sort((a, c) => a.starts_at_utc - c.starts_at_utc || a.id - c.id) };
       }
+      if (/SELECT id, starts_at_utc FROM events/.test(sql)) {
+        // Multi-beat scheduling: pending (legacy-unsettled) starts list.
+        return { results: pendingFilter(b, false)
+          .sort((a, c) => a.starts_at_utc - c.starts_at_utc || a.id - c.id)
+          .map((e) => ({ id: e.id, starts_at_utc: e.starts_at_utc })) };
+      }
+      if (/FROM events WHERE tenant = \? AND id IN/.test(sql)) {
+        // Multi-beat scheduling: full rows for planned groupings.
+        return { results: tables.events
+          .filter((e) => e.tenant === b[0] && b.slice(1).map(Number).includes(e.id))
+          .sort((a, c) => a.starts_at_utc - c.starts_at_utc || a.id - c.id) };
+      }
+      if (/FROM event_reminders/.test(sql)) {
+        // No beat in this fixture ever settles.
+        return { results: [] };
+      }
       if (/FROM signups WHERE event_id\s*=\s*\?/.test(sql)) {
         return { results: tables.signups.filter((r) => r.event_id === Number(b[0])).sort((a, c) => a.id - c.id) };
       }
@@ -308,7 +324,7 @@ const detailQ = `query($slug: String, $id: ID!) {
 
 // Reminder baseline: 201 is the earliest car pending a reminder (the alarm is already queued for it).
 eq('基线 nextReminderAt = 201 出发-600', await nextReminderAt(db, SLUG, now), now + 300 - 600);
-const due0 = await dueReminders(db, SLUG, now);
+const due0 = (await dueReminderBeats(db, SLUG, now)).map((x) => x.ev);
 eq('基线 dueReminders 含 201/207/208/209 (官方车也在提醒口径内)', due0.map((e) => e.id).join(','), '201,207,208,209');
 
 // Gates: signed out / not the creator / no creator record / official car.
@@ -371,7 +387,7 @@ check('Block 树不再含卡片 201', !seqOf(bkA.data?.groupingListPage?.blocks)
 
 // Reminder filtering: the alarm was already queued for 201; after completion, the due-time recheck (dueReminders) must block it.
 eq('完成后 nextReminderAt 移到 207', await nextReminderAt(db, SLUG, now), now + 400 - 600);
-const due1 = await dueReminders(db, SLUG, now);
+const due1 = (await dueReminderBeats(db, SLUG, now)).map((x) => x.ev);
 eq('完成后 dueReminders 只剩 207/208/209 (201 被拦住)', due1.map((e) => e.id).join(','), '207,208,209');
 
 // Detail deep-link: completed state + restore entry.
@@ -426,7 +442,7 @@ eq('车头恢复 ok', r1.data?.reopenGrouping?.ok, true, JSON.stringify(r1.error
 eq('恢复后 status=open', r1.data?.reopenGrouping?.grouping?.status, 'open');
 const la2 = await gql(listQ, { variables: { slug: SLUG, tab: 'ACTIVITY' } });
 check('恢复后 GraphQL 列表重现 201', (la2.data?.groupingListPage?.groupings || []).some((g) => g.id === '201'));
-const due2 = await dueReminders(db, SLUG, now);
+const due2 = (await dueReminderBeats(db, SLUG, now)).map((x) => x.ev);
 check('恢复后 dueReminders 重含 201', due2.some((e) => e.id === 201));
 const r2 = await gql(reopenMut, { variables: { id: '201' } });
 eq('未完成车恢复被拒', r2.data?.reopenGrouping?.ok, false);

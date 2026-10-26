@@ -4,10 +4,13 @@ import { webhookIdentity } from '../guilds/index.ts';
 import { getTenantRow } from '../guilds/index.ts';
 import { getSettingValue, setSettingValue } from '../guilds/index.ts';
 import {
-  nextPendingReminderStart, listDueReminderEvents, markReminderSent, markReminderError,
+  markReminderSent, markReminderError,
   ensureReminderColumns as ensureReminderColumnsRepo,
+  ensureReminderBeatsTable, listPendingReminderEvents, listPendingReminderEventRows,
+  listSettledBeats, markBeatSent, markBeatError,
 } from './events.ts';
 import { ensureSignupDiscordColumn as ensureSignupDiscordColumnRepo } from './signups.ts';
+import { ensureSignupReadyColumn as ensureSignupReadyColumnRepo } from './signups.ts';
 import { listSignupSeatsForReminder } from './signups.ts';
 import { getUsernameRow, listUsersDirectory, listNicksByGuild, getNickRow } from '../identity/index.ts';
 import {
@@ -60,6 +63,10 @@ export function ensureSignupDiscordColumn(db: any) {
   return ensureSignupDiscordColumnRepo(db);
 }
 
+export function ensureSignupReadyColumn(db: any) {
+  return ensureSignupReadyColumnRepo(db);
+}
+
 /* ---------- Guild member roster (guild_members) ----------
  * ensureGuildMembersTable / upsertGuildMember are kept here as
  * delegating re-exports (creatorbackfill / creatormanualfix still
@@ -94,7 +101,62 @@ export async function getReminderConfig(db: any, slug: string) {
 const t = await getTenantRow(db, slug).catch(() => null);
 if (!t) return null;
 const enabled = (await getReminderSetting(db, slug, 'reminder_enabled')) === '1';
-return { webhook: String(t.discord_webhook || ''), guildName: String(t.guild_name || slug), enabled};
+const offsets = await getReminderOffsets(db, slug);
+const customText = await getReminderCustomText(db, slug);
+return { webhook: String(t.discord_webhook || ''), guildName: String(t.guild_name || slug), enabled, offsets, customText };
+}
+
+/* ---- Multi-offset configuration ----
+ * Admins pick any subset of the preset lead times. The setting stores
+ * a comma-joined descending list ("60,30,10"); absent = the legacy
+ * default [10]; the literal 'none' = explicitly no reminder beats. */
+export const REMINDER_OFFSET_PRESETS: number[] = [60, 30, 10, 5];
+export const DEFAULT_REMINDER_OFFSETS: number[] = [10];
+
+export function parseReminderOffsets(raw: unknown): number[] {
+  const v = String(raw ?? '').trim();
+  if (v === '') return [...DEFAULT_REMINDER_OFFSETS];
+  if (v === 'none') return [];
+  const out: number[] = [];
+  for (const part of v.split(',')) {
+    const n = parseInt(part.trim(), 10);
+    if (REMINDER_OFFSET_PRESETS.includes(n) && !out.includes(n)) out.push(n);
+  }
+  out.sort((a, b) => b - a);
+  return out.length ? out : [...DEFAULT_REMINDER_OFFSETS];
+}
+
+export function serializeReminderOffsets(list: unknown): string {
+  const clean = [...new Set(
+    (Array.isArray(list) ? list : [])
+      .map((n) => parseInt(String(n), 10))
+      .filter((n) => REMINDER_OFFSET_PRESETS.includes(n)),
+  )].sort((a, b) => b - a);
+  return clean.length ? clean.join(',') : 'none';
+}
+
+export async function getReminderOffsets(db: any, slug: string): Promise<number[]> {
+  return parseReminderOffsets(await getReminderSetting(db, slug, 'reminder_offsets'));
+}
+
+/* Custom reminder line: one line of plain text shown inside the embed.
+ * Newlines are stripped and the text is capped; mention sequences are
+ * neutralized at compose time (see neutralizeMentions). */
+export const REMINDER_CUSTOM_TEXT_MAX = 100;
+
+export function sanitizeReminderCustomText(raw: unknown): string {
+  const oneLine = String(raw ?? '').replace(/[\r\n]+/g, ' ').trim();
+  return [...oneLine].slice(0, REMINDER_CUSTOM_TEXT_MAX).join('');
+}
+
+export async function getReminderCustomText(db: any, slug: string): Promise<string> {
+  return sanitizeReminderCustomText(await getReminderSetting(db, slug, 'reminder_custom_text'));
+}
+
+/* Zero-width space after every '@': @everyone / @here / <@id> can never
+ * parse as a mention, while the text still reads the same. */
+export function neutralizeMentions(text: string): string {
+  return String(text || '').replace(/@/g, '@\u200b');
 }
 
 // Portal display mask: only host + webhook id + last 4 chars of the token are shown.
@@ -106,22 +168,97 @@ return `discord.com/api/webhooks/${m[1]}/…${tail}`;
 }
 
 /* ---------- Scheduling math (D1 is the single source of truth) ----------
- * The pending definition (published open/closed, has a start time,
- * unsettled) lives in the events repository
- * (nextPendingReminderStart / listDueReminderEvents); the next
- * reminder time = the earliest one's starts_at_utc - 600. */
+ * Scheduling is per (grouping, offset): a beat is due when
+ * starts_at_utc - offset has passed and that beat has no settlement
+ * row yet. The pending-grouping definition (published open/closed,
+ * has a start time, legacy marks unsettled) lives in the events
+ * repository; settled beats come from event_reminders. */
 
-export async function nextReminderAt(db: any, slug: string, nowSec: number): Promise<number | null> {
-await ensureReminderColumns(db);
-const m = await nextPendingReminderStart(db, slug, nowSec);
-if (!m) return null;
-return m - REMINDER_LEAD_SEC;
+async function settledBeatMap(db: any, eventIds: number[]): Promise<Map<number, Set<number>>> {
+const rows = await listSettledBeats(db, eventIds).catch(() => []);
+const map = new Map<number, Set<number>>();
+for (const r of rows || []) {
+const set = map.get(Number(r.event_id)) || new Set<number>();
+set.add(Number(r.offset_min));
+map.set(Number(r.event_id), set);
+}
+return map;
 }
 
-// Due groupings: reminder time reached, departure time not yet.
-export async function dueReminders(db: any, slug: string, nowSec: number) {
+/* Earliest future (or overdue) unsettled beat time across pending
+ * groupings, for the GuildHub alarm. Null = nothing to wake for. */
+export async function nextReminderAt(db: any, slug: string, nowSec: number, offsets?: number[]): Promise<number | null> {
 await ensureReminderColumns(db);
-return listDueReminderEvents(db, slug, nowSec, REMINDER_LEAD_SEC);
+await ensureReminderBeatsTable(db);
+// An explicit empty list means "admin turned every offset off" —
+// only an omitted argument falls back to the stored setting.
+const offs = offsets !== undefined ? offsets : await getReminderOffsets(db, slug);
+if (!offs.length) return null;
+const pending = await listPendingReminderEvents(db, slug, nowSec);
+if (!pending.length) return null;
+const settled = await settledBeatMap(db, pending.map((p) => p.id));
+let best: number | null = null;
+for (const p of pending) {
+const done = settled.get(p.id);
+for (const off of offs) {
+if (done && done.has(off)) continue;
+const at = Number(p.starts_at_utc) - off * 60;
+if (best == null || at < best) best = at;
+}
+}
+return best;
+}
+
+export interface DueBeat {
+  ev: any;
+  offsetMin: number;
+  superseded: number[];
+  isFirst: boolean;
+  isLast: boolean;
+}
+
+/* Due beats at fire time. Per grouping only the LATEST due beat is
+ * sent; larger due beats in the same pass (the alarm slept through
+ * them, or the grouping appeared inside several lead windows at
+ * once) settle as superseded instead of spamming the channel.
+ * isFirst = no beat of this grouping has settled before, so the
+ * send behaves like the single legacy reminder (@ everyone). */
+export async function dueReminderBeats(db: any, slug: string, nowSec: number, offsets?: number[]): Promise<DueBeat[]> {
+await ensureReminderColumns(db);
+await ensureReminderBeatsTable(db);
+const offs = offsets !== undefined ? offsets : await getReminderOffsets(db, slug);
+if (!offs.length) return [];
+const pending = await listPendingReminderEvents(db, slug, nowSec);
+if (!pending.length) return [];
+const settled = await settledBeatMap(db, pending.map((p) => p.id));
+const plan = new Map<number, { due: number[]; settledCount: number }>();
+for (const p of pending) {
+const done = settled.get(p.id) || new Set<number>();
+const due = offs.filter((off) => !done.has(off) && Number(p.starts_at_utc) - off * 60 <= nowSec);
+if (due.length) plan.set(p.id, { due, settledCount: done.size });
+}
+if (!plan.size) return [];
+const rows = await listPendingReminderEventRows(db, slug, [...plan.keys()]);
+const smallest = Math.min(...offs);
+const out: DueBeat[] = [];
+for (const ev of rows) {
+const info = plan.get(Number(ev.id));
+if (!info) continue;
+// Re-verify at fire time (the row was fetched fresh): still
+// remindable — published, has a future start, legacy unsettled.
+if (!ev || (ev.status !== 'open' && ev.status !== 'closed')) continue;
+if (!ev.starts_at_utc || Number(ev.starts_at_utc) <= nowSec) continue;
+if (ev.reminder_sent_at || ev.reminder_error) continue;
+const sendOffset = Math.min(...info.due);
+out.push({
+ev,
+offsetMin: sendOffset,
+superseded: info.due.filter((o) => o !== sendOffset),
+isFirst: info.settledCount === 0,
+isLast: sendOffset === smallest,
+});
+}
+return out;
 }
 
 /* ---------- Name & @ resolution ----------
@@ -216,7 +353,11 @@ return guildName || '车头';
  * back to the unique seat whose nickname equals the header's
  * leader display name (legacy groupings without a creator record
  * carry that name as created_by — same definition); else none. */
-export async function buildReminderMessage(db: any, ev: any, slug: string, nowSec: number) {
+export async function buildReminderMessage(db: any, ev: any, slug: string, nowSec: number, opts?: { isFirst?: boolean; customText?: string }) {
+const isFirst = !opts || opts.isFirst !== false;
+// Custom line: sanitized again here (callers may pass raw config);
+// empty after sanitizing = the legacy card, unchanged.
+const customText = opts && opts.customText ? neutralizeMentions(sanitizeReminderCustomText(opts.customText)) : '';
 const dgid = await getReminderSetting(db, slug, 'discord_guild_id');
 const t = await getTenantRow(db, slug).catch(() => null);
 const guildName = t? String(t.guild_name || slug): slug;
@@ -224,19 +365,28 @@ const leader = await leaderDisplayName(db, ev, slug, dgid, guildName);
 const roster = await rosterPool(db, slug);
 const pool = await memberPool(db, dgid);
 await ensureSignupDiscordColumn(db);
+await ensureSignupReadyColumn(db);
 const seats = await listSignupSeatsForReminder(db, ev.id);
 const creatorId = ev.creator_discord_id ? String(ev.creator_discord_id) : '';
 const parsed = [];
 const userIds: string[] = [];
+const pushUserIds: string[] = [];
 for (const seat of seats) {
 const nick = String(seat.nickname || '').trim();
 if (!nick) continue;
 const stamped = seat.discord_id ? String(seat.discord_id) : '';
 const id = stamped || resolveUnique(roster, nick) || resolveUnique(pool, nick);
-if (id && !userIds.includes(id)) userIds.push(id);
+const ready = !!(seat as any).ready_at;
+// Nag rule: the first beat @s everyone (legacy behavior); later
+// beats @ only the not-yet-ready — ready members stay listed in
+// the roster as plain names. Push (last beat only) also targets
+// just the not-ready.
+const pinged = !!(id && (isFirst || !ready));
+if (id && pinged && !userIds.includes(id)) userIds.push(id);
+if (id && !ready && !pushUserIds.includes(id)) pushUserIds.push(id);
 parsed.push({
 nick,
-token: id ? `<@${id}>` : nick,
+token: pinged && id ? `<@${id}>` : nick,
 sect: String(seat.weapon || '').trim(),
 isCreator: !!(creatorId && id && id === creatorId),
 });
@@ -262,9 +412,11 @@ const content = [
 `${leader} 发起了就位确认：你准备好了吗？`,
 `【${ev.title}】`,
 ].join('\n');
-// Card body: frozen line 2 verbatim; the dungeon line in wuxia tone.
+// Card body: frozen line 2 verbatim; the dungeon line in wuxia tone;
+// then the admin's custom line (when set) as its own line.
 const descLines = [`还有 ${mins} 分钟就发车咯，笨笨要加油哦！`];
 if (ev.dungeon && String(ev.dungeon).trim()) descLines.push(`此行险地：${String(ev.dungeon).trim()}`);
+if (customText) descLines.push(customText);
 const embed = {
 title: String(ev.title || ''),
 url: carDetailUrl(slug, ev.id),
@@ -283,7 +435,7 @@ text: occupied < total
 : '全员到齐，拔寨启程！',
 },
 };
-return { content, embeds: [embed], userIds };
+return { content, embeds: [embed], userIds, pushUserIds };
 }
 
 export async function postWebhook(webhook: string, content: string, userIds?: string[], parseTypes?: string[], identity?: any, embeds?: any[]) {
@@ -325,27 +477,55 @@ await setReminderSetting(db, slug, 'reminder_last_error', ok? '': String(error |
 if (eventTitle) await setReminderSetting(db, slug, 'reminder_last_event', String(eventTitle).slice(0, 60));
 }
 
-/* Send one grouping's reminder and record the outcome: success
- * writes reminder_sent_at, failure writes reminder_error
- * (settled, never retried). Returns the send result. */
-export async function sendReminderForEvent(db: any, slug: string, ev: any, cfg: any, nowSec: number, expoBase?: string) {
+/* Send one beat of a grouping's reminder and settle it:
+ * success/failure lands in event_reminders for (event, offset);
+ * a failed beat never blocks the later beats of the same grouping.
+ * When every configured beat has settled, the legacy whole-grouping
+ * marks follow (any success -> reminder_sent_at; all failed ->
+ * reminder_error), so every existing "settled" predicate keeps
+ * working. Push fires only on the LAST beat and only to members
+ * who have not marked themselves ready. Returns the send result. */
+export async function sendReminderBeat(db: any, slug: string, ev: any, beat: { offsetMin: number; isFirst?: boolean; isLast?: boolean; superseded?: number[] }, cfg: any, nowSec: number, expoBase?: string) {
 await ensureReminderColumns(db);
-const { content, embeds, userIds} = await buildReminderMessage(db, ev, slug, nowSec);
+await ensureReminderBeatsTable(db);
+await ensureSignupReadyColumn(db);
+for (const off of beat.superseded || []) {
+await markBeatError(db, ev.id, off, 'superseded');
+}
+const { content, embeds, userIds, pushUserIds } = await buildReminderMessage(db, ev, slug, nowSec, { isFirst: beat.isFirst !== false, customText: cfg && cfg.customText });
 const identity = await webhookIdentity(db, slug).catch(() => null);
 const res = await postWebhook(cfg.webhook, content, userIds, undefined, identity, embeds);
 if (res.ok) {
-await markReminderSent(db, ev.id, nowSec);
+await markBeatSent(db, ev.id, beat.offsetMin, nowSec);
 } else {
-await markReminderError(db, ev.id, String(res.error || '发送失败').slice(0, 300));
-// Site-wide error sink (audit A7): alongside reminder_error, for the hub portal's unified board.
-void logError(db, { source: 'reminder', name: 'WebhookError', message: String(res.error || '发送失败'), tenant: slug, context: { eventId: ev.id } });
+await markBeatError(db, ev.id, beat.offsetMin, String(res.error || '发送失败').slice(0, 300));
+// Site-wide error sink (audit A7): alongside the beat error, for the hub portal's unified board.
+void logError(db, { source: 'reminder', name: 'WebhookError', message: String(res.error || '发送失败'), tenant: slug, context: { eventId: ev.id, offsetMin: beat.offsetMin } });
 }
 await recordStatus(db, slug, { ok: res.ok, error: res.error, atSec: nowSec, eventTitle: ev.title, test: false});
-// App push channel (added 2026-10-25 alongside Discord): targets
-// the participants already resolved to accounts above (userIds),
-// mapped to their app device tokens. Fully isolated: a push
-// failure never changes the Discord settlement state
-// (reminder_sent_at / reminder_error are written first).
-try { await sendDeparturePush(db, slug, ev, cfg, userIds, nowSec, expoBase); } catch { /* Push failures are silent. */ }
+// Whole-grouping legacy settlement once all configured beats settled.
+const offsets: number[] = cfg && Array.isArray(cfg.offsets) && cfg.offsets.length ? cfg.offsets : [beat.offsetMin];
+const settledRows = await listSettledBeats(db, [ev.id]).catch(() => []);
+const settledOffsets = new Set((settledRows || []).map((r: any) => Number(r.offset_min)));
+if (offsets.every((o) => settledOffsets.has(o))) {
+const anySent = (settledRows || []).some((r: any) => r.sent_at != null);
+if (anySent) {
+await markReminderSent(db, ev.id, nowSec);
+} else if (!res.ok) {
+await markReminderError(db, ev.id, String(res.error || '发送失败').slice(0, 300));
+}
+}
+// App push channel: last beat only, not-ready members only.
+// Fully isolated: a push failure never changes settlement state.
+if (beat.isLast) {
+try { await sendDeparturePush(db, slug, ev, cfg, pushUserIds, nowSec, expoBase); } catch { /* Push failures are silent. */ }
+}
 return res;
+}
+
+/* Legacy single-beat entry (kept for callers/tests written against
+ * the one-shot shape): the default 10-minute beat, first and last. */
+export async function sendReminderForEvent(db: any, slug: string, ev: any, cfg: any, nowSec: number, expoBase?: string) {
+const c = cfg && Array.isArray(cfg.offsets) ? cfg : { ...(cfg || {}), offsets: [REMINDER_LEAD_SEC / 60], customText: cfg ? cfg.customText : '' };
+return sendReminderBeat(db, slug, ev, { offsetMin: REMINDER_LEAD_SEC / 60, isFirst: true, isLast: true, superseded: [] }, c, nowSec, expoBase);
 }
