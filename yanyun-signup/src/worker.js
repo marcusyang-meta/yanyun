@@ -14,6 +14,7 @@ import {
   ensureSignupDiscordColumn, ensureGuildMembersTable, upsertGuildMember,
 } from './reminder.js';
 import { getHeirloomConfig, sendHeirloomTest, heirloomStatusFor } from './heirloompush.js';
+import { maybeRunCreatorBackfill } from './creatorbackfill.js';
 
 const TYPES = { activity: '双十人本', talent: '天赋组队', race: '竞速', tower: '爬塔', gather: '采集', explore: '探索' };
 const ROLES = ['输出', '承伤', '奶', '治疗', '随意'];
@@ -1830,6 +1831,10 @@ app.all('/graphql', async (c) => {
     // 网页端不传、不用, 行为不变。
     tz: c.req.header('x-tz') || null,
   });
+  // 一次性懒迁移 (无车头存量车按 1 号位补登记): 函数内有生产 host
+  // 安全闸 + settings 标志守卫, preview/localhost 恒不触发; waitUntil
+  // 异步执行, 失败静默不影响本次请求。
+  try { c.executionCtx.waitUntil(maybeRunCreatorBackfill(c.env, c.req.raw)); } catch { /* 无 executionCtx 的上下文静默 */ }
   if (checked.clearCookie) {
     const headers = new Headers(res.headers);
     headers.append('set-cookie', sessionCookieHeader('', 0));

@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<47aef7259a329da5d1fe9ada01af3cc9>>
+ * @generated SignedSource<<db939b6165216d58956a20ccd1decc33>>
  * @lightSyntaxTransform
  */
 
@@ -9,6 +9,7 @@
 
 import { ConcreteRequest } from 'relay-runtime';
 export type JoinGroupingInput = {
+  forDiscordId?: string | null | undefined;
   groupingId: string;
   nickname: string;
   seatIndex: number;

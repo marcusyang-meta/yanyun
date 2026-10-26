@@ -108,6 +108,24 @@ export const GroupingDetailPrimQuery = graphql`
   }
 `;
 
+// 代报名名册: 只在完整 Guild 面上有 memberRoster 字段 (响应类型即
+// 权限); 报名弹窗只在成员面挂载, 片段不命中时 roster 为空。
+export const GuildRosterQuery = graphql`
+  query documentsGuildRosterQuery($slug: String!) {
+    viewer {
+      guild(slug: $slug) {
+        ... on Guild {
+          memberRoster {
+            discordId
+            displayName
+            globalName
+          }
+        }
+      }
+    }
+  }
+`;
+
 export const JoinGroupingMutation = graphql`
   mutation documentsJoinGroupingMutation($input: JoinGroupingInput!) {
     joinGrouping(input: $input) {
@@ -267,6 +285,12 @@ export const DetailPageTextQuery = graphql`
       seatNameLabel
       seatNamePlaceholder
       seatNameRequired
+      seatSelfTabLabel
+      seatProxyTabLabel
+      seatSelfNameHint
+      seatProxySearchPlaceholder
+      seatProxyPickRequired
+      seatProxyEmptyText
       seatSectLabel
       seatCancelLabel
       seatConfirmJoinLabel

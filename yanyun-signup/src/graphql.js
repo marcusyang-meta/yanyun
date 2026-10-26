@@ -657,6 +657,25 @@ async function selfStampFor(db, user, slug, nickname) {
   return names.has(nickname) ? String(user.discordId) : null;
 }
 
+/* ---------- 报名身份收口 (2026-10-25 用户裁决) ----------
+ * 自报名落座名由服务端定: 报名者在该百业绑定服务器的 Discord 昵称
+ * (user_guild_nicks 快照), 回退全局名 (users.username, 再回退会话名)。
+ * 前端不再能改名, 客户端传来的昵称一律不作数 (覆盖, 不报错); 座位
+ * 无条件落本人 discord_id 戳 — 旧「昵称恰等于身份名集合才盖戳」的
+ * 条件盖戳就此废除 (那套只剩发车预排座位与整表编辑的保守沿用在用)。 */
+async function canonicalSignupName(db, user, slug) {
+  if (!user || !user.discordId) return '';
+  const dgid = await getTenantSetting(db, slug, 'discord_guild_id');
+  if (dgid) {
+    const nick = await getGuildNick(db, String(user.discordId), dgid).catch(() => null);
+    if (nick && String(nick).trim()) return String(nick).trim();
+  }
+  const u = await db.prepare('SELECT username FROM users WHERE discord_id = ?')
+    .bind(String(user.discordId)).first().catch(() => null);
+  if (u && String(u.username || '').trim()) return String(u.username).trim();
+  return String(user.name || '').trim();
+}
+
 /* ---------- 百业成员名册记录 (用户进入百业时) ----------
  * 读取路径在确认可读 (canView) 后顺手把当前用户记进该百业名册
  * (guild_members): 只用登录已拿到的数据 (全局名 + 该服昵称快照), 不新增
@@ -1257,6 +1276,16 @@ const LIST_TEXT_RESOLVERS = {
   weekdayNames: (p) => p.genWeekdayNames(),
 };
 
+/* ---------- 百业成员名册条目 (代报名选人) ----------
+ * 名册 = guild_members (用户进入百业时由读取路径记录)。条目只经完整
+ * Guild 面的 memberRoster 字段下发; displayName 口径与服务端落座名
+ * 一致 (名册昵称, 回退全局名), 选择器选中的就是将落座的名字。 */
+class GuildRosterMemberShell extends ShellBase {
+  genDiscordId() { return String(this.data.discordId); }
+  genDisplayName() { return this.data.displayName; }
+  genGlobalName() { return this.data.globalName || null; }
+}
+
 /* ---------- 实体 shell: Guild (Guild / GuildReadOnly / GuildLocked) ----------
  * 一个 class, 三个 __typename (权限结论由类型表达, 与从前一致): 实例
  * 携带 getGuildAccess 的结论, 字段 gen 方法按需解析 — 内容字段仅在
@@ -1283,6 +1312,29 @@ class GuildShell extends ShellBase {
   }
   genGroupings({ tab }) {
     return groupingListPage(this.ctx, this.genSlug(), tab);
+  }
+  // 本百业成员名册 (代报名选人面): 只挂在完整 Guild 类型上
+  // (GuildReadOnly / GuildLocked 的 schema 里没有这个字段)。按展示名
+  // 排序下发; 展示名为空 (昵称与全局名都缺) 的行不下发 — 选了也落不了座。
+  genMemberRoster() {
+    return this.memo('memberRoster', async () => {
+      await ensureGuildMembersTable(this.db);
+      const { results } = await this.db.prepare(
+        'SELECT discord_id, nick, global_name FROM guild_members WHERE tenant = ?'
+      ).bind(this.genSlug()).all().catch(() => ({ results: [] }));
+      const out = [];
+      for (const r of results || []) {
+        const displayName = String(r.nick || '').trim() || String(r.global_name || '').trim();
+        if (!displayName) continue;
+        out.push(new GuildRosterMemberShell(this.ctx, {
+          discordId: String(r.discord_id),
+          displayName,
+          globalName: String(r.global_name || '').trim(),
+        }));
+      }
+      out.sort((a, b) => a.data.displayName.localeCompare(b.data.displayName, 'zh-Hans-CN'));
+      return out;
+    });
   }
   // 当前用户在该百业绑定服务器的 Discord 昵称 (数据, 非权限标记);
   // 未登录/未绑定/无绑定服务器 -> null; 昵称为空 -> null (前端回退全局名)
@@ -1733,6 +1785,12 @@ const DETAIL_TEXT_RESOLVERS = {
     ['seatNameLabel', 'seat', 'nameLabel'],
     ['seatNamePlaceholder', 'seat', 'namePlaceholder'],
     ['seatNameRequired', 'seat', 'nameRequired'],
+    ['seatSelfTabLabel', 'seat', 'selfTab'],
+    ['seatProxyTabLabel', 'seat', 'proxyTab'],
+    ['seatSelfNameHint', 'seat', 'selfNameHint'],
+    ['seatProxySearchPlaceholder', 'seat', 'proxySearchPlaceholder'],
+    ['seatProxyPickRequired', 'seat', 'proxyPickRequired'],
+    ['seatProxyEmptyText', 'seat', 'proxyEmpty'],
     ['seatSectLabel', 'seat', 'sectLabel'],
     ['seatCancelLabel', 'common', 'cancel'],
     ['seatConfirmJoinLabel', 'seat', 'confirmJoin'],
@@ -2973,14 +3031,33 @@ const resolvers = {
       if (ev.status !== 'open') return sFail(ctx, 'groupingClosed');
       const gate = await requireWrite(db, ctx.user, ev.tenant, ctx.request);
       if (gate) return sFail(ctx, gate);
-      const nickname = s(input.nickname, 30);
-      if (!nickname) return sFail(ctx, 'nicknameRequired');
       const weapon = s(input.weapon, 40);
       const uid = newUid();
-      // 身份戳: 本人落座 (昵称 = 本人预填的服内昵称/全局名) 才盖会话 discord_id;
-      // 替别人报名不盖 (盖了提醒会 @ 错人)。
       await ensureSignupDiscordColumn(db);
-      const stamp = await selfStampFor(db, ctx.user, ev.tenant, nickname);
+      // 报名身份收口 (2026-10-25 用户裁决): 落座名与身份戳都由服务端定,
+      // 客户端传来的 nickname 不作数 (覆盖, 不报错)。
+      //  - 自己报名: 名 = 本人 Discord 服务器昵称 (回退全局名), 戳 = 本人。
+      //  - 代报名 (forDiscordId): 目标必须在本百业名册 (guild_members)
+      //    内, 服务端复验; 名 = 名册昵称 (回退全局名), 戳 = 被代报者 —
+      //    这样提醒 @ 与推送都能精确找到本人。
+      let nickname = '';
+      let stamp = null;
+      const forId = input.forDiscordId ? String(input.forDiscordId).trim() : '';
+      if (forId) {
+        await ensureGuildMembersTable(db);
+        const m = await db.prepare(
+          'SELECT nick, global_name FROM guild_members WHERE tenant = ? AND discord_id = ?'
+        ).bind(ev.tenant, forId).first().catch(() => null);
+        if (!m) return sFail(ctx, 'proxyTargetNotInRoster');
+        nickname = String(m.nick || '').trim() || String(m.global_name || '').trim();
+        if (!nickname) return sFail(ctx, 'nicknameRequired');
+        nickname = nickname.slice(0, 30);
+        stamp = forId;
+      } else {
+        nickname = (await canonicalSignupName(db, ctx.user, ev.tenant)).slice(0, 30);
+        if (!nickname) return sFail(ctx, 'nicknameRequired');
+        stamp = String(ctx.user.discordId);
+      }
       try {
         const r = await db.prepare(
           `INSERT INTO signups (event_id, nickname, uid, role, weapon, discord_id)
@@ -3445,7 +3522,17 @@ const resolvers = {
 
   // Guild / GuildReadOnly 字段实现相同 (只读类型只是不挂写入口组件, 数据本就公开);
   // GuildLocked 只有 slug 与锁定页文案, 不解析任何内容字段。
-  Guild: guildContentResolvers(),
+  // memberRoster 只注册在完整 Guild 上: schema 里 GuildReadOnly /
+  // GuildLocked 没有这个字段, 名册权限由响应类型表达。
+  Guild: {
+    ...guildContentResolvers(),
+    memberRoster: (p) => p.genMemberRoster(),
+  },
+  GuildRosterMember: {
+    discordId: (p) => p.genDiscordId(),
+    displayName: (p) => p.genDisplayName(),
+    globalName: (p) => p.genGlobalName(),
+  },
   GuildReadOnly: { ...guildContentResolvers(), ...GUILD_READONLY_TEXT_RESOLVERS },
   GuildLocked: {
     slug: (p) => p.genSlug(),

@@ -9,7 +9,7 @@ import * as Clipboard from 'expo-clipboard';
 import { fonts, theme, SECTS } from '../theme';
 import { Backdrop, GoldFill, GuildHeader, SiteChrome } from '../components/ui';
 import { BLOCKS_VERSION, PRIMITIVES_VERSION } from '../config';
-import { DetailPageTextQuery, GroupingDetailBlocksQuery, GroupingDetailPrimQuery } from '../documents';
+import { DetailPageTextQuery, GroupingDetailBlocksQuery, GroupingDetailPrimQuery, GuildRosterQuery } from '../documents';
 import { PrimTreeView } from '../prims/PrimTree';
 import type { PrimNode } from '@yanyun/blocks-core';
 import { EditGroupingFormMount } from '../components/GroupingForm';
@@ -22,6 +22,7 @@ import { useSession } from '../session';
 import type { documentsGroupingDetailBlocksQuery } from '../__generated__/documentsGroupingDetailBlocksQuery.graphql';
 import type { documentsGroupingDetailPrimQuery } from '../__generated__/documentsGroupingDetailPrimQuery.graphql';
 import type { documentsDetailPageTextQuery } from '../__generated__/documentsDetailPageTextQuery.graphql';
+import type { documentsGuildRosterQuery } from '../__generated__/documentsGuildRosterQuery.graphql';
 
 // 页面骨架与 Web 详情页同构: 页眉行 (← 站点名 + UserBar) → 百业名 +
 // 版本行 → 「‹ 返回车队列表」金字链 → 积木树 (标题/元信息/提示/名册/
@@ -187,8 +188,12 @@ function BackLinkLive({ slug, id }: { slug: string; id: string }) {
 }
 
 // 落座弹窗: 与 Web SeatGrid modal 同结构 — 标题 (座位模板) / 副标题 /
-// 昵称输入 (行内必填提示) / 流派片 / 右对齐按钮行 (取消幽灵 + 确认金)。
+// 双模式 (自己报名 / 代报名) / 流派片 / 右对齐按钮行 (取消幽灵 + 确认
+// 金)。报名身份收口: 自己报名名字锁定展示 (服务端定名, 不可改);
+// 代报名从本百业名册选人 (可搜索), 落座名与身份戳都是被选者。
 // 文案全部来自详情页 shell 的 seat* 字段。
+type RosterMember = { discordId: string; displayName: string; globalName?: string | null };
+
 function JoinModal({
   slug, id, seat, defaultNickname, onClose, onDone,
 }: {
@@ -205,10 +210,17 @@ function JoinModal({
     { fetchPolicy: 'store-or-network' },
   );
   const page = data.groupingDetailPage;
-  const [nickname, setNickname] = useState(defaultNickname);
+  const rosterData = useLazyLoadQuery<documentsGuildRosterQuery>(
+    GuildRosterQuery,
+    { slug },
+    { fetchPolicy: 'store-or-network' },
+  );
+  const roster: RosterMember[] = ((rosterData as any)?.viewer?.guild?.memberRoster ?? []) as RosterMember[];
+  const [mode, setMode] = useState<'self' | 'proxy'>('self');
+  const [selected, setSelected] = useState<RosterMember | null>(null);
+  const [search, setSearch] = useState('');
   const [sect, setSect] = useState('');
   const [joining, setJoining] = useState(false);
-  const [nameErr, setNameErr] = useState(false);
   const [notice, setNotice] = useState('');
 
   // 报名失败提示走 shell 的 seatToastJoinFailedTemplate (与 Web toast
@@ -220,12 +232,19 @@ function JoinModal({
     return serverError || unknown || '';
   };
 
+  const q = search.trim().toLowerCase();
+  const filtered = q
+    ? roster.filter((m) => m.displayName.toLowerCase().includes(q) || (m.globalName || '').toLowerCase().includes(q))
+    : roster;
+
   const doJoin = async () => {
-    if (!nickname.trim()) { setNameErr(true); return; }
     if (!sect) { setNotice(page?.seatToastSect ?? ''); return; }
+    if (mode === 'proxy' && !selected) { setNotice(page?.seatProxyPickRequired ?? ''); return; }
     setJoining(true); setNotice('');
     try {
-      const r = await joinGrouping(id, nickname.trim(), sect, seat);
+      const r = mode === 'proxy'
+        ? await joinGrouping(id, selected!.displayName, sect, seat, selected!.discordId)
+        : await joinGrouping(id, defaultNickname, sect, seat);
       if (!r.ok) { setNotice(joinFailText(r.error)); return; }
       onDone();
     } catch {
@@ -241,15 +260,60 @@ function JoinModal({
             {page?.seatModalTitleTemplate ? fill(page.seatModalTitleTemplate, { n: seat + 1 }) : `报名 · ${seat + 1} 号位`}
           </Text>
           {!!page?.seatModalSubtitle && <Text style={s.formSub}>{page.seatModalSubtitle}</Text>}
+          <View style={[s.chips, { marginBottom: 2 }]}>
+            {(['self', 'proxy'] as const).map((m) => (
+              <Pressable
+                key={m}
+                style={[s.chip, mode === m && s.chipOn]}
+                onPress={() => setMode(m)}
+              >
+                {mode === m && <GoldFill />}
+                <Text style={[s.chipText, mode === m && s.chipTextOn]}>
+                  {m === 'self' ? (page?.seatSelfTabLabel ?? '') : (page?.seatProxyTabLabel ?? '')}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
           <Text style={s.label}>{page?.seatNameLabel ?? '昵称'}</Text>
-          <TextInput
-            style={s.input}
-            value={nickname}
-            onChangeText={(v) => { setNickname(v); setNameErr(false); }}
-            placeholder={page?.seatNamePlaceholder ?? '游戏昵称'}
-            placeholderTextColor={theme.muted}
-          />
-          {nameErr && <Text style={s.nameErr}>{page?.seatNameRequired ?? '请填写昵称'}</Text>}
+          {mode === 'self' ? (
+            <View>
+              <View style={s.lockedNameBox}>
+                <Text style={s.lockedName}>{defaultNickname || (page?.seatNamePlaceholder ?? '')}</Text>
+              </View>
+              {!!page?.seatSelfNameHint && <Text style={s.hint}>{page.seatSelfNameHint}</Text>}
+            </View>
+          ) : (
+            <View>
+              <TextInput
+                style={s.input}
+                value={search}
+                onChangeText={setSearch}
+                placeholder={page?.seatProxySearchPlaceholder ?? ''}
+                placeholderTextColor={theme.muted}
+              />
+              {filtered.length === 0 ? (
+                <Text style={s.hint}>{page?.seatProxyEmptyText ?? ''}</Text>
+              ) : (
+                <ScrollView style={s.rosterList} nestedScrollEnabled>
+                  {filtered.map((m) => (
+                    <Pressable
+                      key={m.discordId}
+                      style={[s.memberRow, selected?.discordId === m.discordId && s.memberRowOn]}
+                      onPress={() => setSelected(m)}
+                    >
+                      {selected?.discordId === m.discordId && <GoldFill />}
+                      <Text style={[s.memberName, selected?.discordId === m.discordId && s.chipTextOn]}>
+                        {m.displayName}
+                        {m.globalName && m.globalName !== m.displayName ? (
+                          <Text style={s.memberSub}>{'  '}{m.globalName}</Text>
+                        ) : null}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </ScrollView>
+              )}
+            </View>
+          )}
           <Text style={s.label}>{page?.seatSectLabel ?? '流派'}</Text>
           <View style={s.chips}>
             {SECTS.map((x) => (
@@ -412,4 +476,20 @@ const s = StyleSheet.create({
     paddingVertical: 8, paddingHorizontal: 20, alignItems: 'center',
   },
   submitText: { fontFamily: fonts.serif, color: theme.onGold, fontSize: 14, fontWeight: '700' },
+  // 报名身份收口: 自己报名锁定名展示盒 / 提示行 / 代报名名册列表
+  lockedNameBox: {
+    backgroundColor: 'rgba(201,163,92,.08)', borderWidth: 1, borderColor: theme.border,
+    borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10,
+  },
+  lockedName: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 15 },
+  hint: { fontFamily: fonts.serif, color: theme.muted, fontSize: 12, marginTop: 4 },
+  rosterList: { maxHeight: 176, marginTop: 8 },
+  memberRow: {
+    position: 'relative', overflow: 'hidden',
+    borderWidth: 1, borderColor: theme.border, borderRadius: 8,
+    paddingHorizontal: 12, paddingVertical: 8, marginBottom: 6,
+  },
+  memberRowOn: { borderColor: 'rgba(236,210,143,.5)' },
+  memberName: { fontFamily: fonts.serif, color: theme.paper, fontSize: 14 },
+  memberSub: { fontFamily: fonts.serif, color: theme.muted, fontSize: 12 },
 });
