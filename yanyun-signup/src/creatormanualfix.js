@@ -29,7 +29,7 @@
  * (release-yanyun) 与生产共用 D1, 绝不在 preview/localhost 跑、
  * 绝不写标志。名单/账号数据只在 Worker 侧查。 */
 import { ensureEventCreatorColumn } from './graphql.js';
-import { ensureGuildMembersTable } from './reminder.js';
+import { ensureGuildMembersTable } from './reminder.ts';
 import { ensureCreatorBackfillLog } from './creatorbackfill.js';
 import { ensureSchema as ensureUsersTable, ensureNickStore } from './auth.js';
 

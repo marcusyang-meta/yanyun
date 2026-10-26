@@ -16,7 +16,7 @@
 
 import {
   ensureReminderColumns, getReminderConfig, nextReminderAt, dueReminders, sendReminderForEvent,
-} from './reminder.js';
+} from './reminder.ts';
 import { logError } from './errorlog.js';
 
 const KINDS = new Set(['created', 'updated', 'deleted', 'seats']);

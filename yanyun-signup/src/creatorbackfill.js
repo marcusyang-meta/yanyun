@@ -16,7 +16,7 @@
  * preview 误跑 = 未经 promote 直接写生产数据 — 故 host 不在白名单
  * (yanyun.app / yanyun.tbdlab.workers.dev) 时绝对不跑, 连标志都不写。 */
 import { ensureEventCreatorColumn } from './graphql.js';
-import { ensureGuildMembersTable } from './reminder.js';
+import { ensureGuildMembersTable } from './reminder.ts';
 
 const PROD_HOSTS = new Set(['yanyun.app', 'yanyun.tbdlab.workers.dev']);
 const FLAG_KEY = 'creator_backfill_v1';

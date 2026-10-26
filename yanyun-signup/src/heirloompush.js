@@ -21,7 +21,7 @@
 import { GP_SLOTS, GP_AFFIX_BY_KEY, gpBuild } from './gearplanner.js';
 import {
   getReminderSetting, setReminderSetting, postWebhook, ensureGuildMembersTable,
-} from './reminder.js';
+} from './reminder.ts';
 import { getGuildNick } from './auth.js';
 import { webhookIdentity } from './guildavatar.ts';
 import { getTenantRow, listTenantNames } from './db/repositories/tenants.ts';
