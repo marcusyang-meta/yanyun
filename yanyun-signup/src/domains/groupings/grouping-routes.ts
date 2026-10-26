@@ -9,8 +9,8 @@ import {
   getEventRow, getEventRowByTenant, getEventIdByTenant, getEventIdStatusByTenant,
   listEventsWeekView, listEventsAdmin, countActivityEventsInWindow,
   insertEvent, updateEventFields, setEventStatus, deleteEventCascade,
-  listSignupsByEvent, listSignupDetailRows, countSignupsByEvent, getSignupCapacityStats,
-  getSignupTenant, insertSignups, deleteSignupById, deleteSignupByIdAndEvent,
+  listSignupsByEvent, listSignupDetailRows, countSignupsByEvent,
+  getSignupTenant, insertSignups, insertSignupWithCapacityGuard, deleteSignupById, deleteSignupByIdAndEvent,
   deleteSignupByEventNickUid, deleteSignupsByEvent, updateSignupWeaponRoleById,
   listResultsByEvent, insertResult, getResultIdOwnedByTenant, deleteResultById,
   getReminderConfig, ensureSignupDiscordColumn, ensureGuildMembersTable, upsertGuildMember,
@@ -96,21 +96,14 @@ groupingRoutes.post('/:slug/events/:id/signup', async (c: any) => {
   // 原子写入: 名额判断与插入在一条语句内完成, 杜绝并发超卖
   // (SQLite 单条语句原子执行; 顺带复核活动仍为 open 状态)
   try {
-    const r = await c.env.DB.prepare(
-      `INSERT INTO signups (event_id, nickname, uid, role, weapon, contact, note, team_name, members)
-       SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?
-       WHERE (SELECT COUNT(*) FROM signups WHERE event_id = ?)
-           < (SELECT max_slots FROM events WHERE id = ? AND status = 'open')`
-    ).bind(id, nickname, uid, role, s(body.weapon, 40), s(body.contact, 60),
-      s(body.note, 200), s(body.team_name, 40), s(body.members, 300),
-      id, id).run();
-    if (!r.meta.changes) return err('名额已满或报名已截止, 手慢了', 400);
+    const r = await insertSignupWithCapacityGuard(c.env.DB, {
+      event_id: id, nickname, uid, role, weapon: s(body.weapon, 40),
+      contact: s(body.contact, 60), note: s(body.note, 200),
+      team_name: s(body.team_name, 40), members: s(body.members, 300),
+    });
+    if (r.outcome === 'full') return err('名额已满或报名已截止, 手慢了', 400);
     // 最后一单校验: 满员时队里至少要有一个治疗, 否则回滚本次报名
-    const full = await getSignupCapacityStats(c.env.DB, id);
-    if (full && full.c >= (full.m as any) && full.h === 0) {
-      await deleteSignupById(c.env.DB, r.meta.last_row_id);
-      return err('最后一个名额需要奶, 请切换奶或先找个奶再来', 400);
-    }
+    if (r.outcome === 'needsHealer') return err('最后一个名额需要奶, 请切换奶或先找个奶再来', 400);
   } catch (e) {
     if (String((e as any).message).includes('UNIQUE')) return err('该 UID 已报过名, 无需重复报名', 400);
     throw e;
