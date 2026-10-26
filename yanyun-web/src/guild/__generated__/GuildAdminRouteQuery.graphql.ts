@@ -1,0 +1,262 @@
+/**
+ * @generated SignedSource<<66fbb0202d79652547d870198cba406d>>
+ * @lightSyntaxTransform
+ */
+
+/* tslint:disable */
+/* eslint-disable */
+// @ts-nocheck
+
+// @indirectDataDrivenDependency GuildAdminRouteRoot_viewer.guildAdmin {"branches":{"GuildAdmin":{"component":"GuildAdminPage.react","fragment":"GuildAdminPage_guildAdmin$normalization.graphql"},"GuildAdminLocked":{"component":"GuildAdminLockedPage.react","fragment":"GuildAdminLockedPage_guildAdmin$normalization.graphql"}},"plural":false}
+
+import { ConcreteRequest } from 'relay-runtime';
+import { FragmentRefs } from "relay-runtime";
+export type GuildAdminRouteQuery$variables = {
+  slug: string;
+};
+export type GuildAdminRouteQuery$data = {
+  readonly viewer: {
+    readonly commonCancelLabel: string;
+    readonly commonConfirmLabel: string;
+    readonly commonLoadingGuildText: string;
+    readonly commonUnknownErrorText: string;
+    readonly user: {
+      readonly avatar: string | null | undefined;
+      readonly discordId: string;
+      readonly name: string;
+    } | null | undefined;
+    readonly userBarLoggingOutLabel: string;
+    readonly userBarLogoutLabel: string;
+    readonly userBarSettingsLabel: string;
+    readonly " $fragmentSpreads": FragmentRefs<"GuildAdminRouteRoot_viewer">;
+  };
+};
+export type GuildAdminRouteQuery = {
+  response: GuildAdminRouteQuery$data;
+  variables: GuildAdminRouteQuery$variables;
+};
+
+import JSResource from 'JSResource';
+
+const node: ConcreteRequest = (function(){
+var v0 = [
+  {
+    "defaultValue": null,
+    "kind": "LocalArgument",
+    "name": "slug"
+  }
+],
+v1 = {
+  "alias": null,
+  "args": null,
+  "concreteType": "DiscordUser",
+  "kind": "LinkedField",
+  "name": "user",
+  "plural": false,
+  "selections": [
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "discordId",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "name",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "avatar",
+      "storageKey": null
+    }
+  ],
+  "storageKey": null
+},
+v2 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "userBarLogoutLabel",
+  "storageKey": null
+},
+v3 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "userBarLoggingOutLabel",
+  "storageKey": null
+},
+v4 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "userBarSettingsLabel",
+  "storageKey": null
+},
+v5 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "commonLoadingGuildText",
+  "storageKey": null
+},
+v6 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "commonConfirmLabel",
+  "storageKey": null
+},
+v7 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "commonCancelLabel",
+  "storageKey": null
+},
+v8 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "commonUnknownErrorText",
+  "storageKey": null
+},
+v9 = [
+  {
+    "kind": "Variable",
+    "name": "slug",
+    "variableName": "slug"
+  }
+];
+return {
+  "fragment": {
+    "argumentDefinitions": (v0/*:: as any*/),
+    "kind": "Fragment",
+    "metadata": null,
+    "name": "GuildAdminRouteQuery",
+    "selections": [
+      {
+        "alias": null,
+        "args": null,
+        "concreteType": "Viewer",
+        "kind": "LinkedField",
+        "name": "viewer",
+        "plural": false,
+        "selections": [
+          (v1/*:: as any*/),
+          (v2/*:: as any*/),
+          (v3/*:: as any*/),
+          (v4/*:: as any*/),
+          (v5/*:: as any*/),
+          (v6/*:: as any*/),
+          (v7/*:: as any*/),
+          (v8/*:: as any*/),
+          {
+            "args": (v9/*:: as any*/),
+            "kind": "FragmentSpread",
+            "name": "GuildAdminRouteRoot_viewer"
+          }
+        ],
+        "storageKey": null
+      }
+    ],
+    "type": "Query",
+    "abstractKey": null
+  },
+  "kind": "Request",
+  "operation": {
+    "argumentDefinitions": (v0/*:: as any*/),
+    "kind": "Operation",
+    "name": "GuildAdminRouteQuery",
+    "selections": [
+      {
+        "alias": null,
+        "args": null,
+        "concreteType": "Viewer",
+        "kind": "LinkedField",
+        "name": "viewer",
+        "plural": false,
+        "selections": [
+          (v1/*:: as any*/),
+          (v2/*:: as any*/),
+          (v3/*:: as any*/),
+          (v4/*:: as any*/),
+          (v5/*:: as any*/),
+          (v6/*:: as any*/),
+          (v7/*:: as any*/),
+          (v8/*:: as any*/),
+          {
+            "alias": null,
+            "args": (v9/*:: as any*/),
+            "concreteType": null,
+            "kind": "LinkedField",
+            "name": "guildAdmin",
+            "plural": false,
+            "selections": [
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "__typename",
+                "storageKey": null
+              },
+              {
+                "kind": "InlineFragment",
+                "selections": [
+                  {
+                    "args": null,
+                    "documentName": "GuildAdminRouteRoot_viewer",
+                    "fragmentName": "GuildAdminPage_guildAdmin",
+                    "fragmentPropName": "guildAdmin",
+                    "kind": "ModuleImport",
+                    "componentModuleProvider": () => JSResource('m#GuildAdminPage.react'),
+                    "operationModuleProvider": () => JSResource('m#GuildAdminPage_guildAdmin$normalization.graphql')
+                  }
+                ],
+                "type": "GuildAdmin",
+                "abstractKey": null
+              },
+              {
+                "kind": "InlineFragment",
+                "selections": [
+                  {
+                    "args": null,
+                    "documentName": "GuildAdminRouteRoot_viewer",
+                    "fragmentName": "GuildAdminLockedPage_guildAdmin",
+                    "fragmentPropName": "guildAdmin",
+                    "kind": "ModuleImport",
+                    "componentModuleProvider": () => JSResource('m#GuildAdminLockedPage.react'),
+                    "operationModuleProvider": () => JSResource('m#GuildAdminLockedPage_guildAdmin$normalization.graphql')
+                  }
+                ],
+                "type": "GuildAdminLocked",
+                "abstractKey": null
+              }
+            ],
+            "storageKey": null
+          }
+        ],
+        "storageKey": null
+      }
+    ]
+  },
+  "params": {
+    "cacheID": "f7bb5b7d7e69e4c2392e1160366e6af5",
+    "id": null,
+    "metadata": {},
+    "name": "GuildAdminRouteQuery",
+    "operationKind": "query",
+    "text": "query GuildAdminRouteQuery(\n  $slug: String!\n) {\n  viewer {\n    user {\n      discordId\n      name\n      avatar\n    }\n    userBarLogoutLabel\n    userBarLoggingOutLabel\n    userBarSettingsLabel\n    commonLoadingGuildText\n    commonConfirmLabel\n    commonCancelLabel\n    commonUnknownErrorText\n    ...GuildAdminRouteRoot_viewer_20J5Pl\n  }\n}\n\nfragment GuildAdminLockedPage_guildAdmin on GuildAdminLocked {\n  slug\n  adminLockedTitle\n  adminLockedBody\n  adminBackLinkLabel\n}\n\nfragment GuildAdminPage_guildAdmin on GuildAdmin {\n  slug\n  name\n  announcement\n  slogan\n  masterName\n  logoUrl\n  bgImageUrl\n  avatarUrl\n  discordGuildId\n  reminderWebhookSet\n  reminderWebhookId\n  featureFixedTeams\n  devOnly\n  adminTitle\n  adminBackLinkLabel\n  adminTabProfileLabel\n  adminTabDiscordLabel\n  adminTabTeamsLabel\n  adminTabEventsLabel\n  adminTabGuidesLabel\n  adminSaveLabel\n  adminSavedText\n  adminDeleteLabel\n  adminEditLabel\n  adminAddLabel\n  adminProfileTitle\n  adminNameLabel\n  adminAnnouncementLabel\n  adminSloganLabel\n  adminMasterNameLabel\n  adminLogoUrlLabel\n  adminBgImageUrlLabel\n  adminAvatarTitle\n  adminAvatarUploadLabel\n  adminAvatarReplaceLabel\n  adminAvatarDeleteLabel\n  adminAvatarNoneText\n  adminAvatarHint\n  adminDiscordTitle\n  adminWebhookLabel\n  adminWebhookSetText\n  adminWebhookUnsetText\n  adminWebhookHint\n  adminWebhookClearLabel\n  adminGuildIdLabel\n  adminGuildIdUnboundText\n  adminFeaturesTitle\n  adminFixedTeamsLabel\n  adminVisibilityTitle\n  adminDevOnlyLabel\n  adminTeamsTitle\n  adminTeamNameLabel\n  adminTeamDescLabel\n  adminTeamEmptyText\n  adminMemberNicknameLabel\n  adminMemberWeaponLabel\n  adminMemberNoteLabel\n  adminAddMemberLabel\n  adminEventsTitle\n  adminEventEmptyText\n  adminEventTitleLabel\n  adminEventTypeLabel\n  adminEventStatusLabel\n  adminEventTimeLabel\n  adminEventSlotsLabel\n  adminEventMeetLabel\n  adminEventDescLabel\n  adminEventDungeonLabel\n  adminTypeActivityText\n  adminTypeTalentText\n  adminTypeRaceText\n  adminTypeTowerText\n  adminStatusOpenText\n  adminStatusClosedText\n  adminStatusCompletedText\n  adminStatusDraftText\n  adminSignupsTitle\n  adminSignupEmptyText\n  adminExportCsvLabel\n  adminRemoveSignupLabel\n  adminResultsTitle\n  adminResultTeamLabel\n  adminResultMembersLabel\n  adminResultTimeLabel\n  adminResultProofLabel\n  adminResultNoteLabel\n  adminGuidesTitle\n  adminGuidesHint\n  adminGuideSchoolLabel\n  adminGuideBuildLabel\n  adminGuideAttrLabel\n  adminGuideRateLabel\n  adminGuideBisLabel\n  adminGuideRotationLabel\n  fixedTeams {\n    id\n    name\n    description\n    members {\n      id\n      nickname\n      weapon\n      role\n      note\n    }\n  }\n  events {\n    id\n    title\n    type\n    status\n    origin\n    startsAtUtc\n    startsAtText\n    dungeon\n    maxSlots\n    meetInfo\n    description\n    signupCount\n    signups {\n      id\n      nickname\n      uid\n      role\n      weapon\n      contact\n      teamName\n      members\n      note\n      createdAt\n    }\n    results {\n      id\n      teamName\n      members\n      timeMs\n      timeText\n      proofUrl\n      note\n    }\n    signupsCsv\n  }\n  schoolGuides {\n    schools {\n      school\n      builds {\n        build\n        attr\n        rate\n        bisJson\n      }\n      rotationJson\n    }\n  }\n}\n\nfragment GuildAdminRouteRoot_viewer_20J5Pl on Viewer {\n  guildAdmin(slug: $slug) {\n    __typename\n    ... on GuildAdmin {\n      ...GuildAdminPage_guildAdmin\n    }\n    ... on GuildAdminLocked {\n      ...GuildAdminLockedPage_guildAdmin\n    }\n  }\n}\n"
+  }
+};
+})();
+
+(node as any).hash = "e44d683f7d0737db7474a147f504d0c8";
+
+export default node;
