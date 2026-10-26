@@ -279,8 +279,13 @@ try {
   const nowSec = Math.floor(Date.now() / 1000);
   const msg = await buildReminderMessage(db, { ...towerRow }, SLUG, nowSec);
   check('提醒文案生成不报错', typeof msg.content === 'string' && msg.content.length > 0);
-  check('提醒含名册 2/10', msg.content.includes('队伍名册（2/10）'), msg.content.split('\n').slice(0, 6).join(' | '));
-  check('提醒无副本行 (爬塔无副本)', !msg.content.includes('副本：'));
+  // 2026-10-26 embed 改版: 名册进卡面 field (同行名册), 按全载荷文本口径查
+  const allText = [msg.content, ...((msg.embeds || []).flatMap((e) => [
+    e.description || '', e.footer?.text || '',
+    ...((e.fields || []).flatMap((f) => [f.name, f.value])),
+  ]))].join('\n');
+  check('提醒含名册 2/10', allText.includes('同行名册（2/10）'), allText.split('\n').slice(0, 6).join(' | '));
+  check('提醒无副本行 (爬塔无副本)', !allText.includes('此行险地') && !allText.includes('副本：'));
 } catch (e) {
   check('提醒文案生成不报错', false, String(e && e.message));
 }
