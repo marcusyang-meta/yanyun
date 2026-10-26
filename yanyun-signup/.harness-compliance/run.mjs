@@ -32,12 +32,17 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 function makeDb({ tenants = [], throwOnTenantsList = false } = {}) {
   const state = { tenants: tenants.map((t) => ({ ...t })), errorLog: [], tenantInserts: 0 };
   function route(kind, sql, b) {
+    // 数据层 (Drizzle) SQL 规范化: 去引号 + 去 error_log. 限定前缀 (仅路由匹配)
+    sql = sql.replace(/"/g, '').replace(/error_log\./g, '');
     if (/error_log/.test(sql)) {
       if (/INSERT INTO error_log/.test(sql)) {
         state.errorLog.push({ id: state.errorLog.length + 1, at: b[0], source: b[1], name: b[2], message: b[3], tenant: b[4], context: b[5], stack: b[6] });
         return { meta: {} };
       }
-      if (/COUNT\(\*\)/.test(sql)) return { c: state.errorLog.length };
+      if (/COUNT\(\*\)/.test(sql)) {
+        // 旧 .first() 通道回 {c}; 数据层计数走 .all() 通道, 回 {results:[{c}]}
+        return kind === 'all' ? { results: [{ c: state.errorLog.length }] } : { c: state.errorLog.length };
+      }
       if (/FROM error_log/.test(sql)) return { results: [...state.errorLog].sort((x, y) => y.id - x.id).slice(0, b[0] || 50) };
       return { meta: {} }; // CREATE TABLE / INDEX / DELETE(prune)
     }

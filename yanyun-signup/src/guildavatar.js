@@ -5,6 +5,10 @@
 // 分享图同性质, 可匿名读)。GraphQL avatarUrl / Webhook 发送身份 /
 // OG 卡面绘入都以本表为准: 有头像才有 URL, 没有一律 null/回退默认。
 
+import {
+  getGuildAvatarMetaRow, getGuildAvatarRow, putGuildAvatarRow, deleteGuildAvatarRow,
+} from './db/repositories/guildAvatars.ts';
+
 export const AVATAR_MAX_BYTES = 400 * 1024; // 存入 blob 上限 (前端已裁方缩到 ≤512)
 export const AVATAR_CONTENT_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
 const SITE_ORIGIN = 'https://yanyun.app'; // 与 worker.js 的 SITE_URL 同口径 (规范域名)
@@ -59,38 +63,26 @@ export function avatarPublicUrl(slug, hash) {
 /* 元信息 (不取 blob): GraphQL 字段 / webhook 身份的廉价查询 */
 export async function getGuildAvatarMeta(db, tenant) {
   await ensureGuildAvatarsTable(db);
-  const row = await db.prepare(
-    'SELECT content_type, hash, updated_at FROM guild_avatars WHERE tenant = ?'
-  ).bind(tenant).first().catch(() => null);
-  if (!row) return null;
-  return { contentType: row.content_type, hash: row.hash, updatedAt: row.updated_at };
+  return getGuildAvatarMetaRow(db, tenant).catch(() => null);
 }
 
 /* 全行 (含 blob 字节): 公开出图路径用。D1 BLOB 回读为 ArrayBuffer。 */
 export async function getGuildAvatar(db, tenant) {
   await ensureGuildAvatarsTable(db);
-  const row = await db.prepare(
-    'SELECT content_type, bytes, hash, updated_at FROM guild_avatars WHERE tenant = ?'
-  ).bind(tenant).first().catch(() => null);
-  if (!row) return null;
-  return { contentType: row.content_type, bytes: row.bytes, hash: row.hash, updatedAt: row.updated_at };
+  return getGuildAvatarRow(db, tenant).catch(() => null);
 }
 
 export async function putGuildAvatar(db, tenant, contentType, bytes) {
   await ensureGuildAvatarsTable(db);
   const hash = await sha256hex(bytes);
   const nowSec = Math.floor(Date.now() / 1000);
-  await db.prepare(
-    `INSERT INTO guild_avatars (tenant, content_type, bytes, hash, updated_at) VALUES (?, ?, ?, ?, ?)
-     ON CONFLICT(tenant) DO UPDATE SET content_type = excluded.content_type, bytes = excluded.bytes,
-       hash = excluded.hash, updated_at = excluded.updated_at`
-  ).bind(tenant, contentType, bytes, hash, nowSec).run();
+  await putGuildAvatarRow(db, tenant, contentType, bytes, hash, nowSec);
   return { hash, updatedAt: nowSec };
 }
 
 export async function deleteGuildAvatar(db, tenant) {
   await ensureGuildAvatarsTable(db);
-  await db.prepare('DELETE FROM guild_avatars WHERE tenant = ?').bind(tenant).run();
+  await deleteGuildAvatarRow(db, tenant);
 }
 
 /* Webhook 发送身份 (提醒 + 传家宝共用 postWebhook): 该百业有头像 ->

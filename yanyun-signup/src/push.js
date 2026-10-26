@@ -5,6 +5,10 @@
 // ExponentPushToken。解析不到账号的座位没有 App 身份, 天然收不到 —— 不
 // 伪造覆盖率, Discord 那条仍是全覆盖通道。
 import { logError } from './errorlog.js';
+import {
+  upsertPushToken, deletePushTokenForUser, deletePushTokenEverywhere as deleteTokenEverywhere,
+  listPushTokensForUsers,
+} from './db/repositories/pushTokens.ts';
 
 // 发送走 Expo Push Service HTTP API; DeviceNotRegistered 的令牌立即自清
 // (tickets 与 receipts 两处都查)。全模块失败隔离: 任何异常只记日志, 绝不
@@ -50,23 +54,20 @@ export function ensurePushTokensTable(db) {
 export async function savePushToken(db, discordId, token, platform) {
   await ensurePushTokensTable(db);
   const now = Math.floor(Date.now() / 1000);
-  await db.prepare(`INSERT INTO push_tokens (discord_id, token, platform, updated_at)
-    VALUES (?, ?, ?, ?)
-    ON CONFLICT(discord_id, token) DO UPDATE SET platform = excluded.platform,
-      updated_at = excluded.updated_at`)
-    .bind(String(discordId), String(token), String(platform || '').slice(0, 20), now).run();
+  await upsertPushToken(
+    db, String(discordId), String(token), String(platform || '').slice(0, 20), now,
+  );
 }
 
 export async function deletePushToken(db, discordId, token) {
   await ensurePushTokensTable(db);
-  await db.prepare('DELETE FROM push_tokens WHERE discord_id = ? AND token = ?')
-    .bind(String(discordId), String(token)).run();
+  await deletePushTokenForUser(db, String(discordId), String(token));
 }
 
 // 令牌失效自清: 按令牌本身删 (回执只认令牌不认人)
 async function deletePushTokenEverywhere(db, token) {
   await ensurePushTokensTable(db);
-  await db.prepare('DELETE FROM push_tokens WHERE token = ?').bind(String(token)).run();
+  await deleteTokenEverywhere(db, String(token));
 }
 
 // discord_id -> [token...]
@@ -75,10 +76,7 @@ export async function pushTokensForUsers(db, discordIds) {
   const ids = [...new Set((discordIds || []).map(String).filter(Boolean))];
   if (!ids.length) return out;
   await ensurePushTokensTable(db);
-  const placeholders = ids.map(() => '?').join(',');
-  const { results } = await db.prepare(
-    `SELECT discord_id, token FROM push_tokens WHERE discord_id IN (${placeholders})`
-  ).bind(...ids).all().catch(() => ({ results: [] }));
+  const results = await listPushTokensForUsers(db, ids).catch(() => []);
   for (const r of results || []) {
     const k = String(r.discord_id);
     if (!out.has(k)) out.set(k, []);
