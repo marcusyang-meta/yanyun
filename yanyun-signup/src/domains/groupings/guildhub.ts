@@ -12,18 +12,20 @@
 // Uses the WebSocket Hibernation API: idle connections sleep and
 // burn no duration.
 // Departure-reminder scheduling (no per-minute cron scan): this DO
-// holds at most one alarm = the next pending reminder time of this
-// guild (starts_at - 10min). The alarm is only a wake-up bell; D1
-// is the single source of truth — every reschedule re-reads D1,
-// and at fire time due groupings are re-read and re-verified one
-// by one (a changed time follows the new time, a disbanded
-// grouping is gone, sent/failed ones never resend). Write paths
-// nudge a reschedule via /nudge; connects and broadcasts
-// reschedule too, so a lost nudge cannot drift for long.
+// holds at most one alarm = the next pending reminder BEAT of this
+// guild — beats are per (grouping, configured lead offset), the
+// guild's offsets come from its reminder settings (default: the
+// single legacy 10-minute beat). The alarm is only a wake-up bell;
+// D1 is the single source of truth — every reschedule re-reads D1,
+// and at fire time due beats are re-read and re-verified one by
+// one (a changed time follows the new time, a disbanded grouping
+// is gone, settled beats never resend). Write paths nudge a
+// reschedule via /nudge; connects and broadcasts reschedule too,
+// so a lost nudge cannot drift for long.
 
 import type { Env } from '../platform/context.ts';
 import {
-  ensureReminderColumns, getReminderConfig, nextReminderAt, dueReminders, sendReminderForEvent,
+  ensureReminderColumns, getReminderConfig, nextReminderAt, dueReminderBeats, sendReminderBeat,
 } from './reminder.ts';
 import { logError } from '../platform/index.ts';
 
@@ -60,7 +62,7 @@ export class GuildHub {
       return null;
     }
     const nowSec = Math.floor(Date.now() / 1000);
-    const next = await nextReminderAt(this.env.DB, slug, nowSec).catch(() => null);
+    const next = await nextReminderAt(this.env.DB, slug, nowSec, cfg.offsets).catch(() => null);
     if (next == null) {
       await this.ctx.storage.deleteAlarm().catch(() => {});
       return null;
@@ -70,9 +72,9 @@ export class GuildHub {
     return atMs;
   }
 
-  /* Alarm fired: send every due grouping (each re-verified against
- * D1 inside the send function), then reschedule. One grouping's
- * failure only records its reminder_error — never break the chain. */
+  /* Alarm fired: send every due beat (each re-verified against
+ * D1 inside the due computation), then reschedule. One beat's
+ * failure only settles that beat — never break the chain. */
   async alarm() {
     const slug = await this.slug();
     try {
@@ -81,12 +83,12 @@ export class GuildHub {
         if (cfg && cfg.webhook && cfg.enabled) {
           await ensureReminderColumns(this.env.DB);
           const nowSec = Math.floor(Date.now() / 1000);
-          const due = await dueReminders(this.env.DB, slug, nowSec).catch(() => []);
-          for (const ev of due) {
-            try { await sendReminderForEvent(this.env.DB, slug, ev, cfg, nowSec, this.env.EXPO_PUSH_BASE); }
+          const due = await dueReminderBeats(this.env.DB, slug, nowSec, cfg.offsets).catch(() => []);
+          for (const beat of due) {
+            try { await sendReminderBeat(this.env.DB, slug, beat.ev, beat, cfg, nowSec, this.env.EXPO_PUSH_BASE); }
             catch (e) {
-              /* One grouping's failure must not take down later groupings or the reschedule; but leave a trace (audit A7 sink). */
-              void logError(this.env.DB, { source: 'guildhub-alarm', error: e, tenant: slug, context: { eventId: ev.id } });
+              /* One beat's failure must not take down later beats or the reschedule; but leave a trace (audit A7 sink). */
+              void logError(this.env.DB, { source: 'guildhub-alarm', error: e, tenant: slug, context: { eventId: beat.ev.id, offsetMin: beat.offsetMin } });
             }
           }
         }
