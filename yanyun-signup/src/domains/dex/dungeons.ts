@@ -2,8 +2,8 @@
  * Data-layer access (Repository) for the dungeons entity.
  *
  * All dungeons statements live here (previously scattered across
- * graphql.js and worker.js). Lazy DDL for the season/category/level
- * columns belongs to this repository; graphql.js keeps the old
+ * graphql.js and worker.js). Lazy DDL for the season/category/level/
+ * version columns belongs to this repository; graphql.js keeps the old
  * ensureDungeonDexColumns name as a delegating export.
  * Rows keep snake_case keys, so call sites are unaffected.
  * =================================================== */
@@ -37,7 +37,7 @@ function metaOf(r: unknown): RunMeta {
   return { changes: m?.changes ?? 0, last_row_id: m?.last_row_id ?? 0 };
 }
 
-/* ---------- Lazy DDL: season/category/level columns ---------- */
+/* ---------- Lazy DDL: season/category/level/version columns ---------- */
 
 let dungeonDexColsReady: Promise<void> | null = null;
 export function ensureDungeonDexColumns(d1: D1Database): Promise<void> {
@@ -50,6 +50,7 @@ export function ensureDungeonDexColumns(d1: D1Database): Promise<void> {
         if (!cols.has('season')) await db.run(sql`ALTER TABLE ${dungeons} ADD COLUMN ${col('season')} TEXT`);
         if (!cols.has('category')) await db.run(sql`ALTER TABLE ${dungeons} ADD COLUMN ${col('category')} TEXT`);
         if (!cols.has('level')) await db.run(sql`ALTER TABLE ${dungeons} ADD COLUMN ${col('level')} INTEGER`);
+        if (!cols.has('version')) await db.run(sql`ALTER TABLE ${dungeons} ADD COLUMN ${col('version')} TEXT`);
       } catch { /* silent if columns already exist etc. */ }
     })();
   }
