@@ -1733,6 +1733,76 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "es": "Piernas y muñecas",
       "fr": "Jambes et poignets",
       "zh-TW": "腿腕"
+    },
+    "tabAffix": {
+      "zh-CN": "毕业词缀",
+      "en": "Graduation Affixes",
+      "es": "Afijos de graduación",
+      "fr": "Affixes de graduation",
+      "zh-TW": "畢業詞綴"
+    },
+    "affixEmpty": {
+      "zh-CN": "暂无毕业词缀",
+      "en": "No graduation affixes yet",
+      "es": "Aún no hay afijos de graduación",
+      "fr": "Aucun affixe de graduation pour le moment",
+      "zh-TW": "暫無畢業詞綴"
+    },
+    "affixSetLabel": {
+      "zh-CN": "套装",
+      "en": "Set",
+      "es": "Conjunto",
+      "fr": "Ensemble",
+      "zh-TW": "套裝"
+    },
+    "affixBowLabel": {
+      "zh-CN": "弓玦",
+      "en": "Bow",
+      "es": "Arco",
+      "fr": "Arc",
+      "zh-TW": "弓玦"
+    },
+    "affixDingyinLabel": {
+      "zh-CN": "定音",
+      "en": "Attunement",
+      "es": "Afinación",
+      "fr": "Accord",
+      "zh-TW": "定音"
+    },
+    "affixColAffix": {
+      "zh-CN": "词缀",
+      "en": "Affix",
+      "es": "Afijo",
+      "fr": "Affixe",
+      "zh-TW": "詞條"
+    },
+    "affixColCount": {
+      "zh-CN": "条数",
+      "en": "Lines",
+      "es": "Líneas",
+      "fr": "Lignes",
+      "zh-TW": "條數"
+    },
+    "affixColMax": {
+      "zh-CN": "满值",
+      "en": "Cap",
+      "es": "Tope",
+      "fr": "Plafond",
+      "zh-TW": "滿值"
+    },
+    "affixColCy": {
+      "zh-CN": "承音",
+      "en": "Resonance (95%)",
+      "es": "Resonancia (95%)",
+      "fr": "Résonance (95 %)",
+      "zh-TW": "承音（95%)"
+    },
+    "affixSource": {
+      "zh-CN": "按 100 阶毕业配方整理，与配装台同一口径；满值、承音为单条词缀上限。",
+      "en": "Compiled from the tier-100 graduation recipes — the same source as the gear bench. Cap and resonance are per-line maximums.",
+      "es": "Recopilado de las recetas de graduación de nivel 100: la misma fuente que el banco de equipo. El tope y la resonancia son máximos por línea.",
+      "fr": "D'après les recettes de graduation de niveau 100 — la même source que l'établi. Le plafond et la résonance sont des maximums par ligne.",
+      "zh-TW": "按 100 階畢業配方整理，與配裝台同一口徑；滿值、承音為單條詞條上限。"
     }
   },
   "tiaolv": {

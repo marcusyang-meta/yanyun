@@ -545,6 +545,16 @@ type SectPage {
   sectBisAccessoriesLabel: String!
   sectBisHeadBodyLabel: String!
   sectBisLegsWristsLabel: String!
+  sectTabAffixLabel: String!
+  sectAffixEmptyText: String!
+  sectAffixSetLabel: String!
+  sectAffixBowLabel: String!
+  sectAffixDingyinLabel: String!
+  sectAffixColAffixLabel: String!
+  sectAffixColCountLabel: String!
+  sectAffixColMaxLabel: String!
+  sectAffixColCyLabel: String!
+  sectAffixSourceText: String!
 }
 
 type Sect {
@@ -555,6 +565,28 @@ type Sect {
   bis: BisTable
   rotation: Rotation
   rateTargets: RateTargets
+  gradBuilds: [SectGradBuild!]!
+}
+
+type SectGradBuild {
+  name: String!
+  cat: String!
+  setName: String!
+  bowLabel: String
+  recipe: String!
+  note: String
+  dingyinName: String
+  totalBars: Int!
+  targets: [SectGradTarget!]!
+}
+
+type SectGradTarget {
+  label: String!
+  count: Int!
+  maxValue: Float
+  cyValue: Float
+  unit: String!
+  flexLabels: [String!]!
 }
 
 type BisTable {

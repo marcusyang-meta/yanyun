@@ -266,6 +266,16 @@ export const sect_bisOffWeapon = (fbs: FbsRuntime) => fbs._("副武器", null, {
 export const sect_bisAccessories = (fbs: FbsRuntime) => fbs._("环佩", null, { hk: "3UMLS" });
 export const sect_bisHeadBody = (fbs: FbsRuntime) => fbs._("头衣", null, { hk: "3zQTY6" });
 export const sect_bisLegsWrists = (fbs: FbsRuntime) => fbs._("腿腕", null, { hk: "3Y4Eie" });
+export const sect_tabAffix = (fbs: FbsRuntime) => fbs._("毕业词缀", null, { hk: "3mhsqc" });
+export const sect_affixEmpty = (fbs: FbsRuntime) => fbs._("暂无毕业词缀", null, { hk: "jtw3O" });
+export const sect_affixSetLabel = (fbs: FbsRuntime) => fbs._("套装", null, { hk: "4ww6y8" });
+export const sect_affixBowLabel = (fbs: FbsRuntime) => fbs._("弓玦", null, { hk: "3orh70" });
+export const sect_affixDingyinLabel = (fbs: FbsRuntime) => fbs._("定音", null, { hk: "43M0Ct" });
+export const sect_affixColAffix = (fbs: FbsRuntime) => fbs._("词缀", null, { hk: "mVWjS" });
+export const sect_affixColCount = (fbs: FbsRuntime) => fbs._("条数", null, { hk: "13PJ3u" });
+export const sect_affixColMax = (fbs: FbsRuntime) => fbs._("满值", null, { hk: "1klGbZ" });
+export const sect_affixColCy = (fbs: FbsRuntime) => fbs._("承音", null, { hk: "18HGre" });
+export const sect_affixSource = (fbs: FbsRuntime) => fbs._("按 100 阶毕业配方整理，与配装台同一口径；满值、承音为单条词缀上限。", null, { hk: "3J45dC" });
 export const tiaolv_intro = (fbs: FbsRuntime) => fbs._("调律推演 · 复刻 bilibili@片雲 DIY 0.10.2（100级）伤害计算器逻辑", null, { hk: "uvAto" });
 export const tiaolv_innerSkill = (fbs: FbsRuntime, p?: StringParams) => fbs._("心法{n}", [fbs._param("n", pv(p, "n"))], { hk: "eJk6D" });
 export const tiaolv_innerSkillPlaceholder = (fbs: FbsRuntime) => fbs._("心法名", null, { hk: "3xzYAK" });
@@ -895,6 +905,16 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"sect.bisAccessories": sect_bisAccessories,
 	"sect.bisHeadBody": sect_bisHeadBody,
 	"sect.bisLegsWrists": sect_bisLegsWrists,
+	"sect.tabAffix": sect_tabAffix,
+	"sect.affixEmpty": sect_affixEmpty,
+	"sect.affixSetLabel": sect_affixSetLabel,
+	"sect.affixBowLabel": sect_affixBowLabel,
+	"sect.affixDingyinLabel": sect_affixDingyinLabel,
+	"sect.affixColAffix": sect_affixColAffix,
+	"sect.affixColCount": sect_affixColCount,
+	"sect.affixColMax": sect_affixColMax,
+	"sect.affixColCy": sect_affixColCy,
+	"sect.affixSource": sect_affixSource,
 	"tiaolv.intro": tiaolv_intro,
 	"tiaolv.innerSkill": tiaolv_innerSkill,
 	"tiaolv.innerSkillPlaceholder": tiaolv_innerSkillPlaceholder,

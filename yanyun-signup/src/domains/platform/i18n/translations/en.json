@@ -6589,6 +6589,116 @@
         }
       ],
       "types": []
+    },
+    "UCMTFditBNPiRCcaoNQcbQ==": {
+      "description": "sect.tabAffix",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Graduation Affixes",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "bXeQqE3ULtKiYxJ+y8I+Kw==": {
+      "description": "sect.affixEmpty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "No graduation affixes yet",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "PmgMs1y4x/GOiYL4MRY1/A==": {
+      "description": "sect.affixSetLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Set",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "c0JwF5fIJfM0ok9qaGGlkQ==": {
+      "description": "sect.affixBowLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Bow",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "pSW684TAnojleviXNP2FkA==": {
+      "description": "sect.affixDingyinLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Attunement",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "YieiTZ1gQcO+lD0gHyhYsQ==": {
+      "description": "sect.affixColAffix",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Affix",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "C3YUXR12zuhZIJwMYMtkZw==": {
+      "description": "sect.affixColCount",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Lines",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "zN5pDEbE98XUnoxjFYK+Qw==": {
+      "description": "sect.affixColMax",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Cap",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "x4k3Omn64XvaKpXMI2m40Q==": {
+      "description": "sect.affixColCy",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Resonance (95%)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "B/wTysMPEN0GcZaaXrhvKg==": {
+      "description": "sect.affixSource",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Compiled from the tier-100 graduation recipes — the same source as the gear bench. Cap and resonance are per-line maximums.",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

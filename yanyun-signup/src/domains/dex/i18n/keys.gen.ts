@@ -56,7 +56,17 @@ export type DexStringKey =
   | 'sect.bisOffWeapon'
   | 'sect.bisAccessories'
   | 'sect.bisHeadBody'
-  | 'sect.bisLegsWrists';
+  | 'sect.bisLegsWrists'
+  | 'sect.tabAffix'
+  | 'sect.affixEmpty'
+  | 'sect.affixSetLabel'
+  | 'sect.affixBowLabel'
+  | 'sect.affixDingyinLabel'
+  | 'sect.affixColAffix'
+  | 'sect.affixColCount'
+  | 'sect.affixColMax'
+  | 'sect.affixColCy'
+  | 'sect.affixSource';
 
 export const DEX_STRING_KEYS: readonly DexStringKey[] = [
   'dex.backToDex',
@@ -115,4 +125,14 @@ export const DEX_STRING_KEYS: readonly DexStringKey[] = [
   'sect.bisAccessories',
   'sect.bisHeadBody',
   'sect.bisLegsWrists',
+  'sect.tabAffix',
+  'sect.affixEmpty',
+  'sect.affixSetLabel',
+  'sect.affixBowLabel',
+  'sect.affixDingyinLabel',
+  'sect.affixColAffix',
+  'sect.affixColCount',
+  'sect.affixColMax',
+  'sect.affixColCy',
+  'sect.affixSource',
 ];

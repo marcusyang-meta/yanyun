@@ -84,3 +84,13 @@ export const sect_bisOffWeapon = (fbs: FbsAPI) =>fbs("副武器", "sect.bisOffWe
 export const sect_bisAccessories = (fbs: FbsAPI) =>fbs("环佩", "sect.bisAccessories");
 export const sect_bisHeadBody = (fbs: FbsAPI) =>fbs("头衣", "sect.bisHeadBody");
 export const sect_bisLegsWrists = (fbs: FbsAPI) =>fbs("腿腕", "sect.bisLegsWrists");
+export const sect_tabAffix = (fbs: FbsAPI) =>fbs("毕业词缀", "sect.tabAffix");
+export const sect_affixEmpty = (fbs: FbsAPI) =>fbs("暂无毕业词缀", "sect.affixEmpty");
+export const sect_affixSetLabel = (fbs: FbsAPI) =>fbs("套装", "sect.affixSetLabel");
+export const sect_affixBowLabel = (fbs: FbsAPI) =>fbs("弓玦", "sect.affixBowLabel");
+export const sect_affixDingyinLabel = (fbs: FbsAPI) =>fbs("定音", "sect.affixDingyinLabel");
+export const sect_affixColAffix = (fbs: FbsAPI) =>fbs("词缀", "sect.affixColAffix");
+export const sect_affixColCount = (fbs: FbsAPI) =>fbs("条数", "sect.affixColCount");
+export const sect_affixColMax = (fbs: FbsAPI) =>fbs("满值", "sect.affixColMax");
+export const sect_affixColCy = (fbs: FbsAPI) =>fbs("承音", "sect.affixColCy");
+export const sect_affixSource = (fbs: FbsAPI) =>fbs("按 100 阶毕业配方整理，与配装台同一口径；满值、承音为单条词缀上限。", "sect.affixSource");

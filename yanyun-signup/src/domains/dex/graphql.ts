@@ -430,6 +430,41 @@ export const BOSS_TEXT_RESOLVERS = defineTextGens(BossPageShell, [
 // A Sect's bis/rotation/rateTargets are leaf records of stored data (the
 // output of toBisTable/toRotation) — no copy, no lazy queries; the gen
 // methods return them directly.
+/* Graduation-affix composition per sect: derived from the gear bench's
+ * tier-100 recipe table (GP_BUILDS + GP_BUILD_SECT in the gear domain —
+ * the same source the bench's graduation yardstick reads). Each build's
+ * targets are the affix classes and line counts of the graduation recipe;
+ * max/cy are the per-line caps from GP_AFFIX (null for the elemental
+ * "shugong" bucket and flex picks, which have no single affix cap). */
+export interface SectGradTargetData {
+  label: string;
+  count: number;
+  maxValue: number | null;
+  cyValue: number | null;
+  unit: string;
+  flexLabels: string[];
+}
+export interface SectGradBuildData {
+  name: string;
+  cat: string;
+  setName: string;
+  bowLabel: string | null;
+  recipe: string;
+  note: string | null;
+  dingyinName: string | null;
+  totalBars: number;
+  targets: SectGradTargetData[];
+}
+interface GpTargetShape { cls: string; label: string; n: number; flex: string[] | null }
+interface GpBuildShape { cat: string; school: string; set: string; bow: string; recipe: string; note?: string; total: number; targets: GpTargetShape[] }
+interface GpAffixShape { key: string; label: string; max: number; cy: number; unit: string }
+const GP_BUILD_LIST = GP_BUILDS as GpBuildShape[];
+const GP_SECT_LIST = GP_BUILD_SECT as string[];
+const GP_AFFIX_LIST = GP_AFFIX as GpAffixShape[];
+const GP_DINGYIN_MAP = GP_BUILD_DINGYIN as Record<string, { name?: string; verified?: boolean }>;
+const GP_BOW_KIND = GP_BOW_RECOMMEND as Record<string, string>;
+const GP_BOW_LABELS = GP_BOW_JUE_VALUES as Record<string, { label: string }>;
+
 export class SectShell extends ShellBase {
   genSlug(){ return this.data.slug; }
   genName(){ return enSectName(this.locale, this.data.name); }
@@ -438,6 +473,55 @@ export class SectShell extends ShellBase {
   genBis(){ return this.data.bis; }
   genRotation(){ return this.data.rotation; }
   genRateTargets(){ return this.data.rateTargets; }
+  genGradBuilds(){
+    return this.memo('gradBuilds', () => {
+      const sectName = String(this.data.name || '');
+      const affixByKey = new Map<string, GpAffixShape>(GP_AFFIX_LIST.map((a) => [a.key, a]));
+      const classLabel = (cls: string, fallback: string) => {
+        const affix = affixByKey.get(cls);
+        const zh = affix ? affix.label : fallback;
+        return enClassLabel(this.locale, zh) || zh;
+      };
+      const out: SectGradBuildData[] = [];
+      GP_BUILD_LIST.forEach((b, i) => {
+        if (GP_SECT_LIST[i] !== sectName) return;
+        const bowKind = GP_BOW_KIND[b.bow] || '';
+        const dy = GP_DINGYIN_MAP[b.school];
+        out.push({
+          name: enBuildSchool(this.locale, b.school) || b.school,
+          cat: b.cat,
+          setName: enGearSetName(this.locale, b.set) || b.set,
+          bowLabel: bowKind ? (GP_BOW_LABELS[bowKind]?.label || null) : null,
+          recipe: b.recipe,
+          note: b.note || null,
+          dingyinName: dy && dy.verified && dy.name ? dy.name : null,
+          totalBars: b.total,
+          targets: b.targets.map((t) => {
+            if (t.flex) {
+              return {
+                label: enClassLabel(this.locale, t.label) || t.label,
+                count: t.n,
+                maxValue: null,
+                cyValue: null,
+                unit: '',
+                flexLabels: t.flex.map((k) => classLabel(k, k === 'shugong' ? '属攻' : k)),
+              };
+            }
+            const affix = affixByKey.get(t.cls);
+            return {
+              label: classLabel(t.cls, t.label),
+              count: t.n,
+              maxValue: affix ? affix.max : null,
+              cyValue: affix ? affix.cy : null,
+              unit: affix ? (affix.unit || '') : '',
+              flexLabels: [],
+            };
+          }),
+        });
+      });
+      return out;
+    });
+  }
 }
 
 export class SectPageShell extends ShellBase {
@@ -493,6 +577,16 @@ export const SECT_TEXT_RESOLVERS = defineTextGens(SectPageShell, [
   ['sectBisAccessoriesLabel', 'sect', 'bisAccessories'],
   ['sectBisHeadBodyLabel', 'sect', 'bisHeadBody'],
   ['sectBisLegsWristsLabel', 'sect', 'bisLegsWrists'],
+  ['sectTabAffixLabel', 'sect', 'tabAffix'],
+  ['sectAffixEmptyText', 'sect', 'affixEmpty'],
+  ['sectAffixSetLabel', 'sect', 'affixSetLabel'],
+  ['sectAffixBowLabel', 'sect', 'affixBowLabel'],
+  ['sectAffixDingyinLabel', 'sect', 'affixDingyinLabel'],
+  ['sectAffixColAffixLabel', 'sect', 'affixColAffix'],
+  ['sectAffixColCountLabel', 'sect', 'affixColCount'],
+  ['sectAffixColMaxLabel', 'sect', 'affixColMax'],
+  ['sectAffixColCyLabel', 'sect', 'affixColCy'],
+  ['sectAffixSourceText', 'sect', 'affixSource'],
 ]);
 
 /* ---------- Tiaolv page ---------- */
@@ -594,6 +688,26 @@ export const dexResolvers = {
     bis: (p: any) => p.genBis(),
     rotation: (p: any) => p.genRotation(),
     rateTargets: (p: any) => p.genRateTargets(),
+    gradBuilds: (p: SectShell) => p.genGradBuilds(),
+  },
+  SectGradBuild: {
+    name: (p: SectGradBuildData) => p.name,
+    cat: (p: SectGradBuildData) => p.cat,
+    setName: (p: SectGradBuildData) => p.setName,
+    bowLabel: (p: SectGradBuildData) => p.bowLabel,
+    recipe: (p: SectGradBuildData) => p.recipe,
+    note: (p: SectGradBuildData) => p.note,
+    dingyinName: (p: SectGradBuildData) => p.dingyinName,
+    totalBars: (p: SectGradBuildData) => p.totalBars,
+    targets: (p: SectGradBuildData) => p.targets,
+  },
+  SectGradTarget: {
+    label: (p: SectGradTargetData) => p.label,
+    count: (p: SectGradTargetData) => p.count,
+    maxValue: (p: SectGradTargetData) => p.maxValue,
+    cyValue: (p: SectGradTargetData) => p.cyValue,
+    unit: (p: SectGradTargetData) => p.unit,
+    flexLabels: (p: SectGradTargetData) => p.flexLabels,
   },
   },
 };
