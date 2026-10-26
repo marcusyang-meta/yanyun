@@ -1,6 +1,6 @@
 import React, { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import {
-  Alert, Linking, Modal, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View,
+  Alert, Linking, Modal, Pressable, RefreshControl, ScrollView, Share, StyleSheet, Text, TextInput, View,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,7 +8,7 @@ import { fetchQuery, useLazyLoadQuery, useRelayEnvironment } from 'react-relay';
 import * as Clipboard from 'expo-clipboard';
 import { fonts, theme, SECTS } from '../theme';
 import { Backdrop, GoldFill, GuildHeader, SiteChrome } from '../components/ui';
-import { BLOCKS_VERSION, PRIMITIVES_VERSION } from '../config';
+import { API_URL, BLOCKS_VERSION, PRIMITIVES_VERSION } from '../config';
 import { DetailPageTextQuery, GroupingDetailBlocksQuery, GroupingDetailPrimQuery, GuildRosterQuery } from '../documents';
 import { PrimTreeView } from '../prims/PrimTree';
 import type { PrimNode } from '@yanyun/blocks-core';
@@ -178,13 +178,31 @@ function BackLink({ label }: { label: string }) {
   );
 }
 
+// 页眉行: 左「‹ 返回车队列表」, 右「分享车队」 (文案均由详情页 shell
+// 下发)。分享走系统分享面板, 内容 = 与 Web/OG 分享卡同一条车队链接
+// (App 的 API 基址 + /<slug>/car/<id>; 生产频道基址即 https://yanyun.app)。
 function BackLinkLive({ slug, id }: { slug: string; id: string }) {
   const data = useLazyLoadQuery<documentsDetailPageTextQuery>(
     DetailPageTextQuery,
     { slug, id },
     { fetchPolicy: 'store-or-network' },
   );
-  return <BackLink label={data.groupingDetailPage?.detailBackToListLabel ?? '‹ 返回车队列表'} />;
+  const page = data.groupingDetailPage;
+  const shareLabel = page?.detailShareLabel;
+  const onShare = useCallback(() => {
+    const url = `${API_URL}/${slug}/car/${id}`;
+    Share.share({ url, message: url }).catch(() => {});
+  }, [slug, id]);
+  return (
+    <View style={s.headerRow}>
+      <BackLink label={page?.detailBackToListLabel ?? '‹ 返回车队列表'} />
+      {shareLabel ? (
+        <Pressable onPress={onShare} hitSlop={10} style={s.backWrap}>
+          <Text style={s.back}>{shareLabel}</Text>
+        </Pressable>
+      ) : null}
+    </View>
+  );
 }
 
 // 落座弹窗: 与 Web SeatGrid modal 同结构 — 标题 (座位模板) / 副标题 /
@@ -432,6 +450,7 @@ function DetailBlocks({
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: theme.bg },
   headZone: { paddingHorizontal: 20 },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   backWrap: { marginTop: 14, marginBottom: 12 },
   back: { fontFamily: fonts.serif, color: theme.gold, fontSize: 15 },
   // 落座弹窗照 Web modal: 暗罩居中 + 面板 (墨二底 + 金描边 + 2px 金顶边)
