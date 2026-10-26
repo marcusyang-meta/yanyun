@@ -129,6 +129,9 @@ export default function GroupingListScreen({ slug, name, readOnly, nick, gameVer
               <Suspense fallback={null}>
                 <CreateCarButton slug={slug} onPress={() => setShowCreate(true)} />
               </Suspense>
+              <Suspense fallback={null}>
+                <AdminEntryButton slug={slug} />
+              </Suspense>
             </View>
           )}
 
@@ -210,6 +213,26 @@ function CreateCarButton({ slug, onPress }: { slug: string; onPress: () => void 
     <Pressable style={s.createBtn} onPress={onPress}>
       <GoldFill />
       <Text style={s.createBtnText}>{label}</Text>
+    </Pressable>
+  );
+}
+
+function AdminEntryButton({ slug }: { slug: string }) {
+  const router = useRouter();
+  const data = useLazyLoadQuery<documentsListPageTextQuery>(
+    ListPageTextQuery,
+    { slug, tab: 'ACTIVITY' },
+    { fetchPolicy: 'store-or-network' },
+  );
+  const g: any = (data as any)?.guild;
+  const label = g?.__typename === 'Guild' ? g.homeAdminLabel : null;
+  if (!label) return null;
+  return (
+    <Pressable
+      onPress={() => router.push({ pathname: '/guild/[slug]/admin', params: { slug } })}
+      style={{ marginLeft: 10, paddingVertical: 8, paddingHorizontal: 14, borderRadius: 999, borderWidth: 1, borderColor: 'rgba(201,163,92,.45)' }}
+    >
+      <Text style={{ fontFamily: fonts.serif, color: theme.gold, fontSize: 13 }}>{label}</Text>
     </Pressable>
   );
 }
