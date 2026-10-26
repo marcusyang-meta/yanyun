@@ -54,6 +54,7 @@ export const signups = sqliteTable('signups', {
   members: text('members').notNull().default(''),
   createdAt: text('created_at').notNull().default(sql`(strftime('%s','now'))`),
   discordId: text('discord_id'),
+  readyAt: integer('ready_at'),
 }, (t) => [
   uniqueIndex('signups_event_uid_unique').on(t.eventId, t.uid),
   index('idx_signups_event').on(t.eventId),
@@ -71,6 +72,22 @@ export const shortLinks = sqliteTable('short_links', {
   createdAt: integer('created_at').notNull().default(0),
 }, (t) => [
   uniqueIndex('short_links_target_unique').on(t.tenant, t.eventId),
+]);
+
+/* ---------------- event_reminders [lazy DDL in the events repository] --
+ * Per-(grouping, offset) departure-reminder settlement for multi-offset
+ * reminders: one row per settled beat; no row = that beat is still
+ * pending. sent_at set = delivered; error set = failed (settled, never
+ * retried). The legacy events.reminder_sent_at / reminder_error pair
+ * stays the whole-grouping settlement mark, written when the grouping's
+ * last pending beat settles. */
+export const eventReminders = sqliteTable('event_reminders', {
+  eventId: integer('event_id').notNull().references(() => events.id, { onDelete: 'cascade' }),
+  offsetMin: integer('offset_min').notNull(),
+  sentAt: integer('sent_at'),
+  error: text('error'),
+}, (t) => [
+  primaryKey({ columns: [t.eventId, t.offsetMin] }),
 ]);
 
 /* ---------------- results [ddl schema.sql] ---------------------------- */

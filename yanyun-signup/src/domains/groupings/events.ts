@@ -18,7 +18,7 @@
 import { sql } from 'drizzle-orm';
 import { createDb, schema } from '../../db/client.ts';
 
-const { events, signups, results } = schema;
+const { events, signups, results, eventReminders } = schema;
 const col = (name: string) => sql.identifier(name);
 
 export interface EventRow {
@@ -218,6 +218,86 @@ export async function listDueReminderEvents(
     sql`SELECT * FROM ${events} WHERE ${col('tenant')} = ${slug} AND ${col('status')} IN ('open', 'closed') AND ${col('starts_at_utc')} IS NOT NULL AND ${col('starts_at_utc')} > ${nowSec} AND ${col('reminder_sent_at')} IS NULL AND ${col('reminder_error')} IS NULL AND ${col('starts_at_utc')} - ${leadSec} <= ${nowSec} ORDER BY ${col('starts_at_utc')} ASC, ${col('id')} ASC`,
   );
   return rows || [];
+}
+
+/* ---------- Reminder beats (event_reminders) ----------
+ * Multi-offset reminders settle per (grouping, offset): the table
+ * holds one row per settled beat. Pending groupings for reminder
+ * purposes are the legacy-unsettled ones (open/closed, has a start
+ * time in the future, whole-grouping marks still empty); which of
+ * their beats are due / next is computed by the reminder service
+ * from these rows plus the guild's configured offsets. */
+
+export interface ReminderBeatRow {
+  event_id: number;
+  offset_min: number;
+  sent_at: number | null;
+  error: string | null;
+}
+
+let reminderBeatsReady: Promise<void> | null = null;
+/** Creates event_reminders (per-beat settlement) when missing. */
+export function ensureReminderBeatsTable(d1: D1Database): Promise<void> {
+  if (!reminderBeatsReady) {
+    reminderBeatsReady = (async () => {
+      try {
+        const db = createDb(d1);
+        await db.run(sql`CREATE TABLE IF NOT EXISTS ${eventReminders} (${col('event_id')} INTEGER NOT NULL, ${col('offset_min')} INTEGER NOT NULL, ${col('sent_at')} INTEGER, ${col('error')} TEXT, PRIMARY KEY (${col('event_id')}, ${col('offset_min')}))`);
+      } catch { /* already-exists and similar: ignore */ }
+    })();
+  }
+  return reminderBeatsReady;
+}
+
+/* Pending groupings (legacy-unsettled) with a future start, ascending. */
+export async function listPendingReminderEvents(
+  d1: D1Database, slug: string, nowSec: number,
+): Promise<{ id: number; starts_at_utc: number }[]> {
+  const db = createDb(d1);
+  const rows = await db.all<{ id: number; starts_at_utc: number }>(
+    sql`SELECT ${col('id')}, ${col('starts_at_utc')} FROM ${events} WHERE ${col('tenant')} = ${slug} AND ${col('status')} IN ('open', 'closed') AND ${col('starts_at_utc')} IS NOT NULL AND ${col('starts_at_utc')} > ${nowSec} AND ${col('reminder_sent_at')} IS NULL AND ${col('reminder_error')} IS NULL ORDER BY ${col('starts_at_utc')} ASC, ${col('id')} ASC`,
+  );
+  return rows || [];
+}
+
+/* Full rows for specific pending groupings (the alarm's send path
+ * re-verifies each one at fire time). */
+export async function listPendingReminderEventRows(
+  d1: D1Database, slug: string, ids: number[],
+): Promise<EventRow[]> {
+  if (!ids.length) return [];
+  const db = createDb(d1);
+  const idList = sql.join(ids.map((i) => sql`${i}`), sql`, `);
+  const rows = await db.all<EventRow>(
+    sql`SELECT * FROM ${events} WHERE ${col('tenant')} = ${slug} AND ${col('id')} IN (${idList}) ORDER BY ${col('starts_at_utc')} ASC, ${col('id')} ASC`,
+  );
+  return rows || [];
+}
+
+export async function listSettledBeats(
+  d1: D1Database, eventIds: number[],
+): Promise<ReminderBeatRow[]> {
+  if (!eventIds.length) return [];
+  const db = createDb(d1);
+  const idList = sql.join(eventIds.map((i) => sql`${i}`), sql`, `);
+  const rows = await db.all<ReminderBeatRow>(
+    sql`SELECT ${col('event_id')}, ${col('offset_min')}, ${col('sent_at')}, ${col('error')} FROM ${eventReminders} WHERE ${col('event_id')} IN (${idList})`,
+  );
+  return rows || [];
+}
+
+/* Beat settlement: success writes sent_at (and clears any error),
+ * failure writes the error. Settled beats are never resent. */
+export async function markBeatSent(d1: D1Database, eventId: number, offsetMin: number, atSec: number): Promise<RunMeta> {
+  const db = createDb(d1);
+  const r = await db.run(sql`INSERT INTO ${eventReminders} (${sql.identifier('event_id')}, ${sql.identifier('offset_min')}, ${sql.identifier('sent_at')}) VALUES (${eventId}, ${offsetMin}, ${atSec}) ON CONFLICT (${sql.identifier('event_id')}, ${sql.identifier('offset_min')}) DO UPDATE SET ${sql.identifier('sent_at')} = excluded.sent_at, ${sql.identifier('error')} = NULL`);
+  return metaOf(r);
+}
+
+export async function markBeatError(d1: D1Database, eventId: number, offsetMin: number, errorText: string): Promise<RunMeta> {
+  const db = createDb(d1);
+  const r = await db.run(sql`INSERT INTO ${eventReminders} (${sql.identifier('event_id')}, ${sql.identifier('offset_min')}, ${sql.identifier('error')}) VALUES (${eventId}, ${offsetMin}, ${errorText}) ON CONFLICT (${sql.identifier('event_id')}, ${sql.identifier('offset_min')}) DO UPDATE SET ${sql.identifier('error')} = excluded.error`);
+  return metaOf(r);
 }
 
 

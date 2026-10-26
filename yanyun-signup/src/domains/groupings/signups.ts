@@ -31,6 +31,7 @@ export interface SignupRow {
   members: string | null;
   created_at: string;
   discord_id: string | null;
+  ready_at: number | null;
 }
 
 interface RunMeta {
@@ -63,6 +64,27 @@ export function ensureSignupDiscordColumn(d1: D1Database): Promise<void> {
 }
 
 
+let signupReadyColReady: Promise<void> | null = null;
+/** Adds signups.ready_at (seat readiness stamp for departure reminders:
+ * epoch seconds when the seated member marked themselves ready;
+ * NULL = not ready). */
+export function ensureSignupReadyColumn(d1: D1Database): Promise<void> {
+  if (!signupReadyColReady) {
+    signupReadyColReady = (async () => {
+      try {
+        const db = createDb(d1);
+        const results = await db.all<{ name: string }>(sql`PRAGMA table_info(${signups})`);
+        const cols = new Set((results || []).map((r) => r.name));
+        if (!cols.has('ready_at')) {
+          await db.run(sql`ALTER TABLE ${signups} ADD COLUMN ${col('ready_at')} INTEGER`);
+        }
+      } catch { /* already-exists and similar: ignore */ }
+    })();
+  }
+  return signupReadyColReady;
+}
+
+
 export async function listSignupsByEvent(d1: D1Database, eventId: number): Promise<SignupRow[]> {
   const db = createDb(d1);
   const rows = await db.all<SignupRow>(
@@ -86,13 +108,13 @@ export async function listSignupDetailRows(d1: D1Database, eventId: number): Pro
 }
 
 export async function listSignupSeats(d1: D1Database, eventId: number): Promise<{
-  id: number; nickname: string; uid: string; role: string; weapon: string; discord_id: string | null;
+  id: number; nickname: string; uid: string; role: string; weapon: string; discord_id: string | null; ready_at: number | null;
 }[]> {
   const db = createDb(d1);
   const rows = await db.all<{
-    id: number; nickname: string; uid: string; role: string; weapon: string; discord_id: string | null;
+    id: number; nickname: string; uid: string; role: string; weapon: string; discord_id: string | null; ready_at: number | null;
   }>(
-    sql`SELECT ${col('id')}, ${col('nickname')}, ${col('uid')}, ${col('role')}, ${col('weapon')}, ${col('discord_id')} FROM ${signups} WHERE ${col('event_id')} = ${eventId} ORDER BY ${col('id')} ASC`,
+    sql`SELECT ${col('id')}, ${col('nickname')}, ${col('uid')}, ${col('role')}, ${col('weapon')}, ${col('discord_id')}, ${col('ready_at')} FROM ${signups} WHERE ${col('event_id')} = ${eventId} ORDER BY ${col('id')} ASC`,
   );
   return rows || [];
 }
@@ -121,13 +143,27 @@ export async function listSignupNamesStamps(d1: D1Database, eventId: number): Pr
 }
 
 export async function listSignupSeatsForReminder(d1: D1Database, eventId: number): Promise<{
-  nickname: string; discord_id: string | null; weapon: string;
+  nickname: string; discord_id: string | null; weapon: string; ready_at: number | null;
 }[]> {
   const db = createDb(d1);
-  const rows = await db.all<{ nickname: string; discord_id: string | null; weapon: string }>(
-    sql`SELECT ${col('nickname')}, ${col('discord_id')}, ${col('weapon')} FROM ${signups} WHERE ${col('event_id')} = ${eventId} ORDER BY ${col('id')} ASC`,
+  const rows = await db.all<{ nickname: string; discord_id: string | null; weapon: string; ready_at: number | null }>(
+    sql`SELECT ${col('nickname')}, ${col('discord_id')}, ${col('weapon')}, ${col('ready_at')} FROM ${signups} WHERE ${col('event_id')} = ${eventId} ORDER BY ${col('id')} ASC`,
   );
   return rows || [];
+}
+
+/* Readiness toggle: every seat stamped with the viewer's own discord_id
+ * in this grouping flips together (one person, possibly two seats — same
+ * readiness fact). readyAt null clears the mark. Changes = seats touched;
+ * zero changes means the viewer holds no stamped seat here. */
+export async function updateSignupReadyByEventDiscord(
+  d1: D1Database, eventId: number, discordId: string, readyAt: number | null,
+): Promise<RunMeta> {
+  const db = createDb(d1);
+  const r = await db.run(
+    sql`UPDATE ${signups} SET ${col('ready_at')} = ${readyAt} WHERE ${col('event_id')} = ${eventId} AND ${col('discord_id')} = ${discordId}`,
+  );
+  return metaOf(r);
 }
 
 export async function countSignupsByEvent(d1: D1Database, eventId: number): Promise<number> {
@@ -233,7 +269,7 @@ export async function getSignupTenant(d1: D1Database, signupId: number, tenant: 
 
 const SIGNUP_COLUMNS = new Set([
   'event_id', 'nickname', 'uid', 'role', 'weapon', 'contact', 'note',
-  'team_name', 'members', 'discord_id',
+  'team_name', 'members', 'discord_id', 'ready_at',
 ]);
 
 function checkedColumns(row: Record<string, unknown>): string[] {
