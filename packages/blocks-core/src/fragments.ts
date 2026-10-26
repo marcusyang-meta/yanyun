@@ -63,6 +63,10 @@ export const BlockActionFragment = graphql`
     ... on UncompleteAction {
       groupingId
     }
+    ... on SetReadyAction {
+      groupingId
+      ready
+    }
   }
 `;
 
@@ -134,6 +138,10 @@ export const SeatGridBlockFragment = graphql`
       role
       healer
       isLeader
+      ready
+      readyAction {
+        ...fragments_BlockAction
+      }
       action {
         ...fragments_BlockAction
       }

@@ -69,6 +69,9 @@ export function dispatchAction(
     case 'UncompleteAction':
       handlers.uncomplete({ groupingId: action.groupingId ?? '' });
       break;
+    case 'SetReadyAction':
+      handlers.setReady({ groupingId: action.groupingId ?? '', ready: !!action.ready });
+      break;
     default:
       // Unknown action type: ignore safely (version negotiation is server-side; this is only a fallback)
       break;

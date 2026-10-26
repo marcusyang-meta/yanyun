@@ -21,6 +21,9 @@ export interface LeafPageText {
   seatEmptyJoinLabel?: string;
   seatEmptyLabel?: string;
   seatLeaderLabel?: string;
+  seatReadyLabel?: string;
+  seatReadyActionLabel?: string;
+  seatUnreadyActionLabel?: string;
 }
 
 // Action handlers: implemented by the host (navigation targets and mutation landing are per-platform).
@@ -33,6 +36,7 @@ export interface ActionHandlers {
   edit: (a: { groupingId: string }) => void;
   complete: (a: { groupingId: string }) => void;
   uncomplete: (a: { groupingId: string }) => void;
+  setReady: (a: { groupingId: string; ready: boolean }) => void;
 }
 
 // Confirm presentation injection point: all copy comes from the Action object (server i18n);

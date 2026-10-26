@@ -15,7 +15,7 @@ import {
   adminAddMember, adminAddResult, adminCreateEvent, adminCreateTeam, adminDeleteAvatar,
   adminDeleteEvent, adminDeleteMember, adminDeleteResult, adminDeleteTeam, adminRemoveSignup,
   adminSetAvatar, adminUpdateDiscord, adminUpdateEvent, adminUpdateFeatures, adminUpdateGuide,
-  adminUpdateMember, adminUpdateProfile, adminUpdateTeam, adminUpdateVisibility,
+  adminUpdateMember, adminUpdateProfile, adminUpdateReminderSettings, adminUpdateTeam, adminUpdateVisibility,
   type AdminPayload,
 } from '../api';
 import type { documentsGuildAdminQuery } from '../__generated__/documentsGuildAdminQuery.graphql';
@@ -235,6 +235,12 @@ function ProfilePanel({ admin, run, flash }: {
 
 /* ---------- discord / features / visibility ---------- */
 
+function fillTemplate(template: string, params: Record<string, string | number>): string {
+  let out = template;
+  for (const [k, v] of Object.entries(params)) out = out.split('{' + k + '}').join(String(v));
+  return out;
+}
+
 function DiscordPanel({ admin, run }: {
   admin: Admin;
   run: (p: Promise<AdminPayload>, onOk?: () => void) => void;
@@ -243,6 +249,10 @@ function DiscordPanel({ admin, run }: {
   const [webhook, setWebhook] = useState('');
   const [guildId, setGuildId] = useState(admin.discordGuildId ?? '');
   const webhookSet = !!admin.reminderWebhookSet;
+  const [offsets, setOffsets] = useState<number[]>(
+    Array.isArray(admin.reminderOffsets) ? [...admin.reminderOffsets] : [10],
+  );
+  const [customText, setCustomText] = useState(admin.reminderCustomText ?? '');
   return (
     <View>
       <Text style={s.sectionTitle}>{admin.adminDiscordTitle}</Text>
@@ -262,6 +272,35 @@ function DiscordPanel({ admin, run }: {
             <DeleteWithLabel label={admin.adminWebhookClearLabel} onConfirm={() => run(adminUpdateDiscord(slug, { webhook: '' }))} />
           )}
         </View>
+      </View>
+
+      <Text style={s.sectionTitle}>{admin.adminReminderTitle}</Text>
+      <View style={s.card}>
+        <Field label={admin.adminReminderOffsetsLabel}>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            {[60, 30, 10, 5].map((m) => {
+              const on = offsets.includes(m);
+              return (
+                <Pressable key={m}
+                  onPress={() => setOffsets((prev) => on ? prev.filter((x) => x !== m) : [...prev, m])}
+                  style={{
+                    paddingVertical: 7, paddingHorizontal: 12, borderRadius: 8, borderWidth: 1,
+                    borderColor: theme.gold, backgroundColor: on ? theme.gold : 'transparent',
+                  }}>
+                  <Text style={{ color: on ? '#1a1814' : theme.paper, fontSize: 13, fontFamily: fonts.serif }}>
+                    {fillTemplate(admin.adminReminderOffsetTemplate ?? '', { minutes: m })}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </Field>
+        <Field label={admin.adminReminderCustomTextLabel}>
+          <TInput value={customText} onChangeText={setCustomText} maxLength={100} />
+        </Field>
+        <Text style={s.muted}>{admin.adminReminderCustomTextHint}</Text>
+        <SaveBtn label={admin.adminSaveLabel} savedLabel={admin.adminSavedText}
+          onSave={() => run(adminUpdateReminderSettings(slug, offsets, customText))} />
       </View>
 
       <Text style={s.sectionTitle}>{admin.adminFeaturesTitle}</Text>

@@ -122,6 +122,8 @@ export const JoinGroupingMutation = graphql`
         role
         uid
         occupied
+        ready
+        mine
       }
     }
   }
@@ -139,6 +141,27 @@ export const LeaveGroupingMutation = graphql`
         role
         uid
         occupied
+        ready
+        mine
+      }
+    }
+  }
+`;
+
+export const SetSeatReadyMutation = graphql`
+  mutation documentsSetSeatReadyMutation($input: SetSeatReadyInput!) {
+    setSeatReady(input: $input) {
+      ok
+      error
+      seats {
+        index
+        nickname
+        weapon
+        role
+        uid
+        occupied
+        ready
+        mine
       }
     }
   }
@@ -270,6 +293,10 @@ export const DetailPageTextQuery = graphql`
       seatEmptyJoinLabel
       seatEmptyLabel
       seatLeaderLabel
+      seatReadyLabel
+      seatReadyActionLabel
+      seatUnreadyActionLabel
+      seatToastReadyFailedTemplate
       detailShareLabel
       shareUrl
       seatModalTitleTemplate
@@ -1345,6 +1372,11 @@ export const GuildAdminQuery = graphql`
           adminWebhookUnsetText
           adminWebhookClearLabel
           adminDiscordIdLabel: adminGuildIdLabel
+          adminReminderTitle
+          adminReminderOffsetsLabel
+          adminReminderOffsetTemplate
+          adminReminderCustomTextLabel
+          adminReminderCustomTextHint
           adminFeaturesTitle
           adminFeatureFixedTeamsLabel: adminFixedTeamsLabel
           adminVisibilityTitle
@@ -1404,6 +1436,8 @@ export const GuildAdminQuery = graphql`
           discordGuildId
           reminderWebhookSet
           reminderWebhookId
+          reminderOffsets
+          reminderCustomText
           featureFixedTeams
           devOnly
           adminTabProfileLabel
@@ -1495,6 +1529,11 @@ export const DeleteGuildAvatarAdminMutation = graphql`
 export const UpdateGuildDiscordAdminMutation = graphql`
   mutation documentsUpdateGuildDiscordAdminMutation($slug: String!, $input: UpdateGuildDiscordInput!) {
     updateGuildDiscord(slug: $slug, input: $input) { ok error }
+  }
+`;
+export const UpdateGuildReminderSettingsAdminMutation = graphql`
+  mutation documentsUpdateGuildReminderSettingsAdminMutation($slug: String!, $offsets: [Int!]!, $customText: String) {
+    updateGuildReminderSettings(slug: $slug, offsets: $offsets, customText: $customText) { ok error }
   }
 `;
 export const UpdateGuildFeaturesAdminMutation = graphql`

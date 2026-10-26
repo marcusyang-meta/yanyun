@@ -28,6 +28,8 @@ type Seat {
   role: String
   uid: String
   occupied: Boolean!
+  ready: Boolean!
+  mine: Boolean!
 }
 
 type Dungeon {
@@ -196,6 +198,8 @@ type SeatEntry {
   role: String
   healer: Boolean!
   isLeader: Boolean!
+  ready: Boolean!
+  readyAction: Action
   action: Action
 }
 
@@ -282,6 +286,12 @@ type UncompleteAction implements Action {
   groupingId: ID!
 }
 
+type SetReadyAction implements Action {
+  actionType: String!
+  groupingId: ID!
+  ready: Boolean!
+}
+
 type GroupingListPage {
   groupings: [Grouping!]!
   currentVersion: String!
@@ -353,6 +363,7 @@ type Grouping {
   dungeon: Dungeon
   seats: [Seat!]!
   occupiedCount: Int!
+  readyCount: Int!
   maxSlots: Int!
   status: String!
   creatorDiscordId: String
@@ -360,6 +371,7 @@ type Grouping {
 
 type GroupingDetailPage {
   grouping: Grouping!
+  shareUrl: String!
   blocks(blocksVersion: Int): [Block!]!
   manageActions: GroupingManageActions
   detailNotFoundText: String!
@@ -422,6 +434,13 @@ type GroupingDetailPage {
   seatToastLeaveFailedTemplate: String!
   seatLeaveConfirmTitle: String!
   seatLeaveConfirmMessageTemplate: String!
+  detailReadyProgressTemplate: String!
+  seatReadyLabel: String!
+  seatReadyActionLabel: String!
+  seatUnreadyActionLabel: String!
+  seatToastReady: String!
+  seatToastUnready: String!
+  seatToastReadyFailedTemplate: String!
   formCreateTitle: String!
   formEditTitle: String!
   formTypeLabel: String!
@@ -1008,6 +1027,7 @@ type Mutation {
   joinGrouping(input: JoinGroupingInput!): SeatPayload!
   leaveGrouping(input: LeaveGroupingInput!): SeatPayload!
   updateSeatWeapon(input: UpdateSeatWeaponInput!): SeatPayload!
+  setSeatReady(input: SetSeatReadyInput!): SeatPayload!
   calcTiaolv(input: TiaolvInput!): TiaolvResult!
   calcGraduation(input: GraduationInput!): GraduationResult!
   updateMyLocale(locale: String): UpdateLocalePayload!
@@ -1016,6 +1036,7 @@ type Mutation {
   createGuild(input: CreateGuildInput!): CreateGuildPayload!
   updateGuildProfile(slug: String!, input: UpdateGuildProfileInput!): GuildAdminPayload!
   updateGuildDiscord(slug: String!, input: UpdateGuildDiscordInput!): GuildAdminPayload!
+  updateGuildReminderSettings(slug: String!, offsets: [Int!]!, customText: String): GuildAdminPayload!
   updateGuildVisibility(slug: String!, devOnly: Boolean!): GuildAdminPayload!
   updateGuildFeatures(slug: String!, fixedTeams: Boolean!): GuildAdminPayload!
   setGuildAvatar(slug: String!, dataBase64: String!): GuildAdminPayload!
@@ -1114,6 +1135,11 @@ input UpdateSeatWeaponInput {
   groupingId: ID!
   uid: String!
   weapon: String!
+}
+
+input SetSeatReadyInput {
+  groupingId: ID!
+  ready: Boolean!
 }
 
 input TiaolvCellInput {
@@ -1327,6 +1353,8 @@ type GuildAdmin {
   discordGuildId: String!
   reminderWebhookSet: Boolean!
   reminderWebhookId: String
+  reminderOffsets: [Int!]!
+  reminderCustomText: String!
   featureFixedTeams: Boolean!
   devOnly: Boolean!
   gameVersion: String!
@@ -1366,6 +1394,11 @@ type GuildAdmin {
   adminWebhookClearLabel: String!
   adminGuildIdLabel: String!
   adminGuildIdUnboundText: String!
+  adminReminderTitle: String!
+  adminReminderOffsetsLabel: String!
+  adminReminderOffsetTemplate: String!
+  adminReminderCustomTextLabel: String!
+  adminReminderCustomTextHint: String!
   adminFeaturesTitle: String!
   adminFixedTeamsLabel: String!
   adminVisibilityTitle: String!

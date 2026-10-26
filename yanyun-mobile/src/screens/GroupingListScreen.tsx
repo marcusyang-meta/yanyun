@@ -81,6 +81,7 @@ export default function GroupingListScreen({ slug, name, readOnly, nick, gameVer
     edit: () => {},
     complete: () => {},
     uncomplete: () => {},
+    setReady: () => {},
   };
 
   // Section pill labels: the shell labels for this guild in the session
