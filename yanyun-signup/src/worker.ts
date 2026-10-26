@@ -46,7 +46,7 @@ app.use('/api/*', async (c: any, next: any) => {
 app.route('/api', guildPublicRoutes);
 app.route('/api', dexPublicRoutes);
 app.route('/api/hub', hubRoutes);
-app.route('/api', guildAvatarRoutes);
+app.route('/', guildAvatarRoutes); // avatar public path /guilds/:slug/avatar (standalone, survives the REST shutdown)
 app.route('/api', guildRoutes);
 app.route('/api', groupingRoutes);
 
@@ -135,7 +135,7 @@ async function handleFetch(request: Request, env: Env, ctx: ExecutionContext) {
       return handleGuildLive(request, env, slug);
     }
 
-    if (path.startsWith('/api/') || path === '/graphql') {
+    if (path.startsWith('/api/') || path === '/graphql' || /^\/guilds\/[^/]+\/avatar$/.test(path)) {
       return app.fetch(request, env, ctx);
     }
 

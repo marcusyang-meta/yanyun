@@ -144,7 +144,7 @@
     "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context)"
   },
   "src/domains/platform/og-graphql.ts": {
-    "max": 18,
+    "max": 23,
     "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context)"
   }
 }

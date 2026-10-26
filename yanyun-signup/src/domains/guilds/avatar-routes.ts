@@ -1,6 +1,8 @@
 /* guilds domain public avatar read route: GET
- * /api/guilds/:slug/avatar. Avatars are public brand images,
- * readable anonymously; no avatar -> 404. */
+ * /guilds/:slug/avatar (standalone path, mounted at the root — it
+ * is not part of the product REST surface and survives its
+ * shutdown). Avatars are public brand images, readable
+ * anonymously; no avatar -> 404. */
 import { Hono } from 'hono';
 import { getGuildAvatar } from './index.ts';
 
