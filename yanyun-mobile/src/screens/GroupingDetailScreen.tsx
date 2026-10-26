@@ -402,6 +402,7 @@ function DetailBlocks({
     pageText: {
       seatEmptyJoinLabel: page?.seatEmptyJoinLabel ?? undefined,
       seatEmptyLabel: page?.seatEmptyLabel ?? undefined,
+      seatLeaderLabel: page?.seatLeaderLabel ?? undefined,
     },
   };
 

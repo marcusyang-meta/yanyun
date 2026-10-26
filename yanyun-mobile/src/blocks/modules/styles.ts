@@ -53,6 +53,9 @@ export const blockStyles = StyleSheet.create({
   seatFreeJoin: { backgroundColor: 'transparent', borderColor: 'rgba(201,163,92,.4)', borderStyle: 'dashed', alignItems: 'center' },
   seatFree: { backgroundColor: 'transparent', borderColor: 'rgba(201,163,92,.25)', borderStyle: 'dashed', alignItems: 'center' },
   seatName: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 15, lineHeight: 21 },
+  seatNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  seatLeaderTag: { borderWidth: 1, borderColor: 'rgba(201,163,92,.55)', borderRadius: 8, paddingHorizontal: 5, paddingVertical: 0.5 },
+  seatLeaderText: { fontFamily: fonts.serif, color: theme.gold, fontSize: 10.5, lineHeight: 15 },
   seatSub: { fontFamily: fonts.serif, color: theme.muted, fontSize: 12, lineHeight: 16, marginTop: 4 },
   seatEmptyText: { fontFamily: fonts.serif, color: theme.muted, fontSize: 14, lineHeight: 19, textAlign: 'center' },
   // 动作钮照 Web 详情按钮行的小钮 (.yy-btn sm): hug 宽, padding 6/16, 13px;

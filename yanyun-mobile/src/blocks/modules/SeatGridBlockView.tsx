@@ -19,7 +19,14 @@ function SeatCell({ seat, handlers }: { seat: SeatEntryData; handlers: ActionHan
   ];
   const body = seat.occupied ? (
     <>
-      <Text style={blockStyles.seatName} numberOfLines={1}>{seat.nickname}</Text>
+      <View style={blockStyles.seatNameRow}>
+        <Text style={blockStyles.seatName} numberOfLines={1}>{seat.nickname}</Text>
+        {seat.isLeader && pt?.seatLeaderLabel ? (
+          <View style={blockStyles.seatLeaderTag}>
+            <Text style={blockStyles.seatLeaderText}>{pt.seatLeaderLabel}</Text>
+          </View>
+        ) : null}
+      </View>
       {(seat.weapon || seat.role) ? (
         <Text style={blockStyles.seatSub} numberOfLines={1}>
           {seat.weapon ?? ''}{seat.role ? `${seat.weapon ? ' · ' : ''}${seat.role}` : ''}
