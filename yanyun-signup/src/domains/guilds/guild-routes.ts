@@ -19,7 +19,7 @@ import {
   getDungeonByName,
 } from '../dex/index.ts';
 import { listUsersDirectory, listNicksByGuild } from '../identity/index.ts';
-import { translate } from '../platform/index.ts';
+import { platformErrorsFor } from '../platform/index.ts';
 import { negotiateLocale } from '../platform/i18n.ts';
 import { nudgeReminderHub } from '../groupings/index.ts';
 
@@ -180,7 +180,7 @@ guildRoutes.put('/:slug/admin/profile', needGuildAdmin, async (c: any) => {
 // locales), with the locale negotiated from request headers.
 const avatarErr = (c: any, code: string, status = 400) => {
   const locale = negotiateLocale(c.req.header('x-locale') || c.req.header('accept-language'));
-  return json({ ok: false, message: translate('errors', code, locale), errorCode: code }, status);
+  return json({ ok: false, message: platformErrorsFor(locale).error(code), errorCode: code }, status);
 };
 guildRoutes.get('/:slug/admin/avatar', needGuildAdmin, async (c: any) => {
   const slug = c.get('slug');

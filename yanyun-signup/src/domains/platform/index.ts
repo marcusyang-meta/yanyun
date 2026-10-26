@@ -3,6 +3,7 @@
 export * from './pushTokens.ts';
 export * from './errorLog.ts';
 export * from './i18n.ts';
+export * from './i18n/text.ts';
 export * from './blocks.ts';
 export * from './error-log.ts';
 export * from './push.ts';
