@@ -169,7 +169,9 @@ export default function GroupingForm({ slug, text, mode, groupingId, initial, de
   const [month, setMonth] = useState(initDate.getMonth() + 1);
   const [day, setDay] = useState(initDate.getDate());
   const [hour, setHour] = useState(isEdit ? initDate.getHours() : 20);
-  const [minute, setMinute] = useState(0);
+  // 编辑保留原车分钟 (与 mobile 同口径): 恒 0 会在只改标题保存时把出发
+  // 时间悄悄挪到整点。分钟档位仍只给 [0,15,30,45], 档外分钟靠 state 保真。
+  const [minute, setMinute] = useState(isEdit ? initDate.getMinutes() : 0);
   const [dungeonId, setDungeonId] = useState('');
   const [nickname, setNickname] = useState(defaultNickname || '');
   const [sect, setSect] = useState('');
