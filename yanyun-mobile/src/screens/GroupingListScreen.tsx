@@ -225,8 +225,11 @@ function AdminEntryButton({ slug }: { slug: string }) {
     { slug, tab: 'ACTIVITY' },
     { fetchPolicy: 'store-or-network' },
   );
-  const g: any = (data as any)?.guild;
-  const label = g?.__typename === 'Guild' ? g.homeAdminLabel : null;
+  const g: any = (data as any)?.viewer?.guild;
+  // The label itself is the variant signal: the shell emits it only on the
+  // admin-verdict Guild (null for plain members, absent on GuildLocked).
+  // (No __typename check: the reader AST does not surface it on this field.)
+  const label = g?.homeAdminLabel ?? null;
   if (!label) return null;
   return (
     <Pressable

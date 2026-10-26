@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<9477e5fc04578803ccb53bb40f0b2cdc>>
+ * @generated SignedSource<<518e71ef9bd3cf72f186845fe99bc14a>>
  * @lightSyntaxTransform
  */
 
@@ -67,7 +67,7 @@ export type documentsListPageTextQuery$data = {
   readonly viewer: {
     readonly commonUnknownErrorText: string;
     readonly guild: {
-      readonly homeAdminLabel?: string;
+      readonly homeAdminLabel?: string | null | undefined;
     };
   };
 };
