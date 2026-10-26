@@ -8,7 +8,7 @@ import {
 buildReminderMessage, postWebhook, sendReminderForEvent,
 REMINDER_EMBED_COLOR, REMINDER_USERNAME, REMINDER_AVATAR_URL,
 carDetailUrl, carOgImageUrl,
-} from '../src/reminder.js';
+} from '../src/reminder.ts';
 
 let pass = 0, fail = 0; const fails = [];
 function check(name, ok, extra = '') {
