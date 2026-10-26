@@ -12,17 +12,22 @@
  * - zh-TW uses Taiwan wording, not a mechanical simplified conversion.
  *
  * Implementation (fbtee):
- * - Declarations: i18n/strings.source.ts (hand-maintained), one fbs call
- *   per entry with desc = 'section.field'; parameterized entries use
+ * - Declarations: per-domain files src/domains/<domain>/i18n/
+ *   strings.source.ts (hand-maintained), one fbs call per entry with
+ *   desc = 'section.field'; each section is owned by one domain, and
+ *   domain code reaches copy only through its own domain text util
+ *   (src/domains/<domain>/i18n/text.ts). Parameterized entries use
  *   literal segments + fbs.param.
  * - Translations: i18n/translations/<locale>.json. Entries that exist
  *   only for zh-CN+en (e.g. termsBody/privacyBody) are absent from other
  *   locale files and from the compiled catalog, so runtime falls back
  *   per field to the source text.
- * - Generated (scripts/i18n-codegen.mjs, CI --check guards drift):
- *   i18n/strings.ts, i18n/catalogs/<locale>.json, i18n/catalog.ts
- *   (CATALOG compat projection for GraphQL business-error sets and
- *   harness catalog assertions only; not read at runtime).
+ * - Generated (scripts/i18n-codegen.mjs collects the per-domain
+ *   declarations; CI --check guards drift): i18n/strings.ts,
+ *   i18n/catalogs/<locale>.json, i18n/catalog.ts (CATALOG compat
+ *   projection for GraphQL business-error sets and harness catalog
+ *   assertions only; not read at runtime), plus per-domain
+ *   i18n/keys.gen.ts key unions.
  * - Parameter packing happens inside the declaration functions (pv):
  *   a missing param keeps the literal '{name}', others use String(v) —
  *   matching the old translate semantics exactly and bypassing fbtee's
@@ -85,6 +90,14 @@ const RUNTIMES: Record<string, FbteeRuntime> = {
   fr: makeRuntime('fr', frCatalog),
   'zh-TW': makeRuntime('zh-TW', zhTwCatalog),
 };
+
+/* Per-locale fbtee runtime handle: the domain text utils (each domain's
+ * i18n/text.ts) expose this to their domain as their runtime handle.
+ * Unsupported locales fall back to the source-locale runtime, matching
+ * translate()'s per-field fallback behavior. */
+export function getTextRuntime(locale: string): FbteeRuntime {
+  return RUNTIMES[locale] ?? RUNTIMES[SOURCE_LOCALE];
+}
 
 export function translate(section: string, field: string, locale: string, params?: Record<string, any>) {
   if (i18nProbe.enabled) {
