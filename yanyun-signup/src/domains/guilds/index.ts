@@ -9,3 +9,4 @@ export * from './guildavatar.ts';
 export { ensureGuildAvatarsTable } from './guildavatar.ts';
 export * from './admin-auth.ts';
 export * from './graphql.ts';
+export { guildAdminResult, guildAdminTypes, GuildAdminShell } from './admin-graphql.ts';

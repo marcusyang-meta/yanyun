@@ -1311,6 +1311,7 @@ type Guild {
   homeTabTeamLabel: String!
   homeTabDexLabel: String!
   homeTabSectLabel: String!
+  homeAdminLabel: String!
   detailNotFoundText: String!
   detailBackToListLabel: String!
 }
@@ -1352,6 +1353,7 @@ type Viewer {
   guilds: [Guild!]!             # 我可用的百业 (成员; 服务端过滤, 前端不许拉全量再筛)
   publicGuilds: [GuildReadOnly!]!  # 未绑定服务器的公开百业 (只读)
   guild(slug: String!): GuildResult!
+  guildAdmin(slug: String!): GuildAdminResult!  # 百业管理面: 响应类型即权限结论 (见下方 GuildAdmin)
   discordServers: [DiscordServer!]!  # 我有管理权限的服务器 (服务端过滤)
   # UI 文案: 站点/登录/选择页/创建页/通用 — 全部由 Viewer shell 的 gen
   # 方法按请求 locale 生成, 未选中永不生成 (无 Strings 类型, 文案字段
@@ -1435,6 +1437,336 @@ type CreateGuildPayload {
 
 extend type Mutation {
   createGuild(input: CreateGuildInput!): CreateGuildPayload!
+}
+
+# ============ 百业管理面 (原 gadmin, 2026-10-26 迁 GraphQL) ============
+# 入口 Viewer.guildAdmin(slug): 鉴权 = Discord 会话 + 查看者是该百业
+# 所绑 Discord 服务器的管理员 (与 createGuild 同一校验: 服务器主或
+# Administrator / ManageGuild 位)。权限只由响应类型表达: GuildAdmin
+# 携带全部管理数据与文案; GuildAdminLocked 只带 slug 与本页文案, 不带
+# 任何百业数据。所有 admin 变更在 resolver 内复验同一结论, 不信前端。
+# 原 gadmin 的百业密码登录随迁移废弃 (Discord 会话是唯一身份)。
+# 提醒 Webhook 是密钥: 只下发是否已设置 + Webhook 数字编号 (可辨认
+# 频道, 不可用于发帖), 完整 URL 永不回读 (与超管门户保存后掩码同规)。
+
+union GuildAdminResult = GuildAdmin | GuildAdminLocked
+
+type GuildAdminLocked {
+  slug: String!
+  adminLockedTitle: String!
+  adminLockedBody: String!
+  adminBackLinkLabel: String!
+}
+
+type GuildAdmin {
+  slug: String!
+  name: String
+  announcement: String!
+  slogan: String
+  masterName: String!
+  logoUrl: String!
+  bgImageUrl: String!
+  avatarUrl: String
+  avatarUpdatedAt: String
+  discordGuildId: String!
+  reminderWebhookSet: Boolean!
+  reminderWebhookId: String
+  featureFixedTeams: Boolean!
+  devOnly: Boolean!
+  gameVersion: String!
+  fixedTeams: [GuildAdminFixedTeam!]!
+  events: [GuildAdminEvent!]!
+  schoolGuides: GuildAdminSchoolGuides!
+  # 管理页文案 (guildAdmin 目录, 按请求 locale 生成)
+  adminTitle: String!
+  adminBackLinkLabel: String!
+  adminTabProfileLabel: String!
+  adminTabDiscordLabel: String!
+  adminTabTeamsLabel: String!
+  adminTabEventsLabel: String!
+  adminTabGuidesLabel: String!
+  adminSaveLabel: String!
+  adminSavedText: String!
+  adminDeleteLabel: String!
+  adminEditLabel: String!
+  adminAddLabel: String!
+  adminProfileTitle: String!
+  adminNameLabel: String!
+  adminAnnouncementLabel: String!
+  adminSloganLabel: String!
+  adminMasterNameLabel: String!
+  adminLogoUrlLabel: String!
+  adminBgImageUrlLabel: String!
+  adminAvatarTitle: String!
+  adminAvatarUploadLabel: String!
+  adminAvatarReplaceLabel: String!
+  adminAvatarDeleteLabel: String!
+  adminAvatarNoneText: String!
+  adminAvatarHint: String!
+  adminDiscordTitle: String!
+  adminWebhookLabel: String!
+  adminWebhookSetText: String!
+  adminWebhookUnsetText: String!
+  adminWebhookHint: String!
+  adminWebhookClearLabel: String!
+  adminGuildIdLabel: String!
+  adminGuildIdUnboundText: String!
+  adminFeaturesTitle: String!
+  adminFixedTeamsLabel: String!
+  adminVisibilityTitle: String!
+  adminDevOnlyLabel: String!
+  adminTeamsTitle: String!
+  adminTeamNameLabel: String!
+  adminTeamDescLabel: String!
+  adminTeamEmptyText: String!
+  adminMemberNicknameLabel: String!
+  adminMemberWeaponLabel: String!
+  adminMemberNoteLabel: String!
+  adminAddMemberLabel: String!
+  adminEventsTitle: String!
+  adminEventEmptyText: String!
+  adminEventTitleLabel: String!
+  adminEventTypeLabel: String!
+  adminEventStatusLabel: String!
+  adminEventTimeLabel: String!
+  adminEventSlotsLabel: String!
+  adminEventMeetLabel: String!
+  adminEventDescLabel: String!
+  adminEventDungeonLabel: String!
+  adminStatusOpenText: String!
+  adminStatusClosedText: String!
+  adminStatusCompletedText: String!
+  adminStatusDraftText: String!
+  adminSignupsTitle: String!
+  adminSignupEmptyText: String!
+  adminExportCsvLabel: String!
+  adminRemoveSignupLabel: String!
+  adminResultsTitle: String!
+  adminResultTeamLabel: String!
+  adminResultMembersLabel: String!
+  adminResultTimeLabel: String!
+  adminResultProofLabel: String!
+  adminResultNoteLabel: String!
+  adminGuidesTitle: String!
+  adminGuidesHint: String!
+  adminGuideSchoolLabel: String!
+  adminGuideBuildLabel: String!
+  adminGuideAttrLabel: String!
+  adminGuideRateLabel: String!
+  adminGuideBisLabel: String!
+  adminGuideRotationLabel: String!
+}
+
+type GuildAdminFixedTeam {
+  id: ID!
+  name: String!
+  description: String!
+  members: [GuildAdminFixedTeamMember!]!
+}
+
+type GuildAdminFixedTeamMember {
+  id: ID!
+  nickname: String!
+  weapon: String!
+  role: String!
+  note: String!
+}
+
+type GuildAdminEvent {
+  id: ID!
+  title: String!
+  type: GroupingType!
+  status: String!
+  origin: String!
+  startsAtUtc: Int
+  startsAtText: String!
+  dungeon: String!
+  maxSlots: Int!
+  meetInfo: String!
+  description: String!
+  signupCount: Int!
+  signups: [GuildAdminSignup!]!
+  results: [GuildAdminRaceResult!]!
+  signupsCsv: String!
+}
+
+type GuildAdminSignup {
+  id: ID!
+  nickname: String!
+  uid: String!
+  role: String!
+  weapon: String!
+  contact: String!
+  teamName: String!
+  members: String!
+  note: String!
+  createdAt: String!
+}
+
+type GuildAdminRaceResult {
+  id: ID!
+  teamName: String!
+  members: String!
+  timeMs: Int!
+  timeText: String!
+  proofUrl: String!
+  note: String!
+}
+
+# 流派攻略数据 (BiS / 循环): 与公开流派页同一批 dex 数据; bis 本体是
+# 任意 JSON 文档, 以原文文字列下发/回存 (编辑器即 JSON 文本框, 与原
+# gadmin 的 upsert 语义一致)。
+type GuildAdminSchoolGuides {
+  schools: [GuildAdminSchoolGuide!]!
+}
+
+type GuildAdminSchoolGuide {
+  school: String!
+  builds: [GuildAdminSchoolBuild!]!
+  rotationJson: String!
+}
+
+type GuildAdminSchoolBuild {
+  build: String!
+  attr: String!
+  rate: String!
+  bisJson: String!
+}
+
+type GuildAdminPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  # 头像变更后回带新版本化 URL / 新建实体回带 id (其余变更为 null)
+  avatarUrl: String
+  id: ID
+}
+
+input UpdateGuildProfileInput {
+  name: String
+  announcement: String
+  slogan: String
+  masterName: String
+  logoUrl: String
+  bgImageUrl: String
+}
+
+input UpdateGuildDiscordInput {
+  # 省略/null = 保持不变; 空串 = 清除; 非空 = 替换 (服务端复验格式)
+  webhook: String
+  discordGuildId: String
+}
+
+input CreateFixedTeamInput {
+  name: String!
+  description: String
+}
+
+input UpdateFixedTeamInput {
+  name: String
+  description: String
+}
+
+input FixedTeamMemberInput {
+  nickname: String!
+  weapon: String
+  note: String
+  sortOrder: Int
+}
+
+input CreateAdminEventInput {
+  title: String!
+  type: GroupingType!
+  startsAtUtc: Int
+  dungeon: String
+  maxSlots: Int
+  meetInfo: String
+  description: String
+  status: String
+}
+
+input UpdateAdminEventInput {
+  title: String
+  type: GroupingType
+  startsAtUtc: Int
+  dungeon: String
+  maxSlots: Int
+  meetInfo: String
+  description: String
+  status: String
+}
+
+input AddEventResultInput {
+  teamName: String!
+  members: String
+  timeText: String!
+  proofUrl: String
+  note: String
+}
+
+input UpdateSchoolGuideInput {
+  school: String!
+  build: String!
+  attr: String
+  rate: String
+  bisJson: String
+  rotationJson: String
+}
+
+extend type Mutation {
+  # 百业管理 (全部在 resolver 内复验服务器管理员结论)
+  updateGuildProfile(slug: String!, input: UpdateGuildProfileInput!): GuildAdminPayload!
+  updateGuildDiscord(slug: String!, input: UpdateGuildDiscordInput!): GuildAdminPayload!
+  updateGuildVisibility(slug: String!, devOnly: Boolean!): GuildAdminPayload!
+  updateGuildFeatures(slug: String!, fixedTeams: Boolean!): GuildAdminPayload!
+  # 头像以 base64 文本上传 (GraphQL 无二进制通道); 服务端解码后仍走
+  # 与原直传相同的大小/魔数校验, 错误文案走 errors 目录。
+  setGuildAvatar(slug: String!, dataBase64: String!): GuildAdminPayload!
+  deleteGuildAvatar(slug: String!): GuildAdminPayload!
+  createFixedTeam(slug: String!, input: CreateFixedTeamInput!): GuildAdminPayload!
+  updateFixedTeam(slug: String!, teamId: ID!, input: UpdateFixedTeamInput!): GuildAdminPayload!
+  deleteFixedTeam(slug: String!, teamId: ID!): GuildAdminPayload!
+  addFixedTeamMember(slug: String!, teamId: ID!, input: FixedTeamMemberInput!): GuildAdminPayload!
+  updateFixedTeamMember(slug: String!, teamId: ID!, memberId: ID!, input: FixedTeamMemberInput!): GuildAdminPayload!
+  deleteFixedTeamMember(slug: String!, teamId: ID!, memberId: ID!): GuildAdminPayload!
+  createAdminEvent(slug: String!, input: CreateAdminEventInput!): GuildAdminPayload!
+  updateAdminEvent(slug: String!, eventId: ID!, input: UpdateAdminEventInput!): GuildAdminPayload!
+  deleteAdminEvent(slug: String!, eventId: ID!): GuildAdminPayload!
+  removeEventSignup(slug: String!, signupId: ID!): GuildAdminPayload!
+  addEventResult(slug: String!, eventId: ID!, input: AddEventResultInput!): GuildAdminPayload!
+  deleteEventResult(slug: String!, resultId: ID!): GuildAdminPayload!
+  updateSchoolGuide(slug: String!, input: UpdateSchoolGuideInput!): GuildAdminPayload!
+}
+
+# ============ OG 卡面数据通道 (公开, 只读) ============
+# OG worker 专用窄通道, 替代原 REST 三读 (/api/tenants、本周车表、
+# 车详情)。只暴露卡面本来就公开的字段: 百业名/标语对匿名公开是产品
+# 裁决 (2026-10-25); 车卡字段与原 REST 详情的卡面子集逐一对应, 绝不
+# 含成员昵称等报名明细。dev_only 百业从非 dev 来源看不存在 (同全站规矩)。
+
+type OgGuildCard {
+  exists: Boolean!
+  name: String!
+  slogan: String!
+  # 本周 (周一 05:00 北京边界) 招募中的双十车数, 口径与原 REST 周表
+  # 计数完全一致 (activity 且 status 不在 draft/completed)。
+  weekActivityCount(fromUtc: Int!, toUtc: Int!): Int!
+}
+
+type OgCarCard {
+  title: String!
+  type: String!
+  startsAtUtc: Int
+  startsAtText: String!
+  dungeonName: String!
+  occupiedCount: Int!
+  maxSlots: Int!
+  status: String!
+}
+
+extend type Query {
+  ogGuildCard(slug: String!): OgGuildCard!
+  ogCarCard(slug: String!, id: ID!): OgCarCard
 }
 
 # ============ 配装台数据/计算 (gear-planner 移植, src/gearplanner.js) ============

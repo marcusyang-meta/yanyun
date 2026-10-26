@@ -151,6 +151,29 @@ export function serverCanManage(sv: any) {
   } catch { return false; }
 }
 
+/* Guild-admin verdict (gadmin replacement, 2026-10-26): the viewer is
+ * an admin of the guild when the tenant exists (dev_only gate identical
+ * to getGuildAccess), a Discord server is bound, and the viewer's stored
+ * server row for that server passes serverCanManage — the exact check
+ * createGuild uses. The old guild-password login is gone: the Discord
+ * session is the only identity. */
+export async function getGuildAdminAccess(db: any, user: any, slug: any, request: any): Promise<any> {
+  const t = await getTenantRow(db, s(slug, 40));
+  if (!t) return { exists: false, slug, tenant: null, discordGuildId: '', isAdmin: false };
+  const devOnly = (await getTenantSetting(db, t.slug, 'dev_only')) === '1';
+  if (devOnly && !isDevRequest(request)) {
+    return { exists: false, slug, tenant: null, discordGuildId: '', isAdmin: false, devOnly: true };
+  }
+  const dgid = (await getTenantSetting(db, t.slug, 'discord_guild_id')) || '';
+  let isAdmin = false;
+  if (user && dgid) {
+    const servers = await getServersForUser(db, user);
+    const sv = (servers || []).find((g: any) => String(g.id) === String(dgid));
+    isAdmin = serverCanManage(sv);
+  }
+  return { exists: true, slug: t.slug, tenant: t, discordGuildId: dgid, devOnly, isAdmin };
+}
+
 // The /ws/guild/:slug subscription route reuses this same check —
 // never copy the membership rules elsewhere (single source of truth).
 export async function getGuildAccess(db: any, user: any, slug: any, request: any): Promise<any> {
