@@ -42,6 +42,13 @@ import {
 } from './domains/groupings/index.ts';
 import { listUsersDirectory, listNicksByGuild, listAllNicks } from './domains/identity/index.ts';
 import { listResultsByEvent, insertResult, getResultIdOwnedByTenant, deleteResultById } from './domains/groupings/index.ts';
+import {
+  listBossesLight, getBossById, listAllBosses, insertBoss, updateBossFields, listBossesWithGuide,
+  deleteBossById, getBossIdByNameAndDungeon, getOrphanBossIdByName, renameBossesDungeon,
+  listBossesFullByDungeon, listOrphanBossesByName, countBosses,
+  listDungeonsPublic, getDungeonByName, getDungeonById, insertDungeonDex, updateDungeonFields,
+  deleteDungeonById, countDungeons,
+} from './domains/dex/index.ts';
 
 const TYPES = { activity: '双十人本', talent: '天赋组队', race: '竞速', tower: '爬塔', gather: '采集', explore: '探索' };
 const ROLES = ['输出', '承伤', '奶', '治疗', '随意'];
@@ -283,18 +290,13 @@ pub.get('/tenants', async (c) => {
 
 // GET /api/bosses 首领列表(轻量, 不含攻略正文)
 pub.get('/bosses', async (c) => {
-  const { results } = await c.env.DB.prepare(
-    'SELECT id, name, talent, source, note, sort_order, dungeon, (guide IS NOT NULL AND guide != \'\') AS has_guide FROM bosses ORDER BY sort_order ASC, id ASC'
-  ).all();
-  return json({ ok: true, bosses: results });
+  return json({ ok: true, bosses: await listBossesLight(c.env.DB) });
 });
 
 // GET /api/bosses/:id 单个首领攻略(含正文)
 pub.get('/bosses/:id', async (c) => {
   const id = parseInt(c.req.param('id'), 10);
-  const boss = await c.env.DB.prepare(
-    'SELECT * FROM bosses WHERE id = ?'
-  ).bind(id).first();
+  const boss = await getBossById(c.env.DB, id);
   if (!boss) return err('首领不存在', 404);
   return json({ ok: true, boss });
 });
@@ -309,10 +311,7 @@ pub.get('/schools', async (c) => {
 
 // GET /api/dungeons 副本列表(全站共用, 按规模/排序)
 pub.get('/dungeons', async (c) => {
-  const { results } = await c.env.DB.prepare(
-    'SELECT id, name, size, is_current, version, video_url, video_title FROM dungeons ORDER BY size DESC, sort_order DESC, id ASC'
-  ).all();
-  return json({ ok: true, dungeons: results });
+  return json({ ok: true, dungeons: await listDungeonsPublic(c.env.DB) });
 });
 
 app.route('/api', pub);
@@ -638,17 +637,17 @@ hub.put('/settings', async (c) => {
 
 // /api/hub/bosses CRUD
 hub.get('/bosses', async (c) => {
-  const { results } = await c.env.DB.prepare('SELECT * FROM bosses ORDER BY sort_order ASC, id ASC').all();
-  return json({ ok: true, bosses: results });
+  return json({ ok: true, bosses: await listAllBosses(c.env.DB) });
 });
 hub.post('/bosses', async (c) => {
   const body = await getBody(c);
   const name = s(body.name, 30);
   if (!name) return err('首领名不能为空', 400);
-  const r = await c.env.DB.prepare(
-    'INSERT INTO bosses (name, talent, source, note, sort_order) VALUES (?, ?, ?, ?, ?)'
-  ).bind(name, s(body.talent, 40), s(body.source, 40), s(body.note, 200), parseInt(body.sort_order, 10) || 0).run();
-  return json({ ok: true, id: r.meta.last_row_id });
+  const r = await insertBoss(c.env.DB, {
+    name, talent: s(body.talent, 40), source: s(body.source, 40),
+    note: s(body.note, 200), sortOrder: parseInt(body.sort_order, 10) || 0,
+  });
+  return json({ ok: true, id: r.last_row_id });
 });
 hub.put('/bosses/:id', async (c) => {
   const body = await getBody(c);
@@ -666,9 +665,8 @@ hub.put('/bosses/:id', async (c) => {
   for (const [key, col] of [['mechanics', 'mechanics_json'], ['talents', 'talents_json'], ['shouts', 'shouts_json']]) {
     if (body[key] !== undefined) set(col, Array.isArray(body[key]) ? JSON.stringify(body[key]) : s(body[key], 60000));
   }
-  if (!fields.length) return err('没有要更新的字段', 400);
-  params.push(id);
-  await c.env.DB.prepare(`UPDATE bosses SET ${fields.join(', ')} WHERE id = ?`).bind(...params).run();
+  if (!Object.keys(patch).length) return err('没有要更新的字段', 400);
+  await updateBossFields(c.env.DB, id, patch);
   return json({ ok: true });
 });
 
@@ -678,21 +676,21 @@ hub.put('/bosses/:id', async (c) => {
 hub.post('/bosses/migrate-structured', async (c) => {
   const db = c.env.DB;
   await ensureBossStructuredColumns(db);
-  const { results } = await db.prepare(
-    "SELECT id, name, guide FROM bosses WHERE guide IS NOT NULL AND guide != '' ORDER BY id ASC"
-  ).all();
+  const results = await listBossesWithGuide(db);
   const migrated = [];
   for (const b of results) {
     const st = parseGuideStructured(b.guide);
-    await db.prepare(
-      'UPDATE bosses SET mechanics_json = ?, talents_json = ?, shouts_json = ? WHERE id = ?'
-    ).bind(JSON.stringify(st.mechanics), JSON.stringify(st.talents), JSON.stringify(st.shouts), b.id).run();
+    await updateBossFields(db, b.id, {
+      mechanics_json: JSON.stringify(st.mechanics),
+      talents_json: JSON.stringify(st.talents),
+      shouts_json: JSON.stringify(st.shouts),
+    });
     migrated.push({ id: b.id, name: b.name, mechanics: st.mechanics.length, talents: st.talents.length, shouts: st.shouts.length });
   }
   return json({ ok: true, migrated });
 });
 hub.delete('/bosses/:id', async (c) => {
-  await c.env.DB.prepare('DELETE FROM bosses WHERE id = ?').bind(parseInt(c.req.param('id'), 10)).run();
+  await deleteBossById(c.env.DB, parseInt(c.req.param('id'), 10));
   return json({ ok: true });
 });
 
@@ -711,8 +709,8 @@ hub.post('/dex/apply-season-map', async (c) => {
     deletedDungeons: [], deletedBosses: [], warnings: [],
   };
   const countAll = async () => ({
-    dungeons: (await db.prepare('SELECT COUNT(*) AS n FROM dungeons').first()).n,
-    bosses: (await db.prepare('SELECT COUNT(*) AS n FROM bosses').first()).n,
+    dungeons: await countDungeons(db),
+    bosses: await countBosses(db),
   });
   const before = await countAll();
   const hasContent = (b) => {
@@ -722,50 +720,46 @@ hub.post('/dex/apply-season-map', async (c) => {
   const bossSource = (d) => (Number(d.size) === 10 ? '侠境·' : '试剑·') + d.name;
 
   // ---- 望月婵媛 → 万壑化龙吟 改名 (boss 归属按副本名关联, 必须先迁) ----
-  const oldD = await db.prepare('SELECT * FROM dungeons WHERE name = ?').bind('望月婵媛').first();
-  const newD = await db.prepare('SELECT * FROM dungeons WHERE name = ?').bind('万壑化龙吟').first();
+  const oldD = await getDungeonByName(db, '望月婵媛');
+  const newD = await getDungeonByName(db, '万壑化龙吟');
   if (oldD && !newD) {
-    await db.prepare('UPDATE dungeons SET name = ? WHERE id = ?').bind('万壑化龙吟', oldD.id).run();
-    await db.prepare('UPDATE bosses SET dungeon = ? WHERE dungeon = ?').bind('万壑化龙吟', '望月婵媛').run();
+    await updateDungeonFields(db, oldD.id, { name: '万壑化龙吟' });
+    await renameBossesDungeon(db, '望月婵媛', '万壑化龙吟');
     rep.updated.push('望月婵媛 → 万壑化龙吟 (改名, 游戏内正式名)');
   }
 
   // ---- boss 行确保: 已有 (名, 副本) 直接用; 无主孤儿行可认领 (每行只认领一次); 否则新建 ----
   const claimed = new Set();
   const ensureBoss = async (d, bossName, sortOrder) => {
-    const exact = await db.prepare('SELECT id FROM bosses WHERE name = ? AND dungeon = ?').bind(bossName, d.name).first();
+    const exact = await getBossIdByNameAndDungeon(db, bossName, d.name);
     if (exact) {
-      await db.prepare('UPDATE bosses SET sort_order = ? WHERE id = ?').bind(sortOrder, exact.id).run();
+      await updateBossFields(db, exact.id, { sort_order: sortOrder });
       return exact.id;
     }
-    const orphan = await db.prepare(
-      "SELECT id FROM bosses WHERE name = ? AND (dungeon IS NULL OR dungeon = '') ORDER BY id ASC"
-    ).bind(bossName).first();
+    const orphan = await getOrphanBossIdByName(db, bossName);
     if (orphan && !claimed.has(orphan.id)) {
       claimed.add(orphan.id);
-      await db.prepare('UPDATE bosses SET dungeon = ?, source = ?, sort_order = ? WHERE id = ?')
-        .bind(d.name, bossSource(d), sortOrder, orphan.id).run();
+      await updateBossFields(db, orphan.id, { dungeon: d.name, source: bossSource(d), sort_order: sortOrder });
       rep.reassignedBosses.push(`${bossName} → ${d.name} (#${orphan.id})`);
       return orphan.id;
     }
-    const r = await db.prepare(
-      'INSERT INTO bosses (name, dungeon, talent, source, note, sort_order) VALUES (?, ?, ?, ?, ?, ?)'
-    ).bind(bossName, d.name, '', bossSource(d), '', sortOrder).run();
-    rep.createdBosses.push(`${bossName} @ ${d.name} (#${r.meta.last_row_id})`);
-    return r.meta.last_row_id;
+    const r = await insertBoss(db, {
+      name: bossName, dungeon: d.name, talent: '', source: bossSource(d), note: '', sortOrder,
+    });
+    rep.createdBosses.push(`${bossName} @ ${d.name} (#${r.last_row_id})`);
+    return r.last_row_id;
   };
 
   const upsertDungeon = async (spec) => {
-    let d = await db.prepare('SELECT * FROM dungeons WHERE name = ?').bind(spec.name).first();
+    let d = await getDungeonByName(db, spec.name);
     if (!d) {
-      const r = await db.prepare(
-        "INSERT INTO dungeons (name, size, is_current, version, video_url, video_title, sort_order, season, category, level) VALUES (?, ?, 0, 'legacy', '', '', 0, ?, ?, ?)"
-      ).bind(spec.name, spec.size, spec.season, spec.category, spec.level).run();
-      rep.createdDungeons.push(`${spec.name} (#${r.meta.last_row_id})`);
-      d = await db.prepare('SELECT * FROM dungeons WHERE id = ?').bind(r.meta.last_row_id).first();
+      const r = await insertDungeonDex(db, {
+        name: spec.name, size: spec.size, season: spec.season, category: spec.category, level: spec.level,
+      });
+      rep.createdDungeons.push(`${spec.name} (#${r.last_row_id})`);
+      d = await getDungeonById(db, r.last_row_id);
     } else {
-      await db.prepare('UPDATE dungeons SET size = ?, season = ?, category = ?, level = ? WHERE id = ?')
-        .bind(spec.size, spec.season, spec.category, spec.level, d.id).run();
+      await updateDungeonFields(db, d.id, { size: spec.size, season: spec.season, category: spec.category, level: spec.level });
       rep.updated.push(`${spec.name} → ${spec.category}/${spec.season}/Lv${spec.level}`);
       d = { ...d, ...spec };
     }
@@ -808,28 +802,26 @@ hub.post('/dex/apply-season-map', async (c) => {
   // ---- 国服残留删除 (删前逐行校验无攻略内容) ----
   const DELETE_DUNGEONS = ['锋锷断迷狂', '啸风峙玉', '鲲鹏图千山', '霜催落月', '笃山衔蝉', '流火袭星', '沧流走虺'];
   for (const name of DELETE_DUNGEONS) {
-    const d = await db.prepare('SELECT * FROM dungeons WHERE name = ?').bind(name).first();
+    const d = await getDungeonByName(db, name);
     if (!d) continue;
-    const { results: bs } = await db.prepare('SELECT * FROM bosses WHERE dungeon = ?').bind(name).all();
+    const bs = await listBossesFullByDungeon(db, name);
     const withContent = bs.filter(hasContent);
     if (withContent.length) {
       rep.warnings.push(`跳过删除 ${name}: boss ${withContent.map((b) => b.name).join('/')} 有攻略内容`);
       continue;
     }
     for (const b of bs) {
-      await db.prepare('DELETE FROM bosses WHERE id = ?').bind(b.id).run();
+      await deleteBossById(db, b.id);
       rep.deletedBosses.push(`${b.name} @ ${name}`);
     }
-    await db.prepare('DELETE FROM dungeons WHERE id = ?').bind(d.id).run();
+    await deleteDungeonById(db, d.id);
     rep.deletedDungeons.push(name);
   }
   for (const name of ['茧中老人', '愁铃客']) {
-    const { results: bs } = await db.prepare(
-      "SELECT * FROM bosses WHERE name = ? AND (dungeon IS NULL OR dungeon = '')"
-    ).bind(name).all();
+    const bs = await listOrphanBossesByName(db, name);
     for (const b of bs) {
       if (hasContent(b)) { rep.warnings.push(`跳过删除孤儿 boss ${name}: 有攻略内容`); continue; }
-      await db.prepare('DELETE FROM bosses WHERE id = ?').bind(b.id).run();
+      await deleteBossById(db, b.id);
       rep.deletedBosses.push(`${name} (孤儿)`);
     }
   }
@@ -957,21 +949,17 @@ hub.post('/events/backfill-creators', async (c) => {
 
 // /api/hub/dungeons 副本当期 toggle
 hub.get('/dungeons', async (c) => {
-  const { results } = await c.env.DB.prepare(
-    'SELECT id, name, size, is_current, version, video_url, video_title FROM dungeons ORDER BY size DESC, sort_order DESC, id ASC'
-  ).all();
-  return json({ ok: true, dungeons: results });
+  return json({ ok: true, dungeons: await listDungeonsPublic(c.env.DB) });
 });
 hub.put('/dungeons/:id', async (c) => {
   const body = await getBody(c);
   const id = parseInt(c.req.param('id'), 10);
-  const fields = [], params = [];
-  if (body.is_current !== undefined) { fields.push('is_current = ?'); params.push(body.is_current ? 1 : 0); }
-  if (body.video_url !== undefined) { fields.push('video_url = ?'); params.push(String(body.video_url || '').slice(0, 200)); }
-  if (body.video_title !== undefined) { fields.push('video_title = ?'); params.push(String(body.video_title || '').slice(0, 80)); }
-  if (!fields.length) return err('没有要更新的字段', 400);
-  params.push(id);
-  await c.env.DB.prepare(`UPDATE dungeons SET ${fields.join(', ')} WHERE id = ?`).bind(...params).run();
+  const patch = {};
+  if (body.is_current !== undefined) patch.is_current = body.is_current ? 1 : 0;
+  if (body.video_url !== undefined) patch.video_url = String(body.video_url || '').slice(0, 200);
+  if (body.video_title !== undefined) patch.video_title = String(body.video_title || '').slice(0, 80);
+  if (!Object.keys(patch).length) return err('没有要更新的字段', 400);
+  await updateDungeonFields(c.env.DB, id, patch);
   return json({ ok: true });
 });
 
@@ -1947,7 +1935,7 @@ async function carOgTags(env, slug, carId) {
     const cnt = await countSignupsByEvent(env.DB, ev.id);
     let dungeonName = '';
     if (ev.dungeon) {
-      const d = await env.DB.prepare('SELECT name FROM dungeons WHERE name = ?').bind(ev.dungeon).first();
+      const d = await getDungeonByName(env.DB, ev.dungeon);
       if (d) dungeonName = d.name;
     }
     const typeLabel = CAR_TYPE_LABEL[ev.type] || '';

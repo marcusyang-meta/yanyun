@@ -8,7 +8,7 @@
  * 实体定义镜像 (生产结构零变更, 这里只是本地验证夹具)。
  *
  * 用法: node scripts/verify-repositories-d1.mjs [section]
- *   section 省略 = 全部; 目前有 tenants / events / gear / users / members / results 六段,
+ *   section 省略 = 全部; 目前有 tenants / events / gear / users / members / results / dex 七段,
  *   随数据层迁移进度增补。退出码非 0 = 有断言失败。
  * =================================================== */
 import { Miniflare, convertV4MiniflareOptions } from 'miniflare';
@@ -88,6 +88,18 @@ const DDL = [
      tenant TEXT NOT NULL, discord_id TEXT NOT NULL,
      nick TEXT NOT NULL DEFAULT '', global_name TEXT NOT NULL DEFAULT '',
      updated_at INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (tenant, discord_id))`,
+  `CREATE TABLE dungeons (
+     id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE,
+     size INTEGER NOT NULL DEFAULT 10, is_current INTEGER NOT NULL DEFAULT 0,
+     sort_order INTEGER NOT NULL DEFAULT 0,
+     video_url TEXT NOT NULL DEFAULT '', video_title TEXT NOT NULL DEFAULT '',
+     season TEXT, category TEXT, level INTEGER, version TEXT)`,
+  `CREATE TABLE bosses (
+     id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL,
+     talent TEXT NOT NULL DEFAULT '', source TEXT NOT NULL DEFAULT '',
+     note TEXT NOT NULL DEFAULT '', sort_order INTEGER NOT NULL DEFAULT 0,
+     dungeon TEXT NOT NULL DEFAULT '', guide TEXT NOT NULL DEFAULT '',
+     mechanics_json TEXT, talents_json TEXT, shouts_json TEXT)`,
 ];
 for (const ddl of DDL) await db.prepare(ddl).run();
 
@@ -490,6 +502,54 @@ if (want('results')) {
   eq('deleteResultById changes', del.changes, 1);
   eq('deleteResultById again changes=0', (await repo.deleteResultById(db, rFast.last_row_id)).changes, 0);
   eq('list after delete', (await repo.listResultsByEvent(db, ev1.last_row_id)).map((r) => r.team_name), ['慢队']);
+}
+
+/* ---------------- dex: dungeons + bosses ---------------- */
+if (want('dex')) {
+  console.log('== dex repositories (dungeons/bosses) on real D1 ==');
+  const dg = await import('../src/domains/dex/dungeons.ts');
+  const bs = await import('../src/domains/dex/bosses.ts');
+
+  await dg.ensureDungeonDexColumns(db);
+  await bs.ensureBossStructuredColumns(db);
+
+  const d1 = await dg.insertDungeonDex(db, { name: '甲副本', size: 10, season: 'S5', category: '传薪', level: 100 });
+  const d2 = await dg.insertDungeonDex(db, { name: '乙副本', size: 5, season: 'S4', category: '铸矩', level: 96 });
+  check('insertDungeonDex ids', d1.last_row_id > 0 && d2.last_row_id > d1.last_row_id);
+  const dRow = await dg.getDungeonByName(db, '甲副本');
+  check('getDungeonByName roundtrip', !!dRow && dRow.size === 10 && dRow.season === 'S5' && dRow.version === 'legacy');
+  eq('getDungeonByName missing -> null', await dg.getDungeonByName(db, '不存在'), null);
+  eq('getDungeonById', (await dg.getDungeonById(db, d2.last_row_id))?.name, '乙副本');
+  eq('getDungeonNameSizeById', await dg.getDungeonNameSizeById(db, d1.last_row_id), { name: '甲副本', size: 10 });
+  await dg.updateDungeonFields(db, d1.last_row_id, { version: 'intl-v2.3', is_current: 1 });
+  eq('getLatestDungeonVersion picks non-legacy', await dg.getLatestDungeonVersion(db), 'intl-v2.3');
+  eq('listDungeonsPublic columns', (await dg.listDungeonsPublic(db)).map((r) => r.name), ['甲副本', '乙副本']);
+  eq('listDungeonsDex full rows', (await dg.listDungeonsDex(db)).length, 2);
+  eq('countDungeons', await dg.countDungeons(db), 2);
+  let threw = false;
+  try { await dg.updateDungeonFields(db, d1.last_row_id, { nope: 1 }); } catch { threw = true; }
+  check('updateDungeonFields rejects unknown column', threw);
+
+  const b1 = await bs.insertBoss(db, { name: '首领甲', talent: 't', source: 's', note: 'n', sortOrder: 20 });
+  const b2 = await bs.insertBoss(db, { name: '首领乙', dungeon: '甲副本', talent: '', source: '侠境·甲副本', note: '', sortOrder: 10 });
+  check('insertBoss ids', b1.last_row_id > 0 && b2.last_row_id > b1.last_row_id);
+  eq('getBossById', (await bs.getBossById(db, b2.last_row_id))?.dungeon, '甲副本');
+  eq('listAllBosses ordered', (await bs.listAllBosses(db)).map((r) => r.name), ['首领乙', '首领甲']);
+  const light = await bs.listBossesLight(db);
+  check('listBossesLight has_guide flag', light.length === 2 && light.every((r) => 'has_guide' in r));
+  eq('listBossesByDungeon', (await bs.listBossesByDungeon(db, '甲副本')).map((r) => r.name), ['首领乙']);
+  eq('getBossIdByNameAndDungeon', (await bs.getBossIdByNameAndDungeon(db, '首领乙', '甲副本'))?.id, b2.last_row_id);
+  eq('getOrphanBossIdByName', (await bs.getOrphanBossIdByName(db, '首领甲'))?.id, b1.last_row_id);
+  eq('listOrphanBossesByName', (await bs.listOrphanBossesByName(db, '首领甲')).length, 1);
+  await bs.updateBossFields(db, b1.last_row_id, { guide: '攻略正文', mechanics_json: '[]' });
+  eq('listBossesWithGuide', (await bs.listBossesWithGuide(db)).map((r) => r.name), ['首领甲']);
+  eq('countBosses', await bs.countBosses(db), 2);
+  await dg.updateDungeonFields(db, d1.last_row_id, { name: '甲副本改' });
+  await bs.renameBossesDungeon(db, '甲副本', '甲副本改');
+  eq('renameBossesDungeon moves rows', (await bs.listBossesFullByDungeon(db, '甲副本改')).length, 1);
+  eq('deleteBossById changes', (await bs.deleteBossById(db, b1.last_row_id)).changes, 1);
+  eq('deleteDungeonById changes', (await dg.deleteDungeonById(db, d2.last_row_id)).changes, 1);
+  eq('counts after deletes', [await bs.countBosses(db), await dg.countDungeons(db)], [1, 1]);
 }
 
 await mf.dispose();
