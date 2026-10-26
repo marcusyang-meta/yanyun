@@ -47,10 +47,29 @@ async function fetchRetry(url, init, tries = 6) {
 async function gql(query, locale) {
   const r = await fetchRetry(`${BASE}/graphql`, {
     method: 'POST',
-    headers: { 'content-type': 'application/json', 'x-locale': locale },
+    // Origin carries the surface identity: dev_only guilds (demo)
+    // are visible only when the origin is a dev host — the retired
+    // tenants probe sent Origin explicitly for the same reason.
+    headers: { 'content-type': 'application/json', 'x-locale': locale, origin: BASE },
     body: JSON.stringify({ query }),
   });
   return { status: r.status, body: await r.json().catch(() => null) };
+}
+
+/* 0. Readiness: a fresh deploy can take a while to reach every edge
+ * location; version skew answers like a missing guild. Poll the
+ * card channel until the tenant answers before asserting anything
+ * (a prod false failure here would roll back a healthy deploy). */
+{
+  let ready = false;
+  for (let i = 0; i < 18 && !ready; i++) {
+    try {
+      const { body } = await gql(`{ ogGuildCard(slug: "${TENANT}") { exists } }`);
+      ready = body?.data?.ogGuildCard?.exists === true;
+    } catch { /* keep polling */ }
+    if (!ready) await sleep(5000);
+  }
+  check(`readiness: ogGuildCard ${TENANT} reachable`, ready);
 }
 
 /* 1. SPA root */
