@@ -60,7 +60,7 @@ import {
 import {
   ShellBase, defineTextGens, loadMyLocalePref, errText, assertTenant,
   getTenantSetting, setTenantSetting, isDevRequest, getServersForUser,
-  serverCanManage, getGuildAccess, publishGroupingEvent, requireWrite,
+  serverCanManage, getGuildAccess, getGuildAdminAccess, publishGroupingEvent, requireWrite,
   sha256hexLocal, rateLimitGql as rateLimit, getClientIp, s, roleOf, newUid,
   TAB_TO_TYPE, TYPE_TO_ENUM, GUILD_TABS, getGameVersion, getCurrentVersionCode,
   PayloadBase, GroupingPayloadShell, SeatPayloadShell, DeletePayloadShell,
@@ -157,6 +157,18 @@ export class GuildShell extends ShellBase {
       return nick || null;
     });
   }
+  // Admin entry label: emitted only when the viewer passes the same
+  // admin verdict the admin surface itself uses (getGuildAdminAccess:
+  // bound-server admins, plus the omniscient viewer). Every other
+  // member gets null and the home page renders no admin entry at all —
+  // an entry that only leads to GuildAdminLocked must not be
+  // advertised (variant-granularity ruling, 2026-10-26).
+  genHomeAdminLabel(){
+    return this.memo('homeAdminLabel', async () => {
+      const access = await getGuildAdminAccess(this.db, this.ctx.user, this.genSlug(), this.ctx.request, this.vc).catch(() => null);
+      return access && access.isAdmin ? this.t('guildHome', 'adminLink') : null;
+    });
+  }
 }
 
 export const GUILD_HOME_TEXT_SPEC = [
@@ -170,9 +182,12 @@ export const GUILD_HOME_TEXT_SPEC = [
 export const GUILD_TEXT_RESOLVERS = defineTextGens(GuildShell, GUILD_HOME_TEXT_SPEC);
 // Admin entry label: declared only on the full Guild type (member
 // branch), so its resolver must not leak into the shared content map.
-export const GUILD_ADMIN_LINK_RESOLVERS = defineTextGens(GuildShell, [
-  ['homeAdminLabel', 'guildHome', 'adminLink'],
-]);
+// Unlike the plain text fields above it is verdict-gated (see
+// GuildShell.genHomeAdminLabel), so it keeps an explicit resolver
+// instead of a defineTextGens entry.
+export const GUILD_ADMIN_LINK_RESOLVERS = {
+  homeAdminLabel: (p: GuildShell) => p.genHomeAdminLabel(),
+};
 export const GUILD_READONLY_TEXT_RESOLVERS = defineTextGens(GuildShell, [
   ['homeReadOnlyBanner', 'guildHome', 'readOnlyBanner'],
 ]);
