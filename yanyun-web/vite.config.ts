@@ -40,7 +40,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/graphql': {
-        target: 'https://yanyun.tbdlab.workers.dev',
+        target: 'https://yanyun.app',
         changeOrigin: true,
       },
     },

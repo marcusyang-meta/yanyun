@@ -42,7 +42,7 @@ function liveUrl(slug: string): string {
   // 与 relay.ts 的 GraphQL 地址同一口径: workers.dev 预览站直连生产后端,
   // 其余 (生产同源 / 本地开发) 用当前 origin。
   if (typeof window !== 'undefined' && window.location.hostname.includes('workers.dev')) {
-    return `wss://yanyun.tbdlab.workers.dev/ws/guild/${encodeURIComponent(slug)}`;
+    return `wss://yanyun.app/ws/guild/${encodeURIComponent(slug)}`;
   }
   const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
   return `${proto}//${window.location.host}/ws/guild/${encodeURIComponent(slug)}`;
