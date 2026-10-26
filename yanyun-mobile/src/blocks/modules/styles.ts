@@ -1,27 +1,27 @@
 import { StyleSheet } from 'react-native';
 import { fonts, theme } from '../../theme';
 
-// 积木叶子共享样式 (原 BlockRenderer.tsx 的整表逐项搬移, 拆 @module
-// 后集中一处供各渲染组件取用; 视觉与拆分前一致)。
+// Shared styles for block leaves (moved item-by-item from
+// BlockRenderer.tsx when @module was split out; one place for all
+// renderers; visuals unchanged).
 export const blockStyles = StyleSheet.create({
-  // 区块标题照 Web .yy-section-head h2: 书法金字
+  // Section heading mirrors Web .yy-section-head h2: calligraphy gold text
   sectionTitle: { fontFamily: fonts.brush, color: theme.goldHi, fontSize: 22, letterSpacing: 2, marginTop: 20, marginBottom: 12 },
   sectionHeader: { fontFamily: fonts.serif, color: theme.gold, fontSize: 13, fontWeight: '700', letterSpacing: 2, marginTop: 20, marginBottom: 10 },
-  // 详情头部照 Web h2/meta/hint: 标题 24 金亮 + 字距 2; 元信息 13 素行;
-  // 提示 12 素行。
+  // Detail header mirrors Web h2/meta/hint: title 24 bright gold, tracking 2; meta 13 plain; hint 12 plain.
   bTitle: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 24, fontWeight: '700', letterSpacing: 2, lineHeight: 34, marginBottom: 8 },
   bMeta: { fontFamily: fonts.serif, color: theme.muted, fontSize: 13, lineHeight: 20, marginBottom: 12 },
   bMuted: { fontFamily: fonts.serif, color: theme.muted, fontSize: 12.5, marginTop: 6, lineHeight: 19 },
   banner: { backgroundColor: 'rgba(201,163,92,.10)', borderWidth: 1, borderColor: theme.cardBorder, borderRadius: 10, padding: 13, marginBottom: 12 },
   bannerText: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 14, lineHeight: 21 },
-  // 信息片照 Web .yy-fchip: 细金描边幽灵片
+  // Info chip mirrors Web .yy-fchip: thin gold outline ghost chip
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 2, marginBottom: 4 },
   chip: { borderWidth: 1, borderColor: theme.chipBorder, borderRadius: 999, paddingVertical: 5, paddingHorizontal: 12 },
   chipText: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 12.5 },
   empty: { fontFamily: fonts.serif, color: theme.muted, fontSize: 14, textAlign: 'center', paddingVertical: 36 },
   fallback: { borderWidth: 1, borderStyle: 'dashed', borderColor: theme.cardBorder, borderRadius: 10, padding: 12, marginVertical: 6 },
   fallbackText: { fontFamily: fonts.serif, color: theme.muted, fontSize: 13, textAlign: 'center' },
-  // 车队卡照 Web .yy-card 横行: padding 14/16, 元素 gap 12, 列内卡距 10
+  // Grouping card mirrors Web .yy-card row: padding 14/16, gaps 12, card spacing 10 in column
   card: {
     position: 'relative', overflow: 'hidden', backgroundColor: theme.ink2,
     borderWidth: 1, borderColor: theme.cardBorder, borderRadius: 12,
@@ -31,11 +31,11 @@ export const blockStyles = StyleSheet.create({
   cardMain: { flex: 1 },
   cardTitleRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 6 },
   cardTitle: { fontFamily: fonts.serif, color: theme.paper, fontSize: 15, flex: 1, lineHeight: 21 },
-  // 类型小片照 Web 卡内 span: 11px 金亮字 + 1px 金描边 + radius 4
+  // Type chip mirrors the Web in-card span: 11px bright gold text, 1px gold outline, radius 4
   typeChip: { borderWidth: 1, borderColor: theme.gold, borderRadius: 4, paddingVertical: 1, paddingHorizontal: 6, marginTop: 1 },
   typeChipText: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 11 },
   cardMeta: { fontFamily: fonts.serif, color: theme.muted, fontSize: 12, marginTop: 4 },
-  // 状态片照 Web: radius 4 方片; 报名中 = 绿 (#7fc97f) 描边字, 其余素描边
+  // Status chip mirrors Web: radius 4; open = green (#7fc97f) outline/text, otherwise plain outline
   statusPill: { borderWidth: 1, borderRadius: 4, paddingVertical: 2, paddingHorizontal: 8 },
   statusOpen: { borderColor: '#7fc97f' },
   statusOpenText: { color: '#7fc97f' },
@@ -43,8 +43,8 @@ export const blockStyles = StyleSheet.create({
   statusClosedText: { color: theme.muted },
   statusText: { fontFamily: fonts.serif, fontSize: 12 },
   cardChev: { color: theme.gold, fontSize: 18 },
-  // 座位网格照 Web SeatGrid: 两列 gap 10; 占座 = 淡金底实边左对齐两行,
-  // 空位 = 虚线边 (可落座 .4 / 只读 .25) 透明底居中单行, minHeight 62。
+  // Seat grid mirrors Web SeatGrid: two columns, gap 10; taken = pale-gold fill, solid edge, left-aligned two lines;
+  // empty = dashed edge (joinable .4 / read-only .25), transparent, centered single line, minHeight 62.
   grid: { gap: 10 },
   seatRowWrap: { flexDirection: 'row', gap: 10 },
   seatCellSpacer: { flex: 1 },
@@ -58,8 +58,8 @@ export const blockStyles = StyleSheet.create({
   seatLeaderText: { fontFamily: fonts.serif, color: theme.gold, fontSize: 10.5, lineHeight: 15 },
   seatSub: { fontFamily: fonts.serif, color: theme.muted, fontSize: 12, lineHeight: 16, marginTop: 4 },
   seatEmptyText: { fontFamily: fonts.serif, color: theme.muted, fontSize: 14, lineHeight: 19, textAlign: 'center' },
-  // 动作钮照 Web 详情按钮行的小钮 (.yy-btn sm): hug 宽, padding 6/16, 13px;
-  // 位置仍由树序决定 (服务端把解散钮排在树尾), 客户端不重排积木。
+  // Action button mirrors the Web detail button row small button (.yy-btn sm): hug width, padding 6/16, 13px;
+  // position is still set by tree order (the server puts the disband button last); the client never reorders blocks.
   btnPrimary: {
     position: 'relative', overflow: 'hidden', borderRadius: 10, alignSelf: 'flex-start',
     borderWidth: 1, borderColor: 'rgba(236,210,143,.5)',

@@ -13,9 +13,10 @@ export default function GroupingCardBlockView(props: {
 }) {
   const { handlers } = props;
   const data = useFragment(GroupingCardBlockFragment, props.GroupingCardBlock);
-  // 照 Web .yy-card 的横行结构: [36 方印 sealText] [中列: 类型描边小片 +
-  // 标题 (可换行) / 元信息行 时间·人数·副本] [状态片: 报名中=绿描边绿字,
-  // 否则素描边] [›]。状态开/关只比对服务端文案 (statusOpenLabel 同源)。
+  // Mirrors the Web .yy-card row: [36px seal sealText] [middle: type chip +
+  // title (wrappable) / meta row time-count-dungeon] [status chip: open =
+  // green outline and text, otherwise plain] [>]. Open state compares only
+  // the server copy (same source as statusOpenLabel).
   const sealText = handlers.pageText?.sealText;
   const open = !!data.statusText && !!handlers.pageText?.statusOpenLabel
     && data.statusText === handlers.pageText.statusOpenLabel;

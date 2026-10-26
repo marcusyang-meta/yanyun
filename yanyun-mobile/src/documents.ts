@@ -1,7 +1,7 @@
 import { graphql } from 'react-relay';
 
-// 全部 GraphQL 文档集中于此 (操作名按 Relay 规则带模块前缀)。
-// 列表/详情的内容区只查 blocks 带类型对象树 —— 界面结构由服务端组树决定。
+// All GraphQL documents live here (operation names carry module prefixes per Relay rules).
+// List/detail content areas query only the typed blocks tree -- UI structure is decided by the server-composed tree.
 
 export const ViewerQuery = graphql`
   query documentsViewerQuery {
@@ -91,8 +91,9 @@ export const GroupingDetailBlocksQuery = graphql`
   }
 `;
 
-// 代报名名册: 只在完整 Guild 面上有 memberRoster 字段 (响应类型即
-// 权限); 报名弹窗只在成员面挂载, 片段不命中时 roster 为空。
+// Proxy-signup roster: memberRoster exists only on the full Guild surface
+// (the response type is the permission); the signup dialog mounts only on
+// the member surface, and the roster is empty when the fragment misses.
 export const GuildRosterQuery = graphql`
   query documentsGuildRosterQuery($slug: String!) {
     viewer {
@@ -178,10 +179,10 @@ export const ReopenGroupingMutation = graphql`
   }
 `;
 
-/* ---------- 发车 / 编辑 (与 Web GroupingForm 同一份契约与文案包) ---------- */
+/* Create / edit grouping (same contract and copy pack as Web GroupingForm) */
 
-// 发车表单的文案全部由页面 shell 的 form* 字段按 locale 下发 (本文件不
-// 持有任何 UI 文案), 与 Web GroupingFormText 同一组字段。
+// Form copy is supplied per locale by the page shell's form* fields (this
+// file holds no UI copy); same field set as Web GroupingFormText.
 export const ListPageTextQuery = graphql`
   query documentsListPageTextQuery($slug: String!, $tab: GroupingTab!) {
     viewer {
@@ -386,7 +387,7 @@ export const UpdateGroupingMutation = graphql`
   }
 `;
 
-/* ---------- 个人资料 Profile (身份/语言, 文案走 settingsPage shell) ---------- */
+/* Profile (identity/language; copy via the settingsPage shell) */
 
 export const ProfilePageQuery = graphql`
   query documentsProfilePageQuery {
@@ -427,7 +428,7 @@ export const UpdateMyLocaleMutation = graphql`
   }
 `;
 
-/* ---------- App 推送令牌 (发车提醒的 Expo 通道) ---------- */
+/* App push tokens (Expo channel for grouping reminders) */
 
 export const RegisterPushTokenMutation = graphql`
   mutation documentsRegisterPushTokenMutation($token: String!, $platform: String) {
@@ -449,10 +450,11 @@ export const UnregisterPushTokenMutation = graphql`
   }
 `;
 
-/* ---------- 攻略图鉴 / 首领攻略 / 流派攻略 (与 Web BossDex / SectDetail 同一份查询) ---------- */
+/* Dex / boss guides / sect guides (same queries as Web BossDex / SectDetail) */
 
-// 图鉴: 与 Web BossDexQuery 同字段 — 分组 (游戏分类) → 副本 → 首领,
-// 内容标注 (机制/喊话/天赋俱全等) 由客户端按 Web 同一规则从结构推导。
+// Dex: same fields as Web BossDexQuery -- groups (game categories) ->
+// dungeons -> bosses; content badges (mechanics/shouts/talents-complete,
+// etc.) are derived client-side from structure by the same rule as Web.
 export const DexPageQuery = graphql`
   query documentsDexPageQuery {
     dexPage {
@@ -506,7 +508,7 @@ export const DexPageQuery = graphql`
   }
 `;
 
-// 首领攻略详情: 与 Web BossDexBossQuery 同字段。
+// Boss guide detail: same fields as Web BossDexBossQuery.
 export const BossPageQuery = graphql`
   query documentsBossPageQuery($bossId: ID!) {
     bossPage(bossId: $bossId) {
@@ -549,8 +551,7 @@ export const BossPageQuery = graphql`
   }
 `;
 
-/* ---------- 配装台 / 装备库 / 毕业计算 / 调律 (与 Web GearBench / GearLibrary /
-   GradCalc / TiaolvTab / GearQuick / GearRefs 同一份查询与字段集) ---------- */
+/* Gear bench / library / graduation / tuning (same queries and field sets as the Web counterparts) */
 
 export const GearBenchQuery = graphql`
   query documentsGearBenchQuery {
@@ -1149,8 +1150,9 @@ export const GearSectRecipesQuery = graphql`
   }
 `;
 
-// 流派攻略: 与 Web SectDetailQuery 同字段 (含调律/毕业标签字段,
-// 本批先挂 BiS / 输出轴 / 三率三个内容页签, 标签字段一并取齐备用)。
+// Sect guide: same fields as Web SectDetailQuery (incl. tuning/graduation
+// tag fields; this batch wires the BiS / rotation / stat-target tabs, tag
+// fields are fetched along for later use).
 export const SectPageQuery = graphql`
   query documentsSectPageQuery {
     sectPage {
@@ -1209,8 +1211,8 @@ export const SectPageQuery = graphql`
   }
 `;
 
-// 创建百业 (自助 onboarding, 与 Web CreateGuildPage 同一组后端契约):
-// 服务器列表后端已按「我可管理」过滤; slug 可用性与文案均由后端判定。
+// Create guild (self-serve onboarding; same backend contract as Web CreateGuildPage):
+// the server list is pre-filtered by the backend to ones I can manage; slug availability and copy are decided by the backend.
 export const CreateGuildPageQuery = graphql`
   query documentsCreateGuildPageQuery {
     viewer {

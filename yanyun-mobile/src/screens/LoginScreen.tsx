@@ -8,8 +8,9 @@ import { GoldFill } from '../components/ui';
 import { loginWithDiscord } from '../auth';
 import { useSession } from '../session';
 
-// 登录页与 Web 同构 (.yy-hero-full): 全屏山水为底, 书法大标题与
-// 说明浮于画上, 登录卡是浮在画上的毛玻璃卡 (.yy-login-card)。
+// Login page mirrors Web (.yy-hero-full): full-screen landscape base,
+// calligraphy title and description floating over the art, and the login
+// card is a frosted-glass card over the art (.yy-login-card).
 export default function LoginScreen() {
   const { refresh, text } = useSession();
   const insets = useSafeAreaInsets();
@@ -33,7 +34,7 @@ export default function LoginScreen() {
       imageStyle={s.heroImg}
       resizeMode="cover"
     >
-      {/* .yy-hero::after 的渐暗罩: 上透下沉入墨色 */}
+      {/* .yy-hero::after darkening veil: transparent at top, sinking into ink at the bottom */}
       <LinearGradient
         colors={['rgba(12,11,9,.34)', 'rgba(12,11,9,.05)', 'rgba(12,11,9,.10)', 'rgba(12,11,9,.78)', '#0c0b09']}
         locations={[0, 0.34, 0.62, 0.88, 1]}
@@ -73,7 +74,7 @@ export default function LoginScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: theme.bg },
-  heroImg: { top: '-18%' }, // 近似 Web object-position: center 32%
+  heroImg: { top: '-18%' }, // Approximates Web object-position: center 32%
   content: {
     flex: 1, alignItems: 'center', justifyContent: 'center',
     paddingHorizontal: 20,

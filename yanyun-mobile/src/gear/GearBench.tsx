@@ -22,9 +22,10 @@ import type { documentsGearBenchQuery } from '../__generated__/documentsGearBenc
 import type { documentsGearBenchPlanMutation } from '../__generated__/documentsGearBenchPlanMutation.graphql';
 import type { documentsGearBenchAutoMutation } from '../__generated__/documentsGearBenchAutoMutation.graphql';
 
-// 配装台 (与 Web GearBench 同构): 目标/弓决/额外/基础值/搭配/面板/毕业度
-// 在本组件; 装备库与方案在 GearLibrary (与 Profile 共用同一实现与存储)。
-// 全部计算走后端 gearPlan / gearAutoCombine, 本端不复刻公式。
+// Gear bench (mirrors Web GearBench): target/bow/extra/base values,
+// loadout, panel and graduation live here; library and builds live in
+// GearLibrary (shared implementation and storage with Profile). All math
+// runs on the backend (gearPlan / gearAutoCombine); nothing is reimplemented here.
 
 type Plan = documentsGearBenchPlanMutation['response']['gearPlan'];
 
@@ -72,7 +73,7 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
 
   const [plan, setPlan] = useState<Plan | null>(null);
   const [commitPlan] = useMutation<documentsGearBenchPlanMutation>(GearBenchPlanMutation);
-  /* GearItemInput 只收 id/slot/name/lines/dingyin/schools (与 Web 同注) */
+  /* GearItemInput accepts only id/slot/name/lines/dingyin/schools (same note as Web) */
   const libInput = useMemo(() => items.map((g) => ({
     id: g.id, slot: g.slot, name: g.name,
     lines: g.lines.map((l) => ({ key: l.key, val: l.val })),
@@ -122,8 +123,9 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
   const libById = useMemo(() => new Map(items.map((g) => [g.id, g])), [items]);
   const positions = t.gearSlots;
 
-  /* 集齐庆祝 (与 Web 同状态机): 8 部位全传家宝的 未齐->集齐 跃迁时从
-   * 毕业度分数处撒大粉。 */
+  /* Full-set celebration (same state machine as Web): on the incomplete ->
+   * complete transition with all 8 slots heirloom, burst a large confetti
+   * from the graduation score. */
   const scoreRef = useRef<React.ElementRef<typeof View>>(null);
   const partyRef = useRef(createHeirloomParty());
   useEffect(() => {
@@ -157,7 +159,7 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
     patchWork({ loadout: lo });
   };
 
-  /* ---------------- GearLibrary 接线 (与 Web 同) ---------------- */
+  /* GearLibrary wiring (same as Web) */
   const onItemDeleted = (id: number) => {
     dirtyRef.current = true;
     setWork((w) => {
@@ -205,7 +207,6 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
     }));
   };
 
-  /* ---------------- 一键最优 ---------------- */
   const [commitAuto, autoBusy] = useMutation<documentsGearBenchAutoMutation>(GearBenchAutoMutation);
   const runAuto = () => {
     commitAuto({
@@ -241,7 +242,7 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
           await nav.clipboard.writeText(text);
           gearToast(t.gearCopiedToast);
           return;
-        } catch { /* 落到分享兜底 */ }
+        } catch { /* Fall through to the share fallback */ }
       }
     }
     try {
@@ -252,7 +253,6 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
     }
   };
 
-  /* ---------------- 渲染 ---------------- */
   const [unlocked, setUnlocked] = useState<ReadonlySet<string>>(new Set());
   const [pickerPos, setPickerPos] = useState<string | null>(null);
   const [confirmBase, setConfirmBase] = useState(false);
@@ -387,7 +387,7 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
         </Card>
       </View>
 
-      {/* ---------- 装备库 + 方案 (与 Profile 共用 GearLibrary) ---------- */}
+      {/* Gear library + builds (GearLibrary shared with Profile) */}
       <View style={{ marginTop: 18 }}>
         <GearLibrary
           mode="bench"
@@ -408,7 +408,7 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
         />
       </View>
 
-      {/* ---------- 搭配 ---------- */}
+      {}
       <View style={s.loadoutHead}>
         <SecTitle style={{ marginBottom: 0 }}>{t.gearLoadoutTitle}</SecTitle>
         <View style={{ flex: 1 }} />
@@ -467,7 +467,7 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
         })}
       </View>
 
-      {/* ---------- 面板 / 毕业度 ---------- */}
+      {}
       {plan && grad && (
         <View>
           <SecTitle style={{ marginTop: 18 }}>{t.gearPanelTitle}</SecTitle>

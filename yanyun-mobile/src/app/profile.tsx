@@ -1,7 +1,7 @@
 import React from 'react';
 import ProfileScreen from '../screens/ProfileScreen';
 
-// 个人资料推页 (Web Profile 的移动形态: 桌面 dialog / 移动 pushPage)。
+// Profile push page (mobile form of Web Profile: dialog on desktop, push page on mobile).
 export default function Profile() {
   return <ProfileScreen />;
 }

@@ -12,13 +12,15 @@ import { GearToastHost } from '../gear/bits';
 import { GoldDustHost } from '../gear/GearSeal';
 import type { documentsSectPageQuery } from '../__generated__/documentsSectPageQuery.graphql';
 
-// 流派攻略: 与 Web SectDetail 同构 —— 流派按门派分组 (鸣金/牵丝/裂石/破竹,
-// 与 Web 同一分组规则: 按名号前缀), 点开流派看详情: BiS 毕业词条 (按部位
-// 卡 + 词条片, 底部挂 100 阶配方区) / 输出轴 (木桩轴/起手/循环/要点/心法/
-// 视频) / 三率目标 / 调律 / 毕业计算 (含配装台+装备库+方案, gradPage 面),
-// 与 Web 五页签一致。文案全部走后端 shell 字段。
+// Sect guides: mirrors Web SectDetail -- sects are grouped by family
+// (same grouping rule as Web: by name prefix); a sect's detail has BiS
+// (per-slot cards + affix chips, with the tier-100 recipe section below)
+// / rotation (dummy rotation/opener/loop/notes/mindset/video) / stat
+// targets / tuning / graduation (incl. bench + library + builds, the
+// gradPage surface) -- the same five tabs as Web. All copy comes from
+// backend shell fields.
 
-// 与 Web SectDetail 的 MENPAI 同一份分组顺序
+// Same MENPAI group order as Web SectDetail
 const MENPAI = ['鸣金', '牵丝', '裂石', '破竹'];
 
 type SectData = documentsSectPageQuery['response']['sectPage'];
@@ -216,11 +218,11 @@ function SectDetail({ sect, text, onBack }: { sect: SectRow; text: SectData; onB
 const s = StyleSheet.create({
   empty: { fontFamily: fonts.serif, color: theme.muted, fontSize: 14, textAlign: 'center', padding: 32 },
   emptySmall: { fontFamily: fonts.serif, color: theme.muted, fontSize: 14, textAlign: 'center', padding: 24 },
-  // 门派分区头照 Web: 16px 金亮字距 4 + 金线
+  // Family section header mirrors Web: 16px bright gold, tracking 4, + gold rule
   secHead: { flexDirection: 'row', alignItems: 'baseline', gap: 8, marginTop: 20, marginBottom: 12 },
   secTitle: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 16, letterSpacing: 4 },
   secRule: { flex: 1, height: 1, backgroundColor: 'rgba(201,163,92,.25)' },
-  // 流派卡照 Web: 内容宽 hug 卡, padding 12/20, 名金亮 + 构筑型 11 素
+  // Sect card mirrors Web: hug-width card, padding 12/20, name in bright gold + build type at 11 plain
   cardWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   sectCard: {
     position: 'relative', overflow: 'hidden',

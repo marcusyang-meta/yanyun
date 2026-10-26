@@ -1,3 +1,4 @@
-// 兼容垫片: fragment 契约已迁入平台中立核心 (core/fragments.ts)。
-// 新代码请直接从 '@yanyun/blocks-core' 或 'core' 边界引用; 此文件仅保留旧路径。
+// Compatibility shim: the fragment contract moved to the platform-neutral
+// core (core/fragments.ts). New code should import from
+// '@yanyun/blocks-core' or the 'core' boundary; this file keeps the old path.
 export * from '@yanyun/blocks-core';

@@ -5,9 +5,10 @@ import { setToken } from '../storage';
 import { useSession } from '../session';
 import { theme } from '../theme';
 
-// OAuth 深链回跳的兜底落点：正常路径下 openAuthSessionAsync 会在浏览器
-// 会话内截获 yanyun://auth-callback 并把 URL 交回 loginWithDiscord；
-// 若 App 是被深链冷启动的，则由这个路由接住 token 存好再回首页。
+// Fallback landing for OAuth deep links: normally openAuthSessionAsync
+// intercepts yanyun://auth-callback inside the browser session and hands
+// the URL back to loginWithDiscord; if a deep link cold-starts the app,
+// this route stores the token and returns home.
 export default function AuthCallback() {
   const params = useLocalSearchParams<{ token?: string }>();
   const router = useRouter();

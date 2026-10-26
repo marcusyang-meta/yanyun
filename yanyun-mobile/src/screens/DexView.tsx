@@ -9,14 +9,16 @@ import { BossPageQuery, DexPageQuery } from '../documents';
 import type { documentsDexPageQuery } from '../__generated__/documentsDexPageQuery.graphql';
 import type { documentsBossPageQuery } from '../__generated__/documentsBossPageQuery.graphql';
 
-// 攻略图鉴 + 首领攻略: 与 Web BossDex 同构 —— 图鉴按游戏分类分组
-// (服务端 categories), 副本行 (印 + 名 + Lv/人数片 + 内容标注 + 首领数),
-// 点副本: 无首领 → 提示文案; 单首领 → 直达攻略; 多首领 → 首领列表。
-// 首领页: 机制/天赋双页签 + 喊话卡 (可复制), 文案与正文全部服务端下发,
-// 攻略正文中文原文不翻译不改写 (与 Web 同源)。
-// Web 端的 toast 在 App 侧是底部浮层 pill (文案同样走服务端字段)。
+// Dex + boss guides: mirrors Web BossDex -- the dex groups by game
+// category (server categories); a dungeon row shows seal + name + Lv/
+// size chips + content badges + boss count. Tapping a dungeon: no boss
+// -> hint copy; one boss -> straight to the guide; multiple -> boss list.
+// Boss page: mechanics/talents tabs + shout card (copyable); all copy and
+// body text are server-supplied, and guide body text is served verbatim
+// (original Chinese, never translated or rewritten -- same source as Web).
+// The Web toast is a bottom floating pill here (copy also server fields).
 
-// 与 Web BossDex 的 SEAL_MAP 同一份 (副本名 → 印面二字), 缺失回退名前二字。
+// Same SEAL_MAP as Web BossDex (dungeon name -> two seal characters); missing names fall back to the first two characters.
 const SEAL_MAP: Record<string, string> = {
   '玉魄染青苍': '玉魄', '定极分更': '定极', '点雪断恩仇': '点雪', '俣俣神浒': '俣俣',
 };
@@ -123,7 +125,7 @@ function DexList({ dungeonId, setDungeonId, onBoss, notify }: {
     const bossCount = d.bosses.length;
     const sizeTag = d.playerCount === 10 ? dex?.dexSize10Label : d.playerCount === 5 ? dex?.dexSize5Label : fill(dex?.dexSizeNTemplate ?? '', { n: d.playerCount });
     const levelTag = d.level ? `Lv.${d.level} · ` : '';
-    // 内容标注与 Web 同一推导: 某类内容在该副本每位首领都有才列出, 三类齐全才称俱全
+    // Content badges follow Web's derivation: a category is listed only if every boss in the dungeon has it; all three present = complete
     const partDefs: [string | null | undefined, (b: BossRow) => number][] = [
       [dex?.dexPartMechanicsLabel, (b) => b.mechanics.length],
       [dex?.dexPartShoutsLabel, (b) => b.shouts.length],
@@ -184,7 +186,7 @@ function DexList({ dungeonId, setDungeonId, onBoss, notify }: {
   );
 }
 
-/* ---------------- 首领攻略详情 (Web BossDetail 同构) ---------------- */
+/* Boss guide detail (mirrors Web BossDetail) */
 
 function BossDetail({ bossId, onBack, notify }: { bossId: string; onBack: () => void; notify: Notify }) {
   const [btab, setBtab] = useState<'mech' | 'talent'>('mech');
@@ -201,8 +203,9 @@ function BossDetail({ bossId, onBack, notify }: { bossId: string; onBack: () => 
         .then(() => notify(page?.bossShoutCopiedText))
         .catch(() => notify(page?.bossCopyFailedText));
     } else {
-      // 原生端无剪贴板 API (未引入 expo-clipboard): 走服务端的手动复制文案,
-      // 喊话文本本身 selectable, 长按即可复制 (与 Web 无 clipboard 时的兜底同义)。
+      // Native has no clipboard API (expo-clipboard not imported): use the
+      // server's manual-copy copy instead; the shout text itself is selectable
+      // for long-press copying (same fallback meaning as Web without clipboard).
       notify(page?.bossCopyManualText);
     }
   };
@@ -288,12 +291,12 @@ const s = StyleSheet.create({
   back: { fontFamily: fonts.serif, color: theme.gold, fontSize: 15, marginBottom: 12 },
   h2: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 24, letterSpacing: 2, marginBottom: 4 },
   meta: { fontFamily: fonts.serif, color: theme.muted, fontSize: 13, marginBottom: 16 },
-  // 分区头照 Web SecHead: 16px 金亮 + 11px sub + 1px 金线
+  // Section header mirrors Web SecHead: 16px bright gold + 11px sub + 1px gold rule
   secHead: { flexDirection: 'row', alignItems: 'baseline', gap: 8, marginTop: 20, marginBottom: 12 },
   secTitle: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 16, letterSpacing: 2 },
   secSub: { fontFamily: fonts.serif, color: theme.muted, fontSize: 11 },
   secRule: { flex: 1, height: 1, backgroundColor: 'rgba(201,163,92,.25)' },
-  // 副本/首领行照 Web rowBtn: 横行 gap 12, padding 14/16, radius 10, 卡渐变
+  // Dungeon/boss row mirrors Web rowBtn: row gap 12, padding 14/16, radius 10, card gradient
   row: {
     position: 'relative', overflow: 'hidden',
     flexDirection: 'row', alignItems: 'center', gap: 12,
@@ -310,13 +313,13 @@ const s = StyleSheet.create({
   chev: { fontFamily: fonts.serif, color: theme.gold, fontSize: 18 },
   empty: { fontFamily: fonts.serif, color: theme.muted, fontSize: 14, textAlign: 'center', padding: 32 },
   emptySmall: { fontFamily: fonts.serif, color: theme.muted, fontSize: 14, textAlign: 'center', padding: 24 },
-  // 页签照 Web BossDetail: 金描边钮, 激活实金底 + 墨字 600
+  // Tabs mirror Web BossDetail: gold-outline buttons; active = solid gold fill + ink text 600
   tabRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
   tabBtn: { borderWidth: 1, borderColor: theme.gold, borderRadius: 8, paddingVertical: 8, paddingHorizontal: 24 },
   tabBtnOn: { backgroundColor: theme.gold },
   tabBtnText: { fontFamily: fonts.serif, color: theme.paper, fontSize: 14 },
   tabBtnTextOn: { color: theme.onGold, fontWeight: '600' },
-  // 内容卡照 Web card: padding 16, radius 10, 边框 + 卡渐变
+  // Content card mirrors Web card: padding 16, radius 10, border + card gradient
   card: {
     position: 'relative', overflow: 'hidden',
     borderWidth: 1, borderColor: theme.cardBorder, borderRadius: 10,
@@ -332,10 +335,10 @@ const s = StyleSheet.create({
   shoutText: { flex: 1, fontFamily: fonts.serif, color: theme.paper, fontSize: 13 },
   copyBtn: { backgroundColor: theme.gold, borderRadius: 6, paddingVertical: 4, paddingHorizontal: 12 },
   copyBtnText: { fontFamily: fonts.serif, color: theme.onGold, fontSize: 12 },
-  // 天赋两列 (Web grid 1fr 1fr, 窄屏亦两列)
+  // Talent grid stays two columns (Web grid 1fr 1fr), even on narrow screens
   talentGrid: { flexDirection: 'row', gap: 12 },
   talentCol: { flex: 1, gap: 12 },
-  // toast 浮层 (Web .yy-toast 的 App 对应物)
+  // Toast overlay (the app counterpart of Web .yy-toast)
   toast: {
     position: 'absolute', alignSelf: 'center', maxWidth: '86%',
     backgroundColor: 'rgba(20,18,14,.96)', borderWidth: 1, borderColor: 'rgba(201,163,92,.45)',

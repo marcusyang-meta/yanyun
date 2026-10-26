@@ -4,21 +4,25 @@ import {
   type OcrEngine, type OcrMaps, type OcrWordBox, type PanelBox,
 } from './GearOcr';
 
-// 识别引擎层 (与 Web GearOcr.ts 的引擎部分同构: 定位遍 → 裁剪 → 两遍
-// 识别 (原图预处理 + 增强图 PSM6) → parseOcrData 多路合并)。
+// Recognition engine layer (mirrors the engine part of Web GearOcr.ts:
+// locate pass -> crop -> two recognition passes (preprocessed original +
+// enhanced image, PSM6) -> parseOcrData multi-path merge).
 //
-// 识别器 (recognizer) 可插拔, 因为运行环境差异真实存在:
-// - Expo Web: tesseract.js 是纯 JS/WASM 引擎, 识别全程在本机浏览器内
-//   (图片不出设备)。本包未装 tesseract.js 依赖 (待批准), 现以脚本标签
-//   从 CDN 载入同一版本 (5.1.1, 与 Web 端 node_modules 内一致) 作为
-//   过渡识别器; 装上包后把 loadCdnTesseract 换成 import 即可, 其余不动。
-// - 原生 (iOS/Android): tesseract.js 依赖 Web Worker + WASM, 在 Hermes
-//   里跑不了; 原生侧正解是 ML Kit on-device 文本识别 (原生模块, 需
-//   dev build, 不在 Expo Go 内)。未接入前本层如实抛 NoEngine, UI 显示
-//   后端 gearOcrNoEngineText 文案, 不假装能识别、更不把图片发云端。
-// - 验收桩: EXPO_PUBLIC_OCR_STUB=1 时用确定性桩识别器 (返回固定的原始
-//   OCR 文本+词框), 让定位/解析/批量核对全链路可在 Expo Web 里实拍
-//   验证 (与 Web 端 UI harness 注入替身引擎同一手法); 默认关闭。
+// The recognizer is pluggable because runtimes genuinely differ:
+// - Expo Web: tesseract.js is a pure JS/WASM engine and recognition runs
+//   entirely in the local browser (images never leave the device). The
+//   package isn't installed yet (pending approval), so the same version
+//   (5.1.1, matching Web's node_modules) is loaded from CDN via a script
+//   tag as a stopgap; once installed, swap loadCdnTesseract for an import.
+// - Native (iOS/Android): tesseract.js needs Web Worker + WASM and cannot
+//   run on Hermes; the right answer is ML Kit on-device recognition (a
+//   native module needing a dev build, not in Expo Go). Until wired, this
+//   layer honestly throws NoEngine and the UI shows the backend
+//   gearOcrNoEngineText copy -- it never fakes recognition or uploads images.
+// - Verification stub: with EXPO_PUBLIC_OCR_STUB=1 a deterministic stub
+//   recognizer (fixed raw OCR text + word boxes) lets the locate/parse/
+//   review pipeline be exercised end-to-end in Expo Web (same technique as
+//   Web's UI harness stub engine); off by default.
 
 export class OcrNoEngineError extends Error {
   constructor() {
@@ -40,7 +44,7 @@ export interface OcrRecognizer {
   createSession(): Promise<OcrSession>;
 }
 
-/* ---------------- CDN tesseract 识别器 (仅 Web) ---------------- */
+/* CDN tesseract recognizer (Web only) */
 const TESSERACT_CDN = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
 let tesseractPromise: Promise<any> | null = null;
 
@@ -84,9 +88,10 @@ const cdnTesseractRecognizer: OcrRecognizer = {
   },
 };
 
-/* ---------------- 验收桩识别器 (默认关闭) ---------------- */
-// 固定的原始识别输出 (一段真实形态的装备面板文本 + 对应词框): 桩只
-// 替代「识别」这一步, 定位/解析/判重/核对全走真实代码路径。
+/* Stub recognizer for verification (off by default) */
+// Fixed raw recognition output (realistic gear-panel text + word boxes):
+// the stub replaces only the recognition step; locating, parsing, dedupe
+// and review all run the real code paths.
 const STUB_TEXT = [
   '环佩', '最大外攻 139.6', '会心 16.2%', '会意 8.1%', '精准 14.4%', '气血 5820',
   '定音: 外功穿透 12.5',
@@ -113,7 +118,7 @@ const stubRecognizer: OcrRecognizer = {
   async createSession() {
     return {
       async recognize() { return { text: STUB_TEXT, words: STUB_WORDS }; },
-      async terminate() { /* 无资源 */ },
+      async terminate() { /* Nothing to release */ },
     };
   },
 };
@@ -123,7 +128,7 @@ export function activeRecognizer(): OcrRecognizer {
   return cdnTesseractRecognizer;
 }
 
-/* ---------------- 图像工具 (Web canvas; 与 Web GearOcr 同算法) ---------------- */
+/* Image helpers (Web canvas; same algorithms as Web GearOcr) */
 const isWeb = Platform.OS === 'web';
 
 async function blobToImage(blob: Blob): Promise<any> {
@@ -192,7 +197,7 @@ async function imageSize(file: Blob): Promise<{ width: number; height: number }>
   return { width: img.naturalWidth, height: img.naturalHeight };
 }
 
-/* ---------------- 两遍识别 (Web runOcr 同流程) ---------------- */
+/* Two-pass recognition (same flow as Web runOcr) */
 async function runOcr(
   recognizer: OcrRecognizer,
   file: Blob, maps: OcrMaps, onStatus?: (s: string) => void,
@@ -255,14 +260,14 @@ async function locatePanelImage(
   }
 }
 
-/* 单图识别 (Web GearLibrary 单图 OCR 的 runOcr 入口同义: 两遍识别不定位) */
+/* Single-image recognition (counterpart of the runOcr entry in Web GearLibrary: two passes, no locating) */
 export async function runOcrFile(
   file: Blob, maps: OcrMaps, onStatus?: (s: string) => void,
 ): Promise<{ parsed: ReturnType<typeof parseOcrData>; text: string }> {
   return runOcr(activeRecognizer(), file, maps, onStatus);
 }
 
-/* ---------------- 默认引擎 (定位 + 两遍识别; 与 Web defaultOcrEngine 同构) -------- */
+/* Default engine (locate + two-pass; mirrors Web defaultOcrEngine) */
 export function createDefaultOcrEngine(recognizer: OcrRecognizer = activeRecognizer()): OcrEngine {
   return {
     async process(file, maps, onStatus) {
@@ -286,15 +291,16 @@ export function createDefaultOcrEngine(recognizer: OcrRecognizer = activeRecogni
 
 export const defaultOcrEngine: OcrEngine = createDefaultOcrEngine();
 
-/* ---------------- 文件选择 / 导出 (平台适配) ---------------- */
-// 图片选择: Web 走 DOM 文件框 (多选); 原生需 expo-image-picker (原生
-// 模块, 未装) —— 返回 null, 调用方据此提示无引擎/不可用, 不假装。
+/* File picking / export (platform adaptation) */
+// Image picking: Web uses a DOM file dialog (multi-select); native needs
+// expo-image-picker (a native module, not installed) -- returns null and
+// callers report no-engine/unavailable accordingly; never fake it.
 export function pickImageFiles(multiple: boolean): Promise<File[] | null> {
   if (!isWeb) return Promise.resolve(null);
   return pickFilesViaDom({ accept: 'image/*', multiple });
 }
 
-// 文本/JSON 文件选择 (装备库导入): Web 走 DOM; 原生同上返回 null。
+// Text/JSON file picking (library import): Web uses DOM; native returns null as above.
 export function pickTextFile(): Promise<{ name: string; text: string } | null> {
   if (!isWeb) return Promise.resolve(null);
   return pickFilesViaDom({ accept: '.json,application/json', multiple: false }).then(async (files) => {
@@ -324,7 +330,7 @@ function pickFilesViaDom(opts: { accept: string; multiple: boolean }): Promise<F
       const files = input.files ? [...input.files] : [];
       done(files.length ? files : null);
     };
-    // 用户取消时 change 不触发: 用窗口重新聚焦兜底判空 (延迟一拍让 change 先行)
+    // On cancel, change never fires: use window refocus as the fallback empty check (delayed one tick so change wins)
     const onFocus = () => {
       setTimeout(() => { if (!input.files || !input.files.length) done(null); }, 400);
       (globalThis as any).removeEventListener?.('focus', onFocus);
@@ -335,7 +341,7 @@ function pickFilesViaDom(opts: { accept: string; multiple: boolean }): Promise<F
   });
 }
 
-// 导出: Web 走 Blob 下载 (与 Web 版同); 原生走系统分享文本 (RN Share)。
+// Export: Web downloads a Blob (same as Web); native shares text via the system sheet (RN Share).
 export async function exportTextFile(filename: string, text: string): Promise<boolean> {
   if (isWeb) {
     const g = globalThis as any;

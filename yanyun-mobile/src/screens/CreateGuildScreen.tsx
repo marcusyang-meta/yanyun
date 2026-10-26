@@ -15,10 +15,11 @@ import { useSession } from '../session';
 import type { documentsCreateGuildPageQuery } from '../__generated__/documentsCreateGuildPageQuery.graphql';
 import type { documentsSlugAvailableQuery } from '../__generated__/documentsSlugAvailableQuery.graphql';
 
-// 创建百业 (自助 onboarding): 与 Web CreateGuildPage 同构同契约 —
-// 名称 + slug + 选一个我有管理权限的 Discord 服务器绑定。服务器列表
-// 由后端过滤后下发 (只有可管理的), slug 可用性由后端查询判定,
-// 建业时后端再复验。全部文案由后端 viewer 的 create* 字段下发。
+// Create guild (self-serve onboarding): mirrors Web CreateGuildPage and
+// its contract -- name + slug + binding one Discord server I can manage.
+// The server list is filtered by the backend (manageable only), slug
+// availability is judged by a backend query, and creation re-validates
+// server-side. All copy comes from the backend viewer's create* fields.
 export default function CreateGuildScreen() {
   return (
     <Suspense fallback={<LoadingView />}>
@@ -47,8 +48,9 @@ function CreateGuildForm() {
   const [committing, setCommitting] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // slug 输入: 规范化后防抖问后端是否可用 (判定与文案都在后端);
-  // checking 态在输入事件里置位, effect 只负责防抖取数与回填结果。
+  // Slug input: after normalization, debounce-ask the backend for
+  // availability (judgment and copy are backend-side); the checking state
+  // is set in the input handler, the effect only debounces and fills results.
   const onSlugChange = (t: string) => {
     const v = t.toLowerCase().replace(/[^a-z0-9-]/g, '');
     setSlug(v);

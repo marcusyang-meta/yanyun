@@ -3,13 +3,15 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { fonts, theme } from '../theme';
 import { useSession } from '../session';
 
-// Relay 表面边界: 查询出错 (含 blocks 字段报错) → 原生重试态, 不白屏；
-// 重试由父级换 fetchKey 触发 (连同本边界一起 remount 复位错误态)。
-// 错误文案走 viewer 的 commonRenderErrorTemplate ({message}) +
-// commonRenderErrorHint (与 Web 错误边界同源字段); 会话文案未就绪时
-// 才用下面的占位句。重试按钮与加载文案在目录里还没有对应字段
-// (commonLoadingText / commonRetryLabel 待后端补), 暂留占位并已列入
-// 缺失字段清单。
+// Relay surface boundary: a query error (incl. blocks field errors) shows
+// a native retry state instead of a blank screen; retry is triggered by
+// the parent changing fetchKey (remounting this boundary resets the error
+// state). Error copy uses the viewer's commonRenderErrorTemplate
+// ({message}) + commonRenderErrorHint (same fields as the Web error
+// boundary); the placeholder below is used only before session copy is
+// ready. Retry/loading copy has no catalog fields yet (commonLoadingText
+// / commonRetryLabel are pending backend fields); placeholders are kept
+// for now and listed in the missing-fields list.
 export class AsyncBoundary extends React.Component<
   { children: React.ReactNode; onRetry: () => void },
   { error: Error | null }

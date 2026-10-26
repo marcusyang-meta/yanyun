@@ -8,9 +8,9 @@ import { useSession } from '../session';
 
 const HERO = require('../../assets/hero.jpg');
 
-// Web 的 CSS 渐变在 RN 侧的对应物: 作为绝对填充层铺在带
-// borderRadius + overflow:'hidden' 的容器里。
-// .yy-btn-gold / .yy-chip.selected 的金渐变:
+// RN counterpart of Web CSS gradients: an absolute fill layer inside a
+// container with borderRadius + overflow:'hidden'.
+// Gold gradient of .yy-btn-gold / .yy-chip.selected:
 export function GoldFill() {
   return (
     <LinearGradient
@@ -23,7 +23,7 @@ export function GoldFill() {
   );
 }
 
-// --card-bg 的卡片渐变 (160deg 金雾 → 黑):
+// Card gradient for --card-bg (160deg gold haze to black):
 export function CardFill() {
   return (
     <LinearGradient
@@ -36,7 +36,7 @@ export function CardFill() {
   );
 }
 
-// .yy-tab.active 的半透金渐变:
+// Translucent gold gradient of .yy-tab.active:
 export function TabFill() {
   return (
     <LinearGradient
@@ -49,14 +49,13 @@ export function TabFill() {
   );
 }
 
-// ============================================================
-// 与 Web 同构的页面 chrome (规格 = Web 在 390px 下的实际渲染):
-// SiteBackdrop 氛围底 / UserBar 用户簇 / SiteChrome 页眉行 /
-// GuildHeader 百业名+版本 / Seal 印章。
-// ============================================================
+// Page chrome mirroring Web (spec = Web's actual render at 390px):
+// SiteBackdrop ambience / UserBar user cluster / SiteChrome header row /
+// GuildHeader guild name + version / Seal stamp.
 
-// Web SiteBackdrop: 山水图固定铺底, 重压暗向下融进墨色;
-// 底部再锚一层同图 (底缘山影), 短页收尾落在山上。
+// Web SiteBackdrop: landscape image fixed as backdrop, heavily darkened,
+// melting into ink at the bottom; a second copy anchors the bottom edge
+// so short pages end on the mountain silhouette.
 export function Backdrop() {
   const { height } = useWindowDimensions();
   return (
@@ -83,7 +82,7 @@ export function Backdrop() {
   );
 }
 
-// 印章: Web .yy-seal (选择器 48 刷字) / .yy-card 内 36 方印 (衬线粗字)。
+// Seal: Web .yy-seal (48 brush text in the picker) / 36px seal inside .yy-card (serif bold).
 export function Seal({ char, size, brush = true }: { char: string; size: number; brush?: boolean }) {
   return (
     <View
@@ -121,8 +120,8 @@ function GhostBtn({ label, onPress }: { label: string; onPress: () => void }) {
   );
 }
 
-// Web UserBar: 头像 30 圆金边 (或首字圆) + 名 + 个人资料描边钮 + 退出登录描边钮。
-// floating=true 时是选择器 hero 右上角的毛玻璃 pill 形态。
+// Web UserBar: 30px round gold-bordered avatar (or initial circle) + name + outlined profile and sign-out buttons.
+// With floating=true it is the frosted-glass pill at the picker hero's top-right.
 export function UserBar({ displayName, floating = false }: { displayName?: string | null; floating?: boolean }) {
   const { user, text, signOut } = useSession();
   if (!user) return null;
@@ -171,7 +170,7 @@ export function UserBar({ displayName, floating = false }: { displayName?: strin
   );
 }
 
-// Web 百业页眉行: 左「← {站点名}」回百业集结, 右 UserBar。
+// Web guild header row: left back link to the guild picker, right UserBar.
 export function SiteChrome({ displayName }: { displayName?: string | null }) {
   const { text } = useSession();
   return (
@@ -186,8 +185,9 @@ export function SiteChrome({ displayName }: { displayName?: string | null }) {
   );
 }
 
-// Web 百业头部: 百业名 (书法 42 金) + gameVersion 行。有百业自定义
-// 头像 (avatarUrl, 后端字段经选择页路由参数带入) 时在名左侧出圆图。
+// Web guild header: guild name (calligraphy 42, gold) + gameVersion row.
+// When the guild has a custom avatar (avatarUrl, passed in as a route
+// param from the picker), a round image sits left of the name.
 export function GuildHeader({ name, version, avatarUrl }: { name: string; version?: string | null; avatarUrl?: string | null }) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>

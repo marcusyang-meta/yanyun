@@ -14,15 +14,19 @@ import { emitLocaleChanged, writePrefMirror } from '../locale';
 import { useSession } from '../session';
 import type { documentsProfilePageQuery } from '../__generated__/documentsProfilePageQuery.graphql';
 
-// 个人资料 (与 Web Profile 同内容与同一切换语义, 移动端为推页):
-// 身份 (头像+昵称+Discord 账号) + 语言偏好 (存账号 users.locale_pref,
-// 跟随设备 + 五语) + 退出登录。本页文案全部来自 settingsPage / viewer
-// 的 shell 字段按 locale 下发, 本文件不持有 UI 文案 (语言选项的名牌也
-// 是后端 settingsLang* 字段)。
-// 切换流程照 Web: 点选先落本地覆写 (控件立即反映) → updateMyLocale →
-// 成功先写偏好镜像再发切换事件, relay 层以新 x-locale 重取全部已登记
-// 查询 (含本页), 界面原地换语言; 服务端值追上覆写后撤除覆写; 失败撤
-// 覆写并显示服务端错误。
+// Profile (same content and switch semantics as Web Profile; a push page
+// on mobile): identity (avatar + nickname + Discord account) + locale
+// preference (stored per account in users.locale_pref; follow-device +
+// five languages) + sign-out. All copy on this page comes from
+// settingsPage / viewer shell fields per locale; this file holds no UI
+// copy (language option labels are also backend settingsLang* fields).
+// Switch flow mirrors Web: tapping first applies a local override (the
+// control reflects it immediately) -> updateMyLocale -> on success,
+// write the preference mirror, then fire the switch event; the relay
+// layer refetches all registered queries with the new x-locale (incl.
+// this page) and the UI switches language in place; once the server
+// value catches up the override is dropped; on failure the override is
+// dropped and the server error is shown.
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const [epoch, setEpoch] = useState(0);
@@ -54,8 +58,9 @@ function ProfileInner({ topInset, bottomInset }: { topInset: number; bottomInset
   const [loggingOut, setLoggingOut] = useState(false);
 
   const serverCurrent: string = page?.localePref ?? 'AUTO';
-  // 本地点选覆写只在与服务端值不一致期间生效; 服务端追上后自动让位
-  // (渲染期推导, 不用 effect 回写状态)。
+  // The local override applies only while it differs from the server value;
+  // once the server catches up it yields automatically (render-phase
+  // derivation, no effect writing state back).
   const current = picked !== null && picked !== serverCurrent ? picked : serverCurrent;
 
   if (!page) return <LoadingView />;
@@ -153,8 +158,9 @@ function ProfileInner({ topInset, bottomInset }: { topInset: number; bottomInset
       {saved && <Text style={s.saved}>✓ {page.settingsSavedText}</Text>}
       {!!error && <Text style={s.error}>{error}</Text>}
 
-      {/* 我的装备库 / 我的方案: 与配装台共用同一 GearLibrary 实现与
-          后端按账号存储 (profile 模式), 不是第二套。 */}
+      {/* My gear library / my builds: shares the GearLibrary implementation and
+          per-account backend storage with the bench (profile mode); not a
+          second implementation. */}
       <View style={s.gearZone}>
         <Suspense fallback={<LoadingView />}>
           <GearLibrary mode="profile" />
@@ -169,8 +175,8 @@ function ProfileInner({ topInset, bottomInset }: { topInset: number; bottomInset
         </Pressable>
       </View>
 
-      {/* 页脚: 非官方声明 + 条款/隐私入口 (文案后端下发; 链接打开站点
-          法律页, App 内不打包正文) */}
+      {/* Footer: unofficial disclaimer + terms/privacy links (copy from the
+          backend; links open the site's legal pages, text is not bundled) */}
       <View style={s.footer}>
         {!!viewer?.footerDisclaimerText && <Text style={s.footerText}>{viewer.footerDisclaimerText}</Text>}
         <View style={s.footerLinks}>

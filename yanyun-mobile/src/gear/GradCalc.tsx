@@ -19,11 +19,13 @@ import type { documentsGradCalcAffixQuery } from '../__generated__/documentsGrad
 import type { documentsGradCalcSlotAffixQuery } from '../__generated__/documentsGradCalcSlotAffixQuery.graphql';
 import type { documentsGradCalcMutation } from '../__generated__/documentsGradCalcMutation.graphql';
 
-// 毕业计算 (与 Web GradCalc 同构): 8 部位 × 6 行 (主属性/副属性×4/定音)
-// 逐件录入 -> 后端 calcGraduation 出总分/档位/三项分/部位分。
-// 鸣金只有大攻版位表 (build 锁 'big'); 大/小切换清版位。
-// 方案对比是本地持久化快照 (与 Web 同: web localStorage; 本端 web 平台
-// 同 key, 原生端 SecureStore 分片)。
+// Graduation calculator (mirrors Web GradCalc): 8 slots x 6 rows (main
+// stat / 4 sub stats / dingyin) entered item by item -> backend
+// calcGraduation returns total score, tier, three sub-scores and per-slot
+// scores. Mingjin has only the big-attack layout table (build locked to
+// 'big'); switching big/small clears the layout. Build comparison uses
+// locally persisted snapshots (same as Web: localStorage on web; same key
+// on this app's web platform, chunked SecureStore on native).
 
 type Row = { key: string; value: string; res: boolean };
 type SlotState = { rows: Row[] };
@@ -46,7 +48,7 @@ type LocalBuild = {
 };
 type Whites = { acc: number; crit: number; int: number; res: number } | null;
 
-/* ---- 本地方案持久化 (web: localStorage 同 key; 原生: SecureStore 分片) ---- */
+/* Local build persistence (web: localStorage, same key; native: chunked SecureStore) */
 const buildCache = new Map<string, LocalBuild[]>();
 const CHUNK = 1700;
 async function loadLocalBuilds(key: string): Promise<LocalBuild[]> {
@@ -70,7 +72,7 @@ function saveLocalBuilds(key: string, builds: LocalBuild[]) {
   buildCache.set(key, builds);
   const raw = JSON.stringify(builds);
   if (Platform.OS === 'web') {
-    try { (globalThis as any).localStorage?.setItem(key, raw); } catch { /* 存不下就不存 */ }
+    try { (globalThis as any).localStorage?.setItem(key, raw); } catch { /* If it doesn't fit, don't persist */ }
     return;
   }
   void (async () => {
@@ -80,7 +82,7 @@ function saveLocalBuilds(key: string, builds: LocalBuild[]) {
         await SecureStore.setItemAsync(`yy:${key}:${i}`, raw.slice(i * CHUNK, (i + 1) * CHUNK));
       }
       await SecureStore.setItemAsync(`yy:${key}:n`, String(n));
-    } catch { /* 分片写失败保留内存副本 */ }
+    } catch { /* Keep the in-memory copy if a chunk write fails */ }
   })();
 }
 
@@ -114,7 +116,7 @@ export default function GradCalc({ sectSlug, sectName }: { sectSlug: string; sec
           },
         },
         onCompleted: (resp) => setResult(resp.calcGraduation),
-        onError: () => { /* 静默: 与 Web 一致 */ },
+        onError: () => { /* Silent: same as Web */ },
       });
     }, 450);
     return () => clearTimeout(timer);
@@ -196,12 +198,12 @@ export default function GradCalc({ sectSlug, sectName }: { sectSlug: string; sec
       </View>
       <Text style={s.tapHint}>{t.gradTapHint}</Text>
 
-      {/* ---------- 配装台 (目标/弓决/基础值/搭配/面板/毕业度 同口径) ---------- */}
+      {/* Gear bench (same target/bow/base/loadout/panel/graduation semantics) */}
       <View style={{ marginTop: 10 }}>
         <GearBench onWhites={setBenchWhites} defaultTargetSect={sectName} />
       </View>
 
-      {/* ---------- 参考数据 ---------- */}
+      {}
       <SecToggle title={t.gradRefTitle} open={openSecs.has('ref')} onPress={() => toggleSec('ref')} />
       {openSecs.has('ref') && (
         <View>
@@ -212,7 +214,7 @@ export default function GradCalc({ sectSlug, sectName }: { sectSlug: string; sec
         </View>
       )}
 
-      {/* ---------- 三率 ---------- */}
+      {}
       <SecToggle title={t.gradRateTitle} open={openSecs.has('rate')} onPress={() => toggleSec('rate')} />
       {openSecs.has('rate') && (
         <View>
@@ -251,7 +253,7 @@ export default function GradCalc({ sectSlug, sectName }: { sectSlug: string; sec
         </View>
       )}
 
-      {/* ---------- 方案对比 (本地快照) ---------- */}
+      {/* Build comparison (local snapshots) */}
       <SecToggle title={t.gradCompareTitle} open={openSecs.has('cmp')} onPress={() => toggleSec('cmp')} />
       {openSecs.has('cmp') && (
         <CompareSection
@@ -389,7 +391,7 @@ function SlotEditorSheet({ slotIdx, build, state, score, onChange, onClose, t }:
             const max = r.key ? maxByKey.get(r.key) : undefined;
             const v = parseFloat(r.value);
             const over = max != null && !Number.isNaN(v) && v > max.maxValue;
-            // 已选词条不在当前版位内时 (如载入了另一版方案) 也要能显示
+            // A selected affix outside the current layout (e.g. loaded from another build) must still display
             const extraKey = r.key && maxByKey.has(r.key) && !allowed.includes(r.key) ? r.key : null;
             const opts = [
               { value: '', label: t.gradAffixPlaceholder },

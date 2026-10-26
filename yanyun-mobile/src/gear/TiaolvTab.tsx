@@ -7,11 +7,12 @@ import { BtnGold, BtnMini, Lbl, SheetSelect, TextInp, fill, gearToast } from './
 import type { documentsTiaolvTextQuery } from '../__generated__/documentsTiaolvTextQuery.graphql';
 import type { documentsTiaolvCalcMutation } from '../__generated__/documentsTiaolvCalcMutation.graphql';
 
-// 调律 tab (与 Web TiaolvTab 同构): 片雲 DIY 0.10.2 口径, Excel K3:R24
-// 调律格逐格录入, 后端 calcTiaolv 复刻 Excel 公式, 出 基础白值/面板白值/
-// 最终面板 三列。游戏数据常量 (格位/套装/弓决/武学映射) 与 Web 同源。
+// Tuning tab (mirrors Web TiaolvTab): DIY 0.10.2 rules, per-cell entry of
+// the Excel K3:R24 tuning grid; backend calcTiaolv replicates the Excel
+// formulas and returns base white / panel white / final panel columns.
+// Game data constants (cells/sets/bow/martial mappings) share Web's source.
 
-// 与 Web 同一组常量: 流派名 -> 武学名 (牵丝·霖 无武学格, 留空)
+// Same constants as Web: sect name -> martial-art name (one sect has no martial slot; leave it empty)
 const SCHOOL2WUXUE: Record<string, string> = {
   '鸣金·虹': '鸣金虹', '鸣金·影': '鸣金影', '裂石·威': '裂石威', '裂石·钧': '裂石钧',
   '牵丝·玉': '牵丝玉', '牵丝·翊': '牵丝翊',

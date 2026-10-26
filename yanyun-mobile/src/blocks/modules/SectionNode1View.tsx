@@ -5,8 +5,8 @@ import type { ActionHandlers, fragments_SectionNode1$key } from '@yanyun/blocks-
 import { BlockNode2View } from '../BlockRenderer';
 import SectionView from './SectionView';
 
-// SectionBlock 的第 1 层 @module 渲染组件: 外壳 + children 走 Node2 层
-// match 继续逐节点解析 (递归与 fragments 的三层结构对应)。
+// SectionBlock layer-1 @module renderer: shell + children resolved via
+// the Node2 match (recursion mirrors the three layers in fragments).
 export default function SectionNode1View(props: {
   SectionNode1: fragments_SectionNode1$key;
   handlers: ActionHandlers;

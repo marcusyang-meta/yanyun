@@ -5,8 +5,9 @@ import type { ActionHandlers, fragments_SectionNode2$key } from '@yanyun/blocks-
 import { BlockLeafView } from '../BlockRenderer';
 import SectionView from './SectionView';
 
-// SectionBlock 的第 2 层 @module 渲染组件: 外壳 + children 走 Leaf 层
-// match (最深一层; 再深的 SectionBlock 在该层无臂 → Unknown 占位)。
+// SectionBlock layer-2 @module renderer: shell + children resolved via
+// the Leaf match (deepest layer; a deeper SectionBlock has no arm there
+// and falls back to the Unknown placeholder).
 export default function SectionNode2View(props: {
   SectionNode2: fragments_SectionNode2$key;
   handlers: ActionHandlers;

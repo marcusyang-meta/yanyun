@@ -5,14 +5,14 @@ import {
 import { fonts, theme } from '../theme';
 import { GoldFill } from '../components/ui';
 
-// 与 Web lib/format 的 fill 同语义: {key} 占位替换。
+// Same semantics as Web lib/format fill: {key} placeholder substitution.
 export function fill(template: string, params: Record<string, string | number>): string {
   let out = template;
   for (const [k, v] of Object.entries(params)) out = out.split('{' + k + '}').join(String(v));
   return out;
 }
 
-/* ---------------- Toast (与 Web Toast 同语义: 模块级 show + 宿主渲染) ---------------- */
+/* Toast (same semantics as Web Toast: module-level show + host rendering) */
 const toastListeners = new Set<(msg: string) => void>();
 export function gearToast(msg: string): void {
   toastListeners.forEach((f) => f(msg));
@@ -42,7 +42,7 @@ export function GearToastHost() {
   );
 }
 
-/* ---------------- 确认框 (与 Web ConfirmDialog 同结构) ---------------- */
+/* Confirm dialog (same structure as Web ConfirmDialog) */
 export function GearConfirmDialog(props: {
   title: string;
   message: string;
@@ -72,7 +72,7 @@ export function GearConfirmDialog(props: {
   );
 }
 
-/* ---------------- 基础控件 (样式照 Web GearBench/GearLibrary 的 inp/sel/lbl/btn) ---------------- */
+/* Base controls (styles mirror Web GearBench/GearLibrary inp/sel/lbl/btn) */
 export function Lbl({ children, right }: { children: React.ReactNode; right?: React.ReactNode }) {
   return (
     <View style={s.lblRow}>
@@ -125,8 +125,9 @@ export function TextInp(props: {
 
 export type SheetOption = { value: string; label: string };
 
-// 下拉选择 (RN 无原生 select; 以底部表呈现, 选项多时带搜索) —— 视觉与
-// 行为对齐 Web 的 <select>: 当前值显示在框内, 点开选一项即关。
+// Dropdown (RN has no native select; presented as a bottom sheet, with
+// search when options are many) -- visually and behaviorally aligned with
+// Web's <select>: current value in the box, tap to pick one and close.
 export function SheetSelect(props: {
   value: string;
   options: SheetOption[];
@@ -230,7 +231,6 @@ export function BtnMini(props: {
   );
 }
 
-// 开关行 (Web 的 checkbox 行): 方框 + 文案
 export function CheckRow(props: { label: string; checked: boolean; onChange: (v: boolean) => void; disabled?: boolean }) {
   return (
     <Pressable

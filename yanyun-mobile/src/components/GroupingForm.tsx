@@ -12,12 +12,14 @@ import type { documentsFormDungeonsQuery } from '../__generated__/documentsFormD
 import type { documentsListPageTextQuery } from '../__generated__/documentsListPageTextQuery.graphql';
 import type { documentsDetailPageTextQuery } from '../__generated__/documentsDetailPageTextQuery.graphql';
 
-// 发车 / 编辑车队表单 (与 Web GroupingForm 同语义、同文案包):
-// 文案全部来自页面 shell 的 form* 字段 (打开它的页面查询下发), 本组件
-// 不持有任何 UI 文案。规则以后端为准: 双十/爬塔恒 10 人且不挂副本; 天赋/
-// 竞速选副本按副本 size 定人数 (未选默认天赋 5 / 竞速 10); 默认标题
-// "{昵称}的{类型}车队" 跟随昵称/类型直到用户手动改标题; 编辑只交
-// title + startsAt (类型不可改, 与 Web 编辑形态一致)。
+// Create/edit grouping form (same semantics and copy pack as Web
+// GroupingForm): all copy comes from the hosting page shell's form*
+// fields (supplied by that page's query); this component holds no UI
+// copy. Rules follow the backend: activity/tower are always 10 seats
+// with no dungeon; talent/race seat count follows the picked dungeon's
+// size (defaults: talent 5 / race 10 when unpicked); the default title
+// "{nickname}'s {type} grouping" follows nickname/type until the user
+// edits it; edits submit only title + startsAt (type is immutable, as on Web).
 
 export interface GroupingFormText {
   formCreateTitle: string;
@@ -64,7 +66,7 @@ export interface GroupingFormText {
 export interface GroupingFormInitial {
   title: string;
   type: string;
-  startsAt: string; // 后端返回的 startsAt 文本 (epoch 秒字符串)
+  startsAt: string; // startsAt text returned by the backend (epoch-seconds string)
 }
 
 interface Props {
@@ -113,8 +115,9 @@ export default function GroupingForm({
   const [month, setMonth] = useState(initDate.getMonth() + 1);
   const [day, setDay] = useState(initDate.getDate());
   const [hour, setHour] = useState(isEdit ? initDate.getHours() : 20);
-  // Web 编辑态 minute 恒重置 0 — 这里按原车分钟初始化, 避免只改标题
-  // 保存时把出发时间悄悄挪动 (与 Web 的日期解析修正同一考量)。
+  // Web's edit form always resets minute to 0 -- here the original minute
+  // is kept, so saving a title-only edit can't silently shift the start
+  // time (same concern as Web's date-parse fix).
   const [minute, setMinute] = useState(isEdit ? initDate.getMinutes() : 0);
   const [dungeonId, setDungeonId] = useState('');
   const [nickname, setNickname] = useState(defaultNickname || '');
@@ -298,10 +301,10 @@ export default function GroupingForm({
   );
 }
 
-/* ---------- 挂载包装: 文案包由对应页面 shell 的查询下发 ---------- */
+/* Mount wrapper: copy is supplied by the hosting page shell's query */
 
 function pickFormText(page: Record<string, unknown> | null | undefined): GroupingFormText {
-  // 页面 shell 的 form* 字段与 GroupingFormText 同名同口径, 直接透传。
+  // The page shell's form* fields match GroupingFormText in name and meaning; pass through directly.
   return page as unknown as GroupingFormText;
 }
 
@@ -393,7 +396,7 @@ function EditGroupingFormInner({
 }
 
 const s = StyleSheet.create({
-  // 贴底面板 (Web 移动端发车表单是贴底 sheet; 桌面居中在手机上不适用)
+  // Bottom sheet (on mobile the Web form is a bottom sheet; a centered desktop dialog doesn't fit phones)
   overlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 50, justifyContent: 'flex-end' },
   dim: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,.55)' },
   panel: {

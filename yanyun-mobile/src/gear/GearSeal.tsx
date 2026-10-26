@@ -2,11 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
 import { fonts, theme } from '../theme';
 
-// 传家宝印章系统 (Web GearSeal 的 RN 等价呈现):
-// - 判定在服务端 gearplanner, 经 gearEvals[].verdict 下发; 本模块只管视觉:
-//   金漆印 (深红漆底+金边金字+角金菱, -3°) / 灰素印 (+2.5°) / 玉佩挂穗 /
-//   金粉粒子 (点击撒粉 + 集齐 8 件庆祝) 与庆祝状态机。
-// - 文案 (传家宝/拉完了) 走后端 gearVerdictHeirloom/gearVerdictDud, 调用方传入。
+// Heirloom seal system (RN presentation of Web GearSeal):
+// - Verdicts are decided server-side in gearplanner and supplied via
+//   gearEvals[].verdict; this module is visuals only: gold-lacquer seal
+//   (dark red base, gold border/text, corner diamonds, -3 deg) / plain
+//   grey seal (+2.5 deg) / jade pendant tassel / gold-dust particles
+//   (tap burst + full-set celebration) and the celebration state machine.
+// - Copy (heirloom/dud labels) comes from backend gearVerdictHeirloom /
+//   gearVerdictDud, passed in by the caller.
 
 export function VerdictSeal({ verdict, heirloomLabel, dudLabel }: {
   verdict?: string | null;
@@ -32,7 +35,7 @@ export function VerdictSeal({ verdict, heirloomLabel, dudLabel }: {
   return null;
 }
 
-/* 玉佩挂穗 (Web SVG 的 View 等价: 金环 + 红绳 + 绿璧 + 红穗), 带轻摆动画 */
+/* Jade pendant tassel (View equivalent of the Web SVG: gold ring + red cord + green disc + red tassel), with a gentle sway animation */
 export function JadePendant() {
   const [sway] = useState(() => new Animated.Value(0));
   useEffect(() => {
@@ -63,7 +66,6 @@ export function JadePendant() {
   );
 }
 
-/* ---------------- 金粉粒子 ---------------- */
 export const GOLD_DUST_COLORS = ['#F6DEA0', '#EFC96E', '#C9A24B', '#FFE9B0', '#D9A441'];
 
 type Particle = {
@@ -117,7 +119,7 @@ function DustParticle({ cx, cy, p }: { cx: number; cy: number; p: Particle }) {
   );
 }
 
-// 金粉宿主: 挂在使用印章的画面根部 (position absolute 全屏, 不拦触摸)。
+// Gold-dust host: mounted at the root of screens using seals (absolute, full-screen, touch-through).
 export function GoldDustHost() {
   const [bursts, setBursts] = useState<Burst[]>([]);
   useEffect(() => {
@@ -142,13 +144,13 @@ export function GoldDustHost() {
   );
 }
 
-/* 庆祝撒粉 (Web fireHeirloomCelebration 等价): 从分数处撒 110 + 50 粒 */
+/* Celebration burst (equivalent of Web fireHeirloomCelebration): 110 + 50 particles from the score */
 export function fireHeirloomCelebrationAt(cx: number, cy: number): void {
   goldDustBurst(cx, cy, 110, 300);
   goldDustBurst(cx, cy, 50, 170);
 }
 
-/* ---------------- 集齐庆祝状态机 (与 Web createHeirloomParty 同语义) ---------------- */
+/* Full-set celebration state machine (same semantics as Web createHeirloomParty) */
 export type HeirloomParty = {
   readonly complete: boolean;
   readonly fires: number;

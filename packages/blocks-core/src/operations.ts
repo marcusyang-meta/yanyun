@@ -1,9 +1,11 @@
-// server 3D 的操作侧注册表: 每个 @module 臂 fragment 都有一份编译器
-// 生成的拆分操作工件 (<Fragment>$normalization)。服务端经 Block.js
-// 回传的 __module_operation 引用就是 "<Fragment>$normalization.graphql"
-// 这串名字; 宿主把它注册进 Relay Environment 的 operationLoader,
-// 运行时据此把命中臂的 GraphQL 数据从同一份响应里归一化进 store
-// (未命中的臂不产生操作, 其数据字段根本不在响应里)。
+// Server-3D operation registry: every @module arm fragment has a
+// compiler-generated split operation artifact (<Fragment>$normalization).
+// The __module_operation reference the server returns via Block.js is
+// that "<Fragment>$normalization.graphql" name; the host registers it
+// with the Relay Environment's operationLoader, and at runtime the
+// matched arm's GraphQL data is normalized into the store from the same
+// response (unmatched arms produce no operation, so their fields are
+// not in the response at all).
 import type { NormalizationSplitOperation, OperationLoader } from 'relay-runtime';
 import TextBlockOp from './__generated__/fragments_TextBlock$normalization.graphql';
 import BannerBlockOp from './__generated__/fragments_BannerBlock$normalization.graphql';
@@ -38,8 +40,8 @@ function lookupSplitOperation(ref: unknown): NormalizationSplitOperation | null 
   return SPLIT_OPERATIONS[ref] ?? SPLIT_OPERATIONS[`${ref}.graphql`] ?? null;
 }
 
-// Relay Environment 的 operationLoader: 工件都在本地包内, get 恒可
-// 同步命中 (load 仅作契约兜底)。
+// Relay Environment operationLoader: all artifacts are local to this
+// package, so get always hits synchronously (load is only a contract fallback).
 export const blockOperationLoader: OperationLoader = {
   get: (ref) => lookupSplitOperation(ref),
   load: (ref) => Promise.resolve(lookupSplitOperation(ref)),
