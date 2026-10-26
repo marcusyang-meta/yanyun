@@ -1,0 +1,548 @@
+// Guild admin surface acceptance (REST shutdown batch §1, 2026-10-26):
+// the GraphQL replacement for gadmin. Verdict = Discord session +
+// viewer manages the bound Discord server (same check as createGuild),
+// expressed ONLY by the GuildAdmin / GuildAdminLocked response types.
+// Covers: verdict matrix (anonymous / member / ManageGuild bit / owner /
+// unbound / missing / dev_only), webhook secrecy (full URL never read
+// back, only set-state + numeric id), profile/discord/features/
+// visibility mutations, base64 avatar flow with the same server-side
+// validation as the retired binary upload, fixed-team CRUD with
+// server-derived roles, admin event CRUD + signup removal + race
+// results, byte-exact CSV export, school-guide upserts, and the OG
+// card data channel (ogGuildCard / ogCarCard) that replaces the OG
+// worker's REST reads. Real yoga + real resolvers + FakeDB that routes
+// by SQL shape into real in-memory tables.
+import { yoga } from '../src/graphql.ts';
+import { avatarPath } from '../src/domains/guilds/guildavatar.ts';
+
+let pass = 0, fail = 0; const fails = [];
+function check(name, ok, extra = '') {
+  if (ok) pass++; else { fail++; fails.push(name + (extra ? ' — ' + extra : '')); }
+  console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${extra && !ok ? ' — ' + extra : ''}`);
+}
+function eq(name, got, want) { check(name, got === want, `got=${JSON.stringify(got)} want=${JSON.stringify(want)}`); }
+
+/* Convert FakeDB object rows into the values-mode arrays the Drizzle
+   D1 driver returns (same helper shape as the identity suite). */
+function toRawRows(sqlText, rows) {
+  if (!rows || !rows.length) return [];
+  let cols = null;
+  const m = /select\s+([\s\S]+?)\s+from\s/i.exec(sqlText);
+  if (m) {
+    const parts = m[1].split(',').map((s) => s.trim()).filter(Boolean);
+    if (parts.length && parts.every((p) => !p.includes('(') && !p.includes(')'))) {
+      cols = parts.map((p) => {
+        const as = /\bas\s+"?([A-Za-z0-9_]+)"?\s*$/i.exec(p);
+        if (as) return as[1];
+        const clean = p.replace(/"/g, '');
+        const dot = clean.lastIndexOf('.');
+        return (dot >= 0 ? clean.slice(dot + 1) : clean).trim();
+      });
+      if (cols.some((c) => !c || c === '*')) cols = null;
+    }
+  }
+  return rows.map((r) => (cols
+    ? cols.map((c) => (r[c] === undefined ? null : r[c]))
+    : Object.values(r)));
+}
+
+/* ---------------- FakeDB ---------------- */
+function makeDb(fx = {}) {
+  const tables = {
+    tenants: (fx.tenants || []).map((t) => ({ ...t })),
+    settings: new Map(fx.settings || []), // `${tenant}|${key}` -> value
+    users: new Map(fx.users || []),       // discord_id -> guilds_json string
+    fixedTeams: (fx.fixedTeams || []).map((t) => ({ ...t })),
+    fixedTeamMembers: (fx.fixedTeamMembers || []).map((m) => ({ ...m })),
+    events: (fx.events || []).map((e) => ({ ...e })),
+    signups: (fx.signups || []).map((r) => ({ ...r })),
+    results: (fx.results || []).map((r) => ({ ...r })),
+    avatars: new Map(), // tenant -> { content_type, bytes, hash, updated_at }
+    schoolBis: (fx.schoolBis || []).map((r) => ({ ...r })),
+    schoolRotations: (fx.schoolRotations || []).map((r) => ({ ...r })),
+  };
+  let nextId = 5000;
+  const unknownSql = new Set();
+
+  function norm(sql) {
+    return sql.replace(/"/g, '').replace(/\b(tenants|settings|users|events|signups|results|fixed_teams|fixed_team_members|guild_avatars|school_bis|school_rotations)\./g, '').replace(/\s+/g, ' ');
+  }
+  function parseCols(list) {
+    return list.split(',').map((c) => c.trim().split('.').pop());
+  }
+
+  function route(kind, rawSql, b) {
+    const sql = norm(rawSql);
+    if (/^INSERT INTO error_log/i.test(sql)) return { meta: { changes: 1 } }; // error sink: swallowed
+    /* ---- generic INSERT (column list parsed) ---- */
+    let m = /^INSERT INTO (\w+) \(([^)]+)\) VALUES \(([^)]+)\)/i.exec(sql);
+    if (m) {
+      const [, table, colList] = m;
+      const cols = parseCols(colList);
+      const row = {};
+      cols.forEach((c, i) => { row[c] = b[i]; });
+      if (/ON CONFLICT/i.test(sql)) {
+        if (table === 'settings') { tables.settings.set(`${row.tenant}|${row.key}`, row.value); return { meta: { changes: 1 } }; }
+        if (table === 'school_bis') {
+          const ex = tables.schoolBis.find((r) => r.school === row.school && r.build === row.build);
+          if (ex) Object.assign(ex, row); else tables.schoolBis.push(row);
+          return { meta: { changes: 1 } };
+        }
+        if (table === 'school_rotations') {
+          const ex = tables.schoolRotations.find((r) => r.school === row.school);
+          if (ex) Object.assign(ex, row); else tables.schoolRotations.push(row);
+          return { meta: { changes: 1 } };
+        }
+        if (table === 'guild_avatars') { tables.avatars.set(row.tenant, row); return { meta: { changes: 1 } }; }
+      }
+      row.id = nextId++;
+      if (table === 'events') tables.events.push(row);
+      else if (table === 'signups') tables.signups.push(row);
+      else if (table === 'results') tables.results.push(row);
+      else if (table === 'fixed_teams') tables.fixedTeams.push(row);
+      else if (table === 'fixed_team_members') tables.fixedTeamMembers.push(row);
+      else if (table === 'settings') tables.settings.set(`${row.tenant}|${row.key}`, row.value);
+      else if (table === 'guild_avatars') tables.avatars.set(row.tenant, row);
+      return { meta: { changes: 1, last_row_id: row.id } };
+    }
+    /* ---- generic UPDATE ... SET col = ? ... WHERE id/tenant conditions ---- */
+    m = /^UPDATE (\w+) SET (.+?) WHERE (.+)$/i.exec(sql);
+    if (m) {
+      const [, table, setList, where] = m;
+      const setCols = setList.split(',').map((p) => p.trim().split('=')[0].trim().split('.').pop());
+      const sets = {};
+      setCols.forEach((c, i) => { sets[c] = b[i]; });
+      const wb = b.slice(setCols.length);
+      let rows = [];
+      if (table === 'tenants') rows = tables.tenants.filter((t) => t.slug === wb[0]);
+      else if (table === 'events') rows = tables.events.filter((e) => e.id === Number(wb[0]) && (wb.length < 2 || e.tenant === wb[1]));
+      else if (table === 'fixed_teams') rows = tables.fixedTeams.filter((t) => t.id === Number(wb[0]));
+      else if (table === 'fixed_team_members') rows = tables.fixedTeamMembers.filter((x) => x.id === Number(wb[0]));
+      else if (table === 'signups') rows = tables.signups.filter((x) => x.id === Number(wb[0]));
+      for (const r of rows) Object.assign(r, sets);
+      return { meta: { changes: rows.length } };
+    }
+    /* ---- DELETE ---- */
+    if (/^DELETE FROM guild_avatars/i.test(sql)) { tables.avatars.delete(b[0]); return { meta: { changes: 1 } }; }
+    if (/^DELETE FROM fixed_team_members WHERE team_id/i.test(sql)) {
+      tables.fixedTeamMembers = tables.fixedTeamMembers.filter((x) => x.team_id !== Number(b[0]));
+      return { meta: { changes: 1 } };
+    }
+    if (/^DELETE FROM fixed_team_members WHERE id/i.test(sql)) {
+      tables.fixedTeamMembers = tables.fixedTeamMembers.filter((x) => x.id !== Number(b[0]));
+      return { meta: { changes: 1 } };
+    }
+    if (/^DELETE FROM fixed_teams WHERE id/i.test(sql)) {
+      tables.fixedTeams = tables.fixedTeams.filter((x) => x.id !== Number(b[0]));
+      return { meta: { changes: 1 } };
+    }
+    if (/^DELETE FROM signups WHERE event_id/i.test(sql)) {
+      tables.signups = tables.signups.filter((x) => x.event_id !== Number(b[0]));
+      return { meta: { changes: 1 } };
+    }
+    if (/^DELETE FROM signups WHERE id/i.test(sql)) {
+      tables.signups = tables.signups.filter((x) => x.id !== Number(b[0]));
+      return { meta: { changes: 1 } };
+    }
+    if (/^DELETE FROM results WHERE event_id/i.test(sql)) {
+      tables.results = tables.results.filter((x) => x.event_id !== Number(b[0]));
+      return { meta: { changes: 1 } };
+    }
+    if (/^DELETE FROM results WHERE id/i.test(sql)) {
+      tables.results = tables.results.filter((x) => x.id !== Number(b[0]));
+      return { meta: { changes: 1 } };
+    }
+    if (/^DELETE FROM events WHERE id/i.test(sql)) {
+      tables.events = tables.events.filter((x) => x.id !== Number(b[0]) || (b.length > 1 && x.tenant !== b[1]));
+      return { meta: { changes: 1 } };
+    }
+    if (/\b(CREATE TABLE|ALTER TABLE|PRAGMA)\b/i.test(sql)) return kind === 'run' ? { meta: { changes: 0 } } : (kind === 'first' ? null : { results: [] });
+
+    /* ---- SELECTs ---- */
+    const first = (row) => (kind === 'first' ? (row ?? null) : { results: row ? [row] : [] });
+    const all = (rows) => ({ results: rows });
+    if (/FROM tenants WHERE slug/i.test(sql)) return first(tables.tenants.find((t) => t.slug === b[0]));
+    if (/FROM tenants/i.test(sql)) return kind === 'first' ? (tables.tenants[0] ?? null) : all(tables.tenants);
+    if (/FROM settings WHERE tenant = \? AND key = \?/i.test(sql)) {
+      const v = tables.settings.get(`${b[0]}|${b[1]}`);
+      return first(v === undefined ? null : { value: v });
+    }
+    if (/FROM settings WHERE key = \?/i.test(sql)) {
+      const rows = [];
+      for (const [k, v] of tables.settings) { const [t, key] = k.split('|'); if (key === b[0]) rows.push({ tenant: t, value: v }); }
+      return kind === 'first' ? (rows[0] ?? null) : all(rows);
+    }
+    if (/SELECT guilds_json FROM users/i.test(sql)) {
+      const v = tables.users.get(String(b[0]));
+      return first(v === undefined ? null : { guilds_json: v });
+    }
+    if (/FROM users/i.test(sql)) return first(null);
+    if (/FROM guild_avatars/i.test(sql)) {
+      const row = tables.avatars.get(b[0]);
+      return first(row ? { content_type: row.content_type, bytes: row.bytes, hash: row.hash, updated_at: row.updated_at } : null);
+    }
+    if (/FROM fixed_teams WHERE tenant/i.test(sql)) {
+      return all(tables.fixedTeams.filter((t) => t.tenant === b[0]).sort((a, c) => a.id - c.id));
+    }
+    if (/SELECT id FROM fixed_teams WHERE id/i.test(sql)) {
+      const t = tables.fixedTeams.find((x) => x.id === Number(b[0]) && x.tenant === b[1]);
+      return first(t ? { id: t.id } : null);
+    }
+    if (/FROM fixed_team_members WHERE team_id/i.test(sql)) {
+      return all(tables.fixedTeamMembers.filter((x) => x.team_id === Number(b[0]))
+        .sort((a, c) => (a.sort_order - c.sort_order) || (a.id - c.id)));
+    }
+    if (/FROM fixed_team_members JOIN fixed_teams/i.test(sql)) {
+      const mem = tables.fixedTeamMembers.find((x) => x.id === Number(b[0]));
+      const team = mem && tables.fixedTeams.find((t) => t.id === mem.team_id && t.tenant === b[1]);
+      return first(team && mem ? { id: mem.id } : null);
+    }
+    if (/FROM events e WHERE e\.tenant/i.test(sql) && /signup_count/i.test(sql)) {
+      // week view or admin list (both compute signup_count over e.*)
+      let rows = tables.events.filter((e) => e.tenant === b[0]);
+      let bi = 1;
+      if (/e\.status NOT IN/i.test(sql)) rows = rows.filter((e) => !['draft', 'completed'].includes(e.status));
+      if (/e\.type = \?/i.test(sql)) { rows = rows.filter((e) => e.type === b[bi]); bi++; }
+      if (/e\.starts_at_utc >= \?/i.test(sql)) { rows = rows.filter((e) => e.starts_at_utc != null && e.starts_at_utc >= b[bi]); bi++; }
+      if (/e\.starts_at_utc <= \?/i.test(sql)) { rows = rows.filter((e) => e.starts_at_utc != null && e.starts_at_utc <= b[bi]); bi++; }
+      if (/ORDER BY e\.id DESC/i.test(sql)) rows.sort((a, c) => c.id - a.id);
+      return all(rows.map((e) => ({ ...e, signup_count: tables.signups.filter((r) => r.event_id === e.id).length })));
+    }
+    if (/SELECT \* FROM events WHERE id = \? AND tenant = \?/i.test(sql)) {
+      return first(tables.events.find((e) => e.id === Number(b[0]) && e.tenant === b[1]));
+    }
+    if (/SELECT id FROM events WHERE id = \? AND tenant = \?/i.test(sql)) {
+      const e = tables.events.find((x) => x.id === Number(b[0]) && x.tenant === b[1]);
+      return first(e ? { id: e.id } : null);
+    }
+    if (/SELECT \* FROM events WHERE id = \?/i.test(sql)) {
+      return first(tables.events.find((e) => e.id === Number(b[0])));
+    }
+    if (/FROM signups WHERE event_id/i.test(sql) && /COUNT/i.test(sql)) {
+      return first({ c: tables.signups.filter((r) => r.event_id === Number(b[0])).length });
+    }
+    if (/SELECT \* FROM signups WHERE event_id/i.test(sql)) {
+      return all(tables.signups.filter((r) => r.event_id === Number(b[0])).sort((a, c) => a.id - c.id));
+    }
+    if (/FROM signups s JOIN events/i.test(sql)) {
+      const sRow = tables.signups.find((x) => x.id === Number(b[0]));
+      const ev = sRow && tables.events.find((e) => e.id === sRow.event_id && e.tenant === b[1]);
+      return first(ev && sRow ? { id: sRow.id } : null);
+    }
+    if (/FROM results WHERE event_id/i.test(sql)) {
+      return all(tables.results.filter((r) => r.event_id === Number(b[0])).sort((a, c) => a.time_ms - c.time_ms));
+    }
+    if (/FROM results JOIN events/i.test(sql)) {
+      const r = tables.results.find((x) => x.id === Number(b[0]));
+      const ev = r && tables.events.find((e) => e.id === r.event_id && e.tenant === b[1]);
+      return first(ev && r ? { id: r.id } : null);
+    }
+    if (/FROM school_bis/i.test(sql)) return all(tables.schoolBis);
+    if (/FROM school_rotations/i.test(sql)) return all(tables.schoolRotations);
+    if (/FROM guild_members/i.test(sql)) return kind === 'first' ? null : all([]);
+    if (/COUNT\(DISTINCT/i.test(sql)) return first({ c: 0 });
+    unknownSql.add(kind + ': ' + sql.slice(0, 110));
+    return kind === 'first' ? null : (kind === 'all' ? { results: [] } : { meta: { changes: 0 } });
+  }
+
+  function stmt(rawSql) {
+    const q = {
+      _binds: [],
+      bind(...a) { this._binds = a; return this; },
+      async raw() { const res = await this.all(); return toRawRows(rawSql, (res && res.results) || []); },
+      async first() { return route('first', rawSql, this._binds); },
+      async all() { return route('all', rawSql, this._binds); },
+      async run() { return route('run', rawSql, this._binds); },
+    };
+    return q;
+  }
+  const db = {
+    prepare: (sql) => stmt(sql),
+    async batch(stmts) { const out = []; for (const s of stmts) out.push(await s.run()); return out; },
+  };
+  return { db, tables, unknownSql };
+}
+
+/* ---------------- fixtures ---------------- */
+const DGID = '424242424242424242';
+const serversJson = (rows) => JSON.stringify(rows);
+const ADMIN = { discordId: 'UA', name: '服主', guilds: [DGID] };
+const MANAGER = { discordId: 'UM', name: '管理员', guilds: [DGID] };
+const MEMBER = { discordId: 'UB', name: '成员', guilds: [DGID] };
+const OUTSIDER = { discordId: 'UZ', name: '路人', guilds: [] };
+
+const WEEK_FROM = 1_700_000_000, WEEK_TO = WEEK_FROM + 7 * 86400;
+function tenantRow(over = {}) {
+  return {
+    slug: 'admintest', guild_name: '管理测试百业', password_hash: 'x', announcement: '本周六晚八点集合',
+    slogan: '同舟共济', master_name: '老船长', logo_url: '', bg_image_url: '',
+    discord_webhook: '', created_at: '2026-01-01 00:00:00', ...over,
+  };
+}
+function evRow(id, over = {}) {
+  return {
+    id, tenant: 'admintest', title: '车' + id, type: 'activity', description: '',
+    starts_at: null, meet_info: '', max_slots: 10, status: 'open',
+    starts_at_utc: null, origin: 'member', created_by: '', manage_code: '',
+    dungeon: '', creator_discord_id: 'UB', reminder_sent_at: null, reminder_error: null, ...over,
+  };
+}
+const A = makeDb({
+  tenants: [
+    tenantRow(),
+    tenantRow({ slug: 'unbound', guild_name: '未绑定百业' }),
+    tenantRow({ slug: 'devtest', guild_name: '开发百业' }),
+  ],
+  settings: [
+    ['admintest|discord_guild_id', DGID],
+    ['devtest|discord_guild_id', DGID],
+    ['devtest|dev_only', '1'],
+    ['|game_version', 'intl-v2.3'],
+  ],
+  users: [
+    ['UA', serversJson([{ id: DGID, name: '测试服', icon: '', permissions: '0', owner: true }])],
+    ['UM', serversJson([{ id: DGID, name: '测试服', icon: '', permissions: '32', owner: false }])], // ManageGuild bit
+    ['UB', serversJson([{ id: DGID, name: '测试服', icon: '', permissions: '0', owner: false }])],
+  ],
+  fixedTeams: [{ id: 11, tenant: 'admintest', name: '一队', description: '主力' }],
+  fixedTeamMembers: [
+    { id: 21, team_id: 11, nickname: '奶妈甲', weapon: '牵丝·霖', role: '奶', note: '', sort_order: 0 },
+    { id: 22, team_id: 11, nickname: '输出乙', weapon: '破竹·樽', role: '输出', note: '副队', sort_order: 1 },
+  ],
+  events: [
+    evRow(101, { title: '周六双十', starts_at_utc: WEEK_FROM + 3600 }),
+    evRow(102, { title: '天赋车', type: 'talent', starts_at_utc: WEEK_FROM + 7200 }),
+    evRow(103, { title: '已完成车', status: 'completed', starts_at_utc: WEEK_FROM + 3600 }),
+    evRow(104, { title: '下周车', starts_at_utc: WEEK_TO + 86400 }),
+    evRow(105, { title: '竞速车', type: 'race', status: 'closed', starts_at_utc: WEEK_FROM + 100 }),
+  ],
+  signups: [
+    { id: 31, event_id: 101, nickname: '阿青', uid: '1001', role: '输出', weapon: '鸣金·虹', contact: '', note: '', team_name: '', members: '', created_at: '2026-01-02 03:04:05', discord_id: 'UB' },
+    { id: 32, event_id: 101, nickname: '含"引号', uid: '1002', role: '奶', weapon: '牵丝·霖', contact: 'wx,123', note: '第一行\n第二行', team_name: '一队', members: '阿青,含"引号', created_at: '2026-01-02 03:05:05', discord_id: null },
+  ],
+  results: [
+    { id: 41, event_id: 105, team_name: '一队', members: '阿青,输出乙', time_ms: 83456, proof_url: '', note: '', created_at: '2026-01-02 04:00:00' },
+  ],
+  schoolBis: [{ school: '鸣金·虹', build: '会意流', attr: '会意 300', rate: '60%', bis_json: '{"a":1}' }],
+  schoolRotations: [{ school: '鸣金·虹', rotation_json: '{"steps":[]}' }],
+});
+const env = { DB: A.db };
+
+async function gql(query, { user = null, variables } = {}) {
+  const ctx = { env, request: new Request('http://local/graphql'), user, locale: 'zh-CN', browserLocale: 'zh-CN', tz: 'Asia/Shanghai', executionCtx: undefined };
+  const res = await yoga.fetch(new Request('http://local/graphql', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ query, variables }),
+  }), ctx);
+  return res.json();
+}
+
+/* ---------------- verdict matrix ---------------- */
+const adminQ = `{ viewer { guildAdmin(slug: "admintest") { __typename ... on GuildAdmin { slug name announcement slogan masterName discordGuildId reminderWebhookSet reminderWebhookId featureFixedTeams devOnly adminTitle } ... on GuildAdminLocked { slug adminLockedTitle } } } }`;
+let r = await gql(adminQ, { user: null });
+eq('匿名 -> GuildAdminLocked', r.data?.viewer?.guildAdmin?.__typename, 'GuildAdminLocked');
+r = await gql(adminQ, { user: MEMBER });
+eq('普通成员 -> GuildAdminLocked', r.data?.viewer?.guildAdmin?.__typename, 'GuildAdminLocked');
+r = await gql(adminQ, { user: OUTSIDER });
+eq('非成员 -> GuildAdminLocked', r.data?.viewer?.guildAdmin?.__typename, 'GuildAdminLocked');
+r = await gql(adminQ, { user: ADMIN });
+eq('服主 -> GuildAdmin', r.data?.viewer?.guildAdmin?.__typename, 'GuildAdmin');
+eq('GuildAdmin.name', r.data?.viewer?.guildAdmin?.name, '管理测试百业');
+eq('GuildAdmin.discordGuildId', r.data?.viewer?.guildAdmin?.discordGuildId, DGID);
+eq('GuildAdmin.webhook 未设置', r.data?.viewer?.guildAdmin?.reminderWebhookSet, false);
+eq('GuildAdmin.adminTitle 文案', r.data?.viewer?.guildAdmin?.adminTitle, '管理百业');
+r = await gql(adminQ.replaceAll('admintest', 'unbound'), { user: ADMIN });
+eq('未绑定百业 -> Locked', r.data?.viewer?.guildAdmin?.__typename, 'GuildAdminLocked');
+r = await gql(adminQ.replaceAll('admintest', 'nosuch'), { user: ADMIN });
+eq('不存在百业 -> Locked', r.data?.viewer?.guildAdmin?.__typename, 'GuildAdminLocked');
+r = await gql(adminQ.replaceAll('admintest', 'devtest'), { user: ADMIN });
+eq('dev_only 百业 (非 dev 来源) -> Locked', r.data?.viewer?.guildAdmin?.__typename, 'GuildAdminLocked');
+// Content fields are not on the Locked type at all.
+r = await gql(`{ viewer { guildAdmin(slug: "admintest") { ... on GuildAdminLocked { name } } } }`, { user: MEMBER });
+check('Locked 类型查内容字段 -> schema 校验错误', Array.isArray(r.errors) && r.errors.length > 0);
+
+/* ---------------- mutation gate ---------------- */
+const profMut = `mutation($input: UpdateGuildProfileInput!) { updateGuildProfile(slug: "admintest", input: $input) { ok errorCode } }`;
+r = await gql(profMut, { user: MEMBER, variables: { input: { name: '改名尝试' } } });
+eq('成员改资料 -> adminOnly', r.data?.updateGuildProfile?.errorCode, 'adminOnly');
+r = await gql(profMut, { user: null, variables: { input: { name: '改名尝试' } } });
+eq('匿名改资料 -> adminOnly', r.data?.updateGuildProfile?.errorCode, 'adminOnly');
+r = await gql(profMut, { user: ADMIN, variables: { input: { name: '新名字', announcement: '新公告' } } });
+eq('服主改资料 ok', r.data?.updateGuildProfile?.ok, true);
+eq('资料已落库 (name)', A.tables.tenants[0].guild_name, '新名字');
+eq('资料已落库 (announcement)', A.tables.tenants[0].announcement, '新公告');
+eq('未提交字段保持 (slogan)', A.tables.tenants[0].slogan, '同舟共济');
+r = await gql(profMut, { user: ADMIN, variables: { input: { name: 'x' } } });
+eq('名字过短 -> guildNameShort', r.data?.updateGuildProfile?.errorCode, 'guildNameShort');
+
+/* ---------------- discord settings + webhook secrecy ---------------- */
+const discordMut = `mutation($input: UpdateGuildDiscordInput!) { updateGuildDiscord(slug: "admintest", input: $input) { ok errorCode } }`;
+const HOOK = 'https://discord.com/api/webhooks/123456789012345678/abcdef-XYZ_123';
+r = await gql(discordMut, { user: ADMIN, variables: { input: { webhook: 'https://example.com/hook' } } });
+eq('非法 webhook -> webhookInvalid', r.data?.updateGuildDiscord?.errorCode, 'webhookInvalid');
+r = await gql(discordMut, { user: ADMIN, variables: { input: { webhook: HOOK } } });
+eq('合法 webhook ok', r.data?.updateGuildDiscord?.ok, true);
+r = await gql(adminQ, { user: ADMIN });
+eq('webhook 已设置', r.data?.viewer?.guildAdmin?.reminderWebhookSet, true);
+eq('webhook 只回编号', r.data?.viewer?.guildAdmin?.reminderWebhookId, '123456789012345678');
+check('响应全文不含 webhook 密钥段', !JSON.stringify(r).includes('abcdef-XYZ_123'));
+r = await gql(discordMut, { user: ADMIN, variables: { input: { discordGuildId: 'abc' } } });
+eq('非法服务器 ID -> discordIdInvalid', r.data?.updateGuildDiscord?.errorCode, 'discordIdInvalid');
+r = await gql(discordMut, { user: ADMIN, variables: { input: { webhook: '' } } });
+eq('清除 webhook ok', r.data?.updateGuildDiscord?.ok, true);
+r = await gql(adminQ, { user: ADMIN });
+eq('清除后 webhookSet=false', r.data?.viewer?.guildAdmin?.reminderWebhookSet, false);
+
+/* ---------------- features / visibility ---------------- */
+const featMut = `mutation($v: Boolean!) { updateGuildFeatures(slug: "admintest", fixedTeams: $v) { ok } }`;
+r = await gql(featMut, { user: MANAGER, variables: { v: true } });
+eq('ManageGuild 位管理员可改功能', r.data?.updateGuildFeatures?.ok, true);
+r = await gql(adminQ, { user: ADMIN });
+eq('featureFixedTeams=true', r.data?.viewer?.guildAdmin?.featureFixedTeams, true);
+const visMut = `mutation($v: Boolean!) { updateGuildVisibility(slug: "admintest", devOnly: $v) { ok errorCode } }`;
+r = await gql(visMut, { user: ADMIN, variables: { v: true } });
+eq('设置 dev_only ok', r.data?.updateGuildVisibility?.ok, true);
+r = await gql(adminQ, { user: ADMIN });
+eq('dev_only 后非 dev 来源 -> Locked', r.data?.viewer?.guildAdmin?.__typename, 'GuildAdminLocked');
+r = await gql(visMut, { user: ADMIN, variables: { v: false } });
+eq('已 dev_only 时连管理员也进不去 (同 REST 门控, 预期)', r.data?.updateGuildVisibility?.errorCode, 'guildNotFound');
+A.tables.settings.set('admintest|dev_only', ''); // 复位 (生产中由 dev 来源操作)
+
+/* ---------------- avatar (base64) ---------------- */
+const PNG = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1, 2, 3, 4]);
+const pngB64 = Buffer.from(PNG).toString('base64');
+const setAv = `mutation($d: String!) { setGuildAvatar(slug: "admintest", dataBase64: $d) { ok errorCode avatarUrl } }`;
+r = await gql(setAv, { user: ADMIN, variables: { d: pngB64 } });
+eq('上传 PNG 头像 ok', r.data?.setGuildAvatar?.ok, true);
+eq('头像 URL = avatarPath 口径', r.data?.setGuildAvatar?.avatarUrl,
+  'http://local' + avatarPath('admintest', A.tables.avatars.get('admintest')?.hash || ''));
+r = await gql(setAv, { user: ADMIN, variables: { d: Buffer.from('not an image at all').toString('base64') } });
+eq('非图片 -> avatarBadType', r.data?.setGuildAvatar?.errorCode, 'avatarBadType');
+r = await gql(setAv, { user: ADMIN, variables: { d: '!!!not-base64!!!' } });
+eq('坏 base64 -> avatarDataInvalid', r.data?.setGuildAvatar?.errorCode, 'avatarDataInvalid');
+r = await gql(setAv, { user: ADMIN, variables: { d: Buffer.alloc(400 * 1024 + 16, 7).toString('base64') } });
+eq('超限 -> avatarTooLarge', r.data?.setGuildAvatar?.errorCode, 'avatarTooLarge');
+r = await gql(`mutation { deleteGuildAvatar(slug: "admintest") { ok } }`, { user: ADMIN });
+eq('删除头像 ok', r.data?.deleteGuildAvatar?.ok, true);
+eq('头像已清', A.tables.avatars.has('admintest'), false);
+
+/* ---------------- fixed teams ---------------- */
+const teamQ = `{ viewer { guildAdmin(slug: "admintest") { ... on GuildAdmin { fixedTeams { id name description members { id nickname weapon role } } } }  }}`;
+r = await gql(teamQ, { user: ADMIN });
+eq('固定队列表 1 支', r.data?.viewer?.guildAdmin?.fixedTeams?.length, 1);
+eq('成员角色 (奶)', r.data?.viewer?.guildAdmin?.fixedTeams?.[0]?.members?.[0]?.role, '奶');
+const createTeam = `mutation($input: CreateFixedTeamInput!) { createFixedTeam(slug: "admintest", input: $input) { ok errorCode id } }`;
+r = await gql(createTeam, { user: ADMIN, variables: { input: { name: '二队', description: '替补' } } });
+eq('建队 ok', r.data?.createFixedTeam?.ok, true);
+const team2Id = r.data?.createFixedTeam?.id;
+r = await gql(createTeam, { user: ADMIN, variables: { input: { name: '' } } });
+eq('空队名 -> teamNameRequired', r.data?.createFixedTeam?.errorCode, 'teamNameRequired');
+const addMember = `mutation($tid: ID!, $input: FixedTeamMemberInput!) { addFixedTeamMember(slug: "admintest", teamId: $tid, input: $input) { ok errorCode id } }`;
+r = await gql(addMember, { user: ADMIN, variables: { tid: team2Id, input: { nickname: '新奶', weapon: '牵丝·霖' } } });
+eq('加队员 ok', r.data?.addFixedTeamMember?.ok, true);
+const memberId = r.data?.addFixedTeamMember?.id;
+r = await gql(teamQ, { user: ADMIN });
+const team2 = r.data?.viewer?.guildAdmin?.fixedTeams?.find((t) => t.id === team2Id);
+eq('新队员角色由武器推导 (奶)', team2?.members?.[0]?.role, '奶');
+const updMember = `mutation($tid: ID!, $mid: ID!, $input: FixedTeamMemberInput!) { updateFixedTeamMember(slug: "admintest", teamId: $tid, memberId: $mid, input: $input) { ok errorCode } }`;
+r = await gql(updMember, { user: ADMIN, variables: { tid: team2Id, mid: memberId, input: { nickname: '新奶', weapon: '鸣金·虹' } } });
+eq('改队员 ok', r.data?.updateFixedTeamMember?.ok, true);
+r = await gql(teamQ, { user: ADMIN });
+eq('改武器后角色变输出', r.data?.viewer?.guildAdmin?.fixedTeams?.find((t) => t.id === team2Id)?.members?.[0]?.role, '输出');
+r = await gql(updMember, { user: ADMIN, variables: { tid: team2Id, mid: '99999', input: { nickname: 'x', weapon: '鸣金·虹' } } });
+eq('改不存在队员 -> teamMemberNotFound', r.data?.updateFixedTeamMember?.errorCode, 'teamMemberNotFound');
+r = await gql(`mutation($tid: ID!, $mid: ID!) { deleteFixedTeamMember(slug: "admintest", teamId: $tid, memberId: $mid) { ok } }`,
+  { user: ADMIN, variables: { tid: team2Id, mid: memberId } });
+eq('删队员 ok', r.data?.deleteFixedTeamMember?.ok, true);
+r = await gql(`mutation($tid: ID!) { deleteFixedTeam(slug: "admintest", teamId: $tid) { ok errorCode } }`,
+  { user: ADMIN, variables: { tid: team2Id } });
+eq('删队 ok', r.data?.deleteFixedTeam?.ok, true);
+eq('队伍已删', A.tables.fixedTeams.some((t) => String(t.id) === String(team2Id)), false);
+r = await gql(`mutation($tid: ID!) { deleteFixedTeam(slug: "admintest", teamId: $tid) { ok errorCode } }`,
+  { user: ADMIN, variables: { tid: team2Id } });
+eq('重复删队 -> teamNotFound', r.data?.deleteFixedTeam?.errorCode, 'teamNotFound');
+
+/* ---------------- events admin ---------------- */
+const eventsQ = `{ viewer { guildAdmin(slug: "admintest") { ... on GuildAdmin { events { id title type status origin signupCount signups { id nickname } signupsCsv } } } } }`;
+r = await gql(eventsQ, { user: ADMIN });
+eq('活动列表含全部状态 (5)', r.data?.viewer?.guildAdmin?.events?.length, 5);
+const ev101 = r.data?.viewer?.guildAdmin?.events?.find((e) => e.id === '101');
+eq('signupCount=2', ev101?.signupCount, 2);
+const expectedCsv = '\ufeff"昵称","UID","职责","流派/武器","联系方式","队伍名","队员","备注","报名时间"\r\n' +
+  '"阿青","1001","输出","鸣金·虹","","","","","2026-01-02 03:04:05"\r\n' +
+  '"含""引号","1002","奶","牵丝·霖","wx,123","一队","阿青,含""引号","第一行\n第二行","2026-01-02 03:05:05"';
+eq('CSV 与原 REST export.csv 字节一致', ev101?.signupsCsv, expectedCsv);
+const createEv = `mutation($input: CreateAdminEventInput!) { createAdminEvent(slug: "admintest", input: $input) { ok errorCode id } }`;
+r = await gql(createEv, { user: ADMIN, variables: { input: { title: '管理员建车', type: 'TALENT', dungeon: '定极分更', startsAtUtc: WEEK_FROM + 5000 } } });
+eq('管理员建车 ok', r.data?.createAdminEvent?.ok, true);
+const newEvId = r.data?.createAdminEvent?.id;
+const newEvRow = A.tables.events.find((e) => String(e.id) === String(newEvId));
+eq('建车 origin=admin', newEvRow?.origin, 'admin');
+eq('建车 dungeon 落库 (talent)', newEvRow?.dungeon, '定极分更');
+eq('建车默认 20 席 (REST admin 口径)', newEvRow?.max_slots, 20);
+const updEv = `mutation($id: ID!, $input: UpdateAdminEventInput!) { updateAdminEvent(slug: "admintest", eventId: $id, input: $input) { ok errorCode } }`;
+r = await gql(updEv, { user: ADMIN, variables: { id: newEvId, input: { title: '改名车', status: 'closed' } } });
+eq('改车 ok', r.data?.updateAdminEvent?.ok, true);
+eq('改车落库', A.tables.events.find((e) => String(e.id) === String(newEvId))?.status, 'closed');
+r = await gql(updEv, { user: ADMIN, variables: { id: '99999', input: { title: 'x' } } });
+eq('改不存在车 -> groupingNotFound', r.data?.updateAdminEvent?.errorCode, 'groupingNotFound');
+r = await gql(`mutation($sid: ID!) { removeEventSignup(slug: "admintest", signupId: $sid) { ok errorCode } }`,
+  { user: ADMIN, variables: { sid: '31' } });
+eq('移除报名 ok', r.data?.removeEventSignup?.ok, true);
+eq('报名已删', A.tables.signups.some((x) => x.id === 31), false);
+r = await gql(`mutation($sid: ID!) { removeEventSignup(slug: "admintest", signupId: $sid) { ok errorCode } }`,
+  { user: ADMIN, variables: { sid: '31' } });
+eq('重复移除 -> signupNotFound', r.data?.removeEventSignup?.errorCode, 'signupNotFound');
+
+/* ---------------- race results ---------------- */
+const addRes = `mutation($id: ID!, $input: AddEventResultInput!) { addEventResult(slug: "admintest", eventId: $id, input: $input) { ok errorCode id } }`;
+r = await gql(addRes, { user: ADMIN, variables: { id: '105', input: { teamName: '二队', members: '甲,乙', timeText: '2:03.5' } } });
+eq('加成绩 ok', r.data?.addEventResult?.ok, true);
+eq('用时解析 2:03.5 -> 123500ms', A.tables.results.find((x) => String(x.id) === String(r.data?.addEventResult?.id))?.time_ms, 123500);
+r = await gql(addRes, { user: ADMIN, variables: { id: '105', input: { teamName: '二队', timeText: 'abc' } } });
+eq('坏用时 -> resultTimeInvalid', r.data?.addEventResult?.errorCode, 'resultTimeInvalid');
+r = await gql(addRes, { user: ADMIN, variables: { id: '105', input: { teamName: ' ', timeText: '1:00' } } });
+eq('空队名 -> resultTeamRequired', r.data?.addEventResult?.errorCode, 'resultTeamRequired');
+r = await gql(`{ viewer { guildAdmin(slug: "admintest") { ... on GuildAdmin { events { id results { teamName timeMs timeText } } } } } }`, { user: ADMIN });
+const ev105 = r.data?.viewer?.guildAdmin?.events?.find((e) => e.id === '105');
+eq('成绩列表按用时升序', JSON.stringify(ev105?.results?.map((x) => x.timeMs)), '[83456,123500]');
+eq('timeText 格式化', ev105?.results?.[0]?.timeText, '01:23.456');
+const newResId = r.data ? A.tables.results.find((x) => x.team_name === '二队')?.id : null;
+r = await gql(`mutation($rid: ID!) { deleteEventResult(slug: "admintest", resultId: $rid) { ok errorCode } }`,
+  { user: ADMIN, variables: { rid: String(newResId) } });
+eq('删成绩 ok', r.data?.deleteEventResult?.ok, true);
+r = await gql(`mutation($id: ID!) { deleteAdminEvent(slug: "admintest", eventId: $id) { ok } }`,
+  { user: ADMIN, variables: { id: newEvId } });
+eq('删车 ok', r.data?.deleteAdminEvent?.ok, true);
+eq('车已删', A.tables.events.some((e) => String(e.id) === String(newEvId)), false);
+
+/* ---------------- school guides ---------------- */
+const guideMut = `mutation($input: UpdateSchoolGuideInput!) { updateSchoolGuide(slug: "admintest", input: $input) { ok errorCode } }`;
+r = await gql(guideMut, { user: ADMIN, variables: { input: { school: '裂石·钧', build: '爆发流', attr: '力量 200', rate: '50%', bisJson: '{"b":2}', rotationJson: '{"r":1}' } } });
+eq('攻略 upsert ok', r.data?.updateSchoolGuide?.ok, true);
+r = await gql(`{ viewer { guildAdmin(slug: "admintest") { ... on GuildAdmin { schoolGuides { schools { school builds { build bisJson } rotationJson } } } } } }`, { user: ADMIN });
+const lg = r.data?.viewer?.guildAdmin?.schoolGuides?.schools?.find((x) => x.school === '裂石·钧');
+eq('攻略读回 build', lg?.builds?.[0]?.build, '爆发流');
+eq('攻略读回 rotation', lg?.rotationJson, '{"r":1}');
+r = await gql(guideMut, { user: ADMIN, variables: { input: { school: '', build: 'x' } } });
+eq('缺流派 -> schoolRequired', r.data?.updateSchoolGuide?.errorCode, 'schoolRequired');
+
+/* ---------------- OG card channel ---------------- */
+const ogQ = `query($f: Int!, $t: Int!) { ogGuildCard(slug: "admintest") { exists name slogan weekActivityCount(fromUtc: $f, toUtc: $t) } }`;
+r = await gql(ogQ, { user: null, variables: { f: WEEK_FROM, t: WEEK_TO } });
+eq('OG 百业卡 exists (匿名, 已绑定)', r.data?.ogGuildCard?.exists, true);
+eq('OG 百业卡 name (资料已改名后)', r.data?.ogGuildCard?.name, '新名字');
+eq('OG 本周双十车数 (仅 activity 且未完成/草稿, 窗口内)', r.data?.ogGuildCard?.weekActivityCount, 1);
+r = await gql(ogQ.replaceAll('admintest', 'devtest'), { user: null, variables: { f: WEEK_FROM, t: WEEK_TO } });
+eq('OG dev_only 百业 -> exists=false', r.data?.ogGuildCard?.exists, false);
+r = await gql(`{ ogCarCard(slug: "admintest", id: "101") { title type startsAtUtc dungeonName occupiedCount maxSlots status } }`, { user: null });
+eq('OG 车卡 title', r.data?.ogCarCard?.title, '周六双十');
+eq('OG 车卡 occupiedCount', r.data?.ogCarCard?.occupiedCount, 1); // signup 31 removed above
+eq('OG 车卡 maxSlots', r.data?.ogCarCard?.maxSlots, 10);
+r = await gql(`{ ogCarCard(slug: "admintest", id: "99999") { title } }`, { user: null });
+eq('OG 车卡不存在 -> null', r.data?.ogCarCard, null);
+
+check('无未路由 SQL', A.unknownSql.size === 0, [...A.unknownSql].join(' | '));
+
+console.log(`\nGUILDADMIN pass=${pass} fail=${fail}`);
+if (fails.length) { console.log('FAILS:\n' + fails.join('\n')); process.exit(1); }
