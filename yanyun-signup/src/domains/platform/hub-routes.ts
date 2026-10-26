@@ -11,6 +11,7 @@ import {
 import {
   getReminderConfig, getReminderSetting, setReminderSetting, maskWebhook, postWebhook, WEBHOOK_RE,
   ensureSignupDiscordColumn, ensureGuildMembersTable, upsertGuildMember, nudgeReminderHub,
+  listUnstampedSeatsByTenant, stampSignupDiscordId,
 } from '../groupings/index.ts';
 import { getHeirloomConfig, sendHeirloomTest, heirloomStatusFor } from '../gear/index.ts';
 import {
@@ -292,10 +293,7 @@ hubRoutes.post('/backfill/reminder-identity', async (c: any) => {
       }
     }
     // 2) 座位盖戳
-    const { results: seats } = await db.prepare(
-      `SELECT s.id, s.nickname FROM signups s JOIN events e ON e.id = s.event_id
-       WHERE e.tenant = ? AND (s.discord_id IS NULL OR s.discord_id = '')`
-    ).bind(slug).all();
+    const seats = await listUnstampedSeatsByTenant(db, slug);
     let stamped = 0, ambiguous = 0, unmatched = 0;
     for (const seat of seats || []) {
       const nick = String(seat.nickname || '').trim();
@@ -310,7 +308,7 @@ hubRoutes.post('/backfill/reminder-identity', async (c: any) => {
       if (hits.size === 1) {
         stamped++;
         if (!dryRun) {
-          await db.prepare('UPDATE signups SET discord_id = ? WHERE id = ?').bind([...hits][0], seat.id).run();
+          await stampSignupDiscordId(db, seat.id, [...hits][0] as string);
         }
       } else if (hits.size > 1) ambiguous++;
       else unmatched++;
