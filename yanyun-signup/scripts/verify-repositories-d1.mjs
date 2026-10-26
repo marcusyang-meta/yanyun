@@ -8,7 +8,7 @@
  * 实体定义镜像 (生产结构零变更, 这里只是本地验证夹具)。
  *
  * 用法: node scripts/verify-repositories-d1.mjs [section]
- *   section 省略 = 全部; 目前有 tenants / events / gear 三段,
+ *   section 省略 = 全部; 目前有 tenants / events / gear / users 四段,
  *   随数据层迁移进度增补。退出码非 0 = 有断言失败。
  * =================================================== */
 import { Miniflare, convertV4MiniflareOptions } from 'miniflare';
@@ -70,6 +70,24 @@ const DDL = [
      id INTEGER PRIMARY KEY AUTOINCREMENT, discord_id TEXT NOT NULL,
      name TEXT NOT NULL DEFAULT '', target_idx INTEGER NOT NULL DEFAULT 0,
      payload TEXT NOT NULL DEFAULT '{}', created_at INTEGER NOT NULL DEFAULT 0)`,
+  `CREATE TABLE users (
+     discord_id TEXT PRIMARY KEY, username TEXT NOT NULL DEFAULT '',
+     avatar TEXT NOT NULL DEFAULT '', guilds_json TEXT NOT NULL DEFAULT '[]',
+     guilds_checked_at INTEGER NOT NULL DEFAULT 0,
+     created_at TEXT NOT NULL DEFAULT (strftime('%s','now')),
+     updated_at TEXT NOT NULL DEFAULT (strftime('%s','now')), locale_pref TEXT)`,
+  `CREATE TABLE user_oauth (
+     discord_id TEXT PRIMARY KEY, refresh_token TEXT NOT NULL DEFAULT '',
+     scope TEXT NOT NULL DEFAULT '', refresh_state TEXT NOT NULL DEFAULT 'ok',
+     last_refresh_at INTEGER NOT NULL DEFAULT 0, updated_at INTEGER NOT NULL DEFAULT 0)`,
+  `CREATE TABLE user_guild_nicks (
+     discord_id TEXT NOT NULL, guild_id TEXT NOT NULL,
+     nick TEXT NOT NULL DEFAULT '', updated_at INTEGER NOT NULL DEFAULT 0,
+     PRIMARY KEY (discord_id, guild_id))`,
+  `CREATE TABLE guild_members (
+     tenant TEXT NOT NULL, discord_id TEXT NOT NULL,
+     nick TEXT NOT NULL DEFAULT '', global_name TEXT NOT NULL DEFAULT '',
+     updated_at INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (tenant, discord_id))`,
 ];
 for (const ddl of DDL) await db.prepare(ddl).run();
 
@@ -345,6 +363,76 @@ if (want('gear')) {
   check('gearstore listGearBuilds maps payload', gbList.length === 1 && gbList[0].buildLabel === '裂石钧'
     && gbList[0].targetIdx === 1 && gbList[0].gradDingyinOn === true);
   eq('gearstore deleteGearBuildRow', await store.deleteGearBuildRow(db, 'U9', gb.id), true);
+}
+
+/* ---------------- users / oauth / nicks ---------------- */
+if (want('users')) {
+  console.log('== users repository on real D1 ==');
+  const repo = await import('../src/db/repositories/users.ts');
+
+  // 懒 DDL 本体在真 D1 上可执行 (表已由夹具建好, IF NOT EXISTS 幂等)
+  await repo.ensureUsersTable(db);
+  await repo.ensureUsersLocaleColumn(db);
+  await repo.ensureNickStoreTables(db);
+  check('lazy DDL ensures execute on real D1', true);
+
+  await repo.upsertUserOnLogin(db, {
+    discordId: 'U1', username: '全局甲', avatar: 'a.png',
+    guildsJson: '[{"id":"G1","name":"服一"}]', checkedAtSec: 111,
+  });
+  await repo.upsertUserOnLogin(db, {
+    discordId: 'U1', username: '全局甲改', avatar: 'b.png',
+    guildsJson: '[{"id":"G1"},{"id":"G2"}]', checkedAtSec: 222,
+  });
+  await repo.upsertUserOnLogin(db, {
+    discordId: 'U2', username: '全局乙', avatar: '', guildsJson: '[]', checkedAtSec: 100,
+  });
+  const nameRow = await repo.getUsernameRow(db, 'U1');
+  eq('upsertUserOnLogin conflict updates username', nameRow && nameRow.username, '全局甲改');
+  eq('getUsernameRow missing -> null', await repo.getUsernameRow(db, 'nope'), null);
+  eq('getUserGuildsJson updated', await repo.getUserGuildsJson(db, 'U1'), '[{"id":"G1"},{"id":"G2"}]');
+  eq('getUserGuildsJson missing -> null', await repo.getUserGuildsJson(db, 'nope'), null);
+  const dir = await repo.listUsersDirectory(db);
+  eq('listUsersDirectory both users', dir.map((r) => r.discord_id).sort(), ['U1', 'U2']);
+  check('listUsersDirectory shape', dir.every((r) => 'username' in r && 'guilds_json' in r));
+
+  eq('locale pref default null', await repo.getUserLocalePref(db, 'U1'), null);
+  await repo.setUserLocalePref(db, 'U1', 'en');
+  eq('setUserLocalePref roundtrip', await repo.getUserLocalePref(db, 'U1'), 'en');
+  await repo.setUserLocalePref(db, 'U1', null);
+  eq('setUserLocalePref back to null', await repo.getUserLocalePref(db, 'U1'), null);
+
+  await repo.upsertOAuthOnLogin(db, { discordId: 'U1', refreshToken: 'rt1', scope: 'identify guilds', nowSec: 1000 });
+  let grant = await repo.getOAuthGrant(db, 'U1');
+  check('upsertOAuthOnLogin state ok', !!grant && grant.refresh_token === 'rt1' && grant.refresh_state === 'ok');
+  await repo.markOAuthNeedsRelogin(db, 'U1', 1001);
+  grant = await repo.getOAuthGrant(db, 'U1');
+  eq('markOAuthNeedsRelogin', grant && grant.refresh_state, 'needs_relogin');
+  await repo.updateOAuthAfterRefresh(db, 'U1', { refreshToken: 'rt2', scope: 'identify guilds guilds.members.read', nowSec: 1002 });
+  const refresh = await repo.getOAuthRefresh(db, 'U1');
+  check('updateOAuthAfterRefresh rotates token + resets state',
+    !!refresh && refresh.refresh_token === 'rt2' && refresh.refresh_state === 'ok');
+  eq('getOAuthGrant missing -> null', await repo.getOAuthGrant(db, 'nope'), null);
+
+  await repo.upsertNick(db, 'U1', 'G1', '服内甲', 500);
+  await repo.upsertNick(db, 'U1', 'G1', '服内甲二', 600);
+  await repo.upsertNick(db, 'U1', 'G2', '另一服', 500);
+  await repo.upsertNick(db, 'U2', 'G1', '服内乙', 500);
+  const nick = await repo.getNickRow(db, 'U1', 'G1');
+  eq('upsertNick conflict updates nick', nick && nick.nick, '服内甲二');
+  eq('getNickRow missing -> null', await repo.getNickRow(db, 'U1', 'GX'), null);
+  await repo.touchNick(db, 'U1', 'G1', 700);
+  const nick2 = await repo.getNickRow(db, 'U1', 'G1');
+  eq('touchNick keeps nick', nick2 && nick2.nick, '服内甲二');
+  await repo.touchNick(db, 'U3', 'G1', 700);
+  const nick3 = await repo.getNickRow(db, 'U3', 'G1');
+  eq('touchNick inserts empty snapshot', nick3 && nick3.nick, '');
+  const byUser = await repo.listNickRowsByUser(db, 'U1');
+  eq('listNickRowsByUser', byUser.map((r) => r.guild_id).sort(), ['G1', 'G2']);
+  const byGuild = await repo.listNicksByGuild(db, 'G1');
+  eq('listNicksByGuild', byGuild.map((r) => r.discord_id).sort(), ['U1', 'U2', 'U3']);
+  const allNicks = await repo.listAllNicks(db);
+  eq('listAllNicks count', allNicks.length, 4);
 }
 
 await mf.dispose();

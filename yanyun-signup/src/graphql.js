@@ -19,6 +19,7 @@ import { translate, negotiateLocale, SUPPORTED_LOCALES, CATALOG } from './i18n.j
 import { logError } from './errorlog.js';
 import { getGuildAvatarMeta, avatarPath } from './guildavatar.ts';
 import { getSettingValue, setSettingValue, listSettingsByKey } from './db/repositories/settings.ts';
+import { getUsernameRow } from './db/repositories/users.ts';
 import {
   getTenantRow, getTenantSlug, listTenantSlugs, listTenantsDirectory, insertTenant,
 } from './db/repositories/tenants.ts';
@@ -641,8 +642,7 @@ export function ensureEventCreatorColumn(db) {
 // 某 discord 用户在某服务器语境下的身份名集合 (全局名 + 该服昵称)
 async function identityNamesFor(db, discordId, dgid) {
   const names = new Set();
-  const u = await db.prepare('SELECT username FROM users WHERE discord_id = ?')
-    .bind(String(discordId)).first().catch(() => null);
+  const u = await getUsernameRow(db, String(discordId)).catch(() => null);
   if (u && String(u.username || '').trim()) names.add(String(u.username).trim());
   if (dgid) {
     const nick = await getGuildNick(db, String(discordId), dgid).catch(() => null);
@@ -673,8 +673,7 @@ async function canonicalSignupName(db, user, slug) {
     const nick = await getGuildNick(db, String(user.discordId), dgid).catch(() => null);
     if (nick && String(nick).trim()) return String(nick).trim();
   }
-  const u = await db.prepare('SELECT username FROM users WHERE discord_id = ?')
-    .bind(String(user.discordId)).first().catch(() => null);
+  const u = await getUsernameRow(db, String(user.discordId)).catch(() => null);
   if (u && String(u.username || '').trim()) return String(u.username).trim();
   return String(user.name || '').trim();
 }
@@ -698,8 +697,7 @@ function touchGuildRoster(ctx, access) {
         if (n) nick = String(n).trim();
       }
       let globalName = String(user.name || '').trim();
-      const u = await db.prepare('SELECT username FROM users WHERE discord_id = ?')
-        .bind(String(user.discordId)).first().catch(() => null);
+      const u = await getUsernameRow(db, String(user.discordId)).catch(() => null);
       if (u && String(u.username || '').trim()) globalName = String(u.username).trim();
       await ensureGuildMembersTable(db);
       await upsertGuildMember(db, slug, user.discordId, nick, globalName);

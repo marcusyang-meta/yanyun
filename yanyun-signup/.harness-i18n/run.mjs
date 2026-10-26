@@ -42,6 +42,8 @@ users.set('2001', { locale_pref: null });
 users.set('2002', { locale_pref: 'zh-CN' });
 const tenants = [{ slug: 'livetest', guild_name: '测试百业', slogan: '', announcement: '', discord_guild_id: '', created_at: 1 }];
 function stmt(sql) {
+  // 数据层 (Drizzle) SQL 规范化: 去引号 (仅路由匹配, 与 identity 套件同口径)
+  sql = sql.replace(/"/g, '');
   const q = {
     _binds: [], bind(...a) { this._binds = a; return this; },
     async raw() { const res = await this.all(); return toRawRows(sql, (res && res.results) || []); },
@@ -52,6 +54,8 @@ function stmt(sql) {
       return null;
     },
     async all() {
+      // 数据层点查走 .all() 通道 (drizzle db.get): users.locale_pref 读
+      if (sql.includes('SELECT locale_pref FROM users')) { const u = users.get(String(q._binds[0])); return { results: u ? [{ locale_pref: u.locale_pref }] : [] }; }
       if (sql.includes('FROM tenants')) return { results: tenants };
       return { results: [] };
     },
