@@ -29,6 +29,9 @@ import {
 import {
   getTenantRow, getTenantSlug, listTenantSlugs, listTenantsDirectory, listTenantsHubAdmin,
   updateTenantWebhook, updateTenantProfile, updateTenantFixedTeams, deleteTenantCascade,
+  listFixedTeams, listFixedTeamMembers, insertFixedTeam, getFixedTeamIdForTenant,
+  updateFixedTeamFields, deleteFixedTeamWithMembers, insertFixedTeamMember,
+  getFixedTeamMemberIdOwned, updateFixedTeamMemberFields, deleteFixedTeamMemberById,
 } from './domains/guilds/index.ts';
 import {
   getEventRow, getEventRowByTenant, getEventIdByTenant, getEventIdStatusByTenant,
@@ -1041,14 +1044,9 @@ guild.get('/:slug/schools/:schoolSlug/rotations', async (c) => {
 // GET /api/:slug/fixed-teams 固定队列表(含队员, 公开)
 guild.get('/:slug/fixed-teams', async (c) => {
   const slug = c.get('slug');
-  const { results: teams } = await c.env.DB.prepare(
-    'SELECT id, name, description FROM fixed_teams WHERE tenant = ? ORDER BY id ASC'
-  ).bind(slug).all();
+  const teams = await listFixedTeams(c.env.DB, slug);
   for (const t of teams) {
-    const { results: members } = await c.env.DB.prepare(
-      'SELECT id, nickname, weapon, role, note FROM fixed_team_members WHERE team_id = ? ORDER BY sort_order ASC, id ASC'
-    ).bind(t.id).all();
-    t.members = members;
+    t.members = await listFixedTeamMembers(c.env.DB, t.id);
   }
   return json({ ok: true, teams });
 });
@@ -1069,10 +1067,8 @@ guild.post('/:slug/fixed-teams', async (c) => {
   if (body.website) return json({ ok: true, id: 0 });
   const name = s(body.name, 30);
   if (!name) return err('队伍名不能为空', 400);
-  const r = await c.env.DB.prepare(
-    'INSERT INTO fixed_teams (tenant, name, description) VALUES (?, ?, ?)'
-  ).bind(slug, name, s(body.description, 200)).run();
-  return json({ ok: true, id: r.meta.last_row_id });
+  const r = await insertFixedTeam(c.env.DB, { tenant: slug, name, description: s(body.description, 200) });
+  return json({ ok: true, id: r.last_row_id });
 });
 
 // GET /api/:slug/events?type=&from=&to= (from/to 为 UTC unix 秒, 本周视图用)
@@ -1671,10 +1667,8 @@ guild.post('/:slug/admin/fixed-teams', needGuildAdmin, async (c) => {
   const body = await getBody(c);
   const name = s(body.name, 30);
   if (!name) return err('队伍名不能为空', 400);
-  const r = await c.env.DB.prepare(
-    'INSERT INTO fixed_teams (tenant, name, description) VALUES (?, ?, ?)'
-  ).bind(slug, name, s(body.description, 200)).run();
-  return json({ ok: true, id: r.meta.last_row_id });
+  const r = await insertFixedTeam(c.env.DB, { tenant: slug, name, description: s(body.description, 200) });
+  return json({ ok: true, id: r.last_row_id });
 });
 
 // PUT /api/:slug/admin/fixed-teams/:id 更新固定队
@@ -1682,26 +1676,22 @@ guild.put('/:slug/admin/fixed-teams/:id', needGuildAdmin, async (c) => {
   const slug = c.get('slug');
   const body = await getBody(c);
   const id = parseInt(c.req.param('id'), 10);
-  const own = await c.env.DB.prepare('SELECT id FROM fixed_teams WHERE id = ? AND tenant = ?').bind(id, slug).first();
+  const own = await getFixedTeamIdForTenant(c.env.DB, id, slug);
   if (!own) return err('队伍不存在', 404);
-  const fields = [], params = [];
-  if (body.name !== undefined) { fields.push('name = ?'); params.push(s(body.name, 30)); }
-  if (body.description !== undefined) { fields.push('description = ?'); params.push(s(body.description, 200)); }
-  if (!fields.length) return err('没有要更新的字段', 400);
-  params.push(id);
-  await c.env.DB.prepare(`UPDATE fixed_teams SET ${fields.join(', ')} WHERE id = ?`).bind(...params).run();
+  const patch = {};
+  if (body.name !== undefined) patch.name = s(body.name, 30);
+  if (body.description !== undefined) patch.description = s(body.description, 200);
+  if (!Object.keys(patch).length) return err('没有要更新的字段', 400);
+  await updateFixedTeamFields(c.env.DB, id, patch);
   return json({ ok: true });
 });
 
 // DELETE /api/:slug/admin/fixed-teams/:id 删除固定队
 guild.delete('/:slug/admin/fixed-teams/:id', needGuildAdmin, async (c) => {
   const id = parseInt(c.req.param('id'), 10);
-  const own = await c.env.DB.prepare('SELECT id FROM fixed_teams WHERE id = ? AND tenant = ?').bind(id, c.get('slug')).first();
+  const own = await getFixedTeamIdForTenant(c.env.DB, id, c.get('slug'));
   if (!own) return err('队伍不存在', 404);
-  await c.env.DB.batch([
-    c.env.DB.prepare('DELETE FROM fixed_team_members WHERE team_id = ?').bind(id),
-    c.env.DB.prepare('DELETE FROM fixed_teams WHERE id = ?').bind(id),
-  ]);
+  await deleteFixedTeamWithMembers(c.env.DB, id);
   return json({ ok: true });
 });
 
@@ -1710,16 +1700,16 @@ guild.post('/:slug/admin/fixed-teams/:id/members', needGuildAdmin, async (c) => 
   const slug = c.get('slug');
   const body = await getBody(c);
   const id = parseInt(c.req.param('id'), 10);
-  const own = await c.env.DB.prepare('SELECT id FROM fixed_teams WHERE id = ? AND tenant = ?').bind(id, slug).first();
+  const own = await getFixedTeamIdForTenant(c.env.DB, id, slug);
   if (!own) return err('队伍不存在', 404);
   const nickname = s(body.nickname, 30);
   if (!nickname) return err('游戏昵称不能为空', 400);
   const weapon = s(body.weapon, 40);
   const role = weapon === '牵丝·霖' ? '奶' : (ROLES.includes(body.role) ? body.role : '输出');
-  const r = await c.env.DB.prepare(
-    'INSERT INTO fixed_team_members (team_id, nickname, weapon, role, note, sort_order) VALUES (?, ?, ?, ?, ?, ?)'
-  ).bind(id, nickname, weapon, role, s(body.note, 100), parseInt(body.sort_order, 10) || 0).run();
-  return json({ ok: true, id: r.meta.last_row_id });
+  const r = await insertFixedTeamMember(c.env.DB, {
+    teamId: id, nickname, weapon, role, note: s(body.note, 100), sortOrder: parseInt(body.sort_order, 10) || 0,
+  });
+  return json({ ok: true, id: r.last_row_id });
 });
 
 // PUT /api/:slug/admin/fixed-teams/members/:mid 更新队员
@@ -1727,22 +1717,19 @@ guild.put('/:slug/admin/fixed-teams/members/:mid', needGuildAdmin, async (c) => 
   const slug = c.get('slug');
   const body = await getBody(c);
   const mid = parseInt(c.req.param('mid'), 10);
-  const own = await c.env.DB.prepare(
-    'SELECT m.id FROM fixed_team_members m JOIN fixed_teams t ON m.team_id = t.id WHERE m.id = ? AND t.tenant = ?'
-  ).bind(mid, slug).first();
+  const own = await getFixedTeamMemberIdOwned(c.env.DB, mid, slug);
   if (!own) return err('队员不存在', 404);
-  const fields = [], params = [];
-  if (body.nickname !== undefined) { fields.push('nickname = ?'); params.push(s(body.nickname, 30)); }
+  const patch = {};
+  if (body.nickname !== undefined) patch.nickname = s(body.nickname, 30);
   if (body.weapon !== undefined) {
     const w = s(body.weapon, 40);
-    fields.push('weapon = ?'); params.push(w);
-    fields.push('role = ?'); params.push(w === '牵丝·霖' ? '奶' : '输出');
+    patch.weapon = w;
+    patch.role = w === '牵丝·霖' ? '奶' : '输出';
   }
-  if (body.note !== undefined) { fields.push('note = ?'); params.push(s(body.note, 100)); }
-  if (body.sort_order !== undefined) { fields.push('sort_order = ?'); params.push(parseInt(body.sort_order, 10) || 0); }
-  if (!fields.length) return err('没有要更新的字段', 400);
-  params.push(mid);
-  await c.env.DB.prepare(`UPDATE fixed_team_members SET ${fields.join(', ')} WHERE id = ?`).bind(...params).run();
+  if (body.note !== undefined) patch.note = s(body.note, 100);
+  if (body.sort_order !== undefined) patch.sort_order = parseInt(body.sort_order, 10) || 0;
+  if (!Object.keys(patch).length) return err('没有要更新的字段', 400);
+  await updateFixedTeamMemberFields(c.env.DB, mid, patch);
   return json({ ok: true });
 });
 
@@ -1750,11 +1737,9 @@ guild.put('/:slug/admin/fixed-teams/members/:mid', needGuildAdmin, async (c) => 
 guild.delete('/:slug/admin/fixed-teams/members/:mid', needGuildAdmin, async (c) => {
   const slug = c.get('slug');
   const mid = parseInt(c.req.param('mid'), 10);
-  const own = await c.env.DB.prepare(
-    'SELECT m.id FROM fixed_team_members m JOIN fixed_teams t ON m.team_id = t.id WHERE m.id = ? AND t.tenant = ?'
-  ).bind(mid, slug).first();
+  const own = await getFixedTeamMemberIdOwned(c.env.DB, mid, slug);
   if (!own) return err('队员不存在', 404);
-  await c.env.DB.prepare('DELETE FROM fixed_team_members WHERE id = ?').bind(mid).run();
+  await deleteFixedTeamMemberById(c.env.DB, mid);
   return json({ ok: true });
 });
 

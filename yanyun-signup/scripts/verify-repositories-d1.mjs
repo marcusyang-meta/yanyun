@@ -8,7 +8,7 @@
  * 实体定义镜像 (生产结构零变更, 这里只是本地验证夹具)。
  *
  * 用法: node scripts/verify-repositories-d1.mjs [section]
- *   section 省略 = 全部; 目前有 tenants / events / gear / users / members / results / dex 七段,
+ *   section 省略 = 全部; 目前有 tenants / events / gear / users / members / results / dex / state 八段,
  *   随数据层迁移进度增补。退出码非 0 = 有断言失败。
  * =================================================== */
 import { Miniflare, convertV4MiniflareOptions } from 'miniflare';
@@ -117,6 +117,26 @@ const DDL = [
   `CREATE TABLE affix_max (
      affix_key TEXT PRIMARY KEY, name_cn TEXT NOT NULL,
      max_value REAL NOT NULL, unit TEXT DEFAULT '')`,
+  `CREATE TABLE heirloom_item_pushes (
+     tenant TEXT NOT NULL, discord_id TEXT NOT NULL,
+     build_sig TEXT NOT NULL, item_hash TEXT NOT NULL,
+     created_at INTEGER NOT NULL DEFAULT 0,
+     PRIMARY KEY (tenant, discord_id, build_sig, item_hash))`,
+  `CREATE TABLE heirloom_set_state (
+     tenant TEXT NOT NULL, discord_id TEXT NOT NULL,
+     build_sig TEXT NOT NULL, complete INTEGER NOT NULL DEFAULT 0,
+     updated_at INTEGER NOT NULL DEFAULT 0,
+     PRIMARY KEY (tenant, discord_id, build_sig))`,
+  `CREATE TABLE fixed_teams (
+     id INTEGER PRIMARY KEY AUTOINCREMENT, tenant TEXT NOT NULL,
+     name TEXT NOT NULL, description TEXT NOT NULL DEFAULT '',
+     created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')))`,
+  `CREATE TABLE fixed_team_members (
+     id INTEGER PRIMARY KEY AUTOINCREMENT,
+     team_id INTEGER NOT NULL REFERENCES fixed_teams(id) ON DELETE CASCADE,
+     nickname TEXT NOT NULL, weapon TEXT NOT NULL DEFAULT '',
+     role TEXT NOT NULL DEFAULT '', note TEXT NOT NULL DEFAULT '',
+     sort_order INTEGER NOT NULL DEFAULT 0)`,
 ];
 for (const ddl of DDL) await db.prepare(ddl).run();
 
@@ -600,6 +620,44 @@ if (want('reference')) {
   await db.prepare('INSERT INTO affix_max (affix_key, name_cn, max_value, unit) VALUES (?, ?, ?, ?)').bind('crit_rate', '会心', 50, '%').run();
   eq('listAffixMax ordered', (await ref.listAffixMax(db)).map((r) => r.affix_key), ['crit_rate', 'max_atk']);
   eq('listAffixMaxValues', (await ref.listAffixMaxValues(db)).length, 2);
+}
+
+/* ---------------- heirloom state + fixed teams ---------------- */
+if (want('state')) {
+  console.log('== heirloom state + fixed teams repositories on real D1 ==');
+  const hl = await import('../src/domains/gear/heirloom.ts');
+  const ft = await import('../src/domains/guilds/fixedTeams.ts');
+
+  await hl.ensureHeirloomTables(db);
+  await hl.insertHeirloomItemPush(db, { tenant: 'g1', discordId: 'U1', buildSig: '校|套', itemHash: 'h1', createdAt: 100 });
+  await hl.insertHeirloomItemPush(db, { tenant: 'g1', discordId: 'U1', buildSig: '校|套', itemHash: 'h1', createdAt: 101 });
+  await hl.insertHeirloomItemPush(db, { tenant: 'g1', discordId: 'U1', buildSig: '校|套', itemHash: 'h2', createdAt: 102 });
+  eq('item pushes dedupe via OR IGNORE', (await hl.listPushedItemHashes(db, 'g1', 'U1', '校|套')).sort(), ['h1', 'h2']);
+  eq('item pushes scoped by build sig', await hl.listPushedItemHashes(db, 'g1', 'U1', '别|套'), []);
+  eq('set state missing -> null', await hl.getHeirloomSetState(db, 'g1', 'U1', '校|套'), null);
+  await hl.upsertHeirloomSetState(db, { tenant: 'g1', discordId: 'U1', buildSig: '校|套', complete: 1, updatedAt: 200 });
+  eq('set state upsert insert', (await hl.getHeirloomSetState(db, 'g1', 'U1', '校|套'))?.complete, 1);
+  await hl.upsertHeirloomSetState(db, { tenant: 'g1', discordId: 'U1', buildSig: '校|套', complete: 0, updatedAt: 201 });
+  eq('set state upsert conflict updates', (await hl.getHeirloomSetState(db, 'g1', 'U1', '校|套'))?.complete, 0);
+
+  const t1 = await ft.insertFixedTeam(db, { tenant: 'g1', name: '固定一队', description: 'd' });
+  const t2 = await ft.insertFixedTeam(db, { tenant: 'g2', name: '别业队', description: '' });
+  check('insertFixedTeam ids', t1.last_row_id > 0 && t2.last_row_id > t1.last_row_id);
+  eq('listFixedTeams tenant-scoped', (await ft.listFixedTeams(db, 'g1')).map((r) => r.name), ['固定一队']);
+  eq('team ownership probe wrong tenant', await ft.getFixedTeamIdForTenant(db, t1.last_row_id, 'g2'), null);
+  const m1 = await ft.insertFixedTeamMember(db, { teamId: t1.last_row_id, nickname: '队员甲', weapon: '牵丝·霖', role: '奶', note: '', sortOrder: 2 });
+  const m2 = await ft.insertFixedTeamMember(db, { teamId: t1.last_row_id, nickname: '队员乙', weapon: '', role: '输出', note: '', sortOrder: 1 });
+  eq('listFixedTeamMembers ordered', (await ft.listFixedTeamMembers(db, t1.last_row_id)).map((r) => r.nickname), ['队员乙', '队员甲']);
+  eq('member ownership probe', (await ft.getFixedTeamMemberIdOwned(db, m1.last_row_id, 'g1'))?.id, m1.last_row_id);
+  eq('member ownership probe wrong tenant', await ft.getFixedTeamMemberIdOwned(db, m1.last_row_id, 'g2'), null);
+  await ft.updateFixedTeamFields(db, t1.last_row_id, { name: '改名队' });
+  eq('updateFixedTeamFields', (await ft.listFixedTeams(db, 'g1'))[0].name, '改名队');
+  await ft.updateFixedTeamMemberFields(db, m2.last_row_id, { role: '奶' });
+  eq('updateFixedTeamMemberFields', (await ft.listFixedTeamMembers(db, t1.last_row_id))[0].role, '奶');
+  eq('deleteFixedTeamMemberById', (await ft.deleteFixedTeamMemberById(db, m2.last_row_id)).changes, 1);
+  await ft.deleteFixedTeamWithMembers(db, t1.last_row_id);
+  eq('deleteFixedTeamWithMembers removes team', await ft.listFixedTeams(db, 'g1'), []);
+  eq('deleteFixedTeamWithMembers removes members', await ft.listFixedTeamMembers(db, t1.last_row_id), []);
 }
 
 await mf.dispose();
