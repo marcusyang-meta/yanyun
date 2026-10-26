@@ -26,9 +26,10 @@ export interface PickerGuild {
   avatarUrl?: string | null;
 }
 
-// 登录后落地页: 「我可用的百业」+「公开百业」
-// 两个列表都由后端按类型过滤好下发 (Guild=成员 / GuildReadOnly=公开只读),
-// 前端只负责渲染, 不拉全量数据自行筛选。
+// Post-login landing page: "guilds I can use" + "public guilds". Both lists
+// arrive pre-filtered by the backend by type (Guild = member / GuildReadOnly
+// = public read-only); the frontend only renders and never fetches the full
+// set to filter itself.
 export default function GuildPicker({
   user, guilds, publicGuilds, site, text, userBarText,
 }: {
@@ -87,7 +88,7 @@ export default function GuildPicker({
   return (
     <div className="yy-page">
       <header className="yy-hero" style={{ paddingTop: 8 }}>
-        {/* 用户条浮在山水图内右上角 (图从页面最顶端开始, 不再有割裂的黑色条) */}
+        {/* The user bar floats inside the hero at the top-right (the image starts at the very top of the page — no separate black bar) */}
         <div style={{
           position: 'absolute', top: 14, right: 20, zIndex: 3,
           background: 'rgba(12,11,9,.5)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',

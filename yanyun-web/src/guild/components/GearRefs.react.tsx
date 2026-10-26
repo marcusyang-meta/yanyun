@@ -78,8 +78,10 @@ function chip(active: boolean): React.CSSProperties {
   };
 }
 
-// 参考数据: 全流派配方表 / 词条满值承音对照表 / 部位版位表 / 公式与五维速查。
-// 嵌在毕业计算的「参考数据」区 (配装台口径, 与本站毕业词条口径并存)。
+// Reference data: all-sect recipe table / affix max-value tone table / slot
+// layout table / formulas and five-attribute quick reference. Embedded in the
+// graduation calculator's "reference data" section (gear-bench caliber,
+// coexisting with this site's graduation-affix caliber).
 export default function GearRefs() {
   const data = useLazyLoadQuery<GearRefsQueryType>(refsQuery, {});
   const t = data.gradPage;
@@ -229,7 +231,9 @@ const sectRecipesQuery = graphql`
   }
 `;
 
-// 流派页 BiS 区下方的 100 阶配方 (按本站流派名过滤): 「设为目标」切到配装台口径并跳到毕业页签。
+// Tier-100 recipes below the sect page's BiS section (filtered by this
+// site's sect name): "set as target" switches to the gear-bench caliber and
+// jumps to the graduation tab.
 export function GearSectRecipes({ sectName, onPicked }: { sectName: string; onPicked: () => void }) {
   const data = useLazyLoadQuery<GearSectRecipesQueryType>(sectRecipesQuery, {});
   const t = data.gradPage;

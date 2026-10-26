@@ -21,10 +21,12 @@ import type { GearLibraryImportMutation as ImportType } from './__generated__/Ge
 import type { GearLibrarySaveBuildMutation as SaveBuildType } from './__generated__/GearLibrarySaveBuildMutation.graphql.ts';
 import type { GearLibraryDeleteBuildMutation as DeleteBuildType } from './__generated__/GearLibraryDeleteBuildMutation.graphql.ts';
 
-/* 装备库 + 我的方案 (服务端 D1, 按 Discord 账号) 的唯一 UI 实现:
- * 配装台 (bench 模式, 带装备/模拟接线) 与 Profile 对话框 (profile 模式,
- * 纯管理 + 载入落到已存工作态) 共用。两处读写同一 GraphQL 查询/变更,
- * 打开时经 relay.ts 定向重取 GearLibraryQuery, 改动即时互通。 */
+/* The single UI implementation for the gear library + my builds (server D1,
+ * keyed by Discord account): shared by the gear bench (bench mode, with
+ * equip/simulate wiring) and the Profile dialog (profile mode, management
+ * only + loading lands in the saved work state). Both read/write the same
+ * GraphQL queries/mutations; opening either triggers a targeted
+ * GearLibraryQuery refetch via relay.ts, so changes propagate instantly. */
 
 const libraryQuery = graphql`
   query GearLibraryQuery {
@@ -339,19 +341,21 @@ export default function GearLibrary(props: {
   const loggedIn = !!data.viewer?.user;
   const [items, setItems] = useState<GearItem[]>(() => data.myGearItems.map(mapItem));
   const [builds, setBuilds] = useState<SavedBuild[]>(() => data.myGearBuilds.map(mapBuild));
-  // 已存工作态版本号: Profile 模式每次写已存搭配后 +1, 驱动「存为方案」
-  // 可用态重算 (工作态在 localStorage 里, 不是 React 状态)。
+  // Saved-work-state version counter: in profile mode it increments on every
+  // write to the saved build, driving recomputation of the "save as build"
+  // availability (the work state lives in localStorage, not React state).
   const [workTick, setWorkTick] = useState(0);
   const bumpWork = () => setWorkTick((n) => n + 1);
   useEffect(() => { setItems(data.myGearItems.map(mapItem)); }, [data.myGearItems]);
   useEffect(() => { setBuilds(data.myGearBuilds.map(mapBuild)); }, [data.myGearBuilds]);
   useEffect(() => { props.onItemsChange?.(items); }, [items]); // eslint-disable-line react-hooks/exhaustive-deps
-  // 打开即重取: 另一表面 (Profile/配装台) 的改动在打开时拉齐
+  // Refetch on open: changes from the other surface (Profile/bench) are pulled in at open time
   useEffect(() => { void refetchGearLibraryQueries(); }, []);
 
   const affixByKey = useMemo(() => new Map(t.gearAffixes.map((a) => [a.key, a])), [t.gearAffixes]);
-  // 任一变更落定后重取本查询: 另一同时挂载的表面 (对话框背后的配装台等)
-  // 随 store 更新即时同步, 不必等开关重取。
+  // Refetch this query after any mutation settles: another simultaneously
+  // mounted surface (e.g. the bench behind the dialog) syncs instantly via
+  // the store update, without waiting for an open/close refetch.
   const syncLibrary = () => { void refetchGearLibraryQueries(); };
   const loadout = props.loadout ?? {};
   const equippedPosOf = (id: number): string | null => {
@@ -359,7 +363,6 @@ export default function GearLibrary(props: {
     return null;
   };
 
-  /* ---------------- CRUD ---------------- */
   const [commitAdd] = useMutation<AddItemType>(addItemMutation);
   const [commitUpdate] = useMutation<UpdateItemType>(updateItemMutation);
   const [commitDelete] = useMutation<DeleteItemType>(deleteItemMutation);
@@ -419,7 +422,6 @@ export default function GearLibrary(props: {
     });
   };
 
-  /* ---------------- 录装表单 ---------------- */
   type FormState = {
     id: number | null; slot: string; name: string;
     rows: Array<{ key: string; val: string }>;
@@ -476,7 +478,6 @@ export default function GearLibrary(props: {
     }
   };
 
-  /* ---------------- 粘贴导入 / 文件 / 示例 / 清空 ---------------- */
   const [pasteText, setPasteText] = useState('');
   const [commitPaste] = useMutation<PasteType>(pasteMutation);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -580,7 +581,6 @@ export default function GearLibrary(props: {
     toast(t.gearClearedToast);
   };
 
-  /* ---------------- OCR ---------------- */
   const ocrMaps: OcrMaps = useMemo(() => ({
     pasteNames: t.gearPasteNames.map((r) => ({ name: r.name, key: r.key })),
     nameToClass: t.gearNameToClass.map((r) => ({ name: r.name, cls: r.cls })),
@@ -630,7 +630,8 @@ export default function GearLibrary(props: {
     });
     ocrZoneRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
-  // 批量截图识别子组件注册的入队口: 文档级粘贴的图片改走批量队列
+  // Enqueue port registered by the batch-recognition child component:
+  // document-level pasted images are routed to the batch queue instead
   const batchEnqueueRef = useRef<((files: Array<File | Blob>) => void) | null>(null);
   const registerBatchEnqueue = (fn: ((files: Array<File | Blob>) => void) | null) => {
     batchEnqueueRef.current = fn;
@@ -651,7 +652,8 @@ export default function GearLibrary(props: {
     return () => document.removeEventListener('paste', onPaste);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ocrMaps]);
-  // 配装台搭配格的「按部位导入」按钮经通道请求本组件打开 OCR (仅 bench 模式承接)
+  // The bench build cells' "import by slot" button requests this component to
+  // open OCR via the channel (handled in bench mode only)
   useEffect(() => {
     if (mode !== 'bench') return undefined;
     return onOcrSlotRequest((pos) => {
@@ -688,15 +690,16 @@ export default function GearLibrary(props: {
     });
   };
 
-  /* ---------------- 方案 ---------------- */
   const [schemeName, setSchemeName] = useState('');
   const [commitSaveBuild] = useMutation<SaveBuildType>(saveBuildMutation);
   const [commitDeleteBuild] = useMutation<DeleteBuildType>(deleteBuildMutation);
-  /* Profile 存方案: 已存工作态就是配装台下次打开读到的当前搭配 (原站
-   * 「存为方案」存的正是持久化的当前搭配)。按配装台 getBenchState 的
-   * 同一口径从它重建状态 (基础值按预设补全、弓取目标流派的已存选择),
-   * loadout 只取库里仍存在的装备位; 与配装台共用同一 saveGearBuild
-   * 变更, 落库形状无异。 */
+  /* Saving a build from Profile: the saved work state is exactly the current
+   * build the bench reads on its next open (the original's "save as build"
+   * stored precisely the persisted current build). Rebuild the state from it
+   * using the same caliber as the bench's getBenchState (base values filled
+   * from presets, bow taken from the target sect's saved choice); the loadout
+   * keeps only slots whose gear still exists in the library. It uses the same
+   * saveGearBuild mutation as the bench, so the persisted shape is identical. */
   const benchStateFromWork = (w: GearWorkState): GearBenchState => {
     const b = t.gearBuilds[w.targetIdx] || t.gearBuilds[0];
     const bowKind = (b && w.bowBySchool[b.school]) || (b ? b.bowKind : '') || '';
@@ -714,7 +717,7 @@ export default function GearLibrary(props: {
     Object.entries(w.loadout).forEach(([pos, gid]) => { if (ids.has(gid)) lo[pos] = gid; });
     return lo;
   };
-  // Profile 模式下已存搭配的件数 (0 = 还没拼: 存按钮禁用 + 显示指引文案)
+  // Item count of the saved build in profile mode (0 = nothing assembled yet: the save button is disabled and guidance copy is shown)
   const savedCompCount = useMemo(() => {
     if (mode !== 'profile') return 0;
     return Object.keys(savedCompOf(loadWorkState())).length;
@@ -781,10 +784,12 @@ export default function GearLibrary(props: {
   const libShown = items.filter((g) => !libFilter || g.slot === libFilter);
   const libHeading = mode === 'profile' ? t.gearMyLibTitle : t.gearLibTitle;
   const buildsHeading = mode === 'profile' ? t.gearMyBuildsTitle : t.gearSchemeTitle;
-  /* 方案按流派分组: 组序 = 后端配方目录里流派首次出现的顺序 (gearBuilds
-   * 顺序即目录顺序), 组内最新在前 (列表本身为保存序/ id 升序, 倒序入组);
-   * 无方案的流派不出现。school 来自
-   * GearSavedBuild.school (后端按 targetIdx 查目录), 前端不解析 label。 */
+  /* Builds grouped by sect: group order = the order sects first appear in
+   * the backend recipe catalog (gearBuilds order is catalog order); within a
+   * group, newest first (the list itself is in save order / id ascending, so
+   * it is fed in reversed). Sects with no builds don't appear. `school` comes
+   * from GearSavedBuild.school (the backend resolves it from targetIdx
+   * against the catalog); the frontend never parses labels. */
   const buildGroups = useMemo(() => {
     const catalogOrder: string[] = [];
     for (const gb of t.gearBuilds) if (!catalogOrder.includes(gb.school)) catalogOrder.push(gb.school);
@@ -1063,7 +1068,6 @@ export default function GearLibrary(props: {
         })}
       </div>
 
-      {/* ---------- 方案 ---------- */}
       <div style={{ ...secTitle, marginTop: 18 }}>{buildsHeading}</div>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
         <input style={{ ...inp, width: 'auto', flex: '1 1 180px' }} value={schemeName}

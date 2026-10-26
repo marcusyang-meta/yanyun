@@ -23,11 +23,11 @@ function TabFallback() {
 export interface GuildHomeNode {
   name?: string | null;
   gameVersion: string;
-  // 百业自定义头像 (后端 avatarUrl 字段; 无头像为 null, 页眉回退现状)
+  // Guild's custom avatar (backend avatarUrl field; null when unset)
   avatarUrl?: string | null;
-  // 当前用户在该百业绑定服务器的昵称 (后端下发; 无/未绑定为 null)
+  // The current user's nickname in this guild's bound server (backend-sent; null when none/unbound)
   viewerNick?: string | null;
-  // 主页外壳文案 (后端 Guild/GuildReadOnly 文案字段下发)
+  // Home shell copy (backend Guild/GuildReadOnly text fields)
   homeBackToHubLabel: string;
   homeTabTeamLabel: string;
   homeTabDexLabel: string;
@@ -36,8 +36,10 @@ export interface GuildHomeNode {
   detailBackToListLabel: string;
 }
 
-// 百业主页外壳 (成员版 / 公开只读版共用): 头部 + 标签页 + 车队详情直链展开。
-// interactive=false 时不挂载任何写入口 (发车/报名/编辑组件树根本不渲染)。
+// Guild home shell (shared by the member and public read-only variants):
+// header + tabs + direct-link expansion of a grouping detail. With
+// interactive=false no write entry is mounted at all (the create/signup/edit
+// component trees are never rendered).
 export default function GuildHome({ node, slug, carId, user, userBarText, interactive, banner }: {
   node: GuildHomeNode;
   slug: string;
@@ -54,8 +56,9 @@ export default function GuildHome({ node, slug, carId, user, userBarText, intera
   ] as const;
   const [activeTab, setActiveTab] = useState<string>('team');
   const navigate = useNavigate();
-  // 顶栏在百业语境显示服务器昵称 (有才换, 全局语境仍是全局名);
-  // 表单/落座预填: 服务器昵称优先, 回退全局名。
+  // In a guild context the top bar shows the server nickname (only when one
+  // exists; the global context keeps the global name). Form/seat prefill:
+  // server nickname first, falling back to the global name.
   const barUser = node.viewerNick ? { ...user, name: node.viewerNick } : user;
   const defaultNickname = node.viewerNick || user.name || '';
 
@@ -96,7 +99,7 @@ export default function GuildHome({ node, slug, carId, user, userBarText, intera
           )}
         </header>
 
-        {/* 可分享的车详情直链 /:slug/car/:id：直接展开该车详情 */}
+        {/* Shareable grouping-detail deep link /:slug/car/:id: expand that grouping's detail directly */}
         {carId ? (
           <div className="yy-tabpanel" style={{ paddingBottom: 40 }}>
             <Suspense fallback={<TabFallback />}>

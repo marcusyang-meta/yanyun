@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { theme } from '../../lib/format';
 
-// 模块级 toast 单例：toast('消息')
 let pushToast: ((msg: string, ms?: number) => void) | null = null;
 export function toast(msg: string, ms = 2500) {
   if (pushToast) pushToast(msg, ms);
@@ -43,7 +42,7 @@ export function ToastHost() {
   );
 }
 
-// 自定义确认弹窗（替代系统 confirm）; portal 到 body, 桌面/移动均居中
+// Custom confirm dialog (replaces the system confirm); portaled to body, centered on desktop and mobile
 export function ConfirmDialog({ title, message, onOk, onCancel, okLabel, cancelLabel }: {
   title: string; message: string; onOk: () => void; onCancel: () => void;
   okLabel: string; cancelLabel: string;

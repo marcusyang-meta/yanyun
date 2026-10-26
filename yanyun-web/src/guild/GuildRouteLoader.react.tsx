@@ -14,8 +14,9 @@ function GuildFallback() {
   );
 }
 
-// /:slug 与 /:slug/car/:carId 路由: 参数变化时 (重新) 加载 guild entrypoint,
-// 旧 entrypoint 引用在 cleanup 中 dispose, 避免预加载数据泄漏进 store 常驻。
+// For the /:slug and /:slug/car/:carId routes: (re)load the guild entrypoint
+// when the params change, and dispose the old entrypoint reference in cleanup
+// so preloaded data doesn't leak into the store permanently.
 export default function GuildRouteLoader() {
   const { slug, carId } = useParams();
   const environment = useRelayEnvironment();

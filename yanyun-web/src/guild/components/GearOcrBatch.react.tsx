@@ -8,10 +8,12 @@ import {
 import { toast } from './Toast.react.tsx';
 import type { GearLibraryQuery$data as GearLibraryQueryData } from './__generated__/GearLibraryQuery.graphql.ts';
 
-/* 批量截图识别: 多图排队 (选图/拖放/粘贴) -> 逐张本地识别 (自动框选面板,
- * 找不到回退整图) -> 一行一图批量核对 (可改部位/词条/定音, 低置信与未识别
- * 内容标红, 重复件默认不导入) -> 一次「全部导入」走与粘贴导入相同的
- * importGearItems 持久化路径。图片全程只在浏览器内, 不上传。 */
+/* Batch screenshot recognition: queue multiple images (pick/drop/paste) ->
+ * recognize each locally (auto-frame the panel, fall back to the whole image)
+ * -> review one row per image in bulk (slot/affixes/dingyin editable;
+ * low-confidence and unrecognized content marked red; duplicates excluded
+ * from import by default) -> one "import all" through the same importGearItems
+ * persistence path as paste import. Images never leave the browser. */
 
 type GradPage = GearLibraryQueryData['gradPage'];
 type LineRow = { key: string; val: string; conf?: number; seg?: string };
@@ -77,7 +79,8 @@ function rowKey(r: BatchRow): string {
   );
 }
 
-/* 框选调整器: 在原图上拖动/缩放/重画框, 按此框重新识别 (简单裁框, 非编辑器) */
+/* Frame adjuster: drag/resize/redraw the box on the original image and
+ * re-recognize with that box (a simple crop box, not an editor) */
 function BatchAdjuster(props: {
   url: string; imgW: number; imgH: number; box: PanelBox | null;
   applyLabel: string;
@@ -85,8 +88,9 @@ function BatchAdjuster(props: {
 }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const [edit, setEditState] = useState<PanelBox | null>(props.box);
-  // 拖动中的框同时存 ref: 连续指针事件可能快于 React 渲染flush,
-  // move/resize 读 ref 而非闭包里的旧 state, 快速拖动不丢步。
+  // The in-drag box is also kept in a ref: pointer events can arrive faster
+  // than React flushes renders, so move/resize read the ref instead of stale
+  // state captured in a closure — fast drags don't lose steps.
   const editRef = useRef<PanelBox | null>(props.box);
   const setEdit = (b: PanelBox | null) => { editRef.current = b; setEditState(b); };
   const dragRef = useRef<{ mode: 'move' | 'resize' | 'draw'; dx: number; dy: number; sx: number; sy: number } | null>(null);
@@ -274,7 +278,8 @@ export default function GearOcrBatch(props: {
     }
   };
 
-  // 重复判定: 实时按当前编辑内容算 (先库内、再行间先到者), 改任意一行即时刷新
+  // Duplicate detection: computed live from the current edits (library first,
+  // then first-wins among rows); editing any row refreshes it immediately
   const dupOf = (r: BatchRow, idx: number): 'lib' | 'row' | null => {
     if (r.status !== 'ready') return null;
     const k = rowKey(r);

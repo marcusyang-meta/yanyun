@@ -12,8 +12,6 @@ function LegalFallback() {
   );
 }
 
-// /terms 与 /privacy 路由: kind 固定随路由, 预加载 legalPage 查询后交给
-// LegalPage 根组件渲染 (与 GuildRouteLoader 同一套 entrypoint 装配)。
 export default function LegalRoute({ kind }: { kind: 'TERMS' | 'PRIVACY' }) {
   const environment = useRelayEnvironment();
   const provider = useMemo(() => ({ getEnvironment: () => environment }), [environment]);

@@ -4,7 +4,8 @@ import type { UserBarText } from '../../auth/UserBar.react';
 import type { PublicGuildHome_guild$key } from './__generated__/PublicGuildHome_guild.graphql';
 import GuildHome from './GuildHome.react.tsx';
 
-// 未绑定百业的公开主页 (@match 分支): 只读, 不挂载任何写入口组件。
+// Public home for an unbound guild (@match branch): read-only, mounts no
+// write-entry components.
 const PublicGuildHome_guild = graphql`
   fragment PublicGuildHome_guild on GuildReadOnly {
     slug

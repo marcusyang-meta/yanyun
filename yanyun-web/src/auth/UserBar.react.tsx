@@ -9,14 +9,14 @@ export interface UserBarText {
   settingsLabel: string;
 }
 
-// 顶部用户条: 头像 + 昵称 + 退出登录 (展示组件, 不参与任何权限判断)
-// 文案由后端 viewer 文案字段下发 (text prop)。
+// Top user bar (display component; it makes no permission judgments). Copy
+// arrives via the text prop from backend viewer text fields.
 export default function UserBar({ user, text }: { user: ViewerUser; text: UserBarText }) {
   const [leaving, setLeaving] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const logout = async () => {
     setLeaving(true);
-    try { await fetch('/auth/logout', { method: 'POST' }); } catch { /* 无论成败都回登录页 */ }
+    try { await fetch('/auth/logout', { method: 'POST' }); } catch { /* navigate back to the login page either way */ }
     window.location.href = '/';
   };
   return (

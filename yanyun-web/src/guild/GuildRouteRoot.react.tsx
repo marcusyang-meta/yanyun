@@ -7,10 +7,11 @@ import type { GuildRouteQuery as GuildRouteQueryType } from './__generated__/Gui
 import type { GuildRouteRoot_viewer$key } from './__generated__/GuildRouteRoot_viewer.graphql';
 import { theme } from '../lib/format';
 
-// 数据根 = viewer.guild(slug): 响应类型即权限结论 (server 3D)。
-// GuildRouteRoot_viewer 是 @match fragment: 三个分支各经 @module 绑定一个
-// JSResource 组件模块, 由 MatchContainer 按服务端响应结构选模块渲染 ——
-// 客户端没有 __typename 开关, 也没有任何权限 flag。
+// Data root = viewer.guild(slug): the response type is the permission
+// conclusion (server 3D). GuildRouteRoot_viewer is a @match fragment: each of
+// the three branches binds a JSResource component module via @module, and
+// MatchContainer picks the module by the server response's structure — the
+// client has no __typename switch and no permission flags.
 const GuildRouteQueryNode = graphql`
   query GuildRouteQuery($slug: String!) {
     viewer {

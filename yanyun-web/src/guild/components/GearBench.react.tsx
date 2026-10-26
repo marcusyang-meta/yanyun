@@ -12,9 +12,11 @@ import type { GearBenchQuery as GearBenchQueryType } from './__generated__/GearB
 import type { GearBenchPlanMutation as PlanType } from './__generated__/GearBenchPlanMutation.graphql.ts';
 import type { GearBenchAutoMutation as AutoType } from './__generated__/GearBenchAutoMutation.graphql.ts';
 
-/* 配装台 (bench): 目标/固定源/搭配/面板/毕业度在本组件; 装备库与方案的
- * 数据与管理 UI 在 GearLibrary (与 Profile 对话框共用同一实现与同一
- * GraphQL 存储)。库内容经 onItemsChange 镜像进来供 plan 计算。 */
+/* Gear bench: target/fixed sources/build/panel/graduation live in this
+ * component; the gear library and builds' data and management UI live in
+ * GearLibrary (the same implementation and GraphQL storage the Profile dialog
+ * shares). Library contents are mirrored in via onItemsChange for plan
+ * computation. */
 
 const benchQuery = graphql`
   query GearBenchQuery {
@@ -192,8 +194,10 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
 
   const [plan, setPlan] = useState<Plan | null>(null);
   const [commitPlan] = useMutation<PlanType>(planMutation);
-  /* GearItemInput 只收 id/slot/name/lines/dingyin/schools: GearItem 上的
-   * warnings 是展示字段, 原样透传会被 GraphQL 以未知字段拒绝 (plan 永远回不来)。 */
+  /* GearItemInput accepts only id/slot/name/lines/dingyin/schools: GearItem's
+   * warnings is a display field, and passing it through verbatim gets the
+   * whole request rejected by GraphQL as an unknown field (the plan never
+   * comes back). */
   const libInput = useMemo(() => items.map((g) => ({
     id: g.id, slot: g.slot, name: g.name,
     lines: g.lines.map((l) => ({ key: l.key, val: l.val })),
@@ -243,8 +247,10 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
   const libById = useMemo(() => new Map(items.map((g) => [g.id, g])), [items]);
   const positions = t.gearSlots;
 
-  /* 集齐庆祝 (原站第 30 节): 8 个部位全是传家宝时, 在「未齐 -> 集齐」
-   * 跃迁时从毕业度分数处撒一次大粉; 破齐再集齐可再触发。 */
+  /* Set-completion celebration (the original's section 30): when all 8
+   * slots are heirlooms, fire one large burst from the graduation score on
+   * the incomplete -> complete transition; breaking and re-completing the
+   * set re-triggers it. */
   const scoreRef = useRef<HTMLElement | null>(null);
   const partyRef = useRef(createHeirloomParty());
   useEffect(() => {
@@ -273,7 +279,6 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
     patchWork({ loadout: lo });
   };
 
-  /* ---------------- GearLibrary 接线 ---------------- */
   const onItemDeleted = (id: number) => {
     setWork((w) => {
       const lo = { ...w.loadout };
@@ -317,7 +322,6 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
     }));
   };
 
-  /* ---------------- 一键最优 ---------------- */
   const [commitAuto, autoBusy] = useMutation<AutoType>(autoMutation);
   const runAuto = () => {
     commitAuto({
@@ -352,7 +356,6 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
     }
   };
 
-  /* ---------------- 渲染 ---------------- */
   const [unlocked, setUnlocked] = useState<ReadonlySet<string>>(new Set());
   const [pickerPos, setPickerPos] = useState<string | null>(null);
   const [confirmBase, setConfirmBase] = useState(false);
@@ -460,7 +463,7 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
         </div>
       </div>
 
-      {/* ---------- 装备库 + 方案 (与 Profile 共用 GearLibrary) ---------- */}
+      {/* Gear library + builds (the GearLibrary component shared with Profile) */}
       <div style={{ marginTop: 18 }}>
         <GearLibrary
           mode="bench"
@@ -481,7 +484,6 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
         />
       </div>
 
-      {/* ---------- 搭配 ---------- */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 18, flexWrap: 'wrap' }}>
         <span style={secTitle}>{t.gearLoadoutTitle}</span>
         <span style={{ flex: 1 }} />
@@ -536,7 +538,6 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
         })}
       </div>
 
-      {/* ---------- 面板 / 毕业度 ---------- */}
       {plan && grad && (
         <>
           <div style={{ ...secTitle, marginTop: 18 }}>{t.gearPanelTitle}</div>

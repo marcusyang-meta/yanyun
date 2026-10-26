@@ -8,17 +8,21 @@ import { useIsMobile } from '../lib/useIsMobile';
 import type { ViewerUser } from '../lib/user';
 import GearLibrary from '../guild/components/GearLibrary.react.tsx';
 
-// 个人资料 (Profile) 表面 (原「设置」改名重构): 桌面是 modal dialog
-// (portal 到 body, 复用 .yy-modal-* 体系), 移动宽度 (<=640px) 改为
-// pushPage 全屏推页。内容 = Discord 身份 + 语言偏好 (存服务端
-// users.locale_pref) + 我的装备库/我的方案 (GearLibrary, 与配装台共用
-// 同一实现与同一 D1 存储)。文案全部来自 settingsPage / gradPage 的
-// gen 字段。
+// Profile surface (renamed/reworked from the old "Settings"): a modal dialog
+// on desktop (portal to body, reusing the .yy-modal-* system); at mobile
+// widths (<=640px) it becomes a full-screen push page. Contents = Discord
+// identity + language preference (stored server-side in users.locale_pref) +
+// my gear library / my builds (GearLibrary — the same implementation and D1
+// storage the gear bench uses). All copy comes from settingsPage / gradPage
+// gen fields.
 //
-// 选中态: 控件选中值 = 本地点选覆写 ?? 查询数据。点击瞬间先落本地覆写
-// (控件立即反映), 保存成功后写镜像并触发语言切换重取 — 查询数据 (含
-// localePref 与全部文案) 在同一 store 内原地刷新, 服务端值与覆写一致
-// 后覆写自动撤除; 保存失败则撤覆写回滚到服务端真相并显示错误。
+// Selection state: the control's selected value = local pick override ??
+// query data. A click lands the local override first (the control reflects it
+// immediately); on save success the mirror is written and a locale-change
+// refetch fires — query data (localePref and all copy) refreshes in place in
+// the same store, and once the server value matches the override the override
+// is dropped automatically. On save failure the override is dropped,
+// rolling back to the server truth, and the error is shown.
 const SettingsDialogQueryNode = graphql`
   query SettingsDialogQuery {
     viewer {
@@ -92,12 +96,12 @@ function SettingsDialogInner({ onClose, user }: { onClose: () => void; user: Vie
   const [error, setError] = useState('');
   const [saved, setSaved] = useState(false);
 
-  // 对话框关闭 (卸载) 时重取装备库查询: 在 Profile 里对库/方案的改动
-  // 立即刷给背后可能开着的配装台 (同一 GearLibraryQuery, 同一 store)。
+  // Refetch the gear library query when the dialog closes (unmounts), so
+  // changes made here to the library/builds immediately reach a gear bench
+  // that may be open behind it (same GearLibraryQuery, same store).
   useEffect(() => () => { void refetchGearLibraryQueries(); }, []);
 
   const serverCurrent: string = page.localePref ?? 'AUTO';
-  // 服务端数据追上本地覆写后撤除覆写 (此后选中态由查询数据驱动)
   useEffect(() => {
     if (picked !== null && picked === serverCurrent) setPicked(null);
   }, [picked, serverCurrent]);
@@ -114,7 +118,7 @@ function SettingsDialogInner({ onClose, user }: { onClose: () => void; user: Vie
 
   const choose = (value: string) => {
     if (inFlight || value === current) return;
-    setPicked(value); // 控件立即反映点选, 不等服务端往返
+    setPicked(value);
     setError('');
     setSaved(false);
     commit({
@@ -122,8 +126,10 @@ function SettingsDialogInner({ onClose, user }: { onClose: () => void; user: Vie
       onCompleted: (resp: any) => {
         const payload = resp?.updateMyLocale;
         if (payload?.ok) {
-          // 先落镜像再发切换事件: relay 层随即按新语言重取全部已执行
-          // 查询 (含本对话框与整站文案), 界面原地切换, 无需刷新。
+          // Write the mirror before emitting the change event: the relay
+          // layer then refetches all executed queries in the new language
+          // (including this dialog's and the whole site's copy), switching
+          // the UI in place with no reload.
           writePrefMirror(payload.localePref ?? null);
           emitLocaleChanged();
           setSaved(true);

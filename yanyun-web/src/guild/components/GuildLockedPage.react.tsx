@@ -5,8 +5,10 @@ import type { GuildLockedPage_guild$key } from './__generated__/GuildLockedPage_
 import UserBar, { type UserBarText } from '../../auth/UserBar.react.tsx';
 import { theme } from '../../lib/format';
 
-// 无权访问页 (@match 分支): 后端对 GuildLocked 只下发 slug, 响应不携带任何百业内容,
-// 这里除了说明文案什么都渲染不出来 —— 能力即数据, 前端没有可 forge 的状态。
+// No-access page (@match branch): for GuildLocked the backend sends only the
+// slug — the response carries no guild content at all, so there is nothing
+// here to render beyond the explanatory copy. Capability is data; the
+// frontend has no state it could forge.
 const GuildLockedPage_guild = graphql`
   fragment GuildLockedPage_guild on GuildLocked {
     slug

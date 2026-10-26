@@ -4,7 +4,8 @@ import type { UserBarText } from '../../auth/UserBar.react';
 import type { MemberGuildHome_guild$key } from './__generated__/MemberGuildHome_guild.graphql';
 import GuildHome from './GuildHome.react.tsx';
 
-// 成员主页 (@match 分支, 绑定服务器成员): 完整功能, 写入口只挂在这个分支的组件树里。
+// Member home (@match branch, bound-server members): full functionality —
+// write entries are mounted only in this branch's component tree.
 const MemberGuildHome_guild = graphql`
   fragment MemberGuildHome_guild on Guild {
     slug

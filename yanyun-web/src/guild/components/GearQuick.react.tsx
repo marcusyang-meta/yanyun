@@ -41,8 +41,10 @@ const quickMutation = graphql`
 type Whites = { acc: number; crit: number; int: number; res: number } | null;
 type Status = { yellow: number; capped: boolean; over: number; lack: number; needWhite: number; bars: number };
 
-// 三率速算器 (嵌在毕业计算的「三率」区, 配装台口径): 白字→黄字换算 + 差条估算,
-// 可从配装台同步当前搭配的白字三率。
+// Three-rate quick calculator (embedded in the graduation calculator's
+// "three rates" section, gear-bench caliber): white-stat -> yellow-stat
+// conversion + missing-affix estimation; can sync the current build's white
+// three rates from the gear bench.
 export default function GearQuick({ whites }: { whites: Whites }) {
   const data = useLazyLoadQuery<GearQuickQueryType>(quickQuery, {});
   const t = data.gradPage;

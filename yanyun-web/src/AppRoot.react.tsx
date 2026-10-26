@@ -14,8 +14,8 @@ import { readPrefMirror, writePrefMirror, emitLocaleChanged, lastSentLocaleTag }
 import { canonicalLocaleOf } from './lib/format';
 import SiteBackdrop from './lib/SiteBackdrop.react.tsx';
 
-// 全站数据根 = viewer (当前用户), 由 AppEntryPoint 预加载。
-// 未登录时 viewer.user 为 null -> 所有路由只渲染登录页。
+// The app-wide data root is `viewer`, preloaded by AppEntryPoint.
+// When logged out, viewer.user is null and every route renders only the login page.
 const AppViewerQueryNode = graphql`
   query AppViewerQuery {
     viewer {
@@ -76,7 +76,6 @@ export default function AppRoot({ queries }: {
   const viewer = data.viewer as any;
   const user: ViewerUser | null = viewer.user ?? null;
 
-  // 文案包: 全部来自 viewer 的文案字段 (后端按 locale 生成), 组件只消费。
   const siteText = { title: viewer.siteTitle, subtitle: viewer.siteSubtitle, heroAlt: viewer.siteHeroAlt };
   const loginText = {
     cardTitle: viewer.loginCardTitle, cardBody1: viewer.loginCardBody1, cardBody2: viewer.loginCardBody2,
@@ -98,9 +97,11 @@ export default function AppRoot({ queries }: {
     createGuildLabel: viewer.pickerCreateGuildLabel, createGuildMoreLabel: viewer.pickerCreateGuildMoreLabel,
   };
 
-  // 语言对账: 服务端存储的偏好是真相 — 镜像不一致时向服务端看齐;
-  // 本次渲染所用语言与服务端生效 locale 不一致时 (如在另一设备改过
-  // 偏好), 发切换事件让整树按新语言重取, 无需手动刷新。
+  // Locale reconciliation: the server-stored preference is the truth, so the
+  // local mirror aligns to it. If this render's language differs from the
+  // server's effective locale (e.g. the preference was changed on another
+  // device), emit a locale-changed event so the whole tree refetches in the
+  // new language without a manual reload.
   useEffect(() => {
     const serverPref: string | null = viewer.myLocalePref ?? null;
     if (serverPref !== readPrefMirror()) writePrefMirror(serverPref);
@@ -125,10 +126,10 @@ export default function AppRoot({ queries }: {
           )
         }
       />
-      {/* 个人资料 (Profile) 改为用户条打开的对话框 (桌面 modal / 移动 pushPage),
-          旧 /settings 直链一律回首页, 避免被 /:slug 当作百业 slug */}
+      {/* Profile is now a dialog opened from the user bar; legacy /settings
+          deep links redirect home so /:slug doesn't capture them as a guild slug */}
       <Route path="/settings" element={<Navigate to="/" replace />} />
-      {/* 法律页: 公开可达 (未登录亦可), 静态段优先于 /:slug */}
+      {/* Legal pages are public (reachable logged out); the static segments must win over /:slug */}
       <Route path="/terms" element={<LegalRoute kind="TERMS" />} />
       <Route path="/privacy" element={<LegalRoute kind="PRIVACY" />} />
       <Route
@@ -141,7 +142,7 @@ export default function AppRoot({ queries }: {
       />
       <Route path="/:slug" element={user ? <GuildRouteLoader /> : <LoginGateWithText site={siteText} text={loginText} />} />
         </Routes>
-        {/* 全站页脚: 非官方声明 + 条款/隐私入口 (文案全部后端下发) */}
+        {/* Site-wide footer: unofficial disclaimer + terms/privacy links (all copy backend-delivered) */}
         <SiteFooter text={footerText} />
       </div>
     </>

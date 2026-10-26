@@ -179,7 +179,7 @@ queryRef: PreloadedQuery<GroupingDetailQueryType>;
 slug: string;
 onBack: () => void;
 onChanged: () => void;
-// interactive=false: 只读形态 — 不渲染编辑/解散, 座位不可点
+// interactive=false: read-only form — no edit/disband rendering, seats not clickable
 interactive?: boolean;
 defaultNickname?: string;
 }) {
@@ -196,11 +196,13 @@ GATHER: page.typeShortGather, EXPLORE: page.typeShortExplore,
 };
 const seatText = { ...page, unknownErrorText };
 const formText = { ...page, unknownErrorText };
-// 编辑与解散同为仅车头可见 (2026-10-25 裁决: 编辑车队也只有车头可以):
-// 用身份数据比对 (车头 discord id vs 当前 viewer 的 discord id), 不下发
-// 权限标志; 服务端在 updateGrouping / disbandGrouping 里独立复验, 这里
-// 藏按钮只是界面干净, 不是安全边界。旧车无 creatorDiscordId 时谁都不
-// 显示 (与服务端"未记录车头不可编辑/解散"一致)。
+// Edit and disband are both leader-only (ruling, 2026-10-25: editing a
+// grouping is also leader-only). Visibility is decided by comparing identity
+// data (the leader's discord id vs the current viewer's), not a permission
+// flag; the server re-verifies independently in updateGrouping /
+// disbandGrouping, so hiding the buttons here is UI tidiness, not a security
+// boundary. Legacy groupings without creatorDiscordId show them to no one
+// (matching the server's "unrecorded leader cannot edit/disband").
 const viewerDiscordId = (data as any)?.viewer?.user?.discordId;
 const isLeader = !!(g?.creatorDiscordId && viewerDiscordId
 && String(g.creatorDiscordId) === String(viewerDiscordId));
@@ -210,8 +212,9 @@ const [commitDelete, deleting] = useMutation<GroupingDetailDeleteMutationType>(G
 const doDelete = () => {
 commitDelete({
 variables: { id: g!.id},
-// 本人删车即时生效: 先把这辆车从全部 tab 的已缓存列表摘掉,
-// 返回列表时 (store-or-network 读 store) 就不会再闪现已解散的车。
+// Own disband takes effect immediately: remove this grouping from every
+// tab's cached list first, so returning to the list (store-or-network reads
+// the store) doesn't flash the disbanded grouping again.
 updater: (store) => { removeGroupingFromLists(store, slug, g!.id); },
 onCompleted: (res) => {
 if (res.disbandGrouping?.ok) {
@@ -225,9 +228,10 @@ onError: (e: Error) => toast(fill(page.detailToastDisbandFailedTemplate ?? '', {
 });
 };
 
-// 完成车队 (仅车头; 服务端 completeGrouping 复验): 成功后本页原地切到
-// 已完成态 (onChanged 重查), 并把这辆车从已缓存列表摘掉 — 完成车不进
-// 列表, 返回列表时不该再闪现。
+// Complete the grouping (leader only; the server re-verifies in
+// completeGrouping): on success this page switches in place to the completed
+// state (onChanged refetch) and the grouping is removed from cached lists —
+// completed groupings don't appear in lists and must not flash on return.
 const [commitComplete, completing] = useMutation(GroupingDetailCompleteMutationNode);
 const doComplete = () => {
 commitComplete({
@@ -245,8 +249,8 @@ onError: (e: Error) => toast(fill(page.detailToastCompleteFailedTemplate ?? '', 
 });
 };
 
-// 恢复车队 (撤销完成, 仅车头; 服务端 reopenGrouping 复验): 无确认,
-// 成功后重查 — 车回到 open 并重新出现在列表里。
+// Restore the grouping (undo completion; leader only, server re-verifies in
+// reopenGrouping): no confirmation; on success, refetch.
 const [commitReopen, restoring] = useMutation(GroupingDetailReopenMutationNode);
 const doRestore = () => {
 commitReopen({
@@ -273,7 +277,7 @@ return;
 }
 throw new Error('no clipboard');
 } catch {
-// 旧浏览器 fallback：隐藏 textarea + execCommand
+// Legacy-browser fallback: hidden textarea + execCommand
 try {
 const ta = document.createElement('textarea');
 ta.value = shareUrl;
@@ -394,7 +398,8 @@ onDone={() => { setShowEdit(false); onChanged(); }}
 );
 }
 
-// 查询失败（车不存在 / 跨会访问被后端拦截）时显示友好状态，而非整页红字报错
+// On query failure (grouping doesn't exist / cross-guild access blocked by
+// the backend), show a friendly state instead of a full-page red error
 class DetailErrBound extends Component<{ onBack: () => void; goneText: string; backText: string; children: any }, { err: any }> {
 state = { err: null as any };
 static getDerivedStateFromError(err: any) { return { err }; }
@@ -413,18 +418,22 @@ return this.props.children;
 }
 }
 
-// 路由 Entrypoint：报名/取消后 refreshKey+1 重新 preload
-// 注意：不能用 network-only —— React 重试 Suspense 子树时会丢弃本组件的 useMemo，
-// loadQuery 被重新执行，network-only 每次都强制新请求+重新挂起，形成无限循环（详情页永远转圈）。
-// store-and-network：先用缓存渲染，后台网络刷新回填，兼顾刷新语义。
+// Route entrypoint: after signup/cancel, refreshKey+1 re-preloads.
+// Do NOT use network-only here: when React retries a Suspense subtree it
+// discards this component's useMemo, loadQuery re-executes, and network-only
+// would force a new request + re-suspend every time — an infinite loop (the
+// detail page spins forever). store-and-network renders from cache first and
+// backfills from a background network refresh.
 export function GroupingDetailRoute({ slug, groupingId, onBack, interactive = true, defaultNickname, goneText, backText}: {
 slug: string;
 groupingId: string;
 onBack: () => void;
 interactive?: boolean;
 defaultNickname?: string;
-// 详情查询本身失败/车已解散时的兜底文案: 由百业主页 shell 的同名字段
-// 经 GuildHome 传入 (详情页数据拿不到时用它兜底, 同一后端文案来源)
+// Fallback copy for when the detail query itself fails / the grouping was
+// disbanded: passed in via GuildHome from the guild home shell's same-named
+// fields (used when the detail page's own data is unavailable; same backend
+// copy source)
 goneText: string;
 backText: string;
 }) {
@@ -439,12 +448,16 @@ GroupingDetailQueryNode,
 [groupingId, refreshKey]
 );
 
-// 实时推送: 别人改了这辆车 (落座/取消/编辑) -> 直接执行一次详情查询回填
-// store, 页面原地更新。别人解散了这辆车 -> 直接切到"车队不存在"视图:
-// 不能指望重查报错来切换 —— store 里有热数据时 store-and-network 会先用
-// 缓存渲染, 后台重查的错误不会把已渲染的车撤下来。事件来自服务端在
-// 删除落库后发的成员通道, 可信。重连 resync 的重查若回"组队不存在"
-// 同样切过去。合并短时多次事件: 在途时只记 dirty, 完成后补查一次。
+// Live push: someone else changed this grouping (seat/leave/edit) -> run the
+// detail query once to backfill the store and update the page in place.
+// Someone else disbanded it -> switch straight to the "grouping doesn't
+// exist" view: a refetch error cannot be relied on for this — with warm data
+// in the store, store-and-network renders from cache first and the background
+// refetch's error won't unmount the already-rendered grouping. The event
+// comes over the members channel the server sends on after the delete is
+// persisted, so it is trustworthy. A reconnect-resync refetch that reports
+// "grouping doesn't exist" switches the same way. Burst events are coalesced:
+// while one refresh is in flight, only mark dirty and run one more after.
 const [gone, setGone] = useState(false);
 useEffect(() => { setGone(false); }, [groupingId]);
 const liveState = useRef({ inFlight: false, dirty: false });
@@ -454,9 +467,10 @@ if (st.inFlight) { st.dirty = true; return; }
 st.inFlight = true;
 executeQueryRefresh(GroupingDetailQueryNode, { slug, id: groupingId })
 .catch(() => {
-// 不再按错误文案判断"车不存在" (文案随 locale 变, 匹配不可靠):
-// 一律重挂查询 — 车真没了时新查询会抛错, 由 DetailErrBound 切到
-// 不存在视图; 瞬时网络错误则从缓存恢复渲染。
+// No longer judge "grouping doesn't exist" by error text (copy varies by
+// locale, so matching is unreliable): always remount the query — if the
+// grouping is truly gone the new query throws and DetailErrBound switches to
+// the not-found view; a transient network error recovers from cache.
 setRefreshKey((k) => k + 1);
 })
 .finally(() => {

@@ -9,8 +9,10 @@ import { applySeatsToGrouping } from '../../lib/groupingStore';
 import { toast, ConfirmDialog } from './Toast.react.tsx';
 
 
-// seats 选全: 本人落座/取消完成瞬间由 updater 写回车记录 (见
-// groupingStore.applySeatsToGrouping), 不等推送回声与详情页重查。
+// The mutations select the full seats set: on completion of an own
+// join/leave, the updater writes them back onto the grouping record (see
+// groupingStore.applySeatsToGrouping) instead of waiting for the push echo
+// or a detail-page refetch.
 const SeatGridJoinMutationNode = graphql`
   mutation SeatGridJoinMutation($input: JoinGroupingInput!) {
     joinGrouping(input: $input) {
@@ -45,9 +47,10 @@ const SeatGridLeaveMutationNode = graphql`
   }
 `;
 
-// 代报名名册: 只在完整 Guild 面上有 memberRoster 字段 (响应类型即
-// 权限); 只读/锁定面下该片段不命中, roster 恒为空 — 而只读面本就不
-// 挂报名弹窗, 不会走到这里。
+// Proxy-signup roster: only the full Guild surface has the memberRoster
+// field (the response type is the permission). On read-only/locked surfaces
+// the fragment doesn't match and the roster is always empty — and those
+// surfaces never mount the signup modal anyway, so this is never reached.
 const SeatGridRosterQueryNode = graphql`
   query SeatGridRosterQuery($slug: String!) {
     viewer {
@@ -70,8 +73,9 @@ export interface RosterMember {
   globalName?: string | null;
 }
 
-// 座位文案包: 由详情页 shell 下发 (seat* 字段 + 确认框按钮 + 通用未知
-// 错误文案), 本组件不持有任何 UI 文案。
+// Seat copy bundle, delivered by the detail page shell (seat* fields +
+// confirm-dialog buttons + the generic unknown-error text); this component
+// holds no UI copy.
 export interface SeatText {
   seatEmptyJoinLabel: string;
   seatEmptyLabel: string;
@@ -118,10 +122,11 @@ export default function SeatGrid({ groupingId, slug, seats, maxSlots, onChanged,
   maxSlots: number;
   text: SeatText;
   onChanged: () => void;
-  // interactive=false: 只读形态 (未绑定百业的公开页挂载) — 座位不可点, 不挂任何写入口
+  // interactive=false: read-only form (mounted by the public page for unbound guilds) — seats not clickable, no write entries mounted
   interactive?: boolean;
-  // 本人落座展示名: 该百业服务器昵称 (无则全局名)。报名身份收口后名字
-  // 由服务端定, 此值只作锁定展示, 不再可编辑。
+  // Display name for own seat: the guild server nickname (else the global
+  // name). Since signup identity was locked down, the name is decided by the
+  // server; this value is locked display only, no longer editable.
   defaultNickname?: string;
 }) {
   const [joinIdx, setJoinIdx] = useState<number | null>(null);
@@ -219,7 +224,7 @@ export default function SeatGrid({ groupingId, slug, seats, maxSlots, onChanged,
         ))}
       </div>
 
-      {/* 落座弹窗（自定义，非系统 prompt）; 名册查询在弹窗组件内懒加载 */}
+      {/* Seat picker dialog (custom, never the system prompt); the roster query lazy-loads inside the dialog */}
       {joinIdx !== null && (
         <Suspense fallback={null}>
           <JoinModal
@@ -234,7 +239,7 @@ export default function SeatGrid({ groupingId, slug, seats, maxSlots, onChanged,
         </Suspense>
       )}
 
-      {/* 取消报名确认（自定义，非系统 confirm） */}
+      {/* Cancel-signup confirmation (custom, never the system confirm) */}
       {leaveUid && (
         <ConfirmDialog
           title={text.seatLeaveConfirmTitle}
@@ -249,11 +254,13 @@ export default function SeatGrid({ groupingId, slug, seats, maxSlots, onChanged,
   );
 }
 
-/* 落座弹窗: 报名身份收口后是双模式 —
- *  自己报名: 名字锁定展示 (服务端以 Discord 服务器昵称回退全局名定名,
- *    前端传什么都不作数), 只选流派;
- *  代报名: 从本百业名册里选人 (可搜索), 落座名与身份戳都是被选者。
- * portal 到 body 逃离动画祖先包含块。 */
+/* Seat-join modal: since signup identity was locked down it has two modes —
+ *  Self signup: the name is shown locked (the server names by Discord server
+ *    nickname, falling back to the global name; whatever the frontend sends
+ *    doesn't count) — only the sect is chosen;
+ *  Proxy signup: pick a person from this guild's roster (searchable); the
+ *    seat name and identity stamp are both the picked person's.
+ * Portaled to body to escape animated ancestors' containing blocks. */
 function JoinModal({ groupingId, slug, seatIndex, selfName, text, onClose, onJoined }: {
   groupingId: string;
   slug: string;

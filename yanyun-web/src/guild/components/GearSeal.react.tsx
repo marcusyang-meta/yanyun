@@ -1,9 +1,14 @@
-/* 传家宝印章系统 (原站 gear-planner-100 第 27/30 节的视觉盖章):
- * - 判定 (isHeirloom/isDud) 在服务端 gearplanner.js, 经 gearEvals[].verdict 下发;
- *   本模块只负责视觉: 金漆牌 (.heirloom-seal) / 灰素印 (.dud-seal) / 玉佩挂穗 /
- *   金粉粒子 (点击撒粉 + 集齐 8 件传家宝庆祝) 与庆祝状态机。
- * - 样式在 src/index.css 的「传家宝印章」段 (伪元素金菱等无法 inline)。
- * - 文案 (传家宝/拉完了) 走后端目录 gearVerdictHeirloom/gearVerdictDud, 由调用方传入。 */
+/* Heirloom seal system (visual stamping from the original gear-planner-100,
+ * sections 27/30):
+ * - The verdict (isHeirloom/isDud) is computed server-side in gearplanner.js
+ *   and delivered via gearEvals[].verdict; this module is visuals only: the
+ *   gold plaque (.heirloom-seal) / grey plain seal (.dud-seal) / jade pendant
+ *   tassel / gold-dust particles (click bursts + the 8-piece heirloom set
+ *   celebration) and the celebration state machine.
+ * - Styles live in src/index.css's heirloom-seal section (pseudo-element gold
+ *   diamonds etc. can't be inlined).
+ * - Labels come from the backend catalog gearVerdictHeirloom/gearVerdictDud,
+ *   passed in by the caller. */
 
 export function VerdictSeal({ verdict, heirloomLabel, dudLabel }: {
   verdict?: string | null;
@@ -15,7 +20,7 @@ export function VerdictSeal({ verdict, heirloomLabel, dudLabel }: {
   return null;
 }
 
-/* 玉佩挂穗 (原站 JADE_PENDANT_SVG 逐字移植): 金环 + 红绳 + 绿璧 + 红穗 */
+/* Jade pendant tassel (verbatim port of the original JADE_PENDANT_SVG): gold ring + red cord + green disc + red tassel */
 export function JadePendant() {
   return (
     <span className="jade-pendant" aria-hidden="true">
@@ -32,7 +37,7 @@ export function JadePendant() {
   );
 }
 
-/* ---------------- 金粉粒子 (原站 goldDustBurst 逐行对照) ---------------- */
+/* ---------------- Gold dust particles (line-by-line port of the original goldDustBurst) ---------------- */
 export const GOLD_DUST_COLORS = ['#F6DEA0', '#EFC96E', '#C9A24B', '#FFE9B0', '#D9A441'];
 
 export function goldDustLayer(): HTMLElement | null {
@@ -74,15 +79,17 @@ export function goldDustBurst(cx: number, cy: number, count = 24, spread = 90): 
           { transform: `translate(calc(-50% + ${dx.toFixed(1)}px), calc(-50% + ${dy.toFixed(1)}px)) rotate(${rot}deg)`, opacity: 0 },
         ], { duration: dur, easing: 'cubic-bezier(.17,.67,.35,1)' });
         if (an) { an.onfinish = done; scheduled = true; }
-      } catch { /* WAAPI 不可用时走定时兜底 */ }
+      } catch { /* fall back to a timer when WAAPI is unavailable */ }
     }
     if (!scheduled) setTimeout(done, dur + 80);
   }
   return count;
 }
 
-/* 点击传家宝卡撒粉 (原站 heirloomDustFromEvent): 点在交互元素上不撒。
- * 调用方只在 heirloom 卡上挂此 handler, 故不再需要 closest 找卡。 */
+/* Dust burst on clicking an heirloom card (the original
+ * heirloomDustFromEvent): no burst when the click lands on an interactive
+ * element. Callers attach this handler only on heirloom cards, so no
+ * closest() lookup for the card is needed. */
 const DUST_BLOCKED = new Set(['BUTTON', 'A', 'SELECT', 'INPUT', 'TEXTAREA', 'LABEL']);
 export function heirloomDustFromClick(e: { target: EventTarget | null; clientX: number; clientY: number }): boolean {
   const t = e.target as HTMLElement | null;
@@ -92,10 +99,12 @@ export function heirloomDustFromClick(e: { target: EventTarget | null; clientX: 
   return true;
 }
 
-/* ---------------- 集齐庆祝状态机 (原站 heirloomParty) ----------------
- * complete 记录上次检出状态; 仅在 未齐 -> 集齐 的跃迁时触发一次
- * (延迟 400ms 后从分数元素撒大粉), 同一集齐状态重渲染不重复,
- * 破齐后再集齐可再触发。页面载入时已集齐也算一次跃迁。 */
+/* ---------------- Set-completion celebration state machine (the original heirloomParty) ----------------
+ * `complete` records the last detected state; it fires only on the
+ * incomplete -> complete transition (after a 400ms delay, a large burst from
+ * the score element). Re-renders in the same complete state don't re-fire;
+ * breaking the set and completing it again can. Loading the page already
+ * complete also counts as a transition. */
 export type HeirloomParty = {
   readonly complete: boolean;
   readonly fires: number;
@@ -119,7 +128,7 @@ export function createHeirloomParty(): HeirloomParty {
   };
 }
 
-/* 庆祝撒粉 (原站 fireHeirloomParty): 从毕业度分数元素中心撒 110 + 50 粒 */
+/* Celebration burst (the original fireHeirloomParty): 110 + 50 particles from the center of the graduation-score element */
 export function fireHeirloomCelebration(el: HTMLElement | null): void {
   let cx = 400;
   let cy = 140;

@@ -6,11 +6,13 @@ import { loadChromeText, type ChromeText } from './lib/chromeText';
 import { fill } from './lib/format';
 import AppEntryPoint from './entrypoints/AppEntryPoint';
 
-// 错误边界: resetKey 变化 (路由切换) 时自动复位。
-// 旧版边界包住整个 App 且从不复位 — 任何一页抛错都会把整场会话毒化,
-// 只能整页刷新才恢复。现在内层边界按 pathname 复位: 点后退/换页即可自愈。
-// 文案: 边界在 Relay Provider 之外, 经 chromeText 裸取后端 viewer 通用
-// 文案字段 (后端按 locale 生成); 未取到前只渲染无文案占位, 不写死语言。
+// Error boundary: resets when resetKey changes. The old boundary wrapped the
+// whole app and never reset, so one page's error poisoned the entire session
+// until a full reload; the inner boundary now resets per pathname, so
+// navigating away self-heals. It sits outside the Relay provider, so its copy
+// comes from chromeText's raw fetch of the viewer's generic text fields
+// (backend-generated per locale); until that lands it renders a text-free
+// placeholder rather than hardcoding a language.
 class ErrBound extends Component<{ resetKey?: string; children: any }, { err: any; text: ChromeText | null }> {
   state = { err: null as any, text: null as ChromeText | null };
   static getDerivedStateFromError(err: any) { return { err }; }
@@ -46,7 +48,6 @@ class ErrBound extends Component<{ resetKey?: string; children: any }, { err: an
   }
 }
 
-// 路由级边界: 每次 pathname 变化即复位内层 ErrBound
 function RouteBoundary({ children }: { children: any }) {
   const loc = useLocation();
   return <ErrBound resetKey={loc.pathname}>{children}</ErrBound>;
@@ -63,8 +64,6 @@ function LoadingSkeleton() {
   );
 }
 
-// App shell 走 entrypoint: viewer 查询在渲染前预加载 (render-as-you-fetch),
-// 根组件 AppRoot 由 JSResource 懒加载, EntryPointContainer 负责装配。
 function AppShell() {
   const environment = useRelayEnvironment();
   const provider = useMemo(() => ({ getEnvironment: () => environment }), [environment]);
