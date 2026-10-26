@@ -1505,6 +1505,49 @@ export const GuildAdminQuery = graphql`
               rotationJson
             }
           }
+          adminTabStatsLabel
+          adminStatsTitle
+          adminStatsCurrentWeekLabel
+          adminStatsCarsLabel
+          adminStatsCompletedLabel
+          adminStatsSeatsLabel
+          adminStatsFillRateLabel
+          adminStatsParticipantsLabel
+          adminStatsPerCapitaLabel
+          adminStatsMembersTitle
+          adminStatsLeadersTitle
+          adminStatsSeatCountLabel
+          adminStatsCarCountLabel
+          adminStatsEmptyText
+          adminStatsBoardEmptyText
+          stats {
+            weeks {
+              weekLabel
+              isCurrent
+              carsActivity
+              carsTalent
+              carsRace
+              carsTower
+              carsTotal
+              completedCount
+              totalSeats
+              filledSeats
+              fillRate
+              participantCount
+              participationCount
+              perCapita
+            }
+            memberLeaders {
+              discordId
+              displayName
+              seatCount
+            }
+            leaderLeaders {
+              discordId
+              displayName
+              carCount
+            }
+          }
         }
       }
     }
