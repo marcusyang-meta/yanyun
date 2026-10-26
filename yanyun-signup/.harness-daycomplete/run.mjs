@@ -11,7 +11,7 @@
 //     (dayGroupHeaderTemplate / weekdayNames / undatedGroupLabel)。
 import { yoga } from '../src/graphql.js';
 import { typeDefs } from '../src/graphql-schema.js';
-import { nextReminderAt, dueReminders } from '../src/reminder.js';
+import { nextReminderAt, dueReminders } from '../src/reminder.ts';
 import { weekWindowUtc, localDayParts } from '../src/blocks.js';
 import { translate } from '../src/i18n.js';
 
@@ -146,6 +146,16 @@ function stmt(sql) {
           if (key === b[0]) rows.push({ tenant: t, value: v });
         }
         return { results: rows };
+      }
+      if (/MIN\(starts_at_utc\) AS m FROM events/.test(sql)) {
+        // 数据层点查走 .all() 通道 (drizzle db.get): 形状同 first() 的 MIN 分支
+        const rows = pendingFilter(b, false);
+        return { results: [{ m: rows.length ? Math.min(...rows.map((e) => e.starts_at_utc)) : null }] };
+      }
+      if (/SELECT \* FROM events WHERE id = \?/.test(sql)) {
+        // 数据层点查走 .all() 通道 (drizzle db.get): 形状同 first() 的按 id 分支
+        const row = tables.events.find((e) => e.id === Number(b[0])) || null;
+        return { results: row ? [row] : [] };
       }
       if (/FROM events WHERE tenant = \? AND type = \?/.test(sql)) {
         return { results: listOrder(tables.events.filter((e) => e.tenant === b[0] && e.type === b[1] && !statusExcluded(sql, e.status))) };

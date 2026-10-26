@@ -12,7 +12,7 @@ import {
   getReminderConfig, getReminderSetting, setReminderSetting,
   maskWebhook, postWebhook, WEBHOOK_RE,
   ensureSignupDiscordColumn, ensureGuildMembersTable, upsertGuildMember,
-} from './reminder.js';
+} from './reminder.ts';
 import { getHeirloomConfig, sendHeirloomTest, heirloomStatusFor } from './heirloompush.js';
 import { maybeRunCreatorBackfill } from './creatorbackfill.js';
 import { maybeRunCreatorManualFix } from './creatormanualfix.js';
@@ -30,6 +30,16 @@ import {
   getTenantRow, getTenantSlug, listTenantSlugs, listTenantsDirectory, listTenantsHubAdmin,
   updateTenantWebhook, updateTenantProfile, updateTenantFixedTeams, deleteTenantCascade,
 } from './db/repositories/tenants.ts';
+import {
+  getEventRow, getEventRowByTenant, getEventIdByTenant, getEventIdStatusByTenant,
+  listEventsWeekView, listEventsAdmin, countActivityEventsInWindow,
+  insertEvent, updateEventFields, setEventStatus, deleteEventCascade,
+} from './db/repositories/events.ts';
+import {
+  listSignupsByEvent, listSignupDetailRows, countSignupsByEvent, getSignupCapacityStats,
+  getSignupTenant, insertSignups, deleteSignupById, deleteSignupByIdAndEvent,
+  deleteSignupByEventNickUid, deleteSignupsByEvent, updateSignupWeaponRoleById,
+} from './db/repositories/signups.ts';
 
 const TYPES = { activity: '双十人本', talent: '天赋组队', race: '竞速', tower: '爬塔', gather: '采集', explore: '探索' };
 const ROLES = ['输出', '承伤', '奶', '治疗', '随意'];
@@ -643,8 +653,8 @@ hub.post('/bosses', async (c) => {
 hub.put('/bosses/:id', async (c) => {
   const body = await getBody(c);
   const id = parseInt(c.req.param('id'), 10);
-  const fields = []; const params = [];
-  const set = (col, val) => { fields.push(col + ' = ?'); params.push(val); };
+  const patch = {};
+  const set = (col, val) => { patch[col] = val; };
   if (body.name !== undefined) set('name', s(body.name, 30));
   if (body.talent !== undefined) set('talent', s(body.talent, 40));
   if (body.source !== undefined) set('source', s(body.source, 40));
@@ -1101,14 +1111,12 @@ guild.get('/:slug/events', async (c) => {
   const type = s(url.searchParams.get('type'), 20);
   const from = parseInt(url.searchParams.get('from'), 10) || 0;
   const to = parseInt(url.searchParams.get('to'), 10) || 0;
-  let q = `SELECT e.*, (SELECT COUNT(*) FROM signups s WHERE s.event_id = e.id) AS signup_count
-           FROM events e WHERE e.tenant = ? AND e.status NOT IN ('draft', 'completed')`;
-  const params = [slug];
-  if (type && TYPES[type]) { q += ' AND e.type = ?'; params.push(type); }
-  if (from) { q += ' AND e.starts_at_utc >= ?'; params.push(from); }
-  if (to) { q += ' AND e.starts_at_utc <= ?'; params.push(to); }
-  q += ' ORDER BY e.status = \'open\' DESC, COALESCE(e.starts_at_utc, 9999999999) ASC, e.id DESC';
-  const { results } = await c.env.DB.prepare(q).bind(...params).all();
+  const results = await listEventsWeekView(c.env.DB, {
+    tenant: slug,
+    type: type && TYPES[type] ? type : undefined,
+    from: from || undefined,
+    to: to || undefined,
+  });
   return json({ ok: true, events: results });
 });
 
@@ -1117,11 +1125,9 @@ guild.get('/:slug/events/:id', async (c) => {
   const slug = c.get('slug');
   const id = parseInt(c.req.param('id'), 10);
   if (!id) return err('活动不存在', 404);
-  const event = await c.env.DB.prepare('SELECT * FROM events WHERE id = ? AND tenant = ?').bind(id, slug).first();
+  const event = await getEventRowByTenant(c.env.DB, id, slug);
   if (!event) return err('活动不存在', 404);
-  const { results: signups } = await c.env.DB.prepare(
-    'SELECT id, nickname, role, weapon, team_name, members, note, created_at FROM signups WHERE event_id = ? ORDER BY id ASC'
-  ).bind(id).all();
+  const signups = await listSignupDetailRows(c.env.DB, id);
   const { results: results } = await c.env.DB.prepare(
     'SELECT id, team_name, members, time_ms, proof_url, note, created_at FROM results WHERE event_id = ? ORDER BY time_ms ASC'
   ).bind(id).all();
@@ -1134,7 +1140,7 @@ guild.all('/:slug/events/:id/live', async (c) => {
   const slug = c.get('slug');
   const id = parseInt(c.req.param('id'), 10);
   if (!id) return err('活动不存在', 404);
-  const ev = await c.env.DB.prepare('SELECT id FROM events WHERE id = ? AND tenant = ?').bind(id, slug).first();
+  const ev = await getEventIdByTenant(c.env.DB, id, slug);
   if (!ev) return err('活动不存在', 404);
   if (c.req.header('Upgrade') !== 'websocket') return err('需要 WebSocket 连接', 426);
   if (!c.env.SEAT_HUB) return err('实时服务未启用', 503);
@@ -1151,7 +1157,7 @@ guild.post('/:slug/events/:id/signup', async (c) => {
   if (!id) return err('活动不存在', 404);
   if (!rateLimit(ip, 'signup', 10, 10 * 60 * 1000)) return err('报名太频繁, 请稍后再试', 429);
   if (s(body.hp, 10)) return err('报名失败', 400);
-  const event = await c.env.DB.prepare('SELECT * FROM events WHERE id = ? AND tenant = ?').bind(id, slug).first();
+  const event = await getEventRowByTenant(c.env.DB, id, slug);
   if (!event) return err('活动不存在', 404);
   if (event.status !== 'open') return err('该活动已截止报名', 400);
   const nickname = s(body.nickname, 30);
@@ -1173,25 +1179,19 @@ guild.post('/:slug/events/:id/signup', async (c) => {
       id, id).run();
     if (!r.meta.changes) return err('名额已满或报名已截止, 手慢了', 400);
     // 最后一单校验: 满员时队里至少要有一个治疗, 否则回滚本次报名
-    const full = await c.env.DB.prepare(
-      `SELECT (SELECT COUNT(*) FROM signups WHERE event_id = ?) AS c,
-              (SELECT COUNT(*) FROM signups WHERE event_id = ? AND role IN ('奶', '治疗')) AS h,
-              (SELECT max_slots FROM events WHERE id = ? ) AS m`
-    ).bind(id, id, id).first();
+    const full = await getSignupCapacityStats(c.env.DB, id);
     if (full && full.c >= full.m && full.h === 0) {
-      await c.env.DB.prepare('DELETE FROM signups WHERE id = ?').bind(r.meta.last_row_id).run();
+      await deleteSignupById(c.env.DB, r.meta.last_row_id);
       return err('最后一个名额需要奶, 请切换奶或先找个奶再来', 400);
     }
   } catch (e) {
     if (String(e.message).includes('UNIQUE')) return err('该 UID 已报过名, 无需重复报名', 400);
     throw e;
   }
-  const { results: cnt } = await c.env.DB.prepare(
-    'SELECT COUNT(*) AS c FROM signups WHERE event_id = ?'
-  ).bind(id).all();
+  const seatsTaken = await countSignupsByEvent(c.env.DB, id);
   // 广播 seat 变化 (后台执行, 不阻塞报名响应)
   if (c.env.SEAT_HUB) {
-    const payload = { event_id: id, seats_taken: cnt[0].c, max_slots: event.max_slots };
+    const payload = { event_id: id, seats_taken: seatsTaken, max_slots: event.max_slots };
     c.executionCtx.waitUntil((async () => {
       try {
         const stub = c.env.SEAT_HUB.get(c.env.SEAT_HUB.idFromName(`seat:${slug}:${id}`));
@@ -1203,7 +1203,7 @@ guild.post('/:slug/events/:id/signup', async (c) => {
       } catch { /* 广播失败不影响报名结果, 客户端降级为轮询 */ }
     })());
   }
-  return json({ ok: true, message: '报名成功!', seats_taken: cnt[0].c, max_slots: event.max_slots });
+  return json({ ok: true, message: '报名成功!', seats_taken: seatsTaken, max_slots: event.max_slots });
 });
 
 // POST /api/:slug/events/:id/cancel
@@ -1213,23 +1213,19 @@ guild.post('/:slug/events/:id/cancel', async (c) => {
   const body = await getBody(c);
   const id = parseInt(c.req.param('id'), 10);
   if (!rateLimit(ip, 'cancel', 10, 10 * 60 * 1000)) return err('操作太频繁', 429);
-  const ev = await c.env.DB.prepare('SELECT id FROM events WHERE id = ? AND tenant = ?').bind(id, slug).first();
+  const ev = await getEventIdByTenant(c.env.DB, id, slug);
   if (!ev) return err('活动不存在', 404);
   // 座位格模式: 按报名 id 取消(点位二次确认)
   const signupId = parseInt(body.signup_id, 10);
   if (signupId) {
-    const r = await c.env.DB.prepare(
-      'DELETE FROM signups WHERE id = ? AND event_id = ?'
-    ).bind(signupId, id).run();
-    if (!r.meta.changes) return err('未找到该报名记录', 404);
+    const r = await deleteSignupByIdAndEvent(c.env.DB, signupId, id);
+    if (!r.changes) return err('未找到该报名记录', 404);
     return json({ ok: true, message: '已取消报名' });
   }
   const nickname = s(body.nickname, 30), uid = s(body.uid, 30);
   if (!id || !nickname || !uid) return err('请提供昵称和 UID', 400);
-  const r = await c.env.DB.prepare(
-    'DELETE FROM signups WHERE event_id = ? AND nickname = ? AND uid = ?'
-  ).bind(id, nickname, uid).run();
-  if (!r.meta.changes) return err('未找到该报名记录', 404);
+  const r = await deleteSignupByEventNickUid(c.env.DB, id, nickname, uid);
+  if (!r.changes) return err('未找到该报名记录', 404);
   return json({ ok: true, message: '已取消报名' });
 });
 
@@ -1240,7 +1236,7 @@ guild.post('/:slug/events/:id/update-weapon', async (c) => {
   const body = await getBody(c);
   const id = parseInt(c.req.param('id'), 10);
   if (!rateLimit(ip, 'updwpn', 10, 10 * 60 * 1000)) return err('操作太频繁', 429);
-  const ev = await c.env.DB.prepare('SELECT id, status FROM events WHERE id = ? AND tenant = ?').bind(id, slug).first();
+  const ev = await getEventIdStatusByTenant(c.env.DB, id, slug);
   if (!ev) return err('活动不存在', 404);
   if (ev.status !== 'open') return err('该活动已截止报名', 400);
   const signupId = parseInt(body.signup_id, 10);
@@ -1248,10 +1244,8 @@ guild.post('/:slug/events/:id/update-weapon', async (c) => {
   if (!signupId || !weapon) return err('参数不完整', 400);
   // 流派决定职责: 牵丝·霖=奶, 其他=输出
   const role = weapon === '牵丝·霖' ? '奶' : '输出';
-  const r = await c.env.DB.prepare(
-    'UPDATE signups SET weapon = ?, role = ? WHERE id = ? AND event_id = ?'
-  ).bind(weapon, role, signupId, id).run();
-  if (!r.meta.changes) return err('未找到该报名记录', 404);
+  const r = await updateSignupWeaponRoleById(c.env.DB, signupId, id, weapon, role);
+  if (!r.changes) return err('未找到该报名记录', 404);
   return json({ ok: true, message: '流派已更新' });
 });
 
@@ -1270,12 +1264,12 @@ guild.post('/:slug/cars/draft', async (c) => {
   await ensureEventCreatorColumn(c.env.DB);
   const checked = await restCheckedUser(c);
   const creatorId = checked.user ? String(checked.user.discordId) : null;
-  const r = await c.env.DB.prepare(
-    `INSERT INTO events (tenant, title, type, description, starts_at, starts_at_utc, max_slots, status, origin, created_by, creator_discord_id)
-     VALUES (?, ?, ?, '', '', ?, ?, 'draft', 'member', '热心车友', ?)`
-  ).bind(slug, '未命名车队', type, now, max_slots, creatorId).run();
+  const r = await insertEvent(c.env.DB, {
+    tenant: slug, title: '未命名车队', type, description: '', starts_at: '', starts_at_utc: now,
+    max_slots, status: 'draft', origin: 'member', created_by: '热心车友', creator_discord_id: creatorId,
+  });
   nudgeReminderHub(c, slug);
-  return json({ ok: true, id: r.meta.last_row_id });
+  return json({ ok: true, id: r.last_row_id });
 });
 
 // POST /api/:slug/cars 成员发车 (无需登录, 限流 + 蜜罐)
@@ -1300,26 +1294,24 @@ guild.post('/:slug/cars', async (c) => {
   await ensureEventCreatorColumn(c.env.DB);
   const checked = await restCheckedUser(c);
   const creatorId = checked.user ? String(checked.user.discordId) : null;
-  const r = await c.env.DB.prepare(
-    `INSERT INTO events (tenant, title, type, description, starts_at, starts_at_utc, meet_info, max_slots, status, origin, created_by, dungeon, creator_discord_id)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'open', 'member', ?, ?, ?)`
-  ).bind(slug, title, type, s(body.description, 500), utcToText(utc), utc,
-    s(body.meet_info, 120), max_slots, nickname, dungeon, creatorId).run();
-  const eventId = r.meta.last_row_id;
+  const r = await insertEvent(c.env.DB, {
+    tenant: slug, title, type, description: s(body.description, 500), starts_at: utcToText(utc),
+    starts_at_utc: utc, meet_info: s(body.meet_info, 120), max_slots, status: 'open', origin: 'member',
+    created_by: nickname, dungeon, creator_discord_id: creatorId,
+  });
+  const eventId = r.last_row_id;
   // 初始座位：车主发布时直接排座
   if (Array.isArray(body.seats)) {
-    const stmts = [];
+    const seatRows = [];
     for (const st of body.seats.slice(0, max_slots)) {
       const nm = s(st.name, 30);
       const wp = s(st.weapon, 20);
       if (!nm || !wp) continue;
       const role = wp === '牵丝·霖' ? '奶' : '输出';
       const uid = 'q' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-      stmts.push(c.env.DB.prepare(
-        `INSERT INTO signups (event_id, nickname, uid, role, weapon) VALUES (?, ?, ?, ?, ?)`
-      ).bind(eventId, nm, uid, role, wp));
+      seatRows.push({ event_id: eventId, nickname: nm, uid, role, weapon: wp });
     }
-    if (stmts.length) await c.env.DB.batch(stmts);
+    if (seatRows.length) await insertSignups(c.env.DB, seatRows);
   }
   c.executionCtx.waitUntil(notifyDiscord(c.env, slug, { title, type, description: s(body.description, 500), starts_at_utc: utc, max_slots }));
   nudgeReminderHub(c, slug);
@@ -1334,7 +1326,7 @@ guild.post('/:slug/events/:id/manage', async (c) => {
   const id = parseInt(c.req.param('id'), 10);
   if (!id) return err('车队不存在', 404);
   await ensureEventCreatorColumn(c.env.DB);
-  const ev = await c.env.DB.prepare('SELECT * FROM events WHERE id = ? AND tenant = ?').bind(id, slug).first();
+  const ev = await getEventRowByTenant(c.env.DB, id, slug);
   if (!ev) return err('车队不存在', 404);
   if (ev.origin !== 'member') return err('官方活动请联系管理员', 403);
   const action = s(body.action, 20);
@@ -1357,8 +1349,7 @@ guild.post('/:slug/events/:id/manage', async (c) => {
     return json({ ok: false, message: `只有车头可以${VERB[action]}车队` }, 403, clearHdr);
   }
   if (action === 'close' || action === 'reopen') {
-    await c.env.DB.prepare('UPDATE events SET status = ? WHERE id = ?')
-      .bind(action === 'close' ? 'closed' : 'open', id).run();
+    await setEventStatus(c.env.DB, id, action === 'close' ? 'closed' : 'open');
   } else if (action === 'complete' || action === 'uncomplete') {
     // 完成态 (与 GraphQL completeGrouping / reopenGrouping 同语义): 完成
     // 只从 open/closed 进入; 恢复只从 completed 回到 open。完成车从列表
@@ -1366,22 +1357,18 @@ guild.post('/:slug/events/:id/manage', async (c) => {
     if (action === 'complete') {
       if (ev.status === 'completed') return err('该车队已是完成状态', 400);
       if (ev.status !== 'open' && ev.status !== 'closed') return err('该车队当前状态不可完成', 400);
-      await c.env.DB.prepare("UPDATE events SET status = 'completed' WHERE id = ?").bind(id).run();
+      await setEventStatus(c.env.DB, id, 'completed');
     } else {
       if (ev.status !== 'completed') return err('该车队尚未完成', 400);
-      await c.env.DB.prepare("UPDATE events SET status = 'open' WHERE id = ?").bind(id).run();
+      await setEventStatus(c.env.DB, id, 'open');
     }
   } else if (action === 'delete') {
-    await c.env.DB.batch([
-      c.env.DB.prepare('DELETE FROM signups WHERE event_id = ?').bind(id),
-      c.env.DB.prepare('DELETE FROM results WHERE event_id = ?').bind(id),
-      c.env.DB.prepare('DELETE FROM events WHERE id = ? AND tenant = ?').bind(id, slug),
-    ]);
+    await deleteEventCascade(c.env.DB, id, slug);
     // 与 GraphQL 解散一致: 广播 deleted, 开着的网页即时切到不存在态
     publishGuildEvent(c, slug, id, 'deleted');
   } else if (action === 'update') {
-    const fields = []; const params = [];
-    const set = (col, val) => { fields.push(col + ' = ?'); params.push(val); };
+    const patch = {};
+    const set = (col, val) => { patch[col] = val; };
     if (body.title !== undefined) set('title', s(body.title, 40));
     if (body.type !== undefined && TYPES[body.type]) set('type', body.type);
     if (body.description !== undefined) set('description', s(body.description, 500));
@@ -1394,25 +1381,22 @@ guild.post('/:slug/events/:id/manage', async (c) => {
     }
     // 草稿发布时状态改为 open
     if (ev.status === 'draft') set('status', 'open');
-    if (fields.length) {
-      params.push(id);
-      await c.env.DB.prepare(`UPDATE events SET ${fields.join(', ')} WHERE id = ? AND tenant = ?`).bind(...params, slug).run();
+    if (Object.keys(patch).length) {
+      await updateEventFields(c.env.DB, id, slug, patch);
     }
     // 更新座位：先清空再插入
     if (Array.isArray(body.seats)) {
-      await c.env.DB.prepare('DELETE FROM signups WHERE event_id = ?').bind(id).run();
-      const stmts = [];
+      await deleteSignupsByEvent(c.env.DB, id);
+      const seatRows = [];
       for (const st of body.seats.slice(0, ev.max_slots)) {
         const nm = s(st.name, 30);
         const wp = s(st.weapon, 20);
         if (!nm || !wp) continue;
         const role = wp === '牵丝·霖' ? '奶' : '输出';
         const uid = 'q' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-        stmts.push(c.env.DB.prepare(
-          `INSERT INTO signups (event_id, nickname, uid, role, weapon) VALUES (?, ?, ?, ?, ?)`
-        ).bind(id, nm, uid, role, wp));
+        seatRows.push({ event_id: id, nickname: nm, uid, role, weapon: wp });
       }
-      if (stmts.length) await c.env.DB.batch(stmts);
+      if (seatRows.length) await insertSignups(c.env.DB, seatRows);
     }
   }
   nudgeReminderHub(c, slug);
@@ -1447,8 +1431,7 @@ const needGuildAdmin = async (c, next) => {
   }
   await next();
 };
-const evOwned = (c, id) =>
-  c.env.DB.prepare('SELECT * FROM events WHERE id = ? AND tenant = ?').bind(id, c.get('slug')).first();
+const evOwned = (c, id) => getEventRowByTenant(c.env.DB, id, c.get('slug'));
 
 // PUT /api/:slug/admin/school-guides 更新流派攻略(需管理员)
 // 注: 原生版本此处调用了未定义的 checkAdmin(slug, req, env), 该路由实际 500;
@@ -1539,10 +1522,7 @@ guild.delete('/:slug/admin/avatar', needGuildAdmin, async (c) => {
 // GET /api/:slug/admin/events
 guild.get('/:slug/admin/events', needGuildAdmin, async (c) => {
   const slug = c.get('slug');
-  const { results } = await c.env.DB.prepare(
-    `SELECT e.*, (SELECT COUNT(*) FROM signups s WHERE s.event_id = e.id) AS signup_count
-     FROM events e WHERE e.tenant = ? ORDER BY e.id DESC`
-  ).bind(slug).all();
+  const results = await listEventsAdmin(c.env.DB, slug);
   return json({ ok: true, events: results });
 });
 
@@ -1555,15 +1535,15 @@ guild.post('/:slug/admin/events', needGuildAdmin, async (c) => {
   const type = TYPES[body.type] ? body.type : 'activity';
   const utc = parseInt(body.starts_at_utc, 10) || 0;
   const maxSlots = Math.max(1, Math.min(500, parseInt(body.max_slots, 10) || 20));
-  const r = await c.env.DB.prepare(
-    `INSERT INTO events (tenant, title, type, description, starts_at, starts_at_utc, meet_info, max_slots, status, origin)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'admin')`
-  ).bind(slug, title, type, s(body.description, 2000),
-    utc ? utcToText(utc) : (s(body.starts_at, 30) || null), utc || null, s(body.meet_info, 200),
-    maxSlots, body.status === 'closed' ? 'closed' : 'open').run();
+  const r = await insertEvent(c.env.DB, {
+    tenant: slug, title, type, description: s(body.description, 2000),
+    starts_at: utc ? utcToText(utc) : (s(body.starts_at, 30) || null), starts_at_utc: utc || null,
+    meet_info: s(body.meet_info, 200), max_slots: maxSlots,
+    status: body.status === 'closed' ? 'closed' : 'open', origin: 'admin',
+  });
   c.executionCtx.waitUntil(notifyDiscord(c.env, slug, { title, type, description: s(body.description, 2000), starts_at_utc: utc, max_slots: maxSlots }));
   nudgeReminderHub(c, slug);
-  return json({ ok: true, id: r.meta.last_row_id });
+  return json({ ok: true, id: r.last_row_id });
 });
 
 // PUT /api/:slug/admin/events/:id
@@ -1585,9 +1565,8 @@ guild.put('/:slug/admin/events/:id', needGuildAdmin, async (c) => {
   if (body.meet_info !== undefined) set('meet_info', s(body.meet_info, 200));
   if (body.max_slots !== undefined) set('max_slots', Math.max(1, Math.min(500, parseInt(body.max_slots, 10) || 20)));
   if (body.status !== undefined) set('status', body.status === 'closed' ? 'closed' : 'open');
-  if (!fields.length) return err('没有要更新的字段', 400);
-  params.push(id);
-  await c.env.DB.prepare(`UPDATE events SET ${fields.join(', ')} WHERE id = ?`).bind(...params).run();
+  if (!Object.keys(patch).length) return err('没有要更新的字段', 400);
+  await updateEventFields(c.env.DB, id, null, patch);
   nudgeReminderHub(c, c.get('slug'));
   return json({ ok: true });
 });
@@ -1596,11 +1575,7 @@ guild.put('/:slug/admin/events/:id', needGuildAdmin, async (c) => {
 guild.delete('/:slug/admin/events/:id', needGuildAdmin, async (c) => {
   const id = parseInt(c.req.param('id'), 10);
   if (!(await evOwned(c, id))) return err('活动不存在', 404);
-  await c.env.DB.batch([
-    c.env.DB.prepare('DELETE FROM signups WHERE event_id = ?').bind(id),
-    c.env.DB.prepare('DELETE FROM results WHERE event_id = ?').bind(id),
-    c.env.DB.prepare('DELETE FROM events WHERE id = ?').bind(id),
-  ]);
+  await deleteEventCascade(c.env.DB, id, null);
   nudgeReminderHub(c, c.get('slug'));
   return json({ ok: true });
 });
@@ -1609,9 +1584,7 @@ guild.delete('/:slug/admin/events/:id', needGuildAdmin, async (c) => {
 guild.get('/:slug/admin/events/:id/signups', needGuildAdmin, async (c) => {
   const id = parseInt(c.req.param('id'), 10);
   if (!(await evOwned(c, id))) return err('活动不存在', 404);
-  const { results } = await c.env.DB.prepare(
-    'SELECT * FROM signups WHERE event_id = ? ORDER BY id ASC'
-  ).bind(id).all();
+  const results = await listSignupsByEvent(c.env.DB, id);
   return json({ ok: true, signups: results });
 });
 
@@ -1620,9 +1593,7 @@ guild.get('/:slug/admin/events/:id/export.csv', needGuildAdmin, async (c) => {
   const id = parseInt(c.req.param('id'), 10);
   const event = await evOwned(c, id);
   if (!event) return err('活动不存在', 404);
-  const { results } = await c.env.DB.prepare(
-    'SELECT * FROM signups WHERE event_id = ? ORDER BY id ASC'
-  ).bind(id).all();
+  const results = await listSignupsByEvent(c.env.DB, id);
   const q = (v) => '"' + String(v ?? '').replace(/"/g, '""') + '"';
   const rows = [['昵称', 'UID', '职责', '流派/武器', '联系方式', '队伍名', '队员', '备注', '报名时间'].map(q).join(',')];
   for (const r of results) {
@@ -1642,11 +1613,9 @@ guild.get('/:slug/admin/events/:id/export.csv', needGuildAdmin, async (c) => {
 guild.delete('/:slug/admin/signups/:id', needGuildAdmin, async (c) => {
   const slug = c.get('slug');
   const sid = parseInt(c.req.param('id'), 10);
-  const own = await c.env.DB.prepare(
-    'SELECT s.id FROM signups s JOIN events e ON s.event_id = e.id WHERE s.id = ? AND e.tenant = ?'
-  ).bind(sid, slug).first();
+  const own = await getSignupTenant(c.env.DB, sid, slug);
   if (!own) return err('记录不存在', 404);
-  await c.env.DB.prepare('DELETE FROM signups WHERE id = ?').bind(sid).run();
+  await deleteSignupById(c.env.DB, sid);
   return json({ ok: true });
 });
 
@@ -1957,10 +1926,7 @@ async function guildOgTags(env, slug) {
     let teamCount = 0;
     try {
       const [from, to] = ogWeekWindowUtc();
-      const row = await env.DB.prepare(
-        "SELECT COUNT(*) AS c FROM events WHERE tenant = ? AND type = 'activity' AND status NOT IN ('draft', 'completed') AND starts_at_utc >= ? AND starts_at_utc < ?"
-      ).bind(slug, from, to).first();
-      teamCount = (row && row.c) || 0;
+      teamCount = await countActivityEventsInWindow(env.DB, slug, from, to);
     } catch { teamCount = 0; }
     const descParts = [];
     if (t.slogan) descParts.push(t.slogan);
@@ -1980,20 +1946,19 @@ async function guildOgTags(env, slug) {
 async function carOgTags(env, slug, carId) {
   try {
     if (await isDevOnlyTenant(env.DB, slug)) return null;
-    const ev = await env.DB.prepare('SELECT * FROM events WHERE id = ?')
-      .bind(parseInt(carId, 10) || 0).first();
+    const ev = await getEventRow(env.DB, parseInt(carId, 10) || 0);
     // 租户隔离: 车队不存在或不属于该 slug 时不注入, 不泄露他会数据
     if (!ev || ev.tenant !== slug) return null;
     const t = await getTenantRow(env.DB, slug);
     if (!t || !t.guild_name) return null;
-    const cnt = await env.DB.prepare('SELECT COUNT(*) AS c FROM signups WHERE event_id = ?').bind(ev.id).first();
+    const cnt = await countSignupsByEvent(env.DB, ev.id);
     let dungeonName = '';
     if (ev.dungeon) {
       const d = await env.DB.prepare('SELECT name FROM dungeons WHERE name = ?').bind(ev.dungeon).first();
       if (d) dungeonName = d.name;
     }
     const typeLabel = CAR_TYPE_LABEL[ev.type] || '';
-    const descParts = [typeLabel, dungeonName, fmtCarTimeUtc(ev.starts_at_utc), `已报名 ${(cnt && cnt.c) || 0}/${ev.max_slots}`].filter(Boolean);
+    const descParts = [typeLabel, dungeonName, fmtCarTimeUtc(ev.starts_at_utc), `已报名 ${cnt || 0}/${ev.max_slots}`].filter(Boolean);
     return [
       `<meta property="og:title" content="${escHtml(ev.title)} · ${escHtml(t.guild_name)}" />`,
       `<meta property="og:description" content="${escHtml(descParts.join(' | '))} · 燕云十六声百业车队" />`,

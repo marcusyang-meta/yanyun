@@ -12,7 +12,7 @@ import {
 } from './prim.js';
 import { tlCalculateExcel } from './tiaolv.js';
 import { getUserServers, getGuildNick, maybeRefreshGuildNicks, getUserLocalePref, setUserLocalePref } from './auth.js';
-import { ensureSignupDiscordColumn, ensureGuildMembersTable, upsertGuildMember } from './reminder.js';
+import { ensureSignupDiscordColumn, ensureGuildMembersTable, upsertGuildMember } from './reminder.ts';
 import { ensurePushTokensTable, isValidPushToken, savePushToken, deletePushToken } from './push.js';
 import { evaluateHeirloomPushes } from './heirloompush.js';
 import { translate, negotiateLocale, SUPPORTED_LOCALES, CATALOG } from './i18n.js';
