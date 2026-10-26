@@ -26,6 +26,8 @@ const unknownSql = new Set();
 function makeDb(fx) {
 const state = { eventUpdates: [], settingsWrites: []};
 function route(kind, sql, b) {
+// 数据层 (Drizzle) SQL 规范化: 去引号 + 去 settings. 限定前缀 (仅路由匹配)
+sql = sql.replace(/"/g, '').replace(/settings\./g, '');
 if (/PRAGMA table_info/.test(sql)) {
 return { results: ['id', 'discord_id', 'reminder_sent_at', 'reminder_error'].map((name) => ({ name}))};
 }

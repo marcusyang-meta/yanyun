@@ -36,6 +36,8 @@ function makeDb(fx = {}) {
   let nextSignupId = 1000;
   const unknownSql = new Set();
   function stmt(sql) {
+    // 数据层 (Drizzle) SQL 规范化: 去引号 + 去 settings. 限定前缀 (仅路由匹配)
+    sql = sql.replace(/"/g, '').replace(/settings\./g, '');
     const q = {
       _binds: [],
       bind(...a) { this._binds = a; return this; },
@@ -75,6 +77,19 @@ function makeDb(fx = {}) {
       },
       async all() {
         const b = this._binds;
+        if (/FROM settings/.test(sql)) {
+          // 数据层经 .all() 通道读 settings (drizzle db.get/all): 点查与按 key 扫描
+          if (/tenant = \?/.test(sql)) {
+            const v = tables.settings.get(`${b[0]}|${b[1]}`);
+            return { results: v === undefined ? [] : [{ value: v }] };
+          }
+          const rows = [];
+          for (const [k, v] of tables.settings) {
+            const [t, key] = k.split('|');
+            if (key === b[0]) rows.push({ tenant: t, value: v });
+          }
+          return { results: rows };
+        }
         if (/FROM events/.test(sql) && /origin = 'member'/.test(sql)) {
           return { results: tables.events.filter((e) => e.origin === 'member' && (e.creator_discord_id == null || e.creator_discord_id === '')).sort((a, c) => a.id - c.id) };
         }

@@ -22,6 +22,10 @@ import {
   AVATAR_MAX_BYTES, sniffAvatarType, getGuildAvatar, getGuildAvatarMeta,
   putGuildAvatar, deleteGuildAvatar, avatarPath,
 } from './guildavatar.js';
+import {
+  getSettingValue, setSettingValue, listSettingsByKey,
+  listNonEmptySettingsByKey, listGlobalSettings,
+} from './db/repositories/settings.ts';
 
 const TYPES = { activity: '双十人本', talent: '天赋组队', race: '竞速', tower: '爬塔', gather: '采集', explore: '探索' };
 const ROLES = ['输出', '承伤', '奶', '治疗', '随意'];
@@ -210,19 +214,12 @@ function isDevRequestC(c) {
 }
 async function getDevOnlySlugs(db) {
   try {
-    const { results } = await db.prepare(
-      "SELECT tenant FROM settings WHERE key = 'dev_only' AND value = '1'"
-    ).all();
-    return new Set(results.map((r) => r.tenant));
+    const rows = await listSettingsByKey(db, 'dev_only');
+    return new Set(rows.filter((r) => String(r.value) === '1').map((r) => r.tenant));
   } catch { return new Set(); }
 }
 async function isDevOnlyTenant(db, slug) {
-  try {
-    const row = await db.prepare(
-      "SELECT value FROM settings WHERE tenant = ? AND key = 'dev_only'"
-    ).bind(slug).first();
-    return !!row && String(row.value) === '1';
-  } catch { return false; }
+  return (await getSettingValue(db, slug, 'dev_only')) === '1';
 }
 // 与原 handleApi 一致: POST/PUT/PATCH 才读 body, 解析失败默认为 {}
 async function getBody(c) {
@@ -559,9 +556,7 @@ hub.post('/backfill/reminder-identity', async (c) => {
   const dryRun = !!body.dryRun;
   await ensureSignupDiscordColumn(db);
   await ensureGuildMembersTable(db);
-  const { results: bindRows } = await db.prepare(
-    "SELECT tenant, value FROM settings WHERE key = 'discord_guild_id' AND value != ''"
-  ).all();
+  const bindRows = await listNonEmptySettingsByKey(db, 'discord_guild_id');
   const { results: allUsers } = await db.prepare('SELECT discord_id, username, guilds_json FROM users').all();
   const userInGuild = (u, dgid) => {
     try {
@@ -623,20 +618,16 @@ hub.post('/backfill/reminder-identity', async (c) => {
 
 // GET /api/hub/settings, PUT /api/hub/settings (game_version/game_notice/game_version_code)
 hub.get('/settings', async (c) => {
-  const { results } = await c.env.DB.prepare(
-    "SELECT key, value FROM settings WHERE tenant = '' AND key IN ('game_version','game_notice','game_version_code')"
-  ).all();
+  const rows = await listGlobalSettings(c.env.DB, ['game_version', 'game_notice', 'game_version_code']);
   const out = { game_version: '', game_notice: '', game_version_code: '' };
-  for (const r of results) out[r.key] = r.value;
+  for (const r of rows) out[r.key] = r.value;
   return json({ ok: true, settings: out });
 });
 hub.put('/settings', async (c) => {
   const body = await getBody(c);
   for (const k of ['game_version', 'game_notice', 'game_version_code']) {
     if (body[k] !== undefined) {
-      await c.env.DB.prepare(
-        "INSERT INTO settings(tenant, key, value) VALUES('', ?, ?) ON CONFLICT(tenant, key) DO UPDATE SET value = excluded.value"
-      ).bind(k, s(body[k], 2000)).run();
+      await setSettingValue(c.env.DB, '', k, s(body[k], 2000));
     }
   }
   return json({ ok: true });
@@ -898,9 +889,7 @@ hub.post('/events/backfill-creators', async (c) => {
     }
   } catch { /* 快照表不存在时仅用全局名匹配 */ }
   // 租户 -> 绑定 Discord 服务器 id
-  const { results: bindRows } = await db.prepare(
-    "SELECT tenant, value FROM settings WHERE key = 'discord_guild_id'"
-  ).all();
+  const bindRows = await listSettingsByKey(db, 'discord_guild_id');
   const bindMap = new Map(bindRows.map((r) => [String(r.tenant), String(r.value || '')]));
 
   const { results: cars } = await db.prepare(
@@ -1007,9 +996,7 @@ guild.use('/:slug/*', async (c, next) => {
 // GET /api/:slug/settings
 guild.get('/:slug/settings', async (c) => {
   const tenant = c.get('tenant');
-  const { results } = await c.env.DB.prepare(
-    "SELECT key, value FROM settings WHERE tenant = '' AND key IN ('game_version','game_notice')"
-  ).all();
+  const results = await listGlobalSettings(c.env.DB, ['game_version', 'game_notice']);
   const out = { 
     guild_name: tenant.guild_name, 
     announcement: tenant.announcement, 
@@ -1702,10 +1689,8 @@ guild.delete('/:slug/admin/results/:id', needGuildAdmin, async (c) => {
 guild.get('/:slug/admin/discord', needGuildAdmin, async (c) => {
   const slug = c.get('slug');
   const t = await c.env.DB.prepare('SELECT discord_webhook FROM tenants WHERE slug = ?').bind(slug).first();
-  const row = await c.env.DB.prepare(
-    "SELECT value FROM settings WHERE tenant = ? AND key = 'discord_guild_id'"
-  ).bind(slug).first();
-  return json({ ok: true, discord_webhook: t?.discord_webhook || '', discord_guild_id: row?.value || '' });
+  const dgid = await getSettingValue(c.env.DB, slug, 'discord_guild_id');
+  return json({ ok: true, discord_webhook: t?.discord_webhook || '', discord_guild_id: dgid });
 });
 guild.put('/:slug/admin/discord', needGuildAdmin, async (c) => {
   const slug = c.get('slug');
@@ -1720,9 +1705,7 @@ guild.put('/:slug/admin/discord', needGuildAdmin, async (c) => {
   if (body.discord_guild_id !== undefined) {
     const dgid = s(body.discord_guild_id, 25);
     if (dgid && !/^\d{5,25}$/.test(dgid)) return err('Discord 服务器 ID 格式不对（应为纯数字）', 400);
-    await c.env.DB.prepare(
-      "INSERT INTO settings(tenant, key, value) VALUES(?, 'discord_guild_id', ?) ON CONFLICT(tenant, key) DO UPDATE SET value = excluded.value"
-    ).bind(slug, dgid).run();
+    await setSettingValue(c.env.DB, slug, 'discord_guild_id', dgid);
   }
   nudgeReminderHub(c, slug); // webhook 配置变化会影响提醒挂铃
   return json({ ok: true });
@@ -1734,18 +1717,14 @@ guild.put('/:slug/admin/discord', needGuildAdmin, async (c) => {
 // 任意键写入口, 故在此提供这个最窄的专用端点 (与 discord 端点同鉴权同落库方式)。
 guild.get('/:slug/admin/visibility', needGuildAdmin, async (c) => {
   const slug = c.get('slug');
-  const row = await c.env.DB.prepare(
-    "SELECT value FROM settings WHERE tenant = ? AND key = 'dev_only'"
-  ).bind(slug).first();
-  return json({ ok: true, dev_only: !!row && String(row.value) === '1' });
+  const value = await getSettingValue(c.env.DB, slug, 'dev_only');
+  return json({ ok: true, dev_only: value === '1' });
 });
 guild.put('/:slug/admin/visibility', needGuildAdmin, async (c) => {
   const slug = c.get('slug');
   const body = await getBody(c);
   if (body.dev_only !== undefined) {
-    await c.env.DB.prepare(
-      "INSERT INTO settings(tenant, key, value) VALUES(?, 'dev_only', ?) ON CONFLICT(tenant, key) DO UPDATE SET value = excluded.value"
-    ).bind(slug, body.dev_only ? '1' : '0').run();
+    await setSettingValue(c.env.DB, slug, 'dev_only', body.dev_only ? '1' : '0');
   }
   return json({ ok: true });
 });

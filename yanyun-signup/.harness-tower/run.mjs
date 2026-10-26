@@ -75,6 +75,8 @@ function splitTokens(body, binds) {
 }
 
 function stmt(sql) {
+  // 数据层 (Drizzle) SQL 规范化: 去引号 + 去 settings. 限定前缀 (仅路由匹配)
+  sql = sql.replace(/"/g, '').replace(/settings\./g, '');
   const q = {
     _binds: [],
     bind(...a) { this._binds = a; return this; },
@@ -103,6 +105,19 @@ function stmt(sql) {
     },
     async all() {
       const b = this._binds;
+      if (/FROM settings/.test(sql)) {
+        // 数据层点查走 .all() 通道 (drizzle db.get): 形状同 first() 的 settings 分支
+        if (/tenant = \?/.test(sql)) {
+          const v = settings.get(`${b[0]}|${b[1]}`);
+          return { results: v === undefined ? [] : [{ value: v }] };
+        }
+        const rows = [];
+        for (const [k, v] of settings) {
+          const [t, key] = k.split('|');
+          if (key === b[0]) rows.push({ tenant: t, value: v });
+        }
+        return { results: rows };
+      }
       if (/FROM events WHERE tenant = \? AND type = \?/.test(sql)) {
         return { results: tables.events.filter((e) => e.tenant === b[0] && e.type === b[1]) };
       }
