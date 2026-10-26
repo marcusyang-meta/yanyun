@@ -154,19 +154,13 @@ export async function updateTenantFixedTeams(d1: D1Database, slug: string, flag:
   );
 }
 
-/* 删除租户级联 (旧 hub DELETE 的四语句 batch, 顺序保持, 逐条执行)。 */
+/* 删除租户级联: 仓库内 D1 batch 成组执行 (恢复二期逐条执行时
+ * 丢失的组原子性: 任一语句失败整组回滚)。 */
 export async function deleteTenantCascade(d1: D1Database, slug: string): Promise<void> {
-  const db = createDb(d1);
-  await db.run(
-    sql`DELETE FROM ${signups} WHERE ${col('event_id')} IN (SELECT ${col('id')} FROM ${events} WHERE ${col('tenant')} = ${slug})`,
-  );
-  await db.run(
-    sql`DELETE FROM ${results} WHERE ${col('event_id')} IN (SELECT ${col('id')} FROM ${events} WHERE ${col('tenant')} = ${slug})`,
-  );
-  await db.run(
-    sql`DELETE FROM ${events} WHERE ${col('tenant')} = ${slug}`,
-  );
-  await db.run(
-    sql`DELETE FROM ${tenants} WHERE ${col('slug')} = ${slug}`,
-  );
+  await d1.batch([
+    d1.prepare('DELETE FROM signups WHERE event_id IN (SELECT id FROM events WHERE tenant = ?)').bind(slug),
+    d1.prepare('DELETE FROM results WHERE event_id IN (SELECT id FROM events WHERE tenant = ?)').bind(slug),
+    d1.prepare('DELETE FROM events WHERE tenant = ?').bind(slug),
+    d1.prepare('DELETE FROM tenants WHERE slug = ?').bind(slug),
+  ]);
 }

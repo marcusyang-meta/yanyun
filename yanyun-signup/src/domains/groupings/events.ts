@@ -281,15 +281,15 @@ export async function markReminderError(d1: D1Database, id: number, errorText: s
   return metaOf(r);
 }
 
-/* 解散级联: 报名 + 成绩 + 车本身 (旧 batch 三语句, 顺序保持, 逐条执行)。
+/* 解散级联: 报名 + 成绩 + 车本身, 仓库内 D1 batch 成组执行
+ * (恢复二期逐条执行时丢失的组原子性: 任一语句失败整组回滚)。
  * tenant 传 null = 不带租户条件。 */
 export async function deleteEventCascade(d1: D1Database, id: number, tenant: string | null): Promise<void> {
-  const db = createDb(d1);
-  await db.run(sql`DELETE FROM ${signups} WHERE ${col('event_id')} = ${id}`);
-  await db.run(sql`DELETE FROM ${results} WHERE ${col('event_id')} = ${id}`);
-  if (tenant == null) {
-    await db.run(sql`DELETE FROM ${events} WHERE ${col('id')} = ${id}`);
-  } else {
-    await db.run(sql`DELETE FROM ${events} WHERE ${col('id')} = ${id} AND ${col('tenant')} = ${tenant}`);
-  }
+  await d1.batch([
+    d1.prepare('DELETE FROM signups WHERE event_id = ?').bind(id),
+    d1.prepare('DELETE FROM results WHERE event_id = ?').bind(id),
+    tenant == null
+      ? d1.prepare('DELETE FROM events WHERE id = ?').bind(id)
+      : d1.prepare('DELETE FROM events WHERE id = ? AND tenant = ?').bind(id, tenant),
+  ]);
 }
