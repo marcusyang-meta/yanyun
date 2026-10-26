@@ -21,6 +21,28 @@ const LIVE_DIST = fileURLToPath(new URL('../.harness-live/dist', import.meta.url
 const WORKER = 'http://127.0.0.1:8799';
 const JWT_A = fs.readFileSync('/tmp/jwt-a.txt', 'utf8').trim();
 const JWT_B = fs.readFileSync('/tmp/jwt-b.txt', 'utf8').trim();
+
+/* Legacy-car fixture (creator_discord_id NULL, status draft — the
+ * row shape the retired session-less REST draft endpoint wrote).
+ * Seeded straight into the local D1 the dev worker serves (same
+ * wrangler d1 channel the signup CI fixtures use); no product REST
+ * involved. */
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+const execFileP = promisify(execFile);
+const SIGNUP_DIR = fileURLToPath(new URL('../../yanyun-signup', import.meta.url));
+async function seedLegacyDraft() {
+  const now = Math.floor(Date.now() / 1000);
+  const sql = `INSERT INTO events (tenant, title, type, description, starts_at, meet_info, max_slots, status, starts_at_utc, origin, created_by, manage_code, dungeon, creator_discord_id, reminder_sent_at, reminder_error) VALUES ('livetest', '未命名车队', 'activity', '', '', '', 10, 'draft', ${now}, 'member', '热心车友', '', '', NULL, NULL, NULL) RETURNING id;`;
+  const { stdout } = await execFileP('npx',
+    ['wrangler', 'd1', 'execute', 'yanyun-signup', '--local', '--json', '--command', sql],
+    { cwd: SIGNUP_DIR });
+  const parsed = JSON.parse(stdout.slice(stdout.indexOf('[')));
+  const id = parsed?.[0]?.results?.[0]?.id;
+  if (id == null) throw new Error('seedLegacyDraft: no id returned: ' + stdout.slice(0, 200));
+  return String(id);
+}
+
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml' };
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -83,12 +105,10 @@ try {
   check('[P] 非车头编辑他车被拒 (编辑仅车头, 细则见 .harness-editperm)', upd?.data?.updateGrouping?.ok === false
     && String(upd?.data?.updateGrouping?.error || '').includes('只有车头可以编辑车队'), JSON.stringify(upd?.data?.updateGrouping));
 
-  // 旧车 (REST 草稿, creator_discord_id 为空): 谁都不能解散
-  const dr = await fetch(WORKER + '/api/livetest/cars/draft', {
-    method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ type: 'activity' }),
-  });
-  const draft = await dr.json();
-  check('[P] REST 草稿车已建 (旧车夹具)', draft?.ok === true && !!draft?.id, JSON.stringify(draft).slice(0, 120));
+  // 旧车 (无车头记录, creator_discord_id 为空): 谁都不能解散
+  const draftId = await seedLegacyDraft();
+  check('[P] 旧车夹具已种入本地 D1', !!draftId, draftId);
+  const draft = { id: draftId };
   const rl = await disband(JWT_A, String(draft.id));
   check('[P] 无车头记录的旧车 disband 被拒', rl?.data?.disbandGrouping?.ok === false
     && String(rl?.data?.disbandGrouping?.error || '').includes('未记录车头'), JSON.stringify(rl?.data?.disbandGrouping));

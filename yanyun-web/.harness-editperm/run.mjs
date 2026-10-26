@@ -24,6 +24,28 @@ const LIVE_DIST = fileURLToPath(new URL('../.harness-live/dist', import.meta.url
 const WORKER = 'http://127.0.0.1:8799';
 const JWT_A = fs.readFileSync('/tmp/jwt-a.txt', 'utf8').trim();
 const JWT_B = fs.readFileSync('/tmp/jwt-b.txt', 'utf8').trim();
+
+/* Legacy-car fixture (creator_discord_id NULL, status draft — the
+ * row shape the retired session-less REST draft endpoint wrote).
+ * Seeded straight into the local D1 the dev worker serves (same
+ * wrangler d1 channel the signup CI fixtures use); no product REST
+ * involved. */
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+const execFileP = promisify(execFile);
+const SIGNUP_DIR = fileURLToPath(new URL('../../yanyun-signup', import.meta.url));
+async function seedLegacyDraft() {
+  const now = Math.floor(Date.now() / 1000);
+  const sql = `INSERT INTO events (tenant, title, type, description, starts_at, meet_info, max_slots, status, starts_at_utc, origin, created_by, manage_code, dungeon, creator_discord_id, reminder_sent_at, reminder_error) VALUES ('livetest', '未命名车队', 'activity', '', '', '', 10, 'draft', ${now}, 'member', '热心车友', '', '', NULL, NULL, NULL) RETURNING id;`;
+  const { stdout } = await execFileP('npx',
+    ['wrangler', 'd1', 'execute', 'yanyun-signup', '--local', '--json', '--command', sql],
+    { cwd: SIGNUP_DIR });
+  const parsed = JSON.parse(stdout.slice(stdout.indexOf('[')));
+  const id = parsed?.[0]?.results?.[0]?.id;
+  if (id == null) throw new Error('seedLegacyDraft: no id returned: ' + stdout.slice(0, 200));
+  return String(id);
+}
+
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml' };
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -40,14 +62,6 @@ async function gql(jwt, query, variables) {
     body: JSON.stringify({ query, variables }),
   });
   return r.json();
-}
-async function manage(jwt, id, body) {
-  const r = await fetch(`${WORKER}/api/livetest/events/${id}/manage`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json', ...(jwt ? { cookie: `yy_session=${jwt}` } : {}) },
-    body: JSON.stringify(body),
-  });
-  return { status: r.status, body: await r.json().catch(() => null) };
 }
 const future = () => String(Math.floor(Date.now() / 1000) + 3600);
 async function aCreate(title) {
@@ -107,13 +121,9 @@ try {
     && String(uAnon?.data?.updateGrouping?.error || '').includes('请先登录'),
     JSON.stringify(uAnon?.data?.updateGrouping));
 
-  // --- 旧车 (REST 无会话草稿, 无车头记录): 谁都改不了 ---
-  const dr = await fetch(WORKER + '/api/livetest/cars/draft', {
-    method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ type: 'activity' }),
-  });
-  const draft = await dr.json();
-  check('[P] REST 草稿车已建 (旧车夹具)', draft?.ok === true && !!draft?.id, JSON.stringify(draft).slice(0, 120));
-  const legacyId = String(draft.id);
+  // --- 旧车 (无车头记录): 谁都改不了 ---
+  const legacyId = await seedLegacyDraft();
+  check('[P] 旧车夹具已种入本地 D1', !!legacyId, legacyId);
   globalThis.__legacyDraftId = legacyId;
   const uL = await update(JWT_A, legacyId, { title: '想改旧车' });
   check('[P] 无车头记录旧车 updateGrouping 被拒 (未记录车头，无法编辑)',
@@ -122,41 +132,11 @@ try {
     && String(uL?.data?.updateGrouping?.error || '').includes('未记录车头，无法编辑'),
     JSON.stringify(uL?.data?.updateGrouping));
 
-  // --- REST manage: 四动作同闸 ---
-  const mB = await manage(JWT_B, gid, { action: 'update', title: 'B的REST改名' });
-  check('[P] REST 非车头 update -> 403 只有车头可以编辑车队',
-    mB.status === 403 && String(mB.body?.message || '').includes('只有车头可以编辑车队'), JSON.stringify(mB));
-  const mAnon = await manage(null, gid, { action: 'update', title: 'x' });
-  check('[P] REST 匿名 update -> 401 请先登录',
-    mAnon.status === 401 && String(mAnon.body?.message || '').includes('请先登录'), JSON.stringify(mAnon));
-  const mBc = await manage(JWT_B, gid, { action: 'close' });
-  check('[P] REST 非车头 close -> 403 只有车头可以关闭车队',
-    mBc.status === 403 && String(mBc.body?.message || '').includes('只有车头可以关闭车队'), JSON.stringify(mBc));
-  const dOpen = await detail(JWT_A, gid);
-  check('[P] 非车头 close 被拒后车仍 open', dOpen?.data?.groupingDetailPage?.grouping?.status === 'open',
-    dOpen?.data?.groupingDetailPage?.grouping?.status);
-  const mAc = await manage(JWT_A, gid, { action: 'close' });
-  check('[P] REST 车头 close -> 200', mAc.status === 200 && mAc.body?.ok === true, JSON.stringify(mAc));
-  const mBr = await manage(JWT_B, gid, { action: 'reopen' });
-  check('[P] REST 非车头 reopen -> 403 只有车头可以重开车队',
-    mBr.status === 403 && String(mBr.body?.message || '').includes('只有车头可以重开车队'), JSON.stringify(mBr));
-  const mAr = await manage(JWT_A, gid, { action: 'reopen' });
-  check('[P] REST 车头 reopen -> 200', mAr.status === 200 && mAr.body?.ok === true, JSON.stringify(mAr));
-  const mAu = await manage(JWT_A, gid, { action: 'update', title: 'REST车头改名' });
-  check('[P] REST 车头 update -> 200 且落库',
-    mAu.status === 200 && mAu.body?.ok === true
-    && (await detail(JWT_A, gid))?.data?.groupingDetailPage?.grouping?.title === 'REST车头改名', JSON.stringify(mAu));
-  const mBd = await manage(JWT_B, gid, { action: 'delete' });
-  check('[P] REST 非车头 delete 闸门不变 -> 403 只有车头可以删除车队',
-    mBd.status === 403 && String(mBd.body?.message || '').includes('只有车头可以删除车队'), JSON.stringify(mBd));
-
-  // --- REST manage: 旧车四动作全撞未记录车头 ---
-  const mLu = await manage(JWT_A, legacyId, { action: 'update', title: 'x' });
-  check('[P] REST 旧车 update -> 403 未记录车头，无法编辑',
-    mLu.status === 403 && String(mLu.body?.message || '').includes('未记录车头，无法编辑'), JSON.stringify(mLu));
-  const mLc = await manage(JWT_A, legacyId, { action: 'close' });
-  check('[P] REST 旧车 close -> 403 未记录车头，无法关闭',
-    mLc.status === 403 && String(mLc.body?.message || '').includes('未记录车头，无法关闭'), JSON.stringify(mLc));
+  // (The REST manage endpoint section retired with the REST
+  // shutdown migration: its leader gate is the same gate the
+  // GraphQL checks above and below exercise — updateGrouping /
+  // disbandGrouping / anonymous / legacy-car — on the surviving
+  // surface. The endpoint itself is deleted in the shutdown PR.)
 
   // --- 未收口面未误伤: B 报名 / 改自己座位流派 / 离队 ---
   const join = await gql(JWT_B,
