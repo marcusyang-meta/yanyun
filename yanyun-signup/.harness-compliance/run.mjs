@@ -64,6 +64,9 @@ function toRawRows(sqlText, rows) {
 
 /* ---------------- FakeDB ---------------- */
 function makeDb({ tenants = [], throwOnTenantsList = false } = {}) {
+  // throwOnTenantsList now targets the hub-admin tenant list query
+  // (listTenantsHubAdmin: FROM tenants t ORDER BY t.created_at) — the
+  // retired public /api/tenants read is gone with product REST.
   const state = { tenants: tenants.map((t) => ({ ...t })), errorLog: [], tenantInserts: 0 };
   function route(kind, sql, b) {
     // Data-layer (Drizzle) SQL normalization: strip quotes + error_log. qualifiers (routing match only).
@@ -86,7 +89,7 @@ function makeDb({ tenants = [], throwOnTenantsList = false } = {}) {
       return { meta: {} };
     }
     if (/FROM tenants/.test(sql)) {
-      if (throwOnTenantsList && /ORDER BY created_at/.test(sql)) throw new TypeError('boom-test');
+      if (throwOnTenantsList && /FROM tenants( t)? ORDER BY/.test(sql)) throw new TypeError('boom-test');
       if (/WHERE slug/.test(sql)) {
         const t = state.tenants.find((x) => x.slug === b[0]) || null;
         return kind === 'first' ? t : { results: t ? [t] : [] };
@@ -239,17 +242,26 @@ async function gql(query, { locale = 'zh-CN', db } = {}) {
   check('A7 logError 对坏 DB 不抛错', !threw);
 }
 {
-  // Worker-level injection: uncaught REST-handler exception -> 500 + error_log(source=rest).
+  // Worker-level injection: uncaught Hono-handler exception -> 500 +
+  // error_log(source=rest). Vehicle: the hub tenant list (kept
+  // surface) with a DB that throws inside its query.
   const worker = (await import('../src/worker.ts')).default;
   const { db, state } = makeDb({ throwOnTenantsList: true });
   const env = { DB: db, ADMIN_PASSWORD: 'test-admin-pw', ASSETS };
   const { ctx, pending } = makeCtx();
-  const res = await worker.fetch(new Request('http://local/api/tenants'), env, ctx);
-  eq('A7 REST 未捕获异常 -> 500', res.status, 500);
+  const login0 = await worker.fetch(new Request('http://local/api/hub/login', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ password: 'test-admin-pw' }),
+  }), env, ctx);
+  const lj0 = await login0.json();
+  const res = await worker.fetch(new Request('http://local/api/hub/tenants', {
+    headers: { authorization: 'Bearer ' + lj0.token },
+  }), env, ctx);
+  eq('A7 Hono 未捕获异常 -> 500', res.status, 500);
   await Promise.all(pending);
   const restRow = state.errorLog.find((r) => r.source === 'rest');
-  check('A7 REST 异常落 error_log', !!restRow, JSON.stringify(state.errorLog).slice(0, 200));
-  check('A7 REST 落库含原始消息', (restRow?.message || '').includes('boom-test'), restRow?.message);
+  check('A7 Hono 异常落 error_log', !!restRow, JSON.stringify(state.errorLog).slice(0, 200));
+  check('A7 Hono 落库含原始消息', (restRow?.message || '').includes('boom-test'), restRow?.message);
 
   // Portal read: log in for a token -> GET /api/hub/errors; no token -> 401.
   const login = await worker.fetch(new Request('http://local/api/hub/login', {
