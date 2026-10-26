@@ -16,7 +16,7 @@
 import {
   insertErrorLog, pruneErrorLog, listRecentErrors, countErrorsSince,
   ensureErrorLogTable as ensureErrorLogTableRepo,
-} from './domains/platform/index.ts';
+} from './errorLog.ts';
 
 const KEEP_DAYS = 30;
 const MAX_ROWS = 5000;
@@ -25,23 +25,23 @@ const PRUNE_EVERY = 50; // 每 50 次写入顺手清理一次 (单 isolate 计�
 let writeCount = 0;
 
 // 懒 DDL 已归 platform 域 errorLog 仓库 (三期); 此处保留旧名导出作委托。
-export function ensureErrorLogTable(db) {
+export function ensureErrorLogTable(db: D1Database) {
   return ensureErrorLogTableRepo(db);
 }
 
-async function prune(db) {
+async function prune(db: D1Database) {
   try {
     const cutoff = Math.floor(Date.now() / 1000) - KEEP_DAYS * 86400;
     await pruneErrorLog(db, cutoff, MAX_ROWS);
   } catch { /* 清理失败静默, 下次写入再试 */ }
 }
 
-const clip = (v, n) => String(v ?? '').slice(0, n);
+const clip = (v: any, n: number) => String(v ?? '').slice(0, n);
 
 /* logError(db, { source, error?, name?, message?, tenant?, context? })
  * error 传 Error 对象时自动取 name/message/stack; context 可传对象
  * (JSON 序列化, 截断) 或字符串。永不抛错, 返回是否写入成功。 */
-export async function logError(db, entry = {}) {
+export async function logError(db: D1Database, entry: any = {}) {
   try {
     if (!db || typeof db.prepare !== 'function') return false;
     await ensureErrorLogTable(db);
@@ -71,7 +71,7 @@ export async function logError(db, entry = {}) {
 }
 
 /* 门户只读: 最近 N 条 + 近 24h 总数。表不存在/查询失败 -> 空结果。 */
-export async function recentErrors(db, limit = 50) {
+export async function recentErrors(db: D1Database, limit = 50) {
   try {
     await ensureErrorLogTable(db);
     const errors = await listRecentErrors(db, limit);

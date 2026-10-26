@@ -5,3 +5,7 @@ export * from './errorLog.ts';
 export * from './i18n.ts';
 export * from './blocks.ts';
 export * from './prim.ts';
+export * from './error-log.ts';
+export * from './push.ts';
+export { ensureErrorLogTable } from './error-log.ts';
+export { ensurePushTokensTable } from './push.ts';

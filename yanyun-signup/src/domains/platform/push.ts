@@ -4,11 +4,11 @@
 // (buildReminderMessage 返回的 userIds), 再映射到这些账号在 App 里注册的
 // ExponentPushToken。解析不到账号的座位没有 App 身份, 天然收不到 —— 不
 // 伪造覆盖率, Discord 那条仍是全覆盖通道。
-import { logError } from './errorlog.js';
+import { logError } from './error-log.ts';
 import {
   upsertPushToken, deletePushTokenForUser, deletePushTokenEverywhere as deleteTokenEverywhere,
   listPushTokensForUsers, ensurePushTokensTable as ensurePushTokensTableRepo,
-} from './domains/platform/index.ts';
+} from './pushTokens.ts';
 
 // 发送走 Expo Push Service HTTP API; DeviceNotRegistered 的令牌立即自清
 // (tickets 与 receipts 两处都查)。全模块失败隔离: 任何异常只记日志, 绝不
@@ -16,7 +16,7 @@ import {
 
 // EXPO_PUSH_BASE 仅供本地打桩验收覆盖 (与 auth.js 的 DISCORD_API_BASE 同
 // 套路), 生产不设此变量, 恒走 exp.host。
-function expoEndpoints(base) {
+function expoEndpoints(base: any) {
   const b = (base && String(base).trim()) || 'https://exp.host';
   return {
     send: b + '/--/api/v2/push/send',
@@ -26,7 +26,7 @@ function expoEndpoints(base) {
 const EXPO_CHUNK = 100; // Expo 单请求上限
 const PUSH_TOKEN_RE = /^(ExponentPushToken|ExpoPushToken)\[[^\]\s]+\]$/;
 
-export function isValidPushToken(token) {
+export function isValidPushToken(token: any) {
   return typeof token === 'string' && PUSH_TOKEN_RE.test(token.trim());
 }
 
@@ -34,11 +34,11 @@ export function isValidPushToken(token) {
  * 一人可多设备多令牌; (discord_id, token) 唯一, 同令牌重注册只刷新
  * platform/updated_at。注销按 (discord_id, token) 删, 不误删他人设备。 */
 // 懒 DDL 已归 platform 域 pushTokens 仓库 (三期); 此处保留旧名导出作委托。
-export function ensurePushTokensTable(db) {
+export function ensurePushTokensTable(db: D1Database) {
   return ensurePushTokensTableRepo(db);
 }
 
-export async function savePushToken(db, discordId, token, platform) {
+export async function savePushToken(db: D1Database, discordId: string, token: string, platform: any) {
   await ensurePushTokensTable(db);
   const now = Math.floor(Date.now() / 1000);
   await upsertPushToken(
@@ -46,34 +46,34 @@ export async function savePushToken(db, discordId, token, platform) {
   );
 }
 
-export async function deletePushToken(db, discordId, token) {
+export async function deletePushToken(db: D1Database, discordId: string, token: string) {
   await ensurePushTokensTable(db);
   await deletePushTokenForUser(db, String(discordId), String(token));
 }
 
 // 令牌失效自清: 按令牌本身删 (回执只认令牌不认人)
-async function deletePushTokenEverywhere(db, token) {
+async function deletePushTokenEverywhere(db: D1Database, token: string) {
   await ensurePushTokensTable(db);
   await deleteTokenEverywhere(db, String(token));
 }
 
 // discord_id -> [token...]
-export async function pushTokensForUsers(db, discordIds) {
-  const out = new Map();
-  const ids = [...new Set((discordIds || []).map(String).filter(Boolean))];
+export async function pushTokensForUsers(db: D1Database, discordIds: any) {
+  const out = new Map<string, string[]>();
+  const ids: string[] = [...new Set<string>((discordIds || []).map((x: any) => String(x)).filter(Boolean))];
   if (!ids.length) return out;
   await ensurePushTokensTable(db);
   const results = await listPushTokensForUsers(db, ids).catch(() => []);
   for (const r of results || []) {
     const k = String(r.discord_id);
     if (!out.has(k)) out.set(k, []);
-    out.get(k).push(String(r.token));
+    out.get(k)!.push(String(r.token));
   }
   return out;
 }
 
 /* ---------- Expo Push Service 发送 ---------- */
-async function expoFetchJson(url, payload, timeoutMs = 15000, attempts = 1) {
+async function expoFetchJson(url: string, payload: any, timeoutMs = 15000, attempts = 1): Promise<any> {
   // 出口网络偶发卡顿 (实测 exp.host 首连可卡 20s): 发送允许重试一次,
   // 仍失败按 null 返回, 由调用方记账, 不冒泡。
   for (let a = 0; a < attempts; a++) {
@@ -104,13 +104,13 @@ async function expoFetchJson(url, payload, timeoutMs = 15000, attempts = 1) {
 /* 批量发送 messages: [{to, title, body, data}]。tickets 先行过滤明显的
  * DeviceNotRegistered; 其余拿到 ticket id 再查 receipts 二次确认, 命中
  * 的令牌自清。返回统计, 永不抛错。 */
-export async function sendExpoPush(db, messages, expoBase) {
+export async function sendExpoPush(db: D1Database, messages: any, expoBase: any) {
   const EP = expoEndpoints(expoBase);
-  const summary = { attempted: 0, ticketOk: 0, removed: 0, errors: [] };
-  const list = (messages || []).filter((m) => m && isValidPushToken(m.to));
+  const summary: { attempted: number; ticketOk: number; removed: number; errors: string[] } = { attempted: 0, ticketOk: 0, removed: 0, errors: [] };
+  const list = (messages || []).filter((m: any) => m && isValidPushToken(m.to));
   summary.attempted = list.length;
   if (!list.length) return summary;
-  const receiptIds = new Map(); // ticket id -> token
+  const receiptIds = new Map<string, string>(); // ticket id -> token
   for (let i = 0; i < list.length; i += EXPO_CHUNK) {
     const chunk = list.slice(i, i + EXPO_CHUNK);
     const resp = await expoFetchJson(EP.send, chunk, 15000, 2);
@@ -143,8 +143,8 @@ export async function sendExpoPush(db, messages, expoBase) {
       const receipts = resp && resp.data && typeof resp.data === 'object' ? resp.data : null;
       if (!receipts) continue;
       for (const [id, receipt] of Object.entries(receipts)) {
-        if (receipt && receipt.status === 'error'
-          && receipt.details && receipt.details.error === 'DeviceNotRegistered') {
+        if (receipt && (receipt as any).status === 'error'
+          && (receipt as any).details && (receipt as any).details.error === 'DeviceNotRegistered') {
           const token = receiptIds.get(id);
           if (token) {
             await deletePushTokenEverywhere(db, token).catch(() => {});
@@ -159,7 +159,7 @@ export async function sendExpoPush(db, messages, expoBase) {
 
 /* 发车提醒的 App 通道: userIds = buildReminderMessage 已解析到账号的参与
  * 者。文案与 Discord 版同信息 (车名/分钟数/副本/百业), 简洁版不带名册。 */
-export async function sendDeparturePush(db, slug, ev, cfg, userIds, nowSec, expoBase) {
+export async function sendDeparturePush(db: D1Database, slug: string, ev: any, cfg: any, userIds: any, nowSec: number, expoBase: any) {
   const byUser = await pushTokensForUsers(db, userIds || []);
   if (!byUser.size) return { attempted: 0, ticketOk: 0, removed: 0, errors: [] };
   const guildName = (cfg && cfg.guildName) || slug;

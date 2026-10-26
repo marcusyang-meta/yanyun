@@ -11,7 +11,7 @@
 // 真实 yoga + graphql.js resolver + creatorbackfill.js 真函数, FakeDB 按
 // SQL 形状忠实路由 (插入/更新真落到内存表, 不是写死结果)。
 import { yoga } from '../src/graphql.js';
-import { typeDefs } from '../src/graphql-schema.js';
+import { typeDefs } from '../src/graphql-schema.ts';
 import { runCreatorBackfillOnce, maybeRunCreatorBackfill } from '../src/creatorbackfill.js';
 
 let pass = 0, fail = 0; const fails = [];

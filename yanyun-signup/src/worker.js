@@ -3,8 +3,7 @@
 // Workers(免费) + D1(免费) + 静态资源(免费) + Durable Objects(免费额度内), 无需 KV / R2 / 付费功能
 // 路由框架: Hono (npm hono)
 
-export { SeatHub } from './seathub.js';
-export { GuildHub } from './guildhub.js';
+export { SeatHub, GuildHub } from './domains/groupings/index.ts';
 import { Hono } from 'hono';
 import { yoga, parseGuideStructured, ensureBossStructuredColumns, ensureDungeonDexColumns, getGuildAccess, ensureEventCreatorColumn, negotiateLocale } from './graphql.js';
 import { getSessionUserChecked, sessionCookieHeader, handleDiscordLogin, handleDiscordCallback, handleLogout, ensureNickStore, getUserLocalePref } from './auth.js';
@@ -12,16 +11,16 @@ import {
   getReminderConfig, getReminderSetting, setReminderSetting,
   maskWebhook, postWebhook, WEBHOOK_RE,
   ensureSignupDiscordColumn, ensureGuildMembersTable, upsertGuildMember,
-} from './reminder.ts';
-import { getHeirloomConfig, sendHeirloomTest, heirloomStatusFor } from './heirloompush.js';
+} from './domains/groupings/index.ts';
+import { getHeirloomConfig, sendHeirloomTest, heirloomStatusFor } from './domains/gear/index.ts';
 import { maybeRunCreatorBackfill } from './creatorbackfill.js';
 import { maybeRunCreatorManualFix } from './creatormanualfix.js';
-import { logError, recentErrors } from './errorlog.js';
+import { logError, recentErrors } from './domains/platform/index.ts';
 import { translate } from './domains/platform/index.ts';
 import {
   AVATAR_MAX_BYTES, sniffAvatarType, getGuildAvatar, getGuildAvatarMeta,
   putGuildAvatar, deleteGuildAvatar, avatarPath,
-} from './guildavatar.ts';
+} from './domains/guilds/index.ts';
 import {
   getSettingValue, setSettingValue, listSettingsByKey,
   listNonEmptySettingsByKey, listGlobalSettings,

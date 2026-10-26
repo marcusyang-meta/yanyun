@@ -4,7 +4,7 @@
 // -> 列表筛选 (tab 隔离) -> joinGrouping 报名 -> 列表/详情 Block 徽标 ->
 // 五语种文案字段 -> 发车提醒文案 (buildReminderMessage 真函数) -> REST 草稿口径。
 import { yoga } from '../src/graphql.js';
-import { typeDefs } from '../src/graphql-schema.js';
+import { typeDefs } from '../src/graphql-schema.ts';
 import { buildReminderMessage } from '../src/reminder.ts';
 
 let pass = 0, fail = 0; const fails = [];

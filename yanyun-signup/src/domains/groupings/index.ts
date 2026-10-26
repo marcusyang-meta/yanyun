@@ -3,3 +3,7 @@
 export * from './events.ts';
 export * from './signups.ts';
 export * from './results.ts';
+export * from './reminder.ts';
+export { GuildHub } from './guildhub.ts';
+export { SeatHub } from './seathub.ts';
+export { ensureReminderColumns, ensureSignupDiscordColumn } from './reminder.ts';

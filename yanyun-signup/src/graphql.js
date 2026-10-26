@@ -1,7 +1,7 @@
 // 燕云百业 GraphQL 层 (新增, 不影响现有 REST API)
 // Hono 挂载: app.use('/graphql', ...) + default fetch 路由 /graphql -> app
 import { createSchema, createYoga } from 'graphql-yoga';
-import { typeDefs } from './graphql-schema.js';
+import { typeDefs } from './graphql-schema.ts';
 import {
   clampBlocksVersion, substituteForVersion, weekWindowUtc, startsAtEpoch,
   fmtStartsAt, groupByLocalDay, TYPE_SHORT_KEY, HEALER_SECT,
@@ -12,12 +12,12 @@ import {
 } from './domains/platform/index.ts';
 import { tlCalculateExcel } from './domains/gear/index.ts';
 import { getUserServers, getGuildNick, maybeRefreshGuildNicks, getUserLocalePref, setUserLocalePref } from './auth.js';
-import { ensureSignupDiscordColumn, ensureGuildMembersTable, upsertGuildMember } from './reminder.ts';
-import { ensurePushTokensTable, isValidPushToken, savePushToken, deletePushToken } from './push.js';
-import { evaluateHeirloomPushes } from './heirloompush.js';
+import { ensureSignupDiscordColumn, ensureGuildMembersTable, upsertGuildMember } from './domains/groupings/index.ts';
+import { ensurePushTokensTable, isValidPushToken, savePushToken, deletePushToken } from './domains/platform/index.ts';
+import { evaluateHeirloomPushes } from './domains/gear/index.ts';
 import { translate, negotiateLocale, SUPPORTED_LOCALES, CATALOG } from './domains/platform/index.ts';
-import { logError } from './errorlog.js';
-import { getGuildAvatarMeta, avatarPath } from './guildavatar.ts';
+import { logError } from './domains/platform/index.ts';
+import { getGuildAvatarMeta, avatarPath } from './domains/guilds/index.ts';
 import { getSettingValue, setSettingValue, listSettingsByKey } from './domains/guilds/index.ts';
 import { getUsernameRow } from './domains/identity/index.ts';
 import { listGuildMembers, getGuildMember } from './domains/identity/index.ts';
@@ -46,7 +46,7 @@ import {
 import {
   listGearItems, insertGearItem, updateGearItemRow, deleteGearItemRow,
   listGearBuilds, insertGearBuild, deleteGearBuildRow,
-} from './gearstore.ts';
+} from './domains/gear/index.ts';
 import {
   GP_SLOTS, GP_GEAR_SLOTS, GP_AFFIX, GP_BUILDS, GP_SLOTS_BIG, GP_SLOTS_SMALL,
   GP_BASE_FIELDS, GP_BASE_PRESET, GP_BASE_FIELD_LABELS, GP_XINFA, GP_TALENT_ROWS,
@@ -56,7 +56,7 @@ import {
   GP_DEMO_KIT, GP_DIM_ROWS, GP_QUICK_BAR_NAMES, GP_BUILD_SECT, GP_WUXUE_NAMES,
   gpTalentText, gpClassOf, gpSanitizeGearData, gpPlan, gpAutoCombine,
   gpParsePaste, gpQuickCalc,
-} from './gearplanner.js';
+} from './domains/gear/index.ts';
 import {
   enDungeonName, enBossName, enSectName, enBuildSchool, enAffixName,
   enAffixSys, enMartialArtName, enClassLabel, enGearSetName,
