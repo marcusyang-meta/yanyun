@@ -80,38 +80,52 @@ for (const [locale, title] of Object.entries(PRIVACY_TITLES)) {
   check('legalPage TERMS en', en.body?.data?.legalPage?.title === 'Terms of Service', JSON.stringify(en.body?.data?.legalPage?.title));
 }
 
-/* 3. Tenant directory */
+/* 3. Public guild card channel (replaces the retired /api/tenants
+ * directory read): the OG card query answers existence + name for
+ * any public guild, bound or not; the slug enumeration carries the
+ * directory's visibility rule. */
 {
-  const r = await fetchRetry(`${BASE}/api/tenants`, { headers: { Origin: BASE } });
-  const body = await r.json().catch(() => null);
-  const slugs = (body?.tenants || []).map((t) => t.slug);
-  check('tenant directory returns 200 + ok', r.status === 200 && body?.ok === true, 'status=' + r.status);
-  check(`tenant directory contains ${TENANT}`, slugs.includes(TENANT), 'slugs=' + slugs.join(','));
-  if (ALSO_TENANT) check(`tenant directory contains ${ALSO_TENANT}`, slugs.includes(ALSO_TENANT), 'slugs=' + slugs.join(','));
+  const { body } = await gql(`{ ogGuildCard(slug: "${TENANT}") { exists name } ogGuildSlugs }`);
+  const card = body?.data?.ogGuildCard;
+  check(`ogGuildCard ${TENANT} exists + name`, card?.exists === true && typeof card?.name === 'string' && card.name.length > 0,
+    JSON.stringify(card));
+  const slugs = body?.data?.ogGuildSlugs || [];
+  check(`ogGuildSlugs contains ${TENANT}`, slugs.includes(TENANT), 'slugs=' + slugs.join(','));
+  if (ALSO_TENANT) check(`ogGuildSlugs contains ${ALSO_TENANT}`, slugs.includes(ALSO_TENANT), 'slugs=' + slugs.join(','));
 }
 
-/* 4. Weekly grouping list + one detail (read-only) */
+/* 4. Weekly activity count + car card (read-only). The count is the
+ * OG card's server-side week count (same predicates the retired
+ * REST week list used). A car detail is only anonymously readable
+ * for unbound guilds (demo on preview): bound guilds answer through
+ * the same ogCarCard channel the OG worker uses, which needs an id
+ * the anonymous surface does not enumerate — on prod the count +
+ * exists checks are the probe, and the car card is covered by the
+ * OG worker's own harness + section-7 live card checks. */
 {
-  const r = await fetchRetry(`${BASE}/api/${LIST_TENANT}/events`);
-  const body = await r.json().catch(() => null);
-  check(`grouping list ${LIST_TENANT} returns ok + array`,
-    r.status === 200 && body?.ok === true && Array.isArray(body?.events),
-    'status=' + r.status);
-  const first = body?.events?.[0];
-  if (first?.id != null) {
-    const d = await fetchRetry(`${BASE}/api/${LIST_TENANT}/events/${first.id}`);
-    const db = await d.json().catch(() => null);
-    check(`grouping detail ${LIST_TENANT}/${first.id} returns ok + title`,
-      d.status === 200 && db?.ok === true && typeof (db?.event?.title ?? db?.title) === 'string',
-      'status=' + d.status);
+  const from = Math.floor(Date.now() / 1000) - 7 * 86400;
+  const to = Math.floor(Date.now() / 1000) + 7 * 86400;
+  const { body } = await gql(`{ ogGuildCard(slug: "${LIST_TENANT}") { exists weekActivityCount(fromUtc: ${from}, toUtc: ${to}) } }`);
+  const card = body?.data?.ogGuildCard;
+  check(`ogGuildCard ${LIST_TENANT} weekActivityCount is a number`,
+    card?.exists === true && typeof card?.weekActivityCount === 'number',
+    JSON.stringify(card));
+  const { body: lb } = await gql(`{ viewer { guild(slug: "${LIST_TENANT}") { __typename ... on GuildReadOnly { groupings(tab: ACTIVITY) { groupings { id title } } } } } }`);
+  const groupings = lb?.data?.viewer?.guild?.groupings?.groupings;
+  if (Array.isArray(groupings) && groupings.length > 0) {
+    const first = groupings[0];
+    const { body: cb } = await gql(`{ ogCarCard(slug: "${LIST_TENANT}", id: "${first.id}") { title } }`);
+    check(`ogCarCard ${LIST_TENANT}/${first.id} returns title`,
+      typeof cb?.data?.ogCarCard?.title === 'string',
+      JSON.stringify(cb?.data?.ogCarCard));
   } else {
-    console.log('SKIP  grouping detail (list is empty this week)');
+    console.log('SKIP  ogCarCard detail (no anonymously enumerable car for ' + LIST_TENANT + ')');
   }
 }
 
 /* 5. Guild avatar unset shape: no avatar uploaded yet -> exact 404 */
 {
-  const r = await fetchRetry(`${BASE}/api/guilds/${TENANT}/avatar`);
+  const r = await fetchRetry(`${BASE}/guilds/${TENANT}/avatar`);
   check(`avatar ${TENANT} unset -> 404`, r.status === 404, 'status=' + r.status);
 }
 
