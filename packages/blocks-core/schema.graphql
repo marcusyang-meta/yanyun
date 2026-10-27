@@ -90,8 +90,10 @@ type Query {
   ogGuildCard(slug: String!): OgGuildCard!
   ogGuildSlugs: [String!]!
   ogCarCard(slug: String!, id: ID!): OgCarCard
+  ogBuildCard(code: String!): OgBuildCard
   myGearItems: [GearItem!]!
   myGearBuilds: [GearSavedBuild!]!
+  sharedBuild(code: String!): SharedBuildPage!
 }
 
 type HubPage {
@@ -1084,6 +1086,10 @@ type GradPage {
   gearSchemeSavedToastTemplate: String!
   gearSchemeLoadedToastTemplate: String!
   gearSchemeGroupCountTemplate: String!
+  gearShareLabel: String!
+  gearRevokeShareLabel: String!
+  gearCopyLinkLabel: String!
+  gearShareRevokedToast: String!
   gearQuickTitle: String!
   gearQuickResLabel: String!
   gearQuickSyncLabel: String!
@@ -1200,6 +1206,8 @@ type Mutation {
   importGearItems(items: [GearItemCreateInput!]!, loadout: [GearLoadoutEntryInput!], source: String, imageCount: Int): GearImportResult!
   saveGearBuild(input: GearBuildSaveInput!): GearBuildPayload!
   deleteGearBuild(id: Int!): GearOkPayload!
+  shareGearBuild(id: Int!): GearBuildSharePayload!
+  revokeGearBuildShare(id: Int!): GearOkPayload!
 }
 
 input GraduationInput {
@@ -1820,6 +1828,15 @@ type OgCarCard {
   status: String!
 }
 
+type OgBuildCard {
+  name: String!
+  buildLabel: String!
+  snapTotal: Float!
+  snapA: Float!
+  snapB: Float!
+  snapD: Float!
+}
+
 type GearBuild {
   idx: Int!
   cat: String!
@@ -2225,6 +2242,45 @@ type GearSavedBuild {
   snapDawai: Float!
   snapXiaowai: Float!
   createdAt: Int!
+  shareUrl: String
+}
+
+type SharedBuildItem {
+  slot: String!
+  name: String!
+  lines: [GearLine!]!
+  dingyin: GearDingyin
+  warnings: [String!]!
+}
+
+type SharedBuildPage {
+  exists: Boolean!
+  name: String
+  buildLabel: String
+  school: String
+  items: [SharedBuildItem!]!
+  xinfa: [String!]!
+  bowKind: String!
+  snapTotal: Float!
+  snapA: Float!
+  snapB: Float!
+  snapD: Float!
+  snapLoan: Float!
+  snapYAcc: Float!
+  snapYCrit: Float!
+  snapYInt: Float!
+  buildShareKicker: String!
+  buildShareLoginLabel: String!
+  buildShareNotFoundTitle: String!
+  buildShareNotFoundBody: String!
+  buildShareXinfaLabel: String!
+}
+
+type GearBuildSharePayload {
+  ok: Boolean!
+  shareUrl: String
+  error: String
+  errorCode: String
 }
 
 input GearItemCreateInput {

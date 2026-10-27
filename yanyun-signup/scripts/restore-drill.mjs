@@ -145,6 +145,9 @@ await db.insert(S.shortLinks).values([
 await db.insert(S.groupingTemplates).values([
   { id: 701, tenant: 'alpha', name: '演练模板', type: 'activity', title: '演练车', dungeon: '', maxSlots: 10, startDaysAhead: 1, startMinutes: 1200, creatorDiscordId: '1001', createdAt: 1700000000, updatedAt: 1700000000 },
 ]);
+await db.insert(S.buildShareLinks).values([
+  { code: 'drillshr', buildId: 602, discordId: '1001', createdAt: 1700000000 },
+]);
 await db.insert(S.guildEntitlements).values([
   { tenant: 'alpha', plan: 'premium', source: 'manual', currentPeriodEnd: 1800000000, stripeCustomerId: 'cus_drill', stripeSubscriptionId: 'sub_drill', updatedAt: 1700000000 },
 ]);
