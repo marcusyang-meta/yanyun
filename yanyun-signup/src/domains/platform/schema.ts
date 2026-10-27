@@ -89,3 +89,19 @@ export const hubAuditLog = sqliteTable('hub_audit_log', {
   index('idx_hub_audit_at').on(t.at),
   index('idx_hub_audit_tenant').on(t.tenant),
 ]);
+
+/* ---------------- user feedback [alt: migration 0003] -------------- */
+export const feedback = sqliteTable('feedback', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  discordId: text('discord_id').notNull(),
+  userName: text('user_name').notNull().default(''),
+  category: text('category').notNull().default('other'),
+  content: text('content').notNull().default(''),
+  status: text('status').notNull().default('open'),
+  createdAt: integer('created_at').notNull().default(0),
+  resolvedAt: integer('resolved_at'),
+}, (t) => [
+  index('idx_feedback_created').on(t.createdAt),
+  index('idx_feedback_user_created').on(t.discordId, t.createdAt),
+  index('idx_feedback_status').on(t.status),
+]);

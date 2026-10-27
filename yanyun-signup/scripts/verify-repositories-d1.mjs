@@ -13,12 +13,12 @@
  * construction.
  *
  * Usage: node scripts/verify-repositories-d1.mjs [section]
- *   Omitting section = all; currently twenty-one sections: tenants /
+ *   Omitting section = all; currently twenty-two sections: tenants /
  *   events / gear / users / members / results / dex / reference /
  *   state / ddl / guard / stamp / membercount / atomic / audit /
- *   shortlinks / beats / templates / usage / buildshares / billing,
- *   extended as the data-layer migration progresses. Non-zero exit =
- *   an assertion failed.
+ *   shortlinks / beats / templates / usage / buildshares / billing /
+ *   feedback, extended as the data-layer migration progresses.
+ *   Non-zero exit = an assertion failed.
  * =================================================== */
 import { Miniflare, convertV4MiniflareOptions } from 'miniflare';
 
@@ -1086,6 +1086,46 @@ if (want('billing')) {
   const noGuild = await limitsSvc.getEffectiveLimits(db, { discordId: 'U' });
   eq('limits: guild-less context stays free', noGuild.gearItemCapacity, 200);
   await settingsRepo.setSettingValue(db, '', 'paygate_enabled', '0');
+}
+
+/* ---------------- feedback ---------------- */
+if (want('feedback')) {
+  console.log('== feedback repository on real D1 ==');
+  const repo = await import('../src/domains/platform/feedback.ts');
+
+  eq('list on empty table -> []', await repo.listFeedback(db, { status: '', limit: 50, offset: 0 }), []);
+  eq('count on empty table -> 0', await repo.countFeedback(db, ''), 0);
+  eq('countSince on empty table -> 0', await repo.countFeedbackSince(db, 'U1', 0), 0);
+
+  const T0 = 1760000000000; // epoch ms
+  await repo.insertFeedback(db, { discordId: 'U1', userName: '反馈甲', category: 'problem', content: '报名页打不开', createdAt: T0 });
+  await repo.insertFeedback(db, { discordId: 'U1', userName: '反馈甲', category: 'suggestion', content: '希望有夜间模式', createdAt: T0 + 1000 });
+  await repo.insertFeedback(db, { discordId: 'U2', userName: '反馈乙', category: 'other', content: '路过', createdAt: T0 + 2000 });
+
+  const all = await repo.listFeedback(db, { status: '', limit: 50, offset: 0 });
+  eq('list returns all rows newest first', all.map((r) => r.content), ['路过', '希望有夜间模式', '报名页打不开']);
+  eq('inserted row shape', all[2] && [all[2].discord_id, all[2].user_name, all[2].category, all[2].status, all[2].created_at, all[2].resolved_at],
+    ['U1', '反馈甲', 'problem', 'open', T0, null]);
+  eq('count all', await repo.countFeedback(db, ''), 3);
+  eq('count open', await repo.countFeedback(db, 'open'), 3);
+  eq('count resolved (none yet)', await repo.countFeedback(db, 'resolved'), 0);
+  eq('countSince U1 since T0', await repo.countFeedbackSince(db, 'U1', T0), 2);
+  eq('countSince U1 since T0+1500', await repo.countFeedbackSince(db, 'U1', T0 + 1500), 0);
+  eq('countSince U2 since T0', await repo.countFeedbackSince(db, 'U2', T0), 1);
+
+  const page = await repo.listFeedback(db, { status: '', limit: 2, offset: 2 });
+  eq('pagination offset reaches the oldest row', page.map((r) => r.content), ['报名页打不开']);
+
+  const target = all[2];
+  eq('resolve flips a row', await repo.setFeedbackStatus(db, target.id, 'resolved', T0 + 5000), true);
+  const resolved = await repo.listFeedback(db, { status: 'resolved', limit: 50, offset: 0 });
+  eq('resolved list has the row with its stamp', resolved.map((r) => [r.content, r.resolved_at]), [['报名页打不开', T0 + 5000]]);
+  eq('count resolved after flip', await repo.countFeedback(db, 'resolved'), 1);
+  eq('open list shrinks', (await repo.listFeedback(db, { status: 'open', limit: 50, offset: 0 })).length, 2);
+  eq('reopen flips back and clears the stamp', await repo.setFeedbackStatus(db, target.id, 'open', T0 + 6000), true);
+  const reopened = (await repo.listFeedback(db, { status: '', limit: 50, offset: 0 })).find((r) => r.id === target.id);
+  eq('reopened row state', reopened && [reopened.status, reopened.resolved_at], ['open', null]);
+  eq('status flip on unknown id -> false', await repo.setFeedbackStatus(db, 99999, 'resolved', T0), false);
 }
 
 await mf.dispose();

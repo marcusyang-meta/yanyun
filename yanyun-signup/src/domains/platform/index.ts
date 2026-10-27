@@ -4,6 +4,7 @@ export * from './pushTokens.ts';
 export * from './usageCounters.ts';
 export * from './limits.ts';
 export * from './errorLog.ts';
+export * from './feedback.ts';
 export * from './hubAudit.ts';
 export * from './backfillLog.ts';
 export * from './hub-audit.ts';
