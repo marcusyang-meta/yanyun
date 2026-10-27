@@ -21,10 +21,14 @@ binding = "ASSETS"
 run_worker_first = true
 
 # D1 数据库绑定 (上线前创建数据库后把 database_id 填进来)
+# migrations_dir: 结构变更的唯一通道 (wrangler 迁移链, 见 migrations/
+# 与仓根 README 的迁移规矩); backend-deploy 在 promote 前对生产执行
+# wrangler d1 migrations apply, PR/preview 阶段绝不对远程库 apply。
 [[d1_databases]]
 binding = "DB"
 database_name = "yanyun-signup"
 database_id = "aa475d0e-8410-47eb-823b-0ddd346733e8"
+migrations_dir = "migrations"
 
 # 备份快照 (R2, 私有桶): 每日定时导出全量实体数据, 保留最近 14 份;
 # 桶 yanyun-backups 已于 2026-10-26 经 API 创建 (R2 在本账户已开通)。
@@ -70,8 +74,8 @@ name = "GUILD_HUB"
 class_name = "GuildHub"
 
 # D1: 官方语义按 database_id 绑定 —— 同 id 即共享行数据, 隔离必须绑另一个库。
-# 本账号 token 无 D1 API 权限 (d1 list 报 10000, 且 preview 部署强制要求
-# database_id, 无自动配给), 建不了隔离 staging 库; 故 Preview 绑同一生产库,
+# (历史注记: token 曾无 D1 API 权限、建不了隔离 staging 库; 2026-10-27 起
+# token 已有 D1 Edit —— 迁移治理路线 A 所需 —— 但 Preview 仍绑同一生产库,
 # 验收纪律为匿名只读浏览 (不登录、不提交 mutation): 匿名查询全是读, WS 在
 # worker 层先验会话 (匿名 403, 进不到 DO), DO 本身由平台按 Preview 自动隔离
 # namespace/存储, Cron 不在 Preview 运行 —— 生产数据与提醒链零写入。

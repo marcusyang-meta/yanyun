@@ -4,18 +4,22 @@
 // the repositories see one flat namespace, exactly as before the split.
 //
 // The definitions MODEL the production schema as it exists today; they
-// do not change it. Migration execution discipline is unchanged:
-// structural changes are applied Worker-side through the versioned
-// lazy-DDL ledger (the deploy token has no D1 API permission), never
-// via drizzle-kit.
+// do not change it. Structural change is governed by the wrangler
+// migration chain in yanyun-signup/migrations/: the baseline file
+// encodes the production shape verified column-by-column during the
+// 2026-10-27 Route-A takeover, merged migration files are immutable
+// (a shape change is a new migration), and backend-deploy applies
+// pending migrations to production before promoting new code.
+// Runtime code contains no DDL — the lazy-DDL ensure* helpers are
+// retired — and the CI drift gate (scripts/ci/check-schema-drift.mjs)
+// fails any change that lets this model and the chain drift apart.
 //
 // Attestation per entity (where the shape was verified from):
-//   [ddl]  CREATE TABLE in src lazy DDL, schema.sql, or migrate-v*.sql
-//   [alt]  plus ALTER TABLE ... ADD COLUMN in src / migrate files
-//   [qry]  columns attested only by queries in src (no DDL survives in
-//          the repo; the columns exist in production and are read /
-//          written by live code paths) — modeled nullable unless a
-//          query proves more
+//   [ddl]  CREATE TABLE in the migration chain
+//   [alt]  plus a later migration file in the chain
+//   [qry]  columns attested only by queries in src — modeled nullable
+//          unless a query proves more (legacy notes; every [qry]
+//          claim was re-verified against production in the takeover)
 import { sql } from 'drizzle-orm';
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 

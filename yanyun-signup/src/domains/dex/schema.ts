@@ -1,7 +1,9 @@
 // Drizzle entity definitions for the dex domain.
 // Modeled on the production schema as it exists today (see the barrel
-// at src/db/schema.ts for the attestation legend); structural change
-// still goes through Worker-side lazy DDL, never drizzle-kit.
+// at src/db/schema.ts for the attestation legend). Structural change
+// goes through the wrangler migration chain in migrations/ — never
+// through runtime DDL; the CI drift gate keeps this model and the
+// chain in lockstep.
 import { sql } from 'drizzle-orm';
 import {
   blob,
@@ -44,10 +46,11 @@ export const dungeons = sqliteTable('dungeons', {
   category: text('category'),
   level: integer('level'),
   // Version code (e.g. intl-v2.3); values are written by the
-  // dungeon-watch data pipeline, the column itself is converged lazily
-  // by ensureDungeonDexColumns (dungeons.ts); read by
-  // getCurrentVersionCode / dex surfaces.
-  version: text('version'),
+  // dungeon-watch data pipeline; read by getCurrentVersionCode /
+  // dex surfaces. Production carries it NOT NULL DEFAULT '' (the
+  // 2026-10-27 shape audit corrected the model, which had it
+  // nullable from its lazy-DDL days).
+  version: text('version').notNull().default(''),
 });
 
 /* ---------------- affix_max [ddl schema.sql] -------------------------- */
@@ -61,11 +64,11 @@ export const affixMax = sqliteTable('affix_max', {
 /* ---------------- school reference data [ddl v8] ---------------------- */
 export const schoolBis = sqliteTable('school_bis', {
   school: text('school').notNull(),
-  // One row per (school, build). The v8 DDL originally keyed the table
-  // by school alone and was later aligned to this shape;
-  // ensureSchoolBisShape (reference.ts) lazily rebuilds databases
-  // still carrying the original school-only key.
-  build: text('build').notNull().default(''),
+  // One row per (school, build), composite key. Production's build
+  // default is 'default' (the value the data pipeline writes for the
+  // unnamed build) — the v8 file's '' default never matched the live
+  // table; the baseline migration carries the production shape.
+  build: text('build').notNull().default('default'),
   attr: text('attr'),
   rate: text('rate'),
   bisJson: text('bis_json').notNull(),
@@ -80,22 +83,26 @@ export const schoolRotations = sqliteTable('school_rotations', {
   updatedAt: integer('updated_at').default(sql`(strftime('%s','now'))`),
 });
 
-/* ---------------- schools / slot_affix [qry only: read-only reference
-   data seeded by the gear data pipelines; no DDL survives in the repo] -- */
+/* ---------------- schools / slot_affix [production shape attested
+   2026-10-27: read-only reference data seeded by the gear data
+   pipelines. The schools primary key is name — slug arrived later as
+   a plain column, and an updated_at column trails the modelled set;
+   both corrections come from the shape audit.] ---------------------- */
 export const schools = sqliteTable('schools', {
-  name: text('name'),
-  slug: text('slug').primaryKey(),
+  name: text('name').primaryKey(),
   short: text('short'),
   family: text('family'),
   color: text('color'),
   attr: text('attr'),
   talentDesc: text('talent_desc'),
+  updatedAt: integer('updated_at').default(sql`(strftime('%s','now'))`),
+  slug: text('slug'),
 });
 
 export const slotAffix = sqliteTable('slot_affix', {
-  build: text('build').notNull(),
+  build: text('build').notNull().default('big'),
   slot: text('slot').notNull(),
   affixKey: text('affix_key').notNull(),
 }, (t) => [
-  primaryKey({ columns: [t.build, t.slot, t.affixKey] }),
+  primaryKey({ columns: [t.slot, t.affixKey, t.build] }),
 ]);

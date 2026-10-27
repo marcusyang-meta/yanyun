@@ -1,7 +1,9 @@
 // Drizzle entity definitions for the groupings domain.
 // Modeled on the production schema as it exists today (see the barrel
-// at src/db/schema.ts for the attestation legend); structural change
-// still goes through Worker-side lazy DDL, never drizzle-kit.
+// at src/db/schema.ts for the attestation legend). Structural change
+// goes through the wrangler migration chain in migrations/ — never
+// through runtime DDL; the CI drift gate keeps this model and the
+// chain in lockstep.
 import { sql } from 'drizzle-orm';
 import {
   blob,
@@ -27,6 +29,11 @@ export const events = sqliteTable('events', {
   meetInfo: text('meet_info').notNull().default(''),
   maxSlots: integer('max_slots').notNull().default(20),
   status: text('status').notNull().default('open'),
+  // Present in production since the table's first (pre-repo) creation
+  // but missing from the model until the 2026-10-27 shape audit; the
+  // baseline migration now carries it. No repository reads or writes
+  // it — the database default fills it.
+  createdAt: text('created_at').notNull().default(sql`datetime('now')`),
   startsAtUtc: integer('starts_at_utc'),
   origin: text('origin').notNull().default('admin'),
   createdBy: text('created_by').notNull().default(''),
@@ -52,7 +59,7 @@ export const signups = sqliteTable('signups', {
   note: text('note').notNull().default(''),
   teamName: text('team_name').notNull().default(''),
   members: text('members').notNull().default(''),
-  createdAt: text('created_at').notNull().default(sql`(strftime('%s','now'))`),
+  createdAt: text('created_at').notNull().default(sql`datetime('now')`),
   discordId: text('discord_id'),
   readyAt: integer('ready_at'),
 }, (t) => [
@@ -108,7 +115,9 @@ export const shortLinks = sqliteTable('short_links', {
  * stays the whole-grouping settlement mark, written when the grouping's
  * last pending beat settles. */
 export const eventReminders = sqliteTable('event_reminders', {
-  eventId: integer('event_id').notNull().references(() => events.id, { onDelete: 'cascade' }),
+  // No REFERENCES clause: the production table was created without a
+  // foreign key (unlike signups/results) and the model now says so.
+  eventId: integer('event_id').notNull(),
   offsetMin: integer('offset_min').notNull(),
   sentAt: integer('sent_at'),
   error: text('error'),
@@ -125,7 +134,7 @@ export const results = sqliteTable('results', {
   timeMs: integer('time_ms').notNull(),
   proofUrl: text('proof_url').notNull().default(''),
   note: text('note').notNull().default(''),
-  createdAt: text('created_at').notNull().default(sql`(strftime('%s','now'))`),
+  createdAt: text('created_at').notNull().default(sql`datetime('now')`),
 }, (t) => [
   index('idx_results_event').on(t.eventId, t.timeMs),
 ]);

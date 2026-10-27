@@ -1,7 +1,9 @@
 // Drizzle entity definitions for the guilds domain.
 // Modeled on the production schema as it exists today (see the barrel
-// at src/db/schema.ts for the attestation legend); structural change
-// still goes through Worker-side lazy DDL, never drizzle-kit.
+// at src/db/schema.ts for the attestation legend). Structural change
+// goes through the wrangler migration chain in migrations/ — never
+// through runtime DDL; the CI drift gate keeps this model and the
+// chain in lockstep.
 import { sql } from 'drizzle-orm';
 import {
   blob,
@@ -14,8 +16,12 @@ import {
 } from 'drizzle-orm/sqlite-core';
 
 
-/* ---------------- tenants [ddl schema.sql + v7 alt; slogan/master_name/
-   logo_url qry] ---------------- */
+/* ---------------- tenants [production shape attested 2026-10-27] ----
+ * Exactly the seven columns the production table carries. An earlier
+ * model also claimed master_name / logo_url / bg_image_url ([qry]
+ * attestation); those columns do not exist in production — the
+ * baseline migration (migrations/0001_baseline.sql) and the drift
+ * gate now pin this shape, so the model matches reality again. */
 export const tenants = sqliteTable('tenants', {
   slug: text('slug').primaryKey(),
   guildName: text('guild_name').notNull(),
@@ -23,11 +29,7 @@ export const tenants = sqliteTable('tenants', {
   announcement: text('announcement').notNull().default(''),
   createdAt: text('created_at').notNull().default(sql`(strftime('%s','now'))`),
   discordWebhook: text('discord_webhook').notNull().default(''),
-  // [qry] no DDL in repo; read as strings / bound as 1|0 flag in worker.js
-  slogan: text('slogan'),
-  masterName: text('master_name'),
-  logoUrl: text('logo_url'),
-  bgImageUrl: text('bg_image_url'),
+  slogan: text('slogan').notNull().default(''),
 });
 
 /* ---------------- settings [ddl schema.sql / v2 rebuild] -------------- */

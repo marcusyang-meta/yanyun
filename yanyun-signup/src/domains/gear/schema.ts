@@ -1,7 +1,9 @@
 // Drizzle entity definitions for the gear domain.
 // Modeled on the production schema as it exists today (see the barrel
-// at src/db/schema.ts for the attestation legend); structural change
-// still goes through Worker-side lazy DDL, never drizzle-kit.
+// at src/db/schema.ts for the attestation legend). Structural change
+// goes through the wrangler migration chain in migrations/ — never
+// through runtime DDL; the CI drift gate keeps this model and the
+// chain in lockstep.
 import { sql } from 'drizzle-orm';
 import {
   blob,
@@ -23,7 +25,9 @@ export const userGearItems = sqliteTable('user_gear_items', {
   name: text('name').notNull().default(''),
   payload: text('payload').notNull().default('{}'),
   createdAt: integer('created_at').notNull().default(0),
-});
+}, (t) => [
+  index('idx_user_gear_items_owner').on(t.discordId),
+]);
 
 export const userGearBuilds = sqliteTable('user_gear_builds', {
   id: integer('id').primaryKey({ autoIncrement: true }),
@@ -32,7 +36,9 @@ export const userGearBuilds = sqliteTable('user_gear_builds', {
   targetIdx: integer('target_idx').notNull().default(0),
   payload: text('payload').notNull().default('{}'),
   createdAt: integer('created_at').notNull().default(0),
-});
+}, (t) => [
+  index('idx_user_gear_builds_owner').on(t.discordId),
+]);
 
 /* ---------------- heirloom push state [ddl heirloompush.js lazy] ------ */
 export const heirloomItemPushes = sqliteTable('heirloom_item_pushes', {
