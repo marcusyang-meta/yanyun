@@ -20,7 +20,7 @@ import {
  * The seven baseline columns, plus the three profile columns added by
  * migrations/0002_tenant_profile_fields.sql. An earlier model claimed
  * master_name / logo_url / bg_image_url ([qry] attestation) before
- * any DDL created them — they were phantom columns and profile saves
+ * DDL ever created them — they were phantom columns and profile saves
  * naming them threw in production; 0002 adds them for real, in the
  * NOT NULL DEFAULT '' caliber of the other text columns. The chain
  * and the drift gate pin this shape. */

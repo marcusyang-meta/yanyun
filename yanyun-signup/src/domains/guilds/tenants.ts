@@ -142,7 +142,7 @@ export async function updateTenantProfile(
 ): Promise<void> {
   // All six fields are written, matching the legacy UPDATE. The three
   // profile columns (master_name / logo_url / bg_image_url) were
-  // phantom entity fields for a long time — named here before any DDL
+  // phantom entity fields for a long time — named here before DDL
   // created them, so this UPDATE threw against production and guild
   // profile saves were broken until PR #35 narrowed the write as a
   // stopgap. migrations/0002_tenant_profile_fields.sql adds the real
