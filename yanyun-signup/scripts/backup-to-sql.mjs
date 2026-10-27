@@ -2,8 +2,8 @@
  * (one INSERT per row, in restore order) for disaster recovery with
  * stock tooling — e.g. `wrangler d1 execute <db> --file dump.sql`
  * against a freshly created database whose tables already exist
- * (create them from schema.sql + migrate-v*.sql + the lazy DDL, or by
- * pointing the worker at the empty DB once so it self-creates most).
+ * (create them from the migration chain in migrations/:
+ * `wrangler d1 migrations apply yanyun-signup --remote`).
  *
  * Usage: node scripts/backup-to-sql.mjs <backup.json> [out.sql]
  * The semantic restore path (importBackup in the data layer) is proven

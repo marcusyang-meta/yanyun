@@ -52,7 +52,7 @@ export const dungeons = sqliteTable('dungeons', {
   version: text('version').notNull().default(''),
 });
 
-/* ---------------- affix_max [ddl schema.sql] -------------------------- */
+/* ---------------- affix_max [ddl chain baseline] --------------------- */
 export const affixMax = sqliteTable('affix_max', {
   affixKey: text('affix_key').primaryKey(),
   nameCn: text('name_cn').notNull(),

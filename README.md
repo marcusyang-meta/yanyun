@@ -115,9 +115,35 @@ production:
    `mobile-update.yml`) runs only for a merged PR: it downloads the
    artifact the PR run verified (it never rebuilds), refuses to deploy
    unless the merged tree is identical to the verified tree
-   (fail-closed), deploys, runs production probes, and rolls back
-   automatically if a probe fails. There is no manual promote entry
-   point, including for emergencies — an urgent fix is a fast PR.
+   (fail-closed), applies any pending database migrations (see below),
+   deploys, runs production probes, and rolls back automatically if a
+   probe fails. There is no manual promote entry point, including for
+   emergencies — an urgent fix is a fast PR.
+
+### Database migrations
+
+D1 schema changes are governed by the wrangler migration chain in
+`yanyun-signup/migrations/` — the only source of schema truth. Runtime
+code contains no DDL; the Drizzle entities in `src/domains/*/schema.ts`
+describe the shape, and the PR gate's drift check
+(`scripts/ci/check-schema-drift.mjs`) fails if a fresh database
+bootstrapped from the chain differs from the entities in any table,
+column, index, or foreign key.
+
+- **A merged migration file is immutable.** Never edit, rename, or
+  delete one; a schema change is always a new migration file in the
+  same PR as the code and entity changes that need it.
+- **Migrations run post-merge only.** `backend-deploy` runs
+  `wrangler d1 migrations apply yanyun-signup --remote` from the
+  merged tree before deploying; a failed apply blocks the promote
+  (fail-closed). PR verification never applies migrations to the
+  shared database — the preview binds the same D1 as production, so
+  PRs validate schema only against throwaway local databases.
+- **Expand/contract.** Code auto-rolls back on a failed probe; schema
+  does not roll back. Every migration must therefore stay compatible
+  with the previous code version: add columns/tables first, ship the
+  code that uses them, and remove things only in a later migration
+  once no live code version reads them.
 
 Preview facts: all PRs share one preview deployment,
 <https://release-yanyun.tbdlab.workers.dev>, and `pr-backend` runs are
