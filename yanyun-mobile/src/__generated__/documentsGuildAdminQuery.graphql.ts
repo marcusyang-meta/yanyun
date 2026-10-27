@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<e13902cda98d1395e304481c817b6d50>>
+ * @generated SignedSource<<dffe28e6ddfc21d7351ee9a98b1fe011>>
  * @lightSyntaxTransform
  */
 
@@ -40,8 +40,6 @@ export type documentsGuildAdminQuery$data = {
       readonly adminEventTypeLabel: string;
       readonly adminEventsTitle: string;
       readonly adminExportCsvLabel: string;
-      readonly adminFeatureFixedTeamsLabel: string;
-      readonly adminFeaturesTitle: string;
       readonly adminGuideAttrLabel: string;
       readonly adminGuideBisLabel: string;
       readonly adminGuideBuildLabel: string;
@@ -54,9 +52,6 @@ export type documentsGuildAdminQuery$data = {
       readonly adminHideBrandingLabel: string;
       readonly adminLogoLabel: string;
       readonly adminMasterLabel: string;
-      readonly adminMemberNicknameLabel: string;
-      readonly adminMemberNoteLabel: string;
-      readonly adminMemberWeaponLabel: string;
       readonly adminNameLabel: string;
       readonly adminOgAccentLabel: string;
       readonly adminOgTitleSuffixHint: string;
@@ -103,11 +98,6 @@ export type documentsGuildAdminQuery$data = {
       readonly adminTabGuidesLabel: string;
       readonly adminTabProfileLabel: string;
       readonly adminTabStatsLabel: string;
-      readonly adminTabTeamsLabel: string;
-      readonly adminTeamDescLabel: string;
-      readonly adminTeamEmptyText: string;
-      readonly adminTeamNameLabel: string;
-      readonly adminTeamsTitle: string;
       readonly adminTitle: string;
       readonly adminTypeActivityText: string;
       readonly adminTypeRaceText: string;
@@ -161,19 +151,6 @@ export type documentsGuildAdminQuery$data = {
         readonly status: string;
         readonly title: string;
         readonly type: GroupingType;
-      }>;
-      readonly featureFixedTeams: boolean;
-      readonly fixedTeams: ReadonlyArray<{
-        readonly description: string;
-        readonly id: string;
-        readonly members: ReadonlyArray<{
-          readonly id: string;
-          readonly nickname: string;
-          readonly note: string;
-          readonly role: string;
-          readonly weapon: string;
-        }>;
-        readonly name: string;
       }>;
       readonly logoUrl: string;
       readonly masterName: string;
@@ -276,80 +253,45 @@ v3 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "name",
+  "name": "id",
   "storageKey": null
 },
 v4 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "id",
+  "name": "teamName",
   "storageKey": null
 },
 v5 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "description",
+  "name": "members",
   "storageKey": null
 },
 v6 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "nickname",
+  "name": "note",
   "storageKey": null
 },
 v7 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "weapon",
+  "name": "discordId",
   "storageKey": null
 },
 v8 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "role",
-  "storageKey": null
-},
-v9 = {
-  "alias": null,
-  "args": null,
-  "kind": "ScalarField",
-  "name": "note",
-  "storageKey": null
-},
-v10 = {
-  "alias": null,
-  "args": null,
-  "kind": "ScalarField",
-  "name": "teamName",
-  "storageKey": null
-},
-v11 = {
-  "alias": null,
-  "args": null,
-  "kind": "ScalarField",
-  "name": "members",
-  "storageKey": null
-},
-v12 = {
-  "alias": null,
-  "args": null,
-  "kind": "ScalarField",
-  "name": "discordId",
-  "storageKey": null
-},
-v13 = {
-  "alias": null,
-  "args": null,
-  "kind": "ScalarField",
   "name": "displayName",
   "storageKey": null
 },
-v14 = [
+v9 = [
   {
     "alias": null,
     "args": null,
@@ -614,20 +556,6 @@ v14 = [
                 "alias": null,
                 "args": null,
                 "kind": "ScalarField",
-                "name": "adminFeaturesTitle",
-                "storageKey": null
-              },
-              {
-                "alias": "adminFeatureFixedTeamsLabel",
-                "args": null,
-                "kind": "ScalarField",
-                "name": "adminFixedTeamsLabel",
-                "storageKey": null
-              },
-              {
-                "alias": null,
-                "args": null,
-                "kind": "ScalarField",
                 "name": "adminVisibilityTitle",
                 "storageKey": null
               },
@@ -678,55 +606,6 @@ v14 = [
                 "args": null,
                 "kind": "ScalarField",
                 "name": "adminOgTitleSuffixHint",
-                "storageKey": null
-              },
-              {
-                "alias": null,
-                "args": null,
-                "kind": "ScalarField",
-                "name": "adminTeamsTitle",
-                "storageKey": null
-              },
-              {
-                "alias": null,
-                "args": null,
-                "kind": "ScalarField",
-                "name": "adminTeamNameLabel",
-                "storageKey": null
-              },
-              {
-                "alias": null,
-                "args": null,
-                "kind": "ScalarField",
-                "name": "adminTeamDescLabel",
-                "storageKey": null
-              },
-              {
-                "alias": null,
-                "args": null,
-                "kind": "ScalarField",
-                "name": "adminTeamEmptyText",
-                "storageKey": null
-              },
-              {
-                "alias": null,
-                "args": null,
-                "kind": "ScalarField",
-                "name": "adminMemberNicknameLabel",
-                "storageKey": null
-              },
-              {
-                "alias": null,
-                "args": null,
-                "kind": "ScalarField",
-                "name": "adminMemberWeaponLabel",
-                "storageKey": null
-              },
-              {
-                "alias": null,
-                "args": null,
-                "kind": "ScalarField",
-                "name": "adminMemberNoteLabel",
                 "storageKey": null
               },
               {
@@ -1002,7 +881,13 @@ v14 = [
                 "name": "adminTypeTowerText",
                 "storageKey": null
               },
-              (v3/*:: as any*/),
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "name",
+                "storageKey": null
+              },
               {
                 "alias": null,
                 "args": null,
@@ -1130,13 +1015,6 @@ v14 = [
                 "alias": null,
                 "args": null,
                 "kind": "ScalarField",
-                "name": "featureFixedTeams",
-                "storageKey": null
-              },
-              {
-                "alias": null,
-                "args": null,
-                "kind": "ScalarField",
                 "name": "devOnly",
                 "storageKey": null
               },
@@ -1158,13 +1036,6 @@ v14 = [
                 "alias": null,
                 "args": null,
                 "kind": "ScalarField",
-                "name": "adminTabTeamsLabel",
-                "storageKey": null
-              },
-              {
-                "alias": null,
-                "args": null,
-                "kind": "ScalarField",
                 "name": "adminTabEventsLabel",
                 "storageKey": null
               },
@@ -1178,42 +1049,12 @@ v14 = [
               {
                 "alias": null,
                 "args": null,
-                "concreteType": "GuildAdminFixedTeam",
-                "kind": "LinkedField",
-                "name": "fixedTeams",
-                "plural": true,
-                "selections": [
-                  (v4/*:: as any*/),
-                  (v3/*:: as any*/),
-                  (v5/*:: as any*/),
-                  {
-                    "alias": null,
-                    "args": null,
-                    "concreteType": "GuildAdminFixedTeamMember",
-                    "kind": "LinkedField",
-                    "name": "members",
-                    "plural": true,
-                    "selections": [
-                      (v4/*:: as any*/),
-                      (v6/*:: as any*/),
-                      (v7/*:: as any*/),
-                      (v8/*:: as any*/),
-                      (v9/*:: as any*/)
-                    ],
-                    "storageKey": null
-                  }
-                ],
-                "storageKey": null
-              },
-              {
-                "alias": null,
-                "args": null,
                 "concreteType": "GuildAdminEvent",
                 "kind": "LinkedField",
                 "name": "events",
                 "plural": true,
                 "selections": [
-                  (v4/*:: as any*/),
+                  (v3/*:: as any*/),
                   {
                     "alias": null,
                     "args": null,
@@ -1277,7 +1118,13 @@ v14 = [
                     "name": "meetInfo",
                     "storageKey": null
                   },
-                  (v5/*:: as any*/),
+                  {
+                    "alias": null,
+                    "args": null,
+                    "kind": "ScalarField",
+                    "name": "description",
+                    "storageKey": null
+                  },
                   {
                     "alias": null,
                     "args": null,
@@ -1293,8 +1140,14 @@ v14 = [
                     "name": "signups",
                     "plural": true,
                     "selections": [
-                      (v4/*:: as any*/),
-                      (v6/*:: as any*/),
+                      (v3/*:: as any*/),
+                      {
+                        "alias": null,
+                        "args": null,
+                        "kind": "ScalarField",
+                        "name": "nickname",
+                        "storageKey": null
+                      },
                       {
                         "alias": null,
                         "args": null,
@@ -1302,8 +1155,20 @@ v14 = [
                         "name": "uid",
                         "storageKey": null
                       },
-                      (v8/*:: as any*/),
-                      (v7/*:: as any*/),
+                      {
+                        "alias": null,
+                        "args": null,
+                        "kind": "ScalarField",
+                        "name": "role",
+                        "storageKey": null
+                      },
+                      {
+                        "alias": null,
+                        "args": null,
+                        "kind": "ScalarField",
+                        "name": "weapon",
+                        "storageKey": null
+                      },
                       {
                         "alias": null,
                         "args": null,
@@ -1311,9 +1176,9 @@ v14 = [
                         "name": "contact",
                         "storageKey": null
                       },
-                      (v10/*:: as any*/),
-                      (v11/*:: as any*/),
-                      (v9/*:: as any*/),
+                      (v4/*:: as any*/),
+                      (v5/*:: as any*/),
+                      (v6/*:: as any*/),
                       {
                         "alias": null,
                         "args": null,
@@ -1332,9 +1197,9 @@ v14 = [
                     "name": "results",
                     "plural": true,
                     "selections": [
+                      (v3/*:: as any*/),
                       (v4/*:: as any*/),
-                      (v10/*:: as any*/),
-                      (v11/*:: as any*/),
+                      (v5/*:: as any*/),
                       {
                         "alias": null,
                         "args": null,
@@ -1356,7 +1221,7 @@ v14 = [
                         "name": "proofUrl",
                         "storageKey": null
                       },
-                      (v9/*:: as any*/)
+                      (v6/*:: as any*/)
                     ],
                     "storageKey": null
                   },
@@ -1675,8 +1540,8 @@ v14 = [
                     "name": "memberLeaders",
                     "plural": true,
                     "selections": [
-                      (v12/*:: as any*/),
-                      (v13/*:: as any*/),
+                      (v7/*:: as any*/),
+                      (v8/*:: as any*/),
                       {
                         "alias": null,
                         "args": null,
@@ -1695,8 +1560,8 @@ v14 = [
                     "name": "leaderLeaders",
                     "plural": true,
                     "selections": [
-                      (v12/*:: as any*/),
-                      (v13/*:: as any*/),
+                      (v7/*:: as any*/),
+                      (v8/*:: as any*/),
                       {
                         "alias": null,
                         "args": null,
@@ -1727,7 +1592,7 @@ return {
     "kind": "Fragment",
     "metadata": null,
     "name": "documentsGuildAdminQuery",
-    "selections": (v14/*:: as any*/),
+    "selections": (v9/*:: as any*/),
     "type": "Query",
     "abstractKey": null
   },
@@ -1736,19 +1601,19 @@ return {
     "argumentDefinitions": (v0/*:: as any*/),
     "kind": "Operation",
     "name": "documentsGuildAdminQuery",
-    "selections": (v14/*:: as any*/)
+    "selections": (v9/*:: as any*/)
   },
   "params": {
-    "cacheID": "02dd891a6c6c0e7eb584b2d9b13fb3a4",
+    "cacheID": "be8f1611c2c6c895bf07806b3b6dc4ba",
     "id": null,
     "metadata": {},
     "name": "documentsGuildAdminQuery",
     "operationKind": "query",
-    "text": "query documentsGuildAdminQuery(\n  $slug: String!\n) {\n  viewer {\n    commonUnknownErrorText\n    commonConfirmLabel\n    guildAdmin(slug: $slug) {\n      __typename\n      ... on GuildAdminLocked {\n        slug\n        adminLockedTitle\n        adminLockedBody\n        adminBackLinkLabel\n      }\n      ... on GuildAdmin {\n        slug\n        avatarUrl\n        adminTitle\n        adminBackLinkLabel\n        adminProfileTitle\n        adminNameLabel\n        adminAnnouncementLabel\n        adminSloganLabel\n        adminMasterLabel: adminMasterNameLabel\n        adminLogoLabel: adminLogoUrlLabel\n        adminBgLabel: adminBgImageUrlLabel\n        adminSaveLabel\n        adminSavedText\n        adminAvatarLabel: adminAvatarTitle\n        adminUploadAvatarLabel: adminAvatarUploadLabel\n        adminReplaceAvatarLabel: adminAvatarReplaceLabel\n        adminDeleteAvatarLabel: adminAvatarDeleteLabel\n        adminAvatarNoneText\n        adminDiscordTitle\n        adminWebhookLabel\n        adminWebhookSetText\n        adminWebhookUnsetText\n        adminWebhookClearLabel\n        adminDiscordIdLabel: adminGuildIdLabel\n        adminReminderTitle\n        adminReminderOffsetsLabel\n        adminReminderOffsetTemplate\n        adminReminderCustomTextLabel\n        adminReminderCustomTextHint\n        adminFeaturesTitle\n        adminFeatureFixedTeamsLabel: adminFixedTeamsLabel\n        adminVisibilityTitle\n        adminVisibilityLabel: adminDevOnlyLabel\n        adminWhiteLabelTitle\n        adminHideBrandingLabel\n        adminHideBrandingHint\n        adminOgAccentLabel\n        adminOgTitleSuffixLabel\n        adminOgTitleSuffixHint\n        adminTeamsTitle\n        adminTeamNameLabel\n        adminTeamDescLabel\n        adminTeamEmptyText\n        adminMemberNicknameLabel\n        adminMemberWeaponLabel\n        adminMemberNoteLabel\n        adminAddLabel\n        adminEditLabel\n        adminDeleteLabel\n        adminEventsTitle\n        adminEventEmptyText\n        adminEventTitleLabel\n        adminEventTypeLabel\n        adminEventTimeLabel\n        adminEventDungeonLabel\n        adminEventSlotsLabel\n        adminEventMeetLabel\n        adminEventDescLabel\n        adminEventStatusLabel\n        adminStatusOpenText\n        adminStatusClosedText\n        adminStatusCompletedText\n        adminStatusDraftText\n        adminExportCsvLabel\n        adminSignupsTitle\n        adminSignupEmptyText\n        adminRemoveSignupLabel\n        adminResultsTitle\n        adminResultTeamLabel\n        adminResultMembersLabel\n        adminResultTimeLabel\n        adminResultProofLabel\n        adminResultNoteLabel\n        adminGuidesTitle\n        adminGuidesHint\n        adminGuideSchoolLabel\n        adminGuideBuildLabel\n        adminGuideAttrLabel\n        adminGuideRateLabel\n        adminGuideBisLabel\n        adminGuideRotationLabel\n        adminTypeActivityText\n        adminTypeTalentText\n        adminTypeRaceText\n        adminTypeTowerText\n        name\n        announcement\n        slogan\n        masterName\n        logoUrl\n        bgImageUrl\n        discordGuildId\n        reminderWebhookSet\n        reminderWebhookId\n        reminderOffsets\n        reminderCustomText\n        whiteLabelHideBranding\n        ogAccent\n        ogTitleSuffix\n        ogAccentOptions {\n          key\n          hex\n          label\n        }\n        featureFixedTeams\n        devOnly\n        adminTabProfileLabel\n        adminTabDiscordLabel\n        adminTabTeamsLabel\n        adminTabEventsLabel\n        adminTabGuidesLabel\n        fixedTeams {\n          id\n          name\n          description\n          members {\n            id\n            nickname\n            weapon\n            role\n            note\n          }\n        }\n        events {\n          id\n          title\n          type\n          status\n          origin\n          startsAtUtc\n          startsAtText\n          dungeon\n          maxSlots\n          meetInfo\n          description\n          signupCount\n          signups {\n            id\n            nickname\n            uid\n            role\n            weapon\n            contact\n            teamName\n            members\n            note\n            createdAt\n          }\n          results {\n            id\n            teamName\n            members\n            timeMs\n            timeText\n            proofUrl\n            note\n          }\n          signupsCsv\n        }\n        schoolGuides {\n          schools {\n            school\n            builds {\n              build\n              attr\n              rate\n              bisJson\n            }\n            rotationJson\n          }\n        }\n        adminTabStatsLabel\n        adminStatsTitle\n        adminStatsCurrentWeekLabel\n        adminStatsCarsLabel\n        adminStatsCompletedLabel\n        adminStatsSeatsLabel\n        adminStatsFillRateLabel\n        adminStatsParticipantsLabel\n        adminStatsPerCapitaLabel\n        adminStatsMembersTitle\n        adminStatsLeadersTitle\n        adminStatsSeatCountLabel\n        adminStatsCarCountLabel\n        adminStatsEmptyText\n        adminStatsBoardEmptyText\n        stats {\n          weeks {\n            weekLabel\n            isCurrent\n            carsActivity\n            carsTalent\n            carsRace\n            carsTower\n            carsTotal\n            completedCount\n            totalSeats\n            filledSeats\n            fillRate\n            participantCount\n            participationCount\n            perCapita\n          }\n          memberLeaders {\n            discordId\n            displayName\n            seatCount\n          }\n          leaderLeaders {\n            discordId\n            displayName\n            carCount\n          }\n        }\n      }\n    }\n  }\n}\n"
+    "text": "query documentsGuildAdminQuery(\n  $slug: String!\n) {\n  viewer {\n    commonUnknownErrorText\n    commonConfirmLabel\n    guildAdmin(slug: $slug) {\n      __typename\n      ... on GuildAdminLocked {\n        slug\n        adminLockedTitle\n        adminLockedBody\n        adminBackLinkLabel\n      }\n      ... on GuildAdmin {\n        slug\n        avatarUrl\n        adminTitle\n        adminBackLinkLabel\n        adminProfileTitle\n        adminNameLabel\n        adminAnnouncementLabel\n        adminSloganLabel\n        adminMasterLabel: adminMasterNameLabel\n        adminLogoLabel: adminLogoUrlLabel\n        adminBgLabel: adminBgImageUrlLabel\n        adminSaveLabel\n        adminSavedText\n        adminAvatarLabel: adminAvatarTitle\n        adminUploadAvatarLabel: adminAvatarUploadLabel\n        adminReplaceAvatarLabel: adminAvatarReplaceLabel\n        adminDeleteAvatarLabel: adminAvatarDeleteLabel\n        adminAvatarNoneText\n        adminDiscordTitle\n        adminWebhookLabel\n        adminWebhookSetText\n        adminWebhookUnsetText\n        adminWebhookClearLabel\n        adminDiscordIdLabel: adminGuildIdLabel\n        adminReminderTitle\n        adminReminderOffsetsLabel\n        adminReminderOffsetTemplate\n        adminReminderCustomTextLabel\n        adminReminderCustomTextHint\n        adminVisibilityTitle\n        adminVisibilityLabel: adminDevOnlyLabel\n        adminWhiteLabelTitle\n        adminHideBrandingLabel\n        adminHideBrandingHint\n        adminOgAccentLabel\n        adminOgTitleSuffixLabel\n        adminOgTitleSuffixHint\n        adminAddLabel\n        adminEditLabel\n        adminDeleteLabel\n        adminEventsTitle\n        adminEventEmptyText\n        adminEventTitleLabel\n        adminEventTypeLabel\n        adminEventTimeLabel\n        adminEventDungeonLabel\n        adminEventSlotsLabel\n        adminEventMeetLabel\n        adminEventDescLabel\n        adminEventStatusLabel\n        adminStatusOpenText\n        adminStatusClosedText\n        adminStatusCompletedText\n        adminStatusDraftText\n        adminExportCsvLabel\n        adminSignupsTitle\n        adminSignupEmptyText\n        adminRemoveSignupLabel\n        adminResultsTitle\n        adminResultTeamLabel\n        adminResultMembersLabel\n        adminResultTimeLabel\n        adminResultProofLabel\n        adminResultNoteLabel\n        adminGuidesTitle\n        adminGuidesHint\n        adminGuideSchoolLabel\n        adminGuideBuildLabel\n        adminGuideAttrLabel\n        adminGuideRateLabel\n        adminGuideBisLabel\n        adminGuideRotationLabel\n        adminTypeActivityText\n        adminTypeTalentText\n        adminTypeRaceText\n        adminTypeTowerText\n        name\n        announcement\n        slogan\n        masterName\n        logoUrl\n        bgImageUrl\n        discordGuildId\n        reminderWebhookSet\n        reminderWebhookId\n        reminderOffsets\n        reminderCustomText\n        whiteLabelHideBranding\n        ogAccent\n        ogTitleSuffix\n        ogAccentOptions {\n          key\n          hex\n          label\n        }\n        devOnly\n        adminTabProfileLabel\n        adminTabDiscordLabel\n        adminTabEventsLabel\n        adminTabGuidesLabel\n        events {\n          id\n          title\n          type\n          status\n          origin\n          startsAtUtc\n          startsAtText\n          dungeon\n          maxSlots\n          meetInfo\n          description\n          signupCount\n          signups {\n            id\n            nickname\n            uid\n            role\n            weapon\n            contact\n            teamName\n            members\n            note\n            createdAt\n          }\n          results {\n            id\n            teamName\n            members\n            timeMs\n            timeText\n            proofUrl\n            note\n          }\n          signupsCsv\n        }\n        schoolGuides {\n          schools {\n            school\n            builds {\n              build\n              attr\n              rate\n              bisJson\n            }\n            rotationJson\n          }\n        }\n        adminTabStatsLabel\n        adminStatsTitle\n        adminStatsCurrentWeekLabel\n        adminStatsCarsLabel\n        adminStatsCompletedLabel\n        adminStatsSeatsLabel\n        adminStatsFillRateLabel\n        adminStatsParticipantsLabel\n        adminStatsPerCapitaLabel\n        adminStatsMembersTitle\n        adminStatsLeadersTitle\n        adminStatsSeatCountLabel\n        adminStatsCarCountLabel\n        adminStatsEmptyText\n        adminStatsBoardEmptyText\n        stats {\n          weeks {\n            weekLabel\n            isCurrent\n            carsActivity\n            carsTalent\n            carsRace\n            carsTower\n            carsTotal\n            completedCount\n            totalSeats\n            filledSeats\n            fillRate\n            participantCount\n            participationCount\n            perCapita\n          }\n          memberLeaders {\n            discordId\n            displayName\n            seatCount\n          }\n          leaderLeaders {\n            discordId\n            displayName\n            carCount\n          }\n        }\n      }\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "e18ffdc7a79a2f6c30905c981b5999ef";
+(node as any).hash = "b9bb6d38c14659cce72a7ac51f4998c3";
 
 export default node;

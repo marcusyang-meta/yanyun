@@ -12,10 +12,10 @@ import { Backdrop } from '../components/ui';
 import { LoadingView } from '../components/AsyncBoundary';
 import { GuildAdminQuery } from '../documents';
 import {
-  adminAddMember, adminAddResult, adminCreateEvent, adminCreateTeam, adminDeleteAvatar,
-  adminDeleteEvent, adminDeleteMember, adminDeleteResult, adminDeleteTeam, adminRemoveSignup,
-  adminSetAvatar, adminUpdateDiscord, adminUpdateEvent, adminUpdateFeatures, adminUpdateGuide,
-  adminUpdateMember, adminUpdateProfile, adminUpdateReminderSettings, adminUpdateTeam, adminUpdateVisibility,
+  adminAddResult, adminCreateEvent, adminDeleteAvatar,
+  adminDeleteEvent, adminDeleteResult, adminRemoveSignup,
+  adminSetAvatar, adminUpdateDiscord, adminUpdateEvent, adminUpdateGuide,
+  adminUpdateProfile, adminUpdateReminderSettings, adminUpdateVisibility,
   adminUpdateWhiteLabel,
   type AdminPayload,
 } from '../api';
@@ -80,7 +80,7 @@ function AdminLoader({ slug, epoch, refresh }: { slug: string; epoch: number; re
 function AdminMain({ admin, unknownError, refresh, router }: {
   admin: Admin; unknownError: string; refresh: () => void; router: ReturnType<typeof useRouter>;
 }) {
-  const [tab, setTab] = useState<'profile' | 'discord' | 'teams' | 'events' | 'guides' | 'stats'>('profile');
+  const [tab, setTab] = useState<'profile' | 'discord' | 'events' | 'guides' | 'stats'>('profile');
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
 
@@ -95,7 +95,6 @@ function AdminMain({ admin, unknownError, refresh, router }: {
   const tabs: { key: typeof tab; label: string }[] = [
     { key: 'profile', label: admin.adminTabProfileLabel },
     { key: 'discord', label: admin.adminTabDiscordLabel },
-    { key: 'teams', label: admin.adminTabTeamsLabel },
     { key: 'events', label: admin.adminTabEventsLabel },
     { key: 'guides', label: admin.adminTabGuidesLabel },
     { key: 'stats', label: admin.adminTabStatsLabel },
@@ -120,7 +119,6 @@ function AdminMain({ admin, unknownError, refresh, router }: {
       {!!notice && <Text style={s.saved}>{notice}</Text>}
       {tab === 'profile' && <ProfilePanel admin={admin} run={run} flash={setNotice} />}
       {tab === 'discord' && <DiscordPanel admin={admin} run={run} />}
-      {tab === 'teams' && <TeamsPanel admin={admin} run={run} />}
       {tab === 'events' && <EventsPanel admin={admin} run={run} />}
       {tab === 'guides' && <GuidesPanel admin={admin} run={run} />}
       {tab === 'stats' && <StatsPanel admin={admin} />}
@@ -309,15 +307,6 @@ function DiscordPanel({ admin, run }: {
           onSave={() => run(adminUpdateReminderSettings(slug, offsets, customText))} />
       </View>
 
-      <Text style={s.sectionTitle}>{admin.adminFeaturesTitle}</Text>
-      <View style={s.card}>
-        <View style={s.switchRow}>
-          <Text style={s.switchLabel}>{admin.adminFeatureFixedTeamsLabel}</Text>
-          <Switch value={!!admin.featureFixedTeams}
-            onValueChange={(v) => run(adminUpdateFeatures(slug, v))} />
-        </View>
-      </View>
-
       <Text style={s.sectionTitle}>{admin.adminVisibilityTitle}</Text>
       <View style={s.card}>
         <View style={s.switchRow}>
@@ -365,119 +354,7 @@ function DiscordPanel({ admin, run }: {
   );
 }
 
-/* ---------- fixed teams ---------- */
-
 const SECTS_M = ['鸣金·虹', '鸣金·影', '牵丝·玉', '牵丝·霖', '牵丝·翊', '裂石·威', '裂石·钧', '破竹·樽', '破竹·鸢', '破竹·尘', '破竹·风'];
-
-function TeamsPanel({ admin, run }: {
-  admin: Admin;
-  run: (p: Promise<AdminPayload>, onOk?: () => void) => void;
-}) {
-  const slug = admin.slug;
-  const teams = admin.fixedTeams ?? [];
-  const [newName, setNewName] = useState('');
-  const [newDesc, setNewDesc] = useState('');
-  return (
-    <View>
-      <Text style={s.sectionTitle}>{admin.adminTeamsTitle}</Text>
-      {teams.length === 0 && <Text style={s.muted}>{admin.adminTeamEmptyText}</Text>}
-      {teams.map((t) => (
-        <TeamCard key={t.id} admin={admin} team={t} run={run} />
-      ))}
-      <View style={s.card}>
-        <Field label={admin.adminTeamNameLabel}><TInput value={newName} onChangeText={setNewName} /></Field>
-        <Field label={admin.adminTeamDescLabel}><TInput value={newDesc} onChangeText={setNewDesc} /></Field>
-        <SaveBtn label={admin.adminAddLabel} savedLabel={admin.adminSavedText}
-          onSave={() => { run(adminCreateTeam(slug, { name: newName, description: newDesc })); setNewName(''); setNewDesc(''); }} />
-      </View>
-    </View>
-  );
-}
-
-function TeamCard({ admin, team, run }: {
-  admin: Admin;
-  team: NonNullable<Admin['fixedTeams']>[number];
-  run: (p: Promise<AdminPayload>, onOk?: () => void) => void;
-}) {
-  const slug = admin.slug;
-  const [name, setName] = useState(team.name);
-  const [desc, setDesc] = useState(team.description ?? '');
-  const [nick, setNick] = useState('');
-  const [weapon, setWeapon] = useState(SECTS_M[0]);
-  const [note, setNote] = useState('');
-  return (
-    <View style={s.card}>
-      <Field label={admin.adminTeamNameLabel}><TInput value={name} onChangeText={setName} /></Field>
-      <Field label={admin.adminTeamDescLabel}><TInput value={desc} onChangeText={setDesc} /></Field>
-      <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
-        <SaveBtn label={admin.adminSaveLabel} savedLabel={admin.adminSavedText}
-          onSave={() => run(adminUpdateTeam(slug, team.id, { name, description: desc }))} />
-        <Confirmer admin={admin} onConfirm={() => run(adminDeleteTeam(slug, team.id))} />
-      </View>
-      {(team.members ?? []).map((m) => (
-        <MemberRow key={m.id} admin={admin} teamId={team.id} member={m} run={run} />
-      ))}
-      <View style={{ borderTopWidth: 1, borderTopColor: 'rgba(201,163,92,.15)', marginTop: 10, paddingTop: 10 }}>
-        <Field label={admin.adminMemberNicknameLabel}><TInput value={nick} onChangeText={setNick} /></Field>
-        <Field label={admin.adminMemberWeaponLabel}>
-          <View style={s.chipWrap}>
-            {SECTS_M.map((w) => (
-              <Pressable key={w} onPress={() => setWeapon(w)} style={[s.chip, weapon === w && s.chipOn]}>
-                <Text style={[s.chipText, weapon === w && s.chipTextOn]}>{w}</Text>
-              </Pressable>
-            ))}
-          </View>
-        </Field>
-        <Field label={admin.adminMemberNoteLabel}><TInput value={note} onChangeText={setNote} /></Field>
-        <SaveBtn label={admin.adminAddLabel} savedLabel={admin.adminSavedText}
-          onSave={() => { run(adminAddMember(slug, team.id, { nickname: nick, weapon, note })); setNick(''); setNote(''); }} />
-      </View>
-    </View>
-  );
-}
-
-function MemberRow({ admin, teamId, member, run }: {
-  admin: Admin;
-  teamId: string;
-  member: { id: string; nickname: string; weapon: string; role: string; note?: string | null };
-  run: (p: Promise<AdminPayload>, onOk?: () => void) => void;
-}) {
-  const slug = admin.slug;
-  const [editing, setEditing] = useState(false);
-  const [nick, setNick] = useState(member.nickname);
-  const [weapon, setWeapon] = useState(member.weapon);
-  const [note, setNote] = useState(member.note ?? '');
-  if (!editing) {
-    return (
-      <View style={s.memberRow}>
-        <Text style={s.memberName}>{member.nickname}</Text>
-        <Text style={s.muted}>{member.weapon}</Text>
-        <Text style={[s.roleChip, member.role === '奶' && s.roleChipHeal]}>{member.role}</Text>
-        <Pressable onPress={() => setEditing(true)} hitSlop={6}>
-          <Text style={s.linkText}>{admin.adminEditLabel}</Text>
-        </Pressable>
-        <Confirmer admin={admin} small onConfirm={() => run(adminDeleteMember(slug, teamId, member.id))} />
-      </View>
-    );
-  }
-  return (
-    <View style={{ borderTopWidth: 1, borderTopColor: 'rgba(201,163,92,.15)', paddingTop: 10, marginTop: 6 }}>
-      <Field label={admin.adminMemberNicknameLabel}><TInput value={nick} onChangeText={setNick} /></Field>
-      <Field label={admin.adminMemberWeaponLabel}>
-        <View style={s.chipWrap}>
-          {SECTS_M.map((w) => (
-            <Pressable key={w} onPress={() => setWeapon(w)} style={[s.chip, weapon === w && s.chipOn]}>
-              <Text style={[s.chipText, weapon === w && s.chipTextOn]}>{w}</Text>
-            </Pressable>
-          ))}
-        </View>
-      </Field>
-      <Field label={admin.adminMemberNoteLabel}><TInput value={note} onChangeText={setNote} /></Field>
-      <SaveBtn label={admin.adminSaveLabel} savedLabel={admin.adminSavedText}
-        onSave={() => { run(adminUpdateMember(slug, teamId, member.id, { nickname: nick, weapon, note })); setEditing(false); }} />
-    </View>
-  );
-}
 
 /* ---------- events ---------- */
 
