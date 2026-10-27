@@ -133,7 +133,7 @@ export async function revokePremium(
  * consumes effectiveGearLimits(plan) for its item/build/batch-OCR
  * caps; until it wires in, nothing reads these numbers, so the free
  * tier values are deliberately generous — wiring them in must not
- * retroactively squeeze any guild's existing library. */
+ * retroactively squeeze a guild's existing library. */
 
 export interface GearLimits {
   maxItems: number;

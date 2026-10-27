@@ -112,11 +112,19 @@ export type GuildsStringKey =
   | 'guildAdmin.ogAccentAzure'
   | 'guildAdmin.ogAccentCinnabar'
   | 'guildAdmin.ogAccentViolet'
-  | 'guildAdmin.subdomainTitle'
-  | 'guildAdmin.subdomainLabel'
-  | 'guildAdmin.subdomainAddressLabel'
-  | 'guildAdmin.subdomainCallbackLabel'
-  | 'guildAdmin.subdomainNote';
+  | 'guildAdmin.premiumLockedTitle'
+  | 'guildAdmin.premiumLockedBody'
+  | 'guildAdmin.premiumCheckoutButton'
+  | 'guildAdmin.premiumComingSoon'
+  | 'guildAdmin.premiumActiveTitle'
+  | 'guildAdmin.premiumPlanName'
+  | 'guildAdmin.premiumSourceStripe'
+  | 'guildAdmin.premiumSourceManual'
+  | 'guildAdmin.premiumPeriodEnd'
+  | 'guildAdmin.premiumPriceMonth'
+  | 'guildAdmin.premiumPriceYear'
+  | 'guildAdmin.billingSuccess'
+  | 'guildAdmin.billingCanceled';
 
 export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'locked.backLink',
@@ -230,9 +238,17 @@ export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'guildAdmin.ogAccentAzure',
   'guildAdmin.ogAccentCinnabar',
   'guildAdmin.ogAccentViolet',
-  'guildAdmin.subdomainTitle',
-  'guildAdmin.subdomainLabel',
-  'guildAdmin.subdomainAddressLabel',
-  'guildAdmin.subdomainCallbackLabel',
-  'guildAdmin.subdomainNote',
+  'guildAdmin.premiumLockedTitle',
+  'guildAdmin.premiumLockedBody',
+  'guildAdmin.premiumCheckoutButton',
+  'guildAdmin.premiumComingSoon',
+  'guildAdmin.premiumActiveTitle',
+  'guildAdmin.premiumPlanName',
+  'guildAdmin.premiumSourceStripe',
+  'guildAdmin.premiumSourceManual',
+  'guildAdmin.premiumPeriodEnd',
+  'guildAdmin.premiumPriceMonth',
+  'guildAdmin.premiumPriceYear',
+  'guildAdmin.billingSuccess',
+  'guildAdmin.billingCanceled',
 ];

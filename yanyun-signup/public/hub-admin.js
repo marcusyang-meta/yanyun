@@ -34,7 +34,56 @@ $('#loginForm').onsubmit = async (e) => {
 };
 $('#logoutBtn').onclick = logout;
 
-async function boot() { await loadSettings(); await loadTenants(); await loadReminders(); await loadHeirlooms(); await loadErrors(); await loadAudit(); await loadBackups(); await loadBosses(); await loadDungeons(); }
+async function boot() { await loadSettings(); await loadTenants(); await loadReminders(); await loadHeirlooms(); await loadErrors(); await loadAudit(); await loadBackups(); await loadBilling(); await loadBosses(); await loadDungeons(); }
+
+async function loadBilling() {
+  const msg = $('#billingMsg');
+  try {
+    const { billing } = await api('/api/hub/billing');
+    $('#paygateToggle').checked = !!billing.paygateEnabled;
+    $('#billingSummary').textContent = billing.stripeConfigured
+      ? 'Stripe 已配置（密钥/价格齐全）'
+      : 'Stripe 未配置：开通入口呈「即将开放」，可先用手工授予试点';
+    const fmtEnd = (ts) => ts ? new Date(ts * 1000).toLocaleDateString() : '—';
+    $('#billingTable').innerHTML = `<tr><th>百业</th><th>当前权益</th><th>来源</th><th>周期至</th><th>Stripe 订阅</th><th>手工授予</th><th></th></tr>` +
+      (billing.tenants.map((t) => `<tr>
+        <td>${esc(t.guild_name)}<br><span class="muted" style="font-family:monospace">${esc(t.slug)}</span></td>
+        <td>${t.plan === 'premium' ? '💎 Premium' : '免费'}${t.lapsed ? '<br><span class="muted">已过期回落</span>' : ''}</td>
+        <td>${t.source === 'stripe' ? 'Stripe' : t.source === 'manual' ? '手工授予' : '—'}</td>
+        <td style="white-space:nowrap">${fmtEnd(t.currentPeriodEnd)}</td>
+        <td style="font-family:monospace">${esc(t.stripeSubscriptionId || '—')}</td>
+        <td><input type="number" min="1" max="3650" value="30" style="width:70px" id="grant-days-${esc(t.slug)}"> 天</td>
+        <td style="white-space:nowrap">
+          <button class="ghost" data-grant="${esc(t.slug)}">授予 Premium</button>
+          <button class="ghost" data-revoke="${esc(t.slug)}">撤销</button>
+        </td></tr>`).join('') || '<tr><td colspan="7" class="muted">暂无百业</td></tr>');
+    document.querySelectorAll('[data-grant]').forEach((b) => b.onclick = async () => {
+      const slug = b.dataset.grant;
+      const days = parseInt(document.getElementById('grant-days-' + slug).value, 10) || 30;
+      try {
+        await api('/api/hub/billing/grant', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ slug, days }) });
+        msg.className = 'msg'; msg.textContent = `已授予 ${slug} Premium ${days} 天`;
+        await loadBilling();
+      } catch (e) { msg.className = 'msg bad'; msg.textContent = e.message; }
+    });
+    document.querySelectorAll('[data-revoke]').forEach((b) => b.onclick = async () => {
+      const slug = b.dataset.revoke;
+      try {
+        await api('/api/hub/billing/revoke', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ slug }) });
+        msg.className = 'msg'; msg.textContent = `已撤销 ${slug} 的 Premium`;
+        await loadBilling();
+      } catch (e) { msg.className = 'msg bad'; msg.textContent = e.message; }
+    });
+  } catch (e) { msg.className = 'msg bad'; msg.textContent = e.message; }
+}
+$('#paygateToggle').onchange = async (e) => {
+  const msg = $('#billingMsg');
+  try {
+    await api('/api/hub/billing/paygate', { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ enabled: e.target.checked }) });
+    msg.className = 'msg'; msg.textContent = e.target.checked ? '收费总闸已开启：门控按权益生效' : '收费总闸已关闭：全百业恢复全功能';
+    await loadBilling();
+  } catch (err) { msg.className = 'msg bad'; msg.textContent = err.message; e.target.checked = !e.target.checked; }
+};
 
 async function downloadAuthed(path, filename) {
   const r = await fetch(path, { headers: { authorization: 'Bearer ' + token } });

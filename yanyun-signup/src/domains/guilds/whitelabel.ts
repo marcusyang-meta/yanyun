@@ -17,6 +17,7 @@
  * suffix — an untouched guild renders byte-identically everywhere,
  * OG cards included. */
 import { getSettingValue, setSettingValue } from './settings.ts';
+import { premiumGate } from '../platform/billing-service.ts';
 
 export const WHITELABEL_HIDE_BRANDING_KEY = 'whitelabel_hide_branding';
 export const OG_ACCENT_KEY = 'og_accent';
@@ -82,6 +83,27 @@ export async function getWhiteLabelSettings(
     ogAccent: ogAccentOption(accent) ? String(accent).trim() : '',
     ogTitleSuffix: sanitizeOgTitleSuffix(suffix),
   };
+}
+
+export const WHITELABEL_DEFAULTS: WhiteLabelSettings = {
+  hideBranding: false,
+  ogAccent: '',
+  ogTitleSuffix: '',
+};
+
+/* Presentation read (Premium gate): member-facing chrome and the
+ * OG cards compose from THIS variant. While the paygate is ON and
+ * the guild is not entitled, the stored settings stay untouched in
+ * the data layer but presentation falls back to the defaults —
+ * branding shown, gold accent, no suffix — exactly the pre-Premium
+ * rendering. Admin reads/writes keep using getWhiteLabelSettings
+ * (raw) so an admin always sees their stored configuration. */
+export async function getEffectiveWhiteLabelSettings(
+  d1: D1Database,
+  slug: string,
+): Promise<WhiteLabelSettings> {
+  if (await premiumGate(d1, slug)) return { ...WHITELABEL_DEFAULTS };
+  return getWhiteLabelSettings(d1, slug);
 }
 
 export async function setWhiteLabelSettings(

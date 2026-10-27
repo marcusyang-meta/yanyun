@@ -862,9 +862,9 @@ async function gqlS(query, { user = null, variables, vc } = {}) {
 }
 const statsQ = `{ viewer { guildAdmin(slug: "statsguild") { __typename ... on GuildAdmin {
   adminTabStatsLabel adminStatsTitle adminStatsMembersTitle adminStatsLeadersTitle adminStatsEmptyText adminStatsBoardEmptyText
-  stats { weeks { weekStartUtc weekLabel isCurrent carsActivity carsTalent carsRace carsTower carsTotal completedCount totalSeats filledSeats fillRate participantCount participationCount perCapita }
+  stats { ... on GuildAdminStats { weeks { weekStartUtc weekLabel isCurrent carsActivity carsTalent carsRace carsTower carsTotal completedCount totalSeats filledSeats fillRate participantCount participationCount perCapita }
           memberLeaders { discordId displayName seatCount }
-          leaderLeaders { discordId displayName carCount } }
+          leaderLeaders { discordId displayName carCount } } }
 } } } }`;
 const weekNums = (w) => ({
   carsActivity: w.carsActivity, carsTalent: w.carsTalent, carsRace: w.carsRace, carsTower: w.carsTower,

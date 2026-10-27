@@ -168,7 +168,7 @@ function timingSafeEqualStr(a: string, b: string): boolean {
 
 /** Verify a Stripe-Signature header against the raw request body:
  *  HMAC-SHA256 over `${timestamp}.${body}` with the webhook secret,
- *  any listed v1 signature may match, timestamp within tolerance. */
+ *  a listed v1 signature may match, timestamp within tolerance. */
 export async function verifyStripeSignature(
   webhookSecret: string,
   signatureHeader: string,

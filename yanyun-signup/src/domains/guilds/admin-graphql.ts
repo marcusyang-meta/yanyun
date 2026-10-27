@@ -33,7 +33,7 @@ import {
 } from './guildavatar.ts';
 import { updateTenantProfile, updateTenantWebhook } from './tenants.ts';
 import {
-  getWhiteLabelSettings, setWhiteLabelSettings, ogAccentOption,
+  getWhiteLabelSettings, getEffectiveWhiteLabelSettings, setWhiteLabelSettings, ogAccentOption,
   sanitizeOgTitleSuffix, OG_ACCENT_PALETTE,
 } from './whitelabel.ts';
 import {
@@ -50,6 +50,10 @@ import {
   sanitizeReminderCustomText, REMINDER_OFFSET_PRESETS,
 } from '../groupings/index.ts';
 import { listSchoolBis, listSchoolRotations, upsertSchoolBis, upsertSchoolRotation } from '../dex/index.ts';
+import {
+  premiumGate, isPaygateEnabled, getEffectiveEntitlement,
+  stripeConfig, fetchStripePrice, createCheckoutSession,
+} from '../platform/index.ts';
 import { computeGuildStats } from './stats.ts';
 import type { GuildStatsWeek, GuildStatsBoardEntry } from './stats.ts';
 
@@ -208,6 +212,7 @@ export class GuildAdminStatsLeaderShell extends ShellBase {
 }
 
 export class GuildAdminStatsShell extends ShellBase {
+  __typename = 'GuildAdminStats';
   genWeeks(){
     return this.data.weeks.map((w: GuildStatsWeek) => new GuildAdminStatsWeekShell(this.ctx, w));
   }
@@ -217,6 +222,64 @@ export class GuildAdminStatsShell extends ShellBase {
   genLeaderLeaders(){
     return this.data.leaderLeaders.map((e: GuildStatsBoardEntry) => new GuildAdminStatsLeaderShell(this.ctx, e));
   }
+}
+
+/* ---------------- premium (billing) sub shells ----------------
+ * Composed by GuildAdminShell.genPremium / genStats from the
+ * entitlement verdict (platform billing service): the response type
+ * is the gate — no plan state is ever shipped as a flag for the
+ * client to judge. */
+
+export class GuildAdminPremiumActiveShell extends ShellBase {
+  __typename = 'GuildAdminPremiumActive';
+  genPremiumPlanLabel(){ return this.t('guildAdmin', 'premiumPlanName'); }
+  genPremiumSourceText(){
+    return this.t('guildAdmin', this.data.source === 'stripe' ? 'premiumSourceStripe' : 'premiumSourceManual');
+  }
+  genPremiumPeriodEndText(){
+    const end = this.data.currentPeriodEnd;
+    if (end == null) return null;
+    const tz = this.ctx.tz || 'Asia/Shanghai';
+    const opts: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'numeric', day: 'numeric', timeZone: tz };
+    let fmt: Intl.DateTimeFormat;
+    try { fmt = new Intl.DateTimeFormat(this.locale, opts); }
+    catch { fmt = new Intl.DateTimeFormat('zh-CN', { ...opts, timeZone: 'Asia/Shanghai' }); }
+    return this.t('guildAdmin', 'premiumPeriodEnd', { date: fmt.format(new Date(end * 1000)) });
+  }
+}
+
+export class GuildAdminPremiumLockedShell extends ShellBase {
+  __typename = 'GuildAdminPremiumLocked';
+  genPremiumTitle(){ return this.t('guildAdmin', 'premiumLockedTitle'); }
+  genPremiumBody(){ return this.t('guildAdmin', 'premiumLockedBody'); }
+  genPremiumCheckoutLabel(){ return this.t('guildAdmin', 'premiumCheckoutButton'); }
+  /* Price slot: composed ONLY from the price object Stripe returns
+   * for the configured price id — null when Stripe is not
+   * configured (or unreachable), in which case the coming-soon
+   * text occupies the slot instead. No amount is ever invented
+   * client- or server-side. */
+  async genPremiumPriceLabel(){
+    const cfg = stripeConfig(this.ctx.env);
+    if (!cfg) return null;
+    const price = await fetchStripePrice(cfg).catch(() => null);
+    if (!price) return null;
+    let amount: string;
+    try {
+      amount = new Intl.NumberFormat(this.locale, { style: 'currency', currency: price.currency }).format(price.unitAmount / 100);
+    } catch {
+      amount = `${(price.unitAmount / 100).toFixed(2)} ${price.currency.toUpperCase()}`;
+    }
+    return this.t('guildAdmin', price.interval === 'year' ? 'premiumPriceYear' : 'premiumPriceMonth', { amount });
+  }
+  async genPremiumComingSoonText(){
+    return stripeConfig(this.ctx.env) ? null : this.t('guildAdmin', 'premiumComingSoon');
+  }
+}
+
+export class GuildAdminStatsLockedShell extends ShellBase {
+  __typename = 'GuildAdminStatsLocked';
+  genPremiumTitle(){ return this.t('guildAdmin', 'premiumLockedTitle'); }
+  genPremiumBody(){ return this.t('guildAdmin', 'premiumLockedBody'); }
 }
 
 /* ---------------- white-label sub shell (server-issued OG accent options) ---------------- */
@@ -319,6 +382,8 @@ const ADMIN_TEXT_SPEC: [string, string, string][] = [
   ['adminStatsCarCountLabel', 'guildAdmin', 'statsCarCount'],
   ['adminStatsEmptyText', 'guildAdmin', 'statsEmpty'],
   ['adminStatsBoardEmptyText', 'guildAdmin', 'statsBoardEmpty'],
+  ['adminBillingSuccessText', 'guildAdmin', 'billingSuccess'],
+  ['adminBillingCanceledText', 'guildAdmin', 'billingCanceled'],
   ['adminWhiteLabelTitle', 'guildAdmin', 'whiteLabelTitle'],
   ['adminHideBrandingLabel', 'guildAdmin', 'hideBrandingLabel'],
   ['adminHideBrandingHint', 'guildAdmin', 'hideBrandingHint'],
@@ -394,7 +459,26 @@ export class GuildAdminShell extends ShellBase {
   }
   genSchoolGuides(){ return new GuildAdminSchoolGuidesShell(this.ctx, {}); }
   genStats(){
-    return this.memo('stats', async () => new GuildAdminStatsShell(this.ctx, await computeGuildStats(this.db, this.genSlug())));
+    return this.memo('stats', async () => {
+      // Premium read gate: gated guilds get the locked variant —
+      // the computed stats are never even produced for them.
+      if (await premiumGate(this.db, this.genSlug())) return new GuildAdminStatsLockedShell(this.ctx, {});
+      return new GuildAdminStatsShell(this.ctx, await computeGuildStats(this.db, this.genSlug()));
+    });
+  }
+  /* Premium surface: null while the paygate master switch is OFF
+   * (the admin surface then composes exactly as it did before
+   * billing existed); with the switch ON, the entitlement verdict
+   * picks the Active / Locked variant. */
+  genPremium(){
+    return this.memo('premium', async () => {
+      if (!(await isPaygateEnabled(this.db))) return null;
+      const eff = await getEffectiveEntitlement(this.db, this.genSlug());
+      if (eff.plan === 'premium') {
+        return new GuildAdminPremiumActiveShell(this.ctx, { source: eff.source, currentPeriodEnd: eff.currentPeriodEnd });
+      }
+      return new GuildAdminPremiumLockedShell(this.ctx, {});
+    });
   }
   /* White-label+ (Premium tier 1): branding toggle + share-card
    * customization. All three live in tenant settings (whitelabel.ts);
@@ -433,7 +517,7 @@ export class GuildAdminShell extends ShellBase {
    * hidden, the site shell must not show the platform footer here
    * either (same composition rule as the member-facing Guild shell). */
   async genPageFooterDisclaimerText(){
-    const wl = await this.genWhiteLabel();
+    const wl = await getEffectiveWhiteLabelSettings(this.db, this.genSlug());
     return wl.hideBranding ? null : this.t('legal', 'disclaimer');
   }
 }
@@ -463,6 +547,7 @@ function contentResolvers() {
     events: (p: any) => p.genEvents(),
     schoolGuides: (p: any) => p.genSchoolGuides(),
     stats: (p: GuildAdminShell) => p.genStats(),
+    premium: (p: GuildAdminShell) => p.genPremium(),
     whiteLabelHideBranding: (p: any) => p.genWhiteLabelHideBranding(),
     ogAccent: (p: any) => p.genOgAccent(),
     ogTitleSuffix: (p: any) => p.genOgTitleSuffix(),
@@ -515,6 +600,24 @@ export const guildAdminTypes = {
     memberLeaders: (p: GuildAdminStatsShell) => p.genMemberLeaders(),
     leaderLeaders: (p: GuildAdminStatsShell) => p.genLeaderLeaders(),
   },
+  GuildAdminStatsResult: { __resolveType: (p: any) => p.__typename },
+  GuildAdminStatsLocked: {
+    premiumTitle: (p: GuildAdminStatsLockedShell) => p.genPremiumTitle(),
+    premiumBody: (p: GuildAdminStatsLockedShell) => p.genPremiumBody(),
+  },
+  GuildAdminPremiumResult: { __resolveType: (p: any) => p.__typename },
+  GuildAdminPremiumActive: {
+    premiumPlanLabel: (p: GuildAdminPremiumActiveShell) => p.genPremiumPlanLabel(),
+    premiumSourceText: (p: GuildAdminPremiumActiveShell) => p.genPremiumSourceText(),
+    premiumPeriodEndText: (p: GuildAdminPremiumActiveShell) => p.genPremiumPeriodEndText(),
+  },
+  GuildAdminPremiumLocked: {
+    premiumTitle: (p: GuildAdminPremiumLockedShell) => p.genPremiumTitle(),
+    premiumBody: (p: GuildAdminPremiumLockedShell) => p.genPremiumBody(),
+    premiumPriceLabel: (p: GuildAdminPremiumLockedShell) => p.genPremiumPriceLabel(),
+    premiumComingSoonText: (p: GuildAdminPremiumLockedShell) => p.genPremiumComingSoonText(),
+    premiumCheckoutLabel: (p: GuildAdminPremiumLockedShell) => p.genPremiumCheckoutLabel(),
+  },
   GuildAdminStatsWeek: {
     weekStartUtc: (p: GuildAdminStatsWeekShell) => p.genWeekStartUtc(),
     weekLabel: (p: GuildAdminStatsWeekShell) => p.genWeekLabel(),
@@ -560,6 +663,7 @@ export const guildAdminTypes = {
 export class GuildAdminPayloadShell extends PayloadBase {
   genAvatarUrl(){ return this.data.avatarUrl ?? null; }
   genId(){ return this.data.id != null ? String(this.data.id) : null; }
+  genCheckoutUrl(){ return this.data.checkoutUrl ?? null; }
 }
 const aOk = (ctx: Context, extra: any = {}) => new GuildAdminPayloadShell(ctx, { ok: true, ...extra });
 const aFail = (ctx: Context, code: string) => new GuildAdminPayloadShell(ctx, { ok: false, errorCode: code });
@@ -622,6 +726,8 @@ export const guildAdminMutations = {
    * Always nudges the hub — the alarm schedule depends on these. */
   updateGuildReminderSettings: async (_: any, { slug, offsets, customText }: any, ctx: Context) => {
     const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
+    // Premium write gate (advanced reminder settings).
+    if (await premiumGate(ctx.env.DB, g.access.slug)) return aFail(ctx, 'premiumRequired');
     const db = ctx.env.DB;
     const list = Array.isArray(offsets) ? offsets.map((n: any) => Number(n)) : [];
     if (list.some((n: number) => !REMINDER_OFFSET_PRESETS.includes(n))) return aFail(ctx, 'reminderOffsetsInvalid');
@@ -637,6 +743,8 @@ export const guildAdminMutations = {
    * key only — free-form colors are rejected) + title suffix. */
   updateGuildWhiteLabel: async (_: any, { slug, hideBranding, ogAccent, ogTitleSuffix }: any, ctx: Context) => {
     const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
+    // Premium write gate (white-label settings).
+    if (await premiumGate(ctx.env.DB, g.access.slug)) return aFail(ctx, 'premiumRequired');
     const accent = String(ogAccent ?? '').trim();
     if (accent && !ogAccentOption(accent)) return aFail(ctx, 'ogAccentInvalid');
     await setWhiteLabelSettings(ctx.env.DB, g.access.slug, {
@@ -654,6 +762,29 @@ export const guildAdminMutations = {
     const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
     await setGuildSubdomainEnabled(ctx.env.DB, g.access.slug, !!enabled);
     return aOk(ctx);
+  /* Premium checkout: creates the Stripe Checkout Session for this
+   * guild and returns the hosted page URL. Refusals are catalog
+   * copy keyed by stable codes — paygateDisabled (master switch
+   * OFF: the offer does not exist), premiumActive (already
+   * entitled), premiumComingSoon (Stripe not configured yet), and
+   * checkoutFailed (Stripe refused). The webhook, not this
+   * mutation, is what grants the entitlement. */
+  startPremiumCheckout: async (_: any, { slug }: any, ctx: Context) => {
+    const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
+    const db = ctx.env.DB;
+    if (!(await isPaygateEnabled(db))) return aFail(ctx, 'paygateDisabled');
+    const eff = await getEffectiveEntitlement(db, g.access.slug);
+    if (eff.plan === 'premium') return aFail(ctx, 'premiumActive');
+    const cfg = stripeConfig(ctx.env);
+    if (!cfg) return aFail(ctx, 'premiumComingSoon');
+    let origin = '';
+    try { origin = new URL(ctx.request.url).origin; } catch { /* relative fallback */ }
+    try {
+      const session = await createCheckoutSession(cfg, { slug: g.access.slug, origin });
+      return new GuildAdminPayloadShell(ctx, { ok: true, checkoutUrl: session.url });
+    } catch {
+      return aFail(ctx, 'checkoutFailed');
+    }
   },
 
   updateGuildVisibility: async (_: any, { slug, devOnly }: any, ctx: Context) => {
@@ -822,5 +953,6 @@ export const guildAdminPayloadResolvers = {
     errorCode: (p: any) => p.genErrorCode(),
     avatarUrl: (p: any) => p.genAvatarUrl(),
     id: (p: any) => p.genId(),
+    checkoutUrl: (p: any) => p.genCheckoutUrl(),
   },
 };

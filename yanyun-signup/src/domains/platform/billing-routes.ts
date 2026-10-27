@@ -2,7 +2,7 @@
  *
  * Stripe is the caller — there is no session; authenticity is the
  * Stripe-Signature header, verified against STRIPE_WEBHOOK_SECRET
- * over the RAW body before any parsing. Verified events go to the
+ * over the RAW body before parsing. Verified events go to the
  * entitlement service, which dedupes by event id through the data
  * layer and applies them; replays get the same 200 as first
  * deliveries (that is what makes Stripe stop retrying).
@@ -42,7 +42,7 @@ billingRoutes.post('/stripe/webhook', async (c: any) => {
   } catch (e) {
     // A verified event we failed to apply: log and answer 500 so
     // Stripe retries (the dedupe ledger only records the event once
-    // application is attempted; a hard failure before any write
+    // application is attempted; a hard failure before a write lands
     // leaves the replay path open).
     try { c.executionCtx.waitUntil(logError(c.env.DB, { source: 'stripe', error: e, context: { path: 'stripe/webhook', event: String(event.id || ''), type: String(event.type || '') } })); }
     catch { void logError(c.env.DB, { source: 'stripe', error: e }); }

@@ -111,11 +111,11 @@ export type PlatformStringKey =
   | 'errors.templateNameRequired'
   | 'errors.templateForbidden'
   | 'errors.templateBadStart'
-  | 'errors.accountReauthRequired'
-  | 'errors.accountExportRateLimited'
-  | 'errors.accountUsernameMismatch'
-  | 'errors.accountDeletionPending'
-  | 'errors.accountDeletionNotPending';
+  | 'errors.premiumRequired'
+  | 'errors.premiumComingSoon'
+  | 'errors.premiumActive'
+  | 'errors.paygateDisabled'
+  | 'errors.checkoutFailed';
 
 export const PLATFORM_STRING_KEYS: readonly PlatformStringKey[] = [
   'common.cancel',
@@ -228,9 +228,9 @@ export const PLATFORM_STRING_KEYS: readonly PlatformStringKey[] = [
   'errors.templateNameRequired',
   'errors.templateForbidden',
   'errors.templateBadStart',
-  'errors.accountReauthRequired',
-  'errors.accountExportRateLimited',
-  'errors.accountUsernameMismatch',
-  'errors.accountDeletionPending',
-  'errors.accountDeletionNotPending',
+  'errors.premiumRequired',
+  'errors.premiumComingSoon',
+  'errors.premiumActive',
+  'errors.paygateDisabled',
+  'errors.checkoutFailed',
 ];
