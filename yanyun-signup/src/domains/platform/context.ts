@@ -73,6 +73,13 @@ export interface Env {
   EXPO_PUSH_BASE?: string;
   ADMIN_PASSWORD?: string;
   BACKUPS?: R2Bucket;
+  /* Stripe (billing readiness): set via wrangler secret. All three
+   * must be present before checkout can be offered; the webhook
+   * verifies with STRIPE_WEBHOOK_SECRET alone. Absent = billing not
+   * open yet, which the surfaces compose as their coming-soon state. */
+  STRIPE_SECRET_KEY?: string;
+  STRIPE_WEBHOOK_SECRET?: string;
+  STRIPE_PRICE_ID?: string;
 }
 
 /** Framework layer: raw infrastructure, assembly edges only. */
