@@ -1469,8 +1469,6 @@ export const GuildAdminQuery = graphql`
           adminReminderOffsetTemplate
           adminReminderCustomTextLabel
           adminReminderCustomTextHint
-          adminFeaturesTitle
-          adminFeatureFixedTeamsLabel: adminFixedTeamsLabel
           adminVisibilityTitle
           adminVisibilityLabel: adminDevOnlyLabel
           adminWhiteLabelTitle
@@ -1479,13 +1477,6 @@ export const GuildAdminQuery = graphql`
           adminOgAccentLabel
           adminOgTitleSuffixLabel
           adminOgTitleSuffixHint
-          adminTeamsTitle
-          adminTeamNameLabel
-          adminTeamDescLabel
-          adminTeamEmptyText
-          adminMemberNicknameLabel
-          adminMemberWeaponLabel
-          adminMemberNoteLabel
           adminAddLabel
           adminEditLabel
           adminDeleteLabel
@@ -1544,25 +1535,11 @@ export const GuildAdminQuery = graphql`
             hex
             label
           }
-          featureFixedTeams
           devOnly
           adminTabProfileLabel
           adminTabDiscordLabel
-          adminTabTeamsLabel
           adminTabEventsLabel
           adminTabGuidesLabel
-          fixedTeams {
-            id
-            name
-            description
-            members {
-              id
-              nickname
-              weapon
-              role
-              note
-            }
-          }
           events {
             id
             title
@@ -1685,11 +1662,6 @@ export const UpdateGuildReminderSettingsAdminMutation = graphql`
     updateGuildReminderSettings(slug: $slug, offsets: $offsets, customText: $customText) { ok error }
   }
 `;
-export const UpdateGuildFeaturesAdminMutation = graphql`
-  mutation documentsUpdateGuildFeaturesAdminMutation($slug: String!, $fixedTeams: Boolean!) {
-    updateGuildFeatures(slug: $slug, fixedTeams: $fixedTeams) { ok error }
-  }
-`;
 export const UpdateGuildWhiteLabelAdminMutation = graphql`
   mutation documentsUpdateGuildWhiteLabelAdminMutation($slug: String!, $hideBranding: Boolean!, $ogAccent: String!, $ogTitleSuffix: String) {
     updateGuildWhiteLabel(slug: $slug, hideBranding: $hideBranding, ogAccent: $ogAccent, ogTitleSuffix: $ogTitleSuffix) { ok error }
@@ -1698,36 +1670,6 @@ export const UpdateGuildWhiteLabelAdminMutation = graphql`
 export const UpdateGuildVisibilityAdminMutation = graphql`
   mutation documentsUpdateGuildVisibilityAdminMutation($slug: String!, $devOnly: Boolean!) {
     updateGuildVisibility(slug: $slug, devOnly: $devOnly) { ok error }
-  }
-`;
-export const CreateFixedTeamAdminMutation = graphql`
-  mutation documentsCreateFixedTeamAdminMutation($slug: String!, $input: CreateFixedTeamInput!) {
-    createFixedTeam(slug: $slug, input: $input) { ok error id }
-  }
-`;
-export const UpdateFixedTeamAdminMutation = graphql`
-  mutation documentsUpdateFixedTeamAdminMutation($slug: String!, $teamId: ID!, $input: UpdateFixedTeamInput!) {
-    updateFixedTeam(slug: $slug, teamId: $teamId, input: $input) { ok error }
-  }
-`;
-export const DeleteFixedTeamAdminMutation = graphql`
-  mutation documentsDeleteFixedTeamAdminMutation($slug: String!, $teamId: ID!) {
-    deleteFixedTeam(slug: $slug, teamId: $teamId) { ok error }
-  }
-`;
-export const AddFixedTeamMemberAdminMutation = graphql`
-  mutation documentsAddFixedTeamMemberAdminMutation($slug: String!, $teamId: ID!, $input: FixedTeamMemberInput!) {
-    addFixedTeamMember(slug: $slug, teamId: $teamId, input: $input) { ok error id }
-  }
-`;
-export const UpdateFixedTeamMemberAdminMutation = graphql`
-  mutation documentsUpdateFixedTeamMemberAdminMutation($slug: String!, $teamId: ID!, $memberId: ID!, $input: FixedTeamMemberInput!) {
-    updateFixedTeamMember(slug: $slug, teamId: $teamId, memberId: $memberId, input: $input) { ok error }
-  }
-`;
-export const DeleteFixedTeamMemberAdminMutation = graphql`
-  mutation documentsDeleteFixedTeamMemberAdminMutation($slug: String!, $teamId: ID!, $memberId: ID!) {
-    deleteFixedTeamMember(slug: $slug, teamId: $teamId, memberId: $memberId) { ok error }
   }
 `;
 export const CreateAdminEventMutation = graphql`
