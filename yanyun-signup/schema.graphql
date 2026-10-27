@@ -1646,10 +1646,8 @@ type GuildAdmin {
   # 本百业页面的有效页脚声明 (白标组合, 与成员面 Guild 同口径):
   # 隐藏品牌时为 null, 管理页所在的站点外壳据此不渲染页脚。
   pageFooterDisclaimerText: String
-  featureFixedTeams: Boolean!
   devOnly: Boolean!
   gameVersion: String!
-  fixedTeams: [GuildAdminFixedTeam!]!
   events: [GuildAdminEvent!]!
   schoolGuides: GuildAdminSchoolGuides!
   stats: GuildAdminStats!
@@ -1658,7 +1656,6 @@ type GuildAdmin {
   adminBackLinkLabel: String!
   adminTabProfileLabel: String!
   adminTabDiscordLabel: String!
-  adminTabTeamsLabel: String!
   adminTabEventsLabel: String!
   adminTabGuidesLabel: String!
   adminSaveLabel: String!
@@ -1692,18 +1689,8 @@ type GuildAdmin {
   adminReminderOffsetTemplate: String!
   adminReminderCustomTextLabel: String!
   adminReminderCustomTextHint: String!
-  adminFeaturesTitle: String!
-  adminFixedTeamsLabel: String!
   adminVisibilityTitle: String!
   adminDevOnlyLabel: String!
-  adminTeamsTitle: String!
-  adminTeamNameLabel: String!
-  adminTeamDescLabel: String!
-  adminTeamEmptyText: String!
-  adminMemberNicknameLabel: String!
-  adminMemberWeaponLabel: String!
-  adminMemberNoteLabel: String!
-  adminAddMemberLabel: String!
   adminEventsTitle: String!
   adminEventEmptyText: String!
   adminEventTitleLabel: String!
@@ -1769,21 +1756,6 @@ type GuildAdminOgAccentOption {
   key: String!
   label: String!
   hex: String!
-}
-
-type GuildAdminFixedTeam {
-  id: ID!
-  name: String!
-  description: String!
-  members: [GuildAdminFixedTeamMember!]!
-}
-
-type GuildAdminFixedTeamMember {
-  id: ID!
-  nickname: String!
-  weapon: String!
-  role: String!
-  note: String!
 }
 
 type GuildAdminEvent {
@@ -1914,23 +1886,6 @@ input UpdateGuildDiscordInput {
   discordGuildId: String
 }
 
-input CreateFixedTeamInput {
-  name: String!
-  description: String
-}
-
-input UpdateFixedTeamInput {
-  name: String
-  description: String
-}
-
-input FixedTeamMemberInput {
-  nickname: String!
-  weapon: String
-  note: String
-  sortOrder: Int
-}
-
 input CreateAdminEventInput {
   title: String!
   type: GroupingType!
@@ -1978,17 +1933,10 @@ extend type Mutation {
   updateGuildReminderSettings(slug: String!, offsets: [Int!]!, customText: String): GuildAdminPayload!
   updateGuildWhiteLabel(slug: String!, hideBranding: Boolean!, ogAccent: String!, ogTitleSuffix: String): GuildAdminPayload!
   updateGuildVisibility(slug: String!, devOnly: Boolean!): GuildAdminPayload!
-  updateGuildFeatures(slug: String!, fixedTeams: Boolean!): GuildAdminPayload!
   # 头像以 base64 文本上传 (GraphQL 无二进制通道); 服务端解码后仍走
   # 与原直传相同的大小/魔数校验, 错误文案走 errors 目录。
   setGuildAvatar(slug: String!, dataBase64: String!): GuildAdminPayload!
   deleteGuildAvatar(slug: String!): GuildAdminPayload!
-  createFixedTeam(slug: String!, input: CreateFixedTeamInput!): GuildAdminPayload!
-  updateFixedTeam(slug: String!, teamId: ID!, input: UpdateFixedTeamInput!): GuildAdminPayload!
-  deleteFixedTeam(slug: String!, teamId: ID!): GuildAdminPayload!
-  addFixedTeamMember(slug: String!, teamId: ID!, input: FixedTeamMemberInput!): GuildAdminPayload!
-  updateFixedTeamMember(slug: String!, teamId: ID!, memberId: ID!, input: FixedTeamMemberInput!): GuildAdminPayload!
-  deleteFixedTeamMember(slug: String!, teamId: ID!, memberId: ID!): GuildAdminPayload!
   createAdminEvent(slug: String!, input: CreateAdminEventInput!): GuildAdminPayload!
   updateAdminEvent(slug: String!, eventId: ID!, input: UpdateAdminEventInput!): GuildAdminPayload!
   deleteAdminEvent(slug: String!, eventId: ID!): GuildAdminPayload!

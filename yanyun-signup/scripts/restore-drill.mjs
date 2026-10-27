@@ -48,7 +48,7 @@ const DDL = [
      slug TEXT PRIMARY KEY, guild_name TEXT NOT NULL, password_hash TEXT NOT NULL,
      announcement TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL DEFAULT (strftime('%s','now')),
      discord_webhook TEXT NOT NULL DEFAULT '', slogan TEXT, master_name TEXT,
-     logo_url TEXT, bg_image_url TEXT, feature_fixed_teams INTEGER)`,
+     logo_url TEXT, bg_image_url TEXT)`,
   `CREATE TABLE settings (
      tenant TEXT NOT NULL DEFAULT '', key TEXT NOT NULL, value TEXT NOT NULL DEFAULT '',
      PRIMARY KEY (tenant, key))`,
@@ -92,16 +92,6 @@ const DDL = [
      team_name TEXT NOT NULL, members TEXT NOT NULL DEFAULT '',
      time_ms INTEGER NOT NULL, proof_url TEXT NOT NULL DEFAULT '',
      note TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL DEFAULT (strftime('%s','now')))`,
-  `CREATE TABLE fixed_teams (
-     id INTEGER PRIMARY KEY AUTOINCREMENT, tenant TEXT NOT NULL,
-     name TEXT NOT NULL, description TEXT NOT NULL DEFAULT '',
-     created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')))`,
-  `CREATE TABLE fixed_team_members (
-     id INTEGER PRIMARY KEY AUTOINCREMENT,
-     team_id INTEGER NOT NULL REFERENCES fixed_teams(id) ON DELETE CASCADE,
-     nickname TEXT NOT NULL, weapon TEXT NOT NULL DEFAULT '',
-     role TEXT NOT NULL DEFAULT '', note TEXT NOT NULL DEFAULT '',
-     sort_order INTEGER NOT NULL DEFAULT 0)`,
   `CREATE TABLE guild_avatars (
      tenant TEXT PRIMARY KEY, content_type TEXT NOT NULL,
      bytes BLOB NOT NULL, hash TEXT NOT NULL, updated_at INTEGER NOT NULL)`,
@@ -207,8 +197,6 @@ await db.insert(S.signups).values([
 await db.insert(S.results).values([
   { id: 501, eventId: 101, teamName: '一队', members: '甲,乙', timeMs: 123456 },
 ]);
-await db.insert(S.fixedTeams).values([{ id: 201, tenant: 'alpha', name: '固定队一' }]);
-await db.insert(S.fixedTeamMembers).values([{ id: 301, teamId: 201, nickname: '甲服内名', weapon: '破竹·风' }]);
 
 const avatarBytes = new Uint8Array(256);
 for (let i = 0; i < 256; i++) avatarBytes[i] = (i * 7 + 13) % 256;

@@ -114,10 +114,7 @@ export const errors_cannotManageServer = (fbs: FbsAPI) =>fbs("你需要在该 Di
 export const errors_adminOnly = (fbs: FbsAPI) =>fbs("只有所绑服务器的管理员可以执行此操作", "errors.adminOnly");
 export const errors_webhookInvalid = (fbs: FbsAPI) =>fbs("Webhook 地址格式不正确", "errors.webhookInvalid");
 export const errors_discordIdInvalid = (fbs: FbsAPI) =>fbs("Discord 服务器 ID 格式不正确", "errors.discordIdInvalid");
-export const errors_teamNameRequired = (fbs: FbsAPI) =>fbs("缺少队伍名", "errors.teamNameRequired");
 export const errors_noFieldsToUpdate = (fbs: FbsAPI) =>fbs("没有可更新的字段", "errors.noFieldsToUpdate");
-export const errors_teamNotFound = (fbs: FbsAPI) =>fbs("未找到该固定队", "errors.teamNotFound");
-export const errors_teamMemberNotFound = (fbs: FbsAPI) =>fbs("未找到该队员", "errors.teamMemberNotFound");
 export const errors_signupNotFound = (fbs: FbsAPI) =>fbs("未找到该报名记录", "errors.signupNotFound");
 export const errors_resultNotFound = (fbs: FbsAPI) =>fbs("未找到该成绩", "errors.resultNotFound");
 export const errors_resultTeamRequired = (fbs: FbsAPI) =>fbs("缺少队伍名", "errors.resultTeamRequired");

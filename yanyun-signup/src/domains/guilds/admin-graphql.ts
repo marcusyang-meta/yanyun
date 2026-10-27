@@ -23,7 +23,7 @@ import type { Context } from '../platform/context.ts';
 import { vcOf } from '../platform/context.ts';
 import {
   ShellBase, defineTextGens, getGuildAdminAccess, getTenantSetting,
-  setTenantSetting, getGameVersion, TYPE_TO_ENUM, PayloadBase, s, roleOf,
+  setTenantSetting, getGameVersion, TYPE_TO_ENUM, PayloadBase, s,
   publishGroupingEvent,
 } from '../platform/graphql-base.ts';
 import { fmtStartsAt } from '../platform/index.ts';
@@ -36,11 +36,6 @@ import {
   getWhiteLabelSettings, setWhiteLabelSettings, ogAccentOption,
   sanitizeOgTitleSuffix, OG_ACCENT_PALETTE,
 } from './whitelabel.ts';
-import {
-  listFixedTeams, listFixedTeamMembers, insertFixedTeam, getFixedTeamIdForTenant,
-  updateFixedTeamFields, deleteFixedTeamWithMembers, insertFixedTeamMember,
-  getFixedTeamMemberIdOwned, updateFixedTeamMemberFields, deleteFixedTeamMemberById,
-} from './fixedTeams.ts';
 import {
   listEventsAdmin, listSignupsByEvent, listResultsByEvent, fmtMs,
   getEventRow, getEventIdByTenant, getEventRowByTenant, insertEvent,
@@ -62,26 +57,6 @@ export async function guildAdminResult(ctx: Context, slug: string) {
 }
 
 /* ---------------- sub shells (plain row carriers) ---------------- */
-
-export class GuildAdminFixedTeamMemberShell extends ShellBase {
-  genId(){ return String(this.data.id); }
-  genNickname(){ return this.data.nickname || ''; }
-  genWeapon(){ return this.data.weapon || ''; }
-  genRole(){ return this.data.role || ''; }
-  genNote(){ return this.data.note || ''; }
-}
-
-export class GuildAdminFixedTeamShell extends ShellBase {
-  genId(){ return String(this.data.id); }
-  genName(){ return this.data.name || ''; }
-  genDescription(){ return this.data.description || ''; }
-  genMembers(){
-    return this.memo('members', async () => {
-      const rows = await listFixedTeamMembers(this.db, this.data.id);
-      return rows.map((r: any) => new GuildAdminFixedTeamMemberShell(this.ctx, r));
-    });
-  }
-}
 
 export class GuildAdminSignupShell extends ShellBase {
   genId(){ return String(this.data.id); }
@@ -255,7 +230,6 @@ const ADMIN_TEXT_SPEC: [string, string, string][] = [
   ['adminBackLinkLabel', 'guildAdmin', 'backLink'],
   ['adminTabProfileLabel', 'guildAdmin', 'tabProfile'],
   ['adminTabDiscordLabel', 'guildAdmin', 'tabDiscord'],
-  ['adminTabTeamsLabel', 'guildAdmin', 'tabTeams'],
   ['adminTabEventsLabel', 'guildAdmin', 'tabEvents'],
   ['adminTabGuidesLabel', 'guildAdmin', 'tabGuides'],
   ['adminSaveLabel', 'guildAdmin', 'saveButton'],
@@ -288,18 +262,8 @@ const ADMIN_TEXT_SPEC: [string, string, string][] = [
   ['adminReminderOffsetTemplate', 'guildAdmin', 'reminderOffsetOption'],
   ['adminReminderCustomTextLabel', 'guildAdmin', 'reminderCustomTextLabel'],
   ['adminReminderCustomTextHint', 'guildAdmin', 'reminderCustomTextHint'],
-  ['adminFeaturesTitle', 'guildAdmin', 'featuresTitle'],
-  ['adminFixedTeamsLabel', 'guildAdmin', 'fixedTeamsLabel'],
   ['adminVisibilityTitle', 'guildAdmin', 'visibilityTitle'],
   ['adminDevOnlyLabel', 'guildAdmin', 'devOnlyLabel'],
-  ['adminTeamsTitle', 'guildAdmin', 'teamsTitle'],
-  ['adminTeamNameLabel', 'guildAdmin', 'teamNameLabel'],
-  ['adminTeamDescLabel', 'guildAdmin', 'teamDescLabel'],
-  ['adminTeamEmptyText', 'guildAdmin', 'teamEmpty'],
-  ['adminMemberNicknameLabel', 'guildAdmin', 'memberNicknameLabel'],
-  ['adminMemberWeaponLabel', 'guildAdmin', 'memberWeaponLabel'],
-  ['adminMemberNoteLabel', 'guildAdmin', 'memberNoteLabel'],
-  ['adminAddMemberLabel', 'guildAdmin', 'addMemberButton'],
   ['adminEventsTitle', 'guildAdmin', 'eventsTitle'],
   ['adminEventEmptyText', 'guildAdmin', 'eventEmpty'],
   ['adminEventTitleLabel', 'guildAdmin', 'eventTitleLabel'],
@@ -411,17 +375,8 @@ export class GuildAdminShell extends ShellBase {
   async genReminderCustomText(){
     return getReminderCustomText(this.db, this.genSlug());
   }
-  async genFeatureFixedTeams(){
-    return (await getTenantSetting(this.db, this.genSlug(), 'feature_fixed_teams')) === '1';
-  }
   genDevOnly(){ return !!this.access.devOnly; }
   genGameVersion(){ return this.ctxMemo('gameVersion', () => getGameVersion(this.db)); }
-  genFixedTeams(){
-    return this.memo('fixedTeams', async () => {
-      const rows = await listFixedTeams(this.db, this.genSlug());
-      return rows.map((r: any) => new GuildAdminFixedTeamShell(this.ctx, r));
-    });
-  }
   genEvents(){
     return this.memo('events', async () => {
       const rows = await listEventsAdmin(this.db, this.genSlug());
@@ -481,10 +436,8 @@ function contentResolvers() {
     adminWebhookSetText: (p: any) => p.genAdminWebhookSetText(),
     reminderOffsets: (p: any) => p.genReminderOffsets(),
     reminderCustomText: (p: any) => p.genReminderCustomText(),
-    featureFixedTeams: (p: any) => p.genFeatureFixedTeams(),
     devOnly: (p: any) => p.genDevOnly(),
     gameVersion: (p: any) => p.genGameVersion(),
-    fixedTeams: (p: any) => p.genFixedTeams(),
     events: (p: any) => p.genEvents(),
     schoolGuides: (p: any) => p.genSchoolGuides(),
     stats: (p: GuildAdminShell) => p.genStats(),
@@ -502,14 +455,6 @@ export const guildAdminTypes = {
   GuildAdminLocked: {
     slug: (p: any) => p.genSlug(),
     ...GUILD_ADMIN_LOCKED_TEXT_RESOLVERS,
-  },
-  GuildAdminFixedTeam: {
-    id: (p: any) => p.genId(), name: (p: any) => p.genName(),
-    description: (p: any) => p.genDescription(), members: (p: any) => p.genMembers(),
-  },
-  GuildAdminFixedTeamMember: {
-    id: (p: any) => p.genId(), nickname: (p: any) => p.genNickname(),
-    weapon: (p: any) => p.genWeapon(), role: (p: any) => p.genRole(), note: (p: any) => p.genNote(),
   },
   GuildAdminEvent: {
     id: (p: any) => p.genId(), title: (p: any) => p.genTitle(), type: (p: any) => p.genType(),
@@ -683,12 +628,6 @@ export const guildAdminMutations = {
     return aOk(ctx);
   },
 
-  updateGuildFeatures: async (_: any, { slug, fixedTeams }: any, ctx: Context) => {
-    const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
-    await setTenantSetting(ctx.env.DB, g.access.slug, 'feature_fixed_teams', fixedTeams ? '1' : '0');
-    return aOk(ctx);
-  },
-
   setGuildAvatar: async (_: any, { slug, dataBase64 }: any, ctx: Context) => {
     const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
     const db = ctx.env.DB;
@@ -715,87 +654,6 @@ export const guildAdminMutations = {
   deleteGuildAvatar: async (_: any, { slug }: any, ctx: Context) => {
     const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
     await deleteGuildAvatarRepo(ctx.env.DB, g.access.slug);
-    return aOk(ctx);
-  },
-
-  createFixedTeam: async (_: any, { slug, input }: any, ctx: Context) => {
-    const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
-    const name = s(input.name, 30);
-    if (!name) return aFail(ctx, 'teamNameRequired');
-    const r = await insertFixedTeam(ctx.env.DB, {
-      tenant: g.access.slug, name, description: s(input.description, 200),
-    });
-    return aOk(ctx, { id: r.last_row_id });
-  },
-
-  updateFixedTeam: async (_: any, { slug, teamId, input }: any, ctx: Context) => {
-    const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
-    const db = ctx.env.DB;
-    const owned = await getFixedTeamIdForTenant(db, parseInt(teamId, 10), g.access.slug);
-    if (!owned) return aFail(ctx, 'teamNotFound');
-    const patch: Record<string, unknown> = {};
-    if (input.name != null) {
-      const name = s(input.name, 30);
-      if (!name) return aFail(ctx, 'teamNameRequired');
-      patch.name = name;
-    }
-    if (input.description != null) patch.description = s(input.description, 200);
-    if (!Object.keys(patch).length) return aFail(ctx, 'noFieldsToUpdate');
-    await updateFixedTeamFields(db, owned.id, patch);
-    return aOk(ctx);
-  },
-
-  deleteFixedTeam: async (_: any, { slug, teamId }: any, ctx: Context) => {
-    const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
-    const owned = await getFixedTeamIdForTenant(ctx.env.DB, parseInt(teamId, 10), g.access.slug);
-    if (!owned) return aFail(ctx, 'teamNotFound');
-    await deleteFixedTeamWithMembers(ctx.env.DB, owned.id);
-    return aOk(ctx);
-  },
-
-  addFixedTeamMember: async (_: any, { slug, teamId, input }: any, ctx: Context) => {
-    const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
-    const db = ctx.env.DB;
-    const owned = await getFixedTeamIdForTenant(db, parseInt(teamId, 10), g.access.slug);
-    if (!owned) return aFail(ctx, 'teamNotFound');
-    const nickname = s(input.nickname, 30);
-    if (!nickname) return aFail(ctx, 'nicknameRequired');
-    const weapon = s(input.weapon, 30);
-    const r = await insertFixedTeamMember(db, {
-      teamId: owned.id, nickname, weapon,
-      role: roleOf(weapon), note: s(input.note, 100),
-      sortOrder: Number.isFinite(input.sortOrder) ? input.sortOrder : 0,
-    });
-    return aOk(ctx, { id: r.last_row_id });
-  },
-
-  updateFixedTeamMember: async (_: any, { slug, teamId, memberId, input }: any, ctx: Context) => {
-    const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
-    const db = ctx.env.DB;
-    const owned = await getFixedTeamMemberIdOwned(db, parseInt(memberId, 10), g.access.slug);
-    if (!owned) return aFail(ctx, 'teamMemberNotFound');
-    const patch: Record<string, unknown> = {};
-    if (input.nickname != null) {
-      const nickname = s(input.nickname, 30);
-      if (!nickname) return aFail(ctx, 'nicknameRequired');
-      patch.nickname = nickname;
-    }
-    if (input.weapon != null) {
-      patch.weapon = s(input.weapon, 30);
-      patch.role = roleOf(patch.weapon as string);
-    }
-    if (input.note != null) patch.note = s(input.note, 100);
-    if (input.sortOrder != null && Number.isFinite(input.sortOrder)) patch.sort_order = input.sortOrder;
-    if (!Object.keys(patch).length) return aFail(ctx, 'noFieldsToUpdate');
-    await updateFixedTeamMemberFields(db, owned.id, patch);
-    return aOk(ctx);
-  },
-
-  deleteFixedTeamMember: async (_: any, { slug, teamId, memberId }: any, ctx: Context) => {
-    const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
-    const owned = await getFixedTeamMemberIdOwned(ctx.env.DB, parseInt(memberId, 10), g.access.slug);
-    if (!owned) return aFail(ctx, 'teamMemberNotFound');
-    await deleteFixedTeamMemberById(ctx.env.DB, owned.id);
     return aOk(ctx);
   },
 

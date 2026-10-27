@@ -95,10 +95,7 @@ export type PlatformStringKey =
   | 'errors.adminOnly'
   | 'errors.webhookInvalid'
   | 'errors.discordIdInvalid'
-  | 'errors.teamNameRequired'
   | 'errors.noFieldsToUpdate'
-  | 'errors.teamNotFound'
-  | 'errors.teamMemberNotFound'
   | 'errors.signupNotFound'
   | 'errors.resultNotFound'
   | 'errors.resultTeamRequired'
@@ -206,10 +203,7 @@ export const PLATFORM_STRING_KEYS: readonly PlatformStringKey[] = [
   'errors.adminOnly',
   'errors.webhookInvalid',
   'errors.discordIdInvalid',
-  'errors.teamNameRequired',
   'errors.noFieldsToUpdate',
-  'errors.teamNotFound',
-  'errors.teamMemberNotFound',
   'errors.signupNotFound',
   'errors.resultNotFound',
   'errors.resultTeamRequired',

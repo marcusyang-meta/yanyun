@@ -6777,17 +6777,6 @@
       ],
       "types": []
     },
-    "kyhSKO7tirYw+bX745wS9g==": {
-      "description": "guildAdmin.tabTeams",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "Fixed teams",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
     "dG01MOBCGpZeQUxif54rpg==": {
       "description": "guildAdmin.tabEvents",
       "tokens": [],
@@ -7096,28 +7085,6 @@
       ],
       "types": []
     },
-    "MRom0wxHtfOXXt7XA8tvLw==": {
-      "description": "guildAdmin.featuresTitle",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "Features",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "DSO/z3OBcBwS5xQx6Q2VqQ==": {
-      "description": "guildAdmin.fixedTeamsLabel",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "Fixed teams",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
     "eGAE2fH0Do5fjqmJD2cPUA==": {
       "description": "guildAdmin.visibilityTitle",
       "tokens": [],
@@ -7135,94 +7102,6 @@
       "translations": [
         {
           "translation": "Development environments only",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "Px9Q8hZE2hVAXbG75nD+bQ==": {
-      "description": "guildAdmin.teamsTitle",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "Fixed team management",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "TNXO8K7BNKu/4hB3/1gjtw==": {
-      "description": "guildAdmin.teamNameLabel",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "Team name",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "MWb2HwM2A9LQRe5oxnyYMg==": {
-      "description": "guildAdmin.teamDescLabel",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "Team description",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "8cFHTM1Q3LA/jSLwIgciyA==": {
-      "description": "guildAdmin.teamEmpty",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "No fixed teams yet.",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "MxqMxmme5HXxuLCSddPVqg==": {
-      "description": "guildAdmin.memberNicknameLabel",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "Nickname",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "+4QZgxMInUTStkw6eX8efg==": {
-      "description": "guildAdmin.memberWeaponLabel",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "Sect (weapon)",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "J5qDy1AYdOgDJ+AwKXFExg==": {
-      "description": "guildAdmin.memberNoteLabel",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "Note",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "SRjXgh98tc1XNg4mRy58uA==": {
-      "description": "guildAdmin.addMemberButton",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "Add member",
           "variations": {}
         }
       ],
@@ -7613,45 +7492,12 @@
       ],
       "types": []
     },
-    "SvenWiVmfNUoFONmCJ8eGA==": {
-      "description": "errors.teamNameRequired",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "Team name is required",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
     "/vMhQHVFrHfDbFNO0AjPNw==": {
       "description": "errors.noFieldsToUpdate",
       "tokens": [],
       "translations": [
         {
           "translation": "No fields to update",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "51/agEDkEeUCupvvCVjGmg==": {
-      "description": "errors.teamNotFound",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "Fixed team not found",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "L6s2q64GP4/yd5lyYsklJw==": {
-      "description": "errors.teamMemberNotFound",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "Team member not found",
           "variations": {}
         }
       ],

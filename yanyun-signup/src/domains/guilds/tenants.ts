@@ -40,7 +40,6 @@ export interface TenantRow {
   master_name: string | null;
   logo_url: string | null;
   bg_image_url: string | null;
-  feature_fixed_teams: number | null;
 }
 
 /* Full-row read (a superset of the legacy per-site SELECT subsets; consumers read only the fields they need). */
@@ -147,13 +146,6 @@ export async function updateTenantProfile(
         ${col('slogan')} = ${p.slogan}, ${col('master_name')} = ${p.masterName},
         ${col('logo_url')} = ${p.logoUrl}, ${col('bg_image_url')} = ${p.bgImageUrl}
         WHERE ${col('slug')} = ${slug}`,
-  );
-}
-
-export async function updateTenantFixedTeams(d1: D1Database, slug: string, flag: number): Promise<void> {
-  const db = createDb(d1);
-  await db.run(
-    sql`UPDATE ${tenants} SET ${col('feature_fixed_teams')} = ${flag} WHERE ${col('slug')} = ${slug}`,
   );
 }
 

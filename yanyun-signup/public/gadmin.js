@@ -49,7 +49,6 @@ async function boot() {
   await loadProfile();
   await loadAvatar();
   await loadEvents();
-  await loadTeams();
 }
 
 /* ---- 百业头像 (直传: 前端裁方/缩放/压到 ≤400KB, 服务端复验类型与大小) ---- */
@@ -125,19 +124,7 @@ async function loadProfile() {
     f.discord_webhook.value = d.discord_webhook || '';
     f.discord_guild_id.value = d.discord_guild_id || '';
   } catch {}
-  try {
-    const s = await api(PUB + '/settings');
-    $('#featTeams').checked = !!s.feature_fixed_teams;
-  } catch {}
 }
-
-$('#featTeams').onchange = async (e) => {
-  try {
-    await api(API + '/features', { method: 'PUT',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ feature_fixed_teams: e.target.checked }) });
-  } catch (err) { alert(err.message); e.target.checked = !e.target.checked; }
-};
 
 $('#settingsForm').onsubmit = async (e) => {
   e.preventDefault();
@@ -282,78 +269,3 @@ async function loadResults() {
 
 if (token) { $('#loginBox').style.display = 'none'; $('#dash').style.display = 'block'; boot().catch(() => logout()); }
 
-/* ---- 固定队管理 ---- */
-async function loadTeams() {
-  const { teams } = await api(PUB + '/fixed-teams');
-  const box = $('#teamList');
-  if (!teams.length) { box.innerHTML = '<div class="empty">暂无固定队</div>'; return; }
-  box.innerHTML = teams.map((t) => `
-    <div class="ev-row" style="display:block">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div><div class="t">${esc(t.name)}</div>
-        <div class="m">${esc(t.description || '')} · ${(t.members || []).length}人</div></div>
-        <div style="display:flex;gap:6px">
-          <button class="ghost" data-act="addm" data-id="${t.id}">+ 队员</button>
-          <button class="ghost" data-act="edit" data-id="${t.id}">✏️</button>
-          <button class="danger" data-act="del" data-id="${t.id}">删除</button>
-        </div>
-      </div>
-      <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px">
-        ${(t.members || []).map((m) => `
-          <span class="seat filled" style="min-width:0;padding:6px 10px">
-            <span class="sn">${esc(m.nickname)}</span>
-            <span class="sr">${esc(m.weapon || '')}${m.role ? '·' + esc(m.role) : ''}</span>
-            <button class="ghost" style="padding:2px 6px;margin-left:4px" data-act="delm" data-id="${m.id}" title="删除">×</button>
-          </span>
-        `).join('')}
-      </div>
-    </div>
-  `).join('');
-  box.querySelectorAll('button').forEach((b) => {
-    const id = parseInt(b.dataset.id, 10);
-    if (b.dataset.act === 'del') b.onclick = async () => {
-      if (!confirm('删除该固定队?')) return;
-      await api(API + '/fixed-teams/' + id, { method: 'DELETE' });
-      loadTeams();
-    };
-    if (b.dataset.act === 'edit') b.onclick = async () => {
-      const t = teams.find((x) => x.id === id);
-      const name = prompt('队伍名', t.name);
-      if (name === null) return;
-      const desc = prompt('队伍描述', t.description || '');
-      if (desc === null) return;
-      await api(API + '/fixed-teams/' + id, { method: 'PUT',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ name, description: desc }) });
-      loadTeams();
-    };
-    if (b.dataset.act === 'addm') b.onclick = async () => {
-      const nickname = prompt('游戏昵称');
-      if (!nickname) return;
-      const weapon = prompt('流派 (如 破竹·鸢，奶妈填 牵丝·霖)', '');
-      if (weapon === null) return;
-      const note = prompt('备注 (可选)', '') || '';
-      try {
-        await api(API + '/fixed-teams/' + id + '/members', { method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ nickname, weapon, note }) });
-        loadTeams();
-      } catch (e) { alert(e.message); }
-    };
-    if (b.dataset.act === 'delm') b.onclick = async () => {
-      if (!confirm('删除该队员?')) return;
-      await api(API + '/fixed-teams/members/' + id, { method: 'DELETE' });
-      loadTeams();
-    };
-  });
-}
-
-$('#newTeamBtn').onclick = async () => {
-  const name = prompt('固定队名称 (如 周六固定团)');
-  if (!name) return;
-  const description = prompt('描述 (如 每周六晚8点 双十)', '') || '';
-  const { id } = await api(API + '/fixed-teams', { method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ name, description }) });
-  loadTeams();
-};
