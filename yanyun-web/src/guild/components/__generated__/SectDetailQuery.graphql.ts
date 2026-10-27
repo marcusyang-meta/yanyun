@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<bf393c4ec64c9ae3942b61dcb8f3fdbe>>
+ * @generated SignedSource<<394c00a06e0aaa8cc4cca6b53a43ba44>>
  * @lightSyntaxTransform
  */
 
@@ -27,6 +27,10 @@ export type SectDetailQuery$data = {
     readonly sectBisMainWeaponLabel: string;
     readonly sectBisOffWeaponLabel: string;
     readonly sectEmptyText: string;
+    readonly sectGroups: ReadonlyArray<{
+      readonly key: string;
+      readonly label: string;
+    }>;
     readonly sectNoBisText: string;
     readonly sectNoRatesText: string;
     readonly sectNoRotationText: string;
@@ -72,6 +76,7 @@ export type SectDetailQuery$data = {
         }>;
         readonly totalBars: number;
       }>;
+      readonly groupKey: string;
       readonly name: string;
       readonly rateTargets: {
         readonly accuracy: string | null | undefined;
@@ -102,17 +107,24 @@ var v0 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "name",
+  "name": "label",
   "storageKey": null
 },
 v1 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
+  "name": "name",
+  "storageKey": null
+},
+v2 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
   "name": "note",
   "storageKey": null
 },
-v2 = [
+v3 = [
   {
     "alias": null,
     "args": null,
@@ -362,6 +374,25 @@ v2 = [
       {
         "alias": null,
         "args": null,
+        "concreteType": "SectGroup",
+        "kind": "LinkedField",
+        "name": "sectGroups",
+        "plural": true,
+        "selections": [
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "key",
+            "storageKey": null
+          },
+          (v0/*:: as any*/)
+        ],
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
         "concreteType": "Sect",
         "kind": "LinkedField",
         "name": "sects",
@@ -374,7 +405,14 @@ v2 = [
             "name": "slug",
             "storageKey": null
           },
-          (v0/*:: as any*/),
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "groupKey",
+            "storageKey": null
+          },
+          (v1/*:: as any*/),
           {
             "alias": null,
             "args": null,
@@ -517,7 +555,7 @@ v2 = [
                 "name": "critDamage",
                 "storageKey": null
               },
-              (v1/*:: as any*/)
+              (v2/*:: as any*/)
             ],
             "storageKey": null
           },
@@ -529,7 +567,7 @@ v2 = [
             "name": "gradBuilds",
             "plural": true,
             "selections": [
-              (v0/*:: as any*/),
+              (v1/*:: as any*/),
               {
                 "alias": null,
                 "args": null,
@@ -558,7 +596,7 @@ v2 = [
                 "name": "recipe",
                 "storageKey": null
               },
-              (v1/*:: as any*/),
+              (v2/*:: as any*/),
               {
                 "alias": null,
                 "args": null,
@@ -581,13 +619,7 @@ v2 = [
                 "name": "targets",
                 "plural": true,
                 "selections": [
-                  {
-                    "alias": null,
-                    "args": null,
-                    "kind": "ScalarField",
-                    "name": "label",
-                    "storageKey": null
-                  },
+                  (v0/*:: as any*/),
                   {
                     "alias": null,
                     "args": null,
@@ -642,7 +674,7 @@ return {
     "kind": "Fragment",
     "metadata": null,
     "name": "SectDetailQuery",
-    "selections": (v2/*:: as any*/),
+    "selections": (v3/*:: as any*/),
     "type": "Query",
     "abstractKey": null
   },
@@ -651,19 +683,19 @@ return {
     "argumentDefinitions": [],
     "kind": "Operation",
     "name": "SectDetailQuery",
-    "selections": (v2/*:: as any*/)
+    "selections": (v3/*:: as any*/)
   },
   "params": {
-    "cacheID": "5016db5b9f11f48a8807a90b2ad3dc11",
+    "cacheID": "c1bb033b93875b667578a1e7880e006c",
     "id": null,
     "metadata": {},
     "name": "SectDetailQuery",
     "operationKind": "query",
-    "text": "query SectDetailQuery {\n  sectPage {\n    sectEmptyText\n    sectBackLabel\n    sectTabBisLabel\n    sectTabRotationLabel\n    sectTabRatesLabel\n    sectTabTiaolvLabel\n    sectTabGradLabel\n    sectNoBisText\n    sectNoRotationText\n    sectNoRatesText\n    sectRotGreydustLabel\n    sectRotOpenerLabel\n    sectRotLoopLabel\n    sectRotKeyPointsLabel\n    sectRotInnerSkillsLabel\n    sectRotVideoLabel\n    sectRateAccuracyLabel\n    sectRateCritLabel\n    sectRateCritDamageLabel\n    sectBisMainWeaponLabel\n    sectBisOffWeaponLabel\n    sectBisAccessoriesLabel\n    sectBisHeadBodyLabel\n    sectBisLegsWristsLabel\n    sectTabAffixLabel\n    sectAffixEmptyText\n    sectAffixSetLabel\n    sectAffixBowLabel\n    sectAffixDingyinLabel\n    sectAffixColAffixLabel\n    sectAffixColCountLabel\n    sectAffixColMaxLabel\n    sectAffixColCyLabel\n    sectAffixSourceText\n    sects {\n      slug\n      name\n      weapons\n      buildType\n      bis {\n        mainWeapon\n        offWeapon\n        accessories\n        headBody\n        legsWrists\n      }\n      rotation {\n        greydust\n        opener\n        loop\n        keyPoints\n        innerSkills\n        videoUrl\n      }\n      rateTargets {\n        accuracy\n        crit\n        critDamage\n        note\n      }\n      gradBuilds {\n        name\n        cat\n        setName\n        bowLabel\n        recipe\n        note\n        dingyinName\n        totalBars\n        targets {\n          label\n          count\n          maxValue\n          cyValue\n          unit\n          flexLabels\n        }\n      }\n    }\n  }\n}\n"
+    "text": "query SectDetailQuery {\n  sectPage {\n    sectEmptyText\n    sectBackLabel\n    sectTabBisLabel\n    sectTabRotationLabel\n    sectTabRatesLabel\n    sectTabTiaolvLabel\n    sectTabGradLabel\n    sectNoBisText\n    sectNoRotationText\n    sectNoRatesText\n    sectRotGreydustLabel\n    sectRotOpenerLabel\n    sectRotLoopLabel\n    sectRotKeyPointsLabel\n    sectRotInnerSkillsLabel\n    sectRotVideoLabel\n    sectRateAccuracyLabel\n    sectRateCritLabel\n    sectRateCritDamageLabel\n    sectBisMainWeaponLabel\n    sectBisOffWeaponLabel\n    sectBisAccessoriesLabel\n    sectBisHeadBodyLabel\n    sectBisLegsWristsLabel\n    sectTabAffixLabel\n    sectAffixEmptyText\n    sectAffixSetLabel\n    sectAffixBowLabel\n    sectAffixDingyinLabel\n    sectAffixColAffixLabel\n    sectAffixColCountLabel\n    sectAffixColMaxLabel\n    sectAffixColCyLabel\n    sectAffixSourceText\n    sectGroups {\n      key\n      label\n    }\n    sects {\n      slug\n      groupKey\n      name\n      weapons\n      buildType\n      bis {\n        mainWeapon\n        offWeapon\n        accessories\n        headBody\n        legsWrists\n      }\n      rotation {\n        greydust\n        opener\n        loop\n        keyPoints\n        innerSkills\n        videoUrl\n      }\n      rateTargets {\n        accuracy\n        crit\n        critDamage\n        note\n      }\n      gradBuilds {\n        name\n        cat\n        setName\n        bowLabel\n        recipe\n        note\n        dingyinName\n        totalBars\n        targets {\n          label\n          count\n          maxValue\n          cyValue\n          unit\n          flexLabels\n        }\n      }\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "9694e8c046736ae93d3b84e7e7865db4";
+(node as any).hash = "03c98ec1f067557947ec0a1c9f080dd0";
 
 export default node;

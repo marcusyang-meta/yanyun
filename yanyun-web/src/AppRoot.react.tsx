@@ -49,6 +49,7 @@ const AppViewerQueryNode = graphql`
       siteTitle
       siteSubtitle
       siteHeroAlt
+      siteSealText
       loginCardTitle
       loginCardBody1
       loginCardBody2
@@ -116,7 +117,7 @@ export default function AppRoot({ queries }: {
   }, [hostSlug, location.pathname, location.search, navigate]);
   const user: ViewerUser | null = viewer.user ?? null;
 
-  const siteText = { title: viewer.siteTitle, subtitle: viewer.siteSubtitle, heroAlt: viewer.siteHeroAlt };
+  const siteText = { title: viewer.siteTitle, subtitle: viewer.siteSubtitle, heroAlt: viewer.siteHeroAlt, sealText: viewer.siteSealText };
   const loginText = {
     cardTitle: viewer.loginCardTitle, cardBody1: viewer.loginCardBody1, cardBody2: viewer.loginCardBody2,
     buttonLabel: viewer.loginButtonLabel, privacyText: viewer.loginPrivacyText,

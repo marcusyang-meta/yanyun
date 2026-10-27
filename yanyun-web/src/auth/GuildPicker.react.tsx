@@ -63,7 +63,7 @@ export default function GuildPicker({
           }}
         />
       ) : (
-        <span className="yy-seal" style={{ width: 48, height: 48, fontSize: 24 }}>燕</span>
+        <span className="yy-seal" style={{ width: 48, height: 48, fontSize: 24 }}>{site.sealText}</span>
       )}
       <span style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 18, color: theme.goldHi, fontWeight: 600 }}>

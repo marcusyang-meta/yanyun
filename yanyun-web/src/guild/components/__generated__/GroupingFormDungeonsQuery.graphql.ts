@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<dfdc645e2dc988fcfe650d241be40b9b>>
+ * @generated SignedSource<<2dc38942d56a814000926e98292e1185>>
  * @lightSyntaxTransform
  */
 
@@ -16,6 +16,10 @@ export type GroupingFormDungeonsQuery$data = {
       readonly name: string;
       readonly size: number;
     }>;
+    readonly sectOptions: ReadonlyArray<{
+      readonly name: string;
+      readonly slug: string;
+    }>;
   };
 };
 export type GroupingFormDungeonsQuery = {
@@ -24,7 +28,14 @@ export type GroupingFormDungeonsQuery = {
 };
 
 const node: ConcreteRequest = (function(){
-var v0 = [
+var v0 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "name",
+  "storageKey": null
+},
+v1 = [
   {
     "alias": null,
     "args": null,
@@ -33,6 +44,25 @@ var v0 = [
     "name": "dexPage",
     "plural": false,
     "selections": [
+      {
+        "alias": null,
+        "args": null,
+        "concreteType": "SectOption",
+        "kind": "LinkedField",
+        "name": "sectOptions",
+        "plural": true,
+        "selections": [
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "slug",
+            "storageKey": null
+          },
+          (v0/*:: as any*/)
+        ],
+        "storageKey": null
+      },
       {
         "alias": null,
         "args": null,
@@ -48,13 +78,7 @@ var v0 = [
             "name": "id",
             "storageKey": null
           },
-          {
-            "alias": null,
-            "args": null,
-            "kind": "ScalarField",
-            "name": "name",
-            "storageKey": null
-          },
+          (v0/*:: as any*/),
           {
             "alias": null,
             "args": null,
@@ -75,7 +99,7 @@ return {
     "kind": "Fragment",
     "metadata": null,
     "name": "GroupingFormDungeonsQuery",
-    "selections": (v0/*:: as any*/),
+    "selections": (v1/*:: as any*/),
     "type": "Query",
     "abstractKey": null
   },
@@ -84,19 +108,19 @@ return {
     "argumentDefinitions": [],
     "kind": "Operation",
     "name": "GroupingFormDungeonsQuery",
-    "selections": (v0/*:: as any*/)
+    "selections": (v1/*:: as any*/)
   },
   "params": {
-    "cacheID": "1946a49de5cc140792faa0d2ac4cecb0",
+    "cacheID": "4cdaa67c5a7a3f8ccbc10c196fdb8c46",
     "id": null,
     "metadata": {},
     "name": "GroupingFormDungeonsQuery",
     "operationKind": "query",
-    "text": "query GroupingFormDungeonsQuery {\n  dexPage {\n    current {\n      id\n      name\n      size\n    }\n  }\n}\n"
+    "text": "query GroupingFormDungeonsQuery {\n  dexPage {\n    sectOptions {\n      slug\n      name\n    }\n    current {\n      id\n      name\n      size\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "a5bed3fd0844c834d1f5780fe9a93591";
+(node as any).hash = "6c2f56557b182e742c0e1b0118ec8b78";
 
 export default node;

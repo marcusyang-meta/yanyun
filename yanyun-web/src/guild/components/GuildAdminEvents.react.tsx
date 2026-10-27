@@ -59,12 +59,13 @@ function fromLocalInput(v: string): number | null {
   const ms = new Date(v).getTime();
   return isNaN(ms) ? null : Math.floor(ms / 1000);
 }
-function downloadCsv(title: string, csv: string) {
+function downloadCsv(title: string, suffix: string, csv: string) {
   const blob = new Blob([csv], { type: 'text/csv; charset=utf-8' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  // Same filename the retired REST export.csv served.
-  a.download = `${title || 'event'}_报名表.csv`;
+  // Same filename the retired REST export.csv served; the suffix copy
+  // is delivered by the backend (adminSignupCsvSuffix).
+  a.download = `${title || 'event'}_${suffix}.csv`;
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 4000);
 }
@@ -168,7 +169,7 @@ function EventCard({ slug, text, commonText, ev, refresh }: {
         {!!ev.startsAtText && <span style={{ fontSize: 12, color: theme.muted }}>{ev.startsAtText}</span>}
         <span style={{ fontSize: 12, color: theme.muted }}>{ev.signupCount}/{ev.maxSlots}</span>
         <span style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
-          <button type="button" onClick={() => downloadCsv(ev.title, ev.signupsCsv)}
+          <button type="button" onClick={() => downloadCsv(ev.title, text.adminSignupCsvSuffix, ev.signupsCsv)}
             style={{ padding: '4px 12px', borderRadius: 8, border: '1px solid rgba(201,163,92,.35)', background: 'transparent', color: theme.muted, fontSize: 12, cursor: 'pointer' }}>
             {text.adminExportCsvLabel}
           </button>

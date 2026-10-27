@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { theme, fill } from '../../lib/format.ts';
-import type { GearItem } from './gearStore.ts';
+import type { GearItem, GearVocabRules } from './gearStore.ts';
 import {
   defaultOcrEngine, gearContentKey,
   type OcrEngine, type OcrMaps, type OcrParsed, type PanelBox,
@@ -60,9 +60,9 @@ function objectUrl(f: Blob): string {
   try { return URL.createObjectURL(f); } catch { return ''; }
 }
 
-function normSlot(s: string): string {
-  if (s === '主武器' || s === '副武器') return '武器';
-  return s || '武器';
+function normSlot(s: string, rules: GearVocabRules): string {
+  if (rules.weaponPositions.includes(s)) return rules.weaponSlot;
+  return s || rules.weaponSlot;
 }
 
 function validLines(r: BatchRow): Array<{ key: string; val: number }> {
@@ -71,11 +71,12 @@ function validLines(r: BatchRow): Array<{ key: string; val: number }> {
     .map((x) => ({ key: x.key, val: parseFloat(x.val) }));
 }
 
-function rowKey(r: BatchRow): string {
+function rowKey(r: BatchRow, rules: GearVocabRules): string {
   return gearContentKey(
     r.slot,
     validLines(r),
     r.dyName ? { name: r.dyName, val: parseFloat(r.dyVal) || 0 } : null,
+    rules,
   );
 }
 
@@ -179,6 +180,7 @@ export default function GearOcrBatch(props: {
   ) => void;
 }) {
   const t = props.t;
+  const rules = props.maps.rules;
   const engine = props.engine ?? defaultOcrEngine;
   const [rows, setRows] = useState<BatchRow[]>([]);
   const [importing, setImporting] = useState(false);
@@ -189,8 +191,8 @@ export default function GearOcrBatch(props: {
   const pumpingRef = useRef(false);
 
   const libKeys = useMemo(
-    () => new Set(props.items.map((g) => gearContentKey(g.slot, g.lines, g.dingyin))),
-    [props.items],
+    () => new Set(props.items.map((g) => gearContentKey(g.slot, g.lines, g.dingyin, props.maps.rules))),
+    [props.items, props.maps],
   );
 
   const applyParsed = (id: number, parsed: OcrParsed, box: PanelBox | null, imgW: number, imgH: number) => {
@@ -200,7 +202,7 @@ export default function GearOcrBatch(props: {
       if (!lineRows.length) lineRows.push({ key: '', val: '' });
       return {
         ...r, status: 'ready', box, imgW, imgH,
-        slot: normSlot(parsed.slot), name: parsed.name || '',
+        slot: normSlot(parsed.slot, rules), name: parsed.name || '',
         rows: lineRows,
         dyName: parsed.dingyin ? parsed.dingyin.name : '',
         dyVal: parsed.dingyin ? String(parsed.dingyin.val) : '',
@@ -240,7 +242,7 @@ export default function GearOcrBatch(props: {
     const fresh: BatchRow[] = imgs.map((f) => ({
       id: idRef.current++, file: f, url: objectUrl(f),
       status: 'queued' as RowStatus, box: null, imgW: 0, imgH: 0,
-      slot: '武器', name: '', rows: [], dyName: '', dyVal: '', schools: [], unknowns: [],
+      slot: rules.weaponSlot, name: '', rows: [], dyName: '', dyVal: '', schools: [], unknowns: [],
       include: true, dupOverride: false, expanded: false,
     }));
     setRows((prev) => [...prev, ...fresh]);
@@ -283,11 +285,11 @@ export default function GearOcrBatch(props: {
   // then first-wins among rows); editing any row refreshes it immediately
   const dupOf = (r: BatchRow, idx: number): 'lib' | 'row' | null => {
     if (r.status !== 'ready') return null;
-    const k = rowKey(r);
+    const k = rowKey(r, rules);
     if (libKeys.has(k)) return 'lib';
     for (let j = 0; j < idx; j++) {
       const o = rows[j];
-      if (o.status === 'ready' && rowKey(o) === k) return 'row';
+      if (o.status === 'ready' && rowKey(o, rules) === k) return 'row';
     }
     return null;
   };
@@ -306,7 +308,7 @@ export default function GearOcrBatch(props: {
       slot: r.slot, name: r.name.trim(),
       lines: validLines(r),
       dingyin: r.dyName ? { name: r.dyName, val: parseFloat(r.dyVal) || 0 } : null,
-      schools: r.slot === '武器' ? r.schools : [],
+      schools: r.slot === rules.weaponSlot ? r.schools : [],
     }));
     setImporting(true);
     props.onImport(list, (added) => {
@@ -406,7 +408,7 @@ export default function GearOcrBatch(props: {
                     <label><span style={{ display: 'block', color: theme.muted, fontSize: 11, marginBottom: 3 }}>{t.gearDyNameLabel}</span>
                       <select style={sel} value={r.dyName} onChange={(e) => patch(r.id, { dyName: e.target.value })}>
                         <option value="">—</option>
-                        {(r.slot === '武器' ? t.gearWuxueNames : t.gearDingyinLeft.map((d) => d.name)).map((n) => (
+                        {(r.slot === rules.weaponSlot ? t.gearWuxueNames : t.gearDingyinLeft.map((d) => d.name)).map((n) => (
                           <option key={n} value={n}>{n}</option>
                         ))}
                       </select></label>
@@ -431,7 +433,7 @@ export default function GearOcrBatch(props: {
                   {lines.length === 0 && (
                     <div style={{ color: theme.seal, fontSize: 12, marginTop: 6 }}>{t.gearOcrBatchNoLinesText}</div>
                   )}
-                  {r.slot === '武器' && (
+                  {r.slot === rules.weaponSlot && (
                     <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 7, alignItems: 'center' }}>
                       <span style={{ color: theme.muted, fontSize: 11.5 }}>{t.gearSchoolsLabel}</span>
                       {t.gearSchoolTags.map((tag) => {

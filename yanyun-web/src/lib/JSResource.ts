@@ -44,10 +44,10 @@ function findLoader(name: string): Loader {
   for (const [path, loader] of Object.entries(operationModules)) {
     if (basename(path) === `${name}.ts`) return loader;
   }
-  throw new Error(
-    `JSResource: no module registered for '${name}'. ` +
-      'Components must be *.react.tsx under src/, normalization artifacts under src/**/__generated__/.',
-  );
+  // Developer-facing invariant, kept copy-free on purpose (the
+  // zero-display-string rule covers source literals too): the error
+  // carries the module name and a stable code only.
+  throw new Error(`JSResource:unregistered:${name}`);
 }
 
 export class JSResourceReference {

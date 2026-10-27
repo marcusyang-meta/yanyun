@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<e4f0ae68ff78ef789a1d5852cdb7dac6>>
+ * @generated SignedSource<<1d12e609b4d5f788a2fc836bf1dc1554>>
  * @lightSyntaxTransform
  */
 
@@ -56,6 +56,7 @@ export type AppViewerQuery$data = {
       readonly slug: string;
     }>;
     readonly siteHeroAlt: string;
+    readonly siteSealText: string;
     readonly siteSubtitle: string;
     readonly siteTitle: string;
     readonly user: {
@@ -193,6 +194,13 @@ v2 = [
         "args": null,
         "kind": "ScalarField",
         "name": "siteHeroAlt",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "siteSealText",
         "storageKey": null
       },
       {
@@ -434,16 +442,16 @@ return {
     "selections": (v2/*:: as any*/)
   },
   "params": {
-    "cacheID": "8d16ff7ef9e5858fe441a2ca1adbd2bb",
+    "cacheID": "eadc6ea2d988d7bd094e749beedab7da",
     "id": null,
     "metadata": {},
     "name": "AppViewerQuery",
     "operationKind": "query",
-    "text": "query AppViewerQuery {\n  viewer {\n    user {\n      discordId\n      name\n      avatar\n    }\n    guilds {\n      slug\n      name\n      slogan\n      gameVersion\n      memberCount\n      avatarUrl\n    }\n    publicGuilds {\n      slug\n      name\n      slogan\n      gameVersion\n      memberCount\n      avatarUrl\n    }\n    siteTitle\n    siteSubtitle\n    siteHeroAlt\n    loginCardTitle\n    loginCardBody1\n    loginCardBody2\n    loginButtonLabel\n    loginPrivacyText\n    landingFeaturesTitle\n    landingGroupingTitle\n    landingGroupingBody\n    landingReminderTitle\n    landingReminderBody\n    landingDexTitle\n    landingDexBody\n    landingGearTitle\n    landingGearBody\n    footerDisclaimerText\n    footerTermsLabel\n    footerPrivacyLabel\n    userBarLogoutLabel\n    userBarLoggingOutLabel\n    userBarSettingsLabel\n    myLocalePref\n    myEffectiveLocale\n    pickerMyGuildsLabel\n    pickerMyGuildsEnLabel\n    pickerPublicGuildsLabel\n    pickerPublicGuildsEnLabel\n    pickerReadOnlyBadge\n    pickerEmptyTitle\n    pickerEmptyBody\n    pickerCreateGuildLabel\n    pickerCreateGuildMoreLabel\n  }\n}\n"
+    "text": "query AppViewerQuery {\n  viewer {\n    user {\n      discordId\n      name\n      avatar\n    }\n    guilds {\n      slug\n      name\n      slogan\n      gameVersion\n      memberCount\n      avatarUrl\n    }\n    publicGuilds {\n      slug\n      name\n      slogan\n      gameVersion\n      memberCount\n      avatarUrl\n    }\n    siteTitle\n    siteSubtitle\n    siteHeroAlt\n    siteSealText\n    loginCardTitle\n    loginCardBody1\n    loginCardBody2\n    loginButtonLabel\n    loginPrivacyText\n    landingFeaturesTitle\n    landingGroupingTitle\n    landingGroupingBody\n    landingReminderTitle\n    landingReminderBody\n    landingDexTitle\n    landingDexBody\n    landingGearTitle\n    landingGearBody\n    footerDisclaimerText\n    footerTermsLabel\n    footerPrivacyLabel\n    userBarLogoutLabel\n    userBarLoggingOutLabel\n    userBarSettingsLabel\n    myLocalePref\n    myEffectiveLocale\n    pickerMyGuildsLabel\n    pickerMyGuildsEnLabel\n    pickerPublicGuildsLabel\n    pickerPublicGuildsEnLabel\n    pickerReadOnlyBadge\n    pickerEmptyTitle\n    pickerEmptyBody\n    pickerCreateGuildLabel\n    pickerCreateGuildMoreLabel\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "eaa074f06d57352bed46aea47fdb0189";
+(node as any).hash = "37f606984f78d93fd04455ce0c08b343";
 
 export default node;

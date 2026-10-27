@@ -64,6 +64,8 @@ const GradCalcTextQueryNode = graphql`
       gradToastOldSchemeText
       gradConfirmLabel
       gradCancelLabel
+      gradSlots { id label icon }
+      gradRates { key label cap }
     }
   }
 `;
@@ -128,31 +130,17 @@ type SavedBuild = {
   rates?: Rates;
 };
 
-// 8 slots (order and icons follow the legacy UI; slot names must match the server's slot_affix table)
-const SLOTS = [
-  { name: '主武器', icon: '⚔' },
-  { name: '副武器', icon: '🗡' },
-  { name: '冠胄', icon: '👑' },
-  { name: '胸甲', icon: '🥋' },
-  { name: '胫甲', icon: '🦵' },
-  { name: '腕甲', icon: '🧤' },
-  { name: '环', icon: '💍' },
-  { name: '佩', icon: '📿' },
-];
-// The 6th row's label is a tuning-domain term (game-data caliber, like the
-// attribute row labels in TUNE_ROWS) — data, not UI copy;
-const ROW_LABEL_LAST = '定音';
+// Slots and rate rows are delivered by the backend (gradSlots /
+// gradRates on GradPage — the single vocabulary source): the client
+// keys slot state by the stable slot id and sends ids to
+// calcGraduation, which echoes them back verbatim.
 // tier names are UI copy, delivered by the backend gradTier1..6 fields (only the threshold order lives here)
 const TIER_MIN = [90, 75, 60, 40, 20, 0];
-const RATE_CAPS: { key: keyof Rates; label: string; cap: number }[] = [
-  { key: 'precision', label: '精准', cap: 100 },
-  { key: 'crit', label: '会心', cap: 80 },
-  { key: 'affinity', label: '会意', cap: 40 },
-];
 
 const emptyRows = (): AffixRow[] =>
   Array.from({ length: 6 }, () => ({ key: '', value: '', res: false }));
-const emptySlots = (): AffixRow[][] => SLOTS.map(() => emptyRows());
+const emptySlots = (count: number): AffixRow[][] =>
+  Array.from({ length: count }, () => emptyRows());
 
 export default function GradCalc({ sectSlug, sectName }: { sectSlug: string; sectName?: string }) {
   // Mingjin is the big-external affinity build — always big-external, no small-external switch
@@ -249,15 +237,23 @@ function GradCalcMain({
     affixes.forEach((a) => { m[a.key] = a.name; });
     return m;
   }, [affixes]);
+  // Delivered slot/rate tables (labels are display-only; ids/keys are
+  // the state and wire keys).
+  const slots: ReadonlyArray<{ id: string; label: string; icon: string }> = text.gradSlots ?? [];
+  const rateRows: ReadonlyArray<{ key: string; label: string; cap: number }> = text.gradRates ?? [];
   const slotAffixMap = useMemo(() => {
+    // slotAffixList arrives keyed by canonical slot name; re-key it to
+    // the delivered slot ids via the gradSlots label mapping.
+    const idOfLabel = new Map(slots.map((s) => [s.label, s.id]));
     const m: Record<string, string[]> = {};
     slotResp.slotAffixList.forEach((sa) => {
-      (m[sa.slot] = m[sa.slot] || []).push(sa.affixKey);
+      const id = idOfLabel.get(sa.slot) ?? sa.slot;
+      (m[id] = m[id] || []).push(sa.affixKey);
     });
     return m;
-  }, [slotResp]);
+  }, [slotResp, slots]);
 
-  const [slotData, setSlotData] = useState<AffixRow[][]>(emptySlots);
+  const [slotData, setSlotData] = useState<AffixRow[][]>(() => emptySlots(slots.length));
   const [rates, setRates] = useState<Rates>({ precision: '', crit: '', affinity: '' });
   const [result, setResult] = useState<GradResult | null>(null);
   const [openSlot, setOpenSlot] = useState<number | null>(null);
@@ -272,15 +268,15 @@ function GradCalcMain({
   useEffect(() => {
     if (firstBuildRef.current) { firstBuildRef.current = false; return; }
     if (skipClearRef.current) { skipClearRef.current = false; return; }
-    setSlotData(emptySlots());
+    setSlotData(emptySlots(slots.length));
     setOpenSlot(null);
   }, [build]);
 
   const runCalcRef = useRef<() => void>(() => {});
   runCalcRef.current = () => {
-    const items = SLOTS.map((s, si) => ({
-      slot: s.name,
-      affixes: slotData[si]
+    const items = slots.map((s, si) => ({
+      slot: s.id,
+      affixes: (slotData[si] ?? [])
         .filter((d) => d.key && d.value !== '')
         .map((d) => ({
           key: d.key,
@@ -317,8 +313,8 @@ function GradCalcMain({
     return () => clearTimeout(t);
   }, [slotData, rates, build]);
 
-  const scoreOf = (slotName: string) =>
-    result?.items.find((i) => i.slot === slotName)?.score ?? 0;
+  const scoreOf = (slotId: string) =>
+    result?.items.find((i) => i.slot === slotId)?.score ?? 0;
   const total = result?.total ?? 0;
   const tierNames = [text.gradTier1, text.gradTier2, text.gradTier3, text.gradTier4, text.gradTier5, text.gradTier6];
   const tierIdx = TIER_MIN.findIndex((min) => total >= min);
@@ -468,12 +464,12 @@ function GradCalcMain({
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginTop: 20 }}>
-        {SLOTS.map((s, si) => {
-          const sc = scoreOf(s.name);
-          const filled = slotData[si].some((d) => d.key);
+        {slots.map((s, si) => {
+          const sc = scoreOf(s.id);
+          const filled = (slotData[si] ?? []).some((d) => d.key);
           return (
             <button
-              key={s.name}
+              key={s.id}
               onClick={() => setOpenSlot(si)}
               className="yy-card"
               style={{
@@ -490,7 +486,7 @@ function GradCalcMain({
                 pointerEvents: 'none', transition: 'height .3s',
               }} />
               <div style={{ fontSize: 30, marginBottom: 6, filter: filled ? 'none' : 'grayscale(.4)' }}>{s.icon}</div>
-              <div style={{ fontSize: 12, color: theme.muted, letterSpacing: 1 }}>{s.name}</div>
+              <div style={{ fontSize: 12, color: theme.muted, letterSpacing: 1 }}>{s.label}</div>
               <div style={{
                 position: 'absolute', bottom: 6, fontSize: 11, color: theme.gold, fontWeight: 700,
               }}>{sc > 0 ? `${sc}%` : ''}</div>
@@ -545,11 +541,11 @@ function GradCalcMain({
         </div>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
           <tbody>
-            {SLOTS.map((s) => (
-              <tr key={s.name}>
-                <td style={{ ...tdCell, color: theme.gold, whiteSpace: 'nowrap' }}>{s.name}</td>
+            {slots.map((s) => (
+              <tr key={s.id}>
+                <td style={{ ...tdCell, color: theme.gold, whiteSpace: 'nowrap' }}>{s.label}</td>
                 <td style={{ ...tdCell, fontSize: 12 }}>
-                  {(slotAffixMap[s.name] || []).map((k) => affixNameMap[k] || k).join('、')}
+                  {(slotAffixMap[s.id] || []).map((k) => affixNameMap[k] || k).join('、')}
                 </td>
               </tr>
             ))}
@@ -566,11 +562,11 @@ function GradCalcMain({
         onToggle={() => setOpenSec((p) => ({ ...p, rate: !p.rate }))}
       >
         <div style={{ display: 'flex', gap: 10, marginBottom: 6 }}>
-          {RATE_CAPS.map(({ key, label, cap }) => (
+          {rateRows.map(({ key, label, cap }) => (
             <div key={key} style={{ flex: 1 }}>
               <div style={{ fontSize: 12, color: theme.muted, marginBottom: 4 }}>{label} /{cap}</div>
               <input
-                type="number" step="0.1" min="0" value={rates[key]}
+                type="number" step="0.1" min="0" value={rates[key as keyof Rates]}
                 onChange={(e) => setRates((p) => ({ ...p, [key]: e.target.value }))}
                 className="yy-input"
                 style={{ width: '100%', textAlign: 'center', color: theme.goldHi, boxSizing: 'border-box' }}
@@ -578,8 +574,8 @@ function GradCalcMain({
             </div>
           ))}
         </div>
-        {RATE_CAPS.map(({ key, label, cap }) => {
-          const v = parseFloat(rates[key]) || 0;
+        {rateRows.map(({ key, label, cap }) => {
+          const v = parseFloat(rates[key as keyof Rates]) || 0;
           const ok = v >= cap;
           return (
             <div key={key} style={{
@@ -681,7 +677,7 @@ function GradCalcMain({
               <div style={{
                 fontFamily: "'Ma Shan Zheng',serif", fontSize: 22, color: theme.goldHi,
                 letterSpacing: 4, flex: 1,
-              }}>{SLOTS[openSlot].name}</div>
+              }}>{slots[openSlot]?.label}</div>
               <button
                 onClick={() => setOpenSlot(null)}
                 aria-label={text.gradCloseLabel}
@@ -692,10 +688,10 @@ function GradCalcMain({
               >✕</button>
             </div>
             <div style={{ textAlign: 'right', fontSize: 13, color: theme.gold, marginBottom: 12 }}>
-              {scoreOf(SLOTS[openSlot].name) > 0 ? fill(text.gradItemScoreTemplate ?? '', { score: scoreOf(SLOTS[openSlot].name) }) : ''}
+              {scoreOf(slots[openSlot]?.id ?? '') > 0 ? fill(text.gradItemScoreTemplate ?? '', { score: scoreOf(slots[openSlot]?.id ?? '') }) : ''}
             </div>
-            {slotData[openSlot].map((d, ri) => {
-              const allowed = slotAffixMap[SLOTS[openSlot].name] || [];
+            {(slotData[openSlot] ?? []).map((d, ri) => {
+              const allowed = slotAffixMap[slots[openSlot]?.id ?? ''] || [];
               const max = d.key ? affixMaxMap[d.key] : undefined;
               const v = parseFloat(d.value);
               const over = max !== undefined && !isNaN(v) && v > max;
@@ -709,7 +705,7 @@ function GradCalcMain({
                       fontSize: 12, color: theme.seal, background: 'rgba(160,44,26,.15)',
                       border: '1px solid rgba(160,44,26,.4)', borderRadius: 6,
                       padding: '3px 8px', minWidth: 52, textAlign: 'center', boxSizing: 'border-box',
-                    }}>{ri === 0 ? text.gradRowMainLabel : ri < 5 ? fill(text.gradRowSubTemplate ?? '', { n: ri }) : ROW_LABEL_LAST}</span>
+                    }}>{ri === 0 ? text.gradRowMainLabel : ri < 5 ? fill(text.gradRowSubTemplate ?? '', { n: ri }) : text.gradRowResonanceLabel}</span>
                     <select
                       value={d.key}
                       onChange={(e) => setRow(openSlot, ri, { key: e.target.value })}

@@ -5,6 +5,7 @@ export interface SiteText {
   title: string;
   subtitle: string;
   heroAlt: string;
+  sealText: string;
 }
 
 export interface LoginText {

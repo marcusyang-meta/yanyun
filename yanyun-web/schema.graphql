@@ -35,6 +35,7 @@ type Seat {
 type Dungeon {
   id: ID!
   name: String!
+  sealText: String!
   version: String!
   playerCount: Int!
   size: Int!
@@ -577,6 +578,7 @@ type GroupingManageActions {
 }
 
 type DexPage {
+  sectOptions: [SectOption!]!
   current: [Dungeon!]!
   past: [Dungeon!]!
   currentVersion: String!
@@ -640,8 +642,14 @@ type SlotAffix {
   affixKey: String!
 }
 
+type SectGroup {
+  key: String!
+  label: String!
+}
+
 type SectPage {
   sects: [Sect!]!
+  sectGroups: [SectGroup!]!
   sectEmptyText: String!
   sectBackLabel: String!
   sectTabBisLabel: String!
@@ -680,6 +688,7 @@ type SectPage {
 
 type Sect {
   slug: String!
+  groupKey: String!
   name: String!
   weapons: String!
   buildType: String!
@@ -734,10 +743,31 @@ type RateTargets {
   note: String
 }
 
+type TiaolvVocabOption {
+  id: String!
+  label: String!
+  isDefault: Boolean!
+}
+
+type TiaolvTuneRow {
+  row: Int!
+  label: String!
+}
+
+type TiaolvSectWuxue {
+  sectSlug: String!
+  wuxue: String!
+}
+
 type TiaolvPage {
   sects: [SectOption!]!
   innerSkills: [String!]!
   suits: [String!]!
+  tlSuitOptions: [TiaolvVocabOption!]!
+  tlBowOptions: [TiaolvVocabOption!]!
+  tlWukuOptions: [TiaolvVocabOption!]!
+  tlTuneRows: [TiaolvTuneRow!]!
+  tlSectWuxue: [TiaolvSectWuxue!]!
   maxValues: TiaolvMaxValues!
   sectWeights: [SectWeight!]!
   tlIntroText: String!
@@ -858,7 +888,35 @@ type PushTokenPayload {
   errorCode: String
 }
 
+type GradSlot {
+  id: String!
+  label: String!
+  icon: String!
+}
+
+type GradRate {
+  key: String!
+  label: String!
+  cap: Float!
+}
+
+type GearOcrFallback {
+  needle: String!
+  name: String!
+}
+
+type GearVocabRules {
+  weaponSlot: String!
+  weaponPositions: [String!]!
+  ocrStripPrefixes: [String!]!
+  ocrDingyinMarker: String!
+  ocrDingyinFallbacks: [GearOcrFallback!]!
+}
+
 type GradPage {
+  gradSlots: [GradSlot!]!
+  gradRates: [GradRate!]!
+  gearVocabRules: GearVocabRules!
   gradEnteringText: String!
   gradTitle: String!
   gradSubtitle: String!
@@ -996,6 +1054,8 @@ type GradPage {
   gearScoreTemplate: String!
   gearQualityLabel: String!
   gearExportLabel: String!
+  gearExportFileName: String!
+  gearImportNameTemplate: String!
   gearImportLabel: String!
   gearImportFailedToast: String!
   gearImportedToastTemplate: String!
@@ -1435,6 +1495,7 @@ type Viewer {
   siteTitle: String!
   siteSubtitle: String!
   siteHeroAlt: String!
+  siteSealText: String!
   loginCardTitle: String!
   loginCardBody1: String!
   loginCardBody2: String!
@@ -1585,6 +1646,7 @@ type GuildAdmin {
   adminVisibilityTitle: String!
   adminDevOnlyLabel: String!
   adminEventsTitle: String!
+  adminSignupCsvSuffix: String!
   adminEventEmptyText: String!
   adminEventTitleLabel: String!
   adminEventTypeLabel: String!

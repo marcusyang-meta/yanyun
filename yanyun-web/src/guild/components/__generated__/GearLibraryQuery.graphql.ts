@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<65986126be7cf0903d2a4ab1cc2ad8df>>
+ * @generated SignedSource<<9d5039a7ad8ebbf320cb1bd3083f052f>>
  * @lightSyntaxTransform
  */
 
@@ -60,6 +60,7 @@ export type GearLibraryQuery$data = {
     readonly gearEditLabel: string;
     readonly gearEquipLabel: string;
     readonly gearEquippedTag: string;
+    readonly gearExportFileName: string;
     readonly gearExportLabel: string;
     readonly gearFillCyLabel: string;
     readonly gearFillMaxLabel: string;
@@ -70,6 +71,7 @@ export type GearLibraryQuery$data = {
     readonly gearGradLabel: string;
     readonly gearImportFailedToast: string;
     readonly gearImportLabel: string;
+    readonly gearImportNameTemplate: string;
     readonly gearImportedToastTemplate: string;
     readonly gearLibCountTemplate: string;
     readonly gearLibEmptyText: string;
@@ -174,6 +176,16 @@ export type GearLibraryQuery$data = {
     readonly gearValuePlaceholder: string;
     readonly gearVerdictDud: string;
     readonly gearVerdictHeirloom: string;
+    readonly gearVocabRules: {
+      readonly ocrDingyinFallbacks: ReadonlyArray<{
+        readonly name: string;
+        readonly needle: string;
+      }>;
+      readonly ocrDingyinMarker: string;
+      readonly ocrStripPrefixes: ReadonlyArray<string>;
+      readonly weaponPositions: ReadonlyArray<string>;
+      readonly weaponSlot: string;
+    };
     readonly gearWuxueNames: ReadonlyArray<string>;
     readonly gearYAccLabel: string;
     readonly gearYCritLabel: string;
@@ -654,7 +666,21 @@ v10 = [
         "alias": null,
         "args": null,
         "kind": "ScalarField",
+        "name": "gearExportFileName",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
         "name": "gearImportLabel",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "gearImportNameTemplate",
         "storageKey": null
       },
       {
@@ -1385,6 +1411,64 @@ v10 = [
         "plural": true,
         "selections": (v6/*:: as any*/),
         "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "concreteType": "GearVocabRules",
+        "kind": "LinkedField",
+        "name": "gearVocabRules",
+        "plural": false,
+        "selections": [
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "weaponSlot",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "weaponPositions",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "ocrStripPrefixes",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "ocrDingyinMarker",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "concreteType": "GearOcrFallback",
+            "kind": "LinkedField",
+            "name": "ocrDingyinFallbacks",
+            "plural": true,
+            "selections": [
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "needle",
+                "storageKey": null
+              },
+              (v4/*:: as any*/)
+            ],
+            "storageKey": null
+          }
+        ],
+        "storageKey": null
       }
     ],
     "storageKey": null
@@ -1636,16 +1720,16 @@ return {
     "selections": (v10/*:: as any*/)
   },
   "params": {
-    "cacheID": "268609a7febf51b2b9148ba71b83237e",
+    "cacheID": "dd9e404dc9766dd36fd73fd98a26b218",
     "id": null,
     "metadata": {},
     "name": "GearLibraryQuery",
     "operationKind": "query",
-    "text": "query GearLibraryQuery {\n  viewer {\n    user {\n      discordId\n    }\n  }\n  gradPage {\n    gearCalcFailedText\n    gearLibTitle\n    gearMyLibTitle\n    gearMyBuildsTitle\n    gearLoginHint\n    gearLibCountTemplate\n    gearUsageCount\n    gearUsageLimit\n    gearUsageTemplate\n    gearUsageNearLimitText\n    gearFormSlotLabel\n    gearFormNameLabel\n    gearFormNamePlaceholder\n    gearAffixPlaceholder\n    gearValuePlaceholder\n    gearRefTemplate\n    gearFillMaxLabel\n    gearFillCyLabel\n    gearDelRowLabel\n    gearAddRowLabel\n    gearDyNameLabel\n    gearDyValLabel\n    gearSchoolsLabel\n    gearAddGearLabel\n    gearUpdateGearLabel\n    gearCancelEditLabel\n    gradCancelLabel\n    gearDemoLabel\n    gearClearLibLabel\n    gearClearConfirmTitle\n    gearClearConfirmBody\n    gearEquipLabel\n    gearUnequipLabel\n    gearEditLabel\n    gearDeleteLabel\n    gearSimLabel\n    gearSimRealLabel\n    gearSimCyLabel\n    gearSimMaxLabel\n    gearVerdictHeirloom\n    gearVerdictDud\n    gearScoreTemplate\n    gearQualityLabel\n    gearExportLabel\n    gearImportLabel\n    gearImportFailedToast\n    gearImportedToastTemplate\n    gearManualTitle\n    gearPasteTitle\n    gearPastePlaceholder\n    gearPasteButtonLabel\n    gearPasteDemoLabel\n    gearPasteEmptyText\n    gearPasteOkTemplate\n    gearPasteUnknownTemplate\n    gearPasteFailText\n    gearPasteFullText\n    gearOcrTitle\n    gearOcrDropText\n    gearOcrPreparingText\n    gearOcrRunningText\n    gearOcrSecondText\n    gearOcrFailedText\n    gearOcrDoneTemplate\n    gearOcrSlotLabel\n    gearOcrNameLabel\n    gearOcrEquipLabel\n    gearOcrConfirmLabel\n    gearOcrCancelLabel\n    gearOcrUnknownTitle\n    gearOcrSavedTemplate\n    gearOcrNeedLineToast\n    gearOcrLowConfTag\n    gearOcrAddRowLabel\n    gearOcrBatchTitle\n    gearOcrBatchDropText\n    gearOcrBatchQueuedText\n    gearOcrBatchRunningText\n    gearOcrBatchReadyText\n    gearOcrBatchFailedText\n    gearOcrBatchImportedText\n    gearOcrBatchRetryLabel\n    gearOcrBatchRemoveLabel\n    gearOcrBatchAdjustLabel\n    gearOcrBatchApplyBoxLabel\n    gearOcrBatchDetectedText\n    gearOcrBatchFullImageText\n    gearOcrBatchDupTag\n    gearOcrBatchDupLibText\n    gearOcrBatchDupRowText\n    gearOcrBatchIncludeLabel\n    gearOcrBatchNoLinesText\n    gearOcrBatchImportTemplate\n    gearOcrBatchResultTemplate\n    gearLibEmptyText\n    gearEquippedTag\n    gearSchemeTitle\n    gearSchemeSaveLabel\n    gearSchemeNameTemplate\n    gearSchemeLoadLabel\n    gearSchemeDeleteLabel\n    gearSchemeEmptyText\n    gearSchemeComposeFirstText\n    gearSchemeSavedToastTemplate\n    gearSchemeLoadedToastTemplate\n    gearSchemeGroupCountTemplate\n    gearShareLabel\n    gearRevokeShareLabel\n    gearCopyLinkLabel\n    gearShareRevokedToast\n    gearCopiedToast\n    gearCopyFailedToast\n    gearSavedToastTemplate\n    gearDemoLoadedToast\n    gearDeletedToast\n    gearClearedToast\n    gearRecipeAllLabel\n    gearTargetLabel\n    gearGradLabel\n    gearYAccLabel\n    gearYCritLabel\n    gearYIntLabel\n    gearGearSlots\n    gearSchoolTags\n    gearBuilds {\n      idx\n      school\n      bowKind\n    }\n    gearBaseFields {\n      key\n      preset\n    }\n    gearAffixes {\n      key\n      label\n      max\n      cy\n    }\n    gearDingyinLeft {\n      name\n      max\n    }\n    gearDingyinRightMax\n    gearWuxueNames\n    gearDemoKit {\n      slot\n      name\n      keys\n      dingyinName\n      dingyinVal\n    }\n    gearPasteNames {\n      name\n      key\n    }\n    gearNameToClass {\n      name\n      cls\n    }\n    gearSlotAliases {\n      name\n      key\n    }\n    gearOcrAliases {\n      name\n      key\n    }\n  }\n  myGearItems {\n    id\n    slot\n    name\n    lines {\n      key\n      val\n    }\n    dingyin {\n      name\n      val\n    }\n    schools\n    warnings\n  }\n  myGearBuilds {\n    id\n    name\n    targetIdx\n    buildLabel\n    school\n    loadout {\n      slot\n      gearId\n    }\n    baseValues {\n      key\n      val\n    }\n    xinfa\n    res\n    extraAcc\n    extraCrit\n    extraInt\n    bowKind\n    gradDingyinOn\n    snapTotal\n    snapA\n    snapB\n    snapD\n    snapLoan\n    snapYAcc\n    snapYCrit\n    snapYInt\n    snapDawai\n    snapXiaowai\n    shareUrl\n  }\n}\n"
+    "text": "query GearLibraryQuery {\n  viewer {\n    user {\n      discordId\n    }\n  }\n  gradPage {\n    gearCalcFailedText\n    gearLibTitle\n    gearMyLibTitle\n    gearMyBuildsTitle\n    gearLoginHint\n    gearLibCountTemplate\n    gearUsageCount\n    gearUsageLimit\n    gearUsageTemplate\n    gearUsageNearLimitText\n    gearFormSlotLabel\n    gearFormNameLabel\n    gearFormNamePlaceholder\n    gearAffixPlaceholder\n    gearValuePlaceholder\n    gearRefTemplate\n    gearFillMaxLabel\n    gearFillCyLabel\n    gearDelRowLabel\n    gearAddRowLabel\n    gearDyNameLabel\n    gearDyValLabel\n    gearSchoolsLabel\n    gearAddGearLabel\n    gearUpdateGearLabel\n    gearCancelEditLabel\n    gradCancelLabel\n    gearDemoLabel\n    gearClearLibLabel\n    gearClearConfirmTitle\n    gearClearConfirmBody\n    gearEquipLabel\n    gearUnequipLabel\n    gearEditLabel\n    gearDeleteLabel\n    gearSimLabel\n    gearSimRealLabel\n    gearSimCyLabel\n    gearSimMaxLabel\n    gearVerdictHeirloom\n    gearVerdictDud\n    gearScoreTemplate\n    gearQualityLabel\n    gearExportLabel\n    gearExportFileName\n    gearImportLabel\n    gearImportNameTemplate\n    gearImportFailedToast\n    gearImportedToastTemplate\n    gearManualTitle\n    gearPasteTitle\n    gearPastePlaceholder\n    gearPasteButtonLabel\n    gearPasteDemoLabel\n    gearPasteEmptyText\n    gearPasteOkTemplate\n    gearPasteUnknownTemplate\n    gearPasteFailText\n    gearPasteFullText\n    gearOcrTitle\n    gearOcrDropText\n    gearOcrPreparingText\n    gearOcrRunningText\n    gearOcrSecondText\n    gearOcrFailedText\n    gearOcrDoneTemplate\n    gearOcrSlotLabel\n    gearOcrNameLabel\n    gearOcrEquipLabel\n    gearOcrConfirmLabel\n    gearOcrCancelLabel\n    gearOcrUnknownTitle\n    gearOcrSavedTemplate\n    gearOcrNeedLineToast\n    gearOcrLowConfTag\n    gearOcrAddRowLabel\n    gearOcrBatchTitle\n    gearOcrBatchDropText\n    gearOcrBatchQueuedText\n    gearOcrBatchRunningText\n    gearOcrBatchReadyText\n    gearOcrBatchFailedText\n    gearOcrBatchImportedText\n    gearOcrBatchRetryLabel\n    gearOcrBatchRemoveLabel\n    gearOcrBatchAdjustLabel\n    gearOcrBatchApplyBoxLabel\n    gearOcrBatchDetectedText\n    gearOcrBatchFullImageText\n    gearOcrBatchDupTag\n    gearOcrBatchDupLibText\n    gearOcrBatchDupRowText\n    gearOcrBatchIncludeLabel\n    gearOcrBatchNoLinesText\n    gearOcrBatchImportTemplate\n    gearOcrBatchResultTemplate\n    gearLibEmptyText\n    gearEquippedTag\n    gearSchemeTitle\n    gearSchemeSaveLabel\n    gearSchemeNameTemplate\n    gearSchemeLoadLabel\n    gearSchemeDeleteLabel\n    gearSchemeEmptyText\n    gearSchemeComposeFirstText\n    gearSchemeSavedToastTemplate\n    gearSchemeLoadedToastTemplate\n    gearSchemeGroupCountTemplate\n    gearShareLabel\n    gearRevokeShareLabel\n    gearCopyLinkLabel\n    gearShareRevokedToast\n    gearCopiedToast\n    gearCopyFailedToast\n    gearSavedToastTemplate\n    gearDemoLoadedToast\n    gearDeletedToast\n    gearClearedToast\n    gearRecipeAllLabel\n    gearTargetLabel\n    gearGradLabel\n    gearYAccLabel\n    gearYCritLabel\n    gearYIntLabel\n    gearGearSlots\n    gearSchoolTags\n    gearBuilds {\n      idx\n      school\n      bowKind\n    }\n    gearBaseFields {\n      key\n      preset\n    }\n    gearAffixes {\n      key\n      label\n      max\n      cy\n    }\n    gearDingyinLeft {\n      name\n      max\n    }\n    gearDingyinRightMax\n    gearWuxueNames\n    gearDemoKit {\n      slot\n      name\n      keys\n      dingyinName\n      dingyinVal\n    }\n    gearPasteNames {\n      name\n      key\n    }\n    gearNameToClass {\n      name\n      cls\n    }\n    gearSlotAliases {\n      name\n      key\n    }\n    gearOcrAliases {\n      name\n      key\n    }\n    gearVocabRules {\n      weaponSlot\n      weaponPositions\n      ocrStripPrefixes\n      ocrDingyinMarker\n      ocrDingyinFallbacks {\n        needle\n        name\n      }\n    }\n  }\n  myGearItems {\n    id\n    slot\n    name\n    lines {\n      key\n      val\n    }\n    dingyin {\n      name\n      val\n    }\n    schools\n    warnings\n  }\n  myGearBuilds {\n    id\n    name\n    targetIdx\n    buildLabel\n    school\n    loadout {\n      slot\n      gearId\n    }\n    baseValues {\n      key\n      val\n    }\n    xinfa\n    res\n    extraAcc\n    extraCrit\n    extraInt\n    bowKind\n    gradDingyinOn\n    snapTotal\n    snapA\n    snapB\n    snapD\n    snapLoan\n    snapYAcc\n    snapYCrit\n    snapYInt\n    snapDawai\n    snapXiaowai\n    shareUrl\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "85c96f53a903f3c3b11cae030c90fb93";
+(node as any).hash = "0880e5f4d33014ad2d5324fb168a77a7";
 
 export default node;

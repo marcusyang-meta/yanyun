@@ -5,7 +5,7 @@ import type { SeatGridJoinMutation as SeatGridJoinMutationType } from './__gener
 import type { SeatGridLeaveMutation as SeatGridLeaveMutationType } from './__generated__/SeatGridLeaveMutation.graphql';
 import type { SeatGridReadyMutation as SeatGridReadyMutationType } from './__generated__/SeatGridReadyMutation.graphql';
 import type { SeatGridRosterQuery as SeatGridRosterQueryType } from './__generated__/SeatGridRosterQuery.graphql';
-import { SECTS, theme, fill } from '../../lib/format';
+import { theme, fill } from '../../lib/format';
 import { applySeatsToGrouping } from '../../lib/groupingStore';
 import { toast, ConfirmDialog } from './Toast.react.tsx';
 
@@ -14,6 +14,14 @@ import { toast, ConfirmDialog } from './Toast.react.tsx';
 // join/leave, the updater writes them back onto the grouping record (see
 // groupingStore.applySeatsToGrouping) instead of waiting for the push echo
 // or a detail-page refetch.
+const SeatGridSectOptionsQueryNode = graphql`
+  query SeatGridSectOptionsQuery {
+    dexPage {
+      sectOptions { slug name }
+    }
+  }
+`;
+
 const SeatGridJoinMutationNode = graphql`
   mutation SeatGridJoinMutation($input: JoinGroupingInput!) {
     joinGrouping(input: $input) {
@@ -348,6 +356,13 @@ function JoinModal({ groupingId, slug, seatIndex, selfName, text, onClose, onJoi
   const rosterData = useLazyLoadQuery<SeatGridRosterQueryType>(
     SeatGridRosterQueryNode, { slug }, { fetchPolicy: 'store-or-network' },
   );
+  // Sect choices come from the backend vocabulary (canonical names —
+  // the chosen name is stored on the seat).
+  const sectData = useLazyLoadQuery(
+    SeatGridSectOptionsQueryNode, {}, { fetchPolicy: 'store-or-network' },
+  );
+  const sectOptions: ReadonlyArray<{ slug: string; name: string }> =
+    ((sectData as any)?.dexPage?.sectOptions ?? []) as ReadonlyArray<{ slug: string; name: string }>;
   const roster: RosterMember[] = ((rosterData as any)?.viewer?.guild?.memberRoster ?? []) as RosterMember[];
   const [mode, setMode] = useState<'self' | 'proxy'>('self');
   const [selected, setSelected] = useState<RosterMember | null>(null);
@@ -450,17 +465,17 @@ function JoinModal({ groupingId, slug, seatIndex, selfName, text, onClose, onJoi
 
         <div style={{ fontSize: 13, color: theme.paper, marginBottom: 6 }}>{text.seatSectLabel}</div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
-          {SECTS.map((s) => (
+          {sectOptions.map((s) => (
             <button
-              key={s}
-              onClick={() => setSect(s)}
+              key={s.slug}
+              onClick={() => setSect(s.name)}
               style={{
                 padding: '8px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 13,
                 border: `1px solid ${theme.gold}`,
-                background: sect === s ? theme.gold : 'transparent',
-                color: sect === s ? '#1a1814' : theme.paper,
+                background: sect === s.name ? theme.gold : 'transparent',
+                color: sect === s.name ? '#1a1814' : theme.paper,
               }}
-            >{s}</button>
+            >{s.name}</button>
           ))}
         </div>
         <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>

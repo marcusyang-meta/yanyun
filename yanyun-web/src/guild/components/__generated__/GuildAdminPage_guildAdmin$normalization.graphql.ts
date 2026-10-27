@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<e75ed600ce14887473bcd48f33b5018e>>
+ * @generated SignedSource<<e7211a6fa2cee5b1eee6a2e3fd64144f>>
  * @lightSyntaxTransform
  */
 
@@ -590,6 +590,13 @@ return {
       "args": null,
       "kind": "ScalarField",
       "name": "adminEventsTitle",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminSignupCsvSuffix",
       "storageKey": null
     },
     {
@@ -1434,6 +1441,6 @@ return {
 };
 })();
 
-(node as any).hash = "a9e770548be5f375b416761146277392";
+(node as any).hash = "5e22cacfbc2bda0d488f14f61143c946";
 
 export default node;

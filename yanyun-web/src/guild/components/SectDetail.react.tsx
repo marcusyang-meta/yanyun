@@ -8,10 +8,9 @@ import TiaolvTab from './TiaolvTab.react.tsx';
 import GradCalc from './GradCalc.react.tsx';
 import { GearSectRecipes } from './GearRefs.react.tsx';
 
-const MENPAI = ['鸣金', '牵丝', '裂石', '破竹'];
-
 type Sect = {
   slug: string;
+  groupKey: string;
   name: string;
   weapons: string;
   buildType: string;
@@ -93,8 +92,10 @@ const SectDetailQueryNode = graphql`
       sectAffixColMaxLabel
       sectAffixColCyLabel
       sectAffixSourceText
+      sectGroups { key label }
       sects {
         slug
+        groupKey
         name
         weapons
         buildType
@@ -148,6 +149,7 @@ function SectDetail({ queryRef }: { queryRef: PreloadedQuery<SectDetailQueryType
   const data = usePreloadedQuery<SectDetailQueryType>(SectDetailQueryNode, queryRef);
   const sects: Sect[] = ((data as SectDetailQueryType['response'])?.sectPage?.sects ?? []).map((s) => ({
     slug: s.slug,
+    groupKey: s.groupKey,
     name: s.name,
     weapons: s.weapons,
     buildType: s.buildType,
@@ -198,9 +200,13 @@ function SectDetail({ queryRef }: { queryRef: PreloadedQuery<SectDetailQueryType
     if (sect) return <SectPageView sect={sect} text={text} onBack={() => setSectSlug(null)} />;
   }
 
-  const groups = MENPAI.map((m) => ({
-    menpai: m,
-    list: sects.filter((s) => s.name.split('·')[0] === m),
+  // Family groups are delivered by the backend (key + localized label,
+  // canonical order); sects join by their delivered groupKey.
+  const sectGroups: ReadonlyArray<{ key: string; label: string }> =
+    ((data as any)?.sectPage?.sectGroups ?? []) as ReadonlyArray<{ key: string; label: string }>;
+  const groups = sectGroups.map((g) => ({
+    menpai: g.label,
+    list: sects.filter((s) => s.groupKey === g.key),
   })).filter((g) => g.list.length > 0);
 
   return (

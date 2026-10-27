@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<7527b6869aa4e8dc22a15d4960092ea3>>
+ * @generated SignedSource<<6fce2bcb21aa431497692cb9ff8b10cb>>
  * @lightSyntaxTransform
  */
 
@@ -32,6 +32,7 @@ export type BossDexQuery$data = {
         readonly level: number | null | undefined;
         readonly name: string;
         readonly playerCount: number;
+        readonly sealText: string;
       }>;
       readonly isCurrent: boolean;
       readonly season: string;
@@ -279,6 +280,13 @@ v3 = [
                 "alias": null,
                 "args": null,
                 "kind": "ScalarField",
+                "name": "sealText",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
                 "name": "playerCount",
                 "storageKey": null
               },
@@ -385,16 +393,16 @@ return {
     "selections": (v3/*:: as any*/)
   },
   "params": {
-    "cacheID": "9e5ba0d505e260c198e4690add3677e1",
+    "cacheID": "6d3d0635475eaebaf605ad0012c8c516",
     "id": null,
     "metadata": {},
     "name": "BossDexQuery",
     "operationKind": "query",
-    "text": "query BossDexQuery {\n  dexPage {\n    dexBackLabel\n    dexBossesLineTemplate\n    dexNoBossDataText\n    dexEmptyText\n    dexCurrentGuidesTemplate\n    dexCatSubTemplate\n    dexCatSubCurrentTemplate\n    dexSize10Label\n    dexSize5Label\n    dexSizeNTemplate\n    dexBossUnit\n    dexPartMechanicsLabel\n    dexPartShoutsLabel\n    dexPartTalentsLabel\n    dexLabelAllTemplate\n    dexLabelPartsTemplate\n    dexLabelPendingTemplate\n    dexLabelNoBossesText\n    dexSealBossText\n    currentVersion\n    categories {\n      category\n      season\n      seasonName\n      isCurrent\n      dungeons {\n        id\n        name\n        playerCount\n        level\n        category\n        bosses {\n          id\n          name\n          mechanics {\n            title\n          }\n          talents {\n            code\n          }\n          shouts {\n            text\n          }\n        }\n      }\n    }\n  }\n}\n"
+    "text": "query BossDexQuery {\n  dexPage {\n    dexBackLabel\n    dexBossesLineTemplate\n    dexNoBossDataText\n    dexEmptyText\n    dexCurrentGuidesTemplate\n    dexCatSubTemplate\n    dexCatSubCurrentTemplate\n    dexSize10Label\n    dexSize5Label\n    dexSizeNTemplate\n    dexBossUnit\n    dexPartMechanicsLabel\n    dexPartShoutsLabel\n    dexPartTalentsLabel\n    dexLabelAllTemplate\n    dexLabelPartsTemplate\n    dexLabelPendingTemplate\n    dexLabelNoBossesText\n    dexSealBossText\n    currentVersion\n    categories {\n      category\n      season\n      seasonName\n      isCurrent\n      dungeons {\n        id\n        name\n        sealText\n        playerCount\n        level\n        category\n        bosses {\n          id\n          name\n          mechanics {\n            title\n          }\n          talents {\n            code\n          }\n          shouts {\n            text\n          }\n        }\n      }\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "d06f221a5a63563b8aaf0f5b7e2f3045";
+(node as any).hash = "db9541e4f94bbdd13aec57b8f1e9f793";
 
 export default node;

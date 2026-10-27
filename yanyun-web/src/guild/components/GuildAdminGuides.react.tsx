@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { graphql, useMutation } from 'react-relay';
-import { theme, SECTS } from '../../lib/format';
+import { graphql, useMutation, useLazyLoadQuery } from 'react-relay';
+import { theme } from '../../lib/format';
 import {
   adminInputStyle, adminSectionStyle, adminSectionTitleStyle, Field, SaveButton,
   useAdminMutation, type AdminText, type CommonText,
@@ -13,6 +13,14 @@ import {
 const UpdateGuideMutation = graphql`
   mutation GuildAdminGuidesUpdateMutation($slug: String!, $input: UpdateSchoolGuideInput!) {
     updateSchoolGuide(slug: $slug, input: $input) { ok error }
+  }
+`;
+
+const GuidesSectOptionsQuery = graphql`
+  query GuildAdminGuidesSectOptionsQuery {
+    dexPage {
+      sectOptions { slug name }
+    }
   }
 `;
 
@@ -99,7 +107,14 @@ export default function GuildAdminGuides({ slug, text, commonText, guides, refre
 }) {
   const [commit] = useMutation(UpdateGuideMutation);
   const run = useAdminMutation(commit, 'updateSchoolGuide', refresh, commonText.unknownError);
-  const [school, setSchool] = useState(SECTS[0]);
+  // Sect choices come from the backend vocabulary (canonical names —
+  // the chosen name keys the stored guide).
+  const sectData = useLazyLoadQuery(
+    GuidesSectOptionsQuery, {}, { fetchPolicy: 'store-or-network' },
+  );
+  const sectNames: string[] = (((sectData as any)?.dexPage?.sectOptions ?? []) as Array<{ name: string }>).map((o) => o.name);
+  const [schoolPick, setSchool] = useState('');
+  const school = schoolPick || sectNames[0] || '';
   const [build, setBuild] = useState('');
   const known = new Set(guides.schools.map((g) => g.school));
   return (
@@ -113,7 +128,7 @@ export default function GuildAdminGuides({ slug, text, commonText, guides, refre
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
           <Field label={text.adminGuideSchoolLabel}>
             <select style={adminInputStyle} value={school} onChange={(e) => setSchool(e.target.value)}>
-              {SECTS.filter((s) => !known.has(s)).concat(SECTS.filter((s) => known.has(s))).map((s) => (
+              {sectNames.filter((s) => !known.has(s)).concat(sectNames.filter((s) => known.has(s))).map((s) => (
                 <option key={s} value={s}>{s}</option>
               ))}
             </select>
