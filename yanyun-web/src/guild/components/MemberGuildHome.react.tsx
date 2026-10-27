@@ -14,7 +14,8 @@ const MemberGuildHome_guild = graphql`
     gameVersion
     avatarUrl
     viewerNick
-    homeBackToHubLabel
+    pageBackLabel
+    pageFooterDisclaimerText
     homeTabTeamLabel
     homeTabDexLabel
     homeTabSectLabel

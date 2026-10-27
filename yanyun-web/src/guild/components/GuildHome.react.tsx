@@ -8,6 +8,7 @@ import { SectDetailRoute } from './SectDetail.react.tsx';
 import { ToastHost } from './Toast.react.tsx';
 import UserBar, { type UserBarText } from '../../auth/UserBar.react.tsx';
 import { theme } from '../../lib/format';
+import { useGuildFooter } from '../../lib/guildChrome';
 
 
 function TabFallback() {
@@ -27,8 +28,13 @@ export interface GuildHomeNode {
   avatarUrl?: string | null;
   // The current user's nickname in this guild's bound server (backend-sent; null when none/unbound)
   viewerNick?: string | null;
-  // Home shell copy (backend Guild/GuildReadOnly text fields)
-  homeBackToHubLabel: string;
+  // Home shell copy (backend Guild/GuildReadOnly text fields). The back
+  // label is the server-composed white-label chrome copy: it carries
+  // the platform name only while this guild shows platform branding.
+  pageBackLabel: string;
+  // Server-composed footer disclaimer for this guild's pages (null =
+  // branding hidden, the site shell renders no footer here).
+  pageFooterDisclaimerText?: string | null;
   homeTabTeamLabel: string;
   // Admin entry label: the backend emits it only for viewers who pass
   // the admin verdict; null (entry not rendered) for everyone else.
@@ -64,6 +70,7 @@ export default function GuildHome({ node, slug, carId, user, userBarText, intera
   // server nickname first, falling back to the global name.
   const barUser = node.viewerNick ? { ...user, name: node.viewerNick } : user;
   const defaultNickname = node.viewerNick || user.name || '';
+  useGuildFooter(node.pageFooterDisclaimerText);
 
   return (
     <div className="yy-page">
@@ -73,7 +80,7 @@ export default function GuildHome({ node, slug, carId, user, userBarText, intera
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
               <Link to="/" style={{ color: theme.muted, fontSize: 13, textDecoration: 'none', letterSpacing: '.1em' }}>
-                {node.homeBackToHubLabel}
+                {node.pageBackLabel}
               </Link>
               {interactive && node.homeAdminLabel && (
                 <Link to={`/${slug}/admin`} style={{ color: theme.gold, fontSize: 13, textDecoration: 'none', letterSpacing: '.1em' }}>

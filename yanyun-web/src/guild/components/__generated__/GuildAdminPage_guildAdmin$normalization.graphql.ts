@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<dd61076aa7d24cf704dff535d984fdde>>
+ * @generated SignedSource<<2b50d9a4db1f00d42aac8d5047807983>>
  * @lightSyntaxTransform
  */
 
@@ -176,6 +176,66 @@ return {
       "args": null,
       "kind": "ScalarField",
       "name": "reminderCustomText",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "whiteLabelHideBranding",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "ogAccent",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "ogTitleSuffix",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "pageFooterDisclaimerText",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "concreteType": "GuildAdminOgAccentOption",
+      "kind": "LinkedField",
+      "name": "ogAccentOptions",
+      "plural": true,
+      "selections": [
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "key",
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "hex",
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "label",
+          "storageKey": null
+        }
+      ],
       "storageKey": null
     },
     {
@@ -902,6 +962,48 @@ return {
     {
       "alias": null,
       "args": null,
+      "kind": "ScalarField",
+      "name": "adminWhiteLabelTitle",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminHideBrandingLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminHideBrandingHint",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminOgAccentLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminOgTitleSuffixLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminOgTitleSuffixHint",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
       "concreteType": "GuildAdminFixedTeam",
       "kind": "LinkedField",
       "name": "fixedTeams",
@@ -1333,6 +1435,6 @@ return {
 };
 })();
 
-(node as any).hash = "1b566ae4e5ea97255bf4d5dd7f1964cb";
+(node as any).hash = "9ce71c64cda21c585039362d66f29269";
 
 export default node;

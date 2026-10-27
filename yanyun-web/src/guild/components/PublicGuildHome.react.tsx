@@ -13,7 +13,8 @@ const PublicGuildHome_guild = graphql`
     slogan
     gameVersion
     avatarUrl
-    homeBackToHubLabel
+    pageBackLabel
+    pageFooterDisclaimerText
     homeTabTeamLabel
     homeTabDexLabel
     homeTabSectLabel

@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<6fc54ab3727474def92673e69b43429a>>
+ * @generated SignedSource<<2002a9b5615452d055dac9858a1c7f09>>
  * @lightSyntaxTransform
  */
 
@@ -49,12 +49,17 @@ export type GuildAdminPage_guildAdmin$data = {
   readonly adminGuidesTitle: string;
   readonly adminGuildIdLabel: string;
   readonly adminGuildIdUnboundText: string;
+  readonly adminHideBrandingHint: string;
+  readonly adminHideBrandingLabel: string;
   readonly adminLogoUrlLabel: string;
   readonly adminMasterNameLabel: string;
   readonly adminMemberNicknameLabel: string;
   readonly adminMemberNoteLabel: string;
   readonly adminMemberWeaponLabel: string;
   readonly adminNameLabel: string;
+  readonly adminOgAccentLabel: string;
+  readonly adminOgTitleSuffixHint: string;
+  readonly adminOgTitleSuffixLabel: string;
   readonly adminProfileTitle: string;
   readonly adminReminderCustomTextHint: string;
   readonly adminReminderCustomTextLabel: string;
@@ -112,6 +117,7 @@ export type GuildAdminPage_guildAdmin$data = {
   readonly adminWebhookLabel: string;
   readonly adminWebhookSetText: string;
   readonly adminWebhookUnsetText: string;
+  readonly adminWhiteLabelTitle: string;
   readonly announcement: string;
   readonly avatarUrl: string | null | undefined;
   readonly bgImageUrl: string;
@@ -169,6 +175,14 @@ export type GuildAdminPage_guildAdmin$data = {
   readonly logoUrl: string;
   readonly masterName: string;
   readonly name: string | null | undefined;
+  readonly ogAccent: string;
+  readonly ogAccentOptions: ReadonlyArray<{
+    readonly hex: string;
+    readonly key: string;
+    readonly label: string;
+  }>;
+  readonly ogTitleSuffix: string;
+  readonly pageFooterDisclaimerText: string | null | undefined;
   readonly reminderCustomText: string;
   readonly reminderOffsets: ReadonlyArray<number>;
   readonly reminderWebhookId: string | null | undefined;
@@ -215,6 +229,7 @@ export type GuildAdminPage_guildAdmin$data = {
       readonly weekLabel: string;
     }>;
   };
+  readonly whiteLabelHideBranding: boolean;
   readonly " $fragmentType": "GuildAdminPage_guildAdmin";
 };
 export type GuildAdminPage_guildAdmin$key = {
@@ -389,6 +404,66 @@ return {
       "args": null,
       "kind": "ScalarField",
       "name": "reminderCustomText",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "whiteLabelHideBranding",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "ogAccent",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "ogTitleSuffix",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "pageFooterDisclaimerText",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "concreteType": "GuildAdminOgAccentOption",
+      "kind": "LinkedField",
+      "name": "ogAccentOptions",
+      "plural": true,
+      "selections": [
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "key",
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "hex",
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "label",
+          "storageKey": null
+        }
+      ],
       "storageKey": null
     },
     {
@@ -1115,6 +1190,48 @@ return {
     {
       "alias": null,
       "args": null,
+      "kind": "ScalarField",
+      "name": "adminWhiteLabelTitle",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminHideBrandingLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminHideBrandingHint",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminOgAccentLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminOgTitleSuffixLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminOgTitleSuffixHint",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
       "concreteType": "GuildAdminFixedTeam",
       "kind": "LinkedField",
       "name": "fixedTeams",
@@ -1548,6 +1665,6 @@ return {
 };
 })();
 
-(node as any).hash = "1b566ae4e5ea97255bf4d5dd7f1964cb";
+(node as any).hash = "9ce71c64cda21c585039362d66f29269";
 
 export default node;
