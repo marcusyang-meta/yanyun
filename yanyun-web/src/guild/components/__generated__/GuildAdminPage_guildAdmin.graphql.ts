@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<61a18bbd33c4db3e0de48faf1a38eca8>>
+ * @generated SignedSource<<aa23de9ce7d25159fe2a255b7b9501b8>>
  * @lightSyntaxTransform
  */
 
@@ -90,6 +90,11 @@ export type GuildAdminPage_guildAdmin$data = {
   readonly adminStatusCompletedText: string;
   readonly adminStatusDraftText: string;
   readonly adminStatusOpenText: string;
+  readonly adminSubdomainAddressLabel: string;
+  readonly adminSubdomainCallbackLabel: string;
+  readonly adminSubdomainLabel: string;
+  readonly adminSubdomainNote: string;
+  readonly adminSubdomainTitle: string;
   readonly adminTabDiscordLabel: string;
   readonly adminTabEventsLabel: string;
   readonly adminTabGuidesLabel: string;
@@ -205,6 +210,9 @@ export type GuildAdminPage_guildAdmin$data = {
       readonly weekLabel: string;
     }>;
   };
+  readonly subdomainCallbackUrl: string;
+  readonly subdomainEnabled: boolean;
+  readonly subdomainUrl: string;
   readonly whiteLabelHideBranding: boolean;
   readonly " $fragmentType": "GuildAdminPage_guildAdmin";
 };
@@ -372,6 +380,27 @@ return {
       "args": null,
       "kind": "ScalarField",
       "name": "ogTitleSuffix",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "subdomainEnabled",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "subdomainUrl",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "subdomainCallbackUrl",
       "storageKey": null
     },
     {
@@ -1095,6 +1124,41 @@ return {
     {
       "alias": null,
       "args": null,
+      "kind": "ScalarField",
+      "name": "adminSubdomainTitle",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminSubdomainLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminSubdomainAddressLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminSubdomainCallbackLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminSubdomainNote",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
       "concreteType": "GuildAdminEvent",
       "kind": "LinkedField",
       "name": "events",
@@ -1522,6 +1586,6 @@ return {
 };
 })();
 
-(node as any).hash = "fea9229e1c15d212d50cca549f1865bf";
+(node as any).hash = "9ed7ceca32c027a224f3b1d4d3fa967e";
 
 export default node;

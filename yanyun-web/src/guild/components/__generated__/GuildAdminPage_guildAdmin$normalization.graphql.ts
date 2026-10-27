@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<09fb755ac892749bf902450da8ede87a>>
+ * @generated SignedSource<<884f0614ec25fc223f9008fbc826fef5>>
  * @lightSyntaxTransform
  */
 
@@ -168,6 +168,27 @@ return {
       "args": null,
       "kind": "ScalarField",
       "name": "ogTitleSuffix",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "subdomainEnabled",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "subdomainUrl",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "subdomainCallbackUrl",
       "storageKey": null
     },
     {
@@ -891,6 +912,41 @@ return {
     {
       "alias": null,
       "args": null,
+      "kind": "ScalarField",
+      "name": "adminSubdomainTitle",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminSubdomainLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminSubdomainAddressLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminSubdomainCallbackLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminSubdomainNote",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
       "concreteType": "GuildAdminEvent",
       "kind": "LinkedField",
       "name": "events",
@@ -1316,6 +1372,6 @@ return {
 };
 })();
 
-(node as any).hash = "fea9229e1c15d212d50cca549f1865bf";
+(node as any).hash = "9ed7ceca32c027a224f3b1d4d3fa967e";
 
 export default node;

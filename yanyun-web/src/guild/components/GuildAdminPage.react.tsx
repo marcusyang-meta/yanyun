@@ -39,6 +39,9 @@ const GuildAdminPage_guildAdmin = graphql`
     whiteLabelHideBranding
     ogAccent
     ogTitleSuffix
+    subdomainEnabled
+    subdomainUrl
+    subdomainCallbackUrl
     pageFooterDisclaimerText
     ogAccentOptions {
       key
@@ -142,6 +145,11 @@ const GuildAdminPage_guildAdmin = graphql`
     adminOgAccentLabel
     adminOgTitleSuffixLabel
     adminOgTitleSuffixHint
+    adminSubdomainTitle
+    adminSubdomainLabel
+    adminSubdomainAddressLabel
+    adminSubdomainCallbackLabel
+    adminSubdomainNote
     events {
       id
       title
@@ -246,6 +254,11 @@ const VisibilityMutation = graphql`
     updateGuildVisibility(slug: $slug, devOnly: $v) { ok error }
   }
 `;
+const SubdomainMutation = graphql`
+  mutation GuildAdminPageSubdomainMutation($slug: String!, $enabled: Boolean!) {
+    updateGuildSubdomain(slug: $slug, enabled: $enabled) { ok error }
+  }
+`;
 const SetAvatarMutation = graphql`
   mutation GuildAdminPageSetAvatarMutation($slug: String!, $d: String!) {
     setGuildAvatar(slug: $slug, dataBase64: $d) { ok error avatarUrl }
@@ -315,6 +328,7 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
   const [commitReminder] = useMutation(ReminderMutation);
   const [commitWhiteLabel] = useMutation(WhiteLabelMutation);
   const [commitVisibility] = useMutation(VisibilityMutation);
+  const [commitSubdomain] = useMutation(SubdomainMutation);
   const [commitSetAvatar] = useMutation(SetAvatarMutation);
   const [commitDeleteAvatar] = useMutation(DeleteAvatarMutation);
   const runProfile = useAdminMutation(commitProfile, 'updateGuildProfile', refresh, commonText.unknownError);
@@ -322,6 +336,7 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
   const runReminder = useAdminMutation(commitReminder, 'updateGuildReminderSettings', refresh, commonText.unknownError);
   const runWhiteLabel = useAdminMutation(commitWhiteLabel, 'updateGuildWhiteLabel', refresh, commonText.unknownError);
   const runVisibility = useAdminMutation(commitVisibility, 'updateGuildVisibility', refresh, commonText.unknownError);
+  const runSubdomain = useAdminMutation(commitSubdomain, 'updateGuildSubdomain', refresh, commonText.unknownError);
   const runSetAvatar = useAdminMutation(commitSetAvatar, 'setGuildAvatar', refresh, commonText.unknownError);
   const runDeleteAvatar = useAdminMutation(commitDeleteAvatar, 'deleteGuildAvatar', refresh, commonText.unknownError);
 
@@ -540,6 +555,23 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
               <p style={{ color: theme.muted, fontSize: 12, margin: '-6px 0 12px' }}>{text.adminOgTitleSuffixHint}</p>
               <SaveButton label={text.adminSaveLabel} savedLabel={text.adminSavedText}
                 onSave={() => runWhiteLabel({ slug, hideBranding: wlHideBranding, ogAccent: wlAccent, ogTitleSuffix: wlSuffix })} />
+            </section>
+
+            <section style={adminSectionStyle}>
+              <h2 style={adminSectionTitleStyle}>{text.adminSubdomainTitle}</h2>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: theme.paper, cursor: 'pointer' }}>
+                <input type="checkbox" checked={!!data.subdomainEnabled}
+                  onChange={(e) => runSubdomain({ slug, enabled: e.target.checked })} />
+                {text.adminSubdomainLabel}
+              </label>
+              <div style={{ height: 14 }} />
+              <Field label={text.adminSubdomainAddressLabel}>
+                <input style={adminInputStyle} value={data.subdomainUrl || ''} readOnly autoComplete="off" />
+              </Field>
+              <Field label={text.adminSubdomainCallbackLabel}>
+                <input style={adminInputStyle} value={data.subdomainCallbackUrl || ''} readOnly autoComplete="off" />
+              </Field>
+              <p style={{ color: theme.muted, fontSize: 12, margin: '2px 0 0', lineHeight: 1.8 }}>{text.adminSubdomainNote}</p>
             </section>
           </>
         )}

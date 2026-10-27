@@ -15,8 +15,10 @@ function AdminFallback() {
 
 // For the /:slug/admin route: (re)load the admin entrypoint when the
 // slug changes; dispose the old reference in cleanup.
-export default function GuildAdminRouteLoader() {
-  const { slug } = useParams();
+// slugOverride serves the guild-subdomain /admin route (tier A).
+export default function GuildAdminRouteLoader({ slugOverride }: { slugOverride?: string } = {}) {
+  const params = useParams();
+  const slug = slugOverride ?? params.slug;
   const environment = useRelayEnvironment();
   const provider = useMemo(() => ({ getEnvironment: () => environment }), [environment]);
   const [entryPointReference, setEntryPointReference] = useState<any>(null);

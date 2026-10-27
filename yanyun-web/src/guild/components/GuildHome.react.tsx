@@ -9,6 +9,7 @@ import { ToastHost } from './Toast.react.tsx';
 import UserBar, { type UserBarText } from '../../auth/UserBar.react.tsx';
 import { theme } from '../../lib/format';
 import { useGuildFooter } from '../../lib/guildChrome';
+import { hostGuildSlug } from '../../lib/hostGuild';
 
 
 function TabFallback() {
@@ -79,9 +80,14 @@ export default function GuildHome({ node, slug, carId, user, userBarText, intera
         <header className="yy-anim-fade-up" style={{ padding: '36px 0 8px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-              <Link to="/" style={{ color: theme.muted, fontSize: 13, textDecoration: 'none', letterSpacing: '.1em' }}>
-                {node.pageBackLabel}
-              </Link>
+              {/* On this guild's own subdomain the root IS this page —
+                  the back-to-hub link would point at itself, so it is
+                  not rendered there. */}
+              {hostGuildSlug() !== slug && (
+                <Link to="/" style={{ color: theme.muted, fontSize: 13, textDecoration: 'none', letterSpacing: '.1em' }}>
+                  {node.pageBackLabel}
+                </Link>
+              )}
               {interactive && node.homeAdminLabel && (
                 <Link to={`/${slug}/admin`} style={{ color: theme.gold, fontSize: 13, textDecoration: 'none', letterSpacing: '.1em' }}>
                   {node.homeAdminLabel}
