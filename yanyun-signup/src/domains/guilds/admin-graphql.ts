@@ -763,6 +763,8 @@ export const guildAdminMutations = {
     const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
     await setGuildSubdomainEnabled(ctx.env.DB, g.access.slug, !!enabled);
     return aOk(ctx);
+  },
+
   /* Premium checkout: creates the Stripe Checkout Session for this
    * guild and returns the hosted page URL. Refusals are catalog
    * copy keyed by stable codes — paygateDisabled (master switch

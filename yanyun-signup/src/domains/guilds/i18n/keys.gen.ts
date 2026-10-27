@@ -112,6 +112,11 @@ export type GuildsStringKey =
   | 'guildAdmin.ogAccentAzure'
   | 'guildAdmin.ogAccentCinnabar'
   | 'guildAdmin.ogAccentViolet'
+  | 'guildAdmin.subdomainTitle'
+  | 'guildAdmin.subdomainLabel'
+  | 'guildAdmin.subdomainAddressLabel'
+  | 'guildAdmin.subdomainCallbackLabel'
+  | 'guildAdmin.subdomainNote'
   | 'guildAdmin.premiumLockedTitle'
   | 'guildAdmin.premiumLockedBody'
   | 'guildAdmin.premiumCheckoutButton'
@@ -238,6 +243,11 @@ export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'guildAdmin.ogAccentAzure',
   'guildAdmin.ogAccentCinnabar',
   'guildAdmin.ogAccentViolet',
+  'guildAdmin.subdomainTitle',
+  'guildAdmin.subdomainLabel',
+  'guildAdmin.subdomainAddressLabel',
+  'guildAdmin.subdomainCallbackLabel',
+  'guildAdmin.subdomainNote',
   'guildAdmin.premiumLockedTitle',
   'guildAdmin.premiumLockedBody',
   'guildAdmin.premiumCheckoutButton',

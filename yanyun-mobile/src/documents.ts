@@ -1788,6 +1788,11 @@ export const UpdateGuildVisibilityAdminMutation = graphql`
     updateGuildVisibility(slug: $slug, devOnly: $devOnly) { ok error }
   }
 `;
+export const UpdateGuildSubdomainAdminMutation = graphql`
+  mutation documentsUpdateGuildSubdomainAdminMutation($slug: String!, $enabled: Boolean!) {
+    updateGuildSubdomain(slug: $slug, enabled: $enabled) { ok error }
+  }
+`;
 export const CreateAdminEventMutation = graphql`
   mutation documentsCreateAdminEventMutation($slug: String!, $input: CreateAdminEventInput!) {
     createAdminEvent(slug: $slug, input: $input) { ok error id }
