@@ -222,7 +222,12 @@ How an AI agent (or a new engineer) starts working in this repo:
    reports `Cannot query field`, then heals), is now absorbed by the
    preview job itself: before the probes and render smoke run, a
    bounded schema-readiness wait polls the preview until it serves
-   the PR's schema delta (fields added vs the PR base), and fails
+   the PR's schema delta (fields added vs the PR base) — first from
+   Node directly, then again from inside Chromium, because the lag
+   turned out to be per-channel (PR #41's rerun: the direct channel
+   healed in ~42s while browser-issued requests stayed pinned to the
+   old schema for 90+ seconds) and the smoke lives in the browser
+   channel. One shared budget covers both polls, and the wait fails
    loudly if the delta never propagates — so a `Cannot query field`
    red in the smoke is now a real signal again, not the lag.
 8. **Merge and prove it.** Rebase onto the latest `master` immediately

@@ -28,6 +28,17 @@
 //      Bounded: after --timeout-ms the step FAILS, listing the fields
 //      that never propagated — a genuine schema mismatch stays red,
 //      nothing is silently waved through.
+//   4. With --browser, a second segment repeats the same probe from
+//      inside headless Chromium, fetching /graphql from a page on the
+//      preview origin. Why (PR #41's rerun after the first version of
+//      this wait landed): activation lag is PER-CHANNEL — the direct
+//      Node channel served the delta after ~42s and the probes passed,
+//      while requests issued by the browser stayed pinned to the old
+//      schema for 90+ seconds and the render smoke still went red.
+//      The smoke lives in the browser channel, so readiness must be
+//      proven there too, not just from Node. Both segments share ONE
+//      deadline (--timeout-ms covers the whole wait, not each part).
+//      The probe documents are identical; only the transport differs.
 //
 // Scope boundaries (deliberate):
 //   - Signature-changed fields are probed by name only (presence);
@@ -42,21 +53,28 @@
 //   node scripts/ci/schema-readiness.mjs --base <preview-url> \
 //     --schema packages/schema/schema.graphql \
 //     --base-schema /tmp/base-schema.graphql \
-//     [--timeout-ms 600000] [--interval-ms 20000] [--consecutive 3]
+//     [--browser] [--timeout-ms 600000] [--interval-ms 20000] [--consecutive 3]
+// --browser needs a Chromium binary ($CHROME_PATH, a system chrome, or
+// the Playwright cache — same discovery as render-smoke.mjs).
 // A missing --base-schema file means "no baseline available": the wait
 // is skipped with a loud note (the smoke remains the backstop, as
 // before this step existed). A missing --schema file is a config error.
+import { spawn } from 'node:child_process';
 import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import process from 'node:process';
 
 const args = {};
 for (let i = 2; i < process.argv.length; i++) {
   const k = process.argv[i];
+  if (k === '--browser') { args.browser = '1'; continue; }
   if (k.startsWith('--')) { args[k.slice(2)] = process.argv[i + 1]; i++; }
 }
 const BASE = (args.base || '').replace(/\/$/, '');
 const SCHEMA_PATH = args.schema || '';
 const BASE_SCHEMA_PATH = args['base-schema'] || '';
+const BROWSER = args.browser === '1';
 const TIMEOUT_MS = Number(args['timeout-ms'] || process.env.SCHEMA_READY_TIMEOUT_MS || 600000);
 const INTERVAL_MS = Number(args['interval-ms'] || process.env.SCHEMA_READY_INTERVAL_MS || 20000);
 const CONSECUTIVE = Number(args.consecutive || process.env.SCHEMA_READY_CONSECUTIVE || 3);
@@ -187,13 +205,8 @@ async function gql(query) {
   return r.json().catch(() => null);
 }
 
-async function missingFields() {
-  const messages = [];
-  for (const doc of probeDocs) {
-    const body = await gql(doc);
-    if (!body || (!body.data && !body.errors)) throw new Error('unparseable GraphQL response');
-    for (const e of body.errors || []) messages.push(String(e.message || ''));
-  }
+/** Which delta fields a set of GraphQL error messages still misses. */
+function missingFromMessages(messages) {
   const missing = [];
   for (const [t, fields] of delta) {
     if (newTypes.has(t) && messages.some((msg) => msg.includes(`Unknown type "${t}"`))) {
@@ -209,34 +222,176 @@ async function missingFields() {
   return missing;
 }
 
-/* ---------- bounded poll ------------------------------------------ */
-const started = Date.now();
-let streak = 0;
-let poll = 0;
-let lastMissing = [];
-while (Date.now() - started < TIMEOUT_MS) {
-  poll++;
-  try {
-    lastMissing = await missingFields();
-  } catch (e) {
-    lastMissing = [`<endpoint not answering cleanly: ${e.message}>`];
+async function missingFieldsDirect() {
+  const messages = [];
+  for (const doc of probeDocs) {
+    const body = await gql(doc);
+    if (!body || (!body.data && !body.errors)) throw new Error('unparseable GraphQL response');
+    for (const e of body.errors || []) messages.push(String(e.message || ''));
   }
-  const elapsed = Math.round((Date.now() - started) / 1000);
-  if (lastMissing.length === 0) {
-    streak++;
-    console.log(`poll ${poll} (${elapsed}s): delta fully served — streak ${streak}/${CONSECUTIVE}`);
-    if (streak >= CONSECUTIVE) {
-      console.log(`schema-readiness: PASS — preview serves the PR schema after ~${elapsed}s`);
-      process.exit(0);
-    }
-  } else {
-    streak = 0;
-    console.log(`poll ${poll} (${elapsed}s): still missing ${lastMissing.join(', ')}`);
-  }
-  const remaining = TIMEOUT_MS - (Date.now() - started);
-  if (remaining <= 0) break;
-  await sleep(Math.min(INTERVAL_MS, remaining));
+  return missingFromMessages(messages);
 }
-console.error(`schema-readiness: FAIL — after ${TIMEOUT_MS}ms the preview still does not serve: ${lastMissing.join(', ')}`);
-console.error('This is the bounded failure path: the schema genuinely has not propagated (or the delta is wrong). Do not merge on this red.');
-process.exit(1);
+
+/* ---------- browser channel (same probes, Chromium transport) ---- */
+// Minimal CDP driver, mirrored from render-smoke.mjs on purpose: the
+// smoke file is assertion-frozen, so the skeleton is duplicated rather
+// than shared. One browser process, one page on the preview origin,
+// reused for every poll — the same network-service / connection-pool
+// channel the smoke's own requests travel through.
+function findChrome() {
+  if (process.env.CHROME_PATH && fs.existsSync(process.env.CHROME_PATH)) return process.env.CHROME_PATH;
+  const candidates = ['/usr/bin/google-chrome', '/usr/bin/chromium', '/usr/bin/chromium-browser'];
+  const cache = path.join(os.homedir(), '.cache/ms-playwright');
+  if (fs.existsSync(cache)) {
+    for (const dir of fs.readdirSync(cache).sort().reverse()) {
+      candidates.push(
+        path.join(cache, dir, 'chrome-linux64/chrome'),
+        path.join(cache, dir, 'chrome-linux/chrome'),
+        path.join(cache, dir, 'chrome-headless-shell-linux64/chrome-headless-shell'),
+        path.join(cache, dir, 'chrome-mac/Chromium.app/Contents/MacOS/Chromium'),
+      );
+    }
+  }
+  return candidates.find((p) => fs.existsSync(p)) || null;
+}
+
+async function openBrowserChannel() {
+  const chromePath = findChrome();
+  if (!chromePath) throw new Error('no Chromium binary found (set CHROME_PATH or install via playwright)');
+  const { default: WebSocket } = await import('ws');
+  const port = 9700 + (process.pid % 200);
+  const chrome = spawn(chromePath, [
+    '--headless', '--disable-gpu', '--no-sandbox', '--disable-dev-shm-usage',
+    `--remote-debugging-port=${port}`, '--window-size=1280,900',
+    `--user-data-dir=${fs.mkdtempSync(path.join(os.tmpdir(), 'readiness-profile-'))}`,
+    'about:blank',
+  ], { stdio: ['ignore', 'ignore', 'pipe'] });
+  chrome.stderr.on('data', () => { /* drain */ });
+  const close = () => { try { chrome.kill('SIGKILL'); } catch { /* */ } };
+  try {
+    let wsUrl = '';
+    for (let i = 0; i < 60 && !wsUrl; i++) {
+      try {
+        const r = await fetch(`http://127.0.0.1:${port}/json/version`);
+        wsUrl = (await r.json()).webSocketDebuggerUrl || '';
+      } catch { await sleep(500); }
+    }
+    if (!wsUrl) throw new Error('chrome DevTools endpoint never came up');
+    const ws = new WebSocket(wsUrl);
+    await new Promise((res, rej) => { ws.on('open', res); ws.on('error', rej); });
+    let seq = 0;
+    const pending = new Map();
+    ws.on('message', (raw) => {
+      const msg = JSON.parse(raw);
+      if (msg.id && pending.has(msg.id)) { pending.get(msg.id)(msg.result ?? msg.error); pending.delete(msg.id); }
+    });
+    const send = (method, params = {}, sessionId) => {
+      const id = ++seq;
+      return new Promise((resolve) => {
+        pending.set(id, resolve);
+        ws.send(JSON.stringify({ id, method, params, ...(sessionId ? { sessionId } : {}) }));
+      });
+    };
+    const targetId = (await send('Target.createTarget', { url: 'about:blank' }))?.targetId || '';
+    const sessionId = (await send('Target.attachToTarget', { targetId, flatten: true }))?.sessionId || '';
+    if (!sessionId) throw new Error('could not attach to a Chromium target');
+    await send('Page.enable', {}, sessionId);
+    await send('Page.navigate', { url: `${BASE}/` }, sessionId);
+    // The probe fetch only needs a document on the preview origin; wait
+    // until navigation lands there (the SPA shell itself is irrelevant).
+    let onOrigin = false;
+    for (let i = 0; i < 40 && !onOrigin; i++) {
+      const r = await send('Runtime.evaluate', { expression: 'location.origin', returnByValue: true }, sessionId);
+      onOrigin = r?.result?.value === BASE;
+      if (!onOrigin) await sleep(500);
+    }
+    if (!onOrigin) throw new Error(`browser never reached the preview origin ${BASE}`);
+    const probeExpression = `(async () => {
+      const docs = ${JSON.stringify(probeDocs)};
+      const messages = [];
+      for (const q of docs) {
+        const r = await fetch('/graphql', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ query: q }),
+        });
+        if (r.status >= 500) return ['<HTTP ' + r.status + '>'];
+        const j = await r.json().catch(() => null);
+        if (!j || (!j.data && !j.errors)) return ['<unparseable GraphQL response>'];
+        for (const e of j.errors || []) messages.push(String(e.message || ''));
+      }
+      return messages;
+    })()`;
+    const missingFieldsBrowser = async () => {
+      const r = await send('Runtime.evaluate', { expression: probeExpression, awaitPromise: true, returnByValue: true }, sessionId);
+      const messages = r?.result?.value;
+      if (!Array.isArray(messages)) throw new Error('browser probe returned no result');
+      if (messages.length === 1 && messages[0].startsWith('<')) throw new Error(messages[0].slice(1, -1));
+      return missingFromMessages(messages);
+    };
+    return { missingFieldsBrowser, close: () => { try { ws.close(); } catch { /* */ } close(); } };
+  } catch (e) {
+    close();
+    throw e;
+  }
+}
+
+/* ---------- bounded poll (ONE deadline shared by both segments) -- */
+const started = Date.now();
+const deadline = started + TIMEOUT_MS;
+let lastMissing = [];
+
+async function pollUntilReady(label, probeOnce) {
+  let streak = 0;
+  let poll = 0;
+  while (Date.now() < deadline) {
+    poll++;
+    try {
+      lastMissing = await probeOnce();
+    } catch (e) {
+      lastMissing = [`<${label} channel not answering cleanly: ${e.message}>`];
+    }
+    const elapsed = Math.round((Date.now() - started) / 1000);
+    if (lastMissing.length === 0) {
+      streak++;
+      console.log(`${label} poll ${poll} (${elapsed}s): delta fully served — streak ${streak}/${CONSECUTIVE}`);
+      if (streak >= CONSECUTIVE) return elapsed;
+    } else {
+      streak = 0;
+      console.log(`${label} poll ${poll} (${elapsed}s): still missing ${lastMissing.join(', ')}`);
+    }
+    const remaining = deadline - Date.now();
+    if (remaining <= 0) break;
+    await sleep(Math.min(INTERVAL_MS, remaining));
+  }
+  return -1;
+}
+
+function failTimeout() {
+  console.error(`schema-readiness: FAIL — after ${TIMEOUT_MS}ms the preview still does not serve: ${lastMissing.length ? lastMissing.join(', ') : '(the shared budget ran out before a poll could complete)'}`);
+  console.error('This is the bounded failure path: the schema genuinely has not propagated (or the delta is wrong). Do not merge on this red.');
+  process.exit(1);
+}
+
+const directReadyAt = await pollUntilReady('direct', missingFieldsDirect);
+if (directReadyAt < 0) failTimeout();
+console.log(`schema-readiness: direct channel serves the PR schema after ~${directReadyAt}s`);
+
+if (BROWSER) {
+  let channel;
+  try {
+    channel = await openBrowserChannel();
+  } catch (e) {
+    console.error(`schema-readiness: FAIL — could not open the browser channel: ${e.message}`);
+    process.exit(1);
+  }
+  try {
+    const browserReadyAt = await pollUntilReady('browser', channel.missingFieldsBrowser);
+    if (browserReadyAt < 0) failTimeout();
+    console.log(`schema-readiness: browser channel serves the PR schema after ~${browserReadyAt}s (shared budget ${TIMEOUT_MS}ms)`);
+  } finally {
+    channel.close();
+  }
+}
+console.log(`schema-readiness: PASS — preview serves the PR schema on every probed channel after ~${Math.round((Date.now() - started) / 1000)}s`);
+process.exit(0);
