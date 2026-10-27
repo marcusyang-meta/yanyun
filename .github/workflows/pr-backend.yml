@@ -118,6 +118,26 @@ jobs:
         run: |
           node scripts/sync-public.mjs --dist "$GITHUB_WORKSPACE/ci-artifact"
           pnpm exec wrangler preview --name release
+      - name: Extract the PR base schema (readiness delta baseline)
+        run: |
+          if git fetch --no-tags --depth=1 origin "${{ github.event.pull_request.base.sha }}" \
+             && git show "${{ github.event.pull_request.base.sha }}:packages/schema/schema.graphql" > "$RUNNER_TEMP/base-schema.graphql"; then
+            echo "base schema extracted from ${{ github.event.pull_request.base.sha }}"
+          else
+            echo "::warning::could not extract the base schema; the schema-readiness wait will be skipped"
+            rm -f "$RUNNER_TEMP/base-schema.graphql"
+          fi
+      # A freshly published preview version takes minutes to activate
+      # everywhere; until then, fields the PR added answer
+      # `Cannot query field` from stale isolates and the probes/smoke
+      # below report a false red. Wait (bounded, fail-loud) until the
+      # preview serves the PR's schema delta. No delta -> instant skip.
+      - name: Schema readiness (wait for the preview to serve the PR schema)
+        run: >-
+          node yanyun-signup/scripts/ci/schema-readiness.mjs
+          --base https://release-yanyun.tbdlab.workers.dev
+          --schema packages/schema/schema.graphql
+          --base-schema "$RUNNER_TEMP/base-schema.graphql"
       - name: Preview probes (HTTP + GraphQL, read-only)
         run: >-
           node yanyun-signup/scripts/ci/probes.mjs
@@ -143,6 +163,7 @@ jobs:
           {
             echo "## pr-backend preview"
             echo "- preview: https://release-yanyun.tbdlab.workers.dev (shared \`release\` preview, serialized by the workflow concurrency group)"
+            echo "- schema readiness: bounded wait until the preview serves the PR's schema delta (absorbs Cloudflare version-activation lag; no delta = skipped)"
             echo "- probes: SPA shell, legalPage x5 locales + TERMS, tenant directory, grouping list/detail, avatar 404 shape"
             echo "- render smoke (anonymous): \`/\` shows 'Discord', \`/demo\` shows the server-driven login gate ('百业集结'), \`/privacy\` shows '隐私政策'; zero JS exceptions required on all three"
           } >> "$GITHUB_STEP_SUMMARY"

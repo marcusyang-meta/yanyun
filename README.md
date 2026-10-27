@@ -215,10 +215,16 @@ How an AI agent (or a new engineer) starts working in this repo:
 7. **Open the PR** with `Summary` / `Test Plan` sections (template in
    `.github/pull_request_template.md`). Expect the shared preview to
    serialize your run behind other PRs; if your run is superseded,
-   rerun it. Two known preview false-reds — retry before changing
-   product code for them: a cold-start blank `/demo` render, and GraphQL
-   schema activation lagging several minutes behind a preview deploy
-   (a new field briefly reports `Cannot query field`, then heals).
+   rerun it. One known preview false-red remains — retry before
+   changing product code for it: a cold-start blank `/demo` render.
+   The other historical false-red, GraphQL schema activation lagging
+   several minutes behind a preview deploy (a new field briefly
+   reports `Cannot query field`, then heals), is now absorbed by the
+   preview job itself: before the probes and render smoke run, a
+   bounded schema-readiness wait polls the preview until it serves
+   the PR's schema delta (fields added vs the PR base), and fails
+   loudly if the delta never propagates — so a `Cannot query field`
+   red in the smoke is now a real signal again, not the lag.
 8. **Merge and prove it.** Rebase onto the latest `master` immediately
    before merging, wait for full green on that exact tree, then
    `gh pr merge --rebase`. If the post-merge deploy is fail-closed
