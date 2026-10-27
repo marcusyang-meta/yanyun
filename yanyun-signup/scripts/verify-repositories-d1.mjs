@@ -13,11 +13,11 @@
  * construction.
  *
  * Usage: node scripts/verify-repositories-d1.mjs [section]
- *   Omitting section = all; currently nineteen sections: tenants /
+ *   Omitting section = all; currently twenty sections: tenants /
  *   events / gear / users / members / results / dex / reference /
  *   state / ddl / guard / stamp / membercount / atomic / audit /
- *   shortlinks / beats / templates / usage, extended as the data-layer
- *   migration progresses. Non-zero exit = an assertion failed.
+ *   shortlinks / beats / templates / usage / buildshares, extended as
+ *   the data-layer migration progresses. Non-zero exit = an assertion failed.
  * =================================================== */
 import { Miniflare, convertV4MiniflareOptions } from 'miniflare';
 
@@ -960,6 +960,65 @@ if (want('usage')) {
   await gearRepo.insertGearItemRow(db, { discordId: 'UC', slot: '环', name: '计数环', payload: '{}', createdAt: 2 });
   eq('countGearItemRows counts owner rows', await gearRepo.countGearItemRows(db, 'UC'), 2);
   eq('countGearItemRows is owner-scoped', await gearRepo.countGearItemRows(db, 'UD'), 0);
+}
+
+/* ---------------- build_share_links ---------------- */
+if (want('buildshares')) {
+  console.log('== build_share_links service on real D1 ==');
+  const svc = await import('../src/domains/gear/buildshare.ts');
+  const store = await import('../src/domains/gear/gearstore.ts');
+  const repo = await import('../src/domains/gear/gear.ts');
+
+  const item = await store.insertGearItem(db, 'share-a', {
+    slot: '武器', name: '验剑', lines: [{ key: 'dawai', val: 85.2 }], dingyin: null, schools: [],
+  });
+  const mk = (name) => store.insertGearBuild(db, 'share-a', {
+    name, targetIdx: 0, buildLabel: '鸣金·虹 · 飞隼', loadout: { '主武器': item.id },
+    baseValues: {}, xinfa: [], extras: { res: 1.85, acc: 0, crit: 0, int: 0 },
+    bowKind: '', gradDingyinOn: true,
+    snapshot: { total: 87.3, a: 90.1, b: 85, d: 80, loan: 88.8, yAcc: 71.2, yCrit: 65.4, yInt: 60.9, dawai: 1, xiaowai: 2 },
+  });
+  const b1 = await mk('验方案一');
+  const b2 = await mk('验方案二');
+
+  eq('share for missing build -> null', await svc.shareGearBuild(db, 'share-a', 999999), null);
+  eq('share for another owner -> null', await svc.shareGearBuild(db, 'share-b', b1.id), null);
+
+  const l1 = await svc.shareGearBuild(db, 'share-a', b1.id);
+  check('mint returns a 7-char base62 code', /^[0-9A-Za-z]{7}$/.test(l1.code), l1.code);
+  eq('mint row target', [l1.buildId, l1.discordId], [b1.id, 'share-a']);
+  eq('second share is stable (same code)', (await svc.shareGearBuild(db, 'share-a', b1.id)).code, l1.code);
+  eq('getBuildShareLink roundtrip', (await svc.getBuildShareLink(db, 'share-a', b1.id))?.code, l1.code);
+  eq('repository read by code roundtrip', (await repo.getBuildShareLinkRowByCode(db, l1.code))?.build_id, b1.id);
+  eq('unknown code repository read -> null', await repo.getBuildShareLinkRowByCode(db, 'ZZZZZZZ'), null);
+
+  const pub = await svc.resolveSharedBuild(db, l1.code);
+  eq('resolve carries the build name', pub?.build.name, '验方案一');
+  eq('resolve carries the loadout items', pub?.items.map((i) => i.name), ['验剑']);
+  eq('resolve of unknown code -> null', await svc.resolveSharedBuild(db, 'ZZZZZZZ'), null);
+  eq('resolve of malformed code -> null', await svc.resolveSharedBuild(db, 'bad-code'), null);
+
+  // Collision retry against real UNIQUE constraints: the first
+  // candidate is b1's live code; the mint for b2 must skip it.
+  const seq = [l1.code, 'Re4lD1x'];
+  const l2 = await svc.shareGearBuild(db, 'share-a', b2.id, () => seq.shift() || svc.generateBuildShareCode());
+  eq('code collision retries with a fresh code', l2.code, 'Re4lD1x');
+  eq('collided code still resolves to its original build', (await svc.resolveSharedBuild(db, l1.code))?.build.id, b1.id);
+
+  eq('buildShareUrl shape', svc.buildShareUrl('Ab3dEf9'), 'https://yanyun.app/b/Ab3dEf9');
+
+  eq('revoke by another owner changes nothing', await svc.revokeBuildShare(db, 'share-b', b1.id), false);
+  eq('revoke by owner', await svc.revokeBuildShare(db, 'share-a', b1.id), true);
+  eq('revoked code resolves -> null', await svc.resolveSharedBuild(db, l1.code), null);
+  eq('revoke again -> false', await svc.revokeBuildShare(db, 'share-a', b1.id), false);
+  const l1n = await svc.shareGearBuild(db, 'share-a', b1.id);
+  check('re-share after revoke mints a fresh code', l1n.code !== l1.code, `${l1.code} -> ${l1n.code}`);
+
+  // Deleting the build orphans the link: resolve must go dead even
+  // though the link row still exists (the mutation layer also drops
+  // the row; the service-level guard is the second line of defense).
+  await repo.deleteGearBuildRow(db, 'share-a', b1.id);
+  eq('deleted build resolves -> null (orphaned link)', await svc.resolveSharedBuild(db, l1n.code), null);
 }
 
 await mf.dispose();

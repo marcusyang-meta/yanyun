@@ -216,6 +216,7 @@ async function handleFetch(request: Request, env: Env, ctx: ExecutionContext) {
       return serveSpa(hostGuild && hostOrigin
         ? await guildOgTags(env, hostGuild, `${hostOrigin}/`)
         : hubOgTags());
+    }
     // /b/:code -> public build share page (React, anonymous) + build OG
     // tags; unknown/revoked codes inject nothing and the page renders
     // its not-found state. The static segment must win over /:slug.
