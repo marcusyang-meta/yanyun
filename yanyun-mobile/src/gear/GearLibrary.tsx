@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import { useLazyLoadQuery, useMutation } from 'react-relay';
 import { fetchQuery } from 'relay-runtime';
 import { fonts, theme } from '../theme';
@@ -7,7 +8,8 @@ import { relayEnvironment } from '../relay';
 import {
   GearLibraryAddItemMutation, GearLibraryDeleteBuildMutation, GearLibraryDeleteItemMutation,
   GearLibraryImportMutation, GearLibraryPasteMutation, GearLibraryQuery,
-  GearLibrarySaveBuildMutation, GearLibraryUpdateItemMutation,
+  GearLibraryRevokeShareMutation, GearLibrarySaveBuildMutation, GearLibraryShareBuildMutation,
+  GearLibraryUpdateItemMutation,
 } from '../documents';
 import {
   BtnGold, BtnGhost, BtnMini, Card, CheckRow, GearConfirmDialog, Lbl, NumInput,
@@ -31,6 +33,8 @@ import type { documentsGearLibraryDeleteItemMutation } from '../__generated__/do
 import type { documentsGearLibraryImportMutation } from '../__generated__/documentsGearLibraryImportMutation.graphql';
 import type { documentsGearLibrarySaveBuildMutation } from '../__generated__/documentsGearLibrarySaveBuildMutation.graphql';
 import type { documentsGearLibraryDeleteBuildMutation } from '../__generated__/documentsGearLibraryDeleteBuildMutation.graphql';
+import type { documentsGearLibraryShareBuildMutation } from '../__generated__/documentsGearLibraryShareBuildMutation.graphql';
+import type { documentsGearLibraryRevokeShareMutation } from '../__generated__/documentsGearLibraryRevokeShareMutation.graphql';
 
 // The single UI implementation for the gear library + my builds (server
 // D1, per Discord account; mirrors Web GearLibrary): the bench (bench
@@ -67,6 +71,7 @@ function mapBuild(b: LibBuildRaw): SavedBuild {
     snapTotal: b.snapTotal, snapA: b.snapA, snapB: b.snapB, snapD: b.snapD, snapLoan: b.snapLoan,
     snapYAcc: b.snapYAcc, snapYCrit: b.snapYCrit, snapYInt: b.snapYInt,
     snapDawai: b.snapDawai, snapXiaowai: b.snapXiaowai,
+    shareUrl: b.shareUrl ?? null,
   };
 }
 
@@ -463,6 +468,8 @@ export default function GearLibrary(props: {
   const [schemeName, setSchemeName] = useState('');
   const [commitSaveBuild] = useMutation<documentsGearLibrarySaveBuildMutation>(GearLibrarySaveBuildMutation);
   const [commitDeleteBuild] = useMutation<documentsGearLibraryDeleteBuildMutation>(GearLibraryDeleteBuildMutation);
+  const [commitShareBuild] = useMutation<documentsGearLibraryShareBuildMutation>(GearLibraryShareBuildMutation);
+  const [commitRevokeShare] = useMutation<documentsGearLibraryRevokeShareMutation>(GearLibraryRevokeShareMutation);
   const benchStateFromWork = (w: GearWorkState): GearBenchState => {
     const b = t.gearBuilds[w.targetIdx] || t.gearBuilds[0];
     const bowKind = (b && w.bowBySchool[b.school]) || (b ? b.bowKind : '') || '';
@@ -539,6 +546,46 @@ export default function GearLibrary(props: {
         setBuilds((prev) => prev.filter((x) => x.id !== b.id));
         syncLibrary();
         gearToast(t.gearDeletedToast);
+      },
+      onError: () => gearToast(t.gearCalcFailedText),
+    });
+  };
+  /* Public build sharing (mirrors Web): share state rides on the
+   * server-composed shareUrl; sharing mints/reuses the link and opens
+   * the system share sheet with it, an already-shared build can be
+   * re-shared, copied, or revoked (the old code dies at once). */
+  const shareScheme = (b: SavedBuild) => {
+    if (b.shareUrl) {
+      Share.share({ url: b.shareUrl, message: b.shareUrl }).catch(() => {});
+      return;
+    }
+    commitShareBuild({
+      variables: { id: b.id },
+      onCompleted: (resp) => {
+        if (!resp.shareGearBuild.ok || !resp.shareGearBuild.shareUrl) { gearToast(resp.shareGearBuild.error || t.gearCalcFailedText); return; }
+        const url = resp.shareGearBuild.shareUrl;
+        setBuilds((prev) => prev.map((x) => (x.id === b.id ? { ...x, shareUrl: url } : x)));
+        syncLibrary();
+        Share.share({ url, message: url }).catch(() => {});
+      },
+      onError: () => gearToast(t.gearCalcFailedText),
+    });
+  };
+  const copyShareLink = (b: SavedBuild) => {
+    if (!b.shareUrl) return;
+    Clipboard.setStringAsync(b.shareUrl).then(
+      () => gearToast(t.gearCopiedToast),
+      () => gearToast(t.gearCopyFailedToast),
+    );
+  };
+  const revokeScheme = (b: SavedBuild) => {
+    commitRevokeShare({
+      variables: { id: b.id },
+      onCompleted: (resp) => {
+        if (!resp.revokeGearBuildShare.ok) { gearToast(resp.revokeGearBuildShare.error || t.gearCalcFailedText); return; }
+        setBuilds((prev) => prev.map((x) => (x.id === b.id ? { ...x, shareUrl: null } : x)));
+        syncLibrary();
+        gearToast(t.gearShareRevokedToast);
       },
       onError: () => gearToast(t.gearCalcFailedText),
     });
@@ -951,6 +998,18 @@ export default function GearLibrary(props: {
                     <BtnMini label={t.gearSchemeLoadLabel} onPress={() => loadScheme(b)} />
                     <BtnMini label={t.gearSchemeDeleteLabel} onPress={() => deleteScheme(b)} />
                   </View>
+                  <View style={{ flexDirection: 'row', gap: 6, marginTop: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                    <BtnMini label={t.gearShareLabel} onPress={() => shareScheme(b)} />
+                    {b.shareUrl ? (
+                      <>
+                        <BtnMini label={t.gearCopyLinkLabel} onPress={() => copyShareLink(b)} />
+                        <BtnMini label={t.gearRevokeShareLabel} onPress={() => revokeScheme(b)} />
+                      </>
+                    ) : null}
+                  </View>
+                  {b.shareUrl ? (
+                    <Text style={[s.buildMeta, { marginTop: 4 }]} numberOfLines={1}>{b.shareUrl}</Text>
+                  ) : null}
                 </View>
               ))}
             </View>

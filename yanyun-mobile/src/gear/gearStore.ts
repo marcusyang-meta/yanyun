@@ -205,6 +205,7 @@ export type SavedBuild = {
   bowKind: string; gradDingyinOn: boolean;
   snapTotal: number; snapA: number; snapB: number; snapD: number; snapLoan: number;
   snapYAcc: number; snapYCrit: number; snapYInt: number; snapDawai: number; snapXiaowai: number;
+  shareUrl: string | null;
 };
 
 /* Per-slot gear pool: the weapon pool includes main and off-hand weapon slots (same as Web) */
