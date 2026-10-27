@@ -1,20 +1,19 @@
 import { Suspense, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 import { graphql, useLazyLoadQuery, useMutation } from 'react-relay';
 import { theme } from '../lib/format';
 import { writePrefMirror, emitLocaleChanged } from '../lib/locale';
-import { refetchGearLibraryQueries } from '../lib/relay';
 import { useIsMobile } from '../lib/useIsMobile';
 import type { ViewerUser } from '../lib/user';
-import GearLibrary from '../guild/components/GearLibrary.react.tsx';
 
 // Profile surface (renamed/reworked from the old "Settings"): a modal dialog
 // on desktop (portal to body, reusing the .yy-modal-* system); at mobile
 // widths (<=640px) it becomes a full-screen push page. Contents = Discord
-// identity + language preference (stored server-side in users.locale_pref) +
-// my gear library / my builds (GearLibrary — the same implementation and D1
-// storage the gear bench uses). All copy comes from settingsPage / gradPage
-// gen fields.
+// identity + language preference (stored server-side in users.locale_pref)
+// + one entry row to the standalone gear library page (/gear) — the library
+// itself moved out of this dialog (it read as an appendix here, not a
+// library). All copy comes from settingsPage / gradPage gen fields.
 //
 // Selection state: the control's selected value = local pick override ??
 // query data. A click lands the local override first (the control reflects it
@@ -42,6 +41,9 @@ const SettingsDialogQueryNode = graphql`
       settingsSavedText
       localePref
       effectiveLocale
+    }
+    gradPage {
+      gearMyLibTitle
     }
   }
 `;
@@ -95,11 +97,7 @@ function SettingsDialogInner({ onClose, user }: { onClose: () => void; user: Vie
   const [picked, setPicked] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [saved, setSaved] = useState(false);
-
-  // Refetch the gear library query when the dialog closes (unmounts), so
-  // changes made here to the library/builds immediately reach a gear bench
-  // that may be open behind it (same GearLibraryQuery, same store).
-  useEffect(() => () => { void refetchGearLibraryQueries(); }, []);
+  const navigate = useNavigate();
 
   const serverCurrent: string = page.localePref ?? 'AUTO';
   useEffect(() => {
@@ -199,9 +197,19 @@ function SettingsDialogInner({ onClose, user }: { onClose: () => void; user: Vie
         <div style={{ color: '#e58d7f', fontSize: 13, marginTop: 14 }}>{error}</div>
       )}
       <div style={{ borderTop: '1px solid rgba(201,163,92,.22)', marginTop: 24, paddingTop: 18 }}>
-        <Suspense fallback={null}>
-          <GearLibrary mode="profile" />
-        </Suspense>
+        <button
+          data-gear-entry
+          onClick={() => { onClose(); navigate('/gear'); }}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            width: '100%', textAlign: 'left', padding: '11px 16px', borderRadius: 10, cursor: 'pointer',
+            background: 'rgba(255,255,255,.02)', border: '1px solid rgba(201,163,92,.25)',
+            color: theme.paper, fontSize: 14.5,
+          }}
+        >
+          <span>{data.gradPage?.gearMyLibTitle}</span>
+          <span style={{ color: theme.gold, fontSize: 19, lineHeight: 1 }}>›</span>
+        </button>
       </div>
     </>
   );
@@ -224,7 +232,7 @@ function SettingsDialogInner({ onClose, user }: { onClose: () => void; user: Vie
 
   return createPortal(
     <div className="yy-modal-overlay" onClick={onClose}>
-      <div className="yy-modal-panel" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 'min(880px, 94vw)' }}>
+      <div className="yy-modal-panel" onClick={(e) => e.stopPropagation()}>
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
           <div style={{
             flex: 1, fontFamily: "'Ma Shan Zheng', 'Noto Serif SC', serif",

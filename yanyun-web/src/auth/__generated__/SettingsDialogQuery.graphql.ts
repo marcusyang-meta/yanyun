@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<f3b9f2e0ef5847586ee4732ae5c2b499>>
+ * @generated SignedSource<<f807e1176bc438f36fe825b1bd7a23cb>>
  * @lightSyntaxTransform
  */
 
@@ -10,6 +10,9 @@
 import { ConcreteRequest } from 'relay-runtime';
 export type SettingsDialogQuery$variables = Record<PropertyKey, never>;
 export type SettingsDialogQuery$data = {
+  readonly gradPage: {
+    readonly gearMyLibTitle: string;
+  };
   readonly settingsPage: {
     readonly effectiveLocale: string;
     readonly localePref: string | null | undefined;
@@ -155,6 +158,24 @@ var v0 = [
       }
     ],
     "storageKey": null
+  },
+  {
+    "alias": null,
+    "args": null,
+    "concreteType": "GradPage",
+    "kind": "LinkedField",
+    "name": "gradPage",
+    "plural": false,
+    "selections": [
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "gearMyLibTitle",
+        "storageKey": null
+      }
+    ],
+    "storageKey": null
   }
 ];
 return {
@@ -175,16 +196,16 @@ return {
     "selections": (v0/*:: as any*/)
   },
   "params": {
-    "cacheID": "908cb30f64a43552def13b289819ef03",
+    "cacheID": "ac5324b366e4e01394c7f398e25a78af",
     "id": null,
     "metadata": {},
     "name": "SettingsDialogQuery",
     "operationKind": "query",
-    "text": "query SettingsDialogQuery {\n  viewer {\n    commonUnknownErrorText\n  }\n  settingsPage {\n    settingsTitle\n    settingsDiscordLabel\n    settingsLanguageLabel\n    settingsLanguageHint\n    settingsAutoLabel\n    settingsLangZhCnLabel\n    settingsLangZhTwLabel\n    settingsLangEnLabel\n    settingsLangEsLabel\n    settingsLangFrLabel\n    settingsSavedText\n    localePref\n    effectiveLocale\n  }\n}\n"
+    "text": "query SettingsDialogQuery {\n  viewer {\n    commonUnknownErrorText\n  }\n  settingsPage {\n    settingsTitle\n    settingsDiscordLabel\n    settingsLanguageLabel\n    settingsLanguageHint\n    settingsAutoLabel\n    settingsLangZhCnLabel\n    settingsLangZhTwLabel\n    settingsLangEnLabel\n    settingsLangEsLabel\n    settingsLangFrLabel\n    settingsSavedText\n    localePref\n    effectiveLocale\n  }\n  gradPage {\n    gearMyLibTitle\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "86465879b769242ad71c2ec4ea34ce07";
+(node as any).hash = "eec7fffcc702d9cace23ac3119ad1b83";
 
 export default node;
