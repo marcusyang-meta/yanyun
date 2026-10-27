@@ -168,6 +168,12 @@ importers:
       hono:
         specifier: ^4.13.13
         version: 4.13.14
+      statsig-node:
+        specifier: 6.5.2
+        version: 6.5.2
+      statsig-node-cloudflare-kv:
+        specifier: 1.2.2
+        version: 1.2.2(statsig-node@6.5.2)
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^5.20261026.1
@@ -718,6 +724,9 @@ packages:
     engines: {node: '>=16'}
     cpu: [x64]
     os: [win32]
+
+  '@cloudflare/workers-types@4.20260702.1':
+    resolution: {integrity: sha512-mOhf5TUEB1m2vPrxtqoIGfz0fUC9xyxRDx5gWHy5s+OCo6dcV+g7wI1R7gYCMFohhqF/2y2xeKVwMwCJjfn/WA==}
 
   '@cloudflare/workers-types@5.20261027.1':
     resolution: {integrity: sha512-ZYhpdIJbEzQL68kwHRTq/B0hyBsxB7wXR17LmUln7ReWE2kxQ1LD//aTM1K8Jk/MuNBeQY66QLc9izUIOLWWyg==}
@@ -4352,6 +4361,9 @@ packages:
   invariant@2.2.4:
     resolution: {integrity: sha512-phJfQVBuaJM5raOpJjSfkiD6BpbCE4Ns//LaXl6wGYtUBY83nWS6Rf9tXm2e8VaK60JEjYldbPif/A2B1C2gNA==}
 
+  ip3country@5.0.0:
+    resolution: {integrity: sha512-lcFLMFU4eO1Z7tIpbVFZkaZ5ltqpeaRx7L9NsAbA9uA7/O/rj3RF8+evE5gDitooaTTIqjdzZrenFO/OOxQ2ew==}
+
   is-array-buffer@3.0.5:
     resolution: {integrity: sha512-DDfANUiiG2wC1qawP66qlTugJeL5HyzMpfr8lLK+jMQirGzNod0B12cFB/9q838Ru27sBwfw78/rdoU7RERz6A==}
     engines: {node: '>= 0.4'}
@@ -5850,6 +5862,15 @@ packages:
   standard-navigation@0.0.5:
     resolution: {integrity: sha512-YAmzwAiiQVocZxO/VGPFiQHcu5pKiz09QIGC0MK6aRMoa3E0QkoTQgcqJr7ZZ3OMiNhu4DkaGElFI5htjOIDbw==}
 
+  statsig-node-cloudflare-kv@1.2.2:
+    resolution: {integrity: sha512-yS51Pp4D4yY6BeH7WuoN/aS4fDi8isGFroITbEv/UCoMNogoRosxGhyhFC4qiq7sWT1Rw6+55AP4loY4lf1TIA==}
+    peerDependencies:
+      statsig-node: 6.x
+
+  statsig-node@6.5.2:
+    resolution: {integrity: sha512-frYju9kWvHc61SkjisIe7/d6GCZd0a3zrL1P88rJl1fD6JB73AnoAd9cd1GUNcECzDth7l4UzPGvlJykI9fBvg==}
+    engines: {pnpm: never}
+
   statuses@1.5.0:
     resolution: {integrity: sha512-OpZ3zP+jT1PI7I8nemJX4AKmAX070ZkYPVWV/AaKTJl+tXCTGyVdC1a4SL8RUQYEwk/f34ZX8UTykN68FwrqAA==}
     engines: {node: '>= 0.6'}
@@ -7044,6 +7065,8 @@ snapshots:
   '@cloudflare/workerd-windows-64@1.20261023.1':
     optional: true
 
+  '@cloudflare/workers-types@4.20260702.1': {}
+
   '@cloudflare/workers-types@5.20261027.1': {}
 
   '@cspotcode/source-map-support@0.8.1':
@@ -7893,7 +7916,7 @@ snapshots:
       '@segment/loosely-validate-event': 2.0.0
       fetch-retry: 4.1.1
       md5: 2.3.0
-      node-fetch: 2.6.7
+      node-fetch: 2.7.0
       remove-trailing-slash: 0.1.1
       uuid: 8.3.2
     transitivePeerDependencies:
@@ -11075,6 +11098,8 @@ snapshots:
     dependencies:
       loose-envify: 1.4.0
 
+  ip3country@5.0.0: {}
+
   is-array-buffer@3.0.5:
     dependencies:
       call-bind: 1.0.9
@@ -12847,6 +12872,20 @@ snapshots:
       type-fest: 0.7.1
 
   standard-navigation@0.0.5: {}
+
+  statsig-node-cloudflare-kv@1.2.2(statsig-node@6.5.2):
+    dependencies:
+      '@cloudflare/workers-types': 4.20260702.1
+      statsig-node: 6.5.2
+
+  statsig-node@6.5.2:
+    dependencies:
+      ip3country: 5.0.0
+      node-fetch: 2.7.0
+      ua-parser-js: 1.0.41
+      uuid: 11.1.1
+    transitivePeerDependencies:
+      - encoding
 
   statuses@1.5.0: {}
 
