@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { theme } from '../lib/format';
 import type { ViewerUser } from '../lib/user';
 import SettingsDialog from './SettingsDialog.react.tsx';
+import type { AccountFlow } from './SettingsDialog.react.tsx';
 
 export interface UserBarText {
   logoutLabel: string;
@@ -14,6 +15,21 @@ export interface UserBarText {
 export default function UserBar({ user, text }: { user: ViewerUser; text: UserBarText }) {
   const [leaving, setLeaving] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [accountFlow, setAccountFlow] = useState<AccountFlow | null>(null);
+  // Return landing from a fresh-OAuth round trip started in the Profile
+  // dialog's My Data section: the returnTo carried ?accountflow=… —
+  // reopen the dialog with the flow so it resumes where it left off,
+  // then scrub the marker from the URL.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const flow = params.get('accountflow');
+    if (flow !== 'export' && flow !== 'delete') return;
+    setAccountFlow(flow);
+    setSettingsOpen(true);
+    params.delete('accountflow');
+    const qs = params.toString();
+    window.history.replaceState(null, '', window.location.pathname + (qs ? `?${qs}` : '') + window.location.hash);
+  }, []);
   const logout = async () => {
     setLeaving(true);
     try { await fetch('/auth/logout', { method: 'POST' }); } catch { /* navigate back to the login page either way */ }
@@ -44,7 +60,12 @@ export default function UserBar({ user, text }: { user: ViewerUser; text: UserBa
           borderRadius: 8, padding: '5px 12px', fontSize: 12.5, cursor: 'pointer',
         }}
       >{text.settingsLabel}</button>
-      <SettingsDialog open={settingsOpen} onClose={() => setSettingsOpen(false)} user={user} />
+      <SettingsDialog
+        open={settingsOpen}
+        onClose={() => { setSettingsOpen(false); setAccountFlow(null); }}
+        user={user}
+        initialFlow={accountFlow}
+      />
       <button
         onClick={logout}
         disabled={leaving}
