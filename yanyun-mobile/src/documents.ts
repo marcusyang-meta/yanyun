@@ -994,6 +994,12 @@ export const GearLibraryQuery = graphql`
       gearSchemeSavedToastTemplate
       gearSchemeLoadedToastTemplate
       gearSchemeGroupCountTemplate
+      gearShareLabel
+      gearRevokeShareLabel
+      gearCopyLinkLabel
+      gearShareRevokedToast
+      gearCopiedToast
+      gearCopyFailedToast
       gearSavedToastTemplate
       gearDemoLoadedToast
       gearDeletedToast
@@ -1052,6 +1058,7 @@ export const GearLibraryQuery = graphql`
       snapYInt
       snapDawai
       snapXiaowai
+      shareUrl
     }
   }
 `;
@@ -1106,6 +1113,7 @@ export const GearLibrarySaveBuildMutation = graphql`
         loadout { slot gearId } baseValues { key val } xinfa
         res extraAcc extraCrit extraInt bowKind gradDingyinOn
         snapTotal snapA snapB snapD snapLoan snapYAcc snapYCrit snapYInt snapDawai snapXiaowai
+        shareUrl
       }
     }
   }
@@ -1114,6 +1122,18 @@ export const GearLibrarySaveBuildMutation = graphql`
 export const GearLibraryDeleteBuildMutation = graphql`
   mutation documentsGearLibraryDeleteBuildMutation($id: Int!) {
     deleteGearBuild(id: $id) { ok error }
+  }
+`;
+
+export const GearLibraryShareBuildMutation = graphql`
+  mutation documentsGearLibraryShareBuildMutation($id: Int!) {
+    shareGearBuild(id: $id) { ok error shareUrl }
+  }
+`;
+
+export const GearLibraryRevokeShareMutation = graphql`
+  mutation documentsGearLibraryRevokeShareMutation($id: Int!) {
+    revokeGearBuildShare(id: $id) { ok error }
   }
 `;
 

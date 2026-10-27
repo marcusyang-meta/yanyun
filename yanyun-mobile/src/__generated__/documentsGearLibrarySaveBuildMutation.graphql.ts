@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<f5c1fb4f3b0bf3cbc7e534f67aa999bc>>
+ * @generated SignedSource<<8b923ccbc2f0365a6f0d63137c077dc6>>
  * @lightSyntaxTransform
  */
 
@@ -53,6 +53,7 @@ export type documentsGearLibrarySaveBuildMutation$data = {
       readonly name: string;
       readonly res: number;
       readonly school: string;
+      readonly shareUrl: string | null | undefined;
       readonly snapA: number;
       readonly snapB: number;
       readonly snapD: number;
@@ -323,6 +324,13 @@ v1 = [
             "kind": "ScalarField",
             "name": "snapXiaowai",
             "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "shareUrl",
+            "storageKey": null
           }
         ],
         "storageKey": null
@@ -349,16 +357,16 @@ return {
     "selections": (v1/*:: as any*/)
   },
   "params": {
-    "cacheID": "6830dd9e44a6245ec21ebd1f1f300f3a",
+    "cacheID": "91b1b120b758e7bbb1714aa43da58c07",
     "id": null,
     "metadata": {},
     "name": "documentsGearLibrarySaveBuildMutation",
     "operationKind": "mutation",
-    "text": "mutation documentsGearLibrarySaveBuildMutation(\n  $input: GearBuildSaveInput!\n) {\n  saveGearBuild(input: $input) {\n    ok\n    error\n    build {\n      id\n      name\n      targetIdx\n      buildLabel\n      school\n      loadout {\n        slot\n        gearId\n      }\n      baseValues {\n        key\n        val\n      }\n      xinfa\n      res\n      extraAcc\n      extraCrit\n      extraInt\n      bowKind\n      gradDingyinOn\n      snapTotal\n      snapA\n      snapB\n      snapD\n      snapLoan\n      snapYAcc\n      snapYCrit\n      snapYInt\n      snapDawai\n      snapXiaowai\n    }\n  }\n}\n"
+    "text": "mutation documentsGearLibrarySaveBuildMutation(\n  $input: GearBuildSaveInput!\n) {\n  saveGearBuild(input: $input) {\n    ok\n    error\n    build {\n      id\n      name\n      targetIdx\n      buildLabel\n      school\n      loadout {\n        slot\n        gearId\n      }\n      baseValues {\n        key\n        val\n      }\n      xinfa\n      res\n      extraAcc\n      extraCrit\n      extraInt\n      bowKind\n      gradDingyinOn\n      snapTotal\n      snapA\n      snapB\n      snapD\n      snapLoan\n      snapYAcc\n      snapYCrit\n      snapYInt\n      snapDawai\n      snapXiaowai\n      shareUrl\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "c7f9ca0b111527f06547146791a4ee47";
+(node as any).hash = "c5e00ab967d9871f3498d3c1cde2c9ad";
 
 export default node;
