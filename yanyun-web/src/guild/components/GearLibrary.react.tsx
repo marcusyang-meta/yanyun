@@ -75,6 +75,7 @@ const libraryQuery = graphql`
       gearImportLabel
       gearImportFailedToast
       gearImportedToastTemplate
+      gearManualTitle
       gearPasteTitle
       gearPastePlaceholder
       gearPasteButtonLabel
@@ -269,6 +270,10 @@ const btnMini: React.CSSProperties = {
   background: 'transparent', border: `1px solid ${theme.gold}`, color: theme.goldHi,
 };
 const secTitle: React.CSSProperties = { color: theme.goldHi, fontSize: 15, marginBottom: 8 };
+const btnQuiet: React.CSSProperties = {
+  fontSize: 11.5, padding: '2px 4px', background: 'none', border: 'none', color: theme.muted,
+  cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: 3,
+};
 const card: React.CSSProperties = {
   border: '1px solid rgba(201,163,92,.22)', borderRadius: 10, padding: '10px 12px', background: 'rgba(0,0,0,.25)',
 };
@@ -434,6 +439,17 @@ export default function GearLibrary(props: {
   });
   const [form, setForm] = useState<FormState>(blankForm);
   const [libFilter, setLibFilter] = useState('');
+  // Immersive layering: every ingress path (paste / OCR / manual form)
+  // lives one level down in a single add panel, closed by default, so the
+  // item grid is the library's first screen. One panel, three modes; every
+  // mode is one tap from the 存入装备库 button in the header.
+  type AddMode = 'paste' | 'ocr' | 'manual';
+  const [addMode, setAddMode] = useState<AddMode | null>(null);
+  const scrollToAddPanel = () => {
+    requestAnimationFrame(() => {
+      document.getElementById('yy-gear-add-panel')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  };
 
   const startEdit = (g: GearItem) => {
     const rows = g.lines.map((l) => ({ key: l.key, val: String(l.val) }));
@@ -443,6 +459,8 @@ export default function GearLibrary(props: {
       dyName: g.dingyin ? g.dingyin.name : '', dyVal: g.dingyin ? String(g.dingyin.val) : '',
       schools: [...g.schools],
     });
+    setAddMode('manual');
+    scrollToAddPanel();
   };
   const submitForm = () => {
     const lines = form.rows
@@ -621,6 +639,7 @@ export default function GearLibrary(props: {
     if (!slot) slot = '武器';
     const rows: Array<{ key: string; val: string; conf?: number }> = parsed.lines.map((l) => ({ key: l.key, val: String(l.val), conf: l.conf }));
     while (rows.length < 5) rows.push({ key: '', val: '' });
+    setAddMode('ocr');
     setReview({
       slot, name: parsed.name || '', rows,
       dyName: parsed.dingyin ? parsed.dingyin.name : '',
@@ -644,6 +663,7 @@ export default function GearLibrary(props: {
       const f = item?.getAsFile();
       if (f) {
         e.preventDefault();
+        setAddMode('ocr');
         if (batchEnqueueRef.current) batchEnqueueRef.current([f]);
         else startOcr(f);
       }
@@ -658,8 +678,9 @@ export default function GearLibrary(props: {
     if (mode !== 'bench') return undefined;
     return onOcrSlotRequest((pos) => {
       setOcrPreferredSlot(pos);
-      ocrZoneRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      ocrFileRef.current?.click();
+      setAddMode('ocr');
+      scrollToAddPanel();
+      setTimeout(() => ocrFileRef.current?.click(), 80);
     });
   }, [mode]);
   const confirmReview = () => {
@@ -812,20 +833,32 @@ export default function GearLibrary(props: {
       {!loggedIn && (
         <div style={{ ...card, color: theme.goldHi, fontSize: 12.5, marginBottom: 10 }}>{t.gearLoginHint}</div>
       )}
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
         <span style={secTitle}>{libHeading}</span>
         <span style={{ color: theme.muted, fontSize: 12 }}>{fill(t.gearLibCountTemplate, { n: items.length })}</span>
+        <button
+          style={{ ...btnGold, marginLeft: 'auto', padding: '6px 14px', fontSize: 12.5, ...(addMode ? { boxShadow: 'inset 0 0 0 2px rgba(26,24,20,.5)' } : {}) }}
+          disabled={!loggedIn}
+          onClick={() => (addMode ? setAddMode(null) : setAddMode('paste'))}
+        >{t.gearAddGearLabel}</button>
       </div>
-      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
-        <button style={btnGhost} disabled={!loggedIn} onClick={loadDemo}>{t.gearDemoLabel}</button>
-        <button style={btnGhost} onClick={exportFile}>{t.gearExportLabel}</button>
-        <button style={btnGhost} disabled={!loggedIn} onClick={() => fileRef.current?.click()}>{t.gearImportLabel}</button>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '0 0 10px', alignItems: 'center' }}>
+        <button style={btnQuiet} disabled={!loggedIn} onClick={loadDemo}>{t.gearDemoLabel}</button>
+        <button style={btnQuiet} onClick={exportFile}>{t.gearExportLabel}</button>
+        <button style={btnQuiet} disabled={!loggedIn} onClick={() => fileRef.current?.click()}>{t.gearImportLabel}</button>
         <input ref={fileRef} type="file" accept=".json,application/json" style={{ display: 'none' }}
           onChange={(e) => { const f = e.target.files?.[0]; if (f) onImportFile(f); e.target.value = ''; }} />
-        <button style={btnGhost} disabled={!loggedIn || !items.length} onClick={() => setConfirmClear(true)}>{t.gearClearLibLabel}</button>
+        <button style={btnQuiet} disabled={!loggedIn || !items.length} onClick={() => setConfirmClear(true)}>{t.gearClearLibLabel}</button>
       </div>
-      <div style={card}>
-        <div style={{ color: theme.goldHi, fontSize: 13, marginBottom: 6 }}>{t.gearPasteTitle}</div>
+      {addMode && (
+      <div id="yy-gear-add-panel" ref={ocrZoneRef} style={{ ...card, marginBottom: 10 }}>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
+          {([['paste', t.gearPasteTitle], ['ocr', t.gearOcrTitle], ['manual', t.gearManualTitle]] as const).map(([m, label]) => (
+            <button key={m} onClick={() => setAddMode(m)}
+              style={{ ...btnMini, ...(addMode === m ? { background: theme.gold, color: '#1a1814', fontWeight: 600 } : {}) }}>{label}</button>
+          ))}
+        </div>
+        {addMode === 'paste' && (<>
         <textarea
           style={{ ...inp, minHeight: 54, resize: 'vertical' }} value={pasteText}
           onChange={(e) => setPasteText(e.target.value)} placeholder={t.gearPastePlaceholder}
@@ -834,10 +867,9 @@ export default function GearLibrary(props: {
           <button style={btnGold} disabled={!loggedIn} onClick={runPaste}>{t.gearPasteButtonLabel}</button>
           <button style={btnGhost} onClick={fillDemoPaste}>{t.gearPasteDemoLabel}</button>
         </div>
-      </div>
+        </>)}
 
-      <div ref={ocrZoneRef} style={{ ...card, marginTop: 10 }}>
-        <div style={{ color: theme.goldHi, fontSize: 13, marginBottom: 4 }}>{t.gearOcrTitle}</div>
+        {addMode === 'ocr' && (<>
         <div
           onClick={() => ocrFileRef.current?.click()}
           onDragOver={(e) => e.preventDefault()}
@@ -914,18 +946,9 @@ export default function GearLibrary(props: {
             </div>
           </div>
         )}
-        <GearOcrBatch
-          t={t}
-          maps={ocrMaps}
-          items={items}
-          loggedIn={loggedIn}
-          engine={props.ocrEngine}
-          registerEnqueue={registerBatchEnqueue}
-          onImport={(list, onDone) => importItems(list, (added) => onDone(added.length))}
-        />
-      </div>
+        </>)}
 
-      <div style={{ ...card, marginTop: 10 }}>
+        {addMode === 'manual' && (<>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: 8 }}>
           <label><span style={lbl}>{t.gearFormSlotLabel}</span>
             <select style={sel} value={form.slot} onChange={(e) => setForm({ ...form, slot: e.target.value })}>
@@ -984,6 +1007,22 @@ export default function GearLibrary(props: {
           <button style={btnGold} disabled={!loggedIn} onClick={submitForm}>{form.id != null ? t.gearUpdateGearLabel : t.gearAddGearLabel}</button>
           {form.id != null && <button style={btnGhost} onClick={() => setForm(blankForm())}>{t.gearCancelEditLabel}</button>}
         </div>
+        </>)}
+      </div>
+      )}
+      {/* The batch recognizer stays mounted in every state: the document-level
+          Ctrl+V image paste routes into its queue even while the panel is
+          closed (the paste handler opens OCR mode so the queue is visible). */}
+      <div style={addMode === 'ocr' ? { ...card, marginBottom: 10 } : { display: 'none' }}>
+        <GearOcrBatch
+          t={t}
+          maps={ocrMaps}
+          items={items}
+          loggedIn={loggedIn}
+          engine={props.ocrEngine}
+          registerEnqueue={registerBatchEnqueue}
+          onImport={(list, onDone) => importItems(list, (added) => onDone(added.length))}
+        />
       </div>
 
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', margin: '12px 0 8px' }}>
@@ -998,34 +1037,59 @@ export default function GearLibrary(props: {
           const ev = props.evalById?.get(g.id);
           const pos = mode === 'bench' ? equippedPosOf(g.id) : null;
           const isHeirloom = ev?.verdict === 'heirloom';
+          // Tooltip caliber: the line closest to (or past) its Chengyin value
+          // is the item's main affix and leads the card; attainment rides on
+          // color (a value at or past Chengyin prints gold), so the raw
+          // reference value no longer tails every row like a data table.
+          let mainIdx = -1;
+          let mainRatio = -1;
+          g.lines.forEach((l, ix) => {
+            const a = affixByKey.get(l.key);
+            if (a && a.cy > 0) {
+              const r = l.val / a.cy;
+              if (r > mainRatio) { mainRatio = r; mainIdx = ix; }
+            }
+          });
+          const topTier = mainRatio >= 1 || (ev ? ev.quality >= 0.9 : false);
+          const lineRow = (l: { key: string; val: number }, ix: number) => {
+            const a = affixByKey.get(l.key);
+            const isMain = ix === mainIdx;
+            const atCy = a ? l.val >= a.cy : false;
+            return (
+              <div key={ix} style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'baseline' }}>
+                <span style={isMain ? { color: theme.goldHi, fontWeight: 700 } : undefined}>{a ? a.label : l.key}</span>
+                <b style={{ color: atCy || isMain ? theme.goldHi : theme.paper, fontWeight: isMain ? 800 : 600 }}>{fmt1(l.val)}</b>
+              </div>
+            );
+          };
           return (
             <div
               key={g.id}
               style={card}
-              className={'yy-gear-card' + (isHeirloom ? ' heirloom' : '')}
+              className={'yy-gear-card' + (isHeirloom ? ' heirloom' : '') + (!isHeirloom && topTier ? ' q-top' : '')}
               onClick={isHeirloom ? (e) => { heirloomDustFromClick(e); } : undefined}
             >
               {isHeirloom && <JadePendant />}
-              <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
-                <b style={{ color: theme.goldHi, fontSize: 13.5 }}>{g.name || g.slot}</b>
-                <span style={{ color: theme.muted, fontSize: 11 }}>{g.slot}</span>
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                <span style={{ color: theme.muted, fontSize: 11, letterSpacing: 2 }}>{g.slot}</span>
                 {pos && <span style={{ color: '#9dc08b', fontSize: 11 }}>{t.gearEquippedTag} · {pos}</span>}
                 {ev && (
-                  <VerdictSeal verdict={ev.verdict} heirloomLabel={t.gearVerdictHeirloom} dudLabel={t.gearVerdictDud} />
-                )}
-                {ev && (
-                  <span style={{ marginLeft: 'auto', color: theme.muted, fontSize: 12 }}>
-                    <span style={{ color: theme.goldHi, fontWeight: 700 }}>{fill(t.gearScoreTemplate, { score: ev.score })}</span>
-                    {' · '}{t.gearQualityLabel} {Math.round(ev.quality * 100)}%
+                  <span style={{ marginLeft: 'auto' }}>
+                    <VerdictSeal verdict={ev.verdict} heirloomLabel={t.gearVerdictHeirloom} dudLabel={t.gearVerdictDud} />
                   </span>
                 )}
               </div>
-              <div style={{ marginTop: 5, fontSize: 12, lineHeight: 1.75, color: theme.paper }}>
-                {g.lines.map((l, i) => {
-                  const a = affixByKey.get(l.key);
-                  return <div key={i}>{a ? a.label : l.key} <b>{fmt1(l.val)}</b>{a ? <span style={{ color: theme.muted }}> / {fmt1(a.cy)}</span> : null}</div>;
-                })}
-                {g.dingyin && <div style={{ color: theme.goldHi }}>{g.dingyin.name} {fmt1(g.dingyin.val)}</div>}
+              <div style={{ fontFamily: 'var(--font-serif)', color: theme.goldHi, fontSize: 15.5, fontWeight: 700, marginTop: 2, letterSpacing: 1 }}>
+                {g.name || g.slot}
+              </div>
+              <div style={{ marginTop: 6, fontSize: 12.5, lineHeight: 1.85, color: theme.paper }}>
+                {mainIdx >= 0 && lineRow(g.lines[mainIdx], mainIdx)}
+                {g.lines.map((l, ix) => (ix === mainIdx ? null : lineRow(l, ix)))}
+                {g.dingyin && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, color: theme.goldHi }}>
+                    <span>{g.dingyin.name}</span><b>{fmt1(g.dingyin.val)}</b>
+                  </div>
+                )}
               </div>
               {g.warnings.length > 0 && <div style={{ color: theme.seal, fontSize: 11, marginTop: 3 }}>{g.warnings.join('；')}</div>}
               {g.slot === '武器' && (
@@ -1043,6 +1107,11 @@ export default function GearLibrary(props: {
                       }} style={{ ...btnMini, padding: '1px 7px', fontSize: 11, background: on ? theme.gold : 'transparent', color: on ? '#1a1814' : theme.muted }}>{tag}</button>
                     );
                   })}
+                </div>
+              )}
+              {ev && (
+                <div style={{ color: theme.muted, fontSize: 11, marginTop: 6 }}>
+                  {fill(t.gearScoreTemplate, { score: ev.score })} · {t.gearQualityLabel} {Math.round(ev.quality * 100)}%
                 </div>
               )}
               <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 8, alignItems: 'center' }}>
@@ -1080,43 +1149,37 @@ export default function GearLibrary(props: {
       {builds.length === 0 ? (
         <div style={{ color: theme.muted, fontSize: 12.5 }}>{t.gearSchemeEmptyText}</div>
       ) : (
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: 560, fontSize: 12.5, color: theme.paper }}>
-            <thead>
-              <tr style={{ color: theme.muted, fontSize: 11.5 }}>
-                <th style={{ textAlign: 'left', padding: '5px 7px' }}>{t.gearFormNameLabel}</th>
-                <th style={{ textAlign: 'left', padding: '5px 7px' }}>{t.gearTargetLabel}</th>
-                <th style={{ textAlign: 'left', padding: '5px 7px' }}>{t.gearGradLabel}</th>
-                <th style={{ textAlign: 'left', padding: '5px 7px' }}>{t.gearYAccLabel}/{t.gearYCritLabel}/{t.gearYIntLabel}</th>
-                <th style={{ padding: '5px 7px' }}></th>
-              </tr>
-            </thead>
-            <tbody>
-              {buildGroups.map((g, gi) => (
-                <Fragment key={g.school}>
-                  <tr data-school-group={g.school} style={{ borderTop: gi === 0 ? undefined : '1px solid rgba(201,163,92,.28)' }}>
-                    <td colSpan={5} style={{ padding: gi === 0 ? '9px 7px 3px' : '15px 7px 3px' }}>
-                      <span style={{ color: theme.goldHi, fontWeight: 700, fontSize: 13.5 }}>{g.school}</span>
-                      <span style={{ color: theme.muted, fontSize: 11.5, marginLeft: 8 }}>{fill(t.gearSchemeGroupCountTemplate, { n: g.list.length })}</span>
-                    </td>
-                  </tr>
-                  {g.list.map((b) => (
-                    <tr key={b.id} data-build-school={b.school} style={{ borderTop: '1px solid rgba(201,163,92,.12)' }}>
-                      <td style={{ padding: '6px 7px', color: theme.goldHi }}>{b.name}</td>
-                      <td style={{ padding: '6px 7px' }}>{b.buildLabel}</td>
-                      <td style={{ padding: '6px 7px' }}>{pct1(b.snapTotal)}（{pct1(b.snapA)}/{pct1(b.snapB)}/{pct1(b.snapD)}）</td>
-                      <td style={{ padding: '6px 7px' }}>{pct1(b.snapYAcc)} / {pct1(b.snapYCrit)} / {pct1(b.snapYInt)}</td>
-                      <td style={{ padding: '6px 7px', whiteSpace: 'nowrap' }}>
-                        <button style={btnMini} onClick={() => loadScheme(b)}>{t.gearSchemeLoadLabel}</button>{' '}
-                        <button style={btnMini} onClick={() => deleteScheme(b)}>{t.gearSchemeDeleteLabel}</button>
-                      </td>
-                    </tr>
-                  ))}
-                </Fragment>
+        buildGroups.map((g) => (
+          <Fragment key={g.school}>
+            <div data-school-group={g.school} style={{ display: 'flex', alignItems: 'baseline', gap: 8, margin: '14px 0 8px' }}>
+              <span style={{ color: theme.goldHi, fontWeight: 700, fontSize: 13.5 }}>{g.school}</span>
+              <span style={{ color: theme.muted, fontSize: 11.5 }}>{fill(t.gearSchemeGroupCountTemplate, { n: g.list.length })}</span>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(250px,1fr))', gap: 9 }}>
+              {g.list.map((b) => (
+                <div key={b.id} data-build-school={b.school} style={card}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
+                    <b style={{ color: theme.goldHi, fontSize: 14 }}>{b.name}</b>
+                    <span style={{ color: theme.muted, fontSize: 11.5 }}>{b.buildLabel}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 6 }}>
+                    <span style={{ fontFamily: 'var(--font-serif)', color: theme.goldHi, fontSize: 23, fontWeight: 700 }}>{pct1(b.snapTotal)}</span>
+                    <span style={{ color: theme.muted, fontSize: 11.5 }}>{t.gearGradLabel}</span>
+                  </div>
+                  <div style={{ color: theme.muted, fontSize: 11.5, marginTop: 3, lineHeight: 1.7 }}>
+                    {t.gearGradLabel} {pct1(b.snapA)} / {pct1(b.snapB)} / {pct1(b.snapD)}
+                    <br />
+                    {t.gearYAccLabel} {pct1(b.snapYAcc)} · {t.gearYCritLabel} {pct1(b.snapYCrit)} · {t.gearYIntLabel} {pct1(b.snapYInt)}
+                  </div>
+                  <div style={{ display: 'flex', gap: 5, marginTop: 9 }}>
+                    <button style={btnMini} onClick={() => loadScheme(b)}>{t.gearSchemeLoadLabel}</button>
+                    <button style={btnMini} onClick={() => deleteScheme(b)}>{t.gearSchemeDeleteLabel}</button>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
-        </div>
+            </div>
+          </Fragment>
+        ))
       )}
 
       {confirmClear && (
