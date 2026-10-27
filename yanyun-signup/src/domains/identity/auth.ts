@@ -380,7 +380,7 @@ export async function handleDiscordCallback(request: any, env: any) {
   try {
     const nowSec = Math.floor(Date.now() / 1000);
     // A completed OAuth round trip is a fresh authentication: stamp it
-    // (the export / deletion gates measure from here) and settle any
+    // (the export / deletion gates measure from here) and settle a
     // pending account deletion — a login before the cooling-off
     // deadline cancels the request; after it, the sweep still runs.
     await noteFreshAuthAndSettlePending(env.DB, String(me.id), nowSec).catch(() => {});

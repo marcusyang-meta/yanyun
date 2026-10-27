@@ -154,9 +154,9 @@ export async function orphanGroupingTemplatesByCreator(
   const db = createDb(d1);
   // SET LHS / WHERE use bare column names (SQLite syntax); see the
   // settings.ts note — table-qualified columns are invalid in UPDATE.
-  const r: any = await db.run(
+  const r = await db.run(
     sql`UPDATE ${groupingTemplates} SET ${sql.identifier('creator_discord_id')} = NULL
         WHERE ${sql.identifier('creator_discord_id')} = ${discordId}`,
   );
-  return Number(r?.meta?.changes ?? 0);
+  return metaOf(r).changes;
 }

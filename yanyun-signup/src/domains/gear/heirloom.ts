@@ -73,11 +73,22 @@ export async function listHeirloomStateByUser(
 /** Deletion Q5: dedupe state is hard-deleted with the account; if the
  * same Discord account ever re-registers it starts fresh, so an old
  * heirloom may be announced once more — accepted by design. */
+
+interface RunMeta {
+  changes: number;
+  last_row_id: number;
+}
+
+function metaOf(r: unknown): RunMeta {
+  const m = (r as { meta?: { changes?: number; last_row_id?: number } } | null)?.meta;
+  return { changes: m?.changes ?? 0, last_row_id: m?.last_row_id ?? 0 };
+}
+
 export async function deleteHeirloomStateByUser(
   d1: D1Database, discordId: string,
 ): Promise<{ pushes: number; setState: number }> {
   const db = createDb(d1);
-  const a: any = await db.run(sql`DELETE FROM ${heirloomItemPushes} WHERE ${col('discord_id')} = ${discordId}`);
-  const b: any = await db.run(sql`DELETE FROM ${heirloomSetState} WHERE ${col('discord_id')} = ${discordId}`);
-  return { pushes: Number(a?.meta?.changes ?? 0), setState: Number(b?.meta?.changes ?? 0) };
+  const a = await db.run(sql`DELETE FROM ${heirloomItemPushes} WHERE ${col('discord_id')} = ${discordId}`);
+  const b = await db.run(sql`DELETE FROM ${heirloomSetState} WHERE ${col('discord_id')} = ${discordId}`);
+  return { pushes: metaOf(a).changes, setState: metaOf(b).changes };
 }
