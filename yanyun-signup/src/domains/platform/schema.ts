@@ -1,7 +1,9 @@
 // Drizzle entity definitions for the platform domain.
 // Modeled on the production schema as it exists today (see the barrel
-// at src/db/schema.ts for the attestation legend); structural change
-// still goes through Worker-side lazy DDL, never drizzle-kit.
+// at src/db/schema.ts for the attestation legend). Structural change
+// goes through the wrangler migration chain in migrations/ — never
+// through runtime DDL; the CI drift gate keeps this model and the
+// chain in lockstep.
 import { sql } from 'drizzle-orm';
 import {
   blob,
