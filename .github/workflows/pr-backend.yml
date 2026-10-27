@@ -127,23 +127,7 @@ jobs:
             echo "::warning::could not extract the base schema; the schema-readiness wait will be skipped"
             rm -f "$RUNNER_TEMP/base-schema.graphql"
           fi
-      # A freshly published preview version takes minutes to activate
-      # everywhere; until then, fields the PR added answer
-      # `Cannot query field` from stale isolates and the probes/smoke
-      # below report a false red. Wait (bounded, fail-loud) until the
-      # preview serves the PR's schema delta. No delta -> instant skip.
-      - name: Schema readiness (wait for the preview to serve the PR schema)
-        run: >-
-          node yanyun-signup/scripts/ci/schema-readiness.mjs
-          --base https://release-yanyun.tbdlab.workers.dev
-          --schema packages/schema/schema.graphql
-          --base-schema "$RUNNER_TEMP/base-schema.graphql"
-      - name: Preview probes (HTTP + GraphQL, read-only)
-        run: >-
-          node yanyun-signup/scripts/ci/probes.mjs
-          --base https://release-yanyun.tbdlab.workers.dev
-          --tenant jijiguagua --list-tenant demo --also-tenant demo
-      - name: Prepare Chromium for the render smoke
+      - name: Prepare Chromium (schema readiness browser segment + render smoke)
         run: |
           if command -v google-chrome >/dev/null 2>&1; then
             echo "CHROME_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
@@ -152,6 +136,26 @@ jobs:
           else
             pnpm dlx playwright@1.57.0 install --with-deps chromium
           fi
+      # A freshly published preview version takes minutes to activate
+      # everywhere; until then, fields the PR added answer
+      # `Cannot query field` from stale isolates and the probes/smoke
+      # below report a false red. Wait (bounded, fail-loud) until the
+      # preview serves the PR's schema delta — on the direct channel AND
+      # in the browser channel (the activation lag is per-channel; the
+      # render smoke lives in the browser one). One shared 10-minute
+      # budget covers both segments. No delta -> instant skip.
+      - name: Schema readiness (wait for the preview to serve the PR schema)
+        run: >-
+          node yanyun-signup/scripts/ci/schema-readiness.mjs
+          --base https://release-yanyun.tbdlab.workers.dev
+          --schema packages/schema/schema.graphql
+          --base-schema "$RUNNER_TEMP/base-schema.graphql"
+          --browser
+      - name: Preview probes (HTTP + GraphQL, read-only)
+        run: >-
+          node yanyun-signup/scripts/ci/probes.mjs
+          --base https://release-yanyun.tbdlab.workers.dev
+          --tenant jijiguagua --list-tenant demo --also-tenant demo
       - name: Render smoke (real Chromium, anonymous pages)
         run: >-
           node yanyun-signup/scripts/ci/render-smoke.mjs
@@ -163,7 +167,7 @@ jobs:
           {
             echo "## pr-backend preview"
             echo "- preview: https://release-yanyun.tbdlab.workers.dev (shared \`release\` preview, serialized by the workflow concurrency group)"
-            echo "- schema readiness: bounded wait until the preview serves the PR's schema delta (absorbs Cloudflare version-activation lag; no delta = skipped)"
+            echo "- schema readiness: bounded wait until the preview serves the PR's schema delta on the direct AND browser channels (absorbs Cloudflare version-activation lag, which is per-channel; no delta = skipped)"
             echo "- probes: SPA shell, legalPage x5 locales + TERMS, tenant directory, grouping list/detail, avatar 404 shape"
             echo "- render smoke (anonymous): \`/\` shows 'Discord', \`/demo\` shows the server-driven login gate ('百业集结'), \`/privacy\` shows '隐私政策'; zero JS exceptions required on all three"
           } >> "$GITHUB_STEP_SUMMARY"
