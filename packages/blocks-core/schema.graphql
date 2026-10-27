@@ -1178,6 +1178,7 @@ type Mutation {
   updateGuildDiscord(slug: String!, input: UpdateGuildDiscordInput!): GuildAdminPayload!
   updateGuildReminderSettings(slug: String!, offsets: [Int!]!, customText: String): GuildAdminPayload!
   updateGuildWhiteLabel(slug: String!, hideBranding: Boolean!, ogAccent: String!, ogTitleSuffix: String): GuildAdminPayload!
+  updateGuildSubdomain(slug: String!, enabled: Boolean!): GuildAdminPayload!
   startPremiumCheckout(slug: String!): GuildAdminPayload!
   updateGuildVisibility(slug: String!, devOnly: Boolean!): GuildAdminPayload!
   setGuildAvatar(slug: String!, dataBase64: String!): GuildAdminPayload!
@@ -1498,6 +1499,9 @@ type GuildAdmin {
   ogAccent: String!
   ogTitleSuffix: String!
   ogAccentOptions: [GuildAdminOgAccentOption!]!
+  subdomainEnabled: Boolean!
+  subdomainUrl: String!
+  subdomainCallbackUrl: String!
   pageFooterDisclaimerText: String
   devOnly: Boolean!
   gameVersion: String!
@@ -1601,6 +1605,11 @@ type GuildAdmin {
   adminOgAccentLabel: String!
   adminOgTitleSuffixLabel: String!
   adminOgTitleSuffixHint: String!
+  adminSubdomainTitle: String!
+  adminSubdomainLabel: String!
+  adminSubdomainAddressLabel: String!
+  adminSubdomainCallbackLabel: String!
+  adminSubdomainNote: String!
   adminBillingSuccessText: String!
   adminBillingCanceledText: String!
   adminPremiumTitle: String!
