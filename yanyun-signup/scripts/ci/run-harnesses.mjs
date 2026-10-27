@@ -1,5 +1,5 @@
-// CI runner for all 17 backend harness suites (.harness-*).
-// Fourteen suites run in-process against FakeDB. Two need a real wrangler dev:
+// CI runner for all 22 backend harness suites (.harness-*).
+// Twenty suites run in-process against FakeDB. Two need a real wrangler dev:
 //   - push: boots its own dev server on :8797, needs ../.dev.vars (SESSION_SECRET)
 //   - heirloom: needs a dev server on :8799, a seeded local D1 (livetest
 //     tenant + user 2001 + user_oauth row) and a session JWT in
