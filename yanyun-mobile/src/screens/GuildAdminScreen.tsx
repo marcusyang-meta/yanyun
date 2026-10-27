@@ -16,7 +16,7 @@ import {
   adminDeleteEvent, adminDeleteResult, adminRemoveSignup,
   adminSetAvatar, adminUpdateDiscord, adminUpdateEvent, adminUpdateGuide,
   adminUpdateProfile, adminUpdateReminderSettings, adminUpdateVisibility,
-  adminUpdateWhiteLabel,
+  adminUpdateSubdomain, adminUpdateWhiteLabel,
   type AdminPayload,
 } from '../api';
 import type { documentsGuildAdminQuery } from '../__generated__/documentsGuildAdminQuery.graphql';
@@ -349,6 +349,22 @@ function DiscordPanel({ admin, run }: {
         <Text style={s.muted}>{admin.adminOgTitleSuffixHint}</Text>
         <SaveBtn label={admin.adminSaveLabel} savedLabel={admin.adminSavedText}
           onSave={() => run(adminUpdateWhiteLabel(slug, wlHide, wlAccent, wlSuffix))} />
+      </View>
+
+      <Text style={s.sectionTitle}>{admin.adminSubdomainTitle}</Text>
+      <View style={s.card}>
+        <View style={s.switchRow}>
+          <Text style={s.switchLabel}>{admin.adminSubdomainLabel}</Text>
+          <Switch value={!!admin.subdomainEnabled}
+            onValueChange={(v) => run(adminUpdateSubdomain(slug, v))} />
+        </View>
+        <Field label={admin.adminSubdomainAddressLabel}>
+          <TInput value={admin.subdomainUrl ?? ''} editable={false} autoCapitalize="none" />
+        </Field>
+        <Field label={admin.adminSubdomainCallbackLabel}>
+          <TInput value={admin.subdomainCallbackUrl ?? ''} editable={false} autoCapitalize="none" />
+        </Field>
+        <Text style={s.muted}>{admin.adminSubdomainNote}</Text>
       </View>
     </View>
   );
