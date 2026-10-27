@@ -1,7 +1,8 @@
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { graphql, useLazyLoadQuery, useMutation } from 'react-relay';
+import { graphql, useLazyLoadQuery, useMutation, useRelayEnvironment } from 'react-relay';
+import { fetchQuery } from 'relay-runtime';
 import { theme } from '../lib/format';
 import { writePrefMirror, emitLocaleChanged } from '../lib/locale';
 import { useIsMobile } from '../lib/useIsMobile';
@@ -41,9 +42,70 @@ const SettingsDialogQueryNode = graphql`
       settingsSavedText
       localePref
       effectiveLocale
+      accountSectionTitle
+      accountExportLabel
+      accountExportHint
+      accountDeleteLabel
+      accountDeleteHint
+      accountReauthLabel
+      accountReauthHint
+      accountConfirmTitle
+      accountConfirmIntro
+      accountConsequenceCars
+      accountConsequenceData
+      accountConsequenceGuilds
+      accountConsequenceResidual
+      accountConsequenceReregister
+      accountExportFirstHint
+      accountUsernameLabel
+      accountSubmitLabel
+      accountBackLabel
+      accountCancelDeletionLabel
+      accountDeletionRequestedText
+      accountDeletionCancelledText
+      freshAuthAt
+      accountPendingDeletion {
+        executesAt
+        daysLeft
+        accountPendingTitle
+        accountPendingBody
+      }
     }
     gradPage {
       gearMyLibTitle
+    }
+  }
+`;
+
+const SettingsExportMutationNode = graphql`
+  mutation SettingsDialogExportMutation {
+    exportMyData {
+      ok
+      error
+      errorCode
+      json
+      filename
+    }
+  }
+`;
+
+const SettingsRequestDeletionMutationNode = graphql`
+  mutation SettingsDialogRequestDeletionMutation($typedUsername: String!) {
+    requestAccountDeletion(typedUsername: $typedUsername) {
+      ok
+      error
+      errorCode
+      executesAt
+    }
+  }
+`;
+
+const SettingsCancelDeletionMutationNode = graphql`
+  mutation SettingsDialogCancelDeletionMutation {
+    cancelAccountDeletion {
+      ok
+      error
+      errorCode
     }
   }
 `;
@@ -59,11 +121,22 @@ const SettingsUpdateMutationNode = graphql`
   }
 `;
 
-export default function SettingsDialog({ open, onClose, user }: { open: boolean; onClose: () => void; user?: ViewerUser | null }) {
+export type AccountFlow = 'export' | 'delete';
+
+export default function SettingsDialog({ open, onClose, user, initialFlow }: {
+  open: boolean;
+  onClose: () => void;
+  user?: ViewerUser | null;
+  // Set when the dialog auto-opens after a fresh-OAuth round trip that
+  // started here (the returnTo carries ?accountflow=export|delete and
+  // UserBar forwards it): export resumes immediately, delete lands on
+  // the confirmation view.
+  initialFlow?: AccountFlow | null;
+}) {
   if (!open) return null;
   return (
     <Suspense fallback={<SettingsShellFallback onClose={onClose} />}>
-      <SettingsDialogInner onClose={onClose} user={user ?? null} />
+      <SettingsDialogInner onClose={onClose} user={user ?? null} initialFlow={initialFlow ?? null} />
     </Suspense>
   );
 }
@@ -88,16 +161,124 @@ function SettingsShellFallback({ onClose }: { onClose: () => void }) {
   );
 }
 
-function SettingsDialogInner({ onClose, user }: { onClose: () => void; user: ViewerUser | null }) {
+function SettingsDialogInner({ onClose, user, initialFlow }: {
+  onClose: () => void;
+  user: ViewerUser | null;
+  initialFlow: AccountFlow | null;
+}) {
   const data = useLazyLoadQuery<any>(SettingsDialogQueryNode, {});
   const viewer: any = data.viewer ?? {};
   const page: any = data.settingsPage ?? {};
   const isMobile = useIsMobile();
+  const environment = useRelayEnvironment();
   const [commit, inFlight] = useMutation<any>(SettingsUpdateMutationNode);
+  const [commitExport, exportInFlight] = useMutation<any>(SettingsExportMutationNode);
+  const [commitRequestDeletion, requestInFlight] = useMutation<any>(SettingsRequestDeletionMutationNode);
+  const [commitCancelDeletion, cancelInFlight] = useMutation<any>(SettingsCancelDeletionMutationNode);
   const [picked, setPicked] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [saved, setSaved] = useState(false);
   const navigate = useNavigate();
+
+  /* ---- My Data (account export / deletion) ---- */
+  const [acctView, setAcctView] = useState<'main' | 'confirm'>('main');
+  const [typedName, setTypedName] = useState('');
+  const [acctError, setAcctError] = useState('');
+  const [acctNotice, setAcctNotice] = useState('');
+  const pending = page.accountPendingDeletion ?? null;
+  const authFresh = typeof page.freshAuthAt === 'number'
+    && (Math.floor(Date.now() / 1000) - page.freshAuthAt) <= 600;
+
+  const refetchSelf = () => {
+    fetchQuery(environment, SettingsDialogQueryNode, {}).toPromise().catch(() => {});
+  };
+
+  // Fresh-OAuth round trip with a flow marker in the returnTo; the
+  // callback lands back on this page, UserBar reopens this dialog and
+  // the flow resumes below. The server stamps fresh_auth_at at the
+  // callback regardless — this marker only restores the UI position.
+  const startReauth = (flow: AccountFlow) => {
+    const ret = `${window.location.pathname}?accountflow=${flow}`;
+    window.location.href = `/auth/discord/login?returnTo=${encodeURIComponent(ret)}`;
+  };
+
+  const doExport = () => {
+    if (exportInFlight) return;
+    setAcctError('');
+    commitExport({
+      variables: {},
+      onCompleted: (resp: any) => {
+        const payload = resp?.exportMyData;
+        if (payload?.ok && payload.json) {
+          const blob = new Blob([payload.json], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = payload.filename || 'yanyun-data-export.json';
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(() => URL.revokeObjectURL(url), 5000);
+        } else if (payload?.errorCode === 'accountReauthRequired') {
+          startReauth('export');
+        } else {
+          setAcctError(payload?.error || viewer.commonUnknownErrorText || '');
+        }
+      },
+      onError: () => setAcctError(viewer.commonUnknownErrorText || ''),
+    });
+  };
+
+  const doRequestDeletion = () => {
+    if (requestInFlight) return;
+    setAcctError('');
+    commitRequestDeletion({
+      variables: { typedUsername: typedName },
+      onCompleted: (resp: any) => {
+        const payload = resp?.requestAccountDeletion;
+        if (payload?.ok) {
+          setAcctView('main');
+          setTypedName('');
+          setAcctNotice(page.accountDeletionRequestedText || '');
+          refetchSelf();
+        } else if (payload?.errorCode === 'accountReauthRequired') {
+          startReauth('delete');
+        } else {
+          setAcctError(payload?.error || viewer.commonUnknownErrorText || '');
+        }
+      },
+      onError: () => setAcctError(viewer.commonUnknownErrorText || ''),
+    });
+  };
+
+  const doCancelDeletion = () => {
+    if (cancelInFlight) return;
+    setAcctError('');
+    commitCancelDeletion({
+      variables: {},
+      onCompleted: (resp: any) => {
+        const payload = resp?.cancelAccountDeletion;
+        if (payload?.ok) {
+          setAcctNotice(page.accountDeletionCancelledText || '');
+          refetchSelf();
+        } else {
+          setAcctError(payload?.error || viewer.commonUnknownErrorText || '');
+        }
+      },
+      onError: () => setAcctError(viewer.commonUnknownErrorText || ''),
+    });
+  };
+
+  // Resume after the fresh-OAuth round trip (runs once per mount):
+  // export fires immediately; delete lands on the confirmation view.
+  const flowResumed = useRef(false);
+  useEffect(() => {
+    if (flowResumed.current || !initialFlow) return;
+    flowResumed.current = true;
+    if (initialFlow === 'export') doExport();
+    else setAcctView('confirm');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialFlow]);
 
   const serverCurrent: string = page.localePref ?? 'AUTO';
   useEffect(() => {
@@ -210,6 +391,125 @@ function SettingsDialogInner({ onClose, user }: { onClose: () => void; user: Vie
           <span>{data.gradPage?.gearMyLibTitle}</span>
           <span style={{ color: theme.gold, fontSize: 19, lineHeight: 1 }}>›</span>
         </button>
+      </div>
+
+      {/* My Data: account export + deletion (self-service). The pending
+          state arrives as data (accountPendingDeletion present/absent),
+          never as a flag to interpret; all gates are enforced again by
+          the mutations server-side. */}
+      <div style={{ borderTop: '1px solid rgba(201,163,92,.22)', marginTop: 24, paddingTop: 18 }}>
+        <div style={{ color: theme.paper, fontSize: 16, marginBottom: 12 }}>{page.accountSectionTitle}</div>
+        {pending ? (
+          <div data-account-pending style={{
+            border: '1px solid rgba(229,141,127,.45)', borderRadius: 10,
+            padding: '14px 16px', background: 'rgba(229,141,127,.06)',
+          }}>
+            <div style={{ color: '#e58d7f', fontSize: 15, marginBottom: 6 }}>{pending.accountPendingTitle}</div>
+            <div style={{ color: theme.muted, fontSize: 13, lineHeight: 1.7, marginBottom: 12 }}>{pending.accountPendingBody}</div>
+            <button
+              data-account-cancel-deletion
+              onClick={doCancelDeletion}
+              disabled={cancelInFlight}
+              style={{
+                padding: '9px 16px', borderRadius: 8, cursor: 'pointer',
+                background: 'transparent', border: `1px solid ${theme.gold}`,
+                color: theme.goldHi, fontSize: 13.5,
+              }}
+            >{page.accountCancelDeletionLabel}</button>
+          </div>
+        ) : acctView === 'confirm' ? (
+          <div data-account-confirm>
+            <div style={{ color: '#e58d7f', fontSize: 15, marginBottom: 8 }}>{page.accountConfirmTitle}</div>
+            <div style={{ color: theme.muted, fontSize: 13, lineHeight: 1.7, marginBottom: 10 }}>{page.accountConfirmIntro}</div>
+            <ul style={{ margin: '0 0 12px', paddingLeft: 18, color: theme.muted, fontSize: 13, lineHeight: 1.75 }}>
+              <li>{page.accountConsequenceCars}</li>
+              <li>{page.accountConsequenceData}</li>
+              <li>{page.accountConsequenceGuilds}</li>
+              <li>{page.accountConsequenceResidual}</li>
+              <li>{page.accountConsequenceReregister}</li>
+            </ul>
+            <div style={{ color: theme.muted, fontSize: 13, marginBottom: 14 }}>
+              {page.accountExportFirstHint}
+              <button
+                onClick={() => (authFresh ? doExport() : startReauth('export'))}
+                style={{
+                  background: 'none', border: 'none', padding: 0, marginLeft: 6,
+                  color: theme.gold, fontSize: 13, cursor: 'pointer', textDecoration: 'underline',
+                }}
+              >{page.accountExportLabel}</button>
+            </div>
+            <div style={{ color: theme.paper, fontSize: 13.5, marginBottom: 6 }}>{page.accountUsernameLabel}</div>
+            <input
+              data-account-username-input
+              value={typedName}
+              onChange={(e) => setTypedName(e.target.value)}
+              placeholder={user?.name || ''}
+              style={{
+                width: '100%', boxSizing: 'border-box', padding: '10px 12px', borderRadius: 8,
+                background: 'rgba(255,255,255,.03)', border: '1px solid rgba(201,163,92,.35)',
+                color: theme.paper, fontSize: 14, marginBottom: 14, outline: 'none',
+              }}
+            />
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button
+                onClick={() => { setAcctView('main'); setAcctError(''); }}
+                style={{
+                  flex: 1, padding: '10px 0', borderRadius: 8, cursor: 'pointer',
+                  background: 'transparent', border: '1px solid rgba(201,163,92,.35)',
+                  color: theme.paper, fontSize: 14,
+                }}
+              >{page.accountBackLabel}</button>
+              <button
+                data-account-submit-deletion
+                onClick={doRequestDeletion}
+                disabled={requestInFlight || typedName.trim() === '' || typedName.trim() !== (user?.name || '').trim()}
+                style={{
+                  flex: 1, padding: '10px 0', borderRadius: 8,
+                  cursor: typedName.trim() !== '' && typedName.trim() === (user?.name || '').trim() ? 'pointer' : 'not-allowed',
+                  background: 'rgba(229,141,127,.14)', border: '1px solid rgba(229,141,127,.6)',
+                  color: '#e58d7f', fontSize: 14, opacity: requestInFlight ? 0.6 : 1,
+                }}
+              >{page.accountSubmitLabel}</button>
+            </div>
+          </div>
+        ) : (
+          <div data-account-main>
+            <button
+              data-account-export
+              onClick={() => (authFresh ? doExport() : startReauth('export'))}
+              disabled={exportInFlight}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                width: '100%', textAlign: 'left', padding: '11px 16px', borderRadius: 10, cursor: 'pointer',
+                background: 'rgba(255,255,255,.02)', border: '1px solid rgba(201,163,92,.25)',
+                color: theme.paper, fontSize: 14.5, marginBottom: 8,
+              }}
+            >
+              <span>{page.accountExportLabel}</span>
+              <span style={{ color: theme.gold, fontSize: 19, lineHeight: 1 }}>›</span>
+            </button>
+            <div style={{ color: theme.muted, fontSize: 12.5, lineHeight: 1.7, marginBottom: 16 }}>{page.accountExportHint}</div>
+            {!authFresh && (
+              <div style={{ color: theme.muted, fontSize: 12.5, lineHeight: 1.7, marginBottom: 16 }}>{page.accountReauthHint}</div>
+            )}
+            <button
+              data-account-delete
+              onClick={() => (authFresh ? setAcctView('confirm') : startReauth('delete'))}
+              style={{
+                width: '100%', padding: '11px 16px', borderRadius: 10, cursor: 'pointer',
+                background: 'rgba(229,141,127,.06)', border: '1px solid rgba(229,141,127,.45)',
+                color: '#e58d7f', fontSize: 14.5, marginBottom: 8,
+              }}
+            >{page.accountDeleteLabel}</button>
+            <div style={{ color: theme.muted, fontSize: 12.5, lineHeight: 1.7 }}>{page.accountDeleteHint}</div>
+          </div>
+        )}
+        {acctNotice && (
+          <div style={{ color: '#7fb069', fontSize: 13, marginTop: 14 }}>✓ {acctNotice}</div>
+        )}
+        {acctError && (
+          <div style={{ color: '#e58d7f', fontSize: 13, marginTop: 14 }}>{acctError}</div>
+        )}
       </div>
     </>
   );
