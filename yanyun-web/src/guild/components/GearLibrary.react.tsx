@@ -20,6 +20,8 @@ import type { GearLibraryDeleteItemMutation as DeleteItemType } from './__genera
 import type { GearLibraryImportMutation as ImportType } from './__generated__/GearLibraryImportMutation.graphql.ts';
 import type { GearLibrarySaveBuildMutation as SaveBuildType } from './__generated__/GearLibrarySaveBuildMutation.graphql.ts';
 import type { GearLibraryDeleteBuildMutation as DeleteBuildType } from './__generated__/GearLibraryDeleteBuildMutation.graphql.ts';
+import type { GearLibraryShareBuildMutation as ShareBuildType } from './__generated__/GearLibraryShareBuildMutation.graphql.ts';
+import type { GearLibraryRevokeShareMutation as RevokeShareType } from './__generated__/GearLibraryRevokeShareMutation.graphql.ts';
 
 /* The single UI implementation for the gear library + my builds (server D1,
  * keyed by Discord account): shared by the gear bench (bench mode, with
@@ -138,6 +140,12 @@ const libraryQuery = graphql`
       gearSchemeSavedToastTemplate
       gearSchemeLoadedToastTemplate
       gearSchemeGroupCountTemplate
+      gearShareLabel
+      gearRevokeShareLabel
+      gearCopyLinkLabel
+      gearShareRevokedToast
+      gearCopiedToast
+      gearCopyFailedToast
       gearSavedToastTemplate
       gearDemoLoadedToast
       gearDeletedToast
@@ -196,6 +204,7 @@ const libraryQuery = graphql`
       snapYInt
       snapDawai
       snapXiaowai
+      shareUrl
     }
   }
 `;
@@ -245,6 +254,7 @@ const saveBuildMutation = graphql`
         loadout { slot gearId } baseValues { key val } xinfa
         res extraAcc extraCrit extraInt bowKind gradDingyinOn
         snapTotal snapA snapB snapD snapLoan snapYAcc snapYCrit snapYInt snapDawai snapXiaowai
+        shareUrl
       }
     }
   }
@@ -252,6 +262,16 @@ const saveBuildMutation = graphql`
 const deleteBuildMutation = graphql`
   mutation GearLibraryDeleteBuildMutation($id: Int!) {
     deleteGearBuild(id: $id) { ok error }
+  }
+`;
+const shareBuildMutation = graphql`
+  mutation GearLibraryShareBuildMutation($id: Int!) {
+    shareGearBuild(id: $id) { ok error shareUrl }
+  }
+`;
+const revokeShareMutation = graphql`
+  mutation GearLibraryRevokeShareMutation($id: Int!) {
+    revokeGearBuildShare(id: $id) { ok error }
   }
 `;
 
@@ -304,6 +324,7 @@ function mapBuild(b: {
   bowKind: string; gradDingyinOn: boolean;
   snapTotal: number; snapA: number; snapB: number; snapD: number; snapLoan: number;
   snapYAcc: number; snapYCrit: number; snapYInt: number; snapDawai: number; snapXiaowai: number;
+  shareUrl: string | null | undefined;
 }): SavedBuild {
   return {
     id: b.id, name: b.name, targetIdx: b.targetIdx, buildLabel: b.buildLabel, school: b.school,
@@ -314,6 +335,7 @@ function mapBuild(b: {
     snapTotal: b.snapTotal, snapA: b.snapA, snapB: b.snapB, snapD: b.snapD, snapLoan: b.snapLoan,
     snapYAcc: b.snapYAcc, snapYCrit: b.snapYCrit, snapYInt: b.snapYInt,
     snapDawai: b.snapDawai, snapXiaowai: b.snapXiaowai,
+    shareUrl: b.shareUrl ?? null,
   };
 }
 
@@ -721,6 +743,8 @@ export default function GearLibrary(props: {
   const [schemeName, setSchemeName] = useState('');
   const [commitSaveBuild] = useMutation<SaveBuildType>(saveBuildMutation);
   const [commitDeleteBuild] = useMutation<DeleteBuildType>(deleteBuildMutation);
+  const [commitShareBuild] = useMutation<ShareBuildType>(shareBuildMutation);
+  const [commitRevokeShare] = useMutation<RevokeShareType>(revokeShareMutation);
   /* Saving a build from the gear page: the saved work state is exactly the current
    * build the bench reads on its next open (the original's "save as build"
    * stored precisely the persisted current build). Rebuild the state from it
@@ -804,6 +828,46 @@ export default function GearLibrary(props: {
         setBuilds((prev) => prev.filter((x) => x.id !== b.id));
         syncLibrary();
         toast(t.gearDeletedToast);
+      },
+      onError: () => toast(t.gearCalcFailedText),
+    });
+  };
+
+  /* Public build sharing: the card's share state comes from the
+   * server-composed shareUrl on the build itself (null = not shared);
+   * share mints (or reuses) the link and copies it in one tap, revoke
+   * kills the old code immediately. */
+  const copyShareUrl = (url: string) => {
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(url).then(
+        () => toast(t.gearCopiedToast),
+        () => toast(t.gearCopyFailedToast),
+      );
+    } else {
+      toast(t.gearCopyFailedToast);
+    }
+  };
+  const shareScheme = (b: SavedBuild) => {
+    commitShareBuild({
+      variables: { id: b.id },
+      onCompleted: (resp) => {
+        if (!resp.shareGearBuild.ok || !resp.shareGearBuild.shareUrl) { toast(resp.shareGearBuild.error || t.gearCalcFailedText); return; }
+        const url = resp.shareGearBuild.shareUrl;
+        setBuilds((prev) => prev.map((x) => (x.id === b.id ? { ...x, shareUrl: url } : x)));
+        syncLibrary();
+        copyShareUrl(url);
+      },
+      onError: () => toast(t.gearCalcFailedText),
+    });
+  };
+  const revokeScheme = (b: SavedBuild) => {
+    commitRevokeShare({
+      variables: { id: b.id },
+      onCompleted: (resp) => {
+        if (!resp.revokeGearBuildShare.ok) { toast(resp.revokeGearBuildShare.error || t.gearCalcFailedText); return; }
+        setBuilds((prev) => prev.map((x) => (x.id === b.id ? { ...x, shareUrl: null } : x)));
+        syncLibrary();
+        toast(t.gearShareRevokedToast);
       },
       onError: () => toast(t.gearCalcFailedText),
     });
@@ -1172,6 +1236,20 @@ export default function GearLibrary(props: {
                   <div style={{ display: 'flex', gap: 5, marginTop: 9 }}>
                     <button style={btnMini} onClick={() => loadScheme(b)}>{t.gearSchemeLoadLabel}</button>
                     <button style={btnMini} onClick={() => deleteScheme(b)}>{t.gearSchemeDeleteLabel}</button>
+                  </div>
+                  <div style={{ display: 'flex', gap: 5, marginTop: 5, alignItems: 'center', flexWrap: 'wrap' }}>
+                    {b.shareUrl ? (
+                      <>
+                        <span
+                          style={{ color: theme.muted, fontSize: 11, maxWidth: 132, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                          title={b.shareUrl}
+                        >{b.shareUrl.replace('https://yanyun.app', '')}</span>
+                        <button style={btnMini} onClick={() => copyShareUrl(b.shareUrl!)}>{t.gearCopyLinkLabel}</button>
+                        <button style={btnMini} onClick={() => revokeScheme(b)}>{t.gearRevokeShareLabel}</button>
+                      </>
+                    ) : (
+                      <button style={btnMini} onClick={() => shareScheme(b)}>{t.gearShareLabel}</button>
+                    )}
                   </div>
                 </div>
               ))}

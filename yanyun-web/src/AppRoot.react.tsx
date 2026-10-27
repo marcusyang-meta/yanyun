@@ -11,6 +11,7 @@ import GearPage from './auth/GearPage.react.tsx';
 import GuildRouteLoader from './guild/GuildRouteLoader.react.tsx';
 import GuildAdminRouteLoader from './guild/GuildAdminRouteLoader.react.tsx';
 import LegalRoute from './LegalRoute.react.tsx';
+import BuildShareRoute from './BuildShareRoute.react.tsx';
 import SiteFooter from './lib/SiteFooter.react.tsx';
 import { hostGuildSlug } from './lib/hostGuild';
 import { GuildFooterContext, type FooterOverride } from './lib/guildChrome';
@@ -184,6 +185,9 @@ export default function AppRoot({ queries }: {
       {/* Legal pages are public (reachable logged out); the static segments must win over /:slug */}
       <Route path="/terms" element={<LegalRoute kind="TERMS" />} />
       <Route path="/privacy" element={<LegalRoute kind="PRIVACY" />} />
+      {/* Public build share page: anonymous by design (the code is the
+          capability); the static segment must win over /:slug */}
+      <Route path="/b/:code" element={<BuildShareRoute />} />
       <Route
         path="/create"
         element={user ? <CreateGuildPage user={user} /> : <LoginPage returnTo="/create" site={siteText} text={loginText} />}
