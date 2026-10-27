@@ -175,16 +175,19 @@ export default function GearLibrary(props: {
   const importItems = (
     list: { slot: string; name: string; lines: { key: string; val: number }[]; dingyin: { name: string; val: number } | null; schools: string[] }[],
     onDone?: (added: GearItem[]) => void,
+    opts?: { source?: string; imageCount?: number; onFailed?: () => void },
   ) => {
     if (!list.length) return;
     commitImport({
       variables: {
         items: list,
         loadout: Object.entries(loadout).map(([slot, gearId]) => ({ slot, gearId })),
+        source: opts?.source ?? null,
+        imageCount: opts?.imageCount ?? null,
       },
       onCompleted: (resp) => {
         const r = resp.importGearItems;
-        if (!r.ok) { gearToast(r.error || t.gearCalcFailedText); return; }
+        if (!r.ok) { gearToast(r.error || t.gearCalcFailedText); opts?.onFailed?.(); return; }
         const added = r.items.map(mapItem);
         setItems((prev) => [...prev, ...added]);
         if (r.autoSelect.length) {
@@ -195,7 +198,7 @@ export default function GearLibrary(props: {
         onDone?.(added);
         syncLibrary();
       },
-      onError: () => gearToast(t.gearCalcFailedText),
+      onError: () => { gearToast(t.gearCalcFailedText); opts?.onFailed?.(); },
     });
   };
 
@@ -583,11 +586,14 @@ export default function GearLibrary(props: {
       )}
       <View style={s.headRow}>
         <SecTitle>{libHeading}</SecTitle>
-        <Text style={s.countText}>{fill(t.gearLibCountTemplate, { n: items.length })}</Text>
+        <Text style={s.countText}>{loggedIn ? fill(t.gearUsageTemplate, { n: t.gearUsageCount, limit: t.gearUsageLimit }) : fill(t.gearLibCountTemplate, { n: items.length })}</Text>
         <View style={{ marginLeft: 'auto' }}>
           <BtnGold label={t.gearAddGearLabel} disabled={!loggedIn} onPress={() => (addMode ? setAddMode(null) : setAddMode('paste'))} />
         </View>
       </View>
+      {loggedIn && t.gearUsageLimit > 0 && t.gearUsageCount / t.gearUsageLimit >= 0.9 && (
+        <Text style={s.gearWarn}>{t.gearUsageNearLimitText}</Text>
+      )}
       <View style={s.quietRow}>
         <Pressable disabled={!loggedIn} onPress={loadDemo} style={!loggedIn ? { opacity: 0.45 } : undefined}>
           <Text style={s.quietText}>{t.gearDemoLabel}</Text>
@@ -790,7 +796,7 @@ export default function GearLibrary(props: {
           engine={props.ocrEngine}
           noEngineText={t.gearOcrNoEngineText}
           registerEnqueue={registerBatchEnqueue}
-          onImport={(list, onDone) => importItems(list, (added) => onDone(added.length))}
+          onImport={(list, onDone, meta) => importItems(list, (added) => onDone(added.length), meta)}
         />
       </Card>
 

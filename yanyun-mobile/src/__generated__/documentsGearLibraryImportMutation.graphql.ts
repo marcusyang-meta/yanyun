@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<c699243df6fbd57a7aca72feaf18b0bd>>
+ * @generated SignedSource<<3c01c9c0dfa52e50650d88f31ddc6a16>>
  * @lightSyntaxTransform
  */
 
@@ -28,8 +28,10 @@ export type GearLoadoutEntryInput = {
   slot: string;
 };
 export type documentsGearLibraryImportMutation$variables = {
+  imageCount?: number | null | undefined;
   items: ReadonlyArray<GearItemCreateInput>;
   loadout?: ReadonlyArray<GearLoadoutEntryInput> | null | undefined;
+  source?: string | null | undefined;
 };
 export type documentsGearLibraryImportMutation$data = {
   readonly importGearItems: {
@@ -62,43 +64,56 @@ export type documentsGearLibraryImportMutation = {
 };
 
 const node: ConcreteRequest = (function(){
-var v0 = [
-  {
-    "defaultValue": null,
-    "kind": "LocalArgument",
-    "name": "items"
-  },
-  {
-    "defaultValue": null,
-    "kind": "LocalArgument",
-    "name": "loadout"
-  }
-],
+var v0 = {
+  "defaultValue": null,
+  "kind": "LocalArgument",
+  "name": "imageCount"
+},
 v1 = {
+  "defaultValue": null,
+  "kind": "LocalArgument",
+  "name": "items"
+},
+v2 = {
+  "defaultValue": null,
+  "kind": "LocalArgument",
+  "name": "loadout"
+},
+v3 = {
+  "defaultValue": null,
+  "kind": "LocalArgument",
+  "name": "source"
+},
+v4 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "slot",
   "storageKey": null
 },
-v2 = {
+v5 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "name",
   "storageKey": null
 },
-v3 = {
+v6 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "val",
   "storageKey": null
 },
-v4 = [
+v7 = [
   {
     "alias": null,
     "args": [
+      {
+        "kind": "Variable",
+        "name": "imageCount",
+        "variableName": "imageCount"
+      },
       {
         "kind": "Variable",
         "name": "items",
@@ -108,6 +123,11 @@ v4 = [
         "kind": "Variable",
         "name": "loadout",
         "variableName": "loadout"
+      },
+      {
+        "kind": "Variable",
+        "name": "source",
+        "variableName": "source"
       }
     ],
     "concreteType": "GearImportResult",
@@ -144,8 +164,8 @@ v4 = [
             "name": "id",
             "storageKey": null
           },
-          (v1/*:: as any*/),
-          (v2/*:: as any*/),
+          (v4/*:: as any*/),
+          (v5/*:: as any*/),
           {
             "alias": null,
             "args": null,
@@ -161,7 +181,7 @@ v4 = [
                 "name": "key",
                 "storageKey": null
               },
-              (v3/*:: as any*/)
+              (v6/*:: as any*/)
             ],
             "storageKey": null
           },
@@ -173,8 +193,8 @@ v4 = [
             "name": "dingyin",
             "plural": false,
             "selections": [
-              (v2/*:: as any*/),
-              (v3/*:: as any*/)
+              (v5/*:: as any*/),
+              (v6/*:: as any*/)
             ],
             "storageKey": null
           },
@@ -203,7 +223,7 @@ v4 = [
         "name": "autoSelect",
         "plural": true,
         "selections": [
-          (v1/*:: as any*/),
+          (v4/*:: as any*/),
           {
             "alias": null,
             "args": null,
@@ -220,32 +240,42 @@ v4 = [
 ];
 return {
   "fragment": {
-    "argumentDefinitions": (v0/*:: as any*/),
+    "argumentDefinitions": [
+      (v0/*:: as any*/),
+      (v1/*:: as any*/),
+      (v2/*:: as any*/),
+      (v3/*:: as any*/)
+    ],
     "kind": "Fragment",
     "metadata": null,
     "name": "documentsGearLibraryImportMutation",
-    "selections": (v4/*:: as any*/),
+    "selections": (v7/*:: as any*/),
     "type": "Mutation",
     "abstractKey": null
   },
   "kind": "Request",
   "operation": {
-    "argumentDefinitions": (v0/*:: as any*/),
+    "argumentDefinitions": [
+      (v1/*:: as any*/),
+      (v2/*:: as any*/),
+      (v3/*:: as any*/),
+      (v0/*:: as any*/)
+    ],
     "kind": "Operation",
     "name": "documentsGearLibraryImportMutation",
-    "selections": (v4/*:: as any*/)
+    "selections": (v7/*:: as any*/)
   },
   "params": {
-    "cacheID": "f12e44c9084864d090381a00366578e4",
+    "cacheID": "425eca795012407ca79a61875f313e8f",
     "id": null,
     "metadata": {},
     "name": "documentsGearLibraryImportMutation",
     "operationKind": "mutation",
-    "text": "mutation documentsGearLibraryImportMutation(\n  $items: [GearItemCreateInput!]!\n  $loadout: [GearLoadoutEntryInput!]\n) {\n  importGearItems(items: $items, loadout: $loadout) {\n    ok\n    error\n    items {\n      id\n      slot\n      name\n      lines {\n        key\n        val\n      }\n      dingyin {\n        name\n        val\n      }\n      schools\n      warnings\n    }\n    autoSelect {\n      slot\n      gearId\n    }\n  }\n}\n"
+    "text": "mutation documentsGearLibraryImportMutation(\n  $items: [GearItemCreateInput!]!\n  $loadout: [GearLoadoutEntryInput!]\n  $source: String\n  $imageCount: Int\n) {\n  importGearItems(items: $items, loadout: $loadout, source: $source, imageCount: $imageCount) {\n    ok\n    error\n    items {\n      id\n      slot\n      name\n      lines {\n        key\n        val\n      }\n      dingyin {\n        name\n        val\n      }\n      schools\n      warnings\n    }\n    autoSelect {\n      slot\n      gearId\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "10e9db5620f4c478cf64a0bf0916901f";
+(node as any).hash = "b492f8c059dad362fdab883a6262ac23";
 
 export default node;
