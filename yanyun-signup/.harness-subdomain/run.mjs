@@ -16,7 +16,15 @@
 //    embed title link — while main-host outputs stay byte-exact;
 //  - admin surface: the switch + server-composed addresses + note
 //    copy live only on GuildAdmin; the mutation re-runs the admin
-//    verdict and flips resolution immediately.
+//    verdict and flips resolution immediately;
+//  - login sharing: the session cookie carries Domain=yanyun.app on
+//    the host family (mint pairs it with a legacy host-only clear,
+//    clears emit both scopes, the read tolerates duplicate values);
+//    a subdomain login bounces to the root login with a signed
+//    return_to, the root runs OAuth against the registered root
+//    callback only, and the callback lands back on the subdomain —
+//    forged / off-family / non-https return_to values fall back to
+//    the plain root sign-in.
 // Real worker fetch + real yoga + FakeDB routing by SQL shape into
 // in-memory tables (same pattern as .harness-guildadmin).
 import { yoga } from '../src/graphql.ts';
@@ -24,6 +32,10 @@ import {
   parseGuildSubdomainSlug, resolveGuildSubdomain, isGuildSubdomainEnabled,
   guildSubdomainOrigin, guildSubdomainUrl, guildSubdomainCallbackUrl,
 } from '../src/domains/guilds/subdomain.ts';
+import {
+  signJwt, verifyJwt, getSessionUser, sessionCookieHeader, sessionCookieHeaders,
+  validateReturnToTarget,
+} from '../src/domains/identity/auth.ts';
 import { mintShortLink } from '../src/domains/groupings/shortlinks.ts';
 import { buildReminderMessage } from '../src/domains/groupings/reminder.ts';
 
@@ -366,6 +378,197 @@ await r.text();
 g = await gql(subMut, { user: ADMIN, variables: { enabled: false } });
 eq('关开关 ok', g.data?.updateGuildSubdomain?.ok, true);
 eq('关后子域立即停解析', await resolveGuildSubdomain(A.db, 'offtest.yanyun.app'), null);
+
+/* ---------------- G. login sharing (Domain cookie + root-start OAuth) ---------------- */
+const SECRET = 'harness-session-secret';
+const G = makeDb({
+  tenants: [tenantRow('subtest', '子域测试百业')],
+  settings: [
+    ['subtest|discord_guild_id', DGID],
+    ['subtest|subdomain_enabled', '1'],
+    ['|game_version', 'intl-v2.3'],
+  ],
+});
+const envG = {
+  DB: G.db, ASSETS: env.ASSETS,
+  SESSION_SECRET: SECRET, DISCORD_CLIENT_ID: 'cid', DISCORD_CLIENT_SECRET: 'csecret',
+  DISCORD_API_BASE: 'https://discord.stub',
+};
+const wctxG = { waitUntil(p) { Promise.resolve(p).catch(() => {}); } };
+const callG = (url, init) => worker.fetch(new Request(url, init), envG, wctxG);
+const setCookies = (res) => (typeof res.headers.getSetCookie === 'function'
+  ? res.headers.getSetCookie()
+  : [res.headers.get('set-cookie')].filter(Boolean));
+// Discord is stubbed at the fetch layer (DISCORD_API_BASE seam): the
+// token / profile / guilds / nick endpoints answer canned payloads.
+const realFetch = globalThis.fetch;
+globalThis.fetch = async (input) => {
+  const u = String(typeof input === 'string' ? input : input.url);
+  if (u === 'https://discord.stub/api/oauth2/token') {
+    return Response.json({ access_token: 'at', refresh_token: 'rt2', scope: 'identify guilds guilds.members.read' });
+  }
+  if (u === 'https://discord.stub/api/v10/users/@me') {
+    return Response.json({ id: 'U1', username: 'u1', global_name: '测试员', avatar: null });
+  }
+  if (u === 'https://discord.stub/api/v10/users/@me/guilds') {
+    return Response.json([{ id: DGID, name: '测试服', icon: null, permissions: '0', owner: true }]);
+  }
+  if (u === `https://discord.stub/api/v10/users/@me/guilds/${DGID}/member`) {
+    return Response.json({ nick: '服昵' });
+  }
+  return new Response('unstubbed', { status: 404 });
+};
+
+/* G1. cookie header shapes */
+eq('主域签发带 Domain', sessionCookieHeader('tok', 60, 'yanyun.app'),
+  'yy_session=tok; Path=/; HttpOnly; Secure; SameSite=Lax; Domain=yanyun.app; Max-Age=60');
+eq('子域签发带 Domain', sessionCookieHeader('tok', 60, 'subtest.yanyun.app'),
+  'yy_session=tok; Path=/; HttpOnly; Secure; SameSite=Lax; Domain=yanyun.app; Max-Age=60');
+eq('预览 host 签发保持 host-only 原样', sessionCookieHeader('tok', 60, 'release-yanyun.tbdlab.workers.dev'),
+  'yy_session=tok; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=60');
+eq('localhost 签发保持 host-only 原样', sessionCookieHeader('tok', 60, 'localhost'),
+  'yy_session=tok; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=60');
+const mintPair = sessionCookieHeaders('tok', 60, 'yanyun.app');
+eq('主域签发 = Domain 新 cookie + host-only 过期清理 (两条)', mintPair.length, 2);
+eq('签发附带的旧 cookie 清理条', mintPair[1],
+  'yy_session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0');
+const clearPair = sessionCookieHeaders('', 0, 'subtest.yanyun.app');
+eq('子域清除 = 双清 (两条)', clearPair.length, 2);
+eq('双清第一条 = Domain 过期', clearPair[0],
+  'yy_session=; Path=/; HttpOnly; Secure; SameSite=Lax; Domain=yanyun.app; Max-Age=0');
+eq('族外清除 = 单条 host-only (与旧版逐字一致)', sessionCookieHeaders('', 0, 'localhost').length, 1);
+
+/* G2. return_to target validation */
+eq('合法子域目标放行', validateReturnToTarget('https://subtest.yanyun.app/admin?x=1'),
+  'https://subtest.yanyun.app/admin?x=1');
+eq('主域目标放行', validateReturnToTarget('https://yanyun.app/'), 'https://yanyun.app/');
+eq('外部 host 拒绝', validateReturnToTarget('https://evil.com/x'), null);
+eq('后缀伪装 host 拒绝', validateReturnToTarget('https://subtest.yanyun.app.evil.com/x'), null);
+eq('http 拒绝', validateReturnToTarget('http://subtest.yanyun.app/x'), null);
+eq('带 userinfo 拒绝', validateReturnToTarget('https://user:pass@subtest.yanyun.app/x'), null);
+eq('userinfo 伪装 host 拒绝', validateReturnToTarget('https://yanyun.app@evil.com/x'), null);
+eq('非 URL 拒绝', validateReturnToTarget('not a url'), null);
+
+/* G3. subdomain login bounces to the root login, signed */
+r = await callG('https://subtest.yanyun.app/auth/discord/login?returnTo=%2Fadmin');
+eq('子域登录 -> 302', r.status, 302);
+const bounceLoc = r.headers.get('location') || '';
+check('子域登录落点 = root 登录 + return_to', bounceLoc.startsWith('https://yanyun.app/auth/discord/login?return_to='), bounceLoc);
+const signedRt = new URL(bounceLoc).searchParams.get('return_to') || '';
+const rtPayload = await verifyJwt(SECRET, signedRt);
+eq('return_to 签名 kind', rtPayload?.kind, 'return-to');
+eq('return_to 目标 = 子域原页面', rtPayload?.rto, 'https://subtest.yanyun.app/admin');
+
+/* G4. the root login consumes it; Discord sees only the root callback */
+r = await callG(bounceLoc);
+eq('root 登录 -> 302', r.status, 302);
+const authUrl = new URL(r.headers.get('location') || '');
+eq('OAuth 主机 = discord.com', authUrl.hostname, 'discord.com');
+eq('redirect_uri = root 回调 (唯一登记)', authUrl.searchParams.get('redirect_uri'),
+  'https://yanyun.app/auth/discord/callback');
+const state = authUrl.searchParams.get('state') || '';
+const statePayload = await verifyJwt(SECRET, state);
+eq('state kind', statePayload?.kind, 'oauth-state');
+eq('state 携带 rto', statePayload?.rto, 'https://subtest.yanyun.app/admin');
+
+/* G5. the callback mints the shared cookie and lands on the subdomain */
+r = await callG(`https://yanyun.app/auth/discord/callback?code=fake&state=${encodeURIComponent(state)}`);
+eq('回调 -> 302', r.status, 302);
+eq('回调落点 = 子域原页面', r.headers.get('location'), 'https://subtest.yanyun.app/admin');
+let sc = setCookies(r);
+eq('回调签发两条 set-cookie', sc.length, 2);
+check('签发[0] = Domain 会话 cookie', sc[0].startsWith('yy_session=')
+  && sc[0].includes('Domain=yanyun.app') && sc[0].includes('HttpOnly')
+  && sc[0].includes('Max-Age=1209600'), sc[0]);
+eq('签发[1] = host-only 旧 cookie 清理', sc[1],
+  'yy_session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0');
+const mintedJwt = sc[0].split(';')[0].slice('yy_session='.length);
+const mintedUser = await getSessionUser(
+  new Request('https://subtest.yanyun.app/', { headers: { cookie: `yy_session=${mintedJwt}` } }), envG);
+eq('子域上读回会话 = 刚登录的用户', mintedUser?.discordId, 'U1');
+
+/* G6. forged / invalid return_to falls back to the plain root sign-in */
+async function stateOfLogin(url) {
+  const rr = await callG(url);
+  const loc = rr.headers.get('location') || '';
+  const st = new URL(loc).searchParams.get('state') || '';
+  return { rr, st, payload: await verifyJwt(SECRET, st) };
+}
+const tampered = signedRt.slice(0, -2) + (signedRt.endsWith('aa') ? 'bb' : 'aa');
+let li = await stateOfLogin(`https://yanyun.app/auth/discord/login?return_to=${encodeURIComponent(tampered)}`);
+eq('篡改签名: 登录照常 302 到 Discord', li.rr.status, 302);
+eq('篡改签名: state 无 rto (回退)', li.payload?.rto, undefined);
+r = await callG(`https://yanyun.app/auth/discord/callback?code=fake&state=${encodeURIComponent(li.st)}`);
+eq('篡改签名: 回调落 root 首页', r.headers.get('location'), 'https://yanyun.app/');
+await r.text();
+const wrongKind = await signJwt(SECRET, { rto: 'https://subtest.yanyun.app/admin', kind: 'oauth-state' }, 600);
+li = await stateOfLogin(`https://yanyun.app/auth/discord/login?return_to=${encodeURIComponent(wrongKind)}`);
+eq('kind 不符: state 无 rto', li.payload?.rto, undefined);
+for (const evil of ['https://evil.com/x', 'http://subtest.yanyun.app/x', 'https://user:pass@subtest.yanyun.app/x']) {
+  const s = await signJwt(SECRET, { rto: evil, kind: 'return-to' }, 600);
+  li = await stateOfLogin(`https://yanyun.app/auth/discord/login?return_to=${encodeURIComponent(s)}`);
+  eq(`合法签名但目标非法 (${new URL(evil).protocol}//${new URL(evil).hostname}): state 无 rto`, li.payload?.rto, undefined);
+}
+li = await stateOfLogin('https://yanyun.app/auth/discord/login?return_to=garbage');
+eq('return_to 为垃圾值: 登录照常、state 无 rto', li.payload?.rto, undefined);
+
+/* G7. plain apex login is unchanged apart from the cookie pair */
+li = await stateOfLogin('https://yanyun.app/auth/discord/login?returnTo=%2Fgear');
+eq('主域登录 state.rt 不变', li.payload?.rt, '/gear');
+eq('主域登录 state 无 rto', li.payload?.rto, undefined);
+r = await callG(`https://yanyun.app/auth/discord/callback?code=fake&state=${encodeURIComponent(li.st)}`);
+eq('主域回调落点不变', r.headers.get('location'), 'https://yanyun.app/gear');
+sc = setCookies(r);
+eq('主域回调同样签发 cookie 对', sc.length, 2);
+check('主域签发[0] 带 Domain', sc[0].includes('Domain=yanyun.app'), sc[0]);
+
+/* G8. the mobile handoff on a subdomain keeps starting in place */
+r = await callG(`https://subtest.yanyun.app/auth/discord/login?app=${encodeURIComponent('yanyun://auth-callback')}`);
+eq('子域 app 登录 -> 302 (不弹 root)', r.status, 302);
+const appAuthUrl = new URL(r.headers.get('location') || '');
+eq('app 登录 redirect_uri 仍为本域回调 (旧行为)', appAuthUrl.searchParams.get('redirect_uri'),
+  'https://subtest.yanyun.app/auth/discord/callback');
+
+/* G9. logout clears both scopes on the family; one off-family */
+r = await callG('https://yanyun.app/auth/logout', { method: 'POST' });
+sc = setCookies(r);
+eq('主域登出双清 (两条)', sc.length, 2);
+eq('登出[0] = Domain 过期', sc[0],
+  'yy_session=; Path=/; HttpOnly; Secure; SameSite=Lax; Domain=yanyun.app; Max-Age=0');
+eq('登出[1] = host-only 过期', sc[1],
+  'yy_session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0');
+r = await callG('https://subtest.yanyun.app/auth/logout');
+eq('子域 GET 登出 -> 302 /', `${r.status} ${r.headers.get('location')}`, '302 /');
+eq('子域登出双清 (两条)', setCookies(r).length, 2);
+r = await callG('https://release-yanyun.tbdlab.workers.dev/auth/logout', { method: 'POST' });
+sc = setCookies(r);
+eq('预览 host 登出 = 单条 (旧版逐字)', sc.length, 1);
+eq('预览 host 登出条内容', sc[0],
+  'yy_session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0');
+
+/* G10. duplicate cookie values: the first valid one wins */
+const goodJwt = await signJwt(SECRET, { sub: 'U9', name: '九', avatar: '', guilds: [] });
+const expiredJwt = await signJwt(SECRET, { sub: 'U9', name: '九', avatar: '', guilds: [] }, -60);
+const reqCookie = (cookie) => new Request('https://yanyun.app/graphql', { headers: { cookie } });
+eq('垃圾在前、有效在后 -> 认有效', (await getSessionUser(reqCookie(`yy_session=garbage; yy_session=${goodJwt}`), envG))?.discordId, 'U9');
+eq('有效在前、垃圾在后 -> 认有效', (await getSessionUser(reqCookie(`yy_session=${goodJwt}; yy_session=garbage`), envG))?.discordId, 'U9');
+eq('过期在前、有效在后 -> 认有效', (await getSessionUser(reqCookie(`yy_session=${expiredJwt}; yy_session=${goodJwt}`), envG))?.discordId, 'U9');
+eq('只有垃圾 -> 未登录', await getSessionUser(reqCookie('yy_session=garbage'), envG), null);
+eq('无 cookie 时 Bearer 回退不变', (await getSessionUser(
+  new Request('https://yanyun.app/graphql', { headers: { authorization: `Bearer ${goodJwt}` } }), envG))?.discordId, 'U9');
+
+/* G11. incomplete grant on a subdomain GraphQL call clears both scopes */
+r = await callG('https://subtest.yanyun.app/graphql', {
+  method: 'POST',
+  headers: { 'content-type': 'application/json', cookie: `yy_session=${goodJwt}` },
+  body: JSON.stringify({ query: '{ ogGuildSlugs }' }),
+});
+sc = setCookies(r);
+eq('子域 GraphQL 失效清除 = 双清 (两条)', sc.length, 2);
+check('失效清除[0] 带 Domain', sc[0].includes('Domain=yanyun.app') && sc[0].includes('Max-Age=0'), sc[0]);
+await r.text();
+
+globalThis.fetch = realFetch;
 
 check('无未路由 SQL', A.unknownSql.size === 0, [...A.unknownSql].join(' | '));
 
