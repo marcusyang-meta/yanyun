@@ -28,7 +28,7 @@ const SUITES = [
   ['gear', 71], ['i18n', 134], ['identity', 61], ['manualfix', 47],
   ['remindercard', 81], ['tower', 38], ['laziness', 23], ['audit', 36],
   ['backup', 23], ['guildadmin', 213], ['shortlink', 27], ['templates', 49],
-  ['account', 73], ['subdomain', 137],
+  ['account', 73], ['subdomain', 162],
   ['buildshare', 60],
   ['billing', 62],
 ];
