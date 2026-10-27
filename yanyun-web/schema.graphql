@@ -773,6 +773,16 @@ type SettingsPage {
   settingsLangEsLabel: String!
   settingsLangFrLabel: String!
   settingsSavedText: String!
+  feedbackEntryLabel: String!
+  feedbackTitle: String!
+  feedbackCategoryLabel: String!
+  feedbackCategoryProblemLabel: String!
+  feedbackCategorySuggestionLabel: String!
+  feedbackCategoryOtherLabel: String!
+  feedbackPlaceholder: String!
+  feedbackSubmitLabel: String!
+  feedbackSubmittingLabel: String!
+  feedbackSuccessText: String!
   localePref: String
   effectiveLocale: String!
   accountSectionTitle: String!
@@ -805,6 +815,18 @@ type AccountPendingDeletion {
   daysLeft: Int!
   accountPendingTitle: String!
   accountPendingBody: String!
+}
+
+enum FeedbackCategory {
+  PROBLEM
+  SUGGESTION
+  OTHER
+}
+
+type SubmitFeedbackPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
 }
 
 type UpdateLocalePayload {
@@ -1173,6 +1195,7 @@ type Mutation {
   deleteGroupingTemplate(id: ID!): DeletePayload!
   calcTiaolv(input: TiaolvInput!): TiaolvResult!
   calcGraduation(input: GraduationInput!): GraduationResult!
+  submitFeedback(category: FeedbackCategory!, text: String!): SubmitFeedbackPayload!
   updateMyLocale(locale: String): UpdateLocalePayload!
   exportMyData: ExportMyDataPayload!
   requestAccountDeletion(typedUsername: String!): AccountDeletionPayload!
@@ -1184,7 +1207,6 @@ type Mutation {
   updateGuildDiscord(slug: String!, input: UpdateGuildDiscordInput!): GuildAdminPayload!
   updateGuildReminderSettings(slug: String!, offsets: [Int!]!, customText: String): GuildAdminPayload!
   updateGuildWhiteLabel(slug: String!, hideBranding: Boolean!, ogAccent: String!, ogTitleSuffix: String): GuildAdminPayload!
-  updateGuildSubdomain(slug: String!, enabled: Boolean!): GuildAdminPayload!
   startPremiumCheckout(slug: String!): GuildAdminPayload!
   updateGuildVisibility(slug: String!, devOnly: Boolean!): GuildAdminPayload!
   setGuildAvatar(slug: String!, dataBase64: String!): GuildAdminPayload!
@@ -1418,6 +1440,15 @@ type Viewer {
   loginCardBody2: String!
   loginButtonLabel: String!
   loginPrivacyText: String!
+  landingFeaturesTitle: String!
+  landingGroupingTitle: String!
+  landingGroupingBody: String!
+  landingReminderTitle: String!
+  landingReminderBody: String!
+  landingDexTitle: String!
+  landingDexBody: String!
+  landingGearTitle: String!
+  landingGearBody: String!
   footerDisclaimerText: String!
   footerTermsLabel: String!
   footerPrivacyLabel: String!
@@ -1507,9 +1538,6 @@ type GuildAdmin {
   ogAccent: String!
   ogTitleSuffix: String!
   ogAccentOptions: [GuildAdminOgAccentOption!]!
-  subdomainEnabled: Boolean!
-  subdomainUrl: String!
-  subdomainCallbackUrl: String!
   pageFooterDisclaimerText: String
   devOnly: Boolean!
   gameVersion: String!
@@ -1613,11 +1641,6 @@ type GuildAdmin {
   adminOgAccentLabel: String!
   adminOgTitleSuffixLabel: String!
   adminOgTitleSuffixHint: String!
-  adminSubdomainTitle: String!
-  adminSubdomainLabel: String!
-  adminSubdomainAddressLabel: String!
-  adminSubdomainCallbackLabel: String!
-  adminSubdomainNote: String!
   adminBillingSuccessText: String!
   adminBillingCanceledText: String!
   adminPremiumTitle: String!
