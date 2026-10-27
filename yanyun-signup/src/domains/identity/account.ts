@@ -42,7 +42,7 @@ import {
 } from '../groupings/index.ts';
 import {
   listGearItemRows, listGearBuildRows,
-  deleteAllGearItemsByUser, deleteAllGearBuildsByUser,
+  deleteAllGearItemsByUser, deleteAllGearBuildsByUser, deleteAllBuildShareLinksByUser,
   listHeirloomStateByUser, deleteHeirloomStateByUser,
 } from '../gear/index.ts';
 import {
@@ -265,6 +265,7 @@ export interface DeletionCounts {
   oauthRows: number;
   gearItems: number;
   gearBuilds: number;
+  buildShareLinks: number;
   pushTokens: number;
   nickRows: number;
   rosterRows: number;
@@ -290,6 +291,7 @@ export async function executeAccountDeletion(
   // 2. Personal assets (hard delete).
   const gearItems = await deleteAllGearItemsByUser(db, discordId);
   const gearBuilds = await deleteAllGearBuildsByUser(db, discordId);
+  const buildShareLinks = await deleteAllBuildShareLinksByUser(db, discordId);
   const pushTokens = await deleteAllPushTokensByUser(db, discordId);
   const nickRows = await deleteNicksByUser(db, discordId);
   const rosterRows = await deleteGuildMembersByUser(db, discordId);
@@ -302,7 +304,7 @@ export async function executeAccountDeletion(
   // 4. The account row itself.
   const userRows = await deleteUserRow(db, discordId);
   const counts: DeletionCounts = {
-    oauthRows, gearItems, gearBuilds, pushTokens, nickRows, rosterRows,
+    oauthRows, gearItems, gearBuilds, buildShareLinks, pushTokens, nickRows, rosterRows,
     heirloomPushes: heirloom.pushes, heirloomSetState: heirloom.setState,
     seatsAnonymized, carsOrphaned, templatesOrphaned, backfillAnonymized,
     userRows,
