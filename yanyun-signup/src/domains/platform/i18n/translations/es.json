@@ -7920,6 +7920,347 @@
         }
       ],
       "types": []
+    },
+    "pgU166dSQv2drsLc/fQzIQ==": {
+      "description": "account.sectionTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Mis datos",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "dHSvMseO0goD+zuCXEQ6zg==": {
+      "description": "account.exportLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Exportar mis datos",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "5SjWF4D3eKK3yJWvXGu15g==": {
+      "description": "account.exportHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Descarga todos los datos de tu cuenta en un solo archivo JSON: perfil de la cuenta, filas de la lista de cada gremio, escuadrones que creaste, tus asientos de inscripción, biblioteca de equipo y configuraciones guardadas. Por seguridad, las credenciales de acceso y los tokens de notificaciones nunca se incluyen.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Zo1V8X7+ECEq3MDIR58FKg==": {
+      "description": "account.deleteLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Eliminar cuenta",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Oeyerhi0AhLCLbExOXkfUg==": {
+      "description": "account.deleteHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "La eliminación no se puede deshacer. Tras enviar la solicitud hay un periodo de espera de 7 días durante el cual puedes cancelarla en cualquier momento; al terminar, tus datos personales se eliminan o se anonimizan.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Y4zFgIHAzsZ9Q6jxPrNi1A==": {
+      "description": "account.reauthLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Volver a verificar con Discord",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "pHvz36HTYhZXJY/wb/PHKQ==": {
+      "description": "account.reauthHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Exportar y eliminar son acciones sensibles; se requiere una autorización reciente de Discord antes de continuar.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "nwzZPi43YU+rvKcOvZr1uQ==": {
+      "description": "account.confirmTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Confirmar la eliminación de la cuenta",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "YPIRliUJa/lYLgt2HKDjWg==": {
+      "description": "account.confirmIntro",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Lee atentamente las consecuencias. Tras enviar la solicitud comienza un periodo de espera de 7 días y la eliminación se ejecuta automáticamente al terminar:",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "84GGomogicDKGmLozBP9JQ==": {
+      "description": "account.consequenceCars",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Los escuadrones que creaste no se eliminan: el líder queda desvinculado y pasan a ser escuadrones sin líder, y el nombre visible del creador se sustituye por «Usuario eliminado»; los asientos que ocupas en escuadrones de otras personas se anonimizan en el sitio.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "JuCB/iEHcBcaLnwaUO9AZA==": {
+      "description": "account.consequenceData",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Tu biblioteca de equipo y configuraciones guardadas, tokens de notificaciones, instantáneas de apodos y filas de la lista de gremios se eliminan por completo; cuando la eliminación se ejecute, tu sesión se cerrará de inmediato en todos los dispositivos.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "U67biKeVYdEk9JxewNsccg==": {
+      "description": "account.consequenceGuilds",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Los gremios en sí y sus contraseñas de administración no se ven afectados: un gremio no pertenece a ninguna cuenta personal y no se disuelve ni cambia cuando eliminas tu cuenta.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "pBUeF6yGkY8m0NCc+s1YZg==": {
+      "description": "account.consequenceResidual",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Algunos registros no pueden borrarse por persona: los mensajes ya publicados en Discord y las listas de nombres en texto libre de los tableros de resultados permanecen; las copias dentro de las copias de seguridad se eliminan en un plazo máximo de 14 días con la rotación diaria.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "6ZyHJ7FKmPD5bK07yqXldA==": {
+      "description": "account.consequenceReregister",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Eliminar no es un baneo: si vuelves a iniciar sesión más tarde con la misma cuenta de Discord, te registrarás como una cuenta completamente nueva.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "l9y176Nn1tJYNX7XZ1hsNA==": {
+      "description": "account.exportFirstHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Te recomendamos exportar una copia de tus datos antes de enviar la eliminación.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "YexpsxiC6mOiS5yqYuSPRA==": {
+      "description": "account.usernameLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Escribe tu nombre visible de Discord para confirmar",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "h7CegTbkLRH1uZ/WAtF30g==": {
+      "description": "account.submitLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Enviar solicitud de eliminación",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "OQLhxves2h2jUi6O8FCLjA==": {
+      "description": "account.backLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Volver",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "gu3quGZ5hxa71A8DFZDCTw==": {
+      "description": "account.pendingTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Eliminación de cuenta programada",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "aeIs7lOt0ok990CJ956sew==": {
+      "description": "account.pendingBody",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Tu cuenta se eliminará el {date}. Hasta entonces puedes cancelarlo en cualquier momento; volver a iniciar sesión en un dispositivo nuevo también lo cancela automáticamente (salvo que el plazo ya haya vencido).",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "cvpVARUfi6/drKQ1BEbbcA==": {
+      "description": "account.cancelDeletionLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Cancelar la eliminación",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "rMFNqjaLxyEGsi+HmPVQ5Q==": {
+      "description": "account.deletionRequestedText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Solicitud de eliminación enviada: ha comenzado el periodo de espera de 7 días.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "0A+05qdq6h8MltneJTO6XA==": {
+      "description": "account.deletionCancelledText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Solicitud de eliminación cancelada: tu cuenta no se eliminará.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "efPN+7nb4rsJW/aEah51rw==": {
+      "description": "account.exportAbout",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Este archivo es una copia exportada de los datos de tu cuenta. account contiene tu perfil (en oauth solo se registran los permisos concedidos y la última hora de actualización; la credencial en sí nunca se exporta); guilds enumera tu fila en la lista de cada gremio; serverNicks enumera tu instantánea de apodo en cada servidor de Discord; carsLed enumera los escuadrones que creaste; seats enumera tus asientos de inscripción; gearItems es tu biblioteca de equipo; gearBuilds enumera tus configuraciones guardadas; heirloom contiene el estado de deduplicación de los avisos de reliquias. Los tokens de notificaciones son credenciales del dispositivo: solo se registran su cantidad y plataformas, nunca los tokens.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "sPIIAaZz7vSSw8E5KNlsPw==": {
+      "description": "account.deletedUser",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Usuario eliminado",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "C6XvUKW7TbvgZYNxp4d8wA==": {
+      "description": "privacyBody.s5b",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Puedes consultar, exportar o eliminar tus datos personales. En «Mis datos», dentro de tu Perfil, puedes exportar todos tus datos por tu cuenta (se requiere una nueva verificación de autorización de Discord; una exportación cada 24 horas) y también puedes eliminar tu cuenta por tu cuenta: tras enviar la eliminación hay un periodo de espera de 7 días durante el cual puedes cancelarla en cualquier momento; al terminar, tus datos personales se eliminan o se anonimizan: los escuadrones que creaste pasan a ser escuadrones sin líder, los asientos que ocupas en escuadrones de otras personas se anonimizan y las copias dentro de las copias de seguridad se eliminan en un plazo máximo de 14 días con la rotación diaria. También puedes desconectar la autorización de este sitio en cualquier momento en los ajustes de Discord; cuando la autorización caduque, tu sesión en este sitio quedará invalidada automáticamente.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "SEDQam/0FJg4gH29hrRLRg==": {
+      "description": "errors.accountReauthRequired",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Primero vuelve a verificar tu identidad con Discord",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "fuuFl4k8RgjtSHoSc4H4/Q==": {
+      "description": "errors.accountExportRateLimited",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Los datos solo pueden exportarse una vez cada 24 horas; inténtalo más tarde",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "7KmmHekn83isHFC085Jurg==": {
+      "description": "errors.accountUsernameMismatch",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "El nombre visible que escribiste no coincide con tu cuenta",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "PN/ceBMmbg+uN+xwt7mS8A==": {
+      "description": "errors.accountDeletionPending",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Ya hay una solicitud de eliminación en su periodo de espera",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "W/as1YXlllWhKWJ/6Zo1UA==": {
+      "description": "errors.accountDeletionNotPending",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Ahora mismo no hay ninguna solicitud de eliminación pendiente",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

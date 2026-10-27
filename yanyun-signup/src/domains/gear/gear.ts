@@ -102,3 +102,17 @@ export async function deleteGearBuildRow(d1: D1Database, discordId: string, id: 
   const r = await db.run(sql`DELETE FROM ${userGearBuilds} WHERE ${col('id')} = ${id} AND ${col('discord_id')} = ${discordId}`);
   return metaOf(r);
 }
+
+/* ---------- account deletion cascade (owner-scoped bulk delete) ---------- */
+
+export async function deleteAllGearItemsByUser(d1: D1Database, discordId: string): Promise<number> {
+  const db = createDb(d1);
+  const r = await db.run(sql`DELETE FROM ${userGearItems} WHERE ${col('discord_id')} = ${discordId}`);
+  return metaOf(r).changes;
+}
+
+export async function deleteAllGearBuildsByUser(d1: D1Database, discordId: string): Promise<number> {
+  const db = createDb(d1);
+  const r = await db.run(sql`DELETE FROM ${userGearBuilds} WHERE ${col('discord_id')} = ${discordId}`);
+  return metaOf(r).changes;
+}

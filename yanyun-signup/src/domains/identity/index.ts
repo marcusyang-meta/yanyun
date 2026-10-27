@@ -3,4 +3,5 @@
  * domains import only from here, never the repository files directly. */
 export * from './users.ts';
 export * from './guildMembers.ts';
+export * from './account.ts';
 export * from './graphql.ts';

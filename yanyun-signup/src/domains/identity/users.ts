@@ -213,3 +213,100 @@ export async function listAllNicks(d1: D1Database): Promise<NickRow[]> {
   );
   return rows || [];
 }
+
+/* ---------- account self-service state (export / deletion) ---------- */
+
+export interface AccountRow {
+  discord_id: string;
+  username: string;
+  avatar: string;
+  guilds_json: string;
+  locale_pref: string | null;
+  created_at: string;
+  fresh_auth_at: number | null;
+  deletion_requested_at: number | null;
+}
+
+/** Full account row for the export builder and the deletion state machine. */
+export async function getAccountRow(d1: D1Database, discordId: string): Promise<AccountRow | null> {
+  const db = createDb(d1);
+  const row = await db.get<AccountRow>(
+    sql`SELECT ${col('discord_id')}, ${col('username')}, ${col('avatar')}, ${col('guilds_json')}, ${col('locale_pref')}, ${col('created_at')}, ${col('fresh_auth_at')}, ${col('deletion_requested_at')}
+        FROM ${users} WHERE ${col('discord_id')} = ${discordId}`,
+  );
+  return row ?? null;
+}
+
+/** OAuth metadata for the export package — never the credential itself. */
+export async function getOAuthExportMeta(
+  d1: D1Database, discordId: string,
+): Promise<{ scope: string; refresh_state: string; last_refresh_at: number } | null> {
+  const db = createDb(d1);
+  const row = await db.get<{ scope: string; refresh_state: string; last_refresh_at: number }>(
+    sql`SELECT ${col('scope')}, ${col('refresh_state')}, ${col('last_refresh_at')} FROM ${userOauth} WHERE ${col('discord_id')} = ${discordId}`,
+  );
+  return row ?? null;
+}
+
+/** A completed Discord OAuth round trip just happened for this account. */
+export async function setFreshAuthAt(d1: D1Database, discordId: string, nowSec: number): Promise<void> {
+  const db = createDb(d1);
+  await db.run(
+    sql`UPDATE ${users} SET ${col('fresh_auth_at')} = ${nowSec} WHERE ${col('discord_id')} = ${discordId}`,
+  );
+}
+
+export async function setDeletionRequestedAt(d1: D1Database, discordId: string, nowSec: number): Promise<void> {
+  const db = createDb(d1);
+  await db.run(
+    sql`UPDATE ${users} SET ${col('deletion_requested_at')} = ${nowSec} WHERE ${col('discord_id')} = ${discordId}`,
+  );
+}
+
+export async function clearDeletionRequestedAt(d1: D1Database, discordId: string): Promise<void> {
+  const db = createDb(d1);
+  await db.run(
+    sql`UPDATE ${users} SET ${col('deletion_requested_at')} = NULL WHERE ${col('discord_id')} = ${discordId}`,
+  );
+}
+
+/** Accounts whose cooling-off period has expired by cutoffSec. */
+export async function listDueDeletionUserIds(d1: D1Database, cutoffSec: number): Promise<string[]> {
+  const db = createDb(d1);
+  const rows = await db.all<{ discord_id: string }>(
+    sql`SELECT ${col('discord_id')} FROM ${users}
+        WHERE ${col('deletion_requested_at')} IS NOT NULL AND ${col('deletion_requested_at')} <= ${cutoffSec}`,
+  );
+  return (rows || []).map((r) => String(r.discord_id));
+}
+
+/* ---------- account deletion cascade (identity-owned rows) ---------- */
+
+export async function deleteUserRow(d1: D1Database, discordId: string): Promise<number> {
+  const db = createDb(d1);
+  const r: any = await db.run(sql`DELETE FROM ${users} WHERE ${col('discord_id')} = ${discordId}`);
+  return Number(r?.meta?.changes ?? 0);
+}
+
+export async function deleteOAuthRow(d1: D1Database, discordId: string): Promise<number> {
+  const db = createDb(d1);
+  const r: any = await db.run(sql`DELETE FROM ${userOauth} WHERE ${col('discord_id')} = ${discordId}`);
+  return Number(r?.meta?.changes ?? 0);
+}
+
+export async function deleteNicksByUser(d1: D1Database, discordId: string): Promise<number> {
+  const db = createDb(d1);
+  const r: any = await db.run(sql`DELETE FROM ${userGuildNicks} WHERE ${col('discord_id')} = ${discordId}`);
+  return Number(r?.meta?.changes ?? 0);
+}
+
+/** All of a user's nick snapshots with values (export package). */
+export async function listNickEntriesByUser(
+  d1: D1Database, discordId: string,
+): Promise<Array<{ guild_id: string; nick: string; updated_at: number }>> {
+  const db = createDb(d1);
+  const rows = await db.all<{ guild_id: string; nick: string; updated_at: number }>(
+    sql`SELECT ${col('guild_id')}, ${col('nick')}, ${col('updated_at')} FROM ${userGuildNicks} WHERE ${col('discord_id')} = ${discordId}`,
+  );
+  return rows || [];
+}

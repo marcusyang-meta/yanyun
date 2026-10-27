@@ -53,7 +53,32 @@ export type IdentityStringKey =
   | 'create.toastSlugBad'
   | 'create.toastServerRequired'
   | 'create.toastCreated'
-  | 'create.toastFailed';
+  | 'create.toastFailed'
+  | 'account.sectionTitle'
+  | 'account.exportLabel'
+  | 'account.exportHint'
+  | 'account.deleteLabel'
+  | 'account.deleteHint'
+  | 'account.reauthLabel'
+  | 'account.reauthHint'
+  | 'account.confirmTitle'
+  | 'account.confirmIntro'
+  | 'account.consequenceCars'
+  | 'account.consequenceData'
+  | 'account.consequenceGuilds'
+  | 'account.consequenceResidual'
+  | 'account.consequenceReregister'
+  | 'account.exportFirstHint'
+  | 'account.usernameLabel'
+  | 'account.submitLabel'
+  | 'account.backLabel'
+  | 'account.pendingTitle'
+  | 'account.pendingBody'
+  | 'account.cancelDeletionLabel'
+  | 'account.deletionRequestedText'
+  | 'account.deletionCancelledText'
+  | 'account.exportAbout'
+  | 'account.deletedUser';
 
 export const IDENTITY_STRING_KEYS: readonly IdentityStringKey[] = [
   'site.title',
@@ -109,4 +134,29 @@ export const IDENTITY_STRING_KEYS: readonly IdentityStringKey[] = [
   'create.toastServerRequired',
   'create.toastCreated',
   'create.toastFailed',
+  'account.sectionTitle',
+  'account.exportLabel',
+  'account.exportHint',
+  'account.deleteLabel',
+  'account.deleteHint',
+  'account.reauthLabel',
+  'account.reauthHint',
+  'account.confirmTitle',
+  'account.confirmIntro',
+  'account.consequenceCars',
+  'account.consequenceData',
+  'account.consequenceGuilds',
+  'account.consequenceResidual',
+  'account.consequenceReregister',
+  'account.exportFirstHint',
+  'account.usernameLabel',
+  'account.submitLabel',
+  'account.backLabel',
+  'account.pendingTitle',
+  'account.pendingBody',
+  'account.cancelDeletionLabel',
+  'account.deletionRequestedText',
+  'account.deletionCancelledText',
+  'account.exportAbout',
+  'account.deletedUser',
 ];

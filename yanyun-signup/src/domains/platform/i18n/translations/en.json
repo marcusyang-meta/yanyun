@@ -210,17 +210,6 @@
       ],
       "types": []
     },
-    "08wDvCMpig9FKTTUtvVb4w==": {
-      "description": "privacyBody.s5b",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "You may request access to, correction of, or deletion of your personal data. This site does not yet offer a self-service account-deletion feature; please submit your request through the contact channel below, and we will handle it within a reasonable period. You may also disconnect this site’s authorization at any time in your Discord settings; once the authorization lapses, your session on this site is automatically invalidated.",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
     "0CSsQQ5XjU4NQbm+ZCnIAA==": {
       "description": "groupingForm.toastCreateFailed",
       "tokens": [],
@@ -8180,6 +8169,347 @@
       "translations": [
         {
           "translation": "{type}{dungeon} · {max} seats",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "pgU166dSQv2drsLc/fQzIQ==": {
+      "description": "account.sectionTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "My Data",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "dHSvMseO0goD+zuCXEQ6zg==": {
+      "description": "account.exportLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Export my data",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "5SjWF4D3eKK3yJWvXGu15g==": {
+      "description": "account.exportHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Download all of your account data as a single JSON file: account profile, guild roster rows, squads you created, your signup seats, gear library and saved builds. For security, login credentials and push tokens are never included.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Zo1V8X7+ECEq3MDIR58FKg==": {
+      "description": "account.deleteLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Delete account",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Oeyerhi0AhLCLbExOXkfUg==": {
+      "description": "account.deleteHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Deletion cannot be undone. After you submit, there is a 7-day cooling-off period during which you can cancel at any time; once it ends, your personal data is deleted or anonymized.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Y4zFgIHAzsZ9Q6jxPrNi1A==": {
+      "description": "account.reauthLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Re-verify with Discord",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "pHvz36HTYhZXJY/wb/PHKQ==": {
+      "description": "account.reauthHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Export and deletion are sensitive actions; a fresh Discord authorization check is required before continuing.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "nwzZPi43YU+rvKcOvZr1uQ==": {
+      "description": "account.confirmTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Confirm account deletion",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "YPIRliUJa/lYLgt2HKDjWg==": {
+      "description": "account.confirmIntro",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Please read the consequences carefully. After you submit, a 7-day cooling-off period begins, and deletion runs automatically when it ends:",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "84GGomogicDKGmLozBP9JQ==": {
+      "description": "account.consequenceCars",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Squads you created are not deleted: the leader is unlinked so they become leaderless squads, and the creator display name is replaced with “Deleted user”; seats you hold in other people’s squads are anonymized in place.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "JuCB/iEHcBcaLnwaUO9AZA==": {
+      "description": "account.consequenceData",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Your gear library and saved builds, push tokens, nickname snapshots and guild roster rows are permanently deleted; once deletion runs, you are signed out on every device immediately.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "U67biKeVYdEk9JxewNsccg==": {
+      "description": "account.consequenceGuilds",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Guilds themselves and guild admin passwords are unaffected: a guild does not belong to any individual account, and it is neither disbanded nor changed when you delete your account.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "pBUeF6yGkY8m0NCc+s1YZg==": {
+      "description": "account.consequenceResidual",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "A few records cannot be cleared per person: messages already posted to Discord and free-text name lists on result boards remain; copies inside backups are cleared within 14 days as daily backups rotate.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "6ZyHJ7FKmPD5bK07yqXldA==": {
+      "description": "account.consequenceReregister",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Deletion is not a ban: sign in again later with the same Discord account and you will register as a brand-new account.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "l9y176Nn1tJYNX7XZ1hsNA==": {
+      "description": "account.exportFirstHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "We recommend exporting a copy of your data before submitting the deletion.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "YexpsxiC6mOiS5yqYuSPRA==": {
+      "description": "account.usernameLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Type your Discord display name to confirm",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "h7CegTbkLRH1uZ/WAtF30g==": {
+      "description": "account.submitLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Submit deletion request",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "OQLhxves2h2jUi6O8FCLjA==": {
+      "description": "account.backLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Back",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "gu3quGZ5hxa71A8DFZDCTw==": {
+      "description": "account.pendingTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Account deletion scheduled",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "aeIs7lOt0ok990CJ956sew==": {
+      "description": "account.pendingBody",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Your account will be deleted on {date}. Until then you can cancel at any time; signing in again on a new device also cancels automatically (unless the deadline has already passed).",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "cvpVARUfi6/drKQ1BEbbcA==": {
+      "description": "account.cancelDeletionLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Cancel deletion",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "rMFNqjaLxyEGsi+HmPVQ5Q==": {
+      "description": "account.deletionRequestedText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Deletion request submitted — the 7-day cooling-off period has started.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "0A+05qdq6h8MltneJTO6XA==": {
+      "description": "account.deletionCancelledText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Deletion request cancelled — your account will not be deleted.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "efPN+7nb4rsJW/aEah51rw==": {
+      "description": "account.exportAbout",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "This file is an export of your account data. account holds your profile (for oauth, only the granted scopes and last refresh time are recorded — the credential itself is never exported); guilds lists your roster row in each guild; serverNicks lists your nickname snapshot in each Discord server; carsLed lists squads you created; seats lists your signup seats; gearItems is your gear library; gearBuilds lists your saved builds; heirloom holds the deduplication state of heirloom announcements. Push tokens are device credentials: only their count and platforms are recorded, never the tokens themselves.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "sPIIAaZz7vSSw8E5KNlsPw==": {
+      "description": "account.deletedUser",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Deleted user",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "C6XvUKW7TbvgZYNxp4d8wA==": {
+      "description": "privacyBody.s5b",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "You can access, export or delete your personal data. Under “My data” in your Profile, you can export all of your data yourself (a fresh Discord authorization check is required; one export per 24 hours), and you can delete your account yourself: after you submit a deletion there is a 7-day cooling-off period during which you may cancel at any time; once it ends, your personal data is deleted or anonymized — squads you created become leaderless squads, seats you hold in other people’s squads are anonymized, and copies inside backups are cleared within 14 days as daily backups rotate. You may also disconnect this site’s authorization at any time in your Discord settings; once the authorization lapses, your session on this site is automatically invalidated.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "SEDQam/0FJg4gH29hrRLRg==": {
+      "description": "errors.accountReauthRequired",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Please re-verify your identity with Discord first",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "fuuFl4k8RgjtSHoSc4H4/Q==": {
+      "description": "errors.accountExportRateLimited",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Data can be exported only once every 24 hours — please try again later",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "7KmmHekn83isHFC085Jurg==": {
+      "description": "errors.accountUsernameMismatch",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "The display name you typed does not match your account",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "PN/ceBMmbg+uN+xwt7mS8A==": {
+      "description": "errors.accountDeletionPending",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "A deletion request is already in its cooling-off period",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "W/as1YXlllWhKWJ/6Zo1UA==": {
+      "description": "errors.accountDeletionNotPending",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "There is no pending deletion request right now",
           "variations": {}
         }
       ],

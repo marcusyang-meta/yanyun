@@ -322,3 +322,53 @@ export async function updateSignupWeaponRoleByUid(
   );
   return metaOf(r);
 }
+
+/* ---------- account deletion / export (seat-stamp keyed) ---------- */
+
+export interface UserSeatRow {
+  id: number;
+  event_id: number;
+  tenant: string;
+  event_title: string;
+  event_starts_at: string | null;
+  nickname: string;
+  uid: string;
+  role: string;
+  weapon: string;
+  note: string;
+  created_at: string;
+}
+
+/** All seats stamped with this user's discord_id (export's seats). */
+export async function listSignupsByDiscordId(d1: D1Database, discordId: string): Promise<UserSeatRow[]> {
+  const db = createDb(d1);
+  const rows = await db.all<UserSeatRow>(
+    sql`SELECT ${signups.id} AS id, ${signups.eventId} AS event_id, ${events.tenant} AS tenant,
+               ${events.title} AS event_title, ${events.startsAt} AS event_starts_at,
+               ${signups.nickname} AS nickname, ${signups.uid} AS uid, ${signups.role} AS role,
+               ${signups.weapon} AS weapon, ${signups.note} AS note, ${signups.createdAt} AS created_at
+        FROM ${signups} JOIN ${events} ON ${events.id} = ${signups.eventId}
+        WHERE ${signups.discordId} = ${discordId} ORDER BY ${signups.id} ASC`,
+  );
+  return rows || [];
+}
+
+/** Deletion Q2: seats are anonymized in place, never removed — the
+ * car's roster history stays intact, only the identity link is cut:
+ * nickname becomes the tombstone text, the discord stamp is nulled,
+ * the seat's contact (the holder's own personal contact string) is
+ * cleared, and uid becomes a per-seat tombstone ('__deleted__' + seat
+ * id) so the (event_id, uid) unique index can never collide when a
+ * user held several seats in one car. */
+export async function anonymizeSignupsByDiscordId(
+  d1: D1Database, discordId: string, tombstoneName: string,
+): Promise<number> {
+  const db = createDb(d1);
+  const r = await db.run(
+    sql`UPDATE ${signups}
+        SET ${col('nickname')} = ${tombstoneName}, ${col('discord_id')} = NULL,
+            ${col('uid')} = '__deleted__' || ${col('id')}, ${col('contact')} = ''
+        WHERE ${col('discord_id')} = ${discordId}`,
+  );
+  return metaOf(r).changes;
+}

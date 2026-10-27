@@ -10,6 +10,7 @@ import { Hono } from 'hono';
 import { yoga } from './graphql.ts';
 import { getGuildAccess, negotiateLocale } from './domains/platform/graphql-base.ts';
 import { getSessionUserChecked, sessionCookieHeader, handleDiscordLogin, handleDiscordCallback, handleLogout, getUserLocalePref } from './domains/identity/auth.ts';
+import { runDueAccountDeletions } from './domains/identity/index.ts';
 import { maybeRunCreatorBackfill } from './creatorbackfill.js';
 import { maybeRunCreatorManualFix } from './creatormanualfix.js';
 import { logError, runScheduledBackup } from './domains/platform/index.ts';
@@ -220,5 +221,11 @@ export default {
   async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext) {
     void event;
     ctx.waitUntil(runScheduledBackup(env));
+    // Account-deletion sweep rides the same daily cron (no separate
+    // scheduler): accounts whose 7-day cooling-off has expired are
+    // executed here. Failures are contained per account inside the
+    // sweep; the .catch is belt-and-braces so the backup above can
+    // never be affected.
+    ctx.waitUntil(runDueAccountDeletions(env.DB).catch(() => 0));
   },
 };

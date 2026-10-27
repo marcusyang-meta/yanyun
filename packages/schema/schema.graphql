@@ -913,6 +913,44 @@ type SettingsPage {
   settingsSavedText: String!
   localePref: String
   effectiveLocale: String!
+  # ---- 我的数据 (账号导出 / 删除自助) ----
+  accountSectionTitle: String!
+  accountExportLabel: String!
+  accountExportHint: String!
+  accountDeleteLabel: String!
+  accountDeleteHint: String!
+  accountReauthLabel: String!
+  accountReauthHint: String!
+  accountConfirmTitle: String!
+  accountConfirmIntro: String!
+  accountConsequenceCars: String!
+  accountConsequenceData: String!
+  accountConsequenceGuilds: String!
+  accountConsequenceResidual: String!
+  accountConsequenceReregister: String!
+  accountExportFirstHint: String!
+  accountUsernameLabel: String!
+  accountSubmitLabel: String!
+  accountBackLabel: String!
+  accountCancelDeletionLabel: String!
+  accountDeletionRequestedText: String!
+  accountDeletionCancelledText: String!
+  # 最近一次完成 Discord OAuth 往返的 epoch 秒 (null = 从未); 导出与
+  # 删除提交要求 10 分钟内的新鲜授权, 闸门在 mutation 服务端强制,
+  # 此字段只供界面决定先展示哪一步。
+  freshAuthAt: Int
+  # 待删除状态只由「在场」表达: 有未到期 (或已到期待执行) 的删除
+  # 申请时此对象存在, 否则为 null — 前端不拿标志位自判。
+  accountPendingDeletion: AccountPendingDeletion
+}
+
+# 冷静期中的删除申请: executesAt 为执行时刻 (ISO), daysLeft 为剩余
+# 整天数; 文案在服务端按 locale 组合 (pendingBody 已含执行日期)。
+type AccountPendingDeletion {
+  executesAt: String!
+  daysLeft: Int!
+  accountPendingTitle: String!
+  accountPendingBody: String!
 }
 
 type UpdateLocalePayload {
@@ -926,6 +964,34 @@ type UpdateLocalePayload {
 extend type Mutation {
   # locale 为 null 时清除偏好 (回自动); 有值必须是受支持 locale id
   updateMyLocale(locale: String): UpdateLocalePayload!
+}
+
+type ExportMyDataPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  # 导出文档全文 (JSON 字符串, user-export v1); 失败时为 null
+  json: String
+  filename: String
+}
+
+type AccountDeletionPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  # 提交成功时的执行时刻 (ISO); 撤销成功时为 null
+  executesAt: String
+}
+
+extend type Mutation {
+  # 导出我的数据: 需登录 + 10 分钟内的新鲜 Discord 授权; 每 24 小时
+  # 至多一次 (以 account.export 审计行计数)。凭据永不进导出包。
+  exportMyData: ExportMyDataPayload!
+  # 提交账号删除: 需新鲜授权 + 键入本人 Discord 显示名; 进入 7 天
+  # 冷静期, 到期由每日任务执行级联。
+  requestAccountDeletion(typedUsername: String!): AccountDeletionPayload!
+  # 撤销冷静期中的删除申请。
+  cancelAccountDeletion: AccountDeletionPayload!
 }
 
 type PushTokenPayload {

@@ -61,3 +61,27 @@ export async function listPushTokensForUsers(
   );
   return rows || [];
 }
+
+/** Export metadata only: platforms the user registered tokens on —
+ * the token values themselves are device credentials, never exported. */
+export async function listPushTokenPlatformsByUser(
+  d1: D1Database,
+  discordId: string,
+): Promise<string[]> {
+  const db = createDb(d1);
+  const rows = await db.all<{ platform: string }>(
+    sql`SELECT ${pushTokens.platform} FROM ${pushTokens} WHERE ${pushTokens.discordId} = ${discordId}`,
+  );
+  return (rows || []).map((r) => String(r.platform || ''));
+}
+
+export async function deleteAllPushTokensByUser(
+  d1: D1Database,
+  discordId: string,
+): Promise<number> {
+  const db = createDb(d1);
+  const r: any = await db.run(
+    sql`DELETE FROM ${pushTokens} WHERE ${pushTokens.discordId} = ${discordId}`,
+  );
+  return Number(r?.meta?.changes ?? 0);
+}

@@ -56,3 +56,20 @@ export async function hasGuildMember(
   );
   return !!row;
 }
+
+/** One user's roster rows across all guilds (export + deletion cascade). */
+export async function listGuildMembersByUser(
+  d1: D1Database, discordId: string,
+): Promise<Array<{ tenant: string; nick: string; global_name: string }>> {
+  const db = createDb(d1);
+  const rows = await db.all<{ tenant: string; nick: string; global_name: string }>(
+    sql`SELECT ${col('tenant')}, ${col('nick')}, ${col('global_name')} FROM ${guildMembers} WHERE ${col('discord_id')} = ${discordId}`,
+  );
+  return rows || [];
+}
+
+export async function deleteGuildMembersByUser(d1: D1Database, discordId: string): Promise<number> {
+  const db = createDb(d1);
+  const r: any = await db.run(sql`DELETE FROM ${guildMembers} WHERE ${col('discord_id')} = ${discordId}`);
+  return Number(r?.meta?.changes ?? 0);
+}

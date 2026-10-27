@@ -144,3 +144,19 @@ export async function deleteGroupingTemplate(
   const r = await db.run(sql`DELETE FROM ${groupingTemplates} WHERE ${col('id')} = ${id}`);
   return metaOf(r);
 }
+
+/** Deletion: templates are guild-shared resources (like led cars) —
+ * they persist for the guild; only the creator attribution is cut,
+ * after which edit/delete falls to guild admins alone. */
+export async function orphanGroupingTemplatesByCreator(
+  d1: D1Database, discordId: string,
+): Promise<number> {
+  const db = createDb(d1);
+  // SET LHS / WHERE use bare column names (SQLite syntax); see the
+  // settings.ts note — table-qualified columns are invalid in UPDATE.
+  const r: any = await db.run(
+    sql`UPDATE ${groupingTemplates} SET ${sql.identifier('creator_discord_id')} = NULL
+        WHERE ${sql.identifier('creator_discord_id')} = ${discordId}`,
+  );
+  return Number(r?.meta?.changes ?? 0);
+}
