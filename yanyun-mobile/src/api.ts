@@ -15,6 +15,9 @@ import {
   RegisterPushTokenMutation,
   ReopenGroupingMutation,
   UnregisterPushTokenMutation,
+  ExportMyDataMutation,
+  RequestAccountDeletionMutation,
+  CancelAccountDeletionMutation,
   UpdateGroupingMutation,
   UpdateMyLocaleMutation,
   ViewerQuery,
@@ -50,6 +53,9 @@ import type { documentsUpdateGroupingMutation } from './__generated__/documentsU
 import type { documentsUpdateMyLocaleMutation } from './__generated__/documentsUpdateMyLocaleMutation.graphql';
 import type { documentsRegisterPushTokenMutation } from './__generated__/documentsRegisterPushTokenMutation.graphql';
 import type { documentsUnregisterPushTokenMutation } from './__generated__/documentsUnregisterPushTokenMutation.graphql';
+import type { documentsExportMyDataMutation } from './__generated__/documentsExportMyDataMutation.graphql';
+import type { documentsRequestAccountDeletionMutation } from './__generated__/documentsRequestAccountDeletionMutation.graphql';
+import type { documentsCancelAccountDeletionMutation } from './__generated__/documentsCancelAccountDeletionMutation.graphql';
 
 // Data layer is Relay (same GraphQL contract and schema as Web).
 // Auth uses Authorization Bearer (injected by relay.ts fetch); the backend
@@ -326,6 +332,41 @@ export async function registerPushTokenRemote(token: string, platform: string): 
 export async function unregisterPushTokenRemote(token: string): Promise<PushTokenPayload> {
   const r = await commit<documentsUnregisterPushTokenMutation>(UnregisterPushTokenMutation, { token });
   return r.unregisterPushToken as PushTokenPayload;
+}
+
+
+/* My Data wrappers (account export / deletion; fresh-OAuth gating and
+   the export rate limit are enforced server-side — errorCode carries
+   the machine reason, error the localized message). */
+
+export type ExportPayload = {
+  ok: boolean;
+  error?: string | null;
+  errorCode?: string | null;
+  json?: string | null;
+  filename?: string | null;
+};
+
+export type AccountDeletionPayload = {
+  ok: boolean;
+  error?: string | null;
+  errorCode?: string | null;
+  executesAt?: string | null;
+};
+
+export async function exportMyDataRemote(): Promise<ExportPayload> {
+  const r = await commit<documentsExportMyDataMutation>(ExportMyDataMutation, {});
+  return r.exportMyData as ExportPayload;
+}
+
+export async function requestAccountDeletionRemote(typedUsername: string): Promise<AccountDeletionPayload> {
+  const r = await commit<documentsRequestAccountDeletionMutation>(RequestAccountDeletionMutation, { typedUsername });
+  return r.requestAccountDeletion as AccountDeletionPayload;
+}
+
+export async function cancelAccountDeletionRemote(): Promise<AccountDeletionPayload> {
+  const r = await commit<documentsCancelAccountDeletionMutation>(CancelAccountDeletionMutation, {});
+  return r.cancelAccountDeletion as AccountDeletionPayload;
 }
 
 

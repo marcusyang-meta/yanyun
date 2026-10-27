@@ -538,6 +538,34 @@ export const ProfilePageQuery = graphql`
       settingsSavedText
       localePref
       effectiveLocale
+      accountSectionTitle
+      accountExportLabel
+      accountExportHint
+      accountDeleteLabel
+      accountDeleteHint
+      accountReauthLabel
+      accountReauthHint
+      accountConfirmTitle
+      accountConfirmIntro
+      accountConsequenceCars
+      accountConsequenceData
+      accountConsequenceGuilds
+      accountConsequenceResidual
+      accountConsequenceReregister
+      accountExportFirstHint
+      accountUsernameLabel
+      accountSubmitLabel
+      accountBackLabel
+      accountCancelDeletionLabel
+      accountDeletionRequestedText
+      accountDeletionCancelledText
+      freshAuthAt
+      accountPendingDeletion {
+        executesAt
+        daysLeft
+        accountPendingTitle
+        accountPendingBody
+      }
     }
     gradPage {
       gearMyLibTitle
@@ -571,6 +599,42 @@ export const UpdateMyLocaleMutation = graphql`
 export const RegisterPushTokenMutation = graphql`
   mutation documentsRegisterPushTokenMutation($token: String!, $platform: String) {
     registerPushToken(token: $token, platform: $platform) {
+      ok
+      error
+      errorCode
+    }
+  }
+`;
+
+/* My Data: account export + deletion (self-service; the mutations gate
+   on a fresh Discord OAuth stamp server-side) */
+
+export const ExportMyDataMutation = graphql`
+  mutation documentsExportMyDataMutation {
+    exportMyData {
+      ok
+      error
+      errorCode
+      json
+      filename
+    }
+  }
+`;
+
+export const RequestAccountDeletionMutation = graphql`
+  mutation documentsRequestAccountDeletionMutation($typedUsername: String!) {
+    requestAccountDeletion(typedUsername: $typedUsername) {
+      ok
+      error
+      errorCode
+      executesAt
+    }
+  }
+`;
+
+export const CancelAccountDeletionMutation = graphql`
+  mutation documentsCancelAccountDeletionMutation {
+    cancelAccountDeletion {
       ok
       error
       errorCode

@@ -1,12 +1,21 @@
 import React, { Suspense, useState } from 'react';
-import { Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Linking, Pressable, ScrollView, Share, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useLazyLoadQuery } from 'react-relay';
+import { useLazyLoadQuery, useRelayEnvironment } from 'react-relay';
+import { fetchQuery } from 'relay-runtime';
+import { File, Paths } from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
 import { fonts, theme } from '../theme';
 import { AsyncBoundary, LoadingView } from '../components/AsyncBoundary';
 import { ProfilePageQuery } from '../documents';
-import { updateMyLocale } from '../api';
+import {
+  cancelAccountDeletionRemote,
+  exportMyDataRemote,
+  requestAccountDeletionRemote,
+  updateMyLocale,
+} from '../api';
+import { reauthWithDiscord } from '../auth';
 import { emitLocaleChanged, writePrefMirror } from '../locale';
 import { useSession } from '../session';
 import type { documentsProfilePageQuery } from '../__generated__/documentsProfilePageQuery.graphql';
@@ -53,6 +62,108 @@ function ProfileInner({ topInset, bottomInset }: { topInset: number; bottomInset
   const [error, setError] = useState('');
   const [saved, setSaved] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+
+  /* ---- My Data (account export / deletion) ---- */
+  const environment = useRelayEnvironment();
+  const [acctView, setAcctView] = useState<'main' | 'confirm'>('main');
+  const [typedName, setTypedName] = useState('');
+  const [acctBusy, setAcctBusy] = useState(false);
+  const [acctError, setAcctError] = useState('');
+  const [acctNotice, setAcctNotice] = useState('');
+  const pendingDeletion = page?.accountPendingDeletion ?? null;
+  // Freshness is judged against the moment this screen (re)loaded —
+  // the mutations re-check the stamp server-side regardless.
+  const [nowSec, setNowSec] = useState(() => Math.floor(Date.now() / 1000));
+  const authFresh = typeof page?.freshAuthAt === 'number'
+    && (nowSec - page.freshAuthAt) <= 600;
+
+  const refetchSelf = () => {
+    setNowSec(Math.floor(Date.now() / 1000));
+    fetchQuery(environment, ProfilePageQuery, {}).toPromise().catch(() => {});
+  };
+
+  // Sensitive actions need a fresh Discord OAuth stamp (server-side
+  // gate): when stale, run the same auth round trip as login first —
+  // the callback stamps fresh_auth_at; the mutation re-checks anyway.
+  const ensureFresh = async (): Promise<boolean> => {
+    if (authFresh) return true;
+    const ok = await reauthWithDiscord();
+    if (ok) refetchSelf();
+    return ok;
+  };
+
+  const deliverExport = async (json: string, filename: string) => {
+    try {
+      const file = new File(Paths.cache, filename);
+      file.create({ overwrite: true });
+      file.write(json);
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(file.uri, { mimeType: 'application/json', dialogTitle: filename });
+        return;
+      }
+    } catch { /* fall through to the plain text share below */ }
+    await Share.share({ message: json });
+  };
+
+  const doExport = async () => {
+    if (acctBusy) return;
+    setAcctError('');
+    setAcctBusy(true);
+    try {
+      await ensureFresh();
+      let payload = await exportMyDataRemote();
+      if (!payload.ok && payload.errorCode === 'accountReauthRequired') {
+        if (await reauthWithDiscord()) payload = await exportMyDataRemote();
+      }
+      if (payload.ok && payload.json) {
+        await deliverExport(payload.json, payload.filename || 'yanyun-data-export.json');
+      } else {
+        setAcctError(payload.error || viewer?.commonUnknownErrorText || '');
+      }
+    } catch {
+      setAcctError(viewer?.commonUnknownErrorText || '');
+    } finally { setAcctBusy(false); }
+  };
+
+  const doRequestDeletion = async () => {
+    if (acctBusy) return;
+    setAcctError('');
+    setAcctBusy(true);
+    try {
+      await ensureFresh();
+      let payload = await requestAccountDeletionRemote(typedName);
+      if (!payload.ok && payload.errorCode === 'accountReauthRequired') {
+        if (await reauthWithDiscord()) payload = await requestAccountDeletionRemote(typedName);
+      }
+      if (payload.ok) {
+        setAcctView('main');
+        setTypedName('');
+        setAcctNotice(page?.accountDeletionRequestedText || '');
+        refetchSelf();
+      } else {
+        setAcctError(payload.error || viewer?.commonUnknownErrorText || '');
+      }
+    } catch {
+      setAcctError(viewer?.commonUnknownErrorText || '');
+    } finally { setAcctBusy(false); }
+  };
+
+  const doCancelDeletion = async () => {
+    if (acctBusy) return;
+    setAcctError('');
+    setAcctBusy(true);
+    try {
+      const payload = await cancelAccountDeletionRemote();
+      if (payload.ok) {
+        setAcctNotice(page?.accountDeletionCancelledText || '');
+        refetchSelf();
+      } else {
+        setAcctError(payload.error || viewer?.commonUnknownErrorText || '');
+      }
+    } catch {
+      setAcctError(viewer?.commonUnknownErrorText || '');
+    } finally { setAcctBusy(false); }
+  };
 
   const serverCurrent: string = page?.localePref ?? 'AUTO';
   // The local override applies only while it differs from the server value;
@@ -164,6 +275,79 @@ function ProfileInner({ topInset, bottomInset }: { topInset: number; bottomInset
         </Pressable>
       </View>
 
+      {/* My Data: account export + deletion (self-service). The pending
+          state arrives as data (accountPendingDeletion present/absent),
+          never as a flag to interpret; all gates are enforced again by
+          the mutations server-side. Mirrors the Web Profile dialog. */}
+      <View style={s.gearZone}>
+        <Text style={s.langLabel}>{page.accountSectionTitle}</Text>
+        {pendingDeletion ? (
+          <View style={s.pendingBox}>
+            <Text style={s.pendingTitle}>{pendingDeletion.accountPendingTitle}</Text>
+            <Text style={s.pendingBody}>{pendingDeletion.accountPendingBody}</Text>
+            <Pressable style={s.cancelDeletionBtn} onPress={() => void doCancelDeletion()} disabled={acctBusy}>
+              <Text style={s.cancelDeletionText}>{page.accountCancelDeletionLabel}</Text>
+            </Pressable>
+          </View>
+        ) : acctView === 'confirm' ? (
+          <View>
+            <Text style={s.pendingTitle}>{page.accountConfirmTitle}</Text>
+            <Text style={s.pendingBody}>{page.accountConfirmIntro}</Text>
+            <View style={s.consequences}>
+              <Text style={s.consequence}>· {page.accountConsequenceCars}</Text>
+              <Text style={s.consequence}>· {page.accountConsequenceData}</Text>
+              <Text style={s.consequence}>· {page.accountConsequenceGuilds}</Text>
+              <Text style={s.consequence}>· {page.accountConsequenceResidual}</Text>
+              <Text style={s.consequence}>· {page.accountConsequenceReregister}</Text>
+            </View>
+            <Text style={s.pendingBody}>
+              {page.accountExportFirstHint}
+              <Text style={s.inlineLink} onPress={() => void doExport()}>{page.accountExportLabel}</Text>
+            </Text>
+            <Text style={s.langLabel}>{page.accountUsernameLabel}</Text>
+            <TextInput
+              style={s.nameInput}
+              value={typedName}
+              onChangeText={setTypedName}
+              placeholder={user?.name || ''}
+              placeholderTextColor={theme.muted}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            <View style={s.confirmRow}>
+              <Pressable
+                style={s.backBtn}
+                onPress={() => { setAcctView('main'); setAcctError(''); }}
+              >
+                <Text style={s.backText}>{page.accountBackLabel}</Text>
+              </Pressable>
+              <Pressable
+                style={[s.submitDangerBtn, (acctBusy || typedName.trim() === '' || typedName.trim() !== (user?.name || '').trim()) && s.btnDisabled]}
+                onPress={() => void doRequestDeletion()}
+                disabled={acctBusy || typedName.trim() === '' || typedName.trim() !== (user?.name || '').trim()}
+              >
+                <Text style={s.dangerText}>{page.accountSubmitLabel}</Text>
+              </Pressable>
+            </View>
+          </View>
+        ) : (
+          <View>
+            <Pressable style={s.entryRow} onPress={() => void doExport()} disabled={acctBusy}>
+              <Text style={s.entryText}>{page.accountExportLabel}</Text>
+              <Text style={s.entryChevron}>›</Text>
+            </Pressable>
+            <Text style={s.acctHint}>{page.accountExportHint}</Text>
+            {!authFresh && <Text style={s.acctHint}>{page.accountReauthHint}</Text>}
+            <Pressable style={s.dangerBtn} onPress={() => setAcctView('confirm')} disabled={acctBusy}>
+              <Text style={s.dangerText}>{page.accountDeleteLabel}</Text>
+            </Pressable>
+            <Text style={s.acctHint}>{page.accountDeleteHint}</Text>
+          </View>
+        )}
+        {!!acctNotice && <Text style={s.saved}>✓ {acctNotice}</Text>}
+        {!!acctError && <Text style={s.error}>{acctError}</Text>}
+      </View>
+
       <View style={s.logoutZone}>
         <Pressable style={s.logoutBtn} onPress={() => void doSignOut()} disabled={loggingOut}>
           <Text style={s.logoutText}>
@@ -226,6 +410,42 @@ const s = StyleSheet.create({
   },
   entryText: { fontFamily: fonts.serif, color: theme.paper, fontSize: 14.5 },
   entryChevron: { fontFamily: fonts.serif, color: theme.gold, fontSize: 19, lineHeight: 21 },
+  acctHint: { fontFamily: fonts.serif, color: theme.muted, fontSize: 12.5, lineHeight: 20, marginTop: 8, marginBottom: 14 },
+  pendingBox: {
+    borderWidth: 1, borderColor: 'rgba(229,141,127,.45)', borderRadius: 10,
+    padding: 14, backgroundColor: 'rgba(229,141,127,.06)',
+  },
+  pendingTitle: { fontFamily: fonts.serif, color: theme.danger, fontSize: 15, marginBottom: 6 },
+  pendingBody: { fontFamily: fonts.serif, color: theme.muted, fontSize: 13, lineHeight: 21, marginBottom: 12 },
+  consequences: { marginBottom: 12, gap: 2 },
+  consequence: { fontFamily: fonts.serif, color: theme.muted, fontSize: 13, lineHeight: 21 },
+  inlineLink: { color: theme.gold, textDecorationLine: 'underline' },
+  nameInput: {
+    borderWidth: 1, borderColor: 'rgba(201,163,92,.35)', borderRadius: 8,
+    backgroundColor: 'rgba(255,255,255,.03)', color: theme.paper,
+    fontFamily: fonts.serif, fontSize: 14, paddingVertical: 10, paddingHorizontal: 12, marginBottom: 14,
+  },
+  confirmRow: { flexDirection: 'row', gap: 10 },
+  backBtn: {
+    flex: 1, borderWidth: 1, borderColor: 'rgba(201,163,92,.35)', borderRadius: 8,
+    paddingVertical: 11, alignItems: 'center',
+  },
+  backText: { fontFamily: fonts.serif, color: theme.paper, fontSize: 14 },
+  dangerBtn: {
+    borderWidth: 1, borderColor: 'rgba(229,141,127,.45)', borderRadius: 10,
+    backgroundColor: 'rgba(229,141,127,.06)', paddingVertical: 12, alignItems: 'center',
+  },
+  submitDangerBtn: {
+    flex: 1, borderWidth: 1, borderColor: 'rgba(229,141,127,.6)', borderRadius: 8,
+    backgroundColor: 'rgba(229,141,127,.14)', paddingVertical: 11, alignItems: 'center',
+  },
+  btnDisabled: { opacity: 0.45 },
+  dangerText: { fontFamily: fonts.serif, color: theme.danger, fontSize: 14.5 },
+  cancelDeletionBtn: {
+    borderWidth: 1, borderColor: theme.gold, borderRadius: 8,
+    paddingVertical: 10, alignItems: 'center',
+  },
+  cancelDeletionText: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 13.5 },
   logoutZone: { borderTopWidth: 1, borderTopColor: 'rgba(201,163,92,.22)', marginTop: 26, paddingTop: 18 },
   logoutBtn: {
     borderWidth: 1, borderColor: 'rgba(201,163,92,.4)', borderRadius: 10,

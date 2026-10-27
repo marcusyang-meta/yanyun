@@ -30,6 +30,21 @@ export async function loginWithDiscord(): Promise<void> {
   throw new Error('已取消登录');
 }
 
+// Fresh re-authentication for sensitive self-service actions (account
+// export / deletion): the same Discord round trip as login — the
+// backend stamps users.fresh_auth_at at the OAuth callback, and that
+// stamp is what the account mutations gate on. The fresh session token
+// replaces the stored one, exactly like a normal login. Resolves true
+// when the round trip completed with a token.
+export async function reauthWithDiscord(): Promise<boolean> {
+  try {
+    await loginWithDiscord();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export async function logout(): Promise<void> {
   await setToken(null);
   // Server sessions are stateless JWTs: clearing locally is sign-out (same
