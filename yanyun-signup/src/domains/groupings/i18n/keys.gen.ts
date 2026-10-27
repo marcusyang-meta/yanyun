@@ -118,7 +118,31 @@ export type GroupingsStringKey =
   | 'seat.unreadyAction'
   | 'seat.toastReady'
   | 'seat.toastUnready'
-  | 'seat.toastReadyFailed';
+  | 'seat.toastReadyFailed'
+  | 'groupingTemplate.sectionTitle'
+  | 'groupingTemplate.nameLabel'
+  | 'groupingTemplate.namePlaceholder'
+  | 'groupingTemplate.saveFromForm'
+  | 'groupingTemplate.updateSubmit'
+  | 'groupingTemplate.editingNotice'
+  | 'groupingTemplate.cancelEdit'
+  | 'groupingTemplate.empty'
+  | 'groupingTemplate.whenToday'
+  | 'groupingTemplate.whenTomorrow'
+  | 'groupingTemplate.whenDays'
+  | 'groupingTemplate.toastSaved'
+  | 'groupingTemplate.toastSaveFailed'
+  | 'groupingTemplate.toastDeleted'
+  | 'groupingTemplate.toastDeleteFailed'
+  | 'groupingTemplate.edit'
+  | 'groupingTemplate.delete'
+  | 'groupingTemplate.deleteConfirmTitle'
+  | 'groupingTemplate.deleteConfirmMessage'
+  | 'groupingTemplate.saveButton'
+  | 'groupingTemplate.saveDialogTitle'
+  | 'groupingTemplate.saveSubmit'
+  | 'groupingTemplate.toastSavedFromCar'
+  | 'groupingTemplate.metaTemplate';
 
 export const GROUPINGS_STRING_KEYS: readonly GroupingsStringKey[] = [
   'groupingType.tabActivity',
@@ -239,4 +263,28 @@ export const GROUPINGS_STRING_KEYS: readonly GroupingsStringKey[] = [
   'seat.toastReady',
   'seat.toastUnready',
   'seat.toastReadyFailed',
+  'groupingTemplate.sectionTitle',
+  'groupingTemplate.nameLabel',
+  'groupingTemplate.namePlaceholder',
+  'groupingTemplate.saveFromForm',
+  'groupingTemplate.updateSubmit',
+  'groupingTemplate.editingNotice',
+  'groupingTemplate.cancelEdit',
+  'groupingTemplate.empty',
+  'groupingTemplate.whenToday',
+  'groupingTemplate.whenTomorrow',
+  'groupingTemplate.whenDays',
+  'groupingTemplate.toastSaved',
+  'groupingTemplate.toastSaveFailed',
+  'groupingTemplate.toastDeleted',
+  'groupingTemplate.toastDeleteFailed',
+  'groupingTemplate.edit',
+  'groupingTemplate.delete',
+  'groupingTemplate.deleteConfirmTitle',
+  'groupingTemplate.deleteConfirmMessage',
+  'groupingTemplate.saveButton',
+  'groupingTemplate.saveDialogTitle',
+  'groupingTemplate.saveSubmit',
+  'groupingTemplate.toastSavedFromCar',
+  'groupingTemplate.metaTemplate',
 ];

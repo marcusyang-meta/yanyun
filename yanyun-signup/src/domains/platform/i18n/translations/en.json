@@ -8030,6 +8030,314 @@
         }
       ],
       "types": []
+    },
+    "ZkxMbn3ne2iB75sXnDihwA==": {
+      "description": "groupingTemplate.sectionTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Squad templates",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "bExAaSVvE4+mu944M2CKhA==": {
+      "description": "groupingTemplate.nameLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Template name",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "0mjraCzUtekmJfFYqfWnEQ==": {
+      "description": "groupingTemplate.namePlaceholder",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Give the template a name",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "/xrwMnoLG1YR51BfuPNwcw==": {
+      "description": "groupingTemplate.saveFromForm",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Save as template",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "FNN9WPXyEHqbjFH+1Ov3ig==": {
+      "description": "groupingTemplate.updateSubmit",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Save template changes",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "IB4xIdadJg7BiYlYQYxAFg==": {
+      "description": "groupingTemplate.editingNotice",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Editing template \"{name}\"",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "JQypAhfQ08xPkoVbuqaIOw==": {
+      "description": "groupingTemplate.cancelEdit",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Cancel editing",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "crdx//ZKLRA2qfLNemNXHg==": {
+      "description": "groupingTemplate.empty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "No templates yet — save a setup you use often and prefill the form in one tap next time",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "cegnDVR6nbX5ofp/7+9Bog==": {
+      "description": "groupingTemplate.whenToday",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Departs today at {time}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "OWGlpjkth9IxmN9ZObsXrA==": {
+      "description": "groupingTemplate.whenTomorrow",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Departs tomorrow at {time}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "iE/OgrdWrJDZR9HYXsby1w==": {
+      "description": "groupingTemplate.whenDays",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Departs in {days} days at {time}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "HGjlQBP/T5iBHCcTZmIYvQ==": {
+      "description": "groupingTemplate.toastSaved",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Template saved",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "K0HtkRcjK4+n1KymA0wiJQ==": {
+      "description": "groupingTemplate.toastSaveFailed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Couldn't save the template: {error}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "64hdwsuQ8hI2eiqBw/jUcg==": {
+      "description": "groupingTemplate.toastDeleted",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Template deleted",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ixfMEWFYs9g0mH3LZqWOqw==": {
+      "description": "groupingTemplate.toastDeleteFailed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Couldn't delete the template: {error}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "jiT8MggHDMXioSAHddYNxg==": {
+      "description": "groupingTemplate.edit",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Edit",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "zuqu3YU01yYaigdErWd69g==": {
+      "description": "groupingTemplate.delete",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Delete",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "slOOYv4XF1mAa21Dg67NFQ==": {
+      "description": "groupingTemplate.deleteConfirmTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Delete template",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "CjzmWxs4xoCrV9XdS33ybg==": {
+      "description": "groupingTemplate.deleteConfirmMessage",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Delete the template \"{name}\"?",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ia9KOc7nH80/a2GkTj/FBA==": {
+      "description": "groupingTemplate.saveButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "📋 Save as template",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "0rAqcL9MbOavSUXeQgxMnw==": {
+      "description": "groupingTemplate.saveDialogTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Save as squad template",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "kO7H7nxemLN06sjKQRe5xw==": {
+      "description": "groupingTemplate.saveSubmit",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Save template",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+pnWXNBfYnp9RrfgXymCDw==": {
+      "description": "groupingTemplate.toastSavedFromCar",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Saved as a template — prefill it in one tap when posting a new squad",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "gCAPZ3bvhDsRZkG1NNFmKw==": {
+      "description": "errors.templateNotFound",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Template not found",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "O0vO88xom+CwbYHpsnTSxA==": {
+      "description": "errors.templateNameRequired",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Please enter a template name",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "6K2T+Lvr9VrDZOI5zbbHMw==": {
+      "description": "errors.templateForbidden",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Only the template's creator or a guild admin can edit or delete it",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "UWkeiK2kidjRaqMSKC1lcQ==": {
+      "description": "errors.templateBadStart",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Invalid departure time setting",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "a+YrwmWaFG4eqMcGdzKEtg==": {
+      "description": "groupingTemplate.metaTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{type}{dungeon} · {max} seats",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

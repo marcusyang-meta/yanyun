@@ -687,6 +687,10 @@ export const errors_resultTimeInvalid = (fbs: FbsRuntime) => fbs._("用时格式
 export const errors_avatarDataInvalid = (fbs: FbsRuntime) => fbs._("图片数据无效", null, { hk: "24II5Y" });
 export const errors_schoolRequired = (fbs: FbsRuntime) => fbs._("缺少流派", null, { hk: "1VK4KE" });
 export const errors_generic = (fbs: FbsRuntime) => fbs._("操作失败，请稍后再试", null, { hk: "3K1pLh" });
+export const errors_templateNotFound = (fbs: FbsRuntime) => fbs._("模板不存在", null, { hk: "V7yC4" });
+export const errors_templateNameRequired = (fbs: FbsRuntime) => fbs._("请填写模板名", null, { hk: "Xi9qb" });
+export const errors_templateForbidden = (fbs: FbsRuntime) => fbs._("只有模板创建者或百业管理员可以改删模板", null, { hk: "3cxfYY" });
+export const errors_templateBadStart = (fbs: FbsRuntime) => fbs._("发车时间设置无效", null, { hk: "35TKYe" });
 export const guildAdmin_title = (fbs: FbsRuntime) => fbs._("管理百业", null, { hk: "23Vynb" });
 export const guildAdmin_lockedTitle = (fbs: FbsRuntime) => fbs._("无权管理这个百业", null, { hk: "4eqp6f" });
 export const guildAdmin_lockedBody = (fbs: FbsRuntime) => fbs._("只有该百业所绑 Discord 服务器的管理员（服务器主或拥有管理权限）可以进入管理页。", null, { hk: "248TMj" });
@@ -797,6 +801,34 @@ export const guildAdmin_ogAccentJade = (fbs: FbsRuntime) => fbs._("翡翠", null
 export const guildAdmin_ogAccentAzure = (fbs: FbsRuntime) => fbs._("藏青", null, { hk: "UcaFv" });
 export const guildAdmin_ogAccentCinnabar = (fbs: FbsRuntime) => fbs._("朱砂", null, { hk: "3Phj2j" });
 export const guildAdmin_ogAccentViolet = (fbs: FbsRuntime) => fbs._("紫檀", null, { hk: "1VAkT6" });
+export const groupingTemplate_sectionTitle = (fbs: FbsRuntime) => fbs._("车队模板", null, { hk: "GOM6P" });
+export const groupingTemplate_nameLabel = (fbs: FbsRuntime) => fbs._("模板名", null, { hk: "1k3Wki" });
+export const groupingTemplate_namePlaceholder = (fbs: FbsRuntime) => fbs._("给模板起个名字", null, { hk: "3MWfOY" });
+export const groupingTemplate_saveFromForm = (fbs: FbsRuntime) => fbs._("存为模板", null, { hk: "4CUZuQ" });
+export const groupingTemplate_updateSubmit = (fbs: FbsRuntime) => fbs._("保存模板修改", null, { hk: "2Bk6t2" });
+export const groupingTemplate_editingNotice = (fbs: FbsRuntime, p?: StringParams) => fbs._("正在编辑模板「{name}」", [fbs._param("name", pv(p, "name"))], { hk: "1lx9SI" });
+export const groupingTemplate_cancelEdit = (fbs: FbsRuntime) => fbs._("取消编辑", null, { hk: "24y5Qr" });
+export const groupingTemplate_empty = (fbs: FbsRuntime) => fbs._("还没有模板，把常用配置存下来，下次一键预填", null, { hk: "2dBmbh" });
+export const groupingTemplate_whenToday = (fbs: FbsRuntime, p?: StringParams) => fbs._("今天 {time} 发车", [fbs._param("time", pv(p, "time"))], { hk: "4kuJVp" });
+export const groupingTemplate_whenTomorrow = (fbs: FbsRuntime, p?: StringParams) => fbs._("明天 {time} 发车", [fbs._param("time", pv(p, "time"))], { hk: "3aSyYd" });
+export const groupingTemplate_whenDays = (fbs: FbsRuntime, p?: StringParams) => fbs._("{days} 天后 {time} 发车", [fbs._param("days", pv(p, "days")), fbs._param("time", pv(p, "time"))], { hk: "1xEu5s" });
+export const groupingTemplate_toastSaved = (fbs: FbsRuntime) => fbs._("模板已保存", null, { hk: "4kY206" });
+export const groupingTemplate_toastSaveFailed = (fbs: FbsRuntime, p?: StringParams) => fbs._("模板保存失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "wRlkj" });
+export const groupingTemplate_toastDeleted = (fbs: FbsRuntime) => fbs._("模板已删除", null, { hk: "3uZBPc" });
+export const groupingTemplate_toastDeleteFailed = (fbs: FbsRuntime, p?: StringParams) => fbs._("模板删除失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "Ygx0t" });
+export const groupingTemplate_edit = (fbs: FbsRuntime) => fbs._("编辑", null, { hk: "3kBXbr" });
+export const groupingTemplate_delete = (fbs: FbsRuntime) => fbs._("删除", null, { hk: "1cykms" });
+export const groupingTemplate_deleteConfirmTitle = (fbs: FbsRuntime) => fbs._("删除模板", null, { hk: "4GvRzx" });
+export const groupingTemplate_deleteConfirmMessage = (fbs: FbsRuntime, p?: StringParams) => fbs._("确定删除模板「{name}」吗？", [fbs._param("name", pv(p, "name"))], { hk: "3lDXrV" });
+export const groupingTemplate_saveButton = (fbs: FbsRuntime) => fbs._("📋 存为模板", null, { hk: "3ovT8m" });
+export const groupingTemplate_saveDialogTitle = (fbs: FbsRuntime) => fbs._("存为车队模板", null, { hk: "2sNRNg" });
+export const groupingTemplate_saveSubmit = (fbs: FbsRuntime) => fbs._("保存模板", null, { hk: "31IMd4" });
+export const groupingTemplate_toastSavedFromCar = (fbs: FbsRuntime) => fbs._("已存为模板，可在发新车时一键预填", null, { hk: "4m9ecW" });
+export const groupingTemplate_metaTemplate = (fbs: FbsRuntime, p?: StringParams) => fbs._("{type}{dungeon} · {max} 人", [
+	fbs._param("type", pv(p, "type")),
+	fbs._param("dungeon", pv(p, "dungeon")),
+	fbs._param("max", pv(p, "max"))
+], { hk: "37i0v8" });
 export const STRING_FNS: Record<string, StringFn> = {
 	"common.cancel": common_cancel,
 	"common.confirm": common_confirm,
@@ -1432,6 +1464,10 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"errors.avatarDataInvalid": errors_avatarDataInvalid,
 	"errors.schoolRequired": errors_schoolRequired,
 	"errors.generic": errors_generic,
+	"errors.templateNotFound": errors_templateNotFound,
+	"errors.templateNameRequired": errors_templateNameRequired,
+	"errors.templateForbidden": errors_templateForbidden,
+	"errors.templateBadStart": errors_templateBadStart,
 	"guildAdmin.title": guildAdmin_title,
 	"guildAdmin.lockedTitle": guildAdmin_lockedTitle,
 	"guildAdmin.lockedBody": guildAdmin_lockedBody,
@@ -1541,5 +1577,29 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"guildAdmin.ogAccentJade": guildAdmin_ogAccentJade,
 	"guildAdmin.ogAccentAzure": guildAdmin_ogAccentAzure,
 	"guildAdmin.ogAccentCinnabar": guildAdmin_ogAccentCinnabar,
-	"guildAdmin.ogAccentViolet": guildAdmin_ogAccentViolet
+	"guildAdmin.ogAccentViolet": guildAdmin_ogAccentViolet,
+	"groupingTemplate.sectionTitle": groupingTemplate_sectionTitle,
+	"groupingTemplate.nameLabel": groupingTemplate_nameLabel,
+	"groupingTemplate.namePlaceholder": groupingTemplate_namePlaceholder,
+	"groupingTemplate.saveFromForm": groupingTemplate_saveFromForm,
+	"groupingTemplate.updateSubmit": groupingTemplate_updateSubmit,
+	"groupingTemplate.editingNotice": groupingTemplate_editingNotice,
+	"groupingTemplate.cancelEdit": groupingTemplate_cancelEdit,
+	"groupingTemplate.empty": groupingTemplate_empty,
+	"groupingTemplate.whenToday": groupingTemplate_whenToday,
+	"groupingTemplate.whenTomorrow": groupingTemplate_whenTomorrow,
+	"groupingTemplate.whenDays": groupingTemplate_whenDays,
+	"groupingTemplate.toastSaved": groupingTemplate_toastSaved,
+	"groupingTemplate.toastSaveFailed": groupingTemplate_toastSaveFailed,
+	"groupingTemplate.toastDeleted": groupingTemplate_toastDeleted,
+	"groupingTemplate.toastDeleteFailed": groupingTemplate_toastDeleteFailed,
+	"groupingTemplate.edit": groupingTemplate_edit,
+	"groupingTemplate.delete": groupingTemplate_delete,
+	"groupingTemplate.deleteConfirmTitle": groupingTemplate_deleteConfirmTitle,
+	"groupingTemplate.deleteConfirmMessage": groupingTemplate_deleteConfirmMessage,
+	"groupingTemplate.saveButton": groupingTemplate_saveButton,
+	"groupingTemplate.saveDialogTitle": groupingTemplate_saveDialogTitle,
+	"groupingTemplate.saveSubmit": groupingTemplate_saveSubmit,
+	"groupingTemplate.toastSavedFromCar": groupingTemplate_toastSavedFromCar,
+	"groupingTemplate.metaTemplate": groupingTemplate_metaTemplate
 };

@@ -60,6 +60,32 @@ export const signups = sqliteTable('signups', {
   index('idx_signups_event').on(t.eventId),
 ]);
 
+/* ---------------- grouping_templates [lazy DDL in templates.ts] -------
+ * Guild-shared car templates: a saved grouping configuration (type,
+ * dungeon, seats, title, departure offset) that guild members can
+ * apply to prefill the create form. Guild-scoped (tenant), created by
+ * a member; only the creator or an admin of the template's own guild
+ * may edit or delete it (the grouping manage verdict on tenant +
+ * creator_discord_id). start_minutes is the local time-of-day
+ * (hour*60+minute in the saver's timezone) and start_days_ahead the
+ * day offset, so a template never carries a stale absolute date. */
+export const groupingTemplates = sqliteTable('grouping_templates', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  tenant: text('tenant').notNull().default(''),
+  name: text('name').notNull().default(''),
+  type: text('type').notNull().default('activity'),
+  title: text('title').notNull().default(''),
+  dungeon: text('dungeon').notNull().default(''),
+  maxSlots: integer('max_slots').notNull().default(10),
+  startDaysAhead: integer('start_days_ahead').notNull().default(0),
+  startMinutes: integer('start_minutes').notNull().default(1200),
+  creatorDiscordId: text('creator_discord_id'),
+  createdAt: integer('created_at').notNull().default(0),
+  updatedAt: integer('updated_at').notNull().default(0),
+}, (t) => [
+  index('idx_grouping_templates_tenant').on(t.tenant),
+]);
+
 /* ---------------- short_links [lazy DDL in shortlinks.ts] -------------
  * Share-link aliases: one stable random code per grouping (car).
  * code is the public alias (base62, 7 chars, random — never derived

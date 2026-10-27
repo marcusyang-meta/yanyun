@@ -161,3 +161,35 @@ export const seat_toastReady = (fbs: FbsAPI) =>fbs("已标记就位", "seat.toas
 export const seat_toastUnready = (fbs: FbsAPI) =>fbs("已取消就位", "seat.toastUnready");
 export const seat_toastReadyFailed = (fbs: FbsAPI, p?: StringParams) =>
   fbs(["操作失败：", fbs.param("error", pv(p, "error"))], "seat.toastReadyFailed");
+export const groupingTemplate_sectionTitle = (fbs: FbsAPI) =>fbs("车队模板", "groupingTemplate.sectionTitle");
+export const groupingTemplate_nameLabel = (fbs: FbsAPI) =>fbs("模板名", "groupingTemplate.nameLabel");
+export const groupingTemplate_namePlaceholder = (fbs: FbsAPI) =>fbs("给模板起个名字", "groupingTemplate.namePlaceholder");
+export const groupingTemplate_saveFromForm = (fbs: FbsAPI) =>fbs("存为模板", "groupingTemplate.saveFromForm");
+export const groupingTemplate_updateSubmit = (fbs: FbsAPI) =>fbs("保存模板修改", "groupingTemplate.updateSubmit");
+export const groupingTemplate_editingNotice = (fbs: FbsAPI, p?: StringParams) =>
+  fbs(["正在编辑模板「", fbs.param("name", pv(p, "name")), "」"], "groupingTemplate.editingNotice");
+export const groupingTemplate_cancelEdit = (fbs: FbsAPI) =>fbs("取消编辑", "groupingTemplate.cancelEdit");
+export const groupingTemplate_empty = (fbs: FbsAPI) =>fbs("还没有模板，把常用配置存下来，下次一键预填", "groupingTemplate.empty");
+export const groupingTemplate_whenToday = (fbs: FbsAPI, p?: StringParams) =>
+  fbs(["今天 ", fbs.param("time", pv(p, "time")), " 发车"], "groupingTemplate.whenToday");
+export const groupingTemplate_whenTomorrow = (fbs: FbsAPI, p?: StringParams) =>
+  fbs(["明天 ", fbs.param("time", pv(p, "time")), " 发车"], "groupingTemplate.whenTomorrow");
+export const groupingTemplate_whenDays = (fbs: FbsAPI, p?: StringParams) =>
+  fbs([fbs.param("days", pv(p, "days")), " 天后 ", fbs.param("time", pv(p, "time")), " 发车"], "groupingTemplate.whenDays");
+export const groupingTemplate_toastSaved = (fbs: FbsAPI) =>fbs("模板已保存", "groupingTemplate.toastSaved");
+export const groupingTemplate_toastSaveFailed = (fbs: FbsAPI, p?: StringParams) =>
+  fbs(["模板保存失败：", fbs.param("error", pv(p, "error"))], "groupingTemplate.toastSaveFailed");
+export const groupingTemplate_toastDeleted = (fbs: FbsAPI) =>fbs("模板已删除", "groupingTemplate.toastDeleted");
+export const groupingTemplate_toastDeleteFailed = (fbs: FbsAPI, p?: StringParams) =>
+  fbs(["模板删除失败：", fbs.param("error", pv(p, "error"))], "groupingTemplate.toastDeleteFailed");
+export const groupingTemplate_edit = (fbs: FbsAPI) =>fbs("编辑", "groupingTemplate.edit");
+export const groupingTemplate_delete = (fbs: FbsAPI) =>fbs("删除", "groupingTemplate.delete");
+export const groupingTemplate_deleteConfirmTitle = (fbs: FbsAPI) =>fbs("删除模板", "groupingTemplate.deleteConfirmTitle");
+export const groupingTemplate_deleteConfirmMessage = (fbs: FbsAPI, p?: StringParams) =>
+  fbs(["确定删除模板「", fbs.param("name", pv(p, "name")), "」吗？"], "groupingTemplate.deleteConfirmMessage");
+export const groupingTemplate_saveButton = (fbs: FbsAPI) =>fbs("📋 存为模板", "groupingTemplate.saveButton");
+export const groupingTemplate_saveDialogTitle = (fbs: FbsAPI) =>fbs("存为车队模板", "groupingTemplate.saveDialogTitle");
+export const groupingTemplate_saveSubmit = (fbs: FbsAPI) =>fbs("保存模板", "groupingTemplate.saveSubmit");
+export const groupingTemplate_toastSavedFromCar = (fbs: FbsAPI) =>fbs("已存为模板，可在发新车时一键预填", "groupingTemplate.toastSavedFromCar");
+export const groupingTemplate_metaTemplate = (fbs: FbsAPI, p?: StringParams) =>
+  fbs([fbs.param("type", pv(p, "type")), fbs.param("dungeon", pv(p, "dungeon")), " · ", fbs.param("max", pv(p, "max")), " 人"], "groupingTemplate.metaTemplate");

@@ -384,6 +384,9 @@ export class SeatPayloadShell extends PayloadBase {
   genSeats(){ return this.data.seats || null; }
 }
 export class DeletePayloadShell extends PayloadBase {}
+export class TemplatePayloadShell extends PayloadBase {
+  genTemplate(){ return this.data.template || null; }
+}
 export class CreateGuildPayloadShell extends PayloadBase {
   genGuild(){ return this.data.guild || null; }
 }
@@ -397,6 +400,7 @@ export const uFail = (ctx: Context, code: any, effectiveLocale: any) => new Upda
 export const gFail = (ctx: Context, code: any) => new GroupingPayloadShell(ctx, { ok: false, errorCode: code });
 export const sFail = (ctx: Context, code: any) => new SeatPayloadShell(ctx, { ok: false, errorCode: code });
 export const dFail = (ctx: Context, code: any) => new DeletePayloadShell(ctx, { ok: false, errorCode: code });
+export const tFail = (ctx: Context, code: any) => new TemplatePayloadShell(ctx, { ok: false, errorCode: code });
 export const cFail = (ctx: Context, code: any) => new CreateGuildPayloadShell(ctx, { ok: false, errorCode: code });
 
 /* ================= Resolvers ================= */

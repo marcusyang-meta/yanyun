@@ -294,6 +294,7 @@ type SetReadyAction implements Action {
 
 type GroupingListPage {
   groupings: [Grouping!]!
+  groupingTemplates: [GroupingTemplate!]!
   currentVersion: String!
   blocks(blocksVersion: Int, weekOffset: Int): [Block!]!
   tabActivityLabel: String!
@@ -353,6 +354,87 @@ type GroupingListPage {
   formToastPosted: String!
   formToastCreateFailedTemplate: String!
   formTitleTemplate: String!
+  templateSectionTitle: String!
+  templateNameLabel: String!
+  templateNamePlaceholder: String!
+  templateSaveLabel: String!
+  templateUpdateLabel: String!
+  templateEditingNoticeTemplate: String!
+  templateCancelEditLabel: String!
+  templateEmptyText: String!
+  templateWhenTodayTemplate: String!
+  templateWhenTomorrowTemplate: String!
+  templateWhenDaysTemplate: String!
+  templateToastSaved: String!
+  templateToastSaveFailedTemplate: String!
+  templateToastDeleted: String!
+  templateToastDeleteFailedTemplate: String!
+  templateMetaTemplate: String!
+}
+
+type GroupingTemplate {
+  id: ID!
+  name: String!
+  type: GroupingType!
+  title: String!
+  dungeonName: String
+  dungeonId: ID
+  maxSlots: Int!
+  startDaysAhead: Int!
+  startHour: Int!
+  startMinute: Int!
+  creatorDiscordId: String
+  creatorName: String
+  manageActions: GroupingTemplateManageActions
+}
+
+type GroupingTemplateManageActions {
+  editLabel: String!
+  deleteLabel: String!
+  deleteConfirmTitle: String!
+  deleteConfirmMessageTemplate: String!
+}
+
+type GroupingTemplateSave {
+  buttonLabel: String!
+  dialogTitle: String!
+  nameLabel: String!
+  submitLabel: String!
+  toastSaved: String!
+  toastFailedTemplate: String!
+}
+
+type GroupingTemplatePayload {
+  ok: Boolean!
+  template: GroupingTemplate
+  error: String
+  errorCode: String
+}
+
+input GroupingTemplateInput {
+  name: String!
+  type: GroupingType!
+  title: String!
+  dungeonId: ID
+  startsInDays: Int!
+  startHour: Int!
+  startMinute: Int!
+}
+
+input CreateGroupingTemplateInput {
+  slug: String!
+  name: String!
+  type: GroupingType!
+  title: String!
+  dungeonId: ID
+  startsInDays: Int!
+  startHour: Int!
+  startMinute: Int!
+}
+
+input SaveGroupingTemplateInput {
+  groupingId: ID!
+  name: String
 }
 
 type Grouping {
@@ -374,6 +456,7 @@ type GroupingDetailPage {
   shareUrl: String!
   blocks(blocksVersion: Int): [Block!]!
   manageActions: GroupingManageActions
+  templateSave: GroupingTemplateSave
   detailNotFoundText: String!
   detailBackToListLabel: String!
   detailShareLabel: String!
@@ -1028,6 +1111,10 @@ type Mutation {
   leaveGrouping(input: LeaveGroupingInput!): SeatPayload!
   updateSeatWeapon(input: UpdateSeatWeaponInput!): SeatPayload!
   setSeatReady(input: SetSeatReadyInput!): SeatPayload!
+  createGroupingTemplate(input: CreateGroupingTemplateInput!): GroupingTemplatePayload!
+  saveGroupingTemplate(input: SaveGroupingTemplateInput!): GroupingTemplatePayload!
+  updateGroupingTemplate(id: ID!, input: GroupingTemplateInput!): GroupingTemplatePayload!
+  deleteGroupingTemplate(id: ID!): DeletePayload!
   calcTiaolv(input: TiaolvInput!): TiaolvResult!
   calcGraduation(input: GraduationInput!): GraduationResult!
   updateMyLocale(locale: String): UpdateLocalePayload!

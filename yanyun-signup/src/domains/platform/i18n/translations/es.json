@@ -7766,6 +7766,314 @@
         }
       ],
       "types": []
+    },
+    "ZkxMbn3ne2iB75sXnDihwA==": {
+      "description": "groupingTemplate.sectionTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Plantillas de equipo",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "bExAaSVvE4+mu944M2CKhA==": {
+      "description": "groupingTemplate.nameLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Nombre de la plantilla",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "0mjraCzUtekmJfFYqfWnEQ==": {
+      "description": "groupingTemplate.namePlaceholder",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Ponle un nombre a la plantilla",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "/xrwMnoLG1YR51BfuPNwcw==": {
+      "description": "groupingTemplate.saveFromForm",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Guardar como plantilla",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "FNN9WPXyEHqbjFH+1Ov3ig==": {
+      "description": "groupingTemplate.updateSubmit",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Guardar cambios de la plantilla",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "IB4xIdadJg7BiYlYQYxAFg==": {
+      "description": "groupingTemplate.editingNotice",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Editando la plantilla «{name}»",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "JQypAhfQ08xPkoVbuqaIOw==": {
+      "description": "groupingTemplate.cancelEdit",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Cancelar edición",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "crdx//ZKLRA2qfLNemNXHg==": {
+      "description": "groupingTemplate.empty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Aún no hay plantillas: guarda una configuración habitual y rellena el formulario con un toque la próxima vez",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "cegnDVR6nbX5ofp/7+9Bog==": {
+      "description": "groupingTemplate.whenToday",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Sale hoy a las {time}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "OWGlpjkth9IxmN9ZObsXrA==": {
+      "description": "groupingTemplate.whenTomorrow",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Sale manana a las {time}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "iE/OgrdWrJDZR9HYXsby1w==": {
+      "description": "groupingTemplate.whenDays",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Sale en {days} días a las {time}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "HGjlQBP/T5iBHCcTZmIYvQ==": {
+      "description": "groupingTemplate.toastSaved",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Plantilla guardada",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "K0HtkRcjK4+n1KymA0wiJQ==": {
+      "description": "groupingTemplate.toastSaveFailed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "No se pudo guardar la plantilla: {error}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "64hdwsuQ8hI2eiqBw/jUcg==": {
+      "description": "groupingTemplate.toastDeleted",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Plantilla eliminada",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ixfMEWFYs9g0mH3LZqWOqw==": {
+      "description": "groupingTemplate.toastDeleteFailed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "No se pudo eliminar la plantilla: {error}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "jiT8MggHDMXioSAHddYNxg==": {
+      "description": "groupingTemplate.edit",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Editar",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "zuqu3YU01yYaigdErWd69g==": {
+      "description": "groupingTemplate.delete",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Eliminar",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "slOOYv4XF1mAa21Dg67NFQ==": {
+      "description": "groupingTemplate.deleteConfirmTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Eliminar plantilla",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "CjzmWxs4xoCrV9XdS33ybg==": {
+      "description": "groupingTemplate.deleteConfirmMessage",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "¿Eliminar la plantilla «{name}»?",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ia9KOc7nH80/a2GkTj/FBA==": {
+      "description": "groupingTemplate.saveButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "📋 Guardar como plantilla",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "0rAqcL9MbOavSUXeQgxMnw==": {
+      "description": "groupingTemplate.saveDialogTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Guardar como plantilla de equipo",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "kO7H7nxemLN06sjKQRe5xw==": {
+      "description": "groupingTemplate.saveSubmit",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Guardar plantilla",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+pnWXNBfYnp9RrfgXymCDw==": {
+      "description": "groupingTemplate.toastSavedFromCar",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Guardada como plantilla: podrás rellenar el formulario con un toque al publicar un equipo nuevo",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "gCAPZ3bvhDsRZkG1NNFmKw==": {
+      "description": "errors.templateNotFound",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Plantilla no encontrada",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "O0vO88xom+CwbYHpsnTSxA==": {
+      "description": "errors.templateNameRequired",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Escribe un nombre para la plantilla",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "6K2T+Lvr9VrDZOI5zbbHMw==": {
+      "description": "errors.templateForbidden",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Solo el creador de la plantilla o un administrador del gremio puede editarla o eliminarla",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "UWkeiK2kidjRaqMSKC1lcQ==": {
+      "description": "errors.templateBadStart",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Ajuste de hora de salida no válido",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "a+YrwmWaFG4eqMcGdzKEtg==": {
+      "description": "groupingTemplate.metaTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{type}{dungeon} · {max} plazas",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

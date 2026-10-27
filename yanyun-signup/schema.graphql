@@ -332,6 +332,9 @@ extend type Query {
 
 type GroupingListPage {
   groupings: [Grouping!]!
+  # 本百业共享模板 (与页签无关, 全百业一份): 建车表单据此渲染模板区
+  # (列表/套用/存当前表单/改删入口); 改删判定在每个模板的 manageActions。
+  groupingTemplates: [GroupingTemplate!]!
   currentVersion: String!
   # 移动端 Bloks-lite: 本页内容区积木对象树 (带类型 object, 非 JSON);
   # blocksVersion = 客户端声明的积木词汇版本, 低于某积木所需版本时服务端
@@ -401,6 +404,96 @@ type GroupingListPage {
   formToastPosted: String!
   formToastCreateFailedTemplate: String!
   formTitleTemplate: String!
+  # 车队模板区文案 (建车表单内): 模板行本身的改删文案在模板的 manageActions 上
+  templateSectionTitle: String!
+  templateNameLabel: String!
+  templateNamePlaceholder: String!
+  templateSaveLabel: String!
+  templateUpdateLabel: String!
+  templateEditingNoticeTemplate: String!
+  templateCancelEditLabel: String!
+  templateEmptyText: String!
+  templateWhenTodayTemplate: String!
+  templateWhenTomorrowTemplate: String!
+  templateWhenDaysTemplate: String!
+  templateToastSaved: String!
+  templateToastSaveFailedTemplate: String!
+  templateToastDeleted: String!
+  templateToastDeleteFailedTemplate: String!
+  templateMetaTemplate: String!
+}
+
+# ============ 车队模板 (百业共享) ============
+# 成员把常用建车配置存为模板, 建车时一键预填表单。模板只存相对发车
+# 偏移 (天数 + 当地时刻), 不存绝对日期; 副本存名称 (与 events.dungeon
+# 同口径), dungeonId 按当前图鉴实时解析, 副本下线时为 null。
+
+type GroupingTemplate {
+  id: ID!
+  name: String!
+  type: GroupingType!
+  title: String!
+  dungeonName: String
+  dungeonId: ID
+  maxSlots: Int!
+  startDaysAhead: Int!
+  startHour: Int!
+  startMinute: Int!
+  creatorDiscordId: String
+  creatorName: String
+  # 改删动作对象: 仅模板创建者或本百业管理员可见, 否则 null;
+  # mutation 处以同一判定独立复验。
+  manageActions: GroupingTemplateManageActions
+}
+
+type GroupingTemplateManageActions {
+  editLabel: String!
+  deleteLabel: String!
+  deleteConfirmTitle: String!
+  deleteConfirmMessageTemplate: String!
+}
+
+# 详情页「存为模板」动作对象: 仅可在本百业写的观看者可见。
+type GroupingTemplateSave {
+  buttonLabel: String!
+  dialogTitle: String!
+  nameLabel: String!
+  submitLabel: String!
+  toastSaved: String!
+  toastFailedTemplate: String!
+}
+
+type GroupingTemplatePayload {
+  ok: Boolean!
+  template: GroupingTemplate
+  error: String
+  errorCode: String
+}
+
+input GroupingTemplateInput {
+  name: String!
+  type: GroupingType!
+  title: String!
+  dungeonId: ID
+  startsInDays: Int!
+  startHour: Int!
+  startMinute: Int!
+}
+
+input CreateGroupingTemplateInput {
+  slug: String!
+  name: String!
+  type: GroupingType!
+  title: String!
+  dungeonId: ID
+  startsInDays: Int!
+  startHour: Int!
+  startMinute: Int!
+}
+
+input SaveGroupingTemplateInput {
+  groupingId: ID!
+  name: String
 }
 
 type Grouping {
@@ -436,6 +529,9 @@ type GroupingDetailPage {
   # 管理员——2026-10-26 裁决与车头同权); 否则为 null, 客户端不渲染
   # 编辑/完成/恢复/解散入口。服务端在 mutation 处独立复验。
   manageActions: GroupingManageActions
+  # 存为模板动作对象: 仅当观看者可在本百业写 (建车同权) 时存在, 否则 null;
+  # 客户端据此渲染「存为模板」入口, mutation 处独立复验。
+  templateSave: GroupingTemplateSave
   # 无管理码，人人可管
   # UI 文案: 全部由本页 shell 的 gen 方法按请求 locale 生成
   detailNotFoundText: String!
@@ -1171,6 +1267,10 @@ type Mutation {
   leaveGrouping(input: LeaveGroupingInput!): SeatPayload!
   updateSeatWeapon(input: UpdateSeatWeaponInput!): SeatPayload!
   setSeatReady(input: SetSeatReadyInput!): SeatPayload!  # 就位/取消就位: 仅本人身份戳座位, 服务端复验
+  createGroupingTemplate(input: CreateGroupingTemplateInput!): GroupingTemplatePayload!  # 存模板: 本百业可写成员
+  saveGroupingTemplate(input: SaveGroupingTemplateInput!): GroupingTemplatePayload!  # 把一辆现有车存为模板: 本百业可写成员
+  updateGroupingTemplate(id: ID!, input: GroupingTemplateInput!): GroupingTemplatePayload!  # 改模板: 仅创建者或本百业管理员, 服务端复验
+  deleteGroupingTemplate(id: ID!): DeletePayload!  # 删模板: 仅创建者或本百业管理员, 服务端复验
 
   # 调律推演（服务端严格按 Excel 公式计算）
   calcTiaolv(input: TiaolvInput!): TiaolvResult!

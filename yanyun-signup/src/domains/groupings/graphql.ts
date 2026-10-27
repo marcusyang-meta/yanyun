@@ -35,6 +35,12 @@ import {
   insertEvent, updateEventFields, setEventStatus, deleteEventCascade,
 } from './index.ts';
 import {
+  listGroupingTemplates, getGroupingTemplate, insertGroupingTemplate,
+  updateGroupingTemplateFields, deleteGroupingTemplate as deleteGroupingTemplateRow,
+  templateOffsetFromStartsAt,
+  type GroupingTemplateRow,
+} from './index.ts';
+import {
   listSignupSeats, listSignupSeatsBasic, listSignupNamesStamps,
   insertSignups, insertSignupWithCapacityGuard, deleteSignupByEventUid, deleteSignupsByEvent,
   updateSignupWeaponRoleByUid, updateSignupReadyByEventDiscord,
@@ -64,8 +70,8 @@ import {
   getGroupingManageVerdict, groupingManageGate,
   sha256hexLocal, rateLimitGql as rateLimit, getClientIp, s, roleOf, newUid,
   TAB_TO_TYPE, TYPE_TO_ENUM, GUILD_TABS, getGameVersion, getCurrentVersionCode,
-  PayloadBase, GroupingPayloadShell, SeatPayloadShell, DeletePayloadShell,
-  CreateGuildPayloadShell, UpdateLocalePayloadShell, uFail, gFail, sFail, dFail, cFail,
+  PayloadBase, GroupingPayloadShell, SeatPayloadShell, DeletePayloadShell, TemplatePayloadShell,
+  CreateGuildPayloadShell, UpdateLocalePayloadShell, uFail, gFail, sFail, dFail, cFail, tFail,
 } from '../platform/graphql-base.ts';
 import { BannerBlockShell, EmptyStateBlockShell, SectionHeaderBlockShell, NavigateActionShell, GroupingCardBlockShell, FallbackBlockShell, TextBlockShell, ChipRowBlockShell, SectionBlockShell, SeatGridBlockShell, SpacerBlockShell, ActionButtonBlockShell, UncompleteActionShell, EditActionShell, DisbandActionShell, CompleteActionShell, SeatEntryShell } from '../platform/index.ts';
 import { DungeonShell } from '../dex/index.ts';
@@ -124,6 +130,108 @@ export class GroupingShell extends ShellBase {
 
 export function toGrouping(ctx: Context, ev: any) {
   return new GroupingShell(ctx, ev);
+}
+
+/* ---------- Grouping templates ----------
+ * A template is a guild-shared grouping configuration snapshot. The
+ * shape derivation (dungeon name + seat count from type + dungeonId)
+ * is shared verbatim with createGrouping, so a car built from a
+ * template is field-identical to one built by hand: activity/tower
+ * write no dungeon name and are always 10; talent/race with a dungeon
+ * use the dungeon's size, without one the default (talent 5 / race 10). */
+export async function resolveGroupingShape(db: any, type: string, dungeonId: any): Promise<{ dungeonName: string; maxSlots: number }> {
+  let maxSlots = type === 'talent' ? 5 : 10;
+  let dungeonName = '';
+  if (type !== 'activity' && type !== 'tower' && dungeonId) {
+    const d = await getDungeonNameSizeById(db, parseInt(dungeonId, 10) || 0);
+    if (d) {
+      dungeonName = d.name;
+      const sz = Number(d.size);
+      if (sz === 5 || sz === 10) maxSlots = sz;
+    }
+  }
+  return { dungeonName, maxSlots };
+}
+
+export class GroupingTemplateShell extends ShellBase {
+  constructor(ctx: Context, row: GroupingTemplateRow){ super(ctx, row); }
+  get row() { return this.data as GroupingTemplateRow; }
+  genId(){ return String(this.row.id); }
+  genName(){ return this.row.name; }
+  genType(){ return TYPE_TO_ENUM[this.row.type] || 'ACTIVITY'; }
+  genTitle(){ return this.row.title; }
+  genDungeonName(){ return this.row.dungeon ? this.row.dungeon : null; }
+  // The form's dungeon picker keys on the current dex id; the template
+  // stores the stable dungeon NAME (same as events.dungeon) and the id
+  // is resolved live — a dungeon retired by a version change reads null.
+  genDungeonId(){
+    return this.memo('dungeonId', async () => {
+      if (!this.row.dungeon) return null;
+      await ensureDungeonDexColumnsRepo(this.db);
+      const d = await getDungeonByName(this.db, this.row.dungeon);
+      return d ? String(d.id) : null;
+    });
+  }
+  genMaxSlots(){ return this.row.max_slots; }
+  genStartDaysAhead(){ return this.row.start_days_ahead; }
+  genStartHour(){ return Math.floor((this.row.start_minutes || 0) / 60); }
+  genStartMinute(){ return (this.row.start_minutes || 0) % 60; }
+  genCreatorDiscordId(){ return this.row.creator_discord_id ? String(this.row.creator_discord_id) : null; }
+  // Creator display name, roster-first like seat names (guild nickname,
+  // falling back to the global name snapshot).
+  genCreatorName(){
+    return this.memo('creatorName', async () => {
+      const cid = this.row.creator_discord_id;
+      if (!cid) return null;
+      await ensureGuildMembersTable(this.db);
+      const m = await getGuildMember(this.db, this.row.tenant, String(cid)).catch(() => null);
+      const nick = m ? String(m.nick || '').trim() : '';
+      if (nick) return nick;
+      const globalName = m ? String(m.global_name || '').trim() : '';
+      if (globalName) return globalName;
+      const u = await getUsernameRow(this.db, String(cid)).catch(() => null);
+      const name = u ? String(u.username || '').trim() : '';
+      return name || null;
+    });
+  }
+  // Manage action set, composed only for viewers who may edit/delete
+  // this template: its creator, or an admin of the template's own
+  // guild (the shared grouping manage verdict on tenant +
+  // creator_discord_id; omni passes in full). Everyone else gets null
+  // and the clients render no edit/delete entry; the mutations
+  // re-verify with the same verdict.
+  async genManageActions(){
+    const verdict = await getGroupingManageVerdict(this.db, this.ctx.user, this.ctx.request, this.vc, this.row);
+    if (!verdict.canManage) return null;
+    return {
+      editLabel: this.t('groupingTemplate', 'edit'),
+      deleteLabel: this.t('groupingTemplate', 'delete'),
+      deleteConfirmTitle: this.t('groupingTemplate', 'deleteConfirmTitle'),
+      deleteConfirmMessageTemplate: this.t('groupingTemplate', 'deleteConfirmMessage'),
+    };
+  }
+}
+
+export function toGroupingTemplate(ctx: Context, row: GroupingTemplateRow) {
+  return new GroupingTemplateShell(ctx, row);
+}
+
+/* Shared create/update input validation for templates: name and car
+ * title are required; the shape (dungeon name + seats) derives exactly
+ * like a real car's; the departure offset is a day count (clamped to
+ * the same 60-day horizon createGrouping enforces) plus a time-of-day. */
+async function parseTemplateInput(db: any, input: any): Promise<any> {
+  const name = s(input.name, 40);
+  if (!name) return { error: 'templateNameRequired' };
+  const title = s(input.title, 40);
+  if (!title) return { error: 'titleRequired' };
+  const type = TAB_TO_TYPE[input.type] || 'activity';
+  const { dungeonName, maxSlots } = await resolveGroupingShape(db, type, input.dungeonId);
+  const daysAhead = Math.max(0, Math.min(60, parseInt(input.startsInDays, 10) || 0));
+  const hour = parseInt(input.startHour, 10);
+  const minute = parseInt(input.startMinute, 10);
+  if (!(hour >= 0 && hour <= 23) || !(minute >= 0 && minute <= 59)) return { error: 'templateBadStart' };
+  return { name, title, type, dungeonName, maxSlots, daysAhead, startMinutes: hour * 60 + minute };
 }
 
 // Parse 1-x/2-x talent rows from guide text (accepts real newlines and literal \n sequences).
@@ -229,6 +337,15 @@ export class GroupingListPageShell extends ShellBase {
       return results.map((ev: any) => new GroupingShell(this.ctx, ev));
     });
   }
+  // The guild's shared car templates (guild-scoped, not per-tab): the
+  // create form opened from any tab reads the same list. Visibility is
+  // the page's own gate (the list-page query already enforced canView).
+  async genGroupingTemplates(){
+    return this.memo('groupingTemplates', async () => {
+      const rows = await listGroupingTemplates(this.db, s(this.data.slug, 40));
+      return rows.map((r: GroupingTemplateRow) => new GroupingTemplateShell(this.ctx, r));
+    });
+  }
   // Weekday short names (index 0 = Sunday, aligned with JS getDay and the server's localDayParts): fills the {weekday} slot in web group-header templates; the whole table is generated per locale.
   genWeekdayNames(){
     return this.memo('weekdayNames', () => [0, 1, 2, 3, 4, 5, 6].map((i: any) => this.t('groupingList', 'weekday' + i)));
@@ -289,6 +406,27 @@ export const TYPE_SHORT_SPEC = [
   ['typeShortGather', 'groupingType', 'shortGather'],
   ['typeShortExplore', 'groupingType', 'shortExplore'],
 ];
+// Template section copy for the create form (delivered by the list-page
+// shell like the form* fields; the per-template edit/delete labels ride
+// the template's own manageActions object instead).
+export const TEMPLATE_TEXT_SPEC = [
+  ['templateSectionTitle', 'groupingTemplate', 'sectionTitle'],
+  ['templateNameLabel', 'groupingTemplate', 'nameLabel'],
+  ['templateNamePlaceholder', 'groupingTemplate', 'namePlaceholder'],
+  ['templateSaveLabel', 'groupingTemplate', 'saveFromForm'],
+  ['templateUpdateLabel', 'groupingTemplate', 'updateSubmit'],
+  ['templateEditingNoticeTemplate', 'groupingTemplate', 'editingNotice'],
+  ['templateCancelEditLabel', 'groupingTemplate', 'cancelEdit'],
+  ['templateEmptyText', 'groupingTemplate', 'empty'],
+  ['templateWhenTodayTemplate', 'groupingTemplate', 'whenToday'],
+  ['templateWhenTomorrowTemplate', 'groupingTemplate', 'whenTomorrow'],
+  ['templateWhenDaysTemplate', 'groupingTemplate', 'whenDays'],
+  ['templateToastSaved', 'groupingTemplate', 'toastSaved'],
+  ['templateToastSaveFailedTemplate', 'groupingTemplate', 'toastSaveFailed'],
+  ['templateToastDeleted', 'groupingTemplate', 'toastDeleted'],
+  ['templateToastDeleteFailedTemplate', 'groupingTemplate', 'toastDeleteFailed'],
+  ['templateMetaTemplate', 'groupingTemplate', 'metaTemplate'],
+];
 export const LIST_TEXT_RESOLVERS = {
   ...defineTextGens(GroupingListPageShell, [
     ['tabActivityLabel', 'groupingType', 'tabActivity'],
@@ -308,6 +446,7 @@ export const LIST_TEXT_RESOLVERS = {
     ['newCarLabel', 'groupingList', 'newCar'],
     ['sealText', 'groupingList', 'seal'],
     ...FORM_TEXT_SPEC,
+    ...TEMPLATE_TEXT_SPEC,
   ]),
   // Array fields bypass defineTextGens (catalog entries are always strings): the whole table is generated here.
   weekdayNames: (p: any) => p.genWeekdayNames(),
@@ -353,6 +492,25 @@ export class GroupingDetailPageShell extends ShellBase {
       completeConfirmTitle: this.t('groupingDetail', 'completeConfirmTitle'),
       completeConfirmMessageTemplate: this.t('groupingDetail', 'completeConfirmMessage'),
     };
+  }
+  // Save-as-template action set: composed only for viewers who may
+  // write in this car's guild (the same canWrite the create entry
+  // requires); the mutation re-verifies. Labels come from the
+  // groupingTemplate catalog section; the name input starts from the
+  // car's title (client-side initial value, editable).
+  async genTemplateSave(){
+    return this.memo('templateSave', async () => {
+      const access = await getGuildAccess(this.db, this.ctx.user, this.data.tenant, this.ctx.request);
+      if (!access.canWrite) return null;
+      return {
+        buttonLabel: this.t('groupingTemplate', 'saveButton'),
+        dialogTitle: this.t('groupingTemplate', 'saveDialogTitle'),
+        nameLabel: this.t('groupingTemplate', 'nameLabel'),
+        submitLabel: this.t('groupingTemplate', 'saveSubmit'),
+        toastSaved: this.t('groupingTemplate', 'toastSavedFromCar'),
+        toastFailedTemplate: this.t('groupingTemplate', 'toastSaveFailed'),
+      };
+    });
   }
   // Share URL for this car: the stable short link (lazily minted on
   // first read, then reused forever). Clients share exactly this
@@ -550,20 +708,9 @@ export const groupingsResolvers = {
       const now = Math.floor(Date.now() / 1000);
       if (!utc || utc < now - 3600) return gFail(ctx, 'badStartTime');
       if (utc > now + 60 * 86400) return gFail(ctx, 'startTimeTooFar');
-      // Headcount rules: double-ten writes no dungeon name and is always
-      // 10 (a dungeonId is ignored); tower mirrors double-ten the same
-      // way; talent/race with a dungeon use the dungeon's size, without
-      // one the default (talent 5 / race 10).
-      let maxSlots = type === 'talent' ? 5 : 10;
-      let dungeonName = '';
-      if (type !== 'activity' && type !== 'tower' && input.dungeonId) {
-        const d = await getDungeonNameSizeById(db, parseInt(input.dungeonId, 10) || 0);
-        if (d) {
-          dungeonName = d.name;
-          const sz = Number(d.size);
-          if (sz === 5 || sz === 10) maxSlots = sz;
-        }
-      }
+      // Headcount rules live in resolveGroupingShape (shared with the
+      // template mutations, so template-built cars match hand-built ones).
+      const { dungeonName, maxSlots } = await resolveGroupingShape(db, type, input.dungeonId);
       // Persist leader identity from the session discord_id (requireWrite guarantees login); re-verified at disband.
       await ensureEventCreatorColumn(db);
       const r = await insertEvent(db, {
@@ -587,6 +734,106 @@ export const groupingsResolvers = {
       const ev = await getEventRow(db, eventId);
       publishGroupingEvent(ctx, slug, eventId, 'created');
       return new GroupingPayloadShell(ctx, { ok: true, grouping: toGrouping(ctx, ev) });
+    },
+
+    /* ---------- Grouping templates (guild-shared) ---------- */
+
+    createGroupingTemplate: async (_: any, { input }: any, ctx: Context) => {
+      const db = ctx.env.DB;
+      if (!rateLimit('mut:tplcreate:' + getClientIp(ctx.request), 20)) {
+        return tFail(ctx, 'rateLimited');
+      }
+      const slug = s(input.slug, 40);
+      const gate = await requireWrite(db, ctx.user, slug, ctx.request);
+      if (gate) return tFail(ctx, gate);
+      const parsed = await parseTemplateInput(db, input);
+      if (parsed.error) return tFail(ctx, parsed.error);
+      const now = Math.floor(Date.now() / 1000);
+      const r = await insertGroupingTemplate(db, {
+        tenant: slug, name: parsed.name, type: parsed.type, title: parsed.title,
+        dungeon: parsed.dungeonName, max_slots: parsed.maxSlots,
+        start_days_ahead: parsed.daysAhead, start_minutes: parsed.startMinutes,
+        creator_discord_id: String(ctx.user!.discordId), created_at: now, updated_at: now,
+      });
+      const row = await getGroupingTemplate(db, r.last_row_id);
+      return new TemplatePayloadShell(ctx, { ok: true, template: row ? toGroupingTemplate(ctx, row) : null });
+    },
+
+    // Snapshot an existing car into a template: any member who may
+    // write in the car's guild (i.e. anyone who can create cars there).
+    // The car's absolute start becomes a day offset + time-of-day in
+    // the saver's timezone; a timeless car defaults to today at 20:00,
+    // the create form's own default hour.
+    saveGroupingTemplate: async (_: any, { input }: any, ctx: Context) => {
+      const db = ctx.env.DB;
+      if (!rateLimit('mut:tplsave:' + getClientIp(ctx.request), 20)) {
+        return tFail(ctx, 'rateLimited');
+      }
+      const gid = parseInt(input.groupingId, 10) || 0;
+      const ev = await getEventRow(db, gid);
+      if (!ev) return tFail(ctx, 'groupingNotFound');
+      const gate = await requireWrite(db, ctx.user, ev.tenant, ctx.request);
+      if (gate) return tFail(ctx, gate);
+      const name = s(input.name, 40) || s(ev.title, 40);
+      if (!name) return tFail(ctx, 'templateNameRequired');
+      let daysAhead = 0;
+      let startMinutes = 20 * 60;
+      if (ev.starts_at_utc) {
+        const off = templateOffsetFromStartsAt(ev.starts_at_utc, Math.floor(Date.now() / 1000), ctx.tz);
+        daysAhead = off.daysAhead;
+        startMinutes = off.startMinutes;
+      }
+      const now = Math.floor(Date.now() / 1000);
+      const r = await insertGroupingTemplate(db, {
+        tenant: ev.tenant, name, type: ev.type, title: ev.title,
+        dungeon: ev.dungeon || '', max_slots: ev.max_slots,
+        start_days_ahead: daysAhead, start_minutes: startMinutes,
+        creator_discord_id: String(ctx.user!.discordId), created_at: now, updated_at: now,
+      });
+      const row = await getGroupingTemplate(db, r.last_row_id);
+      return new TemplatePayloadShell(ctx, { ok: true, template: row ? toGroupingTemplate(ctx, row) : null });
+    },
+
+    // Edit/delete gate (ruling for this feature): the template's
+    // creator, or an admin of the template's OWN guild — the shared
+    // grouping manage verdict and gate, re-verified here regardless of
+    // what the clients rendered.
+    updateGroupingTemplate: async (_: any, { id, input }: any, ctx: Context) => {
+      const db = ctx.env.DB;
+      if (!rateLimit('mut:tplupdate:' + getClientIp(ctx.request), 20)) {
+        return tFail(ctx, 'rateLimited');
+      }
+      const tid = parseInt(id, 10) || 0;
+      const row = await getGroupingTemplate(db, tid);
+      if (!row) return tFail(ctx, 'templateNotFound');
+      const manage = await groupingManageGate(db, ctx.user, ctx.request, vcOf(ctx), row);
+      if (manage.writeCode) return tFail(ctx, manage.writeCode);
+      if (!manage.canManage) return tFail(ctx, 'templateForbidden');
+      const parsed = await parseTemplateInput(db, input);
+      if (parsed.error) return tFail(ctx, parsed.error);
+      await updateGroupingTemplateFields(db, tid, {
+        name: parsed.name, type: parsed.type, title: parsed.title,
+        dungeon: parsed.dungeonName, max_slots: parsed.maxSlots,
+        start_days_ahead: parsed.daysAhead, start_minutes: parsed.startMinutes,
+        updated_at: Math.floor(Date.now() / 1000),
+      });
+      const nrow = await getGroupingTemplate(db, tid);
+      return new TemplatePayloadShell(ctx, { ok: true, template: nrow ? toGroupingTemplate(ctx, nrow) : null });
+    },
+
+    deleteGroupingTemplate: async (_: any, { id }: any, ctx: Context) => {
+      const db = ctx.env.DB;
+      if (!rateLimit('mut:tpldelete:' + getClientIp(ctx.request), 20)) {
+        return dFail(ctx, 'rateLimited');
+      }
+      const tid = parseInt(id, 10) || 0;
+      const row = await getGroupingTemplate(db, tid);
+      if (!row) return dFail(ctx, 'templateNotFound');
+      const manage = await groupingManageGate(db, ctx.user, ctx.request, vcOf(ctx), row);
+      if (manage.writeCode) return dFail(ctx, manage.writeCode);
+      if (!manage.canManage) return dFail(ctx, 'templateForbidden');
+      await deleteGroupingTemplateRow(db, tid);
+      return new DeletePayloadShell(ctx, { ok: true });
     },
 
     updateGrouping: async (_: any, { id, input }: any, ctx: Context) => {
@@ -881,6 +1128,7 @@ export const groupingsResolvers = {
   },
   GroupingListPage: {
     groupings: (p: any) => p.genGroupings(),
+    groupingTemplates: (p: any) => p.genGroupingTemplates(),
     currentVersion: (p: any) => p.genCurrentVersion(),
     blocks: (p: any, args: any) => p.genBlocks(args),
     ...LIST_TEXT_RESOLVERS,
@@ -888,9 +1136,48 @@ export const groupingsResolvers = {
   GroupingDetailPage: {
     grouping: (p: any) => p.genGrouping(),
     shareUrl: (p: GroupingDetailPageShell) => p.genShareUrl(),
+    templateSave: (p: any) => p.genTemplateSave(),
     blocks: (p: any, args: any) => p.genBlocks(args),
     manageActions: (p: any) => p.genManageActions(),
     ...DETAIL_TEXT_RESOLVERS,
+  },
+  GroupingTemplate: {
+    id: (p: any) => p.genId(),
+    name: (p: any) => p.genName(),
+    type: (p: any) => p.genType(),
+    title: (p: any) => p.genTitle(),
+    dungeonName: (p: any) => p.genDungeonName(),
+    dungeonId: (p: any) => p.genDungeonId(),
+    maxSlots: (p: any) => p.genMaxSlots(),
+    startDaysAhead: (p: any) => p.genStartDaysAhead(),
+    startHour: (p: any) => p.genStartHour(),
+    startMinute: (p: any) => p.genStartMinute(),
+    creatorDiscordId: (p: any) => p.genCreatorDiscordId(),
+    creatorName: (p: any) => p.genCreatorName(),
+    manageActions: (p: any) => p.genManageActions(),
+  },
+  // Plain-data action sets: fields delegate to the same-named property
+  // of the object the shell composed (present only for viewers who may
+  // use them; the mutations re-verify).
+  GroupingTemplateManageActions: {
+    editLabel: (p: any) => p.editLabel,
+    deleteLabel: (p: any) => p.deleteLabel,
+    deleteConfirmTitle: (p: any) => p.deleteConfirmTitle,
+    deleteConfirmMessageTemplate: (p: any) => p.deleteConfirmMessageTemplate,
+  },
+  GroupingTemplateSave: {
+    buttonLabel: (p: any) => p.buttonLabel,
+    dialogTitle: (p: any) => p.dialogTitle,
+    nameLabel: (p: any) => p.nameLabel,
+    submitLabel: (p: any) => p.submitLabel,
+    toastSaved: (p: any) => p.toastSaved,
+    toastFailedTemplate: (p: any) => p.toastFailedTemplate,
+  },
+  GroupingTemplatePayload: {
+    ok: (p: any) => p.genOk(),
+    template: (p: any) => p.genTemplate(),
+    error: (p: any) => p.genError(),
+    errorCode: (p: any) => p.genErrorCode(),
   },
   // Plain-data action set: fields delegate to the same-named property
   // of the object the detail shell composed (present only for viewers
