@@ -71,6 +71,7 @@ if (want('tenants')) {
   check('insert+getTenantRow roundtrip', !!row && row.slug === 'alpha' && row.guild_name === '甲百业' && row.password_hash === 'h1');
   check('created_at default filled by DB', !!row && typeof row.created_at === 'string' && row.created_at.length >= 9, JSON.stringify(row && row.created_at));
   eq('discord_webhook default empty', row && row.discord_webhook, '');
+  eq('profile fields default empty on insert', row && [row.master_name, row.logo_url, row.bg_image_url], ['', '', '']);
   eq('getTenantRow missing -> null', await repo.getTenantRow(db, 'nope'), null);
   eq('getTenantSlug hit', await repo.getTenantSlug(db, 'beta'), { slug: 'beta' });
   eq('getTenantSlug missing -> null', await repo.getTenantSlug(db, 'nope'), null);
@@ -99,8 +100,9 @@ if (want('tenants')) {
   const prof = await repo.getTenantRow(db, 'alpha');
   check('updateTenantProfile writes the real profile fields', !!prof && prof.guild_name === '甲改' && prof.announcement === '新公告'
     && prof.slogan === '口号');
-  check('legacy profile fields read back empty (no production columns)',
-    !!prof && (prof.master_name ?? '') === '' && (prof.logo_url ?? '') === '' && (prof.bg_image_url ?? '') === '');
+  eq('updateTenantProfile writes master_name', prof && prof.master_name, '掌门');
+  eq('updateTenantProfile writes logo_url', prof && prof.logo_url, 'http://l');
+  eq('updateTenantProfile writes bg_image_url', prof && prof.bg_image_url, 'http://b');
 
   // cascade: seed signups + results under alpha's events and beta's event
   const evA = await db.prepare("SELECT id FROM events WHERE tenant='alpha' LIMIT 1").first();

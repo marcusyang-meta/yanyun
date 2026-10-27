@@ -321,7 +321,7 @@ async function gql(query, { user = null, variables, vc } = {}) {
 }
 
 /* ---------------- verdict matrix ---------------- */
-const adminQ = `{ viewer { guildAdmin(slug: "admintest") { __typename ... on GuildAdmin { slug name announcement slogan masterName discordGuildId reminderWebhookSet reminderWebhookId devOnly adminTitle } ... on GuildAdminLocked { slug adminLockedTitle } } } }`;
+const adminQ = `{ viewer { guildAdmin(slug: "admintest") { __typename ... on GuildAdmin { slug name announcement slogan masterName logoUrl bgImageUrl discordGuildId reminderWebhookSet reminderWebhookId devOnly adminTitle } ... on GuildAdminLocked { slug adminLockedTitle } } } }`;
 let r = await gql(adminQ, { user: null });
 eq('匿名 -> GuildAdminLocked', r.data?.viewer?.guildAdmin?.__typename, 'GuildAdminLocked');
 r = await gql(adminQ, { user: MEMBER });
@@ -334,6 +334,9 @@ eq('GuildAdmin.name', r.data?.viewer?.guildAdmin?.name, '管理测试百业');
 eq('GuildAdmin.discordGuildId', r.data?.viewer?.guildAdmin?.discordGuildId, DGID);
 eq('GuildAdmin.webhook 未设置', r.data?.viewer?.guildAdmin?.reminderWebhookSet, false);
 eq('GuildAdmin.adminTitle 文案', r.data?.viewer?.guildAdmin?.adminTitle, '管理百业');
+eq('GuildAdmin.masterName 读回', r.data?.viewer?.guildAdmin?.masterName, '老船长');
+eq('GuildAdmin.logoUrl 读回', r.data?.viewer?.guildAdmin?.logoUrl, '');
+eq('GuildAdmin.bgImageUrl 读回', r.data?.viewer?.guildAdmin?.bgImageUrl, '');
 r = await gql(adminQ.replaceAll('admintest', 'unbound'), { user: ADMIN });
 eq('未绑定百业 -> Locked', r.data?.viewer?.guildAdmin?.__typename, 'GuildAdminLocked');
 r = await gql(adminQ.replaceAll('admintest', 'nosuch'), { user: ADMIN });
@@ -355,6 +358,16 @@ eq('服主改资料 ok', r.data?.updateGuildProfile?.ok, true);
 eq('资料已落库 (name)', A.tables.tenants[0].guild_name, '新名字');
 eq('资料已落库 (announcement)', A.tables.tenants[0].announcement, '新公告');
 eq('未提交字段保持 (slogan)', A.tables.tenants[0].slogan, '同舟共济');
+r = await gql(profMut, { user: ADMIN, variables: { input: { masterName: '新掌门', logoUrl: 'https://img/logo.png', bgImageUrl: 'https://img/bg.png' } } });
+eq('服主改掌门名/logo/背景图 ok', r.data?.updateGuildProfile?.ok, true);
+eq('master_name 已落库', A.tables.tenants[0].master_name, '新掌门');
+eq('logo_url 已落库', A.tables.tenants[0].logo_url, 'https://img/logo.png');
+eq('bg_image_url 已落库', A.tables.tenants[0].bg_image_url, 'https://img/bg.png');
+eq('未提交字段保持 (name)', A.tables.tenants[0].guild_name, '新名字');
+r = await gql(adminQ, { user: ADMIN });
+eq('masterName 回读一致', r.data?.viewer?.guildAdmin?.masterName, '新掌门');
+eq('logoUrl 回读一致', r.data?.viewer?.guildAdmin?.logoUrl, 'https://img/logo.png');
+eq('bgImageUrl 回读一致', r.data?.viewer?.guildAdmin?.bgImageUrl, 'https://img/bg.png');
 r = await gql(profMut, { user: ADMIN, variables: { input: { name: 'x' } } });
 eq('名字过短 -> guildNameShort', r.data?.updateGuildProfile?.errorCode, 'guildNameShort');
 
