@@ -1,0 +1,50 @@
+# Local development secrets for the yanyun-signup Worker.
+# Copy this file to `.dev.vars` (same directory) and fill in values.
+# `.dev.vars` itself is gitignored and must never be committed; this
+# example lists key NAMES only and intentionally carries no values.
+#
+# The key list is the string-valued surface of the `Env` interface in
+# src/domains/platform/context.ts — keep the two in sync. Bindings
+# (DB, GUILD_HUB, SEAT_HUB, ASSETS, BACKUPS) are not listed: they are
+# declared in wrangler.toml and emulated locally by `wrangler dev`.
+#
+# Tier guide (see "Local development secrets" in the root README):
+# most keys need no real value locally. External-service keys are
+# optional and take dev/test-only credentials when used.
+
+# REQUIRED for any local session/auth work. HMAC key that signs local
+# session cookies. Self-chosen: generate any random string. The local
+# key and the production key are two independent keys — neither
+# accepts cookies signed by the other, so this value has nothing to
+# do with production.
+SESSION_SECRET=
+
+# OPTIONAL — only gates the local hub admin surface. Self-chosen:
+# pick any password for local use; unrelated to production.
+ADMIN_PASSWORD=
+
+# OPTIONAL — only needed to click through the real Discord OAuth flow
+# in a local browser. Fill with a Discord TEST application's
+# credentials (a separate app in the developer portal, never the
+# production app's). Local harnesses mint sessions with
+# SESSION_SECRET instead and do not need these.
+DISCORD_CLIENT_ID=
+DISCORD_CLIENT_SECRET=
+
+# OPTIONAL — not a secret. Overrides the Discord API origin; the code
+# default is https://discord.com and production never sets this. It
+# exists only for local stub testing. Leave unset normally.
+DISCORD_API_BASE=
+
+# OPTIONAL — not a secret. Overrides the Expo push origin; the code
+# default is https://exp.host and production never sets this. It
+# exists only for local stub testing. Leave unset normally.
+EXPO_PUSH_BASE=
+
+# OPTIONAL — local billing work only. Absent = billing stays closed
+# and surfaces compose their coming-soon state. When used, fill with
+# Stripe TEST-mode values only (test secret key, test webhook signing
+# secret, test price id) — never live Stripe credentials.
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+STRIPE_PRICE_ID=

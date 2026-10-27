@@ -24,6 +24,10 @@ pnpm exec wrangler d1 migrations apply yanyun-signup --local
 pnpm exec wrangler dev --local --var ADMIN_PASSWORD:你的密码
 ```
 
+secrets 也可以放同目录 `.dev.vars` 文件:复制 `.dev.vars.example`
+(只有键名、无值)再填;键清单与本地 secrets 的三层口径见仓根
+README 的「Local development secrets」一节。
+
 打开 http://127.0.0.1:8787 , 管理后台在 `/admin.html`。
 
 ## 上线步骤 — 已作废 (2026-10-25 起 CI-only)

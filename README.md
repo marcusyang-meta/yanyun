@@ -162,12 +162,50 @@ GitHub Secrets in use: `EXPO_TOKEN`, `CLOUDFLARE_API_TOKEN`,
 
 ## Secrets
 
-- Never commit: `.dev.vars*`, `credentials.json`, keystores / `*.p8` /
-  `*.p12` / `*.pem`, `.eas-run/`. The root `.gitignore` covers these;
-  still check `git status` before committing.
+- Never commit: `.dev.vars` and its variants, `credentials.json`,
+  keystores / `*.p8` / `*.p12` / `*.pem`, `.eas-run/`. The root
+  `.gitignore` covers these; still check `git status` before
+  committing. (The one exception is `yanyun-signup/.dev.vars.example`:
+  it is committed on purpose and carries key names only, no values.)
 - Webhook URLs and tokens live only in server configuration (wrangler
   secrets, D1 settings), GitHub Secrets, or local shell config. Never in
   source, docs, or chat transcripts.
+
+### Local development secrets
+
+Local development never uses production secret values. Copy
+`yanyun-signup/.dev.vars.example` to `yanyun-signup/.dev.vars` and
+fill it in — the example lists every string key the backend Worker's
+`Env` interface declares (`yanyun-signup/src/domains/platform/
+context.ts`), each marked with its source. Bindings (D1, Durable
+Objects, R2, assets) need no local values; `wrangler dev` emulates
+them. Three tiers:
+
+1. **Self-chosen local values.** Most keys need no real value.
+   `SESSION_SECRET` only signs local session cookies: the local key
+   and the production key are two independent keys, and neither
+   accepts cookies signed by the other, so generate any random string
+   — it has nothing to do with production. `ADMIN_PASSWORD` is
+   likewise your own choice for the local hub gate.
+2. **Dev/test-only credentials for external services.** When local
+   work must talk to a real external service, use credentials minted
+   for development — a separate Discord test application (below),
+   Stripe test-mode keys — and share them through a password manager.
+   Never in git, never as plaintext in chat.
+3. **Production bindings only via `wrangler dev --remote`.** If a
+   debugging session truly needs the real bindings, run the Worker
+   remotely: values are injected in the cloud and never reach the
+   local machine. Worker secrets are write-only and cannot be read
+   back anywhere, so there is nothing to pull down to a laptop.
+
+A Discord test application is a separate application in the Discord
+developer portal, distinct from the production one. Create it, add
+`http://127.0.0.1:8787/auth/discord/callback` as an OAuth2 redirect,
+put its client id/secret into `.dev.vars`, and — for guild scenarios —
+invite its bot into a throwaway test server and bind a test guild
+there. Local work does not need it by default: the harnesses mint
+sessions directly with the local `SESSION_SECRET` instead of running
+real Discord OAuth.
 
 ## Agent onboarding
 
