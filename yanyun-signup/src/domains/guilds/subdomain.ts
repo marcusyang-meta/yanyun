@@ -18,13 +18,14 @@
  * a production-host family, and dev_only guilds are visible only
  * from dev origins.
  *
- * Sessions do NOT follow the user across hosts (yy_session is
- * host-only by design): each subdomain signs in separately, and its
- * Discord login only completes once the site owner has registered
- * that subdomain's /auth/discord/callback in the Discord developer
- * portal (the login handler already composes the redirect URI from
- * the request origin, so no auth code changes are needed — the
- * admin surface states this plainly next to the switch). */
+ * Sessions follow the user across the whole host family: the
+ * yy_session cookie carries Domain=yanyun.app (see the identity
+ * domain's cookie scope), and sign-in starts at the root — a
+ * subdomain's login route bounces to the root login with a signed
+ * return_to, the root runs the Discord round trip against the one
+ * registered root callback, and the member lands back on the
+ * subdomain already signed in. No per-subdomain Discord callback
+ * registration is needed. */
 import { getSettingValue, setSettingValue } from './settings.ts';
 import { getTenantSlug } from './tenants.ts';
 
@@ -44,8 +45,10 @@ export function guildSubdomainUrl(slug: string): string {
   return guildSubdomainOrigin(slug);
 }
 
-/** The exact redirect URI the site owner must register in the
- * Discord developer portal before login works on the subdomain. */
+/** The subdomain's own callback address, composed for display on
+ * the admin surface. Sign-in itself completes through the root
+ * callback (see the header note), so this address no longer needs
+ * a Discord developer portal registration. */
 export function guildSubdomainCallbackUrl(slug: string): string {
   return `${guildSubdomainOrigin(slug)}/auth/discord/callback`;
 }

@@ -9,7 +9,7 @@ import type { Env } from './domains/platform/context.ts';
 import { Hono } from 'hono';
 import { yoga } from './graphql.ts';
 import { getGuildAccess, negotiateLocale } from './domains/platform/graphql-base.ts';
-import { getSessionUserChecked, sessionCookieHeader, handleDiscordLogin, handleDiscordCallback, handleLogout, getUserLocalePref } from './domains/identity/auth.ts';
+import { getSessionUserChecked, sessionCookieHeaders, handleDiscordLogin, handleDiscordCallback, handleLogout, getUserLocalePref } from './domains/identity/auth.ts';
 import { runDueAccountDeletions } from './domains/identity/index.ts';
 import { maybeRunCreatorBackfill } from './creatorbackfill.js';
 import { maybeRunCreatorManualFix } from './creatormanualfix.js';
@@ -89,7 +89,9 @@ app.all('/graphql', async (c: any) => {
   }
   if (checked.clearCookie) {
     const headers = new Headers(res.headers);
-    headers.append('set-cookie', sessionCookieHeader('', 0));
+    for (const cookie of sessionCookieHeaders('', 0, new URL(c.req.url).hostname)) {
+      headers.append('set-cookie', cookie);
+    }
     return new Response(res.body, { status: res.status, statusText: res.statusText, headers });
   }
   return res;
@@ -108,8 +110,12 @@ async function handleGuildLive(request: any, env: any, slug: string) {
   const access: any = await getGuildAccess(env.DB, checked.user, slug, request)
     .catch(() => ({ exists: false, canView: false }));
   if (!access.exists || !access.canView) {
-    const headers: Record<string, string> = { 'content-type': 'application/json; charset=utf-8' };
-    if (checked.clearCookie) headers['set-cookie'] = sessionCookieHeader('', 0);
+    const headers = new Headers({ 'content-type': 'application/json; charset=utf-8' });
+    if (checked.clearCookie) {
+      for (const cookie of sessionCookieHeaders('', 0, new URL(request.url).hostname)) {
+        headers.append('set-cookie', cookie);
+      }
+    }
     return new Response(JSON.stringify({ ok: false, message: '无权订阅该百业的实时更新' }), { status: 403, headers });
   }
   const stub = env.GUILD_HUB.get(env.GUILD_HUB.idFromName('guild:' + access.slug));

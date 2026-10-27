@@ -1,5 +1,5 @@
 import { SUPPORTED_LOCALES } from '../platform/index.ts';
-import { listDistinctSettingValues } from '../guilds/index.ts';
+import { listDistinctSettingValues, parseGuildSubdomainSlug, guildSubdomainOrigin } from '../guilds/index.ts';
 import { upsertUserOnLogin, getUserLocalePref as getUserLocalePrefRepo, setUserLocalePref as setUserLocalePrefRepo, getUserGuildsJson, getOAuthGrant, getOAuthRefresh, upsertOAuthOnLogin, updateOAuthAfterRefresh, markOAuthNeedsRelogin, upsertNick as upsertNickRepo, touchNick as touchNickRepo, getNickRow, listNickRowsByUser } from './index.ts';
 import { noteFreshAuthAndSettlePending } from './account.ts';
 
@@ -59,40 +59,86 @@ export async function verifyJwt(secret: string, token: any): Promise<any> {
 }
 
 /* ================= Cookie ================= */
-function parseCookies(request: any): Record<string, string> {
-  const out: Record<string, string> = {};
+// All values sent under one cookie name, in header order. During the
+// Domain transition a browser can hold two yy_session cookies at
+// once (the legacy host-only one and the Domain one below) and sends
+// both; the session read must see every value, not just one.
+function parseCookieValues(request: Request, name: string): string[] {
+  const out: string[] = [];
   const header = request.headers.get('cookie') || '';
   for (const part of header.split(';')) {
     const i = part.indexOf('=');
-    if (i > 0) out[part.slice(0, i).trim()] = decodeURIComponent(part.slice(i + 1).trim());
+    if (i > 0 && part.slice(0, i).trim() === name) {
+      const v = decodeURIComponent(part.slice(i + 1).trim());
+      if (v) out.push(v);
+    }
   }
   return out;
 }
 
-export function sessionCookieHeader(jwt: string, maxAgeSec: number) {
-  return `${SESSION_COOKIE}=${jwt}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAgeSec}`;
+/* Cookie scope: one login for the apex and every guild subdomain.
+ * On the yanyun.app host family (the apex itself plus its
+ * subdomains) the session cookie carries Domain=yanyun.app, so a
+ * session minted at the root is sent to {slug}.yanyun.app and back.
+ * Off-family hosts (workers.dev previews, localhost) keep the
+ * historical host-only cookie byte-for-byte: browsers drop a Domain
+ * cookie that does not cover the request host, which would silently
+ * break sign-in there. */
+export const SESSION_COOKIE_DOMAIN = 'yanyun.app';
+function sessionCookieDomainAttr(hostname: string): string {
+  const host = String(hostname || '').toLowerCase();
+  return host === SESSION_COOKIE_DOMAIN || host.endsWith('.' + SESSION_COOKIE_DOMAIN)
+    ? `; Domain=${SESSION_COOKIE_DOMAIN}` : '';
+}
+
+export function sessionCookieHeader(jwt: string, maxAgeSec: number, hostname = '') {
+  return `${SESSION_COOKIE}=${jwt}; Path=/; HttpOnly; Secure; SameSite=Lax${sessionCookieDomainAttr(hostname)}; Max-Age=${maxAgeSec}`;
+}
+
+// Expired host-only twin of the session cookie. While the Domain
+// cookie is the live one, a pre-transition browser may still hold
+// the legacy host-only cookie beside it; mints pair the fresh cookie
+// with this clear so the old copy dies, and clears emit both scopes
+// so sign-out and session invalidation remove whichever copy the
+// browser actually holds. Off-family there is just the one host-only
+// cookie, so the list holds the primary alone.
+const legacySessionClearHeader =
+  `${SESSION_COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`;
+export function sessionCookieHeaders(jwt: string, maxAgeSec: number, hostname = ''): string[] {
+  const primary = sessionCookieHeader(jwt, maxAgeSec, hostname);
+  return sessionCookieDomainAttr(hostname) ? [primary, legacySessionClearHeader] : [primary];
 }
 
 // Token source: yy_session cookie (web) or Authorization: Bearer (mobile) —
 // the same session JWT and downstream validation either way. Cookie wins;
 // Bearer is consulted only without a cookie, so web behavior is unchanged.
+// The cookie read is duplicate-tolerant: with the legacy host-only cookie
+// and the Domain cookie coexisting, the browser sends both values and
+// the first one that verifies is the session. A present-but-invalid
+// cookie still means signed out, exactly as before.
 export async function getSessionUser(request: any, env: any) {
   if (!env || !env.SESSION_SECRET) return null;
-  let token = parseCookies(request)[SESSION_COOKIE];
-  if (!token) {
+  const candidates = parseCookieValues(request, SESSION_COOKIE);
+  if (!candidates.length) {
     const authz = request.headers.get('authorization') || '';
-    if (authz.startsWith('Bearer ')) token = authz.slice(7).trim();
+    if (authz.startsWith('Bearer ')) {
+      const bearer = authz.slice(7).trim();
+      if (bearer) candidates.push(bearer);
+    }
   }
-  if (!token) return null;
-  const p = await verifyJwt(env.SESSION_SECRET, token);
-  if (!p || !p.sub) return null;
-  return {
-    discordId: String(p.sub),
-    name: p.name || '',
-    avatar: p.avatar || '',
-    guilds: Array.isArray(p.guilds) ? p.guilds.map(String) : [],
-    guildsMeta: Array.isArray(p.gm) ? p.gm : null, // present only on test-issued sessions
-  };
+  for (const token of candidates) {
+    const p = await verifyJwt(env.SESSION_SECRET, token);
+    if (p && p.sub) {
+      return {
+        discordId: String(p.sub),
+        name: p.name || '',
+        avatar: p.avatar || '',
+        guilds: Array.isArray(p.guilds) ? p.guilds.map(String) : [],
+        guildsMeta: Array.isArray(p.gm) ? p.gm : null, // present only on test-issued sessions
+      };
+    }
+  }
+  return null;
 }
 
 /* ============ Session validity: the Discord grant must be complete (ruling) ============
@@ -294,6 +340,40 @@ function safeReturnTo(raw: any) {
   return v;
 }
 
+/* ============ Cross-subdomain sign-in: start at the root ============
+ * A guild subdomain never starts OAuth itself: its login route 302s
+ * to the root login carrying a signed return_to, the root runs the
+ * whole Discord round trip against the one registered callback
+ * (https://yanyun.app/auth/discord/callback), and the callback 302s
+ * back to the return_to target — where the Domain session cookie
+ * (see the cookie section) already reads as signed in. The target is
+ * signed with the session secret, so the parameter cannot be forged
+ * or swapped in transit, and it is validated at both ends
+ * regardless: https only, host exactly yanyun.app or below it,
+ * never with userinfo. A missing, forged or off-family return_to is
+ * ignored and the flow falls back to the plain root sign-in —
+ * never an error page, never an open redirect. */
+const APEX_LOGIN_URL = 'https://yanyun.app/auth/discord/login';
+const RETURN_TO_TTL_SEC = 600;
+
+export function validateReturnToTarget(raw: string): string | null {
+  try {
+    const u = new URL(String(raw || ''));
+    if (u.protocol !== 'https:') return null;
+    if (u.username || u.password) return null;
+    const host = u.hostname.toLowerCase();
+    if (host !== SESSION_COOKIE_DOMAIN && !host.endsWith('.' + SESSION_COOKIE_DOMAIN)) return null;
+    return u.toString();
+  } catch { return null; }
+}
+
+async function readSignedReturnTo(secret: string, param: string): Promise<string | null> {
+  if (!param) return null;
+  const payload = await verifyJwt(secret, param);
+  if (!payload || payload.kind !== 'return-to') return null;
+  return validateReturnToTarget(payload.rto);
+}
+
 export async function handleDiscordLogin(request: any, env: any) {
   const url = new URL(request.url);
   if (!env.DISCORD_CLIENT_ID || !env.DISCORD_CLIENT_SECRET) {
@@ -303,10 +383,32 @@ export async function handleDiscordLogin(request: any, env: any) {
   if (!env.SESSION_SECRET) {
     return htmlPage('服务端未配置', '<p>会话密钥未配置，请联系管理员。</p>', 500);
   }
-  const returnTo = safeReturnTo(url.searchParams.get('returnTo') || '/');
   const appAuth = url.searchParams.get('app') === APP_AUTH_REDIRECT;
+  // Subdomain start: bounce to the root login with a signed
+  // return_to naming the page the member asked for on this host.
+  // The mobile handoff keeps starting in place (the app opens the
+  // root origin itself), so the bounce is web-only.
+  const subdomainSlug = parseGuildSubdomainSlug(url.hostname);
+  if (subdomainSlug && !appAuth) {
+    const target = validateReturnToTarget(
+      guildSubdomainOrigin(subdomainSlug) + safeReturnTo(url.searchParams.get('returnTo') || '/'));
+    if (target) {
+      const signed = await signJwt(env.SESSION_SECRET, { rto: target, kind: 'return-to' }, RETURN_TO_TTL_SEC);
+      return Response.redirect(`${APEX_LOGIN_URL}?return_to=${encodeURIComponent(signed)}`, 302);
+    }
+  }
+  // Root start: a signed return_to (minted by the bounce above) is
+  // carried into the OAuth state and honored by the callback after
+  // the session is minted. Only the apex consumes the parameter;
+  // invalid ones are dropped silently.
+  const crossReturnTo = !appAuth && url.hostname.toLowerCase() === SESSION_COOKIE_DOMAIN
+    ? await readSignedReturnTo(env.SESSION_SECRET, url.searchParams.get('return_to') || '')
+    : null;
+  const returnTo = safeReturnTo(url.searchParams.get('returnTo') || '/');
   const state = await signJwt(env.SESSION_SECRET, {
-    rt: returnTo, kind: 'oauth-state', ...(appAuth ? { app: 1 } : {}),
+    rt: returnTo, kind: 'oauth-state',
+    ...(crossReturnTo ? { rto: crossReturnTo } : {}),
+    ...(appAuth ? { app: 1 } : {}),
   }, 600);
   const redirectUri = `${url.origin}/auth/discord/callback`;
   const auth = new URL('https://discord.com/api/oauth2/authorize');
@@ -330,6 +432,10 @@ export async function handleDiscordCallback(request: any, env: any) {
   const state = stateRaw ? await verifyJwt(env.SESSION_SECRET, stateRaw) : null;
   if (!state || state.kind !== 'oauth-state') return fail('登录状态已失效，请重新登录。');
   const returnTo = safeReturnTo(state.rt || '/');
+  // Cross-subdomain return target: validated when the root login
+  // accepted it, and re-validated here before it is trusted as a
+  // redirect target.
+  const crossReturnTo = state.rto ? validateReturnToTarget(state.rto) : null;
   const redirectUri = `${url.origin}/auth/discord/callback`;
 
   // code -> access token
@@ -410,36 +516,35 @@ export async function handleDiscordCallback(request: any, env: any) {
     avatar,
     guilds: servers.map((g) => g.id),
   });
+  // The mint carries the Domain cookie plus the legacy host-only
+  // clear (see sessionCookieHeaders), so both are appended.
+  const mintHeaders = new Headers();
+  for (const c of sessionCookieHeaders(jwt, SESSION_TTL_SEC, url.hostname)) {
+    mintHeaders.append('set-cookie', c);
+  }
   // Mobile handoff: with the app flag in state, redirect to the app scheme
   // carrying the token (cookie is still set, as on web); the app then calls
   // GraphQL/WS with the JWT in a Cookie header.
   if (state.app === 1) {
-    return new Response(null, {
-      status: 302,
-      headers: {
-        location: `${APP_AUTH_REDIRECT}?token=${encodeURIComponent(jwt)}`,
-        'set-cookie': sessionCookieHeader(jwt, SESSION_TTL_SEC),
-      },
-    });
+    mintHeaders.set('location', `${APP_AUTH_REDIRECT}?token=${encodeURIComponent(jwt)}`);
+    return new Response(null, { status: 302, headers: mintHeaders });
   }
-  return new Response(null, {
-    status: 302,
-    headers: {
-      location: new URL(returnTo, url.origin).toString(),
-      'set-cookie': sessionCookieHeader(jwt, SESSION_TTL_SEC),
-    },
-  });
+  mintHeaders.set('location', crossReturnTo || new URL(returnTo, url.origin).toString());
+  return new Response(null, { status: 302, headers: mintHeaders });
 }
 
 export async function handleLogout(request: any) {
-  if (request.method === 'GET') {
-    return new Response(null, {
-      status: 302,
-      headers: { location: '/', 'set-cookie': sessionCookieHeader('', 0) },
-    });
+  // Clears cover both cookie scopes on the host family (the Domain
+  // copy and the legacy host-only copy); off-family the single
+  // historical clear is emitted unchanged.
+  const headers = new Headers();
+  for (const c of sessionCookieHeaders('', 0, new URL(request.url).hostname)) {
+    headers.append('set-cookie', c);
   }
-  return new Response(JSON.stringify({ ok: true }), {
-    status: 200,
-    headers: { 'content-type': 'application/json; charset=utf-8', 'set-cookie': sessionCookieHeader('', 0) },
-  });
+  if (request.method === 'GET') {
+    headers.set('location', '/');
+    return new Response(null, { status: 302, headers });
+  }
+  headers.set('content-type', 'application/json; charset=utf-8');
+  return new Response(JSON.stringify({ ok: true }), { status: 200, headers });
 }
