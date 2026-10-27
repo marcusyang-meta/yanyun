@@ -107,7 +107,15 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           node scripts/sync-public.mjs --dist "$GITHUB_WORKSPACE/ci-artifact"
-          npx wrangler preview --name release
+          out="$(npx wrangler preview --name release 2>&1)" && echo "$out" || { echo "$out"; exit 1; }
+          unique="$(printf '%s' "$out" | grep -oE 'Unique Deployment URL: https://[^ ]+' | sed 's/.*: //' | head -1)"
+          if [ -n "$unique" ]; then
+            echo "PREVIEW_SMOKE_BASE=$unique" >> "$GITHUB_ENV"
+            echo "render smoke target (version-pinned): $unique"
+          else
+            echo "PREVIEW_SMOKE_BASE=https://release-yanyun.tbdlab.workers.dev" >> "$GITHUB_ENV"
+            echo "unique deployment URL not found; smoke falls back to the shared preview alias"
+          fi
       - name: Preview probes (HTTP + GraphQL, read-only)
         run: >-
           node yanyun-signup/scripts/ci/probes.mjs
@@ -122,11 +130,31 @@ jobs:
           else
             npx -y playwright@1.57.0 install --with-deps chromium
           fi
+      # A freshly published preview version activates unevenly: static
+      # assets go live at once while the worker script can lag minutes
+      # behind — even on the version-pinned Unique Deployment URL. A PR
+      # that adds a GraphQL field to a shell-level query then smokes
+      # against the previous schema and fails every page with "Cannot
+      # query field", deterministically, until activation catches up.
+      # Smoke the version-pinned URL (avoids cross-PR alias overwrites)
+      # and retry the suite a few times so activation lag alone cannot
+      # fail the job; a genuinely broken render fails every attempt.
+      # Probes stay on the alias: valid on any recent schema.
       - name: Render smoke (real Chromium, anonymous pages)
-        run: >-
-          node yanyun-signup/scripts/ci/render-smoke.mjs
-          --base https://release-yanyun.tbdlab.workers.dev
-          --page /:Discord --page /demo:百业集结 --page /privacy:隐私政策
+        run: |
+          for attempt in 1 2 3; do
+            if node yanyun-signup/scripts/ci/render-smoke.mjs \
+              --base "${{ env.PREVIEW_SMOKE_BASE }}" \
+              --page /:Discord --page /demo:百业集结 --page /privacy:隐私政策; then
+              exit 0
+            fi
+            if [ "$attempt" -lt 3 ]; then
+              echo "render smoke attempt $attempt failed; waiting 90s for the preview version to activate, then retrying"
+              sleep 90
+            fi
+          done
+          echo "render smoke failed after 3 attempts"
+          exit 1
       - name: Preview summary
         if: always()
         run: |
