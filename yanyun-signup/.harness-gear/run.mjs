@@ -1,9 +1,11 @@
 // Gear-bench acceptance: (1) storage isolation — forged sessions A/B,
 // B can neither see nor modify A's gear/builds; (2) anonymous = no
 // library; (3) import auto-selects; (4) build snapshots computed
-// server-side; (5) gear copy matrix (catalog-level 189x5 + GraphQL-level
-// full-field bilingual resolution); (6) GraphQL compute smoke matches
-// direct engine computation.
+// server-side; (5) gear copy matrix (catalog-level, every gear key x5
+// locales + GraphQL-level full-field bilingual resolution); (6) GraphQL
+// compute smoke matches direct engine computation; (13) game-vocabulary
+// delivery equals the historical constants + calcTiaolv id/name input
+// equivalence.
 import { yoga } from '../src/graphql.ts';
 import { CATALOG, translate } from '../src/domains/platform/i18n.ts';
 import * as GP from '../src/domains/gear/gearplanner.ts';
@@ -237,7 +239,7 @@ for (const k of gearKeys) {
     if (!t || t === 'gear.' + k) matrixBad++;
   }
 }
-eq('catalog matrix 189×5 complete', matrixBad, 0);
+eq(`catalog matrix ${gearKeys.length}x5 complete`, matrixBad, 0);
 const fieldNames = gearKeys.map((k) => 'gear' + k[0].toUpperCase() + k.slice(1));
 for (const loc of ['zh-CN', 'en']) {
   const q = '{ gradPage { ' + fieldNames.join(' ') + ' } }';
