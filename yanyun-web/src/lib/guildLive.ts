@@ -44,11 +44,10 @@ interface Entry {
 const entries = new Map<string, Entry>();
 
 function liveUrl(slug: string): string {
-  // Same rule as relay.ts's GraphQL URL: workers.dev preview sites connect
-  // directly to the production backend; everything else uses the current origin.
-  if (typeof window !== 'undefined' && window.location.hostname.includes('workers.dev')) {
-    return `wss://yanyun.app/ws/guild/${encodeURIComponent(slug)}`;
-  }
+  // Same rule as relay.ts's GraphQL URL: always the current origin. The
+  // preview Worker binds its own GuildHub DOs (wrangler.toml [previews]), so
+  // live events on a preview stay inside that preview deployment — matching
+  // its own /graphql — instead of leaking into production's hubs.
   const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
   return `${proto}//${window.location.host}/ws/guild/${encodeURIComponent(slug)}`;
 }

@@ -103,10 +103,17 @@ export async function refetchGuildAdminQueries(): Promise<void> {
 }
 
 async function fetchGraphQL(operation: any, variables: any) {
-  // Production preview: call backend directly (avoids worker-to-worker fetch limits)
-  const graphqlUrl = typeof window !== 'undefined' && window.location.hostname.includes('workers.dev')
-    ? 'https://yanyun.app/graphql'
-    : '/graphql';
+  // Always same-origin /graphql, on every host. One Worker serves both this
+  // app (its public/ assets) and the API: production (yanyun.app) and the
+  // workers.dev preview are the same deployment unit at different versions —
+  // the preview is `wrangler preview` of the backend Worker with these exact
+  // assets synced in, bound to the same D1 by database_id. A browser fetch to
+  // the page's own origin therefore never crosses a worker-to-worker hop, so
+  // the old workers.dev → production redirect (a leftover from when web and
+  // backend were separate Workers) is gone: a preview now answers with its
+  // own schema and data behavior — which is the point of a preview, and what
+  // lets CI's render smoke exercise the PR's schema instead of production's.
+  const graphqlUrl = '/graphql';
   const res = await fetch(graphqlUrl, {
     method: 'POST',
     headers: {
