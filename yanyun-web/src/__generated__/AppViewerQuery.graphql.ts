@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<a0be83aaedec95b261421e4187c16e34>>
+ * @generated SignedSource<<e4f0ae68ff78ef789a1d5852cdb7dac6>>
  * @lightSyntaxTransform
  */
 
@@ -22,6 +22,15 @@ export type AppViewerQuery$data = {
       readonly slogan: string | null | undefined;
       readonly slug: string;
     }>;
+    readonly landingDexBody: string;
+    readonly landingDexTitle: string;
+    readonly landingFeaturesTitle: string;
+    readonly landingGearBody: string;
+    readonly landingGearTitle: string;
+    readonly landingGroupingBody: string;
+    readonly landingGroupingTitle: string;
+    readonly landingReminderBody: string;
+    readonly landingReminderTitle: string;
     readonly loginButtonLabel: string;
     readonly loginCardBody1: string;
     readonly loginCardBody2: string;
@@ -225,6 +234,69 @@ v2 = [
         "alias": null,
         "args": null,
         "kind": "ScalarField",
+        "name": "landingFeaturesTitle",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "landingGroupingTitle",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "landingGroupingBody",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "landingReminderTitle",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "landingReminderBody",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "landingDexTitle",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "landingDexBody",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "landingGearTitle",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "landingGearBody",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
         "name": "footerDisclaimerText",
         "storageKey": null
       },
@@ -362,16 +434,16 @@ return {
     "selections": (v2/*:: as any*/)
   },
   "params": {
-    "cacheID": "4cf73b180b62bb2e345de8a2dd4237eb",
+    "cacheID": "8d16ff7ef9e5858fe441a2ca1adbd2bb",
     "id": null,
     "metadata": {},
     "name": "AppViewerQuery",
     "operationKind": "query",
-    "text": "query AppViewerQuery {\n  viewer {\n    user {\n      discordId\n      name\n      avatar\n    }\n    guilds {\n      slug\n      name\n      slogan\n      gameVersion\n      memberCount\n      avatarUrl\n    }\n    publicGuilds {\n      slug\n      name\n      slogan\n      gameVersion\n      memberCount\n      avatarUrl\n    }\n    siteTitle\n    siteSubtitle\n    siteHeroAlt\n    loginCardTitle\n    loginCardBody1\n    loginCardBody2\n    loginButtonLabel\n    loginPrivacyText\n    footerDisclaimerText\n    footerTermsLabel\n    footerPrivacyLabel\n    userBarLogoutLabel\n    userBarLoggingOutLabel\n    userBarSettingsLabel\n    myLocalePref\n    myEffectiveLocale\n    pickerMyGuildsLabel\n    pickerMyGuildsEnLabel\n    pickerPublicGuildsLabel\n    pickerPublicGuildsEnLabel\n    pickerReadOnlyBadge\n    pickerEmptyTitle\n    pickerEmptyBody\n    pickerCreateGuildLabel\n    pickerCreateGuildMoreLabel\n  }\n}\n"
+    "text": "query AppViewerQuery {\n  viewer {\n    user {\n      discordId\n      name\n      avatar\n    }\n    guilds {\n      slug\n      name\n      slogan\n      gameVersion\n      memberCount\n      avatarUrl\n    }\n    publicGuilds {\n      slug\n      name\n      slogan\n      gameVersion\n      memberCount\n      avatarUrl\n    }\n    siteTitle\n    siteSubtitle\n    siteHeroAlt\n    loginCardTitle\n    loginCardBody1\n    loginCardBody2\n    loginButtonLabel\n    loginPrivacyText\n    landingFeaturesTitle\n    landingGroupingTitle\n    landingGroupingBody\n    landingReminderTitle\n    landingReminderBody\n    landingDexTitle\n    landingDexBody\n    landingGearTitle\n    landingGearBody\n    footerDisclaimerText\n    footerTermsLabel\n    footerPrivacyLabel\n    userBarLogoutLabel\n    userBarLoggingOutLabel\n    userBarSettingsLabel\n    myLocalePref\n    myEffectiveLocale\n    pickerMyGuildsLabel\n    pickerMyGuildsEnLabel\n    pickerPublicGuildsLabel\n    pickerPublicGuildsEnLabel\n    pickerReadOnlyBadge\n    pickerEmptyTitle\n    pickerEmptyBody\n    pickerCreateGuildLabel\n    pickerCreateGuildMoreLabel\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "4d43e945b455de6dd8d21e9a10ff97fe";
+(node as any).hash = "eaa074f06d57352bed46aea47fdb0189";
 
 export default node;

@@ -5,6 +5,7 @@ import type { PreloadedQuery } from 'react-relay';
 import type { AppViewerQuery as AppViewerQueryType } from './__generated__/AppViewerQuery.graphql';
 import type { ViewerUser } from './lib/user';
 import LoginPage from './auth/LoginPage.react.tsx';
+import LandingPage from './auth/LandingPage.react.tsx';
 import GuildPicker from './auth/GuildPicker.react.tsx';
 import CreateGuildPage from './auth/CreateGuildPage.react.tsx';
 import GearPage from './auth/GearPage.react.tsx';
@@ -53,6 +54,15 @@ const AppViewerQueryNode = graphql`
       loginCardBody2
       loginButtonLabel
       loginPrivacyText
+      landingFeaturesTitle
+      landingGroupingTitle
+      landingGroupingBody
+      landingReminderTitle
+      landingReminderBody
+      landingDexTitle
+      landingDexBody
+      landingGearTitle
+      landingGearBody
       footerDisclaimerText
       footerTermsLabel
       footerPrivacyLabel
@@ -111,6 +121,13 @@ export default function AppRoot({ queries }: {
     cardTitle: viewer.loginCardTitle, cardBody1: viewer.loginCardBody1, cardBody2: viewer.loginCardBody2,
     buttonLabel: viewer.loginButtonLabel, privacyText: viewer.loginPrivacyText,
   };
+  const landingText = {
+    featuresTitle: viewer.landingFeaturesTitle,
+    groupingTitle: viewer.landingGroupingTitle, groupingBody: viewer.landingGroupingBody,
+    reminderTitle: viewer.landingReminderTitle, reminderBody: viewer.landingReminderBody,
+    dexTitle: viewer.landingDexTitle, dexBody: viewer.landingDexBody,
+    gearTitle: viewer.landingGearTitle, gearBody: viewer.landingGearBody,
+  };
   const userBarText = {
     logoutLabel: viewer.userBarLogoutLabel, loggingOutLabel: viewer.userBarLoggingOutLabel,
     settingsLabel: viewer.userBarSettingsLabel,
@@ -163,7 +180,7 @@ export default function AppRoot({ queries }: {
               <GuildPicker user={user} guilds={viewer.guilds} publicGuilds={viewer.publicGuilds} site={siteText} text={pickerText} userBarText={userBarText} />
             )
           ) : (
-            <LoginPage returnTo="/" site={siteText} text={loginText} />
+            <LandingPage returnTo="/" site={siteText} text={loginText} landing={landingText} />
           )
         }
       />

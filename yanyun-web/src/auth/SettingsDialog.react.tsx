@@ -40,6 +40,16 @@ const SettingsDialogQueryNode = graphql`
       settingsLangEsLabel
       settingsLangFrLabel
       settingsSavedText
+      feedbackEntryLabel
+      feedbackTitle
+      feedbackCategoryLabel
+      feedbackCategoryProblemLabel
+      feedbackCategorySuggestionLabel
+      feedbackCategoryOtherLabel
+      feedbackPlaceholder
+      feedbackSubmitLabel
+      feedbackSubmittingLabel
+      feedbackSuccessText
       localePref
       effectiveLocale
       accountSectionTitle
@@ -121,6 +131,16 @@ const SettingsUpdateMutationNode = graphql`
   }
 `;
 
+const SettingsFeedbackMutationNode = graphql`
+  mutation SettingsDialogFeedbackMutation($category: FeedbackCategory!, $text: String!) {
+    submitFeedback(category: $category, text: $text) {
+      ok
+      error
+      errorCode
+    }
+  }
+`;
+
 export type AccountFlow = 'export' | 'delete';
 
 export default function SettingsDialog({ open, onClose, user, initialFlow }: {
@@ -179,6 +199,34 @@ function SettingsDialogInner({ onClose, user, initialFlow }: {
   const [error, setError] = useState('');
   const [saved, setSaved] = useState(false);
   const navigate = useNavigate();
+  // Feedback sub-view (profile's second zone): category + free text,
+  // submitted through submitFeedback; the server validates, caps and
+  // stores it, and its localized error comes back on the payload.
+  const [view, setView] = useState<'main' | 'feedback'>('main');
+  const [commitFeedback, fbInFlight] = useMutation<any>(SettingsFeedbackMutationNode);
+  const [fbCategory, setFbCategory] = useState<'PROBLEM' | 'SUGGESTION' | 'OTHER'>('PROBLEM');
+  const [fbText, setFbText] = useState('');
+  const [fbError, setFbError] = useState('');
+  const [fbDone, setFbDone] = useState(false);
+
+  const openFeedback = () => { setFbDone(false); setFbError(''); setView('feedback'); };
+  const submitFeedback = () => {
+    if (fbInFlight) return;
+    setFbError('');
+    commitFeedback({
+      variables: { category: fbCategory, text: fbText },
+      onCompleted: (resp: any) => {
+        const payload = resp?.submitFeedback;
+        if (payload?.ok) {
+          setFbDone(true);
+          setFbText('');
+        } else {
+          setFbError(payload?.error || viewer.commonUnknownErrorText || '');
+        }
+      },
+      onError: () => setFbError(viewer.commonUnknownErrorText || ''),
+    });
+  };
 
   /* ---- My Data (account export / deletion) ---- */
   const [acctView, setAcctView] = useState<'main' | 'confirm'>('main');
@@ -325,7 +373,7 @@ function SettingsDialogInner({ onClose, user, initialFlow }: {
     });
   };
 
-  const body = (
+  const mainBody = (
     <>
       {user && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
@@ -389,6 +437,19 @@ function SettingsDialogInner({ onClose, user, initialFlow }: {
           }}
         >
           <span>{data.gradPage?.gearMyLibTitle}</span>
+          <span style={{ color: theme.gold, fontSize: 19, lineHeight: 1 }}>›</span>
+        </button>
+        <button
+          data-feedback-entry
+          onClick={openFeedback}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            width: '100%', textAlign: 'left', padding: '11px 16px', borderRadius: 10, cursor: 'pointer',
+            background: 'rgba(255,255,255,.02)', border: '1px solid rgba(201,163,92,.25)',
+            color: theme.paper, fontSize: 14.5, marginTop: 8,
+          }}
+        >
+          <span>{page.feedbackEntryLabel}</span>
           <span style={{ color: theme.gold, fontSize: 19, lineHeight: 1 }}>›</span>
         </button>
       </div>
@@ -514,15 +575,92 @@ function SettingsDialogInner({ onClose, user, initialFlow }: {
     </>
   );
 
+  const fbCategories: { value: 'PROBLEM' | 'SUGGESTION' | 'OTHER'; label: string }[] = [
+    { value: 'PROBLEM', label: page.feedbackCategoryProblemLabel },
+    { value: 'SUGGESTION', label: page.feedbackCategorySuggestionLabel },
+    { value: 'OTHER', label: page.feedbackCategoryOtherLabel },
+  ];
+  const feedbackBody = (
+    <>
+      {/* Desktop gets an in-body back row; the mobile push page's header
+          chevron already steps back to the main view. */}
+      {!isMobile && (
+        <div
+          data-feedback-back
+          onClick={() => setView('main')}
+          style={{ color: theme.gold, fontSize: 24, lineHeight: 1, cursor: 'pointer', padding: '0 8px 10px 0', width: 32 }}
+        >‹</div>
+      )}
+      {fbDone ? (
+        <div style={{ color: '#7fb069', fontSize: 15, padding: '18px 0 8px' }}>✓ {page.feedbackSuccessText}</div>
+      ) : (
+        <>
+          <div style={{ color: theme.paper, fontSize: 16, marginBottom: 10 }}>{page.feedbackCategoryLabel}</div>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 18 }} role="radiogroup">
+            {fbCategories.map((cat) => {
+              const active = cat.value === fbCategory;
+              return (
+                <button
+                  key={cat.value}
+                  role="radio"
+                  aria-checked={active}
+                  data-feedback-category={cat.value}
+                  onClick={() => setFbCategory(cat.value)}
+                  style={{
+                    padding: '9px 18px', borderRadius: 999, cursor: 'pointer',
+                    background: active ? 'rgba(201,163,92,.16)' : 'rgba(255,255,255,.02)',
+                    border: `1px solid ${active ? theme.gold : 'rgba(201,163,92,.25)'}`,
+                    color: active ? theme.goldHi : theme.paper, fontSize: 14,
+                  }}
+                >
+                  {cat.label}
+                </button>
+              );
+            })}
+          </div>
+          <textarea
+            data-feedback-text
+            value={fbText}
+            onChange={(e) => setFbText(e.target.value)}
+            placeholder={page.feedbackPlaceholder}
+            rows={5}
+            style={{
+              width: '100%', boxSizing: 'border-box', resize: 'vertical',
+              background: 'rgba(255,255,255,.03)', border: '1px solid rgba(201,163,92,.25)',
+              borderRadius: 10, padding: '12px 14px', color: theme.paper, fontSize: 14.5, lineHeight: 1.7,
+              fontFamily: 'inherit', outline: 'none',
+            }}
+          />
+          {fbError && (
+            <div style={{ color: '#e58d7f', fontSize: 13, marginTop: 12 }}>{fbError}</div>
+          )}
+          <button
+            data-feedback-submit
+            className="yy-btn yy-btn-gold"
+            onClick={submitFeedback}
+            disabled={fbInFlight || !fbText.trim()}
+            style={{ marginTop: 18, padding: '11px 30px', fontSize: 15, letterSpacing: '.05em' }}
+          >
+            {fbInFlight ? page.feedbackSubmittingLabel : page.feedbackSubmitLabel}
+          </button>
+        </>
+      )}
+    </>
+  );
+
+  const body = view === 'feedback' ? feedbackBody : mainBody;
+  const headerTitle = view === 'feedback' ? page.feedbackTitle : page.settingsTitle;
+  const headerBack = view === 'feedback' ? () => setView('main') : onClose;
+
   if (isMobile) {
     return createPortal(
       <div className="yy-push-page">
         <div className="yy-push-header">
-          <span onClick={onClose} style={{ fontSize: 24, color: theme.gold, cursor: 'pointer', padding: '0 8px 0 0', lineHeight: 1 }}>‹</span>
+          <span onClick={headerBack} style={{ fontSize: 24, color: theme.gold, cursor: 'pointer', padding: '0 8px 0 0', lineHeight: 1 }}>‹</span>
           <span style={{
             fontFamily: "'Ma Shan Zheng', 'Noto Serif SC', serif",
             color: theme.goldHi, fontSize: 20, letterSpacing: 3,
-          }}>{page.settingsTitle}</span>
+          }}>{headerTitle}</span>
         </div>
         <div style={{ padding: '20px 16px 0' }}>{body}</div>
       </div>,
@@ -537,7 +675,7 @@ function SettingsDialogInner({ onClose, user, initialFlow }: {
           <div style={{
             flex: 1, fontFamily: "'Ma Shan Zheng', 'Noto Serif SC', serif",
             fontSize: 22, color: theme.goldHi, letterSpacing: 4,
-          }}>{page.settingsTitle}</div>
+          }}>{headerTitle}</div>
           <div onClick={onClose} style={{ color: theme.muted, fontSize: 24, cursor: 'pointer', padding: 8 }}>✕</div>
         </div>
         {body}
