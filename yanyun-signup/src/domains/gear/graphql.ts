@@ -318,6 +318,7 @@ export const GEAR_TEXT_RESOLVERS = defineTextGens(GradPageShell, [
   ['gearImportLabel', 'gear', 'importLabel'],
   ['gearImportFailedToast', 'gear', 'importFailedToast'],
   ['gearImportedToastTemplate', 'gear', 'importedToastTemplate'],
+  ['gearManualTitle', 'gear', 'manualTitle'],
   ['gearPasteTitle', 'gear', 'pasteTitle'],
   ['gearPastePlaceholder', 'gear', 'pastePlaceholder'],
   ['gearPasteButtonLabel', 'gear', 'pasteButtonLabel'],

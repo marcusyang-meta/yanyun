@@ -128,6 +128,7 @@ export type GearStringKey =
   | 'gear.importLabel'
   | 'gear.importFailedToast'
   | 'gear.importedToastTemplate'
+  | 'gear.manualTitle'
   | 'gear.pasteTitle'
   | 'gear.pastePlaceholder'
   | 'gear.pasteButtonLabel'
@@ -410,6 +411,7 @@ export const GEAR_STRING_KEYS: readonly GearStringKey[] = [
   'gear.importLabel',
   'gear.importFailedToast',
   'gear.importedToastTemplate',
+  'gear.manualTitle',
   'gear.pasteTitle',
   'gear.pastePlaceholder',
   'gear.pasteButtonLabel',
