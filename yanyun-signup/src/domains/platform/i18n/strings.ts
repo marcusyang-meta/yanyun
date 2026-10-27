@@ -536,6 +536,10 @@ export const gear_schemeComposeFirstText = (fbs: FbsRuntime) => fbs._("先在配
 export const gear_schemeSavedToastTemplate = (fbs: FbsRuntime, p?: StringParams) => fbs._("已存方案：{name}", [fbs._param("name", pv(p, "name"))], { hk: "41ODrs" });
 export const gear_schemeLoadedToastTemplate = (fbs: FbsRuntime, p?: StringParams) => fbs._("已载入：{name}", [fbs._param("name", pv(p, "name"))], { hk: "W68Jt" });
 export const gear_schemeGroupCountTemplate = (fbs: FbsRuntime, p?: StringParams) => fbs._("{n} 套", [fbs._param("n", pv(p, "n"))], { hk: "rq7r4" });
+export const gear_shareLabel = (fbs: FbsRuntime) => fbs._("分享", null, { hk: "4uur5j" });
+export const gear_revokeShareLabel = (fbs: FbsRuntime) => fbs._("取消分享", null, { hk: "4jIgn4" });
+export const gear_copyLinkLabel = (fbs: FbsRuntime) => fbs._("复制链接", null, { hk: "3R32rG" });
+export const gear_shareRevokedToast = (fbs: FbsRuntime) => fbs._("已取消分享，旧链接已失效", null, { hk: "N75Vo" });
 export const gear_quickTitle = (fbs: FbsRuntime) => fbs._("三率速算器", null, { hk: "4hmlhM" });
 export const gear_quickResLabel = (fbs: FbsRuntime) => fbs._("抗性", null, { hk: "4ug56e" });
 export const gear_quickSyncLabel = (fbs: FbsRuntime) => fbs._("从配装台同步", null, { hk: "3vKwDX" });
@@ -879,6 +883,11 @@ export const account_deletionRequestedText = (fbs: FbsRuntime) => fbs._("删除�
 export const account_deletionCancelledText = (fbs: FbsRuntime) => fbs._("删除申请已撤销，你的账号不会被删除。", null, { hk: "3O75jx" });
 export const account_exportAbout = (fbs: FbsRuntime) => fbs._("这是你账号数据的导出副本。account 是账号资料（oauth 只记录授权范围与最近刷新时间，凭据本身不导出）；guilds 是你在各百业的名册行；serverNicks 是你在各 Discord 服务器的昵称快照；carsLed 是你创建的车队；seats 是你的报名座位；gearItems 是装备库；gearBuilds 是已保存方案；heirloom 是传家宝推送的去重状态。推送令牌属于设备凭据，只记录数量与平台，令牌本身不导出。", null, { hk: "1z9HId" });
 export const account_deletedUser = (fbs: FbsRuntime) => fbs._("已注销用户", null, { hk: "1EEgqZ" });
+export const buildshare_kicker = (fbs: FbsRuntime) => fbs._("装备方案 · 公开分享", null, { hk: "51eY3" });
+export const buildshare_loginLabel = (fbs: FbsRuntime) => fbs._("打开燕云百业", null, { hk: "3XaPDB" });
+export const buildshare_notFoundTitle = (fbs: FbsRuntime) => fbs._("链接已失效", null, { hk: "1Wv006" });
+export const buildshare_notFoundBody = (fbs: FbsRuntime) => fbs._("这条分享链接不存在，或已被方案主人取消分享。", null, { hk: "3K1GvQ" });
+export const buildshare_xinfaLabel = (fbs: FbsRuntime) => fbs._("心法", null, { hk: "pogF2" });
 export const STRING_FNS: Record<string, StringFn> = {
 	"common.cancel": common_cancel,
 	"common.confirm": common_confirm,
@@ -1379,6 +1388,10 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"gear.schemeSavedToastTemplate": gear_schemeSavedToastTemplate,
 	"gear.schemeLoadedToastTemplate": gear_schemeLoadedToastTemplate,
 	"gear.schemeGroupCountTemplate": gear_schemeGroupCountTemplate,
+	"gear.shareLabel": gear_shareLabel,
+	"gear.revokeShareLabel": gear_revokeShareLabel,
+	"gear.copyLinkLabel": gear_copyLinkLabel,
+	"gear.shareRevokedToast": gear_shareRevokedToast,
 	"gear.quickTitle": gear_quickTitle,
 	"gear.quickResLabel": gear_quickResLabel,
 	"gear.quickSyncLabel": gear_quickSyncLabel,
@@ -1697,5 +1710,10 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"account.deletionRequestedText": account_deletionRequestedText,
 	"account.deletionCancelledText": account_deletionCancelledText,
 	"account.exportAbout": account_exportAbout,
-	"account.deletedUser": account_deletedUser
+	"account.deletedUser": account_deletedUser,
+	"buildshare.kicker": buildshare_kicker,
+	"buildshare.loginLabel": buildshare_loginLabel,
+	"buildshare.notFoundTitle": buildshare_notFoundTitle,
+	"buildshare.notFoundBody": buildshare_notFoundBody,
+	"buildshare.xinfaLabel": buildshare_xinfaLabel
 };

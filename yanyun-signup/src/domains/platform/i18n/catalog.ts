@@ -3499,6 +3499,34 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "fr": "{n} ensembles",
       "zh-TW": "{n} 套"
     },
+    "shareLabel": {
+      "zh-CN": "分享",
+      "en": "Share",
+      "es": "Compartir",
+      "fr": "Partager",
+      "zh-TW": "分享"
+    },
+    "revokeShareLabel": {
+      "zh-CN": "取消分享",
+      "en": "Unshare",
+      "es": "Dejar de compartir",
+      "fr": "Arrêter le partage",
+      "zh-TW": "取消分享"
+    },
+    "copyLinkLabel": {
+      "zh-CN": "复制链接",
+      "en": "Copy link",
+      "es": "Copiar enlace",
+      "fr": "Copier le lien",
+      "zh-TW": "複製連結"
+    },
+    "shareRevokedToast": {
+      "zh-CN": "已取消分享，旧链接已失效",
+      "en": "Sharing revoked — the old link no longer works",
+      "es": "Uso compartido revocado: el enlace anterior ya no funciona",
+      "fr": "Partage révoqué — l’ancien lien ne fonctionne plus",
+      "zh-TW": "已取消分享，舊連結已失效"
+    },
     "quickTitle": {
       "zh-CN": "三率速算器",
       "en": "Rate quick calculator",
@@ -5560,6 +5588,43 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "es": "Usuario eliminado",
       "fr": "Utilisateur supprimé",
       "zh-TW": "已註銷使用者"
+    }
+  },
+  "buildshare": {
+    "kicker": {
+      "zh-CN": "装备方案 · 公开分享",
+      "en": "Gear build · Public share",
+      "es": "Configuración de equipo · Compartido públicamente",
+      "fr": "Configuration d’équipement · Partage public",
+      "zh-TW": "裝備方案 · 公開分享"
+    },
+    "loginLabel": {
+      "zh-CN": "打开燕云百业",
+      "en": "Open Yanyun Guilds",
+      "es": "Abrir Yanyun Guilds",
+      "fr": "Ouvrir Yanyun Guilds",
+      "zh-TW": "打開燕雲百業"
+    },
+    "notFoundTitle": {
+      "zh-CN": "链接已失效",
+      "en": "This link is no longer valid",
+      "es": "Este enlace ya no es válido",
+      "fr": "Ce lien n’est plus valide",
+      "zh-TW": "連結已失效"
+    },
+    "notFoundBody": {
+      "zh-CN": "这条分享链接不存在，或已被方案主人取消分享。",
+      "en": "This share link does not exist, or its owner has revoked it.",
+      "es": "Este enlace compartido no existe o su propietario lo ha revocado.",
+      "fr": "Ce lien de partage n’existe pas ou son propriétaire l’a révoqué.",
+      "zh-TW": "這條分享連結不存在，或已被方案主人取消分享。"
+    },
+    "xinfaLabel": {
+      "zh-CN": "心法",
+      "en": "Inner skill",
+      "es": "Arte interna",
+      "fr": "Art interne",
+      "zh-TW": "心法"
     }
   }
 };

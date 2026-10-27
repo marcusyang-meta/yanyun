@@ -51,7 +51,7 @@ export const usageCounters = sqliteTable('usage_counters', {
 }, (t) => [
   primaryKey({ columns: [t.discordId, t.metric, t.day] }),
 ]);
-/* ---------------- guild entitlements [alt: 0004] ------------------
+/* ---------------- guild entitlements [alt: 0005] ------------------
  * One row per guild with a plan assignment (billing.ts repository).
  * plan 'free' | 'premium'; source 'stripe' | 'manual' | ''.
  * current_period_end is unix seconds, NULL = no expiry on file;
@@ -66,7 +66,7 @@ export const guildEntitlements = sqliteTable('guild_entitlements', {
   updatedAt: integer('updated_at').notNull().default(0),
 });
 
-/* ---------------- stripe events [alt: 0004] ------------------------
+/* ---------------- stripe events [alt: 0005] ------------------------
  * Webhook idempotency ledger (billing.ts repository): one row per
  * processed Stripe event id. Dedupe state, not business data —
  * excluded from backups (see backup.ts BACKUP_EXCLUDED). */
