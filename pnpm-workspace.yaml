@@ -1,0 +1,6 @@
+packages:
+  - 'yanyun-signup'
+  - 'yanyun-web'
+  - 'yanyun-mobile'
+  - 'yanyun-og'
+  - 'packages/*'
