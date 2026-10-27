@@ -140,18 +140,18 @@ export async function updateTenantProfile(
     masterName: string; logoUrl: string; bgImageUrl: string;
   },
 ): Promise<void> {
-  // Only guild_name / announcement / slogan are written: production's
-  // tenants table has no master_name / logo_url / bg_image_url columns
-  // (they were phantom entity fields, removed by the baseline
-  // attestation in migrations/0001_baseline.sql). The previous UPDATE
-  // named all six and therefore threw against production — guild
-  // profile saves were broken. The three legacy fields stay in the
-  // parameter and in getTenant's reads (they read back as '') until a
-  // future migration deliberately adds real columns for them.
+  // All six fields are written, matching the legacy UPDATE. The three
+  // profile columns (master_name / logo_url / bg_image_url) were
+  // phantom entity fields for a long time — named here before any DDL
+  // created them, so this UPDATE threw against production and guild
+  // profile saves were broken until PR #35 narrowed the write as a
+  // stopgap. migrations/0002_tenant_profile_fields.sql adds the real
+  // columns, so the full write is safe again.
   const db = createDb(d1);
   await db.run(
     sql`UPDATE ${tenants} SET ${col('guild_name')} = ${p.guildName}, ${col('announcement')} = ${p.announcement},
-        ${col('slogan')} = ${p.slogan}
+        ${col('slogan')} = ${p.slogan}, ${col('master_name')} = ${p.masterName},
+        ${col('logo_url')} = ${p.logoUrl}, ${col('bg_image_url')} = ${p.bgImageUrl}
         WHERE ${col('slug')} = ${slug}`,
   );
 }

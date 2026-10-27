@@ -17,11 +17,13 @@ import {
 
 
 /* ---------------- tenants [production shape attested 2026-10-27] ----
- * Exactly the seven columns the production table carries. An earlier
- * model also claimed master_name / logo_url / bg_image_url ([qry]
- * attestation); those columns do not exist in production — the
- * baseline migration (migrations/0001_baseline.sql) and the drift
- * gate now pin this shape, so the model matches reality again. */
+ * The seven baseline columns, plus the three profile columns added by
+ * migrations/0002_tenant_profile_fields.sql. An earlier model claimed
+ * master_name / logo_url / bg_image_url ([qry] attestation) before
+ * any DDL created them — they were phantom columns and profile saves
+ * naming them threw in production; 0002 adds them for real, in the
+ * NOT NULL DEFAULT '' caliber of the other text columns. The chain
+ * and the drift gate pin this shape. */
 export const tenants = sqliteTable('tenants', {
   slug: text('slug').primaryKey(),
   guildName: text('guild_name').notNull(),
@@ -30,6 +32,9 @@ export const tenants = sqliteTable('tenants', {
   createdAt: text('created_at').notNull().default(sql`(strftime('%s','now'))`),
   discordWebhook: text('discord_webhook').notNull().default(''),
   slogan: text('slogan').notNull().default(''),
+  masterName: text('master_name').notNull().default(''),
+  logoUrl: text('logo_url').notNull().default(''),
+  bgImageUrl: text('bg_image_url').notNull().default(''),
 });
 
 /* ---------------- settings [ddl chain baseline] -------------------- */
