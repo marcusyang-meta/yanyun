@@ -101,7 +101,7 @@ export default function GroupingListScreen({ slug, name, readOnly, nick, gameVer
     <View style={s.root}>
       <Backdrop />
       <View style={[s.headZone, { paddingTop: 12 + insets.top }]}>
-        <SiteChrome displayName={nick || undefined} />
+        <SiteChrome displayName={nick || undefined} backLabel={guildItem?.pageBackLabel} />
         <Suspense fallback={<GuildHeader name={name} version={gameVersion} avatarUrl={avatarUrl} />}>
           <GuildHeaderLive slug={slug} name={name} fallbackVersion={gameVersion} avatarUrl={avatarUrl} />
         </Suspense>

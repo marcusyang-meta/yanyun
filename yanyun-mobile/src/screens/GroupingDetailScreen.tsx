@@ -41,7 +41,7 @@ export default function GroupingDetailScreen({ slug, id, nick, guildName, gameVe
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const env = useRelayEnvironment();
-  const { user } = useSession();
+  const { user, guilds, publicGuilds } = useSession();
   const [refreshTick, setRefreshTick] = useState(0);
   const [epoch, setEpoch] = useState(0);
   const refresh = useCallback(() => setRefreshTick((k) => k + 1), []);
@@ -141,7 +141,7 @@ export default function GroupingDetailScreen({ slug, id, nick, guildName, gameVe
     <View style={s.root}>
       <Backdrop />
       <View style={[s.headZone, { paddingTop: 12 + insets.top }]}>
-        <SiteChrome displayName={nick || undefined} />
+        <SiteChrome displayName={nick || undefined} backLabel={[...guilds, ...publicGuilds].find((g) => g.slug === slug)?.pageBackLabel} />
         {!!guildName && <GuildHeader name={guildName} version={gameVersion} />}
         <Suspense fallback={<BackLink label="‹ 返回车队列表" />}>
           <BackLinkLive slug={slug} id={id} />
