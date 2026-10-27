@@ -32,8 +32,8 @@
     "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary"
   },
   "src/domains/groupings/graphql.ts": {
-    "max": 95,
-    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context); +11 for the GroupingManageActions plain-data resolver map and the detail page manageActions resolver (same (p: any) delegation shape as the Seat map); +7 for the seat readiness surface (advanced reminders, 2026-10-26): setSeatReady mutation and Seat/Grouping resolvers in the same parent/args pattern"
+    "max": 139,
+    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context); +11 for the GroupingManageActions plain-data resolver map and the detail page manageActions resolver (same (p: any) delegation shape as the Seat map); +7 for the seat readiness surface (advanced reminders, 2026-10-26): setSeatReady mutation and Seat/Grouping resolvers in the same parent/args pattern; +44 for the grouping templates surface (2026-10-26): GroupingTemplate/GroupingTemplateManageActions/GroupingTemplateSave/GroupingTemplatePayload resolver maps, the template shell gens and the four template mutations, all in the same parent/args pattern"
   },
   "src/domains/groupings/grouping-routes.ts": {
     "max": 30,
@@ -108,8 +108,8 @@
     "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary"
   },
   "src/domains/platform/graphql-base.ts": {
-    "max": 68,
-    "reason": "framework internals: dynamic prototype generation (defineTextGens) and shell source records (ShellBase.data); +6 for the shared grouping-manage verdict/gate signatures (db/user/request params, same shape as getGuildAdminAccess)"
+    "max": 69,
+    "reason": "framework internals: dynamic prototype generation (defineTextGens) and shell source records (ShellBase.data); +6 for the shared grouping-manage verdict/gate signatures (db/user/request params, same shape as getGuildAdminAccess); +1 for the TemplatePayloadShell failure helper (tFail, same shape as gFail/dFail)"
   },
   "src/domains/platform/graphql.ts": {
     "max": 157,

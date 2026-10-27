@@ -4383,6 +4383,34 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "es": "Algo salió mal; inténtalo más tarde",
       "fr": "Un problème est survenu — réessayez plus tard",
       "zh-TW": "操作失敗，請稍後再試"
+    },
+    "templateNotFound": {
+      "zh-CN": "模板不存在",
+      "en": "Template not found",
+      "es": "Plantilla no encontrada",
+      "fr": "Modèle introuvable",
+      "zh-TW": "模板不存在"
+    },
+    "templateNameRequired": {
+      "zh-CN": "请填写模板名",
+      "en": "Please enter a template name",
+      "es": "Escribe un nombre para la plantilla",
+      "fr": "Veuillez saisir un nom de modèle",
+      "zh-TW": "請填寫模板名"
+    },
+    "templateForbidden": {
+      "zh-CN": "只有模板创建者或百业管理员可以改删模板",
+      "en": "Only the template's creator or a guild admin can edit or delete it",
+      "es": "Solo el creador de la plantilla o un administrador del gremio puede editarla o eliminarla",
+      "fr": "Seul le créateur du modèle ou un administrateur de la guilde peut le modifier ou le supprimer",
+      "zh-TW": "只有模板建立者或百業管理員可以改刪模板"
+    },
+    "templateBadStart": {
+      "zh-CN": "发车时间设置无效",
+      "en": "Invalid departure time setting",
+      "es": "Ajuste de hora de salida no válido",
+      "fr": "Réglage de l'heure de départ invalide",
+      "zh-TW": "發車時間設定無效"
     }
   },
   "guildAdmin": {
@@ -5135,6 +5163,176 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "es": "Violeta",
       "fr": "Violet",
       "zh-TW": "紫檀"
+    }
+  },
+  "groupingTemplate": {
+    "sectionTitle": {
+      "zh-CN": "车队模板",
+      "en": "Squad templates",
+      "es": "Plantillas de equipo",
+      "fr": "Modèles d'équipe",
+      "zh-TW": "車隊模板"
+    },
+    "nameLabel": {
+      "zh-CN": "模板名",
+      "en": "Template name",
+      "es": "Nombre de la plantilla",
+      "fr": "Nom du modèle",
+      "zh-TW": "模板名"
+    },
+    "namePlaceholder": {
+      "zh-CN": "给模板起个名字",
+      "en": "Give the template a name",
+      "es": "Ponle un nombre a la plantilla",
+      "fr": "Donnez un nom au modèle",
+      "zh-TW": "給模板起個名字"
+    },
+    "saveFromForm": {
+      "zh-CN": "存为模板",
+      "en": "Save as template",
+      "es": "Guardar como plantilla",
+      "fr": "Enregistrer comme modèle",
+      "zh-TW": "存為模板"
+    },
+    "updateSubmit": {
+      "zh-CN": "保存模板修改",
+      "en": "Save template changes",
+      "es": "Guardar cambios de la plantilla",
+      "fr": "Enregistrer les modifications",
+      "zh-TW": "保存模板修改"
+    },
+    "editingNotice": {
+      "zh-CN": "正在编辑模板「{name}」",
+      "en": "Editing template \"{name}\"",
+      "es": "Editando la plantilla «{name}»",
+      "fr": "Modification du modèle « {name} »",
+      "zh-TW": "正在編輯模板「{name}」"
+    },
+    "cancelEdit": {
+      "zh-CN": "取消编辑",
+      "en": "Cancel editing",
+      "es": "Cancelar edición",
+      "fr": "Annuler la modification",
+      "zh-TW": "取消編輯"
+    },
+    "empty": {
+      "zh-CN": "还没有模板，把常用配置存下来，下次一键预填",
+      "en": "No templates yet — save a setup you use often and prefill the form in one tap next time",
+      "es": "Aún no hay plantillas: guarda una configuración habitual y rellena el formulario con un toque la próxima vez",
+      "fr": "Aucun modèle pour le moment — enregistrez une configuration habituelle et remplissez le formulaire en un geste la prochaine fois",
+      "zh-TW": "還沒有模板，把常用配置存下來，下次一鍵預填"
+    },
+    "whenToday": {
+      "zh-CN": "今天 {time} 发车",
+      "en": "Departs today at {time}",
+      "es": "Sale hoy a las {time}",
+      "fr": "Départ aujourd'hui à {time}",
+      "zh-TW": "今天 {time} 發車"
+    },
+    "whenTomorrow": {
+      "zh-CN": "明天 {time} 发车",
+      "en": "Departs tomorrow at {time}",
+      "es": "Sale manana a las {time}",
+      "fr": "Départ demain à {time}",
+      "zh-TW": "明天 {time} 發車"
+    },
+    "whenDays": {
+      "zh-CN": "{days} 天后 {time} 发车",
+      "en": "Departs in {days} days at {time}",
+      "es": "Sale en {days} días a las {time}",
+      "fr": "Départ dans {days} jours à {time}",
+      "zh-TW": "{days} 天後 {time} 發車"
+    },
+    "toastSaved": {
+      "zh-CN": "模板已保存",
+      "en": "Template saved",
+      "es": "Plantilla guardada",
+      "fr": "Modèle enregistré",
+      "zh-TW": "模板已保存"
+    },
+    "toastSaveFailed": {
+      "zh-CN": "模板保存失败：{error}",
+      "en": "Couldn't save the template: {error}",
+      "es": "No se pudo guardar la plantilla: {error}",
+      "fr": "Impossible d'enregistrer le modèle : {error}",
+      "zh-TW": "模板保存失敗：{error}"
+    },
+    "toastDeleted": {
+      "zh-CN": "模板已删除",
+      "en": "Template deleted",
+      "es": "Plantilla eliminada",
+      "fr": "Modèle supprimé",
+      "zh-TW": "模板已刪除"
+    },
+    "toastDeleteFailed": {
+      "zh-CN": "模板删除失败：{error}",
+      "en": "Couldn't delete the template: {error}",
+      "es": "No se pudo eliminar la plantilla: {error}",
+      "fr": "Impossible de supprimer le modèle : {error}",
+      "zh-TW": "模板刪除失敗：{error}"
+    },
+    "edit": {
+      "zh-CN": "编辑",
+      "en": "Edit",
+      "es": "Editar",
+      "fr": "Modifier",
+      "zh-TW": "編輯"
+    },
+    "delete": {
+      "zh-CN": "删除",
+      "en": "Delete",
+      "es": "Eliminar",
+      "fr": "Supprimer",
+      "zh-TW": "刪除"
+    },
+    "deleteConfirmTitle": {
+      "zh-CN": "删除模板",
+      "en": "Delete template",
+      "es": "Eliminar plantilla",
+      "fr": "Supprimer le modèle",
+      "zh-TW": "刪除模板"
+    },
+    "deleteConfirmMessage": {
+      "zh-CN": "确定删除模板「{name}」吗？",
+      "en": "Delete the template \"{name}\"?",
+      "es": "¿Eliminar la plantilla «{name}»?",
+      "fr": "Supprimer le modèle « {name} » ?",
+      "zh-TW": "確定刪除模板「{name}」嗎？"
+    },
+    "saveButton": {
+      "zh-CN": "📋 存为模板",
+      "en": "📋 Save as template",
+      "es": "📋 Guardar como plantilla",
+      "fr": "📋 Enregistrer comme modele",
+      "zh-TW": "📋 存為模板"
+    },
+    "saveDialogTitle": {
+      "zh-CN": "存为车队模板",
+      "en": "Save as squad template",
+      "es": "Guardar como plantilla de equipo",
+      "fr": "Enregistrer comme modèle d'équipe",
+      "zh-TW": "存為車隊模板"
+    },
+    "saveSubmit": {
+      "zh-CN": "保存模板",
+      "en": "Save template",
+      "es": "Guardar plantilla",
+      "fr": "Enregistrer le modele",
+      "zh-TW": "保存模板"
+    },
+    "toastSavedFromCar": {
+      "zh-CN": "已存为模板，可在发新车时一键预填",
+      "en": "Saved as a template — prefill it in one tap when posting a new squad",
+      "es": "Guardada como plantilla: podrás rellenar el formulario con un toque al publicar un equipo nuevo",
+      "fr": "Enregistré comme modèle — vous pourrez l'appliquer en un geste lors de la création d'une nouvelle équipe",
+      "zh-TW": "已存為模板，可在發新車時一鍵預填"
+    },
+    "metaTemplate": {
+      "zh-CN": "{type}{dungeon} · {max} 人",
+      "en": "{type}{dungeon} · {max} seats",
+      "es": "{type}{dungeon} · {max} plazas",
+      "fr": "{type}{dungeon} · {max} places",
+      "zh-TW": "{type}{dungeon} · {max} 人"
     }
   }
 };

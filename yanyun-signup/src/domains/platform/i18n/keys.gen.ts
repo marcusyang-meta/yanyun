@@ -105,7 +105,11 @@ export type PlatformStringKey =
   | 'errors.resultTimeInvalid'
   | 'errors.avatarDataInvalid'
   | 'errors.schoolRequired'
-  | 'errors.generic';
+  | 'errors.generic'
+  | 'errors.templateNotFound'
+  | 'errors.templateNameRequired'
+  | 'errors.templateForbidden'
+  | 'errors.templateBadStart';
 
 export const PLATFORM_STRING_KEYS: readonly PlatformStringKey[] = [
   'common.cancel',
@@ -213,4 +217,8 @@ export const PLATFORM_STRING_KEYS: readonly PlatformStringKey[] = [
   'errors.avatarDataInvalid',
   'errors.schoolRequired',
   'errors.generic',
+  'errors.templateNotFound',
+  'errors.templateNameRequired',
+  'errors.templateForbidden',
+  'errors.templateBadStart',
 ];

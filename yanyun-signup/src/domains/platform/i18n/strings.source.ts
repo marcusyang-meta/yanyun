@@ -125,3 +125,7 @@ export const errors_resultTimeInvalid = (fbs: FbsAPI) =>fbs("用时格式不正�
 export const errors_avatarDataInvalid = (fbs: FbsAPI) =>fbs("图片数据无效", "errors.avatarDataInvalid");
 export const errors_schoolRequired = (fbs: FbsAPI) =>fbs("缺少流派", "errors.schoolRequired");
 export const errors_generic = (fbs: FbsAPI) =>fbs("操作失败，请稍后再试", "errors.generic");
+export const errors_templateNotFound = (fbs: FbsAPI) =>fbs("模板不存在", "errors.templateNotFound");
+export const errors_templateNameRequired = (fbs: FbsAPI) =>fbs("请填写模板名", "errors.templateNameRequired");
+export const errors_templateForbidden = (fbs: FbsAPI) =>fbs("只有模板创建者或百业管理员可以改删模板", "errors.templateForbidden");
+export const errors_templateBadStart = (fbs: FbsAPI) =>fbs("发车时间设置无效", "errors.templateBadStart");

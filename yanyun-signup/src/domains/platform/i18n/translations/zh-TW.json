@@ -7766,6 +7766,314 @@
         }
       ],
       "types": []
+    },
+    "ZkxMbn3ne2iB75sXnDihwA==": {
+      "description": "groupingTemplate.sectionTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "車隊模板",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "bExAaSVvE4+mu944M2CKhA==": {
+      "description": "groupingTemplate.nameLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "模板名",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "0mjraCzUtekmJfFYqfWnEQ==": {
+      "description": "groupingTemplate.namePlaceholder",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "給模板起個名字",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "/xrwMnoLG1YR51BfuPNwcw==": {
+      "description": "groupingTemplate.saveFromForm",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "存為模板",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "FNN9WPXyEHqbjFH+1Ov3ig==": {
+      "description": "groupingTemplate.updateSubmit",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "保存模板修改",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "IB4xIdadJg7BiYlYQYxAFg==": {
+      "description": "groupingTemplate.editingNotice",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "正在編輯模板「{name}」",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "JQypAhfQ08xPkoVbuqaIOw==": {
+      "description": "groupingTemplate.cancelEdit",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "取消編輯",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "crdx//ZKLRA2qfLNemNXHg==": {
+      "description": "groupingTemplate.empty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "還沒有模板，把常用配置存下來，下次一鍵預填",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "cegnDVR6nbX5ofp/7+9Bog==": {
+      "description": "groupingTemplate.whenToday",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "今天 {time} 發車",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "OWGlpjkth9IxmN9ZObsXrA==": {
+      "description": "groupingTemplate.whenTomorrow",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "明天 {time} 發車",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "iE/OgrdWrJDZR9HYXsby1w==": {
+      "description": "groupingTemplate.whenDays",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{days} 天後 {time} 發車",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "HGjlQBP/T5iBHCcTZmIYvQ==": {
+      "description": "groupingTemplate.toastSaved",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "模板已保存",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "K0HtkRcjK4+n1KymA0wiJQ==": {
+      "description": "groupingTemplate.toastSaveFailed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "模板保存失敗：{error}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "64hdwsuQ8hI2eiqBw/jUcg==": {
+      "description": "groupingTemplate.toastDeleted",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "模板已刪除",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ixfMEWFYs9g0mH3LZqWOqw==": {
+      "description": "groupingTemplate.toastDeleteFailed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "模板刪除失敗：{error}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "jiT8MggHDMXioSAHddYNxg==": {
+      "description": "groupingTemplate.edit",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "編輯",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "zuqu3YU01yYaigdErWd69g==": {
+      "description": "groupingTemplate.delete",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "刪除",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "slOOYv4XF1mAa21Dg67NFQ==": {
+      "description": "groupingTemplate.deleteConfirmTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "刪除模板",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "CjzmWxs4xoCrV9XdS33ybg==": {
+      "description": "groupingTemplate.deleteConfirmMessage",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "確定刪除模板「{name}」嗎？",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ia9KOc7nH80/a2GkTj/FBA==": {
+      "description": "groupingTemplate.saveButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "📋 存為模板",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "0rAqcL9MbOavSUXeQgxMnw==": {
+      "description": "groupingTemplate.saveDialogTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "存為車隊模板",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "kO7H7nxemLN06sjKQRe5xw==": {
+      "description": "groupingTemplate.saveSubmit",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "保存模板",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+pnWXNBfYnp9RrfgXymCDw==": {
+      "description": "groupingTemplate.toastSavedFromCar",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "已存為模板，可在發新車時一鍵預填",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "gCAPZ3bvhDsRZkG1NNFmKw==": {
+      "description": "errors.templateNotFound",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "模板不存在",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "O0vO88xom+CwbYHpsnTSxA==": {
+      "description": "errors.templateNameRequired",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "請填寫模板名",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "6K2T+Lvr9VrDZOI5zbbHMw==": {
+      "description": "errors.templateForbidden",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "只有模板建立者或百業管理員可以改刪模板",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "UWkeiK2kidjRaqMSKC1lcQ==": {
+      "description": "errors.templateBadStart",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "發車時間設定無效",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "a+YrwmWaFG4eqMcGdzKEtg==": {
+      "description": "groupingTemplate.metaTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{type}{dungeon} · {max} 人",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

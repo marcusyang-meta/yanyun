@@ -12,11 +12,11 @@
  * unchanged; this is only a local verification fixture).
  *
  * Usage: node scripts/verify-repositories-d1.mjs [section]
- *   Omitting section = all; currently seventeen sections: tenants /
+ *   Omitting section = all; currently eighteen sections: tenants /
  *   events / gear / users / members / results / dex / reference /
  *   state / ddl / guard / stamp / membercount / atomic / audit /
- *   shortlinks / beats, extended as the data-layer migration
- *   progresses. Non-zero exit = an assertion failed.
+ *   shortlinks / beats / templates, extended as the data-layer
+ *   migration progresses. Non-zero exit = an assertion failed.
  * =================================================== */
 import { Miniflare, convertV4MiniflareOptions } from 'miniflare';
 
@@ -1005,6 +1005,60 @@ if (want('shortlinks')) {
 
   eq('shortLinkUrl shape', repo.shortLinkUrl('Ab3dEf9'), 'https://yanyun.app/c/Ab3dEf9');
   eq('canonicalGroupingUrl shape', repo.canonicalGroupingUrl('alpha', 101), 'https://yanyun.app/alpha/car/101');
+}
+
+/* ---------------- grouping_templates ---------------- */
+if (want('templates')) {
+  console.log('== grouping_templates repository on real D1 ==');
+  const repo = await import('../src/domains/groupings/templates.ts');
+
+  // The table is created by the repository's own lazy DDL on first use.
+  eq('list on empty tenant -> []', await repo.listGroupingTemplates(db, 'alpha'), []);
+
+  const T0 = 1760000000;
+  const base = {
+    tenant: 'alpha', name: '周常天赋', type: 'talent', title: '周常天赋车',
+    dungeon: '定极分更', max_slots: 5, start_days_ahead: 2, start_minutes: 1230,
+    creator_discord_id: 'U1', created_at: T0, updated_at: T0,
+  };
+  const ins = await repo.insertGroupingTemplate(db, { ...base });
+  check('insert returns last_row_id', ins.last_row_id > 0, String(ins.last_row_id));
+  const row = await repo.getGroupingTemplate(db, ins.last_row_id);
+  eq('insert roundtrip fields', row && [row.tenant, row.name, row.type, row.title, row.dungeon, row.max_slots, row.start_days_ahead, row.start_minutes, row.creator_discord_id, row.created_at],
+    ['alpha', '周常天赋', 'talent', '周常天赋车', '定极分更', 5, 2, 1230, 'U1', T0]);
+  eq('get unknown -> null', await repo.getGroupingTemplate(db, 99999), null);
+
+  const ins2 = await repo.insertGroupingTemplate(db, { ...base, name: '双十老本', type: 'activity', dungeon: '', max_slots: 10 });
+  const insB = await repo.insertGroupingTemplate(db, { ...base, tenant: 'beta', name: '乙百业模板' });
+  const listA = await repo.listGroupingTemplates(db, 'alpha');
+  eq('list is tenant-scoped, newest first', listA.map((r) => r.id), [ins2.last_row_id, ins.last_row_id]);
+  eq('other tenant list separate', (await repo.listGroupingTemplates(db, 'beta')).map((r) => r.id), [insB.last_row_id]);
+
+  const upd = await repo.updateGroupingTemplateFields(db, ins.last_row_id, { name: '改名模板', start_minutes: 1200, updated_at: T0 + 60 });
+  eq('update changes one row', upd.changes, 1);
+  const after = await repo.getGroupingTemplate(db, ins.last_row_id);
+  eq('update read-back', after && [after.name, after.start_minutes, after.updated_at, after.title], ['改名模板', 1200, T0 + 60, '周常天赋车']);
+
+  let threw = false;
+  try { await repo.insertGroupingTemplate(db, { ...base, bogus_col: 1 }); } catch { threw = true; }
+  check('unknown column is rejected', threw);
+
+  const del = await repo.deleteGroupingTemplate(db, ins2.last_row_id);
+  eq('delete changes one row', del.changes, 1);
+  eq('deleted row reads null', await repo.getGroupingTemplate(db, ins2.last_row_id), null);
+  eq('delete again changes nothing', (await repo.deleteGroupingTemplate(db, ins2.last_row_id)).changes, 0);
+
+  // Departure offset: 2026-01-08 20:30 in Asia/Shanghai, "now" is
+  // 2026-01-05 12:00 in the same zone -> 3 days ahead, 1230 minutes.
+  const off = repo.templateOffsetFromStartsAt(Date.UTC(2026, 0, 8, 12, 30) / 1000, Date.UTC(2026, 0, 5, 4, 0) / 1000, 'Asia/Shanghai');
+  eq('offset days/minutes (Asia/Shanghai)', [off.daysAhead, off.startMinutes], [3, 1230]);
+  // A car in the past clamps to today, keeping its time of day.
+  const past = repo.templateOffsetFromStartsAt(Date.UTC(2026, 0, 4, 12, 30) / 1000, Date.UTC(2026, 0, 5, 4, 0) / 1000, 'Asia/Shanghai');
+  eq('offset past car clamps to today', [past.daysAhead, past.startMinutes], [0, 1230]);
+  // Same instants read in Los Angeles: start is Jan 7 20:30 local,
+  // now is Jan 5 12:00 local -> 2 days ahead.
+  const la = repo.templateOffsetFromStartsAt(Date.UTC(2026, 0, 8, 4, 30) / 1000, Date.UTC(2026, 0, 5, 20, 0) / 1000, 'America/Los_Angeles');
+  eq('offset days/minutes (America/Los_Angeles)', [la.daysAhead, la.startMinutes], [2, 1230]);
 }
 
 await mf.dispose();

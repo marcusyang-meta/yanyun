@@ -2,6 +2,7 @@
  * seats (signups), race results (results). Other domains may only
  * import from here. */
 export * from './events.ts';
+export * from './templates.ts';
 export * from './shortlinks.ts';
 export * from './signups.ts';
 export * from './results.ts';
