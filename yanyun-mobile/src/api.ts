@@ -20,6 +20,7 @@ import {
   UpdateGuildDiscordAdminMutation,
   UpdateGuildReminderSettingsAdminMutation,
   UpdateGuildFeaturesAdminMutation,
+  UpdateGuildWhiteLabelAdminMutation,
   UpdateGuildVisibilityAdminMutation,
   CreateFixedTeamAdminMutation,
   UpdateFixedTeamAdminMutation,
@@ -69,6 +70,9 @@ export type GuildItem = {
   homeTabTeamLabel?: string | null;
   homeTabDexLabel?: string | null;
   homeTabSectLabel?: string | null;
+  // Server-composed white-label chrome copy (carries the platform name
+  // only while this guild shows platform branding)
+  pageBackLabel?: string | null;
   readOnly: boolean;
 };
 
@@ -297,6 +301,7 @@ export const adminDeleteAvatar = (slug: string) => adminRun(DeleteGuildAvatarAdm
 export const adminUpdateDiscord = (slug: string, input: any) => adminRun(UpdateGuildDiscordAdminMutation, { slug, input }, 'updateGuildDiscord');
 export const adminUpdateReminderSettings = (slug: string, offsets: number[], customText: string) => adminRun(UpdateGuildReminderSettingsAdminMutation, { slug, offsets, customText }, 'updateGuildReminderSettings');
 export const adminUpdateFeatures = (slug: string, fixedTeams: boolean) => adminRun(UpdateGuildFeaturesAdminMutation, { slug, fixedTeams }, 'updateGuildFeatures');
+export const adminUpdateWhiteLabel = (slug: string, hideBranding: boolean, ogAccent: string, ogTitleSuffix: string) => adminRun(UpdateGuildWhiteLabelAdminMutation, { slug, hideBranding, ogAccent, ogTitleSuffix }, 'updateGuildWhiteLabel');
 export const adminUpdateVisibility = (slug: string, devOnly: boolean) => adminRun(UpdateGuildVisibilityAdminMutation, { slug, devOnly }, 'updateGuildVisibility');
 export const adminCreateTeam = (slug: string, input: any) => adminRun(CreateFixedTeamAdminMutation, { slug, input }, 'createFixedTeam');
 export const adminUpdateTeam = (slug: string, teamId: string, input: any) => adminRun(UpdateFixedTeamAdminMutation, { slug, teamId, input }, 'updateFixedTeam');

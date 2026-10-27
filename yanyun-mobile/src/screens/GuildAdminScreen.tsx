@@ -16,6 +16,7 @@ import {
   adminDeleteEvent, adminDeleteMember, adminDeleteResult, adminDeleteTeam, adminRemoveSignup,
   adminSetAvatar, adminUpdateDiscord, adminUpdateEvent, adminUpdateFeatures, adminUpdateGuide,
   adminUpdateMember, adminUpdateProfile, adminUpdateReminderSettings, adminUpdateTeam, adminUpdateVisibility,
+  adminUpdateWhiteLabel,
   type AdminPayload,
 } from '../api';
 import type { documentsGuildAdminQuery } from '../__generated__/documentsGuildAdminQuery.graphql';
@@ -255,6 +256,9 @@ function DiscordPanel({ admin, run }: {
     Array.isArray(admin.reminderOffsets) ? [...admin.reminderOffsets] : [10],
   );
   const [customText, setCustomText] = useState(admin.reminderCustomText ?? '');
+  const [wlHide, setWlHide] = useState(!!admin.whiteLabelHideBranding);
+  const [wlAccent, setWlAccent] = useState(admin.ogAccent ?? '');
+  const [wlSuffix, setWlSuffix] = useState(admin.ogTitleSuffix ?? '');
   return (
     <View>
       <Text style={s.sectionTitle}>{admin.adminDiscordTitle}</Text>
@@ -321,6 +325,41 @@ function DiscordPanel({ admin, run }: {
           <Switch value={!!admin.devOnly}
             onValueChange={(v) => run(adminUpdateVisibility(slug, v))} />
         </View>
+      </View>
+
+      <Text style={s.sectionTitle}>{admin.adminWhiteLabelTitle}</Text>
+      <View style={s.card}>
+        <View style={s.switchRow}>
+          <Text style={s.switchLabel}>{admin.adminHideBrandingLabel}</Text>
+          <Switch value={wlHide} onValueChange={setWlHide} />
+        </View>
+        <Text style={s.muted}>{admin.adminHideBrandingHint}</Text>
+        <Field label={admin.adminOgAccentLabel}>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            {(admin.ogAccentOptions ?? []).map((o) => {
+              const on = wlAccent === o.key;
+              return (
+                <Pressable key={o.key}
+                  onPress={() => setWlAccent(on ? '' : o.key)}
+                  style={{
+                    flexDirection: 'row', alignItems: 'center', gap: 7,
+                    paddingVertical: 7, paddingHorizontal: 12, borderRadius: 999, borderWidth: 1,
+                    borderColor: on ? theme.gold : 'rgba(201,163,92,.3)',
+                    backgroundColor: on ? 'rgba(201,163,92,.16)' : 'transparent',
+                  }}>
+                  <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: o.hex }} />
+                  <Text style={{ color: on ? '#ecd28f' : theme.muted, fontSize: 13, fontFamily: fonts.serif }}>{o.label}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </Field>
+        <Field label={admin.adminOgTitleSuffixLabel}>
+          <TInput value={wlSuffix} onChangeText={setWlSuffix} maxLength={30} />
+        </Field>
+        <Text style={s.muted}>{admin.adminOgTitleSuffixHint}</Text>
+        <SaveBtn label={admin.adminSaveLabel} savedLabel={admin.adminSavedText}
+          onSave={() => run(adminUpdateWhiteLabel(slug, wlHide, wlAccent, wlSuffix))} />
       </View>
     </View>
   );

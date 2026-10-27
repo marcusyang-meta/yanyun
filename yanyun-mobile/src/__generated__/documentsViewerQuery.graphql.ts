@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<6a850d895d62552551c189b50913ad2f>>
+ * @generated SignedSource<<40e95b42f739550786fd04f759f1faa1>>
  * @lightSyntaxTransform
  */
 
@@ -25,6 +25,7 @@ export type documentsViewerQuery$data = {
       readonly homeTabTeamLabel: string;
       readonly memberCount: number;
       readonly name: string | null | undefined;
+      readonly pageBackLabel: string;
       readonly slogan: string | null | undefined;
       readonly slug: string;
       readonly viewerNick: string | null | undefined;
@@ -52,6 +53,7 @@ export type documentsViewerQuery$data = {
       readonly homeTabTeamLabel: string;
       readonly memberCount: number;
       readonly name: string | null | undefined;
+      readonly pageBackLabel: string;
       readonly slogan: string | null | undefined;
       readonly slug: string;
       readonly viewerNick: string | null | undefined;
@@ -144,6 +146,13 @@ v1 = [
     "args": null,
     "kind": "ScalarField",
     "name": "homeTabSectLabel",
+    "storageKey": null
+  },
+  {
+    "alias": null,
+    "args": null,
+    "kind": "ScalarField",
+    "name": "pageBackLabel",
     "storageKey": null
   }
 ],
@@ -406,16 +415,16 @@ return {
     "selections": (v2/*:: as any*/)
   },
   "params": {
-    "cacheID": "b00996661ac57c6c2120d87a525ef47a",
+    "cacheID": "8c5455edbbcb61f11d756e7d74f6b83b",
     "id": null,
     "metadata": {},
     "name": "documentsViewerQuery",
     "operationKind": "query",
-    "text": "query documentsViewerQuery {\n  viewer {\n    myLocalePref\n    commonUnknownErrorText\n    commonRenderErrorTemplate\n    commonRenderErrorHint\n    siteTitle\n    siteSubtitle\n    loginCardTitle\n    loginCardBody1\n    loginCardBody2\n    loginButtonLabel\n    loginPrivacyText\n    footerDisclaimerText\n    footerTermsLabel\n    footerPrivacyLabel\n    userBarSettingsLabel\n    userBarLogoutLabel\n    userBarLoggingOutLabel\n    pickerMyGuildsLabel\n    pickerMyGuildsEnLabel\n    pickerPublicGuildsLabel\n    pickerPublicGuildsEnLabel\n    pickerReadOnlyBadge\n    pickerEmptyTitle\n    pickerEmptyBody\n    pickerCreateGuildLabel\n    pickerCreateGuildMoreLabel\n    user {\n      name\n      discordId\n      avatar\n    }\n    guilds {\n      slug\n      name\n      slogan\n      gameVersion\n      memberCount\n      avatarUrl\n      viewerNick\n      homeTabTeamLabel\n      homeTabDexLabel\n      homeTabSectLabel\n    }\n    publicGuilds {\n      slug\n      name\n      slogan\n      gameVersion\n      memberCount\n      avatarUrl\n      viewerNick\n      homeTabTeamLabel\n      homeTabDexLabel\n      homeTabSectLabel\n    }\n  }\n}\n"
+    "text": "query documentsViewerQuery {\n  viewer {\n    myLocalePref\n    commonUnknownErrorText\n    commonRenderErrorTemplate\n    commonRenderErrorHint\n    siteTitle\n    siteSubtitle\n    loginCardTitle\n    loginCardBody1\n    loginCardBody2\n    loginButtonLabel\n    loginPrivacyText\n    footerDisclaimerText\n    footerTermsLabel\n    footerPrivacyLabel\n    userBarSettingsLabel\n    userBarLogoutLabel\n    userBarLoggingOutLabel\n    pickerMyGuildsLabel\n    pickerMyGuildsEnLabel\n    pickerPublicGuildsLabel\n    pickerPublicGuildsEnLabel\n    pickerReadOnlyBadge\n    pickerEmptyTitle\n    pickerEmptyBody\n    pickerCreateGuildLabel\n    pickerCreateGuildMoreLabel\n    user {\n      name\n      discordId\n      avatar\n    }\n    guilds {\n      slug\n      name\n      slogan\n      gameVersion\n      memberCount\n      avatarUrl\n      viewerNick\n      homeTabTeamLabel\n      homeTabDexLabel\n      homeTabSectLabel\n      pageBackLabel\n    }\n    publicGuilds {\n      slug\n      name\n      slogan\n      gameVersion\n      memberCount\n      avatarUrl\n      viewerNick\n      homeTabTeamLabel\n      homeTabDexLabel\n      homeTabSectLabel\n      pageBackLabel\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "b9547419ac80a4cf32f0ad2da71258fe";
+(node as any).hash = "5e606d91a5ddc7f18cadc45e7ae5a155";
 
 export default node;

@@ -48,6 +48,7 @@ export const ViewerQuery = graphql`
         homeTabTeamLabel
         homeTabDexLabel
         homeTabSectLabel
+        pageBackLabel
       }
       publicGuilds {
         slug
@@ -60,6 +61,7 @@ export const ViewerQuery = graphql`
         homeTabTeamLabel
         homeTabDexLabel
         homeTabSectLabel
+        pageBackLabel
       }
     }
   }
@@ -1381,6 +1383,12 @@ export const GuildAdminQuery = graphql`
           adminFeatureFixedTeamsLabel: adminFixedTeamsLabel
           adminVisibilityTitle
           adminVisibilityLabel: adminDevOnlyLabel
+          adminWhiteLabelTitle
+          adminHideBrandingLabel
+          adminHideBrandingHint
+          adminOgAccentLabel
+          adminOgTitleSuffixLabel
+          adminOgTitleSuffixHint
           adminTeamsTitle
           adminTeamNameLabel
           adminTeamDescLabel
@@ -1438,6 +1446,14 @@ export const GuildAdminQuery = graphql`
           reminderWebhookId
           reminderOffsets
           reminderCustomText
+          whiteLabelHideBranding
+          ogAccent
+          ogTitleSuffix
+          ogAccentOptions {
+            key
+            hex
+            label
+          }
           featureFixedTeams
           devOnly
           adminTabProfileLabel
@@ -1582,6 +1598,11 @@ export const UpdateGuildReminderSettingsAdminMutation = graphql`
 export const UpdateGuildFeaturesAdminMutation = graphql`
   mutation documentsUpdateGuildFeaturesAdminMutation($slug: String!, $fixedTeams: Boolean!) {
     updateGuildFeatures(slug: $slug, fixedTeams: $fixedTeams) { ok error }
+  }
+`;
+export const UpdateGuildWhiteLabelAdminMutation = graphql`
+  mutation documentsUpdateGuildWhiteLabelAdminMutation($slug: String!, $hideBranding: Boolean!, $ogAccent: String!, $ogTitleSuffix: String) {
+    updateGuildWhiteLabel(slug: $slug, hideBranding: $hideBranding, ogAccent: $ogAccent, ogTitleSuffix: $ogTitleSuffix) { ok error }
   }
 `;
 export const UpdateGuildVisibilityAdminMutation = graphql`

@@ -171,13 +171,16 @@ export function UserBar({ displayName, floating = false }: { displayName?: strin
 }
 
 // Web guild header row: left back link to the guild picker, right UserBar.
-export function SiteChrome({ displayName }: { displayName?: string | null }) {
+// The back label is the guild's server-composed chrome copy (pageBackLabel:
+// platform-named only while the guild shows platform branding); without one
+// it falls back to the platform label, as before.
+export function SiteChrome({ displayName, backLabel }: { displayName?: string | null; backLabel?: string | null }) {
   const { text } = useSession();
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
       <Pressable onPress={() => router.navigate('/')} hitSlop={8} style={{ flexShrink: 1 }}>
         <Text numberOfLines={1} style={{ color: theme.muted, fontSize: 13, letterSpacing: 1, fontFamily: fonts.serif }}>
-          {`← ${text.siteTitle ?? '百业集结'}`}
+          {backLabel ?? `← ${text.siteTitle ?? '百业集结'}`}
         </Text>
       </Pressable>
       <UserBar displayName={displayName} />
