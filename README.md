@@ -7,7 +7,7 @@ over Discord webhooks and mobile push.
 
 Production: <https://yanyun.app> · OG images: <https://og.yanyun.app>
 
-This repository is a single npm-workspaces monorepo (one lockfile) holding
+This repository is a single pnpm-workspaces monorepo (one lockfile) holding
 four deployables and three shared packages. It was assembled on 2026-10-25
 from five previously separate trees.
 
@@ -37,29 +37,32 @@ yanyun/
 
 ## Getting started
 
-Node 24 (see `.nvmrc`). The npm version is pinned with Corepack via the
-`packageManager` field in the root `package.json` — run
-`corepack enable npm` once per machine so `npm` resolves to the pinned
-version everywhere (local shells and CI alike; a bare `corepack enable`
-does not install the npm shim). Install once, at the root only — there
-is a single root lockfile; do not run `npm install` inside subprojects.
+Node 24 (see `.nvmrc`). The package manager is pnpm, pinned with Corepack
+via the `packageManager` field in the root `package.json` — run
+`corepack enable pnpm` once per machine so `pnpm` resolves to the pinned
+version everywhere (local shells and CI alike). Install once, at the
+root only — there is a single root lockfile (`pnpm-lock.yaml`); do not
+run `pnpm install` inside subprojects.
 
 ```bash
-corepack enable npm    # once per machine; npm is pinned by Corepack
-npm install            # root only
-npm run build:web      # web build (sync-schema → relay → tsc → vite)
-npm run sync-public    # copy the web build into yanyun-signup/public
-npm run mobile:typecheck
-npm run relay          # Relay multi-project codegen — root only, see below
+corepack enable pnpm   # once per machine; pnpm is pinned by Corepack
+pnpm install           # root only
+pnpm run build:web     # web build (sync-schema → relay → tsc → vite)
+pnpm run sync-public   # copy the web build into yanyun-signup/public
+pnpm run mobile:typecheck
+pnpm run relay         # Relay multi-project codegen — root only, see below
 ```
 
-The root `.npmrc` sets `legacy-peer-deps=true`: peer ranges in the RN/Expo
-ecosystem lag behind, and `expo install` follows the same policy.
+The root `.npmrc` sets `node-linker=hoisted` (an npm-style flat
+`node_modules` layout — Metro/Expo cannot resolve pnpm's default
+isolated layout) and `link-workspace-packages=true` (the `"*"` specs on
+the `@yanyun/*` packages link to the local workspace packages, as npm
+workspaces did).
 
 Relay codegen is a multi-project setup in the root `relay.config.json`
 (`mobile` on top of a `blocks` base). Always run it from the root
-(`npm run relay`); the `relay` script inside subprojects only forwards to
-the root config.
+(`pnpm run relay`); the `relay` script inside subprojects only forwards
+to the root config.
 
 `yanyun-mobile/metro.config.js` follows Expo's official monorepo guide
 with explicit `watchFolders` and `nodeModulesPaths`.
@@ -144,7 +147,8 @@ How an AI agent (or a new engineer) starts working in this repo:
 1. **Read first.** This README, then `AGENTS.md` in the workspace root —
    it is the operating manual (commit/PR formats, the data-layer law,
    Cloudflare notes) and it wins over assumptions.
-2. **Set up.** Node 24, `npm install` at the repo root. The main checkout
+2. **Set up.** Node 24, `corepack enable pnpm` once, then `pnpm install`
+   at the repo root. The main checkout
    may be parked on a stale branch — never work in it. Create a fresh
    worktree per task off `origin/master`:
 
