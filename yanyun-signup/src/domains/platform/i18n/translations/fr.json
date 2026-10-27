@@ -8262,61 +8262,6 @@
       ],
       "types": []
     },
-    "h+FIlf/ustw6hbP7qToA3A==": {
-      "description": "guildAdmin.subdomainTitle",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "Sous-domaine de la plateforme",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "3hwha2rrzYKZ68DB9KOUDg==": {
-      "description": "guildAdmin.subdomainLabel",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "Activer le sous-domaine dédié",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "BQUXR3U+e8xZ5r0Qoj3I2Q==": {
-      "description": "guildAdmin.subdomainAddressLabel",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "Adresse du sous-domaine",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "3VZRT1sYuURpGdbpAZ+30w==": {
-      "description": "guildAdmin.subdomainCallbackLabel",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "URL de rappel de connexion",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "NrNXsmKX0rT8pUF/VG+qTA==": {
-      "description": "guildAdmin.subdomainNote",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "Une fois activé, les membres peuvent accéder à cette guilde via l'adresse de sous-domaine ci-dessus. Remarque : la connexion Discord sur le sous-domaine ne fonctionne qu'après l'enregistrement, par le propriétaire du site, de l'URL de rappel de connexion de ce sous-domaine dans le portail développeur Discord (adresse ci-dessus) ; jusque-là, le sous-domaine s'ouvre pour la navigation, mais la connexion ne peut pas y être terminée.",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
     "M04aFFMk3EznXKUUGBebEg==": {
       "description": "gear.shareLabel",
       "tokens": [],

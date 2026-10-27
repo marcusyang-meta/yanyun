@@ -8262,61 +8262,6 @@
       ],
       "types": []
     },
-    "h+FIlf/ustw6hbP7qToA3A==": {
-      "description": "guildAdmin.subdomainTitle",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "平台子域",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "3hwha2rrzYKZ68DB9KOUDg==": {
-      "description": "guildAdmin.subdomainLabel",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "啟用專屬子域",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "BQUXR3U+e8xZ5r0Qoj3I2Q==": {
-      "description": "guildAdmin.subdomainAddressLabel",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "子域地址",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "3VZRT1sYuURpGdbpAZ+30w==": {
-      "description": "guildAdmin.subdomainCallbackLabel",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "登入回調地址",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "NrNXsmKX0rT8pUF/VG+qTA==": {
-      "description": "guildAdmin.subdomainNote",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "開啟後，成員可透過上方子域地址造訪本百業。注意：子域上的 Discord 登入需要站長先在 Discord 開發者後台為該子域登記登入回調（地址見上方）；登記完成前，子域可以打開瀏覽，但無法在子域上完成登入。",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
     "M04aFFMk3EznXKUUGBebEg==": {
       "description": "gear.shareLabel",
       "tokens": [],
