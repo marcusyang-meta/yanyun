@@ -79,115 +79,31 @@ function ensureDevVars() {
   return { sessionSecret: get('SESSION_SECRET'), adminPassword: get('ADMIN_PASSWORD') };
 }
 
-/* ---------- local D1 bootstrap (schema.sql + ordered migrations) ---------- */
-// schema.sql is the v1 snapshot; the tenants/events/... tables only reach
-// their current shape after migrate-v2..v8 (e.g. tenants.discord_webhook
-// arrives in v7). The push and heirloom suites seed via `wrangler d1
-// execute --local` against this shape, so a fresh CI database must be
-// bootstrapped exactly the way production was: schema first, then every
-// migration in order. Duplicate-column / already-exists errors are
-// tolerated (local re-runs against a persistent dev DB); anything else
-// aborts the run.
-const MIGRATIONS = ['migrate-v2.sql', 'migrate-v3.sql', 'migrate-v4.sql', 'migrate-v5.sql', 'migrate-v6.sql', 'migrate-v7.sql', 'migrate-v8.sql'];
-
-// Columns/tables the worker itself adds lazily at runtime (the ensure*
-// helpers in src). Suites that seed via direct SQL run before any worker
-// request could trigger those helpers, so the bootstrap converges the same
-// shape up front. Mirrors, from src: bosses.ts ensureBossStructuredColumns,
-// dungeons.ts (season/category/level), events.ts ensureEventCreatorColumn +
-// ensureReminderColumns, signups.ts (discord_id), users.ts (locale_pref),
-// pushTokens.ts ensurePushTokensTable. The identity tables below are not in
-// schema.sql or any migration at all — they exist only as lazy DDL in
-// users.ts (ensureUsersTable / ensureNickStoreTables) and guildMembers.ts
-// (ensureGuildMembersTable) — and the push suite seeds users / user_oauth /
-// guild_members directly, so on a fresh CI database they must be created
-// here first (this was the one gap in the original bootstrap: push went red
-// with "no such table: users" until some earlier run had created it).
-const LAZY_TABLES = [
-  `CREATE TABLE IF NOT EXISTS users (
-     discord_id TEXT PRIMARY KEY,
-     username TEXT NOT NULL DEFAULT '',
-     avatar TEXT NOT NULL DEFAULT '',
-     guilds_json TEXT NOT NULL DEFAULT '[]',
-     guilds_checked_at INTEGER NOT NULL DEFAULT 0,
-     created_at TEXT NOT NULL DEFAULT (strftime('%s','now')),
-     updated_at TEXT NOT NULL DEFAULT (strftime('%s','now'))
-   )`,
-  `CREATE TABLE IF NOT EXISTS user_oauth (
-     discord_id TEXT PRIMARY KEY,
-     refresh_token TEXT NOT NULL DEFAULT '',
-     scope TEXT NOT NULL DEFAULT '',
-     refresh_state TEXT NOT NULL DEFAULT 'ok',
-     last_refresh_at INTEGER NOT NULL DEFAULT 0,
-     updated_at INTEGER NOT NULL DEFAULT 0
-   )`,
-  `CREATE TABLE IF NOT EXISTS user_guild_nicks (
-     discord_id TEXT NOT NULL,
-     guild_id TEXT NOT NULL,
-     nick TEXT NOT NULL DEFAULT '',
-     updated_at INTEGER NOT NULL DEFAULT 0,
-     PRIMARY KEY (discord_id, guild_id)
-   )`,
-  `CREATE TABLE IF NOT EXISTS guild_members (
-     tenant TEXT NOT NULL,
-     discord_id TEXT NOT NULL,
-     nick TEXT NOT NULL DEFAULT '',
-     global_name TEXT NOT NULL DEFAULT '',
-     updated_at INTEGER NOT NULL DEFAULT 0,
-     PRIMARY KEY (tenant, discord_id)
-   )`,
-];
-const LAZY_COLUMNS = {
-  bosses: [['mechanics_json', 'TEXT'], ['talents_json', 'TEXT'], ['shouts_json', 'TEXT']],
-  dungeons: [['season', 'TEXT'], ['category', 'TEXT'], ['level', 'INTEGER']],
-  events: [['creator_discord_id', 'TEXT'], ['reminder_sent_at', 'INTEGER'], ['reminder_error', 'TEXT']],
-  signups: [['discord_id', 'TEXT']],
-  users: [['locale_pref', 'TEXT']],
-};
-
-async function d1json(sqlText) {
-  const { stdout } = await execFileP('pnpm', ['exec', 'wrangler', 'd1', 'execute', 'yanyun-signup', '--local', '--json', '--command', sqlText], { cwd: ROOT });
-  const parsed = JSON.parse(stdout.slice(stdout.indexOf('[')));
-  return parsed[0]?.results || [];
-}
-
-async function convergeLazyDdl() {
-  for (const ddl of LAZY_TABLES) {
-    await execFileP('pnpm', ['exec', 'wrangler', 'd1', 'execute', 'yanyun-signup', '--local', '--command', ddl], { cwd: ROOT });
-  }
-  console.log('[fixture] lazy-DDL converge: identity tables (users / user_oauth / user_guild_nicks / guild_members)');
-  await execFileP('pnpm', ['exec', 'wrangler', 'd1', 'execute', 'yanyun-signup', '--local', '--command',
-    "CREATE TABLE IF NOT EXISTS push_tokens (discord_id TEXT NOT NULL, token TEXT NOT NULL, platform TEXT NOT NULL DEFAULT '', updated_at INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (discord_id, token))"], { cwd: ROOT });
-  for (const [table, cols] of Object.entries(LAZY_COLUMNS)) {
-    const existing = new Set((await d1json(`PRAGMA table_info(${table})`)).map((r) => r.name));
-    if (!existing.size) continue; // table itself is created by schema/migrations or not needed
-    for (const [colName, colType] of cols) {
-      if (!existing.has(colName)) {
-        await execFileP('pnpm', ['exec', 'wrangler', 'd1', 'execute', 'yanyun-signup', '--local', '--command',
-          `ALTER TABLE ${table} ADD COLUMN ${colName} ${colType}`], { cwd: ROOT });
-        console.log(`[fixture] lazy-DDL converge: ${table}.${colName}`);
-      }
-    }
-  }
-}
-
+/* ---------- local D1 bootstrap (wrangler migration chain) ---------- */
+// The local database is bootstrapped ONLY by the migration chain in
+// migrations/ (wrangler d1 migrations apply --local) — the same chain
+// production runs. The legacy schema.sql + migrate-v2..v8 files and
+// the lazy-DDL convergence shim that used to live here are retired:
+// the chain's baseline already carries every table and column the
+// worker used to add lazily at runtime. Apply is ledger-based, so a
+// re-run against a persistent dev database is a no-op; a database left
+// over from the legacy bootstrap (tables but no ledger) fails with
+// "already exists" and is wiped and re-applied once.
 let dbBootstrapped = false;
 async function bootstrapLocalDb() {
   if (dbBootstrapped) return;
-  for (const file of ['schema.sql', ...MIGRATIONS]) {
-    try {
-      await execFileP('pnpm', ['exec', 'wrangler', 'd1', 'execute', 'yanyun-signup', '--local', '--file', file], { cwd: ROOT });
-      console.log(`[fixture] applied ${file}`);
-    } catch (e) {
-      const msg = String(e?.stdout || '') + String(e?.stderr || '') + String(e?.message || '');
-      if (/duplicate column|already exists/i.test(msg)) {
-        console.log(`[fixture] ${file}: already applied (duplicate/exists) — continuing`);
-      } else {
-        throw new Error(`bootstrap failed on ${file}: ${msg.slice(0, 400)}`);
-      }
-    }
+  const apply = () => execFileP('pnpm', ['exec', 'wrangler', 'd1', 'migrations', 'apply', 'yanyun-signup', '--local'], { cwd: ROOT });
+  try {
+    await apply();
+    console.log('[fixture] migration chain applied (wrangler d1 migrations apply --local)');
+  } catch (e) {
+    const msg = String(e?.stdout || '') + String(e?.stderr || '') + String(e?.message || '');
+    if (!/already exists/i.test(msg)) throw new Error(`bootstrap failed: ${msg.slice(0, 400)}`);
+    console.log('[fixture] stale legacy local DB detected — wiping .wrangler/state/v3/d1 and re-applying the chain');
+    fs.rmSync(path.join(ROOT, '.wrangler', 'state', 'v3', 'd1'), { recursive: true, force: true });
+    await apply();
+    console.log('[fixture] migration chain applied after wipe');
   }
-  await convergeLazyDdl();
   dbBootstrapped = true;
 }
 
@@ -212,7 +128,9 @@ async function heirloomFixture({ sessionSecret, adminPassword }) {
   if (!up) { try { process.kill(-dev.pid, 'SIGKILL'); } catch { dev.kill('SIGKILL'); } throw new Error('wrangler dev :8799 did not come up'); }
   console.log('[fixture] wrangler dev is up');
 
-  // Warm the lazy-DDL paths the seed relies on (hub login ensures hub tables).
+  // Exercise the worker once before seeding (hub login + a public
+  // GraphQL read), so any boot-path failure surfaces here rather than
+  // inside a suite. All tables come from the migration chain.
   await fetch('http://127.0.0.1:8799/api/hub/login', {
     method: 'POST', headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ ['pass' + 'word']: adminPassword }),
@@ -224,10 +142,6 @@ async function heirloomFixture({ sessionSecret, adminPassword }) {
 
   const now = Math.floor(Date.now() / 1000);
   await d1exec(`
-    CREATE TABLE IF NOT EXISTS settings (tenant TEXT NOT NULL DEFAULT '', key TEXT NOT NULL, value TEXT NOT NULL DEFAULT '', PRIMARY KEY (tenant, key));
-    CREATE TABLE IF NOT EXISTS guild_members (tenant TEXT NOT NULL, discord_id TEXT NOT NULL, nick TEXT NOT NULL DEFAULT '', global_name TEXT NOT NULL DEFAULT '', updated_at INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (tenant, discord_id));
-    CREATE TABLE IF NOT EXISTS users (discord_id TEXT PRIMARY KEY, username TEXT NOT NULL DEFAULT '', avatar TEXT NOT NULL DEFAULT '', guilds_json TEXT NOT NULL DEFAULT '[]', guilds_checked_at INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL DEFAULT (strftime('%s','now')), updated_at TEXT NOT NULL DEFAULT (strftime('%s','now')));
-    CREATE TABLE IF NOT EXISTS user_oauth (discord_id TEXT PRIMARY KEY, refresh_token TEXT NOT NULL DEFAULT '', scope TEXT NOT NULL DEFAULT '', refresh_state TEXT NOT NULL DEFAULT 'ok', last_refresh_at INTEGER NOT NULL DEFAULT 0, updated_at INTEGER NOT NULL DEFAULT 0);
     INSERT OR REPLACE INTO tenants (slug, guild_name, password_hash) VALUES ('livetest', 'CI Livetest', 'ci-fixture');
     INSERT OR REPLACE INTO users (discord_id, username, avatar, guilds_json, guilds_checked_at) VALUES ('2001', 'CI Tester', '', '["424242424242424242"]', ${now});
     INSERT OR REPLACE INTO user_oauth (discord_id, refresh_token, scope, refresh_state, updated_at) VALUES ('2001', 'ci-fixture-refresh', 'identify guilds guilds.members.read', 'ok', ${now});

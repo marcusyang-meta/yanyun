@@ -7,9 +7,10 @@
  * phase-1 table-qualified-column upsert bug was all-green on the fake
  * DB and only surfaced on the first real-D1 run). This script runs
  * each repository's write paths and key read paths against real D1
- * one by one and asserts the results. The table structure mirrors the
- * entity definitions in src/db/schema.ts (production structure is
- * unchanged; this is only a local verification fixture).
+ * one by one and asserts the results. The database is bootstrapped
+ * from the migration chain in migrations/ — the same chain production
+ * runs — so the shape under test is the production shape by
+ * construction.
  *
  * Usage: node scripts/verify-repositories-d1.mjs [section]
  *   Omitting section = all; currently eighteen sections: tenants /
@@ -37,105 +38,23 @@ const mf = new Miniflare(convertV4MiniflareOptions({
 }));
 const db = await mf.getD1Database('DB');
 
-const DDL = [
-  `CREATE TABLE tenants (
-     slug TEXT PRIMARY KEY, guild_name TEXT NOT NULL, password_hash TEXT NOT NULL,
-     announcement TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL DEFAULT (strftime('%s','now')),
-     discord_webhook TEXT NOT NULL DEFAULT '', slogan TEXT, master_name TEXT,
-     logo_url TEXT, bg_image_url TEXT)`,
-  `CREATE TABLE events (
-     id INTEGER PRIMARY KEY AUTOINCREMENT, tenant TEXT NOT NULL DEFAULT '',
-     title TEXT NOT NULL, type TEXT NOT NULL DEFAULT 'activity',
-     description TEXT NOT NULL DEFAULT '', starts_at TEXT,
-     meet_info TEXT NOT NULL DEFAULT '', max_slots INTEGER NOT NULL DEFAULT 20,
-     status TEXT NOT NULL DEFAULT 'open', starts_at_utc INTEGER,
-     origin TEXT NOT NULL DEFAULT 'admin', created_by TEXT NOT NULL DEFAULT '',
-     manage_code TEXT NOT NULL DEFAULT '', dungeon TEXT NOT NULL DEFAULT '',
-     creator_discord_id TEXT, reminder_sent_at INTEGER, reminder_error TEXT)`,
-  `CREATE TABLE signups (
-     id INTEGER PRIMARY KEY AUTOINCREMENT,
-     event_id INTEGER NOT NULL REFERENCES events(id) ON DELETE CASCADE,
-     nickname TEXT NOT NULL, uid TEXT NOT NULL, role TEXT NOT NULL DEFAULT '随意',
-     weapon TEXT NOT NULL DEFAULT '', contact TEXT NOT NULL DEFAULT '',
-     note TEXT NOT NULL DEFAULT '', team_name TEXT, members TEXT,
-     created_at TEXT NOT NULL DEFAULT (strftime('%s','now')), discord_id TEXT)`,
-  `CREATE UNIQUE INDEX signups_event_uid_unique ON signups(event_id, uid)`,
-  `CREATE TABLE results (
-     id INTEGER PRIMARY KEY AUTOINCREMENT,
-     event_id INTEGER NOT NULL REFERENCES events(id) ON DELETE CASCADE,
-     team_name TEXT NOT NULL, members TEXT NOT NULL DEFAULT '',
-     time_ms INTEGER NOT NULL, proof_url TEXT NOT NULL DEFAULT '',
-     note TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL DEFAULT (strftime('%s','now')))`,
-  `CREATE TABLE settings (
-     tenant TEXT NOT NULL DEFAULT '', key TEXT NOT NULL, value TEXT NOT NULL DEFAULT '',
-     PRIMARY KEY (tenant, key))`,
-  `CREATE TABLE user_gear_items (
-     id INTEGER PRIMARY KEY AUTOINCREMENT, discord_id TEXT NOT NULL,
-     slot TEXT NOT NULL DEFAULT '', name TEXT NOT NULL DEFAULT '',
-     payload TEXT NOT NULL DEFAULT '{}', created_at INTEGER NOT NULL DEFAULT 0)`,
-  `CREATE TABLE user_gear_builds (
-     id INTEGER PRIMARY KEY AUTOINCREMENT, discord_id TEXT NOT NULL,
-     name TEXT NOT NULL DEFAULT '', target_idx INTEGER NOT NULL DEFAULT 0,
-     payload TEXT NOT NULL DEFAULT '{}', created_at INTEGER NOT NULL DEFAULT 0)`,
-  `CREATE TABLE users (
-     discord_id TEXT PRIMARY KEY, username TEXT NOT NULL DEFAULT '',
-     avatar TEXT NOT NULL DEFAULT '', guilds_json TEXT NOT NULL DEFAULT '[]',
-     guilds_checked_at INTEGER NOT NULL DEFAULT 0,
-     created_at TEXT NOT NULL DEFAULT (strftime('%s','now')),
-     updated_at TEXT NOT NULL DEFAULT (strftime('%s','now')), locale_pref TEXT)`,
-  `CREATE TABLE user_oauth (
-     discord_id TEXT PRIMARY KEY, refresh_token TEXT NOT NULL DEFAULT '',
-     scope TEXT NOT NULL DEFAULT '', refresh_state TEXT NOT NULL DEFAULT 'ok',
-     last_refresh_at INTEGER NOT NULL DEFAULT 0, updated_at INTEGER NOT NULL DEFAULT 0)`,
-  `CREATE TABLE user_guild_nicks (
-     discord_id TEXT NOT NULL, guild_id TEXT NOT NULL,
-     nick TEXT NOT NULL DEFAULT '', updated_at INTEGER NOT NULL DEFAULT 0,
-     PRIMARY KEY (discord_id, guild_id))`,
-  `CREATE TABLE guild_members (
-     tenant TEXT NOT NULL, discord_id TEXT NOT NULL,
-     nick TEXT NOT NULL DEFAULT '', global_name TEXT NOT NULL DEFAULT '',
-     updated_at INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (tenant, discord_id))`,
-  `CREATE TABLE dungeons (
-     id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE,
-     size INTEGER NOT NULL DEFAULT 10, is_current INTEGER NOT NULL DEFAULT 0,
-     sort_order INTEGER NOT NULL DEFAULT 0,
-     video_url TEXT NOT NULL DEFAULT '', video_title TEXT NOT NULL DEFAULT '',
-     season TEXT, category TEXT, level INTEGER, version TEXT)`,
-  `CREATE TABLE bosses (
-     id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL,
-     talent TEXT NOT NULL DEFAULT '', source TEXT NOT NULL DEFAULT '',
-     note TEXT NOT NULL DEFAULT '', sort_order INTEGER NOT NULL DEFAULT 0,
-     dungeon TEXT NOT NULL DEFAULT '', guide TEXT NOT NULL DEFAULT '',
-     mechanics_json TEXT, talents_json TEXT, shouts_json TEXT)`,
-  `CREATE TABLE schools (
-     name TEXT, slug TEXT PRIMARY KEY, short TEXT, family TEXT,
-     color TEXT, attr TEXT, talent_desc TEXT)`,
-  `CREATE TABLE school_bis (
-     school TEXT NOT NULL, build TEXT NOT NULL DEFAULT '',
-     attr TEXT, rate TEXT, bis_json TEXT NOT NULL,
-     updated_at INTEGER DEFAULT (strftime('%s','now')),
-     PRIMARY KEY (school, build))`,
-  `CREATE TABLE school_rotations (
-     school TEXT PRIMARY KEY, rotation_json TEXT NOT NULL,
-     updated_at INTEGER DEFAULT (strftime('%s','now')))`,
-  `CREATE TABLE slot_affix (
-     build TEXT NOT NULL, slot TEXT NOT NULL, affix_key TEXT NOT NULL,
-     PRIMARY KEY (build, slot, affix_key))`,
-  `CREATE TABLE affix_max (
-     affix_key TEXT PRIMARY KEY, name_cn TEXT NOT NULL,
-     max_value REAL NOT NULL, unit TEXT DEFAULT '')`,
-  `CREATE TABLE heirloom_item_pushes (
-     tenant TEXT NOT NULL, discord_id TEXT NOT NULL,
-     build_sig TEXT NOT NULL, item_hash TEXT NOT NULL,
-     created_at INTEGER NOT NULL DEFAULT 0,
-     PRIMARY KEY (tenant, discord_id, build_sig, item_hash))`,
-  `CREATE TABLE heirloom_set_state (
-     tenant TEXT NOT NULL, discord_id TEXT NOT NULL,
-     build_sig TEXT NOT NULL, complete INTEGER NOT NULL DEFAULT 0,
-     updated_at INTEGER NOT NULL DEFAULT 0,
-     PRIMARY KEY (tenant, discord_id, build_sig))`,
-];
-for (const ddl of DDL) await db.prepare(ddl).run();
+// Bootstrap from the migration chain (migrations/*.sql in filename
+// order), split into statements the same way the drift gate does.
+{
+  const fs = await import('node:fs');
+  const path = await import('node:path');
+  const { fileURLToPath } = await import('node:url');
+  const { splitSqlStatements } = await import('./ci/schema-shape.mjs');
+  const dir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'migrations');
+  const files = fs.readdirSync(dir).filter((f) => f.endsWith('.sql')).sort();
+  if (!files.length) throw new Error('no migration files in ' + dir);
+  for (const f of files) {
+    for (const stmt of splitSqlStatements(fs.readFileSync(path.join(dir, f), 'utf8'))) {
+      await db.prepare(stmt).run();
+    }
+  }
+  console.log('[verify] bootstrapped from migration chain:', files.join(', '));
+}
 
 const section = process.argv[2] || 'all';
 const want = (s) => section === 'all' || section === s;
@@ -178,8 +97,10 @@ if (want('tenants')) {
     guildName: '甲改', announcement: '新公告', slogan: '口号', masterName: '掌门', logoUrl: 'http://l', bgImageUrl: 'http://b',
   });
   const prof = await repo.getTenantRow(db, 'alpha');
-  check('updateTenantProfile all six', !!prof && prof.guild_name === '甲改' && prof.announcement === '新公告'
-    && prof.slogan === '口号' && prof.master_name === '掌门' && prof.logo_url === 'http://l' && prof.bg_image_url === 'http://b');
+  check('updateTenantProfile writes the real profile fields', !!prof && prof.guild_name === '甲改' && prof.announcement === '新公告'
+    && prof.slogan === '口号');
+  check('legacy profile fields read back empty (no production columns)',
+    !!prof && (prof.master_name ?? '') === '' && (prof.logo_url ?? '') === '' && (prof.bg_image_url ?? '') === '');
 
   // cascade: seed signups + results under alpha's events and beta's event
   const evA = await db.prepare("SELECT id FROM events WHERE tenant='alpha' LIMIT 1").first();
@@ -207,7 +128,6 @@ if (want('events')) {
   const evRepo = await import('../src/domains/groupings/events.ts');
   const suRepo = await import('../src/domains/groupings/signups.ts');
   const NOW = 1_800_000_000;
-  await suRepo.ensureSignupReadyColumn(db);
 
   const ins1 = await evRepo.insertEvent(db, {
     tenant: 'gamma', title: '草稿车', type: 'talent', description: '', starts_at: '', starts_at_utc: NOW + 3600,
@@ -423,11 +343,9 @@ if (want('users')) {
   console.log('== users repository on real D1 ==');
   const repo = await import('../src/domains/identity/users.ts');
 
-  // The lazy DDL itself executes on real D1 (tables pre-built by the fixture; IF NOT EXISTS is idempotent).
-  await repo.ensureUsersTable(db);
-  await repo.ensureUsersLocaleColumn(db);
-  await repo.ensureNickStoreTables(db);
-  check('lazy DDL ensures execute on real D1', true);
+  const userTables = await db.prepare(
+    "SELECT name FROM sqlite_master WHERE type = 'table' AND name IN ('users', 'user_oauth', 'user_guild_nicks')").all();
+  check('identity tables come from the migration chain', userTables.results.length === 3);
 
   await repo.upsertUserOnLogin(db, {
     discordId: 'U1', username: '全局甲', avatar: 'a.png',
@@ -493,7 +411,6 @@ if (want('members')) {
   console.log('== guild_members repository on real D1 ==');
   const repo = await import('../src/domains/identity/guildMembers.ts');
 
-  await repo.ensureGuildMembersTable(db);
   await repo.upsertGuildMember(db, 'alpha', 'U1', '服内甲', '全局甲');
   await repo.upsertGuildMember(db, 'alpha', 'U1', '服内甲改', '全局甲改');
   await repo.upsertGuildMember(db, 'alpha', 'U2', '', '全局乙');
@@ -551,8 +468,6 @@ if (want('dex')) {
   const dg = await import('../src/domains/dex/dungeons.ts');
   const bs = await import('../src/domains/dex/bosses.ts');
 
-  await dg.ensureDungeonDexColumns(db);
-  await bs.ensureBossStructuredColumns(db);
 
   const d1 = await dg.insertDungeonDex(db, { name: '甲副本', size: 10, season: 'S5', category: '传薪', level: 100 });
   const d2 = await dg.insertDungeonDex(db, { name: '乙副本', size: 5, season: 'S4', category: '铸矩', level: 96 });
@@ -631,7 +546,6 @@ if (want('state')) {
   console.log('== heirloom state repositories on real D1 ==');
   const hl = await import('../src/domains/gear/heirloom.ts');
 
-  await hl.ensureHeirloomTables(db);
   await hl.insertHeirloomItemPush(db, { tenant: 'g1', discordId: 'U1', buildSig: '校|套', itemHash: 'h1', createdAt: 100 });
   await hl.insertHeirloomItemPush(db, { tenant: 'g1', discordId: 'U1', buildSig: '校|套', itemHash: 'h1', createdAt: 101 });
   await hl.insertHeirloomItemPush(db, { tenant: 'g1', discordId: 'U1', buildSig: '校|套', itemHash: 'h2', createdAt: 102 });
@@ -645,7 +559,6 @@ if (want('state')) {
 
 }
 
-/* ---------------- lazy DDL ownership (ensures live in repositories) --- */
 /* ---------------- capacity guard (red-line [13/16]) ---------------- */
 if (want('guard')) {
   console.log('== capacity guard on real D1 ==');
@@ -807,29 +720,14 @@ if (want('atomic')) {
 }
 
 if (want('ddl')) {
-  console.log('== repository-owned lazy DDL on real D1 ==');
-  const ev = await import('../src/domains/groupings/events.ts');
-  const su = await import('../src/domains/groupings/signups.ts');
-  const pt = await import('../src/domains/platform/pushTokens.ts');
-  const el = await import('../src/domains/platform/errorLog.ts');
-  const gr = await import('../src/domains/gear/gear.ts');
-  const ga = await import('../src/domains/guilds/guildAvatars.ts');
-
-  // Run each ensure twice: the second run must be idempotent and error-free (columns/tables already exist).
-  for (let i = 0; i < 2; i++) {
-    await ev.ensureEventCreatorColumn(db);
-    await ev.ensureReminderColumns(db);
-    await ev.ensureReminderBeatsTable(db);
-    await su.ensureSignupDiscordColumn(db);
-    await su.ensureSignupReadyColumn(db);
-    await pt.ensurePushTokensTable(db);
-    await el.ensureErrorLogTable(db);
-    await gr.ensureGearTables(db);
-    await ga.ensureGuildAvatarsTable(db);
-  }
+  console.log('== migration chain shape on real D1 ==');
+  const { shapeFromEntities } = await import('./ci/schema-shape.mjs');
+  const expected = Object.keys((await shapeFromEntities()).tables).sort();
   const tables = await db.prepare("SELECT name FROM sqlite_master WHERE type = 'table'").all();
   const names = new Set(tables.results.map((r) => r.name));
-  check('ensures created/kept all lazy tables', ['push_tokens', 'error_log', 'user_gear_items', 'user_gear_builds', 'guild_avatars', 'event_reminders'].every((t) => names.has(t)));
+  check('chain bootstrap created every entity table', expected.every((t) => names.has(t)),
+    'missing: ' + expected.filter((t) => !names.has(t)).join(','));
+  check('chain created the formerly-lazy tables', ['push_tokens', 'error_log', 'user_gear_items', 'user_gear_builds', 'guild_avatars', 'event_reminders'].every((t) => names.has(t)));
   const evCols = await db.prepare('PRAGMA table_info(events)').all();
   const colNames = new Set(evCols.results.map((r) => r.name));
   check('events carries creator + reminder columns', ['creator_discord_id', 'reminder_sent_at', 'reminder_error'].every((c) => colNames.has(c)));
@@ -842,8 +740,6 @@ if (want('ddl')) {
 if (want('beats')) {
   console.log('== reminder beats + pending queries on real D1 ==');
   const evRepo = await import('../src/domains/groupings/events.ts');
-  await evRepo.ensureReminderBeatsTable(db);
-  await evRepo.ensureReminderBeatsTable(db); // idempotent
   const NOWB = 1_800_100_000;
   const bEv = await evRepo.insertEvent(db, {
     tenant: 'beats', title: '拍车', type: 'activity', description: '', starts_at: '', starts_at_utc: NOWB + 1800,
@@ -886,9 +782,6 @@ if (want('audit')) {
   console.log('== hub audit repository + service on real D1 ==');
   const repo = await import('../src/domains/platform/hubAudit.ts');
   const svc = await import('../src/domains/platform/hub-audit.ts');
-
-  await repo.ensureHubAuditTable(db);
-  await repo.ensureHubAuditTable(db); // idempotent
 
   const okWrite = await svc.auditHub(db, { action: 'reminder.update', tenant: 'alpha', summary: { webhook: 'replaced', enabled: true }, ip: '203.0.113.7' });
   check('auditHub write ok', okWrite === true);

@@ -320,3 +320,33 @@ export function shapeStats(shape) {
   const indexes = Object.values(shape.tables).reduce((n, t) => n + t.indexes.length, 0);
   return { tables, columns, indexes };
 }
+
+/** Split a SQL script into statements: strips -- and block comments,
+ * respects single-quoted string literals ('' is an escaped quote). */
+export function splitSqlStatements(text) {
+  const out = [];
+  let cur = '', inStr = false;
+  const lines = text.split('\n');
+  for (const rawLine of lines) {
+    let line = rawLine;
+    if (!inStr) {
+      const c = line.indexOf('--');
+      if (c >= 0) line = line.slice(0, c);
+    }
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (inStr) {
+        cur += ch;
+        if (ch === "'") {
+          if (line[i + 1] === "'") { cur += line[++i]; }
+          else inStr = false;
+        }
+      } else if (ch === "'") { inStr = true; cur += ch; }
+      else if (ch === ';') { if (cur.trim()) out.push(cur.trim()); cur = ''; }
+      else cur += ch;
+    }
+    cur += '\n';
+  }
+  if (cur.trim()) out.push(cur.trim());
+  return out;
+}
