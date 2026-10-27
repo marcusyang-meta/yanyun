@@ -36,7 +36,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 /* ---------- Direct D1 writes (local) ---------- */
 async function d1(sql) {
-  const { stdout } = await execFileP('npx', ['wrangler', 'd1', 'execute', 'yanyun-signup', '--local', '--command', sql], { cwd: new URL('../', import.meta.url).pathname });
+  const { stdout } = await execFileP('pnpm', ['exec', 'wrangler', 'd1', 'execute', 'yanyun-signup', '--local', '--command', sql], { cwd: new URL('../', import.meta.url).pathname });
   const m = stdout.match(/\[\s*\{[\s\S]*\}\s*\]/);
   const arr = m ? JSON.parse(m[0]) : [];
   return arr[0]?.results || [];

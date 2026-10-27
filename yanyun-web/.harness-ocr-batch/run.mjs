@@ -19,7 +19,7 @@ const WORKER = 'http://localhost:8799';
 const PORT = 18754;
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png' };
 
-execSync('npx vite build --config .harness-ocr-batch/vite.config.ts', { cwd: path.join(DIR, '..'), stdio: 'pipe' });
+execSync('pnpm exec vite build --config .harness-ocr-batch/vite.config.ts', { cwd: path.join(DIR, '..'), stdio: 'pipe' });
 fs.copyFileSync(path.join(DIR, 'page.html'), path.join(DIST, 'page.html'));
 
 const gql = async (query, variables, locale) => {

@@ -1,6 +1,6 @@
 // Generate src/tokens.ts (typed constants) and src/tokens.css (:root vars)
 // from src/tokens.json — the single source of design-token data.
-// Run: npm run gen --workspace=@yanyun/theme  (or: node scripts/gen.mjs)
+// Run: pnpm --filter @yanyun/theme run gen  (or: node scripts/gen.mjs)
 import { readFileSync, writeFileSync } from 'node:fs';
 
 const data = JSON.parse(readFileSync(new URL('../src/tokens.json', import.meta.url), 'utf8'));

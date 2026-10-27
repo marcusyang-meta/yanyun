@@ -146,24 +146,24 @@ const LAZY_COLUMNS = {
 };
 
 async function d1json(sqlText) {
-  const { stdout } = await execFileP('npx', ['wrangler', 'd1', 'execute', 'yanyun-signup', '--local', '--json', '--command', sqlText], { cwd: ROOT });
+  const { stdout } = await execFileP('pnpm', ['exec', 'wrangler', 'd1', 'execute', 'yanyun-signup', '--local', '--json', '--command', sqlText], { cwd: ROOT });
   const parsed = JSON.parse(stdout.slice(stdout.indexOf('[')));
   return parsed[0]?.results || [];
 }
 
 async function convergeLazyDdl() {
   for (const ddl of LAZY_TABLES) {
-    await execFileP('npx', ['wrangler', 'd1', 'execute', 'yanyun-signup', '--local', '--command', ddl], { cwd: ROOT });
+    await execFileP('pnpm', ['exec', 'wrangler', 'd1', 'execute', 'yanyun-signup', '--local', '--command', ddl], { cwd: ROOT });
   }
   console.log('[fixture] lazy-DDL converge: identity tables (users / user_oauth / user_guild_nicks / guild_members)');
-  await execFileP('npx', ['wrangler', 'd1', 'execute', 'yanyun-signup', '--local', '--command',
+  await execFileP('pnpm', ['exec', 'wrangler', 'd1', 'execute', 'yanyun-signup', '--local', '--command',
     "CREATE TABLE IF NOT EXISTS push_tokens (discord_id TEXT NOT NULL, token TEXT NOT NULL, platform TEXT NOT NULL DEFAULT '', updated_at INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (discord_id, token))"], { cwd: ROOT });
   for (const [table, cols] of Object.entries(LAZY_COLUMNS)) {
     const existing = new Set((await d1json(`PRAGMA table_info(${table})`)).map((r) => r.name));
     if (!existing.size) continue; // table itself is created by schema/migrations or not needed
     for (const [colName, colType] of cols) {
       if (!existing.has(colName)) {
-        await execFileP('npx', ['wrangler', 'd1', 'execute', 'yanyun-signup', '--local', '--command',
+        await execFileP('pnpm', ['exec', 'wrangler', 'd1', 'execute', 'yanyun-signup', '--local', '--command',
           `ALTER TABLE ${table} ADD COLUMN ${colName} ${colType}`], { cwd: ROOT });
         console.log(`[fixture] lazy-DDL converge: ${table}.${colName}`);
       }
@@ -176,7 +176,7 @@ async function bootstrapLocalDb() {
   if (dbBootstrapped) return;
   for (const file of ['schema.sql', ...MIGRATIONS]) {
     try {
-      await execFileP('npx', ['wrangler', 'd1', 'execute', 'yanyun-signup', '--local', '--file', file], { cwd: ROOT });
+      await execFileP('pnpm', ['exec', 'wrangler', 'd1', 'execute', 'yanyun-signup', '--local', '--file', file], { cwd: ROOT });
       console.log(`[fixture] applied ${file}`);
     } catch (e) {
       const msg = String(e?.stdout || '') + String(e?.stderr || '') + String(e?.message || '');
@@ -193,14 +193,14 @@ async function bootstrapLocalDb() {
 
 /* ---------- heirloom fixture ---------- */
 async function d1exec(sql) {
-  await execFileP('npx', ['wrangler', 'd1', 'execute', 'yanyun-signup', '--local', '--command', sql], { cwd: ROOT });
+  await execFileP('pnpm', ['exec', 'wrangler', 'd1', 'execute', 'yanyun-signup', '--local', '--command', sql], { cwd: ROOT });
 }
 
 async function heirloomFixture({ sessionSecret, adminPassword }) {
   console.log('\n########## heirloom fixture: bootstrap + seed + wrangler dev :8799 ##########');
   await bootstrapLocalDb();
 
-  const dev = spawn('npx', ['wrangler', 'dev', '--port', '8799', '--local', '--ip', '127.0.0.1'],
+  const dev = spawn('pnpm', ['exec', 'wrangler', 'dev', '--port', '8799', '--local', '--ip', '127.0.0.1'],
     { cwd: ROOT, env: { ...process.env, CI: 'true', WRANGLER_SEND_METRICS: 'false' }, stdio: ['ignore', 'pipe', 'pipe'], detached: true });
   dev.stdout.on('data', (d) => process.stdout.write('[wrangler] ' + d));
   dev.stderr.on('data', (d) => process.stderr.write('[wrangler] ' + d));
