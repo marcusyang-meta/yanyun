@@ -1037,6 +1037,7 @@ type Mutation {
   updateGuildProfile(slug: String!, input: UpdateGuildProfileInput!): GuildAdminPayload!
   updateGuildDiscord(slug: String!, input: UpdateGuildDiscordInput!): GuildAdminPayload!
   updateGuildReminderSettings(slug: String!, offsets: [Int!]!, customText: String): GuildAdminPayload!
+  updateGuildWhiteLabel(slug: String!, hideBranding: Boolean!, ogAccent: String!, ogTitleSuffix: String): GuildAdminPayload!
   updateGuildVisibility(slug: String!, devOnly: Boolean!): GuildAdminPayload!
   updateGuildFeatures(slug: String!, fixedTeams: Boolean!): GuildAdminPayload!
   setGuildAvatar(slug: String!, dataBase64: String!): GuildAdminPayload!
@@ -1224,6 +1225,8 @@ type Guild {
   homeAdminLabel: String
   detailNotFoundText: String!
   detailBackToListLabel: String!
+  pageBackLabel: String!
+  pageFooterDisclaimerText: String
 }
 
 type GuildReadOnly {
@@ -1242,6 +1245,8 @@ type GuildReadOnly {
   homeReadOnlyBanner: String!
   detailNotFoundText: String!
   detailBackToListLabel: String!
+  pageBackLabel: String!
+  pageFooterDisclaimerText: String
 }
 
 type GuildLocked {
@@ -1355,12 +1360,18 @@ type GuildAdmin {
   reminderWebhookId: String
   reminderOffsets: [Int!]!
   reminderCustomText: String!
+  whiteLabelHideBranding: Boolean!
+  ogAccent: String!
+  ogTitleSuffix: String!
+  ogAccentOptions: [GuildAdminOgAccentOption!]!
+  pageFooterDisclaimerText: String
   featureFixedTeams: Boolean!
   devOnly: Boolean!
   gameVersion: String!
   fixedTeams: [GuildAdminFixedTeam!]!
   events: [GuildAdminEvent!]!
   schoolGuides: GuildAdminSchoolGuides!
+  stats: GuildAdminStats!
   adminTitle: String!
   adminBackLinkLabel: String!
   adminTabProfileLabel: String!
@@ -1447,6 +1458,33 @@ type GuildAdmin {
   adminGuideRateLabel: String!
   adminGuideBisLabel: String!
   adminGuideRotationLabel: String!
+  adminTabStatsLabel: String!
+  adminStatsTitle: String!
+  adminStatsCurrentWeekLabel: String!
+  adminStatsCarsLabel: String!
+  adminStatsCompletedLabel: String!
+  adminStatsSeatsLabel: String!
+  adminStatsFillRateLabel: String!
+  adminStatsParticipantsLabel: String!
+  adminStatsPerCapitaLabel: String!
+  adminStatsMembersTitle: String!
+  adminStatsLeadersTitle: String!
+  adminStatsSeatCountLabel: String!
+  adminStatsCarCountLabel: String!
+  adminStatsEmptyText: String!
+  adminStatsBoardEmptyText: String!
+  adminWhiteLabelTitle: String!
+  adminHideBrandingLabel: String!
+  adminHideBrandingHint: String!
+  adminOgAccentLabel: String!
+  adminOgTitleSuffixLabel: String!
+  adminOgTitleSuffixHint: String!
+}
+
+type GuildAdminOgAccentOption {
+  key: String!
+  label: String!
+  hex: String!
 }
 
 type GuildAdminFixedTeam {
@@ -1520,6 +1558,42 @@ type GuildAdminSchoolBuild {
   attr: String!
   rate: String!
   bisJson: String!
+}
+
+type GuildAdminStats {
+  weeks: [GuildAdminStatsWeek!]!
+  memberLeaders: [GuildAdminStatsMember!]!
+  leaderLeaders: [GuildAdminStatsLeader!]!
+}
+
+type GuildAdminStatsWeek {
+  weekStartUtc: Int!
+  weekLabel: String!
+  isCurrent: Boolean!
+  carsActivity: Int!
+  carsTalent: Int!
+  carsRace: Int!
+  carsTower: Int!
+  carsTotal: Int!
+  completedCount: Int!
+  totalSeats: Int!
+  filledSeats: Int!
+  fillRate: Float!
+  participantCount: Int!
+  participationCount: Int!
+  perCapita: Float!
+}
+
+type GuildAdminStatsMember {
+  discordId: String!
+  displayName: String!
+  seatCount: Int!
+}
+
+type GuildAdminStatsLeader {
+  discordId: String!
+  displayName: String!
+  carCount: Int!
 }
 
 type GuildAdminPayload {
@@ -1605,6 +1679,8 @@ type OgGuildCard {
   name: String!
   slogan: String!
   weekActivityCount(fromUtc: Int!, toUtc: Int!): Int!
+  ogAccentColor: String!
+  ogTitleSuffix: String!
 }
 
 type OgCarCard {

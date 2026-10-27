@@ -7,7 +7,7 @@
  * non-dev origins, exactly as everywhere else. */
 import type { Context } from './context.ts';
 import { ShellBase, getTenantSetting, isDevRequest, s } from './graphql-base.ts';
-import { getTenantRow } from '../guilds/index.ts';
+import { getTenantRow, getWhiteLabelSettings, ogAccentHex } from '../guilds/index.ts';
 import { listTenantsDirectory } from '../guilds/tenants.ts';
 import { getDevOnlySlugs } from './http.ts';
 import {
@@ -35,6 +35,21 @@ export class OgGuildCardShell extends ShellBase {
       tenant: this.data.tenant.slug, type: 'activity', from: fromUtc, to: toUtc,
     });
     return rows.length;
+  }
+  /* White-label share-card customization: the resolved accent hex
+   * ('' = no customization, the OG worker renders its default
+   * template) and the title suffix ('' = none). Both come from the
+   * guild's white-label settings; only palette-validated values can
+   * ever be stored, so the worker never sees a raw admin input. */
+  async genOgAccentColor(){
+    if (!this.data.tenant) return '';
+    const wl = await getWhiteLabelSettings(this.db, this.data.tenant.slug);
+    return wl.ogAccent ? ogAccentHex(wl.ogAccent) : '';
+  }
+  async genOgTitleSuffix(){
+    if (!this.data.tenant) return '';
+    const wl = await getWhiteLabelSettings(this.db, this.data.tenant.slug);
+    return wl.ogTitleSuffix;
   }
 }
 
@@ -79,6 +94,8 @@ export const ogCardResolvers = {
       name: (p: any) => p.genName(),
       slogan: (p: any) => p.genSlogan(),
       weekActivityCount: (p: any, a: any) => p.genWeekActivityCount(a),
+      ogAccentColor: (p: any) => p.genOgAccentColor(),
+      ogTitleSuffix: (p: any) => p.genOgTitleSuffix(),
     },
     OgCarCard: {
       title: (p: any) => p.genTitle(),

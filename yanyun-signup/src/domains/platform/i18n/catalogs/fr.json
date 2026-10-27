@@ -66,6 +66,7 @@
   "1BmyQU": "Rejoignez le serveur Discord correspondant, puis connectez-vous avec le même compte pour y accéder.",
   "4lMYj2": "Retour à mes guildes",
   "3IAHUH": "← Rassemblement des guildes",
+  "3lNbx3": "← Retour",
   "2HMgLA": "Équipes",
   "3xrJT5": "Guides",
   "39iHUL": "Guides d’écoles",
@@ -572,6 +573,7 @@
   "2Engm3": "Le dernier siège est réservé à un soigneur",
   "17GYOJ": "Déjà inscrit",
   "1bbhpq": "Inscription introuvable",
+  "33eOIG": "La couleur d’accent ne fait pas partie des options disponibles.",
   "bUpBp": "Paramètres incomplets",
   "1anzkq": "Boss introuvable",
   "4oO92j": "Le nom de la guilde doit comporter au moins 2 caractères",
@@ -691,5 +693,16 @@
   "4Fc5Hi": "Places prises",
   "13S23b": "Sorties menées",
   "2FAHYi": "Aucune donnée de groupe sur les 4 dernières semaines.",
-  "3hDYU9": "Aucun enregistrement."
+  "3hDYU9": "Aucun enregistrement.",
+  "1z2Ti0": "Marque et carte de partage",
+  "RBnje": "Masquer la marque de la plateforme",
+  "1I8KAg": "Une fois activé, les pages de cette guilde n’afficheront plus le nom de la plateforme ni la mention de bas de page, uniquement les informations de la guilde.",
+  "1pOGR8": "Couleur d’accent de la carte",
+  "9EM3P": "Suffixe du titre de la carte",
+  "2MJFYR": "Ajouté après le titre de la carte, p. ex. « · Recrutement » ; 30 caractères max., laissez vide pour masquer.",
+  "4E7oBk": "Doré",
+  "yR59M": "Jade",
+  "UcaFv": "Bleu marine",
+  "3Phj2j": "Cinabre",
+  "1VAkT6": "Violet"
 }

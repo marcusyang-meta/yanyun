@@ -98,6 +98,7 @@ export const errors_alreadyJoined = (fbs: FbsAPI) =>fbs("已报过名", "errors.
 export const errors_seatNotFound = (fbs: FbsAPI) =>fbs("未找到该报名", "errors.seatNotFound");
 export const errors_notSeated = (fbs: FbsAPI) =>fbs("你还没有落座这辆车", "errors.notSeated");
 export const errors_reminderOffsetsInvalid = (fbs: FbsAPI) =>fbs("提醒提前量不在可选范围内", "errors.reminderOffsetsInvalid");
+export const errors_ogAccentInvalid = (fbs: FbsAPI) =>fbs("强调色不在可选范围内", "errors.ogAccentInvalid");
 export const errors_paramsIncomplete = (fbs: FbsAPI) =>fbs("参数不完整", "errors.paramsIncomplete");
 export const errors_bossNotFound = (fbs: FbsAPI) =>fbs("首领不存在", "errors.bossNotFound");
 export const errors_guildNameShort = (fbs: FbsAPI) =>fbs("百业名称至少 2 个字", "errors.guildNameShort");

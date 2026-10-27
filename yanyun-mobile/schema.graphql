@@ -1037,6 +1037,7 @@ type Mutation {
   updateGuildProfile(slug: String!, input: UpdateGuildProfileInput!): GuildAdminPayload!
   updateGuildDiscord(slug: String!, input: UpdateGuildDiscordInput!): GuildAdminPayload!
   updateGuildReminderSettings(slug: String!, offsets: [Int!]!, customText: String): GuildAdminPayload!
+  updateGuildWhiteLabel(slug: String!, hideBranding: Boolean!, ogAccent: String!, ogTitleSuffix: String): GuildAdminPayload!
   updateGuildVisibility(slug: String!, devOnly: Boolean!): GuildAdminPayload!
   updateGuildFeatures(slug: String!, fixedTeams: Boolean!): GuildAdminPayload!
   setGuildAvatar(slug: String!, dataBase64: String!): GuildAdminPayload!
@@ -1224,6 +1225,8 @@ type Guild {
   homeAdminLabel: String
   detailNotFoundText: String!
   detailBackToListLabel: String!
+  pageBackLabel: String!
+  pageFooterDisclaimerText: String
 }
 
 type GuildReadOnly {
@@ -1242,6 +1245,8 @@ type GuildReadOnly {
   homeReadOnlyBanner: String!
   detailNotFoundText: String!
   detailBackToListLabel: String!
+  pageBackLabel: String!
+  pageFooterDisclaimerText: String
 }
 
 type GuildLocked {
@@ -1355,6 +1360,11 @@ type GuildAdmin {
   reminderWebhookId: String
   reminderOffsets: [Int!]!
   reminderCustomText: String!
+  whiteLabelHideBranding: Boolean!
+  ogAccent: String!
+  ogTitleSuffix: String!
+  ogAccentOptions: [GuildAdminOgAccentOption!]!
+  pageFooterDisclaimerText: String
   featureFixedTeams: Boolean!
   devOnly: Boolean!
   gameVersion: String!
@@ -1463,6 +1473,18 @@ type GuildAdmin {
   adminStatsCarCountLabel: String!
   adminStatsEmptyText: String!
   adminStatsBoardEmptyText: String!
+  adminWhiteLabelTitle: String!
+  adminHideBrandingLabel: String!
+  adminHideBrandingHint: String!
+  adminOgAccentLabel: String!
+  adminOgTitleSuffixLabel: String!
+  adminOgTitleSuffixHint: String!
+}
+
+type GuildAdminOgAccentOption {
+  key: String!
+  label: String!
+  hex: String!
 }
 
 type GuildAdminFixedTeam {
@@ -1657,6 +1679,8 @@ type OgGuildCard {
   name: String!
   slogan: String!
   weekActivityCount(fromUtc: Int!, toUtc: Int!): Int!
+  ogAccentColor: String!
+  ogTitleSuffix: String!
 }
 
 type OgCarCard {

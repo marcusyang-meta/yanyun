@@ -7887,6 +7887,149 @@
         }
       ],
       "types": []
+    },
+    "kcoWudhrAuo6C3zPK83vJQ==": {
+      "description": "guildHome.backPlain",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "← Back",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "FXBfzrvZLKBsniC2JTrL6Q==": {
+      "description": "guildAdmin.whiteLabelTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Branding & share card",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "931yLbtcpWsPln4oKuCtdw==": {
+      "description": "guildAdmin.hideBrandingLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Hide platform branding",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "GXSpeFpfbMA6nv0HrhkO4g==": {
+      "description": "guildAdmin.hideBrandingHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "When on, this guild’s pages no longer show the platform name or the footer notice — only the guild’s own information.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "wREdq5EWfNyD+pfnuTgWVw==": {
+      "description": "guildAdmin.ogAccentLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Share-card accent color",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "3BL1+tOcT9/Xu71xyF0sIg==": {
+      "description": "guildAdmin.ogTitleSuffixLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Share-card title suffix",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Pv73WFMma2YUS+4h1rpeIQ==": {
+      "description": "guildAdmin.ogTitleSuffixHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Appended after the share-card title, e.g. “· Now recruiting”; up to 30 characters, leave empty to hide.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "sVKlLqXa41IIx/RttSpHuA==": {
+      "description": "guildAdmin.ogAccentGold",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Gilt gold",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+h6h3OMgllLIMc52SrtNaw==": {
+      "description": "guildAdmin.ogAccentJade",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Jade",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ORrNdJobuCwqAVfp69x+wA==": {
+      "description": "guildAdmin.ogAccentAzure",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Navy",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "KF3DdZ7QESg7rqJh43wW8w==": {
+      "description": "guildAdmin.ogAccentCinnabar",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Cinnabar",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "MP7fhaLV+JFZ/UIIeHdjyA==": {
+      "description": "guildAdmin.ogAccentViolet",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Violet",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "yvQgpPV1IO9rrFQjMyaY+g==": {
+      "description": "errors.ogAccentInvalid",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "The accent color is not an available option.",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

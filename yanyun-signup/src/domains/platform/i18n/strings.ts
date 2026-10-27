@@ -83,6 +83,7 @@ export const locked_body1 = (fbs: FbsRuntime) => fbs._("该百业不存在，或
 export const locked_body2 = (fbs: FbsRuntime) => fbs._("加入对应的 Discord 服务器后，用同一个账号登录即可访问。", null, { hk: "1BmyQU" });
 export const locked_backButton = (fbs: FbsRuntime) => fbs._("回到我的百业", null, { hk: "4lMYj2" });
 export const guildHome_backToHub = (fbs: FbsRuntime) => fbs._("← 百业集结", null, { hk: "3IAHUH" });
+export const guildHome_backPlain = (fbs: FbsRuntime) => fbs._("← 返回", null, { hk: "3lNbx3" });
 export const guildHome_tabTeam = (fbs: FbsRuntime) => fbs._("组队", null, { hk: "2HMgLA" });
 export const guildHome_tabDex = (fbs: FbsRuntime) => fbs._("攻略", null, { hk: "3xrJT5" });
 export const guildHome_tabSect = (fbs: FbsRuntime) => fbs._("流派攻略", null, { hk: "39iHUL" });
@@ -659,6 +660,7 @@ export const errors_alreadyJoined = (fbs: FbsRuntime) => fbs._("已报过名", n
 export const errors_seatNotFound = (fbs: FbsRuntime) => fbs._("未找到该报名", null, { hk: "1bbhpq" });
 export const errors_notSeated = (fbs: FbsRuntime) => fbs._("你还没有落座这辆车", null, { hk: "2Cxo0e" });
 export const errors_reminderOffsetsInvalid = (fbs: FbsRuntime) => fbs._("提醒提前量不在可选范围内", null, { hk: "hJIJy" });
+export const errors_ogAccentInvalid = (fbs: FbsRuntime) => fbs._("强调色不在可选范围内", null, { hk: "33eOIG" });
 export const errors_paramsIncomplete = (fbs: FbsRuntime) => fbs._("参数不完整", null, { hk: "bUpBp" });
 export const errors_bossNotFound = (fbs: FbsRuntime) => fbs._("首领不存在", null, { hk: "1anzkq" });
 export const errors_guildNameShort = (fbs: FbsRuntime) => fbs._("百业名称至少 2 个字", null, { hk: "4oO92j" });
@@ -784,6 +786,17 @@ export const guildAdmin_statsSeatCount = (fbs: FbsRuntime) => fbs._("落座次�
 export const guildAdmin_statsCarCount = (fbs: FbsRuntime) => fbs._("开车数", null, { hk: "13S23b" });
 export const guildAdmin_statsEmpty = (fbs: FbsRuntime) => fbs._("近 4 周暂无组队数据。", null, { hk: "2FAHYi" });
 export const guildAdmin_statsBoardEmpty = (fbs: FbsRuntime) => fbs._("暂无记录。", null, { hk: "3hDYU9" });
+export const guildAdmin_whiteLabelTitle = (fbs: FbsRuntime) => fbs._("品牌与分享卡", null, { hk: "1z2Ti0" });
+export const guildAdmin_hideBrandingLabel = (fbs: FbsRuntime) => fbs._("隐藏平台品牌", null, { hk: "RBnje" });
+export const guildAdmin_hideBrandingHint = (fbs: FbsRuntime) => fbs._("开启后，本百业的页面上不再显示平台名称与页脚声明，只呈现百业自己的信息。", null, { hk: "1I8KAg" });
+export const guildAdmin_ogAccentLabel = (fbs: FbsRuntime) => fbs._("分享卡强调色", null, { hk: "1pOGR8" });
+export const guildAdmin_ogTitleSuffixLabel = (fbs: FbsRuntime) => fbs._("分享卡标题后缀", null, { hk: "9EM3P" });
+export const guildAdmin_ogTitleSuffixHint = (fbs: FbsRuntime) => fbs._("会接在分享卡的标题后面，如「· 招募中」；最多 30 字，留空不显示。", null, { hk: "2MJFYR" });
+export const guildAdmin_ogAccentGold = (fbs: FbsRuntime) => fbs._("鎏金", null, { hk: "4E7oBk" });
+export const guildAdmin_ogAccentJade = (fbs: FbsRuntime) => fbs._("翡翠", null, { hk: "yR59M" });
+export const guildAdmin_ogAccentAzure = (fbs: FbsRuntime) => fbs._("藏青", null, { hk: "UcaFv" });
+export const guildAdmin_ogAccentCinnabar = (fbs: FbsRuntime) => fbs._("朱砂", null, { hk: "3Phj2j" });
+export const guildAdmin_ogAccentViolet = (fbs: FbsRuntime) => fbs._("紫檀", null, { hk: "1VAkT6" });
 export const STRING_FNS: Record<string, StringFn> = {
 	"common.cancel": common_cancel,
 	"common.confirm": common_confirm,
@@ -852,6 +865,7 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"locked.body2": locked_body2,
 	"locked.backButton": locked_backButton,
 	"guildHome.backToHub": guildHome_backToHub,
+	"guildHome.backPlain": guildHome_backPlain,
 	"guildHome.tabTeam": guildHome_tabTeam,
 	"guildHome.tabDex": guildHome_tabDex,
 	"guildHome.tabSect": guildHome_tabSect,
@@ -1391,6 +1405,7 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"errors.seatNotFound": errors_seatNotFound,
 	"errors.notSeated": errors_notSeated,
 	"errors.reminderOffsetsInvalid": errors_reminderOffsetsInvalid,
+	"errors.ogAccentInvalid": errors_ogAccentInvalid,
 	"errors.paramsIncomplete": errors_paramsIncomplete,
 	"errors.bossNotFound": errors_bossNotFound,
 	"errors.guildNameShort": errors_guildNameShort,
@@ -1515,5 +1530,16 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"guildAdmin.statsSeatCount": guildAdmin_statsSeatCount,
 	"guildAdmin.statsCarCount": guildAdmin_statsCarCount,
 	"guildAdmin.statsEmpty": guildAdmin_statsEmpty,
-	"guildAdmin.statsBoardEmpty": guildAdmin_statsBoardEmpty
+	"guildAdmin.statsBoardEmpty": guildAdmin_statsBoardEmpty,
+	"guildAdmin.whiteLabelTitle": guildAdmin_whiteLabelTitle,
+	"guildAdmin.hideBrandingLabel": guildAdmin_hideBrandingLabel,
+	"guildAdmin.hideBrandingHint": guildAdmin_hideBrandingHint,
+	"guildAdmin.ogAccentLabel": guildAdmin_ogAccentLabel,
+	"guildAdmin.ogTitleSuffixLabel": guildAdmin_ogTitleSuffixLabel,
+	"guildAdmin.ogTitleSuffixHint": guildAdmin_ogTitleSuffixHint,
+	"guildAdmin.ogAccentGold": guildAdmin_ogAccentGold,
+	"guildAdmin.ogAccentJade": guildAdmin_ogAccentJade,
+	"guildAdmin.ogAccentAzure": guildAdmin_ogAccentAzure,
+	"guildAdmin.ogAccentCinnabar": guildAdmin_ogAccentCinnabar,
+	"guildAdmin.ogAccentViolet": guildAdmin_ogAccentViolet
 };

@@ -79,6 +79,7 @@ export type PlatformStringKey =
   | 'errors.seatNotFound'
   | 'errors.notSeated'
   | 'errors.reminderOffsetsInvalid'
+  | 'errors.ogAccentInvalid'
   | 'errors.paramsIncomplete'
   | 'errors.bossNotFound'
   | 'errors.guildNameShort'
@@ -185,6 +186,7 @@ export const PLATFORM_STRING_KEYS: readonly PlatformStringKey[] = [
   'errors.seatNotFound',
   'errors.notSeated',
   'errors.reminderOffsetsInvalid',
+  'errors.ogAccentInvalid',
   'errors.paramsIncomplete',
   'errors.bossNotFound',
   'errors.guildNameShort',

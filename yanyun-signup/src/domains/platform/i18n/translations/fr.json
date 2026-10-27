@@ -7623,6 +7623,149 @@
         }
       ],
       "types": []
+    },
+    "kcoWudhrAuo6C3zPK83vJQ==": {
+      "description": "guildHome.backPlain",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "← Retour",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "FXBfzrvZLKBsniC2JTrL6Q==": {
+      "description": "guildAdmin.whiteLabelTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Marque et carte de partage",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "931yLbtcpWsPln4oKuCtdw==": {
+      "description": "guildAdmin.hideBrandingLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Masquer la marque de la plateforme",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "GXSpeFpfbMA6nv0HrhkO4g==": {
+      "description": "guildAdmin.hideBrandingHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Une fois activé, les pages de cette guilde n’afficheront plus le nom de la plateforme ni la mention de bas de page, uniquement les informations de la guilde.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "wREdq5EWfNyD+pfnuTgWVw==": {
+      "description": "guildAdmin.ogAccentLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Couleur d’accent de la carte",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "3BL1+tOcT9/Xu71xyF0sIg==": {
+      "description": "guildAdmin.ogTitleSuffixLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Suffixe du titre de la carte",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Pv73WFMma2YUS+4h1rpeIQ==": {
+      "description": "guildAdmin.ogTitleSuffixHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Ajouté après le titre de la carte, p. ex. « · Recrutement » ; 30 caractères max., laissez vide pour masquer.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "sVKlLqXa41IIx/RttSpHuA==": {
+      "description": "guildAdmin.ogAccentGold",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Doré",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+h6h3OMgllLIMc52SrtNaw==": {
+      "description": "guildAdmin.ogAccentJade",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Jade",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ORrNdJobuCwqAVfp69x+wA==": {
+      "description": "guildAdmin.ogAccentAzure",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Bleu marine",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "KF3DdZ7QESg7rqJh43wW8w==": {
+      "description": "guildAdmin.ogAccentCinnabar",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Cinabre",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "MP7fhaLV+JFZ/UIIeHdjyA==": {
+      "description": "guildAdmin.ogAccentViolet",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Violet",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "yvQgpPV1IO9rrFQjMyaY+g==": {
+      "description": "errors.ogAccentInvalid",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "La couleur d’accent ne fait pas partie des options disponibles.",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

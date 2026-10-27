@@ -33,6 +33,10 @@ import {
 } from './guildavatar.ts';
 import { updateTenantProfile, updateTenantWebhook } from './tenants.ts';
 import {
+  getWhiteLabelSettings, setWhiteLabelSettings, ogAccentOption,
+  sanitizeOgTitleSuffix, OG_ACCENT_PALETTE,
+} from './whitelabel.ts';
+import {
   listFixedTeams, listFixedTeamMembers, insertFixedTeam, getFixedTeamIdForTenant,
   updateFixedTeamFields, deleteFixedTeamWithMembers, insertFixedTeamMember,
   getFixedTeamMemberIdOwned, updateFixedTeamMemberFields, deleteFixedTeamMemberById,
@@ -236,6 +240,14 @@ export class GuildAdminStatsShell extends ShellBase {
   }
 }
 
+/* ---------------- white-label sub shell (server-issued OG accent options) ---------------- */
+
+export class GuildAdminOgAccentOptionShell extends ShellBase {
+  genKey(){ return this.data.key; }
+  genHex(){ return this.data.hex; }
+  genLabel(){ return this.t('guildAdmin', this.data.labelField); }
+}
+
 /* ---------------- the admin shell ---------------- */
 
 const ADMIN_TEXT_SPEC: [string, string, string][] = [
@@ -339,6 +351,12 @@ const ADMIN_TEXT_SPEC: [string, string, string][] = [
   ['adminStatsCarCountLabel', 'guildAdmin', 'statsCarCount'],
   ['adminStatsEmptyText', 'guildAdmin', 'statsEmpty'],
   ['adminStatsBoardEmptyText', 'guildAdmin', 'statsBoardEmpty'],
+  ['adminWhiteLabelTitle', 'guildAdmin', 'whiteLabelTitle'],
+  ['adminHideBrandingLabel', 'guildAdmin', 'hideBrandingLabel'],
+  ['adminHideBrandingHint', 'guildAdmin', 'hideBrandingHint'],
+  ['adminOgAccentLabel', 'guildAdmin', 'ogAccentLabel'],
+  ['adminOgTitleSuffixLabel', 'guildAdmin', 'ogTitleSuffixLabel'],
+  ['adminOgTitleSuffixHint', 'guildAdmin', 'ogTitleSuffixHint'],
 ];
 
 const ADMIN_LOCKED_TEXT_SPEC: [string, string, string][] = [
@@ -414,6 +432,33 @@ export class GuildAdminShell extends ShellBase {
   genStats(){
     return this.memo('stats', async () => new GuildAdminStatsShell(this.ctx, await computeGuildStats(this.db, this.genSlug())));
   }
+  /* White-label+ (Premium tier 1): branding toggle + share-card
+   * customization. All three live in tenant settings (whitelabel.ts);
+   * the admin surface is the only read/write path — member-facing
+   * shells receive only the composed chrome copy, never these raw
+   * settings. */
+  genWhiteLabel(){
+    return this.memo('whiteLabel', () => getWhiteLabelSettings(this.db, this.genSlug()));
+  }
+  async genWhiteLabelHideBranding(){
+    return (await this.genWhiteLabel()).hideBranding;
+  }
+  async genOgAccent(){
+    return (await this.genWhiteLabel()).ogAccent;
+  }
+  async genOgTitleSuffix(){
+    return (await this.genWhiteLabel()).ogTitleSuffix;
+  }
+  genOgAccentOptions(){
+    return OG_ACCENT_PALETTE.map((o) => new GuildAdminOgAccentOptionShell(this.ctx, o));
+  }
+  /* The admin page is one of this guild's pages: when branding is
+   * hidden, the site shell must not show the platform footer here
+   * either (same composition rule as the member-facing Guild shell). */
+  async genPageFooterDisclaimerText(){
+    const wl = await this.genWhiteLabel();
+    return wl.hideBranding ? null : this.t('legal', 'disclaimer');
+  }
 }
 
 export const GUILD_ADMIN_TEXT_RESOLVERS = defineTextGens(GuildAdminShell, ADMIN_TEXT_SPEC);
@@ -443,6 +488,11 @@ function contentResolvers() {
     events: (p: any) => p.genEvents(),
     schoolGuides: (p: any) => p.genSchoolGuides(),
     stats: (p: GuildAdminShell) => p.genStats(),
+    whiteLabelHideBranding: (p: any) => p.genWhiteLabelHideBranding(),
+    ogAccent: (p: any) => p.genOgAccent(),
+    ogTitleSuffix: (p: any) => p.genOgTitleSuffix(),
+    ogAccentOptions: (p: any) => p.genOgAccentOptions(),
+    pageFooterDisclaimerText: (p: any) => p.genPageFooterDisclaimerText(),
   };
 }
 
@@ -521,6 +571,11 @@ export const guildAdminTypes = {
     discordId: (p: GuildAdminStatsLeaderShell) => p.genDiscordId(),
     displayName: (p: GuildAdminStatsLeaderShell) => p.genDisplayName(),
     carCount: (p: GuildAdminStatsLeaderShell) => p.genCarCount(),
+  },
+  GuildAdminOgAccentOption: {
+    key: (p: GuildAdminOgAccentOptionShell) => p.genKey(),
+    hex: (p: GuildAdminOgAccentOptionShell) => p.genHex(),
+    label: (p: GuildAdminOgAccentOptionShell) => p.genLabel(),
   },
 };
 
@@ -605,6 +660,20 @@ export const guildAdminMutations = {
       await setTenantSetting(db, g.access.slug, 'reminder_custom_text', sanitizeReminderCustomText(customText));
     }
     nudgeHub(ctx, g.access.slug);
+    return aOk(ctx);
+  },
+
+  /* White-label+: branding toggle + OG share-card accent (palette
+   * key only — free-form colors are rejected) + title suffix. */
+  updateGuildWhiteLabel: async (_: any, { slug, hideBranding, ogAccent, ogTitleSuffix }: any, ctx: Context) => {
+    const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
+    const accent = String(ogAccent ?? '').trim();
+    if (accent && !ogAccentOption(accent)) return aFail(ctx, 'ogAccentInvalid');
+    await setWhiteLabelSettings(ctx.env.DB, g.access.slug, {
+      hideBranding: !!hideBranding,
+      ogAccent: accent,
+      ogTitleSuffix: sanitizeOgTitleSuffix(ogTitleSuffix),
+    });
     return aOk(ctx);
   },
 
