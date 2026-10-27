@@ -27,6 +27,7 @@ import {
   UpdateGuildDiscordAdminMutation,
   UpdateGuildReminderSettingsAdminMutation,
   UpdateGuildWhiteLabelAdminMutation,
+  StartPremiumCheckoutAdminMutation,
   UpdateGuildVisibilityAdminMutation,
   UpdateGuildSubdomainAdminMutation,
   CreateAdminEventMutation,
@@ -375,7 +376,7 @@ export async function cancelAccountDeletionRemote(): Promise<AccountDeletionPayl
    backend-localized error). One generic runner keeps the 19 admin
    mutations uniform: the screen refreshes the admin query after any
    ok payload. */
-export type AdminPayload = { ok: boolean; error?: string | null; avatarUrl?: string | null; id?: string | null };
+export type AdminPayload = { ok: boolean; error?: string | null; avatarUrl?: string | null; id?: string | null; checkoutUrl?: string | null };
 
 async function adminRun(mutation: any, variables: any, key: string): Promise<AdminPayload> {
   const res: any = await commit<any>(mutation, variables);
@@ -388,6 +389,7 @@ export const adminDeleteAvatar = (slug: string) => adminRun(DeleteGuildAvatarAdm
 export const adminUpdateDiscord = (slug: string, input: any) => adminRun(UpdateGuildDiscordAdminMutation, { slug, input }, 'updateGuildDiscord');
 export const adminUpdateReminderSettings = (slug: string, offsets: number[], customText: string) => adminRun(UpdateGuildReminderSettingsAdminMutation, { slug, offsets, customText }, 'updateGuildReminderSettings');
 export const adminUpdateWhiteLabel = (slug: string, hideBranding: boolean, ogAccent: string, ogTitleSuffix: string) => adminRun(UpdateGuildWhiteLabelAdminMutation, { slug, hideBranding, ogAccent, ogTitleSuffix }, 'updateGuildWhiteLabel');
+export const adminStartPremiumCheckout = (slug: string) => adminRun(StartPremiumCheckoutAdminMutation, { slug }, 'startPremiumCheckout');
 export const adminUpdateVisibility = (slug: string, devOnly: boolean) => adminRun(UpdateGuildVisibilityAdminMutation, { slug, devOnly }, 'updateGuildVisibility');
 export const adminUpdateSubdomain = (slug: string, enabled: boolean) => adminRun(UpdateGuildSubdomainAdminMutation, { slug, enabled }, 'updateGuildSubdomain');
 export const adminCreateEvent = (slug: string, input: any) => adminRun(CreateAdminEventMutation, { slug, input }, 'createAdminEvent');

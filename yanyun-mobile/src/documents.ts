@@ -1579,11 +1579,7 @@ export const GuildAdminQuery = graphql`
           adminOgAccentLabel
           adminOgTitleSuffixLabel
           adminOgTitleSuffixHint
-          adminSubdomainTitle
-          adminSubdomainLabel
-          adminSubdomainAddressLabel
-          adminSubdomainCallbackLabel
-          adminSubdomainNote
+          adminPremiumTitle
           adminAddLabel
           adminEditLabel
           adminDeleteLabel
@@ -1637,15 +1633,17 @@ export const GuildAdminQuery = graphql`
           whiteLabelHideBranding
           ogAccent
           ogTitleSuffix
-          subdomainEnabled
-          subdomainUrl
-          subdomainCallbackUrl
           ogAccentOptions {
             key
             hex
             label
           }
           devOnly
+          premium {
+            __typename
+            ... on GuildAdminPremiumActive { premiumPlanLabel premiumSourceText premiumPeriodEndText }
+            ... on GuildAdminPremiumLocked { premiumTitle premiumBody premiumPriceLabel premiumComingSoonText premiumCheckoutLabel }
+          }
           adminTabProfileLabel
           adminTabDiscordLabel
           adminTabEventsLabel
@@ -1714,6 +1712,8 @@ export const GuildAdminQuery = graphql`
           adminStatsEmptyText
           adminStatsBoardEmptyText
           stats {
+            __typename
+            ... on GuildAdminStats {
             weeks {
               weekLabel
               isCurrent
@@ -1739,6 +1739,7 @@ export const GuildAdminQuery = graphql`
               discordId
               displayName
               carCount
+            }
             }
           }
         }
@@ -1777,14 +1778,14 @@ export const UpdateGuildWhiteLabelAdminMutation = graphql`
     updateGuildWhiteLabel(slug: $slug, hideBranding: $hideBranding, ogAccent: $ogAccent, ogTitleSuffix: $ogTitleSuffix) { ok error }
   }
 `;
+export const StartPremiumCheckoutAdminMutation = graphql`
+  mutation documentsStartPremiumCheckoutAdminMutation($slug: String!) {
+    startPremiumCheckout(slug: $slug) { ok error checkoutUrl }
+  }
+`;
 export const UpdateGuildVisibilityAdminMutation = graphql`
   mutation documentsUpdateGuildVisibilityAdminMutation($slug: String!, $devOnly: Boolean!) {
     updateGuildVisibility(slug: $slug, devOnly: $devOnly) { ok error }
-  }
-`;
-export const UpdateGuildSubdomainAdminMutation = graphql`
-  mutation documentsUpdateGuildSubdomainAdminMutation($slug: String!, $enabled: Boolean!) {
-    updateGuildSubdomain(slug: $slug, enabled: $enabled) { ok error }
   }
 `;
 export const CreateAdminEventMutation = graphql`
