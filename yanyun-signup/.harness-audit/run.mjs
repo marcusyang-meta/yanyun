@@ -48,8 +48,8 @@ function makeDb({ failAudit = false } = {}) {
   const state = {
     // Key order mirrors the tenants entity column order (SELECT * mapping).
     tenants: [
-      { slug: 'alpha', guild_name: '甲百业', password_hash: 'h1', announcement: '', created_at: '2026-01-01', discord_webhook: '', slogan: null, master_name: null, logo_url: null, bg_image_url: null, feature_fixed_teams: null },
-      { slug: 'beta', guild_name: '乙百业', password_hash: 'h2', announcement: '', created_at: '2026-01-02', discord_webhook: '', slogan: null, master_name: null, logo_url: null, bg_image_url: null, feature_fixed_teams: null },
+      { slug: 'alpha', guild_name: '甲百业', password_hash: 'h1', announcement: '', created_at: '2026-01-01', discord_webhook: '', slogan: null, master_name: null, logo_url: null, bg_image_url: null, },
+      { slug: 'beta', guild_name: '乙百业', password_hash: 'h2', announcement: '', created_at: '2026-01-02', discord_webhook: '', slogan: null, master_name: null, logo_url: null, bg_image_url: null, },
     ],
     settings: [], // {tenant, key, value}
     audit: [],    // {id, at, actor, action, tenant, summary, ip}

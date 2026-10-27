@@ -44,7 +44,7 @@ function toRawRows(sqlText, rows) {
 const AVATAR = new Uint8Array([137, 80, 78, 71, 1, 2, 3, 4]);
 function makeDb() {
   const tables = {
-    tenants: [{ slug: 'alpha', guild_name: '甲百业', password_hash: 'hash-alpha', announcement: '', created_at: '2026-01-01', discord_webhook: 'https://discord.com/api/webhooks/111/aaa', slogan: null, master_name: null, logo_url: null, bg_image_url: null, feature_fixed_teams: null }],
+    tenants: [{ slug: 'alpha', guild_name: '甲百业', password_hash: 'hash-alpha', announcement: '', created_at: '2026-01-01', discord_webhook: 'https://discord.com/api/webhooks/111/aaa', slogan: null, master_name: null, logo_url: null, bg_image_url: null }],
     users: [{ discord_id: '1001', username: '甲用户', avatar: '', guilds_json: '[]', guilds_checked_at: 0, created_at: '2026-01-01', updated_at: '2026-01-01', locale_pref: null }],
     user_oauth: [{ discord_id: '1001', refresh_token: 'REFRESH-DO-NOT-LEAK-INTO-AUDIT', scope: 'identify', refresh_state: 'ok', last_refresh_at: 0, updated_at: 0 }],
     guild_avatars: [{ tenant: 'alpha', content_type: 'image/png', bytes: AVATAR.buffer, hash: 'abc', updated_at: 1700000000 }],
