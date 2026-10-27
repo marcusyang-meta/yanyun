@@ -1714,6 +1714,13 @@ type GuildAdmin {
   ogAccent: String!  # 当前强调色 key (空 = 未定制)
   ogTitleSuffix: String!
   ogAccentOptions: [GuildAdminOgAccentOption!]!
+  # 平台子域 (白标档 A, 不挂 gate): 开关默认关 — 关时该子域整体
+  # 404 (与不存在的子域不可区分); 地址与 Discord 登录回调地址由
+  # 服务端组合下发, 客户端从不拼主机名。子域登录需站长在 Discord
+  # 开发者后台为该子域单独登记回调, 说明随 adminSubdomainNote 下发。
+  subdomainEnabled: Boolean!
+  subdomainUrl: String!
+  subdomainCallbackUrl: String!
   # 本百业页面的有效页脚声明 (白标组合, 与成员面 Guild 同口径):
   # 隐藏品牌时为 null, 管理页所在的站点外壳据此不渲染页脚。
   pageFooterDisclaimerText: String
@@ -1819,6 +1826,11 @@ type GuildAdmin {
   adminOgAccentLabel: String!
   adminOgTitleSuffixLabel: String!
   adminOgTitleSuffixHint: String!
+  adminSubdomainTitle: String!
+  adminSubdomainLabel: String!
+  adminSubdomainAddressLabel: String!
+  adminSubdomainCallbackLabel: String!
+  adminSubdomainNote: String!
 }
 
 # OG 分享卡强调色选项: 服务端色板 (key + 本地化名 + 色值), 管理员
@@ -2003,6 +2015,7 @@ extend type Mutation {
   updateGuildDiscord(slug: String!, input: UpdateGuildDiscordInput!): GuildAdminPayload!
   updateGuildReminderSettings(slug: String!, offsets: [Int!]!, customText: String): GuildAdminPayload!
   updateGuildWhiteLabel(slug: String!, hideBranding: Boolean!, ogAccent: String!, ogTitleSuffix: String): GuildAdminPayload!
+  updateGuildSubdomain(slug: String!, enabled: Boolean!): GuildAdminPayload!
   updateGuildVisibility(slug: String!, devOnly: Boolean!): GuildAdminPayload!
   # 头像以 base64 文本上传 (GraphQL 无二进制通道); 服务端解码后仍走
   # 与原直传相同的大小/魔数校验, 错误文案走 errors 目录。

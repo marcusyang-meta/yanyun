@@ -111,7 +111,12 @@ export type GuildsStringKey =
   | 'guildAdmin.ogAccentJade'
   | 'guildAdmin.ogAccentAzure'
   | 'guildAdmin.ogAccentCinnabar'
-  | 'guildAdmin.ogAccentViolet';
+  | 'guildAdmin.ogAccentViolet'
+  | 'guildAdmin.subdomainTitle'
+  | 'guildAdmin.subdomainLabel'
+  | 'guildAdmin.subdomainAddressLabel'
+  | 'guildAdmin.subdomainCallbackLabel'
+  | 'guildAdmin.subdomainNote';
 
 export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'locked.backLink',
@@ -225,4 +230,9 @@ export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'guildAdmin.ogAccentAzure',
   'guildAdmin.ogAccentCinnabar',
   'guildAdmin.ogAccentViolet',
+  'guildAdmin.subdomainTitle',
+  'guildAdmin.subdomainLabel',
+  'guildAdmin.subdomainAddressLabel',
+  'guildAdmin.subdomainCallbackLabel',
+  'guildAdmin.subdomainNote',
 ];

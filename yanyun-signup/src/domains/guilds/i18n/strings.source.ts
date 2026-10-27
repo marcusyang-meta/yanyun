@@ -132,3 +132,8 @@ export const guildAdmin_ogAccentJade = (fbs: FbsAPI) =>fbs("翡翠", "guildAdmin
 export const guildAdmin_ogAccentAzure = (fbs: FbsAPI) =>fbs("藏青", "guildAdmin.ogAccentAzure");
 export const guildAdmin_ogAccentCinnabar = (fbs: FbsAPI) =>fbs("朱砂", "guildAdmin.ogAccentCinnabar");
 export const guildAdmin_ogAccentViolet = (fbs: FbsAPI) =>fbs("紫檀", "guildAdmin.ogAccentViolet");
+export const guildAdmin_subdomainTitle = (fbs: FbsAPI) =>fbs("平台子域", "guildAdmin.subdomainTitle");
+export const guildAdmin_subdomainLabel = (fbs: FbsAPI) =>fbs("启用专属子域", "guildAdmin.subdomainLabel");
+export const guildAdmin_subdomainAddressLabel = (fbs: FbsAPI) =>fbs("子域地址", "guildAdmin.subdomainAddressLabel");
+export const guildAdmin_subdomainCallbackLabel = (fbs: FbsAPI) =>fbs("登录回调地址", "guildAdmin.subdomainCallbackLabel");
+export const guildAdmin_subdomainNote = (fbs: FbsAPI) =>fbs("开启后，成员可通过上方子域地址访问本百业。注意：子域上的 Discord 登录需要站长先在 Discord 开发者后台为该子域登记登录回调（地址见上方）；登记完成前，子域可以打开浏览，但无法在子域上完成登录。", "guildAdmin.subdomainNote");

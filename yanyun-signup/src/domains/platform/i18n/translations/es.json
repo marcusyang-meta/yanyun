@@ -8261,6 +8261,61 @@
         }
       ],
       "types": []
+    },
+    "h+FIlf/ustw6hbP7qToA3A==": {
+      "description": "guildAdmin.subdomainTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Subdominio de la plataforma",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "3hwha2rrzYKZ68DB9KOUDg==": {
+      "description": "guildAdmin.subdomainLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Activar subdominio propio",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "BQUXR3U+e8xZ5r0Qoj3I2Q==": {
+      "description": "guildAdmin.subdomainAddressLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Dirección del subdominio",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "3VZRT1sYuURpGdbpAZ+30w==": {
+      "description": "guildAdmin.subdomainCallbackLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "URL de devolución de llamada de inicio de sesión",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "NrNXsmKX0rT8pUF/VG+qTA==": {
+      "description": "guildAdmin.subdomainNote",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Al activarlo, los miembros pueden acceder a este gremio mediante la dirección de subdominio anterior. Nota: el inicio de sesión con Discord en el subdominio solo funciona después de que el propietario del sitio registre la devolución de llamada de inicio de sesión de ese subdominio en el portal de desarrolladores de Discord (dirección anterior); hasta entonces, el subdominio se puede abrir para navegar, pero no se puede completar el inicio de sesión en él.",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

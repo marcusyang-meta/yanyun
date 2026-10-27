@@ -9,6 +9,7 @@
 import { Hono, type Context } from 'hono';
 import { getShortLinkByCode, SHORT_CODE_RE } from './shortlinks.ts';
 import { getEventRowByTenant } from './events.ts';
+import { parseGuildSubdomainSlug, isGuildSubdomainEnabled } from '../guilds/index.ts';
 
 type ShortLinkContext = Context<{ Bindings: { DB: D1Database } }>;
 
@@ -21,9 +22,15 @@ shortLinkRoutes.get('/c/:code', async (c: ShortLinkContext) => {
   // The target may have been disbanded/deleted after the link was shared.
   const ev = await getEventRowByTenant(c.env.DB, row.event_id, row.tenant).catch(() => null);
   if (!ev) return new Response('Not found', { status: 404 });
-  const target = new URL(
-    `/${encodeURIComponent(row.tenant)}/car/${row.event_id}`,
-    c.req.url,
-  );
+  // A hit through the car's own guild subdomain lands on the clean
+  // subdomain car path (the host names the guild); every other host
+  // keeps the canonical slug path on the request's own origin, as
+  // before.
+  const reqUrl = new URL(c.req.url);
+  const onOwnSubdomain = parseGuildSubdomainSlug(reqUrl.hostname) === row.tenant
+    && await isGuildSubdomainEnabled(c.env.DB, row.tenant).catch(() => false);
+  const target = onOwnSubdomain
+    ? new URL(`/car/${row.event_id}`, reqUrl)
+    : new URL(`/${encodeURIComponent(row.tenant)}/car/${row.event_id}`, reqUrl);
   return Response.redirect(target.toString(), 302);
 });
