@@ -261,6 +261,7 @@ export async function handleStripeEvent(
         };
       }
     }
+    if (sub && !sub.customerId && customerId) sub.customerId = customerId;
     if (sub) await applySubscription(env, sub, slug);
     else if (slug) {
       // Session without a subscription object (should not happen in
