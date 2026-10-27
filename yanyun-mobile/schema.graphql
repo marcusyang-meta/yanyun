@@ -773,6 +773,16 @@ type SettingsPage {
   settingsLangEsLabel: String!
   settingsLangFrLabel: String!
   settingsSavedText: String!
+  feedbackEntryLabel: String!
+  feedbackTitle: String!
+  feedbackCategoryLabel: String!
+  feedbackCategoryProblemLabel: String!
+  feedbackCategorySuggestionLabel: String!
+  feedbackCategoryOtherLabel: String!
+  feedbackPlaceholder: String!
+  feedbackSubmitLabel: String!
+  feedbackSubmittingLabel: String!
+  feedbackSuccessText: String!
   localePref: String
   effectiveLocale: String!
   accountSectionTitle: String!
@@ -805,6 +815,18 @@ type AccountPendingDeletion {
   daysLeft: Int!
   accountPendingTitle: String!
   accountPendingBody: String!
+}
+
+enum FeedbackCategory {
+  PROBLEM
+  SUGGESTION
+  OTHER
+}
+
+type SubmitFeedbackPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
 }
 
 type UpdateLocalePayload {
@@ -1173,6 +1195,7 @@ type Mutation {
   deleteGroupingTemplate(id: ID!): DeletePayload!
   calcTiaolv(input: TiaolvInput!): TiaolvResult!
   calcGraduation(input: GraduationInput!): GraduationResult!
+  submitFeedback(category: FeedbackCategory!, text: String!): SubmitFeedbackPayload!
   updateMyLocale(locale: String): UpdateLocalePayload!
   exportMyData: ExportMyDataPayload!
   requestAccountDeletion(typedUsername: String!): AccountDeletionPayload!
@@ -1418,6 +1441,15 @@ type Viewer {
   loginCardBody2: String!
   loginButtonLabel: String!
   loginPrivacyText: String!
+  landingFeaturesTitle: String!
+  landingGroupingTitle: String!
+  landingGroupingBody: String!
+  landingReminderTitle: String!
+  landingReminderBody: String!
+  landingDexTitle: String!
+  landingDexBody: String!
+  landingGearTitle: String!
+  landingGearBody: String!
   footerDisclaimerText: String!
   footerTermsLabel: String!
   footerPrivacyLabel: String!

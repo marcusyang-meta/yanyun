@@ -536,6 +536,7 @@ export const ProfilePageQuery = graphql`
       settingsLangEsLabel
       settingsLangFrLabel
       settingsSavedText
+      feedbackEntryLabel
       localePref
       effectiveLocale
       accountSectionTitle
@@ -569,6 +570,37 @@ export const ProfilePageQuery = graphql`
     }
     gradPage {
       gearMyLibTitle
+    }
+  }
+`;
+
+/* Feedback page (standalone push page reached from Profile) */
+
+export const FeedbackPageQuery = graphql`
+  query documentsFeedbackPageQuery {
+    viewer {
+      commonUnknownErrorText
+    }
+    settingsPage {
+      feedbackTitle
+      feedbackCategoryLabel
+      feedbackCategoryProblemLabel
+      feedbackCategorySuggestionLabel
+      feedbackCategoryOtherLabel
+      feedbackPlaceholder
+      feedbackSubmitLabel
+      feedbackSubmittingLabel
+      feedbackSuccessText
+    }
+  }
+`;
+
+export const SubmitFeedbackMutation = graphql`
+  mutation documentsSubmitFeedbackMutation($category: FeedbackCategory!, $text: String!) {
+    submitFeedback(category: $category, text: $text) {
+      ok
+      error
+      errorCode
     }
   }
 `;
