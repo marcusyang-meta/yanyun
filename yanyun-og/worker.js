@@ -346,6 +346,173 @@ async function svgToPngResponse(svg, url, maxAge) {
   throw lastErr;
 }
 
+/* 装备方案分享数据: GraphQL ogBuildCard (分享安全窄口 — 只回方案名 /
+ * 目标口径 / 毕业度摘要, 不带所有者信息)。不存在/已撤销 -> null ->
+ * 404; 基础设施故障 -> throw, 上层兜底通用图。 */
+async function fetchBuildData(code) {
+  const data = await fetchJson(`${SITE_API}/graphql`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      query: '{ ogBuildCard(code: "' + code + '") { name buildLabel snapTotal snapA snapB snapD } }',
+    }),
+  });
+  const card = data?.data?.ogBuildCard;
+  if (!card) return null;
+  return {
+    name: card.name || '',
+    buildLabel: card.buildLabel || '',
+    snapTotal: typeof card.snapTotal === 'number' ? card.snapTotal : 0,
+    snapA: typeof card.snapA === 'number' ? card.snapA : 0,
+    snapB: typeof card.snapB === 'number' ? card.snapB : 0,
+    snapD: typeof card.snapD === 'number' ? card.snapD : 0,
+  };
+}
+
+async function handleBuildImage(request, url, code) {
+  // Cache 10 分钟（与车卡同口径；撤销后页面立即 404，图最多残留到缓存过期）
+  const cache = caches.default;
+  const cacheKey = new Request(url.toString(), request);
+  const cached = await cache.match(cacheKey);
+  if (cached) return cached;
+
+  // 分享不存在/已撤销 -> 404; 基础设施故障 -> throw, 由顶层兜底通用图
+  const b = await fetchBuildData(code);
+  if (!b) return new Response('Build share not found', { status: 404 });
+  const accent = OG_GOLD;
+  await acquireRenderSlot();
+  try {
+  const font = await getFont(cache);
+  const brushFont = await getBrushFont(cache);
+  const title = b.name || '装备方案';
+  const titleSize = title.length <= 6 ? 100 : title.length <= 10 ? 88 : title.length <= 14 ? 72 : title.length <= 20 ? 60 : 50;
+
+  const element = {
+    type: 'div',
+    props: {
+      style: {
+        width: '1200px', height: '630px', display: 'flex', flexDirection: 'column',
+        justifyContent: 'center', alignItems: 'center',
+        backgroundColor: '#0c0b09', position: 'relative', fontFamily: 'Noto Sans SC',
+      },
+      children: [
+        {
+          type: 'div',
+          props: {
+            style: {
+              position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+              background: `radial-gradient(ellipse at 30% 20%, ${rgbaOf(accent, 0.09)} 0%, transparent 60%)`,
+            },
+          },
+        },
+        // 品类（小，强调色）
+        {
+          type: 'div',
+          props: {
+            style: { color: accent, fontSize: '32px', letterSpacing: '8px', marginBottom: '20px' },
+            children: '装备方案',
+          },
+        },
+        // 方案名（毛笔体大金字）+ 印章
+        {
+          type: 'div',
+          props: {
+            style: {
+              display: 'flex', flexDirection: 'row', alignItems: 'flex-end',
+              justifyContent: 'center', marginBottom: '24px',
+            },
+            children: [
+              {
+                type: 'div',
+                props: {
+                  style: {
+                    color: '#ecd28f', fontSize: `${titleSize}px`, fontFamily: 'Ma Shan Zheng',
+                    letterSpacing: '2px', textAlign: 'center', maxWidth: '880px',
+                  },
+                  children: title,
+                },
+              },
+              {
+                type: 'div',
+                props: {
+                  style: { marginLeft: '20px', marginBottom: '10px', display: 'flex' },
+                  children: sealElement(84),
+                },
+              },
+            ],
+          },
+        },
+        // 目标口径
+        ...(b.buildLabel ? [{
+          type: 'div',
+          props: {
+            style: { color: '#ece2cb', fontSize: '34px', letterSpacing: '2px', marginBottom: '28px' },
+            children: b.buildLabel,
+          },
+        }] : []),
+        // 毕业度大字 + A/B/D 小行
+        {
+          type: 'div',
+          props: {
+            style: { display: 'flex', flexDirection: 'column', alignItems: 'center' },
+            children: [
+              {
+                type: 'div',
+                props: {
+                  style: { display: 'flex', flexDirection: 'row', alignItems: 'baseline', marginBottom: '10px' },
+                  children: [
+                    {
+                      type: 'span',
+                      props: {
+                        style: { color: '#ecd28f', fontSize: '84px', fontWeight: 700 },
+                        children: `${b.snapTotal.toFixed(1)}%`,
+                      },
+                    },
+                    {
+                      type: 'span',
+                      props: {
+                        style: { color: '#b9a97f', fontSize: '30px', marginLeft: '14px', letterSpacing: '3px' },
+                        children: '毕业度',
+                      },
+                    },
+                  ],
+                },
+              },
+              {
+                type: 'div',
+                props: {
+                  style: { color: '#ece2cb', fontSize: '30px', letterSpacing: '2px' },
+                  children: `A ${b.snapA.toFixed(1)}% · B ${b.snapB.toFixed(1)}% · D ${b.snapD.toFixed(1)}%`,
+                },
+              },
+            ],
+          },
+        },
+        // 品牌行
+        {
+          type: 'div',
+          props: {
+            style: { color: '#b9a97f', fontSize: '26px', letterSpacing: '6px', marginTop: '36px' },
+            children: '燕云百业',
+          },
+        },
+      ],
+    },
+  };
+
+  const svg = await satori(element, {
+    width: 1200, height: 630,
+    fonts: [
+      { name: 'Noto Sans SC', data: font, weight: 700, style: 'normal' },
+      { name: 'Ma Shan Zheng', data: brushFont, weight: 400, style: 'normal' },
+    ],
+  });
+  const response = await svgToPngResponse(svg, url, 600);
+  await cache.put(cacheKey, response.clone());
+  return response;
+  } finally { releaseRenderSlot(); }
+}
+
 async function handleCarImage(request, url, slug, id) {
   // Cache 10 分钟（座位数变化比百业信息快）
   const cache = caches.default;
@@ -677,6 +844,11 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
     try {
+      // Route: /og/build/:code.png (装备方案分享图; 静态段须在百业路由之前)
+      const buildMatch = path.match(/^\/og\/build\/([0-9A-Za-z]{7})\.png$/);
+      if (buildMatch) {
+        return await handleBuildImage(request, url, buildMatch[1]);
+      }
       // Route: /og/:slug/car/:id.png
       const carMatch = path.match(/^\/og\/([^\/]+)\/car\/(\d+)\.png$/);
       if (carMatch) {
