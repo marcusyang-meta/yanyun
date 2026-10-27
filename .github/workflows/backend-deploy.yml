@@ -78,12 +78,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.merge_commit_sha }}
+      - run: corepack enable pnpm
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-          cache: npm
-      - run: corepack enable npm
-      - run: npm ci
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
       - name: Download the verified artifact
         uses: actions/download-artifact@v4
         with:
@@ -123,7 +123,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           node scripts/sync-public.mjs --dist "$GITHUB_WORKSPACE/ci-artifact"
-          npx wrangler deploy --message "auto-promote PR #$PR_NUMBER (backend-deploy run ${{ github.run_id }})"
+          pnpm exec wrangler deploy --message "auto-promote PR #$PR_NUMBER (backend-deploy run ${{ github.run_id }})"
       - name: Record the new production version
         id: newver
         env:
@@ -161,7 +161,7 @@ jobs:
             echo "Promote of PR #$PR_NUMBER failed a production step. Rolling production back to version \`$PREV\`."
           } >> "$GITHUB_STEP_SUMMARY"
           echo "::error::Promote failed — rolling back to $PREV"
-          npx wrangler versions deploy --version-id "$PREV" --percentage 100 --yes \
+          pnpm exec wrangler versions deploy --version-id "$PREV" --percentage 100 --yes \
             --message "auto-rollback of PR #$PR_NUMBER (backend-deploy run ${{ github.run_id }})"
           NOW=""
           for i in $(seq 1 12); do
