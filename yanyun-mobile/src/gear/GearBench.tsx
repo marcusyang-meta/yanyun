@@ -24,7 +24,7 @@ import type { documentsGearBenchAutoMutation } from '../__generated__/documentsG
 
 // Gear bench (mirrors Web GearBench): target/bow/extra/base values,
 // loadout, panel and graduation live here; library and builds live in
-// GearLibrary (shared implementation and storage with Profile). All math
+// GearLibrary (shared implementation and storage with the gear library screen). All math
 // runs on the backend (gearPlan / gearAutoCombine); nothing is reimplemented here.
 
 type Plan = documentsGearBenchPlanMutation['response']['gearPlan'];
@@ -387,7 +387,7 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
         </Card>
       </View>
 
-      {/* Gear library + builds (GearLibrary shared with Profile) */}
+      {/* Gear library + builds (GearLibrary shared with the gear library screen) */}
       <View style={{ marginTop: 18 }}>
         <GearLibrary
           mode="bench"

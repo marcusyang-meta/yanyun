@@ -6,9 +6,6 @@ import { useLazyLoadQuery } from 'react-relay';
 import { fonts, theme } from '../theme';
 import { AsyncBoundary, LoadingView } from '../components/AsyncBoundary';
 import { ProfilePageQuery } from '../documents';
-import GearLibrary from '../gear/GearLibrary';
-import { GearToastHost } from '../gear/bits';
-import { GoldDustHost } from '../gear/GearSeal';
 import { updateMyLocale } from '../api';
 import { emitLocaleChanged, writePrefMirror } from '../locale';
 import { useSession } from '../session';
@@ -17,9 +14,11 @@ import type { documentsProfilePageQuery } from '../__generated__/documentsProfil
 // Profile (same content and switch semantics as Web Profile; a push page
 // on mobile): identity (avatar + nickname + Discord account) + locale
 // preference (stored per account in users.locale_pref; follow-device +
-// five languages) + sign-out. All copy on this page comes from
-// settingsPage / viewer shell fields per locale; this file holds no UI
-// copy (language option labels are also backend settingsLang* fields).
+// five languages) + an entry row to the standalone gear library screen
+// (/gear — the library itself moved out of this page) + sign-out. All
+// copy on this page comes from settingsPage / viewer shell fields per
+// locale; this file holds no UI copy (language option labels are also
+// backend settingsLang* fields).
 // Switch flow mirrors Web: tapping first applies a local override (the
 // control reflects it immediately) -> updateMyLocale -> on success,
 // write the preference mirror, then fire the switch event; the relay
@@ -37,8 +36,6 @@ export default function ProfileScreen() {
           <ProfileInner topInset={insets.top} bottomInset={insets.bottom} />
         </Suspense>
       </AsyncBoundary>
-      <GearToastHost />
-      <GoldDustHost />
     </View>
   );
 }
@@ -158,13 +155,13 @@ function ProfileInner({ topInset, bottomInset }: { topInset: number; bottomInset
       {saved && <Text style={s.saved}>✓ {page.settingsSavedText}</Text>}
       {!!error && <Text style={s.error}>{error}</Text>}
 
-      {/* My gear library / my builds: shares the GearLibrary implementation and
-          per-account backend storage with the bench (profile mode); not a
-          second implementation. */}
+      {/* Entry to the standalone gear library screen: the library and my
+          builds live on their own push page now (/gear), not embedded here. */}
       <View style={s.gearZone}>
-        <Suspense fallback={<LoadingView />}>
-          <GearLibrary mode="profile" />
-        </Suspense>
+        <Pressable style={s.entryRow} onPress={() => router.push('/gear')}>
+          <Text style={s.entryText}>{data.gradPage?.gearMyLibTitle}</Text>
+          <Text style={s.entryChevron}>›</Text>
+        </Pressable>
       </View>
 
       <View style={s.logoutZone}>
@@ -222,6 +219,13 @@ const s = StyleSheet.create({
   saved: { fontFamily: fonts.serif, color: '#7fb069', fontSize: 13, marginTop: 14 },
   error: { fontFamily: fonts.serif, color: theme.danger, fontSize: 13, marginTop: 14 },
   gearZone: { borderTopWidth: 1, borderTopColor: 'rgba(201,163,92,.22)', marginTop: 26, paddingTop: 18 },
+  entryRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingVertical: 12, paddingHorizontal: 16, borderRadius: 10,
+    backgroundColor: 'rgba(255,255,255,.02)', borderWidth: 1, borderColor: 'rgba(201,163,92,.25)',
+  },
+  entryText: { fontFamily: fonts.serif, color: theme.paper, fontSize: 14.5 },
+  entryChevron: { fontFamily: fonts.serif, color: theme.gold, fontSize: 19, lineHeight: 21 },
   logoutZone: { borderTopWidth: 1, borderTopColor: 'rgba(201,163,92,.22)', marginTop: 26, paddingTop: 18 },
   logoutBtn: {
     borderWidth: 1, borderColor: 'rgba(201,163,92,.4)', borderRadius: 10,

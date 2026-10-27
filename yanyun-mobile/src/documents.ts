@@ -539,6 +539,19 @@ export const ProfilePageQuery = graphql`
       localePref
       effectiveLocale
     }
+    gradPage {
+      gearMyLibTitle
+    }
+  }
+`;
+
+/* Gear library page (standalone push page; the library left Profile) */
+
+export const GearPageQuery = graphql`
+  query documentsGearPageQuery {
+    gradPage {
+      gearMyLibTitle
+    }
   }
 `;
 
