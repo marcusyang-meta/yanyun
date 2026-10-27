@@ -137,3 +137,19 @@ export const guildAdmin_subdomainLabel = (fbs: FbsAPI) =>fbs("启用专属子域
 export const guildAdmin_subdomainAddressLabel = (fbs: FbsAPI) =>fbs("子域地址", "guildAdmin.subdomainAddressLabel");
 export const guildAdmin_subdomainCallbackLabel = (fbs: FbsAPI) =>fbs("登录回调地址", "guildAdmin.subdomainCallbackLabel");
 export const guildAdmin_subdomainNote = (fbs: FbsAPI) =>fbs("开启后，成员可通过上方子域地址访问本百业。注意：子域上的 Discord 登录需要站长先在 Discord 开发者后台为该子域登记登录回调（地址见上方）；登记完成前，子域可以打开浏览，但无法在子域上完成登录。", "guildAdmin.subdomainNote");
+export const guildAdmin_premiumLockedTitle = (fbs: FbsAPI) =>fbs("开通百业 Premium", "guildAdmin.premiumLockedTitle");
+export const guildAdmin_premiumLockedBody = (fbs: FbsAPI) =>fbs("高级发车提醒、出勤统计、品牌与分享卡定制均为 Premium 功能。开通后立即生效，可随时取消。", "guildAdmin.premiumLockedBody");
+export const guildAdmin_premiumCheckoutButton = (fbs: FbsAPI) =>fbs("立即开通", "guildAdmin.premiumCheckoutButton");
+export const guildAdmin_premiumComingSoon = (fbs: FbsAPI) =>fbs("即将开放", "guildAdmin.premiumComingSoon");
+export const guildAdmin_premiumActiveTitle = (fbs: FbsAPI) =>fbs("百业 Premium", "guildAdmin.premiumActiveTitle");
+export const guildAdmin_premiumPlanName = (fbs: FbsAPI) =>fbs("Premium", "guildAdmin.premiumPlanName");
+export const guildAdmin_premiumSourceStripe = (fbs: FbsAPI) =>fbs("通过 Stripe 订阅", "guildAdmin.premiumSourceStripe");
+export const guildAdmin_premiumSourceManual = (fbs: FbsAPI) =>fbs("由平台授予", "guildAdmin.premiumSourceManual");
+export const guildAdmin_premiumPeriodEnd = (fbs: FbsAPI, p?: StringParams) =>
+  fbs(["当前周期至 ", fbs.param("date", pv(p, "date"))], "guildAdmin.premiumPeriodEnd");
+export const guildAdmin_premiumPriceMonth = (fbs: FbsAPI, p?: StringParams) =>
+  fbs([fbs.param("amount", pv(p, "amount")), " / 月"], "guildAdmin.premiumPriceMonth");
+export const guildAdmin_premiumPriceYear = (fbs: FbsAPI, p?: StringParams) =>
+  fbs([fbs.param("amount", pv(p, "amount")), " / 年"], "guildAdmin.premiumPriceYear");
+export const guildAdmin_billingSuccess = (fbs: FbsAPI) =>fbs("开通成功，Premium 已生效。", "guildAdmin.billingSuccess");
+export const guildAdmin_billingCanceled = (fbs: FbsAPI) =>fbs("已取消开通，未产生扣费。", "guildAdmin.billingCanceled");

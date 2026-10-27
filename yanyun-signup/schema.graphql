@@ -1718,13 +1718,6 @@ type GuildAdmin {
   ogAccent: String!  # 当前强调色 key (空 = 未定制)
   ogTitleSuffix: String!
   ogAccentOptions: [GuildAdminOgAccentOption!]!
-  # 平台子域 (白标档 A, 不挂 gate): 开关默认关 — 关时该子域整体
-  # 404 (与不存在的子域不可区分); 地址与 Discord 登录回调地址由
-  # 服务端组合下发, 客户端从不拼主机名。子域登录需站长在 Discord
-  # 开发者后台为该子域单独登记回调, 说明随 adminSubdomainNote 下发。
-  subdomainEnabled: Boolean!
-  subdomainUrl: String!
-  subdomainCallbackUrl: String!
   # 本百业页面的有效页脚声明 (白标组合, 与成员面 Guild 同口径):
   # 隐藏品牌时为 null, 管理页所在的站点外壳据此不渲染页脚。
   pageFooterDisclaimerText: String
@@ -1732,7 +1725,15 @@ type GuildAdmin {
   gameVersion: String!
   events: [GuildAdminEvent!]!
   schoolGuides: GuildAdminSchoolGuides!
-  stats: GuildAdminStats!
+  # 出勤统计 (Premium, 读侧门控): 总闸开且本百业未开通时组合为
+  # GuildAdminStatsLocked (只有未开通文案, 零统计数据); 总闸关或
+  # 已开通时与从前一致。结论只由响应类型表达, 无标志位下发。
+  stats: GuildAdminStatsResult!
+  # Premium 权益面: 总闸关时为 null (管理面与从前逐字一致, 该面
+  # 不出现); 总闸开时按权益组合 Active / Locked 变体 — Locked 带
+  # 价格位与开通入口 (Stripe 未配置时价格位为 null、改由即将开放
+  # 文案占据), Active 带方案来源与当前周期。
+  premium: GuildAdminPremiumResult
   # 管理页文案 (guildAdmin 目录, 按请求 locale 生成)
   adminTitle: String!
   adminBackLinkLabel: String!
@@ -1830,11 +1831,8 @@ type GuildAdmin {
   adminOgAccentLabel: String!
   adminOgTitleSuffixLabel: String!
   adminOgTitleSuffixHint: String!
-  adminSubdomainTitle: String!
-  adminSubdomainLabel: String!
-  adminSubdomainAddressLabel: String!
-  adminSubdomainCallbackLabel: String!
-  adminSubdomainNote: String!
+  adminBillingSuccessText: String!
+  adminBillingCanceledText: String!
 }
 
 # OG 分享卡强调色选项: 服务端色板 (key + 本地化名 + 色值), 管理员
@@ -1919,6 +1917,37 @@ type GuildAdminStats {
   leaderLeaders: [GuildAdminStatsLeader!]!
 }
 
+union GuildAdminStatsResult = GuildAdminStats | GuildAdminStatsLocked
+
+# 统计未开通变体: 只带 Premium 未开通文案, 零统计字段。开通面
+# 本体 (价格位 + 开通入口) 在 GuildAdmin.premium 的 Locked 变体上,
+# 两处由同一次权益判定组合, 不会互相矛盾。
+type GuildAdminStatsLocked {
+  premiumTitle: String!
+  premiumBody: String!
+}
+
+union GuildAdminPremiumResult = GuildAdminPremiumActive | GuildAdminPremiumLocked
+
+# 已开通变体: 方案名 + 来源 (Stripe 订阅 / 平台授予) + 当前周期止
+# (手工授予与订阅都有周期; 无周期记录时为 null)。
+type GuildAdminPremiumActive {
+  premiumPlanLabel: String!
+  premiumSourceText: String!
+  premiumPeriodEndText: String
+}
+
+# 未开通变体: 开通文案 + 价格位 + 开通入口。价格只渲染后端从
+# Stripe 读回的价格数据 (premiumPriceLabel), 未配置 Stripe 时为
+# null 并改由 premiumComingSoonText 占据 — 前端不写死任何金额。
+type GuildAdminPremiumLocked {
+  premiumTitle: String!
+  premiumBody: String!
+  premiumPriceLabel: String
+  premiumComingSoonText: String
+  premiumCheckoutLabel: String!
+}
+
 type GuildAdminStatsWeek {
   weekStartUtc: Int!
   weekLabel: String!
@@ -1956,6 +1985,8 @@ type GuildAdminPayload {
   # 头像变更后回带新版本化 URL / 新建实体回带 id (其余变更为 null)
   avatarUrl: String
   id: ID
+  # startPremiumCheckout 成功时回带 Stripe Checkout 托管页 URL
+  checkoutUrl: String
 }
 
 input UpdateGuildProfileInput {
@@ -2019,7 +2050,10 @@ extend type Mutation {
   updateGuildDiscord(slug: String!, input: UpdateGuildDiscordInput!): GuildAdminPayload!
   updateGuildReminderSettings(slug: String!, offsets: [Int!]!, customText: String): GuildAdminPayload!
   updateGuildWhiteLabel(slug: String!, hideBranding: Boolean!, ogAccent: String!, ogTitleSuffix: String): GuildAdminPayload!
-  updateGuildSubdomain(slug: String!, enabled: Boolean!): GuildAdminPayload!
+  # 开通 Premium: 服务端建 Stripe Checkout Session 并回带托管页
+  # URL。总闸关 / 已开通 / Stripe 未配置时以 errors 目录文案拒绝
+  # (paygateDisabled / premiumActive / premiumComingSoon)。
+  startPremiumCheckout(slug: String!): GuildAdminPayload!
   updateGuildVisibility(slug: String!, devOnly: Boolean!): GuildAdminPayload!
   # 头像以 base64 文本上传 (GraphQL 无二进制通道); 服务端解码后仍走
   # 与原直传相同的大小/魔数校验, 错误文案走 errors 目录。

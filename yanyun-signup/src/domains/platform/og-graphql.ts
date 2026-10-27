@@ -7,7 +7,7 @@
  * non-dev origins, exactly as everywhere else. */
 import type { Context } from './context.ts';
 import { ShellBase, getTenantSetting, isDevRequest, s } from './graphql-base.ts';
-import { getTenantRow, getWhiteLabelSettings, ogAccentHex } from '../guilds/index.ts';
+import { getTenantRow, getEffectiveWhiteLabelSettings, ogAccentHex } from '../guilds/index.ts';
 import { listTenantsDirectory } from '../guilds/tenants.ts';
 import { getDevOnlySlugs } from './http.ts';
 import {
@@ -44,12 +44,12 @@ export class OgGuildCardShell extends ShellBase {
    * ever be stored, so the worker never sees a raw admin input. */
   async genOgAccentColor(){
     if (!this.data.tenant) return '';
-    const wl = await getWhiteLabelSettings(this.db, this.data.tenant.slug);
+    const wl = await getEffectiveWhiteLabelSettings(this.db, this.data.tenant.slug);
     return wl.ogAccent ? ogAccentHex(wl.ogAccent) : '';
   }
   async genOgTitleSuffix(){
     if (!this.data.tenant) return '';
-    const wl = await getWhiteLabelSettings(this.db, this.data.tenant.slug);
+    const wl = await getEffectiveWhiteLabelSettings(this.db, this.data.tenant.slug);
     return wl.ogTitleSuffix;
   }
 }

@@ -139,3 +139,8 @@ export const errors_accountExportRateLimited = (fbs: FbsAPI) =>fbs("每 24 小�
 export const errors_accountUsernameMismatch = (fbs: FbsAPI) =>fbs("输入的显示名与你的账号不一致", "errors.accountUsernameMismatch");
 export const errors_accountDeletionPending = (fbs: FbsAPI) =>fbs("已有一份删除申请在冷静期中", "errors.accountDeletionPending");
 export const errors_accountDeletionNotPending = (fbs: FbsAPI) =>fbs("当前没有待执行的删除申请", "errors.accountDeletionNotPending");
+export const errors_premiumRequired = (fbs: FbsAPI) =>fbs("该功能需要开通 Premium", "errors.premiumRequired");
+export const errors_premiumComingSoon = (fbs: FbsAPI) =>fbs("Premium 开通即将开放", "errors.premiumComingSoon");
+export const errors_premiumActive = (fbs: FbsAPI) =>fbs("本百业已开通 Premium", "errors.premiumActive");
+export const errors_paygateDisabled = (fbs: FbsAPI) =>fbs("收费功能尚未开启", "errors.paygateDisabled");
+export const errors_checkoutFailed = (fbs: FbsAPI) =>fbs("创建支付会话失败，请稍后再试", "errors.checkoutFailed");

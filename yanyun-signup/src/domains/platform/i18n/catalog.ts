@@ -3499,34 +3499,6 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "fr": "{n} ensembles",
       "zh-TW": "{n} 套"
     },
-    "shareLabel": {
-      "zh-CN": "分享",
-      "en": "Share",
-      "es": "Compartir",
-      "fr": "Partager",
-      "zh-TW": "分享"
-    },
-    "revokeShareLabel": {
-      "zh-CN": "取消分享",
-      "en": "Unshare",
-      "es": "Dejar de compartir",
-      "fr": "Arrêter le partage",
-      "zh-TW": "取消分享"
-    },
-    "copyLinkLabel": {
-      "zh-CN": "复制链接",
-      "en": "Copy link",
-      "es": "Copiar enlace",
-      "fr": "Copier le lien",
-      "zh-TW": "複製連結"
-    },
-    "shareRevokedToast": {
-      "zh-CN": "已取消分享，旧链接已失效",
-      "en": "Sharing revoked — the old link no longer works",
-      "es": "Uso compartido revocado: el enlace anterior ya no funciona",
-      "fr": "Partage révoqué — l’ancien lien ne fonctionne plus",
-      "zh-TW": "已取消分享，舊連結已失效"
-    },
     "quickTitle": {
       "zh-CN": "三率速算器",
       "en": "Rate quick calculator",
@@ -3975,11 +3947,8 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "en": "Your rights"
     },
     "s5b": {
-      "zh-CN": "你可以查询、导出或删除你的个人数据。在「个人资料」的「我的数据」中，你可以自助导出你的全部数据（需通过 Discord 重新验证身份，每 24 小时一次），也可以自助删除账号：提交删除后有 7 天冷静期，期间可随时撤销；到期后你的个人数据会被删除或匿名化——你创建的车队会转为无主车队、你在他人车队中的座位会被匿名化，备份中的副本最迟在 14 天内随每日备份轮换清除。你也可以随时在 Discord 的设置中断开本站的授权；授权失效后，你在本站的会话会自动作废。",
-      "en": "You can access, export or delete your personal data. Under “My data” in your Profile, you can export all of your data yourself (a fresh Discord authorization check is required; one export per 24 hours), and you can delete your account yourself: after you submit a deletion there is a 7-day cooling-off period during which you may cancel at any time; once it ends, your personal data is deleted or anonymized — squads you created become leaderless squads, seats you hold in other people’s squads are anonymized, and copies inside backups are cleared within 14 days as daily backups rotate. You may also disconnect this site’s authorization at any time in your Discord settings; once the authorization lapses, your session on this site is automatically invalidated.",
-      "es": "Puedes consultar, exportar o eliminar tus datos personales. En «Mis datos», dentro de tu Perfil, puedes exportar todos tus datos por tu cuenta (se requiere una nueva verificación de autorización de Discord; una exportación cada 24 horas) y también puedes eliminar tu cuenta por tu cuenta: tras enviar la eliminación hay un periodo de espera de 7 días durante el cual puedes cancelarla en cualquier momento; al terminar, tus datos personales se eliminan o se anonimizan: los escuadrones que creaste pasan a ser escuadrones sin líder, los asientos que ocupas en escuadrones de otras personas se anonimizan y las copias dentro de las copias de seguridad se eliminan en un plazo máximo de 14 días con la rotación diaria. También puedes desconectar la autorización de este sitio en cualquier momento en los ajustes de Discord; cuando la autorización caduque, tu sesión en este sitio quedará invalidada automáticamente.",
-      "fr": "Vous pouvez consulter, exporter ou supprimer vos données personnelles. Dans « Mes données », au sein de votre Profil, vous pouvez exporter vous-même l’ensemble de vos données (une nouvelle vérification d’autorisation Discord est requise ; un export toutes les 24 heures) et vous pouvez aussi supprimer votre compte vous-même : après l’envoi de la suppression, un délai de réflexion de 7 jours commence, pendant lequel vous pouvez annuler à tout moment ; à son terme, vos données personnelles sont supprimées ou anonymisées — les escouades que vous avez créées deviennent des escouades sans chef, les places que vous occupez dans les escouades d’autres personnes sont anonymisées, et les copies présentes dans les sauvegardes sont effacées sous 14 jours au plus tard, au fil de la rotation quotidienne. Vous pouvez également déconnecter l’autorisation de ce site à tout moment dans les réglages de Discord ; une fois l’autorisation expirée, votre session sur ce site est automatiquement invalidée.",
-      "zh-TW": "你可以查詢、匯出或刪除你的個人資料。在「個人資料」的「我的資料」中，你可以自助匯出你的全部資料（需透過 Discord 重新驗證身分，每 24 小時一次），也可以自助刪除帳號：提交刪除後有 7 天冷靜期，期間可隨時撤銷；到期後你的個人資料會被刪除或匿名化——你建立的車隊會轉為無主車隊、你在他人車隊中的座位會被匿名化，備份中的副本最遲在 14 天內隨每日備份輪替清除。你也可以隨時在 Discord 的設定中斷開本站的授權；授權失效後，你在本站的工作階段會自動作廢。"
+      "zh-CN": "你可以申请查询、更正或删除你的个人数据。目前本站尚未提供自助注销功能，请通过下方联系渠道提出申请，我们会在合理期限内处理。你也可以随时在 Discord 的设置中断开本站的授权；授权失效后，你在本站的会话会自动作废。",
+      "en": "You may request access to, correction of, or deletion of your personal data. This site does not yet offer a self-service account-deletion feature; please submit your request through the contact channel below, and we will handle it within a reasonable period. You may also disconnect this site’s authorization at any time in your Discord settings; once the authorization lapses, your session on this site is automatically invalidated."
     },
     "s6h": {
       "zh-CN": "联系我们",
@@ -4443,40 +4412,20 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "fr": "Réglage de l'heure de départ invalide",
       "zh-TW": "發車時間設定無效"
     },
-    "accountReauthRequired": {
-      "zh-CN": "请先通过 Discord 重新验证身份",
-      "en": "Please re-verify your identity with Discord first",
-      "es": "Primero vuelve a verificar tu identidad con Discord",
-      "fr": "Veuillez d’abord vérifier à nouveau votre identité avec Discord",
-      "zh-TW": "請先透過 Discord 重新驗證身分"
+    "premiumRequired": {
+      "zh-CN": "该功能需要开通 Premium"
     },
-    "accountExportRateLimited": {
-      "zh-CN": "每 24 小时只能导出一次数据，请稍后再试",
-      "en": "Data can be exported only once every 24 hours — please try again later",
-      "es": "Los datos solo pueden exportarse una vez cada 24 horas; inténtalo más tarde",
-      "fr": "Les données ne peuvent être exportées qu’une fois toutes les 24 heures ; réessayez plus tard",
-      "zh-TW": "每 24 小時只能匯出一次資料，請稍後再試"
+    "premiumComingSoon": {
+      "zh-CN": "Premium 开通即将开放"
     },
-    "accountUsernameMismatch": {
-      "zh-CN": "输入的显示名与你的账号不一致",
-      "en": "The display name you typed does not match your account",
-      "es": "El nombre visible que escribiste no coincide con tu cuenta",
-      "fr": "Le nom affiché saisi ne correspond pas à votre compte",
-      "zh-TW": "輸入的顯示名與你的帳號不一致"
+    "premiumActive": {
+      "zh-CN": "本百业已开通 Premium"
     },
-    "accountDeletionPending": {
-      "zh-CN": "已有一份删除申请在冷静期中",
-      "en": "A deletion request is already in its cooling-off period",
-      "es": "Ya hay una solicitud de eliminación en su periodo de espera",
-      "fr": "Une demande de suppression est déjà dans son délai de réflexion",
-      "zh-TW": "已有一份刪除申請在冷靜期中"
+    "paygateDisabled": {
+      "zh-CN": "收费功能尚未开启"
     },
-    "accountDeletionNotPending": {
-      "zh-CN": "当前没有待执行的删除申请",
-      "en": "There is no pending deletion request right now",
-      "es": "Ahora mismo no hay ninguna solicitud de eliminación pendiente",
-      "fr": "Il n’y a actuellement aucune demande de suppression en attente",
-      "zh-TW": "目前沒有待執行的刪除申請"
+    "checkoutFailed": {
+      "zh-CN": "创建支付会话失败，请稍后再试"
     }
   },
   "guildAdmin": {
@@ -5153,40 +5102,44 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "fr": "Violet",
       "zh-TW": "紫檀"
     },
-    "subdomainTitle": {
-      "zh-CN": "平台子域",
-      "en": "Platform subdomain",
-      "es": "Subdominio de la plataforma",
-      "fr": "Sous-domaine de la plateforme",
-      "zh-TW": "平台子域"
+    "premiumLockedTitle": {
+      "zh-CN": "开通百业 Premium"
     },
-    "subdomainLabel": {
-      "zh-CN": "启用专属子域",
-      "en": "Enable dedicated subdomain",
-      "es": "Activar subdominio propio",
-      "fr": "Activer le sous-domaine dédié",
-      "zh-TW": "啟用專屬子域"
+    "premiumLockedBody": {
+      "zh-CN": "高级发车提醒、出勤统计、品牌与分享卡定制均为 Premium 功能。开通后立即生效，可随时取消。"
     },
-    "subdomainAddressLabel": {
-      "zh-CN": "子域地址",
-      "en": "Subdomain address",
-      "es": "Dirección del subdominio",
-      "fr": "Adresse du sous-domaine",
-      "zh-TW": "子域地址"
+    "premiumCheckoutButton": {
+      "zh-CN": "立即开通"
     },
-    "subdomainCallbackLabel": {
-      "zh-CN": "登录回调地址",
-      "en": "Login callback URL",
-      "es": "URL de devolución de llamada de inicio de sesión",
-      "fr": "URL de rappel de connexion",
-      "zh-TW": "登入回調地址"
+    "premiumComingSoon": {
+      "zh-CN": "即将开放"
     },
-    "subdomainNote": {
-      "zh-CN": "开启后，成员可通过上方子域地址访问本百业。注意：子域上的 Discord 登录需要站长先在 Discord 开发者后台为该子域登记登录回调（地址见上方）；登记完成前，子域可以打开浏览，但无法在子域上完成登录。",
-      "en": "When enabled, members can reach this guild through the subdomain address above. Note: Discord sign-in on the subdomain only works after the site owner registers that subdomain's login callback in the Discord developer portal (address above); until then, the subdomain opens for browsing, but sign-in cannot be completed there.",
-      "es": "Al activarlo, los miembros pueden acceder a este gremio mediante la dirección de subdominio anterior. Nota: el inicio de sesión con Discord en el subdominio solo funciona después de que el propietario del sitio registre la devolución de llamada de inicio de sesión de ese subdominio en el portal de desarrolladores de Discord (dirección anterior); hasta entonces, el subdominio se puede abrir para navegar, pero no se puede completar el inicio de sesión en él.",
-      "fr": "Une fois activé, les membres peuvent accéder à cette guilde via l'adresse de sous-domaine ci-dessus. Remarque : la connexion Discord sur le sous-domaine ne fonctionne qu'après l'enregistrement, par le propriétaire du site, de l'URL de rappel de connexion de ce sous-domaine dans le portail développeur Discord (adresse ci-dessus) ; jusque-là, le sous-domaine s'ouvre pour la navigation, mais la connexion ne peut pas y être terminée.",
-      "zh-TW": "開啟後，成員可透過上方子域地址造訪本百業。注意：子域上的 Discord 登入需要站長先在 Discord 開發者後台為該子域登記登入回調（地址見上方）；登記完成前，子域可以打開瀏覽，但無法在子域上完成登入。"
+    "premiumActiveTitle": {
+      "zh-CN": "百业 Premium"
+    },
+    "premiumPlanName": {
+      "zh-CN": "Premium"
+    },
+    "premiumSourceStripe": {
+      "zh-CN": "通过 Stripe 订阅"
+    },
+    "premiumSourceManual": {
+      "zh-CN": "由平台授予"
+    },
+    "premiumPeriodEnd": {
+      "zh-CN": "当前周期至 {date}"
+    },
+    "premiumPriceMonth": {
+      "zh-CN": "{amount} / 月"
+    },
+    "premiumPriceYear": {
+      "zh-CN": "{amount} / 年"
+    },
+    "billingSuccess": {
+      "zh-CN": "开通成功，Premium 已生效。"
+    },
+    "billingCanceled": {
+      "zh-CN": "已取消开通，未产生扣费。"
     }
   },
   "groupingTemplate": {
@@ -5357,220 +5310,6 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "es": "{type}{dungeon} · {max} plazas",
       "fr": "{type}{dungeon} · {max} places",
       "zh-TW": "{type}{dungeon} · {max} 人"
-    }
-  },
-  "account": {
-    "sectionTitle": {
-      "zh-CN": "我的数据",
-      "en": "My Data",
-      "es": "Mis datos",
-      "fr": "Mes données",
-      "zh-TW": "我的資料"
-    },
-    "exportLabel": {
-      "zh-CN": "导出我的数据",
-      "en": "Export my data",
-      "es": "Exportar mis datos",
-      "fr": "Exporter mes données",
-      "zh-TW": "匯出我的資料"
-    },
-    "exportHint": {
-      "zh-CN": "把你账号的全部数据下载为一个 JSON 文件：账号资料、百业名册、你创建的车队、你的报名座位、装备库与方案。登录凭据与推送令牌出于安全不会包含在内。",
-      "en": "Download all of your account data as a single JSON file: account profile, guild roster rows, squads you created, your signup seats, gear library and saved builds. For security, login credentials and push tokens are never included.",
-      "es": "Descarga todos los datos de tu cuenta en un solo archivo JSON: perfil de la cuenta, filas de la lista de cada gremio, escuadrones que creaste, tus asientos de inscripción, biblioteca de equipo y configuraciones guardadas. Por seguridad, las credenciales de acceso y los tokens de notificaciones nunca se incluyen.",
-      "fr": "Téléchargez toutes les données de votre compte dans un seul fichier JSON : profil du compte, lignes de roster de chaque guilde, escouades que vous avez créées, vos places d’inscription, bibliothèque d’équipement et configurations enregistrées. Par sécurité, les identifiants de connexion et les jetons de notification ne sont jamais inclus.",
-      "zh-TW": "把你帳號的全部資料下載為一個 JSON 檔案：帳號資料、百業名冊、你建立的車隊、你的報名座位、裝備庫與方案。登入憑證與推播令牌出於安全不會包含在內。"
-    },
-    "deleteLabel": {
-      "zh-CN": "删除账号",
-      "en": "Delete account",
-      "es": "Eliminar cuenta",
-      "fr": "Supprimer le compte",
-      "zh-TW": "刪除帳號"
-    },
-    "deleteHint": {
-      "zh-CN": "删除不可恢复。提交后有 7 天冷静期，期间可随时撤销；到期后你的个人数据会被删除或匿名化。",
-      "en": "Deletion cannot be undone. After you submit, there is a 7-day cooling-off period during which you can cancel at any time; once it ends, your personal data is deleted or anonymized.",
-      "es": "La eliminación no se puede deshacer. Tras enviar la solicitud hay un periodo de espera de 7 días durante el cual puedes cancelarla en cualquier momento; al terminar, tus datos personales se eliminan o se anonimizan.",
-      "fr": "La suppression est irréversible. Après l’envoi, un délai de réflexion de 7 jours commence, pendant lequel vous pouvez annuler à tout moment ; à son terme, vos données personnelles sont supprimées ou anonymisées.",
-      "zh-TW": "刪除不可復原。提交後有 7 天冷靜期，期間可隨時撤銷；到期後你的個人資料會被刪除或匿名化。"
-    },
-    "reauthLabel": {
-      "zh-CN": "通过 Discord 重新验证",
-      "en": "Re-verify with Discord",
-      "es": "Volver a verificar con Discord",
-      "fr": "Vérifier à nouveau avec Discord",
-      "zh-TW": "透過 Discord 重新驗證"
-    },
-    "reauthHint": {
-      "zh-CN": "导出与删除属于敏感操作，继续前需要一次新鲜的 Discord 授权验证。",
-      "en": "Export and deletion are sensitive actions; a fresh Discord authorization check is required before continuing.",
-      "es": "Exportar y eliminar son acciones sensibles; se requiere una autorización reciente de Discord antes de continuar.",
-      "fr": "L’exportation et la suppression sont des actions sensibles ; une autorisation Discord récente est requise avant de continuer.",
-      "zh-TW": "匯出與刪除屬於敏感操作，繼續前需要一次新鮮的 Discord 授權驗證。"
-    },
-    "confirmTitle": {
-      "zh-CN": "确认删除账号",
-      "en": "Confirm account deletion",
-      "es": "Confirmar la eliminación de la cuenta",
-      "fr": "Confirmer la suppression du compte",
-      "zh-TW": "確認刪除帳號"
-    },
-    "confirmIntro": {
-      "zh-CN": "请仔细阅读删除后果。提交后进入 7 天冷静期，到期自动执行：",
-      "en": "Please read the consequences carefully. After you submit, a 7-day cooling-off period begins, and deletion runs automatically when it ends:",
-      "es": "Lee atentamente las consecuencias. Tras enviar la solicitud comienza un periodo de espera de 7 días y la eliminación se ejecuta automáticamente al terminar:",
-      "fr": "Veuillez lire attentivement les conséquences. Après l’envoi, un délai de réflexion de 7 jours commence et la suppression s’exécute automatiquement à son terme :",
-      "zh-TW": "請仔細閱讀刪除後果。提交後進入 7 天冷靜期，到期自動執行："
-    },
-    "consequenceCars": {
-      "zh-CN": "你创建的车队不会被删除：车头会解绑为无主车队，创建者显示名替换为「已注销用户」；你在他人车队里的座位会被原地匿名化。",
-      "en": "Squads you created are not deleted: the leader is unlinked so they become leaderless squads, and the creator display name is replaced with “Deleted user”; seats you hold in other people’s squads are anonymized in place.",
-      "es": "Los escuadrones que creaste no se eliminan: el líder queda desvinculado y pasan a ser escuadrones sin líder, y el nombre visible del creador se sustituye por «Usuario eliminado»; los asientos que ocupas en escuadrones de otras personas se anonimizan en el sitio.",
-      "fr": "Les escouades que vous avez créées ne sont pas supprimées : le chef est dissocié et elles deviennent des escouades sans chef, et le nom affiché du créateur est remplacé par « Utilisateur supprimé » ; les places que vous occupez dans les escouades d’autres personnes sont anonymisées sur place.",
-      "zh-TW": "你建立的車隊不會被刪除：車頭會解除綁定為無主車隊，建立者顯示名替換為「已註銷使用者」；你在他人車隊裡的座位會被原地匿名化。"
-    },
-    "consequenceData": {
-      "zh-CN": "你的装备库与方案、推送令牌、昵称快照、百业名册行会被彻底删除；执行后你在所有设备上的登录会立即失效。",
-      "en": "Your gear library and saved builds, push tokens, nickname snapshots and guild roster rows are permanently deleted; once deletion runs, you are signed out on every device immediately.",
-      "es": "Tu biblioteca de equipo y configuraciones guardadas, tokens de notificaciones, instantáneas de apodos y filas de la lista de gremios se eliminan por completo; cuando la eliminación se ejecute, tu sesión se cerrará de inmediato en todos los dispositivos.",
-      "fr": "Votre bibliothèque d’équipement et vos configurations enregistrées, jetons de notification, instantanés de pseudos et lignes de roster de guilde sont définitivement supprimés ; une fois la suppression exécutée, vous êtes déconnecté immédiatement sur tous vos appareils.",
-      "zh-TW": "你的裝備庫與方案、推播令牌、暱稱快照、百業名冊行會被徹底刪除；執行後你在所有裝置上的登入會立即失效。"
-    },
-    "consequenceGuilds": {
-      "zh-CN": "百业本身与百业管理密码不受影响：百业不属于任何个人账号，不会因你删除账号而解散或变更。",
-      "en": "Guilds themselves and guild admin passwords are unaffected: a guild does not belong to any individual account, and it is neither disbanded nor changed when you delete your account.",
-      "es": "Los gremios en sí y sus contraseñas de administración no se ven afectados: un gremio no pertenece a ninguna cuenta personal y no se disuelve ni cambia cuando eliminas tu cuenta.",
-      "fr": "Les guildes elles-mêmes et leurs mots de passe d’administration ne sont pas affectés : une guilde n’appartient à aucun compte personnel et n’est ni dissoute ni modifiée lorsque vous supprimez votre compte.",
-      "zh-TW": "百業本身與百業管理密碼不受影響：百業不屬於任何個人帳號，不會因你刪除帳號而解散或變更。"
-    },
-    "consequenceResidual": {
-      "zh-CN": "少数记录无法按个人清除：已经发到 Discord 的消息、成绩榜里的自由文本名单会保留；备份中的副本最迟在 14 天内随每日备份轮换清除。",
-      "en": "A few records cannot be cleared per person: messages already posted to Discord and free-text name lists on result boards remain; copies inside backups are cleared within 14 days as daily backups rotate.",
-      "es": "Algunos registros no pueden borrarse por persona: los mensajes ya publicados en Discord y las listas de nombres en texto libre de los tableros de resultados permanecen; las copias dentro de las copias de seguridad se eliminan en un plazo máximo de 14 días con la rotación diaria.",
-      "fr": "Quelques enregistrements ne peuvent pas être effacés par personne : les messages déjà publiés sur Discord et les listes de noms en texte libre des tableaux de résultats subsistent ; les copies présentes dans les sauvegardes sont effacées sous 14 jours au plus tard, au fil de la rotation quotidienne.",
-      "zh-TW": "少數記錄無法按個人清除：已經發到 Discord 的訊息、成績榜裡的自由文字名單會保留；備份中的副本最遲在 14 天內隨每日備份輪替清除。"
-    },
-    "consequenceReregister": {
-      "zh-CN": "删除不是封禁：之后用同一个 Discord 账号重新登录，就会注册成一个全新的账号。",
-      "en": "Deletion is not a ban: sign in again later with the same Discord account and you will register as a brand-new account.",
-      "es": "Eliminar no es un baneo: si vuelves a iniciar sesión más tarde con la misma cuenta de Discord, te registrarás como una cuenta completamente nueva.",
-      "fr": "La suppression n’est pas un bannissement : reconnectez-vous plus tard avec le même compte Discord et vous serez inscrit comme un tout nouveau compte.",
-      "zh-TW": "刪除不是封禁：之後用同一個 Discord 帳號重新登入，就會註冊成一個全新的帳號。"
-    },
-    "exportFirstHint": {
-      "zh-CN": "建议先导出一份你的数据，再提交删除。",
-      "en": "We recommend exporting a copy of your data before submitting the deletion.",
-      "es": "Te recomendamos exportar una copia de tus datos antes de enviar la eliminación.",
-      "fr": "Nous vous recommandons d’exporter une copie de vos données avant d’envoyer la suppression.",
-      "zh-TW": "建議先匯出一份你的資料，再提交刪除。"
-    },
-    "usernameLabel": {
-      "zh-CN": "输入你的 Discord 显示名以确认",
-      "en": "Type your Discord display name to confirm",
-      "es": "Escribe tu nombre visible de Discord para confirmar",
-      "fr": "Saisissez votre nom affiché Discord pour confirmer",
-      "zh-TW": "輸入你的 Discord 顯示名以確認"
-    },
-    "submitLabel": {
-      "zh-CN": "提交删除申请",
-      "en": "Submit deletion request",
-      "es": "Enviar solicitud de eliminación",
-      "fr": "Envoyer la demande de suppression",
-      "zh-TW": "提交刪除申請"
-    },
-    "backLabel": {
-      "zh-CN": "返回",
-      "en": "Back",
-      "es": "Volver",
-      "fr": "Retour",
-      "zh-TW": "返回"
-    },
-    "pendingTitle": {
-      "zh-CN": "账号删除已排期",
-      "en": "Account deletion scheduled",
-      "es": "Eliminación de cuenta programada",
-      "fr": "Suppression du compte programmée",
-      "zh-TW": "帳號刪除已排期"
-    },
-    "pendingBody": {
-      "zh-CN": "你的账号将于 {date} 执行删除。到期前你可以随时撤销；用新设备重新登录也会自动撤销（到期后除外）。",
-      "en": "Your account will be deleted on {date}. Until then you can cancel at any time; signing in again on a new device also cancels automatically (unless the deadline has already passed).",
-      "es": "Tu cuenta se eliminará el {date}. Hasta entonces puedes cancelarlo en cualquier momento; volver a iniciar sesión en un dispositivo nuevo también lo cancela automáticamente (salvo que el plazo ya haya vencido).",
-      "fr": "Votre compte sera supprimé le {date}. D’ici là, vous pouvez annuler à tout moment ; une nouvelle connexion sur un nouvel appareil annule aussi automatiquement (sauf si le délai est déjà écoulé).",
-      "zh-TW": "你的帳號將於 {date} 執行刪除。在此之前你可以隨時撤銷；用新裝置重新登入也會自動撤銷（到期後除外）。"
-    },
-    "cancelDeletionLabel": {
-      "zh-CN": "撤销删除",
-      "en": "Cancel deletion",
-      "es": "Cancelar la eliminación",
-      "fr": "Annuler la suppression",
-      "zh-TW": "撤銷刪除"
-    },
-    "deletionRequestedText": {
-      "zh-CN": "删除申请已提交，7 天冷静期开始。",
-      "en": "Deletion request submitted — the 7-day cooling-off period has started.",
-      "es": "Solicitud de eliminación enviada: ha comenzado el periodo de espera de 7 días.",
-      "fr": "Demande de suppression envoyée : le délai de réflexion de 7 jours a commencé.",
-      "zh-TW": "刪除申請已提交，7 天冷靜期開始。"
-    },
-    "deletionCancelledText": {
-      "zh-CN": "删除申请已撤销，你的账号不会被删除。",
-      "en": "Deletion request cancelled — your account will not be deleted.",
-      "es": "Solicitud de eliminación cancelada: tu cuenta no se eliminará.",
-      "fr": "Demande de suppression annulée : votre compte ne sera pas supprimé.",
-      "zh-TW": "刪除申請已撤銷，你的帳號不會被刪除。"
-    },
-    "exportAbout": {
-      "zh-CN": "这是你账号数据的导出副本。account 是账号资料（oauth 只记录授权范围与最近刷新时间，凭据本身不导出）；guilds 是你在各百业的名册行；serverNicks 是你在各 Discord 服务器的昵称快照；carsLed 是你创建的车队；seats 是你的报名座位；gearItems 是装备库；gearBuilds 是已保存方案；heirloom 是传家宝推送的去重状态。推送令牌属于设备凭据，只记录数量与平台，令牌本身不导出。",
-      "en": "This file is an export of your account data. account holds your profile (for oauth, only the granted scopes and last refresh time are recorded — the credential itself is never exported); guilds lists your roster row in each guild; serverNicks lists your nickname snapshot in each Discord server; carsLed lists squads you created; seats lists your signup seats; gearItems is your gear library; gearBuilds lists your saved builds; heirloom holds the deduplication state of heirloom announcements. Push tokens are device credentials: only their count and platforms are recorded, never the tokens themselves.",
-      "es": "Este archivo es una copia exportada de los datos de tu cuenta. account contiene tu perfil (en oauth solo se registran los permisos concedidos y la última hora de actualización; la credencial en sí nunca se exporta); guilds enumera tu fila en la lista de cada gremio; serverNicks enumera tu instantánea de apodo en cada servidor de Discord; carsLed enumera los escuadrones que creaste; seats enumera tus asientos de inscripción; gearItems es tu biblioteca de equipo; gearBuilds enumera tus configuraciones guardadas; heirloom contiene el estado de deduplicación de los avisos de reliquias. Los tokens de notificaciones son credenciales del dispositivo: solo se registran su cantidad y plataformas, nunca los tokens.",
-      "fr": "Ce fichier est une copie exportée des données de votre compte. account contient votre profil (pour oauth, seuls les périmètres accordés et l’heure de la dernière actualisation sont consignés — l’identifiant lui-même n’est jamais exporté) ; guilds liste votre ligne de roster dans chaque guilde ; serverNicks liste votre instantané de pseudo sur chaque serveur Discord ; carsLed liste les escouades que vous avez créées ; seats liste vos places d’inscription ; gearItems est votre bibliothèque d’équipement ; gearBuilds liste vos configurations enregistrées ; heirloom contient l’état de déduplication des annonces de pièces héritées. Les jetons de notification sont des identifiants d’appareil : seuls leur nombre et leurs plateformes sont consignés, jamais les jetons eux-mêmes.",
-      "zh-TW": "這是你帳號資料的匯出副本。account 是帳號資料（oauth 只記錄授權範圍與最近刷新時間，憑證本身不匯出）；guilds 是你在各百業的名冊行；serverNicks 是你在各 Discord 伺服器的暱稱快照；carsLed 是你建立的車隊；seats 是你的報名座位；gearItems 是裝備庫；gearBuilds 是已保存方案；heirloom 是傳家寶推播的去重狀態。推播令牌屬於裝置憑證，只記錄數量與平台，令牌本身不匯出。"
-    },
-    "deletedUser": {
-      "zh-CN": "已注销用户",
-      "en": "Deleted user",
-      "es": "Usuario eliminado",
-      "fr": "Utilisateur supprimé",
-      "zh-TW": "已註銷使用者"
-    }
-  },
-  "buildshare": {
-    "kicker": {
-      "zh-CN": "装备方案 · 公开分享",
-      "en": "Gear build · Public share",
-      "es": "Configuración de equipo · Compartido públicamente",
-      "fr": "Configuration d’équipement · Partage public",
-      "zh-TW": "裝備方案 · 公開分享"
-    },
-    "loginLabel": {
-      "zh-CN": "打开燕云百业",
-      "en": "Open Yanyun Guilds",
-      "es": "Abrir Yanyun Guilds",
-      "fr": "Ouvrir Yanyun Guilds",
-      "zh-TW": "打開燕雲百業"
-    },
-    "notFoundTitle": {
-      "zh-CN": "链接已失效",
-      "en": "This link is no longer valid",
-      "es": "Este enlace ya no es válido",
-      "fr": "Ce lien n’est plus valide",
-      "zh-TW": "連結已失效"
-    },
-    "notFoundBody": {
-      "zh-CN": "这条分享链接不存在，或已被方案主人取消分享。",
-      "en": "This share link does not exist, or its owner has revoked it.",
-      "es": "Este enlace compartido no existe o su propietario lo ha revocado.",
-      "fr": "Ce lien de partage n’existe pas ou son propriétaire l’a révoqué.",
-      "zh-TW": "這條分享連結不存在，或已被方案主人取消分享。"
-    },
-    "xinfaLabel": {
-      "zh-CN": "心法",
-      "en": "Inner skill",
-      "es": "Arte interna",
-      "fr": "Art interne",
-      "zh-TW": "心法"
     }
   }
 };

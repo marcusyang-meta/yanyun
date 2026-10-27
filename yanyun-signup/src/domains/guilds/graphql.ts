@@ -19,7 +19,7 @@ import { getBossById, listBossesByDungeon, listSchoolsFull, listSchoolsNameSlug,
 import { getDungeonByName, getDungeonNameSizeById, listDungeonsDex, getLatestDungeonVersion } from '../dex/index.ts';
 import {
   getTenantRow, getTenantSlug, listTenantSlugs, listTenantsDirectory, insertTenant,
-  getWhiteLabelSettings,
+  getEffectiveWhiteLabelSettings,
 } from './index.ts';
 import { getEventRow, getEventTenant, getEventTenantCreator, listEventsByTenantType, insertEvent, updateEventFields, setEventStatus, deleteEventCascade } from '../groupings/index.ts';
 import {
@@ -164,7 +164,7 @@ export class GuildShell extends ShellBase {
    * label and NO footer disclaimer (null — the web shell renders no
    * footer at all on this guild's pages). */
   genWhiteLabel(){
-    return this.memo('whiteLabel', () => getWhiteLabelSettings(this.db, this.genSlug()));
+    return this.memo('whiteLabel', () => getEffectiveWhiteLabelSettings(this.db, this.genSlug()));
   }
   async genPageBackLabel(){
     const wl = await this.genWhiteLabel();

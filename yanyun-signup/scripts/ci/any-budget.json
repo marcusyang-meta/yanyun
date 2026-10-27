@@ -120,8 +120,8 @@
     "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary"
   },
   "src/domains/platform/hub-routes.ts": {
-    "max": 56,
-    "reason": "hub portal edge: Hono request/response handling and JSON bodies at the framework boundary; +2 for the audit helper and audit-view handler context params (hub audit batch); +4 for the backup endpoint handler context params (backup batch)"
+    "max": 61,
+    "reason": "hub portal edge: Hono request/response handling and JSON bodies at the framework boundary; +2 for the audit helper and audit-view handler context params (hub audit batch); +4 for the backup endpoint handler context params (backup batch); +5 for the billing endpoints (paygate switch + grant/revoke) handler context params (billing batch)"
   },
   "src/domains/platform/i18n.ts": {
     "max": 2,
@@ -146,5 +146,9 @@
   "src/domains/platform/og-graphql.ts": {
     "max": 34,
     "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context) + white-label OG card fields (ogAccentColor / ogTitleSuffix) and the ogBuildCard share query in the same pattern"
+  },
+  "src/domains/platform/billing-routes.ts": {
+    "max": 1,
+    "reason": "Hono handler context param at the framework boundary (Stripe webhook edge)"
   }
 }

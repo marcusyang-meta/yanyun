@@ -11,6 +11,12 @@ import {
   getTenantRow, getTenantSlug, listTenantSlugs, listTenantsHubAdmin, deleteTenantCascade,
   getSettingValue, setSettingValue, listGlobalSettings, listNonEmptySettingsByKey, updateTenantWebhook, listSettingsByKey,
 } from '../guilds/index.ts';
+import {
+  isPaygateEnabled, setPaygateEnabled, getEffectiveEntitlement, grantPremiumManual,
+  revokePremium,
+} from './billing-service.ts';
+import { stripeConfig } from './stripe.ts';
+import { getEntitlementRow } from './billing.ts';
 import { getReminderConfig, getReminderSetting, setReminderSetting, maskWebhook, postWebhook, WEBHOOK_RE, upsertGuildMember, nudgeReminderHub, listUnstampedSeatsByTenant, stampSignupDiscordId } from '../groupings/index.ts';
 import { getHeirloomConfig, sendHeirloomTest, heirloomStatusFor } from '../gear/index.ts';
 import {
@@ -361,6 +367,77 @@ hubRoutes.post('/backfill/reminder-identity', async (c: any) => {
   }
   await audit(c, 'backfill.reminder_identity', '', { dryRun, ...totals });
   return json({ ok: true, dryRun, guilds, totals });
+});
+
+/* ---------- Billing (paygate master switch + manual entitlement) ----------
+ * The paygate is the platform-level master switch for the whole
+ * Premium gate: OFF (default) = every guild composes exactly as
+ * before billing existed. Manual grant/revoke is the operations
+ * path for the pre-Stripe period and pilots; Stripe-driven state
+ * arrives through the webhook, never through here. Every write is
+ * audited (grant/revoke change what a guild can use). */
+interface BillingTenantState {
+  slug: string; guild_name: string; plan: string; source: string;
+  currentPeriodEnd: number | null; lapsed: boolean;
+  stripeCustomerId: string; stripeSubscriptionId: string;
+}
+
+async function billingStateFor(c: any) {
+  const db = c.env.DB;
+  const tenants = await listTenantsHubAdmin(db);
+  const out: BillingTenantState[] = [];
+  for (const t of tenants) {
+    const eff = await getEffectiveEntitlement(db, t.slug);
+    const row = await getEntitlementRow(db, t.slug).catch(() => null);
+    out.push({
+      slug: t.slug,
+      guild_name: t.guild_name,
+      plan: eff.plan,
+      source: eff.source,
+      currentPeriodEnd: eff.currentPeriodEnd,
+      lapsed: eff.lapsed,
+      stripeCustomerId: row ? row.stripeCustomerId : '',
+      stripeSubscriptionId: row ? row.stripeSubscriptionId : '',
+    });
+  }
+  return {
+    paygateEnabled: await isPaygateEnabled(db),
+    stripeConfigured: !!stripeConfig(c.env),
+    tenants: out,
+  };
+}
+
+hubRoutes.get('/billing', async (c: any) => {
+  return json({ ok: true, billing: await billingStateFor(c) });
+});
+
+hubRoutes.put('/billing/paygate', async (c: any) => {
+  const body = await getBody(c);
+  const enabled = !!body.enabled;
+  await setPaygateEnabled(c.env.DB, enabled);
+  await audit(c, 'billing.paygate', '', { enabled });
+  return json({ ok: true, billing: await billingStateFor(c) });
+});
+
+hubRoutes.post('/billing/grant', async (c: any) => {
+  const body = await getBody(c);
+  const slug = s(body.slug, 40);
+  const days = Math.max(1, Math.min(3650, parseInt(body.days, 10) || 30));
+  const t = await getTenantSlug(c.env.DB, slug);
+  if (!t) return err('百业不存在', 404);
+  const row = await grantPremiumManual(c.env.DB, slug, days);
+  await audit(c, 'billing.grant', slug, { days, currentPeriodEnd: row.currentPeriodEnd, source: 'manual' });
+  return json({ ok: true, billing: await billingStateFor(c) });
+});
+
+hubRoutes.post('/billing/revoke', async (c: any) => {
+  const body = await getBody(c);
+  const slug = s(body.slug, 40);
+  const t = await getTenantSlug(c.env.DB, slug);
+  if (!t) return err('百业不存在', 404);
+  await revokePremium(c.env.DB, slug);
+  await audit(c, 'billing.revoke', slug, {});
+  return json({ ok: true, billing: await billingStateFor(c) });
 });
 
 hubRoutes.get('/settings', async (c: any) => {

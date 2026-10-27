@@ -536,10 +536,6 @@ export const gear_schemeComposeFirstText = (fbs: FbsRuntime) => fbs._("先在配
 export const gear_schemeSavedToastTemplate = (fbs: FbsRuntime, p?: StringParams) => fbs._("已存方案：{name}", [fbs._param("name", pv(p, "name"))], { hk: "41ODrs" });
 export const gear_schemeLoadedToastTemplate = (fbs: FbsRuntime, p?: StringParams) => fbs._("已载入：{name}", [fbs._param("name", pv(p, "name"))], { hk: "W68Jt" });
 export const gear_schemeGroupCountTemplate = (fbs: FbsRuntime, p?: StringParams) => fbs._("{n} 套", [fbs._param("n", pv(p, "n"))], { hk: "rq7r4" });
-export const gear_shareLabel = (fbs: FbsRuntime) => fbs._("分享", null, { hk: "4uur5j" });
-export const gear_revokeShareLabel = (fbs: FbsRuntime) => fbs._("取消分享", null, { hk: "4jIgn4" });
-export const gear_copyLinkLabel = (fbs: FbsRuntime) => fbs._("复制链接", null, { hk: "3R32rG" });
-export const gear_shareRevokedToast = (fbs: FbsRuntime) => fbs._("已取消分享，旧链接已失效", null, { hk: "N75Vo" });
 export const gear_quickTitle = (fbs: FbsRuntime) => fbs._("三率速算器", null, { hk: "4hmlhM" });
 export const gear_quickResLabel = (fbs: FbsRuntime) => fbs._("抗性", null, { hk: "4ug56e" });
 export const gear_quickSyncLabel = (fbs: FbsRuntime) => fbs._("从配装台同步", null, { hk: "3vKwDX" });
@@ -628,7 +624,7 @@ export const privacyBody_s3b = (fbs: FbsRuntime) => fbs._("本站运行在 Cloud
 export const privacyBody_s4h = (fbs: FbsRuntime) => fbs._("保存期限", null, { hk: "4aN5dD" });
 export const privacyBody_s4b = (fbs: FbsRuntime) => fbs._("你的数据保存在本站数据库中，直至你申请删除，或相关数据对本站功能不再需要为止。报名、车队等历史记录目前会持续保留；如保存规则发生变化，我们会更新本政策。", null, { hk: "2a4Dhc" });
 export const privacyBody_s5h = (fbs: FbsRuntime) => fbs._("你的权利", null, { hk: "4yKwwR" });
-export const privacyBody_s5b = (fbs: FbsRuntime) => fbs._("你可以查询、导出或删除你的个人数据。在「个人资料」的「我的数据」中，你可以自助导出你的全部数据（需通过 Discord 重新验证身份，每 24 小时一次），也可以自助删除账号：提交删除后有 7 天冷静期，期间可随时撤销；到期后你的个人数据会被删除或匿名化——你创建的车队会转为无主车队、你在他人车队中的座位会被匿名化，备份中的副本最迟在 14 天内随每日备份轮换清除。你也可以随时在 Discord 的设置中断开本站的授权；授权失效后，你在本站的会话会自动作废。", null, { hk: "3AahF4" });
+export const privacyBody_s5b = (fbs: FbsRuntime) => fbs._("你可以申请查询、更正或删除你的个人数据。目前本站尚未提供自助注销功能，请通过下方联系渠道提出申请，我们会在合理期限内处理。你也可以随时在 Discord 的设置中断开本站的授权；授权失效后，你在本站的会话会自动作废。", null, { hk: "2QU0Hc" });
 export const privacyBody_s6h = (fbs: FbsRuntime) => fbs._("联系我们", null, { hk: "1TH1hQ" });
 export const privacyBody_s6b = (fbs: FbsRuntime) => fbs._("如对本政策有疑问，或需提出查询、更正、删除申请，请通过本站社区百业「叽哩呱啦」的 Discord 服务器联系管理员。我们会先核实你的 Discord 账号身份，再处理你的申请。", null, { hk: "xLPMP" });
 export const errors_rateLimited = (fbs: FbsRuntime) => fbs._("操作过于频繁, 请稍后再试", null, { hk: "14wqad" });
@@ -703,11 +699,11 @@ export const errors_templateNotFound = (fbs: FbsRuntime) => fbs._("模板不存�
 export const errors_templateNameRequired = (fbs: FbsRuntime) => fbs._("请填写模板名", null, { hk: "Xi9qb" });
 export const errors_templateForbidden = (fbs: FbsRuntime) => fbs._("只有模板创建者或百业管理员可以改删模板", null, { hk: "3cxfYY" });
 export const errors_templateBadStart = (fbs: FbsRuntime) => fbs._("发车时间设置无效", null, { hk: "35TKYe" });
-export const errors_accountReauthRequired = (fbs: FbsRuntime) => fbs._("请先通过 Discord 重新验证身份", null, { hk: "25og0a" });
-export const errors_accountExportRateLimited = (fbs: FbsRuntime) => fbs._("每 24 小时只能导出一次数据，请稍后再试", null, { hk: "Ozxol" });
-export const errors_accountUsernameMismatch = (fbs: FbsRuntime) => fbs._("输入的显示名与你的账号不一致", null, { hk: "1IAKtL" });
-export const errors_accountDeletionPending = (fbs: FbsRuntime) => fbs._("已有一份删除申请在冷静期中", null, { hk: "lQQDQ" });
-export const errors_accountDeletionNotPending = (fbs: FbsRuntime) => fbs._("当前没有待执行的删除申请", null, { hk: "20iJZw" });
+export const errors_premiumRequired = (fbs: FbsRuntime) => fbs._("该功能需要开通 Premium", null, { hk: "2Z9jnx" });
+export const errors_premiumComingSoon = (fbs: FbsRuntime) => fbs._("Premium 开通即将开放", null, { hk: "cu1vr" });
+export const errors_premiumActive = (fbs: FbsRuntime) => fbs._("本百业已开通 Premium", null, { hk: "v6s45" });
+export const errors_paygateDisabled = (fbs: FbsRuntime) => fbs._("收费功能尚未开启", null, { hk: "4cxV4g" });
+export const errors_checkoutFailed = (fbs: FbsRuntime) => fbs._("创建支付会话失败，请稍后再试", null, { hk: "4CxoXa" });
 export const guildAdmin_title = (fbs: FbsRuntime) => fbs._("管理百业", null, { hk: "23Vynb" });
 export const guildAdmin_lockedTitle = (fbs: FbsRuntime) => fbs._("无权管理这个百业", null, { hk: "4eqp6f" });
 export const guildAdmin_lockedBody = (fbs: FbsRuntime) => fbs._("只有该百业所绑 Discord 服务器的管理员（服务器主或拥有管理权限）可以进入管理页。", null, { hk: "248TMj" });
@@ -807,11 +803,19 @@ export const guildAdmin_ogAccentJade = (fbs: FbsRuntime) => fbs._("翡翠", null
 export const guildAdmin_ogAccentAzure = (fbs: FbsRuntime) => fbs._("藏青", null, { hk: "UcaFv" });
 export const guildAdmin_ogAccentCinnabar = (fbs: FbsRuntime) => fbs._("朱砂", null, { hk: "3Phj2j" });
 export const guildAdmin_ogAccentViolet = (fbs: FbsRuntime) => fbs._("紫檀", null, { hk: "1VAkT6" });
-export const guildAdmin_subdomainTitle = (fbs: FbsRuntime) => fbs._("平台子域", null, { hk: "3Jgl7B" });
-export const guildAdmin_subdomainLabel = (fbs: FbsRuntime) => fbs._("启用专属子域", null, { hk: "2ywLX3" });
-export const guildAdmin_subdomainAddressLabel = (fbs: FbsRuntime) => fbs._("子域地址", null, { hk: "2g4REL" });
-export const guildAdmin_subdomainCallbackLabel = (fbs: FbsRuntime) => fbs._("登录回调地址", null, { hk: "K0XEv" });
-export const guildAdmin_subdomainNote = (fbs: FbsRuntime) => fbs._("开启后，成员可通过上方子域地址访问本百业。注意：子域上的 Discord 登录需要站长先在 Discord 开发者后台为该子域登记登录回调（地址见上方）；登记完成前，子域可以打开浏览，但无法在子域上完成登录。", null, { hk: "uXIlb" });
+export const guildAdmin_premiumLockedTitle = (fbs: FbsRuntime) => fbs._("开通百业 Premium", null, { hk: "1pajiH" });
+export const guildAdmin_premiumLockedBody = (fbs: FbsRuntime) => fbs._("高级发车提醒、出勤统计、品牌与分享卡定制均为 Premium 功能。开通后立即生效，可随时取消。", null, { hk: "1rg5hX" });
+export const guildAdmin_premiumCheckoutButton = (fbs: FbsRuntime) => fbs._("立即开通", null, { hk: "1JlNET" });
+export const guildAdmin_premiumComingSoon = (fbs: FbsRuntime) => fbs._("即将开放", null, { hk: "86Hjt" });
+export const guildAdmin_premiumActiveTitle = (fbs: FbsRuntime) => fbs._("百业 Premium", null, { hk: "10hBsK" });
+export const guildAdmin_premiumPlanName = (fbs: FbsRuntime) => fbs._("Premium", null, { hk: "1bWQYi" });
+export const guildAdmin_premiumSourceStripe = (fbs: FbsRuntime) => fbs._("通过 Stripe 订阅", null, { hk: "46CFxl" });
+export const guildAdmin_premiumSourceManual = (fbs: FbsRuntime) => fbs._("由平台授予", null, { hk: "1Mh8w8" });
+export const guildAdmin_premiumPeriodEnd = (fbs: FbsRuntime, p?: StringParams) => fbs._("当前周期至 {date}", [fbs._param("date", pv(p, "date"))], { hk: "18fi8v" });
+export const guildAdmin_premiumPriceMonth = (fbs: FbsRuntime, p?: StringParams) => fbs._("{amount} / 月", [fbs._param("amount", pv(p, "amount"))], { hk: "1mJBHc" });
+export const guildAdmin_premiumPriceYear = (fbs: FbsRuntime, p?: StringParams) => fbs._("{amount} / 年", [fbs._param("amount", pv(p, "amount"))], { hk: "4c5dav" });
+export const guildAdmin_billingSuccess = (fbs: FbsRuntime) => fbs._("开通成功，Premium 已生效。", null, { hk: "3TPHpK" });
+export const guildAdmin_billingCanceled = (fbs: FbsRuntime) => fbs._("已取消开通，未产生扣费。", null, { hk: "3G32RI" });
 export const groupingTemplate_sectionTitle = (fbs: FbsRuntime) => fbs._("车队模板", null, { hk: "GOM6P" });
 export const groupingTemplate_nameLabel = (fbs: FbsRuntime) => fbs._("模板名", null, { hk: "1k3Wki" });
 export const groupingTemplate_namePlaceholder = (fbs: FbsRuntime) => fbs._("给模板起个名字", null, { hk: "3MWfOY" });
@@ -840,36 +844,6 @@ export const groupingTemplate_metaTemplate = (fbs: FbsRuntime, p?: StringParams)
 	fbs._param("dungeon", pv(p, "dungeon")),
 	fbs._param("max", pv(p, "max"))
 ], { hk: "37i0v8" });
-export const account_sectionTitle = (fbs: FbsRuntime) => fbs._("我的数据", null, { hk: "2UMdrf" });
-export const account_exportLabel = (fbs: FbsRuntime) => fbs._("导出我的数据", null, { hk: "CXJjM" });
-export const account_exportHint = (fbs: FbsRuntime) => fbs._("把你账号的全部数据下载为一个 JSON 文件：账号资料、百业名册、你创建的车队、你的报名座位、装备库与方案。登录凭据与推送令牌出于安全不会包含在内。", null, { hk: "2DOC2m" });
-export const account_deleteLabel = (fbs: FbsRuntime) => fbs._("删除账号", null, { hk: "1VtQ4B" });
-export const account_deleteHint = (fbs: FbsRuntime) => fbs._("删除不可恢复。提交后有 7 天冷静期，期间可随时撤销；到期后你的个人数据会被删除或匿名化。", null, { hk: "1uAuep" });
-export const account_reauthLabel = (fbs: FbsRuntime) => fbs._("通过 Discord 重新验证", null, { hk: "2TKGKz" });
-export const account_reauthHint = (fbs: FbsRuntime) => fbs._("导出与删除属于敏感操作，继续前需要一次新鲜的 Discord 授权验证。", null, { hk: "45vyEG" });
-export const account_confirmTitle = (fbs: FbsRuntime) => fbs._("确认删除账号", null, { hk: "4GEVJA" });
-export const account_confirmIntro = (fbs: FbsRuntime) => fbs._("请仔细阅读删除后果。提交后进入 7 天冷静期，到期自动执行：", null, { hk: "3ssclb" });
-export const account_consequenceCars = (fbs: FbsRuntime) => fbs._("你创建的车队不会被删除：车头会解绑为无主车队，创建者显示名替换为「已注销用户」；你在他人车队里的座位会被原地匿名化。", null, { hk: "4DnIic" });
-export const account_consequenceData = (fbs: FbsRuntime) => fbs._("你的装备库与方案、推送令牌、昵称快照、百业名册行会被彻底删除；执行后你在所有设备上的登录会立即失效。", null, { hk: "tDGNE" });
-export const account_consequenceGuilds = (fbs: FbsRuntime) => fbs._("百业本身与百业管理密码不受影响：百业不属于任何个人账号，不会因你删除账号而解散或变更。", null, { hk: "3hTFaE" });
-export const account_consequenceResidual = (fbs: FbsRuntime) => fbs._("少数记录无法按个人清除：已经发到 Discord 的消息、成绩榜里的自由文本名单会保留；备份中的副本最迟在 14 天内随每日备份轮换清除。", null, { hk: "1tY20d" });
-export const account_consequenceReregister = (fbs: FbsRuntime) => fbs._("删除不是封禁：之后用同一个 Discord 账号重新登录，就会注册成一个全新的账号。", null, { hk: "2WcvFl" });
-export const account_exportFirstHint = (fbs: FbsRuntime) => fbs._("建议先导出一份你的数据，再提交删除。", null, { hk: "Lmt7s" });
-export const account_usernameLabel = (fbs: FbsRuntime) => fbs._("输入你的 Discord 显示名以确认", null, { hk: "FE1QL" });
-export const account_submitLabel = (fbs: FbsRuntime) => fbs._("提交删除申请", null, { hk: "3bBHIa" });
-export const account_backLabel = (fbs: FbsRuntime) => fbs._("返回", null, { hk: "3sUiGI" });
-export const account_pendingTitle = (fbs: FbsRuntime) => fbs._("账号删除已排期", null, { hk: "123jqO" });
-export const account_pendingBody = (fbs: FbsRuntime, p?: StringParams) => fbs._("你的账号将于 {date} 执行删除。到期前你可以随时撤销；用新设备重新登录也会自动撤销（到期后除外）。", [fbs._param("date", pv(p, "date"))], { hk: "492HRp" });
-export const account_cancelDeletionLabel = (fbs: FbsRuntime) => fbs._("撤销删除", null, { hk: "2Cc9Hs" });
-export const account_deletionRequestedText = (fbs: FbsRuntime) => fbs._("删除申请已提交，7 天冷静期开始。", null, { hk: "2k7nWJ" });
-export const account_deletionCancelledText = (fbs: FbsRuntime) => fbs._("删除申请已撤销，你的账号不会被删除。", null, { hk: "3O75jx" });
-export const account_exportAbout = (fbs: FbsRuntime) => fbs._("这是你账号数据的导出副本。account 是账号资料（oauth 只记录授权范围与最近刷新时间，凭据本身不导出）；guilds 是你在各百业的名册行；serverNicks 是你在各 Discord 服务器的昵称快照；carsLed 是你创建的车队；seats 是你的报名座位；gearItems 是装备库；gearBuilds 是已保存方案；heirloom 是传家宝推送的去重状态。推送令牌属于设备凭据，只记录数量与平台，令牌本身不导出。", null, { hk: "1z9HId" });
-export const account_deletedUser = (fbs: FbsRuntime) => fbs._("已注销用户", null, { hk: "1EEgqZ" });
-export const buildshare_kicker = (fbs: FbsRuntime) => fbs._("装备方案 · 公开分享", null, { hk: "51eY3" });
-export const buildshare_loginLabel = (fbs: FbsRuntime) => fbs._("打开燕云百业", null, { hk: "3XaPDB" });
-export const buildshare_notFoundTitle = (fbs: FbsRuntime) => fbs._("链接已失效", null, { hk: "1Wv006" });
-export const buildshare_notFoundBody = (fbs: FbsRuntime) => fbs._("这条分享链接不存在，或已被方案主人取消分享。", null, { hk: "3K1GvQ" });
-export const buildshare_xinfaLabel = (fbs: FbsRuntime) => fbs._("心法", null, { hk: "pogF2" });
 export const STRING_FNS: Record<string, StringFn> = {
 	"common.cancel": common_cancel,
 	"common.confirm": common_confirm,
@@ -1370,10 +1344,6 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"gear.schemeSavedToastTemplate": gear_schemeSavedToastTemplate,
 	"gear.schemeLoadedToastTemplate": gear_schemeLoadedToastTemplate,
 	"gear.schemeGroupCountTemplate": gear_schemeGroupCountTemplate,
-	"gear.shareLabel": gear_shareLabel,
-	"gear.revokeShareLabel": gear_revokeShareLabel,
-	"gear.copyLinkLabel": gear_copyLinkLabel,
-	"gear.shareRevokedToast": gear_shareRevokedToast,
 	"gear.quickTitle": gear_quickTitle,
 	"gear.quickResLabel": gear_quickResLabel,
 	"gear.quickSyncLabel": gear_quickSyncLabel,
@@ -1517,11 +1487,11 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"errors.templateNameRequired": errors_templateNameRequired,
 	"errors.templateForbidden": errors_templateForbidden,
 	"errors.templateBadStart": errors_templateBadStart,
-	"errors.accountReauthRequired": errors_accountReauthRequired,
-	"errors.accountExportRateLimited": errors_accountExportRateLimited,
-	"errors.accountUsernameMismatch": errors_accountUsernameMismatch,
-	"errors.accountDeletionPending": errors_accountDeletionPending,
-	"errors.accountDeletionNotPending": errors_accountDeletionNotPending,
+	"errors.premiumRequired": errors_premiumRequired,
+	"errors.premiumComingSoon": errors_premiumComingSoon,
+	"errors.premiumActive": errors_premiumActive,
+	"errors.paygateDisabled": errors_paygateDisabled,
+	"errors.checkoutFailed": errors_checkoutFailed,
 	"guildAdmin.title": guildAdmin_title,
 	"guildAdmin.lockedTitle": guildAdmin_lockedTitle,
 	"guildAdmin.lockedBody": guildAdmin_lockedBody,
@@ -1621,11 +1591,19 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"guildAdmin.ogAccentAzure": guildAdmin_ogAccentAzure,
 	"guildAdmin.ogAccentCinnabar": guildAdmin_ogAccentCinnabar,
 	"guildAdmin.ogAccentViolet": guildAdmin_ogAccentViolet,
-	"guildAdmin.subdomainTitle": guildAdmin_subdomainTitle,
-	"guildAdmin.subdomainLabel": guildAdmin_subdomainLabel,
-	"guildAdmin.subdomainAddressLabel": guildAdmin_subdomainAddressLabel,
-	"guildAdmin.subdomainCallbackLabel": guildAdmin_subdomainCallbackLabel,
-	"guildAdmin.subdomainNote": guildAdmin_subdomainNote,
+	"guildAdmin.premiumLockedTitle": guildAdmin_premiumLockedTitle,
+	"guildAdmin.premiumLockedBody": guildAdmin_premiumLockedBody,
+	"guildAdmin.premiumCheckoutButton": guildAdmin_premiumCheckoutButton,
+	"guildAdmin.premiumComingSoon": guildAdmin_premiumComingSoon,
+	"guildAdmin.premiumActiveTitle": guildAdmin_premiumActiveTitle,
+	"guildAdmin.premiumPlanName": guildAdmin_premiumPlanName,
+	"guildAdmin.premiumSourceStripe": guildAdmin_premiumSourceStripe,
+	"guildAdmin.premiumSourceManual": guildAdmin_premiumSourceManual,
+	"guildAdmin.premiumPeriodEnd": guildAdmin_premiumPeriodEnd,
+	"guildAdmin.premiumPriceMonth": guildAdmin_premiumPriceMonth,
+	"guildAdmin.premiumPriceYear": guildAdmin_premiumPriceYear,
+	"guildAdmin.billingSuccess": guildAdmin_billingSuccess,
+	"guildAdmin.billingCanceled": guildAdmin_billingCanceled,
 	"groupingTemplate.sectionTitle": groupingTemplate_sectionTitle,
 	"groupingTemplate.nameLabel": groupingTemplate_nameLabel,
 	"groupingTemplate.namePlaceholder": groupingTemplate_namePlaceholder,
@@ -1649,35 +1627,5 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"groupingTemplate.saveDialogTitle": groupingTemplate_saveDialogTitle,
 	"groupingTemplate.saveSubmit": groupingTemplate_saveSubmit,
 	"groupingTemplate.toastSavedFromCar": groupingTemplate_toastSavedFromCar,
-	"groupingTemplate.metaTemplate": groupingTemplate_metaTemplate,
-	"account.sectionTitle": account_sectionTitle,
-	"account.exportLabel": account_exportLabel,
-	"account.exportHint": account_exportHint,
-	"account.deleteLabel": account_deleteLabel,
-	"account.deleteHint": account_deleteHint,
-	"account.reauthLabel": account_reauthLabel,
-	"account.reauthHint": account_reauthHint,
-	"account.confirmTitle": account_confirmTitle,
-	"account.confirmIntro": account_confirmIntro,
-	"account.consequenceCars": account_consequenceCars,
-	"account.consequenceData": account_consequenceData,
-	"account.consequenceGuilds": account_consequenceGuilds,
-	"account.consequenceResidual": account_consequenceResidual,
-	"account.consequenceReregister": account_consequenceReregister,
-	"account.exportFirstHint": account_exportFirstHint,
-	"account.usernameLabel": account_usernameLabel,
-	"account.submitLabel": account_submitLabel,
-	"account.backLabel": account_backLabel,
-	"account.pendingTitle": account_pendingTitle,
-	"account.pendingBody": account_pendingBody,
-	"account.cancelDeletionLabel": account_cancelDeletionLabel,
-	"account.deletionRequestedText": account_deletionRequestedText,
-	"account.deletionCancelledText": account_deletionCancelledText,
-	"account.exportAbout": account_exportAbout,
-	"account.deletedUser": account_deletedUser,
-	"buildshare.kicker": buildshare_kicker,
-	"buildshare.loginLabel": buildshare_loginLabel,
-	"buildshare.notFoundTitle": buildshare_notFoundTitle,
-	"buildshare.notFoundBody": buildshare_notFoundBody,
-	"buildshare.xinfaLabel": buildshare_xinfaLabel
+	"groupingTemplate.metaTemplate": groupingTemplate_metaTemplate
 };

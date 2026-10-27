@@ -92,6 +92,17 @@
     </div>
 
     <div class="detail" style="margin-top:16px">
+      <h3 style="margin-top:0">💎 计费与 Premium 权益</h3>
+      <p class="muted">收费总闸：关闭时（默认）所有百业按现状全功能可用，管理面不出现 Premium 门控；开启后，高级提醒设置、出勤统计、白标设置与品牌呈现按各百业权益生效。手工授予用于 Stripe 上线前的试点与运营（到期按读时判定自动回落），授予/撤销与总闸切换都会写入审计。</p>
+      <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px">
+        <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="paygateToggle"> 收费总闸（paygate）</label>
+        <span class="muted" id="billingSummary"></span>
+      </div>
+      <div style="overflow-x:auto"><table class="list" id="billingTable"></table></div>
+      <div class="msg" id="billingMsg"></div>
+    </div>
+
+    <div class="detail" style="margin-top:16px">
       <h3 style="margin-top:0">🗡️ 首领天赋图鉴管理（全站共用）</h3>
       <form id="bossForm">
         <div class="grid2">

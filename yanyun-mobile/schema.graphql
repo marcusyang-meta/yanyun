@@ -1184,7 +1184,7 @@ type Mutation {
   updateGuildDiscord(slug: String!, input: UpdateGuildDiscordInput!): GuildAdminPayload!
   updateGuildReminderSettings(slug: String!, offsets: [Int!]!, customText: String): GuildAdminPayload!
   updateGuildWhiteLabel(slug: String!, hideBranding: Boolean!, ogAccent: String!, ogTitleSuffix: String): GuildAdminPayload!
-  updateGuildSubdomain(slug: String!, enabled: Boolean!): GuildAdminPayload!
+  startPremiumCheckout(slug: String!): GuildAdminPayload!
   updateGuildVisibility(slug: String!, devOnly: Boolean!): GuildAdminPayload!
   setGuildAvatar(slug: String!, dataBase64: String!): GuildAdminPayload!
   deleteGuildAvatar(slug: String!): GuildAdminPayload!
@@ -1506,15 +1506,13 @@ type GuildAdmin {
   ogAccent: String!
   ogTitleSuffix: String!
   ogAccentOptions: [GuildAdminOgAccentOption!]!
-  subdomainEnabled: Boolean!
-  subdomainUrl: String!
-  subdomainCallbackUrl: String!
   pageFooterDisclaimerText: String
   devOnly: Boolean!
   gameVersion: String!
   events: [GuildAdminEvent!]!
   schoolGuides: GuildAdminSchoolGuides!
-  stats: GuildAdminStats!
+  stats: GuildAdminStatsResult!
+  premium: GuildAdminPremiumResult
   adminTitle: String!
   adminBackLinkLabel: String!
   adminTabProfileLabel: String!
@@ -1611,11 +1609,8 @@ type GuildAdmin {
   adminOgAccentLabel: String!
   adminOgTitleSuffixLabel: String!
   adminOgTitleSuffixHint: String!
-  adminSubdomainTitle: String!
-  adminSubdomainLabel: String!
-  adminSubdomainAddressLabel: String!
-  adminSubdomainCallbackLabel: String!
-  adminSubdomainNote: String!
+  adminBillingSuccessText: String!
+  adminBillingCanceledText: String!
 }
 
 type GuildAdminOgAccentOption {
@@ -1688,6 +1683,29 @@ type GuildAdminStats {
   leaderLeaders: [GuildAdminStatsLeader!]!
 }
 
+union GuildAdminStatsResult = GuildAdminStats | GuildAdminStatsLocked
+
+type GuildAdminStatsLocked {
+  premiumTitle: String!
+  premiumBody: String!
+}
+
+union GuildAdminPremiumResult = GuildAdminPremiumActive | GuildAdminPremiumLocked
+
+type GuildAdminPremiumActive {
+  premiumPlanLabel: String!
+  premiumSourceText: String!
+  premiumPeriodEndText: String
+}
+
+type GuildAdminPremiumLocked {
+  premiumTitle: String!
+  premiumBody: String!
+  premiumPriceLabel: String
+  premiumComingSoonText: String
+  premiumCheckoutLabel: String!
+}
+
 type GuildAdminStatsWeek {
   weekStartUtc: Int!
   weekLabel: String!
@@ -1724,6 +1742,7 @@ type GuildAdminPayload {
   errorCode: String
   avatarUrl: String
   id: ID
+  checkoutUrl: String
 }
 
 input UpdateGuildProfileInput {
