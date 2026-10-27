@@ -23,8 +23,9 @@ import type { documentsProfilePageQuery } from '../__generated__/documentsProfil
 // Profile (same content and switch semantics as Web Profile; a push page
 // on mobile): identity (avatar + nickname + Discord account) + locale
 // preference (stored per account in users.locale_pref; follow-device +
-// five languages) + an entry row to the standalone gear library screen
-// (/gear — the library itself moved out of this page) + sign-out. All
+// five languages) + entry rows to the standalone gear library screen
+// (/gear — the library itself moved out of this page) and to the
+// feedback page (/feedback) + sign-out. All
 // copy on this page comes from settingsPage / viewer shell fields per
 // locale; this file holds no UI copy (language option labels are also
 // backend settingsLang* fields).
@@ -267,10 +268,15 @@ function ProfileInner({ topInset, bottomInset }: { topInset: number; bottomInset
       {!!error && <Text style={s.error}>{error}</Text>}
 
       {/* Entry to the standalone gear library screen: the library and my
-          builds live on their own push page now (/gear), not embedded here. */}
+          builds live on their own push page now (/gear), not embedded here.
+          The feedback entry sits in the same zone, pushing /feedback. */}
       <View style={s.gearZone}>
         <Pressable style={s.entryRow} onPress={() => router.push('/gear')}>
           <Text style={s.entryText}>{data.gradPage?.gearMyLibTitle}</Text>
+          <Text style={s.entryChevron}>›</Text>
+        </Pressable>
+        <Pressable style={[s.entryRow, { marginTop: 8 }]} onPress={() => router.push('/feedback')}>
+          <Text style={s.entryText}>{page.feedbackEntryLabel}</Text>
           <Text style={s.entryChevron}>›</Text>
         </Pressable>
       </View>

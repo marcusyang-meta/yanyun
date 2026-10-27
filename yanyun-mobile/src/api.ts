@@ -13,6 +13,7 @@ import {
   LeaveGroupingMutation,
   SetSeatReadyMutation,
   RegisterPushTokenMutation,
+  SubmitFeedbackMutation,
   ReopenGroupingMutation,
   UnregisterPushTokenMutation,
   ExportMyDataMutation,
@@ -52,6 +53,7 @@ import type { documentsSaveGroupingTemplateMutation } from './__generated__/docu
 import type { documentsCreateGuildMutation } from './__generated__/documentsCreateGuildMutation.graphql';
 import type { documentsUpdateGroupingMutation } from './__generated__/documentsUpdateGroupingMutation.graphql';
 import type { documentsUpdateMyLocaleMutation } from './__generated__/documentsUpdateMyLocaleMutation.graphql';
+import type { documentsSubmitFeedbackMutation } from './__generated__/documentsSubmitFeedbackMutation.graphql';
 import type { documentsRegisterPushTokenMutation } from './__generated__/documentsRegisterPushTokenMutation.graphql';
 import type { documentsUnregisterPushTokenMutation } from './__generated__/documentsUnregisterPushTokenMutation.graphql';
 import type { documentsExportMyDataMutation } from './__generated__/documentsExportMyDataMutation.graphql';
@@ -320,6 +322,13 @@ export async function createGuild(input: {
 export async function updateMyLocale(locale: string | null): Promise<LocalePayload> {
   const r = await commit<documentsUpdateMyLocaleMutation>(UpdateMyLocaleMutation, { locale });
   return r.updateMyLocale as LocalePayload;
+}
+
+export type FeedbackCategoryInput = 'PROBLEM' | 'SUGGESTION' | 'OTHER';
+
+export async function submitFeedback(category: FeedbackCategoryInput, text: string): Promise<PushTokenPayload> {
+  const r = await commit<documentsSubmitFeedbackMutation>(SubmitFeedbackMutation, { category, text });
+  return r.submitFeedback as PushTokenPayload;
 }
 
 
