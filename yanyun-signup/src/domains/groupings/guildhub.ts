@@ -25,7 +25,7 @@
 
 import type { Env } from '../platform/context.ts';
 import { getReminderConfig, nextReminderAt, dueReminderBeats, sendReminderBeat } from './reminder.ts';
-import { logError } from '../platform/index.ts';
+import { logError, configureGateRuntime } from '../platform/index.ts';
 
 const KINDS = new Set(['created', 'updated', 'deleted', 'seats']);
 
@@ -35,6 +35,7 @@ export class GuildHub {
   constructor(ctx: DurableObjectState, env: Env) {
     this.ctx = ctx;
     this.env = env;
+    configureGateRuntime(env);
   }
 
   /* This guild's slug: prefer the stored one (brought in by whichever entry ran), else parse the DO id name guild:<slug>. */
