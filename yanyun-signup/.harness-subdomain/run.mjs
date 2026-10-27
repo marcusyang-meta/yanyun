@@ -3,10 +3,13 @@
 //    qualify; 'og' is reserved for the OG worker; apex / previews /
 //    foreign hosts never parse;
 //  - resolution: tenant exists + subdomain_enabled='1' + not
-//    dev_only; unopened and unknown labels resolve identically
-//    (null), and the worker answers both with the same plain 404 on
-//    every path — no enumeration, no main-site content on stray
-//    hosts;
+//    dev_only + the Premium gate verdict (paygate OFF = the switch
+//    alone decides; paygate ON = an effective premium entitlement
+//    is required — manual grant and Stripe-sourced rows both count,
+//    a lapsed row stops resolution); unopened and unknown labels
+//    resolve identically (null), and the worker answers both with
+//    the same plain 404 on every path — no enumeration, no
+//    main-site content on stray hosts;
 //  - live-subdomain dispatch: / = the guild front page (og:url = the
 //    subdomain root), /car/:id = its car page, /admin = its admin
 //    page; other guilds' slug paths 404 under this host; global SPA
@@ -14,9 +17,13 @@
 //  - canonical URLs follow the host at the composition points:
 //    /c/:code landing, groupingDetailPage.shareUrl, the reminder
 //    embed title link — while main-host outputs stay byte-exact;
-//  - admin surface: the switch + server-composed addresses + note
-//    copy live only on GuildAdmin; the mutation re-runs the admin
-//    verdict and flips resolution immediately;
+//  - platform ownership: the switch is written only from the hub
+//    operations surface (PUT /api/hub/billing/subdomain, super-admin
+//    gate, audited, next to the paygate switch and manual grants);
+//    the guild admin surface carries NO subdomain fields at all —
+//    querying any of them (or the retired updateGuildSubdomain
+//    mutation) is a schema validation error, so the capability is
+//    invisible to tenants until the Premium launch;
 //  - login sharing: the session cookie carries Domain=yanyun.app on
 //    the host family (mint pairs it with a legacy host-only clear,
 //    clears emit both scopes, the read tolerates duplicate values);
@@ -30,8 +37,14 @@
 import { yoga } from '../src/graphql.ts';
 import {
   parseGuildSubdomainSlug, resolveGuildSubdomain, isGuildSubdomainEnabled,
-  guildSubdomainOrigin, guildSubdomainUrl, guildSubdomainCallbackUrl,
+  guildSubdomainOrigin, setGuildSubdomainEnabled,
 } from '../src/domains/guilds/subdomain.ts';
+import {
+  setPaygateEnabled, grantPremiumManual, revokePremium,
+} from '../src/domains/platform/billing-service.ts';
+import { hubRoutes } from '../src/domains/platform/hub-routes.ts';
+import { makeToken } from '../src/domains/platform/http.ts';
+import { Hono } from 'hono';
 import {
   signJwt, verifyJwt, getSessionUser, sessionCookieHeader, sessionCookieHeaders,
   validateReturnToTarget,
@@ -79,10 +92,11 @@ function makeDb(fx = {}) {
     signups: (fx.signups || []).map((r) => ({ ...r })),
     links: (fx.links || []).map((l) => ({ ...l })),
     guildMembers: (fx.guildMembers || []).map((m) => ({ ...m })),
+    entitlements: new Map(fx.entitlements || []),
   };
   const unknownSql = new Set();
   function norm(sql) {
-    return sql.replace(/"/g, '').replace(/\b(tenants|settings|users|events|signups|short_links|guild_members|guild_avatars|user_guild_nicks|dungeons)\./g, '').replace(/\s+/g, ' ');
+    return sql.replace(/"/g, '').replace(/\b(tenants|settings|users|events|signups|short_links|guild_members|guild_avatars|user_guild_nicks|dungeons|guild_entitlements)\./g, '').replace(/\s+/g, ' ');
   }
   function route(kind, rawSql, b) {
     const sql = norm(rawSql);
@@ -109,14 +123,17 @@ function makeDb(fx = {}) {
       const row = {};
       cols.forEach((c, i) => { row[c] = b[i]; });
       if (table === 'settings') { tables.settings.set(`${row.tenant}|${row.key}`, row.value); return { meta: { changes: 1 } }; }
+      if (table === 'guild_entitlements') { tables.entitlements.set(row.tenant, { ...row }); return { meta: { changes: 1 } }; }
       if (table === 'events') tables.events.push(row);
       else if (table === 'signups') tables.signups.push(row);
       return { meta: { changes: 1, last_row_id: row.id ?? 0 } };
     }
     if (/\b(CREATE TABLE|ALTER TABLE|PRAGMA)\b/i.test(sql)) return kind === 'run' ? { meta: { changes: 0 } } : (kind === 'first' ? null : { results: [] });
+    if (/^DELETE FROM/i.test(sql)) return { meta: { changes: 0 } };
 
     const first = (row) => (kind === 'first' ? (row ?? null) : { results: row ? [row] : [] });
     const all = (rows) => ({ results: rows });
+    if (/FROM guild_entitlements WHERE tenant = \?/i.test(sql)) return first(tables.entitlements.get(b[0]) ?? null);
     if (/FROM tenants WHERE slug/i.test(sql)) return first(tables.tenants.find((t) => t.slug === b[0]));
     if (/FROM tenants/i.test(sql)) return kind === 'first' ? (tables.tenants[0] ?? null) : all(tables.tenants);
     if (/FROM settings WHERE tenant = \? AND key = \?/i.test(sql)) {
@@ -231,8 +248,6 @@ eq('已开子域解析', await resolveGuildSubdomain(A.db, 'subtest.yanyun.app')
 eq('未开子域不解析', await resolveGuildSubdomain(A.db, 'offtest.yanyun.app'), null);
 eq('不存在子域不解析', await resolveGuildSubdomain(A.db, 'ghost.yanyun.app'), null);
 eq('origin 组合', guildSubdomainOrigin('jijiguagua'), 'https://jijiguagua.yanyun.app');
-eq('子域地址', guildSubdomainUrl('jijiguagua'), 'https://jijiguagua.yanyun.app');
-eq('回调地址', guildSubdomainCallbackUrl('jijiguagua'), 'https://jijiguagua.yanyun.app/auth/discord/callback');
 eq('enabled 读 (开)', await isGuildSubdomainEnabled(A.db, 'subtest'), true);
 eq('enabled 读 (默认关)', await isGuildSubdomainEnabled(A.db, 'offtest'), false);
 A.tables.settings.set('subtest|dev_only', '1');
@@ -347,36 +362,42 @@ check('提醒冻结文案一字未动', msgOn.content.includes('发起了就位�
 const msgOff = await buildReminderMessage(A.db, A.tables.events.find((e) => e.id === 8), 'offtest', NOW);
 eq('未开子域百业提醒链接不变', msgOff.embeds[0].url, 'https://yanyun.app/offtest/car/8');
 
-/* ---------------- F. admin surface ---------------- */
-const adminQ = `{ viewer { guildAdmin(slug: "offtest") { __typename ... on GuildAdmin { subdomainEnabled subdomainUrl subdomainCallbackUrl adminSubdomainTitle adminSubdomainNote } } } }`;
-g = await gql(adminQ, { user: ADMIN });
-eq('服主见 GuildAdmin', g.data?.viewer?.guildAdmin?.__typename, 'GuildAdmin');
-eq('开关默认关', g.data?.viewer?.guildAdmin?.subdomainEnabled, false);
-eq('子域地址服务端组合', g.data?.viewer?.guildAdmin?.subdomainUrl, 'https://offtest.yanyun.app');
-eq('回调地址服务端组合', g.data?.viewer?.guildAdmin?.subdomainCallbackUrl, 'https://offtest.yanyun.app/auth/discord/callback');
-eq('段标题文案', g.data?.viewer?.guildAdmin?.adminSubdomainTitle, '平台子域');
-check('说明文案讲清回调登记', (g.data?.viewer?.guildAdmin?.adminSubdomainNote || '').includes('Discord')
-  && (g.data?.viewer?.guildAdmin?.adminSubdomainNote || '').includes('登记'), g.data?.viewer?.guildAdmin?.adminSubdomainNote);
-g = await gql(adminQ, { user: MEMBER });
-eq('普通成员只见 Locked', g.data?.viewer?.guildAdmin?.__typename, 'GuildAdminLocked');
-g = await gql(`{ viewer { guildAdmin(slug: "offtest") { ... on GuildAdminLocked { subdomainEnabled } } } }`, { user: MEMBER });
-check('Locked 类型无子域字段 -> 校验错误', Array.isArray(g.errors) && g.errors.length > 0);
+/* ---------------- F. guild surface: the section does not exist ----------------
+ * The subdomain capability is platform-operated and pre-launch
+ * hidden: GuildAdmin carries no subdomain fields at all. Querying
+ * any of them — as the owner, with full admin rights — is a schema
+ * validation error (the fields are absent from the type, exactly
+ * like fields on the Locked variant), and the retired mutation
+ * does not exist on Mutation either. */
+g = await gql(`{ viewer { guildAdmin(slug: "offtest") { __typename } } }`, { user: ADMIN });
+eq('服主见 GuildAdmin (壳层照常)', g.data?.viewer?.guildAdmin?.__typename, 'GuildAdmin');
+for (const field of ['subdomainEnabled', 'subdomainUrl', 'subdomainCallbackUrl',
+  'adminSubdomainTitle', 'adminSubdomainLabel', 'adminSubdomainAddressLabel',
+  'adminSubdomainCallbackLabel', 'adminSubdomainNote']) {
+  g = await gql(`{ viewer { guildAdmin(slug: "offtest") { ... on GuildAdmin { ${field} } } } }`, { user: ADMIN });
+  check(`GuildAdmin 无 ${field} 字段 -> 校验错误`, Array.isArray(g.errors) && g.errors.length > 0
+    && JSON.stringify(g.errors).includes(field), JSON.stringify(g.errors || '').slice(0, 160));
+}
+g = await gql(`{ viewer { guildAdmin(slug: "offtest") { __typename } } }`, { user: MEMBER });
+eq('普通成员只见 Locked (不变)', g.data?.viewer?.guildAdmin?.__typename, 'GuildAdminLocked');
 
-const subMut = `mutation($enabled: Boolean!) { updateGuildSubdomain(slug: "offtest", enabled: $enabled) { ok errorCode } }`;
-g = await gql(subMut, { user: MEMBER, variables: { enabled: true } });
-eq('成员翻开关 -> adminOnly', g.data?.updateGuildSubdomain?.errorCode, 'adminOnly');
-eq('成员尝试未落库', A.tables.settings.get('offtest|subdomain_enabled'), undefined);
-g = await gql(subMut, { user: ADMIN, variables: { enabled: true } });
-eq('服主开开关 ok', g.data?.updateGuildSubdomain?.ok, true);
-eq('开关已落库', A.tables.settings.get('offtest|subdomain_enabled'), '1');
-g = await gql(adminQ, { user: ADMIN });
-eq('再读开关为开', g.data?.viewer?.guildAdmin?.subdomainEnabled, true);
+g = await gql(`mutation { updateGuildSubdomain(slug: "offtest", enabled: true) { ok errorCode } }`, { user: ADMIN });
+check('updateGuildSubdomain 已不存在 -> 校验错误', Array.isArray(g.errors) && g.errors.length > 0
+  && JSON.stringify(g.errors).includes('updateGuildSubdomain'), JSON.stringify(g.errors || '').slice(0, 160));
+eq('旧写路径未落库', A.tables.settings.get('offtest|subdomain_enabled'), undefined);
+g = await gql(`mutation { updateGuildSubdomain(slug: "offtest", enabled: true) { ok errorCode } }`, { user: MEMBER });
+check('成员调用旧写路径同样只是校验错误', Array.isArray(g.errors) && g.errors.length > 0);
+
+/* the stored switch itself (written by the platform, section H)
+ * still flips resolution immediately — the data-layer write the
+ * hub route performs, driven directly here */
+await setGuildSubdomainEnabled(A.db, 'offtest', true);
+eq('开关落库', A.tables.settings.get('offtest|subdomain_enabled'), '1');
 eq('开后子域立即解析', await resolveGuildSubdomain(A.db, 'offtest.yanyun.app'), 'offtest');
 r = await call('https://offtest.yanyun.app/');
 eq('开后子域根立即出页', r.status, 200);
 await r.text();
-g = await gql(subMut, { user: ADMIN, variables: { enabled: false } });
-eq('关开关 ok', g.data?.updateGuildSubdomain?.ok, true);
+await setGuildSubdomainEnabled(A.db, 'offtest', false);
 eq('关后子域立即停解析', await resolveGuildSubdomain(A.db, 'offtest.yanyun.app'), null);
 
 /* ---------------- G. login sharing (Domain cookie + root-start OAuth) ---------------- */
@@ -570,6 +591,106 @@ await r.text();
 
 globalThis.fetch = realFetch;
 
+/* ---------------- H. platform control (hub) + entitlement matrix ---------------- */
+const P = makeDb({
+  tenants: [tenantRow('paytest', '权益测试百业'), tenantRow('stripetest', '订阅测试百业')],
+  settings: [
+    ['paytest|discord_guild_id', DGID],
+    ['stripetest|discord_guild_id', DGID],
+    ['paytest|subdomain_enabled', '1'],
+    ['stripetest|subdomain_enabled', '1'],
+    ['|game_version', 'intl-v2.3'],
+  ],
+  events: [evRow(9, 'paytest', { title: '权益测试车' })],
+  entitlements: [
+    ['stripetest', {
+      tenant: 'stripetest', plan: 'premium', source: 'stripe',
+      current_period_end: NOW + 86400 * 30, stripe_customer_id: 'cus_x',
+      stripe_subscription_id: 'sub_x', updated_at: NOW,
+    }],
+  ],
+});
+const envP = { DB: P.db, ASSETS: env.ASSETS };
+const callP = (url) => worker.fetch(new Request(url), envP, wctx);
+
+/* hub plumbing (same mount + token shape as .harness-billing) */
+const hubApp = new Hono();
+hubApp.use('*', async (c, next) => { c.set('ip', '127.0.0.1'); await next(); });
+hubApp.route('/api/hub', hubRoutes);
+const hubEnvP = { DB: P.db, ADMIN_PASSWORD: 'subdomain-test-pw', SITE_URL: 'http://local' };
+const hubTokenP = await makeToken('subdomain-test-pw', '__hub__');
+async function hubP(path, method = 'GET', body) {
+  const res = await hubApp.fetch(new Request('http://local' + path, {
+    method,
+    headers: { authorization: `Bearer ${hubTokenP}`, 'content-type': 'application/json' },
+    body: body ? JSON.stringify(body) : undefined,
+  }), hubEnvP);
+  return { status: res.status, json: await res.json().catch(() => null) };
+}
+{
+  const res = await hubApp.fetch(new Request('http://local/api/hub/billing'), hubEnvP);
+  eq('hub: 计费状态需超管令牌', res.status, 401);
+}
+const tenantState = (hb, slug) => hb.json?.billing?.tenants?.find((t) => t.slug === slug);
+let hb = await hubP('/api/hub/billing');
+eq('hub: 计费状态可读', hb.status, 200);
+eq('hub: paytest 子域开关显示为开', tenantState(hb, 'paytest')?.subdomainEnabled, true);
+eq('hub: stripetest 子域开关显示为开', tenantState(hb, 'stripetest')?.subdomainEnabled, true);
+
+/* paygate OFF: the hub flip alone starts/stops resolution */
+hb = await hubP('/api/hub/billing/subdomain', 'PUT', { slug: 'paytest', enabled: false });
+eq('hub: 关子域 ok', hb.status, 200);
+eq('hub: 关后状态回读为关', tenantState(hb, 'paytest')?.subdomainEnabled, false);
+eq('hub 关后停解析 (总闸关时开关即全部)', await resolveGuildSubdomain(P.db, 'paytest.yanyun.app'), null);
+r = await callP('https://paytest.yanyun.app/');
+eq('hub 关后子域 404', r.status, 404);
+await r.text();
+hb = await hubP('/api/hub/billing/subdomain', 'PUT', { slug: 'paytest', enabled: true });
+eq('hub: 开子域 ok', hb.status, 200);
+eq('hub 开后立即解析', await resolveGuildSubdomain(P.db, 'paytest.yanyun.app'), 'paytest');
+r = await callP('https://paytest.yanyun.app/');
+eq('hub 开后子域出页', r.status, 200);
+await r.text();
+hb = await hubP('/api/hub/billing/subdomain', 'PUT', { slug: 'ghost', enabled: true });
+eq('hub: 不存在的百业 -> 404', hb.status, 404);
+
+/* paygate ON: the entitlement matrix */
+await setPaygateEnabled(P.db, true);
+eq('总闸开 + 无权益 -> 不解析', await resolveGuildSubdomain(P.db, 'paytest.yanyun.app'), null);
+eq('总闸开 + 无权益 -> verdict 关', await isGuildSubdomainEnabled(P.db, 'paytest'), false);
+r = await callP('https://paytest.yanyun.app/');
+eq('总闸开 + 无权益 -> 子域 404', r.status, 404);
+const gatedBody = await r.text();
+r = await callP('https://ghost2.yanyun.app/');
+eq('未达标与不存在 404 一致 (防枚举)', await r.text(), gatedBody);
+const msgGated = await buildReminderMessage(P.db, P.tables.events.find((e) => e.id === 9), 'paytest', NOW);
+eq('总闸开 + 无权益 -> 提醒链接回主域形态', msgGated.embeds[0].url, 'https://yanyun.app/paytest/car/9');
+eq('总闸开 + Stripe 权益有效 -> 解析', await resolveGuildSubdomain(P.db, 'stripetest.yanyun.app'), 'stripetest');
+await grantPremiumManual(P.db, 'paytest', 30);
+eq('总闸开 + 手工授予 -> 解析', await resolveGuildSubdomain(P.db, 'paytest.yanyun.app'), 'paytest');
+r = await callP('https://paytest.yanyun.app/');
+eq('授予后子域出页', r.status, 200);
+await r.text();
+const msgPremium = await buildReminderMessage(P.db, P.tables.events.find((e) => e.id === 9), 'paytest', NOW);
+eq('授予后提醒链接回子域', msgPremium.embeds[0].url, 'https://paytest.yanyun.app/car/9');
+await revokePremium(P.db, 'paytest');
+eq('撤销后立即停解析', await resolveGuildSubdomain(P.db, 'paytest.yanyun.app'), null);
+P.tables.entitlements.set('paytest', {
+  tenant: 'paytest', plan: 'premium', source: 'manual',
+  current_period_end: NOW - 60, stripe_customer_id: '',
+  stripe_subscription_id: '', updated_at: NOW,
+});
+eq('权益过期 -> 停解析', await resolveGuildSubdomain(P.db, 'paytest.yanyun.app'), null);
+await grantPremiumManual(P.db, 'paytest', 30);
+await setGuildSubdomainEnabled(P.db, 'paytest', false);
+eq('开关关 + 有权益 -> 不解析', await resolveGuildSubdomain(P.db, 'paytest.yanyun.app'), null);
+await setGuildSubdomainEnabled(P.db, 'paytest', true);
+eq('开关重开 + 权益在 -> 恢复解析', await resolveGuildSubdomain(P.db, 'paytest.yanyun.app'), 'paytest');
+await revokePremium(P.db, 'paytest');
+await setPaygateEnabled(P.db, false);
+eq('总闸关 + 无权益 + 开关开 -> 解析 (回到现状口径)', await resolveGuildSubdomain(P.db, 'paytest.yanyun.app'), 'paytest');
+
+check('H 无未路由 SQL', P.unknownSql.size === 0, [...P.unknownSql].join(' | '));
 check('无未路由 SQL', A.unknownSql.size === 0, [...A.unknownSql].join(' | '));
 
 console.log(`\n== subdomain harness: ${pass} passed, ${fail} failed ==`);
