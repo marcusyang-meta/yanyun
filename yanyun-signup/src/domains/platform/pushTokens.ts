@@ -75,13 +75,24 @@ export async function listPushTokenPlatformsByUser(
   return (rows || []).map((r) => String(r.platform || ''));
 }
 
+
+interface RunMeta {
+  changes: number;
+  last_row_id: number;
+}
+
+function metaOf(r: unknown): RunMeta {
+  const m = (r as { meta?: { changes?: number; last_row_id?: number } } | null)?.meta;
+  return { changes: m?.changes ?? 0, last_row_id: m?.last_row_id ?? 0 };
+}
+
 export async function deleteAllPushTokensByUser(
   d1: D1Database,
   discordId: string,
 ): Promise<number> {
   const db = createDb(d1);
-  const r: any = await db.run(
+  const r = await db.run(
     sql`DELETE FROM ${pushTokens} WHERE ${pushTokens.discordId} = ${discordId}`,
   );
-  return Number(r?.meta?.changes ?? 0);
+  return metaOf(r).changes;
 }

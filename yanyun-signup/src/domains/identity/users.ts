@@ -280,24 +280,35 @@ export async function listDueDeletionUserIds(d1: D1Database, cutoffSec: number):
   return (rows || []).map((r) => String(r.discord_id));
 }
 
+
+interface RunMeta {
+  changes: number;
+  last_row_id: number;
+}
+
+function metaOf(r: unknown): RunMeta {
+  const m = (r as { meta?: { changes?: number; last_row_id?: number } } | null)?.meta;
+  return { changes: m?.changes ?? 0, last_row_id: m?.last_row_id ?? 0 };
+}
+
 /* ---------- account deletion cascade (identity-owned rows) ---------- */
 
 export async function deleteUserRow(d1: D1Database, discordId: string): Promise<number> {
   const db = createDb(d1);
-  const r: any = await db.run(sql`DELETE FROM ${users} WHERE ${col('discord_id')} = ${discordId}`);
-  return Number(r?.meta?.changes ?? 0);
+  const r = await db.run(sql`DELETE FROM ${users} WHERE ${col('discord_id')} = ${discordId}`);
+  return metaOf(r).changes;
 }
 
 export async function deleteOAuthRow(d1: D1Database, discordId: string): Promise<number> {
   const db = createDb(d1);
-  const r: any = await db.run(sql`DELETE FROM ${userOauth} WHERE ${col('discord_id')} = ${discordId}`);
-  return Number(r?.meta?.changes ?? 0);
+  const r = await db.run(sql`DELETE FROM ${userOauth} WHERE ${col('discord_id')} = ${discordId}`);
+  return metaOf(r).changes;
 }
 
 export async function deleteNicksByUser(d1: D1Database, discordId: string): Promise<number> {
   const db = createDb(d1);
-  const r: any = await db.run(sql`DELETE FROM ${userGuildNicks} WHERE ${col('discord_id')} = ${discordId}`);
-  return Number(r?.meta?.changes ?? 0);
+  const r = await db.run(sql`DELETE FROM ${userGuildNicks} WHERE ${col('discord_id')} = ${discordId}`);
+  return metaOf(r).changes;
 }
 
 /** All of a user's nick snapshots with values (export package). */

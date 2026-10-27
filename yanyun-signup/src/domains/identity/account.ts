@@ -132,7 +132,10 @@ export async function buildAccountExport(
   const servers = (() => {
     const parsed = parseJsonOrRaw(row.guilds_json || '[]');
     return Array.isArray(parsed)
-      ? parsed.map((g: any) => ({ id: String(g?.id ?? ''), name: String(g?.name ?? ''), icon: String(g?.icon ?? ''), owner: !!g?.owner }))
+      ? parsed.map((g: { id?: unknown; name?: unknown; icon?: unknown; owner?: unknown }) => ({
+        id: String(g?.id ?? ''), name: String(g?.name ?? ''),
+        icon: String(g?.icon ?? ''), owner: !!g?.owner,
+      }))
       : [];
   })();
   const doc = {
@@ -200,7 +203,7 @@ export type AccountActionResult =
 
 /** Export mutation core: login is enforced by the caller; here the
  * fresh-auth gate and the 24h limit (counted on audit rows) run
- * before any data is gathered, and a successful export leaves its
+ * before data is gathered, and a successful export leaves its
  * account.export audit row (counts only). */
 export async function exportMyData(
   db: D1Database, discordId: string, locale: string, atSec: number = nowSec(),

@@ -315,7 +315,7 @@ export class AccountPendingDeletionShell extends ShellBase {
     try {
       date = new Intl.DateTimeFormat(this.locale, {
         year: 'numeric', month: 'long', day: 'numeric',
-        timeZone: (this.ctx as any).tz || 'Asia/Shanghai',
+        timeZone: this.ctx.tz || 'Asia/Shanghai',
       }).format(new Date(this.data.executesAt * 1000));
     } catch { /* keep the ISO date */ }
     return this.t('account', 'pendingBody', { date });
