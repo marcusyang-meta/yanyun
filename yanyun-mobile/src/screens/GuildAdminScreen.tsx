@@ -1,6 +1,6 @@
 import React, { Suspense, useState } from 'react';
 import {
-  Image, Pressable, ScrollView, Share, StyleSheet, Switch, Text, TextInput, View,
+  Image, Linking, Pressable, ScrollView, Share, StyleSheet, Switch, Text, TextInput, View,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -15,8 +15,9 @@ import {
   adminAddResult, adminCreateEvent, adminDeleteAvatar,
   adminDeleteEvent, adminDeleteResult, adminRemoveSignup,
   adminSetAvatar, adminUpdateDiscord, adminUpdateEvent, adminUpdateGuide,
+  adminStartPremiumCheckout,
   adminUpdateProfile, adminUpdateReminderSettings, adminUpdateVisibility,
-  adminUpdateSubdomain, adminUpdateWhiteLabel,
+  adminUpdateWhiteLabel,
   type AdminPayload,
 } from '../api';
 import type { documentsGuildAdminQuery } from '../__generated__/documentsGuildAdminQuery.graphql';
@@ -99,6 +100,9 @@ function AdminMain({ admin, unknownError, refresh, router }: {
     { key: 'guides', label: admin.adminTabGuidesLabel },
     { key: 'stats', label: admin.adminTabStatsLabel },
   ];
+  const premium: any = (admin as any).premium ?? null;
+  const premiumLocked = premium?.__typename === 'GuildAdminPremiumLocked' ? premium : null;
+  const premiumActive = premium?.__typename === 'GuildAdminPremiumActive' ? premium : null;
   return (
     <ScrollView contentContainerStyle={s.content}>
       <View style={s.head}>
@@ -117,11 +121,12 @@ function AdminMain({ admin, unknownError, refresh, router }: {
       </View>
       {!!error && <Text style={s.error}>{error}</Text>}
       {!!notice && <Text style={s.saved}>{notice}</Text>}
+      {tab === 'profile' && premiumActive && <PremiumActiveCard admin={admin} premium={premiumActive} />}
       {tab === 'profile' && <ProfilePanel admin={admin} run={run} flash={setNotice} />}
-      {tab === 'discord' && <DiscordPanel admin={admin} run={run} />}
+      {tab === 'discord' && <DiscordPanel admin={admin} run={run} premiumLocked={premiumLocked} unknownError={unknownError} onError={setError} />}
       {tab === 'events' && <EventsPanel admin={admin} run={run} />}
       {tab === 'guides' && <GuidesPanel admin={admin} run={run} />}
-      {tab === 'stats' && <StatsPanel admin={admin} />}
+      {tab === 'stats' && <StatsPanel admin={admin} premiumLocked={premiumLocked} unknownError={unknownError} onError={setError} />}
     </ScrollView>
   );
 }
@@ -242,9 +247,12 @@ function fillTemplate(template: string, params: Record<string, string | number>)
   return out;
 }
 
-function DiscordPanel({ admin, run }: {
+function DiscordPanel({ admin, run, premiumLocked, unknownError, onError }: {
   admin: Admin;
   run: (p: Promise<AdminPayload>, onOk?: () => void) => void;
+  premiumLocked: any;
+  unknownError: string;
+  onError: (m: string) => void;
 }) {
   const slug = admin.slug;
   const [webhook, setWebhook] = useState('');
@@ -278,6 +286,9 @@ function DiscordPanel({ admin, run }: {
         </View>
       </View>
 
+      {premiumLocked ? (
+        <PremiumLockedCard premium={premiumLocked} slug={slug} unknownError={unknownError} onError={onError} />
+      ) : (<>
       <Text style={s.sectionTitle}>{admin.adminReminderTitle}</Text>
       <View style={s.card}>
         <Field label={admin.adminReminderOffsetsLabel}>
@@ -307,6 +318,7 @@ function DiscordPanel({ admin, run }: {
           onSave={() => run(adminUpdateReminderSettings(slug, offsets, customText))} />
       </View>
 
+      </>)}
       <Text style={s.sectionTitle}>{admin.adminVisibilityTitle}</Text>
       <View style={s.card}>
         <View style={s.switchRow}>
@@ -316,6 +328,7 @@ function DiscordPanel({ admin, run }: {
         </View>
       </View>
 
+      {!premiumLocked && (<>
       <Text style={s.sectionTitle}>{admin.adminWhiteLabelTitle}</Text>
       <View style={s.card}>
         <View style={s.switchRow}>
@@ -350,22 +363,7 @@ function DiscordPanel({ admin, run }: {
         <SaveBtn label={admin.adminSaveLabel} savedLabel={admin.adminSavedText}
           onSave={() => run(adminUpdateWhiteLabel(slug, wlHide, wlAccent, wlSuffix))} />
       </View>
-
-      <Text style={s.sectionTitle}>{admin.adminSubdomainTitle}</Text>
-      <View style={s.card}>
-        <View style={s.switchRow}>
-          <Text style={s.switchLabel}>{admin.adminSubdomainLabel}</Text>
-          <Switch value={!!admin.subdomainEnabled}
-            onValueChange={(v) => run(adminUpdateSubdomain(slug, v))} />
-        </View>
-        <Field label={admin.adminSubdomainAddressLabel}>
-          <TInput value={admin.subdomainUrl ?? ''} editable={false} autoCapitalize="none" />
-        </Field>
-        <Field label={admin.adminSubdomainCallbackLabel}>
-          <TInput value={admin.subdomainCallbackUrl ?? ''} editable={false} autoCapitalize="none" />
-        </Field>
-        <Text style={s.muted}>{admin.adminSubdomainNote}</Text>
-      </View>
+      </>)}
     </View>
   );
 }
@@ -631,6 +629,62 @@ function RotationEditor({ admin, school, rotationJson, run }: {
   );
 }
 
+/* ---------- premium (locked / active, server-composed variants) ---------- */
+
+function PremiumLockedCard({ premium, slug, unknownError, onError }: {
+  premium: any;
+  slug: string;
+  unknownError: string;
+  onError: (m: string) => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  return (
+    <View>
+      <Text style={s.sectionTitle}>{premium.premiumTitle}</Text>
+      <View style={s.card}>
+        <Text style={{ color: theme.paper, fontSize: 14, lineHeight: 21, fontFamily: fonts.serif }}>{premium.premiumBody}</Text>
+        {!!premium.premiumPriceLabel && (
+          <Text style={{ color: '#ecd28f', fontSize: 22, marginTop: 12, fontFamily: fonts.serif }}>{premium.premiumPriceLabel}</Text>
+        )}
+        {premium.premiumComingSoonText ? (
+          <Text style={[s.muted, { marginTop: 12 }]}>{premium.premiumComingSoonText}</Text>
+        ) : (
+          <Pressable
+            disabled={busy}
+            onPress={async () => {
+              setBusy(true);
+              try {
+                const r = await adminStartPremiumCheckout(slug);
+                if (r.ok && r.checkoutUrl) await Linking.openURL(r.checkoutUrl);
+                else onError(r.error || unknownError);
+              } catch { onError(unknownError); }
+              setBusy(false);
+            }}
+            style={{ marginTop: 14, alignSelf: 'flex-start', backgroundColor: theme.gold, borderRadius: 8, paddingVertical: 9, paddingHorizontal: 22 }}>
+            <Text style={{ color: '#1a1814', fontSize: 14, fontFamily: fonts.serif }}>{premium.premiumCheckoutLabel}</Text>
+          </Pressable>
+        )}
+      </View>
+    </View>
+  );
+}
+
+function PremiumActiveCard({ admin, premium }: { admin: Admin; premium: any }) {
+  return (
+    <View>
+      <Text style={s.sectionTitle}>{admin.adminPremiumTitle}</Text>
+      <View style={s.card}>
+        <Text style={{ color: theme.paper, fontSize: 14, fontFamily: fonts.serif }}>
+          {premium.premiumPlanLabel} · {premium.premiumSourceText}
+        </Text>
+        {!!premium.premiumPeriodEndText && (
+          <Text style={[s.muted, { marginTop: 6 }]}>{premium.premiumPeriodEndText}</Text>
+        )}
+      </View>
+    </View>
+  );
+}
+
 /* ---------- stats (attendance / activity, isomorphic with Web) ---------- */
 
 function StatBar({ ratio }: { ratio: number }) {
@@ -678,11 +732,22 @@ function StatBoard({ title, unitLabel, emptyText, rows }: {
   );
 }
 
-function StatsPanel({ admin }: { admin: Admin }) {
-  const stats = admin.stats;
+function StatsPanel({ admin, premiumLocked, unknownError, onError }: {
+  admin: Admin;
+  premiumLocked: any;
+  unknownError: string;
+  onError: (m: string) => void;
+}) {
+  const statsResult: any = (admin as any).stats ?? null;
+  if (statsResult?.__typename !== 'GuildAdminStats') {
+    return premiumLocked
+      ? <PremiumLockedCard premium={premiumLocked} slug={admin.slug} unknownError={unknownError} onError={onError} />
+      : <View />;
+  }
+  const stats = statsResult;
   const weeks = stats?.weeks ?? [];
-  const allEmpty = weeks.every((w) => w.carsTotal === 0);
-  const typeLine = (w: NonNullable<Admin['stats']>['weeks'][number]) => [
+  const allEmpty = weeks.every((w: any) => w.carsTotal === 0);
+  const typeLine = (w: any) => [
     [admin.adminTypeActivityText, w.carsActivity],
     [admin.adminTypeTalentText, w.carsTalent],
     [admin.adminTypeRaceText, w.carsRace],
@@ -693,7 +758,7 @@ function StatsPanel({ admin }: { admin: Admin }) {
       <Text style={s.sectionTitle}>{admin.adminStatsTitle}</Text>
       {allEmpty ? (
         <Text style={s.muted}>{admin.adminStatsEmptyText}</Text>
-      ) : weeks.map((w, i) => (
+      ) : weeks.map((w: any, i: number) => (
         <View key={w.weekLabel + i} style={s.card}>
           <View style={s.statWeekHead}>
             <Text style={s.eventTitle}>{w.weekLabel}</Text>
@@ -722,13 +787,13 @@ function StatsPanel({ admin }: { admin: Admin }) {
         title={admin.adminStatsMembersTitle}
         unitLabel={admin.adminStatsSeatCountLabel}
         emptyText={admin.adminStatsBoardEmptyText}
-        rows={(stats?.memberLeaders ?? []).map((m) => ({ discordId: m.discordId, displayName: m.displayName, count: m.seatCount }))}
+        rows={(stats?.memberLeaders ?? []).map((m: any) => ({ discordId: m.discordId, displayName: m.displayName, count: m.seatCount }))}
       />
       <StatBoard
         title={admin.adminStatsLeadersTitle}
         unitLabel={admin.adminStatsCarCountLabel}
         emptyText={admin.adminStatsBoardEmptyText}
-        rows={(stats?.leaderLeaders ?? []).map((m) => ({ discordId: m.discordId, displayName: m.displayName, count: m.carCount }))}
+        rows={(stats?.leaderLeaders ?? []).map((m: any) => ({ discordId: m.discordId, displayName: m.displayName, count: m.carCount }))}
       />
     </View>
   );
