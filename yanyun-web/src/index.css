@@ -42,6 +42,47 @@ body {
   width: 100%;
 }
 
+/* ---------- themed scrollbars ----------
+ * Every scroller in the app (the shell's .yy-scroll-region, modal panels,
+ * sheets, push pages, long lists) gets the same ink-and-gold treatment
+ * instead of the raw OS scrollbar: a slim bar, transparent track, and an
+ * antique-gold thumb (the --gold / --gold-hi values as rgba). Skin only —
+ * no scroll behavior or layout changes.
+ * WebKit/Blink (Chrome, Edge, Safari) via the ::-webkit-scrollbar
+ * pseudo-elements below. Firefox via the standard scrollbar-width /
+ * scrollbar-color properties, scoped to Firefox with @supports so
+ * Chromium keeps using the pseudo-element path (it drops
+ * ::-webkit-scrollbar styling on elements that carry the standard
+ * properties). */
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: rgba(201, 163, 92, .45); /* --gold */
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(236, 210, 143, .8); /* --gold-hi */
+}
+*::-webkit-scrollbar-button {
+  display: none;
+}
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+@supports (-moz-appearance: none) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(201, 163, 92, .45) transparent; /* --gold thumb, clear track */
+  }
+}
+
 /* ---------- keyframes ---------- */
 @keyframes yy-fade-up {
   from { opacity: 0; transform: translateY(18px); }
