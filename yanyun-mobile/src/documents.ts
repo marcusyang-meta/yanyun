@@ -267,6 +267,41 @@ export const ListPageTextQuery = graphql`
       typeShortTalent
       typeShortRace
       typeShortTower
+      templateSectionTitle
+      templateNameLabel
+      templateNamePlaceholder
+      templateSaveLabel
+      templateUpdateLabel
+      templateEditingNoticeTemplate
+      templateCancelEditLabel
+      templateEmptyText
+      templateWhenTodayTemplate
+      templateWhenTomorrowTemplate
+      templateWhenDaysTemplate
+      templateToastSaved
+      templateToastSaveFailedTemplate
+      templateToastDeleted
+      templateToastDeleteFailedTemplate
+      templateMetaTemplate
+      groupingTemplates {
+        id
+        name
+        type
+        title
+        dungeonName
+        dungeonId
+        maxSlots
+        startDaysAhead
+        startHour
+        startMinute
+        creatorName
+        manageActions {
+          editLabel
+          deleteLabel
+          deleteConfirmTitle
+          deleteConfirmMessageTemplate
+        }
+      }
     }
   }
 `;
@@ -301,6 +336,14 @@ export const DetailPageTextQuery = graphql`
       seatToastReadyFailedTemplate
       detailShareLabel
       shareUrl
+      templateSave {
+        buttonLabel
+        dialogTitle
+        nameLabel
+        submitLabel
+        toastSaved
+        toastFailedTemplate
+      }
       seatModalTitleTemplate
       seatModalSubtitle
       seatNameLabel
@@ -388,6 +431,53 @@ export const CreateGroupingMutation = graphql`
         occupiedCount
         maxSlots
         status
+      }
+    }
+  }
+`;
+
+/* Guild-shared grouping templates (same contract as Web) */
+
+export const CreateGroupingTemplateMutation = graphql`
+  mutation documentsCreateGroupingTemplateMutation($input: CreateGroupingTemplateInput!) {
+    createGroupingTemplate(input: $input) {
+      ok
+      error
+      template {
+        id
+      }
+    }
+  }
+`;
+
+export const UpdateGroupingTemplateMutation = graphql`
+  mutation documentsUpdateGroupingTemplateMutation($id: ID!, $input: GroupingTemplateInput!) {
+    updateGroupingTemplate(id: $id, input: $input) {
+      ok
+      error
+      template {
+        id
+      }
+    }
+  }
+`;
+
+export const DeleteGroupingTemplateMutation = graphql`
+  mutation documentsDeleteGroupingTemplateMutation($id: ID!) {
+    deleteGroupingTemplate(id: $id) {
+      ok
+      error
+    }
+  }
+`;
+
+export const SaveGroupingTemplateMutation = graphql`
+  mutation documentsSaveGroupingTemplateMutation($input: SaveGroupingTemplateInput!) {
+    saveGroupingTemplate(input: $input) {
+      ok
+      error
+      template {
+        id
       }
     }
   }
