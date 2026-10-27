@@ -1559,6 +1559,11 @@ export const GuildAdminQuery = graphql`
           adminOgAccentLabel
           adminOgTitleSuffixLabel
           adminOgTitleSuffixHint
+          adminSubdomainTitle
+          adminSubdomainLabel
+          adminSubdomainAddressLabel
+          adminSubdomainCallbackLabel
+          adminSubdomainNote
           adminAddLabel
           adminEditLabel
           adminDeleteLabel
@@ -1612,6 +1617,9 @@ export const GuildAdminQuery = graphql`
           whiteLabelHideBranding
           ogAccent
           ogTitleSuffix
+          subdomainEnabled
+          subdomainUrl
+          subdomainCallbackUrl
           ogAccentOptions {
             key
             hex
@@ -1752,6 +1760,11 @@ export const UpdateGuildWhiteLabelAdminMutation = graphql`
 export const UpdateGuildVisibilityAdminMutation = graphql`
   mutation documentsUpdateGuildVisibilityAdminMutation($slug: String!, $devOnly: Boolean!) {
     updateGuildVisibility(slug: $slug, devOnly: $devOnly) { ok error }
+  }
+`;
+export const UpdateGuildSubdomainAdminMutation = graphql`
+  mutation documentsUpdateGuildSubdomainAdminMutation($slug: String!, $enabled: Boolean!) {
+    updateGuildSubdomain(slug: $slug, enabled: $enabled) { ok error }
   }
 `;
 export const CreateAdminEventMutation = graphql`
