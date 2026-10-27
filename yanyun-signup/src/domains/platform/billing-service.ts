@@ -95,7 +95,11 @@ export async function getEffectiveEntitlement(
  *     plan is premium. isPremiumActive is the verdict itself.
  * The facts ride as private attributes (plan, paygate) with the
  * guild slug as the bucketing unit, so console ID overrides force
- * one guild on or off without a release. */
+ * one guild on or off without a release. Evaluation only happens
+ * while the master switch is on (the OFF branch short-circuits in
+ * code, as it did before the migration), so the paygate attribute
+ * is 'on' in every evaluated check; the console's paygate-off rule
+ * mirrors the short-circuit for completeness. */
 export const PREMIUM_ACCESS_GATE_KEY = 'premium_access';
 export const PREMIUM_ACTIVE_GATE_KEY = 'premium_active';
 
@@ -105,14 +109,20 @@ export const PREMIUM_ACTIVE_GATE_KEY = 'premium_active';
  *  platform gate wrapper with the local computation as fallback —
  *  the two agree by construction (see the mapping note above). */
 export async function premiumGate(d1: D1Database, slug: string): Promise<boolean> {
-  const paygateOn = await isPaygateEnabled(d1);
+  // The platform master switch stays a code-level short-circuit,
+  // exactly as before the migration: paygate OFF locks nobody, and
+  // no entitlement read (and no gate evaluation) happens at all.
+  // The console rule mirroring this branch (paygate-off parity in
+  // docs/STATSIG.md) is belt-and-braces for direct evaluators; the
+  // switch itself is the platform's, not the console's.
+  if (!(await isPaygateEnabled(d1))) return false;
   const eff = await getEffectiveEntitlement(d1, slug);
-  const legacyLocked = paygateOn && eff.plan !== 'premium';
+  const legacyLocked = eff.plan !== 'premium';
   const unlocked = await gateOpen(
     PREMIUM_ACCESS_GATE_KEY,
     {
       unitId: slug,
-      privateAttributes: { plan: eff.plan, paygate: paygateOn ? 'on' : 'off' },
+      privateAttributes: { plan: eff.plan, paygate: 'on' },
     },
     !legacyLocked,
   );
@@ -174,14 +184,14 @@ export async function isPremiumActive(
   slug: string,
 ): Promise<boolean> {
   if (!slug) return false;
-  const paygateOn = await isPaygateEnabled(d1);
+  if (!(await isPaygateEnabled(d1))) return false;
   const eff = await getEffectiveEntitlement(d1, slug);
-  const legacyActive = paygateOn && eff.plan === 'premium';
+  const legacyActive = eff.plan === 'premium';
   return gateOpen(
     PREMIUM_ACTIVE_GATE_KEY,
     {
       unitId: slug,
-      privateAttributes: { plan: eff.plan, paygate: paygateOn ? 'on' : 'off' },
+      privateAttributes: { plan: eff.plan, paygate: 'on' },
     },
     legacyActive,
   );

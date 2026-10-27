@@ -55,6 +55,12 @@ gate key 与属性名——代码按这些名字问，改名 = 封装弃权回�
 两个 gate 都保持 Enabled。急停 = 在控制台把 gate 关掉（Disable），
 或把规则改 Fail——不需要发版；传播延迟第二期实测后记入本文。
 
+注记（求值时机）：平台总闸 OFF 时，代码内的主开关短路先行
+（premiumGate / isPremiumActive 直接返回迁移前结论，不发生求值），
+所以求值只在总闸 ON 时发生、paygate 属性恒为 `on`。上面
+premium_access 的规则 1（paygate-off parity）是与短路同义的
+镜像规则，为直接求值者保留，照建即可。
+
 ## 步骤 3 — 建 Cloudflare KV namespace（Cloudflare 侧）
 
 部署 token 没有 KV 权限，这一步只能在 dashboard 做：

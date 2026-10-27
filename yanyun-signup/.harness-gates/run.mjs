@@ -149,17 +149,20 @@ eq('B attributes: per-guild unit ids stay separate',
   [[PREMIUM_ACCESS_GATE_KEY, G_NONE, 'free'], [PREMIUM_ACTIVE_GATE_KEY, G_PREM, 'premium']]);
 
 // A backend that disagrees with the local computation WINS: the
-// path is live. Paygate OFF + free guild is unlocked/inactive
-// locally; the inverted backend flips both answers.
+// path is live. Paygate ON + free guild is locked/inactive
+// locally; the inverted backend flips both answers. (While the
+// paygate is OFF the verdict short-circuits in code — the master
+// switch predates the console and stays the platform's — so the
+// live-wiring proof runs with the switch ON.)
 __setGateBackendForTests({
   async check(key) {
-    if (key === PREMIUM_ACCESS_GATE_KEY) return false;
+    if (key === PREMIUM_ACCESS_GATE_KEY) return true;
     if (key === PREMIUM_ACTIVE_GATE_KEY) return true;
     return null;
   },
 });
-await setPaygate(false);
-eq('B live wiring: backend can lock against local fallback', await premiumGate(db, G_NONE), true);
+await setPaygate(true);
+eq('B live wiring: backend can unlock against local fallback', await premiumGate(db, G_NONE), false);
 eq('B live wiring: backend can activate against local fallback', await isPremiumActive(db, G_NONE), true);
 
 /* ------------- C. degradation resolves to the fallback --------- */
