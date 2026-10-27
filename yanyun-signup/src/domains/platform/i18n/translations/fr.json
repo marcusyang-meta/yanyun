@@ -8316,6 +8316,105 @@
         }
       ],
       "types": []
+    },
+    "M04aFFMk3EznXKUUGBebEg==": {
+      "description": "gear.shareLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Partager",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "XrXHAT8EMZZd5uVVQkmOMw==": {
+      "description": "gear.revokeShareLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Arrêter le partage",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "DUYxuAum76cbtbAfWcZO5w==": {
+      "description": "gear.copyLinkLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Copier le lien",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "TkXZzpOsWH3Sh//gg9d1FA==": {
+      "description": "gear.shareRevokedToast",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Partage révoqué — l’ancien lien ne fonctionne plus",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Qk856+Jv3nFQ7Z9mHCaDcg==": {
+      "description": "buildshare.kicker",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Configuration d’équipement · Partage public",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "mKyDYxi+z5YafDYJnEAsUQ==": {
+      "description": "buildshare.loginLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Ouvrir Yanyun Guilds",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "QXwc8/zelfzK0fmmIbVIQQ==": {
+      "description": "buildshare.notFoundTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Ce lien n’est plus valide",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "7GL3CZPp6bX5MP96lk6FFw==": {
+      "description": "buildshare.notFoundBody",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Ce lien de partage n’existe pas ou son propriétaire l’a révoqué.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "nTPlK8IvS+YEZiaCTJcaZQ==": {
+      "description": "buildshare.xinfaLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Art interne",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

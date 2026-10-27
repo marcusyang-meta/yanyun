@@ -8316,6 +8316,105 @@
         }
       ],
       "types": []
+    },
+    "M04aFFMk3EznXKUUGBebEg==": {
+      "description": "gear.shareLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Compartir",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "XrXHAT8EMZZd5uVVQkmOMw==": {
+      "description": "gear.revokeShareLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Dejar de compartir",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "DUYxuAum76cbtbAfWcZO5w==": {
+      "description": "gear.copyLinkLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Copiar enlace",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "TkXZzpOsWH3Sh//gg9d1FA==": {
+      "description": "gear.shareRevokedToast",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Uso compartido revocado: el enlace anterior ya no funciona",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Qk856+Jv3nFQ7Z9mHCaDcg==": {
+      "description": "buildshare.kicker",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Configuración de equipo · Compartido públicamente",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "mKyDYxi+z5YafDYJnEAsUQ==": {
+      "description": "buildshare.loginLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Abrir Yanyun Guilds",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "QXwc8/zelfzK0fmmIbVIQQ==": {
+      "description": "buildshare.notFoundTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Este enlace ya no es válido",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "7GL3CZPp6bX5MP96lk6FFw==": {
+      "description": "buildshare.notFoundBody",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Este enlace compartido no existe o su propietario lo ha revocado.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "nTPlK8IvS+YEZiaCTJcaZQ==": {
+      "description": "buildshare.xinfaLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Arte interna",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

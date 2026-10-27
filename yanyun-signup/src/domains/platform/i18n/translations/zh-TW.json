@@ -8316,6 +8316,105 @@
         }
       ],
       "types": []
+    },
+    "M04aFFMk3EznXKUUGBebEg==": {
+      "description": "gear.shareLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "分享",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "XrXHAT8EMZZd5uVVQkmOMw==": {
+      "description": "gear.revokeShareLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "取消分享",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "DUYxuAum76cbtbAfWcZO5w==": {
+      "description": "gear.copyLinkLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "複製連結",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "TkXZzpOsWH3Sh//gg9d1FA==": {
+      "description": "gear.shareRevokedToast",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "已取消分享，舊連結已失效",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Qk856+Jv3nFQ7Z9mHCaDcg==": {
+      "description": "buildshare.kicker",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "裝備方案 · 公開分享",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "mKyDYxi+z5YafDYJnEAsUQ==": {
+      "description": "buildshare.loginLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "打開燕雲百業",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "QXwc8/zelfzK0fmmIbVIQQ==": {
+      "description": "buildshare.notFoundTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "連結已失效",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "7GL3CZPp6bX5MP96lk6FFw==": {
+      "description": "buildshare.notFoundBody",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "這條分享連結不存在，或已被方案主人取消分享。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "nTPlK8IvS+YEZiaCTJcaZQ==": {
+      "description": "buildshare.xinfaLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "心法",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }
