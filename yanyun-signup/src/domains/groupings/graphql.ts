@@ -1,7 +1,7 @@
 import type { Context } from '../platform/context.ts';
 import { vcOf } from '../platform/context.ts';
  './events.ts';
-import { mintShortLink, shortLinkUrl, canonicalGroupingUrl } from './shortlinks.ts';
+import { mintShortLink, shortLinkUrl, canonicalGroupingUrl, subdomainGroupingUrl } from './shortlinks.ts';
 /* groupings domain GraphQL: grouping shells, list/detail pages, and all grouping mutations. */
 import {
   clampBlocksVersion, substituteForVersion, weekWindowUtc, startsAtEpoch,
@@ -15,7 +15,7 @@ import { evaluateHeirloomPushes } from '../gear/index.ts';
 import { translate, negotiateLocale, SUPPORTED_LOCALES, CATALOG } from '../platform/index.ts';
 import { logError } from '../platform/index.ts';
 import { getGuildAvatarMeta, avatarPath } from '../guilds/index.ts';
-import { getSettingValue, setSettingValue, listSettingsByKey } from '../guilds/index.ts';
+import { getSettingValue, setSettingValue, listSettingsByKey, parseGuildSubdomainSlug, isGuildSubdomainEnabled, guildSubdomainOrigin } from '../guilds/index.ts';
 import { getUsernameRow } from '../identity/index.ts';
 import { listGuildMembers, getGuildMember } from '../identity/index.ts';
 import { getBossById, listBossesByDungeon, listSchoolsFull, listSchoolsNameSlug, getSchoolNameBySlug, listSchoolBis, getSchoolBisJsonBySchool, listSchoolRotations, listSlotAffixByBuild, listAffixMax, listAffixMaxValues } from '../dex/index.ts';
@@ -502,11 +502,22 @@ export class GroupingDetailPageShell extends ShellBase {
   async genShareUrl(){
     return this.memo('shareUrl', async () => {
       const ev = this.data;
+      // A request that arrived through this guild's own subdomain
+      // (white-label tier A) shares links on that host; every other
+      // request keeps the main-host composition byte-identically.
+      let origin: string | null = null;
+      try {
+        const host = new URL(this.ctx.request.url).hostname;
+        if (parseGuildSubdomainSlug(host) === ev.tenant
+          && await isGuildSubdomainEnabled(this.db, ev.tenant)) {
+          origin = guildSubdomainOrigin(ev.tenant);
+        }
+      } catch { origin = null; }
       try {
         const link = await mintShortLink(this.db, ev.tenant, ev.id);
-        return shortLinkUrl(link.code);
+        return origin ? shortLinkUrl(link.code, origin) : shortLinkUrl(link.code);
       } catch {
-        return canonicalGroupingUrl(ev.tenant, ev.id);
+        return origin ? subdomainGroupingUrl(origin, ev.id) : canonicalGroupingUrl(ev.tenant, ev.id);
       }
     });
   }

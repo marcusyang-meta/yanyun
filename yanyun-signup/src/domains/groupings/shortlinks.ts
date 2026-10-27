@@ -108,10 +108,19 @@ export async function mintShortLink(
 
 /* ---------- URL composition (the only place share URLs are built) ---------- */
 
-export function shortLinkUrl(code: string): string {
-  return `${SITE_ORIGIN}/c/${code}`;
+/* `origin` defaults to the main site; the guild-subdomain variants
+ * exist for requests that arrived through a guild's own subdomain
+ * (white-label tier A) so links a member copies there stay on that
+ * host. On a subdomain the car path drops the slug segment — the
+ * host itself names the guild. */
+export function shortLinkUrl(code: string, origin: string = SITE_ORIGIN): string {
+  return `${origin}/c/${code}`;
 }
 
 export function canonicalGroupingUrl(tenant: string, eventId: number): string {
   return `${SITE_ORIGIN}/${encodeURIComponent(tenant)}/car/${eventId}`;
+}
+
+export function subdomainGroupingUrl(origin: string, eventId: number): string {
+  return `${origin}/car/${eventId}`;
 }

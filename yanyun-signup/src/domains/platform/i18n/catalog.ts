@@ -5124,6 +5124,41 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "es": "Violeta",
       "fr": "Violet",
       "zh-TW": "紫檀"
+    },
+    "subdomainTitle": {
+      "zh-CN": "平台子域",
+      "en": "Platform subdomain",
+      "es": "Subdominio de la plataforma",
+      "fr": "Sous-domaine de la plateforme",
+      "zh-TW": "平台子域"
+    },
+    "subdomainLabel": {
+      "zh-CN": "启用专属子域",
+      "en": "Enable dedicated subdomain",
+      "es": "Activar subdominio propio",
+      "fr": "Activer le sous-domaine dédié",
+      "zh-TW": "啟用專屬子域"
+    },
+    "subdomainAddressLabel": {
+      "zh-CN": "子域地址",
+      "en": "Subdomain address",
+      "es": "Dirección del subdominio",
+      "fr": "Adresse du sous-domaine",
+      "zh-TW": "子域地址"
+    },
+    "subdomainCallbackLabel": {
+      "zh-CN": "登录回调地址",
+      "en": "Login callback URL",
+      "es": "URL de devolución de llamada de inicio de sesión",
+      "fr": "URL de rappel de connexion",
+      "zh-TW": "登入回調地址"
+    },
+    "subdomainNote": {
+      "zh-CN": "开启后，成员可通过上方子域地址访问本百业。注意：子域上的 Discord 登录需要站长先在 Discord 开发者后台为该子域登记登录回调（地址见上方）；登记完成前，子域可以打开浏览，但无法在子域上完成登录。",
+      "en": "When enabled, members can reach this guild through the subdomain address above. Note: Discord sign-in on the subdomain only works after the site owner registers that subdomain's login callback in the Discord developer portal (address above); until then, the subdomain opens for browsing, but sign-in cannot be completed there.",
+      "es": "Al activarlo, los miembros pueden acceder a este gremio mediante la dirección de subdominio anterior. Nota: el inicio de sesión con Discord en el subdominio solo funciona después de que el propietario del sitio registre la devolución de llamada de inicio de sesión de ese subdominio en el portal de desarrolladores de Discord (dirección anterior); hasta entonces, el subdominio se puede abrir para navegar, pero no se puede completar el inicio de sesión en él.",
+      "fr": "Une fois activé, les membres peuvent accéder à cette guilde via l'adresse de sous-domaine ci-dessus. Remarque : la connexion Discord sur le sous-domaine ne fonctionne qu'après l'enregistrement, par le propriétaire du site, de l'URL de rappel de connexion de ce sous-domaine dans le portail développeur Discord (adresse ci-dessus) ; jusque-là, le sous-domaine s'ouvre pour la navigation, mais la connexion ne peut pas y être terminée.",
+      "zh-TW": "開啟後，成員可透過上方子域地址造訪本百業。注意：子域上的 Discord 登入需要站長先在 Discord 開發者後台為該子域登記登入回調（地址見上方）；登記完成前，子域可以打開瀏覽，但無法在子域上完成登入。"
     }
   },
   "groupingTemplate": {

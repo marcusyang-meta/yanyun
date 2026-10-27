@@ -8514,6 +8514,61 @@
         }
       ],
       "types": []
+    },
+    "h+FIlf/ustw6hbP7qToA3A==": {
+      "description": "guildAdmin.subdomainTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Platform subdomain",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "3hwha2rrzYKZ68DB9KOUDg==": {
+      "description": "guildAdmin.subdomainLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Enable dedicated subdomain",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "BQUXR3U+e8xZ5r0Qoj3I2Q==": {
+      "description": "guildAdmin.subdomainAddressLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Subdomain address",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "3VZRT1sYuURpGdbpAZ+30w==": {
+      "description": "guildAdmin.subdomainCallbackLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Login callback URL",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "NrNXsmKX0rT8pUF/VG+qTA==": {
+      "description": "guildAdmin.subdomainNote",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "When enabled, members can reach this guild through the subdomain address above. Note: Discord sign-in on the subdomain only works after the site owner registers that subdomain's login callback in the Discord developer portal (address above); until then, the subdomain opens for browsing, but sign-in cannot be completed there.",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

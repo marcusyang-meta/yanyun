@@ -803,6 +803,11 @@ export const guildAdmin_ogAccentJade = (fbs: FbsRuntime) => fbs._("翡翠", null
 export const guildAdmin_ogAccentAzure = (fbs: FbsRuntime) => fbs._("藏青", null, { hk: "UcaFv" });
 export const guildAdmin_ogAccentCinnabar = (fbs: FbsRuntime) => fbs._("朱砂", null, { hk: "3Phj2j" });
 export const guildAdmin_ogAccentViolet = (fbs: FbsRuntime) => fbs._("紫檀", null, { hk: "1VAkT6" });
+export const guildAdmin_subdomainTitle = (fbs: FbsRuntime) => fbs._("平台子域", null, { hk: "3Jgl7B" });
+export const guildAdmin_subdomainLabel = (fbs: FbsRuntime) => fbs._("启用专属子域", null, { hk: "2ywLX3" });
+export const guildAdmin_subdomainAddressLabel = (fbs: FbsRuntime) => fbs._("子域地址", null, { hk: "2g4REL" });
+export const guildAdmin_subdomainCallbackLabel = (fbs: FbsRuntime) => fbs._("登录回调地址", null, { hk: "K0XEv" });
+export const guildAdmin_subdomainNote = (fbs: FbsRuntime) => fbs._("开启后，成员可通过上方子域地址访问本百业。注意：子域上的 Discord 登录需要站长先在 Discord 开发者后台为该子域登记登录回调（地址见上方）；登记完成前，子域可以打开浏览，但无法在子域上完成登录。", null, { hk: "uXIlb" });
 export const groupingTemplate_sectionTitle = (fbs: FbsRuntime) => fbs._("车队模板", null, { hk: "GOM6P" });
 export const groupingTemplate_nameLabel = (fbs: FbsRuntime) => fbs._("模板名", null, { hk: "1k3Wki" });
 export const groupingTemplate_namePlaceholder = (fbs: FbsRuntime) => fbs._("给模板起个名字", null, { hk: "3MWfOY" });
@@ -1603,6 +1608,11 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"guildAdmin.ogAccentAzure": guildAdmin_ogAccentAzure,
 	"guildAdmin.ogAccentCinnabar": guildAdmin_ogAccentCinnabar,
 	"guildAdmin.ogAccentViolet": guildAdmin_ogAccentViolet,
+	"guildAdmin.subdomainTitle": guildAdmin_subdomainTitle,
+	"guildAdmin.subdomainLabel": guildAdmin_subdomainLabel,
+	"guildAdmin.subdomainAddressLabel": guildAdmin_subdomainAddressLabel,
+	"guildAdmin.subdomainCallbackLabel": guildAdmin_subdomainCallbackLabel,
+	"guildAdmin.subdomainNote": guildAdmin_subdomainNote,
 	"groupingTemplate.sectionTitle": groupingTemplate_sectionTitle,
 	"groupingTemplate.nameLabel": groupingTemplate_nameLabel,
 	"groupingTemplate.namePlaceholder": groupingTemplate_namePlaceholder,

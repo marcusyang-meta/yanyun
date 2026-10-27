@@ -37,6 +37,10 @@ import {
   sanitizeOgTitleSuffix, OG_ACCENT_PALETTE,
 } from './whitelabel.ts';
 import {
+  isGuildSubdomainEnabled, setGuildSubdomainEnabled,
+  guildSubdomainUrl, guildSubdomainCallbackUrl,
+} from './subdomain.ts';
+import {
   listEventsAdmin, listSignupsByEvent, listResultsByEvent, fmtMs,
   getEventRow, getEventIdByTenant, getEventRowByTenant, insertEvent,
   updateEventFields, deleteEventCascade, getSignupTenant, deleteSignupById,
@@ -321,6 +325,11 @@ const ADMIN_TEXT_SPEC: [string, string, string][] = [
   ['adminOgAccentLabel', 'guildAdmin', 'ogAccentLabel'],
   ['adminOgTitleSuffixLabel', 'guildAdmin', 'ogTitleSuffixLabel'],
   ['adminOgTitleSuffixHint', 'guildAdmin', 'ogTitleSuffixHint'],
+  ['adminSubdomainTitle', 'guildAdmin', 'subdomainTitle'],
+  ['adminSubdomainLabel', 'guildAdmin', 'subdomainLabel'],
+  ['adminSubdomainAddressLabel', 'guildAdmin', 'subdomainAddressLabel'],
+  ['adminSubdomainCallbackLabel', 'guildAdmin', 'subdomainCallbackLabel'],
+  ['adminSubdomainNote', 'guildAdmin', 'subdomainNote'],
 ];
 
 const ADMIN_LOCKED_TEXT_SPEC: [string, string, string][] = [
@@ -407,6 +416,19 @@ export class GuildAdminShell extends ShellBase {
   genOgAccentOptions(){
     return OG_ACCENT_PALETTE.map((o) => new GuildAdminOgAccentOptionShell(this.ctx, o));
   }
+  /* Platform subdomain (white-label tier A): the opt-in switch plus
+   * the server-composed addresses — clients display them verbatim
+   * and never build hostnames themselves. The login-callback caveat
+   * rides along as copy (adminSubdomainNote), not as client logic. */
+  async genSubdomainEnabled(){
+    return isGuildSubdomainEnabled(this.db, this.genSlug());
+  }
+  genSubdomainUrl(){
+    return guildSubdomainUrl(this.genSlug());
+  }
+  genSubdomainCallbackUrl(){
+    return guildSubdomainCallbackUrl(this.genSlug());
+  }
   /* The admin page is one of this guild's pages: when branding is
    * hidden, the site shell must not show the platform footer here
    * either (same composition rule as the member-facing Guild shell). */
@@ -445,6 +467,9 @@ function contentResolvers() {
     ogAccent: (p: any) => p.genOgAccent(),
     ogTitleSuffix: (p: any) => p.genOgTitleSuffix(),
     ogAccentOptions: (p: any) => p.genOgAccentOptions(),
+    subdomainEnabled: (p: any) => p.genSubdomainEnabled(),
+    subdomainUrl: (p: any) => p.genSubdomainUrl(),
+    subdomainCallbackUrl: (p: any) => p.genSubdomainCallbackUrl(),
     pageFooterDisclaimerText: (p: any) => p.genPageFooterDisclaimerText(),
   };
 }
@@ -619,6 +644,15 @@ export const guildAdminMutations = {
       ogAccent: accent,
       ogTitleSuffix: sanitizeOgTitleSuffix(ogTitleSuffix),
     });
+    return aOk(ctx);
+  },
+
+  /* Platform subdomain (white-label tier A): flip the opt-in. The
+   * host gate reads the same setting, so the subdomain starts (or
+   * stops) resolving with this write — no deploy step in between. */
+  updateGuildSubdomain: async (_: any, { slug, enabled }: any, ctx: Context) => {
+    const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
+    await setGuildSubdomainEnabled(ctx.env.DB, g.access.slug, !!enabled);
     return aOk(ctx);
   },
 

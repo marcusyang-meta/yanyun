@@ -16,7 +16,7 @@ import { maybeRunCreatorManualFix } from './creatormanualfix.js';
 import { logError, runScheduledBackup } from './domains/platform/index.ts';
 import { err } from './domains/platform/http.ts';
 import { hubOgTags, guildOgTags, carOgTags } from './domains/platform/og.ts';
-import { getTenantSlug } from './domains/guilds/index.ts';
+import { getTenantSlug, parseGuildSubdomainSlug, resolveGuildSubdomain, guildSubdomainOrigin } from './domains/guilds/index.ts';
 import { hubRoutes } from './domains/platform/hub-routes.ts';
 import { guildAvatarRoutes } from './domains/guilds/avatar-routes.ts';
 import { shortLinkRoutes } from './domains/groupings/shortlink-routes.ts';
@@ -117,6 +117,22 @@ async function handleFetch(request: Request, env: Env, ctx: ExecutionContext) {
     const url = new URL(request.url);
     const path = url.pathname;
 
+    // Platform subdomains (white-label tier A): a {slug}.yanyun.app
+    // host exists as a site only while that guild's subdomain switch
+    // is on. An unopened or unknown subdomain gets the plain 404 for
+    // every path — identical either way, so labels cannot be
+    // enumerated and main-site content never leaks onto arbitrary
+    // hosts. When a subdomain resolves, hostGuild/hostOrigin thread
+    // through the SPA dispatch below; every main-host path is
+    // byte-identical to before (both stay null).
+    let hostGuild: string | null = null;
+    let hostOrigin: string | null = null;
+    if (parseGuildSubdomainSlug(url.hostname)) {
+      hostGuild = await resolveGuildSubdomain(env.DB, url.hostname).catch(() => null);
+      if (!hostGuild) return new Response('Not found', { status: 404 });
+      hostOrigin = guildSubdomainOrigin(hostGuild);
+    }
+
     // Discord OAuth (login/callback/logout): handled by the Worker, not the SPA.
     if (path === '/auth/discord/login') return handleDiscordLogin(request, env);
     if (path === '/auth/discord/callback') return handleDiscordCallback(request, env);
@@ -180,17 +196,44 @@ async function handleFetch(request: Request, env: Env, ctx: ExecutionContext) {
         return Response.redirect(new URL(`/${seg[0]}/car/${seg[2]}`, url).toString(), 301);
       }
     }
-    // / -> guild hub (React) + home OG.
-    if (path === '/') return serveSpa(hubOgTags());
+    // Subdomain-native shapes: on the guild's own subdomain the slug
+    // segment is the host itself, so /car/:id and /admin are this
+    // guild's car page / admin page, and / is its front page. Other
+    // guilds' slug paths do not exist under this host (plain 404 in
+    // the shared branches below).
+    if (hostGuild && hostOrigin) {
+      if (seg.length === 2 && seg[0] === 'cars' && /^\d+$/.test(seg[1])) {
+        return Response.redirect(new URL(`/car/${seg[1]}`, url).toString(), 301);
+      }
+      if (seg.length === 2 && seg[0] === 'car' && /^\d+$/.test(seg[1])) {
+        return serveSpa(await carOgTags(env, hostGuild, seg[1], `${hostOrigin}/car/${seg[1]}`));
+      }
+      if (seg.length === 1 && seg[0] === 'admin') return serveSpa(null);
+    }
+    // / -> guild hub (React) + home OG; on a guild subdomain, the
+    // guild's own front page + its OG tags (og:url = the subdomain root).
+    if (path === '/') {
+      return serveSpa(hostGuild && hostOrigin
+        ? await guildOgTags(env, hostGuild, `${hostOrigin}/`)
+        : hubOgTags());
+    }
     // /<slug>/car/:id -> car detail (React) + car OG; unknown tenants still
     // get the SPA, which renders the not-found state.
     if (seg.length === 3 && seg[1] === 'car' && slugRe.test(seg[0]) && /^\d+$/.test(seg[2])) {
-      if (await findTenant(seg[0])) return serveSpa(await carOgTags(env, seg[0], seg[2]));
+      if (await findTenant(seg[0])) {
+        if (hostGuild && seg[0] !== hostGuild) return new Response('Not found', { status: 404 });
+        return serveSpa(await carOgTags(env, seg[0], seg[2],
+          hostGuild && hostOrigin ? `${hostOrigin}/car/${seg[2]}` : undefined));
+      }
       return serveSpa(null);
     }
     // /<slug> -> guild front page (React) + guild OG.
     if (seg.length === 1 && slugRe.test(seg[0])) {
-      if (await findTenant(seg[0])) return serveSpa(await guildOgTags(env, seg[0]));
+      if (await findTenant(seg[0])) {
+        if (hostGuild && seg[0] !== hostGuild) return new Response('Not found', { status: 404 });
+        return serveSpa(await guildOgTags(env, seg[0],
+          hostGuild && hostOrigin ? `${hostOrigin}/` : undefined));
+      }
       return serveSpa(null);
     }
     // Static assets (React build output, admin JS/CSS, images).

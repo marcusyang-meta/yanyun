@@ -52,7 +52,11 @@ export function ogWeekWindowUtc() {
   return [startUtc, startUtc + 7 * 86400];
 }
 
-export async function guildOgTags(env: any, slug: string) {
+/* pageUrl overrides og:url only (the page's canonical address on
+ * the host it was requested through — a guild subdomain passes its
+ * own root URL). The default composes the main-host URL exactly as
+ * before; og:image always stays on the OG worker. */
+export async function guildOgTags(env: any, slug: string, pageUrl?: string) {
   try {
     // dev_only guilds count as nonexistent in production: inject no named OG tags
     if (await isDevOnlyTenant(env.DB, slug)) return null;
@@ -73,14 +77,14 @@ export async function guildOgTags(env: any, slug: string) {
       `<meta property="og:title" content="${escHtml(name)} · 燕云百业" />`,
       `<meta property="og:description" content="${escHtml(descParts.join(' · '))}" />`,
       `<meta property="og:image" content="${OG_WORKER}/og/${encodeURIComponent(slug)}.png" />`,
-      `<meta property="og:url" content="${SITE_URL}/${encodeURIComponent(slug)}" />`,
+      `<meta property="og:url" content="${pageUrl || `${SITE_URL}/${encodeURIComponent(slug)}`}" />`,
       '<meta property="og:type" content="website" />',
       '<meta name="twitter:card" content="summary_large_image" />',
     ].join('\n');
   } catch { return null; }
 }
 
-export async function carOgTags(env: any, slug: string, carId: any) {
+export async function carOgTags(env: any, slug: string, carId: any, pageUrl?: string) {
   try {
     if (await isDevOnlyTenant(env.DB, slug)) return null;
     const ev = await getEventRow(env.DB, parseInt(carId, 10) || 0);
@@ -100,7 +104,7 @@ export async function carOgTags(env: any, slug: string, carId: any) {
       `<meta property="og:title" content="${escHtml(ev.title)} · ${escHtml(t.guild_name)}" />`,
       `<meta property="og:description" content="${escHtml(descParts.join(' | '))} · 燕云十六声百业车队" />`,
       `<meta property="og:image" content="${OG_WORKER}/og/${encodeURIComponent(slug)}/car/${encodeURIComponent(carId)}.png" />`,
-      `<meta property="og:url" content="${SITE_URL}/${encodeURIComponent(slug)}/car/${encodeURIComponent(carId)}" />`,
+      `<meta property="og:url" content="${pageUrl || `${SITE_URL}/${encodeURIComponent(slug)}/car/${encodeURIComponent(carId)}`}" />`,
       '<meta property="og:type" content="website" />',
       '<meta name="twitter:card" content="summary_large_image" />',
     ].join('\n');
