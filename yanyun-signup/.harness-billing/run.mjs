@@ -324,4 +324,6 @@ eq('OFF again: premium absent', ga(r)?.premium ?? null, null);
 eq('OFF again: stats full', ga(r)?.stats?.__typename, 'GuildAdminStats');
 
 console.log(`\nBILLING pass=${pass} fail=${fail}`);
-if (fails.length) { console.log('FAILS:\n' + fails.join('\n')); process.exit(1); }
+if (fails.length) console.log('FAILS:\n' + fails.join('\n'));
+await mf.dispose();
+process.exit(fail ? 1 : 0);
