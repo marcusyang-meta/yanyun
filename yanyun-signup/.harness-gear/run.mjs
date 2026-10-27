@@ -338,6 +338,64 @@ for (const row of tables.usage_counters) if (row.discord_id === 'user-e') row.da
 r = await importAs(E, bulkItems(1, 'eY'), { source: 'ocr', imageCount: 1 });
 check('after day rollover OCR import ok again', r.data.importGearItems.ok === true, JSON.stringify(r.data.importGearItems).slice(0, 200));
 
+/* ---------------- (13) Game vocabulary delivery + calc equivalence ----------------
+ * The backend is the single vocabulary source (2026-10-27 ruling):
+ * the delivered tables must equal the historical frontend constants
+ * item-for-item (same order), and calcTiaolv must produce bit-identical
+ * rows whether the closed vocabularies arrive as stable ids (current
+ * clients) or as canonical names (legacy clients). */
+const VOCAB_Q = '{ tiaolvPage { tlSuitOptions { id label isDefault } tlBowOptions { id label isDefault } tlWukuOptions { id label isDefault } tlTuneRows { row label } tlSectWuxue { sectSlug wuxue } } gradPage { gradSlots { id label icon } gradRates { key label cap } gearVocabRules { weaponSlot weaponPositions ocrStripPrefixes ocrDingyinMarker ocrDingyinFallbacks { needle name } } } }';
+r = await gql(VOCAB_Q);
+check('vocab query has no errors', !r.errors, r.errors ? JSON.stringify(r.errors).slice(0, 200) : '');
+const tp = (r.data || {}).tiaolvPage || {};
+eq('tlSuitOptions = historical SUITS (order, labels, default)', (tp.tlSuitOptions || []).map((o) => [o.id, o.label, o.isDefault]), [
+  ['none', '无', false], ['yuangui', '燕归', false], ['hantian', '撼天', true], ['lianxing', '连星', false],
+  ['caiyun', '裁云', false], ['duanyue', '断岳', false], ['yudou', '玉斗', false], ['shiyu', '时雨', false],
+  ['yanliu', '烟柳', false], ['huanhua', '浣花', false], ['feixun', '飞隼', false],
+]);
+eq('tlBowOptions = historical BOWS (order, labels, default)', (tp.tlBowOptions || []).map((o) => [o.id, o.label, o.isDefault]), [
+  ['none', '无', true], ['jingzhun', '精准', false], ['huixin', '会心', false], ['huiyi', '会意', false],
+]);
+eq('tlWukuOptions = historical wuku states', (tp.tlWukuOptions || []).map((o) => [o.id, o.label, o.isDefault]), [
+  ['self', '本系', true], ['common', '通用', false],
+]);
+eq('tlTuneRows = historical TUNE_ROWS (22 rows, in order)', (tp.tlTuneRows || []).map((t) => [t.row, t.label]), [
+  [3, '劲'], [4, '敏'], [5, '势'], [6, '最小外攻'], [7, '最大外攻'], [8, '精准'], [9, '会心'], [10, '会意'],
+  [11, '最小鸣金'], [12, '最大鸣金'], [13, '最小裂石'], [14, '最大裂石'], [15, '最小牵丝'], [16, '最大牵丝'],
+  [17, '最小破竹'], [18, '最大破竹'], [19, '最小无相'], [20, '最大无相'],
+  [21, '武学增伤'], [22, '奇术增伤'], [23, '首领增伤'], [24, '全武增伤'],
+]);
+eq('tlSectWuxue = historical SCHOOL2WUXUE (10 sects, no qiansi-lin)', (tp.tlSectWuxue || []).map((t) => [t.sectSlug, t.wuxue]), [
+  ['mingjin-hong', '鸣金虹'], ['mingjin-ying', '鸣金影'], ['lieshi-wei', '裂石威'], ['lieshi-jun', '裂石钧'],
+  ['qiansi-yu', '牵丝玉'], ['qiansi-yi', '牵丝翊'], ['pozhu-zun', '破竹樽'], ['pozhu-yuan', '破竹鸢'],
+  ['pozhu-chen', '破竹尘'], ['pozhu-feng', '破竹风'],
+]);
+const gp2 = (r.data || {}).gradPage || {};
+eq('gradSlots = historical GradCalc SLOTS (order, labels, icons)', (gp2.gradSlots || []).map((s) => [s.id, s.label, s.icon]), [
+  ['mainWeapon', '主武器', '⚔'], ['offWeapon', '副武器', '🗡'], ['head', '冠胄', '👑'], ['body', '胸甲', '🥋'],
+  ['legs', '胫甲', '🦵'], ['wrist', '腕甲', '🧤'], ['ring', '环', '💍'], ['pendant', '佩', '📿'],
+]);
+eq('gradRates = historical RATE_CAPS', (gp2.gradRates || []).map((x) => [x.key, x.label, x.cap]), [
+  ['precision', '精准', 100], ['crit', '会心', 80], ['affinity', '会意', 40],
+]);
+eq('gearVocabRules = weapon pool + OCR rules', gp2.gearVocabRules, {
+  weaponSlot: '武器', weaponPositions: ['主武器', '副武器'],
+  ocrStripPrefixes: ['最大', '最小'], ocrDingyinMarker: '定音',
+  ocrDingyinFallbacks: [{ needle: '穿透', name: '外功穿透' }, { needle: '抗性', name: '外功抗性' }],
+});
+const TL_MUT = 'mutation($i: TiaolvInput!) { calcTiaolv(input: $i) { rows { key label base panel final } } }';
+const TL_BASE = {
+  innerSkills: ['金刚经', 'N/A', 'N/A', 'N/A'], wuxue: '破竹鸢', attrRequire: 492,
+  tunes: [{ cell: 'K3', value: 10 }, { cell: 'L11', value: 5.5 }, { cell: 'M21', value: 2 }],
+};
+const byIds = await gql(TL_MUT, { variables: { i: { ...TL_BASE, suit: 'hantian', bowSkill: 'huixin', wuku: 'common' } } });
+const byNames = await gql(TL_MUT, { variables: { i: { ...TL_BASE, suit: '撼天', bowSkill: '会心', wuku: '通用' } } });
+check('calcTiaolv (ids) has no errors', !byIds.errors, byIds.errors ? JSON.stringify(byIds.errors).slice(0, 200) : '');
+eq('calcTiaolv id-input rows == canonical-name-input rows (bit-identical)', byIds.data?.calcTiaolv?.rows, byNames.data?.calcTiaolv?.rows);
+const byIdsNone = await gql(TL_MUT, { variables: { i: { ...TL_BASE, suit: 'none', bowSkill: null, wuku: 'self' } } });
+const byNamesNone = await gql(TL_MUT, { variables: { i: { ...TL_BASE, suit: '无', bowSkill: null, wuku: '本系' } } });
+eq('calcTiaolv none/self rows == 无/本系 rows', byIdsNone.data?.calcTiaolv?.rows, byNamesNone.data?.calcTiaolv?.rows);
+
 console.log(`GEAR HARNESS pass=${pass} fail=${fail}`);
 fails.forEach((f) => console.log('FAIL', f));
 process.exit(fail ? 1 : 0);

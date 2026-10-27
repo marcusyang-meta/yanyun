@@ -41,6 +41,7 @@ type Seat {
 type Dungeon {
   id: ID!
   name: String!
+  sealText: String!     # 印章短字 (个别副本有专属二字, 其余取规范名前二字; 后端按规范名计算, 与 locale 无关)
   version: String!      # 如 intl-v2.3
   playerCount: Int!     # 10人 / 5人
   size: Int!            # 同 playerCount (D1 dungeons.size), 供发车表单按副本定人数
@@ -666,6 +667,7 @@ extend type Query {
 }
 
 type DexPage {
+  sectOptions: [SectOption!]!  # 流派选项 (slug + 规范名): 选中值会被存储的挑选器用 (组队报名/建车/管理攻略), 规范名不做 locale 覆盖
   current: [Dungeon!]!  # server 按 dungeons.version = settings.game_version_code (版本码, 如 intl-v2.3) 过滤
   past: [Dungeon!]!     # version != game_version_code
   currentVersion: String!  # 展示串 (settings.game_version, 如「国际服 V2.3「青州」」), 非版本码, 勿用于比较
@@ -748,8 +750,14 @@ type SlotAffix {
   affixKey: String!
 }
 
+type SectGroup {
+  key: String!    # 门派稳定键 (slug 家族前缀, 如 mingjin)
+  label: String!  # 门派展示名 (按 locale 覆盖后的家族名)
+}
+
 type SectPage {
   sects: [Sect!]!
+  sectGroups: [SectGroup!]!  # 实际出现的门派分组 (规范顺序, 索引页分组渲染用)
   # UI 文案 (shell gen 方法按请求 locale 生成)
   sectEmptyText: String!
   sectBackLabel: String!
@@ -789,6 +797,7 @@ type SectPage {
 
 type Sect {
   slug: String!       # 英文 slug，如 pozhu-zun
+  groupKey: String!   # 门派稳定键 (与 SectPage.sectGroups 对应)
   name: String!        # 中文名，如 破竹·樽
   weapons: String!
   buildType: String!  # 会心流 / 会意流 / 治疗
@@ -853,10 +862,35 @@ extend type Query {
   tiaolvPage: TiaolvPage!
 }
 
+# 闭集词汇选项: 客户端以 id 为键 (状态/入参), label 只作展示
+type TiaolvVocabOption {
+  id: String!        # 稳定 id (none/hantian/self/common …)
+  label: String!     # 展示名 (游戏术语为规范名; "无" 项走 locale 文案)
+  isDefault: Boolean!
+}
+
+# 调律网格行: Excel 行号 -> 属性标签 (游戏数据, 不本地化)
+type TiaolvTuneRow {
+  row: Int!
+  label: String!
+}
+
+# 流派 -> 默认武学名 (Excel F14, 游戏数据)
+type TiaolvSectWuxue {
+  sectSlug: String!
+  wuxue: String!
+}
+
 type TiaolvPage {
   sects: [SectOption!]!
   innerSkills: [String!]!
   suits: [String!]!
+  # 闭集词汇 (后端单一真源, 前端不持有副本)
+  tlSuitOptions: [TiaolvVocabOption!]!   # 套装 (id 发给 calcTiaolv, 服务端译回规范名)
+  tlBowOptions: [TiaolvVocabOption!]!    # 弓 (none = 不带弓, 入参发 null)
+  tlWukuOptions: [TiaolvVocabOption!]!   # 武库 (self 本系 / common 通用)
+  tlTuneRows: [TiaolvTuneRow!]!          # 调律网格属性行
+  tlSectWuxue: [TiaolvSectWuxue!]!       # 流派默认武学
   # 毕业满值常量（服务端下发，前端不硬编码）
   maxValues: TiaolvMaxValues!
   # 流派权重（服务端下发）
@@ -1036,7 +1070,39 @@ extend type Mutation {
   unregisterPushToken(token: String!): PushTokenPayload!
 }
 
+# 毕业率槽位: id 为客户端状态键/入参 (calcGraduation 原样回显), label 为规范槽位名 (数据键)
+type GradSlot {
+  id: String!
+  label: String!
+  icon: String!
+}
+
+# 三率行: key = GraduationInput 字段名, cap = 达标满值
+type GradRate {
+  key: String!
+  label: String!
+  cap: Float!
+}
+
+# OCR 兜底: 读到 needle 而未命中全名时, 规范化为 name
+type GearOcrFallback {
+  needle: String!
+  name: String!
+}
+
+# 装备库/OCR 规则束 (后端单一真源): 武器池与识别规则的规范名全部在此
+type GearVocabRules {
+  weaponSlot: String!            # 武器类规范槽位名 (主/副武器归一后的类别)
+  weaponPositions: [String!]!    # 武器可占的装备位 (规范名)
+  ocrStripPrefixes: [String!]!   # OCR 词条名需剥离的大小前缀
+  ocrDingyinMarker: String!      # 定音段标记词
+  ocrDingyinFallbacks: [GearOcrFallback!]!
+}
+
 type GradPage {
+  gradSlots: [GradSlot!]!        # 8 槽位 (顺序 = 客户端方案按位对齐序, 不可变)
+  gradRates: [GradRate!]!        # 三率行 (精准/会心/会意)
+  gearVocabRules: GearVocabRules!
   gradEnteringText: String!
   gradTitle: String!
   gradSubtitle: String!
@@ -1175,6 +1241,8 @@ type GradPage {
   gearScoreTemplate: String!
   gearQualityLabel: String!
   gearExportLabel: String!
+  gearExportFileName: String!
+  gearImportNameTemplate: String!
   gearImportLabel: String!
   gearImportFailedToast: String!
   gearImportedToastTemplate: String!
@@ -1395,7 +1463,7 @@ input GraduationInput {
 }
 
 input GraduationItemInput {
-  slot: String!  # 部位：主武器/副武器/冠胄/胸甲/胫甲/腕甲/环/佩
+  slot: String!  # 部位标识: GradPage.gradSlots 的 id (旧客户端可传规范名 主武器/副武器/…); 服务端不以此计算, 仅在结果中原样回显
   affixes: [AffixValueInput!]!
 }
 
@@ -1477,10 +1545,10 @@ input TiaolvCellInput {
 input TiaolvInput {
   innerSkills: [String!]!  # 4个心法名；"N/A" 表示空
   wuxue: String            # 武学名，如 "破竹鸢"（Excel F14）
-  wuku: String             # "本系" | "通用"（Excel G9）
+  wuku: String             # 武库: TiaolvPage.tlWukuOptions 的 id (self/common); 旧客户端传规范名 "本系"/"通用" 亦可（Excel G9）
   attrRequire: Float       # 属性需求数值（Excel H14，默认 492）
-  suit: String!            # 套装（Excel T2），如 "撼天"
-  bowSkill: String         # 弓决（Excel S2）：会心 / 精准 / 会意
+  suit: String!            # 套装（Excel T2）: tlSuitOptions 的 id; 旧客户端传规范名如 "撼天" 亦可
+  bowSkill: String         # 弓决（Excel S2）: tlBowOptions 的 id (none = 不传/null); 旧客户端传规范名 会心/精准/会意 亦可
   tunes: [TiaolvCellInput!]
 }
 
@@ -1629,6 +1697,7 @@ type Viewer {
   siteTitle: String!
   siteSubtitle: String!
   siteHeroAlt: String!
+  siteSealText: String!  # 品牌印章字形 (无头像百业的占位印文, 后端下发)
   loginCardTitle: String!
   loginCardBody1: String!
   loginCardBody2: String!
@@ -1817,6 +1886,7 @@ type GuildAdmin {
   adminVisibilityTitle: String!
   adminDevOnlyLabel: String!
   adminEventsTitle: String!
+  adminSignupCsvSuffix: String!
   adminEventEmptyText: String!
   adminEventTitleLabel: String!
   adminEventTypeLabel: String!

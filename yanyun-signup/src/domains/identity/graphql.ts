@@ -181,6 +181,7 @@ export const VIEWER_TEXT_RESOLVERS = defineTextGens(ViewerShell, [
   ['siteTitle', 'site', 'title'],
   ['siteSubtitle', 'site', 'subtitle'],
   ['siteHeroAlt', 'site', 'heroAlt'],
+  ['siteSealText', 'site', 'seal'],
   ['loginCardTitle', 'login', 'cardTitle'],
   ['loginCardBody1', 'login', 'cardBody1'],
   ['loginCardBody2', 'login', 'cardBody2'],

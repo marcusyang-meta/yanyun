@@ -6,6 +6,7 @@ export * from './gear.ts';
 export * from './buildshare.ts';
 export * from './heirloom.ts';
 export * from './tiaolv.ts';
+export * from './vocab.ts';
 export * from './gearplanner.ts';
 export * from './heirloompush.ts';
 export * from './gearstore.ts';

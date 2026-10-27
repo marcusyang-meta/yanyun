@@ -62,11 +62,21 @@ import {
   CreateGuildPayloadShell, UpdateLocalePayloadShell, uFail, gFail, sFail, dFail, cFail,
 } from '../platform/graphql-base.ts';
 
+/* Dungeon seal short-text: a handful of dungeons carry a bespoke
+ * two-character seal glyph instead of the generic first-two-chars of
+ * the name (the map moved here from the web client — the backend is
+ * the vocabulary source; computed from the canonical name, so the
+ * seal stays the seal in every locale). */
+export const DUNGEON_SEAL_TEXT: Record<string, string> = {
+  '玉魄染青苍': '玉魄', '定极分更': '定极', '点雪断恩仇': '点雪', '俣俣神浒': '俣俣',
+};
+
 export class DungeonShell extends ShellBase {
   constructor(ctx: Context, row: any){ super(ctx, row); }
   get row() { return this.data; }
   genId(){ return String(this.row.id); }
   genName(){ return enDungeonName(this.locale, this.row.name); }
+  genSealText(){ return DUNGEON_SEAL_TEXT[this.row.name] ?? String(this.row.name || '').slice(0, 2); }
   genVersion(){ return this.row.version || 'legacy'; }
   genPlayerCount(){ return this.row.size; }
   genSize(){ return this.row.size; }
@@ -326,6 +336,16 @@ export class DexCategoryShell extends ShellBase {
 }
 
 export class DexPageShell extends ShellBase {
+  /* Canonical sect options for pickers whose chosen value is stored
+   * (grouping signup / creation, admin guides): slug + canonical name,
+   * deliberately NOT locale-overlaid — the name is a data value, the
+   * same list the old client-side constant carried. */
+  genSectOptions(){
+    return this.memo('sectOptions', async () => {
+      const schools = await listSchoolsNameSlug(this.db).catch(() => []);
+      return (schools || []).map((sc: any) => ({ slug: sc.slug, name: sc.name }));
+    });
+  }
   genAll(){
     return this.memo('all', async () => {
       const db = this.db;
@@ -445,8 +465,20 @@ const GP_DINGYIN_MAP = GP_BUILD_DINGYIN as Record<string, { name?: string; verif
 const GP_BOW_KIND = GP_BOW_RECOMMEND as Record<string, string>;
 const GP_BOW_LABELS = GP_BOW_JUE_VALUES as Record<string, { label: string }>;
 
+/* Sect families （门派） in display order; the key is the school
+ * slug's family prefix, the name the canonical family name. The sect
+ * index groups by key and renders the localized family name — both
+ * delivered from here (the client's own constant is gone). */
+export const SECT_GROUPS: Array<{ key: string; name: string }> = [
+  { key: 'mingjin', name: '鸣金' },
+  { key: 'qiansi', name: '牵丝' },
+  { key: 'lieshi', name: '裂石' },
+  { key: 'pozhu', name: '破竹' },
+];
+
 export class SectShell extends ShellBase {
   genSlug(){ return this.data.slug; }
+  genGroupKey(){ return String(this.data.slug || '').split('-')[0]; }
   genName(){ return enSectName(this.locale, this.data.name); }
   genWeapons(){ return this.data.weapons; }
   genBuildType(){ return this.data.buildType; }
@@ -505,6 +537,15 @@ export class SectShell extends ShellBase {
 }
 
 export class SectPageShell extends ShellBase {
+  /* Groups that actually occur among the delivered sects, in canonical
+   * family order, with the family name localized like a sect name. */
+  async genSectGroups(){
+    const sects = await this.genSects();
+    const present = new Set((sects || []).map((s: any) => s.genGroupKey()));
+    return SECT_GROUPS
+      .filter((g) => present.has(g.key))
+      .map((g) => ({ key: g.key, label: enSectName(this.locale, g.name) }));
+  }
   async genSects(){
     return this.memo('sects', async () => {
       const db = this.db;
@@ -620,6 +661,7 @@ export const dexResolvers = {
   Dungeon: {
     id: (p: any) => p.genId(),
     name: (p: any) => p.genName(),
+    sealText: (p: any) => p.genSealText(),
     version: (p: any) => p.genVersion(),
     playerCount: (p: any) => p.genPlayerCount(),
     size: (p: any) => p.genSize(),
@@ -642,6 +684,7 @@ export const dexResolvers = {
     past: (p: any) => p.genPast(),
     currentVersion: (p: any) => p.genCurrentVersion(),
     categories: (p: any) => p.genCategories(),
+    sectOptions: (p: any) => p.genSectOptions(),
     ...DEX_TEXT_RESOLVERS,
   },
   DexCategory: {
@@ -658,10 +701,13 @@ export const dexResolvers = {
   },
   SectPage: {
     sects: (p: any) => p.genSects(),
+    sectGroups: (p: any) => p.genSectGroups(),
     ...SECT_TEXT_RESOLVERS,
   },
+  SectGroup: { key: (p: any) => p.key, label: (p: any) => p.label },
   Sect: {
     slug: (p: any) => p.genSlug(),
+    groupKey: (p: any) => p.genGroupKey(),
     name: (p: any) => p.genName(),
     weapons: (p: any) => p.genWeapons(),
     buildType: (p: any) => p.genBuildType(),

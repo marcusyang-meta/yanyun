@@ -75,6 +75,7 @@ export const guildAdmin_reminderCustomTextHint = (fbs: FbsAPI) =>fbs("一行文�
 export const guildAdmin_visibilityTitle = (fbs: FbsAPI) =>fbs("可见性", "guildAdmin.visibilityTitle");
 export const guildAdmin_devOnlyLabel = (fbs: FbsAPI) =>fbs("仅开发环境可见", "guildAdmin.devOnlyLabel");
 export const guildAdmin_eventsTitle = (fbs: FbsAPI) =>fbs("活动管理", "guildAdmin.eventsTitle");
+export const guildAdmin_signupCsvSuffix = (fbs: FbsAPI) =>fbs("报名表", "guildAdmin.signupCsvSuffix");
 export const guildAdmin_eventEmpty = (fbs: FbsAPI) =>fbs("暂无活动。", "guildAdmin.eventEmpty");
 export const guildAdmin_eventTitleLabel = (fbs: FbsAPI) =>fbs("标题", "guildAdmin.eventTitleLabel");
 export const guildAdmin_eventTypeLabel = (fbs: FbsAPI) =>fbs("类型", "guildAdmin.eventTypeLabel");

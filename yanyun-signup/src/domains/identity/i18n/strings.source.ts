@@ -22,6 +22,7 @@ function pv(p: StringParams | undefined, name: string): string {
 export const site_title = (fbs: FbsAPI) =>fbs("百业集结", "site.title");
 export const site_subtitle = (fbs: FbsAPI) =>fbs("燕云十六声 · 国际服百业车队与攻略集散地 —— 择一业而入，共赴双十。", "site.subtitle");
 export const site_heroAlt = (fbs: FbsAPI) =>fbs("水墨山水", "site.heroAlt");
+export const site_seal = (fbs: FbsAPI) =>fbs("燕", "site.seal");
 export const login_cardTitle = (fbs: FbsAPI) =>fbs("先登录，再入江湖", "login.cardTitle");
 export const login_cardBody1 = (fbs: FbsAPI) =>fbs("本站需用 Discord 账号认证后使用。", "login.cardBody1");
 export const login_cardBody2 = (fbs: FbsAPI) =>fbs("登录后将按你所在的 Discord 服务器，展示你有权限访问的百业。", "login.cardBody2");
