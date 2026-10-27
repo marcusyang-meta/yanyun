@@ -12,6 +12,12 @@ name: pr-backend
 # dev-surface allowlist names that host explicitly and the demo tenant is
 # only visible from it. The concurrency group serializes this workflow so
 # concurrent PRs cannot overwrite each other's preview mid-verification.
+#
+# Migration note: the preview binds the SAME D1 database as production.
+# Nothing in this workflow may apply migrations to the remote database —
+# schema is verified locally only (the drift gate bootstraps a throwaway
+# local D1 from the migration chain). Production migrations run exactly
+# once, post-merge, in backend-deploy.
 on:
   pull_request:
     types: [opened, synchronize, reopened]
@@ -53,6 +59,8 @@ jobs:
         run: node yanyun-signup/scripts/ci/run-harnesses.mjs
       - name: Repository verification against a real D1 (Miniflare)
         run: node yanyun-signup/scripts/verify-repositories-d1.mjs
+      - name: Schema drift gate (migration chain vs Drizzle entities)
+        run: node yanyun-signup/scripts/ci/check-schema-drift.mjs
       - name: Build web
         run: pnpm --filter yanyun-web run build
       - name: Stage the exact artifact that will ship

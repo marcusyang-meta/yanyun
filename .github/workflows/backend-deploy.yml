@@ -11,8 +11,13 @@ name: backend-deploy
 #      exact artifact it built (never rebuilds),
 #   2. refuses to run unless the merged tree is identical to the tree that
 #      run verified (fail-closed if master moved under the PR),
-#   3. records the current production version, deploys the artifact,
-#   4. runs the read-only production probes and, on any failure, rolls
+#   3. applies any pending D1 migrations from the merged tree
+#      (wrangler d1 migrations apply --remote) — a failed apply blocks
+#      the promote, fail-closed. Schema is NOT rolled back with the
+#      code: migrations must be expand/contract so the applied schema
+#      stays compatible with the previous code version,
+#   4. records the current production version, deploys the artifact,
+#   5. runs the read-only production probes and, on any failure, rolls
 #      production back to the recorded version and fails the run.
 # A direct push to master triggers nothing (no push trigger anywhere), so
 # the PR gate cannot be bypassed by pushing.
@@ -101,6 +106,18 @@ jobs:
             if (Number(m.pr) !== Number(process.env.PR_NUMBER)) { console.error(`manifest PR ${m.pr} != ${process.env.PR_NUMBER}`); process.exit(1); }
             console.log("manifest OK: sha and PR match");
           '
+      # Migrations run from the merged tree's migrations/ directory,
+      # before anything is deployed. If apply fails, this step fails
+      # and the promote never happens (fail-closed). A no-op apply
+      # ("no migrations to apply") is the normal case for PRs without
+      # schema changes.
+      - name: Apply D1 migrations to production
+        id: migrate
+        working-directory: yanyun-signup
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: pnpm exec wrangler d1 migrations apply yanyun-signup --remote
       - name: Record the current production version
         id: prev
         env:
@@ -181,6 +198,7 @@ jobs:
             echo "## backend-deploy (auto-promote)"
             echo "- PR: #$PR_NUMBER (head \`$HEAD_SHA\`, merge \`$MERGE_SHA\`)"
             echo "- verified by pr-backend run: ${{ steps.locate.outputs.run_id }}"
+            echo "- D1 migrations apply: ${{ steps.migrate.outcome }} (schema stays applied on code rollback — expand/contract)"
             echo "- production version before: \`${{ steps.prev.outputs.version }}\`"
             echo "- production version after: \`${{ steps.newver.outputs.version }}\`"
             echo "- production probes: ${{ steps.prod_probes.outcome }}"

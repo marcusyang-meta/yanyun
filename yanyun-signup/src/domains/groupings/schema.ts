@@ -124,7 +124,7 @@ export const eventReminders = sqliteTable('event_reminders', {
   primaryKey({ columns: [t.eventId, t.offsetMin] }),
 ]);
 
-/* ---------------- results [ddl schema.sql] ---------------------------- */
+/* ---------------- results [ddl chain baseline] ----------------------- */
 export const results = sqliteTable('results', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   eventId: integer('event_id').notNull().references(() => events.id, { onDelete: 'cascade' }),

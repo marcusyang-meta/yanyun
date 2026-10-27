@@ -52,11 +52,12 @@ OAuth token）→ 走生产同路径 `runBackupToR2` 存入 R2 → 取回解析 
 1. **拿到备份文件**：hub 门户下载最新 daily 快照；或门户不可用时用有 R2
    权限的通道从 `yanyun-backups` 桶直接取对象。
 2. **准备空库**：
-   - 本地/演练：Miniflare D1，按 `scripts/restore-drill.mjs` 的 DDL 建表。
-   - 新建生产 D1：本机 API token **无 D1 权限**，需在 Cloudflare 控制台
-     手工建库（或换有权限的 token），再把新 `database_id` 写回
-     `wrangler.toml` 走正常 PR 部署；建表用 `schema.sql` + `migrate-v2..v8`
-     + 让 Worker 对空库跑一次（各 repository 的 lazy DDL 会补齐其余表）。
+   - 本地/演练：Miniflare D1，按 `migrations/` 迁移链建表
+     （`scripts/restore-drill.mjs` 即如此自举）。
+   - 新建生产 D1：在 Cloudflare 控制台建库后把新 `database_id` 写回
+     `wrangler.toml` 走正常 PR 部署；建表只走迁移链
+     （`wrangler d1 migrations apply yanyun-signup --remote`），
+     运行时代码不再含任何 DDL。
 3. **灌数据**（二选一）：
    - 数据层路径（推荐）：仿 `restore-drill.mjs` 第 3–4 步，用
      `parseBackup` + `importBackup` 对目标库执行。

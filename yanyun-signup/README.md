@@ -17,11 +17,11 @@
 
 ```bash
 cd yanyun-signup
-npm install
-# 初始化本地 D1(只需一次)
-npx wrangler d1 execute yanyun-signup --local --file=./schema.sql
+pnpm install
+# 初始化本地 D1(只需一次;表结构只走 migrations/ 迁移链)
+pnpm exec wrangler d1 migrations apply yanyun-signup --local
 # 启动(ADMIN_PASSWORD 换成你自己的管理密码)
-npx wrangler dev --local --var ADMIN_PASSWORD:你的密码
+pnpm exec wrangler dev --local --var ADMIN_PASSWORD:你的密码
 ```
 
 打开 http://127.0.0.1:8787 , 管理后台在 `/admin.html`。
@@ -62,7 +62,7 @@ npx wrangler dev --local --var ADMIN_PASSWORD:你的密码
 ```
 yanyun-signup/
 ├── wrangler.toml      # Cloudflare 配置
-├── schema.sql         # D1 建表语句
+├── migrations/        # D1 迁移链(wrangler migrations_dir,唯一建表来源)
 ├── src/worker.js      # 后端 API
 ├── public/
 │   ├── index.html     # 前台报名页
