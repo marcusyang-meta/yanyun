@@ -8569,6 +8569,105 @@
         }
       ],
       "types": []
+    },
+    "M04aFFMk3EznXKUUGBebEg==": {
+      "description": "gear.shareLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Share",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "XrXHAT8EMZZd5uVVQkmOMw==": {
+      "description": "gear.revokeShareLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Unshare",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "DUYxuAum76cbtbAfWcZO5w==": {
+      "description": "gear.copyLinkLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Copy link",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "TkXZzpOsWH3Sh//gg9d1FA==": {
+      "description": "gear.shareRevokedToast",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Sharing revoked — the old link no longer works",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Qk856+Jv3nFQ7Z9mHCaDcg==": {
+      "description": "buildshare.kicker",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Gear build · Public share",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "mKyDYxi+z5YafDYJnEAsUQ==": {
+      "description": "buildshare.loginLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Open Yanyun Guilds",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "QXwc8/zelfzK0fmmIbVIQQ==": {
+      "description": "buildshare.notFoundTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "This link is no longer valid",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "7GL3CZPp6bX5MP96lk6FFw==": {
+      "description": "buildshare.notFoundBody",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "This share link does not exist, or its owner has revoked it.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "nTPlK8IvS+YEZiaCTJcaZQ==": {
+      "description": "buildshare.xinfaLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Inner skill",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

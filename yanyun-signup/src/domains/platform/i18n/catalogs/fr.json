@@ -488,6 +488,10 @@
   "41ODrs": "Ensemble enregistré : {name}",
   "W68Jt": "Chargé : {name}",
   "rq7r4": "{n} ensembles",
+  "4uur5j": "Partager",
+  "4jIgn4": "Arrêter le partage",
+  "3R32rG": "Copier le lien",
+  "N75Vo": "Partage révoqué — l’ancien lien ne fonctionne plus",
   "4hmlhM": "Calculateur rapide de taux",
   "4ug56e": "Résistance",
   "3vKwDX": "Synchroniser depuis l’établi",
@@ -754,5 +758,10 @@
   "2k7nWJ": "Demande de suppression envoyée : le délai de réflexion de 7 jours a commencé.",
   "3O75jx": "Demande de suppression annulée : votre compte ne sera pas supprimé.",
   "1z9HId": "Ce fichier est une copie exportée des données de votre compte. account contient votre profil (pour oauth, seuls les périmètres accordés et l’heure de la dernière actualisation sont consignés — l’identifiant lui-même n’est jamais exporté) ; guilds liste votre ligne de roster dans chaque guilde ; serverNicks liste votre instantané de pseudo sur chaque serveur Discord ; carsLed liste les escouades que vous avez créées ; seats liste vos places d’inscription ; gearItems est votre bibliothèque d’équipement ; gearBuilds liste vos configurations enregistrées ; heirloom contient l’état de déduplication des annonces de pièces héritées. Les jetons de notification sont des identifiants d’appareil : seuls leur nombre et leurs plateformes sont consignés, jamais les jetons eux-mêmes.",
-  "1EEgqZ": "Utilisateur supprimé"
+  "1EEgqZ": "Utilisateur supprimé",
+  "51eY3": "Configuration d’équipement · Partage public",
+  "3XaPDB": "Ouvrir Yanyun Guilds",
+  "1Wv006": "Ce lien n’est plus valide",
+  "3K1GvQ": "Ce lien de partage n’existe pas ou son propriétaire l’a révoqué.",
+  "pogF2": "Art interne"
 }

@@ -488,6 +488,10 @@
   "41ODrs": "Conjunto guardado: {name}",
   "W68Jt": "Cargado: {name}",
   "rq7r4": "{n} conjuntos",
+  "4uur5j": "Compartir",
+  "4jIgn4": "Dejar de compartir",
+  "3R32rG": "Copiar enlace",
+  "N75Vo": "Uso compartido revocado: el enlace anterior ya no funciona",
   "4hmlhM": "Calculadora rápida de tasas",
   "4ug56e": "Resistencia",
   "3vKwDX": "Sincronizar desde el banco",
@@ -754,5 +758,10 @@
   "2k7nWJ": "Solicitud de eliminación enviada: ha comenzado el periodo de espera de 7 días.",
   "3O75jx": "Solicitud de eliminación cancelada: tu cuenta no se eliminará.",
   "1z9HId": "Este archivo es una copia exportada de los datos de tu cuenta. account contiene tu perfil (en oauth solo se registran los permisos concedidos y la última hora de actualización; la credencial en sí nunca se exporta); guilds enumera tu fila en la lista de cada gremio; serverNicks enumera tu instantánea de apodo en cada servidor de Discord; carsLed enumera los escuadrones que creaste; seats enumera tus asientos de inscripción; gearItems es tu biblioteca de equipo; gearBuilds enumera tus configuraciones guardadas; heirloom contiene el estado de deduplicación de los avisos de reliquias. Los tokens de notificaciones son credenciales del dispositivo: solo se registran su cantidad y plataformas, nunca los tokens.",
-  "1EEgqZ": "Usuario eliminado"
+  "1EEgqZ": "Usuario eliminado",
+  "51eY3": "Configuración de equipo · Compartido públicamente",
+  "3XaPDB": "Abrir Yanyun Guilds",
+  "1Wv006": "Este enlace ya no es válido",
+  "3K1GvQ": "Este enlace compartido no existe o su propietario lo ha revocado.",
+  "pogF2": "Arte interna"
 }

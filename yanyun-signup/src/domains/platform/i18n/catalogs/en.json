@@ -488,6 +488,10 @@
   "41ODrs": "Build saved: {name}",
   "W68Jt": "Loaded: {name}",
   "rq7r4": "{n} builds",
+  "4uur5j": "Share",
+  "4jIgn4": "Unshare",
+  "3R32rG": "Copy link",
+  "N75Vo": "Sharing revoked — the old link no longer works",
   "4hmlhM": "Rate quick calculator",
   "4ug56e": "Resistance",
   "3vKwDX": "Sync from gear bench",
@@ -777,5 +781,10 @@
   "2k7nWJ": "Deletion request submitted — the 7-day cooling-off period has started.",
   "3O75jx": "Deletion request cancelled — your account will not be deleted.",
   "1z9HId": "This file is an export of your account data. account holds your profile (for oauth, only the granted scopes and last refresh time are recorded — the credential itself is never exported); guilds lists your roster row in each guild; serverNicks lists your nickname snapshot in each Discord server; carsLed lists squads you created; seats lists your signup seats; gearItems is your gear library; gearBuilds lists your saved builds; heirloom holds the deduplication state of heirloom announcements. Push tokens are device credentials: only their count and platforms are recorded, never the tokens themselves.",
-  "1EEgqZ": "Deleted user"
+  "1EEgqZ": "Deleted user",
+  "51eY3": "Gear build · Public share",
+  "3XaPDB": "Open Yanyun Guilds",
+  "1Wv006": "This link is no longer valid",
+  "3K1GvQ": "This share link does not exist, or its owner has revoked it.",
+  "pogF2": "Inner skill"
 }
