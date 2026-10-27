@@ -55,9 +55,12 @@ pnpm run relay         # Relay multi-project codegen — root only, see below
 
 The root `.npmrc` sets `node-linker=hoisted` (an npm-style flat
 `node_modules` layout — Metro/Expo cannot resolve pnpm's default
-isolated layout) and `link-workspace-packages=true` (the `"*"` specs on
+isolated layout), `link-workspace-packages=true` (the `"*"` specs on
 the `@yanyun/*` packages link to the local workspace packages, as npm
-workspaces did).
+workspaces did), and `auto-install-peers=false` (peer dependencies are
+not auto-installed — the pnpm equivalent of the `legacy-peer-deps`
+behavior the repo used under npm; peers resolve through the hoisted
+layout instead).
 
 Relay codegen is a multi-project setup in the root `relay.config.json`
 (`mobile` on top of a `blocks` base). Always run it from the root
