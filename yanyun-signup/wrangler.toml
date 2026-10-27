@@ -13,6 +13,15 @@ workers_dev = true
 pattern = "yanyun.app"
 custom_domain = true
 
+# Platform subdomains (white-label tier A): {slug}.yanyun.app reaches
+# this worker; the host gate in worker.ts resolves only guilds that
+# opted in (404 otherwise). og.yanyun.app stays on its own custom
+# domain (more specific than this wildcard). Requires the proxied
+# wildcard DNS record for *.yanyun.app to exist in the zone.
+[[routes]]
+pattern = "*.yanyun.app/*"
+zone_name = "yanyun.app"
+
 # 静态前端: public/ 目录直接由 Cloudflare 托管
 # run_worker_first = true: Worker 先接管路由(主站导航 /<slug> 多租户), 静态资源走 env.ASSETS
 [assets]
