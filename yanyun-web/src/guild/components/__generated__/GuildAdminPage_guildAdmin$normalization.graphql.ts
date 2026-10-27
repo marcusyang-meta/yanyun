@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<2b50d9a4db1f00d42aac8d5047807983>>
+ * @generated SignedSource<<09fb755ac892749bf902450da8ede87a>>
  * @lightSyntaxTransform
  */
 
@@ -15,73 +15,38 @@ var v0 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "name",
+  "name": "id",
   "storageKey": null
 },
 v1 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "id",
+  "name": "teamName",
   "storageKey": null
 },
 v2 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "description",
+  "name": "members",
   "storageKey": null
 },
 v3 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "nickname",
+  "name": "note",
   "storageKey": null
 },
 v4 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "weapon",
-  "storageKey": null
-},
-v5 = {
-  "alias": null,
-  "args": null,
-  "kind": "ScalarField",
-  "name": "role",
-  "storageKey": null
-},
-v6 = {
-  "alias": null,
-  "args": null,
-  "kind": "ScalarField",
-  "name": "note",
-  "storageKey": null
-},
-v7 = {
-  "alias": null,
-  "args": null,
-  "kind": "ScalarField",
-  "name": "teamName",
-  "storageKey": null
-},
-v8 = {
-  "alias": null,
-  "args": null,
-  "kind": "ScalarField",
-  "name": "members",
-  "storageKey": null
-},
-v9 = {
-  "alias": null,
-  "args": null,
-  "kind": "ScalarField",
   "name": "discordId",
   "storageKey": null
 },
-v10 = {
+v5 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
@@ -100,7 +65,13 @@ return {
       "name": "slug",
       "storageKey": null
     },
-    (v0/*:: as any*/),
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "name",
+      "storageKey": null
+    },
     {
       "alias": null,
       "args": null,
@@ -242,13 +213,6 @@ return {
       "alias": null,
       "args": null,
       "kind": "ScalarField",
-      "name": "featureFixedTeams",
-      "storageKey": null
-    },
-    {
-      "alias": null,
-      "args": null,
-      "kind": "ScalarField",
       "name": "devOnly",
       "storageKey": null
     },
@@ -278,13 +242,6 @@ return {
       "args": null,
       "kind": "ScalarField",
       "name": "adminTabDiscordLabel",
-      "storageKey": null
-    },
-    {
-      "alias": null,
-      "args": null,
-      "kind": "ScalarField",
-      "name": "adminTabTeamsLabel",
       "storageKey": null
     },
     {
@@ -529,20 +486,6 @@ return {
       "alias": null,
       "args": null,
       "kind": "ScalarField",
-      "name": "adminFeaturesTitle",
-      "storageKey": null
-    },
-    {
-      "alias": null,
-      "args": null,
-      "kind": "ScalarField",
-      "name": "adminFixedTeamsLabel",
-      "storageKey": null
-    },
-    {
-      "alias": null,
-      "args": null,
-      "kind": "ScalarField",
       "name": "adminVisibilityTitle",
       "storageKey": null
     },
@@ -551,62 +494,6 @@ return {
       "args": null,
       "kind": "ScalarField",
       "name": "adminDevOnlyLabel",
-      "storageKey": null
-    },
-    {
-      "alias": null,
-      "args": null,
-      "kind": "ScalarField",
-      "name": "adminTeamsTitle",
-      "storageKey": null
-    },
-    {
-      "alias": null,
-      "args": null,
-      "kind": "ScalarField",
-      "name": "adminTeamNameLabel",
-      "storageKey": null
-    },
-    {
-      "alias": null,
-      "args": null,
-      "kind": "ScalarField",
-      "name": "adminTeamDescLabel",
-      "storageKey": null
-    },
-    {
-      "alias": null,
-      "args": null,
-      "kind": "ScalarField",
-      "name": "adminTeamEmptyText",
-      "storageKey": null
-    },
-    {
-      "alias": null,
-      "args": null,
-      "kind": "ScalarField",
-      "name": "adminMemberNicknameLabel",
-      "storageKey": null
-    },
-    {
-      "alias": null,
-      "args": null,
-      "kind": "ScalarField",
-      "name": "adminMemberWeaponLabel",
-      "storageKey": null
-    },
-    {
-      "alias": null,
-      "args": null,
-      "kind": "ScalarField",
-      "name": "adminMemberNoteLabel",
-      "storageKey": null
-    },
-    {
-      "alias": null,
-      "args": null,
-      "kind": "ScalarField",
-      "name": "adminAddMemberLabel",
       "storageKey": null
     },
     {
@@ -1004,42 +891,12 @@ return {
     {
       "alias": null,
       "args": null,
-      "concreteType": "GuildAdminFixedTeam",
-      "kind": "LinkedField",
-      "name": "fixedTeams",
-      "plural": true,
-      "selections": [
-        (v1/*:: as any*/),
-        (v0/*:: as any*/),
-        (v2/*:: as any*/),
-        {
-          "alias": null,
-          "args": null,
-          "concreteType": "GuildAdminFixedTeamMember",
-          "kind": "LinkedField",
-          "name": "members",
-          "plural": true,
-          "selections": [
-            (v1/*:: as any*/),
-            (v3/*:: as any*/),
-            (v4/*:: as any*/),
-            (v5/*:: as any*/),
-            (v6/*:: as any*/)
-          ],
-          "storageKey": null
-        }
-      ],
-      "storageKey": null
-    },
-    {
-      "alias": null,
-      "args": null,
       "concreteType": "GuildAdminEvent",
       "kind": "LinkedField",
       "name": "events",
       "plural": true,
       "selections": [
-        (v1/*:: as any*/),
+        (v0/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -1103,7 +960,13 @@ return {
           "name": "meetInfo",
           "storageKey": null
         },
-        (v2/*:: as any*/),
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "description",
+          "storageKey": null
+        },
         {
           "alias": null,
           "args": null,
@@ -1119,8 +982,14 @@ return {
           "name": "signups",
           "plural": true,
           "selections": [
-            (v1/*:: as any*/),
-            (v3/*:: as any*/),
+            (v0/*:: as any*/),
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "nickname",
+              "storageKey": null
+            },
             {
               "alias": null,
               "args": null,
@@ -1128,8 +997,20 @@ return {
               "name": "uid",
               "storageKey": null
             },
-            (v5/*:: as any*/),
-            (v4/*:: as any*/),
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "role",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "weapon",
+              "storageKey": null
+            },
             {
               "alias": null,
               "args": null,
@@ -1137,9 +1018,9 @@ return {
               "name": "contact",
               "storageKey": null
             },
-            (v7/*:: as any*/),
-            (v8/*:: as any*/),
-            (v6/*:: as any*/),
+            (v1/*:: as any*/),
+            (v2/*:: as any*/),
+            (v3/*:: as any*/),
             {
               "alias": null,
               "args": null,
@@ -1158,9 +1039,9 @@ return {
           "name": "results",
           "plural": true,
           "selections": [
+            (v0/*:: as any*/),
             (v1/*:: as any*/),
-            (v7/*:: as any*/),
-            (v8/*:: as any*/),
+            (v2/*:: as any*/),
             {
               "alias": null,
               "args": null,
@@ -1182,7 +1063,7 @@ return {
               "name": "proofUrl",
               "storageKey": null
             },
-            (v6/*:: as any*/)
+            (v3/*:: as any*/)
           ],
           "storageKey": null
         },
@@ -1396,8 +1277,8 @@ return {
           "name": "memberLeaders",
           "plural": true,
           "selections": [
-            (v9/*:: as any*/),
-            (v10/*:: as any*/),
+            (v4/*:: as any*/),
+            (v5/*:: as any*/),
             {
               "alias": null,
               "args": null,
@@ -1416,8 +1297,8 @@ return {
           "name": "leaderLeaders",
           "plural": true,
           "selections": [
-            (v9/*:: as any*/),
-            (v10/*:: as any*/),
+            (v4/*:: as any*/),
+            (v5/*:: as any*/),
             {
               "alias": null,
               "args": null,
@@ -1435,6 +1316,6 @@ return {
 };
 })();
 
-(node as any).hash = "9ce71c64cda21c585039362d66f29269";
+(node as any).hash = "fea9229e1c15d212d50cca549f1865bf";
 
 export default node;
