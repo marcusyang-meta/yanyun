@@ -5,6 +5,7 @@ import type { ViewerUser } from '../../lib/user';
 import type { GuildAdminPage_guildAdmin$key } from './__generated__/GuildAdminPage_guildAdmin.graphql';
 import UserBar, { type UserBarText } from '../../auth/UserBar.react.tsx';
 import { theme, fill } from '../../lib/format';
+import { useGuildFooter } from '../../lib/guildChrome';
 import { toast } from './Toast.react.tsx';
 import { refetchGuildAdminQueries } from '../../lib/relay';
 import {
@@ -36,6 +37,15 @@ const GuildAdminPage_guildAdmin = graphql`
     reminderWebhookId
     reminderOffsets
     reminderCustomText
+    whiteLabelHideBranding
+    ogAccent
+    ogTitleSuffix
+    pageFooterDisclaimerText
+    ogAccentOptions {
+      key
+      hex
+      label
+    }
     featureFixedTeams
     devOnly
     adminTitle
@@ -139,6 +149,12 @@ const GuildAdminPage_guildAdmin = graphql`
     adminStatsCarCountLabel
     adminStatsEmptyText
     adminStatsBoardEmptyText
+    adminWhiteLabelTitle
+    adminHideBrandingLabel
+    adminHideBrandingHint
+    adminOgAccentLabel
+    adminOgTitleSuffixLabel
+    adminOgTitleSuffixHint
     fixedTeams {
       id
       name
@@ -250,6 +266,11 @@ const FeaturesMutation = graphql`
     updateGuildFeatures(slug: $slug, fixedTeams: $v) { ok error }
   }
 `;
+const WhiteLabelMutation = graphql`
+  mutation GuildAdminPageWhiteLabelMutation($slug: String!, $hideBranding: Boolean!, $ogAccent: String!, $ogTitleSuffix: String) {
+    updateGuildWhiteLabel(slug: $slug, hideBranding: $hideBranding, ogAccent: $ogAccent, ogTitleSuffix: $ogTitleSuffix) { ok error }
+  }
+`;
 const VisibilityMutation = graphql`
   mutation GuildAdminPageVisibilityMutation($slug: String!, $v: Boolean!) {
     updateGuildVisibility(slug: $slug, devOnly: $v) { ok error }
@@ -322,6 +343,7 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
   const [commitProfile] = useMutation(ProfileMutation);
   const [commitDiscord] = useMutation(DiscordMutation);
   const [commitReminder] = useMutation(ReminderMutation);
+  const [commitWhiteLabel] = useMutation(WhiteLabelMutation);
   const [commitFeatures] = useMutation(FeaturesMutation);
   const [commitVisibility] = useMutation(VisibilityMutation);
   const [commitSetAvatar] = useMutation(SetAvatarMutation);
@@ -329,6 +351,7 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
   const runProfile = useAdminMutation(commitProfile, 'updateGuildProfile', refresh, commonText.unknownError);
   const runDiscord = useAdminMutation(commitDiscord, 'updateGuildDiscord', refresh, commonText.unknownError);
   const runReminder = useAdminMutation(commitReminder, 'updateGuildReminderSettings', refresh, commonText.unknownError);
+  const runWhiteLabel = useAdminMutation(commitWhiteLabel, 'updateGuildWhiteLabel', refresh, commonText.unknownError);
   const runFeatures = useAdminMutation(commitFeatures, 'updateGuildFeatures', refresh, commonText.unknownError);
   const runVisibility = useAdminMutation(commitVisibility, 'updateGuildVisibility', refresh, commonText.unknownError);
   const runSetAvatar = useAdminMutation(commitSetAvatar, 'setGuildAvatar', refresh, commonText.unknownError);
@@ -346,6 +369,10 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
   const [guildId, setGuildId] = useState(data.discordGuildId || '');
   const [reminderOffsets, setReminderOffsets] = useState<number[]>(Array.isArray(data.reminderOffsets) ? data.reminderOffsets : [10]);
   const [reminderText, setReminderText] = useState(data.reminderCustomText || '');
+  const [wlHideBranding, setWlHideBranding] = useState(!!data.whiteLabelHideBranding);
+  const [wlAccent, setWlAccent] = useState(data.ogAccent || '');
+  const [wlSuffix, setWlSuffix] = useState(data.ogTitleSuffix || '');
+  useGuildFooter(data.pageFooterDisclaimerText);
   const fileRef = useRef<HTMLInputElement>(null);
   const [avatarBusy, setAvatarBusy] = useState(false);
 
@@ -517,6 +544,44 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
                   onChange={(e) => runVisibility({ slug, v: e.target.checked })} />
                 {text.adminDevOnlyLabel}
               </label>
+            </section>
+
+            <section style={adminSectionStyle}>
+              <h2 style={adminSectionTitleStyle}>{text.adminWhiteLabelTitle}</h2>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: theme.paper, cursor: 'pointer' }}>
+                <input type="checkbox" checked={wlHideBranding}
+                  onChange={(e) => setWlHideBranding(e.target.checked)} />
+                {text.adminHideBrandingLabel}
+              </label>
+              <p style={{ color: theme.muted, fontSize: 12, margin: '8px 0 14px' }}>{text.adminHideBrandingHint}</p>
+              <Field label={text.adminOgAccentLabel}>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {(data.ogAccentOptions || []).map((o: any) => (
+                    <button
+                      key={o.key}
+                      type="button"
+                      onClick={() => setWlAccent(wlAccent === o.key ? '' : o.key)}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 8, padding: '7px 14px 7px 9px',
+                        borderRadius: 999, cursor: 'pointer', fontSize: 13,
+                        border: `1px solid ${wlAccent === o.key ? theme.gold : 'rgba(201,163,92,.3)'}`,
+                        background: wlAccent === o.key ? 'rgba(201,163,92,.16)' : 'transparent',
+                        color: wlAccent === o.key ? '#ecd28f' : theme.muted,
+                      }}
+                    >
+                      <span style={{ width: 16, height: 16, borderRadius: '50%', background: o.hex, flexShrink: 0 }} />
+                      {o.label}
+                    </button>
+                  ))}
+                </div>
+              </Field>
+              <Field label={text.adminOgTitleSuffixLabel}>
+                <input style={adminInputStyle} value={wlSuffix} maxLength={30}
+                  onChange={(e) => setWlSuffix(e.target.value)} autoComplete="off" />
+              </Field>
+              <p style={{ color: theme.muted, fontSize: 12, margin: '-6px 0 12px' }}>{text.adminOgTitleSuffixHint}</p>
+              <SaveButton label={text.adminSaveLabel} savedLabel={text.adminSavedText}
+                onSave={() => runWhiteLabel({ slug, hideBranding: wlHideBranding, ogAccent: wlAccent, ogTitleSuffix: wlSuffix })} />
             </section>
           </>
         )}

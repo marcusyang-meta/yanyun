@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { graphql, usePreloadedQuery } from 'react-relay';
 import type { PreloadedQuery } from 'react-relay';
@@ -11,6 +11,7 @@ import GuildRouteLoader from './guild/GuildRouteLoader.react.tsx';
 import GuildAdminRouteLoader from './guild/GuildAdminRouteLoader.react.tsx';
 import LegalRoute from './LegalRoute.react.tsx';
 import SiteFooter from './lib/SiteFooter.react.tsx';
+import { GuildFooterContext, type FooterOverride } from './lib/guildChrome';
 import { readPrefMirror, writePrefMirror, emitLocaleChanged, lastSentLocaleTag } from './lib/locale';
 import { canonicalLocaleOf } from './lib/format';
 import SiteBackdrop from './lib/SiteBackdrop.react.tsx';
@@ -95,8 +96,13 @@ export default function AppRoot({ queries }: {
     logoutLabel: viewer.userBarLogoutLabel, loggingOutLabel: viewer.userBarLoggingOutLabel,
     settingsLabel: viewer.userBarSettingsLabel,
   };
+  // Guild pages override the footer disclaimer with the server-composed
+  // per-guild value while mounted (null = no footer: the guild hides
+  // platform branding). See lib/guildChrome.
+  const [footerOverride, setFooterOverride] = useState<FooterOverride>(undefined);
+  const footerChrome = useMemo(() => ({ setFooterOverride }), []);
   const footerText = {
-    disclaimer: viewer.footerDisclaimerText,
+    disclaimer: footerOverride !== undefined ? (footerOverride ?? '') : viewer.footerDisclaimerText,
     termsLabel: viewer.footerTermsLabel,
     privacyLabel: viewer.footerPrivacyLabel,
   };
@@ -124,6 +130,7 @@ export default function AppRoot({ queries }: {
   return (
     <>
       <SiteBackdrop />
+      <GuildFooterContext.Provider value={footerChrome}>
       <div className="yy-app-main">
         <div className="yy-scroll-region" ref={scrollRegionRef}>
         <Routes>
@@ -162,6 +169,7 @@ export default function AppRoot({ queries }: {
             In flow below the scroll region, so it is always fully on screen. */}
         <SiteFooter text={footerText} />
       </div>
+      </GuildFooterContext.Provider>
     </>
   );
 }

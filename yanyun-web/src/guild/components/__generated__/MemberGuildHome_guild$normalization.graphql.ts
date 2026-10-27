@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<6fdd32b04f8dec72afa22db4368e0f76>>
+ * @generated SignedSource<<6e72268cc825b90dd8d99a223d35320e>>
  * @lightSyntaxTransform
  */
 
@@ -61,7 +61,14 @@ const node: NormalizationSplitOperation = {
       "alias": null,
       "args": null,
       "kind": "ScalarField",
-      "name": "homeBackToHubLabel",
+      "name": "pageBackLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "pageFooterDisclaimerText",
       "storageKey": null
     },
     {
@@ -109,6 +116,6 @@ const node: NormalizationSplitOperation = {
   ]
 };
 
-(node as any).hash = "4457810355f6f4e0b9955aa88fc25e9e";
+(node as any).hash = "2dbc7c81c5dc0f81affb5231478a4457";
 
 export default node;
