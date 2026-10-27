@@ -84,3 +84,21 @@ export async function countHubAudit(
   const row = rows && rows[0];
   return row ? Number(row.c) || 0 : 0;
 }
+
+/** Count one actor's rows for one action since a timestamp — this is
+ * the account-export rate limit's counter (audit rows double as the
+ * ledger; no separate limiter machinery). */
+export async function countHubAuditByActorActionSince(
+  d1: D1Database,
+  actor: string,
+  action: string,
+  sinceSec: number,
+): Promise<number> {
+  const db = createDb(d1);
+  const rows = await db.all<CountRow>(
+    sql`SELECT COUNT(*) AS c FROM ${hubAuditLog}
+        WHERE ${hubAuditLog.actor} = ${actor} AND ${hubAuditLog.action} = ${action} AND ${hubAuditLog.at} >= ${sinceSec}`,
+  );
+  const row = rows && rows[0];
+  return row ? Number(row.c) || 0 : 0;
+}

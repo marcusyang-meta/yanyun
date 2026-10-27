@@ -27,6 +27,14 @@ export const users = sqliteTable('users', {
   createdAt: text('created_at').notNull().default(sql`(strftime('%s','now'))`),
   updatedAt: text('updated_at').notNull().default(sql`(strftime('%s','now'))`),
   localePref: text('locale_pref'),
+  // Account self-service deletion (migration 0003): epoch seconds of
+  // the deletion request; NULL = no pending deletion (7-day cooling-off
+  // runs from this timestamp). [alt 0003]
+  deletionRequestedAt: integer('deletion_requested_at'),
+  // Epoch seconds of the last completed Discord OAuth round trip;
+  // export / deletion submission require one no older than 10 minutes.
+  // [alt 0003]
+  freshAuthAt: integer('fresh_auth_at'),
 });
 
 export const userOauth = sqliteTable('user_oauth', {

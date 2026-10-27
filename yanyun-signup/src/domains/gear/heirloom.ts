@@ -54,3 +54,30 @@ export async function upsertHeirloomSetState(
     sql`INSERT INTO ${heirloomSetState} (${col('tenant')}, ${col('discord_id')}, ${col('build_sig')}, ${col('complete')}, ${col('updated_at')}) VALUES (${row.tenant}, ${row.discordId}, ${row.buildSig}, ${row.complete}, ${row.updatedAt}) ON CONFLICT (${col('tenant')}, ${col('discord_id')}, ${col('build_sig')}) DO UPDATE SET ${col('complete')} = excluded.complete, ${col('updated_at')} = excluded.updated_at`,
   );
 }
+
+/* ---------- account export / deletion (owner-keyed) ---------- */
+
+export async function listHeirloomStateByUser(
+  d1: D1Database, discordId: string,
+): Promise<{ pushes: Array<{ tenant: string; build_sig: string; item_hash: string; created_at: number }>; setState: Array<{ tenant: string; build_sig: string; complete: number; updated_at: number }> }> {
+  const db = createDb(d1);
+  const pushes = await db.all<{ tenant: string; build_sig: string; item_hash: string; created_at: number }>(
+    sql`SELECT ${col('tenant')}, ${col('build_sig')}, ${col('item_hash')}, ${col('created_at')} FROM ${heirloomItemPushes} WHERE ${col('discord_id')} = ${discordId}`,
+  );
+  const setState = await db.all<{ tenant: string; build_sig: string; complete: number; updated_at: number }>(
+    sql`SELECT ${col('tenant')}, ${col('build_sig')}, ${col('complete')}, ${col('updated_at')} FROM ${heirloomSetState} WHERE ${col('discord_id')} = ${discordId}`,
+  );
+  return { pushes: pushes || [], setState: setState || [] };
+}
+
+/** Deletion Q5: dedupe state is hard-deleted with the account; if the
+ * same Discord account ever re-registers it starts fresh, so an old
+ * heirloom may be announced once more — accepted by design. */
+export async function deleteHeirloomStateByUser(
+  d1: D1Database, discordId: string,
+): Promise<{ pushes: number; setState: number }> {
+  const db = createDb(d1);
+  const a: any = await db.run(sql`DELETE FROM ${heirloomItemPushes} WHERE ${col('discord_id')} = ${discordId}`);
+  const b: any = await db.run(sql`DELETE FROM ${heirloomSetState} WHERE ${col('discord_id')} = ${discordId}`);
+  return { pushes: Number(a?.meta?.changes ?? 0), setState: Number(b?.meta?.changes ?? 0) };
+}

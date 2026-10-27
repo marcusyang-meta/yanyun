@@ -5,6 +5,7 @@ export * from './usageCounters.ts';
 export * from './limits.ts';
 export * from './errorLog.ts';
 export * from './hubAudit.ts';
+export * from './backfillLog.ts';
 export * from './hub-audit.ts';
 export * from './backup.ts';
 export * from './backup-service.ts';

@@ -329,3 +329,39 @@ export async function deleteEventCascade(d1: D1Database, id: number, tenant: str
       : d1.prepare('DELETE FROM events WHERE id = ? AND tenant = ?').bind(id, tenant),
   ]);
 }
+
+/* ---------- account deletion / export (creator-keyed) ---------- */
+
+export interface CreatorEventRow {
+  id: number;
+  tenant: string;
+  title: string;
+  type: string;
+  starts_at: string | null;
+  status: string;
+  created_by: string;
+  created_at: string;
+}
+
+/** All cars this user leads (the export package's carsLed section). */
+export async function listEventsByCreator(d1: D1Database, discordId: string): Promise<CreatorEventRow[]> {
+  const db = createDb(d1);
+  const rows = await db.all<CreatorEventRow>(
+    sql`SELECT ${col('id')}, ${col('tenant')}, ${col('title')}, ${col('type')}, ${col('starts_at')}, ${col('status')}, ${col('created_by')}, ${col('created_at')}
+        FROM ${events} WHERE ${col('creator_discord_id')} = ${discordId} ORDER BY ${col('id')} ASC`,
+  );
+  return rows || [];
+}
+
+/** Deletion Q1: led cars are orphaned (creator unlinked, display name
+ * anonymized), never deleted — fellow riders keep their history. */
+export async function orphanEventsByCreator(
+  d1: D1Database, discordId: string, tombstoneName: string,
+): Promise<number> {
+  const db = createDb(d1);
+  const r = await db.run(
+    sql`UPDATE ${events} SET ${col('creator_discord_id')} = NULL, ${col('created_by')} = ${tombstoneName}
+        WHERE ${col('creator_discord_id')} = ${discordId}`,
+  );
+  return metaOf(r).changes;
+}

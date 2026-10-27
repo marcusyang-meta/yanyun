@@ -59,7 +59,7 @@ export const privacyBody_s3b = (fbs: FbsAPI) =>fbs("本站运行在 Cloudflare �
 export const privacyBody_s4h = (fbs: FbsAPI) =>fbs("保存期限", "privacyBody.s4h");
 export const privacyBody_s4b = (fbs: FbsAPI) =>fbs("你的数据保存在本站数据库中，直至你申请删除，或相关数据对本站功能不再需要为止。报名、车队等历史记录目前会持续保留；如保存规则发生变化，我们会更新本政策。", "privacyBody.s4b");
 export const privacyBody_s5h = (fbs: FbsAPI) =>fbs("你的权利", "privacyBody.s5h");
-export const privacyBody_s5b = (fbs: FbsAPI) =>fbs("你可以申请查询、更正或删除你的个人数据。目前本站尚未提供自助注销功能，请通过下方联系渠道提出申请，我们会在合理期限内处理。你也可以随时在 Discord 的设置中断开本站的授权；授权失效后，你在本站的会话会自动作废。", "privacyBody.s5b");
+export const privacyBody_s5b = (fbs: FbsAPI) =>fbs("你可以查询、导出或删除你的个人数据。在「个人资料」的「我的数据」中，你可以自助导出你的全部数据（需通过 Discord 重新验证身份，每 24 小时一次），也可以自助删除账号：提交删除后有 7 天冷静期，期间可随时撤销；到期后你的个人数据会被删除或匿名化——你创建的车队会转为无主车队、你在他人车队中的座位会被匿名化，备份中的副本最迟在 14 天内随每日备份轮换清除。你也可以随时在 Discord 的设置中断开本站的授权；授权失效后，你在本站的会话会自动作废。", "privacyBody.s5b");
 export const privacyBody_s6h = (fbs: FbsAPI) =>fbs("联系我们", "privacyBody.s6h");
 export const privacyBody_s6b = (fbs: FbsAPI) =>fbs("如对本政策有疑问，或需提出查询、更正、删除申请，请通过本站社区百业「叽哩呱啦」的 Discord 服务器联系管理员。我们会先核实你的 Discord 账号身份，再处理你的申请。", "privacyBody.s6b");
 export const errors_rateLimited = (fbs: FbsAPI) =>fbs("操作过于频繁, 请稍后再试", "errors.rateLimited");
@@ -134,3 +134,8 @@ export const errors_templateNotFound = (fbs: FbsAPI) =>fbs("模板不存在", "e
 export const errors_templateNameRequired = (fbs: FbsAPI) =>fbs("请填写模板名", "errors.templateNameRequired");
 export const errors_templateForbidden = (fbs: FbsAPI) =>fbs("只有模板创建者或百业管理员可以改删模板", "errors.templateForbidden");
 export const errors_templateBadStart = (fbs: FbsAPI) =>fbs("发车时间设置无效", "errors.templateBadStart");
+export const errors_accountReauthRequired = (fbs: FbsAPI) =>fbs("请先通过 Discord 重新验证身份", "errors.accountReauthRequired");
+export const errors_accountExportRateLimited = (fbs: FbsAPI) =>fbs("每 24 小时只能导出一次数据，请稍后再试", "errors.accountExportRateLimited");
+export const errors_accountUsernameMismatch = (fbs: FbsAPI) =>fbs("输入的显示名与你的账号不一致", "errors.accountUsernameMismatch");
+export const errors_accountDeletionPending = (fbs: FbsAPI) =>fbs("已有一份删除申请在冷静期中", "errors.accountDeletionPending");
+export const errors_accountDeletionNotPending = (fbs: FbsAPI) =>fbs("当前没有待执行的删除申请", "errors.accountDeletionNotPending");

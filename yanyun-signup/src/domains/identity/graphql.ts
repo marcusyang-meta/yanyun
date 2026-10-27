@@ -15,6 +15,14 @@ import { getGuildAvatarMeta, avatarPath } from '../guilds/index.ts';
 import { getSettingValue, setSettingValue, listSettingsByKey } from '../guilds/index.ts';
 import { getUsernameRow } from './index.ts';
 import { listGuildMembers, getGuildMember } from './index.ts';
+import { getAccountRow } from './users.ts';
+import type { AccountRow } from './users.ts';
+import {
+  exportMyData as exportMyDataService,
+  requestAccountDeletion as requestAccountDeletionService,
+  cancelAccountDeletion as cancelAccountDeletionService,
+  deletionExecutesAt,
+} from './account.ts';
 import { getBossById, listBossesByDungeon, listSchoolsFull, listSchoolsNameSlug, getSchoolNameBySlug, listSchoolBis, getSchoolBisJsonBySchool, listSchoolRotations, listSlotAffixByBuild, listAffixMax, listAffixMaxValues } from '../dex/index.ts';
 import { getDungeonByName, getDungeonNameSizeById, listDungeonsDex, getLatestDungeonVersion } from '../dex/index.ts';
 import {
@@ -227,9 +235,36 @@ export const VIEWER_TEXT_RESOLVERS = defineTextGens(ViewerShell, [
 
 /* ---------- Hub page (navigation) ---------- */
 
+/* Account self-service state (users row), request-memoized like the
+ * locale preference: fresh_auth_at drives the re-verification step,
+ * deletion_requested_at the pending-deletion panel. */
+export function loadMyAccountRow(ctx: Context): Promise<AccountRow | null> {
+  const store = ctx._memo || (ctx._memo = new Map());
+  if (!store.has('myAccountRow')) {
+    store.set('myAccountRow', (async () => {
+      if (!ctx.user) return null;
+      return getAccountRow(ctx.env.DB, ctx.user.discordId).catch(() => null);
+    })());
+  }
+  return store.get('myAccountRow') as Promise<AccountRow | null>;
+}
+
 export class SettingsPageShell extends ShellBase {
   genLocalePref(){ return loadMyLocalePref(this.ctx); }
   genEffectiveLocale(){ return this.locale; }
+  async genFreshAuthAt(){
+    const row = await loadMyAccountRow(this.ctx);
+    return row && row.fresh_auth_at != null ? Number(row.fresh_auth_at) : null;
+  }
+  async genAccountPendingDeletion(){
+    const row = await loadMyAccountRow(this.ctx);
+    const executesAt = deletionExecutesAt(row);
+    if (!row || executesAt == null) return null;
+    return new AccountPendingDeletionShell(this.ctx, {
+      requestedAt: Number(row.deletion_requested_at),
+      executesAt,
+    });
+  }
 }
 export const SETTINGS_TEXT_RESOLVERS = defineTextGens(SettingsPageShell, [
   ['settingsTitle', 'settings', 'title'],
@@ -243,7 +278,65 @@ export const SETTINGS_TEXT_RESOLVERS = defineTextGens(SettingsPageShell, [
   ['settingsLangEsLabel', 'settings', 'langEs'],
   ['settingsLangFrLabel', 'settings', 'langFr'],
   ['settingsSavedText', 'settings', 'savedText'],
+  ['accountSectionTitle', 'account', 'sectionTitle'],
+  ['accountExportLabel', 'account', 'exportLabel'],
+  ['accountExportHint', 'account', 'exportHint'],
+  ['accountDeleteLabel', 'account', 'deleteLabel'],
+  ['accountDeleteHint', 'account', 'deleteHint'],
+  ['accountReauthLabel', 'account', 'reauthLabel'],
+  ['accountReauthHint', 'account', 'reauthHint'],
+  ['accountConfirmTitle', 'account', 'confirmTitle'],
+  ['accountConfirmIntro', 'account', 'confirmIntro'],
+  ['accountConsequenceCars', 'account', 'consequenceCars'],
+  ['accountConsequenceData', 'account', 'consequenceData'],
+  ['accountConsequenceGuilds', 'account', 'consequenceGuilds'],
+  ['accountConsequenceResidual', 'account', 'consequenceResidual'],
+  ['accountConsequenceReregister', 'account', 'consequenceReregister'],
+  ['accountExportFirstHint', 'account', 'exportFirstHint'],
+  ['accountUsernameLabel', 'account', 'usernameLabel'],
+  ['accountSubmitLabel', 'account', 'submitLabel'],
+  ['accountBackLabel', 'account', 'backLabel'],
+  ['accountCancelDeletionLabel', 'account', 'cancelDeletionLabel'],
+  ['accountDeletionRequestedText', 'account', 'deletionRequestedText'],
+  ['accountDeletionCancelledText', 'account', 'deletionCancelledText'],
 ]);
+
+/* Pending-deletion panel: the type's presence IS the state (no flag);
+ * the body copy is composed server-side with the execution date in the
+ * viewer's locale/timezone. */
+export class AccountPendingDeletionShell extends ShellBase {
+  genExecutesAt(){ return new Date(this.data.executesAt * 1000).toISOString(); }
+  genDaysLeft(){
+    const left = this.data.executesAt - Math.floor(Date.now() / 1000);
+    return Math.max(0, Math.ceil(left / 86400));
+  }
+  genAccountPendingBody(){
+    let date = this.genExecutesAt().slice(0, 10);
+    try {
+      date = new Intl.DateTimeFormat(this.locale, {
+        year: 'numeric', month: 'long', day: 'numeric',
+        timeZone: (this.ctx as any).tz || 'Asia/Shanghai',
+      }).format(new Date(this.data.executesAt * 1000));
+    } catch { /* keep the ISO date */ }
+    return this.t('account', 'pendingBody', { date });
+  }
+}
+export const PENDING_DELETION_TEXT_RESOLVERS = defineTextGens(AccountPendingDeletionShell, [
+  ['accountPendingTitle', 'account', 'pendingTitle'],
+]);
+
+/* ---------- Account self-service payloads ---------- */
+export class ExportMyDataPayloadShell extends PayloadBase {
+  genJson(){ return this.data.json ?? null; }
+  genFilename(){ return this.data.ok ? 'yanyun-data-export.json' : null; }
+}
+export class AccountDeletionPayloadShell extends PayloadBase {
+  genExecutesAt(){
+    return this.data.executesAt != null
+      ? new Date(this.data.executesAt * 1000).toISOString()
+      : null;
+  }
+}
 
 /* ---------- Mutation payload shell ----------
  * ok/grouping/seats/guild are data; error text is generated by genError
@@ -277,6 +370,33 @@ export const identityResolvers = {
       });
     },
 
+    /* Account self-service: export + deletion. All gates (fresh auth,
+     * rate limit, typed-name confirmation, cooling-off) live in the
+     * identity account service; these resolvers only adapt payloads. */
+    exportMyData: async (_: any, __: any, ctx: Context) => {
+      if (!ctx.user) return new ExportMyDataPayloadShell(ctx, { ok: false, errorCode: 'loginRequired' });
+      const r = await exportMyDataService(ctx.env.DB, ctx.user.discordId, ctx.locale);
+      return new ExportMyDataPayloadShell(ctx, r.ok
+        ? { ok: true, errorCode: null, json: r.json }
+        : { ok: false, errorCode: r.errorCode });
+    },
+
+    requestAccountDeletion: async (_: any, { typedUsername }: any, ctx: Context) => {
+      if (!ctx.user) return new AccountDeletionPayloadShell(ctx, { ok: false, errorCode: 'loginRequired' });
+      const r = await requestAccountDeletionService(ctx.env.DB, ctx.user.discordId, typedUsername);
+      return new AccountDeletionPayloadShell(ctx, r.ok
+        ? { ok: true, errorCode: null, executesAt: r.executesAt }
+        : { ok: false, errorCode: r.errorCode });
+    },
+
+    cancelAccountDeletion: async (_: any, __: any, ctx: Context) => {
+      if (!ctx.user) return new AccountDeletionPayloadShell(ctx, { ok: false, errorCode: 'loginRequired' });
+      const r = await cancelAccountDeletionService(ctx.env.DB, ctx.user.discordId);
+      return new AccountDeletionPayloadShell(ctx, r.ok
+        ? { ok: true, errorCode: null }
+        : { ok: false, errorCode: r.errorCode });
+    },
+
     // App push-token register/unregister (Expo departure channel): identity
     // comes only from the session ctx.user; malformed tokens are rejected.
   },
@@ -284,7 +404,28 @@ export const identityResolvers = {
   SettingsPage: {
     localePref: (p: any) => p.genLocalePref(),
     effectiveLocale: (p: any) => p.genEffectiveLocale(),
+    freshAuthAt: (p: any) => p.genFreshAuthAt(),
+    accountPendingDeletion: (p: any) => p.genAccountPendingDeletion(),
     ...SETTINGS_TEXT_RESOLVERS,
+  },
+  AccountPendingDeletion: {
+    executesAt: (p: any) => p.genExecutesAt(),
+    daysLeft: (p: any) => p.genDaysLeft(),
+    accountPendingBody: (p: any) => p.genAccountPendingBody(),
+    ...PENDING_DELETION_TEXT_RESOLVERS,
+  },
+  ExportMyDataPayload: {
+    ok: (p: any) => p.genOk(),
+    error: (p: any) => p.genError(),
+    errorCode: (p: any) => p.genErrorCode(),
+    json: (p: any) => p.genJson(),
+    filename: (p: any) => p.genFilename(),
+  },
+  AccountDeletionPayload: {
+    ok: (p: any) => p.genOk(),
+    error: (p: any) => p.genError(),
+    errorCode: (p: any) => p.genErrorCode(),
+    executesAt: (p: any) => p.genExecutesAt(),
   },
   UpdateLocalePayload: {
     ok: (p: any) => p.genOk(),

@@ -1,6 +1,7 @@
 import { SUPPORTED_LOCALES } from '../platform/index.ts';
 import { listDistinctSettingValues } from '../guilds/index.ts';
 import { upsertUserOnLogin, getUserLocalePref as getUserLocalePrefRepo, setUserLocalePref as setUserLocalePrefRepo, getUserGuildsJson, getOAuthGrant, getOAuthRefresh, upsertOAuthOnLogin, updateOAuthAfterRefresh, markOAuthNeedsRelogin, upsertNick as upsertNickRepo, touchNick as touchNickRepo, getNickRow, listNickRowsByUser } from './index.ts';
+import { noteFreshAuthAndSettlePending } from './account.ts';
 
 // Discord OAuth + stateless JWT session (yy_session cookie).
 // Payload: { sub: discord_id, name, avatar, guilds: [server ids...], gm?: [{i, p}], iat, exp }
@@ -378,6 +379,11 @@ export async function handleDiscordCallback(request: any, env: any) {
   // nicks once. Fully tolerant: no step's failure or timeout may fail the login.
   try {
     const nowSec = Math.floor(Date.now() / 1000);
+    // A completed OAuth round trip is a fresh authentication: stamp it
+    // (the export / deletion gates measure from here) and settle any
+    // pending account deletion — a login before the cooling-off
+    // deadline cancels the request; after it, the sweep still runs.
+    await noteFreshAuthAndSettlePending(env.DB, String(me.id), nowSec).catch(() => {});
     if (token.refresh_token) {
       await upsertOAuthOnLogin(env.DB, {
         discordId: String(me.id), refreshToken: String(token.refresh_token),

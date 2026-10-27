@@ -7920,6 +7920,347 @@
         }
       ],
       "types": []
+    },
+    "pgU166dSQv2drsLc/fQzIQ==": {
+      "description": "account.sectionTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Mes données",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "dHSvMseO0goD+zuCXEQ6zg==": {
+      "description": "account.exportLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Exporter mes données",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "5SjWF4D3eKK3yJWvXGu15g==": {
+      "description": "account.exportHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Téléchargez toutes les données de votre compte dans un seul fichier JSON : profil du compte, lignes de roster de chaque guilde, escouades que vous avez créées, vos places d’inscription, bibliothèque d’équipement et configurations enregistrées. Par sécurité, les identifiants de connexion et les jetons de notification ne sont jamais inclus.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Zo1V8X7+ECEq3MDIR58FKg==": {
+      "description": "account.deleteLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Supprimer le compte",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Oeyerhi0AhLCLbExOXkfUg==": {
+      "description": "account.deleteHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "La suppression est irréversible. Après l’envoi, un délai de réflexion de 7 jours commence, pendant lequel vous pouvez annuler à tout moment ; à son terme, vos données personnelles sont supprimées ou anonymisées.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Y4zFgIHAzsZ9Q6jxPrNi1A==": {
+      "description": "account.reauthLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Vérifier à nouveau avec Discord",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "pHvz36HTYhZXJY/wb/PHKQ==": {
+      "description": "account.reauthHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "L’exportation et la suppression sont des actions sensibles ; une autorisation Discord récente est requise avant de continuer.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "nwzZPi43YU+rvKcOvZr1uQ==": {
+      "description": "account.confirmTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Confirmer la suppression du compte",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "YPIRliUJa/lYLgt2HKDjWg==": {
+      "description": "account.confirmIntro",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Veuillez lire attentivement les conséquences. Après l’envoi, un délai de réflexion de 7 jours commence et la suppression s’exécute automatiquement à son terme :",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "84GGomogicDKGmLozBP9JQ==": {
+      "description": "account.consequenceCars",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Les escouades que vous avez créées ne sont pas supprimées : le chef est dissocié et elles deviennent des escouades sans chef, et le nom affiché du créateur est remplacé par « Utilisateur supprimé » ; les places que vous occupez dans les escouades d’autres personnes sont anonymisées sur place.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "JuCB/iEHcBcaLnwaUO9AZA==": {
+      "description": "account.consequenceData",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Votre bibliothèque d’équipement et vos configurations enregistrées, jetons de notification, instantanés de pseudos et lignes de roster de guilde sont définitivement supprimés ; une fois la suppression exécutée, vous êtes déconnecté immédiatement sur tous vos appareils.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "U67biKeVYdEk9JxewNsccg==": {
+      "description": "account.consequenceGuilds",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Les guildes elles-mêmes et leurs mots de passe d’administration ne sont pas affectés : une guilde n’appartient à aucun compte personnel et n’est ni dissoute ni modifiée lorsque vous supprimez votre compte.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "pBUeF6yGkY8m0NCc+s1YZg==": {
+      "description": "account.consequenceResidual",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Quelques enregistrements ne peuvent pas être effacés par personne : les messages déjà publiés sur Discord et les listes de noms en texte libre des tableaux de résultats subsistent ; les copies présentes dans les sauvegardes sont effacées sous 14 jours au plus tard, au fil de la rotation quotidienne.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "6ZyHJ7FKmPD5bK07yqXldA==": {
+      "description": "account.consequenceReregister",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "La suppression n’est pas un bannissement : reconnectez-vous plus tard avec le même compte Discord et vous serez inscrit comme un tout nouveau compte.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "l9y176Nn1tJYNX7XZ1hsNA==": {
+      "description": "account.exportFirstHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Nous vous recommandons d’exporter une copie de vos données avant d’envoyer la suppression.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "YexpsxiC6mOiS5yqYuSPRA==": {
+      "description": "account.usernameLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Saisissez votre nom affiché Discord pour confirmer",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "h7CegTbkLRH1uZ/WAtF30g==": {
+      "description": "account.submitLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Envoyer la demande de suppression",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "OQLhxves2h2jUi6O8FCLjA==": {
+      "description": "account.backLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Retour",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "gu3quGZ5hxa71A8DFZDCTw==": {
+      "description": "account.pendingTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Suppression du compte programmée",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "aeIs7lOt0ok990CJ956sew==": {
+      "description": "account.pendingBody",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Votre compte sera supprimé le {date}. D’ici là, vous pouvez annuler à tout moment ; une nouvelle connexion sur un nouvel appareil annule aussi automatiquement (sauf si le délai est déjà écoulé).",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "cvpVARUfi6/drKQ1BEbbcA==": {
+      "description": "account.cancelDeletionLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Annuler la suppression",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "rMFNqjaLxyEGsi+HmPVQ5Q==": {
+      "description": "account.deletionRequestedText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Demande de suppression envoyée : le délai de réflexion de 7 jours a commencé.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "0A+05qdq6h8MltneJTO6XA==": {
+      "description": "account.deletionCancelledText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Demande de suppression annulée : votre compte ne sera pas supprimé.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "efPN+7nb4rsJW/aEah51rw==": {
+      "description": "account.exportAbout",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Ce fichier est une copie exportée des données de votre compte. account contient votre profil (pour oauth, seuls les périmètres accordés et l’heure de la dernière actualisation sont consignés — l’identifiant lui-même n’est jamais exporté) ; guilds liste votre ligne de roster dans chaque guilde ; serverNicks liste votre instantané de pseudo sur chaque serveur Discord ; carsLed liste les escouades que vous avez créées ; seats liste vos places d’inscription ; gearItems est votre bibliothèque d’équipement ; gearBuilds liste vos configurations enregistrées ; heirloom contient l’état de déduplication des annonces de pièces héritées. Les jetons de notification sont des identifiants d’appareil : seuls leur nombre et leurs plateformes sont consignés, jamais les jetons eux-mêmes.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "sPIIAaZz7vSSw8E5KNlsPw==": {
+      "description": "account.deletedUser",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Utilisateur supprimé",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "C6XvUKW7TbvgZYNxp4d8wA==": {
+      "description": "privacyBody.s5b",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Vous pouvez consulter, exporter ou supprimer vos données personnelles. Dans « Mes données », au sein de votre Profil, vous pouvez exporter vous-même l’ensemble de vos données (une nouvelle vérification d’autorisation Discord est requise ; un export toutes les 24 heures) et vous pouvez aussi supprimer votre compte vous-même : après l’envoi de la suppression, un délai de réflexion de 7 jours commence, pendant lequel vous pouvez annuler à tout moment ; à son terme, vos données personnelles sont supprimées ou anonymisées — les escouades que vous avez créées deviennent des escouades sans chef, les places que vous occupez dans les escouades d’autres personnes sont anonymisées, et les copies présentes dans les sauvegardes sont effacées sous 14 jours au plus tard, au fil de la rotation quotidienne. Vous pouvez également déconnecter l’autorisation de ce site à tout moment dans les réglages de Discord ; une fois l’autorisation expirée, votre session sur ce site est automatiquement invalidée.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "SEDQam/0FJg4gH29hrRLRg==": {
+      "description": "errors.accountReauthRequired",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Veuillez d’abord vérifier à nouveau votre identité avec Discord",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "fuuFl4k8RgjtSHoSc4H4/Q==": {
+      "description": "errors.accountExportRateLimited",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Les données ne peuvent être exportées qu’une fois toutes les 24 heures ; réessayez plus tard",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "7KmmHekn83isHFC085Jurg==": {
+      "description": "errors.accountUsernameMismatch",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Le nom affiché saisi ne correspond pas à votre compte",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "PN/ceBMmbg+uN+xwt7mS8A==": {
+      "description": "errors.accountDeletionPending",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Une demande de suppression est déjà dans son délai de réflexion",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "W/as1YXlllWhKWJ/6Zo1UA==": {
+      "description": "errors.accountDeletionNotPending",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Il n’y a actuellement aucune demande de suppression en attente",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

@@ -7920,6 +7920,347 @@
         }
       ],
       "types": []
+    },
+    "pgU166dSQv2drsLc/fQzIQ==": {
+      "description": "account.sectionTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "我的資料",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "dHSvMseO0goD+zuCXEQ6zg==": {
+      "description": "account.exportLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "匯出我的資料",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "5SjWF4D3eKK3yJWvXGu15g==": {
+      "description": "account.exportHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "把你帳號的全部資料下載為一個 JSON 檔案：帳號資料、百業名冊、你建立的車隊、你的報名座位、裝備庫與方案。登入憑證與推播令牌出於安全不會包含在內。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Zo1V8X7+ECEq3MDIR58FKg==": {
+      "description": "account.deleteLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "刪除帳號",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Oeyerhi0AhLCLbExOXkfUg==": {
+      "description": "account.deleteHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "刪除不可復原。提交後有 7 天冷靜期，期間可隨時撤銷；到期後你的個人資料會被刪除或匿名化。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Y4zFgIHAzsZ9Q6jxPrNi1A==": {
+      "description": "account.reauthLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "透過 Discord 重新驗證",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "pHvz36HTYhZXJY/wb/PHKQ==": {
+      "description": "account.reauthHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "匯出與刪除屬於敏感操作，繼續前需要一次新鮮的 Discord 授權驗證。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "nwzZPi43YU+rvKcOvZr1uQ==": {
+      "description": "account.confirmTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "確認刪除帳號",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "YPIRliUJa/lYLgt2HKDjWg==": {
+      "description": "account.confirmIntro",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "請仔細閱讀刪除後果。提交後進入 7 天冷靜期，到期自動執行：",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "84GGomogicDKGmLozBP9JQ==": {
+      "description": "account.consequenceCars",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "你建立的車隊不會被刪除：車頭會解除綁定為無主車隊，建立者顯示名替換為「已註銷使用者」；你在他人車隊裡的座位會被原地匿名化。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "JuCB/iEHcBcaLnwaUO9AZA==": {
+      "description": "account.consequenceData",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "你的裝備庫與方案、推播令牌、暱稱快照、百業名冊行會被徹底刪除；執行後你在所有裝置上的登入會立即失效。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "U67biKeVYdEk9JxewNsccg==": {
+      "description": "account.consequenceGuilds",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "百業本身與百業管理密碼不受影響：百業不屬於任何個人帳號，不會因你刪除帳號而解散或變更。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "pBUeF6yGkY8m0NCc+s1YZg==": {
+      "description": "account.consequenceResidual",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "少數記錄無法按個人清除：已經發到 Discord 的訊息、成績榜裡的自由文字名單會保留；備份中的副本最遲在 14 天內隨每日備份輪替清除。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "6ZyHJ7FKmPD5bK07yqXldA==": {
+      "description": "account.consequenceReregister",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "刪除不是封禁：之後用同一個 Discord 帳號重新登入，就會註冊成一個全新的帳號。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "l9y176Nn1tJYNX7XZ1hsNA==": {
+      "description": "account.exportFirstHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "建議先匯出一份你的資料，再提交刪除。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "YexpsxiC6mOiS5yqYuSPRA==": {
+      "description": "account.usernameLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "輸入你的 Discord 顯示名以確認",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "h7CegTbkLRH1uZ/WAtF30g==": {
+      "description": "account.submitLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "提交刪除申請",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "OQLhxves2h2jUi6O8FCLjA==": {
+      "description": "account.backLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "返回",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "gu3quGZ5hxa71A8DFZDCTw==": {
+      "description": "account.pendingTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "帳號刪除已排期",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "aeIs7lOt0ok990CJ956sew==": {
+      "description": "account.pendingBody",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "你的帳號將於 {date} 執行刪除。在此之前你可以隨時撤銷；用新裝置重新登入也會自動撤銷（到期後除外）。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "cvpVARUfi6/drKQ1BEbbcA==": {
+      "description": "account.cancelDeletionLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "撤銷刪除",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "rMFNqjaLxyEGsi+HmPVQ5Q==": {
+      "description": "account.deletionRequestedText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "刪除申請已提交，7 天冷靜期開始。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "0A+05qdq6h8MltneJTO6XA==": {
+      "description": "account.deletionCancelledText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "刪除申請已撤銷，你的帳號不會被刪除。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "efPN+7nb4rsJW/aEah51rw==": {
+      "description": "account.exportAbout",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "這是你帳號資料的匯出副本。account 是帳號資料（oauth 只記錄授權範圍與最近刷新時間，憑證本身不匯出）；guilds 是你在各百業的名冊行；serverNicks 是你在各 Discord 伺服器的暱稱快照；carsLed 是你建立的車隊；seats 是你的報名座位；gearItems 是裝備庫；gearBuilds 是已保存方案；heirloom 是傳家寶推播的去重狀態。推播令牌屬於裝置憑證，只記錄數量與平台，令牌本身不匯出。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "sPIIAaZz7vSSw8E5KNlsPw==": {
+      "description": "account.deletedUser",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "已註銷使用者",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "C6XvUKW7TbvgZYNxp4d8wA==": {
+      "description": "privacyBody.s5b",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "你可以查詢、匯出或刪除你的個人資料。在「個人資料」的「我的資料」中，你可以自助匯出你的全部資料（需透過 Discord 重新驗證身分，每 24 小時一次），也可以自助刪除帳號：提交刪除後有 7 天冷靜期，期間可隨時撤銷；到期後你的個人資料會被刪除或匿名化——你建立的車隊會轉為無主車隊、你在他人車隊中的座位會被匿名化，備份中的副本最遲在 14 天內隨每日備份輪替清除。你也可以隨時在 Discord 的設定中斷開本站的授權；授權失效後，你在本站的工作階段會自動作廢。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "SEDQam/0FJg4gH29hrRLRg==": {
+      "description": "errors.accountReauthRequired",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "請先透過 Discord 重新驗證身分",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "fuuFl4k8RgjtSHoSc4H4/Q==": {
+      "description": "errors.accountExportRateLimited",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "每 24 小時只能匯出一次資料，請稍後再試",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "7KmmHekn83isHFC085Jurg==": {
+      "description": "errors.accountUsernameMismatch",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "輸入的顯示名與你的帳號不一致",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "PN/ceBMmbg+uN+xwt7mS8A==": {
+      "description": "errors.accountDeletionPending",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "已有一份刪除申請在冷靜期中",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "W/as1YXlllWhKWJ/6Zo1UA==": {
+      "description": "errors.accountDeletionNotPending",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "目前沒有待執行的刪除申請",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }
