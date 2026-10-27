@@ -1,23 +1,16 @@
 {
-  "description": "燕云十六声百业工具 monorepo (npm workspaces) — 见 README",
+  "description": "燕云十六声百业工具 monorepo (pnpm workspaces) — 见 README",
   "name": "yanyun",
   "private": true,
-  "packageManager": "npm@10.9.4",
+  "packageManager": "pnpm@10.34.9",
   "scripts": {
-    "build:web": "npm run build --workspace=yanyun-web",
+    "build:web": "pnpm --filter yanyun-web run build",
     "sync-public": "node yanyun-signup/scripts/sync-public.mjs",
-    "mobile:lint": "npm run lint --workspace=yanyun-mobile",
-    "mobile:start": "npm run start --workspace=yanyun-mobile",
-    "mobile:typecheck": "cd yanyun-mobile && npx tsc --noEmit",
-    "sync-schema": "npm run sync-schema --workspace=yanyun-signup && npm run sync-schema --workspace=yanyun-web",
+    "mobile:lint": "pnpm --filter yanyun-mobile run lint",
+    "mobile:start": "pnpm --filter yanyun-mobile run start",
+    "mobile:typecheck": "pnpm --filter yanyun-mobile exec tsc --noEmit",
+    "sync-schema": "pnpm --filter yanyun-signup run sync-schema && pnpm --filter yanyun-web run sync-schema",
     "relay": "relay-compiler"
   },
-  "version": "0.0.0",
-  "workspaces": [
-    "yanyun-signup",
-    "yanyun-web",
-    "yanyun-mobile",
-    "yanyun-og",
-    "packages/*"
-  ]
+  "version": "0.0.0"
 }
