@@ -3,6 +3,12 @@
 name = "yanyun"
 main = "src/worker.ts"
 compatibility_date = "2025-06-01"
+# nodejs_compat: the Statsig server SDK (platform gates,
+# docs/STATSIG.md) imports Node builtins (zlib & friends) that
+# esbuild follows through the wrapper's dynamic import — without
+# this flag the bundle does not build. The flag is additive
+# (Node API surface on top of the Workers runtime).
+compatibility_flags = ["nodejs_compat"]
 
 # 对外主域名 (Custom Domain): yanyun.app 全部路径指向本 Worker;
 # workers_dev 必须显式 true —— 有 routes 时默认会变 false, 会误关旧
@@ -46,6 +52,17 @@ migrations_dir = "migrations"
 [[r2_buckets]]
 binding = "BACKUPS"
 bucket_name = "yanyun-backups"
+
+# Statsig Config Sync target (platform gates, docs/STATSIG.md): the
+# namespace "yanyun-statsig" does not exist yet — creating it needs
+# an account-side action the deploy token cannot reach (no KV
+# permission). Create it in the dashboard (Storage & Databases →
+# Workers KV), then uncomment with the real id in the phase-two PR.
+# Until then STATSIG_KV stays unbound and every gate verdict falls
+# back to the local computation (launch-day behavior, by design).
+# [[kv_namespaces]]
+# binding = "STATSIG_KV"
+# id = "<namespace id of yanyun-statsig>"
 
 # 定时备份: 每日 18:23 UTC (北京 02:23, 避开整点与业务高峰)
 [triggers]

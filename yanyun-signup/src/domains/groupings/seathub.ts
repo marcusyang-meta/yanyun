@@ -1,4 +1,5 @@
 import type { Env } from '../platform/context.ts';
+import { configureGateRuntime } from '../platform/index.ts';
 // SeatHub — Durable Object broadcast hub (one instance per event).
 // Holds the WebSocket connections of the event's detail page;
 // after a successful signup it broadcasts seat changes.
@@ -11,6 +12,7 @@ export class SeatHub {
   constructor(ctx: DurableObjectState, env: Env) {
     this.ctx = ctx;
     this.env = env;
+    configureGateRuntime(env);
   }
 
   async fetch(request: any) {

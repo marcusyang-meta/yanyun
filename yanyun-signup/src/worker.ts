@@ -13,7 +13,7 @@ import { getSessionUserChecked, sessionCookieHeaders, handleDiscordLogin, handle
 import { runDueAccountDeletions } from './domains/identity/index.ts';
 import { maybeRunCreatorBackfill } from './creatorbackfill.js';
 import { maybeRunCreatorManualFix } from './creatormanualfix.js';
-import { logError, runScheduledBackup } from './domains/platform/index.ts';
+import { logError, runScheduledBackup, configureGateRuntime } from './domains/platform/index.ts';
 import { err } from './domains/platform/http.ts';
 import { hubOgTags, guildOgTags, carOgTags, buildOgTags } from './domains/platform/og.ts';
 import { getTenantSlug, parseGuildSubdomainSlug, resolveGuildSubdomain, guildSubdomainOrigin } from './domains/guilds/index.ts';
@@ -264,6 +264,7 @@ export default {
   // in error_log with a uniform 500; logging failures stay silent and
   // must never throw a second error.
   async fetch(request: Request, env: Env, ctx: ExecutionContext) {
+    configureGateRuntime(env);
     try {
       return await handleFetch(request, env, ctx);
     } catch (e) {
@@ -276,6 +277,7 @@ export default {
   // [triggers]); the run leaves a system audit row, failures land in
   // error_log via the backup service.
   async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext) {
+    configureGateRuntime(env);
     void event;
     ctx.waitUntil(runScheduledBackup(env));
     // Account-deletion sweep rides the same daily cron (no separate

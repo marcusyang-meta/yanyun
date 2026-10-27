@@ -13,6 +13,15 @@
 //     consults (admin settings writes, the stats read, white-label
 //     presentation composition). Core grouping features are never
 //     behind it.
+//   - The verdict's POLICY moved to Statsig (phase one of the gate
+//     migration): premiumGate and isPremiumActive ask the platform
+//     gate wrapper (gates.ts), passing the facts computed here —
+//     effective plan, paygate state — as targeting attributes. The
+//     local computation below is kept verbatim as the wrapper
+//     fallback, so while the provider is unconfigured (and whenever
+//     it abstains) the verdict is the pre-migration verdict by
+//     construction. Facts — entitlement rows, read-time expiry, the
+//     hub switch — never left this file; only policy did.
 //
 // Stripe event application also lives here: the webhook route only
 // verifies the signature and hands over the parsed event.
@@ -28,6 +37,7 @@ import {
 import type { StripeSubscriptionInfo } from './stripe.ts';
 import type { Env } from './context.ts';
 import { logError } from './error-log.ts';
+import { gateOpen } from './gates.ts';
 
 export type GuildPlan = 'free' | 'premium';
 
@@ -75,13 +85,38 @@ export async function getEffectiveEntitlement(
   return { plan: 'premium', source: row.source, currentPeriodEnd: row.currentPeriodEnd, lapsed: false };
 }
 
+/* ---------------- gate keys (Statsig console mapping) ------------
+ * The console objects these keys name are specified in
+ * docs/STATSIG.md; the rules there encode exactly the truth table
+ * the local fallbacks compute here:
+ *   premium_access — open when the paygate is off (launch parity)
+ *     or the effective plan is premium. premiumGate is its negation.
+ *   premium_active — open when the paygate is on AND the effective
+ *     plan is premium. isPremiumActive is the verdict itself.
+ * The facts ride as private attributes (plan, paygate) with the
+ * guild slug as the bucketing unit, so console ID overrides force
+ * one guild on or off without a release. */
+export const PREMIUM_ACCESS_GATE_KEY = 'premium_access';
+export const PREMIUM_ACTIVE_GATE_KEY = 'premium_active';
+
 /** THE gate verdict: true when this guild's Premium surfaces must be
  *  composed in their locked variant / writes rejected. Paygate OFF
- *  (platform default) short-circuits to false for every guild. */
+ *  (platform default) locks nobody. The verdict is asked of the
+ *  platform gate wrapper with the local computation as fallback —
+ *  the two agree by construction (see the mapping note above). */
 export async function premiumGate(d1: D1Database, slug: string): Promise<boolean> {
-  if (!(await isPaygateEnabled(d1))) return false;
+  const paygateOn = await isPaygateEnabled(d1);
   const eff = await getEffectiveEntitlement(d1, slug);
-  return eff.plan !== 'premium';
+  const legacyLocked = paygateOn && eff.plan !== 'premium';
+  const unlocked = await gateOpen(
+    PREMIUM_ACCESS_GATE_KEY,
+    {
+      unitId: slug,
+      privateAttributes: { plan: eff.plan, paygate: paygateOn ? 'on' : 'off' },
+    },
+    !legacyLocked,
+  );
+  return !unlocked;
 }
 
 /* ---------------- manual grant / revoke (hub) ---------------- */
@@ -139,8 +174,17 @@ export async function isPremiumActive(
   slug: string,
 ): Promise<boolean> {
   if (!slug) return false;
-  if (!(await isPaygateEnabled(d1))) return false;
-  return (await getEffectiveEntitlement(d1, slug)).plan === 'premium';
+  const paygateOn = await isPaygateEnabled(d1);
+  const eff = await getEffectiveEntitlement(d1, slug);
+  const legacyActive = paygateOn && eff.plan === 'premium';
+  return gateOpen(
+    PREMIUM_ACTIVE_GATE_KEY,
+    {
+      unitId: slug,
+      privateAttributes: { plan: eff.plan, paygate: paygateOn ? 'on' : 'off' },
+    },
+    legacyActive,
+  );
 }
 
 /* ---------------- Stripe event application ---------------- */
