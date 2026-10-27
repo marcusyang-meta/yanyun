@@ -3,9 +3,9 @@
  *
  * Flow (all through the worker's own code paths, no raw SQL writes):
  *   1. Boot two isolated Miniflare D1 databases (source + target) and
- *      one R2 bucket. Table shapes mirror the entity definitions in
- *      src/db/schema.ts (same attestation style as
- *      verify-repositories-d1.mjs; production structure is untouched).
+ *      one R2 bucket. Both databases are bootstrapped from the
+ *      migration chain in migrations/ — the same chain production
+ *      runs — so the shapes under test are the production shapes.
  *   2. Seed the source through the data layer (drizzle inserts via the
  *      schema barrel) with at least one row per covered entity,
  *      including a BLOB guild avatar and secret-bearing rows
@@ -42,122 +42,25 @@ const src = await mf.getD1Database('SRC');
 const dst = await mf.getD1Database('DST');
 const r2 = await mf.getR2Bucket('BACKUPS');
 
-/* Table shapes mirror src/db/schema.ts entities (see header). */
-const DDL = [
-  `CREATE TABLE tenants (
-     slug TEXT PRIMARY KEY, guild_name TEXT NOT NULL, password_hash TEXT NOT NULL,
-     announcement TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL DEFAULT (strftime('%s','now')),
-     discord_webhook TEXT NOT NULL DEFAULT '', slogan TEXT, master_name TEXT,
-     logo_url TEXT, bg_image_url TEXT)`,
-  `CREATE TABLE settings (
-     tenant TEXT NOT NULL DEFAULT '', key TEXT NOT NULL, value TEXT NOT NULL DEFAULT '',
-     PRIMARY KEY (tenant, key))`,
-  `CREATE TABLE users (
-     discord_id TEXT PRIMARY KEY, username TEXT NOT NULL DEFAULT '',
-     avatar TEXT NOT NULL DEFAULT '', guilds_json TEXT NOT NULL DEFAULT '[]',
-     guilds_checked_at INTEGER NOT NULL DEFAULT 0,
-     created_at TEXT NOT NULL DEFAULT (strftime('%s','now')),
-     updated_at TEXT NOT NULL DEFAULT (strftime('%s','now')), locale_pref TEXT)`,
-  `CREATE TABLE user_oauth (
-     discord_id TEXT PRIMARY KEY, refresh_token TEXT NOT NULL DEFAULT '',
-     scope TEXT NOT NULL DEFAULT '', refresh_state TEXT NOT NULL DEFAULT 'ok',
-     last_refresh_at INTEGER NOT NULL DEFAULT 0, updated_at INTEGER NOT NULL DEFAULT 0)`,
-  `CREATE TABLE user_guild_nicks (
-     discord_id TEXT NOT NULL, guild_id TEXT NOT NULL,
-     nick TEXT NOT NULL DEFAULT '', updated_at INTEGER NOT NULL DEFAULT 0,
-     PRIMARY KEY (discord_id, guild_id))`,
-  `CREATE TABLE guild_members (
-     tenant TEXT NOT NULL, discord_id TEXT NOT NULL,
-     nick TEXT NOT NULL DEFAULT '', global_name TEXT NOT NULL DEFAULT '',
-     updated_at INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (tenant, discord_id))`,
-  `CREATE TABLE events (
-     id INTEGER PRIMARY KEY AUTOINCREMENT, tenant TEXT NOT NULL DEFAULT '',
-     title TEXT NOT NULL, type TEXT NOT NULL DEFAULT 'activity',
-     description TEXT NOT NULL DEFAULT '', starts_at TEXT,
-     meet_info TEXT NOT NULL DEFAULT '', max_slots INTEGER NOT NULL DEFAULT 20,
-     status TEXT NOT NULL DEFAULT 'open', starts_at_utc INTEGER,
-     origin TEXT NOT NULL DEFAULT 'admin', created_by TEXT NOT NULL DEFAULT '',
-     manage_code TEXT NOT NULL DEFAULT '', dungeon TEXT NOT NULL DEFAULT '',
-     creator_discord_id TEXT, reminder_sent_at INTEGER, reminder_error TEXT)`,
-  `CREATE TABLE signups (
-     id INTEGER PRIMARY KEY AUTOINCREMENT,
-     event_id INTEGER NOT NULL REFERENCES events(id) ON DELETE CASCADE,
-     nickname TEXT NOT NULL, uid TEXT NOT NULL, role TEXT NOT NULL DEFAULT '随意',
-     weapon TEXT NOT NULL DEFAULT '', contact TEXT NOT NULL DEFAULT '',
-     note TEXT NOT NULL DEFAULT '', team_name TEXT, members TEXT,
-     created_at TEXT NOT NULL DEFAULT (strftime('%s','now')), discord_id TEXT)`,
-  `CREATE TABLE results (
-     id INTEGER PRIMARY KEY AUTOINCREMENT,
-     event_id INTEGER NOT NULL REFERENCES events(id) ON DELETE CASCADE,
-     team_name TEXT NOT NULL, members TEXT NOT NULL DEFAULT '',
-     time_ms INTEGER NOT NULL, proof_url TEXT NOT NULL DEFAULT '',
-     note TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL DEFAULT (strftime('%s','now')))`,
-  `CREATE TABLE guild_avatars (
-     tenant TEXT PRIMARY KEY, content_type TEXT NOT NULL,
-     bytes BLOB NOT NULL, hash TEXT NOT NULL, updated_at INTEGER NOT NULL)`,
-  `CREATE TABLE bosses (
-     id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL,
-     talent TEXT NOT NULL DEFAULT '', source TEXT NOT NULL DEFAULT '',
-     note TEXT NOT NULL DEFAULT '', sort_order INTEGER NOT NULL DEFAULT 0,
-     dungeon TEXT NOT NULL DEFAULT '', guide TEXT NOT NULL DEFAULT '',
-     mechanics_json TEXT, talents_json TEXT, shouts_json TEXT)`,
-  `CREATE TABLE dungeons (
-     id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE,
-     size INTEGER NOT NULL DEFAULT 10, is_current INTEGER NOT NULL DEFAULT 0,
-     sort_order INTEGER NOT NULL DEFAULT 0,
-     video_url TEXT NOT NULL DEFAULT '', video_title TEXT NOT NULL DEFAULT '',
-     season TEXT, category TEXT, level INTEGER, version TEXT)`,
-  `CREATE TABLE schools (
-     name TEXT, slug TEXT PRIMARY KEY, short TEXT, family TEXT,
-     color TEXT, attr TEXT, talent_desc TEXT)`,
-  `CREATE TABLE school_bis (
-     school TEXT NOT NULL, build TEXT NOT NULL DEFAULT '',
-     attr TEXT, rate TEXT, bis_json TEXT NOT NULL,
-     updated_at INTEGER DEFAULT (strftime('%s','now')),
-     PRIMARY KEY (school, build))`,
-  `CREATE TABLE school_rotations (
-     school TEXT PRIMARY KEY, rotation_json TEXT NOT NULL,
-     updated_at INTEGER DEFAULT (strftime('%s','now')))`,
-  `CREATE TABLE slot_affix (
-     build TEXT NOT NULL, slot TEXT NOT NULL, affix_key TEXT NOT NULL,
-     PRIMARY KEY (build, slot, affix_key))`,
-  `CREATE TABLE affix_max (
-     affix_key TEXT PRIMARY KEY, name_cn TEXT NOT NULL,
-     max_value REAL NOT NULL, unit TEXT DEFAULT '')`,
-  `CREATE TABLE user_gear_items (
-     id INTEGER PRIMARY KEY AUTOINCREMENT, discord_id TEXT NOT NULL,
-     slot TEXT NOT NULL DEFAULT '', name TEXT NOT NULL DEFAULT '',
-     payload TEXT NOT NULL DEFAULT '{}', created_at INTEGER NOT NULL DEFAULT 0)`,
-  `CREATE TABLE user_gear_builds (
-     id INTEGER PRIMARY KEY AUTOINCREMENT, discord_id TEXT NOT NULL,
-     name TEXT NOT NULL DEFAULT '', target_idx INTEGER NOT NULL DEFAULT 0,
-     payload TEXT NOT NULL DEFAULT '{}', created_at INTEGER NOT NULL DEFAULT 0)`,
-  `CREATE TABLE heirloom_item_pushes (
-     tenant TEXT NOT NULL, discord_id TEXT NOT NULL,
-     build_sig TEXT NOT NULL, item_hash TEXT NOT NULL,
-     created_at INTEGER NOT NULL DEFAULT 0,
-     PRIMARY KEY (tenant, discord_id, build_sig, item_hash))`,
-  `CREATE TABLE heirloom_set_state (
-     tenant TEXT NOT NULL, discord_id TEXT NOT NULL,
-     build_sig TEXT NOT NULL, complete INTEGER NOT NULL DEFAULT 0,
-     updated_at INTEGER NOT NULL DEFAULT 0,
-     PRIMARY KEY (tenant, discord_id, build_sig))`,
-  `CREATE TABLE push_tokens (
-     discord_id TEXT NOT NULL, token TEXT NOT NULL,
-     platform TEXT NOT NULL DEFAULT '', updated_at INTEGER NOT NULL DEFAULT 0,
-     PRIMARY KEY (discord_id, token))`,
-  `CREATE TABLE creator_backfill_log (
-     id INTEGER PRIMARY KEY AUTOINCREMENT, event_id INTEGER NOT NULL,
-     tenant TEXT, seat_nickname TEXT, resolved_discord_id TEXT,
-     outcome TEXT NOT NULL, reason TEXT,
-     created_at INTEGER NOT NULL DEFAULT 0, detail TEXT)`,
-  `CREATE TABLE hub_audit_log (
-     id INTEGER PRIMARY KEY AUTOINCREMENT, at INTEGER NOT NULL,
-     actor TEXT NOT NULL DEFAULT '', action TEXT NOT NULL DEFAULT '',
-     tenant TEXT NOT NULL DEFAULT '', summary TEXT NOT NULL DEFAULT '',
-     ip TEXT NOT NULL DEFAULT '')`,
-];
-for (const d of [src, dst]) for (const ddl of DDL) await d.prepare(ddl).run();
+/* Bootstrap both databases from the migration chain (migrations/*.sql
+ * in filename order), split into statements the same way the drift
+ * gate does. The legacy inline fixture DDL drifted from production
+ * (it lacked signups.ready_at, added by PR #22, and carried phantom
+ * tenants columns) — the chain is now the single shape source. */
+{
+  const fs = await import('node:fs');
+  const path = await import('node:path');
+  const { fileURLToPath } = await import('node:url');
+  const { splitSqlStatements } = await import('./ci/schema-shape.mjs');
+  const dir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'migrations');
+  const files = fs.readdirSync(dir).filter((f) => f.endsWith('.sql')).sort();
+  if (!files.length) throw new Error('no migration files in ' + dir);
+  for (const f of files) {
+    const stmts = splitSqlStatements(fs.readFileSync(path.join(dir, f), 'utf8'));
+    for (const d of [src, dst]) for (const stmt of stmts) await d.prepare(stmt).run();
+  }
+  console.log('[drill] bootstrapped src+dst from migration chain:', files.join(', '));
+}
 
 /* ---------- seed the source through the data layer ---------- */
 const { createDb } = await import('../src/db/client.ts');
@@ -232,6 +135,12 @@ await db.insert(S.creatorBackfillLog).values([
 ]);
 await db.insert(S.hubAuditLog).values([
   { at: 1700000000, actor: 'hub', action: 'reminder.update', tenant: 'alpha', summary: '{"webhook":"replaced"}', ip: '203.0.113.7' },
+]);
+await db.insert(S.shortLinks).values([
+  { code: 'drill01', tenant: 'alpha', eventId: 101, createdAt: 1700000000 },
+]);
+await db.insert(S.groupingTemplates).values([
+  { id: 701, tenant: 'alpha', name: '演练模板', type: 'activity', title: '演练车', dungeon: '', maxSlots: 10, startDaysAhead: 1, startMinutes: 1200, creatorDiscordId: '1001', createdAt: 1700000000, updatedAt: 1700000000 },
 ]);
 
 /* ---------- backup via the production path, restore, reconcile ---------- */

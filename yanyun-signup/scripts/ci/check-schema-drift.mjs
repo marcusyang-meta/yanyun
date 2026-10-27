@@ -25,7 +25,7 @@ import path from 'node:path';
 import { Miniflare, convertV4MiniflareOptions } from 'miniflare';
 import {
   SIGNUP_ROOT, introspectD1, introspectRemote, shapeFromEntities,
-  diffShapes, shapeStats,
+  diffShapes, shapeStats, splitSqlStatements as splitSql,
 } from './schema-shape.mjs';
 
 const args = process.argv.slice(2);
@@ -35,35 +35,6 @@ const dumpPath = (() => {
   return i >= 0 ? args[i + 1] : null;
 })();
 
-/** Split a SQL script into statements: strips -- and block comments,
- * respects single-quoted string literals ('' is an escaped quote). */
-function splitSql(text) {
-  const out = [];
-  let cur = '', inStr = false;
-  const lines = text.split('\n');
-  for (const rawLine of lines) {
-    let line = rawLine;
-    if (!inStr) {
-      const c = line.indexOf('--');
-      if (c >= 0) line = line.slice(0, c);
-    }
-    for (let i = 0; i < line.length; i++) {
-      const ch = line[i];
-      if (inStr) {
-        cur += ch;
-        if (ch === "'") {
-          if (line[i + 1] === "'") { cur += line[++i]; }
-          else inStr = false;
-        }
-      } else if (ch === "'") { inStr = true; cur += ch; }
-      else if (ch === ';') { if (cur.trim()) out.push(cur.trim()); cur = ''; }
-      else cur += ch;
-    }
-    cur += '\n';
-  }
-  if (cur.trim()) out.push(cur.trim());
-  return out;
-}
 
 async function bootstrapFromChain() {
   const dir = path.join(SIGNUP_ROOT, 'migrations');
