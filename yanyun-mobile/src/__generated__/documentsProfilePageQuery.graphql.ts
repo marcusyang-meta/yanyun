@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<ea9379b2f332decb4edfbd3a0d5cdb01>>
+ * @generated SignedSource<<adb25ce800c85568ce4de473238d5d6d>>
  * @lightSyntaxTransform
  */
 
@@ -14,7 +14,35 @@ export type documentsProfilePageQuery$data = {
     readonly gearMyLibTitle: string;
   };
   readonly settingsPage: {
+    readonly accountBackLabel: string;
+    readonly accountCancelDeletionLabel: string;
+    readonly accountConfirmIntro: string;
+    readonly accountConfirmTitle: string;
+    readonly accountConsequenceCars: string;
+    readonly accountConsequenceData: string;
+    readonly accountConsequenceGuilds: string;
+    readonly accountConsequenceReregister: string;
+    readonly accountConsequenceResidual: string;
+    readonly accountDeleteHint: string;
+    readonly accountDeleteLabel: string;
+    readonly accountDeletionCancelledText: string;
+    readonly accountDeletionRequestedText: string;
+    readonly accountExportFirstHint: string;
+    readonly accountExportHint: string;
+    readonly accountExportLabel: string;
+    readonly accountPendingDeletion: {
+      readonly accountPendingBody: string;
+      readonly accountPendingTitle: string;
+      readonly daysLeft: number;
+      readonly executesAt: string;
+    } | null | undefined;
+    readonly accountReauthHint: string;
+    readonly accountReauthLabel: string;
+    readonly accountSectionTitle: string;
+    readonly accountSubmitLabel: string;
+    readonly accountUsernameLabel: string;
     readonly effectiveLocale: string;
+    readonly freshAuthAt: number | null | undefined;
     readonly localePref: string | null | undefined;
     readonly settingsAutoLabel: string;
     readonly settingsDiscordLabel: string;
@@ -195,6 +223,199 @@ var v0 = [
         "kind": "ScalarField",
         "name": "effectiveLocale",
         "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "accountSectionTitle",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "accountExportLabel",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "accountExportHint",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "accountDeleteLabel",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "accountDeleteHint",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "accountReauthLabel",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "accountReauthHint",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "accountConfirmTitle",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "accountConfirmIntro",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "accountConsequenceCars",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "accountConsequenceData",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "accountConsequenceGuilds",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "accountConsequenceResidual",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "accountConsequenceReregister",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "accountExportFirstHint",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "accountUsernameLabel",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "accountSubmitLabel",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "accountBackLabel",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "accountCancelDeletionLabel",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "accountDeletionRequestedText",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "accountDeletionCancelledText",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "freshAuthAt",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "concreteType": "AccountPendingDeletion",
+        "kind": "LinkedField",
+        "name": "accountPendingDeletion",
+        "plural": false,
+        "selections": [
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "executesAt",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "daysLeft",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "accountPendingTitle",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "accountPendingBody",
+            "storageKey": null
+          }
+        ],
+        "storageKey": null
       }
     ],
     "storageKey": null
@@ -236,16 +457,16 @@ return {
     "selections": (v0/*:: as any*/)
   },
   "params": {
-    "cacheID": "0a257541148154fb48f67d57938c5768",
+    "cacheID": "1b0061fc235395227774014a7d08acec",
     "id": null,
     "metadata": {},
     "name": "documentsProfilePageQuery",
     "operationKind": "query",
-    "text": "query documentsProfilePageQuery {\n  viewer {\n    userBarLogoutLabel\n    userBarLoggingOutLabel\n    commonUnknownErrorText\n    footerDisclaimerText\n    footerTermsLabel\n    footerPrivacyLabel\n  }\n  settingsPage {\n    settingsTitle\n    settingsDiscordLabel\n    settingsLanguageLabel\n    settingsLanguageHint\n    settingsAutoLabel\n    settingsLangZhCnLabel\n    settingsLangZhTwLabel\n    settingsLangEnLabel\n    settingsLangEsLabel\n    settingsLangFrLabel\n    settingsSavedText\n    localePref\n    effectiveLocale\n  }\n  gradPage {\n    gearMyLibTitle\n  }\n}\n"
+    "text": "query documentsProfilePageQuery {\n  viewer {\n    userBarLogoutLabel\n    userBarLoggingOutLabel\n    commonUnknownErrorText\n    footerDisclaimerText\n    footerTermsLabel\n    footerPrivacyLabel\n  }\n  settingsPage {\n    settingsTitle\n    settingsDiscordLabel\n    settingsLanguageLabel\n    settingsLanguageHint\n    settingsAutoLabel\n    settingsLangZhCnLabel\n    settingsLangZhTwLabel\n    settingsLangEnLabel\n    settingsLangEsLabel\n    settingsLangFrLabel\n    settingsSavedText\n    localePref\n    effectiveLocale\n    accountSectionTitle\n    accountExportLabel\n    accountExportHint\n    accountDeleteLabel\n    accountDeleteHint\n    accountReauthLabel\n    accountReauthHint\n    accountConfirmTitle\n    accountConfirmIntro\n    accountConsequenceCars\n    accountConsequenceData\n    accountConsequenceGuilds\n    accountConsequenceResidual\n    accountConsequenceReregister\n    accountExportFirstHint\n    accountUsernameLabel\n    accountSubmitLabel\n    accountBackLabel\n    accountCancelDeletionLabel\n    accountDeletionRequestedText\n    accountDeletionCancelledText\n    freshAuthAt\n    accountPendingDeletion {\n      executesAt\n      daysLeft\n      accountPendingTitle\n      accountPendingBody\n    }\n  }\n  gradPage {\n    gearMyLibTitle\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "f227fcdedbd295fb0988c40800e5143c";
+(node as any).hash = "524e067c1b3c404be6e00e743cbb12c2";
 
 export default node;
