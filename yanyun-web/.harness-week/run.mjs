@@ -109,7 +109,7 @@ const dom = new JSDOM(html, {
   pretendToBeVisual: true,
   virtualConsole: vc,
   beforeParse(window) {
-    // relay.ts 在非 workers.dev 主机走相对 '/graphql'; Node fetch 需要绝对地址, 按页面 origin 补全
+    // relay.ts 恒走相对 '/graphql'; Node fetch 需要绝对地址, 按页面 origin 补全
     window.fetch = (input, init) => {
       const url = typeof input === 'string' && input.startsWith('/') ? window.location.origin + input : input;
       return fetch(url, init);

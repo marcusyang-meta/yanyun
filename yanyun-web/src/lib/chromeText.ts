@@ -21,9 +21,9 @@ export function loadChromeText(): Promise<ChromeText | null> {
   if (!cached) {
     cached = (async () => {
       try {
-        const graphqlUrl = typeof window !== 'undefined' && window.location.hostname.includes('workers.dev')
-          ? 'https://yanyun.app/graphql'
-          : '/graphql';
+        // Same-origin, like relay.ts (see its comment): every host that
+        // serves this app also serves its own /graphql.
+        const graphqlUrl = '/graphql';
         const res = await fetch(graphqlUrl, {
           method: 'POST',
           headers: {
