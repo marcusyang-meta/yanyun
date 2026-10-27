@@ -6,31 +6,6 @@ import { sql } from 'drizzle-orm';
 import { createDb } from '../../db/client.ts';
 import { errorLog } from './schema.ts';
 
-/* ---------- Lazy DDL ---------- */
-
-let errorLogTableReady: Promise<void> | null = null;
-export function ensureErrorLogTable(d1: D1Database): Promise<void> {
-  if (!errorLogTableReady) {
-    errorLogTableReady = (async () => {
-      try {
-        const db = createDb(d1);
-        await db.run(sql`CREATE TABLE IF NOT EXISTS ${errorLog} (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          at INTEGER NOT NULL,
-          source TEXT NOT NULL DEFAULT '',
-          name TEXT NOT NULL DEFAULT '',
-          message TEXT NOT NULL DEFAULT '',
-          tenant TEXT NOT NULL DEFAULT '',
-          context TEXT NOT NULL DEFAULT '',
-          stack TEXT NOT NULL DEFAULT ''
-        )`);
-        await db.run(sql`CREATE INDEX IF NOT EXISTS idx_error_log_at ON ${errorLog} (${sql.identifier('at')})`);
-      } catch { /* silent: monitoring must never take down the business path */ }
-    })();
-  }
-  return errorLogTableReady;
-}
-
 export interface ErrorLogRow {
   id: number;
   at: number;

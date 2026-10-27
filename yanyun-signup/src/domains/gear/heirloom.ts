@@ -1,48 +1,16 @@
 /* ===================================================
  * Data-layer access (Repository, gear domain) for heirloom push state.
  *
- * The lazy DDL and all reads/writes for the dedup table
- * heirloom_item_pushes and the set-completion table
- * heirloom_set_state live here (previously in heirloompush.js, whose
- * ensureHeirloomTables keeps the old name as a delegating export).
- * Write-path tolerance (a single failure stays silent) remains with
- * the call sites.
+ * All reads/writes for the dedup table heirloom_item_pushes and
+ * the set-completion table heirloom_set_state live here
+ * (previously in heirloompush.js). Write-path tolerance (a single
+ * failure stays silent) remains with the call sites.
  * =================================================== */
 import { sql } from 'drizzle-orm';
 import { createDb, schema } from '../../db/client.ts';
 
 const { heirloomItemPushes, heirloomSetState } = schema;
 const col = (name: string) => sql.identifier(name);
-
-/* ---------- Lazy DDL ---------- */
-
-let heirloomTablesReady: Promise<void> | null = null;
-export function ensureHeirloomTables(d1: D1Database): Promise<void> {
-  if (!heirloomTablesReady) {
-    heirloomTablesReady = (async () => {
-      try {
-        const db = createDb(d1);
-        await db.run(sql`CREATE TABLE IF NOT EXISTS ${heirloomItemPushes} (
-          tenant TEXT NOT NULL,
-          discord_id TEXT NOT NULL,
-          build_sig TEXT NOT NULL,
-          item_hash TEXT NOT NULL,
-          created_at INTEGER NOT NULL DEFAULT 0,
-          PRIMARY KEY (tenant, discord_id, build_sig, item_hash)
-        )`);
-        await db.run(sql`CREATE TABLE IF NOT EXISTS ${heirloomSetState} (
-          tenant TEXT NOT NULL,
-          discord_id TEXT NOT NULL,
-          build_sig TEXT NOT NULL,
-          complete INTEGER NOT NULL DEFAULT 0,
-          updated_at INTEGER NOT NULL DEFAULT 0,
-          PRIMARY KEY (tenant, discord_id, build_sig)
-        )`);
-      } catch { /* silent if tables already exist etc. */ }
-    })();
-  }
-  return heirloomTablesReady;
-}
 
 /* ---------- Dedup / set-completion state ---------- */
 

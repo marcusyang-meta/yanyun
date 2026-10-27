@@ -17,7 +17,7 @@ import {
 } from 'drizzle-orm/sqlite-core';
 
 
-/* ---------------- gear library [ddl gearstore.js lazy] ---------------- */
+/* ---------------- gear library [ddl chain baseline] ----------------- */
 export const userGearItems = sqliteTable('user_gear_items', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   discordId: text('discord_id').notNull(),
@@ -40,7 +40,7 @@ export const userGearBuilds = sqliteTable('user_gear_builds', {
   index('idx_user_gear_builds_owner').on(t.discordId),
 ]);
 
-/* ---------------- heirloom push state [ddl heirloompush.js lazy] ------ */
+/* ---------------- heirloom push state [ddl chain baseline] ---------- */
 export const heirloomItemPushes = sqliteTable('heirloom_item_pushes', {
   tenant: text('tenant').notNull(),
   discordId: text('discord_id').notNull(),

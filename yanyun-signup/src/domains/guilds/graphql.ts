@@ -6,10 +6,8 @@ import {
 } from '../platform/index.ts';
 import { tlCalculateExcel } from '../gear/index.ts';
 import { getUserServers, getGuildNick, maybeRefreshGuildNicks, getUserLocalePref, setUserLocalePref } from '../identity/auth.ts';
-import { ensureSignupDiscordColumn, ensureGuildMembersTable, upsertGuildMember,
-  countDistinctNicknamesByTenant,
-} from '../groupings/index.ts';
-import { ensurePushTokensTable, isValidPushToken, savePushToken, deletePushToken } from '../platform/index.ts';
+import { upsertGuildMember, countDistinctNicknamesByTenant } from '../groupings/index.ts';
+import { isValidPushToken, savePushToken, deletePushToken } from '../platform/index.ts';
 import { evaluateHeirloomPushes } from '../gear/index.ts';
 import { translate, negotiateLocale, SUPPORTED_LOCALES, CATALOG } from '../platform/index.ts';
 import { logError } from '../platform/index.ts';
@@ -17,24 +15,13 @@ import { getGuildAvatarMeta, avatarPath } from './index.ts';
 import { getSettingValue, setSettingValue, listSettingsByKey } from './index.ts';
 import { getUsernameRow } from '../identity/index.ts';
 import { listGuildMembers, getGuildMember } from '../identity/index.ts';
-import {
-  getBossById, listBossesByDungeon, ensureBossStructuredColumns as ensureBossStructuredColumnsRepo,
-  listSchoolsFull, listSchoolsNameSlug, getSchoolNameBySlug, listSchoolBis,
-  getSchoolBisJsonBySchool, listSchoolRotations, listSlotAffixByBuild, listAffixMax, listAffixMaxValues,
-} from '../dex/index.ts';
-import {
-  getDungeonByName, getDungeonNameSizeById, listDungeonsDex, getLatestDungeonVersion,
-  ensureDungeonDexColumns as ensureDungeonDexColumnsRepo,
-} from '../dex/index.ts';
+import { getBossById, listBossesByDungeon, listSchoolsFull, listSchoolsNameSlug, getSchoolNameBySlug, listSchoolBis, getSchoolBisJsonBySchool, listSchoolRotations, listSlotAffixByBuild, listAffixMax, listAffixMaxValues } from '../dex/index.ts';
+import { getDungeonByName, getDungeonNameSizeById, listDungeonsDex, getLatestDungeonVersion } from '../dex/index.ts';
 import {
   getTenantRow, getTenantSlug, listTenantSlugs, listTenantsDirectory, insertTenant,
   getWhiteLabelSettings,
 } from './index.ts';
-import {
-  getEventRow, getEventTenant, getEventTenantCreator, listEventsByTenantType,
-  insertEvent, updateEventFields, setEventStatus, deleteEventCascade,
-  ensureEventCreatorColumn as ensureEventCreatorColumnRepo,
-} from '../groupings/index.ts';
+import { getEventRow, getEventTenant, getEventTenantCreator, listEventsByTenantType, insertEvent, updateEventFields, setEventStatus, deleteEventCascade } from '../groupings/index.ts';
 import {
   listSignupSeats, listSignupSeatsBasic, listSignupNamesStamps, getSignupCapacityStats,
   insertSignups, deleteSignupById, deleteSignupByEventUid, deleteSignupsByEvent,
@@ -134,7 +121,6 @@ export class GuildShell extends ShellBase {
   // sent — picking one could never seat.
   genMemberRoster(){
     return this.memo('memberRoster', async () => {
-      await ensureGuildMembersTable(this.db);
       const results = await listGuildMembers(this.db, this.genSlug()).catch(() => []);
       const out = [];
       for (const r of results || []) {

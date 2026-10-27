@@ -22,28 +22,6 @@ export interface ShortLinkRow {
   created_at: number;
 }
 
-/* ---------- Lazy DDL ---------- */
-
-let shortLinksTableReady: Promise<void> | null = null;
-export function ensureShortLinksTable(d1: D1Database): Promise<void> {
-  if (!shortLinksTableReady) {
-    shortLinksTableReady = (async () => {
-      try {
-        const db = createDb(d1);
-        await db.run(sql`CREATE TABLE IF NOT EXISTS ${shortLinks} (
-          code TEXT PRIMARY KEY,
-          tenant TEXT NOT NULL DEFAULT '',
-          event_id INTEGER NOT NULL,
-          created_at INTEGER NOT NULL DEFAULT 0
-        )`);
-        await db.run(sql`CREATE UNIQUE INDEX IF NOT EXISTS short_links_target_unique
-          ON short_links (tenant, event_id)`);
-      } catch { /* Table-creation failure is silent: sharing falls back to the canonical URL. */ }
-    })();
-  }
-  return shortLinksTableReady;
-}
-
 /* ---------- Code generation ---------- */
 
 const CODE_ALPHABET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
@@ -65,7 +43,6 @@ export async function getShortLinkByCode(
   d1: D1Database,
   code: string,
 ): Promise<ShortLinkRow | null> {
-  await ensureShortLinksTable(d1);
   const db = createDb(d1);
   const row = await db.get<ShortLinkRow>(
     sql`SELECT * FROM ${shortLinks} WHERE ${col('code')} = ${code}`,
@@ -78,7 +55,6 @@ export async function getShortLinkByTarget(
   tenant: string,
   eventId: number,
 ): Promise<ShortLinkRow | null> {
-  await ensureShortLinksTable(d1);
   const db = createDb(d1);
   const row = await db.get<ShortLinkRow>(
     sql`SELECT * FROM ${shortLinks} WHERE ${col('tenant')} = ${tenant} AND ${col('event_id')} = ${eventId}`,

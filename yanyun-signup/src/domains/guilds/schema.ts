@@ -32,7 +32,7 @@ export const tenants = sqliteTable('tenants', {
   slogan: text('slogan').notNull().default(''),
 });
 
-/* ---------------- settings [ddl schema.sql / v2 rebuild] -------------- */
+/* ---------------- settings [ddl chain baseline] -------------------- */
 export const settings = sqliteTable('settings', {
   tenant: text('tenant').notNull().default(''),
   key: text('key').notNull(),
@@ -41,7 +41,7 @@ export const settings = sqliteTable('settings', {
   primaryKey({ columns: [t.tenant, t.key] }),
 ]);
 
-/* ---------------- guild avatars [ddl guildavatar.js lazy] -------------- */
+/* ---------------- guild avatars [ddl chain baseline] --------------- */
 export const guildAvatars = sqliteTable('guild_avatars', {
   tenant: text('tenant').primaryKey(),
   contentType: text('content_type').notNull(),

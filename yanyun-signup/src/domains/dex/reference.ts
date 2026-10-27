@@ -61,59 +61,14 @@ export async function getSchoolNameBySlug(
   return row ?? null;
 }
 
-/* ---------- Lazy DDL: school_bis per-build shape ---------- */
-
-// The original v8 DDL keyed school_bis by school alone; the per-build
-// dimension (build column + composite key) reached production
-// out-of-band, so a database bootstrapped from the file chain alone
-// carries the old shape and every school_bis query fails on it — the
-// admin schoolGuides field is non-null, so the failure takes the whole
-// GuildAdmin payload down. Converge lazily, PRAGMA-gated like the other
-// post-v8 shapes: the correct shape (production) costs one PRAGMA read
-// and no writes; a stale shape is rebuilt in place, rows preserved
-// (build defaults to '' for pre-dimension rows).
-const SCHOOL_BIS_SHAPE = sql`(
-  school TEXT NOT NULL,
-  build TEXT NOT NULL DEFAULT '',
-  attr TEXT,
-  rate TEXT,
-  bis_json TEXT NOT NULL,
-  updated_at INTEGER DEFAULT (strftime('%s','now')),
-  PRIMARY KEY (school, build)
-)`;
-
-let schoolBisShapeReady: Promise<void> | null = null;
-export function ensureSchoolBisShape(d1: D1Database): Promise<void> {
-  if (!schoolBisShapeReady) {
-    schoolBisShapeReady = (async () => {
-      try {
-        const db = createDb(d1);
-        const info = (await db.all<{ name: string; pk: number }>(
-          sql`PRAGMA table_info(${schoolBis})`,
-        )) || [];
-        const pkOf = (n: string) => info.find((r) => r.name === n)?.pk ?? 0;
-        if (info.length && pkOf('school') === 1 && pkOf('build') === 2) return;
-        if (!info.length) {
-          await db.run(sql`CREATE TABLE IF NOT EXISTS ${schoolBis} ${SCHOOL_BIS_SHAPE}`);
-          return;
-        }
-        const staging = sql.identifier('school_bis__shapefix');
-        const buildSel = info.some((r) => r.name === 'build') ? col('build') : sql`''`;
-        await db.run(sql`DROP TABLE IF EXISTS ${staging}`);
-        await db.run(sql`CREATE TABLE ${staging} ${SCHOOL_BIS_SHAPE}`);
-        await db.run(sql`INSERT INTO ${staging} (${col('school')}, ${col('build')}, ${col('attr')}, ${col('rate')}, ${col('bis_json')}, ${col('updated_at')}) SELECT ${col('school')}, ${buildSel}, ${col('attr')}, ${col('rate')}, ${col('bis_json')}, ${col('updated_at')} FROM ${schoolBis}`);
-        await db.run(sql`DROP TABLE ${schoolBis}`);
-        await db.run(sql`ALTER TABLE ${staging} RENAME TO ${schoolBis}`);
-      } catch { /* silent: call sites keep their existing fallbacks */ }
-    })();
-  }
-  return schoolBisShapeReady;
-}
-
 /* ---------- school_bis / school_rotations ---------- */
+// Shape note: school_bis is keyed by (school, build) with build
+// DEFAULT 'default' — the shape production carries, encoded in the
+// baseline migration. (The old v8 file keyed it by school alone and
+// a lazy PRAGMA-gated rebuild used to converge stragglers at runtime;
+// both are gone with the migration chain.)
 
 export async function listSchoolBis(d1: D1Database): Promise<SchoolBisRow[]> {
-  await ensureSchoolBisShape(d1);
   const db = createDb(d1);
   const rows = await db.all<SchoolBisRow>(
     sql`SELECT ${col('school')}, ${col('build')}, ${col('attr')}, ${col('rate')}, ${col('bis_json')} FROM ${schoolBis}`,
@@ -124,7 +79,6 @@ export async function listSchoolBis(d1: D1Database): Promise<SchoolBisRow[]> {
 export async function listSchoolBisBySchool(
   d1: D1Database, school: string,
 ): Promise<Array<{ build: string; attr: string | null; rate: string | null; bis_json: string }>> {
-  await ensureSchoolBisShape(d1);
   const db = createDb(d1);
   const rows = await db.all<{ build: string; attr: string | null; rate: string | null; bis_json: string }>(
     sql`SELECT ${col('build')}, ${col('attr')}, ${col('rate')}, ${col('bis_json')} FROM ${schoolBis} WHERE ${col('school')} = ${school}`,
@@ -135,7 +89,6 @@ export async function listSchoolBisBySchool(
 export async function getSchoolBisJsonBySchool(
   d1: D1Database, school: string,
 ): Promise<{ bis_json: string } | null> {
-  await ensureSchoolBisShape(d1);
   const db = createDb(d1);
   const row = await db.get<{ bis_json: string }>(
     sql`SELECT ${col('bis_json')} FROM ${schoolBis} WHERE ${col('school')} = ${school} LIMIT 1`,
@@ -167,7 +120,6 @@ export async function upsertSchoolBis(
   d1: D1Database,
   row: { school: string; build: string; attr: string; rate: string; bisJson: string },
 ): Promise<void> {
-  await ensureSchoolBisShape(d1);
   const db = createDb(d1);
   await db.run(
     sql`INSERT INTO ${schoolBis} (${col('school')}, ${col('build')}, ${col('attr')}, ${col('rate')}, ${col('bis_json')}, ${col('updated_at')}) VALUES (${row.school}, ${row.build}, ${row.attr}, ${row.rate}, ${row.bisJson}, strftime('%s','now')) ON CONFLICT (${col('school')}, ${col('build')}) DO UPDATE SET ${col('attr')} = excluded.attr, ${col('rate')} = excluded.rate, ${col('bis_json')} = excluded.bis_json, ${col('updated_at')} = excluded.updated_at`,

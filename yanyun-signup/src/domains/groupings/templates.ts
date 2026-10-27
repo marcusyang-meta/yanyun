@@ -39,36 +39,6 @@ function metaOf(r: unknown): RunMeta {
   return { changes: m?.changes ?? 0, last_row_id: m?.last_row_id ?? 0 };
 }
 
-/* ---------- Lazy DDL ---------- */
-
-let groupingTemplatesTableReady: Promise<void> | null = null;
-export function ensureGroupingTemplatesTable(d1: D1Database): Promise<void> {
-  if (!groupingTemplatesTableReady) {
-    groupingTemplatesTableReady = (async () => {
-      try {
-        const db = createDb(d1);
-        await db.run(sql`CREATE TABLE IF NOT EXISTS ${groupingTemplates} (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          tenant TEXT NOT NULL DEFAULT '',
-          name TEXT NOT NULL DEFAULT '',
-          type TEXT NOT NULL DEFAULT 'activity',
-          title TEXT NOT NULL DEFAULT '',
-          dungeon TEXT NOT NULL DEFAULT '',
-          max_slots INTEGER NOT NULL DEFAULT 10,
-          start_days_ahead INTEGER NOT NULL DEFAULT 0,
-          start_minutes INTEGER NOT NULL DEFAULT 1200,
-          creator_discord_id TEXT,
-          created_at INTEGER NOT NULL DEFAULT 0,
-          updated_at INTEGER NOT NULL DEFAULT 0
-        )`);
-        await db.run(sql`CREATE INDEX IF NOT EXISTS idx_grouping_templates_tenant
-          ON grouping_templates (tenant)`);
-      } catch { /* already-exists and similar: ignore */ }
-    })();
-  }
-  return groupingTemplatesTableReady;
-}
-
 /* ---------- Departure offset (save-from-grouping snapshot) ----------
  * A template stores no absolute date: the car's local departure (in
  * the saver's timezone) becomes a day offset from today plus a
@@ -110,7 +80,6 @@ export function templateOffsetFromStartsAt(
 export async function listGroupingTemplates(
   d1: D1Database, tenant: string,
 ): Promise<GroupingTemplateRow[]> {
-  await ensureGroupingTemplatesTable(d1);
   const db = createDb(d1);
   const rows = await db.all<GroupingTemplateRow>(
     sql`SELECT * FROM ${groupingTemplates} WHERE ${col('tenant')} = ${tenant} ORDER BY ${col('id')} DESC`,
@@ -121,7 +90,6 @@ export async function listGroupingTemplates(
 export async function getGroupingTemplate(
   d1: D1Database, id: number,
 ): Promise<GroupingTemplateRow | null> {
-  await ensureGroupingTemplatesTable(d1);
   const db = createDb(d1);
   const row = await db.get<GroupingTemplateRow>(
     sql`SELECT * FROM ${groupingTemplates} WHERE ${col('id')} = ${id}`,
@@ -152,7 +120,6 @@ function checkedColumns(row: Record<string, unknown>): string[] {
 export async function insertGroupingTemplate(
   d1: D1Database, row: Record<string, unknown>,
 ): Promise<RunMeta> {
-  await ensureGroupingTemplatesTable(d1);
   const db = createDb(d1);
   const cols = checkedColumns(row);
   const r = await db.run(sql`INSERT INTO ${groupingTemplates} (${sql.join(cols.map((c) => col(c)), sql`, `)})
@@ -163,7 +130,6 @@ export async function insertGroupingTemplate(
 export async function updateGroupingTemplateFields(
   d1: D1Database, id: number, patch: Record<string, unknown>,
 ): Promise<RunMeta> {
-  await ensureGroupingTemplatesTable(d1);
   const db = createDb(d1);
   const cols = checkedColumns(patch);
   const sets = sql.join(cols.map((c) => sql`${col(c)} = ${patch[c]}`), sql`,`);
@@ -174,7 +140,6 @@ export async function updateGroupingTemplateFields(
 export async function deleteGroupingTemplate(
   d1: D1Database, id: number,
 ): Promise<RunMeta> {
-  await ensureGroupingTemplatesTable(d1);
   const db = createDb(d1);
   const r = await db.run(sql`DELETE FROM ${groupingTemplates} WHERE ${col('id')} = ${id}`);
   return metaOf(r);

@@ -14,10 +14,7 @@
 // high-volume machine noise; audit rows are written at human admin
 // pace, so a longer window costs almost nothing and keeps forensic
 // history useful, while the row cap still bounds worst-case growth.
-import {
-  insertHubAudit, pruneHubAudit, listHubAudit, countHubAudit,
-  ensureHubAuditTable as ensureHubAuditTableRepo,
-} from './hubAudit.ts';
+import { insertHubAudit, pruneHubAudit, listHubAudit, countHubAudit } from './hubAudit.ts';
 import type { HubAuditRow } from './hubAudit.ts';
 
 const KEEP_DAYS = 180;
@@ -25,11 +22,6 @@ const MAX_ROWS = 20000;
 const PRUNE_EVERY = 50; // prune every 50 writes (per-isolate counter)
 
 let writeCount = 0;
-
-// Lazy DDL lives in the hubAudit repository; this export delegates.
-export function ensureHubAuditTable(db: D1Database) {
-  return ensureHubAuditTableRepo(db);
-}
 
 async function prune(db: D1Database) {
   try {
@@ -55,7 +47,6 @@ export interface HubAuditInput {
 export async function auditHub(db: D1Database, input: HubAuditInput): Promise<boolean> {
   try {
     if (!db || typeof db.prepare !== 'function') return false;
-    await ensureHubAuditTable(db);
     const summary = input.summary == null
       ? ''
       : typeof input.summary === 'string'
@@ -87,7 +78,6 @@ export async function listHubAuditPage(
   opts: { tenant?: string; limit?: number; offset?: number } = {},
 ): Promise<HubAuditPage> {
   try {
-    await ensureHubAuditTable(db);
     const tenant = clip(opts.tenant, 40);
     const limit = Math.min(Math.max(Math.floor(opts.limit || 50), 1), 200);
     const offset = Math.max(Math.floor(opts.offset || 0), 0);

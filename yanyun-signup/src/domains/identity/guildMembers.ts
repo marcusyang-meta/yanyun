@@ -1,7 +1,6 @@
 /* guild_members repository: per-guild roster — distinct from the
  * per-Discord-server users/user_guild_nicks (two guilds may bind the same
- * server with different rosters). Lazy DDL failures are silent, with a
- * singleton promise cache. Rows keep snake_case keys. */
+ * server with different rosters). Rows keep snake_case keys. */
 import { sql } from 'drizzle-orm';
 import { createDb, schema } from '../../db/client.ts';
 
@@ -14,34 +13,11 @@ export interface GuildMemberRow {
   global_name: string;
 }
 
-/* ---------- Lazy DDL ---------- */
-
-let guildMembersReady: Promise<void> | null = null;
-export function ensureGuildMembersTable(d1: D1Database): Promise<void> {
-  if (!guildMembersReady) {
-    guildMembersReady = (async () => {
-      try {
-        const db = createDb(d1);
-        await db.run(sql`CREATE TABLE IF NOT EXISTS ${guildMembers} (
-          ${col('tenant')} TEXT NOT NULL,
-          ${col('discord_id')} TEXT NOT NULL,
-          ${col('nick')} TEXT NOT NULL DEFAULT '',
-          ${col('global_name')} TEXT NOT NULL DEFAULT '',
-          ${col('updated_at')} INTEGER NOT NULL DEFAULT 0,
-          PRIMARY KEY (${col('tenant')}, ${col('discord_id')})
-        )`);
-      } catch { /* silent: table may already exist */ }
-    })();
-  }
-  return guildMembersReady;
-}
-
 /* ---------- Reads / writes ---------- */
 
 export async function upsertGuildMember(
   d1: D1Database, tenant: string, discordId: string, nick: string, globalName: string,
 ): Promise<void> {
-  await ensureGuildMembersTable(d1);
   const db = createDb(d1);
   const now = Math.floor(Date.now() / 1000);
   await db.run(

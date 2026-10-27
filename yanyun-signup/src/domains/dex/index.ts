@@ -6,4 +6,4 @@ export * from './bosses.ts';
 export * from './reference.ts';
 export * from './en-names.ts';
 export * from './graphql.ts';
-export { ensureBossStructuredColumns, ensureDungeonDexColumns } from './graphql.ts';
+ './graphql.ts';

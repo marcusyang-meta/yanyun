@@ -32,16 +32,12 @@
  * creator is still NULL/''; concurrent/repeat triggers never overwrite
  * an existing value). Auditing reuses creator_backfill_log (reason
  * carries a manual-fix: prefix naming the job and source; the detail
- * column records the resolution trail and is added here via lazy DDL).
+ * column records the resolution trail; it is part of the baseline schema).
  * The host safety gate is identical to backfill's: only production
  * hosts (yanyun.app / yanyun.tbdlab.workers.dev) trigger it; preview
  * (release-yanyun) shares the same D1 as production, so it must never
  * run on preview/localhost and must never write the flag there.
  * Roster/account data is looked up only on the Worker side. */
-import { ensureEventCreatorColumn } from './domains/groupings/graphql.ts';
-import { ensureGuildMembersTable } from './domains/groupings/reminder.ts';
-import { ensureCreatorBackfillLog } from './creatorbackfill.js';
-import { ensureSchema as ensureUsersTable, ensureNickStore } from './domains/identity/auth.ts';
 
 const PROD_HOSTS = new Set(['yanyun.app', 'yanyun.tbdlab.workers.dev']);
 const FLAG_KEY = 'creator_manual_fix_v1';
@@ -51,25 +47,6 @@ const CAR40 = { eventId: 40, names: ['be8bo', '木瓜PAPAYA'] };
 // One attempt per DB per isolate (same approach as backfill).
 const attemptedDbs = new WeakSet();
 
-/* creator_backfill_log.detail column (lazy DDL, same pattern as
- * ensureEventCreatorColumn): holds the resolution trail as JSON
- * (one audit row per car; detail explains how the match was reached). */
-let logDetailColReady = null;
-function ensureBackfillLogDetailColumn(db) {
-  if (!logDetailColReady) {
-    logDetailColReady = (async () => {
-      try {
-        await ensureCreatorBackfillLog(db);
-        const { results } = await db.prepare('PRAGMA table_info(creator_backfill_log)').all();
-        const cols = new Set((results || []).map((r) => r.name));
-        if (!cols.has('detail')) {
-          await db.prepare('ALTER TABLE creator_backfill_log ADD COLUMN detail TEXT').run();
-        }
-      } catch { /* silent, e.g. column already exists */ }
-    })();
-  }
-  return logDetailColReady;
-}
 
 async function getGlobalFlag(db) {
   const row = await db.prepare("SELECT value FROM settings WHERE tenant = '' AND key = ?")
@@ -253,12 +230,6 @@ async function processCar(db, spec, resolver, now) {
  * { done:false, reason }. */
 export async function runCreatorManualFixOnce(db) {
   if ((await getGlobalFlag(db)) === '1') return { done: false, reason: 'flag-set' };
-  await ensureEventCreatorColumn(db);
-  await ensureGuildMembersTable(db);
-  await ensureCreatorBackfillLog(db);
-  await ensureBackfillLogDetailColumn(db);
-  await ensureUsersTable(db).catch(() => {});
-  await ensureNickStore(db).catch(() => {});
   const now = Math.floor(Date.now() / 1000);
   let stamped = 0, skipped = 0;
   const r39 = await processCar(db,

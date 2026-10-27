@@ -6,10 +6,7 @@
 // identity and simply receive nothing — coverage is never faked; the
 // Discord channel remains the full-coverage one.
 import { logError } from './error-log.ts';
-import {
-  upsertPushToken, deletePushTokenForUser, deletePushTokenEverywhere as deleteTokenEverywhere,
-  listPushTokensForUsers, ensurePushTokensTable as ensurePushTokensTableRepo,
-} from './pushTokens.ts';
+import { upsertPushToken, deletePushTokenForUser, deletePushTokenEverywhere as deleteTokenEverywhere, listPushTokensForUsers } from './pushTokens.ts';
 
 // Sends via the Expo Push Service HTTP API; DeviceNotRegistered tokens
 // are deleted immediately (checked in both tickets and receipts). Fully
@@ -32,17 +29,7 @@ export function isValidPushToken(token: any) {
   return typeof token === 'string' && PUSH_TOKEN_RE.test(token.trim());
 }
 
-/* ---------- push_tokens ----------
- * One user may hold many device tokens; (discord_id, token) is unique
- * and re-registering a token only refreshes platform/updated_at.
- * Unregister deletes by (discord_id, token), never another user's device. */
-// Lazy DDL lives in the pushTokens repository; this export delegates.
-export function ensurePushTokensTable(db: D1Database) {
-  return ensurePushTokensTableRepo(db);
-}
-
 export async function savePushToken(db: D1Database, discordId: string, token: string, platform: any) {
-  await ensurePushTokensTable(db);
   const now = Math.floor(Date.now() / 1000);
   await upsertPushToken(
     db, String(discordId), String(token), String(platform || '').slice(0, 20), now,
@@ -50,13 +37,11 @@ export async function savePushToken(db: D1Database, discordId: string, token: st
 }
 
 export async function deletePushToken(db: D1Database, discordId: string, token: string) {
-  await ensurePushTokensTable(db);
   await deletePushTokenForUser(db, String(discordId), String(token));
 }
 
 // Invalid-token cleanup deletes by token itself (receipts name tokens, not users)
 async function deletePushTokenEverywhere(db: D1Database, token: string) {
-  await ensurePushTokensTable(db);
   await deleteTokenEverywhere(db, String(token));
 }
 
@@ -65,7 +50,6 @@ export async function pushTokensForUsers(db: D1Database, discordIds: any) {
   const out = new Map<string, string[]>();
   const ids: string[] = [...new Set<string>((discordIds || []).map((x: any) => String(x)).filter(Boolean))];
   if (!ids.length) return out;
-  await ensurePushTokensTable(db);
   const results = await listPushTokensForUsers(db, ids).catch(() => []);
   for (const r of results || []) {
     const k = String(r.discord_id);

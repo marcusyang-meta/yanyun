@@ -23,35 +23,12 @@
  * production data without going through promote. If the host is not on
  * the allowlist (yanyun.app / yanyun.tbdlab.workers.dev) it must not
  * run at all — not even to write the flag. */
-import { ensureEventCreatorColumn } from './domains/groupings/graphql.ts';
-import { ensureGuildMembersTable } from './domains/groupings/reminder.ts';
 
 const PROD_HOSTS = new Set(['yanyun.app', 'yanyun.tbdlab.workers.dev']);
 const FLAG_KEY = 'creator_backfill_v1';
 // One attempt per DB per isolate (WeakSet keyed by DB object; tests
 // swapping in a FakeDB stay isolated; production env.DB is constant).
 const attemptedDbs = new WeakSet();
-
-let logTableReady = null;
-export function ensureCreatorBackfillLog(db) {
-  if (!logTableReady) {
-    logTableReady = (async () => {
-      try {
-        await db.prepare(`CREATE TABLE IF NOT EXISTS creator_backfill_log (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          event_id INTEGER NOT NULL,
-          tenant TEXT,
-          seat_nickname TEXT,
-          resolved_discord_id TEXT,
-          outcome TEXT NOT NULL,
-          reason TEXT,
-          created_at INTEGER NOT NULL DEFAULT 0
-        )`).run();
-      } catch { /* silent, e.g. table already exists */ }
-    })();
-  }
-  return logTableReady;
-}
 
 async function getGlobalFlag(db) {
   const row = await db.prepare("SELECT value FROM settings WHERE tenant = '' AND key = ?")
@@ -70,9 +47,6 @@ async function setGlobalFlag(db) {
  * or { done:false, reason }. */
 export async function runCreatorBackfillOnce(db) {
   if ((await getGlobalFlag(db)) === '1') return { done: false, reason: 'flag-set' };
-  await ensureEventCreatorColumn(db);
-  await ensureGuildMembersTable(db);
-  await ensureCreatorBackfillLog(db);
   const now = Math.floor(Date.now() / 1000);
   const { results: events } = await db.prepare(
     `SELECT id, tenant FROM events

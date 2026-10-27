@@ -17,8 +17,7 @@ import {
 } from 'drizzle-orm/sqlite-core';
 
 
-/* ---------------- bosses [ddl schema.sql; alt v4 dungeon, v5 guide,
-   lazy structured json columns] ---------------- */
+/* ---------------- bosses [ddl chain baseline] ---------------------- */
 export const bosses = sqliteTable('bosses', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   name: text('name').notNull(),
@@ -33,7 +32,7 @@ export const bosses = sqliteTable('bosses', {
   shoutsJson: text('shouts_json'),
 });
 
-/* ---------------- dungeons [ddl v4; alt v6 video, lazy dex columns] --- */
+/* ---------------- dungeons [ddl chain baseline] -------------------- */
 export const dungeons = sqliteTable('dungeons', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   name: text('name').notNull().unique(),

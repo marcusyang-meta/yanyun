@@ -6,8 +6,8 @@ import {
 } from '../platform/index.ts';
 import { tlCalculateExcel } from '../gear/index.ts';
 import { getUserServers, getGuildNick, maybeRefreshGuildNicks, getUserLocalePref, setUserLocalePref } from '../identity/auth.ts';
-import { ensureSignupDiscordColumn, ensureGuildMembersTable, upsertGuildMember } from '../groupings/index.ts';
-import { ensurePushTokensTable, isValidPushToken, savePushToken, deletePushToken } from '../platform/index.ts';
+import { upsertGuildMember } from '../groupings/index.ts';
+import { isValidPushToken, savePushToken, deletePushToken } from '../platform/index.ts';
 import { evaluateHeirloomPushes } from '../gear/index.ts';
 import { translate, negotiateLocale, SUPPORTED_LOCALES, CATALOG } from '../platform/index.ts';
 import { logError } from '../platform/index.ts';
@@ -15,8 +15,8 @@ import { getGuildAvatarMeta, avatarPath } from '../guilds/index.ts';
 import { getSettingValue, setSettingValue, listSettingsByKey } from '../guilds/index.ts';
 import { getUsernameRow } from '../identity/index.ts';
 import { listGuildMembers, getGuildMember } from '../identity/index.ts';
-import { ensureBossStructuredColumns as ensureBossStructuredColumnsRepo } from './bosses.ts';
-import { ensureDungeonDexColumns as ensureDungeonDexColumnsRepo } from './dungeons.ts';
+ './bosses.ts';
+ './dungeons.ts';
 import {
   getBossById, listBossesByDungeon,
   listSchoolsFull, listSchoolsNameSlug, getSchoolNameBySlug, listSchoolBis,
@@ -28,11 +28,7 @@ import {
 import {
   getTenantRow, getTenantSlug, listTenantSlugs, listTenantsDirectory, insertTenant,
 } from '../guilds/index.ts';
-import {
-  getEventRow, getEventTenant, getEventTenantCreator, listEventsByTenantType,
-  insertEvent, updateEventFields, setEventStatus, deleteEventCascade,
-  ensureEventCreatorColumn as ensureEventCreatorColumnRepo,
-} from '../groupings/index.ts';
+import { getEventRow, getEventTenant, getEventTenantCreator, listEventsByTenantType, insertEvent, updateEventFields, setEventStatus, deleteEventCascade } from '../groupings/index.ts';
 import {
   listSignupSeats, listSignupSeatsBasic, listSignupNamesStamps, getSignupCapacityStats,
   insertSignups, deleteSignupById, deleteSignupByEventUid, deleteSignupsByEvent,
@@ -95,7 +91,6 @@ export class BossShell extends ShellBase {
       if (this.data.dungeonShell) return this.data.dungeonShell;
       const name = (this.data.row && this.data.row.dungeon) || this.data.dungeonName || null;
       if (!name) return null;
-      await ensureDungeonDexColumns(this.db);
       const d = await getDungeonByName(this.db, name);
       return d ? new DungeonShell(this.ctx, d) : null;
     });
@@ -215,11 +210,6 @@ export function parseGuideStructured(guide: any) {
   return { mechanics, talents, shouts };
 }
 
-// Lazy DDL for the structured boss columns lives in the bosses repository; this legacy name is kept as a delegating export.
-export function ensureBossStructuredColumns(db: any) {
-  return ensureBossStructuredColumnsRepo(db);
-}
-
 /* ---------- Guide seasons/categories (user ruling, 2026-10-24) ----------
  * In-game categories map 1:1 to season level tiers: 试锋=S1(51/56/61/66/71)
  * 梦洄=S2(81/86) 鉴心=S3(91) 铸矩=S4(96) 传薪=S5(100, current). Only S1 has
@@ -233,20 +223,12 @@ export const SEASON_NAMES: Record<string, string> = {
 export const DEX_CATEGORY_ORDER = ['传薪', '铸矩', '鉴心', '梦洄', '试锋'];
 export const DEX_CATEGORY_SEASON: Record<string, string> = { '传薪': 'S5', '铸矩': 'S4', '鉴心': 'S3', '梦洄': 'S2', '试锋': 'S1' };
 
-// Lazy DDL for the dungeon season/category/level columns lives in the dungeons repository; legacy-name delegation.
-export function ensureDungeonDexColumns(db: any) {
-  return ensureDungeonDexColumnsRepo(db);
-}
-
 /* ---------- Event creator identity (user ruling, 2026-10-24: only the creator may disband) ----------
  * events.creator_discord_id is written from the session discord_id when a
  * GraphQL event is created (the authoritative identity). Legacy events and
  * REST/overlay-created events leave it empty = no recorded creator: disband
  * is always refused, with no fallback to created_by/nickname matching
  * (nicknames are user-typed text and can be impersonated). */
-// The lazy DDL lives in the groupings domain's events repository; this
-// legacy name is kept as a delegating export (creatorbackfill /
-// creatormanualfix import this name from this module).
 
 export function parseStoredArray(text: any, fallback: any) {
   if (!text) return fallback;
@@ -259,7 +241,6 @@ export function parseStoredArray(text: any, fallback: any) {
 // parsing the guide text with the same rules — both paths yield identical output.
 export async function bossStructured(db: any, row: any) {
   if (!row) return { mechanics: [], talents: [], shouts: [] };
-  await ensureBossStructuredColumns(db);
   const parsed = parseGuideStructured(row.guide);
   return {
     mechanics: parseStoredArray(row.mechanics_json, parsed.mechanics),
@@ -348,7 +329,6 @@ export class DexPageShell extends ShellBase {
   genAll(){
     return this.memo('all', async () => {
       const db = this.db;
-      await ensureDungeonDexColumns(db);
       const versionCode = await this.ctxMemo('versionCode', () => getCurrentVersionCode(db));
       const results = await listDungeonsDex(db);
       const current: any[] = [], past: any[] = [];

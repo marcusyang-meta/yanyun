@@ -6,6 +6,6 @@ export * from './settings.ts';
 export * from './whitelabel.ts';
 export * from './guildAvatars.ts';
 export * from './guildavatar.ts';
-export { ensureGuildAvatarsTable } from './guildavatar.ts';
+ './guildavatar.ts';
 export * from './graphql.ts';
 export { guildAdminResult, guildAdminTypes, GuildAdminShell } from './admin-graphql.ts';

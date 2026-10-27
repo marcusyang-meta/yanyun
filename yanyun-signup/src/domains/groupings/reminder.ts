@@ -3,21 +3,12 @@ import { logError } from '../platform/index.ts';
 import { webhookIdentity } from '../guilds/index.ts';
 import { getTenantRow } from '../guilds/index.ts';
 import { getSettingValue, setSettingValue } from '../guilds/index.ts';
-import {
-  markReminderSent, markReminderError,
-  ensureReminderColumns as ensureReminderColumnsRepo,
-  ensureReminderBeatsTable, listPendingReminderEvents, listPendingReminderEventRows,
-  listSettledBeats, markBeatSent, markBeatError,
-} from './events.ts';
-import { ensureSignupDiscordColumn as ensureSignupDiscordColumnRepo } from './signups.ts';
-import { ensureSignupReadyColumn as ensureSignupReadyColumnRepo } from './signups.ts';
+import { markReminderSent, markReminderError, listPendingReminderEvents, listPendingReminderEventRows, listSettledBeats, markBeatSent, markBeatError } from './events.ts';
+ './signups.ts';
+ './signups.ts';
 import { listSignupSeatsForReminder } from './signups.ts';
 import { getUsernameRow, listUsersDirectory, listNicksByGuild, getNickRow } from '../identity/index.ts';
-import {
-  ensureGuildMembersTable as ensureGuildMembersTableRepo,
-  upsertGuildMember as upsertGuildMemberRepo,
-  listGuildMembers, getGuildMember,
-} from '../identity/index.ts';
+import { upsertGuildMember as upsertGuildMemberRepo, listGuildMembers, getGuildMember } from '../identity/index.ts';
 
 // Discord departure reminder.
 // Shape: admins configure one channel webhook per guild in the
@@ -49,39 +40,11 @@ export function carOgImageUrl(slug: string, eventId: number): string {
   return `${OG_WORKER}/og/${encodeURIComponent(slug)}/car/${eventId}.png`;
 }
 
-/* ---------- events reminder-state columns (lazy DDL) ----------
- * reminder_sent_at: epoch seconds of a successful send;
- * reminder_error: failure reason (non-empty = settled, never
- * retried — prevents a retry storm against a dead webhook).
- * Both empty = not yet reminded. */
-// Lazy DDL now lives in the groupings repository; the old name is kept here as a delegating re-export (worker.ts imports ensureSignupDiscordColumn from this module).
-export function ensureReminderColumns(db: any) {
-  return ensureReminderColumnsRepo(db);
-}
-
-export function ensureSignupDiscordColumn(db: any) {
-  return ensureSignupDiscordColumnRepo(db);
-}
-
-export function ensureSignupReadyColumn(db: any) {
-  return ensureSignupReadyColumnRepo(db);
-}
-
-/* ---------- Guild member roster (guild_members) ----------
- * ensureGuildMembersTable / upsertGuildMember are kept here as
- * delegating re-exports (creatorbackfill / creatormanualfix still
- * import them from this module); the implementation and lazy DDL
- * live in src/domains/identity/guildMembers.ts. */
-export function ensureGuildMembersTable(db: any) {
-  return ensureGuildMembersTableRepo(db);
-}
-
 export async function upsertGuildMember(db: any, slug: string, discordId: unknown, nick: unknown, globalName: unknown) {
   await upsertGuildMemberRepo(db, slug, String(discordId), String(nick || ''), String(globalName || ''));
 }
 
 async function rosterPool(db: any, slug: string) {
-  await ensureGuildMembersTable(db);
   const pool = new Map();
   const results = await listGuildMembers(db, slug).catch(() => []);
   for (const r of results || []) {
@@ -188,8 +151,6 @@ return map;
 /* Earliest future (or overdue) unsettled beat time across pending
  * groupings, for the GuildHub alarm. Null = nothing to wake for. */
 export async function nextReminderAt(db: any, slug: string, nowSec: number, offsets?: number[]): Promise<number | null> {
-await ensureReminderColumns(db);
-await ensureReminderBeatsTable(db);
 // An explicit empty list means "admin turned every offset off" —
 // only an omitted argument falls back to the stored setting.
 const offs = offsets !== undefined ? offsets : await getReminderOffsets(db, slug);
@@ -224,8 +185,6 @@ export interface DueBeat {
  * isFirst = no beat of this grouping has settled before, so the
  * send behaves like the single legacy reminder (@ everyone). */
 export async function dueReminderBeats(db: any, slug: string, nowSec: number, offsets?: number[]): Promise<DueBeat[]> {
-await ensureReminderColumns(db);
-await ensureReminderBeatsTable(db);
 const offs = offsets !== undefined ? offsets : await getReminderOffsets(db, slug);
 if (!offs.length) return [];
 const pending = await listPendingReminderEvents(db, slug, nowSec);
@@ -311,7 +270,6 @@ export async function leaderDisplayName(db: any, ev: any, slug: string, dgid: st
 if (ev.creator_discord_id) {
 const id = String(ev.creator_discord_id);
 // Roster first: if the leader has entered this guild, their roster nickname is their display name in this guild's context.
-await ensureGuildMembersTable(db);
 const rm = await getGuildMember(db, slug, id).catch(() => null);
 if (rm && String(rm.nick || '').trim()) return String(rm.nick).trim();
 if (rm && String(rm.global_name || '').trim()) return String(rm.global_name).trim();
@@ -364,8 +322,6 @@ const guildName = t? String(t.guild_name || slug): slug;
 const leader = await leaderDisplayName(db, ev, slug, dgid, guildName);
 const roster = await rosterPool(db, slug);
 const pool = await memberPool(db, dgid);
-await ensureSignupDiscordColumn(db);
-await ensureSignupReadyColumn(db);
 const seats = await listSignupSeatsForReminder(db, ev.id);
 const creatorId = ev.creator_discord_id ? String(ev.creator_discord_id) : '';
 const parsed = [];
@@ -486,9 +442,6 @@ if (eventTitle) await setReminderSetting(db, slug, 'reminder_last_event', String
  * working. Push fires only on the LAST beat and only to members
  * who have not marked themselves ready. Returns the send result. */
 export async function sendReminderBeat(db: any, slug: string, ev: any, beat: { offsetMin: number; isFirst?: boolean; isLast?: boolean; superseded?: number[] }, cfg: any, nowSec: number, expoBase?: string) {
-await ensureReminderColumns(db);
-await ensureReminderBeatsTable(db);
-await ensureSignupReadyColumn(db);
 for (const off of beat.superseded || []) {
 await markBeatError(db, ev.id, off, 'superseded');
 }

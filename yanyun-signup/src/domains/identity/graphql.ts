@@ -6,8 +6,8 @@ import {
 } from '../platform/index.ts';
 import { tlCalculateExcel } from '../gear/index.ts';
 import { getUserServers, getGuildNick, maybeRefreshGuildNicks, getUserLocalePref, setUserLocalePref } from './auth.ts';
-import { ensureSignupDiscordColumn, ensureGuildMembersTable, upsertGuildMember } from '../groupings/index.ts';
-import { ensurePushTokensTable, isValidPushToken, savePushToken, deletePushToken } from '../platform/index.ts';
+import { upsertGuildMember } from '../groupings/index.ts';
+import { isValidPushToken, savePushToken, deletePushToken } from '../platform/index.ts';
 import { evaluateHeirloomPushes } from '../gear/index.ts';
 import { translate, negotiateLocale, SUPPORTED_LOCALES, CATALOG } from '../platform/index.ts';
 import { logError } from '../platform/index.ts';
@@ -15,23 +15,12 @@ import { getGuildAvatarMeta, avatarPath } from '../guilds/index.ts';
 import { getSettingValue, setSettingValue, listSettingsByKey } from '../guilds/index.ts';
 import { getUsernameRow } from './index.ts';
 import { listGuildMembers, getGuildMember } from './index.ts';
-import {
-  getBossById, listBossesByDungeon, ensureBossStructuredColumns as ensureBossStructuredColumnsRepo,
-  listSchoolsFull, listSchoolsNameSlug, getSchoolNameBySlug, listSchoolBis,
-  getSchoolBisJsonBySchool, listSchoolRotations, listSlotAffixByBuild, listAffixMax, listAffixMaxValues,
-} from '../dex/index.ts';
-import {
-  getDungeonByName, getDungeonNameSizeById, listDungeonsDex, getLatestDungeonVersion,
-  ensureDungeonDexColumns as ensureDungeonDexColumnsRepo,
-} from '../dex/index.ts';
+import { getBossById, listBossesByDungeon, listSchoolsFull, listSchoolsNameSlug, getSchoolNameBySlug, listSchoolBis, getSchoolBisJsonBySchool, listSchoolRotations, listSlotAffixByBuild, listAffixMax, listAffixMaxValues } from '../dex/index.ts';
+import { getDungeonByName, getDungeonNameSizeById, listDungeonsDex, getLatestDungeonVersion } from '../dex/index.ts';
 import {
   getTenantRow, getTenantSlug, listTenantSlugs, listTenantsDirectory, insertTenant,
 } from '../guilds/index.ts';
-import {
-  getEventRow, getEventTenant, getEventTenantCreator, listEventsByTenantType,
-  insertEvent, updateEventFields, setEventStatus, deleteEventCascade,
-  ensureEventCreatorColumn as ensureEventCreatorColumnRepo,
-} from '../groupings/index.ts';
+import { getEventRow, getEventTenant, getEventTenantCreator, listEventsByTenantType, insertEvent, updateEventFields, setEventStatus, deleteEventCascade } from '../groupings/index.ts';
 import {
   listSignupSeats, listSignupSeatsBasic, listSignupNamesStamps, getSignupCapacityStats,
   insertSignups, deleteSignupById, deleteSignupByEventUid, deleteSignupsByEvent,

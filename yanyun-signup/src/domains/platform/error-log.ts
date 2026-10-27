@@ -7,21 +7,13 @@
 // Hard rule: logging must never affect the main request — every export
 // here swallows all exceptions; callers need no try/catch.
 // Retention: 30 days + row cap, pruned lazily on a write counter, no cron.
-import {
-  insertErrorLog, pruneErrorLog, listRecentErrors, countErrorsSince,
-  ensureErrorLogTable as ensureErrorLogTableRepo,
-} from './errorLog.ts';
+import { insertErrorLog, pruneErrorLog, listRecentErrors, countErrorsSince } from './errorLog.ts';
 
 const KEEP_DAYS = 30;
 const MAX_ROWS = 5000;
 const PRUNE_EVERY = 50; // prune every 50 writes (per-isolate counter)
 
 let writeCount = 0;
-
-// Lazy DDL lives in the errorLog repository; this export delegates.
-export function ensureErrorLogTable(db: D1Database) {
-  return ensureErrorLogTableRepo(db);
-}
 
 async function prune(db: D1Database) {
   try {
@@ -38,7 +30,6 @@ const clip = (v: any, n: number) => String(v ?? '').slice(0, n);
 export async function logError(db: D1Database, entry: any = {}) {
   try {
     if (!db || typeof db.prepare !== 'function') return false;
-    await ensureErrorLogTable(db);
     // Drizzle wraps errors in DrizzleQueryError ("Failed query: <SQL>");
     // store the deepest cause's name/message/stack — the portal needs the
     // original failure, not the SQL wrapper.
@@ -67,7 +58,6 @@ export async function logError(db: D1Database, entry: any = {}) {
 /* Portal read: latest N + last-24h count. Missing table / query failure -> empty. */
 export async function recentErrors(db: D1Database, limit = 50) {
   try {
-    await ensureErrorLogTable(db);
     const errors = await listRecentErrors(db, limit);
     const dayAgo = Math.floor(Date.now() / 1000) - 86400;
     const last24h = await countErrorsSince(db, dayAgo);

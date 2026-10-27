@@ -14,8 +14,8 @@ import { gearResolvers } from './domains/gear/graphql.ts';
 import { platformResolvers } from './domains/platform/graphql.ts';
 
 export { getGuildAccess, negotiateLocale } from './domains/platform/graphql-base.ts';
-export { parseGuideStructured, ensureBossStructuredColumns, ensureDungeonDexColumns } from './domains/dex/graphql.ts';
-export { ensureEventCreatorColumn } from './domains/groupings/graphql.ts';
+export { parseGuideStructured } from './domains/dex/graphql.ts';
+ './domains/groupings/graphql.ts';
 
 const FRAGMENTS = [identityResolvers, guildsResolvers, groupingsResolvers, dexResolvers, gearResolvers, platformResolvers];
 const resolvers = {
