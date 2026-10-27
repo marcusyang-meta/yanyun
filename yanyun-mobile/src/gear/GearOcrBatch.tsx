@@ -178,6 +178,7 @@ export default function GearOcrBatch(props: {
   onImport: (
     list: { slot: string; name: string; lines: { key: string; val: number }[]; dingyin: { name: string; val: number } | null; schools: string[] }[],
     onDone: (added: number) => void,
+    meta: { source: string; imageCount: number; onFailed: () => void },
   ) => void;
 }) {
   const t = props.t;
@@ -322,7 +323,7 @@ export default function GearOcrBatch(props: {
       const ids = new Set(picked.map((r) => r.id));
       setRows((prev) => prev.map((r) => (ids.has(r.id) ? { ...r, status: 'imported' as RowStatus } : r)));
       gearToast(fill(t.gearOcrBatchResultTemplate, { n: added, m: readyCount - picked.length }));
-    });
+    }, { source: 'ocr', imageCount: rows.length, onFailed: () => setImporting(false) });
   };
 
   const statusText = (r: BatchRow): string => (

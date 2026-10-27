@@ -827,6 +827,10 @@ export const GearLibraryQuery = graphql`
       gearMyBuildsTitle
       gearLoginHint
       gearLibCountTemplate
+      gearUsageCount
+      gearUsageLimit
+      gearUsageTemplate
+      gearUsageNearLimitText
       gearFormSlotLabel
       gearFormNameLabel
       gearFormNamePlaceholder
@@ -1018,8 +1022,8 @@ export const GearLibraryDeleteItemMutation = graphql`
 `;
 
 export const GearLibraryImportMutation = graphql`
-  mutation documentsGearLibraryImportMutation($items: [GearItemCreateInput!]!, $loadout: [GearLoadoutEntryInput!]) {
-    importGearItems(items: $items, loadout: $loadout) {
+  mutation documentsGearLibraryImportMutation($items: [GearItemCreateInput!]!, $loadout: [GearLoadoutEntryInput!], $source: String, $imageCount: Int) {
+    importGearItems(items: $items, loadout: $loadout, source: $source, imageCount: $imageCount) {
       ok
       error
       items { id slot name lines { key val } dingyin { name val } schools warnings }
