@@ -1,12 +1,12 @@
-import React, { Suspense, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import React, { Suspense, useCallback, useMemo, useState } from 'react';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useLazyLoadQuery } from 'react-relay';
+import { fetchQuery, useLazyLoadQuery, useRelayEnvironment } from 'react-relay';
 import { fonts, theme, SECTS } from '../theme';
 import { GoldFill } from './ui';
 import { LoadingView } from './AsyncBoundary';
 import { parseStartsAt } from '../week';
-import { createGrouping, updateGrouping } from '../api';
+import { createGrouping, createGroupingTemplate, deleteGroupingTemplate, updateGrouping, updateGroupingTemplate } from '../api';
 import { DetailPageTextQuery, FormDungeonsQuery, ListPageTextQuery } from '../documents';
 import type { documentsFormDungeonsQuery } from '../__generated__/documentsFormDungeonsQuery.graphql';
 import type { documentsListPageTextQuery } from '../__generated__/documentsListPageTextQuery.graphql';
@@ -61,6 +61,47 @@ export interface GroupingFormText {
   typeShortTalent: string;
   typeShortRace: string;
   typeShortTower: string;
+  // Template section copy (list-page shells only; absent on the detail
+  // page, where the section never renders).
+  templateSectionTitle?: string;
+  templateNameLabel?: string;
+  templateNamePlaceholder?: string;
+  templateSaveLabel?: string;
+  templateUpdateLabel?: string;
+  templateEditingNoticeTemplate?: string;
+  templateCancelEditLabel?: string;
+  templateEmptyText?: string;
+  templateWhenTodayTemplate?: string;
+  templateWhenTomorrowTemplate?: string;
+  templateWhenDaysTemplate?: string;
+  templateToastSaved?: string;
+  templateToastSaveFailedTemplate?: string;
+  templateToastDeleted?: string;
+  templateToastDeleteFailedTemplate?: string;
+  templateMetaTemplate?: string;
+}
+
+// One guild-shared template as the list-page query delivers it. The
+// manageActions object exists only for the template's creator or a
+// guild admin (server-composed); its absence hides edit/delete.
+export interface GroupingTemplateItem {
+  id: string;
+  name: string;
+  type: string;
+  title: string;
+  dungeonName?: string | null;
+  dungeonId?: string | null;
+  maxSlots: number;
+  startDaysAhead: number;
+  startHour: number;
+  startMinute: number;
+  creatorName?: string | null;
+  manageActions?: {
+    editLabel: string;
+    deleteLabel: string;
+    deleteConfirmTitle: string;
+    deleteConfirmMessageTemplate: string;
+  } | null;
 }
 
 export interface GroupingFormInitial {
@@ -78,6 +119,10 @@ interface Props {
   initial?: GroupingFormInitial;
   defaultType?: string;
   defaultNickname?: string;
+  // Guild-shared templates (create mode only; the host list page passes
+  // its query's groupingTemplates plus a refetch callback).
+  templates?: GroupingTemplateItem[] | null;
+  onTemplatesChanged?: () => void;
   onClose: () => void;
   onDone: () => void;
 }
@@ -92,7 +137,7 @@ const TYPE_KEYS = ['ACTIVITY', 'TALENT', 'RACE', 'TOWER'] as const;
 type GroupingTypeKey = (typeof TYPE_KEYS)[number];
 
 export default function GroupingForm({
-  slug, text, unknownErrorText, mode, groupingId, initial, defaultType, defaultNickname, onClose, onDone,
+  slug, text, unknownErrorText, mode, groupingId, initial, defaultType, defaultNickname, templates, onTemplatesChanged, onClose, onDone,
 }: Props) {
   const isEdit = mode === 'edit';
   const insets = useSafeAreaInsets();
@@ -149,6 +194,111 @@ export default function GroupingForm({
     : selectedDungeon ? fill(text.formHintDungeonTemplate, { name: selectedDungeon.name, max: maxSlots })
     : type === 'TALENT' ? text.formHintTalent
     : text.formHintRace;
+
+  // ---- Guild-shared templates (create mode only) ----
+  // Applying a template only prefills this form; the member still
+  // reviews and submits the car themselves. Editing a template loads
+  // it into the form and retargets the save button at that template.
+  const showTemplates = !isEdit && !!text.templateSectionTitle;
+  const [appliedTemplateId, setAppliedTemplateId] = useState<string | null>(null);
+  const [editingTemplate, setEditingTemplate] = useState<GroupingTemplateItem | null>(null);
+  const [templateName, setTemplateName] = useState('');
+  const [tplBusy, setTplBusy] = useState(false);
+  const [tplNotice, setTplNotice] = useState('');
+
+  const applyTemplate = (t: GroupingTemplateItem) => {
+    if ((TYPE_KEYS as readonly string[]).includes(t.type)) setType(t.type as GroupingTypeKey);
+    setTitle(t.title);
+    setTitleTouched(true);
+    setDungeonId(t.dungeonId ?? '');
+    const target = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (t.startDaysAhead || 0));
+    setMonth(target.getMonth() + 1);
+    setDay(target.getDate());
+    setHour(t.startHour);
+    setMinute(t.startMinute);
+    setAppliedTemplateId(t.id);
+    setTitleErr(false);
+    setTplNotice('');
+  };
+
+  const startEditTemplate = (t: GroupingTemplateItem) => {
+    applyTemplate(t);
+    setEditingTemplate(t);
+    setTemplateName(t.name);
+  };
+
+  const daysAheadFromForm = () => {
+    const picked = new Date(now.getFullYear(), month - 1, day);
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    return Math.max(0, Math.round((picked.getTime() - today.getTime()) / 86400000));
+  };
+
+  const saveTemplate = async () => {
+    const t = shownTitle.trim();
+    if (!t) { setTitleErr(true); return; }
+    setTplBusy(true); setTplNotice(''); setNotice('');
+    try {
+      const input = {
+        name: templateName.trim() || t,
+        type, title: t,
+        dungeonId: type === 'ACTIVITY' || type === 'TOWER' ? null : (dungeonId || null),
+        startsInDays: daysAheadFromForm(), startHour: hour, startMinute: minute,
+      };
+      const r = editingTemplate
+        ? await updateGroupingTemplate(editingTemplate.id, input)
+        : await createGroupingTemplate({ slug, ...input });
+      if (r.ok) {
+        setTplNotice(text.templateToastSaved ?? '');
+        setEditingTemplate(null);
+        setTemplateName('');
+        onTemplatesChanged?.();
+      } else {
+        setNotice(fill(text.templateToastSaveFailedTemplate ?? '', { error: r.error || unknownErrorText }));
+      }
+    } catch (e) {
+      setNotice(fill(text.templateToastSaveFailedTemplate ?? '', {
+        error: e instanceof Error ? e.message : unknownErrorText,
+      }));
+    } finally { setTplBusy(false); }
+  };
+
+  const confirmDeleteTemplate = (t: GroupingTemplateItem) => {
+    if (!t.manageActions) return;
+    Alert.alert(
+      t.manageActions.deleteConfirmTitle,
+      fill(t.manageActions.deleteConfirmMessageTemplate, { name: t.name }),
+      [
+        { text: text.formCancelLabel, style: 'cancel' },
+        {
+          text: t.manageActions.deleteLabel, style: 'destructive',
+          onPress: async () => {
+            try {
+              const r = await deleteGroupingTemplate(t.id);
+              if (r.ok) {
+                setTplNotice(text.templateToastDeleted ?? '');
+                if (editingTemplate?.id === t.id) { setEditingTemplate(null); setTemplateName(''); }
+                if (appliedTemplateId === t.id) setAppliedTemplateId(null);
+                onTemplatesChanged?.();
+              } else {
+                setNotice(fill(text.templateToastDeleteFailedTemplate ?? '', { error: r.error || unknownErrorText }));
+              }
+            } catch (e) {
+              setNotice(fill(text.templateToastDeleteFailedTemplate ?? '', {
+                error: e instanceof Error ? e.message : unknownErrorText,
+              }));
+            }
+          },
+        },
+      ],
+    );
+  };
+
+  const templateWhen = (t: GroupingTemplateItem) => {
+    const time = `${String(t.startHour).padStart(2, '0')}:${String(t.startMinute).padStart(2, '0')}`;
+    if (t.startDaysAhead === 0) return fill(text.templateWhenTodayTemplate ?? '', { time });
+    if (t.startDaysAhead === 1) return fill(text.templateWhenTomorrowTemplate ?? '', { time });
+    return fill(text.templateWhenDaysTemplate ?? '', { days: t.startDaysAhead, time });
+  };
 
   const submit = async () => {
     const t = shownTitle.trim();
@@ -213,6 +363,42 @@ export default function GroupingForm({
         </View>
         <ScrollView style={s.scroll} contentContainerStyle={{ paddingBottom: 4 }} keyboardShouldPersistTaps="handled">
           {!!notice && <Text style={s.notice}>{notice}</Text>}
+
+          {showTemplates && (
+            <>
+              <Text style={s.label}>{text.templateSectionTitle}</Text>
+              {!!tplNotice && <Text style={s.tplNotice}>{tplNotice}</Text>}
+              {!templates?.length && <Text style={s.hint}>{text.templateEmptyText}</Text>}
+              {(templates ?? []).map((t) => (
+                <Pressable
+                  key={t.id}
+                  style={[s.tplCard, appliedTemplateId === t.id && s.tplCardOn]}
+                  onPress={() => applyTemplate(t)}
+                >
+                  <View style={s.tplNameRow}>
+                    <Text style={s.tplName} numberOfLines={1}>{t.name}</Text>
+                    <Text style={s.tplWhen}>{templateWhen(t)}</Text>
+                  </View>
+                  <Text style={s.tplTitle}>{t.title}</Text>
+                  <View style={s.tplMetaRow}>
+                    <Text style={s.tplMeta}>
+                      {fill(text.templateMetaTemplate ?? '', { type: typeShorts[t.type] ?? '', dungeon: t.dungeonName ? ` · ${t.dungeonName}` : '', max: t.maxSlots })}
+                    </Text>
+                    {t.manageActions && (
+                      <>
+                        <Pressable hitSlop={6} onPress={() => startEditTemplate(t)}>
+                          <Text style={s.tplAct}>{t.manageActions.editLabel}</Text>
+                        </Pressable>
+                        <Pressable hitSlop={6} onPress={() => confirmDeleteTemplate(t)}>
+                          <Text style={[s.tplAct, { color: '#e08080' }]}>{t.manageActions.deleteLabel}</Text>
+                        </Pressable>
+                      </>
+                    )}
+                  </View>
+                </Pressable>
+              ))}
+            </>
+          )}
 
           <Text style={s.label}>{text.formTypeLabel}</Text>
           <View style={s.chips}>
@@ -284,6 +470,34 @@ export default function GroupingForm({
             </>
           )}
 
+          {showTemplates && (
+            <>
+              {!!editingTemplate && (
+                <View style={s.tplEditRow}>
+                  <Text style={s.tplEditNotice}>
+                    {fill(text.templateEditingNoticeTemplate ?? '', { name: editingTemplate.name })}
+                  </Text>
+                  <Pressable hitSlop={6} onPress={() => { setEditingTemplate(null); setTemplateName(''); }}>
+                    <Text style={s.tplAct}>{text.templateCancelEditLabel}</Text>
+                  </Pressable>
+                </View>
+              )}
+              <Text style={s.label}>{text.templateNameLabel}</Text>
+              <View style={s.tplSaveRow}>
+                <TextInput
+                  style={[s.input, { flex: 1 }]}
+                  value={templateName}
+                  onChangeText={setTemplateName}
+                  placeholder={text.templateNamePlaceholder}
+                  placeholderTextColor={theme.muted}
+                />
+                <Pressable style={[s.tplSaveBtn, tplBusy && { opacity: 0.6 }]} onPress={saveTemplate} disabled={tplBusy}>
+                  <Text style={s.tplSaveText}>{editingTemplate ? text.templateUpdateLabel : text.templateSaveLabel}</Text>
+                </Pressable>
+              </View>
+            </>
+          )}
+
           <View style={s.btns}>
             <Pressable style={s.cancelBtn} onPress={onClose}>
               <Text style={s.cancelText}>{text.formCancelLabel}</Text>
@@ -336,6 +550,13 @@ function CreateGroupingFormInner({
   const data = useLazyLoadQuery<documentsListPageTextQuery>(
     ListPageTextQuery, { slug, tab }, { fetchPolicy: 'store-or-network' },
   );
+  const environment = useRelayEnvironment();
+  // After a template write, refetch this page shell over the network so
+  // the mounted query's template list realigns (same pattern as Web's
+  // executeQueryRefresh).
+  const refreshTemplates = useCallback(() => {
+    fetchQuery(environment, ListPageTextQuery, { slug, tab }, { fetchPolicy: 'network-only' }).subscribe({});
+  }, [environment, slug, tab]);
   const page = data.groupingListPage;
   if (!page) return null;
   return (
@@ -346,6 +567,8 @@ function CreateGroupingFormInner({
       mode="create"
       defaultType={tab}
       defaultNickname={defaultNickname}
+      templates={(page.groupingTemplates ?? []) as unknown as GroupingTemplateItem[]}
+      onTemplatesChanged={refreshTemplates}
       onClose={onClose}
       onDone={onDone}
     />
@@ -447,4 +670,25 @@ const s = StyleSheet.create({
     paddingVertical: 13, alignItems: 'center',
   },
   submitText: { fontFamily: fonts.serif, color: theme.onGold, fontSize: 15, fontWeight: '700' },
+  tplNotice: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 13, marginBottom: 8 },
+  tplCard: {
+    borderWidth: 1, borderColor: theme.border, borderRadius: 10,
+    paddingHorizontal: 12, paddingVertical: 9, marginBottom: 8,
+  },
+  tplCardOn: { borderColor: theme.gold, backgroundColor: 'rgba(201,163,92,.12)' },
+  tplNameRow: { flexDirection: 'row', alignItems: 'baseline', gap: 8 },
+  tplName: { flex: 1, fontFamily: fonts.serif, color: theme.goldHi, fontSize: 14.5 },
+  tplWhen: { fontFamily: fonts.serif, color: theme.muted, fontSize: 12 },
+  tplTitle: { fontFamily: fonts.serif, color: theme.paper, fontSize: 13.5, marginTop: 2 },
+  tplMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 2 },
+  tplMeta: { flex: 1, fontFamily: fonts.serif, color: theme.muted, fontSize: 12 },
+  tplAct: { fontFamily: fonts.serif, color: theme.gold, fontSize: 12.5, paddingVertical: 2 },
+  tplEditRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 16 },
+  tplEditNotice: { flex: 1, fontFamily: fonts.serif, color: theme.goldHi, fontSize: 12.5 },
+  tplSaveRow: { flexDirection: 'row', gap: 8 },
+  tplSaveBtn: {
+    borderWidth: 1, borderColor: theme.gold, borderRadius: 10,
+    paddingHorizontal: 18, justifyContent: 'center', alignItems: 'center',
+  },
+  tplSaveText: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 14 },
 });

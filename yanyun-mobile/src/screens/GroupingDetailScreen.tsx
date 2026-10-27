@@ -13,7 +13,7 @@ import { EditGroupingFormMount } from '../components/GroupingForm';
 import { BlockNode1View } from '../blocks/BlockRenderer';
 import type { ActionHandlers } from '../blocks/actions';
 import { AsyncBoundary, LoadingView } from '../components/AsyncBoundary';
-import { completeGrouping, disbandGrouping, joinGrouping, leaveGrouping, reopenGrouping, setSeatReady } from '../api';
+import { completeGrouping, disbandGrouping, joinGrouping, leaveGrouping, reopenGrouping, saveGroupingTemplate, setSeatReady } from '../api';
 import { useGuildLive } from '../live';
 import { useSession } from '../session';
 import type { documentsGroupingDetailBlocksQuery } from '../__generated__/documentsGroupingDetailBlocksQuery.graphql';
@@ -190,7 +190,10 @@ function BackLink({ label }: { label: string }) {
 
 // Header row: left back-to-list, right share (both labels supplied by the
 // detail page shell). Sharing uses the system sheet with the share URL
-// supplied by the detail page shell (the car's stable short link).
+// supplied by the detail page shell (the car's stable short link). The
+// save-as-template entry sits beside share: the shell's templateSave
+// object exists only for members who may create groupings in a writable
+// context (server-composed), so its presence gates the button.
 function BackLinkLive({ slug, id }: { slug: string; id: string }) {
   const data = useLazyLoadQuery<documentsDetailPageTextQuery>(
     DetailPageTextQuery,
@@ -200,6 +203,7 @@ function BackLinkLive({ slug, id }: { slug: string; id: string }) {
   const page = data.groupingDetailPage;
   const shareLabel = page?.detailShareLabel;
   const shareUrl = page?.shareUrl;
+  const [showTplSave, setShowTplSave] = useState(false);
   const onShare = useCallback(() => {
     if (!shareUrl) return;
     Share.share({ url: shareUrl, message: shareUrl }).catch(() => {});
@@ -207,12 +211,89 @@ function BackLinkLive({ slug, id }: { slug: string; id: string }) {
   return (
     <View style={s.headerRow}>
       <BackLink label={page?.detailBackToListLabel ?? '‹ 返回车队列表'} />
-      {shareLabel ? (
-        <Pressable onPress={onShare} hitSlop={10} style={s.backWrap}>
-          <Text style={s.back}>{shareLabel}</Text>
-        </Pressable>
-      ) : null}
+      <View style={{ flexDirection: 'row', gap: 16 }}>
+        {page?.templateSave ? (
+          <Pressable onPress={() => setShowTplSave(true)} hitSlop={10} style={s.backWrap}>
+            <Text style={s.back}>{page.templateSave.buttonLabel}</Text>
+          </Pressable>
+        ) : null}
+        {shareLabel ? (
+          <Pressable onPress={onShare} hitSlop={10} style={s.backWrap}>
+            <Text style={s.back}>{shareLabel}</Text>
+          </Pressable>
+        ) : null}
+      </View>
+      {showTplSave && page?.templateSave && (
+        <SaveTemplateModal
+          page={page}
+          groupingId={id}
+          unknownErrorText={data.viewer?.commonUnknownErrorText ?? ''}
+          onClose={() => setShowTplSave(false)}
+        />
+      )}
     </View>
+  );
+}
+
+// Save-as-template dialog: one name field (prefilled with the car's
+// title); the server snapshots the car's configuration. Copy comes from
+// the shell's templateSave object.
+type DetailPageData = NonNullable<documentsDetailPageTextQuery['response']['groupingDetailPage']>;
+
+function SaveTemplateModal({
+  page, groupingId, unknownErrorText, onClose,
+}: {
+  page: DetailPageData;
+  groupingId: string;
+  unknownErrorText: string;
+  onClose: () => void;
+}) {
+  const ts = page.templateSave;
+  const [name, setName] = useState(page.grouping?.title ?? '');
+  const [notice, setNotice] = useState('');
+  const [busy, setBusy] = useState(false);
+  if (!ts) return null;
+  const doSave = async () => {
+    setBusy(true); setNotice('');
+    try {
+      const r = await saveGroupingTemplate({ groupingId, name: name.trim() || (page.grouping?.title ?? '') });
+      if (!r.ok) {
+        setNotice(fill(ts.toastFailedTemplate ?? '', { error: r.error || unknownErrorText }));
+        return;
+      }
+      onClose();
+      Alert.alert(ts.toastSaved);
+    } catch (e) {
+      setNotice(fill(ts.toastFailedTemplate ?? '', {
+        error: e instanceof Error ? e.message : unknownErrorText,
+      }));
+    } finally { setBusy(false); }
+  };
+  return (
+    <Modal visible transparent animationType="fade" onRequestClose={onClose}>
+      <Pressable style={s.overlay} onPress={onClose}>
+        <Pressable style={s.panel} onPress={() => {}}>
+          <Text style={s.formTitle}>{ts.dialogTitle}</Text>
+          <Text style={s.label}>{ts.nameLabel}</Text>
+          <TextInput
+            style={s.input}
+            value={name}
+            onChangeText={setName}
+            placeholderTextColor={theme.muted}
+          />
+          {!!notice && <Text style={s.formNotice}>{notice}</Text>}
+          <View style={s.formBtns}>
+            <Pressable style={s.cancelBtn} onPress={onClose}>
+              <Text style={s.cancelText}>{page.formCancelLabel ?? ''}</Text>
+            </Pressable>
+            <Pressable style={[s.submitBtn, busy && { opacity: 0.6 }]} onPress={doSave} disabled={busy}>
+              <GoldFill />
+              <Text style={s.submitText}>{ts.submitLabel}</Text>
+            </Pressable>
+          </View>
+        </Pressable>
+      </Pressable>
+    </Modal>
   );
 }
 

@@ -3,6 +3,10 @@ import { relayEnvironment } from './relay';
 import {
   CompleteGroupingMutation,
   CreateGroupingMutation,
+  CreateGroupingTemplateMutation,
+  UpdateGroupingTemplateMutation,
+  DeleteGroupingTemplateMutation,
+  SaveGroupingTemplateMutation,
   CreateGuildMutation,
   DisbandGroupingMutation,
   JoinGroupingMutation,
@@ -44,6 +48,10 @@ import type { documentsDisbandGroupingMutation } from './__generated__/documents
 import type { documentsCompleteGroupingMutation } from './__generated__/documentsCompleteGroupingMutation.graphql';
 import type { documentsReopenGroupingMutation } from './__generated__/documentsReopenGroupingMutation.graphql';
 import type { documentsCreateGroupingMutation } from './__generated__/documentsCreateGroupingMutation.graphql';
+import type { documentsCreateGroupingTemplateMutation } from './__generated__/documentsCreateGroupingTemplateMutation.graphql';
+import type { documentsUpdateGroupingTemplateMutation } from './__generated__/documentsUpdateGroupingTemplateMutation.graphql';
+import type { documentsDeleteGroupingTemplateMutation } from './__generated__/documentsDeleteGroupingTemplateMutation.graphql';
+import type { documentsSaveGroupingTemplateMutation } from './__generated__/documentsSaveGroupingTemplateMutation.graphql';
 import type { documentsCreateGuildMutation } from './__generated__/documentsCreateGuildMutation.graphql';
 import type { documentsUpdateGroupingMutation } from './__generated__/documentsUpdateGroupingMutation.graphql';
 import type { documentsUpdateMyLocaleMutation } from './__generated__/documentsUpdateMyLocaleMutation.graphql';
@@ -248,6 +256,50 @@ export async function updateGrouping(
 ): Promise<GroupingPayload> {
   const r = await commit<documentsUpdateGroupingMutation>(UpdateGroupingMutation, { id, input });
   return r.updateGrouping as GroupingPayload;
+}
+
+export type TemplatePayload = {
+  ok: boolean;
+  error?: string | null;
+  template?: { id: string } | null;
+};
+
+export type GroupingTemplateInput = {
+  name: string;
+  type: 'ACTIVITY' | 'TALENT' | 'RACE' | 'TOWER';
+  title: string;
+  dungeonId?: string | null;
+  startsInDays: number;
+  startHour: number;
+  startMinute: number;
+};
+
+export async function createGroupingTemplate(
+  input: GroupingTemplateInput & { slug: string },
+): Promise<TemplatePayload> {
+  const r = await commit<documentsCreateGroupingTemplateMutation>(CreateGroupingTemplateMutation, { input });
+  return r.createGroupingTemplate as TemplatePayload;
+}
+
+export async function updateGroupingTemplate(
+  id: string,
+  input: GroupingTemplateInput,
+): Promise<TemplatePayload> {
+  const r = await commit<documentsUpdateGroupingTemplateMutation>(UpdateGroupingTemplateMutation, { id, input });
+  return r.updateGroupingTemplate as TemplatePayload;
+}
+
+export async function deleteGroupingTemplate(id: string): Promise<{ ok: boolean; error?: string | null }> {
+  const r = await commit<documentsDeleteGroupingTemplateMutation>(DeleteGroupingTemplateMutation, { id });
+  return r.deleteGroupingTemplate;
+}
+
+export async function saveGroupingTemplate(input: {
+  groupingId: string;
+  name: string;
+}): Promise<TemplatePayload> {
+  const r = await commit<documentsSaveGroupingTemplateMutation>(SaveGroupingTemplateMutation, { input });
+  return r.saveGroupingTemplate as TemplatePayload;
 }
 
 export type LocalePayload = {
