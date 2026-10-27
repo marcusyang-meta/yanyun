@@ -13,11 +13,12 @@
  * construction.
  *
  * Usage: node scripts/verify-repositories-d1.mjs [section]
- *   Omitting section = all; currently twenty sections: tenants /
+ *   Omitting section = all; currently twenty-one sections: tenants /
  *   events / gear / users / members / results / dex / reference /
  *   state / ddl / guard / stamp / membercount / atomic / audit /
- *   shortlinks / beats / templates / usage / buildshares, extended as
- *   the data-layer migration progresses. Non-zero exit = an assertion failed.
+ *   shortlinks / beats / templates / usage / buildshares / billing,
+ *   extended as the data-layer migration progresses. Non-zero exit =
+ *   an assertion failed.
  * =================================================== */
 import { Miniflare, convertV4MiniflareOptions } from 'miniflare';
 
@@ -1026,6 +1027,55 @@ if (want('buildshares')) {
   eq('cascade deletes the owner links', await repo.deleteAllBuildShareLinksByUser(db, 'share-a'), 2);
   eq('cascaded code resolves -> null', await svc.resolveSharedBuild(db, l2.code), null);
   eq('cascade again -> 0 (idempotent)', await repo.deleteAllBuildShareLinksByUser(db, 'share-a'), 0);
+}
+
+/* ---------------- billing (guild_entitlements + stripe_events) ---------------- */
+if (want('billing')) {
+  console.log('== billing repositories on real D1 ==');
+  const repo = await import('../src/domains/platform/billing.ts');
+  const svc = await import('../src/domains/platform/billing-service.ts');
+
+  eq('entitlement missing -> null', await repo.getEntitlementRow(db, 'alpha'), null);
+
+  const row = {
+    tenant: 'alpha', plan: 'premium', source: 'manual',
+    currentPeriodEnd: 2000000000, stripeCustomerId: 'cus_1',
+    stripeSubscriptionId: 'sub_1', updatedAt: 111,
+  };
+  await repo.upsertEntitlementRow(db, row);
+  eq('upsert+get roundtrip', await repo.getEntitlementRow(db, 'alpha'), row);
+
+  const row2 = { ...row, plan: 'free', source: '', currentPeriodEnd: null, stripeCustomerId: '', stripeSubscriptionId: '', updatedAt: 222 };
+  await repo.upsertEntitlementRow(db, row2);
+  eq('upsert conflict path overwrites', await repo.getEntitlementRow(db, 'alpha'), row2);
+
+  await repo.upsertEntitlementRow(db, { ...row, tenant: 'beta' });
+  eq('lookup by subscription', (await repo.getEntitlementBySubscription(db, 'sub_1'))?.tenant, 'beta');
+  eq('lookup by customer', (await repo.getEntitlementByCustomer(db, 'cus_1'))?.tenant, 'beta');
+  eq('lookup by unknown subscription -> null', await repo.getEntitlementBySubscription(db, 'sub_x'), null);
+  eq('list rows ordered by tenant', (await repo.listEntitlementRows(db)).map((r) => r.tenant), ['alpha', 'beta']);
+
+  // Read-time expiry: the stored row still says premium, the service
+  // reads free once the period end has passed.
+  const future = Math.floor(Date.now() / 1000) + 3600;
+  await repo.upsertEntitlementRow(db, { ...row, tenant: 'gamma', currentPeriodEnd: future });
+  eq('effective premium before period end', (await svc.getEffectiveEntitlement(db, 'gamma')).plan, 'premium');
+  const past = Math.floor(Date.now() / 1000) - 3600;
+  await repo.upsertEntitlementRow(db, { ...row, tenant: 'gamma', currentPeriodEnd: past });
+  const lapsed = await svc.getEffectiveEntitlement(db, 'gamma');
+  eq('effective free after period end', [lapsed.plan, lapsed.lapsed], ['free', true]);
+  eq('stored row untouched by read-time expiry', (await repo.getEntitlementRow(db, 'gamma'))?.plan, 'premium');
+
+  // Stripe event dedupe ledger.
+  eq('first event marks fresh', await repo.markStripeEventProcessed(db, 'evt_1', 'checkout.session.completed', 100), true);
+  eq('replay marks duplicate', await repo.markStripeEventProcessed(db, 'evt_1', 'checkout.session.completed', 101), false);
+  eq('hasStripeEvent true', await repo.hasStripeEvent(db, 'evt_1'), true);
+  eq('hasStripeEvent false', await repo.hasStripeEvent(db, 'evt_nope'), false);
+
+  // Gear-limit seam: premium tier strictly above free on every axis.
+  const free = svc.effectiveGearLimits('free');
+  const premium = svc.effectiveGearLimits('premium');
+  check('gear limits premium > free', premium.maxItems > free.maxItems && premium.maxBuilds > free.maxBuilds && premium.batchOcrDailyQuota > free.batchOcrDailyQuota);
 }
 
 await mf.dispose();

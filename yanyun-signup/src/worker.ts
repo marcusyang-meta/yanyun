@@ -18,6 +18,7 @@ import { err } from './domains/platform/http.ts';
 import { hubOgTags, guildOgTags, carOgTags, buildOgTags } from './domains/platform/og.ts';
 import { getTenantSlug, parseGuildSubdomainSlug, resolveGuildSubdomain, guildSubdomainOrigin } from './domains/guilds/index.ts';
 import { hubRoutes } from './domains/platform/hub-routes.ts';
+import { billingRoutes } from './domains/platform/billing-routes.ts';
 import { guildAvatarRoutes } from './domains/guilds/avatar-routes.ts';
 import { shortLinkRoutes } from './domains/groupings/shortlink-routes.ts';
 
@@ -40,6 +41,7 @@ app.use('/api/*', async (c: any, next: any) => {
 });
 
 app.route('/api/hub', hubRoutes);
+app.route('/', billingRoutes); // Stripe webhook /stripe/webhook (signature-authenticated, no session)
 app.route('/', guildAvatarRoutes); // avatar public path /guilds/:slug/avatar (standalone, survives the REST shutdown)
 app.route('/', shortLinkRoutes); // share short links /c/:code -> 302 to the canonical car URL
 
@@ -144,7 +146,7 @@ async function handleFetch(request: Request, env: Env, ctx: ExecutionContext) {
       return handleGuildLive(request, env, slug);
     }
 
-    if (path.startsWith('/api/') || path === '/graphql' || /^\/guilds\/[^/]+\/avatar$/.test(path) || /^\/c\/[^/]+$/.test(path)) {
+    if (path.startsWith('/api/') || path === '/graphql' || path === '/stripe/webhook' || /^\/guilds\/[^/]+\/avatar$/.test(path) || /^\/c\/[^/]+$/.test(path)) {
       return app.fetch(request, env, ctx);
     }
 

@@ -24,12 +24,15 @@ import {
   events, signups, results, shortLinks, groupingTemplates, guildAvatars,
   bosses, dungeons, schools, schoolBis, schoolRotations, slotAffix, affixMax,
   userGearItems, userGearBuilds, buildShareLinks, heirloomItemPushes, heirloomSetState,
-  pushTokens, usageCounters, creatorBackfillLog, hubAuditLog,
+  pushTokens, usageCounters, creatorBackfillLog, hubAuditLog, guildEntitlements,
 } from '../../db/schema.ts';
 
 export const BACKUP_FORMAT = 'yanyun-backup';
 export const BACKUP_VERSION = 1;
-export const BACKUP_EXCLUDED: readonly string[] = ['error_log'];
+/* stripe_events is excluded on the same principle as error_log: it
+ * is webhook dedupe state, not business data — a restore must not
+ * resurrect old event ids as "already applied". */
+export const BACKUP_EXCLUDED: readonly string[] = ['error_log', 'stripe_events'];
 
 /** [storage key, entity] in restore order (parents first). */
 export const BACKUP_ENTITIES: ReadonlyArray<readonly [string, SQLiteTable]> = [
@@ -61,6 +64,7 @@ export const BACKUP_ENTITIES: ReadonlyArray<readonly [string, SQLiteTable]> = [
   ['usage_counters', usageCounters],
   ['creator_backfill_log', creatorBackfillLog],
   ['hub_audit_log', hubAuditLog],
+  ['guild_entitlements', guildEntitlements],
 ];
 
 export type EncodedValue = string | number | null | { $blob: string };
