@@ -1,6 +1,6 @@
 /* ===================================================
  * Data-layer access (Repository) for the user_gear_items /
- * user_gear_builds entities.
+ * user_gear_builds / build_share_links entities.
  *
  * Storage side of the gear library and saved builds: everything is
  * scoped by discord_id ownership (a miss means "does not exist" —
@@ -12,7 +12,7 @@
 import { sql } from 'drizzle-orm';
 import { createDb, schema } from '../../db/client.ts';
 
-const { userGearItems, userGearBuilds } = schema;
+const { userGearItems, userGearBuilds, buildShareLinks } = schema;
 const col = (name: string) => sql.identifier(name);
 
 interface RunMeta {
@@ -115,4 +115,48 @@ export async function deleteAllGearBuildsByUser(d1: D1Database, discordId: strin
   const db = createDb(d1);
   const r = await db.run(sql`DELETE FROM ${userGearBuilds} WHERE ${col('discord_id')} = ${discordId}`);
   return metaOf(r).changes;
+export async function getGearBuildRow(d1: D1Database, discordId: string, id: number): Promise<GearBuildRow | null> {
+  const db = createDb(d1);
+  const row = await db.get<GearBuildRow>(sql`SELECT ${col('id')}, ${col('name')}, ${col('target_idx')}, ${col('payload')}, ${col('created_at')} FROM ${userGearBuilds} WHERE ${col('id')} = ${id} AND ${col('discord_id')} = ${discordId}`);
+  return row ?? null;
+}
+
+/* ---------- Build share links ----------
+ * One active public alias per build; the code is the capability.
+ * Every row operation is scoped by the owning discord_id except the
+ * resolve-by-code read, which is the public entry point (the code
+ * itself is the credential, mirroring short_links). */
+
+export interface BuildShareLinkRow {
+  code: string;
+  build_id: number;
+  discord_id: string;
+  created_at: number;
+}
+
+export async function getBuildShareLinkRowByCode(d1: D1Database, code: string): Promise<BuildShareLinkRow | null> {
+  const db = createDb(d1);
+  const row = await db.get<BuildShareLinkRow>(sql`SELECT ${col('code')}, ${col('build_id')}, ${col('discord_id')}, ${col('created_at')} FROM ${buildShareLinks} WHERE ${col('code')} = ${code}`);
+  return row ?? null;
+}
+
+export async function getBuildShareLinkRowByBuild(d1: D1Database, discordId: string, buildId: number): Promise<BuildShareLinkRow | null> {
+  const db = createDb(d1);
+  const row = await db.get<BuildShareLinkRow>(sql`SELECT ${col('code')}, ${col('build_id')}, ${col('discord_id')}, ${col('created_at')} FROM ${buildShareLinks} WHERE ${col('build_id')} = ${buildId} AND ${col('discord_id')} = ${discordId}`);
+  return row ?? null;
+}
+
+export async function insertBuildShareLinkRow(
+  d1: D1Database,
+  row: { code: string; buildId: number; discordId: string; createdAt: number },
+): Promise<RunMeta> {
+  const db = createDb(d1);
+  const r = await db.run(sql`INSERT INTO ${buildShareLinks} (${col('code')}, ${col('build_id')}, ${col('discord_id')}, ${col('created_at')}) VALUES (${row.code}, ${row.buildId}, ${row.discordId}, ${row.createdAt})`);
+  return metaOf(r);
+}
+
+export async function deleteBuildShareLinkRow(d1: D1Database, discordId: string, buildId: number): Promise<RunMeta> {
+  const db = createDb(d1);
+  const r = await db.run(sql`DELETE FROM ${buildShareLinks} WHERE ${col('build_id')} = ${buildId} AND ${col('discord_id')} = ${discordId}`);
+  return metaOf(r);
 }

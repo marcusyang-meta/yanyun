@@ -30,6 +30,8 @@ import {
 import {
   listGearItems, insertGearItem, updateGearItemRow, deleteGearItemRow,
   listGearBuilds, insertGearBuild, deleteGearBuildRow, countGearItemRows,
+  getBuildShareLink, buildShareUrl, resolveSharedBuild,
+  shareGearBuild as shareGearBuildSvc, revokeBuildShare,
 } from './index.ts';
 import {
   GP_SLOTS, GP_GEAR_SLOTS, GP_AFFIX, GP_BUILDS, GP_SLOTS_BIG, GP_SLOTS_SMALL,
@@ -448,6 +450,10 @@ export const GEAR_TEXT_RESOLVERS = defineTextGens(GradPageShell, [
   ['gearSchemeSavedToastTemplate', 'gear', 'schemeSavedToastTemplate'],
   ['gearSchemeLoadedToastTemplate', 'gear', 'schemeLoadedToastTemplate'],
   ['gearSchemeGroupCountTemplate', 'gear', 'schemeGroupCountTemplate'],
+  ['gearShareLabel', 'gear', 'shareLabel'],
+  ['gearRevokeShareLabel', 'gear', 'revokeShareLabel'],
+  ['gearCopyLinkLabel', 'gear', 'copyLinkLabel'],
+  ['gearShareRevokedToast', 'gear', 'shareRevokedToast'],
   ['gearQuickTitle', 'gear', 'quickTitle'],
   ['gearQuickResLabel', 'gear', 'quickResLabel'],
   ['gearQuickSyncLabel', 'gear', 'quickSyncLabel'],
@@ -501,9 +507,41 @@ export const GEAR_TEXT_RESOLVERS = defineTextGens(GradPageShell, [
  * effectiveLocale is the locale actually in force for this request. */
 
 
+/* ---------- Public build share page (/b/:code) ----------
+ * Anonymous read surface: the shell wraps resolveSharedBuild's public
+ * view (display fields only). Unknown / revoked / orphaned codes get
+ * the same shell with exists=false and empty data — the client renders
+ * the not-found state from this shell's own copy fields. */
+export class SharedBuildPageShell extends ShellBase {
+  genExists(){ return !!this.data.shared; }
+  genName(){ return this.data.shared ? this.data.shared.build.name : null; }
+  genTargetIdx(){ return this.data.shared ? this.data.shared.build.targetIdx : 0; }
+  genXinfa(){ return this.data.shared ? this.data.shared.build.xinfa : []; }
+  genBowKind(){ return this.data.shared ? this.data.shared.build.bowKind : ''; }
+  genItems(){ return this.data.shared ? this.data.shared.items : []; }
+  genSnap(key: string){
+    const snap = this.data.shared ? this.data.shared.build.snapshot : null;
+    return snap ? (snap[key] || 0) : 0;
+  }
+}
+
+export const SHARED_BUILD_TEXT_RESOLVERS = defineTextGens(SharedBuildPageShell, [
+  ['buildShareKicker', 'buildshare', 'kicker'],
+  ['buildShareLoginLabel', 'buildshare', 'loginLabel'],
+  ['buildShareNotFoundTitle', 'buildshare', 'notFoundTitle'],
+  ['buildShareNotFoundBody', 'buildshare', 'notFoundBody'],
+  ['buildShareXinfaLabel', 'buildshare', 'xinfaLabel'],
+]);
+
 export const gearResolvers = {
   Query: {
     gradPage: (_: any, __: any, ctx: Context) => new GradPageShell(ctx, {}),
+
+    // Public build share page: anonymous; the code is the capability.
+    sharedBuild: async (_: any, { code }: any, ctx: Context) => {
+      const shared = await resolveSharedBuild(ctx.env.DB, String(code || '')).catch(() => null);
+      return new SharedBuildPageShell(ctx, { shared });
+    },
 
     // Gear library: only the caller's own (anonymous callers have no library -> empty)
     myGearItems: async (_: any, __: any, ctx: Context) => {
@@ -732,6 +770,30 @@ export const gearResolvers = {
     deleteGearBuild: async (_: any, { id }: any, ctx: Context) => {
       if (!ctx.user) return { ok: false, error: errText(ctx, 'loginRequired'), errorCode: 'loginRequired' };
       const done = await deleteGearBuildRow(ctx.env.DB, ctx.user.discordId, id);
+      if (!done) return { ok: false, error: errText(ctx, 'gearNotFound'), errorCode: 'gearNotFound' };
+      // A deleted build leaves no live alias behind (resolve would 404
+      // anyway; dropping the row now frees the build_id unique slot).
+      await revokeBuildShare(ctx.env.DB, ctx.user.discordId, id).catch(() => false);
+      return { ok: true, error: null, errorCode: null };
+    },
+
+    // ---- Build share links (owner-only; another user's build is "not found") ----
+    shareGearBuild: async (_: any, { id }: any, ctx: Context) => {
+      if (!ctx.user) return { ok: false, shareUrl: null, error: errText(ctx, 'loginRequired'), errorCode: 'loginRequired' };
+      if (!rateLimit('mut:gearshare:' + getClientIp(ctx.request), 30)) {
+        return { ok: false, shareUrl: null, error: errText(ctx, 'rateLimited'), errorCode: 'rateLimited' };
+      }
+      const link = await shareGearBuildSvc(ctx.env.DB, ctx.user.discordId, id);
+      if (!link) return { ok: false, shareUrl: null, error: errText(ctx, 'gearNotFound'), errorCode: 'gearNotFound' };
+      return { ok: true, shareUrl: buildShareUrl(link.code), error: null, errorCode: null };
+    },
+
+    revokeGearBuildShare: async (_: any, { id }: any, ctx: Context) => {
+      if (!ctx.user) return { ok: false, error: errText(ctx, 'loginRequired'), errorCode: 'loginRequired' };
+      if (!rateLimit('mut:gearshare:' + getClientIp(ctx.request), 30)) {
+        return { ok: false, error: errText(ctx, 'rateLimited'), errorCode: 'rateLimited' };
+      }
+      const done = await revokeBuildShare(ctx.env.DB, ctx.user.discordId, id);
       if (!done) return { ok: false, error: errText(ctx, 'gearNotFound'), errorCode: 'gearNotFound' };
       return { ok: true, error: null, errorCode: null };
     },
@@ -988,7 +1050,46 @@ export const gearResolvers = {
     snapDawai: (p: any) => (p.snapshot && p.snapshot.dawai) || 0,
     snapXiaowai: (p: any) => (p.snapshot && p.snapshot.xiaowai) || 0,
     createdAt: (p: any) => p.createdAt || 0,
+    // Public share state, composed server-side for the owner's own
+    // build lists: the active alias URL, or null when not shared.
+    // (Only myGearBuilds/saveGearBuild produce GearSavedBuild values,
+    // both owner-scoped, so ctx.user is the owner here.)
+    shareUrl: async (p: any, _a: any, ctx: Context) => {
+      const did = ctx.user ? ctx.user.discordId : null;
+      if (!did || !p.id) return null;
+      const link = await getBuildShareLink(ctx.env.DB, did, p.id).catch(() => null);
+      return link ? buildShareUrl(link.code) : null;
+    },
     id: (p: any) => p.id, name: (p: any) => p.name, targetIdx: (p: any) => p.targetIdx, xinfa: (p: any) => p.xinfa, gradDingyinOn: (p: any) => p.gradDingyinOn
+  },
+  GearBuildSharePayload: { ok: (p: any) => p.ok, shareUrl: (p: any) => p.shareUrl, error: (p: any) => p.error, errorCode: (p: any) => p.errorCode },
+  SharedBuildItem: { slot: (p: any) => p.slot, name: (p: any) => p.name, lines: (p: any) => p.lines, dingyin: (p: any) => p.dingyin, warnings: (p: any) => p.warnings },
+  SharedBuildPage: {
+    exists: (p: any) => p.genExists(),
+    name: (p: any) => p.genName(),
+    // Same locale overlay as GearSavedBuild: stored labels stay
+    // canonical Chinese; school/buildLabel localize per request.
+    school: (p: any, _a: any, ctx: Context) => {
+      if (!p.genExists()) return null;
+      return enBuildSchool(ctx.locale, (GP_BUILDS[p.genTargetIdx()] || GP_BUILDS[0]).school);
+    },
+    buildLabel: (p: any, _a: any, ctx: Context) => {
+      if (!p.genExists()) return null;
+      const b = GP_BUILDS[p.genTargetIdx()] || GP_BUILDS[0];
+      return enBuildSchool(ctx.locale, b.school) + ' · ' + enGearSetName(ctx.locale, b.set);
+    },
+    items: (p: any) => p.genItems(),
+    xinfa: (p: any) => p.genXinfa(),
+    bowKind: (p: any) => p.genBowKind(),
+    snapTotal: (p: any) => p.genSnap('total'),
+    snapA: (p: any) => p.genSnap('a'),
+    snapB: (p: any) => p.genSnap('b'),
+    snapD: (p: any) => p.genSnap('d'),
+    snapLoan: (p: any) => p.genSnap('loan'),
+    snapYAcc: (p: any) => p.genSnap('yAcc'),
+    snapYCrit: (p: any) => p.genSnap('yCrit'),
+    snapYInt: (p: any) => p.genSnap('yInt'),
+    ...SHARED_BUILD_TEXT_RESOLVERS,
   },
   },
 };

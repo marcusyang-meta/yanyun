@@ -239,6 +239,15 @@ export type GearStringKey =
   | 'gear.schemeSavedToastTemplate'
   | 'gear.schemeLoadedToastTemplate'
   | 'gear.schemeGroupCountTemplate'
+  | 'gear.shareLabel'
+  | 'gear.revokeShareLabel'
+  | 'gear.copyLinkLabel'
+  | 'gear.shareRevokedToast'
+  | 'buildshare.kicker'
+  | 'buildshare.loginLabel'
+  | 'buildshare.notFoundTitle'
+  | 'buildshare.notFoundBody'
+  | 'buildshare.xinfaLabel'
   | 'gear.quickTitle'
   | 'gear.quickResLabel'
   | 'gear.quickSyncLabel'
@@ -524,6 +533,15 @@ export const GEAR_STRING_KEYS: readonly GearStringKey[] = [
   'gear.schemeSavedToastTemplate',
   'gear.schemeLoadedToastTemplate',
   'gear.schemeGroupCountTemplate',
+  'gear.shareLabel',
+  'gear.revokeShareLabel',
+  'gear.copyLinkLabel',
+  'gear.shareRevokedToast',
+  'buildshare.kicker',
+  'buildshare.loginLabel',
+  'buildshare.notFoundTitle',
+  'buildshare.notFoundBody',
+  'buildshare.xinfaLabel',
   'gear.quickTitle',
   'gear.quickResLabel',
   'gear.quickSyncLabel',

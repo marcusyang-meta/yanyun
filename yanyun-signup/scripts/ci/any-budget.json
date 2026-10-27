@@ -16,8 +16,8 @@
     "reason": "repository-adjacent gear row handling at the data edge"
   },
   "src/domains/gear/graphql.ts": {
-    "max": 363,
-    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context)"
+    "max": 397,
+    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context) + build share page shell/mutations in the same pattern"
   },
   "src/domains/gear/heirloompush.ts": {
     "max": 18,
@@ -132,7 +132,7 @@
     "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary. Generated file: the count includes the word as it appears inside compiled translation string data (account section copy)"
   },
   "src/domains/platform/og.ts": {
-    "max": 5,
+    "max": 6,
     "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary"
   },
   "src/domains/platform/push.ts": {
@@ -144,7 +144,7 @@
     "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context) + reminder settings surface (advanced reminders, 2026-10-26): updateGuildReminderSettings mutation and GuildAdmin resolvers in the same parent/args pattern + white-label surface (2026-10-26): updateGuildWhiteLabel mutation and white-label / accent-option resolvers in the same pattern"
   },
   "src/domains/platform/og-graphql.ts": {
-    "max": 25,
-    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context) + white-label OG card fields (ogAccentColor / ogTitleSuffix) in the same pattern"
+    "max": 34,
+    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context) + white-label OG card fields (ogAccentColor / ogTitleSuffix) and the ogBuildCard share query in the same pattern"
   }
 }

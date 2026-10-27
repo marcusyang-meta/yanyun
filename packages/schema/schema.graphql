@@ -1257,6 +1257,10 @@ type GradPage {
   gearSchemeSavedToastTemplate: String!
   gearSchemeLoadedToastTemplate: String!
   gearSchemeGroupCountTemplate: String!
+  gearShareLabel: String!
+  gearRevokeShareLabel: String!
+  gearCopyLinkLabel: String!
+  gearShareRevokedToast: String!
   gearQuickTitle: String!
   gearQuickResLabel: String!
   gearQuickSyncLabel: String!
@@ -2061,11 +2065,23 @@ type OgCarCard {
   status: String!
 }
 
+# 方案分享卡: 只取卡面字段 (方案名/流派标签/毕业度快照), 永不下发
+# 所有者身份; 码不存在/已撤销/方案已删 -> null。
+type OgBuildCard {
+  name: String!
+  buildLabel: String!
+  snapTotal: Float!
+  snapA: Float!
+  snapB: Float!
+  snapD: Float!
+}
+
 extend type Query {
   ogGuildCard(slug: String!): OgGuildCard!
   # OG 预热枚举: 全部百业 slug (dev_only 仅 dev 来源可见, 与旧 /api/tenants 同门控)
   ogGuildSlugs: [String!]!
   ogCarCard(slug: String!, id: ID!): OgCarCard
+  ogBuildCard(code: String!): OgBuildCard
 }
 
 # ============ 配装台数据/计算 (gear-planner 移植, src/gearplanner.js) ============
@@ -2490,11 +2506,60 @@ type GearSavedBuild {
   snapDawai: Float!
   snapXiaowai: Float!
   createdAt: Int!
+  # 公开分享链 (仅所有者自己的方案列表里组合下发): 未分享为 null,
+  # 已分享为 /b/<code> 完整地址。一条方案同时至多一条有效链。
+  shareUrl: String
 }
 
 extend type Query {
   myGearItems: [GearItem!]!
   myGearBuilds: [GearSavedBuild!]!
+}
+
+# ============ 公开方案分享页 (/b/:code, 匿名只读) ============
+# 参观面: 只呈现被分享的那一套方案 (名/流派/心法/装备卡/毕业度
+# 摘要), 摸不到所有者的其他方案/装备库/任何身份字段。码不存在、
+# 已撤销或方案已删时 exists=false, 数据字段回空。
+type SharedBuildItem {
+  slot: String!
+  name: String!
+  lines: [GearLine!]!
+  dingyin: GearDingyin
+  warnings: [String!]!
+}
+
+type SharedBuildPage {
+  exists: Boolean!
+  name: String
+  buildLabel: String
+  school: String
+  items: [SharedBuildItem!]!
+  xinfa: [String!]!
+  bowKind: String!
+  snapTotal: Float!
+  snapA: Float!
+  snapB: Float!
+  snapD: Float!
+  snapLoan: Float!
+  snapYAcc: Float!
+  snapYCrit: Float!
+  snapYInt: Float!
+  buildShareKicker: String!
+  buildShareLoginLabel: String!
+  buildShareNotFoundTitle: String!
+  buildShareNotFoundBody: String!
+  buildShareXinfaLabel: String!
+}
+
+extend type Query {
+  sharedBuild(code: String!): SharedBuildPage!
+}
+
+type GearBuildSharePayload {
+  ok: Boolean!
+  shareUrl: String
+  error: String
+  errorCode: String
 }
 
 input GearItemCreateInput {
@@ -2559,4 +2624,7 @@ extend type Mutation {
   importGearItems(items: [GearItemCreateInput!]!, loadout: [GearLoadoutEntryInput!], source: String, imageCount: Int): GearImportResult!
   saveGearBuild(input: GearBuildSaveInput!): GearBuildPayload!
   deleteGearBuild(id: Int!): GearOkPayload!
+  # 方案公开分享: 生成 (或复用已有) 分享链 / 取消分享 (旧链立即失效)
+  shareGearBuild(id: Int!): GearBuildSharePayload!
+  revokeGearBuildShare(id: Int!): GearOkPayload!
 }

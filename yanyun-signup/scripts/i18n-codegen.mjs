@@ -52,7 +52,7 @@ const SECTION_OWNER = {
   groupingTemplate: 'groupings',
   account: 'identity',
   dex: 'dex', boss: 'dex', sect: 'dex',
-  gear: 'gear', grad: 'gear', tiaolv: 'gear',
+  gear: 'gear', grad: 'gear', tiaolv: 'gear', buildshare: 'gear',
 };
 // Legacy catalog order (the pre-split declaration order). The merged
 // virtual source emits sections in this order so compiled outputs stay
@@ -62,7 +62,7 @@ const SECTION_ORDER = [
   'locked', 'guildHome', 'groupingType', 'groupingList', 'groupingDetail',
   'groupingForm', 'seat', 'appBlocks', 'dex', 'boss', 'sect', 'tiaolv',
   'grad', 'gear', 'legal', 'termsBody', 'privacyBody', 'errors', 'guildAdmin',
-  'groupingTemplate', 'account',
+  'groupingTemplate', 'account', 'buildshare',
 ];
 const DOMAINS = ['identity', 'guilds', 'groupings', 'dex', 'gear', 'platform'];
 const domainSourcePath = (d) => join(APP, 'src', 'domains', d, 'i18n', 'strings.source.ts');

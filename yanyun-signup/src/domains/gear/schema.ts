@@ -40,6 +40,23 @@ export const userGearBuilds = sqliteTable('user_gear_builds', {
   index('idx_user_gear_builds_owner').on(t.discordId),
 ]);
 
+/* ---------------- build share links [migration 0003] ----------------
+ * Public share aliases of the form /b/<code> for saved builds. One
+ * active link per build (unique index on build_id); the code is the
+ * primary key (random base62, never derived from the sequential build
+ * id, so links cannot be enumerated). discord_id records the owner so
+ * every read/write stays ownership-scoped, exactly like the gear rows
+ * themselves. Revoking deletes the row — the old code dies at once. */
+export const buildShareLinks = sqliteTable('build_share_links', {
+  code: text('code').primaryKey(),
+  buildId: integer('build_id').notNull(),
+  discordId: text('discord_id').notNull(),
+  createdAt: integer('created_at').notNull().default(0),
+}, (t) => [
+  uniqueIndex('build_share_links_build_unique').on(t.buildId),
+  index('idx_build_share_links_owner').on(t.discordId),
+]);
+
 /* ---------------- heirloom push state [ddl chain baseline] ---------- */
 export const heirloomItemPushes = sqliteTable('heirloom_item_pushes', {
   tenant: text('tenant').notNull(),

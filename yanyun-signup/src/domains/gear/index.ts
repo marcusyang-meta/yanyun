@@ -3,6 +3,7 @@
  * (heirloom_item_pushes / heirloom_set_state).
  * Other domains must import only from here. */
 export * from './gear.ts';
+export * from './buildshare.ts';
 export * from './heirloom.ts';
 export * from './tiaolv.ts';
 export * from './gearplanner.ts';
