@@ -328,6 +328,7 @@ const ADMIN_TEXT_SPEC: [string, string, string][] = [
   ['adminVisibilityTitle', 'guildAdmin', 'visibilityTitle'],
   ['adminDevOnlyLabel', 'guildAdmin', 'devOnlyLabel'],
   ['adminEventsTitle', 'guildAdmin', 'eventsTitle'],
+  ['adminSignupCsvSuffix', 'guildAdmin', 'signupCsvSuffix'],
   ['adminEventEmptyText', 'guildAdmin', 'eventEmpty'],
   ['adminEventTitleLabel', 'guildAdmin', 'eventTitleLabel'],
   ['adminEventTypeLabel', 'guildAdmin', 'eventTypeLabel'],

@@ -84,6 +84,9 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "es": "Paisaje de tinta",
       "fr": "Paysage à l’encre",
       "zh-TW": "水墨山水"
+    },
+    "seal": {
+      "zh-CN": "燕"
     }
   },
   "login": {
@@ -2235,6 +2238,15 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "fr": "Accord",
       "zh-TW": "定音"
     },
+    "ratePrecision": {
+      "zh-CN": "精准"
+    },
+    "rateCrit": {
+      "zh-CN": "会心"
+    },
+    "rateAffinity": {
+      "zh-CN": "会意"
+    },
     "affixPlaceholder": {
       "zh-CN": "— 待镌刻 —",
       "en": "— Not inscribed —",
@@ -2718,6 +2730,12 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "es": "Exportar datos",
       "fr": "Exporter les données",
       "zh-TW": "匯出資料"
+    },
+    "exportFileName": {
+      "zh-CN": "100阶配装数据.json"
+    },
+    "importNameTemplate": {
+      "zh-CN": "导入 · {slot}"
     },
     "importLabel": {
       "zh-CN": "导入数据",
@@ -4777,6 +4795,9 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "es": "Gestión de eventos",
       "fr": "Gestion des événements",
       "zh-TW": "活動管理"
+    },
+    "signupCsvSuffix": {
+      "zh-CN": "报名表"
     },
     "eventEmpty": {
       "zh-CN": "暂无活动。",

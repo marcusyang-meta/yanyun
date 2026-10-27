@@ -1,7 +1,7 @@
 {
   "src/domains/dex/graphql.ts": {
-    "max": 118,
-    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context)"
+    "max": 124,
+    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context) + vocabulary delivery fields (sealText / sectOptions / sectGroups / groupKey) in the same pattern"
   },
   "src/domains/dex/public-routes.ts": {
     "max": 4,
@@ -16,8 +16,8 @@
     "reason": "repository-adjacent gear row handling at the data edge"
   },
   "src/domains/gear/graphql.ts": {
-    "max": 397,
-    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context) + build share page shell/mutations in the same pattern"
+    "max": 422,
+    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context) + build share page shell/mutations in the same pattern + vocabulary delivery types (TiaolvVocabOption / GradSlot / GearVocabRules …) in the same pattern"
   },
   "src/domains/gear/heirloompush.ts": {
     "max": 18,

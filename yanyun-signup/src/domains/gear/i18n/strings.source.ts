@@ -84,6 +84,9 @@ export const grad_rowMain = (fbs: FbsAPI) =>fbs("主词条", "grad.rowMain");
 export const grad_rowSub = (fbs: FbsAPI, p?: StringParams) =>
   fbs(["副词条", fbs.param("n", pv(p, "n"))], "grad.rowSub");
 export const grad_rowResonance = (fbs: FbsAPI) =>fbs("定音", "grad.rowResonance");
+export const grad_ratePrecision = (fbs: FbsAPI) =>fbs("精准", "grad.ratePrecision");
+export const grad_rateCrit = (fbs: FbsAPI) =>fbs("会心", "grad.rateCrit");
+export const grad_rateAffinity = (fbs: FbsAPI) =>fbs("会意", "grad.rateAffinity");
 export const grad_affixPlaceholder = (fbs: FbsAPI) =>fbs("— 待镌刻 —", "grad.affixPlaceholder");
 export const grad_affixLoading = (fbs: FbsAPI) =>fbs("词条数据加载中…", "grad.affixLoading");
 export const grad_valuePlaceholderMax = (fbs: FbsAPI, p?: StringParams) =>
@@ -163,6 +166,9 @@ export const gear_scoreTemplate = (fbs: FbsAPI, p?: StringParams) =>
   fbs(["评分 ", fbs.param("score", pv(p, "score"))], "gear.scoreTemplate");
 export const gear_qualityLabel = (fbs: FbsAPI) =>fbs("数值达成", "gear.qualityLabel");
 export const gear_exportLabel = (fbs: FbsAPI) =>fbs("导出数据", "gear.exportLabel");
+export const gear_exportFileName = (fbs: FbsAPI) =>fbs("100阶配装数据.json", "gear.exportFileName");
+export const gear_importNameTemplate = (fbs: FbsAPI, p?: StringParams) =>
+  fbs(["导入 · ", fbs.param("slot", pv(p, "slot"))], "gear.importNameTemplate");
 export const gear_importLabel = (fbs: FbsAPI) =>fbs("导入数据", "gear.importLabel");
 export const gear_importFailedToast = (fbs: FbsAPI) =>fbs("导入失败：文件无效", "gear.importFailedToast");
 export const gear_importedToastTemplate = (fbs: FbsAPI, p?: StringParams) =>

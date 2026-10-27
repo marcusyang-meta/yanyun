@@ -27,6 +27,7 @@ export const common_close = (fbs: FbsRuntime) => fbs._("关闭", null, { hk: "4B
 export const site_title = (fbs: FbsRuntime) => fbs._("百业集结", null, { hk: "4yTeMg" });
 export const site_subtitle = (fbs: FbsRuntime) => fbs._("燕云十六声 · 国际服百业车队与攻略集散地 —— 择一业而入，共赴双十。", null, { hk: "2g9rY5" });
 export const site_heroAlt = (fbs: FbsRuntime) => fbs._("水墨山水", null, { hk: "30nbm1" });
+export const site_seal = (fbs: FbsRuntime) => fbs._("燕", null, { hk: "2oucmC" });
 export const login_cardTitle = (fbs: FbsRuntime) => fbs._("先登录，再入江湖", null, { hk: "1faEKJ" });
 export const login_cardBody1 = (fbs: FbsRuntime) => fbs._("本站需用 Discord 账号认证后使用。", null, { hk: "DQUx9" });
 export const login_cardBody2 = (fbs: FbsRuntime) => fbs._("登录后将按你所在的 Discord 服务器，展示你有权限访问的百业。", null, { hk: "1zXTLR" });
@@ -341,6 +342,9 @@ export const grad_itemScore = (fbs: FbsRuntime, p?: StringParams) => fbs._("本�
 export const grad_rowMain = (fbs: FbsRuntime) => fbs._("主词条", null, { hk: "4039TQ" });
 export const grad_rowSub = (fbs: FbsRuntime, p?: StringParams) => fbs._("副词条{n}", [fbs._param("n", pv(p, "n"))], { hk: "1ZmIHC" });
 export const grad_rowResonance = (fbs: FbsRuntime) => fbs._("定音", null, { hk: "1DqEt" });
+export const grad_ratePrecision = (fbs: FbsRuntime) => fbs._("精准", null, { hk: "2MKnS1" });
+export const grad_rateCrit = (fbs: FbsRuntime) => fbs._("会心", null, { hk: "eHIz6" });
+export const grad_rateAffinity = (fbs: FbsRuntime) => fbs._("会意", null, { hk: "3xLqfY" });
 export const grad_affixPlaceholder = (fbs: FbsRuntime) => fbs._("— 待镌刻 —", null, { hk: "2AvWZF" });
 export const grad_affixLoading = (fbs: FbsRuntime) => fbs._("词条数据加载中…", null, { hk: "4thrrD" });
 export const grad_valuePlaceholderMax = (fbs: FbsRuntime, p?: StringParams) => fbs._("数值 / {max}", [fbs._param("max", pv(p, "max"))], { hk: "4bDnGK" });
@@ -411,6 +415,8 @@ export const gear_verdictDud = (fbs: FbsRuntime) => fbs._("拉完了", null, { h
 export const gear_scoreTemplate = (fbs: FbsRuntime, p?: StringParams) => fbs._("评分 {score}", [fbs._param("score", pv(p, "score"))], { hk: "1jxQq3" });
 export const gear_qualityLabel = (fbs: FbsRuntime) => fbs._("数值达成", null, { hk: "2JTaSy" });
 export const gear_exportLabel = (fbs: FbsRuntime) => fbs._("导出数据", null, { hk: "2UNh9T" });
+export const gear_exportFileName = (fbs: FbsRuntime) => fbs._("100阶配装数据.json", null, { hk: "2G9bMH" });
+export const gear_importNameTemplate = (fbs: FbsRuntime, p?: StringParams) => fbs._("导入 · {slot}", [fbs._param("slot", pv(p, "slot"))], { hk: "eDscX" });
 export const gear_importLabel = (fbs: FbsRuntime) => fbs._("导入数据", null, { hk: "11MH1n" });
 export const gear_importFailedToast = (fbs: FbsRuntime) => fbs._("导入失败：文件无效", null, { hk: "1r5Y0C" });
 export const gear_importedToastTemplate = (fbs: FbsRuntime, p?: StringParams) => fbs._("已导入 {n} 件", [fbs._param("n", pv(p, "n"))], { hk: "2tzLQy" });
@@ -758,6 +764,7 @@ export const guildAdmin_reminderCustomTextHint = (fbs: FbsRuntime) => fbs._("一
 export const guildAdmin_visibilityTitle = (fbs: FbsRuntime) => fbs._("可见性", null, { hk: "3J6SQ2" });
 export const guildAdmin_devOnlyLabel = (fbs: FbsRuntime) => fbs._("仅开发环境可见", null, { hk: "12OF7C" });
 export const guildAdmin_eventsTitle = (fbs: FbsRuntime) => fbs._("活动管理", null, { hk: "4xCOb0" });
+export const guildAdmin_signupCsvSuffix = (fbs: FbsRuntime) => fbs._("报名表", null, { hk: "EaoNs" });
 export const guildAdmin_eventEmpty = (fbs: FbsRuntime) => fbs._("暂无活动。", null, { hk: "3CAWZW" });
 export const guildAdmin_eventTitleLabel = (fbs: FbsRuntime) => fbs._("标题", null, { hk: "Z67in" });
 export const guildAdmin_eventTypeLabel = (fbs: FbsRuntime) => fbs._("类型", null, { hk: "1CCpeN" });
@@ -917,6 +924,7 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"site.title": site_title,
 	"site.subtitle": site_subtitle,
 	"site.heroAlt": site_heroAlt,
+	"site.seal": site_seal,
 	"login.cardTitle": login_cardTitle,
 	"login.cardBody1": login_cardBody1,
 	"login.cardBody2": login_cardBody2,
@@ -1223,6 +1231,9 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"grad.rowMain": grad_rowMain,
 	"grad.rowSub": grad_rowSub,
 	"grad.rowResonance": grad_rowResonance,
+	"grad.ratePrecision": grad_ratePrecision,
+	"grad.rateCrit": grad_rateCrit,
+	"grad.rateAffinity": grad_rateAffinity,
 	"grad.affixPlaceholder": grad_affixPlaceholder,
 	"grad.affixLoading": grad_affixLoading,
 	"grad.valuePlaceholderMax": grad_valuePlaceholderMax,
@@ -1293,6 +1304,8 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"gear.scoreTemplate": gear_scoreTemplate,
 	"gear.qualityLabel": gear_qualityLabel,
 	"gear.exportLabel": gear_exportLabel,
+	"gear.exportFileName": gear_exportFileName,
+	"gear.importNameTemplate": gear_importNameTemplate,
 	"gear.importLabel": gear_importLabel,
 	"gear.importFailedToast": gear_importFailedToast,
 	"gear.importedToastTemplate": gear_importedToastTemplate,
@@ -1607,6 +1620,7 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"guildAdmin.visibilityTitle": guildAdmin_visibilityTitle,
 	"guildAdmin.devOnlyLabel": guildAdmin_devOnlyLabel,
 	"guildAdmin.eventsTitle": guildAdmin_eventsTitle,
+	"guildAdmin.signupCsvSuffix": guildAdmin_signupCsvSuffix,
 	"guildAdmin.eventEmpty": guildAdmin_eventEmpty,
 	"guildAdmin.eventTitleLabel": guildAdmin_eventTitleLabel,
 	"guildAdmin.eventTypeLabel": guildAdmin_eventTypeLabel,

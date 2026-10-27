@@ -4,6 +4,7 @@ export type IdentityStringKey =
   | 'site.title'
   | 'site.subtitle'
   | 'site.heroAlt'
+  | 'site.seal'
   | 'login.cardTitle'
   | 'login.cardBody1'
   | 'login.cardBody2'
@@ -103,6 +104,7 @@ export const IDENTITY_STRING_KEYS: readonly IdentityStringKey[] = [
   'site.title',
   'site.subtitle',
   'site.heroAlt',
+  'site.seal',
   'login.cardTitle',
   'login.cardBody1',
   'login.cardBody2',

@@ -55,6 +55,7 @@ export type GuildsStringKey =
   | 'guildAdmin.visibilityTitle'
   | 'guildAdmin.devOnlyLabel'
   | 'guildAdmin.eventsTitle'
+  | 'guildAdmin.signupCsvSuffix'
   | 'guildAdmin.eventEmpty'
   | 'guildAdmin.eventTitleLabel'
   | 'guildAdmin.eventTypeLabel'
@@ -181,6 +182,7 @@ export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'guildAdmin.visibilityTitle',
   'guildAdmin.devOnlyLabel',
   'guildAdmin.eventsTitle',
+  'guildAdmin.signupCsvSuffix',
   'guildAdmin.eventEmpty',
   'guildAdmin.eventTitleLabel',
   'guildAdmin.eventTypeLabel',

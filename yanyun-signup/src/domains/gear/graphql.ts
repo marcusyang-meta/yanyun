@@ -42,6 +42,8 @@ import {
   GP_DEMO_KIT, GP_DIM_ROWS, GP_QUICK_BAR_NAMES, GP_BUILD_SECT, GP_WUXUE_NAMES,
   gpTalentText, gpClassOf, gpSanitizeGearData, gpPlan, gpAutoCombine,
   gpParsePaste, gpQuickCalc,
+  TL_SUIT_OPTIONS, TL_BOW_OPTIONS, TL_WUKU_OPTIONS, TL_SECT_WUXUE, TL_TUNE_ROWS,
+  tlSuitName, tlBowName, tlWukuName, GRAD_SLOTS, GRAD_RATES, gearVocabRules,
 } from './index.ts';
 import {
   enDungeonName, enBossName, enSectName, enBuildSchool, enAffixName,
@@ -93,6 +95,30 @@ export class TiaolvPageShell extends ShellBase {
   genSuits(){ return SUITS; }
   genMaxValues(){ return TIAOLV_MAX; }
   genSectWeights(){ return SECT_WEIGHTS; }
+  /* Closed vocabularies as {id, label} options (vocab.ts is the single
+   * source): the client keys its state by id and renders label; the
+   * "none" entry's label is UI copy and follows the request locale,
+   * the game-term labels are the canonical names in every locale. */
+  genTlSuitOptions(){
+    return TL_SUIT_OPTIONS.map((o) => ({
+      id: o.id, isDefault: o.isDefault,
+      label: o.id === 'none' ? translate('tiaolv', 'none', this.locale) : o.name,
+    }));
+  }
+  genTlBowOptions(){
+    return TL_BOW_OPTIONS.map((o) => ({
+      id: o.id, isDefault: o.isDefault,
+      label: o.id === 'none' ? translate('tiaolv', 'none', this.locale) : o.name,
+    }));
+  }
+  genTlWukuOptions(){
+    return TL_WUKU_OPTIONS.map((o) => ({
+      id: o.id, isDefault: o.isDefault,
+      label: translate('tiaolv', o.id === 'self' ? 'wukuSelf' : 'wukuCommon', this.locale),
+    }));
+  }
+  genTlTuneRows(){ return TL_TUNE_ROWS; }
+  genTlSectWuxue(){ return TL_SECT_WUXUE; }
 }
 
 export const TIAOLV_TEXT_RESOLVERS = defineTextGens(TiaolvPageShell, [
@@ -200,6 +226,16 @@ export class GradPageShell extends ShellBase {
   genGearDimRows(){ return GP_DIM_ROWS; }
   genGearQuickBarNames(){ return GP_QUICK_BAR_NAMES; }
   genGearResDefault(){ return 1.85; }
+  /* Graduation calculator tables (vocab.ts): slots keyed by stable id
+   * with canonical-name labels; rates keyed by the GraduationInput
+   * field names with localized labels and attainment caps. */
+  genGradSlots(){ return GRAD_SLOTS; }
+  genGradRates(){
+    const fieldOf: Record<string, string> = { precision: 'ratePrecision', crit: 'rateCrit', affinity: 'rateAffinity' };
+    return GRAD_RATES.map((r) => ({ key: r.key, cap: r.cap, label: translate('grad', fieldOf[r.key], this.locale) }));
+  }
+  /* Weapon-pool + OCR recognition rules for the client engines. */
+  genGearVocabRules(){ return gearVocabRules(); }
   /* Library usage vs the caller's effective capacity (limits service is
    * the only source of the number; anonymous callers have no library). */
   async genGearUsageCount(){
@@ -219,7 +255,7 @@ for (const f of ['gearSlots', 'gearGearSlots', 'gearAffixes', 'gearBuilds', 'gea
   'gearBaseFields', 'gearXinfa', 'gearTalentRows', 'gearDingyinRows', 'gearDingyinLeft', 'gearDingyinRightMax', 'gearWuxueNames',
   'gearBows', 'gearPasteNames', 'gearNameToClass', 'gearSlotAliases', 'gearOcrAliases', 'gearLegacyKeys',
   'gearClassLabels', 'gearSchoolTags', 'gearDemoKit', 'gearDimRows', 'gearQuickBarNames', 'gearResDefault',
-  'gearUsageCount', 'gearUsageLimit']) {
+  'gearUsageCount', 'gearUsageLimit', 'gradSlots', 'gradRates', 'gearVocabRules']) {
   const genName = 'gen' + f[0].toUpperCase() + f.slice(1);
   GEAR_DATA_RESOLVERS[f] = (p: any) => p[genName]();
 }
@@ -338,6 +374,8 @@ export const GEAR_TEXT_RESOLVERS = defineTextGens(GradPageShell, [
   ['gearScoreTemplate', 'gear', 'scoreTemplate'],
   ['gearQualityLabel', 'gear', 'qualityLabel'],
   ['gearExportLabel', 'gear', 'exportLabel'],
+  ['gearExportFileName', 'gear', 'exportFileName'],
+  ['gearImportNameTemplate', 'gear', 'importNameTemplate'],
   ['gearImportLabel', 'gear', 'importLabel'],
   ['gearImportFailedToast', 'gear', 'importFailedToast'],
   ['gearImportedToastTemplate', 'gear', 'importedToastTemplate'],
@@ -814,10 +852,13 @@ export const gearResolvers = {
       const rows = tlCalculateExcel({
         innerSkills: input.innerSkills || [],
         wuxue: input.wuxue || undefined,
-        wuku: input.wuku || undefined,
+        // Closed vocabularies arrive as stable ids from current
+        // clients (canonical names from legacy ones); translate at
+        // the boundary so the engine only ever sees canonical names.
+        wuku: input.wuku ? tlWukuName(input.wuku) : undefined,
         attrRequire: typeof input.attrRequire === 'number' ? input.attrRequire : undefined,
-        suit: input.suit || '',
-        bowSkill: input.bowSkill || '',
+        suit: tlSuitName(input.suit || ''),
+        bowSkill: input.bowSkill ? tlBowName(input.bowSkill) : '',
         tunes,
       });
       return { rows };
@@ -979,6 +1020,13 @@ export const gearResolvers = {
     GraduationResult: { total: (p: any) => p.total, countScore: (p: any) => p.countScore, valueScore: (p: any) => p.valueScore, rateScore: (p: any) => p.rateScore, items: (p: any) => p.items },
     SectWeight: { sectSlug: (p: any) => p.sectSlug, critWeight: (p: any) => p.critWeight, critDamageWeight: (p: any) => p.critDamageWeight },
     TiaolvMaxValues: { mainAttr: (p: any) => p.mainAttr, outerAtk: (p: any) => p.outerAtk, accuracy: (p: any) => p.accuracy, crit: (p: any) => p.crit, critDamage: (p: any) => p.critDamage, sectAttr: (p: any) => p.sectAttr },
+    TiaolvVocabOption: { id: (p: any) => p.id, label: (p: any) => p.label, isDefault: (p: any) => p.isDefault },
+    TiaolvTuneRow: { row: (p: any) => p.row, label: (p: any) => p.label },
+    TiaolvSectWuxue: { sectSlug: (p: any) => p.sectSlug, wuxue: (p: any) => p.wuxue },
+    GradSlot: { id: (p: any) => p.id, label: (p: any) => p.label, icon: (p: any) => p.icon },
+    GradRate: { key: (p: any) => p.key, label: (p: any) => p.label, cap: (p: any) => p.cap },
+    GearVocabRules: { weaponSlot: (p: any) => p.weaponSlot, weaponPositions: (p: any) => p.weaponPositions, ocrStripPrefixes: (p: any) => p.ocrStripPrefixes, ocrDingyinMarker: (p: any) => p.ocrDingyinMarker, ocrDingyinFallbacks: (p: any) => p.ocrDingyinFallbacks },
+    GearOcrFallback: { needle: (p: any) => p.needle, name: (p: any) => p.name },
     TiaolvResult: { rows: (p: any) => p.rows },
     TiaolvRow: { key: (p: any) => p.key, label: (p: any) => p.label, base: (p: any) => p.base, panel: (p: any) => p.panel, final: (p: any) => p.final },
   TiaolvPage: {
@@ -987,6 +1035,11 @@ export const gearResolvers = {
     suits: (p: any) => p.genSuits(),
     maxValues: (p: any) => p.genMaxValues(),
     sectWeights: (p: any) => p.genSectWeights(),
+    tlSuitOptions: (p: any) => p.genTlSuitOptions(),
+    tlBowOptions: (p: any) => p.genTlBowOptions(),
+    tlWukuOptions: (p: any) => p.genTlWukuOptions(),
+    tlTuneRows: (p: any) => p.genTlTuneRows(),
+    tlSectWuxue: (p: any) => p.genTlSectWuxue(),
     ...TIAOLV_TEXT_RESOLVERS,
   },
   GradPage: { ...GRAD_TEXT_RESOLVERS, ...GEAR_TEXT_RESOLVERS, ...GEAR_DATA_RESOLVERS },

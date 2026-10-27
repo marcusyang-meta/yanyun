@@ -57,6 +57,9 @@ export type GearStringKey =
   | 'grad.rowMain'
   | 'grad.rowSub'
   | 'grad.rowResonance'
+  | 'grad.ratePrecision'
+  | 'grad.rateCrit'
+  | 'grad.rateAffinity'
   | 'grad.affixPlaceholder'
   | 'grad.affixLoading'
   | 'grad.valuePlaceholderMax'
@@ -127,6 +130,8 @@ export type GearStringKey =
   | 'gear.scoreTemplate'
   | 'gear.qualityLabel'
   | 'gear.exportLabel'
+  | 'gear.exportFileName'
+  | 'gear.importNameTemplate'
   | 'gear.importLabel'
   | 'gear.importFailedToast'
   | 'gear.importedToastTemplate'
@@ -351,6 +356,9 @@ export const GEAR_STRING_KEYS: readonly GearStringKey[] = [
   'grad.rowMain',
   'grad.rowSub',
   'grad.rowResonance',
+  'grad.ratePrecision',
+  'grad.rateCrit',
+  'grad.rateAffinity',
   'grad.affixPlaceholder',
   'grad.affixLoading',
   'grad.valuePlaceholderMax',
@@ -421,6 +429,8 @@ export const GEAR_STRING_KEYS: readonly GearStringKey[] = [
   'gear.scoreTemplate',
   'gear.qualityLabel',
   'gear.exportLabel',
+  'gear.exportFileName',
+  'gear.importNameTemplate',
   'gear.importLabel',
   'gear.importFailedToast',
   'gear.importedToastTemplate',
