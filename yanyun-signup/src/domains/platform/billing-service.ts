@@ -128,34 +128,19 @@ export async function revokePremium(
   return row;
 }
 
-/* ---------------- plan-based gear limits (seam) ----------------
- * Single source for plan-tier gear limits. The gear-capacity work
- * consumes effectiveGearLimits(plan) for its item/build/batch-OCR
- * caps; until it wires in, nothing reads these numbers, so the free
- * tier values are deliberately generous — wiring them in must not
- * retroactively squeeze a guild's existing library. */
-
-export interface GearLimits {
-  maxItems: number;
-  maxBuilds: number;
-  batchOcrDailyQuota: number;
-}
-
-export const GEAR_LIMITS_BY_PLAN: Record<GuildPlan, GearLimits> = {
-  free: { maxItems: 500, maxBuilds: 20, batchOcrDailyQuota: 20 },
-  premium: { maxItems: 5000, maxBuilds: 200, batchOcrDailyQuota: 200 },
-};
-
-export function effectiveGearLimits(plan: GuildPlan): GearLimits {
-  return GEAR_LIMITS_BY_PLAN[plan] || GEAR_LIMITS_BY_PLAN.free;
-}
-
-export async function effectiveGearLimitsForGuild(
+/* ---------------- plan verdict for limit resolution ----------------
+ * Whether a guild's premium tier is in force right now: the master
+ * switch is on AND the effective entitlement is premium. The limits
+ * service (limits.ts) resolves its premium table through this one
+ * verdict — while the switch is OFF nobody's limits move, so the
+ * launch-day behavior of every quota stays the free constants. */
+export async function isPremiumActive(
   d1: D1Database,
   slug: string,
-): Promise<GearLimits> {
-  const eff = await getEffectiveEntitlement(d1, slug);
-  return effectiveGearLimits(eff.plan);
+): Promise<boolean> {
+  if (!slug) return false;
+  if (!(await isPaygateEnabled(d1))) return false;
+  return (await getEffectiveEntitlement(d1, slug)).plan === 'premium';
 }
 
 /* ---------------- Stripe event application ---------------- */
