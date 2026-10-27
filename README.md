@@ -1,131 +1,194 @@
-# 燕云十六声 · 百业工具 monorepo
+# Yanyun Guild Tool — Monorepo
 
-五个可部署物 + 三个共享包，一个仓、一个 lockfile（npm workspaces）。
-2026-10-25 由原先五棵散树（`~/workspace/yanyun-*`）合并而来。
+Squad signup and guild management for *Where Winds Meet* (global server):
+guilds （百业） create squads ("cars") for activities, talent runs, races and
+tower climbs; members sign up, mark readiness, and get departure reminders
+over Discord webhooks and mobile push.
+
+Production: <https://yanyun.app> · OG images: <https://og.yanyun.app>
+
+This repository is a single npm-workspaces monorepo (one lockfile) holding
+four deployables and three shared packages. It was assembled on 2026-10-25
+from five previously separate trees.
 
 ```
 yanyun/
-├─ yanyun-signup/     后端: Hono + GraphQL Yoga on Cloudflare Workers + D1
-│                     (含 GuildHub Durable Object 实时推送 / 发车提醒 / hub 管理台)
-├─ yanyun-web/        Web 前端: Vite + React + Relay 21 (构建产物拷进 signup/public 部署)
-├─ yanyun-mobile/     手机版: Expo SDK 58 + React Native + Relay (EAS Update 分发)
-├─ yanyun-og/         OG 分享图 Worker (satori/resvg 渲染, Cron 预热)
+├─ yanyun-signup/     Backend: Hono + GraphQL Yoga on Cloudflare Workers,
+│                     D1 via a Drizzle data layer, a GuildHub Durable
+│                     Object (Hibernation WebSockets) for realtime updates
+│                     and departure reminders, plus the hub admin pages.
+├─ yanyun-web/        Web: Vite + React + Relay. Build output is synced
+│                     into yanyun-signup/public and served by the backend.
+├─ yanyun-mobile/     Mobile: Expo SDK 58 + React Native + Relay,
+│                     distributed with EAS Update (preview channel).
+├─ yanyun-og/         OG share-image Worker (satori/resvg rendering).
 └─ packages/
-   ├─ blocks-core/    @yanyun/blocks-core — Bloks-lite 平台中立核心
-   ├─ theme/          @yanyun/theme — 设计令牌单一来源
-   └─ schema/         @yanyun/schema — GraphQL SDL 契约单一来源
+   ├─ blocks-core/    @yanyun/blocks-core — platform-neutral core of the
+   │                  server-driven block UI (Block/Action types, tree
+   │                  walker, action dispatch). No React Native / DOM
+   │                  imports; hosts inject platform leaves.
+   ├─ theme/          @yanyun/theme — design tokens, single source
+   │                  (src/tokens.json). Consumed by mobile; web does not
+   │                  consume the package yet.
+   └─ schema/         @yanyun/schema — canonical GraphQL SDL. All copies
+                      in the apps are generated from this package, never
+                      edited as the source.
 ```
 
-## 安装与日常
+## Getting started
+
+Node 24 (see `.nvmrc`). Install once, at the root only — there is a single
+root lockfile; do not run `npm install` inside subprojects.
 
 ```bash
-npm install            # 只在仓根跑; 单一根 lockfile, 子项目不再各自 install
-npm run build:web      # web 构建 (sync-schema → relay → tsc → vite)
+npm install            # root only
+npm run build:web      # web build (sync-schema → relay → tsc → vite)
+npm run sync-public    # copy the web build into yanyun-signup/public
 npm run mobile:typecheck
-npm run relay          # Relay 多项目 codegen (根 relay.config.json, 见下)
+npm run relay          # Relay multi-project codegen — root only, see below
 ```
 
-根 `.npmrc` 设了 `legacy-peer-deps=true`：RN/Expo 生态 peer 范围普遍滞后，
-`expo install` 本身也是这个策略，workspaces 下保持一致。
+The root `.npmrc` sets `legacy-peer-deps=true`: peer ranges in the RN/Expo
+ecosystem lag behind, and `expo install` follows the same policy.
 
-## 共享包
+Relay codegen is a multi-project setup in the root `relay.config.json`
+(`mobile` on top of a `blocks` base). Always run it from the root
+(`npm run relay`); the `relay` script inside subprojects only forwards to
+the root config.
 
-### @yanyun/blocks-core
-Bloks-lite 的平台中立核心：Block/Action 类型、递归 fragment 集、树 walker
-（`createBlockRenderer`）、`dispatchAction`。**禁止 import react-native / DOM**——
-平台叶子（RN/Web/Tauri 渲染器）由宿主经 `BlockLeafRegistry` 注入。
-- 消费者：yanyun-mobile（`src/blocks/` 是宿主垫片：RN 叶子 + 动作绑定）。
-- 不在本包的东西：Relay Environment 工厂留在 mobile `src/relay.ts`（绑了 App 的
-  session/语言重查逻辑，非平台中立）；`BLOCKS_VERSION` 的**值**留在 mobile
-  `src/config.ts`（每端协商），包里只持有版本契约（FallbackBlock 等）。
+`yanyun-mobile/metro.config.js` follows Expo's official monorepo guide
+with explicit `watchFolders` and `nodeModulesPaths`.
 
-### @yanyun/theme
-设计令牌单一来源：`src/tokens.json` 是数据，`scripts/gen.mjs` 生成 `tokens.ts`
-（TS 常量）与 `tokens.css`（`:root` 变量片段）。改颜色改 tokens.json 后跑
-`npm run gen --workspace=@yanyun/theme`。
-- 消费者：mobile 已改为引用包内令牌（`src/theme.ts` 只做形状映射）。
-- Web 本轮**未接**：`yanyun-web/src/index.css` 仍直用自带 `:root`（值与令牌同源），
-  下一轮再把 `:root` 换成生成片段，避免本轮动 web 构建。
+Shared packages hold contracts, tokens and logic only. Game data and UI
+copy are served by the backend; nothing game-specific is hardcoded in a
+frontend package.
 
-### @yanyun/schema
-`schema.graphql` 是全仓唯一的 GraphQL SDL 契约源（canonical）。同步方向一律
-**包 → 各端**，不许反向改各端副本当源头：
-- `yanyun-signup/schema.graphql`：由 `yanyun-signup/scripts/sync-schema.mjs` 从包拷贝。
-  后端运行时不读这个文件（typeDefs 在 `src/graphql-schema.js`），拷贝只为工具/文档对齐。
-- Web / mobile 的编译用 schema 是**合并版**（`extend type` 必须先经
-  buildASTSchema+printSchema 合并，否则 relay-compiler 把扩展字段当客户端字段）：
-  两端各自的 `scripts/sync-schema.mjs` 已改为从包取源头生成；包内
-  `scripts/merge-schema.mjs` 是同一算法的通用版（blocks-core 的 schema.graphql 由它生成）。
+## Architecture rules
 
-### Relay 多项目 codegen
-根 `relay.config.json` 是多项目配置：`mobile`（base = `blocks`）+ `blocks` 两项目，
-sources 分别映射 `yanyun-mobile/src` 与 `packages/blocks-core/src`，产物各回各家
-（`*/src/__generated__`）。只在仓根跑：`npm run relay`。子项目里的 `relay` script
-只是转发到根配置，不要再在子目录单独建 relay.config.json。
+These are load-bearing conventions, not style preferences:
 
-### Expo / Metro
-`yanyun-mobile/metro.config.js` 按 Expo 官方 monorepos 指南显式配置：
-`watchFolders = [仓根]`、`resolver.nodeModulesPaths = [项目 node_modules, 仓根 node_modules]`。
-注：SDK 52+ 的指南同时提供了自动探测形态（getDefaultConfig 默认行为）；本仓保留
-显式配置（与指南的手动形态一致且已实测 export 通过），切自动探测前先跑一次 export 对比。
+- **Data layer only.** All persistence goes through Drizzle entities and
+  repository modules. Business code never writes raw SQL and never knows
+  table shapes. Schema drift is converged in code (PRAGMA-checked lazy
+  DDL `ensure*` functions in the repositories); the `migrate-*.sql` files
+  are bootstrap/disaster-recovery material and are not consumed by the
+  production Worker.
+- **GraphQL for new APIs.** The REST surface was shut down; everything
+  new is GraphQL.
+- **Copy comes from the backend.** All UI text is served through GraphQL
+  and translated with fbtee (source strings live per domain under
+  `src/domains/<domain>/i18n/`; locales: zh-CN source, zh-TW, en, es,
+  fr). Frontends contain no hardcoded UI copy and no hardcoded game data.
+- **Permissions are response types.** The backend never ships permission
+  flags (`canManage`, `isMember`, …). What a viewer may see or do is
+  expressed by which GraphQL type/fields resolve for them (for example
+  `GuildAdmin` vs `GuildAdminLocked`).
+- **Web structure.** Route entrypoints with preloaded Relay queries;
+  component-level `network-only` fetch policies are not used.
+- **Realtime** is a per-guild Durable Object (`GuildHub`): raw WebSocket
+  ping + GraphQL refetch, not GraphQL subscriptions.
 
-### 候选（本轮不抽）
-`packages/domain`：流派词汇（SECTS 名单）、周边界逻辑（周一 05:00 北京时间）在
-web `format.ts` 与 mobile 各有一份实现，抽取需单独一轮改造，先在此登记。
+## Release process
 
-**边界**：共享包只放契约 / 令牌 / 逻辑。游戏数据一律后端下发，不进前端包。
+All changes land through pull requests. There is no other path to
+production:
 
-## 部署（以 CI 为准）
+1. **PR verification** (`pr-backend.yml`, `web-check.yml`, `pr-og.yml`)
+   runs on the pull request: static gates (tsc, fbtee codegen check, an
+   `any` budget), the full backend harness suite, real-D1 repository
+   verification, a preview deploy of the exact PR tree, HTTP/GraphQL
+   probes, and a real-Chromium render smoke.
+2. **Merge** with rebase-merge (no squash, no direct pushes — a direct
+   push to `master` triggers nothing).
+3. **Auto-promote** (`backend-deploy.yml`, `og-deploy.yml`,
+   `mobile-update.yml`) runs only for a merged PR: it downloads the
+   artifact the PR run verified (it never rebuilds), refuses to deploy
+   unless the merged tree is identical to the verified tree
+   (fail-closed), deploys, runs production probes, and rolls back
+   automatically if a probe fails. There is no manual promote entry
+   point, including for emergencies — an urgent fix is a fast PR.
 
-生产入口：主站/API `https://yanyun.app`，OG 图片 `https://og.yanyun.app`（Custom Domain 分别绑 Worker `yanyun` / `yanyun-og`，绑定写在各自 wrangler.toml）。旧 `yanyun.tbdlab.workers.dev` / `yanyun-og.tbdlab.workers.dev` 迁移期双绑保留、不跳转。
+Preview facts: all PRs share one preview deployment,
+<https://release-yanyun.tbdlab.workers.dev>, and `pr-backend` runs are
+serialized through a concurrency group. The preview shares its D1
+database with production (same `database_id`), so preview acceptance is
+anonymous and read-only. The `demo` tenant is visible only from the
+preview host and local development hosts.
 
-部署全走 GitHub Actions。后端/OG 实行两段式发布（marcus 裁决 2026-10-25）：
-**先上 preview 真渲染验收，人工 promote 才进 prod**，push 永远不直达 prod。
+The only production changes made outside CI are secret-class settings
+(`wrangler secret`), handled manually over a secure channel. Never deploy
+to production from a local machine (`wrangler deploy`, `wrangler
+triggers`, `wrangler versions *`): if CI is broken, fix CI.
 
-| workflow | 触发 | 做什么 |
-|---|---|---|
-| `backend-deploy.yml` | push（master）到 `yanyun-signup/**`、`yanyun-web/**`、`packages/schema/**` | build web 一次 → 同步 dist 进 `public/` → `wrangler preview` 发到稳定 Preview `release`（https://release-yanyun.tbdlab.workers.dev），并把产物存为 artifact `backend-public`（含源 commit 的 manifest） |
-| `backend-promote.yml` | 手动，填 backend-deploy 的 run ID | 按 run ID 取回**同一批 artifact**，在 manifest 记录的源 commit 上 `wrangler deploy` 进 prod（不重新构建） |
-| `og-deploy.yml` / `og-promote.yml` | push（master）到 `yanyun-og/**` / 手动填 version_id | versions upload → 手动 versions deploy 晋级，promote 同 job 内接着 `wrangler triggers deploy` 应用 routes/自定义域名/cron（versions deploy 不应用 triggers，平台行为）。OG 无 Durable Object，Version 机制可用，故不走 Preview 式 |
-| `mobile-update.yml` | push 到 `yanyun-mobile/**`、`packages/{blocks-core,theme,schema}/**` 或手动 | `eas update --channel preview`（稳定链接） |
-| `web-check.yml` | push（master）到 `yanyun-web/**` | 只构建验证，不部署 |
+GitHub Secrets in use: `EXPO_TOKEN`, `CLOUDFLARE_API_TOKEN`,
+`CLOUDFLARE_ACCOUNT_ID`.
 
-后端为什么不用 Version URL 验收：本 Worker 实现了 Durable Object
-（SeatHub/GuildHub），Cloudflare 不为 DO Worker 生成 Version URL。Preview
-（`wrangler preview`）是官方的 DO 预览路线：DO 按 Preview 自动隔离、Cron
-不在 Preview 运行；但 D1 按 database_id 与生产共享（账号建不了隔离库，
-见 `yanyun-signup/wrangler.toml` 的 `[previews]` 块），所以 preview 验收
-纪律是**匿名只读浏览**，不登录、不发 mutation。
+## Secrets
 
-需要的 GitHub Secrets（已配）：`EXPO_TOKEN`、`CLOUDFLARE_API_TOKEN`、
-`CLOUDFLARE_ACCOUNT_ID`。
+- Never commit: `.dev.vars*`, `credentials.json`, keystores / `*.p8` /
+  `*.p12` / `*.pem`, `.eas-run/`. The root `.gitignore` covers these;
+  still check `git status` before committing.
+- Webhook URLs and tokens live only in server configuration (wrangler
+  secrets, D1 settings), GitHub Secrets, or local shell config. Never in
+  source, docs, or chat transcripts.
 
-**生产变更只走 CI（marcus 规矩，2026-10-25）**：所有生产变更只经
-GitHub Actions（`backend-deploy` → `backend-promote`、`og-deploy` →
-`og-promote`、`mobile-update`）。**禁止在本地用 `wrangler deploy` /
-`wrangler triggers deploy` / `wrangler versions *` 等命令直接作用于
-生产**——CI 故障时先修 CI，不得本地直部署兜底。promote 的人工
-dispatch 是审批闸（人做决定、CI 执行），不算手动部署。例外只有
-secret 类配置（`wrangler secret`）：仍由人工经安全通道处理，不进 CI。
-本地 wrangler 只许用于 dev / preview 等非生产用途。
+## Agent onboarding
 
-`yanyun-signup/public/` 里混着源码与构建产物：`hub-admin.*`、`gadmin.*`、
-`style.css`、`favicon.svg`、`icons.svg` 是手写源码（进仓）；`index.html` 与
-`assets/` 是 web 构建产物（.gitignore 已挡，不进仓），由
-`yanyun-signup/scripts/sync-public.mjs` 同步——以 dist 为准对齐，旧哈希
-文件会被删除，admin 源文件不碰（旧 `cp -r` 只叠不删的做法已废弃）。
+How an AI agent (or a new engineer) starts working in this repo:
 
-## 密钥规矩（硬规矩）
+1. **Read first.** This README, then `AGENTS.md` in the workspace root —
+   it is the operating manual (commit/PR formats, the data-layer law,
+   Cloudflare notes) and it wins over assumptions.
+2. **Set up.** Node 24, `npm install` at the repo root. The main checkout
+   may be parked on a stale branch — never work in it. Create a fresh
+   worktree per task off `origin/master`:
 
-- 绝不入库：`.dev.vars*`、`credentials.json`、`android-credentials/`、
-  `*.keystore/*.p8/*.p12/*.pem`、`.eas-run/`。根 .gitignore 已全覆盖，
-  提交前用 `git check-ignore` 复核、扫一遍 `git status` 清单。
-- Discord webhook URL、Cloudflare token、Expo token 只许存在于：服务器配置
-  （wrangler secret / D1 settings）、GitHub Secrets、本机 `~/.bashrc` 与
-  `.eas-run/` 本地脚本。不许写进源码、README、memory 或聊天记录回显。
-- `yanyun-mobile/.eas-run/` 是本机发布重试工具（本地专用，不进仓）；CI
-  就绪后由 `mobile-update.yml` 取代。
+   ```bash
+   git worktree add ~/workspace/<task-worktree> -b feat/<task> origin/master
+   ```
 
-## 其他
-
-- Node 版本见 `.nvmrc`（24）。
+3. **Work in checkpoints.** Commit and push after each layer (backend,
+   web, mobile) instead of one giant commit at the end — pushed commits
+   survive environment restarts; uncommitted work does not.
+4. **Commits.** English only. Title: `[WWM][Area] Imperative summary`
+   (Area ∈ Backend, Web, Mobile, OG, CI, Repo), target ≤ 72 chars. In a
+   stacked diff each commit also carries `[x/n]` where **n is the
+   literal letter n**, not the total — `[1/n]`, `[2/n]`, …, `[16/n]`; it
+   is never renumbered. Body: a `Summary:` section (what and why) and a
+   `Test Plan:` section (how it was verified — concrete evidence, not
+   "tests pass").
+5. **Verify locally, lean.** Run the affected harness suites plus
+   typecheck/build for the ends you touched; the full suite runs in CI
+   on the PR tree. Two rules that exist because they were learned the
+   hard way:
+   - Write paths must be verified against **real D1** (local
+     `wrangler dev` D1 or the CI verifier). The in-memory fake DB cannot
+     catch SQL dialect errors.
+   - Visual/component changes must be verified by **rendering the real
+     component** (a local rig plus headless Chromium), never by curl
+     alone — a build can succeed while the page crashes or mislays out
+     in a browser.
+6. **Local acceptance rigs.** The established pattern is a fixture guild
+   plus locally minted session JWTs against `wrangler dev` (backend +
+   local D1), driven by HTTP probes and CDP scripts. Production sessions
+   cannot be forged — the signing secret exists only in Cloudflare — so
+   never attempt production acceptance with a real account; use rigs or
+   the CI preview.
+7. **Open the PR** with `Summary` / `Test Plan` sections (template in
+   `.github/pull_request_template.md`). Expect the shared preview to
+   serialize your run behind other PRs; if your run is superseded,
+   rerun it. Two known preview false-reds — retry before changing
+   product code for them: a cold-start blank `/demo` render, and GraphQL
+   schema activation lagging several minutes behind a preview deploy
+   (a new field briefly reports `Cannot query field`, then heals).
+8. **Merge and prove it.** Rebase onto the latest `master` immediately
+   before merging, wait for full green on that exact tree, then
+   `gh pr merge --rebase`. If the post-merge deploy is fail-closed
+   rejected because master moved, land a small carry PR with the same
+   verified tree. After the promote, verify production yourself —
+   deployment version at 100%, home page 200, the probes for your
+   change. A green deploy log alone is not proof.
+9. **Hard don'ts.** No direct pushes to `master`. No local deploys to
+   production. No raw SQL outside the data layer. No secrets in code,
+   commits, or chat. No fabricated production sessions, test messages,
+   or other production writes for verification purposes.
