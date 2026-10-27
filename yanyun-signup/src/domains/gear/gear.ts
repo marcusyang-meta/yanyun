@@ -111,10 +111,18 @@ export async function deleteAllGearItemsByUser(d1: D1Database, discordId: string
   return metaOf(r).changes;
 }
 
+export async function deleteAllBuildShareLinksByUser(d1: D1Database, discordId: string): Promise<number> {
+  const db = createDb(d1);
+  const r = await db.run(sql`DELETE FROM ${buildShareLinks} WHERE ${col('discord_id')} = ${discordId}`);
+  return metaOf(r).changes;
+}
+
 export async function deleteAllGearBuildsByUser(d1: D1Database, discordId: string): Promise<number> {
   const db = createDb(d1);
   const r = await db.run(sql`DELETE FROM ${userGearBuilds} WHERE ${col('discord_id')} = ${discordId}`);
   return metaOf(r).changes;
+}
+
 export async function getGearBuildRow(d1: D1Database, discordId: string, id: number): Promise<GearBuildRow | null> {
   const db = createDb(d1);
   const row = await db.get<GearBuildRow>(sql`SELECT ${col('id')}, ${col('name')}, ${col('target_idx')}, ${col('payload')}, ${col('created_at')} FROM ${userGearBuilds} WHERE ${col('id')} = ${id} AND ${col('discord_id')} = ${discordId}`);

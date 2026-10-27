@@ -1019,6 +1019,13 @@ if (want('buildshares')) {
   // the row; the service-level guard is the second line of defense).
   await repo.deleteGearBuildRow(db, 'share-a', b1.id);
   eq('deleted build resolves -> null (orphaned link)', await svc.resolveSharedBuild(db, l1n.code), null);
+
+  // Account-deletion cascade: the bulk delete removes every link the
+  // user owns — here the orphaned l1n row plus b2's still-live l2.
+  check('second build link live before cascade', !!(await svc.resolveSharedBuild(db, l2.code)));
+  eq('cascade deletes the owner links', await repo.deleteAllBuildShareLinksByUser(db, 'share-a'), 2);
+  eq('cascaded code resolves -> null', await svc.resolveSharedBuild(db, l2.code), null);
+  eq('cascade again -> 0 (idempotent)', await repo.deleteAllBuildShareLinksByUser(db, 'share-a'), 0);
 }
 
 await mf.dispose();
