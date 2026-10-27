@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<a561fae1ff0b670a3f760331f1dd1818>>
+ * @generated SignedSource<<ea9379b2f332decb4edfbd3a0d5cdb01>>
  * @lightSyntaxTransform
  */
 
@@ -10,6 +10,9 @@
 import { ConcreteRequest } from 'relay-runtime';
 export type documentsProfilePageQuery$variables = Record<PropertyKey, never>;
 export type documentsProfilePageQuery$data = {
+  readonly gradPage: {
+    readonly gearMyLibTitle: string;
+  };
   readonly settingsPage: {
     readonly effectiveLocale: string;
     readonly localePref: string | null | undefined;
@@ -195,6 +198,24 @@ var v0 = [
       }
     ],
     "storageKey": null
+  },
+  {
+    "alias": null,
+    "args": null,
+    "concreteType": "GradPage",
+    "kind": "LinkedField",
+    "name": "gradPage",
+    "plural": false,
+    "selections": [
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "gearMyLibTitle",
+        "storageKey": null
+      }
+    ],
+    "storageKey": null
   }
 ];
 return {
@@ -215,16 +236,16 @@ return {
     "selections": (v0/*:: as any*/)
   },
   "params": {
-    "cacheID": "6695db6ad16bd9a237c68eec53412f73",
+    "cacheID": "0a257541148154fb48f67d57938c5768",
     "id": null,
     "metadata": {},
     "name": "documentsProfilePageQuery",
     "operationKind": "query",
-    "text": "query documentsProfilePageQuery {\n  viewer {\n    userBarLogoutLabel\n    userBarLoggingOutLabel\n    commonUnknownErrorText\n    footerDisclaimerText\n    footerTermsLabel\n    footerPrivacyLabel\n  }\n  settingsPage {\n    settingsTitle\n    settingsDiscordLabel\n    settingsLanguageLabel\n    settingsLanguageHint\n    settingsAutoLabel\n    settingsLangZhCnLabel\n    settingsLangZhTwLabel\n    settingsLangEnLabel\n    settingsLangEsLabel\n    settingsLangFrLabel\n    settingsSavedText\n    localePref\n    effectiveLocale\n  }\n}\n"
+    "text": "query documentsProfilePageQuery {\n  viewer {\n    userBarLogoutLabel\n    userBarLoggingOutLabel\n    commonUnknownErrorText\n    footerDisclaimerText\n    footerTermsLabel\n    footerPrivacyLabel\n  }\n  settingsPage {\n    settingsTitle\n    settingsDiscordLabel\n    settingsLanguageLabel\n    settingsLanguageHint\n    settingsAutoLabel\n    settingsLangZhCnLabel\n    settingsLangZhTwLabel\n    settingsLangEnLabel\n    settingsLangEsLabel\n    settingsLangFrLabel\n    settingsSavedText\n    localePref\n    effectiveLocale\n  }\n  gradPage {\n    gearMyLibTitle\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "06a2c69023c82fd6390a8194bb4db748";
+(node as any).hash = "f227fcdedbd295fb0988c40800e5143c";
 
 export default node;

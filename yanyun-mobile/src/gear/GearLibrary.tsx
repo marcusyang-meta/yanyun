@@ -34,11 +34,11 @@ import type { documentsGearLibraryDeleteBuildMutation } from '../__generated__/d
 
 // The single UI implementation for the gear library + my builds (server
 // D1, per Discord account; mirrors Web GearLibrary): the bench (bench
-// mode, with gear/sim wiring) and Profile (profile mode, management only
-// + loading into saved work state) share this component and the same
-// GraphQL queries/mutations. After a change, imperatively refetch this
-// query (the mobile equivalent of Web refetchGearLibraryQueries); the
-// other surface syncs via store updates.
+// mode, with gear/sim wiring) and the standalone gear library screen
+// (profile mode, management only + loading into saved work state) share
+// this component and the same GraphQL queries/mutations. After a change,
+// imperatively refetch this query (the mobile equivalent of Web
+// refetchGearLibraryQueries); the other surface syncs via store updates.
 
 type LibData = documentsGearLibraryQuery['response'];
 type LibItemRaw = LibData['myGearItems'][number];
@@ -851,7 +851,7 @@ export default function GearLibrary(props: {
                 )}
               </View>
               <Text style={s.gearName}>{g.name || g.slot}</Text>
-              <View style={{ marginTop: 5 }}>
+              <View style={{ marginTop: 3 }}>
                 {mainIdx >= 0 && lineRow(g.lines[mainIdx], mainIdx)}
                 {g.lines.map((l, i) => (i === mainIdx ? null : lineRow(l, i)))}
                 {g.dingyin && (
@@ -867,29 +867,11 @@ export default function GearLibrary(props: {
                 </Text>
               )}
               {g.warnings.length > 0 && <Text style={s.gearWarn}>{g.warnings.join('；')}</Text>}
-              {g.slot === '武器' && (
-                <View style={s.schoolRow}>
-                  {t.gearSchoolTags.map((tag) => {
-                    const on = g.schools.includes(tag);
-                    return (
-                      <BtnMini
-                        key={tag}
-                        label={tag}
-                        active={on}
-                        style={{ paddingVertical: 1 }}
-                        onPress={() => {
-                          const schools = on ? g.schools.filter((x) => x !== tag) : [...g.schools, tag];
-                          commitUpdate({
-                            variables: { id: g.id, input: { slot: g.slot, name: g.name, lines: g.lines, dingyin: g.dingyin, schools } },
-                            onCompleted: (resp) => { if (resp.updateGearItem.ok && resp.updateGearItem.item) applySavedItem(mapItem(resp.updateGearItem.item as LibItemRaw), false); },
-                            onError: () => gearToast(t.gearCalcFailedText),
-                          });
-                        }}
-                      />
-                    );
-                  })}
-                </View>
-              )}
+              {/* No sect tag wall on the card face (mirrors Web; the wall of
+                  chips made the card read like a form, not an item). Tag
+                  editing lives in the edit form (manual panel mode,
+                  startEdit): its schools toggles cover every tag and save
+                  through the same updateGearItem mutation. */}
               <View style={s.gearBtns}>
                 {mode === 'bench' && (
                   <BtnMini label={pos ? t.gearUnequipLabel : t.gearEquipLabel} onPress={() => (pos ? props.onUnequipPos?.(pos) : props.onEquipItem?.(g))} />
@@ -1011,7 +993,7 @@ const s = StyleSheet.create({
   emptyText: { fontFamily: fonts.serif, color: theme.muted, fontSize: 12.5, marginBottom: 8 },
   gearCard: {
     borderWidth: 1, borderColor: 'rgba(201,163,92,.22)', borderRadius: 10,
-    paddingVertical: 10, paddingHorizontal: 12, backgroundColor: 'rgba(0,0,0,.25)',
+    paddingVertical: 8, paddingHorizontal: 12, backgroundColor: 'rgba(0,0,0,.25)',
     position: 'relative',
   },
   gearCardHeirloom: {
@@ -1019,10 +1001,10 @@ const s = StyleSheet.create({
     shadowColor: theme.gold, shadowOpacity: 0.25, shadowRadius: 7, shadowOffset: { width: 0, height: 0 },
   },
   gearHead: { flexDirection: 'row', gap: 6, alignItems: 'center', flexWrap: 'wrap' },
-  gearName: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 15.5, fontWeight: '700', letterSpacing: 1, marginTop: 2 },
+  gearName: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 15.5, fontWeight: '700', letterSpacing: 1, marginTop: 1 },
   gearSlot: { fontFamily: fonts.serif, color: theme.muted, fontSize: 11 },
   gearPos: { fontFamily: fonts.serif, color: '#9dc08b', fontSize: 11 },
-  gearScoreLine: { fontFamily: fonts.serif, color: theme.muted, fontSize: 11, marginTop: 6 },
+  gearScoreLine: { fontFamily: fonts.serif, color: theme.muted, fontSize: 11, marginTop: 4 },
   gearCardQTop: {
     borderColor: 'rgba(236,210,143,.8)',
     shadowColor: theme.gold, shadowOpacity: 0.18, shadowRadius: 6, shadowOffset: { width: 0, height: 0 }, elevation: 2,
@@ -1031,7 +1013,7 @@ const s = StyleSheet.create({
   gearLineLabel: { fontFamily: fonts.serif, fontSize: 12.5, color: theme.paper },
   gearLineVal: { fontFamily: fonts.serif, fontSize: 12.5, color: theme.paper, fontWeight: '600' },
   gearWarn: { fontFamily: fonts.serif, color: theme.seal, fontSize: 11, marginTop: 3 },
-  gearBtns: { flexDirection: 'row', gap: 5, flexWrap: 'wrap', marginTop: 8, alignItems: 'center' },
+  gearBtns: { flexDirection: 'row', gap: 5, flexWrap: 'wrap', marginTop: 6, alignItems: 'center' },
   groupHead: { flexDirection: 'row', alignItems: 'baseline', gap: 8, paddingTop: 9, paddingBottom: 3 },
   groupSchool: { fontFamily: fonts.serif, color: theme.goldHi, fontWeight: '700', fontSize: 13.5 },
   groupCount: { fontFamily: fonts.serif, color: theme.muted, fontSize: 11.5 },
