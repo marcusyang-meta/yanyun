@@ -17,7 +17,7 @@ import {
 } from 'drizzle-orm/sqlite-core';
 
 
-/* ---------------- push tokens [ddl push.js lazy] ---------------------- */
+/* ---------------- push tokens [ddl chain baseline] ----------------- */
 export const pushTokens = sqliteTable('push_tokens', {
   discordId: text('discord_id').notNull(),
   token: text('token').notNull(),
@@ -27,7 +27,7 @@ export const pushTokens = sqliteTable('push_tokens', {
   primaryKey({ columns: [t.discordId, t.token] }),
 ]);
 
-/* ---------------- error log [ddl errorlog.js lazy] -------------------- */
+/* ---------------- error log [ddl chain baseline] ------------------- */
 export const errorLog = sqliteTable('error_log', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   at: integer('at').notNull(),
@@ -41,7 +41,7 @@ export const errorLog = sqliteTable('error_log', {
   index('idx_error_log_at').on(t.at),
 ]);
 
-/* ---------------- hub audit log [ddl hubAudit.ts lazy] ---------------- */
+/* ---------------- hub audit log [ddl chain baseline] --------------- */
 export const hubAuditLog = sqliteTable('hub_audit_log', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   at: integer('at').notNull(),

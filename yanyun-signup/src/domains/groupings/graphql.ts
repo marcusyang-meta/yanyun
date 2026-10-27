@@ -1,6 +1,6 @@
 import type { Context } from '../platform/context.ts';
 import { vcOf } from '../platform/context.ts';
-import { ensureEventCreatorColumn as ensureEventCreatorColumnRepo } from './events.ts';
+ './events.ts';
 import { mintShortLink, shortLinkUrl, canonicalGroupingUrl } from './shortlinks.ts';
 /* groupings domain GraphQL: grouping shells, list/detail pages, and all grouping mutations. */
 import {
@@ -9,8 +9,8 @@ import {
 } from '../platform/index.ts';
 import { tlCalculateExcel } from '../gear/index.ts';
 import { getUserServers, getGuildNick, maybeRefreshGuildNicks, getUserLocalePref, setUserLocalePref } from '../identity/auth.ts';
-import { ensureSignupDiscordColumn, ensureSignupReadyColumn, ensureGuildMembersTable, upsertGuildMember } from './index.ts';
-import { ensurePushTokensTable, isValidPushToken, savePushToken, deletePushToken } from '../platform/index.ts';
+import { upsertGuildMember } from './index.ts';
+import { isValidPushToken, savePushToken, deletePushToken } from '../platform/index.ts';
 import { evaluateHeirloomPushes } from '../gear/index.ts';
 import { translate, negotiateLocale, SUPPORTED_LOCALES, CATALOG } from '../platform/index.ts';
 import { logError } from '../platform/index.ts';
@@ -18,15 +18,8 @@ import { getGuildAvatarMeta, avatarPath } from '../guilds/index.ts';
 import { getSettingValue, setSettingValue, listSettingsByKey } from '../guilds/index.ts';
 import { getUsernameRow } from '../identity/index.ts';
 import { listGuildMembers, getGuildMember } from '../identity/index.ts';
-import {
-  getBossById, listBossesByDungeon, ensureBossStructuredColumns as ensureBossStructuredColumnsRepo,
-  listSchoolsFull, listSchoolsNameSlug, getSchoolNameBySlug, listSchoolBis,
-  getSchoolBisJsonBySchool, listSchoolRotations, listSlotAffixByBuild, listAffixMax, listAffixMaxValues,
-} from '../dex/index.ts';
-import {
-  getDungeonByName, getDungeonNameSizeById, listDungeonsDex, getLatestDungeonVersion,
-  ensureDungeonDexColumns as ensureDungeonDexColumnsRepo,
-} from '../dex/index.ts';
+import { getBossById, listBossesByDungeon, listSchoolsFull, listSchoolsNameSlug, getSchoolNameBySlug, listSchoolBis, getSchoolBisJsonBySchool, listSchoolRotations, listSlotAffixByBuild, listAffixMax, listAffixMaxValues } from '../dex/index.ts';
+import { getDungeonByName, getDungeonNameSizeById, listDungeonsDex, getLatestDungeonVersion } from '../dex/index.ts';
 import {
   getTenantRow, getTenantSlug, listTenantSlugs, listTenantsDirectory, insertTenant,
 } from '../guilds/index.ts';
@@ -89,8 +82,6 @@ export class GroupingShell extends ShellBase {
   genCreatorDiscordId(){ return this.ev.creator_discord_id ? String(this.ev.creator_discord_id) : null; }
   genSeatRows(){
     return this.memo('seatRows', async () => {
-      await ensureSignupDiscordColumn(this.db);
-      await ensureSignupReadyColumn(this.db);
       return listSignupSeats(this.db, this.ev.id);
     });
   }
@@ -121,7 +112,6 @@ export class GroupingShell extends ShellBase {
   genDungeon(){
     return this.memo('dungeon', async () => {
       if (!this.ev.dungeon) return null;
-      await ensureDungeonDexColumnsRepo(this.db);
       const d = await getDungeonByName(this.db, this.ev.dungeon);
       return d ? new DungeonShell(this.ctx, d) : null;
     });
@@ -167,7 +157,6 @@ export class GroupingTemplateShell extends ShellBase {
   genDungeonId(){
     return this.memo('dungeonId', async () => {
       if (!this.row.dungeon) return null;
-      await ensureDungeonDexColumnsRepo(this.db);
       const d = await getDungeonByName(this.db, this.row.dungeon);
       return d ? String(d.id) : null;
     });
@@ -183,7 +172,6 @@ export class GroupingTemplateShell extends ShellBase {
     return this.memo('creatorName', async () => {
       const cid = this.row.creator_discord_id;
       if (!cid) return null;
-      await ensureGuildMembersTable(this.db);
       const m = await getGuildMember(this.db, this.row.tenant, String(cid)).catch(() => null);
       const nick = m ? String(m.nick || '').trim() : '';
       if (nick) return nick;
@@ -236,10 +224,6 @@ async function parseTemplateInput(db: any, input: any): Promise<any> {
 
 // Parse 1-x/2-x talent rows from guide text (accepts real newlines and literal \n sequences).
 
-export function ensureEventCreatorColumn(db: any) {
-  return ensureEventCreatorColumnRepo(db);
-}
-
 /* ---------- Seat identity stamp (signups.discord_id) ----------
  * Stamped only when the signed-in user signs up for themselves and
  * the submitted nickname matches their own identity (the form's
@@ -267,7 +251,6 @@ export function touchGuildRoster(ctx: Context, access: any) {
       let globalName = String(user.name || '').trim();
       const u = await getUsernameRow(db, String(user.discordId)).catch(() => null);
       if (u && String(u.username || '').trim()) globalName = String(u.username).trim();
-      await ensureGuildMembersTable(db);
       await upsertGuildMember(db, slug, user.discordId, nick, globalName);
     } catch { /* roster recording failures are silent */ }
   })();
@@ -534,8 +517,6 @@ export class GroupingDetailPageShell extends ShellBase {
       const ev = this.data;
       const access = await getGuildAccess(this.db, this.ctx.user, ev.tenant, this.ctx.request);
       const tRow = await getTenantRow(this.db, ev.tenant).catch(() => null);
-      await ensureSignupDiscordColumn(this.db);
-      await ensureSignupReadyColumn(this.db);
       const rows = await listSignupSeats(this.db, ev.id);
       const entries = [];
       for (let i = 0; i < ev.max_slots; i++) {
@@ -712,7 +693,6 @@ export const groupingsResolvers = {
       // template mutations, so template-built cars match hand-built ones).
       const { dungeonName, maxSlots } = await resolveGroupingShape(db, type, input.dungeonId);
       // Persist leader identity from the session discord_id (requireWrite guarantees login); re-verified at disband.
-      await ensureEventCreatorColumn(db);
       const r = await insertEvent(db, {
         tenant: slug, title, type, description: '', starts_at: '', starts_at_utc: utc,
         max_slots: maxSlots, status: 'open', origin: 'member', created_by: '热心侠客',
@@ -720,7 +700,6 @@ export const groupingsResolvers = {
       });
       const eventId = r.last_row_id;
       if (Array.isArray(input.seats)) {
-        await ensureSignupDiscordColumn(db);
         const seatRows = [];
         for (const st of input.seats.slice(0, maxSlots)) {
           const nm = s(st.nickname, 30), wp = s(st.weapon, 20);
@@ -841,7 +820,6 @@ export const groupingsResolvers = {
       if (!rateLimit('mut:update:' + getClientIp(ctx.request), 20)) {
         return gFail(ctx, 'rateLimited');
       }
-      await ensureEventCreatorColumn(db);
       const gid = parseInt(id, 10) || 0;
       const ev = await getEventRow(db, gid);
       if (!ev) return gFail(ctx, 'groupingNotFound');
@@ -869,7 +847,6 @@ export const groupingsResolvers = {
         await updateEventFields(db, gid, null, patch);
       }
       if (Array.isArray(input.seats)) {
-        await ensureSignupDiscordColumn(db);
         // Identity stamps when the seat table is rewritten wholesale
         // (conservative): keep a stamp only if the old seats held exactly
         // one stamp for that nickname and the stamp owner's current
@@ -919,7 +896,6 @@ export const groupingsResolvers = {
       if (!rateLimit('mut:disband:' + getClientIp(ctx.request), 10)) {
         return dFail(ctx, 'rateLimited');
       }
-      await ensureEventCreatorColumn(db);
       const gid = parseInt(id, 10) || 0;
       const ev = await getEventTenantCreator(db, gid);
       if (!ev) return dFail(ctx, 'groupingNotFound');
@@ -946,7 +922,6 @@ export const groupingsResolvers = {
       if (!rateLimit('mut:complete:' + getClientIp(ctx.request), 10)) {
         return gFail(ctx, 'rateLimited');
       }
-      await ensureEventCreatorColumn(db);
       const gid = parseInt(id, 10) || 0;
       const ev = await getEventRow(db, gid);
       if (!ev) return gFail(ctx, 'groupingNotFound');
@@ -975,7 +950,6 @@ export const groupingsResolvers = {
       if (!rateLimit('mut:reopen:' + getClientIp(ctx.request), 10)) {
         return gFail(ctx, 'rateLimited');
       }
-      await ensureEventCreatorColumn(db);
       const gid = parseInt(id, 10) || 0;
       const ev = await getEventRow(db, gid);
       if (!ev) return gFail(ctx, 'groupingNotFound');
@@ -1005,7 +979,6 @@ export const groupingsResolvers = {
       if (gate) return sFail(ctx, gate);
       const weapon = s(input.weapon, 40);
       const uid = newUid();
-      await ensureSignupDiscordColumn(db);
       // Signup identity (2026-10-25): seat name and identity stamp are
       // decided server-side; the client-sent nickname is ignored
       // (overwritten, not an error).
@@ -1019,7 +992,6 @@ export const groupingsResolvers = {
       let stamp = null;
       const forId = input.forDiscordId ? String(input.forDiscordId).trim() : '';
       if (forId) {
-        await ensureGuildMembersTable(db);
         const m = await getGuildMember(db, ev.tenant, forId).catch(() => null);
         if (!m) return sFail(ctx, 'proxyTargetNotInRoster');
         nickname = String(m.nick || '').trim() || String(m.global_name || '').trim();
@@ -1098,7 +1070,6 @@ export const groupingsResolvers = {
       if (!ev0) return sFail(ctx, 'groupingNotFound');
       const gate = await requireWrite(db, ctx.user, ev0.tenant, ctx.request);
       if (gate) return sFail(ctx, gate);
-      await ensureSignupReadyColumn(db);
       const readyAt = input.ready ? Math.floor(Date.now() / 1000) : null;
       const r = await updateSignupReadyByEventDiscord(db, gid, String(ctx.user!.discordId), readyAt);
       if (!r.changes) return sFail(ctx, 'notSeated');

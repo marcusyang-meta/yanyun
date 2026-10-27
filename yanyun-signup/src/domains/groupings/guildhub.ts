@@ -24,9 +24,7 @@
 // so a lost nudge cannot drift for long.
 
 import type { Env } from '../platform/context.ts';
-import {
-  ensureReminderColumns, getReminderConfig, nextReminderAt, dueReminderBeats, sendReminderBeat,
-} from './reminder.ts';
+import { getReminderConfig, nextReminderAt, dueReminderBeats, sendReminderBeat } from './reminder.ts';
 import { logError } from '../platform/index.ts';
 
 const KINDS = new Set(['created', 'updated', 'deleted', 'seats']);
@@ -81,7 +79,6 @@ export class GuildHub {
       if (slug && this.env.DB) {
         const cfg = await getReminderConfig(this.env.DB, slug).catch(() => null);
         if (cfg && cfg.webhook && cfg.enabled) {
-          await ensureReminderColumns(this.env.DB);
           const nowSec = Math.floor(Date.now() / 1000);
           const due = await dueReminderBeats(this.env.DB, slug, nowSec, cfg.offsets).catch(() => []);
           for (const beat of due) {

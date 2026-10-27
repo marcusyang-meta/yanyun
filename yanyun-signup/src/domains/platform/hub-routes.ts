@@ -11,11 +11,7 @@ import {
   getTenantRow, getTenantSlug, listTenantSlugs, listTenantsHubAdmin, deleteTenantCascade,
   getSettingValue, setSettingValue, listGlobalSettings, listNonEmptySettingsByKey, updateTenantWebhook, listSettingsByKey,
 } from '../guilds/index.ts';
-import {
-  getReminderConfig, getReminderSetting, setReminderSetting, maskWebhook, postWebhook, WEBHOOK_RE,
-  ensureSignupDiscordColumn, ensureGuildMembersTable, upsertGuildMember, nudgeReminderHub,
-  listUnstampedSeatsByTenant, stampSignupDiscordId,
-} from '../groupings/index.ts';
+import { getReminderConfig, getReminderSetting, setReminderSetting, maskWebhook, postWebhook, WEBHOOK_RE, upsertGuildMember, nudgeReminderHub, listUnstampedSeatsByTenant, stampSignupDiscordId } from '../groupings/index.ts';
 import { getHeirloomConfig, sendHeirloomTest, heirloomStatusFor } from '../gear/index.ts';
 import {
   listAllBosses, insertBoss, updateBossFields, deleteBossById, countBosses, countDungeons,
@@ -24,9 +20,9 @@ import {
   getBossIdByNameAndDungeon, getOrphanBossIdByName, listBossesFullByDungeon, listOrphanBossesByName,
 } from '../dex/index.ts';
 import { listUsersDirectory, listAllNicks, listNicksByGuild } from '../identity/index.ts';
-import { parseGuideStructured, ensureBossStructuredColumns, ensureDungeonDexColumns } from '../dex/graphql.ts';
-import { ensureEventCreatorColumn } from '../groupings/graphql.ts';
-import { ensureNickStore } from '../identity/auth.ts';
+import { parseGuideStructured } from '../dex/graphql.ts';
+ '../groupings/graphql.ts';
+ '../identity/auth.ts';
 import { maybeRunCreatorBackfill } from '../../creatorbackfill.js';
 import { maybeRunCreatorManualFix } from '../../creatormanualfix.js';
 
@@ -311,8 +307,6 @@ hubRoutes.post('/backfill/reminder-identity', async (c: any) => {
   const db = c.env.DB;
   const body = await getBody(c);
   const dryRun = !!body.dryRun;
-  await ensureSignupDiscordColumn(db);
-  await ensureGuildMembersTable(db);
   const bindRows = await listNonEmptySettingsByKey(db, 'discord_guild_id');
   const allUsers = await listUsersDirectory(db);
   const userInGuild = (u: any, dgid: any) => {
@@ -414,7 +408,6 @@ hubRoutes.put('/bosses/:id', async (c: any) => {
   if (body.sort_order !== undefined) set('sort_order', parseInt(body.sort_order, 10) || 0);
   if (body.guide !== undefined) set('guide', s(body.guide, 30000));
   // Structured guide (read by GraphQL bossPage): arrays are stored as JSON
-  await ensureBossStructuredColumns(c.env.DB);
   for (const [key, col] of [['mechanics', 'mechanics_json'], ['talents', 'talents_json'], ['shouts', 'shouts_json']]) {
     if (body[key] !== undefined) set(col, Array.isArray(body[key]) ? JSON.stringify(body[key]) : s(body[key], 60000));
   }
@@ -430,7 +423,6 @@ hubRoutes.put('/bosses/:id', async (c: any) => {
 // on the guide text.
 hubRoutes.post('/bosses/migrate-structured', async (c: any) => {
   const db = c.env.DB;
-  await ensureBossStructuredColumns(db);
   const results = await listBossesWithGuide(db);
   const migrated: any[] = [];
   for (const b of results) {
@@ -461,8 +453,6 @@ hubRoutes.delete('/bosses/:id', async (c: any) => {
 // Idempotent.
 hubRoutes.post('/dex/apply-season-map', async (c: any) => {
   const db = c.env.DB;
-  await ensureDungeonDexColumns(db);
-  await ensureBossStructuredColumns(db);
   const rep: any = {
     updated: [], createdDungeons: [], createdBosses: [], reassignedBosses: [],
     deletedDungeons: [], deletedBosses: [], warnings: [],
@@ -612,8 +602,6 @@ hubRoutes.post('/events/backfill-creators', async (c: any) => {
   const db = c.env.DB;
   const body = await getBody(c);
   const dryRun = !!(body && body.dryRun);
-  await ensureEventCreatorColumn(db);
-  await ensureNickStore(db).catch(() => {});
   const PLACEHOLDERS = new Set(['', '热心侠客', '热心车友']);
 
   // User directory: global name -> discord_id set; membership: discord_id -> server set

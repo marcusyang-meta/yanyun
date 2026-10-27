@@ -6,27 +6,6 @@ import { sql } from 'drizzle-orm';
 import { createDb } from '../../db/client.ts';
 import { pushTokens } from './schema.ts';
 
-/* ---------- Lazy DDL ---------- */
-
-let pushTokensTableReady: Promise<void> | null = null;
-export function ensurePushTokensTable(d1: D1Database): Promise<void> {
-  if (!pushTokensTableReady) {
-    pushTokensTableReady = (async () => {
-      try {
-        const db = createDb(d1);
-        await db.run(sql`CREATE TABLE IF NOT EXISTS ${pushTokens} (
-          discord_id TEXT NOT NULL,
-          token TEXT NOT NULL,
-          platform TEXT NOT NULL DEFAULT '',
-          updated_at INTEGER NOT NULL DEFAULT 0,
-          PRIMARY KEY (discord_id, token)
-        )`);
-      } catch { /* silent: table may already exist */ }
-    })();
-  }
-  return pushTokensTableReady;
-}
-
 interface TokenRow { discord_id: string; token: string }
 
 export async function upsertPushToken(

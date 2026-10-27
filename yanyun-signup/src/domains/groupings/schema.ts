@@ -17,8 +17,7 @@ import {
 } from 'drizzle-orm/sqlite-core';
 
 
-/* ---------------- events [ddl schema.sql; alt v3/v4 + lazy creator/
-   reminder columns] ---------------- */
+/* ---------------- events [ddl chain baseline] ---------------------- */
 export const events = sqliteTable('events', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   tenant: text('tenant').notNull().default(''),
@@ -47,7 +46,7 @@ export const events = sqliteTable('events', {
   index('idx_events_utc').on(t.tenant, t.startsAtUtc),
 ]);
 
-/* ---------------- signups [ddl schema.sql; alt lazy discord_id] -------- */
+/* ---------------- signups [ddl chain baseline] --------------------- */
 export const signups = sqliteTable('signups', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   eventId: integer('event_id').notNull().references(() => events.id, { onDelete: 'cascade' }),
@@ -67,7 +66,7 @@ export const signups = sqliteTable('signups', {
   index('idx_signups_event').on(t.eventId),
 ]);
 
-/* ---------------- grouping_templates [lazy DDL in templates.ts] -------
+/* ---------------- grouping_templates [ddl chain baseline] ----------
  * Guild-shared car templates: a saved grouping configuration (type,
  * dungeon, seats, title, departure offset) that guild members can
  * apply to prefill the create form. Guild-scoped (tenant), created by
@@ -93,7 +92,7 @@ export const groupingTemplates = sqliteTable('grouping_templates', {
   index('idx_grouping_templates_tenant').on(t.tenant),
 ]);
 
-/* ---------------- short_links [lazy DDL in shortlinks.ts] -------------
+/* ---------------- short_links [ddl chain baseline] -----------------
  * Share-link aliases: one stable random code per grouping (car).
  * code is the public alias (base62, 7 chars, random — never derived
  * from the sequential event id); (tenant, event_id) is unique so a
@@ -107,7 +106,7 @@ export const shortLinks = sqliteTable('short_links', {
   uniqueIndex('short_links_target_unique').on(t.tenant, t.eventId),
 ]);
 
-/* ---------------- event_reminders [lazy DDL in the events repository] --
+/* ---------------- event_reminders [ddl chain baseline] -------------
  * Per-(grouping, offset) departure-reminder settlement for multi-offset
  * reminders: one row per settled beat; no row = that beat is still
  * pending. sent_at set = delivered; error set = failed (settled, never

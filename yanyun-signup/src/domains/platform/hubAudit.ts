@@ -6,31 +6,6 @@ import { sql } from 'drizzle-orm';
 import { createDb } from '../../db/client.ts';
 import { hubAuditLog } from './schema.ts';
 
-/* ---------- Lazy DDL ---------- */
-
-let hubAuditTableReady: Promise<void> | null = null;
-export function ensureHubAuditTable(d1: D1Database): Promise<void> {
-  if (!hubAuditTableReady) {
-    hubAuditTableReady = (async () => {
-      try {
-        const db = createDb(d1);
-        await db.run(sql`CREATE TABLE IF NOT EXISTS ${hubAuditLog} (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          at INTEGER NOT NULL,
-          actor TEXT NOT NULL DEFAULT '',
-          action TEXT NOT NULL DEFAULT '',
-          tenant TEXT NOT NULL DEFAULT '',
-          summary TEXT NOT NULL DEFAULT '',
-          ip TEXT NOT NULL DEFAULT ''
-        )`);
-        await db.run(sql`CREATE INDEX IF NOT EXISTS idx_hub_audit_at ON ${hubAuditLog} (${sql.identifier('at')})`);
-        await db.run(sql`CREATE INDEX IF NOT EXISTS idx_hub_audit_tenant ON ${hubAuditLog} (${sql.identifier('tenant')})`);
-      } catch { /* silent: auditing must never take down the admin path */ }
-    })();
-  }
-  return hubAuditTableReady;
-}
-
 export interface HubAuditRow {
   id: number;
   at: number;

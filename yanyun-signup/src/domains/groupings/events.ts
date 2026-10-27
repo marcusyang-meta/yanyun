@@ -51,52 +51,6 @@ function metaOf(r: unknown): RunMeta {
   return { changes: m?.changes ?? 0, last_row_id: m?.last_row_id ?? 0 };
 }
 
-/* ---------- Lazy DDL: added columns (creator identity / reminder state) ---------- */
-
-async function pragmaColumns(d1: D1Database): Promise<Set<string>> {
-  const db = createDb(d1);
-  const results = await db.all<{ name: string }>(sql`PRAGMA table_info(${events})`);
-  return new Set((results || []).map((r) => r.name));
-}
-
-let eventCreatorColReady: Promise<void> | null = null;
-/** Adds events.creator_discord_id (leader identity; disband/edit/complete check only this column). */
-export function ensureEventCreatorColumn(d1: D1Database): Promise<void> {
-  if (!eventCreatorColReady) {
-    eventCreatorColReady = (async () => {
-      try {
-        const db = createDb(d1);
-        const cols = await pragmaColumns(d1);
-        if (!cols.has('creator_discord_id')) {
-          await db.run(sql`ALTER TABLE ${events} ADD COLUMN ${col('creator_discord_id')} TEXT`);
-        }
-      } catch { /* already-exists and similar: ignore */ }
-    })();
-  }
-  return eventCreatorColReady;
-}
-
-let reminderColsReady: Promise<void> | null = null;
-/** Adds events.reminder_sent_at / reminder_error (reminder settlement state). */
-export function ensureReminderColumns(d1: D1Database): Promise<void> {
-  if (!reminderColsReady) {
-    reminderColsReady = (async () => {
-      try {
-        const db = createDb(d1);
-        const cols = await pragmaColumns(d1);
-        if (!cols.has('reminder_sent_at')) {
-          await db.run(sql`ALTER TABLE ${events} ADD COLUMN ${col('reminder_sent_at')} INTEGER`);
-        }
-        if (!cols.has('reminder_error')) {
-          await db.run(sql`ALTER TABLE ${events} ADD COLUMN ${col('reminder_error')} TEXT`);
-        }
-      } catch { /* already-exists and similar: ignore */ }
-    })();
-  }
-  return reminderColsReady;
-}
-
-
 export async function getEventRow(d1: D1Database, id: number): Promise<EventRow | null> {
   const db = createDb(d1);
   const row = await db.get<EventRow>(sql`SELECT * FROM ${events} WHERE ${col('id')} = ${id}`);
@@ -247,20 +201,6 @@ export interface ReminderBeatRow {
   offset_min: number;
   sent_at: number | null;
   error: string | null;
-}
-
-let reminderBeatsReady: Promise<void> | null = null;
-/** Creates event_reminders (per-beat settlement) when missing. */
-export function ensureReminderBeatsTable(d1: D1Database): Promise<void> {
-  if (!reminderBeatsReady) {
-    reminderBeatsReady = (async () => {
-      try {
-        const db = createDb(d1);
-        await db.run(sql`CREATE TABLE IF NOT EXISTS ${eventReminders} (${col('event_id')} INTEGER NOT NULL, ${col('offset_min')} INTEGER NOT NULL, ${col('sent_at')} INTEGER, ${col('error')} TEXT, PRIMARY KEY (${col('event_id')}, ${col('offset_min')}))`);
-      } catch { /* already-exists and similar: ignore */ }
-    })();
-  }
-  return reminderBeatsReady;
 }
 
 /* Pending groupings (legacy-unsettled) with a future start, ascending. */

@@ -17,7 +17,7 @@ import {
 } from 'drizzle-orm/sqlite-core';
 
 
-/* ---------------- users / oauth / nicks [ddl auth.js lazy] ------------ */
+/* ---------------- users / oauth / nicks [ddl chain baseline] ------- */
 export const users = sqliteTable('users', {
   discordId: text('discord_id').primaryKey(),
   username: text('username').notNull().default(''),
@@ -47,7 +47,7 @@ export const userGuildNicks = sqliteTable('user_guild_nicks', {
   primaryKey({ columns: [t.discordId, t.guildId] }),
 ]);
 
-/* ---------------- guild roster [ddl reminder.js lazy] ----------------- */
+/* ---------------- guild roster [ddl chain baseline] ---------------- */
 export const guildMembers = sqliteTable('guild_members', {
   tenant: text('tenant').notNull(),
   discordId: text('discord_id').notNull(),

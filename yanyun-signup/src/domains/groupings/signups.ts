@@ -45,44 +45,6 @@ function metaOf(r: unknown): RunMeta {
 }
 
 
-let signupDiscordColReady: Promise<void> | null = null;
-/** Adds signups.discord_id (seat identity stamp). */
-export function ensureSignupDiscordColumn(d1: D1Database): Promise<void> {
-  if (!signupDiscordColReady) {
-    signupDiscordColReady = (async () => {
-      try {
-        const db = createDb(d1);
-        const results = await db.all<{ name: string }>(sql`PRAGMA table_info(${signups})`);
-        const cols = new Set((results || []).map((r) => r.name));
-        if (!cols.has('discord_id')) {
-          await db.run(sql`ALTER TABLE ${signups} ADD COLUMN ${col('discord_id')} TEXT`);
-        }
-      } catch { /* already-exists and similar: ignore */ }
-    })();
-  }
-  return signupDiscordColReady;
-}
-
-
-let signupReadyColReady: Promise<void> | null = null;
-/** Adds signups.ready_at (seat readiness stamp for departure reminders:
- * epoch seconds when the seated member marked themselves ready;
- * NULL = not ready). */
-export function ensureSignupReadyColumn(d1: D1Database): Promise<void> {
-  if (!signupReadyColReady) {
-    signupReadyColReady = (async () => {
-      try {
-        const db = createDb(d1);
-        const results = await db.all<{ name: string }>(sql`PRAGMA table_info(${signups})`);
-        const cols = new Set((results || []).map((r) => r.name));
-        if (!cols.has('ready_at')) {
-          await db.run(sql`ALTER TABLE ${signups} ADD COLUMN ${col('ready_at')} INTEGER`);
-        }
-      } catch { /* already-exists and similar: ignore */ }
-    })();
-  }
-  return signupReadyColReady;
-}
 
 
 export async function listSignupsByEvent(d1: D1Database, eventId: number): Promise<SignupRow[]> {

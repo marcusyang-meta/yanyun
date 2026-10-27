@@ -30,18 +30,13 @@
 // messages @ nobody (path check only, don't wake the server).
 
 import { GP_SLOTS, GP_AFFIX_BY_KEY, gpBuild } from './gearplanner.ts';
-import {
-  getReminderSetting, setReminderSetting, postWebhook, ensureGuildMembersTable,
-} from '../groupings/index.ts';
+import { getReminderSetting, setReminderSetting, postWebhook } from '../groupings/index.ts';
 import { getGuildNick } from '../identity/auth.ts';
 import { webhookIdentity } from '../guilds/index.ts';
 import { getTenantRow, listTenantNames } from '../guilds/index.ts';
 import { getUsernameRow } from '../identity/index.ts';
 import { getGuildMember, hasGuildMember } from '../identity/index.ts';
-import {
-  ensureHeirloomTables as ensureHeirloomTablesRepo, listPushedItemHashes,
-  insertHeirloomItemPush, getHeirloomSetState, upsertHeirloomSetState,
-} from './heirloom.ts';
+import { listPushedItemHashes, insertHeirloomItemPush, getHeirloomSetState, upsertHeirloomSetState } from './heirloom.ts';
 
 /* ---------- Config (settings, tenant=slug) ---------- */
 export async function getHeirloomConfig(db: D1Database, slug: string) {
@@ -59,11 +54,6 @@ async function recordHeirloomStatus(db: D1Database, slug: string, { ok, error, a
   await setReminderSetting(db, slug, 'heirloom_last_status', test ? (ok ? 'test-ok' : 'test-error') : (ok ? 'ok' : 'error'));
   await setReminderSetting(db, slug, 'heirloom_last_error', ok ? '' : String(error || '未知错误').slice(0, 300));
   if (event) await setReminderSetting(db, slug, 'heirloom_last_event', String(event).slice(0, 60));
-}
-
-/* ---------- Dedup / set-state tables (lazy DDL lives in the gear domain's heirloom repository) ---------- */
-export function ensureHeirloomTables(db: D1Database) {
-  return ensureHeirloomTablesRepo(db);
 }
 
 /* Item content hash: slot + affixes (key+value) + attunement — excludes
@@ -86,7 +76,6 @@ export async function heirloomItemHash(g: any) {
  * server's nickname snapshot -> users global name -> session name ->
  * fallback. Same ladder as the reminders' creator display name. */
 async function memberDisplayName(db: D1Database, slug: string, dgid: any, discordId: string, userName: any) {
-  await ensureGuildMembersTable(db);
   const rm = await getGuildMember(db, slug, discordId).catch(() => null);
   if (rm && String(rm.nick || '').trim()) return String(rm.nick).trim();
   if (rm && String(rm.global_name || '').trim()) return String(rm.global_name).trim();
@@ -191,12 +180,10 @@ async function evaluateForTenant(db: D1Database, t: any, args: any) {
   const dgid = await getReminderSetting(db, slug, 'discord_guild_id');
   let member = !!(dgid && (args.userGuilds || []).includes(String(dgid)));
   if (!member) {
-    await ensureGuildMembersTable(db);
     member = await hasGuildMember(db, slug, args.discordId).catch(() => false);
   }
   if (!member) return;
 
-  await ensureHeirloomTables(db);
   const build = gpBuild(args.targetIdx || 0);
   const buildSig = `${build.school}|${build.set}`;
   const evalById = new Map((args.evals || []).map((e: any) => [e.id, e.verdict]));

@@ -1,24 +1,14 @@
 // Gear-library storage (owned per Discord account; user ruling
 // 2026-10-24: no localStorage). Row-level reads/writes go through the
-// data layer (src/domains/gear/gear.ts); this file keeps only the lazy
-// DDL delegation, payload JSON serialization and row->domain mapping.
+// data layer (src/domains/gear/gear.ts); this file keeps only the
+// payload JSON serialization and row->domain mapping.
 // user_gear_items: single items (affixes/attunement/school tags live in
 // the payload JSON, already sanitized by gearplanner).
 // user_gear_builds: saved builds (an item-id loadout + fixed-source
 // field state + a server-computed snapshot).
 // Every read/write is scoped by discord_id: a miss means "does not
 // exist" — another user's row is indistinguishable from no row.
-import {
-  listGearItemRows, insertGearItemRow, updateGearItemRow as updateGearItemRowData,
-  deleteGearItemRow as deleteGearItemRowData, listGearBuildRows, insertGearBuildRow,
-  deleteGearBuildRow as deleteGearBuildRowData,
-  ensureGearTables as ensureGearTablesRepo,
-} from './gear.ts';
-
-// The lazy DDL lives in the gear domain's gear repository; this legacy name is kept as a delegating export.
-export function ensureGearTables(db: any) {
-  return ensureGearTablesRepo(db);
-}
+import { listGearItemRows, insertGearItemRow, updateGearItemRow as updateGearItemRowData, deleteGearItemRow as deleteGearItemRowData, listGearBuildRows, insertGearBuildRow, deleteGearBuildRow as deleteGearBuildRowData } from './gear.ts';
 
 function itemRowToGear(row: any) {
   let p: any = {};
@@ -43,13 +33,11 @@ function gearPayload(gear: any) {
 }
 
 export async function listGearItems(db: any, discordId: string) {
-  await ensureGearTables(db);
   const rows = await listGearItemRows(db, discordId);
   return rows.map(itemRowToGear);
 }
 
 export async function insertGearItem(db: any, discordId: string, gear: any) {
-  await ensureGearTables(db);
   const meta = await insertGearItemRow(db, {
     discordId, slot: gear.slot || '', name: gear.name || '',
     payload: gearPayload(gear), createdAt: Date.now(),
@@ -59,7 +47,6 @@ export async function insertGearItem(db: any, discordId: string, gear: any) {
 }
 
 export async function updateGearItemRow(db: any, discordId: string, id: number, gear: any) {
-  await ensureGearTables(db);
   const meta = await updateGearItemRowData(db, discordId, id, {
     slot: gear.slot || '', name: gear.name || '', payload: gearPayload(gear),
   });
@@ -67,7 +54,6 @@ export async function updateGearItemRow(db: any, discordId: string, id: number, 
 }
 
 export async function deleteGearItemRow(db: any, discordId: string, id: number) {
-  await ensureGearTables(db);
   const meta = await deleteGearItemRowData(db, discordId, id);
   return meta.changes > 0;
 }
@@ -92,13 +78,11 @@ function buildRowToSaved(row: any) {
 }
 
 export async function listGearBuilds(db: any, discordId: string) {
-  await ensureGearTables(db);
   const rows = await listGearBuildRows(db, discordId);
   return rows.map(buildRowToSaved);
 }
 
 export async function insertGearBuild(db: any, discordId: string, build: any) {
-  await ensureGearTables(db);
   const payload = JSON.stringify({
     buildLabel: build.buildLabel || '',
     loadout: build.loadout || {},
@@ -118,7 +102,6 @@ export async function insertGearBuild(db: any, discordId: string, build: any) {
 }
 
 export async function deleteGearBuildRow(db: any, discordId: string, id: number) {
-  await ensureGearTables(db);
   const meta = await deleteGearBuildRowData(db, discordId, id);
   return meta.changes > 0;
 }

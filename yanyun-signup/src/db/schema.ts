@@ -15,7 +15,7 @@
 // fails any change that lets this model and the chain drift apart.
 //
 // Attestation per entity (where the shape was verified from):
-//   [ddl]  CREATE TABLE in the migration chain
+//   [ddl]  table created by the migration chain
 //   [alt]  plus a later migration file in the chain
 //   [qry]  columns attested only by queries in src — modeled nullable
 //          unless a query proves more (legacy notes; every [qry]
@@ -31,8 +31,7 @@ export * from '../domains/dex/schema.ts';
 export * from '../domains/platform/schema.ts';
 
 /* ------------- one-off ops audit (creator backfill; no domain) -------- */
-/* ---------------- creator backfill audit [ddl creatorbackfill.js lazy;
-   alt lazy detail] ---------------- */
+/* ---------------- creator backfill audit [ddl chain baseline] ------- */
 export const creatorBackfillLog = sqliteTable('creator_backfill_log', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   eventId: integer('event_id').notNull(),

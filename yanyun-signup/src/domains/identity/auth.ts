@@ -1,12 +1,6 @@
 import { SUPPORTED_LOCALES } from '../platform/index.ts';
 import { listDistinctSettingValues } from '../guilds/index.ts';
-import {
-  ensureUsersTable, ensureUsersLocaleColumn as ensureUsersLocaleColumnRepo,
-  ensureNickStoreTables, upsertUserOnLogin, getUserLocalePref as getUserLocalePrefRepo,
-  setUserLocalePref as setUserLocalePrefRepo, getUserGuildsJson, getOAuthGrant,
-  getOAuthRefresh, upsertOAuthOnLogin, updateOAuthAfterRefresh, markOAuthNeedsRelogin,
-  upsertNick as upsertNickRepo, touchNick as touchNickRepo, getNickRow, listNickRowsByUser,
-} from './index.ts';
+import { upsertUserOnLogin, getUserLocalePref as getUserLocalePrefRepo, setUserLocalePref as setUserLocalePrefRepo, getUserGuildsJson, getOAuthGrant, getOAuthRefresh, upsertOAuthOnLogin, updateOAuthAfterRefresh, markOAuthNeedsRelogin, upsertNick as upsertNickRepo, touchNick as touchNickRepo, getNickRow, listNickRowsByUser } from './index.ts';
 
 // Discord OAuth + stateless JWT session (yy_session cookie).
 // Payload: { sub: discord_id, name, avatar, guilds: [server ids...], gm?: [{i, p}], iat, exp }
@@ -111,7 +105,6 @@ export async function getSessionUser(request: any, env: any) {
 export async function hasCompleteDiscordGrant(env: any, discordId: string) {
   try {
     if (!env || !env.DB || !discordId) return false;
-    await ensureNickStore(env.DB);
     const row = await getOAuthGrant(env.DB, discordId);
     if (!row || !row.refresh_token) return false;
     if (row.refresh_state === 'needs_relogin') return false;
@@ -131,39 +124,29 @@ export async function getSessionUserChecked(request: any, env: any) {
 }
 
 /* ================= users table =================
- * ensureSchema / ensureUsersLocaleColumn are legacy-name delegates to
- * the users repository (identity/users.ts). */
+ * All users-table access goes through the users repository
+ * (identity/users.ts); this section keeps the session-facing
+ * compositions. */
 
 /* ---------- UI language preference (account-level, users.locale_pref) ----------
  * null = automatic (follow browser language); a set value beats the
  * browser. Reads and writes validate against the supported set; dirty
  * values count as unset. */
-export function ensureSchema(db: D1Database) {
-  return ensureUsersTable(db);
-}
-
-export function ensureUsersLocaleColumn(db: D1Database) {
-  return ensureUsersLocaleColumnRepo(db);
-}
-
 export async function getUserLocalePref(env: any, discordId: string) {
   try {
     if (!env || !env.DB || !discordId) return null;
-    await ensureUsersLocaleColumn(env.DB);
     const v = await getUserLocalePrefRepo(env.DB, String(discordId));
     return v != null && SUPPORTED_LOCALES.includes(v) ? v : null;
   } catch { return null; }
 }
 
 export async function setUserLocalePref(env: any, discordId: string, pref: any) {
-  await ensureUsersLocaleColumn(env.DB);
   await setUserLocalePrefRepo(env.DB, String(discordId), pref);
 }
 
 // Read the users row's server details [{id, name, icon, permissions, owner}]; no row -> null
 export async function getUserServers(db: D1Database, discordId: string) {
   try {
-    await ensureSchema(db);
     const guildsJson = await getUserGuildsJson(db, discordId);
     if (guildsJson === null) return null;
     const arr = JSON.parse(guildsJson || '[]');
@@ -200,10 +183,6 @@ function discordRoot(env: any) {
  * out over Discord flakiness. */
 const NICK_TTL_SEC = 24 * 3600;
 
-export function ensureNickStore(db: D1Database) {
-  return ensureNickStoreTables(db);
-}
-
 async function fetchWithTimeout(url: string, init: any, ms = 3500) {
   const ctl = new AbortController();
   const t = setTimeout(() => ctl.abort(), ms);
@@ -238,7 +217,6 @@ async function touchNick(db: D1Database, discordId: string, guildId: string) {
 
 export async function getGuildNick(db: D1Database, discordId: string, guildId: string) {
   try {
-    await ensureNickStore(db);
     const row = await getNickRow(db, discordId, guildId);
     return row ? String(row.nick || '') : null;
   } catch { return null; }
@@ -250,7 +228,6 @@ export async function maybeRefreshGuildNicks(env: any, user: any) {
     if (!env || !env.DB || !user || !user.discordId) return;
     if (!env.DISCORD_CLIENT_ID || !env.DISCORD_CLIENT_SECRET) return;
     const db = env.DB;
-    await ensureNickStore(db);
     const row = await getOAuthRefresh(db, user.discordId).catch(() => null);
     if (!row || !row.refresh_token || row.refresh_state === 'needs_relogin') return;
     const bound = new Set(await boundGuildIds(db));
@@ -391,7 +368,6 @@ export async function handleDiscordCallback(request: any, env: any) {
 
   // Persist (server details incl. permission bits, for viewer.discordServers / createGuild checks)
   try {
-    await ensureSchema(env.DB);
     await upsertUserOnLogin(env.DB, {
       discordId: String(me.id), username: displayName, avatar,
       guildsJson: JSON.stringify(servers), checkedAtSec: Math.floor(Date.now() / 1000),
@@ -401,7 +377,6 @@ export async function handleDiscordCallback(request: any, env: any) {
   // Store the refresh token (D1 only, never JWT/frontend) + fetch bound-server
   // nicks once. Fully tolerant: no step's failure or timeout may fail the login.
   try {
-    await ensureNickStore(env.DB);
     const nowSec = Math.floor(Date.now() / 1000);
     if (token.refresh_token) {
       await upsertOAuthOnLogin(env.DB, {

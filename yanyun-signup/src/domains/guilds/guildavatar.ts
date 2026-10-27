@@ -9,20 +9,12 @@
 // rendering all take this table as truth: an avatar means a URL
 // exists; none means null / default fallback everywhere.
 
-import {
-  getGuildAvatarMetaRow, getGuildAvatarRow, putGuildAvatarRow, deleteGuildAvatarRow,
-  ensureGuildAvatarsTable as ensureGuildAvatarsTableRepo,
-} from './guildAvatars.ts';
+import { getGuildAvatarMetaRow, getGuildAvatarRow, putGuildAvatarRow, deleteGuildAvatarRow } from './guildAvatars.ts';
 import { getTenantRow } from './tenants.ts';
 
 export const AVATAR_MAX_BYTES = 400 * 1024; // Stored-blob cap (the frontend already crops square and scales to <=512).
 export const AVATAR_CONTENT_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
 const SITE_ORIGIN = 'https://yanyun.app'; // Same canonical-domain definition as worker.js SITE_URL.
-
-/* ---------- Lazy DDL now lives in the guilds guildAvatars repository; old names kept as delegates ---------- */
-export function ensureGuildAvatarsTable(db: any) {
-  return ensureGuildAvatarsTableRepo(db);
-}
 
 /* ---------- Type sniffing: magic bytes only — never trust the client-declared content-type ---------- */
 export function sniffAvatarType(buf: any): string | null {
@@ -56,18 +48,15 @@ export function avatarPublicUrl(slug: string, hash: string | null | undefined): 
 
 /* Metadata (no blob): the cheap query for GraphQL fields / webhook identity. */
 export async function getGuildAvatarMeta(db: any, tenant: string) {
-  await ensureGuildAvatarsTable(db);
   return getGuildAvatarMetaRow(db, tenant).catch(() => null);
 }
 
 /* Full row (with blob bytes): for the public image route. D1 reads BLOBs back as ArrayBuffer. */
 export async function getGuildAvatar(db: any, tenant: string) {
-  await ensureGuildAvatarsTable(db);
   return getGuildAvatarRow(db, tenant).catch(() => null);
 }
 
 export async function putGuildAvatar(db: any, tenant: string, contentType: string, bytes: any) {
-  await ensureGuildAvatarsTable(db);
   const hash = await sha256hex(bytes);
   const nowSec = Math.floor(Date.now() / 1000);
   await putGuildAvatarRow(db, tenant, contentType, bytes, hash, nowSec);
@@ -75,7 +64,6 @@ export async function putGuildAvatar(db: any, tenant: string, contentType: strin
 }
 
 export async function deleteGuildAvatar(db: any, tenant: string) {
-  await ensureGuildAvatarsTable(db);
   await deleteGuildAvatarRow(db, tenant);
 }
 

@@ -2,10 +2,8 @@
  * Data-layer access (Repository) for the bosses entity.
  *
  * All bosses statements live here (previously scattered across
- * graphql.js and worker.js). Lazy DDL for the structured columns
- * (mechanics_json etc.) belongs to this repository; graphql.js
- * keeps the old ensureBossStructuredColumns name as a delegating
- * export. Rows keep snake_case keys, so call sites are unaffected.
+ * graphql.js and worker.js). Rows keep snake_case keys, so call
+ * sites are unaffected.
  * =================================================== */
 import { sql } from 'drizzle-orm';
 import { createDb, schema } from '../../db/client.ts';
@@ -35,25 +33,6 @@ interface RunMeta {
 function metaOf(r: unknown): RunMeta {
   const m = (r as { meta?: { changes?: number; last_row_id?: number } } | null)?.meta;
   return { changes: m?.changes ?? 0, last_row_id: m?.last_row_id ?? 0 };
-}
-
-/* ---------- Lazy DDL: structured guide columns ---------- */
-
-let bossColsReady: Promise<void> | null = null;
-export function ensureBossStructuredColumns(d1: D1Database): Promise<void> {
-  if (!bossColsReady) {
-    bossColsReady = (async () => {
-      try {
-        const db = createDb(d1);
-        const results = await db.all<{ name: string }>(sql`PRAGMA table_info(${bosses})`);
-        const cols = new Set((results || []).map((r) => r.name));
-        for (const c of ['mechanics_json', 'talents_json', 'shouts_json']) {
-          if (!cols.has(c)) await db.run(sql`ALTER TABLE ${bosses} ADD COLUMN ${col(c)} TEXT`);
-        }
-      } catch { /* silent if columns already exist etc.; reads fall back to parsing guide */ }
-    })();
-  }
-  return bossColsReady;
 }
 
 /* ---------- Reads ---------- */

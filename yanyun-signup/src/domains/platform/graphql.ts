@@ -6,8 +6,8 @@ import {
 } from './index.ts';
 import { tlCalculateExcel } from '../gear/index.ts';
 import { getUserServers, getGuildNick, maybeRefreshGuildNicks, getUserLocalePref, setUserLocalePref } from '../identity/auth.ts';
-import { ensureSignupDiscordColumn, ensureGuildMembersTable, upsertGuildMember } from '../groupings/index.ts';
-import { ensurePushTokensTable, isValidPushToken, savePushToken, deletePushToken } from './index.ts';
+import { upsertGuildMember } from '../groupings/index.ts';
+import { isValidPushToken, savePushToken, deletePushToken } from './index.ts';
 import { evaluateHeirloomPushes } from '../gear/index.ts';
 import { translate, negotiateLocale, SUPPORTED_LOCALES, CATALOG } from './index.ts';
 import { logError } from './index.ts';
@@ -16,23 +16,12 @@ import { getGuildAvatarMeta, avatarPath } from '../guilds/index.ts';
 import { getSettingValue, setSettingValue, listSettingsByKey } from '../guilds/index.ts';
 import { getUsernameRow } from '../identity/index.ts';
 import { listGuildMembers, getGuildMember } from '../identity/index.ts';
-import {
-  getBossById, listBossesByDungeon, ensureBossStructuredColumns as ensureBossStructuredColumnsRepo,
-  listSchoolsFull, listSchoolsNameSlug, getSchoolNameBySlug, listSchoolBis,
-  getSchoolBisJsonBySchool, listSchoolRotations, listSlotAffixByBuild, listAffixMax, listAffixMaxValues,
-} from '../dex/index.ts';
-import {
-  getDungeonByName, getDungeonNameSizeById, listDungeonsDex, getLatestDungeonVersion,
-  ensureDungeonDexColumns as ensureDungeonDexColumnsRepo,
-} from '../dex/index.ts';
+import { getBossById, listBossesByDungeon, listSchoolsFull, listSchoolsNameSlug, getSchoolNameBySlug, listSchoolBis, getSchoolBisJsonBySchool, listSchoolRotations, listSlotAffixByBuild, listAffixMax, listAffixMaxValues } from '../dex/index.ts';
+import { getDungeonByName, getDungeonNameSizeById, listDungeonsDex, getLatestDungeonVersion } from '../dex/index.ts';
 import {
   getTenantRow, getTenantSlug, listTenantSlugs, listTenantsDirectory, insertTenant,
 } from '../guilds/index.ts';
-import {
-  getEventRow, getEventTenant, getEventTenantCreator, listEventsByTenantType,
-  insertEvent, updateEventFields, setEventStatus, deleteEventCascade,
-  ensureEventCreatorColumn as ensureEventCreatorColumnRepo,
-} from '../groupings/index.ts';
+import { getEventRow, getEventTenant, getEventTenantCreator, listEventsByTenantType, insertEvent, updateEventFields, setEventStatus, deleteEventCascade } from '../groupings/index.ts';
 import {
   listSignupSeats, listSignupSeatsBasic, listSignupNamesStamps, getSignupCapacityStats,
   insertSignups, deleteSignupById, deleteSignupByEventUid, deleteSignupsByEvent,
@@ -305,14 +294,12 @@ export const platformResolvers = {
       if (!isValidPushToken(t)) {
         return { ok: false, error: errText(ctx, 'pushTokenInvalid'), errorCode: 'pushTokenInvalid' };
       }
-      await ensurePushTokensTable(ctx.env.DB);
       await savePushToken(ctx.env.DB, ctx.user.discordId, t, platform || '');
       return { ok: true, error: null, errorCode: null };
     },
 
     unregisterPushToken: async (_: any, { token }: any, ctx: Context) => {
       if (!ctx.user) return { ok: false, error: errText(ctx, 'loginRequired'), errorCode: 'loginRequired' };
-      await ensurePushTokensTable(ctx.env.DB);
       await deletePushToken(ctx.env.DB, ctx.user.discordId, String(token || '').trim());
       return { ok: true, error: null, errorCode: null };
     },
