@@ -412,6 +412,7 @@ export const gear_exportLabel = (fbs: FbsRuntime) => fbs._("导出数据", null,
 export const gear_importLabel = (fbs: FbsRuntime) => fbs._("导入数据", null, { hk: "11MH1n" });
 export const gear_importFailedToast = (fbs: FbsRuntime) => fbs._("导入失败：文件无效", null, { hk: "1r5Y0C" });
 export const gear_importedToastTemplate = (fbs: FbsRuntime, p?: StringParams) => fbs._("已导入 {n} 件", [fbs._param("n", pv(p, "n"))], { hk: "2tzLQy" });
+export const gear_manualTitle = (fbs: FbsRuntime) => fbs._("手动录入", null, { hk: "4cfwWe" });
 export const gear_pasteTitle = (fbs: FbsRuntime) => fbs._("粘贴代码导入", null, { hk: "tzTTU" });
 export const gear_pastePlaceholder = (fbs: FbsRuntime) => fbs._("把装备数据代码粘到这里（JSON / Base64 / 文本均可）", null, { hk: "xDIFv" });
 export const gear_pasteButtonLabel = (fbs: FbsRuntime) => fbs._("解析并导入装备库", null, { hk: "1365Ci" });
@@ -1204,6 +1205,7 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"gear.importLabel": gear_importLabel,
 	"gear.importFailedToast": gear_importFailedToast,
 	"gear.importedToastTemplate": gear_importedToastTemplate,
+	"gear.manualTitle": gear_manualTitle,
 	"gear.pasteTitle": gear_pasteTitle,
 	"gear.pastePlaceholder": gear_pastePlaceholder,
 	"gear.pasteButtonLabel": gear_pasteButtonLabel,

@@ -164,6 +164,7 @@ export const gear_importLabel = (fbs: FbsAPI) =>fbs("导入数据", "gear.import
 export const gear_importFailedToast = (fbs: FbsAPI) =>fbs("导入失败：文件无效", "gear.importFailedToast");
 export const gear_importedToastTemplate = (fbs: FbsAPI, p?: StringParams) =>
   fbs(["已导入 ", fbs.param("n", pv(p, "n")), " 件"], "gear.importedToastTemplate");
+export const gear_manualTitle = (fbs: FbsAPI) =>fbs("手动录入", "gear.manualTitle");
 export const gear_pasteTitle = (fbs: FbsAPI) =>fbs("粘贴代码导入", "gear.pasteTitle");
 export const gear_pastePlaceholder = (fbs: FbsAPI) =>fbs("把装备数据代码粘到这里（JSON / Base64 / 文本均可）", "gear.pastePlaceholder");
 export const gear_pasteButtonLabel = (fbs: FbsAPI) =>fbs("解析并导入装备库", "gear.pasteButtonLabel");

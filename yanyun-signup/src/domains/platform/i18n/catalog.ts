@@ -2734,6 +2734,9 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "fr": "{n} pièces importées",
       "zh-TW": "已匯入 {n} 件"
     },
+    "manualTitle": {
+      "zh-CN": "手动录入"
+    },
     "pasteTitle": {
       "zh-CN": "粘贴代码导入",
       "en": "Paste-code import",

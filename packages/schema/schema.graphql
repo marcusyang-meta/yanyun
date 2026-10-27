@@ -1078,6 +1078,7 @@ type GradPage {
   gearImportLabel: String!
   gearImportFailedToast: String!
   gearImportedToastTemplate: String!
+  gearManualTitle: String!
   gearPasteTitle: String!
   gearPastePlaceholder: String!
   gearPasteButtonLabel: String!
