@@ -1845,6 +1845,7 @@ type GuildAdmin {
   adminSubdomainNote: String!
   adminBillingSuccessText: String!
   adminBillingCanceledText: String!
+  adminPremiumTitle: String!
 }
 
 # OG 分享卡强调色选项: 服务端色板 (key + 本地化名 + 色值), 管理员

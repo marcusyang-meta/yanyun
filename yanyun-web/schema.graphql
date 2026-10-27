@@ -1611,6 +1611,7 @@ type GuildAdmin {
   adminOgTitleSuffixHint: String!
   adminBillingSuccessText: String!
   adminBillingCanceledText: String!
+  adminPremiumTitle: String!
 }
 
 type GuildAdminOgAccentOption {
