@@ -14,9 +14,9 @@ import type { GearBenchAutoMutation as AutoType } from './__generated__/GearBenc
 
 /* Gear bench: target/fixed sources/build/panel/graduation live in this
  * component; the gear library and builds' data and management UI live in
- * GearLibrary (the same implementation and GraphQL storage the Profile dialog
- * shares). Library contents are mirrored in via onItemsChange for plan
- * computation. */
+ * GearLibrary (the same implementation and GraphQL storage the standalone
+ * gear page shares). Library contents are mirrored in via onItemsChange for
+ * plan computation. */
 
 const benchQuery = graphql`
   query GearBenchQuery {

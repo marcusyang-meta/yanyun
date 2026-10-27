@@ -7,6 +7,7 @@ import type { ViewerUser } from './lib/user';
 import LoginPage from './auth/LoginPage.react.tsx';
 import GuildPicker from './auth/GuildPicker.react.tsx';
 import CreateGuildPage from './auth/CreateGuildPage.react.tsx';
+import GearPage from './auth/GearPage.react.tsx';
 import GuildRouteLoader from './guild/GuildRouteLoader.react.tsx';
 import GuildAdminRouteLoader from './guild/GuildAdminRouteLoader.react.tsx';
 import LegalRoute from './LegalRoute.react.tsx';
@@ -153,6 +154,12 @@ export default function AppRoot({ queries }: {
       <Route
         path="/create"
         element={user ? <CreateGuildPage user={user} /> : <LoginPage returnTo="/create" site={siteText} text={loginText} />}
+      />
+      {/* My gear library: a standalone page (Profile links here); the static
+          segment must win over /:slug, same as /create and the legal pages */}
+      <Route
+        path="/gear"
+        element={user ? <GearPage user={user} userBarText={userBarText} /> : <LoginPage returnTo="/gear" site={siteText} text={loginText} />}
       />
       <Route
         path="/:slug/car/:carId"

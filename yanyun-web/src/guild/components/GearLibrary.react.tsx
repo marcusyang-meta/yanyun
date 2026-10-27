@@ -23,9 +23,9 @@ import type { GearLibraryDeleteBuildMutation as DeleteBuildType } from './__gene
 
 /* The single UI implementation for the gear library + my builds (server D1,
  * keyed by Discord account): shared by the gear bench (bench mode, with
- * equip/simulate wiring) and the Profile dialog (profile mode, management
- * only + loading lands in the saved work state). Both read/write the same
- * GraphQL queries/mutations; opening either triggers a targeted
+ * equip/simulate wiring) and the standalone gear page (profile mode,
+ * management only + loading lands in the saved work state). Both read/write
+ * the same GraphQL queries/mutations; opening either triggers a targeted
  * GearLibraryQuery refetch via relay.ts, so changes propagate instantly. */
 
 const libraryQuery = graphql`
@@ -354,7 +354,7 @@ export default function GearLibrary(props: {
   useEffect(() => { setItems(data.myGearItems.map(mapItem)); }, [data.myGearItems]);
   useEffect(() => { setBuilds(data.myGearBuilds.map(mapBuild)); }, [data.myGearBuilds]);
   useEffect(() => { props.onItemsChange?.(items); }, [items]); // eslint-disable-line react-hooks/exhaustive-deps
-  // Refetch on open: changes from the other surface (Profile/bench) are pulled in at open time
+  // Refetch on open: changes from the other surface (gear page/bench) are pulled in at open time
   useEffect(() => { void refetchGearLibraryQueries(); }, []);
 
   const affixByKey = useMemo(() => new Map(t.gearAffixes.map((a) => [a.key, a])), [t.gearAffixes]);
@@ -714,7 +714,7 @@ export default function GearLibrary(props: {
   const [schemeName, setSchemeName] = useState('');
   const [commitSaveBuild] = useMutation<SaveBuildType>(saveBuildMutation);
   const [commitDeleteBuild] = useMutation<DeleteBuildType>(deleteBuildMutation);
-  /* Saving a build from Profile: the saved work state is exactly the current
+  /* Saving a build from the gear page: the saved work state is exactly the current
    * build the bench reads on its next open (the original's "save as build"
    * stored precisely the persisted current build). Rebuild the state from it
    * using the same caliber as the bench's getBenchState (base values filled
@@ -1065,7 +1065,7 @@ export default function GearLibrary(props: {
           return (
             <div
               key={g.id}
-              style={card}
+              style={{ ...card, padding: '8px 11px' }}
               className={'yy-gear-card' + (isHeirloom ? ' heirloom' : '') + (!isHeirloom && topTier ? ' q-top' : '')}
               onClick={isHeirloom ? (e) => { heirloomDustFromClick(e); } : undefined}
             >
@@ -1082,7 +1082,7 @@ export default function GearLibrary(props: {
               <div style={{ fontFamily: 'var(--font-serif)', color: theme.goldHi, fontSize: 15.5, fontWeight: 700, marginTop: 2, letterSpacing: 1 }}>
                 {g.name || g.slot}
               </div>
-              <div style={{ marginTop: 6, fontSize: 12.5, lineHeight: 1.85, color: theme.paper }}>
+              <div style={{ marginTop: 4, fontSize: 12.5, lineHeight: 1.5, color: theme.paper }}>
                 {mainIdx >= 0 && lineRow(g.lines[mainIdx], mainIdx)}
                 {g.lines.map((l, ix) => (ix === mainIdx ? null : lineRow(l, ix)))}
                 {g.dingyin && (
@@ -1092,29 +1092,17 @@ export default function GearLibrary(props: {
                 )}
               </div>
               {g.warnings.length > 0 && <div style={{ color: theme.seal, fontSize: 11, marginTop: 3 }}>{g.warnings.join('；')}</div>}
-              {g.slot === '武器' && (
-                <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 6 }}>
-                  {t.gearSchoolTags.map((tag) => {
-                    const on = g.schools.includes(tag);
-                    return (
-                      <button key={tag} onClick={() => {
-                        const schools = on ? g.schools.filter((x) => x !== tag) : [...g.schools, tag];
-                        commitUpdate({
-                          variables: { id: g.id, input: { slot: g.slot, name: g.name, lines: g.lines, dingyin: g.dingyin, schools } },
-                          onCompleted: (resp) => { if (resp.updateGearItem.ok && resp.updateGearItem.item) applySavedItem(mapItem(resp.updateGearItem.item), false); },
-                          onError: () => toast(t.gearCalcFailedText),
-                        });
-                      }} style={{ ...btnMini, padding: '1px 7px', fontSize: 11, background: on ? theme.gold : 'transparent', color: on ? '#1a1814' : theme.muted }}>{tag}</button>
-                    );
-                  })}
-                </div>
-              )}
+              {/* No sect tag wall on the card face (marcus, 2026-10-27: the
+                  wall of chips made the card read like a form, not an item).
+                  Tag editing lives in the edit form (manual panel mode,
+                  startEdit): its schools toggles cover every tag, and saving
+                  writes through the same updateGearItem mutation. */}
               {ev && (
-                <div style={{ color: theme.muted, fontSize: 11, marginTop: 6 }}>
+                <div style={{ color: theme.muted, fontSize: 11, marginTop: 4 }}>
                   {fill(t.gearScoreTemplate, { score: ev.score })} · {t.gearQualityLabel} {Math.round(ev.quality * 100)}%
                 </div>
               )}
-              <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 8, alignItems: 'center' }}>
+              <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 6, alignItems: 'center' }}>
                 {mode === 'bench' && (
                   <button style={btnMini} onClick={() => (pos ? props.onUnequipPos?.(pos) : props.onEquipItem?.(g))}>{pos ? t.gearUnequipLabel : t.gearEquipLabel}</button>
                 )}
