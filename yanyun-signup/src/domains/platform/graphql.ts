@@ -8,6 +8,10 @@ import { tlCalculateExcel } from '../gear/index.ts';
 import { getUserServers, getGuildNick, maybeRefreshGuildNicks, getUserLocalePref, setUserLocalePref } from '../identity/auth.ts';
 import { upsertGuildMember } from '../groupings/index.ts';
 import { isValidPushToken, savePushToken, deletePushToken } from './index.ts';
+import {
+  insertFeedback, countFeedbackSince, FEEDBACK_CATEGORIES,
+  FEEDBACK_MAX_CONTENT, FEEDBACK_DAILY_LIMIT,
+} from './index.ts';
 import { evaluateHeirloomPushes } from '../gear/index.ts';
 import { translate, negotiateLocale, SUPPORTED_LOCALES, CATALOG } from './index.ts';
 import { logError } from './index.ts';
@@ -304,6 +308,35 @@ export const platformResolvers = {
       return { ok: true, error: null, errorCode: null };
     },
 
+    // In-app feedback (profile form): identity comes only from the
+    // session; the row snapshots the display name so the hub list stays
+    // readable after renames. Anti-spam = per-user rolling-24h cap,
+    // counted through the repository (durable across isolates, unlike
+    // the in-memory REST limiter).
+    submitFeedback: async (_: any, { category, text }: any, ctx: Context) => {
+      if (!ctx.user) return { ok: false, error: errText(ctx, 'loginRequired'), errorCode: 'loginRequired' };
+      const content = String(text || '').trim();
+      if (!content) return { ok: false, error: errText(ctx, 'feedbackEmpty'), errorCode: 'feedbackEmpty' };
+      if (content.length > FEEDBACK_MAX_CONTENT) {
+        return { ok: false, error: errText(ctx, 'feedbackTooLong'), errorCode: 'feedbackTooLong' };
+      }
+      const cat = String(category || '').toLowerCase();
+      const stored = (FEEDBACK_CATEGORIES as readonly string[]).includes(cat) ? cat : 'other';
+      const now = Date.now();
+      const recent = await countFeedbackSince(ctx.env.DB, String(ctx.user.discordId), now - 24 * 3600 * 1000);
+      if (recent >= FEEDBACK_DAILY_LIMIT) {
+        return { ok: false, error: errText(ctx, 'feedbackRateLimited'), errorCode: 'feedbackRateLimited' };
+      }
+      await insertFeedback(ctx.env.DB, {
+        discordId: String(ctx.user.discordId),
+        userName: String(ctx.user.name || ''),
+        category: stored,
+        content,
+        createdAt: now,
+      });
+      return { ok: true, error: null, errorCode: null };
+    },
+
     // Self-service guild creation: logged in + admin/owner of the bound Discord server
   },
   types: {
@@ -312,6 +345,7 @@ export const platformResolvers = {
     // delegates to the same-named property of the computed result object
     // (previously these relied on GraphQL default field resolution).
     PushTokenPayload: { ok: (p: any) => p.ok, error: (p: any) => p.error, errorCode: (p: any) => p.errorCode },
+    SubmitFeedbackPayload: { ok: (p: any) => p.ok, error: (p: any) => p.error, errorCode: (p: any) => p.errorCode },
   Block: { __resolveType: (p: any) => p.__typename, children: (p: any) => p.genChildren(), js: (p: any, a: any) => a.module },
   Action: { __resolveType: (p: any) => p.__typename, actionType: (p: any) => p.actionType },
   SectionBlock: { js: (p: any, a: any) => a.module, title: (p: any) => p.genTitle(), children: (p: any) => p.genChildren() },

@@ -911,6 +911,17 @@ type SettingsPage {
   settingsLangEsLabel: String!
   settingsLangFrLabel: String!
   settingsSavedText: String!
+  # 意见反馈: 个人资料内的入口 + 表单文案 (类别枚举见 FeedbackCategory)
+  feedbackEntryLabel: String!
+  feedbackTitle: String!
+  feedbackCategoryLabel: String!
+  feedbackCategoryProblemLabel: String!
+  feedbackCategorySuggestionLabel: String!
+  feedbackCategoryOtherLabel: String!
+  feedbackPlaceholder: String!
+  feedbackSubmitLabel: String!
+  feedbackSubmittingLabel: String!
+  feedbackSuccessText: String!
   localePref: String
   effectiveLocale: String!
   # ---- 我的数据 (账号导出 / 删除自助) ----
@@ -951,6 +962,25 @@ type AccountPendingDeletion {
   daysLeft: Int!
   accountPendingTitle: String!
   accountPendingBody: String!
+}
+
+enum FeedbackCategory {
+  PROBLEM
+  SUGGESTION
+  OTHER
+}
+
+type SubmitFeedbackPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+}
+
+extend type Mutation {
+  # 站内反馈: 身份只从会话解析; 内容去空白后非空且不超过 2000 字,
+  # 同一用户滚动 24 小时内上限 5 条 (错误码 feedbackEmpty /
+  # feedbackTooLong / feedbackRateLimited, 文案走 errors 目录)
+  submitFeedback(category: FeedbackCategory!, text: String!): SubmitFeedbackPayload!
 }
 
 type UpdateLocalePayload {
@@ -1604,6 +1634,16 @@ type Viewer {
   loginCardBody2: String!
   loginButtonLabel: String!
   loginPrivacyText: String!
+  # 匿名落地页功能区文案 (根路径匿名态呈现; 登录卡沿用上面的 login* 字段)
+  landingFeaturesTitle: String!
+  landingGroupingTitle: String!
+  landingGroupingBody: String!
+  landingReminderTitle: String!
+  landingReminderBody: String!
+  landingDexTitle: String!
+  landingDexBody: String!
+  landingGearTitle: String!
+  landingGearBody: String!
   # 全站页脚: 非官方声明正文 + 服务条款/隐私政策入口文案 (后端生成)
   footerDisclaimerText: String!
   footerTermsLabel: String!

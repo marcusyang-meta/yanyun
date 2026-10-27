@@ -34,7 +34,7 @@ $('#loginForm').onsubmit = async (e) => {
 };
 $('#logoutBtn').onclick = logout;
 
-async function boot() { await loadSettings(); await loadTenants(); await loadReminders(); await loadHeirlooms(); await loadErrors(); await loadAudit(); await loadBackups(); await loadBilling(); await loadBosses(); await loadDungeons(); }
+async function boot() { await loadSettings(); await loadTenants(); await loadReminders(); await loadHeirlooms(); await loadErrors(); await loadAudit(); await loadBackups(); await loadBilling(); await loadFeedback(); await loadBosses(); await loadDungeons(); }
 
 async function loadBilling() {
   const msg = $('#billingMsg');
@@ -173,6 +173,43 @@ async function loadAudit() {
 $('#auditQuery').onclick = () => { auditOffset = 0; loadAudit(); };
 $('#auditPrev').onclick = () => { auditOffset = Math.max(0, auditOffset - AUDIT_PAGE); loadAudit(); };
 $('#auditNext').onclick = () => { auditOffset += AUDIT_PAGE; loadAudit(); };
+
+let fbStatus = 'open';
+let fbOffset = 0;
+const FB_PAGE = 50;
+const FB_CATEGORY = { problem: '问题', suggestion: '建议', other: '其他' };
+async function loadFeedback() {
+  const msg = $('#feedbackMsg');
+  try {
+    const q = `?limit=${FB_PAGE}&offset=${fbOffset}` + (fbStatus ? `&status=${fbStatus}` : '');
+    const { entries, total } = await api('/api/hub/feedback' + q);
+    $('#fbSummary').textContent = `共 ${total} 条（${fbStatus === 'open' ? '待处理' : fbStatus === 'resolved' ? '已处理' : '全部'}）`;
+    $('#feedbackTable').innerHTML = `<tr><th>时间</th><th>用户</th><th>类别</th><th>内容</th><th>状态</th><th></th></tr>` +
+      (entries.map((r) => `<tr>
+        <td style="white-space:nowrap">${esc(new Date(r.created_at).toLocaleString())}</td>
+        <td>${esc(r.user_name || '')}<br><span class="muted" style="font-family:monospace;font-size:12px">${esc(r.discord_id)}</span></td>
+        <td style="white-space:nowrap">${esc(FB_CATEGORY[r.category] || r.category || '')}</td>
+        <td style="white-space:pre-wrap;min-width:260px">${esc(r.content)}</td>
+        <td style="white-space:nowrap">${r.status === 'resolved' ? '✅ 已处理' : '🕓 待处理'}</td>
+        <td><button class="ghost" data-fb="${r.id}" data-to="${r.status === 'resolved' ? 'open' : 'resolved'}">${r.status === 'resolved' ? '重开' : '标记已处理'}</button></td>
+      </tr>`).join('') || '<tr><td colspan="6" class="empty">暂无反馈</td></tr>');
+    $('#feedbackTable').querySelectorAll('button[data-fb]').forEach((b) => b.onclick = async () => {
+      try {
+        await api('/api/hub/feedback/' + b.dataset.fb + '/status', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ status: b.dataset.to }) });
+        msg.className = 'msg ok'; msg.textContent = '状态已更新';
+        loadFeedback();
+      } catch (e) { msg.className = 'msg bad'; msg.textContent = e.message; }
+    });
+    $('#fbPrev').disabled = fbOffset <= 0;
+    $('#fbNext').disabled = fbOffset + entries.length >= total;
+    if (msg.className !== 'msg ok') { msg.className = 'msg'; msg.textContent = ''; }
+  } catch (e) { msg.className = 'msg bad'; msg.textContent = e.message; }
+}
+$('#fbOpen').onclick = () => { fbStatus = 'open'; fbOffset = 0; loadFeedback(); };
+$('#fbResolved').onclick = () => { fbStatus = 'resolved'; fbOffset = 0; loadFeedback(); };
+$('#fbAll').onclick = () => { fbStatus = ''; fbOffset = 0; loadFeedback(); };
+$('#fbPrev').onclick = () => { fbOffset = Math.max(0, fbOffset - FB_PAGE); loadFeedback(); };
+$('#fbNext').onclick = () => { fbOffset += FB_PAGE; loadFeedback(); };
 
 async function loadErrors() {
   const msg = $('#errorMsg');

@@ -713,6 +713,9 @@ export const errors_premiumComingSoon = (fbs: FbsRuntime) => fbs._("Premium 开�
 export const errors_premiumActive = (fbs: FbsRuntime) => fbs._("本百业已开通 Premium", null, { hk: "v6s45" });
 export const errors_paygateDisabled = (fbs: FbsRuntime) => fbs._("收费功能尚未开启", null, { hk: "4cxV4g" });
 export const errors_checkoutFailed = (fbs: FbsRuntime) => fbs._("创建支付会话失败，请稍后再试", null, { hk: "4CxoXa" });
+export const errors_feedbackEmpty = (fbs: FbsRuntime) => fbs._("反馈内容不能为空", null, { hk: "3XLeNf" });
+export const errors_feedbackTooLong = (fbs: FbsRuntime) => fbs._("反馈内容太长，请精简到 2000 字以内", null, { hk: "1FK6tt" });
+export const errors_feedbackRateLimited = (fbs: FbsRuntime) => fbs._("今天提交的反馈已达上限，请明天再来", null, { hk: "lO8z3" });
 export const guildAdmin_title = (fbs: FbsRuntime) => fbs._("管理百业", null, { hk: "23Vynb" });
 export const guildAdmin_lockedTitle = (fbs: FbsRuntime) => fbs._("无权管理这个百业", null, { hk: "4eqp6f" });
 export const guildAdmin_lockedBody = (fbs: FbsRuntime) => fbs._("只有该百业所绑 Discord 服务器的管理员（服务器主或拥有管理权限）可以进入管理页。", null, { hk: "248TMj" });
@@ -883,6 +886,25 @@ export const buildshare_loginLabel = (fbs: FbsRuntime) => fbs._("打开燕云百
 export const buildshare_notFoundTitle = (fbs: FbsRuntime) => fbs._("链接已失效", null, { hk: "1Wv006" });
 export const buildshare_notFoundBody = (fbs: FbsRuntime) => fbs._("这条分享链接不存在，或已被方案主人取消分享。", null, { hk: "3K1GvQ" });
 export const buildshare_xinfaLabel = (fbs: FbsRuntime) => fbs._("心法", null, { hk: "pogF2" });
+export const landing_featuresTitle = (fbs: FbsRuntime) => fbs._("为百业同道而备", null, { hk: "3du36p" });
+export const landing_groupingTitle = (fbs: FbsRuntime) => fbs._("组队报名", null, { hk: "3JRuqp" });
+export const landing_groupingBody = (fbs: FbsRuntime) => fbs._("双十、天赋、竞速、爬塔四类车队一键成行，席位名册一目了然，短链分享直达车队页。", null, { hk: "1dsTrP" });
+export const landing_reminderTitle = (fbs: FbsRuntime) => fbs._("发车提醒", null, { hk: "2jQqJL" });
+export const landing_reminderBody = (fbs: FbsRuntime) => fbs._("发车前自动提醒到 Discord 频道与手机 App，就位确认先行，只催还没到场的人。", null, { hk: "36Qc1H" });
+export const landing_dexTitle = (fbs: FbsRuntime) => fbs._("图鉴与攻略", null, { hk: "1QBXN5" });
+export const landing_dexBody = (fbs: FbsRuntime) => fbs._("副本、首领图鉴与机制攻略，十一流派毕业词缀与配装参考，随国际服版本更新。", null, { hk: "17iH96" });
+export const landing_gearTitle = (fbs: FbsRuntime) => fbs._("装备规划", null, { hk: "1J9U1" });
+export const landing_gearBody = (fbs: FbsRuntime) => fbs._("个人装备库与搭配筹谋：粘贴、截图识别或手动录入，承音调律与毕业度测算，离毕业还差多少一眼看清。", null, { hk: "4Gogmf" });
+export const feedback_entryLabel = (fbs: FbsRuntime) => fbs._("意见反馈", null, { hk: "2iinuc" });
+export const feedback_title = (fbs: FbsRuntime) => fbs._("意见反馈", null, { hk: "1351dn" });
+export const feedback_categoryLabel = (fbs: FbsRuntime) => fbs._("类别", null, { hk: "XzdVT" });
+export const feedback_catProblem = (fbs: FbsRuntime) => fbs._("问题", null, { hk: "25EGZt" });
+export const feedback_catSuggestion = (fbs: FbsRuntime) => fbs._("建议", null, { hk: "KtkM9" });
+export const feedback_catOther = (fbs: FbsRuntime) => fbs._("其他", null, { hk: "2G4CgP" });
+export const feedback_placeholder = (fbs: FbsRuntime) => fbs._("请描述遇到的问题，或写下你的建议…", null, { hk: "1LyVbK" });
+export const feedback_submit = (fbs: FbsRuntime) => fbs._("提交反馈", null, { hk: "2kl5j4" });
+export const feedback_submitting = (fbs: FbsRuntime) => fbs._("提交中…", null, { hk: "jtGVT" });
+export const feedback_success = (fbs: FbsRuntime) => fbs._("已收到，感谢你的反馈。", null, { hk: "24y5ze" });
 export const STRING_FNS: Record<string, StringFn> = {
 	"common.cancel": common_cancel,
 	"common.confirm": common_confirm,
@@ -1540,6 +1562,9 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"errors.premiumActive": errors_premiumActive,
 	"errors.paygateDisabled": errors_paygateDisabled,
 	"errors.checkoutFailed": errors_checkoutFailed,
+	"errors.feedbackEmpty": errors_feedbackEmpty,
+	"errors.feedbackTooLong": errors_feedbackTooLong,
+	"errors.feedbackRateLimited": errors_feedbackRateLimited,
 	"guildAdmin.title": guildAdmin_title,
 	"guildAdmin.lockedTitle": guildAdmin_lockedTitle,
 	"guildAdmin.lockedBody": guildAdmin_lockedBody,
@@ -1705,5 +1730,24 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"buildshare.loginLabel": buildshare_loginLabel,
 	"buildshare.notFoundTitle": buildshare_notFoundTitle,
 	"buildshare.notFoundBody": buildshare_notFoundBody,
-	"buildshare.xinfaLabel": buildshare_xinfaLabel
+	"buildshare.xinfaLabel": buildshare_xinfaLabel,
+	"landing.featuresTitle": landing_featuresTitle,
+	"landing.groupingTitle": landing_groupingTitle,
+	"landing.groupingBody": landing_groupingBody,
+	"landing.reminderTitle": landing_reminderTitle,
+	"landing.reminderBody": landing_reminderBody,
+	"landing.dexTitle": landing_dexTitle,
+	"landing.dexBody": landing_dexBody,
+	"landing.gearTitle": landing_gearTitle,
+	"landing.gearBody": landing_gearBody,
+	"feedback.entryLabel": feedback_entryLabel,
+	"feedback.title": feedback_title,
+	"feedback.categoryLabel": feedback_categoryLabel,
+	"feedback.catProblem": feedback_catProblem,
+	"feedback.catSuggestion": feedback_catSuggestion,
+	"feedback.catOther": feedback_catOther,
+	"feedback.placeholder": feedback_placeholder,
+	"feedback.submit": feedback_submit,
+	"feedback.submitting": feedback_submitting,
+	"feedback.success": feedback_success
 };

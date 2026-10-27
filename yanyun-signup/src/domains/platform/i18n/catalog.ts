@@ -4492,6 +4492,15 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
     },
     "checkoutFailed": {
       "zh-CN": "创建支付会话失败，请稍后再试"
+    },
+    "feedbackEmpty": {
+      "zh-CN": "反馈内容不能为空"
+    },
+    "feedbackTooLong": {
+      "zh-CN": "反馈内容太长，请精简到 2000 字以内"
+    },
+    "feedbackRateLimited": {
+      "zh-CN": "今天提交的反馈已达上限，请明天再来"
     }
   },
   "guildAdmin": {
@@ -5590,6 +5599,67 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "es": "Arte interna",
       "fr": "Art interne",
       "zh-TW": "心法"
+    }
+  },
+  "landing": {
+    "featuresTitle": {
+      "zh-CN": "为百业同道而备"
+    },
+    "groupingTitle": {
+      "zh-CN": "组队报名"
+    },
+    "groupingBody": {
+      "zh-CN": "双十、天赋、竞速、爬塔四类车队一键成行，席位名册一目了然，短链分享直达车队页。"
+    },
+    "reminderTitle": {
+      "zh-CN": "发车提醒"
+    },
+    "reminderBody": {
+      "zh-CN": "发车前自动提醒到 Discord 频道与手机 App，就位确认先行，只催还没到场的人。"
+    },
+    "dexTitle": {
+      "zh-CN": "图鉴与攻略"
+    },
+    "dexBody": {
+      "zh-CN": "副本、首领图鉴与机制攻略，十一流派毕业词缀与配装参考，随国际服版本更新。"
+    },
+    "gearTitle": {
+      "zh-CN": "装备规划"
+    },
+    "gearBody": {
+      "zh-CN": "个人装备库与搭配筹谋：粘贴、截图识别或手动录入，承音调律与毕业度测算，离毕业还差多少一眼看清。"
+    }
+  },
+  "feedback": {
+    "entryLabel": {
+      "zh-CN": "意见反馈"
+    },
+    "title": {
+      "zh-CN": "意见反馈"
+    },
+    "categoryLabel": {
+      "zh-CN": "类别"
+    },
+    "catProblem": {
+      "zh-CN": "问题"
+    },
+    "catSuggestion": {
+      "zh-CN": "建议"
+    },
+    "catOther": {
+      "zh-CN": "其他"
+    },
+    "placeholder": {
+      "zh-CN": "请描述遇到的问题，或写下你的建议…"
+    },
+    "submit": {
+      "zh-CN": "提交反馈"
+    },
+    "submitting": {
+      "zh-CN": "提交中…"
+    },
+    "success": {
+      "zh-CN": "已收到，感谢你的反馈。"
     }
   }
 };
