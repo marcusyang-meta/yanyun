@@ -12,7 +12,6 @@ import {
   adminInputStyle, adminSectionStyle, adminSectionTitleStyle, Field, SaveButton, ConfirmButton,
   useAdminMutation, type AdminText, type CommonText,
 } from './GuildAdminUi.react.tsx';
-import GuildAdminTeams from './GuildAdminTeams.react.tsx';
 import GuildAdminEvents from './GuildAdminEvents.react.tsx';
 import GuildAdminGuides from './GuildAdminGuides.react.tsx';
 import GuildAdminStats from './GuildAdminStats.react.tsx';
@@ -46,13 +45,11 @@ const GuildAdminPage_guildAdmin = graphql`
       hex
       label
     }
-    featureFixedTeams
     devOnly
     adminTitle
     adminBackLinkLabel
     adminTabProfileLabel
     adminTabDiscordLabel
-    adminTabTeamsLabel
     adminTabEventsLabel
     adminTabGuidesLabel
     adminTabStatsLabel
@@ -87,18 +84,8 @@ const GuildAdminPage_guildAdmin = graphql`
     adminReminderOffsetTemplate
     adminReminderCustomTextLabel
     adminReminderCustomTextHint
-    adminFeaturesTitle
-    adminFixedTeamsLabel
     adminVisibilityTitle
     adminDevOnlyLabel
-    adminTeamsTitle
-    adminTeamNameLabel
-    adminTeamDescLabel
-    adminTeamEmptyText
-    adminMemberNicknameLabel
-    adminMemberWeaponLabel
-    adminMemberNoteLabel
-    adminAddMemberLabel
     adminEventsTitle
     adminEventEmptyText
     adminEventTitleLabel
@@ -155,18 +142,6 @@ const GuildAdminPage_guildAdmin = graphql`
     adminOgAccentLabel
     adminOgTitleSuffixLabel
     adminOgTitleSuffixHint
-    fixedTeams {
-      id
-      name
-      description
-      members {
-        id
-        nickname
-        weapon
-        role
-        note
-      }
-    }
     events {
       id
       title
@@ -261,11 +236,6 @@ const ReminderMutation = graphql`
     updateGuildReminderSettings(slug: $slug, offsets: $offsets, customText: $customText) { ok error }
   }
 `;
-const FeaturesMutation = graphql`
-  mutation GuildAdminPageFeaturesMutation($slug: String!, $v: Boolean!) {
-    updateGuildFeatures(slug: $slug, fixedTeams: $v) { ok error }
-  }
-`;
 const WhiteLabelMutation = graphql`
   mutation GuildAdminPageWhiteLabelMutation($slug: String!, $hideBranding: Boolean!, $ogAccent: String!, $ogTitleSuffix: String) {
     updateGuildWhiteLabel(slug: $slug, hideBranding: $hideBranding, ogAccent: $ogAccent, ogTitleSuffix: $ogTitleSuffix) { ok error }
@@ -344,7 +314,6 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
   const [commitDiscord] = useMutation(DiscordMutation);
   const [commitReminder] = useMutation(ReminderMutation);
   const [commitWhiteLabel] = useMutation(WhiteLabelMutation);
-  const [commitFeatures] = useMutation(FeaturesMutation);
   const [commitVisibility] = useMutation(VisibilityMutation);
   const [commitSetAvatar] = useMutation(SetAvatarMutation);
   const [commitDeleteAvatar] = useMutation(DeleteAvatarMutation);
@@ -352,7 +321,6 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
   const runDiscord = useAdminMutation(commitDiscord, 'updateGuildDiscord', refresh, commonText.unknownError);
   const runReminder = useAdminMutation(commitReminder, 'updateGuildReminderSettings', refresh, commonText.unknownError);
   const runWhiteLabel = useAdminMutation(commitWhiteLabel, 'updateGuildWhiteLabel', refresh, commonText.unknownError);
-  const runFeatures = useAdminMutation(commitFeatures, 'updateGuildFeatures', refresh, commonText.unknownError);
   const runVisibility = useAdminMutation(commitVisibility, 'updateGuildVisibility', refresh, commonText.unknownError);
   const runSetAvatar = useAdminMutation(commitSetAvatar, 'setGuildAvatar', refresh, commonText.unknownError);
   const runDeleteAvatar = useAdminMutation(commitDeleteAvatar, 'deleteGuildAvatar', refresh, commonText.unknownError);
@@ -379,7 +347,6 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
   const TABS = [
     { key: 'profile', label: text.adminTabProfileLabel },
     { key: 'discord', label: text.adminTabDiscordLabel },
-    { key: 'teams', label: text.adminTabTeamsLabel },
     { key: 'events', label: text.adminTabEventsLabel },
     { key: 'guides', label: text.adminTabGuidesLabel },
     { key: 'stats', label: text.adminTabStatsLabel },
@@ -529,15 +496,6 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
             </section>
 
             <section style={adminSectionStyle}>
-              <h2 style={adminSectionTitleStyle}>{text.adminFeaturesTitle}</h2>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: theme.paper, cursor: 'pointer' }}>
-                <input type="checkbox" checked={!!data.featureFixedTeams}
-                  onChange={(e) => runFeatures({ slug, v: e.target.checked })} />
-                {text.adminFixedTeamsLabel}
-              </label>
-            </section>
-
-            <section style={adminSectionStyle}>
               <h2 style={adminSectionTitleStyle}>{text.adminVisibilityTitle}</h2>
               <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: theme.paper, cursor: 'pointer' }}>
                 <input type="checkbox" checked={!!data.devOnly}
@@ -586,9 +544,6 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
           </>
         )}
 
-        {tab === 'teams' && (
-          <GuildAdminTeams slug={slug} text={text} commonText={commonText} teams={data.fixedTeams} refresh={refresh} />
-        )}
         {tab === 'events' && (
           <GuildAdminEvents slug={slug} text={text} commonText={commonText} events={data.events} refresh={refresh} />
         )}
