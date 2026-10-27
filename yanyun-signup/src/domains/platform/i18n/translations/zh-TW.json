@@ -7623,6 +7623,149 @@
         }
       ],
       "types": []
+    },
+    "kcoWudhrAuo6C3zPK83vJQ==": {
+      "description": "guildHome.backPlain",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "← 返回",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "FXBfzrvZLKBsniC2JTrL6Q==": {
+      "description": "guildAdmin.whiteLabelTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "品牌與分享卡",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "931yLbtcpWsPln4oKuCtdw==": {
+      "description": "guildAdmin.hideBrandingLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "隱藏平台品牌",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "GXSpeFpfbMA6nv0HrhkO4g==": {
+      "description": "guildAdmin.hideBrandingHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "開啟後，本百業的頁面上不再顯示平台名稱與頁尾聲明，只呈現百業自己的資訊。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "wREdq5EWfNyD+pfnuTgWVw==": {
+      "description": "guildAdmin.ogAccentLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "分享卡強調色",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "3BL1+tOcT9/Xu71xyF0sIg==": {
+      "description": "guildAdmin.ogTitleSuffixLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "分享卡標題後綴",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Pv73WFMma2YUS+4h1rpeIQ==": {
+      "description": "guildAdmin.ogTitleSuffixHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "會接在分享卡的標題後面，如「· 招募中」；最多 30 字，留空不顯示。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "sVKlLqXa41IIx/RttSpHuA==": {
+      "description": "guildAdmin.ogAccentGold",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "鎏金",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+h6h3OMgllLIMc52SrtNaw==": {
+      "description": "guildAdmin.ogAccentJade",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "翡翠",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ORrNdJobuCwqAVfp69x+wA==": {
+      "description": "guildAdmin.ogAccentAzure",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "藏青",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "KF3DdZ7QESg7rqJh43wW8w==": {
+      "description": "guildAdmin.ogAccentCinnabar",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "朱砂",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "MP7fhaLV+JFZ/UIIeHdjyA==": {
+      "description": "guildAdmin.ogAccentViolet",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "紫檀",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "yvQgpPV1IO9rrFQjMyaY+g==": {
+      "description": "errors.ogAccentInvalid",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "強調色不在可選範圍內",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

@@ -68,8 +68,8 @@
     "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary"
   },
   "src/domains/guilds/graphql.ts": {
-    "max": 49,
-    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context)"
+    "max": 51,
+    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context) + white-label chrome composition resolvers (pageBackLabel / pageFooterDisclaimerText) in the same pattern"
   },
   "src/domains/guilds/guild-routes.ts": {
     "max": 34,
@@ -140,11 +140,11 @@
     "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary"
   },
   "src/domains/guilds/admin-graphql.ts": {
-    "max": 132,
-    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context) + reminder settings surface (advanced reminders, 2026-10-26): updateGuildReminderSettings mutation and GuildAdmin resolvers in the same parent/args pattern"
+    "max": 139,
+    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context) + reminder settings surface (advanced reminders, 2026-10-26): updateGuildReminderSettings mutation and GuildAdmin resolvers in the same parent/args pattern + white-label surface (2026-10-26): updateGuildWhiteLabel mutation and white-label / accent-option resolvers in the same pattern"
   },
   "src/domains/platform/og-graphql.ts": {
-    "max": 23,
-    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context)"
+    "max": 25,
+    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context) + white-label OG card fields (ogAccentColor / ogTitleSuffix) in the same pattern"
   }
 }

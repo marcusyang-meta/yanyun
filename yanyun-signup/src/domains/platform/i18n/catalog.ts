@@ -491,6 +491,13 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "fr": "← Rassemblement des guildes",
       "zh-TW": "← 百業集結"
     },
+    "backPlain": {
+      "zh-CN": "← 返回",
+      "en": "← Back",
+      "es": "← Volver",
+      "fr": "← Retour",
+      "zh-TW": "← 返回"
+    },
     "tabTeam": {
       "zh-CN": "组队",
       "en": "Squads",
@@ -4188,6 +4195,13 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
     "reminderOffsetsInvalid": {
       "zh-CN": "提醒提前量不在可选范围内"
     },
+    "ogAccentInvalid": {
+      "zh-CN": "强调色不在可选范围内",
+      "en": "The accent color is not an available option.",
+      "es": "El color de acento no está entre las opciones disponibles.",
+      "fr": "La couleur d’accent ne fait pas partie des options disponibles.",
+      "zh-TW": "強調色不在可選範圍內"
+    },
     "paramsIncomplete": {
       "zh-CN": "参数不完整",
       "en": "Incomplete parameters",
@@ -5044,6 +5058,83 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "es": "Sin registros.",
       "fr": "Aucun enregistrement.",
       "zh-TW": "暫無記錄。"
+    },
+    "whiteLabelTitle": {
+      "zh-CN": "品牌与分享卡",
+      "en": "Branding & share card",
+      "es": "Marca y tarjeta para compartir",
+      "fr": "Marque et carte de partage",
+      "zh-TW": "品牌與分享卡"
+    },
+    "hideBrandingLabel": {
+      "zh-CN": "隐藏平台品牌",
+      "en": "Hide platform branding",
+      "es": "Ocultar la marca de la plataforma",
+      "fr": "Masquer la marque de la plateforme",
+      "zh-TW": "隱藏平台品牌"
+    },
+    "hideBrandingHint": {
+      "zh-CN": "开启后，本百业的页面上不再显示平台名称与页脚声明，只呈现百业自己的信息。",
+      "en": "When on, this guild’s pages no longer show the platform name or the footer notice — only the guild’s own information.",
+      "es": "Al activarlo, las páginas de este gremio ya no mostrarán el nombre de la plataforma ni el aviso del pie de página, solo la información del propio gremio.",
+      "fr": "Une fois activé, les pages de cette guilde n’afficheront plus le nom de la plateforme ni la mention de bas de page, uniquement les informations de la guilde.",
+      "zh-TW": "開啟後，本百業的頁面上不再顯示平台名稱與頁尾聲明，只呈現百業自己的資訊。"
+    },
+    "ogAccentLabel": {
+      "zh-CN": "分享卡强调色",
+      "en": "Share-card accent color",
+      "es": "Color de acento de la tarjeta",
+      "fr": "Couleur d’accent de la carte",
+      "zh-TW": "分享卡強調色"
+    },
+    "ogTitleSuffixLabel": {
+      "zh-CN": "分享卡标题后缀",
+      "en": "Share-card title suffix",
+      "es": "Sufijo del título de la tarjeta",
+      "fr": "Suffixe du titre de la carte",
+      "zh-TW": "分享卡標題後綴"
+    },
+    "ogTitleSuffixHint": {
+      "zh-CN": "会接在分享卡的标题后面，如「· 招募中」；最多 30 字，留空不显示。",
+      "en": "Appended after the share-card title, e.g. “· Now recruiting”; up to 30 characters, leave empty to hide.",
+      "es": "Se añade tras el título de la tarjeta, p. ej. «· Reclutando»; hasta 30 caracteres, déjalo vacío para ocultarlo.",
+      "fr": "Ajouté après le titre de la carte, p. ex. « · Recrutement » ; 30 caractères max., laissez vide pour masquer.",
+      "zh-TW": "會接在分享卡的標題後面，如「· 招募中」；最多 30 字，留空不顯示。"
+    },
+    "ogAccentGold": {
+      "zh-CN": "鎏金",
+      "en": "Gilt gold",
+      "es": "Dorado",
+      "fr": "Doré",
+      "zh-TW": "鎏金"
+    },
+    "ogAccentJade": {
+      "zh-CN": "翡翠",
+      "en": "Jade",
+      "es": "Jade",
+      "fr": "Jade",
+      "zh-TW": "翡翠"
+    },
+    "ogAccentAzure": {
+      "zh-CN": "藏青",
+      "en": "Navy",
+      "es": "Azul marino",
+      "fr": "Bleu marine",
+      "zh-TW": "藏青"
+    },
+    "ogAccentCinnabar": {
+      "zh-CN": "朱砂",
+      "en": "Cinnabar",
+      "es": "Cinabrio",
+      "fr": "Cinabre",
+      "zh-TW": "朱砂"
+    },
+    "ogAccentViolet": {
+      "zh-CN": "紫檀",
+      "en": "Violet",
+      "es": "Violeta",
+      "fr": "Violet",
+      "zh-TW": "紫檀"
     }
   }
 };

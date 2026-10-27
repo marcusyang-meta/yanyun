@@ -460,6 +460,58 @@ r = await gql(remindQ, { user: ADMIN });
 eq('读回提前量 [] (全关)', JSON.stringify(r.data?.viewer?.guildAdmin?.reminderOffsets), '[]');
 A.tables.settings.set('admintest|reminder_offsets', '60,30'); // 复位给后续段落
 
+/* ---------------- white-label+ (branding + OG card) ---------------- */
+const wlQ = `{ viewer { guildAdmin(slug: "admintest") { __typename ... on GuildAdmin { whiteLabelHideBranding ogAccent ogTitleSuffix pageFooterDisclaimerText ogAccentOptions { key hex label } adminWhiteLabelTitle adminHideBrandingLabel adminOgAccentLabel adminOgTitleSuffixLabel } } } }`;
+r = await gql(wlQ, { user: ADMIN });
+eq('白标默认: 不隐藏品牌', r.data?.viewer?.guildAdmin?.whiteLabelHideBranding, false);
+eq('白标默认: 强调色未定制', r.data?.viewer?.guildAdmin?.ogAccent, '');
+eq('白标默认: 标题后缀空', r.data?.viewer?.guildAdmin?.ogTitleSuffix, '');
+eq('色板选项数', r.data?.viewer?.guildAdmin?.ogAccentOptions?.length, 5);
+eq('色板首项 = 鎏金 gold', JSON.stringify(r.data?.viewer?.guildAdmin?.ogAccentOptions?.[0]),
+  JSON.stringify({ key: 'gold', hex: '#c9a35c', label: '鎏金' }));
+eq('白标设置文案: 标题', r.data?.viewer?.guildAdmin?.adminWhiteLabelTitle, '品牌与分享卡');
+check('管理面页脚声明默认非空 (平台声明)', (r.data?.viewer?.guildAdmin?.pageFooterDisclaimerText || '').includes('非官方工具'));
+r = await gql(wlQ, { user: MEMBER });
+eq('成员读白标设置 -> Locked (零设置字段)', r.data?.viewer?.guildAdmin?.__typename, 'GuildAdminLocked');
+eq('Locked 无 whiteLabelHideBranding', r.data?.viewer?.guildAdmin?.whiteLabelHideBranding, undefined);
+
+const chromeQ = `{ viewer { guild(slug: "admintest") { ... on Guild { pageBackLabel pageFooterDisclaimerText } } } }`;
+r = await gql(chromeQ, { user: MEMBER });
+eq('成员面默认返回标签带平台名', r.data?.viewer?.guild?.pageBackLabel, '← 百业集结');
+check('成员面默认页脚 = 平台声明', (r.data?.viewer?.guild?.pageFooterDisclaimerText || '').includes('非官方工具'));
+const ogWlQ = `{ ogGuildCard(slug: "admintest") { ogAccentColor ogTitleSuffix } }`;
+r = await gql(ogWlQ, { user: null });
+eq('OG 默认强调色 = 空 (默认模板)', r.data?.ogGuildCard?.ogAccentColor, '');
+eq('OG 默认标题后缀 = 空', r.data?.ogGuildCard?.ogTitleSuffix, '');
+
+const wlMut = `mutation($h: Boolean!, $a: String!, $sfx: String) { updateGuildWhiteLabel(slug: "admintest", hideBranding: $h, ogAccent: $a, ogTitleSuffix: $sfx) { ok errorCode } }`;
+r = await gql(wlMut, { user: MEMBER, variables: { h: true, a: 'jade', sfx: '' } });
+eq('成员改白标 -> adminOnly', r.data?.updateGuildWhiteLabel?.errorCode, 'adminOnly');
+r = await gql(wlMut, { user: ADMIN, variables: { h: true, a: '#ff0000', sfx: '' } });
+eq('自由色值 -> ogAccentInvalid', r.data?.updateGuildWhiteLabel?.errorCode, 'ogAccentInvalid');
+r = await gql(wlMut, { user: ADMIN, variables: { h: true, a: 'pink', sfx: '' } });
+eq('色板外 key -> ogAccentInvalid', r.data?.updateGuildWhiteLabel?.errorCode, 'ogAccentInvalid');
+r = await gql(wlMut, { user: ADMIN, variables: { h: true, a: 'jade', sfx: '· 招募中\n第二行' } });
+eq('保存白标 ok', r.data?.updateGuildWhiteLabel?.ok, true);
+eq('隐藏品牌已落库', A.tables.settings.get('admintest|whitelabel_hide_branding'), '1');
+eq('强调色已落库', A.tables.settings.get('admintest|og_accent'), 'jade');
+eq('标题后缀已落库 (单行化)', A.tables.settings.get('admintest|og_title_suffix'), '· 招募中 第二行');
+r = await gql(wlQ, { user: ADMIN });
+eq('读回: 隐藏品牌', r.data?.viewer?.guildAdmin?.whiteLabelHideBranding, true);
+eq('读回: 强调色 jade', r.data?.viewer?.guildAdmin?.ogAccent, 'jade');
+eq('读回: 标题后缀', r.data?.viewer?.guildAdmin?.ogTitleSuffix, '· 招募中 第二行');
+eq('读回: 管理面页脚声明变 null', r.data?.viewer?.guildAdmin?.pageFooterDisclaimerText, null);
+r = await gql(chromeQ, { user: MEMBER });
+eq('隐藏后返回标签 = 素文案', r.data?.viewer?.guild?.pageBackLabel, '← 返回');
+eq('隐藏后页脚声明 = null', r.data?.viewer?.guild?.pageFooterDisclaimerText, null);
+r = await gql(ogWlQ, { user: null });
+eq('OG 强调色 = 翡翠 hex (服务端解析)', r.data?.ogGuildCard?.ogAccentColor, '#3fa37c');
+eq('OG 标题后缀读回', r.data?.ogGuildCard?.ogTitleSuffix, '· 招募中 第二行');
+r = await gql(wlMut, { user: ADMIN, variables: { h: false, a: '', sfx: '' } });
+eq('恢复默认 ok', r.data?.updateGuildWhiteLabel?.ok, true);
+r = await gql(ogWlQ, { user: null });
+eq('恢复后 OG 强调色回空', r.data?.ogGuildCard?.ogAccentColor, '');
+
 /* ---------------- avatar (base64) ---------------- */
 const PNG = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1, 2, 3, 4]);
 const pngB64 = Buffer.from(PNG).toString('base64');

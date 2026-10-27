@@ -28,6 +28,7 @@ import {
 } from '../dex/index.ts';
 import {
   getTenantRow, getTenantSlug, listTenantSlugs, listTenantsDirectory, insertTenant,
+  getWhiteLabelSettings,
 } from './index.ts';
 import {
   getEventRow, getEventTenant, getEventTenantCreator, listEventsByTenantType,
@@ -169,6 +170,24 @@ export class GuildShell extends ShellBase {
       return access && access.isAdmin ? this.t('guildHome', 'adminLink') : null;
     });
   }
+  /* White-label chrome composition (Premium tier 1): the server
+   * sends this guild's effective chrome copy, so clients render it
+   * verbatim with zero branding logic of their own. Branding on
+   * (default): the back label carries the platform name and the
+   * footer disclaimer is the platform's. Branding off: a plain back
+   * label and NO footer disclaimer (null — the web shell renders no
+   * footer at all on this guild's pages). */
+  genWhiteLabel(){
+    return this.memo('whiteLabel', () => getWhiteLabelSettings(this.db, this.genSlug()));
+  }
+  async genPageBackLabel(){
+    const wl = await this.genWhiteLabel();
+    return wl.hideBranding ? this.t('guildHome', 'backPlain') : this.t('guildHome', 'backToHub');
+  }
+  async genPageFooterDisclaimerText(){
+    const wl = await this.genWhiteLabel();
+    return wl.hideBranding ? null : this.t('legal', 'disclaimer');
+  }
 }
 
 export const GUILD_HOME_TEXT_SPEC = [
@@ -210,6 +229,8 @@ export function guildContentResolvers() {
     avatarUrl: (p: any) => p.genAvatarUrl(),
     groupings: (p: any, { tab }: any) => p.genGroupings({ tab }),
     viewerNick: (p: any) => p.genViewerNick(),
+    pageBackLabel: (p: any) => p.genPageBackLabel(),
+    pageFooterDisclaimerText: (p: any) => p.genPageFooterDisclaimerText(),
     ...GUILD_TEXT_RESOLVERS,
   };
 }

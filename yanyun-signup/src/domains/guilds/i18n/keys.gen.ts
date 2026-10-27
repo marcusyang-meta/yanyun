@@ -7,6 +7,7 @@ export type GuildsStringKey =
   | 'locked.body2'
   | 'locked.backButton'
   | 'guildHome.backToHub'
+  | 'guildHome.backPlain'
   | 'guildHome.tabTeam'
   | 'guildHome.tabDex'
   | 'guildHome.tabSect'
@@ -110,7 +111,18 @@ export type GuildsStringKey =
   | 'guildAdmin.statsSeatCount'
   | 'guildAdmin.statsCarCount'
   | 'guildAdmin.statsEmpty'
-  | 'guildAdmin.statsBoardEmpty';
+  | 'guildAdmin.statsBoardEmpty'
+  | 'guildAdmin.whiteLabelTitle'
+  | 'guildAdmin.hideBrandingLabel'
+  | 'guildAdmin.hideBrandingHint'
+  | 'guildAdmin.ogAccentLabel'
+  | 'guildAdmin.ogTitleSuffixLabel'
+  | 'guildAdmin.ogTitleSuffixHint'
+  | 'guildAdmin.ogAccentGold'
+  | 'guildAdmin.ogAccentJade'
+  | 'guildAdmin.ogAccentAzure'
+  | 'guildAdmin.ogAccentCinnabar'
+  | 'guildAdmin.ogAccentViolet';
 
 export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'locked.backLink',
@@ -119,6 +131,7 @@ export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'locked.body2',
   'locked.backButton',
   'guildHome.backToHub',
+  'guildHome.backPlain',
   'guildHome.tabTeam',
   'guildHome.tabDex',
   'guildHome.tabSect',
@@ -223,4 +236,15 @@ export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'guildAdmin.statsCarCount',
   'guildAdmin.statsEmpty',
   'guildAdmin.statsBoardEmpty',
+  'guildAdmin.whiteLabelTitle',
+  'guildAdmin.hideBrandingLabel',
+  'guildAdmin.hideBrandingHint',
+  'guildAdmin.ogAccentLabel',
+  'guildAdmin.ogTitleSuffixLabel',
+  'guildAdmin.ogTitleSuffixHint',
+  'guildAdmin.ogAccentGold',
+  'guildAdmin.ogAccentJade',
+  'guildAdmin.ogAccentAzure',
+  'guildAdmin.ogAccentCinnabar',
+  'guildAdmin.ogAccentViolet',
 ];

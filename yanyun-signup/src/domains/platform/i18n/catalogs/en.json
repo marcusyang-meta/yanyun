@@ -66,6 +66,7 @@
   "1BmyQU": "Join the corresponding Discord server, then sign in with the same account to access it.",
   "4lMYj2": "Back to My Guilds",
   "3IAHUH": "← Guild Rally",
+  "3lNbx3": "← Back",
   "2HMgLA": "Squads",
   "3xrJT5": "Guides",
   "39iHUL": "School Guides",
@@ -596,6 +597,7 @@
   "2Engm3": "The last seat is reserved for a healer",
   "17GYOJ": "Already signed up",
   "1bbhpq": "Signup not found",
+  "33eOIG": "The accent color is not an available option.",
   "bUpBp": "Incomplete parameters",
   "1anzkq": "Boss not found",
   "4oO92j": "Guild name must be at least 2 characters",
@@ -715,5 +717,16 @@
   "4Fc5Hi": "Seats taken",
   "13S23b": "Runs led",
   "2FAHYi": "No grouping data in the last 4 weeks.",
-  "3hDYU9": "No entries yet."
+  "3hDYU9": "No entries yet.",
+  "1z2Ti0": "Branding & share card",
+  "RBnje": "Hide platform branding",
+  "1I8KAg": "When on, this guild’s pages no longer show the platform name or the footer notice — only the guild’s own information.",
+  "1pOGR8": "Share-card accent color",
+  "9EM3P": "Share-card title suffix",
+  "2MJFYR": "Appended after the share-card title, e.g. “· Now recruiting”; up to 30 characters, leave empty to hide.",
+  "4E7oBk": "Gilt gold",
+  "yR59M": "Jade",
+  "UcaFv": "Navy",
+  "3Phj2j": "Cinnabar",
+  "1VAkT6": "Violet"
 }

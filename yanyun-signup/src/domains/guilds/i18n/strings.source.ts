@@ -25,6 +25,7 @@ export const locked_body1 = (fbs: FbsAPI) =>fbs("该百业不存在，或仅对�
 export const locked_body2 = (fbs: FbsAPI) =>fbs("加入对应的 Discord 服务器后，用同一个账号登录即可访问。", "locked.body2");
 export const locked_backButton = (fbs: FbsAPI) =>fbs("回到我的百业", "locked.backButton");
 export const guildHome_backToHub = (fbs: FbsAPI) =>fbs("← 百业集结", "guildHome.backToHub");
+export const guildHome_backPlain = (fbs: FbsAPI) =>fbs("← 返回", "guildHome.backPlain");
 export const guildHome_tabTeam = (fbs: FbsAPI) =>fbs("组队", "guildHome.tabTeam");
 export const guildHome_tabDex = (fbs: FbsAPI) =>fbs("攻略", "guildHome.tabDex");
 export const guildHome_tabSect = (fbs: FbsAPI) =>fbs("流派攻略", "guildHome.tabSect");
@@ -131,3 +132,14 @@ export const guildAdmin_statsSeatCount = (fbs: FbsAPI) =>fbs("落座次数", "gu
 export const guildAdmin_statsCarCount = (fbs: FbsAPI) =>fbs("开车数", "guildAdmin.statsCarCount");
 export const guildAdmin_statsEmpty = (fbs: FbsAPI) =>fbs("近 4 周暂无组队数据。", "guildAdmin.statsEmpty");
 export const guildAdmin_statsBoardEmpty = (fbs: FbsAPI) =>fbs("暂无记录。", "guildAdmin.statsBoardEmpty");
+export const guildAdmin_whiteLabelTitle = (fbs: FbsAPI) =>fbs("品牌与分享卡", "guildAdmin.whiteLabelTitle");
+export const guildAdmin_hideBrandingLabel = (fbs: FbsAPI) =>fbs("隐藏平台品牌", "guildAdmin.hideBrandingLabel");
+export const guildAdmin_hideBrandingHint = (fbs: FbsAPI) =>fbs("开启后，本百业的页面上不再显示平台名称与页脚声明，只呈现百业自己的信息。", "guildAdmin.hideBrandingHint");
+export const guildAdmin_ogAccentLabel = (fbs: FbsAPI) =>fbs("分享卡强调色", "guildAdmin.ogAccentLabel");
+export const guildAdmin_ogTitleSuffixLabel = (fbs: FbsAPI) =>fbs("分享卡标题后缀", "guildAdmin.ogTitleSuffixLabel");
+export const guildAdmin_ogTitleSuffixHint = (fbs: FbsAPI) =>fbs("会接在分享卡的标题后面，如「· 招募中」；最多 30 字，留空不显示。", "guildAdmin.ogTitleSuffixHint");
+export const guildAdmin_ogAccentGold = (fbs: FbsAPI) =>fbs("鎏金", "guildAdmin.ogAccentGold");
+export const guildAdmin_ogAccentJade = (fbs: FbsAPI) =>fbs("翡翠", "guildAdmin.ogAccentJade");
+export const guildAdmin_ogAccentAzure = (fbs: FbsAPI) =>fbs("藏青", "guildAdmin.ogAccentAzure");
+export const guildAdmin_ogAccentCinnabar = (fbs: FbsAPI) =>fbs("朱砂", "guildAdmin.ogAccentCinnabar");
+export const guildAdmin_ogAccentViolet = (fbs: FbsAPI) =>fbs("紫檀", "guildAdmin.ogAccentViolet");

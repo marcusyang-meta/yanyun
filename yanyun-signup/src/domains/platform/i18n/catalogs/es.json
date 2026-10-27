@@ -66,6 +66,7 @@
   "1BmyQU": "Únete al servidor de Discord correspondiente e inicia sesión con la misma cuenta para acceder.",
   "4lMYj2": "Volver a mis gremios",
   "3IAHUH": "← Reunión de gremios",
+  "3lNbx3": "← Volver",
   "2HMgLA": "Equipos",
   "3xrJT5": "Guías",
   "39iHUL": "Guías de escuelas",
@@ -572,6 +573,7 @@
   "2Engm3": "El último asiento está reservado para un sanador",
   "17GYOJ": "Ya estás inscrito",
   "1bbhpq": "Inscripción no encontrada",
+  "33eOIG": "El color de acento no está entre las opciones disponibles.",
   "bUpBp": "Parámetros incompletos",
   "1anzkq": "Jefe no encontrado",
   "4oO92j": "El nombre del gremio debe tener al menos 2 caracteres",
@@ -691,5 +693,16 @@
   "4Fc5Hi": "Plazas ocupadas",
   "13S23b": "Salidas lideradas",
   "2FAHYi": "Sin datos de grupos en las últimas 4 semanas.",
-  "3hDYU9": "Sin registros."
+  "3hDYU9": "Sin registros.",
+  "1z2Ti0": "Marca y tarjeta para compartir",
+  "RBnje": "Ocultar la marca de la plataforma",
+  "1I8KAg": "Al activarlo, las páginas de este gremio ya no mostrarán el nombre de la plataforma ni el aviso del pie de página, solo la información del propio gremio.",
+  "1pOGR8": "Color de acento de la tarjeta",
+  "9EM3P": "Sufijo del título de la tarjeta",
+  "2MJFYR": "Se añade tras el título de la tarjeta, p. ej. «· Reclutando»; hasta 30 caracteres, déjalo vacío para ocultarlo.",
+  "4E7oBk": "Dorado",
+  "yR59M": "Jade",
+  "UcaFv": "Azul marino",
+  "3Phj2j": "Cinabrio",
+  "1VAkT6": "Violeta"
 }

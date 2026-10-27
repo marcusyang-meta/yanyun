@@ -7623,6 +7623,149 @@
         }
       ],
       "types": []
+    },
+    "kcoWudhrAuo6C3zPK83vJQ==": {
+      "description": "guildHome.backPlain",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "← Volver",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "FXBfzrvZLKBsniC2JTrL6Q==": {
+      "description": "guildAdmin.whiteLabelTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Marca y tarjeta para compartir",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "931yLbtcpWsPln4oKuCtdw==": {
+      "description": "guildAdmin.hideBrandingLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Ocultar la marca de la plataforma",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "GXSpeFpfbMA6nv0HrhkO4g==": {
+      "description": "guildAdmin.hideBrandingHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Al activarlo, las páginas de este gremio ya no mostrarán el nombre de la plataforma ni el aviso del pie de página, solo la información del propio gremio.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "wREdq5EWfNyD+pfnuTgWVw==": {
+      "description": "guildAdmin.ogAccentLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Color de acento de la tarjeta",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "3BL1+tOcT9/Xu71xyF0sIg==": {
+      "description": "guildAdmin.ogTitleSuffixLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Sufijo del título de la tarjeta",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Pv73WFMma2YUS+4h1rpeIQ==": {
+      "description": "guildAdmin.ogTitleSuffixHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Se añade tras el título de la tarjeta, p. ej. «· Reclutando»; hasta 30 caracteres, déjalo vacío para ocultarlo.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "sVKlLqXa41IIx/RttSpHuA==": {
+      "description": "guildAdmin.ogAccentGold",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Dorado",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+h6h3OMgllLIMc52SrtNaw==": {
+      "description": "guildAdmin.ogAccentJade",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Jade",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ORrNdJobuCwqAVfp69x+wA==": {
+      "description": "guildAdmin.ogAccentAzure",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Azul marino",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "KF3DdZ7QESg7rqJh43wW8w==": {
+      "description": "guildAdmin.ogAccentCinnabar",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Cinabrio",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "MP7fhaLV+JFZ/UIIeHdjyA==": {
+      "description": "guildAdmin.ogAccentViolet",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Violeta",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "yvQgpPV1IO9rrFQjMyaY+g==": {
+      "description": "errors.ogAccentInvalid",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "El color de acento no está entre las opciones disponibles.",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }
