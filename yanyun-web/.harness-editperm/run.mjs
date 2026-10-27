@@ -37,8 +37,8 @@ const SIGNUP_DIR = fileURLToPath(new URL('../../yanyun-signup', import.meta.url)
 async function seedLegacyDraft() {
   const now = Math.floor(Date.now() / 1000);
   const sql = `INSERT INTO events (tenant, title, type, description, starts_at, meet_info, max_slots, status, starts_at_utc, origin, created_by, manage_code, dungeon, creator_discord_id, reminder_sent_at, reminder_error) VALUES ('livetest', '未命名车队', 'activity', '', '', '', 10, 'draft', ${now}, 'member', '热心车友', '', '', NULL, NULL, NULL) RETURNING id;`;
-  const { stdout } = await execFileP('npx',
-    ['wrangler', 'd1', 'execute', 'yanyun-signup', '--local', '--json', '--command', sql],
+  const { stdout } = await execFileP('pnpm',
+    ['exec', 'wrangler', 'd1', 'execute', 'yanyun-signup', '--local', '--json', '--command', sql],
     { cwd: SIGNUP_DIR });
   const parsed = JSON.parse(stdout.slice(stdout.indexOf('[')));
   const id = parsed?.[0]?.results?.[0]?.id;
