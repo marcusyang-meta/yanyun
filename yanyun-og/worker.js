@@ -168,7 +168,7 @@ async function fetchGuildData(slug) {
     body: JSON.stringify({
       query: `
         query($slug: String!) {
-          ogGuildCard(slug: $slug) { exists name slogan }
+          ogGuildCard(slug: $slug) { exists name slogan ogAccentColor ogTitleSuffix }
         }
       `,
       variables: { slug },
@@ -176,7 +176,26 @@ async function fetchGuildData(slug) {
   });
   const card = json.data?.ogGuildCard;
   if (!card || !card.exists) return null;
-  return { name: card.name || slug, slogan: card.slogan || '' };
+  return {
+    name: card.name || slug, slogan: card.slogan || '',
+    // 白标定制 (服务端色板解析后的 hex / 标题后缀; 空 = 未定制)。
+    accentColor: card.ogAccentColor || '', titleSuffix: card.ogTitleSuffix || '',
+  };
+}
+
+/* 强调色: 未定制时就是现行鎏金字面量, 所有派生串与旧版逐字一致 —
+ * 未定制百业的成品图因此逐字节不变。定制时只有 hex 来源不同
+ * (后端色板校验过的值, 永不透传管理员原始输入)。 */
+const OG_GOLD = '#c9a35c';
+function accentOf(guild) { return guild.accentColor || OG_GOLD; }
+function rgbaOf(hex, alpha) {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${alpha})`;
+}
+/* 卡面标题: 后缀由管理员自带分隔符 (如「· 招募中」), 这里只以一个
+ * 空格接在标题后; 无后缀时返回原标题, 不多一个字节。 */
+function titleWithSuffix(title, guild) {
+  return guild.titleSuffix ? `${title} ${guild.titleSuffix}` : title;
 }
 
 // 本周窗口: 周一 05:00 (北京时间) 起 7 天 — 与主站周逻辑同界
@@ -318,7 +337,8 @@ async function handleCarImage(request, url, slug, id) {
 
   const g = await fetchGroupingData(slug, id);
   if (!g) return new Response('Grouping not found', { status: 404 });
-  const guildName = guild.name || slug;
+  const guildName = titleWithSuffix(guild.name || slug, guild);
+  const accent = accentOf(guild);
   await acquireRenderSlot();
   try {
   const font = await getFont(cache);
@@ -347,15 +367,15 @@ async function handleCarImage(request, url, slug, id) {
           props: {
             style: {
               position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-              background: 'radial-gradient(ellipse at 30% 20%, rgba(201,163,92,0.09) 0%, transparent 60%)',
+              background: `radial-gradient(ellipse at 30% 20%, ${rgbaOf(accent, 0.09)} 0%, transparent 60%)`,
             },
           },
         },
-        // 百业名（小，金）
+        // 百业名（小，强调色）
         {
           type: 'div',
           props: {
-            style: { color: '#c9a35c', fontSize: '32px', letterSpacing: '6px', marginBottom: '20px' },
+            style: { color: accent, fontSize: '32px', letterSpacing: '6px', marginBottom: '20px' },
             children: guildName,
           },
         },
@@ -412,11 +432,11 @@ async function handleCarImage(request, url, slug, id) {
               {
                 type: 'div',
                 props: {
-                  style: { width: '640px', height: '16px', borderRadius: '999px', backgroundColor: 'rgba(201,163,92,0.25)', display: 'flex' },
+                  style: { width: '640px', height: '16px', borderRadius: '999px', backgroundColor: rgbaOf(accent, 0.25), display: 'flex' },
                   children: {
                     type: 'div',
                     props: {
-                      style: { width: `${barW}px`, height: '16px', borderRadius: '999px', backgroundColor: '#c9a35c' },
+                      style: { width: `${barW}px`, height: '16px', borderRadius: '999px', backgroundColor: accent },
                     },
                   },
                 },
@@ -456,7 +476,8 @@ async function handleGuildImage(request, url, slug) {
   if (!guild) return new Response('Guild not found', { status: 404 });
 
   const teamCount = await fetchTeamCount(slug);
-  const guildName = guild.name || slug;
+  const guildName = titleWithSuffix(guild.name || slug, guild);
+  const accent = accentOf(guild);
   // 头像在进渲染闸之前取 (网络等待不占渲染槽); 无头像/取失败 -> null,
   // 卡面与从前逐字节一致。
   const avatarDataUri = await fetchGuildAvatar(cache, slug);
@@ -477,7 +498,7 @@ async function handleGuildImage(request, url, slug) {
         style: {
           position: 'absolute',
           top: 0, left: 0, right: 0, bottom: 0,
-          background: 'radial-gradient(ellipse at 30% 20%, rgba(201,163,92,0.09) 0%, transparent 60%)',
+          background: `radial-gradient(ellipse at 30% 20%, ${rgbaOf(accent, 0.09)} 0%, transparent 60%)`,
         },
       },
     },
@@ -489,14 +510,14 @@ async function handleGuildImage(request, url, slug) {
           display: 'flex',
           alignItems: 'center',
           marginBottom: '24px',
-          border: '2px solid #c9a35c',
+          border: `2px solid ${accent}`,
           borderRadius: '999px',
           padding: '8px 28px',
         },
         children: {
           type: 'span',
           props: {
-            style: { color: '#c9a35c', fontSize: '28px', letterSpacing: '4px' },
+            style: { color: accent, fontSize: '28px', letterSpacing: '4px' },
             children: '燕云十六声 · 国际服',
           },
         },
@@ -560,7 +581,7 @@ async function handleGuildImage(request, url, slug) {
         style: {
           position: 'absolute',
           bottom: '48px',
-          color: '#c9a35c',
+          color: accent,
           fontSize: '26px',
           letterSpacing: '4px',
           opacity: 0.85,
@@ -581,7 +602,7 @@ async function handleGuildImage(request, url, slug) {
         src: avatarDataUri,
         style: {
           width: '120px', height: '120px', borderRadius: '60px', objectFit: 'cover',
-          border: '3px solid #c9a35c', marginBottom: '22px', backgroundColor: 'rgba(201,163,92,0.08)',
+          border: `3px solid ${accent}`, marginBottom: '22px', backgroundColor: rgbaOf(accent, 0.08),
         },
       },
     });
