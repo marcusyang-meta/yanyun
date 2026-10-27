@@ -4,24 +4,7 @@ import { theme, fill } from '../../lib/format';
 import { toast } from './Toast.react.tsx';
 import type { TiaolvTabCalcMutation as TiaolvTabCalcMutationType } from './__generated__/TiaolvTabCalcMutation.graphql';
 
-const SCHOOL2WUXUE: Record<string, string> = {
-  '鸣金·虹': '鸣金虹', '鸣金·影': '鸣金影',
-  '裂石·威': '裂石威', '裂石·钧': '裂石钧',
-  '牵丝·玉': '牵丝玉', '牵丝·翊': '牵丝翊',
-  '破竹·樽': '破竹樽', '破竹·鸢': '破竹鸢', '破竹·尘': '破竹尘', '破竹·风': '破竹风',
-};
-const SUITS = ['无', '燕归', '撼天', '连星', '裁云', '断岳', '玉斗', '时雨', '烟柳', '浣花', '飞隼'];
-const BOWS = ['无', '精准', '会心', '会意'];
 const COLS = ['K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R'];
-// Tuning rows: Excel row number -> label (K3:R5, K6:R24)
-const TUNE_ROWS: [number, string][] = [
-  [3, '劲'], [4, '敏'], [5, '势'],
-  [6, '最小外攻'], [7, '最大外攻'], [8, '精准'], [9, '会心'], [10, '会意'],
-  [11, '最小鸣金'], [12, '最大鸣金'], [13, '最小裂石'], [14, '最大裂石'],
-  [15, '最小牵丝'], [16, '最大牵丝'], [17, '最小破竹'], [18, '最大破竹'],
-  [19, '最小无相'], [20, '最大无相'],
-  [21, '武学增伤'], [22, '奇术增伤'], [23, '首领增伤'], [24, '全武增伤'],
-];
 
 const inputStyle: React.CSSProperties = {
   width: '100%', background: '#1e1b15', border: '1px solid rgba(201,163,92,.3)',
@@ -44,11 +27,13 @@ const TiaolvTextQueryNode = graphql`
       tlInnerSkillPlaceholder
       tlWuxueLabel
       tlWukuLabel
-      tlWukuSelfLabel
-      tlWukuCommonLabel
       tlSuitLabel
       tlBowLabel
-      tlNoneLabel
+      tlSuitOptions { id label isDefault }
+      tlBowOptions { id label isDefault }
+      tlWukuOptions { id label isDefault }
+      tlTuneRows { row label }
+      tlSectWuxue { sectSlug wuxue }
       tlTuneAreaLabel
       tlCalcLabel
       tlCalculatingLabel
@@ -76,13 +61,22 @@ const TiaolvTabCalcMutationNode = graphql`
   }
 `;
 
-export default function TiaolvTab({ sectSlug, sectName }: { sectSlug: string; sectName: string }) {
+export default function TiaolvTab({ sectSlug }: { sectSlug: string; sectName: string }) {
   const tl: any = (useLazyLoadQuery(TiaolvTextQueryNode, {}, { fetchPolicy: 'store-or-network' }) as any)?.tiaolvPage ?? {};
+  // Closed vocabularies arrive as {id, label} options from the backend
+  // (the single vocabulary source); state and mutation input carry ids.
+  const suitOptions: any[] = tl.tlSuitOptions ?? [];
+  const bowOptions: any[] = tl.tlBowOptions ?? [];
+  const wukuOptions: any[] = tl.tlWukuOptions ?? [];
+  const tuneRows: any[] = tl.tlTuneRows ?? [];
+  const defaultOf = (opts: any[]) => opts.find((o) => o.isDefault)?.id ?? opts[0]?.id ?? '';
   const [xinfa, setXinfa] = useState<string[]>(['', '', '', '']);
-  const [wuxue, setWuxue] = useState(SCHOOL2WUXUE[sectName] || '');
-  const [wuku, setWuku] = useState<'本系' | '通用'>('本系');
-  const [suit, setSuit] = useState('撼天');
-  const [bow, setBow] = useState('无');
+  const [wuxue, setWuxue] = useState(
+    () => (tl.tlSectWuxue ?? []).find((s: any) => s.sectSlug === sectSlug)?.wuxue || '',
+  );
+  const [wuku, setWuku] = useState(() => defaultOf(wukuOptions));
+  const [suit, setSuit] = useState(() => defaultOf(suitOptions));
+  const [bow, setBow] = useState(() => defaultOf(bowOptions));
   const [tunes, setTunes] = useState<Record<string, string>>({});
   const [result, setResult] = useState<any[] | null>(null);
 
@@ -101,10 +95,10 @@ export default function TiaolvTab({ sectSlug, sectName }: { sectSlug: string; se
         input: {
           innerSkills: xinfa.map((x) => x.trim() || 'N/A'),
           wuxue: wuxue.trim() || null,
-          wuku,
+          wuku: wuku || null,
           attrRequire: 492,
           suit,
-          bowSkill: bow === '无' ? null : bow,
+          bowSkill: bow === 'none' ? null : bow,
           tunes: tuneList,
         },
       },
@@ -145,26 +139,26 @@ export default function TiaolvTab({ sectSlug, sectName }: { sectSlug: string; se
         <div>
           <label style={labelStyle}>{tl.tlWukuLabel}</label>
           <div style={{ display: 'flex', gap: 8 }}>
-            {(['本系', '通用'] as const).map((w) => (
-              <button key={w} onClick={() => setWuku(w)} style={{
+            {wukuOptions.map((w: any) => (
+              <button key={w.id} onClick={() => setWuku(w.id)} style={{
                 flex: 1, padding: 10, borderRadius: 8, cursor: 'pointer', fontSize: 14,
                 border: `1px solid ${theme.gold}`,
-                background: wuku === w ? theme.gold : 'transparent',
-                color: wuku === w ? '#1a1814' : theme.paper,
-              }}>{w === '本系' ? tl.tlWukuSelfLabel : tl.tlWukuCommonLabel}</button>
+                background: wuku === w.id ? theme.gold : 'transparent',
+                color: wuku === w.id ? '#1a1814' : theme.paper,
+              }}>{w.label}</button>
             ))}
           </div>
         </div>
         <div>
           <label style={labelStyle}>{tl.tlSuitLabel}</label>
           <select value={suit} onChange={(e) => setSuit(e.target.value)} style={inputStyle}>
-            {SUITS.map((s) => <option key={s} value={s}>{s === '无' ? tl.tlNoneLabel : s}</option>)}
+            {suitOptions.map((s: any) => <option key={s.id} value={s.id}>{s.label}</option>)}
           </select>
         </div>
         <div>
           <label style={labelStyle}>{tl.tlBowLabel}</label>
           <select value={bow} onChange={(e) => setBow(e.target.value)} style={inputStyle}>
-            {BOWS.map((b) => <option key={b} value={b}>{b === '无' ? tl.tlNoneLabel : b}</option>)}
+            {bowOptions.map((b: any) => <option key={b.id} value={b.id}>{b.label}</option>)}
           </select>
         </div>
       </div>
@@ -182,7 +176,7 @@ export default function TiaolvTab({ sectSlug, sectName }: { sectSlug: string; se
               </tr>
             </thead>
             <tbody>
-              {TUNE_ROWS.map(([row, label]) => (
+              {tuneRows.map(({ row, label }: any) => (
                 <tr key={row}>
                   <td style={{ fontSize: 12, color: theme.gold, padding: '4px', whiteSpace: 'nowrap' }}>{label}</td>
                   {COLS.map((c) => {

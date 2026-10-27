@@ -6,7 +6,7 @@
 // parseOcrData multi-path merge / ocrPrepare+ocrEnhance preprocessing). The
 // name->key mapping tables are delivered by the backend.
 import Tesseract from 'tesseract.js';
-import type { GearLine, GearDingyin } from './gearStore.ts';
+import type { GearLine, GearDingyin, GearVocabRules } from './gearStore.ts';
 
 export type OcrMaps = {
   pasteNames: Array<{ name: string; key: string }>;
@@ -16,6 +16,7 @@ export type OcrMaps = {
   dingyinLeft: Array<{ name: string; max: number }>;
   affixes: Array<{ key: string; name: string; max: number; cy: number }>;
   schoolTags: string[];
+  rules: GearVocabRules;
 };
 
 export type OcrParsed = {
@@ -56,7 +57,10 @@ function ocrKeyVariants(maps: OcrMaps): Array<{ name: string; key: string; cls: 
     const cls = classOf.get(canon) || '';
     const variants = [name];
     if (canon !== name) variants.push(canon);
-    const base = canon.replace(/^(最大|最小)/, '');
+    const prefixes = maps.rules.ocrStripPrefixes;
+    const base = prefixes.length
+      ? canon.replace(new RegExp(`^(?:${prefixes.map(escapeRegExp).join('|')})`), '')
+      : canon;
     if (base !== canon) variants.push(base);
     variants.forEach((v) => { if (v && !seen.has(v)) seen.set(v, { name: v, key, cls }); });
   };
@@ -123,12 +127,11 @@ function parseDingyinText(raw: string, maps: OcrMaps): GearDingyin {
   const canonOf = (name: string): string | null => {
     if (leftMax.has(name)) return name;
     for (const [k] of leftMax) if (name.includes(k) || k.includes(name)) return k;
-    if (/穿透/.test(name)) return '外功穿透';
-    if (/抗性/.test(name)) return '外功抗性';
+    for (const f of maps.rules.ocrDingyinFallbacks) if (name.includes(f.needle)) return f.name;
     return null;
   };
   const stripped = ocrClean(String(raw || '')).replace(/\s+/g, '');
-  let m = stripped.match(/定音[:：]?(.{2,14})/);
+  let m = stripped.match(new RegExp(`${escapeRegExp(maps.rules.ocrDingyinMarker)}[:：]?(.{2,14})`));
   if (m) {
     const nameM = m[1].match(/^[\u4e00-\u9fa5A-Za-z·]+/);
     const valM = m[1].match(new RegExp(OCR_NUM));
@@ -140,7 +143,10 @@ function parseDingyinText(raw: string, maps: OcrMaps): GearDingyin {
       }
     }
   }
-  m = stripped.match(/([\u4e00-\u9fa5]{2,6}(?:穿透|抗性))[^0-9]{0,6}(\d+(?:\.\d+)?)/);
+  const needles = maps.rules.ocrDingyinFallbacks.map((f) => escapeRegExp(f.needle)).join('|');
+  m = needles
+    ? stripped.match(new RegExp(`([\u4e00-\u9fa5]{2,6}(?:${needles}))[^0-9]{0,6}(\d+(?:\.\d+)?)`))
+    : null;
   if (m) {
     const canon = canonOf(m[1]);
     if (canon) {
@@ -190,16 +196,9 @@ export function parseOcrData(data: { text?: string; words?: Array<{ text: string
 function finalizeOcr(parsed: OcrParsed, raw: string, maps: OcrMaps, lowConf: Record<string, string>): OcrParsed {
   const txt = ocrNorm(raw);
   parsed.schools = (maps.schoolTags || []).filter((tag) => tag && txt.includes(tag));
-  const classOf = new Map(maps.nameToClass.map((r) => [r.name, r.cls]));
-  const affixByKey = new Map(maps.affixes.map((a) => [a.key, a]));
+  // Elemental-attack lines keep their original key here — formless /
+  // own-element handling is done by the server-side panel computation.
   parsed.lines.forEach((l) => {
-    const a = affixByKey.get(l.key);
-    if (a && classOf.get(a.name) === 'shu') {
-      const rest = txt.replace(new RegExp(escapeRegExp(a.name), 'g'), ' ');
-      const nearShu = /无相|鸣金|牵丝|裂石|破竹/.test(rest) ? rest.match(/(无相|鸣金|牵丝|裂石|破竹)/)?.[1] : null;
-      // Elemental-attack line note: keep the original key (formless/own-element handling is done by the server-side panel computation)
-      void nearShu;
-    }
     if (lowConf[l.key]) l.seg = (l.seg || '') + ' · lowConf';
   });
   parsed.unknowns = [];
@@ -329,7 +328,7 @@ function anchorVocabulary(maps: OcrMaps): Array<{ name: string; key: string }> {
   };
   ocrKeyVariants(maps).forEach((v) => add(v.name, v.key));
   maps.slotAliases.forEach((a) => add(a.name, 'slot:' + a.key));
-  add('定音', 'dingyin');
+  add(maps.rules.ocrDingyinMarker, 'dingyin');
   return out.sort((a, b) => b.name.length - a.name.length);
 }
 
@@ -532,8 +531,9 @@ export function gearContentKey(
   slot: string,
   lines: Array<{ key: string; val: number }>,
   dingyin: { name: string; val: number } | null,
+  rules: GearVocabRules,
 ): string {
-  const s = slot === '主武器' || slot === '副武器' ? '武器' : slot;
+  const s = rules.weaponPositions.includes(slot) ? rules.weaponSlot : slot;
   const ls = lines
     .filter((l) => l.key && Number.isFinite(l.val))
     .map((l) => `${l.key}=${Math.round(l.val * 10) / 10}`)

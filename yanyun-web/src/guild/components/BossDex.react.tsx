@@ -7,13 +7,10 @@ import type { BossDexBossQuery as BossDexBossQueryType } from './__generated__/B
 import { theme, fill } from '../../lib/format';
 import { toast } from './Toast.react.tsx';
 
-const SEAL_MAP: Record<string, string> = {
-  '玉魄染青苍': '玉魄', '定极分更': '定极', '点雪断恩仇': '点雪', '俣俣神浒': '俣俣',
-};
-
 type DungeonRow = {
   readonly id: string;
   readonly name: string;
+  readonly sealText: string;
   readonly playerCount: number;
   readonly level?: number | null;
   readonly category?: string | null;
@@ -65,6 +62,7 @@ const BossDexQueryNode = graphql`
         dungeons {
           id
           name
+          sealText
           playerCount
           level
           category
@@ -153,7 +151,7 @@ function BossDex({ queryRef }: { queryRef: PreloadedQuery<BossDexQueryType> }) {
           : fill((dex as any).dexLabelPendingTemplate ?? '', { count: bossCount });
     return (
       <button key={d.id} onClick={() => openDungeon(d.id)} style={rowBtn}>
-        <span style={sealMd}>{SEAL_MAP[d.name] ?? d.name.slice(0, 2)}</span>
+        <span style={sealMd}>{d.sealText}</span>
         <span style={{ flex: 1 }}>
           <span style={{ display: 'block', fontSize: 15 }}>{d.name}</span>
           <span style={{

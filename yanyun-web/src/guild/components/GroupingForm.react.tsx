@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { graphql, useMutation, useLazyLoadQuery } from 'react-relay';
-import { theme, SECTS, parseStartsAt, fill } from '../../lib/format';
+import { theme, parseStartsAt, fill } from '../../lib/format';
 import { appendGroupingToList } from '../../lib/groupingStore';
 import { toast, ConfirmDialog } from './Toast.react.tsx';
 import type { GroupingFormCreateMutation as GroupingFormCreateMutationType } from './__generated__/GroupingFormCreateMutation.graphql';
@@ -15,6 +15,7 @@ import type { GroupingFormDeleteTemplateMutation as GroupingFormDeleteTemplateMu
 const GroupingFormDungeonsQueryNode = graphql`
   query GroupingFormDungeonsQuery {
     dexPage {
+      sectOptions { slug name }
       current {
         id
         name
@@ -291,6 +292,9 @@ export default function GroupingForm({ slug, text, mode, groupingId, initial, de
     { fetchPolicy: 'store-or-network' }
   );
   const dungeons = dexData?.dexPage?.current ?? [];
+  // Sect choices come from the backend vocabulary (canonical names —
+  // the chosen name is stored with the grouping).
+  const sectOptions = dexData?.dexPage?.sectOptions ?? [];
 
   const [commitCreate, creating] = useMutation<GroupingFormCreateMutationType>(GroupingFormCreateMutationNode);
   const [commitUpdate, updating] = useMutation<GroupingFormUpdateMutationType>(GroupingFormUpdateMutationNode);
@@ -562,13 +566,13 @@ export default function GroupingForm({ slug, text, mode, groupingId, initial, de
             <div style={{ marginBottom: 20 }}>
               <label style={labelStyle}>{text.formSectLabel}</label>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
-                {SECTS.map((s) => (
-                  <button key={s} onClick={() => setSect(s)} style={{
+                {sectOptions.map((s) => (
+                  <button key={s.slug} onClick={() => setSect(s.name)} style={{
                     padding: '10px 4px', borderRadius: 8, cursor: 'pointer', fontSize: 13,
-                    border: `1px solid ${sect === s ? theme.gold : 'rgba(201,163,92,.25)'}`,
-                    background: sect === s ? 'rgba(201,163,92,.25)' : 'transparent',
-                    color: sect === s ? theme.goldHi : theme.paper,
-                  }}>{s}</button>
+                    border: `1px solid ${sect === s.name ? theme.gold : 'rgba(201,163,92,.25)'}`,
+                    background: sect === s.name ? 'rgba(201,163,92,.25)' : 'transparent',
+                    color: sect === s.name ? theme.goldHi : theme.paper,
+                  }}>{s.name}</button>
                 ))}
               </div>
             </div>

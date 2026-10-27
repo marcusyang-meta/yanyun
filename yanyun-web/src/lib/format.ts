@@ -3,10 +3,8 @@
 // hardcode them here.
 import { readPrefMirror } from './locale';
 
-export const SECTS = [
-  '鸣金·虹', '鸣金·影', '牵丝·玉', '牵丝·霖', '牵丝·翊',
-  '裂石·威', '裂石·钧', '破竹·樽', '破竹·鸢', '破竹·尘', '破竹·风',
-];
+// Sect options are delivered by the backend (DexPage.sectOptions —
+// slug + canonical name); there is deliberately no client-side list.
 
 // startsAt arrives in three wire formats, all with UTC semantics:
 //  1) epoch-seconds string ("1792963800") — returned when the backend's

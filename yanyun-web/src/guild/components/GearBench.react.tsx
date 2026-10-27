@@ -93,6 +93,7 @@ const benchQuery = graphql`
       gearDyCorrectText
       gearDyWrongText
       gearSlots
+      gearVocabRules { weaponSlot weaponPositions ocrStripPrefixes ocrDingyinMarker ocrDingyinFallbacks { needle name } }
       gearBuilds { idx school set sectName bowKind bowLabel }
       gearBows { kind label }
       gearAffixes { key label max cy }
@@ -171,6 +172,7 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
 }) {
   const data = useLazyLoadQuery<GearBenchQueryType>(benchQuery, {});
   const t = data.gradPage;
+  const rules = t.gearVocabRules;
   const [items, setItems] = useState<GearItem[]>([]);
 
   const [work, setWork] = useState<GearWorkState>(() => {
@@ -267,7 +269,7 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
     for (const k of Object.keys(lo)) if (lo[k] === gear.id) delete lo[k];
     let target = pos;
     if (!target) {
-      const pool = poolOf(gear.slot);
+      const pool = poolOf(gear.slot, rules);
       target = pool.find((p) => !lo[p]) || pool[0];
     }
     if (target) lo[target] = gear.id;
@@ -291,7 +293,7 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
     setWork((w) => {
       const lo = { ...w.loadout };
       for (const [pos, gid] of Object.entries(lo)) {
-        if (gid === g.id && !poolOf(g.slot).includes(pos)) delete lo[pos];
+        if (gid === g.id && !poolOf(g.slot, rules).includes(pos)) delete lo[pos];
       }
       return { ...w, loadout: lo };
     });
@@ -523,12 +525,12 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
               </div>
               {pickerPos === pos && (
                 <div style={{ marginTop: 7, borderTop: '1px dashed rgba(201,163,92,.25)', paddingTop: 6, display: 'grid', gap: 4 }}>
-                  {items.filter((x) => poolOf(x.slot).includes(pos)).map((x) => (
+                  {items.filter((x) => poolOf(x.slot, rules).includes(pos)).map((x) => (
                     <button key={x.id} style={{ ...btnMini, textAlign: 'left' }} onClick={() => { equip(x, pos); setPickerPos(null); }}>
                       {x.name || x.slot} · {evalById.get(x.id)?.score ?? '—'}
                     </button>
                   ))}
-                  {items.filter((x) => poolOf(x.slot).includes(pos)).length === 0 && (
+                  {items.filter((x) => poolOf(x.slot, rules).includes(pos)).length === 0 && (
                     <span style={{ color: theme.muted, fontSize: 12 }}>{t.gearLibEmptyText}</span>
                   )}
                 </div>

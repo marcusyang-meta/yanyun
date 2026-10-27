@@ -148,20 +148,34 @@ export type SavedBuild = {
   shareUrl: string | null;
 };
 
+/* The vocabulary rules the gear surfaces need, delivered by the
+ * backend on GradPage.gearVocabRules (the single vocabulary source):
+ * the canonical weapon slot name and the positions it can occupy,
+ * plus the OCR recognition rules (size prefixes to strip, the
+ * dingyin section marker, dingyin name fallbacks). */
+export type GearVocabRules = {
+  weaponSlot: string;
+  weaponPositions: ReadonlyArray<string>;
+  ocrStripPrefixes: ReadonlyArray<string>;
+  ocrDingyinMarker: string;
+  ocrDingyinFallbacks: ReadonlyArray<{ needle: string; name: string }>;
+};
+
 /* The gear pool for a slot: the weapon pool covers the main/offhand weapon positions */
-export const poolOf = (slot: string): string[] => (slot === '武器' ? ['主武器', '副武器'] : [slot]);
+export const poolOf = (slot: string, rules: GearVocabRules): string[] =>
+  (slot === rules.weaponSlot ? [...rules.weaponPositions] : [slot]);
 
 /* ---- Profile-surface operations on the saved work state (used while the
  * gear bench is unmounted: load/equip lands in the local work state and the
  * bench reads it on its next mount; semantics match the bench's live
  * operations) ---- */
-export function applyEquipToSavedWork(gear: { id: number; slot: string }, pos?: string): void {
+export function applyEquipToSavedWork(gear: { id: number; slot: string }, rules: GearVocabRules, pos?: string): void {
   const w = loadWorkState();
   const lo = { ...w.loadout };
   for (const k of Object.keys(lo)) if (lo[k] === gear.id) delete lo[k];
   let target = pos;
   if (!target) {
-    const pool = poolOf(gear.slot);
+    const pool = poolOf(gear.slot, rules);
     target = pool.find((p) => !lo[p]) || pool[0];
   }
   if (target) lo[target] = gear.id;

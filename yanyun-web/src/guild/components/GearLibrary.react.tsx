@@ -78,7 +78,9 @@ const libraryQuery = graphql`
       gearScoreTemplate
       gearQualityLabel
       gearExportLabel
+      gearExportFileName
       gearImportLabel
+      gearImportNameTemplate
       gearImportFailedToast
       gearImportedToastTemplate
       gearManualTitle
@@ -169,6 +171,7 @@ const libraryQuery = graphql`
       gearNameToClass { name cls }
       gearSlotAliases { name key }
       gearOcrAliases { name key }
+      gearVocabRules { weaponSlot weaponPositions ocrStripPrefixes ocrDingyinMarker ocrDingyinFallbacks { needle name } }
     }
     myGearItems {
       id
@@ -369,6 +372,7 @@ export default function GearLibrary(props: {
   const { mode } = props;
   const data = useLazyLoadQuery<GearLibraryQueryType>(libraryQuery, {});
   const t = data.gradPage;
+  const rules = t.gearVocabRules;
   const loggedIn = !!data.viewer?.user;
   const [items, setItems] = useState<GearItem[]>(() => data.myGearItems.map(mapItem));
   const [builds, setBuilds] = useState<SavedBuild[]>(() => data.myGearBuilds.map(mapBuild));
@@ -462,7 +466,7 @@ export default function GearLibrary(props: {
     dyName: string; dyVal: string; schools: string[];
   };
   const blankForm = (): FormState => ({
-    id: null, slot: t.gearGearSlots[0] || '武器', name: '',
+    id: null, slot: t.gearGearSlots[0] ?? '', name: '',
     rows: Array.from({ length: 5 }, () => ({ key: '', val: '' })),
     dyName: '', dyVal: '', schools: [],
   });
@@ -496,7 +500,7 @@ export default function GearLibrary(props: {
       .filter((r) => r.key && r.val !== '' && Number.isFinite(parseFloat(r.val)))
       .map((r) => ({ key: r.key, val: parseFloat(r.val) }));
     const dingyin = form.dyName ? { name: form.dyName, val: parseFloat(form.dyVal) || 0 } : null;
-    const input = { slot: form.slot, name: form.name.trim(), lines, dingyin, schools: form.slot === '武器' ? form.schools : [] };
+    const input = { slot: form.slot, name: form.name.trim(), lines, dingyin, schools: form.slot === rules.weaponSlot ? form.schools : [] };
     const done = (g: GearItem, isNew: boolean) => {
       applySavedItem(g, isNew);
       if (!isNew) props.onItemUpdated?.(g);
@@ -558,7 +562,7 @@ export default function GearLibrary(props: {
         if (r.gears.length) {
           const linesTotal = r.gears.reduce((s, g) => s + g.lines.length, 0);
           importItems(r.gears.map((g) => ({
-            slot: g.slot, name: g.name || `导入 · ${g.slot}`,
+            slot: g.slot, name: g.name || fill(t.gearImportNameTemplate, { slot: g.slot }),
             lines: g.lines.map((l) => ({ key: l.key, val: l.val })),
             dingyin: g.dingyin ? { name: g.dingyin.name, val: g.dingyin.val } : null,
             schools: [],
@@ -598,7 +602,7 @@ export default function GearLibrary(props: {
     const blob = new Blob([buildExportFile({ lib: items, work: ctx.work, bowKind: ctx.bowKind })], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = '100阶配装数据.json';
+    a.download = t.gearExportFileName;
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 4000);
   };
@@ -636,6 +640,7 @@ export default function GearLibrary(props: {
     dingyinLeft: t.gearDingyinLeft.map((r) => ({ name: r.name, max: r.max })),
     affixes: t.gearAffixes.map((a) => ({ key: a.key, name: a.label, max: a.max, cy: a.cy })),
     schoolTags: [...t.gearSchoolTags],
+    rules: t.gearVocabRules,
   }), [t]);
   const ocrFileRef = useRef<HTMLInputElement>(null);
   const ocrZoneRef = useRef<HTMLDivElement>(null);
@@ -664,8 +669,8 @@ export default function GearLibrary(props: {
   };
   const openReview = (parsed: OcrParsed) => {
     let slot = parsed.slot || ocrPreferredSlot;
-    if (slot === '主武器' || slot === '副武器') slot = '武器';
-    if (!slot) slot = '武器';
+    if (rules.weaponPositions.includes(slot)) slot = rules.weaponSlot;
+    if (!slot) slot = rules.weaponSlot;
     const rows: Array<{ key: string; val: string; conf?: number }> = parsed.lines.map((l) => ({ key: l.key, val: String(l.val), conf: l.conf }));
     while (rows.length < 5) rows.push({ key: '', val: '' });
     setAddMode('ocr');
@@ -720,15 +725,15 @@ export default function GearLibrary(props: {
     if (!lines.length) { toast(t.gearOcrNeedLineToast); return; }
     const dingyin = review.dyName ? { name: review.dyName, val: parseFloat(review.dyVal) || 0 } : null;
     commitAdd({
-      variables: { input: { slot: review.slot, name: review.name.trim(), lines, dingyin, schools: review.slot === '武器' ? review.schools : [] } },
+      variables: { input: { slot: review.slot, name: review.name.trim(), lines, dingyin, schools: review.slot === rules.weaponSlot ? review.schools : [] } },
       onCompleted: (resp) => {
         if (!resp.addGearItem.ok || !resp.addGearItem.item) { toast(resp.addGearItem.error || t.gearCalcFailedText); return; }
         const g = mapItem(resp.addGearItem.item);
         applySavedItem(g, true);
         if (review.equip) {
-          const pos = ocrPreferredSlot && poolOf(g.slot).includes(ocrPreferredSlot) ? ocrPreferredSlot : undefined;
+          const pos = ocrPreferredSlot && poolOf(g.slot, rules).includes(ocrPreferredSlot) ? ocrPreferredSlot : undefined;
           if (mode === 'bench') props.onEquipItem?.(g, pos);
-          else applyEquipToSavedWork(g, pos);
+          else applyEquipToSavedWork(g, rules, pos);
         }
         bumpWork();
         setReview(null);
@@ -972,7 +977,7 @@ export default function GearLibrary(props: {
               <label><span style={lbl}>{t.gearDyNameLabel}</span>
                 <select style={sel} value={review.dyName} onChange={(e) => setReview({ ...review, dyName: e.target.value })}>
                   <option value="">—</option>
-                  {(review.slot === '武器' ? t.gearWuxueNames : t.gearDingyinLeft.map((d) => d.name)).map((n) => (
+                  {(review.slot === rules.weaponSlot ? t.gearWuxueNames : t.gearDingyinLeft.map((d) => d.name)).map((n) => (
                     <option key={n} value={n}>{n}</option>
                   ))}
                 </select></label>
@@ -993,7 +998,7 @@ export default function GearLibrary(props: {
               </div>
             ))}
             <button style={{ ...btnMini, marginTop: 6 }} onClick={() => setReview({ ...review, rows: [...review.rows, { key: '', val: '' }] })}>{t.gearOcrAddRowLabel}</button>
-            {review.slot === '武器' && (
+            {review.slot === rules.weaponSlot && (
               <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 8, alignItems: 'center' }}>
                 <span style={{ color: theme.muted, fontSize: 11.5 }}>{t.gearSchoolsLabel}</span>
                 {t.gearSchoolTags.map((tag) => {
@@ -1033,7 +1038,7 @@ export default function GearLibrary(props: {
           <label><span style={lbl}>{t.gearDyNameLabel}</span>
             <select style={sel} value={form.dyName} onChange={(e) => setForm({ ...form, dyName: e.target.value })}>
               <option value="">—</option>
-              {(form.slot === '武器' ? t.gearWuxueNames : t.gearDingyinLeft.map((d) => d.name)).map((n) => (
+              {(form.slot === rules.weaponSlot ? t.gearWuxueNames : t.gearDingyinLeft.map((d) => d.name)).map((n) => (
                 <option key={n} value={n}>{n}</option>
               ))}
             </select></label>
@@ -1041,7 +1046,7 @@ export default function GearLibrary(props: {
             <span style={{ display: 'flex', gap: 5 }}>
               <input style={inp} type="number" step="0.1" value={form.dyVal} onChange={(e) => setForm({ ...form, dyVal: e.target.value })} />
               <button style={btnMini} onClick={() => {
-                const mx = form.slot === '武器' ? t.gearDingyinRightMax : (t.gearDingyinLeft.find((d) => d.name === form.dyName)?.max || 0);
+                const mx = form.slot === rules.weaponSlot ? t.gearDingyinRightMax : (t.gearDingyinLeft.find((d) => d.name === form.dyName)?.max || 0);
                 if (mx) setForm({ ...form, dyVal: String(mx) });
               }}>{t.gearFillMaxLabel}</button>
             </span></label>
@@ -1065,7 +1070,7 @@ export default function GearLibrary(props: {
           );
         })}
         <button style={{ ...btnMini, marginTop: 6 }} onClick={() => setForm({ ...form, rows: [...form.rows, { key: '', val: '' }] })}>{t.gearAddRowLabel}</button>
-        {form.slot === '武器' && (
+        {form.slot === rules.weaponSlot && (
           <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 8, alignItems: 'center' }}>
             <span style={{ color: theme.muted, fontSize: 11.5 }}>{t.gearSchoolsLabel}</span>
             {t.gearSchoolTags.map((tag) => {

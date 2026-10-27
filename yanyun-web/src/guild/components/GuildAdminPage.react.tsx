@@ -93,6 +93,7 @@ const GuildAdminPage_guildAdmin = graphql`
     adminVisibilityTitle
     adminDevOnlyLabel
     adminEventsTitle
+    adminSignupCsvSuffix
     adminEventEmptyText
     adminEventTitleLabel
     adminEventTypeLabel
