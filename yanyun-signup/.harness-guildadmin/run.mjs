@@ -5,10 +5,9 @@
 // Covers: verdict matrix (anonymous / member / ManageGuild bit / owner /
 // unbound / missing / dev_only), the omniscient doctrine (system-path
 // VC passes the admin verdict in full, writes included), webhook secrecy (full URL never read
-// back, only set-state + numeric id), profile/discord/features/
-// visibility mutations, base64 avatar flow with the same server-side
-// validation as the retired binary upload, fixed-team CRUD with
-// server-derived roles, admin event CRUD + signup removal + race
+// back, only set-state + numeric id), profile/discord/visibility
+// mutations, base64 avatar flow with the same server-side
+// validation as the retired binary upload, admin event CRUD + signup removal + race
 // results, byte-exact CSV export, school-guide upserts, and the OG
 // card data channel (ogGuildCard / ogCarCard) that replaces the OG
 // worker's REST reads. Real yoga + real resolvers + FakeDB that routes
@@ -55,8 +54,6 @@ function makeDb(fx = {}) {
     tenants: (fx.tenants || []).map((t) => ({ ...t })),
     settings: new Map(fx.settings || []), // `${tenant}|${key}` -> value
     users: new Map(fx.users || []),       // discord_id -> guilds_json string
-    fixedTeams: (fx.fixedTeams || []).map((t) => ({ ...t })),
-    fixedTeamMembers: (fx.fixedTeamMembers || []).map((m) => ({ ...m })),
     events: (fx.events || []).map((e) => ({ ...e })),
     signups: (fx.signups || []).map((r) => ({ ...r })),
     results: (fx.results || []).map((r) => ({ ...r })),
@@ -69,7 +66,7 @@ function makeDb(fx = {}) {
   const unknownSql = new Set();
 
   function norm(sql) {
-    return sql.replace(/"/g, '').replace(/\b(tenants|settings|users|events|signups|results|fixed_teams|fixed_team_members|guild_avatars|school_bis|school_rotations)\./g, '').replace(/\s+/g, ' ');
+    return sql.replace(/"/g, '').replace(/\b(tenants|settings|users|events|signups|results|guild_avatars|school_bis|school_rotations)\./g, '').replace(/\s+/g, ' ');
   }
   function parseCols(list) {
     return list.split(',').map((c) => c.trim().split('.').pop());
@@ -103,8 +100,6 @@ function makeDb(fx = {}) {
       if (table === 'events') tables.events.push(row);
       else if (table === 'signups') tables.signups.push(row);
       else if (table === 'results') tables.results.push(row);
-      else if (table === 'fixed_teams') tables.fixedTeams.push(row);
-      else if (table === 'fixed_team_members') tables.fixedTeamMembers.push(row);
       else if (table === 'settings') tables.settings.set(`${row.tenant}|${row.key}`, row.value);
       else if (table === 'guild_avatars') tables.avatars.set(row.tenant, row);
       return { meta: { changes: 1, last_row_id: row.id } };
@@ -120,26 +115,12 @@ function makeDb(fx = {}) {
       let rows = [];
       if (table === 'tenants') rows = tables.tenants.filter((t) => t.slug === wb[0]);
       else if (table === 'events') rows = tables.events.filter((e) => e.id === Number(wb[0]) && (wb.length < 2 || e.tenant === wb[1]));
-      else if (table === 'fixed_teams') rows = tables.fixedTeams.filter((t) => t.id === Number(wb[0]));
-      else if (table === 'fixed_team_members') rows = tables.fixedTeamMembers.filter((x) => x.id === Number(wb[0]));
       else if (table === 'signups') rows = tables.signups.filter((x) => x.id === Number(wb[0]));
       for (const r of rows) Object.assign(r, sets);
       return { meta: { changes: rows.length } };
     }
     /* ---- DELETE ---- */
     if (/^DELETE FROM guild_avatars/i.test(sql)) { tables.avatars.delete(b[0]); return { meta: { changes: 1 } }; }
-    if (/^DELETE FROM fixed_team_members WHERE team_id/i.test(sql)) {
-      tables.fixedTeamMembers = tables.fixedTeamMembers.filter((x) => x.team_id !== Number(b[0]));
-      return { meta: { changes: 1 } };
-    }
-    if (/^DELETE FROM fixed_team_members WHERE id/i.test(sql)) {
-      tables.fixedTeamMembers = tables.fixedTeamMembers.filter((x) => x.id !== Number(b[0]));
-      return { meta: { changes: 1 } };
-    }
-    if (/^DELETE FROM fixed_teams WHERE id/i.test(sql)) {
-      tables.fixedTeams = tables.fixedTeams.filter((x) => x.id !== Number(b[0]));
-      return { meta: { changes: 1 } };
-    }
     if (/^DELETE FROM signups WHERE event_id/i.test(sql)) {
       tables.signups = tables.signups.filter((x) => x.event_id !== Number(b[0]));
       return { meta: { changes: 1 } };
@@ -184,22 +165,6 @@ function makeDb(fx = {}) {
     if (/FROM guild_avatars/i.test(sql)) {
       const row = tables.avatars.get(b[0]);
       return first(row ? { content_type: row.content_type, bytes: row.bytes, hash: row.hash, updated_at: row.updated_at } : null);
-    }
-    if (/FROM fixed_teams WHERE tenant/i.test(sql)) {
-      return all(tables.fixedTeams.filter((t) => t.tenant === b[0]).sort((a, c) => a.id - c.id));
-    }
-    if (/SELECT id FROM fixed_teams WHERE id/i.test(sql)) {
-      const t = tables.fixedTeams.find((x) => x.id === Number(b[0]) && x.tenant === b[1]);
-      return first(t ? { id: t.id } : null);
-    }
-    if (/FROM fixed_team_members WHERE team_id/i.test(sql)) {
-      return all(tables.fixedTeamMembers.filter((x) => x.team_id === Number(b[0]))
-        .sort((a, c) => (a.sort_order - c.sort_order) || (a.id - c.id)));
-    }
-    if (/FROM fixed_team_members JOIN fixed_teams/i.test(sql)) {
-      const mem = tables.fixedTeamMembers.find((x) => x.id === Number(b[0]));
-      const team = mem && tables.fixedTeams.find((t) => t.id === mem.team_id && t.tenant === b[1]);
-      return first(team && mem ? { id: mem.id } : null);
     }
     if (/FROM events e WHERE e\.tenant/i.test(sql) && /signup_count/i.test(sql)) {
       // week view or admin list (both compute signup_count over e.*)
@@ -326,11 +291,6 @@ const A = makeDb({
     ['UM', serversJson([{ id: DGID, name: '测试服', icon: '', permissions: '32', owner: false }])], // ManageGuild bit
     ['UB', serversJson([{ id: DGID, name: '测试服', icon: '', permissions: '0', owner: false }])],
   ],
-  fixedTeams: [{ id: 11, tenant: 'admintest', name: '一队', description: '主力' }],
-  fixedTeamMembers: [
-    { id: 21, team_id: 11, nickname: '奶妈甲', weapon: '牵丝·霖', role: '奶', note: '', sort_order: 0 },
-    { id: 22, team_id: 11, nickname: '输出乙', weapon: '破竹·樽', role: '输出', note: '副队', sort_order: 1 },
-  ],
   events: [
     evRow(101, { title: '周六双十', starts_at_utc: WEEK_FROM + 3600 }),
     evRow(102, { title: '天赋车', type: 'talent', starts_at_utc: WEEK_FROM + 7200 }),
@@ -361,7 +321,7 @@ async function gql(query, { user = null, variables, vc } = {}) {
 }
 
 /* ---------------- verdict matrix ---------------- */
-const adminQ = `{ viewer { guildAdmin(slug: "admintest") { __typename ... on GuildAdmin { slug name announcement slogan masterName discordGuildId reminderWebhookSet reminderWebhookId featureFixedTeams devOnly adminTitle } ... on GuildAdminLocked { slug adminLockedTitle } } } }`;
+const adminQ = `{ viewer { guildAdmin(slug: "admintest") { __typename ... on GuildAdmin { slug name announcement slogan masterName discordGuildId reminderWebhookSet reminderWebhookId devOnly adminTitle } ... on GuildAdminLocked { slug adminLockedTitle } } } }`;
 let r = await gql(adminQ, { user: null });
 eq('匿名 -> GuildAdminLocked', r.data?.viewer?.guildAdmin?.__typename, 'GuildAdminLocked');
 r = await gql(adminQ, { user: MEMBER });
@@ -416,12 +376,7 @@ eq('清除 webhook ok', r.data?.updateGuildDiscord?.ok, true);
 r = await gql(adminQ, { user: ADMIN });
 eq('清除后 webhookSet=false', r.data?.viewer?.guildAdmin?.reminderWebhookSet, false);
 
-/* ---------------- features / visibility ---------------- */
-const featMut = `mutation($v: Boolean!) { updateGuildFeatures(slug: "admintest", fixedTeams: $v) { ok } }`;
-r = await gql(featMut, { user: MANAGER, variables: { v: true } });
-eq('ManageGuild 位管理员可改功能', r.data?.updateGuildFeatures?.ok, true);
-r = await gql(adminQ, { user: ADMIN });
-eq('featureFixedTeams=true', r.data?.viewer?.guildAdmin?.featureFixedTeams, true);
+/* ---------------- visibility ---------------- */
 const visMut = `mutation($v: Boolean!) { updateGuildVisibility(slug: "admintest", devOnly: $v) { ok errorCode } }`;
 r = await gql(visMut, { user: ADMIN, variables: { v: true } });
 eq('设置 dev_only ok', r.data?.updateGuildVisibility?.ok, true);
@@ -530,42 +485,6 @@ r = await gql(`mutation { deleteGuildAvatar(slug: "admintest") { ok } }`, { user
 eq('删除头像 ok', r.data?.deleteGuildAvatar?.ok, true);
 eq('头像已清', A.tables.avatars.has('admintest'), false);
 
-/* ---------------- fixed teams ---------------- */
-const teamQ = `{ viewer { guildAdmin(slug: "admintest") { ... on GuildAdmin { fixedTeams { id name description members { id nickname weapon role } } } }  }}`;
-r = await gql(teamQ, { user: ADMIN });
-eq('固定队列表 1 支', r.data?.viewer?.guildAdmin?.fixedTeams?.length, 1);
-eq('成员角色 (奶)', r.data?.viewer?.guildAdmin?.fixedTeams?.[0]?.members?.[0]?.role, '奶');
-const createTeam = `mutation($input: CreateFixedTeamInput!) { createFixedTeam(slug: "admintest", input: $input) { ok errorCode id } }`;
-r = await gql(createTeam, { user: ADMIN, variables: { input: { name: '二队', description: '替补' } } });
-eq('建队 ok', r.data?.createFixedTeam?.ok, true);
-const team2Id = r.data?.createFixedTeam?.id;
-r = await gql(createTeam, { user: ADMIN, variables: { input: { name: '' } } });
-eq('空队名 -> teamNameRequired', r.data?.createFixedTeam?.errorCode, 'teamNameRequired');
-const addMember = `mutation($tid: ID!, $input: FixedTeamMemberInput!) { addFixedTeamMember(slug: "admintest", teamId: $tid, input: $input) { ok errorCode id } }`;
-r = await gql(addMember, { user: ADMIN, variables: { tid: team2Id, input: { nickname: '新奶', weapon: '牵丝·霖' } } });
-eq('加队员 ok', r.data?.addFixedTeamMember?.ok, true);
-const memberId = r.data?.addFixedTeamMember?.id;
-r = await gql(teamQ, { user: ADMIN });
-const team2 = r.data?.viewer?.guildAdmin?.fixedTeams?.find((t) => t.id === team2Id);
-eq('新队员角色由武器推导 (奶)', team2?.members?.[0]?.role, '奶');
-const updMember = `mutation($tid: ID!, $mid: ID!, $input: FixedTeamMemberInput!) { updateFixedTeamMember(slug: "admintest", teamId: $tid, memberId: $mid, input: $input) { ok errorCode } }`;
-r = await gql(updMember, { user: ADMIN, variables: { tid: team2Id, mid: memberId, input: { nickname: '新奶', weapon: '鸣金·虹' } } });
-eq('改队员 ok', r.data?.updateFixedTeamMember?.ok, true);
-r = await gql(teamQ, { user: ADMIN });
-eq('改武器后角色变输出', r.data?.viewer?.guildAdmin?.fixedTeams?.find((t) => t.id === team2Id)?.members?.[0]?.role, '输出');
-r = await gql(updMember, { user: ADMIN, variables: { tid: team2Id, mid: '99999', input: { nickname: 'x', weapon: '鸣金·虹' } } });
-eq('改不存在队员 -> teamMemberNotFound', r.data?.updateFixedTeamMember?.errorCode, 'teamMemberNotFound');
-r = await gql(`mutation($tid: ID!, $mid: ID!) { deleteFixedTeamMember(slug: "admintest", teamId: $tid, memberId: $mid) { ok } }`,
-  { user: ADMIN, variables: { tid: team2Id, mid: memberId } });
-eq('删队员 ok', r.data?.deleteFixedTeamMember?.ok, true);
-r = await gql(`mutation($tid: ID!) { deleteFixedTeam(slug: "admintest", teamId: $tid) { ok errorCode } }`,
-  { user: ADMIN, variables: { tid: team2Id } });
-eq('删队 ok', r.data?.deleteFixedTeam?.ok, true);
-eq('队伍已删', A.tables.fixedTeams.some((t) => String(t.id) === String(team2Id)), false);
-r = await gql(`mutation($tid: ID!) { deleteFixedTeam(slug: "admintest", teamId: $tid) { ok errorCode } }`,
-  { user: ADMIN, variables: { tid: team2Id } });
-eq('重复删队 -> teamNotFound', r.data?.deleteFixedTeam?.errorCode, 'teamNotFound');
-
 /* ---------------- events admin ---------------- */
 const eventsQ = `{ viewer { guildAdmin(slug: "admintest") { ... on GuildAdmin { events { id title type status origin signupCount signups { id nickname } signupsCsv } } } } }`;
 r = await gql(eventsQ, { user: ADMIN });
@@ -661,7 +580,7 @@ r = await gql(adminQ, OMNI);
 eq('omni -> GuildAdmin', r.data?.viewer?.guildAdmin?.__typename, 'GuildAdmin');
 check('omni 载荷与管理员逐字段一致', JSON.stringify(r.data?.viewer?.guildAdmin) === JSON.stringify(adminView),
   JSON.stringify(r.data?.viewer?.guildAdmin));
-const omniContentQ = `{ viewer { guildAdmin(slug: "admintest") { ... on GuildAdmin { fixedTeams { id name members { id nickname role } } events { id title signupCount signups { id nickname } signupsCsv } schoolGuides { schools { school builds { build bisJson } rotationJson } } } } } }`;
+const omniContentQ = `{ viewer { guildAdmin(slug: "admintest") { ... on GuildAdmin { events { id title signupCount signups { id nickname } signupsCsv } schoolGuides { schools { school builds { build bisJson } rotationJson } } } } } }`;
 r = await gql(omniContentQ, { user: ADMIN });
 const adminContent = r.data?.viewer?.guildAdmin;
 r = await gql(omniContentQ, OMNI);
@@ -686,9 +605,6 @@ r = await gql(adminQ, OMNI);
 eq('omni webhook 回读 set', r.data?.viewer?.guildAdmin?.reminderWebhookSet, true);
 eq('omni webhook 回读只露编号', r.data?.viewer?.guildAdmin?.reminderWebhookId, '123456789012345678');
 check('omni webhook 响应不含密钥段', !JSON.stringify(r).includes('abcdef-XYZ_123'));
-r = await gql(featMut, { ...OMNI, variables: { v: false } });
-eq('omni 改功能开关 ok', r.data?.updateGuildFeatures?.ok, true);
-eq('omni 功能开关已落库', A.tables.settings.get('admintest|feature_fixed_teams'), '0');
 r = await gql(setAv, { ...OMNI, variables: { d: pngB64 } });
 eq('omni 设头像 ok', r.data?.setGuildAvatar?.ok, true);
 eq('omni 头像已落库', A.tables.avatars.has('admintest'), true);
