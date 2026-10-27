@@ -27,6 +27,7 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
+      - run: corepack enable npm
       - run: npm ci
       - name: Upload the OG worker version (does not touch production traffic)
         id: upload

@@ -32,6 +32,7 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
+      - run: corepack enable npm
       - run: npm ci
       - name: Smoke build (expo export must pass before publishing)
         working-directory: yanyun-mobile

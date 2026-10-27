@@ -89,6 +89,7 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
+      - run: corepack enable npm
       - run: npm ci
       - name: Record the current production version
         id: prev
