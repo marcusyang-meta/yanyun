@@ -120,7 +120,10 @@ export type PlatformStringKey =
   | 'errors.premiumComingSoon'
   | 'errors.premiumActive'
   | 'errors.paygateDisabled'
-  | 'errors.checkoutFailed';
+  | 'errors.checkoutFailed'
+  | 'errors.feedbackEmpty'
+  | 'errors.feedbackTooLong'
+  | 'errors.feedbackRateLimited';
 
 export const PLATFORM_STRING_KEYS: readonly PlatformStringKey[] = [
   'common.cancel',
@@ -243,4 +246,7 @@ export const PLATFORM_STRING_KEYS: readonly PlatformStringKey[] = [
   'errors.premiumActive',
   'errors.paygateDisabled',
   'errors.checkoutFailed',
+  'errors.feedbackEmpty',
+  'errors.feedbackTooLong',
+  'errors.feedbackRateLimited',
 ];

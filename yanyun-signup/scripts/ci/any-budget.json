@@ -112,16 +112,16 @@
     "reason": "framework internals: dynamic prototype generation (defineTextGens) and shell source records (ShellBase.data); +6 for the shared grouping-manage verdict/gate signatures (db/user/request params, same shape as getGuildAdminAccess); +1 for the TemplatePayloadShell failure helper (tFail, same shape as gFail/dFail)"
   },
   "src/domains/platform/graphql.ts": {
-    "max": 157,
-    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context) + seat readiness surface (advanced reminders, 2026-10-26): SeatEntry ready/readyAction and SetReadyAction resolvers in the same parent/args pattern"
+    "max": 162,
+    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context) + seat readiness surface (advanced reminders, 2026-10-26): SeatEntry ready/readyAction and SetReadyAction resolvers in the same parent/args pattern; +5 for the submitFeedback mutation and SubmitFeedbackPayload resolvers (feedback batch, same parent/args pattern)"
   },
   "src/domains/platform/http.ts": {
     "max": 11,
     "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary"
   },
   "src/domains/platform/hub-routes.ts": {
-    "max": 62,
-    "reason": "hub portal edge: Hono request/response handling and JSON bodies at the framework boundary; +2 for the audit helper and audit-view handler context params (hub audit batch); +4 for the backup endpoint handler context params (backup batch); +5 for the billing endpoints (paygate switch + grant/revoke) handler context params (billing batch); +1 for the billing subdomain-switch endpoint handler context param (subdomain paygate batch)"
+    "max": 64,
+    "reason": "hub portal edge: Hono request/response handling and JSON bodies at the framework boundary; +2 for the audit helper and audit-view handler context params (hub audit batch); +4 for the backup endpoint handler context params (backup batch); +5 for the billing endpoints (paygate switch + grant/revoke) handler context params (billing batch); +1 for the billing subdomain-switch endpoint handler context param (subdomain paygate batch); +2 for the feedback list/status handler context params (feedback batch)"
   },
   "src/domains/platform/i18n.ts": {
     "max": 2,

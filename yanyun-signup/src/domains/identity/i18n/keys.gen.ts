@@ -78,7 +78,26 @@ export type IdentityStringKey =
   | 'account.deletionRequestedText'
   | 'account.deletionCancelledText'
   | 'account.exportAbout'
-  | 'account.deletedUser';
+  | 'account.deletedUser'
+  | 'landing.featuresTitle'
+  | 'landing.groupingTitle'
+  | 'landing.groupingBody'
+  | 'landing.reminderTitle'
+  | 'landing.reminderBody'
+  | 'landing.dexTitle'
+  | 'landing.dexBody'
+  | 'landing.gearTitle'
+  | 'landing.gearBody'
+  | 'feedback.entryLabel'
+  | 'feedback.title'
+  | 'feedback.categoryLabel'
+  | 'feedback.catProblem'
+  | 'feedback.catSuggestion'
+  | 'feedback.catOther'
+  | 'feedback.placeholder'
+  | 'feedback.submit'
+  | 'feedback.submitting'
+  | 'feedback.success';
 
 export const IDENTITY_STRING_KEYS: readonly IdentityStringKey[] = [
   'site.title',
@@ -159,4 +178,23 @@ export const IDENTITY_STRING_KEYS: readonly IdentityStringKey[] = [
   'account.deletionCancelledText',
   'account.exportAbout',
   'account.deletedUser',
+  'landing.featuresTitle',
+  'landing.groupingTitle',
+  'landing.groupingBody',
+  'landing.reminderTitle',
+  'landing.reminderBody',
+  'landing.dexTitle',
+  'landing.dexBody',
+  'landing.gearTitle',
+  'landing.gearBody',
+  'feedback.entryLabel',
+  'feedback.title',
+  'feedback.categoryLabel',
+  'feedback.catProblem',
+  'feedback.catSuggestion',
+  'feedback.catOther',
+  'feedback.placeholder',
+  'feedback.submit',
+  'feedback.submitting',
+  'feedback.success',
 ];

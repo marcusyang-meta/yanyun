@@ -79,6 +79,21 @@
     </div>
 
     <div class="detail" style="margin-top:16px">
+      <h3 style="margin-top:0">💬 用户反馈（站内提交）</h3>
+      <p class="muted">用户在个人资料「意见反馈」中提交的问题与建议，最新在前（同一用户滚动 24 小时上限 5 条）。处理完点「标记已处理」；查看与状态变更都会记入超管审计。</p>
+      <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px">
+        <button class="ghost" id="fbOpen">待处理</button>
+        <button class="ghost" id="fbResolved">已处理</button>
+        <button class="ghost" id="fbAll">全部</button>
+        <button class="ghost" id="fbPrev">← 上一页</button>
+        <button class="ghost" id="fbNext">下一页 →</button>
+        <span class="muted" id="fbSummary"></span>
+      </div>
+      <div style="overflow-x:auto"><table class="list" id="feedbackTable"></table></div>
+      <div class="msg" id="feedbackMsg"></div>
+    </div>
+
+    <div class="detail" style="margin-top:16px">
       <h3 style="margin-top:0">💾 数据备份（R2 快照）</h3>
       <p class="muted">每日 02:23（北京）自动导出全量数据到私有 R2 桶，保留最近 14 份；也可立即备份或导出下载到本地。⚠️ 备份文件含登录 refresh token、密码哈希与 Webhook 等机密，只能经本页（超管鉴权）下载，下载到本地后请按机密文件保管，切勿外传或公开存放。</p>
       <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px">

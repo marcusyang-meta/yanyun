@@ -6,6 +6,7 @@ import { json, err, s, getBody, rateLimit, bearerToken, checkToken, makeToken, s
 import {
   logError, recentErrors, translate, auditHub, listHubAuditPage,
   streamBackupJson, runBackupToR2, listBackups, getBackupObject,
+  listFeedback, countFeedback, setFeedbackStatus,
 } from './index.ts';
 import {
   getTenantRow, getTenantSlug, listTenantSlugs, listTenantsHubAdmin, deleteTenantCascade,
@@ -94,6 +95,34 @@ hubRoutes.get('/audit', async (c: any) => {
   const page = await listHubAuditPage(c.env.DB, { tenant, limit, offset });
   await audit(c, 'audit.view', tenant, { shown: page.entries.length, offset });
   return json({ ok: true, entries: page.entries, total: page.total });
+});
+
+/* ---------- User feedback (in-app submissions, hub triage) ----------
+ * The list carries user free text, so viewing it is audited like
+ * /errors and /audit; flipping a row's triage status is audited with
+ * the row id and target status only — never the feedback content. */
+hubRoutes.get('/feedback', async (c: any) => {
+  const q = c.req.query();
+  const status = q.status === 'open' || q.status === 'resolved' ? q.status : '';
+  const limit = Math.min(200, Math.max(1, parseInt(q.limit, 10) || 50));
+  const offset = Math.max(0, parseInt(q.offset, 10) || 0);
+  const [entries, total] = await Promise.all([
+    listFeedback(c.env.DB, { status, limit, offset }),
+    countFeedback(c.env.DB, status),
+  ]);
+  await audit(c, 'feedback.view', '', { shown: entries.length, status: status || 'all', offset });
+  return json({ ok: true, entries, total });
+});
+
+hubRoutes.post('/feedback/:id/status', async (c: any) => {
+  const id = parseInt(c.req.param('id'), 10) || 0;
+  const body = await getBody(c);
+  const status = body.status === 'resolved' ? 'resolved' : body.status === 'open' ? 'open' : '';
+  if (!id || !status) return err('参数不正确', 400);
+  const changed = await setFeedbackStatus(c.env.DB, id, status, Date.now());
+  if (!changed) return err('反馈不存在', 404);
+  await audit(c, 'feedback.status', '', { id, status });
+  return json({ ok: true });
 });
 
 /* ---------- Database backup (R2 snapshots + streaming export) ----------

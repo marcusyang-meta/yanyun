@@ -144,3 +144,6 @@ export const errors_premiumComingSoon = (fbs: FbsAPI) =>fbs("Premium 开通即�
 export const errors_premiumActive = (fbs: FbsAPI) =>fbs("本百业已开通 Premium", "errors.premiumActive");
 export const errors_paygateDisabled = (fbs: FbsAPI) =>fbs("收费功能尚未开启", "errors.paygateDisabled");
 export const errors_checkoutFailed = (fbs: FbsAPI) =>fbs("创建支付会话失败，请稍后再试", "errors.checkoutFailed");
+export const errors_feedbackEmpty = (fbs: FbsAPI) =>fbs("反馈内容不能为空", "errors.feedbackEmpty");
+export const errors_feedbackTooLong = (fbs: FbsAPI) =>fbs("反馈内容太长，请精简到 2000 字以内", "errors.feedbackTooLong");
+export const errors_feedbackRateLimited = (fbs: FbsAPI) =>fbs("今天提交的反馈已达上限，请明天再来", "errors.feedbackRateLimited");
