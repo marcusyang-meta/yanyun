@@ -671,3 +671,5 @@ body {
 @media (max-width: 640px) { .jade-pendant { width: 24px; height: 50px; top: -11px; right: -2px; } }
 #goldDustLayer { position: fixed; inset: 0; pointer-events: none; z-index: 200; overflow: hidden; }
 .gd-p { position: absolute; border-radius: 50%; pointer-events: none; box-shadow: 0 0 5px rgba(239,201,110,.8); }
+
+/* probe */
