@@ -13,6 +13,7 @@ import { getDevOnlySlugs } from './http.ts';
 import {
   listEventsWeekView, getEventRowByTenant, countSignupsByEvent,
 } from '../groupings/index.ts';
+import { resolveSharedBuild } from '../gear/index.ts';
 
 async function ogTenant(ctx: Context, slug: string) {
   const t = await getTenantRow(ctx.env.DB, s(slug, 40));
@@ -87,6 +88,22 @@ export const ogCardResolvers = {
       const occupiedCount = await countSignupsByEvent(ctx.env.DB, ev.id);
       return new OgCarCardShell(ctx, { ...ev, occupiedCount });
     },
+    /* Build share card: the share code is the capability — resolving
+     * it yields only the card's printed fields (build name / target
+     * label / graduation snapshot), never any owner identity. */
+    ogBuildCard: async (_: any, { code }: any, ctx: Context) => {
+      const shared = await resolveSharedBuild(ctx.env.DB, String(code || '')).catch(() => null);
+      if (!shared) return null;
+      const snap = shared.build.snapshot;
+      return {
+        name: shared.build.name || '',
+        buildLabel: shared.build.buildLabel || '',
+        snapTotal: snap ? snap.total || 0 : 0,
+        snapA: snap ? snap.a || 0 : 0,
+        snapB: snap ? snap.b || 0 : 0,
+        snapD: snap ? snap.d || 0 : 0,
+      };
+    },
   },
   types: {
     OgGuildCard: {
@@ -96,6 +113,14 @@ export const ogCardResolvers = {
       weekActivityCount: (p: any, a: any) => p.genWeekActivityCount(a),
       ogAccentColor: (p: any) => p.genOgAccentColor(),
       ogTitleSuffix: (p: any) => p.genOgTitleSuffix(),
+    },
+    OgBuildCard: {
+      name: (p: any) => p.name,
+      buildLabel: (p: any) => p.buildLabel,
+      snapTotal: (p: any) => p.snapTotal,
+      snapA: (p: any) => p.snapA,
+      snapB: (p: any) => p.snapB,
+      snapD: (p: any) => p.snapD,
     },
     OgCarCard: {
       title: (p: any) => p.genTitle(),

@@ -23,7 +23,7 @@ import {
   tenants, settings, users, userOauth, userGuildNicks, guildMembers,
   events, signups, results, shortLinks, groupingTemplates, guildAvatars,
   bosses, dungeons, schools, schoolBis, schoolRotations, slotAffix, affixMax,
-  userGearItems, userGearBuilds, heirloomItemPushes, heirloomSetState,
+  userGearItems, userGearBuilds, buildShareLinks, heirloomItemPushes, heirloomSetState,
   pushTokens, usageCounters, creatorBackfillLog, hubAuditLog,
 } from '../../db/schema.ts';
 
@@ -54,6 +54,7 @@ export const BACKUP_ENTITIES: ReadonlyArray<readonly [string, SQLiteTable]> = [
   ['affix_max', affixMax],
   ['user_gear_items', userGearItems],
   ['user_gear_builds', userGearBuilds],
+  ['build_share_links', buildShareLinks],
   ['heirloom_item_pushes', heirloomItemPushes],
   ['heirloom_set_state', heirloomSetState],
   ['push_tokens', pushTokens],

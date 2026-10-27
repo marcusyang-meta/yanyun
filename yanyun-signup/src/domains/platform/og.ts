@@ -5,6 +5,7 @@ import { getTenantRow } from '../guilds/index.ts';
 import { isDevOnlyTenant } from './http.ts';
 import { getDungeonByName } from '../dex/index.ts';
 import { getEventRowByTenant, getEventRow, listEventsWeekView, countActivityEventsInWindow, countSignupsByEvent } from '../groupings/index.ts';
+import { resolveSharedBuild } from '../gear/index.ts';
 
 
 const OG_WORKER = 'https://og.yanyun.app';
@@ -105,6 +106,31 @@ export async function carOgTags(env: any, slug: string, carId: any, pageUrl?: st
       `<meta property="og:description" content="${escHtml(descParts.join(' | '))} · 燕云十六声百业车队" />`,
       `<meta property="og:image" content="${OG_WORKER}/og/${encodeURIComponent(slug)}/car/${encodeURIComponent(carId)}.png" />`,
       `<meta property="og:url" content="${pageUrl || `${SITE_URL}/${encodeURIComponent(slug)}/car/${encodeURIComponent(carId)}`}" />`,
+      '<meta property="og:type" content="website" />',
+      '<meta name="twitter:card" content="summary_large_image" />',
+    ].join('\n');
+  } catch { return null; }
+}
+
+// Build share page (/b/:code): tags carry the build's own display
+// fields only (name / target label / graduation) — the same fields
+// the public page itself prints; no owner identity ever appears.
+// Unknown or revoked codes inject nothing (the SPA renders its
+// not-found state), exactly like an unknown tenant.
+export async function buildOgTags(env: any, code: string) {
+  try {
+    const shared = await resolveSharedBuild(env.DB, code).catch(() => null);
+    if (!shared) return null;
+    const snap = shared.build.snapshot;
+    const total = snap ? Math.round((snap.total || 0) * 10) / 10 : 0;
+    const descParts = [shared.build.buildLabel, snap ? `毕业度 ${total}%` : ''].filter(Boolean);
+    descParts.push('燕云十六声百业 · 装备方案分享');
+    const name = shared.build.name || '装备方案';
+    return [
+      `<meta property="og:title" content="${escHtml(name)} · 燕云百业" />`,
+      `<meta property="og:description" content="${escHtml(descParts.join(' · '))}" />`,
+      `<meta property="og:image" content="${OG_WORKER}/og/build/${encodeURIComponent(code)}.png" />`,
+      `<meta property="og:url" content="${SITE_URL}/b/${encodeURIComponent(code)}" />`,
       '<meta property="og:type" content="website" />',
       '<meta name="twitter:card" content="summary_large_image" />',
     ].join('\n');

@@ -293,6 +293,15 @@ export const gear_schemeLoadedToastTemplate = (fbs: FbsAPI, p?: StringParams) =>
   fbs(["已载入：", fbs.param("name", pv(p, "name"))], "gear.schemeLoadedToastTemplate");
 export const gear_schemeGroupCountTemplate = (fbs: FbsAPI, p?: StringParams) =>
   fbs([fbs.param("n", pv(p, "n")), " 套"], "gear.schemeGroupCountTemplate");
+export const gear_shareLabel = (fbs: FbsAPI) =>fbs("分享", "gear.shareLabel");
+export const gear_revokeShareLabel = (fbs: FbsAPI) =>fbs("取消分享", "gear.revokeShareLabel");
+export const gear_copyLinkLabel = (fbs: FbsAPI) =>fbs("复制链接", "gear.copyLinkLabel");
+export const gear_shareRevokedToast = (fbs: FbsAPI) =>fbs("已取消分享，旧链接已失效", "gear.shareRevokedToast");
+export const buildshare_kicker = (fbs: FbsAPI) =>fbs("装备方案 · 公开分享", "buildshare.kicker");
+export const buildshare_loginLabel = (fbs: FbsAPI) =>fbs("打开燕云百业", "buildshare.loginLabel");
+export const buildshare_notFoundTitle = (fbs: FbsAPI) =>fbs("链接已失效", "buildshare.notFoundTitle");
+export const buildshare_notFoundBody = (fbs: FbsAPI) =>fbs("这条分享链接不存在，或已被方案主人取消分享。", "buildshare.notFoundBody");
+export const buildshare_xinfaLabel = (fbs: FbsAPI) =>fbs("心法", "buildshare.xinfaLabel");
 export const gear_quickTitle = (fbs: FbsAPI) =>fbs("三率速算器", "gear.quickTitle");
 export const gear_quickResLabel = (fbs: FbsAPI) =>fbs("抗性", "gear.quickResLabel");
 export const gear_quickSyncLabel = (fbs: FbsAPI) =>fbs("从配装台同步", "gear.quickSyncLabel");

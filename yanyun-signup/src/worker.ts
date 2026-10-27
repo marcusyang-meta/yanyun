@@ -15,7 +15,7 @@ import { maybeRunCreatorBackfill } from './creatorbackfill.js';
 import { maybeRunCreatorManualFix } from './creatormanualfix.js';
 import { logError, runScheduledBackup } from './domains/platform/index.ts';
 import { err } from './domains/platform/http.ts';
-import { hubOgTags, guildOgTags, carOgTags } from './domains/platform/og.ts';
+import { hubOgTags, guildOgTags, carOgTags, buildOgTags } from './domains/platform/og.ts';
 import { getTenantSlug, parseGuildSubdomainSlug, resolveGuildSubdomain, guildSubdomainOrigin } from './domains/guilds/index.ts';
 import { hubRoutes } from './domains/platform/hub-routes.ts';
 import { guildAvatarRoutes } from './domains/guilds/avatar-routes.ts';
@@ -216,6 +216,11 @@ async function handleFetch(request: Request, env: Env, ctx: ExecutionContext) {
       return serveSpa(hostGuild && hostOrigin
         ? await guildOgTags(env, hostGuild, `${hostOrigin}/`)
         : hubOgTags());
+    // /b/:code -> public build share page (React, anonymous) + build OG
+    // tags; unknown/revoked codes inject nothing and the page renders
+    // its not-found state. The static segment must win over /:slug.
+    if (seg.length === 2 && seg[0] === 'b') {
+      return serveSpa(await buildOgTags(env, seg[1]));
     }
     // /<slug>/car/:id -> car detail (React) + car OG; unknown tenants still
     // get the SPA, which renders the not-found state.

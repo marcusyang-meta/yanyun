@@ -3499,6 +3499,18 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "fr": "{n} ensembles",
       "zh-TW": "{n} 套"
     },
+    "shareLabel": {
+      "zh-CN": "分享"
+    },
+    "revokeShareLabel": {
+      "zh-CN": "取消分享"
+    },
+    "copyLinkLabel": {
+      "zh-CN": "复制链接"
+    },
+    "shareRevokedToast": {
+      "zh-CN": "已取消分享，旧链接已失效"
+    },
     "quickTitle": {
       "zh-CN": "三率速算器",
       "en": "Rate quick calculator",
@@ -5506,6 +5518,23 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "es": "Usuario eliminado",
       "fr": "Utilisateur supprimé",
       "zh-TW": "已註銷使用者"
+    }
+  },
+  "buildshare": {
+    "kicker": {
+      "zh-CN": "装备方案 · 公开分享"
+    },
+    "loginLabel": {
+      "zh-CN": "打开燕云百业"
+    },
+    "notFoundTitle": {
+      "zh-CN": "链接已失效"
+    },
+    "notFoundBody": {
+      "zh-CN": "这条分享链接不存在，或已被方案主人取消分享。"
+    },
+    "xinfaLabel": {
+      "zh-CN": "心法"
     }
   }
 };
