@@ -66,7 +66,7 @@ function makeDb(fx = {}) {
   const unknownSql = new Set();
 
   function norm(sql) {
-    return sql.replace(/"/g, '').replace(/\b(tenants|settings|users|events|signups|results|guild_avatars|school_bis|school_rotations)\./g, '').replace(/\s+/g, ' ');
+    return sql.replace(/"/g, '').replace(/\b(tenants|settings|users|events|signups|results|guild_avatars|school_bis|school_rotations|guild_entitlements)\./g, '').replace(/\s+/g, ' ');
   }
   function parseCols(list) {
     return list.split(',').map((c) => c.trim().split('.').pop());
@@ -146,6 +146,11 @@ function makeDb(fx = {}) {
     /* ---- SELECTs ---- */
     const first = (row) => (kind === 'first' ? (row ?? null) : { results: row ? [row] : [] });
     const all = (rows) => ({ results: rows });
+    // Entitlement reads (the gate wrapper reads its facts on admin
+    // paths since the Statsig migration): the fixture tenants carry
+    // no entitlement rows, so both shapes answer empty.
+    if (/FROM guild_entitlements WHERE tenant = \?/i.test(sql)) return first(null);
+    if (/FROM guild_entitlements/i.test(sql)) return all([]);
     if (/FROM tenants WHERE slug/i.test(sql)) return first(tables.tenants.find((t) => t.slug === b[0]));
     if (/FROM tenants/i.test(sql)) return kind === 'first' ? (tables.tenants[0] ?? null) : all(tables.tenants);
     if (/FROM settings WHERE tenant = \? AND key = \?/i.test(sql)) {
