@@ -30,9 +30,9 @@ import { signStripePayload } from '../src/domains/platform/stripe.ts';
 import { insertTenant } from '../src/domains/guilds/tenants.ts';
 import { getSettingValue, setSettingValue } from '../src/domains/guilds/settings.ts';
 import {
-  getEffectiveEntitlement, grantPremiumManual,
-  effectiveGearLimits, effectiveGearLimitsForGuild, handleStripeEvent,
+  getEffectiveEntitlement, grantPremiumManual, handleStripeEvent,
 } from '../src/domains/platform/billing-service.ts';
+import { getEffectiveLimits } from '../src/domains/platform/limits.ts';
 import { getEntitlementRow } from '../src/domains/platform/billing.ts';
 
 let pass = 0, fail = 0; const fails = [];
@@ -171,19 +171,22 @@ check('grant: branding honored again (footer blank)',
   ga(r)?.pageFooterDisclaimerText === '' || ga(r)?.pageFooterDisclaimerText === null);
 r = await gql(`mutation { updateGuildReminderSettings(slug: "${SLUG}", offsets: [60]) { ok errorCode } }`);
 eq('grant: reminder write open again', r.data?.updateGuildReminderSettings?.ok, true);
-eq('gear seam: premium limits while granted', (await effectiveGearLimitsForGuild(db, SLUG)).maxItems,
-  effectiveGearLimits('premium').maxItems);
-check('gear seam: premium tier above free tier',
-  effectiveGearLimits('premium').maxItems > effectiveGearLimits('free').maxItems
-  && effectiveGearLimits('premium').batchOcrDailyQuota > effectiveGearLimits('free').batchOcrDailyQuota);
+{
+  const lim = await getEffectiveLimits(db, { discordId: 'rig-user', guildSlug: SLUG });
+  eq('limits seam: premium table while granted', [lim.gearItemCapacity, lim.ocrBatchImages, lim.ocrBatchesPerDay], [2000, 100, 50]);
+  const limNoGuild = await getEffectiveLimits(db, { discordId: 'rig-user' });
+  eq('limits seam: guild-less context stays free', limNoGuild.gearItemCapacity, 200);
+}
 
 h = await hub('/api/hub/billing/revoke', 'POST', { slug: SLUG });
 eq('hub: revoke ok', [h.status, h.json?.ok], [200, true]);
 r = await gql(adminQ);
 eq('revoke: premium Locked again', ga(r)?.premium?.__typename, 'GuildAdminPremiumLocked');
 eq('revoke: stats Locked again', ga(r)?.stats?.__typename, 'GuildAdminStatsLocked');
-eq('gear seam: free limits after revoke', (await effectiveGearLimitsForGuild(db, SLUG)).maxItems,
-  effectiveGearLimits('free').maxItems);
+{
+  const lim = await getEffectiveLimits(db, { discordId: 'rig-user', guildSlug: SLUG });
+  eq('limits seam: free table after revoke', [lim.gearItemCapacity, lim.ocrBatchImages, lim.ocrBatchesPerDay], [200, 20, 10]);
+}
 
 {
   const rows = await db.prepare(

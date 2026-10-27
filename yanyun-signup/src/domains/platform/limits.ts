@@ -4,13 +4,18 @@
  * One key space, one value table. Enforcement points never hardcode a
  * number and never read storage directly for a limit — they ask this
  * service, passing the caller context, and get the EFFECTIVE limit
- * back. Today the effective values are the free-tier constants below
- * (sized from measured production usage, see the PR that introduced
- * them: each sits far above the largest real workload). When the
- * paygate lands, plan overrides resolve inside getEffectiveLimits —
- * its (db, context) signature is the seam, and no call site changes.
+ * back. The free-tier constants below are sized from measured
+ * production usage (see the PR that introduced them: each sits far
+ * above the largest real workload). Plan overrides resolve inside
+ * getEffectiveLimits: when the caller's context names a guild whose
+ * premium tier is in force (paygate on + entitlement premium, the
+ * billing service's verdict), the PREMIUM_LIMITS table applies;
+ * every other context — including every guild-less one, such as the
+ * personal gear library — reads the free table, so the paygate's
+ * launch day moves nobody's quota.
  * =================================================== */
 import { getUsageCount, incrementUsage } from './usageCounters.ts';
+import { isPremiumActive } from './billing-service.ts';
 
 export type LimitKey =
   | 'gearItemCapacity'    // stored gear items per user (gear library)
@@ -28,6 +33,14 @@ export const FREE_LIMITS: Record<LimitKey, number> = {
   ocrBatchesPerDay: 10,
 };
 
+/** Premium-tier values, one order above the audited free tier on
+ *  every axis. Read only through getEffectiveLimits. */
+export const PREMIUM_LIMITS: Record<LimitKey, number> = {
+  gearItemCapacity: 2000,
+  ocrBatchImages: 100,
+  ocrBatchesPerDay: 50,
+};
+
 /** The base (free-tier) value of one limit key. */
 export function getLimit(key: LimitKey): number {
   return FREE_LIMITS[key];
@@ -40,7 +53,9 @@ export async function getEffectiveLimits(
   db: D1Database,
   ctx: LimitContext,
 ): Promise<Record<LimitKey, number>> {
-  void db; void ctx; // paygate seam: overrides resolve here later
+  if (ctx.guildSlug && (await isPremiumActive(db, ctx.guildSlug))) {
+    return { ...PREMIUM_LIMITS };
+  }
   return { ...FREE_LIMITS };
 }
 

@@ -1072,10 +1072,20 @@ if (want('billing')) {
   eq('hasStripeEvent true', await repo.hasStripeEvent(db, 'evt_1'), true);
   eq('hasStripeEvent false', await repo.hasStripeEvent(db, 'evt_nope'), false);
 
-  // Gear-limit seam: premium tier strictly above free on every axis.
-  const free = svc.effectiveGearLimits('free');
-  const premium = svc.effectiveGearLimits('premium');
-  check('gear limits premium > free', premium.maxItems > free.maxItems && premium.maxBuilds > free.maxBuilds && premium.batchOcrDailyQuota > free.batchOcrDailyQuota);
+  // Limits seam: the limits service resolves its premium table only
+  // for a guild whose premium tier is in force (paygate on +
+  // entitlement premium); every other context reads the free table.
+  const limitsSvc = await import('../src/domains/platform/limits.ts');
+  const settingsRepo = await import('../src/domains/guilds/settings.ts');
+  await repo.upsertEntitlementRow(db, { ...row, tenant: 'alpha', plan: 'premium', currentPeriodEnd: future });
+  const offLimits = await limitsSvc.getEffectiveLimits(db, { discordId: 'U', guildSlug: 'alpha' });
+  eq('limits: switch off -> free despite premium row', [offLimits.gearItemCapacity, offLimits.ocrBatchImages, offLimits.ocrBatchesPerDay], [200, 20, 10]);
+  await settingsRepo.setSettingValue(db, '', 'paygate_enabled', '1');
+  const onLimits = await limitsSvc.getEffectiveLimits(db, { discordId: 'U', guildSlug: 'alpha' });
+  eq('limits: premium in force -> premium table', [onLimits.gearItemCapacity, onLimits.ocrBatchImages, onLimits.ocrBatchesPerDay], [2000, 100, 50]);
+  const noGuild = await limitsSvc.getEffectiveLimits(db, { discordId: 'U' });
+  eq('limits: guild-less context stays free', noGuild.gearItemCapacity, 200);
+  await settingsRepo.setSettingValue(db, '', 'paygate_enabled', '0');
 }
 
 await mf.dispose();
