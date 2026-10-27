@@ -83,6 +83,41 @@ const GroupingListQueryNode = graphql`
             formToastPosted
             formToastCreateFailedTemplate
             formTitleTemplate
+            templateSectionTitle
+            templateNameLabel
+            templateNamePlaceholder
+            templateSaveLabel
+            templateUpdateLabel
+            templateEditingNoticeTemplate
+            templateCancelEditLabel
+            templateEmptyText
+            templateWhenTodayTemplate
+            templateWhenTomorrowTemplate
+            templateWhenDaysTemplate
+            templateToastSaved
+            templateToastSaveFailedTemplate
+            templateToastDeleted
+            templateToastDeleteFailedTemplate
+            templateMetaTemplate
+            groupingTemplates {
+              id
+              name
+              type
+              title
+              dungeonName
+              dungeonId
+              maxSlots
+              startDaysAhead
+              startHour
+              startMinute
+              creatorName
+              manageActions {
+                editLabel
+                deleteLabel
+                deleteConfirmTitle
+                deleteConfirmMessageTemplate
+              }
+            }
             groupings {
               id
               title
@@ -399,6 +434,8 @@ export function GroupingListRoute({ slug, interactive = true, defaultNickname }:
           text={formText}
           defaultType={tab}
           defaultNickname={defaultNickname}
+          templates={pageText.groupingTemplates ?? []}
+          onTemplatesChanged={refreshAllTabs}
           onClose={() => setShowForm(false)}
           onDone={() => { setShowForm(false); /* the form's updater already inserted the new grouping into the list; the push echo refetch realigns ordering */ }}
         />
