@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<aa23de9ce7d25159fe2a255b7b9501b8>>
+ * @generated SignedSource<<a0b89d3227a406776b006695a6002374>>
  * @lightSyntaxTransform
  */
 
@@ -21,6 +21,8 @@ export type GuildAdminPage_guildAdmin$data = {
   readonly adminAvatarUploadLabel: string;
   readonly adminBackLinkLabel: string;
   readonly adminBgImageUrlLabel: string;
+  readonly adminBillingCanceledText: string;
+  readonly adminBillingSuccessText: string;
   readonly adminDeleteLabel: string;
   readonly adminDevOnlyLabel: string;
   readonly adminDiscordTitle: string;
@@ -54,6 +56,7 @@ export type GuildAdminPage_guildAdmin$data = {
   readonly adminOgAccentLabel: string;
   readonly adminOgTitleSuffixHint: string;
   readonly adminOgTitleSuffixLabel: string;
+  readonly adminPremiumTitle: string;
   readonly adminProfileTitle: string;
   readonly adminReminderCustomTextHint: string;
   readonly adminReminderCustomTextLabel: string;
@@ -90,11 +93,6 @@ export type GuildAdminPage_guildAdmin$data = {
   readonly adminStatusCompletedText: string;
   readonly adminStatusDraftText: string;
   readonly adminStatusOpenText: string;
-  readonly adminSubdomainAddressLabel: string;
-  readonly adminSubdomainCallbackLabel: string;
-  readonly adminSubdomainLabel: string;
-  readonly adminSubdomainNote: string;
-  readonly adminSubdomainTitle: string;
   readonly adminTabDiscordLabel: string;
   readonly adminTabEventsLabel: string;
   readonly adminTabGuidesLabel: string;
@@ -164,6 +162,23 @@ export type GuildAdminPage_guildAdmin$data = {
   }>;
   readonly ogTitleSuffix: string;
   readonly pageFooterDisclaimerText: string | null | undefined;
+  readonly premium: {
+    readonly __typename: "GuildAdminPremiumActive";
+    readonly premiumPeriodEndText: string | null | undefined;
+    readonly premiumPlanLabel: string;
+    readonly premiumSourceText: string;
+  } | {
+    readonly __typename: "GuildAdminPremiumLocked";
+    readonly premiumBody: string;
+    readonly premiumCheckoutLabel: string;
+    readonly premiumComingSoonText: string | null | undefined;
+    readonly premiumPriceLabel: string | null | undefined;
+    readonly premiumTitle: string;
+  } | {
+    // This will never be '%other', but we need some
+    // value in case none of the concrete values match.
+    readonly __typename: "%other";
+  } | null | undefined;
   readonly reminderCustomText: string;
   readonly reminderOffsets: ReadonlyArray<number>;
   readonly reminderWebhookId: string | null | undefined;
@@ -183,6 +198,7 @@ export type GuildAdminPage_guildAdmin$data = {
   readonly slogan: string | null | undefined;
   readonly slug: string;
   readonly stats: {
+    readonly __typename: "GuildAdminStats";
     readonly leaderLeaders: ReadonlyArray<{
       readonly carCount: number;
       readonly discordId: string;
@@ -209,10 +225,11 @@ export type GuildAdminPage_guildAdmin$data = {
       readonly totalSeats: number;
       readonly weekLabel: string;
     }>;
+  } | {
+    // This will never be '%other', but we need some
+    // value in case none of the concrete values match.
+    readonly __typename: "%other";
   };
-  readonly subdomainCallbackUrl: string;
-  readonly subdomainEnabled: boolean;
-  readonly subdomainUrl: string;
   readonly whiteLabelHideBranding: boolean;
   readonly " $fragmentType": "GuildAdminPage_guildAdmin";
 };
@@ -226,38 +243,45 @@ var v0 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "id",
+  "name": "__typename",
   "storageKey": null
 },
 v1 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "teamName",
+  "name": "id",
   "storageKey": null
 },
 v2 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "members",
+  "name": "teamName",
   "storageKey": null
 },
 v3 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "note",
+  "name": "members",
   "storageKey": null
 },
 v4 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "discordId",
+  "name": "note",
   "storageKey": null
 },
 v5 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "discordId",
+  "storageKey": null
+},
+v6 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
@@ -386,27 +410,6 @@ return {
       "alias": null,
       "args": null,
       "kind": "ScalarField",
-      "name": "subdomainEnabled",
-      "storageKey": null
-    },
-    {
-      "alias": null,
-      "args": null,
-      "kind": "ScalarField",
-      "name": "subdomainUrl",
-      "storageKey": null
-    },
-    {
-      "alias": null,
-      "args": null,
-      "kind": "ScalarField",
-      "name": "subdomainCallbackUrl",
-      "storageKey": null
-    },
-    {
-      "alias": null,
-      "args": null,
-      "kind": "ScalarField",
       "name": "pageFooterDisclaimerText",
       "storageKey": null
     },
@@ -447,6 +450,88 @@ return {
       "args": null,
       "kind": "ScalarField",
       "name": "devOnly",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "concreteType": null,
+      "kind": "LinkedField",
+      "name": "premium",
+      "plural": false,
+      "selections": [
+        (v0/*:: as any*/),
+        {
+          "kind": "InlineFragment",
+          "selections": [
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "premiumPlanLabel",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "premiumSourceText",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "premiumPeriodEndText",
+              "storageKey": null
+            }
+          ],
+          "type": "GuildAdminPremiumActive",
+          "abstractKey": null
+        },
+        {
+          "kind": "InlineFragment",
+          "selections": [
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "premiumTitle",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "premiumBody",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "premiumPriceLabel",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "premiumComingSoonText",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "premiumCheckoutLabel",
+              "storageKey": null
+            }
+          ],
+          "type": "GuildAdminPremiumLocked",
+          "abstractKey": null
+        }
+      ],
       "storageKey": null
     },
     {
@@ -1125,35 +1210,21 @@ return {
       "alias": null,
       "args": null,
       "kind": "ScalarField",
-      "name": "adminSubdomainTitle",
+      "name": "adminBillingSuccessText",
       "storageKey": null
     },
     {
       "alias": null,
       "args": null,
       "kind": "ScalarField",
-      "name": "adminSubdomainLabel",
+      "name": "adminBillingCanceledText",
       "storageKey": null
     },
     {
       "alias": null,
       "args": null,
       "kind": "ScalarField",
-      "name": "adminSubdomainAddressLabel",
-      "storageKey": null
-    },
-    {
-      "alias": null,
-      "args": null,
-      "kind": "ScalarField",
-      "name": "adminSubdomainCallbackLabel",
-      "storageKey": null
-    },
-    {
-      "alias": null,
-      "args": null,
-      "kind": "ScalarField",
-      "name": "adminSubdomainNote",
+      "name": "adminPremiumTitle",
       "storageKey": null
     },
     {
@@ -1164,7 +1235,7 @@ return {
       "name": "events",
       "plural": true,
       "selections": [
-        (v0/*:: as any*/),
+        (v1/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -1250,7 +1321,7 @@ return {
           "name": "signups",
           "plural": true,
           "selections": [
-            (v0/*:: as any*/),
+            (v1/*:: as any*/),
             {
               "alias": null,
               "args": null,
@@ -1286,9 +1357,9 @@ return {
               "name": "contact",
               "storageKey": null
             },
-            (v1/*:: as any*/),
             (v2/*:: as any*/),
             (v3/*:: as any*/),
+            (v4/*:: as any*/),
             {
               "alias": null,
               "args": null,
@@ -1307,9 +1378,9 @@ return {
           "name": "results",
           "plural": true,
           "selections": [
-            (v0/*:: as any*/),
             (v1/*:: as any*/),
             (v2/*:: as any*/),
+            (v3/*:: as any*/),
             {
               "alias": null,
               "args": null,
@@ -1331,7 +1402,7 @@ return {
               "name": "proofUrl",
               "storageKey": null
             },
-            (v3/*:: as any*/)
+            (v4/*:: as any*/)
           ],
           "storageKey": null
         },
@@ -1423,159 +1494,167 @@ return {
     {
       "alias": null,
       "args": null,
-      "concreteType": "GuildAdminStats",
+      "concreteType": null,
       "kind": "LinkedField",
       "name": "stats",
       "plural": false,
       "selections": [
+        (v0/*:: as any*/),
         {
-          "alias": null,
-          "args": null,
-          "concreteType": "GuildAdminStatsWeek",
-          "kind": "LinkedField",
-          "name": "weeks",
-          "plural": true,
+          "kind": "InlineFragment",
           "selections": [
             {
               "alias": null,
               "args": null,
-              "kind": "ScalarField",
-              "name": "weekLabel",
+              "concreteType": "GuildAdminStatsWeek",
+              "kind": "LinkedField",
+              "name": "weeks",
+              "plural": true,
+              "selections": [
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "weekLabel",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "isCurrent",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "carsActivity",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "carsTalent",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "carsRace",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "carsTower",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "carsTotal",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "completedCount",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "totalSeats",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "filledSeats",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "fillRate",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "participantCount",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "participationCount",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "perCapita",
+                  "storageKey": null
+                }
+              ],
               "storageKey": null
             },
             {
               "alias": null,
               "args": null,
-              "kind": "ScalarField",
-              "name": "isCurrent",
+              "concreteType": "GuildAdminStatsMember",
+              "kind": "LinkedField",
+              "name": "memberLeaders",
+              "plural": true,
+              "selections": [
+                (v5/*:: as any*/),
+                (v6/*:: as any*/),
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "seatCount",
+                  "storageKey": null
+                }
+              ],
               "storageKey": null
             },
             {
               "alias": null,
               "args": null,
-              "kind": "ScalarField",
-              "name": "carsActivity",
-              "storageKey": null
-            },
-            {
-              "alias": null,
-              "args": null,
-              "kind": "ScalarField",
-              "name": "carsTalent",
-              "storageKey": null
-            },
-            {
-              "alias": null,
-              "args": null,
-              "kind": "ScalarField",
-              "name": "carsRace",
-              "storageKey": null
-            },
-            {
-              "alias": null,
-              "args": null,
-              "kind": "ScalarField",
-              "name": "carsTower",
-              "storageKey": null
-            },
-            {
-              "alias": null,
-              "args": null,
-              "kind": "ScalarField",
-              "name": "carsTotal",
-              "storageKey": null
-            },
-            {
-              "alias": null,
-              "args": null,
-              "kind": "ScalarField",
-              "name": "completedCount",
-              "storageKey": null
-            },
-            {
-              "alias": null,
-              "args": null,
-              "kind": "ScalarField",
-              "name": "totalSeats",
-              "storageKey": null
-            },
-            {
-              "alias": null,
-              "args": null,
-              "kind": "ScalarField",
-              "name": "filledSeats",
-              "storageKey": null
-            },
-            {
-              "alias": null,
-              "args": null,
-              "kind": "ScalarField",
-              "name": "fillRate",
-              "storageKey": null
-            },
-            {
-              "alias": null,
-              "args": null,
-              "kind": "ScalarField",
-              "name": "participantCount",
-              "storageKey": null
-            },
-            {
-              "alias": null,
-              "args": null,
-              "kind": "ScalarField",
-              "name": "participationCount",
-              "storageKey": null
-            },
-            {
-              "alias": null,
-              "args": null,
-              "kind": "ScalarField",
-              "name": "perCapita",
+              "concreteType": "GuildAdminStatsLeader",
+              "kind": "LinkedField",
+              "name": "leaderLeaders",
+              "plural": true,
+              "selections": [
+                (v5/*:: as any*/),
+                (v6/*:: as any*/),
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "carCount",
+                  "storageKey": null
+                }
+              ],
               "storageKey": null
             }
           ],
-          "storageKey": null
-        },
-        {
-          "alias": null,
-          "args": null,
-          "concreteType": "GuildAdminStatsMember",
-          "kind": "LinkedField",
-          "name": "memberLeaders",
-          "plural": true,
-          "selections": [
-            (v4/*:: as any*/),
-            (v5/*:: as any*/),
-            {
-              "alias": null,
-              "args": null,
-              "kind": "ScalarField",
-              "name": "seatCount",
-              "storageKey": null
-            }
-          ],
-          "storageKey": null
-        },
-        {
-          "alias": null,
-          "args": null,
-          "concreteType": "GuildAdminStatsLeader",
-          "kind": "LinkedField",
-          "name": "leaderLeaders",
-          "plural": true,
-          "selections": [
-            (v4/*:: as any*/),
-            (v5/*:: as any*/),
-            {
-              "alias": null,
-              "args": null,
-              "kind": "ScalarField",
-              "name": "carCount",
-              "storageKey": null
-            }
-          ],
-          "storageKey": null
+          "type": "GuildAdminStats",
+          "abstractKey": null
         }
       ],
       "storageKey": null
@@ -1586,6 +1665,6 @@ return {
 };
 })();
 
-(node as any).hash = "9ed7ceca32c027a224f3b1d4d3fa967e";
+(node as any).hash = "a9e770548be5f375b416761146277392";
 
 export default node;

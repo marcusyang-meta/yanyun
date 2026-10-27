@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { graphql, useFragment, useMutation } from 'react-relay';
 import type { ViewerUser } from '../../lib/user';
@@ -15,6 +15,7 @@ import {
 import GuildAdminEvents from './GuildAdminEvents.react.tsx';
 import GuildAdminGuides from './GuildAdminGuides.react.tsx';
 import GuildAdminStats from './GuildAdminStats.react.tsx';
+import { PremiumLockedPanel, PremiumActivePanel } from './GuildAdminPremium.react.tsx';
 
 // Guild admin page (@match branch of viewer.guildAdmin): every label
 // comes from the GuildAdmin type's own copy fields; every write is a
@@ -39,9 +40,6 @@ const GuildAdminPage_guildAdmin = graphql`
     whiteLabelHideBranding
     ogAccent
     ogTitleSuffix
-    subdomainEnabled
-    subdomainUrl
-    subdomainCallbackUrl
     pageFooterDisclaimerText
     ogAccentOptions {
       key
@@ -49,6 +47,11 @@ const GuildAdminPage_guildAdmin = graphql`
       label
     }
     devOnly
+    premium {
+      __typename
+      ... on GuildAdminPremiumActive { premiumPlanLabel premiumSourceText premiumPeriodEndText }
+      ... on GuildAdminPremiumLocked { premiumTitle premiumBody premiumPriceLabel premiumComingSoonText premiumCheckoutLabel }
+    }
     adminTitle
     adminBackLinkLabel
     adminTabProfileLabel
@@ -145,11 +148,9 @@ const GuildAdminPage_guildAdmin = graphql`
     adminOgAccentLabel
     adminOgTitleSuffixLabel
     adminOgTitleSuffixHint
-    adminSubdomainTitle
-    adminSubdomainLabel
-    adminSubdomainAddressLabel
-    adminSubdomainCallbackLabel
-    adminSubdomainNote
+    adminBillingSuccessText
+    adminBillingCanceledText
+    adminPremiumTitle
     events {
       id
       title
@@ -199,6 +200,8 @@ const GuildAdminPage_guildAdmin = graphql`
       }
     }
     stats {
+      __typename
+      ... on GuildAdminStats {
       weeks {
         weekLabel
         isCurrent
@@ -224,6 +227,7 @@ const GuildAdminPage_guildAdmin = graphql`
         discordId
         displayName
         carCount
+      }
       }
     }
   }
@@ -252,11 +256,6 @@ const WhiteLabelMutation = graphql`
 const VisibilityMutation = graphql`
   mutation GuildAdminPageVisibilityMutation($slug: String!, $v: Boolean!) {
     updateGuildVisibility(slug: $slug, devOnly: $v) { ok error }
-  }
-`;
-const SubdomainMutation = graphql`
-  mutation GuildAdminPageSubdomainMutation($slug: String!, $enabled: Boolean!) {
-    updateGuildSubdomain(slug: $slug, enabled: $enabled) { ok error }
   }
 `;
 const SetAvatarMutation = graphql`
@@ -328,7 +327,6 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
   const [commitReminder] = useMutation(ReminderMutation);
   const [commitWhiteLabel] = useMutation(WhiteLabelMutation);
   const [commitVisibility] = useMutation(VisibilityMutation);
-  const [commitSubdomain] = useMutation(SubdomainMutation);
   const [commitSetAvatar] = useMutation(SetAvatarMutation);
   const [commitDeleteAvatar] = useMutation(DeleteAvatarMutation);
   const runProfile = useAdminMutation(commitProfile, 'updateGuildProfile', refresh, commonText.unknownError);
@@ -336,7 +334,6 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
   const runReminder = useAdminMutation(commitReminder, 'updateGuildReminderSettings', refresh, commonText.unknownError);
   const runWhiteLabel = useAdminMutation(commitWhiteLabel, 'updateGuildWhiteLabel', refresh, commonText.unknownError);
   const runVisibility = useAdminMutation(commitVisibility, 'updateGuildVisibility', refresh, commonText.unknownError);
-  const runSubdomain = useAdminMutation(commitSubdomain, 'updateGuildSubdomain', refresh, commonText.unknownError);
   const runSetAvatar = useAdminMutation(commitSetAvatar, 'setGuildAvatar', refresh, commonText.unknownError);
   const runDeleteAvatar = useAdminMutation(commitDeleteAvatar, 'deleteGuildAvatar', refresh, commonText.unknownError);
 
@@ -356,6 +353,25 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
   const [wlAccent, setWlAccent] = useState(data.ogAccent || '');
   const [wlSuffix, setWlSuffix] = useState(data.ogTitleSuffix || '');
   useGuildFooter(data.pageFooterDisclaimerText);
+  const premiumLocked = data.premium?.__typename === 'GuildAdminPremiumLocked' ? data.premium : null;
+  const premiumActive = data.premium?.__typename === 'GuildAdminPremiumActive' ? data.premium : null;
+  // Stripe returns the admin here with ?billing=success|canceled:
+  // toast the backend copy once, refresh (the webhook may already
+  // have landed the entitlement), and scrub the parameter.
+  const [billingNotice] = useState(() => {
+    try { return new URLSearchParams(window.location.search).get('billing'); } catch { return null; }
+  });
+  useEffect(() => {
+    if (!billingNotice) return;
+    if (billingNotice === 'success') { toast(text.adminBillingSuccessText); refresh(); }
+    else if (billingNotice === 'canceled') toast(text.adminBillingCanceledText);
+    try {
+      const u = new URL(window.location.href);
+      u.searchParams.delete('billing');
+      window.history.replaceState(null, '', u.toString());
+    } catch { /* ignore */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const fileRef = useRef<HTMLInputElement>(null);
   const [avatarBusy, setAvatarBusy] = useState(false);
 
@@ -399,6 +415,9 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
 
         {tab === 'profile' && (
           <>
+            {premiumActive && (
+              <PremiumActivePanel title={text.adminPremiumTitle} premium={premiumActive} />
+            )}
             <section style={adminSectionStyle}>
               <h2 style={adminSectionTitleStyle}>{text.adminAvatarTitle}</h2>
               <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
@@ -488,6 +507,9 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
               </Field>
             </section>
 
+            {premiumLocked ? (
+              <PremiumLockedPanel premium={premiumLocked} slug={slug} unknownError={commonText.unknownError} />
+            ) : (
             <section style={adminSectionStyle}>
               <h2 style={adminSectionTitleStyle}>{text.adminReminderTitle}</h2>
               <Field label={text.adminReminderOffsetsLabel}>
@@ -509,6 +531,7 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
               <SaveButton label={text.adminSaveLabel} savedLabel={text.adminSavedText}
                 onSave={() => runReminder({ slug, offsets: reminderOffsets, customText: reminderText })} />
             </section>
+            )}
 
             <section style={adminSectionStyle}>
               <h2 style={adminSectionTitleStyle}>{text.adminVisibilityTitle}</h2>
@@ -519,6 +542,7 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
               </label>
             </section>
 
+            {!premiumLocked && (
             <section style={adminSectionStyle}>
               <h2 style={adminSectionTitleStyle}>{text.adminWhiteLabelTitle}</h2>
               <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: theme.paper, cursor: 'pointer' }}>
@@ -556,23 +580,7 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
               <SaveButton label={text.adminSaveLabel} savedLabel={text.adminSavedText}
                 onSave={() => runWhiteLabel({ slug, hideBranding: wlHideBranding, ogAccent: wlAccent, ogTitleSuffix: wlSuffix })} />
             </section>
-
-            <section style={adminSectionStyle}>
-              <h2 style={adminSectionTitleStyle}>{text.adminSubdomainTitle}</h2>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: theme.paper, cursor: 'pointer' }}>
-                <input type="checkbox" checked={!!data.subdomainEnabled}
-                  onChange={(e) => runSubdomain({ slug, enabled: e.target.checked })} />
-                {text.adminSubdomainLabel}
-              </label>
-              <div style={{ height: 14 }} />
-              <Field label={text.adminSubdomainAddressLabel}>
-                <input style={adminInputStyle} value={data.subdomainUrl || ''} readOnly autoComplete="off" />
-              </Field>
-              <Field label={text.adminSubdomainCallbackLabel}>
-                <input style={adminInputStyle} value={data.subdomainCallbackUrl || ''} readOnly autoComplete="off" />
-              </Field>
-              <p style={{ color: theme.muted, fontSize: 12, margin: '2px 0 0', lineHeight: 1.8 }}>{text.adminSubdomainNote}</p>
-            </section>
+            )}
           </>
         )}
 
@@ -583,7 +591,11 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
           <GuildAdminGuides slug={slug} text={text} commonText={commonText} guides={data.schoolGuides} refresh={refresh} />
         )}
         {tab === 'stats' && (
-          <GuildAdminStats text={text} stats={data.stats} />
+          data.stats?.__typename === 'GuildAdminStats' ? (
+            <GuildAdminStats text={text} stats={data.stats} />
+          ) : premiumLocked ? (
+            <PremiumLockedPanel premium={premiumLocked} slug={slug} unknownError={commonText.unknownError} />
+          ) : null
         )}
       </div>
     </div>

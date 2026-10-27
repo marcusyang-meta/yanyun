@@ -383,6 +383,7 @@ const ADMIN_TEXT_SPEC: [string, string, string][] = [
   ['adminStatsEmptyText', 'guildAdmin', 'statsEmpty'],
   ['adminStatsBoardEmptyText', 'guildAdmin', 'statsBoardEmpty'],
   ['adminBillingSuccessText', 'guildAdmin', 'billingSuccess'],
+  ['adminPremiumTitle', 'guildAdmin', 'premiumActiveTitle'],
   ['adminBillingCanceledText', 'guildAdmin', 'billingCanceled'],
   ['adminWhiteLabelTitle', 'guildAdmin', 'whiteLabelTitle'],
   ['adminHideBrandingLabel', 'guildAdmin', 'hideBrandingLabel'],
