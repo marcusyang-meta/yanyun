@@ -82,6 +82,7 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
+      - run: corepack enable npm
       - run: npm ci
       - name: Download the verified artifact
         uses: actions/download-artifact@v4

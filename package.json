@@ -2,6 +2,7 @@
   "description": "燕云十六声百业工具 monorepo (npm workspaces) — 见 README",
   "name": "yanyun",
   "private": true,
+  "packageManager": "npm@10.9.4",
   "scripts": {
     "build:web": "npm run build --workspace=yanyun-web",
     "sync-public": "node yanyun-signup/scripts/sync-public.mjs",

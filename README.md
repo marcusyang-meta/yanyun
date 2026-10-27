@@ -37,10 +37,15 @@ yanyun/
 
 ## Getting started
 
-Node 24 (see `.nvmrc`). Install once, at the root only — there is a single
-root lockfile; do not run `npm install` inside subprojects.
+Node 24 (see `.nvmrc`). The npm version is pinned with Corepack via the
+`packageManager` field in the root `package.json` — run
+`corepack enable npm` once per machine so `npm` resolves to the pinned
+version everywhere (local shells and CI alike; a bare `corepack enable`
+does not install the npm shim). Install once, at the root only — there
+is a single root lockfile; do not run `npm install` inside subprojects.
 
 ```bash
+corepack enable npm    # once per machine; npm is pinned by Corepack
 npm install            # root only
 npm run build:web      # web build (sync-schema → relay → tsc → vite)
 npm run sync-public    # copy the web build into yanyun-signup/public

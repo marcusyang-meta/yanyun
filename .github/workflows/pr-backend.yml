@@ -41,6 +41,7 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
+      - run: corepack enable npm
       - run: npm ci
       - name: Typecheck backend
         run: npm run typecheck --workspace=yanyun-signup
@@ -94,6 +95,7 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
+      - run: corepack enable npm
       - run: npm ci
       - name: Download the gated artifact
         uses: actions/download-artifact@v4
