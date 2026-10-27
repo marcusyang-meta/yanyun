@@ -45,18 +45,30 @@ async function loadBilling() {
       ? 'Stripe 已配置（密钥/价格齐全）'
       : 'Stripe 未配置：开通入口呈「即将开放」，可先用手工授予试点';
     const fmtEnd = (ts) => ts ? new Date(ts * 1000).toLocaleDateString() : '—';
-    $('#billingTable').innerHTML = `<tr><th>百业</th><th>当前权益</th><th>来源</th><th>周期至</th><th>Stripe 订阅</th><th>手工授予</th><th></th></tr>` +
+    $('#billingTable').innerHTML = `<tr><th>百业</th><th>当前权益</th><th>来源</th><th>周期至</th><th>Stripe 订阅</th><th>平台子域</th><th>手工授予</th><th></th></tr>` +
       (billing.tenants.map((t) => `<tr>
         <td>${esc(t.guild_name)}<br><span class="muted" style="font-family:monospace">${esc(t.slug)}</span></td>
         <td>${t.plan === 'premium' ? '💎 Premium' : '免费'}${t.lapsed ? '<br><span class="muted">已过期回落</span>' : ''}</td>
         <td>${t.source === 'stripe' ? 'Stripe' : t.source === 'manual' ? '手工授予' : '—'}</td>
         <td style="white-space:nowrap">${fmtEnd(t.currentPeriodEnd)}</td>
         <td style="font-family:monospace">${esc(t.stripeSubscriptionId || '—')}</td>
+        <td style="white-space:nowrap">${t.subdomainEnabled ? '已开通' : '未开通'}<br>
+          <button class="ghost" data-subdomain="${esc(t.slug)}" data-enabled="${t.subdomainEnabled ? '0' : '1'}">${t.subdomainEnabled ? '关闭子域' : '开通子域'}</button>
+        </td>
         <td><input type="number" min="1" max="3650" value="30" style="width:70px" id="grant-days-${esc(t.slug)}"> 天</td>
         <td style="white-space:nowrap">
           <button class="ghost" data-grant="${esc(t.slug)}">授予 Premium</button>
           <button class="ghost" data-revoke="${esc(t.slug)}">撤销</button>
-        </td></tr>`).join('') || '<tr><td colspan="7" class="muted">暂无百业</td></tr>');
+        </td></tr>`).join('') || '<tr><td colspan="8" class="muted">暂无百业</td></tr>');
+    document.querySelectorAll('[data-subdomain]').forEach((b) => b.onclick = async () => {
+      const slug = b.dataset.subdomain;
+      const enabled = b.dataset.enabled === '1';
+      try {
+        await api('/api/hub/billing/subdomain', { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ slug, enabled }) });
+        msg.className = 'msg'; msg.textContent = enabled ? `已为 ${slug} 开通平台子域（总闸开启时仍需 Premium 权益才解析）` : `已关闭 ${slug} 的平台子域`;
+        await loadBilling();
+      } catch (e) { msg.className = 'msg bad'; msg.textContent = e.message; }
+    });
     document.querySelectorAll('[data-grant]').forEach((b) => b.onclick = async () => {
       const slug = b.dataset.grant;
       const days = parseInt(document.getElementById('grant-days-' + slug).value, 10) || 30;

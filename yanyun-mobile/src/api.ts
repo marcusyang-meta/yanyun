@@ -29,7 +29,6 @@ import {
   UpdateGuildWhiteLabelAdminMutation,
   StartPremiumCheckoutAdminMutation,
   UpdateGuildVisibilityAdminMutation,
-  UpdateGuildSubdomainAdminMutation,
   CreateAdminEventMutation,
   UpdateAdminEventMutation,
   DeleteAdminEventMutation,
@@ -391,7 +390,6 @@ export const adminUpdateReminderSettings = (slug: string, offsets: number[], cus
 export const adminUpdateWhiteLabel = (slug: string, hideBranding: boolean, ogAccent: string, ogTitleSuffix: string) => adminRun(UpdateGuildWhiteLabelAdminMutation, { slug, hideBranding, ogAccent, ogTitleSuffix }, 'updateGuildWhiteLabel');
 export const adminStartPremiumCheckout = (slug: string) => adminRun(StartPremiumCheckoutAdminMutation, { slug }, 'startPremiumCheckout');
 export const adminUpdateVisibility = (slug: string, devOnly: boolean) => adminRun(UpdateGuildVisibilityAdminMutation, { slug, devOnly }, 'updateGuildVisibility');
-export const adminUpdateSubdomain = (slug: string, enabled: boolean) => adminRun(UpdateGuildSubdomainAdminMutation, { slug, enabled }, 'updateGuildSubdomain');
 export const adminCreateEvent = (slug: string, input: any) => adminRun(CreateAdminEventMutation, { slug, input }, 'createAdminEvent');
 export const adminUpdateEvent = (slug: string, eventId: string, input: any) => adminRun(UpdateAdminEventMutation, { slug, eventId, input }, 'updateAdminEvent');
 export const adminDeleteEvent = (slug: string, eventId: string) => adminRun(DeleteAdminEventMutation, { slug, eventId }, 'deleteAdminEvent');

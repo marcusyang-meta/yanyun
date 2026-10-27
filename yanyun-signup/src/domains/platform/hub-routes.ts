@@ -10,6 +10,7 @@ import {
 import {
   getTenantRow, getTenantSlug, listTenantSlugs, listTenantsHubAdmin, deleteTenantCascade,
   getSettingValue, setSettingValue, listGlobalSettings, listNonEmptySettingsByKey, updateTenantWebhook, listSettingsByKey,
+  setGuildSubdomainEnabled, SUBDOMAIN_ENABLED_KEY,
 } from '../guilds/index.ts';
 import {
   isPaygateEnabled, setPaygateEnabled, getEffectiveEntitlement, grantPremiumManual,
@@ -375,11 +376,20 @@ hubRoutes.post('/backfill/reminder-identity', async (c: any) => {
  * before billing existed. Manual grant/revoke is the operations
  * path for the pre-Stripe period and pilots; Stripe-driven state
  * arrives through the webhook, never through here. Every write is
- * audited (grant/revoke change what a guild can use). */
+ * audited (grant/revoke change what a guild can use).
+ *
+ * The platform-subdomain switch lives in this same section: it is
+ * a platform control, not a tenant self-service — guild admins have
+ * no write path and no read surface for it. Flipping it here flips
+ * the stored tenant setting; whether the subdomain actually
+ * resolves is the resolution-side verdict (switch + not dev_only +
+ * the Premium gate), so with the paygate ON an unentitled guild
+ * stays dark even with its switch on. */
 interface BillingTenantState {
   slug: string; guild_name: string; plan: string; source: string;
   currentPeriodEnd: number | null; lapsed: boolean;
   stripeCustomerId: string; stripeSubscriptionId: string;
+  subdomainEnabled: boolean;
 }
 
 async function billingStateFor(c: any) {
@@ -398,6 +408,7 @@ async function billingStateFor(c: any) {
       lapsed: eff.lapsed,
       stripeCustomerId: row ? row.stripeCustomerId : '',
       stripeSubscriptionId: row ? row.stripeSubscriptionId : '',
+      subdomainEnabled: (await getSettingValue(db, t.slug, SUBDOMAIN_ENABLED_KEY)) === '1',
     });
   }
   return {
@@ -437,6 +448,17 @@ hubRoutes.post('/billing/revoke', async (c: any) => {
   if (!t) return err('百业不存在', 404);
   await revokePremium(c.env.DB, slug);
   await audit(c, 'billing.revoke', slug, {});
+  return json({ ok: true, billing: await billingStateFor(c) });
+});
+
+hubRoutes.put('/billing/subdomain', async (c: any) => {
+  const body = await getBody(c);
+  const slug = s(body.slug, 40);
+  const enabled = !!body.enabled;
+  const t = await getTenantSlug(c.env.DB, slug);
+  if (!t) return err('百业不存在', 404);
+  await setGuildSubdomainEnabled(c.env.DB, slug, enabled);
+  await audit(c, 'billing.subdomain', slug, { enabled });
   return json({ ok: true, billing: await billingStateFor(c) });
 });
 
