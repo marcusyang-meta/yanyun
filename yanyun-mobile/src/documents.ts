@@ -851,6 +851,7 @@ export const GearLibraryQuery = graphql`
       gearImportLabel
       gearImportFailedToast
       gearImportedToastTemplate
+      gearManualTitle
       gearPasteTitle
       gearPastePlaceholder
       gearPasteButtonLabel

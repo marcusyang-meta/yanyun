@@ -211,6 +211,11 @@ export default function GearLibrary(props: {
   });
   const [form, setForm] = useState<FormState>(blankForm);
   const [libFilter, setLibFilter] = useState('');
+  // Immersive layering (mirrors Web): paste / OCR / manual ingress lives one
+  // level down in a single add panel, closed by default; the item list is
+  // the library's first screen.
+  type AddMode = 'paste' | 'ocr' | 'manual';
+  const [addMode, setAddMode] = useState<AddMode | null>(null);
 
   const startEdit = (g: GearItem) => {
     const rows = g.lines.map((l) => ({ key: l.key, val: String(l.val) }));
@@ -220,6 +225,7 @@ export default function GearLibrary(props: {
       dyName: g.dingyin ? g.dingyin.name : '', dyVal: g.dingyin ? String(g.dingyin.val) : '',
       schools: [...g.schools],
     });
+    setAddMode('manual');
   };
   const submitForm = () => {
     const lines = form.rows
@@ -375,6 +381,7 @@ export default function GearLibrary(props: {
     if (!slot) slot = '武器';
     const rows: { key: string; val: string; conf?: number }[] = parsed.lines.map((l) => ({ key: l.key, val: String(l.val), conf: l.conf }));
     while (rows.length < 5) rows.push({ key: '', val: '' });
+    setAddMode('ocr');
     setReview({
       slot, name: parsed.name || '', rows,
       dyName: parsed.dingyin ? parsed.dingyin.name : '',
@@ -417,6 +424,7 @@ export default function GearLibrary(props: {
     if (mode !== 'bench') return undefined;
     return onOcrSlotRequest((pos) => {
       setOcrPreferredSlot(pos);
+      setAddMode('ocr');
       void pickSingleOcr();
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -576,16 +584,33 @@ export default function GearLibrary(props: {
       <View style={s.headRow}>
         <SecTitle>{libHeading}</SecTitle>
         <Text style={s.countText}>{fill(t.gearLibCountTemplate, { n: items.length })}</Text>
+        <View style={{ marginLeft: 'auto' }}>
+          <BtnGold label={t.gearAddGearLabel} disabled={!loggedIn} onPress={() => (addMode ? setAddMode(null) : setAddMode('paste'))} />
+        </View>
       </View>
-      <View style={s.btnRow}>
-        <BtnGhost label={t.gearDemoLabel} disabled={!loggedIn} onPress={loadDemo} />
-        <BtnGhost label={t.gearExportLabel} onPress={() => void doExport()} />
-        <BtnGhost label={t.gearImportLabel} disabled={!loggedIn} onPress={() => void doImportFile()} />
-        <BtnGhost label={t.gearClearLibLabel} disabled={!loggedIn || !items.length} onPress={() => setConfirmClear(true)} />
+      <View style={s.quietRow}>
+        <Pressable disabled={!loggedIn} onPress={loadDemo} style={!loggedIn ? { opacity: 0.45 } : undefined}>
+          <Text style={s.quietText}>{t.gearDemoLabel}</Text>
+        </Pressable>
+        <Pressable onPress={() => void doExport()}>
+          <Text style={s.quietText}>{t.gearExportLabel}</Text>
+        </Pressable>
+        <Pressable disabled={!loggedIn} onPress={() => void doImportFile()} style={!loggedIn ? { opacity: 0.45 } : undefined}>
+          <Text style={s.quietText}>{t.gearImportLabel}</Text>
+        </Pressable>
+        <Pressable disabled={!loggedIn || !items.length} onPress={() => setConfirmClear(true)} style={!loggedIn || !items.length ? { opacity: 0.45 } : undefined}>
+          <Text style={s.quietText}>{t.gearClearLibLabel}</Text>
+        </Pressable>
       </View>
 
-      <Card>
-        <Text style={s.cardTitle}>{t.gearPasteTitle}</Text>
+      {addMode && (
+      <Card style={{ marginBottom: 10 }}>
+        <View ref={reviewAnchorRef} style={s.chipRow}>
+          <BtnMini label={t.gearPasteTitle} active={addMode === 'paste'} onPress={() => setAddMode('paste')} />
+          <BtnMini label={t.gearOcrTitle} active={addMode === 'ocr'} onPress={() => setAddMode('ocr')} />
+          <BtnMini label={t.gearManualTitle} active={addMode === 'manual'} onPress={() => setAddMode('manual')} />
+        </View>
+        {addMode === 'paste' && (<>
         <TextInp
           multiline
           value={pasteText}
@@ -596,12 +621,8 @@ export default function GearLibrary(props: {
           <BtnGold label={t.gearPasteButtonLabel} disabled={!loggedIn} onPress={runPaste} />
           <BtnGhost label={t.gearPasteDemoLabel} onPress={fillDemoPaste} />
         </View>
-      </Card>
-
-      <Card style={{ marginTop: 10 }}>
-        <View ref={reviewAnchorRef}>
-          <Text style={s.cardTitle}>{t.gearOcrTitle}</Text>
-        </View>
+        </>)}
+        {addMode === 'ocr' && (<>
         <Pressable style={s.drop} onPress={() => void pickSingleOcr()}>
           <Text style={s.dropText}>
             {ocrBusy === 'prep' ? t.gearOcrPreparingText
@@ -679,19 +700,8 @@ export default function GearLibrary(props: {
             </View>
           </View>
         )}
-        <GearOcrBatch
-          t={t}
-          maps={ocrMaps}
-          items={items}
-          loggedIn={loggedIn}
-          engine={props.ocrEngine}
-          noEngineText={t.gearOcrNoEngineText}
-          registerEnqueue={registerBatchEnqueue}
-          onImport={(list, onDone) => importItems(list, (added) => onDone(added.length))}
-        />
-      </Card>
-
-      <Card style={{ marginTop: 10 }}>
+        </>)}
+        {addMode === 'manual' && (<>
         <View style={s.grid2}>
           <View style={s.gridCell}>
             <Lbl>{t.gearFormSlotLabel}</Lbl>
@@ -765,6 +775,23 @@ export default function GearLibrary(props: {
           <BtnGold label={form.id != null ? t.gearUpdateGearLabel : t.gearAddGearLabel} disabled={!loggedIn} onPress={submitForm} />
           {form.id != null && <BtnGhost label={t.gearCancelEditLabel} onPress={() => setForm(blankForm())} />}
         </View>
+        </>)}
+      </Card>
+      )}
+      {/* The batch recognizer stays mounted in every state (its queue and
+          the external enqueue channel survive mode switches); it is only
+          visible in OCR mode. */}
+      <Card style={addMode === 'ocr' ? { marginBottom: 10 } : { display: 'none' }}>
+        <GearOcrBatch
+          t={t}
+          maps={ocrMaps}
+          items={items}
+          loggedIn={loggedIn}
+          engine={props.ocrEngine}
+          noEngineText={t.gearOcrNoEngineText}
+          registerEnqueue={registerBatchEnqueue}
+          onImport={(list, onDone) => importItems(list, (added) => onDone(added.length))}
+        />
       </Card>
 
       <View style={s.filterRow}>
@@ -779,10 +806,34 @@ export default function GearLibrary(props: {
           const ev = props.evalById?.get(g.id);
           const pos = mode === 'bench' ? equippedPosOf(g.id) : null;
           const isHeirloom = ev?.verdict === 'heirloom';
+          // Tooltip caliber (mirrors Web): the line nearest its Chengyin
+          // value leads; attainment rides on color, no printed / Chengyin
+          // suffix on every row.
+          let mainIdx = -1;
+          let mainRatio = -1;
+          g.lines.forEach((l, ix) => {
+            const a = affixByKey.get(l.key);
+            if (a && a.cy > 0) {
+              const r = l.val / a.cy;
+              if (r > mainRatio) { mainRatio = r; mainIdx = ix; }
+            }
+          });
+          const topTier = mainRatio >= 1 || (ev ? ev.quality >= 0.9 : false);
+          const lineRow = (l: { key: string; val: number }, ix: number) => {
+            const a = affixByKey.get(l.key);
+            const isMain = ix === mainIdx;
+            const atCy = a ? l.val >= a.cy : false;
+            return (
+              <View key={ix} style={s.gearLineRow}>
+                <Text style={[s.gearLineLabel, isMain && { color: theme.goldHi, fontWeight: '700' }]}>{a ? a.label : l.key}</Text>
+                <Text style={[s.gearLineVal, (atCy || isMain) && { color: theme.goldHi }, isMain && { fontWeight: '800' }]}>{fmt1(l.val)}</Text>
+              </View>
+            );
+          };
           return (
             <Pressable
               key={g.id}
-              style={[s.gearCard, isHeirloom && s.gearCardHeirloom]}
+              style={[s.gearCard, isHeirloom && s.gearCardHeirloom, !isHeirloom && topTier && s.gearCardQTop]}
               onPress={(e) => {
                 if (isHeirloom) {
                   goldDustBurst(e.nativeEvent.pageX || 0, e.nativeEvent.pageY || 0, 24, 90);
@@ -791,29 +842,30 @@ export default function GearLibrary(props: {
             >
               {isHeirloom && <JadePendant />}
               <View style={s.gearHead}>
-                <Text style={s.gearName}>{g.name || g.slot}</Text>
                 <Text style={s.gearSlot}>{g.slot}</Text>
                 {pos && <Text style={s.gearPos}>{t.gearEquippedTag} · {pos}</Text>}
-                {ev && <VerdictSeal verdict={ev.verdict} heirloomLabel={t.gearVerdictHeirloom} dudLabel={t.gearVerdictDud} />}
                 {ev && (
-                  <Text style={s.gearScore}>
-                    <Text style={{ color: theme.goldHi, fontWeight: '700' }}>{fill(t.gearScoreTemplate, { score: ev.score })}</Text>
-                    {' · '}{t.gearQualityLabel} {Math.round(ev.quality * 100)}%
-                  </Text>
+                  <View style={{ marginLeft: 'auto' }}>
+                    <VerdictSeal verdict={ev.verdict} heirloomLabel={t.gearVerdictHeirloom} dudLabel={t.gearVerdictDud} />
+                  </View>
                 )}
               </View>
+              <Text style={s.gearName}>{g.name || g.slot}</Text>
               <View style={{ marginTop: 5 }}>
-                {g.lines.map((l, i) => {
-                  const a = affixByKey.get(l.key);
-                  return (
-                    <Text key={i} style={s.gearLine}>
-                      {a ? a.label : l.key} <Text style={{ fontWeight: '700' }}>{fmt1(l.val)}</Text>
-                      {a ? <Text style={{ color: theme.muted }}> / {fmt1(a.cy)}</Text> : null}
-                    </Text>
-                  );
-                })}
-                {g.dingyin && <Text style={[s.gearLine, { color: theme.goldHi }]}>{g.dingyin.name} {fmt1(g.dingyin.val)}</Text>}
+                {mainIdx >= 0 && lineRow(g.lines[mainIdx], mainIdx)}
+                {g.lines.map((l, i) => (i === mainIdx ? null : lineRow(l, i)))}
+                {g.dingyin && (
+                  <View style={s.gearLineRow}>
+                    <Text style={[s.gearLineLabel, { color: theme.goldHi }]}>{g.dingyin.name}</Text>
+                    <Text style={[s.gearLineVal, { color: theme.goldHi }]}>{fmt1(g.dingyin.val)}</Text>
+                  </View>
+                )}
               </View>
+              {ev && (
+                <Text style={s.gearScoreLine}>
+                  {fill(t.gearScoreTemplate, { score: ev.score })} · {t.gearQualityLabel} {Math.round(ev.quality * 100)}%
+                </Text>
+              )}
               {g.warnings.length > 0 && <Text style={s.gearWarn}>{g.warnings.join('；')}</Text>}
               {g.slot === '武器' && (
                 <View style={s.schoolRow}>
@@ -886,24 +938,28 @@ export default function GearLibrary(props: {
       ) : (
         <View>
           {buildGroups.map((grp, gi) => (
-            <View key={grp.school} style={gi > 0 ? { borderTopWidth: 1, borderTopColor: 'rgba(201,163,92,.28)', marginTop: 6 } : undefined}>
+            <View key={grp.school} style={gi > 0 ? { marginTop: 10 } : undefined}>
               <View style={s.groupHead}>
                 <Text style={s.groupSchool}>{grp.school}</Text>
                 <Text style={s.groupCount}>{fill(t.gearSchemeGroupCountTemplate, { n: grp.list.length })}</Text>
               </View>
               {grp.list.map((b) => (
-                <View key={b.id} style={s.buildRow}>
-                  <View style={{ flex: 1, minWidth: 0 }}>
+                <View key={b.id} style={s.buildCard}>
+                  <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
                     <Text style={s.buildName}>{b.name}</Text>
-                    <Text style={s.buildMeta}>{b.buildLabel}</Text>
-                    <Text style={s.buildMeta}>
-                      {t.gearGradLabel} {pct1(b.snapTotal)}（{pct1(b.snapA)}/{pct1(b.snapB)}/{pct1(b.snapD)}）
-                    </Text>
-                    <Text style={s.buildMeta}>
-                      {t.gearYAccLabel}/{t.gearYCritLabel}/{t.gearYIntLabel} {pct1(b.snapYAcc)} / {pct1(b.snapYCrit)} / {pct1(b.snapYInt)}
-                    </Text>
+                    <Text style={s.buildTarget}>{b.buildLabel}</Text>
                   </View>
-                  <View style={{ gap: 6 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8, marginTop: 4 }}>
+                    <Text style={s.buildTotal}>{pct1(b.snapTotal)}</Text>
+                    <Text style={s.buildMeta}>{t.gearGradLabel}</Text>
+                  </View>
+                  <Text style={s.buildMeta}>
+                    {t.gearGradLabel} {pct1(b.snapA)} / {pct1(b.snapB)} / {pct1(b.snapD)}
+                  </Text>
+                  <Text style={s.buildMeta}>
+                    {t.gearYAccLabel} {pct1(b.snapYAcc)} · {t.gearYCritLabel} {pct1(b.snapYCrit)} · {t.gearYIntLabel} {pct1(b.snapYInt)}
+                  </Text>
+                  <View style={{ flexDirection: 'row', gap: 6, marginTop: 8 }}>
                     <BtnMini label={t.gearSchemeLoadLabel} onPress={() => loadScheme(b)} />
                     <BtnMini label={t.gearSchemeDeleteLabel} onPress={() => deleteScheme(b)} />
                   </View>
@@ -930,7 +986,10 @@ export default function GearLibrary(props: {
 
 const s = StyleSheet.create({
   loginHint: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 12.5 },
-  headRow: { flexDirection: 'row', alignItems: 'baseline', gap: 10 },
+  headRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  chipRow: { flexDirection: 'row', gap: 6, flexWrap: 'wrap', marginBottom: 10 },
+  quietRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', marginBottom: 10, paddingHorizontal: 2 },
+  quietText: { fontFamily: fonts.serif, color: theme.muted, fontSize: 11.5, textDecorationLine: 'underline' },
   countText: { fontFamily: fonts.serif, color: theme.muted, fontSize: 12 },
   btnRow: { flexDirection: 'row', gap: 6, flexWrap: 'wrap', marginBottom: 8 },
   cardTitle: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 13, marginBottom: 6 },
@@ -960,20 +1019,28 @@ const s = StyleSheet.create({
     shadowColor: theme.gold, shadowOpacity: 0.25, shadowRadius: 7, shadowOffset: { width: 0, height: 0 },
   },
   gearHead: { flexDirection: 'row', gap: 6, alignItems: 'center', flexWrap: 'wrap' },
-  gearName: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 13.5, fontWeight: '700' },
+  gearName: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 15.5, fontWeight: '700', letterSpacing: 1, marginTop: 2 },
   gearSlot: { fontFamily: fonts.serif, color: theme.muted, fontSize: 11 },
   gearPos: { fontFamily: fonts.serif, color: '#9dc08b', fontSize: 11 },
-  gearScore: { fontFamily: fonts.serif, color: theme.muted, fontSize: 12, marginLeft: 'auto' },
-  gearLine: { fontFamily: fonts.serif, fontSize: 12, lineHeight: 21, color: theme.paper },
+  gearScoreLine: { fontFamily: fonts.serif, color: theme.muted, fontSize: 11, marginTop: 6 },
+  gearCardQTop: {
+    borderColor: 'rgba(236,210,143,.8)',
+    shadowColor: theme.gold, shadowOpacity: 0.18, shadowRadius: 6, shadowOffset: { width: 0, height: 0 }, elevation: 2,
+  },
+  gearLineRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 10, alignItems: 'baseline', marginTop: 3 },
+  gearLineLabel: { fontFamily: fonts.serif, fontSize: 12.5, color: theme.paper },
+  gearLineVal: { fontFamily: fonts.serif, fontSize: 12.5, color: theme.paper, fontWeight: '600' },
   gearWarn: { fontFamily: fonts.serif, color: theme.seal, fontSize: 11, marginTop: 3 },
   gearBtns: { flexDirection: 'row', gap: 5, flexWrap: 'wrap', marginTop: 8, alignItems: 'center' },
   groupHead: { flexDirection: 'row', alignItems: 'baseline', gap: 8, paddingTop: 9, paddingBottom: 3 },
   groupSchool: { fontFamily: fonts.serif, color: theme.goldHi, fontWeight: '700', fontSize: 13.5 },
   groupCount: { fontFamily: fonts.serif, color: theme.muted, fontSize: 11.5 },
-  buildRow: {
-    flexDirection: 'row', gap: 10, paddingVertical: 7,
-    borderTopWidth: 1, borderTopColor: 'rgba(201,163,92,.12)',
+  buildCard: {
+    borderWidth: 1, borderColor: 'rgba(201,163,92,.22)', borderRadius: 10,
+    paddingVertical: 10, paddingHorizontal: 12, backgroundColor: 'rgba(0,0,0,.25)', marginTop: 9,
   },
+  buildTotal: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 23, fontWeight: '700' },
+  buildTarget: { fontFamily: fonts.serif, color: theme.muted, fontSize: 11.5 },
   buildName: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 13.5 },
   buildMeta: { fontFamily: fonts.serif, color: theme.paper, fontSize: 12, marginTop: 2 },
 });
