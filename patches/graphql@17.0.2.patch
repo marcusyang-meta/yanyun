@@ -1,0 +1,59 @@
+diff --git a/diagnostics.js b/diagnostics.js
+index 15bd0827f18973ca350e60a4a00d6282a2913735..bebe5c920b456e158bbf6866291d0f6d4819be29 100644
+--- a/diagnostics.js
++++ b/diagnostics.js
+@@ -5,16 +5,15 @@ exports.shouldTrace = shouldTrace;
+ exports.traceMixed = traceMixed;
+ const isPromise_ts_1 = require("./jsutils/isPromise.js");
+ function resolveDiagnosticsChannel() {
+-    let dc;
+-    try {
+-        const processRef = globalThis.process;
+-        if (typeof processRef?.getBuiltinModule === 'function') {
+-            dc = processRef.getBuiltinModule('node:diagnostics_channel');
+-        }
+-    }
+-    catch {
+-    }
+-    return dc;
++    // Patched for Cloudflare Workers (yanyun): with nodejs_compat,
++    // workerd supplies process.getBuiltinModule, so this resolver
++    // finds node:diagnostics_channel — whose TracingChannel then
++    // wraps parse/validate/execute in runStores calls that are
++    // banned in global scope, and the worker fails to boot during
++    // module-init schema building. The channels are observability
++    // only; returning undefined restores the exact pre-flag
++    // behavior (no channels, plain execution).
++    return undefined;
+ }
+ const dc = resolveDiagnosticsChannel();
+ exports.parseChannel = dc?.tracingChannel('graphql:parse');
+diff --git a/diagnostics.mjs b/diagnostics.mjs
+index f1de43a3d1f00c58f85502fb4965532700efd06b..f3df6b2d28bfef5f20571680bb95eea292efdc39 100644
+--- a/diagnostics.mjs
++++ b/diagnostics.mjs
+@@ -1,15 +1,14 @@
+ import { isPromiseLike } from "./jsutils/isPromise.mjs";
+ function resolveDiagnosticsChannel() {
+-    let dc;
+-    try {
+-        const processRef = globalThis.process;
+-        if (typeof processRef?.getBuiltinModule === 'function') {
+-            dc = processRef.getBuiltinModule('node:diagnostics_channel');
+-        }
+-    }
+-    catch {
+-    }
+-    return dc;
++    // Patched for Cloudflare Workers (yanyun): with nodejs_compat,
++    // workerd supplies process.getBuiltinModule, so this resolver
++    // finds node:diagnostics_channel — whose TracingChannel then
++    // wraps parse/validate/execute in runStores calls that are
++    // banned in global scope, and the worker fails to boot during
++    // module-init schema building. The channels are observability
++    // only; returning undefined restores the exact pre-flag
++    // behavior (no channels, plain execution).
++    return undefined;
+ }
+ const dc = resolveDiagnosticsChannel();
+ export const parseChannel = dc?.tracingChannel('graphql:parse');
