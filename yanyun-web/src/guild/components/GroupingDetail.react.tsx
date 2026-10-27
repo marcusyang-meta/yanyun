@@ -24,6 +24,14 @@ const GroupingDetailQueryNode = graphql`
       detailBackToListLabel
       detailShareLabel
       shareUrl
+      templateSave {
+        buttonLabel
+        dialogTitle
+        nameLabel
+        submitLabel
+        toastSaved
+        toastFailedTemplate
+      }
       detailEditLabel
       detailDisbandLabel
       detailDisbandingLabel
@@ -171,6 +179,21 @@ const GroupingDetailDeleteMutationNode = graphql`
   }
 `;
 
+// Save this grouping's configuration as a guild-shared template. The
+// page's templateSave object exists only for members who may create
+// groupings (server-composed), so its presence gates the button.
+const GroupingDetailSaveTemplateMutationNode = graphql`
+  mutation GroupingDetailSaveTemplateMutation($input: SaveGroupingTemplateInput!) {
+    saveGroupingTemplate(input: $input) {
+      ok
+      error
+      template {
+        id
+      }
+    }
+  }
+`;
+
 const GroupingDetailCompleteMutationNode = graphql`
   mutation GroupingDetailCompleteMutation($id: ID!) {
     completeGrouping(id: $id) {
@@ -209,6 +232,25 @@ defaultNickname?: string;
 const [confirmDelete, setConfirmDelete] = useState(false);
 const [confirmComplete, setConfirmComplete] = useState(false);
 const [showEdit, setShowEdit] = useState(false);
+const [showTplSave, setShowTplSave] = useState(false);
+const [tplName, setTplName] = useState('');
+const [commitSaveTemplate, savingTemplate] = useMutation(GroupingDetailSaveTemplateMutationNode);
+const doSaveTemplate = () => {
+const ts = page.templateSave;
+if (!ts || !g) return;
+commitSaveTemplate({
+variables: { input: { groupingId: g.id, name: tplName.trim() || g.title } },
+onCompleted: (res: any) => {
+if (res.saveGroupingTemplate?.ok) {
+toast(ts.toastSaved);
+setShowTplSave(false);
+} else {
+toast(fill(ts.toastFailedTemplate ?? '', { error: res.saveGroupingTemplate?.error || unknownErrorText }));
+}
+},
+onError: (e: Error) => toast(fill(ts.toastFailedTemplate ?? '', { error: e.message })),
+});
+};
 const data = usePreloadedQuery<GroupingDetailQueryType>(GroupingDetailQueryNode, queryRef);
 const page: any = (data as any)?.groupingDetailPage ?? {};
 const g = page?.grouping;
@@ -359,6 +401,9 @@ verticalAlign: 'middle',
 </div>
 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap'}}>
 <button onClick={share} className="yy-btn yy-btn-gold" style={{ padding: '6px 16px', fontSize: 13 }}>{page.detailShareLabel}</button>
+{interactive && page.templateSave && (
+<button onClick={() => { setTplName(g.title); setShowTplSave(true); }} style={smBtn}>{page.templateSave.buttonLabel}</button>
+)}
 {interactive && (
 <>
 {canManage && g.status !== 'completed' && (
@@ -408,6 +453,33 @@ onCancel={() => setConfirmComplete(false)}
 okLabel={page.confirmOkLabel}
 cancelLabel={page.confirmCancelLabel}
 />
+)}
+{showTplSave && page.templateSave && (
+<div style={{
+position: 'fixed', inset: 0, background: 'rgba(0,0,0,.6)', zIndex: 9997,
+display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+}} onClick={() => setShowTplSave(false)}>
+<div style={{
+background: '#1a1814', border: `1px solid ${theme.gold}`, borderRadius: 12,
+padding: 24, maxWidth: 360, width: '100%',
+}} onClick={(e) => e.stopPropagation()}>
+<div style={{ fontSize: 18, color: theme.goldHi, marginBottom: 16 }}>{page.templateSave.dialogTitle}</div>
+<div style={{ fontSize: 13, color: theme.muted, marginBottom: 6 }}>{page.templateSave.nameLabel}</div>
+<input value={tplName} onChange={(e) => setTplName(e.target.value)} style={{
+width: '100%', background: '#1e1b15', border: '1px solid rgba(201,163,92,.3)',
+color: theme.paper, borderRadius: 8, padding: '11px 10px', fontSize: 14, boxSizing: 'border-box', marginBottom: 20,
+}} />
+<div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
+<button onClick={() => setShowTplSave(false)} style={{
+padding: '8px 20px', borderRadius: 8, cursor: 'pointer',
+background: 'transparent', border: `1px solid ${theme.gold}`, color: theme.paper,
+}}>{page.confirmCancelLabel}</button>
+<button onClick={doSaveTemplate} disabled={savingTemplate} className="yy-btn yy-btn-gold" style={{ padding: '8px 20px', fontSize: 14 }}>
+{page.templateSave.submitLabel}
+</button>
+</div>
+</div>
+</div>
 )}
 {showEdit && g && canManage && (
 <GroupingForm

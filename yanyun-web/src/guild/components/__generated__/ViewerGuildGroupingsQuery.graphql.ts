@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<6c6f49d9c5aa64a923b9274f66f4c7dd>>
+ * @generated SignedSource<<7ee135d6392c2aca4e7828ac4aa56ad7>>
  * @lightSyntaxTransform
  */
 
@@ -59,6 +59,25 @@ export type ViewerGuildGroupingsQuery$data = {
         readonly formTypeRaceLabel: string;
         readonly formTypeTalentLabel: string;
         readonly formTypeTowerLabel: string;
+        readonly groupingTemplates: ReadonlyArray<{
+          readonly creatorName: string | null | undefined;
+          readonly dungeonId: string | null | undefined;
+          readonly dungeonName: string | null | undefined;
+          readonly id: string;
+          readonly manageActions: {
+            readonly deleteConfirmMessageTemplate: string;
+            readonly deleteConfirmTitle: string;
+            readonly deleteLabel: string;
+            readonly editLabel: string;
+          } | null | undefined;
+          readonly maxSlots: number;
+          readonly name: string;
+          readonly startDaysAhead: number;
+          readonly startHour: number;
+          readonly startMinute: number;
+          readonly title: string;
+          readonly type: GroupingType;
+        }>;
         readonly groupings: ReadonlyArray<{
           readonly dungeon: {
             readonly name: string;
@@ -81,6 +100,22 @@ export type ViewerGuildGroupingsQuery$data = {
         readonly tabRaceLabel: string;
         readonly tabTalentLabel: string;
         readonly tabTowerLabel: string;
+        readonly templateCancelEditLabel: string;
+        readonly templateEditingNoticeTemplate: string;
+        readonly templateEmptyText: string;
+        readonly templateMetaTemplate: string;
+        readonly templateNameLabel: string;
+        readonly templateNamePlaceholder: string;
+        readonly templateSaveLabel: string;
+        readonly templateSectionTitle: string;
+        readonly templateToastDeleteFailedTemplate: string;
+        readonly templateToastDeleted: string;
+        readonly templateToastSaveFailedTemplate: string;
+        readonly templateToastSaved: string;
+        readonly templateUpdateLabel: string;
+        readonly templateWhenDaysTemplate: string;
+        readonly templateWhenTodayTemplate: string;
+        readonly templateWhenTomorrowTemplate: string;
         readonly typeShortActivity: string;
         readonly typeShortExplore: string;
         readonly typeShortGather: string;
@@ -628,261 +663,328 @@ v63 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "id",
+  "name": "templateSectionTitle",
   "storageKey": null
 },
 v64 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "title",
+  "name": "templateNameLabel",
   "storageKey": null
 },
 v65 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "type",
+  "name": "templateNamePlaceholder",
   "storageKey": null
 },
 v66 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "startsAt",
+  "name": "templateSaveLabel",
   "storageKey": null
 },
 v67 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "name",
+  "name": "templateUpdateLabel",
   "storageKey": null
 },
 v68 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "occupiedCount",
+  "name": "templateEditingNoticeTemplate",
   "storageKey": null
 },
 v69 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "maxSlots",
+  "name": "templateCancelEditLabel",
   "storageKey": null
 },
 v70 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
+  "name": "templateEmptyText",
+  "storageKey": null
+},
+v71 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "templateWhenTodayTemplate",
+  "storageKey": null
+},
+v72 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "templateWhenTomorrowTemplate",
+  "storageKey": null
+},
+v73 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "templateWhenDaysTemplate",
+  "storageKey": null
+},
+v74 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "templateToastSaved",
+  "storageKey": null
+},
+v75 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "templateToastSaveFailedTemplate",
+  "storageKey": null
+},
+v76 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "templateToastDeleted",
+  "storageKey": null
+},
+v77 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "templateToastDeleteFailedTemplate",
+  "storageKey": null
+},
+v78 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "templateMetaTemplate",
+  "storageKey": null
+},
+v79 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "id",
+  "storageKey": null
+},
+v80 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "name",
+  "storageKey": null
+},
+v81 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "type",
+  "storageKey": null
+},
+v82 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "title",
+  "storageKey": null
+},
+v83 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "maxSlots",
+  "storageKey": null
+},
+v84 = {
+  "alias": null,
+  "args": null,
+  "concreteType": "GroupingTemplate",
+  "kind": "LinkedField",
+  "name": "groupingTemplates",
+  "plural": true,
+  "selections": [
+    (v79/*:: as any*/),
+    (v80/*:: as any*/),
+    (v81/*:: as any*/),
+    (v82/*:: as any*/),
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "dungeonName",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "dungeonId",
+      "storageKey": null
+    },
+    (v83/*:: as any*/),
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "startDaysAhead",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "startHour",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "startMinute",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "creatorName",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "concreteType": "GroupingTemplateManageActions",
+      "kind": "LinkedField",
+      "name": "manageActions",
+      "plural": false,
+      "selections": [
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "editLabel",
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "deleteLabel",
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "deleteConfirmTitle",
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "deleteConfirmMessageTemplate",
+          "storageKey": null
+        }
+      ],
+      "storageKey": null
+    }
+  ],
+  "storageKey": null
+},
+v85 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "startsAt",
+  "storageKey": null
+},
+v86 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "occupiedCount",
+  "storageKey": null
+},
+v87 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
   "name": "status",
   "storageKey": null
 },
-v71 = [
-  {
-    "alias": null,
-    "args": (v4/*:: as any*/),
-    "concreteType": "GroupingListPage",
-    "kind": "LinkedField",
-    "name": "groupings",
-    "plural": false,
-    "selections": [
-      (v5/*:: as any*/),
-      (v6/*:: as any*/),
-      (v7/*:: as any*/),
-      (v8/*:: as any*/),
-      (v9/*:: as any*/),
-      (v10/*:: as any*/),
-      (v11/*:: as any*/),
-      (v12/*:: as any*/),
-      (v13/*:: as any*/),
-      (v14/*:: as any*/),
-      (v15/*:: as any*/),
-      (v16/*:: as any*/),
-      (v17/*:: as any*/),
-      (v18/*:: as any*/),
-      (v19/*:: as any*/),
-      (v20/*:: as any*/),
-      (v21/*:: as any*/),
-      (v22/*:: as any*/),
-      (v23/*:: as any*/),
-      (v24/*:: as any*/),
-      (v25/*:: as any*/),
-      (v26/*:: as any*/),
-      (v27/*:: as any*/),
-      (v28/*:: as any*/),
-      (v29/*:: as any*/),
-      (v30/*:: as any*/),
-      (v31/*:: as any*/),
-      (v32/*:: as any*/),
-      (v33/*:: as any*/),
-      (v34/*:: as any*/),
-      (v35/*:: as any*/),
-      (v36/*:: as any*/),
-      (v37/*:: as any*/),
-      (v38/*:: as any*/),
-      (v39/*:: as any*/),
-      (v40/*:: as any*/),
-      (v41/*:: as any*/),
-      (v42/*:: as any*/),
-      (v43/*:: as any*/),
-      (v44/*:: as any*/),
-      (v45/*:: as any*/),
-      (v46/*:: as any*/),
-      (v47/*:: as any*/),
-      (v48/*:: as any*/),
-      (v49/*:: as any*/),
-      (v50/*:: as any*/),
-      (v51/*:: as any*/),
-      (v52/*:: as any*/),
-      (v53/*:: as any*/),
-      (v54/*:: as any*/),
-      (v55/*:: as any*/),
-      (v56/*:: as any*/),
-      (v57/*:: as any*/),
-      (v58/*:: as any*/),
-      (v59/*:: as any*/),
-      (v60/*:: as any*/),
-      (v61/*:: as any*/),
-      (v62/*:: as any*/),
-      {
-        "alias": null,
-        "args": null,
-        "concreteType": "Grouping",
-        "kind": "LinkedField",
-        "name": "groupings",
-        "plural": true,
-        "selections": [
-          (v63/*:: as any*/),
-          (v64/*:: as any*/),
-          (v65/*:: as any*/),
-          (v66/*:: as any*/),
-          {
-            "alias": null,
-            "args": null,
-            "concreteType": "Dungeon",
-            "kind": "LinkedField",
-            "name": "dungeon",
-            "plural": false,
-            "selections": [
-              (v67/*:: as any*/)
-            ],
-            "storageKey": null
-          },
-          (v68/*:: as any*/),
-          (v69/*:: as any*/),
-          (v70/*:: as any*/)
-        ],
-        "storageKey": null
-      }
-    ],
-    "storageKey": null
-  }
-],
-v72 = [
-  {
-    "alias": null,
-    "args": (v4/*:: as any*/),
-    "concreteType": "GroupingListPage",
-    "kind": "LinkedField",
-    "name": "groupings",
-    "plural": false,
-    "selections": [
-      (v5/*:: as any*/),
-      (v6/*:: as any*/),
-      (v7/*:: as any*/),
-      (v8/*:: as any*/),
-      (v9/*:: as any*/),
-      (v10/*:: as any*/),
-      (v11/*:: as any*/),
-      (v12/*:: as any*/),
-      (v13/*:: as any*/),
-      (v14/*:: as any*/),
-      (v15/*:: as any*/),
-      (v16/*:: as any*/),
-      (v17/*:: as any*/),
-      (v18/*:: as any*/),
-      (v19/*:: as any*/),
-      (v20/*:: as any*/),
-      (v21/*:: as any*/),
-      (v22/*:: as any*/),
-      (v23/*:: as any*/),
-      (v24/*:: as any*/),
-      (v25/*:: as any*/),
-      (v26/*:: as any*/),
-      (v27/*:: as any*/),
-      (v28/*:: as any*/),
-      (v29/*:: as any*/),
-      (v30/*:: as any*/),
-      (v31/*:: as any*/),
-      (v32/*:: as any*/),
-      (v33/*:: as any*/),
-      (v34/*:: as any*/),
-      (v35/*:: as any*/),
-      (v36/*:: as any*/),
-      (v37/*:: as any*/),
-      (v38/*:: as any*/),
-      (v39/*:: as any*/),
-      (v40/*:: as any*/),
-      (v41/*:: as any*/),
-      (v42/*:: as any*/),
-      (v43/*:: as any*/),
-      (v44/*:: as any*/),
-      (v45/*:: as any*/),
-      (v46/*:: as any*/),
-      (v47/*:: as any*/),
-      (v48/*:: as any*/),
-      (v49/*:: as any*/),
-      (v50/*:: as any*/),
-      (v51/*:: as any*/),
-      (v52/*:: as any*/),
-      (v53/*:: as any*/),
-      (v54/*:: as any*/),
-      (v55/*:: as any*/),
-      (v56/*:: as any*/),
-      (v57/*:: as any*/),
-      (v58/*:: as any*/),
-      (v59/*:: as any*/),
-      (v60/*:: as any*/),
-      (v61/*:: as any*/),
-      (v62/*:: as any*/),
-      {
-        "alias": null,
-        "args": null,
-        "concreteType": "Grouping",
-        "kind": "LinkedField",
-        "name": "groupings",
-        "plural": true,
-        "selections": [
-          (v63/*:: as any*/),
-          (v64/*:: as any*/),
-          (v65/*:: as any*/),
-          (v66/*:: as any*/),
-          {
-            "alias": null,
-            "args": null,
-            "concreteType": "Dungeon",
-            "kind": "LinkedField",
-            "name": "dungeon",
-            "plural": false,
-            "selections": [
-              (v67/*:: as any*/),
-              (v63/*:: as any*/)
-            ],
-            "storageKey": null
-          },
-          (v68/*:: as any*/),
-          (v69/*:: as any*/),
-          (v70/*:: as any*/)
-        ],
-        "storageKey": null
-      }
-    ],
-    "storageKey": null
-  }
-];
+v88 = {
+  "alias": null,
+  "args": null,
+  "concreteType": "Grouping",
+  "kind": "LinkedField",
+  "name": "groupings",
+  "plural": true,
+  "selections": [
+    (v79/*:: as any*/),
+    (v82/*:: as any*/),
+    (v81/*:: as any*/),
+    (v85/*:: as any*/),
+    {
+      "alias": null,
+      "args": null,
+      "concreteType": "Dungeon",
+      "kind": "LinkedField",
+      "name": "dungeon",
+      "plural": false,
+      "selections": [
+        (v80/*:: as any*/)
+      ],
+      "storageKey": null
+    },
+    (v86/*:: as any*/),
+    (v83/*:: as any*/),
+    (v87/*:: as any*/)
+  ],
+  "storageKey": null
+},
+v89 = {
+  "alias": null,
+  "args": null,
+  "concreteType": "Grouping",
+  "kind": "LinkedField",
+  "name": "groupings",
+  "plural": true,
+  "selections": [
+    (v79/*:: as any*/),
+    (v82/*:: as any*/),
+    (v81/*:: as any*/),
+    (v85/*:: as any*/),
+    {
+      "alias": null,
+      "args": null,
+      "concreteType": "Dungeon",
+      "kind": "LinkedField",
+      "name": "dungeon",
+      "plural": false,
+      "selections": [
+        (v80/*:: as any*/),
+        (v79/*:: as any*/)
+      ],
+      "storageKey": null
+    },
+    (v86/*:: as any*/),
+    (v83/*:: as any*/),
+    (v87/*:: as any*/)
+  ],
+  "storageKey": null
+};
 return {
   "fragment": {
     "argumentDefinitions": (v0/*:: as any*/),
@@ -910,13 +1012,172 @@ return {
               (v3/*:: as any*/),
               {
                 "kind": "InlineFragment",
-                "selections": (v71/*:: as any*/),
+                "selections": [
+                  {
+                    "alias": null,
+                    "args": (v4/*:: as any*/),
+                    "concreteType": "GroupingListPage",
+                    "kind": "LinkedField",
+                    "name": "groupings",
+                    "plural": false,
+                    "selections": [
+                      (v5/*:: as any*/),
+                      (v6/*:: as any*/),
+                      (v7/*:: as any*/),
+                      (v8/*:: as any*/),
+                      (v9/*:: as any*/),
+                      (v10/*:: as any*/),
+                      (v11/*:: as any*/),
+                      (v12/*:: as any*/),
+                      (v13/*:: as any*/),
+                      (v14/*:: as any*/),
+                      (v15/*:: as any*/),
+                      (v16/*:: as any*/),
+                      (v17/*:: as any*/),
+                      (v18/*:: as any*/),
+                      (v19/*:: as any*/),
+                      (v20/*:: as any*/),
+                      (v21/*:: as any*/),
+                      (v22/*:: as any*/),
+                      (v23/*:: as any*/),
+                      (v24/*:: as any*/),
+                      (v25/*:: as any*/),
+                      (v26/*:: as any*/),
+                      (v27/*:: as any*/),
+                      (v28/*:: as any*/),
+                      (v29/*:: as any*/),
+                      (v30/*:: as any*/),
+                      (v31/*:: as any*/),
+                      (v32/*:: as any*/),
+                      (v33/*:: as any*/),
+                      (v34/*:: as any*/),
+                      (v35/*:: as any*/),
+                      (v36/*:: as any*/),
+                      (v37/*:: as any*/),
+                      (v38/*:: as any*/),
+                      (v39/*:: as any*/),
+                      (v40/*:: as any*/),
+                      (v41/*:: as any*/),
+                      (v42/*:: as any*/),
+                      (v43/*:: as any*/),
+                      (v44/*:: as any*/),
+                      (v45/*:: as any*/),
+                      (v46/*:: as any*/),
+                      (v47/*:: as any*/),
+                      (v48/*:: as any*/),
+                      (v49/*:: as any*/),
+                      (v50/*:: as any*/),
+                      (v51/*:: as any*/),
+                      (v52/*:: as any*/),
+                      (v53/*:: as any*/),
+                      (v54/*:: as any*/),
+                      (v55/*:: as any*/),
+                      (v56/*:: as any*/),
+                      (v57/*:: as any*/),
+                      (v58/*:: as any*/),
+                      (v59/*:: as any*/),
+                      (v60/*:: as any*/),
+                      (v61/*:: as any*/),
+                      (v62/*:: as any*/),
+                      (v63/*:: as any*/),
+                      (v64/*:: as any*/),
+                      (v65/*:: as any*/),
+                      (v66/*:: as any*/),
+                      (v67/*:: as any*/),
+                      (v68/*:: as any*/),
+                      (v69/*:: as any*/),
+                      (v70/*:: as any*/),
+                      (v71/*:: as any*/),
+                      (v72/*:: as any*/),
+                      (v73/*:: as any*/),
+                      (v74/*:: as any*/),
+                      (v75/*:: as any*/),
+                      (v76/*:: as any*/),
+                      (v77/*:: as any*/),
+                      (v78/*:: as any*/),
+                      (v84/*:: as any*/),
+                      (v88/*:: as any*/)
+                    ],
+                    "storageKey": null
+                  }
+                ],
                 "type": "Guild",
                 "abstractKey": null
               },
               {
                 "kind": "InlineFragment",
-                "selections": (v71/*:: as any*/),
+                "selections": [
+                  {
+                    "alias": null,
+                    "args": (v4/*:: as any*/),
+                    "concreteType": "GroupingListPage",
+                    "kind": "LinkedField",
+                    "name": "groupings",
+                    "plural": false,
+                    "selections": [
+                      (v5/*:: as any*/),
+                      (v6/*:: as any*/),
+                      (v7/*:: as any*/),
+                      (v8/*:: as any*/),
+                      (v9/*:: as any*/),
+                      (v10/*:: as any*/),
+                      (v11/*:: as any*/),
+                      (v12/*:: as any*/),
+                      (v13/*:: as any*/),
+                      (v14/*:: as any*/),
+                      (v15/*:: as any*/),
+                      (v16/*:: as any*/),
+                      (v17/*:: as any*/),
+                      (v18/*:: as any*/),
+                      (v19/*:: as any*/),
+                      (v20/*:: as any*/),
+                      (v21/*:: as any*/),
+                      (v22/*:: as any*/),
+                      (v23/*:: as any*/),
+                      (v24/*:: as any*/),
+                      (v25/*:: as any*/),
+                      (v26/*:: as any*/),
+                      (v27/*:: as any*/),
+                      (v28/*:: as any*/),
+                      (v29/*:: as any*/),
+                      (v30/*:: as any*/),
+                      (v31/*:: as any*/),
+                      (v32/*:: as any*/),
+                      (v33/*:: as any*/),
+                      (v34/*:: as any*/),
+                      (v35/*:: as any*/),
+                      (v36/*:: as any*/),
+                      (v37/*:: as any*/),
+                      (v38/*:: as any*/),
+                      (v39/*:: as any*/),
+                      (v40/*:: as any*/),
+                      (v41/*:: as any*/),
+                      (v42/*:: as any*/),
+                      (v43/*:: as any*/),
+                      (v44/*:: as any*/),
+                      (v45/*:: as any*/),
+                      (v46/*:: as any*/),
+                      (v47/*:: as any*/),
+                      (v48/*:: as any*/),
+                      (v49/*:: as any*/),
+                      (v50/*:: as any*/),
+                      (v51/*:: as any*/),
+                      (v52/*:: as any*/),
+                      (v53/*:: as any*/),
+                      (v54/*:: as any*/),
+                      (v55/*:: as any*/),
+                      (v56/*:: as any*/),
+                      (v57/*:: as any*/),
+                      (v58/*:: as any*/),
+                      (v59/*:: as any*/),
+                      (v60/*:: as any*/),
+                      (v61/*:: as any*/),
+                      (v62/*:: as any*/),
+                      (v88/*:: as any*/)
+                    ],
+                    "storageKey": null
+                  }
+                ],
                 "type": "GuildReadOnly",
                 "abstractKey": null
               }
@@ -956,13 +1217,172 @@ return {
               (v3/*:: as any*/),
               {
                 "kind": "InlineFragment",
-                "selections": (v72/*:: as any*/),
+                "selections": [
+                  {
+                    "alias": null,
+                    "args": (v4/*:: as any*/),
+                    "concreteType": "GroupingListPage",
+                    "kind": "LinkedField",
+                    "name": "groupings",
+                    "plural": false,
+                    "selections": [
+                      (v5/*:: as any*/),
+                      (v6/*:: as any*/),
+                      (v7/*:: as any*/),
+                      (v8/*:: as any*/),
+                      (v9/*:: as any*/),
+                      (v10/*:: as any*/),
+                      (v11/*:: as any*/),
+                      (v12/*:: as any*/),
+                      (v13/*:: as any*/),
+                      (v14/*:: as any*/),
+                      (v15/*:: as any*/),
+                      (v16/*:: as any*/),
+                      (v17/*:: as any*/),
+                      (v18/*:: as any*/),
+                      (v19/*:: as any*/),
+                      (v20/*:: as any*/),
+                      (v21/*:: as any*/),
+                      (v22/*:: as any*/),
+                      (v23/*:: as any*/),
+                      (v24/*:: as any*/),
+                      (v25/*:: as any*/),
+                      (v26/*:: as any*/),
+                      (v27/*:: as any*/),
+                      (v28/*:: as any*/),
+                      (v29/*:: as any*/),
+                      (v30/*:: as any*/),
+                      (v31/*:: as any*/),
+                      (v32/*:: as any*/),
+                      (v33/*:: as any*/),
+                      (v34/*:: as any*/),
+                      (v35/*:: as any*/),
+                      (v36/*:: as any*/),
+                      (v37/*:: as any*/),
+                      (v38/*:: as any*/),
+                      (v39/*:: as any*/),
+                      (v40/*:: as any*/),
+                      (v41/*:: as any*/),
+                      (v42/*:: as any*/),
+                      (v43/*:: as any*/),
+                      (v44/*:: as any*/),
+                      (v45/*:: as any*/),
+                      (v46/*:: as any*/),
+                      (v47/*:: as any*/),
+                      (v48/*:: as any*/),
+                      (v49/*:: as any*/),
+                      (v50/*:: as any*/),
+                      (v51/*:: as any*/),
+                      (v52/*:: as any*/),
+                      (v53/*:: as any*/),
+                      (v54/*:: as any*/),
+                      (v55/*:: as any*/),
+                      (v56/*:: as any*/),
+                      (v57/*:: as any*/),
+                      (v58/*:: as any*/),
+                      (v59/*:: as any*/),
+                      (v60/*:: as any*/),
+                      (v61/*:: as any*/),
+                      (v62/*:: as any*/),
+                      (v63/*:: as any*/),
+                      (v64/*:: as any*/),
+                      (v65/*:: as any*/),
+                      (v66/*:: as any*/),
+                      (v67/*:: as any*/),
+                      (v68/*:: as any*/),
+                      (v69/*:: as any*/),
+                      (v70/*:: as any*/),
+                      (v71/*:: as any*/),
+                      (v72/*:: as any*/),
+                      (v73/*:: as any*/),
+                      (v74/*:: as any*/),
+                      (v75/*:: as any*/),
+                      (v76/*:: as any*/),
+                      (v77/*:: as any*/),
+                      (v78/*:: as any*/),
+                      (v84/*:: as any*/),
+                      (v89/*:: as any*/)
+                    ],
+                    "storageKey": null
+                  }
+                ],
                 "type": "Guild",
                 "abstractKey": null
               },
               {
                 "kind": "InlineFragment",
-                "selections": (v72/*:: as any*/),
+                "selections": [
+                  {
+                    "alias": null,
+                    "args": (v4/*:: as any*/),
+                    "concreteType": "GroupingListPage",
+                    "kind": "LinkedField",
+                    "name": "groupings",
+                    "plural": false,
+                    "selections": [
+                      (v5/*:: as any*/),
+                      (v6/*:: as any*/),
+                      (v7/*:: as any*/),
+                      (v8/*:: as any*/),
+                      (v9/*:: as any*/),
+                      (v10/*:: as any*/),
+                      (v11/*:: as any*/),
+                      (v12/*:: as any*/),
+                      (v13/*:: as any*/),
+                      (v14/*:: as any*/),
+                      (v15/*:: as any*/),
+                      (v16/*:: as any*/),
+                      (v17/*:: as any*/),
+                      (v18/*:: as any*/),
+                      (v19/*:: as any*/),
+                      (v20/*:: as any*/),
+                      (v21/*:: as any*/),
+                      (v22/*:: as any*/),
+                      (v23/*:: as any*/),
+                      (v24/*:: as any*/),
+                      (v25/*:: as any*/),
+                      (v26/*:: as any*/),
+                      (v27/*:: as any*/),
+                      (v28/*:: as any*/),
+                      (v29/*:: as any*/),
+                      (v30/*:: as any*/),
+                      (v31/*:: as any*/),
+                      (v32/*:: as any*/),
+                      (v33/*:: as any*/),
+                      (v34/*:: as any*/),
+                      (v35/*:: as any*/),
+                      (v36/*:: as any*/),
+                      (v37/*:: as any*/),
+                      (v38/*:: as any*/),
+                      (v39/*:: as any*/),
+                      (v40/*:: as any*/),
+                      (v41/*:: as any*/),
+                      (v42/*:: as any*/),
+                      (v43/*:: as any*/),
+                      (v44/*:: as any*/),
+                      (v45/*:: as any*/),
+                      (v46/*:: as any*/),
+                      (v47/*:: as any*/),
+                      (v48/*:: as any*/),
+                      (v49/*:: as any*/),
+                      (v50/*:: as any*/),
+                      (v51/*:: as any*/),
+                      (v52/*:: as any*/),
+                      (v53/*:: as any*/),
+                      (v54/*:: as any*/),
+                      (v55/*:: as any*/),
+                      (v56/*:: as any*/),
+                      (v57/*:: as any*/),
+                      (v58/*:: as any*/),
+                      (v59/*:: as any*/),
+                      (v60/*:: as any*/),
+                      (v61/*:: as any*/),
+                      (v62/*:: as any*/),
+                      (v89/*:: as any*/)
+                    ],
+                    "storageKey": null
+                  }
+                ],
                 "type": "GuildReadOnly",
                 "abstractKey": null
               }
@@ -975,16 +1395,16 @@ return {
     ]
   },
   "params": {
-    "cacheID": "35d3647a43a0f048f806cc768e616b51",
+    "cacheID": "5e9bd1905e912bb690bddd528d6a7970",
     "id": null,
     "metadata": {},
     "name": "ViewerGuildGroupingsQuery",
     "operationKind": "query",
-    "text": "query ViewerGuildGroupingsQuery(\n  $slug: String!\n  $tab: GroupingTab!\n) {\n  viewer {\n    commonUnknownErrorText\n    guild(slug: $slug) {\n      __typename\n      ... on Guild {\n        groupings(tab: $tab) {\n          currentVersion\n          tabActivityLabel\n          tabTalentLabel\n          tabRaceLabel\n          tabTowerLabel\n          typeShortActivity\n          typeShortTalent\n          typeShortRace\n          typeShortTower\n          typeShortGather\n          typeShortExplore\n          prevWeekLabel\n          nextWeekLabel\n          weekHeaderTemplate\n          dayGroupHeaderTemplate\n          weekdayNames\n          undatedGroupLabel\n          emptyInteractiveText\n          emptyReadonlyText\n          statusOpenLabel\n          peopleTemplate\n          newCarLabel\n          sealText\n          formCreateTitle\n          formEditTitle\n          formTypeLabel\n          formTypeActivityLabel\n          formTypeTalentLabel\n          formTypeRaceLabel\n          formTypeTowerLabel\n          formCapacityTemplate\n          formHintActivity\n          formHintDungeonTemplate\n          formHintTalent\n          formHintRace\n          formHintTower\n          formTitleLabel\n          formTitlePlaceholder\n          formStartsLabel\n          formMonthTemplate\n          formDayTemplate\n          formHourTemplate\n          formMinuteTemplate\n          formDungeonLabel\n          formDungeonNoneLabel\n          formNicknameLabel\n          formNicknamePlaceholder\n          formSectLabel\n          formCancelLabel\n          formSubmitCreateLabel\n          formSubmitEditLabel\n          formSubmittingLabel\n          formToastSect\n          formToastSaved\n          formToastSaveFailedTemplate\n          formToastPosted\n          formToastCreateFailedTemplate\n          formTitleTemplate\n          groupings {\n            id\n            title\n            type\n            startsAt\n            dungeon {\n              name\n              id\n            }\n            occupiedCount\n            maxSlots\n            status\n          }\n        }\n      }\n      ... on GuildReadOnly {\n        groupings(tab: $tab) {\n          currentVersion\n          tabActivityLabel\n          tabTalentLabel\n          tabRaceLabel\n          tabTowerLabel\n          typeShortActivity\n          typeShortTalent\n          typeShortRace\n          typeShortTower\n          typeShortGather\n          typeShortExplore\n          prevWeekLabel\n          nextWeekLabel\n          weekHeaderTemplate\n          dayGroupHeaderTemplate\n          weekdayNames\n          undatedGroupLabel\n          emptyInteractiveText\n          emptyReadonlyText\n          statusOpenLabel\n          peopleTemplate\n          newCarLabel\n          sealText\n          formCreateTitle\n          formEditTitle\n          formTypeLabel\n          formTypeActivityLabel\n          formTypeTalentLabel\n          formTypeRaceLabel\n          formTypeTowerLabel\n          formCapacityTemplate\n          formHintActivity\n          formHintDungeonTemplate\n          formHintTalent\n          formHintRace\n          formHintTower\n          formTitleLabel\n          formTitlePlaceholder\n          formStartsLabel\n          formMonthTemplate\n          formDayTemplate\n          formHourTemplate\n          formMinuteTemplate\n          formDungeonLabel\n          formDungeonNoneLabel\n          formNicknameLabel\n          formNicknamePlaceholder\n          formSectLabel\n          formCancelLabel\n          formSubmitCreateLabel\n          formSubmitEditLabel\n          formSubmittingLabel\n          formToastSect\n          formToastSaved\n          formToastSaveFailedTemplate\n          formToastPosted\n          formToastCreateFailedTemplate\n          formTitleTemplate\n          groupings {\n            id\n            title\n            type\n            startsAt\n            dungeon {\n              name\n              id\n            }\n            occupiedCount\n            maxSlots\n            status\n          }\n        }\n      }\n    }\n  }\n}\n"
+    "text": "query ViewerGuildGroupingsQuery(\n  $slug: String!\n  $tab: GroupingTab!\n) {\n  viewer {\n    commonUnknownErrorText\n    guild(slug: $slug) {\n      __typename\n      ... on Guild {\n        groupings(tab: $tab) {\n          currentVersion\n          tabActivityLabel\n          tabTalentLabel\n          tabRaceLabel\n          tabTowerLabel\n          typeShortActivity\n          typeShortTalent\n          typeShortRace\n          typeShortTower\n          typeShortGather\n          typeShortExplore\n          prevWeekLabel\n          nextWeekLabel\n          weekHeaderTemplate\n          dayGroupHeaderTemplate\n          weekdayNames\n          undatedGroupLabel\n          emptyInteractiveText\n          emptyReadonlyText\n          statusOpenLabel\n          peopleTemplate\n          newCarLabel\n          sealText\n          formCreateTitle\n          formEditTitle\n          formTypeLabel\n          formTypeActivityLabel\n          formTypeTalentLabel\n          formTypeRaceLabel\n          formTypeTowerLabel\n          formCapacityTemplate\n          formHintActivity\n          formHintDungeonTemplate\n          formHintTalent\n          formHintRace\n          formHintTower\n          formTitleLabel\n          formTitlePlaceholder\n          formStartsLabel\n          formMonthTemplate\n          formDayTemplate\n          formHourTemplate\n          formMinuteTemplate\n          formDungeonLabel\n          formDungeonNoneLabel\n          formNicknameLabel\n          formNicknamePlaceholder\n          formSectLabel\n          formCancelLabel\n          formSubmitCreateLabel\n          formSubmitEditLabel\n          formSubmittingLabel\n          formToastSect\n          formToastSaved\n          formToastSaveFailedTemplate\n          formToastPosted\n          formToastCreateFailedTemplate\n          formTitleTemplate\n          templateSectionTitle\n          templateNameLabel\n          templateNamePlaceholder\n          templateSaveLabel\n          templateUpdateLabel\n          templateEditingNoticeTemplate\n          templateCancelEditLabel\n          templateEmptyText\n          templateWhenTodayTemplate\n          templateWhenTomorrowTemplate\n          templateWhenDaysTemplate\n          templateToastSaved\n          templateToastSaveFailedTemplate\n          templateToastDeleted\n          templateToastDeleteFailedTemplate\n          templateMetaTemplate\n          groupingTemplates {\n            id\n            name\n            type\n            title\n            dungeonName\n            dungeonId\n            maxSlots\n            startDaysAhead\n            startHour\n            startMinute\n            creatorName\n            manageActions {\n              editLabel\n              deleteLabel\n              deleteConfirmTitle\n              deleteConfirmMessageTemplate\n            }\n          }\n          groupings {\n            id\n            title\n            type\n            startsAt\n            dungeon {\n              name\n              id\n            }\n            occupiedCount\n            maxSlots\n            status\n          }\n        }\n      }\n      ... on GuildReadOnly {\n        groupings(tab: $tab) {\n          currentVersion\n          tabActivityLabel\n          tabTalentLabel\n          tabRaceLabel\n          tabTowerLabel\n          typeShortActivity\n          typeShortTalent\n          typeShortRace\n          typeShortTower\n          typeShortGather\n          typeShortExplore\n          prevWeekLabel\n          nextWeekLabel\n          weekHeaderTemplate\n          dayGroupHeaderTemplate\n          weekdayNames\n          undatedGroupLabel\n          emptyInteractiveText\n          emptyReadonlyText\n          statusOpenLabel\n          peopleTemplate\n          newCarLabel\n          sealText\n          formCreateTitle\n          formEditTitle\n          formTypeLabel\n          formTypeActivityLabel\n          formTypeTalentLabel\n          formTypeRaceLabel\n          formTypeTowerLabel\n          formCapacityTemplate\n          formHintActivity\n          formHintDungeonTemplate\n          formHintTalent\n          formHintRace\n          formHintTower\n          formTitleLabel\n          formTitlePlaceholder\n          formStartsLabel\n          formMonthTemplate\n          formDayTemplate\n          formHourTemplate\n          formMinuteTemplate\n          formDungeonLabel\n          formDungeonNoneLabel\n          formNicknameLabel\n          formNicknamePlaceholder\n          formSectLabel\n          formCancelLabel\n          formSubmitCreateLabel\n          formSubmitEditLabel\n          formSubmittingLabel\n          formToastSect\n          formToastSaved\n          formToastSaveFailedTemplate\n          formToastPosted\n          formToastCreateFailedTemplate\n          formTitleTemplate\n          groupings {\n            id\n            title\n            type\n            startsAt\n            dungeon {\n              name\n              id\n            }\n            occupiedCount\n            maxSlots\n            status\n          }\n        }\n      }\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "938803f9e4e326c09349bec81dd6659f";
+(node as any).hash = "221c20f5442a67279dbe51538e705790";
 
 export default node;

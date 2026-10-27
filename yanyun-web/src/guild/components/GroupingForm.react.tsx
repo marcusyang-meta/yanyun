@@ -3,10 +3,13 @@ import { createPortal } from 'react-dom';
 import { graphql, useMutation, useLazyLoadQuery } from 'react-relay';
 import { theme, SECTS, parseStartsAt, fill } from '../../lib/format';
 import { appendGroupingToList } from '../../lib/groupingStore';
-import { toast } from './Toast.react.tsx';
+import { toast, ConfirmDialog } from './Toast.react.tsx';
 import type { GroupingFormCreateMutation as GroupingFormCreateMutationType } from './__generated__/GroupingFormCreateMutation.graphql';
 import type { GroupingFormUpdateMutation as GroupingFormUpdateMutationType } from './__generated__/GroupingFormUpdateMutation.graphql';
 import type { GroupingFormDungeonsQuery as GroupingFormDungeonsQueryType } from './__generated__/GroupingFormDungeonsQuery.graphql';
+import type { GroupingFormCreateTemplateMutation as GroupingFormCreateTemplateMutationType } from './__generated__/GroupingFormCreateTemplateMutation.graphql';
+import type { GroupingFormUpdateTemplateMutation as GroupingFormUpdateTemplateMutationType } from './__generated__/GroupingFormUpdateTemplateMutation.graphql';
+import type { GroupingFormDeleteTemplateMutation as GroupingFormDeleteTemplateMutationType } from './__generated__/GroupingFormDeleteTemplateMutation.graphql';
 
 
 const GroupingFormDungeonsQueryNode = graphql`
@@ -75,6 +78,65 @@ const GroupingFormUpdateMutationNode = graphql`
   }
 `;
 
+// Template mutations: the template section's own writes. After any of
+// them succeeds the host page refetches its list query (which carries
+// the template list), so no store surgery is needed here.
+const GroupingFormCreateTemplateMutationNode = graphql`
+  mutation GroupingFormCreateTemplateMutation($input: CreateGroupingTemplateInput!) {
+    createGroupingTemplate(input: $input) {
+      ok
+      error
+      template {
+        id
+      }
+    }
+  }
+`;
+
+const GroupingFormUpdateTemplateMutationNode = graphql`
+  mutation GroupingFormUpdateTemplateMutation($id: ID!, $input: GroupingTemplateInput!) {
+    updateGroupingTemplate(id: $id, input: $input) {
+      ok
+      error
+      template {
+        id
+      }
+    }
+  }
+`;
+
+const GroupingFormDeleteTemplateMutationNode = graphql`
+  mutation GroupingFormDeleteTemplateMutation($id: ID!) {
+    deleteGroupingTemplate(id: $id) {
+      ok
+      error
+    }
+  }
+`;
+
+// One guild-shared template as the list-page query delivers it. The
+// manageActions object exists only for the template's creator or a
+// guild admin (server-composed); its absence hides edit/delete.
+export interface GroupingTemplateItem {
+  id: string;
+  name: string;
+  type: string;
+  title: string;
+  dungeonName?: string | null;
+  dungeonId?: string | null;
+  maxSlots: number;
+  startDaysAhead: number;
+  startHour: number;
+  startMinute: number;
+  creatorName?: string | null;
+  manageActions?: {
+    editLabel: string;
+    deleteLabel: string;
+    deleteConfirmTitle: string;
+    deleteConfirmMessageTemplate: string;
+  } | null;
+}
+
 
 export interface GroupingFormInitial {
   title: string;
@@ -126,6 +188,24 @@ export interface GroupingFormText {
   typeShortRace: string;
   typeShortTower: string;
   unknownErrorText: string;
+  // Template section copy (list-page shells only; absent on the detail
+  // page, where the section never renders).
+  templateSectionTitle?: string;
+  templateNameLabel?: string;
+  templateNamePlaceholder?: string;
+  templateSaveLabel?: string;
+  templateUpdateLabel?: string;
+  templateEditingNoticeTemplate?: string;
+  templateCancelEditLabel?: string;
+  templateEmptyText?: string;
+  templateWhenTodayTemplate?: string;
+  templateWhenTomorrowTemplate?: string;
+  templateWhenDaysTemplate?: string;
+  templateToastSaved?: string;
+  templateToastSaveFailedTemplate?: string;
+  templateToastDeleted?: string;
+  templateToastDeleteFailedTemplate?: string;
+  templateMetaTemplate?: string;
 }
 
 interface Props {
@@ -137,6 +217,10 @@ interface Props {
   defaultType?: string;
   // Nickname prefill: the guild server nickname (else the global name); initial value only, editable
   defaultNickname?: string;
+  // Guild-shared templates (create mode only; the host list page passes
+  // its query's groupingTemplates plus a refetch callback).
+  templates?: GroupingTemplateItem[] | null;
+  onTemplatesChanged?: () => void;
   onClose: () => void;
   onDone: () => void;
 }
@@ -149,8 +233,12 @@ const labelStyle: React.CSSProperties = {
   display: 'block', fontSize: 13, color: theme.muted, marginBottom: 6, letterSpacing: 1,
 };
 const errStyle: React.CSSProperties = { borderColor: '#a02c1a' };
+const tplActBtn: React.CSSProperties = {
+  background: 'none', border: 'none', cursor: 'pointer', fontSize: 12.5,
+  color: theme.gold, padding: '2px 4px', flexShrink: 0,
+};
 
-export default function GroupingForm({ slug, text, mode, groupingId, initial, defaultType, defaultNickname, onClose, onDone }: Props) {
+export default function GroupingForm({ slug, text, mode, groupingId, initial, defaultType, defaultNickname, templates, onTemplatesChanged, onClose, onDone }: Props) {
   const isEdit = mode === 'edit';
   const now = useMemo(() => new Date(), []);
   const initDate = useMemo(() => {
@@ -272,6 +360,106 @@ export default function GroupingForm({ slug, text, mode, groupingId, initial, de
 
   const busy = creating || updating;
 
+  // ---- Guild-shared templates (create mode only) ----
+  // Applying a template only prefills this form; the member still
+  // reviews and submits the car themselves. Editing a template loads
+  // it into the form and retargets the save button at that template.
+  const showTemplates = !isEdit && !!text.templateSectionTitle;
+  const [appliedTemplateId, setAppliedTemplateId] = useState<string | null>(null);
+  const [editingTemplate, setEditingTemplate] = useState<GroupingTemplateItem | null>(null);
+  const [templateName, setTemplateName] = useState('');
+  const [confirmDeleteTemplate, setConfirmDeleteTemplate] = useState<GroupingTemplateItem | null>(null);
+  const [commitCreateTemplate, creatingTemplate] = useMutation<GroupingFormCreateTemplateMutationType>(GroupingFormCreateTemplateMutationNode);
+  const [commitUpdateTemplate, updatingTemplate] = useMutation<GroupingFormUpdateTemplateMutationType>(GroupingFormUpdateTemplateMutationNode);
+  const [commitDeleteTemplate] = useMutation<GroupingFormDeleteTemplateMutationType>(GroupingFormDeleteTemplateMutationNode);
+
+  const applyTemplate = (t: GroupingTemplateItem) => {
+    setType(t.type);
+    setTitle(t.title);
+    setTitleTouched(true);
+    setDungeonId(t.dungeonId ?? '');
+    const target = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (t.startDaysAhead || 0));
+    setMonth(target.getMonth() + 1);
+    setDay(target.getDate());
+    setHour(t.startHour);
+    setMinute(t.startMinute);
+    setAppliedTemplateId(t.id);
+    setTitleErr(false);
+  };
+
+  const startEditTemplate = (t: GroupingTemplateItem) => {
+    applyTemplate(t);
+    setEditingTemplate(t);
+    setTemplateName(t.name);
+  };
+
+  const daysAheadFromForm = () => {
+    const picked = new Date(now.getFullYear(), month - 1, day);
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    return Math.max(0, Math.round((picked.getTime() - today.getTime()) / 86400000));
+  };
+
+  const saveTemplate = () => {
+    const t = shownTitle.trim();
+    if (!t) { setTitleErr(true); return; }
+    const input = {
+      name: templateName.trim() || t, type: type as any, title: t,
+      dungeonId: type === 'ACTIVITY' || type === 'TOWER' ? null : (dungeonId || null),
+      startsInDays: daysAheadFromForm(), startHour: hour, startMinute: minute,
+    };
+    const fail = (error?: string | null) => toast(fill(text.templateToastSaveFailedTemplate ?? '', { error: error || text.unknownErrorText }));
+    if (editingTemplate) {
+      commitUpdateTemplate({
+        variables: { id: editingTemplate.id, input },
+        onCompleted: (res) => {
+          if (res.updateGroupingTemplate?.ok) {
+            toast(text.templateToastSaved ?? '');
+            setEditingTemplate(null);
+            setTemplateName('');
+            onTemplatesChanged?.();
+          } else fail(res.updateGroupingTemplate?.error);
+        },
+        onError: (e) => fail(e.message),
+      });
+    } else {
+      commitCreateTemplate({
+        variables: { input: { slug, ...input } },
+        onCompleted: (res) => {
+          if (res.createGroupingTemplate?.ok) {
+            toast(text.templateToastSaved ?? '');
+            setTemplateName('');
+            onTemplatesChanged?.();
+          } else fail(res.createGroupingTemplate?.error);
+        },
+        onError: (e) => fail(e.message),
+      });
+    }
+  };
+
+  const deleteTemplate = (t: GroupingTemplateItem) => {
+    commitDeleteTemplate({
+      variables: { id: t.id },
+      onCompleted: (res) => {
+        if (res.deleteGroupingTemplate?.ok) {
+          toast(text.templateToastDeleted ?? '');
+          if (editingTemplate?.id === t.id) { setEditingTemplate(null); setTemplateName(''); }
+          if (appliedTemplateId === t.id) setAppliedTemplateId(null);
+          onTemplatesChanged?.();
+        } else {
+          toast(fill(text.templateToastDeleteFailedTemplate ?? '', { error: res.deleteGroupingTemplate?.error || text.unknownErrorText }));
+        }
+      },
+      onError: (e) => toast(fill(text.templateToastDeleteFailedTemplate ?? '', { error: e.message })),
+    });
+  };
+
+  const templateWhen = (t: GroupingTemplateItem) => {
+    const time = `${String(t.startHour).padStart(2, '0')}:${String(t.startMinute).padStart(2, '0')}`;
+    if (t.startDaysAhead === 0) return fill(text.templateWhenTodayTemplate ?? '', { time });
+    if (t.startDaysAhead === 1) return fill(text.templateWhenTomorrowTemplate ?? '', { time });
+    return fill(text.templateWhenDaysTemplate ?? '', { days: t.startDaysAhead, time });
+  };
+
   // Portal to body: the page container's entrance-animation transform would
   // trap position:fixed inside the container box (panel offset / overlay not
   // covering). Layout uses the .yy-modal-* classes (desktop centered 85vh,
@@ -285,6 +473,41 @@ export default function GroupingForm({ slug, text, mode, groupingId, initial, de
           </div>
           <div onClick={onClose} style={{ color: theme.muted, fontSize: 24, cursor: 'pointer', padding: 8 }}>✕</div>
         </div>
+
+        {showTemplates && (
+          <div style={{ marginBottom: 16 }}>
+            <label style={labelStyle}>{text.templateSectionTitle}</label>
+            {!templates?.length && (
+              <div style={{ fontSize: 12.5, color: theme.muted }}>{text.templateEmptyText}</div>
+            )}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {(templates ?? []).map((t) => (
+                <div key={t.id} onClick={() => applyTemplate(t)} style={{
+                  border: `1px solid ${appliedTemplateId === t.id ? theme.gold : 'rgba(201,163,92,.25)'}`,
+                  borderRadius: 8, padding: '9px 12px', cursor: 'pointer',
+                  background: appliedTemplateId === t.id ? 'rgba(201,163,92,.12)' : 'transparent',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                    <span style={{ flex: 1, fontSize: 14, color: theme.goldHi, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</span>
+                    <span style={{ fontSize: 12, color: theme.muted, flexShrink: 0 }}>{templateWhen(t)}</span>
+                  </div>
+                  <div style={{ fontSize: 13, color: theme.paper, marginTop: 2 }}>{t.title}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
+                    <span style={{ flex: 1, fontSize: 12, color: theme.muted }}>
+                      {fill(text.templateMetaTemplate ?? '', { type: typeShorts[t.type] ?? '', dungeon: t.dungeonName ? ` · ${t.dungeonName}` : '', max: t.maxSlots })}
+                    </span>
+                    {t.manageActions && (
+                      <>
+                        <button onClick={(e) => { e.stopPropagation(); startEditTemplate(t); }} style={tplActBtn}>{t.manageActions.editLabel}</button>
+                        <button onClick={(e) => { e.stopPropagation(); setConfirmDeleteTemplate(t); }} style={{ ...tplActBtn, color: '#e08080' }}>{t.manageActions.deleteLabel}</button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div style={{ marginBottom: 14 }}>
           <label style={labelStyle}>{text.formTypeLabel}</label>
@@ -352,6 +575,26 @@ export default function GroupingForm({ slug, text, mode, groupingId, initial, de
           </>
         )}
 
+        {showTemplates && (
+          <div style={{ marginBottom: 16 }}>
+            {editingTemplate && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <span style={{ flex: 1, fontSize: 12.5, color: theme.goldHi }}>{fill(text.templateEditingNoticeTemplate ?? '', { name: editingTemplate.name })}</span>
+                <button onClick={() => { setEditingTemplate(null); setTemplateName(''); }} style={tplActBtn}>{text.templateCancelEditLabel}</button>
+              </div>
+            )}
+            <label style={labelStyle}>{text.templateNameLabel}</label>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input value={templateName} onChange={(e) => setTemplateName(e.target.value)}
+                placeholder={text.templateNamePlaceholder} style={{ ...inputStyle, flex: 1 }} />
+              <button onClick={saveTemplate} disabled={creatingTemplate || updatingTemplate} style={{
+                padding: '0 18px', borderRadius: 8, cursor: 'pointer', whiteSpace: 'nowrap',
+                background: 'transparent', border: `1px solid ${theme.gold}`, color: theme.goldHi, fontSize: 14,
+              }}>{editingTemplate ? text.templateUpdateLabel : text.templateSaveLabel}</button>
+            </div>
+          </div>
+        )}
+
         <div style={{ display: 'flex', gap: 12 }}>
           <button onClick={onClose} style={{
             flex: 1, padding: 14, borderRadius: 10, cursor: 'pointer',
@@ -363,6 +606,17 @@ export default function GroupingForm({ slug, text, mode, groupingId, initial, de
             opacity: busy ? .6 : 1,
           }}>{busy ? text.formSubmittingLabel : isEdit ? text.formSubmitEditLabel : text.formSubmitCreateLabel}</button>
         </div>
+
+        {confirmDeleteTemplate?.manageActions && (
+          <ConfirmDialog
+            title={confirmDeleteTemplate.manageActions.deleteConfirmTitle}
+            message={fill(confirmDeleteTemplate.manageActions.deleteConfirmMessageTemplate, { name: confirmDeleteTemplate.name })}
+            onOk={() => { const t = confirmDeleteTemplate; setConfirmDeleteTemplate(null); deleteTemplate(t); }}
+            onCancel={() => setConfirmDeleteTemplate(null)}
+            okLabel={confirmDeleteTemplate.manageActions.deleteLabel}
+            cancelLabel={text.formCancelLabel}
+          />
+        )}
       </div>
     </div>,
     document.body
