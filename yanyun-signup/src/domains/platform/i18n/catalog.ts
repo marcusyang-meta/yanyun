@@ -4307,33 +4307,12 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "fr": "Format d’ID de serveur Discord invalide",
       "zh-TW": "Discord 伺服器 ID 格式不正確"
     },
-    "teamNameRequired": {
-      "zh-CN": "缺少队伍名",
-      "en": "Team name is required",
-      "es": "Falta el nombre del equipo",
-      "fr": "Le nom de l’équipe est requis",
-      "zh-TW": "缺少隊伍名"
-    },
     "noFieldsToUpdate": {
       "zh-CN": "没有可更新的字段",
       "en": "No fields to update",
       "es": "No hay campos para actualizar",
       "fr": "Aucun champ à mettre à jour",
       "zh-TW": "沒有可更新的欄位"
-    },
-    "teamNotFound": {
-      "zh-CN": "未找到该固定队",
-      "en": "Fixed team not found",
-      "es": "Equipo fijo no encontrado",
-      "fr": "Équipe fixe introuvable",
-      "zh-TW": "未找到該固定隊"
-    },
-    "teamMemberNotFound": {
-      "zh-CN": "未找到该队员",
-      "en": "Team member not found",
-      "es": "Miembro del equipo no encontrado",
-      "fr": "Membre de l’équipe introuvable",
-      "zh-TW": "未找到該隊員"
     },
     "signupNotFound": {
       "zh-CN": "未找到该报名记录",
@@ -4455,13 +4434,6 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "es": "Discord",
       "fr": "Discord",
       "zh-TW": "Discord"
-    },
-    "tabTeams": {
-      "zh-CN": "固定队",
-      "en": "Fixed teams",
-      "es": "Equipos fijos",
-      "fr": "Équipes fixes",
-      "zh-TW": "固定隊"
     },
     "tabEvents": {
       "zh-CN": "活动",
@@ -4674,20 +4646,6 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
     "reminderCustomTextHint": {
       "zh-CN": "一行文字，会出现在提醒卡片里；最多 100 字，留空不显示。第一次提前提醒会通知所有人，之后的只催还没就位的人。"
     },
-    "featuresTitle": {
-      "zh-CN": "功能开关",
-      "en": "Features",
-      "es": "Funciones",
-      "fr": "Fonctionnalités",
-      "zh-TW": "功能開關"
-    },
-    "fixedTeamsLabel": {
-      "zh-CN": "固定队",
-      "en": "Fixed teams",
-      "es": "Equipos fijos",
-      "fr": "Équipes fixes",
-      "zh-TW": "固定隊"
-    },
     "visibilityTitle": {
       "zh-CN": "可见性",
       "en": "Visibility",
@@ -4701,62 +4659,6 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "es": "Solo entornos de desarrollo",
       "fr": "Environnements de développement uniquement",
       "zh-TW": "僅開發環境可見"
-    },
-    "teamsTitle": {
-      "zh-CN": "固定队管理",
-      "en": "Fixed team management",
-      "es": "Gestión de equipos fijos",
-      "fr": "Gestion des équipes fixes",
-      "zh-TW": "固定隊管理"
-    },
-    "teamNameLabel": {
-      "zh-CN": "队伍名",
-      "en": "Team name",
-      "es": "Nombre del equipo",
-      "fr": "Nom de l’équipe",
-      "zh-TW": "隊伍名"
-    },
-    "teamDescLabel": {
-      "zh-CN": "队伍简介",
-      "en": "Team description",
-      "es": "Descripción del equipo",
-      "fr": "Description de l’équipe",
-      "zh-TW": "隊伍簡介"
-    },
-    "teamEmpty": {
-      "zh-CN": "暂无固定队。",
-      "en": "No fixed teams yet.",
-      "es": "Aún no hay equipos fijos.",
-      "fr": "Aucune équipe fixe pour le moment.",
-      "zh-TW": "暫無固定隊。"
-    },
-    "memberNicknameLabel": {
-      "zh-CN": "昵称",
-      "en": "Nickname",
-      "es": "Apodo",
-      "fr": "Pseudo",
-      "zh-TW": "暱稱"
-    },
-    "memberWeaponLabel": {
-      "zh-CN": "流派（武器）",
-      "en": "Sect (weapon)",
-      "es": "Secta (arma)",
-      "fr": "Secte (arme)",
-      "zh-TW": "流派（武器）"
-    },
-    "memberNoteLabel": {
-      "zh-CN": "备注",
-      "en": "Note",
-      "es": "Nota",
-      "fr": "Note",
-      "zh-TW": "備註"
-    },
-    "addMemberButton": {
-      "zh-CN": "加队员",
-      "en": "Add member",
-      "es": "Añadir miembro",
-      "fr": "Ajouter un membre",
-      "zh-TW": "加隊員"
     },
     "eventsTitle": {
       "zh-CN": "活动管理",

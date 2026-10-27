@@ -37,7 +37,6 @@ export const guildAdmin_lockedBody = (fbs: FbsAPI) =>fbs("只有该百业所绑 
 export const guildAdmin_backLink = (fbs: FbsAPI) =>fbs("‹ 返回百业", "guildAdmin.backLink");
 export const guildAdmin_tabProfile = (fbs: FbsAPI) =>fbs("资料", "guildAdmin.tabProfile");
 export const guildAdmin_tabDiscord = (fbs: FbsAPI) =>fbs("Discord", "guildAdmin.tabDiscord");
-export const guildAdmin_tabTeams = (fbs: FbsAPI) =>fbs("固定队", "guildAdmin.tabTeams");
 export const guildAdmin_tabEvents = (fbs: FbsAPI) =>fbs("活动", "guildAdmin.tabEvents");
 export const guildAdmin_tabGuides = (fbs: FbsAPI) =>fbs("攻略数据", "guildAdmin.tabGuides");
 export const guildAdmin_saveButton = (fbs: FbsAPI) =>fbs("保存", "guildAdmin.saveButton");
@@ -73,18 +72,8 @@ export const guildAdmin_reminderOffsetOption = (fbs: FbsAPI, p?: StringParams) =
   fbs(["提前 ", fbs.param("minutes", pv(p, "minutes")), " 分钟"], "guildAdmin.reminderOffsetOption");
 export const guildAdmin_reminderCustomTextLabel = (fbs: FbsAPI) =>fbs("自定义提醒文案", "guildAdmin.reminderCustomTextLabel");
 export const guildAdmin_reminderCustomTextHint = (fbs: FbsAPI) =>fbs("一行文字，会出现在提醒卡片里；最多 100 字，留空不显示。第一次提前提醒会通知所有人，之后的只催还没就位的人。", "guildAdmin.reminderCustomTextHint");
-export const guildAdmin_featuresTitle = (fbs: FbsAPI) =>fbs("功能开关", "guildAdmin.featuresTitle");
-export const guildAdmin_fixedTeamsLabel = (fbs: FbsAPI) =>fbs("固定队", "guildAdmin.fixedTeamsLabel");
 export const guildAdmin_visibilityTitle = (fbs: FbsAPI) =>fbs("可见性", "guildAdmin.visibilityTitle");
 export const guildAdmin_devOnlyLabel = (fbs: FbsAPI) =>fbs("仅开发环境可见", "guildAdmin.devOnlyLabel");
-export const guildAdmin_teamsTitle = (fbs: FbsAPI) =>fbs("固定队管理", "guildAdmin.teamsTitle");
-export const guildAdmin_teamNameLabel = (fbs: FbsAPI) =>fbs("队伍名", "guildAdmin.teamNameLabel");
-export const guildAdmin_teamDescLabel = (fbs: FbsAPI) =>fbs("队伍简介", "guildAdmin.teamDescLabel");
-export const guildAdmin_teamEmpty = (fbs: FbsAPI) =>fbs("暂无固定队。", "guildAdmin.teamEmpty");
-export const guildAdmin_memberNicknameLabel = (fbs: FbsAPI) =>fbs("昵称", "guildAdmin.memberNicknameLabel");
-export const guildAdmin_memberWeaponLabel = (fbs: FbsAPI) =>fbs("流派（武器）", "guildAdmin.memberWeaponLabel");
-export const guildAdmin_memberNoteLabel = (fbs: FbsAPI) =>fbs("备注", "guildAdmin.memberNoteLabel");
-export const guildAdmin_addMemberButton = (fbs: FbsAPI) =>fbs("加队员", "guildAdmin.addMemberButton");
 export const guildAdmin_eventsTitle = (fbs: FbsAPI) =>fbs("活动管理", "guildAdmin.eventsTitle");
 export const guildAdmin_eventEmpty = (fbs: FbsAPI) =>fbs("暂无活动。", "guildAdmin.eventEmpty");
 export const guildAdmin_eventTitleLabel = (fbs: FbsAPI) =>fbs("标题", "guildAdmin.eventTitleLabel");

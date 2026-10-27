@@ -42,7 +42,7 @@ const DDL = [
      slug TEXT PRIMARY KEY, guild_name TEXT NOT NULL, password_hash TEXT NOT NULL,
      announcement TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL DEFAULT (strftime('%s','now')),
      discord_webhook TEXT NOT NULL DEFAULT '', slogan TEXT, master_name TEXT,
-     logo_url TEXT, bg_image_url TEXT, feature_fixed_teams INTEGER)`,
+     logo_url TEXT, bg_image_url TEXT)`,
   `CREATE TABLE events (
      id INTEGER PRIMARY KEY AUTOINCREMENT, tenant TEXT NOT NULL DEFAULT '',
      title TEXT NOT NULL, type TEXT NOT NULL DEFAULT 'activity',
@@ -134,16 +134,6 @@ const DDL = [
      build_sig TEXT NOT NULL, complete INTEGER NOT NULL DEFAULT 0,
      updated_at INTEGER NOT NULL DEFAULT 0,
      PRIMARY KEY (tenant, discord_id, build_sig))`,
-  `CREATE TABLE fixed_teams (
-     id INTEGER PRIMARY KEY AUTOINCREMENT, tenant TEXT NOT NULL,
-     name TEXT NOT NULL, description TEXT NOT NULL DEFAULT '',
-     created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')))`,
-  `CREATE TABLE fixed_team_members (
-     id INTEGER PRIMARY KEY AUTOINCREMENT,
-     team_id INTEGER NOT NULL REFERENCES fixed_teams(id) ON DELETE CASCADE,
-     nickname TEXT NOT NULL, weapon TEXT NOT NULL DEFAULT '',
-     role TEXT NOT NULL DEFAULT '', note TEXT NOT NULL DEFAULT '',
-     sort_order INTEGER NOT NULL DEFAULT 0)`,
 ];
 for (const ddl of DDL) await db.prepare(ddl).run();
 
@@ -190,11 +180,6 @@ if (want('tenants')) {
   const prof = await repo.getTenantRow(db, 'alpha');
   check('updateTenantProfile all six', !!prof && prof.guild_name === '甲改' && prof.announcement === '新公告'
     && prof.slogan === '口号' && prof.master_name === '掌门' && prof.logo_url === 'http://l' && prof.bg_image_url === 'http://b');
-
-  await repo.updateTenantFixedTeams(db, 'alpha', 1);
-  eq('updateTenantFixedTeams 1', (await repo.getTenantRow(db, 'alpha'))?.feature_fixed_teams, 1);
-  await repo.updateTenantFixedTeams(db, 'alpha', 0);
-  eq('updateTenantFixedTeams 0', (await repo.getTenantRow(db, 'alpha'))?.feature_fixed_teams, 0);
 
   // cascade: seed signups + results under alpha's events and beta's event
   const evA = await db.prepare("SELECT id FROM events WHERE tenant='alpha' LIMIT 1").first();
@@ -641,11 +626,10 @@ if (want('reference')) {
   eq('listAffixMaxValues', (await ref.listAffixMaxValues(db)).length, 2);
 }
 
-/* ---------------- heirloom state + fixed teams ---------------- */
+/* ---------------- heirloom state ---------------- */
 if (want('state')) {
-  console.log('== heirloom state + fixed teams repositories on real D1 ==');
+  console.log('== heirloom state repositories on real D1 ==');
   const hl = await import('../src/domains/gear/heirloom.ts');
-  const ft = await import('../src/domains/guilds/fixedTeams.ts');
 
   await hl.ensureHeirloomTables(db);
   await hl.insertHeirloomItemPush(db, { tenant: 'g1', discordId: 'U1', buildSig: '校|套', itemHash: 'h1', createdAt: 100 });
@@ -659,24 +643,6 @@ if (want('state')) {
   await hl.upsertHeirloomSetState(db, { tenant: 'g1', discordId: 'U1', buildSig: '校|套', complete: 0, updatedAt: 201 });
   eq('set state upsert conflict updates', (await hl.getHeirloomSetState(db, 'g1', 'U1', '校|套'))?.complete, 0);
 
-  const t1 = await ft.insertFixedTeam(db, { tenant: 'g1', name: '固定一队', description: 'd' });
-  const t2 = await ft.insertFixedTeam(db, { tenant: 'g2', name: '别业队', description: '' });
-  check('insertFixedTeam ids', t1.last_row_id > 0 && t2.last_row_id > t1.last_row_id);
-  eq('listFixedTeams tenant-scoped', (await ft.listFixedTeams(db, 'g1')).map((r) => r.name), ['固定一队']);
-  eq('team ownership probe wrong tenant', await ft.getFixedTeamIdForTenant(db, t1.last_row_id, 'g2'), null);
-  const m1 = await ft.insertFixedTeamMember(db, { teamId: t1.last_row_id, nickname: '队员甲', weapon: '牵丝·霖', role: '奶', note: '', sortOrder: 2 });
-  const m2 = await ft.insertFixedTeamMember(db, { teamId: t1.last_row_id, nickname: '队员乙', weapon: '', role: '输出', note: '', sortOrder: 1 });
-  eq('listFixedTeamMembers ordered', (await ft.listFixedTeamMembers(db, t1.last_row_id)).map((r) => r.nickname), ['队员乙', '队员甲']);
-  eq('member ownership probe', (await ft.getFixedTeamMemberIdOwned(db, m1.last_row_id, 'g1'))?.id, m1.last_row_id);
-  eq('member ownership probe wrong tenant', await ft.getFixedTeamMemberIdOwned(db, m1.last_row_id, 'g2'), null);
-  await ft.updateFixedTeamFields(db, t1.last_row_id, { name: '改名队' });
-  eq('updateFixedTeamFields', (await ft.listFixedTeams(db, 'g1'))[0].name, '改名队');
-  await ft.updateFixedTeamMemberFields(db, m2.last_row_id, { role: '奶' });
-  eq('updateFixedTeamMemberFields', (await ft.listFixedTeamMembers(db, t1.last_row_id))[0].role, '奶');
-  eq('deleteFixedTeamMemberById', (await ft.deleteFixedTeamMemberById(db, m2.last_row_id)).changes, 1);
-  await ft.deleteFixedTeamWithMembers(db, t1.last_row_id);
-  eq('deleteFixedTeamWithMembers removes team', await ft.listFixedTeams(db, 'g1'), []);
-  eq('deleteFixedTeamWithMembers removes members', await ft.listFixedTeamMembers(db, t1.last_row_id), []);
 }
 
 /* ---------------- lazy DDL ownership (ensures live in repositories) --- */

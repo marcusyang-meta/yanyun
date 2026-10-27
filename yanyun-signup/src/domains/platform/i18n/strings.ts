@@ -676,10 +676,7 @@ export const errors_cannotManageServer = (fbs: FbsRuntime) => fbs._("你需要�
 export const errors_adminOnly = (fbs: FbsRuntime) => fbs._("只有所绑服务器的管理员可以执行此操作", null, { hk: "2HbOE6" });
 export const errors_webhookInvalid = (fbs: FbsRuntime) => fbs._("Webhook 地址格式不正确", null, { hk: "4lZy7D" });
 export const errors_discordIdInvalid = (fbs: FbsRuntime) => fbs._("Discord 服务器 ID 格式不正确", null, { hk: "RA9O9" });
-export const errors_teamNameRequired = (fbs: FbsRuntime) => fbs._("缺少队伍名", null, { hk: "4ljqHt" });
 export const errors_noFieldsToUpdate = (fbs: FbsRuntime) => fbs._("没有可更新的字段", null, { hk: "2ogJaD" });
-export const errors_teamNotFound = (fbs: FbsRuntime) => fbs._("未找到该固定队", null, { hk: "47SHIv" });
-export const errors_teamMemberNotFound = (fbs: FbsRuntime) => fbs._("未找到该队员", null, { hk: "444VWS" });
 export const errors_signupNotFound = (fbs: FbsRuntime) => fbs._("未找到该报名记录", null, { hk: "3459CS" });
 export const errors_resultNotFound = (fbs: FbsRuntime) => fbs._("未找到该成绩", null, { hk: "20venj" });
 export const errors_resultTeamRequired = (fbs: FbsRuntime) => fbs._("缺少队伍名", null, { hk: "2JgPSF" });
@@ -697,7 +694,6 @@ export const guildAdmin_lockedBody = (fbs: FbsRuntime) => fbs._("只有该百业
 export const guildAdmin_backLink = (fbs: FbsRuntime) => fbs._("‹ 返回百业", null, { hk: "4EGMEL" });
 export const guildAdmin_tabProfile = (fbs: FbsRuntime) => fbs._("资料", null, { hk: "3uMNas" });
 export const guildAdmin_tabDiscord = (fbs: FbsRuntime) => fbs._("Discord", null, { hk: "3CuaG7" });
-export const guildAdmin_tabTeams = (fbs: FbsRuntime) => fbs._("固定队", null, { hk: "2dVALF" });
 export const guildAdmin_tabEvents = (fbs: FbsRuntime) => fbs._("活动", null, { hk: "26reCQ" });
 export const guildAdmin_tabGuides = (fbs: FbsRuntime) => fbs._("攻略数据", null, { hk: "2Nr9CU" });
 export const guildAdmin_saveButton = (fbs: FbsRuntime) => fbs._("保存", null, { hk: "qQ7uT" });
@@ -731,18 +727,8 @@ export const guildAdmin_reminderOffsetsLabel = (fbs: FbsRuntime) => fbs._("提�
 export const guildAdmin_reminderOffsetOption = (fbs: FbsRuntime, p?: StringParams) => fbs._("提前 {minutes} 分钟", [fbs._param("minutes", pv(p, "minutes"))], { hk: "2snnwp" });
 export const guildAdmin_reminderCustomTextLabel = (fbs: FbsRuntime) => fbs._("自定义提醒文案", null, { hk: "10PDxk" });
 export const guildAdmin_reminderCustomTextHint = (fbs: FbsRuntime) => fbs._("一行文字，会出现在提醒卡片里；最多 100 字，留空不显示。第一次提前提醒会通知所有人，之后的只催还没就位的人。", null, { hk: "3D79h6" });
-export const guildAdmin_featuresTitle = (fbs: FbsRuntime) => fbs._("功能开关", null, { hk: "2Zv8dC" });
-export const guildAdmin_fixedTeamsLabel = (fbs: FbsRuntime) => fbs._("固定队", null, { hk: "spJBO" });
 export const guildAdmin_visibilityTitle = (fbs: FbsRuntime) => fbs._("可见性", null, { hk: "3J6SQ2" });
 export const guildAdmin_devOnlyLabel = (fbs: FbsRuntime) => fbs._("仅开发环境可见", null, { hk: "12OF7C" });
-export const guildAdmin_teamsTitle = (fbs: FbsRuntime) => fbs._("固定队管理", null, { hk: "1UlfD7" });
-export const guildAdmin_teamNameLabel = (fbs: FbsRuntime) => fbs._("队伍名", null, { hk: "1PHIDW" });
-export const guildAdmin_teamDescLabel = (fbs: FbsRuntime) => fbs._("队伍简介", null, { hk: "3ExsmT" });
-export const guildAdmin_teamEmpty = (fbs: FbsRuntime) => fbs._("暂无固定队。", null, { hk: "ARcPe" });
-export const guildAdmin_memberNicknameLabel = (fbs: FbsRuntime) => fbs._("昵称", null, { hk: "4pnjFB" });
-export const guildAdmin_memberWeaponLabel = (fbs: FbsRuntime) => fbs._("流派（武器）", null, { hk: "1jgmxy" });
-export const guildAdmin_memberNoteLabel = (fbs: FbsRuntime) => fbs._("备注", null, { hk: "k4vnp" });
-export const guildAdmin_addMemberButton = (fbs: FbsRuntime) => fbs._("加队员", null, { hk: "1VKTY1" });
 export const guildAdmin_eventsTitle = (fbs: FbsRuntime) => fbs._("活动管理", null, { hk: "4xCOb0" });
 export const guildAdmin_eventEmpty = (fbs: FbsRuntime) => fbs._("暂无活动。", null, { hk: "3CAWZW" });
 export const guildAdmin_eventTitleLabel = (fbs: FbsRuntime) => fbs._("标题", null, { hk: "Z67in" });
@@ -1453,10 +1439,7 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"errors.adminOnly": errors_adminOnly,
 	"errors.webhookInvalid": errors_webhookInvalid,
 	"errors.discordIdInvalid": errors_discordIdInvalid,
-	"errors.teamNameRequired": errors_teamNameRequired,
 	"errors.noFieldsToUpdate": errors_noFieldsToUpdate,
-	"errors.teamNotFound": errors_teamNotFound,
-	"errors.teamMemberNotFound": errors_teamMemberNotFound,
 	"errors.signupNotFound": errors_signupNotFound,
 	"errors.resultNotFound": errors_resultNotFound,
 	"errors.resultTeamRequired": errors_resultTeamRequired,
@@ -1474,7 +1457,6 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"guildAdmin.backLink": guildAdmin_backLink,
 	"guildAdmin.tabProfile": guildAdmin_tabProfile,
 	"guildAdmin.tabDiscord": guildAdmin_tabDiscord,
-	"guildAdmin.tabTeams": guildAdmin_tabTeams,
 	"guildAdmin.tabEvents": guildAdmin_tabEvents,
 	"guildAdmin.tabGuides": guildAdmin_tabGuides,
 	"guildAdmin.saveButton": guildAdmin_saveButton,
@@ -1508,18 +1490,8 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"guildAdmin.reminderOffsetOption": guildAdmin_reminderOffsetOption,
 	"guildAdmin.reminderCustomTextLabel": guildAdmin_reminderCustomTextLabel,
 	"guildAdmin.reminderCustomTextHint": guildAdmin_reminderCustomTextHint,
-	"guildAdmin.featuresTitle": guildAdmin_featuresTitle,
-	"guildAdmin.fixedTeamsLabel": guildAdmin_fixedTeamsLabel,
 	"guildAdmin.visibilityTitle": guildAdmin_visibilityTitle,
 	"guildAdmin.devOnlyLabel": guildAdmin_devOnlyLabel,
-	"guildAdmin.teamsTitle": guildAdmin_teamsTitle,
-	"guildAdmin.teamNameLabel": guildAdmin_teamNameLabel,
-	"guildAdmin.teamDescLabel": guildAdmin_teamDescLabel,
-	"guildAdmin.teamEmpty": guildAdmin_teamEmpty,
-	"guildAdmin.memberNicknameLabel": guildAdmin_memberNicknameLabel,
-	"guildAdmin.memberWeaponLabel": guildAdmin_memberWeaponLabel,
-	"guildAdmin.memberNoteLabel": guildAdmin_memberNoteLabel,
-	"guildAdmin.addMemberButton": guildAdmin_addMemberButton,
 	"guildAdmin.eventsTitle": guildAdmin_eventsTitle,
 	"guildAdmin.eventEmpty": guildAdmin_eventEmpty,
 	"guildAdmin.eventTitleLabel": guildAdmin_eventTitleLabel,

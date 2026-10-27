@@ -19,7 +19,6 @@ export type GuildsStringKey =
   | 'guildAdmin.backLink'
   | 'guildAdmin.tabProfile'
   | 'guildAdmin.tabDiscord'
-  | 'guildAdmin.tabTeams'
   | 'guildAdmin.tabEvents'
   | 'guildAdmin.tabGuides'
   | 'guildAdmin.saveButton'
@@ -53,18 +52,8 @@ export type GuildsStringKey =
   | 'guildAdmin.reminderOffsetOption'
   | 'guildAdmin.reminderCustomTextLabel'
   | 'guildAdmin.reminderCustomTextHint'
-  | 'guildAdmin.featuresTitle'
-  | 'guildAdmin.fixedTeamsLabel'
   | 'guildAdmin.visibilityTitle'
   | 'guildAdmin.devOnlyLabel'
-  | 'guildAdmin.teamsTitle'
-  | 'guildAdmin.teamNameLabel'
-  | 'guildAdmin.teamDescLabel'
-  | 'guildAdmin.teamEmpty'
-  | 'guildAdmin.memberNicknameLabel'
-  | 'guildAdmin.memberWeaponLabel'
-  | 'guildAdmin.memberNoteLabel'
-  | 'guildAdmin.addMemberButton'
   | 'guildAdmin.eventsTitle'
   | 'guildAdmin.eventEmpty'
   | 'guildAdmin.eventTitleLabel'
@@ -143,7 +132,6 @@ export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'guildAdmin.backLink',
   'guildAdmin.tabProfile',
   'guildAdmin.tabDiscord',
-  'guildAdmin.tabTeams',
   'guildAdmin.tabEvents',
   'guildAdmin.tabGuides',
   'guildAdmin.saveButton',
@@ -177,18 +165,8 @@ export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'guildAdmin.reminderOffsetOption',
   'guildAdmin.reminderCustomTextLabel',
   'guildAdmin.reminderCustomTextHint',
-  'guildAdmin.featuresTitle',
-  'guildAdmin.fixedTeamsLabel',
   'guildAdmin.visibilityTitle',
   'guildAdmin.devOnlyLabel',
-  'guildAdmin.teamsTitle',
-  'guildAdmin.teamNameLabel',
-  'guildAdmin.teamDescLabel',
-  'guildAdmin.teamEmpty',
-  'guildAdmin.memberNicknameLabel',
-  'guildAdmin.memberWeaponLabel',
-  'guildAdmin.memberNoteLabel',
-  'guildAdmin.addMemberButton',
   'guildAdmin.eventsTitle',
   'guildAdmin.eventEmpty',
   'guildAdmin.eventTitleLabel',

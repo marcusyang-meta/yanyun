@@ -11,12 +11,11 @@ import {
   sqliteTable,
   text,
   uniqueIndex,
-  index,
 } from 'drizzle-orm/sqlite-core';
 
 
 /* ---------------- tenants [ddl schema.sql + v7 alt; slogan/master_name/
-   logo_url/feature_fixed_teams qry] ---------------- */
+   logo_url qry] ---------------- */
 export const tenants = sqliteTable('tenants', {
   slug: text('slug').primaryKey(),
   guildName: text('guild_name').notNull(),
@@ -29,7 +28,6 @@ export const tenants = sqliteTable('tenants', {
   masterName: text('master_name'),
   logoUrl: text('logo_url'),
   bgImageUrl: text('bg_image_url'),
-  featureFixedTeams: integer('feature_fixed_teams'),
 });
 
 /* ---------------- settings [ddl schema.sql / v2 rebuild] -------------- */
@@ -39,29 +37,6 @@ export const settings = sqliteTable('settings', {
   value: text('value').notNull().default(''),
 }, (t) => [
   primaryKey({ columns: [t.tenant, t.key] }),
-]);
-
-/* ---------------- fixed teams [ddl v7] -------------------------------- */
-export const fixedTeams = sqliteTable('fixed_teams', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  tenant: text('tenant').notNull(),
-  name: text('name').notNull(),
-  description: text('description').notNull().default(''),
-  createdAt: text('created_at').notNull().default(sql`(datetime('now', 'localtime'))`),
-}, (t) => [
-  index('idx_fixed_teams_tenant').on(t.tenant),
-]);
-
-export const fixedTeamMembers = sqliteTable('fixed_team_members', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  teamId: integer('team_id').notNull().references(() => fixedTeams.id, { onDelete: 'cascade' }),
-  nickname: text('nickname').notNull(),
-  weapon: text('weapon').notNull().default(''),
-  role: text('role').notNull().default(''),
-  note: text('note').notNull().default(''),
-  sortOrder: integer('sort_order').notNull().default(0),
-}, (t) => [
-  index('idx_ftm_team').on(t.teamId),
 ]);
 
 /* ---------------- guild avatars [ddl guildavatar.js lazy] -------------- */
