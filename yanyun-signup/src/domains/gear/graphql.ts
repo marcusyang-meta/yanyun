@@ -3,6 +3,7 @@ import type { Context } from '../platform/context.ts';
 import {
   clampBlocksVersion, substituteForVersion, weekWindowUtc, startsAtEpoch,
   fmtStartsAt, groupByLocalDay, TYPE_SHORT_KEY, HEALER_SECT,
+  getEffectiveLimits, getOcrBatchesUsedToday, recordOcrBatch,
 } from '../platform/index.ts';
 import { tlCalculateExcel } from './index.ts';
 import { getUserServers, getGuildNick, maybeRefreshGuildNicks, getUserLocalePref, setUserLocalePref } from '../identity/auth.ts';
@@ -28,7 +29,7 @@ import {
 } from '../groupings/index.ts';
 import {
   listGearItems, insertGearItem, updateGearItemRow, deleteGearItemRow,
-  listGearBuilds, insertGearBuild, deleteGearBuildRow,
+  listGearBuilds, insertGearBuild, deleteGearBuildRow, countGearItemRows,
 } from './index.ts';
 import {
   GP_SLOTS, GP_GEAR_SLOTS, GP_AFFIX, GP_BUILDS, GP_SLOTS_BIG, GP_SLOTS_SMALL,
@@ -53,6 +54,11 @@ import {
   PayloadBase, GroupingPayloadShell, SeatPayloadShell, DeletePayloadShell,
   CreateGuildPayloadShell, UpdateLocalePayloadShell, uFail, gFail, sFail, dFail, cFail,
 } from '../platform/graphql-base.ts';
+
+/* Parameterized server error copy (errText carries no params). */
+function errTextP(ctx: Context, code: string, params: Record<string, number>) {
+  return translate('errors', code, (ctx && ctx.locale) || 'zh-CN', params);
+}
 
 export const TIAOLV_MAX = { mainAttr: 88.4, outerAtk: 139.6, accuracy: 0.144, crit: 0.162, critDamage: 0.081, sectAttr: 79.2 };
 // Sect weights (the user's own rule): Bellstrike affinity x3, crit builds crit x3, 裂石·威 no bonus, 牵丝·霖 healing-oriented.
@@ -192,13 +198,26 @@ export class GradPageShell extends ShellBase {
   genGearDimRows(){ return GP_DIM_ROWS; }
   genGearQuickBarNames(){ return GP_QUICK_BAR_NAMES; }
   genGearResDefault(){ return 1.85; }
+  /* Library usage vs the caller's effective capacity (limits service is
+   * the only source of the number; anonymous callers have no library). */
+  async genGearUsageCount(){
+    const user = this.ctx.user;
+    if (!user) return 0;
+    return countGearItemRows(this.db, user.discordId);
+  }
+  async genGearUsageLimit(){
+    const user = this.ctx.user;
+    const limits = await getEffectiveLimits(this.db, { discordId: user ? user.discordId : '' });
+    return limits.gearItemCapacity;
+  }
 }
 
 export const GEAR_DATA_RESOLVERS: Record<string, any> = {};
 for (const f of ['gearSlots', 'gearGearSlots', 'gearAffixes', 'gearBuilds', 'gearSlotsBig', 'gearSlotsSmall',
   'gearBaseFields', 'gearXinfa', 'gearTalentRows', 'gearDingyinRows', 'gearDingyinLeft', 'gearDingyinRightMax', 'gearWuxueNames',
   'gearBows', 'gearPasteNames', 'gearNameToClass', 'gearSlotAliases', 'gearOcrAliases', 'gearLegacyKeys',
-  'gearClassLabels', 'gearSchoolTags', 'gearDemoKit', 'gearDimRows', 'gearQuickBarNames', 'gearResDefault']) {
+  'gearClassLabels', 'gearSchoolTags', 'gearDemoKit', 'gearDimRows', 'gearQuickBarNames', 'gearResDefault',
+  'gearUsageCount', 'gearUsageLimit']) {
   const genName = 'gen' + f[0].toUpperCase() + f.slice(1);
   GEAR_DATA_RESOLVERS[f] = (p: any) => p[genName]();
 }
@@ -281,6 +300,8 @@ export const GEAR_TEXT_RESOLVERS = defineTextGens(GradPageShell, [
  ['gearMyBuildsTitle', 'gear', 'myBuildsTitle'],
   ['gearLoginHint', 'gear', 'loginHint'],
   ['gearLibCountTemplate', 'gear', 'libCountTemplate'],
+  ['gearUsageTemplate', 'gear', 'usageTemplate'],
+  ['gearUsageNearLimitText', 'gear', 'usageNearLimitText'],
   ['gearFormSlotLabel', 'gear', 'formSlotLabel'],
   ['gearFormNameLabel', 'gear', 'formNameLabel'],
   ['gearFormNamePlaceholder', 'gear', 'formNamePlaceholder'],
@@ -578,6 +599,11 @@ export const gearResolvers = {
       if (!rateLimit('mut:gearitem:' + getClientIp(ctx.request), 60)) {
         return { ok: false, item: null, error: errText(ctx, 'rateLimited'), errorCode: 'rateLimited' };
       }
+      const limits = await getEffectiveLimits(ctx.env.DB, { discordId: ctx.user.discordId });
+      const stored = await countGearItemRows(ctx.env.DB, ctx.user.discordId);
+      if (stored >= limits.gearItemCapacity) {
+        return { ok: false, item: null, error: errTextP(ctx, 'gearCapacityReached', { limit: limits.gearItemCapacity }), errorCode: 'gearCapacityReached' };
+      }
       const gear = gpSanitizeGearData({
         slot: input.slot, name: input.name || '', lines: input.lines || [],
         dingyin: input.dingyin || null, schools: input.schools || [],
@@ -615,14 +641,38 @@ export const gearResolvers = {
       return { ok: true, error: null, errorCode: null };
     },
 
-    importGearItems: async (_: any, { items, loadout }: any, ctx: Context) => {
+    importGearItems: async (_: any, { items, loadout, source, imageCount }: any, ctx: Context) => {
       if (!ctx.user) return { ok: false, items: [], autoSelect: [], error: errText(ctx, 'loginRequired'), errorCode: 'loginRequired' };
       if (!rateLimit('mut:gearimport:' + getClientIp(ctx.request), 20)) {
         return { ok: false, items: [], autoSelect: [], error: errText(ctx, 'rateLimited'), errorCode: 'rateLimited' };
       }
       const db = ctx.env.DB, did = ctx.user.discordId;
+      const list = items || [];
+      const limits = await getEffectiveLimits(db, { discordId: did });
+      const isOcr = source === 'ocr';
+      const now = Date.now();
+      if (isOcr) {
+        // Batch-OCR metering (limits service values; the daily count is
+        // server-side in usage_counters). A missing/garbled imageCount
+        // falls back to the item count — the batch recognized at least
+        // the items it carries.
+        const imgs = typeof imageCount === 'number' && imageCount > 0 ? Math.floor(imageCount) : list.length;
+        if (imgs > limits.ocrBatchImages) {
+          return { ok: false, items: [], autoSelect: [], error: errTextP(ctx, 'gearOcrBatchTooLarge', { limit: limits.ocrBatchImages, n: imgs }), errorCode: 'gearOcrBatchTooLarge' };
+        }
+        const usedToday = await getOcrBatchesUsedToday(db, did, now);
+        if (usedToday >= limits.ocrBatchesPerDay) {
+          return { ok: false, items: [], autoSelect: [], error: errTextP(ctx, 'gearOcrDailyLimit', { limit: limits.ocrBatchesPerDay }), errorCode: 'gearOcrDailyLimit' };
+        }
+      }
+      // Capacity: the whole batch lands or none of it does — the old
+      // silent slice(0, 200) truncation is gone.
+      const stored = await countGearItemRows(db, did);
+      if (stored + list.length > limits.gearItemCapacity) {
+        return { ok: false, items: [], autoSelect: [], error: errTextP(ctx, 'gearImportOverflow', { n: list.length, total: stored + list.length, limit: limits.gearItemCapacity }), errorCode: 'gearImportOverflow' };
+      }
       const saved = [];
-      for (const input of (items || []).slice(0, 200)) {
+      for (const input of list) {
         const gear = gpSanitizeGearData({
           slot: input.slot, name: input.name || '', lines: input.lines || [],
           dingyin: input.dingyin || null, schools: input.schools || [],
@@ -639,6 +689,7 @@ export const gearResolvers = {
           else if (!lo['副武器']) { lo['副武器'] = it.id; autoSelect.push({ slot: '副武器', gearId: it.id }); }
         } else if (!lo[it.slot]) { lo[it.slot] = it.id; autoSelect.push({ slot: it.slot, gearId: it.id }); }
       }
+      if (isOcr) await recordOcrBatch(db, did, now);
       return { ok: true, items: saved, autoSelect, error: null, errorCode: null };
     },
 

@@ -889,6 +889,10 @@ type GradPage {
   gearMyBuildsTitle: String!
   gearLoginHint: String!
   gearLibCountTemplate: String!
+  gearUsageCount: Int!
+  gearUsageLimit: Int!
+  gearUsageTemplate: String!
+  gearUsageNearLimitText: String!
   gearFormSlotLabel: String!
   gearFormNameLabel: String!
   gearFormNamePlaceholder: String!
@@ -1143,7 +1147,7 @@ type Mutation {
   addGearItem(input: GearItemCreateInput!): GearItemPayload!
   updateGearItem(id: Int!, input: GearItemCreateInput!): GearItemPayload!
   deleteGearItem(id: Int!): GearOkPayload!
-  importGearItems(items: [GearItemCreateInput!]!, loadout: [GearLoadoutEntryInput!]): GearImportResult!
+  importGearItems(items: [GearItemCreateInput!]!, loadout: [GearLoadoutEntryInput!], source: String, imageCount: Int): GearImportResult!
   saveGearBuild(input: GearBuildSaveInput!): GearBuildPayload!
   deleteGearBuild(id: Int!): GearOkPayload!
 }

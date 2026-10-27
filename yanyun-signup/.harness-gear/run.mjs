@@ -42,7 +42,7 @@ function toRawRows(sqlText, rows) {
 /* ---------------- FakeDB (in-memory tables routed by SQL shape) ---------------- */
 const SECT_NAMES = ['鸣金·虹', '鸣金·影', '牵丝·玉', '牵丝·霖', '牵丝·翊', '裂石·威', '裂石·钧', '破竹·樽', '破竹·鸢', '破竹·尘', '破竹·风'];
 const schoolRows = SECT_NAMES.map((name, i) => ({ name, slug: 'sect-' + i, short: '', family: name.split('·')[0], color: null, attr: '', talent_desc: null }));
-const tables = { user_gear_items: [], user_gear_builds: [] };
+const tables = { user_gear_items: [], user_gear_builds: [], usage_counters: [] };
 let rowId = 0;
 function stmt(sql) {
   // Data-layer (Drizzle) SQL normalization: strip quotes (routing match only; assertions unchanged).
@@ -52,8 +52,15 @@ function stmt(sql) {
     async raw() { const res = await this.all(); return toRawRows(sql, (res && res.results) || []); },
     async first() { return null; },
     async all() {
+      if (sql.includes('COUNT(*)') && sql.includes('FROM user_gear_items')) {
+        return { results: [{ n: tables.user_gear_items.filter((r) => r.discord_id === String(q._b[0])).length }] };
+      }
       if (sql.includes('FROM user_gear_items')) {
         return { results: tables.user_gear_items.filter((r) => r.discord_id === String(q._b[0])) };
+      }
+      if (sql.includes('FROM usage_counters')) {
+        const rows = tables.usage_counters.filter((r) => r.discord_id === String(q._b[0]) && r.metric === q._b[1] && r.day === q._b[2]);
+        return { results: rows.map((r) => ({ count: r.count })) };
       }
       if (sql.includes('FROM user_gear_builds')) {
         return { results: tables.user_gear_builds.filter((r) => r.discord_id === String(q._b[0])) };
@@ -69,6 +76,12 @@ function stmt(sql) {
         const row = { id: ++rowId, discord_id: String(q._b[0]), slot: q._b[1], name: q._b[2], payload: q._b[3], created_at: q._b[4] };
         tables.user_gear_items.push(row);
         return { meta: { changes: 1, last_row_id: row.id } };
+      }
+      if (sql.startsWith('INSERT INTO usage_counters')) {
+        const [did, metric, day, by, now] = q._b;
+        const row = tables.usage_counters.find((r) => r.discord_id === String(did) && r.metric === metric && r.day === day);
+        if (row) { row.count += by; row.updated_at = now; } else { tables.usage_counters.push({ discord_id: String(did), metric, day, count: by, updated_at: now }); }
+        return { meta: { changes: 1 } };
       }
       if (sql.startsWith('INSERT INTO user_gear_builds')) {
         const row = { id: ++rowId, discord_id: String(q._b[0]), name: q._b[1], target_idx: q._b[2], payload: q._b[3], created_at: q._b[4] };
@@ -271,6 +284,59 @@ eq('zh affix tab label + source text', [r.data.sectPage.sectTabAffixLabel, r.dat
 r = await gql(GRAD_Q, { locale: 'en' });
 eq('en affix tab label', r.data.sectPage.sectTabAffixLabel, 'Graduation Affixes');
 eq('en sect + build names localized', (() => { const s = (r.data.sectPage.sects || []).find((x) => x.name === 'Bellstrike - Splendor'); return s ? s.gradBuilds[0].name : null; })(), 'Bellstrike - Splendor');
+
+/* ---------------- (12) Library capacity (limits service: 200) ---------------- */
+const C = { discordId: 'user-c', name: 'C' };
+const D = { discordId: 'user-d', name: 'D' };
+const E = { discordId: 'user-e', name: 'E' };
+const bulkItems = (n, tag) => Array.from({ length: n }, (_, i) => ({ slot: '环', name: tag + i, lines: [{ key: 'jin', val: 50 }] }));
+const importAs = (user, items, extra = {}) => gql('mutation($items: [GearItemCreateInput!]!, $lo: [GearLoadoutEntryInput!], $src: String, $ic: Int) { importGearItems(items: $items, loadout: $lo, source: $src, imageCount: $ic) { ok items { id } error errorCode } }', {
+  user, variables: { items, lo: [], src: extra.source ?? null, ic: extra.imageCount ?? null },
+});
+r = await importAs(C, bulkItems(199, 'c'));
+check('C import 199 ok', r.data.importGearItems.ok === true, JSON.stringify(r.data.importGearItems).slice(0, 200));
+r = await addItem(C, { slot: '环', name: 'c200', lines: [{ key: 'jin', val: 50 }] });
+check('C add 200th ok', r.data.addGearItem.ok === true, JSON.stringify(r.data.addGearItem).slice(0, 200));
+r = await gql('mutation($i: GearItemCreateInput!) { addGearItem(input: $i) { ok error errorCode } }', { user: C, variables: { i: { slot: '环', name: 'c201', lines: [{ key: 'jin', val: 50 }] } } });
+eq('C add 201st rejected at capacity', [r.data.addGearItem.ok, r.data.addGearItem.errorCode], [false, 'gearCapacityReached']);
+check('capacity error copy carries the limit', (r.data.addGearItem.error || '').includes('200'), r.data.addGearItem.error);
+r = await gql('{ gradPage { gearUsageCount gearUsageLimit gearUsageTemplate gearUsageNearLimitText } }', { user: C });
+eq('usage fields at capacity', [r.data.gradPage.gearUsageCount, r.data.gradPage.gearUsageLimit], [200, 200]);
+eq('usage template copy', r.data.gradPage.gearUsageTemplate, '已存 {n} / {limit} 件');
+eq('near-limit hint copy', r.data.gradPage.gearUsageNearLimitText, '装备库快满了，导入新装备前先清理不用的装备');
+r = await gql('{ gradPage { gearUsageCount gearUsageLimit } }');
+eq('anon usage reads 0 with the free limit', [r.data.gradPage.gearUsageCount, r.data.gradPage.gearUsageLimit], [0, 200]);
+
+/* ---------------- (13) Import overflow: whole batch rejected ---------------- */
+r = await importAs(D, bulkItems(150, 'd'));
+check('D import 150 ok', r.data.importGearItems.ok === true);
+r = await importAs(D, bulkItems(60, 'x'));
+eq('D import 60 more rejected as overflow', [r.data.importGearItems.ok, r.data.importGearItems.errorCode], [false, 'gearImportOverflow']);
+check('overflow copy states batch, total and limit', ['60', '210', '200'].every((s) => (r.data.importGearItems.error || '').includes(s)), r.data.importGearItems.error);
+r = await gql('{ myGearItems { id } }', { user: D });
+eq('D still holds exactly 150 (no silent truncation)', r.data.myGearItems.length, 150);
+eq('non-OCR imports never touch the OCR counter', tables.usage_counters.filter((x) => x.discord_id === 'user-d').length, 0);
+
+/* ---------------- (14) Batch-OCR metering: per-batch images + daily batches ---------------- */
+r = await importAs(E, bulkItems(3, 'e'), { source: 'ocr', imageCount: 21 });
+eq('OCR batch of 21 images rejected', [r.data.importGearItems.ok, r.data.importGearItems.errorCode], [false, 'gearOcrBatchTooLarge']);
+check('too-large copy states limit and batch size', ['20', '21'].every((s) => (r.data.importGearItems.error || '').includes(s)), r.data.importGearItems.error);
+r = await importAs(E, bulkItems(3, 'e'), { source: 'ocr', imageCount: 20 });
+check('OCR batch of 20 images ok', r.data.importGearItems.ok === true, JSON.stringify(r.data.importGearItems).slice(0, 200));
+for (let i = 0; i < 9; i++) {
+  r = await importAs(E, bulkItems(1, 'e' + i), { source: 'ocr', imageCount: 1 });
+  if (!r.data.importGearItems.ok) break;
+}
+check('OCR batches 2..10 of the day ok', r.data.importGearItems.ok === true, JSON.stringify(r.data.importGearItems).slice(0, 200));
+eq('counter accumulated to 10 across batches', tables.usage_counters.filter((x) => x.discord_id === 'user-e').reduce((a, x) => a + x.count, 0), 10);
+r = await importAs(E, bulkItems(1, 'eX'), { source: 'ocr', imageCount: 1 });
+eq('11th OCR batch of the day rejected', [r.data.importGearItems.ok, r.data.importGearItems.errorCode], [false, 'gearOcrDailyLimit']);
+check('daily-limit copy states the limit', (r.data.importGearItems.error || '').includes('10'), r.data.importGearItems.error);
+// Day rollover: move today's counter rows to a past day — the quota is
+// keyed by day, so today starts fresh without touching the old rows.
+for (const row of tables.usage_counters) if (row.discord_id === 'user-e') row.day = '2000-01-01';
+r = await importAs(E, bulkItems(1, 'eY'), { source: 'ocr', imageCount: 1 });
+check('after day rollover OCR import ok again', r.data.importGearItems.ok === true, JSON.stringify(r.data.importGearItems).slice(0, 200));
 
 console.log(`GEAR HARNESS pass=${pass} fail=${fail}`);
 fails.forEach((f) => console.log('FAIL', f));

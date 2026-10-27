@@ -48,6 +48,10 @@ export type PlatformStringKey =
   | 'errors.guildNotFound'
   | 'errors.gearNotFound'
   | 'errors.gearEmptyBuild'
+  | 'errors.gearCapacityReached'
+  | 'errors.gearImportOverflow'
+  | 'errors.gearOcrBatchTooLarge'
+  | 'errors.gearOcrDailyLimit'
   | 'errors.loginRequired'
   | 'errors.loginRequiredShort'
   | 'errors.localeUnsupported'
@@ -156,6 +160,10 @@ export const PLATFORM_STRING_KEYS: readonly PlatformStringKey[] = [
   'errors.guildNotFound',
   'errors.gearNotFound',
   'errors.gearEmptyBuild',
+  'errors.gearCapacityReached',
+  'errors.gearImportOverflow',
+  'errors.gearOcrBatchTooLarge',
+  'errors.gearOcrDailyLimit',
   'errors.loginRequired',
   'errors.loginRequiredShort',
   'errors.localeUnsupported',

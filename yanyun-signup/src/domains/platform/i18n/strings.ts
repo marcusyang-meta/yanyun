@@ -375,6 +375,8 @@ export const gear_libTitle = (fbs: FbsRuntime) => fbs._("装备库", null, { hk:
 export const gear_myLibTitle = (fbs: FbsRuntime) => fbs._("我的装备库", null, { hk: "A4N7v" });
 export const gear_myBuildsTitle = (fbs: FbsRuntime) => fbs._("我的方案", null, { hk: "oYfJC" });
 export const gear_libCountTemplate = (fbs: FbsRuntime, p?: StringParams) => fbs._("共 {n} 件", [fbs._param("n", pv(p, "n"))], { hk: "4dqmLi" });
+export const gear_usageTemplate = (fbs: FbsRuntime, p?: StringParams) => fbs._("已存 {n} / {limit} 件", [fbs._param("n", pv(p, "n")), fbs._param("limit", pv(p, "limit"))], { hk: "14arWz" });
+export const gear_usageNearLimitText = (fbs: FbsRuntime) => fbs._("装备库快满了，导入新装备前先清理不用的装备", null, { hk: "TKOLJ" });
 export const gear_formSlotLabel = (fbs: FbsRuntime) => fbs._("部位", null, { hk: "2nHDWF" });
 export const gear_formNameLabel = (fbs: FbsRuntime) => fbs._("名称", null, { hk: "3UMf5l" });
 export const gear_formNamePlaceholder = (fbs: FbsRuntime) => fbs._("装备名（可空）", null, { hk: "AZbHw" });
@@ -630,6 +632,14 @@ export const errors_createRateLimited = (fbs: FbsRuntime) => fbs._("创建太频
 export const errors_guildNotFound = (fbs: FbsRuntime) => fbs._("百业不存在", null, { hk: "399FaN" });
 export const errors_gearNotFound = (fbs: FbsRuntime) => fbs._("装备不存在或不属于你", null, { hk: "19Xtd5" });
 export const errors_gearEmptyBuild = (fbs: FbsRuntime) => fbs._("搭配为空", null, { hk: "FwMOi" });
+export const errors_gearCapacityReached = (fbs: FbsRuntime, p?: StringParams) => fbs._("装备库已满（上限 {limit} 件），删掉不用的装备后再添加", [fbs._param("limit", pv(p, "limit"))], { hk: "3ttZNE" });
+export const errors_gearImportOverflow = (fbs: FbsRuntime, p?: StringParams) => fbs._("本批 {n} 件会让装备库达到 {total} 件，超过上限 {limit} 件，整批未导入", [
+	fbs._param("n", pv(p, "n")),
+	fbs._param("total", pv(p, "total")),
+	fbs._param("limit", pv(p, "limit"))
+], { hk: "VPJti" });
+export const errors_gearOcrBatchTooLarge = (fbs: FbsRuntime, p?: StringParams) => fbs._("单批最多识别 {limit} 张截图，本批有 {n} 张，请分批导入", [fbs._param("limit", pv(p, "limit")), fbs._param("n", pv(p, "n"))], { hk: "tbHee" });
+export const errors_gearOcrDailyLimit = (fbs: FbsRuntime, p?: StringParams) => fbs._("今天的批量识别次数已达上限（{limit} 批），明天再试", [fbs._param("limit", pv(p, "limit"))], { hk: "2rAFg4" });
 export const errors_loginRequired = (fbs: FbsRuntime) => fbs._("请先登录 Discord 后再操作", null, { hk: "1OyxHy" });
 export const errors_loginRequiredShort = (fbs: FbsRuntime) => fbs._("请先登录 Discord", null, { hk: "gIKnp" });
 export const errors_localeUnsupported = (fbs: FbsRuntime) => fbs._("不支持的语言", null, { hk: "xZ6fm" });
@@ -1168,6 +1178,8 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"gear.myLibTitle": gear_myLibTitle,
 	"gear.myBuildsTitle": gear_myBuildsTitle,
 	"gear.libCountTemplate": gear_libCountTemplate,
+	"gear.usageTemplate": gear_usageTemplate,
+	"gear.usageNearLimitText": gear_usageNearLimitText,
 	"gear.formSlotLabel": gear_formSlotLabel,
 	"gear.formNameLabel": gear_formNameLabel,
 	"gear.formNamePlaceholder": gear_formNamePlaceholder,
@@ -1394,6 +1406,10 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"errors.guildNotFound": errors_guildNotFound,
 	"errors.gearNotFound": errors_gearNotFound,
 	"errors.gearEmptyBuild": errors_gearEmptyBuild,
+	"errors.gearCapacityReached": errors_gearCapacityReached,
+	"errors.gearImportOverflow": errors_gearImportOverflow,
+	"errors.gearOcrBatchTooLarge": errors_gearOcrBatchTooLarge,
+	"errors.gearOcrDailyLimit": errors_gearOcrDailyLimit,
 	"errors.loginRequired": errors_loginRequired,
 	"errors.loginRequiredShort": errors_loginRequiredShort,
 	"errors.localeUnsupported": errors_localeUnsupported,

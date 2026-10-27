@@ -91,6 +91,8 @@ export type GearStringKey =
   | 'gear.myLibTitle'
   | 'gear.myBuildsTitle'
   | 'gear.libCountTemplate'
+  | 'gear.usageTemplate'
+  | 'gear.usageNearLimitText'
   | 'gear.formSlotLabel'
   | 'gear.formNameLabel'
   | 'gear.formNamePlaceholder'
@@ -374,6 +376,8 @@ export const GEAR_STRING_KEYS: readonly GearStringKey[] = [
   'gear.myLibTitle',
   'gear.myBuildsTitle',
   'gear.libCountTemplate',
+  'gear.usageTemplate',
+  'gear.usageNearLimitText',
   'gear.formSlotLabel',
   'gear.formNameLabel',
   'gear.formNamePlaceholder',

@@ -24,7 +24,7 @@ import {
   events, signups, results, shortLinks, groupingTemplates, guildAvatars,
   bosses, dungeons, schools, schoolBis, schoolRotations, slotAffix, affixMax,
   userGearItems, userGearBuilds, heirloomItemPushes, heirloomSetState,
-  pushTokens, creatorBackfillLog, hubAuditLog,
+  pushTokens, usageCounters, creatorBackfillLog, hubAuditLog,
 } from '../../db/schema.ts';
 
 export const BACKUP_FORMAT = 'yanyun-backup';
@@ -57,6 +57,7 @@ export const BACKUP_ENTITIES: ReadonlyArray<readonly [string, SQLiteTable]> = [
   ['heirloom_item_pushes', heirloomItemPushes],
   ['heirloom_set_state', heirloomSetState],
   ['push_tokens', pushTokens],
+  ['usage_counters', usageCounters],
   ['creator_backfill_log', creatorBackfillLog],
   ['hub_audit_log', hubAuditLog],
 ];
