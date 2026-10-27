@@ -36,9 +36,19 @@
 //      while requests issued by the browser stayed pinned to the old
 //      schema for 90+ seconds and the render smoke still went red.
 //      The smoke lives in the browser channel, so readiness must be
-//      proven there too, not just from Node. Both segments share ONE
-//      deadline (--timeout-ms covers the whole wait, not each part).
-//      The probe documents are identical; only the transport differs.
+//      proven there too, not just from Node.
+//      Second lesson (PR #41's rerun on top of the first browser
+//      segment): the affinity unit is the browser PROCESS's connection
+//      pool. A single long-lived readiness browser drew fresh
+//      connections early, passed 3/3 polls by ~85s — and the smoke,
+//      which launches a FRESH Chromium process, drew stale connections
+//      ~48s later and failed on all three pages for its whole run.
+//      So every browser poll here launches its own fresh Chromium
+//      (fresh process, fresh temp profile), exactly like the smoke
+//      launches; "ready" means N consecutive independent fresh-process
+//      draws all serve the delta. Both segments share ONE deadline
+//      (--timeout-ms covers the whole wait, not each part). The probe
+//      documents are identical; only the transport differs.
 //
 // Scope boundaries (deliberate):
 //   - Signature-changed fields are probed by name only (presence);
@@ -235,9 +245,9 @@ async function missingFieldsDirect() {
 /* ---------- browser channel (same probes, Chromium transport) ---- */
 // Minimal CDP driver, mirrored from render-smoke.mjs on purpose: the
 // smoke file is assertion-frozen, so the skeleton is duplicated rather
-// than shared. One browser process, one page on the preview origin,
-// reused for every poll — the same network-service / connection-pool
-// channel the smoke's own requests travel through.
+// than shared. Each poll is a FRESH Chromium process with a fresh temp
+// profile (see header note 4): the connection pool is the affinity
+// unit, and the smoke draws a new one, so the probe must too.
 function findChrome() {
   if (process.env.CHROME_PATH && fs.existsSync(process.env.CHROME_PATH)) return process.env.CHROME_PATH;
   const candidates = ['/usr/bin/google-chrome', '/usr/bin/chromium', '/usr/bin/chromium-browser'];
@@ -255,11 +265,13 @@ function findChrome() {
   return candidates.find((p) => fs.existsSync(p)) || null;
 }
 
-async function openBrowserChannel() {
+let browserLaunches = 0;
+
+async function probeOnceBrowser() {
   const chromePath = findChrome();
   if (!chromePath) throw new Error('no Chromium binary found (set CHROME_PATH or install via playwright)');
   const { default: WebSocket } = await import('ws');
-  const port = 9700 + (process.pid % 200);
+  const port = 9700 + ((process.pid + browserLaunches++) % 200);
   const chrome = spawn(chromePath, [
     '--headless', '--disable-gpu', '--no-sandbox', '--disable-dev-shm-usage',
     `--remote-debugging-port=${port}`, '--window-size=1280,900',
@@ -267,7 +279,8 @@ async function openBrowserChannel() {
     'about:blank',
   ], { stdio: ['ignore', 'ignore', 'pipe'] });
   chrome.stderr.on('data', () => { /* drain */ });
-  const close = () => { try { chrome.kill('SIGKILL'); } catch { /* */ } };
+  let ws;
+  const close = () => { try { ws?.close(); } catch { /* */ } try { chrome.kill('SIGKILL'); } catch { /* */ } };
   try {
     let wsUrl = '';
     for (let i = 0; i < 60 && !wsUrl; i++) {
@@ -277,7 +290,7 @@ async function openBrowserChannel() {
       } catch { await sleep(500); }
     }
     if (!wsUrl) throw new Error('chrome DevTools endpoint never came up');
-    const ws = new WebSocket(wsUrl);
+    ws = new WebSocket(wsUrl);
     await new Promise((res, rej) => { ws.on('open', res); ws.on('error', rej); });
     let seq = 0;
     const pending = new Map();
@@ -322,17 +335,13 @@ async function openBrowserChannel() {
       }
       return messages;
     })()`;
-    const missingFieldsBrowser = async () => {
-      const r = await send('Runtime.evaluate', { expression: probeExpression, awaitPromise: true, returnByValue: true }, sessionId);
-      const messages = r?.result?.value;
-      if (!Array.isArray(messages)) throw new Error('browser probe returned no result');
-      if (messages.length === 1 && messages[0].startsWith('<')) throw new Error(messages[0].slice(1, -1));
-      return missingFromMessages(messages);
-    };
-    return { missingFieldsBrowser, close: () => { try { ws.close(); } catch { /* */ } close(); } };
-  } catch (e) {
+    const r = await send('Runtime.evaluate', { expression: probeExpression, awaitPromise: true, returnByValue: true }, sessionId);
+    const messages = r?.result?.value;
+    if (!Array.isArray(messages)) throw new Error('browser probe returned no result');
+    if (messages.length === 1 && messages[0].startsWith('<')) throw new Error(messages[0].slice(1, -1));
+    return missingFromMessages(messages);
+  } finally {
     close();
-    throw e;
   }
 }
 
@@ -378,20 +387,15 @@ if (directReadyAt < 0) failTimeout();
 console.log(`schema-readiness: direct channel serves the PR schema after ~${directReadyAt}s`);
 
 if (BROWSER) {
-  let channel;
-  try {
-    channel = await openBrowserChannel();
-  } catch (e) {
-    console.error(`schema-readiness: FAIL — could not open the browser channel: ${e.message}`);
+  // Fail fast (not after a budget of retries) if no Chromium exists at
+  // all — that is a job-setup error, not propagation lag.
+  if (!findChrome()) {
+    console.error('schema-readiness: FAIL — --browser requested but no Chromium binary found (set CHROME_PATH or install via playwright)');
     process.exit(1);
   }
-  try {
-    const browserReadyAt = await pollUntilReady('browser', channel.missingFieldsBrowser);
-    if (browserReadyAt < 0) failTimeout();
-    console.log(`schema-readiness: browser channel serves the PR schema after ~${browserReadyAt}s (shared budget ${TIMEOUT_MS}ms)`);
-  } finally {
-    channel.close();
-  }
+  const browserReadyAt = await pollUntilReady('browser', probeOnceBrowser);
+  if (browserReadyAt < 0) failTimeout();
+  console.log(`schema-readiness: browser channel serves the PR schema after ~${browserReadyAt}s (shared budget ${TIMEOUT_MS}ms)`);
 }
 console.log(`schema-readiness: PASS — preview serves the PR schema on every probed channel after ~${Math.round((Date.now() - started) / 1000)}s`);
 process.exit(0);

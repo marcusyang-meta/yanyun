@@ -227,7 +227,11 @@ How an AI agent (or a new engineer) starts working in this repo:
    turned out to be per-channel (PR #41's rerun: the direct channel
    healed in ~42s while browser-issued requests stayed pinned to the
    old schema for 90+ seconds) and the smoke lives in the browser
-   channel. One shared budget covers both polls, and the wait fails
+   channel. Each browser poll launches a fresh Chromium process: the
+   affinity unit is the process's connection pool, so a reused
+   readiness browser can pass while the smoke's fresh process still
+   draws the old schema (exactly what #41's next rerun showed). One
+   shared budget covers both polls, and the wait fails
    loudly if the delta never propagates — so a `Cannot query field`
    red in the smoke is now a real signal again, not the lag.
 8. **Merge and prove it.** Rebase onto the latest `master` immediately
