@@ -38,6 +38,10 @@ const libraryQuery = graphql`
       gearMyBuildsTitle
       gearLoginHint
       gearLibCountTemplate
+      gearUsageCount
+      gearUsageLimit
+      gearUsageTemplate
+      gearUsageNearLimitText
       gearFormSlotLabel
       gearFormNameLabel
       gearFormNamePlaceholder
@@ -222,8 +226,8 @@ const deleteItemMutation = graphql`
   }
 `;
 const importMutation = graphql`
-  mutation GearLibraryImportMutation($items: [GearItemCreateInput!]!, $loadout: [GearLoadoutEntryInput!]) {
-    importGearItems(items: $items, loadout: $loadout) {
+  mutation GearLibraryImportMutation($items: [GearItemCreateInput!]!, $loadout: [GearLoadoutEntryInput!], $source: String, $imageCount: Int) {
+    importGearItems(items: $items, loadout: $loadout, source: $source, imageCount: $imageCount) {
       ok
       error
       items { id slot name lines { key val } dingyin { name val } schools warnings }
@@ -403,16 +407,19 @@ export default function GearLibrary(props: {
   const importItems = (
     list: Array<{ slot: string; name: string; lines: { key: string; val: number }[]; dingyin: { name: string; val: number } | null; schools: string[] }>,
     onDone?: (added: GearItem[]) => void,
+    opts?: { source?: string; imageCount?: number; onFailed?: () => void },
   ) => {
     if (!list.length) return;
     commitImport({
       variables: {
         items: list,
         loadout: Object.entries(loadout).map(([slot, gearId]) => ({ slot, gearId })),
+        source: opts?.source ?? null,
+        imageCount: opts?.imageCount ?? null,
       },
       onCompleted: (resp) => {
         const r = resp.importGearItems;
-        if (!r.ok) { toast(r.error || t.gearCalcFailedText); return; }
+        if (!r.ok) { toast(r.error || t.gearCalcFailedText); opts?.onFailed?.(); return; }
         const added = r.items.map(mapItem);
         setItems((prev) => [...prev, ...added]);
         if (r.autoSelect.length) {
@@ -423,7 +430,7 @@ export default function GearLibrary(props: {
         onDone?.(added);
         syncLibrary();
       },
-      onError: () => toast(t.gearCalcFailedText),
+      onError: () => { toast(t.gearCalcFailedText); opts?.onFailed?.(); },
     });
   };
 
@@ -835,13 +842,16 @@ export default function GearLibrary(props: {
       )}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
         <span style={secTitle}>{libHeading}</span>
-        <span style={{ color: theme.muted, fontSize: 12 }}>{fill(t.gearLibCountTemplate, { n: items.length })}</span>
+        <span style={{ color: theme.muted, fontSize: 12 }}>{loggedIn ? fill(t.gearUsageTemplate, { n: t.gearUsageCount, limit: t.gearUsageLimit }) : fill(t.gearLibCountTemplate, { n: items.length })}</span>
         <button
           style={{ ...btnGold, marginLeft: 'auto', padding: '6px 14px', fontSize: 12.5, ...(addMode ? { boxShadow: 'inset 0 0 0 2px rgba(26,24,20,.5)' } : {}) }}
           disabled={!loggedIn}
           onClick={() => (addMode ? setAddMode(null) : setAddMode('paste'))}
         >{t.gearAddGearLabel}</button>
       </div>
+      {loggedIn && t.gearUsageLimit > 0 && t.gearUsageCount / t.gearUsageLimit >= 0.9 && (
+        <div style={{ color: theme.seal, fontSize: 12, marginTop: 2 }}>{t.gearUsageNearLimitText}</div>
+      )}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '0 0 10px', alignItems: 'center' }}>
         <button style={btnQuiet} disabled={!loggedIn} onClick={loadDemo}>{t.gearDemoLabel}</button>
         <button style={btnQuiet} onClick={exportFile}>{t.gearExportLabel}</button>
@@ -1021,7 +1031,7 @@ export default function GearLibrary(props: {
           loggedIn={loggedIn}
           engine={props.ocrEngine}
           registerEnqueue={registerBatchEnqueue}
-          onImport={(list, onDone) => importItems(list, (added) => onDone(added.length))}
+          onImport={(list, onDone, meta) => importItems(list, (added) => onDone(added.length), meta)}
         />
       </div>
 
