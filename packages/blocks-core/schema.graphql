@@ -773,6 +773,36 @@ type SettingsPage {
   settingsSavedText: String!
   localePref: String
   effectiveLocale: String!
+  accountSectionTitle: String!
+  accountExportLabel: String!
+  accountExportHint: String!
+  accountDeleteLabel: String!
+  accountDeleteHint: String!
+  accountReauthLabel: String!
+  accountReauthHint: String!
+  accountConfirmTitle: String!
+  accountConfirmIntro: String!
+  accountConsequenceCars: String!
+  accountConsequenceData: String!
+  accountConsequenceGuilds: String!
+  accountConsequenceResidual: String!
+  accountConsequenceReregister: String!
+  accountExportFirstHint: String!
+  accountUsernameLabel: String!
+  accountSubmitLabel: String!
+  accountBackLabel: String!
+  accountCancelDeletionLabel: String!
+  accountDeletionRequestedText: String!
+  accountDeletionCancelledText: String!
+  freshAuthAt: Int
+  accountPendingDeletion: AccountPendingDeletion
+}
+
+type AccountPendingDeletion {
+  executesAt: String!
+  daysLeft: Int!
+  accountPendingTitle: String!
+  accountPendingBody: String!
 }
 
 type UpdateLocalePayload {
@@ -781,6 +811,21 @@ type UpdateLocalePayload {
   errorCode: String
   localePref: String
   effectiveLocale: String!
+}
+
+type ExportMyDataPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  json: String
+  filename: String
+}
+
+type AccountDeletionPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  executesAt: String
 }
 
 type PushTokenPayload {
@@ -1123,6 +1168,9 @@ type Mutation {
   calcTiaolv(input: TiaolvInput!): TiaolvResult!
   calcGraduation(input: GraduationInput!): GraduationResult!
   updateMyLocale(locale: String): UpdateLocalePayload!
+  exportMyData: ExportMyDataPayload!
+  requestAccountDeletion(typedUsername: String!): AccountDeletionPayload!
+  cancelAccountDeletion: AccountDeletionPayload!
   registerPushToken(token: String!, platform: String): PushTokenPayload!
   unregisterPushToken(token: String!): PushTokenPayload!
   createGuild(input: CreateGuildInput!): CreateGuildPayload!
