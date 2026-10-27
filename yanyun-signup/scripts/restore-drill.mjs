@@ -130,6 +130,9 @@ await db.insert(S.heirloomSetState).values([
 await db.insert(S.pushTokens).values([
   { discordId: '1001', token: 'ExponentPushToken[drill]', platform: 'ios', updatedAt: 1700000000 },
 ]);
+await db.insert(S.usageCounters).values([
+  { discordId: '1001', metric: 'gear_ocr_batches', day: '2026-10-27', count: 3, updatedAt: 1700000000 },
+]);
 await db.insert(S.creatorBackfillLog).values([
   { eventId: 101, tenant: 'alpha', seatNickname: '甲服内名', resolvedDiscordId: '1001', outcome: 'stamped', createdAt: 1700000000 },
 ]);

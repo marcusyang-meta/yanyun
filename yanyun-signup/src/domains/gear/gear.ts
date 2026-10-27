@@ -48,6 +48,12 @@ export async function listGearItemRows(d1: D1Database, discordId: string): Promi
   return rows || [];
 }
 
+export async function countGearItemRows(d1: D1Database, discordId: string): Promise<number> {
+  const db = createDb(d1);
+  const row = await db.get<{ n: number }>(sql`SELECT COUNT(*) AS ${col('n')} FROM ${userGearItems} WHERE ${col('discord_id')} = ${discordId}`);
+  return row ? Number(row.n) || 0 : 0;
+}
+
 export async function insertGearItemRow(
   d1: D1Database,
   row: { discordId: string; slot: string; name: string; payload: string; createdAt: number },

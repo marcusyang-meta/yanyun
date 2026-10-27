@@ -41,6 +41,17 @@ export const errorLog = sqliteTable('error_log', {
   index('idx_error_log_at').on(t.at),
 ]);
 
+/* ---------------- usage counters [ddl chain 0003] ----------------- */
+export const usageCounters = sqliteTable('usage_counters', {
+  discordId: text('discord_id').notNull(),
+  metric: text('metric').notNull(),
+  day: text('day').notNull(),
+  count: integer('count').notNull().default(0),
+  updatedAt: integer('updated_at').notNull().default(0),
+}, (t) => [
+  primaryKey({ columns: [t.discordId, t.metric, t.day] }),
+]);
+
 /* ---------------- hub audit log [ddl chain baseline] --------------- */
 export const hubAuditLog = sqliteTable('hub_audit_log', {
   id: integer('id').primaryKey({ autoIncrement: true }),

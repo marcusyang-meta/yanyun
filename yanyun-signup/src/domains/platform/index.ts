@@ -1,6 +1,8 @@
 /* Platform domain service surface: push-token and error-log repositories,
  * i18n infrastructure, block vocab. Other domains import only from here. */
 export * from './pushTokens.ts';
+export * from './usageCounters.ts';
+export * from './limits.ts';
 export * from './errorLog.ts';
 export * from './hubAudit.ts';
 export * from './hub-audit.ts';

@@ -2475,6 +2475,12 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "fr": "{n} pièces",
       "zh-TW": "共 {n} 件"
     },
+    "usageTemplate": {
+      "zh-CN": "已存 {n} / {limit} 件"
+    },
+    "usageNearLimitText": {
+      "zh-CN": "装备库快满了，导入新装备前先清理不用的装备"
+    },
     "formSlotLabel": {
       "zh-CN": "部位",
       "en": "Slot",
@@ -3988,6 +3994,18 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "es": "El conjunto está vacío",
       "fr": "L’ensemble est vide",
       "zh-TW": "搭配為空"
+    },
+    "gearCapacityReached": {
+      "zh-CN": "装备库已满（上限 {limit} 件），删掉不用的装备后再添加"
+    },
+    "gearImportOverflow": {
+      "zh-CN": "本批 {n} 件会让装备库达到 {total} 件，超过上限 {limit} 件，整批未导入"
+    },
+    "gearOcrBatchTooLarge": {
+      "zh-CN": "单批最多识别 {limit} 张截图，本批有 {n} 张，请分批导入"
+    },
+    "gearOcrDailyLimit": {
+      "zh-CN": "今天的批量识别次数已达上限（{limit} 批），明天再试"
     },
     "loginRequired": {
       "zh-CN": "请先登录 Discord 后再操作",

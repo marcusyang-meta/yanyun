@@ -1041,6 +1041,10 @@ type GradPage {
   gearMyBuildsTitle: String!
   gearLoginHint: String!
   gearLibCountTemplate: String!
+  gearUsageCount: Int!
+  gearUsageLimit: Int!
+  gearUsageTemplate: String!
+  gearUsageNearLimitText: String!
   gearFormSlotLabel: String!
   gearFormNameLabel: String!
   gearFormNamePlaceholder: String!
@@ -2470,7 +2474,10 @@ extend type Mutation {
   deleteGearItem(id: Int!): GearOkPayload!
   # 批量导入 (文件导入/粘贴导入/OCR 批量共用); autoSelect 按传入的当前搭配
   # 复刻原站「导入后自动选入空位」: 武器先主后副, 其余取空位。
-  importGearItems(items: [GearItemCreateInput!]!, loadout: [GearLoadoutEntryInput!]): GearImportResult!
+  # source='ocr' 时为批量截图识别导入, imageCount 为本批截图张数, 服务端
+  # 按限额服务计量 (单批张数 + 每日批次); 所有导入都受装备库件数上限
+  # 约束, 超限整批拒绝、不截断。
+  importGearItems(items: [GearItemCreateInput!]!, loadout: [GearLoadoutEntryInput!], source: String, imageCount: Int): GearImportResult!
   saveGearBuild(input: GearBuildSaveInput!): GearBuildPayload!
   deleteGearBuild(id: Int!): GearOkPayload!
 }

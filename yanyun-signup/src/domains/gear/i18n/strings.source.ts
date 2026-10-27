@@ -124,6 +124,9 @@ export const gear_myLibTitle = (fbs: FbsAPI) =>fbs("我的装备库", "gear.myLi
 export const gear_myBuildsTitle = (fbs: FbsAPI) =>fbs("我的方案", "gear.myBuildsTitle");
 export const gear_libCountTemplate = (fbs: FbsAPI, p?: StringParams) =>
   fbs(["共 ", fbs.param("n", pv(p, "n")), " 件"], "gear.libCountTemplate");
+export const gear_usageTemplate = (fbs: FbsAPI, p?: StringParams) =>
+  fbs(["已存 ", fbs.param("n", pv(p, "n")), " / ", fbs.param("limit", pv(p, "limit")), " 件"], "gear.usageTemplate");
+export const gear_usageNearLimitText = (fbs: FbsAPI) =>fbs("装备库快满了，导入新装备前先清理不用的装备", "gear.usageNearLimitText");
 export const gear_formSlotLabel = (fbs: FbsAPI) =>fbs("部位", "gear.formSlotLabel");
 export const gear_formNameLabel = (fbs: FbsAPI) =>fbs("名称", "gear.formNameLabel");
 export const gear_formNamePlaceholder = (fbs: FbsAPI) =>fbs("装备名（可空）", "gear.formNamePlaceholder");

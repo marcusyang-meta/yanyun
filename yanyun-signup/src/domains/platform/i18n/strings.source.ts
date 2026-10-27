@@ -67,6 +67,14 @@ export const errors_createRateLimited = (fbs: FbsAPI) =>fbs("创建太频繁, �
 export const errors_guildNotFound = (fbs: FbsAPI) =>fbs("百业不存在", "errors.guildNotFound");
 export const errors_gearNotFound = (fbs: FbsAPI) =>fbs("装备不存在或不属于你", "errors.gearNotFound");
 export const errors_gearEmptyBuild = (fbs: FbsAPI) =>fbs("搭配为空", "errors.gearEmptyBuild");
+export const errors_gearCapacityReached = (fbs: FbsAPI, p?: StringParams) =>
+  fbs(["装备库已满（上限 ", fbs.param("limit", pv(p, "limit")), " 件），删掉不用的装备后再添加"], "errors.gearCapacityReached");
+export const errors_gearImportOverflow = (fbs: FbsAPI, p?: StringParams) =>
+  fbs(["本批 ", fbs.param("n", pv(p, "n")), " 件会让装备库达到 ", fbs.param("total", pv(p, "total")), " 件，超过上限 ", fbs.param("limit", pv(p, "limit")), " 件，整批未导入"], "errors.gearImportOverflow");
+export const errors_gearOcrBatchTooLarge = (fbs: FbsAPI, p?: StringParams) =>
+  fbs(["单批最多识别 ", fbs.param("limit", pv(p, "limit")), " 张截图，本批有 ", fbs.param("n", pv(p, "n")), " 张，请分批导入"], "errors.gearOcrBatchTooLarge");
+export const errors_gearOcrDailyLimit = (fbs: FbsAPI, p?: StringParams) =>
+  fbs(["今天的批量识别次数已达上限（", fbs.param("limit", pv(p, "limit")), " 批），明天再试"], "errors.gearOcrDailyLimit");
 export const errors_loginRequired = (fbs: FbsAPI) =>fbs("请先登录 Discord 后再操作", "errors.loginRequired");
 export const errors_loginRequiredShort = (fbs: FbsAPI) =>fbs("请先登录 Discord", "errors.loginRequiredShort");
 export const errors_localeUnsupported = (fbs: FbsAPI) =>fbs("不支持的语言", "errors.localeUnsupported");

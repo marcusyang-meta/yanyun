@@ -13,10 +13,10 @@
  * construction.
  *
  * Usage: node scripts/verify-repositories-d1.mjs [section]
- *   Omitting section = all; currently eighteen sections: tenants /
+ *   Omitting section = all; currently nineteen sections: tenants /
  *   events / gear / users / members / results / dex / reference /
  *   state / ddl / guard / stamp / membercount / atomic / audit /
- *   shortlinks / beats / templates, extended as the data-layer
+ *   shortlinks / beats / templates / usage, extended as the data-layer
  *   migration progresses. Non-zero exit = an assertion failed.
  * =================================================== */
 import { Miniflare, convertV4MiniflareOptions } from 'miniflare';
@@ -920,6 +920,46 @@ if (want('templates')) {
   // now is Jan 5 12:00 local -> 2 days ahead.
   const la = repo.templateOffsetFromStartsAt(Date.UTC(2026, 0, 8, 4, 30) / 1000, Date.UTC(2026, 0, 5, 20, 0) / 1000, 'America/Los_Angeles');
   eq('offset days/minutes (America/Los_Angeles)', [la.daysAhead, la.startMinutes], [2, 1230]);
+}
+
+/* ---------------- usage counters + limits metering ---------------- */
+if (want('usage')) {
+  console.log('== usage_counters repository + limits service on real D1 ==');
+  const usage = await import('../src/domains/platform/usageCounters.ts');
+  const limits = await import('../src/domains/platform/limits.ts');
+  const gearRepo = await import('../src/domains/gear/gear.ts');
+
+  eq('fresh counter reads 0', await usage.getUsageCount(db, 'UQ', 'gear_ocr_batches', '2026-10-27'), 0);
+  eq('first increment creates the row at 1', await usage.incrementUsage(db, 'UQ', 'gear_ocr_batches', '2026-10-27', 1, 111), 1);
+  eq('second increment accumulates', await usage.incrementUsage(db, 'UQ', 'gear_ocr_batches', '2026-10-27', 1, 222), 2);
+  eq('increment by more than one', await usage.incrementUsage(db, 'UQ', 'gear_ocr_batches', '2026-10-27', 3, 333), 5);
+  eq('read-back matches', await usage.getUsageCount(db, 'UQ', 'gear_ocr_batches', '2026-10-27'), 5);
+  eq('another day is a separate counter (rollover)', await usage.getUsageCount(db, 'UQ', 'gear_ocr_batches', '2026-10-28'), 0);
+  eq('another metric is a separate counter', await usage.getUsageCount(db, 'UQ', 'other_metric', '2026-10-27'), 0);
+  eq('another user is a separate counter', await usage.getUsageCount(db, 'UR', 'gear_ocr_batches', '2026-10-27'), 0);
+
+  // Day key: Asia/Shanghai date of the instant (2026-10-26T16:30Z is
+  // already 2026-10-27 00:30 in Beijing).
+  eq('usageDayKey rolls at Beijing midnight', limits.usageDayKey(Date.UTC(2026, 9, 26, 16, 30)), '2026-10-27');
+  eq('usageDayKey same-day morning UTC', limits.usageDayKey(Date.UTC(2026, 9, 26, 2, 0)), '2026-10-26');
+
+  // Service seam: effective limits come back whole, free values today.
+  const eff = await limits.getEffectiveLimits(db, { discordId: 'UQ' });
+  eq('effective limits are the free values', [eff.gearItemCapacity, eff.ocrBatchImages, eff.ocrBatchesPerDay], [200, 20, 10]);
+
+  // Metering helpers accumulate under today's key only.
+  const nowMs = Date.UTC(2026, 9, 27, 3, 0);
+  eq('ocr used starts at 0', await limits.getOcrBatchesUsedToday(db, 'UQ2', nowMs), 0);
+  await limits.recordOcrBatch(db, 'UQ2', nowMs);
+  eq('ocr used after one record', await limits.getOcrBatchesUsedToday(db, 'UQ2', nowMs), 1);
+  eq('ocr used is keyed to the Beijing day', await usage.getUsageCount(db, 'UQ2', 'gear_ocr_batches', '2026-10-27'), 1);
+
+  // Gear item count on real D1 (the capacity check's read path).
+  eq('countGearItemRows empty', await gearRepo.countGearItemRows(db, 'UC'), 0);
+  await gearRepo.insertGearItemRow(db, { discordId: 'UC', slot: '武器', name: '计数剑', payload: '{}', createdAt: 1 });
+  await gearRepo.insertGearItemRow(db, { discordId: 'UC', slot: '环', name: '计数环', payload: '{}', createdAt: 2 });
+  eq('countGearItemRows counts owner rows', await gearRepo.countGearItemRows(db, 'UC'), 2);
+  eq('countGearItemRows is owner-scoped', await gearRepo.countGearItemRows(db, 'UD'), 0);
 }
 
 await mf.dispose();
