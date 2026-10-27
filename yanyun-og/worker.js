@@ -162,20 +162,42 @@ function sealElement(size = 88) {
  * 从非 dev 来源视为不存在。旧双通道 (guildPage + /api/tenants) 已
  * 随产品 REST 关停迁走。 */
 async function fetchGuildData(slug) {
-  const json = await fetchJson(`${SITE_API}/graphql`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      query: `
-        query($slug: String!) {
-          ogGuildCard(slug: $slug) { exists name slogan ogAccentColor ogTitleSuffix }
-        }
-      `,
-      variables: { slug },
-    }),
-  });
-  const card = json.data?.ogGuildCard;
-  if (!card || !card.exists) return null;
+  // 白标字段随后端发布; 后端尚不认识它们时 (发布排序/旧预览) 整条
+  // 查询会报错, 此时回退基础查询按未定制渲染, 不让整图失败。
+  let json = null;
+  try {
+    json = await fetchJson(`${SITE_API}/graphql`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: `
+          query($slug: String!) {
+            ogGuildCard(slug: $slug) { exists name slogan ogAccentColor ogTitleSuffix }
+          }
+        `,
+        variables: { slug },
+      }),
+    });
+  } catch { json = null; }
+  let card = json?.data?.ogGuildCard;
+  if (!card) {
+    json = await fetchJson(`${SITE_API}/graphql`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: `
+          query($slug: String!) {
+            ogGuildCard(slug: $slug) { exists name slogan }
+          }
+        `,
+        variables: { slug },
+      }),
+    });
+    card = json.data?.ogGuildCard;
+    if (!card || !card.exists) return null;
+    return { name: card.name || slug, slogan: card.slogan || '', accentColor: '', titleSuffix: '' };
+  }
+  if (!card.exists) return null;
   return {
     name: card.name || slug, slogan: card.slogan || '',
     // 白标定制 (服务端色板解析后的 hex / 标题后缀; 空 = 未定制)。
