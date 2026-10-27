@@ -199,7 +199,8 @@ async function gql(query, { locale = 'zh-CN', db } = {}) {
   const pp = en.data?.legalPage;
   eq('A2 隐私标题 en', pp?.title, 'Privacy Policy');
   check('A2 隐私 en 首节含 refresh token', (pp?.sections?.[0]?.body || '').includes('refresh token'));
-  check('A2 隐私 en 权利节如实写无自助注销', (pp?.sections?.[4]?.body || '').includes('does not yet offer a self-service'));
+  check('A2 隐私 en 权利节如实写自助导出与删号', (pp?.sections?.[4]?.body || '').includes('export all of your data yourself') && (pp?.sections?.[4]?.body || '').includes('delete your account yourself'));
+  check('A2 隐私 en 权利节披露冷静期与备份轮换', (pp?.sections?.[4]?.body || '').includes('7-day cooling-off') && (pp?.sections?.[4]?.body || '').includes('within 14 days'));
 
   // Fallback: es/fr/zh-TW body = zh-CN source; titles are UI copy and localize as usual.
   const zhBody = tp.sections.map((s) => s.body).join('|');
