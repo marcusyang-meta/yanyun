@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import { Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { graphql, usePreloadedQuery } from 'react-relay';
 import type { PreloadedQuery } from 'react-relay';
 import type { AppViewerQuery as AppViewerQueryType } from './__generated__/AppViewerQuery.graphql';
@@ -12,6 +12,7 @@ import GuildRouteLoader from './guild/GuildRouteLoader.react.tsx';
 import GuildAdminRouteLoader from './guild/GuildAdminRouteLoader.react.tsx';
 import LegalRoute from './LegalRoute.react.tsx';
 import SiteFooter from './lib/SiteFooter.react.tsx';
+import { hostGuildSlug } from './lib/hostGuild';
 import { GuildFooterContext, type FooterOverride } from './lib/guildChrome';
 import { readPrefMirror, writePrefMirror, emitLocaleChanged, lastSentLocaleTag } from './lib/locale';
 import { canonicalLocaleOf } from './lib/format';
@@ -86,6 +87,22 @@ export default function AppRoot({ queries }: {
   useEffect(() => {
     scrollRegionRef.current?.scrollTo(0, 0);
   }, [location.pathname]);
+  // Guild subdomain (white-label tier A): on {slug}.yanyun.app the
+  // host names the guild — / is its front page, /car/:id and /admin
+  // are its pages. In-app links still point at /{slug}/... (the
+  // components compose them from the slug), so strip that prefix
+  // back off whenever navigation lands on it: the address bar keeps
+  // the clean subdomain shapes. On the apex site hostSlug is null
+  // and none of this exists.
+  const navigate = useNavigate();
+  const hostSlug = hostGuildSlug();
+  useEffect(() => {
+    if (!hostSlug) return;
+    const p = location.pathname;
+    if (p === `/${hostSlug}` || p.startsWith(`/${hostSlug}/`)) {
+      navigate((p.slice(hostSlug.length + 1) || '/') + location.search, { replace: true });
+    }
+  }, [hostSlug, location.pathname, location.search, navigate]);
   const user: ViewerUser | null = viewer.user ?? null;
 
   const siteText = { title: viewer.siteTitle, subtitle: viewer.siteSubtitle, heroAlt: viewer.siteHeroAlt };
@@ -139,12 +156,28 @@ export default function AppRoot({ queries }: {
         path="/"
         element={
           user ? (
-            <GuildPicker user={user} guilds={viewer.guilds} publicGuilds={viewer.publicGuilds} site={siteText} text={pickerText} userBarText={userBarText} />
+            hostSlug ? (
+              <GuildRouteLoader slugOverride={hostSlug} />
+            ) : (
+              <GuildPicker user={user} guilds={viewer.guilds} publicGuilds={viewer.publicGuilds} site={siteText} text={pickerText} userBarText={userBarText} />
+            )
           ) : (
             <LoginPage returnTo="/" site={siteText} text={loginText} />
           )
         }
       />
+      {hostSlug ? (
+        <>
+          <Route
+            path="/car/:carId"
+            element={user ? <GuildRouteLoader slugOverride={hostSlug} /> : <LoginGateWithText site={siteText} text={loginText} />}
+          />
+          <Route
+            path="/admin"
+            element={user ? <GuildAdminRouteLoader slugOverride={hostSlug} /> : <LoginGateWithText site={siteText} text={loginText} />}
+          />
+        </>
+      ) : null}
       {/* Profile is now a dialog opened from the user bar; legacy /settings
           deep links redirect home so /:slug doesn't capture them as a guild slug */}
       <Route path="/settings" element={<Navigate to="/" replace />} />

@@ -17,8 +17,13 @@ function GuildFallback() {
 // For the /:slug and /:slug/car/:carId routes: (re)load the guild entrypoint
 // when the params change, and dispose the old entrypoint reference in cleanup
 // so preloaded data doesn't leak into the store permanently.
-export default function GuildRouteLoader() {
-  const { slug, carId } = useParams();
+// slugOverride serves the guild-subdomain routes (tier A): on
+// {slug}.yanyun.app the slug is the host, so / and /car/:carId render
+// this guild with the host's slug.
+export default function GuildRouteLoader({ slugOverride }: { slugOverride?: string } = {}) {
+  const params = useParams();
+  const slug = slugOverride ?? params.slug;
+  const carId = params.carId;
   const environment = useRelayEnvironment();
   const provider = useMemo(() => ({ getEnvironment: () => environment }), [environment]);
   const [entryPointReference, setEntryPointReference] = useState<any>(null);

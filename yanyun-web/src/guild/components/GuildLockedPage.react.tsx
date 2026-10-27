@@ -4,6 +4,7 @@ import type { ViewerUser } from '../../lib/user';
 import type { GuildLockedPage_guild$key } from './__generated__/GuildLockedPage_guild.graphql';
 import UserBar, { type UserBarText } from '../../auth/UserBar.react.tsx';
 import { theme } from '../../lib/format';
+import { hostGuildSlug } from '../../lib/hostGuild';
 
 // No-access page (@match branch): for GuildLocked the backend sends only the
 // slug — the response carries no guild content at all, so there is nothing
@@ -26,11 +27,20 @@ export default function GuildLockedPage({ guild, user, userBarText }: {
   userBarText: UserBarText;
 }) {
   const data = useFragment(GuildLockedPage_guild, guild) as any;
+  // On this guild's own subdomain, "/" is this same locked page; the
+  // back links leave for the apex site's root (the guild picker)
+  // instead of looping.
+  const onOwnSubdomain = hostGuildSlug() === data.slug;
+  const backLink = (label: string, style: any, className?: string) => onOwnSubdomain ? (
+    <a href="https://yanyun.app/" style={style} className={className}>{label}</a>
+  ) : (
+    <Link to="/" style={style} className={className}>{label}</Link>
+  );
   return (
     <div className="yy-page">
       <div style={{ maxWidth: 640, margin: '0 auto', padding: '18px 20px 60px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
-          <Link to="/" style={{ color: theme.muted, textDecoration: 'none', fontSize: 14 }}>{data.lockedBackLinkLabel}</Link>
+          {backLink(data.lockedBackLinkLabel, { color: theme.muted, textDecoration: 'none', fontSize: 14 })}
           <UserBar user={user} text={userBarText} />
         </div>
         <div className="yy-card" style={{ marginTop: 56, padding: '44px 28px', textAlign: 'center' }}>
@@ -41,13 +51,7 @@ export default function GuildLockedPage({ guild, user, userBarText }: {
             <br />
             {data.lockedBody2}
           </p>
-          <Link
-            to="/"
-            className="yy-btn yy-btn-gold"
-            style={{ display: 'inline-block', marginTop: 24, padding: '11px 30px', textDecoration: 'none' }}
-          >
-            {data.lockedBackButtonLabel}
-          </Link>
+          {backLink(data.lockedBackButtonLabel, { display: 'inline-block', marginTop: 24, padding: '11px 30px', textDecoration: 'none' }, 'yy-btn yy-btn-gold')}
         </div>
       </div>
     </div>
