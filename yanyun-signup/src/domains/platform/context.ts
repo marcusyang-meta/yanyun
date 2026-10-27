@@ -80,6 +80,15 @@ export interface Env {
   STRIPE_SECRET_KEY?: string;
   STRIPE_WEBHOOK_SECRET?: string;
   STRIPE_PRICE_ID?: string;
+  /* Statsig (platform gates, platform/gates.ts): all three must be
+   * present before the gate wrapper talks to the provider — the KV
+   * binding holds the Config Sync ruleset, the project id names
+   * its key (statsig-<project id>), the secret comes from wrangler
+   * secret. Absent = gates unconfigured, and every verdict falls
+   * back to the local computation it had before the migration. */
+  STATSIG_KV?: KVNamespace;
+  STATSIG_SERVER_SECRET?: string;
+  STATSIG_PROJECT_ID?: string;
 }
 
 /** Framework layer: raw infrastructure, assembly edges only. */
