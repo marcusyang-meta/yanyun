@@ -180,6 +180,8 @@ export abstract class ErrorsFbtUtils {
   static announcementTitleTooLong(fbs: FbsAPI) { return fbs("公告标题太长，请精简到 80 字以内", "Error message for announcements, used when an announcement title exceeds eighty characters."); }
   static announcementBodyTooLong(fbs: FbsAPI) { return fbs("公告正文太长，请精简到 2000 字以内", "Error message for announcements, used when an announcement body exceeds two thousand characters."); }
   static announcementNotFound(fbs: FbsAPI) { return fbs("公告不存在", "Error message for announcements, used when an operation references an announcement that does not exist."); }
+  static translationNotConfigured(fbs: FbsAPI) { return fbs("多语翻译尚未配置", "Error message for multilingual announcements, used when generating translations before the translation provider is configured."); }
+  static translationTierLocked(fbs: FbsAPI) { return fbs("多语公告需要更高的百业档位", "Error message for multilingual announcements, used when the guild's tier does not include multilingual announcements."); }
   static announcementDailyLimit(fbs: FbsAPI, p?: StringParams) { return fbs(["今天的公告已达上限（每天 ", fbs.param("limit", pv(p, "limit")), " 条），明天再发"], "Error message for announcements, used when the guild reaches its daily announcement quota, where {limit} is the number of announcements allowed per day."); }
   static urgentCallDailyLimit(fbs: FbsAPI, p?: StringParams) { return fbs(["今天的紧急集合呼叫已达上限（每天 ", fbs.param("limit", pv(p, "limit")), " 次），明天再试"], "Error message for urgent calls, used when the guild reaches its daily urgent-call quota, where {limit} is the number of calls allowed per day."); }
   static lotteryTitleRequired(fbs: FbsAPI) { return fbs("请填写抽奖标题", "Error message for lotteries, used when a lottery is created without a title."); }

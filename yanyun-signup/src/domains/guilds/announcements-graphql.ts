@@ -33,7 +33,8 @@ import {
 import { fmtStartsAt, translate, translateError } from '../platform/index.ts';
 import {
   getEffectiveLimits, getAnnouncementsUsedToday, recordAnnouncementUse,
-  sendAnnouncementPush,
+  sendAnnouncementPush, isPaygateEnabled, tierLocked,
+  createTranslator, isTranslationConfigured, SOURCE_LOCALE,
 } from '../platform/index.ts';
 import { listGuildMembers } from '../identity/index.ts';
 import {
@@ -42,6 +43,34 @@ import {
   ANNOUNCEMENT_MAX_TITLE, ANNOUNCEMENT_MAX_BODY, ANNOUNCEMENT_LIST_LIMIT,
 } from './announcements.ts';
 import type { AnnouncementRow } from './announcements.ts';
+import {
+  listAnnouncementTranslations, generateAnnouncementTranslations,
+  deleteAnnouncementTranslations, announcementSourceHash, translationStateOf,
+  ANNOUNCEMENT_TARGET_LOCALES,
+} from './announcement-i18n.ts';
+import type { AnnouncementTranslationRow } from './announcement-i18n.ts';
+
+/* P26 multilingual announcements: the translation entry exists only
+ * on the admin variant, and only once the platform paygate is on AND
+ * the guild's tier reaches T2 — below that (and in today's
+ * paygate-off production) the announcement surface is composed
+ * exactly as before P26. Within the entry, an unconfigured provider
+ * composes the entry's disabled state instead of hiding it, so an
+ * entitled admin can see the feature is pending configuration. */
+async function translationEntryState(ctx: Context, slug: string): Promise<{ visible: boolean; enabled: boolean }> {
+  const db = ctx.env.DB;
+  if (!(await isPaygateEnabled(db).catch(() => false))) return { visible: false, enabled: false };
+  if (await tierLocked(db, slug, 2).catch(() => true)) return { visible: false, enabled: false };
+  return { visible: true, enabled: isTranslationConfigured(ctx.env) };
+}
+
+function localeDisplayLabel(locale: string, viewerLocale: string): string {
+  try {
+    return new Intl.DisplayNames([viewerLocale], { type: 'language' }).of(locale) || locale;
+  } catch {
+    return locale;
+  }
+}
 
 /* ---------------- shells ---------------- */
 
@@ -54,8 +83,69 @@ export class GuildAnnouncementReceiptShell extends ShellBase {
   }
 }
 
+export class GuildAnnouncementTranslationShell extends ShellBase {
+  genLocale(){ return String(this.data.locale); }
+  genLocaleLabel(){ return localeDisplayLabel(String(this.data.locale), this.locale); }
+  genStatus(){ return String(this.data.status); }
+  genStatusLabel(){
+    return this.t(this.data.status === 'DONE' ? 'announcements_translationLocaleDoneLabel'
+      : this.data.status === 'FAILED' ? 'announcements_translationLocaleFailedLabel'
+        : 'announcements_translationLocalePendingLabel');
+  }
+}
+
 export class GuildAnnouncementShell extends ShellBase {
   get row(): AnnouncementRow { return this.data.row; }
+  /* Translation rows for this announcement (list page builder loads
+   * them in one query); empty on surfaces that never load them. */
+  get translationRows(): AnnouncementTranslationRow[] { return this.data.translations || []; }
+  /* The viewer's own-locale translation, current-source only; null
+   * when the viewer reads the source locale or no current
+   * translation exists — display then falls back to the original. */
+  genViewerTranslation(){
+    if (this.locale === SOURCE_LOCALE) return null;
+    const tr = this.translationRows.find((r) => r.locale === this.locale);
+    if (!tr || tr.status !== 'done') return null;
+    if (this.data.sourceHash && tr.source_hash !== this.data.sourceHash) return null;
+    return tr;
+  }
+  genDisplayTitle(){ const tr = this.genViewerTranslation(); return tr ? tr.title : this.row.title; }
+  genDisplayBody(){ const tr = this.genViewerTranslation(); return tr ? tr.body : this.row.body; }
+  genIsTranslated(){ return !!this.genViewerTranslation(); }
+  genContentSourceLabel(){
+    return this.t(this.genViewerTranslation() ? 'announcements_translatedSourceLabel' : 'announcements_originalSourceLabel');
+  }
+  /* Admin-only translation state: composed only when the page
+   * builder marked this shell admin AND the translation entry is
+   * visible for the guild (data.i18nEntry); otherwise null and the
+   * admin surface shows no translation block at all. */
+  genTranslationStatusText(){
+    if (!this.data.admin || !this.data.i18nEntry) return null;
+    const state = translationStateOf(this.translationRows, this.data.sourceHash || '');
+    if (state === 'done') {
+      return this.t('announcements_translationStatusDoneTemplate', {
+        done: ANNOUNCEMENT_TARGET_LOCALES.length, total: ANNOUNCEMENT_TARGET_LOCALES.length,
+      });
+    }
+    if (state === 'failed') return this.t('announcements_translationStatusFailed');
+    if (state === 'partial') {
+      const done = this.translationRows.filter(
+        (r) => r.status === 'done' && r.source_hash === (this.data.sourceHash || '')).length;
+      return this.t('announcements_translationStatusDoneTemplate', {
+        done, total: ANNOUNCEMENT_TARGET_LOCALES.length,
+      });
+    }
+    return this.t('announcements_translationStatusNone');
+  }
+  genTranslations(){
+    if (!this.data.admin || !this.data.i18nEntry) return null;
+    return ANNOUNCEMENT_TARGET_LOCALES.map((locale) => {
+      const tr = this.translationRows.find((r) => r.locale === locale);
+      const status = !tr ? 'PENDING'
+        : tr.status === 'done' && tr.source_hash === (this.data.sourceHash || '') ? 'DONE' : 'FAILED';
+      return new GuildAnnouncementTranslationShell(this.ctx, { locale, status });
+    });
+  }
   genId(){ return String(this.row.id); }
   genKind(){ return this.row.kind === 'urgent' ? 'URGENT' : 'STANDARD'; }
   genUrgent(){ return this.row.kind === 'urgent'; }
@@ -162,12 +252,63 @@ export class GuildAnnouncementPageShell extends ShellBase {
         const ids = await listReadAnnouncementIds(this.db, this.slug, String(this.ctx.user.discordId)).catch(() => []);
         readIds = new Set((ids || []).map((n) => Number(n)));
       }
-      return (rows || []).map((row) => new GuildAnnouncementShell(this.ctx, {
-        row,
-        admin: this.admin,
-        viewerHasRead: this.ctx.user ? readIds.has(Number(row.id)) : null,
-      }));
+      /* P26: one translations query for the whole page + the entry
+       * verdict (admin variant only). Member variants still load the
+       * rows — serving an existing translation is a read of data the
+       * guild already generated, not an entry point. */
+      const list = rows || [];
+      const translations = await listAnnouncementTranslations(
+        this.db, this.slug, list.map((r) => Number(r.id))).catch(() => new Map());
+      const entry = this.admin
+        ? await translationEntryState(this.ctx, this.slug).catch(() => ({ visible: false, enabled: false }))
+        : { visible: false, enabled: false };
+      const shells: GuildAnnouncementShell[] = [];
+      for (const row of list) {
+        const own = [...translations.values()].filter((r) => Number(r.announcement_id) === Number(row.id));
+        shells.push(new GuildAnnouncementShell(this.ctx, {
+          row,
+          admin: this.admin,
+          viewerHasRead: this.ctx.user ? readIds.has(Number(row.id)) : null,
+          translations: own,
+          sourceHash: await announcementSourceHash(row),
+          i18nEntry: entry.visible,
+        }));
+      }
+      return shells;
     });
+  }
+  /* P26 entry fields (admin variant only; member variant and
+   * below-tier / paygate-off guilds resolve null/false throughout,
+   * so their surface is byte-identical to before P26). */
+  genTranslationEntry(){
+    return this.memo('translationEntry', async () => {
+      if (!this.admin) return { visible: false, enabled: false };
+      return translationEntryState(this.ctx, this.slug).catch(() => ({ visible: false, enabled: false }));
+    });
+  }
+  async genCanGenerateTranslations(){
+    const e = await this.genTranslationEntry();
+    return e.enabled;
+  }
+  async genGenerateTranslationsLabel(){
+    const e = await this.genTranslationEntry();
+    return e.visible ? this.t('announcements_generateTranslationsLabel') : null;
+  }
+  async genGeneratingTranslationsLabel(){
+    const e = await this.genTranslationEntry();
+    return e.visible ? this.t('announcements_generatingTranslationsLabel') : null;
+  }
+  async genTranslationsGeneratedText(){
+    const e = await this.genTranslationEntry();
+    return e.visible ? this.t('announcements_translationsGeneratedText') : null;
+  }
+  async genTranslationsPartialText(){
+    const e = await this.genTranslationEntry();
+    return e.visible ? this.t('announcements_translationsPartialText') : null;
+  }
+  async genTranslationUnavailableText(){
+    const e = await this.genTranslationEntry();
+    return e.visible && !e.enabled ? this.t('announcements_translationUnavailableText') : null;
   }
   /* Remaining daily budget: composed only on the admin variant (the
    * compose surface); member variants resolve null. */
@@ -324,7 +465,38 @@ export const guildAnnouncementMutations = {
     const row = await getAnnouncement(db, access.slug, id);
     if (!row) return annFail(ctx, 'announcementNotFound');
     await deleteAnnouncement(db, access.slug, id);
+    await deleteAnnouncementTranslations(db, access.slug, id).catch(() => {});
     return annOk(ctx, null);
+  },
+
+  /* Generate the multilingual versions of one announcement (P26).
+   * MANUAL trigger by design: translation burns provider quota, so
+   * posting never auto-translates. Admin verdict first, then the
+   * launch/tier verdict (paygate on + tier >= T2), then the provider
+   * seam. Generation runs synchronously against the bounded locale
+   * set; per-locale provider failures land as 'failed' rows and the
+   * mutation still returns ok with the refreshed announcement — the
+   * original was never at risk. */
+  generateGuildAnnouncementTranslations: async (_: unknown, { slug, announcementId }: { slug: string; announcementId: string }, ctx: Context) => {
+    const db = ctx.env.DB;
+    const access = await getGuildAdminAccess(db, ctx.user, slug, ctx.request, vcOf(ctx));
+    if (!access.exists) return annFail(ctx, 'guildNotFound');
+    if (!access.isAdmin) return annFail(ctx, 'adminOnly');
+    const id = parseInt(String(announcementId), 10) || 0;
+    const row = await getAnnouncement(db, access.slug, id);
+    if (!row) return annFail(ctx, 'announcementNotFound');
+    const entry = await translationEntryState(ctx, access.slug);
+    if (!entry.visible) return annFail(ctx, 'translationTierLocked');
+    const translator = createTranslator(ctx.env);
+    if (!translator) return annFail(ctx, 'translationNotConfigured');
+    await generateAnnouncementTranslations(db, translator, row, Math.floor(Date.now() / 1000));
+    const translations = await listAnnouncementTranslations(db, access.slug, [row.id]).catch(() => new Map());
+    return annOk(ctx, new GuildAnnouncementShell(ctx, {
+      row, admin: true, viewerHasRead: true,
+      translations: [...translations.values()],
+      sourceHash: await announcementSourceHash(row),
+      i18nEntry: true,
+    }));
   },
 };
 
@@ -338,6 +510,12 @@ export const guildAnnouncementTypes = {
     standardRemaining: (p: GuildAnnouncementPageShell) => p.genStandardRemaining(),
     urgentRemaining: (p: GuildAnnouncementPageShell) => p.genUrgentRemaining(),
     dailyLimitText: (p: GuildAnnouncementPageShell) => p.genDailyLimitText(),
+    canGenerateTranslations: (p: GuildAnnouncementPageShell) => p.genCanGenerateTranslations(),
+    generateTranslationsLabel: (p: GuildAnnouncementPageShell) => p.genGenerateTranslationsLabel(),
+    generatingTranslationsLabel: (p: GuildAnnouncementPageShell) => p.genGeneratingTranslationsLabel(),
+    translationsGeneratedText: (p: GuildAnnouncementPageShell) => p.genTranslationsGeneratedText(),
+    translationsPartialText: (p: GuildAnnouncementPageShell) => p.genTranslationsPartialText(),
+    translationUnavailableText: (p: GuildAnnouncementPageShell) => p.genTranslationUnavailableText(),
   },
   GuildAnnouncement: {
     id: (p: GuildAnnouncementShell) => p.genId(),
@@ -355,8 +533,20 @@ export const guildAnnouncementTypes = {
     memberCount: (p: GuildAnnouncementShell) => p.genMemberCount(),
     receipts: (p: GuildAnnouncementShell) => p.genReceipts(),
     readCountText: (p: GuildAnnouncementShell) => p.genReadCountText(),
+    displayTitle: (p: GuildAnnouncementShell) => p.genDisplayTitle(),
+    displayBody: (p: GuildAnnouncementShell) => p.genDisplayBody(),
+    isTranslated: (p: GuildAnnouncementShell) => p.genIsTranslated(),
+    contentSourceLabel: (p: GuildAnnouncementShell) => p.genContentSourceLabel(),
+    translationStatusText: (p: GuildAnnouncementShell) => p.genTranslationStatusText(),
+    translations: (p: GuildAnnouncementShell) => p.genTranslations(),
     ...ANNOUNCEMENT_TEXT_RESOLVERS,
     deleteConfirmMessage: (p: GuildAnnouncementShell) => p.genDeleteConfirmMessage(),
+  },
+  GuildAnnouncementTranslation: {
+    locale: (p: GuildAnnouncementTranslationShell) => p.genLocale(),
+    localeLabel: (p: GuildAnnouncementTranslationShell) => p.genLocaleLabel(),
+    status: (p: GuildAnnouncementTranslationShell) => p.genStatus(),
+    statusLabel: (p: GuildAnnouncementTranslationShell) => p.genStatusLabel(),
   },
   GuildAnnouncementReceipt: {
     discordId: (p: GuildAnnouncementReceiptShell) => p.genDiscordId(),
