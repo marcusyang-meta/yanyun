@@ -72,6 +72,14 @@ export interface Env {
   DISCORD_API_BASE?: string;
   EXPO_PUSH_BASE?: string;
   ADMIN_PASSWORD?: string;
+  /* Platform-admin gate bootstrap floor (platform/admin-gate.ts):
+   * comma/whitespace separated Discord user IDs that always evaluate
+   * as platform admins, unioned with the living roster stored in
+   * global settings. Plain configuration, not a credential — it
+   * names identities, it does not authenticate them (the session
+   * does). Set through the secure ops channel alongside the secrets;
+   * code never writes it. Absent = floor empty, roster alone rules. */
+  PLATFORM_ADMIN_DISCORD_IDS?: string;
   BACKUPS?: R2Bucket;
   /* Stripe (billing readiness): set via wrangler secret. The two
    * keys plus at least one price must be present before Stripe
