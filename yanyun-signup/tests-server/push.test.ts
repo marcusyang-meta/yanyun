@@ -14,6 +14,7 @@ import fs from 'node:fs';
 import crypto from 'node:crypto';
 import { spawn, execFile } from 'node:child_process';
 import { promisify } from 'node:util';
+import { describe, it, afterAll, expect } from 'vitest';
 
 const execFileP = promisify(execFile);
 const ROOT = new URL('../', import.meta.url).pathname;
@@ -24,13 +25,16 @@ const DGID = '555000111222333444';
 const FAKE_TOKEN = 'ExponentPushToken[push-harness-fake-0001]';
 const devVars = fs.readFileSync(new URL('../.dev.vars', import.meta.url), 'utf8');
 const SECRET = (devVars.match(/^SESSION_SECRET=(.*)$/m) || [])[1]?.trim();
-if (!SECRET) { console.log('NO SESSION_SECRET'); process.exit(1); }
+if (!SECRET) throw new Error('NO SESSION_SECRET');
 
 let pass = 0, fail = 0;
 function check(name, ok, extra = '') {
   if (ok) pass++; else fail++;
-  console.log((ok ? 'PASS  ' : 'FAIL  ') + name + (extra ? ' — ' + extra : ''));
+  expect(ok, extra ? `${name} — ${extra}` : name).toBe(true);
 }
+let eventId;
+let dev;
+let devLog;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 /* ---------- JWT (same HS256 format as auth) ---------- */
@@ -90,6 +94,8 @@ const stub = http.createServer((req, res) => {
     res.writeHead(204); res.end();
   });
 });
+describe('push', () => {
+it('fixture: stub up, seed, boot wrangler dev', async () => {
 await new Promise((r) => stub.listen(STUB_PORT, r));
 
 /* ---------- Fixture seeding ---------- */
@@ -123,7 +129,7 @@ await d1(`INSERT INTO guild_members (tenant, discord_id, nick, global_name, upda
 await d1(`INSERT INTO events (tenant, title, type, description, starts_at_utc, max_slots, status, origin, created_by, creator_discord_id, dungeon)
   VALUES ('${SLUG}', '推送验收车 · 今晚双十', 'activity', '', ${startsAt}, 10, 'open', 'member', '车头甲', '2001', '玉魄染青苍')`);
 const evRows = await d1(`SELECT id FROM events WHERE tenant='${SLUG}' ORDER BY id DESC LIMIT 1`);
-const eventId = evRows[0]?.id;
+eventId = evRows[0]?.id;
 check('夹具车已播种', !!eventId, `event=${eventId}`);
 await d1(`INSERT INTO signups (event_id, nickname, uid, weapon, discord_id)
   VALUES (${eventId}, '车头甲', 'u2001', '破竹·樽', '2001')`);
@@ -138,9 +144,9 @@ const portFree = await new Promise((resolve) => {
   s.once('error', () => resolve(false));
   s.listen(8797, () => s.close(() => resolve(true)));
 });
-if (!portFree) { console.log('FAIL  端口 8797 被占用 (残留 wrangler dev?), 先清理'); process.exit(1); }
-const devLog = [];
-const dev = spawn('npx', ['wrangler', 'dev', '--port', '8797', '--local',
+if (!portFree) throw new Error('端口 8797 被占用 (残留 wrangler dev?), 先清理');
+devLog = [];
+dev = spawn('npx', ['wrangler', 'dev', '--port', '8797', '--local',
   '--var', `EXPO_PUSH_BASE:http://localhost:${STUB_PORT}`], { cwd: ROOT, detached: true });
 dev.stdout.on('data', (d) => devLog.push(String(d)));
 dev.stderr.on('data', (d) => devLog.push(String(d)));
@@ -150,8 +156,9 @@ for (let i = 0; i < 60 && !up; i++) {
 }
 check('wrangler dev 已启动', up);
 await sleep(6000); // Drain cold-start firings of leftover local DO alarms (the fixture car is not due yet, so no side effects).
+});
 
-/* ---------- A) Register / unregister ---------- */
+it('A) register / unregister', async () => {
 async function gql(query, variables, auth = true) {
   const r = await fetch(WORKER + '/graphql', {
     method: 'POST',
@@ -183,8 +190,9 @@ check('注销后行消失', rows.length === 0);
 
 const r5 = await gql(REG, { t: FAKE_TOKEN, p: 'ios' });
 check('重新注册供 alarm 验收', r5?.data?.registerPushToken?.ok === true);
+});
 
-/* ---------- B) WS-triggered reschedule -> alarm dual-channel send ---------- */
+it('B) WS-triggered reschedule -> alarm dual-channel send', async () => {
 // Token in place (direct write simulating registered state) + departure moved to T-9 minutes (reminder time already past).
 await d1(`INSERT INTO push_tokens (discord_id, token, platform, updated_at)
   VALUES ('2001', '${FAKE_TOKEN}', 'ios', ${Math.floor(Date.now() / 1000)})
@@ -247,9 +255,10 @@ if (fail > 0) {
   console.log('--- worker 日志尾部 (诊断) ---');
   for (const l of devLog.join('').split('\n').slice(-15)) console.log(l);
 }
+});
 
-/* ---------- C) Advanced reminders: multi-beat + nag-only-not-ready ----------
- * Offsets [30,10]: the 30-minute beat @s everyone and sends NO push;
+it('C) advanced reminders: multi-beat + nag-only-not-ready', async () => {
+/* Offsets [30,10]: the 30-minute beat @s everyone and sends NO push;
  * after the leader marks ready, the 10-minute beat @s only the
  * not-ready member and the push goes only to that member's token. */
 await sleep(2000);
@@ -353,8 +362,9 @@ beatRows = await d1(`SELECT offset_min FROM event_reminders WHERE event_id=${eve
 check('多拍: 两拍结算行齐备', beatRows.length === 2, JSON.stringify(beatRows));
 const evCEnd = await d1(`SELECT reminder_sent_at FROM events WHERE id=${eventCId}`);
 check('多拍: 末拍后整车结算 reminder_sent_at', !!(evCEnd[0] && evCEnd[0].reminder_sent_at), JSON.stringify(evCEnd[0] || {}));
+});
 
-/* ---------- Teardown ---------- */
+afterAll(async () => {
 try { process.kill(-dev.pid, 'SIGTERM'); } catch { dev.kill('SIGTERM'); }
 stub.close();
 await d1Try(`DELETE FROM event_reminders WHERE event_id IN (SELECT id FROM events WHERE tenant='${SLUG}')`);
@@ -364,5 +374,5 @@ await d1Try(`DELETE FROM events WHERE tenant='${SLUG}'`);
 await d1Try(`DELETE FROM settings WHERE tenant='${SLUG}'`);
 await d1Try(`DELETE FROM guild_members WHERE tenant='${SLUG}'`);
 await d1Try(`DELETE FROM tenants WHERE slug='${SLUG}'`);
-console.log(`\n== ${pass} passed, ${fail} failed ==`);
-process.exit(fail ? 1 : 0);
+});
+});

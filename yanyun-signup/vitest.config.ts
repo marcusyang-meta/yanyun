@@ -41,6 +41,7 @@ export default defineConfig({
           name: 'server',
           include: ['tests-server/**/*.test.ts'],
           environment: 'node',
+          globalSetup: ['tests-server/global-setup.ts'],
           fileParallelism: false,
           testTimeout: 600_000,
           hookTimeout: 600_000,
