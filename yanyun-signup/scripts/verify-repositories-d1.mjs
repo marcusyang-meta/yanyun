@@ -1041,6 +1041,7 @@ if (want('billing')) {
     tenant: 'alpha', plan: 'premium', source: 'manual',
     currentPeriodEnd: 2000000000, stripeCustomerId: 'cus_1',
     stripeSubscriptionId: 'sub_1', updatedAt: 111,
+    pastDueSince: null, hasCard: false, trialUsed: false,
   };
   await repo.upsertEntitlementRow(db, row);
   eq('upsert+get roundtrip', await repo.getEntitlementRow(db, 'alpha'), row);
