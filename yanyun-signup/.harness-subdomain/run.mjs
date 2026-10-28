@@ -151,6 +151,10 @@ function makeDb(fx = {}) {
     }
     if (/FROM users/i.test(sql)) return first(null);
     if (/FROM guild_avatars/i.test(sql)) return first(null);
+    /* custom domains (P23): this suite's world has no bindings —
+     * the composition points (reminder / shareUrl) read an empty
+     * table and fall back to the subdomain/main composition. */
+    if (/FROM guild_custom_domains/i.test(sql)) return kind === 'first' ? null : all([]);
     if (/FROM dungeons/i.test(sql)) return kind === 'first' ? null : all([]);
     if (/FROM user_guild_nicks/i.test(sql)) return kind === 'first' ? null : all([]);
     if (/FROM events/i.test(sql) && /COUNT/i.test(sql)) {
