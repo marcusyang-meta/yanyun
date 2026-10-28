@@ -101,6 +101,11 @@ const MERGED_PRELUDE = `/* fbtee declaration surface (hand-maintained): the sour
  *   where it appears, what its parameters mean — never a key, label or
  *   identifier; editing a desc must not move any reference (codegen
  *   re-derives fbtee's internal hashes from the declaration).
+ * - Descriptions follow the role-first paradigm: '<Role> for
+ *   <surface>, used for <purpose>' — role first (Title text,
+ *   Button label, Hint text, Error message, ...), then the
+ *   feature surface, then the use, written from the real call
+ *   site; parameters are explained in the used-for part.
  * - Source locale zh-CN; other locales' translations live in
  *   platform/i18n/translations/*.json (fbtee format).
  * - Parameterized entries use literal segments + fbs.param (required by the
