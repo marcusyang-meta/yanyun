@@ -12,10 +12,9 @@ import HomeRecruitSection from './HomeRecruitSection';
 // Guild picker mirrors Web GuildPicker: hero (centered brand title/
 // subtitle, avatar circle floating top-right) -> section head
 // (Chinese calligraphy + EN small label) -> seal cards (seal + guild
-// name + read-only badge + slogan). All copy comes from viewer fields.
+// name + slogan). All copy comes from viewer fields.
 function GuildCard({ g }: { g: GuildItem }) {
   const router = useRouter();
-  const { text } = useSession();
   return (
     <Pressable
       style={s.card}
@@ -24,7 +23,6 @@ function GuildCard({ g }: { g: GuildItem }) {
         params: {
           slug: g.slug,
           name: g.name || g.slug,
-          readOnly: g.readOnly ? '1' : '0',
           nick: g.viewerNick || '',
           version: g.gameVersion || '',
           avatar: g.avatarUrl || '',
@@ -40,11 +38,6 @@ function GuildCard({ g }: { g: GuildItem }) {
       <View style={s.cardMain}>
         <View style={s.nameRow}>
           <Text style={s.gname}>{g.name || g.slug}</Text>
-          {g.readOnly && (
-            <View style={s.badge}>
-              <Text style={s.badgeText}>{text.pickerReadOnlyBadge ?? '只读'}</Text>
-            </View>
-          )}
         </View>
         {!!g.slogan && <Text style={s.slogan} numberOfLines={1}>{g.slogan}</Text>}
       </View>
@@ -63,7 +56,7 @@ function SectionHead({ zh, en, first = false }: { zh?: string | null; en?: strin
 }
 
 export default function GuildsScreen() {
-  const { guilds, publicGuilds, homeRecruit, text } = useSession();
+  const { guilds, homeRecruit, text } = useSession();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   return (
@@ -120,14 +113,6 @@ export default function GuildsScreen() {
               </>
             )}
 
-          {publicGuilds.length > 0 && (
-            <>
-              <SectionHead zh={text.pickerPublicGuildsLabel ?? '公开百业'} en={text.pickerPublicGuildsEnLabel} />
-              <View style={s.cards}>
-                {publicGuilds.map((g) => <GuildCard key={g.slug} g={g} />)}
-              </View>
-            </>
-          )}
 
           {/* Recruit section (Viewer.homeRecruit via session): my
               newcomer checklist / pairings + the directory of guilds
@@ -180,11 +165,6 @@ const s = StyleSheet.create({
   cardMain: { flex: 1 },
   nameRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap' },
   gname: { fontFamily: fonts.serif, fontWeight: '600', color: theme.goldHi, fontSize: 18 },
-  badge: {
-    borderWidth: 1, borderColor: 'rgba(201,163,92,.35)', borderRadius: 20,
-    paddingVertical: 2, paddingHorizontal: 9, marginLeft: 10,
-  },
-  badgeText: { fontFamily: fonts.serif, color: theme.muted, fontSize: 11 },
   slogan: { fontFamily: fonts.serif, color: theme.muted, fontSize: 13, marginTop: 4 },
   arrow: { color: theme.gold, fontSize: 22 },
   emptyCard: {

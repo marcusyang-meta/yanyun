@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<eb9daab91d0a8666ed6a7c2dff85907d>>
+ * @generated SignedSource<<2f8fffaca89b1bc3f94b30d347beef5a>>
  * @lightSyntaxTransform
  */
 
@@ -109,28 +109,6 @@ export type documentsViewerQuery$data = {
     readonly pickerEmptyTitle: string;
     readonly pickerMyGuildsEnLabel: string;
     readonly pickerMyGuildsLabel: string;
-    readonly pickerPublicGuildsEnLabel: string;
-    readonly pickerPublicGuildsLabel: string;
-    readonly pickerReadOnlyBadge: string;
-    readonly publicGuilds: ReadonlyArray<{
-      readonly avatarUrl: string | null | undefined;
-      readonly gameVersion: string;
-      readonly homeInsightsRaceTitle: string;
-      readonly homeTabAnnouncementsLabel: string;
-      readonly homeTabDexLabel: string;
-      readonly homeTabScheduleLabel: string;
-      readonly homeTabSectLabel: string;
-      readonly homeTabTeamLabel: string;
-      readonly memberCount: number;
-      readonly name: string | null | undefined;
-      readonly pageBackLabel: string;
-      readonly raceSeasonBoard: {
-        readonly __typename: string;
-      };
-      readonly slogan: string | null | undefined;
-      readonly slug: string;
-      readonly viewerNick: string | null | undefined;
-    }>;
     readonly siteSubtitle: string;
     readonly siteTitle: string;
     readonly user: {
@@ -177,129 +155,35 @@ v3 = {
   "name": "avatarUrl",
   "storageKey": null
 },
-v4 = [
-  (v1/*:: as any*/),
-  (v0/*:: as any*/),
-  (v2/*:: as any*/),
-  {
-    "alias": null,
-    "args": null,
-    "kind": "ScalarField",
-    "name": "gameVersion",
-    "storageKey": null
-  },
-  {
-    "alias": null,
-    "args": null,
-    "kind": "ScalarField",
-    "name": "memberCount",
-    "storageKey": null
-  },
-  (v3/*:: as any*/),
-  {
-    "alias": null,
-    "args": null,
-    "kind": "ScalarField",
-    "name": "viewerNick",
-    "storageKey": null
-  },
-  {
-    "alias": null,
-    "args": null,
-    "kind": "ScalarField",
-    "name": "homeTabTeamLabel",
-    "storageKey": null
-  },
-  {
-    "alias": null,
-    "args": null,
-    "kind": "ScalarField",
-    "name": "homeTabDexLabel",
-    "storageKey": null
-  },
-  {
-    "alias": null,
-    "args": null,
-    "kind": "ScalarField",
-    "name": "homeTabSectLabel",
-    "storageKey": null
-  },
-  {
-    "alias": null,
-    "args": null,
-    "kind": "ScalarField",
-    "name": "homeTabAnnouncementsLabel",
-    "storageKey": null
-  },
-  {
-    "alias": null,
-    "args": null,
-    "kind": "ScalarField",
-    "name": "homeTabScheduleLabel",
-    "storageKey": null
-  },
-  {
-    "alias": null,
-    "args": null,
-    "kind": "ScalarField",
-    "name": "homeInsightsRaceTitle",
-    "storageKey": null
-  },
-  {
-    "alias": null,
-    "args": null,
-    "concreteType": null,
-    "kind": "LinkedField",
-    "name": "raceSeasonBoard",
-    "plural": false,
-    "selections": [
-      {
-        "alias": null,
-        "args": null,
-        "kind": "ScalarField",
-        "name": "__typename",
-        "storageKey": null
-      }
-    ],
-    "storageKey": null
-  },
-  {
-    "alias": null,
-    "args": null,
-    "kind": "ScalarField",
-    "name": "pageBackLabel",
-    "storageKey": null
-  }
-],
-v5 = {
+v4 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "id",
   "storageKey": null
 },
-v6 = {
+v5 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "status",
   "storageKey": null
 },
-v7 = {
+v6 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "statusLabel",
   "storageKey": null
 },
-v8 = {
+v7 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "createdAtText",
   "storageKey": null
 },
-v9 = [
+v8 = [
   {
     "alias": null,
     "args": null,
@@ -445,27 +329,6 @@ v9 = [
         "alias": null,
         "args": null,
         "kind": "ScalarField",
-        "name": "pickerPublicGuildsLabel",
-        "storageKey": null
-      },
-      {
-        "alias": null,
-        "args": null,
-        "kind": "ScalarField",
-        "name": "pickerPublicGuildsEnLabel",
-        "storageKey": null
-      },
-      {
-        "alias": null,
-        "args": null,
-        "kind": "ScalarField",
-        "name": "pickerReadOnlyBadge",
-        "storageKey": null
-      },
-      {
-        "alias": null,
-        "args": null,
-        "kind": "ScalarField",
         "name": "pickerEmptyTitle",
         "storageKey": null
       },
@@ -523,17 +386,100 @@ v9 = [
         "kind": "LinkedField",
         "name": "guilds",
         "plural": true,
-        "selections": (v4/*:: as any*/),
-        "storageKey": null
-      },
-      {
-        "alias": null,
-        "args": null,
-        "concreteType": "GuildReadOnly",
-        "kind": "LinkedField",
-        "name": "publicGuilds",
-        "plural": true,
-        "selections": (v4/*:: as any*/),
+        "selections": [
+          (v1/*:: as any*/),
+          (v0/*:: as any*/),
+          (v2/*:: as any*/),
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "gameVersion",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "memberCount",
+            "storageKey": null
+          },
+          (v3/*:: as any*/),
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "viewerNick",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "homeTabTeamLabel",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "homeTabDexLabel",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "homeTabSectLabel",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "homeTabAnnouncementsLabel",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "homeTabScheduleLabel",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "homeInsightsRaceTitle",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "concreteType": null,
+            "kind": "LinkedField",
+            "name": "raceSeasonBoard",
+            "plural": false,
+            "selections": [
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "__typename",
+                "storageKey": null
+              }
+            ],
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "pageBackLabel",
+            "storageKey": null
+          }
+        ],
         "storageKey": null
       },
       {
@@ -691,7 +637,7 @@ v9 = [
                     "name": "application",
                     "plural": false,
                     "selections": [
-                      (v5/*:: as any*/),
+                      (v4/*:: as any*/),
                       {
                         "alias": null,
                         "args": null,
@@ -706,9 +652,9 @@ v9 = [
                         "name": "message",
                         "storageKey": null
                       },
+                      (v5/*:: as any*/),
                       (v6/*:: as any*/),
                       (v7/*:: as any*/),
-                      (v8/*:: as any*/),
                       {
                         "alias": null,
                         "args": null,
@@ -813,7 +759,7 @@ v9 = [
                 "name": "myPairings",
                 "plural": true,
                 "selections": [
-                  (v5/*:: as any*/),
+                  (v4/*:: as any*/),
                   {
                     "alias": null,
                     "args": null,
@@ -828,9 +774,9 @@ v9 = [
                     "name": "menteeName",
                     "storageKey": null
                   },
+                  (v5/*:: as any*/),
                   (v6/*:: as any*/),
                   (v7/*:: as any*/),
-                  (v8/*:: as any*/),
                   {
                     "alias": null,
                     "args": null,
@@ -857,7 +803,7 @@ return {
     "kind": "Fragment",
     "metadata": null,
     "name": "documentsViewerQuery",
-    "selections": (v9/*:: as any*/),
+    "selections": (v8/*:: as any*/),
     "type": "Query",
     "abstractKey": null
   },
@@ -866,19 +812,19 @@ return {
     "argumentDefinitions": [],
     "kind": "Operation",
     "name": "documentsViewerQuery",
-    "selections": (v9/*:: as any*/)
+    "selections": (v8/*:: as any*/)
   },
   "params": {
-    "cacheID": "9619d14bb4d0548079db813150bb0ba8",
+    "cacheID": "723dd6e91b20858b52024a0c6fd12cdc",
     "id": null,
     "metadata": {},
     "name": "documentsViewerQuery",
     "operationKind": "query",
-    "text": "query documentsViewerQuery {\n  viewer {\n    myLocalePref\n    commonUnknownErrorText\n    commonRenderErrorTemplate\n    commonRenderErrorHint\n    siteTitle\n    siteSubtitle\n    loginCardTitle\n    loginCardBody1\n    loginCardBody2\n    loginButtonLabel\n    loginPrivacyText\n    footerDisclaimerText\n    footerTermsLabel\n    footerPrivacyLabel\n    userBarSettingsLabel\n    userBarLogoutLabel\n    userBarLoggingOutLabel\n    pickerMyGuildsLabel\n    pickerMyGuildsEnLabel\n    pickerPublicGuildsLabel\n    pickerPublicGuildsEnLabel\n    pickerReadOnlyBadge\n    pickerEmptyTitle\n    pickerEmptyBody\n    pickerCreateGuildLabel\n    pickerCreateGuildMoreLabel\n    user {\n      name\n      discordId\n      avatar\n    }\n    guilds {\n      slug\n      name\n      slogan\n      gameVersion\n      memberCount\n      avatarUrl\n      viewerNick\n      homeTabTeamLabel\n      homeTabDexLabel\n      homeTabSectLabel\n      homeTabAnnouncementsLabel\n      homeTabScheduleLabel\n      homeInsightsRaceTitle\n      raceSeasonBoard {\n        __typename\n      }\n      pageBackLabel\n    }\n    publicGuilds {\n      slug\n      name\n      slogan\n      gameVersion\n      memberCount\n      avatarUrl\n      viewerNick\n      homeTabTeamLabel\n      homeTabDexLabel\n      homeTabSectLabel\n      homeTabAnnouncementsLabel\n      homeTabScheduleLabel\n      homeInsightsRaceTitle\n      raceSeasonBoard {\n        __typename\n      }\n      pageBackLabel\n    }\n    homeRecruit {\n      directoryTitle\n      newcomerTitle\n      homeBody\n      homeLoginHint\n      applySectionTitle\n      messageLabel\n      messagePlaceholder\n      submitLabel\n      submittingLabel\n      myApplicationTitle\n      pendingHint\n      approvedNextStepText\n      rejectedHint\n      checklistTitle\n      myPairingsTitle\n      pairingMentorRoleLabel\n      pairingMenteeRoleLabel\n      guilds {\n        slug\n        name\n        slogan\n        avatarUrl\n        myApplicationSection {\n          application {\n            id\n            applicantName\n            message\n            status\n            statusLabel\n            createdAtText\n            reviewedByName\n            reviewedAtText\n          }\n        }\n      }\n      myNewcomer {\n        slug\n        guildName\n        checklist {\n          progressText\n          items {\n            key\n            label\n            hint\n            done\n          }\n        }\n        myPairings {\n          id\n          mentorName\n          menteeName\n          status\n          statusLabel\n          createdAtText\n          endedAtText\n        }\n      }\n    }\n  }\n}\n"
+    "text": "query documentsViewerQuery {\n  viewer {\n    myLocalePref\n    commonUnknownErrorText\n    commonRenderErrorTemplate\n    commonRenderErrorHint\n    siteTitle\n    siteSubtitle\n    loginCardTitle\n    loginCardBody1\n    loginCardBody2\n    loginButtonLabel\n    loginPrivacyText\n    footerDisclaimerText\n    footerTermsLabel\n    footerPrivacyLabel\n    userBarSettingsLabel\n    userBarLogoutLabel\n    userBarLoggingOutLabel\n    pickerMyGuildsLabel\n    pickerMyGuildsEnLabel\n    pickerEmptyTitle\n    pickerEmptyBody\n    pickerCreateGuildLabel\n    pickerCreateGuildMoreLabel\n    user {\n      name\n      discordId\n      avatar\n    }\n    guilds {\n      slug\n      name\n      slogan\n      gameVersion\n      memberCount\n      avatarUrl\n      viewerNick\n      homeTabTeamLabel\n      homeTabDexLabel\n      homeTabSectLabel\n      homeTabAnnouncementsLabel\n      homeTabScheduleLabel\n      homeInsightsRaceTitle\n      raceSeasonBoard {\n        __typename\n      }\n      pageBackLabel\n    }\n    homeRecruit {\n      directoryTitle\n      newcomerTitle\n      homeBody\n      homeLoginHint\n      applySectionTitle\n      messageLabel\n      messagePlaceholder\n      submitLabel\n      submittingLabel\n      myApplicationTitle\n      pendingHint\n      approvedNextStepText\n      rejectedHint\n      checklistTitle\n      myPairingsTitle\n      pairingMentorRoleLabel\n      pairingMenteeRoleLabel\n      guilds {\n        slug\n        name\n        slogan\n        avatarUrl\n        myApplicationSection {\n          application {\n            id\n            applicantName\n            message\n            status\n            statusLabel\n            createdAtText\n            reviewedByName\n            reviewedAtText\n          }\n        }\n      }\n      myNewcomer {\n        slug\n        guildName\n        checklist {\n          progressText\n          items {\n            key\n            label\n            hint\n            done\n          }\n        }\n        myPairings {\n          id\n          mentorName\n          menteeName\n          status\n          statusLabel\n          createdAtText\n          endedAtText\n        }\n      }\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "d207d05e0e541fccb7f57377520e9c87";
+(node as any).hash = "51f4727e4020b50f031782578ebac6d7";
 
 export default node;

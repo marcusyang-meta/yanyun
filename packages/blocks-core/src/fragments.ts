@@ -28,7 +28,6 @@ export const BlockActionFragment = graphql`
       slug
       groupingId
       name
-      readOnly
       nick
     }
     ... on JoinAction {

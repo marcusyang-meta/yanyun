@@ -29,7 +29,7 @@ export interface LeafPageText {
 // Action handlers: implemented by the host (navigation targets and mutation landing are per-platform).
 export interface ActionHandlers {
   pageText?: LeafPageText;
-  navigate: (a: { slug: string; groupingId: string; name: string; readOnly: boolean; nick: string }) => void;
+  navigate: (a: { slug: string; groupingId: string; name: string; nick: string }) => void;
   join: (a: { groupingId: string; seatIndex: number }) => void;
   leave: (a: { groupingId: string; uid: string }) => void;
   disband: (a: { groupingId: string }) => void;
