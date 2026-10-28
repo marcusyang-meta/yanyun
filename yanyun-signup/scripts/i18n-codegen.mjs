@@ -57,7 +57,7 @@ const SECTION_OWNER = {
   announcements: 'guilds',
   recruit: 'guilds',
   announcements: 'guilds', officer: 'guilds',
-  market: 'guilds', allies: 'guilds',
+  market: 'guilds', allies: 'guilds', governance: 'guilds',
   groupingList: 'groupings', groupingDetail: 'groupings',
   groupingForm: 'groupings', groupingType: 'groupings', seat: 'groupings',
   groupingTemplate: 'groupings', schedule: 'groupings',
@@ -76,6 +76,7 @@ const SECTION_ORDER = [
   'grad', 'gear', 'legal', 'termsBody', 'privacyBody', 'errors', 'guildAdmin',
   'groupingTemplate', 'account', 'buildshare', 'landing', 'feedback',
   'announcements', 'schedule', 'recruit', 'officer', 'ops', 'market', 'allies',
+  'governance',
 ];
 const DOMAINS = ['identity', 'guilds', 'groupings', 'dex', 'gear', 'platform'];
 const domainSourcePath = (d) => join(APP, 'src', 'domains', d, 'i18n', 'strings.source.ts');

@@ -12310,6 +12310,970 @@
         }
       ],
       "types": []
+    },
+    "/q6hImSKiQJytDtJ8ScQJQ==": {
+      "description": "Title text for the governance locked panel in the guild admin page, used when the guild's tier is below the governance tier.",
+      "id": "guilds/governance_lockedTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Governance is not active",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "A/yyEZhfRCMQXVhJD8/MHg==": {
+      "description": "Body text for the governance locked panel, used to explain that officer delegation, the officer private board and the guild audit log belong to the top tier and no governance data is served below it.",
+      "id": "guilds/governance_lockedBody",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Fine-grained permissions, the officer private area and the guild audit log are top-tier (T3) governance features. This guild has not reached that tier, so no governance data is served.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "h5j821yBksuOQ80TkZma6g==": {
+      "description": "Title text for the governance tab in the guild admin page, used as the tab heading.",
+      "id": "guilds/governance_title",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Governance & audit",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "QyGadkd2Q1aasaGXj6AJ+g==": {
+      "description": "Hint text for the governance tab, used to explain that guild admins delegate parts of the admin surface to officers, admins keep full authority, and grants plus all management actions land in the guild audit log.",
+      "id": "guilds/governance_hint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Guild admins can delegate parts of the admin surface to officer members; admins always keep full authority. Grants and every management action are recorded in this guild's audit log.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "NPmNg6v53Da9Nk7V6FyQNA==": {
+      "description": "Title text for the officer grants section in the governance tab, used as the section heading.",
+      "id": "guilds/governance_officersTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Officer grants",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "TY1zZ0FMv+P/U3Mi5OyVzg==": {
+      "description": "Hint text for the officer grants section, used to explain that a granted officer reaches only the surfaces and actions in their capability set, while granting and billing always stay with guild admins.",
+      "id": "guilds/governance_officersHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "A granted officer can only reach the surfaces and actions in their capability set; granting itself and billing always stay with guild admins.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "CsSgBhfON/MM7mgZdba9ig==": {
+      "description": "Empty-state text for the officer grants section, used when no member holds a grant yet and the grant form below is the way to create one.",
+      "id": "guilds/governance_officersEmpty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "No officers have been granted yet. Pick a roster member below and tick capabilities to grant.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "4eGcPEFYd8fuMxbLQGI1mQ==": {
+      "description": "Field label for the officer grant form, used for the roster member selector.",
+      "id": "guilds/governance_grantMemberLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Member",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "FF+4fO4Dixv3msK/j+0BAQ==": {
+      "description": "Field label for the officer grant form, used above the capability checkbox list.",
+      "id": "guilds/governance_grantCapabilitiesLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Capabilities",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "0BJDIoRH8ig475IEic7KHg==": {
+      "description": "Button label for the officer grant form, used to save the selected member's capability set; saving an empty set revokes the grant.",
+      "id": "guilds/governance_grantButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Save grant",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "MZaMQzLaTz1rBiLQl5grlg==": {
+      "description": "Button label for officer grant rows, used to remove that member's grant entirely.",
+      "id": "guilds/governance_revokeButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Revoke grant",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Ow9PDicPKFFOpd8ptuF+1A==": {
+      "description": "Grantor line pattern for officer grant rows, used to show who issued the grant, where {name} is the granting admin's display name.",
+      "id": "guilds/governance_grantedByTemplate",
+      "tokens": [
+        "name"
+      ],
+      "translations": [
+        {
+          "translation": "Granted by {name}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "vjc4K9+gjUcdreJkAzd6rg==": {
+      "description": "Badge text for the governance officers list, used next to Discord-server admins who hold every capability by the admin verdict itself.",
+      "id": "guilds/governance_adminBadge",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Guild admin · full access",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "UMEIz0RFqAIr1B4ij8xj7A==": {
+      "description": "Title text for the officer private board section in the governance tab, used as the section heading.",
+      "id": "guilds/governance_boardTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Officer private area",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "KMVUxtEKa0KOpqXDq6h0Sw==": {
+      "description": "Hint text for the officer private board, used to explain that only officers — guild admins and granted members — can see the board, and regular members cannot see the area at all.",
+      "id": "guilds/governance_boardHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Only officers (guild admins and granted members) can see this area: internal messages and shift notes belong here, and regular members cannot see this area at all.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "QJArZfWaRjaZqdE/2uZJXg==": {
+      "description": "Empty-state text for the officer private board, used when no officer has posted yet.",
+      "id": "guilds/governance_boardEmpty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "No posts yet.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "SdoTsPcRZsr9+UQki39KTw==": {
+      "description": "Placeholder text for the officer private board composer, used in the post body input.",
+      "id": "guilds/governance_boardPlaceholder",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Write an internal message or shift note…",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "/bMqrnkgX/4u+Cbw7wm/lw==": {
+      "description": "Button label for the officer private board composer, used to publish a post to the board.",
+      "id": "guilds/governance_boardPostButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Post to private area",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "JfRmDo+smxdPLP4qWTRYKA==": {
+      "description": "Button label for officer board posts, used by the post's author or a guild admin to delete the post.",
+      "id": "guilds/governance_boardDeleteButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Delete",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "DCjc9ZKjrLV4DejPn3HTfQ==": {
+      "description": "Author line pattern for officer board posts, used to show who wrote the post, where {name} is the author's display name.",
+      "id": "guilds/governance_boardAuthorTemplate",
+      "tokens": [
+        "name"
+      ],
+      "translations": [
+        {
+          "translation": "Post by {name}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "iro7rvMiZ5IVtQ74A2sLgQ==": {
+      "description": "Title text for the guild audit log section in the governance tab, used as the section heading.",
+      "id": "guilds/governance_auditTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Guild audit log",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "BiMfiltyJ7FV1CASwD1GBw==": {
+      "description": "Hint text for the guild audit log, used to explain that it traces who did what to which target inside this guild and stores only action and target summaries, never sensitive body text.",
+      "id": "guilds/governance_auditHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "A trace of management actions inside this guild: who did what to which target, and when. The log stores only actions and target summaries — never sensitive body text such as note contents.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Ba6V9s+rkcJ9v7YZvSdezw==": {
+      "description": "Empty-state text for the guild audit log, used when no management action has been recorded yet.",
+      "id": "guilds/governance_auditEmpty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "No audit events yet.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "H0hM/GVoaxXz3d7cBP31Dg==": {
+      "description": "Button label for the guild audit log, used to load the next page of older audit events.",
+      "id": "guilds/governance_auditLoadMoreButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Load more",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "3aIWyxm4Ojg6BO6b23onvw==": {
+      "description": "Fallback actor name for guild audit events, used when an action was recorded without a user snapshot, such as a system-path operation.",
+      "id": "guilds/governance_auditActorFallback",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "System",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "vZ4weLSJ5pDfk4LHGgEpHQ==": {
+      "description": "Capability label for officer grants, used for the capability that covers the guild profile, avatar and branding settings surfaces.",
+      "id": "guilds/governance_capProfile",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Profile & branding",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "mqfh8vN12XOb3/li6ZYwdw==": {
+      "description": "Capability label for officer grants, used for the capability that covers the Discord binding, reminder webhook and reminder settings surfaces.",
+      "id": "guilds/governance_capDiscord",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Discord & reminders",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "dVZIiTp/XAB3t8GaUR9v0g==": {
+      "description": "Capability label for officer grants, used for the capability that covers admin event management and managing the guild's groupings.",
+      "id": "guilds/governance_capEvents",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Squad management",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "6G55VKB5St2Vf6DJmtcAZg==": {
+      "description": "Capability label for officer grants, used for the capability that covers editing the school guide data.",
+      "id": "guilds/governance_capGuides",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Guide data",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "WW5Rke7ZX8/7AwMA4bXX5w==": {
+      "description": "Capability label for officer grants, used for the capability that covers posting and deleting guild announcements.",
+      "id": "guilds/governance_capAnnounce",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Announcements",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "vIBbGpxwyJo7pdb1jixUVA==": {
+      "description": "Capability label for officer grants, used for the capability that covers viewing the guild activity statistics surface.",
+      "id": "guilds/governance_capStats",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Statistics",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "fbWadfYuzeLHjjqHqX9jLg==": {
+      "description": "Capability label for officer grants, used for the capability that covers the activity tools such as lotteries.",
+      "id": "guilds/governance_capTools",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Activity tools",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "D728Efz32pSigVRl76s0Pg==": {
+      "description": "Capability label for officer grants, used for the capability that covers the season checklist and the game-name roster import surfaces.",
+      "id": "guilds/governance_capSeason",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Season management",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Pe7WmHipNj2BY2uM59woXg==": {
+      "description": "Capability label for officer grants, used for the capability that covers join-application review, mentor designation and mentor pairings.",
+      "id": "guilds/governance_capRecruit",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Recruiting review",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "2DKWGonhrmb1Xe6WppaphA==": {
+      "description": "Capability label for officer grants, used for the capability that covers officer member notes and the guild data package export.",
+      "id": "guilds/governance_capOfficer",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Member notes",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+Sz0668DwSf/OiL3BDnIRQ==": {
+      "description": "Audit action label for the guild audit log, used when a guild profile is updated.",
+      "id": "guilds/governance_actionProfileUpdate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Update guild profile",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "wBWBiHuP0QzbbhSu0Kcj7A==": {
+      "description": "Audit action label for the guild audit log, used when a guild avatar is uploaded.",
+      "id": "guilds/governance_actionAvatarSet",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Set guild avatar",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "6nr7ybVs1a3hxBawBTBjxQ==": {
+      "description": "Audit action label for the guild audit log, used when a guild avatar is deleted.",
+      "id": "guilds/governance_actionAvatarDelete",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Delete guild avatar",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "fIhVNatXfyKLgQpCmIaDXg==": {
+      "description": "Audit action label for the guild audit log, used when the Discord binding or reminder webhook is updated.",
+      "id": "guilds/governance_actionDiscordUpdate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Update Discord integration",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "o9hxx0CEcxo8dfK7ZH0WVQ==": {
+      "description": "Audit action label for the guild audit log, used when reminder offsets or the custom reminder text are updated.",
+      "id": "guilds/governance_actionReminderUpdate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Update reminder settings",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "GQOWYljTQ+vG1XGRhkpX8A==": {
+      "description": "Audit action label for the guild audit log, used when white-label branding settings are updated.",
+      "id": "guilds/governance_actionWhitelabelUpdate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Update white-label settings",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "E/QMnv+PvppeEfMBKGXgTQ==": {
+      "description": "Audit action label for the guild audit log, used when the guild's dev-only visibility is toggled.",
+      "id": "guilds/governance_actionVisibilityUpdate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Update visibility",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "q1ri8ktD2BtgOewm6oUv6A==": {
+      "description": "Audit action label for the guild audit log, used when the guild's recruitment open switch is toggled.",
+      "id": "guilds/governance_actionRecruitOpen",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Toggle recruitment switch",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "xxLRN2/eZty/W9v2hmvOpA==": {
+      "description": "Audit action label for the guild audit log, used when an admin event is created.",
+      "id": "guilds/governance_actionEventCreate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Create event",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "U2CuVoIUB6V27PWAzcKsLg==": {
+      "description": "Audit action label for the guild audit log, used when an admin event is edited.",
+      "id": "guilds/governance_actionEventUpdate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Update event",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Ly001PjZwrPF3LXxINCBUA==": {
+      "description": "Audit action label for the guild audit log, used when an admin event is deleted.",
+      "id": "guilds/governance_actionEventDelete",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Delete event",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "6vFe91o8RZ0tCfh4jMvr/g==": {
+      "description": "Audit action label for the guild audit log, used when a signup is removed from an event.",
+      "id": "guilds/governance_actionSignupRemove",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Remove signup",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "bng4n/UySQxkHAtzX5oQjQ==": {
+      "description": "Audit action label for the guild audit log, used when a race result is added to an event.",
+      "id": "guilds/governance_actionResultAdd",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Add race result",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "YRs03ouVyj676v51ElBptg==": {
+      "description": "Audit action label for the guild audit log, used when a race result is deleted.",
+      "id": "guilds/governance_actionResultDelete",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Delete race result",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "K9UKgcsylmnVVZria1HVQw==": {
+      "description": "Audit action label for the guild audit log, used when a lottery is created.",
+      "id": "guilds/governance_actionLotteryCreate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Create lottery",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "fzV5BZCmBg6nXo37GfuzIg==": {
+      "description": "Audit action label for the guild audit log, used when a lottery is drawn.",
+      "id": "guilds/governance_actionLotteryDraw",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Draw lottery",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "r9/bkLBhgI8irxyJoR0qQg==": {
+      "description": "Audit action label for the guild audit log, used when school guide data is edited.",
+      "id": "guilds/governance_actionGuideUpdate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Update guide data",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "fG0ANVYe3diRWJ6t20qtXg==": {
+      "description": "Audit action label for the guild audit log, used when a guild announcement is posted.",
+      "id": "guilds/governance_actionAnnouncementPost",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Post announcement",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "63gNLOSQtDkcmQ1hm+PTkw==": {
+      "description": "Audit action label for the guild audit log, used when a guild announcement is deleted.",
+      "id": "guilds/governance_actionAnnouncementDelete",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Delete announcement",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "3L9h8yS2ncAnjHTydMYmyg==": {
+      "description": "Audit action label for the guild audit log, used when a join application is approved.",
+      "id": "guilds/governance_actionApplicationApprove",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Approve join application",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "c+9Yu13jLbNT6GRHRp+TiA==": {
+      "description": "Audit action label for the guild audit log, used when a join application is rejected.",
+      "id": "guilds/governance_actionApplicationReject",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Reject join application",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "bNb+/IBWapgILu0dAy6cRA==": {
+      "description": "Audit action label for the guild audit log, used when a member is designated as a mentor.",
+      "id": "guilds/governance_actionMentorSet",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Designate mentor",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ersDT3I9wX9d6A/w9yqr4w==": {
+      "description": "Audit action label for the guild audit log, used when a member's mentor designation is removed.",
+      "id": "guilds/governance_actionMentorUnset",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Remove mentor designation",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "d9i+70cWbrDsc4d8LBRCYg==": {
+      "description": "Audit action label for the guild audit log, used when a mentor pairing is created.",
+      "id": "guilds/governance_actionPairingCreate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Create mentor pairing",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Idvd78X+t2KCWH6h9++9Uw==": {
+      "description": "Audit action label for the guild audit log, used when a mentor pairing is ended.",
+      "id": "guilds/governance_actionPairingEnd",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "End mentor pairing",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "r5636aaZ7QcT+QBg9SjcfQ==": {
+      "description": "Audit action label for the guild audit log, used when an officer note is added about a member; the note body itself is never written to the log.",
+      "id": "guilds/governance_actionNoteAdd",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Add member note",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Wq7HELyUiyQ4/AemUQTH6g==": {
+      "description": "Audit action label for the guild audit log, used when an officer note is edited; the note body itself is never written to the log.",
+      "id": "guilds/governance_actionNoteUpdate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Edit member note",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "rzbFMthnZ8T1rWojoFZfBA==": {
+      "description": "Audit action label for the guild audit log, used when an officer note is deleted.",
+      "id": "guilds/governance_actionNoteDelete",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Delete member note",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "jBXFDO/keMP0N3OrLr+Rtw==": {
+      "description": "Audit action label for the guild audit log, used when the guild data package is exported.",
+      "id": "guilds/governance_actionExportPackage",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Export guild data package",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "q5yuRC7nMCpyk51R4pfjBQ==": {
+      "description": "Audit action label for the guild audit log, used when a season checklist item is checked or unchecked.",
+      "id": "guilds/governance_actionSeasonChecklist",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Toggle season checklist item",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "TSFYqosEO/TqWzCCqaaKgg==": {
+      "description": "Audit action label for the guild audit log, used when a roster import batch is confirmed into the game-name roster.",
+      "id": "guilds/governance_actionRosterImport",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Import roster",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "oIezOzrY2hmZN457Fs72og==": {
+      "description": "Audit action label for the guild audit log, used when a game-name roster entry is deleted.",
+      "id": "guilds/governance_actionRosterEntryDelete",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Delete roster entry",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "twmo4FT5v/hfuK2O+Jiaug==": {
+      "description": "Audit action label for the guild audit log, used when a guild admin grants a member officer capabilities.",
+      "id": "guilds/governance_actionOfficerGrant",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Grant officer capabilities",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "G4g+puH6rdlxpaKjfyGI7Q==": {
+      "description": "Audit action label for the guild audit log, used when a member's officer grant is revoked.",
+      "id": "guilds/governance_actionOfficerRevoke",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Revoke officer grant",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "FxhvZi/JkMe4/Y8p2kQR6Q==": {
+      "description": "Audit action label for the guild audit log, used when an officer posts to the private board; the post body itself is never written to the log.",
+      "id": "guilds/governance_actionBoardPost",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Post to officer board",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+VPaEWavL1dwmGGw8KuTTQ==": {
+      "description": "Audit action label for the guild audit log, used when an officer board post is deleted.",
+      "id": "guilds/governance_actionBoardDelete",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Delete officer board post",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "DX2cBMokGXdaGmNKnMnwpA==": {
+      "description": "Tab label for the guild admin page, used to switch to the governance tab with officer grants, the officer private board and the guild audit log.",
+      "id": "guilds/guildAdmin_tabGovernance",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Governance",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ifjlIs0Ja7172q1YMGhrhA==": {
+      "description": "Error message for capability-gated admin operations, used when a delegated officer attempts an operation outside their granted capability set.",
+      "id": "platform/errors_capabilityRequired",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "You do not hold this management permission (a guild admin must grant you the matching officer capability).",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "cbZTqCizXRVdwBdCp7mrEA==": {
+      "description": "Error message for governance operations, used when a guild below tier 3 attempts to grant officer capabilities or use the officer board.",
+      "id": "platform/errors_governanceTierRequired",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Governance features require the guild to be on the top tier (T3).",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ds3cSrYywJWtMCphBOkeOA==": {
+      "description": "Error message for officer grants, used when a grant targets someone who is not on the guild roster.",
+      "id": "platform/errors_officerTargetNotFound",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "That member is not on this guild's roster.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "wW06wK0sz5IShYo1q8W2lw==": {
+      "description": "Error message for the officer private board, used when a board post is submitted with an empty body.",
+      "id": "platform/errors_officerBoardBodyRequired",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "A board post cannot be empty.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "NipEsc7DQw64dDor0ufegg==": {
+      "description": "Error message for the officer private board, used when a board post exceeds the body length limit.",
+      "id": "platform/errors_officerBoardBodyTooLong",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "That board post is too long.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "udznqPjDGnLY5oi9TRnqYw==": {
+      "description": "Error message for the officer private board, used when an operation references a board post that does not exist in this guild.",
+      "id": "platform/errors_officerBoardPostNotFound",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "That board post does not exist.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "zQCZZlo8ZVMfpYegz9x+Ag==": {
+      "description": "Title text for the capability locked panel on admin sub-surfaces, used when a delegated officer opens a management surface their capability set does not cover.",
+      "id": "guilds/governance_sectionLockedTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "This surface is not in your grant",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "sMRWsTvxHUmB+xzQej5QWA==": {
+      "description": "Body text for the capability locked panel, used to explain that the surface needs a matching officer capability and a guild admin can adjust the viewer's grant on the governance page.",
+      "id": "guilds/governance_sectionLockedBody",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "This management surface needs a matching officer capability, and your grant does not include it. A guild admin can adjust your grant on the governance page.",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

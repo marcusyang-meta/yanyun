@@ -284,6 +284,7 @@ export abstract class GuildAdminFbtUtils {
   static lotteryEntryCount(fbs: FbsAPI, p?: StringParams) { return fbs([fbs.param("count", pv(p, "count")), " 人参与"], "Count text for lottery cards, used to show the participant count, where {count} is the number of participants."); }
   static tabRecruit(fbs: FbsAPI) { return fbs("招新与导师", "Tab label for the guild admin page, used to switch to the recruiting and mentors tab."); }
   static tabOfficer(fbs: FbsAPI) { return fbs("军官工具", "Tab label for the guild admin page, used to switch to the officer tools tab."); }
+  static tabGovernance(fbs: FbsAPI) { return fbs("治理", "Tab label for the guild admin page, used to switch to the governance tab with officer grants, the officer private board and the guild audit log."); }
 }
 
 export abstract class AnnouncementsFbtUtils {
@@ -559,4 +560,78 @@ export abstract class AlliesFbtUtils {
   static visitorSlotsLabel(fbs: FbsAPI) { return fbs("访客名额", "Field label for the squad sharing controls, used for the visitor seat quota input."); }
   static sharingSaveButton(fbs: FbsAPI) { return fbs("保存共享设置", "Button label for the squad sharing controls, used to save ally visibility and the visitor quota."); }
   static backLabel(fbs: FbsAPI) { return fbs("‹ 返回百业", "Back link for the allied guilds page, used at the top to return to the guild home page."); }
+export abstract class GovernanceFbtUtils {
+  static sectionLockedTitle(fbs: FbsAPI) { return fbs("此面未在你的授权内", "Title text for the capability locked panel on admin sub-surfaces, used when a delegated officer opens a management surface their capability set does not cover."); }
+  static sectionLockedBody(fbs: FbsAPI) { return fbs("这个管理面需要对应的军官能力，你的授权不包含它。请百业管理员在治理页调整你的授权。", "Body text for the capability locked panel, used to explain that the surface needs a matching officer capability and a guild admin can adjust the viewer's grant on the governance page."); }
+  static lockedTitle(fbs: FbsAPI) { return fbs("治理功能未开通", "Title text for the governance locked panel in the guild admin page, used when the guild's tier is below the governance tier."); }
+  static lockedBody(fbs: FbsAPI) { return fbs("细粒度权限、军官私密区与百业审计日志是最高档位（T3）的治理功能。本百业尚未达到该档位，治理数据不会下发。", "Body text for the governance locked panel, used to explain that officer delegation, the officer private board and the guild audit log belong to the top tier and no governance data is served below it."); }
+  static title(fbs: FbsAPI) { return fbs("治理与审计", "Title text for the governance tab in the guild admin page, used as the tab heading."); }
+  static hint(fbs: FbsAPI) { return fbs("百业管理员可以把部分管理面授权给军官成员分工处理；管理员本人始终全权。授权与全部管理动作都会记入本百业的审计日志。", "Hint text for the governance tab, used to explain that guild admins delegate parts of the admin surface to officers, admins keep full authority, and grants plus all management actions land in the guild audit log."); }
+  static officersTitle(fbs: FbsAPI) { return fbs("军官授权", "Title text for the officer grants section in the governance tab, used as the section heading."); }
+  static officersHint(fbs: FbsAPI) { return fbs("被授权的军官只能进入被授予的管理面与动作；授权本身与付费结账始终只有百业管理员可以操作。", "Hint text for the officer grants section, used to explain that a granted officer reaches only the surfaces and actions in their capability set, while granting and billing always stay with guild admins."); }
+  static officersEmpty(fbs: FbsAPI) { return fbs("尚无被授权的军官。在下方选择名册成员并勾选能力即可授权。", "Empty-state text for the officer grants section, used when no member holds a grant yet and the grant form below is the way to create one."); }
+  static grantMemberLabel(fbs: FbsAPI) { return fbs("选择成员", "Field label for the officer grant form, used for the roster member selector."); }
+  static grantCapabilitiesLabel(fbs: FbsAPI) { return fbs("授予能力", "Field label for the officer grant form, used above the capability checkbox list."); }
+  static grantButton(fbs: FbsAPI) { return fbs("保存授权", "Button label for the officer grant form, used to save the selected member's capability set; saving an empty set revokes the grant."); }
+  static revokeButton(fbs: FbsAPI) { return fbs("撤销授权", "Button label for officer grant rows, used to remove that member's grant entirely."); }
+  static grantedByTemplate(fbs: FbsAPI, p?: StringParams) { return fbs([fbs.param("name", pv(p, "name")), " 授予"], "Grantor line pattern for officer grant rows, used to show who issued the grant, where {name} is the granting admin's display name."); }
+  static adminBadge(fbs: FbsAPI) { return fbs("百业管理员 · 全权", "Badge text for the governance officers list, used next to Discord-server admins who hold every capability by the admin verdict itself."); }
+  static boardTitle(fbs: FbsAPI) { return fbs("军官私密区", "Title text for the officer private board section in the governance tab, used as the section heading."); }
+  static boardHint(fbs: FbsAPI) { return fbs("只有军官（百业管理员与被授权成员）能看到这里的内容：内部留言、排班注记都可以写在这里，普通成员完全看不到这一区。", "Hint text for the officer private board, used to explain that only officers — guild admins and granted members — can see the board, and regular members cannot see the area at all."); }
+  static boardEmpty(fbs: FbsAPI) { return fbs("私密区暂无留言。", "Empty-state text for the officer private board, used when no officer has posted yet."); }
+  static boardPlaceholder(fbs: FbsAPI) { return fbs("写一条内部留言或排班注记…", "Placeholder text for the officer private board composer, used in the post body input."); }
+  static boardPostButton(fbs: FbsAPI) { return fbs("发布到私密区", "Button label for the officer private board composer, used to publish a post to the board."); }
+  static boardDeleteButton(fbs: FbsAPI) { return fbs("删除", "Button label for officer board posts, used by the post's author or a guild admin to delete the post."); }
+  static boardAuthorTemplate(fbs: FbsAPI, p?: StringParams) { return fbs([fbs.param("name", pv(p, "name")), " 留言"], "Author line pattern for officer board posts, used to show who wrote the post, where {name} is the author's display name."); }
+  static auditTitle(fbs: FbsAPI) { return fbs("百业审计日志", "Title text for the guild audit log section in the governance tab, used as the section heading."); }
+  static auditHint(fbs: FbsAPI) { return fbs("本百业内的管理动作留痕：谁在何时对什么做了什么。日志只记动作与目标摘要，不含备注正文等敏感内容。", "Hint text for the guild audit log, used to explain that it traces who did what to which target inside this guild and stores only action and target summaries, never sensitive body text."); }
+  static auditEmpty(fbs: FbsAPI) { return fbs("暂无审计记录。", "Empty-state text for the guild audit log, used when no management action has been recorded yet."); }
+  static auditLoadMoreButton(fbs: FbsAPI) { return fbs("加载更多", "Button label for the guild audit log, used to load the next page of older audit events."); }
+  static auditActorFallback(fbs: FbsAPI) { return fbs("系统", "Fallback actor name for guild audit events, used when an action was recorded without a user snapshot, such as a system-path operation."); }
+  static capProfile(fbs: FbsAPI) { return fbs("资料设置", "Capability label for officer grants, used for the capability that covers the guild profile, avatar and branding settings surfaces."); }
+  static capDiscord(fbs: FbsAPI) { return fbs("Discord 与提醒", "Capability label for officer grants, used for the capability that covers the Discord binding, reminder webhook and reminder settings surfaces."); }
+  static capEvents(fbs: FbsAPI) { return fbs("车队管理", "Capability label for officer grants, used for the capability that covers admin event management and managing the guild's groupings."); }
+  static capGuides(fbs: FbsAPI) { return fbs("攻略数据", "Capability label for officer grants, used for the capability that covers editing the school guide data."); }
+  static capAnnounce(fbs: FbsAPI) { return fbs("公告发布", "Capability label for officer grants, used for the capability that covers posting and deleting guild announcements."); }
+  static capStats(fbs: FbsAPI) { return fbs("数据查看", "Capability label for officer grants, used for the capability that covers viewing the guild activity statistics surface."); }
+  static capTools(fbs: FbsAPI) { return fbs("活动工具", "Capability label for officer grants, used for the capability that covers the activity tools such as lotteries."); }
+  static capSeason(fbs: FbsAPI) { return fbs("赛季管理", "Capability label for officer grants, used for the capability that covers the season checklist and the game-name roster import surfaces."); }
+  static capRecruit(fbs: FbsAPI) { return fbs("招新审核", "Capability label for officer grants, used for the capability that covers join-application review, mentor designation and mentor pairings."); }
+  static capOfficer(fbs: FbsAPI) { return fbs("成员备注", "Capability label for officer grants, used for the capability that covers officer member notes and the guild data package export."); }
+  static actionProfileUpdate(fbs: FbsAPI) { return fbs("修改百业资料", "Audit action label for the guild audit log, used when a guild profile is updated."); }
+  static actionAvatarSet(fbs: FbsAPI) { return fbs("设置百业头像", "Audit action label for the guild audit log, used when a guild avatar is uploaded."); }
+  static actionAvatarDelete(fbs: FbsAPI) { return fbs("删除百业头像", "Audit action label for the guild audit log, used when a guild avatar is deleted."); }
+  static actionDiscordUpdate(fbs: FbsAPI) { return fbs("修改 Discord 集成", "Audit action label for the guild audit log, used when the Discord binding or reminder webhook is updated."); }
+  static actionReminderUpdate(fbs: FbsAPI) { return fbs("修改提醒设置", "Audit action label for the guild audit log, used when reminder offsets or the custom reminder text are updated."); }
+  static actionWhitelabelUpdate(fbs: FbsAPI) { return fbs("修改白标设置", "Audit action label for the guild audit log, used when white-label branding settings are updated."); }
+  static actionVisibilityUpdate(fbs: FbsAPI) { return fbs("修改可见性", "Audit action label for the guild audit log, used when the guild's dev-only visibility is toggled."); }
+  static actionRecruitOpen(fbs: FbsAPI) { return fbs("切换招新开关", "Audit action label for the guild audit log, used when the guild's recruitment open switch is toggled."); }
+  static actionEventCreate(fbs: FbsAPI) { return fbs("创建活动", "Audit action label for the guild audit log, used when an admin event is created."); }
+  static actionEventUpdate(fbs: FbsAPI) { return fbs("修改活动", "Audit action label for the guild audit log, used when an admin event is edited."); }
+  static actionEventDelete(fbs: FbsAPI) { return fbs("删除活动", "Audit action label for the guild audit log, used when an admin event is deleted."); }
+  static actionSignupRemove(fbs: FbsAPI) { return fbs("移除报名", "Audit action label for the guild audit log, used when a signup is removed from an event."); }
+  static actionResultAdd(fbs: FbsAPI) { return fbs("登记竞速成绩", "Audit action label for the guild audit log, used when a race result is added to an event."); }
+  static actionResultDelete(fbs: FbsAPI) { return fbs("删除竞速成绩", "Audit action label for the guild audit log, used when a race result is deleted."); }
+  static actionLotteryCreate(fbs: FbsAPI) { return fbs("创建抽奖", "Audit action label for the guild audit log, used when a lottery is created."); }
+  static actionLotteryDraw(fbs: FbsAPI) { return fbs("抽奖开奖", "Audit action label for the guild audit log, used when a lottery is drawn."); }
+  static actionGuideUpdate(fbs: FbsAPI) { return fbs("修改攻略数据", "Audit action label for the guild audit log, used when school guide data is edited."); }
+  static actionAnnouncementPost(fbs: FbsAPI) { return fbs("发布公告", "Audit action label for the guild audit log, used when a guild announcement is posted."); }
+  static actionAnnouncementDelete(fbs: FbsAPI) { return fbs("删除公告", "Audit action label for the guild audit log, used when a guild announcement is deleted."); }
+  static actionApplicationApprove(fbs: FbsAPI) { return fbs("通过入业申请", "Audit action label for the guild audit log, used when a join application is approved."); }
+  static actionApplicationReject(fbs: FbsAPI) { return fbs("拒绝入业申请", "Audit action label for the guild audit log, used when a join application is rejected."); }
+  static actionMentorSet(fbs: FbsAPI) { return fbs("设为导师", "Audit action label for the guild audit log, used when a member is designated as a mentor."); }
+  static actionMentorUnset(fbs: FbsAPI) { return fbs("取消导师", "Audit action label for the guild audit log, used when a member's mentor designation is removed."); }
+  static actionPairingCreate(fbs: FbsAPI) { return fbs("建立导师配对", "Audit action label for the guild audit log, used when a mentor pairing is created."); }
+  static actionPairingEnd(fbs: FbsAPI) { return fbs("结束导师配对", "Audit action label for the guild audit log, used when a mentor pairing is ended."); }
+  static actionNoteAdd(fbs: FbsAPI) { return fbs("添加成员备注", "Audit action label for the guild audit log, used when an officer note is added about a member; the note body itself is never written to the log."); }
+  static actionNoteUpdate(fbs: FbsAPI) { return fbs("修改成员备注", "Audit action label for the guild audit log, used when an officer note is edited; the note body itself is never written to the log."); }
+  static actionNoteDelete(fbs: FbsAPI) { return fbs("删除成员备注", "Audit action label for the guild audit log, used when an officer note is deleted."); }
+  static actionExportPackage(fbs: FbsAPI) { return fbs("导出百业数据包", "Audit action label for the guild audit log, used when the guild data package is exported."); }
+  static actionSeasonChecklist(fbs: FbsAPI) { return fbs("勾选赛季清单", "Audit action label for the guild audit log, used when a season checklist item is checked or unchecked."); }
+  static actionRosterImport(fbs: FbsAPI) { return fbs("导入名册", "Audit action label for the guild audit log, used when a roster import batch is confirmed into the game-name roster."); }
+  static actionRosterEntryDelete(fbs: FbsAPI) { return fbs("删除名册记录", "Audit action label for the guild audit log, used when a game-name roster entry is deleted."); }
+  static actionOfficerGrant(fbs: FbsAPI) { return fbs("授予军官能力", "Audit action label for the guild audit log, used when a guild admin grants a member officer capabilities."); }
+  static actionOfficerRevoke(fbs: FbsAPI) { return fbs("撤销军官授权", "Audit action label for the guild audit log, used when a member's officer grant is revoked."); }
+  static actionBoardPost(fbs: FbsAPI) { return fbs("私密区留言", "Audit action label for the guild audit log, used when an officer posts to the private board; the post body itself is never written to the log."); }
+  static actionBoardDelete(fbs: FbsAPI) { return fbs("删除私密区留言", "Audit action label for the guild audit log, used when an officer board post is deleted."); }
 }

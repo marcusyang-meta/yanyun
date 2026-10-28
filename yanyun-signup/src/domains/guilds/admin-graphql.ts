@@ -22,10 +22,13 @@
 import type { Context } from '../platform/context.ts';
 import { vcOf } from '../platform/context.ts';
 import {
-  ShellBase, defineTextGens, getGuildAdminAccess, getTenantSetting,
+  ShellBase, defineTextGens, getGuildAdminAccess, getOfficerVerdict,
+  getTenantSetting,
   setTenantSetting, getGameVersion, TYPE_TO_ENUM, PayloadBase, s,
   publishGroupingEvent,
 } from '../platform/graphql-base.ts';
+import type { OfficerVerdict } from '../platform/graphql-base.ts';
+import { governanceResultFor } from './governance-graphql.ts';
 import { fmtStartsAt } from '../platform/index.ts';
 import {
   getGuildAvatarMeta, avatarPath, putGuildAvatar,
@@ -675,6 +678,7 @@ const ADMIN_TEXT_SPEC: [string, string][] = [
   ['adminRecruitProfileLabel', 'recruit_itemProfileLabel'],
   ['adminRecruitMentorLabel', 'recruit_itemMentorLabel'],
   ['adminRecruitFirstRunLabel', 'recruit_itemFirstRunLabel'],
+  ['adminTabGovernanceLabel', 'guildAdmin_tabGovernance'],
 ];
 
 const ADMIN_LOCKED_TEXT_SPEC: [string, string][] = [
@@ -767,6 +771,23 @@ export class GuildAdminShell extends ShellBase {
   genParticipationHeatmap(){ return this.memo('heatmap', () => heatmapForAdmin(this.ctx, this.genSlug())); }
   genGearBoard(){ return this.memo('gearBoard', () => gearBoardForAdmin(this.ctx, this.genSlug())); }
   genRaceSeasonBoard(){ return this.memo('raceBoard', () => raceBoardForViewer(this.ctx, this.genSlug())); }
+  /* Officer verdict for this viewer in this guild (P16): memoized —
+   * the governance composition, the viewer's capability list and
+   * (from the capability-enforcement change on) every gated sub-
+   * surface read this one verdict. */
+  genOfficerVerdict(): Promise<OfficerVerdict> {
+    return this.memo('officerVerdict', () =>
+      getOfficerVerdict(this.db, this.ctx.user, this.genSlug(), this.ctx.request, vcOf(this.ctx)));
+  }
+  async genViewerCapabilities(): Promise<string[]> {
+    return (await this.genOfficerVerdict()).capabilities;
+  }
+  /* Governance surface (P16/P17, T3): the tier verdict picks the
+   * Locked variant before any governance datum is composed. */
+  async genGovernance() {
+    const verdict = await this.genOfficerVerdict();
+    return governanceResultFor(this.ctx, this.genSlug(), verdict);
+  }
   genStats(){
     return this.memo('stats', async () => {
       // Premium read gate: gated guilds get the locked variant —
@@ -942,6 +963,8 @@ function contentResolvers() {
     announcements: (p: any) => p.genAnnouncements(),
     officer: (p: any) => p.genOfficer(),
     ops: (p: GuildAdminShell) => p.genOps(),
+    governance: (p: any) => p.genGovernance(),
+    viewerCapabilities: (p: any) => p.genViewerCapabilities(),
     stats: (p: GuildAdminShell) => p.genStats(),
     reliability: (p: GuildAdminShell) => p.genReliability(),
     participationHeatmap: (p: GuildAdminShell) => p.genParticipationHeatmap(),
