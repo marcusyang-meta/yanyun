@@ -4,12 +4,17 @@
 //    with a fresh code, resolve-by-code round-trips, unknown -> null;
 //  - GraphQL: groupingDetailPage.shareUrl is the minted short URL
 //    and stays identical across reads (no re-mint, no second row);
-//  - route: GET /c/:code 302s to the canonical car URL; unknown /
-//    malformed codes and codes whose car was deleted 404; the SPA
-//    car page (and its OG tags) is not shadowed by the /c route.
-//    (This suite's fixture guild is UNBOUND, so anonymous visitors
-//    pass its view gate and keep the canonical landing; the bound-
-//    guild landing split to /s/:code is covered in shareaccess.)
+//  - route: GET /c/:code 302s to the canonical car URL for viewers
+//    who pass the guild's view gate; unknown / malformed codes and
+//    codes whose car was deleted 404; the SPA car page (and its OG
+//    tags) is not shadowed by the /c route.
+//    (This suite's fixture guild is UNBOUND. Under the original
+//    doctrine anonymous visitors passed its view gate and kept the
+//    canonical landing; the 2026-10-28 follow-up ruling — unbound
+//    guilds also require login on non-shared links — moved the
+//    anonymous landing to the share page /s/:code, asserted below.
+//    The signed-in canonical landing and the bound-guild split are
+//    covered in shareaccess.)
 // FakeDB routes by SQL shape (same pattern as .harness-avatar);
 // short_links lands in a real in-memory table with UNIQUE semantics.
 import { describe, it, expect } from 'vitest';
@@ -166,19 +171,28 @@ describe('shortlink', () => {
       return res.json();
     }
     const shareQ = `query($slug: String, $id: ID!) { groupingDetailPage(slug: $slug, id: $id) { shareUrl } }`;
+    // The detail surface requires login even for unbound guilds
+    // (2026-10-28 follow-up ruling), so the shareUrl flow below runs
+    // as a signed-in viewer; anonymous is asserted locked after.
+    const VIEWER = { discordId: 'U-SHARE', name: '分享者', guilds: [] };
     // Car 399 starts unminted: the detail read itself must lazily mint it.
     state.events.push(ev(399));
     const rowsBefore = state.links.length;
-    const g1 = await gql(shareQ, { slug: SLUG, id: '399' });
+    const g1 = await gql(shareQ, { slug: SLUG, id: '399' }, VIEWER);
     check('详情查询无 errors', !g1.errors, JSON.stringify(g1.errors || '').slice(0, 200));
     const minted399 = state.links.find((l) => l.event_id === 399);
     check('详情首次读取懒铸造一行', !!minted399 && state.links.length === rowsBefore + 1);
     eq('shareUrl = 铸出的短链', g1.data?.groupingDetailPage?.shareUrl, `https://yanyun.app/c/${minted399?.code}`);
-    const g2 = await gql(shareQ, { slug: SLUG, id: '399' });
+    const g2 = await gql(shareQ, { slug: SLUG, id: '399' }, VIEWER);
     eq('再次读取 shareUrl 不变', g2.data?.groupingDetailPage?.shareUrl, g1.data?.groupingDetailPage?.shareUrl);
     eq('再次读取不新增行', state.links.length, rowsBefore + 1);
-    const g3 = await gql(shareQ, { slug: SLUG, id: '301' });
+    const g3 = await gql(shareQ, { slug: SLUG, id: '301' }, VIEWER);
     eq('已铸车 shareUrl 复用既有码', g3.data?.groupingDetailPage?.shareUrl, `https://yanyun.app/c/${a.code}`);
+    // Anonymous detail read of the same unbound guild is locked
+    // under the follow-up ruling (was: publicly readable).
+    const gAnon = await gql(shareQ, { slug: SLUG, id: '301' });
+    check('匿名详情 -> errors (按不存在处理)', Array.isArray(gAnon.errors) && gAnon.errors.length > 0, JSON.stringify(gAnon).slice(0, 200));
+    eq('匿名详情无数据', gAnon.data?.groupingDetailPage ?? null, null);
   });
 
   /* ================= route: /c/:code ================= */
@@ -186,9 +200,14 @@ describe('shortlink', () => {
     worker = (await import('../src/worker.ts')).default;
     call = (path) => worker.fetch(new Request('http://local' + path), env, ctx);
 
+    // Anonymous: the fixture guild is unbound, but non-shared links
+    // require login under the 2026-10-28 follow-up ruling, so the
+    // anonymous landing is the share page (was: canonical car URL
+    // under the old public-read doctrine). Signed-in viewers keep
+    // the canonical landing — asserted in shareaccess.
     r = await call(`/c/${a.code}`);
     eq('命中短链 -> 302', r.status, 302);
-    eq('302 目标 = 规范长链', r.headers.get('location'), `http://local/${SLUG}/car/301`);
+    eq('匿名 302 目标 = 分享页 /s', r.headers.get('location'), `http://local/s/${a.code}`);
     r = await call('/c/ZZZZZZZ');
     eq('未知码 -> 404', r.status, 404);
     await r.text();
