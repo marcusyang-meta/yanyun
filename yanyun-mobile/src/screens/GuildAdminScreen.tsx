@@ -20,6 +20,7 @@ import {
   adminCreateLottery, adminDrawLottery,
   adminReviewGuildApplication, adminSetGuildMentor, adminCreateMentorPairing, adminEndMentorPairing,
   adminUpdateRecruitOpen,
+  adminUpsertGearStandard, adminDeleteGearStandard,
   adminUpdateProfile, adminUpdateReminderSettings, adminUpdateVisibility,
   adminUpdateWhiteLabel,
   adminBindCustomDomain,
@@ -93,7 +94,7 @@ function AdminLoader({ slug, epoch, refresh }: { slug: string; epoch: number; re
 function AdminMain({ admin, unknownError, cancelLabel, refresh, router }: {
   admin: Admin; unknownError: string; cancelLabel: string; refresh: () => void; router: ReturnType<typeof useRouter>;
 }) {
-  const [tab, setTab] = useState<'profile' | 'discord' | 'events' | 'guides' | 'announcements' | 'stats' | 'tools' | 'season' | 'recruit'>('profile');
+  const [tab, setTab] = useState<'profile' | 'discord' | 'events' | 'guides' | 'announcements' | 'stats' | 'insights' | 'tools' | 'season' | 'recruit'>('profile');
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
 
@@ -112,6 +113,7 @@ function AdminMain({ admin, unknownError, cancelLabel, refresh, router }: {
     { key: 'guides', label: admin.adminTabGuidesLabel },
     { key: 'announcements', label: admin.adminTabAnnouncementsLabel },
     { key: 'stats', label: admin.adminTabStatsLabel },
+    { key: 'insights', label: (admin as any).adminTabInsightsLabel },
     { key: 'tools', label: admin.adminTabToolsLabel },
     { key: 'season', label: admin.adminTabSeasonLabel },
     { key: 'recruit', label: (admin as any).adminTabRecruitLabel },
@@ -144,6 +146,7 @@ function AdminMain({ admin, unknownError, cancelLabel, refresh, router }: {
       {tab === 'guides' && <GuidesPanel admin={admin} run={run} />}
       {tab === 'announcements' && <AnnouncementsAdminPanel slug={admin.slug} />}
       {tab === 'stats' && <StatsPanel admin={admin} premiumLocked={premiumLocked} unknownError={unknownError} onError={setError} />}
+      {tab === 'insights' && <InsightsPanel admin={admin} run={run} />}
       {tab === 'tools' && <ToolsPanel admin={admin} run={run} />}
       {tab === 'season' && <SeasonPanel admin={admin} unknownError={unknownError} cancelLabel={cancelLabel} run={run} onError={setError} />}
       {tab === 'recruit' && <RecruitPanel admin={admin} run={run} />}
@@ -1022,6 +1025,153 @@ function StatsPanel({ admin, premiumLocked, unknownError, onError }: {
         emptyText={admin.adminStatsBoardEmptyText}
         rows={(stats?.leaderLeaders ?? []).map((m: any) => ({ discordId: m.discordId, displayName: m.displayName, count: m.carCount }))}
       />
+    </View>
+  );
+}
+
+/* ---------- insights (P2 / P9 / P10 / P15, isomorphic with Web) ----------
+ * The tier verdict is the response type of each field: anything but
+ * the full variant renders the locked card from the Locked variant's
+ * own copy (the premium field is a separate, paygate-era surface and
+ * is not consulted here). The heatmap renders the same weekday x
+ * hour data as Web, simplified to labeled mini-cells. */
+
+function InsightsPanel({ admin, run }: {
+  admin: Admin;
+  run: (p: Promise<AdminPayload>, onOk?: () => void) => void;
+}) {
+  const a: any = admin as any;
+  const [label, setLabel] = useState('');
+  const [minScore, setMinScore] = useState('80');
+  const reliability = a.reliability ?? null;
+  if (reliability?.__typename !== 'GuildAdminReliability') {
+    return (
+      <View style={s.card}>
+        <Text style={s.sectionTitle}>{reliability?.premiumTitle ?? ''}</Text>
+        <Text style={[s.muted, { fontSize: 13.5, lineHeight: 21 }]}>{reliability?.premiumBody ?? ''}</Text>
+      </View>
+    );
+  }
+  const heat = a.participationHeatmap?.__typename === 'GuildAdminParticipationHeatmap' ? a.participationHeatmap : null;
+  const gear = a.gearBoard?.__typename === 'GuildAdminGearBoard' ? a.gearBoard : null;
+  const race = a.raceSeasonBoard?.__typename === 'RaceSeasonBoard' ? a.raceSeasonBoard : null;
+  const heatByKey = new Map<string, number>(
+    (heat?.cells ?? []).map((c: any) => [`${c.weekday}:${c.hour}`, Number(c.count) || 0] as [string, number]),
+  );
+  const peak = Math.max(1, heat?.peakCount ?? 1);
+  return (
+    <View>
+      <Text style={s.sectionTitle}>{a.adminInsightsReliabilityTitle}</Text>
+      <Text style={s.muted}>{a.adminInsightsReliabilityHint}</Text>
+      {(reliability.entries ?? []).length === 0 ? (
+        <Text style={s.muted}>{a.adminInsightsReliabilityEmptyText}</Text>
+      ) : (reliability.entries ?? []).map((e: any, i: number) => (
+        <View key={e.discordId} style={[s.statRow, i > 0 && s.statRowDiv]}>
+          <Text style={[s.statName, { flex: 1 }]} numberOfLines={1}>{e.displayName}</Text>
+          <Text style={s.muted}>{a.adminInsightsSignupsLabel} {e.signupCount}</Text>
+          <Text style={s.muted}>{a.adminInsightsAttendedLabel} {e.attendedCount}</Text>
+          <Text style={[s.muted, e.noShowCount > 0 && { color: '#e08a7a' }]}>{a.adminInsightsNoShowLabel} {e.noShowCount}</Text>
+          <Text style={s.statCount}>{e.settledCount ? `${Math.round(e.attendanceRate * 100)}%` : '—'}</Text>
+        </View>
+      ))}
+
+      {!!heat && (
+        <>
+          <Text style={s.sectionTitle}>{a.adminInsightsHeatmapTitle}</Text>
+          <Text style={s.muted}>{a.adminInsightsHeatmapHint}</Text>
+          <Text style={[s.muted, { marginVertical: 6 }]}>{heat.totalText}</Text>
+          {(heat.cells ?? []).length === 0 ? (
+            <Text style={s.muted}>{a.adminInsightsHeatmapEmptyText}</Text>
+          ) : [0, 1, 2, 3, 4, 5, 6].map((weekday) => (
+            <View key={weekday} style={{ flexDirection: 'row', alignItems: 'center', gap: 2, marginBottom: 2 }}>
+              <Text style={[s.muted, { width: 30, fontSize: 10.5 }]}>{(heat.weekdayLabels ?? [])[weekday] ?? ''}</Text>
+              {Array.from({ length: 24 }, (_, hour) => {
+                const count: number = heatByKey.get(`${weekday}:${hour}`) ?? 0;
+                return (
+                  <View key={hour} style={{
+                    flex: 1, height: 13, borderRadius: 2,
+                    backgroundColor: count ? `rgba(201,163,92,${0.15 + (count / peak) * 0.85})` : 'rgba(236,226,203,.05)',
+                  }} />
+                );
+              })}
+            </View>
+          ))}
+        </>
+      )}
+
+      {!!gear && (
+        <>
+          <Text style={s.sectionTitle}>{a.adminInsightsGearTitle}</Text>
+          <Text style={s.muted}>{a.adminInsightsGearHint}</Text>
+          {(gear.standards ?? []).length === 0 ? (
+            <Text style={[s.muted, { marginTop: 6 }]}>{a.adminInsightsGearEmptyText}</Text>
+          ) : (gear.standards ?? []).map((std: any) => (
+            <View key={std.id} style={s.card}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Text style={[s.statName, { flex: 1 }]} numberOfLines={1}>{std.label}</Text>
+                <Text style={s.statCount}>{std.minScore}</Text>
+                <Pressable onPress={() => run(adminDeleteGearStandard(admin.slug, std.id))} hitSlop={6}>
+                  <Text style={s.dangerInline}>{a.adminDeleteLabel}</Text>
+                </Pressable>
+              </View>
+              <Text style={[s.muted, { marginVertical: 4 }]}>{std.summaryText}</Text>
+              {(std.members ?? []).filter((m: any) => !m.met).map((m: any) => (
+                <View key={m.discordId} style={s.statRow}>
+                  <Text style={[s.statName, { flex: 1 }]} numberOfLines={1}>{m.displayName}</Text>
+                  <Text style={[s.muted, { color: '#e08a7a' }]}>{m.statusText}</Text>
+                  <Text style={s.muted}>{a.adminInsightsGearScoreLabel} {m.hasBuild ? m.bestScore : '—'}</Text>
+                  <Text style={s.muted}>{a.adminInsightsGearGapLabel} {m.gap}</Text>
+                </View>
+              ))}
+              {(std.members ?? []).filter((m: any) => m.met).map((m: any) => (
+                <View key={m.discordId} style={s.statRow}>
+                  <Text style={[s.statName, { flex: 1 }]} numberOfLines={1}>{m.displayName}</Text>
+                  <Text style={[s.muted, { color: '#9dc08b' }]}>{m.statusText}</Text>
+                  <Text style={s.muted}>{a.adminInsightsGearScoreLabel} {m.bestScore}</Text>
+                </View>
+              ))}
+            </View>
+          ))}
+          <Field label={a.adminInsightsGearLabelLabel}>
+            <TInput value={label} onChangeText={setLabel} maxLength={40} />
+          </Field>
+          <Field label={a.adminInsightsGearMinScoreLabel}>
+            <TInput value={minScore} onChangeText={(t) => setMinScore(t.replace(/[^0-9]/g, ''))} keyboardType="number-pad" />
+          </Field>
+          <Pressable
+            style={s.saveBtn}
+            onPress={() => {
+              const score = Number(minScore);
+              if (!label.trim() || !Number.isFinite(score)) return;
+              run(adminUpsertGearStandard(admin.slug, null, label.trim(), score), () => setLabel(''));
+            }}
+          >
+            <Text style={s.saveBtnText}>{a.adminInsightsGearAddLabel}</Text>
+          </Pressable>
+        </>
+      )}
+
+      {!!race && (
+        <>
+          <Text style={s.sectionTitle}>{a.adminInsightsRaceTitle}</Text>
+          {(race.seasons ?? []).length === 0 ? (
+            <Text style={s.muted}>{a.adminInsightsRaceEmptyText}</Text>
+          ) : (race.seasons ?? []).map((season: any) => (
+            <View key={season.season || 'none'}>
+              <Text style={[s.muted, { color: theme.goldHi, marginTop: 6 }]}>{season.seasonLabel}</Text>
+              {(season.entries ?? []).map((e: any, i: number) => (
+                <View key={e.teamName} style={[s.statRow, i > 0 && s.statRowDiv]}>
+                  <Text style={s.statRank}>{i + 1}</Text>
+                  <Text style={[s.statName, { flex: 1 }]} numberOfLines={1}>{e.teamName}</Text>
+                  <Text style={s.muted}>{a.adminInsightsRaceRunsLabel} {e.runCount}</Text>
+                  <Text style={s.muted}>{a.adminInsightsRaceWinsLabel} {e.winCount}</Text>
+                  <Text style={[s.statCount, { width: 64 }]}>{e.bestTimeText}</Text>
+                </View>
+              ))}
+            </View>
+          ))}
+        </>
+      )}
     </View>
   );
 }

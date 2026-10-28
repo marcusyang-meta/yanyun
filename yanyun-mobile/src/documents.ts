@@ -50,6 +50,8 @@ export const ViewerQuery = graphql`
         homeTabSectLabel
         homeTabAnnouncementsLabel
         homeTabScheduleLabel
+        homeInsightsRaceTitle
+        raceSeasonBoard { __typename }
         pageBackLabel
       }
       publicGuilds {
@@ -65,6 +67,8 @@ export const ViewerQuery = graphql`
         homeTabSectLabel
         homeTabAnnouncementsLabel
         homeTabScheduleLabel
+        homeInsightsRaceTitle
+        raceSeasonBoard { __typename }
         pageBackLabel
       }
       homeRecruit {
@@ -162,6 +166,72 @@ export const GuildRosterQuery = graphql`
             discordId
             displayName
             globalName
+          }
+        }
+      }
+    }
+  }
+`;
+
+// Member insights board (P15 race season board + the viewer's own
+// P9 gear status): the tab in the guild screen exists only when the
+// session payload's raceSeasonBoard already composed the full
+// variant; this query carries the board data itself.
+export const GuildInsightsBoardQuery = graphql`
+  query documentsGuildInsightsBoardQuery($slug: String!) {
+    viewer {
+      guild(slug: $slug) {
+        __typename
+        ... on Guild {
+          homeInsightsRaceTitle
+          homeInsightsRaceEmptyText
+          homeInsightsRaceTeamLabel
+          homeInsightsRaceRunsLabel
+          homeInsightsRaceWinsLabel
+          homeInsightsRaceBestLabel
+          homeInsightsSelfGearTitle
+          homeInsightsGearScoreLabel
+          homeInsightsGearMinScoreLabel
+          raceSeasonBoard {
+            __typename
+            ... on RaceSeasonBoard {
+              seasons {
+                season seasonLabel
+                entries { teamName members runCount winCount bestTimeMs bestTimeText }
+              }
+            }
+          }
+          gearSelfStatus {
+            __typename
+            ... on GuildGearSelfStatus {
+              entries { standardId label minScore myScore met statusText }
+            }
+          }
+        }
+        ... on GuildReadOnly {
+          homeInsightsRaceTitle
+          homeInsightsRaceEmptyText
+          homeInsightsRaceTeamLabel
+          homeInsightsRaceRunsLabel
+          homeInsightsRaceWinsLabel
+          homeInsightsRaceBestLabel
+          homeInsightsSelfGearTitle
+          homeInsightsGearScoreLabel
+          homeInsightsGearMinScoreLabel
+          raceSeasonBoard {
+            __typename
+            ... on RaceSeasonBoard {
+              seasons {
+                season seasonLabel
+                entries { teamName members runCount winCount bestTimeMs bestTimeText }
+              }
+            }
+          }
+          gearSelfStatus {
+            __typename
+            ... on GuildGearSelfStatus {
+              entries { standardId label minScore myScore met statusText }
+            }
           }
         }
       }
@@ -2161,6 +2231,66 @@ export const GuildAdminQuery = graphql`
             }
             }
           }
+          adminTabInsightsLabel
+          adminInsightsReliabilityTitle
+          adminInsightsReliabilityHint
+          adminInsightsSignupsLabel
+          adminInsightsAttendedLabel
+          adminInsightsNoShowLabel
+          adminInsightsRateLabel
+          adminInsightsReliabilityEmptyText
+          adminInsightsHeatmapTitle
+          adminInsightsHeatmapHint
+          adminInsightsHeatmapEmptyText
+          adminInsightsGearTitle
+          adminInsightsGearHint
+          adminInsightsGearEmptyText
+          adminInsightsGearLabelLabel
+          adminInsightsGearMinScoreLabel
+          adminInsightsGearAddLabel
+          adminInsightsGearScoreLabel
+          adminInsightsGearGapLabel
+          adminInsightsRaceTitle
+          adminInsightsRaceEmptyText
+          adminInsightsRaceTeamLabel
+          adminInsightsRaceRunsLabel
+          adminInsightsRaceWinsLabel
+          adminInsightsRaceBestLabel
+          reliability {
+            __typename
+            ... on GuildAdminReliability {
+              entries { discordId displayName signupCount attendedCount noShowCount settledCount attendanceRate }
+            }
+            ... on GuildInsightsLocked { premiumTitle premiumBody }
+          }
+          participationHeatmap {
+            __typename
+            ... on GuildAdminParticipationHeatmap {
+              timezone totalAttended peakCount totalText weekdayLabels
+              cells { weekday weekdayLabel hour count }
+            }
+            ... on GuildInsightsLocked { premiumTitle premiumBody }
+          }
+          gearBoard {
+            __typename
+            ... on GuildAdminGearBoard {
+              standards {
+                id label minScore metCount unmetCount noBuildCount summaryText
+                members { discordId displayName hasBuild bestScore met gap statusText }
+              }
+            }
+            ... on GuildInsightsLocked { premiumTitle premiumBody }
+          }
+          raceSeasonBoard {
+            __typename
+            ... on RaceSeasonBoard {
+              seasons {
+                season seasonName seasonLabel
+                entries { teamName members runCount winCount bestTimeMs bestTimeText }
+              }
+            }
+            ... on GuildInsightsLocked { premiumTitle premiumBody }
+          }
           adminTabSeasonLabel
           seasonChecklist {
             seasonKey
@@ -2192,6 +2322,16 @@ export const GuildAdminQuery = graphql`
   }
 `;
 
+export const UpsertGearStandardAdminMutation = graphql`
+  mutation documentsUpsertGearStandardAdminMutation($slug: String!, $id: ID, $label: String!, $minScore: Int!) {
+    upsertGearStandard(slug: $slug, id: $id, label: $label, minScore: $minScore) { ok error }
+  }
+`;
+export const DeleteGearStandardAdminMutation = graphql`
+  mutation documentsDeleteGearStandardAdminMutation($slug: String!, $id: ID!) {
+    deleteGearStandard(slug: $slug, id: $id) { ok error }
+  }
+`;
 export const UpdateGuildProfileAdminMutation = graphql`
   mutation documentsUpdateGuildProfileAdminMutation($slug: String!, $input: UpdateGuildProfileInput!) {
     updateGuildProfile(slug: $slug, input: $input) { ok error }

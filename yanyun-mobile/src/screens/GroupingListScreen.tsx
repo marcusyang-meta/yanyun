@@ -12,6 +12,7 @@ import DexView from './DexView';
 import SectView from './SectView';
 import AnnouncementsView from './AnnouncementsView';
 import ScheduleView from './ScheduleView';
+import GuildInsightsSection from './GuildInsightsSection';
 import { useSession } from '../session';
 import type { documentsListPageTextQuery } from '../__generated__/documentsListPageTextQuery.graphql';
 import { BlockNode1View } from '../blocks/BlockRenderer';
@@ -45,7 +46,7 @@ function fill(template: string, params: Record<string, string | number>): string
   return out;
 }
 
-type SectionKey = 'team' | 'dex' | 'sect' | 'announcements' | 'schedule';
+type SectionKey = 'team' | 'dex' | 'sect' | 'announcements' | 'schedule' | 'insights';
 
 export default function GroupingListScreen({ slug, name, readOnly, nick, gameVersion, avatarUrl }: Props) {
   const router = useRouter();
@@ -106,6 +107,12 @@ export default function GroupingListScreen({ slug, name, readOnly, nick, gameVer
         // guild never offers it even though the label field exists.
         ...(!readOnly && guildItem.homeTabScheduleLabel
           ? [['schedule', guildItem.homeTabScheduleLabel] as [SectionKey, string]]
+          : []),
+        // Insights tab (P15 board + own P9 status): exists only when
+        // the session payload's board composed the full variant —
+        // the tier verdict is the type, exactly like Web's home tab.
+        ...(guildItem.raceSeasonBoard?.__typename === 'RaceSeasonBoard' && guildItem.homeInsightsRaceTitle
+          ? [['insights', guildItem.homeInsightsRaceTitle] as [SectionKey, string]]
           : []),
       ]
       : null;
@@ -194,6 +201,14 @@ export default function GroupingListScreen({ slug, name, readOnly, nick, gameVer
       {section === 'schedule' && (
         <AsyncBoundary key={`schedule:${epoch}`} onRetry={retry}>
           <ScheduleView slug={slug} defaultNickname={nick} refreshTick={refreshTick} />
+        </AsyncBoundary>
+      )}
+
+      {section === 'insights' && (
+        <AsyncBoundary key={`insights:${epoch}`} onRetry={retry}>
+          <Suspense fallback={<LoadingView />}>
+            <GuildInsightsSection slug={slug} />
+          </Suspense>
         </AsyncBoundary>
       )}
 

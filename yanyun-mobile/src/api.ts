@@ -41,6 +41,8 @@ import {
   ApplyToGuildMutation,
   UpdateGuildVisibilityAdminMutation,
   UpdateGuildRecruitOpenAdminMutation,
+  UpsertGearStandardAdminMutation,
+  DeleteGearStandardAdminMutation,
   CreateAdminEventMutation,
   PostGuildAnnouncementMutation,
   MarkGuildAnnouncementReadMutation,
@@ -106,6 +108,11 @@ export type GuildItem = {
   homeTabSectLabel?: string | null;
   homeTabAnnouncementsLabel?: string | null;
   homeTabScheduleLabel?: string | null;
+  // Premium insights board tab (P15): the label plus the board's
+  // composed variant — the guild screen shows the tab only when the
+  // variant is the full RaceSeasonBoard (tier verdict as type).
+  homeInsightsRaceTitle?: string | null;
+  raceSeasonBoard?: { __typename: string } | null;
   // Server-composed white-label chrome copy (carries the platform name
   // only while this guild shows platform branding)
   pageBackLabel?: string | null;
@@ -528,6 +535,8 @@ export async function applyToGuildRemote(slug: string, message?: string): Promis
 }
 export const adminUpdateVisibility = (slug: string, devOnly: boolean) => adminRun(UpdateGuildVisibilityAdminMutation, { slug, devOnly }, 'updateGuildVisibility');
 export const adminUpdateRecruitOpen = (slug: string, open: boolean) => adminRun(UpdateGuildRecruitOpenAdminMutation, { slug, open }, 'updateGuildRecruitOpen');
+export const adminUpsertGearStandard = (slug: string, id: string | null, label: string, minScore: number) => adminRun(UpsertGearStandardAdminMutation, { slug, id, label, minScore }, 'upsertGearStandard');
+export const adminDeleteGearStandard = (slug: string, id: string) => adminRun(DeleteGearStandardAdminMutation, { slug, id }, 'deleteGearStandard');
 export const adminCreateEvent = (slug: string, input: any) => adminRun(CreateAdminEventMutation, { slug, input }, 'createAdminEvent');
 export const adminUpdateEvent = (slug: string, eventId: string, input: any) => adminRun(UpdateAdminEventMutation, { slug, eventId, input }, 'updateAdminEvent');
 export const adminDeleteEvent = (slug: string, eventId: string) => adminRun(DeleteAdminEventMutation, { slug, eventId }, 'deleteAdminEvent');
