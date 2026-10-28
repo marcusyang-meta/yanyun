@@ -12924,6 +12924,102 @@
         }
       ],
       "types": []
+    },
+    "k4kPYSeRHNhhWw1lmn/M9Q==": {
+      "description": "Kicker text for the public squad share page, used above the title to identify the page as a shared squad.",
+      "id": "groupings/carshare_kicker",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "車隊招募 · 公開分享",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "j7w4Adn1yIDObLsU/UK9Iw==": {
+      "description": "Button label for the public squad share page, used by signed-out visitors to start Discord login and land on the full squad page to sign up.",
+      "id": "groupings/carshare_loginLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "登入並報名",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "0bLjilkzY9nLytjU58EWAw==": {
+      "description": "Button label for the public squad share page, used by signed-in visitors to open the full interactive squad page.",
+      "id": "groupings/carshare_openLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "打開車隊頁",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "WIUEchVHGaxuHIXRT6ncfA==": {
+      "description": "Title text for the squad share error state, used when a share link is invalid or its squad is gone.",
+      "id": "groupings/carshare_notFoundTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "連結已失效",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "JbX4FQD3urvDn3n3qOyXVQ==": {
+      "description": "Body text for the squad share error state, used to explain that the share link does not exist or the squad behind it has been disbanded.",
+      "id": "groupings/carshare_notFoundBody",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "這條分享連結不存在，或對應的車隊已經解散。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "6AYq5TejjwckjRQN6TbIXQ==": {
+      "description": "Hint text for the public squad share page, used to explain that the shared view is read-only and signing up happens on the full squad page after login.",
+      "id": "groupings/carshare_readonlyHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "這是唯讀的分享檢視：只能查看車隊資訊，報名要登入後在車隊頁裡操作。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "KGPDB/sElOYqQ+IyxcKi9g==": {
+      "description": "Status label for the public squad share page, used when the squad is no longer open for signups.",
+      "id": "groupings/carshare_statusClosed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "已截止",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "BjqDwME6gPTBPj/26nRNoA==": {
+      "description": "Section title for the public squad share page, used above the read-only seat occupancy grid.",
+      "id": "groupings/carshare_seatsTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "座位",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

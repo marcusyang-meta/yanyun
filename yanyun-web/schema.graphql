@@ -80,6 +80,7 @@ type Query {
   myContribution(slug: String!): MyContributionResult!
   groupingListPage(slug: String!, tab: GroupingTab!): GroupingListPage!
   groupingDetailPage(slug: String, id: ID!): GroupingDetailPage!
+  sharedGrouping(code: String!): SharedGroupingPage!
   dexPage: DexPage!
   bossPage(bossId: ID!): BossPage!
   sectPage: SectPage!
@@ -501,6 +502,36 @@ type Grouping {
   status: String!
   creatorDiscordId: String
   customFields: [CustomField!]!
+}
+
+type SharedGroupingPage {
+  exists: Boolean!
+  slug: String
+  guildName: String
+  title: String
+  type: GroupingType
+  dungeonName: String
+  startsAt: String
+  status: String
+  occupiedCount: Int!
+  maxSlots: Int!
+  seats: [SharedGroupingSeat!]!
+  shareKicker: String!
+  shareLoginLabel: String!
+  shareOpenLabel: String!
+  shareNotFoundTitle: String!
+  shareNotFoundBody: String!
+  shareReadonlyHint: String!
+  shareStatusOpenLabel: String!
+  shareStatusClosedLabel: String!
+  shareStatusCompletedLabel: String!
+  sharePeopleTemplate: String!
+  shareSeatsTitle: String!
+}
+
+type SharedGroupingSeat {
+  index: Int!
+  occupied: Boolean!
 }
 
 type GroupingDetailPage {

@@ -4,6 +4,7 @@
 export * from './events.ts';
 export * from './templates.ts';
 export * from './shortlinks.ts';
+export * from './shareview.ts';
 export * from './lotteries.ts';
 export * from './availability.ts';
 export * from './polls.ts';
