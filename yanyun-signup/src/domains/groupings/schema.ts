@@ -88,6 +88,10 @@ export const groupingTemplates = sqliteTable('grouping_templates', {
   creatorDiscordId: text('creator_discord_id'),
   createdAt: integer('created_at').notNull().default(0),
   updatedAt: integer('updated_at').notNull().default(0),
+  /* season_key [alt: 0028]: the season this template copy belongs
+   * to ('' = a pre-rollover original). The P12 rollover engine
+   * copies templates forward under the new season's key. */
+  seasonKey: text('season_key').notNull().default(''),
 }, (t) => [
   index('idx_grouping_templates_tenant').on(t.tenant),
 ]);

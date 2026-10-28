@@ -27,6 +27,7 @@ export interface GroupingTemplateRow {
   creator_discord_id: string | null;
   created_at: number;
   updated_at: number;
+  season_key: string;
 }
 
 interface RunMeta {
@@ -105,7 +106,7 @@ export async function getGroupingTemplate(
 const TEMPLATE_COLUMNS = new Set([
   'tenant', 'name', 'type', 'title', 'dungeon', 'max_slots',
   'start_days_ahead', 'start_minutes', 'creator_discord_id',
-  'created_at', 'updated_at',
+  'created_at', 'updated_at', 'season_key',
 ]);
 
 function checkedColumns(row: Record<string, unknown>): string[] {

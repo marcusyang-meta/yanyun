@@ -303,3 +303,76 @@ export const guildAvatars = sqliteTable('guild_avatars', {
   hash: text('hash').notNull(),
   updatedAt: integer('updated_at').notNull(),
 });
+
+/* ---------------- ops nudge sends [migration 0028] ---------------
+ * One row per targeted-nudge send (P8): the row is both the
+ * frequency-control record (daily cap + per-event cooldown are
+ * judged from these rows) and the audit trail. recipient_ids is a
+ * JSON array of Discord ids the send targeted. */
+export const opsNudgeSends = sqliteTable('ops_nudge_sends', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  tenant: text('tenant').notNull(),
+  eventId: integer('event_id').notNull(),
+  segmentKind: text('segment_kind').notNull().default('all'),
+  segmentValue: text('segment_value').notNull().default(''),
+  recipientCount: integer('recipient_count').notNull().default(0),
+  recipientIds: text('recipient_ids').notNull().default('[]'),
+  sentBy: text('sent_by').notNull().default(''),
+  sentAt: integer('sent_at').notNull().default(0),
+}, (t) => [
+  index('idx_ops_nudge_sends_tenant_at').on(t.tenant, t.sentAt),
+  index('idx_ops_nudge_sends_tenant_event').on(t.tenant, t.eventId, t.sentAt),
+]);
+
+/* ---------------- season rollovers [migration 0028] --------------
+ * One row per EXECUTED season rollover (P12). Previews are computed
+ * live and never stored; only an admin-confirmed execution leaves
+ * this trace, with the full report as JSON. */
+export const seasonRollovers = sqliteTable('season_rollovers', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  tenant: text('tenant').notNull(),
+  fromSeasonKey: text('from_season_key').notNull().default(''),
+  toSeasonKey: text('to_season_key').notNull().default(''),
+  templatesCopied: integer('templates_copied').notNull().default(0),
+  reportJson: text('report_json').notNull().default('{}'),
+  createdBy: text('created_by').notNull().default(''),
+  createdAt: integer('created_at').notNull().default(0),
+}, (t) => [
+  index('idx_season_rollovers_tenant').on(t.tenant, t.id),
+]);
+
+/* ---------------- contribution rules [migration 0028] ------------
+ * Per-guild point values per action (P14). One row per (guild,
+ * action); absence of a row means the backend default applies.
+ * Actions are platform events only (attendance / leading /
+ * mentoring) — points only, no goods or donation concepts. */
+export const contributionRules = sqliteTable('contribution_rules', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  tenant: text('tenant').notNull(),
+  actionKey: text('action_key').notNull(),
+  points: integer('points').notNull().default(0),
+  enabled: integer('enabled').notNull().default(1),
+  updatedBy: text('updated_by').notNull().default(''),
+  updatedAt: integer('updated_at').notNull().default(0),
+}, (t) => [
+  uniqueIndex('contribution_rules_tenant_action_unique').on(t.tenant, t.actionKey),
+]);
+
+/* ---------------- contribution entries [migration 0028] ----------
+ * The points ledger (P14): one row per credited platform event,
+ * points frozen at accrual time. dedupe_key is unique, so one event
+ * can never credit the same member twice for the same action. */
+export const contributionEntries = sqliteTable('contribution_entries', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  tenant: text('tenant').notNull(),
+  discordId: text('discord_id').notNull(),
+  actionKey: text('action_key').notNull(),
+  points: integer('points').notNull().default(0),
+  eventId: integer('event_id'),
+  dedupeKey: text('dedupe_key').notNull(),
+  createdAt: integer('created_at').notNull().default(0),
+}, (t) => [
+  uniqueIndex('contribution_entries_dedupe_unique').on(t.dedupeKey),
+  index('idx_contribution_entries_tenant_user').on(t.tenant, t.discordId, t.id),
+  index('idx_contribution_entries_tenant').on(t.tenant, t.id),
+]);

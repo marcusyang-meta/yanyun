@@ -616,3 +616,46 @@ export async function handleStripeEvent(
   // Unhandled types are still recorded above (idempotent no-op).
   return done(false);
 }
+
+/* ---------------- tier verdicts (premium tiers T1/T2/T3) ----------
+ * Added for the tiered premium program (DESIGN §8): surfaces gate
+ * on a numeric tier via tierLocked(d1, slug, requiredTier) — true
+ * when the guild must be composed in its locked variant.
+ *
+ * Signature contract: the foundation line (F0) owns the canonical
+ * tier storage; until it lands, the tier resolves here as:
+ *   1. an explicit per-guild tier in tenant settings
+ *      ('premium_tier' = '1' | '2' | '3', hub-granted for pilots and
+ *      tests) wins;
+ *   2. otherwise the legacy single-plan entitlement maps premium
+ *      to the top tier (3) and free to 0 — a guild that paid under
+ *      the single-plan model keeps every tier's surfaces.
+ * When F0's storage lands, only getGuildTier's body changes; every
+ * caller keeps this signature.
+ *
+ * The paygate doctrine is unchanged: master switch OFF locks
+ * nobody (launch parity), and no entitlement read happens at all. */
+
+export const GUILD_TIER_SETTING_KEY = 'premium_tier';
+
+export async function getGuildTier(
+  d1: D1Database,
+  slug: string,
+): Promise<number> {
+  const raw = await getSettingValue(d1, slug, GUILD_TIER_SETTING_KEY).catch(() => '');
+  const explicit = Number.parseInt(String(raw || ''), 10);
+  if (explicit >= 1 && explicit <= 3) return explicit;
+  const eff = await getEffectiveEntitlement(d1, slug);
+  return eff.plan === 'premium' ? 3 : 0;
+}
+
+/** THE tier verdict: true when this guild is below `requiredTier`
+ *  and the surface must lock. Paygate OFF locks nobody. */
+export async function tierLocked(
+  d1: D1Database,
+  slug: string,
+  requiredTier: number,
+): Promise<boolean> {
+  if (!(await isPaygateEnabled(d1))) return false;
+  return (await getGuildTier(d1, slug)) < requiredTier;
+}
