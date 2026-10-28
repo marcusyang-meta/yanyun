@@ -1,7 +1,8 @@
 // Billing acceptance (entitlement + paygate + Stripe readiness):
 // real D1 (Miniflare, migration-chain bootstrap — the production
-// shape by construction), real yoga resolvers, the real hub routes
-// and the real Stripe webhook route. Proves the launch-day contract:
+// shape by construction), real yoga resolvers, the real platform-admin
+// GraphQL surface (the retired hub portal's replacement) and the real
+// Stripe webhook route. Proves the launch-day contract:
 //   - paygate OFF: the admin surface composes exactly as before
 //     billing existed (premium field null, stats full, writes open,
 //     stored white-label branding honored);
@@ -9,7 +10,7 @@
 //     the write mutations refuse with premiumRequired, the branding
 //     presentation falls back to defaults while stored settings stay
 //     untouched, and checkout composes the coming-soon refusal;
-//   - hub manual grant unlocks instantly, revoke re-locks, and both
+//   - platform-admin manual grant unlocks instantly, revoke re-locks, and both
 //     (plus the switch flip) land in the hub audit log;
 //   - self-signed Stripe webhook events drive the entitlement
 //     (completed -> updated -> payment_failed -> deleted), replays
@@ -24,9 +25,7 @@ import { describe, it, expect, afterAll } from 'vitest';
 import { Hono } from 'hono';
 import { yoga } from '../src/graphql.ts';
 import { OMNISCIENT_VIEWER } from '../src/domains/platform/context.ts';
-import { hubRoutes } from '../src/domains/platform/hub-routes.ts';
 import { billingRoutes } from '../src/domains/platform/billing-routes.ts';
-import { makeToken } from '../src/domains/platform/http.ts';
 import { signStripePayload, stripeConfig, stripePriceIdForTier, stripeTierForPriceId } from '../src/domains/platform/stripe.ts';
 import { insertTenant } from '../src/domains/guilds/tenants.ts';
 import { getSettingValue, setSettingValue } from '../src/domains/guilds/settings.ts';
@@ -98,18 +97,62 @@ const adminQ = `{ viewer { guildAdmin(slug: "${SLUG}") { __typename ... on Guild
 } } } }`;
 const ga = (r) => r.data?.viewer?.guildAdmin;
 
-const hubApp = new Hono();
-hubApp.use('*', async (c, next) => { c.set('ip', '127.0.0.1'); await next(); });
-hubApp.route('/api/hub', hubRoutes);
-const hubEnv = { DB: db, ADMIN_PASSWORD: 'billing-test-pw', SITE_URL: 'http://local' };
-const hubToken = await makeToken('billing-test-pw', '__hub__');
-async function hub(path, method = 'GET', body) {
-  const res = await hubApp.fetch(new Request('http://local' + path, {
-    method,
-    headers: { authorization: `Bearer ${hubToken}`, 'content-type': 'application/json' },
-    body: body ? JSON.stringify(body) : undefined,
-  }), hubEnv);
-  return { status: res.status, json: await res.json().catch(() => null) };
+/* Platform-admin actuator (hub overhaul): these scenarios used to
+ * drive billing through the retired hub REST portal; they now go
+ * through the GraphQL admin surface with an env-floor platform
+ * admin. The adapter keeps the {status, json:{ok, billing}} shape
+ * the assertions were written against, and maps payload errorCodes
+ * back to the old HTTP statuses (gate refusal -> 401, unknown guild
+ * -> 404, other verdicts -> 400). */
+const ADMIN_BILLING_FIELDS = `paygateEnabled stripeConfigured customDomainSaasConfigured
+  plans { tier plan name nameEn subtitle subtitleEn priceMonthlyCents }
+  tenants { slug guildName plan source tier effectiveTier tierName tierNameEn tierSubtitle
+    currentPeriodEnd lapsed pastDue hasCard trialUsed stripeCustomerId stripeSubscriptionId
+    subdomainEnabled customDomainHostname customDomainStatus }`;
+const adminEnv = { DB: db, SITE_URL: 'http://local', PLATFORM_ADMIN_DISCORD_IDS: 'BILLING-ADMIN' };
+const adminUser = { discordId: 'BILLING-ADMIN', name: 'billing-test admin', guilds: [] as string[] };
+function shapeBilling(b: any) {
+  if (!b) return null;
+  return { ...b, tenants: (b.tenants || []).map((t: any) => ({ ...t,
+    guild_name: t.guildName,
+    customDomain: t.customDomainHostname ? { hostname: t.customDomainHostname, status: t.customDomainStatus } : null })) };
+}
+async function adminGql(query: string, { user = adminUser }: any = {}) {
+  const ctx = { env: adminEnv, request: new Request('http://local/graphql'), user,
+    locale: 'zh-CN', browserLocale: 'zh-CN', tz: 'Asia/Shanghai', executionCtx: { waitUntil() {} } };
+  const res = await yoga.fetch(new Request('http://local/graphql', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ query }),
+  }), ctx);
+  return res.json();
+}
+function payloadResult(payload: any) {
+  if (!payload) return { status: 401, json: null as any };
+  const status = payload.ok ? 200
+    : payload.errorCode === 'platformAdminRequired' ? 401
+    : payload.errorCode === 'guildNotFound' || payload.errorCode === 'customDomainNotBound' ? 404
+    : 400;
+  return { status, json: { ok: payload.ok, error: payload.error ?? null,
+    message: payload.error ?? null, billing: shapeBilling(payload.billing) } };
+}
+async function hub(path: string, method = 'GET', body?: any) {
+  if (path === '/api/hub/billing' && method === 'GET') {
+    const r = await adminGql(`{ viewer { platformAdmin { __typename ... on PlatformAdmin { billing { ${ADMIN_BILLING_FIELDS} } } } } }`);
+    const pa = r.data?.viewer?.platformAdmin;
+    if (!pa || pa.__typename !== 'PlatformAdmin') return { status: 401, json: null as any };
+    return { status: 200, json: { ok: true, billing: shapeBilling(pa.billing) } };
+  }
+  const ops: Record<string, string> = {
+    'PUT /api/hub/billing/paygate': `mutation { platformAdminSetPaygate(enabled: ${!!body?.enabled}) { ok error errorCode billing { ${ADMIN_BILLING_FIELDS} } } }`,
+    'POST /api/hub/billing/grant': `mutation { platformAdminGrantPremium(slug: ${JSON.stringify(body?.slug)}, days: ${body?.days || 30}${body?.tier ? `, tier: ${JSON.stringify(body.tier)}` : ''}) { ok error errorCode billing { ${ADMIN_BILLING_FIELDS} } } }`,
+    'POST /api/hub/billing/revoke': `mutation { platformAdminRevokePremium(slug: ${JSON.stringify(body?.slug)}) { ok error errorCode billing { ${ADMIN_BILLING_FIELDS} } } }`,
+    'PUT /api/hub/billing/subdomain': `mutation { platformAdminSetSubdomain(slug: ${JSON.stringify(body?.slug)}, enabled: ${!!body?.enabled}) { ok error errorCode billing { ${ADMIN_BILLING_FIELDS} } } }`,
+  };
+  const q = ops[`${method} ${path}`];
+  if (!q) throw new Error('unmapped admin op: ' + method + ' ' + path);
+  const r = await adminGql(q);
+  const payload = r.data ? Object.values(r.data)[0] : null;
+  return payloadResult(payload);
 }
 
 let r: any;
@@ -152,22 +195,22 @@ r = await gql(`mutation { updateGuildWhiteLabel(slug: "${SLUG}", hideBranding: t
 eq('OFF: white-label write open', [r.data?.updateGuildWhiteLabel?.ok, r.data?.updateGuildWhiteLabel?.errorCode], [true, null]);
   });
 
-  it('hub plumbing', async () => {
-/* ---------------- hub plumbing ---------------- */
+  it('admin plumbing', async () => {
+/* ---------------- admin plumbing ---------------- */
 {
-  const res = await hubApp.fetch(new Request('http://local/api/hub/billing'), hubEnv);
-  eq('hub: billing state requires auth', res.status, 401);
+  const res = await adminGql(`{ viewer { platformAdmin { __typename } } }`, { user: null });
+  eq('admin: billing state requires an admin session', res.data?.viewer?.platformAdmin?.__typename, 'PlatformAdminLocked');
 }
 h = await hub('/api/hub/billing');
-eq('hub: billing state readable', h.status, 200);
-eq('hub: paygate defaults OFF', h.json?.billing?.paygateEnabled, false);
-eq('hub: stripe reported unconfigured', h.json?.billing?.stripeConfigured, false);
+eq('admin: billing state readable', h.status, 200);
+eq('admin: paygate defaults OFF', h.json?.billing?.paygateEnabled, false);
+eq('admin: stripe reported unconfigured', h.json?.billing?.stripeConfigured, false);
   });
 
   it('B. paygate ON, no entitlement', async () => {
 /* ---------------- B. paygate ON, no entitlement ---------------- */
 h = await hub('/api/hub/billing/paygate', 'PUT', { enabled: true });
-eq('hub: paygate switch on', [h.status, h.json?.billing?.paygateEnabled], [200, true]);
+eq('admin: paygate switch on', [h.status, h.json?.billing?.paygateEnabled], [200, true]);
 r = await gql(adminQ);
 eq('ON: premium composes Locked', ga(r)?.premium?.__typename, 'GuildAdminPremiumLocked');
 eq('ON: locked title copy', ga(r)?.premium?.premiumTitle, '开通百业 Premium');
@@ -188,10 +231,10 @@ eq('ON: checkout composes coming-soon refusal',
   [false, 'Premium 开通即将开放', null]);
   });
 
-  it('C. hub grant unlocks, D. revoke re-locks', async () => {
-/* ---------------- C. hub grant unlocks, D. revoke re-locks ---------------- */
+  it('C. admin grant unlocks, D. revoke re-locks', async () => {
+/* ---------------- C. admin grant unlocks, D. revoke re-locks ---------------- */
 h = await hub('/api/hub/billing/grant', 'POST', { slug: SLUG, days: 30 });
-eq('hub: grant ok', [h.status, h.json?.ok], [200, true]);
+eq('admin: grant ok', [h.status, h.json?.ok], [200, true]);
 eff = await getEffectiveEntitlement(db, SLUG);
 eq('grant: effective premium/manual', [eff.plan, eff.source, eff.lapsed], ['premium', 'manual', false]);
 r = await gql(adminQ);
@@ -212,7 +255,7 @@ eq('grant: reminder write open again', r.data?.updateGuildReminderSettings?.ok, 
 }
 
 h = await hub('/api/hub/billing/revoke', 'POST', { slug: SLUG });
-eq('hub: revoke ok', [h.status, h.json?.ok], [200, true]);
+eq('admin: revoke ok', [h.status, h.json?.ok], [200, true]);
 r = await gql(adminQ);
 eq('revoke: premium Locked again', ga(r)?.premium?.__typename, 'GuildAdminPremiumLocked');
 eq('revoke: stats Locked again', ga(r)?.stats?.__typename, 'GuildAdminStatsLocked');
@@ -357,7 +400,7 @@ eq('expiry: stored premium past period end reads free', [eff.plan, eff.lapsed], 
   it('H. switch back OFF: full regression', async () => {
 /* ---------------- H. switch back OFF: full regression ---------------- */
 h = await hub('/api/hub/billing/paygate', 'PUT', { enabled: false });
-eq('hub: paygate switch off', h.json?.billing?.paygateEnabled, false);
+eq('admin: paygate switch off', h.json?.billing?.paygateEnabled, false);
 r = await gql(adminQ);
 eq('OFF again: premium absent', ga(r)?.premium ?? null, null);
 eq('OFF again: stats full', ga(r)?.stats?.__typename, 'GuildAdminStats');
@@ -503,10 +546,10 @@ check('pricing ON: monthly prices served',
 h = await hub('/api/hub/billing');
 {
   const plans = h.json?.billing?.plans || [];
-  eq('hub pricing: catalog cents served', plans.map((p) => p.priceMonthlyCents), [399, 599, 799]);
-  eq('hub pricing: catalog names served', plans.map((p) => p.name), ['同道', '执事', '盟主']);
+  eq('admin pricing: catalog cents served', plans.map((p) => p.priceMonthlyCents), [399, 599, 799]);
+  eq('admin pricing: catalog names served', plans.map((p) => p.name), ['同道', '执事', '盟主']);
   const tEntry = (h.json?.billing?.tenants || []).find((x) => x.slug === TSLUG);
-  eq('hub pricing: tenant tier name from catalog', tEntry?.tierName, '盟主');
+  eq('admin pricing: tenant tier name from catalog', tEntry?.tierName, '盟主');
 }
 h = await hub('/api/hub/billing/paygate', 'PUT', { enabled: false });
 eq('pricing section: paygate back off', h.json?.billing?.paygateEnabled, false);
@@ -615,24 +658,24 @@ eff = await getEffectiveEntitlement(db, RSLUG, nowS + 13 * 86400);
 eq('trial: expired trial gets no grace window', [eff.plan, eff.tier, eff.lapsed, eff.pastDue], ['free', 0, true, false]);
 eq('trial: consumed trial never re-arms after expiry', await grantTrialEntitlement(db, RSLUG), null);
 
-/* hub subdomain enable: the persistence-card verdict at the hub seam */
+/* platform-admin subdomain enable: the persistence-card verdict at the admin seam */
 const HSLUG = 'hubtrial';
 await insertTenant(db, { slug: HSLUG, guildName: '子域试用百业', passwordHash: '', announcement: '' });
 await grantTrialEntitlement(db, HSLUG);
 h = await hub('/api/hub/billing/subdomain', 'PUT', { slug: HSLUG, enabled: true });
-eq('hub subdomain: trial without card refused', h.status, 400);
-check('hub subdomain: refusal states the trial/card reason',
+eq('admin subdomain: trial without card refused', h.status, 400);
+check('admin subdomain: refusal states the trial/card reason',
   String(h.json?.message || '').includes('试用') && String(h.json?.message || '').includes('卡'),
   String(h.json?.message || ''));
-eq('hub subdomain: refusal flipped nothing', await getSettingValue(db, HSLUG, 'subdomain_enabled'), '');
+eq('admin subdomain: refusal flipped nothing', await getSettingValue(db, HSLUG, 'subdomain_enabled'), '');
 {
   const prev = await getEntitlementRow(db, HSLUG);
   await upsertTierRow(db, { ...prev, hasCard: true, updatedAt: nowS });
 }
 h = await hub('/api/hub/billing/subdomain', 'PUT', { slug: HSLUG, enabled: true });
-eq('hub subdomain: trial with card on file enabled', [h.status, h.json?.ok], [200, true]);
+eq('admin subdomain: trial with card on file enabled', [h.status, h.json?.ok], [200, true]);
 h = await hub('/api/hub/billing/subdomain', 'PUT', { slug: TSLUG, enabled: true });
-eq('hub subdomain: manual guild enabled without a card', [h.status, h.json?.ok], [200, true]);
+eq('admin subdomain: manual guild enabled without a card', [h.status, h.json?.ok], [200, true]);
 
 /* trial arming: the real createGuild mutation grants the trial */
 {

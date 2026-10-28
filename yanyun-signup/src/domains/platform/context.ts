@@ -71,7 +71,6 @@ export interface Env {
   DISCORD_CLIENT_SECRET?: string;
   DISCORD_API_BASE?: string;
   EXPO_PUSH_BASE?: string;
-  ADMIN_PASSWORD?: string;
   /* Platform-admin gate bootstrap floor (platform/admin-gate.ts):
    * comma/whitespace separated Discord user IDs that always evaluate
    * as platform admins, unioned with the living roster stored in

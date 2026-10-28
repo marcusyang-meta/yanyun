@@ -102,7 +102,7 @@ new_sqlite_classes = ["GuildHub"]
 
 # 本地开发用 D1 本地实例, 变量示例(上线用 wrangler secret put 设置):
 # [vars]
-# ADMIN_PASSWORD = "dev-only-change-me"   # 仅本地调试用! 线上务必用 secret
+# PLATFORM_ADMIN_DISCORD_IDS=<comma-separated Discord user IDs: platform-admin gate bootstrap floor>
 
 # ===== Previews (wrangler preview) =====
 [[previews.durable_objects.bindings]]

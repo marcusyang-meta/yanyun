@@ -9,7 +9,7 @@
 //    feedback fields resolve from the catalog (zh-CN source; an en
 //    request falls back to the source per field, the standing rule for
 //    not-yet-translated strings);
-//  - hub: the list requires hub auth, shows submissions newest first,
+//  - admin: the list requires the platform-admin gate, shows submissions newest first,
 //    filters by triage status; the status endpoint resolves and
 //    reopens a row (resolved_at stamped / cleared), 404s unknown ids
 //    and 400s bad statuses; viewing and flipping are audited, and the
@@ -119,7 +119,7 @@ function makeDb() {
 }
 
 const { db, state } = makeDb();
-const env = { DB: db };
+const env = { DB: db, PLATFORM_ADMIN_DISCORD_IDS: 'FB-ADMIN' };
 const userA = { discordId: 'UF1', name: '反馈用户甲', guilds: [] };
 const userB = { discordId: 'UF2', name: '反馈用户乙', guilds: [] };
 
@@ -202,58 +202,55 @@ describe('feedback', () => {
   eq('en 未译字符串逐字段回退源文', en.data?.viewer?.landingGroupingTitle, '组队报名');
   });
 
-/* ================= Hub: list + triage ================= */
-  it('Hub: list + triage', async () => {
-  const ASSETS = { fetch: async () => new Response('not found', { status: 404 }) };
-  const worker = (await import('../src/worker.ts')).default;
-  const hubEnv = { DB: db, ADMIN_PASSWORD: 'test-admin-pw', ASSETS };
-  const pending = [];
-  const wctx = { waitUntil(p) { pending.push(Promise.resolve(p).catch(() => {})); } };
-  const req = (path, { method = 'GET', token, body } = {}) => {
-    const headers = {};
-    if (token) headers.authorization = 'Bearer ' + token;
-    if (body !== undefined) headers['content-type'] = 'application/json';
-    return new Request('http://local' + path, { method, headers, body: body !== undefined ? JSON.stringify(body) : undefined });
-  };
+/* ================= Admin: list + triage =================
+ * Hub overhaul: this section used to drive triage through the
+ * retired hub REST portal (password login + bearer token). It now
+ * goes through the GraphQL admin surface: anonymous composition is
+ * the Locked type with zero feedback data, and the env-floor admin
+ * reads and flips through feedbackEntries /
+ * platformAdminSetFeedbackStatus. Status-code assertions map to
+ * payload outcomes (refusal -> Locked / badParams /
+ * feedbackNotFound). */
+  it('Admin: list + triage', async () => {
+  const admin = { discordId: 'FB-ADMIN', name: '反馈管理员', guilds: [] };
+  const listQ = (status) => `{ viewer { platformAdmin { __typename
+    ... on PlatformAdmin { feedbackEntries(status: ${status ? JSON.stringify(status) : 'null'}) { total entries { id discordId userName category content status createdAt resolvedAt } } } } } }`;
+  const flipM = (id, status) => `mutation { platformAdminSetFeedbackStatus(id: ${id}, status: ${JSON.stringify(status)}) { ok error errorCode } }`;
 
-  const noTok = await worker.fetch(req('/api/hub/feedback'), hubEnv, wctx);
-  eq('反馈列表无 token -> 401', noTok.status, 401);
+  const anon = await gql(listQ(null), { user: null });
+  eq('匿名列表 -> Locked', anon.data?.viewer?.platformAdmin?.__typename, 'PlatformAdminLocked');
+  check('匿名零反馈数据下发', !JSON.stringify(anon).includes('乙的第二条'));
 
-  const login = await worker.fetch(req('/api/hub/login', { method: 'POST', body: { password: 'test-admin-pw' } }), hubEnv, wctx);
-  eq('超管登录 -> 200', login.status, 200);
-  const { token } = await login.json();
-
-  const list = await worker.fetch(req('/api/hub/feedback', { token }), hubEnv, wctx);
-  eq('反馈列表 -> 200', list.status, 200);
-  const lj = await list.json();
+  const list = await gql(listQ(null), { user: admin });
+  const lj = list.data?.viewer?.platformAdmin?.feedbackEntries;
+  check('超管列表可达', !!lj, JSON.stringify(list).slice(0, 160));
   eq('列表 total = 全部待处理数', lj.total, 7);
   eq('列表最新在前', lj.entries[0].content, '乙的第二条');
-  check('列表行带用户快照与类别', lj.entries.every((r) => r.discord_id && r.user_name && r.category), JSON.stringify(lj.entries[0]).slice(0, 160));
+  check('列表行带用户快照与类别', lj.entries.every((r) => r.discordId && r.userName && r.category), JSON.stringify(lj.entries[0]).slice(0, 160));
 
   const firstId = lj.entries[0].id;
-  const flip = await worker.fetch(req(`/api/hub/feedback/${firstId}/status`, { method: 'POST', token, body: { status: 'resolved' } }), hubEnv, wctx);
-  eq('标记已处理 -> 200', flip.status, 200);
+  const flip = await gql(flipM(firstId, 'resolved'), { user: admin });
+  eq('标记已处理 -> ok', flip.data?.platformAdminSetFeedbackStatus?.ok, true);
   const flipped = state.feedback.find((r) => r.id === firstId);
   eq('行状态 resolved 且有 resolved_at', [flipped.status, typeof flipped.resolved_at], ['resolved', 'number']);
 
-  const openList = await (await worker.fetch(req('/api/hub/feedback?status=open', { token }), hubEnv, wctx)).json();
+  const openList = (await gql(listQ('open'), { user: admin })).data?.viewer?.platformAdmin?.feedbackEntries;
   eq('按 open 筛选', openList.total, 6);
-  const resList = await (await worker.fetch(req('/api/hub/feedback?status=resolved', { token }), hubEnv, wctx)).json();
+  const resList = (await gql(listQ('resolved'), { user: admin })).data?.viewer?.platformAdmin?.feedbackEntries;
   eq('按 resolved 筛选', resList.total, 1);
   eq('resolved 列表就是该行', resList.entries[0].id, firstId);
 
-  const badStatus = await worker.fetch(req(`/api/hub/feedback/${firstId}/status`, { method: 'POST', token, body: { status: 'nope' } }), hubEnv, wctx);
-  eq('非法状态 -> 400', badStatus.status, 400);
-  const missing = await worker.fetch(req('/api/hub/feedback/99999/status', { method: 'POST', token, body: { status: 'resolved' } }), hubEnv, wctx);
-  eq('未知 id -> 404', missing.status, 404);
+  const badStatus = await gql(flipM(firstId, 'nope'), { user: admin });
+  eq('非法状态 -> badParams', badStatus.data?.platformAdminSetFeedbackStatus?.errorCode, 'badParams');
+  const missing = await gql(flipM(99999, 'resolved'), { user: admin });
+  eq('未知 id -> feedbackNotFound', missing.data?.platformAdminSetFeedbackStatus?.errorCode, 'feedbackNotFound');
 
-  const reopen = await worker.fetch(req(`/api/hub/feedback/${firstId}/status`, { method: 'POST', token, body: { status: 'open' } }), hubEnv, wctx);
-  eq('重开 -> 200', reopen.status, 200);
+  const reopen = await gql(flipM(firstId, 'open'), { user: admin });
+  eq('重开 -> ok', reopen.data?.platformAdminSetFeedbackStatus?.ok, true);
   eq('重开清 resolved_at', [flipped.status, flipped.resolved_at], ['open', null]);
 
-  check('查看反馈留痕 feedback.view', state.audit.some((r) => r.action === 'feedback.view'));
-  check('状态变更留痕 feedback.status', state.audit.some((r) => r.action === 'feedback.status'));
+  check('查看反馈留痕 feedback.view', state.audit.some((r) => r.action === 'feedback.view' && r.actor === 'FB-ADMIN'));
+  check('状态变更留痕 feedback.status', state.audit.some((r) => r.action === 'feedback.status' && r.actor === 'FB-ADMIN'));
   check('审计摘要绝不含反馈正文', !JSON.stringify(state.audit).includes('报名页偶尔打不开') && !JSON.stringify(state.audit).includes('乙的第二条'));
-  await Promise.all(pending);
   });
 });

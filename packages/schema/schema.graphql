@@ -4934,8 +4934,8 @@ type PlatformAdminFeedbackEntry {
   category: String!
   content: String!
   status: String!
-  createdAt: Int!
-  resolvedAt: Int
+  createdAt: Float!     # epoch milliseconds (exceeds Int32)
+  resolvedAt: Float     # epoch milliseconds
 }
 
 type PlatformAdminSettings {
