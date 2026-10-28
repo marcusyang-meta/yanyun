@@ -17,6 +17,7 @@ import GuildAdminGuides from './GuildAdminGuides.react.tsx';
 import { GuildAdminAnnouncementsRoute } from './GuildAnnouncements.react.tsx';
 import GuildAdminStats from './GuildAdminStats.react.tsx';
 import GuildAdminTools from './GuildAdminTools.react.tsx';
+import GuildAdminSeason from './GuildAdminSeason.react.tsx';
 import { PremiumLockedPanel, PremiumActivePanel } from './GuildAdminPremium.react.tsx';
 
 // Guild admin page (@match branch of viewer.guildAdmin): every label
@@ -104,6 +105,31 @@ const GuildAdminPage_guildAdmin = graphql`
       winners { discordId displayName weight }
     }
     lotteryRoster { discordId displayName }
+    adminTabSeasonLabel
+    seasonChecklist {
+      seasonKey
+      versionLabel
+      seasonLabel
+      title
+      hint
+      progressTemplate
+      doneCount
+      totalCount
+      items { key title detail checked checkedByName }
+    }
+    roster {
+      rosterTitle
+      rosterHint
+      rosterUploadLabel
+      rosterOcrRunningText
+      rosterPreviewTitle
+      rosterConfirmLabel
+      rosterEmptyText
+      rosterDeleteLabel
+      rosterSourceOcrLabel
+      rosterMatchedMemberLabel
+      entries { id displayName source matchedName createdAt }
+    }
     adminSaveLabel
     adminSavedText
     adminDeleteLabel
@@ -429,6 +455,7 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
     { key: 'announcements', label: text.adminTabAnnouncementsLabel },
     { key: 'stats', label: text.adminTabStatsLabel },
     { key: 'tools', label: text.adminTabToolsLabel },
+    { key: 'season', label: text.adminTabSeasonLabel },
   ];
 
   return (
@@ -642,6 +669,10 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
           <Suspense fallback={null}>
             <GuildAdminAnnouncementsRoute slug={slug} />
           </Suspense>
+        )}
+        {tab === 'season' && (
+          <GuildAdminSeason slug={slug} commonText={commonText}
+            checklist={data.seasonChecklist} roster={data.roster} refresh={refresh} />
         )}
         {tab === 'stats' && (
           data.stats?.__typename === 'GuildAdminStats' ? (

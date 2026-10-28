@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<4c50b349f7e12257530188acb2d125ae>>
+ * @generated SignedSource<<2a17cfdafac7d48b9826c602df612ca2>>
  * @lightSyntaxTransform
  */
 
@@ -125,6 +125,7 @@ export type GuildAdminPage_guildAdmin$data = {
   readonly adminTabEventsLabel: string;
   readonly adminTabGuidesLabel: string;
   readonly adminTabProfileLabel: string;
+  readonly adminTabSeasonLabel: string;
   readonly adminTabStatsLabel: string;
   readonly adminTabToolsLabel: string;
   readonly adminTitle: string;
@@ -240,6 +241,25 @@ export type GuildAdminPage_guildAdmin$data = {
   readonly reminderOffsets: ReadonlyArray<number>;
   readonly reminderWebhookId: string | null | undefined;
   readonly reminderWebhookSet: boolean;
+  readonly roster: {
+    readonly entries: ReadonlyArray<{
+      readonly createdAt: number;
+      readonly displayName: string;
+      readonly id: string;
+      readonly matchedName: string | null | undefined;
+      readonly source: string;
+    }>;
+    readonly rosterConfirmLabel: string;
+    readonly rosterDeleteLabel: string;
+    readonly rosterEmptyText: string;
+    readonly rosterHint: string;
+    readonly rosterMatchedMemberLabel: string;
+    readonly rosterOcrRunningText: string;
+    readonly rosterPreviewTitle: string;
+    readonly rosterSourceOcrLabel: string;
+    readonly rosterTitle: string;
+    readonly rosterUploadLabel: string;
+  };
   readonly schoolGuides: {
     readonly schools: ReadonlyArray<{
       readonly builds: ReadonlyArray<{
@@ -251,6 +271,23 @@ export type GuildAdminPage_guildAdmin$data = {
       readonly rotationJson: string;
       readonly school: string;
     }>;
+  };
+  readonly seasonChecklist: {
+    readonly doneCount: number;
+    readonly hint: string;
+    readonly items: ReadonlyArray<{
+      readonly checked: boolean;
+      readonly checkedByName: string | null | undefined;
+      readonly detail: string;
+      readonly key: string;
+      readonly title: string;
+    }>;
+    readonly progressTemplate: string;
+    readonly seasonKey: string;
+    readonly seasonLabel: string;
+    readonly title: string;
+    readonly totalCount: number;
+    readonly versionLabel: string;
   };
   readonly slogan: string | null | undefined;
   readonly slug: string;
@@ -300,47 +337,61 @@ var v0 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "__typename",
+  "name": "key",
   "storageKey": null
 },
 v1 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "id",
+  "name": "__typename",
   "storageKey": null
 },
 v2 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "title",
+  "name": "id",
   "storageKey": null
 },
 v3 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "status",
+  "name": "title",
   "storageKey": null
 },
 v4 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "discordId",
+  "name": "source",
   "storageKey": null
 },
 v5 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
+  "name": "status",
+  "storageKey": null
+},
+v6 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "discordId",
+  "storageKey": null
+},
+v7 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
   "name": "displayName",
   "storageKey": null
 },
-v6 = [
-  (v4/*:: as any*/),
-  (v5/*:: as any*/),
+v8 = [
+  (v6/*:: as any*/),
+  (v7/*:: as any*/),
   {
     "alias": null,
     "args": null,
@@ -349,21 +400,28 @@ v6 = [
     "storageKey": null
   }
 ],
-v7 = {
+v9 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "createdAt",
+  "storageKey": null
+},
+v10 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "teamName",
   "storageKey": null
 },
-v8 = {
+v11 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "members",
   "storageKey": null
 },
-v9 = {
+v12 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
@@ -503,13 +561,7 @@ return {
       "name": "ogAccentOptions",
       "plural": true,
       "selections": [
-        {
-          "alias": null,
-          "args": null,
-          "kind": "ScalarField",
-          "name": "key",
-          "storageKey": null
-        },
+        (v0/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -542,7 +594,7 @@ return {
       "name": "premium",
       "plural": false,
       "selections": [
-        (v0/*:: as any*/),
+        (v1/*:: as any*/),
         {
           "kind": "InlineFragment",
           "selections": [
@@ -862,8 +914,8 @@ return {
       "name": "lotteries",
       "plural": true,
       "selections": [
-        (v1/*:: as any*/),
         (v2/*:: as any*/),
+        (v3/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -871,13 +923,7 @@ return {
           "name": "prize",
           "storageKey": null
         },
-        {
-          "alias": null,
-          "args": null,
-          "kind": "ScalarField",
-          "name": "source",
-          "storageKey": null
-        },
+        (v4/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -899,7 +945,7 @@ return {
           "name": "winnerCount",
           "storageKey": null
         },
-        (v3/*:: as any*/),
+        (v5/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -928,7 +974,7 @@ return {
           "kind": "LinkedField",
           "name": "entries",
           "plural": true,
-          "selections": (v6/*:: as any*/),
+          "selections": (v8/*:: as any*/),
           "storageKey": null
         },
         {
@@ -938,7 +984,7 @@ return {
           "kind": "LinkedField",
           "name": "winners",
           "plural": true,
-          "selections": (v6/*:: as any*/),
+          "selections": (v8/*:: as any*/),
           "storageKey": null
         }
       ],
@@ -952,8 +998,213 @@ return {
       "name": "lotteryRoster",
       "plural": true,
       "selections": [
-        (v4/*:: as any*/),
-        (v5/*:: as any*/)
+        (v6/*:: as any*/),
+        (v7/*:: as any*/)
+      ],
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminTabSeasonLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "concreteType": "GuildSeasonChecklist",
+      "kind": "LinkedField",
+      "name": "seasonChecklist",
+      "plural": false,
+      "selections": [
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "seasonKey",
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "versionLabel",
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "seasonLabel",
+          "storageKey": null
+        },
+        (v3/*:: as any*/),
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "hint",
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "progressTemplate",
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "doneCount",
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "totalCount",
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "concreteType": "GuildSeasonChecklistItem",
+          "kind": "LinkedField",
+          "name": "items",
+          "plural": true,
+          "selections": [
+            (v0/*:: as any*/),
+            (v3/*:: as any*/),
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "detail",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "checked",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "checkedByName",
+              "storageKey": null
+            }
+          ],
+          "storageKey": null
+        }
+      ],
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "concreteType": "GuildRoster",
+      "kind": "LinkedField",
+      "name": "roster",
+      "plural": false,
+      "selections": [
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "rosterTitle",
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "rosterHint",
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "rosterUploadLabel",
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "rosterOcrRunningText",
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "rosterPreviewTitle",
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "rosterConfirmLabel",
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "rosterEmptyText",
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "rosterDeleteLabel",
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "rosterSourceOcrLabel",
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "rosterMatchedMemberLabel",
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "concreteType": "GuildRosterEntry",
+          "kind": "LinkedField",
+          "name": "entries",
+          "plural": true,
+          "selections": [
+            (v2/*:: as any*/),
+            (v7/*:: as any*/),
+            (v4/*:: as any*/),
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "matchedName",
+              "storageKey": null
+            },
+            (v9/*:: as any*/)
+          ],
+          "storageKey": null
+        }
       ],
       "storageKey": null
     },
@@ -1616,8 +1867,8 @@ return {
       "name": "events",
       "plural": true,
       "selections": [
-        (v1/*:: as any*/),
         (v2/*:: as any*/),
+        (v3/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -1625,7 +1876,7 @@ return {
           "name": "type",
           "storageKey": null
         },
-        (v3/*:: as any*/),
+        (v5/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -1690,7 +1941,7 @@ return {
           "name": "signups",
           "plural": true,
           "selections": [
-            (v1/*:: as any*/),
+            (v2/*:: as any*/),
             {
               "alias": null,
               "args": null,
@@ -1726,16 +1977,10 @@ return {
               "name": "contact",
               "storageKey": null
             },
-            (v7/*:: as any*/),
-            (v8/*:: as any*/),
-            (v9/*:: as any*/),
-            {
-              "alias": null,
-              "args": null,
-              "kind": "ScalarField",
-              "name": "createdAt",
-              "storageKey": null
-            }
+            (v10/*:: as any*/),
+            (v11/*:: as any*/),
+            (v12/*:: as any*/),
+            (v9/*:: as any*/)
           ],
           "storageKey": null
         },
@@ -1747,9 +1992,9 @@ return {
           "name": "results",
           "plural": true,
           "selections": [
-            (v1/*:: as any*/),
-            (v7/*:: as any*/),
-            (v8/*:: as any*/),
+            (v2/*:: as any*/),
+            (v10/*:: as any*/),
+            (v11/*:: as any*/),
             {
               "alias": null,
               "args": null,
@@ -1771,7 +2016,7 @@ return {
               "name": "proofUrl",
               "storageKey": null
             },
-            (v9/*:: as any*/)
+            (v12/*:: as any*/)
           ],
           "storageKey": null
         },
@@ -1868,7 +2113,7 @@ return {
       "name": "stats",
       "plural": false,
       "selections": [
-        (v0/*:: as any*/),
+        (v1/*:: as any*/),
         {
           "kind": "InlineFragment",
           "selections": [
@@ -1989,8 +2234,8 @@ return {
               "name": "memberLeaders",
               "plural": true,
               "selections": [
-                (v4/*:: as any*/),
-                (v5/*:: as any*/),
+                (v6/*:: as any*/),
+                (v7/*:: as any*/),
                 {
                   "alias": null,
                   "args": null,
@@ -2009,8 +2254,8 @@ return {
               "name": "leaderLeaders",
               "plural": true,
               "selections": [
-                (v4/*:: as any*/),
-                (v5/*:: as any*/),
+                (v6/*:: as any*/),
+                (v7/*:: as any*/),
                 {
                   "alias": null,
                   "args": null,
@@ -2034,6 +2279,6 @@ return {
 };
 })();
 
-(node as any).hash = "a897d18feb3120bdabe7e0b6871103fd";
+(node as any).hash = "6c8de52a72a415948cbb317c4795b399";
 
 export default node;
