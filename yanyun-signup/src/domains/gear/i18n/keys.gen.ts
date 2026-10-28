@@ -248,11 +248,6 @@ export type GearStringKey =
   | 'gear_revokeShareLabel'
   | 'gear_copyLinkLabel'
   | 'gear_shareRevokedToast'
-  | 'buildshare_kicker'
-  | 'buildshare_loginLabel'
-  | 'buildshare_notFoundTitle'
-  | 'buildshare_notFoundBody'
-  | 'buildshare_xinfaLabel'
   | 'gear_quickTitle'
   | 'gear_quickResLabel'
   | 'gear_quickSyncLabel'
@@ -297,7 +292,12 @@ export type GearStringKey =
   | 'gear_demoLoadedToast'
   | 'gear_savedToastTemplate'
   | 'gear_deletedToast'
-  | 'gear_clearedToast';
+  | 'gear_clearedToast'
+  | 'buildshare_kicker'
+  | 'buildshare_loginLabel'
+  | 'buildshare_notFoundTitle'
+  | 'buildshare_notFoundBody'
+  | 'buildshare_xinfaLabel';
 
 export const GEAR_STRING_KEYS: readonly GearStringKey[] = [
   'tiaolv_intro',
@@ -547,11 +547,6 @@ export const GEAR_STRING_KEYS: readonly GearStringKey[] = [
   'gear_revokeShareLabel',
   'gear_copyLinkLabel',
   'gear_shareRevokedToast',
-  'buildshare_kicker',
-  'buildshare_loginLabel',
-  'buildshare_notFoundTitle',
-  'buildshare_notFoundBody',
-  'buildshare_xinfaLabel',
   'gear_quickTitle',
   'gear_quickResLabel',
   'gear_quickSyncLabel',
@@ -597,4 +592,9 @@ export const GEAR_STRING_KEYS: readonly GearStringKey[] = [
   'gear_savedToastTemplate',
   'gear_deletedToast',
   'gear_clearedToast',
+  'buildshare_kicker',
+  'buildshare_loginLabel',
+  'buildshare_notFoundTitle',
+  'buildshare_notFoundBody',
+  'buildshare_xinfaLabel',
 ];

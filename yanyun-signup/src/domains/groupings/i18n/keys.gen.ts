@@ -57,6 +57,7 @@ export type GroupingsStringKey =
   | 'groupingDetail_toastRestored'
   | 'groupingDetail_toastRestoreFailed'
   | 'groupingDetail_completedHint'
+  | 'groupingDetail_rosterAnswersTitle'
   | 'groupingForm_createTitle'
   | 'groupingForm_editTitle'
   | 'groupingForm_typeLabel'
@@ -87,6 +88,15 @@ export type GroupingsStringKey =
   | 'groupingForm_toastPosted'
   | 'groupingForm_toastCreateFailed'
   | 'groupingForm_titleTemplate'
+  | 'groupingForm_customFieldsTitle'
+  | 'groupingForm_customFieldAddLabel'
+  | 'groupingForm_customFieldLabelPlaceholder'
+  | 'groupingForm_customFieldTypeText'
+  | 'groupingForm_customFieldTypeChoice'
+  | 'groupingForm_customFieldOptionsPlaceholder'
+  | 'groupingForm_customFieldRequiredLabel'
+  | 'groupingForm_customFieldRemoveLabel'
+  | 'groupingForm_customFieldEmptyText'
   | 'seat_emptyJoin'
   | 'seat_empty'
   | 'seat_modalTitle'
@@ -143,16 +153,6 @@ export type GroupingsStringKey =
   | 'groupingTemplate_saveSubmit'
   | 'groupingTemplate_toastSavedFromCar'
   | 'groupingTemplate_metaTemplate'
-  | 'groupingForm_customFieldsTitle'
-  | 'groupingForm_customFieldAddLabel'
-  | 'groupingForm_customFieldLabelPlaceholder'
-  | 'groupingForm_customFieldTypeText'
-  | 'groupingForm_customFieldTypeChoice'
-  | 'groupingForm_customFieldOptionsPlaceholder'
-  | 'groupingForm_customFieldRequiredLabel'
-  | 'groupingForm_customFieldRemoveLabel'
-  | 'groupingForm_customFieldEmptyText'
-  | 'groupingDetail_rosterAnswersTitle'
   | 'schedule_title'
   | 'schedule_myTitle'
   | 'schedule_myHint'
@@ -247,6 +247,7 @@ export const GROUPINGS_STRING_KEYS: readonly GroupingsStringKey[] = [
   'groupingDetail_toastRestored',
   'groupingDetail_toastRestoreFailed',
   'groupingDetail_completedHint',
+  'groupingDetail_rosterAnswersTitle',
   'groupingForm_createTitle',
   'groupingForm_editTitle',
   'groupingForm_typeLabel',
@@ -277,6 +278,15 @@ export const GROUPINGS_STRING_KEYS: readonly GroupingsStringKey[] = [
   'groupingForm_toastPosted',
   'groupingForm_toastCreateFailed',
   'groupingForm_titleTemplate',
+  'groupingForm_customFieldsTitle',
+  'groupingForm_customFieldAddLabel',
+  'groupingForm_customFieldLabelPlaceholder',
+  'groupingForm_customFieldTypeText',
+  'groupingForm_customFieldTypeChoice',
+  'groupingForm_customFieldOptionsPlaceholder',
+  'groupingForm_customFieldRequiredLabel',
+  'groupingForm_customFieldRemoveLabel',
+  'groupingForm_customFieldEmptyText',
   'seat_emptyJoin',
   'seat_empty',
   'seat_modalTitle',
@@ -333,16 +343,6 @@ export const GROUPINGS_STRING_KEYS: readonly GroupingsStringKey[] = [
   'groupingTemplate_saveSubmit',
   'groupingTemplate_toastSavedFromCar',
   'groupingTemplate_metaTemplate',
-  'groupingForm_customFieldsTitle',
-  'groupingForm_customFieldAddLabel',
-  'groupingForm_customFieldLabelPlaceholder',
-  'groupingForm_customFieldTypeText',
-  'groupingForm_customFieldTypeChoice',
-  'groupingForm_customFieldOptionsPlaceholder',
-  'groupingForm_customFieldRequiredLabel',
-  'groupingForm_customFieldRemoveLabel',
-  'groupingForm_customFieldEmptyText',
-  'groupingDetail_rosterAnswersTitle',
   'schedule_title',
   'schedule_myTitle',
   'schedule_myHint',
