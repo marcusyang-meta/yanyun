@@ -23,7 +23,7 @@
 --
 -- fill_requests: one row per demand a T3 guild's leader/admin posted
 -- against one of its own groupings (event_id). needed_role is the
--- derived seat role ('奶' | '输出'); needed_school optionally pins a
+-- derived seat role (the roleOf healer/dps vocabulary); needed_school optionally pins a
 -- school. Status machine: 'open' -> 'matched' (a supplier accepted
 -- an invite) | 'closed' (poster closed it); terminal rows keep
 -- their timestamps — matched_at / closed_at are the audit trail.

@@ -586,8 +586,9 @@ type GroupingDetailPage {
   # 管理员——2026-10-26 裁决与车头同权); 否则为 null, 客户端不渲染
   # 编辑/完成/恢复/解散入口。服务端在 mutation 处独立复验。
   manageActions: GroupingManageActions
-  # 盟友共享控件 (P20): 仅当观看者可管理本车时存在 (同 manageActions
-  # 判定); 否则为 null。setGroupingAllySharing 在 mutation 处独立复验。
+  # Ally sharing control (P20): present only when the viewer can
+  # manage this grouping (same verdict as manageActions); null
+  # otherwise. setGroupingAllySharing re-verifies in the mutation.
   allySharing: AllySharingControl
   # 存为模板动作对象: 仅当观看者可在本百业写 (建车同权) 时存在, 否则 null;
   # 客户端据此渲染「存为模板」入口, mutation 处独立复验。
@@ -2298,8 +2299,8 @@ type Viewer {
   guild(slug: String!): GuildResult!
   guildAdmin(slug: String!): GuildAdminResult!  # 百业管理面: 响应类型即权限结论 (见下方 GuildAdmin)
   homeRecruit: HomeRecruitSection!  # 平台主页招新区 (F16 申请 / F24 清单 / F17 我的配对): 组成即权限结论 (见下方 HomeRecruitSection)
-  fillMarket(slug: String!): FillMarketResult!  # 补位市场页 (P19): 成员页 / Locked, 需求区按 T3 再分型 (见下方 FillMarketPage)
-  guildAllies(slug: String!): GuildAlliesResult!  # 盟友百业页 (P20): 成员页 / Locked, 结盟与共享均为读时判定
+  fillMarket(slug: String!): FillMarketResult!  # Fill market page (P19): member page / Locked; the demand section splits further by T3 (see FillMarketPage below)
+  guildAllies(slug: String!): GuildAlliesResult!  # Allied guilds page (P20): member page / Locked; alliance and sharing are both read-time verdicts
   discordServers: [DiscordServer!]!  # 我有管理权限的服务器 (服务端过滤)
   # UI 文案: 站点/登录/选择页/创建页/通用 — 全部由 Viewer shell 的 gen
   # 方法按请求 locale 生成, 未选中永不生成 (无 Strings 类型, 文案字段
@@ -2818,13 +2819,19 @@ type RecruitPayload {
   application: RecruitApplication
 }
 
-# ============ 跨百业网络 (P19 补位市场 / P20 盟友百业) ============
-# 按边收费 (DESIGN.md §9): 供给侧免费 (发布供给 / 处理邀请不问档位),
-# 需求侧 T3 (需求区在未达档时合成 FillDemandLocked, 零需求数据下发;
-# 需求类 mutation 服务端以同一判定复验)。paygate 总闸 OFF 时无人锁定
-# (只建不启用)。市场只撮合不裁决: 接受邀请不落座, 落座是需求方车头
-# 在 seatFillSupplier 里的人工动作 (走既有容量守卫落座)。结盟共享是
-# 读时判定: 解除结盟即刻失效, 无清理写。
+# ============ Cross-guild network (P19 fill market / P20 allied guilds) ============
+# Per-edge pricing (DESIGN.md S9): the supply side is free
+# (publishing supply and answering invites never consult a tier);
+# the demand side is T3 (below tier, the demand section composes
+# as FillDemandLocked with zero demand data delivered, and demand
+# mutations re-verify with the same verdict server-side). While
+# the paygate master switch is OFF nobody is locked (built, not
+# enabled). The market matches, it never decides: accepting an
+# invite seats nobody; seating is the demand-side leader's manual
+# action in seatFillSupplier (through the existing capacity-guard
+# seat insert). Alliance sharing is a read-time verdict:
+# dissolving an alliance takes effect immediately, no cleanup
+# writes.
 
 union FillMarketResult = FillMarketPage | FillMarketLocked
 
@@ -2846,7 +2853,7 @@ type FillMarketLocked {
   backLabel: String!
 }
 
-# 供给区 (免费边): 我的供给 + 我收到的邀请。
+# Supply section (the free edge): my supply + the invites I received.
 type FillSupplySection {
   myOffer: FillOffer
   myInvites: [FillInvite!]!
@@ -2865,8 +2872,9 @@ type FillSupplySection {
   declineLabel: String!
 }
 
-# 补位供给的公开面: 只含市场必需字段 (流派 / 时段 / 所属百业名 /
-# 自述), 无 Discord ID、无联系方式。
+# The public face of a fill offer: only the fields the market
+# needs (school / windows / home guild name / self-description);
+# no Discord IDs, no contact details.
 type FillOffer {
   id: ID!
   displayName: String!
@@ -2888,8 +2896,10 @@ type FillDemandLocked {
   lockedBody: String!
 }
 
-# 需求区 (T3 边): 本百业需求 + 全市场供给浏览。manage 仅当观看者
-# 在本百业有可管理的车 (车头 / 管理员) 时合成, 否则为 null。
+# Demand section (the T3 edge): this guild's requests + browsing
+# the whole market's supply. manage composes only when the viewer
+# has a manageable grouping in this guild (leader / admin);
+# otherwise null.
 type FillDemandSection {
   requests: [FillRequest!]!
   offers: [FillOffer!]!
@@ -2935,8 +2945,9 @@ type FillRequest {
   statusLabel: String!
   createdByName: String!
   createdAtText: String!
-  # 管理动作对象: 仅本车可管理者 (车头 / 本百业管理员) 有值; 本需求
-  # 的邀请名单只在该对象内下发。mutation 处独立复验。
+  # Manage action object: present only for viewers who can manage
+  # this grouping (leader / this guild's admin); this request's
+  # invite list is delivered only inside it. Mutations re-verify.
   manageActions: FillRequestManageActions
 }
 
@@ -2963,8 +2974,9 @@ type FillInvite {
   groupingTitle: String!
   sourcePattern: String!
   createdAtText: String!
-  # 落座动作对象: 仅当邀请已接受、观看者可管理该车、且对方尚未
-  # 落座时合成 (需求侧管理视图); 收件箱视图恒为 null。
+  # Seat action object: composed only when the invite is accepted,
+  # the viewer can manage the grouping, and the supplier is not
+  # seated yet (demand-side manage view); always null in the inbox.
   seatAction: FillSeatAction
 }
 
@@ -3007,7 +3019,8 @@ type GuildAlliesPage {
   slug: String!
   guildName: String!
   allies: [AllyGuild!]!
-  # 结盟管理区: 仅本百业管理员有值 (关系列表 + 可邀请目录)。
+  # Alliance admin section: present only for this guild's admins
+  # (relation list + invitable directory).
   adminSection: AllianceAdminSection
   sharedGroupings: [AllySharedGrouping!]!
   alliesTitle: String!
@@ -3060,8 +3073,9 @@ type AllianceRelation {
 
 enum AllianceStatus { PENDING ACTIVE }
 
-# 盟友共享活动行: 主办百业的盟友可见车队 + 访客位余量 (读时按当前
-# 结盟状态合成; 非盟友永远查不到这一行)。
+# Ally-shared grouping row: a host guild's ally-visible grouping +
+# visitor seats left (composed read-time from the current alliance
+# state; non-allies can never receive this row).
 type AllySharedGrouping {
   id: ID!
   hostSlug: String!
@@ -3083,7 +3097,8 @@ type AlliancePayload {
   alliance: AllianceRelation
 }
 
-# 车队详情的盟友共享控件: 仅可管理本车者有值 (见 GroupingDetailPage)。
+# The grouping detail page's ally sharing control: present only
+# for viewers who can manage the grouping (see GroupingDetailPage).
 type AllySharingControl {
   allyVisible: Boolean!
   visitorSlots: Int!
@@ -3497,33 +3512,36 @@ extend type Mutation {
 }
 
 extend type Mutation {
-  # —— P19 补位市场 ——
-  # 供给侧 (免费): 本百业成员发布自己的补位供给; 一人同时一份。
+  # -- P19 fill market --
+  # Supply side (free): a member of this guild publishes their own fill offer; one open offer per person.
   publishFillOffer(slug: String!, school: String!, windows: [AvailabilitySlotInput!]!, note: String): FillOfferPayload!
-  # 供给侧 (免费): 撤下自己的供给。
+  # Supply side (free): withdraw one's own offer.
   withdrawFillOffer: NetworkOkPayload!
-  # 需求侧 (T3): 本车车头 / 本百业管理员针对具体车队缺口发布需求。
+  # Demand side (T3): the grouping's leader / this guild's admin posts a fill request against a concrete grouping gap.
   createFillRequest(slug: String!, groupingId: ID!, neededRole: String!, neededSchool: String, note: String): FillRequestPayload!
-  # 需求侧 (T3): 关闭需求 (其余待确认邀请随之失效)。
+  # Demand side (T3): close a request (its remaining pending invites expire with it).
   closeFillRequest(slug: String!, requestId: ID!): NetworkOkPayload!
-  # 需求侧 (T3): 向一份供给发出邀请。
+  # Demand side (T3): invite one offer's supplier.
   inviteFillSupplier(slug: String!, requestId: ID!, offerId: ID!): FillInvitePayload!
-  # 供给侧 (免费): 补位人确认 / 婉拒邀请。接受只撮合, 不落座。
+  # Supply side (free): the supplier accepts / declines an invite. Accepting only matches; it never seats.
   respondFillInvite(inviteId: ID!, accept: Boolean!): FillInvitePayload!
-  # 需求侧 (T3): 人工落座 — 车头把已接受邀请的补位人落进车队
-  # (既有容量守卫落座动作; 永不自动触发)。
+  # Demand side (T3): manual seating -- the leader seats the
+  # accepted supplier into the grouping (the existing
+  # capacity-guard seat action; never fires automatically).
   seatFillSupplier(slug: String!, inviteId: ID!): NetworkOkPayload!
-  # —— P20 盟友百业 ——
-  # 本百业管理员向另一百业发起结盟邀请。
+  # -- P20 allied guilds --
+  # This guild's admin invites another guild into an alliance.
   inviteAlliance(slug: String!, targetSlug: String!): AlliancePayload!
-  # 被邀请方百业管理员接受 / 拒绝结盟。
+  # The invited guild's admin accepts / rejects the alliance.
   respondAlliance(slug: String!, allianceId: ID!, accept: Boolean!): AlliancePayload!
-  # 任一方管理员单方解除结盟 (共享读时即刻失效)。
+  # Either side's admin dissolves the alliance unilaterally (sharing stops at read time, immediately).
   endAlliance(slug: String!, allianceId: ID!): AlliancePayload!
-  # 车头 / 本百业管理员设置本车的盟友共享 (可见 + 访客名额)。
+  # The leader / this guild's admin sets this grouping's ally sharing (visibility + visitor slots).
   setGroupingAllySharing(slug: String!, groupingId: ID!, allyVisible: Boolean!, visitorSlots: Int!): NetworkOkPayload!
-  # 盟友成员报名访客位 (slug = 报名者自己的百业; 服务端复验当前
-  # 结盟状态 / 共享开关 / 访客余量, 走既有容量守卫)。
+  # An ally member signs up for a visitor seat (slug = the
+  # signer's own guild; the server re-verifies the current
+  # alliance state / sharing switch / visitor quota and uses the
+  # existing capacity guard).
   joinAllyGrouping(slug: String!, groupingId: ID!, weapon: String!): NetworkOkPayload!
 }
 
