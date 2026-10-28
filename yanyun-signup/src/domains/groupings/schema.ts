@@ -153,6 +153,93 @@ export const lotteryWinners = sqliteTable('lottery_winners', {
   index('idx_lottery_winners_lottery').on(t.lotteryId),
 ]);
 
+/* ---------------- member_availability [migration 0007] ------------
+ * F5: one row per (guild, member) holding the member's recurring
+ * weekly availability windows in slots_json — a JSON array of
+ * { weekday (0 = Sunday), startMinute, endMinute } in UTC minutes of
+ * day. UTC is the only stored frame; clients render in the viewer's
+ * timezone. display_name snapshots the roster name at save time. */
+export const memberAvailability = sqliteTable('member_availability', {
+  tenant: text('tenant').notNull().default(''),
+  discordId: text('discord_id').notNull().default(''),
+  displayName: text('display_name').notNull().default(''),
+  slotsJson: text('slots_json').notNull().default('[]'),
+  updatedAt: integer('updated_at').notNull().default(0),
+}, (t) => [
+  primaryKey({ columns: [t.tenant, t.discordId] }),
+]);
+
+/* ---------------- time_polls [migration 0007] ----------------------
+ * F13: guild-scoped scheduling polls. Options are absolute candidate
+ * start times (epoch seconds UTC). Votes are multi-select
+ * availability votes — one row per (poll, option, member) the member
+ * can attend; the unique index states the no-duplicate rule and
+ * re-voting replaces the member's whole set. */
+export const timePolls = sqliteTable('time_polls', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  tenant: text('tenant').notNull().default(''),
+  title: text('title').notNull().default(''),
+  status: text('status').notNull().default('open'),
+  createdBy: text('created_by').notNull().default(''),
+  createdAt: integer('created_at').notNull().default(0),
+  closedAt: integer('closed_at'),
+}, (t) => [
+  index('idx_time_polls_tenant').on(t.tenant, t.id),
+]);
+
+export const timePollOptions = sqliteTable('time_poll_options', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  pollId: integer('poll_id').notNull().references(() => timePolls.id, { onDelete: 'cascade' }),
+  startsAtUtc: integer('starts_at_utc').notNull().default(0),
+}, (t) => [
+  index('idx_time_poll_options_poll').on(t.pollId),
+]);
+
+export const timePollVotes = sqliteTable('time_poll_votes', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  pollId: integer('poll_id').notNull().references(() => timePolls.id, { onDelete: 'cascade' }),
+  optionId: integer('option_id').notNull().references(() => timePollOptions.id, { onDelete: 'cascade' }),
+  discordId: text('discord_id').notNull().default(''),
+  displayName: text('display_name').notNull().default(''),
+}, (t) => [
+  uniqueIndex('time_poll_votes_member_unique').on(t.pollId, t.optionId, t.discordId),
+  index('idx_time_poll_votes_poll').on(t.pollId),
+]);
+
+/* ---------------- grouping_custom_fields [migration 0008] ----------
+ * F7: custom signup-form field definitions owned by one grouping
+ * (owner_kind = 'event') or one grouping template ('template'). A
+ * car's fields are always its own rows (copied from the template at
+ * creation when the creator used one). field_type is the constrained
+ * set 'text' | 'choice'; options_json carries a choice's options. */
+export const groupingCustomFields = sqliteTable('grouping_custom_fields', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  ownerKind: text('owner_kind').notNull().default('event'),
+  ownerId: integer('owner_id').notNull().default(0),
+  label: text('label').notNull().default(''),
+  fieldType: text('field_type').notNull().default('text'),
+  optionsJson: text('options_json').notNull().default('[]'),
+  required: integer('required').notNull().default(0),
+  sort: integer('sort').notNull().default(0),
+}, (t) => [
+  index('idx_grouping_custom_fields_owner').on(t.ownerKind, t.ownerId, t.sort),
+]);
+
+/* ---------------- signup_answers [migration 0008] ------------------
+ * F7: one member answer per (grouping, signup uid, field); the uid
+ * ties the answer to its seat row. Manager-only reads (resolver
+ * concern); rows die with their seat and with the grouping. */
+export const signupAnswers = sqliteTable('signup_answers', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  eventId: integer('event_id').notNull().references(() => events.id, { onDelete: 'cascade' }),
+  signupUid: text('signup_uid').notNull().default(''),
+  fieldId: integer('field_id').notNull().default(0),
+  value: text('value').notNull().default(''),
+}, (t) => [
+  uniqueIndex('signup_answers_unique').on(t.eventId, t.signupUid, t.fieldId),
+  index('idx_signup_answers_event').on(t.eventId),
+]);
+
 /* ---------------- event_reminders [ddl chain baseline] -------------
  * Per-(grouping, offset) departure-reminder settlement for multi-offset
  * reminders: one row per settled beat; no row = that beat is still

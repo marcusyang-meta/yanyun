@@ -353,6 +353,17 @@ export async function listEventsByCreator(d1: D1Database, discordId: string): Pr
   return rows || [];
 }
 
+/** Whether this user leads at least one car in this guild — the
+ * schedule page's availability-summary verdict for car leaders (the
+ * summary itself is composed only for guild admins and leaders). */
+export async function hasEventsByTenantCreator(d1: D1Database, tenant: string, discordId: string): Promise<boolean> {
+  const db = createDb(d1);
+  const row = await db.get<{ id: number }>(
+    sql`SELECT ${col('id')} FROM ${events} WHERE ${col('tenant')} = ${tenant} AND ${col('creator_discord_id')} = ${discordId} LIMIT 1`,
+  );
+  return !!row;
+}
+
 /** Deletion Q1: led cars are orphaned (creator unlinked, display name
  * anonymized), never deleted — fellow riders keep their history. */
 export async function orphanEventsByCreator(
