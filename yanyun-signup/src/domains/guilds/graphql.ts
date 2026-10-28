@@ -56,7 +56,7 @@ import {
 } from '../platform/graphql-base.ts';
 import { groupingListPage, touchGuildRoster } from '../groupings/index.ts';
 import { guildAdminTypes, guildAdminMutations, guildAdminPayloadResolvers } from './admin-graphql.ts';
-import { recruitTypes, recruitMutations } from './recruit-graphql.ts';
+import { homeRecruitTypes, recruitTypes, recruitMutations } from './recruit-graphql.ts';
 import {
   announcementPageForMember, guildAnnouncementMutations, guildAnnouncementTypes,
 } from './announcements-graphql.ts';
@@ -197,7 +197,6 @@ export const GUILD_HOME_TEXT_SPEC = [
   ['homeTabSectLabel', 'guildHome', 'tabSect'],
   ['homeTabAnnouncementsLabel', 'guildHome', 'tabAnnouncements'],
   ['homeTabScheduleLabel', 'guildHome', 'tabSchedule'],
-  ['recruitEntryLabel', 'recruit', 'entryLabel'],
   ['detailNotFoundText', 'groupingDetail', 'notFound'],
   ['detailBackToListLabel', 'groupingDetail', 'backToList'],
 ];
@@ -214,7 +213,6 @@ export const GUILD_READONLY_TEXT_RESOLVERS = defineTextGens(GuildShell, [
   ['homeReadOnlyBanner', 'guildHome', 'readOnlyBanner'],
 ]);
 export const GUILD_LOCKED_TEXT_RESOLVERS = defineTextGens(GuildShell, [
-  ['recruitEntryLabel', 'recruit', 'entryLabel'],
   ['lockedBackLinkLabel', 'locked', 'backLink'],
   ['lockedTitle', 'locked', 'title'],
   ['lockedBody1', 'locked', 'body1'],
@@ -427,6 +425,7 @@ export const guildsResolvers = {
   ...guildAnnouncementTypes,
   ...seasonAdminTypes,
   ...recruitTypes,
+  ...homeRecruitTypes,
   ...guildOfficerTypes,
   },
 };

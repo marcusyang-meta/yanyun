@@ -160,8 +160,8 @@
     "reason": "the word appears once in a comment (no any types in this repository module)"
   },
   "src/domains/guilds/recruit-graphql.ts": {
-    "max": 50,
-    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context) — the recruit page / application / pairing / checklist shells and the apply mutation in the established resolver pattern + the NewcomerProgress availabilityDone resolver in the same pattern"
+    "max": 61,
+    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context) — the platform-home recruit section (directory / application-section / newcomer shells, raised when the recruit page dissolved into Viewer.homeRecruit) / application / pairing / checklist shells, the NewcomerProgress availabilityDone resolver, and the apply mutation in the established resolver pattern"
   },
   "src/domains/guilds/recruit.ts": {
     "max": 2,

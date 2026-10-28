@@ -9890,17 +9890,6 @@
       ],
       "types": []
     },
-    "LjL9N8pmpkC48xXzL1zOJg==": {
-      "description": "recruit.body",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "Want to join this guild? File an application and a guild admin will review it here. Already in? Check your newcomer checklist and mentor pairing below.",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
     "YRcvUVxBMYkrBK5RowmRjA==": {
       "description": "recruit.checklistProgress",
       "tokens": [],
@@ -9918,17 +9907,6 @@
       "translations": [
         {
           "translation": "Newcomer checklist",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "UM5qQlVn4+afqMvYMb7mRA==": {
-      "description": "recruit.entryLabel",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "Recruiting / Newcomers",
           "variations": {}
         }
       ],
@@ -10017,28 +9995,6 @@
       "translations": [
         {
           "translation": "Complete school / timezone",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "wVxSIE5YkHr0K5MmcEoUTw==": {
-      "description": "recruit.lockedBody",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "Please sign in with your Discord account first; if you are signed in, this guild may not exist.",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "pq1BG8aGk6aUuP0qiWV/VA==": {
-      "description": "recruit.lockedTitle",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "Cannot open the recruiting page",
           "variations": {}
         }
       ],
@@ -10215,6 +10171,28 @@
       "translations": [
         {
           "translation": "Recruiting & newcomers",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ZmkhBgcN6WCg9STnWdq5zw==": {
+      "description": "recruit.homeBody",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Want to join a guild? Choose a guild that is open for recruitment below and submit an application; guild admins review applications in the admin panel. Newcomers already in a guild can see their newcomer checklist and mentor pairing here.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "b9RU67wOdIHFyantZrjxFA==": {
+      "description": "recruit.homeLoginHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "After logging in, you can submit an application to a guild you like and track its review progress here.",
           "variations": {}
         }
       ],
