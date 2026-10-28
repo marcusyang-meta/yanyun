@@ -32,6 +32,8 @@ export interface SharedGroupingView {
   /** Tenant slug the car belongs to (client builds the canonical URL). */
   slug: string;
   guildName: string;
+  /** The car's public id (it is in every canonical/OG URL already). */
+  eventId: number;
   /* The car's public face, projected field by field — the raw event
    * row (creator_discord_id and friends) never enters this view. */
   title: string;
@@ -72,6 +74,7 @@ export async function resolveSharedGrouping(
   return {
     slug: link.tenant,
     guildName: tenant.guild_name || '',
+    eventId: ev.id,
     title: ev.title,
     type: ev.type,
     dungeon: ev.dungeon || '',

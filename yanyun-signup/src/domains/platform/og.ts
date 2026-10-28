@@ -4,7 +4,7 @@
 import { getTenantRow } from '../guilds/index.ts';
 import { isDevOnlyTenant } from './http.ts';
 import { getDungeonByName } from '../dex/index.ts';
-import { getEventRowByTenant, getEventRow, listEventsWeekView, countActivityEventsInWindow, countSignupsByEvent } from '../groupings/index.ts';
+import { getEventRowByTenant, getEventRow, listEventsWeekView, countActivityEventsInWindow, countSignupsByEvent, resolveSharedGrouping } from '../groupings/index.ts';
 import { resolveSharedBuild } from '../gear/index.ts';
 
 
@@ -109,6 +109,21 @@ export async function carOgTags(env: any, slug: string, carId: any, pageUrl?: st
       '<meta property="og:type" content="website" />',
       '<meta name="twitter:card" content="summary_large_image" />',
     ].join('\n');
+  } catch { return null; }
+}
+
+// Car share page (/s/:code): the code resolves through the share
+// service (strict dev_only handling: no view, no tags — same as the
+// car tags' own rule); a live code injects the car's usual share
+// card with og:url naming the share address itself, so a crawler
+// following a short link lands on tags identical to the canonical
+// page's. Unknown/dead codes inject nothing (the SPA renders the
+// share page's not-found state).
+export async function carShareOgTags(env: any, code: string) {
+  try {
+    const view = await resolveSharedGrouping(env.DB, code, false).catch(() => null);
+    if (!view) return null;
+    return carOgTags(env, view.slug, view.eventId, `${SITE_URL}/s/${encodeURIComponent(code)}`);
   } catch { return null; }
 }
 
