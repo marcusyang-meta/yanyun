@@ -18,6 +18,7 @@ import {
   adminSetAvatar, adminUpdateDiscord, adminUpdateEvent, adminUpdateGuide,
   adminStartPremiumCheckout,
   adminCreateLottery, adminDrawLottery,
+  adminReviewGuildApplication, adminSetGuildMentor, adminCreateMentorPairing, adminEndMentorPairing,
   adminUpdateProfile, adminUpdateReminderSettings, adminUpdateVisibility,
   adminUpdateWhiteLabel,
   adminSetSeasonChecklistItem, adminDeleteRosterEntry,
@@ -88,7 +89,7 @@ function AdminLoader({ slug, epoch, refresh }: { slug: string; epoch: number; re
 function AdminMain({ admin, unknownError, cancelLabel, refresh, router }: {
   admin: Admin; unknownError: string; cancelLabel: string; refresh: () => void; router: ReturnType<typeof useRouter>;
 }) {
-  const [tab, setTab] = useState<'profile' | 'discord' | 'events' | 'guides' | 'announcements' | 'stats' | 'tools' | 'season'>('profile');
+  const [tab, setTab] = useState<'profile' | 'discord' | 'events' | 'guides' | 'announcements' | 'stats' | 'tools' | 'season' | 'recruit'>('profile');
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
 
@@ -109,6 +110,7 @@ function AdminMain({ admin, unknownError, cancelLabel, refresh, router }: {
     { key: 'stats', label: admin.adminTabStatsLabel },
     { key: 'tools', label: admin.adminTabToolsLabel },
     { key: 'season', label: admin.adminTabSeasonLabel },
+    { key: 'recruit', label: (admin as any).adminTabRecruitLabel },
   ];
   const premium: any = (admin as any).premium ?? null;
   const premiumLocked = premium?.__typename === 'GuildAdminPremiumLocked' ? premium : null;
@@ -140,6 +142,7 @@ function AdminMain({ admin, unknownError, cancelLabel, refresh, router }: {
       {tab === 'stats' && <StatsPanel admin={admin} premiumLocked={premiumLocked} unknownError={unknownError} onError={setError} />}
       {tab === 'tools' && <ToolsPanel admin={admin} run={run} />}
       {tab === 'season' && <SeasonPanel admin={admin} unknownError={unknownError} cancelLabel={cancelLabel} run={run} onError={setError} />}
+      {tab === 'recruit' && <RecruitPanel admin={admin} run={run} />}
     </ScrollView>
   );
 }
@@ -1107,6 +1110,142 @@ function ToolsPanel({ admin, run }: {
                 onConfirm={() => run(adminDrawLottery(slug, lot.id))} />
             </View>
           )}
+        </View>
+      ))}
+    </View>
+  );
+}
+
+/* ---------- recruit (F16 applications + F17 mentors + F24 overview, isomorphic with Web) ---------- */
+
+function CheckDot({ done }: { done: boolean }) {
+  return (
+    <View style={{
+      width: 18, height: 18, borderRadius: 9, alignItems: 'center', justifyContent: 'center',
+      borderWidth: 1, borderColor: done ? theme.gold : 'rgba(201,163,92,.3)',
+      backgroundColor: done ? 'rgba(201,163,92,.16)' : 'transparent',
+    }}>
+      <Text style={{ fontSize: 11, color: done ? theme.goldHi : theme.muted }}>{done ? '✓' : ''}</Text>
+    </View>
+  );
+}
+
+function RecruitPanel({ admin, run }: {
+  admin: Admin;
+  run: (p: Promise<AdminPayload>, onOk?: () => void) => void;
+}) {
+  const slug = admin.slug;
+  const a: any = admin as any;
+  const confirmLabel = React.useContext(ConfirmCtx);
+  const applications: readonly any[] = a.recruitApplications ?? [];
+  const pairings: readonly any[] = a.recruitPairings ?? [];
+  const roster: readonly any[] = a.recruitRoster ?? [];
+  const newcomers: readonly any[] = a.newcomerProgress ?? [];
+  const mentors = roster.filter((m: any) => m.isMentor);
+  const [mentorId, setMentorId] = useState('');
+  const [menteeId, setMenteeId] = useState('');
+  return (
+    <View>
+      <Text style={s.sectionTitle}>{a.adminRecruitApplicationsTitle}</Text>
+      {applications.length === 0 ? (
+        <Text style={s.muted}>{a.adminRecruitApplicationsEmptyText}</Text>
+      ) : applications.map((app: any) => (
+        <View key={app.id} style={[s.card, { marginBottom: 10 }]}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <Text style={s.memberName}>{app.applicantName}</Text>
+            <Text style={s.statusChip}>{app.statusLabel}</Text>
+            <Text style={s.muted}>{app.createdAtText}</Text>
+            {!!app.reviewedAtText && <Text style={s.muted}>{app.reviewedByName} · {app.reviewedAtText}</Text>}
+          </View>
+          {!!app.message && <Text style={[s.memberName, { marginTop: 6 }]}>{app.message}</Text>}
+          {app.status === 'PENDING' && (
+            <View style={{ flexDirection: 'row', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
+              <SaveBtn label={a.adminRecruitApproveLabel} savedLabel={a.adminSavedText}
+                onSave={() => run(adminReviewGuildApplication(slug, app.id, true))} />
+              <ConfirmBtn label={a.adminRecruitRejectLabel} confirmLabel={confirmLabel}
+                onConfirm={() => run(adminReviewGuildApplication(slug, app.id, false))} />
+            </View>
+          )}
+        </View>
+      ))}
+
+      <Text style={s.sectionTitle}>{a.adminRecruitMentorPoolTitle}</Text>
+      {roster.map((m: any) => (
+        <View key={m.discordId} style={s.memberRow}>
+          <Text style={[s.memberName, { flex: 1 }]}>{m.displayName}</Text>
+          {m.isMentor ? (
+            <ConfirmBtn small label={a.adminRecruitUnsetMentorLabel} confirmLabel={confirmLabel}
+              onConfirm={() => run(adminSetGuildMentor(slug, m.discordId, false))} />
+          ) : (
+            <Pressable style={s.ghostBtn} onPress={() => run(adminSetGuildMentor(slug, m.discordId, true))}>
+              <Text style={s.ghostBtnText}>{a.adminRecruitSetMentorLabel}</Text>
+            </Pressable>
+          )}
+        </View>
+      ))}
+      <Field label={a.adminRecruitMentorSelectLabel}>
+        <View style={s.chipWrap}>
+          {mentors.map((m: any) => (
+            <Pressable key={m.discordId} style={[s.chip, mentorId === m.discordId && s.chipOn]} onPress={() => setMentorId(m.discordId)}>
+              <Text style={[s.chipText, mentorId === m.discordId && s.chipTextOn]}>{m.displayName}</Text>
+            </Pressable>
+          ))}
+        </View>
+      </Field>
+      <Field label={a.adminRecruitMenteeSelectLabel}>
+        <View style={s.chipWrap}>
+          {roster.map((m: any) => (
+            <Pressable key={m.discordId} style={[s.chip, menteeId === m.discordId && s.chipOn]} onPress={() => setMenteeId(m.discordId)}>
+              <Text style={[s.chipText, menteeId === m.discordId && s.chipTextOn]}>{m.displayName}</Text>
+            </Pressable>
+          ))}
+        </View>
+      </Field>
+      <SaveBtn label={a.adminRecruitPairingCreateLabel} savedLabel={a.adminSavedText}
+        onSave={() => run(adminCreateMentorPairing(slug, mentorId, menteeId))} />
+
+      <Text style={s.sectionTitle}>{a.adminRecruitPairingsTitle}</Text>
+      {pairings.length === 0 ? (
+        <Text style={s.muted}>{a.adminRecruitPairingsEmptyText}</Text>
+      ) : pairings.map((p: any) => (
+        <View key={p.id} style={[s.card, { marginBottom: 10 }]}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <Text style={s.memberName}>{p.mentorName}</Text>
+            <Text style={s.muted}>→</Text>
+            <Text style={s.memberName}>{p.menteeName}</Text>
+            <Text style={s.statusChip}>{p.statusLabel}</Text>
+            <Text style={s.muted}>{p.createdAtText}</Text>
+            {!!p.endedAtText && <Text style={s.muted}>{p.endedAtText}</Text>}
+          </View>
+          {p.status === 'ACTIVE' && (
+            <View style={{ marginTop: 10 }}>
+              <ConfirmBtn small label={a.adminRecruitPairingEndLabel} confirmLabel={confirmLabel}
+                onConfirm={() => run(adminEndMentorPairing(slug, p.id))} />
+            </View>
+          )}
+        </View>
+      ))}
+
+      <Text style={s.sectionTitle}>{a.adminRecruitNewcomersTitle}</Text>
+      {newcomers.length === 0 ? (
+        <Text style={s.muted}>{a.adminRecruitNewcomersEmptyText}</Text>
+      ) : newcomers.map((n: any) => (
+        <View key={n.discordId} style={[s.card, { marginBottom: 10 }]}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <Text style={[s.memberName, { flex: 1 }]}>{n.displayName}</Text>
+            <Text style={s.muted}>{n.progressText}</Text>
+          </View>
+          <View style={{ flexDirection: 'row', gap: 14, marginTop: 8, flexWrap: 'wrap' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <CheckDot done={n.profileDone} /><Text style={s.muted}>{a.adminRecruitProfileLabel}</Text>
+            </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <CheckDot done={n.mentorDone} /><Text style={s.muted}>{a.adminRecruitMentorLabel}</Text>
+            </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <CheckDot done={n.firstRunDone} /><Text style={s.muted}>{a.adminRecruitFirstRunLabel}</Text>
+            </View>
+          </View>
         </View>
       ))}
     </View>

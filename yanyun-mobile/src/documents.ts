@@ -217,6 +217,13 @@ export const ListPageTextQuery = graphql`
       guild(slug: $slug) {
         ... on Guild {
           homeAdminLabel
+          recruitEntryLabel
+        }
+        ... on GuildReadOnly {
+          recruitEntryLabel
+        }
+        ... on GuildLocked {
+          recruitEntryLabel
         }
       }
     }
@@ -1767,6 +1774,56 @@ export const GuildAdminQuery = graphql`
             winners { discordId displayName weight }
           }
           lotteryRoster { discordId displayName }
+          adminTabRecruitLabel
+          adminRecruitApplicationsTitle
+          adminRecruitApplicationsEmptyText
+          adminRecruitApproveLabel
+          adminRecruitRejectLabel
+          adminRecruitMentorPoolTitle
+          adminRecruitSetMentorLabel
+          adminRecruitUnsetMentorLabel
+          adminRecruitPairingsTitle
+          adminRecruitPairingsEmptyText
+          adminRecruitPairingCreateLabel
+          adminRecruitPairingEndLabel
+          adminRecruitMentorSelectLabel
+          adminRecruitMenteeSelectLabel
+          adminRecruitNewcomersTitle
+          adminRecruitNewcomersEmptyText
+          adminRecruitProfileLabel
+          adminRecruitMentorLabel
+          adminRecruitFirstRunLabel
+          recruitApplications {
+            id
+            applicantDiscordId
+            applicantName
+            message
+            status
+            statusLabel
+            createdAtText
+            reviewedByName
+            reviewedAtText
+          }
+          recruitPairings {
+            id
+            mentorDiscordId
+            mentorName
+            menteeDiscordId
+            menteeName
+            status
+            statusLabel
+            createdAtText
+            endedAtText
+          }
+          recruitRoster { discordId displayName isMentor }
+          newcomerProgress {
+            discordId
+            displayName
+            profileDone
+            mentorDone
+            firstRunDone
+            progressText
+          }
           adminTabStatsLabel
           adminStatsTitle
           adminStatsCurrentWeekLabel
@@ -1887,6 +1944,100 @@ export const CreateLotteryAdminMutation = graphql`
 export const DrawLotteryAdminMutation = graphql`
   mutation documentsDrawLotteryAdminMutation($slug: String!, $lotteryId: ID!) {
     drawLottery(slug: $slug, lotteryId: $lotteryId) { ok error }
+  }
+`;
+export const ReviewGuildApplicationAdminMutation = graphql`
+  mutation documentsReviewGuildApplicationAdminMutation($slug: String!, $applicationId: ID!, $approve: Boolean!) {
+    reviewGuildApplication(slug: $slug, applicationId: $applicationId, approve: $approve) { ok error }
+  }
+`;
+export const SetGuildMentorAdminMutation = graphql`
+  mutation documentsSetGuildMentorAdminMutation($slug: String!, $discordId: String!, $isMentor: Boolean!) {
+    setGuildMentor(slug: $slug, discordId: $discordId, isMentor: $isMentor) { ok error }
+  }
+`;
+export const CreateMentorPairingAdminMutation = graphql`
+  mutation documentsCreateMentorPairingAdminMutation($slug: String!, $mentorDiscordId: String!, $menteeDiscordId: String!) {
+    createMentorPairing(slug: $slug, mentorDiscordId: $mentorDiscordId, menteeDiscordId: $menteeDiscordId) { ok error }
+  }
+`;
+export const EndMentorPairingAdminMutation = graphql`
+  mutation documentsEndMentorPairingAdminMutation($slug: String!, $pairingId: ID!) {
+    endMentorPairing(slug: $slug, pairingId: $pairingId) { ok error }
+  }
+`;
+
+/* Recruit line (F16 applications + F24 checklist + F17 pairings):
+   the member surface queries viewer.guildRecruit; the response type
+   is the verdict (GuildRecruitPage vs GuildRecruitLocked) and every
+   label is a backend copy field. */
+export const GuildRecruitQuery = graphql`
+  query documentsGuildRecruitQuery($slug: String!) {
+    viewer {
+      commonUnknownErrorText
+      guildRecruit(slug: $slug) {
+        __typename
+        ... on GuildRecruitLocked {
+          slug
+          lockedTitle
+          lockedBody
+          backLabel
+        }
+        ... on GuildRecruitPage {
+          slug
+          guildName
+          recruitTitle
+          recruitBody
+          applySectionTitle
+          messageLabel
+          messagePlaceholder
+          submitLabel
+          submittingLabel
+          myApplicationTitle
+          pendingHint
+          approvedNextStepText
+          rejectedHint
+          checklistTitle
+          myPairingsTitle
+          pairingMentorRoleLabel
+          pairingMenteeRoleLabel
+          backLabel
+          myApplication {
+            id
+            applicantName
+            message
+            status
+            statusLabel
+            createdAtText
+            reviewedByName
+            reviewedAtText
+          }
+          checklist {
+            progressText
+            items {
+              key
+              label
+              hint
+              done
+            }
+          }
+          myPairings {
+            id
+            mentorName
+            menteeName
+            status
+            statusLabel
+            createdAtText
+            endedAtText
+          }
+        }
+      }
+    }
+  }
+`;
+export const ApplyToGuildMutation = graphql`
+  mutation documentsApplyToGuildMutation($slug: String!, $message: String) {
+    applyToGuild(slug: $slug, message: $message) { ok error }
   }
 `;
 export const UpdateGuildVisibilityAdminMutation = graphql`

@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<c82e802538aa8dda1f253fe5d8a58806>>
+ * @generated SignedSource<<89790bde06693eff3f4097d6093e5558>>
  * @lightSyntaxTransform
  */
 
@@ -8,8 +8,10 @@
 // @ts-nocheck
 
 import { ConcreteRequest } from 'relay-runtime';
+export type CustomFieldType = "CHOICE" | "TEXT" | "%future added value";
 export type GroupingType = "ACTIVITY" | "RACE" | "TALENT" | "TOWER" | "%future added value";
 export type CreateGroupingTemplateInput = {
+  customFields?: ReadonlyArray<CustomFieldInput> | null | undefined;
   dungeonId?: string | null | undefined;
   name: string;
   slug: string;
@@ -18,6 +20,12 @@ export type CreateGroupingTemplateInput = {
   startsInDays: number;
   title: string;
   type: GroupingType;
+};
+export type CustomFieldInput = {
+  fieldType: CustomFieldType;
+  label: string;
+  options?: ReadonlyArray<string> | null | undefined;
+  required?: boolean | null | undefined;
 };
 export type documentsCreateGroupingTemplateMutation$variables = {
   input: CreateGroupingTemplateInput;

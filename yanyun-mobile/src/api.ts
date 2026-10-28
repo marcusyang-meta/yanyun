@@ -31,6 +31,11 @@ import {
   StartPremiumCheckoutAdminMutation,
   CreateLotteryAdminMutation,
   DrawLotteryAdminMutation,
+  ReviewGuildApplicationAdminMutation,
+  SetGuildMentorAdminMutation,
+  CreateMentorPairingAdminMutation,
+  EndMentorPairingAdminMutation,
+  ApplyToGuildMutation,
   UpdateGuildVisibilityAdminMutation,
   CreateAdminEventMutation,
   PostGuildAnnouncementMutation,
@@ -69,6 +74,7 @@ import type { documentsExportMyDataMutation } from './__generated__/documentsExp
 import type { documentsRequestAccountDeletionMutation } from './__generated__/documentsRequestAccountDeletionMutation.graphql';
 import type { documentsCancelAccountDeletionMutation } from './__generated__/documentsCancelAccountDeletionMutation.graphql';
 import type { documentsPostGuildAnnouncementMutation } from './__generated__/documentsPostGuildAnnouncementMutation.graphql';
+import type { documentsApplyToGuildMutation } from './__generated__/documentsApplyToGuildMutation.graphql';
 import type { documentsMarkGuildAnnouncementReadMutation } from './__generated__/documentsMarkGuildAnnouncementReadMutation.graphql';
 import type { documentsDeleteGuildAnnouncementMutation } from './__generated__/documentsDeleteGuildAnnouncementMutation.graphql';
 
@@ -413,6 +419,23 @@ export const adminUpdateWhiteLabel = (slug: string, hideBranding: boolean, ogAcc
 export const adminStartPremiumCheckout = (slug: string) => adminRun(StartPremiumCheckoutAdminMutation, { slug }, 'startPremiumCheckout');
 export const adminCreateLottery = (slug: string, input: any) => adminRun(CreateLotteryAdminMutation, { slug, input }, 'createLottery');
 export const adminDrawLottery = (slug: string, lotteryId: string) => adminRun(DrawLotteryAdminMutation, { slug, lotteryId }, 'drawLottery');
+export const adminReviewGuildApplication = (slug: string, applicationId: string, approve: boolean) =>
+  adminRun(ReviewGuildApplicationAdminMutation, { slug, applicationId, approve }, 'reviewGuildApplication');
+export const adminSetGuildMentor = (slug: string, discordId: string, isMentor: boolean) =>
+  adminRun(SetGuildMentorAdminMutation, { slug, discordId, isMentor }, 'setGuildMentor');
+export const adminCreateMentorPairing = (slug: string, mentorDiscordId: string, menteeDiscordId: string) =>
+  adminRun(CreateMentorPairingAdminMutation, { slug, mentorDiscordId, menteeDiscordId }, 'createMentorPairing');
+export const adminEndMentorPairing = (slug: string, pairingId: string) =>
+  adminRun(EndMentorPairingAdminMutation, { slug, pairingId }, 'endMentorPairing');
+
+/* Recruit line (F16): the member-side join application. The payload
+ * carries the backend-localized error text like every admin write. */
+export type RecruitPayload = { ok: boolean; error?: string | null };
+
+export async function applyToGuildRemote(slug: string, message?: string): Promise<RecruitPayload> {
+  const r = await commit<documentsApplyToGuildMutation>(ApplyToGuildMutation, { slug, message });
+  return r.applyToGuild as RecruitPayload;
+}
 export const adminUpdateVisibility = (slug: string, devOnly: boolean) => adminRun(UpdateGuildVisibilityAdminMutation, { slug, devOnly }, 'updateGuildVisibility');
 export const adminCreateEvent = (slug: string, input: any) => adminRun(CreateAdminEventMutation, { slug, input }, 'createAdminEvent');
 export const adminUpdateEvent = (slug: string, eventId: string, input: any) => adminRun(UpdateAdminEventMutation, { slug, eventId, input }, 'updateAdminEvent');
