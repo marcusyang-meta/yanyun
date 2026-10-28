@@ -23,6 +23,7 @@ import GuildAdminSeason from './GuildAdminSeason.react.tsx';
 import GuildAdminOfficer from './GuildAdminOfficer.react.tsx';
 import GuildAdminOps from './GuildAdminOps.react.tsx';
 import GuildAdminGovernance from './GuildAdminGovernance.react.tsx';
+import GuildAdminRecaps from './GuildAdminRecaps.react.tsx';
 import { PremiumLockedPanel, PremiumActivePanel } from './GuildAdminPremium.react.tsx';
 import GuildAdminCustomDomain from './GuildAdminCustomDomain.react.tsx';
 
@@ -127,6 +128,27 @@ const GuildAdminPage_guildAdmin = graphql`
         boardPosts { id body authorName mine canDelete createdAtText }
         auditEvents { id action actionLabel actorName targetType targetLabel createdAtText }
         auditTotalCount
+      }
+    }
+    adminTabRecapsLabel
+    recaps {
+      __typename
+      ... on GroupingRecapLocked { title body }
+      ... on GroupingRecapNotEnabled { title body }
+      ... on GuildAdminRecapList {
+        title
+        emptyText
+        items {
+          id
+          groupingId
+          groupingTitle
+          status
+          statusText
+          provider
+          version
+          paragraphCountText
+          generatedAtText
+        }
       }
     }
     officer {
@@ -669,6 +691,7 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
     { key: 'officer', label: text.adminTabOfficerLabel },
     { key: 'ops', label: text.adminTabOpsLabel },
     { key: 'governance', label: text.adminTabGovernanceLabel },
+    { key: 'recaps', label: text.adminTabRecapsLabel },
   ];
   /* P16: tabs follow the viewer's capability set (Discord admins
    * hold all ten, so their tab bar is unchanged). The governance
@@ -951,6 +974,9 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
             commonText={commonText}
             refresh={refresh}
           />
+        )}
+        {tab === 'recaps' && (
+          <GuildAdminRecaps recaps={data.recaps} />
         )}
         {activeTab === 'tools' && (
           <GuildAdminTools

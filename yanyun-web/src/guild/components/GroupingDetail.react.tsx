@@ -10,6 +10,7 @@ import { useGuildLive, executeQueryRefresh} from '../../lib/guildLive';
 import { toast, ConfirmDialog} from './Toast.react.tsx';
 import SeatGrid, { type SeatData} from './SeatGrid.react.tsx';
 import GroupingForm from './GroupingForm.react.tsx';
+import GuildRecapSection from './GuildRecapSection.react.tsx';
 
 const GroupingDetailQueryNode = graphql`
   query GroupingDetailQuery($slug: String, $id: ID!) {
@@ -130,6 +131,49 @@ const GroupingDetailQueryNode = graphql`
       formToastCreateFailedTemplate
       formTitleTemplate
       rosterAnswersTitle
+      recap {
+        __typename
+        ... on GroupingRecapLocked {
+          title
+          body
+        }
+        ... on GroupingRecapNotEnabled {
+          title
+          body
+        }
+        ... on GroupingRecapEmpty {
+          title
+          body
+          failedHint
+          actions {
+            generateLabel
+            regenerateLabel
+            generatingLabel
+            confirmTitle
+            confirmMessageTemplate
+            toastGenerated
+            toastFailedTemplate
+          }
+        }
+        ... on GroupingRecapReady {
+          title
+          paragraphs
+          summaryLines
+          generatedAtText
+          providerText
+          versionText
+          failedHint
+          actions {
+            generateLabel
+            regenerateLabel
+            generatingLabel
+            confirmTitle
+            confirmMessageTemplate
+            toastGenerated
+            toastFailedTemplate
+          }
+        }
+      }
       rosterAnswers {
         uid
         nickname
@@ -616,6 +660,16 @@ verticalAlign: 'middle',
 )}
 </div>
 )}
+
+<GuildRecapSection
+recap={page.recap}
+groupingId={g.id}
+groupingTitle={g.title}
+confirmOkLabel={page.confirmOkLabel}
+confirmCancelLabel={page.confirmCancelLabel}
+unknownErrorText={unknownErrorText}
+onChanged={onChanged}
+/>
 
 {page.rosterAnswers && page.rosterAnswers.length > 0 && (
 <div style={{ marginTop: 22 }}>
