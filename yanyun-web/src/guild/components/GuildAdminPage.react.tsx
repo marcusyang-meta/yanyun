@@ -64,12 +64,6 @@ const GuildAdminPage_guildAdmin = graphql`
     adminTabAnnouncementsLabel
     adminTabStatsLabel
     adminTabToolsLabel
-    adminCalendarTitle
-    adminCalendarHint
-    adminCalendarUrlLabel
-    adminCalendarCopyLabel
-    adminCalendarResetLabel
-    adminCalendarResetHint
     adminLotteryTitle
     adminLotteryHint
     adminLotteryEmptyText
@@ -88,7 +82,6 @@ const GuildAdminPage_guildAdmin = graphql`
     adminLotteryDrawLabel
     adminLotteryStatusOpenText
     adminLotteryStatusDrawnText
-    calendarFeedUrl
     lotteries {
       id
       title
@@ -686,7 +679,6 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
             slug={slug}
             text={text}
             commonText={commonText}
-            calendarFeedUrl={data.calendarFeedUrl}
             lotteries={data.lotteries}
             lotteryRoster={data.lotteryRoster}
             events={data.events}

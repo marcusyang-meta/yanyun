@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<2a17cfdafac7d48b9826c602df612ca2>>
+ * @generated SignedSource<<5b4590f63283e16a5604ffc28d857fdf>>
  * @lightSyntaxTransform
  */
 
@@ -25,12 +25,6 @@ export type GuildAdminPage_guildAdmin$data = {
   readonly adminBgImageUrlLabel: string;
   readonly adminBillingCanceledText: string;
   readonly adminBillingSuccessText: string;
-  readonly adminCalendarCopyLabel: string;
-  readonly adminCalendarHint: string;
-  readonly adminCalendarResetHint: string;
-  readonly adminCalendarResetLabel: string;
-  readonly adminCalendarTitle: string;
-  readonly adminCalendarUrlLabel: string;
   readonly adminDeleteLabel: string;
   readonly adminDevOnlyLabel: string;
   readonly adminDiscordTitle: string;
@@ -143,7 +137,6 @@ export type GuildAdminPage_guildAdmin$data = {
   readonly announcement: string;
   readonly avatarUrl: string | null | undefined;
   readonly bgImageUrl: string;
-  readonly calendarFeedUrl: string;
   readonly devOnly: boolean;
   readonly discordGuildId: string;
   readonly events: ReadonlyArray<{
@@ -735,48 +728,6 @@ return {
       "alias": null,
       "args": null,
       "kind": "ScalarField",
-      "name": "adminCalendarTitle",
-      "storageKey": null
-    },
-    {
-      "alias": null,
-      "args": null,
-      "kind": "ScalarField",
-      "name": "adminCalendarHint",
-      "storageKey": null
-    },
-    {
-      "alias": null,
-      "args": null,
-      "kind": "ScalarField",
-      "name": "adminCalendarUrlLabel",
-      "storageKey": null
-    },
-    {
-      "alias": null,
-      "args": null,
-      "kind": "ScalarField",
-      "name": "adminCalendarCopyLabel",
-      "storageKey": null
-    },
-    {
-      "alias": null,
-      "args": null,
-      "kind": "ScalarField",
-      "name": "adminCalendarResetLabel",
-      "storageKey": null
-    },
-    {
-      "alias": null,
-      "args": null,
-      "kind": "ScalarField",
-      "name": "adminCalendarResetHint",
-      "storageKey": null
-    },
-    {
-      "alias": null,
-      "args": null,
-      "kind": "ScalarField",
       "name": "adminLotteryTitle",
       "storageKey": null
     },
@@ -897,13 +848,6 @@ return {
       "args": null,
       "kind": "ScalarField",
       "name": "adminLotteryStatusDrawnText",
-      "storageKey": null
-    },
-    {
-      "alias": null,
-      "args": null,
-      "kind": "ScalarField",
-      "name": "calendarFeedUrl",
       "storageKey": null
     },
     {
@@ -2279,6 +2223,6 @@ return {
 };
 })();
 
-(node as any).hash = "6c8de52a72a415948cbb317c4795b399";
+(node as any).hash = "636c700252889ace7dfb18863339ce67";
 
 export default node;

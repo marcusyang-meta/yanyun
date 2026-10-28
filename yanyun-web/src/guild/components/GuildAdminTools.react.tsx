@@ -1,20 +1,17 @@
 import { useState } from 'react';
 import { graphql, useMutation } from 'react-relay';
 import { theme } from '../../lib/format';
-import { toast } from './Toast.react.tsx';
 import {
   adminInputStyle, adminSectionStyle, adminSectionTitleStyle, Field, ConfirmButton,
   useAdminMutation, type AdminText, type CommonText,
 } from './GuildAdminUi.react.tsx';
 
-// Activity tools panel of the guild admin page (free features F8 +
-// F21): the calendar subscription link (lazily minted server-side;
-// reset revokes the old link in place) and the activity lottery
-// (participant list frozen at creation from one grouping's seated
-// participants or hand-picked roster members; the draw is weighted
-// and never repeats a winner). Presentation only — every label is a
-// backend copy field on GuildAdmin, every write is a mutation whose
-// payload error text is backend-localized.
+// Activity tools panel of the guild admin page (free feature F21):
+// the activity lottery (participant list frozen at creation from one
+// grouping's seated participants or hand-picked roster members; the
+// draw is weighted and never repeats a winner). Presentation only —
+// every label is a backend copy field on GuildAdmin, every write is
+// a mutation whose payload error text is backend-localized.
 type LotteryEntry = { discordId: string; displayName: string; weight: number };
 type Lottery = {
   id: string;
@@ -34,11 +31,6 @@ type Lottery = {
 type RosterMember = { discordId: string; displayName: string };
 type AdminEvent = { id: string; title: string };
 
-const ResetCalendarMutation = graphql`
-  mutation GuildAdminToolsResetCalendarMutation($slug: String!) {
-    resetCalendarFeed(slug: $slug) { ok error }
-  }
-`;
 const CreateLotteryMutation = graphql`
   mutation GuildAdminToolsCreateLotteryMutation($slug: String!, $input: CreateLotteryInput!) {
     createLottery(slug: $slug, input: $input) { ok error }
@@ -70,31 +62,19 @@ function EntryList({ entries, highlight }: { entries: LotteryEntry[]; highlight?
   );
 }
 
-export default function GuildAdminTools({ slug, text, commonText, calendarFeedUrl, lotteries, lotteryRoster, events, refresh }: {
+export default function GuildAdminTools({ slug, text, commonText, lotteries, lotteryRoster, events, refresh }: {
   slug: string;
   text: AdminText;
   commonText: CommonText;
-  calendarFeedUrl: string;
   lotteries: Lottery[];
   lotteryRoster: RosterMember[];
   events: AdminEvent[];
   refresh: () => void;
 }) {
-  const [commitReset] = useMutation(ResetCalendarMutation);
   const [commitCreate] = useMutation(CreateLotteryMutation);
   const [commitDraw] = useMutation(DrawLotteryMutation);
-  const runReset = useAdminMutation(commitReset, 'resetCalendarFeed', refresh, commonText.unknownError);
   const runCreate = useAdminMutation(commitCreate, 'createLottery', refresh, commonText.unknownError);
   const runDraw = useAdminMutation(commitDraw, 'drawLottery', refresh, commonText.unknownError);
-
-  const [copied, setCopied] = useState(false);
-  const copyFeed = async () => {
-    try {
-      await navigator.clipboard.writeText(calendarFeedUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1600);
-    } catch { toast(commonText.unknownError); }
-  };
 
   // Create-lottery form state.
   const [title, setTitle] = useState('');
@@ -155,23 +135,6 @@ export default function GuildAdminTools({ slug, text, commonText, calendarFeedUr
 
   return (
     <>
-      <section style={adminSectionStyle}>
-        <h2 style={adminSectionTitleStyle}>{text.adminCalendarTitle}</h2>
-        <Field label={text.adminCalendarUrlLabel}>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <input style={{ ...adminInputStyle, flex: '1 1 260px', width: 'auto' }} value={calendarFeedUrl} readOnly
-              onFocus={(e) => e.target.select()} />
-            <button type="button" className="yy-btn yy-btn-gold" style={{ padding: '9px 20px' }} onClick={copyFeed}>
-              {copied ? text.adminSavedText : text.adminCalendarCopyLabel}
-            </button>
-            <ConfirmButton label={text.adminCalendarResetLabel} confirmLabel={commonText.confirm}
-              onConfirm={() => runReset({ slug })} />
-          </div>
-        </Field>
-        <p style={{ color: theme.muted, fontSize: 12, margin: '0 0 6px' }}>{text.adminCalendarHint}</p>
-        <p style={{ color: theme.muted, fontSize: 12, margin: 0 }}>{text.adminCalendarResetHint}</p>
-      </section>
-
       <section style={adminSectionStyle}>
         <h2 style={adminSectionTitleStyle}>{text.adminLotteryTitle}</h2>
         <p style={{ color: theme.muted, fontSize: 12, margin: '0 0 14px' }}>{text.adminLotteryHint}</p>
