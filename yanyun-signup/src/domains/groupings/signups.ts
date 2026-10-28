@@ -32,6 +32,7 @@ export interface SignupRow {
   created_at: string;
   discord_id: string | null;
   ready_at: number | null;
+  is_visitor: number;
 }
 
 interface RunMeta {
@@ -231,7 +232,7 @@ export async function getSignupTenant(d1: D1Database, signupId: number, tenant: 
 
 const SIGNUP_COLUMNS = new Set([
   'event_id', 'nickname', 'uid', 'role', 'weapon', 'contact', 'note',
-  'team_name', 'members', 'discord_id', 'ready_at',
+  'team_name', 'members', 'discord_id', 'ready_at', 'is_visitor',
 ]);
 
 function checkedColumns(row: Record<string, unknown>): string[] {
@@ -394,4 +395,27 @@ export async function anonymizeSignupsByDiscordId(
         WHERE ${col('discord_id')} = ${discordId}`,
   );
   return metaOf(r).changes;
+}
+
+/* ---------- visitor seats (P20) ---------- */
+
+/** Visitor seats already taken in one grouping (the quota count). */
+export async function countVisitorSeatsByEvent(d1: D1Database, eventId: number): Promise<number> {
+  const db = createDb(d1);
+  const row = await db.get<{ c: number }>(
+    sql`SELECT COUNT(*) AS c FROM ${signups} WHERE ${col('event_id')} = ${eventId} AND ${col('is_visitor')} = 1`,
+  );
+  return row ? Number(row.c) || 0 : 0;
+}
+
+/** This user's seat in one grouping, if one exists (duplicate-seat guard
+ * for the visitor path and the fill-market seating action). */
+export async function findSeatByEventAndDiscord(
+  d1: D1Database, eventId: number, discordId: string,
+): Promise<SignupRow | null> {
+  const db = createDb(d1);
+  const row = await db.get<SignupRow>(
+    sql`SELECT * FROM ${signups} WHERE ${col('event_id')} = ${eventId} AND ${col('discord_id')} = ${discordId} LIMIT 1`,
+  );
+  return row ?? null;
 }

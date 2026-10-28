@@ -41,6 +41,10 @@ export const events = sqliteTable('events', {
   creatorDiscordId: text('creator_discord_id'),
   reminderSentAt: integer('reminder_sent_at'),
   reminderError: text('reminder_error'),
+  // Ally sharing [alt: 0032]: leader-flagged visibility to allied
+  // guilds + the leader-controlled visitor-seat quota (0 = closed).
+  allyVisible: integer('ally_visible').notNull().default(0),
+  visitorSlots: integer('visitor_slots').notNull().default(0),
 }, (t) => [
   index('idx_events_tenant').on(t.tenant, t.type, t.status),
   index('idx_events_utc').on(t.tenant, t.startsAtUtc),
@@ -61,6 +65,9 @@ export const signups = sqliteTable('signups', {
   createdAt: text('created_at').notNull().default(sql`datetime('now')`),
   discordId: text('discord_id'),
   readyAt: integer('ready_at'),
+  // Visitor seat marker [alt: 0032]: 1 only for seats taken through
+  // the allied-guild visitor path (P20); member seats never set it.
+  isVisitor: integer('is_visitor').notNull().default(0),
 }, (t) => [
   uniqueIndex('signups_event_uid_unique').on(t.eventId, t.uid),
   index('idx_signups_event').on(t.eventId),

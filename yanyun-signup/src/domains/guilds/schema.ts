@@ -293,6 +293,102 @@ export const memberSeasonGoals = sqliteTable('member_season_goals', {
   index('idx_member_season_goals_tenant_id').on(t.tenant, t.id),
 ]);
 
+/* ---------------- fill offers [migration 0030] --------------------
+ * P19 supply edge (free): one row per fill-in offer, keyed to the
+ * person (discord_id), not to a guild — home_tenant only records
+ * where they published from. windows_json is the F5 availability
+ * caliber (UTC minutes of day). Status 'open' | 'withdrawn'; the
+ * one-open-offer-per-person rule is the partial unique index. */
+export const fillOffers = sqliteTable('fill_offers', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  discordId: text('discord_id').notNull().default(''),
+  displayName: text('display_name').notNull().default(''),
+  homeTenant: text('home_tenant').notNull().default(''),
+  school: text('school').notNull().default(''),
+  windowsJson: text('windows_json').notNull().default('[]'),
+  note: text('note').notNull().default(''),
+  status: text('status').notNull().default('open'),
+  createdAt: integer('created_at').notNull().default(0),
+  updatedAt: integer('updated_at').notNull().default(0),
+}, (t) => [
+  index('idx_fill_offers_status').on(t.status, t.id),
+  uniqueIndex('fill_offers_open_unique').on(t.discordId)
+    .where(sql`status = 'open'`),
+]);
+
+/* ---------------- fill requests [migration 0030] ------------------
+ * P19 demand edge (T3): one row per fill request a guild's leader /
+ * admin posted against one of its own groupings. Status machine
+ * 'open' -> 'matched' | 'closed', terminal rows keep matched_at /
+ * closed_at as the trail. */
+export const fillRequests = sqliteTable('fill_requests', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  tenant: text('tenant').notNull().default(''),
+  eventId: integer('event_id').notNull().default(0),
+  neededRole: text('needed_role').notNull().default(''),
+  neededSchool: text('needed_school').notNull().default(''),
+  note: text('note').notNull().default(''),
+  status: text('status').notNull().default('open'),
+  createdBy: text('created_by').notNull().default(''),
+  createdByName: text('created_by_name').notNull().default(''),
+  createdAt: integer('created_at').notNull().default(0),
+  matchedAt: integer('matched_at'),
+  closedAt: integer('closed_at'),
+}, (t) => [
+  index('idx_fill_requests_tenant').on(t.tenant, t.id),
+  index('idx_fill_requests_event').on(t.eventId, t.status),
+]);
+
+/* ---------------- fill invites [migration 0030] -------------------
+ * P19 matching: one row per invitation from a request to a supplier.
+ * Status 'pending' -> 'accepted' | 'declined' | 'expired' (settled
+ * by the request-side transitions). The partial unique index states
+ * one live (pending/accepted) invite per (request, supplier). */
+export const fillInvites = sqliteTable('fill_invites', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  requestId: integer('request_id').notNull().references(() => fillRequests.id, { onDelete: 'cascade' }),
+  offerId: integer('offer_id').notNull().references(() => fillOffers.id, { onDelete: 'cascade' }),
+  tenant: text('tenant').notNull().default(''),
+  eventId: integer('event_id').notNull().default(0),
+  fromDiscordId: text('from_discord_id').notNull().default(''),
+  fromName: text('from_name').notNull().default(''),
+  toDiscordId: text('to_discord_id').notNull().default(''),
+  toName: text('to_name').notNull().default(''),
+  status: text('status').notNull().default('pending'),
+  createdAt: integer('created_at').notNull().default(0),
+  respondedAt: integer('responded_at'),
+}, (t) => [
+  uniqueIndex('fill_invites_pair_unique').on(t.requestId, t.toDiscordId)
+    .where(sql`status IN ('pending', 'accepted')`),
+  index('idx_fill_invites_request').on(t.requestId, t.status),
+  index('idx_fill_invites_supplier').on(t.toDiscordId, t.status, t.id),
+]);
+
+/* ---------------- guild alliances [migration 0031] ----------------
+ * P20: one row per UNORDERED guild pair — guild_low / guild_high
+ * are the two slugs in lexicographic order (the symmetric storage
+ * rule); who initiated is a fact on the row. Status machine
+ * 'pending' -> 'active' | 'rejected'; 'active' -> 'ended'. The
+ * partial unique index states one live relation per pair. */
+export const guildAlliances = sqliteTable('guild_alliances', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  guildLow: text('guild_low').notNull().default(''),
+  guildHigh: text('guild_high').notNull().default(''),
+  status: text('status').notNull().default('pending'),
+  requestedByTenant: text('requested_by_tenant').notNull().default(''),
+  requestedBy: text('requested_by').notNull().default(''),
+  requestedByName: text('requested_by_name').notNull().default(''),
+  createdAt: integer('created_at').notNull().default(0),
+  respondedAt: integer('responded_at'),
+  endedAt: integer('ended_at'),
+  endedByTenant: text('ended_by_tenant').notNull().default(''),
+}, (t) => [
+  uniqueIndex('guild_alliances_live_unique').on(t.guildLow, t.guildHigh)
+    .where(sql`status IN ('pending', 'active')`),
+  index('idx_guild_alliances_low').on(t.guildLow, t.status, t.id),
+  index('idx_guild_alliances_high').on(t.guildHigh, t.status, t.id),
+]);
+
 /* ---------------- guild avatars [ddl chain baseline] --------------- */
 export const guildAvatars = sqliteTable('guild_avatars', {
   tenant: text('tenant').primaryKey(),
