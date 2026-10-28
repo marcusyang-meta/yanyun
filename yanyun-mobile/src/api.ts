@@ -99,6 +99,7 @@ export type GuildItem = {
   homeTabDexLabel?: string | null;
   homeTabSectLabel?: string | null;
   homeTabAnnouncementsLabel?: string | null;
+  homeTabScheduleLabel?: string | null;
   // Server-composed white-label chrome copy (carries the platform name
   // only while this guild shows platform branding)
   pageBackLabel?: string | null;
@@ -266,6 +267,10 @@ function commit<T extends MutationParameters>(mutation: GraphQLTaggedNode, varia
   });
 }
 
+// One custom signup-form field answer (F7), keyed by the car's own
+// field id; the backend validates the set against the car's fields.
+export type SignupAnswerInput = { fieldId: string; value: string };
+
 export async function joinGrouping(
   groupingId: string,
   nickname: string,
@@ -276,11 +281,15 @@ export async function joinGrouping(
   // and identity stamp are set by the server from the session; a passed nickname
   // is kept only for compatibility, the canonical name wins.
   forDiscordId?: string,
+  // F7 custom-form answers for this car's fields (empty = none).
+  answers?: SignupAnswerInput[],
 ): Promise<SeatPayload> {
   const r = await commit<documentsJoinGroupingMutation>(JoinGroupingMutation, {
-    input: forDiscordId
-      ? { groupingId, nickname, weapon, seatIndex, forDiscordId }
-      : { groupingId, nickname, weapon, seatIndex },
+    input: {
+      groupingId, nickname, weapon, seatIndex,
+      ...(forDiscordId ? { forDiscordId } : {}),
+      ...(answers && answers.length ? { answers } : {}),
+    },
   });
   return r.joinGrouping as SeatPayload;
 }
@@ -320,6 +329,15 @@ export type GroupingPayload = {
   grouping?: { id: string; title: string } | null;
 };
 
+// One custom signup-form field definition (F7): creator-written
+// label/options are data, not UI copy; the backend validates the set.
+export type CustomFieldInput = {
+  label: string;
+  fieldType: 'TEXT' | 'CHOICE';
+  options?: string[];
+  required?: boolean;
+};
+
 export async function createGrouping(input: {
   slug: string;
   title: string;
@@ -327,6 +345,7 @@ export async function createGrouping(input: {
   startsAt: string;
   dungeonId?: string | null;
   seats?: { nickname: string; weapon: string }[];
+  customFields?: CustomFieldInput[];
 }): Promise<GroupingPayload> {
   const r = await commit<documentsCreateGroupingMutation>(CreateGroupingMutation, { input });
   return r.createGrouping as GroupingPayload;
@@ -354,6 +373,7 @@ export type GroupingTemplateInput = {
   startsInDays: number;
   startHour: number;
   startMinute: number;
+  customFields?: CustomFieldInput[];
 };
 
 export async function createGroupingTemplate(

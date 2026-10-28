@@ -334,6 +334,10 @@ function JoinModal({
   const [sect, setSect] = useState('');
   const [joining, setJoining] = useState(false);
   const [notice, setNotice] = useState('');
+  // F7 answers, keyed by field id; labels/options are the car's own
+  // field data (creator-written), rendered verbatim.
+  const customFields = page?.grouping?.customFields ?? [];
+  const [answers, setAnswers] = useState<Record<string, string>>({});
 
   // Signup failure hints use the shell's seatToastJoinFailedTemplate (same
   // source as the Web toast): {error} is the server error, or
@@ -355,9 +359,12 @@ function JoinModal({
     if (mode === 'proxy' && !selected) { setNotice(page?.seatProxyPickRequired ?? ''); return; }
     setJoining(true); setNotice('');
     try {
+      const answerInputs = customFields
+        .filter((f) => (answers[f.id] ?? '').trim())
+        .map((f) => ({ fieldId: f.id, value: answers[f.id].trim() }));
       const r = mode === 'proxy'
-        ? await joinGrouping(id, selected!.displayName, sect, seat, selected!.discordId)
-        : await joinGrouping(id, defaultNickname, sect, seat);
+        ? await joinGrouping(id, selected!.displayName, sect, seat, selected!.discordId, answerInputs)
+        : await joinGrouping(id, defaultNickname, sect, seat, undefined, answerInputs);
       if (!r.ok) { setNotice(joinFailText(r.error)); return; }
       onDone();
     } catch {
@@ -369,6 +376,7 @@ function JoinModal({
     <Modal visible transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={s.overlay} onPress={onClose}>
         <Pressable style={s.panel} onPress={() => {}}>
+          <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           <Text style={s.formTitle}>
             {page?.seatModalTitleTemplate ? fill(page.seatModalTitleTemplate, { n: seat + 1 }) : `报名 · ${seat + 1} 号位`}
           </Text>
@@ -427,6 +435,31 @@ function JoinModal({
               )}
             </View>
           )}
+          {customFields.map((f) => (
+            <View key={f.id}>
+              <Text style={s.label}>{f.label}{f.required ? ' *' : ''}</Text>
+              {f.fieldType === 'CHOICE' ? (
+                <View style={s.chips}>
+                  {(f.options ?? []).map((o) => (
+                    <Pressable
+                      key={o}
+                      style={[s.chip, answers[f.id] === o && s.chipOn]}
+                      onPress={() => setAnswers({ ...answers, [f.id]: o })}
+                    >
+                      {answers[f.id] === o && <GoldFill />}
+                      <Text style={[s.chipText, answers[f.id] === o && s.chipTextOn]}>{o}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+              ) : (
+                <TextInput
+                  style={s.input}
+                  value={answers[f.id] ?? ''}
+                  onChangeText={(v) => setAnswers({ ...answers, [f.id]: v })}
+                />
+              )}
+            </View>
+          ))}
           <Text style={s.label}>{page?.seatSectLabel ?? '流派'}</Text>
           <View style={s.chips}>
             {SECTS.map((x) => (
@@ -452,6 +485,7 @@ function JoinModal({
               </Text>
             </Pressable>
           </View>
+          </ScrollView>
         </Pressable>
       </Pressable>
     </Modal>
@@ -522,6 +556,21 @@ function DetailBlocks({
       {blocks.map((b, i) => (
         <BlockNode1View key={i} block={b} handlers={leafHandlers} />
       ))}
+      {/* F7 roster answers: the shell field is non-null only for
+          viewers who may manage this car (leader / guild admin) —
+          everyone else receives null and the section never renders. */}
+      {!!page?.rosterAnswers?.length && (
+        <View style={s.rosterWrap}>
+          <Text style={s.rosterTitle}>{page.rosterAnswersTitle}</Text>
+          {page.rosterAnswers.map((a, i) => (
+            <View key={i} style={s.rosterRow}>
+              <Text style={s.rosterName}>{a.nickname}</Text>
+              <Text style={s.rosterField}>{a.fieldLabel}</Text>
+              <Text style={s.rosterValue}>{a.value}</Text>
+            </View>
+          ))}
+        </View>
+      )}
     </ScrollView>
   );
 }
@@ -538,7 +587,7 @@ const s = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center', padding: 20,
   },
   panel: {
-    width: '100%', maxWidth: 420, backgroundColor: theme.ink2,
+    width: '100%', maxWidth: 420, maxHeight: '88%', backgroundColor: theme.ink2,
     borderWidth: 1, borderColor: 'rgba(201,163,92,.4)',
     borderTopWidth: 2, borderTopColor: theme.gold,
     borderRadius: 14, padding: 24,
@@ -591,4 +640,14 @@ const s = StyleSheet.create({
   memberRowOn: { borderColor: 'rgba(236,210,143,.5)' },
   memberName: { fontFamily: fonts.serif, color: theme.paper, fontSize: 14 },
   memberSub: { fontFamily: fonts.serif, color: theme.muted, fontSize: 12 },
+  rosterWrap: { marginTop: 22 },
+  rosterTitle: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 15, letterSpacing: 2, marginBottom: 10 },
+  rosterRow: {
+    flexDirection: 'row', flexWrap: 'wrap', gap: 10, alignItems: 'baseline',
+    borderWidth: 1, borderColor: theme.border, borderRadius: 8,
+    paddingHorizontal: 12, paddingVertical: 8, marginBottom: 8,
+  },
+  rosterName: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 13.5 },
+  rosterField: { fontFamily: fonts.serif, color: theme.muted, fontSize: 13.5 },
+  rosterValue: { flex: 1, fontFamily: fonts.serif, color: theme.paper, fontSize: 13.5 },
 });

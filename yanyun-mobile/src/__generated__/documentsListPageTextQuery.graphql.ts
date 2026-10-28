@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<2ee621d31a486cd66259e0e018bcda48>>
+ * @generated SignedSource<<fe2fd659c6e10803fc80e37a4553dcf0>>
  * @lightSyntaxTransform
  */
 
@@ -8,6 +8,7 @@
 // @ts-nocheck
 
 import { ConcreteRequest } from 'relay-runtime';
+export type CustomFieldType = "CHOICE" | "TEXT" | "%future added value";
 export type GroupingTab = "ACTIVITY" | "RACE" | "TALENT" | "TOWER" | "%future added value";
 export type GroupingType = "ACTIVITY" | "RACE" | "TALENT" | "TOWER" | "%future added value";
 export type documentsListPageTextQuery$variables = {
@@ -20,6 +21,15 @@ export type documentsListPageTextQuery$data = {
     readonly formCancelLabel: string;
     readonly formCapacityTemplate: string;
     readonly formCreateTitle: string;
+    readonly formCustomFieldAddLabel: string;
+    readonly formCustomFieldEmptyText: string;
+    readonly formCustomFieldLabelPlaceholder: string;
+    readonly formCustomFieldOptionsPlaceholder: string;
+    readonly formCustomFieldRemoveLabel: string;
+    readonly formCustomFieldRequiredLabel: string;
+    readonly formCustomFieldTypeChoice: string;
+    readonly formCustomFieldTypeText: string;
+    readonly formCustomFieldsTitle: string;
     readonly formDayTemplate: string;
     readonly formDungeonLabel: string;
     readonly formDungeonNoneLabel: string;
@@ -54,6 +64,13 @@ export type documentsListPageTextQuery$data = {
     readonly formTypeTowerLabel: string;
     readonly groupingTemplates: ReadonlyArray<{
       readonly creatorName: string | null | undefined;
+      readonly customFields: ReadonlyArray<{
+        readonly fieldType: CustomFieldType;
+        readonly id: string;
+        readonly label: string;
+        readonly options: ReadonlyArray<string>;
+        readonly required: boolean;
+      }>;
       readonly dungeonId: string | null | undefined;
       readonly dungeonName: string | null | undefined;
       readonly id: string;
@@ -155,6 +172,13 @@ v4 = {
   "abstractKey": null
 },
 v5 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "id",
+  "storageKey": null
+},
+v6 = {
   "alias": null,
   "args": [
     (v2/*:: as any*/),
@@ -481,6 +505,69 @@ v5 = {
       "alias": null,
       "args": null,
       "kind": "ScalarField",
+      "name": "formCustomFieldsTitle",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "formCustomFieldAddLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "formCustomFieldLabelPlaceholder",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "formCustomFieldTypeText",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "formCustomFieldTypeChoice",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "formCustomFieldOptionsPlaceholder",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "formCustomFieldRequiredLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "formCustomFieldRemoveLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "formCustomFieldEmptyText",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
       "name": "typeShortActivity",
       "storageKey": null
     },
@@ -625,13 +712,7 @@ v5 = {
       "name": "groupingTemplates",
       "plural": true,
       "selections": [
-        {
-          "alias": null,
-          "args": null,
-          "kind": "ScalarField",
-          "name": "id",
-          "storageKey": null
-        },
+        (v5/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -700,6 +781,46 @@ v5 = {
           "args": null,
           "kind": "ScalarField",
           "name": "creatorName",
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "concreteType": "CustomField",
+          "kind": "LinkedField",
+          "name": "customFields",
+          "plural": true,
+          "selections": [
+            (v5/*:: as any*/),
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "label",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "fieldType",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "options",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "required",
+              "storageKey": null
+            }
+          ],
           "storageKey": null
         },
         {
@@ -778,7 +899,7 @@ return {
         ],
         "storageKey": null
       },
-      (v5/*:: as any*/)
+      (v6/*:: as any*/)
     ],
     "type": "Query",
     "abstractKey": null
@@ -820,20 +941,20 @@ return {
         ],
         "storageKey": null
       },
-      (v5/*:: as any*/)
+      (v6/*:: as any*/)
     ]
   },
   "params": {
-    "cacheID": "cb9d8a0c3b0fabf4711b975d7589e544",
+    "cacheID": "8a67711f7eea1e0493c26cd0bb6c60c3",
     "id": null,
     "metadata": {},
     "name": "documentsListPageTextQuery",
     "operationKind": "query",
-    "text": "query documentsListPageTextQuery(\n  $slug: String!\n  $tab: GroupingTab!\n) {\n  viewer {\n    commonUnknownErrorText\n    guild(slug: $slug) {\n      __typename\n      ... on Guild {\n        homeAdminLabel\n      }\n    }\n  }\n  groupingListPage(slug: $slug, tab: $tab) {\n    newCarLabel\n    tabActivityLabel\n    tabTalentLabel\n    tabRaceLabel\n    tabTowerLabel\n    sealText\n    statusOpenLabel\n    weekHeaderTemplate\n    currentVersion\n    formCreateTitle\n    formEditTitle\n    formTypeLabel\n    formTypeActivityLabel\n    formTypeTalentLabel\n    formTypeRaceLabel\n    formTypeTowerLabel\n    formCapacityTemplate\n    formHintActivity\n    formHintDungeonTemplate\n    formHintTalent\n    formHintRace\n    formHintTower\n    formTitleLabel\n    formTitlePlaceholder\n    formStartsLabel\n    formMonthTemplate\n    formDayTemplate\n    formHourTemplate\n    formMinuteTemplate\n    formDungeonLabel\n    formDungeonNoneLabel\n    formNicknameLabel\n    formNicknamePlaceholder\n    formSectLabel\n    formCancelLabel\n    formSubmitCreateLabel\n    formSubmitEditLabel\n    formSubmittingLabel\n    formToastSect\n    formToastSaved\n    formToastSaveFailedTemplate\n    formToastPosted\n    formToastCreateFailedTemplate\n    formTitleTemplate\n    typeShortActivity\n    typeShortTalent\n    typeShortRace\n    typeShortTower\n    templateSectionTitle\n    templateNameLabel\n    templateNamePlaceholder\n    templateSaveLabel\n    templateUpdateLabel\n    templateEditingNoticeTemplate\n    templateCancelEditLabel\n    templateEmptyText\n    templateWhenTodayTemplate\n    templateWhenTomorrowTemplate\n    templateWhenDaysTemplate\n    templateToastSaved\n    templateToastSaveFailedTemplate\n    templateToastDeleted\n    templateToastDeleteFailedTemplate\n    templateMetaTemplate\n    groupingTemplates {\n      id\n      name\n      type\n      title\n      dungeonName\n      dungeonId\n      maxSlots\n      startDaysAhead\n      startHour\n      startMinute\n      creatorName\n      manageActions {\n        editLabel\n        deleteLabel\n        deleteConfirmTitle\n        deleteConfirmMessageTemplate\n      }\n    }\n  }\n}\n"
+    "text": "query documentsListPageTextQuery(\n  $slug: String!\n  $tab: GroupingTab!\n) {\n  viewer {\n    commonUnknownErrorText\n    guild(slug: $slug) {\n      __typename\n      ... on Guild {\n        homeAdminLabel\n      }\n    }\n  }\n  groupingListPage(slug: $slug, tab: $tab) {\n    newCarLabel\n    tabActivityLabel\n    tabTalentLabel\n    tabRaceLabel\n    tabTowerLabel\n    sealText\n    statusOpenLabel\n    weekHeaderTemplate\n    currentVersion\n    formCreateTitle\n    formEditTitle\n    formTypeLabel\n    formTypeActivityLabel\n    formTypeTalentLabel\n    formTypeRaceLabel\n    formTypeTowerLabel\n    formCapacityTemplate\n    formHintActivity\n    formHintDungeonTemplate\n    formHintTalent\n    formHintRace\n    formHintTower\n    formTitleLabel\n    formTitlePlaceholder\n    formStartsLabel\n    formMonthTemplate\n    formDayTemplate\n    formHourTemplate\n    formMinuteTemplate\n    formDungeonLabel\n    formDungeonNoneLabel\n    formNicknameLabel\n    formNicknamePlaceholder\n    formSectLabel\n    formCancelLabel\n    formSubmitCreateLabel\n    formSubmitEditLabel\n    formSubmittingLabel\n    formToastSect\n    formToastSaved\n    formToastSaveFailedTemplate\n    formToastPosted\n    formToastCreateFailedTemplate\n    formTitleTemplate\n    formCustomFieldsTitle\n    formCustomFieldAddLabel\n    formCustomFieldLabelPlaceholder\n    formCustomFieldTypeText\n    formCustomFieldTypeChoice\n    formCustomFieldOptionsPlaceholder\n    formCustomFieldRequiredLabel\n    formCustomFieldRemoveLabel\n    formCustomFieldEmptyText\n    typeShortActivity\n    typeShortTalent\n    typeShortRace\n    typeShortTower\n    templateSectionTitle\n    templateNameLabel\n    templateNamePlaceholder\n    templateSaveLabel\n    templateUpdateLabel\n    templateEditingNoticeTemplate\n    templateCancelEditLabel\n    templateEmptyText\n    templateWhenTodayTemplate\n    templateWhenTomorrowTemplate\n    templateWhenDaysTemplate\n    templateToastSaved\n    templateToastSaveFailedTemplate\n    templateToastDeleted\n    templateToastDeleteFailedTemplate\n    templateMetaTemplate\n    groupingTemplates {\n      id\n      name\n      type\n      title\n      dungeonName\n      dungeonId\n      maxSlots\n      startDaysAhead\n      startHour\n      startMinute\n      creatorName\n      customFields {\n        id\n        label\n        fieldType\n        options\n        required\n      }\n      manageActions {\n        editLabel\n        deleteLabel\n        deleteConfirmTitle\n        deleteConfirmMessageTemplate\n      }\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "48ff9bad7afdc1ad3f62b225a5b173e7";
+(node as any).hash = "c6f620f9c7aab87760f6bb96489d49fd";
 
 export default node;
