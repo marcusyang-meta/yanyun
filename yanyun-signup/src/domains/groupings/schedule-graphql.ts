@@ -36,6 +36,7 @@ import {
   type TimePollRow,
 } from './index.ts';
 import { getGuildMember } from '../identity/index.ts';
+import { composeBestSlotsAdvice, schedulingAdviceResolvers } from './scheduling-graphql.ts';
 
 /** Roster-first display name for snapshots (availability rows, votes). */
 async function displayNameFor(db: any, tenant: string, user: any): Promise<string> {
@@ -199,6 +200,11 @@ export class GuildSchedulePageShell extends ShellBase {
       return rows.map((r) => new TimePollShell(this.ctx, r));
     });
   }
+  // Premium T2 best-slot advice (P6): same audience verdict as the
+  // availability summary; Locked vs full shell by tierLocked.
+  genBestSlotsAdvice(){
+    return this.memo('bestSlotsAdvice', async () => composeBestSlotsAdvice(this.ctx, this.data.slug));
+  }
   genWeekdayNames(){
     return this.memo('weekdayNames', () => [0, 1, 2, 3, 4, 5, 6].map((i) => this.t('groupingList_weekday' + i)));
   }
@@ -316,8 +322,10 @@ export const scheduleResolvers = {
     },
   },
   types: {
+    ...schedulingAdviceResolvers.types,
     GuildSchedulePage: {
       slug: (p: any) => p.genSlug(),
+      bestSlotsAdvice: (p: any) => p.genBestSlotsAdvice(),
       myAvailability: (p: any) => p.genMyAvailability(),
       availabilitySummary: (p: any) => p.genAvailabilitySummary(),
       polls: (p: any) => p.genPolls(),

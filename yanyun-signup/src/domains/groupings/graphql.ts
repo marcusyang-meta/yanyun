@@ -41,6 +41,7 @@ import {
 } from './index.ts';
 import { scheduleResolvers } from './schedule-graphql.ts';
 import { resolveSharedGrouping } from './shareview.ts';
+import { schedulingAdviceResolvers, composeGroupingSchedulingAdvice, composeCrossCarAdvice } from './scheduling-graphql.ts';
 import {
   listSignupSeats, listSignupSeatsBasic, listSignupNamesStamps,
   insertSignups, insertSignupWithCapacityGuard, deleteSignupByEventUid, deleteSignupsByEvent,
@@ -361,6 +362,11 @@ export class GroupingListPageShell extends ShellBase {
       return rows.map((r: GroupingTemplateRow) => new GroupingTemplateShell(this.ctx, r));
     });
   }
+  // Premium T2 cross-car advice (P13): admins / car leaders only,
+  // Locked vs full shell by tierLocked (see scheduling-graphql.ts).
+  genCrossCarAdvice(){
+    return this.memo('crossCarAdvice', async () => composeCrossCarAdvice(this.ctx, s(this.data.slug, 40)));
+  }
   // Weekday short names (index 0 = Sunday, aligned with JS getDay and the server's localDayParts): fills the {weekday} slot in web group-header templates; the whole table is generated per locale.
   genWeekdayNames(){
     return this.memo('weekdayNames', () => [0, 1, 2, 3, 4, 5, 6].map((i: any) => this.t('groupingList_weekday' + i)));
@@ -521,6 +527,12 @@ export class GroupingDetailPageShell extends ShellBase {
         value: a.value,
       }));
     });
+  }
+  // Premium T2 scheduling advice (P3/P4/P5): composed only for the
+  // car's managers; Locked shell when tierLocked, full shell when
+  // unlocked, null for everyone else (see scheduling-graphql.ts).
+  genSchedulingAdvice(){
+    return this.memo('schedulingAdvice', async () => composeGroupingSchedulingAdvice(this.ctx, this.data));
   }
   // Share URL for this car: the stable short link (lazily minted on
   // first read, then reused forever). Clients share exactly this
@@ -774,6 +786,7 @@ export const groupingsResolvers = {
   },
   Mutation: {
     ...scheduleResolvers.Mutation,
+    ...schedulingAdviceResolvers.Mutation,
     createGrouping: async (_: any, { input }: any, ctx: Context) => {
       const db = ctx.env.DB;
       if (!rateLimit('mut:create:' + getClientIp(ctx.request), 10)) {
@@ -1229,6 +1242,7 @@ export const groupingsResolvers = {
   },
   types: {
     ...scheduleResolvers.types,
+    ...schedulingAdviceResolvers.types,
     CustomField: {
       id: (p: any) => p.id, label: (p: any) => p.label, fieldType: (p: any) => p.fieldType,
       options: (p: any) => p.options, required: (p: any) => p.required,
@@ -1257,6 +1271,7 @@ export const groupingsResolvers = {
   },
   GroupingListPage: {
     groupings: (p: any) => p.genGroupings(),
+    crossCarAdvice: (p: any) => p.genCrossCarAdvice(),
     groupingTemplates: (p: any) => p.genGroupingTemplates(),
     currentVersion: (p: any) => p.genCurrentVersion(),
     blocks: (p: any, args: any) => p.genBlocks(args),
@@ -1264,6 +1279,7 @@ export const groupingsResolvers = {
   },
   GroupingDetailPage: {
     grouping: (p: any) => p.genGrouping(),
+    schedulingAdvice: (p: any) => p.genSchedulingAdvice(),
     rosterAnswers: (p: any) => p.genRosterAnswers(),
     shareUrl: (p: GroupingDetailPageShell) => p.genShareUrl(),
     templateSave: (p: any) => p.genTemplateSave(),

@@ -334,6 +334,9 @@ extend type Query {
 
 type GroupingListPage {
   groupings: [Grouping!]!
+  # Premium T2 跨车调度建议 (P13 的建议层; 多车总览本身免费不变):
+  # 仅百业管理员/本百业车头非 null; Locked 壳与完整壳口径同详情页。
+  crossCarAdvice: SchedulingCrossCarAdviceResult
   # 本百业共享模板 (与页签无关, 全百业一份): 建车表单据此渲染模板区
   # (列表/套用/存当前表单/改删入口); 改删判定在每个模板的 manageActions。
   groupingTemplates: [GroupingTemplate!]!
@@ -614,6 +617,10 @@ type SharedGroupingSeat {
 
 type GroupingDetailPage {
   grouping: Grouping!
+  # Premium T2 调度建议 (P3 配队草案 / P4 替补 / P5 轮换): 仅本车管理者
+  # (车头/本百业管理员) 非 null; 未达 T2 时只下发 Locked 壳 (零建议数据),
+  # 达档下发完整建议壳。建议永不自动落座/递补, 套用走既有落座动作。
+  schedulingAdvice: GroupingSchedulingAdviceResult
   # 分享 URL: 本车的稳定短链 (后端懒铸造, 首次下发时生成、之后恒同);
   # 客户端分享动作只用这个字符串, 不自拼 URL。
   shareUrl: String!
@@ -1579,6 +1586,10 @@ type GuildSchedulePage {
   # 成员可用性汇总: 仅管理员/车头非 null (权限结论由字段在否表达)
   availabilitySummary: [MemberAvailabilitySummary!]
   polls: [TimePoll!]!
+  # Premium T2 最优档期推荐 (P6): 与可用性汇总同一观看判定 (管理员/车头);
+  # 未达 T2 下发 Locked 壳, 达档下发完整壳; 无可用数据时 slots 为空 +
+  # 后端空态文案, 不编造时段。
+  bestSlotsAdvice: SchedulingBestSlotsResult
   weekdayNames: [String!]!
   # 发车表单文案 (以投票时间发车时预填同一个建车表单, 与列表页同口径)
   formCreateTitle: String!
@@ -4719,6 +4730,116 @@ type MyContributionEntry {
   actionLabel: String!
   points: Int!
   createdAtText: String!
+}
+
+# ============ Premium T2 调度建议 (P3/P4/P5/P6/P13) ============
+# 建议而非裁决: 以下类型只承载排序与依据, 不含任何自动执行语义。
+
+union GroupingSchedulingAdviceResult = GroupingSchedulingAdvice | SchedulingAdviceLocked
+union SchedulingBestSlotsResult = SchedulingBestSlots | SchedulingAdviceLocked
+union SchedulingCrossCarAdviceResult = SchedulingCrossCarAdvice | SchedulingAdviceLocked
+
+type SchedulingAdviceLocked {
+  lockedTitle: String!
+  lockedBody: String!
+}
+
+type SchedulingAdviceEntry {
+  discordId: String!
+  displayName: String!
+  role: String!
+  weapon: String!
+  score: Int!
+  # 结构化理由键 (前端可据此加图标/排序); reasons 为后端按 locale
+  # 渲染好的依据文案, 客户端直接展示。
+  reasonKeys: [String!]!
+  reasons: [String!]!
+}
+
+type SchedulingDraftSeat {
+  seatIndex: Int!
+  discordId: String!
+  displayName: String!
+  role: String!
+  weapon: String!
+  score: Int!
+  reasonKeys: [String!]!
+  reasons: [String!]!
+}
+
+type RotationAdviceRecord {
+  id: ID!
+  createdBy: String!
+  createdAtText: String!
+  # 保存时的排序快照 (JSON): 成员、分数与理由键, 供事后查依据。
+  entriesJson: String!
+}
+
+type GroupingSchedulingAdvice {
+  title: String!
+  hint: String!
+  draftTitle: String!
+  draftApplyLabel: String!
+  substitutesTitle: String!
+  rotationTitle: String!
+  rotationSaveLabel: String!
+  rotationSavedText: String!
+  draft: [SchedulingDraftSeat!]!
+  substitutes: [SchedulingAdviceEntry!]!
+  rotation: [SchedulingAdviceEntry!]!
+  rotationRecords: [RotationAdviceRecord!]!
+}
+
+type SchedulingBestSlot {
+  weekday: Int!
+  startMinute: Int!
+  endMinute: Int!
+  coverCount: Int!
+  memberNames: [String!]!
+  coverText: String!
+}
+
+type SchedulingBestSlots {
+  title: String!
+  emptyText: String!
+  useLabel: String!
+  slots: [SchedulingBestSlot!]!
+}
+
+type SchedulingCrossCarConflict {
+  discordId: String!
+  displayName: String!
+  carIds: [ID!]!
+  text: String!
+}
+
+type SchedulingCrossCarMove {
+  carId: ID!
+  carTitle: String!
+  entry: SchedulingAdviceEntry!
+  text: String!
+}
+
+type SchedulingCrossCarAdvice {
+  title: String!
+  conflicts: [SchedulingCrossCarConflict!]!
+  moves: [SchedulingCrossCarMove!]!
+}
+
+input SaveRotationAdviceInput {
+  groupingId: ID!
+}
+
+type SchedulingAdvicePayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  savedText: String
+}
+
+extend type Mutation {
+  # P5 留痕: 车头/管理员把当前轮换排序存为可查记录 (append-only)。
+  saveRotationAdvice(input: SaveRotationAdviceInput!): SchedulingAdvicePayload!
 }
 
 # ============ 页面：平台管理 (超管面) ============
