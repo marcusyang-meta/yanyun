@@ -42,6 +42,7 @@ import {
   PostGuildAnnouncementMutation,
   MarkGuildAnnouncementReadMutation,
   DeleteGuildAnnouncementMutation,
+  GenerateGuildAnnouncementTranslationsMutation,
   UpdateAdminEventMutation,
   DeleteAdminEventMutation,
   RemoveEventSignupAdminMutation,
@@ -78,6 +79,7 @@ import type { documentsPostGuildAnnouncementMutation } from './__generated__/doc
 import type { documentsApplyToGuildMutation } from './__generated__/documentsApplyToGuildMutation.graphql';
 import type { documentsMarkGuildAnnouncementReadMutation } from './__generated__/documentsMarkGuildAnnouncementReadMutation.graphql';
 import type { documentsDeleteGuildAnnouncementMutation } from './__generated__/documentsDeleteGuildAnnouncementMutation.graphql';
+import type { documentsGenerateGuildAnnouncementTranslationsMutation } from './__generated__/documentsGenerateGuildAnnouncementTranslationsMutation.graphql';
 
 // Data layer is Relay (same GraphQL contract and schema as Web).
 // Auth uses Authorization Bearer (injected by relay.ts fetch); the backend
@@ -554,6 +556,22 @@ export async function markGuildAnnouncementReadRemote(slug: string, id: string):
 export async function deleteGuildAnnouncementRemote(slug: string, id: string): Promise<AnnouncementPayload> {
   const r = await commit<documentsDeleteGuildAnnouncementMutation>(DeleteGuildAnnouncementMutation, { slug, id });
   return r.deleteGuildAnnouncement as AnnouncementPayload;
+}
+
+export type GenerateTranslationsPayload = {
+  ok: boolean;
+  error?: string | null;
+  errorCode?: string | null;
+  announcement?: {
+    id: string;
+    translationStatusText?: string | null;
+    translations?: readonly { locale: string; status: string }[] | null;
+  } | null;
+};
+
+export async function generateGuildAnnouncementTranslationsRemote(slug: string, id: string): Promise<GenerateTranslationsPayload> {
+  const r = await commit<documentsGenerateGuildAnnouncementTranslationsMutation>(GenerateGuildAnnouncementTranslationsMutation, { slug, id });
+  return r.generateGuildAnnouncementTranslations as GenerateTranslationsPayload;
 }
 export const adminSetSeasonChecklistItem = (slug: string, itemKey: string, checked: boolean) => adminRun(SetSeasonChecklistItemAdminMutation, { slug, itemKey, checked }, 'setSeasonChecklistItem');
 export const adminDeleteRosterEntry = (slug: string, entryId: string) => adminRun(DeleteGuildRosterEntryAdminMutation, { slug, entryId }, 'deleteGuildRosterEntry');

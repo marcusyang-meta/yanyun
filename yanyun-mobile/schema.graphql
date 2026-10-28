@@ -1514,6 +1514,7 @@ type Mutation {
   postGuildAnnouncement(slug: String!, kind: AnnouncementKind!, title: String!, body: String!): GuildAnnouncementPayload!
   markGuildAnnouncementRead(slug: String!, announcementId: ID!): GuildAnnouncementPayload!
   deleteGuildAnnouncement(slug: String!, announcementId: ID!): GuildAnnouncementPayload!
+  generateGuildAnnouncementTranslations(slug: String!, announcementId: ID!): GuildAnnouncementPayload!
   addGuildMemberNote(slug: String!, memberDiscordId: ID!, body: String!): GuildMemberNotePayload!
   updateGuildMemberNote(slug: String!, noteId: ID!, body: String!): GuildMemberNotePayload!
   deleteGuildMemberNote(slug: String!, noteId: ID!): GuildMemberNotePayload!
@@ -1704,6 +1705,12 @@ type GuildAnnouncement {
   authorText: String
   createdAtText: String!
   viewerHasRead: Boolean
+  displayTitle: String!
+  displayBody: String!
+  isTranslated: Boolean!
+  contentSourceLabel: String!
+  translationStatusText: String
+  translations: [GuildAnnouncementTranslation!]
   readCount: Int
   memberCount: Int
   readCountText: String
@@ -1711,6 +1718,13 @@ type GuildAnnouncement {
   deleteLabel: String!
   deleteConfirmTitle: String!
   deleteConfirmMessage: String!
+}
+
+type GuildAnnouncementTranslation {
+  locale: String!
+  localeLabel: String!
+  status: String!
+  statusLabel: String!
 }
 
 type GuildAnnouncementReceipt {
@@ -1746,6 +1760,12 @@ type GuildAnnouncementPage {
   standardRemaining: Int
   urgentRemaining: Int
   announcements: [GuildAnnouncement!]!
+  canGenerateTranslations: Boolean!
+  generateTranslationsLabel: String
+  generatingTranslationsLabel: String
+  translationsGeneratedText: String
+  translationsPartialText: String
+  translationUnavailableText: String
 }
 
 type GuildAnnouncementPayload {

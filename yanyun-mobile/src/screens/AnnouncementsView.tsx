@@ -5,7 +5,8 @@ import { fonts, theme } from '../theme';
 import { AsyncBoundary, LoadingView } from '../components/AsyncBoundary';
 import { AnnouncementsAdminQuery, AnnouncementsPageQuery } from '../documents';
 import {
-  deleteGuildAnnouncementRemote, markGuildAnnouncementReadRemote, postGuildAnnouncementRemote,
+  deleteGuildAnnouncementRemote, generateGuildAnnouncementTranslationsRemote,
+  markGuildAnnouncementReadRemote, postGuildAnnouncementRemote,
 } from '../api';
 import type { documentsAnnouncementsPageQuery } from '../__generated__/documentsAnnouncementsPageQuery.graphql';
 import type { documentsAnnouncementsAdminQuery } from '../__generated__/documentsAnnouncementsAdminQuery.graphql';
@@ -27,6 +28,17 @@ type Item = {
   kindLabel: string;
   title: string;
   body: string;
+  displayTitle?: string | null;
+  displayBody?: string | null;
+  isTranslated?: boolean | null;
+  contentSourceLabel?: string | null;
+  translationStatusText?: string | null;
+  translations?: readonly {
+    locale: string;
+    localeLabel: string;
+    status: string;
+    statusLabel: string;
+  }[] | null;
   authorText?: string | null;
   createdAtText: string;
   viewerHasRead?: boolean | null;
@@ -51,6 +63,7 @@ function AnnouncementCard({ item, slug, admin, page, onChanged }: {
   const [open, setOpen] = useState(false);
   const [readLocal, setReadLocal] = useState<boolean | null>(null);
   const [armed, setArmed] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const hasRead = readLocal ?? item.viewerHasRead;
 
   const toggle = () => {
@@ -73,7 +86,10 @@ function AnnouncementCard({ item, slug, admin, page, onChanged }: {
         {item.urgent && !!item.urgentLabel && (
           <View style={s.urgentBadge}><Text style={s.urgentBadgeText}>{item.urgentLabel}</Text></View>
         )}
-        <Text style={s.cardTitle}>{item.title}</Text>
+        <Text style={s.cardTitle}>{item.displayTitle ?? item.title}</Text>
+        {item.isTranslated && !!item.contentSourceLabel && (
+          <View style={s.translatedBadge}><Text style={s.translatedBadgeText}>{item.contentSourceLabel}</Text></View>
+        )}
         {hasRead === false && <View style={s.unreadDot} />}
         <Text style={s.cardTime}>{item.createdAtText}</Text>
       </Pressable>
@@ -83,7 +99,37 @@ function AnnouncementCard({ item, slug, admin, page, onChanged }: {
             <Text style={s.meta}>{item.kindLabel}</Text>
             {!!item.authorText && <Text style={s.meta}>{item.authorText}</Text>}
           </View>
-          {!!item.body && <Text style={s.body}>{item.body}</Text>}
+          {!!(item.displayBody ?? item.body) && <Text style={s.body}>{item.displayBody ?? item.body}</Text>}
+          {admin && !!item.translationStatusText && (
+            <View style={s.receipts}>
+              <Text style={s.receiptsTitle}>{item.translationStatusText}</Text>
+              {!!item.translations?.length && (
+                <Text style={s.receiptNames}>
+                  {item.translations.map((t) => `${t.localeLabel} · ${t.statusLabel}`).join('　')}
+                </Text>
+              )}
+              {!!page.translationUnavailableText && (
+                <Text style={[s.receiptNames, s.receiptUnread]}>{page.translationUnavailableText}</Text>
+              )}
+              {!!page.generateTranslationsLabel && (
+                <Pressable
+                  style={[s.deleteBtn, (!page.canGenerateTranslations || generating) && s.generateBtnDisabled]}
+                  disabled={!page.canGenerateTranslations || generating}
+                  onPress={() => {
+                    setGenerating(true);
+                    void generateGuildAnnouncementTranslationsRemote(slug, item.id)
+                      .then((p) => { if (p?.ok) onChanged(); })
+                      .catch(() => {})
+                      .finally(() => setGenerating(false));
+                  }}
+                >
+                  <Text style={s.generateBtnText}>
+                    {generating ? page.generatingTranslationsLabel : page.generateTranslationsLabel}
+                  </Text>
+                </Pressable>
+              )}
+            </View>
+          )}
           {admin && receipts && (
             <View style={s.receipts}>
               <Text style={s.receiptsTitle}>
@@ -283,6 +329,10 @@ const s = StyleSheet.create({
   cardHead: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   urgentBadge: { backgroundColor: theme.danger, borderRadius: 999, paddingHorizontal: 9, paddingVertical: 2 },
   urgentBadgeText: { color: '#fff', fontSize: 11, letterSpacing: 1 },
+  translatedBadge: { borderColor: theme.gold, borderWidth: 1, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 1 },
+  translatedBadgeText: { color: theme.gold, fontSize: 11, letterSpacing: 1 },
+  generateBtnDisabled: { opacity: 0.45 },
+  generateBtnText: { fontSize: 12, color: theme.gold },
   cardTitle: { fontSize: 15, color: theme.paper, fontWeight: '600', flexShrink: 1 },
   unreadDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: theme.gold },
   cardTime: { marginLeft: 'auto', fontSize: 12, color: theme.muted },
