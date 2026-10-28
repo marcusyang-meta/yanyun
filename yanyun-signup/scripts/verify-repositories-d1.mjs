@@ -1595,6 +1595,71 @@ if (want('network')) {
   eq('double dissolve is a no-op', (await net.endAlliance(db, al1, 'beta', 1760002000)).changes, 0);
   const al2 = await net.insertAlliance(db, { fromTenant: 'alpha', toTenant: 'beta', requestedBy: 'UA', requestedByName: '甲管', at: 1760002100 });
   check('an ended pair can be re-invited as a new row', al2 > al1, `${al1} -> ${al2}`);
+/* ---------------- governance (officer grants + board + audit, 0029) ---------------- */
+if (want('governance')) {
+  console.log('== governance repositories on real D1 ==');
+  const gov = await import('../src/domains/guilds/governance.ts');
+  const aud = await import('../src/domains/guilds/guild-audit.ts');
+
+  eq('ungranted member has no grant row', await gov.getOfficerGrant(db, 'alpha', 'U1'), null);
+  await gov.upsertOfficerGrant(db, {
+    tenant: 'alpha', discordId: 'U1', capabilities: ['events', 'recruit'],
+    grantedBy: 'A1', grantedByName: '管理员', at: 1760000000,
+  });
+  eq('grant roundtrip', (await gov.getOfficerGrant(db, 'alpha', 'U1'))?.capabilities, 'events,recruit');
+  eq('grant read is tenant-scoped', await gov.getOfficerGrant(db, 'beta', 'U1'), null);
+  await gov.upsertOfficerGrant(db, {
+    tenant: 'alpha', discordId: 'U1', capabilities: ['stats'],
+    grantedBy: 'A1', grantedByName: '管理员', at: 1760001000,
+  });
+  eq('grant upsert replaces the set', (await gov.getOfficerGrant(db, 'alpha', 'U1'))?.capabilities, 'stats');
+  eq('grant upsert keeps created_at', (await gov.getOfficerGrant(db, 'alpha', 'U1'))?.created_at, 1760000000);
+  eq('grants list per tenant', (await gov.listOfficerGrants(db, 'alpha')).length, 1);
+  eq('parseCapabilities drops unknown keys', gov.parseCapabilities('events,bogus, stats ', ['events', 'stats']), ['events', 'stats']);
+  await gov.upsertOfficerGrant(db, {
+    tenant: 'alpha', discordId: 'U1', capabilities: [],
+    grantedBy: 'A1', grantedByName: '管理员', at: 1760002000,
+  });
+  eq('granting an empty set deletes the row', await gov.getOfficerGrant(db, 'alpha', 'U1'), null);
+  await gov.upsertOfficerGrant(db, {
+    tenant: 'alpha', discordId: 'U2', capabilities: ['officer'],
+    grantedBy: 'A1', grantedByName: '管理员', at: 1760000000,
+  });
+  eq('deleteOfficerGrant is tenant-scoped', await gov.deleteOfficerGrant(db, 'beta', 'U2'), false);
+  eq('deleteOfficerGrant removes the row', await gov.deleteOfficerGrant(db, 'alpha', 'U2'), true);
+
+  const pid = await gov.insertOfficerPost(db, {
+    tenant: 'alpha', body: '本周值班：甲',
+    authorDiscordId: 'A1', authorName: '管理员', createdAt: 1760000000,
+  });
+  check('insertOfficerPost returns a row id', pid > 0, String(pid));
+  eq('board post roundtrip', (await gov.getOfficerPost(db, 'alpha', pid))?.body, '本周值班：甲');
+  eq('board post read is tenant-scoped', await gov.getOfficerPost(db, 'beta', pid), null);
+  eq('board list per tenant', (await gov.listOfficerPosts(db, 'alpha')).length, 1);
+  eq('deleteOfficerPost is tenant-scoped', await gov.deleteOfficerPost(db, 'beta', pid), false);
+  eq('deleteOfficerPost removes the row', await gov.deleteOfficerPost(db, 'alpha', pid), true);
+
+  await aud.recordGuildAudit(db, {
+    tenant: 'alpha', actor: { discordId: 'A1', name: '管理员' },
+    action: 'event.create', targetType: 'event', targetId: 42, targetLabel: '周六双十人',
+    at: 1760000000,
+  });
+  await aud.recordGuildAudit(db, {
+    tenant: 'alpha', actor: { discordId: 'U1', name: '军官' },
+    action: 'note.add', targetType: 'member', targetId: 'U9', targetLabel: '成员九',
+    at: 1760001000,
+  });
+  await aud.recordGuildAudit(db, {
+    tenant: 'alpha', actor: { discordId: 'A1', name: '管理员' },
+    action: 'bogus.action', targetType: 'event', targetId: 1, targetLabel: 'x',
+    at: 1760002000,
+  });
+  const events = await aud.listGuildAuditEvents(db, 'alpha');
+  eq('audit list is newest first and drops unknown actions', events.map((e) => e.action), ['note.add', 'event.create']);
+  eq('audit rows are tenant-scoped', (await aud.listGuildAuditEvents(db, 'beta')).length, 0);
+  eq('audit count per tenant', await aud.countGuildAuditEvents(db, 'alpha'), 2);
+  eq('audit paging offset', (await aud.listGuildAuditEvents(db, 'alpha', 1, 1)).map((e) => e.action), ['event.create']);
+  eq('audit actor snapshot persisted', events[1]?.actor_name, '管理员');
 }
 
 await mf.dispose();
