@@ -894,6 +894,7 @@ type SettingsPage {
   accountCancelDeletionLabel: String!
   accountDeletionRequestedText: String!
   accountDeletionCancelledText: String!
+  seasonGoals: MySeasonGoalPage!
   freshAuthAt: Int
   accountPendingDeletion: AccountPendingDeletion
 }
@@ -1495,6 +1496,12 @@ type Mutation {
   postGuildAnnouncement(slug: String!, kind: AnnouncementKind!, title: String!, body: String!): GuildAnnouncementPayload!
   markGuildAnnouncementRead(slug: String!, announcementId: ID!): GuildAnnouncementPayload!
   deleteGuildAnnouncement(slug: String!, announcementId: ID!): GuildAnnouncementPayload!
+  addGuildMemberNote(slug: String!, memberDiscordId: ID!, body: String!): GuildMemberNotePayload!
+  updateGuildMemberNote(slug: String!, noteId: ID!, body: String!): GuildMemberNotePayload!
+  deleteGuildMemberNote(slug: String!, noteId: ID!): GuildMemberNotePayload!
+  exportGuildDataPackage(slug: String!): GuildExportPayload!
+  upsertMySeasonGoal(input: SeasonGoalInput!): SeasonGoalPayload!
+  deleteMySeasonGoal(goalId: ID!): SeasonGoalPayload!
   createGuild(input: CreateGuildInput!): CreateGuildPayload!
   updateGuildProfile(slug: String!, input: UpdateGuildProfileInput!): GuildAdminPayload!
   updateGuildDiscord(slug: String!, input: UpdateGuildDiscordInput!): GuildAdminPayload!
@@ -1729,6 +1736,130 @@ type GuildAnnouncementPayload {
   announcement: GuildAnnouncement
 }
 
+enum SeasonGoalStatus {
+  ACTIVE
+  DONE
+  DROPPED
+}
+
+type GuildMemberNote {
+  id: ID!
+  body: String!
+  authorName: String!
+  authorText: String
+  createdAtText: String!
+  updatedAtText: String!
+}
+
+type MemberSeasonGoal {
+  id: ID!
+  guildSlug: String!
+  guildName: String!
+  title: String!
+  note: String!
+  status: SeasonGoalStatus!
+  statusLabel: String!
+  dungeonId: Int
+  dungeonName: String
+  seasonName: String
+  createdAtText: String!
+  updatedAtText: String!
+}
+
+type GuildOfficerMember {
+  discordId: ID!
+  displayName: String!
+  notes: [GuildMemberNote!]!
+  goals: [MemberSeasonGoal!]!
+}
+
+type GuildOfficerPage {
+  notesTitle: String!
+  notesHint: String!
+  notesEmptyText: String!
+  memberNoNotesText: String!
+  notePlaceholder: String!
+  noteAddLabel: String!
+  noteEditLabel: String!
+  noteSaveLabel: String!
+  noteDeleteLabel: String!
+  exportTitle: String!
+  exportHint: String!
+  exportLabel: String!
+  goalsTitle: String!
+  goalsHint: String!
+  goalsEmptyText: String!
+  members: [GuildOfficerMember!]!
+  hasGoals: Boolean!
+}
+
+type MySeasonGoalPage {
+  entryLabel: String!
+  title: String!
+  hint: String!
+  emptyText: String!
+  guildLabel: String!
+  goalTitleLabel: String!
+  goalTitlePlaceholder: String!
+  goalNoteLabel: String!
+  goalNotePlaceholder: String!
+  dungeonLabel: String!
+  dungeonNoneLabel: String!
+  statusLabel: String!
+  addLabel: String!
+  saveLabel: String!
+  editLabel: String!
+  deleteLabel: String!
+  statusActiveLabel: String!
+  statusDoneLabel: String!
+  statusDroppedLabel: String!
+  goals: [MemberSeasonGoal!]!
+  guildOptions: [SeasonGoalGuildOption!]!
+  dungeonOptions: [SeasonGoalDungeonOption!]!
+}
+
+type SeasonGoalGuildOption {
+  slug: String!
+  name: String!
+}
+
+type SeasonGoalDungeonOption {
+  id: Int!
+  name: String!
+  seasonName: String
+}
+
+type GuildMemberNotePayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  note: GuildMemberNote
+}
+
+type GuildExportPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  json: String
+  filename: String
+}
+
+type SeasonGoalPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  goal: MemberSeasonGoal
+}
+
+input SeasonGoalInput {
+  id: ID
+  slug: String!
+  title: String!
+  note: String
+  status: SeasonGoalStatus
+  dungeonId: Int
+}
+
 type DiscordUser {
   discordId: String!
   name: String!
@@ -1929,6 +2060,7 @@ type GuildAdmin {
   events: [GuildAdminEvent!]!
   schoolGuides: GuildAdminSchoolGuides!
   announcements: GuildAnnouncementPage!
+  officer: GuildOfficerPage!
   stats: GuildAdminStatsResult!
   premium: GuildAdminPremiumResult
   lotteries: [GuildAdminLottery!]!
@@ -2042,6 +2174,7 @@ type GuildAdmin {
   adminBillingCanceledText: String!
   adminPremiumTitle: String!
   adminTabToolsLabel: String!
+  adminTabOfficerLabel: String!
   adminLotteryTitle: String!
   adminLotteryHint: String!
   adminLotteryEmptyText: String!
