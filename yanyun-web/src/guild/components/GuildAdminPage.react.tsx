@@ -54,8 +54,8 @@ const GuildAdminPage_guildAdmin = graphql`
     devOnly
     premium {
       __typename
-      ... on GuildAdminPremiumActive { premiumPlanLabel premiumSourceText premiumPeriodEndText }
-      ... on GuildAdminPremiumLocked { premiumTitle premiumBody premiumPriceLabel premiumComingSoonText premiumCheckoutLabel }
+      ... on GuildAdminPremiumActive { premiumPlanLabel premiumSourceText premiumPeriodEndText premiumPastDueText }
+      ... on GuildAdminPremiumLocked { premiumTitle premiumBody premiumPriceLabel premiumComingSoonText premiumCheckoutLabel premiumTierPlans { tier name subtitle priceLabel } }
     }
     adminTitle
     adminBackLinkLabel
