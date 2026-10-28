@@ -15,7 +15,7 @@ import {
 } from '../guilds/index.ts';
 import {
   isPaygateEnabled, setPaygateEnabled, getEffectiveEntitlement, grantPremiumManual,
-  grantTierManual, revokePremium,
+  grantTierManual, revokePremium, PREMIUM_PLANS, premiumPlanForTier, persistenceCardRequired,
 } from './billing-service.ts';
 import { stripeConfig } from './stripe.ts';
 import { getEntitlementRow } from './billing.ts';
@@ -417,7 +417,9 @@ hubRoutes.post('/backfill/reminder-identity', async (c: any) => {
 interface BillingTenantState {
   slug: string; guild_name: string; plan: string; source: string;
   tier: number; effectiveTier: number;
-  currentPeriodEnd: number | null; lapsed: boolean;
+  tierName: string; tierNameEn: string; tierSubtitle: string;
+  currentPeriodEnd: number | null; lapsed: boolean; pastDue: boolean;
+  hasCard: boolean; trialUsed: boolean;
   stripeCustomerId: string; stripeSubscriptionId: string;
   subdomainEnabled: boolean;
 }
@@ -429,15 +431,26 @@ async function billingStateFor(c: any) {
   for (const t of tenants) {
     const eff = await getEffectiveEntitlement(db, t.slug);
     const row = await getEntitlementRow(db, t.slug).catch(() => null);
+    // Tier display names come from the backend plan catalog (the
+    // same PREMIUM_PLANS rows the guild-admin pricing panel
+    // composes from) — the hub page renders what it is given and
+    // hardcodes no tier name of its own.
+    const planInfo = premiumPlanForTier(eff.tier);
     out.push({
       slug: t.slug,
       guild_name: t.guild_name,
       plan: eff.plan,
       tier: eff.tier,
       effectiveTier: eff.tier,
+      tierName: planInfo ? planInfo.name : '',
+      tierNameEn: planInfo ? planInfo.nameEn : '',
+      tierSubtitle: planInfo ? planInfo.subtitle : '',
       source: eff.source,
       currentPeriodEnd: eff.currentPeriodEnd,
       lapsed: eff.lapsed,
+      pastDue: eff.pastDue,
+      hasCard: row ? !!row.hasCard : false,
+      trialUsed: row ? !!row.trialUsed : false,
       stripeCustomerId: row ? row.stripeCustomerId : '',
       stripeSubscriptionId: row ? row.stripeSubscriptionId : '',
       subdomainEnabled: (await getSettingValue(db, t.slug, SUBDOMAIN_ENABLED_KEY)) === '1',
@@ -446,6 +459,10 @@ async function billingStateFor(c: any) {
   return {
     paygateEnabled: await isPaygateEnabled(db),
     stripeConfigured: !!stripeConfig(c.env),
+    // The settled pricing catalog (names + monthly prices), served
+    // for the hub's pricing display; the hub is an operator surface
+    // behind the hub password, not a tenant surface.
+    plans: PREMIUM_PLANS,
     tenants: out,
   };
 }
@@ -500,6 +517,23 @@ hubRoutes.put('/billing/subdomain', async (c: any) => {
   const enabled = !!body.enabled;
   const t = await getTenantSlug(c.env.DB, slug);
   if (!t) return err('百业不存在', 404);
+  // Persistence-card verdict (lifecycle): the platform subdomain
+  // is a persistence-class feature — enabling it for a guild ON A
+  // TRIAL with no card on file is refused with the reason stated,
+  // never silently flipped. The scoping is deliberate: this hub
+  // switch is a platform-operated pilot control (resolution is
+  // separately gated by the premium gate at serve time, and the
+  // subdomain suite's contract is that the hub can flip it for
+  // every guild), while the trial-card rule governs the guild's own
+  // trial entitlement. Disabling is always allowed; a trial guild
+  // with a card on file, and paid (stripe) or manual guilds, pass
+  // the verdict untouched.
+  if (enabled) {
+    const eff = await getEffectiveEntitlement(c.env.DB, slug);
+    if (eff.source === 'trial' && eff.tier > 0 && await persistenceCardRequired(c.env.DB, slug)) {
+      return err('该百业处于试用期且未登记支付方式：启用平台子域名前需先登记卡（试用期启用持久化功能需绑卡）', 400);
+    }
+  }
   await setGuildSubdomainEnabled(c.env.DB, slug, enabled);
   await audit(c, 'billing.subdomain', slug, { enabled });
   return json({ ok: true, billing: await billingStateFor(c) });

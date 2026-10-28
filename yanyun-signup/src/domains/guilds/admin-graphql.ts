@@ -63,6 +63,7 @@ import {
 import { listSchoolBis, listSchoolRotations, upsertSchoolBis, upsertSchoolRotation } from '../dex/index.ts';
 import {
   premiumGate, isPaygateEnabled, getEffectiveEntitlement,
+  PREMIUM_PLANS, PAST_DUE_GRACE_DAYS,
   stripeConfig, fetchStripePrice, createCheckoutSession,
 } from '../platform/index.ts';
 import { computeGuildStats } from './stats.ts';
@@ -244,11 +245,55 @@ export class GuildAdminStatsShell extends ShellBase {
  * is the gate — no plan state is ever shipped as a flag for the
  * client to judge. */
 
+/* One tier of the pricing panel: name and subtitle localized from
+ * the guildAdmin string section (its zh source and en translations
+ * carry the settled theme-B names), the monthly price formatted
+ * from the backend plan catalog (PREMIUM_PLANS) through the price
+ * pattern. Composed ONLY on the GuildAdminPremiumLocked variant —
+ * the pricing surface itself — never on a feature's tier-locked
+ * shell, and the whole premium field is null while the paygate
+ * master switch is OFF, so no price is served in production until
+ * the switch opens. */
+export class GuildAdminPremiumTierPlanShell extends ShellBase {
+  __typename = 'GuildAdminPremiumTierPlan';
+  genTier(){ return this.data.tier; }
+  genName(){ return this.t(`guildAdmin_premiumTier${this.data.tier}Name`); }
+  genSubtitle(){ return this.t(`guildAdmin_premiumTier${this.data.tier}Subtitle`); }
+  genPriceLabel(){
+    let amount: string;
+    try {
+      amount = new Intl.NumberFormat(this.locale, { style: 'currency', currency: 'USD' }).format(this.data.priceMonthlyCents / 100);
+    } catch {
+      amount = `$${(this.data.priceMonthlyCents / 100).toFixed(2)}`;
+    }
+    return this.t('guildAdmin_premiumPriceMonth', { amount });
+  }
+}
+
 export class GuildAdminPremiumActiveShell extends ShellBase {
   __typename = 'GuildAdminPremiumActive';
-  genPremiumPlanLabel(){ return this.t('guildAdmin_premiumPlanName'); }
+  /* The plan label names the guild's actual tier (backend-composed
+   * from the same tier-name strings the pricing panel serves);
+   * the legacy 'premium' plan keeps its historical label. */
+  genPremiumPlanLabel(){
+    return this.data.tier >= 1 && this.data.tier <= 3 && this.data.plan !== 'premium'
+      ? this.t(`guildAdmin_premiumTier${this.data.tier}Name`)
+      : this.t('guildAdmin_premiumPlanName');
+  }
   genPremiumSourceText(){
-    return this.t(this.data.source === 'stripe' ? 'guildAdmin_premiumSourceStripe' : 'guildAdmin_premiumSourceManual');
+    return this.t(this.data.source === 'stripe'
+      ? 'guildAdmin_premiumSourceStripe'
+      : this.data.source === 'trial'
+        ? 'guildAdmin_premiumSourceTrial'
+        : 'guildAdmin_premiumSourceManual');
+  }
+  /* Past-due grace notice: composed only while the stored Stripe
+   * entitlement is marked past due (the read-time judgement in the
+   * billing service decides the fact; this shell just renders it). */
+  genPremiumPastDueText(){
+    return this.data.pastDue
+      ? this.t('guildAdmin_premiumPastDueNotice', { days: PAST_DUE_GRACE_DAYS })
+      : null;
   }
   genPremiumPeriodEndText(){
     const end = this.data.currentPeriodEnd;
@@ -287,6 +332,15 @@ export class GuildAdminPremiumLockedShell extends ShellBase {
   }
   async genPremiumComingSoonText(){
     return stripeConfig(this.ctx.env) ? null : this.t('guildAdmin_premiumComingSoon');
+  }
+  /* The settled three-tier pricing, composed from the backend plan
+   * catalog. This Locked variant exists only when the paygate
+   * master switch is ON (see GuildAdminShell.genPremium), which is
+   * what keeps prices out of production while the switch is OFF. */
+  genPremiumTierPlans(){
+    return PREMIUM_PLANS.map((p) => new GuildAdminPremiumTierPlanShell(this.ctx, {
+      tier: p.tier, priceMonthlyCents: p.priceMonthlyCents,
+    }));
   }
 }
 
@@ -595,14 +649,21 @@ export class GuildAdminShell extends ShellBase {
   }
   /* Premium surface: null while the paygate master switch is OFF
    * (the admin surface then composes exactly as it did before
-   * billing existed); with the switch ON, the entitlement verdict
-   * picks the Active / Locked variant. */
+   * billing existed — no plan name and no price is served at all);
+   * with the switch ON, the entitlement verdict picks the Active /
+   * Locked variant. Active covers every live entitlement: the
+   * legacy premium plan, a tiered plan, a trial, and a past-due
+   * Stripe plan inside its grace window (its tier still reads
+   * above 0 and pastDue rides along for the notice). */
   genPremium(){
     return this.memo('premium', async () => {
       if (!(await isPaygateEnabled(this.db))) return null;
       const eff = await getEffectiveEntitlement(this.db, this.genSlug());
-      if (eff.plan === 'premium') {
-        return new GuildAdminPremiumActiveShell(this.ctx, { source: eff.source, currentPeriodEnd: eff.currentPeriodEnd });
+      if (eff.tier > 0) {
+        return new GuildAdminPremiumActiveShell(this.ctx, {
+          source: eff.source, currentPeriodEnd: eff.currentPeriodEnd,
+          plan: eff.plan, tier: eff.tier, pastDue: eff.pastDue,
+        });
       }
       return new GuildAdminPremiumLockedShell(this.ctx, {});
     });
@@ -808,6 +869,7 @@ export const guildAdminTypes = {
     premiumPlanLabel: (p: GuildAdminPremiumActiveShell) => p.genPremiumPlanLabel(),
     premiumSourceText: (p: GuildAdminPremiumActiveShell) => p.genPremiumSourceText(),
     premiumPeriodEndText: (p: GuildAdminPremiumActiveShell) => p.genPremiumPeriodEndText(),
+    premiumPastDueText: (p: GuildAdminPremiumActiveShell) => p.genPremiumPastDueText(),
   },
   GuildAdminPremiumLocked: {
     premiumTitle: (p: GuildAdminPremiumLockedShell) => p.genPremiumTitle(),
@@ -815,6 +877,13 @@ export const guildAdminTypes = {
     premiumPriceLabel: (p: GuildAdminPremiumLockedShell) => p.genPremiumPriceLabel(),
     premiumComingSoonText: (p: GuildAdminPremiumLockedShell) => p.genPremiumComingSoonText(),
     premiumCheckoutLabel: (p: GuildAdminPremiumLockedShell) => p.genPremiumCheckoutLabel(),
+    premiumTierPlans: (p: GuildAdminPremiumLockedShell) => p.genPremiumTierPlans(),
+  },
+  GuildAdminPremiumTierPlan: {
+    tier: (p: GuildAdminPremiumTierPlanShell) => p.genTier(),
+    name: (p: GuildAdminPremiumTierPlanShell) => p.genName(),
+    subtitle: (p: GuildAdminPremiumTierPlanShell) => p.genSubtitle(),
+    priceLabel: (p: GuildAdminPremiumTierPlanShell) => p.genPriceLabel(),
   },
   GuildAdminStatsWeek: {
     weekStartUtc: (p: GuildAdminStatsWeekShell) => p.genWeekStartUtc(),

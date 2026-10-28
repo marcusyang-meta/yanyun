@@ -186,6 +186,14 @@ export abstract class GuildAdminFbtUtils {
   static premiumSourceManual(fbs: FbsAPI) { return fbs("由平台授予", "Source label for the premium status panel, used when premium was granted by the platform."); }
   static premiumPeriodEnd(fbs: FbsAPI, p?: StringParams) { return fbs(["当前周期至 ", fbs.param("date", pv(p, "date"))], "Period text for the premium status panel, used to show the current billing period end, where {date} is the period end date."); }
   static premiumPriceMonth(fbs: FbsAPI, p?: StringParams) { return fbs([fbs.param("amount", pv(p, "amount")), " / 月"], "Price pattern for premium plans, used for the monthly price, where {amount} is the formatted price."); }
+  static premiumTier1Name(fbs: FbsAPI) { return fbs("同道", "Plan name for the first premium tier, used on the pricing panel and the premium status panel to name the tier."); }
+  static premiumTier2Name(fbs: FbsAPI) { return fbs("执事", "Plan name for the second premium tier, used on the pricing panel and the premium status panel to name the tier."); }
+  static premiumTier3Name(fbs: FbsAPI) { return fbs("盟主", "Plan name for the third premium tier, used on the pricing panel and the premium status panel to name the tier."); }
+  static premiumTier1Subtitle(fbs: FbsAPI) { return fbs("数据", "Subtitle text for the first premium tier, used on the pricing panel next to the tier name to summarize the tier's focus."); }
+  static premiumTier2Subtitle(fbs: FbsAPI) { return fbs("智能", "Subtitle text for the second premium tier, used on the pricing panel next to the tier name to summarize the tier's focus."); }
+  static premiumTier3Subtitle(fbs: FbsAPI) { return fbs("旗舰", "Subtitle text for the third premium tier, used on the pricing panel next to the tier name to summarize the tier's focus."); }
+  static premiumSourceTrial(fbs: FbsAPI) { return fbs("试用授予", "Source label for the premium status panel, used when the guild's entitlement comes from the new-guild trial grant."); }
+  static premiumPastDueNotice(fbs: FbsAPI, p?: StringParams) { return fbs(["订阅已欠费：宽限期 ", fbs.param("days", pv(p, "days")), " 天内仍按原档位使用，请尽快完成续费。"], "Notice text for the premium status panel, used when a Stripe subscription is past due but still inside its grace window, where {days} is the grace length in days."); }
   static premiumPriceYear(fbs: FbsAPI, p?: StringParams) { return fbs([fbs.param("amount", pv(p, "amount")), " / 年"], "Price pattern for premium plans, used for the yearly price, where {amount} is the formatted price."); }
   static billingSuccess(fbs: FbsAPI) { return fbs("开通成功，Premium 已生效。", "Confirmation text for the billing return page, used after a successful premium checkout."); }
   static billingCanceled(fbs: FbsAPI) { return fbs("已取消开通，未产生扣费。", "Notice text for the billing return page, used after a cancelled premium checkout with no charge made."); }

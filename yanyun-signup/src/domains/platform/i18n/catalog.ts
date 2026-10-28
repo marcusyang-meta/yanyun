@@ -5608,6 +5608,38 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
     "premiumPriceMonth": {
       "zh-CN": "{amount} / 月"
     },
+    "premiumTier1Name": {
+      "zh-CN": "同道",
+      "en": "Kindred"
+    },
+    "premiumTier2Name": {
+      "zh-CN": "执事",
+      "en": "Steward"
+    },
+    "premiumTier3Name": {
+      "zh-CN": "盟主",
+      "en": "Guildmaster"
+    },
+    "premiumTier1Subtitle": {
+      "zh-CN": "数据",
+      "en": "Data"
+    },
+    "premiumTier2Subtitle": {
+      "zh-CN": "智能",
+      "en": "Smart"
+    },
+    "premiumTier3Subtitle": {
+      "zh-CN": "旗舰",
+      "en": "Flagship"
+    },
+    "premiumSourceTrial": {
+      "zh-CN": "试用授予",
+      "en": "Trial grant"
+    },
+    "premiumPastDueNotice": {
+      "zh-CN": "订阅已欠费：宽限期 {days} 天内仍按原档位使用，请尽快完成续费。",
+      "en": "Your subscription payment is overdue: your current tier stays in effect for a {days}-day grace window — please complete the payment soon."
+    },
     "premiumPriceYear": {
       "zh-CN": "{amount} / 年"
     },
