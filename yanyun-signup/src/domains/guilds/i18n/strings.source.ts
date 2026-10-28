@@ -4,7 +4,13 @@
  * one method = one fbs call. A string's identity is the declaration
  * itself (domain + export name <section>_<method>); the desc
  * is a natural-language note FOR TRANSLATORS -- what the string is,
- * where it appears, what its parameters mean -- never a key. Source
+ * where it appears, what its parameters mean -- never a key.
+ * Descriptions follow the role-first paradigm: '<Role> for
+ * <surface>, used for <purpose>' — the copy's role first (Title
+ * text, Button label, Hint text, Error message, ...), then the
+ * feature surface it belongs to, then what it is used for,
+ * written from the real call site; parameters are explained in
+ * the used-for part. Source
  * locale zh-CN; translations live in platform/i18n/translations/*.json
  * and hang off the id codegen stamps into each of their entries.
  * scripts/i18n-codegen.mjs collects the per-domain declaration files
