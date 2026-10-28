@@ -8,6 +8,7 @@ import { useIsMobile } from '../lib/useIsMobile';
 import type { ViewerUser } from '../lib/user';
 import GearLibrary from '../guild/components/GearLibrary.react.tsx';
 import AvailabilityEditor from '../guild/components/AvailabilityEditor.react.tsx';
+import PlatformAdminPage from './PlatformAdminPage.react.tsx';
 import { ToastHost } from '../guild/components/Toast.react.tsx';
 
 // Profile surface (renamed/reworked from the old "Settings"): ONE dialog
@@ -30,7 +31,13 @@ import { ToastHost } from '../guild/components/Toast.react.tsx';
 //     deep-linked from the guild schedule tab / the newcomer
 //     checklist via UserBar's initialPage): one AvailabilityEditor
 //     per guild the viewer belongs to — availability is personal
-//     data and its only editor lives here (marcus, 2026-10-27).
+//     data and its only editor lives here (marcus, 2026-10-27);
+//   - internal page (platform admin, hub overhaul): pushed by an
+//     entry row that is rendered only when the gating layer composes
+//     the PlatformAdmin response type for the viewer; its title is
+//     the literal '[intern only] internal settings' (marcus,
+//     2026-10-28 — not fbt, never translated). The panel widens for
+//     this page like the gear page.
 // Closing the dialog (scrim click / ✕ / the root page's mobile chevron)
 // ends the session from any page; the page stack lives in this
 // component's state, so the next open starts at the root page again.
@@ -47,6 +54,9 @@ const SettingsDialogQueryNode = graphql`
   query SettingsDialogQuery {
     viewer {
       commonUnknownErrorText
+      platformAdmin {
+        __typename
+      }
     }
     settingsPage {
       settingsTitle
@@ -224,7 +234,7 @@ export type AccountFlow = 'export' | 'delete';
 
 // The pages of this dialog host (see the file header): the root settings
 // page plus the pages pushed over it inside the same dialog.
-export type DialogPage = 'main' | 'feedback' | 'gear' | 'goals' | 'availability';
+export type DialogPage = 'main' | 'feedback' | 'gear' | 'goals' | 'availability' | 'internal';
 
 export default function SettingsDialog({ open, onClose, user, initialFlow, initialPage }: {
   open: boolean;
@@ -684,6 +694,27 @@ function SettingsDialogInner({ onClose, user, initialFlow, initialPage }: {
           <span>{page.feedbackEntryLabel}</span>
           <span style={{ color: theme.gold, fontSize: 19, lineHeight: 1 }}>›</span>
         </button>
+        {/* Platform admin entry (hub overhaul): rendered ONLY when the
+            gating layer composed the admin type for this viewer — the
+            response type is the gate, not a flag. The label is the
+            literal English string marcus ruled for this page
+            (2026-10-28): it is deliberately NOT an fbt string and is
+            never translated. Non-admins never receive this row. */}
+        {data.viewer?.platformAdmin?.__typename === 'PlatformAdmin' && (
+          <button
+            data-internal-entry
+            onClick={() => pushPage('internal')}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              width: '100%', textAlign: 'left', padding: '11px 16px', borderRadius: 10, cursor: 'pointer',
+              background: 'rgba(255,255,255,.02)', border: '1px solid rgba(201,163,92,.25)',
+              color: theme.paper, fontSize: 14.5, marginTop: 8,
+            }}
+          >
+            <span>{'[intern only] internal settings'}</span>
+            <span style={{ color: theme.gold, fontSize: 19, lineHeight: 1 }}>›</span>
+          </button>
+        )}
       </div>
 
       {/* My Data: account export + deletion (self-service). The pending
@@ -1072,16 +1103,38 @@ function SettingsDialogInner({ onClose, user, initialFlow, initialPage }: {
     </>
   );
 
+  // Internal (platform admin) page: pushed only from the gated entry
+  // row above; the page body loads its own admin query, whose response
+  // type guards the data (Locked composes zero admin data). The title
+  // is the same literal string as the entry row (marcus, 2026-10-28;
+  // not fbt, never translated).
+  const internalBody = (
+    <>
+      {!isMobile && (
+        <div
+          data-internal-back
+          onClick={popPage}
+          style={{ color: theme.gold, fontSize: 24, lineHeight: 1, cursor: 'pointer', padding: '0 8px 10px 0', width: 32 }}
+        >‹</div>
+      )}
+      <Suspense fallback={<div className="yy-skeleton" style={{ height: 300 }} />}>
+        <PlatformAdminPage />
+      </Suspense>
+    </>
+  );
+
   const body = view === 'feedback' ? feedbackBody
     : view === 'gear' ? gearBody
     : view === 'goals' ? goalsBody
     : view === 'availability' ? availabilityBody
+    : view === 'internal' ? internalBody
     : mainBody;
   const headerTitle = view === 'feedback'
     ? page.feedbackTitle
     : view === 'gear' ? data.gradPage?.gearMyLibTitle
     : view === 'goals' ? goalsPage.title
     : view === 'availability' ? page.availabilityTitle
+    : view === 'internal' ? '[intern only] internal settings'
     : page.settingsTitle;
   // The mobile header chevron pops one page; on the root page it closes
   // the dialog. (Desktop closes via the ✕ / scrim from any page.)
@@ -1106,7 +1159,7 @@ function SettingsDialogInner({ onClose, user, initialFlow, initialPage }: {
   return createPortal(
     <div className="yy-modal-overlay" onClick={onClose}>
       <div
-        className={view === 'gear' ? 'yy-modal-panel is-wide' : 'yy-modal-panel'}
+        className={view === 'gear' || view === 'internal' ? 'yy-modal-panel is-wide' : 'yy-modal-panel'}
         onClick={(e) => e.stopPropagation()}
         ref={hostRef}
         onScroll={noteScroll}

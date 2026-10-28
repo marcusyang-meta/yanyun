@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<34034d088ff5c3039545da2f92fe7f7d>>
+ * @generated SignedSource<<bc7ccadf833139670ee63e3b3e3d80ae>>
  * @lightSyntaxTransform
  */
 
@@ -130,6 +130,9 @@ export type SettingsDialogQuery$data = {
   };
   readonly viewer: {
     readonly commonUnknownErrorText: string;
+    readonly platformAdmin: {
+      readonly __typename: string;
+    };
   };
 };
 export type SettingsDialogQuery = {
@@ -201,6 +204,24 @@ v7 = [
         "args": null,
         "kind": "ScalarField",
         "name": "commonUnknownErrorText",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "concreteType": null,
+        "kind": "LinkedField",
+        "name": "platformAdmin",
+        "plural": false,
+        "selections": [
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "__typename",
+            "storageKey": null
+          }
+        ],
         "storageKey": null
       }
     ],
@@ -933,16 +954,16 @@ return {
     "selections": (v7/*:: as any*/)
   },
   "params": {
-    "cacheID": "d5560fb4aa98f1c9fbe7feb554252a44",
+    "cacheID": "f89a15be1327bda8ead6c4a878162e80",
     "id": null,
     "metadata": {},
     "name": "SettingsDialogQuery",
     "operationKind": "query",
-    "text": "query SettingsDialogQuery {\n  viewer {\n    commonUnknownErrorText\n  }\n  settingsPage {\n    settingsTitle\n    settingsDiscordLabel\n    settingsLanguageLabel\n    settingsLanguageHint\n    settingsAutoLabel\n    settingsLangZhCnLabel\n    settingsLangZhTwLabel\n    settingsLangEnLabel\n    settingsLangEsLabel\n    settingsLangFrLabel\n    settingsSavedText\n    feedbackEntryLabel\n    feedbackTitle\n    feedbackCategoryLabel\n    feedbackCategoryProblemLabel\n    feedbackCategorySuggestionLabel\n    feedbackCategoryOtherLabel\n    feedbackPlaceholder\n    feedbackSubmitLabel\n    feedbackSubmittingLabel\n    feedbackSuccessText\n    localePref\n    effectiveLocale\n    accountSectionTitle\n    accountExportLabel\n    accountExportHint\n    accountDeleteLabel\n    accountDeleteHint\n    accountReauthLabel\n    accountReauthHint\n    accountConfirmTitle\n    accountConfirmIntro\n    accountConsequenceCars\n    accountConsequenceData\n    accountConsequenceGuilds\n    accountConsequenceResidual\n    accountConsequenceReregister\n    accountExportFirstHint\n    accountUsernameLabel\n    accountSubmitLabel\n    accountBackLabel\n    accountCancelDeletionLabel\n    accountDeletionRequestedText\n    accountDeletionCancelledText\n    freshAuthAt\n    seasonGoals {\n      entryLabel\n      title\n      hint\n      emptyText\n      guildLabel\n      goalTitleLabel\n      goalTitlePlaceholder\n      goalNoteLabel\n      goalNotePlaceholder\n      dungeonLabel\n      dungeonNoneLabel\n      statusLabel\n      addLabel\n      saveLabel\n      editLabel\n      deleteLabel\n      statusActiveLabel\n      statusDoneLabel\n      statusDroppedLabel\n      goals {\n        id\n        guildSlug\n        guildName\n        title\n        note\n        status\n        statusLabel\n        dungeonId\n        dungeonName\n        seasonName\n      }\n      guildOptions {\n        slug\n        name\n      }\n      dungeonOptions {\n        id\n        name\n        seasonName\n      }\n    }\n    accountPendingDeletion {\n      executesAt\n      daysLeft\n      accountPendingTitle\n      accountPendingBody\n    }\n    availabilityTitle\n    availabilityHint\n    availabilityWeekdayNames\n    availabilityAddSlotLabel\n    availabilityRemoveLabel\n    availabilitySaveLabel\n    availabilitySavedText\n    availabilitySaveFailedTemplate\n    availabilityEmptyText\n    availabilityNoGuildsText\n    availabilityGuilds {\n      slug\n      guildName\n      slots {\n        weekday\n        startMinute\n        endMinute\n      }\n    }\n  }\n  gradPage {\n    gearMyLibTitle\n  }\n}\n"
+    "text": "query SettingsDialogQuery {\n  viewer {\n    commonUnknownErrorText\n    platformAdmin {\n      __typename\n    }\n  }\n  settingsPage {\n    settingsTitle\n    settingsDiscordLabel\n    settingsLanguageLabel\n    settingsLanguageHint\n    settingsAutoLabel\n    settingsLangZhCnLabel\n    settingsLangZhTwLabel\n    settingsLangEnLabel\n    settingsLangEsLabel\n    settingsLangFrLabel\n    settingsSavedText\n    feedbackEntryLabel\n    feedbackTitle\n    feedbackCategoryLabel\n    feedbackCategoryProblemLabel\n    feedbackCategorySuggestionLabel\n    feedbackCategoryOtherLabel\n    feedbackPlaceholder\n    feedbackSubmitLabel\n    feedbackSubmittingLabel\n    feedbackSuccessText\n    localePref\n    effectiveLocale\n    accountSectionTitle\n    accountExportLabel\n    accountExportHint\n    accountDeleteLabel\n    accountDeleteHint\n    accountReauthLabel\n    accountReauthHint\n    accountConfirmTitle\n    accountConfirmIntro\n    accountConsequenceCars\n    accountConsequenceData\n    accountConsequenceGuilds\n    accountConsequenceResidual\n    accountConsequenceReregister\n    accountExportFirstHint\n    accountUsernameLabel\n    accountSubmitLabel\n    accountBackLabel\n    accountCancelDeletionLabel\n    accountDeletionRequestedText\n    accountDeletionCancelledText\n    freshAuthAt\n    seasonGoals {\n      entryLabel\n      title\n      hint\n      emptyText\n      guildLabel\n      goalTitleLabel\n      goalTitlePlaceholder\n      goalNoteLabel\n      goalNotePlaceholder\n      dungeonLabel\n      dungeonNoneLabel\n      statusLabel\n      addLabel\n      saveLabel\n      editLabel\n      deleteLabel\n      statusActiveLabel\n      statusDoneLabel\n      statusDroppedLabel\n      goals {\n        id\n        guildSlug\n        guildName\n        title\n        note\n        status\n        statusLabel\n        dungeonId\n        dungeonName\n        seasonName\n      }\n      guildOptions {\n        slug\n        name\n      }\n      dungeonOptions {\n        id\n        name\n        seasonName\n      }\n    }\n    accountPendingDeletion {\n      executesAt\n      daysLeft\n      accountPendingTitle\n      accountPendingBody\n    }\n    availabilityTitle\n    availabilityHint\n    availabilityWeekdayNames\n    availabilityAddSlotLabel\n    availabilityRemoveLabel\n    availabilitySaveLabel\n    availabilitySavedText\n    availabilitySaveFailedTemplate\n    availabilityEmptyText\n    availabilityNoGuildsText\n    availabilityGuilds {\n      slug\n      guildName\n      slots {\n        weekday\n        startMinute\n        endMinute\n      }\n    }\n  }\n  gradPage {\n    gearMyLibTitle\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "e90c5a300c5ddcdd616ad522e5cfaa77";
+(node as any).hash = "50f50c8b8dbc88b8dbe210033cdcbcb5";
 
 export default node;
