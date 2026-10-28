@@ -166,6 +166,45 @@ export abstract class GuildAdminFbtUtils {
   static statsSeatCount(fbs: FbsAPI) { return fbs("落座次数", "Column label for the member participation board, used for the seat count column."); }
   static statsCarCount(fbs: FbsAPI) { return fbs("开车数", "Column label for the leader board, used for the squads led count column."); }
   static statsEmpty(fbs: FbsAPI) { return fbs("近 4 周暂无组队数据。", "Empty-state text for the statistics tab, used when the last four weeks have no squad data."); }
+  static tabInsights(fbs: FbsAPI) { return fbs("数据洞察", "Tab label for the guild admin page, used to switch to the premium insights tab."); }
+  static insightsReliabilityTitle(fbs: FbsAPI) { return fbs("可靠性档案", "Title text for the reliability profiles section in the insights tab, used as the section heading."); }
+  static insightsReliabilityHint(fbs: FbsAPI) { return fbs("出席 = 已完成车辆上落座且已就位；鸽 = 已完成车辆上落座但始终未就位。未完成的车辆不计入出席率。", "Hint text for the reliability profiles section, used to state the attendance and no-show definitions the counts follow."); }
+  static insightsSignupsLabel(fbs: FbsAPI) { return fbs("报名", "Column label for the reliability profiles section, used for the signup count column."); }
+  static insightsAttendedLabel(fbs: FbsAPI) { return fbs("出席", "Column label for the reliability profiles section, used for the attended count column."); }
+  static insightsNoShowLabel(fbs: FbsAPI) { return fbs("鸽", "Column label for the reliability profiles section, used for the no-show count column."); }
+  static insightsRateLabel(fbs: FbsAPI) { return fbs("出席率", "Column label for the reliability profiles section, used for the attendance rate column."); }
+  static insightsReliabilityEmpty(fbs: FbsAPI) { return fbs("暂无带身份戳的报名记录。", "Empty-state text for the reliability profiles section, used when no member has a stamped signup record."); }
+  static insightsHeatmapTitle(fbs: FbsAPI) { return fbs("成员参与热力图", "Title text for the participation heatmap section in the insights tab, used as the section heading."); }
+  static insightsHeatmapHint(fbs: FbsAPI) { return fbs("按你所在时区统计已完成车辆的出席人次，格子越亮人越多。", "Hint text for the participation heatmap section, used to explain the buckets follow the viewer's timezone and count attended participations."); }
+  static insightsHeatmapEmpty(fbs: FbsAPI) { return fbs("暂无出席记录。", "Empty-state text for the participation heatmap section, used when no attended participation exists yet."); }
+  static insightsHeatmapTotal(fbs: FbsAPI, p?: StringParams) { return fbs(["共 ", fbs.param("count", pv(p, "count")), " 人次出席"], "Summary text for the participation heatmap section, used to state the total attended participations, where {count} is that total."); }
+  static insightsWeekdayMon(fbs: FbsAPI) { return fbs("周一", "Weekday label for the participation heatmap, used for the Monday row."); }
+  static insightsWeekdayTue(fbs: FbsAPI) { return fbs("周二", "Weekday label for the participation heatmap, used for the Tuesday row."); }
+  static insightsWeekdayWed(fbs: FbsAPI) { return fbs("周三", "Weekday label for the participation heatmap, used for the Wednesday row."); }
+  static insightsWeekdayThu(fbs: FbsAPI) { return fbs("周四", "Weekday label for the participation heatmap, used for the Thursday row."); }
+  static insightsWeekdayFri(fbs: FbsAPI) { return fbs("周五", "Weekday label for the participation heatmap, used for the Friday row."); }
+  static insightsWeekdaySat(fbs: FbsAPI) { return fbs("周六", "Weekday label for the participation heatmap, used for the Saturday row."); }
+  static insightsWeekdaySun(fbs: FbsAPI) { return fbs("周日", "Weekday label for the participation heatmap, used for the Sunday row."); }
+  static insightsGearTitle(fbs: FbsAPI) { return fbs("装备达标盘", "Title text for the gear readiness board section in the insights tab, used as the section heading."); }
+  static insightsGearHint(fbs: FbsAPI) { return fbs("达标线按成员最佳构筑的毕业分判定；缺口名单列出未达标成员与差距。", "Hint text for the gear readiness board section, used to explain the board judges each member's best build graduation score against the line."); }
+  static insightsGearEmpty(fbs: FbsAPI) { return fbs("尚未设置达标线，先在下方添加一条。", "Empty-state text for the gear readiness board section, used when the guild has no readiness line yet."); }
+  static insightsGearLabelLabel(fbs: FbsAPI) { return fbs("场景名称", "Field label for the gear readiness form, used for the scene name input."); }
+  static insightsGearMinScoreLabel(fbs: FbsAPI) { return fbs("达标线（毕业分）", "Field label for the gear readiness form, used for the minimum graduation score input."); }
+  static insightsGearAddLabel(fbs: FbsAPI) { return fbs("添加达标线", "Button label for the gear readiness form, used to add a new readiness line."); }
+  static insightsGearMetLabel(fbs: FbsAPI) { return fbs("达标", "Status label for the gear readiness board, used for a member whose best score meets the line."); }
+  static insightsGearUnmetLabel(fbs: FbsAPI) { return fbs("未达标", "Status label for the gear readiness board, used for a member whose best score is below the line."); }
+  static insightsGearNoBuildLabel(fbs: FbsAPI) { return fbs("无构筑", "Status label for the gear readiness board, used for a member with no saved build snapshot."); }
+  static insightsGearScoreLabel(fbs: FbsAPI) { return fbs("毕业分", "Column label for the gear readiness board, used for the best graduation score column."); }
+  static insightsGearGapLabel(fbs: FbsAPI) { return fbs("缺口", "Column label for the gear readiness board, used for the gap-to-line column."); }
+  static insightsGearSummary(fbs: FbsAPI, p?: StringParams) { return fbs(["达标 ", fbs.param("met", pv(p, "met")), " · 未达标 ", fbs.param("unmet", pv(p, "unmet")), " · 无构筑 ", fbs.param("nobuild", pv(p, "nobuild"))], "Summary text for one gear readiness line, used to state its met, unmet and no-build member counts, where {met}, {unmet} and {nobuild} are those counts."); }
+  static insightsRaceTitle(fbs: FbsAPI) { return fbs("竞速赛季总榜", "Title text for the race season board section, used as the section heading in the insights tab and on the guild home board."); }
+  static insightsRaceEmpty(fbs: FbsAPI) { return fbs("暂无竞速成绩记录。", "Empty-state text for the race season board, used when the guild has no recorded race results."); }
+  static insightsRaceTeamLabel(fbs: FbsAPI) { return fbs("队伍", "Column label for the race season board, used for the team name column."); }
+  static insightsRaceRunsLabel(fbs: FbsAPI) { return fbs("场次", "Column label for the race season board, used for the run count column."); }
+  static insightsRaceWinsLabel(fbs: FbsAPI) { return fbs("夺冠", "Column label for the race season board, used for the win count column."); }
+  static insightsRaceBestLabel(fbs: FbsAPI) { return fbs("最佳成绩", "Column label for the race season board, used for the best time column."); }
+  static insightsRaceUnclassified(fbs: FbsAPI) { return fbs("未分类赛季", "Section label for the race season board, used for results whose dungeon has no season classification."); }
+  static insightsSelfGearTitle(fbs: FbsAPI) { return fbs("我的达标状态", "Title text for the member's own gear readiness status on the guild home page, used as the section heading."); }
   static statsBoardEmpty(fbs: FbsAPI) { return fbs("暂无记录。", "Empty-state text for statistics boards, used when a board has no records."); }
   static whiteLabelTitle(fbs: FbsAPI) { return fbs("品牌与分享卡", "Section heading for the guild admin profile tab, used above the branding and share card settings."); }
   static hideBrandingLabel(fbs: FbsAPI) { return fbs("隐藏平台品牌", "Toggle label for the branding settings, used for the option that hides platform branding on the guild's pages."); }

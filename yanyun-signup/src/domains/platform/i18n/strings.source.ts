@@ -175,6 +175,8 @@ export abstract class ErrorsFbtUtils {
   static customDomainDisabled(fbs: FbsAPI) { return fbs("该域名已被平台停用", "Error message for custom domain verification, used when the binding has been switched off by the platform."); }
   static customDomainSeamPending(fbs: FbsAPI) { return fbs("平台域名服务尚在接通中，暂不能验证", "Error message for custom domain verification, used while the platform domain service is not connected yet."); }
   static customDomainDnsPending(fbs: FbsAPI) { return fbs("DNS 记录尚未生效或不完整，请确认两条记录后稍后再试", "Error message for custom domain verification, used when the CNAME or ownership TXT record does not check out yet."); }
+  static gearStandardInvalid(fbs: FbsAPI) { return fbs("达标线参数不合法", "Error message for gear readiness lines, used when a readiness line is saved with an empty scene label or a score outside the allowed range."); }
+  static gearStandardNotFound(fbs: FbsAPI) { return fbs("达标线不存在", "Error message for gear readiness lines, used when an update or delete references a line that does not exist in this guild."); }
   static premiumComingSoon(fbs: FbsAPI) { return fbs("Premium 开通即将开放", "Error message for premium activation, used while premium checkout is not open yet."); }
   static premiumActive(fbs: FbsAPI) { return fbs("本百业已开通 Premium", "Error message for premium activation, used when activating premium for a guild that already has it."); }
   static paygateDisabled(fbs: FbsAPI) { return fbs("收费功能尚未开启", "Error message for paid features, used while the platform paygate is switched off."); }

@@ -64,6 +64,10 @@ import {
 } from './announcements-graphql.ts';
 import { seasonAdminTypes, seasonAdminMutations } from './season-graphql.ts';
 import { guildOfficerMutations, guildOfficerTypes } from './officer-graphql.ts';
+import {
+  guildInsightsTypes, guildInsightsMutations, guildInsightsPayloadResolvers,
+  raceBoardForViewer, gearSelfForMember,
+} from './insights-graphql.ts';
 
 export const CREATE_RESERVED = new Set([
   'admin', 'api', 'auth', 'hub', 'login', 'logout', 'og', 'graphql', 'create',
@@ -129,6 +133,18 @@ export class GuildShell extends ShellBase {
    * receipts live only on the admin variant (GuildAdmin shell). */
   genAnnouncements(){
     return announcementPageForMember(this.ctx, this.genSlug());
+  }
+  /* Premium insights member reads (T1): the race season board is a
+   * showcase surface members may read, and gear self status shows a
+   * member only their OWN P9 standing. Both compose through
+   * insights-graphql, where tierLocked picks the full variant or
+   * GuildInsightsLocked (zero data below tier 1). Declared on Guild
+   * and GuildReadOnly only — GuildLocked has neither field. */
+  genRaceSeasonBoard(){
+    return this.memo('raceSeasonBoard', () => raceBoardForViewer(this.ctx, this.genSlug()));
+  }
+  genGearSelfStatus(){
+    return this.memo('gearSelfStatus', () => gearSelfForMember(this.ctx, this.genSlug()));
   }
   // This guild's member roster (proxy-signup picker): attached only
   // to the full Guild type (GuildReadOnly / GuildLocked have no such
@@ -201,6 +217,15 @@ export const GUILD_HOME_TEXT_SPEC = [
   ['homeTabScheduleLabel', 'guildHome_tabSchedule'],
   ['homeTabMarketLabel', 'guildHome_tabMarket'],
   ['homeTabAlliesLabel', 'guildHome_tabAllies'],
+  ['homeInsightsRaceTitle', 'guildAdmin_insightsRaceTitle'],
+  ['homeInsightsRaceEmptyText', 'guildAdmin_insightsRaceEmpty'],
+  ['homeInsightsRaceTeamLabel', 'guildAdmin_insightsRaceTeamLabel'],
+  ['homeInsightsRaceRunsLabel', 'guildAdmin_insightsRaceRunsLabel'],
+  ['homeInsightsRaceWinsLabel', 'guildAdmin_insightsRaceWinsLabel'],
+  ['homeInsightsRaceBestLabel', 'guildAdmin_insightsRaceBestLabel'],
+  ['homeInsightsSelfGearTitle', 'guildAdmin_insightsSelfGearTitle'],
+  ['homeInsightsGearScoreLabel', 'guildAdmin_insightsGearScoreLabel'],
+  ['homeInsightsGearMinScoreLabel', 'guildAdmin_insightsGearMinScoreLabel'],
   ['detailNotFoundText', 'groupingDetail_notFound'],
   ['detailBackToListLabel', 'groupingDetail_backToList'],
 ];
@@ -235,6 +260,8 @@ export function guildContentResolvers() {
     avatarUrl: (p: any) => p.genAvatarUrl(),
     groupings: (p: any, { tab }: any) => p.genGroupings({ tab }),
     announcements: (p: any) => p.genAnnouncements(),
+    raceSeasonBoard: (p: any) => p.genRaceSeasonBoard(),
+    gearSelfStatus: (p: any) => p.genGearSelfStatus(),
     viewerNick: (p: any) => p.genViewerNick(),
     pageBackLabel: (p: any) => p.genPageBackLabel(),
     pageFooterDisclaimerText: (p: any) => p.genPageFooterDisclaimerText(),
@@ -396,6 +423,7 @@ export const guildsResolvers = {
 
     ...networkMutations,
     ...guildOfficerMutations,
+    ...guildInsightsMutations,
 
     // Write gate (requireWrite): logged in + bound + member; an unbound guild's writes are fully locked.
   },
@@ -448,5 +476,7 @@ export const guildsResolvers = {
   ...guildOfficerTypes,
   ...opsTypes,
   ...networkTypes,
+  ...guildInsightsTypes,
+  ...guildInsightsPayloadResolvers,
   },
 };

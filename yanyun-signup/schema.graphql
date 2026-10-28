@@ -2229,6 +2229,20 @@ type Guild {
   # 百业公告 (沟通线 F9/F10/F18): 成员变体 — 公告列表 + 本人已读态;
   # 发布与已读回执名单只在管理变体 (GuildAdmin.announcements)。
   announcements: GuildAnnouncementPage!
+  # 数据洞察成员读面 (Premium T1): 竞速赛季总榜 (P15, 展示面) 与
+  # 本人装备达标状态 (P9, 只含查看者本人一行结论); 两面由
+  # tierLocked 组合完整变体或 GuildInsightsLocked (零数据)。
+  raceSeasonBoard: RaceSeasonBoardResult!
+  gearSelfStatus: GuildGearSelfResult!
+  homeInsightsRaceTitle: String!
+  homeInsightsRaceEmptyText: String!
+  homeInsightsRaceTeamLabel: String!
+  homeInsightsRaceRunsLabel: String!
+  homeInsightsRaceWinsLabel: String!
+  homeInsightsRaceBestLabel: String!
+  homeInsightsSelfGearTitle: String!
+  homeInsightsGearScoreLabel: String!
+  homeInsightsGearMinScoreLabel: String!
   # 百业主页外壳文案 (shell gen 方法按请求 locale 生成)
   homeBackToHubLabel: String!
   homeTabTeamLabel: String!
@@ -2263,6 +2277,18 @@ type GuildReadOnly {
   groupings(tab: GroupingTab!): GroupingListPage!
   viewerNick: String
   announcements: GuildAnnouncementPage!
+  # 数据洞察成员读面: 与 Guild 同口径 (见上)。
+  raceSeasonBoard: RaceSeasonBoardResult!
+  gearSelfStatus: GuildGearSelfResult!
+  homeInsightsRaceTitle: String!
+  homeInsightsRaceEmptyText: String!
+  homeInsightsRaceTeamLabel: String!
+  homeInsightsRaceRunsLabel: String!
+  homeInsightsRaceWinsLabel: String!
+  homeInsightsRaceBestLabel: String!
+  homeInsightsSelfGearTitle: String!
+  homeInsightsGearScoreLabel: String!
+  homeInsightsGearMinScoreLabel: String!
   # 百业主页外壳文案 (shell gen 方法按请求 locale 生成)
   homeBackToHubLabel: String!
   homeTabTeamLabel: String!
@@ -2459,6 +2485,14 @@ type GuildAdmin {
   # GuildAdminStatsLocked (只有未开通文案, 零统计数据); 总闸关或
   # 已开通时与从前一致。结论只由响应类型表达, 无标志位下发。
   stats: GuildAdminStatsResult!
+  # 数据洞察 (Premium T1 数据层, P2/P9/P10/P15): 每面由 tierLocked
+  # (纯权益判定, 不看收费总闸) 组合完整变体或 GuildInsightsLocked
+  # (只有未开通文案, 零数据, 聚合根本不计算); 只挂 GuildAdmin —
+  # Locked 零洞察字段。口径见各类型注释。
+  reliability: GuildAdminReliabilityResult!
+  participationHeatmap: GuildAdminHeatmapResult!
+  gearBoard: GuildAdminGearBoardResult!
+  raceSeasonBoard: RaceSeasonBoardResult!
   # Premium 权益面: 总闸关时为 null (管理面与从前逐字一致, 该面
   # 不出现); 总闸开时按权益组合 Active / Locked 变体 — Locked 带
   # 价格位与开通入口 (Stripe 未配置时价格位为 null、改由即将开放
@@ -2498,6 +2532,32 @@ type GuildAdmin {
   recruitPairings: [MentorPairing!]!
   recruitRoster: [RecruitMember!]!
   newcomerProgress: [NewcomerProgress!]!
+  # 数据洞察页文案 (guildAdmin 目录)
+  adminTabInsightsLabel: String!
+  adminInsightsReliabilityTitle: String!
+  adminInsightsReliabilityHint: String!
+  adminInsightsSignupsLabel: String!
+  adminInsightsAttendedLabel: String!
+  adminInsightsNoShowLabel: String!
+  adminInsightsRateLabel: String!
+  adminInsightsReliabilityEmptyText: String!
+  adminInsightsHeatmapTitle: String!
+  adminInsightsHeatmapHint: String!
+  adminInsightsHeatmapEmptyText: String!
+  adminInsightsGearTitle: String!
+  adminInsightsGearHint: String!
+  adminInsightsGearEmptyText: String!
+  adminInsightsGearLabelLabel: String!
+  adminInsightsGearMinScoreLabel: String!
+  adminInsightsGearAddLabel: String!
+  adminInsightsGearScoreLabel: String!
+  adminInsightsGearGapLabel: String!
+  adminInsightsRaceTitle: String!
+  adminInsightsRaceEmptyText: String!
+  adminInsightsRaceTeamLabel: String!
+  adminInsightsRaceRunsLabel: String!
+  adminInsightsRaceWinsLabel: String!
+  adminInsightsRaceBestLabel: String!
   # 管理页文案 (guildAdmin 目录, 按请求 locale 生成)
   adminTitle: String!
   adminBackLinkLabel: String!
@@ -3243,6 +3303,140 @@ type GuildAdminStatsLocked {
   premiumBody: String!
 }
 
+# ============ 数据洞察 (Premium T1 数据层: P2/P9/P10/P15) ============
+# 四面共用同一未达档变体: 只有 Premium 未开通文案, 零数据字段。
+# 判定 = tierLocked(百业, 1) 纯权益判定 (不看收费总闸): free /
+# 无权益 / 已过期一律此变体, 且聚合在服务端根本不计算。
+
+type GuildInsightsLocked {
+  premiumTitle: String!
+  premiumBody: String!
+}
+
+# P2 可靠性档案: 按成员聚合全部有时间戳的非草稿车辆 (跨期档案,
+# 不套 P1 的 4 周窗口)。报名 = 带 discord_id 戳的落座行 (代报名记
+# 被代报者); 出席 = 已完成车辆上落座且 ready_at 已就位; 鸽 = 已完
+# 成车辆上落座但始终未就位 (平台无独立到场登记, 就位标记是唯一
+# 在场信号); 未完成车辆只计报名、不结出席。出席率 = 出席 / 已结
+# 车辆落座数 (settledCount), 无已结记录时为 0。
+type GuildAdminReliability {
+  entries: [ReliabilityEntry!]!
+}
+
+type ReliabilityEntry {
+  discordId: String!
+  displayName: String!
+  signupCount: Int!
+  attendedCount: Int!
+  noShowCount: Int!
+  settledCount: Int!
+  attendanceRate: Float!
+}
+
+union GuildAdminReliabilityResult = GuildAdminReliability | GuildInsightsLocked
+
+# P10 成员参与热力图: 出席人次 (P2 出席口径) 按车辆开始时间分桶;
+# 平台不存成员时区 (F4 口径: UTC 存储、观看者时区渲染), 故按请求
+# 观看者时区 (ctx.tz, 与 P1 周标签同口径) 计算。weekday 0=周一。
+type GuildAdminParticipationHeatmap {
+  timezone: String!
+  totalAttended: Int!
+  peakCount: Int!
+  totalText: String!
+  cells: [ParticipationHeatmapCell!]!
+}
+
+type ParticipationHeatmapCell {
+  weekday: Int!
+  weekdayLabel: String!
+  hour: Int!
+  count: Int!
+}
+
+union GuildAdminHeatmapResult = GuildAdminParticipationHeatmap | GuildInsightsLocked
+
+# P9 装备达标盘: 达标线是管理员按场景设的实体 (guild_gear_standards,
+# minScore = 最佳构筑毕业分下限, 百分制整数); 成员分 = 其全部已保存
+# 构筑的服务端快照毕业分 (gear 域 snapshot.total) 的最大值, 无构
+# 筑/无快照时 bestScore 为 null、hasBuild 为 false、缺口为整条线。
+type GuildAdminGearBoard {
+  standards: [GearBoardStandard!]!
+}
+
+type GearBoardStandard {
+  id: ID!
+  label: String!
+  minScore: Int!
+  metCount: Int!
+  unmetCount: Int!
+  noBuildCount: Int!
+  summaryText: String!
+  members: [GearBoardMember!]!
+}
+
+type GearBoardMember {
+  discordId: String!
+  displayName: String!
+  hasBuild: Boolean!
+  bestScore: Float
+  met: Boolean!
+  gap: Float!
+  statusText: String!
+}
+
+union GuildAdminGearBoardResult = GuildAdminGearBoard | GuildInsightsLocked
+
+# P9 成员侧: 只下发查看者本人对每条达标线的结论, 永不含他人分数。
+type GuildGearSelfStatus {
+  entries: [GearSelfEntry!]!
+}
+
+type GearSelfEntry {
+  standardId: ID!
+  label: String!
+  minScore: Int!
+  myScore: Float
+  met: Boolean!
+  statusText: String!
+}
+
+union GuildGearSelfResult = GuildGearSelfStatus | GuildInsightsLocked
+
+# P15 竞速赛季总榜: 单场成绩记录 (results 实体) 保持免费不动; 此
+# 榜只做跨场/赛季聚合。车辆按其副本的 dex 赛季 (dungeons.season)
+# 归季, 副本未知或未分类的进未分类桶 (season 为空串)。条目按队
+# 伍 (results 是队伍记录): 场次 = 该队当季成绩行数, 夺冠 = 其成
+# 绩为该车最快的不同车辆数, 最佳 = 当季最快单场。排序: 夺冠降
+# 序、最佳升序、场次降序。
+type RaceSeasonBoard {
+  seasons: [RaceSeason!]!
+}
+
+type RaceSeason {
+  season: String!
+  seasonName: String!
+  seasonLabel: String!
+  entries: [RaceSeasonEntry!]!
+}
+
+type RaceSeasonEntry {
+  teamName: String!
+  members: String!
+  runCount: Int!
+  winCount: Int!
+  bestTimeMs: Int!
+  bestTimeText: String!
+}
+
+union RaceSeasonBoardResult = RaceSeasonBoard | GuildInsightsLocked
+
+type GearStandardPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  standardId: ID
+}
+
 union GuildAdminPremiumResult = GuildAdminPremiumActive | GuildAdminPremiumLocked
 
 # Active variant: plan name + source (Stripe subscription /
@@ -3559,6 +3753,11 @@ extend type Mutation {
   setGuildMentor(slug: String!, discordId: String!, isMentor: Boolean!): GuildAdminPayload!  # 设/取消导师人选 (不改已有配对)
   createMentorPairing(slug: String!, mentorDiscordId: String!, menteeDiscordId: String!): GuildAdminPayload!  # 导师须已在人选中; 新人同时至多一段进行中配对
   endMentorPairing(slug: String!, pairingId: ID!): GuildAdminPayload!  # 结束留痕, 不删行
+  # 数据洞察 P9 达标线写路径 (Premium T1): resolver 内复验管理结论
+  # + tierLocked(1); 未达档以 premiumRequired 拒绝, 已存达标线在过
+  # 期/降档期间冻结不删。id 为空 = 新建; 他百业的 id 视为不存在。
+  upsertGearStandard(slug: String!, id: ID, label: String!, minScore: Int!): GearStandardPayload!
+  deleteGearStandard(slug: String!, id: ID!): GearStandardPayload!
 }
 
 extend type Mutation {

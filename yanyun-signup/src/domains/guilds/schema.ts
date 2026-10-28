@@ -407,6 +407,23 @@ export const guildCustomDomains = sqliteTable('guild_custom_domains', {
 }, (t) => [
   uniqueIndex('guild_custom_domains_hostname_unique').on(t.hostname),
   index('idx_guild_custom_domains_status').on(t.status),
+/* ---------------- guild gear standards [migration 0026] ----------
+ * One row per readiness threshold a guild admin sets for a scene
+ * (P9 gear readiness board, premium insights line). minScore is the
+ * minimum build graduation score in percent (0..100) read off a
+ * member's best saved gear build snapshot (gear domain). The board
+ * is computed at read time; this entity stores only the admin-set
+ * lines, never member results (freeze-not-delete on lapse). */
+export const guildGearStandards = sqliteTable('guild_gear_standards', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  tenant: text('tenant').notNull(),
+  label: text('label').notNull().default(''),
+  minScore: integer('min_score').notNull().default(0),
+  createdBy: text('created_by').notNull().default(''),
+  createdAt: integer('created_at').notNull().default(0),
+  updatedAt: integer('updated_at').notNull().default(0),
+}, (t) => [
+  index('idx_guild_gear_standards_tenant').on(t.tenant, t.id),
 ]);
 
 /* ---------------- guild avatars [ddl chain baseline] --------------- */

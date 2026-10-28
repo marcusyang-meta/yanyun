@@ -68,8 +68,8 @@
     "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary"
   },
   "src/domains/guilds/graphql.ts": {
-    "max": 56,
-    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context) + white-label chrome composition resolvers (pageBackLabel / pageFooterDisclaimerText) in the same pattern + the announcements content resolver (same (p: any) delegation shape); +4 for the ops engine root reads (targetedNudgePreview / myContribution query resolvers in the same parent/args pattern)"
+    "max": 58,
+    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context) + white-label chrome composition resolvers (pageBackLabel / pageFooterDisclaimerText) in the same pattern + the announcements content resolver (same (p: any) delegation shape); +4 for the ops engine root reads (targetedNudgePreview / myContribution query resolvers in the same parent/args pattern); +2 for the premium insights member reads (raceSeasonBoard / gearSelfStatus content resolvers in the same (p: any) delegation shape)"
   },
   "src/domains/guilds/guild-routes.ts": {
     "max": 34,
@@ -178,5 +178,9 @@
   "src/domains/guilds/network-graphql.ts": {
     "max": 135,
     "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context) — the P19 fill market + P20 allies surface (page / section / row shells, payload shells and the twelve network mutations) in the same pattern as recruit-graphql.ts"
+  },
+  "src/domains/guilds/insights-graphql.ts": {
+    "max": 13,
+    "reason": "resolver parent values: shell instances and computed insight objects in the same (p: any) delegation pattern as admin-graphql; the context parameter is fully typed (Context)"
   }
 }
