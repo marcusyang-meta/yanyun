@@ -111,7 +111,7 @@ function NewcomerCard({ section, entry }: { section: HomeRecruitData; entry: Hom
           {entry.checklist.items.map((item) => (
             <View key={item.key} style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
               <View style={[s.checkDot, item.done ? s.checkDotDone : null]}>
-                {!!item.done && <Text style={{ color: theme.accentHi, fontSize: 12 }}>✓</Text>}
+                {!!item.done && <Text style={{ color: theme.goldHi, fontSize: 12 }}>✓</Text>}
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={s.memberName}>{item.label}</Text>
@@ -184,46 +184,46 @@ export default function HomeRecruitSection({ section }: { section: HomeRecruitDa
 
 const s = StyleSheet.create({
   sectionHead: { flexDirection: 'row', alignItems: 'baseline', marginBottom: 12 },
-  sectionZh: { fontFamily: fonts.display, fontWeight: '700', color: theme.paper, fontSize: 22, letterSpacing: 1 },
-  sectionTitle: { fontFamily: fonts.display, color: theme.accent, fontSize: 15, letterSpacing: 2, marginBottom: 10 },
-  subTitle: { fontFamily: fonts.body, color: theme.accent, fontSize: 13, letterSpacing: 1, marginBottom: 8 },
-  subTitleNoMargin: { fontFamily: fonts.body, color: theme.accent, fontSize: 13, letterSpacing: 1 },
+  sectionZh: { fontFamily: fonts.brush, color: theme.goldHi, fontSize: 22, letterSpacing: 2 },
+  sectionTitle: { fontFamily: fonts.brush, color: theme.gold, fontSize: 15, letterSpacing: 2, marginBottom: 10 },
+  subTitle: { fontFamily: fonts.serif, color: theme.gold, fontSize: 13, letterSpacing: 1, marginBottom: 8 },
+  subTitleNoMargin: { fontFamily: fonts.serif, color: theme.gold, fontSize: 13, letterSpacing: 1 },
   card: {
     marginTop: 14, padding: 16, borderRadius: 14, borderWidth: 1, overflow: 'hidden',
-    borderColor: 'rgba(67,160,134,.22)', backgroundColor: 'rgba(236,226,203,.03)',
+    borderColor: 'rgba(201,163,92,.22)', backgroundColor: 'rgba(236,226,203,.03)',
   },
   avatar: {
     width: 48, height: 48, borderRadius: 24,
-    borderWidth: 1, borderColor: 'rgba(67,160,134,.45)', backgroundColor: 'rgba(67,160,134,.08)',
+    borderWidth: 1, borderColor: 'rgba(201,163,92,.45)', backgroundColor: 'rgba(201,163,92,.08)',
   },
-  gname: { fontFamily: fonts.body, color: theme.accentHi, fontSize: 17, fontWeight: '600' },
-  slogan: { fontFamily: fonts.body, color: theme.muted, fontSize: 13, marginTop: 3 },
-  body: { fontFamily: fonts.body, color: theme.muted, fontSize: 13, lineHeight: 20 },
-  muted: { fontFamily: fonts.body, color: theme.muted, fontSize: 12.5 },
-  memberName: { fontFamily: fonts.body, color: theme.paper, fontSize: 14 },
-  label: { fontFamily: fonts.body, color: theme.muted, fontSize: 12, marginBottom: 6 },
+  gname: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 17, fontWeight: '600' },
+  slogan: { fontFamily: fonts.serif, color: theme.muted, fontSize: 13, marginTop: 3 },
+  body: { fontFamily: fonts.serif, color: theme.muted, fontSize: 13, lineHeight: 20 },
+  muted: { fontFamily: fonts.serif, color: theme.muted, fontSize: 12.5 },
+  memberName: { fontFamily: fonts.serif, color: theme.paper, fontSize: 14 },
+  label: { fontFamily: fonts.serif, color: theme.muted, fontSize: 12, marginBottom: 6 },
   input: {
-    fontFamily: fonts.body, color: theme.paper, fontSize: 14, minHeight: 64,
-    borderWidth: 1, borderColor: 'rgba(67,160,134,.3)', borderRadius: 10,
+    fontFamily: fonts.serif, color: theme.paper, fontSize: 14, minHeight: 64,
+    borderWidth: 1, borderColor: 'rgba(201,163,92,.3)', borderRadius: 10,
     paddingHorizontal: 12, paddingVertical: 9, textAlignVertical: 'top',
   },
-  appBlock: { marginTop: 14, borderTopWidth: 1, borderTopColor: 'rgba(67,160,134,.16)', paddingTop: 14 },
+  appBlock: { marginTop: 14, borderTopWidth: 1, borderTopColor: 'rgba(201,163,92,.16)', paddingTop: 14 },
   statusChip: {
-    fontFamily: fonts.body, fontSize: 11, color: theme.muted,
-    borderWidth: 1, borderColor: 'rgba(67,160,134,.3)', borderRadius: 999,
+    fontFamily: fonts.serif, fontSize: 11, color: theme.muted,
+    borderWidth: 1, borderColor: 'rgba(201,163,92,.3)', borderRadius: 999,
     paddingVertical: 1, paddingHorizontal: 8, overflow: 'hidden',
   },
   checkDot: {
     width: 22, height: 22, borderRadius: 11, marginTop: 1,
-    borderWidth: 1, borderColor: 'rgba(67,160,134,.3)',
+    borderWidth: 1, borderColor: 'rgba(201,163,92,.3)',
     alignItems: 'center', justifyContent: 'center',
   },
-  checkDotDone: { borderColor: theme.accent, backgroundColor: 'rgba(67,160,134,.16)' },
-  error: { fontFamily: fonts.body, color: '#e8a09a', fontSize: 13, marginTop: 8 },
+  checkDotDone: { borderColor: theme.gold, backgroundColor: 'rgba(201,163,92,.16)' },
+  error: { fontFamily: fonts.serif, color: '#e8a09a', fontSize: 13, marginTop: 8 },
   goldBtn: {
     marginTop: 12, alignSelf: 'flex-start', borderRadius: 10,
-    backgroundColor: 'rgba(67,160,134,.18)', borderWidth: 1, borderColor: theme.accent,
+    backgroundColor: 'rgba(201,163,92,.18)', borderWidth: 1, borderColor: theme.gold,
     paddingVertical: 9, paddingHorizontal: 24,
   },
-  goldBtnText: { fontFamily: fonts.body, color: theme.accentHi, fontSize: 14 },
+  goldBtnText: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 14 },
 });

@@ -27,8 +27,8 @@ function StatusChip({ label, status }: { label: string; status: string }) {
   return (
     <span style={{
       fontSize: 11, borderRadius: 999, padding: '1px 8px',
-      color: hot ? '#93d2be' : theme.muted,
-      border: `1px solid ${hot ? 'rgba(67,160,134,.5)' : 'rgba(67,160,134,.25)'}`,
+      color: hot ? '#ecd28f' : theme.muted,
+      border: `1px solid ${hot ? 'rgba(201,163,92,.5)' : 'rgba(201,163,92,.25)'}`,
     }}>
       {label}
     </span>
@@ -67,10 +67,10 @@ function ApplicationBlock({ section, slug, application, unknownError }: {
     });
   };
   return (
-    <div style={{ marginTop: 14, borderTop: '1px solid rgba(67,160,134,.16)', paddingTop: 14 }}>
+    <div style={{ marginTop: 14, borderTop: '1px solid rgba(201,163,92,.16)', paddingTop: 14 }}>
       {app && (
         <div style={{ marginBottom: showApplyForm ? 16 : 0 }}>
-          <div style={{ fontSize: 13, color: theme.accent, letterSpacing: '.08em', marginBottom: 8 }}>
+          <div style={{ fontSize: 13, color: theme.gold, letterSpacing: '.08em', marginBottom: 8 }}>
             {section.myApplicationTitle}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
@@ -100,7 +100,7 @@ function ApplicationBlock({ section, slug, application, unknownError }: {
 
       {showApplyForm && (
         <div>
-          <div style={{ fontSize: 13, color: theme.accent, letterSpacing: '.08em', marginBottom: 8 }}>
+          <div style={{ fontSize: 13, color: theme.gold, letterSpacing: '.08em', marginBottom: 8 }}>
             {section.applySectionTitle}
           </div>
           <label style={{ display: 'block', fontSize: 12, color: theme.muted, letterSpacing: '.08em', marginBottom: 6 }}>
@@ -114,7 +114,7 @@ function ApplicationBlock({ section, slug, application, unknownError }: {
             onChange={(e) => setMessage(e.target.value)}
           />
           <div style={{ marginTop: 12 }}>
-            <button type="button" className="yy-btn yy-btn-primary" disabled={busy} style={{ padding: '9px 26px' }} onClick={submit}>
+            <button type="button" className="yy-btn yy-btn-gold" disabled={busy} style={{ padding: '9px 26px' }} onClick={submit}>
               {busy ? section.submittingLabel : section.submitLabel}
             </button>
           </div>
@@ -130,7 +130,7 @@ function NewcomerBlock({ section, entry }: { section: any; entry: any }) {
       <h2 style={adminSectionTitleStyle}>{entry.guildName}</h2>
       {entry.checklist && (
         <div style={{ marginBottom: entry.myPairings && entry.myPairings.length > 0 ? 18 : 0 }}>
-          <div style={{ fontSize: 13, color: theme.accent, letterSpacing: '.08em', marginBottom: 10 }}>
+          <div style={{ fontSize: 13, color: theme.gold, letterSpacing: '.08em', marginBottom: 10 }}>
             {section.checklistTitle}
             <span style={{ color: theme.muted, fontSize: 12, marginLeft: 10 }}>{entry.checklist.progressText}</span>
           </div>
@@ -140,9 +140,9 @@ function NewcomerBlock({ section, entry }: { section: any; entry: any }) {
                 <span style={{
                   width: 22, height: 22, borderRadius: '50%', flexShrink: 0, marginTop: 1,
                   display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13,
-                  border: `1px solid ${item.done ? theme.accent : 'rgba(67,160,134,.3)'}`,
-                  background: item.done ? 'rgba(67,160,134,.16)' : 'transparent',
-                  color: item.done ? '#93d2be' : theme.muted,
+                  border: `1px solid ${item.done ? theme.gold : 'rgba(201,163,92,.3)'}`,
+                  background: item.done ? 'rgba(201,163,92,.16)' : 'transparent',
+                  color: item.done ? '#ecd28f' : theme.muted,
                 }}>
                   {item.done ? '✓' : ''}
                 </span>
@@ -157,7 +157,7 @@ function NewcomerBlock({ section, entry }: { section: any; entry: any }) {
       )}
       {entry.myPairings && entry.myPairings.length > 0 && (
         <div>
-          <div style={{ fontSize: 13, color: theme.accent, letterSpacing: '.08em', marginBottom: 10 }}>
+          <div style={{ fontSize: 13, color: theme.gold, letterSpacing: '.08em', marginBottom: 10 }}>
             {section.myPairingsTitle}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -212,14 +212,14 @@ export default function HomeRecruitSection({ section, user, sealText, unknownErr
                   alt=""
                   style={{
                     width: 48, height: 48, borderRadius: '50%', objectFit: 'cover', flexShrink: 0,
-                    border: '1px solid rgba(67,160,134,.45)', background: 'rgba(67,160,134,.08)',
+                    border: '1px solid rgba(201,163,92,.45)', background: 'rgba(201,163,92,.08)',
                   }}
                 />
               ) : (
                 <span className="yy-seal" style={{ width: 48, height: 48, fontSize: 24 }}>{sealText}</span>
               )}
               <span style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 18, color: theme.accentHi, fontWeight: 600 }}>{g.name}</div>
+                <div style={{ fontSize: 18, color: theme.goldHi, fontWeight: 600 }}>{g.name}</div>
                 {g.slogan && (
                   <div style={{ fontSize: 13, color: theme.muted, marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {g.slogan}
