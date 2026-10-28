@@ -4750,6 +4750,32 @@ export abstract class PlatformAdminFbtUtils {
 		return fbs._("已用试用", null, { hk: "K0Ol2" });
 	}
 }
+export abstract class CarshareFbtUtils {
+	static kicker(fbs: FbsRuntime) {
+		return fbs._("车队招募 · 公开分享", null, { hk: "1Ek8Xd" });
+	}
+	static loginLabel(fbs: FbsRuntime) {
+		return fbs._("登录并报名", null, { hk: "4EWe6k" });
+	}
+	static openLabel(fbs: FbsRuntime) {
+		return fbs._("打开车队页", null, { hk: "Q81zc" });
+	}
+	static notFoundTitle(fbs: FbsRuntime) {
+		return fbs._("链接已失效", null, { hk: "2PCNW4" });
+	}
+	static notFoundBody(fbs: FbsRuntime) {
+		return fbs._("这条分享链接不存在，或对应的车队已经解散。", null, { hk: "1vd9DL" });
+	}
+	static readonlyHint(fbs: FbsRuntime) {
+		return fbs._("这是只读的分享视图：只能查看车队信息，报名要登录后在车队页里操作。", null, { hk: "3EOaWM" });
+	}
+	static statusClosed(fbs: FbsRuntime) {
+		return fbs._("已截止", null, { hk: "NL0rS" });
+	}
+	static seatsTitle(fbs: FbsRuntime) {
+		return fbs._("座位", null, { hk: "flkBq" });
+	}
+}
 export const STRING_FNS: Record<string, StringFn> = {
 	"common_cancel": CommonFbtUtils.cancel,
 	"common_confirm": CommonFbtUtils.confirm,
@@ -6281,5 +6307,13 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"platformAdmin_planLabel": PlatformAdminFbtUtils.planLabel,
 	"platformAdmin_hasCardText": PlatformAdminFbtUtils.hasCardText,
 	"platformAdmin_noCardText": PlatformAdminFbtUtils.noCardText,
-	"platformAdmin_trialUsedText": PlatformAdminFbtUtils.trialUsedText
+	"platformAdmin_trialUsedText": PlatformAdminFbtUtils.trialUsedText,
+	"carshare_kicker": CarshareFbtUtils.kicker,
+	"carshare_loginLabel": CarshareFbtUtils.loginLabel,
+	"carshare_openLabel": CarshareFbtUtils.openLabel,
+	"carshare_notFoundTitle": CarshareFbtUtils.notFoundTitle,
+	"carshare_notFoundBody": CarshareFbtUtils.notFoundBody,
+	"carshare_readonlyHint": CarshareFbtUtils.readonlyHint,
+	"carshare_statusClosed": CarshareFbtUtils.statusClosed,
+	"carshare_seatsTitle": CarshareFbtUtils.seatsTitle
 };

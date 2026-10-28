@@ -40,6 +40,7 @@ import {
   parseFieldOptions, type CustomFieldDef,
 } from './index.ts';
 import { scheduleResolvers } from './schedule-graphql.ts';
+import { resolveSharedGrouping } from './shareview.ts';
 import {
   listSignupSeats, listSignupSeatsBasic, listSignupNamesStamps,
   insertSignups, insertSignupWithCapacityGuard, deleteSignupByEventUid, deleteSignupsByEvent,
@@ -614,6 +615,54 @@ export class GroupingDetailPageShell extends ShellBase {
   }
 }
 
+/* ---------- Public car share page (/s/:code) ----------
+ * Anonymous read surface: the shell wraps resolveSharedGrouping's
+ * public view (OG-card fields only — the service drops every member
+ * detail before data reaches this shell). Unknown / malformed /
+ * deleted / dev_only targets get the same shell with exists=false
+ * and empty data: the client renders the not-found state from this
+ * shell's own copy fields. Mirrors gear's SharedBuildPageShell. */
+export class SharedGroupingPageShell extends ShellBase {
+  get view(){ return this.data.shared || null; }
+  genExists(){ return !!this.view; }
+  genSlug(){ return this.view ? this.view.slug : null; }
+  genGuildName(){ return this.view ? this.view.guildName : null; }
+  genTitle(){ return this.view ? this.view.title : null; }
+  genType(){ return this.view ? (TYPE_TO_ENUM[this.view.type] || 'ACTIVITY') : null; }
+  genDungeonName(){ return this.view ? enDungeonName(this.locale, this.view.dungeon || null) : null; }
+  genStartsAt(){
+    if (!this.view) return null;
+    return this.view.startsAtUtc ? String(this.view.startsAtUtc) : (this.view.startsAt || '');
+  }
+  genStatus(){ return this.view ? this.view.status : null; }
+  genOccupiedCount(){ return this.view ? this.view.occupiedCount : 0; }
+  genMaxSlots(){ return this.view ? this.view.maxSlots : 0; }
+  genSeats(){ return this.view ? this.view.seats : []; }
+  // People count line: the detail page's own template, filled with
+  // this view's public counts (never rendered for a missing target).
+  genSharePeopleTemplate(){
+    return this.memo('sharePeople', () => this.t('groupingDetail_people', {
+      occupied: this.view ? this.view.occupiedCount : 0,
+      max: this.view ? this.view.maxSlots : 0,
+    }));
+  }
+}
+
+export const SHARED_GROUPING_TEXT_RESOLVERS = {
+  ...defineTextGens(SharedGroupingPageShell, [
+    ['shareKicker', 'carshare_kicker'],
+    ['shareLoginLabel', 'carshare_loginLabel'],
+    ['shareOpenLabel', 'carshare_openLabel'],
+    ['shareNotFoundTitle', 'carshare_notFoundTitle'],
+    ['shareNotFoundBody', 'carshare_notFoundBody'],
+    ['shareReadonlyHint', 'carshare_readonlyHint'],
+    ['shareStatusClosedLabel', 'carshare_statusClosed'],
+    ['shareSeatsTitle', 'carshare_seatsTitle'],
+    ['shareStatusOpenLabel', 'groupingDetail_statusOpen'],
+    ['shareStatusCompletedLabel', 'groupingDetail_statusCompleted'],
+  ]),
+};
+
 export const DETAIL_TEXT_RESOLVERS = {
   ...defineTextGens(GroupingDetailPageShell, [
     ['detailNotFoundText', 'groupingDetail_notFound'],
@@ -709,6 +758,13 @@ export const groupingsResolvers = {
       if (!a.canView) throw new Error(errText(ctx, 'groupingNotFound'));
       touchGuildRoster(ctx, a);
       return new GroupingDetailPageShell(ctx, ev);
+    },
+
+    // Public car share page (/s/:code): anonymous; the short code is
+    // the capability — resolving it yields only the car's public face.
+    sharedGrouping: async (_: any, { code }: any, ctx: Context) => {
+      const shared = await resolveSharedGrouping(ctx.env.DB, String(code || ''), isDevRequest(ctx.request)).catch(() => null);
+      return new SharedGroupingPageShell(ctx, { shared });
     },
 
     // ===== Viewer hierarchy (root = user) =====
@@ -1213,6 +1269,24 @@ export const groupingsResolvers = {
     allySharing: (p: any) => p.genAllySharing(),
     ...DETAIL_TEXT_RESOLVERS,
   },
+  SharedGroupingPage: {
+    exists: (p: any) => p.genExists(),
+    slug: (p: any) => p.genSlug(),
+    guildName: (p: any) => p.genGuildName(),
+    title: (p: any) => p.genTitle(),
+    type: (p: any) => p.genType(),
+    dungeonName: (p: any) => p.genDungeonName(),
+    startsAt: (p: any) => p.genStartsAt(),
+    status: (p: any) => p.genStatus(),
+    occupiedCount: (p: any) => p.genOccupiedCount(),
+    maxSlots: (p: any) => p.genMaxSlots(),
+    seats: (p: any) => p.genSeats(),
+    sharePeopleTemplate: (p: any) => p.genSharePeopleTemplate(),
+    ...SHARED_GROUPING_TEXT_RESOLVERS,
+  },
+  // Plain-data seat occupancy: fields delegate to the view object the
+  // share service composed (index + occupancy, nothing else exists).
+  SharedGroupingSeat: { index: (p: any) => p.index, occupied: (p: any) => p.occupied },
   // Plain-data sharing control (P20): fields delegate to the object
   // the detail shell composed for managers of this grouping only.
   AllySharingControl: {

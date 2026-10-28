@@ -572,6 +572,46 @@ type Grouping {
 
 extend type Query {
   groupingDetailPage(slug: String, id: ID!): GroupingDetailPage!
+  sharedGrouping(code: String!): SharedGroupingPage!
+}
+
+# ============ 页面：车队公开分享 ============
+# URL: /s/{code} — 匿名只读面: 短链码即凭据 (与装备分享 /b/{code} 同范式)。
+# 只下发 OG 卡面口径的公开字段 (标题/类型/副本/时间/人数/逐座占用);
+# 成员细节 (座位昵称/流派/uid/就位/报名表答案/车头 Discord id) 一律不下发。
+# 未知码 / 车已解散 / dev_only 百业 (非 dev 来源) 一律 exists=false 空壳,
+# 客户端据此渲染失效态。报名等写入口不在本面: 访客经 CTA 登录后回规范车页操作。
+
+type SharedGroupingPage {
+  exists: Boolean!
+  slug: String        # 百业 slug (客户端拼规范车页链接用)
+  guildName: String
+  title: String
+  type: GroupingType
+  dungeonName: String
+  startsAt: String    # 与 Grouping.startsAt 同口径 (epoch 秒字符串或旧文本)
+  status: String      # open / closed / draft / completed
+  occupiedCount: Int!
+  maxSlots: Int!
+  seats: [SharedGroupingSeat!]!
+  # UI 文案: 全部由本页 shell 的 gen 方法按请求 locale 生成
+  shareKicker: String!
+  shareLoginLabel: String!
+  shareOpenLabel: String!
+  shareNotFoundTitle: String!
+  shareNotFoundBody: String!
+  shareReadonlyHint: String!
+  shareStatusOpenLabel: String!
+  shareStatusClosedLabel: String!
+  shareStatusCompletedLabel: String!
+  sharePeopleTemplate: String!
+  shareSeatsTitle: String!
+  shareTypeLabel: String!   # 车型短标 (双十/天赋/竞速/爬塔, groupingType 目录)
+}
+
+type SharedGroupingSeat {
+  index: Int!
+  occupied: Boolean!
 }
 
 type GroupingDetailPage {

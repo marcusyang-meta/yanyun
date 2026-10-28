@@ -8380,5 +8380,63 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
     "trialUsedText": {
       "zh-CN": "已用试用"
     }
+  },
+  "carshare": {
+    "kicker": {
+      "zh-CN": "车队招募 · 公开分享",
+      "en": "Squad recruiting · Public share",
+      "es": "Reclutamiento de equipo · Compartido público",
+      "fr": "Recrutement d'équipe · Partage public",
+      "zh-TW": "車隊招募 · 公開分享"
+    },
+    "loginLabel": {
+      "zh-CN": "登录并报名",
+      "en": "Log in and sign up",
+      "es": "Inicia sesión y apúntate",
+      "fr": "Se connecter et s'inscrire",
+      "zh-TW": "登入並報名"
+    },
+    "openLabel": {
+      "zh-CN": "打开车队页",
+      "en": "Open squad page",
+      "es": "Abrir página del equipo",
+      "fr": "Ouvrir la page de l'équipe",
+      "zh-TW": "打開車隊頁"
+    },
+    "notFoundTitle": {
+      "zh-CN": "链接已失效",
+      "en": "This link is no longer valid",
+      "es": "Este enlace ya no es válido",
+      "fr": "Ce lien n'est plus valide",
+      "zh-TW": "連結已失效"
+    },
+    "notFoundBody": {
+      "zh-CN": "这条分享链接不存在，或对应的车队已经解散。",
+      "en": "This share link doesn't exist, or the squad behind it has been disbanded.",
+      "es": "Este enlace compartido no existe, o el equipo correspondiente ya se ha disuelto.",
+      "fr": "Ce lien de partage n'existe pas, ou l'équipe correspondante a été dissoute.",
+      "zh-TW": "這條分享連結不存在，或對應的車隊已經解散。"
+    },
+    "readonlyHint": {
+      "zh-CN": "这是只读的分享视图：只能查看车队信息，报名要登录后在车队页里操作。",
+      "en": "This is a read-only shared view: you can view squad info here; sign-up happens on the squad page after logging in.",
+      "es": "Esta es una vista compartida de solo lectura: solo puedes ver la información del equipo; la inscripción se hace en la página del equipo tras iniciar sesión.",
+      "fr": "Ceci est une vue partagée en lecture seule : vous pouvez consulter les infos de l'équipe ; l'inscription se fait sur la page de l'équipe après connexion.",
+      "zh-TW": "這是唯讀的分享檢視：只能查看車隊資訊，報名要登入後在車隊頁裡操作。"
+    },
+    "statusClosed": {
+      "zh-CN": "已截止",
+      "en": "Closed",
+      "es": "Cerrado",
+      "fr": "Clôturé",
+      "zh-TW": "已截止"
+    },
+    "seatsTitle": {
+      "zh-CN": "座位",
+      "en": "Seats",
+      "es": "Asientos",
+      "fr": "Places",
+      "zh-TW": "座位"
+    }
   }
 };

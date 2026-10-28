@@ -188,7 +188,15 @@ export type GroupingsStringKey =
   | 'schedule_toastClosed'
   | 'schedule_toastFailedTemplate'
   | 'schedule_settingsLinkLabel'
-  | 'schedule_noGuildsText';
+  | 'schedule_noGuildsText'
+  | 'carshare_kicker'
+  | 'carshare_loginLabel'
+  | 'carshare_openLabel'
+  | 'carshare_notFoundTitle'
+  | 'carshare_notFoundBody'
+  | 'carshare_readonlyHint'
+  | 'carshare_statusClosed'
+  | 'carshare_seatsTitle';
 
 export const GROUPINGS_STRING_KEYS: readonly GroupingsStringKey[] = [
   'groupingType_tabActivity',
@@ -379,4 +387,12 @@ export const GROUPINGS_STRING_KEYS: readonly GroupingsStringKey[] = [
   'schedule_toastFailedTemplate',
   'schedule_settingsLinkLabel',
   'schedule_noGuildsText',
+  'carshare_kicker',
+  'carshare_loginLabel',
+  'carshare_openLabel',
+  'carshare_notFoundTitle',
+  'carshare_notFoundBody',
+  'carshare_readonlyHint',
+  'carshare_statusClosed',
+  'carshare_seatsTitle',
 ];

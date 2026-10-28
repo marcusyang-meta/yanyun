@@ -239,3 +239,14 @@ export abstract class ScheduleFbtUtils {
   static noGuildsText(fbs: FbsAPI) { return fbs("你还没有加入任何百业，加入后可在此填写可用时间。", "Empty-state text for the personal availability page, used when the user belongs to no guild yet and must join one before entering availability."); }
 }
 
+export abstract class CarshareFbtUtils {
+  static kicker(fbs: FbsAPI) { return fbs("车队招募 · 公开分享", "Kicker text for the public squad share page, used above the title to identify the page as a shared squad."); }
+  static loginLabel(fbs: FbsAPI) { return fbs("登录并报名", "Button label for the public squad share page, used by signed-out visitors to start Discord login and land on the full squad page to sign up."); }
+  static openLabel(fbs: FbsAPI) { return fbs("打开车队页", "Button label for the public squad share page, used by signed-in visitors to open the full interactive squad page."); }
+  static notFoundTitle(fbs: FbsAPI) { return fbs("链接已失效", "Title text for the squad share error state, used when a share link is invalid or its squad is gone."); }
+  static notFoundBody(fbs: FbsAPI) { return fbs("这条分享链接不存在，或对应的车队已经解散。", "Body text for the squad share error state, used to explain that the share link does not exist or the squad behind it has been disbanded."); }
+  static readonlyHint(fbs: FbsAPI) { return fbs("这是只读的分享视图：只能查看车队信息，报名要登录后在车队页里操作。", "Hint text for the public squad share page, used to explain that the shared view is read-only and signing up happens on the full squad page after login."); }
+  static statusClosed(fbs: FbsAPI) { return fbs("已截止", "Status label for the public squad share page, used when the squad is no longer open for signups."); }
+  static seatsTitle(fbs: FbsAPI) { return fbs("座位", "Section title for the public squad share page, used above the read-only seat occupancy grid."); }
+}
+
