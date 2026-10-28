@@ -269,7 +269,7 @@ export async function isPremiumActive(
 }
 
 /* ---------------- tier verdicts (premium tiers T1/T2/T3) --------
- * The tier ladder (DESIGN §8 定版): T1 data, T2 intelligence
+ * The tier ladder (DESIGN section 8, final version): T1 data, T2 intelligence
  * (includes T1), T3 network & governance (includes T2). A feature
  * surface asks tierLocked(db, slug, n) and serves its entry only
  * when the answer is false.

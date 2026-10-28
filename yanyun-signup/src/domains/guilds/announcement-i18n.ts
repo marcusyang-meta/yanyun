@@ -3,7 +3,7 @@
  * entities) and the generation service over the platform Translator
  * seam (platform/translator.ts).
  *
- * 口径 (fixed by the premium programme):
+ * Programme rulings (fixed for the premium programme):
  * - Generation is a MANUAL admin action (the generate mutation), not
  *   a post-time side effect — translation burns provider quota, so
  *   nothing is translated until an admin asks for it.
