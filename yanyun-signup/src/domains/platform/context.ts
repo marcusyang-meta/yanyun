@@ -110,21 +110,14 @@ export interface Env {
   STATSIG_KV?: KVNamespace;
   STATSIG_SERVER_SECRET?: string;
   STATSIG_PROJECT_ID?: string;
-  /* Workers AI (premium P26 translation, platform/translator.ts):
-   * the AI binding from wrangler.toml ([ai] section) — no key, no
-   * external account. Absent binding = translation not configured,
-   * and announcement surfaces compose exactly as before P26. */
+  /* Workers AI (premium P26 translation, platform/translator.ts;
+   * premium P18 AI recaps, platform/recap-provider.ts): the AI
+   * binding from wrangler.toml ([ai] section) — no key, no
+   * external account. Absent binding = neither feature is
+   * configured: announcement surfaces compose exactly as before
+   * P26, and every recap surface composes its not-enabled
+   * variant. */
   AI?: Ai;
-  /* AI recap (P18, platform/recap-provider.ts): the provider seam's
-   * configuration. API key + model are both required before a
-   * provider exists; base URL and provider label have defaults.
-   * Absent = the recap feature is not enabled, and every recap
-   * surface composes its not-enabled variant (production state
-   * until the provider/key decision is made). */
-  AI_RECAP_API_KEY?: string;
-  AI_RECAP_MODEL?: string;
-  AI_RECAP_BASE_URL?: string;
-  AI_RECAP_PROVIDER?: string;
 }
 
 /** Framework layer: raw infrastructure, assembly edges only. */

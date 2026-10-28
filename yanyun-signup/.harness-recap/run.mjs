@@ -1,10 +1,10 @@
 // P18 AI activity recaps acceptance (premium T3 line):
 // three-state matrix over (tier, provider configuration):
-//   A. provider UNCONFIGURED (production state): a below-T3 guild
+//   A. provider UNCONFIGURED (AI binding absent): a below-T3 guild
 //      composes Locked; a T3 guild composes NotEnabled on both the
 //      detail surface and the admin index; generation is refused
 //      with recapNotEnabled; NOTHING is stored or metered.
-//   B. provider configured (env seam + stubbed provider HTTP):
+//   B. provider configured (Workers AI binding stub):
 //      below-T3 stays Locked (incl. a legacy premium row, which
 //      reads as tier 2, and a stored-tier-1 row); a T3 guild runs
 //      the full chain — Empty with manage-gated actions, leader
@@ -22,8 +22,8 @@
 //      refused with recapDailyLimit and the provider is not called.
 // Real yoga + real resolvers + FakeDB routing by SQL shape into
 // in-memory tables (same pattern as .harness-officer). The provider
-// seam itself is the real env-assembled OpenAI-compatible client,
-// with global fetch stubbed at the HTTP boundary.
+// seam itself is the real binding-assembled Workers AI adapter,
+// with env.AI stubbed at the binding boundary.
 import { yoga } from '../src/graphql.ts';
 import { typeDefs } from '../src/graphql-schema.ts';
 import { recapProviderFromEnv } from '../src/domains/platform/recap-provider.ts';
@@ -244,12 +244,31 @@ const leaderB = { discordId: 'B1', name: '乙车头', guilds: ['DG2'] };
 const memberB = { discordId: 'BM', name: '乙成员', guilds: ['DG2'] };
 const adminG = { discordId: 'G1', name: '丙管理员', guilds: ['DG3'] };
 
-const ENV_OFF = { DB: db };
-const ENV_ON = {
-  DB: db,
-  AI_RECAP_API_KEY: 'test-key', AI_RECAP_MODEL: 'model-x',
-  AI_RECAP_PROVIDER: 'fake', AI_RECAP_BASE_URL: 'http://provider.invalid/v1',
+/* Workers AI binding stub: stands in for env.AI. Records the model
+ * and the data package it was handed, answers in the model's real
+ * chat-completion output shape, and can fail or emit a reasoning
+ * block on demand. */
+let providerMode = 'ok';
+let providerCalls = 0;
+let providerParagraphs = ['本场竞速顺利完赛。', '全员就位及时，配合默契。'];
+let providerThink = false;
+let lastPackage = null;
+let lastModel = null;
+const PROVIDER_ID = 'workers-ai:@cf/qwen/qwen3-30b-a3b-fp8';
+const fakeAi = {
+  async run(model, inputs) {
+    providerCalls++;
+    lastModel = model;
+    lastPackage = JSON.parse(inputs.messages[1].content);
+    if (providerMode === 'fail') throw new Error('stub workers ai boom');
+    const json = JSON.stringify({ paragraphs: providerParagraphs });
+    const text = providerThink ? `<think>内部推理，不应出现在复盘里。</think>\n${json}` : json;
+    return { choices: [{ message: { content: text } }] };
+  },
 };
+
+const ENV_OFF = { DB: db };
+const ENV_ON = { DB: db, AI: fakeAi };
 
 async function gql(query, { user = leaderB, variables, env = ENV_OFF } = {}) {
   const ctx = {
@@ -264,28 +283,6 @@ async function gql(query, { user = leaderB, variables, env = ENV_OFF } = {}) {
   return res.json();
 }
 
-/* Provider HTTP stub: the real env-assembled client calls fetch;
- * the stub answers at that boundary and records what it received. */
-let providerMode = 'ok';
-let providerCalls = 0;
-let providerParagraphs = ['本场竞速顺利完赛。', '全员就位及时，配合默契。'];
-let lastPackage = null;
-const realFetch = globalThis.fetch;
-globalThis.fetch = async (url, init) => {
-  if (!String(url).includes('provider.invalid')) return realFetch(url, init);
-  providerCalls++;
-  const body = JSON.parse(init.body);
-  lastPackage = JSON.parse(body.messages[1].content);
-  if (providerMode === 'fail') {
-    return new Response(JSON.stringify({ error: { message: 'stub provider boom' } }), {
-      status: 500, headers: { 'content-type': 'application/json' },
-    });
-  }
-  return new Response(JSON.stringify({
-    choices: [{ message: { content: JSON.stringify({ paragraphs: providerParagraphs }) } }],
-  }), { status: 200, headers: { 'content-type': 'application/json' } });
-};
-
 /* ================= SDL shape ================= */
 {
   check('SDL: GroupingDetailPage 带 recap 字段', /type GroupingDetailPage \{[\s\S]*?\n  recap: GroupingRecapResult!/.test(typeDefs));
@@ -294,11 +291,11 @@ globalThis.fetch = async (url, init) => {
   check('SDL: 复盘 union 含四变体', typeDefs.includes('union GroupingRecapResult = GroupingRecapReady | GroupingRecapLocked | GroupingRecapNotEnabled | GroupingRecapEmpty'));
 }
 
-/* ================= provider seam (env assembly) ================= */
+/* ================= provider seam (binding assembly) ================= */
 {
-  eq('未配置 env -> provider 为 null', recapProviderFromEnv({}), null);
-  eq('只给 key 不给 model -> provider 为 null', recapProviderFromEnv({ AI_RECAP_API_KEY: 'k' }), null);
-  eq('配置齐全 -> provider id 为 fake:model-x', recapProviderFromEnv(ENV_ON)?.id, 'fake:model-x');
+  eq('无 AI binding -> provider 为 null', recapProviderFromEnv({}), null);
+  eq('AI binding 为 undefined -> provider 为 null', recapProviderFromEnv({ AI: undefined }), null);
+  eq('有 AI binding -> provider id 为 workers-ai:<钉死模型>', recapProviderFromEnv(ENV_ON)?.id, PROVIDER_ID);
 }
 
 const detailQ = `query($slug: String, $id: ID!) { groupingDetailPage(slug: $slug, id: $id) { recap {
@@ -375,6 +372,7 @@ const betaUsage = () => state.usage.get(`guild:beta|ai_recap_generations|${dayKe
   eq('B: 生成 payload 直接回 Ready', gen.data?.generateGroupingRecap?.recap?.__typename, 'GroupingRecapReady');
   eq('B: payload 段落与 provider 输出一致', gen.data?.generateGroupingRecap?.recap?.paragraphs, providerParagraphs);
   eq('B: provider 被调一次', providerCalls, 1);
+  eq('B: adapter 以钉死模型调用 binding', lastModel, '@cf/qwen/qwen3-30b-a3b-fp8');
   eq('B: 数据包出席数 = 落座行数', lastPackage?.attendance?.seatedCount, 3);
   eq('B: 数据包就位数 = ready_at 行数', lastPackage?.attendance?.readyCount, 2);
   eq('B: 数据包空位数 = 容量-落座', lastPackage?.attendance?.emptySeats, 7);
@@ -386,7 +384,7 @@ const betaUsage = () => state.usage.get(`guild:beta|ai_recap_generations|${dayKe
 
   eq('B: 存储一行', state.recaps.length, 1);
   const row = state.recaps[0];
-  eq('B: 存储行 provider 标识', row.provider, 'fake:model-x');
+  eq('B: 存储行 provider 标识', row.provider, PROVIDER_ID);
   eq('B: 存储行 version = 1', row.version, 1);
   eq('B: 存储行生成者为车头', row.generated_by, 'B1');
   const snap = JSON.parse(row.snapshot_json);
@@ -411,11 +409,14 @@ const betaUsage = () => state.usage.get(`guild:beta|ai_recap_generations|${dayKe
   eq('B: 索引条目段落数文案', list?.items?.[0]?.paragraphCountText, '2 段');
 
   providerParagraphs = ['重新生成后的复盘。'];
+  providerThink = true; // model answers with a reasoning block this time
   const regen = await gql(genMut, { user: leaderB, variables: { id: '12' }, env: ENV_ON });
+  providerThink = false;
   eq('B: 重新生成 -> ok', regen.data?.generateGroupingRecap?.ok, true);
   eq('B: 重新生成仍是一行 (原地覆盖)', state.recaps.length, 1);
   eq('B: 重新生成 version = 2', state.recaps[0].version, 2);
   eq('B: 重新生成段落已替换', JSON.parse(state.recaps[0].paragraphs_json), ['重新生成后的复盘。']);
+  check('B: 段落不含 think 推理块内容', !state.recaps[0].paragraphs_json.includes('内部推理'));
   eq('B: 计量累计 = 2', betaUsage(), 2);
 }
 
