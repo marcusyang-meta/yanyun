@@ -27,7 +27,8 @@
 import { sql } from 'drizzle-orm';
 import { createDb } from '../../db/client.ts';
 import { rotationAdviceRecords } from './schema.ts';
-import { listEventsAdmin, listSignupsByEvent } from './events.ts';
+import { listEventsAdmin } from './events.ts';
+import { listSignupsByEvent } from './signups.ts';
 import { listGuildAvailability, parseAvailabilitySlots } from './availability.ts';
 import { listGuildMembers } from '../identity/index.ts';
 import { countGearItemRows } from '../gear/index.ts';
