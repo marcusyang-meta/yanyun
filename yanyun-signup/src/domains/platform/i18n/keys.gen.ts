@@ -231,6 +231,12 @@ export type PlatformStringKey =
   | 'errors_seasonGoalNoteTooLong'
   | 'errors_seasonGoalNotFound'
   | 'errors_seasonGoalDungeonNotFound'
+  | 'errors_recapForbidden'
+  | 'errors_recapNotCompleted'
+  | 'errors_recapTierLocked'
+  | 'errors_recapNotEnabled'
+  | 'errors_recapDailyLimit'
+  | 'errors_recapProviderFailed'
   | 'platformAdmin_entryLabel'
   | 'platformAdmin_title'
   | 'platformAdmin_subtitle'
@@ -536,6 +542,12 @@ export const PLATFORM_STRING_KEYS: readonly PlatformStringKey[] = [
   'errors_seasonGoalNoteTooLong',
   'errors_seasonGoalNotFound',
   'errors_seasonGoalDungeonNotFound',
+  'errors_recapForbidden',
+  'errors_recapNotCompleted',
+  'errors_recapTierLocked',
+  'errors_recapNotEnabled',
+  'errors_recapDailyLimit',
+  'errors_recapProviderFailed',
   'platformAdmin_entryLabel',
   'platformAdmin_title',
   'platformAdmin_subtitle',

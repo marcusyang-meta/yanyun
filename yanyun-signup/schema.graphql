@@ -646,6 +646,16 @@ type GroupingDetailPage {
   # 非空值; 其他观看者为 null, 答案不下发。mutation/查询处同一判定。
   rosterAnswers: [RosterAnswer!]
   rosterAnswersTitle: String!
+  # AI activity recap (Premium T3, P18): the response type IS the
+  # verdict — Locked = this guild is below T3 (zero recap content
+  # dispatched); NotEnabled = no AI provider configured (the
+  # Workers AI binding is absent; every guild incl. T3 gets this
+  # variant, nothing generates or stores); Ready = a stored recap
+  # (member-visible, follows the grouping's own visibility);
+  # Empty = available but not generated yet. The generate action
+  # object rides only Ready/Empty and only for the leader or this
+  # guild's admins.
+  recap: GroupingRecapResult!
   # 无管理码，人人可管
   # UI 文案: 全部由本页 shell 的 gen 方法按请求 locale 生成
   detailNotFoundText: String!
@@ -763,6 +773,70 @@ type GroupingDetailPage {
   formCustomFieldRequiredLabel: String!
   formCustomFieldRemoveLabel: String!
   formCustomFieldEmptyText: String!
+}
+
+# ============ AI activity recaps (Premium T3, P18) ============
+# The recap body is provider-generated content, not UI copy:
+# paragraphs are dispatched verbatim and never enter the strings
+# catalog; every shell string is composed by the backend per locale.
+
+union GroupingRecapResult = GroupingRecapReady | GroupingRecapLocked | GroupingRecapNotEnabled | GroupingRecapEmpty
+
+# Generate/regenerate action group: rides only the Ready/Empty
+# variants, and exists only when the viewer can manage this
+# grouping (leader or this guild's admin) and it is completed;
+# the mutation re-verifies everything server-side.
+type GroupingRecapActions {
+  generateLabel: String!
+  regenerateLabel: String!
+  generatingLabel: String!
+  confirmTitle: String!
+  confirmMessageTemplate: String!
+  toastGenerated: String!
+  toastFailedTemplate: String!
+}
+
+type GroupingRecapReady {
+  title: String!
+  # Recap body paragraphs (generated content, in generation order)
+  paragraphs: [String!]!
+  # Data-snapshot summary lines (composed by the backend from the
+  # stored snapshot summary, per locale)
+  summaryLines: [String!]!
+  generatedAtText: String!
+  providerText: String!
+  versionText: String!
+  # Hint shown when the latest generation attempt failed (the
+  # earlier successful recap still displays); null when no failure
+  failedHint: String
+  actions: GroupingRecapActions
+}
+
+type GroupingRecapEmpty {
+  title: String!
+  body: String!
+  failedHint: String
+  actions: GroupingRecapActions
+}
+
+# Below T3: locked copy only — zero recap content, zero provider state.
+type GroupingRecapLocked {
+  title: String!
+  body: String!
+}
+
+# No AI provider configured (Workers AI binding absent): every
+# guild, T3 included, gets this variant.
+type GroupingRecapNotEnabled {
+  title: String!
+  body: String!
+}
+
+type RecapPayload {
+  ok: Boolean!
+  recap: GroupingRecapResult
+  error: String
+  errorCode: String
 }
 
 # 管理动作 (编辑/完成/恢复/解散) 的文案组: 只随 GroupingDetailPage
@@ -1782,6 +1856,7 @@ type Mutation {
   updateGrouping(id: ID!, input: UpdateGroupingInput!): GroupingPayload!
   disbandGrouping(id: ID!): DeletePayload!  # 解散车队：仅车头或本百业管理员可为，服务端复验
   completeGrouping(id: ID!): GroupingPayload!  # 完成车队：仅车头或本百业管理员可为，服务端复验；完成车不进列表、不发提醒
+  generateGroupingRecap(id: ID!): RecapPayload!  # Generate/regenerate an AI recap (P18, T3): leader or this guild's admin only, completed groupings only, manual trigger; the server re-verifies tier and provider
   reopenGrouping(id: ID!): GroupingPayload!  # 恢复车队（撤销完成，回到 open）：仅车头或本百业管理员可为，服务端复验
   joinGrouping(input: JoinGroupingInput!): SeatPayload!
   leaveGrouping(input: LeaveGroupingInput!): SeatPayload!
@@ -2645,6 +2720,12 @@ type GuildAdmin {
   # 字段, 成员变体 (Guild) 根本不带备注字段。
   officer: GuildOfficerPage!
   ops: GuildAdminOpsResult!
+  # AI recap index (P18, Premium T3): this guild's recap records;
+  # the verdict composes in the same order as the detail page —
+  # Locked (below T3, zero records read) / NotEnabled (no provider
+  # configured) / List. GuildAdmin only — Locked carries zero
+  # recap fields.
+  recaps: GuildAdminRecapResult!
   # 出勤统计 (Premium, 读侧门控): 总闸开且本百业未开通时组合为
   # GuildAdminStatsLocked (只有未开通文案, 零统计数据); 总闸关或
   # 已开通时与从前一致。结论只由响应类型表达, 无标志位下发。
@@ -2843,6 +2924,7 @@ type GuildAdmin {
   adminTabToolsLabel: String!
   adminTabOfficerLabel: String!
   adminTabOpsLabel: String!
+  adminTabRecapsLabel: String!
   adminLotteryTitle: String!
   adminLotteryHint: String!
   adminLotteryEmptyText: String!
@@ -3476,6 +3558,34 @@ type GuildAdminStats {
 }
 
 union GuildAdminStatsResult = GuildAdminStats | GuildAdminStatsLocked | GuildAdminSectionLocked
+
+# AI recap index (P18): the Locked / NotEnabled variants are the
+# same types the detail page uses.
+union GuildAdminRecapResult = GuildAdminRecapList | GroupingRecapLocked | GroupingRecapNotEnabled
+
+type GuildAdminRecapList {
+  title: String!
+  emptyText: String!
+  items: [GuildAdminRecap!]!
+}
+
+enum GuildAdminRecapStatus { READY FAILED }
+
+type GuildAdminRecap {
+  id: ID!
+  groupingId: ID!
+  groupingTitle: String!
+  # READY = a usable recap body exists (including when the latest
+  # retry failed but an earlier draft is stored); FAILED = never
+  # generated successfully. The backend composes statusText.
+  status: GuildAdminRecapStatus!
+  statusText: String!
+  provider: String!
+  version: Int!
+  paragraphCount: Int!
+  paragraphCountText: String!
+  generatedAtText: String
+}
 
 # 统计未开通变体: 只带 Premium 未开通文案, 零统计字段。开通面
 # 本体 (价格位 + 开通入口) 在 GuildAdmin.premium 的 Locked 变体上,

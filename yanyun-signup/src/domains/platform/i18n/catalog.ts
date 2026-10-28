@@ -4923,6 +4923,24 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-CN": "关联的副本不存在",
       "en": "The linked dungeon does not exist",
       "zh-TW": "關聯的副本不存在"
+    },
+    "recapForbidden": {
+      "zh-CN": "只有车头或本百业管理员可以生成复盘"
+    },
+    "recapNotCompleted": {
+      "zh-CN": "车队完成后才能生成复盘"
+    },
+    "recapTierLocked": {
+      "zh-CN": "该百业尚未开通 AI 复盘（高阶订阅档功能）"
+    },
+    "recapNotEnabled": {
+      "zh-CN": "AI 复盘尚未开启"
+    },
+    "recapDailyLimit": {
+      "zh-CN": "今日复盘生成次数已达上限，明天再试"
+    },
+    "recapProviderFailed": {
+      "zh-CN": "复盘生成失败，请稍后重试"
     }
   },
   "guildAdmin": {
@@ -8459,6 +8477,92 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
     },
     "reasonNoConflict": {
       "zh-CN": "同时段没有其他车冲突"
+    }
+  },
+  "recap": {
+    "title": {
+      "zh-CN": "AI 活动复盘"
+    },
+    "lockedTitle": {
+      "zh-CN": "AI 复盘 · 高阶档专属"
+    },
+    "lockedBody": {
+      "zh-CN": "AI 活动复盘是高阶订阅档功能：为每场完成的车队生成出席、就位与成绩小结，帮车头与军官快速回顾这一场。"
+    },
+    "notEnabledTitle": {
+      "zh-CN": "AI 复盘尚未开启"
+    },
+    "notEnabledBody": {
+      "zh-CN": "平台尚未开启 AI 复盘服务，功能上线后，完成的车队可在此生成复盘。"
+    },
+    "emptyNotCompletedBody": {
+      "zh-CN": "车队完成后，车头或百业管理员可在此生成 AI 复盘。"
+    },
+    "emptyNoRecapBody": {
+      "zh-CN": "本场车队还没有复盘。生成后，复盘将展示在这里，全车队成员可见。"
+    },
+    "generateLabel": {
+      "zh-CN": "生成复盘"
+    },
+    "regenerateLabel": {
+      "zh-CN": "重新生成"
+    },
+    "generatingLabel": {
+      "zh-CN": "生成中…"
+    },
+    "generateConfirmTitle": {
+      "zh-CN": "生成 AI 复盘？"
+    },
+    "generateConfirmMessage": {
+      "zh-CN": "将为「{title}」生成 AI 复盘，内容基于本场车的报名、就位与成绩数据。"
+    },
+    "toastGenerated": {
+      "zh-CN": "复盘已生成"
+    },
+    "toastGenerateFailed": {
+      "zh-CN": "复盘生成失败：{error}"
+    },
+    "generatedAt": {
+      "zh-CN": "生成于 {time}"
+    },
+    "providerText": {
+      "zh-CN": "由 {provider} 生成"
+    },
+    "versionText": {
+      "zh-CN": "第 {version} 版"
+    },
+    "failedHint": {
+      "zh-CN": "上次生成失败，可重试；下方仍是此前生成的复盘。"
+    },
+    "failedHintEmpty": {
+      "zh-CN": "上次生成失败，可重试。"
+    },
+    "summaryAttendance": {
+      "zh-CN": "出席 {seated}/{capacity} 人"
+    },
+    "summaryReady": {
+      "zh-CN": "就位 {ready}/{seated} 人"
+    },
+    "summaryResults": {
+      "zh-CN": "竞速成绩 {count} 条 · 最佳 {best}"
+    },
+    "adminTabLabel": {
+      "zh-CN": "复盘"
+    },
+    "adminTitle": {
+      "zh-CN": "AI 复盘记录"
+    },
+    "adminEmptyText": {
+      "zh-CN": "暂无复盘记录。在已完成车队的详情页生成复盘后，会在这里汇总。"
+    },
+    "adminStatusReadyText": {
+      "zh-CN": "已生成"
+    },
+    "adminStatusFailedText": {
+      "zh-CN": "生成失败"
+    },
+    "adminParagraphCount": {
+      "zh-CN": "{count} 段"
     }
   }
 };

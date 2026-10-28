@@ -227,7 +227,35 @@ export type GroupingsStringKey =
   | 'schedulingAdvice_reasonAvailabilityUnknown'
   | 'schedulingAdvice_reasonLongestWaiting'
   | 'schedulingAdvice_reasonFewRecent'
-  | 'schedulingAdvice_reasonNoConflict';
+  | 'schedulingAdvice_reasonNoConflict'
+  | 'recap_title'
+  | 'recap_lockedTitle'
+  | 'recap_lockedBody'
+  | 'recap_notEnabledTitle'
+  | 'recap_notEnabledBody'
+  | 'recap_emptyNotCompletedBody'
+  | 'recap_emptyNoRecapBody'
+  | 'recap_generateLabel'
+  | 'recap_regenerateLabel'
+  | 'recap_generatingLabel'
+  | 'recap_generateConfirmTitle'
+  | 'recap_generateConfirmMessage'
+  | 'recap_toastGenerated'
+  | 'recap_toastGenerateFailed'
+  | 'recap_generatedAt'
+  | 'recap_providerText'
+  | 'recap_versionText'
+  | 'recap_failedHint'
+  | 'recap_failedHintEmpty'
+  | 'recap_summaryAttendance'
+  | 'recap_summaryReady'
+  | 'recap_summaryResults'
+  | 'recap_adminTabLabel'
+  | 'recap_adminTitle'
+  | 'recap_adminEmptyText'
+  | 'recap_adminStatusReadyText'
+  | 'recap_adminStatusFailedText'
+  | 'recap_adminParagraphCount';
 
 export const GROUPINGS_STRING_KEYS: readonly GroupingsStringKey[] = [
   'groupingType_tabActivity',
@@ -457,4 +485,32 @@ export const GROUPINGS_STRING_KEYS: readonly GroupingsStringKey[] = [
   'schedulingAdvice_reasonLongestWaiting',
   'schedulingAdvice_reasonFewRecent',
   'schedulingAdvice_reasonNoConflict',
+  'recap_title',
+  'recap_lockedTitle',
+  'recap_lockedBody',
+  'recap_notEnabledTitle',
+  'recap_notEnabledBody',
+  'recap_emptyNotCompletedBody',
+  'recap_emptyNoRecapBody',
+  'recap_generateLabel',
+  'recap_regenerateLabel',
+  'recap_generatingLabel',
+  'recap_generateConfirmTitle',
+  'recap_generateConfirmMessage',
+  'recap_toastGenerated',
+  'recap_toastGenerateFailed',
+  'recap_generatedAt',
+  'recap_providerText',
+  'recap_versionText',
+  'recap_failedHint',
+  'recap_failedHintEmpty',
+  'recap_summaryAttendance',
+  'recap_summaryReady',
+  'recap_summaryResults',
+  'recap_adminTabLabel',
+  'recap_adminTitle',
+  'recap_adminEmptyText',
+  'recap_adminStatusReadyText',
+  'recap_adminStatusFailedText',
+  'recap_adminParagraphCount',
 ];
