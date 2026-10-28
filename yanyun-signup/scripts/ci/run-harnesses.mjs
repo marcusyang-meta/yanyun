@@ -31,7 +31,7 @@ const SUITES = [
   ['account', 73], ['subdomain', 162],
   ['buildshare', 60], ['billing', 227], ['feedback', 44],
   ['gates', 73], ['announcements', 90], ['activitytools', 49], ['season', 70],
-  ['schedule', 70], ['recruit', 100],
+  ['schedule', 70], ['recruit', 100], ['customdomain', 149],
   ['officer', 92], ['announcement-i18n', 46], ['ops', 50],
   ['network', 77],
 ];

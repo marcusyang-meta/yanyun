@@ -9,7 +9,7 @@
 import { Hono, type Context } from 'hono';
 import { getShortLinkByCode, SHORT_CODE_RE } from './shortlinks.ts';
 import { getEventRowByTenant } from './events.ts';
-import { parseGuildSubdomainSlug, isGuildSubdomainEnabled } from '../guilds/index.ts';
+import { parseGuildSubdomainSlug, isGuildSubdomainEnabled, isLiveCustomDomainHost } from '../guilds/index.ts';
 
 type ShortLinkContext = Context<{ Bindings: { DB: D1Database } }>;
 
@@ -29,7 +29,11 @@ shortLinkRoutes.get('/c/:code', async (c: ShortLinkContext) => {
   const reqUrl = new URL(c.req.url);
   const onOwnSubdomain = parseGuildSubdomainSlug(reqUrl.hostname) === row.tenant
     && await isGuildSubdomainEnabled(c.env.DB, row.tenant).catch(() => false);
-  const target = onOwnSubdomain
+  // Same rule for the guild's own custom domain (white-label
+  // tier B): a hit through it lands on the clean car path there.
+  const onOwnCustomDomain = !onOwnSubdomain
+    && await isLiveCustomDomainHost(c.env.DB, reqUrl.hostname, row.tenant).catch(() => false);
+  const target = onOwnSubdomain || onOwnCustomDomain
     ? new URL(`/car/${row.event_id}`, reqUrl)
     : new URL(`/${encodeURIComponent(row.tenant)}/car/${row.event_id}`, reqUrl);
   return Response.redirect(target.toString(), 302);

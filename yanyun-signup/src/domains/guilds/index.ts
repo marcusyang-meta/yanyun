@@ -13,6 +13,7 @@ export * from './seasongoals.ts';
 export * from './guild-export.ts';
 export * from './whitelabel.ts';
 export * from './subdomain.ts';
+export * from './customdomain.ts';
 export * from './guildAvatars.ts';
 export * from './guildavatar.ts';
  './guildavatar.ts';
