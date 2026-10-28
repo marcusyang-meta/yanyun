@@ -160,6 +160,7 @@ const SCHEDULE_TEXT_SPEC = [
   ['scheduleToastVoted', 'schedule', 'toastVoted'],
   ['scheduleToastClosed', 'schedule', 'toastClosed'],
   ['scheduleToastFailedTemplate', 'schedule', 'toastFailedTemplate'],
+  ['scheduleSettingsLinkLabel', 'schedule', 'settingsLinkLabel'],
 ];
 
 export class GuildSchedulePageShell extends ShellBase {

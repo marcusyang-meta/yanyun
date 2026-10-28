@@ -1396,14 +1396,16 @@ if (want('recruit')) {
   eq('pairings-for-user sees both sides', (await rec.listPairingsForUser(db, 'alpha', 'M1')).map((r) => r.id), [p1]);
 
   // F24 derivation against real seats/events: no weapon yet, no completed run yet.
+  const av = await import('../src/domains/groupings/availability.ts');
   const evOpen = await ev.insertEvent(db, { tenant: 'alpha', title: '新人车', type: 'activity', description: '', starts_at: null, starts_at_utc: null, dungeon: '', max_slots: 10, meet_info: '', status: 'open', origin: 'member' });
   await sg.insertSignup(db, { event_id: evOpen.last_row_id, nickname: '新人甲', uid: 'q-u9', role: '输出', weapon: '', discord_id: 'U9' });
   let facts = await rec.computeNewcomerChecklist(db, 'alpha', 'U9');
-  eq('checklist: mentor item ticks from the active pairing alone', [facts.profileDone, facts.mentorDone, facts.firstRunDone, facts.doneCount], [false, true, false, 1]);
+  eq('checklist: mentor item ticks from the active pairing alone', [facts.profileDone, facts.availabilityDone, facts.mentorDone, facts.firstRunDone, facts.doneCount], [false, false, true, false, 1]);
   await sg.updateSignupWeaponRoleByUid(db, evOpen.last_row_id, 'q-u9', '破竹·樽', '输出');
   await ev.setEventStatus(db, evOpen.last_row_id, 'completed');
+  await av.upsertMemberAvailability(db, { tenant: 'alpha', discordId: 'U9', displayName: '新人甲', slots: [{ weekday: 5, startMinute: 1140, endMinute: 1320 }], updatedAt: 1760000650 });
   facts = await rec.computeNewcomerChecklist(db, 'alpha', 'U9');
-  eq('checklist: weapon + completed seat tick the other two items', [facts.profileDone, facts.mentorDone, facts.firstRunDone, facts.allDone], [true, true, true, true]);
+  eq('checklist: weapon + completed seat + saved availability tick the other items', [facts.profileDone, facts.availabilityDone, facts.mentorDone, facts.firstRunDone, facts.allDone], [true, true, true, true, true]);
 
   const ended = await rec.endPairing(db, p1, 'alpha', 1760000700);
   eq('endPairing settles the active row', ended.changes, 1);

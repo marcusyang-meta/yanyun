@@ -104,23 +104,25 @@ export class NewcomerChecklistShell extends ShellBase {
     const f = this.data.facts;
     return [
       new NewcomerChecklistItemShell(this.ctx, { key: 'profile', labelField: 'itemProfileLabel', hintField: 'itemProfileHint', done: f.profileDone }),
+      new NewcomerChecklistItemShell(this.ctx, { key: 'availability', labelField: 'itemAvailabilityLabel', hintField: 'itemAvailabilityHint', done: f.availabilityDone }),
       new NewcomerChecklistItemShell(this.ctx, { key: 'mentor', labelField: 'itemMentorLabel', hintField: 'itemMentorHint', done: f.mentorDone }),
       new NewcomerChecklistItemShell(this.ctx, { key: 'firstRun', labelField: 'itemFirstRunLabel', hintField: 'itemFirstRunHint', done: f.firstRunDone }),
     ];
   }
   genDoneCount(){ return this.data.facts.doneCount; }
-  genTotalCount(){ return 3; }
-  genProgressText(){ return this.t('recruit', 'checklistProgress', { done: this.data.facts.doneCount, total: 3 }); }
+  genTotalCount(){ return 4; }
+  genProgressText(){ return this.t('recruit', 'checklistProgress', { done: this.data.facts.doneCount, total: 4 }); }
 }
 
 export class NewcomerProgressShell extends ShellBase {
   genDiscordId(){ return String(this.data.discordId); }
   genDisplayName(){ return this.data.displayName || ''; }
   genProfileDone(){ return !!this.data.facts.profileDone; }
+  genAvailabilityDone(){ return !!this.data.facts.availabilityDone; }
   genMentorDone(){ return !!this.data.facts.mentorDone; }
   genFirstRunDone(){ return !!this.data.facts.firstRunDone; }
   genDoneCount(){ return this.data.facts.doneCount; }
-  genProgressText(){ return this.t('recruit', 'checklistProgress', { done: this.data.facts.doneCount, total: 3 }); }
+  genProgressText(){ return this.t('recruit', 'checklistProgress', { done: this.data.facts.doneCount, total: 4 }); }
 }
 
 /* ---------------- the recruit page ---------------- */
@@ -299,6 +301,7 @@ export const recruitTypes = {
     discordId: (p: any) => p.genDiscordId(),
     displayName: (p: any) => p.genDisplayName(),
     profileDone: (p: any) => p.genProfileDone(),
+    availabilityDone: (p: any) => p.genAvailabilityDone(),
     mentorDone: (p: any) => p.genMentorDone(),
     firstRunDone: (p: any) => p.genFirstRunDone(),
     doneCount: (p: any) => p.genDoneCount(),

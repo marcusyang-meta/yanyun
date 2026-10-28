@@ -28,6 +28,7 @@ import { sql } from 'drizzle-orm';
 import { createDb } from '../../db/client.ts';
 import { guildApplications, mentorPairings, guildMentors } from './schema.ts';
 import { listUserSeatFactsInGuild } from '../groupings/signups.ts';
+import { getMemberAvailability, parseAvailabilitySlots } from '../groupings/availability.ts';
 
 const col = (name: string) => sql.identifier(name);
 
@@ -295,12 +296,17 @@ export async function endPairing(
  *    timezone is presented by their client on every request
  *    (x-tz) and used for presentation only, so there is nothing
  *    for a newcomer to fill in; the item's hint copy says so.
+ *  - availability: the member has at least one stored weekly
+ *    availability slot in this guild (F5) — the editor lives in
+ *    personal settings; the item is guidance only, skippable and
+ *    never blocking.
  *  - mentor: the member is the mentee of an ACTIVE pairing in
  *    this guild (F17).
  *  - firstRun: the member holds a seat in a grouping of this
  *    guild whose status is 'completed'. */
 export interface NewcomerChecklistFacts {
   profileDone: boolean;
+  availabilityDone: boolean;
   mentorDone: boolean;
   firstRunDone: boolean;
   doneCount: number;
@@ -315,6 +321,8 @@ export async function computeNewcomerChecklist(
   const firstRunDone = seats.some((x) => x.event_status === 'completed');
   const pairing = await getActivePairingForMentee(d1, tenant, discordId).catch(() => null);
   const mentorDone = !!pairing;
-  const doneCount = [profileDone, mentorDone, firstRunDone].filter(Boolean).length;
-  return { profileDone, mentorDone, firstRunDone, doneCount, allDone: doneCount === 3 };
+  const availRow = await getMemberAvailability(d1, tenant, discordId).catch(() => null);
+  const availabilityDone = !!availRow && parseAvailabilitySlots(availRow.slots_json).length > 0;
+  const doneCount = [profileDone, availabilityDone, mentorDone, firstRunDone].filter(Boolean).length;
+  return { profileDone, availabilityDone, mentorDone, firstRunDone, doneCount, allDone: doneCount === 4 };
 }

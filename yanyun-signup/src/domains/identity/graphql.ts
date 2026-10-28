@@ -7,6 +7,7 @@ import {
 import { tlCalculateExcel } from '../gear/index.ts';
 import { getUserServers, getGuildNick, maybeRefreshGuildNicks, getUserLocalePref, setUserLocalePref } from './auth.ts';
 import { upsertGuildMember } from '../groupings/index.ts';
+import { getMemberAvailability, parseAvailabilitySlots } from '../groupings/index.ts';
 import { isValidPushToken, savePushToken, deletePushToken } from '../platform/index.ts';
 import { evaluateHeirloomPushes } from '../gear/index.ts';
 import { translate, negotiateLocale, SUPPORTED_LOCALES, CATALOG } from '../platform/index.ts';
@@ -265,9 +266,46 @@ export function loadMyAccountRow(ctx: Context): Promise<AccountRow | null> {
   return store.get('myAccountRow') as Promise<AccountRow | null>;
 }
 
+/* One guild's availability as composed for the settings surface: the
+ * guild's name plus the viewer's stored UTC slots there. Read
+ * composition only — the editor writes through the existing
+ * setMyAvailability mutation (groupings domain), same entity. */
+export class SettingsAvailabilityGuildShell extends ShellBase {
+  genSlug(){ return this.data.slug; }
+  genGuildName(){ return this.data.guildName; }
+  genSlots(){ return this.data.slots || []; }
+}
+
 export class SettingsPageShell extends ShellBase {
   genLocalePref(){ return loadMyLocalePref(this.ctx); }
   genEffectiveLocale(){ return this.locale; }
+  /* My availability, relocated here from the guild schedule tab
+   * (marcus, 2026-10-27: availability is personal data, edited in
+   * personal settings): one entry per guild the viewer is a member
+   * of — the same membership verdict as everywhere else
+   * (getGuildAccess) — each carrying the viewer's stored slots for
+   * that guild. Anonymous viewers get an empty list. */
+  genAvailabilityGuilds(){
+    return this.memo('availabilityGuilds', async () => {
+      const user = this.ctx.user;
+      if (!user) return [];
+      const tenants = await listTenantsDirectory(this.db);
+      const out: SettingsAvailabilityGuildShell[] = [];
+      for (const t of tenants) {
+        const a = await getGuildAccess(this.db, user, t.slug, this.ctx.request);
+        if (!a.exists || !a.isMember) continue;
+        const row = await getMemberAvailability(this.db, t.slug, String(user.discordId)).catch(() => null);
+        out.push(new SettingsAvailabilityGuildShell(this.ctx, {
+          slug: t.slug, guildName: t.guild_name || '',
+          slots: row ? parseAvailabilitySlots(row.slots_json) : [],
+        }));
+      }
+      return out;
+    });
+  }
+  genAvailabilityWeekdayNames(){
+    return [0, 1, 2, 3, 4, 5, 6].map((i) => this.t('groupingList', 'weekday' + i));
+  }
   async genFreshAuthAt(){
     const row = await loadMyAccountRow(this.ctx);
     return row && row.fresh_auth_at != null ? Number(row.fresh_auth_at) : null;
@@ -329,6 +367,17 @@ export const SETTINGS_TEXT_RESOLVERS = defineTextGens(SettingsPageShell, [
   ['feedbackSubmitLabel', 'feedback', 'submit'],
   ['feedbackSubmittingLabel', 'feedback', 'submitting'],
   ['feedbackSuccessText', 'feedback', 'success'],
+  // Availability editor copy: the schedule section's strings, shared
+  // verbatim with the schedule surface (one copy source per string).
+  ['availabilityTitle', 'schedule', 'myTitle'],
+  ['availabilityHint', 'schedule', 'myHint'],
+  ['availabilityAddSlotLabel', 'schedule', 'addSlotLabel'],
+  ['availabilityRemoveLabel', 'schedule', 'removeLabel'],
+  ['availabilitySaveLabel', 'schedule', 'saveLabel'],
+  ['availabilitySavedText', 'schedule', 'savedText'],
+  ['availabilitySaveFailedTemplate', 'schedule', 'saveFailedTemplate'],
+  ['availabilityEmptyText', 'schedule', 'emptyMineText'],
+  ['availabilityNoGuildsText', 'schedule', 'noGuildsText'],
 ]);
 
 /* Pending-deletion panel: the type's presence IS the state (no flag);
@@ -437,7 +486,14 @@ export const identityResolvers = {
     freshAuthAt: (p: any) => p.genFreshAuthAt(),
     accountPendingDeletion: (p: any) => p.genAccountPendingDeletion(),
     seasonGoals: (p: SettingsPageShell) => p.genSeasonGoals(),
+    availabilityGuilds: (p: any) => p.genAvailabilityGuilds(),
+    availabilityWeekdayNames: (p: any) => p.genAvailabilityWeekdayNames(),
     ...SETTINGS_TEXT_RESOLVERS,
+  },
+  SettingsAvailabilityGuild: {
+    slug: (p: any) => p.genSlug(),
+    guildName: (p: any) => p.genGuildName(),
+    slots: (p: any) => p.genSlots(),
   },
   AccountPendingDeletion: {
     executesAt: (p: any) => p.genExecutesAt(),

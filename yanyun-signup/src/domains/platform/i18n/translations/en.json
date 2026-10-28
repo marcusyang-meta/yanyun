@@ -9395,6 +9395,28 @@
       ],
       "types": []
     },
+    "xdaq+MXUemGd1oiBEKmtXA==": {
+      "description": "schedule.settingsLinkLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Set it in your profile settings",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "RZ0zQEMkZX4M02On1vz8vg==": {
+      "description": "schedule.noGuildsText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "You have not joined any guild yet — once you do, you can fill in your availability here.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
     "b1i6nz0OtIQcYev/bu/vOA==": {
       "description": "guildHome.tabSchedule",
       "tokens": [],
@@ -9918,6 +9940,28 @@
       "translations": [
         {
           "translation": "Ticks automatically once you hold a seat in a completed squad.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "iCZSOgMYp2izcAY/sebRtQ==": {
+      "description": "recruit.itemAvailabilityLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Fill in your availability",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "kpM0F1SORdBpNlzFW4fHiQ==": {
+      "description": "recruit.itemAvailabilityHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Fill in the times you are regularly free each week under your profile settings, so admins and squad leaders can schedule around you. You can skip this for now and add it any time.",
           "variations": {}
         }
       ],

@@ -65,11 +65,12 @@ function makeDb(fx = {}) {
     applications: [],
     mentors: [],
     pairings: [],
+    availability: [],
   };
   let nextId = 9000;
   function norm(sql) {
     return sql.replace(/"/g, '')
-      .replace(/\b(tenants|settings|users|events|signups|guild_members|guild_applications|guild_mentors|mentor_pairings|user_guild_nicks)\./g, '')
+      .replace(/\b(tenants|settings|users|events|signups|guild_members|guild_applications|guild_mentors|mentor_pairings|user_guild_nicks|member_availability)\./g, '')
       .replace(/\s+/g, ' ');
   }
   function parseCols(list) { return list.split(',').map((c) => c.trim().split('.').pop()); }
@@ -86,6 +87,12 @@ function makeDb(fx = {}) {
         const hit = tables.guildMembers.find((x) => x.tenant === row.tenant && x.discord_id === row.discord_id);
         if (hit) { hit.nick = row.nick; hit.global_name = row.global_name; }
         else tables.guildMembers.push(row);
+        return { meta: { changes: 1 } };
+      }
+      if (table === 'member_availability') {
+        const hit = tables.availability.find((x) => x.tenant === row.tenant && x.discord_id === row.discord_id);
+        if (hit) Object.assign(hit, row);
+        else tables.availability.push(row);
         return { meta: { changes: 1 } };
       }
       if (table === 'guild_mentors') {
@@ -172,6 +179,10 @@ function makeDb(fx = {}) {
       if (/discord_id = \?/i.test(sql) && b.length > 1) rows = rows.filter((x) => x.discord_id === String(b[1]));
       if (/status = 'pending'/i.test(sql)) rows = rows.filter((x) => x.status === 'pending');
       rows = rows.slice().sort((x, y) => y.id - x.id);
+      return kind === 'first' ? (rows[0] ?? null) : all(rows);
+    }
+    if (/FROM member_availability/i.test(sql)) {
+      const rows = tables.availability.filter((x) => x.tenant === b[0] && x.discord_id === String(b[1]));
       return kind === 'first' ? (rows[0] ?? null) : all(rows);
     }
     if (/FROM guild_mentors/i.test(sql)) {
@@ -319,7 +330,7 @@ const adminQ = `{ viewer { guildAdmin(slug: "rectest") { __typename
     recruitApplications { id applicantDiscordId applicantName message status statusLabel reviewedByName }
     recruitPairings { id mentorName menteeName status }
     recruitRoster { discordId displayName isMentor }
-    newcomerProgress { discordId displayName profileDone mentorDone firstRunDone doneCount progressText } }
+    newcomerProgress { discordId displayName profileDone availabilityDone mentorDone firstRunDone doneCount progressText } }
   ... on GuildAdminLocked { slug } } } }`;
 r = await gql(adminQ, { user: MEMBER });
 eq('普通成员 -> GuildAdminLocked (无招新面)', r.data?.viewer?.guildAdmin?.__typename, 'GuildAdminLocked');
@@ -384,20 +395,28 @@ eq('配对只落一行', tables.pairings.length, 1);
 /* ================= F24: checklist derivation ================= */
 r = await gql(pageQ, { user: MEMBER });
 const cl = r.data?.viewer?.guildRecruit?.checklist;
-eq('成员清单: 三项齐发', (cl?.items || []).map((i) => i.key), ['profile', 'mentor', 'firstRun']);
+eq('成员清单: 四项齐发', (cl?.items || []).map((i) => i.key), ['profile', 'availability', 'mentor', 'firstRun']);
 eq('清单条目文案后端下发', cl?.items?.[0]?.label, '完善流派 / 时区');
-eq('配对后三项全勾 (流派座位+完成车+导师)', (cl?.items || []).map((i) => i.done), [true, true, true]);
-eq('清单进度文案后端拼', cl?.progressText, '已完成 3 / 3');
+eq('可用时间条目文案后端下发', cl?.items?.[1]?.label, '填写可用时间');
+eq('未填可用时间时仅该项未勾 (流派座位+导师+完成车已勾)', (cl?.items || []).map((i) => i.done), [true, false, true, true]);
+eq('清单进度文案后端拼', cl?.progressText, '已完成 3 / 4');
 eq('本人配对回读', (r.data?.viewer?.guildRecruit?.myPairings || []).map((p) => [p.mentorName, p.status]), [['导师甲', 'ACTIVE']]);
+const availMut = `mutation($input: SetAvailabilityInput!) { setMyAvailability(input: $input) { ok error errorCode } }`;
+r = await gql(availMut, { user: MEMBER, variables: { input: { slug: 'rectest', slots: [{ weekday: 5, startMinute: 1140, endMinute: 1320 }] } } });
+eq('成员保存可用时间 ok (清单完成态的事实来源)', r.data?.setMyAvailability?.ok, true);
+r = await gql(pageQ, { user: MEMBER });
+eq('填后四项全勾 (流派座位+可用时间+导师+完成车)', (r.data?.viewer?.guildRecruit?.checklist?.items || []).map((i) => i.done), [true, true, true, true]);
+eq('填后清单进度 4/4', r.data?.viewer?.guildRecruit?.checklist?.progressText, '已完成 4 / 4');
 r = await gql(pageQ, { user: MEMBER2 });
-eq('丙清单: 无流派/未完成/无导师全未勾', (r.data?.viewer?.guildRecruit?.checklist?.items || []).map((i) => i.done), [false, false, false]);
-eq('丙清单进度 0/3', r.data?.viewer?.guildRecruit?.checklist?.doneCount, 0);
+eq('丙清单: 无流派/未填可用时间/无导师/未完成全未勾', (r.data?.viewer?.guildRecruit?.checklist?.items || []).map((i) => i.done), [false, false, false, false]);
+eq('丙清单进度 0/4', r.data?.viewer?.guildRecruit?.checklist?.doneCount, 0);
 r = await gql(adminQ, { user: ADMIN });
 const prog = r.data?.viewer?.guildAdmin?.newcomerProgress || [];
 check('总览含未完成的丙 (0 项)', prog.some((p) => p.discordId === 'UC' && p.doneCount === 0), JSON.stringify(prog.map((p) => p.discordId)));
 check('总览不含全勾的乙', !prog.some((p) => p.discordId === 'UB'));
 check('总览含刚入册的新人甲 (0 项)', prog.some((p) => p.discordId === 'UN' && p.doneCount === 0));
 eq('总览逐项结论与本人视图一致 (丙)', prog.find((p) => p.discordId === 'UC')?.profileDone, false);
+eq('总览逐项结论与本人视图一致 (丙·可用时间)', prog.find((p) => p.discordId === 'UC')?.availabilityDone, false);
 
 /* pairing end + re-pair */
 r = await gql(endMut, { user: ADMIN_B, variables: { slug: 'rectest', id: pair1 } });

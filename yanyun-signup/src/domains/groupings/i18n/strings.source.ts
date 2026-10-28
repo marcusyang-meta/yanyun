@@ -241,3 +241,5 @@ export const schedule_toastVoted = (fbs: FbsAPI) =>fbs("已提交", "schedule.to
 export const schedule_toastClosed = (fbs: FbsAPI) =>fbs("投票已关闭", "schedule.toastClosed");
 export const schedule_toastFailedTemplate = (fbs: FbsAPI, p?: StringParams) =>
   fbs(["操作失败：", fbs.param("error", pv(p, "error"))], "schedule.toastFailedTemplate");
+export const schedule_settingsLinkLabel = (fbs: FbsAPI) =>fbs("在个人设置中填写", "schedule.settingsLinkLabel");
+export const schedule_noGuildsText = (fbs: FbsAPI) =>fbs("你还没有加入任何百业，加入后可在此填写可用时间。", "schedule.noGuildsText");

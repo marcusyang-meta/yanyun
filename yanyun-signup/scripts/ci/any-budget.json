@@ -92,8 +92,8 @@
     "reason": "Discord OAuth payloads and JWT claims at the external boundary; narrowed immediately after parsing"
   },
   "src/domains/identity/graphql.ts": {
-    "max": 66,
-    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context). Raised for the account self-service surface (settingsPage account fields + export/deletion payload shells), written in this file's established resolver style + recruit line: the Viewer.guildRecruit resolver in the same pattern"
+    "max": 71,
+    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context). Raised for the account self-service surface (settingsPage account fields + export/deletion payload shells), written in this file's established resolver style + recruit line: the Viewer.guildRecruit resolver in the same pattern + availability relocation: the SettingsAvailabilityGuild shell and the two settingsPage availability resolvers in the same pattern"
   },
   "src/domains/platform/blocks.ts": {
     "max": 10,
@@ -128,8 +128,8 @@
     "reason": "fbtee runtime interop: generated catalog access at the data edge"
   },
   "src/domains/platform/i18n/catalog.ts": {
-    "max": 8,
-    "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary. Generated file: the count includes the word as it appears inside compiled translation string data (account section copy) (recruit section copy contains the word in compiled string data)"
+    "max": 10,
+    "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary. Generated file: the count includes the word as it appears inside compiled translation string data (account section copy) (recruit section copy contains the word in compiled string data) (availability relocation: the en translations of the new schedule/recruit strings contain the word)"
   },
   "src/domains/platform/og.ts": {
     "max": 6,
@@ -160,8 +160,8 @@
     "reason": "the word appears once in a comment (no any types in this repository module)"
   },
   "src/domains/guilds/recruit-graphql.ts": {
-    "max": 49,
-    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context) — the recruit page / application / pairing / checklist shells and the apply mutation in the established resolver pattern"
+    "max": 50,
+    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context) — the recruit page / application / pairing / checklist shells and the apply mutation in the established resolver pattern + the NewcomerProgress availabilityDone resolver in the same pattern"
   },
   "src/domains/guilds/recruit.ts": {
     "max": 2,

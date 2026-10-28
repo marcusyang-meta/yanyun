@@ -9142,6 +9142,28 @@
       ],
       "types": []
     },
+    "xdaq+MXUemGd1oiBEKmtXA==": {
+      "description": "schedule.settingsLinkLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "在個人設定中填寫",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "RZ0zQEMkZX4M02On1vz8vg==": {
+      "description": "schedule.noGuildsText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "你還沒有加入任何百業，加入後可在此填寫可用時間。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
     "b1i6nz0OtIQcYev/bu/vOA==": {
       "description": "guildHome.tabSchedule",
       "tokens": [],
@@ -9665,6 +9687,28 @@
       "translations": [
         {
           "translation": "在一輛已完成的車隊裡落座後自動完成。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "iCZSOgMYp2izcAY/sebRtQ==": {
+      "description": "recruit.itemAvailabilityLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "填寫可用時間",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "kpM0F1SORdBpNlzFW4fHiQ==": {
+      "description": "recruit.itemAvailabilityHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "在個人設定裡填寫你每週固定有空的時段，方便管理員與車頭定檔期；可以先跳過，之後隨時補填。",
           "variations": {}
         }
       ],
