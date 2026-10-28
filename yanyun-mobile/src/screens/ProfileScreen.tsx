@@ -10,6 +10,7 @@ import { fonts, theme } from '../theme';
 import { AsyncBoundary, LoadingView } from '../components/AsyncBoundary';
 import { ProfilePageQuery } from '../documents';
 import GearLibraryDialog from './GearLibraryDialog';
+import AvailabilityDialog from './AvailabilityDialog';
 import {
   cancelAccountDeletionRemote,
   exportMyDataRemote,
@@ -66,6 +67,7 @@ function ProfileInner({ topInset, bottomInset }: { topInset: number; bottomInset
   const [saved, setSaved] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const [gearOpen, setGearOpen] = useState(false);
+  const [availOpen, setAvailOpen] = useState(false);
 
   /* ---- My Data (account export / deletion) ---- */
   const environment = useRelayEnvironment();
@@ -284,6 +286,14 @@ function ProfileInner({ topInset, bottomInset }: { topInset: number; bottomInset
           <Text style={s.entryText}>{page.feedbackEntryLabel}</Text>
           <Text style={s.entryChevron}>›</Text>
         </Pressable>
+        {/* Availability editor entry: the editor is a dialog page of
+            this Profile host (AvailabilityDialog), the only place
+            availability is edited — the guild schedule tab no longer
+            carries it. */}
+        <Pressable style={[s.entryRow, { marginTop: 8 }]} onPress={() => setAvailOpen(true)}>
+          <Text style={s.entryText}>{page.availabilityTitle}</Text>
+          <Text style={s.entryChevron}>›</Text>
+        </Pressable>
       </View>
 
       {/* My Data: account export + deletion (self-service). The pending
@@ -386,6 +396,7 @@ function ProfileInner({ topInset, bottomInset }: { topInset: number; bottomInset
       </View>
     </ScrollView>
     {gearOpen && <GearLibraryDialog onClose={() => setGearOpen(false)} />}
+    {availOpen && <AvailabilityDialog onClose={() => setAvailOpen(false)} />}
     </>
   );
 }

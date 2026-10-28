@@ -546,6 +546,7 @@ export const ProfilePageQuery = graphql`
       settingsLangFrLabel
       settingsSavedText
       feedbackEntryLabel
+      availabilityTitle
       localePref
       effectiveLocale
       accountSectionTitle
@@ -610,6 +611,47 @@ export const SubmitFeedbackMutation = graphql`
       ok
       error
       errorCode
+    }
+  }
+`;
+
+/* Availability editor (a dialog page under Profile, also opened from
+   the newcomer checklist): the settingsPage shell composes the copy
+   plus one slot set per guild the viewer belongs to; the write is
+   the same setMyAvailability mutation the web editor uses. */
+
+export const AvailabilityPageQuery = graphql`
+  query documentsAvailabilityPageQuery {
+    viewer {
+      commonUnknownErrorText
+    }
+    settingsPage {
+      availabilityTitle
+      availabilityHint
+      availabilityWeekdayNames
+      availabilityAddSlotLabel
+      availabilityRemoveLabel
+      availabilitySaveLabel
+      availabilitySavedText
+      availabilitySaveFailedTemplate
+      availabilityEmptyText
+      availabilityNoGuildsText
+      availabilityGuilds {
+        slug
+        guildName
+        slots { weekday startMinute endMinute }
+      }
+    }
+  }
+`;
+
+export const SetMyAvailabilityMutation = graphql`
+  mutation documentsSetMyAvailabilityMutation($input: SetAvailabilityInput!) {
+    setMyAvailability(input: $input) {
+      ok
+      error
+      errorCode
+      slots { weekday startMinute endMinute }
     }
   }
 `;

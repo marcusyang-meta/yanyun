@@ -896,6 +896,23 @@ type SettingsPage {
   accountDeletionCancelledText: String!
   freshAuthAt: Int
   accountPendingDeletion: AccountPendingDeletion
+  availabilityTitle: String!
+  availabilityHint: String!
+  availabilityWeekdayNames: [String!]!
+  availabilityAddSlotLabel: String!
+  availabilityRemoveLabel: String!
+  availabilitySaveLabel: String!
+  availabilitySavedText: String!
+  availabilitySaveFailedTemplate: String!
+  availabilityEmptyText: String!
+  availabilityNoGuildsText: String!
+  availabilityGuilds: [SettingsAvailabilityGuild!]!
+}
+
+type SettingsAvailabilityGuild {
+  slug: String!
+  guildName: String!
+  slots: [AvailabilitySlot!]!
 }
 
 type AccountPendingDeletion {
@@ -1385,6 +1402,7 @@ type GuildSchedulePage {
   scheduleToastVoted: String!
   scheduleToastClosed: String!
   scheduleToastFailedTemplate: String!
+  scheduleSettingsLinkLabel: String!
 }
 
 type AvailabilitySlot {
@@ -2172,6 +2190,7 @@ type NewcomerProgress {
   discordId: String!
   displayName: String!
   profileDone: Boolean!
+  availabilityDone: Boolean!
   mentorDone: Boolean!
   firstRunDone: Boolean!
   doneCount: Int!
