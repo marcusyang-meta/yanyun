@@ -248,6 +248,7 @@ export type GuildsStringKey =
   | 'guildAdmin_lotteryEntryCount'
   | 'guildAdmin_tabRecruit'
   | 'guildAdmin_tabOfficer'
+  | 'guildAdmin_tabGovernance'
   | 'announcements_title'
   | 'announcements_emptyText'
   | 'announcements_urgentLabel'
@@ -503,7 +504,80 @@ export type GuildsStringKey =
   | 'allies_allyVisibleLabel'
   | 'allies_visitorSlotsLabel'
   | 'allies_sharingSaveButton'
-  | 'allies_backLabel';
+  | 'allies_backLabel'
+  | 'governance_sectionLockedTitle'
+  | 'governance_sectionLockedBody'
+  | 'governance_lockedTitle'
+  | 'governance_lockedBody'
+  | 'governance_title'
+  | 'governance_hint'
+  | 'governance_officersTitle'
+  | 'governance_officersHint'
+  | 'governance_officersEmpty'
+  | 'governance_grantMemberLabel'
+  | 'governance_grantCapabilitiesLabel'
+  | 'governance_grantButton'
+  | 'governance_revokeButton'
+  | 'governance_grantedByTemplate'
+  | 'governance_adminBadge'
+  | 'governance_boardTitle'
+  | 'governance_boardHint'
+  | 'governance_boardEmpty'
+  | 'governance_boardPlaceholder'
+  | 'governance_boardPostButton'
+  | 'governance_boardDeleteButton'
+  | 'governance_boardAuthorTemplate'
+  | 'governance_auditTitle'
+  | 'governance_auditHint'
+  | 'governance_auditEmpty'
+  | 'governance_auditLoadMoreButton'
+  | 'governance_auditActorFallback'
+  | 'governance_capProfile'
+  | 'governance_capDiscord'
+  | 'governance_capEvents'
+  | 'governance_capGuides'
+  | 'governance_capAnnounce'
+  | 'governance_capStats'
+  | 'governance_capTools'
+  | 'governance_capSeason'
+  | 'governance_capRecruit'
+  | 'governance_capOfficer'
+  | 'governance_actionProfileUpdate'
+  | 'governance_actionAvatarSet'
+  | 'governance_actionAvatarDelete'
+  | 'governance_actionDiscordUpdate'
+  | 'governance_actionReminderUpdate'
+  | 'governance_actionWhitelabelUpdate'
+  | 'governance_actionVisibilityUpdate'
+  | 'governance_actionRecruitOpen'
+  | 'governance_actionEventCreate'
+  | 'governance_actionEventUpdate'
+  | 'governance_actionEventDelete'
+  | 'governance_actionSignupRemove'
+  | 'governance_actionResultAdd'
+  | 'governance_actionResultDelete'
+  | 'governance_actionLotteryCreate'
+  | 'governance_actionLotteryDraw'
+  | 'governance_actionGuideUpdate'
+  | 'governance_actionAnnouncementPost'
+  | 'governance_actionAnnouncementDelete'
+  | 'governance_actionApplicationApprove'
+  | 'governance_actionApplicationReject'
+  | 'governance_actionMentorSet'
+  | 'governance_actionMentorUnset'
+  | 'governance_actionPairingCreate'
+  | 'governance_actionPairingEnd'
+  | 'governance_actionNoteAdd'
+  | 'governance_actionNoteUpdate'
+  | 'governance_actionNoteDelete'
+  | 'governance_actionExportPackage'
+  | 'governance_actionSeasonChecklist'
+  | 'governance_actionRosterImport'
+  | 'governance_actionRosterEntryDelete'
+  | 'governance_actionOfficerGrant'
+  | 'governance_actionOfficerRevoke'
+  | 'governance_actionBoardPost'
+  | 'governance_actionBoardDelete';
 
 export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'locked_backLink',
@@ -753,6 +827,7 @@ export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'guildAdmin_lotteryEntryCount',
   'guildAdmin_tabRecruit',
   'guildAdmin_tabOfficer',
+  'guildAdmin_tabGovernance',
   'announcements_title',
   'announcements_emptyText',
   'announcements_urgentLabel',
@@ -1009,4 +1084,77 @@ export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'allies_visitorSlotsLabel',
   'allies_sharingSaveButton',
   'allies_backLabel',
+  'governance_sectionLockedTitle',
+  'governance_sectionLockedBody',
+  'governance_lockedTitle',
+  'governance_lockedBody',
+  'governance_title',
+  'governance_hint',
+  'governance_officersTitle',
+  'governance_officersHint',
+  'governance_officersEmpty',
+  'governance_grantMemberLabel',
+  'governance_grantCapabilitiesLabel',
+  'governance_grantButton',
+  'governance_revokeButton',
+  'governance_grantedByTemplate',
+  'governance_adminBadge',
+  'governance_boardTitle',
+  'governance_boardHint',
+  'governance_boardEmpty',
+  'governance_boardPlaceholder',
+  'governance_boardPostButton',
+  'governance_boardDeleteButton',
+  'governance_boardAuthorTemplate',
+  'governance_auditTitle',
+  'governance_auditHint',
+  'governance_auditEmpty',
+  'governance_auditLoadMoreButton',
+  'governance_auditActorFallback',
+  'governance_capProfile',
+  'governance_capDiscord',
+  'governance_capEvents',
+  'governance_capGuides',
+  'governance_capAnnounce',
+  'governance_capStats',
+  'governance_capTools',
+  'governance_capSeason',
+  'governance_capRecruit',
+  'governance_capOfficer',
+  'governance_actionProfileUpdate',
+  'governance_actionAvatarSet',
+  'governance_actionAvatarDelete',
+  'governance_actionDiscordUpdate',
+  'governance_actionReminderUpdate',
+  'governance_actionWhitelabelUpdate',
+  'governance_actionVisibilityUpdate',
+  'governance_actionRecruitOpen',
+  'governance_actionEventCreate',
+  'governance_actionEventUpdate',
+  'governance_actionEventDelete',
+  'governance_actionSignupRemove',
+  'governance_actionResultAdd',
+  'governance_actionResultDelete',
+  'governance_actionLotteryCreate',
+  'governance_actionLotteryDraw',
+  'governance_actionGuideUpdate',
+  'governance_actionAnnouncementPost',
+  'governance_actionAnnouncementDelete',
+  'governance_actionApplicationApprove',
+  'governance_actionApplicationReject',
+  'governance_actionMentorSet',
+  'governance_actionMentorUnset',
+  'governance_actionPairingCreate',
+  'governance_actionPairingEnd',
+  'governance_actionNoteAdd',
+  'governance_actionNoteUpdate',
+  'governance_actionNoteDelete',
+  'governance_actionExportPackage',
+  'governance_actionSeasonChecklist',
+  'governance_actionRosterImport',
+  'governance_actionRosterEntryDelete',
+  'governance_actionOfficerGrant',
+  'governance_actionOfficerRevoke',
+  'governance_actionBoardPost',
+  'governance_actionBoardDelete',
 ];

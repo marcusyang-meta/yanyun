@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<8a416c3d418a780bf443ba738b7a5d1b>>
+ * @generated SignedSource<<89f034909112441e2c02342ac16bbf50>>
  * @lightSyntaxTransform
  */
 
@@ -178,6 +178,7 @@ export type GuildAdminPage_guildAdmin$data = {
   readonly adminTabAnnouncementsLabel: string;
   readonly adminTabDiscordLabel: string;
   readonly adminTabEventsLabel: string;
+  readonly adminTabGovernanceLabel: string;
   readonly adminTabGuidesLabel: string;
   readonly adminTabInsightsLabel: string;
   readonly adminTabOfficerLabel: string;
@@ -284,6 +285,72 @@ export type GuildAdminPage_guildAdmin$data = {
     readonly __typename: "GuildInsightsLocked";
     readonly premiumBody: string;
     readonly premiumTitle: string;
+  } | {
+    // This will never be '%other', but we need some
+    // value in case none of the concrete values match.
+    readonly __typename: "%other";
+  };
+  readonly governance: {
+    readonly __typename: "GuildGovernanceLocked";
+    readonly lockedBody: string;
+    readonly lockedTitle: string;
+  } | {
+    readonly __typename: "GuildGovernancePage";
+    readonly auditEmptyText: string;
+    readonly auditEvents: ReadonlyArray<{
+      readonly action: string;
+      readonly actionLabel: string;
+      readonly actorName: string;
+      readonly createdAtText: string;
+      readonly id: string;
+      readonly targetLabel: string;
+      readonly targetType: string;
+    }>;
+    readonly auditHint: string;
+    readonly auditLoadMoreButtonLabel: string;
+    readonly auditTitle: string;
+    readonly auditTotalCount: number;
+    readonly boardDeleteButtonLabel: string;
+    readonly boardEmptyText: string;
+    readonly boardHint: string;
+    readonly boardPlaceholder: string;
+    readonly boardPostButtonLabel: string;
+    readonly boardPosts: ReadonlyArray<{
+      readonly authorName: string;
+      readonly body: string;
+      readonly canDelete: boolean;
+      readonly createdAtText: string;
+      readonly id: string;
+      readonly mine: boolean;
+    }>;
+    readonly boardTitle: string;
+    readonly canManageGrants: boolean;
+    readonly capabilityOptions: ReadonlyArray<{
+      readonly key: string;
+      readonly label: string;
+    }>;
+    readonly grantButtonLabel: string;
+    readonly grantCapabilitiesLabel: string;
+    readonly grantMemberLabel: string;
+    readonly hint: string;
+    readonly officers: ReadonlyArray<{
+      readonly capabilities: ReadonlyArray<string>;
+      readonly capabilityLabels: ReadonlyArray<string>;
+      readonly discordId: string;
+      readonly displayName: string;
+      readonly grantedAtText: string;
+      readonly grantedByName: string;
+      readonly grantedByText: string | null | undefined;
+    }>;
+    readonly officersEmptyText: string;
+    readonly officersHint: string;
+    readonly officersTitle: string;
+    readonly revokeButtonLabel: string;
+    readonly roster: ReadonlyArray<{
+      readonly discordId: string;
+      readonly displayName: string;
+    }>;
+    readonly title: string;
   } | {
     // This will never be '%other', but we need some
     // value in case none of the concrete values match.
@@ -651,6 +718,7 @@ export type GuildAdminPage_guildAdmin$data = {
     // value in case none of the concrete values match.
     readonly __typename: "%other";
   };
+  readonly viewerCapabilities: ReadonlyArray<string>;
   readonly whiteLabelHideBranding: boolean;
   readonly " $fragmentType": "GuildAdminPage_guildAdmin";
 };
@@ -794,45 +862,63 @@ v19 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "createdAtText",
+  "name": "actionLabel",
   "storageKey": null
 },
-v20 = {
-  "alias": null,
-  "args": null,
-  "kind": "ScalarField",
-  "name": "updatedAtText",
-  "storageKey": null
-},
+v20 = [
+  (v15/*:: as any*/),
+  (v16/*:: as any*/)
+],
 v21 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "note",
+  "name": "body",
   "storageKey": null
 },
 v22 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "statusLabel",
+  "name": "createdAtText",
   "storageKey": null
 },
 v23 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "seasonName",
+  "name": "updatedAtText",
   "storageKey": null
 },
 v24 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
+  "name": "note",
+  "storageKey": null
+},
+v25 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "statusLabel",
+  "storageKey": null
+},
+v26 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "seasonName",
+  "storageKey": null
+},
+v27 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
   "name": "source",
   "storageKey": null
 },
-v25 = [
+v28 = [
   (v15/*:: as any*/),
   (v16/*:: as any*/),
   {
@@ -843,28 +929,28 @@ v25 = [
     "storageKey": null
   }
 ],
-v26 = {
+v29 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "createdAt",
   "storageKey": null
 },
-v27 = {
+v30 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "teamName",
   "storageKey": null
 },
-v28 = {
+v31 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "members",
   "storageKey": null
 },
-v29 = {
+v32 = {
   "kind": "InlineFragment",
   "selections": (v8/*:: as any*/),
   "type": "GuildInsightsLocked",
@@ -1574,13 +1660,7 @@ return {
                   "name": "actionKey",
                   "storageKey": null
                 },
-                {
-                  "alias": null,
-                  "args": null,
-                  "kind": "ScalarField",
-                  "name": "actionLabel",
-                  "storageKey": null
-                },
+                (v19/*:: as any*/),
                 {
                   "alias": null,
                   "args": null,
@@ -1627,6 +1707,343 @@ return {
             }
           ],
           "type": "GuildAdminOps",
+          "abstractKey": null
+        }
+      ],
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminTabGovernanceLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "viewerCapabilities",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "concreteType": null,
+      "kind": "LinkedField",
+      "name": "governance",
+      "plural": false,
+      "selections": [
+        (v3/*:: as any*/),
+        {
+          "kind": "InlineFragment",
+          "selections": [
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "lockedTitle",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "lockedBody",
+              "storageKey": null
+            }
+          ],
+          "type": "GuildGovernanceLocked",
+          "abstractKey": null
+        },
+        {
+          "kind": "InlineFragment",
+          "selections": [
+            (v9/*:: as any*/),
+            (v10/*:: as any*/),
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "officersTitle",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "officersHint",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "officersEmptyText",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "grantMemberLabel",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "grantCapabilitiesLabel",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "grantButtonLabel",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "revokeButtonLabel",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "boardTitle",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "boardHint",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "boardEmptyText",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "boardPlaceholder",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "boardPostButtonLabel",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "boardDeleteButtonLabel",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "auditTitle",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "auditHint",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "auditEmptyText",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "auditLoadMoreButtonLabel",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "canManageGrants",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "concreteType": "GuildOfficerGrant",
+              "kind": "LinkedField",
+              "name": "officers",
+              "plural": true,
+              "selections": [
+                (v15/*:: as any*/),
+                (v16/*:: as any*/),
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "capabilities",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "capabilityLabels",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "grantedByName",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "grantedByText",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "grantedAtText",
+                  "storageKey": null
+                }
+              ],
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "concreteType": "GuildCapabilityOption",
+              "kind": "LinkedField",
+              "name": "capabilityOptions",
+              "plural": true,
+              "selections": [
+                (v1/*:: as any*/),
+                (v2/*:: as any*/)
+              ],
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "concreteType": "GuildGovernanceRosterMember",
+              "kind": "LinkedField",
+              "name": "roster",
+              "plural": true,
+              "selections": (v20/*:: as any*/),
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "concreteType": "GuildOfficerBoardPost",
+              "kind": "LinkedField",
+              "name": "boardPosts",
+              "plural": true,
+              "selections": [
+                (v11/*:: as any*/),
+                (v21/*:: as any*/),
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "authorName",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "mine",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "canDelete",
+                  "storageKey": null
+                },
+                (v22/*:: as any*/)
+              ],
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "concreteType": "GuildAuditEvent",
+              "kind": "LinkedField",
+              "name": "auditEvents",
+              "plural": true,
+              "selections": [
+                (v11/*:: as any*/),
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "action",
+                  "storageKey": null
+                },
+                (v19/*:: as any*/),
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "actorName",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "targetType",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "targetLabel",
+                  "storageKey": null
+                },
+                (v22/*:: as any*/)
+              ],
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "auditTotalCount",
+              "storageKey": null
+            }
+          ],
+          "type": "GuildGovernancePage",
           "abstractKey": null
         }
       ],
@@ -1771,13 +2188,7 @@ return {
               "plural": true,
               "selections": [
                 (v11/*:: as any*/),
-                {
-                  "alias": null,
-                  "args": null,
-                  "kind": "ScalarField",
-                  "name": "body",
-                  "storageKey": null
-                },
+                (v21/*:: as any*/),
                 {
                   "alias": null,
                   "args": null,
@@ -1785,8 +2196,8 @@ return {
                   "name": "authorText",
                   "storageKey": null
                 },
-                (v19/*:: as any*/),
-                (v20/*:: as any*/)
+                (v22/*:: as any*/),
+                (v23/*:: as any*/)
               ],
               "storageKey": null
             },
@@ -1800,9 +2211,9 @@ return {
               "selections": [
                 (v11/*:: as any*/),
                 (v9/*:: as any*/),
-                (v21/*:: as any*/),
+                (v24/*:: as any*/),
                 (v6/*:: as any*/),
-                (v22/*:: as any*/),
+                (v25/*:: as any*/),
                 {
                   "alias": null,
                   "args": null,
@@ -1810,8 +2221,8 @@ return {
                   "name": "dungeonName",
                   "storageKey": null
                 },
-                (v23/*:: as any*/),
-                (v20/*:: as any*/)
+                (v26/*:: as any*/),
+                (v23/*:: as any*/)
               ],
               "storageKey": null
             }
@@ -1964,7 +2375,7 @@ return {
           "name": "prize",
           "storageKey": null
         },
-        (v24/*:: as any*/),
+        (v27/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -1994,7 +2405,7 @@ return {
           "name": "entryCountText",
           "storageKey": null
         },
-        (v19/*:: as any*/),
+        (v22/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -2009,7 +2420,7 @@ return {
           "kind": "LinkedField",
           "name": "entries",
           "plural": true,
-          "selections": (v25/*:: as any*/),
+          "selections": (v28/*:: as any*/),
           "storageKey": null
         },
         {
@@ -2019,7 +2430,7 @@ return {
           "kind": "LinkedField",
           "name": "winners",
           "plural": true,
-          "selections": (v25/*:: as any*/),
+          "selections": (v28/*:: as any*/),
           "storageKey": null
         }
       ],
@@ -2032,10 +2443,7 @@ return {
       "kind": "LinkedField",
       "name": "lotteryRoster",
       "plural": true,
-      "selections": [
-        (v15/*:: as any*/),
-        (v16/*:: as any*/)
-      ],
+      "selections": (v20/*:: as any*/),
       "storageKey": null
     },
     {
@@ -2223,8 +2631,8 @@ return {
           "storageKey": null
         },
         (v6/*:: as any*/),
+        (v25/*:: as any*/),
         (v22/*:: as any*/),
-        (v19/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -2280,8 +2688,8 @@ return {
           "storageKey": null
         },
         (v6/*:: as any*/),
+        (v25/*:: as any*/),
         (v22/*:: as any*/),
-        (v19/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -2531,7 +2939,7 @@ return {
           "selections": [
             (v11/*:: as any*/),
             (v16/*:: as any*/),
-            (v24/*:: as any*/),
+            (v27/*:: as any*/),
             {
               "alias": null,
               "args": null,
@@ -2539,7 +2947,7 @@ return {
               "name": "matchedName",
               "storageKey": null
             },
-            (v26/*:: as any*/)
+            (v29/*:: as any*/)
           ],
           "storageKey": null
         }
@@ -3388,10 +3796,10 @@ return {
               "name": "contact",
               "storageKey": null
             },
-            (v27/*:: as any*/),
-            (v28/*:: as any*/),
-            (v21/*:: as any*/),
-            (v26/*:: as any*/)
+            (v30/*:: as any*/),
+            (v31/*:: as any*/),
+            (v24/*:: as any*/),
+            (v29/*:: as any*/)
           ],
           "storageKey": null
         },
@@ -3404,8 +3812,8 @@ return {
           "plural": true,
           "selections": [
             (v11/*:: as any*/),
-            (v27/*:: as any*/),
-            (v28/*:: as any*/),
+            (v30/*:: as any*/),
+            (v31/*:: as any*/),
             {
               "alias": null,
               "args": null,
@@ -3427,7 +3835,7 @@ return {
               "name": "proofUrl",
               "storageKey": null
             },
-            (v21/*:: as any*/)
+            (v24/*:: as any*/)
           ],
           "storageKey": null
         },
@@ -3917,7 +4325,7 @@ return {
           "type": "GuildAdminReliability",
           "abstractKey": null
         },
-        (v29/*:: as any*/)
+        (v32/*:: as any*/)
       ],
       "storageKey": null
     },
@@ -4011,7 +4419,7 @@ return {
           "type": "GuildAdminParticipationHeatmap",
           "abstractKey": null
         },
-        (v29/*:: as any*/)
+        (v32/*:: as any*/)
       ],
       "storageKey": null
     },
@@ -4121,7 +4529,7 @@ return {
           "type": "GuildAdminGearBoard",
           "abstractKey": null
         },
-        (v29/*:: as any*/)
+        (v32/*:: as any*/)
       ],
       "storageKey": null
     },
@@ -4152,7 +4560,7 @@ return {
                   "name": "season",
                   "storageKey": null
                 },
-                (v23/*:: as any*/),
+                (v26/*:: as any*/),
                 (v18/*:: as any*/),
                 {
                   "alias": null,
@@ -4162,8 +4570,8 @@ return {
                   "name": "entries",
                   "plural": true,
                   "selections": [
-                    (v27/*:: as any*/),
-                    (v28/*:: as any*/),
+                    (v30/*:: as any*/),
+                    (v31/*:: as any*/),
                     {
                       "alias": null,
                       "args": null,
@@ -4202,7 +4610,7 @@ return {
           "type": "RaceSeasonBoard",
           "abstractKey": null
         },
-        (v29/*:: as any*/)
+        (v32/*:: as any*/)
       ],
       "storageKey": null
     }
@@ -4212,6 +4620,6 @@ return {
 };
 })();
 
-(node as any).hash = "102ce46dc863da7fd91d9dfef26d40f6";
+(node as any).hash = "0fc1ee6da8d99e55c4c61ac6fa2bcf5d";
 
 export default node;

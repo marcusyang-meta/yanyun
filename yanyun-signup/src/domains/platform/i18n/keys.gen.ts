@@ -132,6 +132,12 @@ export type PlatformStringKey =
   | 'errors_customDomainDnsPending'
   | 'errors_gearStandardInvalid'
   | 'errors_gearStandardNotFound'
+  | 'errors_capabilityRequired'
+  | 'errors_governanceTierRequired'
+  | 'errors_officerTargetNotFound'
+  | 'errors_officerBoardBodyRequired'
+  | 'errors_officerBoardBodyTooLong'
+  | 'errors_officerBoardPostNotFound'
   | 'errors_premiumComingSoon'
   | 'errors_premiumActive'
   | 'errors_paygateDisabled'
@@ -347,6 +353,12 @@ export const PLATFORM_STRING_KEYS: readonly PlatformStringKey[] = [
   'errors_customDomainDnsPending',
   'errors_gearStandardInvalid',
   'errors_gearStandardNotFound',
+  'errors_capabilityRequired',
+  'errors_governanceTierRequired',
+  'errors_officerTargetNotFound',
+  'errors_officerBoardBodyRequired',
+  'errors_officerBoardBodyTooLong',
+  'errors_officerBoardPostNotFound',
   'errors_premiumComingSoon',
   'errors_premiumActive',
   'errors_paygateDisabled',

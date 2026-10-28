@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<f522add8f6c11e613d75bc16f5502f38>>
+ * @generated SignedSource<<a00639b798c80f95ccbfcaafcc05fdb1>>
  * @lightSyntaxTransform
  */
 
@@ -145,45 +145,63 @@ v19 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "createdAtText",
+  "name": "actionLabel",
   "storageKey": null
 },
-v20 = {
-  "alias": null,
-  "args": null,
-  "kind": "ScalarField",
-  "name": "updatedAtText",
-  "storageKey": null
-},
+v20 = [
+  (v15/*:: as any*/),
+  (v16/*:: as any*/)
+],
 v21 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "note",
+  "name": "body",
   "storageKey": null
 },
 v22 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "statusLabel",
+  "name": "createdAtText",
   "storageKey": null
 },
 v23 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "seasonName",
+  "name": "updatedAtText",
   "storageKey": null
 },
 v24 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
+  "name": "note",
+  "storageKey": null
+},
+v25 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "statusLabel",
+  "storageKey": null
+},
+v26 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "seasonName",
+  "storageKey": null
+},
+v27 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
   "name": "source",
   "storageKey": null
 },
-v25 = [
+v28 = [
   (v15/*:: as any*/),
   (v16/*:: as any*/),
   {
@@ -194,28 +212,28 @@ v25 = [
     "storageKey": null
   }
 ],
-v26 = {
+v29 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "createdAt",
   "storageKey": null
 },
-v27 = {
+v30 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "teamName",
   "storageKey": null
 },
-v28 = {
+v31 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "members",
   "storageKey": null
 },
-v29 = {
+v32 = {
   "kind": "InlineFragment",
   "selections": (v8/*:: as any*/),
   "type": "GuildInsightsLocked",
@@ -924,13 +942,7 @@ return {
                   "name": "actionKey",
                   "storageKey": null
                 },
-                {
-                  "alias": null,
-                  "args": null,
-                  "kind": "ScalarField",
-                  "name": "actionLabel",
-                  "storageKey": null
-                },
+                (v19/*:: as any*/),
                 {
                   "alias": null,
                   "args": null,
@@ -977,6 +989,343 @@ return {
             }
           ],
           "type": "GuildAdminOps",
+          "abstractKey": null
+        }
+      ],
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminTabGovernanceLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "viewerCapabilities",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "concreteType": null,
+      "kind": "LinkedField",
+      "name": "governance",
+      "plural": false,
+      "selections": [
+        (v3/*:: as any*/),
+        {
+          "kind": "InlineFragment",
+          "selections": [
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "lockedTitle",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "lockedBody",
+              "storageKey": null
+            }
+          ],
+          "type": "GuildGovernanceLocked",
+          "abstractKey": null
+        },
+        {
+          "kind": "InlineFragment",
+          "selections": [
+            (v9/*:: as any*/),
+            (v10/*:: as any*/),
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "officersTitle",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "officersHint",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "officersEmptyText",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "grantMemberLabel",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "grantCapabilitiesLabel",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "grantButtonLabel",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "revokeButtonLabel",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "boardTitle",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "boardHint",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "boardEmptyText",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "boardPlaceholder",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "boardPostButtonLabel",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "boardDeleteButtonLabel",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "auditTitle",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "auditHint",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "auditEmptyText",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "auditLoadMoreButtonLabel",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "canManageGrants",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "concreteType": "GuildOfficerGrant",
+              "kind": "LinkedField",
+              "name": "officers",
+              "plural": true,
+              "selections": [
+                (v15/*:: as any*/),
+                (v16/*:: as any*/),
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "capabilities",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "capabilityLabels",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "grantedByName",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "grantedByText",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "grantedAtText",
+                  "storageKey": null
+                }
+              ],
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "concreteType": "GuildCapabilityOption",
+              "kind": "LinkedField",
+              "name": "capabilityOptions",
+              "plural": true,
+              "selections": [
+                (v1/*:: as any*/),
+                (v2/*:: as any*/)
+              ],
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "concreteType": "GuildGovernanceRosterMember",
+              "kind": "LinkedField",
+              "name": "roster",
+              "plural": true,
+              "selections": (v20/*:: as any*/),
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "concreteType": "GuildOfficerBoardPost",
+              "kind": "LinkedField",
+              "name": "boardPosts",
+              "plural": true,
+              "selections": [
+                (v11/*:: as any*/),
+                (v21/*:: as any*/),
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "authorName",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "mine",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "canDelete",
+                  "storageKey": null
+                },
+                (v22/*:: as any*/)
+              ],
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "concreteType": "GuildAuditEvent",
+              "kind": "LinkedField",
+              "name": "auditEvents",
+              "plural": true,
+              "selections": [
+                (v11/*:: as any*/),
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "action",
+                  "storageKey": null
+                },
+                (v19/*:: as any*/),
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "actorName",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "targetType",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "targetLabel",
+                  "storageKey": null
+                },
+                (v22/*:: as any*/)
+              ],
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "auditTotalCount",
+              "storageKey": null
+            }
+          ],
+          "type": "GuildGovernancePage",
           "abstractKey": null
         }
       ],
@@ -1121,13 +1470,7 @@ return {
               "plural": true,
               "selections": [
                 (v11/*:: as any*/),
-                {
-                  "alias": null,
-                  "args": null,
-                  "kind": "ScalarField",
-                  "name": "body",
-                  "storageKey": null
-                },
+                (v21/*:: as any*/),
                 {
                   "alias": null,
                   "args": null,
@@ -1135,8 +1478,8 @@ return {
                   "name": "authorText",
                   "storageKey": null
                 },
-                (v19/*:: as any*/),
-                (v20/*:: as any*/)
+                (v22/*:: as any*/),
+                (v23/*:: as any*/)
               ],
               "storageKey": null
             },
@@ -1150,9 +1493,9 @@ return {
               "selections": [
                 (v11/*:: as any*/),
                 (v9/*:: as any*/),
-                (v21/*:: as any*/),
+                (v24/*:: as any*/),
                 (v6/*:: as any*/),
-                (v22/*:: as any*/),
+                (v25/*:: as any*/),
                 {
                   "alias": null,
                   "args": null,
@@ -1160,8 +1503,8 @@ return {
                   "name": "dungeonName",
                   "storageKey": null
                 },
-                (v23/*:: as any*/),
-                (v20/*:: as any*/)
+                (v26/*:: as any*/),
+                (v23/*:: as any*/)
               ],
               "storageKey": null
             }
@@ -1314,7 +1657,7 @@ return {
           "name": "prize",
           "storageKey": null
         },
-        (v24/*:: as any*/),
+        (v27/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -1344,7 +1687,7 @@ return {
           "name": "entryCountText",
           "storageKey": null
         },
-        (v19/*:: as any*/),
+        (v22/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -1359,7 +1702,7 @@ return {
           "kind": "LinkedField",
           "name": "entries",
           "plural": true,
-          "selections": (v25/*:: as any*/),
+          "selections": (v28/*:: as any*/),
           "storageKey": null
         },
         {
@@ -1369,7 +1712,7 @@ return {
           "kind": "LinkedField",
           "name": "winners",
           "plural": true,
-          "selections": (v25/*:: as any*/),
+          "selections": (v28/*:: as any*/),
           "storageKey": null
         }
       ],
@@ -1382,10 +1725,7 @@ return {
       "kind": "LinkedField",
       "name": "lotteryRoster",
       "plural": true,
-      "selections": [
-        (v15/*:: as any*/),
-        (v16/*:: as any*/)
-      ],
+      "selections": (v20/*:: as any*/),
       "storageKey": null
     },
     {
@@ -1573,8 +1913,8 @@ return {
           "storageKey": null
         },
         (v6/*:: as any*/),
+        (v25/*:: as any*/),
         (v22/*:: as any*/),
-        (v19/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -1630,8 +1970,8 @@ return {
           "storageKey": null
         },
         (v6/*:: as any*/),
+        (v25/*:: as any*/),
         (v22/*:: as any*/),
-        (v19/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -1881,7 +2221,7 @@ return {
           "selections": [
             (v11/*:: as any*/),
             (v16/*:: as any*/),
-            (v24/*:: as any*/),
+            (v27/*:: as any*/),
             {
               "alias": null,
               "args": null,
@@ -1889,7 +2229,7 @@ return {
               "name": "matchedName",
               "storageKey": null
             },
-            (v26/*:: as any*/)
+            (v29/*:: as any*/)
           ],
           "storageKey": null
         }
@@ -2738,10 +3078,10 @@ return {
               "name": "contact",
               "storageKey": null
             },
-            (v27/*:: as any*/),
-            (v28/*:: as any*/),
-            (v21/*:: as any*/),
-            (v26/*:: as any*/)
+            (v30/*:: as any*/),
+            (v31/*:: as any*/),
+            (v24/*:: as any*/),
+            (v29/*:: as any*/)
           ],
           "storageKey": null
         },
@@ -2754,8 +3094,8 @@ return {
           "plural": true,
           "selections": [
             (v11/*:: as any*/),
-            (v27/*:: as any*/),
-            (v28/*:: as any*/),
+            (v30/*:: as any*/),
+            (v31/*:: as any*/),
             {
               "alias": null,
               "args": null,
@@ -2777,7 +3117,7 @@ return {
               "name": "proofUrl",
               "storageKey": null
             },
-            (v21/*:: as any*/)
+            (v24/*:: as any*/)
           ],
           "storageKey": null
         },
@@ -3267,7 +3607,7 @@ return {
           "type": "GuildAdminReliability",
           "abstractKey": null
         },
-        (v29/*:: as any*/)
+        (v32/*:: as any*/)
       ],
       "storageKey": null
     },
@@ -3361,7 +3701,7 @@ return {
           "type": "GuildAdminParticipationHeatmap",
           "abstractKey": null
         },
-        (v29/*:: as any*/)
+        (v32/*:: as any*/)
       ],
       "storageKey": null
     },
@@ -3471,7 +3811,7 @@ return {
           "type": "GuildAdminGearBoard",
           "abstractKey": null
         },
-        (v29/*:: as any*/)
+        (v32/*:: as any*/)
       ],
       "storageKey": null
     },
@@ -3502,7 +3842,7 @@ return {
                   "name": "season",
                   "storageKey": null
                 },
-                (v23/*:: as any*/),
+                (v26/*:: as any*/),
                 (v18/*:: as any*/),
                 {
                   "alias": null,
@@ -3512,8 +3852,8 @@ return {
                   "name": "entries",
                   "plural": true,
                   "selections": [
-                    (v27/*:: as any*/),
-                    (v28/*:: as any*/),
+                    (v30/*:: as any*/),
+                    (v31/*:: as any*/),
                     {
                       "alias": null,
                       "args": null,
@@ -3552,7 +3892,7 @@ return {
           "type": "RaceSeasonBoard",
           "abstractKey": null
         },
-        (v29/*:: as any*/)
+        (v32/*:: as any*/)
       ],
       "storageKey": null
     }
@@ -3560,6 +3900,6 @@ return {
 };
 })();
 
-(node as any).hash = "102ce46dc863da7fd91d9dfef26d40f6";
+(node as any).hash = "0fc1ee6da8d99e55c4c61ac6fa2bcf5d";
 
 export default node;
