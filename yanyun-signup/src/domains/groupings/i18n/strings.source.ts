@@ -217,7 +217,7 @@ export const schedule_saveLabel = (fbs: FbsAPI) =>fbs("保存", "Save button lab
 export const schedule_savedText = (fbs: FbsAPI) =>fbs("可用时间已保存", "Confirmation shown after the member's availability is saved.");
 export const schedule_saveFailedTemplate = (fbs: FbsAPI, p?: StringParams) =>
   fbs(["保存失败：", fbs.param("error", pv(p, "error"))], "Toast shown when saving availability fails; {error} is the error message.");
-export const schedule_emptyMineText = (fbs: FbsAPI) =>fbs("你还没有填写可用时间。", "Empty-state text in the my-availability section when the member has not entered any availability yet.");
+export const schedule_emptyMineText = (fbs: FbsAPI) =>fbs("你还没有填写可用时间。", "Empty-state text in the my-availability section when the member has not entered availability yet.");
 export const schedule_summaryTitle = (fbs: FbsAPI) =>fbs("成员可用性汇总", "Title of the member availability summary section on the schedule tab.");
 export const schedule_summaryHint = (fbs: FbsAPI) =>fbs("汇总仅百业管理员与发过车的车头可见，用于定档期。", "Hint in the availability summary: it is visible only to guild admins and members who have led a squad, and is used to pick activity times.");
 export const schedule_summaryEmptyText = (fbs: FbsAPI) =>fbs("还没有成员填写可用时间。", "Empty-state text in the availability summary when no member has entered availability yet.");
@@ -245,4 +245,4 @@ export const schedule_toastClosed = (fbs: FbsAPI) =>fbs("投票已关闭", "Toas
 export const schedule_toastFailedTemplate = (fbs: FbsAPI, p?: StringParams) =>
   fbs(["操作失败：", fbs.param("error", pv(p, "error"))], "Toast shown when a schedule operation fails; {error} is the error message.");
 export const schedule_settingsLinkLabel = (fbs: FbsAPI) =>fbs("在个人设置中填写", "Link text left on the schedule tab where the availability editor used to be, pointing members to the availability editor in their personal settings.");
-export const schedule_noGuildsText = (fbs: FbsAPI) =>fbs("你还没有加入任何百业，加入后可在此填写可用时间。", "Empty-state text in the personal settings availability section when the user has not joined any guild yet; availability can be filled in once they join one.");
+export const schedule_noGuildsText = (fbs: FbsAPI) =>fbs("你还没有加入任何百业，加入后可在此填写可用时间。", "Empty-state text in the personal settings availability section when the user has not joined a guild yet; availability can be filled in once they join one.");

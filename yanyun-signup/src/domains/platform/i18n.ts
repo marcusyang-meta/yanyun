@@ -110,7 +110,11 @@ export function getTextRuntime(locale: string): FbteeRuntime {
  * the merged declaration surface; the owning domain is the declaration
  * file it lives in). A miss surfaces the name instead of a silent
  * blank, matching the legacy key-miss behavior. */
-export function translate(name: string, locale: string, params?: Record<string, any>) {
+/* Interpolation params for translated strings: values are rendered
+ * into the pattern, so they are strings or numbers by construction. */
+export type I18nParams = Record<string, string | number>;
+
+export function translate(name: string, locale: string, params?: I18nParams) {
   if (i18nProbe.enabled) {
     i18nProbe.counts.set(name, (i18nProbe.counts.get(name) || 0) + 1);
   }
@@ -123,6 +127,6 @@ export function translate(name: string, locale: string, params?: Record<string, 
 /* Business-error copy by stable code (the errors section). Codes are
  * dynamic by design (they double as the API's error vocabulary); the
  * declaration for code <c> is the export errors_<c>. */
-export function translateError(code: string, locale: string, params?: Record<string, any>) {
+export function translateError(code: string, locale: string, params?: I18nParams) {
   return translate('errors_' + code, locale, params);
 }

@@ -666,7 +666,7 @@ export const errors_loginRequired = (fbs: FbsRuntime) => fbs._("请先登录 Dis
 export const errors_loginRequiredShort = (fbs: FbsRuntime) => fbs._("请先登录 Discord", null, { hk: "pJJ75" });
 export const errors_localeUnsupported = (fbs: FbsRuntime) => fbs._("不支持的语言", null, { hk: "j9YN8" });
 export const errors_pushTokenInvalid = (fbs: FbsRuntime) => fbs._("推送令牌无效", null, { hk: "1LhKcu" });
-export const errors_guildUnboundWrite = (fbs: FbsRuntime) => fbs._("该百业尚未绑定 Discord 服务器，写功能已锁定", null, { hk: "1nQUcT" });
+export const errors_guildUnboundWrite = (fbs: FbsRuntime) => fbs._("该百业尚未绑定 Discord 服务器，写功能已锁定", null, { hk: "2fp9pu" });
 export const errors_memberOnly = (fbs: FbsRuntime) => fbs._("只有该百业 Discord 服务器的成员可以操作", null, { hk: "2SEGVd" });
 export const errors_memberOnlyView = (fbs: FbsRuntime) => fbs._("该百业仅对 Discord 服务器成员开放", null, { hk: "3Hv1KW" });
 export const errors_titleRequired = (fbs: FbsRuntime) => fbs._("请填写标题", null, { hk: "1Jsgcg" });
@@ -747,7 +747,7 @@ export const errors_announcementNotFound = (fbs: FbsRuntime) => fbs._("公告不
 export const errors_announcementDailyLimit = (fbs: FbsRuntime, p?: StringParams) => fbs._("今天的公告已达上限（每天 {limit} 条），明天再发", [fbs._param("limit", pv(p, "limit"))], { hk: "1xinu8" });
 export const errors_urgentCallDailyLimit = (fbs: FbsRuntime, p?: StringParams) => fbs._("今天的紧急集合呼叫已达上限（每天 {limit} 次），明天再试", [fbs._param("limit", pv(p, "limit"))], { hk: "3ElFFE" });
 export const errors_lotteryTitleRequired = (fbs: FbsRuntime) => fbs._("请填写抽奖标题", null, { hk: "20oyyi" });
-export const errors_lotteryEntriesEmpty = (fbs: FbsRuntime) => fbs._("参与名单为空，请先选择参与者", null, { hk: "3MsZic" });
+export const errors_lotteryEntriesEmpty = (fbs: FbsRuntime) => fbs._("参与名单为空，请先选择参与者", null, { hk: "keAMM" });
 export const errors_lotteryNotFound = (fbs: FbsRuntime) => fbs._("抽奖不存在", null, { hk: "1Lg4Ze" });
 export const errors_lotteryAlreadyDrawn = (fbs: FbsRuntime) => fbs._("该抽奖已经开过奖了", null, { hk: "4zGOSK" });
 export const errors_lotteryWinnerCountInvalid = (fbs: FbsRuntime) => fbs._("中奖人数必须在 1 与参与人数之间", null, { hk: "3wDQQO" });
@@ -986,7 +986,7 @@ export const account_confirmTitle = (fbs: FbsRuntime) => fbs._("确认删除账�
 export const account_confirmIntro = (fbs: FbsRuntime) => fbs._("请仔细阅读删除后果。提交后进入 7 天冷静期，到期自动执行：", null, { hk: "19FbVN" });
 export const account_consequenceCars = (fbs: FbsRuntime) => fbs._("你创建的车队不会被删除：车头会解绑为无主车队，创建者显示名替换为「已注销用户」；你在他人车队里的座位会被原地匿名化。", null, { hk: "3R3D8w" });
 export const account_consequenceData = (fbs: FbsRuntime) => fbs._("你的装备库与方案、推送令牌、昵称快照、百业名册行会被彻底删除；执行后你在所有设备上的登录会立即失效。", null, { hk: "3C3jLk" });
-export const account_consequenceGuilds = (fbs: FbsRuntime) => fbs._("百业本身与百业管理密码不受影响：百业不属于任何个人账号，不会因你删除账号而解散或变更。", null, { hk: "3pIHBt" });
+export const account_consequenceGuilds = (fbs: FbsRuntime) => fbs._("百业本身与百业管理密码不受影响：百业不属于任何个人账号，不会因你删除账号而解散或变更。", null, { hk: "QwtV4" });
 export const account_consequenceResidual = (fbs: FbsRuntime) => fbs._("少数记录无法按个人清除：已经发到 Discord 的消息、成绩榜里的自由文本名单会保留；备份中的副本最迟在 14 天内随每日备份轮换清除。", null, { hk: "4ym2I3" });
 export const account_consequenceReregister = (fbs: FbsRuntime) => fbs._("删除不是封禁：之后用同一个 Discord 账号重新登录，就会注册成一个全新的账号。", null, { hk: "4tutR4" });
 export const account_exportFirstHint = (fbs: FbsRuntime) => fbs._("建议先导出一份你的数据，再提交删除。", null, { hk: "4n50u1" });
@@ -1062,7 +1062,7 @@ export const schedule_removeLabel = (fbs: FbsRuntime) => fbs._("删除", null, {
 export const schedule_saveLabel = (fbs: FbsRuntime) => fbs._("保存", null, { hk: "1da7CH" });
 export const schedule_savedText = (fbs: FbsRuntime) => fbs._("可用时间已保存", null, { hk: "2e2sB6" });
 export const schedule_saveFailedTemplate = (fbs: FbsRuntime, p?: StringParams) => fbs._("保存失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "3oB9P5" });
-export const schedule_emptyMineText = (fbs: FbsRuntime) => fbs._("你还没有填写可用时间。", null, { hk: "4z5LdS" });
+export const schedule_emptyMineText = (fbs: FbsRuntime) => fbs._("你还没有填写可用时间。", null, { hk: "oz2zF" });
 export const schedule_summaryTitle = (fbs: FbsRuntime) => fbs._("成员可用性汇总", null, { hk: "4rLG6c" });
 export const schedule_summaryHint = (fbs: FbsRuntime) => fbs._("汇总仅百业管理员与发过车的车头可见，用于定档期。", null, { hk: "qVAlc" });
 export const schedule_summaryEmptyText = (fbs: FbsRuntime) => fbs._("还没有成员填写可用时间。", null, { hk: "3hxXXz" });
@@ -1088,7 +1088,7 @@ export const schedule_toastVoted = (fbs: FbsRuntime) => fbs._("已提交", null,
 export const schedule_toastClosed = (fbs: FbsRuntime) => fbs._("投票已关闭", null, { hk: "3aX8KY" });
 export const schedule_toastFailedTemplate = (fbs: FbsRuntime, p?: StringParams) => fbs._("操作失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "1yF32T" });
 export const schedule_settingsLinkLabel = (fbs: FbsRuntime) => fbs._("在个人设置中填写", null, { hk: "2v8aPQ" });
-export const schedule_noGuildsText = (fbs: FbsRuntime) => fbs._("你还没有加入任何百业，加入后可在此填写可用时间。", null, { hk: "1k5mpu" });
+export const schedule_noGuildsText = (fbs: FbsRuntime) => fbs._("你还没有加入任何百业，加入后可在此填写可用时间。", null, { hk: "2L9e4n" });
 export const recruit_entryLabel = (fbs: FbsRuntime) => fbs._("招新 / 新人清单", null, { hk: "2hnDTe" });
 export const recruit_title = (fbs: FbsRuntime) => fbs._("招新与新人", null, { hk: "2Kv5c8" });
 export const recruit_body = (fbs: FbsRuntime) => fbs._("想加入这个百业？提交一份入业申请，百业管理员会在管理面审核。已经在业的新人可以在这里看自己的入业清单与导师配对。", null, { hk: "2XYdGq" });
@@ -1107,7 +1107,7 @@ export const recruit_rejectedHint = (fbs: FbsRuntime) => fbs._("本次申请未�
 export const recruit_checklistTitle = (fbs: FbsRuntime) => fbs._("新手入业清单", null, { hk: "SdChL" });
 export const recruit_checklistProgress = (fbs: FbsRuntime, p?: StringParams) => fbs._("已完成 {done} / {total}", [fbs._param("done", pv(p, "done")), fbs._param("total", pv(p, "total"))], { hk: "43OtnH" });
 export const recruit_itemProfileLabel = (fbs: FbsRuntime) => fbs._("完善流派 / 时区", null, { hk: "2BseCa" });
-export const recruit_itemProfileHint = (fbs: FbsRuntime) => fbs._("在任意车队报名落座时填上你的流派即算完成；时区由你的客户端自动同步，无需手动填写。", null, { hk: "6AdtZ" });
+export const recruit_itemProfileHint = (fbs: FbsRuntime) => fbs._("在任意车队报名落座时填上你的流派即算完成；时区由你的客户端自动同步，无需手动填写。", null, { hk: "25XMMS" });
 export const recruit_itemMentorLabel = (fbs: FbsRuntime) => fbs._("认一位导师", null, { hk: "4m0bsF" });
 export const recruit_itemMentorHint = (fbs: FbsRuntime) => fbs._("由百业管理员为你配对一位导师后自动完成。", null, { hk: "2XT8L7" });
 export const recruit_itemFirstRunLabel = (fbs: FbsRuntime) => fbs._("打完第一场", null, { hk: "1C3tvD" });

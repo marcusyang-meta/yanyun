@@ -7,13 +7,14 @@
  * belongs to the platform domain: use PlatformText.
  */
 import { translate, translateError, getTextRuntime } from '../i18n.ts';
+import type { I18nParams } from '../i18n.ts';
 import type { FbteeRuntime } from 'fbtee/server';
 import type { PlatformStringKey } from './keys.gen.ts';
 
 export class PlatformText {
   private locale: string;
   constructor(locale: string) { this.locale = locale; }
-  t(key: PlatformStringKey, params?: Record<string, unknown>): string {
+  t(key: PlatformStringKey, params?: I18nParams): string {
     return translate(key, this.locale, params);
   }
   /* This domain's fbtee runtime handle for the instance's locale. */

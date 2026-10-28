@@ -4561,8 +4561,8 @@
       ],
       "types": []
     },
-    "Es1PnMj1DfI+YLc8qX5yEw==": {
-      "description": "Error returned on any write to a guild that has not bound a Discord server yet; writes are locked until binding.",
+    "PcoxI5IeSoC0hDk8yiLlCw==": {
+      "description": "Error returned on a write to a guild that has not bound a Discord server yet; writes are locked until binding.",
       "id": "platform/errors_guildUnboundWrite",
       "tokens": [],
       "translations": [
@@ -8773,8 +8773,8 @@
       ],
       "types": []
     },
-    "U4Kfxjh8HDRnVtZor4aKGA==": {
-      "description": "Deletion consequence listed on the confirmation page: guilds themselves and their admin passwords are unaffected because a guild does not belong to any personal account.",
+    "imHpl7SW76YFXogXL4Sn1A==": {
+      "description": "Deletion consequence listed on the confirmation page: guilds themselves and their admin passwords are unaffected because a guild does not belong to a personal account.",
       "id": "identity/account_consequenceGuilds",
       "tokens": [],
       "translations": [
