@@ -31,7 +31,7 @@ export default function GearRefs() {
       <Text style={s.slotTableTitle}>{title}</Text>
       {list.map((r) => (
         <View key={r.slot} style={s.tr}>
-          <Text style={[s.td, { color: theme.accentHi, width: 74 }]}>{r.slot}</Text>
+          <Text style={[s.td, { color: theme.goldHi, width: 74 }]}>{r.slot}</Text>
           <Text style={[s.td, { flex: 1 }]}>{r.lines.join('、')}</Text>
         </View>
       ))}
@@ -65,7 +65,7 @@ export default function GearRefs() {
         {rows.map((b) => (
           <View key={b.idx} style={s.tr}>
             <Text style={[s.td, { width: 52 }]}>{b.cat}</Text>
-            <Text style={[s.td, { width: 74, color: theme.accentHi }]}>{b.school}</Text>
+            <Text style={[s.td, { width: 74, color: theme.goldHi }]}>{b.school}</Text>
             <Text style={[s.td, { width: 58 }]}>{b.set}</Text>
             <Text style={[s.td, { flex: 1 }]}>{b.recipe}</Text>
             <Text style={[s.td, { width: 52 }]}>{b.bowLabel || '—'}</Text>
@@ -94,7 +94,7 @@ export default function GearRefs() {
         </View>
         {t.gearAffixes.map((a) => (
           <View key={a.key} style={s.tr}>
-            <Text style={[s.td, { width: 92, color: theme.accentHi }]}>
+            <Text style={[s.td, { width: 92, color: theme.goldHi }]}>
               {a.label}
               {a.recipeNames.length === 0 && <Text style={{ color: theme.muted, fontSize: 11 }}> · {t.gearSurvivalNote}</Text>}
             </Text>
@@ -128,14 +128,14 @@ export default function GearRefs() {
         </View>
         {t.gearDimRows.map((d) => (
           <View key={d.name} style={s.tr}>
-            <Text style={[s.td, { width: 74, color: theme.accentHi }]}>{d.name}</Text>
+            <Text style={[s.td, { width: 74, color: theme.goldHi }]}>{d.name}</Text>
             <Text style={[s.td, { flex: 1 }]}>{d.conv}</Text>
             <Text style={[s.td, { flex: 1, color: theme.muted }]}>{d.full}</Text>
           </View>
         ))}
       </View>
       <Text style={s.formulaLine}>
-        <Text style={{ color: theme.accentHi }}>{t.gearFormulaOrderTitle}：</Text>{t.gearFormulaOrderText}
+        <Text style={{ color: theme.goldHi }}>{t.gearFormulaOrderTitle}：</Text>{t.gearFormulaOrderText}
       </Text>
     </View>
   );
@@ -176,27 +176,27 @@ export function GearSectRecipes({ sectName, onPicked }: { sectName: string; onPi
 }
 
 const s = StyleSheet.create({
-  h3: { fontFamily: fonts.body, color: theme.accentHi, fontSize: 14.5, marginTop: 18, marginBottom: 8 },
+  h3: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 14.5, marginTop: 18, marginBottom: 8 },
   filterRow: { flexDirection: 'row', gap: 6, flexWrap: 'wrap', alignItems: 'center', marginBottom: 8 },
   trHead: {
     flexDirection: 'row', gap: 4, paddingVertical: 5, paddingHorizontal: 2,
-    borderBottomWidth: 1, borderBottomColor: 'rgba(67,160,134,.25)',
+    borderBottomWidth: 1, borderBottomColor: 'rgba(201,163,92,.25)',
   },
-  th: { fontFamily: fonts.body, color: theme.muted, fontSize: 11.5 },
+  th: { fontFamily: fonts.serif, color: theme.muted, fontSize: 11.5 },
   tr: {
     flexDirection: 'row', gap: 4, paddingVertical: 6, paddingHorizontal: 2,
-    borderBottomWidth: 1, borderBottomColor: 'rgba(67,160,134,.1)', alignItems: 'flex-start',
+    borderBottomWidth: 1, borderBottomColor: 'rgba(201,163,92,.1)', alignItems: 'flex-start',
   },
-  td: { fontFamily: fonts.body, paddingVertical: 0, fontSize: 12.5, color: theme.paper },
-  slotTableTitle: { fontFamily: fonts.body, color: theme.paper, fontSize: 13, marginBottom: 4 },
-  formulaHead: { fontFamily: fonts.body, color: theme.accentHi, fontSize: 12.5, lineHeight: 24 },
-  formulaLine: { fontFamily: fonts.body, fontSize: 12.5, color: theme.paper, lineHeight: 24 },
-  sectRecipesTitle: { fontFamily: fonts.body, color: theme.accentHi, fontSize: 14, marginBottom: 8 },
+  td: { fontFamily: fonts.serif, paddingVertical: 0, fontSize: 12.5, color: theme.paper },
+  slotTableTitle: { fontFamily: fonts.serif, color: theme.paper, fontSize: 13, marginBottom: 4 },
+  formulaHead: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 12.5, lineHeight: 24 },
+  formulaLine: { fontFamily: fonts.serif, fontSize: 12.5, color: theme.paper, lineHeight: 24 },
+  sectRecipesTitle: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 14, marginBottom: 8 },
   recipeCard: {
     flexDirection: 'row', gap: 10, alignItems: 'center', flexWrap: 'wrap',
-    borderWidth: 1, borderColor: 'rgba(67,160,134,.22)', borderRadius: 10,
+    borderWidth: 1, borderColor: 'rgba(201,163,92,.22)', borderRadius: 10,
     paddingVertical: 9, paddingHorizontal: 12, backgroundColor: 'rgba(0,0,0,.25)',
   },
-  recipeSchool: { fontFamily: fonts.body, color: theme.accentHi, fontSize: 13.5 },
-  recipeText: { fontFamily: fonts.body, color: theme.paper, fontSize: 12.5, flex: 1, minWidth: 180 },
+  recipeSchool: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 13.5 },
+  recipeText: { fontFamily: fonts.serif, color: theme.paper, fontSize: 12.5, flex: 1, minWidth: 180 },
 });

@@ -433,9 +433,9 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
               {isHeirloom && <JadePendant />}
               <Text style={s.slotPos}>{pos}</Text>
               <View style={s.slotNameRow}>
-                <Text style={{ color: g ? theme.paper : theme.muted, fontSize: 13, fontFamily: fonts.body }}>
+                <Text style={{ color: g ? theme.paper : theme.muted, fontSize: 13, fontFamily: fonts.serif }}>
                   {g ? (g.name || g.slot) : t.gearSlotEmptyText}
-                  {ev && <Text style={{ color: theme.accentHi, fontWeight: '700' }}> · {ev.score}</Text>}
+                  {ev && <Text style={{ color: theme.goldHi, fontWeight: '700' }}> · {ev.score}</Text>}
                 </Text>
                 {ev && <VerdictSeal verdict={ev.verdict} heirloomLabel={t.gearVerdictHeirloom} dudLabel={t.gearVerdictDud} />}
               </View>
@@ -474,9 +474,9 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
           <View style={{ gap: 12 }}>
             <Card>
               <View style={s.gradHead}>
-                <Text style={{ color: theme.accentHi, fontSize: 14, fontFamily: fonts.body }}>{t.gearGradLabel}</Text>
+                <Text style={{ color: theme.goldHi, fontSize: 14, fontFamily: fonts.serif }}>{t.gearGradLabel}</Text>
                 <View ref={scoreRef} collapsable={false}>
-                  <Text style={{ color: theme.accentHi, fontSize: 26, fontWeight: '700', fontFamily: fonts.body }}>{pct1(grad.total)}</Text>
+                  <Text style={{ color: theme.goldHi, fontSize: 26, fontWeight: '700', fontFamily: fonts.serif }}>{pct1(grad.total)}</Text>
                 </View>
                 <View style={{ marginLeft: 'auto' }}>
                   <CheckRow
@@ -514,7 +514,7 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
               </Text>
               {grad.dingyinRows.length > 0 && (
                 <View style={{ marginTop: 8 }}>
-                  <Text style={{ color: theme.accentHi, fontSize: 13, fontFamily: fonts.body, marginBottom: 3 }}>{t.gearDySummaryTitle}</Text>
+                  <Text style={{ color: theme.goldHi, fontSize: 13, fontFamily: fonts.serif, marginBottom: 3 }}>{t.gearDySummaryTitle}</Text>
                   {grad.dingyinRows.map((d, i) => (
                     <Text key={i} style={s.dyLine}>
                       {d.slot}：{d.has ? `${d.name || ''} ${d.val != null ? fmt1(d.val) : ''}` : '—'}
@@ -538,7 +538,7 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
                   {grad.rows.map((r) => (
                     <View key={r.cls} style={s.diffRow}>
                       <Text style={s.diffLabel}>{r.label} {r.cur}/{r.n}</Text>
-                      <Text style={{ color: r.cur < r.n ? theme.seal : r.cur > r.n ? theme.muted : '#9dc08b', fontFamily: fonts.body, fontSize: 12.5 }}>
+                      <Text style={{ color: r.cur < r.n ? theme.seal : r.cur > r.n ? theme.muted : '#9dc08b', fontFamily: fonts.serif, fontSize: 12.5 }}>
                         {r.cur < r.n ? fill(t.gearDiffLackTemplate, { n: r.n - r.cur }) : r.cur > r.n ? fill(t.gearDiffOverTemplate, { n: r.cur - r.n }) : t.gearDiffExactText}
                       </Text>
                     </View>
@@ -554,9 +554,9 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
                     </Text>
                   )}
                   {plan.panel.invalidLines.length > 0
-                    ? <Text style={{ color: theme.seal, fontFamily: fonts.body, fontSize: 12.5, marginTop: 4 }}>{fill(t.gearDiffInvalidTemplate, { n: plan.panel.invalidLines.length })}</Text>
+                    ? <Text style={{ color: theme.seal, fontFamily: fonts.serif, fontSize: 12.5, marginTop: 4 }}>{fill(t.gearDiffInvalidTemplate, { n: plan.panel.invalidLines.length })}</Text>
                     : (grad.got >= grad.totalBars && plan.extraClasses.length === 0 && grad.lowLines.length === 0)
-                      && <Text style={{ color: '#9dc08b', fontFamily: fonts.body, fontSize: 12.5, marginTop: 4 }}>{t.gearDiffDoneText}</Text>}
+                      && <Text style={{ color: '#9dc08b', fontFamily: fonts.serif, fontSize: 12.5, marginTop: 4 }}>{t.gearDiffDoneText}</Text>}
                 </View>
               )}
               <Text style={[s.cardTitle, { marginTop: 12 }]}>{t.gearSuggestTitle}</Text>
@@ -564,7 +564,7 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
                 <Text style={s.noteText}>{t.gearSuggestNoneText}</Text>
               ) : (
                 <View>
-                  <Text style={{ color: theme.accentHi, fontFamily: fonts.body, fontSize: 12.5 }}>
+                  <Text style={{ color: theme.goldHi, fontFamily: fonts.serif, fontSize: 12.5 }}>
                     {fill(t.gearSuggestHeadTemplate, {
                       cur: Math.round(plan.suggestions.cur * 1000) / 10,
                       final: Math.round(plan.suggestions.final * 1000) / 10,
@@ -604,39 +604,39 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
 }
 
 const s = StyleSheet.create({
-  intro: { fontFamily: fonts.body, color: theme.muted, fontSize: 12.5, lineHeight: 21, marginBottom: 10 },
+  intro: { fontFamily: fonts.serif, color: theme.muted, fontSize: 12.5, lineHeight: 21, marginBottom: 10 },
   grid2: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   gridCell: { flexBasis: '47%', flexGrow: 1 },
-  cardTitle: { fontFamily: fonts.body, color: theme.accentHi, fontSize: 13.5, marginBottom: 8 },
-  noteText: { fontFamily: fonts.body, color: theme.muted, fontSize: 12, lineHeight: 20 },
+  cardTitle: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 13.5, marginBottom: 8 },
+  noteText: { fontFamily: fonts.serif, color: theme.muted, fontSize: 12, lineHeight: 20 },
   baseHead: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
   baseGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 7 },
   baseCell: { flexBasis: '30%', flexGrow: 1, minWidth: 104 },
-  lockText: { fontFamily: fonts.body, color: theme.accent, fontSize: 11 },
+  lockText: { fontFamily: fonts.serif, color: theme.gold, fontSize: 11 },
   loadoutHead: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 18, flexWrap: 'wrap' },
   slotGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 },
   slotBox: {
     flexBasis: '47%', flexGrow: 1, minWidth: 150,
-    borderWidth: 1, borderColor: 'rgba(67,160,134,.22)', borderRadius: 10,
+    borderWidth: 1, borderColor: 'rgba(201,163,92,.22)', borderRadius: 10,
     paddingVertical: 10, paddingHorizontal: 12, backgroundColor: 'rgba(0,0,0,.25)',
     position: 'relative',
   },
   slotBoxHeirloom: {
-    borderColor: theme.accent,
-    shadowColor: theme.accent, shadowOpacity: 0.25, shadowRadius: 7, shadowOffset: { width: 0, height: 0 },
+    borderColor: theme.gold,
+    shadowColor: theme.gold, shadowOpacity: 0.25, shadowRadius: 7, shadowOffset: { width: 0, height: 0 },
   },
-  slotPos: { fontFamily: fonts.body, color: theme.muted, fontSize: 11.5 },
+  slotPos: { fontFamily: fonts.serif, color: theme.muted, fontSize: 11.5 },
   slotNameRow: { flexDirection: 'row', alignItems: 'center', gap: 7, flexWrap: 'wrap', marginVertical: 3, minHeight: 18 },
   slotBtns: { flexDirection: 'row', gap: 4, flexWrap: 'wrap' },
-  picker: { marginTop: 7, borderTopWidth: 1, borderTopColor: 'rgba(67,160,134,.25)', paddingTop: 6, gap: 4 },
+  picker: { marginTop: 7, borderTopWidth: 1, borderTopColor: 'rgba(201,163,92,.25)', paddingTop: 6, gap: 4 },
   gradHead: { flexDirection: 'row', alignItems: 'center', gap: 10, flexWrap: 'wrap' },
-  gradLine: { fontFamily: fonts.body, color: theme.paper, fontSize: 12.5, marginTop: 4 },
+  gradLine: { fontFamily: fonts.serif, color: theme.paper, fontSize: 12.5, marginTop: 4 },
   panelGrid: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 10 },
-  panelCell: { fontFamily: fonts.body, color: theme.paper, fontSize: 13, flexBasis: '50%', paddingVertical: 2 },
-  panelVal: { color: theme.accentHi, fontWeight: '700' },
-  whiteLine: { fontFamily: fonts.body, marginTop: 6, fontSize: 12, color: theme.muted, lineHeight: 20 },
-  dyLine: { fontFamily: fonts.body, fontSize: 12.5, color: theme.paper, lineHeight: 22 },
+  panelCell: { fontFamily: fonts.serif, color: theme.paper, fontSize: 13, flexBasis: '50%', paddingVertical: 2 },
+  panelVal: { color: theme.goldHi, fontWeight: '700' },
+  whiteLine: { fontFamily: fonts.serif, marginTop: 6, fontSize: 12, color: theme.muted, lineHeight: 20 },
+  dyLine: { fontFamily: fonts.serif, fontSize: 12.5, color: theme.paper, lineHeight: 22 },
   diffRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 8, paddingVertical: 2 },
-  diffLabel: { fontFamily: fonts.body, color: theme.paper, fontSize: 12.5 },
-  suggestLine: { fontFamily: fonts.body, fontSize: 12.5, lineHeight: 23, color: theme.paper },
+  diffLabel: { fontFamily: fonts.serif, color: theme.paper, fontSize: 12.5 },
+  suggestLine: { fontFamily: fonts.serif, fontSize: 12.5, lineHeight: 23, color: theme.paper },
 });

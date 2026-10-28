@@ -878,8 +878,8 @@ export default function GearLibrary(props: {
             const atCy = a ? l.val >= a.cy : false;
             return (
               <View key={ix} style={s.gearLineRow}>
-                <Text style={[s.gearLineLabel, isMain && { color: theme.accentHi, fontWeight: '700' }]}>{a ? a.label : l.key}</Text>
-                <Text style={[s.gearLineVal, (atCy || isMain) && { color: theme.accentHi }, isMain && { fontWeight: '800' }]}>{fmt1(l.val)}</Text>
+                <Text style={[s.gearLineLabel, isMain && { color: theme.goldHi, fontWeight: '700' }]}>{a ? a.label : l.key}</Text>
+                <Text style={[s.gearLineVal, (atCy || isMain) && { color: theme.goldHi }, isMain && { fontWeight: '800' }]}>{fmt1(l.val)}</Text>
               </View>
             );
           };
@@ -909,8 +909,8 @@ export default function GearLibrary(props: {
                 {g.lines.map((l, i) => (i === mainIdx ? null : lineRow(l, i)))}
                 {g.dingyin && (
                   <View style={s.gearLineRow}>
-                    <Text style={[s.gearLineLabel, { color: theme.accentHi }]}>{g.dingyin.name}</Text>
-                    <Text style={[s.gearLineVal, { color: theme.accentHi }]}>{fmt1(g.dingyin.val)}</Text>
+                    <Text style={[s.gearLineLabel, { color: theme.goldHi }]}>{g.dingyin.name}</Text>
+                    <Text style={[s.gearLineVal, { color: theme.goldHi }]}>{fmt1(g.dingyin.val)}</Text>
                   </View>
                 )}
               </View>
@@ -1032,62 +1032,62 @@ export default function GearLibrary(props: {
 }
 
 const s = StyleSheet.create({
-  loginHint: { fontFamily: fonts.body, color: theme.accentHi, fontSize: 12.5 },
+  loginHint: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 12.5 },
   headRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   chipRow: { flexDirection: 'row', gap: 6, flexWrap: 'wrap', marginBottom: 10 },
   quietRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', marginBottom: 10, paddingHorizontal: 2 },
-  quietText: { fontFamily: fonts.body, color: theme.muted, fontSize: 11.5, textDecorationLine: 'underline' },
-  countText: { fontFamily: fonts.body, color: theme.muted, fontSize: 12 },
+  quietText: { fontFamily: fonts.serif, color: theme.muted, fontSize: 11.5, textDecorationLine: 'underline' },
+  countText: { fontFamily: fonts.serif, color: theme.muted, fontSize: 12 },
   btnRow: { flexDirection: 'row', gap: 6, flexWrap: 'wrap', marginBottom: 8 },
-  cardTitle: { fontFamily: fonts.body, color: theme.accentHi, fontSize: 13, marginBottom: 6 },
+  cardTitle: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 13, marginBottom: 6 },
   drop: {
-    marginTop: 4, borderWidth: 1, borderStyle: 'dashed', borderColor: 'rgba(67,160,134,.45)',
+    marginTop: 4, borderWidth: 1, borderStyle: 'dashed', borderColor: 'rgba(201,163,92,.45)',
     borderRadius: 8, paddingVertical: 14, paddingHorizontal: 10, alignItems: 'center',
   },
-  dropText: { fontFamily: fonts.body, color: theme.accentHi, fontSize: 12.5, textAlign: 'center' },
-  reviewZone: { marginTop: 10, borderTopWidth: 1, borderTopColor: 'rgba(67,160,134,.2)', paddingTop: 10 },
+  dropText: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 12.5, textAlign: 'center' },
+  reviewZone: { marginTop: 10, borderTopWidth: 1, borderTopColor: 'rgba(201,163,92,.2)', paddingTop: 10 },
   grid2: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   gridCell: { flexBasis: '47%', flexGrow: 1 },
   lineRow: { flexDirection: 'row', gap: 6, marginTop: 6, alignItems: 'center', flexWrap: 'wrap' },
-  lowConf: { fontFamily: fonts.body, color: theme.seal, fontSize: 11 },
-  refText: { fontFamily: fonts.body, color: theme.muted, fontSize: 11 },
+  lowConf: { fontFamily: fonts.serif, color: theme.seal, fontSize: 11 },
+  refText: { fontFamily: fonts.serif, color: theme.muted, fontSize: 11 },
   schoolRow: { flexDirection: 'row', gap: 5, flexWrap: 'wrap', marginTop: 8, alignItems: 'center' },
-  schoolLbl: { fontFamily: fonts.body, color: theme.muted, fontSize: 11.5 },
-  unknowns: { fontFamily: fonts.body, color: theme.muted, fontSize: 12, marginTop: 8 },
+  schoolLbl: { fontFamily: fonts.serif, color: theme.muted, fontSize: 11.5 },
+  unknowns: { fontFamily: fonts.serif, color: theme.muted, fontSize: 12, marginTop: 8 },
   filterRow: { flexDirection: 'row', gap: 6, flexWrap: 'wrap', marginVertical: 12 },
-  emptyText: { fontFamily: fonts.body, color: theme.muted, fontSize: 12.5, marginBottom: 8 },
+  emptyText: { fontFamily: fonts.serif, color: theme.muted, fontSize: 12.5, marginBottom: 8 },
   gearCard: {
-    borderWidth: 1, borderColor: 'rgba(67,160,134,.22)', borderRadius: 10,
+    borderWidth: 1, borderColor: 'rgba(201,163,92,.22)', borderRadius: 10,
     paddingVertical: 8, paddingHorizontal: 12, backgroundColor: 'rgba(0,0,0,.25)',
     position: 'relative',
   },
   gearCardHeirloom: {
-    borderColor: theme.accent,
-    shadowColor: theme.accent, shadowOpacity: 0.25, shadowRadius: 7, shadowOffset: { width: 0, height: 0 },
+    borderColor: theme.gold,
+    shadowColor: theme.gold, shadowOpacity: 0.25, shadowRadius: 7, shadowOffset: { width: 0, height: 0 },
   },
   gearHead: { flexDirection: 'row', gap: 6, alignItems: 'center', flexWrap: 'wrap' },
-  gearName: { fontFamily: fonts.body, color: theme.accentHi, fontSize: 15.5, fontWeight: '700', letterSpacing: 1, marginTop: 1 },
-  gearSlot: { fontFamily: fonts.body, color: theme.muted, fontSize: 11 },
-  gearPos: { fontFamily: fonts.body, color: '#9dc08b', fontSize: 11 },
-  gearScoreLine: { fontFamily: fonts.body, color: theme.muted, fontSize: 11, marginTop: 4 },
+  gearName: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 15.5, fontWeight: '700', letterSpacing: 1, marginTop: 1 },
+  gearSlot: { fontFamily: fonts.serif, color: theme.muted, fontSize: 11 },
+  gearPos: { fontFamily: fonts.serif, color: '#9dc08b', fontSize: 11 },
+  gearScoreLine: { fontFamily: fonts.serif, color: theme.muted, fontSize: 11, marginTop: 4 },
   gearCardQTop: {
-    borderColor: 'rgba(147,210,190,.8)',
-    shadowColor: theme.accent, shadowOpacity: 0.18, shadowRadius: 6, shadowOffset: { width: 0, height: 0 }, elevation: 2,
+    borderColor: 'rgba(236,210,143,.8)',
+    shadowColor: theme.gold, shadowOpacity: 0.18, shadowRadius: 6, shadowOffset: { width: 0, height: 0 }, elevation: 2,
   },
   gearLineRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 10, alignItems: 'baseline', marginTop: 3 },
-  gearLineLabel: { fontFamily: fonts.body, fontSize: 12.5, color: theme.paper },
-  gearLineVal: { fontFamily: fonts.body, fontSize: 12.5, color: theme.paper, fontWeight: '600' },
-  gearWarn: { fontFamily: fonts.body, color: theme.seal, fontSize: 11, marginTop: 3 },
+  gearLineLabel: { fontFamily: fonts.serif, fontSize: 12.5, color: theme.paper },
+  gearLineVal: { fontFamily: fonts.serif, fontSize: 12.5, color: theme.paper, fontWeight: '600' },
+  gearWarn: { fontFamily: fonts.serif, color: theme.seal, fontSize: 11, marginTop: 3 },
   gearBtns: { flexDirection: 'row', gap: 5, flexWrap: 'wrap', marginTop: 6, alignItems: 'center' },
   groupHead: { flexDirection: 'row', alignItems: 'baseline', gap: 8, paddingTop: 9, paddingBottom: 3 },
-  groupSchool: { fontFamily: fonts.body, color: theme.accentHi, fontWeight: '700', fontSize: 13.5 },
-  groupCount: { fontFamily: fonts.body, color: theme.muted, fontSize: 11.5 },
+  groupSchool: { fontFamily: fonts.serif, color: theme.goldHi, fontWeight: '700', fontSize: 13.5 },
+  groupCount: { fontFamily: fonts.serif, color: theme.muted, fontSize: 11.5 },
   buildCard: {
-    borderWidth: 1, borderColor: 'rgba(67,160,134,.22)', borderRadius: 10,
+    borderWidth: 1, borderColor: 'rgba(201,163,92,.22)', borderRadius: 10,
     paddingVertical: 10, paddingHorizontal: 12, backgroundColor: 'rgba(0,0,0,.25)', marginTop: 9,
   },
-  buildTotal: { fontFamily: fonts.body, color: theme.accentHi, fontSize: 23, fontWeight: '700' },
-  buildTarget: { fontFamily: fonts.body, color: theme.muted, fontSize: 11.5 },
-  buildName: { fontFamily: fonts.body, color: theme.accentHi, fontSize: 13.5 },
-  buildMeta: { fontFamily: fonts.body, color: theme.paper, fontSize: 12, marginTop: 2 },
+  buildTotal: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 23, fontWeight: '700' },
+  buildTarget: { fontFamily: fonts.serif, color: theme.muted, fontSize: 11.5 },
+  buildName: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 13.5 },
+  buildMeta: { fontFamily: fonts.serif, color: theme.paper, fontSize: 12, marginTop: 2 },
 });

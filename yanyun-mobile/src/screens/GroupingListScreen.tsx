@@ -244,9 +244,9 @@ function AdminEntryButton({ slug }: { slug: string }) {
   return (
     <Pressable
       onPress={() => router.push({ pathname: '/guild/[slug]/admin', params: { slug } })}
-      style={{ marginLeft: 10, paddingVertical: 8, paddingHorizontal: 14, borderRadius: 999, borderWidth: 1, borderColor: 'rgba(67,160,134,.45)' }}
+      style={{ marginLeft: 10, paddingVertical: 8, paddingHorizontal: 14, borderRadius: 999, borderWidth: 1, borderColor: 'rgba(201,163,92,.45)' }}
     >
-      <Text style={{ fontFamily: fonts.body, color: theme.accent, fontSize: 13 }}>{label}</Text>
+      <Text style={{ fontFamily: fonts.serif, color: theme.gold, fontSize: 13 }}>{label}</Text>
     </Pressable>
   );
 }
@@ -357,7 +357,7 @@ function ListBlocks({
           <RefreshControl
             refreshing={refreshing}
             onRefresh={() => { setRefreshing(true); refresh(); }}
-            tintColor={theme.accent}
+            tintColor={theme.gold}
           />
         }
       >
@@ -381,15 +381,15 @@ const s = StyleSheet.create({
   },
   tab: { position: 'relative', overflow: 'hidden', borderRadius: 999, paddingVertical: 9, paddingHorizontal: 16 },
   tabOn: { borderWidth: 1, borderColor: 'rgba(60,42,12,.55)' },
-  tabText: { fontFamily: fonts.body, color: theme.muted, fontSize: 15 },
-  tabTextOn: { color: theme.accentHi, fontWeight: '600' },
+  tabText: { fontFamily: fonts.serif, color: theme.muted, fontSize: 15 },
+  tabTextOn: { color: theme.goldHi, fontWeight: '600' },
   createRow: { flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: 20, marginTop: 14, marginBottom: 12 },
   createBtn: {
     position: 'relative', overflow: 'hidden', borderRadius: 10,
-    borderWidth: 1, borderColor: 'rgba(147,210,190,.5)',
+    borderWidth: 1, borderColor: 'rgba(236,210,143,.5)',
     paddingHorizontal: 22, paddingVertical: 10,
   },
-  createBtnText: { fontFamily: fonts.body, color: theme.onAccent, fontSize: 14, fontWeight: '700' },
+  createBtnText: { fontFamily: fonts.serif, color: theme.onGold, fontSize: 14, fontWeight: '700' },
   // .yy-fchip row: left-aligned ghost chips; active = gold text + gold border + pale gold fill + 600
   chipsZone: { paddingHorizontal: 20, marginBottom: 16 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
@@ -397,15 +397,15 @@ const s = StyleSheet.create({
     borderWidth: 1, borderColor: theme.chipBorder, borderRadius: 999,
     paddingVertical: 6, paddingHorizontal: 16,
   },
-  fchipOn: { borderColor: theme.accent, backgroundColor: 'rgba(67,160,134,.10)' },
-  fchipText: { fontFamily: fonts.body, color: theme.muted, fontSize: 13 },
-  fchipTextOn: { color: theme.accentHi, fontWeight: '600' },
+  fchipOn: { borderColor: theme.gold, backgroundColor: 'rgba(201,163,92,.10)' },
+  fchipText: { fontFamily: fonts.serif, color: theme.muted, fontSize: 13 },
+  fchipTextOn: { color: theme.goldHi, fontWeight: '600' },
   // Week nav: outlined square buttons at both ends (navBtn), centered title copy at 13px gold
   weekBar: { flexDirection: 'row', alignItems: 'center', marginBottom: 12, paddingHorizontal: 20, gap: 10 },
   weekBtn: {
-    borderWidth: 1, borderColor: 'rgba(67,160,134,.4)', borderRadius: 8,
+    borderWidth: 1, borderColor: 'rgba(201,163,92,.4)', borderRadius: 8,
     paddingVertical: 6, paddingHorizontal: 16,
   },
-  weekArrow: { color: theme.accent, fontSize: 16, lineHeight: 19 },
-  weekLabel: { flex: 1, textAlign: 'center', fontFamily: fonts.body, color: theme.accentHi, fontSize: 13 },
+  weekArrow: { color: theme.gold, fontSize: 16, lineHeight: 19 },
+  weekLabel: { flex: 1, textAlign: 'center', fontFamily: fonts.serif, color: theme.goldHi, fontSize: 13 },
 });
