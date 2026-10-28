@@ -150,6 +150,15 @@ const GroupingDetailQueryNode = graphql`
         completeConfirmTitle
         completeConfirmMessageTemplate
       }
+      allySharing {
+        allyVisible
+        visitorSlots
+        title
+        hint
+        allyVisibleLabel
+        visitorSlotsLabel
+        saveLabel
+      }
       grouping {
         id
         title
@@ -188,6 +197,15 @@ const GroupingDetailQueryNode = graphql`
 const GroupingDetailDeleteMutationNode = graphql`
   mutation GroupingDetailDeleteMutation($id: ID!) {
     disbandGrouping(id: $id) {
+      ok
+      error
+    }
+  }
+`;
+
+const GroupingDetailAllySharingMutationNode = graphql`
+  mutation GroupingDetailAllySharingMutation($slug: String!, $groupingId: ID!, $allyVisible: Boolean!, $visitorSlots: Int!) {
+    setGroupingAllySharing(slug: $slug, groupingId: $groupingId, allyVisible: $allyVisible, visitorSlots: $visitorSlots) {
       ok
       error
     }
@@ -286,6 +304,24 @@ const formText = { ...page, unknownErrorText };
 // presence here is composition, not a security boundary.
 const ma = page?.manageActions ?? null;
 const canManage = !!ma;
+
+// Ally sharing control (P20): composed by the server only for viewers
+// who manage this grouping; local edits save through the mutation and
+// the server re-verifies. Null control = no UI at all.
+const allyCtl = page?.allySharing ?? null;
+const [allyEnabled, setAllyEnabled] = useState<boolean>(!!allyCtl?.allyVisible);
+const [allySlots, setAllySlots] = useState<string>(String(allyCtl?.visitorSlots ?? 0));
+const [commitAllySharing, allySaving] = useMutation(GroupingDetailAllySharingMutationNode);
+const doSaveAllySharing = () => {
+commitAllySharing({
+variables: { slug, groupingId: g!.id, allyVisible: allyEnabled, visitorSlots: Math.max(0, parseInt(allySlots || '0', 10) || 0) },
+onCompleted: (res: any) => {
+if (res.setGroupingAllySharing?.ok) { onChanged(); }
+else toast(res.setGroupingAllySharing?.error || unknownErrorText);
+},
+onError: (e: Error) => toast(e.message),
+});
+};
 
 const [commitDelete, deleting] = useMutation<GroupingDetailDeleteMutationType>(GroupingDetailDeleteMutationNode);
 
@@ -440,6 +476,23 @@ verticalAlign: 'middle',
 </>
 )}
 </div>
+{interactive && allyCtl && g.status !== 'completed' && (
+<div style={{ marginTop: 12, padding: '10px 12px', border: '1px solid rgba(201,163,92,.25)', borderRadius: 8 }}>
+<div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+<span style={{ fontSize: 13, color: '#ecd28f' }}>{allyCtl.title}</span>
+<label style={{ display: 'flex', gap: 6, alignItems: 'center', fontSize: 13, color: theme.muted }}>
+<input type="checkbox" checked={allyEnabled} onChange={(e) => setAllyEnabled(e.target.checked)} />
+{allyCtl.allyVisibleLabel}
+</label>
+<label style={{ display: 'flex', gap: 6, alignItems: 'center', fontSize: 13, color: theme.muted }}>
+{allyCtl.visitorSlotsLabel}
+<input type="number" min={0} value={allySlots} onChange={(e) => setAllySlots(e.target.value)} style={{ width: 64 }} />
+</label>
+<button onClick={doSaveAllySharing} disabled={allySaving} style={smBtn}>{allyCtl.saveLabel}</button>
+</div>
+<div style={{ fontSize: 12, color: theme.muted, marginTop: 6 }}>{allyCtl.hint}</div>
+</div>
+)}
 {g.status === 'completed'
 ? <div style={{ color: theme.muted, fontSize: 12, marginTop: 8}}>{page.detailCompletedHint}</div>
 : interactive

@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<2873f6e23cb8b5a563fc796d048446ec>>
+ * @generated SignedSource<<c55e995788bd9b31914d9e3966519b5a>>
  * @lightSyntaxTransform
  */
 
@@ -16,6 +16,15 @@ export type GroupingDetailQuery$variables = {
 };
 export type GroupingDetailQuery$data = {
   readonly groupingDetailPage: {
+    readonly allySharing: {
+      readonly allyVisible: boolean;
+      readonly allyVisibleLabel: string;
+      readonly hint: string;
+      readonly saveLabel: string;
+      readonly title: string;
+      readonly visitorSlots: number;
+      readonly visitorSlotsLabel: string;
+    } | null | undefined;
     readonly confirmCancelLabel: string;
     readonly confirmOkLabel: string;
     readonly detailBackToListLabel: string;
@@ -1156,73 +1165,127 @@ v112 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "id",
+  "name": "title",
   "storageKey": null
 },
 v113 = {
   "alias": null,
   "args": null,
-  "kind": "ScalarField",
-  "name": "title",
+  "concreteType": "AllySharingControl",
+  "kind": "LinkedField",
+  "name": "allySharing",
+  "plural": false,
+  "selections": [
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "allyVisible",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "visitorSlots",
+      "storageKey": null
+    },
+    (v112/*:: as any*/),
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "hint",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "allyVisibleLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "visitorSlotsLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "saveLabel",
+      "storageKey": null
+    }
+  ],
   "storageKey": null
 },
 v114 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "type",
+  "name": "id",
   "storageKey": null
 },
 v115 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "creatorDiscordId",
+  "name": "type",
   "storageKey": null
 },
 v116 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "startsAt",
+  "name": "creatorDiscordId",
   "storageKey": null
 },
 v117 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "name",
+  "name": "startsAt",
   "storageKey": null
 },
 v118 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "occupiedCount",
+  "name": "name",
   "storageKey": null
 },
 v119 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "readyCount",
+  "name": "occupiedCount",
   "storageKey": null
 },
 v120 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "maxSlots",
+  "name": "readyCount",
   "storageKey": null
 },
 v121 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "status",
+  "name": "maxSlots",
   "storageKey": null
 },
 v122 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "status",
+  "storageKey": null
+},
+v123 = {
   "alias": null,
   "args": null,
   "concreteType": "Seat",
@@ -1277,7 +1340,7 @@ v122 = {
   ],
   "storageKey": null
 },
-v123 = {
+v124 = {
   "alias": null,
   "args": null,
   "concreteType": "CustomField",
@@ -1285,7 +1348,7 @@ v123 = {
   "name": "customFields",
   "plural": true,
   "selections": [
-    (v112/*:: as any*/),
+    (v114/*:: as any*/),
     {
       "alias": null,
       "args": null,
@@ -1442,6 +1505,7 @@ return {
           (v107/*:: as any*/),
           (v110/*:: as any*/),
           (v111/*:: as any*/),
+          (v113/*:: as any*/),
           {
             "alias": null,
             "args": null,
@@ -1450,11 +1514,11 @@ return {
             "name": "grouping",
             "plural": false,
             "selections": [
-              (v112/*:: as any*/),
-              (v113/*:: as any*/),
               (v114/*:: as any*/),
+              (v112/*:: as any*/),
               (v115/*:: as any*/),
               (v116/*:: as any*/),
+              (v117/*:: as any*/),
               {
                 "alias": null,
                 "args": null,
@@ -1463,16 +1527,16 @@ return {
                 "name": "dungeon",
                 "plural": false,
                 "selections": [
-                  (v117/*:: as any*/)
+                  (v118/*:: as any*/)
                 ],
                 "storageKey": null
               },
-              (v118/*:: as any*/),
               (v119/*:: as any*/),
               (v120/*:: as any*/),
               (v121/*:: as any*/),
               (v122/*:: as any*/),
-              (v123/*:: as any*/)
+              (v123/*:: as any*/),
+              (v124/*:: as any*/)
             ],
             "storageKey": null
           }
@@ -1607,6 +1671,7 @@ return {
           (v107/*:: as any*/),
           (v110/*:: as any*/),
           (v111/*:: as any*/),
+          (v113/*:: as any*/),
           {
             "alias": null,
             "args": null,
@@ -1615,11 +1680,11 @@ return {
             "name": "grouping",
             "plural": false,
             "selections": [
-              (v112/*:: as any*/),
-              (v113/*:: as any*/),
               (v114/*:: as any*/),
+              (v112/*:: as any*/),
               (v115/*:: as any*/),
               (v116/*:: as any*/),
+              (v117/*:: as any*/),
               {
                 "alias": null,
                 "args": null,
@@ -1628,17 +1693,17 @@ return {
                 "name": "dungeon",
                 "plural": false,
                 "selections": [
-                  (v117/*:: as any*/),
-                  (v112/*:: as any*/)
+                  (v118/*:: as any*/),
+                  (v114/*:: as any*/)
                 ],
                 "storageKey": null
               },
-              (v118/*:: as any*/),
               (v119/*:: as any*/),
               (v120/*:: as any*/),
               (v121/*:: as any*/),
               (v122/*:: as any*/),
-              (v123/*:: as any*/)
+              (v123/*:: as any*/),
+              (v124/*:: as any*/)
             ],
             "storageKey": null
           }
@@ -1648,16 +1713,16 @@ return {
     ]
   },
   "params": {
-    "cacheID": "e330e0d0c72b711781d48b38b4cb7540",
+    "cacheID": "5acd4f6f21ef7c7918f50931914014b2",
     "id": null,
     "metadata": {},
     "name": "GroupingDetailQuery",
     "operationKind": "query",
-    "text": "query GroupingDetailQuery(\n  $slug: String\n  $id: ID!\n) {\n  viewer {\n    user {\n      discordId\n    }\n    commonUnknownErrorText\n  }\n  groupingDetailPage(slug: $slug, id: $id) {\n    detailNotFoundText\n    detailBackToListLabel\n    detailShareLabel\n    shareUrl\n    templateSave {\n      buttonLabel\n      dialogTitle\n      nameLabel\n      submitLabel\n      toastSaved\n      toastFailedTemplate\n    }\n    detailEditLabel\n    detailDisbandLabel\n    detailDisbandingLabel\n    detailStatusOpenLabel\n    detailPeopleTemplate\n    detailOpenHint\n    detailReadonlyHint\n    detailToastDisbanded\n    detailToastDisbandFailedTemplate\n    detailLinkCopied\n    detailCopyFailedManual\n    detailDisbandConfirmTitle\n    detailDisbandConfirmMessageTemplate\n    detailCompleteLabel\n    detailCompletingLabel\n    detailStatusCompletedLabel\n    detailRestoreLabel\n    detailCompleteConfirmTitle\n    detailCompleteConfirmMessageTemplate\n    detailToastCompleted\n    detailToastCompleteFailedTemplate\n    detailToastRestored\n    detailToastRestoreFailedTemplate\n    detailCompletedHint\n    confirmOkLabel\n    confirmCancelLabel\n    typeShortActivity\n    typeShortTalent\n    typeShortRace\n    typeShortTower\n    typeShortGather\n    typeShortExplore\n    seatEmptyJoinLabel\n    seatEmptyLabel\n    seatModalTitleTemplate\n    seatModalSubtitle\n    seatNameLabel\n    seatNamePlaceholder\n    seatNameRequired\n    seatSelfTabLabel\n    seatProxyTabLabel\n    seatSelfNameHint\n    seatProxySearchPlaceholder\n    seatProxyPickRequired\n    seatProxyEmptyText\n    seatSectLabel\n    seatCancelLabel\n    seatConfirmJoinLabel\n    seatJoiningLabel\n    seatToastSect\n    seatToastJoined\n    seatToastJoinFailedTemplate\n    seatToastLeft\n    seatToastLeaveFailedTemplate\n    seatLeaveConfirmTitle\n    seatLeaveConfirmMessageTemplate\n    detailReadyProgressTemplate\n    seatReadyLabel\n    seatReadyActionLabel\n    seatUnreadyActionLabel\n    seatToastReady\n    seatToastUnready\n    seatToastReadyFailedTemplate\n    formCreateTitle\n    formEditTitle\n    formTypeLabel\n    formTypeActivityLabel\n    formTypeTalentLabel\n    formTypeRaceLabel\n    formTypeTowerLabel\n    formCapacityTemplate\n    formHintActivity\n    formHintDungeonTemplate\n    formHintTalent\n    formHintRace\n    formHintTower\n    formTitleLabel\n    formTitlePlaceholder\n    formStartsLabel\n    formMonthTemplate\n    formDayTemplate\n    formHourTemplate\n    formMinuteTemplate\n    formDungeonLabel\n    formDungeonNoneLabel\n    formNicknameLabel\n    formNicknamePlaceholder\n    formSectLabel\n    formCancelLabel\n    formSubmitCreateLabel\n    formSubmitEditLabel\n    formSubmittingLabel\n    formToastSect\n    formToastSaved\n    formToastSaveFailedTemplate\n    formToastPosted\n    formToastCreateFailedTemplate\n    formTitleTemplate\n    rosterAnswersTitle\n    rosterAnswers {\n      uid\n      nickname\n      fieldId\n      fieldLabel\n      value\n    }\n    manageActions {\n      editLabel\n      completeLabel\n      completingLabel\n      restoreLabel\n      disbandLabel\n      disbandingLabel\n      disbandConfirmTitle\n      disbandConfirmMessageTemplate\n      completeConfirmTitle\n      completeConfirmMessageTemplate\n    }\n    grouping {\n      id\n      title\n      type\n      creatorDiscordId\n      startsAt\n      dungeon {\n        name\n        id\n      }\n      occupiedCount\n      readyCount\n      maxSlots\n      status\n      seats {\n        index\n        nickname\n        weapon\n        role\n        uid\n        occupied\n        ready\n        mine\n      }\n      customFields {\n        id\n        label\n        fieldType\n        options\n        required\n      }\n    }\n  }\n}\n"
+    "text": "query GroupingDetailQuery(\n  $slug: String\n  $id: ID!\n) {\n  viewer {\n    user {\n      discordId\n    }\n    commonUnknownErrorText\n  }\n  groupingDetailPage(slug: $slug, id: $id) {\n    detailNotFoundText\n    detailBackToListLabel\n    detailShareLabel\n    shareUrl\n    templateSave {\n      buttonLabel\n      dialogTitle\n      nameLabel\n      submitLabel\n      toastSaved\n      toastFailedTemplate\n    }\n    detailEditLabel\n    detailDisbandLabel\n    detailDisbandingLabel\n    detailStatusOpenLabel\n    detailPeopleTemplate\n    detailOpenHint\n    detailReadonlyHint\n    detailToastDisbanded\n    detailToastDisbandFailedTemplate\n    detailLinkCopied\n    detailCopyFailedManual\n    detailDisbandConfirmTitle\n    detailDisbandConfirmMessageTemplate\n    detailCompleteLabel\n    detailCompletingLabel\n    detailStatusCompletedLabel\n    detailRestoreLabel\n    detailCompleteConfirmTitle\n    detailCompleteConfirmMessageTemplate\n    detailToastCompleted\n    detailToastCompleteFailedTemplate\n    detailToastRestored\n    detailToastRestoreFailedTemplate\n    detailCompletedHint\n    confirmOkLabel\n    confirmCancelLabel\n    typeShortActivity\n    typeShortTalent\n    typeShortRace\n    typeShortTower\n    typeShortGather\n    typeShortExplore\n    seatEmptyJoinLabel\n    seatEmptyLabel\n    seatModalTitleTemplate\n    seatModalSubtitle\n    seatNameLabel\n    seatNamePlaceholder\n    seatNameRequired\n    seatSelfTabLabel\n    seatProxyTabLabel\n    seatSelfNameHint\n    seatProxySearchPlaceholder\n    seatProxyPickRequired\n    seatProxyEmptyText\n    seatSectLabel\n    seatCancelLabel\n    seatConfirmJoinLabel\n    seatJoiningLabel\n    seatToastSect\n    seatToastJoined\n    seatToastJoinFailedTemplate\n    seatToastLeft\n    seatToastLeaveFailedTemplate\n    seatLeaveConfirmTitle\n    seatLeaveConfirmMessageTemplate\n    detailReadyProgressTemplate\n    seatReadyLabel\n    seatReadyActionLabel\n    seatUnreadyActionLabel\n    seatToastReady\n    seatToastUnready\n    seatToastReadyFailedTemplate\n    formCreateTitle\n    formEditTitle\n    formTypeLabel\n    formTypeActivityLabel\n    formTypeTalentLabel\n    formTypeRaceLabel\n    formTypeTowerLabel\n    formCapacityTemplate\n    formHintActivity\n    formHintDungeonTemplate\n    formHintTalent\n    formHintRace\n    formHintTower\n    formTitleLabel\n    formTitlePlaceholder\n    formStartsLabel\n    formMonthTemplate\n    formDayTemplate\n    formHourTemplate\n    formMinuteTemplate\n    formDungeonLabel\n    formDungeonNoneLabel\n    formNicknameLabel\n    formNicknamePlaceholder\n    formSectLabel\n    formCancelLabel\n    formSubmitCreateLabel\n    formSubmitEditLabel\n    formSubmittingLabel\n    formToastSect\n    formToastSaved\n    formToastSaveFailedTemplate\n    formToastPosted\n    formToastCreateFailedTemplate\n    formTitleTemplate\n    rosterAnswersTitle\n    rosterAnswers {\n      uid\n      nickname\n      fieldId\n      fieldLabel\n      value\n    }\n    manageActions {\n      editLabel\n      completeLabel\n      completingLabel\n      restoreLabel\n      disbandLabel\n      disbandingLabel\n      disbandConfirmTitle\n      disbandConfirmMessageTemplate\n      completeConfirmTitle\n      completeConfirmMessageTemplate\n    }\n    allySharing {\n      allyVisible\n      visitorSlots\n      title\n      hint\n      allyVisibleLabel\n      visitorSlotsLabel\n      saveLabel\n    }\n    grouping {\n      id\n      title\n      type\n      creatorDiscordId\n      startsAt\n      dungeon {\n        name\n        id\n      }\n      occupiedCount\n      readyCount\n      maxSlots\n      status\n      seats {\n        index\n        nickname\n        weapon\n        role\n        uid\n        occupied\n        ready\n        mine\n      }\n      customFields {\n        id\n        label\n        fieldType\n        options\n        required\n      }\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "96405785efb7757dfe443540a50c3838";
+(node as any).hash = "f2f0d895eb1c9506c28203b989f61bf5";
 
 export default node;
