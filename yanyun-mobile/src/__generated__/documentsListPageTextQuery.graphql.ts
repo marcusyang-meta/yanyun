@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<669b15254fdec6d1b2ac347ea45517a5>>
+ * @generated SignedSource<<2ee621d31a486cd66259e0e018bcda48>>
  * @lightSyntaxTransform
  */
 
@@ -104,7 +104,6 @@ export type documentsListPageTextQuery$data = {
     readonly commonUnknownErrorText: string;
     readonly guild: {
       readonly homeAdminLabel?: string | null | undefined;
-      readonly recruitEntryLabel?: string;
     };
   };
 };
@@ -142,13 +141,6 @@ v3 = [
   (v2/*:: as any*/)
 ],
 v4 = {
-  "alias": null,
-  "args": null,
-  "kind": "ScalarField",
-  "name": "recruitEntryLabel",
-  "storageKey": null
-},
-v5 = {
   "kind": "InlineFragment",
   "selections": [
     {
@@ -157,28 +149,12 @@ v5 = {
       "kind": "ScalarField",
       "name": "homeAdminLabel",
       "storageKey": null
-    },
-    (v4/*:: as any*/)
+    }
   ],
   "type": "Guild",
   "abstractKey": null
 },
-v6 = [
-  (v4/*:: as any*/)
-],
-v7 = {
-  "kind": "InlineFragment",
-  "selections": (v6/*:: as any*/),
-  "type": "GuildReadOnly",
-  "abstractKey": null
-},
-v8 = {
-  "kind": "InlineFragment",
-  "selections": (v6/*:: as any*/),
-  "type": "GuildLocked",
-  "abstractKey": null
-},
-v9 = {
+v5 = {
   "alias": null,
   "args": [
     (v2/*:: as any*/),
@@ -795,16 +771,14 @@ return {
             "name": "guild",
             "plural": false,
             "selections": [
-              (v5/*:: as any*/),
-              (v7/*:: as any*/),
-              (v8/*:: as any*/)
+              (v4/*:: as any*/)
             ],
             "storageKey": null
           }
         ],
         "storageKey": null
       },
-      (v9/*:: as any*/)
+      (v5/*:: as any*/)
     ],
     "type": "Query",
     "abstractKey": null
@@ -839,29 +813,27 @@ return {
                 "name": "__typename",
                 "storageKey": null
               },
-              (v5/*:: as any*/),
-              (v7/*:: as any*/),
-              (v8/*:: as any*/)
+              (v4/*:: as any*/)
             ],
             "storageKey": null
           }
         ],
         "storageKey": null
       },
-      (v9/*:: as any*/)
+      (v5/*:: as any*/)
     ]
   },
   "params": {
-    "cacheID": "528b70f878a408c566ba220863797e0d",
+    "cacheID": "cb9d8a0c3b0fabf4711b975d7589e544",
     "id": null,
     "metadata": {},
     "name": "documentsListPageTextQuery",
     "operationKind": "query",
-    "text": "query documentsListPageTextQuery(\n  $slug: String!\n  $tab: GroupingTab!\n) {\n  viewer {\n    commonUnknownErrorText\n    guild(slug: $slug) {\n      __typename\n      ... on Guild {\n        homeAdminLabel\n        recruitEntryLabel\n      }\n      ... on GuildReadOnly {\n        recruitEntryLabel\n      }\n      ... on GuildLocked {\n        recruitEntryLabel\n      }\n    }\n  }\n  groupingListPage(slug: $slug, tab: $tab) {\n    newCarLabel\n    tabActivityLabel\n    tabTalentLabel\n    tabRaceLabel\n    tabTowerLabel\n    sealText\n    statusOpenLabel\n    weekHeaderTemplate\n    currentVersion\n    formCreateTitle\n    formEditTitle\n    formTypeLabel\n    formTypeActivityLabel\n    formTypeTalentLabel\n    formTypeRaceLabel\n    formTypeTowerLabel\n    formCapacityTemplate\n    formHintActivity\n    formHintDungeonTemplate\n    formHintTalent\n    formHintRace\n    formHintTower\n    formTitleLabel\n    formTitlePlaceholder\n    formStartsLabel\n    formMonthTemplate\n    formDayTemplate\n    formHourTemplate\n    formMinuteTemplate\n    formDungeonLabel\n    formDungeonNoneLabel\n    formNicknameLabel\n    formNicknamePlaceholder\n    formSectLabel\n    formCancelLabel\n    formSubmitCreateLabel\n    formSubmitEditLabel\n    formSubmittingLabel\n    formToastSect\n    formToastSaved\n    formToastSaveFailedTemplate\n    formToastPosted\n    formToastCreateFailedTemplate\n    formTitleTemplate\n    typeShortActivity\n    typeShortTalent\n    typeShortRace\n    typeShortTower\n    templateSectionTitle\n    templateNameLabel\n    templateNamePlaceholder\n    templateSaveLabel\n    templateUpdateLabel\n    templateEditingNoticeTemplate\n    templateCancelEditLabel\n    templateEmptyText\n    templateWhenTodayTemplate\n    templateWhenTomorrowTemplate\n    templateWhenDaysTemplate\n    templateToastSaved\n    templateToastSaveFailedTemplate\n    templateToastDeleted\n    templateToastDeleteFailedTemplate\n    templateMetaTemplate\n    groupingTemplates {\n      id\n      name\n      type\n      title\n      dungeonName\n      dungeonId\n      maxSlots\n      startDaysAhead\n      startHour\n      startMinute\n      creatorName\n      manageActions {\n        editLabel\n        deleteLabel\n        deleteConfirmTitle\n        deleteConfirmMessageTemplate\n      }\n    }\n  }\n}\n"
+    "text": "query documentsListPageTextQuery(\n  $slug: String!\n  $tab: GroupingTab!\n) {\n  viewer {\n    commonUnknownErrorText\n    guild(slug: $slug) {\n      __typename\n      ... on Guild {\n        homeAdminLabel\n      }\n    }\n  }\n  groupingListPage(slug: $slug, tab: $tab) {\n    newCarLabel\n    tabActivityLabel\n    tabTalentLabel\n    tabRaceLabel\n    tabTowerLabel\n    sealText\n    statusOpenLabel\n    weekHeaderTemplate\n    currentVersion\n    formCreateTitle\n    formEditTitle\n    formTypeLabel\n    formTypeActivityLabel\n    formTypeTalentLabel\n    formTypeRaceLabel\n    formTypeTowerLabel\n    formCapacityTemplate\n    formHintActivity\n    formHintDungeonTemplate\n    formHintTalent\n    formHintRace\n    formHintTower\n    formTitleLabel\n    formTitlePlaceholder\n    formStartsLabel\n    formMonthTemplate\n    formDayTemplate\n    formHourTemplate\n    formMinuteTemplate\n    formDungeonLabel\n    formDungeonNoneLabel\n    formNicknameLabel\n    formNicknamePlaceholder\n    formSectLabel\n    formCancelLabel\n    formSubmitCreateLabel\n    formSubmitEditLabel\n    formSubmittingLabel\n    formToastSect\n    formToastSaved\n    formToastSaveFailedTemplate\n    formToastPosted\n    formToastCreateFailedTemplate\n    formTitleTemplate\n    typeShortActivity\n    typeShortTalent\n    typeShortRace\n    typeShortTower\n    templateSectionTitle\n    templateNameLabel\n    templateNamePlaceholder\n    templateSaveLabel\n    templateUpdateLabel\n    templateEditingNoticeTemplate\n    templateCancelEditLabel\n    templateEmptyText\n    templateWhenTodayTemplate\n    templateWhenTomorrowTemplate\n    templateWhenDaysTemplate\n    templateToastSaved\n    templateToastSaveFailedTemplate\n    templateToastDeleted\n    templateToastDeleteFailedTemplate\n    templateMetaTemplate\n    groupingTemplates {\n      id\n      name\n      type\n      title\n      dungeonName\n      dungeonId\n      maxSlots\n      startDaysAhead\n      startHour\n      startMinute\n      creatorName\n      manageActions {\n        editLabel\n        deleteLabel\n        deleteConfirmTitle\n        deleteConfirmMessageTemplate\n      }\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "5bc32f6a15d533dfe66b0740cd5b903d";
+(node as any).hash = "48ff9bad7afdc1ad3f62b225a5b173e7";
 
 export default node;

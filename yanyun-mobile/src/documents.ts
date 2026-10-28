@@ -65,6 +65,59 @@ export const ViewerQuery = graphql`
         homeTabAnnouncementsLabel
         pageBackLabel
       }
+      homeRecruit {
+        recruitTitle
+        homeBody
+        homeLoginHint
+        applySectionTitle
+        messageLabel
+        messagePlaceholder
+        submitLabel
+        submittingLabel
+        myApplicationTitle
+        pendingHint
+        approvedNextStepText
+        rejectedHint
+        checklistTitle
+        myPairingsTitle
+        pairingMentorRoleLabel
+        pairingMenteeRoleLabel
+        guilds {
+          slug
+          name
+          slogan
+          avatarUrl
+          myApplicationSection {
+            application {
+              id
+              applicantName
+              message
+              status
+              statusLabel
+              createdAtText
+              reviewedByName
+              reviewedAtText
+            }
+          }
+        }
+        myNewcomer {
+          slug
+          guildName
+          checklist {
+            progressText
+            items { key label hint done }
+          }
+          myPairings {
+            id
+            mentorName
+            menteeName
+            status
+            statusLabel
+            createdAtText
+            endedAtText
+          }
+        }
+      }
     }
   }
 `;
@@ -217,13 +270,6 @@ export const ListPageTextQuery = graphql`
       guild(slug: $slug) {
         ... on Guild {
           homeAdminLabel
-          recruitEntryLabel
-        }
-        ... on GuildReadOnly {
-          recruitEntryLabel
-        }
-        ... on GuildLocked {
-          recruitEntryLabel
         }
       }
     }
@@ -2009,74 +2055,9 @@ export const EndMentorPairingAdminMutation = graphql`
   }
 `;
 
-/* Recruit line (F16 applications + F24 checklist + F17 pairings):
-   the member surface queries viewer.guildRecruit; the response type
-   is the verdict (GuildRecruitPage vs GuildRecruitLocked) and every
-   label is a backend copy field. */
-export const GuildRecruitQuery = graphql`
-  query documentsGuildRecruitQuery($slug: String!) {
-    viewer {
-      commonUnknownErrorText
-      guildRecruit(slug: $slug) {
-        __typename
-        ... on GuildRecruitLocked {
-          slug
-          lockedTitle
-          lockedBody
-          backLabel
-        }
-        ... on GuildRecruitPage {
-          slug
-          guildName
-          recruitTitle
-          recruitBody
-          applySectionTitle
-          messageLabel
-          messagePlaceholder
-          submitLabel
-          submittingLabel
-          myApplicationTitle
-          pendingHint
-          approvedNextStepText
-          rejectedHint
-          checklistTitle
-          myPairingsTitle
-          pairingMentorRoleLabel
-          pairingMenteeRoleLabel
-          backLabel
-          myApplication {
-            id
-            applicantName
-            message
-            status
-            statusLabel
-            createdAtText
-            reviewedByName
-            reviewedAtText
-          }
-          checklist {
-            progressText
-            items {
-              key
-              label
-              hint
-              done
-            }
-          }
-          myPairings {
-            id
-            mentorName
-            menteeName
-            status
-            statusLabel
-            createdAtText
-            endedAtText
-          }
-        }
-      }
-    }
-  }
-`;
+/* Recruit line (F16): the application mutation behind the platform
+   home's recruit section (the standalone recruit page dissolved into
+   the home; its data now rides documentsViewerQuery's homeRecruit). */
 export const ApplyToGuildMutation = graphql`
   mutation documentsApplyToGuildMutation($slug: String!, $message: String) {
     applyToGuild(slug: $slug, message: $message) { ok error }
