@@ -53,7 +53,9 @@ export const usageCounters = sqliteTable('usage_counters', {
 ]);
 /* ---------------- guild entitlements [alt: 0005] ------------------
  * One row per guild with a plan assignment (billing.ts repository).
- * plan 'free' | 'premium'; source 'stripe' | 'manual' | ''.
+ * plan 'free' | 'premium' | 't1' | 't2' | 't3' (plain TEXT, no CHECK
+ * constraint — tiers widened the value set without a migration);
+ * source 'stripe' | 'manual' | ''.
  * current_period_end is unix seconds, NULL = no expiry on file;
  * expiry is judged at read time by the entitlement service. */
 export const guildEntitlements = sqliteTable('guild_entitlements', {

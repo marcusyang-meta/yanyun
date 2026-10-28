@@ -39,7 +39,17 @@ import type { Env } from './context.ts';
 import { logError } from './error-log.ts';
 import { gateOpen } from './gates.ts';
 
-export type GuildPlan = 'free' | 'premium';
+export type GuildPlan = 'free' | 'premium' | 't1' | 't2' | 't3';
+
+/** Paid tier level derived from the effective plan at read time:
+ *  free (and anything lapsed) is 0, t1/t2/t3 map to 1/2/3, and the
+ *  legacy 'premium' plan maps to 3 — stored premium grants keep the
+ *  highest tier, they are never clawed back by the tier rollout. */
+export type GuildTier = 0 | 1 | 2 | 3;
+
+const TIER_BY_PLAN: Record<string, GuildTier> = {
+  free: 0, t1: 1, t2: 2, t3: 3, premium: 3,
+};
 
 export const PAYGATE_ENABLED_KEY = 'paygate_enabled';
 
@@ -60,6 +70,10 @@ export async function setPaygateEnabled(d1: D1Database, on: boolean): Promise<vo
 export interface EffectiveEntitlement {
   /** Effective plan right now (read-time expiry already applied). */
   plan: GuildPlan;
+  /** Effective tier right now, derived from the effective plan at
+   *  read time (see TIER_BY_PLAN): an expired assignment is tier 0,
+   *  exactly like a free one, and lapsed keeps its meaning. */
+  tier: GuildTier;
   /** Stored source: 'stripe' | 'manual' | ''. */
   source: string;
   /** Stored period end (unix seconds); null when no expiry on file. */
@@ -69,7 +83,7 @@ export interface EffectiveEntitlement {
 }
 
 const FREE_ENTITLEMENT: EffectiveEntitlement = {
-  plan: 'free', source: '', currentPeriodEnd: null, lapsed: false,
+  plan: 'free', tier: 0, source: '', currentPeriodEnd: null, lapsed: false,
 };
 
 export async function getEffectiveEntitlement(
@@ -78,11 +92,19 @@ export async function getEffectiveEntitlement(
   atSec: number = nowSec(),
 ): Promise<EffectiveEntitlement> {
   const row = await getEntitlementRow(d1, slug).catch(() => null);
-  if (!row || row.plan !== 'premium') return FREE_ENTITLEMENT;
+  if (!row) return FREE_ENTITLEMENT;
+  const storedTier = TIER_BY_PLAN[row.plan];
+  if (storedTier === undefined || storedTier === 0) return FREE_ENTITLEMENT;
   if (row.currentPeriodEnd != null && row.currentPeriodEnd <= atSec) {
-    return { plan: 'free', source: row.source, currentPeriodEnd: row.currentPeriodEnd, lapsed: true };
+    return { plan: 'free', tier: 0, source: row.source, currentPeriodEnd: row.currentPeriodEnd, lapsed: true };
   }
-  return { plan: 'premium', source: row.source, currentPeriodEnd: row.currentPeriodEnd, lapsed: false };
+  return {
+    plan: row.plan as GuildPlan,
+    tier: storedTier,
+    source: row.source,
+    currentPeriodEnd: row.currentPeriodEnd,
+    lapsed: false,
+  };
 }
 
 /* ---------------- gate keys (Statsig console mapping) ------------
@@ -129,6 +151,28 @@ export async function premiumGate(d1: D1Database, slug: string): Promise<boolean
   return !unlocked;
 }
 
+/* ---------------- tier verdict (new paid surfaces) ----------------
+ * tierLocked is a PURE entitlement verdict: it deliberately does NOT
+ * consult the paygate master switch. Rationale: the new tiered paid
+ * surfaces have no historical behavior that needs preserving, so
+ * there is nothing for the master switch to keep at parity — the
+ * enablement lever for them is the entitlement itself. With the
+ * paygate OFF a hub-granted test guild can be verified against the
+ * real production tier gates while every ungranted guild composes
+ * the locked variant and gets nothing. premiumGate /
+ * isPremiumActive above keep their paygate-gated semantics verbatim
+ * for the surfaces that predate tiers; this verdict never feeds
+ * them and they never feed it. */
+export async function tierLocked(
+  d1: D1Database,
+  slug: string,
+  minTier: 1 | 2 | 3,
+): Promise<boolean> {
+  if (!slug) return true;
+  const eff = await getEffectiveEntitlement(d1, slug);
+  return eff.tier < minTier;
+}
+
 /* ---------------- manual grant / revoke (hub) ---------------- */
 
 export async function grantPremiumManual(
@@ -142,6 +186,33 @@ export async function grantPremiumManual(
   const row: GuildEntitlementRow = {
     tenant: slug,
     plan: 'premium',
+    source: 'manual',
+    currentPeriodEnd: at + clampedDays * 86400,
+    stripeCustomerId: prev ? prev.stripeCustomerId : '',
+    stripeSubscriptionId: prev ? prev.stripeSubscriptionId : '',
+    updatedAt: at,
+  };
+  await upsertEntitlementRow(d1, row);
+  return row;
+}
+
+/** Manual tier grant, the tiered sibling of grantPremiumManual:
+ *  same shape (source 'manual', same 1..3650 day period clamp, the
+ *  stored Stripe ids preserved). `tier` accepts the numeric level
+ *  (1|2|3) or its stored plan spelling ('t1'|'t2'|'t3'). */
+export async function grantTierManual(
+  d1: D1Database,
+  slug: string,
+  tier: 1 | 2 | 3 | 't1' | 't2' | 't3',
+  days: number,
+): Promise<GuildEntitlementRow> {
+  const at = nowSec();
+  const prev = await getEntitlementRow(d1, slug);
+  const clampedDays = Math.max(1, Math.min(3650, Math.floor(days) || 0));
+  const plan: GuildPlan = typeof tier === 'number' ? (`t${tier}` as GuildPlan) : tier;
+  const row: GuildEntitlementRow = {
+    tenant: slug,
+    plan,
     source: 'manual',
     currentPeriodEnd: at + clampedDays * 86400,
     stripeCustomerId: prev ? prev.stripeCustomerId : '',
