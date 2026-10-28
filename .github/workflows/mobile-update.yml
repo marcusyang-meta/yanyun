@@ -34,6 +34,9 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Unit tests (vitest must pass before publishing)
+        working-directory: yanyun-mobile
+        run: pnpm exec vitest run
       - name: Smoke build (expo export must pass before publishing)
         working-directory: yanyun-mobile
         env:

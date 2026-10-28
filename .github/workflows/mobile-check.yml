@@ -1,0 +1,35 @@
+name: mobile-check
+
+# Mobile 前端验证 (vitest + tsc)。验证前置到 PR (与 web-check 同口径,
+# 2026-10-26 起 web 先行; mobile 此前只有 merge 后的 mobile-update 导出
+# 冒烟, PR 上零门禁 -- 2026-10-28 竞速 tab 热缓存复入崩溃正是从这个
+# 缺口漏到生产的)。直推 master 不触发。
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [master]
+    paths:
+      - 'yanyun-mobile/**'
+      - 'packages/blocks-core/**'
+      - 'packages/theme/**'
+      - 'packages/schema/**'
+      - '.github/workflows/mobile-check.yml'
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: corepack enable pnpm
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Unit tests (vitest)
+        working-directory: yanyun-mobile
+        run: pnpm exec vitest run
+      - name: Typecheck
+        working-directory: yanyun-mobile
+        run: pnpm exec tsc --noEmit
