@@ -19,6 +19,7 @@ export * from './gates.ts';
 export * from './billing.ts';
 export * from './billing-service.ts';
 export * from './stripe.ts';
+export * from './translator.ts';
 export * from './billing-routes.ts';
  './error-log.ts';
  './hub-audit.ts';

@@ -48,3 +48,13 @@ EXPO_PUSH_BASE=
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
 STRIPE_PRICE_ID=
+
+# OPTIONAL — premium P26 (multilingual announcements) only. Absent =
+# dynamic translation stays unconfigured and the announcement
+# surfaces compose exactly as before P26. When used locally, fill
+# with a translation provider TEST key only — never a live key.
+# TRANSLATION_API_BASE is not a secret: it overrides the provider
+# origin (code default is the DeepL free-API origin) and exists
+# only for local stub testing; production never sets it.
+TRANSLATION_API_KEY=
+TRANSLATION_API_BASE=
