@@ -9,6 +9,7 @@ import * as Sharing from 'expo-sharing';
 import { fonts, theme } from '../theme';
 import { AsyncBoundary, LoadingView } from '../components/AsyncBoundary';
 import { ProfilePageQuery } from '../documents';
+import GearLibraryDialog from './GearLibraryDialog';
 import {
   cancelAccountDeletionRemote,
   exportMyDataRemote,
@@ -23,8 +24,9 @@ import type { documentsProfilePageQuery } from '../__generated__/documentsProfil
 // Profile (same content and switch semantics as Web Profile; a push page
 // on mobile): identity (avatar + nickname + Discord account) + locale
 // preference (stored per account in users.locale_pref; follow-device +
-// five languages) + entry rows to the standalone gear library screen
-// (/gear — the library itself moved out of this page) and to the
+// five languages) + entry rows to the gear library dialog page (a
+// page-level Modal this page opens in place — Profile is a page, not a
+// dialog, so the Modal is a single layer) and to the
 // feedback page (/feedback) + sign-out. All
 // copy on this page comes from settingsPage / viewer shell fields per
 // locale; this file holds no UI copy (language option labels are also
@@ -63,6 +65,7 @@ function ProfileInner({ topInset, bottomInset }: { topInset: number; bottomInset
   const [error, setError] = useState('');
   const [saved, setSaved] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [gearOpen, setGearOpen] = useState(false);
 
   /* ---- My Data (account export / deletion) ---- */
   const environment = useRelayEnvironment();
@@ -214,6 +217,7 @@ function ProfileInner({ topInset, bottomInset }: { topInset: number; bottomInset
   };
 
   return (
+    <>
     <ScrollView
       showsVerticalScrollIndicator={false}
       contentContainerStyle={{
@@ -267,11 +271,12 @@ function ProfileInner({ topInset, bottomInset }: { topInset: number; bottomInset
       {saved && <Text style={s.saved}>✓ {page.settingsSavedText}</Text>}
       {!!error && <Text style={s.error}>{error}</Text>}
 
-      {/* Entry to the standalone gear library screen: the library and my
-          builds live on their own push page now (/gear), not embedded here.
-          The feedback entry sits in the same zone, pushing /feedback. */}
+      {/* Entry to the gear library dialog page: the library and my builds
+          open as a page-level Modal over this page (GearLibraryDialog),
+          not embedded here and not a pushed route. The feedback entry
+          sits in the same zone, pushing /feedback. */}
       <View style={s.gearZone}>
-        <Pressable style={s.entryRow} onPress={() => router.push('/gear')}>
+        <Pressable style={s.entryRow} onPress={() => setGearOpen(true)}>
           <Text style={s.entryText}>{data.gradPage?.gearMyLibTitle}</Text>
           <Text style={s.entryChevron}>›</Text>
         </Pressable>
@@ -380,6 +385,8 @@ function ProfileInner({ topInset, bottomInset }: { topInset: number; bottomInset
         </View>
       </View>
     </ScrollView>
+    {gearOpen && <GearLibraryDialog onClose={() => setGearOpen(false)} />}
+    </>
   );
 }
 
