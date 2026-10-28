@@ -10777,6 +10777,30 @@
       ],
       "types": []
     },
+    "w9nG/w/r6gxdmomDywbysQ==": {
+      "description": "Title text for the recruiting section on the platform home page, used as the heading above the directory of guilds whose recruitment is open for applications.",
+      "id": "guilds/recruit_directoryTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "招新",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "rD8dsjh2qaXf2YHIzaAjow==": {
+      "description": "Title text for the newcomers section on the platform home page, used as the heading above a member's onboarding checklist and mentor pairings.",
+      "id": "guilds/recruit_newcomerTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "新人",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
     "vN7qCE/6DGszCOSIMHQuGQ==": {
       "description": "Tab label for the guild admin page, used to switch to the officer tools tab.",
       "id": "guilds/guildAdmin_tabOfficer",

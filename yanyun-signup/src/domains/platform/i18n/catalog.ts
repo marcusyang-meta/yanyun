@@ -6938,6 +6938,16 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "en": "Recruiting & newcomers",
       "zh-TW": "招新與新人"
     },
+    "directoryTitle": {
+      "zh-CN": "招新",
+      "en": "Recruiting",
+      "zh-TW": "招新"
+    },
+    "newcomerTitle": {
+      "zh-CN": "新人",
+      "en": "Newcomers",
+      "zh-TW": "新人"
+    },
     "homeBody": {
       "zh-CN": "想加入一个百业？在下面挑一个开放招新的百业提交入业申请，百业管理员会在管理面审核。已经在业的新人可以在这里看自己的入业清单与导师配对。",
       "en": "Want to join a guild? Choose a guild that is open for recruitment below and submit an application; guild admins review applications in the admin panel. Newcomers already in a guild can see their newcomer checklist and mentor pairing here.",

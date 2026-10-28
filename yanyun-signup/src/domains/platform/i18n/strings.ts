@@ -3609,6 +3609,12 @@ export abstract class RecruitFbtUtils {
 	static title(fbs: FbsRuntime) {
 		return fbs._("招新与新人", null, { hk: "122QLo" });
 	}
+	static directoryTitle(fbs: FbsRuntime) {
+		return fbs._("招新", null, { hk: "3clW8y" });
+	}
+	static newcomerTitle(fbs: FbsRuntime) {
+		return fbs._("新人", null, { hk: "3wwr2i" });
+	}
 	static homeBody(fbs: FbsRuntime) {
 		return fbs._("想加入一个百业？在下面挑一个开放招新的百业提交入业申请，百业管理员会在管理面审核。已经在业的新人可以在这里看自己的入业清单与导师配对。", null, { hk: "zIXqK" });
 	}
@@ -5650,6 +5656,8 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"schedule_settingsLinkLabel": ScheduleFbtUtils.settingsLinkLabel,
 	"schedule_noGuildsText": ScheduleFbtUtils.noGuildsText,
 	"recruit_title": RecruitFbtUtils.title,
+	"recruit_directoryTitle": RecruitFbtUtils.directoryTitle,
+	"recruit_newcomerTitle": RecruitFbtUtils.newcomerTitle,
 	"recruit_homeBody": RecruitFbtUtils.homeBody,
 	"recruit_homeLoginHint": RecruitFbtUtils.homeLoginHint,
 	"recruit_applySectionTitle": RecruitFbtUtils.applySectionTitle,
