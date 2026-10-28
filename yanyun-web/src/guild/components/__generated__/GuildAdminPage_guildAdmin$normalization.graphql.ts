@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<245e5b88660fa7280adeabc1d2f4159a>>
+ * @generated SignedSource<<2718c24779424338882e8a48a64ab70d>>
  * @lightSyntaxTransform
  */
 
@@ -412,48 +412,6 @@ return {
       "alias": null,
       "args": null,
       "kind": "ScalarField",
-      "name": "adminCalendarTitle",
-      "storageKey": null
-    },
-    {
-      "alias": null,
-      "args": null,
-      "kind": "ScalarField",
-      "name": "adminCalendarHint",
-      "storageKey": null
-    },
-    {
-      "alias": null,
-      "args": null,
-      "kind": "ScalarField",
-      "name": "adminCalendarUrlLabel",
-      "storageKey": null
-    },
-    {
-      "alias": null,
-      "args": null,
-      "kind": "ScalarField",
-      "name": "adminCalendarCopyLabel",
-      "storageKey": null
-    },
-    {
-      "alias": null,
-      "args": null,
-      "kind": "ScalarField",
-      "name": "adminCalendarResetLabel",
-      "storageKey": null
-    },
-    {
-      "alias": null,
-      "args": null,
-      "kind": "ScalarField",
-      "name": "adminCalendarResetHint",
-      "storageKey": null
-    },
-    {
-      "alias": null,
-      "args": null,
-      "kind": "ScalarField",
       "name": "adminLotteryTitle",
       "storageKey": null
     },
@@ -574,13 +532,6 @@ return {
       "args": null,
       "kind": "ScalarField",
       "name": "adminLotteryStatusDrawnText",
-      "storageKey": null
-    },
-    {
-      "alias": null,
-      "args": null,
-      "kind": "ScalarField",
-      "name": "calendarFeedUrl",
       "storageKey": null
     },
     {
@@ -1954,6 +1905,6 @@ return {
 };
 })();
 
-(node as any).hash = "6c8de52a72a415948cbb317c4795b399";
+(node as any).hash = "636c700252889ace7dfb18863339ce67";
 
 export default node;
