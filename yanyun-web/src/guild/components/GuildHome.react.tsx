@@ -4,6 +4,7 @@ import type { ViewerUser } from '../../lib/user';
 import { GroupingListRoute } from './GroupingList.react.tsx';
 import { GroupingDetailRoute } from './GroupingDetail.react.tsx';
 import { GuildAnnouncementsRoute } from './GuildAnnouncements.react.tsx';
+import { GuildScheduleRoute } from './GuildSchedule.react.tsx';
 import { BossDexRoute } from './BossDex.react.tsx';
 import { SectDetailRoute } from './SectDetail.react.tsx';
 import { ToastHost } from './Toast.react.tsx';
@@ -46,6 +47,10 @@ export interface GuildHomeNode {
   // Announcements tab label (backend guildHome copy); optional in the
   // node type so a stale fragment without it simply hides the tab.
   homeTabAnnouncementsLabel?: string | null;
+  // Schedule tab label (F5/F13): only the member fragment carries it —
+  // availability and poll voting are member surfaces, so the tab is
+  // mounted only in the interactive branch.
+  homeTabScheduleLabel?: string | null;
   detailNotFoundText: string;
   detailBackToListLabel: string;
 }
@@ -69,6 +74,9 @@ export default function GuildHome({ node, slug, carId, user, userBarText, intera
     { key: 'sect', label: node.homeTabSectLabel },
     ...(node.homeTabAnnouncementsLabel
       ? [{ key: 'announcements', label: node.homeTabAnnouncementsLabel }]
+      : []),
+    ...(interactive && node.homeTabScheduleLabel
+      ? [{ key: 'schedule', label: node.homeTabScheduleLabel }]
       : []),
   ] as const;
   const [activeTab, setActiveTab] = useState<string>('team');
@@ -164,6 +172,7 @@ export default function GuildHome({ node, slug, carId, user, userBarText, intera
                 {activeTab === 'dex' && <BossDexRoute />}
                 {activeTab === 'sect' && <SectDetailRoute />}
                 {activeTab === 'announcements' && <GuildAnnouncementsRoute slug={slug} />}
+                {activeTab === 'schedule' && <GuildScheduleRoute slug={slug} defaultNickname={defaultNickname} />}
               </Suspense>
             </div>
           </>
