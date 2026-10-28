@@ -177,6 +177,12 @@ export abstract class ErrorsFbtUtils {
   static customDomainDnsPending(fbs: FbsAPI) { return fbs("DNS 记录尚未生效或不完整，请确认两条记录后稍后再试", "Error message for custom domain verification, used when the CNAME or ownership TXT record does not check out yet."); }
   static gearStandardInvalid(fbs: FbsAPI) { return fbs("达标线参数不合法", "Error message for gear readiness lines, used when a readiness line is saved with an empty scene label or a score outside the allowed range."); }
   static gearStandardNotFound(fbs: FbsAPI) { return fbs("达标线不存在", "Error message for gear readiness lines, used when an update or delete references a line that does not exist in this guild."); }
+  static capabilityRequired(fbs: FbsAPI) { return fbs("你没有这项管理权限（需要百业管理员授予对应的军官能力）", "Error message for capability-gated admin operations, used when a delegated officer attempts an operation outside their granted capability set."); }
+  static governanceTierRequired(fbs: FbsAPI) { return fbs("治理功能需要百业达到最高档位（T3）", "Error message for governance operations, used when a guild below tier 3 attempts to grant officer capabilities or use the officer board."); }
+  static officerTargetNotFound(fbs: FbsAPI) { return fbs("目标成员不在本百业名册中", "Error message for officer grants, used when a grant targets someone who is not on the guild roster."); }
+  static officerBoardBodyRequired(fbs: FbsAPI) { return fbs("私密区留言不能为空", "Error message for the officer private board, used when a board post is submitted with an empty body."); }
+  static officerBoardBodyTooLong(fbs: FbsAPI) { return fbs("私密区留言过长", "Error message for the officer private board, used when a board post exceeds the body length limit."); }
+  static officerBoardPostNotFound(fbs: FbsAPI) { return fbs("私密区留言不存在", "Error message for the officer private board, used when an operation references a board post that does not exist in this guild."); }
   static premiumComingSoon(fbs: FbsAPI) { return fbs("Premium 开通即将开放", "Error message for premium activation, used while premium checkout is not open yet."); }
   static premiumActive(fbs: FbsAPI) { return fbs("本百业已开通 Premium", "Error message for premium activation, used when activating premium for a guild that already has it."); }
   static paygateDisabled(fbs: FbsAPI) { return fbs("收费功能尚未开启", "Error message for paid features, used while the platform paygate is switched off."); }

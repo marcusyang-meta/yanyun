@@ -426,6 +426,8 @@ export const guildGearStandards = sqliteTable('guild_gear_standards', {
   updatedAt: integer('updated_at').notNull().default(0),
 }, (t) => [
   index('idx_guild_gear_standards_tenant').on(t.tenant, t.id),
+]);
+
 /* ---------------- officer capability grants [migration 0029] -----
  * One row per (guild, member) holding delegated management
  * capabilities (P16, governance.ts repository). capabilities is a

@@ -68,6 +68,7 @@ import {
   guildInsightsTypes, guildInsightsMutations, guildInsightsPayloadResolvers,
   raceBoardForViewer, gearSelfForMember,
 } from './insights-graphql.ts';
+import { guildGovernanceMutations, guildGovernanceTypes } from './governance-graphql.ts';
 
 export const CREATE_RESERVED = new Set([
   'admin', 'api', 'auth', 'hub', 'login', 'logout', 'og', 'graphql', 'create',
@@ -424,6 +425,7 @@ export const guildsResolvers = {
     ...networkMutations,
     ...guildOfficerMutations,
     ...guildInsightsMutations,
+    ...guildGovernanceMutations,
 
     // Write gate (requireWrite): logged in + bound + member; an unbound guild's writes are fully locked.
   },
@@ -478,5 +480,6 @@ export const guildsResolvers = {
   ...networkTypes,
   ...guildInsightsTypes,
   ...guildInsightsPayloadResolvers,
+  ...guildGovernanceTypes,
   },
 };

@@ -2181,6 +2181,144 @@ extend type Mutation {
   deleteMySeasonGoal(goalId: ID!): SeasonGoalPayload!
 }
 
+# ============ 治理 (付费治理线 P16/P17, T3) ============
+# P16 细粒度权限: 百业管理员 (所绑 Discord 服务器管理员) 可把十个
+# 真实管理面之一组能力授予名册成员 (军官); 管理员本人始终全权,
+# 授权本身与付费结账不可授予。判定走单一 verdict
+# (getOfficerVerdict): 管理员判定 ∪ 本百业授权行。各管理子面读组合
+# 与全部写动作逐项按能力复验; 无能力的军官在对应面只得到空组合,
+# 普通成员连 GuildAdmin 类型都拿不到 (GuildAdminLocked), 治理字段
+# 对成员变体根本不存在。
+# P16 军官私密区: 只存在于治理面内 (管理员 + 任一被授权军官可见),
+# 普通成员零下发 —— 与 F12 备注同一纪律。
+# P17 百业审计: 本百业管理动作留痕 (谁/何时/动作/目标摘要, 不存
+# 敏感正文); 只在治理面内按时间倒序分页回读。平台 hub 审计不动。
+# 档位门: 两项都是 T3 —— tierLocked(d1, slug, 3) 为真时治理面组合
+# 为 Locked 变体、写动作以 governanceTierRequired 拒绝; 收费总闸
+# 关时与平台既有口径一致, 不锁任何人 (只建不启用)。
+
+# 能力锁定变体: 被授权军官打开其授权之外的管理子面 (目前挂在
+# stats 结果联合上) 时的组合 —— 只有未授权文案, 零业务数据。
+type GuildAdminSectionLocked {
+  lockedTitle: String!
+  lockedBody: String!
+}
+
+union GuildGovernanceResult = GuildGovernancePage | GuildGovernanceLocked
+
+type GuildGovernanceLocked {
+  lockedTitle: String!
+  lockedBody: String!
+}
+
+# 可授予能力选项: 键是代码词汇, 文案后端按 locale 下发。
+type GuildCapabilityOption {
+  key: String!
+  label: String!
+}
+
+# 一条授权行: 被授权成员 + 能力键集合 + 授予者快照。
+type GuildOfficerGrant {
+  discordId: ID!
+  displayName: String!
+  capabilities: [String!]!
+  capabilityLabels: [String!]!
+  grantedByName: String!
+  grantedByText: String
+  grantedAtText: String!
+  updatedAtText: String!
+}
+
+# 授权表单的名册行: 含该成员现有授权与管理员标记 (管理员由判定
+# 全权, 不出现在授权行里, 此标记只是名单呈现)。
+type GuildGovernanceRosterMember {
+  discordId: ID!
+  displayName: String!
+  isAdmin: Boolean!
+  capabilities: [String!]!
+}
+
+# 私密区一条留言: 正文只在治理面内出现。
+type GuildOfficerBoardPost {
+  id: ID!
+  body: String!
+  authorName: String!
+  authorText: String
+  mine: Boolean!
+  createdAtText: String!
+}
+
+# 审计一条: 动作标签后端按 locale 组合; targetLabel 是目标摘要
+# 快照 (标题/成员名), 从不含备注/公告/申请的正文。
+type GuildAuditEvent {
+  id: ID!
+  actorName: String!
+  action: String!
+  actionLabel: String!
+  targetType: String!
+  targetId: String!
+  targetLabel: String!
+  createdAtText: String!
+}
+
+type GuildGovernancePage {
+  # 文案 (governance 目录, 后端按请求 locale 生成; 前端零字符串)
+  title: String!
+  hint: String!
+  officersTitle: String!
+  officersHint: String!
+  officersEmptyText: String!
+  grantMemberLabel: String!
+  grantCapabilitiesLabel: String!
+  grantButtonLabel: String!
+  revokeButtonLabel: String!
+  adminBadgeText: String!
+  boardTitle: String!
+  boardHint: String!
+  boardEmptyText: String!
+  boardPlaceholder: String!
+  boardPostButtonLabel: String!
+  boardDeleteButtonLabel: String!
+  auditTitle: String!
+  auditHint: String!
+  auditEmptyText: String!
+  auditLoadMoreButtonLabel: String!
+  # 授权管理区只对百业管理员下发 (canManageGrants 为真时才有行):
+  # 军官能看私密区与审计, 但授权名单与表单是管理员专属 —— 无权
+  # 时 officers / capabilityOptions / roster 都是空列表。
+  canManageGrants: Boolean!
+  officers: [GuildOfficerGrant!]!
+  capabilityOptions: [GuildCapabilityOption!]!
+  roster: [GuildGovernanceRosterMember!]!
+  boardPosts: [GuildOfficerBoardPost!]!
+  auditEvents(limit: Int, offset: Int): [GuildAuditEvent!]!
+  auditTotalCount: Int!
+}
+
+type GuildGovernancePayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  id: ID
+}
+
+extend type Mutation {
+  # P16 授权/改权: 仅百业管理员 (授权不可授予); 目标必须是本百业
+  # 名册成员; 能力键只认代码词汇 (未知键忽略); 空集合 = 撤销。
+  # T3 档位门复验。错误码 governanceTierRequired /
+  # officerTargetNotFound / adminOnly / guildNotFound
+  setOfficerGrant(slug: String!, memberDiscordId: ID!, capabilities: [String!]!): GuildGovernancePayload!
+  # P16 撤销授权: 仅百业管理员, 按本百业解析。
+  revokeOfficerGrant(slug: String!, memberDiscordId: ID!): GuildGovernancePayload!
+  # P16 私密区留言: 军官判定 (管理员或任一被授权军官) + T3 档位门;
+  # 错误码 officerBoardBodyRequired / officerBoardBodyTooLong /
+  # governanceTierRequired / adminOnly / guildNotFound
+  postOfficerBoardMessage(slug: String!, body: String!): GuildGovernancePayload!
+  # P16 删私密区留言: 作者本人或百业管理员, 按本百业解析;
+  # 错误码 officerBoardPostNotFound / adminOnly / guildNotFound
+  deleteOfficerBoardPost(slug: String!, postId: ID!): GuildGovernancePayload!
+}
+
 # ============ 登录 / Viewer 层级 (root = user) ============
 # 结构: Query.viewer -> guilds / guild(slug) -> groupings 等页面数据
 # 权限不用状态标志表达 (flag 可 forge), 用「响应的类型」表达:
@@ -2719,6 +2857,16 @@ type GuildAdmin {
   adminRecruitProfileLabel: String!
   adminRecruitMentorLabel: String!
   adminRecruitFirstRunLabel: String!
+  adminTabGovernanceLabel: String!
+  # 治理面 (P16/P17, T3): 军官授权 + 军官私密区 + 百业审计日志。
+  # 档位不足时组合为 GuildGovernanceLocked (只有未开通文案, 零治理
+  # 数据); 结论只由响应类型表达。只挂 GuildAdmin — Locked 与成员
+  # 变体零治理字段。
+  governance: GuildGovernanceResult!
+  # 查看者本人在本百业持有的军官能力键 (管理员 = 全部): 客户端据此
+  # 决定渲染哪些管理 tab; 数据下发本身仍逐字段按能力判定, 此列表
+  # 不是权限依据。
+  viewerCapabilities: [String!]!
 }
 
 # 抽奖参与名单来源: GROUPING = 某辆车的已落座参与者快照;
@@ -3296,7 +3444,7 @@ type GuildAdminStats {
   leaderLeaders: [GuildAdminStatsLeader!]!
 }
 
-union GuildAdminStatsResult = GuildAdminStats | GuildAdminStatsLocked
+union GuildAdminStatsResult = GuildAdminStats | GuildAdminStatsLocked | GuildAdminSectionLocked
 
 # 统计未开通变体: 只带 Premium 未开通文案, 零统计字段。开通面
 # 本体 (价格位 + 开通入口) 在 GuildAdmin.premium 的 Locked 变体上,
