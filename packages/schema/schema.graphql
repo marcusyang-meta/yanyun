@@ -646,6 +646,12 @@ type GroupingDetailPage {
   # 非空值; 其他观看者为 null, 答案不下发。mutation/查询处同一判定。
   rosterAnswers: [RosterAnswer!]
   rosterAnswersTitle: String!
+  # AI 活动复盘 (Premium T3, P18): 响应类型即判定 — Locked = 本百业
+  # 未达 T3 (零复盘内容下发); NotEnabled = 平台尚未配置 AI provider
+  # (含 T3 百业在内, 一律未启用态, 不生成不存储); Ready = 已生成
+  # 复盘 (成员可见, 跟随车队可见性); Empty = 可用但尚未生成。
+  # 生成动作对象只挂 Ready/Empty 且仅车头/本百业管理员可见。
+  recap: GroupingRecapResult!
   # 无管理码，人人可管
   # UI 文案: 全部由本页 shell 的 gen 方法按请求 locale 生成
   detailNotFoundText: String!
@@ -763,6 +769,64 @@ type GroupingDetailPage {
   formCustomFieldRequiredLabel: String!
   formCustomFieldRemoveLabel: String!
   formCustomFieldEmptyText: String!
+}
+
+# ============ AI 活动复盘 (Premium T3, P18) ============
+# 复盘正文是 provider 生成内容, 不是 UI 文案: paragraphs 原样下发,
+# 不进 strings 目录; 其余壳文案全部后端按 locale 组合。
+
+union GroupingRecapResult = GroupingRecapReady | GroupingRecapLocked | GroupingRecapNotEnabled | GroupingRecapEmpty
+
+# 生成/重新生成动作组: 只挂 Ready/Empty 变体, 且仅当观看者可管理
+# 本车 (车头或本百业管理员) 且车队已完成时存在; mutation 处复验。
+type GroupingRecapActions {
+  generateLabel: String!
+  regenerateLabel: String!
+  generatingLabel: String!
+  confirmTitle: String!
+  confirmMessageTemplate: String!
+  toastGenerated: String!
+  toastFailedTemplate: String!
+}
+
+type GroupingRecapReady {
+  title: String!
+  # 复盘正文段落 (生成内容, 按生成顺序)
+  paragraphs: [String!]!
+  # 数据快照摘要行 (后端由存储的快照摘要按 locale 组合)
+  summaryLines: [String!]!
+  generatedAtText: String!
+  providerText: String!
+  versionText: String!
+  # 最近一次生成失败时的提示 (仍展示此前成功的复盘); 无失败为 null
+  failedHint: String
+  actions: GroupingRecapActions
+}
+
+type GroupingRecapEmpty {
+  title: String!
+  body: String!
+  failedHint: String
+  actions: GroupingRecapActions
+}
+
+# 未达 T3: 只有锁定文案, 零复盘内容、零 provider 状态下发。
+type GroupingRecapLocked {
+  title: String!
+  body: String!
+}
+
+# 平台未配置 AI provider (生产现状): 含 T3 百业在内一律此变体。
+type GroupingRecapNotEnabled {
+  title: String!
+  body: String!
+}
+
+type RecapPayload {
+  ok: Boolean!
+  recap: GroupingRecapResult
+  error: String
+  errorCode: String
 }
 
 # 管理动作 (编辑/完成/恢复/解散) 的文案组: 只随 GroupingDetailPage
@@ -1782,6 +1846,7 @@ type Mutation {
   updateGrouping(id: ID!, input: UpdateGroupingInput!): GroupingPayload!
   disbandGrouping(id: ID!): DeletePayload!  # 解散车队：仅车头或本百业管理员可为，服务端复验
   completeGrouping(id: ID!): GroupingPayload!  # 完成车队：仅车头或本百业管理员可为，服务端复验；完成车不进列表、不发提醒
+  generateGroupingRecap(id: ID!): RecapPayload!  # 生成/重新生成 AI 复盘 (P18, T3): 仅车头或本百业管理员、仅已完成车队、手动触发, 服务端复验档位与 provider 配置
   reopenGrouping(id: ID!): GroupingPayload!  # 恢复车队（撤销完成，回到 open）：仅车头或本百业管理员可为，服务端复验
   joinGrouping(input: JoinGroupingInput!): SeatPayload!
   leaveGrouping(input: LeaveGroupingInput!): SeatPayload!
@@ -2645,6 +2710,10 @@ type GuildAdmin {
   # 字段, 成员变体 (Guild) 根本不带备注字段。
   officer: GuildOfficerPage!
   ops: GuildAdminOpsResult!
+  # AI 复盘索引 (P18, Premium T3): 本百业复盘记录列表; 判定与详情
+  # 页同序 — Locked (未达 T3, 零记录读取) / NotEnabled (平台未配置
+  # provider) / List。只挂 GuildAdmin — Locked 零复盘字段。
+  recaps: GuildAdminRecapResult!
   # 出勤统计 (Premium, 读侧门控): 总闸开且本百业未开通时组合为
   # GuildAdminStatsLocked (只有未开通文案, 零统计数据); 总闸关或
   # 已开通时与从前一致。结论只由响应类型表达, 无标志位下发。
@@ -2843,6 +2912,7 @@ type GuildAdmin {
   adminTabToolsLabel: String!
   adminTabOfficerLabel: String!
   adminTabOpsLabel: String!
+  adminTabRecapsLabel: String!
   adminLotteryTitle: String!
   adminLotteryHint: String!
   adminLotteryEmptyText: String!
@@ -3476,6 +3546,32 @@ type GuildAdminStats {
 }
 
 union GuildAdminStatsResult = GuildAdminStats | GuildAdminStatsLocked | GuildAdminSectionLocked
+
+# AI 复盘索引 (P18): Locked / NotEnabled 变体与详情页共用同一类型。
+union GuildAdminRecapResult = GuildAdminRecapList | GroupingRecapLocked | GroupingRecapNotEnabled
+
+type GuildAdminRecapList {
+  title: String!
+  emptyText: String!
+  items: [GuildAdminRecap!]!
+}
+
+enum GuildAdminRecapStatus { READY FAILED }
+
+type GuildAdminRecap {
+  id: ID!
+  groupingId: ID!
+  groupingTitle: String!
+  # READY = 有可用复盘正文 (含最近一次重试失败但存有旧稿);
+  # FAILED = 从未生成成功。状态文案由后端组合下发 (statusText)。
+  status: GuildAdminRecapStatus!
+  statusText: String!
+  provider: String!
+  version: Int!
+  paragraphCount: Int!
+  paragraphCountText: String!
+  generatedAtText: String
+}
 
 # 统计未开通变体: 只带 Premium 未开通文案, 零统计字段。开通面
 # 本体 (价格位 + 开通入口) 在 GuildAdmin.premium 的 Locked 变体上,

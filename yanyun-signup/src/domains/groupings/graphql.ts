@@ -43,6 +43,7 @@ import { scheduleResolvers } from './schedule-graphql.ts';
 import { resolveSharedGrouping } from './shareview.ts';
 import { schedulingAdviceResolvers, composeGroupingSchedulingAdvice, composeCrossCarAdvice } from './scheduling-graphql.ts';
 import { buildMemberFacts, buildTeamDraft, rankSubstitutes } from './scheduling.ts';
+import { recapSurfaceForGrouping, recapResolvers } from './recap-graphql.ts';
 import {
   listSignupSeats, listSignupSeatsBasic, listSignupNamesStamps,
   insertSignups, insertSignupWithCapacityGuard, deleteSignupByEventUid, deleteSignupsByEvent,
@@ -506,6 +507,15 @@ export class GroupingDetailPageShell extends ShellBase {
       saveLabel: this.t('allies_sharingSaveButton'),
     };
   }
+  // P18 AI recap (premium T3): the union variant is the verdict —
+  // Locked (tier) / NotEnabled (provider unconfigured) / Ready /
+  // Empty, composed in recap-graphql.ts. The detail page's own
+  // canView gate already ran, so every viewer here may see a Ready
+  // recap; the generate action object inside the variants is
+  // manage-verdict-gated there.
+  genRecap(){
+    return this.memo('recap', async () => recapSurfaceForGrouping(this.ctx, this.data));
+  }
   // F7 roster answers: composed ONLY for viewers who may manage this
   // car (leader / this guild's admins — the shared verdict); everyone
   // else gets null and the answers never leave the server.
@@ -823,6 +833,7 @@ export const groupingsResolvers = {
   Mutation: {
     ...scheduleResolvers.Mutation,
     ...schedulingAdviceResolvers.Mutation,
+    ...recapResolvers.Mutation,
     createGrouping: async (_: any, { input }: any, ctx: Context) => {
       const db = ctx.env.DB;
       if (!rateLimit('mut:create:' + getClientIp(ctx.request), 10)) {
@@ -1305,6 +1316,37 @@ export const groupingsResolvers = {
     creatorDiscordId: (p: any) => p.genCreatorDiscordId(),
     customFields: (p: any) => p.genCustomFields(),
   },
+  GroupingRecapResult: { __resolveType: (p: any) => p.__typename },
+  GroupingRecapLocked: {
+    title: (p: any) => p.genTitle(), body: (p: any) => p.genBody(),
+  },
+  GroupingRecapNotEnabled: {
+    title: (p: any) => p.genTitle(), body: (p: any) => p.genBody(),
+  },
+  GroupingRecapEmpty: {
+    title: (p: any) => p.genTitle(), body: (p: any) => p.genBody(),
+    failedHint: (p: any) => p.genFailedHint(), actions: (p: any) => p.genActions(),
+  },
+  GroupingRecapReady: {
+    title: (p: any) => p.genTitle(), paragraphs: (p: any) => p.genParagraphs(),
+    summaryLines: (p: any) => p.genSummaryLines(),
+    generatedAtText: (p: any) => p.genGeneratedAtText(),
+    providerText: (p: any) => p.genProviderText(), versionText: (p: any) => p.genVersionText(),
+    failedHint: (p: any) => p.genFailedHint(), actions: (p: any) => p.genActions(),
+  },
+  GroupingRecapActions: {
+    generateLabel: (p: any) => p.genGenerateLabel(),
+    regenerateLabel: (p: any) => p.genRegenerateLabel(),
+    generatingLabel: (p: any) => p.genGeneratingLabel(),
+    confirmTitle: (p: any) => p.genConfirmTitle(),
+    confirmMessageTemplate: (p: any) => p.genConfirmMessageTemplate(),
+    toastGenerated: (p: any) => p.genToastGenerated(),
+    toastFailedTemplate: (p: any) => p.genToastFailedTemplate(),
+  },
+  RecapPayload: {
+    ok: (p: any) => p.genOk(), error: (p: any) => p.genError(),
+    errorCode: (p: any) => p.genErrorCode(), recap: (p: any) => p.genRecap(),
+  },
   GroupingListPage: {
     groupings: (p: any) => p.genGroupings(),
     crossCarAdvice: (p: any) => p.genCrossCarAdvice(),
@@ -1316,6 +1358,7 @@ export const groupingsResolvers = {
   GroupingDetailPage: {
     grouping: (p: any) => p.genGrouping(),
     schedulingAdvice: (p: any) => p.genSchedulingAdvice(),
+    recap: (p: any) => p.genRecap(),
     rosterAnswers: (p: any) => p.genRosterAnswers(),
     shareUrl: (p: GroupingDetailPageShell) => p.genShareUrl(),
     templateSave: (p: any) => p.genTemplateSave(),
