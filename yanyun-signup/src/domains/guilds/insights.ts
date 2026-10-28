@@ -17,8 +17,8 @@
  *   ready mark (signups.ready_at, the check-in the reminder engine
  *   itself nudges on) is the only presence signal the data carries.
  *   So on a COMPLETED car, a stamped seat with ready_at set counts
- *   as ATTENDED, and a stamped seat without it counts as NO-SHOW
- *   （鸽）. Seats on cars that never completed settle neither way —
+ *   as ATTENDED, and a stamped seat without it counts as NO-SHOW.
+ *   Seats on cars that never completed settle neither way —
  *   they count in signups only, because a cancelled / abandoned car
  *   says nothing about the member.
  * - attendanceRate = attended / (attended + noShow); a member with

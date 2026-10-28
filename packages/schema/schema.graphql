@@ -2229,9 +2229,10 @@ type Guild {
   # 百业公告 (沟通线 F9/F10/F18): 成员变体 — 公告列表 + 本人已读态;
   # 发布与已读回执名单只在管理变体 (GuildAdmin.announcements)。
   announcements: GuildAnnouncementPage!
-  # 数据洞察成员读面 (Premium T1): 竞速赛季总榜 (P15, 展示面) 与
-  # 本人装备达标状态 (P9, 只含查看者本人一行结论); 两面由
-  # tierLocked 组合完整变体或 GuildInsightsLocked (零数据)。
+  # Member read surface for insights (Premium T1): the race season
+  # board (P15, display surface) and the viewer's own gear readiness
+  # status (P9, only the viewer's own verdict rows); both compose
+  # the full variant or GuildInsightsLocked (zero data) via tierLocked.
   raceSeasonBoard: RaceSeasonBoardResult!
   gearSelfStatus: GuildGearSelfResult!
   homeInsightsRaceTitle: String!
@@ -2277,7 +2278,7 @@ type GuildReadOnly {
   groupings(tab: GroupingTab!): GroupingListPage!
   viewerNick: String
   announcements: GuildAnnouncementPage!
-  # 数据洞察成员读面: 与 Guild 同口径 (见上)。
+  # Member read surface for insights: same contract as on Guild (above).
   raceSeasonBoard: RaceSeasonBoardResult!
   gearSelfStatus: GuildGearSelfResult!
   homeInsightsRaceTitle: String!
@@ -2485,10 +2486,12 @@ type GuildAdmin {
   # GuildAdminStatsLocked (只有未开通文案, 零统计数据); 总闸关或
   # 已开通时与从前一致。结论只由响应类型表达, 无标志位下发。
   stats: GuildAdminStatsResult!
-  # 数据洞察 (Premium T1 数据层, P2/P9/P10/P15): 每面由 tierLocked
-  # (纯权益判定, 不看收费总闸) 组合完整变体或 GuildInsightsLocked
-  # (只有未开通文案, 零数据, 聚合根本不计算); 只挂 GuildAdmin —
-  # Locked 零洞察字段。口径见各类型注释。
+  # Insights (Premium T1 data layer, P2/P9/P10/P15): each surface
+  # composes the full variant or GuildInsightsLocked (locked copy
+  # only, zero data, the aggregation is never computed) via
+  # tierLocked (a pure entitlement verdict that ignores the paygate
+  # switch); GuildAdmin only — the locked guild shell ships no
+  # insight fields at all. See each type's comment for its caliber.
   reliability: GuildAdminReliabilityResult!
   participationHeatmap: GuildAdminHeatmapResult!
   gearBoard: GuildAdminGearBoardResult!
@@ -2532,7 +2535,7 @@ type GuildAdmin {
   recruitPairings: [MentorPairing!]!
   recruitRoster: [RecruitMember!]!
   newcomerProgress: [NewcomerProgress!]!
-  # 数据洞察页文案 (guildAdmin 目录)
+  # Insights page copy (guildAdmin catalog)
   adminTabInsightsLabel: String!
   adminInsightsReliabilityTitle: String!
   adminInsightsReliabilityHint: String!
@@ -3303,22 +3306,28 @@ type GuildAdminStatsLocked {
   premiumBody: String!
 }
 
-# ============ 数据洞察 (Premium T1 数据层: P2/P9/P10/P15) ============
-# 四面共用同一未达档变体: 只有 Premium 未开通文案, 零数据字段。
-# 判定 = tierLocked(百业, 1) 纯权益判定 (不看收费总闸): free /
-# 无权益 / 已过期一律此变体, 且聚合在服务端根本不计算。
+# ============ Insights (Premium T1 data layer: P2/P9/P10/P15) ============
+# All four surfaces share one below-tier variant: Premium locked
+# copy only, zero data fields. The verdict is tierLocked(guild, 1),
+# a pure entitlement check that ignores the paygate switch: free /
+# no entitlement / expired all compose this variant, and the
+# aggregation is never computed server-side.
 
 type GuildInsightsLocked {
   premiumTitle: String!
   premiumBody: String!
 }
 
-# P2 可靠性档案: 按成员聚合全部有时间戳的非草稿车辆 (跨期档案,
-# 不套 P1 的 4 周窗口)。报名 = 带 discord_id 戳的落座行 (代报名记
-# 被代报者); 出席 = 已完成车辆上落座且 ready_at 已就位; 鸽 = 已完
-# 成车辆上落座但始终未就位 (平台无独立到场登记, 就位标记是唯一
-# 在场信号); 未完成车辆只计报名、不结出席。出席率 = 出席 / 已结
-# 车辆落座数 (settledCount), 无已结记录时为 0。
+# P2 reliability profiles: aggregated per member over all timed
+# non-draft cars (a cross-period profile; P1's 4-week window does
+# not apply). A signup is a seat row stamped with a discord_id
+# (proxy signups credit the proxied member); attended = seated on
+# a completed car with ready_at set (checked in); no-show = seated
+# on a completed car but never checked in (the platform keeps no
+# separate attendance register, so the ready mark is the only
+# presence signal); unfinished cars count signups only and settle
+# neither way. attendanceRate = attended / settled seats
+# (settledCount), 0 when nothing has settled.
 type GuildAdminReliability {
   entries: [ReliabilityEntry!]!
 }
@@ -3335,9 +3344,12 @@ type ReliabilityEntry {
 
 union GuildAdminReliabilityResult = GuildAdminReliability | GuildInsightsLocked
 
-# P10 成员参与热力图: 出席人次 (P2 出席口径) 按车辆开始时间分桶;
-# 平台不存成员时区 (F4 口径: UTC 存储、观看者时区渲染), 故按请求
-# 观看者时区 (ctx.tz, 与 P1 周标签同口径) 计算。weekday 0=周一。
+# P10 participation heatmap: attended participations (the P2
+# attendance caliber) bucketed by car start time. The platform
+# stores no per-member timezone (F4 caliber: stored in UTC,
+# rendered in the viewer's timezone), so buckets use the
+# requesting viewer's timezone (ctx.tz, same caliber as P1's week
+# labels). weekday 0 = Monday.
 type GuildAdminParticipationHeatmap {
   timezone: String!
   totalAttended: Int!
@@ -3356,10 +3368,13 @@ type ParticipationHeatmapCell {
 
 union GuildAdminHeatmapResult = GuildAdminParticipationHeatmap | GuildInsightsLocked
 
-# P9 装备达标盘: 达标线是管理员按场景设的实体 (guild_gear_standards,
-# minScore = 最佳构筑毕业分下限, 百分制整数); 成员分 = 其全部已保存
-# 构筑的服务端快照毕业分 (gear 域 snapshot.total) 的最大值, 无构
-# 筑/无快照时 bestScore 为 null、hasBuild 为 false、缺口为整条线。
+# P9 gear readiness board: a readiness line is an admin-set entity
+# (guild_gear_standards; minScore = the lower bound on the best
+# build graduation score, an integer percent). A member's score is
+# the maximum server snapshot graduation score (the gear domain's
+# snapshot.total) over all their saved builds; with no build / no
+# snapshot, bestScore is null, hasBuild is false, and the gap is
+# the whole line.
 type GuildAdminGearBoard {
   standards: [GearBoardStandard!]!
 }
@@ -3387,7 +3402,8 @@ type GearBoardMember {
 
 union GuildAdminGearBoardResult = GuildAdminGearBoard | GuildInsightsLocked
 
-# P9 成员侧: 只下发查看者本人对每条达标线的结论, 永不含他人分数。
+# P9 member side: ships only the viewer's own verdict against each
+# readiness line, never anyone else's score.
 type GuildGearSelfStatus {
   entries: [GearSelfEntry!]!
 }
@@ -3403,12 +3419,15 @@ type GearSelfEntry {
 
 union GuildGearSelfResult = GuildGearSelfStatus | GuildInsightsLocked
 
-# P15 竞速赛季总榜: 单场成绩记录 (results 实体) 保持免费不动; 此
-# 榜只做跨场/赛季聚合。车辆按其副本的 dex 赛季 (dungeons.season)
-# 归季, 副本未知或未分类的进未分类桶 (season 为空串)。条目按队
-# 伍 (results 是队伍记录): 场次 = 该队当季成绩行数, 夺冠 = 其成
-# 绩为该车最快的不同车辆数, 最佳 = 当季最快单场。排序: 夺冠降
-# 序、最佳升序、场次降序。
+# P15 race season board: single-run records (the results entity)
+# stay free and untouched; this board only adds the cross-run /
+# season aggregation. Cars are bucketed by their dungeon's dex
+# season (dungeons.season); unknown or unclassified dungeons land
+# in the unclassified bucket (empty season). Entries are per team
+# (results are team records): runs = the team's result rows that
+# season, wins = distinct cars where its row was the fastest,
+# best = its fastest single run that season. Order: wins desc,
+# best asc, runs desc.
 type RaceSeasonBoard {
   seasons: [RaceSeason!]!
 }
@@ -3754,9 +3773,11 @@ extend type Mutation {
   setGuildMentor(slug: String!, discordId: String!, isMentor: Boolean!): GuildAdminPayload!  # 设/取消导师人选 (不改已有配对)
   createMentorPairing(slug: String!, mentorDiscordId: String!, menteeDiscordId: String!): GuildAdminPayload!  # 导师须已在人选中; 新人同时至多一段进行中配对
   endMentorPairing(slug: String!, pairingId: ID!): GuildAdminPayload!  # 结束留痕, 不删行
-  # 数据洞察 P9 达标线写路径 (Premium T1): resolver 内复验管理结论
-  # + tierLocked(1); 未达档以 premiumRequired 拒绝, 已存达标线在过
-  # 期/降档期间冻结不删。id 为空 = 新建; 他百业的 id 视为不存在。
+  # Insights P9 readiness-line write path (Premium T1): the
+  # resolver re-checks the admin verdict plus tierLocked(1);
+  # below tier it refuses with premiumRequired, and stored lines
+  # are frozen, never deleted, across expiry / downgrade. An empty
+  # id creates a new line; another guild's id counts as not found.
   upsertGearStandard(slug: String!, id: ID, label: String!, minScore: Int!): GearStandardPayload!
   deleteGearStandard(slug: String!, id: ID!): GearStandardPayload!
 }
