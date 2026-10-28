@@ -334,8 +334,10 @@ extend type Query {
 
 type GroupingListPage {
   groupings: [Grouping!]!
-  # Premium T2 跨车调度建议 (P13 的建议层; 多车总览本身免费不变):
-  # 仅百业管理员/本百业车头非 null; Locked 壳与完整壳口径同详情页。
+  # Premium T2 cross-car advice (the P13 advice layer; the multi-car
+  # overview itself stays free and unchanged): non-null only for guild
+  # admins / leaders in this guild; Locked-vs-full shell as on the
+  # detail page.
   crossCarAdvice: SchedulingCrossCarAdviceResult
   # 本百业共享模板 (与页签无关, 全百业一份): 建车表单据此渲染模板区
   # (列表/套用/存当前表单/改删入口); 改删判定在每个模板的 manageActions。
@@ -617,9 +619,11 @@ type SharedGroupingSeat {
 
 type GroupingDetailPage {
   grouping: Grouping!
-  # Premium T2 调度建议 (P3 配队草案 / P4 替补 / P5 轮换): 仅本车管理者
-  # (车头/本百业管理员) 非 null; 未达 T2 时只下发 Locked 壳 (零建议数据),
-  # 达档下发完整建议壳。建议永不自动落座/递补, 套用走既有落座动作。
+  # Premium T2 scheduling advice (P3 draft / P4 substitutes / P5
+  # rotation): non-null only for this car's managers (leader / guild
+  # admin); below T2 only the Locked shell ships (zero advice data),
+  # at tier the full shell. Advice never seats or substitutes anyone
+  # by itself; applying a draft goes through the existing seat actions.
   schedulingAdvice: GroupingSchedulingAdviceResult
   # 分享 URL: 本车的稳定短链 (后端懒铸造, 首次下发时生成、之后恒同);
   # 客户端分享动作只用这个字符串, 不自拼 URL。
@@ -1586,9 +1590,10 @@ type GuildSchedulePage {
   # 成员可用性汇总: 仅管理员/车头非 null (权限结论由字段在否表达)
   availabilitySummary: [MemberAvailabilitySummary!]
   polls: [TimePoll!]!
-  # Premium T2 最优档期推荐 (P6): 与可用性汇总同一观看判定 (管理员/车头);
-  # 未达 T2 下发 Locked 壳, 达档下发完整壳; 无可用数据时 slots 为空 +
-  # 后端空态文案, 不编造时段。
+  # Premium T2 best-slot advice (P6): same audience verdict as the
+  # availability summary (admin / leader); Locked shell below T2, full
+  # shell at tier; with no availability data slots is empty and the
+  # backend empty-state copy ships — no slot is ever invented.
   bestSlotsAdvice: SchedulingBestSlotsResult
   weekdayNames: [String!]!
   # 发车表单文案 (以投票时间发车时预填同一个建车表单, 与列表页同口径)
@@ -4732,8 +4737,9 @@ type MyContributionEntry {
   createdAtText: String!
 }
 
-# ============ Premium T2 调度建议 (P3/P4/P5/P6/P13) ============
-# 建议而非裁决: 以下类型只承载排序与依据, 不含任何自动执行语义。
+# ============ Premium T2 scheduling advice (P3/P4/P5/P6/P13) ============
+# Advice, never verdicts: the types below carry rankings and reasons
+# only, with no automatic-execution semantics anywhere.
 
 union GroupingSchedulingAdviceResult = GroupingSchedulingAdvice | SchedulingAdviceLocked
 union SchedulingBestSlotsResult = SchedulingBestSlots | SchedulingAdviceLocked
@@ -4750,8 +4756,8 @@ type SchedulingAdviceEntry {
   role: String!
   weapon: String!
   score: Int!
-  # 结构化理由键 (前端可据此加图标/排序); reasons 为后端按 locale
-  # 渲染好的依据文案, 客户端直接展示。
+  # Structured reason keys (clients may icon/sort by them); reasons
+  # are the backend-rendered explanation copy, shown as-is.
   reasonKeys: [String!]!
   reasons: [String!]!
 }
@@ -4771,7 +4777,8 @@ type RotationAdviceRecord {
   id: ID!
   createdBy: String!
   createdAtText: String!
-  # 保存时的排序快照 (JSON): 成员、分数与理由键, 供事后查依据。
+  # The saved ranking snapshot (JSON): members, scores and reason
+  # keys, kept so the basis can be looked up afterwards.
   entriesJson: String!
 }
 
@@ -4838,7 +4845,8 @@ type SchedulingAdvicePayload {
 }
 
 extend type Mutation {
-  # P5 留痕: 车头/管理员把当前轮换排序存为可查记录 (append-only)。
+  # P5 audit trail: the leader/admin saves the current rotation
+  # ranking as a queryable record (append-only).
   saveRotationAdvice(input: SaveRotationAdviceInput!): SchedulingAdvicePayload!
 }
 

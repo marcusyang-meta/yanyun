@@ -1,7 +1,8 @@
 /* ===================================================
  * Scheduling advice engine (Premium T2 — P3/P4/P5/P6/P13).
  *
- * Design law (DESIGN §8 + 解法四原则): ADVICE, NEVER VERDICTS.
+ * Design law (DESIGN §8 + the four solution principles): ADVICE,
+ * NEVER VERDICTS.
  * Every function here only ranks and explains; a human leader
  * always makes the final pick. Nothing in this file seats,
  * invites, moves or removes anyone. Automatic fill-in of a
@@ -12,7 +13,7 @@
  * id ascending). Every ranked entry carries structured reasons
  * ({key, params}) composed server-side; clients render the keys
  * through backend-issued copy templates — the explanation is
- * part of the product (可解释优先), not decoration.
+ * part of the product (explainability first), not decoration.
  *
  * Factor definitions (v1, kept deliberately simple & auditable):
  * - reliability: readyRate = ready seats / past seats in this
@@ -78,8 +79,9 @@ const byRank = (a: { score: number; facts: MemberFacts }, b: { score: number; fa
 /* ---------------- P3: team draft ----------------
  * Greedy seat filling: at each seat, re-score the remaining pool
  * against the roles still uncovered (a healer is worth most while
- * no healer is seated). Needed roles for a car: at least one 奶
- * (healer) when the car has 5+ seats; every other seat prefers 输出. */
+ * no healer is seated). Needed roles for a car: at least one
+ * healer role when the car has 5+ seats; every other seat prefers
+ * DPS. (Role literals are the game's own role values.) */
 export function neededRoles(maxSlots: number): string[] {
   const roles: string[] = [];
   if (maxSlots >= 5) roles.push('奶');
@@ -292,7 +294,7 @@ export async function buildMemberFacts(d1: D1Database, tenant: string, startsAtU
   return out;
 }
 
-/* ---------------- P5 留痕: rotation advice records ----------------
+/* ---------------- P5 audit trail: rotation advice records ---------
  * A leader explicitly saving a rotation ranking writes ONE record
  * (the ranked snapshot as JSON). Records are never mutated; the
  * audit trail is the list itself. */
