@@ -82,7 +82,7 @@ export const errors_loginRequired = (fbs: FbsAPI) =>fbs("请先登录 Discord �
 export const errors_loginRequiredShort = (fbs: FbsAPI) =>fbs("请先登录 Discord", "Short variant of the login-required error, used where space is tight.");
 export const errors_localeUnsupported = (fbs: FbsAPI) =>fbs("不支持的语言", "Error returned when an unsupported interface language is submitted.");
 export const errors_pushTokenInvalid = (fbs: FbsAPI) =>fbs("推送令牌无效", "Error returned when a push token submitted for registration is invalid.");
-export const errors_guildUnboundWrite = (fbs: FbsAPI) =>fbs("该百业尚未绑定 Discord 服务器，写功能已锁定", "Error returned on any write to a guild that has not bound a Discord server yet; writes are locked until binding.");
+export const errors_guildUnboundWrite = (fbs: FbsAPI) =>fbs("该百业尚未绑定 Discord 服务器，写功能已锁定", "Error returned on a write to a guild that has not bound a Discord server yet; writes are locked until binding.");
 export const errors_memberOnly = (fbs: FbsAPI) =>fbs("只有该百业 Discord 服务器的成员可以操作", "Error returned when a non-member of the guild's Discord server attempts a member-only write.");
 export const errors_memberOnlyView = (fbs: FbsAPI) =>fbs("该百业仅对 Discord 服务器成员开放", "Error returned when a non-member of the guild's Discord server attempts to view member-only guild content.");
 export const errors_titleRequired = (fbs: FbsAPI) =>fbs("请填写标题", "Error returned when a squad is submitted without a title.");
@@ -165,7 +165,7 @@ export const errors_announcementDailyLimit = (fbs: FbsAPI, p?: StringParams) =>
 export const errors_urgentCallDailyLimit = (fbs: FbsAPI, p?: StringParams) =>
   fbs(["今天的紧急集合呼叫已达上限（每天 ", fbs.param("limit", pv(p, "limit")), " 次），明天再试"], "Error returned when the daily urgent muster call quota is exhausted; {limit} is the number allowed per day.");
 export const errors_lotteryTitleRequired = (fbs: FbsAPI) =>fbs("请填写抽奖标题", "Error returned when a lottery is created without a title.");
-export const errors_lotteryEntriesEmpty = (fbs: FbsAPI) =>fbs("参与名单为空，请先选择参与者", "Error returned when a lottery is created without any participants.");
+export const errors_lotteryEntriesEmpty = (fbs: FbsAPI) =>fbs("参与名单为空，请先选择参与者", "Error returned when a lottery is created with no participants chosen.");
 export const errors_lotteryNotFound = (fbs: FbsAPI) =>fbs("抽奖不存在", "Error returned when an operation references a lottery that does not exist.");
 export const errors_lotteryAlreadyDrawn = (fbs: FbsAPI) =>fbs("该抽奖已经开过奖了", "Error returned when drawing a lottery that has already been drawn.");
 export const errors_lotteryWinnerCountInvalid = (fbs: FbsAPI) =>fbs("中奖人数必须在 1 与参与人数之间", "Error returned when a lottery's winner count is not between one and the participant count.");

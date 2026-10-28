@@ -4753,8 +4753,8 @@
       ],
       "types": []
     },
-    "Es1PnMj1DfI+YLc8qX5yEw==": {
-      "description": "Error returned on any write to a guild that has not bound a Discord server yet; writes are locked until binding.",
+    "PcoxI5IeSoC0hDk8yiLlCw==": {
+      "description": "Error returned on a write to a guild that has not bound a Discord server yet; writes are locked until binding.",
       "id": "platform/errors_guildUnboundWrite",
       "tokens": [],
       "translations": [
@@ -9049,8 +9049,8 @@
       ],
       "types": []
     },
-    "U4Kfxjh8HDRnVtZor4aKGA==": {
-      "description": "Deletion consequence listed on the confirmation page: guilds themselves and their admin passwords are unaffected because a guild does not belong to any personal account.",
+    "imHpl7SW76YFXogXL4Sn1A==": {
+      "description": "Deletion consequence listed on the confirmation page: guilds themselves and their admin passwords are unaffected because a guild does not belong to a personal account.",
       "id": "identity/account_consequenceGuilds",
       "tokens": [],
       "translations": [
@@ -9649,8 +9649,8 @@
       ],
       "types": []
     },
-    "MnvInMtUFFHIanDV29Id9Q==": {
-      "description": "Error returned when a lottery is created without any participants.",
+    "NFQFvXbH4c/WUaSg43Mk2w==": {
+      "description": "Error returned when a lottery is created with no participants chosen.",
       "id": "platform/errors_lotteryEntriesEmpty",
       "tokens": [],
       "translations": [
@@ -9949,8 +9949,8 @@
       ],
       "types": []
     },
-    "e9p9EsjTmsNaKm6tNSC9iQ==": {
-      "description": "Empty-state text in the my-availability section when the member has not entered any availability yet.",
+    "0Ng46k8bKeD9GcnjfNKH+A==": {
+      "description": "Empty-state text in the my-availability section when the member has not entered availability yet.",
       "id": "groupings/schedule_emptyMineText",
       "tokens": [],
       "translations": [
@@ -10861,8 +10861,8 @@
       ],
       "types": []
     },
-    "DQ3IGwMg0RVs31C5puRG8w==": {
-      "description": "Completion rule of the profile checklist item: filling in a sect when signing up for any squad completes it, and the time zone syncs automatically from the client.",
+    "BDZLfLwAIsxCDszeBGUsmA==": {
+      "description": "Completion rule of the profile checklist item: filling in a sect when signing up for a squad completes it, and the time zone syncs automatically from the client.",
       "id": "guilds/recruit_itemProfileHint",
       "tokens": [],
       "translations": [
@@ -11667,8 +11667,8 @@
       ],
       "types": []
     },
-    "N6Jmc6Y/dqentdDI+1iU7g==": {
-      "description": "Empty-state text in the personal settings availability section when the user has not joined any guild yet; availability can be filled in once they join one.",
+    "Kwqh7Nt8tEHSZ733bqA8Aw==": {
+      "description": "Empty-state text in the personal settings availability section when the user has not joined a guild yet; availability can be filled in once they join one.",
       "id": "groupings/schedule_noGuildsText",
       "tokens": [],
       "translations": [

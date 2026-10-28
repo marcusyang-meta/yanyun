@@ -261,7 +261,7 @@ export const recruit_checklistTitle = (fbs: FbsAPI) =>fbs("新手入业清单", 
 export const recruit_checklistProgress = (fbs: FbsAPI, p?: StringParams) =>
   fbs(["已完成 ", fbs.param("done", pv(p, "done")), " / ", fbs.param("total", pv(p, "total"))], "Progress line of the newcomer checklist; {done} is the number of completed items and {total} the item count.");
 export const recruit_itemProfileLabel = (fbs: FbsAPI) =>fbs("完善流派 / 时区", "Label of the checklist item about completing sect and time zone information.");
-export const recruit_itemProfileHint = (fbs: FbsAPI) =>fbs("在任意车队报名落座时填上你的流派即算完成；时区由你的客户端自动同步，无需手动填写。", "Completion rule of the profile checklist item: filling in a sect when signing up for any squad completes it, and the time zone syncs automatically from the client.");
+export const recruit_itemProfileHint = (fbs: FbsAPI) =>fbs("在任意车队报名落座时填上你的流派即算完成；时区由你的客户端自动同步，无需手动填写。", "Completion rule of the profile checklist item: filling in a sect when signing up for a squad completes it, and the time zone syncs automatically from the client.");
 export const recruit_itemMentorLabel = (fbs: FbsAPI) =>fbs("认一位导师", "Label of the checklist item about being paired with a mentor.");
 export const recruit_itemMentorHint = (fbs: FbsAPI) =>fbs("由百业管理员为你配对一位导师后自动完成。", "Completion rule of the mentor checklist item: it completes automatically once a guild admin pairs the newcomer with a mentor.");
 export const recruit_itemFirstRunLabel = (fbs: FbsAPI) =>fbs("打完第一场", "Label of the checklist item about finishing a first run.");
