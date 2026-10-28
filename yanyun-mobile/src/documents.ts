@@ -2317,6 +2317,10 @@ export const AnnouncementsPageQuery = graphql`
               kindLabel
               title
               body
+              displayTitle
+              displayBody
+              isTranslated
+              contentSourceLabel
               authorText
               createdAtText
               viewerHasRead
@@ -2336,6 +2340,10 @@ export const AnnouncementsPageQuery = graphql`
               kindLabel
               title
               body
+              displayTitle
+              displayBody
+              isTranslated
+              contentSourceLabel
               authorText
               createdAtText
               viewerHasRead
@@ -2375,6 +2383,12 @@ export const AnnouncementsAdminQuery = graphql`
             pushNote
             urgentNote
             dailyLimitText
+            canGenerateTranslations
+            generateTranslationsLabel
+            generatingTranslationsLabel
+            translationsGeneratedText
+            translationsPartialText
+            translationUnavailableText
             canPost
             announcements {
               id
@@ -2384,6 +2398,17 @@ export const AnnouncementsAdminQuery = graphql`
               kindLabel
               title
               body
+              displayTitle
+              displayBody
+              isTranslated
+              contentSourceLabel
+              translationStatusText
+              translations {
+                locale
+                localeLabel
+                status
+                statusLabel
+              }
               authorText
               createdAtText
               readCountText
@@ -2411,6 +2436,24 @@ export const PostGuildAnnouncementMutation = graphql`
       errorCode
       announcement {
         id
+      }
+    }
+  }
+`;
+
+export const GenerateGuildAnnouncementTranslationsMutation = graphql`
+  mutation documentsGenerateGuildAnnouncementTranslationsMutation($slug: String!, $id: ID!) {
+    generateGuildAnnouncementTranslations(slug: $slug, announcementId: $id) {
+      ok
+      error
+      errorCode
+      announcement {
+        id
+        translationStatusText
+        translations {
+          locale
+          status
+        }
       }
     }
   }

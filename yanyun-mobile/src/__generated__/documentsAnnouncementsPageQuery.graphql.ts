@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<a41e24e2606bdfb2c733299da5cdeb77>>
+ * @generated SignedSource<<4d53db47daca5fe9c9cb1b18d1971631>>
  * @lightSyntaxTransform
  */
 
@@ -20,8 +20,12 @@ export type documentsAnnouncementsPageQuery$data = {
         readonly announcements: ReadonlyArray<{
           readonly authorText: string | null | undefined;
           readonly body: string;
+          readonly contentSourceLabel: string;
           readonly createdAtText: string;
+          readonly displayBody: string;
+          readonly displayTitle: string;
           readonly id: string;
+          readonly isTranslated: boolean;
           readonly kind: AnnouncementKind;
           readonly kindLabel: string;
           readonly title: string;
@@ -39,8 +43,12 @@ export type documentsAnnouncementsPageQuery$data = {
         readonly announcements: ReadonlyArray<{
           readonly authorText: string | null | undefined;
           readonly body: string;
+          readonly contentSourceLabel: string;
           readonly createdAtText: string;
+          readonly displayBody: string;
+          readonly displayTitle: string;
           readonly id: string;
+          readonly isTranslated: boolean;
           readonly kind: AnnouncementKind;
           readonly kindLabel: string;
           readonly title: string;
@@ -158,6 +166,34 @@ v2 = [
             "alias": null,
             "args": null,
             "kind": "ScalarField",
+            "name": "displayTitle",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "displayBody",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "isTranslated",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "contentSourceLabel",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
             "name": "authorText",
             "storageKey": null
           },
@@ -249,16 +285,16 @@ return {
     "selections": (v3/*:: as any*/)
   },
   "params": {
-    "cacheID": "c403f0bbfaa27826bc3123f7431ed2a3",
+    "cacheID": "0cbd2f3f76545e969ca2fcec3d58eade",
     "id": null,
     "metadata": {},
     "name": "documentsAnnouncementsPageQuery",
     "operationKind": "query",
-    "text": "query documentsAnnouncementsPageQuery(\n  $slug: String!\n) {\n  viewer {\n    guild(slug: $slug) {\n      __typename\n      ... on Guild {\n        announcements {\n          title\n          emptyText\n          canPost\n          announcements {\n            id\n            kind\n            urgent\n            urgentLabel\n            kindLabel\n            title\n            body\n            authorText\n            createdAtText\n            viewerHasRead\n          }\n        }\n      }\n      ... on GuildReadOnly {\n        announcements {\n          title\n          emptyText\n          canPost\n          announcements {\n            id\n            kind\n            urgent\n            urgentLabel\n            kindLabel\n            title\n            body\n            authorText\n            createdAtText\n            viewerHasRead\n          }\n        }\n      }\n    }\n  }\n}\n"
+    "text": "query documentsAnnouncementsPageQuery(\n  $slug: String!\n) {\n  viewer {\n    guild(slug: $slug) {\n      __typename\n      ... on Guild {\n        announcements {\n          title\n          emptyText\n          canPost\n          announcements {\n            id\n            kind\n            urgent\n            urgentLabel\n            kindLabel\n            title\n            body\n            displayTitle\n            displayBody\n            isTranslated\n            contentSourceLabel\n            authorText\n            createdAtText\n            viewerHasRead\n          }\n        }\n      }\n      ... on GuildReadOnly {\n        announcements {\n          title\n          emptyText\n          canPost\n          announcements {\n            id\n            kind\n            urgent\n            urgentLabel\n            kindLabel\n            title\n            body\n            displayTitle\n            displayBody\n            isTranslated\n            contentSourceLabel\n            authorText\n            createdAtText\n            viewerHasRead\n          }\n        }\n      }\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "a357f52e54d6fb751847208e05efc321";
+(node as any).hash = "d1939a01296d69c789dabf7ede3b7283";
 
 export default node;

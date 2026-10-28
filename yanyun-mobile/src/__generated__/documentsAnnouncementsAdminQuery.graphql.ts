@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<649e9c1efeae23be74d89a51b28d11f0>>
+ * @generated SignedSource<<e079014a313c8fe336bab43d91065602>>
  * @lightSyntaxTransform
  */
 
@@ -21,10 +21,14 @@ export type documentsAnnouncementsAdminQuery$data = {
         readonly announcements: ReadonlyArray<{
           readonly authorText: string | null | undefined;
           readonly body: string;
+          readonly contentSourceLabel: string;
           readonly createdAtText: string;
           readonly deleteConfirmTitle: string;
           readonly deleteLabel: string;
+          readonly displayBody: string;
+          readonly displayTitle: string;
           readonly id: string;
+          readonly isTranslated: boolean;
           readonly kind: AnnouncementKind;
           readonly kindLabel: string;
           readonly readCountText: string | null | undefined;
@@ -35,16 +39,26 @@ export type documentsAnnouncementsAdminQuery$data = {
             readonly readAtText: string | null | undefined;
           }> | null | undefined;
           readonly title: string;
+          readonly translationStatusText: string | null | undefined;
+          readonly translations: ReadonlyArray<{
+            readonly locale: string;
+            readonly localeLabel: string;
+            readonly status: string;
+            readonly statusLabel: string;
+          }> | null | undefined;
           readonly urgent: boolean;
           readonly urgentLabel: string | null | undefined;
         }>;
         readonly bodyLabel: string;
         readonly bodyPlaceholder: string;
+        readonly canGenerateTranslations: boolean;
         readonly canPost: boolean;
         readonly composeTitle: string;
         readonly dailyLimitText: string | null | undefined;
         readonly deleteLabel: string;
         readonly emptyText: string;
+        readonly generateTranslationsLabel: string | null | undefined;
+        readonly generatingTranslationsLabel: string | null | undefined;
         readonly kindLabel: string;
         readonly kindStandardLabel: string;
         readonly kindUrgentLabel: string;
@@ -57,6 +71,9 @@ export type documentsAnnouncementsAdminQuery$data = {
         readonly title: string;
         readonly titleLabel: string;
         readonly titlePlaceholder: string;
+        readonly translationUnavailableText: string | null | undefined;
+        readonly translationsGeneratedText: string | null | undefined;
+        readonly translationsPartialText: string | null | undefined;
         readonly unreadListLabel: string;
         readonly urgentNote: string;
       };
@@ -275,6 +292,48 @@ v4 = [
                     "alias": null,
                     "args": null,
                     "kind": "ScalarField",
+                    "name": "canGenerateTranslations",
+                    "storageKey": null
+                  },
+                  {
+                    "alias": null,
+                    "args": null,
+                    "kind": "ScalarField",
+                    "name": "generateTranslationsLabel",
+                    "storageKey": null
+                  },
+                  {
+                    "alias": null,
+                    "args": null,
+                    "kind": "ScalarField",
+                    "name": "generatingTranslationsLabel",
+                    "storageKey": null
+                  },
+                  {
+                    "alias": null,
+                    "args": null,
+                    "kind": "ScalarField",
+                    "name": "translationsGeneratedText",
+                    "storageKey": null
+                  },
+                  {
+                    "alias": null,
+                    "args": null,
+                    "kind": "ScalarField",
+                    "name": "translationsPartialText",
+                    "storageKey": null
+                  },
+                  {
+                    "alias": null,
+                    "args": null,
+                    "kind": "ScalarField",
+                    "name": "translationUnavailableText",
+                    "storageKey": null
+                  },
+                  {
+                    "alias": null,
+                    "args": null,
+                    "kind": "ScalarField",
                     "name": "canPost",
                     "storageKey": null
                   },
@@ -321,6 +380,80 @@ v4 = [
                         "args": null,
                         "kind": "ScalarField",
                         "name": "body",
+                        "storageKey": null
+                      },
+                      {
+                        "alias": null,
+                        "args": null,
+                        "kind": "ScalarField",
+                        "name": "displayTitle",
+                        "storageKey": null
+                      },
+                      {
+                        "alias": null,
+                        "args": null,
+                        "kind": "ScalarField",
+                        "name": "displayBody",
+                        "storageKey": null
+                      },
+                      {
+                        "alias": null,
+                        "args": null,
+                        "kind": "ScalarField",
+                        "name": "isTranslated",
+                        "storageKey": null
+                      },
+                      {
+                        "alias": null,
+                        "args": null,
+                        "kind": "ScalarField",
+                        "name": "contentSourceLabel",
+                        "storageKey": null
+                      },
+                      {
+                        "alias": null,
+                        "args": null,
+                        "kind": "ScalarField",
+                        "name": "translationStatusText",
+                        "storageKey": null
+                      },
+                      {
+                        "alias": null,
+                        "args": null,
+                        "concreteType": "GuildAnnouncementTranslation",
+                        "kind": "LinkedField",
+                        "name": "translations",
+                        "plural": true,
+                        "selections": [
+                          {
+                            "alias": null,
+                            "args": null,
+                            "kind": "ScalarField",
+                            "name": "locale",
+                            "storageKey": null
+                          },
+                          {
+                            "alias": null,
+                            "args": null,
+                            "kind": "ScalarField",
+                            "name": "localeLabel",
+                            "storageKey": null
+                          },
+                          {
+                            "alias": null,
+                            "args": null,
+                            "kind": "ScalarField",
+                            "name": "status",
+                            "storageKey": null
+                          },
+                          {
+                            "alias": null,
+                            "args": null,
+                            "kind": "ScalarField",
+                            "name": "statusLabel",
+                            "storageKey": null
+                          }
+                        ],
                         "storageKey": null
                       },
                       {
@@ -426,16 +559,16 @@ return {
     "selections": (v4/*:: as any*/)
   },
   "params": {
-    "cacheID": "3d2c646d5b030bbc48160ff06e08b259",
+    "cacheID": "299e3d5daa595d6eda88c34f2d866bbc",
     "id": null,
     "metadata": {},
     "name": "documentsAnnouncementsAdminQuery",
     "operationKind": "query",
-    "text": "query documentsAnnouncementsAdminQuery(\n  $slug: String!\n) {\n  viewer {\n    commonUnknownErrorText\n    guildAdmin(slug: $slug) {\n      __typename\n      ... on GuildAdmin {\n        announcements {\n          title\n          emptyText\n          composeTitle\n          kindLabel\n          kindStandardLabel\n          kindUrgentLabel\n          titleLabel\n          titlePlaceholder\n          bodyLabel\n          bodyPlaceholder\n          postLabel\n          postingLabel\n          postedText\n          deleteLabel\n          receiptsTitle\n          readListLabel\n          unreadListLabel\n          pushNote\n          urgentNote\n          dailyLimitText\n          canPost\n          announcements {\n            id\n            kind\n            urgent\n            urgentLabel\n            kindLabel\n            title\n            body\n            authorText\n            createdAtText\n            readCountText\n            deleteLabel\n            deleteConfirmTitle\n            receipts {\n              discordId\n              displayName\n              read\n              readAtText\n            }\n          }\n        }\n      }\n    }\n  }\n}\n"
+    "text": "query documentsAnnouncementsAdminQuery(\n  $slug: String!\n) {\n  viewer {\n    commonUnknownErrorText\n    guildAdmin(slug: $slug) {\n      __typename\n      ... on GuildAdmin {\n        announcements {\n          title\n          emptyText\n          composeTitle\n          kindLabel\n          kindStandardLabel\n          kindUrgentLabel\n          titleLabel\n          titlePlaceholder\n          bodyLabel\n          bodyPlaceholder\n          postLabel\n          postingLabel\n          postedText\n          deleteLabel\n          receiptsTitle\n          readListLabel\n          unreadListLabel\n          pushNote\n          urgentNote\n          dailyLimitText\n          canGenerateTranslations\n          generateTranslationsLabel\n          generatingTranslationsLabel\n          translationsGeneratedText\n          translationsPartialText\n          translationUnavailableText\n          canPost\n          announcements {\n            id\n            kind\n            urgent\n            urgentLabel\n            kindLabel\n            title\n            body\n            displayTitle\n            displayBody\n            isTranslated\n            contentSourceLabel\n            translationStatusText\n            translations {\n              locale\n              localeLabel\n              status\n              statusLabel\n            }\n            authorText\n            createdAtText\n            readCountText\n            deleteLabel\n            deleteConfirmTitle\n            receipts {\n              discordId\n              displayName\n              read\n              readAtText\n            }\n          }\n        }\n      }\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "7b5d80370344bb24041158f686dd3e4e";
+(node as any).hash = "a45da0443b261432646ff554cb494cb1";
 
 export default node;
