@@ -34,13 +34,12 @@ import { typeDefs } from '../src/graphql-schema.ts';
 import { getGroupingManageVerdict } from '../src/domains/platform/graphql-base.ts';
 import { GUILD_AUDIT_ACTIONS } from '../src/domains/guilds/guild-audit.ts';
 import { AUDIT_ACTION_LABEL_FIELD } from '../src/domains/guilds/governance-graphql.ts';
+import { describe, it, expect, afterAll } from 'vitest';
 
-let pass = 0, fail = 0; const fails = [];
-function check(name, ok, extra = '') {
-  if (ok) pass++; else { fail++; fails.push(name + (extra ? ' — ' + extra : '')); }
-  console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${extra && !ok ? ' — ' + extra : ''}`);
+function check(name: string, ok: boolean, extra = '') {
+  expect(ok, extra ? `${name} — ${extra}` : name).toBe(true);
 }
-function eq(name, got, want) { check(name, JSON.stringify(got) === JSON.stringify(want), `got=${JSON.stringify(got)} want=${JSON.stringify(want)}`); }
+function eq(name: string, got: any, want: any) { check(name, JSON.stringify(got) === JSON.stringify(want), `got=${JSON.stringify(got)} want=${JSON.stringify(want)}`); }
 
 /* Drizzle query-builder channel helper (same as .harness-announcements). */
 function toRawRows(sqlText, rows) {
@@ -299,22 +298,6 @@ async function gql(query, { user = adminA, variables } = {}) {
   return res.json();
 }
 
-/* ---- A. SDL pins + label map pin ---- */
-{
-  const adminBlock = /type GuildAdmin \{([\s\S]*?)\n\}/.exec(typeDefs)?.[1] || '';
-  check('SDL: governance 只挂 GuildAdmin', adminBlock.includes('governance'));
-  check('SDL: governanceResult union 含 Locked', /union GuildGovernanceResult = GuildGovernancePage \| GuildGovernanceLocked/.test(typeDefs));
-  check('SDL: viewerCapabilities 在 GuildAdmin', adminBlock.includes('viewerCapabilities'));
-  const guildBlock = /type Guild \{([\s\S]*?)\n\}/.exec(typeDefs)?.[1] || '';
-  check('SDL: Guild 块已捕获( pin 非空转)', guildBlock.length > 100);
-  check('SDL: 成员 Guild 类型无 governance', !guildBlock.includes('governance'));
-  check('SDL: stats union 含 SectionLocked', /union GuildAdminStatsResult = GuildAdminStats \| GuildAdminStatsLocked \| GuildAdminSectionLocked/.test(typeDefs));
-  eq('审计动作标签映射与动作词表双向一致',
-    Object.keys(AUDIT_ACTION_LABEL_FIELD).sort(), [...GUILD_AUDIT_ACTIONS].sort());
-  eq('审计动作词表共 36 个', GUILD_AUDIT_ACTIONS.length, 36);
-}
-
-/* ---- B. Tier matrix (admin viewer) ---- */
 const GOV_Q = `query($slug: String!) {
   viewer { guildAdmin(slug: $slug) {
     __typename
@@ -334,6 +317,27 @@ const GOV_Q = `query($slug: String!) {
     }
   } }
 }`;
+
+describe('governance', () => {
+  it('A. SDL pins + label map pin', async () => {
+/* ---- A. SDL pins + label map pin ---- */
+{
+  const adminBlock = /type GuildAdmin \{([\s\S]*?)\n\}/.exec(typeDefs)?.[1] || '';
+  check('SDL: governance 只挂 GuildAdmin', adminBlock.includes('governance'));
+  check('SDL: governanceResult union 含 Locked', /union GuildGovernanceResult = GuildGovernancePage \| GuildGovernanceLocked/.test(typeDefs));
+  check('SDL: viewerCapabilities 在 GuildAdmin', adminBlock.includes('viewerCapabilities'));
+  const guildBlock = /type Guild \{([\s\S]*?)\n\}/.exec(typeDefs)?.[1] || '';
+  check('SDL: Guild 块已捕获( pin 非空转)', guildBlock.length > 100);
+  check('SDL: 成员 Guild 类型无 governance', !guildBlock.includes('governance'));
+  check('SDL: stats union 含 SectionLocked', /union GuildAdminStatsResult = GuildAdminStats \| GuildAdminStatsLocked \| GuildAdminSectionLocked/.test(typeDefs));
+  eq('审计动作标签映射与动作词表双向一致',
+    Object.keys(AUDIT_ACTION_LABEL_FIELD).sort(), [...GUILD_AUDIT_ACTIONS].sort());
+  eq('审计动作词表共 36 个', GUILD_AUDIT_ACTIONS.length, 36);
+}
+  });
+
+  it('B. Tier matrix (admin viewer)', async () => {
+/* ---- B. Tier matrix (admin viewer) ---- */
 {
   const ENT = (plan, current_period_end = null) => ({
     tenant: 'alpha', plan, source: 'manual', current_period_end,
@@ -385,7 +389,9 @@ const GOV_Q = `query($slug: String!) {
   eq('paygate ON + T3: Page 下发(tierLocked 不看总闸)', r.data?.viewer?.guildAdmin?.governance?.__typename, 'GuildGovernancePage');
   state.settings.delete('|paygate_enabled');
 }
+  });
 
+  it('C. Grants + permission matrix (T3 in force from here)', async () => {
 /* ---- C. Grants + permission matrix (T3 in force from here) ---- */
 {
   // Member with nothing: Locked shell, and governance does not exist.
@@ -465,7 +471,9 @@ const GOV_Q = `query($slug: String!) {
   r = await gql(GOV_Q, { user: member1, variables: { slug: 'alpha' } });
   eq('撤销后 M1 回到 GuildAdminLocked', r.data?.viewer?.guildAdmin?.__typename, 'GuildAdminLocked');
 }
+  });
 
+  it('D. Board (officer private area)', async () => {
 /* ---- D. Board (officer private area) ---- */
 {
   let m = await gql(`mutation { postOfficerBoardMessage(slug: "alpha", body: "本周排班注记") { ok errorCode } }`, { user: member2 });
@@ -490,7 +498,9 @@ const GOV_Q = `query($slug: String!) {
   r = await gql(GOV_Q, { user: member3, variables: { slug: 'alpha' } });
   eq('成员治理查询仍 Locked', r.data?.viewer?.guildAdmin?.__typename, 'GuildAdminLocked');
 }
+  });
 
+  it('E. Audit read-back: coverage, order, paging, no bodies', async () => {
 /* ---- E. Audit read-back: coverage, order, paging, no bodies ---- */
 {
   // One more scripted admin action so profile.update is in the log.
@@ -527,7 +537,9 @@ const GOV_Q = `query($slug: String!) {
   check('审计分页第二页不与第一页重叠',
     p2.length >= 1 && p1.every((a) => p2.every((b) => JSON.stringify(a) !== JSON.stringify(b))));
 }
+  });
 
+  it('F. Grouping manage verdict: events officer joins', async () => {
 /* ---- F. Grouping manage verdict: events officer joins ---- */
 {
   const fakeReq = new Request('http://local/graphql');
@@ -547,6 +559,6 @@ const GOV_Q = `query($slug: String!) {
   v = await getGroupingManageVerdict(db, adminA, fakeReq, null, grouping);
   eq('分组判定: 百业管理员可管(回归)', v.canManage, true);
 }
+  });
 
-console.log(`\nGOVERNANCE pass=${pass} fail=${fail}`);
-if (fails.length) { console.log('FAILS:\n' + fails.map((f) => '  - ' + f).join('\n')); process.exit(1); }
+});

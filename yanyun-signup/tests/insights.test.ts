@@ -28,13 +28,12 @@ import { grantTierManual } from '../src/domains/platform/billing-service.ts';
 import { upsertEntitlementRow, getEntitlementRow } from '../src/domains/platform/billing.ts';
 import { computeGearSelfStatus } from '../src/domains/guilds/insights.ts';
 import { listGearStandards } from '../src/domains/guilds/gearstandards.ts';
+import { describe, it, expect, afterAll } from 'vitest';
 
-let pass = 0, fail = 0; const fails = [];
-function check(name, ok, extra = '') {
-  if (ok) pass++; else { fail++; fails.push(name + (extra ? ' — ' + extra : '')); }
-  console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${extra && !ok ? ' — ' + extra : ''}`);
+function check(name: string, ok: boolean, extra = '') {
+  expect(ok, extra ? `${name} — ${extra}` : name).toBe(true);
 }
-function eq(name, got, want) { check(name, JSON.stringify(got) === JSON.stringify(want), `got=${JSON.stringify(got)} want=${JSON.stringify(want)}`); }
+function eq(name: string, got: any, want: any) { check(name, JSON.stringify(got) === JSON.stringify(want), `got=${JSON.stringify(got)} want=${JSON.stringify(want)}`); }
 
 const mf = new Miniflare(convertV4MiniflareOptions({
   modules: true,
@@ -147,8 +146,14 @@ const adminQ = `{ viewer { guildAdmin(slug: "${SLUG}") { __typename ... on Guild
 } } } }`;
 const ga = (r) => r.data?.viewer?.guildAdmin;
 
+let r: any;
+
+let stdId: any;
+
+describe('insights', () => {
+  it('A. tier 0: all four Locked, zero data, write refused', async () => {
 /* ---------------- A. tier 0: all four Locked, zero data, write refused ---------------- */
-let r = await gql(adminQ);
+r = await gql(adminQ);
 check('A: no GraphQL errors', !r.errors, JSON.stringify(r.errors || []));
 eq('A: reliability locked', ga(r)?.reliability?.__typename, 'GuildInsightsLocked');
 eq('A: heatmap locked', ga(r)?.participationHeatmap?.__typename, 'GuildInsightsLocked');
@@ -163,7 +168,9 @@ eq('A: no standard stored', (await listGearStandards(db, SLUG)).length, 0);
 r = await gql(`{ viewer { guild(slug: "${SLUG}") { __typename ... on Guild { raceSeasonBoard { __typename } gearSelfStatus { __typename } } ... on GuildReadOnly { raceSeasonBoard { __typename } } } } }`);
 const memberBoard = r.data?.viewer?.guild?.raceSeasonBoard?.__typename;
 eq('A: member race board locked', memberBoard, 'GuildInsightsLocked');
+  });
 
+  it('B. tier 1: full variants with the seeded numbers', async () => {
 /* ---------------- B. tier 1: full variants with the seeded numbers ---------------- */
 await grantTierManual(db, SLUG, 1, 30);
 r = await gql(adminQ);
@@ -187,7 +194,7 @@ eq('B: gear board full, no standards yet', ga(r)?.gearBoard?.__typename, 'GuildA
 eq('B: gear board standards empty', ga(r)?.gearBoard?.standards, []);
 r = await gql(`mutation { upsertGearStandard(slug: "${SLUG}", label: "S5 开荒", minScore: 80) { ok errorCode standardId } }`);
 eq('B: gear standard create ok at tier 1', [r.data?.upsertGearStandard?.ok, r.data?.upsertGearStandard?.errorCode], [true, null]);
-const stdId = r.data?.upsertGearStandard?.standardId;
+stdId = r.data?.upsertGearStandard?.standardId;
 check('B: standard id returned', !!stdId);
 r = await gql(adminQ);
 const std = (ga(r)?.gearBoard?.standards || [])[0];
@@ -224,7 +231,9 @@ eq('B: cross-guild standard id reads as not found', [r.data?.deleteGearStandard?
 r = await gql(`mutation { upsertGearStandard(slug: "${SLUG}", id: "${stdId}", label: "S5 开荒·严", minScore: 90) { ok errorCode } }`);
 eq('B: standard update ok', r.data?.upsertGearStandard?.ok, true);
 eq('B: standard updated in repository', (await listGearStandards(db, SLUG)).map((x) => [x.label, x.min_score]), [['S5 开荒·严', 90]]);
+  });
 
+  it('C. tier 2 / tier 3: still full', async () => {
 /* ---------------- C. tier 2 / tier 3: still full ---------------- */
 await grantTierManual(db, SLUG, 2, 30);
 r = await gql(adminQ);
@@ -234,7 +243,9 @@ await grantTierManual(db, SLUG, 3, 30);
 r = await gql(adminQ);
 eq('C: tier 3 heatmap full', ga(r)?.participationHeatmap?.__typename, 'GuildAdminParticipationHeatmap');
 eq('C: tier 3 gear board full', ga(r)?.gearBoard?.__typename, 'GuildAdminGearBoard');
+  });
 
+  it('D. expired tier: locked again, lines frozen', async () => {
 /* ---------------- D. expired tier: locked again, lines frozen ---------------- */
 {
   const prev = await getEntitlementRow(db, SLUG);
@@ -254,7 +265,7 @@ eq('D: re-grant restores the board with its line', (ga(r)?.gearBoard?.standards 
 r = await gql(`mutation { deleteGearStandard(slug: "${SLUG}", id: "${stdId}") { ok errorCode } }`);
 eq('D: delete works again at tier 1', r.data?.deleteGearStandard?.ok, true);
 eq('D: standard gone after delete', (await listGearStandards(db, SLUG)).length, 0);
+  });
 
-console.log(`\n[insights] ${pass} passed / ${fail} failed`);
-if (fail) { console.log('FAILS:', fails.join(' | ')); process.exit(1); }
-await mf.dispose();
+  afterAll(async () => { await mf.dispose(); });
+});
