@@ -1,9 +1,12 @@
 // Premium ops engine acceptance (T2 line: P8/P11/P12/P14):
-//  - Tier matrix: paygate OFF composes the full ops surface (launch
-//    parity); paygate ON + tier 0/1 resolves GuildAdminOpsLocked
-//    (lock copy only, engines never shipped); tier 2 and legacy
-//    premium (tier 3) compose in full. Mutations re-check: locked
-//    guilds get premiumRequired, non-admins adminOnly.
+//  - Tier matrix (pure entitlement semantics, foundation-line
+//    verdict): the tier derives from the entitlement plan value
+//    alone — the paygate master switch is never consulted, so an
+//    ungranted guild resolves GuildAdminOpsLocked with the switch
+//    OFF and ON alike; t1 locks, t2/t3 compose in full, legacy
+//    premium maps to tier 3, and a lapsed grant locks again.
+//    Mutations re-check: locked guilds get premiumRequired,
+//    non-admins adminOnly.
 //  - P8: segmentation is deterministic over unsigned members
 //    (all / school / role / lapsed); a send writes its frequency
 //    row first, the per-event 24h cooldown and the 3/day guild cap
@@ -110,7 +113,7 @@ function makeDb() {
     }
     return id;
   };
-  // Baseline weeks (-7..-4): R1 x4, R2 x4, R4 x3 (b1..b3), R6 x1 (b1, 破竹)
+  // Baseline weeks (-7..-4): R1 x4, R2 x4, R4 x3 (b1..b3), R6 x1 (b1, Pozhu school)
   const b = [-7, -6, -5, -4].map((o) => W(o));
   addEvent('基线一', 'completed', b[0], 'R2', [['R1', '万丝', '奶'], ['R2', '破竹', '输出'], ['R4', '万丝', '奶'], ['R6', '破竹·樽', '输出']]);
   addEvent('基线二', 'completed', b[1], 'R2', [['R1', '万丝', '奶'], ['R2', '破竹', '输出'], ['R4', '万丝', '奶']]);
@@ -325,28 +328,40 @@ const opsQ = `query($slug: String!) { viewer { guildAdmin(slug: $slug) { __typen
       contributionRules { actionKey points enabled } contributionBoard { discordId totalPoints } }
     ... on GuildAdminOpsLocked { premiumTitle premiumBody } } } } } }`;
 const getOps = (user = adminA) => gql(opsQ, { user, variables: { slug: 'alpha' } });
+const opsType = async () => (await getOps()).data?.viewer?.guildAdmin?.ops?.__typename;
+/* The single tier source: the entitlement row's plan value. */
+const setPlan = (plan, daysAhead = 30) => {
+  state.entitlements.length = 0;
+  if (plan) {
+    state.entitlements.push({
+      tenant: 'alpha', plan, source: 'manual',
+      current_period_end: Math.floor(Date.now() / 1000) + daysAhead * 86400,
+      stripe_customer_id: '', stripe_subscription_id: '', updated_at: 0,
+    });
+  }
+};
 
 {
-  const r = await getOps();
-  eq('总闸关: ops 全量下发 (上线平价)', r.data?.viewer?.guildAdmin?.ops?.__typename, 'GuildAdminOps');
-  eq('管理面页签文案下发', r.data?.viewer?.guildAdmin?.adminTabOpsLabel, '运营引擎');
-
+  eq('管理面页签文案下发', (await getOps()).data?.viewer?.guildAdmin?.adminTabOpsLabel, '运营引擎');
+  setPlan(null);
+  eq('未授予 + 总闸关: Locked (分档面不看总闸)', await opsType(), 'GuildAdminOpsLocked');
   state.settings.set('|paygate_enabled', '1');
   const locked = await getOps();
-  eq('总闸开+免费档: ops -> Locked', locked.data?.viewer?.guildAdmin?.ops?.__typename, 'GuildAdminOpsLocked');
+  eq('未授予 + 总闸开: 仍 Locked (判定与总闸无关)', locked.data?.viewer?.guildAdmin?.ops?.__typename, 'GuildAdminOpsLocked');
   check('Locked 只带未开通文案', !!locked.data?.viewer?.guildAdmin?.ops?.premiumTitle && !('churnRisks' in locked.data.viewer.guildAdmin.ops));
-
-  state.settings.set('alpha|premium_tier', '1');
-  eq('T1 (<2): 仍 Locked', (await getOps()).data?.viewer?.guildAdmin?.ops?.__typename, 'GuildAdminOpsLocked');
-
-  state.settings.set('alpha|premium_tier', '2');
-  eq('T2: 全量下发', (await getOps()).data?.viewer?.guildAdmin?.ops?.__typename, 'GuildAdminOps');
-
-  state.settings.delete('alpha|premium_tier');
-  state.entitlements.push({ tenant: 'alpha', plan: 'premium', source: 'manual', current_period_end: Math.floor(Date.now() / 1000) + 86400 * 30, stripe_customer_id: '', stripe_subscription_id: '', updated_at: 0 });
-  eq('存量 premium (映射 T3): 全量下发', (await getOps()).data?.viewer?.guildAdmin?.ops?.__typename, 'GuildAdminOps');
-  state.entitlements.length = 0;
-  state.settings.set('alpha|premium_tier', '2');
+  setPlan('t1');
+  eq('T1 (<2): Locked', await opsType(), 'GuildAdminOpsLocked');
+  setPlan('t2');
+  eq('T2: 全量下发', await opsType(), 'GuildAdminOps');
+  setPlan('t3');
+  eq('T3: 全量下发', await opsType(), 'GuildAdminOps');
+  setPlan('premium');
+  eq('存量 premium (映射 T3): 全量下发', await opsType(), 'GuildAdminOps');
+  setPlan('t2', -1);
+  eq('T2 已过期 (lapsed = tier 0): Locked', await opsType(), 'GuildAdminOpsLocked');
+  // Downstream sections run against a granted guild.
+  setPlan('t2');
+  state.settings.delete('|paygate_enabled');
 }
 
 /* ============ P11 churn over the fixture ============ */
