@@ -29,7 +29,7 @@ const SUITES = [
   ['remindercard', 81], ['tower', 38], ['laziness', 23], ['audit', 36],
   ['backup', 23], ['guildadmin', 213], ['shortlink', 27], ['templates', 49],
   ['account', 73], ['subdomain', 162],
-  ['buildshare', 60], ['billing', 226], ['feedback', 44],
+  ['buildshare', 60], ['billing', 227], ['feedback', 44],
   ['gates', 73], ['announcements', 90], ['activitytools', 49], ['season', 70],
   ['schedule', 70], ['recruit', 100],
   ['officer', 92], ['announcement-i18n', 46], ['ops', 50],
