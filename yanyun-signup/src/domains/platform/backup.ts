@@ -22,6 +22,7 @@ import { createDb } from '../../db/client.ts';
 import {
   tenants, settings, users, userOauth, userGuildNicks, guildMembers,
   events, signups, results, shortLinks, groupingTemplates, guildAvatars,
+  calendarFeeds, lotteries, lotteryEntries, lotteryWinners,
   bosses, dungeons, schools, schoolBis, schoolRotations, slotAffix, affixMax,
   userGearItems, userGearBuilds, buildShareLinks, heirloomItemPushes, heirloomSetState,
   pushTokens, usageCounters, creatorBackfillLog, hubAuditLog, guildEntitlements, feedback,
@@ -48,6 +49,10 @@ export const BACKUP_ENTITIES: ReadonlyArray<readonly [string, SQLiteTable]> = [
   ['results', results],
   ['short_links', shortLinks],
   ['grouping_templates', groupingTemplates],
+  ['calendar_feeds', calendarFeeds],
+  ['lotteries', lotteries],
+  ['lottery_entries', lotteryEntries],
+  ['lottery_winners', lotteryWinners],
   ['guild_avatars', guildAvatars],
   ['bosses', bosses],
   ['dungeons', dungeons],
