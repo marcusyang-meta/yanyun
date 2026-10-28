@@ -38,14 +38,6 @@ const AppViewerQueryNode = graphql`
         memberCount
         avatarUrl
       }
-      publicGuilds {
-        slug
-        name
-        slogan
-        gameVersion
-        memberCount
-        avatarUrl
-      }
       siteTitle
       siteSubtitle
       siteHeroAlt
@@ -74,9 +66,6 @@ const AppViewerQueryNode = graphql`
       myEffectiveLocale
       pickerMyGuildsLabel
       pickerMyGuildsEnLabel
-      pickerPublicGuildsLabel
-      pickerPublicGuildsEnLabel
-      pickerReadOnlyBadge
       pickerEmptyTitle
       pickerEmptyBody
       pickerCreateGuildLabel
@@ -200,8 +189,7 @@ export default function AppRoot({ queries }: {
   };
   const pickerText = {
     myGuildsLabel: viewer.pickerMyGuildsLabel, myGuildsEnLabel: viewer.pickerMyGuildsEnLabel,
-    publicGuildsLabel: viewer.pickerPublicGuildsLabel, publicGuildsEnLabel: viewer.pickerPublicGuildsEnLabel,
-    readOnlyBadge: viewer.pickerReadOnlyBadge, emptyTitle: viewer.pickerEmptyTitle, emptyBody: viewer.pickerEmptyBody,
+    emptyTitle: viewer.pickerEmptyTitle, emptyBody: viewer.pickerEmptyBody,
     createGuildLabel: viewer.pickerCreateGuildLabel, createGuildMoreLabel: viewer.pickerCreateGuildMoreLabel,
   };
 
@@ -233,7 +221,7 @@ export default function AppRoot({ queries }: {
             hostSlug ? (
               <GuildRouteLoader slugOverride={hostSlug} />
             ) : (
-              <GuildPicker user={user} guilds={viewer.guilds} publicGuilds={viewer.publicGuilds} site={siteText} text={pickerText} userBarText={userBarText} recruit={viewer.homeRecruit} unknownError={viewer.commonUnknownErrorText} />
+              <GuildPicker user={user} guilds={viewer.guilds} site={siteText} text={pickerText} userBarText={userBarText} recruit={viewer.homeRecruit} unknownError={viewer.commonUnknownErrorText} />
             )
           ) : (
             <LandingPage returnTo="/" site={siteText} text={loginText} landing={landingText} recruit={viewer.homeRecruit} unknownError={viewer.commonUnknownErrorText} />

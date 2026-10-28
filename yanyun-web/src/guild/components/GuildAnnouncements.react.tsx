@@ -95,76 +95,6 @@ const MemberQueryNode = graphql`
               }
           }
         }
-        ... on GuildReadOnly {
-          announcements {
-                          title
-              emptyText
-              urgentLabel
-              composeTitle
-              kindLabel
-              kindStandardLabel
-              kindUrgentLabel
-              titleLabel
-              titlePlaceholder
-              bodyLabel
-              bodyPlaceholder
-              postLabel
-              postingLabel
-              postedText
-              deleteLabel
-              receiptsTitle
-              readListLabel
-              unreadListLabel
-              pushNote
-              urgentNote
-              dailyLimitText
-              canGenerateTranslations
-              generateTranslationsLabel
-              generatingTranslationsLabel
-              translationsGeneratedText
-              translationsPartialText
-              translationUnavailableText
-              canPost
-              standardRemaining
-              urgentRemaining
-              announcements {
-                id
-                kind
-                urgent
-                urgentLabel
-                kindLabel
-                title
-                body
-                displayTitle
-                displayBody
-                isTranslated
-                contentSourceLabel
-                translationStatusText
-                translations {
-                  locale
-                  localeLabel
-                  status
-                  statusLabel
-                }
-                authorName
-                authorText
-                createdAtText
-                viewerHasRead
-                readCount
-                memberCount
-                readCountText
-                deleteLabel
-                deleteConfirmTitle
-                deleteConfirmMessage
-                receipts {
-                  discordId
-                  displayName
-                  read
-                  readAtText
-                }
-              }
-          }
-        }
       }
     }
   }
@@ -630,9 +560,8 @@ function AnnouncementsPanel({ page, slug, admin, refresh, unknownError }: {
   );
 }
 
-/* Member tab (Guild home): fed from viewer.guild — Guild and
- * GuildReadOnly both carry the member variant; GuildLocked renders
- * nothing because it has no announcements field to select. */
+/* Member tab (Guild home): fed from viewer.guild — the Guild face
+ * carries the member variant; a null guild renders nothing. */
 export function GuildAnnouncementsRoute({ slug }: { slug: string }) {
   const queryRef = useMemo(
     () => loadQuery<MemberQueryType>(relayEnvironment, MemberQueryNode, { slug }, { fetchPolicy: 'store-or-network' }),

@@ -1,8 +1,8 @@
 // Guild route entrypoint (Relay server-3D pattern): preloads GuildRouteQuery,
-// whose viewer.guild field carries the @match fragment over the GuildResult
-// union. The matched module (MemberGuildHome / PublicGuildHome /
-// GuildLockedPage) is chosen by the response structure via MatchContainer in
-// GuildRouteRoot — there is no client-side type dispatch anywhere.
+// whose viewer.guild field carries the @match fragment; a viewable guild
+// matches the member-home module, and a null guild (missing or not
+// viewable) is handled by GuildRouteRoot leaving the route — there is no
+// client-side type dispatch anywhere.
 import JSResource from '../lib/JSResource';
 import GuildRouteQuery from '../guild/__generated__/GuildRouteQuery.graphql';
 

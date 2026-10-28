@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<c16c52b0ac6ea887d0c9bf1735f88c9b>>
+ * @generated SignedSource<<238a1d5c1972862552befe405ff86be2>>
  * @lightSyntaxTransform
  */
 
@@ -7,7 +7,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-// @indirectDataDrivenDependency GuildRouteRoot_viewer.guild {"branches":{"Guild":{"component":"MemberGuildHome.react","fragment":"MemberGuildHome_guild$normalization.graphql"},"GuildLocked":{"component":"GuildLockedPage.react","fragment":"GuildLockedPage_guild$normalization.graphql"},"GuildReadOnly":{"component":"PublicGuildHome.react","fragment":"PublicGuildHome_guild$normalization.graphql"}},"plural":false}
+// @indirectDataDrivenDependency GuildRouteRoot_viewer.guild {"branches":{"Guild":{"component":"MemberGuildHome.react","fragment":"MemberGuildHome_guild$normalization.graphql"}},"plural":false}
 
 import { ConcreteRequest } from 'relay-runtime';
 import { FragmentRefs } from "relay-runtime";
@@ -164,65 +164,19 @@ return {
           {
             "alias": null,
             "args": (v6/*:: as any*/),
-            "concreteType": null,
+            "concreteType": "Guild",
             "kind": "LinkedField",
             "name": "guild",
             "plural": false,
             "selections": [
               {
-                "alias": null,
                 "args": null,
-                "kind": "ScalarField",
-                "name": "__typename",
-                "storageKey": null
-              },
-              {
-                "kind": "InlineFragment",
-                "selections": [
-                  {
-                    "args": null,
-                    "documentName": "GuildRouteRoot_viewer",
-                    "fragmentName": "MemberGuildHome_guild",
-                    "fragmentPropName": "guild",
-                    "kind": "ModuleImport",
-                    "componentModuleProvider": () => JSResource('m#MemberGuildHome.react'),
-                    "operationModuleProvider": () => JSResource('m#MemberGuildHome_guild$normalization.graphql')
-                  }
-                ],
-                "type": "Guild",
-                "abstractKey": null
-              },
-              {
-                "kind": "InlineFragment",
-                "selections": [
-                  {
-                    "args": null,
-                    "documentName": "GuildRouteRoot_viewer",
-                    "fragmentName": "PublicGuildHome_guild",
-                    "fragmentPropName": "guild",
-                    "kind": "ModuleImport",
-                    "componentModuleProvider": () => JSResource('m#PublicGuildHome.react'),
-                    "operationModuleProvider": () => JSResource('m#PublicGuildHome_guild$normalization.graphql')
-                  }
-                ],
-                "type": "GuildReadOnly",
-                "abstractKey": null
-              },
-              {
-                "kind": "InlineFragment",
-                "selections": [
-                  {
-                    "args": null,
-                    "documentName": "GuildRouteRoot_viewer",
-                    "fragmentName": "GuildLockedPage_guild",
-                    "fragmentPropName": "guild",
-                    "kind": "ModuleImport",
-                    "componentModuleProvider": () => JSResource('m#GuildLockedPage.react'),
-                    "operationModuleProvider": () => JSResource('m#GuildLockedPage_guild$normalization.graphql')
-                  }
-                ],
-                "type": "GuildLocked",
-                "abstractKey": null
+                "documentName": "GuildRouteRoot_viewer",
+                "fragmentName": "MemberGuildHome_guild",
+                "fragmentPropName": "guild",
+                "kind": "ModuleImport",
+                "componentModuleProvider": () => JSResource('m#MemberGuildHome.react'),
+                "operationModuleProvider": () => JSResource('m#MemberGuildHome_guild$normalization.graphql')
               }
             ],
             "storageKey": null
@@ -233,12 +187,12 @@ return {
     ]
   },
   "params": {
-    "cacheID": "d0d76ee615e6c5ac1174a15d1a434f82",
+    "cacheID": "d714f5d9c2de0d22a21f769b6b2d4a53",
     "id": null,
     "metadata": {},
     "name": "GuildRouteQuery",
     "operationKind": "query",
-    "text": "query GuildRouteQuery(\n  $slug: String!\n) {\n  viewer {\n    user {\n      discordId\n      name\n      avatar\n    }\n    userBarLogoutLabel\n    userBarLoggingOutLabel\n    userBarSettingsLabel\n    commonLoadingGuildText\n    ...GuildRouteRoot_viewer_20J5Pl\n  }\n}\n\nfragment GuildLockedPage_guild on GuildLocked {\n  slug\n  lockedBackLinkLabel\n  lockedTitle\n  lockedBody1\n  lockedBody2\n  lockedBackButtonLabel\n}\n\nfragment GuildRouteRoot_viewer_20J5Pl on Viewer {\n  guild(slug: $slug) {\n    __typename\n    ... on Guild {\n      ...MemberGuildHome_guild\n    }\n    ... on GuildReadOnly {\n      ...PublicGuildHome_guild\n    }\n    ... on GuildLocked {\n      ...GuildLockedPage_guild\n    }\n  }\n}\n\nfragment MemberGuildHome_guild on Guild {\n  slug\n  name\n  slogan\n  gameVersion\n  avatarUrl\n  viewerNick\n  pageBackLabel\n  pageFooterDisclaimerText\n  homeTabTeamLabel\n  homeTabDexLabel\n  homeTabSectLabel\n  homeTabAnnouncementsLabel\n  homeTabScheduleLabel\n  homeTabMarketLabel\n  homeTabAlliesLabel\n  homeAdminLabel\n  homeInsightsRaceTitle\n  homeInsightsRaceEmptyText\n  homeInsightsRaceTeamLabel\n  homeInsightsRaceRunsLabel\n  homeInsightsRaceWinsLabel\n  homeInsightsRaceBestLabel\n  homeInsightsSelfGearTitle\n  homeInsightsGearScoreLabel\n  homeInsightsGearMinScoreLabel\n  raceSeasonBoard {\n    __typename\n    ... on RaceSeasonBoard {\n      seasons {\n        season\n        seasonLabel\n        entries {\n          teamName\n          members\n          runCount\n          winCount\n          bestTimeMs\n          bestTimeText\n        }\n      }\n    }\n    ... on GuildInsightsLocked {\n      premiumTitle\n    }\n  }\n  gearSelfStatus {\n    __typename\n    ... on GuildGearSelfStatus {\n      entries {\n        standardId\n        label\n        minScore\n        myScore\n        met\n        statusText\n      }\n    }\n    ... on GuildInsightsLocked {\n      premiumTitle\n    }\n  }\n  detailNotFoundText\n  detailBackToListLabel\n}\n\nfragment PublicGuildHome_guild on GuildReadOnly {\n  slug\n  name\n  slogan\n  gameVersion\n  avatarUrl\n  pageBackLabel\n  pageFooterDisclaimerText\n  homeTabTeamLabel\n  homeTabDexLabel\n  homeTabSectLabel\n  homeTabAnnouncementsLabel\n  homeReadOnlyBanner\n  homeInsightsRaceTitle\n  homeInsightsRaceEmptyText\n  homeInsightsRaceTeamLabel\n  homeInsightsRaceRunsLabel\n  homeInsightsRaceWinsLabel\n  homeInsightsRaceBestLabel\n  homeInsightsSelfGearTitle\n  homeInsightsGearScoreLabel\n  homeInsightsGearMinScoreLabel\n  raceSeasonBoard {\n    __typename\n    ... on RaceSeasonBoard {\n      seasons {\n        season\n        seasonLabel\n        entries {\n          teamName\n          members\n          runCount\n          winCount\n          bestTimeMs\n          bestTimeText\n        }\n      }\n    }\n    ... on GuildInsightsLocked {\n      premiumTitle\n    }\n  }\n  gearSelfStatus {\n    __typename\n    ... on GuildGearSelfStatus {\n      entries {\n        standardId\n        label\n        minScore\n        myScore\n        met\n        statusText\n      }\n    }\n    ... on GuildInsightsLocked {\n      premiumTitle\n    }\n  }\n  detailNotFoundText\n  detailBackToListLabel\n}\n"
+    "text": "query GuildRouteQuery(\n  $slug: String!\n) {\n  viewer {\n    user {\n      discordId\n      name\n      avatar\n    }\n    userBarLogoutLabel\n    userBarLoggingOutLabel\n    userBarSettingsLabel\n    commonLoadingGuildText\n    ...GuildRouteRoot_viewer_20J5Pl\n  }\n}\n\nfragment GuildRouteRoot_viewer_20J5Pl on Viewer {\n  guild(slug: $slug) {\n    ...MemberGuildHome_guild\n  }\n}\n\nfragment MemberGuildHome_guild on Guild {\n  slug\n  name\n  slogan\n  gameVersion\n  avatarUrl\n  viewerNick\n  pageBackLabel\n  pageFooterDisclaimerText\n  homeTabTeamLabel\n  homeTabDexLabel\n  homeTabSectLabel\n  homeTabAnnouncementsLabel\n  homeTabScheduleLabel\n  homeTabMarketLabel\n  homeTabAlliesLabel\n  homeAdminLabel\n  homeInsightsRaceTitle\n  homeInsightsRaceEmptyText\n  homeInsightsRaceTeamLabel\n  homeInsightsRaceRunsLabel\n  homeInsightsRaceWinsLabel\n  homeInsightsRaceBestLabel\n  homeInsightsSelfGearTitle\n  homeInsightsGearScoreLabel\n  homeInsightsGearMinScoreLabel\n  raceSeasonBoard {\n    __typename\n    ... on RaceSeasonBoard {\n      seasons {\n        season\n        seasonLabel\n        entries {\n          teamName\n          members\n          runCount\n          winCount\n          bestTimeMs\n          bestTimeText\n        }\n      }\n    }\n    ... on GuildInsightsLocked {\n      premiumTitle\n    }\n  }\n  gearSelfStatus {\n    __typename\n    ... on GuildGearSelfStatus {\n      entries {\n        standardId\n        label\n        minScore\n        myScore\n        met\n        statusText\n      }\n    }\n    ... on GuildInsightsLocked {\n      premiumTitle\n    }\n  }\n  detailNotFoundText\n  detailBackToListLabel\n}\n"
   }
 };
 })();

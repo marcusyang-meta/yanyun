@@ -43,7 +43,6 @@ const GroupingListQueryNode = graphql`
             weekdayNames
             undatedGroupLabel
             emptyInteractiveText
-            emptyReadonlyText
             statusOpenLabel
             peopleTemplate
             newCarLabel
@@ -148,91 +147,16 @@ const GroupingListQueryNode = graphql`
             }
           }
         }
-        ... on GuildReadOnly {
-          groupings(tab: $tab) {
-            currentVersion
-            tabActivityLabel
-            tabTalentLabel
-            tabRaceLabel
-            tabTowerLabel
-            typeShortActivity
-            typeShortTalent
-            typeShortRace
-            typeShortTower
-            typeShortGather
-            typeShortExplore
-            prevWeekLabel
-            nextWeekLabel
-            weekHeaderTemplate
-            dayGroupHeaderTemplate
-            weekdayNames
-            undatedGroupLabel
-            emptyInteractiveText
-            emptyReadonlyText
-            statusOpenLabel
-            peopleTemplate
-            newCarLabel
-            sealText
-            formCreateTitle
-            formEditTitle
-            formTypeLabel
-            formTypeActivityLabel
-            formTypeTalentLabel
-            formTypeRaceLabel
-            formTypeTowerLabel
-            formCapacityTemplate
-            formHintActivity
-            formHintDungeonTemplate
-            formHintTalent
-            formHintRace
-            formHintTower
-            formTitleLabel
-            formTitlePlaceholder
-            formStartsLabel
-            formMonthTemplate
-            formDayTemplate
-            formHourTemplate
-            formMinuteTemplate
-            formDungeonLabel
-            formDungeonNoneLabel
-            formNicknameLabel
-            formNicknamePlaceholder
-            formSectLabel
-            formCancelLabel
-            formSubmitCreateLabel
-            formSubmitEditLabel
-            formSubmittingLabel
-            formToastSect
-            formToastSaved
-            formToastSaveFailedTemplate
-            formToastPosted
-            formToastCreateFailedTemplate
-            formTitleTemplate
-            groupings {
-              id
-              title
-              type
-              startsAt
-              dungeon {
-                name
-              }
-              occupiedCount
-              maxSlots
-              status
-            }
-          }
-        }
       }
     }
   }
 `;
 
-function GroupingList({ queryRef, tab, onTabChange, onSelect, interactive = true }: {
+function GroupingList({ queryRef, tab, onTabChange, onSelect }: {
   queryRef: PreloadedQuery<GroupingListQueryType>;
   tab: TabKey;
   onTabChange: (t: TabKey) => void;
   onSelect: (id: string) => void;
-  interactive?: boolean;
 }) {
   const [weekOffset, setWeekOffset] = useState(0);
   const data = usePreloadedQuery<GroupingListQueryType>(GroupingListQueryNode, queryRef);
@@ -368,7 +292,7 @@ function GroupingList({ queryRef, tab, onTabChange, onSelect, interactive = true
       {/* Grouping list, grouped by day (group header = date + a thin gold rule, same theme as the cards) */}
       <div className="yy-stagger" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {!events.length && (
-          <div style={{ color: theme.muted, textAlign: 'center', padding: 32 }}>{interactive ? page.emptyInteractiveText : page.emptyReadonlyText}</div>
+          <div style={{ color: theme.muted, textAlign: 'center', padding: 32 }}>{page.emptyInteractiveText}</div>
         )}
         {sections.map((sec, si) => (
           <div key={sec.key} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -384,8 +308,7 @@ function GroupingList({ queryRef, tab, onTabChange, onSelect, interactive = true
   );
 }
 
-// interactive=false (GuildReadOnly branch): the create button and form are not rendered
-export function GroupingListRoute({ slug, interactive = true, defaultNickname }: { slug: string; interactive?: boolean; defaultNickname?: string }) {
+export function GroupingListRoute({ slug, defaultNickname }: { slug: string; defaultNickname?: string }) {
   const [tab, setTab] = useState<TabKey>('ACTIVITY');
   const [showForm, setShowForm] = useState(false);
   const navigate = useNavigate();
@@ -429,21 +352,18 @@ export function GroupingListRoute({ slug, interactive = true, defaultNickname }:
 
   return (
     <>
-      {interactive && (
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
         <button onClick={() => setShowForm(true)} className="yy-btn yy-btn-gold" style={{
           padding: '10px 24px', fontSize: 14,
         }}>{pageText.newCarLabel}</button>
       </div>
-      )}
       <GroupingList
         queryRef={queryRef}
         tab={tab}
         onTabChange={setTab}
         onSelect={(id) => navigate(`/${slug}/car/${id}`)}
-        interactive={interactive}
       />
-      {interactive && showForm && (
+      {showForm && (
         <GroupingForm
           slug={slug}
           mode="create"

@@ -34,7 +34,7 @@ export interface GuildHomeNode {
   avatarUrl?: string | null;
   // The current user's nickname in this guild's bound server (backend-sent; null when none/unbound)
   viewerNick?: string | null;
-  // Home shell copy (backend Guild/GuildReadOnly text fields). The back
+  // Home shell copy (backend Guild text fields). The back
   // label is the server-composed white-label chrome copy: it carries
   // the platform name only while this guild shows platform branding.
   pageBackLabel: string;
@@ -51,8 +51,7 @@ export interface GuildHomeNode {
   // node type so a stale fragment without it simply hides the tab.
   homeTabAnnouncementsLabel?: string | null;
   // Schedule tab label (F5/F13): only the member fragment carries it —
-  // availability and poll voting are member surfaces, so the tab is
-  // mounted only in the interactive branch.
+  // availability and poll voting are member surfaces.
   homeTabScheduleLabel?: string | null;
   // Market / allies tab labels (P19/P20): member fragment only, like
   // the schedule tab — both surfaces are member-only.
@@ -66,18 +65,14 @@ export interface GuildHomeNode {
   insights?: InsightsBoardNode | null;
 }
 
-// Guild home shell (shared by the member and public read-only variants):
-// header + tabs + direct-link expansion of a grouping detail. With
-// interactive=false no write entry is mounted at all (the create/signup/edit
-// component trees are never rendered).
-export default function GuildHome({ node, slug, carId, user, userBarText, interactive, banner }: {
+// Guild home shell (member variant): header + tabs + direct-link
+// expansion of a grouping detail.
+export default function GuildHome({ node, slug, carId, user, userBarText }: {
   node: GuildHomeNode;
   slug: string;
   carId?: string;
   user: ViewerUser;
   userBarText: UserBarText;
-  interactive: boolean;
-  banner?: string;
 }) {
   const TABS = [
     { key: 'team', label: node.homeTabTeamLabel },
@@ -86,13 +81,13 @@ export default function GuildHome({ node, slug, carId, user, userBarText, intera
     ...(node.homeTabAnnouncementsLabel
       ? [{ key: 'announcements', label: node.homeTabAnnouncementsLabel }]
       : []),
-    ...(interactive && node.homeTabScheduleLabel
+    ...(node.homeTabScheduleLabel
       ? [{ key: 'schedule', label: node.homeTabScheduleLabel }]
       : []),
-    ...(interactive && node.homeTabMarketLabel
+    ...(node.homeTabMarketLabel
       ? [{ key: 'market', label: node.homeTabMarketLabel }]
       : []),
-    ...(interactive && node.homeTabAlliesLabel
+    ...(node.homeTabAlliesLabel
       ? [{ key: 'allies', label: node.homeTabAlliesLabel }]
       : []),
     ...(node.insights
@@ -123,7 +118,7 @@ export default function GuildHome({ node, slug, carId, user, userBarText, intera
                   {node.pageBackLabel}
                 </Link>
               )}
-              {interactive && node.homeAdminLabel && (
+              {node.homeAdminLabel && (
                 <Link to={`/${slug}/admin`} style={{ color: theme.gold, fontSize: 13, textDecoration: 'none', letterSpacing: '.1em' }}>
                   {node.homeAdminLabel}
                 </Link>
@@ -149,12 +144,6 @@ export default function GuildHome({ node, slug, carId, user, userBarText, intera
               <p style={{ color: theme.muted, fontSize: 13, letterSpacing: '.06em', margin: 0 }}>{node.gameVersion}</p>
             </div>
           </div>
-          {banner && (
-            <div style={{
-              marginTop: 12, padding: '9px 14px', borderRadius: 8, fontSize: 13,
-              color: '#ecd28f', background: 'rgba(201,163,92,.08)', border: '1px solid rgba(201,163,92,.25)',
-            }}>{banner}</div>
-          )}
         </header>
 
         {/* Shareable grouping-detail deep link /:slug/car/:id: expand that grouping's detail directly */}
@@ -165,7 +154,6 @@ export default function GuildHome({ node, slug, carId, user, userBarText, intera
                 slug={slug}
                 groupingId={carId}
                 onBack={() => navigate(`/${slug}`)}
-                interactive={interactive}
                 defaultNickname={defaultNickname}
                 goneText={node.detailNotFoundText}
                 backText={node.detailBackToListLabel}
@@ -188,7 +176,7 @@ export default function GuildHome({ node, slug, carId, user, userBarText, intera
 
             <div key={activeTab} className="yy-tabpanel" style={{ paddingBottom: 40 }}>
               <Suspense fallback={<TabFallback />}>
-                {activeTab === 'team' && <GroupingListRoute slug={slug} interactive={interactive} defaultNickname={defaultNickname} />}
+                {activeTab === 'team' && <GroupingListRoute slug={slug} defaultNickname={defaultNickname} />}
                 {activeTab === 'dex' && <BossDexRoute />}
                 {activeTab === 'sect' && <SectDetailRoute />}
                 {activeTab === 'announcements' && <GuildAnnouncementsRoute slug={slug} />}
