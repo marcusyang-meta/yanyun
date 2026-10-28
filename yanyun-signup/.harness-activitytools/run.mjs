@@ -1,28 +1,16 @@
-// Activity tools acceptance (F8 calendar subscription + F21 lottery):
-//  - iCal builder (pure): VCALENDAR structure, UTC DTSTART/DTEND/
-//    DTSTAMP, TEXT escaping, 75-octet folding, timeless rows excluded
-//    by the row adapter;
+// Activity lottery acceptance (F21):
 //  - draw (pure): weighted picks are deterministic under an injected
 //    rand, and nobody wins twice — checked over repeated full draws;
-//  - GraphQL admin surface: the tools live only on GuildAdmin (Locked
-//    for member / other guild's admin / anonymous); the feed URL is
-//    lazily minted once and stable; reset revokes the old token in
-//    place; lottery creation freezes the list from either source
-//    (a car's seated participants, deduped by Discord id, or
-//    hand-picked roster members), validation codes are stable, the
-//    draw persists distinct winners + the drawn state, a second draw
-//    is refused, and guild B never sees guild A's lotteries;
-//  - route: GET /cal/:token serves text/calendar with the guild's
-//    timed groupings (draft / timeless / other-guild rows excluded),
-//    unknown + malformed tokens 404, and a reset token 404s while the
-//    new one serves.
+//  - GraphQL admin surface: the tool lives only on GuildAdmin (Locked
+//    for member / other guild's admin / anonymous); lottery creation
+//    freezes the list from either source (a car's seated participants,
+//    deduped by Discord id, or hand-picked roster members),
+//    validation codes are stable, the draw persists distinct winners
+//    + the drawn state, a second draw is refused, and guild B never
+//    sees guild A's lotteries.
 // Real yoga + real resolvers + FakeDB routed by SQL shape (templates
-// pattern); the /cal route goes through the real worker fetch.
+// pattern).
 import { yoga } from '../src/graphql.ts';
-import {
-  buildCalendarIcs, icalUtc, icalEscape, icalFold, calendarEventInput,
-  CALENDAR_TOKEN_RE,
-} from '../src/domains/groupings/calendarfeeds.ts';
 import { drawWinners } from '../src/domains/groupings/lotteries.ts';
 
 let pass = 0, fail = 0; const fails = [];
@@ -53,43 +41,6 @@ function toRawRows(sqlText, rows) {
     ? cols.map((c) => (r[c] === undefined ? null : r[c]))
     : Object.values(r)));
 }
-
-/* ================= pure units: iCal ================= */
-eq('icalUtc epoch', icalUtc(0), '19700101T000000Z');
-eq('icalUtc 2026-01-02 03:04:05 UTC', icalUtc(Date.UTC(2026, 0, 2, 3, 4, 5) / 1000), '20260102T030405Z');
-eq('icalEscape escapes , ; \\ and newline', icalEscape('a,b;c\\d\ne'), 'a\\,b\\;c\\\\d\\ne');
-{
-  const long = '标题'.repeat(40) + 'x'.repeat(60);
-  const folded = icalFold('SUMMARY:' + long);
-  const enc = new TextEncoder();
-  check('folded lines stay within 75 octets', folded.split('\r\n').every((l) => enc.encode(l).length <= 75));
-  eq('folding is lossless', folded.replace(/\r\n /g, ''), 'SUMMARY:' + long);
-}
-{
-  const start = Date.UTC(2026, 9, 30, 12, 0, 0) / 1000;
-  const ics = buildCalendarIcs({
-    guildName: '活动测试百业',
-    tenant: 'acttest',
-    stampSec: Date.UTC(2026, 9, 1, 0, 0, 0) / 1000,
-    events: [{
-      id: 501, title: '万圣节,狂欢;夜', description: '带好药', meet_info: '语音频道 2',
-      dungeon: '', starts_at_utc: start,
-    }],
-  });
-  check('ics opens a VCALENDAR', ics.startsWith('BEGIN:VCALENDAR\r\n'));
-  check('ics carries VERSION 2.0', ics.includes('\r\nVERSION:2.0\r\n'));
-  check('ics calendar name', ics.includes('\r\nX-WR-CALNAME:活动测试百业\r\n'));
-  check('ics UID is the grouping uid', ics.includes('\r\nUID:grouping-501@yanyun.app\r\n'));
-  check('ics DTSTAMP from the injected stamp', ics.includes('\r\nDTSTAMP:20261001T000000Z\r\n'));
-  check('ics DTSTART in UTC', ics.includes('\r\nDTSTART:20261030T120000Z\r\n'));
-  check('ics DTEND = start + 1h', ics.includes('\r\nDTEND:20261030T130000Z\r\n'));
-  check('ics SUMMARY escapes , and ;', ics.includes('\r\nSUMMARY:万圣节\\,狂欢\\;夜\r\n'));
-  check('ics LOCATION from meet_info', ics.includes('\r\nLOCATION:语音频道 2\r\n'));
-  check('ics DESCRIPTION carries the canonical car URL', ics.includes('https://yanyun.app/acttest/car/501'));
-  check('ics closes VEVENT + VCALENDAR', ics.endsWith('END:VEVENT\r\nEND:VCALENDAR\r\n'));
-  check('ics line endings are CRLF only', !/[^\r]\n/.test(ics));
-}
-eq('timeless row is excluded by the adapter', calendarEventInput({ id: 1, title: 'x', description: '', meet_info: '', dungeon: '', starts_at_utc: null }), null);
 
 /* ================= pure units: the draw ================= */
 {
@@ -129,20 +80,18 @@ function makeDb(fx = {}) {
     events: (fx.events || []).map((e) => ({ ...e })),
     signups: (fx.signups || []).map((x) => ({ ...x })),
     guildMembers: (fx.guildMembers || []).map((m) => ({ ...m })),
-    feeds: [],
     lotteries: [],
     entries: [],
     winners: [],
   };
   let nextId = 9000;
   const tableOf = {
-    calendar_feeds: tables.feeds, lotteries: tables.lotteries,
     lottery_entries: tables.entries, lottery_winners: tables.winners,
     events: tables.events, signups: tables.signups, guild_members: tables.guildMembers,
   };
   function norm(sql) {
     return sql.replace(/"/g, '')
-      .replace(/\b(tenants|settings|users|events|signups|guild_members|calendar_feeds|lotteries|lottery_entries|lottery_winners)\./g, '')
+      .replace(/\b(tenants|settings|users|events|signups|guild_members|lotteries|lottery_entries|lottery_winners)\./g, '')
       .replace(/\s+/g, ' ');
   }
   function parseCols(list) { return list.split(',').map((c) => c.trim().split('.').pop()); }
@@ -158,12 +107,6 @@ function makeDb(fx = {}) {
       if (/ON CONFLICT/i.test(sql) && table === 'settings') {
         tables.settings.set(`${row.tenant}|${row.key}`, row.value);
         return { meta: { changes: 1 } };
-      }
-      if (table === 'calendar_feeds') {
-        if (tables.feeds.some((f) => f.token === row.token)) throw new Error('UNIQUE constraint failed: calendar_feeds.token');
-        if (tables.feeds.some((f) => f.tenant === row.tenant)) throw new Error('UNIQUE constraint failed: calendar_feeds.tenant');
-        tables.feeds.push(row);
-        return { meta: { changes: 1, last_row_id: 0 } };
       }
       if (table === 'lottery_entries' && tables.entries.some((e) => e.lottery_id === row.lottery_id && e.discord_id === row.discord_id)) {
         throw new Error('UNIQUE constraint failed: lottery_entries_member_unique');
@@ -193,10 +136,7 @@ function makeDb(fx = {}) {
       }
       const wb = b.slice(bi);
       let rows = [];
-      if (table === 'calendar_feeds') {
-        if (tables.feeds.some((f) => f.tenant !== wb[0] && f.token === sets.token)) throw new Error('UNIQUE constraint failed: calendar_feeds.token');
-        rows = tables.feeds.filter((f) => f.tenant === wb[0]);
-      } else if (table === 'lotteries') rows = tables.lotteries.filter((l) => l.id === Number(wb[0]));
+if (table === 'lotteries') rows = tables.lotteries.filter((l) => l.id === Number(wb[0]));
       for (const r of rows) Object.assign(r, sets);
       return { meta: { changes: rows.length } };
     }
@@ -215,12 +155,6 @@ function makeDb(fx = {}) {
     }
     if (/FROM users/i.test(sql)) return first(null);
     if (/FROM user_guild_nicks/i.test(sql)) return kind === 'first' ? null : all([]);
-    if (/FROM calendar_feeds WHERE tenant = \?/i.test(sql)) return first(tables.feeds.find((f) => f.tenant === b[0]));
-    if (/FROM calendar_feeds WHERE token = \?/i.test(sql)) return first(tables.feeds.find((f) => f.token === b[0]));
-    if (/FROM events WHERE tenant = \? AND status != 'draft'/i.test(sql)) {
-      return all(tables.events.filter((e) => e.tenant === b[0] && e.status !== 'draft' && e.starts_at_utc != null)
-        .sort((x, y) => x.starts_at_utc - y.starts_at_utc || x.id - y.id));
-    }
     if (/SELECT \* FROM events WHERE id = \? AND tenant = \?/i.test(sql)) {
       return first(tables.events.find((e) => e.id === Number(b[0]) && e.tenant === b[1]));
     }
@@ -321,7 +255,7 @@ async function gql(query, { user = null, variables } = {}) {
 
 /* ================= admin surface gates ================= */
 const toolsQ = `{ viewer { guildAdmin(slug: "acttest") { __typename
-  ... on GuildAdmin { slug adminTabToolsLabel calendarFeedUrl
+  ... on GuildAdmin { slug adminTabToolsLabel
     lotteries { id title prize source sourceEventId sourceEventTitle winnerCount status entryCountText createdAtText drawnAtText
       entries { discordId displayName weight } winners { discordId displayName weight } }
     lotteryRoster { discordId displayName } }
@@ -333,43 +267,14 @@ r = await gql(toolsQ, { user: MEMBER });
 eq('普通成员 -> GuildAdminLocked', r.data?.viewer?.guildAdmin?.__typename, 'GuildAdminLocked');
 r = await gql(toolsQ, { user: ADMIN_B });
 eq('乙业管理员看甲业 -> GuildAdminLocked (不串权)', r.data?.viewer?.guildAdmin?.__typename, 'GuildAdminLocked');
-eq('Locked 路径不铸订阅链', tables.feeds.length, 0);
 
 r = await gql(toolsQ, { user: ADMIN });
 const ga = r.data?.viewer?.guildAdmin;
 eq('管理员 -> GuildAdmin', ga?.__typename, 'GuildAdmin');
 eq('tools 页签文案由后端下发', ga?.adminTabToolsLabel, '活动工具');
-check('订阅链首次读取懒铸', typeof ga?.calendarFeedUrl === 'string' && ga.calendarFeedUrl.startsWith('http://local/cal/'), ga?.calendarFeedUrl);
-const token1 = (ga?.calendarFeedUrl || '').split('/cal/')[1] || '';
-check('token 形态 = 32 位 base62', CALENDAR_TOKEN_RE.test(token1), token1);
-eq('懒铸只铸一行', tables.feeds.length, 1);
 eq('名册候选 = 本百业成员', (ga?.lotteryRoster || []).map((m) => m.discordId), ['M1', 'M2', 'M3']);
 eq('名册名回退全局名', ga?.lotteryRoster?.[2]?.displayName, '丙全名');
 eq('初始无抽奖', ga?.lotteries, []);
-r = await gql(toolsQ, { user: ADMIN });
-eq('再次读取订阅链不变', r.data?.viewer?.guildAdmin?.calendarFeedUrl, ga?.calendarFeedUrl);
-eq('再次读取不新增行', tables.feeds.length, 1);
-
-/* ================= the /cal route ================= */
-const worker = (await import('../src/worker.ts')).default;
-const wctx = { waitUntil() {} };
-const call = (path) => worker.fetch(new Request('http://local' + path), env, wctx);
-
-let res = await call(`/cal/${token1}`);
-eq('订阅链命中 -> 200', res.status, 200);
-check('Content-Type = text/calendar', (res.headers.get('content-type') || '').startsWith('text/calendar'), res.headers.get('content-type'));
-const ics = await res.text();
-check('iCal 含定时车', ics.includes('SUMMARY:万圣节活动车'));
-check('iCal DTSTART 为 UTC', ics.includes('DTSTART:20261030T120000Z'));
-check('iCal 含百业名', ics.includes('X-WR-CALNAME:活动测试百业'));
-check('iCal 不含未定时间车', !ics.includes('未定时间车'));
-check('iCal 不含草稿车', !ics.includes('草稿车'));
-check('iCal 不含乙业的车', !ics.includes('乙业的车'));
-res = await call('/cal/' + 'Z'.repeat(32));
-eq('未知 token -> 404', res.status, 404); await res.text();
-res = await call('/cal/abc');
-eq('畸形 token -> 404', res.status, 404); await res.text();
-
 /* ================= lottery: members source ================= */
 const createMut = `mutation($slug: String!, $input: CreateLotteryInput!) { createLottery(slug: $slug, input: $input) { ok error errorCode id } }`;
 r = await gql(createMut, { user: MEMBER, variables: { slug: 'acttest', input: { title: 'x', source: 'MEMBERS', winnerCount: 1, entries: [{ discordId: 'M1', weight: 1 }] } } });
@@ -450,25 +355,6 @@ eq('重复开奖不新增中奖行', tables.winners.filter((w) => w.lottery_id =
 const toolsQB = toolsQ.replaceAll('acttest', 'othertest');
 r = await gql(toolsQB, { user: ADMIN_B });
 eq('乙业面只见乙业抽奖 (空)', r.data?.viewer?.guildAdmin?.lotteries, []);
-
-/* ================= feed reset (revocation) ================= */
-const resetMut = `mutation($slug: String!) { resetCalendarFeed(slug: $slug) { ok error errorCode } }`;
-r = await gql(resetMut, { user: MEMBER, variables: { slug: 'acttest' } });
-eq('成员重置订阅链被拒 (adminOnly)', r.data?.resetCalendarFeed?.errorCode, 'adminOnly');
-res = await call(`/cal/${token1}`);
-eq('被拒后旧链仍可用', res.status, 200); await res.text();
-r = await gql(resetMut, { user: ADMIN, variables: { slug: 'acttest' } });
-eq('管理员重置 ok', r.data?.resetCalendarFeed?.ok, true);
-eq('重置不新增行 (原地换 token)', tables.feeds.filter((f) => f.tenant === 'acttest').length, 1);
-res = await call(`/cal/${token1}`);
-eq('重置后旧链 404 (吊销)', res.status, 404); await res.text();
-r = await gql(toolsQ, { user: ADMIN });
-const token2 = (r.data?.viewer?.guildAdmin?.calendarFeedUrl || '').split('/cal/')[1] || '';
-check('重置后下发新 token', CALENDAR_TOKEN_RE.test(token2) && token2 !== token1, token2);
-res = await call(`/cal/${token2}`);
-eq('新链可用', res.status, 200);
-const ics2 = await res.text();
-check('新链内容仍含定时车', ics2.includes('SUMMARY:万圣节活动车'));
 
 console.log(`\n== activitytools harness: ${pass} passed, ${fail} failed ==`);
 if (fails.length) { console.log('FAILS:\n' + fails.map((f) => ' - ' + f).join('\n')); process.exit(1); }
