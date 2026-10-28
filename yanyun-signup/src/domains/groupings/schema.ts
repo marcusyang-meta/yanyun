@@ -282,3 +282,19 @@ export const results = sqliteTable('results', {
 }, (t) => [
   index('idx_results_event').on(t.eventId, t.timeMs),
 ]);
+
+/* ---------------- rotation_advice_records [migration 0027] --------
+ * P5 留痕: a saved snapshot of one rotation-advice ranking for one
+ * grouping — who saved it, when, and the exact ranked entries with
+ * their factor values. Append-only: fairness disputes are settled
+ * against these rows, so nothing updates or deletes them. */
+export const rotationAdviceRecords = sqliteTable('rotation_advice_records', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  tenant: text('tenant').notNull().default(''),
+  eventId: integer('event_id').notNull().references(() => events.id, { onDelete: 'cascade' }),
+  adviceJson: text('advice_json').notNull().default('[]'),
+  createdBy: text('created_by').notNull().default(''),
+  createdAt: integer('created_at').notNull().default(0),
+}, (t) => [
+  index('idx_rotation_advice_records_event').on(t.tenant, t.eventId, t.id),
+]);
