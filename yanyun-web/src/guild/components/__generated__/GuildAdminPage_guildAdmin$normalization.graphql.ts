@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<86072d68a5cb6b31ec00b09fe9190568>>
+ * @generated SignedSource<<e836867151e40073b847447d9a930fd2>>
  * @lightSyntaxTransform
  */
 
@@ -958,6 +958,27 @@ return {
       "args": null,
       "kind": "ScalarField",
       "name": "adminRecruitNewcomersEmptyText",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminRecruitOpenLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminRecruitOpenHint",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "recruitOpen",
       "storageKey": null
     },
     {
@@ -2416,6 +2437,6 @@ return {
 };
 })();
 
-(node as any).hash = "9b54b207af8efc445e9364b4320c200b";
+(node as any).hash = "bba3e4d010fa53441227a7ccdffed0db";
 
 export default node;

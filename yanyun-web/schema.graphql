@@ -1542,6 +1542,7 @@ type Mutation {
   previewRosterImport(slug: String!, lines: [String!]!, imageCount: Int!): RosterImportPayload!
   confirmRosterImport(slug: String!, batchId: ID!, rowIds: [ID!]!): RosterImportPayload!
   deleteGuildRosterEntry(slug: String!, entryId: ID!): GuildAdminPayload!
+  updateGuildRecruitOpen(slug: String!, open: Boolean!): GuildAdminPayload!
   reviewGuildApplication(slug: String!, applicationId: ID!, approve: Boolean!): GuildAdminPayload!
   setGuildMentor(slug: String!, discordId: String!, isMentor: Boolean!): GuildAdminPayload!
   createMentorPairing(slug: String!, mentorDiscordId: String!, menteeDiscordId: String!): GuildAdminPayload!
@@ -2082,6 +2083,7 @@ type GuildAdmin {
   lotteryRoster: [GuildAdminLotteryMember!]!
   seasonChecklist: GuildSeasonChecklist!
   roster: GuildRoster!
+  recruitOpen: Boolean!
   recruitApplications: [RecruitApplication!]!
   recruitPairings: [MentorPairing!]!
   recruitRoster: [RecruitMember!]!
@@ -2224,6 +2226,8 @@ type GuildAdmin {
   adminRecruitMenteeSelectLabel: String!
   adminRecruitNewcomersTitle: String!
   adminRecruitNewcomersEmptyText: String!
+  adminRecruitOpenLabel: String!
+  adminRecruitOpenHint: String!
   adminRecruitProfileLabel: String!
   adminRecruitMentorLabel: String!
   adminRecruitFirstRunLabel: String!
