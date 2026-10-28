@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { graphql, useLazyLoadQuery, useMutation, useRelayEnvironment } from 'react-relay';
 import { fetchQuery } from 'relay-runtime';
@@ -6,14 +6,28 @@ import { theme } from '../lib/format';
 import { writePrefMirror, emitLocaleChanged } from '../lib/locale';
 import { useIsMobile } from '../lib/useIsMobile';
 import type { ViewerUser } from '../lib/user';
+import GearLibrary from '../guild/components/GearLibrary.react.tsx';
+import { ToastHost } from '../guild/components/Toast.react.tsx';
 
-// Profile surface (renamed/reworked from the old "Settings"): a modal dialog
-// on desktop (portal to body, reusing the .yy-modal-* system); at mobile
-// widths (<=640px) it becomes a full-screen push page. Contents = Discord
-// identity + language preference (stored server-side in users.locale_pref)
-// + one entry row to the gear library. The library is its own dialog page
-// (GearDialog): this dialog closes first and UserBar opens GearDialog as a
-// top-level sibling — never a dialog stacked on top of this dialog.
+// Profile surface (renamed/reworked from the old "Settings"): ONE dialog
+// host — a modal dialog on desktop (portal to body, reusing the
+// .yy-modal-* system); at mobile widths (<=640px) a full-screen push page.
+//
+// Host model (marcus, 2026-10-27): the DIALOG is the container — it owns
+// presentation, scrim, closing and layering, and there is exactly one of
+// it per session. Inside it, content lives on dialog PAGES, each with its
+// own title, content and scroll position, navigated as a stack (push to
+// open, pop to go back). A page never spawns another dialog, and moving
+// between pages never closes or replaces this one:
+//   - root page: Discord identity + language preference (stored
+//     server-side in users.locale_pref) + the My Data account section;
+//   - feedback page, pushed by the feedback entry row;
+//   - gear library page, pushed by the gear entry row: the complete
+//     GearLibrary in profile mode. The panel widens for this page
+//     (.yy-modal-panel.is-wide) inside the same shell.
+// Closing the dialog (scrim click / ✕ / the root page's mobile chevron)
+// ends the session from any page; the page stack lives in this
+// component's state, so the next open starts at the root page again.
 // All copy comes from settingsPage / gradPage gen fields.
 //
 // Selection state: the control's selected value = local pick override ??
@@ -143,14 +157,14 @@ const SettingsFeedbackMutationNode = graphql`
 
 export type AccountFlow = 'export' | 'delete';
 
-export default function SettingsDialog({ open, onClose, user, initialFlow, onOpenGear }: {
+// The pages of this dialog host (see the file header): the root settings
+// page plus the pages pushed over it inside the same dialog.
+type DialogPage = 'main' | 'feedback' | 'gear';
+
+export default function SettingsDialog({ open, onClose, user, initialFlow }: {
   open: boolean;
   onClose: () => void;
   user?: ViewerUser | null;
-  // Opens the gear library dialog page. UserBar owns that dialog's state;
-  // the entry row below calls onClose() first, so GearDialog replaces this
-  // dialog at the top level instead of stacking on it.
-  onOpenGear: () => void;
   // Set when the dialog auto-opens after a fresh-OAuth round trip that
   // started here (the returnTo carries ?accountflow=export|delete and
   // UserBar forwards it): export resumes immediately, delete lands on
@@ -160,7 +174,7 @@ export default function SettingsDialog({ open, onClose, user, initialFlow, onOpe
   if (!open) return null;
   return (
     <Suspense fallback={<SettingsShellFallback onClose={onClose} />}>
-      <SettingsDialogInner onClose={onClose} user={user ?? null} initialFlow={initialFlow ?? null} onOpenGear={onOpenGear} />
+      <SettingsDialogInner onClose={onClose} user={user ?? null} initialFlow={initialFlow ?? null} />
     </Suspense>
   );
 }
@@ -185,11 +199,10 @@ function SettingsShellFallback({ onClose }: { onClose: () => void }) {
   );
 }
 
-function SettingsDialogInner({ onClose, user, initialFlow, onOpenGear }: {
+function SettingsDialogInner({ onClose, user, initialFlow }: {
   onClose: () => void;
   user: ViewerUser | null;
   initialFlow: AccountFlow | null;
-  onOpenGear: () => void;
 }) {
   const data = useLazyLoadQuery<any>(SettingsDialogQueryNode, {});
   const viewer: any = data.viewer ?? {};
@@ -203,17 +216,38 @@ function SettingsDialogInner({ onClose, user, initialFlow, onOpenGear }: {
   const [picked, setPicked] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [saved, setSaved] = useState(false);
-  // Feedback sub-view (profile's second zone): category + free text,
-  // submitted through submitFeedback; the server validates, caps and
-  // stores it, and its localized error comes back on the payload.
-  const [view, setView] = useState<'main' | 'feedback'>('main');
+  // Dialog page stack (host model, see the file header): pages push and
+  // pop inside this one dialog; 'main' is the root page. Opening a page
+  // never closes or replaces the dialog, and the stack dies with the
+  // dialog — the next open starts at the root page.
+  const [pageStack, setPageStack] = useState<DialogPage[]>(['main']);
+  const view: DialogPage = pageStack[pageStack.length - 1];
+  const pushPage = (p: DialogPage) => setPageStack((s) => [...s, p]);
+  const popPage = () => setPageStack((s) => (s.length > 1 ? s.slice(0, -1) : s));
+  // Each page keeps its own scroll position: both host forms share one
+  // scroll container across pages (the desktop panel / the mobile push
+  // page), so positions are noted on scroll and restored when a page
+  // becomes visible again; a freshly pushed page starts at the top.
+  const hostRef = useRef<HTMLDivElement | null>(null);
+  const pageScroll = useRef<Partial<Record<DialogPage, number>>>({});
+  const noteScroll = () => {
+    const el = hostRef.current;
+    if (el) pageScroll.current[view] = el.scrollTop;
+  };
+  useLayoutEffect(() => {
+    const el = hostRef.current;
+    if (el) el.scrollTop = pageScroll.current[view] ?? 0;
+  }, [view]);
+  // Feedback page: category + free text, submitted through submitFeedback;
+  // the server validates, caps and stores it, and its localized error
+  // comes back on the payload.
   const [commitFeedback, fbInFlight] = useMutation<any>(SettingsFeedbackMutationNode);
   const [fbCategory, setFbCategory] = useState<'PROBLEM' | 'SUGGESTION' | 'OTHER'>('PROBLEM');
   const [fbText, setFbText] = useState('');
   const [fbError, setFbError] = useState('');
   const [fbDone, setFbDone] = useState(false);
 
-  const openFeedback = () => { setFbDone(false); setFbError(''); setView('feedback'); };
+  const openFeedback = () => { setFbDone(false); setFbError(''); pushPage('feedback'); };
   const submitFeedback = () => {
     if (fbInFlight) return;
     setFbError('');
@@ -432,7 +466,7 @@ function SettingsDialogInner({ onClose, user, initialFlow, onOpenGear }: {
       <div style={{ borderTop: '1px solid rgba(201,163,92,.22)', marginTop: 24, paddingTop: 18 }}>
         <button
           data-gear-entry
-          onClick={() => { onClose(); onOpenGear(); }}
+          onClick={() => pushPage('gear')}
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             width: '100%', textAlign: 'left', padding: '11px 16px', borderRadius: 10, cursor: 'pointer',
@@ -591,7 +625,7 @@ function SettingsDialogInner({ onClose, user, initialFlow, onOpenGear }: {
       {!isMobile && (
         <div
           data-feedback-back
-          onClick={() => setView('main')}
+          onClick={popPage}
           style={{ color: theme.gold, fontSize: 24, lineHeight: 1, cursor: 'pointer', padding: '0 8px 10px 0', width: 32 }}
         >‹</div>
       )}
@@ -652,13 +686,38 @@ function SettingsDialogInner({ onClose, user, initialFlow, onOpenGear }: {
     </>
   );
 
-  const body = view === 'feedback' ? feedbackBody : mainBody;
-  const headerTitle = view === 'feedback' ? page.feedbackTitle : page.settingsTitle;
-  const headerBack = view === 'feedback' ? () => setView('main') : onClose;
+  // Gear library page: the complete GearLibrary in profile mode — the
+  // same implementation the gear bench embeds, no second implementation.
+  // Its toasts render inside this dialog, on this page.
+  const gearBody = (
+    <>
+      {/* Desktop gets an in-body back row (same as the feedback page);
+          the mobile push page's header chevron pops back instead. */}
+      {!isMobile && (
+        <div
+          data-gear-back
+          onClick={popPage}
+          style={{ color: theme.gold, fontSize: 24, lineHeight: 1, cursor: 'pointer', padding: '0 8px 10px 0', width: 32 }}
+        >‹</div>
+      )}
+      <Suspense fallback={<div className="yy-skeleton" style={{ height: 300 }} />}>
+        <GearLibrary mode="profile" />
+      </Suspense>
+      <ToastHost />
+    </>
+  );
+
+  const body = view === 'feedback' ? feedbackBody : view === 'gear' ? gearBody : mainBody;
+  const headerTitle = view === 'feedback'
+    ? page.feedbackTitle
+    : view === 'gear' ? data.gradPage?.gearMyLibTitle : page.settingsTitle;
+  // The mobile header chevron pops one page; on the root page it closes
+  // the dialog. (Desktop closes via the ✕ / scrim from any page.)
+  const headerBack = view === 'main' ? onClose : popPage;
 
   if (isMobile) {
     return createPortal(
-      <div className="yy-push-page">
+      <div className="yy-push-page" ref={hostRef} onScroll={noteScroll}>
         <div className="yy-push-header">
           <span onClick={headerBack} style={{ fontSize: 24, color: theme.gold, cursor: 'pointer', padding: '0 8px 0 0', lineHeight: 1 }}>‹</span>
           <span style={{
@@ -674,7 +733,12 @@ function SettingsDialogInner({ onClose, user, initialFlow, onOpenGear }: {
 
   return createPortal(
     <div className="yy-modal-overlay" onClick={onClose}>
-      <div className="yy-modal-panel" onClick={(e) => e.stopPropagation()}>
+      <div
+        className={view === 'gear' ? 'yy-modal-panel is-wide' : 'yy-modal-panel'}
+        onClick={(e) => e.stopPropagation()}
+        ref={hostRef}
+        onScroll={noteScroll}
+      >
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
           <div style={{
             flex: 1, fontFamily: "'Ma Shan Zheng', 'Noto Serif SC', serif",

@@ -141,7 +141,12 @@ body {
   position: relative; width: 100%; max-width: 520px; max-height: 85vh; overflow-y: auto;
   background: #14120e; border: 1px solid rgba(201, 163, 92, .4); border-top: 2px solid #c9a35c;
   border-radius: 16px; padding: 20px 20px 32px; box-sizing: border-box;
+  transition: max-width .3s ease;
 }
+/* A dialog PAGE may widen the one shared panel (settings host: the gear
+ * library page needs the old /gear page's content width). The shell never
+ * remounts between pages — only the width animates. */
+.yy-modal-panel.is-wide { max-width: 920px; }
 @media (max-width: 640px) {
   .yy-modal-overlay { align-items: flex-end; padding: 0; }
   .yy-modal-panel { border-radius: 20px 20px 0 0; border-bottom: none; }

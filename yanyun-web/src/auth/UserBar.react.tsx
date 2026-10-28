@@ -3,7 +3,6 @@ import { theme } from '../lib/format';
 import type { ViewerUser } from '../lib/user';
 import SettingsDialog from './SettingsDialog.react.tsx';
 import type { AccountFlow } from './SettingsDialog.react.tsx';
-import GearDialog from './GearDialog.react.tsx';
 
 export interface UserBarText {
   logoutLabel: string;
@@ -16,7 +15,6 @@ export interface UserBarText {
 export default function UserBar({ user, text }: { user: ViewerUser; text: UserBarText }) {
   const [leaving, setLeaving] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [gearOpen, setGearOpen] = useState(false);
   const [accountFlow, setAccountFlow] = useState<AccountFlow | null>(null);
   // Return landing from a fresh-OAuth round trip started in the Profile
   // dialog's My Data section: the returnTo carried ?accountflow=… —
@@ -62,19 +60,14 @@ export default function UserBar({ user, text }: { user: ViewerUser; text: UserBa
           borderRadius: 8, padding: '5px 12px', fontSize: 12.5, cursor: 'pointer',
         }}
       >{text.settingsLabel}</button>
+      {/* The settings dialog is a dialog HOST: the gear library is one of
+          its internal pages (pushed/popped inside it), so UserBar owns
+          just this one dialog's open state — no sibling dialogs here. */}
       <SettingsDialog
         open={settingsOpen}
         onClose={() => { setSettingsOpen(false); setAccountFlow(null); }}
         user={user}
         initialFlow={accountFlow}
-        onOpenGear={() => setGearOpen(true)}
-      />
-      {/* Gear library dialog page: a top-level sibling of the Profile
-          dialog (both portal to body). Profile's gear entry closes
-          Profile before this opens, so the two never stack. */}
-      <GearDialog
-        open={gearOpen}
-        onClose={() => setGearOpen(false)}
       />
       <button
         onClick={logout}
