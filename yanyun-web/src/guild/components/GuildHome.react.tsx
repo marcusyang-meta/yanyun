@@ -7,6 +7,7 @@ import { GuildAnnouncementsRoute } from './GuildAnnouncements.react.tsx';
 import { GuildScheduleRoute } from './GuildSchedule.react.tsx';
 import { GuildMarketRoute } from './GuildMarket.react.tsx';
 import { GuildAlliesRoute } from './GuildAllies.react.tsx';
+import GuildInsightsBoard, { type InsightsBoardNode } from './GuildInsightsBoard.react.tsx';
 import { BossDexRoute } from './BossDex.react.tsx';
 import { SectDetailRoute } from './SectDetail.react.tsx';
 import { ToastHost } from './Toast.react.tsx';
@@ -59,6 +60,10 @@ export interface GuildHomeNode {
   homeTabAlliesLabel?: string | null;
   detailNotFoundText: string;
   detailBackToListLabel: string;
+  // Premium insights board (P15 + own P9 status): the tab exists
+  // only when the backend composed the full board variant for this
+  // guild — locked guilds carry the Locked variant and no tab.
+  insights?: InsightsBoardNode | null;
 }
 
 // Guild home shell (shared by the member and public read-only variants):
@@ -89,6 +94,9 @@ export default function GuildHome({ node, slug, carId, user, userBarText, intera
       : []),
     ...(interactive && node.homeTabAlliesLabel
       ? [{ key: 'allies', label: node.homeTabAlliesLabel }]
+      : []),
+    ...(node.insights
+      ? [{ key: 'insights', label: node.insights.homeInsightsRaceTitle }]
       : []),
   ] as const;
   const [activeTab, setActiveTab] = useState<string>('team');
@@ -187,6 +195,7 @@ export default function GuildHome({ node, slug, carId, user, userBarText, intera
                 {activeTab === 'schedule' && <GuildScheduleRoute slug={slug} defaultNickname={defaultNickname} />}
                 {activeTab === 'market' && <GuildMarketRoute slug={slug} />}
                 {activeTab === 'allies' && <GuildAlliesRoute slug={slug} />}
+                {activeTab === 'insights' && node.insights && <GuildInsightsBoard node={node.insights} />}
               </Suspense>
             </div>
           </>
