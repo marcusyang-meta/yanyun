@@ -17,6 +17,7 @@ import {
   adminDeleteEvent, adminDeleteResult, adminRemoveSignup,
   adminSetAvatar, adminUpdateDiscord, adminUpdateEvent, adminUpdateGuide,
   adminStartPremiumCheckout,
+  adminResetCalendarFeed, adminCreateLottery, adminDrawLottery,
   adminUpdateProfile, adminUpdateReminderSettings, adminUpdateVisibility,
   adminUpdateWhiteLabel,
   type AdminPayload,
@@ -82,7 +83,7 @@ function AdminLoader({ slug, epoch, refresh }: { slug: string; epoch: number; re
 function AdminMain({ admin, unknownError, refresh, router }: {
   admin: Admin; unknownError: string; refresh: () => void; router: ReturnType<typeof useRouter>;
 }) {
-  const [tab, setTab] = useState<'profile' | 'discord' | 'events' | 'guides' | 'announcements' | 'stats'>('profile');
+  const [tab, setTab] = useState<'profile' | 'discord' | 'events' | 'guides' | 'announcements' | 'stats' | 'tools'>('profile');
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
 
@@ -101,6 +102,7 @@ function AdminMain({ admin, unknownError, refresh, router }: {
     { key: 'guides', label: admin.adminTabGuidesLabel },
     { key: 'announcements', label: admin.adminTabAnnouncementsLabel },
     { key: 'stats', label: admin.adminTabStatsLabel },
+    { key: 'tools', label: admin.adminTabToolsLabel },
   ];
   const premium: any = (admin as any).premium ?? null;
   const premiumLocked = premium?.__typename === 'GuildAdminPremiumLocked' ? premium : null;
@@ -130,6 +132,7 @@ function AdminMain({ admin, unknownError, refresh, router }: {
       {tab === 'guides' && <GuidesPanel admin={admin} run={run} />}
       {tab === 'announcements' && <AnnouncementsAdminPanel slug={admin.slug} />}
       {tab === 'stats' && <StatsPanel admin={admin} premiumLocked={premiumLocked} unknownError={unknownError} onError={setError} />}
+      {tab === 'tools' && <ToolsPanel admin={admin} run={run} />}
     </ScrollView>
   );
 }
@@ -798,6 +801,175 @@ function StatsPanel({ admin, premiumLocked, unknownError, onError }: {
         emptyText={admin.adminStatsBoardEmptyText}
         rows={(stats?.leaderLeaders ?? []).map((m: any) => ({ discordId: m.discordId, displayName: m.displayName, count: m.carCount }))}
       />
+    </View>
+  );
+}
+
+/* ---------- activity tools (calendar feed + lottery, isomorphic with Web) ---------- */
+
+function ToolEntryChips({ entries, gold }: { entries: readonly any[]; gold?: boolean }) {
+  return (
+    <View style={s.chipWrap}>
+      {entries.map((e: any) => (
+        <Text key={e.discordId} style={[s.roleChip, gold && s.roleChipHeal]}>{e.displayName} · {e.weight}</Text>
+      ))}
+    </View>
+  );
+}
+
+function ToolsPanel({ admin, run }: {
+  admin: Admin;
+  run: (p: Promise<AdminPayload>, onOk?: () => void) => void;
+}) {
+  const slug = admin.slug;
+  const confirmLabel = React.useContext(ConfirmCtx);
+  const lotteries: readonly any[] = (admin as any).lotteries ?? [];
+  const roster: readonly any[] = (admin as any).lotteryRoster ?? [];
+  const events: readonly any[] = (admin as any).events ?? [];
+  const [title, setTitle] = useState('');
+  const [prize, setPrize] = useState('');
+  const [source, setSource] = useState<'GROUPING' | 'MEMBERS'>('GROUPING');
+  const [sourceEventId, setSourceEventId] = useState('');
+  const [uniformWeight, setUniformWeight] = useState('1');
+  const [winnerCount, setWinnerCount] = useState('1');
+  const [picked, setPicked] = useState<Record<string, string>>({});
+  const toggleMember = (discordId: string) => {
+    setPicked((prev) => {
+      const next = { ...prev };
+      if (discordId in next) delete next[discordId];
+      else next[discordId] = '1';
+      return next;
+    });
+  };
+  const submitCreate = () => {
+    const wc = parseInt(winnerCount, 10) || 0;
+    if (source === 'GROUPING') {
+      run(adminCreateLottery(slug, {
+        title, prize: prize || undefined, source,
+        sourceEventId: sourceEventId || undefined,
+        uniformWeight: parseInt(uniformWeight, 10) || 1,
+        winnerCount: wc,
+      }));
+    } else {
+      run(adminCreateLottery(slug, {
+        title, prize: prize || undefined, source, winnerCount: wc,
+        entries: Object.entries(picked).map(([discordId, w]) => ({
+          discordId, weight: parseInt(w, 10) || 1,
+        })),
+      }));
+    }
+  };
+  return (
+    <View>
+      <Text style={s.sectionTitle}>{admin.adminCalendarTitle}</Text>
+      <Field label={admin.adminCalendarUrlLabel}>
+        <Text selectable style={s.linkText}>{admin.calendarFeedUrl}</Text>
+      </Field>
+      <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+        <Pressable style={s.ghostBtn} onPress={() => { void Share.share({ url: admin.calendarFeedUrl }); }}>
+          <Text style={s.ghostBtnText}>{admin.adminCalendarCopyLabel}</Text>
+        </Pressable>
+        <ConfirmBtn label={admin.adminCalendarResetLabel} confirmLabel={confirmLabel}
+          onConfirm={() => run(adminResetCalendarFeed(slug))} />
+      </View>
+      <Text style={[s.muted, { marginTop: 10 }]}>{admin.adminCalendarHint}</Text>
+      <Text style={s.muted}>{admin.adminCalendarResetHint}</Text>
+
+      <Text style={s.sectionTitle}>{admin.adminLotteryTitle}</Text>
+      <Text style={[s.muted, { marginBottom: 12 }]}>{admin.adminLotteryHint}</Text>
+      <Field label={admin.adminLotteryNameLabel}>
+        <TInput value={title} maxLength={60} onChangeText={setTitle} />
+      </Field>
+      <Field label={admin.adminLotteryPrizeLabel}>
+        <TInput value={prize} maxLength={200} onChangeText={setPrize} />
+      </Field>
+      <Field label={admin.adminLotterySourceLabel}>
+        <View style={s.chipWrap}>
+          <Pressable style={[s.chip, source === 'GROUPING' && s.chipOn]} onPress={() => setSource('GROUPING')}>
+            <Text style={[s.chipText, source === 'GROUPING' && s.chipTextOn]}>{admin.adminLotterySourceGroupingText}</Text>
+          </Pressable>
+          <Pressable style={[s.chip, source === 'MEMBERS' && s.chipOn]} onPress={() => setSource('MEMBERS')}>
+            <Text style={[s.chipText, source === 'MEMBERS' && s.chipTextOn]}>{admin.adminLotterySourceMembersText}</Text>
+          </Pressable>
+        </View>
+      </Field>
+      {source === 'GROUPING' ? (
+        <>
+          <Field label={admin.adminLotteryGroupingLabel}>
+            <View style={s.chipWrap}>
+              {events.map((ev: any) => (
+                <Pressable key={ev.id} style={[s.chip, sourceEventId === ev.id && s.chipOn]} onPress={() => setSourceEventId(ev.id)}>
+                  <Text style={[s.chipText, sourceEventId === ev.id && s.chipTextOn]}>{ev.title}</Text>
+                </Pressable>
+              ))}
+            </View>
+          </Field>
+          <Field label={admin.adminLotteryUniformWeightLabel}>
+            <TInput value={uniformWeight} keyboardType="number-pad" onChangeText={setUniformWeight} />
+          </Field>
+        </>
+      ) : (
+        <Field label={admin.adminLotteryEntriesLabel}>
+          <View>
+            {roster.map((m: any) => (
+              <View key={m.discordId} style={s.memberRow}>
+                <Pressable style={[s.chip, m.discordId in picked && s.chipOn]} onPress={() => toggleMember(m.discordId)}>
+                  <Text style={[s.chipText, m.discordId in picked && s.chipTextOn]}>{m.displayName}</Text>
+                </Pressable>
+                {m.discordId in picked && (
+                  <>
+                    <Text style={s.muted}>{admin.adminLotteryWeightLabel}</Text>
+                    <TInput
+                      style={{ width: 76, paddingVertical: 5 }}
+                      value={picked[m.discordId]}
+                      keyboardType="number-pad"
+                      onChangeText={(v) => setPicked((prev) => ({ ...prev, [m.discordId]: v }))}
+                    />
+                  </>
+                )}
+              </View>
+            ))}
+          </View>
+        </Field>
+      )}
+      <Field label={admin.adminLotteryWinnerCountLabel}>
+        <TInput value={winnerCount} keyboardType="number-pad" onChangeText={setWinnerCount} />
+      </Field>
+      <SaveBtn label={admin.adminLotteryCreateLabel} savedLabel={admin.adminSavedText} onSave={submitCreate} />
+
+      {lotteries.length === 0 ? (
+        <Text style={[s.muted, { marginTop: 16 }]}>{admin.adminLotteryEmptyText}</Text>
+      ) : lotteries.map((lot: any) => (
+        <View key={lot.id} style={[s.card, { marginTop: 14 }]}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 6 }}>
+            <Text style={s.eventTitle}>{lot.title}</Text>
+            <Text style={s.statusChip}>
+              {lot.status === 'DRAWN' ? admin.adminLotteryStatusDrawnText : admin.adminLotteryStatusOpenText}
+            </Text>
+            <Text style={s.muted}>{lot.entryCountText}</Text>
+            <Text style={s.muted}>{lot.createdAtText}</Text>
+            {!!lot.drawnAtText && <Text style={s.muted}>{lot.drawnAtText}</Text>}
+          </View>
+          {!!lot.prize && <Text style={s.memberName}>{admin.adminLotteryPrizeLabel}: {lot.prize}</Text>}
+          {!!lot.sourceEventTitle && (
+            <Text style={s.muted}>{admin.adminLotterySourceGroupingText}: {lot.sourceEventTitle}</Text>
+          )}
+          <Text style={[s.label, { marginTop: 8 }]}>{admin.adminLotteryEntriesLabel}</Text>
+          <ToolEntryChips entries={lot.entries} />
+          {lot.status === 'DRAWN' && (
+            <>
+              <Text style={[s.label, { marginTop: 10 }]}>{admin.adminLotteryWinnersLabel}</Text>
+              <ToolEntryChips entries={lot.winners} gold />
+            </>
+          )}
+          {lot.status !== 'DRAWN' && (
+            <View style={{ marginTop: 10 }}>
+              <ConfirmBtn label={admin.adminLotteryDrawLabel} confirmLabel={confirmLabel}
+                onConfirm={() => run(adminDrawLottery(slug, lot.id))} />
+            </View>
+          )}
+        </View>
+      ))}
     </View>
   );
 }

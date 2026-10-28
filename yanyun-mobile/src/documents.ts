@@ -1731,6 +1731,48 @@ export const GuildAdminQuery = graphql`
               rotationJson
             }
           }
+          adminTabToolsLabel
+          adminCalendarTitle
+          adminCalendarHint
+          adminCalendarUrlLabel
+          adminCalendarCopyLabel
+          adminCalendarResetLabel
+          adminCalendarResetHint
+          adminLotteryTitle
+          adminLotteryHint
+          adminLotteryEmptyText
+          adminLotteryNameLabel
+          adminLotteryPrizeLabel
+          adminLotterySourceLabel
+          adminLotterySourceGroupingText
+          adminLotterySourceMembersText
+          adminLotteryGroupingLabel
+          adminLotteryWinnerCountLabel
+          adminLotteryUniformWeightLabel
+          adminLotteryWeightLabel
+          adminLotteryEntriesLabel
+          adminLotteryWinnersLabel
+          adminLotteryCreateLabel
+          adminLotteryDrawLabel
+          adminLotteryStatusOpenText
+          adminLotteryStatusDrawnText
+          calendarFeedUrl
+          lotteries {
+            id
+            title
+            prize
+            source
+            sourceEventId
+            sourceEventTitle
+            winnerCount
+            status
+            entryCountText
+            createdAtText
+            drawnAtText
+            entries { discordId displayName weight }
+            winners { discordId displayName weight }
+          }
+          lotteryRoster { discordId displayName }
           adminTabStatsLabel
           adminStatsTitle
           adminStatsCurrentWeekLabel
@@ -1816,6 +1858,21 @@ export const UpdateGuildWhiteLabelAdminMutation = graphql`
 export const StartPremiumCheckoutAdminMutation = graphql`
   mutation documentsStartPremiumCheckoutAdminMutation($slug: String!) {
     startPremiumCheckout(slug: $slug) { ok error checkoutUrl }
+  }
+`;
+export const ResetCalendarFeedAdminMutation = graphql`
+  mutation documentsResetCalendarFeedAdminMutation($slug: String!) {
+    resetCalendarFeed(slug: $slug) { ok error }
+  }
+`;
+export const CreateLotteryAdminMutation = graphql`
+  mutation documentsCreateLotteryAdminMutation($slug: String!, $input: CreateLotteryInput!) {
+    createLottery(slug: $slug, input: $input) { ok error id }
+  }
+`;
+export const DrawLotteryAdminMutation = graphql`
+  mutation documentsDrawLotteryAdminMutation($slug: String!, $lotteryId: ID!) {
+    drawLottery(slug: $slug, lotteryId: $lotteryId) { ok error }
   }
 `;
 export const UpdateGuildVisibilityAdminMutation = graphql`

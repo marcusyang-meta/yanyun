@@ -1281,6 +1281,9 @@ type Mutation {
   addEventResult(slug: String!, eventId: ID!, input: AddEventResultInput!): GuildAdminPayload!
   deleteEventResult(slug: String!, resultId: ID!): GuildAdminPayload!
   updateSchoolGuide(slug: String!, input: UpdateSchoolGuideInput!): GuildAdminPayload!
+  resetCalendarFeed(slug: String!): GuildAdminPayload!
+  createLottery(slug: String!, input: CreateLotteryInput!): GuildAdminPayload!
+  drawLottery(slug: String!, lotteryId: ID!): GuildAdminPayload!
   gearPlan(input: GearPlanInput!): GearPlanResult!
   gearAutoCombine(targetIdx: Int!, lib: [GearItemInput!]!): GearAutoResult!
   gearParsePaste(text: String!): GearParseResult!
@@ -1682,6 +1685,9 @@ type GuildAdmin {
   announcements: GuildAnnouncementPage!
   stats: GuildAdminStatsResult!
   premium: GuildAdminPremiumResult
+  calendarFeedUrl: String!
+  lotteries: [GuildAdminLottery!]!
+  lotteryRoster: [GuildAdminLotteryMember!]!
   adminTitle: String!
   adminBackLinkLabel: String!
   adminTabProfileLabel: String!
@@ -1783,6 +1789,83 @@ type GuildAdmin {
   adminBillingSuccessText: String!
   adminBillingCanceledText: String!
   adminPremiumTitle: String!
+  adminTabToolsLabel: String!
+  adminCalendarTitle: String!
+  adminCalendarHint: String!
+  adminCalendarUrlLabel: String!
+  adminCalendarCopyLabel: String!
+  adminCalendarResetLabel: String!
+  adminCalendarResetHint: String!
+  adminLotteryTitle: String!
+  adminLotteryHint: String!
+  adminLotteryEmptyText: String!
+  adminLotteryNameLabel: String!
+  adminLotteryPrizeLabel: String!
+  adminLotterySourceLabel: String!
+  adminLotterySourceGroupingText: String!
+  adminLotterySourceMembersText: String!
+  adminLotteryGroupingLabel: String!
+  adminLotteryWinnerCountLabel: String!
+  adminLotteryUniformWeightLabel: String!
+  adminLotteryWeightLabel: String!
+  adminLotteryEntriesLabel: String!
+  adminLotteryWinnersLabel: String!
+  adminLotteryCreateLabel: String!
+  adminLotteryDrawLabel: String!
+  adminLotteryStatusOpenText: String!
+  adminLotteryStatusDrawnText: String!
+}
+
+enum LotterySource {
+  GROUPING
+  MEMBERS
+}
+
+enum LotteryStatus {
+  OPEN
+  DRAWN
+}
+
+type GuildAdminLottery {
+  id: ID!
+  title: String!
+  prize: String!
+  source: LotterySource!
+  sourceEventId: ID
+  sourceEventTitle: String
+  winnerCount: Int!
+  status: LotteryStatus!
+  entryCountText: String!
+  createdAtText: String!
+  drawnAtText: String
+  entries: [GuildAdminLotteryEntry!]!
+  winners: [GuildAdminLotteryEntry!]!
+}
+
+type GuildAdminLotteryEntry {
+  discordId: String!
+  displayName: String!
+  weight: Int!
+}
+
+type GuildAdminLotteryMember {
+  discordId: ID!
+  displayName: String!
+}
+
+input LotteryEntryInput {
+  discordId: ID!
+  weight: Int!
+}
+
+input CreateLotteryInput {
+  title: String!
+  prize: String
+  source: LotterySource!
+  sourceEventId: ID
+  uniformWeight: Int
+  entries: [LotteryEntryInput!]
+  winnerCount: Int!
 }
 
 type GuildAdminOgAccentOption {
