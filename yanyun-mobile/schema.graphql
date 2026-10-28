@@ -1284,6 +1284,10 @@ type Mutation {
   resetCalendarFeed(slug: String!): GuildAdminPayload!
   createLottery(slug: String!, input: CreateLotteryInput!): GuildAdminPayload!
   drawLottery(slug: String!, lotteryId: ID!): GuildAdminPayload!
+  setSeasonChecklistItem(slug: String!, itemKey: String!, checked: Boolean!): GuildAdminPayload!
+  previewRosterImport(slug: String!, lines: [String!]!, imageCount: Int!): RosterImportPayload!
+  confirmRosterImport(slug: String!, batchId: ID!, rowIds: [ID!]!): RosterImportPayload!
+  deleteGuildRosterEntry(slug: String!, entryId: ID!): GuildAdminPayload!
   gearPlan(input: GearPlanInput!): GearPlanResult!
   gearAutoCombine(targetIdx: Int!, lib: [GearItemInput!]!): GearAutoResult!
   gearParsePaste(text: String!): GearParseResult!
@@ -1688,6 +1692,8 @@ type GuildAdmin {
   calendarFeedUrl: String!
   lotteries: [GuildAdminLottery!]!
   lotteryRoster: [GuildAdminLotteryMember!]!
+  seasonChecklist: GuildSeasonChecklist!
+  roster: GuildRoster!
   adminTitle: String!
   adminBackLinkLabel: String!
   adminTabProfileLabel: String!
@@ -1766,6 +1772,7 @@ type GuildAdmin {
   adminGuideBisLabel: String!
   adminGuideRotationLabel: String!
   adminTabStatsLabel: String!
+  adminTabSeasonLabel: String!
   adminStatsTitle: String!
   adminStatsCurrentWeekLabel: String!
   adminStatsCarsLabel: String!
@@ -1959,6 +1966,80 @@ type GuildAdminPremiumLocked {
   premiumPriceLabel: String
   premiumComingSoonText: String
   premiumCheckoutLabel: String!
+}
+
+type GuildSeasonChecklist {
+  seasonKey: String!
+  versionLabel: String!
+  seasonLabel: String!
+  title: String!
+  hint: String!
+  progressTemplate: String!
+  items: [GuildSeasonChecklistItem!]!
+  doneCount: Int!
+  totalCount: Int!
+}
+
+type GuildSeasonChecklistItem {
+  key: String!
+  title: String!
+  detail: String!
+  checked: Boolean!
+  checkedByName: String
+}
+
+type GuildRoster {
+  entries: [GuildRosterEntry!]!
+  rosterTitle: String!
+  rosterHint: String!
+  rosterUploadLabel: String!
+  rosterOcrRunningText: String!
+  rosterPreviewTitle: String!
+  rosterConfirmLabel: String!
+  rosterEmptyText: String!
+  rosterDeleteLabel: String!
+  rosterSourceOcrLabel: String!
+  rosterMatchedMemberLabel: String!
+}
+
+type GuildRosterEntry {
+  id: ID!
+  displayName: String!
+  source: String!
+  matchedName: String
+  createdAt: Int!
+}
+
+enum RosterImportRowStatus {
+  MATCHED
+  NEW
+  UNRECOGNIZED
+}
+
+type RosterImportRow {
+  id: ID!
+  rawName: String!
+  status: RosterImportRowStatus!
+  statusLabel: String!
+  matchedName: String!
+  importable: Boolean!
+}
+
+type RosterImportPreview {
+  batchId: ID!
+  rows: [RosterImportRow!]!
+  matchedCount: Int!
+  newCount: Int!
+  unrecognizedCount: Int!
+}
+
+type RosterImportPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  preview: RosterImportPreview
+  importedCount: Int
+  message: String
 }
 
 type GuildAdminStatsWeek {

@@ -20,8 +20,12 @@ import {
   adminResetCalendarFeed, adminCreateLottery, adminDrawLottery,
   adminUpdateProfile, adminUpdateReminderSettings, adminUpdateVisibility,
   adminUpdateWhiteLabel,
-  type AdminPayload,
+  adminSetSeasonChecklistItem, adminDeleteRosterEntry,
+  adminPreviewRosterImport, adminConfirmRosterImport,
+  type AdminPayload, type RosterImportPayload,
 } from '../api';
+import { activeRecognizer, ocrPrepare, ocrEnhance, pickImageFiles } from '../gear/GearOcrEngine';
+import { fill } from '../gear/bits';
 import type { documentsGuildAdminQuery } from '../__generated__/documentsGuildAdminQuery.graphql';
 
 // Guild admin (mobile): isomorphic with the Web admin page — same
@@ -62,6 +66,7 @@ function AdminLoader({ slug, epoch, refresh }: { slug: string; epoch: number; re
   const ga: any = data.viewer?.guildAdmin;
   const unknownError = data.viewer?.commonUnknownErrorText ?? '';
   const confirmLabel = data.viewer?.commonConfirmLabel ?? '';
+  const cancelLabel = data.viewer?.commonCancelLabel ?? '';
   if (!ga || ga.__typename === 'GuildAdminLocked') {
     return (
       <View style={s.lockWrap}>
@@ -75,15 +80,15 @@ function AdminLoader({ slug, epoch, refresh }: { slug: string; epoch: number; re
   }
   return (
     <ConfirmCtx.Provider value={confirmLabel}>
-      <AdminMain key={epoch} admin={ga as Admin} unknownError={unknownError} refresh={refresh} router={router} />
+      <AdminMain key={epoch} admin={ga as Admin} unknownError={unknownError} cancelLabel={cancelLabel} refresh={refresh} router={router} />
     </ConfirmCtx.Provider>
   );
 }
 
-function AdminMain({ admin, unknownError, refresh, router }: {
-  admin: Admin; unknownError: string; refresh: () => void; router: ReturnType<typeof useRouter>;
+function AdminMain({ admin, unknownError, cancelLabel, refresh, router }: {
+  admin: Admin; unknownError: string; cancelLabel: string; refresh: () => void; router: ReturnType<typeof useRouter>;
 }) {
-  const [tab, setTab] = useState<'profile' | 'discord' | 'events' | 'guides' | 'announcements' | 'stats' | 'tools'>('profile');
+  const [tab, setTab] = useState<'profile' | 'discord' | 'events' | 'guides' | 'announcements' | 'stats' | 'tools' | 'season'>('profile');
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
 
@@ -103,6 +108,7 @@ function AdminMain({ admin, unknownError, refresh, router }: {
     { key: 'announcements', label: admin.adminTabAnnouncementsLabel },
     { key: 'stats', label: admin.adminTabStatsLabel },
     { key: 'tools', label: admin.adminTabToolsLabel },
+    { key: 'season', label: admin.adminTabSeasonLabel },
   ];
   const premium: any = (admin as any).premium ?? null;
   const premiumLocked = premium?.__typename === 'GuildAdminPremiumLocked' ? premium : null;
@@ -133,6 +139,7 @@ function AdminMain({ admin, unknownError, refresh, router }: {
       {tab === 'announcements' && <AnnouncementsAdminPanel slug={admin.slug} />}
       {tab === 'stats' && <StatsPanel admin={admin} premiumLocked={premiumLocked} unknownError={unknownError} onError={setError} />}
       {tab === 'tools' && <ToolsPanel admin={admin} run={run} />}
+      {tab === 'season' && <SeasonPanel admin={admin} unknownError={unknownError} cancelLabel={cancelLabel} run={run} onError={setError} />}
     </ScrollView>
   );
 }
@@ -687,6 +694,152 @@ function PremiumActiveCard({ admin, premium }: { admin: Admin; premium: any }) {
           <Text style={[s.muted, { marginTop: 6 }]}>{premium.premiumPeriodEndText}</Text>
         )}
       </View>
+    </View>
+  );
+}
+
+/* ---------- season (pre-season checklist + roster OCR, isomorphic with Web) ---------- */
+
+type RosterPreview = NonNullable<RosterImportPayload['preview']>;
+
+function SeasonPanel({ admin, unknownError, cancelLabel, run, onError }: {
+  admin: Admin;
+  unknownError: string;
+  cancelLabel: string;
+  run: (p: Promise<AdminPayload>, onOk?: () => void) => void;
+  onError: (m: string) => void;
+}) {
+  const slug = admin.slug;
+  const confirmLabel = React.useContext(ConfirmCtx);
+  const checklist: any = (admin as any).seasonChecklist ?? null;
+  const roster: any = (admin as any).roster ?? null;
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState('');
+  const [preview, setPreview] = useState<RosterPreview | null>(null);
+  const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
+
+  const upload = async () => {
+    const files = await pickImageFiles(true).catch(() => null);
+    if (!files || files.length === 0) return;
+    setBusy(true); setNotice('');
+    try {
+      // Same recognition path as the gear OCR: a pluggable session over
+      // the prepared + enhanced passes; only text lines leave the
+      // device. Where no engine exists (native, pre-ML-Kit) the session
+      // factory throws and the generic error surfaces — no fake lines.
+      const session = await activeRecognizer().createSession();
+      const seen = new Set<string>();
+      const lines: string[] = [];
+      try {
+        for (const f of files) {
+          for (const pass of [{ blob: await ocrPrepare(f), psm6: false }, { blob: await ocrEnhance(f), psm6: true }]) {
+            const data = await session.recognize(pass.blob, { psm6: pass.psm6 });
+            for (const raw of String(data?.text ?? '').split(/\r?\n/)) {
+              const line = raw.trim();
+              if (line && !seen.has(line)) { seen.add(line); lines.push(line); }
+            }
+          }
+        }
+      } finally { await session.terminate().catch(() => undefined); }
+      const res = await adminPreviewRosterImport(slug, lines, files.length);
+      if (!res.ok) { onError(res.error || unknownError); return; }
+      const p = res.preview ?? null;
+      setPreview(p);
+      setSelected(new Set((p?.rows ?? []).filter((r) => r.importable).map((r) => r.id)));
+    } catch { onError(unknownError); } finally { setBusy(false); }
+  };
+
+  const confirmImport = async () => {
+    if (!preview) return;
+    setBusy(true);
+    try {
+      const res = await adminConfirmRosterImport(slug, preview.batchId, [...selected]);
+      if (!res.ok) { onError(res.error || unknownError); return; }
+      setNotice(res.message ?? '');
+      setPreview(null);
+      run(Promise.resolve({ ok: true }));
+    } catch { onError(unknownError); } finally { setBusy(false); }
+  };
+
+  return (
+    <View>
+      {!!checklist && (
+        <View>
+          <Text style={s.sectionTitle}>{checklist.title}</Text>
+          <Text style={s.muted}>{checklist.versionLabel}</Text>
+          {!!checklist.seasonLabel && <Text style={s.muted}>{checklist.seasonLabel}</Text>}
+          <Text style={s.muted}>{checklist.hint}</Text>
+          <Text style={[s.muted, { marginTop: 6 }]}>
+            {fill(checklist.progressTemplate ?? '', { done: checklist.doneCount ?? 0, total: checklist.totalCount ?? 0 })}
+          </Text>
+          {(checklist.items ?? []).map((it: any) => (
+            <Pressable
+              key={it.key}
+              style={s.memberRow}
+              onPress={() => run(adminSetSeasonChecklistItem(slug, it.key, !it.checked))}
+            >
+              <Text style={s.eventTitle}>{it.checked ? '☑' : '☐'}</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={s.eventTitle}>{it.title}</Text>
+                <Text style={s.muted}>{it.detail}</Text>
+                {!!it.checkedByName && <Text style={s.muted}>{it.checkedByName}</Text>}
+              </View>
+            </Pressable>
+          ))}
+        </View>
+      )}
+      {!!roster && (
+        <View>
+          <Text style={s.sectionTitle}>{roster.rosterTitle}</Text>
+          <Text style={s.muted}>{roster.rosterHint}</Text>
+          {(roster.entries ?? []).length === 0
+            ? <Text style={[s.muted, { marginTop: 8 }]}>{roster.rosterEmptyText}</Text>
+            : (roster.entries ?? []).map((e: any) => (
+              <View key={e.id} style={s.memberRow}>
+                <Text style={s.memberName}>{e.displayName}</Text>
+                <Text style={s.roleChip}>{e.source === 'ocr' ? roster.rosterSourceOcrLabel : e.source}</Text>
+                {!!e.matchedName && <Text style={s.muted}>{roster.rosterMatchedMemberLabel}{e.matchedName}</Text>}
+                <View style={{ flex: 1 }} />
+                <ConfirmBtn label={roster.rosterDeleteLabel} confirmLabel={confirmLabel}
+                  onConfirm={() => run(adminDeleteRosterEntry(slug, e.id))} small />
+              </View>
+            ))}
+          <Pressable style={[s.saveBtn, { marginTop: 12 }]} disabled={busy} onPress={() => void upload()}>
+            <Text style={s.saveBtnText}>{busy ? roster.rosterOcrRunningText : roster.rosterUploadLabel}</Text>
+          </Pressable>
+          {!!notice && <Text style={[s.saved, { marginTop: 8 }]}>{notice}</Text>}
+          {!!preview && (
+            <View style={s.card}>
+              <Text style={s.eventTitle}>{roster.rosterPreviewTitle}</Text>
+              {preview.rows.map((r) => (
+                <Pressable
+                  key={r.id}
+                  style={s.memberRow}
+                  disabled={!r.importable}
+                  onPress={() => setSelected((prev) => {
+                    const next = new Set(prev);
+                    if (next.has(r.id)) next.delete(r.id); else next.add(r.id);
+                    return next;
+                  })}
+                >
+                  <Text style={s.eventTitle}>{r.importable ? (selected.has(r.id) ? '☑' : '☐') : '·'}</Text>
+                  <Text style={s.memberName}>{r.rawName}</Text>
+                  <Text style={s.roleChip}>{r.statusLabel}</Text>
+                  {!!r.matchedName && <Text style={s.muted}>{r.matchedName}</Text>}
+                </Pressable>
+              ))}
+              <View style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
+                <Pressable style={s.saveBtn} disabled={busy} onPress={() => void confirmImport()}>
+                  <Text style={s.saveBtnText}>{roster.rosterConfirmLabel}</Text>
+                </Pressable>
+                <Pressable style={s.ghostBtn} onPress={() => setPreview(null)}>
+                  <Text style={s.ghostBtnText}>{cancelLabel}</Text>
+                </Pressable>
+              </View>
+            </View>
+          )}
+        </View>
+      )}
     </View>
   );
 }
