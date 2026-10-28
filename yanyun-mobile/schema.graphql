@@ -1526,7 +1526,7 @@ type Mutation {
   updateGuildDiscord(slug: String!, input: UpdateGuildDiscordInput!): GuildAdminPayload!
   updateGuildReminderSettings(slug: String!, offsets: [Int!]!, customText: String): GuildAdminPayload!
   updateGuildWhiteLabel(slug: String!, hideBranding: Boolean!, ogAccent: String!, ogTitleSuffix: String): GuildAdminPayload!
-  startPremiumCheckout(slug: String!): GuildAdminPayload!
+  startPremiumCheckout(slug: String!, tier: Int): GuildAdminPayload!
   updateGuildVisibility(slug: String!, devOnly: Boolean!): GuildAdminPayload!
   setGuildAvatar(slug: String!, dataBase64: String!): GuildAdminPayload!
   deleteGuildAvatar(slug: String!): GuildAdminPayload!

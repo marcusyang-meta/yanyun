@@ -44,7 +44,14 @@ EXPO_PUSH_BASE=
 # OPTIONAL — local billing work only. Absent = billing stays closed
 # and surfaces compose their coming-soon state. When used, fill with
 # Stripe TEST-mode values only (test secret key, test webhook signing
-# secret, test price id) — never live Stripe credentials.
+# secret, test price ids) — never live Stripe credentials.
+# STRIPE_PRICE_ID is the legacy single Premium price (display slot +
+# no-tier checkout); the three tier keys carry the per-tier monthly
+# prices — a tier without its key has no checkout and subscriptions
+# on its price cannot reverse-map (they keep the legacy plan write).
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
 STRIPE_PRICE_ID=
+STRIPE_PRICE_ID_T1=
+STRIPE_PRICE_ID_T2=
+STRIPE_PRICE_ID_T3=

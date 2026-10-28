@@ -73,13 +73,20 @@ export interface Env {
   EXPO_PUSH_BASE?: string;
   ADMIN_PASSWORD?: string;
   BACKUPS?: R2Bucket;
-  /* Stripe (billing readiness): set via wrangler secret. All three
-   * must be present before checkout can be offered; the webhook
-   * verifies with STRIPE_WEBHOOK_SECRET alone. Absent = billing not
-   * open yet, which the surfaces compose as their coming-soon state. */
+  /* Stripe (billing readiness): set via wrangler secret. The two
+   * keys plus at least one price must be present before Stripe
+   * counts as configured; offerability is per path (a tier without
+   * its price key has no checkout). The webhook verifies with
+   * STRIPE_WEBHOOK_SECRET alone. Absent = billing not open yet,
+   * which the surfaces compose as their coming-soon state. */
   STRIPE_SECRET_KEY?: string;
   STRIPE_WEBHOOK_SECRET?: string;
+  /** Legacy single Premium price: display slot + no-tier checkout. */
   STRIPE_PRICE_ID?: string;
+  /** Tier prices: T1 / T2 / T3 monthly price ids. */
+  STRIPE_PRICE_ID_T1?: string;
+  STRIPE_PRICE_ID_T2?: string;
+  STRIPE_PRICE_ID_T3?: string;
   /* Statsig (platform gates, platform/gates.ts): all three must be
    * present before the gate wrapper talks to the provider — the KV
    * binding holds the Config Sync ruleset, the project id names

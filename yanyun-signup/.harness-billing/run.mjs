@@ -26,7 +26,7 @@ import { OMNISCIENT_VIEWER } from '../src/domains/platform/context.ts';
 import { hubRoutes } from '../src/domains/platform/hub-routes.ts';
 import { billingRoutes } from '../src/domains/platform/billing-routes.ts';
 import { makeToken } from '../src/domains/platform/http.ts';
-import { signStripePayload } from '../src/domains/platform/stripe.ts';
+import { signStripePayload, stripeConfig, stripePriceIdForTier, stripeTierForPriceId } from '../src/domains/platform/stripe.ts';
 import { insertTenant } from '../src/domains/guilds/tenants.ts';
 import { getSettingValue, setSettingValue } from '../src/domains/guilds/settings.ts';
 import {
@@ -630,6 +630,121 @@ eq('hub subdomain: manual guild enabled without a card', [h.status, h.json?.ok],
     effFresh.currentPeriodEnd != null && effFresh.currentPeriodEnd > nowS + 13 * 86400,
     String(effFresh.currentPeriodEnd));
 }
+
+/* ---------------- M. tier price mapping (checkout + webhook) ----------------
+ * Forward: a tier checkout charges that tier's configured price;
+ * a tier without a price key is refused as unconfigured and no
+ * other price is ever substituted. Reverse: a subscription's price
+ * id writes its tier's plan; an unknown (or absent) price keeps
+ * the legacy 'premium' write verbatim. */
+const envTierFull = {
+  DB: db, SITE_URL: 'http://local',
+  STRIPE_SECRET_KEY: 'sk_test_harness', STRIPE_WEBHOOK_SECRET: 'whsec_harness',
+  STRIPE_PRICE_ID: 'price_harness',
+  STRIPE_PRICE_ID_T1: 'price_t1_harness', STRIPE_PRICE_ID_T2: 'price_t2_harness', STRIPE_PRICE_ID_T3: 'price_t3_harness',
+};
+const envTierPartial = {
+  DB: db, SITE_URL: 'http://local',
+  STRIPE_SECRET_KEY: 'sk_test_harness', STRIPE_WEBHOOK_SECRET: 'whsec_harness',
+  STRIPE_PRICE_ID: 'price_harness',
+  STRIPE_PRICE_ID_T1: 'price_t1_harness', STRIPE_PRICE_ID_T2: 'price_t2_harness',
+  // STRIPE_PRICE_ID_T3 deliberately absent
+};
+{
+  const cfgFull = stripeConfig(envTierFull);
+  eq('price map: per-tier ids from env', cfgFull?.priceIdsByTier, { 1: 'price_t1_harness', 2: 'price_t2_harness', 3: 'price_t3_harness' });
+  eq('price map: legacy id kept separate', cfgFull?.priceId, 'price_harness');
+  eq('price map: tier -> price', stripePriceIdForTier(cfgFull, 2), 'price_t2_harness');
+  const cfgPartial = stripeConfig(envTierPartial);
+  eq('price map: missing tier price is empty', stripePriceIdForTier(cfgPartial, 3), '');
+  eq('price map: tier-only env still configures stripe',
+    !!stripeConfig({ STRIPE_SECRET_KEY: 'sk', STRIPE_WEBHOOK_SECRET: 'whsec', STRIPE_PRICE_ID_T2: 'price_t2_harness' }), true);
+  eq('price map: no price at all -> unconfigured',
+    stripeConfig({ STRIPE_SECRET_KEY: 'sk', STRIPE_WEBHOOK_SECRET: 'whsec' }), null);
+  eq('price map: price -> tier 1', stripeTierForPriceId(envTierFull, 'price_t1_harness'), 1);
+  eq('price map: price -> tier 2', stripeTierForPriceId(envTierFull, 'price_t2_harness'), 2);
+  eq('price map: price -> tier 3', stripeTierForPriceId(envTierFull, 'price_t3_harness'), 3);
+  eq('price map: legacy price is not a tier', stripeTierForPriceId(envTierFull, 'price_harness'), null);
+  eq('price map: unknown price is not a tier', stripeTierForPriceId(envTierFull, 'price_unknown'), null);
+}
+const SSLUG = 'stripeguild';
+await insertTenant(db, { slug: SSLUG, guildName: '映射测试百业', passwordHash: '', announcement: '' });
+const subObj = (priceId) => ({
+  id: 'sub_map', status: 'active', customer: 'cus_map',
+  current_period_end: nowS + 30 * 86400, metadata: { guild_slug: SSLUG },
+  ...(priceId ? { items: { data: [{ price: { id: priceId } }] } } : {}),
+});
+eq('reverse: checkout completed (t2 price) applied', await handleStripeEvent(envTierFull, {
+  id: 'evt_map_1', type: 'checkout.session.completed',
+  data: { object: { id: 'cs_map', customer: 'cus_map', metadata: { guild_slug: SSLUG }, subscription: subObj('price_t2_harness') } },
+}), { applied: true, duplicate: false });
+eff = await getEffectiveEntitlement(db, SSLUG);
+eq('reverse: t2 price writes plan t2', [eff.plan, eff.tier, eff.source], ['t2', 2, 'stripe']);
+eq('reverse: updated to t3 price applied', await handleStripeEvent(envTierFull, {
+  id: 'evt_map_2', type: 'customer.subscription.updated', data: { object: subObj('price_t3_harness') },
+}), { applied: true, duplicate: false });
+eff = await getEffectiveEntitlement(db, SSLUG);
+eq('reverse: t3 price writes plan t3', [eff.plan, eff.tier], ['t3', 3]);
+eq('reverse: updated to t1 price applied', await handleStripeEvent(envTierFull, {
+  id: 'evt_map_3', type: 'customer.subscription.updated', data: { object: subObj('price_t1_harness') },
+}), { applied: true, duplicate: false });
+eff = await getEffectiveEntitlement(db, SSLUG);
+eq('reverse: t1 price writes plan t1', [eff.plan, eff.tier], ['t1', 1]);
+eq('reverse: unknown price applied', await handleStripeEvent(envTierFull, {
+  id: 'evt_map_4', type: 'customer.subscription.updated', data: { object: subObj('price_unknown') },
+}), { applied: true, duplicate: false });
+eff = await getEffectiveEntitlement(db, SSLUG);
+eq('reverse: unknown price falls back to legacy premium', [eff.plan, eff.tier], ['premium', 3]);
+eq('reverse: priceless subscription applied', await handleStripeEvent(envTierFull, {
+  id: 'evt_map_5', type: 'customer.subscription.updated', data: { object: subObj(null) },
+}), { applied: true, duplicate: false });
+eff = await getEffectiveEntitlement(db, SSLUG);
+eq('reverse: no price keeps legacy premium', eff.plan, 'premium');
+
+/* forward: per-tier checkout sessions (fetch stubbed at the edge) */
+h = await hub('/api/hub/billing/paygate', 'PUT', { enabled: true });
+eq('checkout section: paygate on', h.json?.billing?.paygateEnabled, true);
+{
+  const realFetch = globalThis.fetch;
+  const seen = [];
+  globalThis.fetch = async (url, init = {}) => {
+    seen.push({ url: String(url), body: init.body ? String(init.body) : '' });
+    return new Response(JSON.stringify({
+      id: 'cs_tier_stub', url: 'https://checkout.stripe.com/c/pay/cs_tier_stub',
+    }), { headers: { 'content-type': 'application/json' } });
+  };
+  try {
+    r = await gql(`mutation { startPremiumCheckout(slug: "emptyguild", tier: 2) { ok error checkoutUrl } }`, { env: envTierFull });
+    eq('forward: tier 2 checkout opens', [r.data?.startPremiumCheckout?.ok, r.data?.startPremiumCheckout?.checkoutUrl],
+      [true, 'https://checkout.stripe.com/c/pay/cs_tier_stub']);
+    const post = seen.find((x) => x.url.includes('/checkout/sessions'));
+    check('forward: session charges the tier 2 price',
+      !!post && post.body.includes('price_t2_harness') && !post.body.includes('price_t1_harness') && !post.body.includes('price_t3_harness'),
+      post?.body || 'no session POST seen');
+    check('forward: session stamps the tier in subscription metadata',
+      !!post && post.body.includes('subscription_data%5Bmetadata%5D%5Btier%5D=t2'),
+      post?.body || 'no session POST seen');
+    const postsBefore = seen.length;
+    r = await gql(`mutation { startPremiumCheckout(slug: "emptyguild", tier: 3) { ok error checkoutUrl } }`, { env: envTierPartial });
+    eq('forward: tier without a price key refused as unconfigured',
+      [r.data?.startPremiumCheckout?.ok, r.data?.startPremiumCheckout?.error, r.data?.startPremiumCheckout?.checkoutUrl ?? null],
+      [false, 'Premium 开通即将开放', null]);
+    eq('forward: refusal created no session (no fallback price used)', seen.length, postsBefore);
+    r = await gql(`mutation { startPremiumCheckout(slug: "emptyguild", tier: 9) { ok error } }`, { env: envTierFull });
+    eq('forward: out-of-range tier refused as unconfigured',
+      [r.data?.startPremiumCheckout?.ok, r.data?.startPremiumCheckout?.error], [false, 'Premium 开通即将开放']);
+    r = await gql(`mutation { startPremiumCheckout(slug: "emptyguild") { ok error checkoutUrl } }`, { env: envTierFull });
+    eq('forward: no-tier checkout still opens (legacy path)', r.data?.startPremiumCheckout?.ok, true);
+    const legacyPost = seen[seen.length - 1];
+    check('forward: no-tier session charges the legacy price',
+      legacyPost.body.includes('price_harness') && !legacyPost.body.includes('price_t2_harness'),
+      legacyPost.body);
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+}
+h = await hub('/api/hub/billing/paygate', 'PUT', { enabled: false });
+eq('checkout section: paygate back off', h.json?.billing?.paygateEnabled, false);
 
 console.log(`\nBILLING pass=${pass} fail=${fail}`);
 if (fails.length) console.log('FAILS:\n' + fails.join('\n'));

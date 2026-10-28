@@ -3150,7 +3150,11 @@ extend type Mutation {
   # 开通 Premium: 服务端建 Stripe Checkout Session 并回带托管页
   # URL。总闸关 / 已开通 / Stripe 未配置时以 errors 目录文案拒绝
   # (paygateDisabled / premiumActive / premiumComingSoon)。
-  startPremiumCheckout(slug: String!): GuildAdminPayload!
+  # tier 为目标档位 (1/2/3, 可空): 给档位时按该档配置的 Stripe
+  # 价格结账, 该档未配置价格时照未配置拒绝 (premiumComingSoon),
+  # 绝不回落到其他档或旧单价; 不给时走旧单价路径, 行为与分档前
+  # 逐字一致。
+  startPremiumCheckout(slug: String!, tier: Int): GuildAdminPayload!
   updateGuildVisibility(slug: String!, devOnly: Boolean!): GuildAdminPayload!
   # 头像以 base64 文本上传 (GraphQL 无二进制通道); 服务端解码后仍走
   # 与原直传相同的大小/魔数校验, 错误文案走 errors 目录。
