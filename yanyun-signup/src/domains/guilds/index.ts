@@ -7,6 +7,7 @@ export * from './announcements.ts';
 export * from './announcement-i18n.ts';
 export * from './recruit.ts';
 export * from './membernotes.ts';
+export * from './ops.ts';
 export * from './seasongoals.ts';
 export * from './guild-export.ts';
 export * from './whitelabel.ts';
