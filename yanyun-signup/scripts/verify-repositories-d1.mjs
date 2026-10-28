@@ -1257,6 +1257,63 @@ if (want('season')) {
   eq('delete entry own tenant', await rosterRepo.deleteGuildRosterEntry(db, 'alpha', ins1.id), true);
 }
 
+/* ---------------- availability + polls + custom fields (F5/F13/F7) ---------------- */
+if (want('schedule')) {
+  console.log('== availability + time_polls + custom fields repositories on real D1 ==');
+  const av = await import('../src/domains/groupings/availability.ts');
+  const pl = await import('../src/domains/groupings/polls.ts');
+  const cf = await import('../src/domains/groupings/customfields.ts');
+
+  await av.upsertMemberAvailability(db, { tenant: 'alpha', discordId: 'U1', displayName: '甲', slots: [{ weekday: 5, startMinute: 1140, endMinute: 1320 }], updatedAt: 1760000000 });
+  await av.upsertMemberAvailability(db, { tenant: 'alpha', discordId: 'U1', displayName: '甲', slots: [{ weekday: 6, startMinute: 600, endMinute: 720 }], updatedAt: 1760000100 });
+  const avRow = await av.getMemberAvailability(db, 'alpha', 'U1');
+  eq('availability upsert replaces the whole set', av.parseAvailabilitySlots(avRow?.slots_json), [{ weekday: 6, startMinute: 600, endMinute: 720 }]);
+  eq('availability is tenant-scoped', await av.getMemberAvailability(db, 'beta', 'U1'), null);
+  eq('guild availability list', (await av.listGuildAvailability(db, 'alpha')).map((r) => r.discord_id), ['U1']);
+  eq('guild availability list is tenant-scoped', (await av.listGuildAvailability(db, 'beta')).length, 0);
+
+  const p = await pl.insertTimePoll(db, { tenant: 'alpha', title: '开荒时间', status: 'open', created_by: 'U1', created_at: 1760000000, closed_at: null });
+  const pid = p.last_row_id;
+  const po1 = await pl.insertTimePollOption(db, { pollId: pid, startsAtUtc: 1760100000 });
+  const po2 = await pl.insertTimePollOption(db, { pollId: pid, startsAtUtc: 1760200000 });
+  eq('poll options roundtrip sorted', (await pl.listTimePollOptions(db, pid)).map((o) => o.starts_at_utc), [1760100000, 1760200000]);
+  eq('poll list is tenant-scoped', (await pl.listTimePolls(db, 'beta')).length, 0);
+  await pl.replaceTimePollVotes(db, { pollId: pid, discordId: 'U2', displayName: '乙', optionIds: [po1.last_row_id, po2.last_row_id] });
+  eq('multi-select votes stored', (await pl.listTimePollVotes(db, pid)).map((v) => v.option_id), [po1.last_row_id, po2.last_row_id]);
+  await pl.replaceTimePollVotes(db, { pollId: pid, discordId: 'U2', displayName: '乙', optionIds: [po2.last_row_id] });
+  eq('re-vote replaces the whole set', (await pl.listTimePollVotes(db, pid)).map((v) => v.option_id), [po2.last_row_id]);
+  let dupVoteThrew = false;
+  try {
+    await db.prepare('INSERT INTO time_poll_votes (poll_id, option_id, discord_id, display_name) VALUES (?, ?, ?, ?)').bind(pid, po2.last_row_id, 'U2', '乙').run();
+  } catch { dupVoteThrew = true; }
+  check('duplicate vote for one option is rejected by the schema', dupVoteThrew);
+  await pl.closeTimePoll(db, pid, 1760300000);
+  const closedPoll = await pl.getTimePoll(db, pid);
+  eq('close persists status + time', closedPoll && [closedPoll.status, closedPoll.closed_at], ['closed', 1760300000]);
+
+  // Custom fields + answers against a real event row (FK target).
+  const evRepo = await import('../src/domains/groupings/events.ts');
+  const evIns = await evRepo.insertEvent(db, { tenant: 'alpha', title: '字段车', type: 'activity', starts_at_utc: 1760400000, max_slots: 10, status: 'open', origin: 'member', creator_discord_id: 'U1' });
+  const evId = evIns.last_row_id;
+  await cf.replaceCustomFields(db, 'event', evId, [
+    { label: '联系方式', fieldType: 'text', options: [], required: true },
+    { label: '吃辣', fieldType: 'choice', options: ['辣', '不辣'], required: false },
+  ]);
+  const fieldRows = await cf.listCustomFields(db, 'event', evId);
+  eq('custom fields roundtrip', fieldRows.map((f) => f.label), ['联系方式', '吃辣']);
+  eq('custom fields are owner-scoped', (await cf.listCustomFields(db, 'template', evId)).length, 0);
+  await cf.insertSignupAnswer(db, { eventId: evId, signupUid: 'q1', fieldId: fieldRows[0].id, value: 'wx-1' });
+  eq('answers roundtrip', (await cf.listSignupAnswersByEvent(db, evId)).map((a) => a.value), ['wx-1']);
+  let dupAnsThrew = false;
+  try { await cf.insertSignupAnswer(db, { eventId: evId, signupUid: 'q1', fieldId: fieldRows[0].id, value: 'wx-2' }); }
+  catch { dupAnsThrew = true; }
+  check('duplicate answer for one field is rejected by the schema', dupAnsThrew);
+  await cf.deleteSignupAnswersByEventUid(db, evId, 'q1');
+  eq('answers delete with the seat uid', (await cf.listSignupAnswersByEvent(db, evId)).length, 0);
+  await cf.replaceCustomFields(db, 'event', evId, []);
+  eq('replace with empty set clears fields', (await cf.listCustomFields(db, 'event', evId)).length, 0);
+}
+
 await mf.dispose();
 console.log(`\n== verify-repositories-d1: ${pass} passed, ${fail} failed ==`);
 if (fail) { console.log('FAILS:', fails.join(' | ')); process.exit(1); }
