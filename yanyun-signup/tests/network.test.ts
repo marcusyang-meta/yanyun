@@ -20,13 +20,12 @@
 // Real yoga + real resolvers + FakeDB routed by SQL shape (the
 // recruit pattern).
 import { yoga } from '../src/graphql.ts';
+import { describe, it, expect, afterAll } from 'vitest';
 
-let pass = 0, fail = 0; const fails = [];
-function check(name, ok, extra = '') {
-  if (ok) pass++; else { fail++; fails.push(name + (extra ? ' — ' + extra : '')); }
-  console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${extra && !ok ? ' — ' + extra : ''}`);
+function check(name: string, ok: boolean, extra = '') {
+  expect(ok, extra ? `${name} — ${extra}` : name).toBe(true);
 }
-function eq(name, got, want) { check(name, JSON.stringify(got) === JSON.stringify(want), `got=${JSON.stringify(got)} want=${JSON.stringify(want)}`); }
+function eq(name: string, got: any, want: any) { check(name, JSON.stringify(got) === JSON.stringify(want), `got=${JSON.stringify(got)} want=${JSON.stringify(want)}`); }
 
 function toRawRows(sqlText, rows) {
   if (!rows || !rows.length) return [];
@@ -321,37 +320,59 @@ async function gql(query, { user = null, variables } = {}) {
 }
 const setPaygate = (on) => { tables.settings.set('|paygate_enabled', on ? '1' : ''); };
 
-/* ================= market page gates ================= */
+let r: any;
+let req1: any;
+
 const marketQ = `{ viewer { fillMarket(slug: "nettest") { __typename
   ... on FillMarketPage { slug guildName marketTitle supply { myOffer { id school } myInvites { id status } }
     demand { __typename ... on FillDemandSection { requests { id status } offers { id displayName school homeGuildName } }
       ... on FillDemandLocked { lockedTitle } } }
   ... on FillMarketLocked { slug lockedTitle } } } }`;
-let r = await gql(marketQ, { user: null });
+
+const alliesQ = `{ viewer { guildAllies(slug: "allytest") { __typename
+  ... on GuildAlliesPage { slug allies { slug name } adminSection { relations { id otherSlug status outgoing } candidates { slug } }
+    sharedGroupings { id hostSlug title visitorLeft joined } }
+  ... on GuildAlliesLocked { slug } } } }`;
+
+let offerB: any;
+
+let offerA: any;
+
+const marketQB = marketQ.replaceAll('nettest', 'allytest');
+
+let ally1: any;
+
+const createReqMut = `mutation($slug: String!, $gid: ID!, $role: String!) { createFillRequest(slug: $slug, groupingId: $gid, neededRole: $role) { ok errorCode request { id status neededRole } } }`;
+
+describe('network', () => {
+  it('market page gates', async () => {
+/* ================= market page gates ================= */
+r = await gql(marketQ, { user: null });
 eq('匿名 -> FillMarketLocked', r.data?.viewer?.fillMarket?.__typename, 'FillMarketLocked');
 r = await gql(marketQ, { user: OUTSIDER });
 eq('非成员 -> FillMarketLocked', r.data?.viewer?.fillMarket?.__typename, 'FillMarketLocked');
 r = await gql(marketQ, { user: MEMBER_A });
 eq('成员 -> FillMarketPage', r.data?.viewer?.fillMarket?.__typename, 'FillMarketPage');
 eq('paygate OFF: 已授予百业需求区直接合成 (hub 授予验档路径)', r.data?.viewer?.fillMarket?.demand?.__typename, 'FillDemandSection');
+  });
 
+  it('supply edge is FREE (paygate ON, guild below tier)', async () => {
 /* ================= supply edge is FREE (paygate ON, guild below tier) ================= */
 setPaygate(true);
 const publishMut = `mutation($slug: String!, $school: String!, $note: String) { publishFillOffer(slug: $slug, school: $school, windows: [{ weekday: 5, startMinute: 1140, endMinute: 1380 }], note: $note) { ok errorCode offer { id displayName school homeGuildName } } }`;
 r = await gql(publishMut, { user: SUPPLIER_B, variables: { slug: 'allytest', school: '牵丝·霖', note: '奶妈在线' } });
 eq('供给侧免费: 乙业 (T0) 成员在 paygate ON 时发布供给 ok', r.data?.publishFillOffer?.ok, true);
 eq('供给快照名 = 名册名', r.data?.publishFillOffer?.offer?.displayName, '乙业补位');
-const offerB = r.data?.publishFillOffer?.offer?.id;
+offerB = r.data?.publishFillOffer?.offer?.id;
 r = await gql(publishMut, { user: SUPPLIER_B, variables: { slug: 'allytest', school: '破竹·樽', note: '再发一份' } });
 eq('一人一份: 重复发布 -> fillOfferExists', r.data?.publishFillOffer?.errorCode, 'fillOfferExists');
 r = await gql(publishMut, { user: MEMBER_A, variables: { slug: 'nettest', school: '破竹·樽', note: '输出可补' } });
 eq('甲业成员发布供给 ok', r.data?.publishFillOffer?.ok, true);
-const offerA = r.data?.publishFillOffer?.offer?.id;
+offerA = r.data?.publishFillOffer?.offer?.id;
 r = await gql(publishMut, { user: OUTSIDER, variables: { slug: 'nettest', school: '破竹·樽', note: '' } });
 eq('非成员发布 -> memberOnly', r.data?.publishFillOffer?.errorCode, 'memberOnly');
 
 /* demand section: free guild locked, premium guild open */
-const marketQB = marketQ.replaceAll('nettest', 'allytest');
 r = await gql(marketQB, { user: MEMBER_B });
 eq('paygate ON + T0 百业: 需求区 FillDemandLocked', r.data?.viewer?.fillMarket?.demand?.__typename, 'FillDemandLocked');
 check('Locked 区零需求数据 (无 requests/offers 字段)', r.data?.viewer?.fillMarket?.demand?.requests === undefined && r.data?.viewer?.fillMarket?.demand?.offers === undefined);
@@ -359,9 +380,10 @@ r = await gql(marketQ, { user: MEMBER_A });
 eq('paygate ON + T3 百业: 需求区合成', r.data?.viewer?.fillMarket?.demand?.__typename, 'FillDemandSection');
 eq('需求区可浏览全市场供给 (含乙业供给)', (r.data?.viewer?.fillMarket?.demand?.offers || []).map((o) => o.displayName).sort(), ['乙业补位', '甲业成员']);
 check('供给公开面不含 discordId 字段', (r.data?.viewer?.fillMarket?.demand?.offers || []).every((o) => !('discordId' in o) && !('discord_id' in o)));
+  });
 
+  it('demand mutations: tier + manage verdicts', async () => {
 /* ================= demand mutations: tier + manage verdicts ================= */
-const createReqMut = `mutation($slug: String!, $gid: ID!, $role: String!) { createFillRequest(slug: $slug, groupingId: $gid, neededRole: $role) { ok errorCode request { id status neededRole } } }`;
 r = await gql(createReqMut, { user: ADMIN_B, variables: { slug: 'allytest', gid: '702', role: '奶' } });
 eq('T0 百业管理员发需求 -> premiumRequired', r.data?.createFillRequest?.errorCode, 'premiumRequired');
 r = await gql(createReqMut, { user: MEMBER_A, variables: { slug: 'nettest', gid: '701', role: '奶' } });
@@ -370,9 +392,11 @@ r = await gql(createReqMut, { user: ADMIN_B, variables: { slug: 'nettest', gid: 
 eq('乙业管理员对甲业车发需求 -> memberOnly (不串权)', r.data?.createFillRequest?.errorCode, 'memberOnly');
 r = await gql(createReqMut, { user: LEADER_A, variables: { slug: 'nettest', gid: '701', role: '奶' } });
 eq('车头对自己的车发需求 ok', r.data?.createFillRequest?.ok, true);
-const req1 = r.data?.createFillRequest?.request?.id;
+req1 = r.data?.createFillRequest?.request?.id;
 eq('需求状态 OPEN', r.data?.createFillRequest?.request?.status, 'OPEN');
+  });
 
+  it('invite -> accept -> manual seat', async () => {
 /* ================= invite -> accept -> manual seat ================= */
 const inviteMut = `mutation($slug: String!, $req: ID!, $offer: ID!) { inviteFillSupplier(slug: $slug, requestId: $req, offerId: $offer) { ok errorCode invite { id status toName } } }`;
 r = await gql(inviteMut, { user: MEMBER_A, variables: { slug: 'nettest', req: req1, offer: offerB } });
@@ -426,12 +450,10 @@ r = await gql(closeMut, { user: LEADER_A, variables: { slug: 'nettest', req: req
 eq('车头关闭已撮合需求 ok', r.data?.closeFillRequest?.ok, true);
 r = await gql(closeMut, { user: LEADER_A, variables: { slug: 'nettest', req: req1 } });
 eq('重复关闭 -> fillRequestNotOpen', r.data?.closeFillRequest?.errorCode, 'fillRequestNotOpen');
+  });
 
+  it('P20: alliance lifecycle', async () => {
 /* ================= P20: alliance lifecycle ================= */
-const alliesQ = `{ viewer { guildAllies(slug: "allytest") { __typename
-  ... on GuildAlliesPage { slug allies { slug name } adminSection { relations { id otherSlug status outgoing } candidates { slug } }
-    sharedGroupings { id hostSlug title visitorLeft joined } }
-  ... on GuildAlliesLocked { slug } } } }`;
 r = await gql(alliesQ, { user: null });
 eq('匿名盟友页 -> GuildAlliesLocked', r.data?.viewer?.guildAllies?.__typename, 'GuildAlliesLocked');
 r = await gql(alliesQ, { user: MEMBER_B });
@@ -446,7 +468,7 @@ r = await gql(inviteAllyMut, { user: ADMIN_B, variables: { slug: 'allytest', tar
 eq('与自己结盟 -> allianceSelf', r.data?.inviteAlliance?.errorCode, 'allianceSelf');
 r = await gql(inviteAllyMut, { user: ADMIN_B, variables: { slug: 'allytest', target: 'nettest' } });
 eq('乙业管理员向甲业发起结盟 ok', r.data?.inviteAlliance?.ok, true);
-const ally1 = r.data?.inviteAlliance?.alliance?.id;
+ally1 = r.data?.inviteAlliance?.alliance?.id;
 eq('结盟待确认 PENDING', r.data?.inviteAlliance?.alliance?.status, 'PENDING');
 eq('关系对称存储: 一行 (low, high) 排序', [tables.alliances[0].guild_low, tables.alliances[0].guild_high], ['allytest', 'nettest']);
 r = await gql(inviteAllyMut, { user: ADMIN_A, variables: { slug: 'nettest', target: 'allytest' } });
@@ -462,7 +484,9 @@ eq('甲业管理员接受 ok', r.data?.respondAlliance?.ok, true);
 eq('结盟生效 ACTIVE', r.data?.respondAlliance?.alliance?.status, 'ACTIVE');
 r = await gql(alliesQ, { user: MEMBER_B });
 eq('结盟后盟友列表含甲业', (r.data?.viewer?.guildAllies?.allies || []).map((a) => a.slug), ['nettest']);
+  });
 
+  it('P20: sharing + visitor seats', async () => {
 /* ================= P20: sharing + visitor seats ================= */
 const shareMut = `mutation($slug: String!, $gid: ID!, $vis: Boolean!, $slots: Int!) { setGroupingAllySharing(slug: $slug, groupingId: $gid, allyVisible: $vis, visitorSlots: $slots) { ok errorCode } }`;
 r = await gql(shareMut, { user: MEMBER_A, variables: { slug: 'nettest', gid: '701', vis: true, slots: 1 } });
@@ -515,6 +539,6 @@ eq('重复解除 -> allianceNotActive', r.data?.endAlliance?.errorCode, 'allianc
 setPaygate(false);
 r = await gql(createReqMut, { user: ADMIN_B, variables: { slug: 'allytest', gid: '702', role: '输出' } });
 eq('paygate OFF: T0 百业管理员发需求仍被档位拦 (F0 定版: tierLocked 纯权益判定)', r.data?.createFillRequest?.errorCode, 'premiumRequired');
+  });
 
-console.log(`\n== network harness: pass=${pass} fail=${fail} ==`);
-if (fails.length) { console.log('FAILS:\n' + fails.map((f) => ' - ' + f).join('\n')); process.exit(1); }
+});

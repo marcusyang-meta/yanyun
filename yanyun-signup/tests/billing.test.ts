@@ -35,6 +35,7 @@ import {
   premiumGate, isPremiumActive, handleStripeEvent,
   grantTrialEntitlement, persistenceCardRequired, PREMIUM_PLANS,
 } from '../src/domains/platform/billing-service.ts';
+const { upsertEntitlementRow: upsertTierRow } = await import('../src/domains/platform/billing.ts');
 import { getEffectiveLimits } from '../src/domains/platform/limits.ts';
 import { getEntitlementRow } from '../src/domains/platform/billing.ts';
 
@@ -114,7 +115,23 @@ async function hub(path, method = 'GET', body) {
 let r: any;
 let h: any;
 let eff: any;
-let nowS: number;
+let nowS: number = Math.floor(Date.now() / 1000);
+const TSLUG = 'tierguild';
+await insertTenant(db, { slug: TSLUG, guildName: '档位测试百业', passwordHash: '', announcement: '' });
+const GSLUG = 'graceguild';
+await insertTenant(db, { slug: GSLUG, guildName: '宽限测试百业', passwordHash: '', announcement: '' });
+const FUTURE = nowS + 30 * 86400;
+const PAST = nowS - 100;
+async function setStoredPlan(plan, periodEnd, extra = {}) {
+  if (plan === null) {
+    await db.prepare('DELETE FROM guild_entitlements WHERE tenant = ?').bind(TSLUG).run();
+    return;
+  }
+  await upsertTierRow(db, {
+    tenant: TSLUG, plan, source: 'manual', currentPeriodEnd: periodEnd,
+    stripeCustomerId: extra.cus || '', stripeSubscriptionId: extra.sub || '', updatedAt: nowS,
+  });
+}
 
 describe('billing', () => {
   it('A. paygate OFF: identical to pre-billing', async () => {
@@ -354,21 +371,6 @@ eq('OFF again: stats full', ga(r)?.stats?.__typename, 'GuildAdminStats');
  * paygate switch does not move it — while premiumGate /
  * isPremiumActive keep their pre-tier semantics verbatim (a t3 guild
  * is NOT legacy-premium for those gates). */
-const TSLUG = 'tierguild';
-await insertTenant(db, { slug: TSLUG, guildName: '档位测试百业', passwordHash: '', announcement: '' });
-const { upsertEntitlementRow: upsertTierRow } = await import('../src/domains/platform/billing.ts');
-const FUTURE = nowS + 30 * 86400;
-const PAST = nowS - 100;
-async function setStoredPlan(plan, periodEnd, extra = {}) {
-  if (plan === null) {
-    await db.prepare('DELETE FROM guild_entitlements WHERE tenant = ?').bind(TSLUG).run();
-    return;
-  }
-  await upsertTierRow(db, {
-    tenant: TSLUG, plan, source: 'manual', currentPeriodEnd: periodEnd,
-    stripeCustomerId: extra.cus || '', stripeSubscriptionId: extra.sub || '', updatedAt: nowS,
-  });
-}
 // [label, stored plan, period end, expected tier, locked by minTier 1/2/3]
 const tierCases = [
   ['no row', null, null, 0, [true, true, true]],
@@ -461,6 +463,7 @@ h = await hub('/api/hub/billing/grant', 'POST', { slug: TSLUG, days: 30 });
 }
   });
 
+  it('J. pricing surface: names + prices, gate-kept', async () => {
 /* ---------------- J. pricing surface: names + prices, gate-kept ----------------
  * The settled catalog (theme-B names, $3.99/$5.99/$7.99 monthly)
  * composes ONLY on the GuildAdminPremiumLocked pricing surface,
@@ -507,10 +510,10 @@ h = await hub('/api/hub/billing');
 }
 h = await hub('/api/hub/billing/paygate', 'PUT', { enabled: false });
 eq('pricing section: paygate back off', h.json?.billing?.paygateEnabled, false);
+  });
 
+  it('K. past-due grace matrix (stripe only, 14 days)', async () => {
 /* ---------------- K. past-due grace matrix (stripe only, 14 days) ---------------- */
-const GSLUG = 'graceguild';
-await insertTenant(db, { slug: GSLUG, guildName: '宽限测试百业', passwordHash: '', announcement: '' });
 const G_END = nowS + 30 * 86400;
 await upsertTierRow(db, {
   tenant: GSLUG, plan: 't2', source: 'stripe', currentPeriodEnd: G_END,
@@ -566,7 +569,9 @@ await handleStripeEvent(envStripe, {
 }
 eff = await getEffectiveEntitlement(db, TSLUG, nowS + 13 * 86400);
 eq('grace: manual lapsed at period end, no window', [eff.plan, eff.tier, eff.lapsed, eff.pastDue], ['free', 0, true, false]);
+  });
 
+  it('L. trial grant + persistence-card verdict', async () => {
 /* ---------------- L. trial grant + persistence-card verdict ---------------- */
 const RSLUG = 'trialguild';
 await insertTenant(db, { slug: RSLUG, guildName: '试用测试百业', passwordHash: '', announcement: '' });
@@ -650,7 +655,9 @@ eq('hub subdomain: manual guild enabled without a card', [h.status, h.json?.ok],
     effFresh.currentPeriodEnd != null && effFresh.currentPeriodEnd > nowS + 13 * 86400,
     String(effFresh.currentPeriodEnd));
 }
+  });
 
+  it('M. tier price mapping (checkout + webhook)', async () => {
 /* ---------------- M. tier price mapping (checkout + webhook) ----------------
  * Forward: a tier checkout charges that tier's configured price;
  * a tier without a price key is refused as unconfigured and no
@@ -775,8 +782,7 @@ await grantPremiumManual(db, SLUG, 30);
   eq('limits seam: tier-3 table with paygate OFF (pure entitlement read)',
     [lim.gearItemCapacity, lim.ocrBatchImages, lim.ocrBatchesPerDay], [5000, 100, 100]);
 }
+  });
 
-console.log(`\nBILLING pass=${pass} fail=${fail}`);
-if (fails.length) console.log('FAILS:\n' + fails.join('\n'));
-await mf.dispose();
-process.exit(fail ? 1 : 0);
+  afterAll(async () => { await mf.dispose(); });
+});

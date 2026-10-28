@@ -47,13 +47,12 @@ import { Hono } from 'hono';
 import { mintShortLink } from '../src/domains/groupings/shortlinks.ts';
 import { buildReminderMessage } from '../src/domains/groupings/reminder.ts';
 import { BACKUP_ENTITIES, exportBackup } from '../src/domains/platform/backup.ts';
+import { describe, it, expect, afterAll } from 'vitest';
 
-let pass = 0, fail = 0; const fails = [];
-function check(name, ok, extra = '') {
-  if (ok) pass++; else { fail++; fails.push(name + (extra ? ' — ' + extra : '')); }
-  console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${extra && !ok ? ' — ' + extra : ''}`);
+function check(name: string, ok: boolean, extra = '') {
+  expect(ok, extra ? `${name} — ${extra}` : name).toBe(true);
 }
-function eq(name, got, want) { check(name, got === want, `got=${JSON.stringify(got)} want=${JSON.stringify(want)}`); }
+function eq(name: string, got: any, want: any) { check(name, got === want, `got=${JSON.stringify(got)} want=${JSON.stringify(want)}`); }
 
 function toRawRows(sqlText, rows) {
   if (!rows || !rows.length) return [];
@@ -267,6 +266,24 @@ const ADMIN = { discordId: 'UA', name: '服主', guilds: [DGID] };
 const MEMBER = { discordId: 'UB', name: '成员', guilds: [DGID] };
 const SEAM_ENV = { SAAS_FALLBACK_ORIGIN: 'fallback.yanyun.app' };
 
+let r: any;
+let dnsTable: any;
+
+const realFetch = globalThis.fetch;
+
+const callSeam = (url) => worker.fetch(new Request(url), envSeam, wctx);
+
+let worker: any;
+
+let envSeam: any;
+
+let wctx: any;
+
+let res: any;
+let g: any;
+
+describe('customdomain', () => {
+  it('A. validation matrix', async () => {
 /* ---------------- A. validation matrix ---------------- */
 const V = (h) => validateCustomDomainHostname(h);
 eq('合法 www 子域', V('www.guild-a.com').ok, true);
@@ -291,7 +308,9 @@ eq('workers.dev 保留', V('release-yanyun.tbdlab.workers.dev').code, 'customDom
 eq('localhost 保留', V('localhost').code, 'customDomainInvalid');
 eq('.local 保留', V('guild.local').code, 'customDomainReserved');
 eq('.test 保留', V('guild.test').code, 'customDomainReserved');
+  });
 
+  it('B. candidate hosts', async () => {
 /* ---------------- B. candidate hosts ---------------- */
 eq('apex 非候选', isCustomDomainCandidateHost('yanyun.app'), false);
 eq('平台子域非候选', isCustomDomainCandidateHost('subtest.yanyun.app'), false);
@@ -299,9 +318,11 @@ eq('workers.dev 非候选', isCustomDomainCandidateHost('release-yanyun.tbdlab.w
 eq('localhost 非候选', isCustomDomainCandidateHost('localhost'), false);
 eq('IP 非候选', isCustomDomainCandidateHost('203.0.113.7'), false);
 eq('外部域名是候选', isCustomDomainCandidateHost('www.guild-a.com'), true);
+  });
 
+  it('C. bind service', async () => {
 /* ---------------- C. bind service ---------------- */
-let r = await bindCustomDomain(A.db, 'guild-a', 'www.guild-a.com', 'UA', NOW);
+r = await bindCustomDomain(A.db, 'guild-a', 'www.guild-a.com', 'UA', NOW);
 eq('绑定成功', r.ok, true);
 eq('绑定初始 pending', r.binding.status, 'pending');
 check('所有权令牌 = 32 hex', /^[0-9a-f]{32}$/.test(r.binding.verifyToken), r.binding.verifyToken);
@@ -323,7 +344,9 @@ eq('指引 CNAME 名 = 域名', guide.cnameName, 'www.guild-a.com');
 eq('指引 CNAME 值 = fallback', guide.cnameValue, 'fallback.yanyun.app');
 eq('指引 TXT 名', guide.txtName, '_yanyun-verify.www.guild-a.com');
 eq('指引 TXT 值 = 令牌', guide.txtValue, (await getCustomDomainByTenant(A.db, 'guild-a')).verifyToken);
+  });
 
+  it('D. seam + DNS verification', async () => {
 /* ---------------- D. seam + DNS verification ---------------- */
 eq('接缝未配置判定', customDomainSaasConfigured({}), false);
 eq('接缝已配置判定', customDomainSaasConfigured(SEAM_ENV), true);
@@ -335,8 +358,7 @@ v = await verifyCustomDomainBinding(A.db, 'guild-b', SEAM_ENV, NOW);
 eq('未绑定: none', v.outcome, 'none');
 
 /* DNS stub: CNAME/TXT answers keyed by "name|type" */
-const dnsTable = new Map();
-const realFetch = globalThis.fetch;
+dnsTable = new Map();
 globalThis.fetch = async (input) => {
   const u = new URL(String(typeof input === 'string' ? input : input.url));
   if (u.hostname === 'cloudflare-dns.com') {
@@ -371,7 +393,9 @@ eq('active 同名重绑 = 无操作成功', r.ok && r.binding.status, 'active');
  * verdict, so the resolution matrix below runs with guild-a
  * granted (legacy premium maps to tier 3). */
 await grantPremiumManual(A.db, 'guild-a', 30);
+  });
 
+  it('E. lookup + worker resolution', async () => {
 /* ---------------- E. lookup + worker resolution ---------------- */
 eq('未知域名 lookup = null (回退现状)', await lookupGuildCustomDomainHost(A.db, 'www.unknown-guild.com', true), null);
 eq('active + 接缝通 lookup', (await lookupGuildCustomDomainHost(A.db, 'www.guild-a.com', true))?.kind, 'active');
@@ -383,14 +407,13 @@ const assets = { fetch: async (req) => {
   if (p === '/index.html') return new Response('<html><head></head><body>SPA-INDEX</body></html>', { status: 200, headers: { 'content-type': 'text/html' } });
   return new Response('not found', { status: 404 });
 } };
-const worker = (await import('../src/worker.ts')).default;
-const wctx = { waitUntil() {} };
-const envSeam = { DB: A.db, ASSETS: assets, SAAS_FALLBACK_ORIGIN: 'fallback.yanyun.app' };
+worker = (await import('../src/worker.ts')).default;
+wctx = { waitUntil() {} };
+envSeam = { DB: A.db, ASSETS: assets, SAAS_FALLBACK_ORIGIN: 'fallback.yanyun.app' };
 const envNoSeam = { DB: A.db, ASSETS: assets };
-const callSeam = (url) => worker.fetch(new Request(url), envSeam, wctx);
 const callNoSeam = (url) => worker.fetch(new Request(url), envNoSeam, wctx);
 
-let res = await callSeam('https://www.guild-a.com/');
+res = await callSeam('https://www.guild-a.com/');
 eq('自定义域名 / -> 200', res.status, 200);
 let html = await res.text();
 check('自定义域名根 og:url = 该域名根', html.includes('<meta property="og:url" content="https://www.guild-a.com/" />'), html.slice(0, 400));
@@ -428,7 +451,9 @@ res = await callSeam('https://subtest.yanyun.app/');
 eq('子域回归: 已开子域 -> 200', res.status, 200);
 await res.text();
 eq('子域解析回归', await resolveGuildSubdomain(A.db, 'subtest.yanyun.app'), 'subtest');
+  });
 
+  it('F. tier matrix (F0 pure verdict)', async () => {
 /* ---------------- F. tier matrix (F0 pure verdict) ---------------- */
 eq('有权益: tierLocked(3) 不锁', await tierLocked(A.db, 'guild-a', 3), false);
 eq('有权益: active 判定 live', await isCustomDomainLive(A.db, await getCustomDomainByTenant(A.db, 'guild-a')), true);
@@ -455,7 +480,9 @@ eq('再授予后恢复 live (供组合点与 hub 段)', await isCustomDomainLive
 A.tables.settings.set('guild-a|dev_only', '1');
 eq('dev_only 百业自定义域名永不 live', await isCustomDomainLive(A.db, await getCustomDomainByTenant(A.db, 'guild-a')), false);
 A.tables.settings.delete('guild-a|dev_only');
+  });
 
+  it('G. GraphQL admin surface', async () => {
 /* ---------------- G. GraphQL admin surface ---------------- */
 async function gql(query, { user = null, variables, env = {} } = {}) {
   const ctx = { env: { DB: A.db, ...env }, request: new Request('https://yanyun.app/graphql'), user, locale: 'zh-CN', browserLocale: 'zh-CN', tz: 'Asia/Shanghai', executionCtx: undefined };
@@ -474,7 +501,7 @@ const cdQ = cdQFor('guild-b');
  * the tier-lock sub-section below revokes guild-b on purpose. */
 await grantPremiumManual(A.db, 'guild-b', 30);
 await grantPremiumManual(A.db, 'guild-c', 30);
-let g = await gql(cdQFor('guild-c'), { user: ADMIN });
+g = await gql(cdQFor('guild-c'), { user: ADMIN });
 eq('未绑定: 变体为完整壳', g.data?.viewer?.guildAdmin?.customDomain?.__typename, 'GuildAdminCustomDomain');
 eq('未绑定: status NONE', g.data?.viewer?.guildAdmin?.customDomain?.status, 'NONE');
 eq('未绑定: hostname null', g.data?.viewer?.guildAdmin?.customDomain?.hostname, null);
@@ -536,7 +563,9 @@ eq('解绑 ok', g.data?.removeGuildCustomDomain?.ok, true);
 eq('解绑后记录删除', await getCustomDomainByTenant(A.db, 'guild-b'), null);
 g = await gql(verifyM, { user: ADMIN, variables: { slug: 'guild-b' }, env: SEAM_ENV });
 eq('解绑后验证 -> notBound', g.data?.verifyGuildCustomDomain?.errorCode, 'customDomainNotBound');
+  });
 
+  it('H. composition points', async () => {
 /* ---------------- H. composition points ---------------- */
 const link = await mintShortLink(A.db, 'guild-a', 7);
 const msgCustom = await buildReminderMessage(A.db, A.tables.events.find((e) => e.id === 7), 'guild-a', NOW);
@@ -561,7 +590,9 @@ await res.text();
 res = await callSeam(`https://yanyun.app/c/${link.code}`);
 eq('主域短链落点不变', res.headers.get('location'), 'https://yanyun.app/guild-a/car/7');
 await res.text();
+  });
 
+  it('I. hub platform surface', async () => {
 /* ---------------- I. hub platform surface ---------------- */
 const hubApp = new Hono();
 hubApp.use('*', async (c, next) => { c.set('ip', '127.0.0.1'); await next(); });
@@ -603,13 +634,16 @@ await verifyCustomDomainBinding(A.db, 'guild-a', SEAM_ENV, NOW + 300);
 eq('重验后恢复 active', (await getCustomDomainByTenant(A.db, 'guild-a')).status, 'active');
 
 check('无未路由 SQL (备份全表导出前)', A.unknownSql.size === 0, [...A.unknownSql].join(' | '));
+  });
 
+  it('J. backup coverage', async () => {
 /* ---------------- J. backup coverage ---------------- */
 check('备份清单含 guild_custom_domains', BACKUP_ENTITIES.some(([k]) => k === 'guild_custom_domains'));
 const backup = await exportBackup(A.db).catch(() => null);
 eq('备份导出含绑定行', backup?.entities?.guild_custom_domains?.count, 1);
 
 globalThis.fetch = realFetch;
+  });
 
-console.log(`\n== customdomain harness: ${pass} passed, ${fail} failed ==`);
-if (fails.length) { console.log('FAILS:\n' + fails.map((f) => ' - ' + f).join('\n')); process.exit(1); }
+  afterAll(async () => { globalThis.fetch = realFetch; });
+});

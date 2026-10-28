@@ -25,13 +25,12 @@
 // Real yoga + real resolvers + FakeDB routing by SQL shape into
 // in-memory tables (same pattern as .harness-announcements).
 import { yoga } from '../src/graphql.ts';
+import { describe, it, expect, afterAll } from 'vitest';
 
-let pass = 0, fail = 0; const fails = [];
-function check(name, ok, extra = '') {
-  if (ok) pass++; else { fail++; fails.push(name + (extra ? ' — ' + extra : '')); }
-  console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${extra && !ok ? ' — ' + extra : ''}`);
+function check(name: string, ok: boolean, extra = '') {
+  expect(ok, extra ? `${name} — ${extra}` : name).toBe(true);
 }
-function eq(name, got, want) { check(name, JSON.stringify(got) === JSON.stringify(want), `got=${JSON.stringify(got)} want=${JSON.stringify(want)}`); }
+function eq(name: string, got: any, want: any) { check(name, JSON.stringify(got) === JSON.stringify(want), `got=${JSON.stringify(got)} want=${JSON.stringify(want)}`); }
 
 function toRawRows(sqlText, rows) {
   if (!rows || !rows.length) return [];
@@ -277,6 +276,8 @@ eq('发布公告 ok', post.data?.postGuildAnnouncement?.ok, true);
 const annId = post.data?.postGuildAnnouncement?.announcement?.id;
 await Promise.all(pending);
 
+describe('announcement-i18n', () => {
+  it('State A: no entitlement (tier < T2)', async () => {
 /* ================= State A: no entitlement (tier < T2) ================= */
 {
   const page = await adminPage();
@@ -297,7 +298,9 @@ await Promise.all(pending);
   eq('无档位: isTranslated=false', item?.isTranslated, false);
   eq('无档位: 来源标记为原文', item?.contentSourceLabel, '原文');
 }
+  });
 
+  it('State B: tier >= T2, AI binding missing (paygate still OFF)', async () => {
 /* ================= State B: tier >= T2, AI binding missing (paygate still OFF) ================= */
 state.entitlements.set('alpha', {
   tenant: 'alpha', plan: 'premium', source: 'manual', current_period_end: null,
@@ -314,7 +317,9 @@ state.entitlements.set('alpha', {
   eq('未配置: 生成 -> translationNotConfigured', g.data?.generateGuildAnnouncementTranslations?.errorCode, 'translationNotConfigured');
   eq('未配置: AI 零调用', aiCalls.length, 0);
 }
+  });
 
+  it('State C: tier >= T2 + AI binding stub (paygate still OFF)', async () => {
 /* ================= State C: tier >= T2 + AI binding stub (paygate still OFF) ================= */
 env.AI = aiStub();
 {
@@ -383,5 +388,7 @@ env.AI = aiStub();
 }
 
 globalThis.fetch = realFetch;
-console.log(`\n== announcement-i18n harness: ${pass} pass, ${fail} fail ==`);
-if (fails.length) { console.log(fails.join('\n')); process.exit(1); }
+  });
+
+  afterAll(async () => { globalThis.fetch = realFetch; });
+});

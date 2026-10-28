@@ -26,13 +26,12 @@ import { yoga } from '../src/graphql.ts';
 import { typeDefs } from '../src/graphql-schema.ts';
 import { weekWindowUtc } from '../src/domains/platform/index.ts';
 import { evaluateChurnRisk, planRollover } from '../src/domains/guilds/ops.ts';
+import { describe, it, expect, afterAll } from 'vitest';
 
-let pass = 0, fail = 0; const fails = [];
-function check(name, ok, extra = '') {
-  if (ok) pass++; else { fail++; fails.push(name + (extra ? ' — ' + extra : '')); }
-  console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${extra && !ok ? ' — ' + extra : ''}`);
+function check(name: string, ok: boolean, extra = '') {
+  expect(ok, extra ? `${name} — ${extra}` : name).toBe(true);
 }
-function eq(name, got, want) { check(name, JSON.stringify(got) === JSON.stringify(want), `got=${JSON.stringify(got)} want=${JSON.stringify(want)}`); }
+function eq(name: string, got: any, want: any) { check(name, JSON.stringify(got) === JSON.stringify(want), `got=${JSON.stringify(got)} want=${JSON.stringify(want)}`); }
 
 function toRawRows(sqlText, rows) {
   if (!rows || !rows.length) return [];
@@ -307,6 +306,17 @@ async function gql(query, { user = adminA, variables } = {}) {
   return res.json();
 }
 
+const getOps = (user = adminA) => gql(opsQ, { user, variables: { slug: 'alpha' } });
+
+const opsQ = `query($slug: String!) { viewer { guildAdmin(slug: $slug) { __typename
+  ... on GuildAdmin { adminTabOpsLabel ops { __typename
+    ... on GuildAdminOps { title churnRisks { discordId baselineCount recentCount missStreak }
+      rollover { pendingCount totalCount copiedCount targetSeasonKey }
+      contributionRules { actionKey points enabled } contributionBoard { discordId totalPoints } }
+    ... on GuildAdminOpsLocked { premiumTitle premiumBody } } } } } }`;
+
+describe('ops', () => {
+  it('pure-rule unit checks', async () => {
 /* ============ pure-rule unit checks ============ */
 {
   check('P11 纯规则: 基线不足不报 (新人)', evaluateChurnRisk({ discordId: 'x', baselineCount: 1, recentCount: 0, missStreak: 6, lastParticipationAt: null }) === false);
@@ -319,15 +329,10 @@ async function gql(query, { user = adminA, variables } = {}) {
   ], 'S9');
   eq('P12 纯计划: 已有副本的名不再迁', [plan.pendingTemplateIds, plan.alreadyCopied], [[2], 1]);
 }
+  });
 
+  it('tier matrix', async () => {
 /* ============ tier matrix ============ */
-const opsQ = `query($slug: String!) { viewer { guildAdmin(slug: $slug) { __typename
-  ... on GuildAdmin { adminTabOpsLabel ops { __typename
-    ... on GuildAdminOps { title churnRisks { discordId baselineCount recentCount missStreak }
-      rollover { pendingCount totalCount copiedCount targetSeasonKey }
-      contributionRules { actionKey points enabled } contributionBoard { discordId totalPoints } }
-    ... on GuildAdminOpsLocked { premiumTitle premiumBody } } } } } }`;
-const getOps = (user = adminA) => gql(opsQ, { user, variables: { slug: 'alpha' } });
 const opsType = async () => (await getOps()).data?.viewer?.guildAdmin?.ops?.__typename;
 /* The single tier source: the entitlement row's plan value. */
 const setPlan = (plan, daysAhead = 30) => {
@@ -363,7 +368,9 @@ const setPlan = (plan, daysAhead = 30) => {
   setPlan('t2');
   state.settings.delete('|paygate_enabled');
 }
+  });
 
+  it('P11 churn over the fixture', async () => {
 /* ============ P11 churn over the fixture ============ */
 {
   const r = await getOps();
@@ -374,7 +381,9 @@ const setPlan = (plan, daysAhead = 30) => {
   const r4 = risks.find((x) => x.discordId === 'R4');
   eq('连缺君证据 (连缺4: 近期三场+基线末场)', [r4.baselineCount, r4.recentCount, r4.missStreak], [3, 2, 4]);
 }
+  });
 
+  it('P8 preview + send + frequency', async () => {
 /* ============ P8 preview + send + frequency ============ */
 const previewQ = `query($slug: String!, $e: Int!, $k: String!, $v: String) {
   targetedNudgePreview(slug: $slug, eventId: $e, segmentKind: $k, segmentValue: $v) { __typename
@@ -409,7 +418,9 @@ const { open1, open2, open3, open4 } = state.fixtureIds;
   const sMember = await gql(sendM, { user: member1, variables: { slug: 'alpha', e: open4, k: 'all', v: '' } });
   eq('P8 发送: 非管理员 -> adminOnly', sMember.data?.sendTargetedNudge?.errorCode, 'adminOnly');
 }
+  });
 
+  it('P12 rollover: preview == execute, idempotent', async () => {
 /* ============ P12 rollover: preview == execute, idempotent ============ */
 const rollM = `mutation($slug: String!) { executeSeasonRollover(slug: $slug) { ok errorCode copiedCount } }`;
 {
@@ -426,7 +437,9 @@ const rollM = `mutation($slug: String!) { executeSeasonRollover(slug: $slug) { o
   const ex2 = await gql(rollM, { variables: { slug: 'alpha' } });
   eq('P12 二次执行零拷贝 (幂等)', ex2.data?.executeSeasonRollover?.copiedCount, 0);
 }
+  });
 
+  it('P14 points: watermark, accrual, rules, self view', async () => {
 /* ============ P14 points: watermark, accrual, rules, self view ============ */
 const ruleM = `mutation($slug: String!, $a: String!, $p: Int!, $e: Boolean!) {
   updateContributionRule(slug: $slug, actionKey: $a, points: $p, enabled: $e) { ok errorCode } }`;
@@ -485,13 +498,15 @@ const myQ = `query($slug: String!) { myContribution(slug: $slug) { __typename
   const notMine = await gql(myQ, { user: outsider, variables: { slug: 'alpha' } });
   eq('P14 非成员 -> Locked', notMine.data?.myContribution?.__typename, 'MyContributionLocked');
 }
+  });
 
+  it('SDL shape', async () => {
 /* ============ SDL shape ============ */
 {
   check('SDL: ops 只挂 GuildAdmin', (typeDefs.match(/ops: GuildAdminOpsResult!/g) || []).length === 1);
   check('SDL: 无物资/捐献概念', !/donation|物资|捐献/.test(typeDefs.replace(/贡献积分/g, '')));
   check('无未路由 SQL 泄漏 (近似): 引擎表名只出现在迁移与仓储', true);
 }
+  });
 
-console.log(`\nOPS pass=${pass} fail=${fail}`);
-if (fail) { console.log('FAILURES:\n' + fails.join('\n')); process.exit(1); }
+});
