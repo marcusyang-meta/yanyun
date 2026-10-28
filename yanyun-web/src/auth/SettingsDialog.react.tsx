@@ -664,12 +664,12 @@ function SettingsDialogInner({ onClose, user, initialFlow, initialPage }: {
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             width: '100%', textAlign: 'left', padding: '11px 16px', borderRadius: 10, cursor: 'pointer',
-            background: 'rgba(255,255,255,.02)', border: '1px solid rgba(67,160,134,.25)',
+            background: 'rgba(255,255,255,.02)', border: '1px solid rgba(201,163,92,.25)',
             color: theme.paper, fontSize: 14.5, marginTop: 8,
           }}
         >
           <span>{page.availabilityTitle}</span>
-          <span style={{ color: theme.accent, fontSize: 19, lineHeight: 1 }}>›</span>
+          <span style={{ color: theme.gold, fontSize: 19, lineHeight: 1 }}>›</span>
         </button>
         <button
           data-feedback-entry
@@ -1042,7 +1042,7 @@ function SettingsDialogInner({ onClose, user, initialFlow, initialPage }: {
         <div
           data-availability-back
           onClick={popPage}
-          style={{ color: theme.accent, fontSize: 24, lineHeight: 1, cursor: 'pointer', padding: '0 8px 10px 0', width: 32 }}
+          style={{ color: theme.gold, fontSize: 24, lineHeight: 1, cursor: 'pointer', padding: '0 8px 10px 0', width: 32 }}
         >‹</div>
       )}
       <div style={{ color: theme.muted, fontSize: 13, lineHeight: 1.7, marginBottom: 18 }}>{page.availabilityHint}</div>

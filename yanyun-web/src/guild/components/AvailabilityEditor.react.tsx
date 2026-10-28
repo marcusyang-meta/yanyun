@@ -96,12 +96,12 @@ export interface AvailabilityEditorText {
 }
 
 const inputStyle: React.CSSProperties = {
-  background: '#1e1b15', border: '1px solid rgba(67,160,134,.3)', color: theme.paper,
+  background: '#1e1b15', border: '1px solid rgba(201,163,92,.3)', color: theme.paper,
   borderRadius: 8, padding: '9px 10px', fontSize: 14, boxSizing: 'border-box',
 };
 const ghostBtn: React.CSSProperties = {
   padding: '8px 14px', borderRadius: 8, cursor: 'pointer', background: 'transparent',
-  border: `1px solid ${theme.accent}`, color: theme.accentHi, fontSize: 13, whiteSpace: 'nowrap',
+  border: `1px solid ${theme.gold}`, color: theme.goldHi, fontSize: 13, whiteSpace: 'nowrap',
 };
 
 export default function AvailabilityEditor({ slug, initialSlots, text }: {
