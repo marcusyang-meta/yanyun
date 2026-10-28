@@ -146,12 +146,18 @@ export class ViewerShell extends ShellBase {
   }
   async genPublicGuilds(){
     return this.memo('publicGuilds', async () => {
+      // Unbound guilds are served as the public read-only type — to
+      // signed-in viewers. Anonymous gets an empty list (access
+      // ruling, 2026-10-28: non-shared links require login, so an
+      // unbound guild no longer appears in anonymous compositions;
+      // the homepage recruit directory is a separate surface and
+      // lists bound, recruiting guilds only).
+      if (!this.ctx.user) return [];
       const results = await listTenantSlugs(this.db);
       const out = [];
       for (const t of results || []) {
         const a = await getGuildAccess(this.db, this.ctx.user, t.slug, this.ctx.request);
-        // Unbound guilds are served as the public read-only type
-        if (a.exists && !a.bound) out.push(guildResult(this.ctx, a));
+        if (a.exists && !a.bound && a.canView) out.push(guildResult(this.ctx, a));
       }
       return out;
     });

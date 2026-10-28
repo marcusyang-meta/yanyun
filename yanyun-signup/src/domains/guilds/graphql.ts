@@ -297,6 +297,7 @@ export class HubPageShell extends ShellBase {
       const db = this.db;
       const results = await listTenantsDirectory(db);
       // Bound guilds are visible only to members of their Discord server: anonymous users and non-members are filtered out at this layer.
+      // Unbound guilds are visible to signed-in viewers only (access ruling, 2026-10-28: non-shared links require login).
       const bindRows = await listSettingsByKey(db, 'discord_guild_id').catch(() => []);
       const bindMap: Record<string, any> = {};
       for (const r of bindRows || []) if (r.value) bindMap[r.tenant] = String(r.value);
@@ -310,6 +311,7 @@ export class HubPageShell extends ShellBase {
         if (devSet.has(t.slug) && !devVisible) continue;
         const dgid = bindMap[t.slug];
         if (dgid && !(this.ctx.user && (this.ctx.user.guilds || []).includes(dgid))) continue;
+        if (!dgid && !this.ctx.user) continue;
         const mc = await countDistinctNicknamesByTenant(db, t.slug).catch(() => 0);
         guilds.push(new GuildCardShell(this.ctx, {
           slug: t.slug, name: t.guild_name, slogan: t.slogan || '', gameVersion, memberCount: mc,
