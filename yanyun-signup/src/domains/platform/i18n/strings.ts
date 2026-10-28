@@ -18,1563 +18,1563 @@ function pv(p: StringParams | undefined, name: string): string {
 }
 export abstract class CommonFbtUtils {
 	static cancel(fbs: FbsRuntime) {
-		return fbs._("取消", null, { hk: "1T5Kf0" });
+		return fbs._("取消", null, { hk: "1CiXLY" });
 	}
 	static confirm(fbs: FbsRuntime) {
-		return fbs._("确定", null, { hk: "4qsCYN" });
+		return fbs._("确定", null, { hk: "4pX4XR" });
 	}
 	static unknownError(fbs: FbsRuntime) {
-		return fbs._("未知错误", null, { hk: "2Zug7R" });
+		return fbs._("未知错误", null, { hk: "uDGXT" });
 	}
 	static renderError(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("渲染出错: {message}", [fbs._param("message", pv(p, "message"))], { hk: "1xNsEz" });
+		return fbs._("渲染出错: {message}", [fbs._param("message", pv(p, "message"))], { hk: "24vkQx" });
 	}
 	static renderErrorHint(fbs: FbsRuntime) {
-		return fbs._("这一页出了问题，其他页面不受影响。", null, { hk: "1Gn8la" });
+		return fbs._("这一页出了问题，其他页面不受影响。", null, { hk: "4cxJrX" });
 	}
 	static backToHub(fbs: FbsRuntime) {
-		return fbs._("返回百业集结", null, { hk: "1yQB1" });
+		return fbs._("返回百业集结", null, { hk: "3vlM85" });
 	}
 	static loadingGuild(fbs: FbsRuntime) {
-		return fbs._("正在展开百业…", null, { hk: "4nB2wr" });
+		return fbs._("正在展开百业…", null, { hk: "13XtSs" });
 	}
 	static close(fbs: FbsRuntime) {
-		return fbs._("关闭", null, { hk: "2XVutD" });
+		return fbs._("关闭", null, { hk: "HbuOI" });
 	}
 }
 export abstract class SiteFbtUtils {
 	static title(fbs: FbsRuntime) {
-		return fbs._("百业集结", null, { hk: "2jruiT" });
+		return fbs._("百业集结", null, { hk: "1FJE8H" });
 	}
 	static subtitle(fbs: FbsRuntime) {
-		return fbs._("燕云十六声 · 国际服百业车队与攻略集散地 —— 择一业而入，共赴双十。", null, { hk: "Ql8Gh" });
+		return fbs._("燕云十六声 · 国际服百业车队与攻略集散地 —— 择一业而入，共赴双十。", null, { hk: "1ynQnz" });
 	}
 	static heroAlt(fbs: FbsRuntime) {
-		return fbs._("水墨山水", null, { hk: "YCzQi" });
+		return fbs._("水墨山水", null, { hk: "177cw2" });
 	}
 	static seal(fbs: FbsRuntime) {
-		return fbs._("燕", null, { hk: "3GmS65" });
+		return fbs._("燕", null, { hk: "QfZlY" });
 	}
 }
 export abstract class LoginFbtUtils {
 	static cardTitle(fbs: FbsRuntime) {
-		return fbs._("先登录，再入江湖", null, { hk: "1gT8hG" });
+		return fbs._("先登录，再入江湖", null, { hk: "3S8Krl" });
 	}
 	static cardBody1(fbs: FbsRuntime) {
-		return fbs._("本站需用 Discord 账号认证后使用。", null, { hk: "2UE2ER" });
+		return fbs._("本站需用 Discord 账号认证后使用。", null, { hk: "VVjgD" });
 	}
 	static cardBody2(fbs: FbsRuntime) {
-		return fbs._("登录后将按你所在的 Discord 服务器，展示你有权限访问的百业。", null, { hk: "de4Ds" });
+		return fbs._("登录后将按你所在的 Discord 服务器，展示你有权限访问的百业。", null, { hk: "2x3s6p" });
 	}
 	static button(fbs: FbsRuntime) {
-		return fbs._("用 Discord 登录", null, { hk: "HacAA" });
+		return fbs._("用 Discord 登录", null, { hk: "WKEvG" });
 	}
 	static privacy(fbs: FbsRuntime) {
-		return fbs._("我们会读取并保存你的 Discord 昵称、头像、服务器列表与登录授权，用于成员校验与提醒功能，详见隐私政策", null, { hk: "4kmvlL" });
+		return fbs._("我们会读取并保存你的 Discord 昵称、头像、服务器列表与登录授权，用于成员校验与提醒功能，详见隐私政策", null, { hk: "3n1Qx9" });
 	}
 }
 export abstract class UserBarFbtUtils {
 	static logout(fbs: FbsRuntime) {
-		return fbs._("退出登录", null, { hk: "24H2KM" });
+		return fbs._("退出登录", null, { hk: "4nrcRN" });
 	}
 	static loggingOut(fbs: FbsRuntime) {
-		return fbs._("退出中…", null, { hk: "4ajAun" });
+		return fbs._("退出中…", null, { hk: "206L2t" });
 	}
 	static settings(fbs: FbsRuntime) {
-		return fbs._("个人资料", null, { hk: "2vDUiU" });
+		return fbs._("个人资料", null, { hk: "2DhZ1q" });
 	}
 }
 export abstract class SettingsFbtUtils {
 	static title(fbs: FbsRuntime) {
-		return fbs._("个人资料", null, { hk: "1FMLkq" });
+		return fbs._("个人资料", null, { hk: "3m0iPy" });
 	}
 	static discordLabel(fbs: FbsRuntime) {
-		return fbs._("Discord 账号", null, { hk: "jkPxs" });
+		return fbs._("Discord 账号", null, { hk: "25yyHF" });
 	}
 	static languageLabel(fbs: FbsRuntime) {
-		return fbs._("语言", null, { hk: "3N6DA1" });
+		return fbs._("语言", null, { hk: "3AUEqn" });
 	}
 	static languageHint(fbs: FbsRuntime) {
-		return fbs._("界面语言。选择「自动」时跟随浏览器语言；手动选择后保存在你的账号里，压过浏览器语言。", null, { hk: "22QAB5" });
+		return fbs._("界面语言。选择「自动」时跟随浏览器语言；手动选择后保存在你的账号里，压过浏览器语言。", null, { hk: "yZK0b" });
 	}
 	static autoLabel(fbs: FbsRuntime) {
-		return fbs._("自动（跟随浏览器）", null, { hk: "1AC95K" });
+		return fbs._("自动（跟随浏览器）", null, { hk: "9jzwW" });
 	}
 	static langZhCn(fbs: FbsRuntime) {
-		return fbs._("简体中文", null, { hk: "1HYYwY" });
+		return fbs._("简体中文", null, { hk: "15TeYN" });
 	}
 	static langZhTw(fbs: FbsRuntime) {
-		return fbs._("繁體中文", null, { hk: "19sXq3" });
+		return fbs._("繁體中文", null, { hk: "24tFaJ" });
 	}
 	static langEn(fbs: FbsRuntime) {
-		return fbs._("English", null, { hk: "1e0zxu" });
+		return fbs._("English", null, { hk: "4ggsL7" });
 	}
 	static langEs(fbs: FbsRuntime) {
-		return fbs._("Español", null, { hk: "1rJbZh" });
+		return fbs._("Español", null, { hk: "4CORc8" });
 	}
 	static langFr(fbs: FbsRuntime) {
-		return fbs._("Français", null, { hk: "1hewJ7" });
+		return fbs._("Français", null, { hk: "RixX9" });
 	}
 	static savedText(fbs: FbsRuntime) {
-		return fbs._("已保存", null, { hk: "1C5hv6" });
+		return fbs._("已保存", null, { hk: "2leaVp" });
 	}
 }
 export abstract class PickerFbtUtils {
 	static myGuilds(fbs: FbsRuntime) {
-		return fbs._("我的百业", null, { hk: "3Wuwix" });
+		return fbs._("我的百业", null, { hk: "17QhfM" });
 	}
 	static myGuildsEn(fbs: FbsRuntime) {
-		return fbs._("My Guilds", null, { hk: "3LVjVP" });
+		return fbs._("My Guilds", null, { hk: "q37mh" });
 	}
 	static publicGuilds(fbs: FbsRuntime) {
-		return fbs._("公开百业", null, { hk: "WVDnJ" });
+		return fbs._("公开百业", null, { hk: "tkwHv" });
 	}
 	static publicGuildsEn(fbs: FbsRuntime) {
-		return fbs._("Public · Read Only", null, { hk: "Wgh4O" });
+		return fbs._("Public · Read Only", null, { hk: "1AhRUg" });
 	}
 	static readOnlyBadge(fbs: FbsRuntime) {
-		return fbs._("只读", null, { hk: "QbGBq" });
+		return fbs._("只读", null, { hk: "1UEQBg" });
 	}
 	static emptyTitle(fbs: FbsRuntime) {
-		return fbs._("你还没有可用的百业", null, { hk: "1bERbv" });
+		return fbs._("你还没有可用的百业", null, { hk: "2sEnS1" });
 	}
 	static emptyBody(fbs: FbsRuntime) {
-		return fbs._("百业按 Discord 服务器划分：你所在的服务器若已绑定百业，它会出现在这里。若还没有，你可以把自己管理的服务器绑成一个新百业。", null, { hk: "3aFcAI" });
+		return fbs._("百业按 Discord 服务器划分：你所在的服务器若已绑定百业，它会出现在这里。若还没有，你可以把自己管理的服务器绑成一个新百业。", null, { hk: "1Qsz8x" });
 	}
 	static createGuild(fbs: FbsRuntime) {
-		return fbs._("创建百业", null, { hk: "2GnqPL" });
+		return fbs._("创建百业", null, { hk: "1ctm10" });
 	}
 	static createGuildMore(fbs: FbsRuntime) {
-		return fbs._("+ 创建新百业", null, { hk: "41z6Vc" });
+		return fbs._("+ 创建新百业", null, { hk: "44eIuq" });
 	}
 }
 export abstract class CreateFbtUtils {
 	static backLink(fbs: FbsRuntime) {
-		return fbs._("‹ 我的百业", null, { hk: "4cJd0j" });
+		return fbs._("‹ 我的百业", null, { hk: "4DEBet" });
 	}
 	static title(fbs: FbsRuntime) {
-		return fbs._("创建百业", null, { hk: "33JcWe" });
+		return fbs._("创建百业", null, { hk: "1OMIvG" });
 	}
 	static subtitle(fbs: FbsRuntime) {
-		return fbs._("绑定一个你管理的 Discord 服务器 —— 之后只有该服务器的成员能看到并使用这个百业。", null, { hk: "3jafPb" });
+		return fbs._("绑定一个你管理的 Discord 服务器 —— 之后只有该服务器的成员能看到并使用这个百业。", null, { hk: "2Tr5np" });
 	}
 	static nameLabel(fbs: FbsRuntime) {
-		return fbs._("百业名", null, { hk: "1Sg01X" });
+		return fbs._("百业名", null, { hk: "270YDk" });
 	}
 	static namePlaceholder(fbs: FbsRuntime) {
-		return fbs._("如：叽哩呱啦", null, { hk: "3hXVh1" });
+		return fbs._("如：叽哩呱啦", null, { hk: "e2Sa7" });
 	}
 	static slugLabel(fbs: FbsRuntime) {
-		return fbs._("访问标识 slug（网址后缀，只能小写字母 / 数字 / 连字符）", null, { hk: "35gMQN" });
+		return fbs._("访问标识 slug（网址后缀，只能小写字母 / 数字 / 连字符）", null, { hk: "zLVor" });
 	}
 	static slugPlaceholder(fbs: FbsRuntime) {
-		return fbs._("如：my-guild", null, { hk: "3ermuW" });
+		return fbs._("如：my-guild", null, { hk: "1FDcD1" });
 	}
 	static slugChecking(fbs: FbsRuntime) {
-		return fbs._("检查中…", null, { hk: "O8SaV" });
+		return fbs._("检查中…", null, { hk: "3UtnOG" });
 	}
 	static slugAvailable(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("✓ yanyun.app/{slug} 可用", [fbs._param("slug", pv(p, "slug"))], { hk: "4wf3F5" });
+		return fbs._("✓ yanyun.app/{slug} 可用", [fbs._param("slug", pv(p, "slug"))], { hk: "3b7Qwu" });
 	}
 	static slugTaken(fbs: FbsRuntime) {
-		return fbs._("✗ 已被占用或不符合规则", null, { hk: "dPVdK" });
+		return fbs._("✗ 已被占用或不符合规则", null, { hk: "3QfEyR" });
 	}
 	static slugNote(fbs: FbsRuntime) {
-		return fbs._("创建后不可更改", null, { hk: "1joIo7" });
+		return fbs._("创建后不可更改", null, { hk: "2DmCxo" });
 	}
 	static serverLabel(fbs: FbsRuntime) {
-		return fbs._("绑定 Discord 服务器（仅列出你有管理权限的）", null, { hk: "1iWgbr" });
+		return fbs._("绑定 Discord 服务器（仅列出你有管理权限的）", null, { hk: "2OECpF" });
 	}
 	static noServers1(fbs: FbsRuntime) {
-		return fbs._("你还没有任何可管理的 Discord 服务器。", null, { hk: "1GVdMj" });
+		return fbs._("你还没有任何可管理的 Discord 服务器。", null, { hk: "F5Be3" });
 	}
 	static noServers2(fbs: FbsRuntime) {
-		return fbs._("先在 Discord 里建一个服务器（或拿到管理员权限），重新登录刷新列表后再来创建。", null, { hk: "4yOqEf" });
+		return fbs._("先在 Discord 里建一个服务器（或拿到管理员权限），重新登录刷新列表后再来创建。", null, { hk: "1sWjTE" });
 	}
 	static submit(fbs: FbsRuntime) {
-		return fbs._("创建百业", null, { hk: "3K2Nj9" });
+		return fbs._("创建百业", null, { hk: "2gNKI1" });
 	}
 	static submitting(fbs: FbsRuntime) {
-		return fbs._("创建中…", null, { hk: "37zW5R" });
+		return fbs._("创建中…", null, { hk: "zORYc" });
 	}
 	static toastNameShort(fbs: FbsRuntime) {
-		return fbs._("百业名至少 2 个字", null, { hk: "4oqDb" });
+		return fbs._("百业名至少 2 个字", null, { hk: "3TQVYO" });
 	}
 	static toastSlugRequired(fbs: FbsRuntime) {
-		return fbs._("请填写访问标识 slug", null, { hk: "1WRTtq" });
+		return fbs._("请填写访问标识 slug", null, { hk: "1HKDDN" });
 	}
 	static toastSlugBad(fbs: FbsRuntime) {
-		return fbs._("这个 slug 不可用，换一个", null, { hk: "RJyM9" });
+		return fbs._("这个 slug 不可用，换一个", null, { hk: "16cIqq" });
 	}
 	static toastServerRequired(fbs: FbsRuntime) {
-		return fbs._("请选择要绑定的 Discord 服务器", null, { hk: "3fgJkk" });
+		return fbs._("请选择要绑定的 Discord 服务器", null, { hk: "2HezSV" });
 	}
 	static toastCreated(fbs: FbsRuntime) {
-		return fbs._("百业创建成功", null, { hk: "2kj0I6" });
+		return fbs._("百业创建成功", null, { hk: "BYoKP" });
 	}
 	static toastFailed(fbs: FbsRuntime) {
-		return fbs._("创建失败，请稍后再试", null, { hk: "2MoCyd" });
+		return fbs._("创建失败，请稍后再试", null, { hk: "1wWEzO" });
 	}
 }
 export abstract class LockedFbtUtils {
 	static backLink(fbs: FbsRuntime) {
-		return fbs._("‹ 我的百业", null, { hk: "2JUJhQ" });
+		return fbs._("‹ 我的百业", null, { hk: "1Z5ivi" });
 	}
 	static title(fbs: FbsRuntime) {
-		return fbs._("无权访问这个百业", null, { hk: "3eeH3W" });
+		return fbs._("无权访问这个百业", null, { hk: "4p9BwM" });
 	}
 	static body1(fbs: FbsRuntime) {
-		return fbs._("该百业不存在，或仅对某个 Discord 服务器的成员开放。", null, { hk: "6kLub" });
+		return fbs._("该百业不存在，或仅对某个 Discord 服务器的成员开放。", null, { hk: "33ZKg9" });
 	}
 	static body2(fbs: FbsRuntime) {
-		return fbs._("加入对应的 Discord 服务器后，用同一个账号登录即可访问。", null, { hk: "3Z18vd" });
+		return fbs._("加入对应的 Discord 服务器后，用同一个账号登录即可访问。", null, { hk: "3tZzPe" });
 	}
 	static backButton(fbs: FbsRuntime) {
-		return fbs._("回到我的百业", null, { hk: "3zSe3X" });
+		return fbs._("回到我的百业", null, { hk: "3Y3DAy" });
 	}
 }
 export abstract class GuildHomeFbtUtils {
 	static backToHub(fbs: FbsRuntime) {
-		return fbs._("← 百业集结", null, { hk: "3QHsGc" });
+		return fbs._("← 百业集结", null, { hk: "4qETst" });
 	}
 	static backPlain(fbs: FbsRuntime) {
-		return fbs._("← 返回", null, { hk: "4G9PJQ" });
+		return fbs._("← 返回", null, { hk: "IbRN8" });
 	}
 	static tabTeam(fbs: FbsRuntime) {
-		return fbs._("组队", null, { hk: "1J8jz4" });
+		return fbs._("组队", null, { hk: "2M1thr" });
 	}
 	static tabDex(fbs: FbsRuntime) {
-		return fbs._("攻略", null, { hk: "2EY4Gq" });
+		return fbs._("攻略", null, { hk: "1Qw8ND" });
 	}
 	static tabSect(fbs: FbsRuntime) {
-		return fbs._("流派攻略", null, { hk: "37hCbH" });
+		return fbs._("流派攻略", null, { hk: "4c8Ifh" });
 	}
 	static tabAnnouncements(fbs: FbsRuntime) {
-		return fbs._("公告", null, { hk: "1AlrM9" });
+		return fbs._("公告", null, { hk: "2atzxz" });
 	}
 	static readOnlyBanner(fbs: FbsRuntime) {
-		return fbs._("该百业尚未绑定 Discord 服务器 · 只读浏览", null, { hk: "1SB8uD" });
+		return fbs._("该百业尚未绑定 Discord 服务器 · 只读浏览", null, { hk: "2CbCL5" });
 	}
 	static adminLink(fbs: FbsRuntime) {
-		return fbs._("管理", null, { hk: "24HBEg" });
+		return fbs._("管理", null, { hk: "2d78VF" });
 	}
 	static tabSchedule(fbs: FbsRuntime) {
-		return fbs._("排期", null, { hk: "2Cvf6D" });
+		return fbs._("排期", null, { hk: "1EEoyu" });
 	}
 }
 export abstract class GroupingTypeFbtUtils {
 	static tabActivity(fbs: FbsRuntime) {
-		return fbs._("双十人本", null, { hk: "4iJ2on" });
+		return fbs._("双十人本", null, { hk: "2jK8uC" });
 	}
 	static tabTalent(fbs: FbsRuntime) {
-		return fbs._("天赋组队", null, { hk: "lcmft" });
+		return fbs._("天赋组队", null, { hk: "4uB1wI" });
 	}
 	static tabRace(fbs: FbsRuntime) {
-		return fbs._("竞速报名", null, { hk: "3lugJ5" });
+		return fbs._("竞速报名", null, { hk: "2tOEHu" });
 	}
 	static tabTower(fbs: FbsRuntime) {
-		return fbs._("爬塔", null, { hk: "32l5QT" });
+		return fbs._("爬塔", null, { hk: "4xMJtQ" });
 	}
 	static shortActivity(fbs: FbsRuntime) {
-		return fbs._("双十", null, { hk: "eURez" });
+		return fbs._("双十", null, { hk: "438asB" });
 	}
 	static shortTalent(fbs: FbsRuntime) {
-		return fbs._("天赋", null, { hk: "1nxJ9j" });
+		return fbs._("天赋", null, { hk: "23TJZt" });
 	}
 	static shortRace(fbs: FbsRuntime) {
-		return fbs._("竞速", null, { hk: "2sbUhY" });
+		return fbs._("竞速", null, { hk: "4uUQAV" });
 	}
 	static shortTower(fbs: FbsRuntime) {
-		return fbs._("爬塔", null, { hk: "x5In2" });
+		return fbs._("爬塔", null, { hk: "1ryCD" });
 	}
 	static shortGather(fbs: FbsRuntime) {
-		return fbs._("采集", null, { hk: "2mea0" });
+		return fbs._("采集", null, { hk: "39V4fW" });
 	}
 	static shortExplore(fbs: FbsRuntime) {
-		return fbs._("探索", null, { hk: "M5BFH" });
+		return fbs._("探索", null, { hk: "46xJZG" });
 	}
 }
 export abstract class GroupingListFbtUtils {
 	static prevWeek(fbs: FbsRuntime) {
-		return fbs._("上一周", null, { hk: "4niiyD" });
+		return fbs._("上一周", null, { hk: "1VIUgL" });
 	}
 	static nextWeek(fbs: FbsRuntime) {
-		return fbs._("下一周", null, { hk: "TVC07" });
+		return fbs._("下一周", null, { hk: "zltWk" });
 	}
 	static weekHeader(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("{range} · {count} 队", [fbs._param("range", pv(p, "range")), fbs._param("count", pv(p, "count"))], { hk: "1eEnhN" });
+		return fbs._("{range} · {count} 队", [fbs._param("range", pv(p, "range")), fbs._param("count", pv(p, "count"))], { hk: "1s9Ksi" });
 	}
 	static emptyInteractive(fbs: FbsRuntime) {
-		return fbs._("暂无车队，来发第一车吧", null, { hk: "1rU4o2" });
+		return fbs._("暂无车队，来发第一车吧", null, { hk: "2vDSDi" });
 	}
 	static emptyReadonly(fbs: FbsRuntime) {
-		return fbs._("暂无车队", null, { hk: "31j3wi" });
+		return fbs._("暂无车队", null, { hk: "2VjYwK" });
 	}
 	static statusOpen(fbs: FbsRuntime) {
-		return fbs._("报名中", null, { hk: "2GJkBY" });
+		return fbs._("报名中", null, { hk: "2w0LaA" });
 	}
 	static people(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("{occupied}/{max} 人", [fbs._param("occupied", pv(p, "occupied")), fbs._param("max", pv(p, "max"))], { hk: "3ZhMZO" });
+		return fbs._("{occupied}/{max} 人", [fbs._param("occupied", pv(p, "occupied")), fbs._param("max", pv(p, "max"))], { hk: "25f8zN" });
 	}
 	static newCar(fbs: FbsRuntime) {
-		return fbs._("📯 张贴告示 · 发新车", null, { hk: "4BN2p0" });
+		return fbs._("📯 张贴告示 · 发新车", null, { hk: "1yjgii" });
 	}
 	static seal(fbs: FbsRuntime) {
-		return fbs._("募", null, { hk: "1IVvkA" });
+		return fbs._("募", null, { hk: "2saVta" });
 	}
 	static dayGroupHeader(fbs: FbsRuntime, p?: StringParams) {
 		return fbs._("{month}月{day}日 {weekday}", [
 			fbs._param("month", pv(p, "month")),
 			fbs._param("day", pv(p, "day")),
 			fbs._param("weekday", pv(p, "weekday"))
-		], { hk: "1BlfRw" });
+		], { hk: "gSOnf" });
 	}
 	static weekday0(fbs: FbsRuntime) {
-		return fbs._("周日", null, { hk: "h0csq" });
+		return fbs._("周日", null, { hk: "1xaZh5" });
 	}
 	static weekday1(fbs: FbsRuntime) {
-		return fbs._("周一", null, { hk: "3WI7b8" });
+		return fbs._("周一", null, { hk: "2xkqqQ" });
 	}
 	static weekday2(fbs: FbsRuntime) {
-		return fbs._("周二", null, { hk: "4ouSVz" });
+		return fbs._("周二", null, { hk: "2NDcyR" });
 	}
 	static weekday3(fbs: FbsRuntime) {
-		return fbs._("周三", null, { hk: "1qGP0c" });
+		return fbs._("周三", null, { hk: "4ywi1w" });
 	}
 	static weekday4(fbs: FbsRuntime) {
-		return fbs._("周四", null, { hk: "3Ojwo0" });
+		return fbs._("周四", null, { hk: "xTSQs" });
 	}
 	static weekday5(fbs: FbsRuntime) {
-		return fbs._("周五", null, { hk: "3EHVYp" });
+		return fbs._("周五", null, { hk: "1IZZa1" });
 	}
 	static weekday6(fbs: FbsRuntime) {
-		return fbs._("周六", null, { hk: "3t7PZj" });
+		return fbs._("周六", null, { hk: "1H4PGz" });
 	}
 	static undatedGroup(fbs: FbsRuntime) {
-		return fbs._("未定时间", null, { hk: "4znqzn" });
+		return fbs._("未定时间", null, { hk: "1EVyR3" });
 	}
 }
 export abstract class GroupingDetailFbtUtils {
 	static notFound(fbs: FbsRuntime) {
-		return fbs._("车队不存在或已解散", null, { hk: "4irp9k" });
+		return fbs._("车队不存在或已解散", null, { hk: "JkZQr" });
 	}
 	static backToList(fbs: FbsRuntime) {
-		return fbs._("‹ 返回车队列表", null, { hk: "225y6i" });
+		return fbs._("‹ 返回车队列表", null, { hk: "4Afz4z" });
 	}
 	static share(fbs: FbsRuntime) {
-		return fbs._("🔗 分享车队", null, { hk: "uuLgS" });
+		return fbs._("🔗 分享车队", null, { hk: "2T1YHP" });
 	}
 	static edit(fbs: FbsRuntime) {
-		return fbs._("✏️ 编辑", null, { hk: "1cQtpw" });
+		return fbs._("✏️ 编辑", null, { hk: "1w0Ren" });
 	}
 	static disband(fbs: FbsRuntime) {
-		return fbs._("解散车队", null, { hk: "3ApWNM" });
+		return fbs._("解散车队", null, { hk: "2qBbBB" });
 	}
 	static disbanding(fbs: FbsRuntime) {
-		return fbs._("解散中…", null, { hk: "2xn0s" });
+		return fbs._("解散中…", null, { hk: "4DfQ3M" });
 	}
 	static statusOpen(fbs: FbsRuntime) {
-		return fbs._("报名中", null, { hk: "4vPJaR" });
+		return fbs._("报名中", null, { hk: "4m4dtZ" });
 	}
 	static people(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("{occupied}/{max} 人", [fbs._param("occupied", pv(p, "occupied")), fbs._param("max", pv(p, "max"))], { hk: "2mGHU9" });
+		return fbs._("{occupied}/{max} 人", [fbs._param("occupied", pv(p, "occupied")), fbs._param("max", pv(p, "max"))], { hk: "47UNcm" });
 	}
 	static readyProgress(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("已就位 {ready}/{occupied}", [fbs._param("ready", pv(p, "ready")), fbs._param("occupied", pv(p, "occupied"))], { hk: "pfx4F" });
+		return fbs._("已就位 {ready}/{occupied}", [fbs._param("ready", pv(p, "ready")), fbs._param("occupied", pv(p, "occupied"))], { hk: "190tmu" });
 	}
 	static openHint(fbs: FbsRuntime) {
-		return fbs._("人人可管 · 无需管理码 — 点空位即可落座", null, { hk: "4nekNp" });
+		return fbs._("人人可管 · 无需管理码 — 点空位即可落座", null, { hk: "1t3TFu" });
 	}
 	static readonlyHint(fbs: FbsRuntime) {
-		return fbs._("只读浏览 · 该百业尚未绑定 Discord 服务器", null, { hk: "1zPQCZ" });
+		return fbs._("只读浏览 · 该百业尚未绑定 Discord 服务器", null, { hk: "3oO8aV" });
 	}
 	static toastDisbanded(fbs: FbsRuntime) {
-		return fbs._("车队已解散", null, { hk: "U5kzB" });
+		return fbs._("车队已解散", null, { hk: "1X1Q25" });
 	}
 	static toastDisbandFailed(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("解散失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "1ULKcf" });
+		return fbs._("解散失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "1HhFij" });
 	}
 	static linkCopied(fbs: FbsRuntime) {
-		return fbs._("链接已复制", null, { hk: "3dkbPe" });
+		return fbs._("链接已复制", null, { hk: "1jk0ZB" });
 	}
 	static copyFailedManual(fbs: FbsRuntime) {
-		return fbs._("复制失败，请手动复制地址栏链接", null, { hk: "ygDBg" });
+		return fbs._("复制失败，请手动复制地址栏链接", null, { hk: "2DqSum" });
 	}
 	static disbandConfirmTitle(fbs: FbsRuntime) {
-		return fbs._("解散车队", null, { hk: "1viTsz" });
+		return fbs._("解散车队", null, { hk: "23Fgs9" });
 	}
 	static disbandConfirmMessage(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("确定解散「{title}」吗？所有报名将被清空。", [fbs._param("title", pv(p, "title"))], { hk: "3bqGvz" });
+		return fbs._("确定解散「{title}」吗？所有报名将被清空。", [fbs._param("title", pv(p, "title"))], { hk: "Q4K1" });
 	}
 	static complete(fbs: FbsRuntime) {
-		return fbs._("完成车队", null, { hk: "3uoQwL" });
+		return fbs._("完成车队", null, { hk: "4cgL9F" });
 	}
 	static completing(fbs: FbsRuntime) {
-		return fbs._("完成中…", null, { hk: "2pxWpJ" });
+		return fbs._("完成中…", null, { hk: "1y7fBc" });
 	}
 	static statusCompleted(fbs: FbsRuntime) {
-		return fbs._("已完成", null, { hk: "2ZpgUr" });
+		return fbs._("已完成", null, { hk: "3Ci3su" });
 	}
 	static restore(fbs: FbsRuntime) {
-		return fbs._("恢复车队", null, { hk: "2GzueF" });
+		return fbs._("恢复车队", null, { hk: "13zJRI" });
 	}
 	static completeConfirmTitle(fbs: FbsRuntime) {
-		return fbs._("完成车队", null, { hk: "3Cxz4X" });
+		return fbs._("完成车队", null, { hk: "1b21ik" });
 	}
 	static completeConfirmMessage(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("确定完成「{title}」吗？完成后将从车队列表隐藏，也不再发送发车提醒；之后仍可在本页恢复。", [fbs._param("title", pv(p, "title"))], { hk: "3LzcLB" });
+		return fbs._("确定完成「{title}」吗？完成后将从车队列表隐藏，也不再发送发车提醒；之后仍可在本页恢复。", [fbs._param("title", pv(p, "title"))], { hk: "497bry" });
 	}
 	static toastCompleted(fbs: FbsRuntime) {
-		return fbs._("车队已完成", null, { hk: "3RHtYh" });
+		return fbs._("车队已完成", null, { hk: "1qvBVX" });
 	}
 	static toastCompleteFailed(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("完成失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "pOx3A" });
+		return fbs._("完成失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "lyhfI" });
 	}
 	static toastRestored(fbs: FbsRuntime) {
-		return fbs._("车队已恢复", null, { hk: "1vDQac" });
+		return fbs._("车队已恢复", null, { hk: "2XcpBo" });
 	}
 	static toastRestoreFailed(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("恢复失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "1HkMp8" });
+		return fbs._("恢复失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "QifSE" });
 	}
 	static completedHint(fbs: FbsRuntime) {
-		return fbs._("该车队已完成 · 已从列表隐藏，不再发送发车提醒", null, { hk: "2WmufQ" });
+		return fbs._("该车队已完成 · 已从列表隐藏，不再发送发车提醒", null, { hk: "3S9D3R" });
 	}
 	static rosterAnswersTitle(fbs: FbsRuntime) {
-		return fbs._("报名表答案", null, { hk: "2ICCPM" });
+		return fbs._("报名表答案", null, { hk: "31Ych" });
 	}
 }
 export abstract class GroupingFormFbtUtils {
 	static createTitle(fbs: FbsRuntime) {
-		return fbs._("张贴告示", null, { hk: "2if4Nm" });
+		return fbs._("张贴告示", null, { hk: "31Dx3W" });
 	}
 	static editTitle(fbs: FbsRuntime) {
-		return fbs._("编辑告示", null, { hk: "2ZHjx1" });
+		return fbs._("编辑告示", null, { hk: "3HSTc7" });
 	}
 	static typeLabel(fbs: FbsRuntime) {
-		return fbs._("类型", null, { hk: "3GuMNw" });
+		return fbs._("类型", null, { hk: "12jYnj" });
 	}
 	static capacity(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("人数上限 {max} 人（{hint}）", [fbs._param("max", pv(p, "max")), fbs._param("hint", pv(p, "hint"))], { hk: "3ZC0l6" });
+		return fbs._("人数上限 {max} 人（{hint}）", [fbs._param("max", pv(p, "max")), fbs._param("hint", pv(p, "hint"))], { hk: "2Xg7OD" });
 	}
 	static hintActivity(fbs: FbsRuntime) {
-		return fbs._("双十固定 10 人，不选副本", null, { hk: "4wWMM" });
+		return fbs._("双十固定 10 人，不选副本", null, { hk: "426fQm" });
 	}
 	static hintDungeon(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("按所选副本「{name}」{max} 人", [fbs._param("name", pv(p, "name")), fbs._param("max", pv(p, "max"))], { hk: "3Ond6Y" });
+		return fbs._("按所选副本「{name}」{max} 人", [fbs._param("name", pv(p, "name")), fbs._param("max", pv(p, "max"))], { hk: "4vrUY9" });
 	}
 	static hintTalent(fbs: FbsRuntime) {
-		return fbs._("天赋默认 5 人，选副本后按副本人数", null, { hk: "2UQGFu" });
+		return fbs._("天赋默认 5 人，选副本后按副本人数", null, { hk: "3TTZD9" });
 	}
 	static hintRace(fbs: FbsRuntime) {
-		return fbs._("竞速默认 10 人，选副本后按副本人数", null, { hk: "Vetdf" });
+		return fbs._("竞速默认 10 人，选副本后按副本人数", null, { hk: "1RsFet" });
 	}
 	static hintTower(fbs: FbsRuntime) {
-		return fbs._("爬塔固定 10 人，不选副本", null, { hk: "3nAIwc" });
+		return fbs._("爬塔固定 10 人，不选副本", null, { hk: "2PUEJY" });
 	}
 	static titleLabel(fbs: FbsRuntime) {
-		return fbs._("标题", null, { hk: "3FK2Yy" });
+		return fbs._("标题", null, { hk: "3buLUa" });
 	}
 	static titlePlaceholder(fbs: FbsRuntime) {
-		return fbs._("如：周六晚双十来奶", null, { hk: "2KZJTY" });
+		return fbs._("如：周六晚双十来奶", null, { hk: "3aiWRR" });
 	}
 	static startsLabel(fbs: FbsRuntime) {
-		return fbs._("出发时间", null, { hk: "1j8pbx" });
+		return fbs._("出发时间", null, { hk: "mKKoD" });
 	}
 	static monthOption(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("{n}月", [fbs._param("n", pv(p, "n"))], { hk: "qKFsl" });
+		return fbs._("{n}月", [fbs._param("n", pv(p, "n"))], { hk: "xmKnY" });
 	}
 	static dayOption(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("{n}日", [fbs._param("n", pv(p, "n"))], { hk: "1U3cMZ" });
+		return fbs._("{n}日", [fbs._param("n", pv(p, "n"))], { hk: "2YJwNS" });
 	}
 	static hourOption(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("{n}时", [fbs._param("n", pv(p, "n"))], { hk: "477MMe" });
+		return fbs._("{n}时", [fbs._param("n", pv(p, "n"))], { hk: "3JhYn6" });
 	}
 	static minuteOption(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("{n}分", [fbs._param("n", pv(p, "n"))], { hk: "Fvsjq" });
+		return fbs._("{n}分", [fbs._param("n", pv(p, "n"))], { hk: "TVPPL" });
 	}
 	static dungeonLabel(fbs: FbsRuntime) {
-		return fbs._("副本（可选）", null, { hk: "1kITz0" });
+		return fbs._("副本（可选）", null, { hk: "2YRvK4" });
 	}
 	static dungeonNone(fbs: FbsRuntime) {
-		return fbs._("不指定", null, { hk: "1IAOtB" });
+		return fbs._("不指定", null, { hk: "3gVHq5" });
 	}
 	static nicknameLabel(fbs: FbsRuntime) {
-		return fbs._("你的昵称（发车人自动落座 0 号位）", null, { hk: "3fBzGh" });
+		return fbs._("你的昵称（发车人自动落座 0 号位）", null, { hk: "2PdwC7" });
 	}
 	static nicknamePlaceholder(fbs: FbsRuntime) {
-		return fbs._("游戏内昵称", null, { hk: "2iaKtP" });
+		return fbs._("游戏内昵称", null, { hk: "2prsut" });
 	}
 	static sectLabel(fbs: FbsRuntime) {
-		return fbs._("你的流派", null, { hk: "25pXXR" });
+		return fbs._("你的流派", null, { hk: "I7g01" });
 	}
 	static submitCreate(fbs: FbsRuntime) {
-		return fbs._("发布", null, { hk: "4iXt77" });
+		return fbs._("发布", null, { hk: "1d6OJr" });
 	}
 	static submitEdit(fbs: FbsRuntime) {
-		return fbs._("保存", null, { hk: "1YzH3H" });
+		return fbs._("保存", null, { hk: "Tf89p" });
 	}
 	static submitting(fbs: FbsRuntime) {
-		return fbs._("提交中…", null, { hk: "4g4R3h" });
+		return fbs._("提交中…", null, { hk: "LsFE7" });
 	}
 	static toastSect(fbs: FbsRuntime) {
-		return fbs._("请选择你的流派", null, { hk: "3AfhYj" });
+		return fbs._("请选择你的流派", null, { hk: "4d6YUS" });
 	}
 	static toastSaved(fbs: FbsRuntime) {
-		return fbs._("已保存", null, { hk: "3r1utC" });
+		return fbs._("已保存", null, { hk: "1nWleu" });
 	}
 	static toastSaveFailed(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("保存失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "X9H9D" });
+		return fbs._("保存失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "1pmaHO" });
 	}
 	static toastPosted(fbs: FbsRuntime) {
-		return fbs._("告示已张贴", null, { hk: "3gNP8m" });
+		return fbs._("告示已张贴", null, { hk: "1EN9kp" });
 	}
 	static toastCreateFailed(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("创建失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "2Z4b2r" });
+		return fbs._("创建失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "21fjOn" });
 	}
 	static titleTemplate(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("{nickname}的{type}车队", [fbs._param("nickname", pv(p, "nickname")), fbs._param("type", pv(p, "type"))], { hk: "3I3lZm" });
+		return fbs._("{nickname}的{type}车队", [fbs._param("nickname", pv(p, "nickname")), fbs._param("type", pv(p, "type"))], { hk: "34GnDi" });
 	}
 	static customFieldsTitle(fbs: FbsRuntime) {
-		return fbs._("报名表自定义字段", null, { hk: "2DLDVn" });
+		return fbs._("报名表自定义字段", null, { hk: "2nvj67" });
 	}
 	static customFieldAddLabel(fbs: FbsRuntime) {
-		return fbs._("添加字段", null, { hk: "IDN35" });
+		return fbs._("添加字段", null, { hk: "zIoHm" });
 	}
 	static customFieldLabelPlaceholder(fbs: FbsRuntime) {
-		return fbs._("字段名（如：联系方式）", null, { hk: "xonoE" });
+		return fbs._("字段名（如：联系方式）", null, { hk: "2NtkAs" });
 	}
 	static customFieldTypeText(fbs: FbsRuntime) {
-		return fbs._("单行文本", null, { hk: "J1GOA" });
+		return fbs._("单行文本", null, { hk: "33IdMw" });
 	}
 	static customFieldTypeChoice(fbs: FbsRuntime) {
-		return fbs._("单选", null, { hk: "GKzKm" });
+		return fbs._("单选", null, { hk: "weMxm" });
 	}
 	static customFieldOptionsPlaceholder(fbs: FbsRuntime) {
-		return fbs._("选项，一行一个（2–6 个）", null, { hk: "1ZUQFl" });
+		return fbs._("选项，一行一个（2–6 个）", null, { hk: "4lfO7O" });
 	}
 	static customFieldRequiredLabel(fbs: FbsRuntime) {
-		return fbs._("必填", null, { hk: "1fvjhr" });
+		return fbs._("必填", null, { hk: "6U5AK" });
 	}
 	static customFieldRemoveLabel(fbs: FbsRuntime) {
-		return fbs._("删除", null, { hk: "1GalTE" });
+		return fbs._("删除", null, { hk: "2037mG" });
 	}
 	static customFieldEmptyText(fbs: FbsRuntime) {
-		return fbs._("未设置自定义字段时，成员报名只填固定信息。", null, { hk: "2o6Sjz" });
+		return fbs._("未设置自定义字段时，成员报名只填固定信息。", null, { hk: "2PhC18" });
 	}
 }
 export abstract class SeatFbtUtils {
 	static emptyJoin(fbs: FbsRuntime) {
-		return fbs._("空位 · 点击落座", null, { hk: "2gCqvY" });
+		return fbs._("空位 · 点击落座", null, { hk: "tQSG1" });
 	}
 	static empty(fbs: FbsRuntime) {
-		return fbs._("空位", null, { hk: "1YuSgX" });
+		return fbs._("空位", null, { hk: "2vmR8X" });
 	}
 	static modalTitle(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("落座 · {n} 号位", [fbs._param("n", pv(p, "n"))], { hk: "1j2oAn" });
+		return fbs._("落座 · {n} 号位", [fbs._param("n", pv(p, "n"))], { hk: "d0yj9" });
 	}
 	static modalSubtitle(fbs: FbsRuntime) {
-		return fbs._("人人可管 · 无需管理码", null, { hk: "1mHXoH" });
+		return fbs._("人人可管 · 无需管理码", null, { hk: "2ht33g" });
 	}
 	static nameLabel(fbs: FbsRuntime) {
-		return fbs._("名字", null, { hk: "V7imB" });
+		return fbs._("名字", null, { hk: "2Tb5im" });
 	}
 	static namePlaceholder(fbs: FbsRuntime) {
-		return fbs._("你的名字", null, { hk: "2LxN40" });
+		return fbs._("你的名字", null, { hk: "44lRmn" });
 	}
 	static nameRequired(fbs: FbsRuntime) {
-		return fbs._("请填写名字", null, { hk: "b1hhN" });
+		return fbs._("请填写名字", null, { hk: "10Tgvw" });
 	}
 	static selfTab(fbs: FbsRuntime) {
-		return fbs._("自己报名", null, { hk: "3cGlqv" });
+		return fbs._("自己报名", null, { hk: "1iIOxP" });
 	}
 	static proxyTab(fbs: FbsRuntime) {
-		return fbs._("代报名", null, { hk: "323xwD" });
+		return fbs._("代报名", null, { hk: "jaXI4" });
 	}
 	static selfNameHint(fbs: FbsRuntime) {
-		return fbs._("名字取自你的 Discord 昵称，不可修改", null, { hk: "1zrx54" });
+		return fbs._("名字取自你的 Discord 昵称，不可修改", null, { hk: "4Bp5B4" });
 	}
 	static proxySearchPlaceholder(fbs: FbsRuntime) {
-		return fbs._("搜索成员名字", null, { hk: "2Zfx1F" });
+		return fbs._("搜索成员名字", null, { hk: "1UkhU7" });
 	}
 	static proxyPickRequired(fbs: FbsRuntime) {
-		return fbs._("请选择要代报的成员", null, { hk: "4h89Rs" });
+		return fbs._("请选择要代报的成员", null, { hk: "3sgDVc" });
 	}
 	static proxyEmpty(fbs: FbsRuntime) {
-		return fbs._("名册里还没有成员", null, { hk: "1rYTOn" });
+		return fbs._("名册里还没有成员", null, { hk: "31z0R6" });
 	}
 	static sectLabel(fbs: FbsRuntime) {
-		return fbs._("流派", null, { hk: "1zx56S" });
+		return fbs._("流派", null, { hk: "1Tx9PV" });
 	}
 	static confirmJoin(fbs: FbsRuntime) {
-		return fbs._("确认落座", null, { hk: "9qXPZ" });
+		return fbs._("确认落座", null, { hk: "4pWW9Q" });
 	}
 	static joining(fbs: FbsRuntime) {
-		return fbs._("落座中…", null, { hk: "1k5xDe" });
+		return fbs._("落座中…", null, { hk: "316ko8" });
 	}
 	static toastSect(fbs: FbsRuntime) {
-		return fbs._("请选择流派", null, { hk: "46LE9b" });
+		return fbs._("请选择流派", null, { hk: "3v0Szq" });
 	}
 	static toastJoined(fbs: FbsRuntime) {
-		return fbs._("落座成功", null, { hk: "4y4FIW" });
+		return fbs._("落座成功", null, { hk: "4zFO3o" });
 	}
 	static toastJoinFailed(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("报名失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "4pwoLk" });
+		return fbs._("报名失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "1e4UbO" });
 	}
 	static toastLeft(fbs: FbsRuntime) {
-		return fbs._("已取消报名", null, { hk: "eE9Cf" });
+		return fbs._("已取消报名", null, { hk: "2F5ng8" });
 	}
 	static toastLeaveFailed(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("取消失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "3cOOqd" });
+		return fbs._("取消失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "10Hrdh" });
 	}
 	static leaveConfirmTitle(fbs: FbsRuntime) {
-		return fbs._("取消报名", null, { hk: "2UTW6n" });
+		return fbs._("取消报名", null, { hk: "1lRJ5T" });
 	}
 	static leaveConfirmMessage(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("确定取消「{nickname}」的报名吗？", [fbs._param("nickname", pv(p, "nickname"))], { hk: "4eNe7M" });
+		return fbs._("确定取消「{nickname}」的报名吗？", [fbs._param("nickname", pv(p, "nickname"))], { hk: "TKeEq" });
 	}
 	static roleHealer(fbs: FbsRuntime) {
-		return fbs._("奶", null, { hk: "21AMbF" });
+		return fbs._("奶", null, { hk: "376NYU" });
 	}
 	static roleDps(fbs: FbsRuntime) {
-		return fbs._("输出", null, { hk: "1hQI77" });
+		return fbs._("输出", null, { hk: "108M9t" });
 	}
 	static leader(fbs: FbsRuntime) {
-		return fbs._("车头", null, { hk: "3g1KD2" });
+		return fbs._("车头", null, { hk: "1jG5Bx" });
 	}
 	static readyMark(fbs: FbsRuntime) {
-		return fbs._("已就位", null, { hk: "3gsY37" });
+		return fbs._("已就位", null, { hk: "2H92pn" });
 	}
 	static readyAction(fbs: FbsRuntime) {
-		return fbs._("我已就位", null, { hk: "4Far4z" });
+		return fbs._("我已就位", null, { hk: "2UwlH2" });
 	}
 	static unreadyAction(fbs: FbsRuntime) {
-		return fbs._("取消就位", null, { hk: "1zNvU0" });
+		return fbs._("取消就位", null, { hk: "3IXRy7" });
 	}
 	static toastReady(fbs: FbsRuntime) {
-		return fbs._("已标记就位", null, { hk: "2f6aOP" });
+		return fbs._("已标记就位", null, { hk: "3wKQ0b" });
 	}
 	static toastUnready(fbs: FbsRuntime) {
-		return fbs._("已取消就位", null, { hk: "2yeuHM" });
+		return fbs._("已取消就位", null, { hk: "3HIOO0" });
 	}
 	static toastReadyFailed(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("操作失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "3dqRNR" });
+		return fbs._("操作失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "1uyG8H" });
 	}
 }
 export abstract class AppBlocksFbtUtils {
 	static rosterTitle(fbs: FbsRuntime) {
-		return fbs._("队伍名册", null, { hk: "3DkQ89" });
+		return fbs._("队伍名册", null, { hk: "38VxGR" });
 	}
 	static closedStatus(fbs: FbsRuntime) {
-		return fbs._("已关闭", null, { hk: "2YGpco" });
+		return fbs._("已关闭", null, { hk: "U8WMi" });
 	}
 	static completedStatus(fbs: FbsRuntime) {
-		return fbs._("已完成", null, { hk: "3Nonz2" });
+		return fbs._("已完成", null, { hk: "1tSAGR" });
 	}
 	static unknownBlock(fbs: FbsRuntime) {
-		return fbs._("该内容需要更新 App 后显示", null, { hk: "1hwid8" });
+		return fbs._("该内容需要更新 App 后显示", null, { hk: "fCZpo" });
 	}
 }
 export abstract class DexFbtUtils {
 	static backToDex(fbs: FbsRuntime) {
-		return fbs._("‹ 返回攻略", null, { hk: "GP0PX" });
+		return fbs._("‹ 返回攻略", null, { hk: "159LFQ" });
 	}
 	static bossesLine(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("{count} 位首领", [fbs._param("count", pv(p, "count"))], { hk: "EhIYn" });
+		return fbs._("{count} 位首领", [fbs._param("count", pv(p, "count"))], { hk: "fVk5j" });
 	}
 	static noBossData(fbs: FbsRuntime) {
-		return fbs._("暂无 Boss 数据", null, { hk: "rshdc" });
+		return fbs._("暂无 Boss 数据", null, { hk: "QAp7b" });
 	}
 	static empty(fbs: FbsRuntime) {
-		return fbs._("暂无攻略", null, { hk: "1n8U5h" });
+		return fbs._("暂无攻略", null, { hk: "1aCSGE" });
 	}
 	static currentGuides(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("当期攻略 · {category}", [fbs._param("category", pv(p, "category"))], { hk: "4w4Opf" });
+		return fbs._("当期攻略 · {category}", [fbs._param("category", pv(p, "category"))], { hk: "4FxWTb" });
 	}
 	static catSub(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("{season} · {seasonName}", [fbs._param("season", pv(p, "season")), fbs._param("seasonName", pv(p, "seasonName"))], { hk: "uWuXy" });
+		return fbs._("{season} · {seasonName}", [fbs._param("season", pv(p, "season")), fbs._param("seasonName", pv(p, "seasonName"))], { hk: "WP94f" });
 	}
 	static catSubCurrent(fbs: FbsRuntime, p?: StringParams) {
 		return fbs._("{season} · {seasonName} · 版本 {version}", [
 			fbs._param("season", pv(p, "season")),
 			fbs._param("seasonName", pv(p, "seasonName")),
 			fbs._param("version", pv(p, "version"))
-		], { hk: "3cWHub" });
+		], { hk: "3gOB5J" });
 	}
 	static size10(fbs: FbsRuntime) {
-		return fbs._("十人本", null, { hk: "zKTRY" });
+		return fbs._("十人本", null, { hk: "1peotw" });
 	}
 	static size5(fbs: FbsRuntime) {
-		return fbs._("五人本", null, { hk: "1sC8oB" });
+		return fbs._("五人本", null, { hk: "2olQjD" });
 	}
 	static sizeN(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("{n}人本", [fbs._param("n", pv(p, "n"))], { hk: "2oQXOb" });
+		return fbs._("{n}人本", [fbs._param("n", pv(p, "n"))], { hk: "3OFBPW" });
 	}
 	static bossUnit(fbs: FbsRuntime) {
-		return fbs._("首领", null, { hk: "3FD2eL" });
+		return fbs._("首领", null, { hk: "47RJiZ" });
 	}
 	static partMechanics(fbs: FbsRuntime) {
-		return fbs._("机制", null, { hk: "4160zn" });
+		return fbs._("机制", null, { hk: "2fk0Z6" });
 	}
 	static partShouts(fbs: FbsRuntime) {
-		return fbs._("喊话", null, { hk: "CTS01" });
+		return fbs._("喊话", null, { hk: "1IwIVV" });
 	}
 	static partTalents(fbs: FbsRuntime) {
-		return fbs._("天赋", null, { hk: "2ooolG" });
+		return fbs._("天赋", null, { hk: "1wpt8b" });
 	}
 	static labelAll(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("{count}位首领 · {parts}俱全", [fbs._param("count", pv(p, "count")), fbs._param("parts", pv(p, "parts"))], { hk: "4A6V89" });
+		return fbs._("{count}位首领 · {parts}俱全", [fbs._param("count", pv(p, "count")), fbs._param("parts", pv(p, "parts"))], { hk: "4gTsB" });
 	}
 	static labelParts(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("{count}位首领 · {parts}", [fbs._param("count", pv(p, "count")), fbs._param("parts", pv(p, "parts"))], { hk: "1X0sPP" });
+		return fbs._("{count}位首领 · {parts}", [fbs._param("count", pv(p, "count")), fbs._param("parts", pv(p, "parts"))], { hk: "YGWtf" });
 	}
 	static labelPending(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("{count}位首领 · 攻略待补", [fbs._param("count", pv(p, "count"))], { hk: "pJw7S" });
+		return fbs._("{count}位首领 · 攻略待补", [fbs._param("count", pv(p, "count"))], { hk: "4cwmlJ" });
 	}
 	static labelNoBosses(fbs: FbsRuntime) {
-		return fbs._("首领待补", null, { hk: "2alZvi" });
+		return fbs._("首领待补", null, { hk: "1IjNit" });
 	}
 	static sealBoss(fbs: FbsRuntime) {
-		return fbs._("将", null, { hk: "4dcgwj" });
+		return fbs._("将", null, { hk: "21FFne" });
 	}
 }
 export abstract class BossFbtUtils {
 	static back(fbs: FbsRuntime) {
-		return fbs._("‹ 返回", null, { hk: "48jekW" });
+		return fbs._("‹ 返回", null, { hk: "4qNmEq" });
 	}
 	static notFound(fbs: FbsRuntime) {
-		return fbs._("Boss 不存在", null, { hk: "2Bt5pu" });
+		return fbs._("Boss 不存在", null, { hk: "BPEXm" });
 	}
 	static tabMechanics(fbs: FbsRuntime) {
-		return fbs._("机制", null, { hk: "2BIvk9" });
+		return fbs._("机制", null, { hk: "2Y7k7F" });
 	}
 	static tabTalents(fbs: FbsRuntime) {
-		return fbs._("天赋", null, { hk: "188RLy" });
+		return fbs._("天赋", null, { hk: "yVaO8" });
 	}
 	static shoutsTitle(fbs: FbsRuntime) {
-		return fbs._("📢 喊话宏", null, { hk: "3QoYl2" });
+		return fbs._("📢 喊话宏", null, { hk: "3IE6pm" });
 	}
 	static copy(fbs: FbsRuntime) {
-		return fbs._("复制", null, { hk: "3ReM89" });
+		return fbs._("复制", null, { hk: "8PKpE" });
 	}
 	static shoutCopied(fbs: FbsRuntime) {
-		return fbs._("喊话已复制", null, { hk: "FIBAo" });
+		return fbs._("喊话已复制", null, { hk: "uA0WC" });
 	}
 	static copyFailed(fbs: FbsRuntime) {
-		return fbs._("复制失败", null, { hk: "1IRlWh" });
+		return fbs._("复制失败", null, { hk: "3tdhCC" });
 	}
 	static copyManual(fbs: FbsRuntime) {
-		return fbs._("请手动复制", null, { hk: "2wAUs3" });
+		return fbs._("请手动复制", null, { hk: "45sniM" });
 	}
 	static noMechanics(fbs: FbsRuntime) {
-		return fbs._("暂无机制", null, { hk: "1RbSsQ" });
+		return fbs._("暂无机制", null, { hk: "44lrr8" });
 	}
 	static noTalents(fbs: FbsRuntime) {
-		return fbs._("暂无天赋", null, { hk: "1QQloH" });
+		return fbs._("暂无天赋", null, { hk: "3EnxKH" });
 	}
 	static talentTitle(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("天赋 {code}", [fbs._param("code", pv(p, "code"))], { hk: "1xEAHf" });
+		return fbs._("天赋 {code}", [fbs._param("code", pv(p, "code"))], { hk: "4xOP3Q" });
 	}
 	static talentPending(fbs: FbsRuntime) {
-		return " " + fbs._("· 待确认", null, { hk: "1fHrxs" });
+		return " " + fbs._("· 待确认", null, { hk: "3MpsYE" });
 	}
 }
 export abstract class SectFbtUtils {
 	static empty(fbs: FbsRuntime) {
-		return fbs._("暂无流派", null, { hk: "1nn2V3" });
+		return fbs._("暂无流派", null, { hk: "1LhgRT" });
 	}
 	static back(fbs: FbsRuntime) {
-		return fbs._("‹ 返回流派", null, { hk: "1HPJ9u" });
+		return fbs._("‹ 返回流派", null, { hk: "164Cid" });
 	}
 	static tabBis(fbs: FbsRuntime) {
-		return fbs._("毕业词条", null, { hk: "2VRpEl" });
+		return fbs._("毕业词条", null, { hk: "25ir4i" });
 	}
 	static tabRotation(fbs: FbsRuntime) {
-		return fbs._("输出轴", null, { hk: "26U8wO" });
+		return fbs._("输出轴", null, { hk: "1b0a0d" });
 	}
 	static tabRates(fbs: FbsRuntime) {
-		return fbs._("三率目标", null, { hk: "2xLfOo" });
+		return fbs._("三率目标", null, { hk: "S01Lm" });
 	}
 	static tabTiaolv(fbs: FbsRuntime) {
-		return fbs._("调律推演", null, { hk: "XqxUl" });
+		return fbs._("调律推演", null, { hk: "2Aam9B" });
 	}
 	static tabGrad(fbs: FbsRuntime) {
-		return fbs._("武库鉴宝", null, { hk: "3BHuVO" });
+		return fbs._("武库鉴宝", null, { hk: "39y3DG" });
 	}
 	static noBis(fbs: FbsRuntime) {
-		return fbs._("暂无毕业词条", null, { hk: "2kzwDh" });
+		return fbs._("暂无毕业词条", null, { hk: "4dDoE6" });
 	}
 	static noRotation(fbs: FbsRuntime) {
-		return fbs._("暂无输出轴", null, { hk: "3C6iz4" });
+		return fbs._("暂无输出轴", null, { hk: "2wjxog" });
 	}
 	static noRates(fbs: FbsRuntime) {
-		return fbs._("暂无三率目标", null, { hk: "bd2DC" });
+		return fbs._("暂无三率目标", null, { hk: "Fd7jz" });
 	}
 	static rotGreydust(fbs: FbsRuntime) {
-		return fbs._("一分钟木桩轴", null, { hk: "2aTWP7" });
+		return fbs._("一分钟木桩轴", null, { hk: "Zoqav" });
 	}
 	static rotOpener(fbs: FbsRuntime) {
-		return fbs._("起手", null, { hk: "2HglyR" });
+		return fbs._("起手", null, { hk: "34pMYq" });
 	}
 	static rotLoop(fbs: FbsRuntime) {
-		return fbs._("循环", null, { hk: "mjtjZ" });
+		return fbs._("循环", null, { hk: "X0SsN" });
 	}
 	static rotKeyPoints(fbs: FbsRuntime) {
-		return fbs._("要点", null, { hk: "4nrcZx" });
+		return fbs._("要点", null, { hk: "2FLfR1" });
 	}
 	static rotInnerSkills(fbs: FbsRuntime) {
-		return fbs._("心法", null, { hk: "3Rm4gP" });
+		return fbs._("心法", null, { hk: "Yhbia" });
 	}
 	static rotVideo(fbs: FbsRuntime) {
-		return fbs._("视频攻略", null, { hk: "ZCgjO" });
+		return fbs._("视频攻略", null, { hk: "2HKAqB" });
 	}
 	static rateAccuracy(fbs: FbsRuntime) {
-		return fbs._("精准", null, { hk: "2AeGqy" });
+		return fbs._("精准", null, { hk: "1lPS1V" });
 	}
 	static rateCrit(fbs: FbsRuntime) {
-		return fbs._("会心", null, { hk: "2HYy58" });
+		return fbs._("会心", null, { hk: "3AQC41" });
 	}
 	static rateCritDamage(fbs: FbsRuntime) {
-		return fbs._("会意", null, { hk: "2NISlu" });
+		return fbs._("会意", null, { hk: "3qCLun" });
 	}
 	static bisMainWeapon(fbs: FbsRuntime) {
-		return fbs._("主武器", null, { hk: "2xLZ0B" });
+		return fbs._("主武器", null, { hk: "1beGtr" });
 	}
 	static bisOffWeapon(fbs: FbsRuntime) {
-		return fbs._("副武器", null, { hk: "29LKLY" });
+		return fbs._("副武器", null, { hk: "1RbSjR" });
 	}
 	static bisAccessories(fbs: FbsRuntime) {
-		return fbs._("环佩", null, { hk: "1xr2Xu" });
+		return fbs._("环佩", null, { hk: "3UhA0K" });
 	}
 	static bisHeadBody(fbs: FbsRuntime) {
-		return fbs._("头衣", null, { hk: "5q234" });
+		return fbs._("头衣", null, { hk: "2v68hl" });
 	}
 	static bisLegsWrists(fbs: FbsRuntime) {
-		return fbs._("腿腕", null, { hk: "2V4vsW" });
+		return fbs._("腿腕", null, { hk: "1Z8qML" });
 	}
 	static tabAffix(fbs: FbsRuntime) {
-		return fbs._("毕业词缀", null, { hk: "3PpHTl" });
+		return fbs._("毕业词缀", null, { hk: "bJD2a" });
 	}
 	static affixEmpty(fbs: FbsRuntime) {
-		return fbs._("暂无毕业词缀", null, { hk: "2VvGck" });
+		return fbs._("暂无毕业词缀", null, { hk: "2M4Vd2" });
 	}
 	static affixSetLabel(fbs: FbsRuntime) {
-		return fbs._("套装", null, { hk: "3Enl6Q" });
+		return fbs._("套装", null, { hk: "1aKrcg" });
 	}
 	static affixBowLabel(fbs: FbsRuntime) {
-		return fbs._("弓玦", null, { hk: "1AajFm" });
+		return fbs._("弓玦", null, { hk: "255y3E" });
 	}
 	static affixDingyinLabel(fbs: FbsRuntime) {
-		return fbs._("定音", null, { hk: "26KxhC" });
+		return fbs._("定音", null, { hk: "4txE8B" });
 	}
 	static affixColAffix(fbs: FbsRuntime) {
-		return fbs._("词缀", null, { hk: "16EKBF" });
+		return fbs._("词缀", null, { hk: "5naEu" });
 	}
 	static affixColCount(fbs: FbsRuntime) {
-		return fbs._("条数", null, { hk: "4mwXYi" });
+		return fbs._("条数", null, { hk: "cy4Pb" });
 	}
 	static affixColMax(fbs: FbsRuntime) {
-		return fbs._("满值", null, { hk: "eId1V" });
+		return fbs._("满值", null, { hk: "AAfzh" });
 	}
 	static affixColCy(fbs: FbsRuntime) {
-		return fbs._("承音", null, { hk: "4FnHSO" });
+		return fbs._("承音", null, { hk: "166ef" });
 	}
 	static affixSource(fbs: FbsRuntime) {
-		return fbs._("按 100 阶毕业配方整理，与配装台同一口径；满值、承音为单条词缀上限。", null, { hk: "1MY2sq" });
+		return fbs._("按 100 阶毕业配方整理，与配装台同一口径；满值、承音为单条词缀上限。", null, { hk: "1JGA8s" });
 	}
 }
 export abstract class TiaolvFbtUtils {
 	static intro(fbs: FbsRuntime) {
-		return fbs._("调律推演 · 复刻 bilibili@片雲 DIY 0.10.2（100级）伤害计算器逻辑", null, { hk: "xKnus" });
+		return fbs._("调律推演 · 复刻 bilibili@片雲 DIY 0.10.2（100级）伤害计算器逻辑", null, { hk: "oXbi2" });
 	}
 	static innerSkill(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("心法{n}", [fbs._param("n", pv(p, "n"))], { hk: "2jqPjk" });
+		return fbs._("心法{n}", [fbs._param("n", pv(p, "n"))], { hk: "4nobFV" });
 	}
 	static innerSkillPlaceholder(fbs: FbsRuntime) {
-		return fbs._("心法名", null, { hk: "4Mj94" });
+		return fbs._("心法名", null, { hk: "1p5g4g" });
 	}
 	static wuxue(fbs: FbsRuntime) {
-		return fbs._("武学", null, { hk: "3dhSON" });
+		return fbs._("武学", null, { hk: "38ZKxB" });
 	}
 	static wuku(fbs: FbsRuntime) {
-		return fbs._("武库", null, { hk: "XYxXn" });
+		return fbs._("武库", null, { hk: "F9TOg" });
 	}
 	static wukuSelf(fbs: FbsRuntime) {
-		return fbs._("本系", null, { hk: "3w8iOp" });
+		return fbs._("本系", null, { hk: "4lByE7" });
 	}
 	static wukuCommon(fbs: FbsRuntime) {
-		return fbs._("通用", null, { hk: "2xPWC9" });
+		return fbs._("通用", null, { hk: "3VSIAU" });
 	}
 	static suit(fbs: FbsRuntime) {
-		return fbs._("套装", null, { hk: "YjsNP" });
+		return fbs._("套装", null, { hk: "icbtk" });
 	}
 	static bow(fbs: FbsRuntime) {
-		return fbs._("弓决", null, { hk: "38Tf0A" });
+		return fbs._("弓决", null, { hk: "2Hp9I1" });
 	}
 	static none(fbs: FbsRuntime) {
-		return fbs._("无", null, { hk: "rH9It" });
+		return fbs._("无", null, { hk: "2VqZEV" });
 	}
 	static tuneArea(fbs: FbsRuntime) {
-		return fbs._("调律区（K:R 列，对应 Excel K3:R5, K6:R24）", null, { hk: "p72sz" });
+		return fbs._("调律区（K:R 列，对应 Excel K3:R5, K6:R24）", null, { hk: "zIw4K" });
 	}
 	static calc(fbs: FbsRuntime) {
-		return fbs._("开始推演", null, { hk: "4BLTKr" });
+		return fbs._("开始推演", null, { hk: "1MPdji" });
 	}
 	static calculating(fbs: FbsRuntime) {
-		return fbs._("推演中…", null, { hk: "qGaJh" });
+		return fbs._("推演中…", null, { hk: "4nLVv6" });
 	}
 	static toastFailed(fbs: FbsRuntime) {
-		return fbs._("计算失败", null, { hk: "1BD4dr" });
+		return fbs._("计算失败", null, { hk: "2JGojs" });
 	}
 	static toastFailedWith(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("计算失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "2JHtzB" });
+		return fbs._("计算失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "3Gscrk" });
 	}
 	static colAttr(fbs: FbsRuntime) {
-		return fbs._("属性", null, { hk: "SD6RS" });
+		return fbs._("属性", null, { hk: "3lWoaL" });
 	}
 	static colBase(fbs: FbsRuntime) {
-		return fbs._("基础白值", null, { hk: "30sYgQ" });
+		return fbs._("基础白值", null, { hk: "1DoR3" });
 	}
 	static colPanel(fbs: FbsRuntime) {
-		return fbs._("面板白值", null, { hk: "315ddm" });
+		return fbs._("面板白值", null, { hk: "lFk73" });
 	}
 	static colFinal(fbs: FbsRuntime) {
-		return fbs._("最终面板", null, { hk: "14LkAK" });
+		return fbs._("最终面板", null, { hk: "4tbf3T" });
 	}
 }
 export abstract class GradFbtUtils {
 	static entering(fbs: FbsRuntime) {
-		return fbs._("正在进入武库…", null, { hk: "3ORrmk" });
+		return fbs._("正在进入武库…", null, { hk: "4vRHhg" });
 	}
 	static title(fbs: FbsRuntime) {
-		return fbs._("武库鉴宝", null, { hk: "4x79Cr" });
+		return fbs._("武库鉴宝", null, { hk: "2ImO9a" });
 	}
 	static subtitle(fbs: FbsRuntime) {
-		return fbs._("条数50% · 数值30% · 三率20%", null, { hk: "3XPjcv" });
+		return fbs._("条数50% · 数值30% · 三率20%", null, { hk: "1coJjB" });
 	}
 	static mingjinNote(fbs: FbsRuntime) {
-		return fbs._("鸣金 · 大外会意流", null, { hk: "1l1zwq" });
+		return fbs._("鸣金 · 大外会意流", null, { hk: "1WeUoM" });
 	}
 	static buildBig(fbs: FbsRuntime) {
-		return fbs._("大外", null, { hk: "OsDVe" });
+		return fbs._("大外", null, { hk: "3vU4fV" });
 	}
 	static buildSmall(fbs: FbsRuntime) {
-		return fbs._("小外", null, { hk: "1P2b7v" });
+		return fbs._("小外", null, { hk: "f88cW" });
 	}
 	static ringLabel(fbs: FbsRuntime) {
-		return fbs._("毕业率", null, { hk: "4qywKu" });
+		return fbs._("毕业率", null, { hk: "46d0pJ" });
 	}
 	static scoreCount(fbs: FbsRuntime) {
-		return fbs._("条数匹配", null, { hk: "VlieX" });
+		return fbs._("条数匹配", null, { hk: "2RI02B" });
 	}
 	static scoreValue(fbs: FbsRuntime) {
-		return fbs._("数值达成", null, { hk: "kVEgR" });
+		return fbs._("数值达成", null, { hk: "1qvop8" });
 	}
 	static scoreRate(fbs: FbsRuntime) {
-		return fbs._("三率达标", null, { hk: "40YIA1" });
+		return fbs._("三率达标", null, { hk: "32Zcxf" });
 	}
 	static tier1(fbs: FbsRuntime) {
-		return fbs._("天人合一", null, { hk: "2EeKpV" });
+		return fbs._("天人合一", null, { hk: "3tVBTW" });
 	}
 	static tier2(fbs: FbsRuntime) {
-		return fbs._("登峰造极", null, { hk: "36U3RW" });
+		return fbs._("登峰造极", null, { hk: "1fuGmv" });
 	}
 	static tier3(fbs: FbsRuntime) {
-		return fbs._("炉火纯青", null, { hk: "2pnyqw" });
+		return fbs._("炉火纯青", null, { hk: "1uspPh" });
 	}
 	static tier4(fbs: FbsRuntime) {
-		return fbs._("小有所成", null, { hk: "49EmwB" });
+		return fbs._("小有所成", null, { hk: "2D8sSW" });
 	}
 	static tier5(fbs: FbsRuntime) {
-		return fbs._("初窥门径", null, { hk: "1BzJ98" });
+		return fbs._("初窥门径", null, { hk: "1Firpl" });
 	}
 	static tier6(fbs: FbsRuntime) {
-		return fbs._("凡铁未炼", null, { hk: "3ojv4W" });
+		return fbs._("凡铁未炼", null, { hk: "1koAjY" });
 	}
 	static tapHint(fbs: FbsRuntime) {
-		return fbs._("轻触装备以镌刻词条", null, { hk: "3HeLov" });
+		return fbs._("轻触装备以镌刻词条", null, { hk: "1Qa0v8" });
 	}
 	static refTitle(fbs: FbsRuntime) {
-		return fbs._("📖 参考数据 · 词条满值与版位", null, { hk: "2OEwck" });
+		return fbs._("📖 参考数据 · 词条满值与版位", null, { hk: "3sFcA3" });
 	}
 	static maxTableTitle(fbs: FbsRuntime) {
-		return fbs._("词条满值表（100阶）", null, { hk: "4kYhuB" });
+		return fbs._("词条满值表（100阶）", null, { hk: "3WD0G1" });
 	}
 	static colAffix(fbs: FbsRuntime) {
-		return fbs._("词条", null, { hk: "3PpLky" });
+		return fbs._("词条", null, { hk: "1XSEDZ" });
 	}
 	static colMax(fbs: FbsRuntime) {
-		return fbs._("满值", null, { hk: "VyZKd" });
+		return fbs._("满值", null, { hk: "2n0qXK" });
 	}
 	static colResonance(fbs: FbsRuntime) {
-		return fbs._("承音（95%)", null, { hk: "14RNqj" });
+		return fbs._("承音（95%)", null, { hk: "3d96aB" });
 	}
 	static slotTableTitle(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("部位版位表（{build}）", [fbs._param("build", pv(p, "build"))], { hk: "BpqwT" });
+		return fbs._("部位版位表（{build}）", [fbs._param("build", pv(p, "build"))], { hk: "3hyz6B" });
 	}
 	static rateTitle(fbs: FbsRuntime) {
-		return fbs._("⚡ 三率速算", null, { hk: "h65pG" });
+		return fbs._("⚡ 三率速算", null, { hk: "2rU8Qf" });
 	}
 	static rateOk(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("{v} ✓", [fbs._param("v", pv(p, "v"))], { hk: "2yR10d" });
+		return fbs._("{v} ✓", [fbs._param("v", pv(p, "v"))], { hk: "3eNNkZ" });
 	}
 	static rateGap(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("{v} （差{gap}）", [fbs._param("v", pv(p, "v")), fbs._param("gap", pv(p, "gap"))], { hk: "sKEhV" });
+		return fbs._("{v} （差{gap}）", [fbs._param("v", pv(p, "v")), fbs._param("gap", pv(p, "gap"))], { hk: "2nxACQ" });
 	}
 	static rateOverflow(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("⚠️ 会心+会意={sum}>100，会意挤占会心", [fbs._param("sum", pv(p, "sum"))], { hk: "ZWubl" });
+		return fbs._("⚠️ 会心+会意={sum}>100，会意挤占会心", [fbs._param("sum", pv(p, "sum"))], { hk: "2XodyQ" });
 	}
 	static compareTitle(fbs: FbsRuntime) {
-		return fbs._("⚔️ 方案对比", null, { hk: "2bDsft" });
+		return fbs._("⚔️ 方案对比", null, { hk: "2wGENA" });
 	}
 	static saveScheme(fbs: FbsRuntime) {
-		return fbs._("💾 保存当前配装为方案", null, { hk: "1q6Dfu" });
+		return fbs._("💾 保存当前配装为方案", null, { hk: "2S5qKc" });
 	}
 	static schemeName(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("方案{n}", [fbs._param("n", pv(p, "n"))], { hk: "iP58k" });
+		return fbs._("方案{n}", [fbs._param("n", pv(p, "n"))], { hk: "1BadHH" });
 	}
 	static noSchemes(fbs: FbsRuntime) {
-		return fbs._("暂无方案，先填好装备再保存", null, { hk: "19NTg6" });
+		return fbs._("暂无方案，先填好装备再保存", null, { hk: "24hWKH" });
 	}
 	static load(fbs: FbsRuntime) {
-		return fbs._("载入", null, { hk: "Ku4mt" });
+		return fbs._("载入", null, { hk: "38zYLz" });
 	}
 	static deleteScheme(fbs: FbsRuntime) {
-		return fbs._("删除方案", null, { hk: "2p79rN" });
+		return fbs._("删除方案", null, { hk: "2IbiPj" });
 	}
 	static itemScore(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("本件 {score}%", [fbs._param("score", pv(p, "score"))], { hk: "16GG9c" });
+		return fbs._("本件 {score}%", [fbs._param("score", pv(p, "score"))], { hk: "1MLc9G" });
 	}
 	static rowMain(fbs: FbsRuntime) {
-		return fbs._("主词条", null, { hk: "2jGdya" });
+		return fbs._("主词条", null, { hk: "10NRjY" });
 	}
 	static rowSub(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("副词条{n}", [fbs._param("n", pv(p, "n"))], { hk: "vsfjK" });
+		return fbs._("副词条{n}", [fbs._param("n", pv(p, "n"))], { hk: "4sEF3B" });
 	}
 	static rowResonance(fbs: FbsRuntime) {
-		return fbs._("定音", null, { hk: "2IoF6H" });
+		return fbs._("定音", null, { hk: "Y8tmn" });
 	}
 	static ratePrecision(fbs: FbsRuntime) {
-		return fbs._("精准", null, { hk: "2vSyyP" });
+		return fbs._("精准", null, { hk: "4FDUeH" });
 	}
 	static rateCrit(fbs: FbsRuntime) {
-		return fbs._("会心", null, { hk: "1IhDD7" });
+		return fbs._("会心", null, { hk: "1ngGNQ" });
 	}
 	static rateAffinity(fbs: FbsRuntime) {
-		return fbs._("会意", null, { hk: "2pX9a2" });
+		return fbs._("会意", null, { hk: "3kJSPm" });
 	}
 	static affixPlaceholder(fbs: FbsRuntime) {
-		return fbs._("— 待镌刻 —", null, { hk: "3daHQR" });
+		return fbs._("— 待镌刻 —", null, { hk: "1uJWUF" });
 	}
 	static affixLoading(fbs: FbsRuntime) {
-		return fbs._("词条数据加载中…", null, { hk: "2TUyPm" });
+		return fbs._("词条数据加载中…", null, { hk: "1xXFCJ" });
 	}
 	static valuePlaceholderMax(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("数值 / {max}", [fbs._param("max", pv(p, "max"))], { hk: "11leO4" });
+		return fbs._("数值 / {max}", [fbs._param("max", pv(p, "max"))], { hk: "3qLgzI" });
 	}
 	static valuePlaceholder(fbs: FbsRuntime) {
-		return fbs._("数值", null, { hk: "45srMh" });
+		return fbs._("数值", null, { hk: "2RZxP9" });
 	}
 	static resonance(fbs: FbsRuntime) {
-		return fbs._("承音", null, { hk: "3HpWKQ" });
+		return fbs._("承音", null, { hk: "2ZWwxF" });
 	}
 	static overMax(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("超过满值 {max}，将按满值计算", [fbs._param("max", pv(p, "max"))], { hk: "26Hpge" });
+		return fbs._("超过满值 {max}，将按满值计算", [fbs._param("max", pv(p, "max"))], { hk: "24SYXu" });
 	}
 	static toastSaved(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("已保存方案「{name}」", [fbs._param("name", pv(p, "name"))], { hk: "FHZfc" });
+		return fbs._("已保存方案「{name}」", [fbs._param("name", pv(p, "name"))], { hk: "3aceAQ" });
 	}
 	static toastLoaded(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("已载入方案「{name}」", [fbs._param("name", pv(p, "name"))], { hk: "1migJf" });
+		return fbs._("已载入方案「{name}」", [fbs._param("name", pv(p, "name"))], { hk: "3Uzy9Q" });
 	}
 	static toastOldScheme(fbs: FbsRuntime) {
-		return fbs._("旧方案只保存了分数，无法载入配装", null, { hk: "2ZGG3u" });
+		return fbs._("旧方案只保存了分数，无法载入配装", null, { hk: "2WTMMU" });
 	}
 }
 export abstract class GearFbtUtils {
 	static calcLabel(fbs: FbsRuntime) {
-		return fbs._("计算", null, { hk: "2kLCD4" });
+		return fbs._("计算", null, { hk: "4yW8H7" });
 	}
 	static benchTitle(fbs: FbsRuntime) {
-		return fbs._("配装台", null, { hk: "1K2f4q" });
+		return fbs._("配装台", null, { hk: "5Ew0h" });
 	}
 	static benchIntro(fbs: FbsRuntime) {
-		return fbs._("100 阶配装：按流派配方拼装备、算面板与毕业度（口径：条数 40% + 数值 24% + 定音 20%，与上方毕业计算的口径不同）。装备库与方案保存在你的 Discord 账号下，换设备也能用。", null, { hk: "1wK3RF" });
+		return fbs._("100 阶配装：按流派配方拼装备、算面板与毕业度（口径：条数 40% + 数值 24% + 定音 20%，与上方毕业计算的口径不同）。装备库与方案保存在你的 Discord 账号下，换设备也能用。", null, { hk: "4fa1Hg" });
 	}
 	static targetLabel(fbs: FbsRuntime) {
-		return fbs._("目标流派", null, { hk: "1kdjnX" });
+		return fbs._("目标流派", null, { hk: "45QWaG" });
 	}
 	static bowLabel(fbs: FbsRuntime) {
-		return fbs._("弓玦", null, { hk: "34xSPl" });
+		return fbs._("弓玦", null, { hk: "40JcWJ" });
 	}
 	static bowNoneLabel(fbs: FbsRuntime) {
-		return fbs._("无", null, { hk: "4avWGd" });
+		return fbs._("无", null, { hk: "1fJFXE" });
 	}
 	static extrasTitle(fbs: FbsRuntime) {
-		return fbs._("其他来源加成", null, { hk: "4yvpq7" });
+		return fbs._("其他来源加成", null, { hk: "2OZKs8" });
 	}
 	static resLabel(fbs: FbsRuntime) {
-		return fbs._("抗性", null, { hk: "3g1w0Q" });
+		return fbs._("抗性", null, { hk: "1mfaBV" });
 	}
 	static extraAccLabel(fbs: FbsRuntime) {
-		return fbs._("白字精准（手填）", null, { hk: "35QYtU" });
+		return fbs._("白字精准（手填）", null, { hk: "sv4I5" });
 	}
 	static extraCritLabel(fbs: FbsRuntime) {
-		return fbs._("白字会心（手填）", null, { hk: "3ILVKb" });
+		return fbs._("白字会心（手填）", null, { hk: "1e7sB4" });
 	}
 	static extraIntLabel(fbs: FbsRuntime) {
-		return fbs._("白字会意（手填）", null, { hk: "1G95ny" });
+		return fbs._("白字会意（手填）", null, { hk: "3CR3N4" });
 	}
 	static baseTitle(fbs: FbsRuntime) {
-		return fbs._("角色基础", null, { hk: "HGR1O" });
+		return fbs._("角色基础", null, { hk: "pjnBL" });
 	}
 	static unlockLabel(fbs: FbsRuntime) {
-		return fbs._("解锁", null, { hk: "34oqrL" });
+		return fbs._("解锁", null, { hk: "33y8jY" });
 	}
 	static lockLabel(fbs: FbsRuntime) {
-		return fbs._("锁定", null, { hk: "2kGaTl" });
+		return fbs._("锁定", null, { hk: "3qiLvx" });
 	}
 	static modifiedTag(fbs: FbsRuntime) {
-		return fbs._("已改", null, { hk: "3sJauA" });
+		return fbs._("已改", null, { hk: "AxU4Y" });
 	}
 	static baseResetLabel(fbs: FbsRuntime) {
-		return fbs._("恢复预设", null, { hk: "1RNJ44" });
+		return fbs._("恢复预设", null, { hk: "2jKpXX" });
 	}
 	static baseResetTitle(fbs: FbsRuntime) {
-		return fbs._("恢复预设？", null, { hk: "vc9fT" });
+		return fbs._("恢复预设？", null, { hk: "7f5it" });
 	}
 	static baseResetBody(fbs: FbsRuntime) {
-		return fbs._("角色基础将回到预设值，心法选择保留。", null, { hk: "1ptiAP" });
+		return fbs._("角色基础将回到预设值，心法选择保留。", null, { hk: "7NFA2" });
 	}
 	static xinfaLabelTemplate(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("心法 {n}", [fbs._param("n", pv(p, "n"))], { hk: "20ZwzO" });
+		return fbs._("心法 {n}", [fbs._param("n", pv(p, "n"))], { hk: "2K8xD8" });
 	}
 	static xinfaNoneLabel(fbs: FbsRuntime) {
-		return fbs._("— 不选 —", null, { hk: "46K6vA" });
+		return fbs._("— 不选 —", null, { hk: "1x62WA" });
 	}
 	static loginHint(fbs: FbsRuntime) {
-		return fbs._("装备库与方案按你的 Discord 账号保存，登录后可用（计算与参考数据无需登录）。", null, { hk: "3o4TzZ" });
+		return fbs._("装备库与方案按你的 Discord 账号保存，登录后可用（计算与参考数据无需登录）。", null, { hk: "4BEVzt" });
 	}
 	static libTitle(fbs: FbsRuntime) {
-		return fbs._("装备库", null, { hk: "29CS95" });
+		return fbs._("装备库", null, { hk: "46uSMP" });
 	}
 	static myLibTitle(fbs: FbsRuntime) {
-		return fbs._("我的装备库", null, { hk: "1pgRT0" });
+		return fbs._("我的装备库", null, { hk: "2F5moS" });
 	}
 	static myBuildsTitle(fbs: FbsRuntime) {
-		return fbs._("我的方案", null, { hk: "474ufs" });
+		return fbs._("我的方案", null, { hk: "3kY4E6" });
 	}
 	static libCountTemplate(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("共 {n} 件", [fbs._param("n", pv(p, "n"))], { hk: "29Bsbl" });
+		return fbs._("共 {n} 件", [fbs._param("n", pv(p, "n"))], { hk: "2I37Ih" });
 	}
 	static usageTemplate(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("已存 {n} / {limit} 件", [fbs._param("n", pv(p, "n")), fbs._param("limit", pv(p, "limit"))], { hk: "uPN2o" });
+		return fbs._("已存 {n} / {limit} 件", [fbs._param("n", pv(p, "n")), fbs._param("limit", pv(p, "limit"))], { hk: "1VqKRZ" });
 	}
 	static usageNearLimitText(fbs: FbsRuntime) {
-		return fbs._("装备库快满了，导入新装备前先清理不用的装备", null, { hk: "1oHkuC" });
+		return fbs._("装备库快满了，导入新装备前先清理不用的装备", null, { hk: "HlS1G" });
 	}
 	static formSlotLabel(fbs: FbsRuntime) {
-		return fbs._("部位", null, { hk: "3SIgEj" });
+		return fbs._("部位", null, { hk: "4lnYDt" });
 	}
 	static formNameLabel(fbs: FbsRuntime) {
-		return fbs._("名称", null, { hk: "EyEyK" });
+		return fbs._("名称", null, { hk: "15UsBA" });
 	}
 	static formNamePlaceholder(fbs: FbsRuntime) {
-		return fbs._("装备名（可空）", null, { hk: "1zpr6v" });
+		return fbs._("装备名（可空）", null, { hk: "3kDM9E" });
 	}
 	static affixPlaceholder(fbs: FbsRuntime) {
-		return fbs._("选词条", null, { hk: "2FvZa9" });
+		return fbs._("选词条", null, { hk: "3Q1dGP" });
 	}
 	static valuePlaceholder(fbs: FbsRuntime) {
-		return fbs._("数值", null, { hk: "4k2wu0" });
+		return fbs._("数值", null, { hk: "4EHCxo" });
 	}
 	static refTemplate(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("满值 {max} / 承音 {cy}", [fbs._param("max", pv(p, "max")), fbs._param("cy", pv(p, "cy"))], { hk: "JcCgj" });
+		return fbs._("满值 {max} / 承音 {cy}", [fbs._param("max", pv(p, "max")), fbs._param("cy", pv(p, "cy"))], { hk: "2gJcql" });
 	}
 	static fillMaxLabel(fbs: FbsRuntime) {
-		return fbs._("填满值", null, { hk: "e6Hwa" });
+		return fbs._("填满值", null, { hk: "cRHZT" });
 	}
 	static fillCyLabel(fbs: FbsRuntime) {
-		return fbs._("填承音", null, { hk: "qFM4n" });
+		return fbs._("填承音", null, { hk: "1NymVZ" });
 	}
 	static delRowLabel(fbs: FbsRuntime) {
-		return fbs._("删此行", null, { hk: "18L69d" });
+		return fbs._("删此行", null, { hk: "wS94O" });
 	}
 	static addRowLabel(fbs: FbsRuntime) {
-		return fbs._("加一行", null, { hk: "2MhrV1" });
+		return fbs._("加一行", null, { hk: "3a3uLZ" });
 	}
 	static dyNameLabel(fbs: FbsRuntime) {
-		return fbs._("定音名称", null, { hk: "1R819K" });
+		return fbs._("定音名称", null, { hk: "2dpd8A" });
 	}
 	static dyNamePlaceholder(fbs: FbsRuntime) {
-		return fbs._("如 外功穿透 / 无名剑法·蓄力技增伤", null, { hk: "36gPAs" });
+		return fbs._("如 外功穿透 / 无名剑法·蓄力技增伤", null, { hk: "3zCssy" });
 	}
 	static dyValLabel(fbs: FbsRuntime) {
-		return fbs._("定音数值", null, { hk: "2sQLHA" });
+		return fbs._("定音数值", null, { hk: "4ydc7H" });
 	}
 	static schoolsLabel(fbs: FbsRuntime) {
-		return fbs._("流派标签（武器）", null, { hk: "2C9XYw" });
+		return fbs._("流派标签（武器）", null, { hk: "1d7OgL" });
 	}
 	static addGearLabel(fbs: FbsRuntime) {
-		return fbs._("存入装备库", null, { hk: "1FyM8n" });
+		return fbs._("存入装备库", null, { hk: "2U7Vve" });
 	}
 	static updateGearLabel(fbs: FbsRuntime) {
-		return fbs._("保存修改", null, { hk: "3dWDoQ" });
+		return fbs._("保存修改", null, { hk: "1hIpLR" });
 	}
 	static cancelEditLabel(fbs: FbsRuntime) {
-		return fbs._("取消编辑", null, { hk: "yvQPZ" });
+		return fbs._("取消编辑", null, { hk: "3p9kFF" });
 	}
 	static demoLabel(fbs: FbsRuntime) {
-		return fbs._("载入示例套", null, { hk: "29Zox3" });
+		return fbs._("载入示例套", null, { hk: "cxx9v" });
 	}
 	static clearLibLabel(fbs: FbsRuntime) {
-		return fbs._("清空装备库", null, { hk: "4u6XIj" });
+		return fbs._("清空装备库", null, { hk: "2vmGUK" });
 	}
 	static clearConfirmTitle(fbs: FbsRuntime) {
-		return fbs._("清空装备库？", null, { hk: "4sK2X9" });
+		return fbs._("清空装备库？", null, { hk: "4Y33D" });
 	}
 	static clearConfirmBody(fbs: FbsRuntime) {
-		return fbs._("你账号下的全部装备与方案都会删除，当前搭配也会清空，此操作不可恢复。", null, { hk: "38FtqH" });
+		return fbs._("你账号下的全部装备与方案都会删除，当前搭配也会清空，此操作不可恢复。", null, { hk: "xkBN7" });
 	}
 	static equipLabel(fbs: FbsRuntime) {
-		return fbs._("选入", null, { hk: "33DB2v" });
+		return fbs._("选入", null, { hk: "1ViGlP" });
 	}
 	static unequipLabel(fbs: FbsRuntime) {
-		return fbs._("卸下", null, { hk: "4qcTjb" });
+		return fbs._("卸下", null, { hk: "4BpXFA" });
 	}
 	static editLabel(fbs: FbsRuntime) {
-		return fbs._("编辑", null, { hk: "3sGW5y" });
+		return fbs._("编辑", null, { hk: "1IeJyL" });
 	}
 	static deleteLabel(fbs: FbsRuntime) {
-		return fbs._("删除", null, { hk: "2ybcd4" });
+		return fbs._("删除", null, { hk: "3PX3ar" });
 	}
 	static simLabel(fbs: FbsRuntime) {
-		return fbs._("模拟", null, { hk: "2kj8uB" });
+		return fbs._("模拟", null, { hk: "25RrEi" });
 	}
 	static simRealLabel(fbs: FbsRuntime) {
-		return fbs._("实际", null, { hk: "4CbeUi" });
+		return fbs._("实际", null, { hk: "2oNMSF" });
 	}
 	static simCyLabel(fbs: FbsRuntime) {
-		return fbs._("承音", null, { hk: "6ICcQ" });
+		return fbs._("承音", null, { hk: "3u95YZ" });
 	}
 	static simMaxLabel(fbs: FbsRuntime) {
-		return fbs._("满值", null, { hk: "NeQqC" });
+		return fbs._("满值", null, { hk: "3zGRzQ" });
 	}
 	static verdictHeirloom(fbs: FbsRuntime) {
-		return fbs._("传家宝", null, { hk: "4wMZCA" });
+		return fbs._("传家宝", null, { hk: "3SODAl" });
 	}
 	static verdictDud(fbs: FbsRuntime) {
-		return fbs._("拉完了", null, { hk: "1BVStm" });
+		return fbs._("拉完了", null, { hk: "1f8Mtw" });
 	}
 	static scoreTemplate(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("评分 {score}", [fbs._param("score", pv(p, "score"))], { hk: "2n0qfX" });
+		return fbs._("评分 {score}", [fbs._param("score", pv(p, "score"))], { hk: "1T239Z" });
 	}
 	static qualityLabel(fbs: FbsRuntime) {
-		return fbs._("数值达成", null, { hk: "2VZfM3" });
+		return fbs._("数值达成", null, { hk: "1aLZdi" });
 	}
 	static exportLabel(fbs: FbsRuntime) {
-		return fbs._("导出数据", null, { hk: "DPENA" });
+		return fbs._("导出数据", null, { hk: "3ppO90" });
 	}
 	static exportFileName(fbs: FbsRuntime) {
-		return fbs._("100阶配装数据.json", null, { hk: "uPYjV" });
+		return fbs._("100阶配装数据.json", null, { hk: "1nF0W5" });
 	}
 	static importNameTemplate(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("导入 · {slot}", [fbs._param("slot", pv(p, "slot"))], { hk: "4bhbtM" });
+		return fbs._("导入 · {slot}", [fbs._param("slot", pv(p, "slot"))], { hk: "9IF0K" });
 	}
 	static importLabel(fbs: FbsRuntime) {
-		return fbs._("导入数据", null, { hk: "1puJ5B" });
+		return fbs._("导入数据", null, { hk: "22hIjM" });
 	}
 	static importFailedToast(fbs: FbsRuntime) {
-		return fbs._("导入失败：文件无效", null, { hk: "2zTvFc" });
+		return fbs._("导入失败：文件无效", null, { hk: "1crJB7" });
 	}
 	static importedToastTemplate(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("已导入 {n} 件", [fbs._param("n", pv(p, "n"))], { hk: "2xdGoD" });
+		return fbs._("已导入 {n} 件", [fbs._param("n", pv(p, "n"))], { hk: "Ava70" });
 	}
 	static manualTitle(fbs: FbsRuntime) {
-		return fbs._("手动录入", null, { hk: "2E7B70" });
+		return fbs._("手动录入", null, { hk: "1N5DR9" });
 	}
 	static pasteTitle(fbs: FbsRuntime) {
-		return fbs._("粘贴代码导入", null, { hk: "Yp0xy" });
+		return fbs._("粘贴代码导入", null, { hk: "30UnRe" });
 	}
 	static pastePlaceholder(fbs: FbsRuntime) {
-		return fbs._("把装备数据代码粘到这里（JSON / Base64 / 文本均可）", null, { hk: "27wtI6" });
+		return fbs._("把装备数据代码粘到这里（JSON / Base64 / 文本均可）", null, { hk: "1bfgrW" });
 	}
 	static pasteButtonLabel(fbs: FbsRuntime) {
-		return fbs._("解析并导入装备库", null, { hk: "2Xx6Fb" });
+		return fbs._("解析并导入装备库", null, { hk: "4ay48m" });
 	}
 	static pasteDemoLabel(fbs: FbsRuntime) {
-		return fbs._("填入示例代码", null, { hk: "2KDdRA" });
+		return fbs._("填入示例代码", null, { hk: "18Iquh" });
 	}
 	static pasteEmptyText(fbs: FbsRuntime) {
-		return fbs._("先把代码粘到上面的框里再点解析。", null, { hk: "3LqYU6" });
+		return fbs._("先把代码粘到上面的框里再点解析。", null, { hk: "4hDbrH" });
 	}
 	static pasteOkTemplate(fbs: FbsRuntime, p?: StringParams) {
 		return fbs._("✓ 已按「{mode}」解析，导入 {n} 件装备 / {lines} 条词条，已自动选入搭配。", [
 			fbs._param("mode", pv(p, "mode")),
 			fbs._param("n", pv(p, "n")),
 			fbs._param("lines", pv(p, "lines"))
-		], { hk: "34sVb" });
+		], { hk: "4e0PnW" });
 	}
 	static pasteUnknownTemplate(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("另有 {n} 条没认出的字段被跳过（多半是气血、防御、外功穿透这类本站不计的词条）。", [fbs._param("n", pv(p, "n"))], { hk: "4kjkKf" });
+		return fbs._("另有 {n} 条没认出的字段被跳过（多半是气血、防御、外功穿透这类本站不计的词条）。", [fbs._param("n", pv(p, "n"))], { hk: "26uiRZ" });
 	}
 	static pasteFailText(fbs: FbsRuntime) {
-		return fbs._("没能从这段代码里认出装备。常见原因：复制时漏了一头一尾、复制的是角色外观分享码（不含装备数值）、或这份数据的字段格式本站还没适配。", null, { hk: "3Rgv6z" });
+		return fbs._("没能从这段代码里认出装备。常见原因：复制时漏了一头一尾、复制的是角色外观分享码（不含装备数值）、或这份数据的字段格式本站还没适配。", null, { hk: "2oG8K6" });
 	}
 	static pasteFullText(fbs: FbsRuntime) {
-		return fbs._("识别为本工具导出的数据，已按整库导入处理。", null, { hk: "3N27QR" });
+		return fbs._("识别为本工具导出的数据，已按整库导入处理。", null, { hk: "35QvzG" });
 	}
 	static ocrTitle(fbs: FbsRuntime) {
-		return fbs._("截图导入（本地识别，不上传）", null, { hk: "4CCfbj" });
+		return fbs._("截图导入（本地识别，不上传）", null, { hk: "Dx6x6" });
 	}
 	static ocrDropText(fbs: FbsRuntime) {
-		return fbs._("点这里选一张装备详情截图，或拖进来 / Ctrl+V 粘贴", null, { hk: "2W43tH" });
+		return fbs._("点这里选一张装备详情截图，或拖进来 / Ctrl+V 粘贴", null, { hk: "3FenDv" });
 	}
 	static ocrPreparingText(fbs: FbsRuntime) {
-		return fbs._("正在准备图片…", null, { hk: "26RxjO" });
+		return fbs._("正在准备图片…", null, { hk: "3YfDW4" });
 	}
 	static ocrRunningText(fbs: FbsRuntime) {
-		return fbs._("正在识别（首次会下载中文 + 英文识别包，可能要十几秒）…", null, { hk: "1TYlTe" });
+		return fbs._("正在识别（首次会下载中文 + 英文识别包，可能要十几秒）…", null, { hk: "1IiGWt" });
 	}
 	static ocrSecondText(fbs: FbsRuntime) {
-		return fbs._("正在增强识别（第二遍）…", null, { hk: "2Upo35" });
+		return fbs._("正在增强识别（第二遍）…", null, { hk: "28MEqZ" });
 	}
 	static ocrFailedText(fbs: FbsRuntime) {
-		return fbs._("识别失败了。常见原因：网络不通下不到识别包、图片太模糊。可以换一张更清晰、完整的详情页截图再试。", null, { hk: "paBas" });
+		return fbs._("识别失败了。常见原因：网络不通下不到识别包、图片太模糊。可以换一张更清晰、完整的详情页截图再试。", null, { hk: "2k2kbH" });
 	}
 	static ocrBadTypeText(fbs: FbsRuntime) {
-		return fbs._("这张图格式不对，只支持 PNG / JPEG / WebP 截图。", null, { hk: "3vqEQa" });
+		return fbs._("这张图格式不对，只支持 PNG / JPEG / WebP 截图。", null, { hk: "3QL0xP" });
 	}
 	static ocrTooBigText(fbs: FbsRuntime) {
-		return fbs._("图片超过 15MB，换一张小一点的截图。", null, { hk: "1lKcJR" });
+		return fbs._("图片超过 15MB，换一张小一点的截图。", null, { hk: "42zAVE" });
 	}
 	static ocrNoEngineText(fbs: FbsRuntime) {
-		return fbs._("识别组件没能加载（OCR 引擎需要联网从 CDN 载入）。检查网络后刷新页面再试；粘贴代码导入不受影响。", null, { hk: "2q3N9Q" });
+		return fbs._("识别组件没能加载（OCR 引擎需要联网从 CDN 载入）。检查网络后刷新页面再试；粘贴代码导入不受影响。", null, { hk: "aIn0l" });
 	}
 	static ocrDoneTemplate(fbs: FbsRuntime, p?: StringParams) {
 		return fbs._("✓ 识别完成：认出 {n} 条词条{slotPart}{dyPart}。请逐行核对数值再确认存入。", [
 			fbs._param("n", pv(p, "n")),
 			fbs._param("slotPart", pv(p, "slotPart")),
 			fbs._param("dyPart", pv(p, "dyPart"))
-		], { hk: "oJviZ" });
+		], { hk: "Mu22w" });
 	}
 	static ocrSlotLabel(fbs: FbsRuntime) {
-		return fbs._("部位", null, { hk: "2CiU41" });
+		return fbs._("部位", null, { hk: "4lIvFo" });
 	}
 	static ocrNameLabel(fbs: FbsRuntime) {
-		return fbs._("名称", null, { hk: "2umFBC" });
+		return fbs._("名称", null, { hk: "U2LBc" });
 	}
 	static ocrEquipLabel(fbs: FbsRuntime) {
-		return fbs._("存入后直接选入搭配", null, { hk: "3J3VVR" });
+		return fbs._("存入后直接选入搭配", null, { hk: "3FIunH" });
 	}
 	static ocrConfirmLabel(fbs: FbsRuntime) {
-		return fbs._("确认存入", null, { hk: "3r4Zg4" });
+		return fbs._("确认存入", null, { hk: "3WqTD1" });
 	}
 	static ocrCancelLabel(fbs: FbsRuntime) {
-		return fbs._("放弃", null, { hk: "QBedJ" });
+		return fbs._("放弃", null, { hk: "20dc5U" });
 	}
 	static ocrUnknownTitle(fbs: FbsRuntime) {
-		return fbs._("下面这些行没认出词条，已原样列出（不会丢行）：需要的话点「补一条词条行」手动加上；纯界面文字可忽略。", null, { hk: "1Ijdtk" });
+		return fbs._("下面这些行没认出词条，已原样列出（不会丢行）：需要的话点「补一条词条行」手动加上；纯界面文字可忽略。", null, { hk: "41gOUB" });
 	}
 	static ocrSavedTemplate(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("✓ 已存入装备库：{slot}（{n} 条词条）", [fbs._param("slot", pv(p, "slot")), fbs._param("n", pv(p, "n"))], { hk: "8uNKY" });
+		return fbs._("✓ 已存入装备库：{slot}（{n} 条词条）", [fbs._param("slot", pv(p, "slot")), fbs._param("n", pv(p, "n"))], { hk: "3soQ7q" });
 	}
 	static ocrNeedLineToast(fbs: FbsRuntime) {
-		return fbs._("至少保留一条有效词条再确认", null, { hk: "3WGSLg" });
+		return fbs._("至少保留一条有效词条再确认", null, { hk: "1XZ1cS" });
 	}
 	static ocrLowConfTag(fbs: FbsRuntime) {
-		return fbs._("低置信，请核对", null, { hk: "1N2fGy" });
+		return fbs._("低置信，请核对", null, { hk: "26nqBd" });
 	}
 	static ocrAddRowLabel(fbs: FbsRuntime) {
-		return fbs._("补一条词条行", null, { hk: "2VJpfv" });
+		return fbs._("补一条词条行", null, { hk: "m177q" });
 	}
 	static ocrImportSlotTemplate(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("导入{slot}", [fbs._param("slot", pv(p, "slot"))], { hk: "1akSw1" });
+		return fbs._("导入{slot}", [fbs._param("slot", pv(p, "slot"))], { hk: "31wzwa" });
 	}
 	static ocrBatchTitle(fbs: FbsRuntime) {
-		return fbs._("批量截图识别（全屏截图自动框选 · 本地识别，不上传）", null, { hk: "1cOsFj" });
+		return fbs._("批量截图识别（全屏截图自动框选 · 本地识别，不上传）", null, { hk: "1no4fj" });
 	}
 	static ocrBatchDropText(fbs: FbsRuntime) {
-		return fbs._("把多张截图拖到这里，或点选多张 / Ctrl+V 粘贴（全屏截图也可以，会自动找装备面板）", null, { hk: "1hhLhQ" });
+		return fbs._("把多张截图拖到这里，或点选多张 / Ctrl+V 粘贴（全屏截图也可以，会自动找装备面板）", null, { hk: "dpylj" });
 	}
 	static ocrBatchQueuedText(fbs: FbsRuntime) {
-		return fbs._("排队中", null, { hk: "Nd17m" });
+		return fbs._("排队中", null, { hk: "H7XUk" });
 	}
 	static ocrBatchRunningText(fbs: FbsRuntime) {
-		return fbs._("识别中…", null, { hk: "3eorYj" });
+		return fbs._("识别中…", null, { hk: "2AzaGg" });
 	}
 	static ocrBatchReadyText(fbs: FbsRuntime) {
-		return fbs._("待核对", null, { hk: "2Uq8hS" });
+		return fbs._("待核对", null, { hk: "1YY9Gt" });
 	}
 	static ocrBatchFailedText(fbs: FbsRuntime) {
-		return fbs._("识别失败", null, { hk: "3PCxKB" });
+		return fbs._("识别失败", null, { hk: "4zJSN9" });
 	}
 	static ocrBatchImportedText(fbs: FbsRuntime) {
-		return fbs._("已导入", null, { hk: "4hyCeG" });
+		return fbs._("已导入", null, { hk: "3KJdM2" });
 	}
 	static ocrBatchRetryLabel(fbs: FbsRuntime) {
-		return fbs._("重试", null, { hk: "hpwIZ" });
+		return fbs._("重试", null, { hk: "2Txdbu" });
 	}
 	static ocrBatchRemoveLabel(fbs: FbsRuntime) {
-		return fbs._("移除", null, { hk: "3EXgWk" });
+		return fbs._("移除", null, { hk: "2szCqk" });
 	}
 	static ocrBatchAdjustLabel(fbs: FbsRuntime) {
-		return fbs._("调整框选", null, { hk: "2zEp4m" });
+		return fbs._("调整框选", null, { hk: "z3HY0" });
 	}
 	static ocrBatchApplyBoxLabel(fbs: FbsRuntime) {
-		return fbs._("按此框重新识别", null, { hk: "1KSFKG" });
+		return fbs._("按此框重新识别", null, { hk: "4jySZY" });
 	}
 	static ocrBatchDetectedText(fbs: FbsRuntime) {
-		return fbs._("已自动框选面板", null, { hk: "1Zd71Q" });
+		return fbs._("已自动框选面板", null, { hk: "4fhL5u" });
 	}
 	static ocrBatchFullImageText(fbs: FbsRuntime) {
-		return fbs._("未定位到面板，按整图识别", null, { hk: "zUdNB" });
+		return fbs._("未定位到面板，按整图识别", null, { hk: "2V5DqY" });
 	}
 	static ocrBatchDupTag(fbs: FbsRuntime) {
-		return fbs._("重复", null, { hk: "1P2q5L" });
+		return fbs._("重复", null, { hk: "24C1tX" });
 	}
 	static ocrBatchDupLibText(fbs: FbsRuntime) {
-		return fbs._("与装备库已有装备相同，默认不导入", null, { hk: "C0m3T" });
+		return fbs._("与装备库已有装备相同，默认不导入", null, { hk: "4EzUV6" });
 	}
 	static ocrBatchDupRowText(fbs: FbsRuntime) {
-		return fbs._("与本批另一张相同，默认不导入", null, { hk: "LC6BT" });
+		return fbs._("与本批另一张相同，默认不导入", null, { hk: "F4SHd" });
 	}
 	static ocrBatchIncludeLabel(fbs: FbsRuntime) {
-		return fbs._("导入这件", null, { hk: "2vvawT" });
+		return fbs._("导入这件", null, { hk: "4gljQ5" });
 	}
 	static ocrBatchNoLinesText(fbs: FbsRuntime) {
-		return fbs._("没认出词条：请核对部位、补词条行，或调整框选后重新识别（不会自动丢弃）", null, { hk: "4nCcYr" });
+		return fbs._("没认出词条：请核对部位、补词条行，或调整框选后重新识别（不会自动丢弃）", null, { hk: "qvkgS" });
 	}
 	static ocrBatchImportTemplate(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("全部导入（{n} 件）", [fbs._param("n", pv(p, "n"))], { hk: "3wzPsN" });
+		return fbs._("全部导入（{n} 件）", [fbs._param("n", pv(p, "n"))], { hk: "2gEXEe" });
 	}
 	static ocrBatchResultTemplate(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("✓ 批量导入完成：已导入 {n} 件，跳过 {m} 件。", [fbs._param("n", pv(p, "n")), fbs._param("m", pv(p, "m"))], { hk: "3MGNKr" });
+		return fbs._("✓ 批量导入完成：已导入 {n} 件，跳过 {m} 件。", [fbs._param("n", pv(p, "n")), fbs._param("m", pv(p, "m"))], { hk: "1eiBlT" });
 	}
 	static libEmptyText(fbs: FbsRuntime) {
-		return fbs._("装备库是空的。手动录入、粘贴代码或截图识别都可以加装备。", null, { hk: "2LmP6i" });
+		return fbs._("装备库是空的。手动录入、粘贴代码或截图识别都可以加装备。", null, { hk: "WYTUs" });
 	}
 	static equippedTag(fbs: FbsRuntime) {
-		return fbs._("已选入", null, { hk: "1n0CUW" });
+		return fbs._("已选入", null, { hk: "4720iY" });
 	}
 	static loadoutTitle(fbs: FbsRuntime) {
-		return fbs._("组合搭配 · 8 个部位", null, { hk: "4eBhro" });
+		return fbs._("组合搭配 · 8 个部位", null, { hk: "f8IHN" });
 	}
 	static autoLabel(fbs: FbsRuntime) {
-		return fbs._("一键最优组合", null, { hk: "3Nmnt7" });
+		return fbs._("一键最优组合", null, { hk: "3oFlhW" });
 	}
 	static autoDoneToast(fbs: FbsRuntime) {
-		return fbs._("已拼好", null, { hk: "39nlZg" });
+		return fbs._("已拼好", null, { hk: "1lNlw3" });
 	}
 	static autoFallbackToast(fbs: FbsRuntime) {
-		return fbs._("已拼好（含兜底选装）", null, { hk: "fDSDV" });
+		return fbs._("已拼好（含兜底选装）", null, { hk: "1bc5Qa" });
 	}
 	static unequipAllLabel(fbs: FbsRuntime) {
-		return fbs._("全部卸下", null, { hk: "1oBB3K" });
+		return fbs._("全部卸下", null, { hk: "2pablA" });
 	}
 	static slotEmptyText(fbs: FbsRuntime) {
-		return fbs._("未选", null, { hk: "2dMnk2" });
+		return fbs._("未选", null, { hk: "1PpQaI" });
 	}
 	static panelTitle(fbs: FbsRuntime) {
-		return fbs._("面板与毕业度", null, { hk: "dKMoc" });
+		return fbs._("面板与毕业度", null, { hk: "1XWjwm" });
 	}
 	static gradLabel(fbs: FbsRuntime) {
-		return fbs._("毕业度", null, { hk: "2PSuTH" });
+		return fbs._("毕业度", null, { hk: "4DNxDq" });
 	}
 	static gradCountLabel(fbs: FbsRuntime) {
-		return fbs._("条数", null, { hk: "9JeT5" });
+		return fbs._("条数", null, { hk: "1nnEaC" });
 	}
 	static gradValueLabel(fbs: FbsRuntime) {
-		return fbs._("数值", null, { hk: "2nrC3Y" });
+		return fbs._("数值", null, { hk: "1HKJnl" });
 	}
 	static gradDyLabel(fbs: FbsRuntime) {
-		return fbs._("定音", null, { hk: "UkPqT" });
+		return fbs._("定音", null, { hk: "2F2Ak9" });
 	}
 	static gradDyToggleLabel(fbs: FbsRuntime) {
-		return fbs._("定音计入毕业度", null, { hk: "1Bs9cJ" });
+		return fbs._("定音计入毕业度", null, { hk: "1yZjy3" });
 	}
 	static loanLabel(fbs: FbsRuntime) {
-		return fbs._("满值模拟（全套满值时的毕业度）", null, { hk: "2jzqY8" });
+		return fbs._("满值模拟（全套满值时的毕业度）", null, { hk: "g3rDh" });
 	}
 	static simActiveTag(fbs: FbsRuntime) {
-		return fbs._("模拟中", null, { hk: "2UgeZN" });
+		return fbs._("模拟中", null, { hk: "CtuBJ" });
 	}
 	static copySummaryLabel(fbs: FbsRuntime) {
-		return fbs._("复制摘要", null, { hk: "30M19Y" });
+		return fbs._("复制摘要", null, { hk: "vhTqp" });
 	}
 	static copiedToast(fbs: FbsRuntime) {
-		return fbs._("已复制", null, { hk: "1hd4E9" });
+		return fbs._("已复制", null, { hk: "4tHGli" });
 	}
 	static copyFailedToast(fbs: FbsRuntime) {
-		return fbs._("复制失败，请手动记录", null, { hk: "2z8oFs" });
+		return fbs._("复制失败，请手动记录", null, { hk: "Sd4gD" });
 	}
 	static yAccLabel(fbs: FbsRuntime) {
-		return fbs._("黄字精准", null, { hk: "4miIvq" });
+		return fbs._("黄字精准", null, { hk: "1ZzT3" });
 	}
 	static yCritLabel(fbs: FbsRuntime) {
-		return fbs._("黄字会心", null, { hk: "1ukzo5" });
+		return fbs._("黄字会心", null, { hk: "4cjYB0" });
 	}
 	static yIntLabel(fbs: FbsRuntime) {
-		return fbs._("黄字会意", null, { hk: "1sVWx0" });
+		return fbs._("黄字会意", null, { hk: "1hibxI" });
 	}
 	static finalCritLabel(fbs: FbsRuntime) {
-		return fbs._("最终会心", null, { hk: "3VZKgq" });
+		return fbs._("最终会心", null, { hk: "476RDi" });
 	}
 	static whiteLabel(fbs: FbsRuntime) {
-		return fbs._("白字", null, { hk: "4zm2VF" });
+		return fbs._("白字", null, { hk: "2EJaJj" });
 	}
 	static dawaiLabel(fbs: FbsRuntime) {
-		return fbs._("大外", null, { hk: "28cDC6" });
+		return fbs._("大外", null, { hk: "6UzRd" });
 	}
 	static xiaowaiLabel(fbs: FbsRuntime) {
-		return fbs._("小外", null, { hk: "xpxre" });
+		return fbs._("小外", null, { hk: "2VdEGB" });
 	}
 	static dashuLabel(fbs: FbsRuntime) {
-		return fbs._("大属", null, { hk: "4e7d2u" });
+		return fbs._("大属", null, { hk: "3nMDVW" });
 	}
 	static xiaoshuLabel(fbs: FbsRuntime) {
-		return fbs._("小属", null, { hk: "1YzVlC" });
+		return fbs._("小属", null, { hk: "1wzLaA" });
 	}
 	static hpLabel(fbs: FbsRuntime) {
-		return fbs._("气血", null, { hk: "1bqIkl" });
+		return fbs._("气血", null, { hk: "4bwBXS" });
 	}
 	static defLabel(fbs: FbsRuntime) {
-		return fbs._("防御", null, { hk: "4kHWSA" });
+		return fbs._("防御", null, { hk: "216UCL" });
 	}
 	static talentLabel(fbs: FbsRuntime) {
-		return fbs._("天赋", null, { hk: "2T0Q4d" });
+		return fbs._("天赋", null, { hk: "3KOSWI" });
 	}
 	static diffTitle(fbs: FbsRuntime) {
-		return fbs._("差缺清单：离毕业还差什么", null, { hk: "2kQAAI" });
+		return fbs._("差缺清单：离毕业还差什么", null, { hk: "3BjuUn" });
 	}
 	static diffLackTemplate(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("还差 {n}", [fbs._param("n", pv(p, "n"))], { hk: "4oUCd7" });
+		return fbs._("还差 {n}", [fbs._param("n", pv(p, "n"))], { hk: "1xnjD" });
 	}
 	static diffExactText(fbs: FbsRuntime) {
-		return fbs._("正好", null, { hk: "1XCcbg" });
+		return fbs._("正好", null, { hk: "xI8Bs" });
 	}
 	static diffOverTemplate(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("多 {n}", [fbs._param("n", pv(p, "n"))], { hk: "SwjEJ" });
+		return fbs._("多 {n}", [fbs._param("n", pv(p, "n"))], { hk: "4E8LPd" });
 	}
 	static diffExtraTitle(fbs: FbsRuntime) {
-		return fbs._("配方外", null, { hk: "1EvvUu" });
+		return fbs._("配方外", null, { hk: "zexy4" });
 	}
 	static diffLowTitle(fbs: FbsRuntime) {
-		return fbs._("未满承音的词条", null, { hk: "3JL0dH" });
+		return fbs._("未满承音的词条", null, { hk: "zMN9v" });
 	}
 	static diffDoneText(fbs: FbsRuntime) {
-		return fbs._("✓ 毕业。", null, { hk: "2KOp6i" });
+		return fbs._("✓ 毕业。", null, { hk: "1bnxKu" });
 	}
 	static diffEmptyText(fbs: FbsRuntime) {
-		return fbs._("还没选装备。", null, { hk: "3w3K5C" });
+		return fbs._("还没选装备。", null, { hk: "3M9Lgj" });
 	}
 	static diffInvalidTemplate(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("异常：{n} 条无相在非武器部位，未计入。", [fbs._param("n", pv(p, "n"))], { hk: "2k3PQ2" });
+		return fbs._("异常：{n} 条无相在非武器部位，未计入。", [fbs._param("n", pv(p, "n"))], { hk: "250XRX" });
 	}
 	static suggestTitle(fbs: FbsRuntime) {
-		return fbs._("建议", null, { hk: "JtH1A" });
+		return fbs._("建议", null, { hk: "3DezQI" });
 	}
 	static suggestSwapTemplate(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("{slot}：换上「{name}」", [fbs._param("slot", pv(p, "slot")), fbs._param("name", pv(p, "name"))], { hk: "3RINgn" });
+		return fbs._("{slot}：换上「{name}」", [fbs._param("slot", pv(p, "slot")), fbs._param("name", pv(p, "name"))], { hk: "8T916" });
 	}
 	static suggestWashTemplate(fbs: FbsRuntime, p?: StringParams) {
 		return fbs._("{slot}：把第 {line} 条 {from} 洗成 {to}", [
@@ -1582,82 +1582,82 @@ export abstract class GearFbtUtils {
 			fbs._param("line", pv(p, "line")),
 			fbs._param("from", pv(p, "from")),
 			fbs._param("to", pv(p, "to"))
-		], { hk: "3vjrF0" });
+		], { hk: "U8SWf" });
 	}
 	static suggestNoneText(fbs: FbsRuntime) {
-		return fbs._("这套暂时挑不出毛病", null, { hk: "VI5lW" });
+		return fbs._("这套暂时挑不出毛病", null, { hk: "uKBpY" });
 	}
 	static suggestHeadTemplate(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("当前 {cur}% → 全做 {final}%", [fbs._param("cur", pv(p, "cur")), fbs._param("final", pv(p, "final"))], { hk: "2pSurh" });
+		return fbs._("当前 {cur}% → 全做 {final}%", [fbs._param("cur", pv(p, "cur")), fbs._param("final", pv(p, "final"))], { hk: "eiZ73" });
 	}
 	static dySummaryTitle(fbs: FbsRuntime) {
-		return fbs._("定音汇总", null, { hk: "4FAPsu" });
+		return fbs._("定音汇总", null, { hk: "4CF5eU" });
 	}
 	static dyCorrectText(fbs: FbsRuntime) {
-		return fbs._("对", null, { hk: "3QSDTA" });
+		return fbs._("对", null, { hk: "3Oq9Or" });
 	}
 	static dyWrongText(fbs: FbsRuntime) {
-		return fbs._("类型不符", null, { hk: "1dsd3p" });
+		return fbs._("类型不符", null, { hk: "2UJUCP" });
 	}
 	static schemeTitle(fbs: FbsRuntime) {
-		return fbs._("配装方案对比", null, { hk: "GzWD9" });
+		return fbs._("配装方案对比", null, { hk: "2e6hXS" });
 	}
 	static schemeSaveLabel(fbs: FbsRuntime) {
-		return fbs._("存为方案", null, { hk: "48SHwL" });
+		return fbs._("存为方案", null, { hk: "1F84oF" });
 	}
 	static schemeNameTemplate(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("方案 {n}", [fbs._param("n", pv(p, "n"))], { hk: "3KZMLk" });
+		return fbs._("方案 {n}", [fbs._param("n", pv(p, "n"))], { hk: "1XTf0P" });
 	}
 	static schemeLoadLabel(fbs: FbsRuntime) {
-		return fbs._("载入", null, { hk: "3cSr50" });
+		return fbs._("载入", null, { hk: "108t9l" });
 	}
 	static schemeDeleteLabel(fbs: FbsRuntime) {
-		return fbs._("删除", null, { hk: "2uzrOO" });
+		return fbs._("删除", null, { hk: "1t6zM0" });
 	}
 	static schemeEmptyText(fbs: FbsRuntime) {
-		return fbs._("还没有保存的方案。", null, { hk: "13Qrl7" });
+		return fbs._("还没有保存的方案。", null, { hk: "1tOv8w" });
 	}
 	static schemeComposeFirstText(fbs: FbsRuntime) {
-		return fbs._("先在配装台拼好一套搭配，才能存为方案。", null, { hk: "1hRS7o" });
+		return fbs._("先在配装台拼好一套搭配，才能存为方案。", null, { hk: "1j5BCg" });
 	}
 	static schemeSavedToastTemplate(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("已存方案：{name}", [fbs._param("name", pv(p, "name"))], { hk: "18UCJp" });
+		return fbs._("已存方案：{name}", [fbs._param("name", pv(p, "name"))], { hk: "PuHjW" });
 	}
 	static schemeLoadedToastTemplate(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("已载入：{name}", [fbs._param("name", pv(p, "name"))], { hk: "jhqOF" });
+		return fbs._("已载入：{name}", [fbs._param("name", pv(p, "name"))], { hk: "27B6l6" });
 	}
 	static schemeGroupCountTemplate(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("{n} 套", [fbs._param("n", pv(p, "n"))], { hk: "2IInPZ" });
+		return fbs._("{n} 套", [fbs._param("n", pv(p, "n"))], { hk: "2Od7bV" });
 	}
 	static shareLabel(fbs: FbsRuntime) {
-		return fbs._("分享", null, { hk: "2RwuEu" });
+		return fbs._("分享", null, { hk: "2wPj7k" });
 	}
 	static revokeShareLabel(fbs: FbsRuntime) {
-		return fbs._("取消分享", null, { hk: "2pIwAc" });
+		return fbs._("取消分享", null, { hk: "IEh1w" });
 	}
 	static copyLinkLabel(fbs: FbsRuntime) {
-		return fbs._("复制链接", null, { hk: "24xTKv" });
+		return fbs._("复制链接", null, { hk: "1tP5kc" });
 	}
 	static shareRevokedToast(fbs: FbsRuntime) {
-		return fbs._("已取消分享，旧链接已失效", null, { hk: "1eg1bQ" });
+		return fbs._("已取消分享，旧链接已失效", null, { hk: "1U5IlO" });
 	}
 	static quickTitle(fbs: FbsRuntime) {
-		return fbs._("三率速算器", null, { hk: "1nEC7h" });
+		return fbs._("三率速算器", null, { hk: "2llWVj" });
 	}
 	static quickResLabel(fbs: FbsRuntime) {
-		return fbs._("抗性", null, { hk: "2KKyUH" });
+		return fbs._("抗性", null, { hk: "4di7o2" });
 	}
 	static quickSyncLabel(fbs: FbsRuntime) {
-		return fbs._("从配装台同步", null, { hk: "1QQ9rx" });
+		return fbs._("从配装台同步", null, { hk: "1QfqcH" });
 	}
 	static quickSyncedToast(fbs: FbsRuntime) {
-		return fbs._("已同步", null, { hk: "3nSq5d" });
+		return fbs._("已同步", null, { hk: "3818ay" });
 	}
 	static quickOkText(fbs: FbsRuntime) {
-		return fbs._("✓ 已满值", null, { hk: "1hwt0O" });
+		return fbs._("✓ 已满值", null, { hk: "3nmrL0" });
 	}
 	static quickOverTemplate(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("，溢出 {v}%", [fbs._param("v", pv(p, "v"))], { hk: "1xODvp" });
+		return fbs._("，溢出 {v}%", [fbs._param("v", pv(p, "v"))], { hk: "3X8Y8t" });
 	}
 	static quickGapTemplate(fbs: FbsRuntime, p?: StringParams) {
 		return fbs._("还差白字 {lack}%（满值 {need}%）≈ {bars} 条{barName}", [
@@ -1665,88 +1665,88 @@ export abstract class GearFbtUtils {
 			fbs._param("need", pv(p, "need")),
 			fbs._param("bars", pv(p, "bars")),
 			fbs._param("barName", pv(p, "barName"))
-		], { hk: "2EhVjX" });
+		], { hk: "3XLhkJ" });
 	}
 	static recipesTitle(fbs: FbsRuntime) {
-		return fbs._("全流派配方表（100 阶 · 承音）", null, { hk: "1j76JG" });
+		return fbs._("全流派配方表（100 阶 · 承音）", null, { hk: "1sCL45" });
 	}
 	static recipeSearchPlaceholder(fbs: FbsRuntime) {
-		return fbs._("搜流派 / 套装 / 词条", null, { hk: "8Iu0u" });
+		return fbs._("搜流派 / 套装 / 词条", null, { hk: "2X2wTr" });
 	}
 	static recipeAllLabel(fbs: FbsRuntime) {
-		return fbs._("全部", null, { hk: "3STF5h" });
+		return fbs._("全部", null, { hk: "25AlAJ" });
 	}
 	static recipeColCat(fbs: FbsRuntime) {
-		return fbs._("类别", null, { hk: "1PSW6B" });
+		return fbs._("类别", null, { hk: "1hWarV" });
 	}
 	static recipeColSchool(fbs: FbsRuntime) {
-		return fbs._("流派", null, { hk: "30osQ2" });
+		return fbs._("流派", null, { hk: "2W82Gt" });
 	}
 	static recipeColSet(fbs: FbsRuntime) {
-		return fbs._("套装", null, { hk: "1f8EHH" });
+		return fbs._("套装", null, { hk: "2lImYs" });
 	}
 	static recipeColRecipe(fbs: FbsRuntime) {
-		return fbs._("词条搭配（承音）", null, { hk: "1QbkHD" });
+		return fbs._("词条搭配（承音）", null, { hk: "2yCBtL" });
 	}
 	static recipeColBow(fbs: FbsRuntime) {
-		return fbs._("推荐弓", null, { hk: "15lpkw" });
+		return fbs._("推荐弓", null, { hk: "2SqDuS" });
 	}
 	static recipeSetTargetLabel(fbs: FbsRuntime) {
-		return fbs._("设为目标", null, { hk: "6M1Ad" });
+		return fbs._("设为目标", null, { hk: "4rcFcr" });
 	}
 	static recipeEmptyText(fbs: FbsRuntime) {
-		return fbs._("没有符合的配方。", null, { hk: "23dIhx" });
+		return fbs._("没有符合的配方。", null, { hk: "1ohBvd" });
 	}
 	static recipeTargetToastTemplate(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("目标已设为：{school} · {set}", [fbs._param("school", pv(p, "school")), fbs._param("set", pv(p, "set"))], { hk: "MwpSG" });
+		return fbs._("目标已设为：{school} · {set}", [fbs._param("school", pv(p, "school")), fbs._param("set", pv(p, "set"))], { hk: "2xH0Q4" });
 	}
 	static sectRecipesTitle(fbs: FbsRuntime) {
-		return fbs._("100 阶配方（配装台口径）", null, { hk: "1w0r1S" });
+		return fbs._("100 阶配方（配装台口径）", null, { hk: "2TmPX9" });
 	}
 	static affixTableTitle(fbs: FbsRuntime) {
-		return fbs._("词条满值 / 承音对照表（配装台）", null, { hk: "uSC6s" });
+		return fbs._("词条满值 / 承音对照表（配装台）", null, { hk: "4fm1zT" });
 	}
 	static colCyLabel(fbs: FbsRuntime) {
-		return fbs._("承音", null, { hk: "3l5J5X" });
+		return fbs._("承音", null, { hk: "3eAEKf" });
 	}
 	static colCyPctLabel(fbs: FbsRuntime) {
-		return fbs._("承音/满值", null, { hk: "1Ew3lL" });
+		return fbs._("承音/满值", null, { hk: "3H1bmZ" });
 	}
 	static colRecipeNamesLabel(fbs: FbsRuntime) {
-		return fbs._("配方叫法", null, { hk: "3agAXO" });
+		return fbs._("配方叫法", null, { hk: "1tHujY" });
 	}
 	static survivalNote(fbs: FbsRuntime) {
-		return fbs._("生存向，配方未列", null, { hk: "1rZukJ" });
+		return fbs._("生存向，配方未列", null, { hk: "1lh7ys" });
 	}
 	static slotTableTitle(fbs: FbsRuntime) {
-		return fbs._("部位版位表（配装台）", null, { hk: "3JjSZ0" });
+		return fbs._("部位版位表（配装台）", null, { hk: "1VTobE" });
 	}
 	static slotsBigTitle(fbs: FbsRuntime) {
-		return fbs._("大外流派", null, { hk: "3IBUAh" });
+		return fbs._("大外流派", null, { hk: "2IkxuV" });
 	}
 	static slotsSmallTitle(fbs: FbsRuntime) {
-		return fbs._("小外流派", null, { hk: "2ZTbet" });
+		return fbs._("小外流派", null, { hk: "43GAT6" });
 	}
 	static formulaTitle(fbs: FbsRuntime) {
-		return fbs._("公式与五维换算速查", null, { hk: "31wzz9" });
+		return fbs._("公式与五维换算速查", null, { hk: "2jbfBQ" });
 	}
 	static formulaRatesTitle(fbs: FbsRuntime) {
-		return fbs._("三率换算", null, { hk: "1wVoEL" });
+		return fbs._("三率换算", null, { hk: "irDff" });
 	}
 	static formulaDimsTitle(fbs: FbsRuntime) {
-		return fbs._("五维换算（每 1 点）", null, { hk: "3YX8Dx" });
+		return fbs._("五维换算（每 1 点）", null, { hk: "19pOdZ" });
 	}
 	static formulaOrderTitle(fbs: FbsRuntime) {
-		return fbs._("选装顺序", null, { hk: "ShpWL" });
+		return fbs._("选装顺序", null, { hk: "24lDn4" });
 	}
 	static formulaAccTemplate(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("黄字精准 = 65% +（白字精准 − 65%）÷ 抗性，白字 {white}% 满值 100%。", [fbs._param("white", pv(p, "white"))], { hk: "40UKam" });
+		return fbs._("黄字精准 = 65% +（白字精准 − 65%）÷ 抗性，白字 {white}% 满值 100%。", [fbs._param("white", pv(p, "white"))], { hk: "4znmhw" });
 	}
 	static formulaCritTemplate(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("黄字会心 = 白字会心 ÷ 抗性，白字 {white}% 满值 80%。", [fbs._param("white", pv(p, "white"))], { hk: "3UDngG" });
+		return fbs._("黄字会心 = 白字会心 ÷ 抗性，白字 {white}% 满值 80%。", [fbs._param("white", pv(p, "white"))], { hk: "1x15PH" });
 	}
 	static formulaIntTemplate(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("黄字会意 = 白字会意 ÷ 抗性，白字 {white}% 满值 40%。", [fbs._param("white", pv(p, "white"))], { hk: "2bOd0Q" });
+		return fbs._("黄字会意 = 白字会意 ÷ 抗性，白字 {white}% 满值 40%。", [fbs._param("white", pv(p, "white"))], { hk: "1KkYS4" });
 	}
 	static formulaBarsTemplate(fbs: FbsRuntime, p?: StringParams) {
 		return fbs._("差几条估算（按承音每条）：精准 {acc} / 会心 {crit} / 会意 {int}；敏补会心 ≈ +{minCrit}% 白字 / 条，势补会意 ≈ +{shiInt}% 白字 / 条。", [
@@ -1755,7 +1755,7 @@ export abstract class GearFbtUtils {
 			fbs._param("int", pv(p, "int")),
 			fbs._param("minCrit", pv(p, "minCrit")),
 			fbs._param("shiInt", pv(p, "shiInt"))
-		], { hk: "4zVvJw" });
+		], { hk: "np2li" });
 	}
 	static formulaBowTemplate(fbs: FbsRuntime, p?: StringParams) {
 		return fbs._("弓（弓玦）加成计入白字：精准弓 白字精准 +{acc} / 会心弓 白字会心 +{crit} / 会意弓 白字会意 +{int}，再按抗性换算黄字。抗性 {res}（当前版本）。", [
@@ -1763,1699 +1763,1699 @@ export abstract class GearFbtUtils {
 			fbs._param("crit", pv(p, "crit")),
 			fbs._param("int", pv(p, "int")),
 			fbs._param("res", pv(p, "res"))
-		], { hk: "1xLzR4" });
+		], { hk: "1fWGnJ" });
 	}
 	static formulaOrderText(fbs: FbsRuntime) {
-		return fbs._("定流派 → 对配方 → 录装备。一键最优拼一版 → 看差缺清单补缺。精准先堆满 100%；会心 148% / 会意 74% 封顶，溢出换劲 / 势 / 增伤。两套拿不准，存方案比总分。", null, { hk: "2kac7u" });
+		return fbs._("定流派 → 对配方 → 录装备。一键最优拼一版 → 看差缺清单补缺。精准先堆满 100%；会心 148% / 会意 74% 封顶，溢出换劲 / 势 / 增伤。两套拿不准，存方案比总分。", null, { hk: "Bgq5s" });
 	}
 	static colDimLabel(fbs: FbsRuntime) {
-		return fbs._("五维", null, { hk: "1qZt6N" });
+		return fbs._("五维", null, { hk: "UUQQP" });
 	}
 	static colConvLabel(fbs: FbsRuntime) {
-		return fbs._("换算", null, { hk: "3nMzJn" });
+		return fbs._("换算", null, { hk: "4uStUa" });
 	}
 	static colFullBarTemplate(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("满条 {v} 折合", [fbs._param("v", pv(p, "v"))], { hk: "A0wwY" });
+		return fbs._("满条 {v} 折合", [fbs._param("v", pv(p, "v"))], { hk: "1Jaa62" });
 	}
 	static calcFailedText(fbs: FbsRuntime) {
-		return fbs._("计算失败，请稍后再试", null, { hk: "4EV81i" });
+		return fbs._("计算失败，请稍后再试", null, { hk: "p85G1" });
 	}
 	static demoLoadedToast(fbs: FbsRuntime) {
-		return fbs._("示例已载入", null, { hk: "2OWtHa" });
+		return fbs._("示例已载入", null, { hk: "3wXhDH" });
 	}
 	static savedToastTemplate(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("已存入：{name}", [fbs._param("name", pv(p, "name"))], { hk: "3P2eD5" });
+		return fbs._("已存入：{name}", [fbs._param("name", pv(p, "name"))], { hk: "kVNe0" });
 	}
 	static deletedToast(fbs: FbsRuntime) {
-		return fbs._("已删除", null, { hk: "4hqOVh" });
+		return fbs._("已删除", null, { hk: "49DbLu" });
 	}
 	static clearedToast(fbs: FbsRuntime) {
-		return fbs._("已清空", null, { hk: "sNPSz" });
+		return fbs._("已清空", null, { hk: "2lKE6e" });
 	}
 }
 export abstract class LegalFbtUtils {
 	static termsTitle(fbs: FbsRuntime) {
-		return fbs._("服务条款", null, { hk: "34DESW" });
+		return fbs._("服务条款", null, { hk: "2QnlAX" });
 	}
 	static privacyTitle(fbs: FbsRuntime) {
-		return fbs._("隐私政策", null, { hk: "LS3Ub" });
+		return fbs._("隐私政策", null, { hk: "2es3S0" });
 	}
 	static termsLink(fbs: FbsRuntime) {
-		return fbs._("服务条款", null, { hk: "kCpyF" });
+		return fbs._("服务条款", null, { hk: "3R2KXN" });
 	}
 	static privacyLink(fbs: FbsRuntime) {
-		return fbs._("隐私政策", null, { hk: "tIZGL" });
+		return fbs._("隐私政策", null, { hk: "3Ju9Yi" });
 	}
 	static updatedText(fbs: FbsRuntime) {
-		return fbs._("最后更新：2026 年 10 月 25 日", null, { hk: "2QXCh8" });
+		return fbs._("最后更新：2026 年 10 月 25 日", null, { hk: "mB4yG" });
 	}
 	static disclaimer(fbs: FbsRuntime) {
-		return fbs._("本站为玩家自发维护的非官方工具，与《燕云十六声》及其开发、发行方无隶属或背书关系；游戏名称与相关素材的权利归其各自权利方所有。", null, { hk: "1LmOGD" });
+		return fbs._("本站为玩家自发维护的非官方工具，与《燕云十六声》及其开发、发行方无隶属或背书关系；游戏名称与相关素材的权利归其各自权利方所有。", null, { hk: "9w1B9" });
 	}
 }
 export abstract class TermsBodyFbtUtils {
 	static s1h(fbs: FbsRuntime) {
-		return fbs._("关于本站与非官方声明", null, { hk: "ojxr4" });
+		return fbs._("关于本站与非官方声明", null, { hk: "Zg8RV" });
 	}
 	static s1b(fbs: FbsRuntime) {
-		return fbs._("燕云百业（yanyun.app）是一个由玩家自发维护的非官方百业（公会）组队工具，与《燕云十六声》及其开发、发行方没有任何隶属或背书关系。本站中出现的游戏名称、副本、流派等资料，其权利归各自权利方所有。", null, { hk: "XSiit" });
+		return fbs._("燕云百业（yanyun.app）是一个由玩家自发维护的非官方百业（公会）组队工具，与《燕云十六声》及其开发、发行方没有任何隶属或背书关系。本站中出现的游戏名称、副本、流派等资料，其权利归各自权利方所有。", null, { hk: "k0Qko" });
 	}
 	static s2h(fbs: FbsRuntime) {
-		return fbs._("账号与访问", null, { hk: "4kWL7n" });
+		return fbs._("账号与访问", null, { hk: "2OBUPr" });
 	}
 	static s2b(fbs: FbsRuntime) {
-		return fbs._("本站通过 Discord OAuth 登录。使用本站即表示你同意本条款。你应妥善保管自己的 Discord 账号，通过你的账号进行的操作视为你本人行为。各百业内容的可见与可写范围，由你是否属于该百业绑定的 Discord 服务器决定。", null, { hk: "3gozWo" });
+		return fbs._("本站通过 Discord OAuth 登录。使用本站即表示你同意本条款。你应妥善保管自己的 Discord 账号，通过你的账号进行的操作视为你本人行为。各百业内容的可见与可写范围，由你是否属于该百业绑定的 Discord 服务器决定。", null, { hk: "2DR8ok" });
 	}
 	static s3h(fbs: FbsRuntime) {
-		return fbs._("使用规范", null, { hk: "3GabVI" });
+		return fbs._("使用规范", null, { hk: "3JZhyU" });
 	}
 	static s3b(fbs: FbsRuntime) {
-		return fbs._("不得利用本站冒充他人或其它百业、抢注或占用与你无关的百业标识、发布违法或侵权内容、干扰本站运行，或绕过成员校验。车队标题、报名昵称等由用户发布的内容，由发布者自行负责。", null, { hk: "4dXIYD" });
+		return fbs._("不得利用本站冒充他人或其它百业、抢注或占用与你无关的百业标识、发布违法或侵权内容、干扰本站运行，或绕过成员校验。车队标题、报名昵称等由用户发布的内容，由发布者自行负责。", null, { hk: "3va66a" });
 	}
 	static s4h(fbs: FbsRuntime) {
-		return fbs._("服务现状", null, { hk: "4x0sgN" });
+		return fbs._("服务现状", null, { hk: "Yb3T4" });
 	}
 	static s4b(fbs: FbsRuntime) {
-		return fbs._("本站目前免费提供，并按现状（as is）运行。我们不承诺服务持续可用、功能保持不变，或数据永不丢失；功能可能被调整、中断或终止，原则上不另行通知。重要数据请自行留存备份。", null, { hk: "3ek0eT" });
+		return fbs._("本站目前免费提供，并按现状（as is）运行。我们不承诺服务持续可用、功能保持不变，或数据永不丢失；功能可能被调整、中断或终止，原则上不另行通知。重要数据请自行留存备份。", null, { hk: "4pJ6TZ" });
 	}
 	static s5h(fbs: FbsRuntime) {
-		return fbs._("责任限制", null, { hk: "1r7u2o" });
+		return fbs._("责任限制", null, { hk: "VNl3F" });
 	}
 	static s5b(fbs: FbsRuntime) {
-		return fbs._("在适用法律允许的最大范围内，本站对因使用或无法使用本站而产生的间接、附带或后果性损失不承担责任。", null, { hk: "3tT9J5" });
+		return fbs._("在适用法律允许的最大范围内，本站对因使用或无法使用本站而产生的间接、附带或后果性损失不承担责任。", null, { hk: "3Q9PP0" });
 	}
 	static s6h(fbs: FbsRuntime) {
-		return fbs._("条款变更", null, { hk: "2QKQhC" });
+		return fbs._("条款变更", null, { hk: "3zp1KL" });
 	}
 	static s6b(fbs: FbsRuntime) {
-		return fbs._("本条款可能不时更新，更新后的版本在本站公布即生效；你继续使用本站即视为接受更新后的条款。", null, { hk: "1cDdQ1" });
+		return fbs._("本条款可能不时更新，更新后的版本在本站公布即生效；你继续使用本站即视为接受更新后的条款。", null, { hk: "3d66Jy" });
 	}
 }
 export abstract class PrivacyBodyFbtUtils {
 	static s1h(fbs: FbsRuntime) {
-		return fbs._("我们收集的信息", null, { hk: "3DC5sT" });
+		return fbs._("我们收集的信息", null, { hk: "2wFYT" });
 	}
 	static s1b(fbs: FbsRuntime) {
-		return fbs._("当你使用 Discord 登录时，我们会读取并保存：你的 Discord 用户 ID、用户名与头像、你加入的 Discord 服务器列表、你在这些服务器中的昵称，以及用于保持登录状态的 OAuth 授权凭据（refresh token）。你在使用本站过程中产生的数据也会被保存，包括百业名册记录、车队与报名记录（包括座位上的身份标识）、装备库与配装方案、语言偏好，以及你在移动端开启通知后注册的推送令牌。", null, { hk: "QzffU" });
+		return fbs._("当你使用 Discord 登录时，我们会读取并保存：你的 Discord 用户 ID、用户名与头像、你加入的 Discord 服务器列表、你在这些服务器中的昵称，以及用于保持登录状态的 OAuth 授权凭据（refresh token）。你在使用本站过程中产生的数据也会被保存，包括百业名册记录、车队与报名记录（包括座位上的身份标识）、装备库与配装方案、语言偏好，以及你在移动端开启通知后注册的推送令牌。", null, { hk: "1ptoBj" });
 	}
 	static s2h(fbs: FbsRuntime) {
-		return fbs._("我们如何使用信息", null, { hk: "2xsvgr" });
+		return fbs._("我们如何使用信息", null, { hk: "40kVIK" });
 	}
 	static s2b(fbs: FbsRuntime) {
-		return fbs._("上述信息仅用于：登录与身份识别；校验你是否为某百业所绑定 Discord 服务器的成员；组队报名；发车提醒与应用推送；传家宝达成推送；以及按你的偏好显示语言。我们不出售你的个人数据，也不将其用于广告投放。", null, { hk: "3PLd7Q" });
+		return fbs._("上述信息仅用于：登录与身份识别；校验你是否为某百业所绑定 Discord 服务器的成员；组队报名；发车提醒与应用推送；传家宝达成推送；以及按你的偏好显示语言。我们不出售你的个人数据，也不将其用于广告投放。", null, { hk: "2qNzon" });
 	}
 	static s3h(fbs: FbsRuntime) {
-		return fbs._("信息的共享与第三方", null, { hk: "2YIysf" });
+		return fbs._("信息的共享与第三方", null, { hk: "2h2z6Y" });
 	}
 	static s3b(fbs: FbsRuntime) {
-		return fbs._("本站运行在 Cloudflare 的基础设施上，数据存储于其数据库服务；登录与成员校验由 Discord 提供；移动端推送经 Expo 推送服务转发至 Apple 或 Google 的推送通道。发车提醒与传家宝消息会发送到对应百业管理员配置的 Discord 频道，消息中会包含你的游戏昵称。除上述功能所必需的情形外，我们不会向其他第三方提供你的个人数据（法律法规要求除外）。", null, { hk: "43OqWT" });
+		return fbs._("本站运行在 Cloudflare 的基础设施上，数据存储于其数据库服务；登录与成员校验由 Discord 提供；移动端推送经 Expo 推送服务转发至 Apple 或 Google 的推送通道。发车提醒与传家宝消息会发送到对应百业管理员配置的 Discord 频道，消息中会包含你的游戏昵称。除上述功能所必需的情形外，我们不会向其他第三方提供你的个人数据（法律法规要求除外）。", null, { hk: "3Dykqu" });
 	}
 	static s4h(fbs: FbsRuntime) {
-		return fbs._("保存期限", null, { hk: "1U9Wy5" });
+		return fbs._("保存期限", null, { hk: "3d99wW" });
 	}
 	static s4b(fbs: FbsRuntime) {
-		return fbs._("你的数据保存在本站数据库中，直至你申请删除，或相关数据对本站功能不再需要为止。报名、车队等历史记录目前会持续保留；如保存规则发生变化，我们会更新本政策。", null, { hk: "1abLW7" });
+		return fbs._("你的数据保存在本站数据库中，直至你申请删除，或相关数据对本站功能不再需要为止。报名、车队等历史记录目前会持续保留；如保存规则发生变化，我们会更新本政策。", null, { hk: "4s0Ul2" });
 	}
 	static s5h(fbs: FbsRuntime) {
-		return fbs._("你的权利", null, { hk: "1FsOlT" });
+		return fbs._("你的权利", null, { hk: "4bvpsY" });
 	}
 	static s5b(fbs: FbsRuntime) {
-		return fbs._("你可以查询、导出或删除你的个人数据。在「个人资料」的「我的数据」中，你可以自助导出你的全部数据（需通过 Discord 重新验证身份，每 24 小时一次），也可以自助删除账号：提交删除后有 7 天冷静期，期间可随时撤销；到期后你的个人数据会被删除或匿名化——你创建的车队会转为无主车队、你在他人车队中的座位会被匿名化，备份中的副本最迟在 14 天内随每日备份轮换清除。你也可以随时在 Discord 的设置中断开本站的授权；授权失效后，你在本站的会话会自动作废。", null, { hk: "1uyGts" });
+		return fbs._("你可以查询、导出或删除你的个人数据。在「个人资料」的「我的数据」中，你可以自助导出你的全部数据（需通过 Discord 重新验证身份，每 24 小时一次），也可以自助删除账号：提交删除后有 7 天冷静期，期间可随时撤销；到期后你的个人数据会被删除或匿名化——你创建的车队会转为无主车队、你在他人车队中的座位会被匿名化，备份中的副本最迟在 14 天内随每日备份轮换清除。你也可以随时在 Discord 的设置中断开本站的授权；授权失效后，你在本站的会话会自动作废。", null, { hk: "1XxYb5" });
 	}
 	static s6h(fbs: FbsRuntime) {
-		return fbs._("联系我们", null, { hk: "2c6z90" });
+		return fbs._("联系我们", null, { hk: "3hyST0" });
 	}
 	static s6b(fbs: FbsRuntime) {
-		return fbs._("如对本政策有疑问，或需提出查询、更正、删除申请，请通过本站社区百业「叽哩呱啦」的 Discord 服务器联系管理员。我们会先核实你的 Discord 账号身份，再处理你的申请。", null, { hk: "3xquvS" });
+		return fbs._("如对本政策有疑问，或需提出查询、更正、删除申请，请通过本站社区百业「叽哩呱啦」的 Discord 服务器联系管理员。我们会先核实你的 Discord 账号身份，再处理你的申请。", null, { hk: "1wbYB2" });
 	}
 }
 export abstract class ErrorsFbtUtils {
 	static rateLimited(fbs: FbsRuntime) {
-		return fbs._("操作过于频繁, 请稍后再试", null, { hk: "24gcAF" });
+		return fbs._("操作过于频繁, 请稍后再试", null, { hk: "2pyv56" });
 	}
 	static createRateLimited(fbs: FbsRuntime) {
-		return fbs._("创建太频繁, 请稍后再试", null, { hk: "2VXEs2" });
+		return fbs._("创建太频繁, 请稍后再试", null, { hk: "3eTjil" });
 	}
 	static guildNotFound(fbs: FbsRuntime) {
-		return fbs._("百业不存在", null, { hk: "1sJVTz" });
+		return fbs._("百业不存在", null, { hk: "1GM9TF" });
 	}
 	static gearNotFound(fbs: FbsRuntime) {
-		return fbs._("装备不存在或不属于你", null, { hk: "4Bqufd" });
+		return fbs._("装备不存在或不属于你", null, { hk: "4qS0bn" });
 	}
 	static gearEmptyBuild(fbs: FbsRuntime) {
-		return fbs._("搭配为空", null, { hk: "3P3YIH" });
+		return fbs._("搭配为空", null, { hk: "15RdTy" });
 	}
 	static gearCapacityReached(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("装备库已满（上限 {limit} 件），删掉不用的装备后再添加", [fbs._param("limit", pv(p, "limit"))], { hk: "Rmyp7" });
+		return fbs._("装备库已满（上限 {limit} 件），删掉不用的装备后再添加", [fbs._param("limit", pv(p, "limit"))], { hk: "3LZ8Pv" });
 	}
 	static gearImportOverflow(fbs: FbsRuntime, p?: StringParams) {
 		return fbs._("本批 {n} 件会让装备库达到 {total} 件，超过上限 {limit} 件，整批未导入", [
 			fbs._param("n", pv(p, "n")),
 			fbs._param("total", pv(p, "total")),
 			fbs._param("limit", pv(p, "limit"))
-		], { hk: "i9Eg0" });
+		], { hk: "1Mt0sS" });
 	}
 	static gearOcrBatchTooLarge(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("单批最多识别 {limit} 张截图，本批有 {n} 张，请分批导入", [fbs._param("limit", pv(p, "limit")), fbs._param("n", pv(p, "n"))], { hk: "QzYA" });
+		return fbs._("单批最多识别 {limit} 张截图，本批有 {n} 张，请分批导入", [fbs._param("limit", pv(p, "limit")), fbs._param("n", pv(p, "n"))], { hk: "vxCx" });
 	}
 	static gearOcrDailyLimit(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("今天的批量识别次数已达上限（{limit} 批），明天再试", [fbs._param("limit", pv(p, "limit"))], { hk: "16O6RH" });
+		return fbs._("今天的批量识别次数已达上限（{limit} 批），明天再试", [fbs._param("limit", pv(p, "limit"))], { hk: "2adKLK" });
 	}
 	static loginRequired(fbs: FbsRuntime) {
-		return fbs._("请先登录 Discord 后再操作", null, { hk: "1SEQ55" });
+		return fbs._("请先登录 Discord 后再操作", null, { hk: "XElrV" });
 	}
 	static loginRequiredShort(fbs: FbsRuntime) {
-		return fbs._("请先登录 Discord", null, { hk: "pJJ75" });
+		return fbs._("请先登录 Discord", null, { hk: "3Wkd6f" });
 	}
 	static localeUnsupported(fbs: FbsRuntime) {
-		return fbs._("不支持的语言", null, { hk: "j9YN8" });
+		return fbs._("不支持的语言", null, { hk: "1pYDD7" });
 	}
 	static pushTokenInvalid(fbs: FbsRuntime) {
-		return fbs._("推送令牌无效", null, { hk: "1LhKcu" });
+		return fbs._("推送令牌无效", null, { hk: "4i11th" });
 	}
 	static guildUnboundWrite(fbs: FbsRuntime) {
-		return fbs._("该百业尚未绑定 Discord 服务器，写功能已锁定", null, { hk: "2fp9pu" });
+		return fbs._("该百业尚未绑定 Discord 服务器，写功能已锁定", null, { hk: "3MXuOf" });
 	}
 	static memberOnly(fbs: FbsRuntime) {
-		return fbs._("只有该百业 Discord 服务器的成员可以操作", null, { hk: "2SEGVd" });
+		return fbs._("只有该百业 Discord 服务器的成员可以操作", null, { hk: "4sO6xI" });
 	}
 	static memberOnlyView(fbs: FbsRuntime) {
-		return fbs._("该百业仅对 Discord 服务器成员开放", null, { hk: "3Hv1KW" });
+		return fbs._("该百业仅对 Discord 服务器成员开放", null, { hk: "Hvf6X" });
 	}
 	static titleRequired(fbs: FbsRuntime) {
-		return fbs._("请填写标题", null, { hk: "1Jsgcg" });
+		return fbs._("请填写标题", null, { hk: "Lg5ef" });
 	}
 	static badStartTime(fbs: FbsRuntime) {
-		return fbs._("请选择有效的出发时间", null, { hk: "3sAvLq" });
+		return fbs._("请选择有效的出发时间", null, { hk: "yMv8N" });
 	}
 	static startTimeTooFar(fbs: FbsRuntime) {
-		return fbs._("出发时间不能超过 60 天后", null, { hk: "DMtM9" });
+		return fbs._("出发时间不能超过 60 天后", null, { hk: "3rOSP6" });
 	}
 	static groupingNotFound(fbs: FbsRuntime) {
-		return fbs._("组队不存在", null, { hk: "UNb4g" });
+		return fbs._("组队不存在", null, { hk: "2pu7yf" });
 	}
 	static officialEvent(fbs: FbsRuntime) {
-		return fbs._("官方活动请联系管理员", null, { hk: "43nkzu" });
+		return fbs._("官方活动请联系管理员", null, { hk: "2HWqG3" });
 	}
 	static noCreatorRecorded(fbs: FbsRuntime) {
-		return fbs._("该车队未记录车头，无法解散，请联系管理员处理", null, { hk: "LcMio" });
+		return fbs._("该车队未记录车头，无法解散，请联系管理员处理", null, { hk: "42GnLi" });
 	}
 	static leaderOnlyDisband(fbs: FbsRuntime) {
-		return fbs._("只有车头可以解散车队", null, { hk: "3pk75u" });
+		return fbs._("只有车头可以解散车队", null, { hk: "2PNuza" });
 	}
 	static noCreatorRecordedEdit(fbs: FbsRuntime) {
-		return fbs._("该车队未记录车头，无法编辑，请联系管理员处理", null, { hk: "3P84TA" });
+		return fbs._("该车队未记录车头，无法编辑，请联系管理员处理", null, { hk: "1PdrLp" });
 	}
 	static leaderOnlyEdit(fbs: FbsRuntime) {
-		return fbs._("只有车头可以编辑车队", null, { hk: "yIOhs" });
+		return fbs._("只有车头可以编辑车队", null, { hk: "AOZDf" });
 	}
 	static noCreatorRecordedComplete(fbs: FbsRuntime) {
-		return fbs._("该车队未记录车头，无法完成，请联系管理员处理", null, { hk: "3fTeYQ" });
+		return fbs._("该车队未记录车头，无法完成，请联系管理员处理", null, { hk: "3wQIJ3" });
 	}
 	static leaderOnlyComplete(fbs: FbsRuntime) {
-		return fbs._("只有车头可以完成车队", null, { hk: "3sKwKR" });
+		return fbs._("只有车头可以完成车队", null, { hk: "1xQB1D" });
 	}
 	static noCreatorRecordedReopen(fbs: FbsRuntime) {
-		return fbs._("该车队未记录车头，无法恢复，请联系管理员处理", null, { hk: "2hftHh" });
+		return fbs._("该车队未记录车头，无法恢复，请联系管理员处理", null, { hk: "4E2Yv" });
 	}
 	static leaderOnlyReopen(fbs: FbsRuntime) {
-		return fbs._("只有车头可以恢复车队", null, { hk: "39coxw" });
+		return fbs._("只有车头可以恢复车队", null, { hk: "4sJPNK" });
 	}
 	static groupingAlreadyCompleted(fbs: FbsRuntime) {
-		return fbs._("该车队已是完成状态", null, { hk: "25147t" });
+		return fbs._("该车队已是完成状态", null, { hk: "2IGiQa" });
 	}
 	static groupingNotCompleted(fbs: FbsRuntime) {
-		return fbs._("该车队尚未完成", null, { hk: "4rkNE3" });
+		return fbs._("该车队尚未完成", null, { hk: "vjrAY" });
 	}
 	static groupingClosed(fbs: FbsRuntime) {
-		return fbs._("该组队已截止报名", null, { hk: "2VgEG4" });
+		return fbs._("该组队已截止报名", null, { hk: "2Zto41" });
 	}
 	static nicknameRequired(fbs: FbsRuntime) {
-		return fbs._("请填写游戏昵称", null, { hk: "dEulb" });
+		return fbs._("请填写游戏昵称", null, { hk: "49YVGH" });
 	}
 	static proxyTargetNotInRoster(fbs: FbsRuntime) {
-		return fbs._("所选成员不在本百业名册中", null, { hk: "a9Yz0" });
+		return fbs._("所选成员不在本百业名册中", null, { hk: "28nCt9" });
 	}
 	static groupingFull(fbs: FbsRuntime) {
-		return fbs._("名额已满或报名已截止", null, { hk: "2oRCcW" });
+		return fbs._("名额已满或报名已截止", null, { hk: "15cLeP" });
 	}
 	static lastSeatHealer(fbs: FbsRuntime) {
-		return fbs._("最后一个名额需要奶", null, { hk: "41E3Sj" });
+		return fbs._("最后一个名额需要奶", null, { hk: "1x74S" });
 	}
 	static alreadyJoined(fbs: FbsRuntime) {
-		return fbs._("已报过名", null, { hk: "3ITdhJ" });
+		return fbs._("已报过名", null, { hk: "3FzZxW" });
 	}
 	static seatNotFound(fbs: FbsRuntime) {
-		return fbs._("未找到该报名", null, { hk: "4qCeKk" });
+		return fbs._("未找到该报名", null, { hk: "3fPe8z" });
 	}
 	static notSeated(fbs: FbsRuntime) {
-		return fbs._("你还没有落座这辆车", null, { hk: "2XueBH" });
+		return fbs._("你还没有落座这辆车", null, { hk: "4abppU" });
 	}
 	static reminderOffsetsInvalid(fbs: FbsRuntime) {
-		return fbs._("提醒提前量不在可选范围内", null, { hk: "36SXgz" });
+		return fbs._("提醒提前量不在可选范围内", null, { hk: "2UilSo" });
 	}
 	static ogAccentInvalid(fbs: FbsRuntime) {
-		return fbs._("强调色不在可选范围内", null, { hk: "znj0W" });
+		return fbs._("强调色不在可选范围内", null, { hk: "4wOaUO" });
 	}
 	static paramsIncomplete(fbs: FbsRuntime) {
-		return fbs._("参数不完整", null, { hk: "fv2xj" });
+		return fbs._("参数不完整", null, { hk: "1i6CaD" });
 	}
 	static bossNotFound(fbs: FbsRuntime) {
-		return fbs._("首领不存在", null, { hk: "hPhwR" });
+		return fbs._("首领不存在", null, { hk: "1Nmosi" });
 	}
 	static guildNameShort(fbs: FbsRuntime) {
-		return fbs._("百业名称至少 2 个字", null, { hk: "3FgoBZ" });
+		return fbs._("百业名称至少 2 个字", null, { hk: "Bdsei" });
 	}
 	static avatarTooLarge(fbs: FbsRuntime) {
-		return fbs._("头像图片不能超过 400KB", null, { hk: "3bJhEG" });
+		return fbs._("头像图片不能超过 400KB", null, { hk: "1Ihpg4" });
 	}
 	static avatarBadType(fbs: FbsRuntime) {
-		return fbs._("头像只支持 PNG、JPEG 或 WebP 图片", null, { hk: "4y3c4p" });
+		return fbs._("头像只支持 PNG、JPEG 或 WebP 图片", null, { hk: "2rh9Ep" });
 	}
 	static avatarEmpty(fbs: FbsRuntime) {
-		return fbs._("没有收到图片数据", null, { hk: "2ECMBn" });
+		return fbs._("没有收到图片数据", null, { hk: "4FU2d1" });
 	}
 	static slugInvalid(fbs: FbsRuntime) {
-		return fbs._("站点地址只能用小写字母/数字/连字符, 2-40 位", null, { hk: "2mgcnU" });
+		return fbs._("站点地址只能用小写字母/数字/连字符, 2-40 位", null, { hk: "1hyi9b" });
 	}
 	static slugReserved(fbs: FbsRuntime) {
-		return fbs._("该地址为保留字, 请换一个", null, { hk: "2f5iTY" });
+		return fbs._("该地址为保留字, 请换一个", null, { hk: "3BxCZz" });
 	}
 	static slugTaken(fbs: FbsRuntime) {
-		return fbs._("该地址已被占用, 请换一个", null, { hk: "1Hon8z" });
+		return fbs._("该地址已被占用, 请换一个", null, { hk: "324KKZ" });
 	}
 	static serverRequired(fbs: FbsRuntime) {
-		return fbs._("请选择要绑定的 Discord 服务器", null, { hk: "4C2p7o" });
+		return fbs._("请选择要绑定的 Discord 服务器", null, { hk: "28b7CE" });
 	}
 	static notInServer(fbs: FbsRuntime) {
-		return fbs._("你不在这个 Discord 服务器中", null, { hk: "4mZrHl" });
+		return fbs._("你不在这个 Discord 服务器中", null, { hk: "4iWZX9" });
 	}
 	static cannotManageServer(fbs: FbsRuntime) {
-		return fbs._("你需要在该 Discord 服务器拥有管理员或「管理服务器」权限才能绑定它", null, { hk: "37PvZE" });
+		return fbs._("你需要在该 Discord 服务器拥有管理员或「管理服务器」权限才能绑定它", null, { hk: "VYEGD" });
 	}
 	static adminOnly(fbs: FbsRuntime) {
-		return fbs._("只有所绑服务器的管理员可以执行此操作", null, { hk: "13a8ee" });
+		return fbs._("只有所绑服务器的管理员可以执行此操作", null, { hk: "4quKVx" });
 	}
 	static webhookInvalid(fbs: FbsRuntime) {
-		return fbs._("Webhook 地址格式不正确", null, { hk: "3TamDe" });
+		return fbs._("Webhook 地址格式不正确", null, { hk: "rSB9v" });
 	}
 	static discordIdInvalid(fbs: FbsRuntime) {
-		return fbs._("Discord 服务器 ID 格式不正确", null, { hk: "2WO0bx" });
+		return fbs._("Discord 服务器 ID 格式不正确", null, { hk: "41ALcR" });
 	}
 	static noFieldsToUpdate(fbs: FbsRuntime) {
-		return fbs._("没有可更新的字段", null, { hk: "1BCEnK" });
+		return fbs._("没有可更新的字段", null, { hk: "z18tt" });
 	}
 	static signupNotFound(fbs: FbsRuntime) {
-		return fbs._("未找到该报名记录", null, { hk: "1CDqBx" });
+		return fbs._("未找到该报名记录", null, { hk: "2a9V1i" });
 	}
 	static resultNotFound(fbs: FbsRuntime) {
-		return fbs._("未找到该成绩", null, { hk: "V660K" });
+		return fbs._("未找到该成绩", null, { hk: "1JL8Ch" });
 	}
 	static resultTeamRequired(fbs: FbsRuntime) {
-		return fbs._("缺少队伍名", null, { hk: "1tmhSg" });
+		return fbs._("缺少队伍名", null, { hk: "3DzmOG" });
 	}
 	static resultTimeInvalid(fbs: FbsRuntime) {
-		return fbs._("用时格式不正确（如 12:34.567）", null, { hk: "69rGE" });
+		return fbs._("用时格式不正确（如 12:34.567）", null, { hk: "2weeFB" });
 	}
 	static avatarDataInvalid(fbs: FbsRuntime) {
-		return fbs._("图片数据无效", null, { hk: "3vzaSY" });
+		return fbs._("图片数据无效", null, { hk: "2P3QaG" });
 	}
 	static schoolRequired(fbs: FbsRuntime) {
-		return fbs._("缺少流派", null, { hk: "2EpNBU" });
+		return fbs._("缺少流派", null, { hk: "21UKzg" });
 	}
 	static generic(fbs: FbsRuntime) {
-		return fbs._("操作失败，请稍后再试", null, { hk: "2rYUtK" });
+		return fbs._("操作失败，请稍后再试", null, { hk: "ewnSH" });
 	}
 	static templateNotFound(fbs: FbsRuntime) {
-		return fbs._("模板不存在", null, { hk: "2GDkiI" });
+		return fbs._("模板不存在", null, { hk: "PkmJL" });
 	}
 	static templateNameRequired(fbs: FbsRuntime) {
-		return fbs._("请填写模板名", null, { hk: "2LkPVU" });
+		return fbs._("请填写模板名", null, { hk: "2UTQmV" });
 	}
 	static templateForbidden(fbs: FbsRuntime) {
-		return fbs._("只有模板创建者或百业管理员可以改删模板", null, { hk: "RvJFt" });
+		return fbs._("只有模板创建者或百业管理员可以改删模板", null, { hk: "4xa9aw" });
 	}
 	static templateBadStart(fbs: FbsRuntime) {
-		return fbs._("发车时间设置无效", null, { hk: "20lZIE" });
+		return fbs._("发车时间设置无效", null, { hk: "bhhli" });
 	}
 	static accountReauthRequired(fbs: FbsRuntime) {
-		return fbs._("请先通过 Discord 重新验证身份", null, { hk: "2vPwx1" });
+		return fbs._("请先通过 Discord 重新验证身份", null, { hk: "2NzjLD" });
 	}
 	static accountExportRateLimited(fbs: FbsRuntime) {
-		return fbs._("每 24 小时只能导出一次数据，请稍后再试", null, { hk: "2McU4D" });
+		return fbs._("每 24 小时只能导出一次数据，请稍后再试", null, { hk: "13uyVM" });
 	}
 	static accountUsernameMismatch(fbs: FbsRuntime) {
-		return fbs._("输入的显示名与你的账号不一致", null, { hk: "11ujee" });
+		return fbs._("输入的显示名与你的账号不一致", null, { hk: "1CybfK" });
 	}
 	static accountDeletionPending(fbs: FbsRuntime) {
-		return fbs._("已有一份删除申请在冷静期中", null, { hk: "32JC0o" });
+		return fbs._("已有一份删除申请在冷静期中", null, { hk: "1oQcTg" });
 	}
 	static accountDeletionNotPending(fbs: FbsRuntime) {
-		return fbs._("当前没有待执行的删除申请", null, { hk: "1QUdHI" });
+		return fbs._("当前没有待执行的删除申请", null, { hk: "WUmgX" });
 	}
 	static premiumRequired(fbs: FbsRuntime) {
-		return fbs._("该功能需要开通 Premium", null, { hk: "19jkus" });
+		return fbs._("该功能需要开通 Premium", null, { hk: "2XIDnE" });
 	}
 	static premiumComingSoon(fbs: FbsRuntime) {
-		return fbs._("Premium 开通即将开放", null, { hk: "46IB9m" });
+		return fbs._("Premium 开通即将开放", null, { hk: "2AKPwI" });
 	}
 	static premiumActive(fbs: FbsRuntime) {
-		return fbs._("本百业已开通 Premium", null, { hk: "4ceZGD" });
+		return fbs._("本百业已开通 Premium", null, { hk: "tHT2r" });
 	}
 	static paygateDisabled(fbs: FbsRuntime) {
-		return fbs._("收费功能尚未开启", null, { hk: "2u3Wa8" });
+		return fbs._("收费功能尚未开启", null, { hk: "EirAh" });
 	}
 	static checkoutFailed(fbs: FbsRuntime) {
-		return fbs._("创建支付会话失败，请稍后再试", null, { hk: "2JSaBi" });
+		return fbs._("创建支付会话失败，请稍后再试", null, { hk: "2vnze9" });
 	}
 	static rosterImportEmpty(fbs: FbsRuntime) {
-		return fbs._("没有收到任何识别文本，请重新截图后再试", null, { hk: "4i5R8K" });
+		return fbs._("没有收到任何识别文本，请重新截图后再试", null, { hk: "251ACD" });
 	}
 	static rosterBatchNotFound(fbs: FbsRuntime) {
-		return fbs._("导入预览不存在或已失效，请重新识别", null, { hk: "2QDDb1" });
+		return fbs._("导入预览不存在或已失效，请重新识别", null, { hk: "1caSDb" });
 	}
 	static rosterBatchConfirmed(fbs: FbsRuntime) {
-		return fbs._("这份预览已经确认导入过了", null, { hk: "1Gts0b" });
+		return fbs._("这份预览已经确认导入过了", null, { hk: "1vzhMM" });
 	}
 	static rosterNoImportableRows(fbs: FbsRuntime) {
-		return fbs._("没有勾选任何可导入的新名", null, { hk: "3ebrUb" });
+		return fbs._("没有勾选任何可导入的新名", null, { hk: "mIP3K" });
 	}
 	static rosterEntryNotFound(fbs: FbsRuntime) {
-		return fbs._("名册记录不存在", null, { hk: "4pVJDO" });
+		return fbs._("名册记录不存在", null, { hk: "1CSA4T" });
 	}
 	static checklistItemUnknown(fbs: FbsRuntime) {
-		return fbs._("检查条目不存在", null, { hk: "2zs7yq" });
+		return fbs._("检查条目不存在", null, { hk: "2dupXm" });
 	}
 	static feedbackEmpty(fbs: FbsRuntime) {
-		return fbs._("反馈内容不能为空", null, { hk: "2fa2ne" });
+		return fbs._("反馈内容不能为空", null, { hk: "39jTvZ" });
 	}
 	static feedbackTooLong(fbs: FbsRuntime) {
-		return fbs._("反馈内容太长，请精简到 2000 字以内", null, { hk: "3xgizG" });
+		return fbs._("反馈内容太长，请精简到 2000 字以内", null, { hk: "2O5Yen" });
 	}
 	static feedbackRateLimited(fbs: FbsRuntime) {
-		return fbs._("今天提交的反馈已达上限，请明天再来", null, { hk: "4tzXEe" });
+		return fbs._("今天提交的反馈已达上限，请明天再来", null, { hk: "42gbR4" });
 	}
 	static announcementTitleRequired(fbs: FbsRuntime) {
-		return fbs._("请填写公告标题", null, { hk: "W041z" });
+		return fbs._("请填写公告标题", null, { hk: "2PyyXK" });
 	}
 	static announcementTitleTooLong(fbs: FbsRuntime) {
-		return fbs._("公告标题太长，请精简到 80 字以内", null, { hk: "2Ik1AD" });
+		return fbs._("公告标题太长，请精简到 80 字以内", null, { hk: "1qURcq" });
 	}
 	static announcementBodyTooLong(fbs: FbsRuntime) {
-		return fbs._("公告正文太长，请精简到 2000 字以内", null, { hk: "118qKc" });
+		return fbs._("公告正文太长，请精简到 2000 字以内", null, { hk: "1idQ5j" });
 	}
 	static announcementNotFound(fbs: FbsRuntime) {
-		return fbs._("公告不存在", null, { hk: "1Lw7VE" });
+		return fbs._("公告不存在", null, { hk: "Dt2z1" });
 	}
 	static announcementDailyLimit(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("今天的公告已达上限（每天 {limit} 条），明天再发", [fbs._param("limit", pv(p, "limit"))], { hk: "1xinu8" });
+		return fbs._("今天的公告已达上限（每天 {limit} 条），明天再发", [fbs._param("limit", pv(p, "limit"))], { hk: "2OFzHt" });
 	}
 	static urgentCallDailyLimit(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("今天的紧急集合呼叫已达上限（每天 {limit} 次），明天再试", [fbs._param("limit", pv(p, "limit"))], { hk: "3ElFFE" });
+		return fbs._("今天的紧急集合呼叫已达上限（每天 {limit} 次），明天再试", [fbs._param("limit", pv(p, "limit"))], { hk: "1lFShV" });
 	}
 	static lotteryTitleRequired(fbs: FbsRuntime) {
-		return fbs._("请填写抽奖标题", null, { hk: "20oyyi" });
+		return fbs._("请填写抽奖标题", null, { hk: "317GDK" });
 	}
 	static lotteryEntriesEmpty(fbs: FbsRuntime) {
-		return fbs._("参与名单为空，请先选择参与者", null, { hk: "keAMM" });
+		return fbs._("参与名单为空，请先选择参与者", null, { hk: "1VGSMM" });
 	}
 	static lotteryNotFound(fbs: FbsRuntime) {
-		return fbs._("抽奖不存在", null, { hk: "1Lg4Ze" });
+		return fbs._("抽奖不存在", null, { hk: "111JHY" });
 	}
 	static lotteryAlreadyDrawn(fbs: FbsRuntime) {
-		return fbs._("该抽奖已经开过奖了", null, { hk: "4zGOSK" });
+		return fbs._("该抽奖已经开过奖了", null, { hk: "3NeN8P" });
 	}
 	static lotteryWinnerCountInvalid(fbs: FbsRuntime) {
-		return fbs._("中奖人数必须在 1 与参与人数之间", null, { hk: "3wDQQO" });
+		return fbs._("中奖人数必须在 1 与参与人数之间", null, { hk: "2YNQbr" });
 	}
 	static lotteryWeightInvalid(fbs: FbsRuntime) {
-		return fbs._("权重必须是 1 到 1000 之间的整数", null, { hk: "rU9E9" });
+		return fbs._("权重必须是 1 到 1000 之间的整数", null, { hk: "790lO" });
 	}
 	static lotteryMemberNotInGuild(fbs: FbsRuntime) {
-		return fbs._("所选成员不在本百业名册中", null, { hk: "4sq9UB" });
+		return fbs._("所选成员不在本百业名册中", null, { hk: "GI6NX" });
 	}
 	static availabilitySlotInvalid(fbs: FbsRuntime) {
-		return fbs._("可用时段不合法", null, { hk: "1PVvrL" });
+		return fbs._("可用时段不合法", null, { hk: "2JZVSE" });
 	}
 	static availabilityTooManySlots(fbs: FbsRuntime) {
-		return fbs._("可用时段太多（最多 21 个）", null, { hk: "5cg7H" });
+		return fbs._("可用时段太多（最多 21 个）", null, { hk: "2KgN3s" });
 	}
 	static pollTitleRequired(fbs: FbsRuntime) {
-		return fbs._("请填写投票标题", null, { hk: "1ICL5j" });
+		return fbs._("请填写投票标题", null, { hk: "UZ2Yt" });
 	}
 	static pollOptionsInvalid(fbs: FbsRuntime) {
-		return fbs._("候选时间不合法（需 2–8 个不同的未来时间）", null, { hk: "4a76Lv" });
+		return fbs._("候选时间不合法（需 2–8 个不同的未来时间）", null, { hk: "3YUbnT" });
 	}
 	static pollNotFound(fbs: FbsRuntime) {
-		return fbs._("投票不存在", null, { hk: "SEsAt" });
+		return fbs._("投票不存在", null, { hk: "3cxDti" });
 	}
 	static pollClosed(fbs: FbsRuntime) {
-		return fbs._("该投票已关闭", null, { hk: "2ThdE3" });
+		return fbs._("该投票已关闭", null, { hk: "FESnS" });
 	}
 	static pollOptionInvalid(fbs: FbsRuntime) {
-		return fbs._("所选时间不属于该投票", null, { hk: "4csk84" });
+		return fbs._("所选时间不属于该投票", null, { hk: "WkfTY" });
 	}
 	static pollForbidden(fbs: FbsRuntime) {
-		return fbs._("只有发起人或百业管理员可以关闭投票", null, { hk: "2XIBcy" });
+		return fbs._("只有发起人或百业管理员可以关闭投票", null, { hk: "ZRp8J" });
 	}
 	static customFieldInvalid(fbs: FbsRuntime) {
-		return fbs._("自定义字段不合法", null, { hk: "27PyP1" });
+		return fbs._("自定义字段不合法", null, { hk: "36ve4H" });
 	}
 	static customFieldTooMany(fbs: FbsRuntime) {
-		return fbs._("自定义字段最多 5 个", null, { hk: "1Rti3z" });
+		return fbs._("自定义字段最多 5 个", null, { hk: "1gXwio" });
 	}
 	static signupAnswerRequired(fbs: FbsRuntime) {
-		return fbs._("请填写必填的报名信息", null, { hk: "4c3jjL" });
+		return fbs._("请填写必填的报名信息", null, { hk: "3DN0rV" });
 	}
 	static signupAnswerInvalid(fbs: FbsRuntime) {
-		return fbs._("报名信息不合法", null, { hk: "1s3HzU" });
+		return fbs._("报名信息不合法", null, { hk: "DiAr9" });
 	}
 	static applicationPending(fbs: FbsRuntime) {
-		return fbs._("你已有一份待审核的申请，请等待审核结果", null, { hk: "2Giyct" });
+		return fbs._("你已有一份待审核的申请，请等待审核结果", null, { hk: "YywBz" });
 	}
 	static alreadyMember(fbs: FbsRuntime) {
-		return fbs._("你已经是这个百业的成员了", null, { hk: "4g3vga" });
+		return fbs._("你已经是这个百业的成员了", null, { hk: "zr7kv" });
 	}
 	static recruitUnavailable(fbs: FbsRuntime) {
-		return fbs._("该百业尚未绑定 Discord 服务器，暂不开放招新申请", null, { hk: "48ddMS" });
+		return fbs._("该百业尚未绑定 Discord 服务器，暂不开放招新申请", null, { hk: "3JLEwO" });
 	}
 	static applicationNotFound(fbs: FbsRuntime) {
-		return fbs._("申请不存在", null, { hk: "1MBYm8" });
+		return fbs._("申请不存在", null, { hk: "422lQz" });
 	}
 	static applicationNotPending(fbs: FbsRuntime) {
-		return fbs._("该申请已经审核过了", null, { hk: "2ZFW5h" });
+		return fbs._("该申请已经审核过了", null, { hk: "2W6JS" });
 	}
 	static mentorNotDesignated(fbs: FbsRuntime) {
-		return fbs._("所选导师不在本百业导师人选中，请先设为导师", null, { hk: "3iSGns" });
+		return fbs._("所选导师不在本百业导师人选中，请先设为导师", null, { hk: "3Q97YD" });
 	}
 	static mentorNotInGuild(fbs: FbsRuntime) {
-		return fbs._("所选导师不在本百业名册中", null, { hk: "3Ip8br" });
+		return fbs._("所选导师不在本百业名册中", null, { hk: "NWHi3" });
 	}
 	static menteeNotInGuild(fbs: FbsRuntime) {
-		return fbs._("所选新人不在本百业名册中", null, { hk: "2ugrgv" });
+		return fbs._("所选新人不在本百业名册中", null, { hk: "42rtta" });
 	}
 	static menteeAlreadyPaired(fbs: FbsRuntime) {
-		return fbs._("该新人已有一段进行中的配对，请先结束它再改配", null, { hk: "2Z8vlr" });
+		return fbs._("该新人已有一段进行中的配对，请先结束它再改配", null, { hk: "2GH9B6" });
 	}
 	static mentorSelfPairing(fbs: FbsRuntime) {
-		return fbs._("导师和新人不能是同一个人", null, { hk: "h0eUX" });
+		return fbs._("导师和新人不能是同一个人", null, { hk: "1z5pjj" });
 	}
 	static pairingNotFound(fbs: FbsRuntime) {
-		return fbs._("配对不存在", null, { hk: "pRRzR" });
+		return fbs._("配对不存在", null, { hk: "ZCzrm" });
 	}
 	static pairingAlreadyEnded(fbs: FbsRuntime) {
-		return fbs._("该配对已经结束了", null, { hk: "2EbjaL" });
+		return fbs._("该配对已经结束了", null, { hk: "1Pmb8D" });
 	}
 	static officerNoteBodyRequired(fbs: FbsRuntime) {
-		return fbs._("请填写备注内容", null, { hk: "2SinE2" });
+		return fbs._("请填写备注内容", null, { hk: "3Gb9bz" });
 	}
 	static officerNoteBodyTooLong(fbs: FbsRuntime) {
-		return fbs._("备注太长，请精简到 500 字以内", null, { hk: "2UmXWp" });
+		return fbs._("备注太长，请精简到 500 字以内", null, { hk: "3PoGXu" });
 	}
 	static officerNoteNotFound(fbs: FbsRuntime) {
-		return fbs._("备注不存在", null, { hk: "12m1fk" });
+		return fbs._("备注不存在", null, { hk: "Yni1B" });
 	}
 	static officerMemberNotFound(fbs: FbsRuntime) {
-		return fbs._("该成员不在本百业名册中", null, { hk: "1h5oBR" });
+		return fbs._("该成员不在本百业名册中", null, { hk: "UtFS5" });
 	}
 	static seasonGoalTitleRequired(fbs: FbsRuntime) {
-		return fbs._("请填写目标", null, { hk: "4hkl3C" });
+		return fbs._("请填写目标", null, { hk: "1klOH8" });
 	}
 	static seasonGoalTitleTooLong(fbs: FbsRuntime) {
-		return fbs._("目标太长，请精简到 80 字以内", null, { hk: "1G5w06" });
+		return fbs._("目标太长，请精简到 80 字以内", null, { hk: "3GdnU8" });
 	}
 	static seasonGoalNoteTooLong(fbs: FbsRuntime) {
-		return fbs._("进度备注太长，请精简到 500 字以内", null, { hk: "1CggSQ" });
+		return fbs._("进度备注太长，请精简到 500 字以内", null, { hk: "VReM3" });
 	}
 	static seasonGoalNotFound(fbs: FbsRuntime) {
-		return fbs._("目标不存在", null, { hk: "29dqqZ" });
+		return fbs._("目标不存在", null, { hk: "4ACIew" });
 	}
 	static seasonGoalDungeonNotFound(fbs: FbsRuntime) {
-		return fbs._("关联的副本不存在", null, { hk: "1EQ8a5" });
+		return fbs._("关联的副本不存在", null, { hk: "4rkG4k" });
 	}
 }
 export abstract class GuildAdminFbtUtils {
 	static title(fbs: FbsRuntime) {
-		return fbs._("管理百业", null, { hk: "4uAK0w" });
+		return fbs._("管理百业", null, { hk: "phqWb" });
 	}
 	static lockedTitle(fbs: FbsRuntime) {
-		return fbs._("无权管理这个百业", null, { hk: "2scxga" });
+		return fbs._("无权管理这个百业", null, { hk: "2bppxm" });
 	}
 	static lockedBody(fbs: FbsRuntime) {
-		return fbs._("只有该百业所绑 Discord 服务器的管理员（服务器主或拥有管理权限）可以进入管理页。", null, { hk: "9JZbD" });
+		return fbs._("只有该百业所绑 Discord 服务器的管理员（服务器主或拥有管理权限）可以进入管理页。", null, { hk: "3YUq72" });
 	}
 	static backLink(fbs: FbsRuntime) {
-		return fbs._("‹ 返回百业", null, { hk: "ZRhTA" });
+		return fbs._("‹ 返回百业", null, { hk: "24fZWW" });
 	}
 	static tabProfile(fbs: FbsRuntime) {
-		return fbs._("资料", null, { hk: "2uIwip" });
+		return fbs._("资料", null, { hk: "1HgYhF" });
 	}
 	static tabDiscord(fbs: FbsRuntime) {
-		return fbs._("Discord", null, { hk: "45mhJu" });
+		return fbs._("Discord", null, { hk: "4w7eCd" });
 	}
 	static tabEvents(fbs: FbsRuntime) {
-		return fbs._("活动", null, { hk: "4y5dH" });
+		return fbs._("活动", null, { hk: "4my4EZ" });
 	}
 	static tabGuides(fbs: FbsRuntime) {
-		return fbs._("攻略数据", null, { hk: "2mnh27" });
+		return fbs._("攻略数据", null, { hk: "20bLzZ" });
 	}
 	static saveButton(fbs: FbsRuntime) {
-		return fbs._("保存", null, { hk: "3tEfi7" });
+		return fbs._("保存", null, { hk: "2K3Ixv" });
 	}
 	static savedText(fbs: FbsRuntime) {
-		return fbs._("已保存", null, { hk: "1YXNnN" });
+		return fbs._("已保存", null, { hk: "4g7ibo" });
 	}
 	static deleteButton(fbs: FbsRuntime) {
-		return fbs._("删除", null, { hk: "1FjjIp" });
+		return fbs._("删除", null, { hk: "4CBC8M" });
 	}
 	static editButton(fbs: FbsRuntime) {
-		return fbs._("编辑", null, { hk: "2hBYX0" });
+		return fbs._("编辑", null, { hk: "3W12fJ" });
 	}
 	static addButton(fbs: FbsRuntime) {
-		return fbs._("新增", null, { hk: "upio1" });
+		return fbs._("新增", null, { hk: "1lDtAP" });
 	}
 	static profileTitle(fbs: FbsRuntime) {
-		return fbs._("百业资料", null, { hk: "35e1aj" });
+		return fbs._("百业资料", null, { hk: "2jfk0Q" });
 	}
 	static nameLabel(fbs: FbsRuntime) {
-		return fbs._("百业名称", null, { hk: "3VGhAA" });
+		return fbs._("百业名称", null, { hk: "43S8K0" });
 	}
 	static announcementLabel(fbs: FbsRuntime) {
-		return fbs._("公告", null, { hk: "3MPdbH" });
+		return fbs._("公告", null, { hk: "SQMdb" });
 	}
 	static sloganLabel(fbs: FbsRuntime) {
-		return fbs._("标语", null, { hk: "3g5s53" });
+		return fbs._("标语", null, { hk: "3J9jrh" });
 	}
 	static masterNameLabel(fbs: FbsRuntime) {
-		return fbs._("掌门", null, { hk: "1NFB6U" });
+		return fbs._("掌门", null, { hk: "OMeO3" });
 	}
 	static logoUrlLabel(fbs: FbsRuntime) {
-		return fbs._("标志图链接", null, { hk: "OzzkB" });
+		return fbs._("标志图链接", null, { hk: "2DjwOu" });
 	}
 	static bgImageUrlLabel(fbs: FbsRuntime) {
-		return fbs._("背景图链接", null, { hk: "2d8wA9" });
+		return fbs._("背景图链接", null, { hk: "4gAXNC" });
 	}
 	static avatarTitle(fbs: FbsRuntime) {
-		return fbs._("百业头像", null, { hk: "4boKYO" });
+		return fbs._("百业头像", null, { hk: "1FHosS" });
 	}
 	static avatarUpload(fbs: FbsRuntime) {
-		return fbs._("上传头像", null, { hk: "LWhmg" });
+		return fbs._("上传头像", null, { hk: "3PxMBe" });
 	}
 	static avatarReplace(fbs: FbsRuntime) {
-		return fbs._("更换头像", null, { hk: "1rpgyJ" });
+		return fbs._("更换头像", null, { hk: "1hB6ZX" });
 	}
 	static avatarDelete(fbs: FbsRuntime) {
-		return fbs._("删除头像", null, { hk: "GFBdo" });
+		return fbs._("删除头像", null, { hk: "1BtJXp" });
 	}
 	static avatarNone(fbs: FbsRuntime) {
-		return fbs._("尚未设置头像，当前显示默认印章。", null, { hk: "1pyVEl" });
+		return fbs._("尚未设置头像，当前显示默认印章。", null, { hk: "3htYqY" });
 	}
 	static avatarHint(fbs: FbsRuntime) {
-		return fbs._("正方形图片效果最佳，大小 ≤ 400KB（PNG / JPEG / WebP）。", null, { hk: "4Ekxwl" });
+		return fbs._("正方形图片效果最佳，大小 ≤ 400KB（PNG / JPEG / WebP）。", null, { hk: "21Brtp" });
 	}
 	static discordTitle(fbs: FbsRuntime) {
-		return fbs._("Discord 集成", null, { hk: "2hbHGk" });
+		return fbs._("Discord 集成", null, { hk: "1rvCzP" });
 	}
 	static webhookLabel(fbs: FbsRuntime) {
-		return fbs._("发车提醒 Webhook", null, { hk: "1BAh7o" });
+		return fbs._("发车提醒 Webhook", null, { hk: "3PxssL" });
 	}
 	static webhookSet(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("已设置（Webhook 编号 {id}）", [fbs._param("id", pv(p, "id"))], { hk: "1ZdRAw" });
+		return fbs._("已设置（Webhook 编号 {id}）", [fbs._param("id", pv(p, "id"))], { hk: "3g4z2k" });
 	}
 	static webhookUnset(fbs: FbsRuntime) {
-		return fbs._("未设置", null, { hk: "dDpeY" });
+		return fbs._("未设置", null, { hk: "2RhZdb" });
 	}
 	static webhookHint(fbs: FbsRuntime) {
-		return fbs._("保存后不回显完整地址；留空并保存 = 保持不变，点「清除」移除。", null, { hk: "2P97lk" });
+		return fbs._("保存后不回显完整地址；留空并保存 = 保持不变，点「清除」移除。", null, { hk: "2gModH" });
 	}
 	static webhookClear(fbs: FbsRuntime) {
-		return fbs._("清除 Webhook", null, { hk: "2eQC6C" });
+		return fbs._("清除 Webhook", null, { hk: "2w709f" });
 	}
 	static guildIdLabel(fbs: FbsRuntime) {
-		return fbs._("绑定的服务器 ID", null, { hk: "lQd0C" });
+		return fbs._("绑定的服务器 ID", null, { hk: "21rL3U" });
 	}
 	static guildIdUnbound(fbs: FbsRuntime) {
-		return fbs._("未绑定", null, { hk: "10avrI" });
+		return fbs._("未绑定", null, { hk: "4cL5Mt" });
 	}
 	static reminderTitle(fbs: FbsRuntime) {
-		return fbs._("发车提醒设置", null, { hk: "2jq1TS" });
+		return fbs._("发车提醒设置", null, { hk: "TTeLg" });
 	}
 	static reminderOffsetsLabel(fbs: FbsRuntime) {
-		return fbs._("提醒提前量（可多选）", null, { hk: "1OIui1" });
+		return fbs._("提醒提前量（可多选）", null, { hk: "3ErCYd" });
 	}
 	static reminderOffsetOption(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("提前 {minutes} 分钟", [fbs._param("minutes", pv(p, "minutes"))], { hk: "sAIKh" });
+		return fbs._("提前 {minutes} 分钟", [fbs._param("minutes", pv(p, "minutes"))], { hk: "3643QP" });
 	}
 	static reminderCustomTextLabel(fbs: FbsRuntime) {
-		return fbs._("自定义提醒文案", null, { hk: "14aT54" });
+		return fbs._("自定义提醒文案", null, { hk: "Al9ru" });
 	}
 	static reminderCustomTextHint(fbs: FbsRuntime) {
-		return fbs._("一行文字，会出现在提醒卡片里；最多 100 字，留空不显示。第一次提前提醒会通知所有人，之后的只催还没就位的人。", null, { hk: "BIh2B" });
+		return fbs._("一行文字，会出现在提醒卡片里；最多 100 字，留空不显示。第一次提前提醒会通知所有人，之后的只催还没就位的人。", null, { hk: "1GufX5" });
 	}
 	static visibilityTitle(fbs: FbsRuntime) {
-		return fbs._("可见性", null, { hk: "1w8r08" });
+		return fbs._("可见性", null, { hk: "2jxYpd" });
 	}
 	static devOnlyLabel(fbs: FbsRuntime) {
-		return fbs._("仅开发环境可见", null, { hk: "1jjubx" });
+		return fbs._("仅开发环境可见", null, { hk: "3KjpgY" });
 	}
 	static eventsTitle(fbs: FbsRuntime) {
-		return fbs._("活动管理", null, { hk: "43Z9ae" });
+		return fbs._("活动管理", null, { hk: "IUICH" });
 	}
 	static signupCsvSuffix(fbs: FbsRuntime) {
-		return fbs._("报名表", null, { hk: "2nKUMV" });
+		return fbs._("报名表", null, { hk: "QWX2s" });
 	}
 	static eventEmpty(fbs: FbsRuntime) {
-		return fbs._("暂无活动。", null, { hk: "Pnib" });
+		return fbs._("暂无活动。", null, { hk: "aUFdm" });
 	}
 	static eventTitleLabel(fbs: FbsRuntime) {
-		return fbs._("标题", null, { hk: "4mMdVp" });
+		return fbs._("标题", null, { hk: "1GwVGx" });
 	}
 	static eventTypeLabel(fbs: FbsRuntime) {
-		return fbs._("类型", null, { hk: "3rcy57" });
+		return fbs._("类型", null, { hk: "RrOsQ" });
 	}
 	static eventStatusLabel(fbs: FbsRuntime) {
-		return fbs._("状态", null, { hk: "3DODtd" });
+		return fbs._("状态", null, { hk: "48aj7O" });
 	}
 	static eventTimeLabel(fbs: FbsRuntime) {
-		return fbs._("发车时间", null, { hk: "45yZmx" });
+		return fbs._("发车时间", null, { hk: "SM7LR" });
 	}
 	static eventSlotsLabel(fbs: FbsRuntime) {
-		return fbs._("席位上限", null, { hk: "M1vcc" });
+		return fbs._("席位上限", null, { hk: "3Dj9x5" });
 	}
 	static eventMeetLabel(fbs: FbsRuntime) {
-		return fbs._("集合信息", null, { hk: "47Q0k7" });
+		return fbs._("集合信息", null, { hk: "1UzbbL" });
 	}
 	static eventDescLabel(fbs: FbsRuntime) {
-		return fbs._("说明", null, { hk: "1lo3WX" });
+		return fbs._("说明", null, { hk: "1EChB4" });
 	}
 	static eventDungeonLabel(fbs: FbsRuntime) {
-		return fbs._("副本", null, { hk: "1FAR1r" });
+		return fbs._("副本", null, { hk: "VGSRH" });
 	}
 	static statusOpen(fbs: FbsRuntime) {
-		return fbs._("开放报名", null, { hk: "49jUMw" });
+		return fbs._("开放报名", null, { hk: "1nWrNu" });
 	}
 	static statusClosed(fbs: FbsRuntime) {
-		return fbs._("已截止", null, { hk: "1FI1Se" });
+		return fbs._("已截止", null, { hk: "3z5ryU" });
 	}
 	static statusCompleted(fbs: FbsRuntime) {
-		return fbs._("已完成", null, { hk: "2SS8zB" });
+		return fbs._("已完成", null, { hk: "1hmgKs" });
 	}
 	static statusDraft(fbs: FbsRuntime) {
-		return fbs._("草稿", null, { hk: "BswMc" });
+		return fbs._("草稿", null, { hk: "2wboXb" });
 	}
 	static signupsTitle(fbs: FbsRuntime) {
-		return fbs._("报名名单", null, { hk: "1WhBXM" });
+		return fbs._("报名名单", null, { hk: "1bbyfd" });
 	}
 	static signupEmpty(fbs: FbsRuntime) {
-		return fbs._("暂无报名。", null, { hk: "2xX0pW" });
+		return fbs._("暂无报名。", null, { hk: "1FB1hT" });
 	}
 	static exportCsvButton(fbs: FbsRuntime) {
-		return fbs._("导出 CSV", null, { hk: "Dg2q6" });
+		return fbs._("导出 CSV", null, { hk: "4C0a4W" });
 	}
 	static removeSignupButton(fbs: FbsRuntime) {
-		return fbs._("移除", null, { hk: "2ybZdT" });
+		return fbs._("移除", null, { hk: "hVM2D" });
 	}
 	static resultsTitle(fbs: FbsRuntime) {
-		return fbs._("竞速成绩", null, { hk: "QIlMo" });
+		return fbs._("竞速成绩", null, { hk: "3HGuVd" });
 	}
 	static resultTeamLabel(fbs: FbsRuntime) {
-		return fbs._("队伍名", null, { hk: "3ZsqJ1" });
+		return fbs._("队伍名", null, { hk: "14nAxa" });
 	}
 	static resultMembersLabel(fbs: FbsRuntime) {
-		return fbs._("队员（逗号分隔）", null, { hk: "2KAIPK" });
+		return fbs._("队员（逗号分隔）", null, { hk: "9d0OS" });
 	}
 	static resultTimeLabel(fbs: FbsRuntime) {
-		return fbs._("用时（如 12:34.567）", null, { hk: "4niMVm" });
+		return fbs._("用时（如 12:34.567）", null, { hk: "28gLyc" });
 	}
 	static resultProofLabel(fbs: FbsRuntime) {
-		return fbs._("凭证链接", null, { hk: "20Lpgi" });
+		return fbs._("凭证链接", null, { hk: "2XjaSy" });
 	}
 	static resultNoteLabel(fbs: FbsRuntime) {
-		return fbs._("备注", null, { hk: "1I3mrb" });
+		return fbs._("备注", null, { hk: "1So4A5" });
 	}
 	static guidesTitle(fbs: FbsRuntime) {
-		return fbs._("流派攻略数据（BiS / 循环）", null, { hk: "NfNBl" });
+		return fbs._("流派攻略数据（BiS / 循环）", null, { hk: "YEm37" });
 	}
 	static guidesHint(fbs: FbsRuntime) {
-		return fbs._("按流派填写：build 名称、属性行、占比行、BiS（JSON）与循环（JSON）。保存后流派页即时生效。", null, { hk: "3fKKdw" });
+		return fbs._("按流派填写：build 名称、属性行、占比行、BiS（JSON）与循环（JSON）。保存后流派页即时生效。", null, { hk: "1Cqxi3" });
 	}
 	static guideSchoolLabel(fbs: FbsRuntime) {
-		return fbs._("流派", null, { hk: "31M4rS" });
+		return fbs._("流派", null, { hk: "1L2k94" });
 	}
 	static guideBuildLabel(fbs: FbsRuntime) {
-		return fbs._("Build 名称", null, { hk: "4eWJd5" });
+		return fbs._("Build 名称", null, { hk: "2u1q3c" });
 	}
 	static guideAttrLabel(fbs: FbsRuntime) {
-		return fbs._("属性行", null, { hk: "vQj17" });
+		return fbs._("属性行", null, { hk: "4D8fIM" });
 	}
 	static guideRateLabel(fbs: FbsRuntime) {
-		return fbs._("占比行", null, { hk: "2yVL7z" });
+		return fbs._("占比行", null, { hk: "2zYxCM" });
 	}
 	static guideBisLabel(fbs: FbsRuntime) {
-		return fbs._("BiS（JSON）", null, { hk: "3Vlq5G" });
+		return fbs._("BiS（JSON）", null, { hk: "1koeYA" });
 	}
 	static guideRotationLabel(fbs: FbsRuntime) {
-		return fbs._("循环（JSON）", null, { hk: "485Lhi" });
+		return fbs._("循环（JSON）", null, { hk: "3rnrXc" });
 	}
 	static tabStats(fbs: FbsRuntime) {
-		return fbs._("统计", null, { hk: "4gdHXs" });
+		return fbs._("统计", null, { hk: "1tT5ai" });
 	}
 	static tabSeason(fbs: FbsRuntime) {
-		return fbs._("赛季", null, { hk: "fqm56" });
+		return fbs._("赛季", null, { hk: "4dtous" });
 	}
 	static seasonTitle(fbs: FbsRuntime) {
-		return fbs._("赛季前检查清单", null, { hk: "3HWK5z" });
+		return fbs._("赛季前检查清单", null, { hk: "1F2NNh" });
 	}
 	static seasonHint(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("按当前版本 {version} 与赛季 {season} 自动生成；换季后清单自动重置，逐项复核后勾选。", [fbs._param("version", pv(p, "version")), fbs._param("season", pv(p, "season"))], { hk: "1e7TcX" });
+		return fbs._("按当前版本 {version} 与赛季 {season} 自动生成；换季后清单自动重置，逐项复核后勾选。", [fbs._param("version", pv(p, "version")), fbs._param("season", pv(p, "season"))], { hk: "1T8uMC" });
 	}
 	static seasonProgress(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("已完成 {done} / {total}", [fbs._param("done", pv(p, "done")), fbs._param("total", pv(p, "total"))], { hk: "495BtM" });
+		return fbs._("已完成 {done} / {total}", [fbs._param("done", pv(p, "done")), fbs._param("total", pv(p, "total"))], { hk: "2stl1X" });
 	}
 	static seasonItemDungeonsTitle(fbs: FbsRuntime) {
-		return fbs._("复核当前版本副本", null, { hk: "2R9yUh" });
+		return fbs._("复核当前版本副本", null, { hk: "3nKedm" });
 	}
 	static seasonItemDungeonsDetail(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("当前版本（{version}）共有 {count} 个副本，确认达标要求与攻略已按本赛季更新。", [fbs._param("version", pv(p, "version")), fbs._param("count", pv(p, "count"))], { hk: "enjun" });
+		return fbs._("当前版本（{version}）共有 {count} 个副本，确认达标要求与攻略已按本赛季更新。", [fbs._param("version", pv(p, "version")), fbs._param("count", pv(p, "count"))], { hk: "443QkV" });
 	}
 	static seasonItemTemplatesTitle(fbs: FbsRuntime) {
-		return fbs._("复核组队模板", null, { hk: "3liaSF" });
+		return fbs._("复核组队模板", null, { hk: "2toNUi" });
 	}
 	static seasonItemTemplatesDetail(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("本百业现有 {count} 个组队模板，确认模板的副本与人数仍适用于本赛季。", [fbs._param("count", pv(p, "count"))], { hk: "YK3vP" });
+		return fbs._("本百业现有 {count} 个组队模板，确认模板的副本与人数仍适用于本赛季。", [fbs._param("count", pv(p, "count"))], { hk: "1eb5h2" });
 	}
 	static seasonItemGuidesTitle(fbs: FbsRuntime) {
-		return fbs._("复核流派攻略数据", null, { hk: "4t8rLI" });
+		return fbs._("复核流派攻略数据", null, { hk: "1h3Uyv" });
 	}
 	static seasonItemGuidesDetail(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("攻略数据现有 {builds} 份 BiS 与 {rotations} 份循环，确认已按本赛季数值更新。", [fbs._param("builds", pv(p, "builds")), fbs._param("rotations", pv(p, "rotations"))], { hk: "3drPJK" });
+		return fbs._("攻略数据现有 {builds} 份 BiS 与 {rotations} 份循环，确认已按本赛季数值更新。", [fbs._param("builds", pv(p, "builds")), fbs._param("rotations", pv(p, "rotations"))], { hk: "41VAHi" });
 	}
 	static seasonItemRosterTitle(fbs: FbsRuntime) {
-		return fbs._("复核成员名册", null, { hk: "2milrJ" });
+		return fbs._("复核成员名册", null, { hk: "1MaJyn" });
 	}
 	static seasonItemRosterDetail(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("Discord 名册 {members} 人，截图名册 {entries} 条；确认成员装备季标与名册均为本赛季最新。", [fbs._param("members", pv(p, "members")), fbs._param("entries", pv(p, "entries"))], { hk: "loIXD" });
+		return fbs._("Discord 名册 {members} 人，截图名册 {entries} 条；确认成员装备季标与名册均为本赛季最新。", [fbs._param("members", pv(p, "members")), fbs._param("entries", pv(p, "entries"))], { hk: "18nbKu" });
 	}
 	static rosterTitle(fbs: FbsRuntime) {
-		return fbs._("成员名册（截图导入）", null, { hk: "4odyJR" });
+		return fbs._("成员名册（截图导入）", null, { hk: "2EVVmK" });
 	}
 	static rosterHint(fbs: FbsRuntime) {
-		return fbs._("上传游戏内成员名单截图，识别出的名字先进入预览，确认后才写入名册。名册只记录游戏内名字，不会改变任何人的 Discord 成员资格。", null, { hk: "1tY3Tc" });
+		return fbs._("上传游戏内成员名单截图，识别出的名字先进入预览，确认后才写入名册。名册只记录游戏内名字，不会改变任何人的 Discord 成员资格。", null, { hk: "xQu1d" });
 	}
 	static rosterUpload(fbs: FbsRuntime) {
-		return fbs._("上传名单截图", null, { hk: "4fA2Sc" });
+		return fbs._("上传名单截图", null, { hk: "2Ezjr4" });
 	}
 	static rosterOcrRunning(fbs: FbsRuntime) {
-		return fbs._("识别中…", null, { hk: "3pewht" });
+		return fbs._("识别中…", null, { hk: "3oU98u" });
 	}
 	static rosterPreviewTitle(fbs: FbsRuntime) {
-		return fbs._("导入预览", null, { hk: "VXLD3" });
+		return fbs._("导入预览", null, { hk: "3r4YsS" });
 	}
 	static rosterConfirm(fbs: FbsRuntime) {
-		return fbs._("确认导入", null, { hk: "2nVVvB" });
+		return fbs._("确认导入", null, { hk: "3SCWF5" });
 	}
 	static rosterEmpty(fbs: FbsRuntime) {
-		return fbs._("尚无名册记录，用上方按钮上传名单截图导入。", null, { hk: "2cZATc" });
+		return fbs._("尚无名册记录，用上方按钮上传名单截图导入。", null, { hk: "NE4D8" });
 	}
 	static rosterSourceOcr(fbs: FbsRuntime) {
-		return fbs._("截图识别", null, { hk: "4zaKkq" });
+		return fbs._("截图识别", null, { hk: "4vh69O" });
 	}
 	static rosterMatchedMember(fbs: FbsRuntime) {
-		return fbs._("已匹配 Discord 成员", null, { hk: "UdOw4" });
+		return fbs._("已匹配 Discord 成员", null, { hk: "uvLxl" });
 	}
 	static rosterStatusMatched(fbs: FbsRuntime) {
-		return fbs._("已匹配", null, { hk: "34fWrG" });
+		return fbs._("已匹配", null, { hk: "41WuRA" });
 	}
 	static rosterStatusNew(fbs: FbsRuntime) {
-		return fbs._("疑似新名", null, { hk: "CoCsv" });
+		return fbs._("疑似新名", null, { hk: "nf5eD" });
 	}
 	static rosterStatusUnrecognized(fbs: FbsRuntime) {
-		return fbs._("无法识别", null, { hk: "2S9DbJ" });
+		return fbs._("无法识别", null, { hk: "oCnUh" });
 	}
 	static rosterImported(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("已导入 {count} 条名册记录", [fbs._param("count", pv(p, "count"))], { hk: "4xXpcv" });
+		return fbs._("已导入 {count} 条名册记录", [fbs._param("count", pv(p, "count"))], { hk: "7ceJQ" });
 	}
 	static statsTitle(fbs: FbsRuntime) {
-		return fbs._("出勤与活跃", null, { hk: "4idJiT" });
+		return fbs._("出勤与活跃", null, { hk: "1d3keX" });
 	}
 	static statsCurrentWeek(fbs: FbsRuntime) {
-		return fbs._("本周", null, { hk: "4np6l1" });
+		return fbs._("本周", null, { hk: "2ZZZOD" });
 	}
 	static statsCars(fbs: FbsRuntime) {
-		return fbs._("开车", null, { hk: "2zyIkm" });
+		return fbs._("开车", null, { hk: "1MTNce" });
 	}
 	static statsCompleted(fbs: FbsRuntime) {
-		return fbs._("完成", null, { hk: "3MgE3M" });
+		return fbs._("完成", null, { hk: "19gVWH" });
 	}
 	static statsSeats(fbs: FbsRuntime) {
-		return fbs._("席位", null, { hk: "1FGaVr" });
+		return fbs._("席位", null, { hk: "4gR2r6" });
 	}
 	static statsFillRate(fbs: FbsRuntime) {
-		return fbs._("满员率", null, { hk: "2xV9Kf" });
+		return fbs._("满员率", null, { hk: "3exrAe" });
 	}
 	static statsParticipants(fbs: FbsRuntime) {
-		return fbs._("参与人数", null, { hk: "qwhmF" });
+		return fbs._("参与人数", null, { hk: "4wr5b2" });
 	}
 	static statsPerCapita(fbs: FbsRuntime) {
-		return fbs._("人均参与", null, { hk: "2pPXsv" });
+		return fbs._("人均参与", null, { hk: "254tDj" });
 	}
 	static statsMembersTitle(fbs: FbsRuntime) {
-		return fbs._("成员参与榜 · 近 4 周", null, { hk: "2ZOPoL" });
+		return fbs._("成员参与榜 · 近 4 周", null, { hk: "1113tN" });
 	}
 	static statsLeadersTitle(fbs: FbsRuntime) {
-		return fbs._("车头榜 · 近 4 周", null, { hk: "10yBQi" });
+		return fbs._("车头榜 · 近 4 周", null, { hk: "26hx5l" });
 	}
 	static statsSeatCount(fbs: FbsRuntime) {
-		return fbs._("落座次数", null, { hk: "1RpL2x" });
+		return fbs._("落座次数", null, { hk: "47hsXV" });
 	}
 	static statsCarCount(fbs: FbsRuntime) {
-		return fbs._("开车数", null, { hk: "2sLw8Q" });
+		return fbs._("开车数", null, { hk: "2XBgTP" });
 	}
 	static statsEmpty(fbs: FbsRuntime) {
-		return fbs._("近 4 周暂无组队数据。", null, { hk: "4g8K6d" });
+		return fbs._("近 4 周暂无组队数据。", null, { hk: "2cKSLW" });
 	}
 	static statsBoardEmpty(fbs: FbsRuntime) {
-		return fbs._("暂无记录。", null, { hk: "2kDDc8" });
+		return fbs._("暂无记录。", null, { hk: "2JXqs8" });
 	}
 	static whiteLabelTitle(fbs: FbsRuntime) {
-		return fbs._("品牌与分享卡", null, { hk: "3tBF8B" });
+		return fbs._("品牌与分享卡", null, { hk: "2DcaHH" });
 	}
 	static hideBrandingLabel(fbs: FbsRuntime) {
-		return fbs._("隐藏平台品牌", null, { hk: "B3gJ7" });
+		return fbs._("隐藏平台品牌", null, { hk: "3ABREp" });
 	}
 	static hideBrandingHint(fbs: FbsRuntime) {
-		return fbs._("开启后，本百业的页面上不再显示平台名称与页脚声明，只呈现百业自己的信息。", null, { hk: "2CFQCo" });
+		return fbs._("开启后，本百业的页面上不再显示平台名称与页脚声明，只呈现百业自己的信息。", null, { hk: "1hvrWO" });
 	}
 	static ogAccentLabel(fbs: FbsRuntime) {
-		return fbs._("分享卡强调色", null, { hk: "43xymh" });
+		return fbs._("分享卡强调色", null, { hk: "2bhhCd" });
 	}
 	static ogTitleSuffixLabel(fbs: FbsRuntime) {
-		return fbs._("分享卡标题后缀", null, { hk: "1TtHpA" });
+		return fbs._("分享卡标题后缀", null, { hk: "CGErb" });
 	}
 	static ogTitleSuffixHint(fbs: FbsRuntime) {
-		return fbs._("会接在分享卡的标题后面，如「· 招募中」；最多 30 字，留空不显示。", null, { hk: "3QJFGn" });
+		return fbs._("会接在分享卡的标题后面，如「· 招募中」；最多 30 字，留空不显示。", null, { hk: "2EuKHV" });
 	}
 	static ogAccentGold(fbs: FbsRuntime) {
-		return fbs._("鎏金", null, { hk: "4crX3k" });
+		return fbs._("鎏金", null, { hk: "2iiYlN" });
 	}
 	static ogAccentJade(fbs: FbsRuntime) {
-		return fbs._("翡翠", null, { hk: "4gz8QP" });
+		return fbs._("翡翠", null, { hk: "32KIrh" });
 	}
 	static ogAccentAzure(fbs: FbsRuntime) {
-		return fbs._("藏青", null, { hk: "31zoiU" });
+		return fbs._("藏青", null, { hk: "3pW4pX" });
 	}
 	static ogAccentCinnabar(fbs: FbsRuntime) {
-		return fbs._("朱砂", null, { hk: "hHKO6" });
+		return fbs._("朱砂", null, { hk: "2ARHJJ" });
 	}
 	static ogAccentViolet(fbs: FbsRuntime) {
-		return fbs._("紫檀", null, { hk: "xcFB8" });
+		return fbs._("紫檀", null, { hk: "16ipi2" });
 	}
 	static premiumLockedTitle(fbs: FbsRuntime) {
-		return fbs._("开通百业 Premium", null, { hk: "1zTlqd" });
+		return fbs._("开通百业 Premium", null, { hk: "3q1CRR" });
 	}
 	static premiumLockedBody(fbs: FbsRuntime) {
-		return fbs._("高级发车提醒、出勤统计、品牌与分享卡定制均为 Premium 功能。开通后立即生效，可随时取消。", null, { hk: "2QMm7e" });
+		return fbs._("高级发车提醒、出勤统计、品牌与分享卡定制均为 Premium 功能。开通后立即生效，可随时取消。", null, { hk: "1hdfCw" });
 	}
 	static premiumCheckoutButton(fbs: FbsRuntime) {
-		return fbs._("立即开通", null, { hk: "3btQcg" });
+		return fbs._("立即开通", null, { hk: "22w8h" });
 	}
 	static premiumComingSoon(fbs: FbsRuntime) {
-		return fbs._("即将开放", null, { hk: "4nnoW" });
+		return fbs._("即将开放", null, { hk: "k66GU" });
 	}
 	static premiumActiveTitle(fbs: FbsRuntime) {
-		return fbs._("百业 Premium", null, { hk: "esBvK" });
+		return fbs._("百业 Premium", null, { hk: "28MgWt" });
 	}
 	static premiumPlanName(fbs: FbsRuntime) {
-		return fbs._("Premium", null, { hk: "2NSkmp" });
+		return fbs._("Premium", null, { hk: "3ouIur" });
 	}
 	static premiumSourceStripe(fbs: FbsRuntime) {
-		return fbs._("通过 Stripe 订阅", null, { hk: "2kIc06" });
+		return fbs._("通过 Stripe 订阅", null, { hk: "PRNG5" });
 	}
 	static premiumSourceManual(fbs: FbsRuntime) {
-		return fbs._("由平台授予", null, { hk: "47VlRz" });
+		return fbs._("由平台授予", null, { hk: "44nAt1" });
 	}
 	static premiumPeriodEnd(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("当前周期至 {date}", [fbs._param("date", pv(p, "date"))], { hk: "YJWyt" });
+		return fbs._("当前周期至 {date}", [fbs._param("date", pv(p, "date"))], { hk: "dmW4g" });
 	}
 	static premiumPriceMonth(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("{amount} / 月", [fbs._param("amount", pv(p, "amount"))], { hk: "1WGP5w" });
+		return fbs._("{amount} / 月", [fbs._param("amount", pv(p, "amount"))], { hk: "4xgQIo" });
 	}
 	static premiumPriceYear(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("{amount} / 年", [fbs._param("amount", pv(p, "amount"))], { hk: "13GQbX" });
+		return fbs._("{amount} / 年", [fbs._param("amount", pv(p, "amount"))], { hk: "2Osvuz" });
 	}
 	static billingSuccess(fbs: FbsRuntime) {
-		return fbs._("开通成功，Premium 已生效。", null, { hk: "30ayWl" });
+		return fbs._("开通成功，Premium 已生效。", null, { hk: "2ux3TB" });
 	}
 	static billingCanceled(fbs: FbsRuntime) {
-		return fbs._("已取消开通，未产生扣费。", null, { hk: "3I6hit" });
+		return fbs._("已取消开通，未产生扣费。", null, { hk: "Auyqu" });
 	}
 	static tabAnnouncements(fbs: FbsRuntime) {
-		return fbs._("公告广播", null, { hk: "1mwQts" });
+		return fbs._("公告广播", null, { hk: "1cEu26" });
 	}
 	static tabTools(fbs: FbsRuntime) {
-		return fbs._("活动工具", null, { hk: "4xZo00" });
+		return fbs._("活动工具", null, { hk: "BRJC" });
 	}
 	static lotteryTitle(fbs: FbsRuntime) {
-		return fbs._("活动抽奖", null, { hk: "4tJDFB" });
+		return fbs._("活动抽奖", null, { hk: "phb3W" });
 	}
 	static lotteryHint(fbs: FbsRuntime) {
-		return fbs._("参与名单可来自某辆车的参与者，或手选本百业成员；名单与权重在创建时定格。开奖按权重随机抽取，同一抽奖内不会重复中奖；抽奖、名单、权重与结果全部留痕可查。", null, { hk: "1VRaXI" });
+		return fbs._("参与名单可来自某辆车的参与者，或手选本百业成员；名单与权重在创建时定格。开奖按权重随机抽取，同一抽奖内不会重复中奖；抽奖、名单、权重与结果全部留痕可查。", null, { hk: "l6I0C" });
 	}
 	static lotteryEmpty(fbs: FbsRuntime) {
-		return fbs._("还没有抽奖，先创建一个。", null, { hk: "1mIUhs" });
+		return fbs._("还没有抽奖，先创建一个。", null, { hk: "1IA3EI" });
 	}
 	static lotteryNameLabel(fbs: FbsRuntime) {
-		return fbs._("抽奖标题", null, { hk: "1FtwJ" });
+		return fbs._("抽奖标题", null, { hk: "QNIoN" });
 	}
 	static lotteryPrizeLabel(fbs: FbsRuntime) {
-		return fbs._("奖品 / 奖池", null, { hk: "1rPO0u" });
+		return fbs._("奖品 / 奖池", null, { hk: "3GyAIo" });
 	}
 	static lotterySourceLabel(fbs: FbsRuntime) {
-		return fbs._("参与名单来源", null, { hk: "3yFZMg" });
+		return fbs._("参与名单来源", null, { hk: "X1d6d" });
 	}
 	static lotterySourceGrouping(fbs: FbsRuntime) {
-		return fbs._("某辆车的参与者", null, { hk: "2F5EyL" });
+		return fbs._("某辆车的参与者", null, { hk: "2fXkEv" });
 	}
 	static lotterySourceMembers(fbs: FbsRuntime) {
-		return fbs._("手选百业成员", null, { hk: "3Ujpnt" });
+		return fbs._("手选百业成员", null, { hk: "8bxHX" });
 	}
 	static lotteryGroupingLabel(fbs: FbsRuntime) {
-		return fbs._("选择车队", null, { hk: "x4B3O" });
+		return fbs._("选择车队", null, { hk: "2iP9L6" });
 	}
 	static lotteryWinnerCountLabel(fbs: FbsRuntime) {
-		return fbs._("中奖人数", null, { hk: "2CH5eF" });
+		return fbs._("中奖人数", null, { hk: "2feMXp" });
 	}
 	static lotteryUniformWeightLabel(fbs: FbsRuntime) {
-		return fbs._("统一权重", null, { hk: "2fcJFz" });
+		return fbs._("统一权重", null, { hk: "2vN0nT" });
 	}
 	static lotteryWeightLabel(fbs: FbsRuntime) {
-		return fbs._("权重", null, { hk: "1AvaaD" });
+		return fbs._("权重", null, { hk: "ssarZ" });
 	}
 	static lotteryEntriesLabel(fbs: FbsRuntime) {
-		return fbs._("参与名单", null, { hk: "1hfF9X" });
+		return fbs._("参与名单", null, { hk: "34bJ92" });
 	}
 	static lotteryWinnersLabel(fbs: FbsRuntime) {
-		return fbs._("中奖名单", null, { hk: "1divNO" });
+		return fbs._("中奖名单", null, { hk: "2xoFrz" });
 	}
 	static lotteryCreateButton(fbs: FbsRuntime) {
-		return fbs._("创建抽奖", null, { hk: "117nty" });
+		return fbs._("创建抽奖", null, { hk: "4n1dlX" });
 	}
 	static lotteryDrawButton(fbs: FbsRuntime) {
-		return fbs._("开奖", null, { hk: "1MxeN3" });
+		return fbs._("开奖", null, { hk: "knVEh" });
 	}
 	static lotteryStatusOpen(fbs: FbsRuntime) {
-		return fbs._("待开奖", null, { hk: "13jw7h" });
+		return fbs._("待开奖", null, { hk: "Vf68n" });
 	}
 	static lotteryStatusDrawn(fbs: FbsRuntime) {
-		return fbs._("已开奖", null, { hk: "YcXPM" });
+		return fbs._("已开奖", null, { hk: "aOTQE" });
 	}
 	static lotteryEntryCount(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("{count} 人参与", [fbs._param("count", pv(p, "count"))], { hk: "28nwar" });
+		return fbs._("{count} 人参与", [fbs._param("count", pv(p, "count"))], { hk: "blqBq" });
 	}
 	static tabRecruit(fbs: FbsRuntime) {
-		return fbs._("招新与导师", null, { hk: "3UZ4d3" });
+		return fbs._("招新与导师", null, { hk: "FbDY5" });
 	}
 	static tabOfficer(fbs: FbsRuntime) {
-		return fbs._("军官工具", null, { hk: "2bm6Co" });
+		return fbs._("军官工具", null, { hk: "16xzS9" });
 	}
 }
 export abstract class GroupingTemplateFbtUtils {
 	static sectionTitle(fbs: FbsRuntime) {
-		return fbs._("车队模板", null, { hk: "35g98E" });
+		return fbs._("车队模板", null, { hk: "3quDgk" });
 	}
 	static nameLabel(fbs: FbsRuntime) {
-		return fbs._("模板名", null, { hk: "2tuPfR" });
+		return fbs._("模板名", null, { hk: "4aGP2J" });
 	}
 	static namePlaceholder(fbs: FbsRuntime) {
-		return fbs._("给模板起个名字", null, { hk: "1ekuCO" });
+		return fbs._("给模板起个名字", null, { hk: "37hTvU" });
 	}
 	static saveFromForm(fbs: FbsRuntime) {
-		return fbs._("存为模板", null, { hk: "34Ujtw" });
+		return fbs._("存为模板", null, { hk: "38Jz4" });
 	}
 	static updateSubmit(fbs: FbsRuntime) {
-		return fbs._("保存模板修改", null, { hk: "4dbCfT" });
+		return fbs._("保存模板修改", null, { hk: "2cGJmg" });
 	}
 	static editingNotice(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("正在编辑模板「{name}」", [fbs._param("name", pv(p, "name"))], { hk: "3VIw1K" });
+		return fbs._("正在编辑模板「{name}」", [fbs._param("name", pv(p, "name"))], { hk: "2hyKYs" });
 	}
 	static cancelEdit(fbs: FbsRuntime) {
-		return fbs._("取消编辑", null, { hk: "x9ZpB" });
+		return fbs._("取消编辑", null, { hk: "2hAVvb" });
 	}
 	static empty(fbs: FbsRuntime) {
-		return fbs._("还没有模板，把常用配置存下来，下次一键预填", null, { hk: "4dGBVt" });
+		return fbs._("还没有模板，把常用配置存下来，下次一键预填", null, { hk: "3mPnoT" });
 	}
 	static whenToday(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("今天 {time} 发车", [fbs._param("time", pv(p, "time"))], { hk: "2qIdnB" });
+		return fbs._("今天 {time} 发车", [fbs._param("time", pv(p, "time"))], { hk: "4A7Tc8" });
 	}
 	static whenTomorrow(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("明天 {time} 发车", [fbs._param("time", pv(p, "time"))], { hk: "1N3ckF" });
+		return fbs._("明天 {time} 发车", [fbs._param("time", pv(p, "time"))], { hk: "4yg4KR" });
 	}
 	static whenDays(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("{days} 天后 {time} 发车", [fbs._param("days", pv(p, "days")), fbs._param("time", pv(p, "time"))], { hk: "3Ddy0K" });
+		return fbs._("{days} 天后 {time} 发车", [fbs._param("days", pv(p, "days")), fbs._param("time", pv(p, "time"))], { hk: "1wXgKZ" });
 	}
 	static toastSaved(fbs: FbsRuntime) {
-		return fbs._("模板已保存", null, { hk: "1BVsie" });
+		return fbs._("模板已保存", null, { hk: "5LVTC" });
 	}
 	static toastSaveFailed(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("模板保存失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "10GAbm" });
+		return fbs._("模板保存失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "3mOupN" });
 	}
 	static toastDeleted(fbs: FbsRuntime) {
-		return fbs._("模板已删除", null, { hk: "1DAJEz" });
+		return fbs._("模板已删除", null, { hk: "4xSDSZ" });
 	}
 	static toastDeleteFailed(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("模板删除失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "2Sd7qc" });
+		return fbs._("模板删除失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "24wSeo" });
 	}
 	static edit(fbs: FbsRuntime) {
-		return fbs._("编辑", null, { hk: "15FuoF" });
+		return fbs._("编辑", null, { hk: "qd89o" });
 	}
 	static delete(fbs: FbsRuntime) {
-		return fbs._("删除", null, { hk: "17uB9L" });
+		return fbs._("删除", null, { hk: "49DBvC" });
 	}
 	static deleteConfirmTitle(fbs: FbsRuntime) {
-		return fbs._("删除模板", null, { hk: "4n7M52" });
+		return fbs._("删除模板", null, { hk: "34NwU7" });
 	}
 	static deleteConfirmMessage(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("确定删除模板「{name}」吗？", [fbs._param("name", pv(p, "name"))], { hk: "1p5NmL" });
+		return fbs._("确定删除模板「{name}」吗？", [fbs._param("name", pv(p, "name"))], { hk: "3xPfcu" });
 	}
 	static saveButton(fbs: FbsRuntime) {
-		return fbs._("📋 存为模板", null, { hk: "2uyg98" });
+		return fbs._("📋 存为模板", null, { hk: "3hxnR" });
 	}
 	static saveDialogTitle(fbs: FbsRuntime) {
-		return fbs._("存为车队模板", null, { hk: "3sxchw" });
+		return fbs._("存为车队模板", null, { hk: "4ybLZ1" });
 	}
 	static saveSubmit(fbs: FbsRuntime) {
-		return fbs._("保存模板", null, { hk: "1RhWGo" });
+		return fbs._("保存模板", null, { hk: "49Qh9x" });
 	}
 	static toastSavedFromCar(fbs: FbsRuntime) {
-		return fbs._("已存为模板，可在发新车时一键预填", null, { hk: "C7G72" });
+		return fbs._("已存为模板，可在发新车时一键预填", null, { hk: "330giC" });
 	}
 	static metaTemplate(fbs: FbsRuntime, p?: StringParams) {
 		return fbs._("{type}{dungeon} · {max} 人", [
 			fbs._param("type", pv(p, "type")),
 			fbs._param("dungeon", pv(p, "dungeon")),
 			fbs._param("max", pv(p, "max"))
-		], { hk: "28bnDJ" });
+		], { hk: "2VDLQh" });
 	}
 }
 export abstract class AccountFbtUtils {
 	static sectionTitle(fbs: FbsRuntime) {
-		return fbs._("我的数据", null, { hk: "OCui9" });
+		return fbs._("我的数据", null, { hk: "2C3057" });
 	}
 	static exportLabel(fbs: FbsRuntime) {
-		return fbs._("导出我的数据", null, { hk: "3O9t2L" });
+		return fbs._("导出我的数据", null, { hk: "lAScY" });
 	}
 	static exportHint(fbs: FbsRuntime) {
-		return fbs._("把你账号的全部数据下载为一个 JSON 文件：账号资料、百业名册、你创建的车队、你的报名座位、装备库与方案。登录凭据与推送令牌出于安全不会包含在内。", null, { hk: "1NMi3z" });
+		return fbs._("把你账号的全部数据下载为一个 JSON 文件：账号资料、百业名册、你创建的车队、你的报名座位、装备库与方案。登录凭据与推送令牌出于安全不会包含在内。", null, { hk: "2OaWJF" });
 	}
 	static deleteLabel(fbs: FbsRuntime) {
-		return fbs._("删除账号", null, { hk: "1E1eYG" });
+		return fbs._("删除账号", null, { hk: "2HXNPU" });
 	}
 	static deleteHint(fbs: FbsRuntime) {
-		return fbs._("删除不可恢复。提交后有 7 天冷静期，期间可随时撤销；到期后你的个人数据会被删除或匿名化。", null, { hk: "witTx" });
+		return fbs._("删除不可恢复。提交后有 7 天冷静期，期间可随时撤销；到期后你的个人数据会被删除或匿名化。", null, { hk: "1B0WeD" });
 	}
 	static reauthLabel(fbs: FbsRuntime) {
-		return fbs._("通过 Discord 重新验证", null, { hk: "2FLJo7" });
+		return fbs._("通过 Discord 重新验证", null, { hk: "2ZYxvo" });
 	}
 	static reauthHint(fbs: FbsRuntime) {
-		return fbs._("导出与删除属于敏感操作，继续前需要一次新鲜的 Discord 授权验证。", null, { hk: "1veUxg" });
+		return fbs._("导出与删除属于敏感操作，继续前需要一次新鲜的 Discord 授权验证。", null, { hk: "3TfE8s" });
 	}
 	static confirmTitle(fbs: FbsRuntime) {
-		return fbs._("确认删除账号", null, { hk: "1IhRo9" });
+		return fbs._("确认删除账号", null, { hk: "ZcmS6" });
 	}
 	static confirmIntro(fbs: FbsRuntime) {
-		return fbs._("请仔细阅读删除后果。提交后进入 7 天冷静期，到期自动执行：", null, { hk: "19FbVN" });
+		return fbs._("请仔细阅读删除后果。提交后进入 7 天冷静期，到期自动执行：", null, { hk: "1bkJpS" });
 	}
 	static consequenceCars(fbs: FbsRuntime) {
-		return fbs._("你创建的车队不会被删除：车头会解绑为无主车队，创建者显示名替换为「已注销用户」；你在他人车队里的座位会被原地匿名化。", null, { hk: "3R3D8w" });
+		return fbs._("你创建的车队不会被删除：车头会解绑为无主车队，创建者显示名替换为「已注销用户」；你在他人车队里的座位会被原地匿名化。", null, { hk: "2AKbLM" });
 	}
 	static consequenceData(fbs: FbsRuntime) {
-		return fbs._("你的装备库与方案、推送令牌、昵称快照、百业名册行会被彻底删除；执行后你在所有设备上的登录会立即失效。", null, { hk: "3C3jLk" });
+		return fbs._("你的装备库与方案、推送令牌、昵称快照、百业名册行会被彻底删除；执行后你在所有设备上的登录会立即失效。", null, { hk: "1P0XQs" });
 	}
 	static consequenceGuilds(fbs: FbsRuntime) {
-		return fbs._("百业本身与百业管理密码不受影响：百业不属于任何个人账号，不会因你删除账号而解散或变更。", null, { hk: "QwtV4" });
+		return fbs._("百业本身与百业管理密码不受影响：百业不属于任何个人账号，不会因你删除账号而解散或变更。", null, { hk: "2FIM4d" });
 	}
 	static consequenceResidual(fbs: FbsRuntime) {
-		return fbs._("少数记录无法按个人清除：已经发到 Discord 的消息、成绩榜里的自由文本名单会保留；备份中的副本最迟在 14 天内随每日备份轮换清除。", null, { hk: "4ym2I3" });
+		return fbs._("少数记录无法按个人清除：已经发到 Discord 的消息、成绩榜里的自由文本名单会保留；备份中的副本最迟在 14 天内随每日备份轮换清除。", null, { hk: "1OELp3" });
 	}
 	static consequenceReregister(fbs: FbsRuntime) {
-		return fbs._("删除不是封禁：之后用同一个 Discord 账号重新登录，就会注册成一个全新的账号。", null, { hk: "4tutR4" });
+		return fbs._("删除不是封禁：之后用同一个 Discord 账号重新登录，就会注册成一个全新的账号。", null, { hk: "2SWuxz" });
 	}
 	static exportFirstHint(fbs: FbsRuntime) {
-		return fbs._("建议先导出一份你的数据，再提交删除。", null, { hk: "4n50u1" });
+		return fbs._("建议先导出一份你的数据，再提交删除。", null, { hk: "3RUghD" });
 	}
 	static usernameLabel(fbs: FbsRuntime) {
-		return fbs._("输入你的 Discord 显示名以确认", null, { hk: "47r3xJ" });
+		return fbs._("输入你的 Discord 显示名以确认", null, { hk: "1XEE9O" });
 	}
 	static submitLabel(fbs: FbsRuntime) {
-		return fbs._("提交删除申请", null, { hk: "1sQhip" });
+		return fbs._("提交删除申请", null, { hk: "wa5fb" });
 	}
 	static backLabel(fbs: FbsRuntime) {
-		return fbs._("返回", null, { hk: "4qWno6" });
+		return fbs._("返回", null, { hk: "4tDwiS" });
 	}
 	static pendingTitle(fbs: FbsRuntime) {
-		return fbs._("账号删除已排期", null, { hk: "3p15DP" });
+		return fbs._("账号删除已排期", null, { hk: "2j4Iaj" });
 	}
 	static pendingBody(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("你的账号将于 {date} 执行删除。到期前你可以随时撤销；用新设备重新登录也会自动撤销（到期后除外）。", [fbs._param("date", pv(p, "date"))], { hk: "4r5pfd" });
+		return fbs._("你的账号将于 {date} 执行删除。到期前你可以随时撤销；用新设备重新登录也会自动撤销（到期后除外）。", [fbs._param("date", pv(p, "date"))], { hk: "36HqHq" });
 	}
 	static cancelDeletionLabel(fbs: FbsRuntime) {
-		return fbs._("撤销删除", null, { hk: "3pylJe" });
+		return fbs._("撤销删除", null, { hk: "1tCo9v" });
 	}
 	static deletionRequestedText(fbs: FbsRuntime) {
-		return fbs._("删除申请已提交，7 天冷静期开始。", null, { hk: "d0xuE" });
+		return fbs._("删除申请已提交，7 天冷静期开始。", null, { hk: "xKpOH" });
 	}
 	static deletionCancelledText(fbs: FbsRuntime) {
-		return fbs._("删除申请已撤销，你的账号不会被删除。", null, { hk: "2aktzH" });
+		return fbs._("删除申请已撤销，你的账号不会被删除。", null, { hk: "Jq5IE" });
 	}
 	static exportAbout(fbs: FbsRuntime) {
-		return fbs._("这是你账号数据的导出副本。account 是账号资料（oauth 只记录授权范围与最近刷新时间，凭据本身不导出）；guilds 是你在各百业的名册行；serverNicks 是你在各 Discord 服务器的昵称快照；carsLed 是你创建的车队；seats 是你的报名座位；gearItems 是装备库；gearBuilds 是已保存方案；heirloom 是传家宝推送的去重状态。推送令牌属于设备凭据，只记录数量与平台，令牌本身不导出。", null, { hk: "2jkr2d" });
+		return fbs._("这是你账号数据的导出副本。account 是账号资料（oauth 只记录授权范围与最近刷新时间，凭据本身不导出）；guilds 是你在各百业的名册行；serverNicks 是你在各 Discord 服务器的昵称快照；carsLed 是你创建的车队；seats 是你的报名座位；gearItems 是装备库；gearBuilds 是已保存方案；heirloom 是传家宝推送的去重状态。推送令牌属于设备凭据，只记录数量与平台，令牌本身不导出。", null, { hk: "1FjcJY" });
 	}
 	static deletedUser(fbs: FbsRuntime) {
-		return fbs._("已注销用户", null, { hk: "VSvGc" });
+		return fbs._("已注销用户", null, { hk: "4bmHSv" });
 	}
 }
 export abstract class BuildshareFbtUtils {
 	static kicker(fbs: FbsRuntime) {
-		return fbs._("装备方案 · 公开分享", null, { hk: "2mR3Q6" });
+		return fbs._("装备方案 · 公开分享", null, { hk: "1RvbTq" });
 	}
 	static loginLabel(fbs: FbsRuntime) {
-		return fbs._("打开燕云百业", null, { hk: "1VNDBE" });
+		return fbs._("打开燕云百业", null, { hk: "2ax7GF" });
 	}
 	static notFoundTitle(fbs: FbsRuntime) {
-		return fbs._("链接已失效", null, { hk: "2d2xok" });
+		return fbs._("链接已失效", null, { hk: "1AdOse" });
 	}
 	static notFoundBody(fbs: FbsRuntime) {
-		return fbs._("这条分享链接不存在，或已被方案主人取消分享。", null, { hk: "4yzes1" });
+		return fbs._("这条分享链接不存在，或已被方案主人取消分享。", null, { hk: "1FcBRq" });
 	}
 	static xinfaLabel(fbs: FbsRuntime) {
-		return fbs._("心法", null, { hk: "2FvBYf" });
+		return fbs._("心法", null, { hk: "4dKZV3" });
 	}
 }
 export abstract class LandingFbtUtils {
 	static featuresTitle(fbs: FbsRuntime) {
-		return fbs._("为百业同道而备", null, { hk: "30fiRp" });
+		return fbs._("为百业同道而备", null, { hk: "4pC0fZ" });
 	}
 	static groupingTitle(fbs: FbsRuntime) {
-		return fbs._("组队报名", null, { hk: "3GcCE6" });
+		return fbs._("组队报名", null, { hk: "2efXDW" });
 	}
 	static groupingBody(fbs: FbsRuntime) {
-		return fbs._("双十、天赋、竞速、爬塔四类车队一键成行，席位名册一目了然，短链分享直达车队页。", null, { hk: "TYPkk" });
+		return fbs._("双十、天赋、竞速、爬塔四类车队一键成行，席位名册一目了然，短链分享直达车队页。", null, { hk: "2E8ItN" });
 	}
 	static reminderTitle(fbs: FbsRuntime) {
-		return fbs._("发车提醒", null, { hk: "1I57Xc" });
+		return fbs._("发车提醒", null, { hk: "3WslHD" });
 	}
 	static reminderBody(fbs: FbsRuntime) {
-		return fbs._("发车前自动提醒到 Discord 频道与手机 App，就位确认先行，只催还没到场的人。", null, { hk: "4yOrhR" });
+		return fbs._("发车前自动提醒到 Discord 频道与手机 App，就位确认先行，只催还没到场的人。", null, { hk: "aYVcL" });
 	}
 	static dexTitle(fbs: FbsRuntime) {
-		return fbs._("图鉴与攻略", null, { hk: "2yRnb3" });
+		return fbs._("图鉴与攻略", null, { hk: "46IR4H" });
 	}
 	static dexBody(fbs: FbsRuntime) {
-		return fbs._("副本、首领图鉴与机制攻略，十一流派毕业词缀与配装参考，随国际服版本更新。", null, { hk: "2sWNHM" });
+		return fbs._("副本、首领图鉴与机制攻略，十一流派毕业词缀与配装参考，随国际服版本更新。", null, { hk: "3WbOIh" });
 	}
 	static gearTitle(fbs: FbsRuntime) {
-		return fbs._("装备规划", null, { hk: "1GYbKD" });
+		return fbs._("装备规划", null, { hk: "4aGlmc" });
 	}
 	static gearBody(fbs: FbsRuntime) {
-		return fbs._("个人装备库与搭配筹谋：粘贴、截图识别或手动录入，承音调律与毕业度测算，离毕业还差多少一眼看清。", null, { hk: "MUw86" });
+		return fbs._("个人装备库与搭配筹谋：粘贴、截图识别或手动录入，承音调律与毕业度测算，离毕业还差多少一眼看清。", null, { hk: "4sb8Rl" });
 	}
 }
 export abstract class FeedbackFbtUtils {
 	static entryLabel(fbs: FbsRuntime) {
-		return fbs._("意见反馈", null, { hk: "2EHi6W" });
+		return fbs._("意见反馈", null, { hk: "3Ly20a" });
 	}
 	static title(fbs: FbsRuntime) {
-		return fbs._("意见反馈", null, { hk: "3jiyS5" });
+		return fbs._("意见反馈", null, { hk: "23s3l" });
 	}
 	static categoryLabel(fbs: FbsRuntime) {
-		return fbs._("类别", null, { hk: "29BWdW" });
+		return fbs._("类别", null, { hk: "1anB7A" });
 	}
 	static catProblem(fbs: FbsRuntime) {
-		return fbs._("问题", null, { hk: "41yRJv" });
+		return fbs._("问题", null, { hk: "4acxkA" });
 	}
 	static catSuggestion(fbs: FbsRuntime) {
-		return fbs._("建议", null, { hk: "R3Ote" });
+		return fbs._("建议", null, { hk: "3fHFGc" });
 	}
 	static catOther(fbs: FbsRuntime) {
-		return fbs._("其他", null, { hk: "2Sijpr" });
+		return fbs._("其他", null, { hk: "3BCeiF" });
 	}
 	static placeholder(fbs: FbsRuntime) {
-		return fbs._("请描述遇到的问题，或写下你的建议…", null, { hk: "3hlL0j" });
+		return fbs._("请描述遇到的问题，或写下你的建议…", null, { hk: "W5kNb" });
 	}
 	static submit(fbs: FbsRuntime) {
-		return fbs._("提交反馈", null, { hk: "3hPuq7" });
+		return fbs._("提交反馈", null, { hk: "498RUK" });
 	}
 	static submitting(fbs: FbsRuntime) {
-		return fbs._("提交中…", null, { hk: "4zlo50" });
+		return fbs._("提交中…", null, { hk: "PZiKp" });
 	}
 	static success(fbs: FbsRuntime) {
-		return fbs._("已收到，感谢你的反馈。", null, { hk: "R7XC9" });
+		return fbs._("已收到，感谢你的反馈。", null, { hk: "45W2e8" });
 	}
 }
 export abstract class AnnouncementsFbtUtils {
 	static title(fbs: FbsRuntime) {
-		return fbs._("百业公告", null, { hk: "MGb24" });
+		return fbs._("百业公告", null, { hk: "33c879" });
 	}
 	static emptyText(fbs: FbsRuntime) {
-		return fbs._("暂无公告", null, { hk: "3M3Yf8" });
+		return fbs._("暂无公告", null, { hk: "1Atxtc" });
 	}
 	static urgentLabel(fbs: FbsRuntime) {
-		return fbs._("紧急集合", null, { hk: "3VNREO" });
+		return fbs._("紧急集合", null, { hk: "3s3ns6" });
 	}
 	static standardLabel(fbs: FbsRuntime) {
-		return fbs._("公告", null, { hk: "2ukk4" });
+		return fbs._("公告", null, { hk: "Eo2As" });
 	}
 	static unreadLabel(fbs: FbsRuntime) {
-		return fbs._("未读", null, { hk: "1ZLfIs" });
+		return fbs._("未读", null, { hk: "1XQ8rO" });
 	}
 	static readLabel(fbs: FbsRuntime) {
-		return fbs._("已读", null, { hk: "HoPYb" });
+		return fbs._("已读", null, { hk: "46MbrS" });
 	}
 	static composeTitle(fbs: FbsRuntime) {
-		return fbs._("发布公告", null, { hk: "wlwhx" });
+		return fbs._("发布公告", null, { hk: "3NEVMc" });
 	}
 	static kindLabel(fbs: FbsRuntime) {
-		return fbs._("类型", null, { hk: "1sGP4D" });
+		return fbs._("类型", null, { hk: "35GUJL" });
 	}
 	static kindStandardLabel(fbs: FbsRuntime) {
-		return fbs._("普通公告", null, { hk: "3dgvPU" });
+		return fbs._("普通公告", null, { hk: "4j2o9T" });
 	}
 	static kindUrgentLabel(fbs: FbsRuntime) {
-		return fbs._("紧急集合呼叫", null, { hk: "1xO5fU" });
+		return fbs._("紧急集合呼叫", null, { hk: "24MNbU" });
 	}
 	static titleLabel(fbs: FbsRuntime) {
-		return fbs._("标题", null, { hk: "1SYkdB" });
+		return fbs._("标题", null, { hk: "OPlrd" });
 	}
 	static titlePlaceholder(fbs: FbsRuntime) {
-		return fbs._("公告标题", null, { hk: "4EHXbv" });
+		return fbs._("公告标题", null, { hk: "2pxwvH" });
 	}
 	static bodyLabel(fbs: FbsRuntime) {
-		return fbs._("正文", null, { hk: "2fGGLN" });
+		return fbs._("正文", null, { hk: "KxBat" });
 	}
 	static bodyPlaceholder(fbs: FbsRuntime) {
-		return fbs._("公告正文", null, { hk: "3BtnFr" });
+		return fbs._("公告正文", null, { hk: "1LfFJr" });
 	}
 	static postLabel(fbs: FbsRuntime) {
-		return fbs._("发布并推送", null, { hk: "157qYg" });
+		return fbs._("发布并推送", null, { hk: "4Dhpf9" });
 	}
 	static postingLabel(fbs: FbsRuntime) {
-		return fbs._("发布中…", null, { hk: "1xsGJe" });
+		return fbs._("发布中…", null, { hk: "1R3tPu" });
 	}
 	static postedText(fbs: FbsRuntime) {
-		return fbs._("公告已发布", null, { hk: "2coh5Z" });
+		return fbs._("公告已发布", null, { hk: "2C0QYr" });
 	}
 	static deleteLabel(fbs: FbsRuntime) {
-		return fbs._("删除", null, { hk: "1kSM6C" });
+		return fbs._("删除", null, { hk: "30tkbE" });
 	}
 	static deleteConfirmTitle(fbs: FbsRuntime) {
-		return fbs._("删除这条公告？", null, { hk: "4ysWFd" });
+		return fbs._("删除这条公告？", null, { hk: "19UFOH" });
 	}
 	static deleteConfirmMessage(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("确定要删除公告「{title}」吗？已读记录会一并删除。", [fbs._param("title", pv(p, "title"))], { hk: "2KIeBM" });
+		return fbs._("确定要删除公告「{title}」吗？已读记录会一并删除。", [fbs._param("title", pv(p, "title"))], { hk: "PRY4B" });
 	}
 	static deletedText(fbs: FbsRuntime) {
-		return fbs._("公告已删除", null, { hk: "2EEtMN" });
+		return fbs._("公告已删除", null, { hk: "18kD5o" });
 	}
 	static receiptsTitle(fbs: FbsRuntime) {
-		return fbs._("阅读情况", null, { hk: "1ZFpZL" });
+		return fbs._("阅读情况", null, { hk: "1LwIZ1" });
 	}
 	static readCountTemplate(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("已读 {read} / {total}", [fbs._param("read", pv(p, "read")), fbs._param("total", pv(p, "total"))], { hk: "lnaew" });
+		return fbs._("已读 {read} / {total}", [fbs._param("read", pv(p, "read")), fbs._param("total", pv(p, "total"))], { hk: "OPt2y" });
 	}
 	static readListLabel(fbs: FbsRuntime) {
-		return fbs._("已读成员", null, { hk: "2qaUIa" });
+		return fbs._("已读成员", null, { hk: "2BJqen" });
 	}
 	static unreadListLabel(fbs: FbsRuntime) {
-		return fbs._("未读成员", null, { hk: "2Kpwzn" });
+		return fbs._("未读成员", null, { hk: "2aMZIi" });
 	}
 	static authorTemplate(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("{name} 发布", [fbs._param("name", pv(p, "name"))], { hk: "2KA9Ho" });
+		return fbs._("{name} 发布", [fbs._param("name", pv(p, "name"))], { hk: "3ipTDA" });
 	}
 	static pushNote(fbs: FbsRuntime) {
-		return fbs._("发布后会向全体成员推送通知；没有开启推送的成员也能在这里看到。", null, { hk: "1f9zk3" });
+		return fbs._("发布后会向全体成员推送通知；没有开启推送的成员也能在这里看到。", null, { hk: "JBSZr" });
 	}
 	static urgentNote(fbs: FbsRuntime) {
-		return fbs._("紧急集合呼叫请只用于临时集合等紧急情况，每天最多 2 次。", null, { hk: "3hzPCL" });
+		return fbs._("紧急集合呼叫请只用于临时集合等紧急情况，每天最多 2 次。", null, { hk: "4ku8la" });
 	}
 	static dailyLimitTemplate(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("今日还可发布 {remaining} 条", [fbs._param("remaining", pv(p, "remaining"))], { hk: "cJfJv" });
+		return fbs._("今日还可发布 {remaining} 条", [fbs._param("remaining", pv(p, "remaining"))], { hk: "4bcg3p" });
 	}
 }
 export abstract class ScheduleFbtUtils {
 	static title(fbs: FbsRuntime) {
-		return fbs._("排期", null, { hk: "1kg7Hz" });
+		return fbs._("排期", null, { hk: "4e5ZUH" });
 	}
 	static myTitle(fbs: FbsRuntime) {
-		return fbs._("我的可用时间", null, { hk: "37Skxo" });
+		return fbs._("我的可用时间", null, { hk: "Uql95" });
 	}
 	static myHint(fbs: FbsRuntime) {
-		return fbs._("填写你每周固定有空的时段，按你所在时区显示；管理员与车头据此定档期。", null, { hk: "11ksia" });
+		return fbs._("填写你每周固定有空的时段，按你所在时区显示；管理员与车头据此定档期。", null, { hk: "43MWjk" });
 	}
 	static slotRange(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("{start}–{end}", [fbs._param("start", pv(p, "start")), fbs._param("end", pv(p, "end"))], { hk: "3uCLiw" });
+		return fbs._("{start}–{end}", [fbs._param("start", pv(p, "start")), fbs._param("end", pv(p, "end"))], { hk: "3jIir5" });
 	}
 	static addSlotLabel(fbs: FbsRuntime) {
-		return fbs._("添加时段", null, { hk: "49aLiX" });
+		return fbs._("添加时段", null, { hk: "INGQV" });
 	}
 	static removeLabel(fbs: FbsRuntime) {
-		return fbs._("删除", null, { hk: "kzr6q" });
+		return fbs._("删除", null, { hk: "11g5IU" });
 	}
 	static saveLabel(fbs: FbsRuntime) {
-		return fbs._("保存", null, { hk: "1da7CH" });
+		return fbs._("保存", null, { hk: "3Uypjc" });
 	}
 	static savedText(fbs: FbsRuntime) {
-		return fbs._("可用时间已保存", null, { hk: "2e2sB6" });
+		return fbs._("可用时间已保存", null, { hk: "1Z2uaz" });
 	}
 	static saveFailedTemplate(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("保存失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "3oB9P5" });
+		return fbs._("保存失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "UYGoy" });
 	}
 	static emptyMineText(fbs: FbsRuntime) {
-		return fbs._("你还没有填写可用时间。", null, { hk: "oz2zF" });
+		return fbs._("你还没有填写可用时间。", null, { hk: "SEZmJ" });
 	}
 	static summaryTitle(fbs: FbsRuntime) {
-		return fbs._("成员可用性汇总", null, { hk: "4rLG6c" });
+		return fbs._("成员可用性汇总", null, { hk: "2gTYcM" });
 	}
 	static summaryHint(fbs: FbsRuntime) {
-		return fbs._("汇总仅百业管理员与发过车的车头可见，用于定档期。", null, { hk: "qVAlc" });
+		return fbs._("汇总仅百业管理员与发过车的车头可见，用于定档期。", null, { hk: "xBW3h" });
 	}
 	static summaryEmptyText(fbs: FbsRuntime) {
-		return fbs._("还没有成员填写可用时间。", null, { hk: "3hxXXz" });
+		return fbs._("还没有成员填写可用时间。", null, { hk: "2fhz15" });
 	}
 	static pollsTitle(fbs: FbsRuntime) {
-		return fbs._("活动时间投票", null, { hk: "3y6XMv" });
+		return fbs._("活动时间投票", null, { hk: "2rojqF" });
 	}
 	static pollsHint(fbs: FbsRuntime) {
-		return fbs._("给出几个候选时间，成员勾选所有能参加的时间；可参加人数最多的时段最适合定档。", null, { hk: "TPTvZ" });
+		return fbs._("给出几个候选时间，成员勾选所有能参加的时间；可参加人数最多的时段最适合定档。", null, { hk: "1Ve2jN" });
 	}
 	static pollEmptyText(fbs: FbsRuntime) {
-		return fbs._("还没有时间投票。", null, { hk: "4atD2M" });
+		return fbs._("还没有时间投票。", null, { hk: "4k1ML2" });
 	}
 	static pollCreateLabel(fbs: FbsRuntime) {
-		return fbs._("发起投票", null, { hk: "1EMF3" });
+		return fbs._("发起投票", null, { hk: "2FnrX" });
 	}
 	static pollTitleLabel(fbs: FbsRuntime) {
-		return fbs._("投票标题", null, { hk: "2TJHm3" });
+		return fbs._("投票标题", null, { hk: "3KE6yQ" });
 	}
 	static pollTitlePlaceholder(fbs: FbsRuntime) {
-		return fbs._("如：本周开荒时间", null, { hk: "4tBVc1" });
+		return fbs._("如：本周开荒时间", null, { hk: "2ghRpZ" });
 	}
 	static pollCandidatesLabel(fbs: FbsRuntime) {
-		return fbs._("候选时间", null, { hk: "2bb1k7" });
+		return fbs._("候选时间", null, { hk: "23sOCb" });
 	}
 	static pollAddCandidateLabel(fbs: FbsRuntime) {
-		return fbs._("添加候选", null, { hk: "4tjT2I" });
+		return fbs._("添加候选", null, { hk: "4kjiG2" });
 	}
 	static pollSubmitLabel(fbs: FbsRuntime) {
-		return fbs._("发布投票", null, { hk: "PwjQA" });
+		return fbs._("发布投票", null, { hk: "1GgpjB" });
 	}
 	static pollVoteLabel(fbs: FbsRuntime) {
-		return fbs._("提交投票", null, { hk: "1QVvp8" });
+		return fbs._("提交投票", null, { hk: "6K6lE" });
 	}
 	static pollVotedText(fbs: FbsRuntime) {
-		return fbs._("已投票，可修改后重新提交。", null, { hk: "4h7A52" });
+		return fbs._("已投票，可修改后重新提交。", null, { hk: "3iBL6B" });
 	}
 	static pollStatusOpenText(fbs: FbsRuntime) {
-		return fbs._("进行中", null, { hk: "2spNSZ" });
+		return fbs._("进行中", null, { hk: "9To" });
 	}
 	static pollStatusClosedText(fbs: FbsRuntime) {
-		return fbs._("已关闭", null, { hk: "3jbo32" });
+		return fbs._("已关闭", null, { hk: "2mdTgu" });
 	}
 	static pollCloseLabel(fbs: FbsRuntime) {
-		return fbs._("关闭投票", null, { hk: "SyIKu" });
+		return fbs._("关闭投票", null, { hk: "1kSf7U" });
 	}
 	static pollVoteCountTemplate(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("{count} 人可参加", [fbs._param("count", pv(p, "count"))], { hk: "3YclRu" });
+		return fbs._("{count} 人可参加", [fbs._param("count", pv(p, "count"))], { hk: "2AmVFV" });
 	}
 	static pollLaunchLabel(fbs: FbsRuntime) {
-		return fbs._("以此时间发车", null, { hk: "2uEZ9B" });
+		return fbs._("以此时间发车", null, { hk: "2DYm8y" });
 	}
 	static pollCancelLabel(fbs: FbsRuntime) {
-		return fbs._("取消", null, { hk: "2a0yi5" });
+		return fbs._("取消", null, { hk: "13HkO0" });
 	}
 	static toastPollCreated(fbs: FbsRuntime) {
-		return fbs._("投票已发布", null, { hk: "4rKnD1" });
+		return fbs._("投票已发布", null, { hk: "4iUhhT" });
 	}
 	static toastVoted(fbs: FbsRuntime) {
-		return fbs._("已提交", null, { hk: "10p0Jr" });
+		return fbs._("已提交", null, { hk: "UUacF" });
 	}
 	static toastClosed(fbs: FbsRuntime) {
-		return fbs._("投票已关闭", null, { hk: "3aX8KY" });
+		return fbs._("投票已关闭", null, { hk: "379JZw" });
 	}
 	static toastFailedTemplate(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("操作失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "1yF32T" });
+		return fbs._("操作失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "Tiamx" });
 	}
 	static settingsLinkLabel(fbs: FbsRuntime) {
-		return fbs._("在个人设置中填写", null, { hk: "2v8aPQ" });
+		return fbs._("在个人设置中填写", null, { hk: "16JlsI" });
 	}
 	static noGuildsText(fbs: FbsRuntime) {
-		return fbs._("你还没有加入任何百业，加入后可在此填写可用时间。", null, { hk: "2L9e4n" });
+		return fbs._("你还没有加入任何百业，加入后可在此填写可用时间。", null, { hk: "3ppXP0" });
 	}
 }
 export abstract class RecruitFbtUtils {
 	static title(fbs: FbsRuntime) {
-		return fbs._("招新与新人", null, { hk: "2Kv5c8" });
+		return fbs._("招新与新人", null, { hk: "122QLo" });
 	}
 	static homeBody(fbs: FbsRuntime) {
-		return fbs._("想加入一个百业？在下面挑一个开放招新的百业提交入业申请，百业管理员会在管理面审核。已经在业的新人可以在这里看自己的入业清单与导师配对。", null, { hk: "3aGDP8" });
+		return fbs._("想加入一个百业？在下面挑一个开放招新的百业提交入业申请，百业管理员会在管理面审核。已经在业的新人可以在这里看自己的入业清单与导师配对。", null, { hk: "zIXqK" });
 	}
 	static homeLoginHint(fbs: FbsRuntime) {
-		return fbs._("登录后即可对心仪的百业提交入业申请，并在这里查看审核进度。", null, { hk: "wi0kU" });
+		return fbs._("登录后即可对心仪的百业提交入业申请，并在这里查看审核进度。", null, { hk: "SLTpU" });
 	}
 	static applySectionTitle(fbs: FbsRuntime) {
-		return fbs._("入业申请", null, { hk: "1wGTaS" });
+		return fbs._("入业申请", null, { hk: "2huxzt" });
 	}
 	static messageLabel(fbs: FbsRuntime) {
-		return fbs._("申请附言", null, { hk: "39x2FC" });
+		return fbs._("申请附言", null, { hk: "49ECV4" });
 	}
 	static messagePlaceholder(fbs: FbsRuntime) {
-		return fbs._("一句自我介绍（可选）：常玩的流派、在线时间……", null, { hk: "1VplXa" });
+		return fbs._("一句自我介绍（可选）：常玩的流派、在线时间……", null, { hk: "4f3LwU" });
 	}
 	static submitButton(fbs: FbsRuntime) {
-		return fbs._("提交申请", null, { hk: "34YRGv" });
+		return fbs._("提交申请", null, { hk: "4GeQ8X" });
 	}
 	static submittingButton(fbs: FbsRuntime) {
-		return fbs._("提交中…", null, { hk: "4aBpl4" });
+		return fbs._("提交中…", null, { hk: "2WeyIP" });
 	}
 	static myApplicationTitle(fbs: FbsRuntime) {
-		return fbs._("我的申请", null, { hk: "2yCLBb" });
+		return fbs._("我的申请", null, { hk: "3YrKJ2" });
 	}
 	static statusPending(fbs: FbsRuntime) {
-		return fbs._("待审核", null, { hk: "37MjXN" });
+		return fbs._("待审核", null, { hk: "1CrKA3" });
 	}
 	static statusApproved(fbs: FbsRuntime) {
-		return fbs._("已通过", null, { hk: "1WgveJ" });
+		return fbs._("已通过", null, { hk: "4zuqMf" });
 	}
 	static statusRejected(fbs: FbsRuntime) {
-		return fbs._("未通过", null, { hk: "3oqA2g" });
+		return fbs._("未通过", null, { hk: "2JzXqE" });
 	}
 	static pendingHint(fbs: FbsRuntime) {
-		return fbs._("管理员审核中，请耐心等待；审核结果会直接更新在这里。", null, { hk: "6u8tD" });
+		return fbs._("管理员审核中，请耐心等待；审核结果会直接更新在这里。", null, { hk: "3WYf8F" });
 	}
 	static approvedNextStep(fbs: FbsRuntime) {
-		return fbs._("申请已通过，你已登记进百业名册。最后一步在 Discord 完成：加入本百业绑定的 Discord 服务器——成员资格由 Discord 服务器成员身份决定，平台没有 Discord 机器人权限，无法替你加入服务器或授予身份组；加入后用同一账号登录即可使用百业全部功能。", null, { hk: "2yVdgv" });
+		return fbs._("申请已通过，你已登记进百业名册。最后一步在 Discord 完成：加入本百业绑定的 Discord 服务器——成员资格由 Discord 服务器成员身份决定，平台没有 Discord 机器人权限，无法替你加入服务器或授予身份组；加入后用同一账号登录即可使用百业全部功能。", null, { hk: "12zvjS" });
 	}
 	static rejectedHint(fbs: FbsRuntime) {
-		return fbs._("本次申请未通过。可以修改附言后重新提交一份新申请。", null, { hk: "3EZtok" });
+		return fbs._("本次申请未通过。可以修改附言后重新提交一份新申请。", null, { hk: "3CLWCY" });
 	}
 	static checklistTitle(fbs: FbsRuntime) {
-		return fbs._("新手入业清单", null, { hk: "SdChL" });
+		return fbs._("新手入业清单", null, { hk: "1yTce5" });
 	}
 	static checklistProgress(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("已完成 {done} / {total}", [fbs._param("done", pv(p, "done")), fbs._param("total", pv(p, "total"))], { hk: "43OtnH" });
+		return fbs._("已完成 {done} / {total}", [fbs._param("done", pv(p, "done")), fbs._param("total", pv(p, "total"))], { hk: "2l84MK" });
 	}
 	static itemProfileLabel(fbs: FbsRuntime) {
-		return fbs._("完善流派 / 时区", null, { hk: "2BseCa" });
+		return fbs._("完善流派 / 时区", null, { hk: "1D4zIt" });
 	}
 	static itemProfileHint(fbs: FbsRuntime) {
-		return fbs._("在任意车队报名落座时填上你的流派即算完成；时区由你的客户端自动同步，无需手动填写。", null, { hk: "25XMMS" });
+		return fbs._("在任意车队报名落座时填上你的流派即算完成；时区由你的客户端自动同步，无需手动填写。", null, { hk: "wSimz" });
 	}
 	static itemMentorLabel(fbs: FbsRuntime) {
-		return fbs._("认一位导师", null, { hk: "4m0bsF" });
+		return fbs._("认一位导师", null, { hk: "GduGt" });
 	}
 	static itemMentorHint(fbs: FbsRuntime) {
-		return fbs._("由百业管理员为你配对一位导师后自动完成。", null, { hk: "2XT8L7" });
+		return fbs._("由百业管理员为你配对一位导师后自动完成。", null, { hk: "2B2icA" });
 	}
 	static itemFirstRunLabel(fbs: FbsRuntime) {
-		return fbs._("打完第一场", null, { hk: "1C3tvD" });
+		return fbs._("打完第一场", null, { hk: "3bor3X" });
 	}
 	static itemFirstRunHint(fbs: FbsRuntime) {
-		return fbs._("在一辆已完成的车队里落座后自动完成。", null, { hk: "2SJLl3" });
+		return fbs._("在一辆已完成的车队里落座后自动完成。", null, { hk: "2s9wAL" });
 	}
 	static myPairingsTitle(fbs: FbsRuntime) {
-		return fbs._("我的导师配对", null, { hk: "33EX47" });
+		return fbs._("我的导师配对", null, { hk: "1tvO2V" });
 	}
 	static itemAvailabilityLabel(fbs: FbsRuntime) {
-		return fbs._("填写可用时间", null, { hk: "1ccGNR" });
+		return fbs._("填写可用时间", null, { hk: "371i2H" });
 	}
 	static itemAvailabilityHint(fbs: FbsRuntime) {
-		return fbs._("在个人设置里填写你每周固定有空的时段，方便管理员与车头定档期；可以先跳过，之后随时补填。", null, { hk: "4y5PHe" });
+		return fbs._("在个人设置里填写你每周固定有空的时段，方便管理员与车头定档期；可以先跳过，之后随时补填。", null, { hk: "4lcT4a" });
 	}
 	static pairingStatusActive(fbs: FbsRuntime) {
-		return fbs._("进行中", null, { hk: "24mBsd" });
+		return fbs._("进行中", null, { hk: "dJxf3" });
 	}
 	static pairingStatusEnded(fbs: FbsRuntime) {
-		return fbs._("已结束", null, { hk: "eBun0" });
+		return fbs._("已结束", null, { hk: "4aVXB6" });
 	}
 	static mentorRoleLabel(fbs: FbsRuntime) {
-		return fbs._("导师", null, { hk: "22AZ4f" });
+		return fbs._("导师", null, { hk: "2ctG8a" });
 	}
 	static menteeRoleLabel(fbs: FbsRuntime) {
-		return fbs._("新人", null, { hk: "3kLesg" });
+		return fbs._("新人", null, { hk: "30dd1K" });
 	}
 	static adminApplicationsTitle(fbs: FbsRuntime) {
-		return fbs._("入业申请审核", null, { hk: "3gB0cy" });
+		return fbs._("入业申请审核", null, { hk: "2qiATZ" });
 	}
 	static adminApplicationsEmpty(fbs: FbsRuntime) {
-		return fbs._("暂无申请记录。", null, { hk: "cXV3X" });
+		return fbs._("暂无申请记录。", null, { hk: "405FRY" });
 	}
 	static adminApproveButton(fbs: FbsRuntime) {
-		return fbs._("通过", null, { hk: "4efpOC" });
+		return fbs._("通过", null, { hk: "2fL0qz" });
 	}
 	static adminRejectButton(fbs: FbsRuntime) {
-		return fbs._("拒绝", null, { hk: "bqOYJ" });
+		return fbs._("拒绝", null, { hk: "2zL672" });
 	}
 	static adminMentorPoolTitle(fbs: FbsRuntime) {
-		return fbs._("导师人选", null, { hk: "22uvrk" });
+		return fbs._("导师人选", null, { hk: "4G0vQI" });
 	}
 	static adminSetMentorButton(fbs: FbsRuntime) {
-		return fbs._("设为导师", null, { hk: "3jzxHY" });
+		return fbs._("设为导师", null, { hk: "Ykxp" });
 	}
 	static adminUnsetMentorButton(fbs: FbsRuntime) {
-		return fbs._("取消导师", null, { hk: "4i8mD4" });
+		return fbs._("取消导师", null, { hk: "3NfN3y" });
 	}
 	static adminPairingsTitle(fbs: FbsRuntime) {
-		return fbs._("导师配对", null, { hk: "39ltUF" });
+		return fbs._("导师配对", null, { hk: "3xAoGY" });
 	}
 	static adminPairingsEmpty(fbs: FbsRuntime) {
-		return fbs._("暂无配对记录。", null, { hk: "3Rkx0G" });
+		return fbs._("暂无配对记录。", null, { hk: "u3TAD" });
 	}
 	static adminPairingCreateButton(fbs: FbsRuntime) {
-		return fbs._("建立配对", null, { hk: "1BZnGt" });
+		return fbs._("建立配对", null, { hk: "2B65s9" });
 	}
 	static adminPairingEndButton(fbs: FbsRuntime) {
-		return fbs._("结束配对", null, { hk: "3xXyJj" });
+		return fbs._("结束配对", null, { hk: "1cMTWk" });
 	}
 	static adminMentorSelectLabel(fbs: FbsRuntime) {
-		return fbs._("选择导师", null, { hk: "33oCpc" });
+		return fbs._("选择导师", null, { hk: "FGC8h" });
 	}
 	static adminMenteeSelectLabel(fbs: FbsRuntime) {
-		return fbs._("选择新人", null, { hk: "2xbYJV" });
+		return fbs._("选择新人", null, { hk: "s08A4" });
 	}
 	static adminNewcomersTitle(fbs: FbsRuntime) {
-		return fbs._("新人清单进度", null, { hk: "20h3yo" });
+		return fbs._("新人清单进度", null, { hk: "2Ze5tb" });
 	}
 	static adminNewcomersEmpty(fbs: FbsRuntime) {
-		return fbs._("暂无未完成清单的新人。", null, { hk: "aqRS1" });
+		return fbs._("暂无未完成清单的新人。", null, { hk: "p8Uup" });
 	}
 }
 export abstract class OfficerFbtUtils {
 	static notesTitle(fbs: FbsRuntime) {
-		return fbs._("成员备注", null, { hk: "2AROGK" });
+		return fbs._("成员备注", null, { hk: "2YE3NF" });
 	}
 	static notesHint(fbs: FbsRuntime) {
-		return fbs._("备注仅百业管理员可见，成员本人看不到关于自己的备注。", null, { hk: "3R2nV5" });
+		return fbs._("备注仅百业管理员可见，成员本人看不到关于自己的备注。", null, { hk: "1DUC1I" });
 	}
 	static notesEmpty(fbs: FbsRuntime) {
-		return fbs._("本百业暂无成员名册。", null, { hk: "4t3SZG" });
+		return fbs._("本百业暂无成员名册。", null, { hk: "4GEtBW" });
 	}
 	static memberNoNotes(fbs: FbsRuntime) {
-		return fbs._("暂无备注", null, { hk: "2rQTg8" });
+		return fbs._("暂无备注", null, { hk: "44PZBD" });
 	}
 	static notePlaceholder(fbs: FbsRuntime) {
-		return fbs._("写一条备注…", null, { hk: "1p5gjW" });
+		return fbs._("写一条备注…", null, { hk: "3zy827" });
 	}
 	static noteAddButton(fbs: FbsRuntime) {
-		return fbs._("添加备注", null, { hk: "4D1YhV" });
+		return fbs._("添加备注", null, { hk: "29saa4" });
 	}
 	static noteEditButton(fbs: FbsRuntime) {
-		return fbs._("编辑", null, { hk: "3EnOv0" });
+		return fbs._("编辑", null, { hk: "3bHO0D" });
 	}
 	static noteSaveButton(fbs: FbsRuntime) {
-		return fbs._("保存", null, { hk: "rxrIq" });
+		return fbs._("保存", null, { hk: "pA2kH" });
 	}
 	static noteDeleteButton(fbs: FbsRuntime) {
-		return fbs._("删除", null, { hk: "1PU9oZ" });
+		return fbs._("删除", null, { hk: "1pjk87" });
 	}
 	static noteAuthorTemplate(fbs: FbsRuntime, p?: StringParams) {
-		return fbs._("{name} 添加", [fbs._param("name", pv(p, "name"))], { hk: "3kP8Jz" });
+		return fbs._("{name} 添加", [fbs._param("name", pv(p, "name"))], { hk: "18reDe" });
 	}
 	static exportTitle(fbs: FbsRuntime) {
-		return fbs._("百业数据包", null, { hk: "4qW6cR" });
+		return fbs._("百业数据包", null, { hk: "36s9HF" });
 	}
 	static exportHint(fbs: FbsRuntime) {
-		return fbs._("导出本百业的名册、组队历史与参与记录、成员赛季目标（JSON 文件）。导出动作会留痕记录。", null, { hk: "2T41m9" });
+		return fbs._("导出本百业的名册、组队历史与参与记录、成员赛季目标（JSON 文件）。导出动作会留痕记录。", null, { hk: "3jb43g" });
 	}
 	static exportButton(fbs: FbsRuntime) {
-		return fbs._("导出数据包", null, { hk: "28tcf" });
+		return fbs._("导出数据包", null, { hk: "4kZDIz" });
 	}
 	static exportAbout(fbs: FbsRuntime) {
-		return fbs._("百业数据包导出：包含本百业名册、组队历史与参与记录、成员赛季目标。军官备注为内部工作记录，不包含在本数据包内。", null, { hk: "9GX1a" });
+		return fbs._("百业数据包导出：包含本百业名册、组队历史与参与记录、成员赛季目标。军官备注为内部工作记录，不包含在本数据包内。", null, { hk: "1ghuF0" });
 	}
 	static goalsTitle(fbs: FbsRuntime) {
-		return fbs._("成员赛季目标", null, { hk: "1BxvGF" });
+		return fbs._("成员赛季目标", null, { hk: "VPNsC" });
 	}
 	static goalsHint(fbs: FbsRuntime) {
-		return fbs._("成员给自己设的赛季目标与进度，只读总览。", null, { hk: "3uKLY1" });
+		return fbs._("成员给自己设的赛季目标与进度，只读总览。", null, { hk: "11SEaw" });
 	}
 	static goalsEmpty(fbs: FbsRuntime) {
-		return fbs._("暂无成员设置赛季目标。", null, { hk: "50Gat" });
+		return fbs._("暂无成员设置赛季目标。", null, { hk: "259tzE" });
 	}
 	static statusActive(fbs: FbsRuntime) {
-		return fbs._("进行中", null, { hk: "3UrRel" });
+		return fbs._("进行中", null, { hk: "jHCfK" });
 	}
 	static statusDone(fbs: FbsRuntime) {
-		return fbs._("已完成", null, { hk: "1awIDe" });
+		return fbs._("已完成", null, { hk: "4bZZR" });
 	}
 	static statusDropped(fbs: FbsRuntime) {
-		return fbs._("已放弃", null, { hk: "4dKtph" });
+		return fbs._("已放弃", null, { hk: "2ZmTKT" });
 	}
 	static myEntryLabel(fbs: FbsRuntime) {
-		return fbs._("赛季目标", null, { hk: "1kLnPO" });
+		return fbs._("赛季目标", null, { hk: "1LayvS" });
 	}
 	static myTitle(fbs: FbsRuntime) {
-		return fbs._("我的赛季目标", null, { hk: "3lOtvC" });
+		return fbs._("我的赛季目标", null, { hk: "41DJfy" });
 	}
 	static myHint(fbs: FbsRuntime) {
-		return fbs._("在某个百业里给自己定一个本赛季目标，进度由你自己维护；该百业的管理员可以查看总览。", null, { hk: "uirzj" });
+		return fbs._("在某个百业里给自己定一个本赛季目标，进度由你自己维护；该百业的管理员可以查看总览。", null, { hk: "3DM8f7" });
 	}
 	static myEmpty(fbs: FbsRuntime) {
-		return fbs._("你还没有设置赛季目标。", null, { hk: "1FD0fY" });
+		return fbs._("你还没有设置赛季目标。", null, { hk: "1VBMA6" });
 	}
 	static goalGuildLabel(fbs: FbsRuntime) {
-		return fbs._("所属百业", null, { hk: "1Mf5w5" });
+		return fbs._("所属百业", null, { hk: "4namkx" });
 	}
 	static goalTitleLabel(fbs: FbsRuntime) {
-		return fbs._("目标", null, { hk: "3ry3Jp" });
+		return fbs._("目标", null, { hk: "324BnE" });
 	}
 	static goalTitlePlaceholder(fbs: FbsRuntime) {
-		return fbs._("例如：打通某个副本、集齐一套装备…", null, { hk: "4spG3F" });
+		return fbs._("例如：打通某个副本、集齐一套装备…", null, { hk: "1xywUV" });
 	}
 	static goalNoteLabel(fbs: FbsRuntime) {
-		return fbs._("进度备注", null, { hk: "2Y90cT" });
+		return fbs._("进度备注", null, { hk: "1KDQIC" });
 	}
 	static goalNotePlaceholder(fbs: FbsRuntime) {
-		return fbs._("记录当前进度…", null, { hk: "3WuGTh" });
+		return fbs._("记录当前进度…", null, { hk: "ZaF3j" });
 	}
 	static goalDungeonLabel(fbs: FbsRuntime) {
-		return fbs._("关联副本（可选）", null, { hk: "4q5yP7" });
+		return fbs._("关联副本（可选）", null, { hk: "3eEZ7w" });
 	}
 	static goalDungeonNone(fbs: FbsRuntime) {
-		return fbs._("不关联副本", null, { hk: "2OWi4w" });
+		return fbs._("不关联副本", null, { hk: "1cLix" });
 	}
 	static goalStatusLabel(fbs: FbsRuntime) {
-		return fbs._("状态", null, { hk: "441NsN" });
+		return fbs._("状态", null, { hk: "3NgrgJ" });
 	}
 	static goalAddButton(fbs: FbsRuntime) {
-		return fbs._("添加目标", null, { hk: "40sX57" });
+		return fbs._("添加目标", null, { hk: "4kohdK" });
 	}
 	static goalSaveButton(fbs: FbsRuntime) {
-		return fbs._("保存", null, { hk: "3vvb4n" });
+		return fbs._("保存", null, { hk: "kd8Ty" });
 	}
 	static goalEditButton(fbs: FbsRuntime) {
-		return fbs._("编辑", null, { hk: "1yqvac" });
+		return fbs._("编辑", null, { hk: "47bsyA" });
 	}
 	static goalDeleteButton(fbs: FbsRuntime) {
-		return fbs._("删除", null, { hk: "2StBfp" });
+		return fbs._("删除", null, { hk: "1MpXfY" });
 	}
 }
 export const STRING_FNS: Record<string, StringFn> = {
