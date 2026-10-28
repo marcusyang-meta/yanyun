@@ -31,6 +31,9 @@ import {
   StartPremiumCheckoutAdminMutation,
   UpdateGuildVisibilityAdminMutation,
   CreateAdminEventMutation,
+  PostGuildAnnouncementMutation,
+  MarkGuildAnnouncementReadMutation,
+  DeleteGuildAnnouncementMutation,
   UpdateAdminEventMutation,
   DeleteAdminEventMutation,
   RemoveEventSignupAdminMutation,
@@ -59,6 +62,9 @@ import type { documentsUnregisterPushTokenMutation } from './__generated__/docum
 import type { documentsExportMyDataMutation } from './__generated__/documentsExportMyDataMutation.graphql';
 import type { documentsRequestAccountDeletionMutation } from './__generated__/documentsRequestAccountDeletionMutation.graphql';
 import type { documentsCancelAccountDeletionMutation } from './__generated__/documentsCancelAccountDeletionMutation.graphql';
+import type { documentsPostGuildAnnouncementMutation } from './__generated__/documentsPostGuildAnnouncementMutation.graphql';
+import type { documentsMarkGuildAnnouncementReadMutation } from './__generated__/documentsMarkGuildAnnouncementReadMutation.graphql';
+import type { documentsDeleteGuildAnnouncementMutation } from './__generated__/documentsDeleteGuildAnnouncementMutation.graphql';
 
 // Data layer is Relay (same GraphQL contract and schema as Web).
 // Auth uses Authorization Bearer (injected by relay.ts fetch); the backend
@@ -80,6 +86,7 @@ export type GuildItem = {
   homeTabTeamLabel?: string | null;
   homeTabDexLabel?: string | null;
   homeTabSectLabel?: string | null;
+  homeTabAnnouncementsLabel?: string | null;
   // Server-composed white-label chrome copy (carries the platform name
   // only while this guild shows platform branding)
   pageBackLabel?: string | null;
@@ -406,3 +413,31 @@ export const adminRemoveSignup = (slug: string, signupId: string) => adminRun(Re
 export const adminAddResult = (slug: string, eventId: string, input: any) => adminRun(AddEventResultAdminMutation, { slug, eventId, input }, 'addEventResult');
 export const adminDeleteResult = (slug: string, resultId: string) => adminRun(DeleteEventResultAdminMutation, { slug, resultId }, 'deleteEventResult');
 export const adminUpdateGuide = (slug: string, input: any) => adminRun(UpdateSchoolGuideAdminMutation, { slug, input }, 'updateSchoolGuide');
+
+/* Guild announcements (F9/F10/F18): one payload shape for post /
+ * mark-read / delete; the backend payload carries the localized
+ * error text and the stable errorCode. Posting is admin-gated
+ * server-side, marking is the caller's own receipt only. */
+export type AnnouncementPayload = {
+  ok: boolean;
+  error?: string | null;
+  errorCode?: string | null;
+  announcement?: { id: string } | null;
+};
+
+export async function postGuildAnnouncementRemote(
+  slug: string, kind: 'STANDARD' | 'URGENT', title: string, body: string,
+): Promise<AnnouncementPayload> {
+  const r = await commit<documentsPostGuildAnnouncementMutation>(PostGuildAnnouncementMutation, { slug, kind, title, body });
+  return r.postGuildAnnouncement as AnnouncementPayload;
+}
+
+export async function markGuildAnnouncementReadRemote(slug: string, id: string): Promise<AnnouncementPayload> {
+  const r = await commit<documentsMarkGuildAnnouncementReadMutation>(MarkGuildAnnouncementReadMutation, { slug, id });
+  return r.markGuildAnnouncementRead as AnnouncementPayload;
+}
+
+export async function deleteGuildAnnouncementRemote(slug: string, id: string): Promise<AnnouncementPayload> {
+  const r = await commit<documentsDeleteGuildAnnouncementMutation>(DeleteGuildAnnouncementMutation, { slug, id });
+  return r.deleteGuildAnnouncement as AnnouncementPayload;
+}

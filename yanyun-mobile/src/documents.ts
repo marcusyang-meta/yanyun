@@ -48,6 +48,7 @@ export const ViewerQuery = graphql`
         homeTabTeamLabel
         homeTabDexLabel
         homeTabSectLabel
+        homeTabAnnouncementsLabel
         pageBackLabel
       }
       publicGuilds {
@@ -61,6 +62,7 @@ export const ViewerQuery = graphql`
         homeTabTeamLabel
         homeTabDexLabel
         homeTabSectLabel
+        homeTabAnnouncementsLabel
         pageBackLabel
       }
     }
@@ -1680,6 +1682,7 @@ export const GuildAdminQuery = graphql`
           adminTabDiscordLabel
           adminTabEventsLabel
           adminTabGuidesLabel
+          adminTabAnnouncementsLabel
           events {
             id
             title
@@ -1853,5 +1856,147 @@ export const DeleteEventResultAdminMutation = graphql`
 export const UpdateSchoolGuideAdminMutation = graphql`
   mutation documentsUpdateSchoolGuideAdminMutation($slug: String!, $input: UpdateSchoolGuideInput!) {
     updateSchoolGuide(slug: $slug, input: $input) { ok error }
+  }
+`;
+
+/* Guild announcements (communication line F9/F10/F18): same page
+ * shell as Web — every label arrives on GuildAnnouncementPage; the
+ * member query reads the member variant off Guild/GuildReadOnly, the
+ * admin query reads the compose/receipts variant off GuildAdmin. */
+
+export const AnnouncementsPageQuery = graphql`
+  query documentsAnnouncementsPageQuery($slug: String!) {
+    viewer {
+      guild(slug: $slug) {
+        __typename
+        ... on Guild {
+          announcements {
+            title
+            emptyText
+            canPost
+            announcements {
+              id
+              kind
+              urgent
+              urgentLabel
+              kindLabel
+              title
+              body
+              authorText
+              createdAtText
+              viewerHasRead
+            }
+          }
+        }
+        ... on GuildReadOnly {
+          announcements {
+            title
+            emptyText
+            canPost
+            announcements {
+              id
+              kind
+              urgent
+              urgentLabel
+              kindLabel
+              title
+              body
+              authorText
+              createdAtText
+              viewerHasRead
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
+export const AnnouncementsAdminQuery = graphql`
+  query documentsAnnouncementsAdminQuery($slug: String!) {
+    viewer {
+      commonUnknownErrorText
+      guildAdmin(slug: $slug) {
+        __typename
+        ... on GuildAdmin {
+          announcements {
+            title
+            emptyText
+            composeTitle
+            kindLabel
+            kindStandardLabel
+            kindUrgentLabel
+            titleLabel
+            titlePlaceholder
+            bodyLabel
+            bodyPlaceholder
+            postLabel
+            postingLabel
+            postedText
+            deleteLabel
+            receiptsTitle
+            readListLabel
+            unreadListLabel
+            pushNote
+            urgentNote
+            dailyLimitText
+            canPost
+            announcements {
+              id
+              kind
+              urgent
+              urgentLabel
+              kindLabel
+              title
+              body
+              authorText
+              createdAtText
+              readCountText
+              deleteLabel
+              deleteConfirmTitle
+              receipts {
+                discordId
+                displayName
+                read
+                readAtText
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
+export const PostGuildAnnouncementMutation = graphql`
+  mutation documentsPostGuildAnnouncementMutation($slug: String!, $kind: AnnouncementKind!, $title: String!, $body: String!) {
+    postGuildAnnouncement(slug: $slug, kind: $kind, title: $title, body: $body) {
+      ok
+      error
+      errorCode
+      announcement {
+        id
+      }
+    }
+  }
+`;
+
+export const MarkGuildAnnouncementReadMutation = graphql`
+  mutation documentsMarkGuildAnnouncementReadMutation($slug: String!, $id: ID!) {
+    markGuildAnnouncementRead(slug: $slug, announcementId: $id) {
+      ok
+      error
+      errorCode
+    }
+  }
+`;
+
+export const DeleteGuildAnnouncementMutation = graphql`
+  mutation documentsDeleteGuildAnnouncementMutation($slug: String!, $id: ID!) {
+    deleteGuildAnnouncement(slug: $slug, announcementId: $id) {
+      ok
+      error
+      errorCode
+    }
   }
 `;

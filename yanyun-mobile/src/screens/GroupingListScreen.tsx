@@ -10,6 +10,7 @@ import { GroupingListBlocksQuery, ListPageTextQuery } from '../documents';
 import { CreateGroupingFormMount } from '../components/GroupingForm';
 import DexView from './DexView';
 import SectView from './SectView';
+import AnnouncementsView from './AnnouncementsView';
 import { useSession } from '../session';
 import type { documentsListPageTextQuery } from '../__generated__/documentsListPageTextQuery.graphql';
 import { BlockNode1View } from '../blocks/BlockRenderer';
@@ -43,7 +44,7 @@ function fill(template: string, params: Record<string, string | number>): string
   return out;
 }
 
-type SectionKey = 'team' | 'dex' | 'sect';
+type SectionKey = 'team' | 'dex' | 'sect' | 'announcements';
 
 export default function GroupingListScreen({ slug, name, readOnly, nick, gameVersion, avatarUrl }: Props) {
   const router = useRouter();
@@ -94,6 +95,11 @@ export default function GroupingListScreen({ slug, name, readOnly, nick, gameVer
         ['team', guildItem.homeTabTeamLabel],
         ['dex', guildItem.homeTabDexLabel],
         ['sect', guildItem.homeTabSectLabel],
+        // Announcements tab: label is backend-supplied like the other
+        // three; a guild payload without it simply omits the tab.
+        ...(guildItem.homeTabAnnouncementsLabel
+          ? [['announcements', guildItem.homeTabAnnouncementsLabel] as [SectionKey, string]]
+          : []),
       ]
       : null;
 
@@ -172,6 +178,10 @@ export default function GroupingListScreen({ slug, name, readOnly, nick, gameVer
             <SectView />
           </Suspense>
         </AsyncBoundary>
+      )}
+
+      {section === 'announcements' && (
+        <AnnouncementsView key={`announcements:${epoch}`} slug={slug} />
       )}
 
       {showCreate && (
