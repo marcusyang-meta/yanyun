@@ -19,6 +19,7 @@ import {
   adminStartPremiumCheckout,
   adminCreateLottery, adminDrawLottery,
   adminReviewGuildApplication, adminSetGuildMentor, adminCreateMentorPairing, adminEndMentorPairing,
+  adminUpdateRecruitOpen,
   adminUpdateProfile, adminUpdateReminderSettings, adminUpdateVisibility,
   adminUpdateWhiteLabel,
   adminSetSeasonChecklistItem, adminDeleteRosterEntry,
@@ -1146,6 +1147,15 @@ function RecruitPanel({ admin, run }: {
   const [menteeId, setMenteeId] = useState('');
   return (
     <View>
+      <View style={[s.card, { marginBottom: 10 }]}>
+        <View style={s.switchRow}>
+          <Text style={s.switchLabel}>{a.adminRecruitOpenLabel}</Text>
+          <Switch value={!!a.recruitOpen}
+            onValueChange={(v) => run(adminUpdateRecruitOpen(slug, v))} />
+        </View>
+        <Text style={s.muted}>{a.adminRecruitOpenHint}</Text>
+      </View>
+
       <Text style={s.sectionTitle}>{a.adminRecruitApplicationsTitle}</Text>
       {applications.length === 0 ? (
         <Text style={s.muted}>{a.adminRecruitApplicationsEmptyText}</Text>

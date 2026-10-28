@@ -37,6 +37,7 @@ import {
   EndMentorPairingAdminMutation,
   ApplyToGuildMutation,
   UpdateGuildVisibilityAdminMutation,
+  UpdateGuildRecruitOpenAdminMutation,
   CreateAdminEventMutation,
   PostGuildAnnouncementMutation,
   MarkGuildAnnouncementReadMutation,
@@ -518,6 +519,7 @@ export async function applyToGuildRemote(slug: string, message?: string): Promis
   return r.applyToGuild as RecruitPayload;
 }
 export const adminUpdateVisibility = (slug: string, devOnly: boolean) => adminRun(UpdateGuildVisibilityAdminMutation, { slug, devOnly }, 'updateGuildVisibility');
+export const adminUpdateRecruitOpen = (slug: string, open: boolean) => adminRun(UpdateGuildRecruitOpenAdminMutation, { slug, open }, 'updateGuildRecruitOpen');
 export const adminCreateEvent = (slug: string, input: any) => adminRun(CreateAdminEventMutation, { slug, input }, 'createAdminEvent');
 export const adminUpdateEvent = (slug: string, eventId: string, input: any) => adminRun(UpdateAdminEventMutation, { slug, eventId, input }, 'updateAdminEvent');
 export const adminDeleteEvent = (slug: string, eventId: string) => adminRun(DeleteAdminEventMutation, { slug, eventId }, 'deleteAdminEvent');

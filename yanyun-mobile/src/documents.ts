@@ -2060,6 +2060,9 @@ export const GuildAdminQuery = graphql`
           adminRecruitMenteeSelectLabel
           adminRecruitNewcomersTitle
           adminRecruitNewcomersEmptyText
+          adminRecruitOpenLabel
+          adminRecruitOpenHint
+          recruitOpen
           adminRecruitProfileLabel
           adminRecruitMentorLabel
           adminRecruitFirstRunLabel
@@ -2248,6 +2251,11 @@ export const ApplyToGuildMutation = graphql`
 export const UpdateGuildVisibilityAdminMutation = graphql`
   mutation documentsUpdateGuildVisibilityAdminMutation($slug: String!, $devOnly: Boolean!) {
     updateGuildVisibility(slug: $slug, devOnly: $devOnly) { ok error }
+  }
+`;
+export const UpdateGuildRecruitOpenAdminMutation = graphql`
+  mutation documentsUpdateGuildRecruitOpenAdminMutation($slug: String!, $open: Boolean!) {
+    updateGuildRecruitOpen(slug: $slug, open: $open) { ok error }
   }
 `;
 export const CreateAdminEventMutation = graphql`
