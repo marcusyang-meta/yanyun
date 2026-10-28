@@ -11,7 +11,7 @@ export interface HubAuditRow {
   at: number;
   actor: string;
   action: string;
-  tenant: string;
+  tenant: number;
   summary: string;
   ip: string;
 }
@@ -21,7 +21,7 @@ interface CountRow { c: number }
 export async function insertHubAudit(
   d1: D1Database,
   row: {
-    at: number; actor: string; action: string; tenant: string;
+    at: number; actor: string; action: string; tenant: number;
     summary: string; ip: string;
   },
 ): Promise<void> {
@@ -52,7 +52,7 @@ export async function pruneHubAudit(
 
 export async function listHubAudit(
   d1: D1Database,
-  opts: { tenant: string; limit: number; offset: number },
+  opts: { tenant: number; limit: number; offset: number },
 ): Promise<HubAuditRow[]> {
   const db = createDb(d1);
   const rows = opts.tenant
@@ -71,7 +71,7 @@ export async function listHubAudit(
 
 export async function countHubAudit(
   d1: D1Database,
-  tenant: string,
+  tenant: number,
 ): Promise<number> {
   const db = createDb(d1);
   const rows = tenant

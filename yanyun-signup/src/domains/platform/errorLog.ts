@@ -12,7 +12,7 @@ export interface ErrorLogRow {
   source: string;
   name: string;
   message: string;
-  tenant: string;
+  tenant: number;
   context: string;
 }
 
@@ -22,7 +22,7 @@ export async function insertErrorLog(
   d1: D1Database,
   row: {
     at: number; source: string; name: string; message: string;
-    tenant: string; context: string; stack: string;
+    tenant: number; context: string; stack: string;
   },
 ): Promise<void> {
   const db = createDb(d1);

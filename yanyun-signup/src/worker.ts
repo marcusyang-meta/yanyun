@@ -56,7 +56,7 @@ app.all('/graphql', async (c: any) => {
   // account preference (users.locale_pref) beats the header — server wins.
   const browserLocale = negotiateLocale(c.req.header('x-locale'));
   const pref = checked.user
-    ? await getUserLocalePref(c.env, checked.user.discordId).catch(() => null)
+    ? await getUserLocalePref(c.env, checked.user.userId).catch(() => null)
     : null;
   // Assembly edge: build the three-layer context once — RequestContext
   // (framework) wraps env/request/executionCtx, ViewerContext carries

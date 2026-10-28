@@ -10,6 +10,7 @@
  * =================================================== */
 import { sql } from 'drizzle-orm';
 import { createDb, schema } from '../../db/client.ts';
+import { mintPublicId } from '../platform/id-mint.ts';
 
 const { results, events } = schema;
 const col = (name: string) => sql.identifier(name);
@@ -49,14 +50,14 @@ export async function insertResult(
 ): Promise<RunMeta> {
   const db = createDb(d1);
   const r = await db.run(
-    sql`INSERT INTO ${results} (${col('event_id')}, ${col('team_name')}, ${col('members')}, ${col('time_ms')}, ${col('proof_url')}, ${col('note')}) VALUES (${row.eventId}, ${row.teamName}, ${row.members}, ${row.timeMs}, ${row.proofUrl}, ${row.note})`,
+    sql`INSERT INTO ${results} (${col('id')}, ${col('event_id')}, ${col('team_name')}, ${col('members')}, ${col('time_ms')}, ${col('proof_url')}, ${col('note')}) VALUES (${await mintPublicId(d1, 'raceResult')}, ${row.eventId}, ${row.teamName}, ${row.members}, ${row.timeMs}, ${row.proofUrl}, ${row.note})`,
   );
   return metaOf(r);
 }
 
 /** Pre-delete tenant ownership check: returns the id only if the result belongs to a grouping of this guild. */
 export async function getResultIdOwnedByTenant(
-  d1: D1Database, resultId: number, tenant: string,
+  d1: D1Database, resultId: number, tenant: number,
 ): Promise<{ id: number } | null> {
   const db = createDb(d1);
   const row = await db.get<{ id: number }>(

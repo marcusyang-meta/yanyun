@@ -10,7 +10,7 @@ import { createDb } from '../../db/client.ts';
 import { guildEntitlements, stripeEvents } from './schema.ts';
 
 export interface GuildEntitlementRow {
-  tenant: string;
+  tenant: number;
   plan: string;
   source: string;
   currentPeriodEnd: number | null;
@@ -31,7 +31,7 @@ export interface GuildEntitlementRow {
 }
 
 interface RawEntitlementRow {
-  tenant: string;
+  tenant: number;
   plan: string;
   source: string;
   current_period_end: number | null;
@@ -45,7 +45,7 @@ interface RawEntitlementRow {
 
 function toRow(r: RawEntitlementRow): GuildEntitlementRow {
   return {
-    tenant: String(r.tenant || ''),
+    tenant: Number(r.tenant) || 0,
     plan: String(r.plan || 'free'),
     source: String(r.source || ''),
     currentPeriodEnd: r.current_period_end == null ? null : Number(r.current_period_end),
@@ -62,7 +62,7 @@ const COLS = sql`${guildEntitlements.tenant}, ${guildEntitlements.plan}, ${guild
 
 export async function getEntitlementRow(
   d1: D1Database,
-  tenant: string,
+  tenant: number,
 ): Promise<GuildEntitlementRow | null> {
   const db = createDb(d1);
   const row = await db.get<RawEntitlementRow>(

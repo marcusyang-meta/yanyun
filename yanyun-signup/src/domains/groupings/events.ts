@@ -17,13 +17,14 @@
  * =================================================== */
 import { sql } from 'drizzle-orm';
 import { createDb, schema } from '../../db/client.ts';
+import { mintPublicId } from '../platform/id-mint.ts';
 
 const { events, signups, results, eventReminders } = schema;
 const col = (name: string) => sql.identifier(name);
 
 export interface EventRow {
   id: number;
-  tenant: string;
+  tenant: number;
   title: string;
   type: string;
   description: string;
@@ -36,7 +37,7 @@ export interface EventRow {
   created_by: string;
   manage_code: string;
   dungeon: string;
-  creator_discord_id: string | null;
+  creator_user_id: number | null;
   reminder_sent_at: number | null;
   reminder_error: string | null;
   ally_visible: number;
@@ -59,7 +60,7 @@ export async function getEventRow(d1: D1Database, id: number): Promise<EventRow 
   return row ?? null;
 }
 
-export async function getEventRowByTenant(d1: D1Database, id: number, tenant: string): Promise<EventRow | null> {
+export async function getEventRowByTenant(d1: D1Database, id: number, tenant: number): Promise<EventRow | null> {
   const db = createDb(d1);
   const row = await db.get<EventRow>(
     sql`SELECT * FROM ${events} WHERE ${col('id')} = ${id} AND ${col('tenant')} = ${tenant}`,
@@ -67,7 +68,7 @@ export async function getEventRowByTenant(d1: D1Database, id: number, tenant: st
   return row ?? null;
 }
 
-export async function getEventIdByTenant(d1: D1Database, id: number, tenant: string): Promise<{ id: number } | null> {
+export async function getEventIdByTenant(d1: D1Database, id: number, tenant: number): Promise<{ id: number } | null> {
   const db = createDb(d1);
   const row = await db.get<{ id: number }>(
     sql`SELECT ${col('id')} FROM ${events} WHERE ${col('id')} = ${id} AND ${col('tenant')} = ${tenant}`,
@@ -76,7 +77,7 @@ export async function getEventIdByTenant(d1: D1Database, id: number, tenant: str
 }
 
 export async function getEventIdStatusByTenant(
-  d1: D1Database, id: number, tenant: string,
+  d1: D1Database, id: number, tenant: number,
 ): Promise<{ id: number; status: string } | null> {
   const db = createDb(d1);
   const row = await db.get<{ id: number; status: string }>(
@@ -87,17 +88,17 @@ export async function getEventIdStatusByTenant(
 
 export async function getEventTenantCreator(
   d1: D1Database, id: number,
-): Promise<{ id: number; tenant: string; creator_discord_id: string | null } | null> {
+): Promise<{ id: number; tenant: number; creator_user_id: number | null } | null> {
   const db = createDb(d1);
-  const row = await db.get<{ id: number; tenant: string; creator_discord_id: string | null }>(
-    sql`SELECT ${col('id')}, ${col('tenant')}, ${col('creator_discord_id')} FROM ${events} WHERE ${col('id')} = ${id}`,
+  const row = await db.get<{ id: number; tenant: number; creator_user_id: number | null }>(
+    sql`SELECT ${col('id')}, ${col('tenant')}, ${col('creator_user_id')} FROM ${events} WHERE ${col('id')} = ${id}`,
   );
   return row ?? null;
 }
 
-export async function getEventTenant(d1: D1Database, id: number): Promise<{ id: number; tenant: string } | null> {
+export async function getEventTenant(d1: D1Database, id: number): Promise<{ id: number; tenant: number } | null> {
   const db = createDb(d1);
-  const row = await db.get<{ id: number; tenant: string }>(
+  const row = await db.get<{ id: number; tenant: number }>(
     sql`SELECT ${col('id')}, ${col('tenant')} FROM ${events} WHERE ${col('id')} = ${id}`,
   );
   return row ?? null;
@@ -139,7 +140,7 @@ export async function stampEventCreators(
  * timeless last, newest first within a group. */
 export async function listEventsWeekView(
   d1: D1Database,
-  q: { tenant: string; type?: string; from?: number; to?: number },
+  q: { tenant: number; type?: string; from?: number; to?: number },
 ): Promise<(EventRow & { signup_count: number })[]> {
   const db = createDb(d1);
   const query = sql`SELECT e.*, (SELECT COUNT(*) FROM ${signups} s WHERE s.event_id = e.id) AS signup_count FROM ${events} e WHERE e.tenant = ${q.tenant} AND e.status NOT IN ('draft', 'completed')`;
@@ -153,7 +154,7 @@ export async function listEventsWeekView(
 
 /* Admin list: all statuses, with signup_count, newest first. */
 export async function listEventsAdmin(
-  d1: D1Database, tenant: string,
+  d1: D1Database, tenant: number,
 ): Promise<(EventRow & { signup_count: number })[]> {
   const db = createDb(d1);
   const rows = await db.all<EventRow & { signup_count: number }>(
@@ -167,7 +168,7 @@ export async function listEventsAdmin(
  * rows belong to no window and never come back. Every status comes
  * back; the stats service decides which statuses count. */
 export async function listEventsInWindow(
-  d1: D1Database, tenant: string, fromUtc: number, toUtc: number,
+  d1: D1Database, tenant: number, fromUtc: number, toUtc: number,
 ): Promise<EventRow[]> {
   const db = createDb(d1);
   const rows = await db.all<EventRow>(
@@ -179,7 +180,7 @@ export async function listEventsInWindow(
 /* GraphQL list page: recruiting groupings of one type in one guild
  * (completed/draft never listed; open first, timeless last, newest
  * first within a group). */
-export async function listEventsByTenantType(d1: D1Database, tenant: string, type: string): Promise<EventRow[]> {
+export async function listEventsByTenantType(d1: D1Database, tenant: number, type: string): Promise<EventRow[]> {
   const db = createDb(d1);
   const rows = await db.all<EventRow>(sql`SELECT * FROM ${events} WHERE ${col('tenant')} = ${tenant} AND ${col('type')} = ${type} AND ${col('status')} NOT IN ('draft', 'completed') ORDER BY CASE ${col('status')} WHEN 'open' THEN 0 ELSE 1 END, COALESCE(${col('starts_at_utc')}, 9999999999) ASC, ${col('id')} DESC`);
   return rows || [];
@@ -187,7 +188,7 @@ export async function listEventsByTenantType(d1: D1Database, tenant: string, typ
 
 /* OG guild card: this week's recruiting activity count (completed/draft excluded). */
 export async function countActivityEventsInWindow(
-  d1: D1Database, tenant: string, fromUtc: number, toUtc: number,
+  d1: D1Database, tenant: number, fromUtc: number, toUtc: number,
 ): Promise<number> {
   const db = createDb(d1);
   const row = await db.get<{ c: number }>(
@@ -201,22 +202,22 @@ export async function countActivityEventsInWindow(
  * (never sent, never failed). */
 
 export async function nextPendingReminderStart(
-  d1: D1Database, slug: string, nowSec: number,
+  d1: D1Database, guildId: number, nowSec: number,
 ): Promise<number | null> {
   const db = createDb(d1);
   const row = await db.get<{ m: number | null }>(
-    sql`SELECT MIN(${col('starts_at_utc')}) AS m FROM ${events} WHERE ${col('tenant')} = ${slug} AND ${col('status')} IN ('open', 'closed') AND ${col('starts_at_utc')} IS NOT NULL AND ${col('starts_at_utc')} > ${nowSec} AND ${col('reminder_sent_at')} IS NULL AND ${col('reminder_error')} IS NULL`,
+    sql`SELECT MIN(${col('starts_at_utc')}) AS m FROM ${events} WHERE ${col('tenant')} = ${guildId} AND ${col('status')} IN ('open', 'closed') AND ${col('starts_at_utc')} IS NOT NULL AND ${col('starts_at_utc')} > ${nowSec} AND ${col('reminder_sent_at')} IS NULL AND ${col('reminder_error')} IS NULL`,
   );
   return row && row.m != null ? Number(row.m) : null;
 }
 
 /* Due groupings (reminder time reached): full rows, ascending by start time. */
 export async function listDueReminderEvents(
-  d1: D1Database, slug: string, nowSec: number, leadSec: number,
+  d1: D1Database, guildId: number, nowSec: number, leadSec: number,
 ): Promise<EventRow[]> {
   const db = createDb(d1);
   const rows = await db.all<EventRow>(
-    sql`SELECT * FROM ${events} WHERE ${col('tenant')} = ${slug} AND ${col('status')} IN ('open', 'closed') AND ${col('starts_at_utc')} IS NOT NULL AND ${col('starts_at_utc')} > ${nowSec} AND ${col('reminder_sent_at')} IS NULL AND ${col('reminder_error')} IS NULL AND ${col('starts_at_utc')} - ${leadSec} <= ${nowSec} ORDER BY ${col('starts_at_utc')} ASC, ${col('id')} ASC`,
+    sql`SELECT * FROM ${events} WHERE ${col('tenant')} = ${guildId} AND ${col('status')} IN ('open', 'closed') AND ${col('starts_at_utc')} IS NOT NULL AND ${col('starts_at_utc')} > ${nowSec} AND ${col('reminder_sent_at')} IS NULL AND ${col('reminder_error')} IS NULL AND ${col('starts_at_utc')} - ${leadSec} <= ${nowSec} ORDER BY ${col('starts_at_utc')} ASC, ${col('id')} ASC`,
   );
   return rows || [];
 }
@@ -238,11 +239,11 @@ export interface ReminderBeatRow {
 
 /* Pending groupings (legacy-unsettled) with a future start, ascending. */
 export async function listPendingReminderEvents(
-  d1: D1Database, slug: string, nowSec: number,
+  d1: D1Database, guildId: number, nowSec: number,
 ): Promise<{ id: number; starts_at_utc: number }[]> {
   const db = createDb(d1);
   const rows = await db.all<{ id: number; starts_at_utc: number }>(
-    sql`SELECT ${col('id')}, ${col('starts_at_utc')} FROM ${events} WHERE ${col('tenant')} = ${slug} AND ${col('status')} IN ('open', 'closed') AND ${col('starts_at_utc')} IS NOT NULL AND ${col('starts_at_utc')} > ${nowSec} AND ${col('reminder_sent_at')} IS NULL AND ${col('reminder_error')} IS NULL ORDER BY ${col('starts_at_utc')} ASC, ${col('id')} ASC`,
+    sql`SELECT ${col('id')}, ${col('starts_at_utc')} FROM ${events} WHERE ${col('tenant')} = ${guildId} AND ${col('status')} IN ('open', 'closed') AND ${col('starts_at_utc')} IS NOT NULL AND ${col('starts_at_utc')} > ${nowSec} AND ${col('reminder_sent_at')} IS NULL AND ${col('reminder_error')} IS NULL ORDER BY ${col('starts_at_utc')} ASC, ${col('id')} ASC`,
   );
   return rows || [];
 }
@@ -250,13 +251,13 @@ export async function listPendingReminderEvents(
 /* Full rows for specific pending groupings (the alarm's send path
  * re-verifies each one at fire time). */
 export async function listPendingReminderEventRows(
-  d1: D1Database, slug: string, ids: number[],
+  d1: D1Database, guildId: number, ids: number[],
 ): Promise<EventRow[]> {
   if (!ids.length) return [];
   const db = createDb(d1);
   const idList = sql.join(ids.map((i) => sql`${i}`), sql`, `);
   const rows = await db.all<EventRow>(
-    sql`SELECT * FROM ${events} WHERE ${col('tenant')} = ${slug} AND ${col('id')} IN (${idList}) ORDER BY ${col('starts_at_utc')} ASC, ${col('id')} ASC`,
+    sql`SELECT * FROM ${events} WHERE ${col('tenant')} = ${guildId} AND ${col('id')} IN (${idList}) ORDER BY ${col('starts_at_utc')} ASC, ${col('id')} ASC`,
   );
   return rows || [];
 }
@@ -294,7 +295,7 @@ export async function markBeatError(d1: D1Database, eventId: number, offsetMin: 
 const EVENT_COLUMNS = new Set([
   'tenant', 'title', 'type', 'description', 'starts_at', 'starts_at_utc',
   'meet_info', 'max_slots', 'status', 'origin', 'created_by', 'manage_code',
-  'dungeon', 'creator_discord_id', 'reminder_sent_at', 'reminder_error',
+  'dungeon', 'creator_user_id', 'reminder_sent_at', 'reminder_error',
   'ally_visible', 'visitor_slots',
 ]);
 
@@ -309,19 +310,24 @@ function checkedColumns(row: Record<string, unknown>): string[] {
 
 /* Generic insert: the column set comes from the input (each creation
  * path has a different set; literal defaults are passed in as plain
- * values). Returns last_row_id. */
+ * values). The grouping ID (type code 10) is minted here and written
+ * as the explicit primary key; the returned meta's last_row_id IS
+ * that minted ID, so callers keep their existing shape. */
 export async function insertEvent(d1: D1Database, row: Record<string, unknown>): Promise<RunMeta> {
   const db = createDb(d1);
-  const cols = checkedColumns(row);
+  const id = await mintPublicId(d1, 'grouping');
+  const full = { id, ...row };
+  const cols = ['id', ...checkedColumns(row)];
   const r = await db.run(sql`INSERT INTO ${events} (${sql.join(cols.map((c) => col(c)), sql`, `)})
-    VALUES (${sql.join(cols.map((c) => sql`${row[c]}`), sql`,`)})`);
-  return metaOf(r);
+    VALUES (${sql.join(cols.map((c) => sql`${full[c as keyof typeof full]}`), sql`,`)})`);
+  const meta = metaOf(r);
+  return { changes: meta.changes, last_row_id: id };
 }
 
 /* Generic field update: patch key order = SET order; tenant null =
  * no tenant condition (admin / GraphQL paths). */
 export async function updateEventFields(
-  d1: D1Database, id: number, tenant: string | null, patch: Record<string, unknown>,
+  d1: D1Database, id: number, tenant: number | null, patch: Record<string, unknown>,
 ): Promise<RunMeta> {
   const db = createDb(d1);
   const cols = checkedColumns(patch);
@@ -354,7 +360,7 @@ export async function markReminderError(d1: D1Database, id: number, errorText: s
 /* Disband cascade: signups + results + the grouping itself, executed
  * as one D1 batch (any failure rolls back the whole group).
  * tenant null = no tenant condition. */
-export async function deleteEventCascade(d1: D1Database, id: number, tenant: string | null): Promise<void> {
+export async function deleteEventCascade(d1: D1Database, id: number, tenant: number | null): Promise<void> {
   await d1.batch([
     d1.prepare('DELETE FROM signups WHERE event_id = ?').bind(id),
     d1.prepare('DELETE FROM results WHERE event_id = ?').bind(id),
@@ -368,7 +374,7 @@ export async function deleteEventCascade(d1: D1Database, id: number, tenant: str
 
 export interface CreatorEventRow {
   id: number;
-  tenant: string;
+  tenant: number;
   title: string;
   type: string;
   starts_at: string | null;
@@ -378,11 +384,11 @@ export interface CreatorEventRow {
 }
 
 /** All cars this user leads (the export package's carsLed section). */
-export async function listEventsByCreator(d1: D1Database, discordId: string): Promise<CreatorEventRow[]> {
+export async function listEventsByCreator(d1: D1Database, userId: number): Promise<CreatorEventRow[]> {
   const db = createDb(d1);
   const rows = await db.all<CreatorEventRow>(
     sql`SELECT ${col('id')}, ${col('tenant')}, ${col('title')}, ${col('type')}, ${col('starts_at')}, ${col('status')}, ${col('created_by')}, ${col('created_at')}
-        FROM ${events} WHERE ${col('creator_discord_id')} = ${discordId} ORDER BY ${col('id')} ASC`,
+        FROM ${events} WHERE ${col('creator_user_id')} = ${userId} ORDER BY ${col('id')} ASC`,
   );
   return rows || [];
 }
@@ -390,10 +396,10 @@ export async function listEventsByCreator(d1: D1Database, discordId: string): Pr
 /** Whether this user leads at least one car in this guild — the
  * schedule page's availability-summary verdict for car leaders (the
  * summary itself is composed only for guild admins and leaders). */
-export async function hasEventsByTenantCreator(d1: D1Database, tenant: string, discordId: string): Promise<boolean> {
+export async function hasEventsByTenantCreator(d1: D1Database, tenant: number, userId: number): Promise<boolean> {
   const db = createDb(d1);
   const row = await db.get<{ id: number }>(
-    sql`SELECT ${col('id')} FROM ${events} WHERE ${col('tenant')} = ${tenant} AND ${col('creator_discord_id')} = ${discordId} LIMIT 1`,
+    sql`SELECT ${col('id')} FROM ${events} WHERE ${col('tenant')} = ${tenant} AND ${col('creator_user_id')} = ${userId} LIMIT 1`,
   );
   return !!row;
 }
@@ -401,12 +407,12 @@ export async function hasEventsByTenantCreator(d1: D1Database, tenant: string, d
 /** Deletion Q1: led cars are orphaned (creator unlinked, display name
  * anonymized), never deleted — fellow riders keep their history. */
 export async function orphanEventsByCreator(
-  d1: D1Database, discordId: string, tombstoneName: string,
+  d1: D1Database, userId: number, tombstoneName: string,
 ): Promise<number> {
   const db = createDb(d1);
   const r = await db.run(
-    sql`UPDATE ${events} SET ${col('creator_discord_id')} = NULL, ${col('created_by')} = ${tombstoneName}
-        WHERE ${col('creator_discord_id')} = ${discordId}`,
+    sql`UPDATE ${events} SET ${col('creator_user_id')} = NULL, ${col('created_by')} = ${tombstoneName}
+        WHERE ${col('creator_user_id')} = ${userId}`,
   );
   return metaOf(r).changes;
 }
@@ -418,7 +424,7 @@ export async function orphanEventsByCreator(
  * query deliberately knows nothing about alliances; an empty
  * tenant list short-circuits to no rows. */
 export async function listAllySharedEvents(
-  d1: D1Database, tenants: string[], limit: number = 100,
+  d1: D1Database, tenants: number[], limit: number = 100,
 ): Promise<EventRow[]> {
   if (!tenants.length) return [];
   const db = createDb(d1);

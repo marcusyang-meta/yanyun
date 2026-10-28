@@ -9,6 +9,7 @@
 import { sql } from 'drizzle-orm';
 import { createDb } from '../../db/client.ts';
 import { memberSeasonGoals } from './schema.ts';
+import { mintPublicId } from '../platform/id-mint.ts';
 
 const col = (name: string) => sql.identifier(name);
 
@@ -21,8 +22,8 @@ export const SEASON_GOAL_MAX_NOTE = 500;
 
 export interface SeasonGoalRow {
   id: number;
-  tenant: string;
-  discord_id: string;
+  tenant: number;
+  user_id: number;
   member_name: string;
   title: string;
   note: string;
@@ -42,13 +43,13 @@ function metaOf(r: unknown): RunMeta {
   return { changes: m?.changes ?? 0, last_row_id: m?.last_row_id ?? 0 };
 }
 
-const GOAL_COLS = sql`${memberSeasonGoals.id}, ${memberSeasonGoals.tenant}, ${memberSeasonGoals.discordId}, ${memberSeasonGoals.memberName}, ${memberSeasonGoals.title}, ${memberSeasonGoals.note}, ${memberSeasonGoals.status}, ${memberSeasonGoals.dungeonId}, ${memberSeasonGoals.createdAt}, ${memberSeasonGoals.updatedAt}`;
+const GOAL_COLS = sql`${memberSeasonGoals.id}, ${memberSeasonGoals.tenant}, ${memberSeasonGoals.userId}, ${memberSeasonGoals.memberName}, ${memberSeasonGoals.title}, ${memberSeasonGoals.note}, ${memberSeasonGoals.status}, ${memberSeasonGoals.dungeonId}, ${memberSeasonGoals.createdAt}, ${memberSeasonGoals.updatedAt}`;
 
 /** Insert one goal; returns the new row id. */
 export async function insertSeasonGoal(
   d1: D1Database,
   row: {
-    tenant: string; discordId: string; memberName: string;
+    tenant: number; userId: number; memberName: string;
     title: string; note: string; status: string;
     dungeonId: number | null; createdAt: number;
   },
@@ -56,8 +57,8 @@ export async function insertSeasonGoal(
   const db = createDb(d1);
   // INSERT column lists must use bare column names (SQLite syntax); see settings.ts note.
   const r = await db.run(
-    sql`INSERT INTO ${memberSeasonGoals} (${col('tenant')}, ${col('discord_id')}, ${col('member_name')}, ${col('title')}, ${col('note')}, ${col('status')}, ${col('dungeon_id')}, ${col('created_at')}, ${col('updated_at')})
-        VALUES (${row.tenant}, ${row.discordId}, ${row.memberName}, ${row.title}, ${row.note}, ${row.status}, ${row.dungeonId}, ${row.createdAt}, ${row.createdAt})`,
+    sql`INSERT INTO ${memberSeasonGoals} (${col('id')}, ${col('tenant')}, ${col('user_id')}, ${col('member_name')}, ${col('title')}, ${col('note')}, ${col('status')}, ${col('dungeon_id')}, ${col('created_at')}, ${col('updated_at')})
+        VALUES (${await mintPublicId(d1, 'seasonGoal')}, ${row.tenant}, ${row.userId}, ${row.memberName}, ${row.title}, ${row.note}, ${row.status}, ${row.dungeonId}, ${row.createdAt}, ${row.createdAt})`,
   );
   return metaOf(r).last_row_id;
 }
@@ -79,13 +80,13 @@ export async function getSeasonGoal(
 /** One member's goals in one guild, newest first. */
 export async function listSeasonGoalsByMember(
   d1: D1Database,
-  tenant: string,
-  discordId: string,
+  tenant: number,
+  userId: number,
 ): Promise<SeasonGoalRow[]> {
   const db = createDb(d1);
   const rows = await db.all<SeasonGoalRow>(
     sql`SELECT ${GOAL_COLS} FROM ${memberSeasonGoals}
-        WHERE ${memberSeasonGoals.tenant} = ${tenant} AND ${memberSeasonGoals.discordId} = ${discordId}
+        WHERE ${memberSeasonGoals.tenant} = ${tenant} AND ${memberSeasonGoals.userId} = ${userId}
         ORDER BY ${memberSeasonGoals.id} DESC`,
   );
   return rows || [];
@@ -94,12 +95,12 @@ export async function listSeasonGoalsByMember(
 /** One member's goals across every guild (settings-page composition). */
 export async function listSeasonGoalsByUser(
   d1: D1Database,
-  discordId: string,
+  userId: number,
 ): Promise<SeasonGoalRow[]> {
   const db = createDb(d1);
   const rows = await db.all<SeasonGoalRow>(
     sql`SELECT ${GOAL_COLS} FROM ${memberSeasonGoals}
-        WHERE ${memberSeasonGoals.discordId} = ${discordId}
+        WHERE ${memberSeasonGoals.userId} = ${userId}
         ORDER BY ${memberSeasonGoals.id} DESC`,
   );
   return rows || [];
@@ -108,7 +109,7 @@ export async function listSeasonGoalsByUser(
 /** Every goal of one guild, newest first (officer overview + export). */
 export async function listSeasonGoalsByTenant(
   d1: D1Database,
-  tenant: string,
+  tenant: number,
 ): Promise<SeasonGoalRow[]> {
   const db = createDb(d1);
   const rows = await db.all<SeasonGoalRow>(
@@ -124,7 +125,7 @@ export async function listSeasonGoalsByTenant(
 export async function updateSeasonGoal(
   d1: D1Database,
   row: {
-    tenant: string; discordId: string; id: number;
+    tenant: number; userId: number; id: number;
     title: string; note: string; status: string;
     dungeonId: number | null; memberName: string; updatedAt: number;
   },
@@ -132,7 +133,7 @@ export async function updateSeasonGoal(
   const db = createDb(d1);
   const r = await db.run(
     sql`UPDATE ${memberSeasonGoals} SET ${col('title')} = ${row.title}, ${col('note')} = ${row.note}, ${col('status')} = ${row.status}, ${col('dungeon_id')} = ${row.dungeonId}, ${col('member_name')} = ${row.memberName}, ${col('updated_at')} = ${row.updatedAt}
-        WHERE ${memberSeasonGoals.tenant} = ${row.tenant} AND ${memberSeasonGoals.discordId} = ${row.discordId} AND ${memberSeasonGoals.id} = ${row.id}`,
+        WHERE ${memberSeasonGoals.tenant} = ${row.tenant} AND ${memberSeasonGoals.userId} = ${row.userId} AND ${memberSeasonGoals.id} = ${row.id}`,
   );
   return metaOf(r).changes >= 1;
 }
@@ -140,14 +141,14 @@ export async function updateSeasonGoal(
 /** Delete one goal; the statement pins tenant AND owner. */
 export async function deleteSeasonGoal(
   d1: D1Database,
-  tenant: string,
-  discordId: string,
+  tenant: number,
+  userId: number,
   id: number,
 ): Promise<boolean> {
   const db = createDb(d1);
   const r = await db.run(
     sql`DELETE FROM ${memberSeasonGoals}
-        WHERE ${memberSeasonGoals.tenant} = ${tenant} AND ${memberSeasonGoals.discordId} = ${discordId} AND ${memberSeasonGoals.id} = ${id}`,
+        WHERE ${memberSeasonGoals.tenant} = ${tenant} AND ${memberSeasonGoals.userId} = ${userId} AND ${memberSeasonGoals.id} = ${id}`,
   );
   return metaOf(r).changes >= 1;
 }

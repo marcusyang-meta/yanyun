@@ -25,11 +25,13 @@
  * =================================================== */
 import { sql } from 'drizzle-orm';
 import { createDb, schema } from '../../db/client.ts';
+import { mintPublicId } from '../platform/id-mint.ts';
 
 const { tenants, events, signups, results } = schema;
 const col = (name: string) => sql.identifier(name);
 
 export interface TenantRow {
+  id: number;
   slug: string;
   guild_name: string;
   password_hash: string;
@@ -48,6 +50,24 @@ export async function getTenantRow(d1: D1Database, slug: string): Promise<Tenant
   const db = createDb(d1);
   const row = await db.get<TenantRow>(
     sql`SELECT * FROM ${tenants} WHERE ${col('slug')} = ${slug}`,
+  );
+  return row ?? null;
+}
+
+/* The one sanctioned slug -> guild ID resolution (edge callers hold
+ * the slug handle; everything past this point keys by numeric ID). */
+export async function getGuildIdBySlug(d1: D1Database, slug: string): Promise<number | null> {
+  const db = createDb(d1);
+  const row = await db.get<{ id: number }>(
+    sql`SELECT ${col('id')} FROM ${tenants} WHERE ${col('slug')} = ${slug}`,
+  );
+  return row ? Number(row.id) : null;
+}
+
+export async function getTenantRowById(d1: D1Database, id: number): Promise<TenantRow | null> {
+  const db = createDb(d1);
+  const row = await db.get<TenantRow>(
+    sql`SELECT * FROM ${tenants} WHERE ${col('id')} = ${id}`,
   );
   return row ?? null;
 }
@@ -74,15 +94,15 @@ export async function listTenantSlugs(d1: D1Database): Promise<{ slug: string }[
  * filters on it (open guilds only) while the other directory
  * consumers simply ignore the extra field. */
 export async function listTenantsDirectory(d1: D1Database): Promise<{
-  slug: string; guild_name: string; announcement: string;
+  id: number; slug: string; guild_name: string; announcement: string;
   slogan: string | null; created_at: string; recruit_open: number;
 }[]> {
   const db = createDb(d1);
   const rows = await db.all<{
-    slug: string; guild_name: string; announcement: string;
+    id: number; slug: string; guild_name: string; announcement: string;
     slogan: string | null; created_at: string; recruit_open: number;
   }>(
-    sql`SELECT ${col('slug')}, ${col('guild_name')}, ${col('announcement')}, ${col('slogan')}, ${col('created_at')}, ${col('recruit_open')}
+    sql`SELECT ${col('id')}, ${col('slug')}, ${col('guild_name')}, ${col('announcement')}, ${col('slogan')}, ${col('created_at')}, ${col('recruit_open')}
         FROM ${tenants} ORDER BY ${col('created_at')} ASC`,
   );
   return rows || [];
@@ -100,42 +120,46 @@ export async function updateTenantRecruitOpen(d1: D1Database, slug: string, open
 
 /* slug + name across the table (heirloom evaluation traversal; the legacy query had no ordering — keep it unordered). */
 export async function listTenantNames(d1: D1Database): Promise<{
-  slug: string; guild_name: string;
+  id: number; slug: string; guild_name: string;
 }[]> {
   const db = createDb(d1);
-  const rows = await db.all<{ slug: string; guild_name: string }>(
-    sql`SELECT ${col('slug')}, ${col('guild_name')} FROM ${tenants}`,
+  const rows = await db.all<{ id: number; slug: string; guild_name: string }>(
+    sql`SELECT ${col('id')}, ${col('slug')}, ${col('guild_name')} FROM ${tenants}`,
   );
   return rows || [];
 }
 
 /* Super-admin portal tenant list: combined read with per-tenant grouping counts (legacy query with t/e aliases, shape preserved). */
 export async function listTenantsHubAdmin(d1: D1Database): Promise<{
-  slug: string; guild_name: string; announcement: string;
+  id: number; slug: string; guild_name: string; announcement: string;
   created_at: string; event_count: number;
 }[]> {
   const db = createDb(d1);
   const rows = await db.all<{
-    slug: string; guild_name: string; announcement: string;
+    id: number; slug: string; guild_name: string; announcement: string;
     created_at: string; event_count: number;
   }>(
-    sql`SELECT t.slug, t.guild_name, t.announcement, t.created_at,
-      (SELECT COUNT(*) FROM ${events} e WHERE e.tenant = t.slug) AS event_count
+    sql`SELECT t.id, t.slug, t.guild_name, t.announcement, t.created_at,
+      (SELECT COUNT(*) FROM ${events} e WHERE e.tenant = t.id) AS event_count
      FROM ${tenants} t ORDER BY t.created_at ASC`,
   );
   return rows || [];
 }
 
-/* Create a guild (used by the only creation path, GraphQL createGuild; fields match the legacy INSERT). */
+/* Create a guild (used by the only creation path, GraphQL createGuild).
+ * The numeric guild ID (type code 01) is minted here, in the data
+ * layer, and returned; the slug stays a UNIQUE public handle. */
 export async function insertTenant(
   d1: D1Database,
   row: { slug: string; guildName: string; passwordHash: string; announcement: string },
-): Promise<void> {
+): Promise<number> {
   const db = createDb(d1);
+  const id = await mintPublicId(d1, 'guild');
   await db.run(
-    sql`INSERT INTO ${tenants} (${col('slug')}, ${col('guild_name')}, ${col('password_hash')}, ${col('announcement')})
-        VALUES (${row.slug}, ${row.guildName}, ${row.passwordHash}, ${row.announcement})`,
+    sql`INSERT INTO ${tenants} (${col('id')}, ${col('slug')}, ${col('guild_name')}, ${col('password_hash')}, ${col('announcement')})
+        VALUES (${id}, ${row.slug}, ${row.guildName}, ${row.passwordHash}, ${row.announcement})`,
   );
+  return id;
 }
 
 export async function updateTenantWebhook(d1: D1Database, slug: string, webhook: string): Promise<void> {
@@ -175,10 +199,12 @@ export async function updateTenantProfile(
  * statement-by-statement: any failure rolls back the whole
  * batch). */
 export async function deleteTenantCascade(d1: D1Database, slug: string): Promise<void> {
+  const guildId = await getGuildIdBySlug(d1, slug);
+  if (guildId == null) return;
   await d1.batch([
-    d1.prepare('DELETE FROM signups WHERE event_id IN (SELECT id FROM events WHERE tenant = ?)').bind(slug),
-    d1.prepare('DELETE FROM results WHERE event_id IN (SELECT id FROM events WHERE tenant = ?)').bind(slug),
-    d1.prepare('DELETE FROM events WHERE tenant = ?').bind(slug),
-    d1.prepare('DELETE FROM tenants WHERE slug = ?').bind(slug),
+    d1.prepare('DELETE FROM signups WHERE event_id IN (SELECT id FROM events WHERE tenant = ?)').bind(guildId),
+    d1.prepare('DELETE FROM results WHERE event_id IN (SELECT id FROM events WHERE tenant = ?)').bind(guildId),
+    d1.prepare('DELETE FROM events WHERE tenant = ?').bind(guildId),
+    d1.prepare('DELETE FROM tenants WHERE id = ?').bind(guildId),
   ]);
 }

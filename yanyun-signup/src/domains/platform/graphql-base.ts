@@ -6,7 +6,7 @@ import { vcOf, isOmniscientViewer } from './context.ts';
 import type { Context, ViewerContext } from './context.ts';
 import { translate, translateError, negotiateLocale, SUPPORTED_LOCALES, CATALOG } from './i18n.ts';
 import { getSettingValue, setSettingValue, listSettingsByKey } from '../guilds/settings.ts';
-import { getTenantRow, getTenantSlug, listTenantSlugs, listTenantsDirectory } from '../guilds/tenants.ts';
+import { getTenantRow, getTenantRowById, getTenantSlug, listTenantSlugs, listTenantsDirectory } from '../guilds/tenants.ts';
 import { getOfficerGrant, parseCapabilities } from '../guilds/governance.ts';
 import { listGuildMembers, getGuildMember } from '../identity/guildMembers.ts';
 import { getUsernameRow, getUserLocalePref } from '../identity/users.ts';
@@ -74,7 +74,7 @@ export function loadMyLocalePref(ctx: Context) {
   if (!store.has('myLocalePref')) {
     store.set('myLocalePref', (async () => {
       if (!ctx.user) return null;
-      return getUserLocalePref(ctx.env.DB, ctx.user.discordId).catch(() => null);
+      return getUserLocalePref(ctx.env.DB, ctx.user.userId).catch(() => null);
     })());
   }
   return store.get('myLocalePref');
@@ -114,12 +114,12 @@ export async function assertTenant(db: any, slug: any) {
  *   to signed-in viewers, closed to anonymous (see header)
  * - Bound guild: members only (canView); write = login + bound + member
  * - ctx.user comes from the yy_session session; null when logged out */
-export async function getTenantSetting(db: any, slug: any, key: any) {
-  return getSettingValue(db, slug, key);
+export async function getTenantSetting(db: any, guildId: any, key: any) {
+  return getSettingValue(db, guildId, key);
 }
 
-export async function setTenantSetting(db: any, slug: any, key: any, value: any) {
-  await setSettingValue(db, slug, key, value);
+export async function setTenantSetting(db: any, guildId: any, key: any, value: any) {
+  await setSettingValue(db, guildId, key, value);
 }
 
 /* ---------- Dev-surface detection (dev_only visibility exception) ----------
@@ -139,7 +139,7 @@ export function isDevRequest(request: any) {
 // User's server details (incl. permission bits): users table first (stored at login); fall back to session gm (test-issued only)
 export async function getServersForUser(db: any, user: any) {
   if (!user) return [];
-  const rows = await getUserServers(db, user.discordId);
+  const rows = await getUserServers(db, user.userId);
   if (rows) return rows;
   if (Array.isArray(user.guildsMeta)) {
     return user.guildsMeta.map((g: any) => ({
@@ -179,11 +179,11 @@ export async function getGuildAdminAccess(db: any, user: any, slug: any, request
   const t = await getTenantRow(db, s(slug, 40));
   if (!t) return { exists: false, slug, tenant: null, discordGuildId: '', isAdmin: false };
   const omni = isOmniscientViewer(vc);
-  const devOnly = (await getTenantSetting(db, t.slug, 'dev_only')) === '1';
+  const devOnly = (await getTenantSetting(db, t.id, 'dev_only')) === '1';
   if (devOnly && !omni && !isDevRequest(request)) {
     return { exists: false, slug, tenant: null, discordGuildId: '', isAdmin: false, devOnly: true };
   }
-  const dgid = (await getTenantSetting(db, t.slug, 'discord_guild_id')) || '';
+  const dgid = (await getTenantSetting(db, t.id, 'discord_guild_id')) || '';
   let isAdmin = omni;
   if (!isAdmin && user && dgid) {
     const servers = await getServersForUser(db, user);
@@ -257,11 +257,14 @@ export function hasCapability(verdict: OfficerVerdict, capability: OfficerCapabi
  * the four manage mutations (edit / disband / complete / reopen) and
  * the detail surfaces' action composition; do not re-derive it per
  * call site. */
-export async function getGroupingManageVerdict(db: any, user: any, request: any, vc: ViewerContext | null | undefined, ev: { tenant: string; creator_discord_id?: string | null }): Promise<{ isLeader: boolean; isAdmin: boolean; isOfficer: boolean; canManage: boolean }> {
-  const isLeader = !!(user && ev.creator_discord_id
-    && String(ev.creator_discord_id) === String(user.discordId));
+export async function getGroupingManageVerdict(db: any, user: any, request: any, vc: ViewerContext | null | undefined, ev: { tenant: number; creator_user_id?: number | null }): Promise<{ isLeader: boolean; isAdmin: boolean; isOfficer: boolean; canManage: boolean }> {
+  const isLeader = !!(user && ev.creator_user_id != null
+    && Number(ev.creator_user_id) === Number(user.userId));
   if (isLeader) return { isLeader: true, isAdmin: false, isOfficer: false, canManage: true };
-  const a = await getGuildAdminAccess(db, user, ev.tenant, request, vc);
+  // The admin verdict is slug-addressed; the event carries the
+  // guild ID, so resolve its handle through the tenants row.
+  const tenantRow = await getTenantRowById(db, ev.tenant).catch(() => null);
+  const a = await getGuildAdminAccess(db, user, tenantRow ? tenantRow.slug : '', request, vc);
   const isAdmin = !!a.isAdmin;
   if (isAdmin) return { isLeader: false, isAdmin, isOfficer: false, canManage: true };
   // P16 delegation: an officer holding the events capability of the
@@ -281,9 +284,10 @@ export async function getGroupingManageVerdict(db: any, user: any, request: any,
  * and the verdict below still decides, passing omni in full per the
  * omniscient doctrine. writeCode is the write gate's rejection code,
  * null when the caller passed it. */
-export async function groupingManageGate(db: any, user: any, request: any, vc: ViewerContext | null | undefined, ev: { tenant: string; creator_discord_id?: string | null }): Promise<{ writeCode: string | null; isLeader: boolean; isAdmin: boolean; canManage: boolean }> {
+export async function groupingManageGate(db: any, user: any, request: any, vc: ViewerContext | null | undefined, ev: { tenant: number; creator_user_id?: number | null }): Promise<{ writeCode: string | null; isLeader: boolean; isAdmin: boolean; canManage: boolean }> {
   if (!isOmniscientViewer(vc)) {
-    const w = await requireWrite(db, user, ev.tenant, request);
+    const tenantRow = await getTenantRowById(db, ev.tenant).catch(() => null);
+    const w = await requireWrite(db, user, tenantRow ? tenantRow.slug : '', request);
     if (w) return { writeCode: w, isLeader: false, isAdmin: false, canManage: false };
   }
   const v = await getGroupingManageVerdict(db, user, request, vc, ev);
@@ -296,11 +300,11 @@ export async function getGuildAccess(db: any, user: any, slug: any, request: any
   const t = await getTenantRow(db, s(slug, 40));
   if (!t) return { exists: false, slug, bound: false, isMember: false, canView: false, canWrite: false, tenant: null, discordGuildId: '' };
   // dev_only guilds: non-dev origins treat them as nonexistent (lists filter naturally; direct hits go Locked/not-found)
-  const devOnly = (await getTenantSetting(db, t.slug, 'dev_only')) === '1';
+  const devOnly = (await getTenantSetting(db, t.id, 'dev_only')) === '1';
   if (devOnly && !isDevRequest(request)) {
     return { exists: false, slug, bound: false, isMember: false, canView: false, canWrite: false, tenant: null, discordGuildId: '', devOnly: true };
   }
-  const dgid = await getTenantSetting(db, t.slug, 'discord_guild_id');
+  const dgid = await getTenantSetting(db, t.id, 'discord_guild_id');
   const bound = !!dgid;
   const isMember = !!(user && bound && (user.guilds || []).includes(dgid));
   return {
@@ -422,7 +426,7 @@ export const TYPE_TO_ENUM: Record<string, string> = { activity: 'ACTIVITY', tale
 export const GUILD_TABS = ['双十人本', '天赋组队', '竞速报名', '攻略', '流派攻略'];
 
 export async function getGameVersion(db: any) {
-  return (await getSettingValue(db, '', 'game_version')) || 'intl-v2.3';
+  return (await getSettingValue(db, 0, 'game_version')) || 'intl-v2.3';
 }
 
 // Current version code (e.g. intl-v2.3): same namespace as dungeons.version,
@@ -433,7 +437,7 @@ export async function getGameVersion(db: any) {
 // Derivation: the current tier is the only non-legacy version code; take the
 // code containing the newest dungeon, so rotation follows automatically.
 export async function getCurrentVersionCode(db: any) {
-  const configured = await getSettingValue(db, '', 'game_version_code');
+  const configured = await getSettingValue(db, 0, 'game_version_code');
   if (configured) return configured;
   try {
     const derived = await getLatestDungeonVersion(db);

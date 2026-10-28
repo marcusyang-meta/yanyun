@@ -12,7 +12,7 @@ import { isValidPushToken, savePushToken, deletePushToken } from '../platform/in
 import { evaluateHeirloomPushes } from '../gear/index.ts';
 import { translate, negotiateLocale, SUPPORTED_LOCALES, CATALOG } from '../platform/index.ts';
 import { logError } from '../platform/index.ts';
-import { getGuildAvatarMeta, avatarPath } from '../guilds/index.ts';
+import { getGuildAvatarMeta, avatarPath, getGuildIdBySlug } from '../guilds/index.ts';
 import { getSettingValue, setSettingValue, listSettingsByKey } from '../guilds/index.ts';
 import { getUsernameRow } from './index.ts';
 import { listGuildMembers, getGuildMember } from './index.ts';
@@ -80,7 +80,9 @@ export async function identityNamesFor(db: any, discordId: any, dgid: any) {
 
 export async function selfStampFor(db: any, user: any, slug: any, nickname: any) {
   if (!user || !user.discordId || !nickname) return null;
-  const dgid = await getTenantSetting(db, slug, 'discord_guild_id');
+  const guildId = await getGuildIdBySlug(db, slug).catch(() => null);
+  if (guildId == null) return null;
+  const dgid = await getTenantSetting(db, guildId, 'discord_guild_id');
   const names = await identityNamesFor(db, user.discordId, dgid);
   if (user.name && String(user.name).trim()) names.add(String(user.name).trim());
   return names.has(nickname) ? String(user.discordId) : null;
@@ -96,7 +98,8 @@ export async function selfStampFor(db: any, user: any, slug: any, nickname: any)
  * it survives only in pre-arranged seats and full-table edits. */
 export async function canonicalSignupName(db: any, user: any, slug: any) {
   if (!user || !user.discordId) return '';
-  const dgid = await getTenantSetting(db, slug, 'discord_guild_id');
+  const guildId = await getGuildIdBySlug(db, slug).catch(() => null);
+  const dgid = guildId == null ? '' : await getTenantSetting(db, guildId, 'discord_guild_id');
   if (dgid) {
     const nick = await getGuildNick(db, String(user.discordId), dgid).catch(() => null);
     if (nick && String(nick).trim()) return String(nick).trim();
@@ -266,7 +269,7 @@ export function loadMyAccountRow(ctx: Context): Promise<AccountRow | null> {
   if (!store.has('myAccountRow')) {
     store.set('myAccountRow', (async () => {
       if (!ctx.user) return null;
-      return getAccountRow(ctx.env.DB, ctx.user.discordId).catch(() => null);
+      return getAccountRow(ctx.env.DB, ctx.user.userId).catch(() => null);
     })());
   }
   return store.get('myAccountRow') as Promise<AccountRow | null>;
@@ -300,7 +303,7 @@ export class SettingsPageShell extends ShellBase {
       for (const t of tenants) {
         const a = await getGuildAccess(this.db, user, t.slug, this.ctx.request);
         if (!a.exists || !a.isMember) continue;
-        const row = await getMemberAvailability(this.db, t.slug, String(user.discordId)).catch(() => null);
+        const row = await getMemberAvailability(this.db, t.id, user.userId).catch(() => null);
         out.push(new SettingsAvailabilityGuildShell(this.ctx, {
           slug: t.slug, guildName: t.guild_name || '',
           slots: row ? parseAvailabilitySlots(row.slots_json) : [],
@@ -447,7 +450,7 @@ export const identityResolvers = {
         return uFail(ctx, 'localeUnsupported', ctx.locale || browser);
       }
       const pref = locale || null;
-      await setUserLocalePref(ctx.env, ctx.user.discordId, pref);
+      await setUserLocalePref(ctx.env, ctx.user.userId, pref);
       return new UpdateLocalePayloadShell(ctx, {
         ok: true, errorCode: null, localePref: pref, effectiveLocale: pref || browser,
       });
@@ -458,7 +461,7 @@ export const identityResolvers = {
      * identity account service; these resolvers only adapt payloads. */
     exportMyData: async (_: any, __: any, ctx: Context) => {
       if (!ctx.user) return new ExportMyDataPayloadShell(ctx, { ok: false, errorCode: 'loginRequired' });
-      const r = await exportMyDataService(ctx.env.DB, ctx.user.discordId, ctx.locale);
+      const r = await exportMyDataService(ctx.env.DB, ctx.user.userId, ctx.locale);
       return new ExportMyDataPayloadShell(ctx, r.ok
         ? { ok: true, errorCode: null, json: r.json }
         : { ok: false, errorCode: r.errorCode });
@@ -466,7 +469,7 @@ export const identityResolvers = {
 
     requestAccountDeletion: async (_: any, { typedUsername }: any, ctx: Context) => {
       if (!ctx.user) return new AccountDeletionPayloadShell(ctx, { ok: false, errorCode: 'loginRequired' });
-      const r = await requestAccountDeletionService(ctx.env.DB, ctx.user.discordId, typedUsername);
+      const r = await requestAccountDeletionService(ctx.env.DB, ctx.user.userId, typedUsername);
       return new AccountDeletionPayloadShell(ctx, r.ok
         ? { ok: true, errorCode: null, executesAt: r.executesAt }
         : { ok: false, errorCode: r.errorCode });
@@ -474,7 +477,7 @@ export const identityResolvers = {
 
     cancelAccountDeletion: async (_: any, __: any, ctx: Context) => {
       if (!ctx.user) return new AccountDeletionPayloadShell(ctx, { ok: false, errorCode: 'loginRequired' });
-      const r = await cancelAccountDeletionService(ctx.env.DB, ctx.user.discordId);
+      const r = await cancelAccountDeletionService(ctx.env.DB, ctx.user.userId);
       return new AccountDeletionPayloadShell(ctx, r.ok
         ? { ok: true, errorCode: null }
         : { ok: false, errorCode: r.errorCode });

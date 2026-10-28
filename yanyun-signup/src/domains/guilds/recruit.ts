@@ -27,6 +27,7 @@
 import { sql } from 'drizzle-orm';
 import { createDb } from '../../db/client.ts';
 import { guildApplications, mentorPairings, guildMentors } from './schema.ts';
+import { mintPublicId } from '../platform/id-mint.ts';
 import { listUserSeatFactsInGuild } from '../groupings/signups.ts';
 import { getMemberAvailability, parseAvailabilitySlots } from '../groupings/availability.ts';
 
@@ -53,42 +54,43 @@ export const PAIRING_LIST_LIMIT = 200;
 
 export interface GuildApplicationRow {
   id: number;
-  tenant: string;
-  discord_id: string;
+  tenant: number;
+  user_id: number;
   applicant_name: string;
   message: string;
   status: string;
-  reviewed_by: string;
+  reviewed_by_user_id: number;
   reviewed_by_name: string;
   created_at: number;
   reviewed_at: number | null;
 }
 
-const APPLICATION_COLS = sql`${guildApplications.id}, ${guildApplications.tenant}, ${guildApplications.discordId}, ${guildApplications.applicantName}, ${guildApplications.message}, ${guildApplications.status}, ${guildApplications.reviewedBy}, ${guildApplications.reviewedByName}, ${guildApplications.createdAt}, ${guildApplications.reviewedAt}`;
+const APPLICATION_COLS = sql`${guildApplications.id}, ${guildApplications.tenant}, ${guildApplications.userId}, ${guildApplications.applicantName}, ${guildApplications.message}, ${guildApplications.status}, ${guildApplications.reviewedByUserId}, ${guildApplications.reviewedByName}, ${guildApplications.createdAt}, ${guildApplications.reviewedAt}`;
 
 /** Insert one application (status starts 'pending'); returns the new row id.
  * The partial unique index (one pending per guild + applicant) is the
  * schema-level backstop for the mutation's dedupe check. */
 export async function insertApplication(
   d1: D1Database,
-  row: { tenant: string; discordId: string; applicantName: string; message: string; createdAt: number },
+  row: { tenant: number; userId: number; applicantName: string; message: string; createdAt: number },
 ): Promise<number> {
   const db = createDb(d1);
-  const r = await db.run(
-    sql`INSERT INTO ${guildApplications} (${col('tenant')}, ${col('discord_id')}, ${col('applicant_name')}, ${col('message')}, ${col('created_at')})
-        VALUES (${row.tenant}, ${row.discordId}, ${row.applicantName}, ${row.message}, ${row.createdAt})`,
+  const id = await mintPublicId(d1, 'recruitApplication');
+  await db.run(
+    sql`INSERT INTO ${guildApplications} (${col('id')}, ${col('tenant')}, ${col('user_id')}, ${col('applicant_name')}, ${col('message')}, ${col('created_at')})
+        VALUES (${id}, ${row.tenant}, ${row.userId}, ${row.applicantName}, ${row.message}, ${row.createdAt})`,
   );
-  return metaOf(r).last_row_id;
+  return id;
 }
 
 /** The applicant's pending application in this guild, if any (the dedupe read). */
 export async function getPendingApplication(
-  d1: D1Database, tenant: string, discordId: string,
+  d1: D1Database, tenant: number, userId: number,
 ): Promise<GuildApplicationRow | null> {
   const db = createDb(d1);
   const row = await db.get<GuildApplicationRow>(
     sql`SELECT ${APPLICATION_COLS} FROM ${guildApplications}
-        WHERE ${guildApplications.tenant} = ${tenant} AND ${guildApplications.discordId} = ${discordId}
+        WHERE ${guildApplications.tenant} = ${tenant} AND ${guildApplications.userId} = ${userId}
           AND ${guildApplications.status} = 'pending'`,
   );
   return row ?? null;
@@ -96,12 +98,12 @@ export async function getPendingApplication(
 
 /** The applicant's most recent application in this guild (their status view). */
 export async function getLatestApplication(
-  d1: D1Database, tenant: string, discordId: string,
+  d1: D1Database, tenant: number, userId: number,
 ): Promise<GuildApplicationRow | null> {
   const db = createDb(d1);
   const row = await db.get<GuildApplicationRow>(
     sql`SELECT ${APPLICATION_COLS} FROM ${guildApplications}
-        WHERE ${guildApplications.tenant} = ${tenant} AND ${guildApplications.discordId} = ${discordId}
+        WHERE ${guildApplications.tenant} = ${tenant} AND ${guildApplications.userId} = ${userId}
         ORDER BY ${guildApplications.id} DESC LIMIT 1`,
   );
   return row ?? null;
@@ -109,7 +111,7 @@ export async function getLatestApplication(
 
 /** All of one guild's applications, newest first (the admin review surface). */
 export async function listApplicationsByTenant(
-  d1: D1Database, tenant: string, limit: number = APPLICATION_LIST_LIMIT,
+  d1: D1Database, tenant: number, limit: number = APPLICATION_LIST_LIMIT,
 ): Promise<GuildApplicationRow[]> {
   const db = createDb(d1);
   const rows = await db.all<GuildApplicationRow>(
@@ -122,7 +124,7 @@ export async function listApplicationsByTenant(
 
 /** One application of one guild; null when it does not exist THERE. */
 export async function getApplicationByTenant(
-  d1: D1Database, id: number, tenant: string,
+  d1: D1Database, id: number, tenant: number,
 ): Promise<GuildApplicationRow | null> {
   const db = createDb(d1);
   const row = await db.get<GuildApplicationRow>(
@@ -136,13 +138,13 @@ export async function getApplicationByTenant(
  * still-pending guard, so a raced second review changes nothing and
  * reports changes = 0 — the settled verdict can never be rewritten. */
 export async function reviewApplication(
-  d1: D1Database, id: number, tenant: string,
-  review: { status: 'approved' | 'rejected'; reviewedBy: string; reviewedByName: string; reviewedAt: number },
+  d1: D1Database, id: number, tenant: number,
+  review: { status: 'approved' | 'rejected'; reviewedByUserId: number; reviewedByName: string; reviewedAt: number },
 ): Promise<RunMeta> {
   const db = createDb(d1);
   const r = await db.run(
     sql`UPDATE ${guildApplications}
-        SET ${col('status')} = ${review.status}, ${col('reviewed_by')} = ${review.reviewedBy},
+        SET ${col('status')} = ${review.status}, ${col('reviewed_by_user_id')} = ${review.reviewedByUserId},
             ${col('reviewed_by_name')} = ${review.reviewedByName}, ${col('reviewed_at')} = ${review.reviewedAt}
         WHERE ${col('id')} = ${id} AND ${col('tenant')} = ${tenant} AND ${col('status')} = 'pending'`,
   );
@@ -151,34 +153,34 @@ export async function reviewApplication(
 
 /* ================= F17: the mentor pool ================= */
 
-/** Designated mentor discord ids of one guild (the candidate pool). */
-export async function listMentorIds(d1: D1Database, tenant: string): Promise<string[]> {
+/** Designated mentor user ids of one guild (the candidate pool). */
+export async function listMentorIds(d1: D1Database, tenant: number): Promise<number[]> {
   const db = createDb(d1);
-  const rows = await db.all<{ discord_id: string }>(
-    sql`SELECT ${guildMentors.discordId} FROM ${guildMentors} WHERE ${guildMentors.tenant} = ${tenant}`,
+  const rows = await db.all<{ user_id: number }>(
+    sql`SELECT ${guildMentors.userId} FROM ${guildMentors} WHERE ${guildMentors.tenant} = ${tenant}`,
   );
-  return (rows || []).map((r) => String(r.discord_id));
+  return (rows || []).map((r) => Number(r.user_id));
 }
 
 /** Designate a guild member as a mentor candidate (idempotent). */
 export async function insertMentor(
-  d1: D1Database, tenant: string, discordId: string, createdAt: number,
+  d1: D1Database, tenant: number, userId: number, createdAt: number,
 ): Promise<void> {
   const db = createDb(d1);
   await db.run(
-    sql`INSERT INTO ${guildMentors} (${col('tenant')}, ${col('discord_id')}, ${col('created_at')})
-        VALUES (${tenant}, ${discordId}, ${createdAt})
-        ON CONFLICT (${col('tenant')}, ${col('discord_id')}) DO NOTHING`,
+    sql`INSERT INTO ${guildMentors} (${col('tenant')}, ${col('user_id')}, ${col('created_at')})
+        VALUES (${tenant}, ${userId}, ${createdAt})
+        ON CONFLICT (${col('tenant')}, ${col('user_id')}) DO NOTHING`,
   );
 }
 
 /** Remove a mentor designation. Existing pairings are untouched. */
 export async function deleteMentor(
-  d1: D1Database, tenant: string, discordId: string,
+  d1: D1Database, tenant: number, userId: number,
 ): Promise<RunMeta> {
   const db = createDb(d1);
   const r = await db.run(
-    sql`DELETE FROM ${guildMentors} WHERE ${col('tenant')} = ${tenant} AND ${col('discord_id')} = ${discordId}`,
+    sql`DELETE FROM ${guildMentors} WHERE ${col('tenant')} = ${tenant} AND ${col('user_id')} = ${userId}`,
   );
   return metaOf(r);
 }
@@ -187,18 +189,18 @@ export async function deleteMentor(
 
 export interface MentorPairingRow {
   id: number;
-  tenant: string;
-  mentor_discord_id: string;
+  tenant: number;
+  mentor_user_id: number;
   mentor_name: string;
-  mentee_discord_id: string;
+  mentee_user_id: number;
   mentee_name: string;
   status: string;
-  created_by: string;
+  created_by_user_id: number;
   created_at: number;
   ended_at: number | null;
 }
 
-const PAIRING_COLS = sql`${mentorPairings.id}, ${mentorPairings.tenant}, ${mentorPairings.mentorDiscordId}, ${mentorPairings.mentorName}, ${mentorPairings.menteeDiscordId}, ${mentorPairings.menteeName}, ${mentorPairings.status}, ${mentorPairings.createdBy}, ${mentorPairings.createdAt}, ${mentorPairings.endedAt}`;
+const PAIRING_COLS = sql`${mentorPairings.id}, ${mentorPairings.tenant}, ${mentorPairings.mentorUserId}, ${mentorPairings.mentorName}, ${mentorPairings.menteeUserId}, ${mentorPairings.menteeName}, ${mentorPairings.status}, ${mentorPairings.createdByUserId}, ${mentorPairings.createdAt}, ${mentorPairings.endedAt}`;
 
 /** Create an active pairing; returns the new row id. The partial
  * unique index (one active pairing per mentee) backstops the
@@ -206,21 +208,22 @@ const PAIRING_COLS = sql`${mentorPairings.id}, ${mentorPairings.tenant}, ${mento
 export async function insertPairing(
   d1: D1Database,
   row: {
-    tenant: string; mentorDiscordId: string; mentorName: string;
-    menteeDiscordId: string; menteeName: string; createdBy: string; createdAt: number;
+    tenant: number; mentorUserId: number; mentorName: string;
+    menteeUserId: number; menteeName: string; createdByUserId: number; createdAt: number;
   },
 ): Promise<number> {
   const db = createDb(d1);
-  const r = await db.run(
-    sql`INSERT INTO ${mentorPairings} (${col('tenant')}, ${col('mentor_discord_id')}, ${col('mentor_name')}, ${col('mentee_discord_id')}, ${col('mentee_name')}, ${col('created_by')}, ${col('created_at')})
-        VALUES (${row.tenant}, ${row.mentorDiscordId}, ${row.mentorName}, ${row.menteeDiscordId}, ${row.menteeName}, ${row.createdBy}, ${row.createdAt})`,
+  const id = await mintPublicId(d1, 'mentorPairing');
+  await db.run(
+    sql`INSERT INTO ${mentorPairings} (${col('id')}, ${col('tenant')}, ${col('mentor_user_id')}, ${col('mentor_name')}, ${col('mentee_user_id')}, ${col('mentee_name')}, ${col('created_by_user_id')}, ${col('created_at')})
+        VALUES (${id}, ${row.tenant}, ${row.mentorUserId}, ${row.mentorName}, ${row.menteeUserId}, ${row.menteeName}, ${row.createdByUserId}, ${row.createdAt})`,
   );
-  return metaOf(r).last_row_id;
+  return id;
 }
 
 /** One pairing of one guild; null when it does not exist THERE. */
 export async function getPairingByTenant(
-  d1: D1Database, id: number, tenant: string,
+  d1: D1Database, id: number, tenant: number,
 ): Promise<MentorPairingRow | null> {
   const db = createDb(d1);
   const row = await db.get<MentorPairingRow>(
@@ -232,7 +235,7 @@ export async function getPairingByTenant(
 
 /** All of one guild's pairings, newest first (the admin pairing list). */
 export async function listPairingsByTenant(
-  d1: D1Database, tenant: string, limit: number = PAIRING_LIST_LIMIT,
+  d1: D1Database, tenant: number, limit: number = PAIRING_LIST_LIMIT,
 ): Promise<MentorPairingRow[]> {
   const db = createDb(d1);
   const rows = await db.all<MentorPairingRow>(
@@ -245,13 +248,13 @@ export async function listPairingsByTenant(
 
 /** Pairings of one guild where this user is mentor or mentee (their own view). */
 export async function listPairingsForUser(
-  d1: D1Database, tenant: string, discordId: string,
+  d1: D1Database, tenant: number, userId: number,
 ): Promise<MentorPairingRow[]> {
   const db = createDb(d1);
   const rows = await db.all<MentorPairingRow>(
     sql`SELECT ${PAIRING_COLS} FROM ${mentorPairings}
         WHERE ${mentorPairings.tenant} = ${tenant}
-          AND (${mentorPairings.mentorDiscordId} = ${discordId} OR ${mentorPairings.menteeDiscordId} = ${discordId})
+          AND (${mentorPairings.mentorUserId} = ${userId} OR ${mentorPairings.menteeUserId} = ${userId})
         ORDER BY ${mentorPairings.id} DESC`,
   );
   return rows || [];
@@ -259,12 +262,12 @@ export async function listPairingsForUser(
 
 /** The mentee's active pairing in this guild, if any (checklist + already-paired reads). */
 export async function getActivePairingForMentee(
-  d1: D1Database, tenant: string, menteeDiscordId: string,
+  d1: D1Database, tenant: number, menteeUserId: number,
 ): Promise<MentorPairingRow | null> {
   const db = createDb(d1);
   const row = await db.get<MentorPairingRow>(
     sql`SELECT ${PAIRING_COLS} FROM ${mentorPairings}
-        WHERE ${mentorPairings.tenant} = ${tenant} AND ${mentorPairings.menteeDiscordId} = ${menteeDiscordId}
+        WHERE ${mentorPairings.tenant} = ${tenant} AND ${mentorPairings.menteeUserId} = ${menteeUserId}
           AND ${mentorPairings.status} = 'active'`,
   );
   return row ?? null;
@@ -273,7 +276,7 @@ export async function getActivePairingForMentee(
 /** End an active pairing (status + ended_at). The still-active guard
  * makes a raced second end a no-op reporting changes = 0. */
 export async function endPairing(
-  d1: D1Database, id: number, tenant: string, endedAt: number,
+  d1: D1Database, id: number, tenant: number, endedAt: number,
 ): Promise<RunMeta> {
   const db = createDb(d1);
   const r = await db.run(
@@ -314,14 +317,16 @@ export interface NewcomerChecklistFacts {
 }
 
 export async function computeNewcomerChecklist(
-  d1: D1Database, tenant: string, discordId: string,
+  d1: D1Database, tenant: number, discordId: string, userId: number,
 ): Promise<NewcomerChecklistFacts> {
+  // Seat facts key on the seat stamp (signups.discord_id, a Discord
+  // boundary column); pairing and availability key on the user ID.
   const seats = await listUserSeatFactsInGuild(d1, tenant, discordId).catch(() => []);
   const profileDone = seats.some((x) => String(x.weapon || '').trim() !== '');
   const firstRunDone = seats.some((x) => x.event_status === 'completed');
-  const pairing = await getActivePairingForMentee(d1, tenant, discordId).catch(() => null);
+  const pairing = await getActivePairingForMentee(d1, tenant, userId).catch(() => null);
   const mentorDone = !!pairing;
-  const availRow = await getMemberAvailability(d1, tenant, discordId).catch(() => null);
+  const availRow = await getMemberAvailability(d1, tenant, userId).catch(() => null);
   const availabilityDone = !!availRow && parseAvailabilitySlots(availRow.slots_json).length > 0;
   const doneCount = [profileDone, availabilityDone, mentorDone, firstRunDone].filter(Boolean).length;
   return { profileDone, availabilityDone, mentorDone, firstRunDone, doneCount, allDone: doneCount === 4 };

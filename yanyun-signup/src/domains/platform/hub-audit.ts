@@ -15,6 +15,7 @@
 // pace, so a longer window costs almost nothing and keeps forensic
 // history useful, while the row cap still bounds worst-case growth.
 import { insertHubAudit, pruneHubAudit, listHubAudit, countHubAudit } from './hubAudit.ts';
+import { getGuildIdBySlug } from '../guilds/tenants.ts';
 import type { HubAuditRow } from './hubAudit.ts';
 
 const KEEP_DAYS = 180;
@@ -36,7 +37,9 @@ export interface HubAuditInput {
   /** 'hub' for portal operations, 'system' for scheduled/internal ones. */
   actor?: string;
   action: string;
-  tenant?: string;
+  /** The guild's slug handle (portal callers) or its numeric ID; the
+   *  stored column is the numeric guild ID (migration 0033). */
+  tenant?: string | number;
   /** Digest object (JSON-serialized) or pre-built string. Digests only:
    *  never a password, a webhook URL, or a secret value. */
   summary?: Record<string, unknown> | string;
@@ -52,11 +55,16 @@ export async function auditHub(db: D1Database, input: HubAuditInput): Promise<bo
       : typeof input.summary === 'string'
         ? clip(input.summary, 500)
         : clip(JSON.stringify(input.summary), 500);
+    const tenantId = typeof input.tenant === 'number'
+      ? input.tenant
+      : input.tenant
+        ? (await getGuildIdBySlug(db, String(input.tenant)).catch(() => null)) ?? 0
+        : 0;
     await insertHubAudit(db, {
       at: Math.floor(Date.now() / 1000),
       actor: clip(input.actor || 'hub', 20),
       action: clip(input.action, 60),
-      tenant: clip(input.tenant, 40),
+      tenant: tenantId,
       summary,
       ip: clip(input.ip, 60),
     });
@@ -78,7 +86,9 @@ export async function listHubAuditPage(
   opts: { tenant?: string; limit?: number; offset?: number } = {},
 ): Promise<HubAuditPage> {
   try {
-    const tenant = clip(opts.tenant, 40);
+    const tenant = opts.tenant
+      ? (await getGuildIdBySlug(db, clip(opts.tenant, 40)).catch(() => null)) ?? 0
+      : 0;
     const limit = Math.min(Math.max(Math.floor(opts.limit || 50), 1), 200);
     const offset = Math.max(Math.floor(opts.offset || 0), 0);
     const entries = await listHubAudit(db, { tenant, limit, offset });

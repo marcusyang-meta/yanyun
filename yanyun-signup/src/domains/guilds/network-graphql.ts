@@ -72,11 +72,12 @@ import {
   insertFillInvite, getFillInviteById, getLiveInviteForPair, listInvitesForSupplier,
   listInvitesByRequest, respondFillInvite, expirePendingInvitesForRequest,
   insertAlliance, getAllianceById, getLiveAllianceBetween, getActiveAllianceBetween,
-  listAlliancesForGuild, listActiveAllySlugs, respondAlliance, endAlliance,
-  allianceOtherSlug,
+  listAlliancesForGuild, listActiveAllyIds, respondAlliance, endAlliance,
+  allianceOtherGuildId,
 } from './network.ts';
 import type { FillOfferRow, FillRequestRow, FillInviteRow, GuildAllianceRow } from './network.ts';
-import { getTenantRow, listTenantsDirectory } from './tenants.ts';
+import { getTenantRow, getTenantRowById, listTenantsDirectory } from './tenants.ts';
+import { getDiscordIdByUserId } from '../identity/index.ts';
 import { getGuildMember } from '../identity/index.ts';
 import {
   getEventRow, getEventRowByTenant, updateEventFields, listEventsWeekView, listAllySharedEvents,
@@ -88,7 +89,7 @@ import type { EventRow } from '../groupings/index.ts';
 const nowSec = () => Math.floor(Date.now() / 1000);
 
 /** Roster-first display name for snapshots (schedule-graphql caliber). */
-async function displayNameFor(db: D1Database, tenant: string, user: { discordId: string; name?: string }): Promise<string> {
+async function displayNameFor(db: D1Database, tenant: number, user: { discordId: string; name?: string }): Promise<string> {
   const m = await getGuildMember(db, tenant, String(user.discordId)).catch(() => null);
   const nick = m ? String(m.nick || '').trim() : '';
   if (nick) return nick;
@@ -97,9 +98,14 @@ async function displayNameFor(db: D1Database, tenant: string, user: { discordId:
   return String(user.name || '').trim();
 }
 
-async function tenantName(db: D1Database, slug: string): Promise<string> {
-  const t = await getTenantRow(db, slug).catch(() => null);
-  return t ? String(t.guild_name || '') : slug;
+async function tenantName(db: D1Database, guildId: number): Promise<string> {
+  const t = await getTenantRowById(db, guildId).catch(() => null);
+  return t ? String(t.guild_name || '') : '';
+}
+
+async function tenantSlug(db: D1Database, guildId: number): Promise<string> {
+  const t = await getTenantRowById(db, guildId).catch(() => null);
+  return t ? String(t.slug || '') : '';
 }
 
 /* ---------------- P19 row shells ---------------- */
@@ -123,7 +129,9 @@ export class FillOfferShell extends ShellBase {
   genSchool(){ return this.data.school || ''; }
   genRoleLabel(){ return this.t(roleOf(this.data.school) === '奶' ? 'market_roleHealer' : 'market_roleDps'); }
   genNote(){ return this.data.note || ''; }
-  genHomeTenant(){ return this.data.home_tenant || ''; }
+  genHomeTenant(){
+    return this.memo('homeTenantSlug', async () => tenantSlug(this.db, this.data.home_tenant));
+  }
   genHomeGuildName(){
     return this.memo('homeGuildName', async () => tenantName(this.db, this.data.home_tenant));
   }
@@ -225,7 +233,10 @@ export class FillRequestShell extends ShellBase {
       for (const inv of invites) {
         let canSeat = false;
         if (inv.status === 'accepted') {
-          const seat = await findSeatByEventAndDiscord(this.db, inv.event_id, inv.to_discord_id).catch(() => null);
+          const supplierDiscordId = await getDiscordIdByUserId(this.db, inv.to_user_id).catch(() => null);
+          const seat = supplierDiscordId
+            ? await findSeatByEventAndDiscord(this.db, inv.event_id, supplierDiscordId).catch(() => null)
+            : null;
           canSeat = !seat;
         }
         inviteShells.push(new FillInviteShell(this.ctx, { row: inv, canSeat }));
@@ -248,14 +259,14 @@ export class FillSupplySectionShell extends ShellBase {
   genMyOffer(){
     return this.memo('myOffer', async () => {
       if (!this.ctx.user) return null;
-      const row = await getOpenOfferForUser(this.db, this.ctx.user.discordId).catch(() => null);
+      const row = await getOpenOfferForUser(this.db, this.ctx.user.userId).catch(() => null);
       return row ? new FillOfferShell(this.ctx, row) : null;
     });
   }
   genMyInvites(){
     return this.memo('myInvites', async () => {
       if (!this.ctx.user) return [];
-      const rows = await listInvitesForSupplier(this.db, this.ctx.user.discordId).catch(() => []);
+      const rows = await listInvitesForSupplier(this.db, this.ctx.user.userId).catch(() => []);
       return rows.map((r) => new FillInviteShell(this.ctx, { row: r }));
     });
   }
@@ -314,10 +325,10 @@ export class FillDemandGroupingShell extends ShellBase {
 
 export class FillDemandSectionShell extends ShellBase {
   __typename = 'FillDemandSection';
-  // data: { slug, manageGroupings: EventRow[] | null }
+  // data: { slug, guildId, manageGroupings: EventRow[] | null }
   genRequests(){
     return this.memo('requests', async () => {
-      const rows = await listFillRequestsByTenant(this.db, this.data.slug).catch(() => []);
+      const rows = await listFillRequestsByTenant(this.db, this.data.guildId).catch(() => []);
       return rows.map((r) => new FillRequestShell(this.ctx, r));
     });
   }
@@ -356,7 +367,7 @@ export class FillMarketPageShell extends ShellBase {
       if (state === 'absent') return null;
       if (state === 'locked') return new FillDemandLockedShell(this.ctx, {});
       return new FillDemandSectionShell(this.ctx, {
-        slug: this.data.slug, manageGroupings: this.data.manageGroupings,
+        slug: this.data.slug, guildId: this.data.tenant.id, manageGroupings: this.data.manageGroupings,
       });
     });
   }
@@ -387,7 +398,7 @@ export async function fillMarketResult(ctx: Context, slug: string) {
   // or null when the viewer manages nothing here and gets no
   // create form.
   let manageGroupings: EventRow[] | null = null;
-  const week = await listEventsWeekView(ctx.env.DB, { tenant: a.tenant.slug }).catch(() => []);
+  const week = await listEventsWeekView(ctx.env.DB, { tenant: a.tenant.id }).catch(() => []);
   const open = (week || []).filter((ev) => ev.status === 'open');
   const mine: EventRow[] = [];
   for (const ev of open) {
@@ -411,16 +422,20 @@ export class AllyGuildShell extends ShellBase {
 }
 
 export class AllianceRelationShell extends ShellBase {
-  // data: { row, viewerSlug }
+  // data: { row, viewerGuildId }
   get row(): GuildAllianceRow { return this.data.row; }
   genId(){ return String(this.row.id); }
-  genOtherSlug(){ return allianceOtherSlug(this.row, this.data.viewerSlug); }
+  genOtherSlug(){
+    return this.memo('otherSlug', async () =>
+      tenantSlug(this.db, allianceOtherGuildId(this.row, this.data.viewerGuildId)));
+  }
   genOtherName(){
-    return this.memo('otherName', async () => tenantName(this.db, this.genOtherSlug()));
+    return this.memo('otherName', async () =>
+      tenantName(this.db, allianceOtherGuildId(this.row, this.data.viewerGuildId)));
   }
   genStatus(){ return ALLIANCE_STATUS_ENUM[this.row.status] || 'PENDING'; }
   genStatusLabel(){ return this.t(ALLIANCE_STATUS_TEXT[this.row.status] || 'allies_statusPending'); }
-  genOutgoing(){ return this.row.requested_by_tenant === this.data.viewerSlug; }
+  genOutgoing(){ return this.row.requested_by_tenant === this.data.viewerGuildId; }
   genRequestedByName(){ return this.row.requested_by_name || ''; }
   genCreatedAtText(){
     return this.row.created_at ? fmtStartsAt(this.row.created_at, this.locale, this.ctx.tz) : '';
@@ -428,11 +443,11 @@ export class AllianceRelationShell extends ShellBase {
 }
 
 export class AllianceAdminSectionShell extends ShellBase {
-  // data: { slug }
+  // data: { slug, guildId }
   genRelations(){
     return this.memo('relations', async () => {
-      const rows = await listAlliancesForGuild(this.db, this.data.slug).catch(() => []);
-      return rows.map((r) => new AllianceRelationShell(this.ctx, { row: r, viewerSlug: this.data.slug }));
+      const rows = await listAlliancesForGuild(this.db, this.data.guildId).catch(() => []);
+      return rows.map((r) => new AllianceRelationShell(this.ctx, { row: r, viewerGuildId: this.data.guildId }));
     });
   }
   genCandidates(){
@@ -441,7 +456,7 @@ export class AllianceAdminSectionShell extends ShellBase {
       const out = [];
       for (const t of all || []) {
         if (t.slug === this.data.slug) continue;
-        const live = await getLiveAllianceBetween(this.db, this.data.slug, t.slug).catch(() => null);
+        const live = await getLiveAllianceBetween(this.db, this.data.guildId, t.id).catch(() => null);
         if (live) continue;
         out.push(new AllyGuildShell(this.ctx, { slug: t.slug, name: t.guild_name }));
       }
@@ -465,7 +480,9 @@ export class AllySharedGroupingShell extends ShellBase {
   // data: { ev, viewerSlug, visitorLeft, joined }
   get ev(): EventRow { return this.data.ev; }
   genId(){ return String(this.ev.id); }
-  genHostSlug(){ return this.ev.tenant; }
+  genHostSlug(){
+    return this.memo('hostSlug', async () => tenantSlug(this.db, this.ev.tenant));
+  }
   genHostName(){
     return this.memo('hostName', async () => tenantName(this.db, this.ev.tenant));
   }
@@ -493,25 +510,27 @@ export class GuildAlliesPageShell extends ShellBase {
   genGuildName(){ return this.data.tenant ? this.data.tenant.guild_name : ''; }
   genAllies(){
     return this.memo('allies', async () => {
-      const rows = await listAlliancesForGuild(this.db, this.data.slug).catch(() => []);
+      const rows = await listAlliancesForGuild(this.db, this.data.tenant.id).catch(() => []);
       const out = [];
       for (const r of rows) {
         if (r.status !== 'active') continue;
-        const other = allianceOtherSlug(r, this.data.slug);
-        out.push(new AllyGuildShell(this.ctx, { slug: other, name: await tenantName(this.db, other) }));
+        const other = allianceOtherGuildId(r, this.data.tenant.id);
+        out.push(new AllyGuildShell(this.ctx, {
+          slug: await tenantSlug(this.db, other), name: await tenantName(this.db, other),
+        }));
       }
       return out;
     });
   }
   genAdminSection(){
     if (!this.data.isAdmin) return null;
-    return new AllianceAdminSectionShell(this.ctx, { slug: this.data.slug });
+    return new AllianceAdminSectionShell(this.ctx, { slug: this.data.slug, guildId: this.data.tenant.id });
   }
   genSharedGroupings(){
     return this.memo('sharedGroupings', async () => {
       if (!this.ctx.user) return [];
-      const allySlugs = await listActiveAllySlugs(this.db, this.data.slug).catch(() => []);
-      const events = await listAllySharedEvents(this.db, allySlugs).catch(() => []);
+      const allyIds = await listActiveAllyIds(this.db, this.data.tenant.id).catch(() => []);
+      const events = await listAllySharedEvents(this.db, allyIds).catch(() => []);
       const out = [];
       for (const ev of events || []) {
         const taken = await countVisitorSeatsByEvent(this.db, ev.id).catch(() => 0);
@@ -622,13 +641,13 @@ export const networkMutations = {
     if (!schoolV) return oFail(ctx, 'fillSchoolRequired');
     const parsed = validateAvailabilitySlots(windows || []);
     if ('error' in parsed) return oFail(ctx, parsed.error === 'availabilityTooManySlots' ? 'availabilityTooManySlots' : 'fillWindowsInvalid');
-    const existing = await getOpenOfferForUser(db, user.discordId).catch(() => null);
+    const existing = await getOpenOfferForUser(db, user.userId).catch(() => null);
     if (existing) return oFail(ctx, 'fillOfferExists');
-    const name = await displayNameFor(db, a.tenant.slug, user);
+    const name = await displayNameFor(db, a.tenant.id, user);
     let id: number;
     try {
       id = await insertFillOffer(db, {
-        discordId: user.discordId, displayName: name, homeTenant: a.tenant.slug,
+        userId: user.userId, displayName: name, homeTenant: a.tenant.id,
         school: schoolV, windowsJson: JSON.stringify(parsed.slots),
         note: s(note, FILL_NOTE_MAX), at: nowSec(),
       });
@@ -646,7 +665,7 @@ export const networkMutations = {
     const db = ctx.env.DB;
     const user = ctx.user;
     if (!user) return nFail(ctx, 'loginRequired');
-    const r = await withdrawFillOffer(db, user.discordId, nowSec());
+    const r = await withdrawFillOffer(db, user.userId, nowSec());
     if (!r.changes) return nFail(ctx, 'fillOfferNotOpen');
     return new NetworkOkPayloadShell(ctx, { ok: true, errorCode: null });
   },
@@ -661,19 +680,19 @@ export const networkMutations = {
     }
     const a = await getGuildAccess(db, user, slug, ctx.request);
     if (!a.exists) return qFail(ctx, 'guildNotFound');
-    if (await tierLocked(db, a.tenant.slug, 3)) return qFail(ctx, 'premiumRequired');
-    const ev = await getEventRowByTenant(db, Number(groupingId), a.tenant.slug).catch(() => null);
+    if (await tierLocked(db, a.tenant.id, 3)) return qFail(ctx, 'premiumRequired');
+    const ev = await getEventRowByTenant(db, Number(groupingId), a.tenant.id).catch(() => null);
     if (!ev) return qFail(ctx, 'groupingNotFound');
     const gate = await groupingManageGate(db, user, ctx.request, undefined, ev);
     if (gate.writeCode) return qFail(ctx, gate.writeCode);
     if (!gate.canManage) return qFail(ctx, 'marketManageOnly');
     const role = s(neededRole, 10);
     if (role !== '奶' && role !== '输出') return qFail(ctx, 'paramsIncomplete');
-    const name = await displayNameFor(db, a.tenant.slug, user);
+    const name = await displayNameFor(db, a.tenant.id, user);
     const id = await insertFillRequest(db, {
-      tenant: a.tenant.slug, eventId: ev.id, neededRole: role,
+      tenant: a.tenant.id, eventId: ev.id, neededRole: role,
       neededSchool: s(neededSchool, 40), note: s(note, FILL_NOTE_MAX),
-      createdBy: user.discordId, createdByName: name, at: nowSec(),
+      createdByUserId: user.userId, createdByName: name, at: nowSec(),
     });
     const row = await getFillRequestById(db, id).catch(() => null);
     return new FillRequestPayloadShell(ctx, {
@@ -688,8 +707,8 @@ export const networkMutations = {
     if (!user) return nFail(ctx, 'loginRequired');
     const a = await getGuildAccess(db, user, slug, ctx.request);
     if (!a.exists) return nFail(ctx, 'guildNotFound');
-    if (await tierLocked(db, a.tenant.slug, 3)) return nFail(ctx, 'premiumRequired');
-    const req = await getFillRequestByTenant(db, Number(requestId), a.tenant.slug).catch(() => null);
+    if (await tierLocked(db, a.tenant.id, 3)) return nFail(ctx, 'premiumRequired');
+    const req = await getFillRequestByTenant(db, Number(requestId), a.tenant.id).catch(() => null);
     if (!req) return nFail(ctx, 'fillRequestNotFound');
     const ev = await getEventRow(db, req.event_id).catch(() => null);
     if (!ev) return nFail(ctx, 'groupingNotFound');
@@ -712,8 +731,8 @@ export const networkMutations = {
     }
     const a = await getGuildAccess(db, user, slug, ctx.request);
     if (!a.exists) return iFail(ctx, 'guildNotFound');
-    if (await tierLocked(db, a.tenant.slug, 3)) return iFail(ctx, 'premiumRequired');
-    const req = await getFillRequestByTenant(db, Number(requestId), a.tenant.slug).catch(() => null);
+    if (await tierLocked(db, a.tenant.id, 3)) return iFail(ctx, 'premiumRequired');
+    const req = await getFillRequestByTenant(db, Number(requestId), a.tenant.id).catch(() => null);
     if (!req) return iFail(ctx, 'fillRequestNotFound');
     if (req.status !== 'open') return iFail(ctx, 'fillRequestNotOpen');
     const ev = await getEventRow(db, req.event_id).catch(() => null);
@@ -723,16 +742,16 @@ export const networkMutations = {
     if (!gate.canManage) return iFail(ctx, 'marketManageOnly');
     const offer = await getFillOfferById(db, Number(offerId)).catch(() => null);
     if (!offer || offer.status !== 'open') return iFail(ctx, 'fillOfferNotOpen');
-    if (offer.discord_id === user.discordId) return iFail(ctx, 'fillSelfInvite');
-    const live = await getLiveInviteForPair(db, req.id, offer.discord_id).catch(() => null);
+    if (offer.user_id === user.userId) return iFail(ctx, 'fillSelfInvite');
+    const live = await getLiveInviteForPair(db, req.id, offer.user_id).catch(() => null);
     if (live) return iFail(ctx, 'fillInviteExists');
-    const name = await displayNameFor(db, a.tenant.slug, user);
+    const name = await displayNameFor(db, a.tenant.id, user);
     let id: number;
     try {
       id = await insertFillInvite(db, {
-        requestId: req.id, offerId: offer.id, tenant: a.tenant.slug, eventId: req.event_id,
-        fromDiscordId: user.discordId, fromName: name,
-        toDiscordId: offer.discord_id, toName: offer.display_name, at: nowSec(),
+        requestId: req.id, offerId: offer.id, tenant: a.tenant.id, eventId: req.event_id,
+        fromUserId: user.userId, fromName: name,
+        toUserId: offer.user_id, toName: offer.display_name, at: nowSec(),
       });
     } catch {
       return iFail(ctx, 'fillInviteExists');
@@ -751,7 +770,7 @@ export const networkMutations = {
     const user = ctx.user;
     if (!user) return iFail(ctx, 'loginRequired');
     const inv = await getFillInviteById(db, Number(inviteId)).catch(() => null);
-    if (!inv || inv.to_discord_id !== user.discordId) return iFail(ctx, 'fillInviteNotFound');
+    if (!inv || inv.to_user_id !== user.userId) return iFail(ctx, 'fillInviteNotFound');
     if (inv.status !== 'pending') return iFail(ctx, 'fillInviteNotPending');
     if (accept) {
       const req = await getFillRequestById(db, inv.request_id).catch(() => null);
@@ -760,7 +779,7 @@ export const networkMutations = {
         return iFail(ctx, 'fillRequestNotOpen');
       }
     }
-    const r = await respondFillInvite(db, inv.id, user.discordId, !!accept, nowSec());
+    const r = await respondFillInvite(db, inv.id, user.userId, !!accept, nowSec());
     if (!r.changes) return iFail(ctx, 'fillInviteNotPending');
     if (accept) {
       await markFillRequestMatched(db, inv.request_id, nowSec());
@@ -782,23 +801,25 @@ export const networkMutations = {
     if (!user) return nFail(ctx, 'loginRequired');
     const a = await getGuildAccess(db, user, slug, ctx.request);
     if (!a.exists) return nFail(ctx, 'guildNotFound');
-    if (await tierLocked(db, a.tenant.slug, 3)) return nFail(ctx, 'premiumRequired');
+    if (await tierLocked(db, a.tenant.id, 3)) return nFail(ctx, 'premiumRequired');
     const inv = await getFillInviteById(db, Number(inviteId)).catch(() => null);
-    if (!inv || inv.tenant !== a.tenant.slug) return nFail(ctx, 'fillInviteNotFound');
+    if (!inv || inv.tenant !== a.tenant.id) return nFail(ctx, 'fillInviteNotFound');
     if (inv.status !== 'accepted') return nFail(ctx, 'fillInviteNotAccepted');
     const ev = await getEventRow(db, inv.event_id).catch(() => null);
     if (!ev) return nFail(ctx, 'groupingNotFound');
     const gate = await groupingManageGate(db, user, ctx.request, undefined, ev);
     if (gate.writeCode) return nFail(ctx, gate.writeCode);
     if (!gate.canManage) return nFail(ctx, 'marketManageOnly');
-    const seated = await findSeatByEventAndDiscord(db, ev.id, inv.to_discord_id).catch(() => null);
+    const supplierDiscordId = await getDiscordIdByUserId(db, inv.to_user_id).catch(() => null);
+    if (!supplierDiscordId) return nFail(ctx, 'fillInviteNotFound');
+    const seated = await findSeatByEventAndDiscord(db, ev.id, supplierDiscordId).catch(() => null);
     if (seated) return nFail(ctx, 'alreadyJoined');
     const offer = await getFillOfferById(db, inv.offer_id).catch(() => null);
     const school = offer ? offer.school : '';
     const outcome = await insertSignupWithCapacityGuard(db, {
       event_id: ev.id, nickname: inv.to_name, uid: newUid(),
       role: roleOf(school), weapon: school, contact: '', note: '',
-      team_name: '', members: '', discord_id: inv.to_discord_id, is_visitor: 0,
+      team_name: '', members: '', discord_id: supplierDiscordId, is_visitor: 0,
     });
     if (outcome.outcome === 'full') return nFail(ctx, 'groupingFull');
     if (outcome.outcome === 'needsHealer') return nFail(ctx, 'lastSeatHealer');
@@ -822,14 +843,14 @@ export const networkMutations = {
     if (target === admin.slug) return aFail(ctx, 'allianceSelf');
     const t = await getTenantRow(db, target).catch(() => null);
     if (!t) return aFail(ctx, 'guildNotFound');
-    const live = await getLiveAllianceBetween(db, admin.slug, target).catch(() => null);
+    const live = await getLiveAllianceBetween(db, admin.tenant.id, t.id).catch(() => null);
     if (live) return aFail(ctx, 'allianceExists');
-    const name = await displayNameFor(db, admin.slug, user);
+    const name = await displayNameFor(db, admin.tenant.id, user);
     let id: number;
     try {
       id = await insertAlliance(db, {
-        fromTenant: admin.slug, toTenant: target,
-        requestedBy: user.discordId, requestedByName: name, at: nowSec(),
+        fromTenant: admin.tenant.id, toTenant: t.id,
+        requestedByUserId: user.userId, requestedByName: name, at: nowSec(),
       });
     } catch {
       return aFail(ctx, 'allianceExists');
@@ -837,7 +858,7 @@ export const networkMutations = {
     const row = await getAllianceById(db, id).catch(() => null);
     return new AlliancePayloadShell(ctx, {
       ok: true, errorCode: null,
-      alliance: row ? new AllianceRelationShell(ctx, { row, viewerSlug: admin.slug }) : null,
+      alliance: row ? new AllianceRelationShell(ctx, { row, viewerGuildId: admin.tenant.id }) : null,
     });
   },
 
@@ -850,20 +871,20 @@ export const networkMutations = {
     if (!admin.exists) return aFail(ctx, 'guildNotFound');
     if (!admin.isAdmin) return aFail(ctx, 'adminOnly');
     const row = await getAllianceById(db, Number(allianceId)).catch(() => null);
-    if (!row || (row.guild_low !== admin.slug && row.guild_high !== admin.slug)) {
+    if (!row || (row.guild_low !== admin.tenant.id && row.guild_high !== admin.tenant.id)) {
       return aFail(ctx, 'allianceNotFound');
     }
-    if (row.requested_by_tenant === admin.slug) return aFail(ctx, 'allianceNotPending');
+    if (row.requested_by_tenant === admin.tenant.id) return aFail(ctx, 'allianceNotPending');
     // Accepting activates a T3 feature for this guild, so the
     // accept path re-verifies the tier; rejecting is an exit
     // path and stays open at every tier.
-    if (accept && await tierLocked(db, admin.slug, 3)) return aFail(ctx, 'premiumRequired');
-    const r = await respondAlliance(db, row.id, admin.slug, !!accept, nowSec());
+    if (accept && await tierLocked(db, admin.tenant.id, 3)) return aFail(ctx, 'premiumRequired');
+    const r = await respondAlliance(db, row.id, admin.tenant.id, !!accept, nowSec());
     if (!r.changes) return aFail(ctx, 'allianceNotPending');
     const after = await getAllianceById(db, row.id).catch(() => null);
     return new AlliancePayloadShell(ctx, {
       ok: true, errorCode: null,
-      alliance: after ? new AllianceRelationShell(ctx, { row: after, viewerSlug: admin.slug }) : null,
+      alliance: after ? new AllianceRelationShell(ctx, { row: after, viewerGuildId: admin.tenant.id }) : null,
     });
   },
 
@@ -880,15 +901,15 @@ export const networkMutations = {
     if (!admin.exists) return aFail(ctx, 'guildNotFound');
     if (!admin.isAdmin) return aFail(ctx, 'adminOnly');
     const row = await getAllianceById(db, Number(allianceId)).catch(() => null);
-    if (!row || (row.guild_low !== admin.slug && row.guild_high !== admin.slug)) {
+    if (!row || (row.guild_low !== admin.tenant.id && row.guild_high !== admin.tenant.id)) {
       return aFail(ctx, 'allianceNotFound');
     }
-    const r = await endAlliance(db, row.id, admin.slug, nowSec());
+    const r = await endAlliance(db, row.id, admin.tenant.id, nowSec());
     if (!r.changes) return aFail(ctx, 'allianceNotActive');
     const after = await getAllianceById(db, row.id).catch(() => null);
     return new AlliancePayloadShell(ctx, {
       ok: true, errorCode: null,
-      alliance: after ? new AllianceRelationShell(ctx, { row: after, viewerSlug: admin.slug }) : null,
+      alliance: after ? new AllianceRelationShell(ctx, { row: after, viewerGuildId: admin.tenant.id }) : null,
     });
   },
 
@@ -903,8 +924,8 @@ export const networkMutations = {
     // P20 is T3: the sharing switch re-verifies this guild's tier
     // (the grouping detail page stops composing the control below
     // tier, and the mutation is the real gate).
-    if (await tierLocked(db, a.tenant.slug, 3)) return nFail(ctx, 'premiumRequired');
-    const ev = await getEventRowByTenant(db, Number(groupingId), a.tenant.slug).catch(() => null);
+    if (await tierLocked(db, a.tenant.id, 3)) return nFail(ctx, 'premiumRequired');
+    const ev = await getEventRowByTenant(db, Number(groupingId), a.tenant.id).catch(() => null);
     if (!ev) return nFail(ctx, 'groupingNotFound');
     const gate = await groupingManageGate(db, user, ctx.request, undefined, ev);
     if (gate.writeCode) return nFail(ctx, gate.writeCode);
@@ -913,7 +934,7 @@ export const networkMutations = {
     if (!Number.isInteger(slots) || slots < 0 || slots > (Number(ev.max_slots) || 0)) {
       return nFail(ctx, 'visitorSlotsInvalid');
     }
-    await updateEventFields(db, ev.id, a.tenant.slug, {
+    await updateEventFields(db, ev.id, a.tenant.id, {
       ally_visible: allyVisible ? 1 : 0, visitor_slots: slots,
     });
     publishGroupingEvent(ctx, a.tenant.slug, ev.id, 'updated');
@@ -936,8 +957,8 @@ export const networkMutations = {
     if (!a.isMember) return nFail(ctx, 'memberOnly');
     const ev = await getEventRow(db, Number(groupingId)).catch(() => null);
     if (!ev) return nFail(ctx, 'groupingNotFound');
-    if (ev.tenant === a.tenant.slug) return nFail(ctx, 'allyNotShared');
-    const alliance = await getActiveAllianceBetween(db, a.tenant.slug, ev.tenant).catch(() => null);
+    if (ev.tenant === a.tenant.id) return nFail(ctx, 'allyNotShared');
+    const alliance = await getActiveAllianceBetween(db, a.tenant.id, ev.tenant).catch(() => null);
     if (!alliance) return nFail(ctx, 'allyNotAllied');
     // Visitor seats are this guild's T3 alliance surface: the
     // allies page that offers them is tier-locked below T3, and
@@ -952,7 +973,7 @@ export const networkMutations = {
     if (seated) return nFail(ctx, 'alreadyJoined');
     const taken = await countVisitorSeatsByEvent(db, ev.id).catch(() => 0);
     if (taken >= Number(ev.visitor_slots)) return nFail(ctx, 'visitorSlotsFull');
-    const name = await displayNameFor(db, a.tenant.slug, user);
+    const name = await displayNameFor(db, a.tenant.id, user);
     const outcome = await insertSignupWithCapacityGuard(db, {
       event_id: ev.id, nickname: name, uid: newUid(),
       role: roleOf(school), weapon: school, contact: '', note: '',
@@ -960,7 +981,8 @@ export const networkMutations = {
     });
     if (outcome.outcome === 'full') return nFail(ctx, 'groupingFull');
     if (outcome.outcome === 'needsHealer') return nFail(ctx, 'lastSeatHealer');
-    publishGroupingEvent(ctx, ev.tenant, ev.id, 'updated');
+    const hostTenant = await getTenantRowById(db, ev.tenant).catch(() => null);
+    publishGroupingEvent(ctx, hostTenant ? hostTenant.slug : '', ev.id, 'updated');
     return new NetworkOkPayloadShell(ctx, { ok: true, errorCode: null });
   },
 };

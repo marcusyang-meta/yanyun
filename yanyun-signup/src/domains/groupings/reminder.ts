@@ -1,13 +1,13 @@
 import { sendDeparturePush } from '../platform/index.ts';
 import { logError } from '../platform/index.ts';
 import { webhookIdentity } from '../guilds/index.ts';
-import { getTenantRow } from '../guilds/index.ts';
+import { getTenantRow, getGuildIdBySlug } from '../guilds/index.ts';
 import { getSettingValue, setSettingValue, isGuildSubdomainEnabled, guildSubdomainOrigin, guildCustomDomainOrigin } from '../guilds/index.ts';
 import { markReminderSent, markReminderError, listPendingReminderEvents, listPendingReminderEventRows, listSettledBeats, markBeatSent, markBeatError } from './events.ts';
  './signups.ts';
  './signups.ts';
 import { listSignupSeatsForReminder } from './signups.ts';
-import { getUsernameRow, listUsersDirectory, listNicksByGuild, getNickRow } from '../identity/index.ts';
+import { getUsernameRow, listUsersDirectory, listNicksByGuild, getNickRow, getDiscordIdByUserId } from '../identity/index.ts';
 import { upsertGuildMember as upsertGuildMemberRepo, listGuildMembers, getGuildMember } from '../identity/index.ts';
 
 // Discord departure reminder.
@@ -41,23 +41,33 @@ export function carOgImageUrl(slug: string, eventId: number): string {
 }
 
 export async function upsertGuildMember(db: any, slug: string, discordId: unknown, nick: unknown, globalName: unknown) {
-  await upsertGuildMemberRepo(db, slug, String(discordId), String(nick || ''), String(globalName || ''));
+  const guildId = await getGuildIdBySlug(db, slug).catch(() => null);
+  if (guildId == null) return;
+  await upsertGuildMemberRepo(db, guildId, String(discordId), String(nick || ''), String(globalName || ''));
 }
 
 async function rosterPool(db: any, slug: string) {
   const pool = new Map();
-  const results = await listGuildMembers(db, slug).catch(() => []);
+  const guildId = await getGuildIdBySlug(db, slug).catch(() => null);
+  const results = guildId == null ? [] : await listGuildMembers(db, guildId).catch(() => []);
   for (const r of results || []) {
     pool.set(String(r.discord_id), { globalName: String(r.global_name || ''), nick: String(r.nick || '') });
   }
   return pool;
 }
 
+/* The reminder module's public seam stays slug-addressed (the
+ * GuildHub DO is named by slug); the slug resolves to the guild ID
+ * here, once, before any data-layer call. */
 export async function getReminderSetting(db: any, slug: string, key: string) {
-  return getSettingValue(db, slug, key);
+  const guildId = await getGuildIdBySlug(db, slug).catch(() => null);
+  if (guildId == null) return '';
+  return getSettingValue(db, guildId, key);
 }
 export async function setReminderSetting(db: any, slug: string, key: string, value: string) {
-  await setSettingValue(db, slug, key, value);
+  const guildId = await getGuildIdBySlug(db, slug).catch(() => null);
+  if (guildId == null) return;
+  await setSettingValue(db, guildId, key, value);
 }
 
 export async function getReminderConfig(db: any, slug: string) {
@@ -66,7 +76,7 @@ if (!t) return null;
 const enabled = (await getReminderSetting(db, slug, 'reminder_enabled')) === '1';
 const offsets = await getReminderOffsets(db, slug);
 const customText = await getReminderCustomText(db, slug);
-return { webhook: String(t.discord_webhook || ''), guildName: String(t.guild_name || slug), enabled, offsets, customText };
+return { webhook: String(t.discord_webhook || ''), guildName: String(t.guild_name || slug), enabled, offsets, customText, guildId: t.id, slug };
 }
 
 /* ---- Multi-offset configuration ----
@@ -155,7 +165,9 @@ export async function nextReminderAt(db: any, slug: string, nowSec: number, offs
 // only an omitted argument falls back to the stored setting.
 const offs = offsets !== undefined ? offsets : await getReminderOffsets(db, slug);
 if (!offs.length) return null;
-const pending = await listPendingReminderEvents(db, slug, nowSec);
+const guildId = await getGuildIdBySlug(db, slug).catch(() => null);
+if (guildId == null) return null;
+const pending = await listPendingReminderEvents(db, guildId, nowSec);
 if (!pending.length) return null;
 const settled = await settledBeatMap(db, pending.map((p) => p.id));
 let best: number | null = null;
@@ -187,7 +199,9 @@ export interface DueBeat {
 export async function dueReminderBeats(db: any, slug: string, nowSec: number, offsets?: number[]): Promise<DueBeat[]> {
 const offs = offsets !== undefined ? offsets : await getReminderOffsets(db, slug);
 if (!offs.length) return [];
-const pending = await listPendingReminderEvents(db, slug, nowSec);
+const guildId = await getGuildIdBySlug(db, slug).catch(() => null);
+if (guildId == null) return [];
+const pending = await listPendingReminderEvents(db, guildId, nowSec);
 if (!pending.length) return [];
 const settled = await settledBeatMap(db, pending.map((p) => p.id));
 const plan = new Map<number, { due: number[]; settledCount: number }>();
@@ -197,7 +211,7 @@ const due = offs.filter((off) => !done.has(off) && Number(p.starts_at_utc) - off
 if (due.length) plan.set(p.id, { due, settledCount: done.size });
 }
 if (!plan.size) return [];
-const rows = await listPendingReminderEventRows(db, slug, [...plan.keys()]);
+const rows = await listPendingReminderEventRows(db, guildId, [...plan.keys()]);
 const smallest = Math.min(...offs);
 const out: DueBeat[] = [];
 for (const ev of rows) {
@@ -267,10 +281,13 @@ return hits.length === 1? hits[0]: null;
  * leader record -> the created_by text; failing that, the guild
  * name. */
 export async function leaderDisplayName(db: any, ev: any, slug: string, dgid: string, guildName: string): Promise<string> {
-if (ev.creator_discord_id) {
-const id = String(ev.creator_discord_id);
+const creatorDiscordId = ev.creator_user_id
+  ? await getDiscordIdByUserId(db, Number(ev.creator_user_id)).catch(() => null)
+  : null;
+if (creatorDiscordId) {
+const id = creatorDiscordId;
 // Roster first: if the leader has entered this guild, their roster nickname is their display name in this guild's context.
-const rm = await getGuildMember(db, slug, id).catch(() => null);
+const rm = await getGuildMember(db, ev.tenant, id).catch(() => null);
 if (rm && String(rm.nick || '').trim()) return String(rm.nick).trim();
 if (rm && String(rm.global_name || '').trim()) return String(rm.global_name).trim();
 if (dgid) {
@@ -323,7 +340,9 @@ const leader = await leaderDisplayName(db, ev, slug, dgid, guildName);
 const roster = await rosterPool(db, slug);
 const pool = await memberPool(db, dgid);
 const seats = await listSignupSeatsForReminder(db, ev.id);
-const creatorId = ev.creator_discord_id ? String(ev.creator_discord_id) : '';
+const creatorId = ev.creator_user_id
+  ? (await getDiscordIdByUserId(db, Number(ev.creator_user_id)).catch(() => null)) || ''
+  : '';
 const parsed = [];
 const userIds: string[] = [];
 const pushUserIds: string[] = [];

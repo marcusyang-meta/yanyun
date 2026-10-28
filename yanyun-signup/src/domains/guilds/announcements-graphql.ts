@@ -37,7 +37,8 @@ import {
   sendAnnouncementPush, tierLocked,
   createTranslator, isTranslationConfigured, SOURCE_LOCALE,
 } from '../platform/index.ts';
-import { listGuildMembers } from '../identity/index.ts';
+import { listGuildMembers, listUserIdsByDiscordIds } from '../identity/index.ts';
+import { getGuildIdBySlug } from './tenants.ts';
 import {
   insertAnnouncement, listAnnouncements, getAnnouncement, deleteAnnouncement,
   markAnnouncementRead, listReadAnnouncementIds, listAnnouncementReads,
@@ -64,7 +65,9 @@ import type { AnnouncementTranslationRow } from './announcement-i18n.ts';
  * configuration. */
 async function translationEntryState(ctx: Context, slug: string): Promise<{ visible: boolean; enabled: boolean }> {
   const db = ctx.env.DB;
-  if (await tierLocked(db, slug, 2).catch(() => true)) return { visible: false, enabled: false };
+  const guildId = await getGuildIdBySlug(db, slug).catch(() => null);
+  if (guildId == null) return { visible: false, enabled: false };
+  if (await tierLocked(db, guildId, 2).catch(() => true)) return { visible: false, enabled: false };
   return { visible: true, enabled: isTranslationConfigured(ctx.env) };
 }
 
@@ -182,17 +185,19 @@ export class GuildAnnouncementShell extends ShellBase {
         listAnnouncementReads(this.db, this.row.tenant, this.row.id).catch(() => []),
         listGuildMembers(this.db, this.row.tenant).catch(() => []),
       ]);
-      const readAtById = new Map<string, number>();
-      for (const r of reads || []) readAtById.set(String(r.discord_id), Number(r.read_at) || 0);
+      const readAtByUserId = new Map<number, number>();
+      for (const r of reads || []) readAtByUserId.set(r.user_id, Number(r.read_at) || 0);
+      const memberUserIds = await listUserIdsByDiscordIds(
+        this.db, (roster || []).map((m) => String(m.discord_id))).catch(() => new Map());
       const receipts = (roster || []).map((m) => new GuildAnnouncementReceiptShell(this.ctx, {
         discordId: String(m.discord_id),
         displayName: String(m.nick || '').trim() || String(m.global_name || '').trim(),
-        read: readAtById.has(String(m.discord_id)),
-        readAt: readAtById.get(String(m.discord_id)) || 0,
+        read: readAtByUserId.has(memberUserIds.get(String(m.discord_id)) || 0),
+        readAt: readAtByUserId.get(memberUserIds.get(String(m.discord_id)) || 0) || 0,
       }));
       receipts.sort((a, b) => a.data.displayName.localeCompare(b.data.displayName, 'zh-Hans-CN'));
       return {
-        readCount: readAtById.size,
+        readCount: readAtByUserId.size,
         memberCount: (roster || []).length,
         receipts,
       };
@@ -248,12 +253,17 @@ export class GuildAnnouncementPageShell extends ShellBase {
   get slug(): string { return this.data.slug; }
   get admin(): boolean { return !!this.data.admin; }
   genCanPost(){ return this.admin; }
+  guildId(){
+    return this.memo('guildId', async () => getGuildIdBySlug(this.db, this.slug));
+  }
   genAnnouncements(){
     return this.memo('announcements', async () => {
-      const rows = await listAnnouncements(this.db, this.slug, ANNOUNCEMENT_LIST_LIMIT).catch(() => []);
+      const guildId = await this.guildId();
+      if (guildId == null) return [];
+      const rows = await listAnnouncements(this.db, guildId, ANNOUNCEMENT_LIST_LIMIT).catch(() => []);
       let readIds = new Set<number>();
       if (this.ctx.user) {
-        const ids = await listReadAnnouncementIds(this.db, this.slug, String(this.ctx.user.discordId)).catch(() => []);
+        const ids = await listReadAnnouncementIds(this.db, guildId, this.ctx.user.userId).catch(() => []);
         readIds = new Set((ids || []).map((n) => Number(n)));
       }
       /* P26: one translations query for the whole page + the entry
@@ -262,7 +272,7 @@ export class GuildAnnouncementPageShell extends ShellBase {
        * guild already generated, not an entry point. */
       const list = rows || [];
       const translations = await listAnnouncementTranslations(
-        this.db, this.slug, list.map((r) => Number(r.id))).catch(() => new Map());
+        this.db, guildId, list.map((r) => Number(r.id))).catch(() => new Map());
       const entry = this.admin
         ? await translationEntryState(this.ctx, this.slug).catch(() => ({ visible: false, enabled: false }))
         : { visible: false, enabled: false };
@@ -320,13 +330,14 @@ export class GuildAnnouncementPageShell extends ShellBase {
     return this.memo('quota', async () => {
       if (!this.admin) return null;
       const nowMs = Date.now();
+      const guildId = await this.guildId();
       const limits = await getEffectiveLimits(this.db, {
-        discordId: this.ctx.user ? String(this.ctx.user.discordId) : '',
-        guildSlug: this.slug,
+        userId: this.ctx.user ? this.ctx.user.userId : 0,
+        guildId,
       });
       const [usedStandard, usedUrgent] = await Promise.all([
-        getAnnouncementsUsedToday(this.db, this.slug, 'standard', nowMs),
-        getAnnouncementsUsedToday(this.db, this.slug, 'urgent', nowMs),
+        getAnnouncementsUsedToday(this.db, guildId || 0, 'standard', nowMs),
+        getAnnouncementsUsedToday(this.db, guildId || 0, 'urgent', nowMs),
       ]);
       return {
         standardRemaining: Math.max(0, limits.announcementsPerDay - usedStandard),
@@ -402,11 +413,11 @@ export const guildAnnouncementMutations = {
 
     const nowMs = Date.now();
     const limits = await getEffectiveLimits(db, {
-      discordId: ctx.user ? String(ctx.user.discordId) : '',
-      guildSlug: access.slug,
+      userId: ctx.user ? ctx.user.userId : 0,
+      guildId: access.tenant.id,
     });
     const limit = storedKind === 'urgent' ? limits.urgentCallsPerDay : limits.announcementsPerDay;
-    const used = await getAnnouncementsUsedToday(db, access.slug, storedKind, nowMs);
+    const used = await getAnnouncementsUsedToday(db, access.tenant.id, storedKind, nowMs);
     if (used >= limit) {
       return annFail(ctx, storedKind === 'urgent' ? 'urgentCallDailyLimit' : 'announcementDailyLimit', { limit });
     }
@@ -415,16 +426,16 @@ export const guildAnnouncementMutations = {
     const authorId = ctx.user ? String(ctx.user.discordId) : '';
     const authorName = ctx.user ? String(ctx.user.name || '') : '';
     const id = await insertAnnouncement(db, {
-      tenant: access.slug, kind: storedKind, title: cleanTitle, body: cleanBody,
-      authorDiscordId: authorId, authorName, createdAt: nowSec,
+      tenant: access.tenant.id, kind: storedKind, title: cleanTitle, body: cleanBody,
+      authorUserId: ctx.user ? ctx.user.userId : 0, authorName, createdAt: nowSec,
     });
-    await recordAnnouncementUse(db, access.slug, storedKind, nowMs);
+    await recordAnnouncementUse(db, access.tenant.id, storedKind, nowMs);
     // The author has the announcement in hand by construction; their
     // receipt row keeps the admin receipt list honest.
-    if (authorId) {
-      await markAnnouncementRead(db, { tenant: access.slug, announcementId: id, discordId: authorId, readAt: nowSec }).catch(() => {});
+    if (ctx.user) {
+      await markAnnouncementRead(db, { tenant: access.tenant.id, announcementId: id, userId: ctx.user.userId, readAt: nowSec }).catch(() => {});
     }
-    const row = await getAnnouncement(db, access.slug, id);
+    const row = await getAnnouncement(db, access.tenant.id, id);
     await recordGuildAudit(db, {
       tenant: access.slug,
       actor: ctx.user ? { discordId: String(ctx.user.discordId), name: String(ctx.user.name || '') } : null,
@@ -432,7 +443,7 @@ export const guildAnnouncementMutations = {
     });
     // Push to the whole roster (author excluded) over the shared Expo
     // pipeline; members without tokens are covered by the in-app list.
-    const roster = await listGuildMembers(db, access.slug).catch(() => []);
+    const roster = await listGuildMembers(db, access.tenant.id).catch(() => []);
     const recipientIds = (roster || [])
       .map((m) => String(m.discord_id))
       .filter((discordId) => discordId && discordId !== authorId);
@@ -458,11 +469,11 @@ export const guildAnnouncementMutations = {
     const access = await getGuildAccess(db, ctx.user, slug, ctx.request);
     if (!access.exists) return annFail(ctx, 'guildNotFound');
     if (!access.canWrite) return annFail(ctx, 'memberOnly');
-    const row = await getAnnouncement(db, access.slug, parseInt(String(announcementId), 10) || 0);
+    const row = await getAnnouncement(db, access.tenant.id, parseInt(String(announcementId), 10) || 0);
     if (!row) return annFail(ctx, 'announcementNotFound');
     await markAnnouncementRead(db, {
-      tenant: access.slug, announcementId: row.id,
-      discordId: String(ctx.user.discordId), readAt: Math.floor(Date.now() / 1000),
+      tenant: access.tenant.id, announcementId: row.id,
+      userId: ctx.user.userId, readAt: Math.floor(Date.now() / 1000),
     });
     return annOk(ctx, new GuildAnnouncementShell(ctx, { row, admin: false, viewerHasRead: true }));
   },

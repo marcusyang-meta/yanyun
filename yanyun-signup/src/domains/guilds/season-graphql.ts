@@ -37,6 +37,7 @@ import {
 import { recordGuildAudit } from './guild-audit.ts';
 import { translate, translateError, getEffectiveLimits, getOcrBatchesUsedToday, recordOcrBatch } from '../platform/index.ts';
 import { listGuildMembers } from '../identity/index.ts';
+import { getGuildIdBySlug, getTenantRow } from './tenants.ts';
 import { listDungeonsDex, listSchoolBis, listSchoolRotations, SEASON_NAMES } from '../dex/index.ts';
 import type { DungeonRow } from '../dex/index.ts';
 import { listGroupingTemplates } from '../groupings/index.ts';
@@ -118,15 +119,15 @@ export interface ChecklistItemData {
  *  the setSeasonChecklistItem mutation validates against this list,
  *  so clients cannot check off items that do not exist. */
 export async function buildChecklistItems(
-  db: D1Database, slug: string, season: SeasonContextData,
+  db: D1Database, guildId: number, season: SeasonContextData,
 ): Promise<ChecklistItemData[]> {
   const [templates, bis, rotations, members, entryCount, checks] = await Promise.all([
-    listGroupingTemplates(db, slug).catch(() => []),
+    listGroupingTemplates(db, guildId).catch(() => []),
     listSchoolBis(db).catch(() => []),
     listSchoolRotations(db).catch(() => []),
-    listGuildMembers(db, slug).catch(() => []),
-    countGuildRosterEntries(db, slug).catch(() => 0),
-    listSeasonChecklistChecks(db, slug, season.seasonKey).catch(() => []),
+    listGuildMembers(db, guildId).catch(() => []),
+    countGuildRosterEntries(db, guildId).catch(() => 0),
+    listSeasonChecklistChecks(db, guildId, season.seasonKey).catch(() => []),
   ]);
   const checkByKey = new Map(checks.map((c) => [c.item_key, c]));
   const withState = (
@@ -177,7 +178,8 @@ export class SeasonChecklistShell extends ShellBase {
       // Capability-denied composition (P16): season labels are dex
       // data and stay; the guild's checklist state does not compose.
       if ((this.data as { denied?: boolean }).denied) return { season, items: [] };
-      const items = await buildChecklistItems(this.db, this.slug(), season);
+      const guildId = await getGuildIdBySlug(this.db, this.slug());
+      const items = guildId == null ? [] : await buildChecklistItems(this.db, guildId, season);
       return { season, items };
     });
   }
@@ -222,8 +224,9 @@ export class GuildRosterShell extends ShellBase {
   genEntries(): Promise<GuildRosterEntryShell[]> {
     return this.memo('entries', async () => {
       if ((this.data as { denied?: boolean }).denied) return [];
-      const rows = await listGuildRosterEntries(this.db, this.slug()).catch(() => []);
-      const members = await listGuildMembers(this.db, this.slug()).catch(() => []);
+      const guildId = await getGuildIdBySlug(this.db, this.slug());
+      const rows = guildId == null ? [] : await listGuildRosterEntries(this.db, guildId).catch(() => []);
+      const members = guildId == null ? [] : await listGuildMembers(this.db, guildId).catch(() => []);
       const nameByDiscordId = new Map<string, string>();
       for (const m of members) {
         const display = String(m.nick || '').trim() || String(m.global_name || '').trim();
@@ -320,15 +323,17 @@ export const seasonAdminMutations = {
     const slug = s(args.slug, 40);
     const db = ctx.env.DB;
     const season = await loadSeasonContext(db);
-    const items = await buildChecklistItems(db, slug, season);
+    const tenantRow = await getTenantRow(db, slug).catch(() => null);
+    if (!tenantRow) return new GuildAdminPayloadShell(ctx, { ok: false, errorCode: 'guildNotFound' });
+    const items = await buildChecklistItems(db, tenantRow.id, season);
     const itemKey = s(args.itemKey, 60);
     if (!items.some((i) => i.key === itemKey)) {
       return new GuildAdminPayloadShell(ctx, { ok: false, errorCode: 'checklistItemUnknown' });
     }
     await setSeasonChecklistCheck(db, {
-      tenant: slug, seasonKey: season.seasonKey, itemKey,
+      tenant: tenantRow.id, seasonKey: season.seasonKey, itemKey,
       checked: !!args.checked,
-      checkedBy: ctx.user ? String(ctx.user.discordId) : '',
+      checkedByUserId: ctx.user ? ctx.user.userId : 0,
       checkedByName: ctx.user ? String(ctx.user.name || '') : '',
       now: Math.floor(Date.now() / 1000),
     });
@@ -352,27 +357,30 @@ export const seasonAdminMutations = {
     }
     const slug = s(args.slug, 40);
     const db = ctx.env.DB;
-    const did = ctx.user ? String(ctx.user.discordId) : '';
+    const uid = ctx.user ? ctx.user.userId : 0;
     // Lines: trimmed, capped, deduped by normalized name inside the
     // batch (the same name recognized twice is one preview row).
     const rawLines = (args.lines || []).map((l) => String(l || '').trim()).filter(Boolean).slice(0, 300);
     if (!rawLines.length) return rosterFail(ctx, 'rosterImportEmpty');
+    const tenantRow = await getTenantRow(db, slug).catch(() => null);
+    if (!tenantRow) return rosterFail(ctx, 'guildNotFound');
+    const guildId = tenantRow.id;
     // Metering: the SAME limits + daily counter as gear batch OCR.
-    const limits = await getEffectiveLimits(db, { discordId: did, guildSlug: slug });
+    const limits = await getEffectiveLimits(db, { userId: uid, guildId });
     const now = Date.now();
     const imgs = typeof args.imageCount === 'number' && args.imageCount > 0
       ? Math.floor(args.imageCount) : 1;
     if (imgs > limits.ocrBatchImages) {
       return rosterFailP(ctx, 'gearOcrBatchTooLarge', { limit: limits.ocrBatchImages, n: imgs });
     }
-    const usedToday = await getOcrBatchesUsedToday(db, did, now);
+    const usedToday = await getOcrBatchesUsedToday(db, uid, now);
     if (usedToday >= limits.ocrBatchesPerDay) {
       return rosterFailP(ctx, 'gearOcrDailyLimit', { limit: limits.ocrBatchesPerDay });
     }
     // Classification inputs: the Discord roster (display name =
     // nick, falling back to global name — the memberRoster rule)
     // and the existing game-name roster entries.
-    const members = await listGuildMembers(db, slug).catch(() => []);
+    const members = await listGuildMembers(db, guildId).catch(() => []);
     const memberByNorm = new Map<string, { discordId: string; displayName: string }>();
     for (const m of members) {
       const display = String(m.nick || '').trim() || String(m.global_name || '').trim();
@@ -382,7 +390,7 @@ export const seasonAdminMutations = {
         memberByNorm.set(norm, { discordId: String(m.discord_id), displayName: display });
       }
     }
-    const entries = await listGuildRosterEntries(db, slug).catch(() => []);
+    const entries = await listGuildRosterEntries(db, guildId).catch(() => []);
     const entryByNorm = new Map<string, { matchedDiscordId: string | null; displayName: string }>();
     for (const e of entries) {
       entryByNorm.set(e.name_norm, { matchedDiscordId: e.matched_discord_id, displayName: e.display_name });
@@ -398,12 +406,12 @@ export const seasonAdminMutations = {
     }
     if (!classified.length) return rosterFail(ctx, 'rosterImportEmpty');
     const batchId = await createRosterImportBatch(db, {
-      tenant: slug, createdBy: did, imageCount: imgs, now: Math.floor(now / 1000),
+      tenant: guildId, createdByUserId: uid, imageCount: imgs, now: Math.floor(now / 1000),
     });
     for (const c of classified) {
-      await insertRosterImportRow(db, batchId, slug, c);
+      await insertRosterImportRow(db, batchId, guildId, c);
     }
-    await recordOcrBatch(db, did, now);
+    await recordOcrBatch(db, uid, now);
     const rows = await listRosterImportRows(db, batchId);
     return {
       ok: true, error: null, errorCode: null,
@@ -422,8 +430,9 @@ export const seasonAdminMutations = {
     const slug = s(args.slug, 40);
     const db = ctx.env.DB;
     const batchId = parseInt(String(args.batchId || ''), 10);
-    const batch = Number.isFinite(batchId)
-      ? await getRosterImportBatch(db, slug, batchId).catch(() => null)
+    const tenantRow = await getTenantRow(db, slug).catch(() => null);
+    const batch = Number.isFinite(batchId) && tenantRow
+      ? await getRosterImportBatch(db, tenantRow.id, batchId).catch(() => null)
       : null;
     if (!batch) return rosterFail(ctx, 'rosterBatchNotFound');
     if (batch.status === 'confirmed') return rosterFail(ctx, 'rosterBatchConfirmed');
@@ -435,9 +444,9 @@ export const seasonAdminMutations = {
     let imported = 0;
     for (const r of selected) {
       const res = await insertGuildRosterEntry(db, {
-        tenant: slug, displayName: r.raw_name, source: 'ocr',
+        tenant: tenantRow!.id, displayName: r.raw_name, source: 'ocr',
         matchedDiscordId: r.matched_discord_id,
-        createdBy: ctx.user ? String(ctx.user.discordId) : '',
+        createdByUserId: ctx.user ? ctx.user.userId : 0,
         now: nowSec,
       });
       await markRosterImportRowImported(db, r.id, res.id);
@@ -467,8 +476,9 @@ export const seasonAdminMutations = {
     if (failCode) return new GuildAdminPayloadShell(ctx, { ok: false, errorCode: failCode });
     const slug = s(args.slug, 40);
     const id = parseInt(String(args.entryId || ''), 10);
-    const done = Number.isFinite(id)
-      ? await deleteGuildRosterEntry(ctx.env.DB, slug, id)
+    const tenantRow = await getTenantRow(ctx.env.DB, slug).catch(() => null);
+    const done = Number.isFinite(id) && tenantRow
+      ? await deleteGuildRosterEntry(ctx.env.DB, tenantRow.id, id)
       : false;
     if (!done) return new GuildAdminPayloadShell(ctx, { ok: false, errorCode: 'rosterEntryNotFound' });
     await recordGuildAudit(ctx.env.DB, {

@@ -27,6 +27,7 @@ import {
 import { tierLocked, tierSurfaceState, translate, translateError, fmtStartsAt } from '../platform/index.ts';
 import { listEventsAdmin } from '../groupings/index.ts';
 import { hasGuildMember } from '../identity/index.ts';
+import { getGuildIdBySlug } from './tenants.ts';
 import {
   computeChurnRisks, previewTargetedNudge, sendTargetedNudge,
   planRollover, executeSeasonRollover, lastRollover,
@@ -298,10 +299,11 @@ export class MyContributionLockedShell extends ShellBase {
 
 export async function myContributionResult(ctx: Context, slug: string) {
   const did = ctx.user ? String(ctx.user.discordId || '') : '';
-  if (!did || !(await hasGuildMember(ctx.env.DB, slug, did).catch(() => false))) {
+  const guildId = await getGuildIdBySlug(ctx.env.DB, slug).catch(() => null);
+  if (!did || guildId == null || !(await hasGuildMember(ctx.env.DB, guildId, did).catch(() => false))) {
     return new MyContributionLockedShell(ctx, { slug });
   }
-  const { totalPoints, entries } = await myContributionEntries(ctx.env.DB, slug, did);
+  const { totalPoints, entries } = await myContributionEntries(ctx.env.DB, guildId, ctx.user!.userId);
   return new MyContributionShell(ctx, { totalPoints, entries });
 }
 
@@ -433,15 +435,15 @@ export const opsMutations = {
     const kind = (NUDGE_SEGMENT_KINDS as string[]).includes(segmentKind)
       ? (segmentKind as NudgeSegmentKind) : 'all';
     const preview = await previewTargetedNudge(
-      ctx.env.DB, g.access.slug, Number(eventId), kind, s(segmentValue, 40),
+      ctx.env.DB, g.access.tenant.id, Number(eventId), kind, s(segmentValue, 40),
     );
     if (!preview) return opsFail(ctx, 'nudgeEventInvalid');
     const message = translate('ops_nudgeMessage', ctx.locale || 'zh-CN', {
       title: preview.event.title || '',
     });
     const out = await sendTargetedNudge(
-      ctx.env.DB, g.access.slug, Number(eventId), kind, s(segmentValue, 40),
-      String(ctx.user?.discordId || ''), message,
+      ctx.env.DB, g.access.tenant.id, Number(eventId), kind, s(segmentValue, 40),
+      ctx.user?.userId || 0, message,
       (ctx.env as any).EXPO_PUSH_BASE,
     );
     if (!out.ok) {
@@ -455,7 +457,7 @@ export const opsMutations = {
   executeSeasonRollover: async (_: any, { slug }: any, ctx: Context) => {
     const g = await opsGate(ctx, slug); if ((g as any).fail) return (g as any).fail;
     const season = await loadSeasonContext(ctx.env.DB);
-    const templates = await listGroupingTemplates(ctx.env.DB, g.access.slug);
+    const templates = await listGroupingTemplates(ctx.env.DB, g.access.tenant.id);
     const keys = new Map<string, number>();
     for (const t of templates as any[]) {
       const k = String(t.season_key || '');
@@ -465,8 +467,8 @@ export const opsMutations = {
     let best = -1;
     for (const [k, n] of keys) { if (n > best) { best = n; fromKey = k; } }
     const report = await executeSeasonRollover(
-      ctx.env.DB, g.access.slug, season.seasonKey, fromKey,
-      String(ctx.user?.discordId || ''),
+      ctx.env.DB, g.access.tenant.id, season.seasonKey, fromKey,
+      ctx.user?.userId || 0,
     );
     return opsOk(ctx, { copiedCount: report.pendingTemplateIds.length });
   },
@@ -474,8 +476,8 @@ export const opsMutations = {
   updateContributionRule: async (_: any, { slug, actionKey, points, enabled }: any, ctx: Context) => {
     const g = await opsGate(ctx, slug); if ((g as any).fail) return (g as any).fail;
     const ok = await upsertContributionRule(
-      ctx.env.DB, g.access.slug, String(actionKey || ''), Number(points),
-      !!enabled, String(ctx.user?.discordId || ''),
+      ctx.env.DB, g.access.tenant.id, String(actionKey || ''), Number(points),
+      !!enabled, ctx.user?.userId || 0,
     );
     return ok ? opsOk(ctx) : opsFail(ctx, 'contributionRuleInvalid');
   },

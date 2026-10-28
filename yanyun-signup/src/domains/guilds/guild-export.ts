@@ -15,7 +15,7 @@
  * audited on the hub audit trail with the tenant set and a
  * counts-only summary (the account.export precedent). */
 import { getTenantRow } from './tenants.ts';
-import { listGuildMembers } from '../identity/index.ts';
+import { listGuildMembers, listDiscordIdsByUserIds } from '../identity/index.ts';
 import { listEventsAdmin, listSignupsByEvent } from '../groupings/index.ts';
 import { listSeasonGoalsByTenant } from './seasongoals.ts';
 import { auditHub } from '../platform/index.ts';
@@ -38,10 +38,12 @@ export async function buildGuildExport(
   const tenant = await getTenantRow(db, slug);
   if (!tenant) return null;
   const [roster, events, goals] = await Promise.all([
-    listGuildMembers(db, slug),
-    listEventsAdmin(db, slug),
-    listSeasonGoalsByTenant(db, slug),
+    listGuildMembers(db, tenant.id),
+    listEventsAdmin(db, tenant.id),
+    listSeasonGoalsByTenant(db, tenant.id),
   ]);
+  const goalDiscordIds = await listDiscordIdsByUserIds(
+    db, (goals || []).map((g) => g.user_id)).catch(() => new Map());
   const groupings = [];
   let seats = 0;
   for (const ev of events || []) {
@@ -79,7 +81,7 @@ export async function buildGuildExport(
     groupings,
     seasonGoals: (goals || []).map((g) => ({
       id: g.id,
-      discordId: g.discord_id,
+      discordId: goalDiscordIds.get(g.user_id) || '',
       memberName: g.member_name,
       title: g.title,
       note: g.note,

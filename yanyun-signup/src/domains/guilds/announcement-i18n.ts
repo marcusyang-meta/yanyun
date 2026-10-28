@@ -41,7 +41,7 @@ export type AnnouncementTranslationStatus = 'done' | 'failed';
 
 export interface AnnouncementTranslationRow {
   announcement_id: number;
-  tenant: string;
+  tenant: number;
   locale: string;
   title: string;
   body: string;
@@ -73,7 +73,7 @@ const TRANSLATION_COLS = sql`${guildAnnouncementTranslations.announcementId}, ${
  * a whole list page), keyed by `${announcementId}|${locale}`. */
 export async function listAnnouncementTranslations(
   d1: D1Database,
-  tenant: string,
+  tenant: number,
   announcementIds: number[],
 ): Promise<Map<string, AnnouncementTranslationRow>> {
   const out = new Map<string, AnnouncementTranslationRow>();
@@ -92,7 +92,7 @@ export async function listAnnouncementTranslations(
 export async function upsertAnnouncementTranslation(
   d1: D1Database,
   row: {
-    announcementId: number; tenant: string; locale: string; title: string; body: string;
+    announcementId: number; tenant: number; locale: string; title: string; body: string;
     status: AnnouncementTranslationStatus; sourceHash: string; nowSec: number;
   },
 ): Promise<void> {
@@ -110,7 +110,7 @@ export async function upsertAnnouncementTranslation(
 /** Drop every translation row of one announcement (delete path). */
 export async function deleteAnnouncementTranslations(
   d1: D1Database,
-  tenant: string,
+  tenant: number,
   announcementId: number,
 ): Promise<void> {
   const db = createDb(d1);

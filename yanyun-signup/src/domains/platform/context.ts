@@ -22,8 +22,13 @@
  * disguise.
  */
 
-/** Identity snapshot of the signed-in viewer (from the session JWT). */
+/** Identity snapshot of the signed-in viewer (from the session).
+ * userId is the platform identity (users.id, type code 02) every
+ * internal surface keys on; discordId is the Discord identity,
+ * materialized at the session boundary for Discord-facing uses
+ * (mentions, membership checks) only. */
 export interface ViewerRef {
+  userId: number;
   discordId: string;
   name: string;
   avatar?: string | null;
@@ -57,7 +62,7 @@ export function isOmniscientViewer(vc: ViewerContext | null | undefined): vc is 
 }
 
 export function viewerContextOf(user: ViewerRef | null | undefined): ViewerContext {
-  return { viewer: user ?? null, viewerId: user ? user.discordId : null };
+  return { viewer: user ?? null, viewerId: user ? String(user.userId) : null };
 }
 
 /** Worker env bindings (framework layer only). */

@@ -19,12 +19,12 @@ import {
 
 /* ---------------- push tokens [ddl chain baseline] ----------------- */
 export const pushTokens = sqliteTable('push_tokens', {
-  discordId: text('discord_id').notNull(),
+  userId: integer('user_id').notNull(),
   token: text('token').notNull(),
   platform: text('platform').notNull().default(''),
   updatedAt: integer('updated_at').notNull().default(0),
 }, (t) => [
-  primaryKey({ columns: [t.discordId, t.token] }),
+  primaryKey({ columns: [t.userId, t.token] }),
 ]);
 
 /* ---------------- error log [ddl chain baseline] ------------------- */
@@ -34,7 +34,7 @@ export const errorLog = sqliteTable('error_log', {
   source: text('source').notNull().default(''),
   name: text('name').notNull().default(''),
   message: text('message').notNull().default(''),
-  tenant: text('tenant').notNull().default(''),
+  tenant: integer('tenant').notNull().default(0),
   context: text('context').notNull().default(''),
   stack: text('stack').notNull().default(''),
 }, (t) => [
@@ -43,13 +43,13 @@ export const errorLog = sqliteTable('error_log', {
 
 /* ---------------- usage counters [ddl chain 0003] ----------------- */
 export const usageCounters = sqliteTable('usage_counters', {
-  discordId: text('discord_id').notNull(),
+  userId: integer('user_id').notNull(),
   metric: text('metric').notNull(),
   day: text('day').notNull(),
   count: integer('count').notNull().default(0),
   updatedAt: integer('updated_at').notNull().default(0),
 }, (t) => [
-  primaryKey({ columns: [t.discordId, t.metric, t.day] }),
+  primaryKey({ columns: [t.userId, t.metric, t.day] }),
 ]);
 /* ---------------- guild entitlements [alt: 0005, 0026] ------------
  * One row per guild with a plan assignment (billing.ts repository).
@@ -65,7 +65,7 @@ export const usageCounters = sqliteTable('usage_counters', {
  * verdict), trial_used (the guild's one trial has been consumed;
  * stamped by the trial grant and never cleared). */
 export const guildEntitlements = sqliteTable('guild_entitlements', {
-  tenant: text('tenant').primaryKey(),
+  tenant: integer('tenant').primaryKey(),
   plan: text('plan').notNull().default('free'),
   source: text('source').notNull().default(''),
   currentPeriodEnd: integer('current_period_end'),
@@ -107,7 +107,7 @@ export const hubAuditLog = sqliteTable('hub_audit_log', {
   at: integer('at').notNull(),
   actor: text('actor').notNull().default(''),
   action: text('action').notNull().default(''),
-  tenant: text('tenant').notNull().default(''),
+  tenant: integer('tenant').notNull().default(0),
   summary: text('summary').notNull().default(''),
   ip: text('ip').notNull().default(''),
 }, (t) => [
@@ -117,8 +117,8 @@ export const hubAuditLog = sqliteTable('hub_audit_log', {
 
 /* ---------------- user feedback [alt: migration 0003] -------------- */
 export const feedback = sqliteTable('feedback', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  discordId: text('discord_id').notNull(),
+  id: integer('id').primaryKey(),
+  userId: integer('user_id').notNull(),
   userName: text('user_name').notNull().default(''),
   category: text('category').notNull().default('other'),
   content: text('content').notNull().default(''),
@@ -127,6 +127,6 @@ export const feedback = sqliteTable('feedback', {
   resolvedAt: integer('resolved_at'),
 }, (t) => [
   index('idx_feedback_created').on(t.createdAt),
-  index('idx_feedback_user_created').on(t.discordId, t.createdAt),
+  index('idx_feedback_user_created').on(t.userId, t.createdAt),
   index('idx_feedback_status').on(t.status),
 ]);

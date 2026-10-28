@@ -36,6 +36,7 @@
 // Stripe event application also lives here: the webhook route only
 // verifies the signature and hands over the parsed event.
 import { getSettingValue, setSettingValue } from '../guilds/settings.ts';
+import { getGuildIdBySlug } from '../guilds/tenants.ts';
 import {
   getEntitlementRow, upsertEntitlementRow, getEntitlementBySubscription,
   getEntitlementByCustomer, markStripeEventProcessed, hasStripeEvent,
@@ -105,11 +106,11 @@ const nowSec = () => Math.floor(Date.now() / 1000);
 /* ---------------- master switch ---------------- */
 
 export async function isPaygateEnabled(d1: D1Database): Promise<boolean> {
-  return (await getSettingValue(d1, '', PAYGATE_ENABLED_KEY)) === '1';
+  return (await getSettingValue(d1, 0, PAYGATE_ENABLED_KEY)) === '1';
 }
 
 export async function setPaygateEnabled(d1: D1Database, on: boolean): Promise<void> {
-  await setSettingValue(d1, '', PAYGATE_ENABLED_KEY, on ? '1' : '');
+  await setSettingValue(d1, 0, PAYGATE_ENABLED_KEY, on ? '1' : '');
 }
 
 /* ---------------- effective entitlement ---------------- */
@@ -150,10 +151,10 @@ export const PAST_DUE_GRACE_DAYS = 14;
 
 export async function getEffectiveEntitlement(
   d1: D1Database,
-  slug: string,
+  guildId: number,
   atSec: number = nowSec(),
 ): Promise<EffectiveEntitlement> {
-  const row = await getEntitlementRow(d1, slug).catch(() => null);
+  const row = await getEntitlementRow(d1, guildId).catch(() => null);
   if (!row) return FREE_ENTITLEMENT;
   const storedTier = TIER_BY_PLAN[row.plan];
   if (storedTier === undefined || storedTier === 0) return FREE_ENTITLEMENT;
@@ -204,7 +205,7 @@ export const PREMIUM_ACTIVE_GATE_KEY = 'premium_active';
  *  (platform default) locks nobody. The verdict is asked of the
  *  platform gate wrapper with the local computation as fallback —
  *  the two agree by construction (see the mapping note above). */
-export async function premiumGate(d1: D1Database, slug: string): Promise<boolean> {
+export async function premiumGate(d1: D1Database, guildId: number): Promise<boolean> {
   // The platform master switch stays a code-level short-circuit,
   // exactly as before the migration: paygate OFF locks nobody, and
   // no entitlement read (and no gate evaluation) happens at all.
@@ -212,12 +213,12 @@ export async function premiumGate(d1: D1Database, slug: string): Promise<boolean
   // docs/STATSIG.md) is belt-and-braces for direct evaluators; the
   // switch itself is the platform's, not the console's.
   if (!(await isPaygateEnabled(d1))) return false;
-  const eff = await getEffectiveEntitlement(d1, slug);
+  const eff = await getEffectiveEntitlement(d1, guildId);
   const legacyLocked = eff.plan !== 'premium';
   const unlocked = await gateOpen(
     PREMIUM_ACCESS_GATE_KEY,
     {
-      unitId: slug,
+      unitId: String(guildId),
       privateAttributes: { plan: eff.plan, paygate: 'on' },
     },
     !legacyLocked,
@@ -248,11 +249,11 @@ export async function premiumGate(d1: D1Database, slug: string): Promise<boolean
  * families never feed each other. */
 export async function tierLocked(
   d1: D1Database,
-  slug: string,
+  guildId: number,
   minTier: 1 | 2 | 3,
 ): Promise<boolean> {
-  if (!slug) return true;
-  const eff = await getEffectiveEntitlement(d1, slug);
+  if (!guildId) return true;
+  const eff = await getEffectiveEntitlement(d1, guildId);
   return eff.tier < minTier;
 }
 
@@ -270,7 +271,12 @@ export async function tierSurfaceState(
   slug: string,
   minTier: 1 | 2 | 3,
 ): Promise<TierSurfaceState> {
-  if (!(await tierLocked(d1, slug, minTier))) return 'open';
+  // Callers address guilds by slug; the tier verdict keys by guild
+  // ID since 0036, so resolve at this boundary. An unknown guild
+  // has no surface at all.
+  const guildId = await getGuildIdBySlug(d1, slug).catch(() => null);
+  if (guildId == null) return 'absent';
+  if (!(await tierLocked(d1, guildId, minTier))) return 'open';
   return (await isPaygateEnabled(d1)) ? 'locked' : 'absent';
 }
 
@@ -278,14 +284,14 @@ export async function tierSurfaceState(
 
 export async function grantPremiumManual(
   d1: D1Database,
-  slug: string,
+  guildId: number,
   days: number,
 ): Promise<GuildEntitlementRow> {
   const at = nowSec();
-  const prev = await getEntitlementRow(d1, slug);
+  const prev = await getEntitlementRow(d1, guildId);
   const clampedDays = Math.max(1, Math.min(3650, Math.floor(days) || 0));
   const row: GuildEntitlementRow = {
-    tenant: slug,
+    tenant: guildId,
     plan: 'premium',
     source: 'manual',
     currentPeriodEnd: at + clampedDays * 86400,
@@ -306,16 +312,16 @@ export async function grantPremiumManual(
  *  (1|2|3) or its stored plan spelling ('t1'|'t2'|'t3'). */
 export async function grantTierManual(
   d1: D1Database,
-  slug: string,
+  guildId: number,
   tier: 1 | 2 | 3 | 't1' | 't2' | 't3',
   days: number,
 ): Promise<GuildEntitlementRow> {
   const at = nowSec();
-  const prev = await getEntitlementRow(d1, slug);
+  const prev = await getEntitlementRow(d1, guildId);
   const clampedDays = Math.max(1, Math.min(3650, Math.floor(days) || 0));
   const plan: GuildPlan = typeof tier === 'number' ? (`t${tier}` as GuildPlan) : tier;
   const row: GuildEntitlementRow = {
-    tenant: slug,
+    tenant: guildId,
     plan,
     source: 'manual',
     currentPeriodEnd: at + clampedDays * 86400,
@@ -351,18 +357,18 @@ export const TRIAL_DAYS = 14;
 
 export async function grantTrialEntitlement(
   d1: D1Database,
-  slug: string,
+  guildId: number,
 ): Promise<GuildEntitlementRow | null> {
-  if (!slug) return null;
-  const prev = await getEntitlementRow(d1, slug).catch(() => null);
+  if (!guildId) return null;
+  const prev = await getEntitlementRow(d1, guildId).catch(() => null);
   if (prev && prev.trialUsed) return null;
   if (prev) {
-    const eff = await getEffectiveEntitlement(d1, slug);
+    const eff = await getEffectiveEntitlement(d1, guildId);
     if (eff.tier > 0 && !eff.lapsed) return null; // a live entitlement stands
   }
   const at = nowSec();
   const row: GuildEntitlementRow = {
-    tenant: slug,
+    tenant: guildId,
     plan: 't2',
     source: 'trial',
     currentPeriodEnd: at + TRIAL_DAYS * 86400,
@@ -389,12 +395,12 @@ export async function grantTrialEntitlement(
  * does not consult the paygate master switch. */
 export async function persistenceCardRequired(
   d1: D1Database,
-  slug: string,
+  guildId: number,
 ): Promise<boolean> {
-  if (!slug) return true;
-  const row = await getEntitlementRow(d1, slug).catch(() => null);
+  if (!guildId) return true;
+  const row = await getEntitlementRow(d1, guildId).catch(() => null);
   if (row && row.hasCard) return false;
-  const eff = await getEffectiveEntitlement(d1, slug);
+  const eff = await getEffectiveEntitlement(d1, guildId);
   // A live paid (stripe) or platform-granted (manual) entitlement
   // is never gated; everything else — a live trial, a free guild,
   // a lapsed row of every source — needs the card first.
@@ -404,12 +410,12 @@ export async function persistenceCardRequired(
 
 export async function revokePremium(
   d1: D1Database,
-  slug: string,
+  guildId: number,
 ): Promise<GuildEntitlementRow> {
   const at = nowSec();
-  const prev = await getEntitlementRow(d1, slug);
+  const prev = await getEntitlementRow(d1, guildId);
   const row: GuildEntitlementRow = {
-    tenant: slug,
+    tenant: guildId,
     plan: 'free',
     source: '',
     currentPeriodEnd: null,
@@ -438,16 +444,16 @@ export async function revokePremium(
  * verdict keeps its semantics for its remaining consumers. */
 export async function isPremiumActive(
   d1: D1Database,
-  slug: string,
+  guildId: number,
 ): Promise<boolean> {
-  if (!slug) return false;
+  if (!guildId) return false;
   if (!(await isPaygateEnabled(d1))) return false;
-  const eff = await getEffectiveEntitlement(d1, slug);
+  const eff = await getEffectiveEntitlement(d1, guildId);
   const legacyActive = eff.plan === 'premium';
   return gateOpen(
     PREMIUM_ACTIVE_GATE_KEY,
     {
-      unitId: slug,
+      unitId: String(guildId),
       privateAttributes: { plan: eff.plan, paygate: 'on' },
     },
     legacyActive,
@@ -464,16 +470,22 @@ async function applySubscription(
   slugHint: string,
 ): Promise<void> {
   const d1 = env.DB;
-  let slug = slugHint || sub.guildSlug;
-  if (!slug && sub.id) {
+  // The entitlement key is the numeric guild ID (migration 0033).
+  // The Stripe metadata hint carries the slug HANDLE (Stripe is an
+  // external system; the handle is its key) and resolves here, at
+  // the boundary; stored rows already carry the numeric ID.
+  let guildId = 0;
+  const hintSlug = slugHint || sub.guildSlug;
+  if (hintSlug) guildId = (await getGuildIdBySlug(d1, hintSlug).catch(() => null)) ?? 0;
+  if (!guildId && sub.id) {
     const bySub = await getEntitlementBySubscription(d1, sub.id);
-    if (bySub) slug = bySub.tenant;
+    if (bySub) guildId = bySub.tenant;
   }
-  if (!slug && sub.customerId) {
+  if (!guildId && sub.customerId) {
     const byCustomer = await getEntitlementByCustomer(d1, sub.customerId);
-    if (byCustomer) slug = byCustomer.tenant;
+    if (byCustomer) guildId = byCustomer.tenant;
   }
-  if (!slug) return; // not one of ours (or pre-checkout): nothing to apply
+  if (!guildId) return; // not one of ours (or pre-checkout): nothing to apply
 
   // Plan resolution (tiered pricing): the subscription's price id
   // reverse-maps to its tier and the row is written with that
@@ -484,7 +496,7 @@ async function applySubscription(
   const tier = stripeTierForPriceId(env, sub.priceId);
   const appliedPlan: GuildPlan = tier ? (`t${tier}` as GuildPlan) : 'premium';
 
-  const prev = await getEntitlementRow(d1, slug);
+  const prev = await getEntitlementRow(d1, guildId);
   const at = nowSec();
   // Lifecycle carry: the card fact and the consumed-trial stamp are
   // guild facts that survive every subscription apply; the past-due
@@ -503,7 +515,7 @@ async function applySubscription(
       : (prev ? (prev.pastDueSince ?? null) : null);
   if (LIVE_SUBSCRIPTION_STATUSES.has(sub.status)) {
     await upsertEntitlementRow(d1, {
-      tenant: slug,
+      tenant: guildId,
       plan: appliedPlan,
       source: 'stripe',
       currentPeriodEnd: sub.currentPeriodEnd,
@@ -523,7 +535,7 @@ async function applySubscription(
     // in dunning, never to an ended one — a canceled subscription
     // must not be resurrected by the grace judgement.
     await upsertEntitlementRow(d1, {
-      tenant: slug,
+      tenant: guildId,
       plan: appliedPlan,
       source: 'stripe',
       currentPeriodEnd: sub.endedAt ?? sub.currentPeriodEnd ?? at,
@@ -594,9 +606,10 @@ export async function handleStripeEvent(
     else if (slug) {
       // Session without a subscription object (should not happen in
       // subscription mode): record the customer link at least.
-      const prev = await getEntitlementRow(d1, slug);
+      const guildId = (await getGuildIdBySlug(d1, slug).catch(() => null)) ?? 0;
+      const prev = await getEntitlementRow(d1, guildId);
       await upsertEntitlementRow(d1, {
-        tenant: slug,
+        tenant: guildId,
         plan: 'premium',
         source: 'stripe',
         currentPeriodEnd: prev ? prev.currentPeriodEnd : null,

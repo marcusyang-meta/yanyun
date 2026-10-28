@@ -1,5 +1,6 @@
 // Settings repository: the single access path for the settings entity
-// (tenant-scoped key/value; tenant '' is the global scope).
+// (tenant-scoped key/value; tenant 0 — the invalid-ID sentinel — is
+// the global scope).
 //
 // This replaces the hand-written settings SQL that used to be scattered
 // across worker.js / graphql.js / prim.js / reminder.js / auth.js.
@@ -20,12 +21,12 @@ import { createDb } from '../../db/client.ts';
 import { settings } from './schema.ts';
 
 interface ValueRow { value: string }
-interface TenantValueRow { tenant: string; value: string }
+interface TenantValueRow { tenant: number; value: string }
 interface KeyValueRow { key: string; value: string }
 
 export async function getSettingValue(
   d1: D1Database,
-  tenant: string,
+  tenant: number,
   key: string,
 ): Promise<string> {
   try {
@@ -42,7 +43,7 @@ export async function getSettingValue(
 
 export async function setSettingValue(
   d1: D1Database,
-  tenant: string,
+  tenant: number,
   key: string,
   value: string,
 ): Promise<void> {
@@ -102,7 +103,7 @@ export async function listDistinctSettingValues(
   }
 }
 
-/** Global-scope (tenant '') rows for the given keys. */
+/** Global-scope (tenant 0) rows for the given keys. */
 export async function listGlobalSettings(
   d1: D1Database,
   keys: string[],
@@ -111,7 +112,7 @@ export async function listGlobalSettings(
   const keyList = sql.join(keys.map((k) => sql`${k}`), sql`, `);
   const rows = await db.all<KeyValueRow>(
     sql`SELECT ${settings.key}, ${settings.value} FROM ${settings}
-        WHERE ${settings.tenant} = '' AND ${settings.key} IN (${keyList})`,
+        WHERE ${settings.tenant} = 0 AND ${settings.key} IN (${keyList})`,
   );
   return rows || [];
 }

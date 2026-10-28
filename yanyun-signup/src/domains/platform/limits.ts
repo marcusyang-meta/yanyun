@@ -43,8 +43,8 @@ export type LimitKey =
   | 'aiRecapsPerDay';     // AI recap generations per guild per day (P18)
 
 export interface LimitContext {
-  discordId: string;
-  guildSlug?: string | null;
+  userId?: number;
+  guildId?: number | null;
 }
 
 export const FREE_LIMITS: Record<LimitKey, number> = {
@@ -182,8 +182,8 @@ export async function getEffectiveLimits(
   db: D1Database,
   ctx: LimitContext,
 ): Promise<Record<LimitKey, number>> {
-  if (!ctx.guildSlug) return { ...FREE_LIMITS };
-  const eff = await getEffectiveEntitlement(db, ctx.guildSlug);
+  if (ctx.guildId == null) return { ...FREE_LIMITS };
+  const eff = await getEffectiveEntitlement(db, ctx.guildId);
   return limitsForTier(quotaTierOfEntitlement(eff));
 }
 
@@ -203,19 +203,19 @@ export function usageDayKey(nowMs: number): string {
 /** Batch-OCR imports one user has already consumed today. */
 export async function getOcrBatchesUsedToday(
   db: D1Database,
-  discordId: string,
+  userId: number,
   nowMs: number,
 ): Promise<number> {
-  return getUsageCount(db, discordId, METRIC_GEAR_OCR_BATCHES, usageDayKey(nowMs));
+  return getUsageCount(db, userId, METRIC_GEAR_OCR_BATCHES, usageDayKey(nowMs));
 }
 
 /** Record one consumed batch-OCR import for one user (today). */
 export async function recordOcrBatch(
   db: D1Database,
-  discordId: string,
+  userId: number,
   nowMs: number,
 ): Promise<number> {
-  return incrementUsage(db, discordId, METRIC_GEAR_OCR_BATCHES, usageDayKey(nowMs), 1, nowMs);
+  return incrementUsage(db, userId, METRIC_GEAR_OCR_BATCHES, usageDayKey(nowMs), 1, nowMs);
 }
 
 /* ---------- guild announcement metering (per guild per day) ------- */
@@ -226,12 +226,13 @@ export async function recordOcrBatch(
 export const METRIC_GUILD_ANNOUNCEMENTS = 'guild_announcements';
 export const METRIC_GUILD_URGENT_CALLS = 'guild_urgent_calls';
 
-/** Counter scope for guild-scoped metering: the usage_counters entity
- *  keys rows by an opaque scope string (its discord_id column); a
- *  guild's broadcasts meter under 'guild:<slug>', a namespace no real
- *  Discord id (all digits) can collide with. */
-export function guildUsageScope(guildSlug: string): string {
-  return 'guild:' + guildSlug;
+/** Counter scope for guild-scoped metering: usage_counters keys rows
+ *  by the typed ID of the owning entity — a guild's broadcasts meter
+ *  under its guild ID (01xx…), a user's under their user ID (02xx…);
+ *  the type codes keep the two namespaces collision-free in one
+ *  INTEGER column. */
+export function guildUsageScope(guildId: number): number {
+  return guildId;
 }
 
 function announcementMetric(kind: string): string {
@@ -241,21 +242,21 @@ function announcementMetric(kind: string): string {
 /** Broadcasts of one kind one guild has already consumed today. */
 export async function getAnnouncementsUsedToday(
   db: D1Database,
-  guildSlug: string,
+  guildId: number,
   kind: string,
   nowMs: number,
 ): Promise<number> {
-  return getUsageCount(db, guildUsageScope(guildSlug), announcementMetric(kind), usageDayKey(nowMs));
+  return getUsageCount(db, guildUsageScope(guildId), announcementMetric(kind), usageDayKey(nowMs));
 }
 
 /** Record one consumed broadcast of one kind for one guild (today). */
 export async function recordAnnouncementUse(
   db: D1Database,
-  guildSlug: string,
+  guildId: number,
   kind: string,
   nowMs: number,
 ): Promise<number> {
-  return incrementUsage(db, guildUsageScope(guildSlug), announcementMetric(kind), usageDayKey(nowMs), 1, nowMs);
+  return incrementUsage(db, guildUsageScope(guildId), announcementMetric(kind), usageDayKey(nowMs), 1, nowMs);
 }
 
 /* ---------- AI recap metering (per guild per day, P18) ------------ */

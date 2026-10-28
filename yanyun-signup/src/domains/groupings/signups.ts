@@ -14,6 +14,7 @@
  * =================================================== */
 import { sql } from 'drizzle-orm';
 import { createDb, schema } from '../../db/client.ts';
+import { mintPublicId } from '../platform/id-mint.ts';
 
 const { signups, events } = schema;
 const col = (name: string) => sql.identifier(name);
@@ -167,20 +168,25 @@ export async function insertSignupWithCapacityGuard(
   d1: D1Database, row: Record<string, unknown>,
 ): Promise<GuardedSignupOutcome> {
   const db = createDb(d1);
-  const cols = checkedColumns(row);
+  // The signup ID (type code 12) is minted before the guarded insert
+  // and written as the explicit primary key; a rejected insert (full
+  // car) simply burns the sequence.
+  const signupId = await mintPublicId(d1, 'signup');
+  const cols = ['id', ...checkedColumns(row)];
+  const values: Record<string, unknown> = { id: signupId, ...row };
   const eventId = row.event_id;
   const r = await db.run(sql`INSERT INTO ${signups} (${sql.join(cols.map((c) => col(c)), sql`, `)})
-    SELECT ${sql.join(cols.map((c) => sql`${row[c]}`), sql`, `)}
+    SELECT ${sql.join(cols.map((c) => sql`${values[c]}`), sql`, `)}
     WHERE (SELECT COUNT(*) FROM ${signups} WHERE ${col('event_id')} = ${eventId})
         < (SELECT ${col('max_slots')} FROM ${events} WHERE ${col('id')} = ${eventId} AND ${col('status')} = 'open')`);
   const meta = metaOf(r);
   if (!meta.changes) return { outcome: 'full' };
   const full = await getSignupCapacityStats(d1, Number(eventId));
   if (full && full.c >= (full.m as number) && full.h === 0) {
-    await deleteSignupById(d1, meta.last_row_id);
+    await deleteSignupById(d1, signupId);
     return { outcome: 'needsHealer' };
   }
-  return { outcome: 'inserted', signupId: meta.last_row_id };
+  return { outcome: 'inserted', signupId };
 }
 
 /* ---------- Red-line unit: member-count aggregate ----------
@@ -189,7 +195,7 @@ export async function insertSignupWithCapacityGuard(
  * query behind GuildShell memberCount and the HubPageShell guild
  * cards). */
 export async function countDistinctNicknamesByTenant(
-  d1: D1Database, tenant: string,
+  d1: D1Database, tenant: number,
 ): Promise<number> {
   const db = createDb(d1);
   const row = await db.get<{ c: number }>(
@@ -205,7 +211,7 @@ export async function countDistinctNicknamesByTenant(
  * resolution can reach the person. The to-stamp seat list (a JOIN
  * across events) and the stamping UPDATE form one unit. */
 export async function listUnstampedSeatsByTenant(
-  d1: D1Database, tenant: string,
+  d1: D1Database, tenant: number,
 ): Promise<{ id: number; nickname: string }[]> {
   const db = createDb(d1);
   return db.all<{ id: number; nickname: string }>(
@@ -221,7 +227,7 @@ export async function stampSignupDiscordId(
   return metaOf(r);
 }
 
-export async function getSignupTenant(d1: D1Database, signupId: number, tenant: string): Promise<{ id: number } | null> {
+export async function getSignupTenant(d1: D1Database, signupId: number, tenant: number): Promise<{ id: number } | null> {
   const db = createDb(d1);
   const row = await db.get<{ id: number }>(
     sql`SELECT s.id FROM ${signups} s JOIN ${events} e ON s.event_id = e.id WHERE s.id = ${signupId} AND e.tenant = ${tenant}`,
@@ -244,13 +250,18 @@ function checkedColumns(row: Record<string, unknown>): string[] {
   return cols;
 }
 
-/* Plain insert (non-guard paths: initial seating, proxy signups). Returns meta. */
+/* Plain insert (non-guard paths: initial seating, proxy signups).
+ * Mints the signup ID (type code 12); the meta's last_row_id is the
+ * minted ID. */
 export async function insertSignup(d1: D1Database, row: Record<string, unknown>): Promise<RunMeta> {
   const db = createDb(d1);
-  const cols = checkedColumns(row);
+  const id = await mintPublicId(d1, 'signup');
+  const full = { id, ...row };
+  const cols = ['id', ...checkedColumns(row)];
   const r = await db.run(sql`INSERT INTO ${signups} (${sql.join(cols.map((c) => col(c)), sql`, `)})
-    VALUES (${sql.join(cols.map((c) => sql`${row[c]}`), sql`,`)})`);
-  return metaOf(r);
+    VALUES (${sql.join(cols.map((c) => sql`${full[c as keyof typeof full]}`), sql`,`)})`);
+  const meta = metaOf(r);
+  return { changes: meta.changes, last_row_id: id };
 }
 
 /* Batch seating: one D1 batch inside the repository (restores
@@ -258,8 +269,14 @@ export async function insertSignup(d1: D1Database, row: Record<string, unknown>)
  * failure rolls back the whole batch — no half-seated rows). */
 export async function insertSignups(d1: D1Database, rows: Record<string, unknown>[]): Promise<void> {
   if (!rows.length) return;
-  const stmts = rows.map((row) => {
-    const cols = checkedColumns(row);
+  // One minted ID (type code 12) per row, minted before the batch;
+  // the batch itself stays atomic as before.
+  const withIds: Record<string, unknown>[] = [];
+  for (const row of rows) {
+    withIds.push({ id: await mintPublicId(d1, 'signup'), ...row });
+  }
+  const stmts = withIds.map((row) => {
+    const cols = ['id', ...checkedColumns(row)];
     return d1
       .prepare(`INSERT INTO signups (${cols.join(', ')}) VALUES (${cols.map(() => '?').join(', ')})`)
       .bind(...cols.map((c) => row[c]));
@@ -336,7 +353,7 @@ export interface UserSeatFactRow {
 }
 
 export async function listUserSeatFactsInGuild(
-  d1: D1Database, tenant: string, discordId: string,
+  d1: D1Database, tenant: number, discordId: string,
 ): Promise<UserSeatFactRow[]> {
   const db = createDb(d1);
   const rows = await db.all<UserSeatFactRow>(
@@ -352,7 +369,7 @@ export async function listUserSeatFactsInGuild(
 export interface UserSeatRow {
   id: number;
   event_id: number;
-  tenant: string;
+  tenant: number;
   event_title: string;
   event_starts_at: string | null;
   nickname: string;

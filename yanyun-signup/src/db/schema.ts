@@ -35,7 +35,7 @@ export * from '../domains/platform/schema.ts';
 export const creatorBackfillLog = sqliteTable('creator_backfill_log', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   eventId: integer('event_id').notNull(),
-  tenant: text('tenant'),
+  tenant: integer('tenant'),
   seatNickname: text('seat_nickname'),
   resolvedDiscordId: text('resolved_discord_id'),
   outcome: text('outcome').notNull(),

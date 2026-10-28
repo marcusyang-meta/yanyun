@@ -23,8 +23,8 @@ export interface AvailabilitySlot {
 }
 
 export interface MemberAvailabilityRow {
-  tenant: string;
-  discord_id: string;
+  tenant: number;
+  user_id: number;
   display_name: string;
   slots_json: string;
   updated_at: number;
@@ -85,18 +85,18 @@ export function validateAvailabilitySlots(
 /* ---------- Reads ---------- */
 
 export async function getMemberAvailability(
-  d1: D1Database, tenant: string, discordId: string,
+  d1: D1Database, tenant: number, userId: number,
 ): Promise<MemberAvailabilityRow | null> {
   const db = createDb(d1);
   const row = await db.get<MemberAvailabilityRow>(
-    sql`SELECT * FROM ${memberAvailability} WHERE ${col('tenant')} = ${tenant} AND ${col('discord_id')} = ${discordId}`,
+    sql`SELECT * FROM ${memberAvailability} WHERE ${col('tenant')} = ${tenant} AND ${col('user_id')} = ${userId}`,
   );
   return row ?? null;
 }
 
 /** Every saved availability set in one guild (the summary read). */
 export async function listGuildAvailability(
-  d1: D1Database, tenant: string,
+  d1: D1Database, tenant: number,
 ): Promise<MemberAvailabilityRow[]> {
   const db = createDb(d1);
   const rows = await db.all<MemberAvailabilityRow>(
@@ -110,14 +110,14 @@ export async function listGuildAvailability(
 /** Replace one member's whole availability set (upsert on the PK). */
 export async function upsertMemberAvailability(
   d1: D1Database,
-  row: { tenant: string; discordId: string; displayName: string; slots: AvailabilitySlot[]; updatedAt: number },
+  row: { tenant: number; userId: number; displayName: string; slots: AvailabilitySlot[]; updatedAt: number },
 ): Promise<RunMeta> {
   const db = createDb(d1);
   const slotsJson = JSON.stringify(row.slots);
   const r = await db.run(
-    sql`INSERT INTO ${memberAvailability} (${col('tenant')}, ${col('discord_id')}, ${col('display_name')}, ${col('slots_json')}, ${col('updated_at')})
-        VALUES (${row.tenant}, ${row.discordId}, ${row.displayName}, ${slotsJson}, ${row.updatedAt})
-        ON CONFLICT (${col('tenant')}, ${col('discord_id')}) DO UPDATE SET
+    sql`INSERT INTO ${memberAvailability} (${col('tenant')}, ${col('user_id')}, ${col('display_name')}, ${col('slots_json')}, ${col('updated_at')})
+        VALUES (${row.tenant}, ${row.userId}, ${row.displayName}, ${slotsJson}, ${row.updatedAt})
+        ON CONFLICT (${col('tenant')}, ${col('user_id')}) DO UPDATE SET
           ${col('display_name')} = ${row.displayName}, ${col('slots_json')} = ${slotsJson}, ${col('updated_at')} = ${row.updatedAt}`,
   );
   return metaOf(r);

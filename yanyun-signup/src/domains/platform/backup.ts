@@ -34,6 +34,7 @@ import {
   fillOffers, fillRequests, fillInvites, guildAlliances,
   guildCustomDomains,
   guildOfficerGrants, guildOfficerPosts, guildAuditEvents,
+  idMintCounters,
 } from '../../db/schema.ts';
 
 export const BACKUP_FORMAT = 'yanyun-backup';
@@ -101,6 +102,9 @@ export const BACKUP_ENTITIES: ReadonlyArray<readonly [string, SQLiteTable]> = [
   ['guild_officer_grants', guildOfficerGrants],
   ['guild_officer_posts', guildOfficerPosts],
   ['guild_audit_events', guildAuditEvents],
+  // The mint counters ride along LAST: a restore must never let a
+  // later mint re-issue an ID the restored rows already carry.
+  ['id_mint_counters', idMintCounters],
 ];
 
 export type EncodedValue = string | number | null | { $blob: string };

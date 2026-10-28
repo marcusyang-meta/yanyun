@@ -18,7 +18,7 @@
 import { Hono, type Context } from 'hono';
 import { getShortLinkByCode, SHORT_CODE_RE } from './shortlinks.ts';
 import { getEventRowByTenant } from './events.ts';
-import { parseGuildSubdomainSlug, isGuildSubdomainEnabled, isLiveCustomDomainHost } from '../guilds/index.ts';
+import { parseGuildSubdomainSlug, isGuildSubdomainEnabled, isLiveCustomDomainHost, getTenantRowById } from '../guilds/index.ts';
 import { getGuildAccess } from '../platform/graphql-base.ts';
 import { getSessionUserChecked } from '../identity/auth.ts';
 import type { Env } from '../platform/context.ts';
@@ -34,13 +34,15 @@ shortLinkRoutes.get('/c/:code', async (c: ShortLinkContext) => {
   // The target may have been disbanded/deleted after the link was shared.
   const ev = await getEventRowByTenant(c.env.DB, row.event_id, row.tenant).catch(() => null);
   if (!ev) return new Response('Not found', { status: 404 });
+  const tenantRow = await getTenantRowById(c.env.DB, row.tenant).catch(() => null);
+  const tenantSlug = tenantRow ? tenantRow.slug : '';
   const reqUrl = new URL(c.req.url);
   // Landing split: only visitors who pass the guild's own view gate
   // earn the canonical (interactive) URL; the rest get the public
   // share page on the request's own origin.
   const checked = await getSessionUserChecked(c.req.raw, c.env)
     .catch(() => ({ user: null, clearCookie: false }));
-  const access = await getGuildAccess(c.env.DB, checked.user, row.tenant, c.req.raw)
+  const access = await getGuildAccess(c.env.DB, checked.user, tenantSlug, c.req.raw)
     .catch(() => ({ canView: false }));
   if (!access.canView) {
     return Response.redirect(new URL(`/s/${encodeURIComponent(code)}`, reqUrl).toString(), 302);
@@ -49,14 +51,14 @@ shortLinkRoutes.get('/c/:code', async (c: ShortLinkContext) => {
   // subdomain car path (the host names the guild); every other host
   // keeps the canonical slug path on the request's own origin, as
   // before.
-  const onOwnSubdomain = parseGuildSubdomainSlug(reqUrl.hostname) === row.tenant
-    && await isGuildSubdomainEnabled(c.env.DB, row.tenant).catch(() => false);
+  const onOwnSubdomain = parseGuildSubdomainSlug(reqUrl.hostname) === tenantSlug
+    && await isGuildSubdomainEnabled(c.env.DB, tenantSlug).catch(() => false);
   // Same rule for the guild's own custom domain (white-label
   // tier B): a hit through it lands on the clean car path there.
   const onOwnCustomDomain = !onOwnSubdomain
-    && await isLiveCustomDomainHost(c.env.DB, reqUrl.hostname, row.tenant).catch(() => false);
+    && await isLiveCustomDomainHost(c.env.DB, reqUrl.hostname, tenantSlug).catch(() => false);
   const target = onOwnSubdomain || onOwnCustomDomain
     ? new URL(`/car/${row.event_id}`, reqUrl)
-    : new URL(`/${encodeURIComponent(row.tenant)}/car/${row.event_id}`, reqUrl);
+    : new URL(`/${encodeURIComponent(tenantSlug)}/car/${row.event_id}`, reqUrl);
   return Response.redirect(target.toString(), 302);
 });

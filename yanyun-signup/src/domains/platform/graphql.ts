@@ -142,9 +142,9 @@ export class SeatEntryShell extends ShellBase {
   }
   genHealer(){ return !!this.data.row && this.data.row.weapon === HEALER_SECT; }
   genIsLeader(){
-    const { row, ev } = this.data;
-    return !!row && !!row.discord_id && !!ev.creator_discord_id
-      && String(row.discord_id) === String(ev.creator_discord_id);
+    const { row, creatorDiscordId } = this.data;
+    return !!row && !!row.discord_id && !!creatorDiscordId
+      && String(row.discord_id) === String(creatorDiscordId);
   }
   genReady(){ return !!this.data.row && !!(this.data.row as any).ready_at; }
   /* Readiness toggle rides beside the main seat action: only the
@@ -298,13 +298,13 @@ export const platformResolvers = {
       if (!isValidPushToken(t)) {
         return { ok: false, error: errText(ctx, 'pushTokenInvalid'), errorCode: 'pushTokenInvalid' };
       }
-      await savePushToken(ctx.env.DB, ctx.user.discordId, t, platform || '');
+      await savePushToken(ctx.env.DB, ctx.user.userId, t, platform || '');
       return { ok: true, error: null, errorCode: null };
     },
 
     unregisterPushToken: async (_: any, { token }: any, ctx: Context) => {
       if (!ctx.user) return { ok: false, error: errText(ctx, 'loginRequired'), errorCode: 'loginRequired' };
-      await deletePushToken(ctx.env.DB, ctx.user.discordId, String(token || '').trim());
+      await deletePushToken(ctx.env.DB, ctx.user.userId, String(token || '').trim());
       return { ok: true, error: null, errorCode: null };
     },
 
@@ -323,12 +323,12 @@ export const platformResolvers = {
       const cat = String(category || '').toLowerCase();
       const stored = (FEEDBACK_CATEGORIES as readonly string[]).includes(cat) ? cat : 'other';
       const now = Date.now();
-      const recent = await countFeedbackSince(ctx.env.DB, String(ctx.user.discordId), now - 24 * 3600 * 1000);
+      const recent = await countFeedbackSince(ctx.env.DB, ctx.user.userId, now - 24 * 3600 * 1000);
       if (recent >= FEEDBACK_DAILY_LIMIT) {
         return { ok: false, error: errText(ctx, 'feedbackRateLimited'), errorCode: 'feedbackRateLimited' };
       }
       await insertFeedback(ctx.env.DB, {
-        discordId: String(ctx.user.discordId),
+        userId: ctx.user.userId,
         userName: String(ctx.user.name || ''),
         category: stored,
         content,

@@ -19,8 +19,8 @@ import {
 
 /* ---------------- events [ddl chain baseline] ---------------------- */
 export const events = sqliteTable('events', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  tenant: text('tenant').notNull().default(''),
+  id: integer('id').primaryKey(),
+  tenant: integer('tenant').notNull().default(0),
   title: text('title').notNull(),
   type: text('type').notNull().default('activity'),
   description: text('description').notNull().default(''),
@@ -38,7 +38,7 @@ export const events = sqliteTable('events', {
   createdBy: text('created_by').notNull().default(''),
   manageCode: text('manage_code').notNull().default(''),
   dungeon: text('dungeon').notNull().default(''),
-  creatorDiscordId: text('creator_discord_id'),
+  creatorUserId: integer('creator_user_id'),
   reminderSentAt: integer('reminder_sent_at'),
   reminderError: text('reminder_error'),
   // Ally sharing [alt: 0032]: leader-flagged visibility to allied
@@ -52,7 +52,7 @@ export const events = sqliteTable('events', {
 
 /* ---------------- signups [ddl chain baseline] --------------------- */
 export const signups = sqliteTable('signups', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
+  id: integer('id').primaryKey(),
   eventId: integer('event_id').notNull().references(() => events.id, { onDelete: 'cascade' }),
   nickname: text('nickname').notNull(),
   uid: text('uid').notNull(),
@@ -83,8 +83,8 @@ export const signups = sqliteTable('signups', {
  * (hour*60+minute in the saver's timezone) and start_days_ahead the
  * day offset, so a template never carries a stale absolute date. */
 export const groupingTemplates = sqliteTable('grouping_templates', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  tenant: text('tenant').notNull().default(''),
+  id: integer('id').primaryKey(),
+  tenant: integer('tenant').notNull().default(0),
   name: text('name').notNull().default(''),
   type: text('type').notNull().default('activity'),
   title: text('title').notNull().default(''),
@@ -92,7 +92,7 @@ export const groupingTemplates = sqliteTable('grouping_templates', {
   maxSlots: integer('max_slots').notNull().default(10),
   startDaysAhead: integer('start_days_ahead').notNull().default(0),
   startMinutes: integer('start_minutes').notNull().default(1200),
-  creatorDiscordId: text('creator_discord_id'),
+  creatorUserId: integer('creator_user_id'),
   createdAt: integer('created_at').notNull().default(0),
   updatedAt: integer('updated_at').notNull().default(0),
   /* season_key [alt: 0028]: the season this template copy belongs
@@ -110,7 +110,7 @@ export const groupingTemplates = sqliteTable('grouping_templates', {
  * car mints exactly one code and reuses it forever. */
 export const shortLinks = sqliteTable('short_links', {
   code: text('code').primaryKey(),
-  tenant: text('tenant').notNull().default(''),
+  tenant: integer('tenant').notNull().default(0),
   eventId: integer('event_id').notNull(),
   createdAt: integer('created_at').notNull().default(0),
 }, (t) => [
@@ -127,15 +127,15 @@ export const shortLinks = sqliteTable('short_links', {
  * status = 'drawn' on the lottery. Nothing is ever deleted: the
  * lottery, its entries and its winners are the audit trail. */
 export const lotteries = sqliteTable('lotteries', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  tenant: text('tenant').notNull().default(''),
+  id: integer('id').primaryKey(),
+  tenant: integer('tenant').notNull().default(0),
   title: text('title').notNull().default(''),
   prize: text('prize').notNull().default(''),
   source: text('source').notNull().default('members'),
   sourceEventId: integer('source_event_id'),
   winnerCount: integer('winner_count').notNull().default(1),
   status: text('status').notNull().default('open'),
-  createdBy: text('created_by').notNull().default(''),
+  createdByUserId: integer('created_by_user_id').notNull().default(0),
   createdAt: integer('created_at').notNull().default(0),
   drawnAt: integer('drawn_at'),
 }, (t) => [
@@ -171,13 +171,13 @@ export const lotteryWinners = sqliteTable('lottery_winners', {
  * day. UTC is the only stored frame; clients render in the viewer's
  * timezone. display_name snapshots the roster name at save time. */
 export const memberAvailability = sqliteTable('member_availability', {
-  tenant: text('tenant').notNull().default(''),
-  discordId: text('discord_id').notNull().default(''),
+  tenant: integer('tenant').notNull().default(0),
+  userId: integer('user_id').notNull().default(0),
   displayName: text('display_name').notNull().default(''),
   slotsJson: text('slots_json').notNull().default('[]'),
   updatedAt: integer('updated_at').notNull().default(0),
 }, (t) => [
-  primaryKey({ columns: [t.tenant, t.discordId] }),
+  primaryKey({ columns: [t.tenant, t.userId] }),
 ]);
 
 /* ---------------- time_polls [migration 0007] ----------------------
@@ -187,11 +187,11 @@ export const memberAvailability = sqliteTable('member_availability', {
  * can attend; the unique index states the no-duplicate rule and
  * re-voting replaces the member's whole set. */
 export const timePolls = sqliteTable('time_polls', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  tenant: text('tenant').notNull().default(''),
+  id: integer('id').primaryKey(),
+  tenant: integer('tenant').notNull().default(0),
   title: text('title').notNull().default(''),
   status: text('status').notNull().default('open'),
-  createdBy: text('created_by').notNull().default(''),
+  createdByUserId: integer('created_by_user_id').notNull().default(0),
   createdAt: integer('created_at').notNull().default(0),
   closedAt: integer('closed_at'),
 }, (t) => [
@@ -199,7 +199,7 @@ export const timePolls = sqliteTable('time_polls', {
 ]);
 
 export const timePollOptions = sqliteTable('time_poll_options', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
+  id: integer('id').primaryKey(),
   pollId: integer('poll_id').notNull().references(() => timePolls.id, { onDelete: 'cascade' }),
   startsAtUtc: integer('starts_at_utc').notNull().default(0),
 }, (t) => [
@@ -210,10 +210,10 @@ export const timePollVotes = sqliteTable('time_poll_votes', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   pollId: integer('poll_id').notNull().references(() => timePolls.id, { onDelete: 'cascade' }),
   optionId: integer('option_id').notNull().references(() => timePollOptions.id, { onDelete: 'cascade' }),
-  discordId: text('discord_id').notNull().default(''),
+  userId: integer('user_id').notNull().default(0),
   displayName: text('display_name').notNull().default(''),
 }, (t) => [
-  uniqueIndex('time_poll_votes_member_unique').on(t.pollId, t.optionId, t.discordId),
+  uniqueIndex('time_poll_votes_member_unique').on(t.pollId, t.optionId, t.userId),
   index('idx_time_poll_votes_poll').on(t.pollId),
 ]);
 
@@ -224,7 +224,7 @@ export const timePollVotes = sqliteTable('time_poll_votes', {
  * creation when the creator used one). field_type is the constrained
  * set 'text' | 'choice'; options_json carries a choice's options. */
 export const groupingCustomFields = sqliteTable('grouping_custom_fields', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
+  id: integer('id').primaryKey(),
   ownerKind: text('owner_kind').notNull().default('event'),
   ownerId: integer('owner_id').notNull().default(0),
   label: text('label').notNull().default(''),
@@ -299,7 +299,7 @@ export const groupingRecaps = sqliteTable('grouping_recaps', {
 
 /* ---------------- results [ddl chain baseline] ----------------------- */
 export const results = sqliteTable('results', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
+  id: integer('id').primaryKey(),
   eventId: integer('event_id').notNull().references(() => events.id, { onDelete: 'cascade' }),
   teamName: text('team_name').notNull(),
   members: text('members').notNull().default(''),

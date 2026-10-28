@@ -47,12 +47,13 @@ import {
   insertGroupingTemplate, getEventRowByTenant, postWebhook,
 } from '../groupings/index.ts';
 import type { EventRow } from '../groupings/index.ts';
-import { listGuildMembers, getUsernameRow } from '../identity/index.ts';
+import { listGuildMembers, getUsernameRow, getUsernameRowById, getUserIdByDiscordId, getDiscordIdByUserId } from '../identity/index.ts';
 import { pushTokensForUsers, sendExpoPush } from '../platform/push.ts';
 import {
   opsNudgeSends, seasonRollovers, contributionRules, contributionEntries,
 } from './schema.ts';
-import { getTenantRow } from './tenants.ts';
+import { getTenantRowById } from './tenants.ts';
+import { mintPublicId } from '../platform/id-mint.ts';
 import { getSettingValue, setSettingValue } from './settings.ts';
 import { listPairingsByTenant } from './recruit.ts';
 
@@ -68,9 +69,9 @@ function metaOf(r: unknown): { changes: number; last_row_id: number } {
  * roster global name, then the member's own signup nickname, then
  * the account username, then the raw id. */
 export async function resolveMemberNames(
-  db: D1Database, slug: string, signupNick: Map<string, string>,
+  db: D1Database, guildId: number, signupNick: Map<string, string>,
 ): Promise<(discordId: string) => Promise<string>> {
-  const roster = await listGuildMembers(db, slug).catch(() => []);
+  const roster = await listGuildMembers(db, guildId).catch(() => []);
   const rosterName = new Map<string, string>();
   for (const m of roster || []) {
     const name = (m.nick || '').trim() || (m.global_name || '').trim();
@@ -122,10 +123,10 @@ interface MemberFacts {
   role: string;
 }
 
-async function memberFacts(db: D1Database, slug: string): Promise<Map<string, MemberFacts>> {
+async function memberFacts(db: D1Database, guildId: number): Promise<Map<string, MemberFacts>> {
   const [spanStart] = weekWindowUtc(-52);
   const [, spanEnd] = weekWindowUtc(4);
-  const events = (await listEventsInWindow(db, slug, spanStart, spanEnd))
+  const events = (await listEventsInWindow(db, guildId, spanStart, spanEnd))
     .filter((e) => e.status !== 'draft');
   const facts = new Map<string, MemberFacts>();
   // Oldest first so later seats overwrite weapon/role with fresher stamps.
@@ -175,8 +176,8 @@ export function filterNudgeCandidates(
   return out;
 }
 
-async function guildMemberList(db: D1Database, slug: string) {
-  const rows = await listGuildMembers(db, slug).catch(() => []);
+async function guildMemberList(db: D1Database, guildId: number) {
+  const rows = await listGuildMembers(db, guildId).catch(() => []);
   const out: { discordId: string; displayName: string }[] = [];
   for (const r of rows || []) {
     const displayName = String(r.nick || '').trim() || String(r.global_name || '').trim();
@@ -185,10 +186,10 @@ async function guildMemberList(db: D1Database, slug: string) {
   return out;
 }
 
-async function listNudgeSends(db: D1Database, slug: string, sinceSec: number) {
+async function listNudgeSends(db: D1Database, guildId: number, sinceSec: number) {
   const dbi = createDb(db);
   const rows = await dbi.all<any>(
-    sql`SELECT * FROM ${opsNudgeSends} WHERE ${col('tenant')} = ${slug} AND ${col('sent_at')} >= ${sinceSec} ORDER BY ${col('id')} DESC`,
+    sql`SELECT * FROM ${opsNudgeSends} WHERE ${col('tenant')} = ${guildId} AND ${col('sent_at')} >= ${sinceSec} ORDER BY ${col('id')} DESC`,
   );
   return rows || [];
 }
@@ -199,19 +200,19 @@ function utcDayStart(atSec: number): number {
 }
 
 export async function previewTargetedNudge(
-  db: D1Database, slug: string, eventId: number,
+  db: D1Database, guildId: number, eventId: number,
   kind: NudgeSegmentKind, value: string, atSec: number = nowSec(),
 ): Promise<NudgePreview | null> {
-  const event = await getEventRowByTenant(db, eventId, slug).catch(() => null);
+  const event = await getEventRowByTenant(db, eventId, guildId).catch(() => null);
   if (!event) return null;
   const seats = await listSignupsByEvent(db, eventId);
   const signedIds = new Set(seats.map((s) => String(s.discord_id || '')).filter(Boolean));
-  const facts = await memberFacts(db, slug);
+  const facts = await memberFacts(db, guildId);
   const candidates = filterNudgeCandidates(
-    await guildMemberList(db, slug), signedIds, facts, kind, value, atSec,
+    await guildMemberList(db, guildId), signedIds, facts, kind, value, atSec,
   );
-  const sendsToday = (await listNudgeSends(db, slug, utcDayStart(atSec))).length;
-  const eventSends = await listNudgeSends(db, slug, atSec - NUDGE_EVENT_COOLDOWN_SEC);
+  const sendsToday = (await listNudgeSends(db, guildId, utcDayStart(atSec))).length;
+  const eventSends = await listNudgeSends(db, guildId, atSec - NUDGE_EVENT_COOLDOWN_SEC);
   const lastForEvent = eventSends.find((r) => Number(r.event_id) === eventId);
   return {
     event, candidates, sendsToday,
@@ -230,12 +231,12 @@ export type NudgeSendOutcome =
  *  exactly like departure reminders. Message copy is composed by
  *  the caller (GraphQL layer) so all text stays in the i18n catalog. */
 export async function sendTargetedNudge(
-  db: D1Database, slug: string, eventId: number,
+  db: D1Database, guildId: number, eventId: number,
   kind: NudgeSegmentKind, value: string,
-  sentBy: string, message: string, expoBase: unknown,
+  sentByUserId: number, message: string, expoBase: unknown,
   atSec: number = nowSec(),
 ): Promise<NudgeSendOutcome> {
-  const preview = await previewTargetedNudge(db, slug, eventId, kind, value, atSec);
+  const preview = await previewTargetedNudge(db, guildId, eventId, kind, value, atSec);
   if (!preview) return { ok: false, code: 'eventNotFound' };
   if (!preview.candidates.length) return { ok: false, code: 'noCandidates' };
   if (preview.dailyRemaining <= 0) return { ok: false, code: 'nudgeDailyLimit' };
@@ -245,11 +246,11 @@ export async function sendTargetedNudge(
   const ids = preview.candidates.map((c) => c.discordId);
   const dbi = createDb(db);
   await dbi.run(
-    sql`INSERT INTO ${opsNudgeSends} (${col('tenant')}, ${col('event_id')}, ${col('segment_kind')}, ${col('segment_value')}, ${col('recipient_count')}, ${col('recipient_ids')}, ${col('sent_by')}, ${col('sent_at')})
-        VALUES (${slug}, ${eventId}, ${kind}, ${value}, ${ids.length}, ${JSON.stringify(ids)}, ${sentBy}, ${atSec})`,
+    sql`INSERT INTO ${opsNudgeSends} (${col('id')}, ${col('tenant')}, ${col('event_id')}, ${col('segment_kind')}, ${col('segment_value')}, ${col('recipient_count')}, ${col('recipient_ids')}, ${col('sent_by_user_id')}, ${col('sent_at')})
+        VALUES (${await mintPublicId(db, 'opsNudgeSend')}, ${guildId}, ${eventId}, ${kind}, ${value}, ${ids.length}, ${JSON.stringify(ids)}, ${sentByUserId}, ${atSec})`,
   );
   let webhookSent = false;
-  const tenant = await getTenantRow(db, slug).catch(() => null);
+  const tenant = await getTenantRowById(db, guildId).catch(() => null);
   const webhook = String(tenant?.discord_webhook || '').trim();
   if (webhook) {
     const res = await postWebhook(webhook, message, ids).catch(() => null);
@@ -261,7 +262,7 @@ export async function sendTargetedNudge(
     const messages: any[] = [];
     for (const [did, toks] of tokens) {
       for (const to of toks) {
-        messages.push({ to, title: String(tenant?.guild_name || slug), body: message, data: { kind: 'targeted_nudge', eventId } });
+        messages.push({ to, title: String(tenant?.guild_name || ''), body: message, data: { kind: 'targeted_nudge', eventId } });
         void did;
       }
     }
@@ -302,14 +303,14 @@ export function evaluateChurnRisk(f: ChurnFacts): boolean {
 export interface ChurnRisk extends ChurnFacts { displayName: string }
 
 export async function computeChurnRisks(
-  db: D1Database, slug: string, atSec: number = nowSec(),
+  db: D1Database, guildId: number, atSec: number = nowSec(),
 ): Promise<ChurnRisk[]> {
   void atSec;
   const totalWeeks = CHURN_RECENT_WEEKS + CHURN_BASELINE_WEEKS;
   const [spanStart] = weekWindowUtc(-(totalWeeks - 1));
   const [, spanEnd] = weekWindowUtc(0);
   const [recentStart] = weekWindowUtc(-(CHURN_RECENT_WEEKS - 1));
-  const events = (await listEventsInWindow(db, slug, spanStart, spanEnd))
+  const events = (await listEventsInWindow(db, guildId, spanStart, spanEnd))
     .filter((e) => e.status !== 'draft' && e.starts_at_utc != null);
   const baseline = new Map<string, number>();
   const recent = new Map<string, number>();
@@ -336,7 +337,7 @@ export async function computeChurnRisks(
     const seats = await listSignupsByEvent(db, ev.id);
     streakSets.push(new Set(seats.map((s) => String(s.discord_id || '')).filter(Boolean)));
   }
-  const resolve = await resolveMemberNames(db, slug, signupNick);
+  const resolve = await resolveMemberNames(db, guildId, signupNick);
   const risks: ChurnRisk[] = [];
   const ids = new Set([...baseline.keys(), ...recent.keys()]);
   for (const did of ids) {
@@ -401,10 +402,10 @@ export interface RolloverReport extends RolloverPlan {
 }
 
 export async function executeSeasonRollover(
-  db: D1Database, slug: string, targetSeasonKey: string,
-  fromSeasonKey: string, createdBy: string, atSec: number = nowSec(),
+  db: D1Database, guildId: number, targetSeasonKey: string,
+  fromSeasonKey: string, createdByUserId: number, atSec: number = nowSec(),
 ): Promise<RolloverReport> {
-  const templates = await listGroupingTemplates(db, slug);
+  const templates = await listGroupingTemplates(db, guildId);
   const plan = planRollover(templates as any, targetSeasonKey);
   const byId = new Map(templates.map((t) => [t.id, t]));
   let copied = 0;
@@ -412,10 +413,10 @@ export async function executeSeasonRollover(
     const t = byId.get(id);
     if (!t) continue;
     await insertGroupingTemplate(db, {
-      tenant: slug, name: t.name, type: t.type, title: t.title,
+      tenant: guildId, name: t.name, type: t.type, title: t.title,
       dungeon: t.dungeon, max_slots: t.max_slots,
       start_days_ahead: t.start_days_ahead, start_minutes: t.start_minutes,
-      creator_discord_id: t.creator_discord_id,
+      creator_user_id: t.creator_user_id,
       created_at: atSec, updated_at: atSec, season_key: targetSeasonKey,
     });
     copied += 1;
@@ -428,17 +429,17 @@ export async function executeSeasonRollover(
   };
   const dbi = createDb(db);
   const r = await dbi.run(
-    sql`INSERT INTO ${seasonRollovers} (${col('tenant')}, ${col('from_season_key')}, ${col('to_season_key')}, ${col('templates_copied')}, ${col('report_json')}, ${col('created_by')}, ${col('created_at')})
-        VALUES (${slug}, ${fromSeasonKey}, ${targetSeasonKey}, ${copied}, ${JSON.stringify({ ...report, templatesCopied: copied })}, ${createdBy}, ${atSec})`,
+    sql`INSERT INTO ${seasonRollovers} (${col('tenant')}, ${col('from_season_key')}, ${col('to_season_key')}, ${col('templates_copied')}, ${col('report_json')}, ${col('created_by_user_id')}, ${col('created_at')})
+        VALUES (${guildId}, ${fromSeasonKey}, ${targetSeasonKey}, ${copied}, ${JSON.stringify({ ...report, templatesCopied: copied })}, ${createdByUserId}, ${atSec})`,
   );
   report.rolloverId = metaOf(r).last_row_id;
   return { ...report, pendingTemplateIds: plan.pendingTemplateIds.slice(0, copied) };
 }
 
-export async function lastRollover(db: D1Database, slug: string) {
+export async function lastRollover(db: D1Database, guildId: number) {
   const dbi = createDb(db);
   const row = await dbi.get<any>(
-    sql`SELECT * FROM ${seasonRollovers} WHERE ${col('tenant')} = ${slug} ORDER BY ${col('id')} DESC LIMIT 1`,
+    sql`SELECT * FROM ${seasonRollovers} WHERE ${col('tenant')} = ${guildId} ORDER BY ${col('id')} DESC LIMIT 1`,
   ).catch(() => null);
   return row ?? null;
 }
@@ -457,12 +458,12 @@ const WATERMARK_KEY = 'contribution_sync_from';
 /** The accrual watermark: stamped once per guild on first use.
  *  Only events starting at/after it can credit — no backfill. */
 export async function contributionWatermark(
-  db: D1Database, slug: string, atSec: number = nowSec(),
+  db: D1Database, guildId: number, atSec: number = nowSec(),
 ): Promise<number> {
-  const raw = await getSettingValue(db, slug, WATERMARK_KEY).catch(() => '');
+  const raw = await getSettingValue(db, guildId, WATERMARK_KEY).catch(() => '');
   const n = Number.parseInt(String(raw || ''), 10);
   if (Number.isFinite(n) && n > 0) return n;
-  await setSettingValue(db, slug, WATERMARK_KEY, String(atSec));
+  await setSettingValue(db, guildId, WATERMARK_KEY, String(atSec));
   return atSec;
 }
 
@@ -473,11 +474,11 @@ export interface ContributionRule {
 }
 
 export async function listContributionRules(
-  db: D1Database, slug: string,
+  db: D1Database, guildId: number,
 ): Promise<ContributionRule[]> {
   const dbi = createDb(db);
   const rows = await dbi.all<any>(
-    sql`SELECT * FROM ${contributionRules} WHERE ${col('tenant')} = ${slug}`,
+    sql`SELECT * FROM ${contributionRules} WHERE ${col('tenant')} = ${guildId}`,
   ).catch(() => []);
   const stored = new Map((rows || []).map((r: any) => [String(r.action_key), r]));
   return CONTRIBUTION_ACTIONS.map((a) => {
@@ -491,16 +492,16 @@ export async function listContributionRules(
 }
 
 export async function upsertContributionRule(
-  db: D1Database, slug: string, actionKey: string, points: number,
-  enabled: boolean, updatedBy: string, atSec: number = nowSec(),
+  db: D1Database, guildId: number, actionKey: string, points: number,
+  enabled: boolean, updatedByUserId: number, atSec: number = nowSec(),
 ): Promise<boolean> {
   if (!CONTRIBUTION_ACTIONS.some((a) => a.key === actionKey)) return false;
   const clamped = Math.max(0, Math.min(1000, Math.floor(points) || 0));
   const dbi = createDb(db);
   await dbi.run(
-    sql`INSERT INTO ${contributionRules} (${col('tenant')}, ${col('action_key')}, ${col('points')}, ${col('enabled')}, ${col('updated_by')}, ${col('updated_at')})
-        VALUES (${slug}, ${actionKey}, ${clamped}, ${enabled ? 1 : 0}, ${updatedBy}, ${atSec})
-        ON CONFLICT(tenant, action_key) DO UPDATE SET points = ${clamped}, enabled = ${enabled ? 1 : 0}, updated_by = ${updatedBy}, updated_at = ${atSec}`,
+    sql`INSERT INTO ${contributionRules} (${col('tenant')}, ${col('action_key')}, ${col('points')}, ${col('enabled')}, ${col('updated_by_user_id')}, ${col('updated_at')})
+        VALUES (${guildId}, ${actionKey}, ${clamped}, ${enabled ? 1 : 0}, ${updatedByUserId}, ${atSec})
+        ON CONFLICT(tenant, action_key) DO UPDATE SET points = ${clamped}, enabled = ${enabled ? 1 : 0}, updated_by_user_id = ${updatedByUserId}, updated_at = ${atSec}`,
   );
   return true;
 }
@@ -509,44 +510,52 @@ export async function upsertContributionRule(
  *  watermark and insert whatever ledger rows are missing. Returns
  *  how many rows were newly credited. Safe to call on every read. */
 export async function syncContributionEntries(
-  db: D1Database, slug: string, atSec: number = nowSec(),
+  db: D1Database, guildId: number, atSec: number = nowSec(),
 ): Promise<number> {
-  const from = await contributionWatermark(db, slug, atSec);
-  const rules = new Map((await listContributionRules(db, slug)).map((r) => [r.actionKey, r]));
+  const from = await contributionWatermark(db, guildId, atSec);
+  const rules = new Map((await listContributionRules(db, guildId)).map((r) => [r.actionKey, r]));
   const ruleFor = (k: string) => rules.get(k);
   const [, spanEnd] = weekWindowUtc(4);
-  const events = (await listEventsInWindow(db, slug, from, spanEnd))
+  const events = (await listEventsInWindow(db, guildId, from, spanEnd))
     .filter((e) => e.status === 'completed');
   const dbi = createDb(db);
   let inserted = 0;
+  // The ledger keys on the numeric user ID. Seat stamps carry
+  // Discord IDs (a boundary column), so attendance resolves through
+  // the users row — the one sanctioned conversion. A seat holder
+  // with no platform account has no user ID and cannot hold points;
+  // their credit is skipped (the migration minted accounts for the
+  // stock ledger's holders, so history is unaffected).
   const credit = async (
-    discordId: string, actionKey: string, eventId: number | null, dedupeKey: string,
+    userId: number, actionKey: string, eventId: number | null, dedupeKey: string,
   ) => {
     const rule = ruleFor(actionKey);
     if (!rule || !rule.enabled || rule.points <= 0) return;
     const r = await dbi.run(
-      sql`INSERT OR IGNORE INTO ${contributionEntries} (${col('tenant')}, ${col('discord_id')}, ${col('action_key')}, ${col('points')}, ${col('event_id')}, ${col('dedupe_key')}, ${col('created_at')})
-          VALUES (${slug}, ${discordId}, ${actionKey}, ${rule.points}, ${eventId}, ${dedupeKey}, ${atSec})`,
+      sql`INSERT OR IGNORE INTO ${contributionEntries} (${col('tenant')}, ${col('user_id')}, ${col('action_key')}, ${col('points')}, ${col('event_id')}, ${col('dedupe_key')}, ${col('created_at')})
+          VALUES (${guildId}, ${userId}, ${actionKey}, ${rule.points}, ${eventId}, ${dedupeKey}, ${atSec})`,
     ).catch(() => null);
     if (r) inserted += metaOf(r).changes;
   };
   for (const ev of events) {
-    if (ev.creator_discord_id) {
-      await credit(String(ev.creator_discord_id), 'leading', ev.id, `leading:${ev.id}:${ev.creator_discord_id}`);
+    if (ev.creator_user_id) {
+      await credit(ev.creator_user_id, 'leading', ev.id, `leading:${ev.id}:${ev.creator_user_id}`);
     }
     const seats = await listSignupsByEvent(db, ev.id);
     for (const seat of seats) {
       const did = seat.discord_id ? String(seat.discord_id) : '';
       if (!did) continue;
-      await credit(did, 'attendance', ev.id, `attendance:${ev.id}:${did}`);
+      const userId = await getUserIdByDiscordId(db, did).catch(() => null);
+      if (userId == null) continue;
+      await credit(userId, 'attendance', ev.id, `attendance:${ev.id}:${userId}`);
     }
   }
   // Mentoring credits once per pairing, when the pairing is created
   // at/after the watermark (the pairing IS the platform event).
-  const pairings = await listPairingsByTenant(db, slug).catch(() => []);
+  const pairings = await listPairingsByTenant(db, guildId).catch(() => []);
   for (const p of pairings || []) {
     if (Number(p.created_at) < from) continue;
-    await credit(String(p.mentor_discord_id), 'mentoring', null, `mentoring:pairing:${p.id}:${p.mentor_discord_id}`);
+    await credit(p.mentor_user_id, 'mentoring', null, `mentoring:pairing:${p.id}:${p.mentor_user_id}`);
   }
   return inserted;
 }
@@ -559,25 +568,33 @@ export interface ContributionBoardEntry {
 }
 
 export async function contributionBoard(
-  db: D1Database, slug: string,
+  db: D1Database, guildId: number,
 ): Promise<ContributionBoardEntry[]> {
-  await syncContributionEntries(db, slug);
+  await syncContributionEntries(db, guildId);
   const dbi = createDb(db);
   const rows = await dbi.all<any>(
-    sql`SELECT * FROM ${contributionEntries} WHERE ${col('tenant')} = ${slug} ORDER BY ${col('id')} ASC`,
+    sql`SELECT * FROM ${contributionEntries} WHERE ${col('tenant')} = ${guildId} ORDER BY ${col('id')} ASC`,
   ).catch(() => []);
-  const totals = new Map<string, ContributionBoardEntry>();
+  // Totals key on the user ID; the entry's discordId is materialized
+  // from the users row for the surface (and for roster name lookup).
+  const totals = new Map<number, ContributionBoardEntry & { userId: number }>();
   const signupNick = new Map<string, string>();
   for (const r of rows || []) {
-    const did = String(r.discord_id);
-    const e = totals.get(did) || { discordId: did, displayName: did, totalPoints: 0, entryCount: 0 };
+    const uid = Number(r.user_id);
+    const e = totals.get(uid) || { userId: uid, discordId: '', displayName: '', totalPoints: 0, entryCount: 0 };
     e.totalPoints += Number(r.points) || 0;
     e.entryCount += 1;
-    totals.set(did, e);
+    totals.set(uid, e);
   }
-  const resolve = await resolveMemberNames(db, slug, signupNick);
+  const resolve = await resolveMemberNames(db, guildId, signupNick);
   const out = [...totals.values()];
-  for (const e of out) e.displayName = await resolve(e.discordId);
+  for (const e of out) {
+    const did = await getDiscordIdByUserId(db, e.userId).catch(() => null);
+    e.discordId = did || '';
+    e.displayName = did
+      ? await resolve(did)
+      : ((await getUsernameRowById(db, e.userId).catch(() => null))?.username || '');
+  }
   out.sort((a, b) => (b.totalPoints - a.totalPoints)
     || a.displayName.localeCompare(b.displayName, 'zh-Hans-CN')
     || (a.discordId < b.discordId ? -1 : 1));
@@ -585,12 +602,12 @@ export async function contributionBoard(
 }
 
 export async function myContributionEntries(
-  db: D1Database, slug: string, discordId: string,
+  db: D1Database, guildId: number, userId: number,
 ): Promise<{ totalPoints: number; entries: any[] }> {
-  await syncContributionEntries(db, slug);
+  await syncContributionEntries(db, guildId);
   const dbi = createDb(db);
   const rows = await dbi.all<any>(
-    sql`SELECT * FROM ${contributionEntries} WHERE ${col('tenant')} = ${slug} AND ${col('discord_id')} = ${discordId} ORDER BY ${col('id')} DESC LIMIT 100`,
+    sql`SELECT * FROM ${contributionEntries} WHERE ${col('tenant')} = ${guildId} AND ${col('user_id')} = ${userId} ORDER BY ${col('id')} DESC LIMIT 100`,
   ).catch(() => []);
   const entries = rows || [];
   return { totalPoints: entries.reduce((n: number, r: any) => n + (Number(r.points) || 0), 0), entries };

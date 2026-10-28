@@ -20,7 +20,8 @@
 import { weekWindowUtc } from '../platform/index.ts';
 import { listEventsInWindow, listSignupsByEvent } from '../groupings/index.ts';
 import type { SignupRow } from '../groupings/index.ts';
-import { listGuildMembers, getUsernameRow } from '../identity/index.ts';
+import { listGuildMembers, getUsernameRow, listDiscordIdsByUserIds } from '../identity/index.ts';
+import { getGuildIdBySlug } from './tenants.ts';
 
 export interface GuildStatsWeek {
   weekStartUtc: number;
@@ -67,6 +68,10 @@ function emptyWeek(weekStartUtc: number, weekEndUtc: number, isCurrent: boolean)
 }
 
 export async function computeGuildStats(db: D1Database, slug: string): Promise<GuildStats> {
+  const guildId = await getGuildIdBySlug(db, slug).catch(() => null);
+  if (guildId == null) {
+    return { weeks: [], memberLeaders: [], leaderLeaders: [] };
+  }
   const weeks: GuildStatsWeek[] = [];
   const weekMembers: Set<string>[] = [];
   for (let i = 0; i < WEEK_COUNT; i++) {
@@ -76,11 +81,11 @@ export async function computeGuildStats(db: D1Database, slug: string): Promise<G
   }
   const spanStart = weeks[WEEK_COUNT - 1].weekStartUtc;
   const spanEnd = weeks[0].weekEndUtc;
-  const rows = await listEventsInWindow(db, slug, spanStart, spanEnd);
+  const rows = await listEventsInWindow(db, guildId, spanStart, spanEnd);
   const counted = rows.filter((e) => e.status !== 'draft');
 
   const memberSeats = new Map<string, number>();
-  const leaderCars = new Map<string, number>();
+  const leaderCars = new Map<number, number>();
   const signupNick = new Map<string, string>();
 
   for (const ev of counted) {
@@ -95,8 +100,8 @@ export async function computeGuildStats(db: D1Database, slug: string): Promise<G
     else if (ev.type === 'tower') week.carsTower += 1;
     if (ev.status === 'completed') week.completedCount += 1;
     week.totalSeats += ev.max_slots || 0;
-    if (ev.creator_discord_id) {
-      leaderCars.set(ev.creator_discord_id, (leaderCars.get(ev.creator_discord_id) || 0) + 1);
+    if (ev.creator_user_id) {
+      leaderCars.set(ev.creator_user_id, (leaderCars.get(ev.creator_user_id) || 0) + 1);
     }
     const seats: SignupRow[] = await listSignupsByEvent(db, ev.id);
     week.filledSeats += seats.length;
@@ -116,7 +121,7 @@ export async function computeGuildStats(db: D1Database, slug: string): Promise<G
     week.perCapita = week.participantCount > 0 ? round2(week.participationCount / week.participantCount) : 0;
   }
 
-  const roster = await listGuildMembers(db, slug).catch((): { discord_id: string; nick: string; global_name: string }[] => []);
+  const roster = await listGuildMembers(db, guildId).catch((): { discord_id: string; nick: string; global_name: string }[] => []);
   const rosterName = new Map<string, string>();
   for (const m of roster) {
     const name = (m.nick || '').trim() || (m.global_name || '').trim();
@@ -130,6 +135,14 @@ export async function computeGuildStats(db: D1Database, slug: string): Promise<G
     const user = await getUsernameRow(db, did).catch(() => null);
     return (user && user.username) || did;
   };
+  // Leader counts are keyed by internal user ID; the board surface
+  // is Discord-keyed, so resolve through the users rows first.
+  const leaderDiscordIds = await listDiscordIdsByUserIds(db, [...leaderCars.keys()]).catch(() => new Map());
+  const leaderCarsByDiscord = new Map<string, number>();
+  for (const [userId, count] of leaderCars) {
+    const did = leaderDiscordIds.get(userId);
+    if (did) leaderCarsByDiscord.set(did, (leaderCarsByDiscord.get(did) || 0) + count);
+  }
   const board = async (counts: Map<string, number>): Promise<GuildStatsBoardEntry[]> => {
     const entries: GuildStatsBoardEntry[] = [];
     for (const [discordId, count] of counts) {
@@ -143,6 +156,6 @@ export async function computeGuildStats(db: D1Database, slug: string): Promise<G
   return {
     weeks,
     memberLeaders: await board(memberSeats),
-    leaderLeaders: await board(leaderCars),
+    leaderLeaders: await board(leaderCarsByDiscord),
   };
 }

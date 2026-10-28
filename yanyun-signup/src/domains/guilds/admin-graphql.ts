@@ -36,7 +36,7 @@ import {
   getGuildAvatarMeta, avatarPath, putGuildAvatar,
   deleteGuildAvatar as deleteGuildAvatarRepo, sniffAvatarType, AVATAR_MAX_BYTES,
 } from './guildavatar.ts';
-import { updateTenantProfile, updateTenantWebhook, updateTenantRecruitOpen } from './tenants.ts';
+import { updateTenantProfile, updateTenantWebhook, updateTenantRecruitOpen, getGuildIdBySlug } from './tenants.ts';
 import {
   getWhiteLabelSettings, getEffectiveWhiteLabelSettings, setWhiteLabelSettings, ogAccentOption,
   sanitizeOgTitleSuffix, OG_ACCENT_PALETTE,
@@ -58,7 +58,7 @@ import {
   insertLottery, insertLotteryEntry, insertLotteryWinner, markLotteryDrawn,
   drawWinners,
 } from '../groupings/index.ts';
-import { listGuildMembers, getGuildMember } from '../identity/index.ts';
+import { listGuildMembers, getGuildMember, listUserIdsByDiscordIds, getDiscordIdByUserId, getUserIdByDiscordId, ensureUserIdByDiscordId } from '../identity/index.ts';
 import { getGuildNick } from '../identity/auth.ts';
 import { upsertGuildMember } from '../groupings/index.ts';
 import {
@@ -975,13 +975,17 @@ export class GuildAdminShell extends ShellBase {
     return this.memo('recruitRoster', async () => {
       if (!this.hasCap('recruit')) return [];
       const rows = await listGuildMembers(this.db, this.genSlug());
-      const mentors = new Set(await listMentorIds(this.db, this.genSlug()));
+      const guildId = await getGuildIdBySlug(this.db, this.genSlug());
+      const mentors = new Set(guildId == null ? [] : await listMentorIds(this.db, guildId));
+      const memberUserIds = await listUserIdsByDiscordIds(
+        this.db, (rows || []).map((r) => String(r.discord_id))).catch(() => new Map());
       const out = [];
       for (const r of rows || []) {
         const displayName = String(r.nick || '').trim() || String(r.global_name || '').trim();
         if (!displayName) continue;
         out.push(new RecruitMemberShell(this.ctx, {
-          discordId: String(r.discord_id), displayName, isMentor: mentors.has(String(r.discord_id)),
+          discordId: String(r.discord_id), displayName,
+          isMentor: mentors.has(memberUserIds.get(String(r.discord_id)) || 0),
         }));
       }
       out.sort((a: any, b: any) => a.data.displayName.localeCompare(b.data.displayName, 'zh-Hans-CN'));
@@ -994,12 +998,16 @@ export class GuildAdminShell extends ShellBase {
   genNewcomerProgress(){
     return this.memo('newcomerProgress', async () => {
       if (!this.hasCap('recruit')) return [];
-      const rows = await listGuildMembers(this.db, this.genSlug());
+      const guildId = await getGuildIdBySlug(this.db, this.genSlug());
+      const rows = guildId == null ? [] : await listGuildMembers(this.db, guildId);
+      const memberUserIds = await listUserIdsByDiscordIds(
+        this.db, (rows || []).map((r) => String(r.discord_id))).catch(() => new Map());
       const out = [];
       for (const r of rows || []) {
         const displayName = String(r.nick || '').trim() || String(r.global_name || '').trim();
         if (!displayName) continue;
-        const facts = await computeNewcomerChecklist(this.db, this.genSlug(), String(r.discord_id));
+        const facts = await computeNewcomerChecklist(
+          this.db, guildId!, String(r.discord_id), memberUserIds.get(String(r.discord_id)) || 0);
         if (facts.allDone) continue;
         out.push(new NewcomerProgressShell(this.ctx, {
           discordId: String(r.discord_id), displayName, facts,
@@ -1311,7 +1319,7 @@ export const guildAdminMutations = {
     if (input.discordGuildId != null) {
       const d = String(input.discordGuildId).trim();
       if (d && !DGID_RE.test(d)) return aFail(ctx, 'discordIdInvalid');
-      await setTenantSetting(db, g.access.slug, 'discord_guild_id', d);
+      await setTenantSetting(db, g.access.tenant.id, 'discord_guild_id', d);
     }
     if (webhookChanged) nudgeHub(ctx, g.access.slug);
     if (input.webhook != null || input.discordGuildId != null) {
@@ -1329,13 +1337,13 @@ export const guildAdminMutations = {
   updateGuildReminderSettings: async (_: any, { slug, offsets, customText }: any, ctx: Context) => {
     const g = await capGate(ctx, slug, 'discord'); if (g.fail) return g.fail;
     // Premium write gate (advanced reminder settings).
-    if (await premiumGate(ctx.env.DB, g.access.slug)) return aFail(ctx, 'premiumRequired');
+    if (await premiumGate(ctx.env.DB, g.access.tenant.id)) return aFail(ctx, 'premiumRequired');
     const db = ctx.env.DB;
     const list = Array.isArray(offsets) ? offsets.map((n: any) => Number(n)) : [];
     if (list.some((n: number) => !REMINDER_OFFSET_PRESETS.includes(n))) return aFail(ctx, 'reminderOffsetsInvalid');
-    await setTenantSetting(db, g.access.slug, 'reminder_offsets', serializeReminderOffsets(list));
+    await setTenantSetting(db, g.access.tenant.id, 'reminder_offsets', serializeReminderOffsets(list));
     if (customText != null) {
-      await setTenantSetting(db, g.access.slug, 'reminder_custom_text', sanitizeReminderCustomText(customText));
+      await setTenantSetting(db, g.access.tenant.id, 'reminder_custom_text', sanitizeReminderCustomText(customText));
     }
     nudgeHub(ctx, g.access.slug);
     await recordGuildAudit(db, {
@@ -1350,7 +1358,7 @@ export const guildAdminMutations = {
   updateGuildWhiteLabel: async (_: any, { slug, hideBranding, ogAccent, ogTitleSuffix }: any, ctx: Context) => {
     const g = await capGate(ctx, slug, 'discord'); if (g.fail) return g.fail;
     // Premium write gate (white-label settings).
-    if (await premiumGate(ctx.env.DB, g.access.slug)) return aFail(ctx, 'premiumRequired');
+    if (await premiumGate(ctx.env.DB, g.access.tenant.id)) return aFail(ctx, 'premiumRequired');
     const accent = String(ogAccent ?? '').trim();
     if (accent && !ogAccentOption(accent)) return aFail(ctx, 'ogAccentInvalid');
     await setWhiteLabelSettings(ctx.env.DB, g.access.slug, {
@@ -1426,7 +1434,7 @@ export const guildAdminMutations = {
     const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
     const db = ctx.env.DB;
     if (!(await isPaygateEnabled(db))) return aFail(ctx, 'paygateDisabled');
-    const eff = await getEffectiveEntitlement(db, g.access.slug);
+    const eff = await getEffectiveEntitlement(db, g.access.tenant.id);
     const wantTier = tier == null ? null : Number(tier);
     if (wantTier != null && wantTier !== 1 && wantTier !== 2 && wantTier !== 3) {
       return aFail(ctx, 'premiumComingSoon');
@@ -1454,7 +1462,7 @@ export const guildAdminMutations = {
 
   updateGuildVisibility: async (_: any, { slug, devOnly }: any, ctx: Context) => {
     const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
-    await setTenantSetting(ctx.env.DB, g.access.slug, 'dev_only', devOnly ? '1' : '');
+    await setTenantSetting(ctx.env.DB, g.access.tenant.id, 'dev_only', devOnly ? '1' : '');
     await recordGuildAudit(ctx.env.DB, {
       tenant: g.access.slug, actor: auditActorOf(ctx), action: 'visibility.update',
       targetType: 'guild',
@@ -1523,7 +1531,7 @@ export const guildAdminMutations = {
     const utc = input.startsAtUtc != null ? (parseInt(String(input.startsAtUtc), 10) || 0) : 0;
     const maxSlots = Math.max(1, Math.min(500, parseInt(String(input.maxSlots ?? ''), 10) || 20));
     const ev = {
-      tenant: g.access.slug,
+      tenant: g.access.tenant.id,
       title,
       type,
       description: s(input.description, 2000),
@@ -1554,7 +1562,7 @@ export const guildAdminMutations = {
   updateAdminEvent: async (_: any, { slug, eventId, input }: any, ctx: Context) => {
     const g = await capGate(ctx, slug, 'events'); if (g.fail) return g.fail;
     const db = ctx.env.DB;
-    const owned = await getEventRowByTenant(db, parseInt(eventId, 10), g.access.slug);
+    const owned = await getEventRowByTenant(db, parseInt(eventId, 10), g.access.tenant.id);
     if (!owned) return aFail(ctx, 'groupingNotFound');
     const fields: Record<string, unknown> = {};
     if (input.title != null) fields.title = s(input.title, 60);
@@ -1570,7 +1578,7 @@ export const guildAdminMutations = {
     if (input.status != null) fields.status = input.status === 'closed' ? 'closed' : 'open';
     if (input.dungeon != null) fields.dungeon = s(input.dungeon, 50);
     if (!Object.keys(fields).length) return aFail(ctx, 'noFieldsToUpdate');
-    await updateEventFields(db, owned.id, g.access.slug, fields);
+    await updateEventFields(db, owned.id, g.access.tenant.id, fields);
     publishGroupingEvent(ctx, g.access.slug, owned.id, 'updated');
     await recordGuildAudit(db, {
       tenant: g.access.slug, actor: auditActorOf(ctx), action: 'event.update',
@@ -1583,9 +1591,9 @@ export const guildAdminMutations = {
   deleteAdminEvent: async (_: any, { slug, eventId }: any, ctx: Context) => {
     const g = await capGate(ctx, slug, 'events'); if (g.fail) return g.fail;
     const db = ctx.env.DB;
-    const owned = await getEventRowByTenant(db, parseInt(eventId, 10), g.access.slug);
+    const owned = await getEventIdByTenant(db, parseInt(eventId, 10), g.access.tenant.id);
     if (!owned) return aFail(ctx, 'groupingNotFound');
-    await deleteEventCascade(db, owned.id, g.access.slug);
+    await deleteEventCascade(db, owned.id, g.access.tenant.id);
     publishGroupingEvent(ctx, g.access.slug, owned.id, 'deleted');
     await recordGuildAudit(db, {
       tenant: g.access.slug, actor: auditActorOf(ctx), action: 'event.delete',
@@ -1598,7 +1606,7 @@ export const guildAdminMutations = {
   removeEventSignup: async (_: any, { slug, signupId }: any, ctx: Context) => {
     const g = await capGate(ctx, slug, 'events'); if (g.fail) return g.fail;
     const db = ctx.env.DB;
-    const owned = await getSignupTenant(db, parseInt(signupId, 10), g.access.slug);
+    const owned = await getSignupTenant(db, parseInt(signupId, 10), g.access.tenant.id);
     if (!owned) return aFail(ctx, 'signupNotFound');
     await deleteSignupById(db, owned.id);
     await recordGuildAudit(db, {
@@ -1612,7 +1620,7 @@ export const guildAdminMutations = {
   addEventResult: async (_: any, { slug, eventId, input }: any, ctx: Context) => {
     const g = await capGate(ctx, slug, 'events'); if (g.fail) return g.fail;
     const db = ctx.env.DB;
-    const ev = await getEventIdByTenant(db, parseInt(eventId, 10), g.access.slug);
+    const ev = await getEventIdByTenant(db, parseInt(eventId, 10), g.access.tenant.id);
     if (!ev) return aFail(ctx, 'groupingNotFound');
     const teamName = String(input.teamName || '').trim();
     if (!teamName) return aFail(ctx, 'resultTeamRequired');
@@ -1633,7 +1641,7 @@ export const guildAdminMutations = {
   deleteEventResult: async (_: any, { slug, resultId }: any, ctx: Context) => {
     const g = await capGate(ctx, slug, 'events'); if (g.fail) return g.fail;
     const db = ctx.env.DB;
-    const owned = await getResultIdOwnedByTenant(db, parseInt(resultId, 10), g.access.slug);
+    const owned = await getResultIdOwnedByTenant(db, parseInt(resultId, 10), g.access.tenant.id);
     if (!owned) return aFail(ctx, 'resultNotFound');
     await deleteResultById(db, owned.id);
     await recordGuildAudit(db, {
@@ -1664,7 +1672,7 @@ export const guildAdminMutations = {
     const entries: { discordId: string; displayName: string; weight: number }[] = [];
     let sourceEventId: number | null = null;
     if (input.source === 'GROUPING') {
-      const ev = await getEventRowByTenant(db, parseInt(String(input.sourceEventId || ''), 10) || 0, g.access.slug);
+      const ev = await getEventRowByTenant(db, parseInt(String(input.sourceEventId || ''), 10) || 0, g.access.tenant.id);
       if (!ev) return aFail(ctx, 'groupingNotFound');
       sourceEventId = ev.id;
       const w = validWeight(input.uniformWeight ?? 1);
@@ -1677,7 +1685,7 @@ export const guildAdminMutations = {
         entries.push({ discordId: did, displayName: seat.nickname || '', weight: w });
       }
     } else {
-      const roster = await listGuildMembers(db, g.access.slug);
+      const roster = await listGuildMembers(db, g.access.tenant.id);
       const byId = new Map(roster.map((m) => [String(m.discord_id), m.nick || m.global_name || '']));
       const picked = new Map<string, { discordId: string; displayName: string; weight: number }>();
       for (const e of (Array.isArray(input.entries) ? input.entries : [])) {
@@ -1696,14 +1704,14 @@ export const guildAdminMutations = {
     }
     const now = Math.floor(Date.now() / 1000);
     const r = await insertLottery(db, {
-      tenant: g.access.slug,
+      tenant: g.access.tenant.id,
       title,
       prize,
       source: input.source === 'GROUPING' ? 'grouping' : 'members',
       source_event_id: sourceEventId,
       winner_count: winnerCount,
       status: 'open',
-      created_by: ctx.user ? String(ctx.user.discordId) : '',
+      created_by_user_id: ctx.user ? ctx.user.userId : 0,
       created_at: now,
     });
     for (const e of entries) {
@@ -1723,7 +1731,7 @@ export const guildAdminMutations = {
   drawLottery: async (_: any, { slug, lotteryId }: any, ctx: Context) => {
     const g = await capGate(ctx, slug, 'tools'); if (g.fail) return g.fail;
     const db = ctx.env.DB;
-    const lot = await getLotteryByTenant(db, parseInt(String(lotteryId), 10) || 0, g.access.slug);
+    const lot = await getLotteryByTenant(db, parseInt(String(lotteryId), 10) || 0, g.access.tenant.id);
     if (!lot) return aFail(ctx, 'lotteryNotFound');
     if (lot.status === 'drawn') return aFail(ctx, 'lotteryAlreadyDrawn');
     const entries = await listLotteryEntries(db, lot.id);
@@ -1760,21 +1768,24 @@ export const guildAdminMutations = {
   reviewGuildApplication: async (_: any, { slug, applicationId, approve }: any, ctx: Context) => {
     const g = await capGate(ctx, slug, 'recruit'); if (g.fail) return g.fail;
     const db = ctx.env.DB;
-    const app = await getApplicationByTenant(db, parseInt(String(applicationId), 10) || 0, g.access.slug);
+    const app = await getApplicationByTenant(db, parseInt(String(applicationId), 10) || 0, g.access.tenant.id);
     if (!app) return aFail(ctx, 'applicationNotFound');
     const now = Math.floor(Date.now() / 1000);
-    const settled = await reviewApplication(db, app.id, g.access.slug, {
+    const settled = await reviewApplication(db, app.id, g.access.tenant.id, {
       status: approve ? 'approved' : 'rejected',
-      reviewedBy: ctx.user ? ctx.user.discordId : '',
+      reviewedByUserId: ctx.user ? ctx.user.userId : 0,
       reviewedByName: ctx.user ? String(ctx.user.name || '') : '',
       reviewedAt: now,
     });
     if (!settled.changes) return aFail(ctx, 'applicationNotPending');
     if (approve) {
-      const nick = g.access.discordGuildId
-        ? await getGuildNick(db, app.discord_id, g.access.discordGuildId).catch(() => null)
+      const applicantDiscordId = await getDiscordIdByUserId(db, app.user_id).catch(() => null);
+      const nick = g.access.discordGuildId && applicantDiscordId
+        ? await getGuildNick(db, applicantDiscordId, g.access.discordGuildId).catch(() => null)
         : null;
-      await upsertGuildMember(db, g.access.slug, app.discord_id, nick || '', app.applicant_name || '');
+      if (applicantDiscordId) {
+        await upsertGuildMember(db, g.access.tenant.id, applicantDiscordId, nick || '', app.applicant_name || '');
+      }
     }
     await recordGuildAudit(db, {
       tenant: g.access.slug, actor: auditActorOf(ctx),
@@ -1791,11 +1802,13 @@ export const guildAdminMutations = {
     const db = ctx.env.DB;
     const target = String(discordId || '');
     if (isMentor) {
-      const member = await getGuildMember(db, g.access.slug, target).catch(() => null);
+      const member = await getGuildMember(db, g.access.tenant.id, target).catch(() => null);
       if (!member) return aFail(ctx, 'mentorNotInGuild');
-      await insertMentor(db, g.access.slug, target, Math.floor(Date.now() / 1000));
+      const mentorUserId = await ensureUserIdByDiscordId(db, target);
+      await insertMentor(db, g.access.tenant.id, mentorUserId, Math.floor(Date.now() / 1000));
     } else {
-      await deleteMentor(db, g.access.slug, target);
+      const mentorUserId = await getUserIdByDiscordId(db, target).catch(() => null);
+      if (mentorUserId != null) await deleteMentor(db, g.access.tenant.id, mentorUserId);
     }
     await recordGuildAudit(db, {
       tenant: g.access.slug, actor: auditActorOf(ctx),
@@ -1816,23 +1829,25 @@ export const guildAdminMutations = {
     const mentorId = String(mentorDiscordId || '');
     const menteeId = String(menteeDiscordId || '');
     if (mentorId && mentorId === menteeId) return aFail(ctx, 'mentorSelfPairing');
-    const mentorRow = await getGuildMember(db, g.access.slug, mentorId).catch(() => null);
+    const mentorRow = await getGuildMember(db, g.access.tenant.id, mentorId).catch(() => null);
     if (!mentorRow) return aFail(ctx, 'mentorNotInGuild');
-    const designated = await listMentorIds(db, g.access.slug);
-    if (!designated.includes(mentorId)) return aFail(ctx, 'mentorNotDesignated');
-    const menteeRow = await getGuildMember(db, g.access.slug, menteeId).catch(() => null);
+    const mentorUserId = await ensureUserIdByDiscordId(db, mentorId);
+    const designated = await listMentorIds(db, g.access.tenant.id);
+    if (!designated.includes(mentorUserId)) return aFail(ctx, 'mentorNotDesignated');
+    const menteeRow = await getGuildMember(db, g.access.tenant.id, menteeId).catch(() => null);
     if (!menteeRow) return aFail(ctx, 'menteeNotInGuild');
-    const active = await getActivePairingForMentee(db, g.access.slug, menteeId).catch(() => null);
+    const menteeUserId = await ensureUserIdByDiscordId(db, menteeId);
+    const active = await getActivePairingForMentee(db, g.access.tenant.id, menteeUserId).catch(() => null);
     if (active) return aFail(ctx, 'menteeAlreadyPaired');
     const nameOf = (r: { nick: string; global_name: string }) =>
       String(r.nick || '').trim() || String(r.global_name || '').trim();
     let id: number;
     try {
       id = await insertPairing(db, {
-        tenant: g.access.slug,
-        mentorDiscordId: mentorId, mentorName: nameOf(mentorRow),
-        menteeDiscordId: menteeId, menteeName: nameOf(menteeRow),
-        createdBy: ctx.user ? ctx.user.discordId : '',
+        tenant: g.access.tenant.id,
+        mentorUserId, mentorName: nameOf(mentorRow),
+        menteeUserId, menteeName: nameOf(menteeRow),
+        createdByUserId: ctx.user ? ctx.user.userId : 0,
         createdAt: Math.floor(Date.now() / 1000),
       });
     } catch {
@@ -1850,9 +1865,9 @@ export const guildAdminMutations = {
   endMentorPairing: async (_: any, { slug, pairingId }: any, ctx: Context) => {
     const g = await capGate(ctx, slug, 'recruit'); if (g.fail) return g.fail;
     const db = ctx.env.DB;
-    const pairing = await getPairingByTenant(db, parseInt(String(pairingId), 10) || 0, g.access.slug);
+    const pairing = await getPairingByTenant(db, parseInt(String(pairingId), 10) || 0, g.access.tenant.id);
     if (!pairing) return aFail(ctx, 'pairingNotFound');
-    const ended = await endPairing(db, pairing.id, g.access.slug, Math.floor(Date.now() / 1000));
+    const ended = await endPairing(db, pairing.id, g.access.tenant.id, Math.floor(Date.now() / 1000));
     if (!ended.changes) return aFail(ctx, 'pairingAlreadyEnded');
     await recordGuildAudit(db, {
       tenant: g.access.slug, actor: auditActorOf(ctx), action: 'pairing.end',

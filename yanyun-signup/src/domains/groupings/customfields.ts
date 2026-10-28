@@ -15,6 +15,7 @@
  * =================================================== */
 import { sql } from 'drizzle-orm';
 import { createDb } from '../../db/client.ts';
+import { mintPublicId } from '../platform/id-mint.ts';
 import { groupingCustomFields, signupAnswers } from './schema.ts';
 
 const col = (name: string) => sql.identifier(name);
@@ -172,11 +173,13 @@ export async function insertCustomField(
   row: { ownerKind: 'event' | 'template'; ownerId: number; def: CustomFieldDef; sort: number },
 ): Promise<RunMeta> {
   const db = createDb(d1);
+  const id = await mintPublicId(d1, 'customField');
   const r = await db.run(
-    sql`INSERT INTO ${groupingCustomFields} (${col('owner_kind')}, ${col('owner_id')}, ${col('label')}, ${col('field_type')}, ${col('options_json')}, ${col('required')}, ${col('sort')})
-        VALUES (${row.ownerKind}, ${row.ownerId}, ${row.def.label}, ${row.def.fieldType}, ${JSON.stringify(row.def.options)}, ${row.def.required ? 1 : 0}, ${row.sort})`,
+    sql`INSERT INTO ${groupingCustomFields} (${col('id')}, ${col('owner_kind')}, ${col('owner_id')}, ${col('label')}, ${col('field_type')}, ${col('options_json')}, ${col('required')}, ${col('sort')})
+        VALUES (${id}, ${row.ownerKind}, ${row.ownerId}, ${row.def.label}, ${row.def.fieldType}, ${JSON.stringify(row.def.options)}, ${row.def.required ? 1 : 0}, ${row.sort})`,
   );
-  return metaOf(r);
+  const meta = metaOf(r);
+  return { changes: meta.changes, last_row_id: id };
 }
 
 /** Replace an owner's whole field set (template edits; car creation copies). */

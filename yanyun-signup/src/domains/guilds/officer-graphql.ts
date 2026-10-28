@@ -29,7 +29,7 @@ import {
 } from '../platform/graphql-base.ts';
 import { recordGuildAudit } from './guild-audit.ts';
 import { fmtStartsAt } from '../platform/index.ts';
-import { listGuildMembers, listGuildMembersByUser, getGuildMember } from '../identity/index.ts';
+import { listGuildMembers, listGuildMembersByUser, getGuildMember, listUserIdsByDiscordIds, listDiscordIdsByUserIds, ensureUserIdByDiscordId } from '../identity/index.ts';
 import { getDungeonById, listDungeonsDex, SEASON_NAMES } from '../dex/index.ts';
 import type { DungeonRow } from '../dex/index.ts';
 import {
@@ -44,7 +44,7 @@ import {
 } from './seasongoals.ts';
 import type { SeasonGoalRow } from './seasongoals.ts';
 import { exportGuildData } from './guild-export.ts';
-import { getTenantRow } from './tenants.ts';
+import { getTenantRow, getTenantRowById } from './tenants.ts';
 
 const STATUS_TO_STORED: Record<string, string> = { ACTIVE: 'active', DONE: 'done', DROPPED: 'dropped' };
 const STATUS_LABEL_KEY: Record<string, string> = { active: 'statusActive', done: 'statusDone', dropped: 'statusDropped' };
@@ -94,8 +94,8 @@ export class MemberSeasonGoalShell extends ShellBase {
   genUpdatedAtText(){ return fmtStartsAt(this.row.updated_at, this.locale, this.ctx.tz); }
   genGuildName(){
     return this.memo('guildName', async () => {
-      const t = await getTenantRow(this.db, this.row.tenant).catch(() => null);
-      return t ? t.guild_name : this.row.tenant;
+      const t = await getTenantRowById(this.db, this.row.tenant).catch(() => null);
+      return t ? t.guild_name : '';
     });
   }
 }
@@ -139,39 +139,48 @@ export class GuildOfficerPageShell extends ShellBase {
       // (its copy fields are the tab's own), but no member, note or
       // goal datum is composed into it.
       if (this.data.denied) return [];
+      const access = await getGuildAdminAccess(this.db, this.ctx.user, this.slug, this.ctx.request, this.vc).catch(() => null);
+      const guildId = access && access.tenant ? access.tenant.id : 0;
       const [roster, notes, goals] = await Promise.all([
-        listGuildMembers(this.db, this.slug).catch(() => []),
-        listMemberNotesByTenant(this.db, this.slug).catch(() => []),
-        listSeasonGoalsByTenant(this.db, this.slug).catch(() => []),
+        listGuildMembers(this.db, guildId).catch(() => []),
+        listMemberNotesByTenant(this.db, guildId).catch(() => []),
+        listSeasonGoalsByTenant(this.db, guildId).catch(() => []),
       ]);
-      const notesByMember = new Map<string, MemberNoteRow[]>();
+      // Roster rows are Discord-keyed (class A); notes and goals are
+      // keyed by internal user ID. Join through the users rows.
+      const userIds = await listUserIdsByDiscordIds(
+        this.db, (roster || []).map((m) => String(m.discord_id))).catch(() => new Map());
+      const notesByMember = new Map<number, MemberNoteRow[]>();
       for (const n of notes || []) {
-        const k = String(n.member_discord_id);
+        const k = n.member_user_id;
         if (!notesByMember.has(k)) notesByMember.set(k, []);
         notesByMember.get(k)!.push(n);
       }
-      const goalsByMember = new Map<string, SeasonGoalRow[]>();
+      const goalsByMember = new Map<number, SeasonGoalRow[]>();
       for (const g of goals || []) {
-        const k = String(g.discord_id);
+        const k = g.user_id;
         if (!goalsByMember.has(k)) goalsByMember.set(k, []);
         goalsByMember.get(k)!.push(g);
       }
       const members = (roster || []).map((m) => {
         const discordId = String(m.discord_id);
+        const userId = userIds.get(discordId) || 0;
         return new GuildOfficerMemberShell(this.ctx, {
           discordId,
           displayName: String(m.nick || '').trim() || String(m.global_name || '').trim(),
-          notes: (notesByMember.get(discordId) || []).map((row) => new GuildMemberNoteShell(this.ctx, { row })),
-          goals: (goalsByMember.get(discordId) || []).map((row) => new MemberSeasonGoalShell(this.ctx, { row })),
+          notes: (notesByMember.get(userId) || []).map((row) => new GuildMemberNoteShell(this.ctx, { row })),
+          goals: (goalsByMember.get(userId) || []).map((row) => new MemberSeasonGoalShell(this.ctx, { row })),
         });
       });
-      const rosterIds = new Set(members.map((m) => String(m.data.discordId)));
-      for (const [discordId, rows] of goalsByMember) {
-        if (rosterIds.has(discordId)) continue;
+      const rosterUserIds = new Set((roster || []).map((m) => userIds.get(String(m.discord_id)) || 0));
+      const orphanUserIds = [...goalsByMember.keys()].filter((uid) => !rosterUserIds.has(uid));
+      const orphanDiscordIds = await listDiscordIdsByUserIds(this.db, orphanUserIds).catch(() => new Map());
+      for (const userId of orphanUserIds) {
+        const rows = goalsByMember.get(userId)!;
         members.push(new GuildOfficerMemberShell(this.ctx, {
-          discordId,
+          discordId: orphanDiscordIds.get(userId) || '',
           displayName: String(rows[0]?.member_name || ''),
-          notes: (notesByMember.get(discordId) || []).map((row) => new GuildMemberNoteShell(this.ctx, { row })),
+          notes: (notesByMember.get(userId) || []).map((row) => new GuildMemberNoteShell(this.ctx, { row })),
           goals: rows.map((row) => new MemberSeasonGoalShell(this.ctx, { row })),
         }));
       }
@@ -233,19 +242,19 @@ export class MySeasonGoalPageShell extends ShellBase {
   genGoals(){
     return this.memo('goals', async () => {
       if (!this.ctx.user) return [];
-      const rows = await listSeasonGoalsByUser(this.db, String(this.ctx.user.discordId)).catch(() => []);
+      const rows = await listSeasonGoalsByUser(this.db, this.ctx.user.userId).catch(() => []);
       return (rows || []).map((row) => new MemberSeasonGoalShell(this.ctx, { row }));
     });
   }
   genGuildOptions(){
     return this.memo('guildOptions', async () => {
       if (!this.ctx.user) return [];
-      const roster = await listGuildMembersByUser(this.db, String(this.ctx.user.discordId)).catch(() => []);
+      const roster = await listGuildMembersByUser(this.db, this.ctx.user.discordId).catch(() => []);
       const out: SeasonGoalGuildOptionShell[] = [];
       for (const m of roster || []) {
-        const t = await getTenantRow(this.db, m.tenant).catch(() => null);
+        const t = await getTenantRowById(this.db, m.tenant).catch(() => null);
         out.push(new SeasonGoalGuildOptionShell(this.ctx, {
-          slug: m.tenant, name: t ? t.guild_name : m.tenant,
+          slug: t ? t.slug : '', name: t ? t.guild_name : '',
         }));
       }
       out.sort((a, b) => String(a.data.name).localeCompare(String(b.data.name), 'zh-Hans-CN'));
@@ -307,7 +316,7 @@ export const guildOfficerMutations = {
     }
     const access = verdict.access;
     const target = String(memberDiscordId || '');
-    const roster = await listGuildMembers(db, access.slug).catch(() => []);
+    const roster = await listGuildMembers(db, access.tenant.id).catch(() => []);
     if (!(roster || []).some((m) => String(m.discord_id) === target)) {
       return noteFail(ctx, 'officerMemberNotFound');
     }
@@ -315,9 +324,12 @@ export const guildOfficerMutations = {
     const shapeError = noteBodyError(clean);
     if (shapeError) return noteFail(ctx, shapeError);
     const nowSec = Math.floor(Date.now() / 1000);
+    // The note subject may have no account yet: first-register a
+    // blank row so the internal reference resolves (class B).
+    const memberUserId = await ensureUserIdByDiscordId(db, target);
     const id = await insertMemberNote(db, {
-      tenant: access.slug, memberDiscordId: target, body: clean,
-      authorDiscordId: ctx.user ? String(ctx.user.discordId) : '',
+      tenant: access.tenant.id, memberUserId, body: clean,
+      authorUserId: ctx.user ? ctx.user.userId : 0,
       authorName: ctx.user ? String(ctx.user.name || '') : '',
       createdAt: nowSec,
     });
@@ -330,7 +342,7 @@ export const guildOfficerMutations = {
         return m ? (String(m.nick || '').trim() || String(m.global_name || '').trim()) : '';
       })(),
     });
-    const row = await getMemberNote(db, access.slug, id);
+    const row = await getMemberNote(db, access.tenant.id, id);
     return noteOk(ctx, row ? new GuildMemberNoteShell(ctx, { row }) : null);
   },
 
@@ -414,14 +426,14 @@ export const guildOfficerMutations = {
   upsertMySeasonGoal: async (_: unknown, { input }: { input: { id?: string | null; slug: string; title: string; note?: string | null; status?: string | null; dungeonId?: number | null } }, ctx: Context) => {
     const db = ctx.env.DB;
     if (!ctx.user) return goalFail(ctx, 'loginRequired');
-    const userId = String(ctx.user.discordId);
+    const userId = ctx.user.userId;
     const access = await getGuildAccess(db, ctx.user, input.slug, ctx.request);
     if (!access.exists) return goalFail(ctx, 'guildNotFound');
     if (!access.canWrite) return goalFail(ctx, 'memberOnly');
     let existing: SeasonGoalRow | null = null;
     if (input.id != null && String(input.id) !== '') {
       existing = await getSeasonGoal(db, parseInt(String(input.id), 10) || 0);
-      if (!existing || existing.tenant !== access.slug || String(existing.discord_id) !== userId) {
+      if (!existing || existing.tenant !== access.tenant.id || existing.user_id !== userId) {
         return goalFail(ctx, 'seasonGoalNotFound');
       }
     }
@@ -437,21 +449,21 @@ export const guildOfficerMutations = {
       if (!dungeon) return goalFail(ctx, 'seasonGoalDungeonNotFound');
       dungeonId = Number(input.dungeonId);
     }
-    const rosterRow = await getGuildMember(db, access.slug, userId).catch(() => null);
+    const rosterRow = await getGuildMember(db, access.tenant.id, ctx.user.discordId).catch(() => null);
     const memberName = String(rosterRow?.nick || '').trim()
       || String(rosterRow?.global_name || '').trim()
       || String(ctx.user.name || '');
     const nowSec = Math.floor(Date.now() / 1000);
     if (existing) {
       await updateSeasonGoal(db, {
-        tenant: access.slug, discordId: userId, id: existing.id,
+        tenant: access.tenant.id, userId, id: existing.id,
         title, note, status, dungeonId, memberName, updatedAt: nowSec,
       });
       const fresh = await getSeasonGoal(db, existing.id);
       return goalOk(ctx, fresh ? new MemberSeasonGoalShell(ctx, { row: fresh }) : null);
     }
     const id = await insertSeasonGoal(db, {
-      tenant: access.slug, discordId: userId, memberName,
+      tenant: access.tenant.id, userId, memberName,
       title, note, status, dungeonId, createdAt: nowSec,
     });
     const row = await getSeasonGoal(db, id);
@@ -463,10 +475,10 @@ export const guildOfficerMutations = {
   deleteMySeasonGoal: async (_: unknown, { goalId }: { goalId: string }, ctx: Context) => {
     const db = ctx.env.DB;
     if (!ctx.user) return goalFail(ctx, 'loginRequired');
-    const userId = String(ctx.user.discordId);
+    const userId = ctx.user.userId;
     const id = parseInt(String(goalId), 10) || 0;
     const row = await getSeasonGoal(db, id);
-    if (!row || String(row.discord_id) !== userId) return goalFail(ctx, 'seasonGoalNotFound');
+    if (!row || row.user_id !== userId) return goalFail(ctx, 'seasonGoalNotFound');
     await deleteSeasonGoal(db, row.tenant, userId, id);
     return goalOk(ctx, null);
   },

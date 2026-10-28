@@ -16,12 +16,12 @@ import { translate, negotiateLocale, SUPPORTED_LOCALES, CATALOG } from '../platf
 import { logError } from '../platform/index.ts';
 import { getGuildAvatarMeta, avatarPath } from '../guilds/index.ts';
 import { getSettingValue, setSettingValue, listSettingsByKey, parseGuildSubdomainSlug, isGuildSubdomainEnabled, guildSubdomainOrigin, isLiveCustomDomainHost } from '../guilds/index.ts';
-import { getUsernameRow } from '../identity/index.ts';
+import { getUsernameRow, getDiscordIdByUserId } from '../identity/index.ts';
 import { listGuildMembers, getGuildMember } from '../identity/index.ts';
 import { getBossById, listBossesByDungeon, listSchoolsFull, listSchoolsNameSlug, getSchoolNameBySlug, listSchoolBis, getSchoolBisJsonBySchool, listSchoolRotations, listSlotAffixByBuild, listAffixMax, listAffixMaxValues } from '../dex/index.ts';
 import { getDungeonByName, getDungeonNameSizeById, listDungeonsDex, getLatestDungeonVersion } from '../dex/index.ts';
 import {
-  getTenantRow, getTenantSlug, listTenantSlugs, listTenantsDirectory, insertTenant,
+  getTenantRow, getTenantRowById, getGuildIdBySlug, getTenantSlug, listTenantSlugs, listTenantsDirectory, insertTenant,
 } from '../guilds/index.ts';
 import {
   getEventRow, getEventTenant, getEventTenantCreator, listEventsByTenantType,
@@ -90,7 +90,12 @@ export class GroupingShell extends ShellBase {
   genStartsAt(){ return this.ev.starts_at_utc ? String(this.ev.starts_at_utc) : (this.ev.starts_at || ''); }
   genStatus(){ return this.ev.status || 'open'; }
   genMaxSlots(){ return this.ev.max_slots; }
-  genCreatorDiscordId(){ return this.ev.creator_discord_id ? String(this.ev.creator_discord_id) : null; }
+  genCreatorDiscordId(){
+    return this.memo('creatorDiscordId', async () => {
+      if (!this.ev.creator_user_id) return null;
+      return getDiscordIdByUserId(this.db, this.ev.creator_user_id).catch(() => null);
+    });
+  }
   // F7: this car's own signup-form field definitions (creator data,
   // copied from its template at creation when one was used).
   genCustomFields(){
@@ -188,7 +193,12 @@ export class GroupingTemplateShell extends ShellBase {
   genStartDaysAhead(){ return this.row.start_days_ahead; }
   genStartHour(){ return Math.floor((this.row.start_minutes || 0) / 60); }
   genStartMinute(){ return (this.row.start_minutes || 0) % 60; }
-  genCreatorDiscordId(){ return this.row.creator_discord_id ? String(this.row.creator_discord_id) : null; }
+  genCreatorDiscordId(){
+    return this.memo('creatorDiscordId', async () => {
+      if (!this.row.creator_user_id) return null;
+      return getDiscordIdByUserId(this.db, this.row.creator_user_id).catch(() => null);
+    });
+  }
   // F7: the template's signup-form fields; a car created from this
   // template receives a copy of this set as its own definitions.
   genCustomFields(){
@@ -205,9 +215,11 @@ export class GroupingTemplateShell extends ShellBase {
   // falling back to the global name snapshot).
   genCreatorName(){
     return this.memo('creatorName', async () => {
-      const cid = this.row.creator_discord_id;
+      const cid = this.row.creator_user_id
+        ? await getDiscordIdByUserId(this.db, this.row.creator_user_id).catch(() => null)
+        : null;
       if (!cid) return null;
-      const m = await getGuildMember(this.db, this.row.tenant, String(cid)).catch(() => null);
+      const m = await getGuildMember(this.db, this.row.tenant, cid).catch(() => null);
       const nick = m ? String(m.nick || '').trim() : '';
       if (nick) return nick;
       const globalName = m ? String(m.global_name || '').trim() : '';
@@ -351,7 +363,8 @@ export class GroupingListPageShell extends ShellBase {
     return this.memo('groupings', async () => {
       const type = TAB_TO_TYPE[this.data.tab] || 'activity';
       // completed, like draft, appears in no list: a completed grouping opens only via a direct detail link. closed stays listed (it merely closed signups) — a separate state from completed.
-      const results = await listEventsByTenantType(this.db, s(this.data.slug, 40), type);
+      const gid = await getGuildIdBySlug(this.db, s(this.data.slug, 40));
+      const results = gid == null ? [] : await listEventsByTenantType(this.db, gid, type);
       return results.map((ev: any) => new GroupingShell(this.ctx, ev));
     });
   }
@@ -360,7 +373,8 @@ export class GroupingListPageShell extends ShellBase {
   // the page's own gate (the list-page query already enforced canView).
   async genGroupingTemplates(){
     return this.memo('groupingTemplates', async () => {
-      const rows = await listGroupingTemplates(this.db, s(this.data.slug, 40));
+      const gid = await getGuildIdBySlug(this.db, s(this.data.slug, 40));
+      const rows = gid == null ? [] : await listGroupingTemplates(this.db, gid);
       return rows.map((r: GroupingTemplateRow) => new GroupingTemplateShell(this.ctx, r));
     });
   }
@@ -563,12 +577,14 @@ export class GroupingDetailPageShell extends ShellBase {
       // (white-label tier A) shares links on that host; every other
       // request keeps the main-host composition byte-identically.
       let origin: string | null = null;
+      const tenantRow = await getTenantRowById(this.db, ev.tenant).catch(() => null);
+      const tenantSlug = tenantRow ? tenantRow.slug : '';
       try {
         const host = new URL(this.ctx.request.url).hostname;
-        if (parseGuildSubdomainSlug(host) === ev.tenant
-          && await isGuildSubdomainEnabled(this.db, ev.tenant)) {
-          origin = guildSubdomainOrigin(ev.tenant);
-        } else if (await isLiveCustomDomainHost(this.db, host, ev.tenant)) {
+        if (parseGuildSubdomainSlug(host) === tenantSlug
+          && await isGuildSubdomainEnabled(this.db, tenantSlug)) {
+          origin = guildSubdomainOrigin(tenantSlug);
+        } else if (await isLiveCustomDomainHost(this.db, host, tenantSlug)) {
           // A request that arrived through this guild's own custom
           // domain (white-label tier B) shares links on that host.
           origin = `https://${host.toLowerCase()}`;
@@ -578,7 +594,7 @@ export class GroupingDetailPageShell extends ShellBase {
         const link = await mintShortLink(this.db, ev.tenant, ev.id);
         return origin ? shortLinkUrl(link.code, origin) : shortLinkUrl(link.code);
       } catch {
-        return origin ? subdomainGroupingUrl(origin, ev.id) : canonicalGroupingUrl(ev.tenant, ev.id);
+        return origin ? subdomainGroupingUrl(origin, ev.id) : canonicalGroupingUrl(tenantSlug, ev.id);
       }
     });
   }
@@ -587,12 +603,15 @@ export class GroupingDetailPageShell extends ShellBase {
     const v = clampBlocksVersion(blocksVersion);
     return this.memo(`blocks:${v}`, async () => {
       const ev = this.data;
-      const access = await getGuildAccess(this.db, this.ctx.user, ev.tenant, this.ctx.request);
-      const tRow = await getTenantRow(this.db, ev.tenant).catch(() => null);
+      const tRow = await getTenantRowById(this.db, ev.tenant).catch(() => null);
+      const access = await getGuildAccess(this.db, this.ctx.user, tRow ? tRow.slug : '', this.ctx.request);
+      const creatorDiscordId = ev.creator_user_id
+        ? await getDiscordIdByUserId(this.db, ev.creator_user_id).catch(() => null)
+        : null;
       const rows = await listSignupSeats(this.db, ev.id);
       const entries = [];
       for (let i = 0; i < ev.max_slots; i++) {
-        entries.push(new SeatEntryShell(this.ctx, { row: rows[i] || null, index: i, ev, access }));
+        entries.push(new SeatEntryShell(this.ctx, { row: rows[i] || null, index: i, ev, access, creatorDiscordId }));
       }
       const blocks = [];
       if (tRow && tRow.announcement) blocks.push(new BannerBlockShell(this.ctx, { text: tRow.announcement }));
@@ -823,9 +842,11 @@ export const groupingsResolvers = {
       const ev = await getEventRow(db, parseInt(id, 10) || 0);
       if (!ev) throw new Error(errText(ctx, 'groupingNotFound'));
       // Tenant isolation: a supplied slug must match the grouping's own guild, else treat as nonexistent (never leak another guild's data).
-      if (slug != null && s(slug, 40) !== ev.tenant) throw new Error(errText(ctx, 'groupingNotFound'));
+      const evTenant = await getTenantRowById(db, ev.tenant).catch(() => null);
+      const evSlug = evTenant ? evTenant.slug : '';
+      if (slug != null && s(slug, 40) !== evSlug) throw new Error(errText(ctx, 'groupingNotFound'));
       // Bound guild: non-members are treated as nonexistent — no grouping content leaks.
-      const a = await getGuildAccess(db, ctx.user, ev.tenant, ctx.request);
+      const a = await getGuildAccess(db, ctx.user, evSlug, ctx.request);
       if (!a.canView) throw new Error(errText(ctx, 'groupingNotFound'));
       touchGuildRoster(ctx, a);
       return new GroupingDetailPageShell(ctx, ev);
@@ -870,11 +891,13 @@ export const groupingsResolvers = {
       // car exists — an invalid field set rejects the whole create.
       const fieldParse = parseCustomFieldDefs(input.customFields);
       if ('error' in fieldParse) return gFail(ctx, fieldParse.error);
-      // Persist leader identity from the session discord_id (requireWrite guarantees login); re-verified at disband.
+      // Persist leader identity from the session (requireWrite guarantees login); re-verified at disband.
+      const tenantRow = await getTenantRow(db, slug).catch(() => null);
+      if (!tenantRow) return gFail(ctx, 'guildNotFound');
       const r = await insertEvent(db, {
-        tenant: slug, title, type, description: '', starts_at: '', starts_at_utc: utc,
+        tenant: tenantRow.id, title, type, description: '', starts_at: '', starts_at_utc: utc,
         max_slots: maxSlots, status: 'open', origin: 'member', created_by: '热心侠客',
-        dungeon: dungeonName, creator_discord_id: String(ctx.user!.discordId),
+        dungeon: dungeonName, creator_user_id: ctx.user!.userId,
       });
       const eventId = r.last_row_id;
       if (fieldParse.defs.length) {
@@ -911,11 +934,13 @@ export const groupingsResolvers = {
       const fieldParse = parseCustomFieldDefs(input.customFields);
       if ('error' in fieldParse) return tFail(ctx, fieldParse.error);
       const now = Math.floor(Date.now() / 1000);
+      const tenantRow = await getTenantRow(db, slug).catch(() => null);
+      if (!tenantRow) return tFail(ctx, 'guildNotFound');
       const r = await insertGroupingTemplate(db, {
-        tenant: slug, name: parsed.name, type: parsed.type, title: parsed.title,
+        tenant: tenantRow.id, name: parsed.name, type: parsed.type, title: parsed.title,
         dungeon: parsed.dungeonName, max_slots: parsed.maxSlots,
         start_days_ahead: parsed.daysAhead, start_minutes: parsed.startMinutes,
-        creator_discord_id: String(ctx.user!.discordId), created_at: now, updated_at: now,
+        creator_user_id: ctx.user!.userId, created_at: now, updated_at: now,
       });
       if (fieldParse.defs.length) {
         await replaceCustomFields(db, 'template', r.last_row_id, fieldParse.defs);
@@ -953,7 +978,7 @@ export const groupingsResolvers = {
         tenant: ev.tenant, name, type: ev.type, title: ev.title,
         dungeon: ev.dungeon || '', max_slots: ev.max_slots,
         start_days_ahead: daysAhead, start_minutes: startMinutes,
-        creator_discord_id: String(ctx.user!.discordId), created_at: now, updated_at: now,
+        creator_user_id: ctx.user!.userId, created_at: now, updated_at: now,
       });
       // F7: the saved template inherits the car's signup-form fields,
       // so a car built from it later carries the same form.
@@ -1032,7 +1057,7 @@ export const groupingsResolvers = {
       // through this mutation too). Legacy groupings with no recorded
       // leader can be edited by a guild admin; with neither, no one.
       if (!manage.canManage) {
-        return gFail(ctx, ev.creator_discord_id ? 'leaderOnlyEdit' : 'noCreatorRecordedEdit');
+        return gFail(ctx, ev.creator_user_id ? 'leaderOnlyEdit' : 'noCreatorRecordedEdit');
       }
       const patch: Record<string, any> = {};
       const set = (col: any, val: any) => { patch[col] = val; };
@@ -1084,7 +1109,7 @@ export const groupingsResolvers = {
         if (seatRows.length) await insertSignups(db, seatRows);
       }
       const nev = await getEventRow(db, gid);
-      publishGroupingEvent(ctx, ev.tenant, gid, 'updated');
+      publishGroupingEvent(ctx, (await getTenantRowById(db, ev.tenant).catch(() => null))?.slug || '', gid, 'updated');
       return new GroupingPayloadShell(ctx, { ok: true, grouping: toGrouping(ctx, nev) });
     },
 
@@ -1105,10 +1130,11 @@ export const groupingsResolvers = {
       const manage = await groupingManageGate(db, ctx.user, ctx.request, vcOf(ctx), ev);
       if (manage.writeCode) return dFail(ctx, manage.writeCode);
       if (!manage.canManage) {
-        return dFail(ctx, ev.creator_discord_id ? 'leaderOnlyDisband' : 'noCreatorRecorded');
+        return dFail(ctx, ev.creator_user_id ? 'leaderOnlyDisband' : 'noCreatorRecorded');
       }
       await deleteEventCascade(db, gid, null);
-      publishGroupingEvent(ctx, ev.tenant, gid, 'deleted');
+      const evTenantRow = await getTenantRowById(db, ev.tenant).catch(() => null);
+      publishGroupingEvent(ctx, evTenantRow ? evTenantRow.slug : '', gid, 'deleted');
       return new DeletePayloadShell(ctx, { ok: true });
     },
 
@@ -1132,7 +1158,7 @@ export const groupingsResolvers = {
       if (manage.writeCode) return gFail(ctx, manage.writeCode);
       if (ev.origin !== 'member') return gFail(ctx, 'officialEvent');
       if (!manage.canManage) {
-        return gFail(ctx, ev.creator_discord_id ? 'leaderOnlyComplete' : 'noCreatorRecordedComplete');
+        return gFail(ctx, ev.creator_user_id ? 'leaderOnlyComplete' : 'noCreatorRecordedComplete');
       }
       if (ev.status === 'completed') return gFail(ctx, 'groupingAlreadyCompleted');
       // draft is invisible across the whole GraphQL surface (lists filter it): treat as nonexistent.
@@ -1140,7 +1166,7 @@ export const groupingsResolvers = {
       await setEventStatus(db, gid, 'completed');
       const nev = await getEventRow(db, gid);
       // kind=updated: live-remove from lists + GuildHub reschedules alarms (a completed grouping is no longer a pending reminder).
-      publishGroupingEvent(ctx, ev.tenant, gid, 'updated');
+      publishGroupingEvent(ctx, (await getTenantRowById(db, ev.tenant).catch(() => null))?.slug || '', gid, 'updated');
       return new GroupingPayloadShell(ctx, { ok: true, grouping: toGrouping(ctx, nev) });
     },
 
@@ -1160,12 +1186,12 @@ export const groupingsResolvers = {
       if (manage.writeCode) return gFail(ctx, manage.writeCode);
       if (ev.origin !== 'member') return gFail(ctx, 'officialEvent');
       if (!manage.canManage) {
-        return gFail(ctx, ev.creator_discord_id ? 'leaderOnlyReopen' : 'noCreatorRecordedReopen');
+        return gFail(ctx, ev.creator_user_id ? 'leaderOnlyReopen' : 'noCreatorRecordedReopen');
       }
       if (ev.status !== 'completed') return gFail(ctx, 'groupingNotCompleted');
       await setEventStatus(db, gid, 'open');
       const nev = await getEventRow(db, gid);
-      publishGroupingEvent(ctx, ev.tenant, gid, 'updated');
+      publishGroupingEvent(ctx, (await getTenantRowById(db, ev.tenant).catch(() => null))?.slug || '', gid, 'updated');
       return new GroupingPayloadShell(ctx, { ok: true, grouping: toGrouping(ctx, nev) });
     },
 
@@ -1230,7 +1256,7 @@ export const groupingsResolvers = {
         await insertSignupAnswer(db, { eventId: gid, signupUid: uid, fieldId: a.fieldId, value: a.value });
       }
       const g = toGrouping(ctx, ev);
-      publishGroupingEvent(ctx, ev.tenant, gid, 'seats');
+      publishGroupingEvent(ctx, (await getTenantRowById(db, ev.tenant).catch(() => null))?.slug || '', gid, 'seats');
       return new SeatPayloadShell(ctx, { ok: true, seats: await g.genSeats() });
     },
 
