@@ -141,7 +141,7 @@ export default function GuildAdminOfficer({ slug, officer, commonText, refresh }
           <p style={{ color: theme.muted, fontSize: 13, margin: 0 }}>{officer.notesEmptyText}</p>
         ) : officer.members.map((m) => (
           <div key={m.discordId} data-officer-member={m.discordId}
-            style={{ padding: '12px 0', borderTop: '1px solid rgba(201,163,92,.10)' }}>
+            style={{ padding: '12px 0', borderTop: '1px solid rgba(67,160,134,.10)' }}>
             <div style={{ color: theme.paper, fontSize: 15, marginBottom: 8 }}>{m.displayName}</div>
             {m.notes.length === 0 ? (
               <p style={{ color: theme.muted, fontSize: 12.5, margin: '0 0 8px' }}>{officer.memberNoNotesText}</p>
@@ -162,7 +162,7 @@ export default function GuildAdminOfficer({ slug, officer, commonText, refresh }
                     {n.authorText && <span style={{ color: theme.muted, fontSize: 12 }}>{n.authorText}</span>}
                     <span style={{ color: theme.muted, fontSize: 12 }}>{n.createdAtText}</span>
                     <button type="button"
-                      style={{ background: 'none', border: 'none', color: theme.gold, fontSize: 12.5, cursor: 'pointer', padding: 0 }}
+                      style={{ background: 'none', border: 'none', color: theme.accent, fontSize: 12.5, cursor: 'pointer', padding: 0 }}
                       onClick={() => { setEditingId(n.id); setEditBody(n.body); }}>
                       {officer.noteEditLabel}
                     </button>
@@ -196,15 +196,15 @@ export default function GuildAdminOfficer({ slug, officer, commonText, refresh }
         {!officer.hasGoals ? (
           <p style={{ color: theme.muted, fontSize: 13, margin: 0 }}>{officer.goalsEmptyText}</p>
         ) : membersWithGoals.map((m) => (
-          <div key={m.discordId} style={{ padding: '10px 0', borderTop: '1px solid rgba(201,163,92,.10)' }}>
+          <div key={m.discordId} style={{ padding: '10px 0', borderTop: '1px solid rgba(67,160,134,.10)' }}>
             <div style={{ color: theme.paper, fontSize: 14.5, marginBottom: 6 }}>{m.displayName}</div>
             {m.goals.map((g) => (
               <div key={g.id} style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 5 }}>
                 <span style={{ color: theme.paper, fontSize: 13.5 }}>{g.title}</span>
                 <span style={{
                   fontSize: 11, borderRadius: 999, padding: '1px 8px',
-                  color: g.status === 'DONE' ? '#ecd28f' : theme.muted,
-                  border: `1px solid ${g.status === 'DONE' ? 'rgba(201,163,92,.5)' : 'rgba(201,163,92,.25)'}`,
+                  color: g.status === 'DONE' ? '#93d2be' : theme.muted,
+                  border: `1px solid ${g.status === 'DONE' ? 'rgba(67,160,134,.5)' : 'rgba(67,160,134,.25)'}`,
                 }}>{g.statusLabel}</span>
                 {g.dungeonName && (
                   <span style={{ color: theme.muted, fontSize: 12 }}>
