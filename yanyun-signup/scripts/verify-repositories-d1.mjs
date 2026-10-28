@@ -1123,6 +1123,15 @@ if (want('billing')) {
   await settingsRepo.setSettingValue(db, '', 'paygate_enabled', '1');
   const onLimits = await limitsSvc.getEffectiveLimits(db, { discordId: 'U', guildSlug: 'alpha' });
   eq('limits: switch on -> same tier-3 table', triple(onLimits), [5000, 100, 100]);
+  // Stored tier rows end to end (the foundation's read-time tier
+  // derivation feeds the same resolution): t1 -> T1, t2 -> T2, and a
+  // lapsed tier row falls back to free.
+  await repo.upsertEntitlementRow(db, { ...row, tenant: 'tierone', plan: 't1', currentPeriodEnd: future });
+  eq('limits: stored t1 row -> T1 table', triple(await limitsSvc.getEffectiveLimits(db, { discordId: 'U', guildSlug: 'tierone' })), [1000, 50, 30]);
+  await repo.upsertEntitlementRow(db, { ...row, tenant: 'tiertwo', plan: 't2', currentPeriodEnd: future });
+  eq('limits: stored t2 row -> T2 table', triple(await limitsSvc.getEffectiveLimits(db, { discordId: 'U', guildSlug: 'tiertwo' })), [2000, 100, 50]);
+  await repo.upsertEntitlementRow(db, { ...row, tenant: 'tierone', plan: 't1', currentPeriodEnd: past });
+  eq('limits: lapsed t1 row -> free table', triple(await limitsSvc.getEffectiveLimits(db, { discordId: 'U', guildSlug: 'tierone' })), [200, 20, 10]);
   const noGuild = await limitsSvc.getEffectiveLimits(db, { discordId: 'U' });
   eq('limits: guild-less context stays free', triple(noGuild), [200, 20, 10]);
   const noRow = await limitsSvc.getEffectiveLimits(db, { discordId: 'U', guildSlug: 'never-granted' });
