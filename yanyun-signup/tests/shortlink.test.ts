@@ -7,6 +7,9 @@
 //  - route: GET /c/:code 302s to the canonical car URL; unknown /
 //    malformed codes and codes whose car was deleted 404; the SPA
 //    car page (and its OG tags) is not shadowed by the /c route.
+//    (This suite's fixture guild is UNBOUND, so anonymous visitors
+//    pass its view gate and keep the canonical landing; the bound-
+//    guild landing split to /s/:code is covered in shareaccess.)
 // FakeDB routes by SQL shape (same pattern as .harness-avatar);
 // short_links lands in a real in-memory table with UNIQUE semantics.
 import { describe, it, expect } from 'vitest';

@@ -128,8 +128,8 @@
     "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary. Generated file: the count includes the word as it appears inside compiled translation string data (account section copy) (recruit section copy contains the word in compiled string data) (availability relocation: the en translations of the new schedule/recruit strings contain the word)"
   },
   "src/domains/platform/og.ts": {
-    "max": 6,
-    "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary"
+    "max": 7,
+    "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary; +1 for carShareOgTags (2026-10-28): the share-code tag resolver takes the same (env: any) shape as the car/build tag resolvers beside it"
   },
   "src/domains/platform/push.ts": {
     "max": 19,

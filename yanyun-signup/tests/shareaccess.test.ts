@@ -19,6 +19,7 @@ import { describe, it, expect } from 'vitest';
 import { yoga } from '../src/graphql.ts';
 import { mintShortLink } from '../src/domains/groupings/shortlinks.ts';
 import { resolveSharedGrouping } from '../src/domains/groupings/shareview.ts';
+import { signJwt } from '../src/domains/identity/auth.ts';
 
 function check(name: string, ok: boolean, extra = '') {
   expect(ok, extra ? `${name} — ${extra}` : name).toBe(true);
@@ -85,7 +86,7 @@ function makeDb() {
     signupInserts: 0,
   };
   function route(kind, sql, b) {
-    sql = sql.replace(/"/g, '').replace(/short_links\./g, '').replace(/events\./g, '').replace(/tenants\./g, '').replace(/settings\./g, '').replace(/signups\./g, '');
+    sql = sql.replace(/"/g, '').replace(/short_links\./g, '').replace(/events\./g, '').replace(/tenants\./g, '').replace(/settings\./g, '').replace(/signups\./g, '').replace(/user_oauth\./g, '');
     if (/short_links/.test(sql)) {
       if (/INSERT INTO short_links/.test(sql)) {
         const [code, tenant, eventId, createdAt] = b;
@@ -133,6 +134,12 @@ function makeDb() {
         return kind === 'first' ? (r ? { value: r.value } : null) : { results: r ? [{ value: r.value }] : [] };
       }
       return kind === 'first' ? null : { results: state.settings };
+    }
+    if (/FROM user_oauth/.test(sql)) {
+      // Any test session user holds a complete grant (refresh token +
+      // the members-read scope), so getSessionUserChecked passes them.
+      const row = { refresh_token: 'rt-test', scope: 'identify guilds guilds.members.read', refresh_state: 'ok' };
+      return kind === 'first' ? row : { results: [row] };
     }
     if (/PRAGMA/.test(sql)) return { results: [] };
     if (kind === 'first') return null;
@@ -303,5 +310,64 @@ describe('shareaccess: GraphQL surfaces', () => {
     eq('joinGrouping ok=false', g.data?.joinGrouping?.ok, false);
     eq('joinGrouping errorCode=loginRequired', g.data?.joinGrouping?.errorCode, 'loginRequired');
     eq('没有写入任何报名', state.signupInserts, before);
+  });
+});
+
+describe('shareaccess: /c landing split + /s page', () => {
+  const SECRET = 'share-access-test-secret';
+  const env = { DB: db, SESSION_SECRET: SECRET, ASSETS: { fetch: async (req) => {
+    const p = new URL(req.url).pathname;
+    if (p === '/index.html') return new Response('<html><head></head><body>SPA-INDEX</body></html>', { status: 200, headers: { 'content-type': 'text/html' } });
+    return new Response('not found', { status: 404 });
+  } } };
+  const ectx = { waitUntil() {} };
+  let worker: any, codeA: string;
+  const call = (path: string, headers: Record<string, string> = {}) =>
+    worker.fetch(new Request('http://local' + path, { headers }), env, ectx);
+
+  it('setup', async () => {
+    worker = (await import('../src/worker.ts')).default;
+    codeA = (await mintShortLink(db, SLUG, 401)).code;
+  });
+
+  it('anonymous /c lands on the share page, not the gated canonical page', async () => {
+    const r = await call(`/c/${codeA}`);
+    eq('匿名 -> 302', r.status, 302);
+    eq('匿名落点 = /s/<code>', r.headers.get('location'), `http://local/s/${codeA}`);
+    await r.text();
+  });
+
+  it('member /c keeps the canonical landing', async () => {
+    const jwt = await signJwt(SECRET, { sub: 'M1', name: '成员甲', guilds: [DGID] });
+    const r = await call(`/c/${codeA}`, { cookie: `yy_session=${jwt}` });
+    eq('成员 -> 302', r.status, 302);
+    eq('成员落点 = 规范长链', r.headers.get('location'), `http://local/${SLUG}/car/401`);
+    await r.text();
+  });
+
+  it('logged-in non-member /c lands on the share page', async () => {
+    const jwt = await signJwt(SECRET, { sub: 'M9', name: '路人', guilds: ['DG-ELSEWHERE'] });
+    const r = await call(`/c/${codeA}`, { cookie: `yy_session=${jwt}` });
+    eq('非成员 -> 302', r.status, 302);
+    eq('非成员落点 = /s/<code>', r.headers.get('location'), `http://local/s/${codeA}`);
+    await r.text();
+  });
+
+  it('/s/:code serves the SPA with the car OG card injected', async () => {
+    const r = await call(`/s/${codeA}`);
+    eq('/s -> 200', r.status, 200);
+    const html = await r.text();
+    check('SPA 本体', html.includes('SPA-INDEX'));
+    check('OG image = 车图', html.includes(`https://og.yanyun.app/og/${SLUG}/car/401.png`), html.slice(0, 400));
+    check('OG title 含车名', html.includes('周六双十本401'));
+    check('OG url = 分享地址', html.includes(`https://yanyun.app/s/${codeA}`));
+  });
+
+  it('/s/:code unknown code serves the SPA with no car tags', async () => {
+    const r = await call('/s/ZZZZZZZ');
+    eq('/s 未知码 -> 200', r.status, 200);
+    const html = await r.text();
+    check('SPA 本体', html.includes('SPA-INDEX'));
+    check('无车 OG 图注入', !html.includes(`/og/${SLUG}/car/`));
   });
 });

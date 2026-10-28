@@ -15,7 +15,7 @@ import { maybeRunCreatorBackfill } from './creatorbackfill.js';
 import { maybeRunCreatorManualFix } from './creatormanualfix.js';
 import { logError, runScheduledBackup, configureGateRuntime } from './domains/platform/index.ts';
 import { err } from './domains/platform/http.ts';
-import { hubOgTags, guildOgTags, carOgTags, buildOgTags } from './domains/platform/og.ts';
+import { hubOgTags, guildOgTags, carOgTags, buildOgTags, carShareOgTags } from './domains/platform/og.ts';
 import { getTenantSlug, parseGuildSubdomainSlug, resolveGuildSubdomain, guildSubdomainOrigin, isCustomDomainCandidateHost, lookupGuildCustomDomainHost, customDomainSaasConfigured } from './domains/guilds/index.ts';
 import { platformAdminBackupRoutes } from './domains/platform/admin-backup-routes.ts';
 import { billingRoutes } from './domains/platform/billing-routes.ts';
@@ -251,6 +251,13 @@ async function handleFetch(request: Request, env: Env, ctx: ExecutionContext) {
     // its not-found state. The static segment must win over /:slug.
     if (seg.length === 2 && seg[0] === 'b') {
       return serveSpa(await buildOgTags(env, seg[1]));
+    }
+    // /s/:code -> public car share page (React, anonymous) + the car's
+    // OG tags resolved through the share code; unknown/dead codes
+    // inject nothing and the page renders its not-found state. Same
+    // static-segment precedence as /b/:code.
+    if (seg.length === 2 && seg[0] === 's') {
+      return serveSpa(await carShareOgTags(env, seg[1]));
     }
     // /<slug>/car/:id -> car detail (React) + car OG; unknown tenants still
     // get the SPA, which renders the not-found state.
