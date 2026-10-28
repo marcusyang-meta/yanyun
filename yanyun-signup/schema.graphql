@@ -3806,9 +3806,10 @@ extend type Mutation {
   revokeGearBuildShare(id: Int!): GearOkPayload!
 }
 
-# ============ 付费运营引擎 (P8/P11/P12/P14, T2) ============
-# GuildAdmin.ops 的判定即类型: 未达 T2 只解析 GuildAdminOpsLocked
-# (仅未开通文案, 引擎零计算零下发); 达档才有 GuildAdminOps 全量。
+# ============ Premium ops engine (P8/P11/P12/P14, T2) ============
+# The GuildAdmin.ops verdict is the type itself: below T2 it resolves
+# only GuildAdminOpsLocked (lock copy only; the engines are never
+# computed or shipped); at tier it resolves the full GuildAdminOps.
 
 union GuildAdminOpsResult = GuildAdminOps | GuildAdminOpsLocked
 
@@ -3923,7 +3924,8 @@ type OpsPayload {
   copiedCount: Int
 }
 
-# 我的贡献积分 (P14 免费记录层: 本人余额+流水, 仅成员判定, 无档位判定)
+# My contribution points (P14 free record layer: own balance and
+# ledger, gated on membership only, with no tier verdict).
 union MyContributionResult = MyContribution | MyContributionLocked
 
 type MyContribution {
