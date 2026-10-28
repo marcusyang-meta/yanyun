@@ -646,6 +646,11 @@ export class SharedGroupingPageShell extends ShellBase {
       max: this.view ? this.view.maxSlots : 0,
     }));
   }
+  // Type chip: the groupingType catalog's short label for this car's
+  // type (same composition as the block tree's ChipRow).
+  genShareTypeLabel(){
+    return this.t('groupingType_' + (TYPE_SHORT_KEY[this.view ? this.view.type : ''] || 'shortActivity'));
+  }
 }
 
 export const SHARED_GROUPING_TEXT_RESOLVERS = {
@@ -1282,6 +1287,7 @@ export const groupingsResolvers = {
     maxSlots: (p: any) => p.genMaxSlots(),
     seats: (p: any) => p.genSeats(),
     sharePeopleTemplate: (p: any) => p.genSharePeopleTemplate(),
+    shareTypeLabel: (p: any) => p.genShareTypeLabel(),
     ...SHARED_GROUPING_TEXT_RESOLVERS,
   },
   // Plain-data seat occupancy: fields delegate to the view object the

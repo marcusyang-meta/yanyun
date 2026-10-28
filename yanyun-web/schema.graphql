@@ -527,6 +527,7 @@ type SharedGroupingPage {
   shareStatusCompletedLabel: String!
   sharePeopleTemplate: String!
   shareSeatsTitle: String!
+  shareTypeLabel: String!
 }
 
 type SharedGroupingSeat {
