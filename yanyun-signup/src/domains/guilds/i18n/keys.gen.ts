@@ -161,6 +161,29 @@ export type GuildsStringKey =
   | 'guildAdmin_premiumSourceTrial'
   | 'guildAdmin_premiumPastDueNotice'
   | 'guildAdmin_premiumPriceYear'
+  | 'guildAdmin_customDomainTitle'
+  | 'guildAdmin_customDomainHint'
+  | 'guildAdmin_customDomainHostnameLabel'
+  | 'guildAdmin_customDomainHostnamePlaceholder'
+  | 'guildAdmin_customDomainBindButton'
+  | 'guildAdmin_customDomainRebindButton'
+  | 'guildAdmin_customDomainVerifyButton'
+  | 'guildAdmin_customDomainRemoveButton'
+  | 'guildAdmin_customDomainStatusNone'
+  | 'guildAdmin_customDomainStatusPendingSeam'
+  | 'guildAdmin_customDomainStatusPendingDns'
+  | 'guildAdmin_customDomainStatusActive'
+  | 'guildAdmin_customDomainStatusDisabled'
+  | 'guildAdmin_customDomainBoundAt'
+  | 'guildAdmin_customDomainDnsTitle'
+  | 'guildAdmin_customDomainCnameLabel'
+  | 'guildAdmin_customDomainTxtLabel'
+  | 'guildAdmin_customDomainRecordNameLabel'
+  | 'guildAdmin_customDomainRecordValueLabel'
+  | 'guildAdmin_customDomainSeamNote'
+  | 'guildAdmin_customDomainDnsNote'
+  | 'guildAdmin_customDomainActiveNote'
+  | 'guildAdmin_customDomainDisabledNote'
   | 'guildAdmin_billingSuccess'
   | 'guildAdmin_billingCanceled'
   | 'guildAdmin_tabAnnouncements'
@@ -604,6 +627,29 @@ export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'guildAdmin_premiumSourceTrial',
   'guildAdmin_premiumPastDueNotice',
   'guildAdmin_premiumPriceYear',
+  'guildAdmin_customDomainTitle',
+  'guildAdmin_customDomainHint',
+  'guildAdmin_customDomainHostnameLabel',
+  'guildAdmin_customDomainHostnamePlaceholder',
+  'guildAdmin_customDomainBindButton',
+  'guildAdmin_customDomainRebindButton',
+  'guildAdmin_customDomainVerifyButton',
+  'guildAdmin_customDomainRemoveButton',
+  'guildAdmin_customDomainStatusNone',
+  'guildAdmin_customDomainStatusPendingSeam',
+  'guildAdmin_customDomainStatusPendingDns',
+  'guildAdmin_customDomainStatusActive',
+  'guildAdmin_customDomainStatusDisabled',
+  'guildAdmin_customDomainBoundAt',
+  'guildAdmin_customDomainDnsTitle',
+  'guildAdmin_customDomainCnameLabel',
+  'guildAdmin_customDomainTxtLabel',
+  'guildAdmin_customDomainRecordNameLabel',
+  'guildAdmin_customDomainRecordValueLabel',
+  'guildAdmin_customDomainSeamNote',
+  'guildAdmin_customDomainDnsNote',
+  'guildAdmin_customDomainActiveNote',
+  'guildAdmin_customDomainDisabledNote',
   'guildAdmin_billingSuccess',
   'guildAdmin_billingCanceled',
   'guildAdmin_tabAnnouncements',

@@ -48,7 +48,10 @@ async function loadBilling() {
         ? '｜定价：' + billing.plans.map((p) => `${p.name} $${(p.priceMonthlyCents / 100).toFixed(2)}/月`).join(' · ')
         : '');
     const fmtEnd = (ts) => ts ? new Date(ts * 1000).toLocaleDateString() : '—';
-    $('#billingTable').innerHTML = `<tr><th>百业</th><th>当前权益</th><th>来源</th><th>周期至</th><th>Stripe 订阅</th><th>平台子域</th><th>手工授予</th><th></th></tr>` +
+    $('#billingSummary').textContent += billing.customDomainSaasConfigured
+      ? '；自定义域名 SaaS 接缝已接通'
+      : '；自定义域名 SaaS 接缝未接通（绑定停在待接通）';
+    $('#billingTable').innerHTML = `<tr><th>百业</th><th>当前权益</th><th>来源</th><th>周期至</th><th>Stripe 订阅</th><th>平台子域</th><th>自定义域名</th><th>手工授予</th><th></th></tr>` +
       (billing.tenants.map((t) => `<tr>
         <td>${esc(t.guild_name)}<br><span class="muted" style="font-family:monospace">${esc(t.slug)}</span></td>
         <td>${t.tier > 0 ? `💎 ${esc(t.tierName)}${t.tierSubtitle ? ' · ' + esc(t.tierSubtitle) : ''}` : t.plan === 'premium' ? '💎 Premium' : '免费'}${t.lapsed ? '<br><span class="muted">已过期回落</span>' : ''}${t.pastDue ? '<br><span class="muted">欠费宽限中</span>' : ''}</td>
@@ -58,17 +61,29 @@ async function loadBilling() {
         <td style="white-space:nowrap">${t.subdomainEnabled ? '已开通' : '未开通'}<br>
           <button class="ghost" data-subdomain="${esc(t.slug)}" data-enabled="${t.subdomainEnabled ? '0' : '1'}">${t.subdomainEnabled ? '关闭子域' : '开通子域'}</button>
         </td>
+        <td style="white-space:nowrap">${t.customDomain ? `${esc(t.customDomain.hostname)}<br><span class="muted">${esc(t.customDomain.status)}</span><br>
+          <button class="ghost" data-customdomain="${esc(t.slug)}" data-disabled="${t.customDomain.status === 'disabled' ? '0' : '1'}">${t.customDomain.status === 'disabled' ? '恢复（转待验证）' : '停用'}</button>` : '<span class="muted">未绑定</span>'}
+        </td>
         <td><input type="number" min="1" max="3650" value="30" style="width:70px" id="grant-days-${esc(t.slug)}"> 天</td>
         <td style="white-space:nowrap">
           <button class="ghost" data-grant="${esc(t.slug)}">授予 Premium</button>
           <button class="ghost" data-revoke="${esc(t.slug)}">撤销</button>
-        </td></tr>`).join('') || '<tr><td colspan="8" class="muted">暂无百业</td></tr>');
+        </td></tr>`).join('') || '<tr><td colspan="9" class="muted">暂无百业</td></tr>');
     document.querySelectorAll('[data-subdomain]').forEach((b) => b.onclick = async () => {
       const slug = b.dataset.subdomain;
       const enabled = b.dataset.enabled === '1';
       try {
         await api('/api/hub/billing/subdomain', { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ slug, enabled }) });
         msg.className = 'msg'; msg.textContent = enabled ? `已为 ${slug} 开通平台子域（总闸开启时仍需 Premium 权益才解析）` : `已关闭 ${slug} 的平台子域`;
+        await loadBilling();
+      } catch (e) { msg.className = 'msg bad'; msg.textContent = e.message; }
+    });
+    document.querySelectorAll('[data-customdomain]').forEach((b) => b.onclick = async () => {
+      const slug = b.dataset.customdomain;
+      const disabled = b.dataset.disabled === '1';
+      try {
+        await api('/api/hub/billing/custom-domain', { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ slug, disabled }) });
+        msg.className = 'msg'; msg.textContent = disabled ? `已停用 ${slug} 的自定义域名（立即停止解析）` : `已恢复 ${slug} 的自定义域名为待验证（需管理员重新验证 DNS 才生效）`;
         await loadBilling();
       } catch (e) { msg.className = 'msg bad'; msg.textContent = e.message; }
     });
