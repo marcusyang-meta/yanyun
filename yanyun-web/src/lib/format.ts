@@ -106,12 +106,12 @@ export function weekRangeLabel(weekOffset: number): string {
 }
 
 export const theme = {
-  bg: '#0c0b09',
-  paper: '#ece2cb',
-  gold: '#c9a35c',
-  goldHi: '#ecd28f',
-  muted: '#ab9c7d',
+  bg: '#15171b',
+  paper: '#e9ebee',
+  accent: '#43a086',
+  accentHi: '#93d2be',
+  muted: '#9ba2ac',
   seal: '#a02c1a',
-  card: 'linear-gradient(160deg,rgba(201,163,92,.06),rgba(0,0,0,.2))',
-  border: '1px solid rgba(201,163,92,.25)',
+  card: '#1e2126',
+  border: '1px solid rgba(255,255,255,.09)',
 };

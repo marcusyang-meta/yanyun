@@ -18,7 +18,6 @@ import { hostGuildSlug } from './lib/hostGuild';
 import { GuildFooterContext, type FooterOverride } from './lib/guildChrome';
 import { readPrefMirror, writePrefMirror, emitLocaleChanged, lastSentLocaleTag } from './lib/locale';
 import { canonicalLocaleOf } from './lib/format';
-import SiteBackdrop from './lib/SiteBackdrop.react.tsx';
 
 // The app-wide data root is `viewer`, preloaded by AppEntryPoint.
 // When logged out, viewer.user is null and every route renders only the login page.
@@ -166,7 +165,6 @@ export default function AppRoot({ queries }: {
 
   return (
     <>
-      <SiteBackdrop />
       <GuildFooterContext.Provider value={footerChrome}>
       <div className="yy-app-main">
         <div className="yy-scroll-region" ref={scrollRegionRef}>

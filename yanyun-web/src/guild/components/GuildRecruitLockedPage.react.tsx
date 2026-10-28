@@ -38,7 +38,7 @@ export default function GuildRecruitLockedPage({ guildRecruit, user, userBarText
         </div>
         <div className="yy-card" style={{ marginTop: 56, padding: '44px 28px', textAlign: 'center' }}>
           <div style={{ fontSize: 40, marginBottom: 14 }}>🔒</div>
-          <div style={{ fontSize: 19, color: '#ecd28f', letterSpacing: '.06em', marginBottom: 12 }}>{data.lockedTitle}</div>
+          <div style={{ fontSize: 19, color: '#93d2be', letterSpacing: '.06em', marginBottom: 12 }}>{data.lockedTitle}</div>
           <p style={{ color: theme.muted, fontSize: 14, lineHeight: 1.9, margin: '0 auto', maxWidth: 420 }}>
             {data.lockedBody}
           </p>

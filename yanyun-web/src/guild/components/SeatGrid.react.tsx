@@ -242,7 +242,7 @@ export default function SeatGrid({ groupingId, slug, seats, maxSlots, onChanged,
             disabled={leaving}
             style={{
               padding: 12, borderRadius: 10, cursor: 'pointer', textAlign: 'left',
-              border: theme.border, background: 'rgba(201,163,92,.12)', color: theme.paper,
+              border: theme.border, background: 'rgba(67,160,134,.12)', color: theme.paper,
             }}
           >
             <SeatCellBody s={s} text={text} onToggleReady={toggleReady} />
@@ -252,7 +252,7 @@ export default function SeatGrid({ groupingId, slug, seats, maxSlots, onChanged,
             key={s.index}
             style={{
               padding: 12, borderRadius: 10, textAlign: 'left',
-              border: theme.border, background: 'rgba(201,163,92,.12)', color: theme.paper,
+              border: theme.border, background: 'rgba(67,160,134,.12)', color: theme.paper,
             }}
           >
             <SeatCellBody s={s} text={text} />
@@ -265,7 +265,7 @@ export default function SeatGrid({ groupingId, slug, seats, maxSlots, onChanged,
             onClick={() => setJoinIdx(s.index)}
             style={{
               padding: 12, borderRadius: 10, cursor: 'pointer',
-              border: '1px dashed rgba(201,163,92,.4)', background: 'transparent', color: theme.muted,
+              border: '1px dashed rgba(67,160,134,.4)', background: 'transparent', color: theme.muted,
               fontSize: 14, minHeight: 62,
             }}
           >{text.seatEmptyJoinLabel}</button>
@@ -274,7 +274,7 @@ export default function SeatGrid({ groupingId, slug, seats, maxSlots, onChanged,
             key={s.index}
             style={{
               padding: 12, borderRadius: 10,
-              border: '1px dashed rgba(201,163,92,.25)', background: 'transparent', color: theme.muted,
+              border: '1px dashed rgba(67,160,134,.25)', background: 'transparent', color: theme.muted,
               fontSize: 14, minHeight: 62, boxSizing: 'border-box',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}
@@ -324,22 +324,22 @@ function SeatCellBody({ s, text, onToggleReady }: {
 }) {
   return (
     <>
-      <div style={{ fontSize: 15, color: theme.goldHi, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+      <div style={{ fontSize: 15, color: theme.accentHi, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {s.nickname}
       </div>
       <div style={{ fontSize: 12, color: theme.muted, marginTop: 4 }}>
         {s.weapon}{s.role ? ` · ${s.role}` : ''}
       </div>
       {s.ready && (
-        <div style={{ fontSize: 12, color: theme.gold, marginTop: 4 }}>✓ {text.seatReadyLabel}</div>
+        <div style={{ fontSize: 12, color: theme.accent, marginTop: 4 }}>✓ {text.seatReadyLabel}</div>
       )}
       {s.mine && onToggleReady && (
         <span
           role="button"
           onClick={(e) => { e.stopPropagation(); onToggleReady(s); }}
           style={{
-            display: 'inline-block', marginTop: 6, fontSize: 12, color: theme.gold,
-            border: `1px solid ${theme.gold}`, borderRadius: 6, padding: '2px 8px', cursor: 'pointer',
+            display: 'inline-block', marginTop: 6, fontSize: 12, color: theme.accent,
+            border: `1px solid ${theme.accent}`, borderRadius: 6, padding: '2px 8px', cursor: 'pointer',
           }}
         >{s.ready ? text.seatUnreadyActionLabel : text.seatReadyActionLabel}</span>
       )}
@@ -416,7 +416,7 @@ function JoinModal({ groupingId, slug, seatIndex, selfName, text, customFields, 
   return createPortal(
     <div style={modalOverlay} onClick={onClose}>
       <div style={modalBox} onClick={(e) => e.stopPropagation()}>
-        <div style={{ fontSize: 18, color: theme.goldHi, marginBottom: 4 }}>{fill(text.seatModalTitleTemplate, { n: seatIndex + 1 })}</div>
+        <div style={{ fontSize: 18, color: theme.accentHi, marginBottom: 4 }}>{fill(text.seatModalTitleTemplate, { n: seatIndex + 1 })}</div>
         <div style={{ fontSize: 12, color: theme.muted, marginBottom: 16 }}>{text.seatModalSubtitle}</div>
 
         <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
@@ -426,9 +426,9 @@ function JoinModal({ groupingId, slug, seatIndex, selfName, text, customFields, 
               onClick={() => setMode(m)}
               style={{
                 padding: '7px 16px', borderRadius: 8, cursor: 'pointer', fontSize: 13,
-                border: `1px solid ${theme.gold}`,
-                background: mode === m ? theme.gold : 'transparent',
-                color: mode === m ? '#1a1814' : theme.paper,
+                border: `1px solid ${theme.accent}`,
+                background: mode === m ? theme.accent : 'transparent',
+                color: mode === m ? '#0a120e' : theme.paper,
               }}
             >{m === 'self' ? text.seatSelfTabLabel : text.seatProxyTabLabel}</button>
           ))}
@@ -439,7 +439,7 @@ function JoinModal({ groupingId, slug, seatIndex, selfName, text, customFields, 
           <div style={{ marginBottom: 12 }}>
             <div style={{
               padding: '10px 12px', borderRadius: 8, fontSize: 15, boxSizing: 'border-box',
-              background: 'rgba(201,163,92,.08)', color: theme.goldHi, border: theme.border,
+              background: 'rgba(67,160,134,.08)', color: theme.accentHi, border: theme.border,
             }}>{selfName || text.seatNamePlaceholder}</div>
             <div style={{ fontSize: 12, color: theme.muted, marginTop: 4 }}>{text.seatSelfNameHint}</div>
           </div>
@@ -451,7 +451,7 @@ function JoinModal({ groupingId, slug, seatIndex, selfName, text, customFields, 
               placeholder={text.seatProxySearchPlaceholder}
               style={{
                 width: '100%', padding: '10px 12px', borderRadius: 8, fontSize: 14, boxSizing: 'border-box',
-                background: '#0c0b09', color: theme.paper, border: theme.border, marginBottom: 8,
+                background: '#15171b', color: theme.paper, border: theme.border, marginBottom: 8,
               }}
             />
             {filtered.length === 0 ? (
@@ -464,9 +464,9 @@ function JoinModal({ groupingId, slug, seatIndex, selfName, text, customFields, 
                     onClick={() => setSelected(m)}
                     style={{
                       padding: '8px 12px', borderRadius: 8, cursor: 'pointer', textAlign: 'left',
-                      border: `1px solid ${theme.gold}`,
-                      background: selected?.discordId === m.discordId ? theme.gold : 'transparent',
-                      color: selected?.discordId === m.discordId ? '#1a1814' : theme.paper,
+                      border: `1px solid ${theme.accent}`,
+                      background: selected?.discordId === m.discordId ? theme.accent : 'transparent',
+                      color: selected?.discordId === m.discordId ? '#0a120e' : theme.paper,
                     }}
                   >
                     <span style={{ fontSize: 14 }}>{m.displayName}</span>
@@ -494,9 +494,9 @@ function JoinModal({ groupingId, slug, seatIndex, selfName, text, customFields, 
                     onClick={() => setAnswers({ ...answers, [f.id]: o })}
                     style={{
                       padding: '8px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 13,
-                      border: `1px solid ${theme.gold}`,
-                      background: answers[f.id] === o ? theme.gold : 'transparent',
-                      color: answers[f.id] === o ? '#1a1814' : theme.paper,
+                      border: `1px solid ${theme.accent}`,
+                      background: answers[f.id] === o ? theme.accent : 'transparent',
+                      color: answers[f.id] === o ? '#0a120e' : theme.paper,
                     }}
                   >{o}</button>
                 ))}
@@ -508,7 +508,7 @@ function JoinModal({ groupingId, slug, seatIndex, selfName, text, customFields, 
                 onChange={(e) => setAnswers({ ...answers, [f.id]: e.target.value })}
                 style={{
                   width: '100%', padding: '10px 12px', borderRadius: 8, fontSize: 14, boxSizing: 'border-box',
-                  background: '#0c0b09', color: theme.paper, border: theme.border,
+                  background: '#15171b', color: theme.paper, border: theme.border,
                 }}
               />
             )}
@@ -523,9 +523,9 @@ function JoinModal({ groupingId, slug, seatIndex, selfName, text, customFields, 
               onClick={() => setSect(s.name)}
               style={{
                 padding: '8px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 13,
-                border: `1px solid ${theme.gold}`,
-                background: sect === s.name ? theme.gold : 'transparent',
-                color: sect === s.name ? '#1a1814' : theme.paper,
+                border: `1px solid ${theme.accent}`,
+                background: sect === s.name ? theme.accent : 'transparent',
+                color: sect === s.name ? '#0a120e' : theme.paper,
               }}
             >{s.name}</button>
           ))}
@@ -547,14 +547,14 @@ const modalOverlay: React.CSSProperties = {
   display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
 };
 const modalBox: React.CSSProperties = {
-  background: '#1a1814', border: '1px solid #c9a35c', borderRadius: 12,
+  background: '#0a120e', border: '1px solid #43a086', borderRadius: 12,
   padding: 24, maxWidth: 420, width: '100%', maxHeight: '85vh', overflowY: 'auto',
 };
 const cancelBtn: React.CSSProperties = {
   padding: '8px 20px', borderRadius: 8, cursor: 'pointer',
-  background: 'transparent', border: '1px solid #c9a35c', color: '#ece2cb',
+  background: 'transparent', border: '1px solid #43a086', color: '#e9ebee',
 };
 const okBtn: React.CSSProperties = {
   padding: '8px 20px', borderRadius: 8, cursor: 'pointer',
-  background: '#c9a35c', border: 'none', color: '#1a1814', fontWeight: 600,
+  background: '#43a086', border: 'none', color: '#0a120e', fontWeight: 600,
 };

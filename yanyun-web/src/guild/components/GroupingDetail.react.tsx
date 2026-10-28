@@ -378,7 +378,7 @@ if (!g) return (
 <div style={{ color: theme.muted, padding: 32, textAlign: 'center'}}>
 {page.detailNotFoundText}
 <div style={{ marginTop: 16 }}>
-<button onClick={onBack} style={{ background: 'none', border: 'none', color: theme.gold, cursor: 'pointer', fontSize: 15 }}>{page.detailBackToListLabel}</button>
+<button onClick={onBack} style={{ background: 'none', border: 'none', color: theme.accent, cursor: 'pointer', fontSize: 15 }}>{page.detailBackToListLabel}</button>
 </div>
 </div>
 );
@@ -398,13 +398,13 @@ return (
 <div>
 <div style={{ marginBottom: 20}}>
 <button onClick={onBack} style={{
-background: 'none', border: 'none', color: theme.gold, cursor: 'pointer',
+background: 'none', border: 'none', color: theme.accent, cursor: 'pointer',
 fontSize: 15, padding: 0, marginBottom: 12,
 }}>{page.detailBackToListLabel}</button>
-<h2 style={{ color: theme.goldHi, fontSize: 24, margin: '0 0 8px', letterSpacing: 2}}>
+<h2 style={{ color: theme.accentHi, fontSize: 24, margin: '0 0 8px', letterSpacing: 2}}>
 <span style={{
-display: 'inline-block', fontSize: 12, color: theme.goldHi,
-border: `1px solid ${theme.gold}`, borderRadius: 4, padding: '2px 8px', marginRight: 8,
+display: 'inline-block', fontSize: 12, color: theme.accentHi,
+border: `1px solid ${theme.accent}`, borderRadius: 4, padding: '2px 8px', marginRight: 8,
 verticalAlign: 'middle',
 }}>{typeShort[g.type] ?? g.type}</span>
 {g.title}
@@ -415,7 +415,7 @@ verticalAlign: 'middle',
 {g.dungeon?.name? ` · ${g.dungeon.name}`: ''} · {g.status === 'open'? page.detailStatusOpenLabel: g.status === 'completed'? page.detailStatusCompletedLabel: g.status}
 </div>
 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap'}}>
-<button onClick={share} className="yy-btn yy-btn-gold" style={{ padding: '6px 16px', fontSize: 13 }}>{page.detailShareLabel}</button>
+<button onClick={share} className="yy-btn yy-btn-primary" style={{ padding: '6px 16px', fontSize: 13 }}>{page.detailShareLabel}</button>
 {interactive && page.templateSave && (
 <button onClick={() => { setTplName(g.title); setShowTplSave(true); }} style={smBtn}>{page.templateSave.buttonLabel}</button>
 )}
@@ -451,11 +451,11 @@ verticalAlign: 'middle',
 
 {page.rosterAnswers && page.rosterAnswers.length > 0 && (
 <div style={{ marginTop: 22 }}>
-<div style={{ fontSize: 15, color: theme.goldHi, letterSpacing: 2, marginBottom: 10 }}>{page.rosterAnswersTitle}</div>
+<div style={{ fontSize: 15, color: theme.accentHi, letterSpacing: 2, marginBottom: 10 }}>{page.rosterAnswersTitle}</div>
 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
 {page.rosterAnswers.map((a: any, i: number) => (
 <div key={i} style={{ display: 'flex', gap: 10, flexWrap: 'wrap', border: theme.border, borderRadius: 8, padding: '8px 12px', fontSize: 13.5 }}>
-<span style={{ color: theme.goldHi }}>{a.nickname}</span>
+<span style={{ color: theme.accentHi }}>{a.nickname}</span>
 <span style={{ color: theme.muted }}>{a.fieldLabel}</span>
 <span style={{ color: theme.paper, flex: 1 }}>{a.value}</span>
 </div>
@@ -490,21 +490,21 @@ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.6)', zIndex: 9997,
 display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
 }} onClick={() => setShowTplSave(false)}>
 <div style={{
-background: '#1a1814', border: `1px solid ${theme.gold}`, borderRadius: 12,
+background: '#0a120e', border: `1px solid ${theme.accent}`, borderRadius: 12,
 padding: 24, maxWidth: 360, width: '100%',
 }} onClick={(e) => e.stopPropagation()}>
-<div style={{ fontSize: 18, color: theme.goldHi, marginBottom: 16 }}>{page.templateSave.dialogTitle}</div>
+<div style={{ fontSize: 18, color: theme.accentHi, marginBottom: 16 }}>{page.templateSave.dialogTitle}</div>
 <div style={{ fontSize: 13, color: theme.muted, marginBottom: 6 }}>{page.templateSave.nameLabel}</div>
 <input value={tplName} onChange={(e) => setTplName(e.target.value)} style={{
-width: '100%', background: '#1e1b15', border: '1px solid rgba(201,163,92,.3)',
+width: '100%', background: '#1e1b15', border: '1px solid rgba(67,160,134,.3)',
 color: theme.paper, borderRadius: 8, padding: '11px 10px', fontSize: 14, boxSizing: 'border-box', marginBottom: 20,
 }} />
 <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
 <button onClick={() => setShowTplSave(false)} style={{
 padding: '8px 20px', borderRadius: 8, cursor: 'pointer',
-background: 'transparent', border: `1px solid ${theme.gold}`, color: theme.paper,
+background: 'transparent', border: `1px solid ${theme.accent}`, color: theme.paper,
 }}>{page.confirmCancelLabel}</button>
-<button onClick={doSaveTemplate} disabled={savingTemplate} className="yy-btn yy-btn-gold" style={{ padding: '8px 20px', fontSize: 14 }}>
+<button onClick={doSaveTemplate} disabled={savingTemplate} className="yy-btn yy-btn-primary" style={{ padding: '8px 20px', fontSize: 14 }}>
 {page.templateSave.submitLabel}
 </button>
 </div>
@@ -537,7 +537,7 @@ return (
 <div style={{ color: theme.muted, padding: 32, textAlign: 'center' }}>
 {this.props.goneText}
 <div style={{ marginTop: 16 }}>
-<button onClick={this.props.onBack} style={{ background: 'none', border: 'none', color: theme.gold, cursor: 'pointer', fontSize: 15 }}>{this.props.backText}</button>
+<button onClick={this.props.onBack} style={{ background: 'none', border: 'none', color: theme.accent, cursor: 'pointer', fontSize: 15 }}>{this.props.backText}</button>
 </div>
 </div>
 );
@@ -618,7 +618,7 @@ return (
 <div style={{ color: theme.muted, padding: 32, textAlign: 'center' }}>
 {goneText}
 <div style={{ marginTop: 16 }}>
-<button onClick={onBack} style={{ background: 'none', border: 'none', color: theme.gold, cursor: 'pointer', fontSize: 15 }}>{backText}</button>
+<button onClick={onBack} style={{ background: 'none', border: 'none', color: theme.accent, cursor: 'pointer', fontSize: 15 }}>{backText}</button>
 </div>
 </div>
 );
@@ -639,5 +639,5 @@ defaultNickname={defaultNickname}
 
 const smBtn: React.CSSProperties = {
 padding: '6px 14px', borderRadius: 8, cursor: 'pointer', fontSize: 13,
-background: 'transparent', border: '1px solid rgba(201,163,92,.4)', color: '#c9a35c',
+background: 'transparent', border: '1px solid rgba(67,160,134,.4)', color: '#43a086',
 };

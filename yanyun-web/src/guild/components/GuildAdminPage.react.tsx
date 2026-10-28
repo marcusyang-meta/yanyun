@@ -537,7 +537,7 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
           <Link to={`/${slug}`} style={{ color: theme.muted, textDecoration: 'none', fontSize: 14 }}>{text.adminBackLinkLabel}</Link>
           <UserBar user={user} text={userBarText} />
         </div>
-        <h1 style={{ fontFamily: 'var(--font-brush)', fontSize: 34, color: '#ecd28f', margin: '18px 0 4px', letterSpacing: '.06em' }}>
+        <h1 style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: 30, color: theme.paper, margin: '18px 0 4px', letterSpacing: '.02em' }}>
           {text.adminTitle}
         </h1>
         <p style={{ color: theme.muted, fontSize: 13, margin: '0 0 18px' }}>{data.name}</p>
@@ -550,9 +550,9 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
               onClick={() => setTab(t.key)}
               style={{
                 padding: '8px 18px', borderRadius: 999, cursor: 'pointer', fontSize: 13,
-                border: `1px solid ${tab === t.key ? theme.gold : 'rgba(201,163,92,.3)'}`,
-                background: tab === t.key ? 'rgba(201,163,92,.16)' : 'transparent',
-                color: tab === t.key ? '#ecd28f' : theme.muted,
+                border: `1px solid ${tab === t.key ? theme.accent : 'rgba(67,160,134,.3)'}`,
+                background: tab === t.key ? 'rgba(67,160,134,.16)' : 'transparent',
+                color: tab === t.key ? '#93d2be' : theme.muted,
               }}
             >
               {t.label}
@@ -569,14 +569,14 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
               <h2 style={adminSectionTitleStyle}>{text.adminAvatarTitle}</h2>
               <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
                 {data.avatarUrl ? (
-                  <img src={data.avatarUrl} alt="" style={{ width: 72, height: 72, borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(201,163,92,.55)' }} />
+                  <img src={data.avatarUrl} alt="" style={{ width: 72, height: 72, borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(67,160,134,.55)' }} />
                 ) : (
-                  <div style={{ width: 72, height: 72, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid rgba(201,163,92,.35)', color: theme.muted, fontSize: 12, textAlign: 'center', padding: 6 }}>
+                  <div style={{ width: 72, height: 72, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid rgba(67,160,134,.35)', color: theme.muted, fontSize: 12, textAlign: 'center', padding: 6 }}>
                     {text.adminAvatarNoneText}
                   </div>
                 )}
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  <button type="button" className="yy-btn yy-btn-gold" disabled={avatarBusy} style={{ padding: '8px 18px' }}
+                  <button type="button" className="yy-btn yy-btn-primary" disabled={avatarBusy} style={{ padding: '8px 18px' }}
                     onClick={() => fileRef.current?.click()}>
                     {data.avatarUrl ? text.adminAvatarReplaceLabel : text.adminAvatarUploadLabel}
                   </button>
@@ -708,9 +708,9 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
                       style={{
                         display: 'flex', alignItems: 'center', gap: 8, padding: '7px 14px 7px 9px',
                         borderRadius: 999, cursor: 'pointer', fontSize: 13,
-                        border: `1px solid ${wlAccent === o.key ? theme.gold : 'rgba(201,163,92,.3)'}`,
-                        background: wlAccent === o.key ? 'rgba(201,163,92,.16)' : 'transparent',
-                        color: wlAccent === o.key ? '#ecd28f' : theme.muted,
+                        border: `1px solid ${wlAccent === o.key ? theme.accent : 'rgba(67,160,134,.3)'}`,
+                        background: wlAccent === o.key ? 'rgba(67,160,134,.16)' : 'transparent',
+                        color: wlAccent === o.key ? '#93d2be' : theme.muted,
                       }}
                     >
                       <span style={{ width: 16, height: 16, borderRadius: '50%', background: o.hex, flexShrink: 0 }} />

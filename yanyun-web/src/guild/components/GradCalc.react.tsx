@@ -376,8 +376,8 @@ function GradCalcMain({
     <div className="yy-anim-fade-up">
       <div style={{ textAlign: 'center' }}>
         <h3 style={{
-          fontFamily: "'Ma Shan Zheng','Noto Serif SC',serif", fontSize: 26,
-          color: theme.goldHi, letterSpacing: 8, margin: 0, fontWeight: 400,
+          fontFamily: "inherit", fontSize: 26,
+          color: theme.accentHi, letterSpacing: 8, margin: 0, fontWeight: 400,
         }}>{text.gradTitle}</h3>
         <div style={{ fontSize: 12, color: theme.muted, letterSpacing: 3, marginTop: 6 }}>
           {text.gradSubtitle}
@@ -394,9 +394,9 @@ function GradCalcMain({
                 onClick={() => changeBuild(b)}
                 style={{
                   padding: '8px 20px', borderRadius: 8, cursor: 'pointer', fontSize: 14,
-                  border: `1px solid ${theme.gold}`,
-                  background: build === b ? theme.gold : 'transparent',
-                  color: build === b ? '#1a1814' : theme.paper,
+                  border: `1px solid ${theme.accent}`,
+                  background: build === b ? theme.accent : 'transparent',
+                  color: build === b ? '#0a120e' : theme.paper,
                   fontWeight: build === b ? 600 : 400,
                 }}
               >{b === 'big' ? text.gradBuildBigLabel : text.gradBuildSmallLabel}</button>
@@ -409,9 +409,9 @@ function GradCalcMain({
         <div style={{ width: 140, height: 140, margin: '0 auto', position: 'relative' }}>
           <svg
             width="140" height="140" viewBox="0 0 140 140"
-            style={{ transform: 'rotate(-90deg)', filter: 'drop-shadow(0 0 12px rgba(201,163,92,.3))' }}
+            style={{ transform: 'rotate(-90deg)', filter: 'drop-shadow(0 0 12px rgba(67,160,134,.3))' }}
           >
-            <circle cx="70" cy="70" r="60" fill="none" stroke="rgba(201,163,92,.12)" strokeWidth="10" />
+            <circle cx="70" cy="70" r="60" fill="none" stroke="rgba(67,160,134,.12)" strokeWidth="10" />
             <circle
               cx="70" cy="70" r="60" fill="none" stroke={`url(#${gradId})`} strokeWidth="10"
               strokeLinecap="round" strokeDasharray="377"
@@ -421,8 +421,8 @@ function GradCalcMain({
             <defs>
               <linearGradient id={gradId} x1="0" y1="0" x2="1" y2="1">
                 <stop offset="0%" stopColor="#a02c1a" />
-                <stop offset="50%" stopColor="#c9a35c" />
-                <stop offset="100%" stopColor="#ecd28f" />
+                <stop offset="50%" stopColor="#43a086" />
+                <stop offset="100%" stopColor="#93d2be" />
               </linearGradient>
             </defs>
           </svg>
@@ -430,12 +430,12 @@ function GradCalcMain({
             position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
             alignItems: 'center', justifyContent: 'center',
           }}>
-            <b style={{ fontSize: 32, color: theme.goldHi }}>{total}%</b>
+            <b style={{ fontSize: 32, color: theme.accentHi }}>{total}%</b>
             <span style={{ fontSize: 11, color: theme.muted, letterSpacing: 4, marginTop: 2 }}>{text.gradRingLabel}</span>
           </div>
         </div>
         <div style={{
-          marginTop: 10, fontFamily: "'Ma Shan Zheng',serif", fontSize: 18,
+          marginTop: 10, fontFamily: "inherit", fontSize: 18,
           color: theme.paper, letterSpacing: 4,
         }}>{tier}</div>
       </div>
@@ -450,15 +450,15 @@ function GradCalcMain({
             <span style={{ color: theme.paper, minWidth: 58 }}>{label}</span>
             <span style={{ color: theme.muted, minWidth: 30 }}>{weight}</span>
             <div style={{
-              flex: 1, height: 6, borderRadius: 3, background: 'rgba(201,163,92,.12)', overflow: 'hidden',
+              flex: 1, height: 6, borderRadius: 3, background: 'rgba(67,160,134,.12)', overflow: 'hidden',
             }}>
               <div style={{
                 width: `${score}%`, height: '100%', borderRadius: 3,
-                background: 'linear-gradient(90deg,#a02c1a,#c9a35c,#ecd28f)',
+                background: 'linear-gradient(90deg,#a02c1a,#43a086,#93d2be)',
                 transition: 'width .5s ease',
               }} />
             </div>
-            <span style={{ color: theme.goldHi, fontWeight: 700, minWidth: 38, textAlign: 'right' }}>{score}%</span>
+            <span style={{ color: theme.accentHi, fontWeight: 700, minWidth: 38, textAlign: 'right' }}>{score}%</span>
           </div>
         ))}
       </div>
@@ -476,19 +476,19 @@ function GradCalcMain({
                 position: 'relative', overflow: 'hidden', aspectRatio: '1', cursor: 'pointer',
                 display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                 color: theme.paper, fontFamily: 'inherit', padding: 8,
-                border: sc > 0 ? '1px solid rgba(201,163,92,.6)' : undefined,
-                boxShadow: sc > 0 ? '0 0 16px rgba(201,163,92,.15)' : undefined,
+                border: sc > 0 ? '1px solid rgba(67,160,134,.6)' : undefined,
+                boxShadow: sc > 0 ? '0 0 16px rgba(67,160,134,.15)' : undefined,
               }}
             >
               <div style={{
                 position: 'absolute', bottom: 0, left: 0, right: 0, height: `${sc}%`,
-                background: 'linear-gradient(0deg,rgba(201,163,92,.25),transparent)',
+                background: 'linear-gradient(0deg,rgba(67,160,134,.25),transparent)',
                 pointerEvents: 'none', transition: 'height .3s',
               }} />
               <div style={{ fontSize: 30, marginBottom: 6, filter: filled ? 'none' : 'grayscale(.4)' }}>{s.icon}</div>
               <div style={{ fontSize: 12, color: theme.muted, letterSpacing: 1 }}>{s.label}</div>
               <div style={{
-                position: 'absolute', bottom: 6, fontSize: 11, color: theme.gold, fontWeight: 700,
+                position: 'absolute', bottom: 6, fontSize: 11, color: theme.accent, fontWeight: 700,
               }}>{sc > 0 ? `${sc}%` : ''}</div>
             </button>
           );
@@ -500,7 +500,7 @@ function GradCalcMain({
       }}>{text.gradTapHint}</div>
 
       {/* Gear bench (ported from gear-planner, separate formula basis; library/builds live server-side per account) */}
-      <div style={{ marginTop: 22, borderTop: '1px solid rgba(201,163,92,.25)', paddingTop: 16 }}>
+      <div style={{ marginTop: 22, borderTop: '1px solid rgba(67,160,134,.25)', paddingTop: 16 }}>
         <Suspense fallback={null}>
           <GearBench onWhites={setBenchWhites} defaultTargetSect={sectName} />
         </Suspense>
@@ -511,7 +511,7 @@ function GradCalcMain({
         open={openSec.ref}
         onToggle={() => setOpenSec((p) => ({ ...p, ref: !p.ref }))}
       >
-        <div style={{ fontSize: 14, color: theme.gold, marginBottom: 8, letterSpacing: 2 }}>
+        <div style={{ fontSize: 14, color: theme.accent, marginBottom: 8, letterSpacing: 2 }}>
           {text.gradMaxTableTitle}
         </div>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, marginBottom: 18 }}>
@@ -526,7 +526,7 @@ function GradCalcMain({
             {affixes.map((a) => (
               <tr key={a.key}>
                 <td style={tdCell}>{a.name}</td>
-                <td style={{ ...tdCell, textAlign: 'right', color: theme.goldHi }}>
+                <td style={{ ...tdCell, textAlign: 'right', color: theme.accentHi }}>
                   {a.maxValue}{a.unit}
                 </td>
                 <td style={{ ...tdCell, textAlign: 'right' }}>
@@ -536,14 +536,14 @@ function GradCalcMain({
             ))}
           </tbody>
         </table>
-        <div style={{ fontSize: 14, color: theme.gold, marginBottom: 8, letterSpacing: 2 }}>
+        <div style={{ fontSize: 14, color: theme.accent, marginBottom: 8, letterSpacing: 2 }}>
           {fill(text.gradSlotTableTitleTemplate ?? '', { build: build === 'big' ? text.gradBuildBigLabel : text.gradBuildSmallLabel })}
         </div>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
           <tbody>
             {slots.map((s) => (
               <tr key={s.id}>
-                <td style={{ ...tdCell, color: theme.gold, whiteSpace: 'nowrap' }}>{s.label}</td>
+                <td style={{ ...tdCell, color: theme.accent, whiteSpace: 'nowrap' }}>{s.label}</td>
                 <td style={{ ...tdCell, fontSize: 12 }}>
                   {(slotAffixMap[s.id] || []).map((k) => affixNameMap[k] || k).join('、')}
                 </td>
@@ -569,7 +569,7 @@ function GradCalcMain({
                 type="number" step="0.1" min="0" value={rates[key as keyof Rates]}
                 onChange={(e) => setRates((p) => ({ ...p, [key]: e.target.value }))}
                 className="yy-input"
-                style={{ width: '100%', textAlign: 'center', color: theme.goldHi, boxSizing: 'border-box' }}
+                style={{ width: '100%', textAlign: 'center', color: theme.accentHi, boxSizing: 'border-box' }}
               />
             </div>
           ))}
@@ -580,7 +580,7 @@ function GradCalcMain({
           return (
             <div key={key} style={{
               display: 'flex', justifyContent: 'space-between', padding: '8px 0',
-              borderBottom: '1px solid rgba(201,163,92,.1)', fontSize: 13,
+              borderBottom: '1px solid rgba(67,160,134,.1)', fontSize: 13,
             }}>
               <span style={{ color: theme.paper }}>{label}</span>
               <span style={{ color: ok ? '#7fb069' : '#e58d7f', fontWeight: 700 }}>
@@ -618,7 +618,7 @@ function GradCalcMain({
               className="yy-input"
               style={{ flex: 1, boxSizing: 'border-box' }}
             />
-            <button onClick={saveBuild} className="yy-btn yy-btn-gold" style={{ padding: '10px 16px' }}>{text.gradConfirmLabel}</button>
+            <button onClick={saveBuild} className="yy-btn yy-btn-primary" style={{ padding: '10px 16px' }}>{text.gradConfirmLabel}</button>
             <button
               onClick={() => setNaming(false)} className="yy-btn yy-btn-ghost"
               style={{ padding: '10px 12px' }}
@@ -627,7 +627,7 @@ function GradCalcMain({
         ) : (
           <button
             onClick={() => { setNameInput(fill(text.gradSchemeNameTemplate ?? '', { n: builds.length + 1 })); setNaming(true); }}
-            className="yy-btn yy-btn-gold"
+            className="yy-btn yy-btn-primary"
             style={{ width: '100%', padding: 12, marginBottom: 12 }}
           >{text.gradSaveSchemeLabel}</button>
         )}
@@ -641,7 +641,7 @@ function GradCalcMain({
             key={i}
             style={{
               display: 'flex', alignItems: 'center', gap: 8, padding: 10, marginBottom: 8,
-              border: b.total === maxBuildTotal ? `1px solid ${theme.gold}` : '1px solid rgba(201,163,92,.2)',
+              border: b.total === maxBuildTotal ? `1px solid ${theme.accent}` : '1px solid rgba(67,160,134,.2)',
               borderRadius: 8,
             }}
           >
@@ -649,12 +649,12 @@ function GradCalcMain({
               {b.total === maxBuildTotal ? '👑 ' : ''}{b.name}
             </span>
             <span style={{ fontSize: 11, color: theme.muted }}>{b.date}</span>
-            <b style={{ color: theme.goldHi }}>{b.total}%</b>
+            <b style={{ color: theme.accentHi }}>{b.total}%</b>
             <button
               onClick={() => loadBuild(b)}
               style={{
-                background: 'none', border: '1px solid rgba(201,163,92,.4)', borderRadius: 6,
-                color: theme.gold, cursor: 'pointer', fontSize: 12, padding: '5px 10px',
+                background: 'none', border: '1px solid rgba(67,160,134,.4)', borderRadius: 6,
+                color: theme.accent, cursor: 'pointer', fontSize: 12, padding: '5px 10px',
               }}
             >{text.gradLoadLabel}</button>
             <button
@@ -675,7 +675,7 @@ function GradCalcMain({
           <div className="yy-sheet" style={{ maxWidth: 560, margin: '0 auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}>
               <div style={{
-                fontFamily: "'Ma Shan Zheng',serif", fontSize: 22, color: theme.goldHi,
+                fontFamily: "inherit", fontSize: 22, color: theme.accentHi,
                 letterSpacing: 4, flex: 1,
               }}>{slots[openSlot]?.label}</div>
               <button
@@ -687,7 +687,7 @@ function GradCalcMain({
                 }}
               >✕</button>
             </div>
-            <div style={{ textAlign: 'right', fontSize: 13, color: theme.gold, marginBottom: 12 }}>
+            <div style={{ textAlign: 'right', fontSize: 13, color: theme.accent, marginBottom: 12 }}>
               {scoreOf(slots[openSlot]?.id ?? '') > 0 ? fill(text.gradItemScoreTemplate ?? '', { score: scoreOf(slots[openSlot]?.id ?? '') }) : ''}
             </div>
             {(slotData[openSlot] ?? []).map((d, ri) => {
@@ -699,7 +699,7 @@ function GradCalcMain({
               // build from the other layout) must still be displayable
               const extraKey = d.key && affixNameMap[d.key] && !allowed.includes(d.key) ? d.key : null;
               return (
-                <div key={ri} style={{ padding: '10px 0', borderBottom: '1px solid rgba(201,163,92,.1)' }}>
+                <div key={ri} style={{ padding: '10px 0', borderBottom: '1px solid rgba(67,160,134,.1)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <span style={{
                       fontSize: 12, color: theme.seal, background: 'rgba(160,44,26,.15)',
@@ -730,7 +730,7 @@ function GradCalcMain({
                       placeholder={max !== undefined ? fill(text.gradValuePlaceholderMaxTemplate ?? '', { max }) : text.gradValuePlaceholder}
                       className="yy-input"
                       style={{
-                        width: 76, textAlign: 'center', color: theme.goldHi, fontWeight: 700,
+                        width: 76, textAlign: 'center', color: theme.accentHi, fontWeight: 700,
                         boxSizing: 'border-box',
                         borderColor: over ? theme.seal : undefined,
                       }}
@@ -742,7 +742,7 @@ function GradCalcMain({
                       <input
                         type="checkbox" checked={d.res}
                         onChange={(e) => setRow(openSlot, ri, { res: e.target.checked })}
-                        style={{ width: 20, height: 20, accentColor: theme.gold }}
+                        style={{ width: 20, height: 20, accentColor: theme.accent }}
                       />
                       {text.gradResonanceLabel}
                     </label>
@@ -781,7 +781,7 @@ function Section({
         }}
       >
         <span style={{ flex: 1, fontSize: 15, letterSpacing: 2 }}>{title}</span>
-        <span style={{ color: theme.gold, fontSize: 13 }}>{open ? '▼' : '▶'}</span>
+        <span style={{ color: theme.accent, fontSize: 13 }}>{open ? '▼' : '▶'}</span>
       </button>
       {open && <div style={{ padding: '14px 6px 4px' }}>{children}</div>}
     </div>
@@ -789,8 +789,8 @@ function Section({
 }
 
 const tdHead: React.CSSProperties = {
-  padding: 6, borderBottom: '1px solid rgba(201,163,92,.2)',
+  padding: 6, borderBottom: '1px solid rgba(67,160,134,.2)',
 };
 const tdCell: React.CSSProperties = {
-  padding: 6, borderBottom: '1px solid rgba(201,163,92,.1)', color: '#ece2cb',
+  padding: 6, borderBottom: '1px solid rgba(67,160,134,.1)', color: '#e9ebee',
 };

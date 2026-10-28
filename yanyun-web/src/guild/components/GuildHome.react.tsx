@@ -108,12 +108,12 @@ export default function GuildHome({ node, slug, carId, user, userBarText, intera
                 </Link>
               )}
               {interactive && node.homeAdminLabel && (
-                <Link to={`/${slug}/admin`} style={{ color: theme.gold, fontSize: 13, textDecoration: 'none', letterSpacing: '.1em' }}>
+                <Link to={`/${slug}/admin`} style={{ color: theme.accent, fontSize: 13, textDecoration: 'none', letterSpacing: '.1em' }}>
                   {node.homeAdminLabel}
                 </Link>
               )}
               {interactive && node.recruitEntryLabel && (
-                <Link to={hostGuildSlug() === slug ? '/recruit' : `/${slug}/recruit`} style={{ color: theme.gold, fontSize: 13, textDecoration: 'none', letterSpacing: '.1em' }}>
+                <Link to={hostGuildSlug() === slug ? '/recruit' : `/${slug}/recruit`} style={{ color: theme.accent, fontSize: 13, textDecoration: 'none', letterSpacing: '.1em' }}>
                   {node.recruitEntryLabel}
                 </Link>
               )}
@@ -127,12 +127,12 @@ export default function GuildHome({ node, slug, carId, user, userBarText, intera
                 alt=""
                 style={{
                   width: 64, height: 64, borderRadius: '50%', objectFit: 'cover', flexShrink: 0,
-                  border: '2px solid rgba(201,163,92,.55)', background: 'rgba(201,163,92,.08)',
+                  border: '2px solid rgba(67,160,134,.55)', background: 'rgba(67,160,134,.08)',
                 }}
               />
             )}
             <div style={{ minWidth: 0 }}>
-              <h1 style={{ fontFamily: 'var(--font-brush)', fontSize: 42, color: '#ecd28f', margin: '12px 0 4px', letterSpacing: '.08em' }}>
+              <h1 style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: 34, color: theme.paper, margin: '12px 0 4px', letterSpacing: '.02em' }}>
                 {node.name}
               </h1>
               <p style={{ color: theme.muted, fontSize: 13, letterSpacing: '.06em', margin: 0 }}>{node.gameVersion}</p>
@@ -141,7 +141,7 @@ export default function GuildHome({ node, slug, carId, user, userBarText, intera
           {banner && (
             <div style={{
               marginTop: 12, padding: '9px 14px', borderRadius: 8, fontSize: 13,
-              color: '#ecd28f', background: 'rgba(201,163,92,.08)', border: '1px solid rgba(201,163,92,.25)',
+              color: '#93d2be', background: 'rgba(67,160,134,.08)', border: '1px solid rgba(67,160,134,.25)',
             }}>{banner}</div>
           )}
         </header>
