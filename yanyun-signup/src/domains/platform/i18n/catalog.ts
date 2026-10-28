@@ -8359,5 +8359,106 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "fr": "Places",
       "zh-TW": "座位"
     }
+  },
+  "schedulingAdvice": {
+    "lockedTitle": {
+      "zh-CN": "智能调度建议"
+    },
+    "lockedBody": {
+      "zh-CN": "智能配队、替补推荐、名额轮换、最优档期与跨车调度建议属于执事档（T2）权益，升级后即可使用。"
+    },
+    "title": {
+      "zh-CN": "调度建议"
+    },
+    "hint": {
+      "zh-CN": "建议仅供参考，最终人选由车头点选决定，系统不会自动落座或递补。"
+    },
+    "draftTitle": {
+      "zh-CN": "智能配队草案"
+    },
+    "draftApplyLabel": {
+      "zh-CN": "套用草案"
+    },
+    "substitutesTitle": {
+      "zh-CN": "替补推荐"
+    },
+    "rotationTitle": {
+      "zh-CN": "名额轮换建议"
+    },
+    "rotationSaveLabel": {
+      "zh-CN": "保存本次轮换依据"
+    },
+    "rotationSavedText": {
+      "zh-CN": "轮换依据已留痕保存"
+    },
+    "bestSlotsTitle": {
+      "zh-CN": "最优档期推荐"
+    },
+    "bestSlotsEmptyText": {
+      "zh-CN": "还没有成员填写可用时间，暂无法推荐档期。"
+    },
+    "bestSlotCoverTemplate": {
+      "zh-CN": "{count} 人有空"
+    },
+    "bestSlotUseLabel": {
+      "zh-CN": "以此时段发车"
+    },
+    "crossTitle": {
+      "zh-CN": "跨车调度建议"
+    },
+    "conflictTemplate": {
+      "zh-CN": "{name} 同时出现在时段重叠的多辆车中"
+    },
+    "moveTemplate": {
+      "zh-CN": "可考虑邀请 {name} 补入本车"
+    },
+    "reasonRoleNeeded": {
+      "zh-CN": "补齐所缺职责：{role}"
+    },
+    "reasonRoleCovered": {
+      "zh-CN": "职责 {role} 已有覆盖"
+    },
+    "reasonRoleFlex": {
+      "zh-CN": "职责灵活，可补任意位置"
+    },
+    "reasonRoleMatch": {
+      "zh-CN": "职责与空缺一致：{role}"
+    },
+    "reasonRoleOther": {
+      "zh-CN": "职责为 {role}，与空缺不同"
+    },
+    "reasonRoleUnknown": {
+      "zh-CN": "暂无职责记录"
+    },
+    "reasonGearReady": {
+      "zh-CN": "装备库已有 {count} 件装备"
+    },
+    "reasonGearUnknown": {
+      "zh-CN": "装备库暂无记录"
+    },
+    "reasonReliable": {
+      "zh-CN": "历史就位率 {rate}%（参加 {count} 次）"
+    },
+    "reasonNoHistory": {
+      "zh-CN": "暂无历史参与记录，按中性评估"
+    },
+    "reasonAvailable": {
+      "zh-CN": "该时段在其可用时间内"
+    },
+    "reasonUnavailable": {
+      "zh-CN": "该时段不在其可用时间内"
+    },
+    "reasonAvailabilityUnknown": {
+      "zh-CN": "未填写可用时间"
+    },
+    "reasonLongestWaiting": {
+      "zh-CN": "距上次参与已 {days} 天"
+    },
+    "reasonFewRecent": {
+      "zh-CN": "近期参与 {count} 次"
+    },
+    "reasonNoConflict": {
+      "zh-CN": "同时段没有其他车冲突"
+    }
   }
 };

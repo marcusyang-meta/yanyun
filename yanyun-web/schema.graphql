@@ -300,6 +300,7 @@ type SetReadyAction implements Action {
 
 type GroupingListPage {
   groupings: [Grouping!]!
+  crossCarAdvice: SchedulingCrossCarAdviceResult
   groupingTemplates: [GroupingTemplate!]!
   currentVersion: String!
   blocks(blocksVersion: Int, weekOffset: Int): [Block!]!
@@ -535,6 +536,7 @@ type SharedGroupingSeat {
 
 type GroupingDetailPage {
   grouping: Grouping!
+  schedulingAdvice: GroupingSchedulingAdviceResult
   shareUrl: String!
   blocks(blocksVersion: Int): [Block!]!
   manageActions: GroupingManageActions
@@ -1352,6 +1354,7 @@ type GuildSchedulePage {
   myAvailability: [AvailabilitySlot!]!
   availabilitySummary: [MemberAvailabilitySummary!]
   polls: [TimePoll!]!
+  bestSlotsAdvice: SchedulingBestSlotsResult
   weekdayNames: [String!]!
   formCreateTitle: String!
   formEditTitle: String!
@@ -1617,6 +1620,7 @@ type Mutation {
   deleteGearBuild(id: Int!): GearOkPayload!
   shareGearBuild(id: Int!): GearBuildSharePayload!
   revokeGearBuildShare(id: Int!): GearOkPayload!
+  saveRotationAdvice(input: SaveRotationAdviceInput!): SchedulingAdvicePayload!
   platformAdminSetPaygate(enabled: Boolean!): PlatformAdminBillingPayload!
   platformAdminGrantPremium(slug: String!, days: Int!, tier: String): PlatformAdminBillingPayload!
   platformAdminRevokePremium(slug: String!): PlatformAdminBillingPayload!
@@ -3943,6 +3947,107 @@ type MyContributionEntry {
   actionLabel: String!
   points: Int!
   createdAtText: String!
+}
+
+union GroupingSchedulingAdviceResult = GroupingSchedulingAdvice | SchedulingAdviceLocked
+
+union SchedulingBestSlotsResult = SchedulingBestSlots | SchedulingAdviceLocked
+
+union SchedulingCrossCarAdviceResult = SchedulingCrossCarAdvice | SchedulingAdviceLocked
+
+type SchedulingAdviceLocked {
+  lockedTitle: String!
+  lockedBody: String!
+}
+
+type SchedulingAdviceEntry {
+  discordId: String!
+  displayName: String!
+  role: String!
+  weapon: String!
+  score: Int!
+  reasonKeys: [String!]!
+  reasons: [String!]!
+}
+
+type SchedulingDraftSeat {
+  seatIndex: Int!
+  discordId: String!
+  displayName: String!
+  role: String!
+  weapon: String!
+  score: Int!
+  reasonKeys: [String!]!
+  reasons: [String!]!
+}
+
+type RotationAdviceRecord {
+  id: ID!
+  createdBy: String!
+  createdAtText: String!
+  entriesJson: String!
+}
+
+type GroupingSchedulingAdvice {
+  title: String!
+  hint: String!
+  draftTitle: String!
+  draftApplyLabel: String!
+  substitutesTitle: String!
+  rotationTitle: String!
+  rotationSaveLabel: String!
+  rotationSavedText: String!
+  draft: [SchedulingDraftSeat!]!
+  substitutes: [SchedulingAdviceEntry!]!
+  rotation: [SchedulingAdviceEntry!]!
+  rotationRecords: [RotationAdviceRecord!]!
+}
+
+type SchedulingBestSlot {
+  weekday: Int!
+  startMinute: Int!
+  endMinute: Int!
+  coverCount: Int!
+  memberNames: [String!]!
+  coverText: String!
+}
+
+type SchedulingBestSlots {
+  title: String!
+  emptyText: String!
+  useLabel: String!
+  slots: [SchedulingBestSlot!]!
+}
+
+type SchedulingCrossCarConflict {
+  discordId: String!
+  displayName: String!
+  carIds: [ID!]!
+  text: String!
+}
+
+type SchedulingCrossCarMove {
+  carId: ID!
+  carTitle: String!
+  entry: SchedulingAdviceEntry!
+  text: String!
+}
+
+type SchedulingCrossCarAdvice {
+  title: String!
+  conflicts: [SchedulingCrossCarConflict!]!
+  moves: [SchedulingCrossCarMove!]!
+}
+
+input SaveRotationAdviceInput {
+  groupingId: ID!
+}
+
+type SchedulingAdvicePayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  savedText: String
 }
 
 union PlatformAdminResult = PlatformAdmin | PlatformAdminLocked

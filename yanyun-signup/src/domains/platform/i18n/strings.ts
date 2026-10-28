@@ -4741,6 +4741,107 @@ export abstract class CarshareFbtUtils {
 		return fbs._("座位", null, { hk: "flkBq" });
 	}
 }
+export abstract class SchedulingAdviceFbtUtils {
+	static lockedTitle(fbs: FbsRuntime) {
+		return fbs._("智能调度建议", null, { hk: "19hHvf" });
+	}
+	static lockedBody(fbs: FbsRuntime) {
+		return fbs._("智能配队、替补推荐、名额轮换、最优档期与跨车调度建议属于执事档（T2）权益，升级后即可使用。", null, { hk: "r7x1a" });
+	}
+	static title(fbs: FbsRuntime) {
+		return fbs._("调度建议", null, { hk: "3sL0o1" });
+	}
+	static hint(fbs: FbsRuntime) {
+		return fbs._("建议仅供参考，最终人选由车头点选决定，系统不会自动落座或递补。", null, { hk: "1eXIY8" });
+	}
+	static draftTitle(fbs: FbsRuntime) {
+		return fbs._("智能配队草案", null, { hk: "446OKW" });
+	}
+	static draftApplyLabel(fbs: FbsRuntime) {
+		return fbs._("套用草案", null, { hk: "3ujuDt" });
+	}
+	static substitutesTitle(fbs: FbsRuntime) {
+		return fbs._("替补推荐", null, { hk: "2Z6Zqm" });
+	}
+	static rotationTitle(fbs: FbsRuntime) {
+		return fbs._("名额轮换建议", null, { hk: "1fxfoD" });
+	}
+	static rotationSaveLabel(fbs: FbsRuntime) {
+		return fbs._("保存本次轮换依据", null, { hk: "1t3zQo" });
+	}
+	static rotationSavedText(fbs: FbsRuntime) {
+		return fbs._("轮换依据已留痕保存", null, { hk: "46K2Mv" });
+	}
+	static bestSlotsTitle(fbs: FbsRuntime) {
+		return fbs._("最优档期推荐", null, { hk: "3HZZH0" });
+	}
+	static bestSlotsEmptyText(fbs: FbsRuntime) {
+		return fbs._("还没有成员填写可用时间，暂无法推荐档期。", null, { hk: "nGaox" });
+	}
+	static bestSlotCoverTemplate(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("{count} 人有空", [fbs._param("count", pv(p, "count"))], { hk: "1WeV6" });
+	}
+	static bestSlotUseLabel(fbs: FbsRuntime) {
+		return fbs._("以此时段发车", null, { hk: "3xEpPL" });
+	}
+	static crossTitle(fbs: FbsRuntime) {
+		return fbs._("跨车调度建议", null, { hk: "rUpPE" });
+	}
+	static conflictTemplate(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("{name} 同时出现在时段重叠的多辆车中", [fbs._param("name", pv(p, "name"))], { hk: "2izoLi" });
+	}
+	static moveTemplate(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("可考虑邀请 {name} 补入本车", [fbs._param("name", pv(p, "name"))], { hk: "2woXyi" });
+	}
+	static reasonRoleNeeded(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("补齐所缺职责：{role}", [fbs._param("role", pv(p, "role"))], { hk: "3MdDwg" });
+	}
+	static reasonRoleCovered(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("职责 {role} 已有覆盖", [fbs._param("role", pv(p, "role"))], { hk: "336qoy" });
+	}
+	static reasonRoleFlex(fbs: FbsRuntime) {
+		return fbs._("职责灵活，可补任意位置", null, { hk: "VwhVH" });
+	}
+	static reasonRoleMatch(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("职责与空缺一致：{role}", [fbs._param("role", pv(p, "role"))], { hk: "2Mil9E" });
+	}
+	static reasonRoleOther(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("职责为 {role}，与空缺不同", [fbs._param("role", pv(p, "role"))], { hk: "3A4UEb" });
+	}
+	static reasonRoleUnknown(fbs: FbsRuntime) {
+		return fbs._("暂无职责记录", null, { hk: "4xpCSQ" });
+	}
+	static reasonGearReady(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("装备库已有 {count} 件装备", [fbs._param("count", pv(p, "count"))], { hk: "TiVZs" });
+	}
+	static reasonGearUnknown(fbs: FbsRuntime) {
+		return fbs._("装备库暂无记录", null, { hk: "oE7pj" });
+	}
+	static reasonReliable(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("历史就位率 {rate}%（参加 {count} 次）", [fbs._param("rate", pv(p, "rate")), fbs._param("count", pv(p, "count"))], { hk: "2ogJTY" });
+	}
+	static reasonNoHistory(fbs: FbsRuntime) {
+		return fbs._("暂无历史参与记录，按中性评估", null, { hk: "4qkPDf" });
+	}
+	static reasonAvailable(fbs: FbsRuntime) {
+		return fbs._("该时段在其可用时间内", null, { hk: "2e6aHT" });
+	}
+	static reasonUnavailable(fbs: FbsRuntime) {
+		return fbs._("该时段不在其可用时间内", null, { hk: "3EotBB" });
+	}
+	static reasonAvailabilityUnknown(fbs: FbsRuntime) {
+		return fbs._("未填写可用时间", null, { hk: "3B8zj3" });
+	}
+	static reasonLongestWaiting(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("距上次参与已 {days} 天", [fbs._param("days", pv(p, "days"))], { hk: "3S4R1H" });
+	}
+	static reasonFewRecent(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("近期参与 {count} 次", [fbs._param("count", pv(p, "count"))], { hk: "1sycAb" });
+	}
+	static reasonNoConflict(fbs: FbsRuntime) {
+		return fbs._("同时段没有其他车冲突", null, { hk: "1ZXNcV" });
+	}
+}
 export const STRING_FNS: Record<string, StringFn> = {
 	"common_cancel": CommonFbtUtils.cancel,
 	"common_confirm": CommonFbtUtils.confirm,
@@ -6269,5 +6370,38 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"carshare_notFoundBody": CarshareFbtUtils.notFoundBody,
 	"carshare_readonlyHint": CarshareFbtUtils.readonlyHint,
 	"carshare_statusClosed": CarshareFbtUtils.statusClosed,
-	"carshare_seatsTitle": CarshareFbtUtils.seatsTitle
+	"carshare_seatsTitle": CarshareFbtUtils.seatsTitle,
+	"schedulingAdvice_lockedTitle": SchedulingAdviceFbtUtils.lockedTitle,
+	"schedulingAdvice_lockedBody": SchedulingAdviceFbtUtils.lockedBody,
+	"schedulingAdvice_title": SchedulingAdviceFbtUtils.title,
+	"schedulingAdvice_hint": SchedulingAdviceFbtUtils.hint,
+	"schedulingAdvice_draftTitle": SchedulingAdviceFbtUtils.draftTitle,
+	"schedulingAdvice_draftApplyLabel": SchedulingAdviceFbtUtils.draftApplyLabel,
+	"schedulingAdvice_substitutesTitle": SchedulingAdviceFbtUtils.substitutesTitle,
+	"schedulingAdvice_rotationTitle": SchedulingAdviceFbtUtils.rotationTitle,
+	"schedulingAdvice_rotationSaveLabel": SchedulingAdviceFbtUtils.rotationSaveLabel,
+	"schedulingAdvice_rotationSavedText": SchedulingAdviceFbtUtils.rotationSavedText,
+	"schedulingAdvice_bestSlotsTitle": SchedulingAdviceFbtUtils.bestSlotsTitle,
+	"schedulingAdvice_bestSlotsEmptyText": SchedulingAdviceFbtUtils.bestSlotsEmptyText,
+	"schedulingAdvice_bestSlotCoverTemplate": SchedulingAdviceFbtUtils.bestSlotCoverTemplate,
+	"schedulingAdvice_bestSlotUseLabel": SchedulingAdviceFbtUtils.bestSlotUseLabel,
+	"schedulingAdvice_crossTitle": SchedulingAdviceFbtUtils.crossTitle,
+	"schedulingAdvice_conflictTemplate": SchedulingAdviceFbtUtils.conflictTemplate,
+	"schedulingAdvice_moveTemplate": SchedulingAdviceFbtUtils.moveTemplate,
+	"schedulingAdvice_reasonRoleNeeded": SchedulingAdviceFbtUtils.reasonRoleNeeded,
+	"schedulingAdvice_reasonRoleCovered": SchedulingAdviceFbtUtils.reasonRoleCovered,
+	"schedulingAdvice_reasonRoleFlex": SchedulingAdviceFbtUtils.reasonRoleFlex,
+	"schedulingAdvice_reasonRoleMatch": SchedulingAdviceFbtUtils.reasonRoleMatch,
+	"schedulingAdvice_reasonRoleOther": SchedulingAdviceFbtUtils.reasonRoleOther,
+	"schedulingAdvice_reasonRoleUnknown": SchedulingAdviceFbtUtils.reasonRoleUnknown,
+	"schedulingAdvice_reasonGearReady": SchedulingAdviceFbtUtils.reasonGearReady,
+	"schedulingAdvice_reasonGearUnknown": SchedulingAdviceFbtUtils.reasonGearUnknown,
+	"schedulingAdvice_reasonReliable": SchedulingAdviceFbtUtils.reasonReliable,
+	"schedulingAdvice_reasonNoHistory": SchedulingAdviceFbtUtils.reasonNoHistory,
+	"schedulingAdvice_reasonAvailable": SchedulingAdviceFbtUtils.reasonAvailable,
+	"schedulingAdvice_reasonUnavailable": SchedulingAdviceFbtUtils.reasonUnavailable,
+	"schedulingAdvice_reasonAvailabilityUnknown": SchedulingAdviceFbtUtils.reasonAvailabilityUnknown,
+	"schedulingAdvice_reasonLongestWaiting": SchedulingAdviceFbtUtils.reasonLongestWaiting,
+	"schedulingAdvice_reasonFewRecent": SchedulingAdviceFbtUtils.reasonFewRecent,
+	"schedulingAdvice_reasonNoConflict": SchedulingAdviceFbtUtils.reasonNoConflict
 };
