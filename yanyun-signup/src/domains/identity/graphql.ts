@@ -306,7 +306,7 @@ export class SettingsPageShell extends ShellBase {
     });
   }
   genAvailabilityWeekdayNames(){
-    return [0, 1, 2, 3, 4, 5, 6].map((i) => this.t('groupingList', 'weekday' + i));
+    return [0, 1, 2, 3, 4, 5, 6].map((i) => this.t('groupingList_weekday' + i));
   }
   async genFreshAuthAt(){
     const row = await loadMyAccountRow(this.ctx);
