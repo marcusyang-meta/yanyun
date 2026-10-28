@@ -387,6 +387,8 @@ export const guildAlliances = sqliteTable('guild_alliances', {
     .where(sql`status IN ('pending', 'active')`),
   index('idx_guild_alliances_low').on(t.guildLow, t.status, t.id),
   index('idx_guild_alliances_high').on(t.guildHigh, t.status, t.id),
+]);
+
 /* ---------------- guild custom domains [migration 0033] ----------
  * One row per guild that bound its own domain (P23, white-label
  * tier B): hostname is globally unique, status is the binding

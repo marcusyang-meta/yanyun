@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<05fa5d17b3f550949b1cbc430d1fc1ec>>
+ * @generated SignedSource<<2c3241fc22a6e24124944e9638f2ce3e>>
  * @lightSyntaxTransform
  */
 
@@ -8,6 +8,7 @@
 // @ts-nocheck
 
 import { ReaderFragment } from 'relay-runtime';
+export type CustomDomainStatus = "ACTIVE" | "DISABLED" | "NONE" | "PENDING" | "%future added value";
 export type GroupingType = "ACTIVITY" | "RACE" | "TALENT" | "TOWER" | "%future added value";
 export type LotterySource = "GROUPING" | "MEMBERS" | "%future added value";
 export type LotteryStatus = "DRAWN" | "OPEN" | "%future added value";
@@ -28,6 +29,19 @@ export type GuildAdminPage_guildAdmin$data = {
   readonly adminBgImageUrlLabel: string;
   readonly adminBillingCanceledText: string;
   readonly adminBillingSuccessText: string;
+  readonly adminCustomDomainBindLabel: string;
+  readonly adminCustomDomainCnameLabel: string;
+  readonly adminCustomDomainDnsTitle: string;
+  readonly adminCustomDomainHint: string;
+  readonly adminCustomDomainHostnameLabel: string;
+  readonly adminCustomDomainHostnamePlaceholder: string;
+  readonly adminCustomDomainRebindLabel: string;
+  readonly adminCustomDomainRecordNameLabel: string;
+  readonly adminCustomDomainRecordValueLabel: string;
+  readonly adminCustomDomainRemoveLabel: string;
+  readonly adminCustomDomainTitle: string;
+  readonly adminCustomDomainTxtLabel: string;
+  readonly adminCustomDomainVerifyLabel: string;
   readonly adminDeleteLabel: string;
   readonly adminDevOnlyLabel: string;
   readonly adminDiscordTitle: string;
@@ -163,6 +177,26 @@ export type GuildAdminPage_guildAdmin$data = {
   readonly announcement: string;
   readonly avatarUrl: string | null | undefined;
   readonly bgImageUrl: string;
+  readonly customDomain: {
+    readonly __typename: "GuildAdminCustomDomain";
+    readonly boundAtText: string | null | undefined;
+    readonly dnsCnameName: string | null | undefined;
+    readonly dnsCnameValue: string | null | undefined;
+    readonly dnsTxtName: string | null | undefined;
+    readonly dnsTxtValue: string | null | undefined;
+    readonly guidanceText: string | null | undefined;
+    readonly hostname: string | null | undefined;
+    readonly status: CustomDomainStatus;
+    readonly statusText: string;
+  } | {
+    readonly __typename: "GuildAdminCustomDomainLocked";
+    readonly premiumBody: string;
+    readonly premiumTitle: string;
+  } | {
+    // This will never be '%other', but we need some
+    // value in case none of the concrete values match.
+    readonly __typename: "%other";
+  };
   readonly devOnly: boolean;
   readonly discordGuildId: string;
   readonly events: ReadonlyArray<{
@@ -545,117 +579,121 @@ v5 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "title",
+  "name": "status",
   "storageKey": null
 },
-v6 = {
-  "alias": null,
-  "args": null,
-  "kind": "ScalarField",
-  "name": "hint",
-  "storageKey": null
-},
+v6 = [
+  (v3/*:: as any*/),
+  (v4/*:: as any*/)
+],
 v7 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "id",
+  "name": "title",
   "storageKey": null
 },
 v8 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "startsAtText",
+  "name": "hint",
   "storageKey": null
 },
 v9 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "signupCount",
+  "name": "id",
   "storageKey": null
 },
 v10 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "maxSlots",
+  "name": "startsAtText",
   "storageKey": null
 },
 v11 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "discordId",
+  "name": "signupCount",
   "storageKey": null
 },
 v12 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "displayName",
+  "name": "maxSlots",
   "storageKey": null
 },
 v13 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "lastText",
+  "name": "discordId",
   "storageKey": null
 },
 v14 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "seasonLabel",
+  "name": "displayName",
   "storageKey": null
 },
 v15 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "createdAtText",
+  "name": "lastText",
   "storageKey": null
 },
 v16 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "updatedAtText",
+  "name": "seasonLabel",
   "storageKey": null
 },
 v17 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "note",
+  "name": "createdAtText",
   "storageKey": null
 },
 v18 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "status",
+  "name": "updatedAtText",
   "storageKey": null
 },
 v19 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "statusLabel",
+  "name": "note",
   "storageKey": null
 },
 v20 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
+  "name": "statusLabel",
+  "storageKey": null
+},
+v21 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
   "name": "source",
   "storageKey": null
 },
-v21 = [
-  (v11/*:: as any*/),
-  (v12/*:: as any*/),
+v22 = [
+  (v13/*:: as any*/),
+  (v14/*:: as any*/),
   {
     "alias": null,
     "args": null,
@@ -664,21 +702,21 @@ v21 = [
     "storageKey": null
   }
 ],
-v22 = {
+v23 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "createdAt",
   "storageKey": null
 },
-v23 = {
+v24 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "teamName",
   "storageKey": null
 },
-v24 = {
+v25 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
@@ -950,6 +988,88 @@ return {
     {
       "alias": null,
       "args": null,
+      "concreteType": null,
+      "kind": "LinkedField",
+      "name": "customDomain",
+      "plural": false,
+      "selections": [
+        (v2/*:: as any*/),
+        {
+          "kind": "InlineFragment",
+          "selections": [
+            (v5/*:: as any*/),
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "hostname",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "statusText",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "guidanceText",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "dnsCnameName",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "dnsCnameValue",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "dnsTxtName",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "dnsTxtValue",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "boundAtText",
+              "storageKey": null
+            }
+          ],
+          "type": "GuildAdminCustomDomain",
+          "abstractKey": null
+        },
+        {
+          "kind": "InlineFragment",
+          "selections": (v6/*:: as any*/),
+          "type": "GuildAdminCustomDomainLocked",
+          "abstractKey": null
+        }
+      ],
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
       "kind": "ScalarField",
       "name": "adminTitle",
       "storageKey": null
@@ -1035,18 +1155,15 @@ return {
         (v2/*:: as any*/),
         {
           "kind": "InlineFragment",
-          "selections": [
-            (v3/*:: as any*/),
-            (v4/*:: as any*/)
-          ],
+          "selections": (v6/*:: as any*/),
           "type": "GuildAdminOpsLocked",
           "abstractKey": null
         },
         {
           "kind": "InlineFragment",
           "selections": [
-            (v5/*:: as any*/),
-            (v6/*:: as any*/),
+            (v7/*:: as any*/),
+            (v8/*:: as any*/),
             {
               "alias": null,
               "args": null,
@@ -1139,11 +1256,11 @@ return {
               "name": "nudgeEvents",
               "plural": true,
               "selections": [
-                (v7/*:: as any*/),
-                (v5/*:: as any*/),
-                (v8/*:: as any*/),
                 (v9/*:: as any*/),
-                (v10/*:: as any*/)
+                (v7/*:: as any*/),
+                (v10/*:: as any*/),
+                (v11/*:: as any*/),
+                (v12/*:: as any*/)
               ],
               "storageKey": null
             },
@@ -1176,8 +1293,8 @@ return {
               "name": "churnRisks",
               "plural": true,
               "selections": [
-                (v11/*:: as any*/),
-                (v12/*:: as any*/),
+                (v13/*:: as any*/),
+                (v14/*:: as any*/),
                 {
                   "alias": null,
                   "args": null,
@@ -1185,7 +1302,7 @@ return {
                   "name": "evidenceText",
                   "storageKey": null
                 },
-                (v13/*:: as any*/)
+                (v15/*:: as any*/)
               ],
               "storageKey": null
             },
@@ -1218,7 +1335,7 @@ return {
               "name": "rollover",
               "plural": false,
               "selections": [
-                (v14/*:: as any*/),
+                (v16/*:: as any*/),
                 {
                   "alias": null,
                   "args": null,
@@ -1254,7 +1371,7 @@ return {
                   "name": "thresholdNoteText",
                   "storageKey": null
                 },
-                (v13/*:: as any*/),
+                (v15/*:: as any*/),
                 {
                   "alias": null,
                   "args": null,
@@ -1354,8 +1471,8 @@ return {
               "name": "contributionBoard",
               "plural": true,
               "selections": [
-                (v11/*:: as any*/),
-                (v12/*:: as any*/),
+                (v13/*:: as any*/),
+                (v14/*:: as any*/),
                 {
                   "alias": null,
                   "args": null,
@@ -1508,8 +1625,8 @@ return {
           "name": "members",
           "plural": true,
           "selections": [
-            (v11/*:: as any*/),
-            (v12/*:: as any*/),
+            (v13/*:: as any*/),
+            (v14/*:: as any*/),
             {
               "alias": null,
               "args": null,
@@ -1518,7 +1635,7 @@ return {
               "name": "notes",
               "plural": true,
               "selections": [
-                (v7/*:: as any*/),
+                (v9/*:: as any*/),
                 {
                   "alias": null,
                   "args": null,
@@ -1533,8 +1650,8 @@ return {
                   "name": "authorText",
                   "storageKey": null
                 },
-                (v15/*:: as any*/),
-                (v16/*:: as any*/)
+                (v17/*:: as any*/),
+                (v18/*:: as any*/)
               ],
               "storageKey": null
             },
@@ -1546,11 +1663,11 @@ return {
               "name": "goals",
               "plural": true,
               "selections": [
+                (v9/*:: as any*/),
                 (v7/*:: as any*/),
-                (v5/*:: as any*/),
-                (v17/*:: as any*/),
-                (v18/*:: as any*/),
                 (v19/*:: as any*/),
+                (v5/*:: as any*/),
+                (v20/*:: as any*/),
                 {
                   "alias": null,
                   "args": null,
@@ -1565,7 +1682,7 @@ return {
                   "name": "seasonName",
                   "storageKey": null
                 },
-                (v16/*:: as any*/)
+                (v18/*:: as any*/)
               ],
               "storageKey": null
             }
@@ -1709,8 +1826,8 @@ return {
       "name": "lotteries",
       "plural": true,
       "selections": [
+        (v9/*:: as any*/),
         (v7/*:: as any*/),
-        (v5/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -1718,7 +1835,7 @@ return {
           "name": "prize",
           "storageKey": null
         },
-        (v20/*:: as any*/),
+        (v21/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -1740,7 +1857,7 @@ return {
           "name": "winnerCount",
           "storageKey": null
         },
-        (v18/*:: as any*/),
+        (v5/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -1748,7 +1865,7 @@ return {
           "name": "entryCountText",
           "storageKey": null
         },
-        (v15/*:: as any*/),
+        (v17/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -1763,7 +1880,7 @@ return {
           "kind": "LinkedField",
           "name": "entries",
           "plural": true,
-          "selections": (v21/*:: as any*/),
+          "selections": (v22/*:: as any*/),
           "storageKey": null
         },
         {
@@ -1773,7 +1890,7 @@ return {
           "kind": "LinkedField",
           "name": "winners",
           "plural": true,
-          "selections": (v21/*:: as any*/),
+          "selections": (v22/*:: as any*/),
           "storageKey": null
         }
       ],
@@ -1787,8 +1904,8 @@ return {
       "name": "lotteryRoster",
       "plural": true,
       "selections": [
-        (v11/*:: as any*/),
-        (v12/*:: as any*/)
+        (v13/*:: as any*/),
+        (v14/*:: as any*/)
       ],
       "storageKey": null
     },
@@ -1954,7 +2071,7 @@ return {
       "name": "recruitApplications",
       "plural": true,
       "selections": [
-        (v7/*:: as any*/),
+        (v9/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -1976,9 +2093,9 @@ return {
           "name": "message",
           "storageKey": null
         },
-        (v18/*:: as any*/),
-        (v19/*:: as any*/),
-        (v15/*:: as any*/),
+        (v5/*:: as any*/),
+        (v20/*:: as any*/),
+        (v17/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -2004,7 +2121,7 @@ return {
       "name": "recruitPairings",
       "plural": true,
       "selections": [
-        (v7/*:: as any*/),
+        (v9/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -2033,9 +2150,9 @@ return {
           "name": "menteeName",
           "storageKey": null
         },
-        (v18/*:: as any*/),
-        (v19/*:: as any*/),
-        (v15/*:: as any*/),
+        (v5/*:: as any*/),
+        (v20/*:: as any*/),
+        (v17/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -2054,8 +2171,8 @@ return {
       "name": "recruitRoster",
       "plural": true,
       "selections": [
-        (v11/*:: as any*/),
-        (v12/*:: as any*/),
+        (v13/*:: as any*/),
+        (v14/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -2074,8 +2191,8 @@ return {
       "name": "newcomerProgress",
       "plural": true,
       "selections": [
-        (v11/*:: as any*/),
-        (v12/*:: as any*/),
+        (v13/*:: as any*/),
+        (v14/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -2136,9 +2253,9 @@ return {
           "name": "versionLabel",
           "storageKey": null
         },
-        (v14/*:: as any*/),
-        (v5/*:: as any*/),
-        (v6/*:: as any*/),
+        (v16/*:: as any*/),
+        (v7/*:: as any*/),
+        (v8/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -2169,7 +2286,7 @@ return {
           "plural": true,
           "selections": [
             (v1/*:: as any*/),
-            (v5/*:: as any*/),
+            (v7/*:: as any*/),
             {
               "alias": null,
               "args": null,
@@ -2283,9 +2400,9 @@ return {
           "name": "entries",
           "plural": true,
           "selections": [
-            (v7/*:: as any*/),
-            (v12/*:: as any*/),
-            (v20/*:: as any*/),
+            (v9/*:: as any*/),
+            (v14/*:: as any*/),
+            (v21/*:: as any*/),
             {
               "alias": null,
               "args": null,
@@ -2293,7 +2410,7 @@ return {
               "name": "matchedName",
               "storageKey": null
             },
-            (v22/*:: as any*/)
+            (v23/*:: as any*/)
           ],
           "storageKey": null
         }
@@ -2934,6 +3051,97 @@ return {
       "alias": null,
       "args": null,
       "kind": "ScalarField",
+      "name": "adminCustomDomainTitle",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminCustomDomainHint",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminCustomDomainHostnameLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminCustomDomainHostnamePlaceholder",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminCustomDomainBindLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminCustomDomainRebindLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminCustomDomainVerifyLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminCustomDomainRemoveLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminCustomDomainDnsTitle",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminCustomDomainCnameLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminCustomDomainTxtLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminCustomDomainRecordNameLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminCustomDomainRecordValueLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
       "name": "adminBillingSuccessText",
       "storageKey": null
     },
@@ -2959,8 +3167,8 @@ return {
       "name": "events",
       "plural": true,
       "selections": [
+        (v9/*:: as any*/),
         (v7/*:: as any*/),
-        (v5/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -2968,7 +3176,7 @@ return {
           "name": "type",
           "storageKey": null
         },
-        (v18/*:: as any*/),
+        (v5/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -2983,7 +3191,7 @@ return {
           "name": "startsAtUtc",
           "storageKey": null
         },
-        (v8/*:: as any*/),
+        (v10/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -2991,7 +3199,7 @@ return {
           "name": "dungeon",
           "storageKey": null
         },
-        (v10/*:: as any*/),
+        (v12/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -3006,7 +3214,7 @@ return {
           "name": "description",
           "storageKey": null
         },
-        (v9/*:: as any*/),
+        (v11/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -3015,7 +3223,7 @@ return {
           "name": "signups",
           "plural": true,
           "selections": [
-            (v7/*:: as any*/),
+            (v9/*:: as any*/),
             {
               "alias": null,
               "args": null,
@@ -3051,10 +3259,10 @@ return {
               "name": "contact",
               "storageKey": null
             },
-            (v23/*:: as any*/),
             (v24/*:: as any*/),
-            (v17/*:: as any*/),
-            (v22/*:: as any*/)
+            (v25/*:: as any*/),
+            (v19/*:: as any*/),
+            (v23/*:: as any*/)
           ],
           "storageKey": null
         },
@@ -3066,9 +3274,9 @@ return {
           "name": "results",
           "plural": true,
           "selections": [
-            (v7/*:: as any*/),
-            (v23/*:: as any*/),
+            (v9/*:: as any*/),
             (v24/*:: as any*/),
+            (v25/*:: as any*/),
             {
               "alias": null,
               "args": null,
@@ -3090,7 +3298,7 @@ return {
               "name": "proofUrl",
               "storageKey": null
             },
-            (v17/*:: as any*/)
+            (v19/*:: as any*/)
           ],
           "storageKey": null
         },
@@ -3308,8 +3516,8 @@ return {
               "name": "memberLeaders",
               "plural": true,
               "selections": [
-                (v11/*:: as any*/),
-                (v12/*:: as any*/),
+                (v13/*:: as any*/),
+                (v14/*:: as any*/),
                 {
                   "alias": null,
                   "args": null,
@@ -3328,8 +3536,8 @@ return {
               "name": "leaderLeaders",
               "plural": true,
               "selections": [
-                (v11/*:: as any*/),
-                (v12/*:: as any*/),
+                (v13/*:: as any*/),
+                (v14/*:: as any*/),
                 {
                   "alias": null,
                   "args": null,
@@ -3353,6 +3561,6 @@ return {
 };
 })();
 
-(node as any).hash = "72d819faedb75d0a9faf5e97dc5033c0";
+(node as any).hash = "5b642df969c1d70a8a680aff287132de";
 
 export default node;
