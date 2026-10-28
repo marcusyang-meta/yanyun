@@ -59,6 +59,7 @@ export type PlatformStringKey =
   | 'errors_guildUnboundWrite'
   | 'errors_memberOnly'
   | 'errors_memberOnlyView'
+  | 'errors_recruitClosed'
   | 'errors_titleRequired'
   | 'errors_badStartTime'
   | 'errors_startTimeTooFar'
@@ -236,6 +237,7 @@ export const PLATFORM_STRING_KEYS: readonly PlatformStringKey[] = [
   'errors_guildUnboundWrite',
   'errors_memberOnly',
   'errors_memberOnlyView',
+  'errors_recruitClosed',
   'errors_titleRequired',
   'errors_badStartTime',
   'errors_startTimeTooFar',

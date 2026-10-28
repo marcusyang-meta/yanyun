@@ -250,6 +250,8 @@ export type GuildsStringKey =
   | 'recruit_adminMenteeSelectLabel'
   | 'recruit_adminNewcomersTitle'
   | 'recruit_adminNewcomersEmpty'
+  | 'recruit_adminRecruitOpenLabel'
+  | 'recruit_adminRecruitOpenHint'
   | 'officer_notesTitle'
   | 'officer_notesHint'
   | 'officer_notesEmpty'
@@ -537,6 +539,8 @@ export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'recruit_adminMenteeSelectLabel',
   'recruit_adminNewcomersTitle',
   'recruit_adminNewcomersEmpty',
+  'recruit_adminRecruitOpenLabel',
+  'recruit_adminRecruitOpenHint',
   'officer_notesTitle',
   'officer_notesHint',
   'officer_notesEmpty',

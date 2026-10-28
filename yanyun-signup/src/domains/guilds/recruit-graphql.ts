@@ -6,14 +6,18 @@
  * Permission shape (the platform rule): the composition is the
  * verdict. The line's carrying page is the platform home
  * (Viewer.homeRecruit, ruling 2026-10-27 — the standalone recruit
- * page is dissolved): the section's guild directory is public
- * (bound guilds, public-caliber fields), an application section
+ * page is dissolved): the section's guild directory is public and
+ * lists only bound guilds whose recruitment switch is open
+ * (tenants.recruit_open, ruling 2026-10-27 — closed by default,
+ * owned by the guild admin surface), an application section
  * exists only for a logged-in non-member of that guild, and a
  * newcomer entry exists only for members (checklist) or paired
- * viewers (pairings). Anonymous viewers get the directory alone —
- * no application sections, no newcomer entries, nothing personal.
- * Copy is backend-issued throughout (recruit section of the
- * catalog).
+ * viewers (pairings) — newcomer entries do NOT consult the switch:
+ * a member's own checklist and pairings stay on the home page
+ * whether their guild is recruiting or not. Anonymous viewers get
+ * the directory alone — no application sections, no newcomer
+ * entries, nothing personal. Copy is backend-issued throughout
+ * (recruit section of the catalog).
  *
  * F16's Discord boundary, once more in the surface's own terms:
  * approval (an admin mutation in admin-graphql.ts) settles the
@@ -223,7 +227,13 @@ export class HomeRecruitSectionShell extends ShellBase {
           const a = await getGuildAccess(db, this.ctx.user, t.slug, this.ctx.request).catch(() => null);
           isMember = !!(a && a.exists && a.isMember);
         }
-        guilds.push(new HomeRecruitGuildShell(this.ctx, { tenant: t, isMember }));
+        // The directory lists open guilds only; the newcomer
+        // assembly below runs for every bound guild regardless —
+        // the switch gates discovery and applying, never a member's
+        // view of their own guild.
+        if (Number(t.recruit_open || 0) === 1) {
+          guilds.push(new HomeRecruitGuildShell(this.ctx, { tenant: t, isMember }));
+        }
         if (this.ctx.user) {
           // A newcomer entry exists for members, and for anyone the
           // guild has paired (F17 serves the paired, member or not).
@@ -292,6 +302,7 @@ export const recruitMutations = {
     if (!a.exists) return rFail(ctx, 'guildNotFound');
     if (!a.bound) return rFail(ctx, 'recruitUnavailable');
     if (a.isMember) return rFail(ctx, 'alreadyMember');
+    if (Number(a.tenant?.recruit_open || 0) !== 1) return rFail(ctx, 'recruitClosed');
     const pending = await getPendingApplication(db, a.tenant.slug, user.discordId).catch(() => null);
     if (pending) return rFail(ctx, 'applicationPending');
     const name = await applicantDisplayName(db, user);

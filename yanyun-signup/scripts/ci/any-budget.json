@@ -140,8 +140,8 @@
     "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary + sendAnnouncementPush's expoBase handle in the same shape as sendDeparturePush"
   },
   "src/domains/guilds/admin-graphql.ts": {
-    "max": 143,
-    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context) + reminder settings surface (advanced reminders, 2026-10-26): updateGuildReminderSettings mutation and GuildAdmin resolvers in the same parent/args pattern + white-label surface (2026-10-26): updateGuildWhiteLabel mutation and white-label / accent-option resolvers in the same pattern + recruit line (F16/F17/F24, 2026-10-27): the four recruit mutations and the recruit field resolvers in the same parent/args pattern"
+    "max": 144,
+    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context) + reminder settings surface (advanced reminders, 2026-10-26): updateGuildReminderSettings mutation and GuildAdmin resolvers in the same parent/args pattern + white-label surface (2026-10-26): updateGuildWhiteLabel mutation and white-label / accent-option resolvers in the same pattern + recruit line (F16/F17/F24, 2026-10-27): the four recruit mutations and the recruit field resolvers in the same parent/args pattern + recruit switch (2026-10-27): updateGuildRecruitOpen mutation in the same pattern"
   },
   "src/domains/platform/og-graphql.ts": {
     "max": 34,

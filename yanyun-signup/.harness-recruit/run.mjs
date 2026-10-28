@@ -1,10 +1,15 @@
 // Recruitment line acceptance (F16 applications / F24 newcomer
 // checklist / F17 mentor pairings):
 //  - member surface: the platform-home section (Viewer.homeRecruit)
-//    composes per viewer — public directory of bound guilds for
-//    everyone, application sections for logged-in non-members,
-//    newcomer entries (checklist + pairings) for members / the
-//    paired; anonymous gets the directory alone;
+//    composes per viewer — public directory of bound guilds whose
+//    recruitment switch is open (tenants.recruit_open, default
+//    closed; rectest starts open, othertest closed), application
+//    sections for logged-in non-members, newcomer entries
+//    (checklist + pairings) for members / the paired — newcomer
+//    entries ignore the switch; anonymous gets the directory alone;
+//  - the switch: admin-only write (updateGuildRecruitOpen), closed
+//    guilds leave the directory and refuse applications
+//    (recruitClosed), opening restores both;
 //  - F16: apply validation + pending dedupe (alreadyMember /
 //    recruitUnavailable / guildNotFound / applicationPending),
 //    admin review settles once (second review refused), rejection
@@ -137,7 +142,9 @@ function makeDb(fx = {}) {
       }
       const wb = b.slice(bi);
       let rows = [];
-      if (table === 'guild_applications') {
+      if (table === 'tenants') {
+        rows = tables.tenants.filter((x) => x.slug === wb[0]);
+      } else if (table === 'guild_applications') {
         rows = tables.applications.filter((x) => x.id === Number(wb[0]) && x.tenant === wb[1] && x.status === 'pending');
       } else if (table === 'mentor_pairings') {
         rows = tables.pairings.filter((x) => x.id === Number(wb[0]) && x.tenant === wb[1] && x.status === 'active');
@@ -249,12 +256,13 @@ const MEMBER2 = { discordId: 'UC', name: '成员丙', guilds: [DGID_A] };
 const APPLICANT = { discordId: 'UN', name: '新人甲', guilds: [] };
 const ADMIN_B = { discordId: 'UD', name: '乙业管理员', guilds: [DGID_B] };
 
-const tenantRow = (slug, name) => ({
+const tenantRow = (slug, name, recruitOpen = 0) => ({
   slug, guild_name: name, password_hash: 'x', announcement: '', slogan: '',
   master_name: '', logo_url: '', bg_image_url: '', discord_webhook: '', created_at: '2026-01-01 00:00:00',
+  recruit_open: recruitOpen,
 });
 const { db, tables } = makeDb({
-  tenants: [tenantRow('rectest', '招新测试百业'), tenantRow('othertest', '乙百业'), tenantRow('freetest', '未绑百业')],
+  tenants: [tenantRow('rectest', '招新测试百业', 1), tenantRow('othertest', '乙百业'), tenantRow('freetest', '未绑百业')],
   settings: [
     ['rectest|discord_guild_id', DGID_A],
     ['othertest|discord_guild_id', DGID_B],
@@ -305,7 +313,7 @@ const myApp = (r, slug) => homeGuild(r, slug)?.myApplicationSection?.application
 
 let r = await gql(homeQ, { user: null });
 eq('匿名: 区标题文案由后端下发', r.data?.viewer?.homeRecruit?.recruitTitle, '招新与新人');
-eq('匿名: 目录 = 已绑定百业 (含甲/乙, 不含未绑)', (r.data?.viewer?.homeRecruit?.guilds || []).map((g) => g.slug), ['rectest', 'othertest']);
+eq('匿名: 目录 = 已绑定且开启招新的百业 (含甲, 不含未开启的乙/未绑)', (r.data?.viewer?.homeRecruit?.guilds || []).map((g) => g.slug), ['rectest']);
 eq('匿名: 目录带百业名 (公开口径)', homeGuild(r, 'rectest')?.name, '招新测试百业');
 eq('匿名: 无任何申请区', (r.data?.viewer?.homeRecruit?.guilds || []).every((g) => g.myApplicationSection === null), true);
 eq('匿名: 无新人拼装', r.data?.viewer?.homeRecruit?.myNewcomer, []);
@@ -318,7 +326,7 @@ eq('未入业登录用户: 无新人拼装 (清单不下发)', r.data?.viewer?.h
 r = await gql(homeQ, { user: MEMBER });
 eq('成员: 自己百业无申请区', homeGuild(r, 'rectest')?.myApplicationSection ?? null, null);
 eq('成员: 新人拼装含甲业', !!homeNewcomer(r, 'rectest'), true);
-eq('成员: 他业仍可申请 (乙业有申请区)', !!homeGuild(r, 'othertest')?.myApplicationSection, true);
+eq('成员: 未开启招新的乙业不在目录 (无从申请)', homeGuild(r, 'othertest'), undefined);
 
 /* ================= F16: apply + dedupe ================= */
 const applyMut = `mutation($slug: String!, $message: String) { applyToGuild(slug: $slug, message: $message) { ok error errorCode application { id status applicantName } } }`;
@@ -328,6 +336,9 @@ r = await gql(applyMut, { user: MEMBER, variables: { slug: 'rectest', message: '
 eq('已是成员申请 -> alreadyMember', r.data?.applyToGuild?.errorCode, 'alreadyMember');
 r = await gql(applyMut, { user: APPLICANT, variables: { slug: 'freetest', message: 'x' } });
 eq('未绑百业申请 -> recruitUnavailable', r.data?.applyToGuild?.errorCode, 'recruitUnavailable');
+r = await gql(applyMut, { user: APPLICANT, variables: { slug: 'othertest', message: 'x' } });
+eq('已绑定但未开启招新的百业申请 -> recruitClosed', r.data?.applyToGuild?.errorCode, 'recruitClosed');
+eq('recruitClosed 文案由后端下发', r.data?.applyToGuild?.error, '该百业尚未开放招新，暂时不能提交申请');
 r = await gql(applyMut, { user: APPLICANT, variables: { slug: 'nosuch', message: 'x' } });
 eq('不存在的百业 -> guildNotFound', r.data?.applyToGuild?.errorCode, 'guildNotFound');
 r = await gql(applyMut, { user: APPLICANT, variables: { slug: 'rectest', message: '  我常玩奶，想入业  ' } });
@@ -345,7 +356,7 @@ eq('附言已落库 (裁剪后)', tables.applications[0].message, '我常玩奶�
 
 /* ================= F16: review (admin surface) ================= */
 const adminQ = `{ viewer { guildAdmin(slug: "rectest") { __typename
-  ... on GuildAdmin { slug adminTabRecruitLabel
+  ... on GuildAdmin { slug adminTabRecruitLabel adminRecruitOpenLabel recruitOpen
     recruitApplications { id applicantDiscordId applicantName message status statusLabel reviewedByName }
     recruitPairings { id mentorName menteeName status }
     recruitRoster { discordId displayName isMentor }
@@ -355,6 +366,8 @@ r = await gql(adminQ, { user: MEMBER });
 eq('普通成员 -> GuildAdminLocked (无招新面)', r.data?.viewer?.guildAdmin?.__typename, 'GuildAdminLocked');
 r = await gql(adminQ, { user: ADMIN });
 eq('管理员招新页签文案', r.data?.viewer?.guildAdmin?.adminTabRecruitLabel, '招新与导师');
+eq('招新开关文案由后端下发', r.data?.viewer?.guildAdmin?.adminRecruitOpenLabel, '开放招新');
+eq('甲业招新开关回读 = 开启 (夹具初值)', r.data?.viewer?.guildAdmin?.recruitOpen, true);
 eq('审核队列含待审申请', (r.data?.viewer?.guildAdmin?.recruitApplications || []).map((a) => [a.applicantDiscordId, a.status]), [['UN', 'PENDING']]);
 
 const reviewMut = `mutation($slug: String!, $id: ID!, $approve: Boolean!) { reviewGuildApplication(slug: $slug, applicationId: $id, approve: $approve) { ok error errorCode id } }`;
@@ -463,6 +476,36 @@ const adminQB = adminQ.replaceAll('rectest', 'othertest');
 r = await gql(adminQB, { user: ADMIN_B });
 eq('乙业面申请队列为空 (隔离)', r.data?.viewer?.guildAdmin?.recruitApplications, []);
 eq('乙业面配对列表为空 (隔离)', r.data?.viewer?.guildAdmin?.recruitPairings, []);
+eq('乙业招新开关回读 = 关闭 (默认关)', r.data?.viewer?.guildAdmin?.recruitOpen, false);
+
+/* ================= the recruitment switch ================= */
+const openMut = `mutation($slug: String!, $open: Boolean!) { updateGuildRecruitOpen(slug: $slug, open: $open) { ok error errorCode } }`;
+r = await gql(openMut, { user: MEMBER, variables: { slug: 'othertest', open: true } });
+eq('成员拨开关 -> adminOnly', r.data?.updateGuildRecruitOpen?.errorCode, 'adminOnly');
+r = await gql(openMut, { user: ADMIN, variables: { slug: 'othertest', open: true } });
+eq('甲业管理员拨乙业开关 -> adminOnly (不串权)', r.data?.updateGuildRecruitOpen?.errorCode, 'adminOnly');
+r = await gql(openMut, { user: ADMIN_B, variables: { slug: 'othertest', open: true } });
+eq('乙业管理员开启本业招新 ok', r.data?.updateGuildRecruitOpen?.ok, true);
+eq('开关落库 (tenants.recruit_open = 1)', tables.tenants.find((t) => t.slug === 'othertest')?.recruit_open, 1);
+r = await gql(adminQB, { user: ADMIN_B });
+eq('开启后乙业面回读 = 开启', r.data?.viewer?.guildAdmin?.recruitOpen, true);
+r = await gql(homeQ, { user: null });
+eq('开启后匿名目录含乙业', (r.data?.viewer?.homeRecruit?.guilds || []).map((g) => g.slug), ['rectest', 'othertest']);
+eq('开启后匿名仍无申请区', (r.data?.viewer?.homeRecruit?.guilds || []).every((g) => g.myApplicationSection === null), true);
+r = await gql(applyMut, { user: APPLICANT, variables: { slug: 'othertest', message: '想入乙业' } });
+eq('开启后可向乙业提交申请', r.data?.applyToGuild?.ok, true);
+r = await gql(openMut, { user: ADMIN, variables: { slug: 'rectest', open: false } });
+eq('关闭甲业招新 ok', r.data?.updateGuildRecruitOpen?.ok, true);
+r = await gql(homeQ, { user: null });
+eq('关闭后甲业离开匿名目录', (r.data?.viewer?.homeRecruit?.guilds || []).map((g) => g.slug), ['othertest']);
+r = await gql(applyMut, { user: APPLICANT, variables: { slug: 'rectest', message: 'x' } });
+eq('关闭后申请甲业 -> recruitClosed', r.data?.applyToGuild?.errorCode, 'recruitClosed');
+r = await gql(homeQ, { user: MEMBER });
+eq('关闭不影响成员的新人拼装 (清单照常下发)', !!homeNewcomer(r, 'rectest')?.checklist, true);
+eq('关闭不影响成员的配对回读', (homeNewcomer(r, 'rectest')?.myPairings || []).length > 0, true);
+r = await gql(adminQ, { user: ADMIN });
+eq('关闭后甲业面回读 = 关闭', r.data?.viewer?.guildAdmin?.recruitOpen, false);
+eq('关闭不影响待审/历史申请的审核面留痕', (r.data?.viewer?.guildAdmin?.recruitApplications || []).length > 0, true);
 
 console.log(`\n== recruit harness: ${pass} passed, ${fail} failed ==`);
 if (fails.length) { console.log('FAILS:\n' + fails.map((f) => ' - ' + f).join('\n')); process.exit(1); }
