@@ -1090,19 +1090,47 @@ if (want('billing')) {
   eq('hasStripeEvent true', await repo.hasStripeEvent(db, 'evt_1'), true);
   eq('hasStripeEvent false', await repo.hasStripeEvent(db, 'evt_nope'), false);
 
-  // Limits seam: the limits service resolves its premium table only
-  // for a guild whose premium tier is in force (paygate on +
-  // entitlement premium); every other context reads the free table.
+  // Limits seam (P25): the limits service resolves by effective
+  // tier — a pure entitlement read that never consults the paygate
+  // switch. Legacy 'premium' reads as tier 3; free guilds keep the
+  // free table value-for-value; guild-less contexts stay free.
   const limitsSvc = await import('../src/domains/platform/limits.ts');
   const settingsRepo = await import('../src/domains/guilds/settings.ts');
+  const triple = (l) => [l.gearItemCapacity, l.ocrBatchImages, l.ocrBatchesPerDay];
+
+  // Tier matrix at the resolution seam: the entitlement's tier
+  // field is authoritative, its plan is the fallback token, and
+  // unrecognized values fall to tier 0 rather than raising a quota.
+  eq('tier matrix: no entitlement -> free table', triple(limitsSvc.limitsForTier(limitsSvc.quotaTierOfEntitlement(null))), [200, 20, 10]);
+  eq('tier matrix: tier 0 / free plan -> free table', triple(limitsSvc.limitsForTier(limitsSvc.quotaTierOfEntitlement({ tier: 0, plan: 'free' }))), [200, 20, 10]);
+  eq('tier matrix: tier 1 -> T1 table', triple(limitsSvc.limitsForTier(limitsSvc.quotaTierOfEntitlement({ tier: 1 }))), [1000, 50, 30]);
+  eq('tier matrix: tier 2 -> T2 table', triple(limitsSvc.limitsForTier(limitsSvc.quotaTierOfEntitlement({ tier: 2 }))), [2000, 100, 50]);
+  eq('tier matrix: tier 3 -> T3 table', triple(limitsSvc.limitsForTier(limitsSvc.quotaTierOfEntitlement({ tier: 3 }))), [5000, 100, 100]);
+  eq('tier matrix: plan token t1 -> T1 table', triple(limitsSvc.limitsForTier(limitsSvc.quotaTierOfEntitlement({ plan: 't1' }))), [1000, 50, 30]);
+  eq('tier matrix: plan token t2 -> T2 table', triple(limitsSvc.limitsForTier(limitsSvc.quotaTierOfEntitlement({ plan: 't2' }))), [2000, 100, 50]);
+  eq('tier matrix: legacy premium plan -> T3 table', triple(limitsSvc.limitsForTier(limitsSvc.quotaTierOfEntitlement({ plan: 'premium' }))), [5000, 100, 100]);
+  eq('tier matrix: unrecognized tier -> free table', triple(limitsSvc.limitsForTier(limitsSvc.quotaTierOfEntitlement({ tier: 'gold' }))), [200, 20, 10]);
+  eq('tier matrix: communication ceilings identical on every tier',
+    [0, 1, 2, 3].map((t) => { const l = limitsSvc.limitsForTier(t); return [l.announcementsPerDay, l.urgentCallsPerDay]; }),
+    [[5, 2], [5, 2], [5, 2], [5, 2]]);
+
+  // End-to-end on real D1 rows, paygate OFF first: the tier table
+  // applies anyway (the switch is not consulted), and flipping the
+  // switch changes nothing.
   await repo.upsertEntitlementRow(db, { ...row, tenant: 'alpha', plan: 'premium', currentPeriodEnd: future });
   const offLimits = await limitsSvc.getEffectiveLimits(db, { discordId: 'U', guildSlug: 'alpha' });
-  eq('limits: switch off -> free despite premium row', [offLimits.gearItemCapacity, offLimits.ocrBatchImages, offLimits.ocrBatchesPerDay], [200, 20, 10]);
+  eq('limits: switch off -> tier-3 table for a premium row (paygate-independent)', triple(offLimits), [5000, 100, 100]);
   await settingsRepo.setSettingValue(db, '', 'paygate_enabled', '1');
   const onLimits = await limitsSvc.getEffectiveLimits(db, { discordId: 'U', guildSlug: 'alpha' });
-  eq('limits: premium in force -> premium table', [onLimits.gearItemCapacity, onLimits.ocrBatchImages, onLimits.ocrBatchesPerDay], [2000, 100, 50]);
+  eq('limits: switch on -> same tier-3 table', triple(onLimits), [5000, 100, 100]);
   const noGuild = await limitsSvc.getEffectiveLimits(db, { discordId: 'U' });
-  eq('limits: guild-less context stays free', noGuild.gearItemCapacity, 200);
+  eq('limits: guild-less context stays free', triple(noGuild), [200, 20, 10]);
+  const noRow = await limitsSvc.getEffectiveLimits(db, { discordId: 'U', guildSlug: 'never-granted' });
+  eq('limits: guild without entitlement stays free', triple(noRow), [200, 20, 10]);
+  await repo.upsertEntitlementRow(db, { ...row, tenant: 'alpha', plan: 'premium', currentPeriodEnd: past });
+  const lapsedLimits = await limitsSvc.getEffectiveLimits(db, { discordId: 'U', guildSlug: 'alpha' });
+  eq('limits: lapsed entitlement -> free table', triple(lapsedLimits), [200, 20, 10]);
+  await repo.upsertEntitlementRow(db, { ...row, tenant: 'alpha', plan: 'premium', currentPeriodEnd: future });
   await settingsRepo.setSettingValue(db, '', 'paygate_enabled', '0');
 }
 
