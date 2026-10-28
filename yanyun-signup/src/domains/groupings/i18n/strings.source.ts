@@ -287,8 +287,8 @@ export abstract class SchedulingAdviceFbtUtils {
 
 export abstract class RecapFbtUtils {
   static title(fbs: FbsAPI) { return fbs("AI 活动复盘", "Title text for the AI recap section on the squad detail page, used as the heading above the generated recap of a completed squad."); }
-  static lockedTitle(fbs: FbsAPI) { return fbs("AI 复盘 · 盟主版专属", "Title text for the locked AI recap section on the squad detail page, used when the guild is below the top premium tier that includes AI recaps."); }
-  static lockedBody(fbs: FbsAPI) { return fbs("AI 活动复盘是盟主版（T3）功能：为每场完成的车队生成出席、就位与成绩小结，帮车头与军官快速回顾这一场。", "Body text for the locked AI recap section on the squad detail page, used to explain what the top-tier AI recap feature does for guilds that have not unlocked it."); }
+  static lockedTitle(fbs: FbsAPI) { return fbs("AI 复盘 · 高阶档专属", "Title text for the locked AI recap section on the squad detail page, used when the guild is below the top premium tier that includes AI recaps."); }
+  static lockedBody(fbs: FbsAPI) { return fbs("AI 活动复盘是高阶订阅档功能：为每场完成的车队生成出席、就位与成绩小结，帮车头与军官快速回顾这一场。", "Body text for the locked AI recap section on the squad detail page, used to explain what the top-tier AI recap feature does for guilds that have not unlocked it."); }
   static notEnabledTitle(fbs: FbsAPI) { return fbs("AI 复盘尚未开启", "Title text for the not-enabled AI recap section on the squad detail page, used when the platform has not configured an AI recap provider yet."); }
   static notEnabledBody(fbs: FbsAPI) { return fbs("平台尚未开启 AI 复盘服务，功能上线后，完成的车队可在此生成复盘。", "Body text for the not-enabled AI recap section on the squad detail page, used to explain that the AI recap service is not switched on yet."); }
   static emptyNotCompletedBody(fbs: FbsAPI) { return fbs("车队完成后，车头或百业管理员可在此生成 AI 复盘。", "Body text for the empty AI recap section on the squad detail page, used when the squad has not been completed yet so no recap can be generated."); }
