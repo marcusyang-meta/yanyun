@@ -20,6 +20,7 @@ import GuildAdminTools from './GuildAdminTools.react.tsx';
 import GuildAdminRecruit from './GuildAdminRecruit.react.tsx';
 import GuildAdminSeason from './GuildAdminSeason.react.tsx';
 import GuildAdminOfficer from './GuildAdminOfficer.react.tsx';
+import GuildAdminOps from './GuildAdminOps.react.tsx';
 import { PremiumLockedPanel, PremiumActivePanel } from './GuildAdminPremium.react.tsx';
 
 // Guild admin page (@match branch of viewer.guildAdmin): every label
@@ -67,6 +68,25 @@ const GuildAdminPage_guildAdmin = graphql`
     adminTabStatsLabel
     adminTabToolsLabel
     adminTabOfficerLabel
+    adminTabOpsLabel
+    ops {
+      __typename
+      ... on GuildAdminOpsLocked { premiumTitle premiumBody }
+      ... on GuildAdminOps {
+        title hint
+        nudgeTitle nudgeHint nudgeEventLabel nudgeSegmentLabel
+        segmentAllText segmentSchoolText segmentRoleText segmentLapsedText
+        nudgeSegmentValueLabel nudgePreviewLabel nudgeSendLabel nudgeDailyRemainingText
+        nudgeEvents { id title startsAtText signupCount maxSlots }
+        churnTitle churnHint churnEmptyText
+        churnRisks { discordId displayName evidenceText lastText }
+        rolloverTitle rolloverHint rolloverExecuteLabel
+        rollover { seasonLabel pendingCount previewText seasonText gearNoteText thresholdNoteText lastText pendingNames }
+        pointsTitle pointsHint pointsBoardEmptyText pointsTotalLabel pointsEntriesLabel pointsSaveLabel
+        contributionRules { actionKey actionLabel points enabled }
+        contributionBoard { discordId displayName totalPoints entryCount }
+      }
+    }
     officer {
       notesTitle
       notesHint
@@ -531,6 +551,7 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
     { key: 'season', label: text.adminTabSeasonLabel },
     { key: 'recruit', label: text.adminTabRecruitLabel },
     { key: 'officer', label: text.adminTabOfficerLabel },
+    { key: 'ops', label: text.adminTabOpsLabel },
   ];
 
   return (
@@ -773,6 +794,14 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
           <GuildAdminOfficer
             slug={slug}
             officer={data.officer}
+            commonText={commonText}
+            refresh={refresh}
+          />
+        )}
+        {tab === 'ops' && (
+          <GuildAdminOps
+            slug={slug}
+            ops={data.ops}
             commonText={commonText}
             refresh={refresh}
           />
