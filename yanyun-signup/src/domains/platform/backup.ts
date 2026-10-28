@@ -33,6 +33,7 @@ import {
   guildApplications, mentorPairings, guildMentors,
   fillOffers, fillRequests, fillInvites, guildAlliances,
   guildCustomDomains,
+  guildOfficerGrants, guildOfficerPosts, guildAuditEvents,
 } from '../../db/schema.ts';
 
 export const BACKUP_FORMAT = 'yanyun-backup';
@@ -97,6 +98,9 @@ export const BACKUP_ENTITIES: ReadonlyArray<readonly [string, SQLiteTable]> = [
   ['fill_invites', fillInvites],
   ['guild_alliances', guildAlliances],
   ['guild_custom_domains', guildCustomDomains],
+  ['guild_officer_grants', guildOfficerGrants],
+  ['guild_officer_posts', guildOfficerPosts],
+  ['guild_audit_events', guildAuditEvents],
 ];
 
 export type EncodedValue = string | number | null | { $blob: string };
