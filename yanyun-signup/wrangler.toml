@@ -53,11 +53,14 @@ migrations_dir = "migrations"
 binding = "BACKUPS"
 bucket_name = "yanyun-backups"
 
-# Workers AI (premium P26 多语公告翻译, platform/translator.ts):
-# m2m100 经 AI binding 调用, 无外部账号/密钥。免费额度 10,000
-# neurons/天 (m2m100 计 31,050 neurons / M 输入与输出 tokens,
-# 单条公告全量生成约 60 neurons); 超额调用直接失败并按 locale
-# 记失败行——未经 marcus 点头不许为此开 Workers Paid。
+# Workers AI (premium P26 multilingual announcements,
+# platform/translator.ts): m2m100 runs over the AI binding — no
+# external account or key. The free allocation is 10,000
+# neurons/day (m2m100 is priced at 31,050 neurons per M input and
+# output tokens; one full announcement generation costs roughly
+# 60 neurons); over-allocation calls fail and are recorded as
+# per-locale failed rows — never enable Workers Paid for this
+# without marcus's approval.
 [ai]
 binding = "AI"
 

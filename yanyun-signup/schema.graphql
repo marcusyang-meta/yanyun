@@ -1905,14 +1905,16 @@ type GuildAnnouncement {
   authorText: String        # 「X 发布」组合文案 (无快照名为 null)
   createdAtText: String!
   viewerHasRead: Boolean    # 当前查看者本人已读态 (未登录为 null)
-  # 多语公告 (P26): 按查看者当前 locale 下发的展示文本 — 有现行译文
-  # 时为译文, 否则回退原文 (与 title/body 逐字一致)。原文 title/body
-  # 恒为发布时的原文, 不受译文影响。
+  # Multilingual announcements (P26): display text served in the
+  # viewer's current locale — the translation when a current one
+  # exists, otherwise the original (identical to title/body). The
+  # original title/body always hold the as-published text.
   displayTitle: String!
   displayBody: String!
-  isTranslated: Boolean!    # 当前展示的是否为译文
-  contentSourceLabel: String!  # 「译文 / 原文」来源标记 (后端按 locale 组合)
-  # 译文状态 (仅管理变体且多语入口可见时组合; 其余恒为 null)
+  isTranslated: Boolean!    # whether the displayed text is a translation
+  contentSourceLabel: String!  # translated/original source label (server-composed by locale)
+  # Translation state (composed only on the admin variant while the
+  # multilingual entry is visible; otherwise always null)
   translationStatusText: String
   translations: [GuildAnnouncementTranslation!]
   # 已读回执 (F10): 只在管理变体 (GuildAdmin.announcements) 的公告上
@@ -1927,14 +1929,14 @@ type GuildAnnouncement {
   deleteConfirmMessage: String!
 }
 
-# 多语公告 (P26) 单个目标 locale 的译文状态; 只在管理变体且多语
-# 入口可见时随公告下发。status: PENDING (未生成) / DONE (已生成) /
-# FAILED (生成失败)。
+# Multilingual announcements (P26): one target locale's translation
+# state, served with the announcement only on the admin variant
+# while the entry is visible. status: PENDING / DONE / FAILED.
 type GuildAnnouncementTranslation {
   locale: String!
-  localeLabel: String!      # 语言名 (后端按查看者 locale 组合)
+  localeLabel: String!      # language name (server-composed in the viewer's locale)
   status: String!
-  statusLabel: String!      # 状态文案 (后端组合)
+  statusLabel: String!      # status copy (server-composed)
 }
 
 type GuildAnnouncementReceipt {
@@ -1973,11 +1975,13 @@ type GuildAnnouncementPage {
   standardRemaining: Int
   urgentRemaining: Int
   announcements: [GuildAnnouncement!]!
-  # 多语公告入口 (P26, 仅管理变体): paygate 开启且百业档位达 T2 时
-  # 才下发入口文案; 未达档 / paygate 关闭时全为 null/false, 公告面
-  # 与 P26 之前逐字一致。入口可见但翻译 provider 未配置时,
-  # canGenerateTranslations 为 false 且 translationUnavailableText
-  # 下发未启用说明。
+  # Multilingual entry (P26, admin variant only): entry copy is
+  # served only when the paygate is on and the guild's tier reaches
+  # T2; below that (or with the paygate off) everything here is
+  # null/false and the surface is identical to before P26. When the
+  # entry is visible but the translation provider is not
+  # configured, canGenerateTranslations is false and
+  # translationUnavailableText carries the not-enabled note.
   canGenerateTranslations: Boolean!
   generateTranslationsLabel: String
   generatingTranslationsLabel: String
@@ -2004,10 +2008,13 @@ extend type Mutation {
   markGuildAnnouncementRead(slug: String!, announcementId: ID!): GuildAnnouncementPayload!
   # 删除公告 (连带其已读回执): 管理判定复验, 按本百业解析
   deleteGuildAnnouncement(slug: String!, announcementId: ID!): GuildAnnouncementPayload!
-  # 生成多语版 (P26): 手动触发 (翻译按量计费, 发布不自动翻译);
-  # 管理判定复验 + paygate 开启且档位达 T2; provider 未配置 ->
-  # translationNotConfigured; 单个 locale 失败记为失败态, 不影响
-  # 原文与本次返回 (ok 仍为 true, 状态经公告的译文状态字段下发)
+  # Generate the multilingual versions (P26): manual trigger
+  # (translation is metered; posting never auto-translates); the
+  # admin verdict is re-checked, plus paygate on and tier at T2;
+  # provider not configured -> translationNotConfigured; a single
+  # locale's failure is recorded as a failed state and never
+  # affects the original or this response (ok stays true, state is
+  # served on the announcement's translation fields)
   generateGuildAnnouncementTranslations(slug: String!, announcementId: ID!): GuildAnnouncementPayload!
 }
 
