@@ -106,20 +106,6 @@ export const shortLinks = sqliteTable('short_links', {
   uniqueIndex('short_links_target_unique').on(t.tenant, t.eventId),
 ]);
 
-/* ---------------- calendar_feeds [migration 0020] -----------------
- * One iCal subscription feed per guild: tenant is the primary key,
- * token is the unguessable public alias served at /cal/<token>.
- * Resetting the feed replaces the token in place, which revokes the
- * old link immediately (no second row is ever minted). */
-export const calendarFeeds = sqliteTable('calendar_feeds', {
-  tenant: text('tenant').primaryKey(),
-  token: text('token').notNull(),
-  createdAt: integer('created_at').notNull().default(0),
-  updatedAt: integer('updated_at').notNull().default(0),
-}, (t) => [
-  uniqueIndex('calendar_feeds_token_unique').on(t.token),
-]);
-
 /* ---------------- lotteries [migration 0021] -----------------------
  * Guild-admin activity lotteries (F21). The participant list is
  * snapshotted into lottery_entries at creation (discord id + display
