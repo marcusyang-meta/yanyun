@@ -87,6 +87,20 @@ export const stripeEvents = sqliteTable('stripe_events', {
   processedAt: integer('processed_at').notNull().default(0),
 });
 
+/* ---------------- public ID mint counters [migration 0033] --------
+ * Per-(type code, day) serial source for typed public IDs (ids.ts).
+ * One row per type per UTC day; the sequence is handed out by a single
+ * atomic upsert (id-mint.ts), so concurrent minters never collide.
+ * Rows are never deleted: the counter table is the audit trail of how
+ * many IDs each type minted on each day. */
+export const idMintCounters = sqliteTable('id_mint_counters', {
+  typeCode: integer('type_code').notNull(),
+  dayIndex: integer('day_index').notNull(),
+  seq: integer('seq').notNull().default(0),
+}, (t) => [
+  primaryKey({ columns: [t.typeCode, t.dayIndex] }),
+]);
+
 /* ---------------- hub audit log [ddl chain baseline] --------------- */
 export const hubAuditLog = sqliteTable('hub_audit_log', {
   id: integer('id').primaryKey({ autoIncrement: true }),
