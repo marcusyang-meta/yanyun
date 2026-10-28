@@ -72,6 +72,9 @@ import {
   stripeConfig, fetchStripePrice, createCheckoutSession, stripePriceIdForTier,
 } from '../platform/index.ts';
 import { computeGuildStats } from './stats.ts';
+import {
+  reliabilityForAdmin, heatmapForAdmin, gearBoardForAdmin, raceBoardForViewer,
+} from './insights-graphql.ts';
 import { announcementPageForAdmin } from './announcements-graphql.ts';
 import { SeasonChecklistShell, GuildRosterShell } from './season-graphql.ts';
 import { officerPageForAdmin } from './officer-graphql.ts';
@@ -644,6 +647,31 @@ const ADMIN_TEXT_SPEC: [string, string][] = [
   ['adminRecruitNewcomersEmptyText', 'recruit_adminNewcomersEmpty'],
   ['adminRecruitOpenLabel', 'recruit_adminRecruitOpenLabel'],
   ['adminRecruitOpenHint', 'recruit_adminRecruitOpenHint'],
+  ['adminTabInsightsLabel', 'guildAdmin_tabInsights'],
+  ['adminInsightsReliabilityTitle', 'guildAdmin_insightsReliabilityTitle'],
+  ['adminInsightsReliabilityHint', 'guildAdmin_insightsReliabilityHint'],
+  ['adminInsightsSignupsLabel', 'guildAdmin_insightsSignupsLabel'],
+  ['adminInsightsAttendedLabel', 'guildAdmin_insightsAttendedLabel'],
+  ['adminInsightsNoShowLabel', 'guildAdmin_insightsNoShowLabel'],
+  ['adminInsightsRateLabel', 'guildAdmin_insightsRateLabel'],
+  ['adminInsightsReliabilityEmptyText', 'guildAdmin_insightsReliabilityEmpty'],
+  ['adminInsightsHeatmapTitle', 'guildAdmin_insightsHeatmapTitle'],
+  ['adminInsightsHeatmapHint', 'guildAdmin_insightsHeatmapHint'],
+  ['adminInsightsHeatmapEmptyText', 'guildAdmin_insightsHeatmapEmpty'],
+  ['adminInsightsGearTitle', 'guildAdmin_insightsGearTitle'],
+  ['adminInsightsGearHint', 'guildAdmin_insightsGearHint'],
+  ['adminInsightsGearEmptyText', 'guildAdmin_insightsGearEmpty'],
+  ['adminInsightsGearLabelLabel', 'guildAdmin_insightsGearLabelLabel'],
+  ['adminInsightsGearMinScoreLabel', 'guildAdmin_insightsGearMinScoreLabel'],
+  ['adminInsightsGearAddLabel', 'guildAdmin_insightsGearAddLabel'],
+  ['adminInsightsGearScoreLabel', 'guildAdmin_insightsGearScoreLabel'],
+  ['adminInsightsGearGapLabel', 'guildAdmin_insightsGearGapLabel'],
+  ['adminInsightsRaceTitle', 'guildAdmin_insightsRaceTitle'],
+  ['adminInsightsRaceEmptyText', 'guildAdmin_insightsRaceEmpty'],
+  ['adminInsightsRaceTeamLabel', 'guildAdmin_insightsRaceTeamLabel'],
+  ['adminInsightsRaceRunsLabel', 'guildAdmin_insightsRaceRunsLabel'],
+  ['adminInsightsRaceWinsLabel', 'guildAdmin_insightsRaceWinsLabel'],
+  ['adminInsightsRaceBestLabel', 'guildAdmin_insightsRaceBestLabel'],
   ['adminRecruitProfileLabel', 'recruit_itemProfileLabel'],
   ['adminRecruitMentorLabel', 'recruit_itemMentorLabel'],
   ['adminRecruitFirstRunLabel', 'recruit_itemFirstRunLabel'],
@@ -730,6 +758,15 @@ export class GuildAdminShell extends ShellBase {
   genOps(){
     return this.memo('ops', () => opsPageForAdmin(this.ctx, this.genSlug()));
   }
+  /* Premium insights (T1 data layer: P2 / P9 / P10 / P15): each
+   * field composes through insights-graphql, where the tierLocked
+   * verdict picks the full variant or GuildInsightsLocked — below
+   * tier 1 the aggregations are never computed. Only on the
+   * GuildAdmin type, like stats. */
+  genReliability(){ return this.memo('reliability', () => reliabilityForAdmin(this.ctx, this.genSlug())); }
+  genParticipationHeatmap(){ return this.memo('heatmap', () => heatmapForAdmin(this.ctx, this.genSlug())); }
+  genGearBoard(){ return this.memo('gearBoard', () => gearBoardForAdmin(this.ctx, this.genSlug())); }
+  genRaceSeasonBoard(){ return this.memo('raceBoard', () => raceBoardForViewer(this.ctx, this.genSlug())); }
   genStats(){
     return this.memo('stats', async () => {
       // Premium read gate: gated guilds get the locked variant —
@@ -906,6 +943,10 @@ function contentResolvers() {
     officer: (p: any) => p.genOfficer(),
     ops: (p: GuildAdminShell) => p.genOps(),
     stats: (p: GuildAdminShell) => p.genStats(),
+    reliability: (p: GuildAdminShell) => p.genReliability(),
+    participationHeatmap: (p: GuildAdminShell) => p.genParticipationHeatmap(),
+    gearBoard: (p: GuildAdminShell) => p.genGearBoard(),
+    raceSeasonBoard: (p: GuildAdminShell) => p.genRaceSeasonBoard(),
     premium: (p: GuildAdminShell) => p.genPremium(),
     customDomain: (p: GuildAdminShell) => p.genCustomDomain(),
     seasonChecklist: (p: GuildAdminShell) => p.genSeasonChecklist(),

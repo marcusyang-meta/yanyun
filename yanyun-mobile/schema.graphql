@@ -1557,6 +1557,8 @@ type Mutation {
   setGuildMentor(slug: String!, discordId: String!, isMentor: Boolean!): GuildAdminPayload!
   createMentorPairing(slug: String!, mentorDiscordId: String!, menteeDiscordId: String!): GuildAdminPayload!
   endMentorPairing(slug: String!, pairingId: ID!): GuildAdminPayload!
+  upsertGearStandard(slug: String!, id: ID, label: String!, minScore: Int!): GearStandardPayload!
+  deleteGearStandard(slug: String!, id: ID!): GearStandardPayload!
   applyToGuild(slug: String!, message: String): RecruitPayload!
   publishFillOffer(slug: String!, school: String!, windows: [AvailabilitySlotInput!]!, note: String): FillOfferPayload!
   withdrawFillOffer: NetworkOkPayload!
@@ -1949,6 +1951,17 @@ type Guild {
   viewerNick: String
   memberRoster: [GuildRosterMember!]!
   announcements: GuildAnnouncementPage!
+  raceSeasonBoard: RaceSeasonBoardResult!
+  gearSelfStatus: GuildGearSelfResult!
+  homeInsightsRaceTitle: String!
+  homeInsightsRaceEmptyText: String!
+  homeInsightsRaceTeamLabel: String!
+  homeInsightsRaceRunsLabel: String!
+  homeInsightsRaceWinsLabel: String!
+  homeInsightsRaceBestLabel: String!
+  homeInsightsSelfGearTitle: String!
+  homeInsightsGearScoreLabel: String!
+  homeInsightsGearMinScoreLabel: String!
   homeBackToHubLabel: String!
   homeTabTeamLabel: String!
   homeTabDexLabel: String!
@@ -1974,6 +1987,17 @@ type GuildReadOnly {
   groupings(tab: GroupingTab!): GroupingListPage!
   viewerNick: String
   announcements: GuildAnnouncementPage!
+  raceSeasonBoard: RaceSeasonBoardResult!
+  gearSelfStatus: GuildGearSelfResult!
+  homeInsightsRaceTitle: String!
+  homeInsightsRaceEmptyText: String!
+  homeInsightsRaceTeamLabel: String!
+  homeInsightsRaceRunsLabel: String!
+  homeInsightsRaceWinsLabel: String!
+  homeInsightsRaceBestLabel: String!
+  homeInsightsSelfGearTitle: String!
+  homeInsightsGearScoreLabel: String!
+  homeInsightsGearMinScoreLabel: String!
   homeBackToHubLabel: String!
   homeTabTeamLabel: String!
   homeTabDexLabel: String!
@@ -2126,6 +2150,10 @@ type GuildAdmin {
   officer: GuildOfficerPage!
   ops: GuildAdminOpsResult!
   stats: GuildAdminStatsResult!
+  reliability: GuildAdminReliabilityResult!
+  participationHeatmap: GuildAdminHeatmapResult!
+  gearBoard: GuildAdminGearBoardResult!
+  raceSeasonBoard: RaceSeasonBoardResult!
   premium: GuildAdminPremiumResult
   customDomain: GuildAdminCustomDomainResult!
   lotteries: [GuildAdminLottery!]!
@@ -2137,6 +2165,31 @@ type GuildAdmin {
   recruitPairings: [MentorPairing!]!
   recruitRoster: [RecruitMember!]!
   newcomerProgress: [NewcomerProgress!]!
+  adminTabInsightsLabel: String!
+  adminInsightsReliabilityTitle: String!
+  adminInsightsReliabilityHint: String!
+  adminInsightsSignupsLabel: String!
+  adminInsightsAttendedLabel: String!
+  adminInsightsNoShowLabel: String!
+  adminInsightsRateLabel: String!
+  adminInsightsReliabilityEmptyText: String!
+  adminInsightsHeatmapTitle: String!
+  adminInsightsHeatmapHint: String!
+  adminInsightsHeatmapEmptyText: String!
+  adminInsightsGearTitle: String!
+  adminInsightsGearHint: String!
+  adminInsightsGearEmptyText: String!
+  adminInsightsGearLabelLabel: String!
+  adminInsightsGearMinScoreLabel: String!
+  adminInsightsGearAddLabel: String!
+  adminInsightsGearScoreLabel: String!
+  adminInsightsGearGapLabel: String!
+  adminInsightsRaceTitle: String!
+  adminInsightsRaceEmptyText: String!
+  adminInsightsRaceTeamLabel: String!
+  adminInsightsRaceRunsLabel: String!
+  adminInsightsRaceWinsLabel: String!
+  adminInsightsRaceBestLabel: String!
   adminTitle: String!
   adminBackLinkLabel: String!
   adminTabProfileLabel: String!
@@ -2803,6 +2856,115 @@ union GuildAdminStatsResult = GuildAdminStats | GuildAdminStatsLocked
 type GuildAdminStatsLocked {
   premiumTitle: String!
   premiumBody: String!
+}
+
+type GuildInsightsLocked {
+  premiumTitle: String!
+  premiumBody: String!
+}
+
+type GuildAdminReliability {
+  entries: [ReliabilityEntry!]!
+}
+
+type ReliabilityEntry {
+  discordId: String!
+  displayName: String!
+  signupCount: Int!
+  attendedCount: Int!
+  noShowCount: Int!
+  settledCount: Int!
+  attendanceRate: Float!
+}
+
+union GuildAdminReliabilityResult = GuildAdminReliability | GuildInsightsLocked
+
+type GuildAdminParticipationHeatmap {
+  timezone: String!
+  totalAttended: Int!
+  peakCount: Int!
+  totalText: String!
+  cells: [ParticipationHeatmapCell!]!
+}
+
+type ParticipationHeatmapCell {
+  weekday: Int!
+  weekdayLabel: String!
+  hour: Int!
+  count: Int!
+}
+
+union GuildAdminHeatmapResult = GuildAdminParticipationHeatmap | GuildInsightsLocked
+
+type GuildAdminGearBoard {
+  standards: [GearBoardStandard!]!
+}
+
+type GearBoardStandard {
+  id: ID!
+  label: String!
+  minScore: Int!
+  metCount: Int!
+  unmetCount: Int!
+  noBuildCount: Int!
+  summaryText: String!
+  members: [GearBoardMember!]!
+}
+
+type GearBoardMember {
+  discordId: String!
+  displayName: String!
+  hasBuild: Boolean!
+  bestScore: Float
+  met: Boolean!
+  gap: Float!
+  statusText: String!
+}
+
+union GuildAdminGearBoardResult = GuildAdminGearBoard | GuildInsightsLocked
+
+type GuildGearSelfStatus {
+  entries: [GearSelfEntry!]!
+}
+
+type GearSelfEntry {
+  standardId: ID!
+  label: String!
+  minScore: Int!
+  myScore: Float
+  met: Boolean!
+  statusText: String!
+}
+
+union GuildGearSelfResult = GuildGearSelfStatus | GuildInsightsLocked
+
+type RaceSeasonBoard {
+  seasons: [RaceSeason!]!
+}
+
+type RaceSeason {
+  season: String!
+  seasonName: String!
+  seasonLabel: String!
+  entries: [RaceSeasonEntry!]!
+}
+
+type RaceSeasonEntry {
+  teamName: String!
+  members: String!
+  runCount: Int!
+  winCount: Int!
+  bestTimeMs: Int!
+  bestTimeText: String!
+}
+
+union RaceSeasonBoardResult = RaceSeasonBoard | GuildInsightsLocked
+
+type GearStandardPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  standardId: ID
 }
 
 union GuildAdminPremiumResult = GuildAdminPremiumActive | GuildAdminPremiumLocked

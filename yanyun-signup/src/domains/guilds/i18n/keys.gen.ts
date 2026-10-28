@@ -130,6 +130,45 @@ export type GuildsStringKey =
   | 'guildAdmin_statsSeatCount'
   | 'guildAdmin_statsCarCount'
   | 'guildAdmin_statsEmpty'
+  | 'guildAdmin_tabInsights'
+  | 'guildAdmin_insightsReliabilityTitle'
+  | 'guildAdmin_insightsReliabilityHint'
+  | 'guildAdmin_insightsSignupsLabel'
+  | 'guildAdmin_insightsAttendedLabel'
+  | 'guildAdmin_insightsNoShowLabel'
+  | 'guildAdmin_insightsRateLabel'
+  | 'guildAdmin_insightsReliabilityEmpty'
+  | 'guildAdmin_insightsHeatmapTitle'
+  | 'guildAdmin_insightsHeatmapHint'
+  | 'guildAdmin_insightsHeatmapEmpty'
+  | 'guildAdmin_insightsHeatmapTotal'
+  | 'guildAdmin_insightsWeekdayMon'
+  | 'guildAdmin_insightsWeekdayTue'
+  | 'guildAdmin_insightsWeekdayWed'
+  | 'guildAdmin_insightsWeekdayThu'
+  | 'guildAdmin_insightsWeekdayFri'
+  | 'guildAdmin_insightsWeekdaySat'
+  | 'guildAdmin_insightsWeekdaySun'
+  | 'guildAdmin_insightsGearTitle'
+  | 'guildAdmin_insightsGearHint'
+  | 'guildAdmin_insightsGearEmpty'
+  | 'guildAdmin_insightsGearLabelLabel'
+  | 'guildAdmin_insightsGearMinScoreLabel'
+  | 'guildAdmin_insightsGearAddLabel'
+  | 'guildAdmin_insightsGearMetLabel'
+  | 'guildAdmin_insightsGearUnmetLabel'
+  | 'guildAdmin_insightsGearNoBuildLabel'
+  | 'guildAdmin_insightsGearScoreLabel'
+  | 'guildAdmin_insightsGearGapLabel'
+  | 'guildAdmin_insightsGearSummary'
+  | 'guildAdmin_insightsRaceTitle'
+  | 'guildAdmin_insightsRaceEmpty'
+  | 'guildAdmin_insightsRaceTeamLabel'
+  | 'guildAdmin_insightsRaceRunsLabel'
+  | 'guildAdmin_insightsRaceWinsLabel'
+  | 'guildAdmin_insightsRaceBestLabel'
+  | 'guildAdmin_insightsRaceUnclassified'
+  | 'guildAdmin_insightsSelfGearTitle'
   | 'guildAdmin_statsBoardEmpty'
   | 'guildAdmin_whiteLabelTitle'
   | 'guildAdmin_hideBrandingLabel'
@@ -596,6 +635,45 @@ export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'guildAdmin_statsSeatCount',
   'guildAdmin_statsCarCount',
   'guildAdmin_statsEmpty',
+  'guildAdmin_tabInsights',
+  'guildAdmin_insightsReliabilityTitle',
+  'guildAdmin_insightsReliabilityHint',
+  'guildAdmin_insightsSignupsLabel',
+  'guildAdmin_insightsAttendedLabel',
+  'guildAdmin_insightsNoShowLabel',
+  'guildAdmin_insightsRateLabel',
+  'guildAdmin_insightsReliabilityEmpty',
+  'guildAdmin_insightsHeatmapTitle',
+  'guildAdmin_insightsHeatmapHint',
+  'guildAdmin_insightsHeatmapEmpty',
+  'guildAdmin_insightsHeatmapTotal',
+  'guildAdmin_insightsWeekdayMon',
+  'guildAdmin_insightsWeekdayTue',
+  'guildAdmin_insightsWeekdayWed',
+  'guildAdmin_insightsWeekdayThu',
+  'guildAdmin_insightsWeekdayFri',
+  'guildAdmin_insightsWeekdaySat',
+  'guildAdmin_insightsWeekdaySun',
+  'guildAdmin_insightsGearTitle',
+  'guildAdmin_insightsGearHint',
+  'guildAdmin_insightsGearEmpty',
+  'guildAdmin_insightsGearLabelLabel',
+  'guildAdmin_insightsGearMinScoreLabel',
+  'guildAdmin_insightsGearAddLabel',
+  'guildAdmin_insightsGearMetLabel',
+  'guildAdmin_insightsGearUnmetLabel',
+  'guildAdmin_insightsGearNoBuildLabel',
+  'guildAdmin_insightsGearScoreLabel',
+  'guildAdmin_insightsGearGapLabel',
+  'guildAdmin_insightsGearSummary',
+  'guildAdmin_insightsRaceTitle',
+  'guildAdmin_insightsRaceEmpty',
+  'guildAdmin_insightsRaceTeamLabel',
+  'guildAdmin_insightsRaceRunsLabel',
+  'guildAdmin_insightsRaceWinsLabel',
+  'guildAdmin_insightsRaceBestLabel',
+  'guildAdmin_insightsRaceUnclassified',
+  'guildAdmin_insightsSelfGearTitle',
   'guildAdmin_statsBoardEmpty',
   'guildAdmin_whiteLabelTitle',
   'guildAdmin_hideBrandingLabel',
