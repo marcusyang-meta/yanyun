@@ -7,6 +7,7 @@ import { fonts, theme } from '../theme';
 import { AsyncBoundary, LoadingView } from '../components/AsyncBoundary';
 import { GuildRecruitQuery } from '../documents';
 import { applyToGuildRemote } from '../api';
+import AvailabilityDialog from './AvailabilityDialog';
 import type { documentsGuildRecruitQuery } from '../__generated__/documentsGuildRecruitQuery.graphql';
 
 // Recruit page (mobile form of the Web /:slug/recruit page): F16 join
@@ -40,6 +41,7 @@ function RecruitInner({ slug, topInset, bottomInset, refresh }: {
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [availOpen, setAvailOpen] = useState(false);
 
   if (!page) return <LoadingView />;
 
@@ -86,6 +88,7 @@ function RecruitInner({ slug, topInset, bottomInset, refresh }: {
   const app = page.myApplication;
   const showApplyForm = !app || app.status === 'REJECTED';
   return (
+    <>
     <ScrollView showsVerticalScrollIndicator={false}
       contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 12 + topInset, paddingBottom: 32 + bottomInset }}>
       {head}
@@ -135,21 +138,38 @@ function RecruitInner({ slug, topInset, bottomInset, refresh }: {
             <Text style={s.sectionTitle}>{page.checklistTitle}</Text>
             <Text style={s.muted}>{page.checklist.progressText}</Text>
           </View>
-          {page.checklist.items.map((item: any) => (
-            <View key={item.key} style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
-              <View style={{
-                width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center',
-                borderWidth: 1, borderColor: item.done ? theme.accent : 'rgba(67,160,134,.3)',
-                backgroundColor: item.done ? 'rgba(67,160,134,.16)' : 'transparent',
-              }}>
-                <Text style={{ fontSize: 12, color: item.done ? theme.accentHi : theme.muted }}>{item.done ? '✓' : ''}</Text>
+          {page.checklist.items.map((item: any) => {
+            // The availability step is actionable until done: it opens
+            // the same availability editor that lives under Profile
+            // (one editor, one data path). The checklist never
+            // blocks — skipping is simply not tapping it.
+            const actionable = item.key === 'availability' && !item.done;
+            const row = (
+              <>
+                <View style={{
+                  width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center',
+                  borderWidth: 1, borderColor: item.done ? theme.accent : 'rgba(67,160,134,.3)',
+                  backgroundColor: item.done ? 'rgba(67,160,134,.16)' : 'transparent',
+                }}>
+                  <Text style={{ fontSize: 12, color: item.done ? theme.accentHi : theme.muted }}>{item.done ? '✓' : ''}</Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={s.memberName}>{item.label}</Text>
+                  <Text style={s.muted}>{item.hint}</Text>
+                </View>
+                {actionable && <Text style={{ color: theme.accent, fontSize: 19 }}>›</Text>}
+              </>
+            );
+            return actionable ? (
+              <Pressable key={item.key} onPress={() => setAvailOpen(true)} style={{ flexDirection: 'row', gap: 10, marginTop: 10, alignItems: 'flex-start' }}>
+                {row}
+              </Pressable>
+            ) : (
+              <View key={item.key} style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
+                {row}
               </View>
-              <View style={{ flex: 1 }}>
-                <Text style={s.memberName}>{item.label}</Text>
-                <Text style={s.muted}>{item.hint}</Text>
-              </View>
-            </View>
-          ))}
+            );
+          })}
         </View>
       )}
 
@@ -170,6 +190,8 @@ function RecruitInner({ slug, topInset, bottomInset, refresh }: {
         </View>
       )}
     </ScrollView>
+    {availOpen && <AvailabilityDialog onClose={() => setAvailOpen(false)} />}
+    </>
   );
 }
 
