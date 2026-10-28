@@ -4,6 +4,7 @@
 export * from './tenants.ts';
 export * from './settings.ts';
 export * from './announcements.ts';
+export * from './announcement-i18n.ts';
 export * from './recruit.ts';
 export * from './membernotes.ts';
 export * from './seasongoals.ts';

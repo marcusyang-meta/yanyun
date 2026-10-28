@@ -86,6 +86,41 @@ export const guildAnnouncementReads = sqliteTable('guild_announcement_reads', {
   index('idx_guild_announcement_reads_tenant_user').on(t.tenant, t.discordId),
 ]);
 
+/* ---------------- announcement translations [migration 0032] ----
+ * Premium P26: one row per (announcement, target locale) with the
+ * translated title/body. status 'done' | 'failed' (a failed provider
+ * round keeps its row so the admin surface can show the failure);
+ * source_hash pins the translation to the exact source text it was
+ * generated from — a mismatch reads as stale and is never served. */
+export const guildAnnouncementTranslations = sqliteTable('guild_announcement_translations', {
+  announcementId: integer('announcement_id').notNull(),
+  tenant: text('tenant').notNull().default(''),
+  locale: text('locale').notNull().default(''),
+  title: text('title').notNull().default(''),
+  body: text('body').notNull().default(''),
+  status: text('status').notNull().default('done'),
+  sourceHash: text('source_hash').notNull().default(''),
+  createdAt: integer('created_at').notNull().default(0),
+  updatedAt: integer('updated_at').notNull().default(0),
+}, (t) => [
+  primaryKey({ columns: [t.announcementId, t.locale] }),
+  index('idx_guild_announcement_translations_tenant').on(t.tenant, t.announcementId),
+]);
+
+/* ---------------- translation provider cache [migration 0032] ---
+ * Cross-announcement cache for the translation provider seam:
+ * (hash of source locale + exact source text, target locale) ->
+ * translated text. Only successful translations land here, so the
+ * same text is never paid for twice. */
+export const translationCache = sqliteTable('translation_cache', {
+  sourceHash: text('source_hash').notNull(),
+  targetLocale: text('target_locale').notNull().default(''),
+  translatedText: text('translated_text').notNull().default(''),
+  createdAt: integer('created_at').notNull().default(0),
+}, (t) => [
+  primaryKey({ columns: [t.sourceHash, t.targetLocale] }),
+]);
+
 /* ---------------- season checklist state [migration 0022] --------
  * Per-guild check-off state for the backend-composed pre-season
  * checklist. Items themselves are NOT stored (composed per request
