@@ -4614,6 +4614,36 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "en": "Readiness line not found",
       "zh-TW": "達標線不存在"
     },
+    "capabilityRequired": {
+      "zh-CN": "你没有这项管理权限（需要百业管理员授予对应的军官能力）",
+      "en": "You do not hold this management permission (a guild admin must grant you the matching officer capability).",
+      "zh-TW": "你沒有這項管理權限（需要百業管理員授予對應的軍官能力）"
+    },
+    "governanceTierRequired": {
+      "zh-CN": "治理功能需要百业达到最高档位（T3）",
+      "en": "Governance features require the guild to be on the top tier (T3).",
+      "zh-TW": "治理功能需要百業達到最高檔位（T3）"
+    },
+    "officerTargetNotFound": {
+      "zh-CN": "目标成员不在本百业名册中",
+      "en": "That member is not on this guild's roster.",
+      "zh-TW": "目標成員不在本百業名冊中"
+    },
+    "officerBoardBodyRequired": {
+      "zh-CN": "私密区留言不能为空",
+      "en": "A board post cannot be empty.",
+      "zh-TW": "私密區留言不能為空"
+    },
+    "officerBoardBodyTooLong": {
+      "zh-CN": "私密区留言过长",
+      "en": "That board post is too long.",
+      "zh-TW": "私密區留言過長"
+    },
+    "officerBoardPostNotFound": {
+      "zh-CN": "私密区留言不存在",
+      "en": "That board post does not exist.",
+      "zh-TW": "私密區留言不存在"
+    },
     "premiumComingSoon": {
       "zh-CN": "Premium 开通即将开放"
     },
@@ -6140,6 +6170,11 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-CN": "军官工具",
       "en": "Officer tools",
       "zh-TW": "軍官工具"
+    },
+    "tabGovernance": {
+      "zh-CN": "治理",
+      "en": "Governance",
+      "zh-TW": "治理"
     }
   },
   "groupingTemplate": {
@@ -7713,6 +7748,373 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
     },
     "backLabel": {
       "zh-CN": "‹ 返回百业"
+    }
+  },
+  "governance": {
+    "sectionLockedTitle": {
+      "zh-CN": "此面未在你的授权内",
+      "en": "This surface is not in your grant",
+      "zh-TW": "此面未在你的授權內"
+    },
+    "sectionLockedBody": {
+      "zh-CN": "这个管理面需要对应的军官能力，你的授权不包含它。请百业管理员在治理页调整你的授权。",
+      "en": "This management surface needs a matching officer capability, and your grant does not include it. A guild admin can adjust your grant on the governance page.",
+      "zh-TW": "這個管理面需要對應的軍官能力，你的授權不包含它。請百業管理員在治理頁調整你的授權。"
+    },
+    "lockedTitle": {
+      "zh-CN": "治理功能未开通",
+      "en": "Governance is not active",
+      "zh-TW": "治理功能未開通"
+    },
+    "lockedBody": {
+      "zh-CN": "细粒度权限、军官私密区与百业审计日志是最高档位（T3）的治理功能。本百业尚未达到该档位，治理数据不会下发。",
+      "en": "Fine-grained permissions, the officer private area and the guild audit log are top-tier (T3) governance features. This guild has not reached that tier, so no governance data is served.",
+      "zh-TW": "細粒度權限、軍官私密區與百業審計日誌是最高檔位（T3）的治理功能。本百業尚未達到該檔位，治理資料不會下發。"
+    },
+    "title": {
+      "zh-CN": "治理与审计",
+      "en": "Governance & audit",
+      "zh-TW": "治理與審計"
+    },
+    "hint": {
+      "zh-CN": "百业管理员可以把部分管理面授权给军官成员分工处理；管理员本人始终全权。授权与全部管理动作都会记入本百业的审计日志。",
+      "en": "Guild admins can delegate parts of the admin surface to officer members; admins always keep full authority. Grants and every management action are recorded in this guild's audit log.",
+      "zh-TW": "百業管理員可以把部分管理面授權給軍官成員分工處理；管理員本人始終全權。授權與全部管理動作都會記入本百業的審計日誌。"
+    },
+    "officersTitle": {
+      "zh-CN": "军官授权",
+      "en": "Officer grants",
+      "zh-TW": "軍官授權"
+    },
+    "officersHint": {
+      "zh-CN": "被授权的军官只能进入被授予的管理面与动作；授权本身与付费结账始终只有百业管理员可以操作。",
+      "en": "A granted officer can only reach the surfaces and actions in their capability set; granting itself and billing always stay with guild admins.",
+      "zh-TW": "被授權的軍官只能進入被授予的管理面與動作；授權本身與付費結帳始終只有百業管理員可以操作。"
+    },
+    "officersEmpty": {
+      "zh-CN": "尚无被授权的军官。在下方选择名册成员并勾选能力即可授权。",
+      "en": "No officers have been granted yet. Pick a roster member below and tick capabilities to grant.",
+      "zh-TW": "尚無被授權的軍官。在下方選擇名冊成員並勾選能力即可授權。"
+    },
+    "grantMemberLabel": {
+      "zh-CN": "选择成员",
+      "en": "Member",
+      "zh-TW": "選擇成員"
+    },
+    "grantCapabilitiesLabel": {
+      "zh-CN": "授予能力",
+      "en": "Capabilities",
+      "zh-TW": "授予能力"
+    },
+    "grantButton": {
+      "zh-CN": "保存授权",
+      "en": "Save grant",
+      "zh-TW": "儲存授權"
+    },
+    "revokeButton": {
+      "zh-CN": "撤销授权",
+      "en": "Revoke grant",
+      "zh-TW": "撤銷授權"
+    },
+    "grantedByTemplate": {
+      "zh-CN": "{name} 授予",
+      "en": "Granted by {name}",
+      "zh-TW": "由 {name} 授予"
+    },
+    "adminBadge": {
+      "zh-CN": "百业管理员 · 全权",
+      "en": "Guild admin · full access",
+      "zh-TW": "百業管理員 · 全權"
+    },
+    "boardTitle": {
+      "zh-CN": "军官私密区",
+      "en": "Officer private area",
+      "zh-TW": "軍官私密區"
+    },
+    "boardHint": {
+      "zh-CN": "只有军官（百业管理员与被授权成员）能看到这里的内容：内部留言、排班注记都可以写在这里，普通成员完全看不到这一区。",
+      "en": "Only officers (guild admins and granted members) can see this area: internal messages and shift notes belong here, and regular members cannot see this area at all.",
+      "zh-TW": "只有軍官（百業管理員與被授權成員）能看到這裡的內容：內部留言、排班註記都可以寫在這裡，普通成員完全看不到這一區。"
+    },
+    "boardEmpty": {
+      "zh-CN": "私密区暂无留言。",
+      "en": "No posts yet.",
+      "zh-TW": "私密區暫無留言。"
+    },
+    "boardPlaceholder": {
+      "zh-CN": "写一条内部留言或排班注记…",
+      "en": "Write an internal message or shift note…",
+      "zh-TW": "寫一條內部留言或排班註記…"
+    },
+    "boardPostButton": {
+      "zh-CN": "发布到私密区",
+      "en": "Post to private area",
+      "zh-TW": "發布到私密區"
+    },
+    "boardDeleteButton": {
+      "zh-CN": "删除",
+      "en": "Delete",
+      "zh-TW": "刪除"
+    },
+    "boardAuthorTemplate": {
+      "zh-CN": "{name} 留言",
+      "en": "Post by {name}",
+      "zh-TW": "{name} 留言"
+    },
+    "auditTitle": {
+      "zh-CN": "百业审计日志",
+      "en": "Guild audit log",
+      "zh-TW": "百業審計日誌"
+    },
+    "auditHint": {
+      "zh-CN": "本百业内的管理动作留痕：谁在何时对什么做了什么。日志只记动作与目标摘要，不含备注正文等敏感内容。",
+      "en": "A trace of management actions inside this guild: who did what to which target, and when. The log stores only actions and target summaries — never sensitive body text such as note contents.",
+      "zh-TW": "本百業內的管理動作留痕：誰在何時對什麼做了什麼。日誌只記動作與目標摘要，不含備註內文等敏感內容。"
+    },
+    "auditEmpty": {
+      "zh-CN": "暂无审计记录。",
+      "en": "No audit events yet.",
+      "zh-TW": "暫無審計記錄。"
+    },
+    "auditLoadMoreButton": {
+      "zh-CN": "加载更多",
+      "en": "Load more",
+      "zh-TW": "載入更多"
+    },
+    "auditActorFallback": {
+      "zh-CN": "系统",
+      "en": "System",
+      "zh-TW": "系統"
+    },
+    "capProfile": {
+      "zh-CN": "资料设置",
+      "en": "Profile & branding",
+      "zh-TW": "資料設定"
+    },
+    "capDiscord": {
+      "zh-CN": "Discord 与提醒",
+      "en": "Discord & reminders",
+      "zh-TW": "Discord 與提醒"
+    },
+    "capEvents": {
+      "zh-CN": "车队管理",
+      "en": "Squad management",
+      "zh-TW": "車隊管理"
+    },
+    "capGuides": {
+      "zh-CN": "攻略数据",
+      "en": "Guide data",
+      "zh-TW": "攻略資料"
+    },
+    "capAnnounce": {
+      "zh-CN": "公告发布",
+      "en": "Announcements",
+      "zh-TW": "公告發布"
+    },
+    "capStats": {
+      "zh-CN": "数据查看",
+      "en": "Statistics",
+      "zh-TW": "資料查看"
+    },
+    "capTools": {
+      "zh-CN": "活动工具",
+      "en": "Activity tools",
+      "zh-TW": "活動工具"
+    },
+    "capSeason": {
+      "zh-CN": "赛季管理",
+      "en": "Season management",
+      "zh-TW": "賽季管理"
+    },
+    "capRecruit": {
+      "zh-CN": "招新审核",
+      "en": "Recruiting review",
+      "zh-TW": "招新審核"
+    },
+    "capOfficer": {
+      "zh-CN": "成员备注",
+      "en": "Member notes",
+      "zh-TW": "成員備註"
+    },
+    "actionProfileUpdate": {
+      "zh-CN": "修改百业资料",
+      "en": "Update guild profile",
+      "zh-TW": "修改百業資料"
+    },
+    "actionAvatarSet": {
+      "zh-CN": "设置百业头像",
+      "en": "Set guild avatar",
+      "zh-TW": "設定百業頭像"
+    },
+    "actionAvatarDelete": {
+      "zh-CN": "删除百业头像",
+      "en": "Delete guild avatar",
+      "zh-TW": "刪除百業頭像"
+    },
+    "actionDiscordUpdate": {
+      "zh-CN": "修改 Discord 集成",
+      "en": "Update Discord integration",
+      "zh-TW": "修改 Discord 整合"
+    },
+    "actionReminderUpdate": {
+      "zh-CN": "修改提醒设置",
+      "en": "Update reminder settings",
+      "zh-TW": "修改提醒設定"
+    },
+    "actionWhitelabelUpdate": {
+      "zh-CN": "修改白标设置",
+      "en": "Update white-label settings",
+      "zh-TW": "修改白標設定"
+    },
+    "actionVisibilityUpdate": {
+      "zh-CN": "修改可见性",
+      "en": "Update visibility",
+      "zh-TW": "修改可見性"
+    },
+    "actionRecruitOpen": {
+      "zh-CN": "切换招新开关",
+      "en": "Toggle recruitment switch",
+      "zh-TW": "切換招新開關"
+    },
+    "actionEventCreate": {
+      "zh-CN": "创建活动",
+      "en": "Create event",
+      "zh-TW": "建立活動"
+    },
+    "actionEventUpdate": {
+      "zh-CN": "修改活动",
+      "en": "Update event",
+      "zh-TW": "修改活動"
+    },
+    "actionEventDelete": {
+      "zh-CN": "删除活动",
+      "en": "Delete event",
+      "zh-TW": "刪除活動"
+    },
+    "actionSignupRemove": {
+      "zh-CN": "移除报名",
+      "en": "Remove signup",
+      "zh-TW": "移除報名"
+    },
+    "actionResultAdd": {
+      "zh-CN": "登记竞速成绩",
+      "en": "Add race result",
+      "zh-TW": "登記競速成績"
+    },
+    "actionResultDelete": {
+      "zh-CN": "删除竞速成绩",
+      "en": "Delete race result",
+      "zh-TW": "刪除競速成績"
+    },
+    "actionLotteryCreate": {
+      "zh-CN": "创建抽奖",
+      "en": "Create lottery",
+      "zh-TW": "建立抽獎"
+    },
+    "actionLotteryDraw": {
+      "zh-CN": "抽奖开奖",
+      "en": "Draw lottery",
+      "zh-TW": "抽獎開獎"
+    },
+    "actionGuideUpdate": {
+      "zh-CN": "修改攻略数据",
+      "en": "Update guide data",
+      "zh-TW": "修改攻略資料"
+    },
+    "actionAnnouncementPost": {
+      "zh-CN": "发布公告",
+      "en": "Post announcement",
+      "zh-TW": "發布公告"
+    },
+    "actionAnnouncementDelete": {
+      "zh-CN": "删除公告",
+      "en": "Delete announcement",
+      "zh-TW": "刪除公告"
+    },
+    "actionApplicationApprove": {
+      "zh-CN": "通过入业申请",
+      "en": "Approve join application",
+      "zh-TW": "通過入業申請"
+    },
+    "actionApplicationReject": {
+      "zh-CN": "拒绝入业申请",
+      "en": "Reject join application",
+      "zh-TW": "拒絕入業申請"
+    },
+    "actionMentorSet": {
+      "zh-CN": "设为导师",
+      "en": "Designate mentor",
+      "zh-TW": "設為導師"
+    },
+    "actionMentorUnset": {
+      "zh-CN": "取消导师",
+      "en": "Remove mentor designation",
+      "zh-TW": "取消導師"
+    },
+    "actionPairingCreate": {
+      "zh-CN": "建立导师配对",
+      "en": "Create mentor pairing",
+      "zh-TW": "建立導師配對"
+    },
+    "actionPairingEnd": {
+      "zh-CN": "结束导师配对",
+      "en": "End mentor pairing",
+      "zh-TW": "結束導師配對"
+    },
+    "actionNoteAdd": {
+      "zh-CN": "添加成员备注",
+      "en": "Add member note",
+      "zh-TW": "新增成員備註"
+    },
+    "actionNoteUpdate": {
+      "zh-CN": "修改成员备注",
+      "en": "Edit member note",
+      "zh-TW": "修改成員備註"
+    },
+    "actionNoteDelete": {
+      "zh-CN": "删除成员备注",
+      "en": "Delete member note",
+      "zh-TW": "刪除成員備註"
+    },
+    "actionExportPackage": {
+      "zh-CN": "导出百业数据包",
+      "en": "Export guild data package",
+      "zh-TW": "匯出百業資料包"
+    },
+    "actionSeasonChecklist": {
+      "zh-CN": "勾选赛季清单",
+      "en": "Toggle season checklist item",
+      "zh-TW": "勾選賽季清單"
+    },
+    "actionRosterImport": {
+      "zh-CN": "导入名册",
+      "en": "Import roster",
+      "zh-TW": "匯入名冊"
+    },
+    "actionRosterEntryDelete": {
+      "zh-CN": "删除名册记录",
+      "en": "Delete roster entry",
+      "zh-TW": "刪除名冊記錄"
+    },
+    "actionOfficerGrant": {
+      "zh-CN": "授予军官能力",
+      "en": "Grant officer capabilities",
+      "zh-TW": "授予軍官能力"
+    },
+    "actionOfficerRevoke": {
+      "zh-CN": "撤销军官授权",
+      "en": "Revoke officer grant",
+      "zh-TW": "撤銷軍官授權"
+    },
+    "actionBoardPost": {
+      "zh-CN": "私密区留言",
+      "en": "Post to officer board",
+      "zh-TW": "私密區留言"
+    },
+    "actionBoardDelete": {
+      "zh-CN": "删除私密区留言",
+      "en": "Delete officer board post",
+      "zh-TW": "刪除私密區留言"
     }
   }
 };

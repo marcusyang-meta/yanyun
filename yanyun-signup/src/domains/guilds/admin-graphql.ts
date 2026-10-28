@@ -80,7 +80,6 @@ import { computeGuildStats } from './stats.ts';
 import {
   reliabilityForAdmin, heatmapForAdmin, gearBoardForAdmin, raceBoardForViewer,
 } from './insights-graphql.ts';
-import { announcementPageForAdmin } from './announcements-graphql.ts';
 import { announcementPageForAdmin, announcementPageForMember } from './announcements-graphql.ts';
 import { SeasonChecklistShell, GuildRosterShell } from './season-graphql.ts';
 import { officerPageForAdmin } from './officer-graphql.ts';

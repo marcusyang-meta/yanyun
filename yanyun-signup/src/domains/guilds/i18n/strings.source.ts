@@ -560,6 +560,8 @@ export abstract class AlliesFbtUtils {
   static visitorSlotsLabel(fbs: FbsAPI) { return fbs("访客名额", "Field label for the squad sharing controls, used for the visitor seat quota input."); }
   static sharingSaveButton(fbs: FbsAPI) { return fbs("保存共享设置", "Button label for the squad sharing controls, used to save ally visibility and the visitor quota."); }
   static backLabel(fbs: FbsAPI) { return fbs("‹ 返回百业", "Back link for the allied guilds page, used at the top to return to the guild home page."); }
+}
+
 export abstract class GovernanceFbtUtils {
   static sectionLockedTitle(fbs: FbsAPI) { return fbs("此面未在你的授权内", "Title text for the capability locked panel on admin sub-surfaces, used when a delegated officer opens a management surface their capability set does not cover."); }
   static sectionLockedBody(fbs: FbsAPI) { return fbs("这个管理面需要对应的军官能力，你的授权不包含它。请百业管理员在治理页调整你的授权。", "Body text for the capability locked panel, used to explain that the surface needs a matching officer capability and a guild admin can adjust the viewer's grant on the governance page."); }

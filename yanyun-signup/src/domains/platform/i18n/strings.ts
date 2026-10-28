@@ -2167,6 +2167,24 @@ export abstract class ErrorsFbtUtils {
 	static gearStandardNotFound(fbs: FbsRuntime) {
 		return fbs._("达标线不存在", null, { hk: "HqhRP" });
 	}
+	static capabilityRequired(fbs: FbsRuntime) {
+		return fbs._("你没有这项管理权限（需要百业管理员授予对应的军官能力）", null, { hk: "2tAr2Z" });
+	}
+	static governanceTierRequired(fbs: FbsRuntime) {
+		return fbs._("治理功能需要百业达到最高档位（T3）", null, { hk: "2mfxS" });
+	}
+	static officerTargetNotFound(fbs: FbsRuntime) {
+		return fbs._("目标成员不在本百业名册中", null, { hk: "1p6Vlk" });
+	}
+	static officerBoardBodyRequired(fbs: FbsRuntime) {
+		return fbs._("私密区留言不能为空", null, { hk: "22nc8i" });
+	}
+	static officerBoardBodyTooLong(fbs: FbsRuntime) {
+		return fbs._("私密区留言过长", null, { hk: "2v6QSo" });
+	}
+	static officerBoardPostNotFound(fbs: FbsRuntime) {
+		return fbs._("私密区留言不存在", null, { hk: "2qSADj" });
+	}
 	static premiumComingSoon(fbs: FbsRuntime) {
 		return fbs._("Premium 开通即将开放", null, { hk: "2AKPwI" });
 	}
@@ -3111,6 +3129,9 @@ export abstract class GuildAdminFbtUtils {
 	}
 	static tabOfficer(fbs: FbsRuntime) {
 		return fbs._("军官工具", null, { hk: "16xzS9" });
+	}
+	static tabGovernance(fbs: FbsRuntime) {
+		return fbs._("治理", null, { hk: "39il6d" });
 	}
 }
 export abstract class GroupingTemplateFbtUtils {
@@ -4248,6 +4269,227 @@ export abstract class AlliesFbtUtils {
 		return fbs._("‹ 返回百业", null, { hk: "2IhABW" });
 	}
 }
+export abstract class GovernanceFbtUtils {
+	static sectionLockedTitle(fbs: FbsRuntime) {
+		return fbs._("此面未在你的授权内", null, { hk: "40BLd0" });
+	}
+	static sectionLockedBody(fbs: FbsRuntime) {
+		return fbs._("这个管理面需要对应的军官能力，你的授权不包含它。请百业管理员在治理页调整你的授权。", null, { hk: "293dMP" });
+	}
+	static lockedTitle(fbs: FbsRuntime) {
+		return fbs._("治理功能未开通", null, { hk: "1xnuYX" });
+	}
+	static lockedBody(fbs: FbsRuntime) {
+		return fbs._("细粒度权限、军官私密区与百业审计日志是最高档位（T3）的治理功能。本百业尚未达到该档位，治理数据不会下发。", null, { hk: "k5e1a" });
+	}
+	static title(fbs: FbsRuntime) {
+		return fbs._("治理与审计", null, { hk: "1hEl0W" });
+	}
+	static hint(fbs: FbsRuntime) {
+		return fbs._("百业管理员可以把部分管理面授权给军官成员分工处理；管理员本人始终全权。授权与全部管理动作都会记入本百业的审计日志。", null, { hk: "2B2KE9" });
+	}
+	static officersTitle(fbs: FbsRuntime) {
+		return fbs._("军官授权", null, { hk: "3oAfEQ" });
+	}
+	static officersHint(fbs: FbsRuntime) {
+		return fbs._("被授权的军官只能进入被授予的管理面与动作；授权本身与付费结账始终只有百业管理员可以操作。", null, { hk: "4f84qH" });
+	}
+	static officersEmpty(fbs: FbsRuntime) {
+		return fbs._("尚无被授权的军官。在下方选择名册成员并勾选能力即可授权。", null, { hk: "1hDxQl" });
+	}
+	static grantMemberLabel(fbs: FbsRuntime) {
+		return fbs._("选择成员", null, { hk: "32W8Dm" });
+	}
+	static grantCapabilitiesLabel(fbs: FbsRuntime) {
+		return fbs._("授予能力", null, { hk: "2yxjSt" });
+	}
+	static grantButton(fbs: FbsRuntime) {
+		return fbs._("保存授权", null, { hk: "1KrYD8" });
+	}
+	static revokeButton(fbs: FbsRuntime) {
+		return fbs._("撤销授权", null, { hk: "2uLfRS" });
+	}
+	static grantedByTemplate(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("{name} 授予", [fbs._param("name", pv(p, "name"))], { hk: "Wcqf" });
+	}
+	static adminBadge(fbs: FbsRuntime) {
+		return fbs._("百业管理员 · 全权", null, { hk: "1wH6tM" });
+	}
+	static boardTitle(fbs: FbsRuntime) {
+		return fbs._("军官私密区", null, { hk: "3dhZAD" });
+	}
+	static boardHint(fbs: FbsRuntime) {
+		return fbs._("只有军官（百业管理员与被授权成员）能看到这里的内容：内部留言、排班注记都可以写在这里，普通成员完全看不到这一区。", null, { hk: "zZByz" });
+	}
+	static boardEmpty(fbs: FbsRuntime) {
+		return fbs._("私密区暂无留言。", null, { hk: "1OEr73" });
+	}
+	static boardPlaceholder(fbs: FbsRuntime) {
+		return fbs._("写一条内部留言或排班注记…", null, { hk: "3na9ZO" });
+	}
+	static boardPostButton(fbs: FbsRuntime) {
+		return fbs._("发布到私密区", null, { hk: "412W39" });
+	}
+	static boardDeleteButton(fbs: FbsRuntime) {
+		return fbs._("删除", null, { hk: "3FZyby" });
+	}
+	static boardAuthorTemplate(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("{name} 留言", [fbs._param("name", pv(p, "name"))], { hk: "1RICMJ" });
+	}
+	static auditTitle(fbs: FbsRuntime) {
+		return fbs._("百业审计日志", null, { hk: "1S5eyt" });
+	}
+	static auditHint(fbs: FbsRuntime) {
+		return fbs._("本百业内的管理动作留痕：谁在何时对什么做了什么。日志只记动作与目标摘要，不含备注正文等敏感内容。", null, { hk: "JBT9e" });
+	}
+	static auditEmpty(fbs: FbsRuntime) {
+		return fbs._("暂无审计记录。", null, { hk: "6LyyN" });
+	}
+	static auditLoadMoreButton(fbs: FbsRuntime) {
+		return fbs._("加载更多", null, { hk: "25PqqE" });
+	}
+	static auditActorFallback(fbs: FbsRuntime) {
+		return fbs._("系统", null, { hk: "3qjQdc" });
+	}
+	static capProfile(fbs: FbsRuntime) {
+		return fbs._("资料设置", null, { hk: "bEBFj" });
+	}
+	static capDiscord(fbs: FbsRuntime) {
+		return fbs._("Discord 与提醒", null, { hk: "2pRiK1" });
+	}
+	static capEvents(fbs: FbsRuntime) {
+		return fbs._("车队管理", null, { hk: "3YbOia" });
+	}
+	static capGuides(fbs: FbsRuntime) {
+		return fbs._("攻略数据", null, { hk: "2OG0a" });
+	}
+	static capAnnounce(fbs: FbsRuntime) {
+		return fbs._("公告发布", null, { hk: "3CGBiC" });
+	}
+	static capStats(fbs: FbsRuntime) {
+		return fbs._("数据查看", null, { hk: "2mwnmZ" });
+	}
+	static capTools(fbs: FbsRuntime) {
+		return fbs._("活动工具", null, { hk: "3oXegV" });
+	}
+	static capSeason(fbs: FbsRuntime) {
+		return fbs._("赛季管理", null, { hk: "3ZaDFR" });
+	}
+	static capRecruit(fbs: FbsRuntime) {
+		return fbs._("招新审核", null, { hk: "2AsWsi" });
+	}
+	static capOfficer(fbs: FbsRuntime) {
+		return fbs._("成员备注", null, { hk: "eKnA2" });
+	}
+	static actionProfileUpdate(fbs: FbsRuntime) {
+		return fbs._("修改百业资料", null, { hk: "2WEKTg" });
+	}
+	static actionAvatarSet(fbs: FbsRuntime) {
+		return fbs._("设置百业头像", null, { hk: "3oPqid" });
+	}
+	static actionAvatarDelete(fbs: FbsRuntime) {
+		return fbs._("删除百业头像", null, { hk: "37TQxg" });
+	}
+	static actionDiscordUpdate(fbs: FbsRuntime) {
+		return fbs._("修改 Discord 集成", null, { hk: "4m2fez" });
+	}
+	static actionReminderUpdate(fbs: FbsRuntime) {
+		return fbs._("修改提醒设置", null, { hk: "38onKg" });
+	}
+	static actionWhitelabelUpdate(fbs: FbsRuntime) {
+		return fbs._("修改白标设置", null, { hk: "4hz0It" });
+	}
+	static actionVisibilityUpdate(fbs: FbsRuntime) {
+		return fbs._("修改可见性", null, { hk: "2QzGYC" });
+	}
+	static actionRecruitOpen(fbs: FbsRuntime) {
+		return fbs._("切换招新开关", null, { hk: "xsmH9" });
+	}
+	static actionEventCreate(fbs: FbsRuntime) {
+		return fbs._("创建活动", null, { hk: "1UKtHu" });
+	}
+	static actionEventUpdate(fbs: FbsRuntime) {
+		return fbs._("修改活动", null, { hk: "1ARfVJ" });
+	}
+	static actionEventDelete(fbs: FbsRuntime) {
+		return fbs._("删除活动", null, { hk: "1hiiau" });
+	}
+	static actionSignupRemove(fbs: FbsRuntime) {
+		return fbs._("移除报名", null, { hk: "1mLK3J" });
+	}
+	static actionResultAdd(fbs: FbsRuntime) {
+		return fbs._("登记竞速成绩", null, { hk: "9ZrB2" });
+	}
+	static actionResultDelete(fbs: FbsRuntime) {
+		return fbs._("删除竞速成绩", null, { hk: "cZXiY" });
+	}
+	static actionLotteryCreate(fbs: FbsRuntime) {
+		return fbs._("创建抽奖", null, { hk: "QJXVX" });
+	}
+	static actionLotteryDraw(fbs: FbsRuntime) {
+		return fbs._("抽奖开奖", null, { hk: "1JZkpB" });
+	}
+	static actionGuideUpdate(fbs: FbsRuntime) {
+		return fbs._("修改攻略数据", null, { hk: "3FTAHd" });
+	}
+	static actionAnnouncementPost(fbs: FbsRuntime) {
+		return fbs._("发布公告", null, { hk: "1SKRu3" });
+	}
+	static actionAnnouncementDelete(fbs: FbsRuntime) {
+		return fbs._("删除公告", null, { hk: "rYpmp" });
+	}
+	static actionApplicationApprove(fbs: FbsRuntime) {
+		return fbs._("通过入业申请", null, { hk: "28tEEU" });
+	}
+	static actionApplicationReject(fbs: FbsRuntime) {
+		return fbs._("拒绝入业申请", null, { hk: "2QNVRh" });
+	}
+	static actionMentorSet(fbs: FbsRuntime) {
+		return fbs._("设为导师", null, { hk: "4aoOTO" });
+	}
+	static actionMentorUnset(fbs: FbsRuntime) {
+		return fbs._("取消导师", null, { hk: "M3A2M" });
+	}
+	static actionPairingCreate(fbs: FbsRuntime) {
+		return fbs._("建立导师配对", null, { hk: "4DVuaj" });
+	}
+	static actionPairingEnd(fbs: FbsRuntime) {
+		return fbs._("结束导师配对", null, { hk: "gPUwZ" });
+	}
+	static actionNoteAdd(fbs: FbsRuntime) {
+		return fbs._("添加成员备注", null, { hk: "4iKG04" });
+	}
+	static actionNoteUpdate(fbs: FbsRuntime) {
+		return fbs._("修改成员备注", null, { hk: "1Eb8qo" });
+	}
+	static actionNoteDelete(fbs: FbsRuntime) {
+		return fbs._("删除成员备注", null, { hk: "26b1YG" });
+	}
+	static actionExportPackage(fbs: FbsRuntime) {
+		return fbs._("导出百业数据包", null, { hk: "2a8ZNL" });
+	}
+	static actionSeasonChecklist(fbs: FbsRuntime) {
+		return fbs._("勾选赛季清单", null, { hk: "3FrliC" });
+	}
+	static actionRosterImport(fbs: FbsRuntime) {
+		return fbs._("导入名册", null, { hk: "1T7mpN" });
+	}
+	static actionRosterEntryDelete(fbs: FbsRuntime) {
+		return fbs._("删除名册记录", null, { hk: "1wuk9M" });
+	}
+	static actionOfficerGrant(fbs: FbsRuntime) {
+		return fbs._("授予军官能力", null, { hk: "6LCKL" });
+	}
+	static actionOfficerRevoke(fbs: FbsRuntime) {
+		return fbs._("撤销军官授权", null, { hk: "4sY8q9" });
+	}
+	static actionBoardPost(fbs: FbsRuntime) {
+		return fbs._("私密区留言", null, { hk: "4gwgfk" });
+	}
+	static actionBoardDelete(fbs: FbsRuntime) {
+		return fbs._("删除私密区留言", null, { hk: "4kFZL0" });
+	}
+}
 export const STRING_FNS: Record<string, StringFn> = {
 	"common_cancel": CommonFbtUtils.cancel,
 	"common_confirm": CommonFbtUtils.confirm,
@@ -4936,6 +5178,12 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"errors_customDomainDnsPending": ErrorsFbtUtils.customDomainDnsPending,
 	"errors_gearStandardInvalid": ErrorsFbtUtils.gearStandardInvalid,
 	"errors_gearStandardNotFound": ErrorsFbtUtils.gearStandardNotFound,
+	"errors_capabilityRequired": ErrorsFbtUtils.capabilityRequired,
+	"errors_governanceTierRequired": ErrorsFbtUtils.governanceTierRequired,
+	"errors_officerTargetNotFound": ErrorsFbtUtils.officerTargetNotFound,
+	"errors_officerBoardBodyRequired": ErrorsFbtUtils.officerBoardBodyRequired,
+	"errors_officerBoardBodyTooLong": ErrorsFbtUtils.officerBoardBodyTooLong,
+	"errors_officerBoardPostNotFound": ErrorsFbtUtils.officerBoardPostNotFound,
 	"errors_premiumComingSoon": ErrorsFbtUtils.premiumComingSoon,
 	"errors_premiumActive": ErrorsFbtUtils.premiumActive,
 	"errors_paygateDisabled": ErrorsFbtUtils.paygateDisabled,
@@ -5249,6 +5497,7 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"guildAdmin_lotteryEntryCount": GuildAdminFbtUtils.lotteryEntryCount,
 	"guildAdmin_tabRecruit": GuildAdminFbtUtils.tabRecruit,
 	"guildAdmin_tabOfficer": GuildAdminFbtUtils.tabOfficer,
+	"guildAdmin_tabGovernance": GuildAdminFbtUtils.tabGovernance,
 	"groupingTemplate_sectionTitle": GroupingTemplateFbtUtils.sectionTitle,
 	"groupingTemplate_nameLabel": GroupingTemplateFbtUtils.nameLabel,
 	"groupingTemplate_namePlaceholder": GroupingTemplateFbtUtils.namePlaceholder,
@@ -5613,5 +5862,78 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"allies_allyVisibleLabel": AlliesFbtUtils.allyVisibleLabel,
 	"allies_visitorSlotsLabel": AlliesFbtUtils.visitorSlotsLabel,
 	"allies_sharingSaveButton": AlliesFbtUtils.sharingSaveButton,
-	"allies_backLabel": AlliesFbtUtils.backLabel
+	"allies_backLabel": AlliesFbtUtils.backLabel,
+	"governance_sectionLockedTitle": GovernanceFbtUtils.sectionLockedTitle,
+	"governance_sectionLockedBody": GovernanceFbtUtils.sectionLockedBody,
+	"governance_lockedTitle": GovernanceFbtUtils.lockedTitle,
+	"governance_lockedBody": GovernanceFbtUtils.lockedBody,
+	"governance_title": GovernanceFbtUtils.title,
+	"governance_hint": GovernanceFbtUtils.hint,
+	"governance_officersTitle": GovernanceFbtUtils.officersTitle,
+	"governance_officersHint": GovernanceFbtUtils.officersHint,
+	"governance_officersEmpty": GovernanceFbtUtils.officersEmpty,
+	"governance_grantMemberLabel": GovernanceFbtUtils.grantMemberLabel,
+	"governance_grantCapabilitiesLabel": GovernanceFbtUtils.grantCapabilitiesLabel,
+	"governance_grantButton": GovernanceFbtUtils.grantButton,
+	"governance_revokeButton": GovernanceFbtUtils.revokeButton,
+	"governance_grantedByTemplate": GovernanceFbtUtils.grantedByTemplate,
+	"governance_adminBadge": GovernanceFbtUtils.adminBadge,
+	"governance_boardTitle": GovernanceFbtUtils.boardTitle,
+	"governance_boardHint": GovernanceFbtUtils.boardHint,
+	"governance_boardEmpty": GovernanceFbtUtils.boardEmpty,
+	"governance_boardPlaceholder": GovernanceFbtUtils.boardPlaceholder,
+	"governance_boardPostButton": GovernanceFbtUtils.boardPostButton,
+	"governance_boardDeleteButton": GovernanceFbtUtils.boardDeleteButton,
+	"governance_boardAuthorTemplate": GovernanceFbtUtils.boardAuthorTemplate,
+	"governance_auditTitle": GovernanceFbtUtils.auditTitle,
+	"governance_auditHint": GovernanceFbtUtils.auditHint,
+	"governance_auditEmpty": GovernanceFbtUtils.auditEmpty,
+	"governance_auditLoadMoreButton": GovernanceFbtUtils.auditLoadMoreButton,
+	"governance_auditActorFallback": GovernanceFbtUtils.auditActorFallback,
+	"governance_capProfile": GovernanceFbtUtils.capProfile,
+	"governance_capDiscord": GovernanceFbtUtils.capDiscord,
+	"governance_capEvents": GovernanceFbtUtils.capEvents,
+	"governance_capGuides": GovernanceFbtUtils.capGuides,
+	"governance_capAnnounce": GovernanceFbtUtils.capAnnounce,
+	"governance_capStats": GovernanceFbtUtils.capStats,
+	"governance_capTools": GovernanceFbtUtils.capTools,
+	"governance_capSeason": GovernanceFbtUtils.capSeason,
+	"governance_capRecruit": GovernanceFbtUtils.capRecruit,
+	"governance_capOfficer": GovernanceFbtUtils.capOfficer,
+	"governance_actionProfileUpdate": GovernanceFbtUtils.actionProfileUpdate,
+	"governance_actionAvatarSet": GovernanceFbtUtils.actionAvatarSet,
+	"governance_actionAvatarDelete": GovernanceFbtUtils.actionAvatarDelete,
+	"governance_actionDiscordUpdate": GovernanceFbtUtils.actionDiscordUpdate,
+	"governance_actionReminderUpdate": GovernanceFbtUtils.actionReminderUpdate,
+	"governance_actionWhitelabelUpdate": GovernanceFbtUtils.actionWhitelabelUpdate,
+	"governance_actionVisibilityUpdate": GovernanceFbtUtils.actionVisibilityUpdate,
+	"governance_actionRecruitOpen": GovernanceFbtUtils.actionRecruitOpen,
+	"governance_actionEventCreate": GovernanceFbtUtils.actionEventCreate,
+	"governance_actionEventUpdate": GovernanceFbtUtils.actionEventUpdate,
+	"governance_actionEventDelete": GovernanceFbtUtils.actionEventDelete,
+	"governance_actionSignupRemove": GovernanceFbtUtils.actionSignupRemove,
+	"governance_actionResultAdd": GovernanceFbtUtils.actionResultAdd,
+	"governance_actionResultDelete": GovernanceFbtUtils.actionResultDelete,
+	"governance_actionLotteryCreate": GovernanceFbtUtils.actionLotteryCreate,
+	"governance_actionLotteryDraw": GovernanceFbtUtils.actionLotteryDraw,
+	"governance_actionGuideUpdate": GovernanceFbtUtils.actionGuideUpdate,
+	"governance_actionAnnouncementPost": GovernanceFbtUtils.actionAnnouncementPost,
+	"governance_actionAnnouncementDelete": GovernanceFbtUtils.actionAnnouncementDelete,
+	"governance_actionApplicationApprove": GovernanceFbtUtils.actionApplicationApprove,
+	"governance_actionApplicationReject": GovernanceFbtUtils.actionApplicationReject,
+	"governance_actionMentorSet": GovernanceFbtUtils.actionMentorSet,
+	"governance_actionMentorUnset": GovernanceFbtUtils.actionMentorUnset,
+	"governance_actionPairingCreate": GovernanceFbtUtils.actionPairingCreate,
+	"governance_actionPairingEnd": GovernanceFbtUtils.actionPairingEnd,
+	"governance_actionNoteAdd": GovernanceFbtUtils.actionNoteAdd,
+	"governance_actionNoteUpdate": GovernanceFbtUtils.actionNoteUpdate,
+	"governance_actionNoteDelete": GovernanceFbtUtils.actionNoteDelete,
+	"governance_actionExportPackage": GovernanceFbtUtils.actionExportPackage,
+	"governance_actionSeasonChecklist": GovernanceFbtUtils.actionSeasonChecklist,
+	"governance_actionRosterImport": GovernanceFbtUtils.actionRosterImport,
+	"governance_actionRosterEntryDelete": GovernanceFbtUtils.actionRosterEntryDelete,
+	"governance_actionOfficerGrant": GovernanceFbtUtils.actionOfficerGrant,
+	"governance_actionOfficerRevoke": GovernanceFbtUtils.actionOfficerRevoke,
+	"governance_actionBoardPost": GovernanceFbtUtils.actionBoardPost,
+	"governance_actionBoardDelete": GovernanceFbtUtils.actionBoardDelete
 };
