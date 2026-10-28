@@ -663,6 +663,17 @@ function PremiumLockedCard({ premium, slug, unknownError, onError }: {
         {!!premium.premiumPriceLabel && (
           <Text style={{ color: '#ecd28f', fontSize: 22, marginTop: 12, fontFamily: fonts.serif }}>{premium.premiumPriceLabel}</Text>
         )}
+        {/* Tier pricing arrives composed from the backend (names +
+            prices); the card renders what it is given. */}
+        {(premium.premiumTierPlans || []).map((plan: any) => (
+          <View key={plan.tier} style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }}>
+            <Text style={{ color: theme.paper, fontSize: 14, fontFamily: fonts.serif }}>
+              {plan.name}
+              <Text style={{ color: theme.muted, fontSize: 12 }}> · {plan.subtitle}</Text>
+            </Text>
+            <Text style={{ color: '#ecd28f', fontSize: 15, fontFamily: fonts.serif }}>{plan.priceLabel}</Text>
+          </View>
+        ))}
         {premium.premiumComingSoonText ? (
           <Text style={[s.muted, { marginTop: 12 }]}>{premium.premiumComingSoonText}</Text>
         ) : (
@@ -696,6 +707,9 @@ function PremiumActiveCard({ admin, premium }: { admin: Admin; premium: any }) {
         </Text>
         {!!premium.premiumPeriodEndText && (
           <Text style={[s.muted, { marginTop: 6 }]}>{premium.premiumPeriodEndText}</Text>
+        )}
+        {!!premium.premiumPastDueText && (
+          <Text style={{ color: '#e8a13a', fontSize: 13, marginTop: 6 }}>{premium.premiumPastDueText}</Text>
         )}
       </View>
     </View>

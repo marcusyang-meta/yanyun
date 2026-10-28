@@ -2501,6 +2501,14 @@ type GuildAdminPremiumActive {
   premiumPlanLabel: String!
   premiumSourceText: String!
   premiumPeriodEndText: String
+  premiumPastDueText: String
+}
+
+type GuildAdminPremiumTierPlan {
+  tier: Int!
+  name: String!
+  subtitle: String!
+  priceLabel: String!
 }
 
 type GuildAdminPremiumLocked {
@@ -2509,6 +2517,7 @@ type GuildAdminPremiumLocked {
   premiumPriceLabel: String
   premiumComingSoonText: String
   premiumCheckoutLabel: String!
+  premiumTierPlans: [GuildAdminPremiumTierPlan!]!
 }
 
 type GuildSeasonChecklist {

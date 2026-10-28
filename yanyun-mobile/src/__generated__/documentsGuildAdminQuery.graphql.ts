@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<b21aa875a495fec8c83252b5b3118c46>>
+ * @generated SignedSource<<9e35fd8b05b47af256d9ce9dcb05034f>>
  * @lightSyntaxTransform
  */
 
@@ -247,6 +247,7 @@ export type documentsGuildAdminQuery$data = {
       readonly ogTitleSuffix: string;
       readonly premium: {
         readonly __typename: "GuildAdminPremiumActive";
+        readonly premiumPastDueText: string | null | undefined;
         readonly premiumPeriodEndText: string | null | undefined;
         readonly premiumPlanLabel: string;
         readonly premiumSourceText: string;
@@ -256,6 +257,12 @@ export type documentsGuildAdminQuery$data = {
         readonly premiumCheckoutLabel: string;
         readonly premiumComingSoonText: string | null | undefined;
         readonly premiumPriceLabel: string | null | undefined;
+        readonly premiumTierPlans: ReadonlyArray<{
+          readonly name: string;
+          readonly priceLabel: string;
+          readonly subtitle: string;
+          readonly tier: number;
+        }>;
         readonly premiumTitle: string;
       } | {
         // This will never be '%other', but we need some
@@ -429,89 +436,96 @@ v4 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "key",
+  "name": "name",
   "storageKey": null
 },
 v5 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "id",
+  "name": "key",
   "storageKey": null
 },
 v6 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "title",
+  "name": "id",
   "storageKey": null
 },
 v7 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "status",
+  "name": "title",
   "storageKey": null
 },
 v8 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "teamName",
+  "name": "status",
   "storageKey": null
 },
 v9 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "members",
+  "name": "teamName",
   "storageKey": null
 },
 v10 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "note",
+  "name": "members",
   "storageKey": null
 },
 v11 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "createdAt",
+  "name": "note",
   "storageKey": null
 },
 v12 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "source",
+  "name": "createdAt",
   "storageKey": null
 },
 v13 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "createdAtText",
+  "name": "source",
   "storageKey": null
 },
 v14 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "discordId",
+  "name": "createdAtText",
   "storageKey": null
 },
 v15 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
+  "name": "discordId",
+  "storageKey": null
+},
+v16 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
   "name": "displayName",
   "storageKey": null
 },
-v16 = [
-  (v14/*:: as any*/),
+v17 = [
   (v15/*:: as any*/),
+  (v16/*:: as any*/),
   {
     "alias": null,
     "args": null,
@@ -520,14 +534,14 @@ v16 = [
     "storageKey": null
   }
 ],
-v17 = {
+v18 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "statusLabel",
   "storageKey": null
 },
-v18 = [
+v19 = [
   {
     "alias": null,
     "args": null,
@@ -1125,13 +1139,7 @@ v18 = [
                 "name": "adminTypeTowerText",
                 "storageKey": null
               },
-              {
-                "alias": null,
-                "args": null,
-                "kind": "ScalarField",
-                "name": "name",
-                "storageKey": null
-              },
+              (v4/*:: as any*/),
               {
                 "alias": null,
                 "args": null,
@@ -1231,7 +1239,7 @@ v18 = [
                 "name": "ogAccentOptions",
                 "plural": true,
                 "selections": [
-                  (v4/*:: as any*/),
+                  (v5/*:: as any*/),
                   {
                     "alias": null,
                     "args": null,
@@ -1288,6 +1296,13 @@ v18 = [
                         "kind": "ScalarField",
                         "name": "premiumPeriodEndText",
                         "storageKey": null
+                      },
+                      {
+                        "alias": null,
+                        "args": null,
+                        "kind": "ScalarField",
+                        "name": "premiumPastDueText",
+                        "storageKey": null
                       }
                     ],
                     "type": "GuildAdminPremiumActive",
@@ -1329,6 +1344,39 @@ v18 = [
                         "args": null,
                         "kind": "ScalarField",
                         "name": "premiumCheckoutLabel",
+                        "storageKey": null
+                      },
+                      {
+                        "alias": null,
+                        "args": null,
+                        "concreteType": "GuildAdminPremiumTierPlan",
+                        "kind": "LinkedField",
+                        "name": "premiumTierPlans",
+                        "plural": true,
+                        "selections": [
+                          {
+                            "alias": null,
+                            "args": null,
+                            "kind": "ScalarField",
+                            "name": "tier",
+                            "storageKey": null
+                          },
+                          (v4/*:: as any*/),
+                          {
+                            "alias": null,
+                            "args": null,
+                            "kind": "ScalarField",
+                            "name": "subtitle",
+                            "storageKey": null
+                          },
+                          {
+                            "alias": null,
+                            "args": null,
+                            "kind": "ScalarField",
+                            "name": "priceLabel",
+                            "storageKey": null
+                          }
+                        ],
                         "storageKey": null
                       }
                     ],
@@ -1381,8 +1429,8 @@ v18 = [
                 "name": "events",
                 "plural": true,
                 "selections": [
-                  (v5/*:: as any*/),
                   (v6/*:: as any*/),
+                  (v7/*:: as any*/),
                   {
                     "alias": null,
                     "args": null,
@@ -1390,7 +1438,7 @@ v18 = [
                     "name": "type",
                     "storageKey": null
                   },
-                  (v7/*:: as any*/),
+                  (v8/*:: as any*/),
                   {
                     "alias": null,
                     "args": null,
@@ -1455,7 +1503,7 @@ v18 = [
                     "name": "signups",
                     "plural": true,
                     "selections": [
-                      (v5/*:: as any*/),
+                      (v6/*:: as any*/),
                       {
                         "alias": null,
                         "args": null,
@@ -1491,10 +1539,10 @@ v18 = [
                         "name": "contact",
                         "storageKey": null
                       },
-                      (v8/*:: as any*/),
                       (v9/*:: as any*/),
                       (v10/*:: as any*/),
-                      (v11/*:: as any*/)
+                      (v11/*:: as any*/),
+                      (v12/*:: as any*/)
                     ],
                     "storageKey": null
                   },
@@ -1506,9 +1554,9 @@ v18 = [
                     "name": "results",
                     "plural": true,
                     "selections": [
-                      (v5/*:: as any*/),
-                      (v8/*:: as any*/),
+                      (v6/*:: as any*/),
                       (v9/*:: as any*/),
+                      (v10/*:: as any*/),
                       {
                         "alias": null,
                         "args": null,
@@ -1530,7 +1578,7 @@ v18 = [
                         "name": "proofUrl",
                         "storageKey": null
                       },
-                      (v10/*:: as any*/)
+                      (v11/*:: as any*/)
                     ],
                     "storageKey": null
                   },
@@ -1760,8 +1808,8 @@ v18 = [
                 "name": "lotteries",
                 "plural": true,
                 "selections": [
-                  (v5/*:: as any*/),
                   (v6/*:: as any*/),
+                  (v7/*:: as any*/),
                   {
                     "alias": null,
                     "args": null,
@@ -1769,7 +1817,7 @@ v18 = [
                     "name": "prize",
                     "storageKey": null
                   },
-                  (v12/*:: as any*/),
+                  (v13/*:: as any*/),
                   {
                     "alias": null,
                     "args": null,
@@ -1791,7 +1839,7 @@ v18 = [
                     "name": "winnerCount",
                     "storageKey": null
                   },
-                  (v7/*:: as any*/),
+                  (v8/*:: as any*/),
                   {
                     "alias": null,
                     "args": null,
@@ -1799,7 +1847,7 @@ v18 = [
                     "name": "entryCountText",
                     "storageKey": null
                   },
-                  (v13/*:: as any*/),
+                  (v14/*:: as any*/),
                   {
                     "alias": null,
                     "args": null,
@@ -1814,7 +1862,7 @@ v18 = [
                     "kind": "LinkedField",
                     "name": "entries",
                     "plural": true,
-                    "selections": (v16/*:: as any*/),
+                    "selections": (v17/*:: as any*/),
                     "storageKey": null
                   },
                   {
@@ -1824,7 +1872,7 @@ v18 = [
                     "kind": "LinkedField",
                     "name": "winners",
                     "plural": true,
-                    "selections": (v16/*:: as any*/),
+                    "selections": (v17/*:: as any*/),
                     "storageKey": null
                   }
                 ],
@@ -1838,8 +1886,8 @@ v18 = [
                 "name": "lotteryRoster",
                 "plural": true,
                 "selections": [
-                  (v14/*:: as any*/),
-                  (v15/*:: as any*/)
+                  (v15/*:: as any*/),
+                  (v16/*:: as any*/)
                 ],
                 "storageKey": null
               },
@@ -2005,7 +2053,7 @@ v18 = [
                 "name": "recruitApplications",
                 "plural": true,
                 "selections": [
-                  (v5/*:: as any*/),
+                  (v6/*:: as any*/),
                   {
                     "alias": null,
                     "args": null,
@@ -2027,9 +2075,9 @@ v18 = [
                     "name": "message",
                     "storageKey": null
                   },
-                  (v7/*:: as any*/),
-                  (v17/*:: as any*/),
-                  (v13/*:: as any*/),
+                  (v8/*:: as any*/),
+                  (v18/*:: as any*/),
+                  (v14/*:: as any*/),
                   {
                     "alias": null,
                     "args": null,
@@ -2055,7 +2103,7 @@ v18 = [
                 "name": "recruitPairings",
                 "plural": true,
                 "selections": [
-                  (v5/*:: as any*/),
+                  (v6/*:: as any*/),
                   {
                     "alias": null,
                     "args": null,
@@ -2084,9 +2132,9 @@ v18 = [
                     "name": "menteeName",
                     "storageKey": null
                   },
-                  (v7/*:: as any*/),
-                  (v17/*:: as any*/),
-                  (v13/*:: as any*/),
+                  (v8/*:: as any*/),
+                  (v18/*:: as any*/),
+                  (v14/*:: as any*/),
                   {
                     "alias": null,
                     "args": null,
@@ -2105,8 +2153,8 @@ v18 = [
                 "name": "recruitRoster",
                 "plural": true,
                 "selections": [
-                  (v14/*:: as any*/),
                   (v15/*:: as any*/),
+                  (v16/*:: as any*/),
                   {
                     "alias": null,
                     "args": null,
@@ -2125,8 +2173,8 @@ v18 = [
                 "name": "newcomerProgress",
                 "plural": true,
                 "selections": [
-                  (v14/*:: as any*/),
                   (v15/*:: as any*/),
+                  (v16/*:: as any*/),
                   {
                     "alias": null,
                     "args": null,
@@ -2392,8 +2440,8 @@ v18 = [
                         "name": "memberLeaders",
                         "plural": true,
                         "selections": [
-                          (v14/*:: as any*/),
                           (v15/*:: as any*/),
+                          (v16/*:: as any*/),
                           {
                             "alias": null,
                             "args": null,
@@ -2412,8 +2460,8 @@ v18 = [
                         "name": "leaderLeaders",
                         "plural": true,
                         "selections": [
-                          (v14/*:: as any*/),
                           (v15/*:: as any*/),
+                          (v16/*:: as any*/),
                           {
                             "alias": null,
                             "args": null,
@@ -2467,7 +2515,7 @@ v18 = [
                     "name": "seasonLabel",
                     "storageKey": null
                   },
-                  (v6/*:: as any*/),
+                  (v7/*:: as any*/),
                   {
                     "alias": null,
                     "args": null,
@@ -2504,8 +2552,8 @@ v18 = [
                     "name": "items",
                     "plural": true,
                     "selections": [
-                      (v4/*:: as any*/),
-                      (v6/*:: as any*/),
+                      (v5/*:: as any*/),
+                      (v7/*:: as any*/),
                       {
                         "alias": null,
                         "args": null,
@@ -2619,9 +2667,9 @@ v18 = [
                     "name": "entries",
                     "plural": true,
                     "selections": [
-                      (v5/*:: as any*/),
-                      (v15/*:: as any*/),
-                      (v12/*:: as any*/),
+                      (v6/*:: as any*/),
+                      (v16/*:: as any*/),
+                      (v13/*:: as any*/),
                       {
                         "alias": null,
                         "args": null,
@@ -2629,7 +2677,7 @@ v18 = [
                         "name": "matchedName",
                         "storageKey": null
                       },
-                      (v11/*:: as any*/)
+                      (v12/*:: as any*/)
                     ],
                     "storageKey": null
                   }
@@ -2653,7 +2701,7 @@ return {
     "kind": "Fragment",
     "metadata": null,
     "name": "documentsGuildAdminQuery",
-    "selections": (v18/*:: as any*/),
+    "selections": (v19/*:: as any*/),
     "type": "Query",
     "abstractKey": null
   },
@@ -2662,19 +2710,19 @@ return {
     "argumentDefinitions": (v0/*:: as any*/),
     "kind": "Operation",
     "name": "documentsGuildAdminQuery",
-    "selections": (v18/*:: as any*/)
+    "selections": (v19/*:: as any*/)
   },
   "params": {
-    "cacheID": "89ae99e8b995c058a8afd24e475ef229",
+    "cacheID": "76e6d054ff6b42d1b450ab7169495e41",
     "id": null,
     "metadata": {},
     "name": "documentsGuildAdminQuery",
     "operationKind": "query",
-    "text": "query documentsGuildAdminQuery(\n  $slug: String!\n) {\n  viewer {\n    commonUnknownErrorText\n    commonConfirmLabel\n    commonCancelLabel\n    guildAdmin(slug: $slug) {\n      __typename\n      ... on GuildAdminLocked {\n        slug\n        adminLockedTitle\n        adminLockedBody\n        adminBackLinkLabel\n      }\n      ... on GuildAdmin {\n        slug\n        avatarUrl\n        adminTitle\n        adminBackLinkLabel\n        adminProfileTitle\n        adminNameLabel\n        adminAnnouncementLabel\n        adminSloganLabel\n        adminMasterLabel: adminMasterNameLabel\n        adminLogoLabel: adminLogoUrlLabel\n        adminBgLabel: adminBgImageUrlLabel\n        adminSaveLabel\n        adminSavedText\n        adminAvatarLabel: adminAvatarTitle\n        adminUploadAvatarLabel: adminAvatarUploadLabel\n        adminReplaceAvatarLabel: adminAvatarReplaceLabel\n        adminDeleteAvatarLabel: adminAvatarDeleteLabel\n        adminAvatarNoneText\n        adminDiscordTitle\n        adminWebhookLabel\n        adminWebhookSetText\n        adminWebhookUnsetText\n        adminWebhookClearLabel\n        adminDiscordIdLabel: adminGuildIdLabel\n        adminReminderTitle\n        adminReminderOffsetsLabel\n        adminReminderOffsetTemplate\n        adminReminderCustomTextLabel\n        adminReminderCustomTextHint\n        adminVisibilityTitle\n        adminVisibilityLabel: adminDevOnlyLabel\n        adminWhiteLabelTitle\n        adminHideBrandingLabel\n        adminHideBrandingHint\n        adminOgAccentLabel\n        adminOgTitleSuffixLabel\n        adminOgTitleSuffixHint\n        adminPremiumTitle\n        adminAddLabel\n        adminEditLabel\n        adminDeleteLabel\n        adminEventsTitle\n        adminEventEmptyText\n        adminEventTitleLabel\n        adminEventTypeLabel\n        adminEventTimeLabel\n        adminEventDungeonLabel\n        adminEventSlotsLabel\n        adminEventMeetLabel\n        adminEventDescLabel\n        adminEventStatusLabel\n        adminStatusOpenText\n        adminStatusClosedText\n        adminStatusCompletedText\n        adminStatusDraftText\n        adminExportCsvLabel\n        adminSignupsTitle\n        adminSignupEmptyText\n        adminRemoveSignupLabel\n        adminResultsTitle\n        adminResultTeamLabel\n        adminResultMembersLabel\n        adminResultTimeLabel\n        adminResultProofLabel\n        adminResultNoteLabel\n        adminGuidesTitle\n        adminGuidesHint\n        adminGuideSchoolLabel\n        adminGuideBuildLabel\n        adminGuideAttrLabel\n        adminGuideRateLabel\n        adminGuideBisLabel\n        adminGuideRotationLabel\n        adminTypeActivityText\n        adminTypeTalentText\n        adminTypeRaceText\n        adminTypeTowerText\n        name\n        announcement\n        slogan\n        masterName\n        logoUrl\n        bgImageUrl\n        discordGuildId\n        reminderWebhookSet\n        reminderWebhookId\n        reminderOffsets\n        reminderCustomText\n        whiteLabelHideBranding\n        ogAccent\n        ogTitleSuffix\n        ogAccentOptions {\n          key\n          hex\n          label\n        }\n        devOnly\n        premium {\n          __typename\n          ... on GuildAdminPremiumActive {\n            premiumPlanLabel\n            premiumSourceText\n            premiumPeriodEndText\n          }\n          ... on GuildAdminPremiumLocked {\n            premiumTitle\n            premiumBody\n            premiumPriceLabel\n            premiumComingSoonText\n            premiumCheckoutLabel\n          }\n        }\n        adminTabProfileLabel\n        adminTabDiscordLabel\n        adminTabEventsLabel\n        adminTabGuidesLabel\n        adminTabAnnouncementsLabel\n        events {\n          id\n          title\n          type\n          status\n          origin\n          startsAtUtc\n          startsAtText\n          dungeon\n          maxSlots\n          meetInfo\n          description\n          signupCount\n          signups {\n            id\n            nickname\n            uid\n            role\n            weapon\n            contact\n            teamName\n            members\n            note\n            createdAt\n          }\n          results {\n            id\n            teamName\n            members\n            timeMs\n            timeText\n            proofUrl\n            note\n          }\n          signupsCsv\n        }\n        schoolGuides {\n          schools {\n            school\n            builds {\n              build\n              attr\n              rate\n              bisJson\n            }\n            rotationJson\n          }\n        }\n        adminTabToolsLabel\n        adminLotteryTitle\n        adminLotteryHint\n        adminLotteryEmptyText\n        adminLotteryNameLabel\n        adminLotteryPrizeLabel\n        adminLotterySourceLabel\n        adminLotterySourceGroupingText\n        adminLotterySourceMembersText\n        adminLotteryGroupingLabel\n        adminLotteryWinnerCountLabel\n        adminLotteryUniformWeightLabel\n        adminLotteryWeightLabel\n        adminLotteryEntriesLabel\n        adminLotteryWinnersLabel\n        adminLotteryCreateLabel\n        adminLotteryDrawLabel\n        adminLotteryStatusOpenText\n        adminLotteryStatusDrawnText\n        lotteries {\n          id\n          title\n          prize\n          source\n          sourceEventId\n          sourceEventTitle\n          winnerCount\n          status\n          entryCountText\n          createdAtText\n          drawnAtText\n          entries {\n            discordId\n            displayName\n            weight\n          }\n          winners {\n            discordId\n            displayName\n            weight\n          }\n        }\n        lotteryRoster {\n          discordId\n          displayName\n        }\n        adminTabRecruitLabel\n        adminRecruitApplicationsTitle\n        adminRecruitApplicationsEmptyText\n        adminRecruitApproveLabel\n        adminRecruitRejectLabel\n        adminRecruitMentorPoolTitle\n        adminRecruitSetMentorLabel\n        adminRecruitUnsetMentorLabel\n        adminRecruitPairingsTitle\n        adminRecruitPairingsEmptyText\n        adminRecruitPairingCreateLabel\n        adminRecruitPairingEndLabel\n        adminRecruitMentorSelectLabel\n        adminRecruitMenteeSelectLabel\n        adminRecruitNewcomersTitle\n        adminRecruitNewcomersEmptyText\n        adminRecruitOpenLabel\n        adminRecruitOpenHint\n        recruitOpen\n        adminRecruitProfileLabel\n        adminRecruitMentorLabel\n        adminRecruitFirstRunLabel\n        recruitApplications {\n          id\n          applicantDiscordId\n          applicantName\n          message\n          status\n          statusLabel\n          createdAtText\n          reviewedByName\n          reviewedAtText\n        }\n        recruitPairings {\n          id\n          mentorDiscordId\n          mentorName\n          menteeDiscordId\n          menteeName\n          status\n          statusLabel\n          createdAtText\n          endedAtText\n        }\n        recruitRoster {\n          discordId\n          displayName\n          isMentor\n        }\n        newcomerProgress {\n          discordId\n          displayName\n          profileDone\n          mentorDone\n          firstRunDone\n          progressText\n        }\n        adminTabStatsLabel\n        adminStatsTitle\n        adminStatsCurrentWeekLabel\n        adminStatsCarsLabel\n        adminStatsCompletedLabel\n        adminStatsSeatsLabel\n        adminStatsFillRateLabel\n        adminStatsParticipantsLabel\n        adminStatsPerCapitaLabel\n        adminStatsMembersTitle\n        adminStatsLeadersTitle\n        adminStatsSeatCountLabel\n        adminStatsCarCountLabel\n        adminStatsEmptyText\n        adminStatsBoardEmptyText\n        stats {\n          __typename\n          ... on GuildAdminStats {\n            weeks {\n              weekLabel\n              isCurrent\n              carsActivity\n              carsTalent\n              carsRace\n              carsTower\n              carsTotal\n              completedCount\n              totalSeats\n              filledSeats\n              fillRate\n              participantCount\n              participationCount\n              perCapita\n            }\n            memberLeaders {\n              discordId\n              displayName\n              seatCount\n            }\n            leaderLeaders {\n              discordId\n              displayName\n              carCount\n            }\n          }\n        }\n        adminTabSeasonLabel\n        seasonChecklist {\n          seasonKey\n          versionLabel\n          seasonLabel\n          title\n          hint\n          progressTemplate\n          doneCount\n          totalCount\n          items {\n            key\n            title\n            detail\n            checked\n            checkedByName\n          }\n        }\n        roster {\n          rosterTitle\n          rosterHint\n          rosterUploadLabel\n          rosterOcrRunningText\n          rosterPreviewTitle\n          rosterConfirmLabel\n          rosterEmptyText\n          rosterDeleteLabel\n          rosterSourceOcrLabel\n          rosterMatchedMemberLabel\n          entries {\n            id\n            displayName\n            source\n            matchedName\n            createdAt\n          }\n        }\n      }\n    }\n  }\n}\n"
+    "text": "query documentsGuildAdminQuery(\n  $slug: String!\n) {\n  viewer {\n    commonUnknownErrorText\n    commonConfirmLabel\n    commonCancelLabel\n    guildAdmin(slug: $slug) {\n      __typename\n      ... on GuildAdminLocked {\n        slug\n        adminLockedTitle\n        adminLockedBody\n        adminBackLinkLabel\n      }\n      ... on GuildAdmin {\n        slug\n        avatarUrl\n        adminTitle\n        adminBackLinkLabel\n        adminProfileTitle\n        adminNameLabel\n        adminAnnouncementLabel\n        adminSloganLabel\n        adminMasterLabel: adminMasterNameLabel\n        adminLogoLabel: adminLogoUrlLabel\n        adminBgLabel: adminBgImageUrlLabel\n        adminSaveLabel\n        adminSavedText\n        adminAvatarLabel: adminAvatarTitle\n        adminUploadAvatarLabel: adminAvatarUploadLabel\n        adminReplaceAvatarLabel: adminAvatarReplaceLabel\n        adminDeleteAvatarLabel: adminAvatarDeleteLabel\n        adminAvatarNoneText\n        adminDiscordTitle\n        adminWebhookLabel\n        adminWebhookSetText\n        adminWebhookUnsetText\n        adminWebhookClearLabel\n        adminDiscordIdLabel: adminGuildIdLabel\n        adminReminderTitle\n        adminReminderOffsetsLabel\n        adminReminderOffsetTemplate\n        adminReminderCustomTextLabel\n        adminReminderCustomTextHint\n        adminVisibilityTitle\n        adminVisibilityLabel: adminDevOnlyLabel\n        adminWhiteLabelTitle\n        adminHideBrandingLabel\n        adminHideBrandingHint\n        adminOgAccentLabel\n        adminOgTitleSuffixLabel\n        adminOgTitleSuffixHint\n        adminPremiumTitle\n        adminAddLabel\n        adminEditLabel\n        adminDeleteLabel\n        adminEventsTitle\n        adminEventEmptyText\n        adminEventTitleLabel\n        adminEventTypeLabel\n        adminEventTimeLabel\n        adminEventDungeonLabel\n        adminEventSlotsLabel\n        adminEventMeetLabel\n        adminEventDescLabel\n        adminEventStatusLabel\n        adminStatusOpenText\n        adminStatusClosedText\n        adminStatusCompletedText\n        adminStatusDraftText\n        adminExportCsvLabel\n        adminSignupsTitle\n        adminSignupEmptyText\n        adminRemoveSignupLabel\n        adminResultsTitle\n        adminResultTeamLabel\n        adminResultMembersLabel\n        adminResultTimeLabel\n        adminResultProofLabel\n        adminResultNoteLabel\n        adminGuidesTitle\n        adminGuidesHint\n        adminGuideSchoolLabel\n        adminGuideBuildLabel\n        adminGuideAttrLabel\n        adminGuideRateLabel\n        adminGuideBisLabel\n        adminGuideRotationLabel\n        adminTypeActivityText\n        adminTypeTalentText\n        adminTypeRaceText\n        adminTypeTowerText\n        name\n        announcement\n        slogan\n        masterName\n        logoUrl\n        bgImageUrl\n        discordGuildId\n        reminderWebhookSet\n        reminderWebhookId\n        reminderOffsets\n        reminderCustomText\n        whiteLabelHideBranding\n        ogAccent\n        ogTitleSuffix\n        ogAccentOptions {\n          key\n          hex\n          label\n        }\n        devOnly\n        premium {\n          __typename\n          ... on GuildAdminPremiumActive {\n            premiumPlanLabel\n            premiumSourceText\n            premiumPeriodEndText\n            premiumPastDueText\n          }\n          ... on GuildAdminPremiumLocked {\n            premiumTitle\n            premiumBody\n            premiumPriceLabel\n            premiumComingSoonText\n            premiumCheckoutLabel\n            premiumTierPlans {\n              tier\n              name\n              subtitle\n              priceLabel\n            }\n          }\n        }\n        adminTabProfileLabel\n        adminTabDiscordLabel\n        adminTabEventsLabel\n        adminTabGuidesLabel\n        adminTabAnnouncementsLabel\n        events {\n          id\n          title\n          type\n          status\n          origin\n          startsAtUtc\n          startsAtText\n          dungeon\n          maxSlots\n          meetInfo\n          description\n          signupCount\n          signups {\n            id\n            nickname\n            uid\n            role\n            weapon\n            contact\n            teamName\n            members\n            note\n            createdAt\n          }\n          results {\n            id\n            teamName\n            members\n            timeMs\n            timeText\n            proofUrl\n            note\n          }\n          signupsCsv\n        }\n        schoolGuides {\n          schools {\n            school\n            builds {\n              build\n              attr\n              rate\n              bisJson\n            }\n            rotationJson\n          }\n        }\n        adminTabToolsLabel\n        adminLotteryTitle\n        adminLotteryHint\n        adminLotteryEmptyText\n        adminLotteryNameLabel\n        adminLotteryPrizeLabel\n        adminLotterySourceLabel\n        adminLotterySourceGroupingText\n        adminLotterySourceMembersText\n        adminLotteryGroupingLabel\n        adminLotteryWinnerCountLabel\n        adminLotteryUniformWeightLabel\n        adminLotteryWeightLabel\n        adminLotteryEntriesLabel\n        adminLotteryWinnersLabel\n        adminLotteryCreateLabel\n        adminLotteryDrawLabel\n        adminLotteryStatusOpenText\n        adminLotteryStatusDrawnText\n        lotteries {\n          id\n          title\n          prize\n          source\n          sourceEventId\n          sourceEventTitle\n          winnerCount\n          status\n          entryCountText\n          createdAtText\n          drawnAtText\n          entries {\n            discordId\n            displayName\n            weight\n          }\n          winners {\n            discordId\n            displayName\n            weight\n          }\n        }\n        lotteryRoster {\n          discordId\n          displayName\n        }\n        adminTabRecruitLabel\n        adminRecruitApplicationsTitle\n        adminRecruitApplicationsEmptyText\n        adminRecruitApproveLabel\n        adminRecruitRejectLabel\n        adminRecruitMentorPoolTitle\n        adminRecruitSetMentorLabel\n        adminRecruitUnsetMentorLabel\n        adminRecruitPairingsTitle\n        adminRecruitPairingsEmptyText\n        adminRecruitPairingCreateLabel\n        adminRecruitPairingEndLabel\n        adminRecruitMentorSelectLabel\n        adminRecruitMenteeSelectLabel\n        adminRecruitNewcomersTitle\n        adminRecruitNewcomersEmptyText\n        adminRecruitOpenLabel\n        adminRecruitOpenHint\n        recruitOpen\n        adminRecruitProfileLabel\n        adminRecruitMentorLabel\n        adminRecruitFirstRunLabel\n        recruitApplications {\n          id\n          applicantDiscordId\n          applicantName\n          message\n          status\n          statusLabel\n          createdAtText\n          reviewedByName\n          reviewedAtText\n        }\n        recruitPairings {\n          id\n          mentorDiscordId\n          mentorName\n          menteeDiscordId\n          menteeName\n          status\n          statusLabel\n          createdAtText\n          endedAtText\n        }\n        recruitRoster {\n          discordId\n          displayName\n          isMentor\n        }\n        newcomerProgress {\n          discordId\n          displayName\n          profileDone\n          mentorDone\n          firstRunDone\n          progressText\n        }\n        adminTabStatsLabel\n        adminStatsTitle\n        adminStatsCurrentWeekLabel\n        adminStatsCarsLabel\n        adminStatsCompletedLabel\n        adminStatsSeatsLabel\n        adminStatsFillRateLabel\n        adminStatsParticipantsLabel\n        adminStatsPerCapitaLabel\n        adminStatsMembersTitle\n        adminStatsLeadersTitle\n        adminStatsSeatCountLabel\n        adminStatsCarCountLabel\n        adminStatsEmptyText\n        adminStatsBoardEmptyText\n        stats {\n          __typename\n          ... on GuildAdminStats {\n            weeks {\n              weekLabel\n              isCurrent\n              carsActivity\n              carsTalent\n              carsRace\n              carsTower\n              carsTotal\n              completedCount\n              totalSeats\n              filledSeats\n              fillRate\n              participantCount\n              participationCount\n              perCapita\n            }\n            memberLeaders {\n              discordId\n              displayName\n              seatCount\n            }\n            leaderLeaders {\n              discordId\n              displayName\n              carCount\n            }\n          }\n        }\n        adminTabSeasonLabel\n        seasonChecklist {\n          seasonKey\n          versionLabel\n          seasonLabel\n          title\n          hint\n          progressTemplate\n          doneCount\n          totalCount\n          items {\n            key\n            title\n            detail\n            checked\n            checkedByName\n          }\n        }\n        roster {\n          rosterTitle\n          rosterHint\n          rosterUploadLabel\n          rosterOcrRunningText\n          rosterPreviewTitle\n          rosterConfirmLabel\n          rosterEmptyText\n          rosterDeleteLabel\n          rosterSourceOcrLabel\n          rosterMatchedMemberLabel\n          entries {\n            id\n            displayName\n            source\n            matchedName\n            createdAt\n          }\n        }\n      }\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "7b356012eba414feb480133484f4a37b";
+(node as any).hash = "944d5ac576afbc403ce18d68506beeab";
 
 export default node;
