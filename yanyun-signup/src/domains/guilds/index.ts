@@ -4,6 +4,7 @@
 export * from './tenants.ts';
 export * from './settings.ts';
 export * from './announcements.ts';
+export * from './recruit.ts';
 export * from './whitelabel.ts';
 export * from './subdomain.ts';
 export * from './guildAvatars.ts';

@@ -323,6 +323,29 @@ export async function updateSignupWeaponRoleByUid(
   return metaOf(r);
 }
 
+/* ---------- newcomer checklist facts (F24 derivation) ----------
+ * One guild's seat facts for one member: every seat stamped with
+ * their discord_id in this guild's groupings, with the weapon
+ * （流派） they declared on it and the grouping's status. The F24
+ * checklist derives its profile / first-run items from this read
+ * and nothing else — no checklist state is stored anywhere. */
+export interface UserSeatFactRow {
+  weapon: string;
+  event_status: string;
+}
+
+export async function listUserSeatFactsInGuild(
+  d1: D1Database, tenant: string, discordId: string,
+): Promise<UserSeatFactRow[]> {
+  const db = createDb(d1);
+  const rows = await db.all<UserSeatFactRow>(
+    sql`SELECT ${signups.weapon} AS weapon, ${events.status} AS event_status
+        FROM ${signups} JOIN ${events} ON ${events.id} = ${signups.eventId}
+        WHERE ${events.tenant} = ${tenant} AND ${signups.discordId} = ${discordId}`,
+  );
+  return rows || [];
+}
+
 /* ---------- account deletion / export (seat-stamp keyed) ---------- */
 
 export interface UserSeatRow {

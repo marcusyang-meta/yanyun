@@ -16,7 +16,7 @@
  *   events / gear / users / members / results / dex / reference /
  *   state / ddl / guard / stamp / membercount / atomic / audit /
  *   shortlinks / beats / templates / usage / buildshares / billing /
- *   feedback / activitytools, extended as the data-layer migration
+ *   feedback / activitytools / recruit, extended as the data-layer migration
  *   progresses.
  *   Non-zero exit = an assertion failed.
  * =================================================== */
@@ -1312,6 +1312,65 @@ if (want('schedule')) {
   eq('answers delete with the seat uid', (await cf.listSignupAnswersByEvent(db, evId)).length, 0);
   await cf.replaceCustomFields(db, 'event', evId, []);
   eq('replace with empty set clears fields', (await cf.listCustomFields(db, 'event', evId)).length, 0);
+}
+
+/* ---------------- recruit: applications + mentors + pairings (F16/F17/F24) ---------------- */
+if (want('recruit')) {
+  console.log('== recruit repositories on real D1 ==');
+  const rec = await import('../src/domains/guilds/recruit.ts');
+  const sg = await import('../src/domains/groupings/signups.ts');
+  const ev = await import('../src/domains/groupings/events.ts');
+
+  const a1 = await rec.insertApplication(db, { tenant: 'alpha', discordId: 'U9', applicantName: '新人甲', message: '想入业', createdAt: 1760000000 });
+  check('insertApplication returns a row id', a1 > 0, String(a1));
+  eq('pending read roundtrip', (await rec.getPendingApplication(db, 'alpha', 'U9'))?.id, a1);
+  eq('pending read is tenant-scoped', await rec.getPendingApplication(db, 'beta', 'U9'), null);
+  let dupThrew = false;
+  try { await rec.insertApplication(db, { tenant: 'alpha', discordId: 'U9', applicantName: '新人甲', message: '再来一次', createdAt: 1760000100 }); }
+  catch { dupThrew = true; }
+  check('second pending application for the same applicant is rejected by the partial unique index', dupThrew);
+
+  const settled = await rec.reviewApplication(db, a1, 'alpha', { status: 'rejected', reviewedBy: 'UA', reviewedByName: '管理员', reviewedAt: 1760000200 });
+  eq('review settles the pending row', settled.changes, 1);
+  const raced = await rec.reviewApplication(db, a1, 'alpha', { status: 'approved', reviewedBy: 'UA', reviewedByName: '管理员', reviewedAt: 1760000300 });
+  eq('a settled application cannot be re-reviewed (still-pending guard)', raced.changes, 0);
+  eq('latest application shows the first verdict', (await rec.getLatestApplication(db, 'alpha', 'U9'))?.status, 'rejected');
+  const a2 = await rec.insertApplication(db, { tenant: 'alpha', discordId: 'U9', applicantName: '新人甲', message: '再试一次', createdAt: 1760000400 });
+  check('rejected applicant may apply again (partial index only covers pending)', a2 > a1, `${a1} -> ${a2}`);
+  eq('application read is tenant-scoped', await rec.getApplicationByTenant(db, a2, 'beta'), null);
+  eq('tenant list newest first', (await rec.listApplicationsByTenant(db, 'alpha')).map((r) => r.id), [a2, a1]);
+
+  await rec.insertMentor(db, 'alpha', 'M1', 1760000000);
+  await rec.insertMentor(db, 'alpha', 'M1', 1760000100);
+  eq('mentor designation is idempotent', await rec.listMentorIds(db, 'alpha'), ['M1']);
+  const p1 = await rec.insertPairing(db, { tenant: 'alpha', mentorDiscordId: 'M1', mentorName: '导师甲', menteeDiscordId: 'U9', menteeName: '新人甲', createdBy: 'UA', createdAt: 1760000500 });
+  check('insertPairing returns a row id', p1 > 0, String(p1));
+  eq('active pairing read for mentee', (await rec.getActivePairingForMentee(db, 'alpha', 'U9'))?.id, p1);
+  let pairDupThrew = false;
+  try { await rec.insertPairing(db, { tenant: 'alpha', mentorDiscordId: 'M1', mentorName: '导师甲', menteeDiscordId: 'U9', menteeName: '新人甲', createdBy: 'UA', createdAt: 1760000600 }); }
+  catch { pairDupThrew = true; }
+  check('second active pairing for the same mentee is rejected by the partial unique index', pairDupThrew);
+  eq('pairings list is tenant-scoped', await rec.listPairingsByTenant(db, 'beta'), []);
+  eq('pairings-for-user sees both sides', (await rec.listPairingsForUser(db, 'alpha', 'M1')).map((r) => r.id), [p1]);
+
+  // F24 derivation against real seats/events: no weapon yet, no completed run yet.
+  const evOpen = await ev.insertEvent(db, { tenant: 'alpha', title: '新人车', type: 'activity', description: '', starts_at: null, starts_at_utc: null, dungeon: '', max_slots: 10, meet_info: '', status: 'open', origin: 'member' });
+  await sg.insertSignup(db, { event_id: evOpen.last_row_id, nickname: '新人甲', uid: 'q-u9', role: '输出', weapon: '', discord_id: 'U9' });
+  let facts = await rec.computeNewcomerChecklist(db, 'alpha', 'U9');
+  eq('checklist: mentor item ticks from the active pairing alone', [facts.profileDone, facts.mentorDone, facts.firstRunDone, facts.doneCount], [false, true, false, 1]);
+  await sg.updateSignupWeaponRoleByUid(db, evOpen.last_row_id, 'q-u9', '破竹·樽', '输出');
+  await ev.setEventStatus(db, evOpen.last_row_id, 'completed');
+  facts = await rec.computeNewcomerChecklist(db, 'alpha', 'U9');
+  eq('checklist: weapon + completed seat tick the other two items', [facts.profileDone, facts.mentorDone, facts.firstRunDone, facts.allDone], [true, true, true, true]);
+
+  const ended = await rec.endPairing(db, p1, 'alpha', 1760000700);
+  eq('endPairing settles the active row', ended.changes, 1);
+  eq('ended pairing no longer ticks the mentor item', (await rec.computeNewcomerChecklist(db, 'alpha', 'U9')).mentorDone, false);
+  const p2 = await rec.insertPairing(db, { tenant: 'alpha', mentorDiscordId: 'M1', mentorName: '导师甲', menteeDiscordId: 'U9', menteeName: '新人甲', createdBy: 'UA', createdAt: 1760000800 });
+  check('mentee can be re-paired after the previous pairing ended', p2 > p1, `${p1} -> ${p2}`);
+  await rec.deleteMentor(db, 'alpha', 'M1');
+  eq('mentor undesignation removes the pool row', await rec.listMentorIds(db, 'alpha'), []);
+  eq('undesignation never rewrites pairings', (await rec.getActivePairingForMentee(db, 'alpha', 'U9'))?.id, p2);
 }
 
 await mf.dispose();

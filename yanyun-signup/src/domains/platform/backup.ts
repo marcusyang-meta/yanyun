@@ -30,6 +30,7 @@ import {
   userGearItems, userGearBuilds, buildShareLinks, heirloomItemPushes, heirloomSetState,
   pushTokens, usageCounters, creatorBackfillLog, hubAuditLog, guildEntitlements, feedback,
   guildAnnouncements, guildAnnouncementReads,
+  guildApplications, mentorPairings, guildMentors,
 } from '../../db/schema.ts';
 
 export const BACKUP_FORMAT = 'yanyun-backup';
@@ -86,6 +87,9 @@ export const BACKUP_ENTITIES: ReadonlyArray<readonly [string, SQLiteTable]> = [
   ['feedback', feedback],
   ['guild_announcements', guildAnnouncements],
   ['guild_announcement_reads', guildAnnouncementReads],
+  ['guild_applications', guildApplications],
+  ['guild_mentors', guildMentors],
+  ['mentor_pairings', mentorPairings],
 ];
 
 export type EncodedValue = string | number | null | { $blob: string };
