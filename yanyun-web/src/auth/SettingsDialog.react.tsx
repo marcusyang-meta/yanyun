@@ -7,6 +7,7 @@ import { writePrefMirror, emitLocaleChanged } from '../lib/locale';
 import { useIsMobile } from '../lib/useIsMobile';
 import type { ViewerUser } from '../lib/user';
 import GearLibrary from '../guild/components/GearLibrary.react.tsx';
+import AvailabilityEditor from '../guild/components/AvailabilityEditor.react.tsx';
 import { ToastHost } from '../guild/components/Toast.react.tsx';
 
 // Profile surface (renamed/reworked from the old "Settings"): ONE dialog
@@ -24,7 +25,12 @@ import { ToastHost } from '../guild/components/Toast.react.tsx';
 //   - feedback page, pushed by the feedback entry row;
 //   - gear library page, pushed by the gear entry row: the complete
 //     GearLibrary in profile mode. The panel widens for this page
-//     (.yy-modal-panel.is-wide) inside the same shell.
+//     (.yy-modal-panel.is-wide) inside the same shell;
+//   - availability page, pushed by the availability entry row (and
+//     deep-linked from the guild schedule tab / the newcomer
+//     checklist via UserBar's initialPage): one AvailabilityEditor
+//     per guild the viewer belongs to — availability is personal
+//     data and its only editor lives here (marcus, 2026-10-27).
 // Closing the dialog (scrim click / ✕ / the root page's mobile chevron)
 // ends the session from any page; the page stack lives in this
 // component's state, so the next open starts at the root page again.
@@ -118,6 +124,21 @@ const SettingsDialogQueryNode = graphql`
         accountPendingTitle
         accountPendingBody
       }
+      availabilityTitle
+      availabilityHint
+      availabilityWeekdayNames
+      availabilityAddSlotLabel
+      availabilityRemoveLabel
+      availabilitySaveLabel
+      availabilitySavedText
+      availabilitySaveFailedTemplate
+      availabilityEmptyText
+      availabilityNoGuildsText
+      availabilityGuilds {
+        slug
+        guildName
+        slots { weekday startMinute endMinute }
+      }
     }
     gradPage {
       gearMyLibTitle
@@ -203,9 +224,9 @@ export type AccountFlow = 'export' | 'delete';
 
 // The pages of this dialog host (see the file header): the root settings
 // page plus the pages pushed over it inside the same dialog.
-type DialogPage = 'main' | 'feedback' | 'gear' | 'goals';
+export type DialogPage = 'main' | 'feedback' | 'gear' | 'goals' | 'availability';
 
-export default function SettingsDialog({ open, onClose, user, initialFlow }: {
+export default function SettingsDialog({ open, onClose, user, initialFlow, initialPage }: {
   open: boolean;
   onClose: () => void;
   user?: ViewerUser | null;
@@ -214,11 +235,15 @@ export default function SettingsDialog({ open, onClose, user, initialFlow }: {
   // UserBar forwards it): export resumes immediately, delete lands on
   // the confirmation view.
   initialFlow?: AccountFlow | null;
+  // Set when another surface (schedule tab, newcomer checklist) asked
+  // UserBar to open this dialog at a specific page: the page is pushed
+  // over the root page, so back still lands on the root page.
+  initialPage?: DialogPage | null;
 }) {
   if (!open) return null;
   return (
     <Suspense fallback={<SettingsShellFallback onClose={onClose} />}>
-      <SettingsDialogInner onClose={onClose} user={user ?? null} initialFlow={initialFlow ?? null} />
+      <SettingsDialogInner onClose={onClose} user={user ?? null} initialFlow={initialFlow ?? null} initialPage={initialPage ?? null} />
     </Suspense>
   );
 }
@@ -243,10 +268,11 @@ function SettingsShellFallback({ onClose }: { onClose: () => void }) {
   );
 }
 
-function SettingsDialogInner({ onClose, user, initialFlow }: {
+function SettingsDialogInner({ onClose, user, initialFlow, initialPage }: {
   onClose: () => void;
   user: ViewerUser | null;
   initialFlow: AccountFlow | null;
+  initialPage: DialogPage | null;
 }) {
   const data = useLazyLoadQuery<any>(SettingsDialogQueryNode, {});
   const viewer: any = data.viewer ?? {};
@@ -264,7 +290,9 @@ function SettingsDialogInner({ onClose, user, initialFlow }: {
   // pop inside this one dialog; 'main' is the root page. Opening a page
   // never closes or replaces the dialog, and the stack dies with the
   // dialog — the next open starts at the root page.
-  const [pageStack, setPageStack] = useState<DialogPage[]>(['main']);
+  const [pageStack, setPageStack] = useState<DialogPage[]>(
+    () => (initialPage && initialPage !== 'main' ? ['main', initialPage] : ['main']),
+  );
   const view: DialogPage = pageStack[pageStack.length - 1];
   const pushPage = (p: DialogPage) => setPageStack((s) => [...s, p]);
   const popPage = () => setPageStack((s) => (s.length > 1 ? s.slice(0, -1) : s));
@@ -631,6 +659,19 @@ function SettingsDialogInner({ onClose, user, initialFlow }: {
           <span style={{ color: theme.accent, fontSize: 19, lineHeight: 1 }}>›</span>
         </button>
         <button
+          data-availability-entry
+          onClick={() => pushPage('availability')}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            width: '100%', textAlign: 'left', padding: '11px 16px', borderRadius: 10, cursor: 'pointer',
+            background: 'rgba(255,255,255,.02)', border: '1px solid rgba(67,160,134,.25)',
+            color: theme.paper, fontSize: 14.5, marginTop: 8,
+          }}
+        >
+          <span>{page.availabilityTitle}</span>
+          <span style={{ color: theme.accent, fontSize: 19, lineHeight: 1 }}>›</span>
+        </button>
+        <button
           data-feedback-entry
           onClick={openFeedback}
           style={{
@@ -989,11 +1030,58 @@ function SettingsDialogInner({ onClose, user, initialFlow }: {
     </>
   );
 
-  const body = view === 'feedback' ? feedbackBody : view === 'gear' ? gearBody : view === 'goals' ? goalsBody : mainBody;
+  // Availability page: one shared AvailabilityEditor per guild the
+  // viewer belongs to (the backend composes the list; an empty list
+  // renders the no-guilds text). Its toasts render inside this dialog,
+  // on this page (same as the gear page).
+  const availGuilds: any[] = page.availabilityGuilds ?? [];
+  const availabilityBody = (
+    <>
+      {!isMobile && (
+        <div
+          data-availability-back
+          onClick={popPage}
+          style={{ color: theme.accent, fontSize: 24, lineHeight: 1, cursor: 'pointer', padding: '0 8px 10px 0', width: 32 }}
+        >‹</div>
+      )}
+      <div style={{ color: theme.muted, fontSize: 13, lineHeight: 1.7, marginBottom: 18 }}>{page.availabilityHint}</div>
+      {!availGuilds.length && (
+        <div style={{ fontSize: 13.5, color: theme.muted }}>{page.availabilityNoGuildsText}</div>
+      )}
+      {availGuilds.map((g: any) => (
+        <div key={g.slug} style={{ marginBottom: 26 }}>
+          <div style={{ color: theme.paper, fontSize: 15.5, marginBottom: 12 }}>{g.guildName}</div>
+          <AvailabilityEditor
+            slug={g.slug}
+            initialSlots={g.slots ?? []}
+            text={{
+              weekdayNames: page.availabilityWeekdayNames ?? [],
+              addSlotLabel: page.availabilityAddSlotLabel,
+              removeLabel: page.availabilityRemoveLabel,
+              saveLabel: page.availabilitySaveLabel,
+              savedText: page.availabilitySavedText,
+              saveFailedTemplate: page.availabilitySaveFailedTemplate,
+              emptyText: page.availabilityEmptyText,
+              unknownErrorText: viewer.commonUnknownErrorText ?? '',
+            }}
+          />
+        </div>
+      ))}
+      <ToastHost />
+    </>
+  );
+
+  const body = view === 'feedback' ? feedbackBody
+    : view === 'gear' ? gearBody
+    : view === 'goals' ? goalsBody
+    : view === 'availability' ? availabilityBody
+    : mainBody;
   const headerTitle = view === 'feedback'
     ? page.feedbackTitle
     : view === 'gear' ? data.gradPage?.gearMyLibTitle
-    : view === 'goals' ? goalsPage.title : page.settingsTitle;
+    : view === 'goals' ? goalsPage.title
+    : view === 'availability' ? page.availabilityTitle
+    : page.settingsTitle;
   // The mobile header chevron pops one page; on the root page it closes
   // the dialog. (Desktop closes via the ✕ / scrim from any page.)
   const headerBack = view === 'main' ? onClose : popPage;

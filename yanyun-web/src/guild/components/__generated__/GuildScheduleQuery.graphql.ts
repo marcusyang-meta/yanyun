@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<665833ecdab3708dcac9fb95496bd6ff>>
+ * @generated SignedSource<<c4d9dd77c16c5767e3e3601ef0554e07>>
  * @lightSyntaxTransform
  */
 
@@ -66,11 +66,6 @@ export type GuildScheduleQuery$data = {
     readonly formTypeRaceLabel: string;
     readonly formTypeTalentLabel: string;
     readonly formTypeTowerLabel: string;
-    readonly myAvailability: ReadonlyArray<{
-      readonly endMinute: number;
-      readonly startMinute: number;
-      readonly weekday: number;
-    }>;
     readonly polls: ReadonlyArray<{
       readonly closeActions: {
         readonly closeLabel: string;
@@ -93,9 +88,6 @@ export type GuildScheduleQuery$data = {
       readonly status: string;
       readonly title: string;
     }>;
-    readonly scheduleAddSlotLabel: string;
-    readonly scheduleEmptyMineText: string;
-    readonly scheduleMyHint: string;
     readonly scheduleMyTitle: string;
     readonly schedulePollAddCandidateLabel: string;
     readonly schedulePollCancelLabel: string;
@@ -115,9 +107,7 @@ export type GuildScheduleQuery$data = {
     readonly schedulePollsHint: string;
     readonly schedulePollsTitle: string;
     readonly scheduleRemoveLabel: string;
-    readonly scheduleSaveFailedTemplate: string;
-    readonly scheduleSaveLabel: string;
-    readonly scheduleSavedText: string;
+    readonly scheduleSettingsLinkLabel: string;
     readonly scheduleSlotRangeTemplate: string;
     readonly scheduleSummaryEmptyText: string;
     readonly scheduleSummaryHint: string;
@@ -151,37 +141,14 @@ var v0 = [
     "name": "slug"
   }
 ],
-v1 = [
-  {
-    "alias": null,
-    "args": null,
-    "kind": "ScalarField",
-    "name": "weekday",
-    "storageKey": null
-  },
-  {
-    "alias": null,
-    "args": null,
-    "kind": "ScalarField",
-    "name": "startMinute",
-    "storageKey": null
-  },
-  {
-    "alias": null,
-    "args": null,
-    "kind": "ScalarField",
-    "name": "endMinute",
-    "storageKey": null
-  }
-],
-v2 = {
+v1 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "id",
   "storageKey": null
 },
-v3 = [
+v2 = [
   {
     "alias": null,
     "args": null,
@@ -231,16 +198,6 @@ v3 = [
       {
         "alias": null,
         "args": null,
-        "concreteType": "AvailabilitySlot",
-        "kind": "LinkedField",
-        "name": "myAvailability",
-        "plural": true,
-        "selections": (v1/*:: as any*/),
-        "storageKey": null
-      },
-      {
-        "alias": null,
-        "args": null,
         "concreteType": "MemberAvailabilitySummary",
         "kind": "LinkedField",
         "name": "availabilitySummary",
@@ -267,7 +224,29 @@ v3 = [
             "kind": "LinkedField",
             "name": "slots",
             "plural": true,
-            "selections": (v1/*:: as any*/),
+            "selections": [
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "weekday",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "startMinute",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "endMinute",
+                "storageKey": null
+              }
+            ],
             "storageKey": null
           }
         ],
@@ -281,7 +260,7 @@ v3 = [
         "name": "polls",
         "plural": true,
         "selections": [
-          (v2/*:: as any*/),
+          (v1/*:: as any*/),
           {
             "alias": null,
             "args": null,
@@ -325,7 +304,7 @@ v3 = [
             "name": "options",
             "plural": true,
             "selections": [
-              (v2/*:: as any*/),
+              (v1/*:: as any*/),
               {
                 "alias": null,
                 "args": null,
@@ -757,21 +736,7 @@ v3 = [
         "alias": null,
         "args": null,
         "kind": "ScalarField",
-        "name": "scheduleMyHint",
-        "storageKey": null
-      },
-      {
-        "alias": null,
-        "args": null,
-        "kind": "ScalarField",
         "name": "scheduleSlotRangeTemplate",
-        "storageKey": null
-      },
-      {
-        "alias": null,
-        "args": null,
-        "kind": "ScalarField",
-        "name": "scheduleAddSlotLabel",
         "storageKey": null
       },
       {
@@ -785,28 +750,7 @@ v3 = [
         "alias": null,
         "args": null,
         "kind": "ScalarField",
-        "name": "scheduleSaveLabel",
-        "storageKey": null
-      },
-      {
-        "alias": null,
-        "args": null,
-        "kind": "ScalarField",
-        "name": "scheduleSavedText",
-        "storageKey": null
-      },
-      {
-        "alias": null,
-        "args": null,
-        "kind": "ScalarField",
-        "name": "scheduleSaveFailedTemplate",
-        "storageKey": null
-      },
-      {
-        "alias": null,
-        "args": null,
-        "kind": "ScalarField",
-        "name": "scheduleEmptyMineText",
+        "name": "scheduleSettingsLinkLabel",
         "storageKey": null
       },
       {
@@ -987,7 +931,7 @@ return {
     "kind": "Fragment",
     "metadata": null,
     "name": "GuildScheduleQuery",
-    "selections": (v3/*:: as any*/),
+    "selections": (v2/*:: as any*/),
     "type": "Query",
     "abstractKey": null
   },
@@ -996,19 +940,19 @@ return {
     "argumentDefinitions": (v0/*:: as any*/),
     "kind": "Operation",
     "name": "GuildScheduleQuery",
-    "selections": (v3/*:: as any*/)
+    "selections": (v2/*:: as any*/)
   },
   "params": {
-    "cacheID": "40df3a628ba152500dbf7d5334e1ff04",
+    "cacheID": "0f05a432e6f5104780eb296f3adf4e8e",
     "id": null,
     "metadata": {},
     "name": "GuildScheduleQuery",
     "operationKind": "query",
-    "text": "query GuildScheduleQuery(\n  $slug: String!\n) {\n  viewer {\n    commonUnknownErrorText\n  }\n  guildSchedulePage(slug: $slug) {\n    slug\n    weekdayNames\n    myAvailability {\n      weekday\n      startMinute\n      endMinute\n    }\n    availabilitySummary {\n      discordId\n      displayName\n      slots {\n        weekday\n        startMinute\n        endMinute\n      }\n    }\n    polls {\n      id\n      title\n      status\n      creatorName\n      createdAtText\n      myOptionIds\n      options {\n        id\n        startsAtUtc\n        startsAtText\n        voteCount\n        voterNames\n        votedByMe\n      }\n      closeActions {\n        closeLabel\n      }\n      launchActions {\n        launchLabel\n      }\n    }\n    formCreateTitle\n    formEditTitle\n    formTypeLabel\n    formTypeActivityLabel\n    formTypeTalentLabel\n    formTypeRaceLabel\n    formTypeTowerLabel\n    formCapacityTemplate\n    formHintActivity\n    formHintDungeonTemplate\n    formHintTalent\n    formHintRace\n    formHintTower\n    formTitleLabel\n    formTitlePlaceholder\n    formStartsLabel\n    formMonthTemplate\n    formDayTemplate\n    formHourTemplate\n    formMinuteTemplate\n    formDungeonLabel\n    formDungeonNoneLabel\n    formNicknameLabel\n    formNicknamePlaceholder\n    formSectLabel\n    formCancelLabel\n    formSubmitCreateLabel\n    formSubmitEditLabel\n    formSubmittingLabel\n    formToastSect\n    formToastSaved\n    formToastSaveFailedTemplate\n    formToastPosted\n    formToastCreateFailedTemplate\n    formTitleTemplate\n    formCustomFieldsTitle\n    formCustomFieldAddLabel\n    formCustomFieldLabelPlaceholder\n    formCustomFieldTypeText\n    formCustomFieldTypeChoice\n    formCustomFieldOptionsPlaceholder\n    formCustomFieldRequiredLabel\n    formCustomFieldRemoveLabel\n    formCustomFieldEmptyText\n    typeShortActivity\n    typeShortTalent\n    typeShortRace\n    typeShortTower\n    scheduleTitle\n    scheduleMyTitle\n    scheduleMyHint\n    scheduleSlotRangeTemplate\n    scheduleAddSlotLabel\n    scheduleRemoveLabel\n    scheduleSaveLabel\n    scheduleSavedText\n    scheduleSaveFailedTemplate\n    scheduleEmptyMineText\n    scheduleSummaryTitle\n    scheduleSummaryHint\n    scheduleSummaryEmptyText\n    schedulePollsTitle\n    schedulePollsHint\n    schedulePollEmptyText\n    schedulePollCreateLabel\n    schedulePollTitleLabel\n    schedulePollTitlePlaceholder\n    schedulePollCandidatesLabel\n    schedulePollAddCandidateLabel\n    schedulePollSubmitLabel\n    schedulePollVoteLabel\n    schedulePollVotedText\n    schedulePollStatusOpenText\n    schedulePollStatusClosedText\n    schedulePollCloseLabel\n    schedulePollVoteCountTemplate\n    schedulePollLaunchLabel\n    schedulePollCancelLabel\n    scheduleToastPollCreated\n    scheduleToastVoted\n    scheduleToastClosed\n    scheduleToastFailedTemplate\n  }\n}\n"
+    "text": "query GuildScheduleQuery(\n  $slug: String!\n) {\n  viewer {\n    commonUnknownErrorText\n  }\n  guildSchedulePage(slug: $slug) {\n    slug\n    weekdayNames\n    availabilitySummary {\n      discordId\n      displayName\n      slots {\n        weekday\n        startMinute\n        endMinute\n      }\n    }\n    polls {\n      id\n      title\n      status\n      creatorName\n      createdAtText\n      myOptionIds\n      options {\n        id\n        startsAtUtc\n        startsAtText\n        voteCount\n        voterNames\n        votedByMe\n      }\n      closeActions {\n        closeLabel\n      }\n      launchActions {\n        launchLabel\n      }\n    }\n    formCreateTitle\n    formEditTitle\n    formTypeLabel\n    formTypeActivityLabel\n    formTypeTalentLabel\n    formTypeRaceLabel\n    formTypeTowerLabel\n    formCapacityTemplate\n    formHintActivity\n    formHintDungeonTemplate\n    formHintTalent\n    formHintRace\n    formHintTower\n    formTitleLabel\n    formTitlePlaceholder\n    formStartsLabel\n    formMonthTemplate\n    formDayTemplate\n    formHourTemplate\n    formMinuteTemplate\n    formDungeonLabel\n    formDungeonNoneLabel\n    formNicknameLabel\n    formNicknamePlaceholder\n    formSectLabel\n    formCancelLabel\n    formSubmitCreateLabel\n    formSubmitEditLabel\n    formSubmittingLabel\n    formToastSect\n    formToastSaved\n    formToastSaveFailedTemplate\n    formToastPosted\n    formToastCreateFailedTemplate\n    formTitleTemplate\n    formCustomFieldsTitle\n    formCustomFieldAddLabel\n    formCustomFieldLabelPlaceholder\n    formCustomFieldTypeText\n    formCustomFieldTypeChoice\n    formCustomFieldOptionsPlaceholder\n    formCustomFieldRequiredLabel\n    formCustomFieldRemoveLabel\n    formCustomFieldEmptyText\n    typeShortActivity\n    typeShortTalent\n    typeShortRace\n    typeShortTower\n    scheduleTitle\n    scheduleMyTitle\n    scheduleSlotRangeTemplate\n    scheduleRemoveLabel\n    scheduleSettingsLinkLabel\n    scheduleSummaryTitle\n    scheduleSummaryHint\n    scheduleSummaryEmptyText\n    schedulePollsTitle\n    schedulePollsHint\n    schedulePollEmptyText\n    schedulePollCreateLabel\n    schedulePollTitleLabel\n    schedulePollTitlePlaceholder\n    schedulePollCandidatesLabel\n    schedulePollAddCandidateLabel\n    schedulePollSubmitLabel\n    schedulePollVoteLabel\n    schedulePollVotedText\n    schedulePollStatusOpenText\n    schedulePollStatusClosedText\n    schedulePollCloseLabel\n    schedulePollVoteCountTemplate\n    schedulePollLaunchLabel\n    schedulePollCancelLabel\n    scheduleToastPollCreated\n    scheduleToastVoted\n    scheduleToastClosed\n    scheduleToastFailedTemplate\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "04de4e7052d40b174d1a63fb100ed66c";
+(node as any).hash = "31f9d98ea77b71c933350a91af4e3c2e";
 
 export default node;

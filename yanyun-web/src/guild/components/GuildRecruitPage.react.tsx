@@ -5,6 +5,7 @@ import type { ViewerUser } from '../../lib/user';
 import type { GuildRecruitPage_guildRecruit$key } from './__generated__/GuildRecruitPage_guildRecruit.graphql';
 import UserBar, { type UserBarText } from '../../auth/UserBar.react.tsx';
 import { theme } from '../../lib/format';
+import { openSettingsAt } from '../../lib/settingsNav';
 import { hostGuildSlug } from '../../lib/hostGuild';
 import { refetchGuildRecruitQueries } from '../../lib/relay';
 import { toast } from './Toast.react.tsx';
@@ -193,23 +194,35 @@ export default function GuildRecruitPage({ guildRecruit, slug, user, userBarText
               <span style={{ color: theme.muted, fontSize: 12, marginLeft: 10 }}>{data.checklist.progressText}</span>
             </h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {data.checklist.items.map((item: any) => (
-                <div key={item.key} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                  <span style={{
-                    width: 22, height: 22, borderRadius: '50%', flexShrink: 0, marginTop: 1,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13,
-                    border: `1px solid ${item.done ? theme.accent : 'rgba(67,160,134,.3)'}`,
-                    background: item.done ? 'rgba(67,160,134,.16)' : 'transparent',
-                    color: item.done ? '#93d2be' : theme.muted,
-                  }}>
-                    {item.done ? '✓' : ''}
-                  </span>
-                  <div>
-                    <div style={{ color: theme.paper, fontSize: 14 }}>{item.label}</div>
-                    <div style={{ color: theme.muted, fontSize: 12, lineHeight: 1.7 }}>{item.hint}</div>
+              {data.checklist.items.map((item: any) => {
+                // The availability step is actionable until done: its
+                // editor lives in personal settings, so the row opens
+                // the settings dialog at the availability page (the
+                // checklist itself never blocks — skipping is simply
+                // not tapping it).
+                const actionable = item.key === 'availability' && !item.done;
+                return (
+                  <div key={item.key}
+                    data-checklist-item={item.key}
+                    onClick={actionable ? () => openSettingsAt('availability') : undefined}
+                    style={{ display: 'flex', gap: 12, alignItems: 'flex-start', cursor: actionable ? 'pointer' : 'default' }}>
+                    <span style={{
+                      width: 22, height: 22, borderRadius: '50%', flexShrink: 0, marginTop: 1,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13,
+                      border: `1px solid ${item.done ? theme.accent : 'rgba(67,160,134,.3)'}`,
+                      background: item.done ? 'rgba(67,160,134,.16)' : 'transparent',
+                      color: item.done ? '#93d2be' : theme.muted,
+                    }}>
+                      {item.done ? '✓' : ''}
+                    </span>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ color: theme.paper, fontSize: 14 }}>{item.label}</div>
+                      <div style={{ color: theme.muted, fontSize: 12, lineHeight: 1.7 }}>{item.hint}</div>
+                    </div>
+                    {actionable && <span style={{ color: theme.accent, fontSize: 19, lineHeight: 1.3 }}>›</span>}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </section>
         )}

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { theme } from '../lib/format';
 import type { ViewerUser } from '../lib/user';
 import SettingsDialog from './SettingsDialog.react.tsx';
-import type { AccountFlow } from './SettingsDialog.react.tsx';
+import type { AccountFlow, DialogPage } from './SettingsDialog.react.tsx';
 
 export interface UserBarText {
   logoutLabel: string;
@@ -16,6 +16,23 @@ export default function UserBar({ user, text }: { user: ViewerUser; text: UserBa
   const [leaving, setLeaving] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [accountFlow, setAccountFlow] = useState<AccountFlow | null>(null);
+  // Deep-open requests from other surfaces (schedule tab / newcomer
+  // checklist, via lib/settingsNav): open the dialog at the requested
+  // page. The sequence bumps the dialog's key so a request that lands
+  // while the dialog is already open still re-mounts at that page.
+  const [settingsPageReq, setSettingsPageReq] = useState<DialogPage | null>(null);
+  const [settingsSeq, setSettingsSeq] = useState(0);
+  useEffect(() => {
+    const onOpenSettings = (e: Event) => {
+      const page = (e as CustomEvent).detail?.page;
+      if (page !== 'availability') return;
+      setSettingsPageReq(page);
+      setSettingsSeq((n) => n + 1);
+      setSettingsOpen(true);
+    };
+    window.addEventListener('yy:open-settings', onOpenSettings);
+    return () => window.removeEventListener('yy:open-settings', onOpenSettings);
+  }, []);
   // Return landing from a fresh-OAuth round trip started in the Profile
   // dialog's My Data section: the returnTo carried ?accountflow=… —
   // reopen the dialog with the flow so it resumes where it left off,
@@ -54,7 +71,7 @@ export default function UserBar({ user, text }: { user: ViewerUser; text: UserBa
         {user.name}
       </span>
       <button
-        onClick={() => setSettingsOpen(true)}
+        onClick={() => { setSettingsPageReq(null); setSettingsOpen(true); }}
         style={{
           background: 'transparent', border: '1px solid rgba(255,255,255,.16)', color: theme.muted,
           borderRadius: 8, padding: '5px 12px', fontSize: 12.5, cursor: 'pointer',
@@ -64,10 +81,12 @@ export default function UserBar({ user, text }: { user: ViewerUser; text: UserBa
           its internal pages (pushed/popped inside it), so UserBar owns
           just this one dialog's open state — no sibling dialogs here. */}
       <SettingsDialog
+        key={settingsSeq}
         open={settingsOpen}
-        onClose={() => { setSettingsOpen(false); setAccountFlow(null); }}
+        onClose={() => { setSettingsOpen(false); setAccountFlow(null); setSettingsPageReq(null); }}
         user={user}
         initialFlow={accountFlow}
+        initialPage={settingsPageReq}
       />
       <button
         onClick={logout}
