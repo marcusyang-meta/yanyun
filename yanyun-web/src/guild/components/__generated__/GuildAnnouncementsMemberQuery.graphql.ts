@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<e77ceee80825dbf677b5d1a859e411b3>>
+ * @generated SignedSource<<af62053d80499ba6ba06e607d3292d1f>>
  * @lightSyntaxTransform
  */
 
@@ -22,11 +22,15 @@ export type GuildAnnouncementsMemberQuery$data = {
           readonly authorName: string;
           readonly authorText: string | null | undefined;
           readonly body: string;
+          readonly contentSourceLabel: string;
           readonly createdAtText: string;
           readonly deleteConfirmMessage: string;
           readonly deleteConfirmTitle: string;
           readonly deleteLabel: string;
+          readonly displayBody: string;
+          readonly displayTitle: string;
           readonly id: string;
+          readonly isTranslated: boolean;
           readonly kind: AnnouncementKind;
           readonly kindLabel: string;
           readonly memberCount: number | null | undefined;
@@ -39,17 +43,27 @@ export type GuildAnnouncementsMemberQuery$data = {
             readonly readAtText: string | null | undefined;
           }> | null | undefined;
           readonly title: string;
+          readonly translationStatusText: string | null | undefined;
+          readonly translations: ReadonlyArray<{
+            readonly locale: string;
+            readonly localeLabel: string;
+            readonly status: string;
+            readonly statusLabel: string;
+          }> | null | undefined;
           readonly urgent: boolean;
           readonly urgentLabel: string | null | undefined;
           readonly viewerHasRead: boolean | null | undefined;
         }>;
         readonly bodyLabel: string;
         readonly bodyPlaceholder: string;
+        readonly canGenerateTranslations: boolean;
         readonly canPost: boolean;
         readonly composeTitle: string;
         readonly dailyLimitText: string | null | undefined;
         readonly deleteLabel: string;
         readonly emptyText: string;
+        readonly generateTranslationsLabel: string | null | undefined;
+        readonly generatingTranslationsLabel: string | null | undefined;
         readonly kindLabel: string;
         readonly kindStandardLabel: string;
         readonly kindUrgentLabel: string;
@@ -63,6 +77,9 @@ export type GuildAnnouncementsMemberQuery$data = {
         readonly title: string;
         readonly titleLabel: string;
         readonly titlePlaceholder: string;
+        readonly translationUnavailableText: string | null | undefined;
+        readonly translationsGeneratedText: string | null | undefined;
+        readonly translationsPartialText: string | null | undefined;
         readonly unreadListLabel: string;
         readonly urgentLabel: string;
         readonly urgentNote: string;
@@ -75,11 +92,15 @@ export type GuildAnnouncementsMemberQuery$data = {
           readonly authorName: string;
           readonly authorText: string | null | undefined;
           readonly body: string;
+          readonly contentSourceLabel: string;
           readonly createdAtText: string;
           readonly deleteConfirmMessage: string;
           readonly deleteConfirmTitle: string;
           readonly deleteLabel: string;
+          readonly displayBody: string;
+          readonly displayTitle: string;
           readonly id: string;
+          readonly isTranslated: boolean;
           readonly kind: AnnouncementKind;
           readonly kindLabel: string;
           readonly memberCount: number | null | undefined;
@@ -92,17 +113,27 @@ export type GuildAnnouncementsMemberQuery$data = {
             readonly readAtText: string | null | undefined;
           }> | null | undefined;
           readonly title: string;
+          readonly translationStatusText: string | null | undefined;
+          readonly translations: ReadonlyArray<{
+            readonly locale: string;
+            readonly localeLabel: string;
+            readonly status: string;
+            readonly statusLabel: string;
+          }> | null | undefined;
           readonly urgent: boolean;
           readonly urgentLabel: string | null | undefined;
           readonly viewerHasRead: boolean | null | undefined;
         }>;
         readonly bodyLabel: string;
         readonly bodyPlaceholder: string;
+        readonly canGenerateTranslations: boolean;
         readonly canPost: boolean;
         readonly composeTitle: string;
         readonly dailyLimitText: string | null | undefined;
         readonly deleteLabel: string;
         readonly emptyText: string;
+        readonly generateTranslationsLabel: string | null | undefined;
+        readonly generatingTranslationsLabel: string | null | undefined;
         readonly kindLabel: string;
         readonly kindStandardLabel: string;
         readonly kindUrgentLabel: string;
@@ -116,6 +147,9 @@ export type GuildAnnouncementsMemberQuery$data = {
         readonly title: string;
         readonly titleLabel: string;
         readonly titlePlaceholder: string;
+        readonly translationUnavailableText: string | null | undefined;
+        readonly translationsGeneratedText: string | null | undefined;
+        readonly translationsPartialText: string | null | undefined;
         readonly unreadListLabel: string;
         readonly urgentLabel: string;
         readonly urgentNote: string;
@@ -305,6 +339,48 @@ v5 = [
         "alias": null,
         "args": null,
         "kind": "ScalarField",
+        "name": "canGenerateTranslations",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "generateTranslationsLabel",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "generatingTranslationsLabel",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "translationsGeneratedText",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "translationsPartialText",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "translationUnavailableText",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
         "name": "canPost",
         "storageKey": null
       },
@@ -359,6 +435,80 @@ v5 = [
             "args": null,
             "kind": "ScalarField",
             "name": "body",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "displayTitle",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "displayBody",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "isTranslated",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "contentSourceLabel",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "translationStatusText",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "concreteType": "GuildAnnouncementTranslation",
+            "kind": "LinkedField",
+            "name": "translations",
+            "plural": true,
+            "selections": [
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "locale",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "localeLabel",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "status",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "statusLabel",
+                "storageKey": null
+              }
+            ],
             "storageKey": null
           },
           {
@@ -545,16 +695,16 @@ return {
     "selections": (v6/*:: as any*/)
   },
   "params": {
-    "cacheID": "fb43bb28124563968ee989440b84cb3e",
+    "cacheID": "6def40b4b2443c0b0e9f9f03bbdc7529",
     "id": null,
     "metadata": {},
     "name": "GuildAnnouncementsMemberQuery",
     "operationKind": "query",
-    "text": "query GuildAnnouncementsMemberQuery(\n  $slug: String!\n) {\n  viewer {\n    commonUnknownErrorText\n    guild(slug: $slug) {\n      __typename\n      ... on Guild {\n        announcements {\n          title\n          emptyText\n          urgentLabel\n          composeTitle\n          kindLabel\n          kindStandardLabel\n          kindUrgentLabel\n          titleLabel\n          titlePlaceholder\n          bodyLabel\n          bodyPlaceholder\n          postLabel\n          postingLabel\n          postedText\n          deleteLabel\n          receiptsTitle\n          readListLabel\n          unreadListLabel\n          pushNote\n          urgentNote\n          dailyLimitText\n          canPost\n          standardRemaining\n          urgentRemaining\n          announcements {\n            id\n            kind\n            urgent\n            urgentLabel\n            kindLabel\n            title\n            body\n            authorName\n            authorText\n            createdAtText\n            viewerHasRead\n            readCount\n            memberCount\n            readCountText\n            deleteLabel\n            deleteConfirmTitle\n            deleteConfirmMessage\n            receipts {\n              discordId\n              displayName\n              read\n              readAtText\n            }\n          }\n        }\n      }\n      ... on GuildReadOnly {\n        announcements {\n          title\n          emptyText\n          urgentLabel\n          composeTitle\n          kindLabel\n          kindStandardLabel\n          kindUrgentLabel\n          titleLabel\n          titlePlaceholder\n          bodyLabel\n          bodyPlaceholder\n          postLabel\n          postingLabel\n          postedText\n          deleteLabel\n          receiptsTitle\n          readListLabel\n          unreadListLabel\n          pushNote\n          urgentNote\n          dailyLimitText\n          canPost\n          standardRemaining\n          urgentRemaining\n          announcements {\n            id\n            kind\n            urgent\n            urgentLabel\n            kindLabel\n            title\n            body\n            authorName\n            authorText\n            createdAtText\n            viewerHasRead\n            readCount\n            memberCount\n            readCountText\n            deleteLabel\n            deleteConfirmTitle\n            deleteConfirmMessage\n            receipts {\n              discordId\n              displayName\n              read\n              readAtText\n            }\n          }\n        }\n      }\n    }\n  }\n}\n"
+    "text": "query GuildAnnouncementsMemberQuery(\n  $slug: String!\n) {\n  viewer {\n    commonUnknownErrorText\n    guild(slug: $slug) {\n      __typename\n      ... on Guild {\n        announcements {\n          title\n          emptyText\n          urgentLabel\n          composeTitle\n          kindLabel\n          kindStandardLabel\n          kindUrgentLabel\n          titleLabel\n          titlePlaceholder\n          bodyLabel\n          bodyPlaceholder\n          postLabel\n          postingLabel\n          postedText\n          deleteLabel\n          receiptsTitle\n          readListLabel\n          unreadListLabel\n          pushNote\n          urgentNote\n          dailyLimitText\n          canGenerateTranslations\n          generateTranslationsLabel\n          generatingTranslationsLabel\n          translationsGeneratedText\n          translationsPartialText\n          translationUnavailableText\n          canPost\n          standardRemaining\n          urgentRemaining\n          announcements {\n            id\n            kind\n            urgent\n            urgentLabel\n            kindLabel\n            title\n            body\n            displayTitle\n            displayBody\n            isTranslated\n            contentSourceLabel\n            translationStatusText\n            translations {\n              locale\n              localeLabel\n              status\n              statusLabel\n            }\n            authorName\n            authorText\n            createdAtText\n            viewerHasRead\n            readCount\n            memberCount\n            readCountText\n            deleteLabel\n            deleteConfirmTitle\n            deleteConfirmMessage\n            receipts {\n              discordId\n              displayName\n              read\n              readAtText\n            }\n          }\n        }\n      }\n      ... on GuildReadOnly {\n        announcements {\n          title\n          emptyText\n          urgentLabel\n          composeTitle\n          kindLabel\n          kindStandardLabel\n          kindUrgentLabel\n          titleLabel\n          titlePlaceholder\n          bodyLabel\n          bodyPlaceholder\n          postLabel\n          postingLabel\n          postedText\n          deleteLabel\n          receiptsTitle\n          readListLabel\n          unreadListLabel\n          pushNote\n          urgentNote\n          dailyLimitText\n          canGenerateTranslations\n          generateTranslationsLabel\n          generatingTranslationsLabel\n          translationsGeneratedText\n          translationsPartialText\n          translationUnavailableText\n          canPost\n          standardRemaining\n          urgentRemaining\n          announcements {\n            id\n            kind\n            urgent\n            urgentLabel\n            kindLabel\n            title\n            body\n            displayTitle\n            displayBody\n            isTranslated\n            contentSourceLabel\n            translationStatusText\n            translations {\n              locale\n              localeLabel\n              status\n              statusLabel\n            }\n            authorName\n            authorText\n            createdAtText\n            viewerHasRead\n            readCount\n            memberCount\n            readCountText\n            deleteLabel\n            deleteConfirmTitle\n            deleteConfirmMessage\n            receipts {\n              discordId\n              displayName\n              read\n              readAtText\n            }\n          }\n        }\n      }\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "e3d84d520bc51269b73463d12439e82e";
+(node as any).hash = "ed499db9a33cb984eaa552f8af709a83";
 
 export default node;

@@ -48,6 +48,12 @@ const MemberQueryNode = graphql`
               pushNote
               urgentNote
               dailyLimitText
+              canGenerateTranslations
+              generateTranslationsLabel
+              generatingTranslationsLabel
+              translationsGeneratedText
+              translationsPartialText
+              translationUnavailableText
               canPost
               standardRemaining
               urgentRemaining
@@ -59,6 +65,17 @@ const MemberQueryNode = graphql`
                 kindLabel
                 title
                 body
+                displayTitle
+                displayBody
+                isTranslated
+                contentSourceLabel
+                translationStatusText
+                translations {
+                  locale
+                  localeLabel
+                  status
+                  statusLabel
+                }
                 authorName
                 authorText
                 createdAtText
@@ -101,6 +118,12 @@ const MemberQueryNode = graphql`
               pushNote
               urgentNote
               dailyLimitText
+              canGenerateTranslations
+              generateTranslationsLabel
+              generatingTranslationsLabel
+              translationsGeneratedText
+              translationsPartialText
+              translationUnavailableText
               canPost
               standardRemaining
               urgentRemaining
@@ -112,6 +135,17 @@ const MemberQueryNode = graphql`
                 kindLabel
                 title
                 body
+                displayTitle
+                displayBody
+                isTranslated
+                contentSourceLabel
+                translationStatusText
+                translations {
+                  locale
+                  localeLabel
+                  status
+                  statusLabel
+                }
                 authorName
                 authorText
                 createdAtText
@@ -165,6 +199,12 @@ const AdminQueryNode = graphql`
               pushNote
               urgentNote
               dailyLimitText
+              canGenerateTranslations
+              generateTranslationsLabel
+              generatingTranslationsLabel
+              translationsGeneratedText
+              translationsPartialText
+              translationUnavailableText
               canPost
               standardRemaining
               urgentRemaining
@@ -176,6 +216,17 @@ const AdminQueryNode = graphql`
                 kindLabel
                 title
                 body
+                displayTitle
+                displayBody
+                isTranslated
+                contentSourceLabel
+                translationStatusText
+                translations {
+                  locale
+                  localeLabel
+                  status
+                  statusLabel
+                }
                 authorName
                 authorText
                 createdAtText
@@ -233,6 +284,24 @@ const DeleteMutationNode = graphql`
   }
 `;
 
+const GenerateTranslationsMutationNode = graphql`
+  mutation GuildAnnouncementsGenerateTranslationsMutation($slug: String!, $id: ID!) {
+    generateGuildAnnouncementTranslations(slug: $slug, announcementId: $id) {
+      ok
+      error
+      errorCode
+      announcement {
+        id
+        translationStatusText
+        translations {
+          locale
+          status
+        }
+      }
+    }
+  }
+`;
+
 type AnnouncementItem = {
   id: string;
   kind: string;
@@ -241,6 +310,17 @@ type AnnouncementItem = {
   kindLabel: string;
   title: string;
   body: string;
+  displayTitle?: string | null;
+  displayBody?: string | null;
+  isTranslated?: boolean | null;
+  contentSourceLabel?: string | null;
+  translationStatusText?: string | null;
+  translations?: ReadonlyArray<{
+    locale: string;
+    localeLabel: string;
+    status: string;
+    statusLabel: string;
+  }> | null;
   authorText?: string | null;
   createdAtText: string;
   viewerHasRead?: boolean | null;
@@ -266,7 +346,26 @@ function AnnouncementCard({ item, page, slug, admin, refresh }: {
   const [readLocal, setReadLocal] = useState<boolean | null>(null);
   const [commitMark] = useMutation(MarkReadMutationNode);
   const [commitDelete] = useMutation(DeleteMutationNode);
+  const [commitGenerate, generating] = useMutation(GenerateTranslationsMutationNode);
   const hasRead = readLocal ?? item.viewerHasRead;
+
+  const generateTranslations = () => {
+    commitGenerate({
+      variables: { slug, id: item.id },
+      onCompleted: (res: any) => {
+        const p = res?.generateGuildAnnouncementTranslations;
+        if (p?.ok) {
+          const list = p.announcement?.translations ?? [];
+          const allDone = list.length > 0 && list.every((t: any) => t.status === 'DONE');
+          toast(allDone ? page.translationsGeneratedText : page.translationsPartialText);
+          refresh();
+        } else {
+          toast(p?.error || '');
+        }
+      },
+      onError: () => {},
+    });
+  };
 
   const toggle = () => {
     const next = !open;
@@ -310,7 +409,13 @@ function AnnouncementCard({ item, page, slug, admin, refresh }: {
             borderRadius: 999, padding: '2px 9px', flexShrink: 0,
           }}>{item.urgentLabel}</span>
         )}
-        <span style={{ fontSize: 15, color: theme.paper, fontWeight: 600, minWidth: 0 }}>{item.title}</span>
+        <span style={{ fontSize: 15, color: theme.paper, fontWeight: 600, minWidth: 0 }}>{item.displayTitle ?? item.title}</span>
+        {item.isTranslated && item.contentSourceLabel && (
+          <span style={{
+            fontSize: 11, letterSpacing: '.08em', color: theme.gold, border: `1px solid ${theme.gold}`,
+            borderRadius: 999, padding: '1px 8px', flexShrink: 0,
+          }}>{item.contentSourceLabel}</span>
+        )}
         {hasRead === false && (
           <span style={{
             width: 8, height: 8, borderRadius: '50%', background: theme.gold, flexShrink: 0,
@@ -327,10 +432,41 @@ function AnnouncementCard({ item, page, slug, admin, refresh }: {
             <span>{item.kindLabel}</span>
             {item.authorText && <span>{item.authorText}</span>}
           </div>
-          {item.body && (
+          {(item.displayBody ?? item.body) && (
             <p style={{ fontSize: 14, color: theme.paper, lineHeight: 1.7, whiteSpace: 'pre-wrap', margin: '8px 0 0' }}>
-              {item.body}
+              {item.displayBody ?? item.body}
             </p>
+          )}
+          {admin && item.translationStatusText && (
+            <div style={{ marginTop: 12, borderTop: '1px solid rgba(201,163,92,.15)', paddingTop: 10 }}>
+              <div style={{ fontSize: 12, color: theme.muted, letterSpacing: '.06em' }}>
+                {item.translationStatusText}
+              </div>
+              {item.translations && item.translations.length > 0 && (
+                <p style={{ fontSize: 13, margin: '8px 0 0', color: theme.paper, lineHeight: 1.8 }}>
+                  {item.translations.map((t) => `${t.localeLabel} · ${t.statusLabel}`).join('　')}
+                </p>
+              )}
+              {page.translationUnavailableText && (
+                <p style={{ fontSize: 12, color: theme.muted, margin: '8px 0 0', lineHeight: 1.7 }}>
+                  {page.translationUnavailableText}
+                </p>
+              )}
+              <div style={{ marginTop: 10 }}>
+                <button
+                  type="button"
+                  disabled={!page.canGenerateTranslations || generating}
+                  onClick={generateTranslations}
+                  style={{
+                    padding: '6px 16px', borderRadius: 8, cursor: page.canGenerateTranslations && !generating ? 'pointer' : 'default',
+                    border: `1px solid ${theme.gold}`, background: 'transparent',
+                    color: theme.gold, fontSize: 13, opacity: page.canGenerateTranslations ? (generating ? 0.6 : 1) : 0.45,
+                  }}
+                >
+                  {generating ? page.generatingTranslationsLabel : page.generateTranslationsLabel}
+                </button>
+              </div>
+            </div>
           )}
           {admin && receipts && (
             <div style={{ marginTop: 12, borderTop: '1px solid rgba(201,163,92,.15)', paddingTop: 10 }}>
