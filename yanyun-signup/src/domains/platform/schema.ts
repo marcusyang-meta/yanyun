@@ -51,13 +51,19 @@ export const usageCounters = sqliteTable('usage_counters', {
 }, (t) => [
   primaryKey({ columns: [t.discordId, t.metric, t.day] }),
 ]);
-/* ---------------- guild entitlements [alt: 0005] ------------------
+/* ---------------- guild entitlements [alt: 0005, 0026] ------------
  * One row per guild with a plan assignment (billing.ts repository).
  * plan 'free' | 'premium' | 't1' | 't2' | 't3' (plain TEXT, no CHECK
  * constraint — tiers widened the value set without a migration);
- * source 'stripe' | 'manual' | ''.
+ * source 'stripe' | 'manual' | 'trial' | ''.
  * current_period_end is unix seconds, NULL = no expiry on file;
- * expiry is judged at read time by the entitlement service. */
+ * expiry is judged at read time by the entitlement service.
+ * Lifecycle columns (0026): past_due_since (unix seconds the Stripe
+ * delinquency was marked; NULL = not past due — grace is a read-time
+ * judgement, stripe source only), has_card (a payment method is on
+ * file; written by the Stripe line, read by the persistence-card
+ * verdict), trial_used (the guild's one trial has been consumed;
+ * stamped by the trial grant and never cleared). */
 export const guildEntitlements = sqliteTable('guild_entitlements', {
   tenant: text('tenant').primaryKey(),
   plan: text('plan').notNull().default('free'),
@@ -66,6 +72,9 @@ export const guildEntitlements = sqliteTable('guild_entitlements', {
   stripeCustomerId: text('stripe_customer_id').notNull().default(''),
   stripeSubscriptionId: text('stripe_subscription_id').notNull().default(''),
   updatedAt: integer('updated_at').notNull().default(0),
+  pastDueSince: integer('past_due_since'),
+  hasCard: integer('has_card').notNull().default(0),
+  trialUsed: integer('trial_used').notNull().default(0),
 });
 
 /* ---------------- stripe events [alt: 0005] ------------------------
