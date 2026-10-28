@@ -194,6 +194,7 @@ export const GUILD_HOME_TEXT_SPEC = [
   ['homeTabDexLabel', 'guildHome', 'tabDex'],
   ['homeTabSectLabel', 'guildHome', 'tabSect'],
   ['homeTabAnnouncementsLabel', 'guildHome', 'tabAnnouncements'],
+  ['homeTabScheduleLabel', 'guildHome', 'tabSchedule'],
   ['detailNotFoundText', 'groupingDetail', 'notFound'],
   ['detailBackToListLabel', 'groupingDetail', 'backToList'],
 ];

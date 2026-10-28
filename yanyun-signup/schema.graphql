@@ -405,6 +405,15 @@ type GroupingListPage {
   formToastPosted: String!
   formToastCreateFailedTemplate: String!
   formTitleTemplate: String!
+  formCustomFieldsTitle: String!
+  formCustomFieldAddLabel: String!
+  formCustomFieldLabelPlaceholder: String!
+  formCustomFieldTypeText: String!
+  formCustomFieldTypeChoice: String!
+  formCustomFieldOptionsPlaceholder: String!
+  formCustomFieldRequiredLabel: String!
+  formCustomFieldRemoveLabel: String!
+  formCustomFieldEmptyText: String!
   # 车队模板区文案 (建车表单内): 模板行本身的改删文案在模板的 manageActions 上
   templateSectionTitle: String!
   templateNameLabel: String!
@@ -422,6 +431,45 @@ type GroupingListPage {
   templateToastDeleted: String!
   templateToastDeleteFailedTemplate: String!
   templateMetaTemplate: String!
+}
+
+# ============ 自定义报名表字段 (F7) ============
+# 创建者为组队/模板定义的报名字段: 类型是受约束小集 (单行文本 /
+# 单选), 字段数与长度上限由后端校验。label 与 options 是创建者写
+# 的数据, 不是 UI 文案; 答案只对车头与本百业管理员可见。
+
+enum CustomFieldType {
+  TEXT
+  CHOICE
+}
+
+type CustomField {
+  id: ID!
+  label: String!
+  fieldType: CustomFieldType!
+  options: [String!]!
+  required: Boolean!
+}
+
+input CustomFieldInput {
+  label: String!
+  fieldType: CustomFieldType!
+  options: [String!]
+  required: Boolean
+}
+
+input SignupAnswerInput {
+  fieldId: ID!
+  value: String!
+}
+
+# 名册答案行: 仅当观看者可管理本车时由详情页下发 (否则字段为 null)
+type RosterAnswer {
+  uid: String!
+  nickname: String!
+  fieldId: ID!
+  fieldLabel: String!
+  value: String!
 }
 
 # ============ 车队模板 (百业共享) ============
@@ -445,6 +493,8 @@ type GroupingTemplate {
   # 改删动作对象: 仅模板创建者或本百业管理员可见, 否则 null;
   # mutation 处以同一判定独立复验。
   manageActions: GroupingTemplateManageActions
+  # 本模板的自定义报名表字段: 发车时随模板带入车的字段定义
+  customFields: [CustomField!]!
 }
 
 type GroupingTemplateManageActions {
@@ -479,6 +529,7 @@ input GroupingTemplateInput {
   startsInDays: Int!
   startHour: Int!
   startMinute: Int!
+  customFields: [CustomFieldInput!]
 }
 
 input CreateGroupingTemplateInput {
@@ -490,6 +541,7 @@ input CreateGroupingTemplateInput {
   startsInDays: Int!
   startHour: Int!
   startMinute: Int!
+  customFields: [CustomFieldInput!]
 }
 
 input SaveGroupingTemplateInput {
@@ -509,6 +561,8 @@ type Grouping {
   maxSlots: Int!
   status: String!  # open / closed / draft / completed (已完成: 不进列表、不发提醒, 详情直达可打开)
   creatorDiscordId: String  # 车头 (创建者) 的 Discord id; 旧车/REST 车未记录为 null
+  # 本车的自定义报名表字段 (创建者定义; 报名时成员按此填写)
+  customFields: [CustomField!]!
 }
 
 # ============ 页面：组队详情 ============
@@ -533,6 +587,10 @@ type GroupingDetailPage {
   # 存为模板动作对象: 仅当观看者可在本百业写 (建车同权) 时存在, 否则 null;
   # 客户端据此渲染「存为模板」入口, mutation 处独立复验。
   templateSave: GroupingTemplateSave
+  # 报名表答案名册: 仅可管理本车的观看者 (车头 / 本百业管理员) 得到
+  # 非空值; 其他观看者为 null, 答案不下发。mutation/查询处同一判定。
+  rosterAnswers: [RosterAnswer!]
+  rosterAnswersTitle: String!
   # 无管理码，人人可管
   # UI 文案: 全部由本页 shell 的 gen 方法按请求 locale 生成
   detailNotFoundText: String!
@@ -642,6 +700,15 @@ type GroupingDetailPage {
   formToastPosted: String!
   formToastCreateFailedTemplate: String!
   formTitleTemplate: String!
+  formCustomFieldsTitle: String!
+  formCustomFieldAddLabel: String!
+  formCustomFieldLabelPlaceholder: String!
+  formCustomFieldTypeText: String!
+  formCustomFieldTypeChoice: String!
+  formCustomFieldOptionsPlaceholder: String!
+  formCustomFieldRequiredLabel: String!
+  formCustomFieldRemoveLabel: String!
+  formCustomFieldEmptyText: String!
 }
 
 # 管理动作 (编辑/完成/恢复/解散) 的文案组: 只随 GroupingDetailPage
@@ -1427,6 +1494,200 @@ type SectWeight {
   # 其他权重...
 }
 
+# ============ 页面：百业排期 (F5 可用时间 + F13 时间投票) ============
+# URL: /{slug} 的排期页签。成员填自己的每周可用时段 (UTC 存储,
+# 客户端按本地时区渲染); 汇总只下发给百业管理员与在本百业发过车
+# 的车头 (其他观看者 availabilitySummary 为 null)。时间投票是多选
+# 可用式投票: 成员勾选所有能参加的候选, 票数实时汇总; 发起人或
+# 百业管理员可关闭。投票只产出建议, 定档仍由人点选发车。
+
+extend type Query {
+  guildSchedulePage(slug: String!): GuildSchedulePage!
+}
+
+type GuildSchedulePage {
+  slug: String!
+  # 本人可用时段 (UTC 周内分钟窗; 未登录/未填为 [])
+  myAvailability: [AvailabilitySlot!]!
+  # 成员可用性汇总: 仅管理员/车头非 null (权限结论由字段在否表达)
+  availabilitySummary: [MemberAvailabilitySummary!]
+  polls: [TimePoll!]!
+  weekdayNames: [String!]!
+  # 发车表单文案 (以投票时间发车时预填同一个建车表单, 与列表页同口径)
+  formCreateTitle: String!
+  formEditTitle: String!
+  formTypeLabel: String!
+  formTypeActivityLabel: String!
+  formTypeTalentLabel: String!
+  formTypeRaceLabel: String!
+  formTypeTowerLabel: String!
+  formCapacityTemplate: String!
+  formHintActivity: String!
+  formHintDungeonTemplate: String!
+  formHintTalent: String!
+  formHintRace: String!
+  formHintTower: String!
+  formTitleLabel: String!
+  formTitlePlaceholder: String!
+  formStartsLabel: String!
+  formMonthTemplate: String!
+  formDayTemplate: String!
+  formHourTemplate: String!
+  formMinuteTemplate: String!
+  formDungeonLabel: String!
+  formDungeonNoneLabel: String!
+  formNicknameLabel: String!
+  formNicknamePlaceholder: String!
+  formSectLabel: String!
+  formCancelLabel: String!
+  formSubmitCreateLabel: String!
+  formSubmitEditLabel: String!
+  formSubmittingLabel: String!
+  formToastSect: String!
+  formToastSaved: String!
+  formToastSaveFailedTemplate: String!
+  formToastPosted: String!
+  formToastCreateFailedTemplate: String!
+  formTitleTemplate: String!
+  formCustomFieldsTitle: String!
+  formCustomFieldAddLabel: String!
+  formCustomFieldLabelPlaceholder: String!
+  formCustomFieldTypeText: String!
+  formCustomFieldTypeChoice: String!
+  formCustomFieldOptionsPlaceholder: String!
+  formCustomFieldRequiredLabel: String!
+  formCustomFieldRemoveLabel: String!
+  formCustomFieldEmptyText: String!
+  typeShortActivity: String!
+  typeShortTalent: String!
+  typeShortRace: String!
+  typeShortTower: String!
+  # 排期页文案
+  scheduleTitle: String!
+  scheduleMyTitle: String!
+  scheduleMyHint: String!
+  scheduleSlotRangeTemplate: String!
+  scheduleAddSlotLabel: String!
+  scheduleRemoveLabel: String!
+  scheduleSaveLabel: String!
+  scheduleSavedText: String!
+  scheduleSaveFailedTemplate: String!
+  scheduleEmptyMineText: String!
+  scheduleSummaryTitle: String!
+  scheduleSummaryHint: String!
+  scheduleSummaryEmptyText: String!
+  schedulePollsTitle: String!
+  schedulePollsHint: String!
+  schedulePollEmptyText: String!
+  schedulePollCreateLabel: String!
+  schedulePollTitleLabel: String!
+  schedulePollTitlePlaceholder: String!
+  schedulePollCandidatesLabel: String!
+  schedulePollAddCandidateLabel: String!
+  schedulePollSubmitLabel: String!
+  schedulePollVoteLabel: String!
+  schedulePollVotedText: String!
+  schedulePollStatusOpenText: String!
+  schedulePollStatusClosedText: String!
+  schedulePollCloseLabel: String!
+  schedulePollVoteCountTemplate: String!
+  schedulePollLaunchLabel: String!
+  schedulePollCancelLabel: String!
+  scheduleToastPollCreated: String!
+  scheduleToastVoted: String!
+  scheduleToastClosed: String!
+  scheduleToastFailedTemplate: String!
+}
+
+type AvailabilitySlot {
+  weekday: Int!      # 0 = 周日 (与 JS getDay 对齐)
+  startMinute: Int!  # UTC 当日分钟 0..1439
+  endMinute: Int!    # UTC 当日分钟, 可为 1440
+}
+
+input AvailabilitySlotInput {
+  weekday: Int!
+  startMinute: Int!
+  endMinute: Int!
+}
+
+type MemberAvailabilitySummary {
+  discordId: String!
+  displayName: String!
+  slots: [AvailabilitySlot!]!
+}
+
+type TimePoll {
+  id: ID!
+  title: String!
+  status: String!  # open / closed
+  creatorDiscordId: String!
+  creatorName: String
+  createdAtText: String!
+  options: [TimePollOption!]!
+  # 本人已勾选的候选 id (未登录为 [])
+  myOptionIds: [ID!]!
+  # 关闭动作对象: 仅发起人或本百业管理员可见, 否则 null
+  closeActions: TimePollCloseActions
+  # 发车衔接: 仅发起人或本百业管理员可见; 客户端以所选候选时间
+  # 预填建车表单 (定档仍是人点选, 投票本身不建车)
+  launchActions: TimePollLaunchActions
+}
+
+type TimePollOption {
+  id: ID!
+  startsAtUtc: Int!
+  startsAtText: String!  # 按观看者时区在服务端生成
+  voteCount: Int!
+  voterNames: [String!]!
+  votedByMe: Boolean!
+}
+
+type TimePollCloseActions {
+  closeLabel: String!
+}
+
+type TimePollLaunchActions {
+  launchLabel: String!
+}
+
+type AvailabilityPayload {
+  ok: Boolean!
+  slots: [AvailabilitySlot!]!
+  error: String
+  errorCode: String
+}
+
+type TimePollPayload {
+  ok: Boolean!
+  poll: TimePoll
+  error: String
+  errorCode: String
+}
+
+input SetAvailabilityInput {
+  slug: String!
+  slots: [AvailabilitySlotInput!]!
+}
+
+input CreateTimePollInput {
+  slug: String!
+  title: String!
+  candidateStartsAt: [String!]!
+}
+
+input VoteTimePollInput {
+  pollId: ID!
+  optionIds: [ID!]!
+}
+
+extend type Mutation {
+  setMyAvailability(input: SetAvailabilityInput!): AvailabilityPayload!  # 存本人可用时段: 本百业可写成员, 只存本人
+  createTimePoll(input: CreateTimePollInput!): TimePollPayload!  # 发起时间投票: 本百业可写成员
+  voteTimePoll(input: VoteTimePollInput!): TimePollPayload!  # 多选可用式投票: 整组替换本人票
+  closeTimePoll(id: ID!): TimePollPayload!  # 关闭投票: 仅发起人或本百业管理员, 服务端复验
+}
+
 # ============ Mutations ============
 
 type Mutation {
@@ -1493,6 +1754,9 @@ input CreateGroupingInput {
   startsAt: String!
   dungeonId: ID
   seats: [SeatInput!]
+  # 自定义报名表字段: 直接定义, 或由客户端从所选模板带入 (模板字段
+  # 在建车时被复制为本车自己的字段行, 之后与模板互不影响)
+  customFields: [CustomFieldInput!]
 }
 
 input SeatInput {
@@ -1516,6 +1780,9 @@ input JoinGroupingInput {
   # 代报名: 被代报成员的 Discord ID (必须在本百业名册内, 服务端复验);
   # 缺省 = 为自己报名, 座位恒落本人身份戳。
   forDiscordId: ID
+  # 自定义报名表答案 (按本车 customFields 的 fieldId 作答; 必填与
+  # 单选合法性由服务端按字段定义复验)
+  answers: [SignupAnswerInput!]
 }
 
 input LeaveGroupingInput {
@@ -1735,6 +2002,7 @@ type Guild {
   homeTabDexLabel: String!
   homeTabSectLabel: String!
   homeTabAnnouncementsLabel: String!
+  homeTabScheduleLabel: String!
   # 管理入口文案: 仅通过管理判定 (getGuildAdminAccess, 与管理面同一
   # 口径, 含 omni) 的查看者才下发; 其余成员为 null, 主页不渲染入口 —
   # 进不去的入口不广告。可空即为此意, 勿改回 String!。
@@ -1766,6 +2034,7 @@ type GuildReadOnly {
   homeTabDexLabel: String!
   homeTabSectLabel: String!
   homeTabAnnouncementsLabel: String!
+  homeTabScheduleLabel: String!
   homeReadOnlyBanner: String!
   detailNotFoundText: String!
   detailBackToListLabel: String!

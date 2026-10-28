@@ -34,6 +34,13 @@ import {
   type GroupingTemplateRow,
 } from './index.ts';
 import {
+  listCustomFields, parseCustomFieldDefs, validateSignupAnswers,
+  replaceCustomFields, insertSignupAnswer, listSignupAnswersByEvent,
+  deleteSignupAnswersByEventUid, deleteSignupAnswersByEvent,
+  parseFieldOptions, type CustomFieldDef,
+} from './index.ts';
+import { scheduleResolvers } from './schedule-graphql.ts';
+import {
   listSignupSeats, listSignupSeatsBasic, listSignupNamesStamps,
   insertSignups, insertSignupWithCapacityGuard, deleteSignupByEventUid, deleteSignupsByEvent,
   updateSignupWeaponRoleByUid, updateSignupReadyByEventDiscord,
@@ -80,6 +87,18 @@ export class GroupingShell extends ShellBase {
   genStatus(){ return this.ev.status || 'open'; }
   genMaxSlots(){ return this.ev.max_slots; }
   genCreatorDiscordId(){ return this.ev.creator_discord_id ? String(this.ev.creator_discord_id) : null; }
+  // F7: this car's own signup-form field definitions (creator data,
+  // copied from its template at creation when one was used).
+  genCustomFields(){
+    return this.memo('customFields', async () => {
+      const rows = await listCustomFields(this.db, 'event', this.ev.id);
+      return rows.map((r) => ({
+        id: String(r.id), label: r.label,
+        fieldType: r.field_type === 'choice' ? 'CHOICE' : 'TEXT',
+        options: parseFieldOptions(r.options_json), required: !!r.required,
+      }));
+    });
+  }
   genSeatRows(){
     return this.memo('seatRows', async () => {
       return listSignupSeats(this.db, this.ev.id);
@@ -166,6 +185,18 @@ export class GroupingTemplateShell extends ShellBase {
   genStartHour(){ return Math.floor((this.row.start_minutes || 0) / 60); }
   genStartMinute(){ return (this.row.start_minutes || 0) % 60; }
   genCreatorDiscordId(){ return this.row.creator_discord_id ? String(this.row.creator_discord_id) : null; }
+  // F7: the template's signup-form fields; a car created from this
+  // template receives a copy of this set as its own definitions.
+  genCustomFields(){
+    return this.memo('customFields', async () => {
+      const rows = await listCustomFields(this.db, 'template', this.row.id);
+      return rows.map((r) => ({
+        id: String(r.id), label: r.label,
+        fieldType: r.field_type === 'choice' ? 'CHOICE' : 'TEXT',
+        options: parseFieldOptions(r.options_json), required: !!r.required,
+      }));
+    });
+  }
   // Creator display name, roster-first like seat names (guild nickname,
   // falling back to the global name snapshot).
   genCreatorName(){
@@ -343,52 +374,8 @@ export function groupingListPage(ctx: Context, slug: any, tab: any) {
   return new GroupingListPageShell(ctx, slug, tab);
 }
 
-// Create/edit form copy spec (shared by the list-page and detail-page shells, same names, same meaning).
-export const FORM_TEXT_SPEC = [
-  ['formCreateTitle', 'groupingForm', 'createTitle'],
-  ['formEditTitle', 'groupingForm', 'editTitle'],
-  ['formTypeLabel', 'groupingForm', 'typeLabel'],
-  ['formTypeActivityLabel', 'groupingType', 'tabActivity'],
-  ['formTypeTalentLabel', 'groupingType', 'tabTalent'],
-  ['formTypeRaceLabel', 'groupingType', 'tabRace'],
-  ['formTypeTowerLabel', 'groupingType', 'tabTower'],
-  ['formCapacityTemplate', 'groupingForm', 'capacity'],
-  ['formHintActivity', 'groupingForm', 'hintActivity'],
-  ['formHintDungeonTemplate', 'groupingForm', 'hintDungeon'],
-  ['formHintTalent', 'groupingForm', 'hintTalent'],
-  ['formHintRace', 'groupingForm', 'hintRace'],
-  ['formHintTower', 'groupingForm', 'hintTower'],
-  ['formTitleLabel', 'groupingForm', 'titleLabel'],
-  ['formTitlePlaceholder', 'groupingForm', 'titlePlaceholder'],
-  ['formStartsLabel', 'groupingForm', 'startsLabel'],
-  ['formMonthTemplate', 'groupingForm', 'monthOption'],
-  ['formDayTemplate', 'groupingForm', 'dayOption'],
-  ['formHourTemplate', 'groupingForm', 'hourOption'],
-  ['formMinuteTemplate', 'groupingForm', 'minuteOption'],
-  ['formDungeonLabel', 'groupingForm', 'dungeonLabel'],
-  ['formDungeonNoneLabel', 'groupingForm', 'dungeonNone'],
-  ['formNicknameLabel', 'groupingForm', 'nicknameLabel'],
-  ['formNicknamePlaceholder', 'groupingForm', 'nicknamePlaceholder'],
-  ['formSectLabel', 'groupingForm', 'sectLabel'],
-  ['formCancelLabel', 'common', 'cancel'],
-  ['formSubmitCreateLabel', 'groupingForm', 'submitCreate'],
-  ['formSubmitEditLabel', 'groupingForm', 'submitEdit'],
-  ['formSubmittingLabel', 'groupingForm', 'submitting'],
-  ['formToastSect', 'groupingForm', 'toastSect'],
-  ['formToastSaved', 'groupingForm', 'toastSaved'],
-  ['formToastSaveFailedTemplate', 'groupingForm', 'toastSaveFailed'],
-  ['formToastPosted', 'groupingForm', 'toastPosted'],
-  ['formToastCreateFailedTemplate', 'groupingForm', 'toastCreateFailed'],
-  ['formTitleTemplate', 'groupingForm', 'titleTemplate'],
-];
-export const TYPE_SHORT_SPEC = [
-  ['typeShortActivity', 'groupingType', 'shortActivity'],
-  ['typeShortTalent', 'groupingType', 'shortTalent'],
-  ['typeShortRace', 'groupingType', 'shortRace'],
-  ['typeShortTower', 'groupingType', 'shortTower'],
-  ['typeShortGather', 'groupingType', 'shortGather'],
-  ['typeShortExplore', 'groupingType', 'shortExplore'],
-];
+import { FORM_TEXT_SPEC, TYPE_SHORT_SPEC } from './form-text.ts';
+export { FORM_TEXT_SPEC, TYPE_SHORT_SPEC };
 // Template section copy for the create form (delivered by the list-page
 // shell like the form* fields; the per-template edit/delete labels ride
 // the template's own manageActions object instead).
@@ -493,6 +480,29 @@ export class GroupingDetailPageShell extends ShellBase {
         toastSaved: this.t('groupingTemplate', 'toastSavedFromCar'),
         toastFailedTemplate: this.t('groupingTemplate', 'toastSaveFailed'),
       };
+    });
+  }
+  // F7 roster answers: composed ONLY for viewers who may manage this
+  // car (leader / this guild's admins — the shared verdict); everyone
+  // else gets null and the answers never leave the server.
+  genRosterAnswers(){
+    return this.memo('rosterAnswers', async () => {
+      const verdict = await this.genManageVerdict();
+      if (!verdict.canManage) return null;
+      const ev = this.data;
+      const [fields, answers, seats] = await Promise.all([
+        listCustomFields(this.db, 'event', ev.id),
+        listSignupAnswersByEvent(this.db, ev.id),
+        listSignupSeats(this.db, ev.id),
+      ]);
+      if (!answers.length) return [];
+      const labelOf = new Map(fields.map((f) => [f.id, f.label]));
+      const nickOf = new Map((seats || []).map((r: any) => [String(r.uid), r.nickname]));
+      return answers.map((a) => ({
+        uid: a.signup_uid, nickname: nickOf.get(String(a.signup_uid)) || '',
+        fieldId: String(a.field_id), fieldLabel: labelOf.get(a.field_id) || '',
+        value: a.value,
+      }));
     });
   }
   // Share URL for this car: the stable short link (lazily minted on
@@ -639,6 +649,7 @@ export const DETAIL_TEXT_RESOLVERS = {
     ['seatToastLeft', 'seat', 'toastLeft'],
     ['seatToastLeaveFailedTemplate', 'seat', 'toastLeaveFailed'],
     ['detailReadyProgressTemplate', 'groupingDetail', 'readyProgress'],
+    ['rosterAnswersTitle', 'groupingDetail', 'rosterAnswersTitle'],
     ['seatReadyLabel', 'seat', 'readyMark'],
     ['seatReadyActionLabel', 'seat', 'readyAction'],
     ['seatUnreadyActionLabel', 'seat', 'unreadyAction'],
@@ -655,6 +666,7 @@ export const DETAIL_TEXT_RESOLVERS = {
 
 export const groupingsResolvers = {
   Query: {
+    ...scheduleResolvers.Query,
     groupingListPage: async (_: any, { slug, tab }: any, ctx: Context) => {
       const db = ctx.env.DB;
       // Tenant must exist; bound guilds are members-only (enforced server-side — non-members get no data).
@@ -681,6 +693,7 @@ export const groupingsResolvers = {
     // ===== Viewer hierarchy (root = user) =====
   },
   Mutation: {
+    ...scheduleResolvers.Mutation,
     createGrouping: async (_: any, { input }: any, ctx: Context) => {
       const db = ctx.env.DB;
       if (!rateLimit('mut:create:' + getClientIp(ctx.request), 10)) {
@@ -703,6 +716,10 @@ export const groupingsResolvers = {
       // Headcount rules live in resolveGroupingShape (shared with the
       // template mutations, so template-built cars match hand-built ones).
       const { dungeonName, maxSlots } = await resolveGroupingShape(db, type, input.dungeonId);
+      // F7: the car's custom signup fields are validated BEFORE the
+      // car exists — an invalid field set rejects the whole create.
+      const fieldParse = parseCustomFieldDefs(input.customFields);
+      if ('error' in fieldParse) return gFail(ctx, fieldParse.error);
       // Persist leader identity from the session discord_id (requireWrite guarantees login); re-verified at disband.
       const r = await insertEvent(db, {
         tenant: slug, title, type, description: '', starts_at: '', starts_at_utc: utc,
@@ -710,6 +727,9 @@ export const groupingsResolvers = {
         dungeon: dungeonName, creator_discord_id: String(ctx.user!.discordId),
       });
       const eventId = r.last_row_id;
+      if (fieldParse.defs.length) {
+        await replaceCustomFields(db, 'event', eventId, fieldParse.defs);
+      }
       if (Array.isArray(input.seats)) {
         const seatRows = [];
         for (const st of input.seats.slice(0, maxSlots)) {
@@ -738,6 +758,8 @@ export const groupingsResolvers = {
       if (gate) return tFail(ctx, gate);
       const parsed = await parseTemplateInput(db, input);
       if (parsed.error) return tFail(ctx, parsed.error);
+      const fieldParse = parseCustomFieldDefs(input.customFields);
+      if ('error' in fieldParse) return tFail(ctx, fieldParse.error);
       const now = Math.floor(Date.now() / 1000);
       const r = await insertGroupingTemplate(db, {
         tenant: slug, name: parsed.name, type: parsed.type, title: parsed.title,
@@ -745,6 +767,9 @@ export const groupingsResolvers = {
         start_days_ahead: parsed.daysAhead, start_minutes: parsed.startMinutes,
         creator_discord_id: String(ctx.user!.discordId), created_at: now, updated_at: now,
       });
+      if (fieldParse.defs.length) {
+        await replaceCustomFields(db, 'template', r.last_row_id, fieldParse.defs);
+      }
       const row = await getGroupingTemplate(db, r.last_row_id);
       return new TemplatePayloadShell(ctx, { ok: true, template: row ? toGroupingTemplate(ctx, row) : null });
     },
@@ -780,6 +805,15 @@ export const groupingsResolvers = {
         start_days_ahead: daysAhead, start_minutes: startMinutes,
         creator_discord_id: String(ctx.user!.discordId), created_at: now, updated_at: now,
       });
+      // F7: the saved template inherits the car's signup-form fields,
+      // so a car built from it later carries the same form.
+      const carFields = await listCustomFields(db, 'event', ev.id);
+      if (carFields.length) {
+        await replaceCustomFields(db, 'template', r.last_row_id, carFields.map((f) => ({
+          label: f.label, fieldType: f.field_type === 'choice' ? 'choice' : 'text',
+          options: parseFieldOptions(f.options_json), required: !!f.required,
+        }) as CustomFieldDef));
+      }
       const row = await getGroupingTemplate(db, r.last_row_id);
       return new TemplatePayloadShell(ctx, { ok: true, template: row ? toGroupingTemplate(ctx, row) : null });
     },
@@ -801,6 +835,11 @@ export const groupingsResolvers = {
       if (!manage.canManage) return tFail(ctx, 'templateForbidden');
       const parsed = await parseTemplateInput(db, input);
       if (parsed.error) return tFail(ctx, parsed.error);
+      if (input.customFields != null) {
+        const fieldParse = parseCustomFieldDefs(input.customFields);
+        if ('error' in fieldParse) return tFail(ctx, fieldParse.error);
+        await replaceCustomFields(db, 'template', tid, fieldParse.defs);
+      }
       await updateGroupingTemplateFields(db, tid, {
         name: parsed.name, type: parsed.type, title: parsed.title,
         dungeon: parsed.dungeonName, max_slots: parsed.maxSlots,
@@ -882,6 +921,9 @@ export const groupingsResolvers = {
           return carryCache.get(d).has(nm) ? d : null;
         };
         await deleteSignupsByEvent(db, gid);
+        // F7: the rewrite re-mints every seat uid; answers keyed by
+        // the old uids would point at seats that no longer exist.
+        await deleteSignupAnswersByEvent(db, gid);
         const seatRows = [];
         for (const st of input.seats.slice(0, ev.max_slots)) {
           const nm = s(st.nickname, 30), wp = s(st.weapon, 20);
@@ -990,6 +1032,16 @@ export const groupingsResolvers = {
       if (gate) return sFail(ctx, gate);
       const weapon = s(input.weapon, 40);
       const uid = newUid();
+      // F7: answers are validated against THIS car's field set before
+      // any seat is taken — required fields, choice membership and
+      // length caps are re-verified server-side.
+      const carFields = await listCustomFields(db, 'event', gid);
+      let answerRows: { fieldId: number; value: string }[] = [];
+      if (carFields.length) {
+        const parsedAnswers = validateSignupAnswers(carFields, input.answers);
+        if ('error' in parsedAnswers) return sFail(ctx, parsedAnswers.error);
+        answerRows = parsedAnswers.answers;
+      }
       // Signup identity (2026-10-25): seat name and identity stamp are
       // decided server-side; the client-sent nickname is ignored
       // (overwritten, not an error).
@@ -1024,6 +1076,9 @@ export const groupingsResolvers = {
         if (String((e as any).message).includes('UNIQUE')) return sFail(ctx, 'alreadyJoined');
         throw e;
       }
+      for (const a of answerRows) {
+        await insertSignupAnswer(db, { eventId: gid, signupUid: uid, fieldId: a.fieldId, value: a.value });
+      }
       const g = toGrouping(ctx, ev);
       publishGroupingEvent(ctx, ev.tenant, gid, 'seats');
       return new SeatPayloadShell(ctx, { ok: true, seats: await g.genSeats() });
@@ -1041,6 +1096,8 @@ export const groupingsResolvers = {
       if (gate) return sFail(ctx, gate);
       const r = await deleteSignupByEventUid(db, gid, s(input.uid, 30));
       if (!r.changes) return sFail(ctx, 'seatNotFound');
+      // F7: the seat's form answers leave with the seat.
+      await deleteSignupAnswersByEventUid(db, gid, s(input.uid, 30));
       const ev = await getEventRow(db, gid);
       const g = ev ? toGrouping(ctx, ev) : null;
       publishGroupingEvent(ctx, ev0.tenant, gid, 'seats');
@@ -1091,6 +1148,15 @@ export const groupingsResolvers = {
     },
   },
   types: {
+    ...scheduleResolvers.types,
+    CustomField: {
+      id: (p: any) => p.id, label: (p: any) => p.label, fieldType: (p: any) => p.fieldType,
+      options: (p: any) => p.options, required: (p: any) => p.required,
+    },
+    RosterAnswer: {
+      uid: (p: any) => p.uid, nickname: (p: any) => p.nickname, fieldId: (p: any) => p.fieldId,
+      fieldLabel: (p: any) => p.fieldLabel, value: (p: any) => p.value,
+    },
     // Explicit field resolvers for plain-data result types: every field
     // delegates to the same-named property of the computed result object
     // (previously these relied on GraphQL default field resolution).
@@ -1107,6 +1173,7 @@ export const groupingsResolvers = {
     maxSlots: (p: any) => p.genMaxSlots(),
     status: (p: any) => p.genStatus(),
     creatorDiscordId: (p: any) => p.genCreatorDiscordId(),
+    customFields: (p: any) => p.genCustomFields(),
   },
   GroupingListPage: {
     groupings: (p: any) => p.genGroupings(),
@@ -1117,6 +1184,7 @@ export const groupingsResolvers = {
   },
   GroupingDetailPage: {
     grouping: (p: any) => p.genGrouping(),
+    rosterAnswers: (p: any) => p.genRosterAnswers(),
     shareUrl: (p: GroupingDetailPageShell) => p.genShareUrl(),
     templateSave: (p: any) => p.genTemplateSave(),
     blocks: (p: any, args: any) => p.genBlocks(args),
@@ -1137,6 +1205,7 @@ export const groupingsResolvers = {
     creatorDiscordId: (p: any) => p.genCreatorDiscordId(),
     creatorName: (p: any) => p.genCreatorName(),
     manageActions: (p: any) => p.genManageActions(),
+    customFields: (p: any) => p.genCustomFields(),
   },
   // Plain-data action sets: fields delegate to the same-named property
   // of the object the shell composed (present only for viewers who may

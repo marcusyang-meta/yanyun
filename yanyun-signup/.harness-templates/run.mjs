@@ -52,13 +52,15 @@ function makeDb(fx = {}) {
     dungeons: (fx.dungeons || []).map((d) => ({ ...d })),
     guildMembers: (fx.guildMembers || []).map((m) => ({ ...m })),
     templates: (fx.templates || []).map((t) => ({ ...t })),
+    customFields: (fx.customFields || []).map((t) => ({ ...t })),
+    signupAnswers: (fx.signupAnswers || []).map((t) => ({ ...t })),
   };
   let nextId = 7000;
   const unknownSql = new Set();
 
   function norm(sql) {
     return sql.replace(/"/g, '')
-      .replace(/\b(tenants|settings|users|events|dungeons|guild_members|grouping_templates)\./g, '')
+      .replace(/\b(tenants|settings|users|events|dungeons|guild_members|grouping_templates|grouping_custom_fields|signup_answers)\./g, '')
       .replace(/\s+/g, ' ');
   }
   function parseCols(list) { return list.split(',').map((c) => c.trim().split('.').pop()); }
@@ -82,6 +84,8 @@ function makeDb(fx = {}) {
       }
       row.id = nextId++;
       if (table === 'grouping_templates') tables.templates.push(row);
+      else if (table === 'grouping_custom_fields') tables.customFields.push(row);
+      else if (table === 'signup_answers') tables.signupAnswers.push(row);
       else if (table === 'events') tables.events.push(row);
       else if (table === 'guild_members') tables.guildMembers.push(row);
       else if (table === 'settings') tables.settings.set(`${row.tenant}|${row.key}`, row.value);
@@ -99,6 +103,18 @@ function makeDb(fx = {}) {
       else if (table === 'events') rows = tables.events.filter((e) => e.id === Number(wb[0]));
       for (const r of rows) Object.assign(r, sets);
       return { meta: { changes: rows.length } };
+    }
+    if (/^DELETE FROM grouping_custom_fields WHERE owner_kind/i.test(sql)) {
+      const before = tables.customFields.length;
+      tables.customFields = tables.customFields.filter((t) => !(t.owner_kind === b[0] && t.owner_id === Number(b[1])));
+      return { meta: { changes: before - tables.customFields.length } };
+    }
+    if (/^DELETE FROM signup_answers WHERE event_id/i.test(sql)) {
+      const before = tables.signupAnswers.length;
+      tables.signupAnswers = /signup_uid/i.test(sql)
+        ? tables.signupAnswers.filter((t) => !(t.event_id === Number(b[0]) && t.signup_uid === b[1]))
+        : tables.signupAnswers.filter((t) => t.event_id !== Number(b[0]));
+      return { meta: { changes: before - tables.signupAnswers.length } };
     }
     if (/^DELETE FROM grouping_templates WHERE id/i.test(sql)) {
       const before = tables.templates.length;
@@ -142,6 +158,12 @@ function makeDb(fx = {}) {
       let rows = tables.guildMembers.filter((x) => x.tenant === b[0]);
       if (/discord_id = \?/i.test(sql) && b.length > 1) rows = rows.filter((x) => x.discord_id === String(b[1]));
       return kind === 'first' ? (rows[0] ?? null) : all(rows);
+    }
+    if (/FROM grouping_custom_fields WHERE owner_kind = \? AND owner_id = \?/i.test(sql)) {
+      return all(tables.customFields.filter((t) => t.owner_kind === b[0] && t.owner_id === Number(b[1])).sort((a, c) => a.sort - c.sort || a.id - c.id));
+    }
+    if (/FROM signup_answers WHERE event_id = \?/i.test(sql)) {
+      return all(tables.signupAnswers.filter((t) => t.event_id === Number(b[0])));
     }
     if (/FROM grouping_templates WHERE tenant = \?/i.test(sql)) {
       return all(tables.templates.filter((t) => t.tenant === b[0]).sort((a, c) => c.id - a.id));

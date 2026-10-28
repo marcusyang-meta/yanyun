@@ -8657,6 +8657,633 @@
         }
       ],
       "types": []
+    },
+    "k8ki2eZ9m+l/DSGfM0wgkQ==": {
+      "description": "groupingForm.customFieldsTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "報名表自訂欄位",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+MMvaSqdp02PgDCTJhJs1w==": {
+      "description": "groupingForm.customFieldAddLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "新增欄位",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "hoSEAI09pfeco0bfDDTW7A==": {
+      "description": "groupingForm.customFieldLabelPlaceholder",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "欄位名（如：聯絡方式）",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "BvRZrYyC9s/SXciUFJKx3w==": {
+      "description": "groupingForm.customFieldTypeText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "單行文字",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "R/SEJdPj5wgwScXsxXAPaw==": {
+      "description": "groupingForm.customFieldTypeChoice",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "單選",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "mH1ViE5hY+OfZXpyz2JRQA==": {
+      "description": "groupingForm.customFieldOptionsPlaceholder",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "選項，一行一個（2–6 個）",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "QVi5cbcaTHn5HXYKeJ+mXw==": {
+      "description": "groupingForm.customFieldRequiredLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "必填",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "9FjZdbC69XbgyKT+bAZmhg==": {
+      "description": "groupingForm.customFieldRemoveLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "刪除",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "aekKj9YVbyzqFh7gfmEq+Q==": {
+      "description": "groupingForm.customFieldEmptyText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "未設定自訂欄位時，成員報名只填固定資訊。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "GeutspYOyY+yNmnSw2ghbA==": {
+      "description": "groupingDetail.rosterAnswersTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "報名表答案",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "MXr7/XSyiuk3KYcj9FTS7w==": {
+      "description": "schedule.title",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "排期",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "pSv6fAXEuuLe5kJEpa8YSA==": {
+      "description": "schedule.myTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "我的可用時間",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "QMdqgO63P5IWUPTgisBjFA==": {
+      "description": "schedule.myHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "填寫你每週固定有空的時段，按你所在時區顯示；管理員與車頭據此定檔期。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Vvl+e/MpBvOQfelO4JSYaw==": {
+      "description": "schedule.slotRange",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{start}–{end}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "DFKc2PnEH+qeLVdBAHGcsg==": {
+      "description": "schedule.addSlotLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "新增時段",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "tef/CZCeakFPvUmpTZCHWg==": {
+      "description": "schedule.removeLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "刪除",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+M4SMgHIwGfAq7WJS1N2xw==": {
+      "description": "schedule.saveLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "儲存",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "0nPwc/KOtLuaw/RILTlDfA==": {
+      "description": "schedule.savedText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "可用時間已儲存",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "WGF47xPbrxy0ifsHfyQADA==": {
+      "description": "schedule.saveFailedTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "儲存失敗：{error}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "sAF2TVzwwZvJwNN6xP4z2g==": {
+      "description": "schedule.emptyMineText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "你還沒有填寫可用時間。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "4PqpvzilZ9V8SxHPcc+Gow==": {
+      "description": "schedule.summaryTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "成員可用性彙總",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "CP0DcXxyFjtuFnKh5siFmA==": {
+      "description": "schedule.summaryHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "彙總僅百業管理員與發過車的車頭可見，用於定檔期。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "uS33vN0KxLV8z66xrL/cSw==": {
+      "description": "schedule.summaryEmptyText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "還沒有成員填寫可用時間。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "d3wHM3RhpqOJYKoA4XrlxA==": {
+      "description": "schedule.pollsTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "活動時間投票",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "lKhHmk0TeMc+6p15gKqELw==": {
+      "description": "schedule.pollsHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "給出幾個候選時間，成員勾選所有能參加的時間；可參加人數最多的時段最適合定檔。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "XF1CZDeAgwY5INo0KiV6uA==": {
+      "description": "schedule.pollEmptyText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "還沒有時間投票。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "r0fVQTfYxXqv6Y/36zclnw==": {
+      "description": "schedule.pollCreateLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "發起投票",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "6Khy+w47dkHVvvsY9HW9XA==": {
+      "description": "schedule.pollTitleLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "投票標題",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "KiikJkwaNgGgHPctMXRJqQ==": {
+      "description": "schedule.pollTitlePlaceholder",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "如：本週開荒時間",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "DeG4IbQWWRHrXuiqcZ4lYw==": {
+      "description": "schedule.pollCandidatesLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "候選時間",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "EbF12G7ediVjrdwZwggC5A==": {
+      "description": "schedule.pollAddCandidateLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "新增候選",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "66EDgaGvzUoB/AETHvTOMQ==": {
+      "description": "schedule.pollSubmitLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "發布投票",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "DAOKtuQnIUKaCzTdy1wORA==": {
+      "description": "schedule.pollVoteLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "提交投票",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Q5ua1ux2knd43s0P3dR7Cw==": {
+      "description": "schedule.pollVotedText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "已投票，可修改後重新提交。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "pX72fOATLxwpFrVKZ9OXcA==": {
+      "description": "schedule.pollStatusOpenText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "進行中",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "UjB0wcu5R9nGt6jaV1XoOA==": {
+      "description": "schedule.pollStatusClosedText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "已關閉",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "oYyqxjFfassHk29wd2vQKg==": {
+      "description": "schedule.pollCloseLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "關閉投票",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "T0jViKAlEFsBla5FczOzGg==": {
+      "description": "schedule.pollVoteCountTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{count} 人可參加",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+XRfDDDjOCSV+kaAouQPaw==": {
+      "description": "schedule.pollLaunchLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "以此時間發車",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "n5FlRGLOi4PX0K4MqdYSiA==": {
+      "description": "schedule.pollCancelLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "取消",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "wBz0RFx560qf3t7Ika3Oyg==": {
+      "description": "schedule.toastPollCreated",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "投票已發布",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "IFJtaYpGtieexnGBZ6FkGA==": {
+      "description": "schedule.toastVoted",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "已提交",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "GbN6+WxVBbCBGO5/PhvsIg==": {
+      "description": "schedule.toastClosed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "投票已關閉",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "BQhh9P7MMBYrYlZILWARPw==": {
+      "description": "schedule.toastFailedTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "操作失敗：{error}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "b1i6nz0OtIQcYev/bu/vOA==": {
+      "description": "guildHome.tabSchedule",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "排期",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "5PWvosGjyk0A6otbBEuNNg==": {
+      "description": "errors.availabilitySlotInvalid",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "可用時段不合法",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "SMeZ8OvFVddZRfTC15EMZA==": {
+      "description": "errors.availabilityTooManySlots",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "可用時段太多（最多 21 個）",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ysstM7eYzyMNNL20Edur3A==": {
+      "description": "errors.pollTitleRequired",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "請填寫投票標題",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "W2naFgaxi/lrCcs7mT1VfQ==": {
+      "description": "errors.pollOptionsInvalid",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "候選時間不合法（需 2–8 個不同的未來時間）",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "nxSC6KUOHcczS/8AjqMCyg==": {
+      "description": "errors.pollNotFound",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "投票不存在",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "NbCvqWBQyBr9k/+Qk+2fXQ==": {
+      "description": "errors.pollClosed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "該投票已關閉",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "GVMsj3JFYZWf7nPnn29OjQ==": {
+      "description": "errors.pollOptionInvalid",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "所選時間不屬於該投票",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "DtPiPBvgpE06rxyR6i13Qg==": {
+      "description": "errors.pollForbidden",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "只有發起人或百業管理員可以關閉投票",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "iOIrPI2zSXlNAGdiTjRlsA==": {
+      "description": "errors.customFieldInvalid",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "自訂欄位不合法",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "f8CRoPASYQCsvR2dAx53qA==": {
+      "description": "errors.customFieldTooMany",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "自訂欄位最多 5 個",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "JOwrqU00hxjriJXPRKDt6w==": {
+      "description": "errors.signupAnswerRequired",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "請填寫必填的報名資訊",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "1R+X8KCZVuxa9E7MzmLikQ==": {
+      "description": "errors.signupAnswerInvalid",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "報名資訊不合法",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

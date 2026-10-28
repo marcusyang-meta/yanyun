@@ -237,3 +237,4 @@ export const guildAdmin_lotteryStatusOpen = (fbs: FbsAPI) =>fbs("待开奖", "gu
 export const guildAdmin_lotteryStatusDrawn = (fbs: FbsAPI) =>fbs("已开奖", "guildAdmin.lotteryStatusDrawn");
 export const guildAdmin_lotteryEntryCount = (fbs: FbsAPI, p?: StringParams) =>
   fbs([fbs.param("count", pv(p, "count")), " 人参与"], "guildAdmin.lotteryEntryCount");
+export const guildHome_tabSchedule = (fbs: FbsAPI) =>fbs("排期", "guildHome.tabSchedule");

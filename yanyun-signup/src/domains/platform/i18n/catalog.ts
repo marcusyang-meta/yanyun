@@ -538,6 +538,11 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "es": "Gestionar",
       "fr": "Gérer",
       "zh-TW": "管理"
+    },
+    "tabSchedule": {
+      "zh-CN": "排期",
+      "en": "Scheduling",
+      "zh-TW": "排期"
     }
   },
   "groupingType": {
@@ -932,6 +937,11 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "es": "Este equipo está completado · Oculto de las listas; no se enviará recordatorio de salida",
       "fr": "Cette équipe est terminée · Masquée des listes ; aucun rappel de départ ne sera envoyé",
       "zh-TW": "該車隊已完成 · 已從列表隱藏，不再發送發車提醒"
+    },
+    "rosterAnswersTitle": {
+      "zh-CN": "报名表答案",
+      "en": "Signup form answers",
+      "zh-TW": "報名表答案"
     }
   },
   "groupingForm": {
@@ -1144,6 +1154,51 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "es": "Equipo {type} de {nickname}",
       "fr": "Équipe {type} de {nickname}",
       "zh-TW": "{nickname}的{type}車隊"
+    },
+    "customFieldsTitle": {
+      "zh-CN": "报名表自定义字段",
+      "en": "Custom signup fields",
+      "zh-TW": "報名表自訂欄位"
+    },
+    "customFieldAddLabel": {
+      "zh-CN": "添加字段",
+      "en": "Add field",
+      "zh-TW": "新增欄位"
+    },
+    "customFieldLabelPlaceholder": {
+      "zh-CN": "字段名（如：联系方式）",
+      "en": "Field name (e.g. contact info)",
+      "zh-TW": "欄位名（如：聯絡方式）"
+    },
+    "customFieldTypeText": {
+      "zh-CN": "单行文本",
+      "en": "Single-line text",
+      "zh-TW": "單行文字"
+    },
+    "customFieldTypeChoice": {
+      "zh-CN": "单选",
+      "en": "Single choice",
+      "zh-TW": "單選"
+    },
+    "customFieldOptionsPlaceholder": {
+      "zh-CN": "选项，一行一个（2–6 个）",
+      "en": "Options, one per line (2–6)",
+      "zh-TW": "選項，一行一個（2–6 個）"
+    },
+    "customFieldRequiredLabel": {
+      "zh-CN": "必填",
+      "en": "Required",
+      "zh-TW": "必填"
+    },
+    "customFieldRemoveLabel": {
+      "zh-CN": "删除",
+      "en": "Remove",
+      "zh-TW": "刪除"
+    },
+    "customFieldEmptyText": {
+      "zh-CN": "未设置自定义字段时，成员报名只填固定信息。",
+      "en": "With no custom fields, members sign up with the standard fields only.",
+      "zh-TW": "未設定自訂欄位時，成員報名只填固定資訊。"
     }
   },
   "seat": {
@@ -4593,6 +4648,66 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-CN": "所选成员不在本百业名册中",
       "en": "A selected member is not on this guild's roster",
       "zh-TW": "所選成員不在本百業名冊中"
+    },
+    "availabilitySlotInvalid": {
+      "zh-CN": "可用时段不合法",
+      "en": "That availability slot is invalid",
+      "zh-TW": "可用時段不合法"
+    },
+    "availabilityTooManySlots": {
+      "zh-CN": "可用时段太多（最多 21 个）",
+      "en": "Too many availability slots (max 21)",
+      "zh-TW": "可用時段太多（最多 21 個）"
+    },
+    "pollTitleRequired": {
+      "zh-CN": "请填写投票标题",
+      "en": "Enter a poll title",
+      "zh-TW": "請填寫投票標題"
+    },
+    "pollOptionsInvalid": {
+      "zh-CN": "候选时间不合法（需 2–8 个不同的未来时间）",
+      "en": "Candidate times are invalid (need 2–8 distinct future times)",
+      "zh-TW": "候選時間不合法（需 2–8 個不同的未來時間）"
+    },
+    "pollNotFound": {
+      "zh-CN": "投票不存在",
+      "en": "Poll not found",
+      "zh-TW": "投票不存在"
+    },
+    "pollClosed": {
+      "zh-CN": "该投票已关闭",
+      "en": "This poll is closed",
+      "zh-TW": "該投票已關閉"
+    },
+    "pollOptionInvalid": {
+      "zh-CN": "所选时间不属于该投票",
+      "en": "A picked time does not belong to this poll",
+      "zh-TW": "所選時間不屬於該投票"
+    },
+    "pollForbidden": {
+      "zh-CN": "只有发起人或百业管理员可以关闭投票",
+      "en": "Only the poll creator or a guild admin can close it",
+      "zh-TW": "只有發起人或百業管理員可以關閉投票"
+    },
+    "customFieldInvalid": {
+      "zh-CN": "自定义字段不合法",
+      "en": "That custom field is invalid",
+      "zh-TW": "自訂欄位不合法"
+    },
+    "customFieldTooMany": {
+      "zh-CN": "自定义字段最多 5 个",
+      "en": "At most 5 custom fields",
+      "zh-TW": "自訂欄位最多 5 個"
+    },
+    "signupAnswerRequired": {
+      "zh-CN": "请填写必填的报名信息",
+      "en": "Fill in the required signup fields",
+      "zh-TW": "請填寫必填的報名資訊"
+    },
+    "signupAnswerInvalid": {
+      "zh-CN": "报名信息不合法",
+      "en": "That signup answer is invalid",
+      "zh-TW": "報名資訊不合法"
     }
   },
   "guildAdmin": {
@@ -6022,6 +6137,178 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
     },
     "dailyLimitTemplate": {
       "zh-CN": "今日还可发布 {remaining} 条"
+    }
+  },
+  "schedule": {
+    "title": {
+      "zh-CN": "排期",
+      "en": "Scheduling",
+      "zh-TW": "排期"
+    },
+    "myTitle": {
+      "zh-CN": "我的可用时间",
+      "en": "My availability",
+      "zh-TW": "我的可用時間"
+    },
+    "myHint": {
+      "zh-CN": "填写你每周固定有空的时段，按你所在时区显示；管理员与车头据此定档期。",
+      "en": "Enter the weekly times you are regularly free, shown in your own timezone; admins and grouping leaders use them to pick times.",
+      "zh-TW": "填寫你每週固定有空的時段，按你所在時區顯示；管理員與車頭據此定檔期。"
+    },
+    "slotRange": {
+      "zh-CN": "{start}–{end}",
+      "en": "{start}–{end}",
+      "zh-TW": "{start}–{end}"
+    },
+    "addSlotLabel": {
+      "zh-CN": "添加时段",
+      "en": "Add time slot",
+      "zh-TW": "新增時段"
+    },
+    "removeLabel": {
+      "zh-CN": "删除",
+      "en": "Remove",
+      "zh-TW": "刪除"
+    },
+    "saveLabel": {
+      "zh-CN": "保存",
+      "en": "Save",
+      "zh-TW": "儲存"
+    },
+    "savedText": {
+      "zh-CN": "可用时间已保存",
+      "en": "Availability saved",
+      "zh-TW": "可用時間已儲存"
+    },
+    "saveFailedTemplate": {
+      "zh-CN": "保存失败：{error}",
+      "en": "Save failed: {error}",
+      "zh-TW": "儲存失敗：{error}"
+    },
+    "emptyMineText": {
+      "zh-CN": "你还没有填写可用时间。",
+      "en": "You have not entered your availability yet.",
+      "zh-TW": "你還沒有填寫可用時間。"
+    },
+    "summaryTitle": {
+      "zh-CN": "成员可用性汇总",
+      "en": "Member availability summary",
+      "zh-TW": "成員可用性彙總"
+    },
+    "summaryHint": {
+      "zh-CN": "汇总仅百业管理员与发过车的车头可见，用于定档期。",
+      "en": "The summary is visible only to guild admins and members who have led a grouping, for scheduling.",
+      "zh-TW": "彙總僅百業管理員與發過車的車頭可見，用於定檔期。"
+    },
+    "summaryEmptyText": {
+      "zh-CN": "还没有成员填写可用时间。",
+      "en": "No member has entered availability yet.",
+      "zh-TW": "還沒有成員填寫可用時間。"
+    },
+    "pollsTitle": {
+      "zh-CN": "活动时间投票",
+      "en": "Activity time polls",
+      "zh-TW": "活動時間投票"
+    },
+    "pollsHint": {
+      "zh-CN": "给出几个候选时间，成员勾选所有能参加的时间；可参加人数最多的时段最适合定档。",
+      "en": "Offer a few candidate times and members tick every time they can make; the time with the most available members wins.",
+      "zh-TW": "給出幾個候選時間，成員勾選所有能參加的時間；可參加人數最多的時段最適合定檔。"
+    },
+    "pollEmptyText": {
+      "zh-CN": "还没有时间投票。",
+      "en": "No time polls yet.",
+      "zh-TW": "還沒有時間投票。"
+    },
+    "pollCreateLabel": {
+      "zh-CN": "发起投票",
+      "en": "Start a poll",
+      "zh-TW": "發起投票"
+    },
+    "pollTitleLabel": {
+      "zh-CN": "投票标题",
+      "en": "Poll title",
+      "zh-TW": "投票標題"
+    },
+    "pollTitlePlaceholder": {
+      "zh-CN": "如：本周开荒时间",
+      "en": "e.g. This week's raid time",
+      "zh-TW": "如：本週開荒時間"
+    },
+    "pollCandidatesLabel": {
+      "zh-CN": "候选时间",
+      "en": "Candidate times",
+      "zh-TW": "候選時間"
+    },
+    "pollAddCandidateLabel": {
+      "zh-CN": "添加候选",
+      "en": "Add candidate",
+      "zh-TW": "新增候選"
+    },
+    "pollSubmitLabel": {
+      "zh-CN": "发布投票",
+      "en": "Publish poll",
+      "zh-TW": "發布投票"
+    },
+    "pollVoteLabel": {
+      "zh-CN": "提交投票",
+      "en": "Submit vote",
+      "zh-TW": "提交投票"
+    },
+    "pollVotedText": {
+      "zh-CN": "已投票，可修改后重新提交。",
+      "en": "Voted — you can change your picks and resubmit.",
+      "zh-TW": "已投票，可修改後重新提交。"
+    },
+    "pollStatusOpenText": {
+      "zh-CN": "进行中",
+      "en": "Open",
+      "zh-TW": "進行中"
+    },
+    "pollStatusClosedText": {
+      "zh-CN": "已关闭",
+      "en": "Closed",
+      "zh-TW": "已關閉"
+    },
+    "pollCloseLabel": {
+      "zh-CN": "关闭投票",
+      "en": "Close poll",
+      "zh-TW": "關閉投票"
+    },
+    "pollVoteCountTemplate": {
+      "zh-CN": "{count} 人可参加",
+      "en": "{count} can make it",
+      "zh-TW": "{count} 人可參加"
+    },
+    "pollLaunchLabel": {
+      "zh-CN": "以此时间发车",
+      "en": "Create grouping at this time",
+      "zh-TW": "以此時間發車"
+    },
+    "pollCancelLabel": {
+      "zh-CN": "取消",
+      "en": "Cancel",
+      "zh-TW": "取消"
+    },
+    "toastPollCreated": {
+      "zh-CN": "投票已发布",
+      "en": "Poll published",
+      "zh-TW": "投票已發布"
+    },
+    "toastVoted": {
+      "zh-CN": "已提交",
+      "en": "Submitted",
+      "zh-TW": "已提交"
+    },
+    "toastClosed": {
+      "zh-CN": "投票已关闭",
+      "en": "Poll closed",
+      "zh-TW": "投票已關閉"
+    },
+    "toastFailedTemplate": {
+      "zh-CN": "操作失败：{error}",
+      "en": "Action failed: {error}",
+      "zh-TW": "操作失敗：{error}"
     }
   }
 };

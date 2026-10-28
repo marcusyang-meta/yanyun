@@ -201,7 +201,8 @@ export type GuildsStringKey =
   | 'guildAdmin.lotteryDrawButton'
   | 'guildAdmin.lotteryStatusOpen'
   | 'guildAdmin.lotteryStatusDrawn'
-  | 'guildAdmin.lotteryEntryCount';
+  | 'guildAdmin.lotteryEntryCount'
+  | 'guildHome.tabSchedule';
 
 export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'locked.backLink',
@@ -405,4 +406,5 @@ export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'guildAdmin.lotteryStatusOpen',
   'guildAdmin.lotteryStatusDrawn',
   'guildAdmin.lotteryEntryCount',
+  'guildHome.tabSchedule',
 ];

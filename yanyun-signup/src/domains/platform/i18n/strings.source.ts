@@ -168,3 +168,15 @@ export const errors_lotteryAlreadyDrawn = (fbs: FbsAPI) =>fbs("该抽奖已经�
 export const errors_lotteryWinnerCountInvalid = (fbs: FbsAPI) =>fbs("中奖人数必须在 1 与参与人数之间", "errors.lotteryWinnerCountInvalid");
 export const errors_lotteryWeightInvalid = (fbs: FbsAPI) =>fbs("权重必须是 1 到 1000 之间的整数", "errors.lotteryWeightInvalid");
 export const errors_lotteryMemberNotInGuild = (fbs: FbsAPI) =>fbs("所选成员不在本百业名册中", "errors.lotteryMemberNotInGuild");
+export const errors_availabilitySlotInvalid = (fbs: FbsAPI) =>fbs("可用时段不合法", "errors.availabilitySlotInvalid");
+export const errors_availabilityTooManySlots = (fbs: FbsAPI) =>fbs("可用时段太多（最多 21 个）", "errors.availabilityTooManySlots");
+export const errors_pollTitleRequired = (fbs: FbsAPI) =>fbs("请填写投票标题", "errors.pollTitleRequired");
+export const errors_pollOptionsInvalid = (fbs: FbsAPI) =>fbs("候选时间不合法（需 2–8 个不同的未来时间）", "errors.pollOptionsInvalid");
+export const errors_pollNotFound = (fbs: FbsAPI) =>fbs("投票不存在", "errors.pollNotFound");
+export const errors_pollClosed = (fbs: FbsAPI) =>fbs("该投票已关闭", "errors.pollClosed");
+export const errors_pollOptionInvalid = (fbs: FbsAPI) =>fbs("所选时间不属于该投票", "errors.pollOptionInvalid");
+export const errors_pollForbidden = (fbs: FbsAPI) =>fbs("只有发起人或百业管理员可以关闭投票", "errors.pollForbidden");
+export const errors_customFieldInvalid = (fbs: FbsAPI) =>fbs("自定义字段不合法", "errors.customFieldInvalid");
+export const errors_customFieldTooMany = (fbs: FbsAPI) =>fbs("自定义字段最多 5 个", "errors.customFieldTooMany");
+export const errors_signupAnswerRequired = (fbs: FbsAPI) =>fbs("请填写必填的报名信息", "errors.signupAnswerRequired");
+export const errors_signupAnswerInvalid = (fbs: FbsAPI) =>fbs("报名信息不合法", "errors.signupAnswerInvalid");
