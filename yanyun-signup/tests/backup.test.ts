@@ -1,18 +1,27 @@
-// Hub backup endpoints acceptance (HTTP surface; the deep
-// export/restore semantics are proven by scripts/restore-drill.mjs on
-// real D1 + R2):
-//  - every backup path requires hub auth;
-//  - POST /backup/run stores a snapshot in R2 and audits it (the audit
-//    summary carries key/rows/bytes only — never file content);
-//  - GET /backup/list shows the stored snapshot;
-//  - GET /backup/download returns the file (refresh token and avatar
-//    blob survive), rejects traversal keys with 404, and audits;
-//  - GET /backup/export streams a parseable backup of live data and
-//    audits the export;
-//  - without the BACKUPS binding: run -> 500, list -> available:false.
-// FakeDB routes generic entity selects by table name; FakeR2 is a plain
-// in-memory bucket double.
+// Backup acceptance after the hub overhaul (HTTP + GraphQL surfaces;
+// the deep export/restore semantics are proven by
+// scripts/restore-drill.mjs on real D1 + R2):
+//  - the retired hub paths are gone: /api/hub/login and
+//    /api/hub/backup/* answer 404, and /hub-admin.html redirects to
+//    the home page (the admin surface lives in the settings dialog);
+//  - backup downloads authenticate with the normal site session plus
+//    the platform-admin gate: no session -> 401 on the HTTP routes,
+//    a signed-in non-admin -> 403, an admin -> the file;
+//  - run/list moved to the GraphQL admin surface
+//    (platformAdminRunBackup / PlatformAdmin.backups): a snapshot
+//    lands in R2 and audits with the acting admin's REAL user ID as
+//    actor (the audit summary carries key/rows/bytes only — never
+//    file content);
+//  - GET /api/platform-admin/backup/download returns the file
+//    (refresh token and avatar blob survive), rejects traversal keys
+//    with 404, and audits; the export route streams a parseable
+//    backup of live data and audits the export;
+//  - without the BACKUPS binding: run refuses with
+//    backupStorageMissing, list composes available:false.
+// FakeDB routes generic entity selects by table name; FakeR2 is a
+// plain in-memory bucket double.
 import { describe, it, expect } from 'vitest';
+import { signJwt } from '../src/domains/identity/auth.ts';
 function check(name: string, ok: boolean, extra = '') {
   expect(ok, extra ? `${name} — ${extra}` : name).toBe(true);
 }
@@ -44,8 +53,12 @@ const AVATAR = new Uint8Array([137, 80, 78, 71, 1, 2, 3, 4]);
 function makeDb() {
   const tables = {
     tenants: [{ slug: 'alpha', guild_name: '甲百业', password_hash: 'hash-alpha', announcement: '', created_at: '2026-01-01', discord_webhook: 'https://discord.com/api/webhooks/111/aaa', slogan: null, master_name: null, logo_url: null, bg_image_url: null }],
-    users: [{ discord_id: '1001', username: '甲用户', avatar: '', guilds_json: '[]', guilds_checked_at: 0, created_at: '2026-01-01', updated_at: '2026-01-01', locale_pref: null }],
-    user_oauth: [{ discord_id: '1001', refresh_token: 'REFRESH-DO-NOT-LEAK-INTO-AUDIT', scope: 'identify', refresh_state: 'ok', last_refresh_at: 0, updated_at: 0 }],
+    users: [{ discord_id: '1001', username: '甲用户', avatar: '', guilds_json: '[]', guilds_checked_at: 0, created_at: '2026-01-01', updated_at: '2026-01-01', locale_pref: null },
+            { discord_id: '2002', username: '乙用户', avatar: '', guilds_json: '[]', guilds_checked_at: 0, created_at: '2026-01-01', updated_at: '2026-01-01', locale_pref: null }],
+    // Complete grants (refresh token + guilds.members.read scope):
+    // the checked session voids anything less (session ruling).
+    user_oauth: [{ discord_id: '1001', refresh_token: 'REFRESH-DO-NOT-LEAK-INTO-AUDIT', scope: 'identify guilds.members.read', refresh_state: 'ok', last_refresh_at: 0, updated_at: 0 },
+                 { discord_id: '2002', refresh_token: 'REFRESH-USER-2002', scope: 'identify guilds.members.read', refresh_state: 'ok', last_refresh_at: 0, updated_at: 0 }],
     guild_avatars: [{ tenant: 'alpha', content_type: 'image/png', bytes: AVATAR.buffer, hash: 'abc', updated_at: 1700000000 }],
     events: [{ id: 101, tenant: 'alpha', title: '车', type: 'activity', description: '', starts_at: null, meet_info: '', max_slots: 10, status: 'open', starts_at_utc: 1800000000, origin: 'admin', created_by: '甲', manage_code: '', dungeon: '', creator_discord_id: '1001', reminder_sent_at: null, reminder_error: null }],
     hub_audit_log: [],
@@ -59,7 +72,11 @@ function makeDb() {
     }
     const m = /from\s+([a-z_]+)/i.exec(sql);
     if (m && /^\s*select/i.test(sql)) {
-      return { results: state.tables[m[1]] || [] };
+      const rows = state.tables[m[1]] || [];
+      // Single-row reads (session grant checks, locale pref) take the
+      // first row; list reads take the table.
+      if (kind === 'first') return rows[0] ?? null;
+      return { results: rows };
     }
     if (kind === 'first') return null;
     return { results: [] };
@@ -99,59 +116,79 @@ function makeCtx() {
 }
 const ASSETS = { fetch: async () => new Response('not found', { status: 404 }) };
 const worker = (await import('../src/worker.ts')).default;
-function req(path, { method = 'GET', token, body } = {}) {
+const SESSION_SECRET = 'backup-test-secret';
+function req(path, { method = 'GET', jwt, body } = {}) {
   const headers = {};
-  if (token) headers.authorization = 'Bearer ' + token;
+  if (jwt) headers.cookie = 'yy_session=' + jwt;
   if (body !== undefined) headers['content-type'] = 'application/json';
   return new Request('http://local' + path, {
     method, headers, body: body !== undefined ? JSON.stringify(body) : undefined,
   });
 }
+async function gqlReq(query, jwt) {
+  return req('/graphql', { method: 'POST', jwt, body: { query } });
+}
 
 describe('backup', () => {
 
-  it('backup endpoints with BACKUPS binding', async () => {
+  it('backup surface with BACKUPS binding', async () => {
 
 {
   const { db, state } = makeDb();
   const r2 = makeR2();
-  const env = { DB: db, ADMIN_PASSWORD: 'test-admin-pw', ASSETS, BACKUPS: r2 };
+  const env = { DB: db, ASSETS, BACKUPS: r2, SESSION_SECRET, PLATFORM_ADMIN_DISCORD_IDS: '1001' };
   const { ctx } = makeCtx();
+  const adminJwt = await signJwt(SESSION_SECRET, { sub: '1001', name: '甲用户', guilds: [] });
+  const userJwt = await signJwt(SESSION_SECRET, { sub: '2002', name: '乙用户', guilds: [] });
 
-  const noTok = await worker.fetch(req('/api/hub/backup/list'), env, ctx);
-  eq('备份列表无 token -> 401', noTok.status, 401);
+  // The retired portal is gone.
+  const oldLogin = await worker.fetch(req('/api/hub/login', { method: 'POST', body: { password: 'test-admin-pw' } }), env, ctx);
+  eq('旧 hub 登录已退役 -> 404', oldLogin.status, 404);
+  const oldList = await worker.fetch(req('/api/hub/backup/list', { jwt: adminJwt }), env, ctx);
+  eq('旧 hub 备份列表已退役 -> 404', oldList.status, 404);
+  const oldPage = await worker.fetch(req('/hub-admin.html'), env, ctx);
+  eq('旧门户页重定向', oldPage.status, 301);
+  eq('重定向落点为主页', new URL(oldPage.headers.get('location')).pathname, '/');
 
-  const login = await worker.fetch(req('/api/hub/login', { method: 'POST', body: { password: 'test-admin-pw' } }), env, ctx);
-  const { token } = await login.json();
+  // Session + gate on the HTTP download route.
+  const noSession = await worker.fetch(req('/api/platform-admin/backup/download?key=manual/x.json'), env, ctx);
+  eq('无会话下载 -> 401', noSession.status, 401);
+  const nonAdmin = await worker.fetch(req('/api/platform-admin/backup/download?key=manual/x.json', { jwt: userJwt }), env, ctx);
+  eq('非超管会话下载 -> 403', nonAdmin.status, 403);
 
-  const run = await worker.fetch(req('/api/hub/backup/run', { method: 'POST', token }), env, ctx);
-  eq('立即备份 -> 200', run.status, 200);
-  const rj = await run.json();
-  check('快照 key 在 manual/ 下', typeof rj.backup?.key === 'string' && rj.backup.key.startsWith('manual/'), rj.backup?.key);
-  eq('快照计数含 tenants=1', rj.backup?.counts?.tenants, 1);
-  check('R2 里真的存了对象', r2.store.has(rj.backup.key));
+  // Run + list through the GraphQL admin surface.
+  const runRes = await worker.fetch(await gqlReq('mutation { platformAdminRunBackup { ok key rows bytes } }', adminJwt), env, ctx);
+  eq('立即备份 (GraphQL) -> 200', runRes.status, 200);
+  const runJson = (await runRes.json()).data.platformAdminRunBackup;
+  eq('立即备份 ok', runJson.ok, true);
+  check('快照 key 在 manual/ 下', typeof runJson.key === 'string' && runJson.key.startsWith('manual/'), runJson.key);
+  check('快照行数 > 0', runJson.rows > 0, String(runJson.rows));
+  check('R2 里真的存了对象', r2.store.has(runJson.key));
   const runAudit = state.audit.find((r) => r.action === 'backup.run');
   check('backup.run 留痕', !!runAudit);
+  eq('backup.run actor 是真实用户 ID', runAudit?.actor, '1001');
   check('备份留痕不含文件内容（无 refresh token）', !!runAudit && !runAudit.summary.includes('REFRESH-DO-NOT-LEAK'));
 
-  const list = await worker.fetch(req('/api/hub/backup/list', { token }), env, ctx);
-  const lj = await list.json();
-  eq('列表 available', lj.available, true);
-  check('列表含刚存的快照', lj.backups.some((b) => b.key === rj.backup.key));
+  const listRes = await worker.fetch(await gqlReq('{ viewer { platformAdmin { ... on PlatformAdmin { backups { available entries { key } } } } } }', adminJwt), env, ctx);
+  const listJson = (await listRes.json()).data.viewer.platformAdmin.backups;
+  eq('列表 available', listJson.available, true);
+  check('列表含刚存的快照', listJson.entries.some((b) => b.key === runJson.key));
 
-  const dl = await worker.fetch(req('/api/hub/backup/download?key=' + encodeURIComponent(rj.backup.key), { token }), env, ctx);
+  const dl = await worker.fetch(req('/api/platform-admin/backup/download?key=' + encodeURIComponent(runJson.key), { jwt: adminJwt }), env, ctx);
   eq('下载快照 -> 200', dl.status, 200);
   const file = JSON.parse(await dl.text());
   eq('下载文件格式正确', file.format, 'yanyun-backup');
   eq('文件内 oauth token 保真', file.entities.user_oauth.rows[0].refresh_token, 'REFRESH-DO-NOT-LEAK-INTO-AUDIT');
-  check('下载留痕 backup.download', state.audit.some((r) => r.action === 'backup.download'));
+  const dlAudit = state.audit.find((r) => r.action === 'backup.download');
+  check('下载留痕 backup.download', !!dlAudit);
+  eq('backup.download actor 是真实用户 ID', dlAudit?.actor, '1001');
 
-  const trav = await worker.fetch(req('/api/hub/backup/download?key=' + encodeURIComponent('../secret.json'), { token }), env, ctx);
+  const trav = await worker.fetch(req('/api/platform-admin/backup/download?key=' + encodeURIComponent('../secret.json'), { jwt: adminJwt }), env, ctx);
   eq('路径穿越 key -> 404', trav.status, 404);
-  const missing = await worker.fetch(req('/api/hub/backup/download?key=' + encodeURIComponent('daily/1999-01-01.json'), { token }), env, ctx);
+  const missing = await worker.fetch(req('/api/platform-admin/backup/download?key=' + encodeURIComponent('daily/1999-01-01.json'), { jwt: adminJwt }), env, ctx);
   eq('不存在的快照 -> 404', missing.status, 404);
 
-  const exp = await worker.fetch(req('/api/hub/backup/export', { token }), env, ctx);
+  const exp = await worker.fetch(req('/api/platform-admin/backup/export', { jwt: adminJwt }), env, ctx);
   eq('流式导出 -> 200', exp.status, 200);
   check('导出是附件下载', (exp.headers.get('content-disposition') || '').includes('attachment'));
   const expFile = JSON.parse(await exp.text());
@@ -160,7 +197,9 @@ describe('backup', () => {
   const blob = expFile.entities.guild_avatars.rows[0].bytes;
   const decoded = Uint8Array.from(atob(blob.$blob), (ch) => ch.charCodeAt(0));
   check('导出头像 blob 可解码且字节一致', decoded.length === AVATAR.length && decoded.every((v, i) => v === AVATAR[i]));
-  check('导出留痕 backup.export', state.audit.some((r) => r.action === 'backup.export'));
+  const expAudit = state.audit.find((r) => r.action === 'backup.export');
+  check('导出留痕 backup.export', !!expAudit);
+  eq('backup.export actor 是真实用户 ID', expAudit?.actor, '1001');
 }
   });
 
@@ -168,15 +207,16 @@ describe('backup', () => {
 
 {
   const { db } = makeDb();
-  const env = { DB: db, ADMIN_PASSWORD: 'test-admin-pw', ASSETS };
+  const env = { DB: db, ASSETS, SESSION_SECRET, PLATFORM_ADMIN_DISCORD_IDS: '1001' };
   const { ctx } = makeCtx();
-  const login = await worker.fetch(req('/api/hub/login', { method: 'POST', body: { password: 'test-admin-pw' } }), env, ctx);
-  const { token } = await login.json();
-  const run = await worker.fetch(req('/api/hub/backup/run', { method: 'POST', token }), env, ctx);
-  eq('无 BACKUPS 绑定时立即备份 -> 500', run.status, 500);
-  const list = await worker.fetch(req('/api/hub/backup/list', { token }), env, ctx);
-  const lj = await list.json();
-  eq('无 BACKUPS 绑定时列表 available:false', lj.available, false);
+  const adminJwt = await signJwt(SESSION_SECRET, { sub: '1001', name: '甲用户', guilds: [] });
+  const runRes = await worker.fetch(await gqlReq('mutation { platformAdminRunBackup { ok errorCode } }', adminJwt), env, ctx);
+  const runJson = (await runRes.json()).data.platformAdminRunBackup;
+  eq('无 BACKUPS 绑定时立即备份被拒', runJson.ok, false);
+  eq('拒绝原因是备份存储未配置', runJson.errorCode, 'backupStorageMissing');
+  const listRes = await worker.fetch(await gqlReq('{ viewer { platformAdmin { ... on PlatformAdmin { backups { available } } } } }', adminJwt), env, ctx);
+  const listJson = (await listRes.json()).data.viewer.platformAdmin.backups;
+  eq('无 BACKUPS 绑定时列表 available:false', listJson.available, false);
 }
   });
 });

@@ -17,7 +17,7 @@ import { logError, runScheduledBackup, configureGateRuntime } from './domains/pl
 import { err } from './domains/platform/http.ts';
 import { hubOgTags, guildOgTags, carOgTags, buildOgTags } from './domains/platform/og.ts';
 import { getTenantSlug, parseGuildSubdomainSlug, resolveGuildSubdomain, guildSubdomainOrigin, isCustomDomainCandidateHost, lookupGuildCustomDomainHost, customDomainSaasConfigured } from './domains/guilds/index.ts';
-import { hubRoutes } from './domains/platform/hub-routes.ts';
+import { platformAdminBackupRoutes } from './domains/platform/admin-backup-routes.ts';
 import { billingRoutes } from './domains/platform/billing-routes.ts';
 import { guildAvatarRoutes } from './domains/guilds/avatar-routes.ts';
 import { shortLinkRoutes } from './domains/groupings/shortlink-routes.ts';
@@ -40,7 +40,7 @@ app.use('/api/*', async (c: any, next: any) => {
   await next();
 });
 
-app.route('/api/hub', hubRoutes);
+app.route('/api/platform-admin', platformAdminBackupRoutes); // backup file downloads only (session + platform-admin gate); the admin surface itself is GraphQL
 app.route('/', billingRoutes); // Stripe webhook /stripe/webhook (signature-authenticated, no session)
 app.route('/', guildAvatarRoutes); // avatar public path /guilds/:slug/avatar (standalone, survives the REST shutdown)
 app.route('/', shortLinkRoutes); // share short links /c/:code -> 302 to the canonical car URL
@@ -206,8 +206,10 @@ async function handleFetch(request: Request, env: Env, ctx: ExecutionContext) {
       });
     };
 
-    // Legacy admin pages + old-path redirects.
-    if (path === '/hub-admin.html') return serveAsset('/hub-admin.html');
+    // Legacy admin pages + old-path redirects. The retired hub
+    // portal's page now lands on the home page — the admin surface
+    // lives in the settings dialog there (platform admin page).
+    if (path === '/hub-admin.html') return Response.redirect(new URL('/', url).toString(), 301);
     if (path === '/index.html' || path === '/admin.html') {
       return Response.redirect(new URL('/', url).toString(), 301);
     }

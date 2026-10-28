@@ -1,9 +1,9 @@
 // Commercialization-audit A2/A3/A4/A7 fix acceptance (2026-10-25):
 //  A4: the anonymous guild-creation endpoint POST /api/onboard is
 //      deleted — a real worker.fetch probe must 404 and add zero
-//      tenants; the guild-admin token's 'fallback-secret' fallback is
-//      now fail-closed (no ADMIN_PASSWORD -> login 500; no secret ->
-//      admin surface 500).
+//      tenants; the platform-admin surface is fail-closed (hub
+//      overhaul: the password portal is retired — with no admin
+//      roster configured anywhere, nobody composes the surface).
 //  A2: legalPage(TERMS/PRIVACY) is publicly reachable; body = zh-CN
 //      source + full en translation, es/fr/zh-TW fall back per-field
 //      to the source (titles and other UI copy still localize in all 5).
@@ -13,8 +13,8 @@
 //  A7: error_log write/truncate/portal-read full chain — direct
 //      logError writes, worker-level injected uncaught exceptions
 //      (REST 500 + logged), GraphQL uncaught exceptions logged via the
-//      yoga plugin while business-copy errors are not, and
-//      GET /api/hub/errors readable after auth.
+//      yoga plugin while business-copy errors are not, and the
+//      admin errors list readable only through the admin gate.
 // FakeDB routes by SQL shape; error_log and tenant updates land in
 // real in-memory tables.
 import { describe, it, expect } from 'vitest';
@@ -82,6 +82,10 @@ function makeDb({ tenants = [], throwOnTenantsList = false } = {}) {
       if (/FROM error_log/.test(sql)) return { results: [...state.errorLog].sort((x, y) => y.id - x.id).slice(0, b[0] || 50) };
       return { meta: {} }; // CREATE TABLE / INDEX / DELETE(prune)
     }
+    if (/user_oauth/.test(sql)) {
+      const row = { discord_id: 'CMP-ADMIN', refresh_token: 'rt-cmp', scope: 'identify guilds.members.read', refresh_state: 'ok' };
+      return kind === 'first' ? row : { results: [row] };
+    }
     if (/INSERT INTO tenants/.test(sql)) {
       state.tenantInserts++;
       state.tenants.push({ slug: b[0], guild_name: b[1], password_hash: b[2], announcement: b[3] });
@@ -117,6 +121,19 @@ function makeCtx() {
   return { ctx: { waitUntil(p) { pending.push(Promise.resolve(p).catch(() => {})); } }, pending };
 }
 const ASSETS = { fetch: async () => new Response('not found', { status: 404 }) };
+const CMP_SECRET = 'compliance-test-secret';
+async function cmpAdminJwt() {
+  const { signJwt } = await import('../src/domains/identity/auth.ts');
+  return signJwt(CMP_SECRET, { sub: 'CMP-ADMIN', name: '合规管理员', guilds: [] });
+}
+async function gqlAs(query, { db, user = null, env = {} }) {
+  const ctx = { env: { DB: db, ...env }, request: new Request('http://local/graphql'), user,
+    locale: 'zh-CN', browserLocale: 'zh-CN', tz: 'Asia/Shanghai', executionCtx: undefined };
+  const res = await yoga.fetch(new Request('http://local/graphql', {
+    method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ query }),
+  }), ctx);
+  return res.json();
+}
 
 
 
@@ -151,38 +168,42 @@ describe('compliance', () => {
       await Promise.all(pending);
     }
 
-    /* fallback-secret fail-closed (vehicle moved to the hub surface in
-     * the REST shutdown: the guild password login is abolished; the
-     * property — no ADMIN_PASSWORD means NO fallback secret anywhere —
-     * is exercised on hub login / hub auth, which survive). */
+    /* fail-closed admin surface (hub overhaul: the password portal
+     * this block used to exercise is retired; the property — with NO
+     * platform-admin credential configured anywhere there is NO way
+     * in, and forged credentials get nothing — is exercised on the
+     * retired paths and on the GraphQL gate). */
     {
       const worker = (await import('../src/worker.ts')).default;
       const { db } = makeDb({ tenants: [{ slug: 'testguild', guild_name: '测试百业', password_hash: await sha256hex('guildpass123') }] });
       const { ctx } = makeCtx();
+      const PA = '{ viewer { platformAdmin { __typename } } }';
 
       const noPwEnv = { DB: db, ASSETS };
       const r1 = await worker.fetch(new Request('http://local/api/hub/login', {
         method: 'POST', headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ password: 'guildpass123' }),
       }), noPwEnv, ctx);
-      eq('A4 无超管密码时超管登录 -> 500 fail-closed', r1.status, 500);
-      const j1 = await r1.json();
-      check('A4 500 响应不含 token', !j1.token, JSON.stringify(j1).slice(0, 100));
+      eq('A4 旧超管登录已退役 -> 404', r1.status, 404);
+      const j1 = await r1.json().catch(() => ({}));
+      check('A4 404 响应不含 token', !j1.token, JSON.stringify(j1).slice(0, 100));
 
       const r2 = await worker.fetch(new Request('http://local/api/hub/tenants', {
         headers: { authorization: 'Bearer <redacted>' },
       }), noPwEnv, ctx);
-      eq('A4 无超管密码时管理面拒绝伪造 token -> 401', r2.status, 401);
+      eq('A4 旧管理面拒绝伪造 token -> 404', r2.status, 404);
+      check('A4 404 响应不含百业数据', !(await r2.clone().text()).includes('testguild'));
 
-      // With ADMIN_PASSWORD (production shape): hub login issues a token normally.
-      const pwEnv = { DB: db, ADMIN_PASSWORD: 'test-admin-pw', ASSETS };
-      const r3 = await worker.fetch(new Request('http://local/api/hub/login', {
-        method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ password: 'test-admin-pw' }),
-      }), pwEnv, ctx);
-      eq('A4 有超管密码时超管登录 -> 200', r3.status, 200);
-      const j3 = await r3.json();
-      check('A4 正常签发 token', typeof j3.token === 'string' && j3.token.includes('.'));
+      // No roster anywhere (no env floor, no settings roster): even a
+      // signed-in user composes Locked — fail closed.
+      const locked = await gqlAs(PA, { db, user: { discordId: 'CMP-USER', name: '普通用户', guilds: [] } });
+      eq('A4 无名单配置时登录用户 -> Locked', locked.data?.viewer?.platformAdmin?.__typename, 'PlatformAdminLocked');
+
+      // With the env floor configured (production bootstrap shape):
+      // the listed admin composes the surface.
+      const open = await gqlAs(PA, { db, user: { discordId: 'CMP-ADMIN', name: '合规管理员', guilds: [] },
+        env: { PLATFORM_ADMIN_DISCORD_IDS: 'CMP-ADMIN' } });
+      eq('A4 env 名单内超管 -> 管理面可达', open.data?.viewer?.platformAdmin?.__typename, 'PlatformAdmin');
     }
   });
 
@@ -253,19 +274,16 @@ describe('compliance', () => {
     }
     {
       // Worker-level injection: uncaught Hono-handler exception -> 500 +
-      // error_log(source=rest). Vehicle: the hub tenant list (kept
-      // surface) with a DB that throws inside its query.
+      // error_log(source=rest). Vehicle (hub overhaul): the session-authed
+      // backup download route, with an R2 stub whose get throws.
       const worker = (await import('../src/worker.ts')).default;
-      const { db, state } = makeDb({ throwOnTenantsList: true });
-      const env = { DB: db, ADMIN_PASSWORD: 'test-admin-pw', ASSETS };
+      const { db, state } = makeDb({});
+      const env = { DB: db, ASSETS, SESSION_SECRET: CMP_SECRET, PLATFORM_ADMIN_DISCORD_IDS: 'CMP-ADMIN',
+        BACKUPS: { get: async () => { throw new Error('boom-test'); } } };
       const { ctx, pending } = makeCtx();
-      const login0 = await worker.fetch(new Request('http://local/api/hub/login', {
-        method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ password: 'test-admin-pw' }),
-      }), env, ctx);
-      const lj0 = await login0.json();
-      const res = await worker.fetch(new Request('http://local/api/hub/tenants', {
-        headers: { authorization: 'Bearer ' + lj0.token },
+      const jwt = await cmpAdminJwt();
+      const res = await worker.fetch(new Request('http://local/api/platform-admin/backup/download?key=manual%2Fx.json', {
+        headers: { cookie: 'yy_session=' + jwt },
       }), env, ctx);
       eq('A7 Hono 未捕获异常 -> 500', res.status, 500);
       await Promise.all(pending);
@@ -273,22 +291,26 @@ describe('compliance', () => {
       check('A7 Hono 异常落 error_log', !!restRow, JSON.stringify(state.errorLog).slice(0, 200));
       check('A7 Hono 落库含原始消息', (restRow?.message || '').includes('boom-test'), restRow?.message);
 
-      // Portal read: log in for a token -> GET /api/hub/errors; no token -> 401.
-      const login = await worker.fetch(new Request('http://local/api/hub/login', {
+      // Admin read: the errors list is reachable only through the gate
+      // (anonymous composes Locked with zero error data).
+      const { db: db2, state: state2 } = makeDb({});
+      state2.errorLog.push({ id: 1, at: Math.floor(Date.now() / 1000), source: 'rest', name: 'Error', message: 'boom-test injected', tenant: '', context: '', stack: '' });
+      const env2 = { DB: db2, ASSETS, SESSION_SECRET: CMP_SECRET, PLATFORM_ADMIN_DISCORD_IDS: 'CMP-ADMIN' };
+      const ERRQ = '{ viewer { platformAdmin { __typename ... on PlatformAdmin { errors { source message } errorCount24h } } } }';
+      const er = await (await worker.fetch(new Request('http://local/graphql', {
+        method: 'POST', headers: { 'content-type': 'application/json', cookie: 'yy_session=' + jwt },
+        body: JSON.stringify({ query: ERRQ }),
+      }), env2, ctx)).json();
+      const pa = er.data?.viewer?.platformAdmin;
+      eq('A7 超管 errors 可达', pa?.__typename, 'PlatformAdmin');
+      check('A7 超管 errors 含注入行', (pa?.errors || []).some((r) => r.source === 'rest' && r.message.includes('boom-test')), JSON.stringify(pa).slice(0, 200));
+      check('A7 超管 errors last24h >=1', pa?.errorCount24h >= 1, `n=${pa?.errorCount24h}`);
+      const erAnon = await (await worker.fetch(new Request('http://local/graphql', {
         method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ password: 'test-admin-pw' }),
-      }), env, ctx);
-      const lj = await login.json();
-      check('A7 hub 登录签发 token', typeof lj.token === 'string');
-      const er = await worker.fetch(new Request('http://local/api/hub/errors', {
-        headers: { authorization: 'Bearer ' + lj.token },
-      }), env, ctx);
-      eq('A7 hub errors -> 200', er.status, 200);
-      const ej = await er.json();
-      check('A7 hub errors 含注入行', (ej.errors || []).some((r) => r.source === 'rest' && r.message.includes('boom-test')), JSON.stringify(ej).slice(0, 200));
-      check('A7 hub errors last24h >=1', ej.last24h >= 1, `n=${ej.last24h}`);
-      const er401 = await worker.fetch(new Request('http://local/api/hub/errors'), env, ctx);
-      eq('A7 hub errors 无 token -> 401', er401.status, 401);
+        body: JSON.stringify({ query: ERRQ }),
+      }), env2, ctx)).json();
+      eq('A7 匿名 errors -> Locked', erAnon.data?.viewer?.platformAdmin?.__typename, 'PlatformAdminLocked');
+      check('A7 匿名零错误数据下发', !JSON.stringify(erAnon).includes('boom-test'));
     }
     {
       // GraphQL: uncaught exceptions are logged via the plugin; business-copy errors (guildNotFound) are not.

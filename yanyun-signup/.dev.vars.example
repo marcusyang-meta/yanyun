@@ -19,9 +19,12 @@
 # do with production.
 SESSION_SECRET=
 
-# OPTIONAL — only gates the local hub admin surface. Self-chosen:
-# pick any password for local use; unrelated to production.
-ADMIN_PASSWORD=
+# OPTIONAL — platform admin gate bootstrap (no password anywhere:
+# the admin surface rides the normal session). Comma-separated
+# Discord user IDs that always pass the platform-admin gate locally;
+# the living roster lives in global settings and is edited on the
+# admin surface itself. See docs/PLATFORM_ADMIN.md.
+PLATFORM_ADMIN_DISCORD_IDS=
 
 # OPTIONAL — only needed to click through the real Discord OAuth flow
 # in a local browser. Fill with a Discord TEST application's

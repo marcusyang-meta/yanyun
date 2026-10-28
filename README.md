@@ -16,7 +16,8 @@ yanyun/
 ├─ yanyun-signup/     Backend: Hono + GraphQL Yoga on Cloudflare Workers,
 │                     D1 via a Drizzle data layer, a GuildHub Durable
 │                     Object (Hibernation WebSockets) for realtime updates
-│                     and departure reminders, plus the hub admin pages.
+│                     and departure reminders, plus the platform admin
+│                     surface (GraphQL + a settings dialog page).
 ├─ yanyun-web/        Web: Vite + React + Relay. Build output is synced
 │                     into yanyun-signup/public and served by the backend.
 ├─ yanyun-mobile/     Mobile: Expo SDK 58 + React Native + Relay,
@@ -185,8 +186,10 @@ them. Three tiers:
    `SESSION_SECRET` only signs local session cookies: the local key
    and the production key are two independent keys, and neither
    accepts cookies signed by the other, so generate any random string
-   — it has nothing to do with production. `ADMIN_PASSWORD` is
-   likewise your own choice for the local hub gate.
+   — it has nothing to do with production. The platform admin
+   surface has no password: locally, name your Discord user ID in
+   `PLATFORM_ADMIN_DISCORD_IDS` (see yanyun-signup/docs/PLATFORM_ADMIN.md)
+   and the gating-layer admin gate opens the surface for your session.
 2. **Dev/test-only credentials for external services.** When local
    work must talk to a real external service, use credentials minted
    for development — a separate Discord test application (below),

@@ -25,7 +25,7 @@
 //  - composition: reminder links prefer the custom origin over
 //    the platform subdomain; shareUrl and short-link landings
 //    follow a live custom host; main-host outputs unchanged;
-//  - platform side: the hub billing state lists bindings (no
+//  - platform side: the platform-admin billing state lists bindings (no
 //    token) and the audited disable switch flips them.
 // Real worker fetch + real yoga + FakeDB routing by SQL shape into
 // in-memory tables (same pattern as .harness-subdomain).
@@ -41,9 +41,6 @@ import {
 } from '../src/domains/guilds/customdomain.ts';
 import { tierLocked, grantPremiumManual, revokePremium } from '../src/domains/platform/billing-service.ts';
 import { resolveGuildSubdomain } from '../src/domains/guilds/subdomain.ts';
-import { hubRoutes } from '../src/domains/platform/hub-routes.ts';
-import { makeToken } from '../src/domains/platform/http.ts';
-import { Hono } from 'hono';
 import { mintShortLink } from '../src/domains/groupings/shortlinks.ts';
 import { buildReminderMessage } from '../src/domains/groupings/reminder.ts';
 import { BACKUP_ENTITIES, exportBackup } from '../src/domains/platform/backup.ts';
@@ -592,43 +589,81 @@ eq('主域短链落点不变', res.headers.get('location'), 'https://yanyun.app/
 await res.text();
   });
 
-  it('I. hub platform surface', async () => {
-/* ---------------- I. hub platform surface ---------------- */
-const hubApp = new Hono();
-hubApp.use('*', async (c, next) => { c.set('ip', '127.0.0.1'); await next(); });
-hubApp.route('/api/hub', hubRoutes);
-const hubEnv = { DB: A.db, ADMIN_PASSWORD: 'customdomain-test-pw', SITE_URL: 'http://local', SAAS_FALLBACK_ORIGIN: 'fallback.yanyun.app' };
-const hubToken = await makeToken('customdomain-test-pw', '__hub__');
-async function hub(path, method = 'GET', body, withToken = true) {
-  const res2 = await hubApp.fetch(new Request('http://local' + path, {
-    method,
-    headers: { ...(withToken ? { authorization: `Bearer ${hubToken}` } : {}), 'content-type': 'application/json' },
-    body: body ? JSON.stringify(body) : undefined,
-  }), hubEnv);
-  return { status: res2.status, json: await res2.json().catch(() => null) };
+  it('I. platform-admin surface', async () => {
+/* ---------------- I. platform-admin surface ---------------- */
+/* Platform-admin actuator (hub overhaul): this section used to
+ * drive the kill switch through the retired hub REST portal; it now
+ * goes through the GraphQL admin surface with an env-floor platform
+ * admin. The adapter keeps the {status, json:{ok, billing}} shape
+ * (including the nested customDomain tenant view) the assertions
+ * were written against, and maps payload errorCodes back to the old
+ * HTTP statuses (gate refusal -> 401, unknown guild / unbound ->
+ * 404). */
+const ADMIN_BILLING_FIELDS_CD = `paygateEnabled stripeConfigured customDomainSaasConfigured
+  plans { tier plan name nameEn subtitle subtitleEn priceMonthlyCents }
+  tenants { slug guildName plan source tier effectiveTier tierName tierNameEn tierSubtitle
+    currentPeriodEnd lapsed pastDue hasCard trialUsed stripeCustomerId stripeSubscriptionId
+    subdomainEnabled customDomainHostname customDomainStatus }`;
+const adminEnvCd = { DB: A.db, SITE_URL: 'http://local', SAAS_FALLBACK_ORIGIN: 'fallback.yanyun.app', PLATFORM_ADMIN_DISCORD_IDS: 'CD-ADMIN' };
+const adminUserCd = { discordId: 'CD-ADMIN', name: 'customdomain-test admin', guilds: [] as string[] };
+function shapeBillingCd(b: any) {
+  if (!b) return null;
+  return { ...b, tenants: (b.tenants || []).map((t: any) => ({ ...t,
+    guild_name: t.guildName,
+    customDomain: t.customDomainHostname ? { hostname: t.customDomainHostname, status: t.customDomainStatus } : null })) };
+}
+async function adminGqlCd(query: string, { user = adminUserCd }: any = {}) {
+  const ctx = { env: adminEnvCd, request: new Request('http://local/graphql'), user,
+    locale: 'zh-CN', browserLocale: 'zh-CN', tz: 'Asia/Shanghai', executionCtx: { waitUntil() {} } };
+  const res = await yoga.fetch(new Request('http://local/graphql', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ query }),
+  }), ctx);
+  return res.json();
+}
+async function hub(path: string, method = 'GET', body?: any, withToken = true) {
+  const user = withToken ? adminUserCd : null;
+  if (path === '/api/hub/billing' && method === 'GET') {
+    const r = await adminGqlCd(`{ viewer { platformAdmin { __typename ... on PlatformAdmin { billing { ${ADMIN_BILLING_FIELDS_CD} } } } } }`, { user });
+    const pa = r.data?.viewer?.platformAdmin;
+    if (!pa || pa.__typename !== 'PlatformAdmin') return { status: 401, json: null as any };
+    return { status: 200, json: { ok: true, billing: shapeBillingCd(pa.billing) } };
+  }
+  if (path === '/api/hub/billing/custom-domain' && method === 'PUT') {
+    const r = await adminGqlCd(`mutation { platformAdminSetCustomDomainDisabled(slug: ${JSON.stringify(body?.slug)}, disabled: ${!!body?.disabled}) { ok error errorCode billing { ${ADMIN_BILLING_FIELDS_CD} } } }`, { user });
+    const payload = r.data?.platformAdminSetCustomDomainDisabled;
+    if (!payload) return { status: 401, json: null as any };
+    const status = payload.ok ? 200
+      : payload.errorCode === 'platformAdminRequired' ? 401
+      : payload.errorCode === 'guildNotFound' || payload.errorCode === 'customDomainNotBound' ? 404
+      : 400;
+    return { status, json: { ok: payload.ok, error: payload.error ?? null,
+      message: payload.error ?? null, billing: shapeBillingCd(payload.billing) } };
+  }
+  throw new Error('unmapped admin op: ' + method + ' ' + path);
 }
 let hb = await hub('/api/hub/billing', 'GET', undefined, false);
-eq('hub: 计费状态需超管令牌', hb.status, 401);
+eq('admin: 计费状态需超管令牌', hb.status, 401);
 hb = await hub('/api/hub/billing');
-eq('hub: 计费状态可读', hb.status, 200);
-eq('hub: 接缝状态下发', hb.json?.billing?.customDomainSaasConfigured, true);
+eq('admin: 计费状态可读', hb.status, 200);
+eq('admin: 接缝状态下发', hb.json?.billing?.customDomainSaasConfigured, true);
 const tstate = (slug) => hb.json?.billing?.tenants?.find((t) => t.slug === slug);
-eq('hub: guild-a 绑定可见', tstate('guild-a')?.customDomain?.hostname, 'www.guild-a.com');
-eq('hub: guild-a 状态 active', tstate('guild-a')?.customDomain?.status, 'active');
-eq('hub: guild-b 未绑定为 null', tstate('guild-b')?.customDomain, null);
-check('hub: 令牌不下发', !JSON.stringify(hb.json).includes((await getCustomDomainByTenant(A.db, 'guild-a')).verifyToken));
+eq('admin: guild-a 绑定可见', tstate('guild-a')?.customDomain?.hostname, 'www.guild-a.com');
+eq('admin: guild-a 状态 active', tstate('guild-a')?.customDomain?.status, 'active');
+eq('admin: guild-b 未绑定为 null', tstate('guild-b')?.customDomain, null);
+check('admin: 令牌不下发', !JSON.stringify(hb.json).includes((await getCustomDomainByTenant(A.db, 'guild-a')).verifyToken));
 hb = await hub('/api/hub/billing/custom-domain', 'PUT', { slug: 'guild-a', disabled: true });
-eq('hub: 停用 ok', hb.status, 200);
-eq('hub: 停用后状态 disabled', tstate('guild-a')?.customDomain?.status, 'disabled');
+eq('admin: 停用 ok', hb.status, 200);
+eq('admin: 停用后状态 disabled', tstate('guild-a')?.customDomain?.status, 'disabled');
 res = await callSeam('https://www.guild-a.com/');
-eq('hub 停用后域名立即 404', res.status, 404);
+eq('admin 停用后域名立即 404', res.status, 404);
 await res.text();
 hb = await hub('/api/hub/billing/custom-domain', 'PUT', { slug: 'guild-a', disabled: false });
-eq('hub: 恢复后状态回 pending (须重验)', tstate('guild-a')?.customDomain?.status, 'pending');
+eq('admin: 恢复后状态回 pending (须重验)', tstate('guild-a')?.customDomain?.status, 'pending');
 hb = await hub('/api/hub/billing/custom-domain', 'PUT', { slug: 'guild-b', disabled: true });
-eq('hub: 未绑定百业停用 -> 404', hb.status, 404);
+eq('admin: 未绑定百业停用 -> 404', hb.status, 404);
 hb = await hub('/api/hub/billing/custom-domain', 'PUT', { slug: 'ghost', disabled: true });
-eq('hub: 不存在百业 -> 404', hb.status, 404);
+eq('admin: 不存在百业 -> 404', hb.status, 404);
 /* restore guild-a to active for the backup assertion below */
 await verifyCustomDomainBinding(A.db, 'guild-a', SEAM_ENV, NOW + 300);
 eq('重验后恢复 active', (await getCustomDomainByTenant(A.db, 'guild-a')).status, 'active');

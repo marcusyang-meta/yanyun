@@ -17,9 +17,10 @@
 //  - canonical URLs follow the host at the composition points:
 //    /c/:code landing, groupingDetailPage.shareUrl, the reminder
 //    embed title link — while main-host outputs stay byte-exact;
-//  - platform ownership: the switch is written only from the hub
-//    operations surface (PUT /api/hub/billing/subdomain, super-admin
-//    gate, audited, next to the paygate switch and manual grants);
+//  - platform ownership: the switch is written only from the
+//    platform-admin operations surface (GraphQL
+//    platformAdminSetSubdomain, gating-layer admin gate, audited,
+//    next to the paygate switch and manual grants);
 //    the guild admin surface carries NO subdomain fields at all —
 //    querying any of them (or the retired updateGuildSubdomain
 //    mutation) is a schema validation error, so the capability is
@@ -43,9 +44,6 @@ import {
 import {
   setPaygateEnabled, grantPremiumManual, revokePremium,
 } from '../src/domains/platform/billing-service.ts';
-import { hubRoutes } from '../src/domains/platform/hub-routes.ts';
-import { makeToken } from '../src/domains/platform/http.ts';
-import { Hono } from 'hono';
 import {
   signJwt, verifyJwt, getSessionUser, sessionCookieHeader, sessionCookieHeaders,
   validateReturnToTarget,
@@ -639,46 +637,82 @@ const P = makeDb({
 const envP = { DB: P.db, ASSETS: env.ASSETS };
 const callP = (url) => worker.fetch(new Request(url), envP, wctx);
 
-/* hub plumbing (same mount + token shape as .harness-billing) */
-const hubApp = new Hono();
-hubApp.use('*', async (c, next) => { c.set('ip', '127.0.0.1'); await next(); });
-hubApp.route('/api/hub', hubRoutes);
-const hubEnvP = { DB: P.db, ADMIN_PASSWORD: 'subdomain-test-pw', SITE_URL: 'http://local' };
-const hubTokenP = await makeToken('subdomain-test-pw', '__hub__');
-async function hubP(path, method = 'GET', body) {
-  const res = await hubApp.fetch(new Request('http://local' + path, {
-    method,
-    headers: { authorization: `Bearer ${hubTokenP}`, 'content-type': 'application/json' },
-    body: body ? JSON.stringify(body) : undefined,
-  }), hubEnvP);
-  return { status: res.status, json: await res.json().catch(() => null) };
+/* Platform-admin plumbing (hub overhaul): this section used to
+ * drive the switch through the retired hub REST portal; it now goes
+ * through the GraphQL admin surface with an env-floor platform
+ * admin. The adapter keeps the {status, json:{ok, billing}} shape
+ * the assertions were written against, and maps payload errorCodes
+ * back to the old HTTP statuses (gate refusal -> 401, unknown guild
+ * -> 404). */
+const ADMIN_BILLING_FIELDS_SD = `paygateEnabled stripeConfigured customDomainSaasConfigured
+  plans { tier plan name nameEn subtitle subtitleEn priceMonthlyCents }
+  tenants { slug guildName plan source tier effectiveTier tierName tierNameEn tierSubtitle
+    currentPeriodEnd lapsed pastDue hasCard trialUsed stripeCustomerId stripeSubscriptionId
+    subdomainEnabled customDomainHostname customDomainStatus }`;
+const adminEnvSd = { DB: P.db, SITE_URL: 'http://local', PLATFORM_ADMIN_DISCORD_IDS: 'SD-ADMIN' };
+const adminUserSd = { discordId: 'SD-ADMIN', name: 'subdomain-test admin', guilds: [] as string[] };
+function shapeBillingSd(b: any) {
+  if (!b) return null;
+  return { ...b, tenants: (b.tenants || []).map((t: any) => ({ ...t,
+    guild_name: t.guildName,
+    customDomain: t.customDomainHostname ? { hostname: t.customDomainHostname, status: t.customDomainStatus } : null })) };
+}
+async function adminGqlSd(query: string, { user = adminUserSd }: any = {}) {
+  const ctx = { env: adminEnvSd, request: new Request('http://local/graphql'), user,
+    locale: 'zh-CN', browserLocale: 'zh-CN', tz: 'Asia/Shanghai', executionCtx: { waitUntil() {} } };
+  const res = await yoga.fetch(new Request('http://local/graphql', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ query }),
+  }), ctx);
+  return res.json();
+}
+async function hubP(path: string, method = 'GET', body?: any, withToken = true) {
+  const user = withToken ? adminUserSd : null;
+  if (path === '/api/hub/billing' && method === 'GET') {
+    const r = await adminGqlSd(`{ viewer { platformAdmin { __typename ... on PlatformAdmin { billing { ${ADMIN_BILLING_FIELDS_SD} } } } } }`, { user });
+    const pa = r.data?.viewer?.platformAdmin;
+    if (!pa || pa.__typename !== 'PlatformAdmin') return { status: 401, json: null as any };
+    return { status: 200, json: { ok: true, billing: shapeBillingSd(pa.billing) } };
+  }
+  if (path === '/api/hub/billing/subdomain' && method === 'PUT') {
+    const r = await adminGqlSd(`mutation { platformAdminSetSubdomain(slug: ${JSON.stringify(body?.slug)}, enabled: ${!!body?.enabled}) { ok error errorCode billing { ${ADMIN_BILLING_FIELDS_SD} } } }`, { user });
+    const payload = r.data?.platformAdminSetSubdomain;
+    if (!payload) return { status: 401, json: null as any };
+    const status = payload.ok ? 200
+      : payload.errorCode === 'platformAdminRequired' ? 401
+      : payload.errorCode === 'guildNotFound' || payload.errorCode === 'customDomainNotBound' ? 404
+      : 400;
+    return { status, json: { ok: payload.ok, error: payload.error ?? null,
+      message: payload.error ?? null, billing: shapeBillingSd(payload.billing) } };
+  }
+  throw new Error('unmapped admin op: ' + method + ' ' + path);
 }
 {
-  const res = await hubApp.fetch(new Request('http://local/api/hub/billing'), hubEnvP);
-  eq('hub: 计费状态需超管令牌', res.status, 401);
+  const res = await hubP('/api/hub/billing', 'GET', undefined, false);
+  eq('admin: 计费状态需超管会话', res.status, 401);
 }
 const tenantState = (hb, slug) => hb.json?.billing?.tenants?.find((t) => t.slug === slug);
 let hb = await hubP('/api/hub/billing');
-eq('hub: 计费状态可读', hb.status, 200);
-eq('hub: paytest 子域开关显示为开', tenantState(hb, 'paytest')?.subdomainEnabled, true);
-eq('hub: stripetest 子域开关显示为开', tenantState(hb, 'stripetest')?.subdomainEnabled, true);
+eq('admin: 计费状态可读', hb.status, 200);
+eq('admin: paytest 子域开关显示为开', tenantState(hb, 'paytest')?.subdomainEnabled, true);
+eq('admin: stripetest 子域开关显示为开', tenantState(hb, 'stripetest')?.subdomainEnabled, true);
 
-/* paygate OFF: the hub flip alone starts/stops resolution */
+/* paygate OFF: the admin flip alone starts/stops resolution */
 hb = await hubP('/api/hub/billing/subdomain', 'PUT', { slug: 'paytest', enabled: false });
-eq('hub: 关子域 ok', hb.status, 200);
-eq('hub: 关后状态回读为关', tenantState(hb, 'paytest')?.subdomainEnabled, false);
-eq('hub 关后停解析 (总闸关时开关即全部)', await resolveGuildSubdomain(P.db, 'paytest.yanyun.app'), null);
+eq('admin: 关子域 ok', hb.status, 200);
+eq('admin: 关后状态回读为关', tenantState(hb, 'paytest')?.subdomainEnabled, false);
+eq('admin 关后停解析 (总闸关时开关即全部)', await resolveGuildSubdomain(P.db, 'paytest.yanyun.app'), null);
 r = await callP('https://paytest.yanyun.app/');
-eq('hub 关后子域 404', r.status, 404);
+eq('admin 关后子域 404', r.status, 404);
 await r.text();
 hb = await hubP('/api/hub/billing/subdomain', 'PUT', { slug: 'paytest', enabled: true });
-eq('hub: 开子域 ok', hb.status, 200);
-eq('hub 开后立即解析', await resolveGuildSubdomain(P.db, 'paytest.yanyun.app'), 'paytest');
+eq('admin: 开子域 ok', hb.status, 200);
+eq('admin 开后立即解析', await resolveGuildSubdomain(P.db, 'paytest.yanyun.app'), 'paytest');
 r = await callP('https://paytest.yanyun.app/');
-eq('hub 开后子域出页', r.status, 200);
+eq('admin 开后子域出页', r.status, 200);
 await r.text();
 hb = await hubP('/api/hub/billing/subdomain', 'PUT', { slug: 'ghost', enabled: true });
-eq('hub: 不存在的百业 -> 404', hb.status, 404);
+eq('admin: 不存在的百业 -> 404', hb.status, 404);
 
 /* paygate ON: the entitlement matrix */
 await setPaygateEnabled(P.db, true);
