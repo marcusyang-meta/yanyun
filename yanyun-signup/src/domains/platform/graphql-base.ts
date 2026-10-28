@@ -7,6 +7,7 @@ import type { Context, ViewerContext } from './context.ts';
 import { translate, translateError, negotiateLocale, SUPPORTED_LOCALES, CATALOG } from './i18n.ts';
 import { getSettingValue, setSettingValue, listSettingsByKey } from '../guilds/settings.ts';
 import { getTenantRow, getTenantSlug, listTenantSlugs, listTenantsDirectory } from '../guilds/tenants.ts';
+import { getOfficerGrant, parseCapabilities } from '../guilds/governance.ts';
 import { listGuildMembers, getGuildMember } from '../identity/guildMembers.ts';
 import { getUsernameRow, getUserLocalePref } from '../identity/users.ts';
 import { getLatestDungeonVersion } from '../dex/dungeons.ts';
@@ -186,6 +187,62 @@ export async function getGuildAdminAccess(db: any, user: any, slug: any, request
   return { exists: true, slug: t.slug, tenant: t, discordGuildId: dgid, devOnly, isAdmin };
 }
 
+/* ---------------- Officer capabilities (P16, T3 governance) -------
+ * Fine-grained delegation on top of the binary admin verdict: a
+ * Discord-server admin of the guild may grant a roster member a set
+ * of capabilities, one per management surface that actually exists
+ * in the admin area today. The vocabulary is code-owned; the labels
+ * ship from the governance string section. Two capabilities are
+ * deliberately NOT in the vocabulary, so they can never be granted:
+ * governance itself (granting/revoking stays with Discord admins —
+ * delegation cannot mint more delegation) and billing (checkout
+ * stays with Discord admins).
+ *
+ * The verdict composes with getGuildAdminAccess, never replaces it:
+ * Discord admins (and the omniscient viewer, through that verdict)
+ * hold every capability by construction and never appear as grant
+ * rows; a granted officer holds exactly their granted set. Every
+ * capability-gated surface asks this one verdict — do not re-derive
+ * grant checks per call site. */
+export const OFFICER_CAPABILITIES = [
+  'profile', 'discord', 'events', 'guides', 'announce',
+  'stats', 'tools', 'season', 'recruit', 'officer',
+] as const;
+export type OfficerCapability = (typeof OFFICER_CAPABILITIES)[number];
+
+export interface OfficerVerdict {
+  exists: boolean;
+  /** The underlying guild-admin access (tenant, binding, devOnly). */
+  access: any;
+  /** Discord-server admin (or omniscient): holds every capability. */
+  isAdmin: boolean;
+  /** Admin, or a member holding at least one granted capability. */
+  isOfficer: boolean;
+  /** The capabilities this viewer holds in this guild (all of them for admins). */
+  capabilities: string[];
+}
+
+export async function getOfficerVerdict(db: any, user: any, slug: any, request: any, vc?: ViewerContext | null): Promise<OfficerVerdict> {
+  const access = await getGuildAdminAccess(db, user, slug, request, vc);
+  if (!access.exists) {
+    return { exists: false, access, isAdmin: false, isOfficer: false, capabilities: [] };
+  }
+  if (access.isAdmin) {
+    return { exists: true, access, isAdmin: true, isOfficer: true, capabilities: [...OFFICER_CAPABILITIES] };
+  }
+  let capabilities: string[] = [];
+  if (user) {
+    const grant = await getOfficerGrant(db, access.slug, String(user.discordId)).catch(() => null);
+    if (grant) capabilities = parseCapabilities(grant.capabilities, OFFICER_CAPABILITIES);
+  }
+  return { exists: true, access, isAdmin: false, isOfficer: capabilities.length > 0, capabilities };
+}
+
+/** One capability question against an officer verdict. */
+export function hasCapability(verdict: OfficerVerdict, capability: OfficerCapability): boolean {
+  return verdict.isAdmin || verdict.capabilities.includes(capability);
+}
+
 /* Grouping manage verdict (ruling 2026-10-26): a grouping is managed
  * by its leader (events.creator_discord_id) OR by an admin of the
  * grouping's OWN guild — the guild-admin verdict above, resolved
@@ -194,13 +251,22 @@ export async function getGuildAdminAccess(db: any, user: any, slug: any, request
  * the four manage mutations (edit / disband / complete / reopen) and
  * the detail surfaces' action composition; do not re-derive it per
  * call site. */
-export async function getGroupingManageVerdict(db: any, user: any, request: any, vc: ViewerContext | null | undefined, ev: { tenant: string; creator_discord_id?: string | null }): Promise<{ isLeader: boolean; isAdmin: boolean; canManage: boolean }> {
+export async function getGroupingManageVerdict(db: any, user: any, request: any, vc: ViewerContext | null | undefined, ev: { tenant: string; creator_discord_id?: string | null }): Promise<{ isLeader: boolean; isAdmin: boolean; isOfficer: boolean; canManage: boolean }> {
   const isLeader = !!(user && ev.creator_discord_id
     && String(ev.creator_discord_id) === String(user.discordId));
-  if (isLeader) return { isLeader: true, isAdmin: false, canManage: true };
+  if (isLeader) return { isLeader: true, isAdmin: false, isOfficer: false, canManage: true };
   const a = await getGuildAdminAccess(db, user, ev.tenant, request, vc);
   const isAdmin = !!a.isAdmin;
-  return { isLeader: false, isAdmin, canManage: isAdmin };
+  if (isAdmin) return { isLeader: false, isAdmin, isOfficer: false, canManage: true };
+  // P16 delegation: an officer holding the events capability of the
+  // grouping's OWN guild manages its groupings like an admin does.
+  if (user) {
+    const v = await getOfficerVerdict(db, user, ev.tenant, request, vc);
+    if (hasCapability(v, 'events')) {
+      return { isLeader: false, isAdmin: false, isOfficer: true, canManage: true };
+    }
+  }
+  return { isLeader: false, isAdmin: false, isOfficer: false, canManage: false };
 }
 
 /* The manage mutations' full gate: the membership write gate plus the

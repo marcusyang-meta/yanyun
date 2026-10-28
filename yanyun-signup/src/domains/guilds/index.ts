@@ -9,6 +9,8 @@ export * from './recruit.ts';
 export * from './network.ts';
 export * from './membernotes.ts';
 export * from './ops.ts';
+export * from './governance.ts';
+export * from './guild-audit.ts';
 export * from './seasongoals.ts';
 export * from './guild-export.ts';
 export * from './whitelabel.ts';

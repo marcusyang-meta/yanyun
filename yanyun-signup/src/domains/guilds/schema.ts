@@ -426,6 +426,59 @@ export const guildGearStandards = sqliteTable('guild_gear_standards', {
   updatedAt: integer('updated_at').notNull().default(0),
 }, (t) => [
   index('idx_guild_gear_standards_tenant').on(t.tenant, t.id),
+/* ---------------- officer capability grants [migration 0029] -----
+ * One row per (guild, member) holding delegated management
+ * capabilities (P16, governance.ts repository). capabilities is a
+ * comma-separated list of capability keys from the code-owned
+ * vocabulary (platform/graphql-base.ts OFFICER_CAPABILITIES);
+ * absence of a row IS the ungranted state. Discord admins are never
+ * rows here — the admin verdict itself carries every capability. */
+export const guildOfficerGrants = sqliteTable('guild_officer_grants', {
+  tenant: text('tenant').notNull(),
+  discordId: text('discord_id').notNull(),
+  capabilities: text('capabilities').notNull().default(''),
+  grantedBy: text('granted_by').notNull().default(''),
+  grantedByName: text('granted_by_name').notNull().default(''),
+  createdAt: integer('created_at').notNull().default(0),
+  updatedAt: integer('updated_at').notNull().default(0),
+}, (t) => [
+  primaryKey({ columns: [t.tenant, t.discordId] }),
+]);
+
+/* ---------------- officer private board posts [migration 0029] ----
+ * The officer private board (P16): free-form internal posts visible
+ * only to the guild's officers (Discord admins + granted capability
+ * holders). Author snapshot caliber like guild_member_notes. */
+export const guildOfficerPosts = sqliteTable('guild_officer_posts', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  tenant: text('tenant').notNull(),
+  body: text('body').notNull().default(''),
+  authorDiscordId: text('author_discord_id').notNull().default(''),
+  authorName: text('author_name').notNull().default(''),
+  createdAt: integer('created_at').notNull().default(0),
+  updatedAt: integer('updated_at').notNull().default(0),
+}, (t) => [
+  index('idx_guild_officer_posts_tenant_id').on(t.tenant, t.id),
+]);
+
+/* ---------------- guild audit events [migration 0029] -------------
+ * The guild-level audit log (P17, guild-audit.ts repository): one
+ * row per management action inside the guild — actor snapshot, the
+ * action key (code-owned vocabulary), and a target summary (type +
+ * id + short label snapshot). Sensitive body text is never copied
+ * here. Distinct from the platform hub_audit_log. */
+export const guildAuditEvents = sqliteTable('guild_audit_events', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  tenant: text('tenant').notNull(),
+  actorDiscordId: text('actor_discord_id').notNull().default(''),
+  actorName: text('actor_name').notNull().default(''),
+  action: text('action').notNull().default(''),
+  targetType: text('target_type').notNull().default(''),
+  targetId: text('target_id').notNull().default(''),
+  targetLabel: text('target_label').notNull().default(''),
+  createdAt: integer('created_at').notNull().default(0),
+}, (t) => [
+  index('idx_guild_audit_events_tenant_id').on(t.tenant, t.id),
 ]);
 
 /* ---------------- guild avatars [ddl chain baseline] --------------- */
