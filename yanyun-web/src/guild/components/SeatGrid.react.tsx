@@ -155,12 +155,21 @@ export interface SeatData {
   mine?: boolean;
 }
 
-export default function SeatGrid({ groupingId, slug, seats, maxSlots, onChanged, interactive = true, defaultNickname, text }: {
+export interface SignupFieldData {
+  id: string;
+  label: string;
+  fieldType: string; // TEXT | CHOICE
+  options?: string[] | null;
+  required?: boolean | null;
+}
+
+export default function SeatGrid({ groupingId, slug, seats, maxSlots, onChanged, interactive = true, defaultNickname, text, customFields }: {
   groupingId: string;
   slug: string;
   seats: SeatData[];
   maxSlots: number;
   text: SeatText;
+  customFields?: SignupFieldData[];
   onChanged: () => void;
   // interactive=false: read-only form (mounted by the public page for unbound guilds) — seats not clickable, no write entries mounted
   interactive?: boolean;
@@ -283,6 +292,7 @@ export default function SeatGrid({ groupingId, slug, seats, maxSlots, onChanged,
             seatIndex={joinIdx}
             selfName={defaultNickname || ''}
             text={text}
+            customFields={customFields ?? []}
             onClose={() => setJoinIdx(null)}
             onJoined={() => { setJoinIdx(null); onChanged(); }}
           />
@@ -344,12 +354,13 @@ function SeatCellBody({ s, text, onToggleReady }: {
  *  Proxy signup: pick a person from this guild's roster (searchable); the
  *    seat name and identity stamp are both the picked person's.
  * Portaled to body to escape animated ancestors' containing blocks. */
-function JoinModal({ groupingId, slug, seatIndex, selfName, text, onClose, onJoined }: {
+function JoinModal({ groupingId, slug, seatIndex, selfName, text, customFields, onClose, onJoined }: {
   groupingId: string;
   slug: string;
   seatIndex: number;
   selfName: string;
   text: SeatText;
+  customFields: SignupFieldData[];
   onClose: () => void;
   onJoined: () => void;
 }) {
@@ -368,6 +379,9 @@ function JoinModal({ groupingId, slug, seatIndex, selfName, text, onClose, onJoi
   const [selected, setSelected] = useState<RosterMember | null>(null);
   const [search, setSearch] = useState('');
   const [sect, setSect] = useState('');
+  // F7 answers, keyed by field id; labels/options are the car's own
+  // field data (creator-written), rendered verbatim.
+  const [answers, setAnswers] = useState<Record<string, string>>({});
   const [commitJoin, joining] = useMutation<SeatGridJoinMutationType>(SeatGridJoinMutationNode);
 
   const q = search.trim().toLowerCase();
@@ -378,9 +392,12 @@ function JoinModal({ groupingId, slug, seatIndex, selfName, text, onClose, onJoi
   const submitJoin = () => {
     if (!sect) { toast(text.seatToastSect); return; }
     if (mode === 'proxy' && !selected) { toast(text.seatProxyPickRequired); return; }
+    const answerInputs = customFields
+      .filter((f) => (answers[f.id] ?? '').trim())
+      .map((f) => ({ fieldId: f.id, value: answers[f.id].trim() }));
     const input = mode === 'proxy'
-      ? { groupingId, nickname: selected!.displayName, weapon: sect, seatIndex, forDiscordId: selected!.discordId }
-      : { groupingId, nickname: selfName, weapon: sect, seatIndex };
+      ? { groupingId, nickname: selected!.displayName, weapon: sect, seatIndex, forDiscordId: selected!.discordId, answers: answerInputs }
+      : { groupingId, nickname: selfName, weapon: sect, seatIndex, answers: answerInputs };
     commitJoin({
       variables: { input },
       updater: (store) => { applySeatsToGrouping(store, 'joinGrouping', groupingId); },
@@ -462,6 +479,41 @@ function JoinModal({ groupingId, slug, seatIndex, selfName, text, onClose, onJoi
             )}
           </div>
         )}
+
+        {customFields.map((f) => (
+          <div key={f.id} style={{ marginBottom: 14 }}>
+            <div style={{ fontSize: 13, color: theme.paper, marginBottom: 6 }}>
+              {f.label}{f.required ? ' *' : ''}
+            </div>
+            {f.fieldType === 'CHOICE' ? (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {(f.options ?? []).map((o) => (
+                  <button
+                    key={o}
+                    data-answer-choice={f.id}
+                    onClick={() => setAnswers({ ...answers, [f.id]: o })}
+                    style={{
+                      padding: '8px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 13,
+                      border: `1px solid ${theme.gold}`,
+                      background: answers[f.id] === o ? theme.gold : 'transparent',
+                      color: answers[f.id] === o ? '#1a1814' : theme.paper,
+                    }}
+                  >{o}</button>
+                ))}
+              </div>
+            ) : (
+              <input
+                value={answers[f.id] ?? ''}
+                data-answer-text={f.id}
+                onChange={(e) => setAnswers({ ...answers, [f.id]: e.target.value })}
+                style={{
+                  width: '100%', padding: '10px 12px', borderRadius: 8, fontSize: 14, boxSizing: 'border-box',
+                  background: '#0c0b09', color: theme.paper, border: theme.border,
+                }}
+              />
+            )}
+          </div>
+        ))}
 
         <div style={{ fontSize: 13, color: theme.paper, marginBottom: 6 }}>{text.seatSectLabel}</div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>

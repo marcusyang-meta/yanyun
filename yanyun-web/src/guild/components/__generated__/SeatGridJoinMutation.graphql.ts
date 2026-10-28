@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<14cd81ec7ea360ead4f19a914522feac>>
+ * @generated SignedSource<<dad5433faf84f466a20b16a4c6144875>>
  * @lightSyntaxTransform
  */
 
@@ -9,11 +9,16 @@
 
 import { ConcreteRequest } from 'relay-runtime';
 export type JoinGroupingInput = {
+  answers?: ReadonlyArray<SignupAnswerInput> | null | undefined;
   forDiscordId?: string | null | undefined;
   groupingId: string;
   nickname: string;
   seatIndex: number;
   weapon: string;
+};
+export type SignupAnswerInput = {
+  fieldId: string;
+  value: string;
 };
 export type SeatGridJoinMutation$variables = {
   input: JoinGroupingInput;
