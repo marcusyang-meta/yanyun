@@ -14,6 +14,7 @@ export type GuildsStringKey =
   | 'guildHome_tabAnnouncements'
   | 'guildHome_readOnlyBanner'
   | 'guildHome_adminLink'
+  | 'guildHome_tabSchedule'
   | 'guildAdmin_title'
   | 'guildAdmin_lockedTitle'
   | 'guildAdmin_lockedBody'
@@ -153,6 +154,28 @@ export type GuildsStringKey =
   | 'guildAdmin_billingSuccess'
   | 'guildAdmin_billingCanceled'
   | 'guildAdmin_tabAnnouncements'
+  | 'guildAdmin_tabTools'
+  | 'guildAdmin_lotteryTitle'
+  | 'guildAdmin_lotteryHint'
+  | 'guildAdmin_lotteryEmpty'
+  | 'guildAdmin_lotteryNameLabel'
+  | 'guildAdmin_lotteryPrizeLabel'
+  | 'guildAdmin_lotterySourceLabel'
+  | 'guildAdmin_lotterySourceGrouping'
+  | 'guildAdmin_lotterySourceMembers'
+  | 'guildAdmin_lotteryGroupingLabel'
+  | 'guildAdmin_lotteryWinnerCountLabel'
+  | 'guildAdmin_lotteryUniformWeightLabel'
+  | 'guildAdmin_lotteryWeightLabel'
+  | 'guildAdmin_lotteryEntriesLabel'
+  | 'guildAdmin_lotteryWinnersLabel'
+  | 'guildAdmin_lotteryCreateButton'
+  | 'guildAdmin_lotteryDrawButton'
+  | 'guildAdmin_lotteryStatusOpen'
+  | 'guildAdmin_lotteryStatusDrawn'
+  | 'guildAdmin_lotteryEntryCount'
+  | 'guildAdmin_tabRecruit'
+  | 'guildAdmin_tabOfficer'
   | 'announcements_title'
   | 'announcements_emptyText'
   | 'announcements_urgentLabel'
@@ -182,28 +205,6 @@ export type GuildsStringKey =
   | 'announcements_pushNote'
   | 'announcements_urgentNote'
   | 'announcements_dailyLimitTemplate'
-  | 'guildAdmin_tabTools'
-  | 'guildAdmin_lotteryTitle'
-  | 'guildAdmin_lotteryHint'
-  | 'guildAdmin_lotteryEmpty'
-  | 'guildAdmin_lotteryNameLabel'
-  | 'guildAdmin_lotteryPrizeLabel'
-  | 'guildAdmin_lotterySourceLabel'
-  | 'guildAdmin_lotterySourceGrouping'
-  | 'guildAdmin_lotterySourceMembers'
-  | 'guildAdmin_lotteryGroupingLabel'
-  | 'guildAdmin_lotteryWinnerCountLabel'
-  | 'guildAdmin_lotteryUniformWeightLabel'
-  | 'guildAdmin_lotteryWeightLabel'
-  | 'guildAdmin_lotteryEntriesLabel'
-  | 'guildAdmin_lotteryWinnersLabel'
-  | 'guildAdmin_lotteryCreateButton'
-  | 'guildAdmin_lotteryDrawButton'
-  | 'guildAdmin_lotteryStatusOpen'
-  | 'guildAdmin_lotteryStatusDrawn'
-  | 'guildAdmin_lotteryEntryCount'
-  | 'guildHome_tabSchedule'
-  | 'guildAdmin_tabRecruit'
   | 'recruit_title'
   | 'recruit_homeBody'
   | 'recruit_homeLoginHint'
@@ -249,7 +250,6 @@ export type GuildsStringKey =
   | 'recruit_adminMenteeSelectLabel'
   | 'recruit_adminNewcomersTitle'
   | 'recruit_adminNewcomersEmpty'
-  | 'guildAdmin_tabOfficer'
   | 'officer_notesTitle'
   | 'officer_notesHint'
   | 'officer_notesEmpty'
@@ -301,6 +301,7 @@ export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'guildHome_tabAnnouncements',
   'guildHome_readOnlyBanner',
   'guildHome_adminLink',
+  'guildHome_tabSchedule',
   'guildAdmin_title',
   'guildAdmin_lockedTitle',
   'guildAdmin_lockedBody',
@@ -440,6 +441,28 @@ export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'guildAdmin_billingSuccess',
   'guildAdmin_billingCanceled',
   'guildAdmin_tabAnnouncements',
+  'guildAdmin_tabTools',
+  'guildAdmin_lotteryTitle',
+  'guildAdmin_lotteryHint',
+  'guildAdmin_lotteryEmpty',
+  'guildAdmin_lotteryNameLabel',
+  'guildAdmin_lotteryPrizeLabel',
+  'guildAdmin_lotterySourceLabel',
+  'guildAdmin_lotterySourceGrouping',
+  'guildAdmin_lotterySourceMembers',
+  'guildAdmin_lotteryGroupingLabel',
+  'guildAdmin_lotteryWinnerCountLabel',
+  'guildAdmin_lotteryUniformWeightLabel',
+  'guildAdmin_lotteryWeightLabel',
+  'guildAdmin_lotteryEntriesLabel',
+  'guildAdmin_lotteryWinnersLabel',
+  'guildAdmin_lotteryCreateButton',
+  'guildAdmin_lotteryDrawButton',
+  'guildAdmin_lotteryStatusOpen',
+  'guildAdmin_lotteryStatusDrawn',
+  'guildAdmin_lotteryEntryCount',
+  'guildAdmin_tabRecruit',
+  'guildAdmin_tabOfficer',
   'announcements_title',
   'announcements_emptyText',
   'announcements_urgentLabel',
@@ -469,28 +492,6 @@ export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'announcements_pushNote',
   'announcements_urgentNote',
   'announcements_dailyLimitTemplate',
-  'guildAdmin_tabTools',
-  'guildAdmin_lotteryTitle',
-  'guildAdmin_lotteryHint',
-  'guildAdmin_lotteryEmpty',
-  'guildAdmin_lotteryNameLabel',
-  'guildAdmin_lotteryPrizeLabel',
-  'guildAdmin_lotterySourceLabel',
-  'guildAdmin_lotterySourceGrouping',
-  'guildAdmin_lotterySourceMembers',
-  'guildAdmin_lotteryGroupingLabel',
-  'guildAdmin_lotteryWinnerCountLabel',
-  'guildAdmin_lotteryUniformWeightLabel',
-  'guildAdmin_lotteryWeightLabel',
-  'guildAdmin_lotteryEntriesLabel',
-  'guildAdmin_lotteryWinnersLabel',
-  'guildAdmin_lotteryCreateButton',
-  'guildAdmin_lotteryDrawButton',
-  'guildAdmin_lotteryStatusOpen',
-  'guildAdmin_lotteryStatusDrawn',
-  'guildAdmin_lotteryEntryCount',
-  'guildHome_tabSchedule',
-  'guildAdmin_tabRecruit',
   'recruit_title',
   'recruit_homeBody',
   'recruit_homeLoginHint',
@@ -536,7 +537,6 @@ export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'recruit_adminMenteeSelectLabel',
   'recruit_adminNewcomersTitle',
   'recruit_adminNewcomersEmpty',
-  'guildAdmin_tabOfficer',
   'officer_notesTitle',
   'officer_notesHint',
   'officer_notesEmpty',

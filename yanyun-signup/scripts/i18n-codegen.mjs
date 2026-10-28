@@ -89,7 +89,9 @@ const fail = (msg) => { console.error('[i18n-codegen] ' + msg); process.exit(1);
 // header comment is stripped back out of the generated strings.ts by
 // genStringsTs, keyed on the 'fbtee declaration surface' marker.
 const MERGED_PRELUDE = `/* fbtee declaration surface (hand-maintained): the source declarations of
- * all UI copy, one entry = one fbs call. Merged by scripts/i18n-codegen.mjs
+ * all UI copy: one section (area) = one XxxFbtUtils abstract class,
+ * one string = one static method on it, one method = one fbs call.
+ * Merged by scripts/i18n-codegen.mjs
  * from the per-domain files src/domains/<domain>/i18n/strings.source.ts.
  * - A string's identity is its declaration: <domain>/<export name>.
  *   STRING_FNS, the per-domain key unions and every call site reference
@@ -184,33 +186,81 @@ function validateDesc(domain, name, desc) {
   }
 }
 
-// Extract the entry statements (`export const <name> = ...;`) of one
-// domain declaration file, in file order:
-// [{ domain, name, section, desc, pattern, body }]. The export name is
-// the identity anchor: section = the name's prefix before its first
-// '_'; desc is free translator-facing text (validated separately).
-function parseDomainEntries(domain, text) {
-  const out = [];
-  const re = /export const ([A-Za-z0-9_]+) = /g;
+// Scan a declaration text (one domain file, or the merged source) into
+// its XxxFbtUtils class blocks:
+// [{ className, section, body, methods: [{ field, sig, body }] }].
+// Declarations live ONLY in this form: one section (area) = one
+// abstract class named <Section>FbtUtils, one string = one static
+// method on it. Scanning is string-aware throughout: pattern and desc
+// literals may contain braces, parens and semicolons.
+function scanClasses(text) {
+  const classes = [];
+  const re = /export abstract class ([A-Za-z0-9_]+) \{/g;
   let m;
   while ((m = re.exec(text)) !== null) {
-    if (m[1] === 'STRING_FNS') fail(domain + ': STRING_FNS is synthesized by codegen, not declared');
-    const end = text.indexOf(';\n', m.index);
-    if (end < 0) fail(domain + ': unterminated entry ' + m[1]);
-    const body = text.slice(m.index, end + 2);
-    const name = m[1];
-    const us = name.indexOf('_');
-    if (us < 0) fail(domain + ': export name ' + name + ' has no section prefix');
-    const section = name.slice(0, us);
-    if (SECTION_OWNER[section] !== domain) {
-      fail(`${domain}: entry ${name} declares section '${section}', owned by ${SECTION_OWNER[section] || '(unknown section)'}`);
+    const className = m[1];
+    if (!className.endsWith('FbtUtils')) fail('declaration class ' + className + ' does not follow the <Section>FbtUtils naming');
+    const rawSection = className.slice(0, -'FbtUtils'.length);
+    const section = rawSection[0].toLowerCase() + rawSection.slice(1);
+    // String-aware brace matching from the opening brace.
+    let i = m.index + m[0].length, depth = 1;
+    while (i < text.length && depth > 0) {
+      const c = text[i];
+      if (c === '"') { i++; while (i < text.length) { if (text[i] === '\\') { i += 2; continue; } if (text[i] === '"') break; i++; } i++; continue; }
+      if (c === '{') depth++;
+      else if (c === '}') depth--;
+      i++;
     }
-    const at = body.indexOf('fbs(');
-    if (at < 0) fail(domain + ': no fbs call in entry ' + name);
-    const { pattern, desc } = scanFbsCall(body, at);
-    if (!desc) fail(domain + ': no desc found in entry ' + name);
-    validateDesc(domain, name, desc);
-    out.push({ domain, name, section, desc, pattern, body });
+    if (depth !== 0) fail('unterminated class ' + className);
+    const body = text.slice(m.index, i);
+    const methods = [];
+    const mre = /static ([A-Za-z0-9_]+)\((fbs: FbsAPI(?:, p\?: StringParams)?)\) \{ return /g;
+    let mm;
+    while ((mm = mre.exec(body)) !== null) {
+      // Method statement: from after 'return ' to the first ';' outside
+      // string literals at paren depth 0.
+      let j = mm.index + mm[0].length, d = 0;
+      while (j < body.length) {
+        const c = body[j];
+        if (c === '"') { j++; while (j < body.length) { if (body[j] === '\\') { j += 2; continue; } if (body[j] === '"') break; j++; } j++; continue; }
+        if (c === '(') d++;
+        else if (c === ')') d--;
+        else if (c === ';' && d === 0) break;
+        j++;
+      }
+      if (j >= body.length) fail('unterminated method ' + className + '.' + mm[1]);
+      methods.push({ field: mm[1], sig: mm[2], body: body.slice(mm.index + mm[0].length, j + 1) });
+    }
+    if (!methods.length) fail('class ' + className + ' declares no static fbs methods');
+    classes.push({ className, section, body, methods });
+  }
+  return classes;
+}
+
+// Extract the declarations of one domain file, in file order:
+// [{ domain, name, section, desc, pattern, className, classBody }].
+// The export name <section>_<method> is the identity anchor; desc is
+// free translator-facing text (validated by validateDesc). Flat
+// `export const x = (fbs) => ...` declarations are banned outright.
+function parseDomainEntries(domain, text) {
+  if (/export const [A-Za-z0-9_]+ = \(fbs/.test(text)) {
+    fail(domain + ': flat fbs declarations are banned; declare strings as static methods on the section XxxFbtUtils abstract class');
+  }
+  if (text.includes('STRING_FNS')) fail(domain + ': STRING_FNS is synthesized by codegen, not declared');
+  const out = [];
+  for (const cls of scanClasses(text)) {
+    if (SECTION_OWNER[cls.section] !== domain) {
+      fail(`${domain}: class ${cls.className} declares section '${cls.section}', owned by ${SECTION_OWNER[cls.section] || '(unknown section)'}`);
+    }
+    for (const mth of cls.methods) {
+      const name = cls.section + '_' + mth.field;
+      const at = mth.body.indexOf('fbs(');
+      if (at < 0) fail(domain + ': no fbs call in method ' + cls.className + '.' + mth.field);
+      const { pattern, desc } = scanFbsCall(mth.body, at);
+      if (!desc) fail(domain + ': no desc found in method ' + cls.className + '.' + mth.field);
+      validateDesc(domain, name, desc);
+      out.push({ domain, name, section: cls.section, desc, pattern, className: cls.className, classBody: cls.body });
+    }
   }
   if (!out.length) fail(domain + ': no declaration entries found');
   return out;
@@ -237,9 +287,25 @@ function collectSources() {
   }
   const ordered = [];
   for (const s of SECTION_ORDER) for (const e of bySection.get(s) || []) ordered.push(e);
+  // The merged source carries each section's class block once (in
+  // SECTION_ORDER), then the STRING_FNS record mapping every export
+  // name to its class's static method.
+  const classByName = new Map();
+  for (const e of ordered) {
+    const prev = classByName.get(e.className);
+    if (prev && prev !== e.classBody) fail('conflicting class bodies for ' + e.className);
+    classByName.set(e.className, e.classBody);
+  }
+  const classBodies = [];
+  for (const s of SECTION_ORDER) {
+    for (const e of bySection.get(s) || []) {
+      if (classBodies.includes(e.classBody)) continue;
+      classBodies.push(e.classBody);
+    }
+  }
   const record = 'export const STRING_FNS: Record<string, (fbs: FbsAPI, p?: StringParams) => string> = {\n'
-    + ordered.map((e) => `  "${e.name}": ${e.name},\n`).join('') + '};\n';
-  const merged = MERGED_PRELUDE + ordered.map((e) => e.body).join('') + '\n' + record;
+    + ordered.map((e) => `  "${e.name}": ${e.className}.${e.name.slice(e.section.length + 1)},\n`).join('') + '};\n';
+  const merged = MERGED_PRELUDE + classBodies.join('\n') + '\n' + record;
   return { byDomain, merged, ordered };
 }
 
@@ -298,20 +364,23 @@ function parseSourceMeta(sourceText) {
   // Entry order = key order in the STRING_FNS record.
   const recAt = sourceText.indexOf('export const STRING_FNS');
   if (recAt < 0) fail('STRING_FNS not found');
-  const order = [...sourceText.slice(recAt).matchAll(/"([^"]+)":\s*[A-Za-z0-9_]+,/g)].map((m) => m[1]);
+  const order = [...sourceText.slice(recAt).matchAll(/"([^"]+)":\s*[A-Za-z0-9_.]+,/g)].map((m) => m[1]);
   if (!order.length) fail('STRING_FNS empty');
-  // Each fn's outer padding, in the `=> " " + fbs(...)` / `fbs(...) + " "` shape.
+  // Each method's outer padding, in the `" " + fbs(...)` /
+  // `fbs(...) + " "` shape (a literal concatenated outside the call).
   const pads = new Map();
-  const fnRe = /export const ([A-Za-z0-9_]+) = \(fbs: FbsAPI(?:, p\?: StringParams)?\) =>\s*([\s\S]*?);\n/g;
-  for (const m of sourceText.matchAll(fnRe)) {
-    let rest = m[2].trim();
-    let lead = '', trail = '';
-    const leadM = rest.match(/^("(?:[^"\\]|\\.)*") \+ /);
-    if (leadM) { lead = JSON.parse(leadM[1]); rest = rest.slice(leadM[0].length); }
-    const trailM = rest.match(/ \+ ("(?:[^"\\]|\\.)*")$/);
-    if (trailM) { trail = JSON.parse(trailM[1]); rest = rest.slice(0, rest.length - trailM[0].length); }
-    if (!rest.startsWith('fbs(')) fail('unparsable fn body for ' + m[1]);
-    if (lead || trail) pads.set(m[1], { lead, trail });
+  for (const cls of scanClasses(sourceText)) {
+    for (const mth of cls.methods) {
+      const name = cls.section + '_' + mth.field;
+      let rest = mth.body.trim().replace(/;$/, '');
+      let lead = '', trail = '';
+      const leadM = rest.match(/^("(?:[^"\\]|\\.)*") \+ /);
+      if (leadM) { lead = JSON.parse(leadM[1]); rest = rest.slice(leadM[0].length); }
+      const trailM = rest.match(/ \+ ("(?:[^"\\]|\\.)*")$/);
+      if (trailM) { trail = JSON.parse(trailM[1]); rest = rest.slice(0, rest.length - trailM[0].length); }
+      if (!rest.startsWith('fbs(')) fail('unparsable method body for ' + name);
+      if (lead || trail) pads.set(name, { lead, trail });
+    }
   }
   return { order, pads };
 }
