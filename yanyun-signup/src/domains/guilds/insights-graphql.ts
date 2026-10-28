@@ -193,8 +193,16 @@ export class RaceSeasonShell extends ShellBase {
 
 export class RaceSeasonBoardShell extends ShellBase {
   __typename = 'RaceSeasonBoard';
+  /* Lazy: the mobile session payload selects only this field's
+   * __typename (as the tab-visibility signal), so the aggregation
+   * must not run until seasons are actually selected. */
   genSeasons(){
-    return this.data.seasons.map((season: RaceSeason) => new RaceSeasonShell(this.ctx, season));
+    return this.memo('seasons', async () => {
+      const board = this.data.seasons
+        ? { seasons: this.data.seasons }
+        : await computeRaceSeasonBoard(this.db, this.data.slug);
+      return board.seasons.map((season: RaceSeason) => new RaceSeasonShell(this.ctx, season));
+    });
   }
 }
 
@@ -222,7 +230,7 @@ export async function gearBoardForAdmin(ctx: Context, slug: string) {
 
 export async function raceBoardForViewer(ctx: Context, slug: string) {
   if (await tierLocked(ctx.env.DB, slug, 1)) return new GuildInsightsLockedShell(ctx, {});
-  return new RaceSeasonBoardShell(ctx, await computeRaceSeasonBoard(ctx.env.DB, slug));
+  return new RaceSeasonBoardShell(ctx, { slug });
 }
 
 export async function gearSelfForMember(ctx: Context, slug: string) {
