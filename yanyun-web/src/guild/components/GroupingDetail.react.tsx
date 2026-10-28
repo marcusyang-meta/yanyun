@@ -38,7 +38,6 @@ const GroupingDetailQueryNode = graphql`
       detailStatusOpenLabel
       detailPeopleTemplate
       detailOpenHint
-      detailReadonlyHint
       detailToastDisbanded
       detailToastDisbandFailedTemplate
       detailLinkCopied
@@ -253,13 +252,11 @@ const GroupingDetailReopenMutationNode = graphql`
   }
 `;
 
-function GroupingDetail({ queryRef, slug, onBack, onChanged, interactive = true, defaultNickname}: {
+function GroupingDetail({ queryRef, slug, onBack, onChanged, defaultNickname}: {
 queryRef: PreloadedQuery<GroupingDetailQueryType>;
 slug: string;
 onBack: () => void;
 onChanged: () => void;
-// interactive=false: read-only form — no edit/disband rendering, seats not clickable
-interactive?: boolean;
 defaultNickname?: string;
 }) {
 const [confirmDelete, setConfirmDelete] = useState(false);
@@ -452,10 +449,9 @@ verticalAlign: 'middle',
 </div>
 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap'}}>
 <button onClick={share} className="yy-btn yy-btn-gold" style={{ padding: '6px 16px', fontSize: 13 }}>{page.detailShareLabel}</button>
-{interactive && page.templateSave && (
+{page.templateSave && (
 <button onClick={() => { setTplName(g.title); setShowTplSave(true); }} style={smBtn}>{page.templateSave.buttonLabel}</button>
 )}
-{interactive && (
 <>
 {canManage && g.status !== 'completed' && (
 <button onClick={() => setShowEdit(true)} style={smBtn}>{ma.editLabel}</button>
@@ -474,9 +470,8 @@ verticalAlign: 'middle',
 </button>
 )}
 </>
-)}
 </div>
-{interactive && allyCtl && g.status !== 'completed' && (
+{allyCtl && g.status !== 'completed' && (
 <div style={{ marginTop: 12, padding: '10px 12px', border: '1px solid rgba(201,163,92,.25)', borderRadius: 8 }}>
 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
 <span style={{ fontSize: 13, color: '#ecd28f' }}>{allyCtl.title}</span>
@@ -495,12 +490,10 @@ verticalAlign: 'middle',
 )}
 {g.status === 'completed'
 ? <div style={{ color: theme.muted, fontSize: 12, marginTop: 8}}>{page.detailCompletedHint}</div>
-: interactive
-? <div style={{ color: theme.muted, fontSize: 12, marginTop: 8}}>{page.detailOpenHint}</div>
-: <div style={{ color: theme.muted, fontSize: 12, marginTop: 8}}>{page.detailReadonlyHint}</div>}
+: <div style={{ color: theme.muted, fontSize: 12, marginTop: 8}}>{page.detailOpenHint}</div>}
 </div>
 
-<SeatGrid groupingId={g.id} slug={slug} seats={seats} maxSlots={g.maxSlots} onChanged={onChanged} interactive={interactive} defaultNickname={defaultNickname} text={seatText} customFields={g.customFields ?? []} />
+<SeatGrid groupingId={g.id} slug={slug} seats={seats} maxSlots={g.maxSlots} onChanged={onChanged} defaultNickname={defaultNickname} text={seatText} customFields={g.customFields ?? []} />
 
 {page.rosterAnswers && page.rosterAnswers.length > 0 && (
 <div style={{ marginTop: 22 }}>
@@ -605,11 +598,10 @@ return this.props.children;
 // would force a new request + re-suspend every time — an infinite loop (the
 // detail page spins forever). store-and-network renders from cache first and
 // backfills from a background network refresh.
-export function GroupingDetailRoute({ slug, groupingId, onBack, interactive = true, defaultNickname, goneText, backText}: {
+export function GroupingDetailRoute({ slug, groupingId, onBack, defaultNickname, goneText, backText}: {
 slug: string;
 groupingId: string;
 onBack: () => void;
-interactive?: boolean;
 defaultNickname?: string;
 // Fallback copy for when the detail query itself fails / the grouping was
 // disbanded: passed in via GuildHome from the guild home shell's same-named
@@ -683,7 +675,6 @@ queryRef={queryRef}
 slug={slug}
 onBack={onBack}
 onChanged={() => setRefreshKey((k) => k + 1)}
-interactive={interactive}
 defaultNickname={defaultNickname}
 />
 </DetailErrBound>

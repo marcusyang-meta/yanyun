@@ -64,5 +64,5 @@ export default function MemberGuildHome({ guild, slug, carId, user, userBarText 
   userBarText: UserBarText;
 }) {
   const data = useFragment(MemberGuildHome_guild, guild);
-  return <GuildHome node={{ ...data, insights: insightsNodeOf(data) }} slug={slug} carId={carId} user={user} userBarText={userBarText} interactive />;
+  return <GuildHome node={{ ...data, insights: insightsNodeOf(data) }} slug={slug} carId={carId} user={user} userBarText={userBarText} />;
 }

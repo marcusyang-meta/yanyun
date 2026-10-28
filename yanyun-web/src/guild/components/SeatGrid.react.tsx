@@ -163,7 +163,7 @@ export interface SignupFieldData {
   required?: boolean | null;
 }
 
-export default function SeatGrid({ groupingId, slug, seats, maxSlots, onChanged, interactive = true, defaultNickname, text, customFields }: {
+export default function SeatGrid({ groupingId, slug, seats, maxSlots, onChanged, defaultNickname, text, customFields }: {
   groupingId: string;
   slug: string;
   seats: SeatData[];
@@ -171,8 +171,6 @@ export default function SeatGrid({ groupingId, slug, seats, maxSlots, onChanged,
   text: SeatText;
   customFields?: SignupFieldData[];
   onChanged: () => void;
-  // interactive=false: read-only form (mounted by the public page for unbound guilds) — seats not clickable, no write entries mounted
-  interactive?: boolean;
   // Display name for own seat: the guild server nickname (else the global
   // name). Since signup identity was locked down, the name is decided by the
   // server; this value is locked display only, no longer editable.
@@ -235,7 +233,6 @@ export default function SeatGrid({ groupingId, slug, seats, maxSlots, onChanged,
         gap: 10,
       }}>
         {cells.map((s) => s.occupied ? (
-          interactive ? (
           <button
             key={s.index}
             onClick={() => setLeaveUid({ uid: s.uid!, nickname: s.nickname ?? '' })}
@@ -247,19 +244,7 @@ export default function SeatGrid({ groupingId, slug, seats, maxSlots, onChanged,
           >
             <SeatCellBody s={s} text={text} onToggleReady={toggleReady} />
           </button>
-          ) : (
-          <div
-            key={s.index}
-            style={{
-              padding: 12, borderRadius: 10, textAlign: 'left',
-              border: theme.border, background: 'rgba(201,163,92,.12)', color: theme.paper,
-            }}
-          >
-            <SeatCellBody s={s} text={text} />
-          </div>
-          )
         ) : (
-          interactive ? (
           <button
             key={s.index}
             onClick={() => setJoinIdx(s.index)}
@@ -269,17 +254,6 @@ export default function SeatGrid({ groupingId, slug, seats, maxSlots, onChanged,
               fontSize: 14, minHeight: 62,
             }}
           >{text.seatEmptyJoinLabel}</button>
-          ) : (
-          <div
-            key={s.index}
-            style={{
-              padding: 12, borderRadius: 10,
-              border: '1px dashed rgba(201,163,92,.25)', background: 'transparent', color: theme.muted,
-              fontSize: 14, minHeight: 62, boxSizing: 'border-box',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}
-          >{text.seatEmptyLabel}</div>
-          )
         ))}
       </div>
 

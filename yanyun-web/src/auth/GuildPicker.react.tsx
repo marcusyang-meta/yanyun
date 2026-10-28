@@ -9,9 +9,6 @@ import HomeRecruitSection from './HomeRecruitSection.react.tsx';
 export interface PickerText {
   myGuildsLabel: string;
   myGuildsEnLabel: string;
-  publicGuildsLabel: string;
-  publicGuildsEnLabel: string;
-  readOnlyBadge: string;
   emptyTitle: string;
   emptyBody: string;
   createGuildLabel: string;
@@ -27,23 +24,21 @@ export interface PickerGuild {
   avatarUrl?: string | null;
 }
 
-// Post-login landing page: "guilds I can use" + "public guilds". Both lists
-// arrive pre-filtered by the backend by type (Guild = member / GuildReadOnly
-// = public read-only); the frontend only renders and never fetches the full
-// set to filter itself.
+// Post-login landing page: "guilds I can use". The list arrives
+// pre-filtered by the backend (member guilds only); the frontend only
+// renders and never fetches the full set to filter itself.
 export default function GuildPicker({
-  user, guilds, publicGuilds, site, text, userBarText, recruit, unknownError,
+  user, guilds, site, text, userBarText, recruit, unknownError,
 }: {
   user: ViewerUser;
   guilds: ReadonlyArray<PickerGuild>;
-  publicGuilds: ReadonlyArray<PickerGuild>;
   site: SiteText;
   text: PickerText;
   userBarText: UserBarText;
   recruit?: any;
   unknownError?: string;
 }) {
-  const card = (t: PickerGuild, i: number, readOnly: boolean) => (
+  const card = (t: PickerGuild, i: number) => (
     <Link
       key={t.slug}
       to={`/${t.slug}`}
@@ -71,12 +66,6 @@ export default function GuildPicker({
       <span style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 18, color: theme.goldHi, fontWeight: 600 }}>
           {t.name}
-          {readOnly && (
-            <span style={{
-              marginLeft: 10, fontSize: 11, color: theme.muted, border: '1px solid rgba(201,163,92,.35)',
-              borderRadius: 20, padding: '2px 9px', verticalAlign: 'middle', fontWeight: 400,
-            }}>{text.readOnlyBadge}</span>
-          )}
         </div>
         {t.slogan && (
           <div style={{ fontSize: 13, color: theme.muted, marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -128,7 +117,7 @@ export default function GuildPicker({
           </div>
         ) : (
           <>
-            <div className="yy-stagger">{guilds.map((t, i) => card(t, i, false))}</div>
+            <div className="yy-stagger">{guilds.map((t, i) => card(t, i))}</div>
             <div style={{ textAlign: 'center', marginTop: 10 }}>
               <Link to="/create" style={{ color: theme.muted, fontSize: 13.5, textDecoration: 'none' }}>
                 {text.createGuildMoreLabel}
@@ -137,15 +126,6 @@ export default function GuildPicker({
           </>
         )}
 
-        {publicGuilds.length > 0 && (
-          <>
-            <div className="yy-section-head" style={{ marginTop: 34 }}>
-              <h2>{text.publicGuildsLabel}</h2>
-              <span className="en">{text.publicGuildsEnLabel}</span>
-            </div>
-            <div className="yy-stagger">{publicGuilds.map((t, i) => card(t, i, true))}</div>
-          </>
-        )}
       </div>
 
       {/* Recruit section (Viewer.homeRecruit): my newcomer checklist

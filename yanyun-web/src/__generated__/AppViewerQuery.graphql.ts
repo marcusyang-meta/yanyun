@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<33bcd7a5dcf38a19cdcad77e420a73f5>>
+ * @generated SignedSource<<e7254076e6c786b5a727dc6e84f09051>>
  * @lightSyntaxTransform
  */
 
@@ -106,17 +106,6 @@ export type AppViewerQuery$data = {
     readonly pickerEmptyTitle: string;
     readonly pickerMyGuildsEnLabel: string;
     readonly pickerMyGuildsLabel: string;
-    readonly pickerPublicGuildsEnLabel: string;
-    readonly pickerPublicGuildsLabel: string;
-    readonly pickerReadOnlyBadge: string;
-    readonly publicGuilds: ReadonlyArray<{
-      readonly avatarUrl: string | null | undefined;
-      readonly gameVersion: string;
-      readonly memberCount: number;
-      readonly name: string | null | undefined;
-      readonly slogan: string | null | undefined;
-      readonly slug: string;
-    }>;
     readonly siteHeroAlt: string;
     readonly siteSealText: string;
     readonly siteSubtitle: string;
@@ -165,55 +154,35 @@ v3 = {
   "name": "avatarUrl",
   "storageKey": null
 },
-v4 = [
-  (v1/*:: as any*/),
-  (v0/*:: as any*/),
-  (v2/*:: as any*/),
-  {
-    "alias": null,
-    "args": null,
-    "kind": "ScalarField",
-    "name": "gameVersion",
-    "storageKey": null
-  },
-  {
-    "alias": null,
-    "args": null,
-    "kind": "ScalarField",
-    "name": "memberCount",
-    "storageKey": null
-  },
-  (v3/*:: as any*/)
-],
-v5 = {
+v4 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "id",
   "storageKey": null
 },
-v6 = {
+v5 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "status",
   "storageKey": null
 },
-v7 = {
+v6 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "statusLabel",
   "storageKey": null
 },
-v8 = {
+v7 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "createdAtText",
   "storageKey": null
 },
-v9 = [
+v8 = [
   {
     "alias": null,
     "args": null,
@@ -255,17 +224,26 @@ v9 = [
         "kind": "LinkedField",
         "name": "guilds",
         "plural": true,
-        "selections": (v4/*:: as any*/),
-        "storageKey": null
-      },
-      {
-        "alias": null,
-        "args": null,
-        "concreteType": "GuildReadOnly",
-        "kind": "LinkedField",
-        "name": "publicGuilds",
-        "plural": true,
-        "selections": (v4/*:: as any*/),
+        "selections": [
+          (v1/*:: as any*/),
+          (v0/*:: as any*/),
+          (v2/*:: as any*/),
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "gameVersion",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "memberCount",
+            "storageKey": null
+          },
+          (v3/*:: as any*/)
+        ],
         "storageKey": null
       },
       {
@@ -468,27 +446,6 @@ v9 = [
         "alias": null,
         "args": null,
         "kind": "ScalarField",
-        "name": "pickerPublicGuildsLabel",
-        "storageKey": null
-      },
-      {
-        "alias": null,
-        "args": null,
-        "kind": "ScalarField",
-        "name": "pickerPublicGuildsEnLabel",
-        "storageKey": null
-      },
-      {
-        "alias": null,
-        "args": null,
-        "kind": "ScalarField",
-        "name": "pickerReadOnlyBadge",
-        "storageKey": null
-      },
-      {
-        "alias": null,
-        "args": null,
-        "kind": "ScalarField",
         "name": "pickerEmptyTitle",
         "storageKey": null
       },
@@ -675,7 +632,7 @@ v9 = [
                     "name": "application",
                     "plural": false,
                     "selections": [
-                      (v5/*:: as any*/),
+                      (v4/*:: as any*/),
                       {
                         "alias": null,
                         "args": null,
@@ -690,9 +647,9 @@ v9 = [
                         "name": "message",
                         "storageKey": null
                       },
+                      (v5/*:: as any*/),
                       (v6/*:: as any*/),
                       (v7/*:: as any*/),
-                      (v8/*:: as any*/),
                       {
                         "alias": null,
                         "args": null,
@@ -797,7 +754,7 @@ v9 = [
                 "name": "myPairings",
                 "plural": true,
                 "selections": [
-                  (v5/*:: as any*/),
+                  (v4/*:: as any*/),
                   {
                     "alias": null,
                     "args": null,
@@ -812,9 +769,9 @@ v9 = [
                     "name": "menteeName",
                     "storageKey": null
                   },
+                  (v5/*:: as any*/),
                   (v6/*:: as any*/),
                   (v7/*:: as any*/),
-                  (v8/*:: as any*/),
                   {
                     "alias": null,
                     "args": null,
@@ -841,7 +798,7 @@ return {
     "kind": "Fragment",
     "metadata": null,
     "name": "AppViewerQuery",
-    "selections": (v9/*:: as any*/),
+    "selections": (v8/*:: as any*/),
     "type": "Query",
     "abstractKey": null
   },
@@ -850,19 +807,19 @@ return {
     "argumentDefinitions": [],
     "kind": "Operation",
     "name": "AppViewerQuery",
-    "selections": (v9/*:: as any*/)
+    "selections": (v8/*:: as any*/)
   },
   "params": {
-    "cacheID": "ce4a310ab5e51e65d9fe83d16c11401c",
+    "cacheID": "bea0b9c3f3f8f29516c3a11d47a965e8",
     "id": null,
     "metadata": {},
     "name": "AppViewerQuery",
     "operationKind": "query",
-    "text": "query AppViewerQuery {\n  viewer {\n    user {\n      discordId\n      name\n      avatar\n    }\n    guilds {\n      slug\n      name\n      slogan\n      gameVersion\n      memberCount\n      avatarUrl\n    }\n    publicGuilds {\n      slug\n      name\n      slogan\n      gameVersion\n      memberCount\n      avatarUrl\n    }\n    siteTitle\n    siteSubtitle\n    siteHeroAlt\n    siteSealText\n    loginCardTitle\n    loginCardBody1\n    loginCardBody2\n    loginButtonLabel\n    loginPrivacyText\n    landingFeaturesTitle\n    landingGroupingTitle\n    landingGroupingBody\n    landingReminderTitle\n    landingReminderBody\n    landingDexTitle\n    landingDexBody\n    landingGearTitle\n    landingGearBody\n    footerDisclaimerText\n    footerTermsLabel\n    footerPrivacyLabel\n    userBarLogoutLabel\n    userBarLoggingOutLabel\n    userBarSettingsLabel\n    myLocalePref\n    myEffectiveLocale\n    pickerMyGuildsLabel\n    pickerMyGuildsEnLabel\n    pickerPublicGuildsLabel\n    pickerPublicGuildsEnLabel\n    pickerReadOnlyBadge\n    pickerEmptyTitle\n    pickerEmptyBody\n    pickerCreateGuildLabel\n    pickerCreateGuildMoreLabel\n    commonUnknownErrorText\n    homeRecruit {\n      directoryTitle\n      newcomerTitle\n      homeBody\n      homeLoginHint\n      applySectionTitle\n      messageLabel\n      messagePlaceholder\n      submitLabel\n      submittingLabel\n      myApplicationTitle\n      pendingHint\n      approvedNextStepText\n      rejectedHint\n      checklistTitle\n      myPairingsTitle\n      pairingMentorRoleLabel\n      pairingMenteeRoleLabel\n      guilds {\n        slug\n        name\n        slogan\n        avatarUrl\n        myApplicationSection {\n          application {\n            id\n            applicantName\n            message\n            status\n            statusLabel\n            createdAtText\n            reviewedByName\n            reviewedAtText\n          }\n        }\n      }\n      myNewcomer {\n        slug\n        guildName\n        checklist {\n          progressText\n          items {\n            key\n            label\n            hint\n            done\n          }\n        }\n        myPairings {\n          id\n          mentorName\n          menteeName\n          status\n          statusLabel\n          createdAtText\n          endedAtText\n        }\n      }\n    }\n  }\n}\n"
+    "text": "query AppViewerQuery {\n  viewer {\n    user {\n      discordId\n      name\n      avatar\n    }\n    guilds {\n      slug\n      name\n      slogan\n      gameVersion\n      memberCount\n      avatarUrl\n    }\n    siteTitle\n    siteSubtitle\n    siteHeroAlt\n    siteSealText\n    loginCardTitle\n    loginCardBody1\n    loginCardBody2\n    loginButtonLabel\n    loginPrivacyText\n    landingFeaturesTitle\n    landingGroupingTitle\n    landingGroupingBody\n    landingReminderTitle\n    landingReminderBody\n    landingDexTitle\n    landingDexBody\n    landingGearTitle\n    landingGearBody\n    footerDisclaimerText\n    footerTermsLabel\n    footerPrivacyLabel\n    userBarLogoutLabel\n    userBarLoggingOutLabel\n    userBarSettingsLabel\n    myLocalePref\n    myEffectiveLocale\n    pickerMyGuildsLabel\n    pickerMyGuildsEnLabel\n    pickerEmptyTitle\n    pickerEmptyBody\n    pickerCreateGuildLabel\n    pickerCreateGuildMoreLabel\n    commonUnknownErrorText\n    homeRecruit {\n      directoryTitle\n      newcomerTitle\n      homeBody\n      homeLoginHint\n      applySectionTitle\n      messageLabel\n      messagePlaceholder\n      submitLabel\n      submittingLabel\n      myApplicationTitle\n      pendingHint\n      approvedNextStepText\n      rejectedHint\n      checklistTitle\n      myPairingsTitle\n      pairingMentorRoleLabel\n      pairingMenteeRoleLabel\n      guilds {\n        slug\n        name\n        slogan\n        avatarUrl\n        myApplicationSection {\n          application {\n            id\n            applicantName\n            message\n            status\n            statusLabel\n            createdAtText\n            reviewedByName\n            reviewedAtText\n          }\n        }\n      }\n      myNewcomer {\n        slug\n        guildName\n        checklist {\n          progressText\n          items {\n            key\n            label\n            hint\n            done\n          }\n        }\n        myPairings {\n          id\n          mentorName\n          menteeName\n          status\n          statusLabel\n          createdAtText\n          endedAtText\n        }\n      }\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "fb49739ec4e63356d33841d80a236bda";
+(node as any).hash = "f3d518f97230f11a483c677c2f89dbea";
 
 export default node;
