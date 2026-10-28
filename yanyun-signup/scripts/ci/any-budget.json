@@ -68,8 +68,8 @@
     "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary"
   },
   "src/domains/guilds/graphql.ts": {
-    "max": 52,
-    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context) + white-label chrome composition resolvers (pageBackLabel / pageFooterDisclaimerText) in the same pattern + the announcements content resolver (same (p: any) delegation shape)"
+    "max": 56,
+    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context) + white-label chrome composition resolvers (pageBackLabel / pageFooterDisclaimerText) in the same pattern + the announcements content resolver (same (p: any) delegation shape); +4 for the ops engine root reads (targetedNudgePreview / myContribution query resolvers in the same parent/args pattern)"
   },
   "src/domains/guilds/guild-routes.ts": {
     "max": 34,
@@ -166,5 +166,13 @@
   "src/domains/guilds/recruit.ts": {
     "max": 2,
     "reason": "the word as it appears in prose comments (no any types: repository rows are fully typed)"
+  },
+  "src/domains/guilds/ops-graphql.ts": {
+    "max": 26,
+    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context)"
+  },
+  "src/domains/guilds/ops.ts": {
+    "max": 11,
+    "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary"
   }
 }
