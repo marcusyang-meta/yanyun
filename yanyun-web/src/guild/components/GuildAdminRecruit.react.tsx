@@ -72,8 +72,8 @@ function StatusChip({ label, hot }: { label: string; hot?: boolean }) {
   return (
     <span style={{
       fontSize: 11, borderRadius: 999, padding: '1px 8px',
-      color: hot ? '#93d2be' : theme.muted,
-      border: `1px solid ${hot ? 'rgba(67,160,134,.5)' : 'rgba(67,160,134,.25)'}`,
+      color: hot ? '#ecd28f' : theme.muted,
+      border: `1px solid ${hot ? 'rgba(201,163,92,.5)' : 'rgba(201,163,92,.25)'}`,
     }}>
       {label}
     </span>
@@ -85,9 +85,9 @@ function CheckMark({ done }: { done: boolean }) {
     <span style={{
       width: 18, height: 18, borderRadius: '50%', display: 'inline-flex', alignItems: 'center',
       justifyContent: 'center', fontSize: 11, flexShrink: 0,
-      border: `1px solid ${done ? theme.accent : 'rgba(67,160,134,.3)'}`,
-      background: done ? 'rgba(67,160,134,.16)' : 'transparent',
-      color: done ? '#93d2be' : theme.muted,
+      border: `1px solid ${done ? theme.gold : 'rgba(201,163,92,.3)'}`,
+      background: done ? 'rgba(201,163,92,.16)' : 'transparent',
+      color: done ? '#ecd28f' : theme.muted,
     }}>
       {done ? '✓' : ''}
     </span>
@@ -118,7 +118,7 @@ export default function GuildAdminRecruit({ slug, text, commonText, applications
   const [menteeId, setMenteeId] = useState('');
   const smallBtn = {
     padding: '4px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 12,
-    border: '1px solid rgba(67,160,134,.35)', background: 'transparent', color: theme.muted,
+    border: '1px solid rgba(201,163,92,.35)', background: 'transparent', color: theme.muted,
   } as const;
 
   return (
@@ -128,7 +128,7 @@ export default function GuildAdminRecruit({ slug, text, commonText, applications
         {applications.length === 0 ? (
           <p style={{ color: theme.muted, fontSize: 13, margin: 0 }}>{text.adminRecruitApplicationsEmptyText}</p>
         ) : applications.map((a, i) => (
-          <div key={a.id} style={{ padding: '10px 0', borderTop: i ? '1px solid rgba(67,160,134,.10)' : 'none' }}>
+          <div key={a.id} style={{ padding: '10px 0', borderTop: i ? '1px solid rgba(201,163,92,.10)' : 'none' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               <span style={{ color: theme.paper, fontSize: 14 }}>{a.applicantName}</span>
               <StatusChip label={a.statusLabel} hot={a.status === 'APPROVED'} />
@@ -142,7 +142,7 @@ export default function GuildAdminRecruit({ slug, text, commonText, applications
             )}
             {a.status === 'PENDING' && (
               <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-                <button type="button" className="yy-btn yy-btn-primary" style={{ padding: '5px 16px', fontSize: 12 }}
+                <button type="button" className="yy-btn yy-btn-gold" style={{ padding: '5px 16px', fontSize: 12 }}
                   onClick={() => runReview({ slug, id: a.id, approve: true })}>
                   {text.adminRecruitApproveLabel}
                 </button>
@@ -189,7 +189,7 @@ export default function GuildAdminRecruit({ slug, text, commonText, applications
             ))}
           </select>
         </Field>
-        <button type="button" className="yy-btn yy-btn-primary" style={{ padding: '9px 26px' }}
+        <button type="button" className="yy-btn yy-btn-gold" style={{ padding: '9px 26px' }}
           onClick={() => runPair({ slug, mentor: mentorId, mentee: menteeId })}>
           {text.adminRecruitPairingCreateLabel}
         </button>
@@ -200,7 +200,7 @@ export default function GuildAdminRecruit({ slug, text, commonText, applications
         {pairings.length === 0 ? (
           <p style={{ color: theme.muted, fontSize: 13, margin: 0 }}>{text.adminRecruitPairingsEmptyText}</p>
         ) : pairings.map((p, i) => (
-          <div key={p.id} style={{ padding: '10px 0', borderTop: i ? '1px solid rgba(67,160,134,.10)' : 'none' }}>
+          <div key={p.id} style={{ padding: '10px 0', borderTop: i ? '1px solid rgba(201,163,92,.10)' : 'none' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               <span style={{ color: theme.paper, fontSize: 14 }}>{p.mentorName}</span>
               <span style={{ color: theme.muted, fontSize: 12 }}>→</span>
@@ -222,7 +222,7 @@ export default function GuildAdminRecruit({ slug, text, commonText, applications
         {newcomers.length === 0 ? (
           <p style={{ color: theme.muted, fontSize: 13, margin: 0 }}>{text.adminRecruitNewcomersEmptyText}</p>
         ) : newcomers.map((n, i) => (
-          <div key={n.discordId} style={{ padding: '10px 0', borderTop: i ? '1px solid rgba(67,160,134,.10)' : 'none' }}>
+          <div key={n.discordId} style={{ padding: '10px 0', borderTop: i ? '1px solid rgba(201,163,92,.10)' : 'none' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
               <span style={{ color: theme.paper, fontSize: 14, flex: '1 1 120px' }}>{n.displayName}</span>
               <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: theme.muted }}>

@@ -38,7 +38,7 @@ function Bar({ ratio }: { ratio: number }) {
   const w = Math.max(0, Math.min(100, ratio * 100));
   return (
     <div style={{ height: 6, borderRadius: 3, background: 'rgba(236,226,203,.10)', overflow: 'hidden', minWidth: 90, flex: 1 }}>
-      <div style={{ height: '100%', width: `${w}%`, background: theme.accent, borderRadius: 3 }} />
+      <div style={{ height: '100%', width: `${w}%`, background: theme.gold, borderRadius: 3 }} />
     </div>
   );
 }
@@ -68,11 +68,11 @@ function Board({ title, unitLabel, emptyText, rows }: {
       {rows.length === 0 ? (
         <p style={{ color: theme.muted, fontSize: 13, margin: 0 }}>{emptyText}</p>
       ) : rows.map((row, i) => (
-        <div key={row.discordId} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderTop: i ? '1px solid rgba(67,160,134,.10)' : 'none' }}>
+        <div key={row.discordId} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderTop: i ? '1px solid rgba(201,163,92,.10)' : 'none' }}>
           <span style={{ width: 22, color: theme.muted, fontSize: 13 }}>{i + 1}</span>
           <span style={{ minWidth: 110, color: theme.paper, fontSize: 14 }}>{row.displayName}</span>
           <Bar ratio={top ? row.count / top : 0} />
-          <span style={{ width: 34, textAlign: 'right', color: '#93d2be', fontSize: 14 }}>{row.count}</span>
+          <span style={{ width: 34, textAlign: 'right', color: '#ecd28f', fontSize: 14 }}>{row.count}</span>
         </div>
       ))}
     </section>
@@ -95,12 +95,12 @@ export default function GuildAdminStats({ text, stats }: { text: AdminText; stat
         {allEmpty ? (
           <p style={{ color: theme.muted, fontSize: 13, margin: 0 }}>{text.adminStatsEmptyText}</p>
         ) : weeks.map((w, i) => (
-          <div key={w.weekLabel + i} style={{ padding: '12px 0', borderTop: i ? '1px solid rgba(67,160,134,.10)' : 'none' }}>
+          <div key={w.weekLabel + i} style={{ padding: '12px 0', borderTop: i ? '1px solid rgba(201,163,92,.10)' : 'none' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
               <span style={{ color: theme.paper, fontSize: 14 }}>{w.weekLabel}</span>
               {w.isCurrent && (
                 <span style={{
-                  fontSize: 11, color: '#93d2be', border: '1px solid rgba(67,160,134,.5)',
+                  fontSize: 11, color: '#ecd28f', border: '1px solid rgba(201,163,92,.5)',
                   borderRadius: 999, padding: '1px 8px',
                 }}>{text.adminStatsCurrentWeekLabel}</span>
               )}

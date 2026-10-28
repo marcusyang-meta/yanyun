@@ -18,8 +18,8 @@ export default function SiteFooter({ text }: { text: FooterText }) {
         {text.disclaimer}
       </p>
       <div style={{ display: 'flex', gap: 20, justifyContent: 'center', fontSize: 13 }}>
-        <Link to="/terms" style={{ color: theme.accent, textDecoration: 'none' }}>{text.termsLabel}</Link>
-        <Link to="/privacy" style={{ color: theme.accent, textDecoration: 'none' }}>{text.privacyLabel}</Link>
+        <Link to="/terms" style={{ color: theme.gold, textDecoration: 'none' }}>{text.termsLabel}</Link>
+        <Link to="/privacy" style={{ color: theme.gold, textDecoration: 'none' }}>{text.privacyLabel}</Link>
       </div>
     </footer>
   );

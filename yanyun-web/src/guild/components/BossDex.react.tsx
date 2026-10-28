@@ -118,7 +118,7 @@ function BossDex({ queryRef }: { queryRef: PreloadedQuery<BossDexQueryType> }) {
               <button key={b.id} onClick={() => setBossId(b.id)} style={rowBtn}>
                 <span style={sealSm}>{(dex as any).dexSealBossText}</span>
                 <span style={{ flex: 1, fontSize: 15 }}>{b.name}</span>
-                <span style={{ color: theme.accent }}>›</span>
+                <span style={{ color: theme.gold }}>›</span>
               </button>
             ))}
           </div>
@@ -156,18 +156,18 @@ function BossDex({ queryRef }: { queryRef: PreloadedQuery<BossDexQueryType> }) {
           <span style={{ display: 'block', fontSize: 15 }}>{d.name}</span>
           <span style={{
             display: 'inline-block', fontSize: 11, marginTop: 4,
-            color: inCurrent ? theme.accentHi : theme.muted,
-            border: `1px solid ${inCurrent ? theme.accent : theme.muted}`,
+            color: inCurrent ? theme.goldHi : theme.muted,
+            border: `1px solid ${inCurrent ? theme.gold : theme.muted}`,
             borderRadius: 4, padding: '1px 6px',
           }}>{levelTag}{sizeTag}</span>
           <span style={{ display: 'block', fontSize: 12, color: theme.muted, marginTop: 4 }}>
             {dexLabel}
           </span>
         </span>
-        <span style={{ color: theme.accentHi, fontSize: 14, flexShrink: 0 }}>
+        <span style={{ color: theme.goldHi, fontSize: 14, flexShrink: 0 }}>
           {bossCount}<small style={{ color: theme.muted, fontSize: 11 }}> {(dex as any).dexBossUnit}</small>
         </span>
-        <span style={{ color: theme.accent }}>›</span>
+        <span style={{ color: theme.gold }}>›</span>
       </button>
     );
   };
@@ -286,9 +286,9 @@ function BossDetail({ queryRef, onBack }: {
             onClick={() => setBtab(t)}
             style={{
               padding: '8px 24px', borderRadius: 8, cursor: 'pointer', fontSize: 14,
-              border: `1px solid ${theme.accent}`,
-              background: btab === t ? theme.accent : 'transparent',
-              color: btab === t ? '#0a120e' : theme.paper,
+              border: `1px solid ${theme.gold}`,
+              background: btab === t ? theme.gold : 'transparent',
+              color: btab === t ? '#1a1814' : theme.paper,
               fontWeight: btab === t ? 600 : 400,
             }}
           >{t === 'mech' ? page.bossTabMechanicsLabel : page.bossTabTalentsLabel}</button>
@@ -312,13 +312,13 @@ function BossDetail({ queryRef, onBack }: {
               {b.shouts.map((s, i) => (
                 <div key={i} style={{
                   display: 'flex', gap: 8, alignItems: 'center', marginTop: 8,
-                  background: 'rgba(67,160,134,.08)', borderRadius: 8, padding: '8px 12px',
+                  background: 'rgba(201,163,92,.08)', borderRadius: 8, padding: '8px 12px',
                 }}>
                   <span style={{ flex: 1, fontSize: 13, color: theme.paper }}>{s.text}</span>
                   {s.copyable && (
                     <button onClick={() => copyShout(s.text)} style={{
                       padding: '4px 12px', borderRadius: 6, cursor: 'pointer', fontSize: 12,
-                      background: theme.accent, border: 'none', color: '#0a120e',
+                      background: theme.gold, border: 'none', color: '#1a1814',
                     }}>{page.bossCopyLabel}</button>
                   )}
                 </div>
@@ -371,26 +371,26 @@ function BossDetailRoute({ bossId, onBack }: { bossId: string; onBack: () => voi
 function SecHead({ title, sub }: { title: string; sub: string }) {
   return (
     <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, margin: '20px 0 12px' }}>
-      <h3 style={{ color: theme.accentHi, fontSize: 16, margin: 0, letterSpacing: 2 }}>{title}</h3>
+      <h3 style={{ color: theme.goldHi, fontSize: 16, margin: 0, letterSpacing: 2 }}>{title}</h3>
       <span style={{ color: theme.muted, fontSize: 11 }}>{sub}</span>
-      <span style={{ flex: 1, height: 1, background: 'rgba(67,160,134,.25)' }} />
+      <span style={{ flex: 1, height: 1, background: 'rgba(201,163,92,.25)' }} />
     </div>
   );
 }
 
 const backBtn: React.CSSProperties = {
-  background: 'none', border: 'none', color: '#43a086', cursor: 'pointer',
+  background: 'none', border: 'none', color: '#c9a35c', cursor: 'pointer',
   fontSize: 15, padding: 0, marginBottom: 12,
 };
 const h2: React.CSSProperties = {
-  color: '#93d2be', fontSize: 24, margin: '0 0 4px', letterSpacing: 2,
+  color: '#ecd28f', fontSize: 24, margin: '0 0 4px', letterSpacing: 2,
 };
 const rowBtn: React.CSSProperties = {
   display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px',
   borderRadius: 10, cursor: 'pointer', textAlign: 'left',
-  border: '1px solid rgba(67,160,134,.25)',
-  background: '#1e2126',
-  color: '#e9ebee',
+  border: '1px solid rgba(201,163,92,.25)',
+  background: 'linear-gradient(160deg,rgba(201,163,92,.06),rgba(0,0,0,.2))',
+  color: '#ece2cb',
 };
 const sealSm: React.CSSProperties = {
   width: 32, height: 32, borderRadius: 6, flexShrink: 0,
@@ -403,9 +403,9 @@ const sealMd: React.CSSProperties = {
   alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700,
 };
 const card: React.CSSProperties = {
-  border: '1px solid rgba(67,160,134,.25)', borderRadius: 10, padding: 16,
-  background: '#1e2126',
+  border: '1px solid rgba(201,163,92,.25)', borderRadius: 10, padding: 16,
+  background: 'linear-gradient(160deg,rgba(201,163,92,.05),rgba(0,0,0,.15))',
 };
 const cardTitle: React.CSSProperties = {
-  color: '#43a086', fontSize: 15, fontWeight: 600, marginBottom: 8,
+  color: '#c9a35c', fontSize: 15, fontWeight: 600, marginBottom: 8,
 };

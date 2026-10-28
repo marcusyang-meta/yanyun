@@ -50,9 +50,9 @@ function EntryList({ entries, highlight }: { entries: LotteryEntry[]; highlight?
           key={e.discordId}
           style={{
             fontSize: 12, padding: '3px 10px', borderRadius: 999,
-            border: `1px solid ${highlight ? theme.accent : 'rgba(67,160,134,.3)'}`,
-            background: highlight ? 'rgba(67,160,134,.16)' : 'transparent',
-            color: highlight ? '#93d2be' : theme.paper,
+            border: `1px solid ${highlight ? theme.gold : 'rgba(201,163,92,.3)'}`,
+            background: highlight ? 'rgba(201,163,92,.16)' : 'transparent',
+            color: highlight ? '#ecd28f' : theme.paper,
           }}
         >
           {e.displayName} · {e.weight}
@@ -124,9 +124,9 @@ export default function GuildAdminTools({ slug, text, commonText, lotteries, lot
       onClick={() => setSource(key)}
       style={{
         padding: '7px 16px', borderRadius: 999, cursor: 'pointer', fontSize: 13,
-        border: `1px solid ${source === key ? theme.accent : 'rgba(67,160,134,.3)'}`,
-        background: source === key ? 'rgba(67,160,134,.16)' : 'transparent',
-        color: source === key ? '#93d2be' : theme.muted,
+        border: `1px solid ${source === key ? theme.gold : 'rgba(201,163,92,.3)'}`,
+        background: source === key ? 'rgba(201,163,92,.16)' : 'transparent',
+        color: source === key ? '#ecd28f' : theme.muted,
       }}
     >
       {label}
@@ -191,7 +191,7 @@ export default function GuildAdminTools({ slug, text, commonText, lotteries, lot
           <input style={{ ...adminInputStyle, maxWidth: 140 }} type="number" min={1}
             value={winnerCount} onChange={(e) => setWinnerCount(e.target.value)} />
         </Field>
-        <button type="button" className="yy-btn yy-btn-primary" style={{ padding: '9px 26px' }} onClick={submitCreate}>
+        <button type="button" className="yy-btn yy-btn-gold" style={{ padding: '9px 26px' }} onClick={submitCreate}>
           {text.adminLotteryCreateLabel}
         </button>
       </section>
@@ -200,13 +200,13 @@ export default function GuildAdminTools({ slug, text, commonText, lotteries, lot
         {lotteries.length === 0 ? (
           <p style={{ color: theme.muted, fontSize: 13, margin: 0 }}>{text.adminLotteryEmptyText}</p>
         ) : lotteries.map((lot, i) => (
-          <div key={lot.id} style={{ padding: '12px 0', borderTop: i ? '1px solid rgba(67,160,134,.10)' : 'none' }}>
+          <div key={lot.id} style={{ padding: '12px 0', borderTop: i ? '1px solid rgba(201,163,92,.10)' : 'none' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 6 }}>
               <span style={{ color: theme.paper, fontSize: 15 }}>{lot.title}</span>
               <span style={{
                 fontSize: 11, borderRadius: 999, padding: '1px 8px',
-                color: lot.status === 'DRAWN' ? '#93d2be' : theme.muted,
-                border: `1px solid ${lot.status === 'DRAWN' ? 'rgba(67,160,134,.5)' : 'rgba(67,160,134,.25)'}`,
+                color: lot.status === 'DRAWN' ? '#ecd28f' : theme.muted,
+                border: `1px solid ${lot.status === 'DRAWN' ? 'rgba(201,163,92,.5)' : 'rgba(201,163,92,.25)'}`,
               }}>
                 {lot.status === 'DRAWN' ? text.adminLotteryStatusDrawnText : text.adminLotteryStatusOpenText}
               </span>

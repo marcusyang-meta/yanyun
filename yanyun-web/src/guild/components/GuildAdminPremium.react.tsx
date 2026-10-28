@@ -44,7 +44,7 @@ export function PremiumLockedPanel({ premium, slug, unknownError }: {
       <h2 style={adminSectionTitleStyle}>{premium.premiumTitle}</h2>
       <p style={{ color: theme.paper, fontSize: 14, lineHeight: 1.7, margin: '0 0 14px' }}>{premium.premiumBody}</p>
       {premium.premiumPriceLabel && (
-        <p style={{ color: '#93d2be', fontSize: 24, margin: '0 0 14px', letterSpacing: '.02em' }}>
+        <p style={{ color: '#ecd28f', fontSize: 24, margin: '0 0 14px', letterSpacing: '.02em' }}>
           {premium.premiumPriceLabel}
         </p>
       )}
@@ -53,7 +53,7 @@ export function PremiumLockedPanel({ premium, slug, unknownError }: {
       ) : (
         <button
           type="button"
-          className="yy-btn yy-btn-primary"
+          className="yy-btn yy-btn-gold"
           disabled={busy}
           style={{ padding: '9px 22px' }}
           onClick={() => {

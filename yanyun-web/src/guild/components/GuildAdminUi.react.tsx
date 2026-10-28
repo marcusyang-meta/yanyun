@@ -25,7 +25,7 @@ export function useAdminMutation(commit: any, payloadKey: string, refresh: () =>
 // backend-delivered admin text fields.
 export const adminInputStyle: CSSProperties = {
   width: '100%', boxSizing: 'border-box', padding: '9px 12px', borderRadius: 8,
-  border: '1px solid rgba(67,160,134,.35)', background: 'rgba(21,23,27,.6)',
+  border: '1px solid rgba(201,163,92,.35)', background: 'rgba(12,11,9,.6)',
   color: theme.paper, fontSize: 14, outline: 'none',
 };
 export const adminLabelStyle: CSSProperties = {
@@ -33,10 +33,10 @@ export const adminLabelStyle: CSSProperties = {
 };
 export const adminSectionStyle: CSSProperties = {
   marginTop: 22, padding: '18px 18px 20px', borderRadius: 12,
-  border: '1px solid rgba(67,160,134,.22)', background: 'rgba(236,226,203,.03)',
+  border: '1px solid rgba(201,163,92,.22)', background: 'rgba(236,226,203,.03)',
 };
 export const adminSectionTitleStyle: CSSProperties = {
-  fontSize: 15, color: '#93d2be', letterSpacing: '.06em', margin: '0 0 14px',
+  fontSize: 15, color: '#ecd28f', letterSpacing: '.06em', margin: '0 0 14px',
 };
 
 export function Field({ label, children }: { label: string; children: ReactNode }) {
@@ -55,7 +55,7 @@ export function SaveButton({ label, savedLabel, onSave, disabled }: {
   return (
     <button
       type="button"
-      className="yy-btn yy-btn-primary"
+      className="yy-btn yy-btn-gold"
       disabled={disabled}
       style={{ padding: '9px 26px' }}
       onClick={() => {
@@ -84,7 +84,7 @@ export function ConfirmButton({ label, confirmLabel, onConfirm, small }: {
       }}
       style={{
         padding: small ? '4px 12px' : '8px 18px', borderRadius: 8, cursor: 'pointer',
-        border: `1px solid ${armed ? '#c0392b' : 'rgba(67,160,134,.35)'}`,
+        border: `1px solid ${armed ? '#c0392b' : 'rgba(201,163,92,.35)'}`,
         background: armed ? 'rgba(192,57,43,.18)' : 'transparent',
         color: armed ? '#e8a09a' : theme.muted, fontSize: small ? 12 : 13,
       }}

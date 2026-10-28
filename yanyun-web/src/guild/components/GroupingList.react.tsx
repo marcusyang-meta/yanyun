@@ -321,8 +321,8 @@ function GroupingList({ queryRef, tab, onTabChange, onSelect, interactive = true
             <span style={{ flex: 1, minWidth: 0 }}>
               <span style={{ display: 'block', fontSize: 15 }}>
                 <span style={{
-                  display: 'inline-block', fontSize: 11, color: theme.accentHi,
-                  border: `1px solid ${theme.accent}`, borderRadius: 4, padding: '1px 6px', marginRight: 6,
+                  display: 'inline-block', fontSize: 11, color: theme.goldHi,
+                  border: `1px solid ${theme.gold}`, borderRadius: 4, padding: '1px 6px', marginRight: 6,
                 }}>{typeShort[e.type] ?? e.type}</span>
                 {e.title}
               </span>
@@ -336,7 +336,7 @@ function GroupingList({ queryRef, tab, onTabChange, onSelect, interactive = true
               border: `1px solid ${e.status === 'open' ? '#7fc97f' : theme.muted}`,
               borderRadius: 4, padding: '2px 8px', flexShrink: 0,
             }}>{e.status === 'open' ? page.statusOpenLabel : e.status}</span>
-            <span style={{ color: theme.accent, fontSize: 18 }}>›</span>
+            <span style={{ color: theme.gold, fontSize: 18 }}>›</span>
           </button>
     );
   };
@@ -359,7 +359,7 @@ function GroupingList({ queryRef, tab, onTabChange, onSelect, interactive = true
           while the filter boundary stays start/end themselves */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 12 }}>
         <button onClick={() => setWeekOffset((w) => w - 1)} style={navBtn} aria-label={page.prevWeekLabel}>‹</button>
-        <span style={{ color: theme.accentHi, fontSize: 13, textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <span style={{ color: theme.goldHi, fontSize: 13, textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {fill(page.weekHeaderTemplate ?? '', { range: weekRangeLabel(weekOffset), count: events.length })}
         </span>
         <button onClick={() => setWeekOffset((w) => w + 1)} style={navBtn} aria-label={page.nextWeekLabel}>›</button>
@@ -373,8 +373,8 @@ function GroupingList({ queryRef, tab, onTabChange, onSelect, interactive = true
         {sections.map((sec, si) => (
           <div key={sec.key} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: si === 0 ? 2 : 10, padding: '0 2px' }}>
-              <span style={{ color: theme.accentHi, fontSize: 13, letterSpacing: 1, whiteSpace: 'nowrap' }}>{sec.header}</span>
-              <span style={{ flex: 1, height: 1, background: 'rgba(67,160,134,.18)' }} />
+              <span style={{ color: theme.goldHi, fontSize: 13, letterSpacing: 1, whiteSpace: 'nowrap' }}>{sec.header}</span>
+              <span style={{ flex: 1, height: 1, background: 'rgba(201,163,92,.18)' }} />
             </div>
             {sec.items.map((e) => renderCard(e))}
           </div>
@@ -431,7 +431,7 @@ export function GroupingListRoute({ slug, interactive = true, defaultNickname }:
     <>
       {interactive && (
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
-        <button onClick={() => setShowForm(true)} className="yy-btn yy-btn-primary" style={{
+        <button onClick={() => setShowForm(true)} className="yy-btn yy-btn-gold" style={{
           padding: '10px 24px', fontSize: 14,
         }}>{pageText.newCarLabel}</button>
       </div>
@@ -463,5 +463,5 @@ export function GroupingListRoute({ slug, interactive = true, defaultNickname }:
 const navBtn: React.CSSProperties = {
   padding: '6px 16px', borderRadius: 8, cursor: 'pointer', fontSize: 16, lineHeight: 1.2,
   flexShrink: 0,
-  background: 'transparent', border: '1px solid rgba(67,160,134,.4)', color: '#43a086',
+  background: 'transparent', border: '1px solid rgba(201,163,92,.4)', color: '#c9a35c',
 };

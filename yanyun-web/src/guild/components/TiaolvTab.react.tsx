@@ -7,15 +7,15 @@ import type { TiaolvTabCalcMutation as TiaolvTabCalcMutationType } from './__gen
 const COLS = ['K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R'];
 
 const inputStyle: React.CSSProperties = {
-  width: '100%', background: '#1e1b15', border: '1px solid rgba(67,160,134,.3)',
+  width: '100%', background: '#1e1b15', border: '1px solid rgba(201,163,92,.3)',
   color: theme.paper, borderRadius: 8, padding: '10px', fontSize: 14, boxSizing: 'border-box',
 };
 const labelStyle: React.CSSProperties = {
   display: 'block', fontSize: 12, color: theme.muted, marginBottom: 6, letterSpacing: 1,
 };
 const cellInput: React.CSSProperties = {
-  width: '100%', background: '#1e1b15', border: '1px solid rgba(67,160,134,.2)',
-  color: theme.accentHi, borderRadius: 6, padding: '8px 2px', fontSize: 13, textAlign: 'center',
+  width: '100%', background: '#1e1b15', border: '1px solid rgba(201,163,92,.2)',
+  color: theme.goldHi, borderRadius: 6, padding: '8px 2px', fontSize: 13, textAlign: 'center',
 };
 
 
@@ -142,9 +142,9 @@ export default function TiaolvTab({ sectSlug }: { sectSlug: string; sectName: st
             {wukuOptions.map((w: any) => (
               <button key={w.id} onClick={() => setWuku(w.id)} style={{
                 flex: 1, padding: 10, borderRadius: 8, cursor: 'pointer', fontSize: 14,
-                border: `1px solid ${theme.accent}`,
-                background: wuku === w.id ? theme.accent : 'transparent',
-                color: wuku === w.id ? '#0a120e' : theme.paper,
+                border: `1px solid ${theme.gold}`,
+                background: wuku === w.id ? theme.gold : 'transparent',
+                color: wuku === w.id ? '#1a1814' : theme.paper,
               }}>{w.label}</button>
             ))}
           </div>
@@ -178,7 +178,7 @@ export default function TiaolvTab({ sectSlug }: { sectSlug: string; sectName: st
             <tbody>
               {tuneRows.map(({ row, label }: any) => (
                 <tr key={row}>
-                  <td style={{ fontSize: 12, color: theme.accent, padding: '4px', whiteSpace: 'nowrap' }}>{label}</td>
+                  <td style={{ fontSize: 12, color: theme.gold, padding: '4px', whiteSpace: 'nowrap' }}>{label}</td>
                   {COLS.map((c) => {
                     const cell = `${c}${row}`;
                     return (
@@ -198,7 +198,7 @@ export default function TiaolvTab({ sectSlug }: { sectSlug: string; sectName: st
 
       <button onClick={calc} disabled={calculating} style={{
         width: '100%', padding: 14, borderRadius: 10, cursor: calculating ? 'wait' : 'pointer',
-        background: theme.accent, border: 'none', color: '#0a120e', fontWeight: 700, fontSize: 15,
+        background: theme.gold, border: 'none', color: '#1a1814', fontWeight: 700, fontSize: 15,
         opacity: calculating ? .6 : 1, marginBottom: 16,
       }}>{calculating ? tl.tlCalculatingLabel : tl.tlCalcLabel}</button>
 
@@ -207,19 +207,19 @@ export default function TiaolvTab({ sectSlug }: { sectSlug: string; sectName: st
           <table style={{ borderCollapse: 'collapse', width: '100%', fontSize: 13 }}>
             <thead>
               <tr style={{ color: theme.muted, fontSize: 12 }}>
-                <th style={{ textAlign: 'left', padding: '8px 4px', borderBottom: `1px solid rgba(67,160,134,.3)` }}>{tl.tlColAttrLabel}</th>
-                <th style={{ textAlign: 'right', padding: '8px 4px', borderBottom: `1px solid rgba(67,160,134,.3)` }}>{tl.tlColBaseLabel}</th>
-                <th style={{ textAlign: 'right', padding: '8px 4px', borderBottom: `1px solid rgba(67,160,134,.3)` }}>{tl.tlColPanelLabel}</th>
-                <th style={{ textAlign: 'right', padding: '8px 4px', borderBottom: `1px solid rgba(67,160,134,.3)` }}>{tl.tlColFinalLabel}</th>
+                <th style={{ textAlign: 'left', padding: '8px 4px', borderBottom: `1px solid rgba(201,163,92,.3)` }}>{tl.tlColAttrLabel}</th>
+                <th style={{ textAlign: 'right', padding: '8px 4px', borderBottom: `1px solid rgba(201,163,92,.3)` }}>{tl.tlColBaseLabel}</th>
+                <th style={{ textAlign: 'right', padding: '8px 4px', borderBottom: `1px solid rgba(201,163,92,.3)` }}>{tl.tlColPanelLabel}</th>
+                <th style={{ textAlign: 'right', padding: '8px 4px', borderBottom: `1px solid rgba(201,163,92,.3)` }}>{tl.tlColFinalLabel}</th>
               </tr>
             </thead>
             <tbody>
               {result.map((r: any) => (
                 <tr key={r.key}>
-                  <td style={{ padding: '8px 4px', color: theme.accent, borderBottom: '1px solid rgba(67,160,134,.1)' }}>{r.label}</td>
-                  <td style={{ textAlign: 'right', padding: '8px 4px', color: theme.paper, borderBottom: '1px solid rgba(67,160,134,.1)' }}>{fmt(r.base)}</td>
-                  <td style={{ textAlign: 'right', padding: '8px 4px', color: theme.paper, borderBottom: '1px solid rgba(67,160,134,.1)' }}>{fmt(r.panel)}</td>
-                  <td style={{ textAlign: 'right', padding: '8px 4px', color: theme.accentHi, fontWeight: 700, borderBottom: '1px solid rgba(67,160,134,.1)' }}>{fmt(r.final)}</td>
+                  <td style={{ padding: '8px 4px', color: theme.gold, borderBottom: '1px solid rgba(201,163,92,.1)' }}>{r.label}</td>
+                  <td style={{ textAlign: 'right', padding: '8px 4px', color: theme.paper, borderBottom: '1px solid rgba(201,163,92,.1)' }}>{fmt(r.base)}</td>
+                  <td style={{ textAlign: 'right', padding: '8px 4px', color: theme.paper, borderBottom: '1px solid rgba(201,163,92,.1)' }}>{fmt(r.panel)}</td>
+                  <td style={{ textAlign: 'right', padding: '8px 4px', color: theme.goldHi, fontWeight: 700, borderBottom: '1px solid rgba(201,163,92,.1)' }}>{fmt(r.final)}</td>
                 </tr>
               ))}
             </tbody>

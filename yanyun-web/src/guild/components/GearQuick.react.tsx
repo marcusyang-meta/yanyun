@@ -73,8 +73,8 @@ export default function GearQuick({ whites }: { whites: Whites }) {
   };
 
   const line = (label: string, s: Status, barName: string) => (
-    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, padding: '5px 0', borderTop: '1px dashed rgba(67,160,134,.15)', fontSize: 13, flexWrap: 'wrap' }}>
-      <span style={{ color: theme.paper }}>{label} <b style={{ color: theme.accentHi }}>{fmt1(s.yellow)}%</b></span>
+    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, padding: '5px 0', borderTop: '1px dashed rgba(201,163,92,.15)', fontSize: 13, flexWrap: 'wrap' }}>
+      <span style={{ color: theme.paper }}>{label} <b style={{ color: theme.goldHi }}>{fmt1(s.yellow)}%</b></span>
       <span style={{ color: s.capped ? '#9dc08b' : theme.muted }}>
         {s.capped
           ? t.gearQuickOkText + (s.over > 0.05 ? fill(t.gearQuickOverTemplate, { v: fmt1(s.over) }) : '')
@@ -85,18 +85,18 @@ export default function GearQuick({ whites }: { whites: Whites }) {
 
   const inp: React.CSSProperties = {
     width: '100%', boxSizing: 'border-box', background: 'rgba(0,0,0,.35)', color: theme.paper,
-    border: '1px solid rgba(67,160,134,.35)', borderRadius: 6, padding: '6px 8px', fontSize: 13,
+    border: '1px solid rgba(201,163,92,.35)', borderRadius: 6, padding: '6px 8px', fontSize: 13,
   };
   const lbl: React.CSSProperties = { display: 'block', color: theme.muted, fontSize: 11, marginBottom: 3 };
 
   return (
-    <div style={{ marginTop: 14, borderTop: '1px solid rgba(67,160,134,.2)', paddingTop: 12 }}>
+    <div style={{ marginTop: 14, borderTop: '1px solid rgba(201,163,92,.2)', paddingTop: 12 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-        <span style={{ color: theme.accentHi, fontSize: 14 }}>{t.gearQuickTitle}</span>
+        <span style={{ color: theme.goldHi, fontSize: 14 }}>{t.gearQuickTitle}</span>
         <span style={{ flex: 1 }} />
         <button disabled={!whites} onClick={sync} style={{
           fontSize: 12, padding: '4px 12px', borderRadius: 999, cursor: whites ? 'pointer' : 'not-allowed',
-          background: 'transparent', border: `1px solid ${theme.accent}`, color: theme.accentHi, opacity: whites ? 1 : 0.45,
+          background: 'transparent', border: `1px solid ${theme.gold}`, color: theme.goldHi, opacity: whites ? 1 : 0.45,
         }}>{t.gearQuickSyncLabel}</button>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(90px,1fr))', gap: 8, marginTop: 10 }}>
@@ -107,7 +107,7 @@ export default function GearQuick({ whites }: { whites: Whites }) {
       </div>
       <button disabled={committing} onClick={run} style={{
         marginTop: 10, padding: '7px 18px', borderRadius: 8, cursor: 'pointer',
-        background: theme.accent, border: 'none', color: '#0a120e', fontWeight: 600, fontSize: 13,
+        background: theme.gold, border: 'none', color: '#1a1814', fontWeight: 600, fontSize: 13,
       }}>{t.gearCalcLabel}</button>
       {result && (
         <div style={{ marginTop: 6 }}>

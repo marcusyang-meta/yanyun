@@ -55,11 +55,11 @@ const BuildSharePageQueryNode = graphql`
 `;
 
 const card: React.CSSProperties = {
-  border: '1px solid rgba(67,160,134,.22)', borderRadius: 10, padding: '10px 12px', background: 'rgba(0,0,0,.25)',
+  border: '1px solid rgba(201,163,92,.22)', borderRadius: 10, padding: '10px 12px', background: 'rgba(0,0,0,.25)',
 };
 const btnGhost: React.CSSProperties = {
   padding: '6px 13px', borderRadius: 8, cursor: 'pointer', background: 'transparent',
-  border: `1px solid ${theme.accent}`, color: theme.accentHi, fontSize: 12.5, textDecoration: 'none',
+  border: `1px solid ${theme.gold}`, color: theme.goldHi, fontSize: 12.5, textDecoration: 'none',
   display: 'inline-block',
 };
 
@@ -94,22 +94,22 @@ function SharedItemCard({ item, affixByKey }: {
     const atCy = a ? l.val >= a.cy : false;
     return (
       <div key={ix} style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'baseline' }}>
-        <span style={isMain ? { color: theme.accentHi, fontWeight: 700 } : undefined}>{a ? a.label : l.key}</span>
-        <b style={{ color: atCy || isMain ? theme.accentHi : theme.paper, fontWeight: isMain ? 800 : 600 }}>{fmt1(l.val)}</b>
+        <span style={isMain ? { color: theme.goldHi, fontWeight: 700 } : undefined}>{a ? a.label : l.key}</span>
+        <b style={{ color: atCy || isMain ? theme.goldHi : theme.paper, fontWeight: isMain ? 800 : 600 }}>{fmt1(l.val)}</b>
       </div>
     );
   };
   return (
     <div style={{ ...card, padding: '8px 11px' }} className={'yy-gear-card' + (topTier ? ' q-top' : '')}>
       <div style={{ color: theme.muted, fontSize: 11, letterSpacing: 2 }}>{item.slot}</div>
-      <div style={{ fontFamily: 'var(--font-sans)', color: theme.accentHi, fontSize: 15.5, fontWeight: 700, marginTop: 2, letterSpacing: 1 }}>
+      <div style={{ fontFamily: 'var(--font-serif)', color: theme.goldHi, fontSize: 15.5, fontWeight: 700, marginTop: 2, letterSpacing: 1 }}>
         {item.name || item.slot}
       </div>
       <div style={{ marginTop: 4, fontSize: 12.5, lineHeight: 1.5, color: theme.paper }}>
         {mainIdx >= 0 && lineRow(item.lines[mainIdx], mainIdx)}
         {item.lines.map((l, ix) => (ix === mainIdx ? null : lineRow(l, ix)))}
         {item.dingyin && (
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, color: theme.accentHi }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, color: theme.goldHi }}>
             <span>{item.dingyin.name}</span><b>{fmt1(item.dingyin.val)}</b>
           </div>
         )}
@@ -138,13 +138,13 @@ export default function BuildSharePage({ queries }: {
         </div>
         {page.exists ? (
           <>
-            <div style={{ fontFamily: 'var(--font-sans)', color: theme.accentHi, fontSize: 30, fontWeight: 700, letterSpacing: 2, marginTop: 14 }}>
+            <div style={{ fontFamily: 'var(--font-serif)', color: theme.goldHi, fontSize: 30, fontWeight: 700, letterSpacing: 2, marginTop: 14 }}>
               {page.name}
             </div>
             <div style={{ color: theme.muted, fontSize: 13, marginTop: 4 }}>{page.buildLabel}</div>
             <div style={{ ...card, marginTop: 16, display: 'flex', alignItems: 'center', gap: 22, flexWrap: 'wrap' }}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                <span style={{ fontFamily: 'var(--font-sans)', color: theme.accentHi, fontSize: 34, fontWeight: 700 }}>{pct1(page.snapTotal)}</span>
+                <span style={{ fontFamily: 'var(--font-serif)', color: theme.goldHi, fontSize: 34, fontWeight: 700 }}>{pct1(page.snapTotal)}</span>
                 <span style={{ color: theme.muted, fontSize: 12 }}>{grad.gearGradLabel}</span>
               </div>
               <div style={{ color: theme.muted, fontSize: 12.5, lineHeight: 1.8 }}>
@@ -167,7 +167,7 @@ export default function BuildSharePage({ queries }: {
           </>
         ) : (
           <div style={{ ...card, marginTop: 22, textAlign: 'center', padding: '34px 16px' }}>
-            <div style={{ fontFamily: 'var(--font-sans)', color: theme.accentHi, fontSize: 22, fontWeight: 700, letterSpacing: 2 }}>
+            <div style={{ fontFamily: 'var(--font-serif)', color: theme.goldHi, fontSize: 22, fontWeight: 700, letterSpacing: 2 }}>
               {page.buildShareNotFoundTitle}
             </div>
             <div style={{ color: theme.muted, fontSize: 13, marginTop: 10 }}>{page.buildShareNotFoundBody}</div>
