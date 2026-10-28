@@ -42,6 +42,7 @@ import {
 import { scheduleResolvers } from './schedule-graphql.ts';
 import { resolveSharedGrouping } from './shareview.ts';
 import { schedulingAdviceResolvers, composeGroupingSchedulingAdvice, composeCrossCarAdvice } from './scheduling-graphql.ts';
+import { buildMemberFacts, buildTeamDraft, rankSubstitutes } from './scheduling.ts';
 import {
   listSignupSeats, listSignupSeatsBasic, listSignupNamesStamps,
   insertSignups, insertSignupWithCapacityGuard, deleteSignupByEventUid, deleteSignupsByEvent,
@@ -596,6 +597,41 @@ export class GroupingDetailPageShell extends ShellBase {
         ],
       }));
       const manage = await this.genManageVerdict();
+      // Premium T2 scheduling advice (P3/P4/P5 summary lines for
+      // mobile): managers only. Locked tier -> the locked copy as
+      // plain text blocks; unlocked -> draft + substitute headline
+      // lines with server-rendered reasons. Advice only: no block
+      // here carries a seat/invite action.
+      if (manage.canManage) {
+        try {
+          const { tierLocked: tl } = await import('../platform/billing-service.ts');
+          if (await tl(this.db, ev.tenant, 2)) {
+            blocks.push(new TextBlockShell(this.ctx, { variant: 'muted', text: this.t('schedulingAdvice_lockedBody') }));
+          } else {
+            const facts = await buildMemberFacts(this.db, ev.tenant, startsAtEpoch(ev));
+            const seatedIds = new Set(rows.map((r: any) => String(r.discord_id || '')).filter(Boolean));
+            const pool = facts.filter((f: any) => !seatedIds.has(f.discordId));
+            const draft = buildTeamDraft(pool, ev.max_slots || 0);
+            const renderReason = (r: any) => {
+              try { return this.t('schedulingAdvice_reason' + r.key.charAt(0).toUpperCase() + r.key.slice(1), r.params); } catch { return r.key; }
+            };
+            const lines: any[] = [new SectionHeaderBlockShell(this.ctx, { textRef: ['schedulingAdvice_draftTitle'] })];
+            for (const d of draft.slice(0, 5)) {
+              lines.push(new TextBlockShell(this.ctx, { variant: 'muted', text: `${d.facts.displayName} · ${d.role} · ${d.reasons.map(renderReason).join('；')}` }));
+            }
+            if (rows.length < (ev.max_slots || 0)) {
+              const subs = rankSubstitutes(pool, '');
+              if (subs.length) {
+                lines.push(new SectionHeaderBlockShell(this.ctx, { textRef: ['schedulingAdvice_substitutesTitle'] }));
+                for (const sub of subs.slice(0, 3)) {
+                  lines.push(new TextBlockShell(this.ctx, { variant: 'muted', text: `${sub.facts.displayName} · ${sub.reasons.map(renderReason).join('；')}` }));
+                }
+              }
+            }
+            if (lines.length > 1) blocks.push(new SectionBlockShell(this.ctx, { title: null, children: lines }));
+          }
+        } catch { /* advice is additive: never break the detail blocks */ }
+      }
       if (manage.canManage && access.canWrite) {
         blocks.push(new SpacerBlockShell(this.ctx, { size: 18 }));
         if (ev.status === 'completed') {
