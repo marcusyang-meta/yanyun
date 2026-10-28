@@ -18,8 +18,8 @@
 //    composes urgent=true + the server urgent label, and the push
 //    title carries that same label.
 //  - Member surface: members read the list on Guild with their own
-//    viewerHasRead; GuildLocked (non-member) carries NO announcements
-//    field at all; receipts (readCount / receipts) stay null on the
+//    viewerHasRead; non-members resolve guild to null (no locked
+//    face at all); receipts (readCount / receipts) stay null on the
 //    member variant and are composed only on GuildAdmin.
 //  - F10 mark-read: anonymous -> loginRequired; non-member ->
 //    memberOnly; a foreign guild's announcement id ->
@@ -306,9 +306,7 @@ let firstId;
 const memberPageQ = `query($slug: String!) { viewer { guild(slug: $slug) { __typename
   ... on Guild { homeTabAnnouncementsLabel announcements {
     title emptyText canPost standardRemaining announcements {
-      id kind urgent urgentLabel kindLabel title authorText viewerHasRead readCount receipts { discordId } } } }
-  ... on GuildReadOnly { announcements { title } }
-  ... on GuildLocked { slug } } } }`;
+      id kind urgent urgentLabel kindLabel title authorText viewerHasRead readCount receipts { discordId } } } } } } }`;
   it('member surface + F10', async () => {
   const page = await gql(memberPageQ, { user: member1, variables: { slug: 'alpha' } });
   const ann = page.data?.viewer?.guild?.announcements;
@@ -327,8 +325,8 @@ const memberPageQ = `query($slug: String!) { viewer { guild(slug: $slug) { __typ
   eq('成员变体不下发回执名单', item.receipts, null);
 
   const locked = await gql(memberPageQ, { user: outsider, variables: { slug: 'alpha' } });
-  eq('非成员 -> GuildLocked', locked.data?.viewer?.guild?.__typename, 'GuildLocked');
-  check('Locked 不带公告字段', !('announcements' in (locked.data?.viewer?.guild || {})), JSON.stringify(locked.data?.viewer?.guild));
+  eq('非成员 -> guild 为 null（锁定面已删）', locked.data?.viewer?.guild, null);
+  check('非成员零数据下发', locked.data?.viewer?.guild === null && !locked.errors, JSON.stringify(locked).slice(0, 200));
 
   const anonMark = await mark(null, 'alpha', firstId);
   eq('匿名标已读 -> loginRequired', anonMark.data?.markGuildAnnouncementRead?.errorCode, 'loginRequired');

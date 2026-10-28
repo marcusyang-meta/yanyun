@@ -1,7 +1,7 @@
 // Guild custom-avatar acceptance: GraphQL admin upload
 // (setGuildAvatar, section 1 of the REST shutdown) -> D1 blob
 // (guild_avatars) -> main Worker public serving at the standalone
-// /guilds/:slug/avatar -> GraphQL avatarUrl (Guild / GuildReadOnly /
+// /guilds/:slug/avatar -> GraphQL avatarUrl (Guild /
 // GuildCard surfaces) / webhook send identity / OG card rendering.
 // The retired REST admin avatar flow (password login + binary PUT)
 // is gone from this suite: the gate is the Discord-session admin
@@ -203,7 +203,7 @@ async function gql(query, variables, user = null) {
   return res.json();
 }
 const guildQ = `query($slug: String!) { viewer { guild(slug: $slug) { __typename
-  ... on GuildReadOnly { avatarUrl name } ... on Guild { avatarUrl } } } }`;
+  ... on Guild { avatarUrl } } } }`;
 
 /* Shared flow state carried across sections (module-scope lets in the original suite). */
 let r: any; let g1: any; let ident: any; let pngHash = ''; let jpgHash = '';
@@ -309,7 +309,7 @@ describe('avatar', () => {
   it('GraphQL: avatarUrl in both states', async () => {
     // test1 is a bound guild in this fixture (the admin gate needs the
     // binding): its surface checks run as a guild member (member face),
-    // not anonymously (anonymous on a bound guild is GuildLocked).
+    // not anonymously (anonymous on a bound guild resolves no face).
     let g = await gql(guildQ, { slug: 'test1' }, MEMBER1);
     check('GraphQL 无 errors', !g.errors, JSON.stringify(g.errors || '').slice(0, 200));
     eq('绑定百业成员面 = Guild', g.data?.viewer?.guild?.__typename, 'Guild');
