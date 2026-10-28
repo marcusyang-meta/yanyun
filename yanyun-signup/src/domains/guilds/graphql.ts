@@ -56,6 +56,7 @@ import {
 } from '../platform/graphql-base.ts';
 import { groupingListPage, touchGuildRoster } from '../groupings/index.ts';
 import { guildAdminTypes, guildAdminMutations, guildAdminPayloadResolvers } from './admin-graphql.ts';
+import { recruitTypes, recruitMutations } from './recruit-graphql.ts';
 import {
   announcementPageForMember, guildAnnouncementMutations, guildAnnouncementTypes,
 } from './announcements-graphql.ts';
@@ -195,6 +196,7 @@ export const GUILD_HOME_TEXT_SPEC = [
   ['homeTabSectLabel', 'guildHome', 'tabSect'],
   ['homeTabAnnouncementsLabel', 'guildHome', 'tabAnnouncements'],
   ['homeTabScheduleLabel', 'guildHome', 'tabSchedule'],
+  ['recruitEntryLabel', 'recruit', 'entryLabel'],
   ['detailNotFoundText', 'groupingDetail', 'notFound'],
   ['detailBackToListLabel', 'groupingDetail', 'backToList'],
 ];
@@ -211,6 +213,7 @@ export const GUILD_READONLY_TEXT_RESOLVERS = defineTextGens(GuildShell, [
   ['homeReadOnlyBanner', 'guildHome', 'readOnlyBanner'],
 ]);
 export const GUILD_LOCKED_TEXT_RESOLVERS = defineTextGens(GuildShell, [
+  ['recruitEntryLabel', 'recruit', 'entryLabel'],
   ['lockedBackLinkLabel', 'locked', 'backLink'],
   ['lockedTitle', 'locked', 'title'],
   ['lockedBody1', 'locked', 'body1'],
@@ -373,6 +376,8 @@ export const guildsResolvers = {
 
     ...guildAnnouncementMutations,
 
+    ...recruitMutations,
+
     // Write gate (requireWrite): logged in + bound + member; an unbound guild's writes are fully locked.
   },
   types: {
@@ -419,5 +424,6 @@ export const guildsResolvers = {
   ...guildAdminPayloadResolvers,
   ...guildAnnouncementTypes,
   ...seasonAdminTypes,
+  ...recruitTypes,
   },
 };

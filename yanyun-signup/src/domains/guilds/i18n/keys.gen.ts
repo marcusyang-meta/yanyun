@@ -202,7 +202,53 @@ export type GuildsStringKey =
   | 'guildAdmin.lotteryStatusOpen'
   | 'guildAdmin.lotteryStatusDrawn'
   | 'guildAdmin.lotteryEntryCount'
-  | 'guildHome.tabSchedule';
+  | 'guildHome.tabSchedule'
+  | 'guildAdmin.tabRecruit'
+  | 'recruit.entryLabel'
+  | 'recruit.title'
+  | 'recruit.body'
+  | 'recruit.applySectionTitle'
+  | 'recruit.messageLabel'
+  | 'recruit.messagePlaceholder'
+  | 'recruit.submitButton'
+  | 'recruit.submittingButton'
+  | 'recruit.myApplicationTitle'
+  | 'recruit.statusPending'
+  | 'recruit.statusApproved'
+  | 'recruit.statusRejected'
+  | 'recruit.pendingHint'
+  | 'recruit.approvedNextStep'
+  | 'recruit.rejectedHint'
+  | 'recruit.checklistTitle'
+  | 'recruit.checklistProgress'
+  | 'recruit.itemProfileLabel'
+  | 'recruit.itemProfileHint'
+  | 'recruit.itemMentorLabel'
+  | 'recruit.itemMentorHint'
+  | 'recruit.itemFirstRunLabel'
+  | 'recruit.itemFirstRunHint'
+  | 'recruit.myPairingsTitle'
+  | 'recruit.pairingStatusActive'
+  | 'recruit.pairingStatusEnded'
+  | 'recruit.mentorRoleLabel'
+  | 'recruit.menteeRoleLabel'
+  | 'recruit.lockedTitle'
+  | 'recruit.lockedBody'
+  | 'recruit.adminApplicationsTitle'
+  | 'recruit.adminApplicationsEmpty'
+  | 'recruit.adminApproveButton'
+  | 'recruit.adminRejectButton'
+  | 'recruit.adminMentorPoolTitle'
+  | 'recruit.adminSetMentorButton'
+  | 'recruit.adminUnsetMentorButton'
+  | 'recruit.adminPairingsTitle'
+  | 'recruit.adminPairingsEmpty'
+  | 'recruit.adminPairingCreateButton'
+  | 'recruit.adminPairingEndButton'
+  | 'recruit.adminMentorSelectLabel'
+  | 'recruit.adminMenteeSelectLabel'
+  | 'recruit.adminNewcomersTitle'
+  | 'recruit.adminNewcomersEmpty';
 
 export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'locked.backLink',
@@ -407,4 +453,50 @@ export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'guildAdmin.lotteryStatusDrawn',
   'guildAdmin.lotteryEntryCount',
   'guildHome.tabSchedule',
+  'guildAdmin.tabRecruit',
+  'recruit.entryLabel',
+  'recruit.title',
+  'recruit.body',
+  'recruit.applySectionTitle',
+  'recruit.messageLabel',
+  'recruit.messagePlaceholder',
+  'recruit.submitButton',
+  'recruit.submittingButton',
+  'recruit.myApplicationTitle',
+  'recruit.statusPending',
+  'recruit.statusApproved',
+  'recruit.statusRejected',
+  'recruit.pendingHint',
+  'recruit.approvedNextStep',
+  'recruit.rejectedHint',
+  'recruit.checklistTitle',
+  'recruit.checklistProgress',
+  'recruit.itemProfileLabel',
+  'recruit.itemProfileHint',
+  'recruit.itemMentorLabel',
+  'recruit.itemMentorHint',
+  'recruit.itemFirstRunLabel',
+  'recruit.itemFirstRunHint',
+  'recruit.myPairingsTitle',
+  'recruit.pairingStatusActive',
+  'recruit.pairingStatusEnded',
+  'recruit.mentorRoleLabel',
+  'recruit.menteeRoleLabel',
+  'recruit.lockedTitle',
+  'recruit.lockedBody',
+  'recruit.adminApplicationsTitle',
+  'recruit.adminApplicationsEmpty',
+  'recruit.adminApproveButton',
+  'recruit.adminRejectButton',
+  'recruit.adminMentorPoolTitle',
+  'recruit.adminSetMentorButton',
+  'recruit.adminUnsetMentorButton',
+  'recruit.adminPairingsTitle',
+  'recruit.adminPairingsEmpty',
+  'recruit.adminPairingCreateButton',
+  'recruit.adminPairingEndButton',
+  'recruit.adminMentorSelectLabel',
+  'recruit.adminMenteeSelectLabel',
+  'recruit.adminNewcomersTitle',
+  'recruit.adminNewcomersEmpty',
 ];

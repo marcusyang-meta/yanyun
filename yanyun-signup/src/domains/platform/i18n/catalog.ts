@@ -4708,6 +4708,66 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-CN": "报名信息不合法",
       "en": "That signup answer is invalid",
       "zh-TW": "報名資訊不合法"
+    },
+    "applicationPending": {
+      "zh-CN": "你已有一份待审核的申请，请等待审核结果",
+      "en": "You already have an application pending review — please wait for the result",
+      "zh-TW": "你已有一份待審核的申請，請等待審核結果"
+    },
+    "alreadyMember": {
+      "zh-CN": "你已经是这个百业的成员了",
+      "en": "You are already a member of this guild",
+      "zh-TW": "你已經是這個百業的成員了"
+    },
+    "recruitUnavailable": {
+      "zh-CN": "该百业尚未绑定 Discord 服务器，暂不开放招新申请",
+      "en": "This guild has not bound a Discord server yet, so applications are not open",
+      "zh-TW": "該百業尚未綁定 Discord 伺服器，暫不開放招新申請"
+    },
+    "applicationNotFound": {
+      "zh-CN": "申请不存在",
+      "en": "Application not found",
+      "zh-TW": "申請不存在"
+    },
+    "applicationNotPending": {
+      "zh-CN": "该申请已经审核过了",
+      "en": "This application has already been reviewed",
+      "zh-TW": "該申請已經審核過了"
+    },
+    "mentorNotDesignated": {
+      "zh-CN": "所选导师不在本百业导师人选中，请先设为导师",
+      "en": "The selected mentor is not in this guild’s mentor pool — designate them first",
+      "zh-TW": "所選導師不在本百業導師人選中，請先設為導師"
+    },
+    "mentorNotInGuild": {
+      "zh-CN": "所选导师不在本百业名册中",
+      "en": "The selected mentor is not on this guild's roster",
+      "zh-TW": "所選導師不在本百業名冊中"
+    },
+    "menteeNotInGuild": {
+      "zh-CN": "所选新人不在本百业名册中",
+      "en": "The selected newcomer is not on this guild's roster",
+      "zh-TW": "所選新人不在本百業名冊中"
+    },
+    "menteeAlreadyPaired": {
+      "zh-CN": "该新人已有一段进行中的配对，请先结束它再改配",
+      "en": "This newcomer already has an active pairing — end it before re-pairing",
+      "zh-TW": "該新人已有一段進行中的配對，請先結束它再改配"
+    },
+    "mentorSelfPairing": {
+      "zh-CN": "导师和新人不能是同一个人",
+      "en": "Mentor and mentee cannot be the same person",
+      "zh-TW": "導師和新人不能是同一個人"
+    },
+    "pairingNotFound": {
+      "zh-CN": "配对不存在",
+      "en": "Pairing not found",
+      "zh-TW": "配對不存在"
+    },
+    "pairingAlreadyEnded": {
+      "zh-CN": "该配对已经结束了",
+      "en": "This pairing has already ended",
+      "zh-TW": "該配對已經結束了"
     }
   },
   "guildAdmin": {
@@ -5603,6 +5663,11 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-CN": "{count} 人参与",
       "en": "{count} participants",
       "zh-TW": "{count} 人參與"
+    },
+    "tabRecruit": {
+      "zh-CN": "招新与导师",
+      "en": "Recruiting & Mentors",
+      "zh-TW": "招新與導師"
     }
   },
   "groupingTemplate": {
@@ -6309,6 +6374,233 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-CN": "操作失败：{error}",
       "en": "Action failed: {error}",
       "zh-TW": "操作失敗：{error}"
+    }
+  },
+  "recruit": {
+    "entryLabel": {
+      "zh-CN": "招新 / 新人清单",
+      "en": "Recruiting / Newcomers",
+      "zh-TW": "招新 / 新人清單"
+    },
+    "title": {
+      "zh-CN": "招新与新人",
+      "en": "Recruiting & newcomers",
+      "zh-TW": "招新與新人"
+    },
+    "body": {
+      "zh-CN": "想加入这个百业？提交一份入业申请，百业管理员会在管理面审核。已经在业的新人可以在这里看自己的入业清单与导师配对。",
+      "en": "Want to join this guild? File an application and a guild admin will review it here. Already in? Check your newcomer checklist and mentor pairing below.",
+      "zh-TW": "想加入這個百業？提交一份入業申請，百業管理員會在管理面審核。已經在業的新人可以在這裡看自己的入業清單與導師配對。"
+    },
+    "applySectionTitle": {
+      "zh-CN": "入业申请",
+      "en": "Join application",
+      "zh-TW": "入業申請"
+    },
+    "messageLabel": {
+      "zh-CN": "申请附言",
+      "en": "Message",
+      "zh-TW": "申請附言"
+    },
+    "messagePlaceholder": {
+      "zh-CN": "一句自我介绍（可选）：常玩的流派、在线时间……",
+      "en": "A short intro (optional): your school, when you are usually online…",
+      "zh-TW": "一句自我介紹（可選）：常玩的流派、在線時間……"
+    },
+    "submitButton": {
+      "zh-CN": "提交申请",
+      "en": "Submit application",
+      "zh-TW": "提交申請"
+    },
+    "submittingButton": {
+      "zh-CN": "提交中…",
+      "en": "Submitting…",
+      "zh-TW": "提交中…"
+    },
+    "myApplicationTitle": {
+      "zh-CN": "我的申请",
+      "en": "My application",
+      "zh-TW": "我的申請"
+    },
+    "statusPending": {
+      "zh-CN": "待审核",
+      "en": "Pending review",
+      "zh-TW": "待審核"
+    },
+    "statusApproved": {
+      "zh-CN": "已通过",
+      "en": "Approved",
+      "zh-TW": "已通過"
+    },
+    "statusRejected": {
+      "zh-CN": "未通过",
+      "en": "Not approved",
+      "zh-TW": "未通過"
+    },
+    "pendingHint": {
+      "zh-CN": "管理员审核中，请耐心等待；审核结果会直接更新在这里。",
+      "en": "An admin is reviewing your application — the result will appear right here.",
+      "zh-TW": "管理員審核中，請耐心等待；審核結果會直接更新在這裡。"
+    },
+    "approvedNextStep": {
+      "zh-CN": "申请已通过，你已登记进百业名册。最后一步在 Discord 完成：加入本百业绑定的 Discord 服务器——成员资格由 Discord 服务器成员身份决定，平台没有 Discord 机器人权限，无法替你加入服务器或授予身份组；加入后用同一账号登录即可使用百业全部功能。",
+      "en": "Your application was approved and you are on the guild roster. The last step happens on Discord: join the Discord server this guild is bound to — membership is decided by Discord server membership, and the platform has no Discord bot permission, so it cannot add you to the server or grant you a role. Once you have joined, sign in with the same account to use everything.",
+      "zh-TW": "申請已通過，你已登記進百業名冊。最後一步在 Discord 完成：加入本百業綁定的 Discord 伺服器——成員資格由 Discord 伺服器成員身分決定，平台沒有 Discord 機器人權限，無法替你加入伺服器或授予身分組；加入後用同一帳號登入即可使用百業全部功能。"
+    },
+    "rejectedHint": {
+      "zh-CN": "本次申请未通过。可以修改附言后重新提交一份新申请。",
+      "en": "This application was not approved. You can adjust your message and submit a new one.",
+      "zh-TW": "本次申請未通過。可以修改附言後重新提交一份新申請。"
+    },
+    "checklistTitle": {
+      "zh-CN": "新手入业清单",
+      "en": "Newcomer checklist",
+      "zh-TW": "新手入業清單"
+    },
+    "checklistProgress": {
+      "zh-CN": "已完成 {done} / {total}",
+      "en": "{done} / {total} done",
+      "zh-TW": "已完成 {done} / {total}"
+    },
+    "itemProfileLabel": {
+      "zh-CN": "完善流派 / 时区",
+      "en": "Complete school / timezone",
+      "zh-TW": "完善流派 / 時區"
+    },
+    "itemProfileHint": {
+      "zh-CN": "在任意车队报名落座时填上你的流派即算完成；时区由你的客户端自动同步，无需手动填写。",
+      "en": "Ticks once you fill in your school when taking a seat in any squad; your timezone syncs automatically from your client — nothing to fill in.",
+      "zh-TW": "在任意車隊報名落座時填上你的流派即算完成；時區由你的用戶端自動同步，無需手動填寫。"
+    },
+    "itemMentorLabel": {
+      "zh-CN": "认一位导师",
+      "en": "Get a mentor",
+      "zh-TW": "認一位導師"
+    },
+    "itemMentorHint": {
+      "zh-CN": "由百业管理员为你配对一位导师后自动完成。",
+      "en": "Ticks automatically once a guild admin pairs you with a mentor.",
+      "zh-TW": "由百業管理員為你配對一位導師後自動完成。"
+    },
+    "itemFirstRunLabel": {
+      "zh-CN": "打完第一场",
+      "en": "Finish your first run",
+      "zh-TW": "打完第一場"
+    },
+    "itemFirstRunHint": {
+      "zh-CN": "在一辆已完成的车队里落座后自动完成。",
+      "en": "Ticks automatically once you hold a seat in a completed squad.",
+      "zh-TW": "在一輛已完成的車隊裡落座後自動完成。"
+    },
+    "myPairingsTitle": {
+      "zh-CN": "我的导师配对",
+      "en": "My mentor pairings",
+      "zh-TW": "我的導師配對"
+    },
+    "pairingStatusActive": {
+      "zh-CN": "进行中",
+      "en": "Active",
+      "zh-TW": "進行中"
+    },
+    "pairingStatusEnded": {
+      "zh-CN": "已结束",
+      "en": "Ended",
+      "zh-TW": "已結束"
+    },
+    "mentorRoleLabel": {
+      "zh-CN": "导师",
+      "en": "Mentor",
+      "zh-TW": "導師"
+    },
+    "menteeRoleLabel": {
+      "zh-CN": "新人",
+      "en": "Newcomer",
+      "zh-TW": "新人"
+    },
+    "lockedTitle": {
+      "zh-CN": "无法打开招新页",
+      "en": "Cannot open the recruiting page",
+      "zh-TW": "無法打開招新頁"
+    },
+    "lockedBody": {
+      "zh-CN": "请先用 Discord 账号登录；若已登录，可能是该百业不存在。",
+      "en": "Please sign in with your Discord account first; if you are signed in, this guild may not exist.",
+      "zh-TW": "請先用 Discord 帳號登入；若已登入，可能是該百業不存在。"
+    },
+    "adminApplicationsTitle": {
+      "zh-CN": "入业申请审核",
+      "en": "Application review",
+      "zh-TW": "入業申請審核"
+    },
+    "adminApplicationsEmpty": {
+      "zh-CN": "暂无申请记录。",
+      "en": "No applications yet.",
+      "zh-TW": "暫無申請記錄。"
+    },
+    "adminApproveButton": {
+      "zh-CN": "通过",
+      "en": "Approve",
+      "zh-TW": "通過"
+    },
+    "adminRejectButton": {
+      "zh-CN": "拒绝",
+      "en": "Reject",
+      "zh-TW": "拒絕"
+    },
+    "adminMentorPoolTitle": {
+      "zh-CN": "导师人选",
+      "en": "Mentor pool",
+      "zh-TW": "導師人選"
+    },
+    "adminSetMentorButton": {
+      "zh-CN": "设为导师",
+      "en": "Make mentor",
+      "zh-TW": "設為導師"
+    },
+    "adminUnsetMentorButton": {
+      "zh-CN": "取消导师",
+      "en": "Remove mentor",
+      "zh-TW": "取消導師"
+    },
+    "adminPairingsTitle": {
+      "zh-CN": "导师配对",
+      "en": "Mentor pairings",
+      "zh-TW": "導師配對"
+    },
+    "adminPairingsEmpty": {
+      "zh-CN": "暂无配对记录。",
+      "en": "No pairings yet.",
+      "zh-TW": "暫無配對記錄。"
+    },
+    "adminPairingCreateButton": {
+      "zh-CN": "建立配对",
+      "en": "Create pairing",
+      "zh-TW": "建立配對"
+    },
+    "adminPairingEndButton": {
+      "zh-CN": "结束配对",
+      "en": "End pairing",
+      "zh-TW": "結束配對"
+    },
+    "adminMentorSelectLabel": {
+      "zh-CN": "选择导师",
+      "en": "Pick a mentor",
+      "zh-TW": "選擇導師"
+    },
+    "adminMenteeSelectLabel": {
+      "zh-CN": "选择新人",
+      "en": "Pick a newcomer",
+      "zh-TW": "選擇新人"
+    },
+    "adminNewcomersTitle": {
+      "zh-CN": "新人清单进度",
+      "en": "Newcomer checklist progress",
+      "zh-TW": "新人清單進度"
+    },
+    "adminNewcomersEmpty": {
+      "zh-CN": "暂无未完成清单的新人。",
+      "en": "No newcomers with an unfinished checklist.",
+      "zh-TW": "暫無未完成清單的新人。"
     }
   }
 };

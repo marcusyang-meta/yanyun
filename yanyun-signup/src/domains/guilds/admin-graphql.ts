@@ -48,7 +48,18 @@ import {
   insertLottery, insertLotteryEntry, insertLotteryWinner, markLotteryDrawn,
   drawWinners,
 } from '../groupings/index.ts';
-import { listGuildMembers } from '../identity/index.ts';
+import { listGuildMembers, getGuildMember } from '../identity/index.ts';
+import { getGuildNick } from '../identity/auth.ts';
+import { upsertGuildMember } from '../groupings/index.ts';
+import {
+  listApplicationsByTenant, getApplicationByTenant, reviewApplication,
+  listMentorIds, insertMentor, deleteMentor,
+  listPairingsByTenant, getPairingByTenant, getActivePairingForMentee,
+  insertPairing, endPairing, computeNewcomerChecklist,
+} from './recruit.ts';
+import {
+  RecruitApplicationShell, MentorPairingShell, RecruitMemberShell, NewcomerProgressShell,
+} from './recruit-graphql.ts';
 import { listSchoolBis, listSchoolRotations, upsertSchoolBis, upsertSchoolRotation } from '../dex/index.ts';
 import {
   premiumGate, isPaygateEnabled, getEffectiveEntitlement,
@@ -474,6 +485,25 @@ const ADMIN_TEXT_SPEC: [string, string, string][] = [
   ['adminLotteryDrawLabel', 'guildAdmin', 'lotteryDrawButton'],
   ['adminLotteryStatusOpenText', 'guildAdmin', 'lotteryStatusOpen'],
   ['adminLotteryStatusDrawnText', 'guildAdmin', 'lotteryStatusDrawn'],
+  ['adminTabRecruitLabel', 'guildAdmin', 'tabRecruit'],
+  ['adminRecruitApplicationsTitle', 'recruit', 'adminApplicationsTitle'],
+  ['adminRecruitApplicationsEmptyText', 'recruit', 'adminApplicationsEmpty'],
+  ['adminRecruitApproveLabel', 'recruit', 'adminApproveButton'],
+  ['adminRecruitRejectLabel', 'recruit', 'adminRejectButton'],
+  ['adminRecruitMentorPoolTitle', 'recruit', 'adminMentorPoolTitle'],
+  ['adminRecruitSetMentorLabel', 'recruit', 'adminSetMentorButton'],
+  ['adminRecruitUnsetMentorLabel', 'recruit', 'adminUnsetMentorButton'],
+  ['adminRecruitPairingsTitle', 'recruit', 'adminPairingsTitle'],
+  ['adminRecruitPairingsEmptyText', 'recruit', 'adminPairingsEmpty'],
+  ['adminRecruitPairingCreateLabel', 'recruit', 'adminPairingCreateButton'],
+  ['adminRecruitPairingEndLabel', 'recruit', 'adminPairingEndButton'],
+  ['adminRecruitMentorSelectLabel', 'recruit', 'adminMentorSelectLabel'],
+  ['adminRecruitMenteeSelectLabel', 'recruit', 'adminMenteeSelectLabel'],
+  ['adminRecruitNewcomersTitle', 'recruit', 'adminNewcomersTitle'],
+  ['adminRecruitNewcomersEmptyText', 'recruit', 'adminNewcomersEmpty'],
+  ['adminRecruitProfileLabel', 'recruit', 'itemProfileLabel'],
+  ['adminRecruitMentorLabel', 'recruit', 'itemMentorLabel'],
+  ['adminRecruitFirstRunLabel', 'recruit', 'itemFirstRunLabel'],
 ];
 
 const ADMIN_LOCKED_TEXT_SPEC: [string, string, string][] = [
@@ -613,6 +643,60 @@ export class GuildAdminShell extends ShellBase {
       return rows.map((r) => new GuildAdminLotteryMemberShell(this.ctx, r));
     });
   }
+  /* Recruitment line (F16/F17/F24, free — no gate): the review
+   * queue, the pairing list, the roster with mentor designations,
+   * and the newcomer checklist overview. All four live only on the
+   * GuildAdmin type; every write re-runs the admin verdict in the
+   * mutations below. */
+  genRecruitApplications(){
+    return this.memo('recruitApplications', async () => {
+      const rows = await listApplicationsByTenant(this.db, this.genSlug());
+      return rows.map((r) => new RecruitApplicationShell(this.ctx, r));
+    });
+  }
+  genRecruitPairings(){
+    return this.memo('recruitPairings', async () => {
+      const rows = await listPairingsByTenant(this.db, this.genSlug());
+      return rows.map((r) => new MentorPairingShell(this.ctx, r));
+    });
+  }
+  genRecruitRoster(){
+    return this.memo('recruitRoster', async () => {
+      const rows = await listGuildMembers(this.db, this.genSlug());
+      const mentors = new Set(await listMentorIds(this.db, this.genSlug()));
+      const out = [];
+      for (const r of rows || []) {
+        const displayName = String(r.nick || '').trim() || String(r.global_name || '').trim();
+        if (!displayName) continue;
+        out.push(new RecruitMemberShell(this.ctx, {
+          discordId: String(r.discord_id), displayName, isMentor: mentors.has(String(r.discord_id)),
+        }));
+      }
+      out.sort((a: any, b: any) => a.data.displayName.localeCompare(b.data.displayName, 'zh-Hans-CN'));
+      return out;
+    });
+  }
+  /* Newcomer overview: roster members whose derived checklist is
+   * not fully done (the F24 definition of still-new), fewest items
+   * done first. Members who finished everything drop off the list. */
+  genNewcomerProgress(){
+    return this.memo('newcomerProgress', async () => {
+      const rows = await listGuildMembers(this.db, this.genSlug());
+      const out = [];
+      for (const r of rows || []) {
+        const displayName = String(r.nick || '').trim() || String(r.global_name || '').trim();
+        if (!displayName) continue;
+        const facts = await computeNewcomerChecklist(this.db, this.genSlug(), String(r.discord_id));
+        if (facts.allDone) continue;
+        out.push(new NewcomerProgressShell(this.ctx, {
+          discordId: String(r.discord_id), displayName, facts,
+        }));
+      }
+      out.sort((a: any, b: any) => (a.data.facts.doneCount - b.data.facts.doneCount)
+        || a.data.displayName.localeCompare(b.data.displayName, 'zh-Hans-CN'));
+      return out.slice(0, 100);
+    });
+  }
 }
 
 export const GUILD_ADMIN_TEXT_RESOLVERS = defineTextGens(GuildAdminShell, ADMIN_TEXT_SPEC);
@@ -651,6 +735,10 @@ function contentResolvers() {
     pageFooterDisclaimerText: (p: any) => p.genPageFooterDisclaimerText(),
     lotteries: (p: any) => p.genLotteries(),
     lotteryRoster: (p: any) => p.genLotteryRoster(),
+    recruitApplications: (p: any) => p.genRecruitApplications(),
+    recruitPairings: (p: any) => p.genRecruitPairings(),
+    recruitRoster: (p: any) => p.genRecruitRoster(),
+    newcomerProgress: (p: any) => p.genNewcomerProgress(),
   };
 }
 
@@ -1125,6 +1213,105 @@ export const guildAdminMutations = {
     }
     await markLotteryDrawn(db, lot.id, now);
     return aOk(ctx, { id: lot.id });
+  },
+
+  /* F16 review: settle a pending application of THIS guild. The
+   * repository's still-pending guard makes the verdict final — a
+   * raced second review reports applicationNotPending and changes
+   * nothing. Approval's platform-side effect is roster enrollment:
+   * the applicant joins guild_members (the roster every picker and
+   * the newcomer overview read) with the best name the platform
+   * holds — their bound-server nick snapshot when one exists (it
+   * cannot, for someone not yet in the server, but a re-applicant
+   * who joined in the meantime may have one), else their stored
+   * global name, else the application snapshot. Nothing here touches
+   * Discord: the platform has no write channel into Discord (see
+   * recruit.ts), and the applicant's page states the remaining
+   * Discord-side step verbatim. */
+  reviewGuildApplication: async (_: any, { slug, applicationId, approve }: any, ctx: Context) => {
+    const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
+    const db = ctx.env.DB;
+    const app = await getApplicationByTenant(db, parseInt(String(applicationId), 10) || 0, g.access.slug);
+    if (!app) return aFail(ctx, 'applicationNotFound');
+    const now = Math.floor(Date.now() / 1000);
+    const settled = await reviewApplication(db, app.id, g.access.slug, {
+      status: approve ? 'approved' : 'rejected',
+      reviewedBy: ctx.user ? ctx.user.discordId : '',
+      reviewedByName: ctx.user ? String(ctx.user.name || '') : '',
+      reviewedAt: now,
+    });
+    if (!settled.changes) return aFail(ctx, 'applicationNotPending');
+    if (approve) {
+      const nick = g.access.discordGuildId
+        ? await getGuildNick(db, app.discord_id, g.access.discordGuildId).catch(() => null)
+        : null;
+      await upsertGuildMember(db, g.access.slug, app.discord_id, nick || '', app.applicant_name || '');
+    }
+    return aOk(ctx, { id: app.id });
+  },
+
+  /* F17 mentor designation: the target must be on this guild's
+   * roster. Undesignating never touches existing pairings. */
+  setGuildMentor: async (_: any, { slug, discordId, isMentor }: any, ctx: Context) => {
+    const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
+    const db = ctx.env.DB;
+    const target = String(discordId || '');
+    if (isMentor) {
+      const member = await getGuildMember(db, g.access.slug, target).catch(() => null);
+      if (!member) return aFail(ctx, 'mentorNotInGuild');
+      await insertMentor(db, g.access.slug, target, Math.floor(Date.now() / 1000));
+    } else {
+      await deleteMentor(db, g.access.slug, target);
+    }
+    return aOk(ctx);
+  },
+
+  /* F17 pairing creation: mentor must be designated AND on the
+   * roster, mentee must be on the roster, nobody pairs with
+   * themselves, and a mentee carries at most one active pairing
+   * (re-pairing = end the old one first — the partial unique index
+   * backstops the check). Display names snapshot from the roster. */
+  createMentorPairing: async (_: any, { slug, mentorDiscordId, menteeDiscordId }: any, ctx: Context) => {
+    const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
+    const db = ctx.env.DB;
+    const mentorId = String(mentorDiscordId || '');
+    const menteeId = String(menteeDiscordId || '');
+    if (mentorId && mentorId === menteeId) return aFail(ctx, 'mentorSelfPairing');
+    const mentorRow = await getGuildMember(db, g.access.slug, mentorId).catch(() => null);
+    if (!mentorRow) return aFail(ctx, 'mentorNotInGuild');
+    const designated = await listMentorIds(db, g.access.slug);
+    if (!designated.includes(mentorId)) return aFail(ctx, 'mentorNotDesignated');
+    const menteeRow = await getGuildMember(db, g.access.slug, menteeId).catch(() => null);
+    if (!menteeRow) return aFail(ctx, 'menteeNotInGuild');
+    const active = await getActivePairingForMentee(db, g.access.slug, menteeId).catch(() => null);
+    if (active) return aFail(ctx, 'menteeAlreadyPaired');
+    const nameOf = (r: { nick: string; global_name: string }) =>
+      String(r.nick || '').trim() || String(r.global_name || '').trim();
+    let id: number;
+    try {
+      id = await insertPairing(db, {
+        tenant: g.access.slug,
+        mentorDiscordId: mentorId, mentorName: nameOf(mentorRow),
+        menteeDiscordId: menteeId, menteeName: nameOf(menteeRow),
+        createdBy: ctx.user ? ctx.user.discordId : '',
+        createdAt: Math.floor(Date.now() / 1000),
+      });
+    } catch {
+      return aFail(ctx, 'menteeAlreadyPaired');
+    }
+    return aOk(ctx, { id });
+  },
+
+  /* F17 pairing end: settles the row (status + ended_at), never
+   * deletes it — the ended pairing stays in the list as history. */
+  endMentorPairing: async (_: any, { slug, pairingId }: any, ctx: Context) => {
+    const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
+    const db = ctx.env.DB;
+    const pairing = await getPairingByTenant(db, parseInt(String(pairingId), 10) || 0, g.access.slug);
+    if (!pairing) return aFail(ctx, 'pairingNotFound');
+    const ended = await endPairing(db, pairing.id, g.access.slug, Math.floor(Date.now() / 1000));
+    if (!ended.changes) return aFail(ctx, 'pairingAlreadyEnded');
+    return aOk(ctx, { id: pairing.id });
   },
 
   updateSchoolGuide: async (_: any, { slug, input }: any, ctx: Context) => {

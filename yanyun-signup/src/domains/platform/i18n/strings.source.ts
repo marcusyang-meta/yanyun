@@ -180,3 +180,15 @@ export const errors_customFieldInvalid = (fbs: FbsAPI) =>fbs("自定义字段不
 export const errors_customFieldTooMany = (fbs: FbsAPI) =>fbs("自定义字段最多 5 个", "errors.customFieldTooMany");
 export const errors_signupAnswerRequired = (fbs: FbsAPI) =>fbs("请填写必填的报名信息", "errors.signupAnswerRequired");
 export const errors_signupAnswerInvalid = (fbs: FbsAPI) =>fbs("报名信息不合法", "errors.signupAnswerInvalid");
+export const errors_applicationPending = (fbs: FbsAPI) =>fbs("你已有一份待审核的申请，请等待审核结果", "errors.applicationPending");
+export const errors_alreadyMember = (fbs: FbsAPI) =>fbs("你已经是这个百业的成员了", "errors.alreadyMember");
+export const errors_recruitUnavailable = (fbs: FbsAPI) =>fbs("该百业尚未绑定 Discord 服务器，暂不开放招新申请", "errors.recruitUnavailable");
+export const errors_applicationNotFound = (fbs: FbsAPI) =>fbs("申请不存在", "errors.applicationNotFound");
+export const errors_applicationNotPending = (fbs: FbsAPI) =>fbs("该申请已经审核过了", "errors.applicationNotPending");
+export const errors_mentorNotDesignated = (fbs: FbsAPI) =>fbs("所选导师不在本百业导师人选中，请先设为导师", "errors.mentorNotDesignated");
+export const errors_mentorNotInGuild = (fbs: FbsAPI) =>fbs("所选导师不在本百业名册中", "errors.mentorNotInGuild");
+export const errors_menteeNotInGuild = (fbs: FbsAPI) =>fbs("所选新人不在本百业名册中", "errors.menteeNotInGuild");
+export const errors_menteeAlreadyPaired = (fbs: FbsAPI) =>fbs("该新人已有一段进行中的配对，请先结束它再改配", "errors.menteeAlreadyPaired");
+export const errors_mentorSelfPairing = (fbs: FbsAPI) =>fbs("导师和新人不能是同一个人", "errors.mentorSelfPairing");
+export const errors_pairingNotFound = (fbs: FbsAPI) =>fbs("配对不存在", "errors.pairingNotFound");
+export const errors_pairingAlreadyEnded = (fbs: FbsAPI) =>fbs("该配对已经结束了", "errors.pairingAlreadyEnded");

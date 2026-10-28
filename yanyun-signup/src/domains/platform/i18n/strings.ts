@@ -765,6 +765,18 @@ export const errors_customFieldInvalid = (fbs: FbsRuntime) => fbs._("自定义�
 export const errors_customFieldTooMany = (fbs: FbsRuntime) => fbs._("自定义字段最多 5 个", null, { hk: "4PcIr" });
 export const errors_signupAnswerRequired = (fbs: FbsRuntime) => fbs._("请填写必填的报名信息", null, { hk: "mamUV" });
 export const errors_signupAnswerInvalid = (fbs: FbsRuntime) => fbs._("报名信息不合法", null, { hk: "pjHLi" });
+export const errors_applicationPending = (fbs: FbsRuntime) => fbs._("你已有一份待审核的申请，请等待审核结果", null, { hk: "1m9yfn" });
+export const errors_alreadyMember = (fbs: FbsRuntime) => fbs._("你已经是这个百业的成员了", null, { hk: "3e58c0" });
+export const errors_recruitUnavailable = (fbs: FbsRuntime) => fbs._("该百业尚未绑定 Discord 服务器，暂不开放招新申请", null, { hk: "2EkrmU" });
+export const errors_applicationNotFound = (fbs: FbsRuntime) => fbs._("申请不存在", null, { hk: "3MgGls" });
+export const errors_applicationNotPending = (fbs: FbsRuntime) => fbs._("该申请已经审核过了", null, { hk: "4c72Hp" });
+export const errors_mentorNotDesignated = (fbs: FbsRuntime) => fbs._("所选导师不在本百业导师人选中，请先设为导师", null, { hk: "4xIaGW" });
+export const errors_mentorNotInGuild = (fbs: FbsRuntime) => fbs._("所选导师不在本百业名册中", null, { hk: "4mXm3Z" });
+export const errors_menteeNotInGuild = (fbs: FbsRuntime) => fbs._("所选新人不在本百业名册中", null, { hk: "42qBZX" });
+export const errors_menteeAlreadyPaired = (fbs: FbsRuntime) => fbs._("该新人已有一段进行中的配对，请先结束它再改配", null, { hk: "4siXsr" });
+export const errors_mentorSelfPairing = (fbs: FbsRuntime) => fbs._("导师和新人不能是同一个人", null, { hk: "fdyQq" });
+export const errors_pairingNotFound = (fbs: FbsRuntime) => fbs._("配对不存在", null, { hk: "25HwHq" });
+export const errors_pairingAlreadyEnded = (fbs: FbsRuntime) => fbs._("该配对已经结束了", null, { hk: "3BQM7S" });
 export const guildAdmin_title = (fbs: FbsRuntime) => fbs._("管理百业", null, { hk: "23Vynb" });
 export const guildAdmin_lockedTitle = (fbs: FbsRuntime) => fbs._("无权管理这个百业", null, { hk: "4eqp6f" });
 export const guildAdmin_lockedBody = (fbs: FbsRuntime) => fbs._("只有该百业所绑 Discord 服务器的管理员（服务器主或拥有管理权限）可以进入管理页。", null, { hk: "248TMj" });
@@ -924,6 +936,7 @@ export const guildAdmin_lotteryDrawButton = (fbs: FbsRuntime) => fbs._("开奖",
 export const guildAdmin_lotteryStatusOpen = (fbs: FbsRuntime) => fbs._("待开奖", null, { hk: "3F8y2x" });
 export const guildAdmin_lotteryStatusDrawn = (fbs: FbsRuntime) => fbs._("已开奖", null, { hk: "2q1FC9" });
 export const guildAdmin_lotteryEntryCount = (fbs: FbsRuntime, p?: StringParams) => fbs._("{count} 人参与", [fbs._param("count", pv(p, "count"))], { hk: "4ho8Cr" });
+export const guildAdmin_tabRecruit = (fbs: FbsRuntime) => fbs._("招新与导师", null, { hk: "yK4MU" });
 export const groupingTemplate_sectionTitle = (fbs: FbsRuntime) => fbs._("车队模板", null, { hk: "GOM6P" });
 export const groupingTemplate_nameLabel = (fbs: FbsRuntime) => fbs._("模板名", null, { hk: "1k3Wki" });
 export const groupingTemplate_namePlaceholder = (fbs: FbsRuntime) => fbs._("给模板起个名字", null, { hk: "3MWfOY" });
@@ -1064,6 +1077,51 @@ export const schedule_toastPollCreated = (fbs: FbsRuntime) => fbs._("投票已�
 export const schedule_toastVoted = (fbs: FbsRuntime) => fbs._("已提交", null, { hk: "3ycOm9" });
 export const schedule_toastClosed = (fbs: FbsRuntime) => fbs._("投票已关闭", null, { hk: "3I4Yrg" });
 export const schedule_toastFailedTemplate = (fbs: FbsRuntime, p?: StringParams) => fbs._("操作失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "DL1dY" });
+export const recruit_entryLabel = (fbs: FbsRuntime) => fbs._("招新 / 新人清单", null, { hk: "2SNTpV" });
+export const recruit_title = (fbs: FbsRuntime) => fbs._("招新与新人", null, { hk: "4t6XP4" });
+export const recruit_body = (fbs: FbsRuntime) => fbs._("想加入这个百业？提交一份入业申请，百业管理员会在管理面审核。已经在业的新人可以在这里看自己的入业清单与导师配对。", null, { hk: "4heuQp" });
+export const recruit_applySectionTitle = (fbs: FbsRuntime) => fbs._("入业申请", null, { hk: "3o8oyN" });
+export const recruit_messageLabel = (fbs: FbsRuntime) => fbs._("申请附言", null, { hk: "3wtkco" });
+export const recruit_messagePlaceholder = (fbs: FbsRuntime) => fbs._("一句自我介绍（可选）：常玩的流派、在线时间……", null, { hk: "3oSljV" });
+export const recruit_submitButton = (fbs: FbsRuntime) => fbs._("提交申请", null, { hk: "2Fq0my" });
+export const recruit_submittingButton = (fbs: FbsRuntime) => fbs._("提交中…", null, { hk: "4lLar1" });
+export const recruit_myApplicationTitle = (fbs: FbsRuntime) => fbs._("我的申请", null, { hk: "40oHah" });
+export const recruit_statusPending = (fbs: FbsRuntime) => fbs._("待审核", null, { hk: "3m2NQp" });
+export const recruit_statusApproved = (fbs: FbsRuntime) => fbs._("已通过", null, { hk: "1ftnLz" });
+export const recruit_statusRejected = (fbs: FbsRuntime) => fbs._("未通过", null, { hk: "4m0UQf" });
+export const recruit_pendingHint = (fbs: FbsRuntime) => fbs._("管理员审核中，请耐心等待；审核结果会直接更新在这里。", null, { hk: "3gukMi" });
+export const recruit_approvedNextStep = (fbs: FbsRuntime) => fbs._("申请已通过，你已登记进百业名册。最后一步在 Discord 完成：加入本百业绑定的 Discord 服务器——成员资格由 Discord 服务器成员身份决定，平台没有 Discord 机器人权限，无法替你加入服务器或授予身份组；加入后用同一账号登录即可使用百业全部功能。", null, { hk: "3zFu2O" });
+export const recruit_rejectedHint = (fbs: FbsRuntime) => fbs._("本次申请未通过。可以修改附言后重新提交一份新申请。", null, { hk: "2vZqEx" });
+export const recruit_checklistTitle = (fbs: FbsRuntime) => fbs._("新手入业清单", null, { hk: "pzcEa" });
+export const recruit_checklistProgress = (fbs: FbsRuntime, p?: StringParams) => fbs._("已完成 {done} / {total}", [fbs._param("done", pv(p, "done")), fbs._param("total", pv(p, "total"))], { hk: "1aH2Up" });
+export const recruit_itemProfileLabel = (fbs: FbsRuntime) => fbs._("完善流派 / 时区", null, { hk: "18sWlq" });
+export const recruit_itemProfileHint = (fbs: FbsRuntime) => fbs._("在任意车队报名落座时填上你的流派即算完成；时区由你的客户端自动同步，无需手动填写。", null, { hk: "veXu3" });
+export const recruit_itemMentorLabel = (fbs: FbsRuntime) => fbs._("认一位导师", null, { hk: "4s9vPR" });
+export const recruit_itemMentorHint = (fbs: FbsRuntime) => fbs._("由百业管理员为你配对一位导师后自动完成。", null, { hk: "1yCgGK" });
+export const recruit_itemFirstRunLabel = (fbs: FbsRuntime) => fbs._("打完第一场", null, { hk: "1R9KHn" });
+export const recruit_itemFirstRunHint = (fbs: FbsRuntime) => fbs._("在一辆已完成的车队里落座后自动完成。", null, { hk: "35ZL1B" });
+export const recruit_myPairingsTitle = (fbs: FbsRuntime) => fbs._("我的导师配对", null, { hk: "4hoB1r" });
+export const recruit_pairingStatusActive = (fbs: FbsRuntime) => fbs._("进行中", null, { hk: "45lgXQ" });
+export const recruit_pairingStatusEnded = (fbs: FbsRuntime) => fbs._("已结束", null, { hk: "G2QDI" });
+export const recruit_mentorRoleLabel = (fbs: FbsRuntime) => fbs._("导师", null, { hk: "2o5QNB" });
+export const recruit_menteeRoleLabel = (fbs: FbsRuntime) => fbs._("新人", null, { hk: "1rZagp" });
+export const recruit_lockedTitle = (fbs: FbsRuntime) => fbs._("无法打开招新页", null, { hk: "3z4Q8J" });
+export const recruit_lockedBody = (fbs: FbsRuntime) => fbs._("请先用 Discord 账号登录；若已登录，可能是该百业不存在。", null, { hk: "KiI2u" });
+export const recruit_adminApplicationsTitle = (fbs: FbsRuntime) => fbs._("入业申请审核", null, { hk: "2FReE8" });
+export const recruit_adminApplicationsEmpty = (fbs: FbsRuntime) => fbs._("暂无申请记录。", null, { hk: "1LdEu6" });
+export const recruit_adminApproveButton = (fbs: FbsRuntime) => fbs._("通过", null, { hk: "1CywMp" });
+export const recruit_adminRejectButton = (fbs: FbsRuntime) => fbs._("拒绝", null, { hk: "2nXKuG" });
+export const recruit_adminMentorPoolTitle = (fbs: FbsRuntime) => fbs._("导师人选", null, { hk: "x6XTC" });
+export const recruit_adminSetMentorButton = (fbs: FbsRuntime) => fbs._("设为导师", null, { hk: "2vvBWI" });
+export const recruit_adminUnsetMentorButton = (fbs: FbsRuntime) => fbs._("取消导师", null, { hk: "JcSx2" });
+export const recruit_adminPairingsTitle = (fbs: FbsRuntime) => fbs._("导师配对", null, { hk: "w9eds" });
+export const recruit_adminPairingsEmpty = (fbs: FbsRuntime) => fbs._("暂无配对记录。", null, { hk: "CbJsV" });
+export const recruit_adminPairingCreateButton = (fbs: FbsRuntime) => fbs._("建立配对", null, { hk: "nAAix" });
+export const recruit_adminPairingEndButton = (fbs: FbsRuntime) => fbs._("结束配对", null, { hk: "3m4SDf" });
+export const recruit_adminMentorSelectLabel = (fbs: FbsRuntime) => fbs._("选择导师", null, { hk: "45sOSH" });
+export const recruit_adminMenteeSelectLabel = (fbs: FbsRuntime) => fbs._("选择新人", null, { hk: "3yg8YS" });
+export const recruit_adminNewcomersTitle = (fbs: FbsRuntime) => fbs._("新人清单进度", null, { hk: "3NjXLO" });
+export const recruit_adminNewcomersEmpty = (fbs: FbsRuntime) => fbs._("暂无未完成清单的新人。", null, { hk: "2B1p8r" });
 export const STRING_FNS: Record<string, StringFn> = {
 	"common.cancel": common_cancel,
 	"common.confirm": common_confirm,
@@ -1773,6 +1831,18 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"errors.customFieldTooMany": errors_customFieldTooMany,
 	"errors.signupAnswerRequired": errors_signupAnswerRequired,
 	"errors.signupAnswerInvalid": errors_signupAnswerInvalid,
+	"errors.applicationPending": errors_applicationPending,
+	"errors.alreadyMember": errors_alreadyMember,
+	"errors.recruitUnavailable": errors_recruitUnavailable,
+	"errors.applicationNotFound": errors_applicationNotFound,
+	"errors.applicationNotPending": errors_applicationNotPending,
+	"errors.mentorNotDesignated": errors_mentorNotDesignated,
+	"errors.mentorNotInGuild": errors_mentorNotInGuild,
+	"errors.menteeNotInGuild": errors_menteeNotInGuild,
+	"errors.menteeAlreadyPaired": errors_menteeAlreadyPaired,
+	"errors.mentorSelfPairing": errors_mentorSelfPairing,
+	"errors.pairingNotFound": errors_pairingNotFound,
+	"errors.pairingAlreadyEnded": errors_pairingAlreadyEnded,
 	"guildAdmin.title": guildAdmin_title,
 	"guildAdmin.lockedTitle": guildAdmin_lockedTitle,
 	"guildAdmin.lockedBody": guildAdmin_lockedBody,
@@ -1932,6 +2002,7 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"guildAdmin.lotteryStatusOpen": guildAdmin_lotteryStatusOpen,
 	"guildAdmin.lotteryStatusDrawn": guildAdmin_lotteryStatusDrawn,
 	"guildAdmin.lotteryEntryCount": guildAdmin_lotteryEntryCount,
+	"guildAdmin.tabRecruit": guildAdmin_tabRecruit,
 	"groupingTemplate.sectionTitle": groupingTemplate_sectionTitle,
 	"groupingTemplate.nameLabel": groupingTemplate_nameLabel,
 	"groupingTemplate.namePlaceholder": groupingTemplate_namePlaceholder,
@@ -2067,5 +2138,50 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"schedule.toastPollCreated": schedule_toastPollCreated,
 	"schedule.toastVoted": schedule_toastVoted,
 	"schedule.toastClosed": schedule_toastClosed,
-	"schedule.toastFailedTemplate": schedule_toastFailedTemplate
+	"schedule.toastFailedTemplate": schedule_toastFailedTemplate,
+	"recruit.entryLabel": recruit_entryLabel,
+	"recruit.title": recruit_title,
+	"recruit.body": recruit_body,
+	"recruit.applySectionTitle": recruit_applySectionTitle,
+	"recruit.messageLabel": recruit_messageLabel,
+	"recruit.messagePlaceholder": recruit_messagePlaceholder,
+	"recruit.submitButton": recruit_submitButton,
+	"recruit.submittingButton": recruit_submittingButton,
+	"recruit.myApplicationTitle": recruit_myApplicationTitle,
+	"recruit.statusPending": recruit_statusPending,
+	"recruit.statusApproved": recruit_statusApproved,
+	"recruit.statusRejected": recruit_statusRejected,
+	"recruit.pendingHint": recruit_pendingHint,
+	"recruit.approvedNextStep": recruit_approvedNextStep,
+	"recruit.rejectedHint": recruit_rejectedHint,
+	"recruit.checklistTitle": recruit_checklistTitle,
+	"recruit.checklistProgress": recruit_checklistProgress,
+	"recruit.itemProfileLabel": recruit_itemProfileLabel,
+	"recruit.itemProfileHint": recruit_itemProfileHint,
+	"recruit.itemMentorLabel": recruit_itemMentorLabel,
+	"recruit.itemMentorHint": recruit_itemMentorHint,
+	"recruit.itemFirstRunLabel": recruit_itemFirstRunLabel,
+	"recruit.itemFirstRunHint": recruit_itemFirstRunHint,
+	"recruit.myPairingsTitle": recruit_myPairingsTitle,
+	"recruit.pairingStatusActive": recruit_pairingStatusActive,
+	"recruit.pairingStatusEnded": recruit_pairingStatusEnded,
+	"recruit.mentorRoleLabel": recruit_mentorRoleLabel,
+	"recruit.menteeRoleLabel": recruit_menteeRoleLabel,
+	"recruit.lockedTitle": recruit_lockedTitle,
+	"recruit.lockedBody": recruit_lockedBody,
+	"recruit.adminApplicationsTitle": recruit_adminApplicationsTitle,
+	"recruit.adminApplicationsEmpty": recruit_adminApplicationsEmpty,
+	"recruit.adminApproveButton": recruit_adminApproveButton,
+	"recruit.adminRejectButton": recruit_adminRejectButton,
+	"recruit.adminMentorPoolTitle": recruit_adminMentorPoolTitle,
+	"recruit.adminSetMentorButton": recruit_adminSetMentorButton,
+	"recruit.adminUnsetMentorButton": recruit_adminUnsetMentorButton,
+	"recruit.adminPairingsTitle": recruit_adminPairingsTitle,
+	"recruit.adminPairingsEmpty": recruit_adminPairingsEmpty,
+	"recruit.adminPairingCreateButton": recruit_adminPairingCreateButton,
+	"recruit.adminPairingEndButton": recruit_adminPairingEndButton,
+	"recruit.adminMentorSelectLabel": recruit_adminMentorSelectLabel,
+	"recruit.adminMenteeSelectLabel": recruit_adminMenteeSelectLabel,
+	"recruit.adminNewcomersTitle": recruit_adminNewcomersTitle,
+	"recruit.adminNewcomersEmpty": recruit_adminNewcomersEmpty
 };
