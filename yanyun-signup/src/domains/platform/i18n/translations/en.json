@@ -11654,6 +11654,54 @@
         }
       ],
       "types": []
+    },
+    "pc8iP+ilTS0PP2PcWdBKUQ==": {
+      "description": "Link text left on the schedule tab where the availability editor used to be, pointing members to the availability editor in their personal settings.",
+      "id": "groupings/schedule_settingsLinkLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Set it in your profile settings",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "N6Jmc6Y/dqentdDI+1iU7g==": {
+      "description": "Empty-state text in the personal settings availability section when the user has not joined any guild yet; availability can be filled in once they join one.",
+      "id": "groupings/schedule_noGuildsText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "You have not joined any guild yet — once you do, you can fill in your availability here.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "G3U8tBBfF4yslQAhMCiLwQ==": {
+      "description": "Label of the newcomer checklist item about filling in weekly availability.",
+      "id": "guilds/recruit_itemAvailabilityLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Fill in your availability",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "JZQPfyZ45QGUuObzhSLsjA==": {
+      "description": "Completion hint of the availability checklist item: fill in weekly free slots in personal settings so admins and squad leaders can pick times; it may be skipped and filled in later.",
+      "id": "guilds/recruit_itemAvailabilityHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Fill in the times you are regularly free each week under your profile settings, so admins and squad leaders can schedule around you. You can skip this for now and add it any time.",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }
