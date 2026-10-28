@@ -163,6 +163,22 @@ export async function countActivityEventsInWindow(
   return row ? Number(row.c) || 0 : 0;
 }
 
+/* Calendar feed (F8): one guild's timed groupings for the iCal
+ * subscription — every non-draft grouping that has a start time,
+ * oldest first (calendar clients sort and window themselves; the
+ * feed carries history as well as upcoming cars so a subscriber's
+ * calendar stays complete). Timeless groupings cannot be calendar
+ * events and never come back. */
+export async function listEventsForCalendar(
+  d1: D1Database, tenant: string,
+): Promise<EventRow[]> {
+  const db = createDb(d1);
+  const rows = await db.all<EventRow>(
+    sql`SELECT * FROM ${events} WHERE ${col('tenant')} = ${tenant} AND ${col('status')} != 'draft' AND ${col('starts_at_utc')} IS NOT NULL ORDER BY ${col('starts_at_utc')} ASC, ${col('id')} ASC`,
+  );
+  return rows || [];
+}
+
 /* ---------- Reminder scheduling (pending = PENDING_WHERE) ----------
  * Pending = published (open/closed), has a start time, unsettled
  * (never sent, never failed). */

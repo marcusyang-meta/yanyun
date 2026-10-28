@@ -106,6 +106,67 @@ export const shortLinks = sqliteTable('short_links', {
   uniqueIndex('short_links_target_unique').on(t.tenant, t.eventId),
 ]);
 
+/* ---------------- calendar_feeds [migration 0020] -----------------
+ * One iCal subscription feed per guild: tenant is the primary key,
+ * token is the unguessable public alias served at /cal/<token>.
+ * Resetting the feed replaces the token in place, which revokes the
+ * old link immediately (no second row is ever minted). */
+export const calendarFeeds = sqliteTable('calendar_feeds', {
+  tenant: text('tenant').primaryKey(),
+  token: text('token').notNull(),
+  createdAt: integer('created_at').notNull().default(0),
+  updatedAt: integer('updated_at').notNull().default(0),
+}, (t) => [
+  uniqueIndex('calendar_feeds_token_unique').on(t.token),
+]);
+
+/* ---------------- lotteries [migration 0021] -----------------------
+ * Guild-admin activity lotteries (F21). The participant list is
+ * snapshotted into lottery_entries at creation (discord id + display
+ * name + weight); source records where the list came from ('grouping'
+ * with source_event_id, or hand-picked 'members'). A draw is without
+ * replacement — lottery_winners' unique (lottery_id, discord_id)
+ * states the no-repeat rule in the schema — and stamps drawn_at /
+ * status = 'drawn' on the lottery. Nothing is ever deleted: the
+ * lottery, its entries and its winners are the audit trail. */
+export const lotteries = sqliteTable('lotteries', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  tenant: text('tenant').notNull().default(''),
+  title: text('title').notNull().default(''),
+  prize: text('prize').notNull().default(''),
+  source: text('source').notNull().default('members'),
+  sourceEventId: integer('source_event_id'),
+  winnerCount: integer('winner_count').notNull().default(1),
+  status: text('status').notNull().default('open'),
+  createdBy: text('created_by').notNull().default(''),
+  createdAt: integer('created_at').notNull().default(0),
+  drawnAt: integer('drawn_at'),
+}, (t) => [
+  index('idx_lotteries_tenant').on(t.tenant, t.id),
+]);
+
+export const lotteryEntries = sqliteTable('lottery_entries', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  lotteryId: integer('lottery_id').notNull().references(() => lotteries.id, { onDelete: 'cascade' }),
+  discordId: text('discord_id').notNull().default(''),
+  displayName: text('display_name').notNull().default(''),
+  weight: integer('weight').notNull().default(1),
+}, (t) => [
+  uniqueIndex('lottery_entries_member_unique').on(t.lotteryId, t.discordId),
+  index('idx_lottery_entries_lottery').on(t.lotteryId),
+]);
+
+export const lotteryWinners = sqliteTable('lottery_winners', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  lotteryId: integer('lottery_id').notNull().references(() => lotteries.id, { onDelete: 'cascade' }),
+  discordId: text('discord_id').notNull().default(''),
+  displayName: text('display_name').notNull().default(''),
+  drawnAt: integer('drawn_at').notNull().default(0),
+}, (t) => [
+  uniqueIndex('lottery_winners_member_unique').on(t.lotteryId, t.discordId),
+  index('idx_lottery_winners_lottery').on(t.lotteryId),
+]);
+
 /* ---------------- event_reminders [ddl chain baseline] -------------
  * Per-(grouping, offset) departure-reminder settlement for multi-offset
  * reminders: one row per settled beat; no row = that beat is still

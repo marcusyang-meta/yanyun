@@ -1,5 +1,4 @@
-/* ===================================================
- * Data-layer repository verification against real D1 (local Miniflare
+/* ============================================ * Data-layer repository verification against real D1 (local Miniflare
  * D1, real SQLite semantics).
  *
  * Background: the harness FakeDB is an in-memory double routed by SQL
@@ -17,7 +16,8 @@
  *   events / gear / users / members / results / dex / reference /
  *   state / ddl / guard / stamp / membercount / atomic / audit /
  *   shortlinks / beats / templates / usage / buildshares / billing /
- *   feedback, extended as the data-layer migration progresses.
+ *   feedback / activitytools, extended as the data-layer migration
+ *   progresses.
  *   Non-zero exit = an assertion failed.
  * =================================================== */
 import { Miniflare, convertV4MiniflareOptions } from 'miniflare';
@@ -1164,6 +1164,70 @@ if (want('announcements')) {
   eq('deleted row is gone', await repo.getAnnouncement(db, 'alpha', id1), null);
   eq('delete cascades the receipts', await repo.listAnnouncementReads(db, 'alpha', id1), []);
   eq('other announcements survive the delete', (await repo.listAnnouncements(db, 'alpha', 50)).map((r) => r.id), [id2]);
+}
+
+/* ---------------- calendar_feeds + lotteries (F8/F21) ---------------- */
+if (want('activitytools')) {
+  console.log('== calendar_feeds + lotteries repositories on real D1 ==');
+  const cal = await import('../src/domains/groupings/calendarfeeds.ts');
+  const lot = await import('../src/domains/groupings/lotteries.ts');
+
+  const feed = await cal.mintCalendarFeed(db, 'alpha');
+  check('mint returns a 32-char base62 token', cal.CALENDAR_TOKEN_RE.test(feed.token), feed.token);
+  eq('second mint for same guild is stable', (await cal.mintCalendarFeed(db, 'alpha')).token, feed.token);
+  eq('getCalendarFeedByToken roundtrip', (await cal.getCalendarFeedByToken(db, feed.token))?.tenant, 'alpha');
+  eq('getCalendarFeedByToken unknown -> null', await cal.getCalendarFeedByToken(db, 'Z'.repeat(32)), null);
+  eq('getCalendarFeedByTenant unknown -> null', await cal.getCalendarFeedByTenant(db, 'nope'), null);
+
+  const reset = await cal.resetCalendarFeed(db, 'alpha');
+  check('reset changes the token', reset.token !== feed.token, `${feed.token} -> ${reset.token}`);
+  eq('old token is revoked after reset', await cal.getCalendarFeedByToken(db, feed.token), null);
+  eq('new token resolves after reset', (await cal.getCalendarFeedByToken(db, reset.token))?.tenant, 'alpha');
+  eq('calendarFeedUrl shape', cal.calendarFeedUrl('Ab3dEf9'), 'https://yanyun.app/cal/Ab3dEf9');
+
+  // Token collision on mint: first candidate belongs to alpha's feed.
+  const freshToken = 'N3wT0ken'.padEnd(32, 'x');
+  const seq = [reset.token, freshToken];
+  const other = await cal.mintCalendarFeed(db, 'beta', () => seq.shift() || cal.generateCalendarToken());
+  eq('token collision retries with a fresh token', other.token, freshToken);
+
+  const created = await lot.insertLottery(db, {
+    tenant: 'alpha', title: '周年抽奖', prize: '坐骑一只', source: 'members',
+    source_event_id: null, winner_count: 2, status: 'open', created_by: 'U1', created_at: 1760000000,
+  });
+  const lid = created.last_row_id;
+  check('insertLottery returns a row id', lid > 0, String(lid));
+  await lot.insertLotteryEntry(db, { lotteryId: lid, discordId: 'U1', displayName: '甲', weight: 1 });
+  await lot.insertLotteryEntry(db, { lotteryId: lid, discordId: 'U2', displayName: '乙', weight: 5 });
+  await lot.insertLotteryEntry(db, { lotteryId: lid, discordId: 'U3', displayName: '丙', weight: 1 });
+  eq('entries roundtrip in order', (await lot.listLotteryEntries(db, lid)).map((e) => e.discord_id), ['U1', 'U2', 'U3']);
+  eq('lottery read is tenant-scoped', await lot.getLotteryByTenant(db, lid, 'beta'), null);
+  eq('lottery row shape', (await lot.getLotteryByTenant(db, lid, 'alpha'))?.prize, '坐骑一只');
+  eq('listLotteries is tenant-scoped', (await lot.listLotteries(db, 'beta')).length, 0);
+
+  // Duplicate entry for the same member violates the unique index.
+  let dupThrew = false;
+  try { await lot.insertLotteryEntry(db, { lotteryId: lid, discordId: 'U1', displayName: '甲', weight: 1 }); }
+  catch { dupThrew = true; }
+  check('duplicate entry for one member is rejected by the schema', dupThrew);
+
+  const entries = await lot.listLotteryEntries(db, lid);
+  const winners = lot.drawWinners(entries, 2, () => 0);
+  eq('draw with rand=0 picks by weight order deterministically', winners.map((w) => w.discord_id), ['U1', 'U2']);
+  const many = lot.drawWinners(entries, 3, Math.random);
+  eq('full draw returns every entrant exactly once', [...many.map((w) => w.discord_id)].sort(), ['U1', 'U2', 'U3']);
+
+  for (const w of winners) {
+    await lot.insertLotteryWinner(db, { lotteryId: lid, discordId: w.discord_id, displayName: w.display_name, drawnAt: 1760003600 });
+  }
+  await lot.markLotteryDrawn(db, lid, 1760003600);
+  eq('winners roundtrip', (await lot.listLotteryWinners(db, lid)).map((w) => w.discord_id), ['U1', 'U2']);
+  const drawn = await lot.getLotteryByTenant(db, lid, 'alpha');
+  eq('drawn state persisted', drawn && [drawn.status, drawn.drawn_at], ['drawn', 1760003600]);
+  let dupWinThrew = false;
+  try { await lot.insertLotteryWinner(db, { lotteryId: lid, discordId: 'U1', displayName: '甲', drawnAt: 1760003600 }); }
+  catch { dupWinThrew = true; }
+  check('duplicate winner for one member is rejected by the schema', dupWinThrew);
 }
 
 await mf.dispose();
