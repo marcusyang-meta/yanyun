@@ -321,7 +321,7 @@ const betaUsage = () => state.usage.get(`guild:beta|ai_recap_generations|${dayKe
 {
   const locked = await gql(detailQ, { user: adminA, variables: { slug: 'alpha', id: '11' }, env: ENV_OFF });
   eq('A: T1 百业详情 -> GroupingRecapLocked', recapOf(locked)?.__typename, 'GroupingRecapLocked');
-  eq('A: Locked 标题为盟主版文案', recapOf(locked)?.title, 'AI 复盘 · 盟主版专属');
+  eq('A: Locked 标题为泛称文案 (不硬编码档位名)', recapOf(locked)?.title, 'AI 复盘 · 高阶档专属');
   check('A: Locked 不带 paragraphs 字段', !('paragraphs' in (recapOf(locked) || {})));
 
   const notEnabled = await gql(detailQ, { user: leaderB, variables: { slug: 'beta', id: '12' }, env: ENV_OFF });
