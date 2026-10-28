@@ -258,6 +258,8 @@ export class HomeRecruitSectionShell extends ShellBase {
 
 export const HOME_RECRUIT_TEXT_RESOLVERS = defineTextGens(HomeRecruitSectionShell, [
   ['recruitTitle', 'recruit_title'],
+  ['directoryTitle', 'recruit_directoryTitle'],
+  ['newcomerTitle', 'recruit_newcomerTitle'],
   ['homeBody', 'recruit_homeBody'],
   ['homeLoginHint', 'recruit_homeLoginHint'],
   ['applySectionTitle', 'recruit_applySectionTitle'],

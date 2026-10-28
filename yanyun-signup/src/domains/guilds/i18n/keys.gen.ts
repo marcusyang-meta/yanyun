@@ -292,6 +292,8 @@ export type GuildsStringKey =
   | 'announcements_translationLocaleFailedLabel'
   | 'announcements_translationLocalePendingLabel'
   | 'recruit_title'
+  | 'recruit_directoryTitle'
+  | 'recruit_newcomerTitle'
   | 'recruit_homeBody'
   | 'recruit_homeLoginHint'
   | 'recruit_applySectionTitle'
@@ -871,6 +873,8 @@ export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'announcements_translationLocaleFailedLabel',
   'announcements_translationLocalePendingLabel',
   'recruit_title',
+  'recruit_directoryTitle',
+  'recruit_newcomerTitle',
   'recruit_homeBody',
   'recruit_homeLoginHint',
   'recruit_applySectionTitle',

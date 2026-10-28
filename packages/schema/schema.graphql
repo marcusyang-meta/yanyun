@@ -3029,6 +3029,8 @@ type NewcomerProgress {
 # dialog (web) / 推页 (mobile) 里呈现同一份下发数据。
 type HomeRecruitSection {
   recruitTitle: String!
+  directoryTitle: String!
+  newcomerTitle: String!
   homeBody: String!
   homeLoginHint: String!
   applySectionTitle: String!

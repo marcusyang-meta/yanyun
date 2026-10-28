@@ -334,6 +334,8 @@ export abstract class AnnouncementsFbtUtils {
 
 export abstract class RecruitFbtUtils {
   static title(fbs: FbsAPI) { return fbs("招新与新人", "Title text for the recruitment and newcomers section, used as the heading of the recruit area on the platform home page."); }
+  static directoryTitle(fbs: FbsAPI) { return fbs("招新", "Title text for the recruiting section on the platform home page, used as the heading above the directory of guilds whose recruitment is open for applications."); }
+  static newcomerTitle(fbs: FbsAPI) { return fbs("新人", "Title text for the newcomers section on the platform home page, used as the heading above a member's onboarding checklist and mentor pairings."); }
   static homeBody(fbs: FbsAPI) { return fbs("想加入一个百业？在下面挑一个开放招新的百业提交入业申请，百业管理员会在管理面审核。已经在业的新人可以在这里看自己的入业清单与导师配对。", "Intro text for the recruiting section on the platform home page, used to explain that visitors pick an open guild below and apply for admin review, and that newcomers see their onboarding checklist and mentor pairing here."); }
   static homeLoginHint(fbs: FbsAPI) { return fbs("登录后即可对心仪的百业提交入业申请，并在这里查看审核进度。", "Hint text for the recruiting section on the platform home page, used for signed-out visitors to explain that after signing in they can apply to a guild and track the review progress here."); }
   static applySectionTitle(fbs: FbsAPI) { return fbs("入业申请", "Section heading for the join application form in the home recruiting section, used above the guild directory entries' application controls."); }
