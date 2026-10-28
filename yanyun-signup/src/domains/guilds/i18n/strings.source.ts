@@ -244,6 +244,19 @@ export abstract class AnnouncementsFbtUtils {
   static pushNote(fbs: FbsAPI) { return fbs("发布后会向全体成员推送通知；没有开启推送的成员也能在这里看到。", "Note text for the announcement composer, used to explain that publishing pushes a notification to all members and the announcement stays visible here for members without push enabled."); }
   static urgentNote(fbs: FbsAPI) { return fbs("紧急集合呼叫请只用于临时集合等紧急情况，每天最多 2 次。", "Note text for the announcement composer, used to warn that urgent calls are for emergencies only and capped at two per day."); }
   static dailyLimitTemplate(fbs: FbsAPI, p?: StringParams) { return fbs(["今日还可发布 ", fbs.param("remaining", pv(p, "remaining")), " 条"], "Quota text for the announcement composer, used to show how many announcements can still be published today, where {remaining} is the remaining daily count."); }
+  static translatedSourceLabel(fbs: FbsAPI) { return fbs("译文", "Source label for announcement cards, used to mark that the displayed text is a translation of the original announcement."); }
+  static originalSourceLabel(fbs: FbsAPI) { return fbs("原文", "Source label for announcement cards, used to mark that the displayed text is the original announcement text."); }
+  static generateTranslationsLabel(fbs: FbsAPI) { return fbs("生成多语版", "Button label for announcement cards on the admin surface, used to generate the multilingual versions of an announcement."); }
+  static generatingTranslationsLabel(fbs: FbsAPI) { return fbs("生成中…", "Button label for announcement cards on the admin surface, used while the multilingual versions are being generated."); }
+  static translationsGeneratedText(fbs: FbsAPI) { return fbs("多语版已生成", "Confirmation text for the admin announcement surface, used after an announcement's multilingual versions finish generating."); }
+  static translationsPartialText(fbs: FbsAPI) { return fbs("多语版部分生成失败，可重试", "Notice text for the admin announcement surface, used when some locales of an announcement's multilingual versions failed to generate."); }
+  static translationUnavailableText(fbs: FbsAPI) { return fbs("多语翻译尚未配置，配置完成后可生成多语版公告。", "Note text for the admin announcement surface, used when the guild's tier includes multilingual announcements but the translation provider is not configured yet."); }
+  static translationStatusNone(fbs: FbsAPI) { return fbs("多语版：未生成", "Status text for announcement cards on the admin surface, used when no multilingual version of the announcement has been generated."); }
+  static translationStatusDoneTemplate(fbs: FbsAPI, p?: StringParams) { return fbs(["多语版：已生成 ", fbs.param("done", pv(p, "done")), " / ", fbs.param("total", pv(p, "total"))], "Status text for announcement cards on the admin surface, used to show how many locales of the multilingual version are generated, where {done} is the generated locale count and {total} the target locale count."); }
+  static translationStatusFailed(fbs: FbsAPI) { return fbs("多语版：生成失败", "Status text for announcement cards on the admin surface, used when generating the multilingual version of the announcement failed."); }
+  static translationLocaleDoneLabel(fbs: FbsAPI) { return fbs("已生成", "Status label for one locale of an announcement's multilingual version, used in the per-locale translation list on the admin surface."); }
+  static translationLocaleFailedLabel(fbs: FbsAPI) { return fbs("生成失败", "Status label for one locale of an announcement's multilingual version, used in the per-locale translation list on the admin surface."); }
+  static translationLocalePendingLabel(fbs: FbsAPI) { return fbs("未生成", "Status label for one locale of an announcement's multilingual version, used in the per-locale translation list on the admin surface."); }
 }
 
 export abstract class RecruitFbtUtils {

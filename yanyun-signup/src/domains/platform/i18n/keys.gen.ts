@@ -135,6 +135,8 @@ export type PlatformStringKey =
   | 'errors_announcementTitleTooLong'
   | 'errors_announcementBodyTooLong'
   | 'errors_announcementNotFound'
+  | 'errors_translationNotConfigured'
+  | 'errors_translationTierLocked'
   | 'errors_announcementDailyLimit'
   | 'errors_urgentCallDailyLimit'
   | 'errors_lotteryTitleRequired'
@@ -313,6 +315,8 @@ export const PLATFORM_STRING_KEYS: readonly PlatformStringKey[] = [
   'errors_announcementTitleTooLong',
   'errors_announcementBodyTooLong',
   'errors_announcementNotFound',
+  'errors_translationNotConfigured',
+  'errors_translationTierLocked',
   'errors_announcementDailyLimit',
   'errors_urgentCallDailyLimit',
   'errors_lotteryTitleRequired',

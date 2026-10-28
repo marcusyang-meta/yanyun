@@ -4613,6 +4613,12 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
     "announcementNotFound": {
       "zh-CN": "公告不存在"
     },
+    "translationNotConfigured": {
+      "zh-CN": "多语翻译尚未配置"
+    },
+    "translationTierLocked": {
+      "zh-CN": "多语公告需要更高的百业档位"
+    },
     "announcementDailyLimit": {
       "zh-CN": "今天的公告已达上限（每天 {limit} 条），明天再发"
     },
@@ -6257,6 +6263,45 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
     },
     "dailyLimitTemplate": {
       "zh-CN": "今日还可发布 {remaining} 条"
+    },
+    "translatedSourceLabel": {
+      "zh-CN": "译文"
+    },
+    "originalSourceLabel": {
+      "zh-CN": "原文"
+    },
+    "generateTranslationsLabel": {
+      "zh-CN": "生成多语版"
+    },
+    "generatingTranslationsLabel": {
+      "zh-CN": "生成中…"
+    },
+    "translationsGeneratedText": {
+      "zh-CN": "多语版已生成"
+    },
+    "translationsPartialText": {
+      "zh-CN": "多语版部分生成失败，可重试"
+    },
+    "translationUnavailableText": {
+      "zh-CN": "多语翻译尚未配置，配置完成后可生成多语版公告。"
+    },
+    "translationStatusNone": {
+      "zh-CN": "多语版：未生成"
+    },
+    "translationStatusDoneTemplate": {
+      "zh-CN": "多语版：已生成 {done} / {total}"
+    },
+    "translationStatusFailed": {
+      "zh-CN": "多语版：生成失败"
+    },
+    "translationLocaleDoneLabel": {
+      "zh-CN": "已生成"
+    },
+    "translationLocaleFailedLabel": {
+      "zh-CN": "生成失败"
+    },
+    "translationLocalePendingLabel": {
+      "zh-CN": "未生成"
     }
   },
   "schedule": {

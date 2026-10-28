@@ -2170,6 +2170,12 @@ export abstract class ErrorsFbtUtils {
 	static announcementNotFound(fbs: FbsRuntime) {
 		return fbs._("公告不存在", null, { hk: "Dt2z1" });
 	}
+	static translationNotConfigured(fbs: FbsRuntime) {
+		return fbs._("多语翻译尚未配置", null, { hk: "E71Jo" });
+	}
+	static translationTierLocked(fbs: FbsRuntime) {
+		return fbs._("多语公告需要更高的百业档位", null, { hk: "2yvLrR" });
+	}
 	static announcementDailyLimit(fbs: FbsRuntime, p?: StringParams) {
 		return fbs._("今天的公告已达上限（每天 {limit} 条），明天再发", [fbs._param("limit", pv(p, "limit"))], { hk: "2OFzHt" });
 	}
@@ -3102,6 +3108,45 @@ export abstract class AnnouncementsFbtUtils {
 	}
 	static dailyLimitTemplate(fbs: FbsRuntime, p?: StringParams) {
 		return fbs._("今日还可发布 {remaining} 条", [fbs._param("remaining", pv(p, "remaining"))], { hk: "4bcg3p" });
+	}
+	static translatedSourceLabel(fbs: FbsRuntime) {
+		return fbs._("译文", null, { hk: "13D96T" });
+	}
+	static originalSourceLabel(fbs: FbsRuntime) {
+		return fbs._("原文", null, { hk: "1l4VJb" });
+	}
+	static generateTranslationsLabel(fbs: FbsRuntime) {
+		return fbs._("生成多语版", null, { hk: "THc3" });
+	}
+	static generatingTranslationsLabel(fbs: FbsRuntime) {
+		return fbs._("生成中…", null, { hk: "3Kga1a" });
+	}
+	static translationsGeneratedText(fbs: FbsRuntime) {
+		return fbs._("多语版已生成", null, { hk: "49CmnK" });
+	}
+	static translationsPartialText(fbs: FbsRuntime) {
+		return fbs._("多语版部分生成失败，可重试", null, { hk: "3wTbHs" });
+	}
+	static translationUnavailableText(fbs: FbsRuntime) {
+		return fbs._("多语翻译尚未配置，配置完成后可生成多语版公告。", null, { hk: "4xJzYh" });
+	}
+	static translationStatusNone(fbs: FbsRuntime) {
+		return fbs._("多语版：未生成", null, { hk: "2jMP5F" });
+	}
+	static translationStatusDoneTemplate(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("多语版：已生成 {done} / {total}", [fbs._param("done", pv(p, "done")), fbs._param("total", pv(p, "total"))], { hk: "2lGkDS" });
+	}
+	static translationStatusFailed(fbs: FbsRuntime) {
+		return fbs._("多语版：生成失败", null, { hk: "nWrjs" });
+	}
+	static translationLocaleDoneLabel(fbs: FbsRuntime) {
+		return fbs._("已生成", null, { hk: "29eGCe" });
+	}
+	static translationLocaleFailedLabel(fbs: FbsRuntime) {
+		return fbs._("生成失败", null, { hk: "4cwlBJ" });
+	}
+	static translationLocalePendingLabel(fbs: FbsRuntime) {
+		return fbs._("未生成", null, { hk: "2y8c5X" });
 	}
 }
 export abstract class ScheduleFbtUtils {
@@ -4156,6 +4201,8 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"errors_announcementTitleTooLong": ErrorsFbtUtils.announcementTitleTooLong,
 	"errors_announcementBodyTooLong": ErrorsFbtUtils.announcementBodyTooLong,
 	"errors_announcementNotFound": ErrorsFbtUtils.announcementNotFound,
+	"errors_translationNotConfigured": ErrorsFbtUtils.translationNotConfigured,
+	"errors_translationTierLocked": ErrorsFbtUtils.translationTierLocked,
 	"errors_announcementDailyLimit": ErrorsFbtUtils.announcementDailyLimit,
 	"errors_urgentCallDailyLimit": ErrorsFbtUtils.urgentCallDailyLimit,
 	"errors_lotteryTitleRequired": ErrorsFbtUtils.lotteryTitleRequired,
@@ -4461,6 +4508,19 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"announcements_pushNote": AnnouncementsFbtUtils.pushNote,
 	"announcements_urgentNote": AnnouncementsFbtUtils.urgentNote,
 	"announcements_dailyLimitTemplate": AnnouncementsFbtUtils.dailyLimitTemplate,
+	"announcements_translatedSourceLabel": AnnouncementsFbtUtils.translatedSourceLabel,
+	"announcements_originalSourceLabel": AnnouncementsFbtUtils.originalSourceLabel,
+	"announcements_generateTranslationsLabel": AnnouncementsFbtUtils.generateTranslationsLabel,
+	"announcements_generatingTranslationsLabel": AnnouncementsFbtUtils.generatingTranslationsLabel,
+	"announcements_translationsGeneratedText": AnnouncementsFbtUtils.translationsGeneratedText,
+	"announcements_translationsPartialText": AnnouncementsFbtUtils.translationsPartialText,
+	"announcements_translationUnavailableText": AnnouncementsFbtUtils.translationUnavailableText,
+	"announcements_translationStatusNone": AnnouncementsFbtUtils.translationStatusNone,
+	"announcements_translationStatusDoneTemplate": AnnouncementsFbtUtils.translationStatusDoneTemplate,
+	"announcements_translationStatusFailed": AnnouncementsFbtUtils.translationStatusFailed,
+	"announcements_translationLocaleDoneLabel": AnnouncementsFbtUtils.translationLocaleDoneLabel,
+	"announcements_translationLocaleFailedLabel": AnnouncementsFbtUtils.translationLocaleFailedLabel,
+	"announcements_translationLocalePendingLabel": AnnouncementsFbtUtils.translationLocalePendingLabel,
 	"schedule_title": ScheduleFbtUtils.title,
 	"schedule_myTitle": ScheduleFbtUtils.myTitle,
 	"schedule_myHint": ScheduleFbtUtils.myHint,

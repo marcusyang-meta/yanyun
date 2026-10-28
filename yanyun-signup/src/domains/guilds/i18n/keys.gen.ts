@@ -205,6 +205,19 @@ export type GuildsStringKey =
   | 'announcements_pushNote'
   | 'announcements_urgentNote'
   | 'announcements_dailyLimitTemplate'
+  | 'announcements_translatedSourceLabel'
+  | 'announcements_originalSourceLabel'
+  | 'announcements_generateTranslationsLabel'
+  | 'announcements_generatingTranslationsLabel'
+  | 'announcements_translationsGeneratedText'
+  | 'announcements_translationsPartialText'
+  | 'announcements_translationUnavailableText'
+  | 'announcements_translationStatusNone'
+  | 'announcements_translationStatusDoneTemplate'
+  | 'announcements_translationStatusFailed'
+  | 'announcements_translationLocaleDoneLabel'
+  | 'announcements_translationLocaleFailedLabel'
+  | 'announcements_translationLocalePendingLabel'
   | 'recruit_title'
   | 'recruit_homeBody'
   | 'recruit_homeLoginHint'
@@ -494,6 +507,19 @@ export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'announcements_pushNote',
   'announcements_urgentNote',
   'announcements_dailyLimitTemplate',
+  'announcements_translatedSourceLabel',
+  'announcements_originalSourceLabel',
+  'announcements_generateTranslationsLabel',
+  'announcements_generatingTranslationsLabel',
+  'announcements_translationsGeneratedText',
+  'announcements_translationsPartialText',
+  'announcements_translationUnavailableText',
+  'announcements_translationStatusNone',
+  'announcements_translationStatusDoneTemplate',
+  'announcements_translationStatusFailed',
+  'announcements_translationLocaleDoneLabel',
+  'announcements_translationLocaleFailedLabel',
+  'announcements_translationLocalePendingLabel',
   'recruit_title',
   'recruit_homeBody',
   'recruit_homeLoginHint',
