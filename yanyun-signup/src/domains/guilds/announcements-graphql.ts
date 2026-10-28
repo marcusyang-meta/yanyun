@@ -28,8 +28,9 @@ import type { Context } from '../platform/context.ts';
 import { vcOf } from '../platform/context.ts';
 import {
   ShellBase, defineTextGens, getGuildAccess, getGuildAdminAccess,
-  PayloadBase,
+  getOfficerVerdict, hasCapability, PayloadBase,
 } from '../platform/graphql-base.ts';
+import { recordGuildAudit } from './guild-audit.ts';
 import { fmtStartsAt, translate, translateError } from '../platform/index.ts';
 import {
   getEffectiveLimits, getAnnouncementsUsedToday, recordAnnouncementUse,
@@ -386,9 +387,12 @@ export const guildAnnouncementMutations = {
    * the in-app row is already durable when the mutation returns. */
   postGuildAnnouncement: async (_: unknown, { slug, kind, title, body }: { slug: string; kind: string; title: string; body: string }, ctx: Context) => {
     const db = ctx.env.DB;
-    const access = await getGuildAdminAccess(db, ctx.user, slug, ctx.request, vcOf(ctx));
-    if (!access.exists) return annFail(ctx, 'guildNotFound');
-    if (!access.isAdmin) return annFail(ctx, 'adminOnly');
+    const verdict = await getOfficerVerdict(db, ctx.user, slug, ctx.request, vcOf(ctx));
+    if (!verdict.exists) return annFail(ctx, 'guildNotFound');
+    if (!hasCapability(verdict, 'announce')) {
+      return annFail(ctx, verdict.isOfficer ? 'capabilityRequired' : 'adminOnly');
+    }
+    const access = verdict.access;
     const storedKind = kind === 'URGENT' ? 'urgent' : 'standard';
     const cleanTitle = String(title ?? '').trim();
     if (!cleanTitle) return annFail(ctx, 'announcementTitleRequired');
@@ -421,6 +425,11 @@ export const guildAnnouncementMutations = {
       await markAnnouncementRead(db, { tenant: access.slug, announcementId: id, discordId: authorId, readAt: nowSec }).catch(() => {});
     }
     const row = await getAnnouncement(db, access.slug, id);
+    await recordGuildAudit(db, {
+      tenant: access.slug,
+      actor: ctx.user ? { discordId: String(ctx.user.discordId), name: String(ctx.user.name || '') } : null,
+      action: 'announcement.post', targetType: 'announcement', targetId: id, targetLabel: cleanTitle,
+    });
     // Push to the whole roster (author excluded) over the shared Expo
     // pipeline; members without tokens are covered by the in-app list.
     const roster = await listGuildMembers(db, access.slug).catch(() => []);
@@ -461,14 +470,22 @@ export const guildAnnouncementMutations = {
   /* Delete a broadcast and its receipts. Admin verdict, guild-scoped. */
   deleteGuildAnnouncement: async (_: unknown, { slug, announcementId }: { slug: string; announcementId: string }, ctx: Context) => {
     const db = ctx.env.DB;
-    const access = await getGuildAdminAccess(db, ctx.user, slug, ctx.request, vcOf(ctx));
-    if (!access.exists) return annFail(ctx, 'guildNotFound');
-    if (!access.isAdmin) return annFail(ctx, 'adminOnly');
+    const verdict = await getOfficerVerdict(db, ctx.user, slug, ctx.request, vcOf(ctx));
+    if (!verdict.exists) return annFail(ctx, 'guildNotFound');
+    if (!hasCapability(verdict, 'announce')) {
+      return annFail(ctx, verdict.isOfficer ? 'capabilityRequired' : 'adminOnly');
+    }
+    const access = verdict.access;
     const id = parseInt(String(announcementId), 10) || 0;
     const row = await getAnnouncement(db, access.slug, id);
     if (!row) return annFail(ctx, 'announcementNotFound');
     await deleteAnnouncement(db, access.slug, id);
     await deleteAnnouncementTranslations(db, access.slug, id).catch(() => {});
+    await recordGuildAudit(db, {
+      tenant: access.slug,
+      actor: ctx.user ? { discordId: String(ctx.user.discordId), name: String(ctx.user.name || '') } : null,
+      action: 'announcement.delete', targetType: 'announcement', targetId: id, targetLabel: row.title || '',
+    });
     return annOk(ctx, null);
   },
 

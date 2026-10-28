@@ -23,12 +23,14 @@ import type { Context } from '../platform/context.ts';
 import { vcOf } from '../platform/context.ts';
 import {
   ShellBase, defineTextGens, getGuildAdminAccess, getOfficerVerdict,
+  OFFICER_CAPABILITIES, hasCapability,
   getTenantSetting,
   setTenantSetting, getGameVersion, TYPE_TO_ENUM, PayloadBase, s,
   publishGroupingEvent,
 } from '../platform/graphql-base.ts';
-import type { OfficerVerdict } from '../platform/graphql-base.ts';
-import { governanceResultFor } from './governance-graphql.ts';
+import type { OfficerVerdict, OfficerCapability } from '../platform/graphql-base.ts';
+import { governanceResultFor, GuildAdminSectionLockedShell } from './governance-graphql.ts';
+import { recordGuildAudit } from './guild-audit.ts';
 import { fmtStartsAt } from '../platform/index.ts';
 import {
   getGuildAvatarMeta, avatarPath, putGuildAvatar,
@@ -79,6 +81,7 @@ import {
   reliabilityForAdmin, heatmapForAdmin, gearBoardForAdmin, raceBoardForViewer,
 } from './insights-graphql.ts';
 import { announcementPageForAdmin } from './announcements-graphql.ts';
+import { announcementPageForAdmin, announcementPageForMember } from './announcements-graphql.ts';
 import { SeasonChecklistShell, GuildRosterShell } from './season-graphql.ts';
 import { officerPageForAdmin } from './officer-graphql.ts';
 import { opsPageForAdmin } from './ops-graphql.ts';
@@ -88,7 +91,15 @@ export async function guildAdminResult(ctx: Context, slug: string) {
   // The VC rides along so the verdict can apply the omniscient
   // doctrine (see getGuildAdminAccess).
   const access = await getGuildAdminAccess(ctx.env.DB, ctx.user, slug, ctx.request, vcOf(ctx));
-  return new GuildAdminShell(ctx, access);
+  // P16: the officer verdict rides on the shell — a granted officer
+  // resolves the GuildAdmin type too (their gated sub-surfaces
+  // compose empty / locked per capability inside the shell), while
+  // a member with no grant keeps resolving GuildAdminLocked exactly
+  // as before.
+  const verdict = access.exists
+    ? await getOfficerVerdict(ctx.env.DB, ctx.user, slug, ctx.request, vcOf(ctx))
+    : null;
+  return new GuildAdminShell(ctx, { ...access, officerVerdict: verdict });
 }
 
 /* ---------------- sub shells (plain row carriers) ---------------- */
@@ -177,6 +188,7 @@ export class GuildAdminSchoolGuideShell extends ShellBase {
 export class GuildAdminSchoolGuidesShell extends ShellBase {
   genSchools(){
     return this.memo('schools', async () => {
+      if (this.data.denied) return [];
       const bis = await listSchoolBis(this.db);
       const rotations = await listSchoolRotations(this.db);
       const bySchool = new Map<string, any>();
@@ -691,21 +703,43 @@ export class GuildAdminShell extends ShellBase {
   __typename: string;
   constructor(ctx: Context, access: any){
     super(ctx, access);
-    this.__typename = access.isAdmin ? 'GuildAdmin' : 'GuildAdminLocked';
+    // GuildAdmin when the viewer is a Discord admin OR a granted
+    // officer (P16); the capability composition inside decides what
+    // an officer actually receives per sub-surface.
+    this.__typename = (access.isAdmin || access.officerVerdict?.isOfficer)
+      ? 'GuildAdmin' : 'GuildAdminLocked';
   }
   get access() { return this.data; }
+  /* The viewer's officer verdict, precomputed by guildAdminResult.
+   * The fallback (shells built without one) derives it from the
+   * admin access alone: admins hold everything, others nothing. */
+  verdictSync(): OfficerVerdict {
+    if (this.data.officerVerdict) return this.data.officerVerdict as OfficerVerdict;
+    const isAdmin = !!this.access.isAdmin;
+    return {
+      exists: !!this.access.exists, access: this.access, isAdmin,
+      isOfficer: isAdmin, capabilities: isAdmin ? [...OFFICER_CAPABILITIES] : [],
+    };
+  }
+  hasCap(capability: OfficerCapability): boolean {
+    return hasCapability(this.verdictSync(), capability);
+  }
   genSlug(){ return this.access.tenant ? this.access.tenant.slug : this.access.slug; }
   /* --- GuildAdmin content (never resolved on the Locked type) --- */
   genName(){ return this.access.tenant.guild_name; }
-  genAnnouncement(){ return this.access.tenant.announcement || ''; }
-  genSlogan(){ return this.access.tenant.slogan || ''; }
-  genMasterName(){ return this.access.tenant.master_name || ''; }
-  genLogoUrl(){ return this.access.tenant.logo_url || ''; }
-  genBgImageUrl(){ return this.access.tenant.bg_image_url || ''; }
+  /* Profile settings values are the 'profile' capability's surface:
+   * an officer without it receives the neutral composition (the
+   * guild name itself is public card data and stays). */
+  genAnnouncement(){ return this.hasCap('profile') ? (this.access.tenant.announcement || '') : ''; }
+  genSlogan(){ return this.hasCap('profile') ? (this.access.tenant.slogan || '') : ''; }
+  genMasterName(){ return this.hasCap('profile') ? (this.access.tenant.master_name || '') : ''; }
+  genLogoUrl(){ return this.hasCap('profile') ? (this.access.tenant.logo_url || '') : ''; }
+  genBgImageUrl(){ return this.hasCap('profile') ? (this.access.tenant.bg_image_url || '') : ''; }
   genAvatarMeta(){
     return this.memo('avatarMeta', () => getGuildAvatarMeta(this.db, this.genSlug()).catch(() => null));
   }
   async genAvatarUrl(){
+    if (!this.hasCap('profile')) return null;
     const meta = await this.genAvatarMeta();
     if (!meta) return null;
     let origin = '';
@@ -713,12 +747,16 @@ export class GuildAdminShell extends ShellBase {
     return origin + avatarPath(this.genSlug(), meta.hash);
   }
   async genAvatarUpdatedAt(){
+    if (!this.hasCap('profile')) return null;
     const meta = await this.genAvatarMeta();
     return meta ? String(meta.updatedAt) : null;
   }
-  genDiscordGuildId(){ return this.access.discordGuildId || ''; }
-  genReminderWebhookSet(){ return !!(this.access.tenant.discord_webhook || '').trim(); }
+  /* Discord + reminder + white-label settings are the 'discord'
+   * capability's surface (they share the Discord admin tab). */
+  genDiscordGuildId(){ return this.hasCap('discord') ? (this.access.discordGuildId || '') : ''; }
+  genReminderWebhookSet(){ return this.hasCap('discord') && !!(this.access.tenant.discord_webhook || '').trim(); }
   genReminderWebhookId(){
+    if (!this.hasCap('discord')) return null;
     const m = /webhooks\/(\d+)\//.exec(this.access.tenant.discord_webhook || '');
     return m ? m[1] : null;
   }
@@ -728,30 +766,39 @@ export class GuildAdminShell extends ShellBase {
   /* Advanced reminders: configured lead offsets (default [10] when
    * unset) and the custom embed line ('' = none). */
   async genReminderOffsets(){
+    if (!this.hasCap('discord')) return [];
     return getReminderOffsets(this.db, this.genSlug());
   }
   async genReminderCustomText(){
+    if (!this.hasCap('discord')) return '';
     return getReminderCustomText(this.db, this.genSlug());
   }
   genDevOnly(){ return !!this.access.devOnly; }
   genGameVersion(){ return this.ctxMemo('gameVersion', () => getGameVersion(this.db)); }
   genEvents(){
     return this.memo('events', async () => {
+      if (!this.hasCap('events')) return [];
       const rows = await listEventsAdmin(this.db, this.genSlug());
       return rows.map((r: any) => new GuildAdminEventShell(this.ctx, r));
     });
   }
-  genSchoolGuides(){ return new GuildAdminSchoolGuidesShell(this.ctx, {}); }
+  genSchoolGuides(){ return new GuildAdminSchoolGuidesShell(this.ctx, { denied: !this.hasCap('guides') }); }
   /* Announcements (F9/F10/F18): the admin variant of the announcement
    * page — compose form copy, remaining daily quota and per-post read
    * receipts. Only on the GuildAdmin type: GuildAdminLocked never
    * resolves it, the verdict is the type. */
-  genAnnouncements(){ return announcementPageForAdmin(this.ctx, this.genSlug()); }
+  genAnnouncements(){
+    // Without the announce capability the admin variant (compose +
+    // receipts + quota) must not compose: the member variant is the
+    // zero composition — the same list members see, nothing more.
+    if (!this.hasCap('announce')) return announcementPageForMember(this.ctx, this.genSlug());
+    return announcementPageForAdmin(this.ctx, this.genSlug());
+  }
   /* Season surface (F23 checklist + F25 roster): free features,
    * composed in season-graphql.ts; shells are lazy like every other
    * admin field, so unselected season data costs nothing. */
-  genSeasonChecklist(){ return new SeasonChecklistShell(this.ctx, { slug: this.genSlug() }); }
-  genRoster(){ return new GuildRosterShell(this.ctx, { slug: this.genSlug() }); }
+  genSeasonChecklist(){ return new SeasonChecklistShell(this.ctx, { slug: this.genSlug(), denied: !this.hasCap('season') }); }
+  genRoster(){ return new GuildRosterShell(this.ctx, { slug: this.genSlug(), denied: !this.hasCap('season') }); }
   /* Officer tools (F12/F11/F19, free — no gate): member notes, the
    * guild data export and the season-goal overview, composed as one
    * page object. Only on the GuildAdmin type, like announcements. */
@@ -771,12 +818,14 @@ export class GuildAdminShell extends ShellBase {
   genParticipationHeatmap(){ return this.memo('heatmap', () => heatmapForAdmin(this.ctx, this.genSlug())); }
   genGearBoard(){ return this.memo('gearBoard', () => gearBoardForAdmin(this.ctx, this.genSlug())); }
   genRaceSeasonBoard(){ return this.memo('raceBoard', () => raceBoardForViewer(this.ctx, this.genSlug())); }
+  genOfficer(){ return officerPageForAdmin(this.ctx, this.genSlug(), !this.hasCap('officer')); }
   /* Officer verdict for this viewer in this guild (P16): memoized —
    * the governance composition, the viewer's capability list and
    * (from the capability-enforcement change on) every gated sub-
    * surface read this one verdict. */
   genOfficerVerdict(): Promise<OfficerVerdict> {
-    return this.memo('officerVerdict', () =>
+    if (this.data.officerVerdict) return Promise.resolve(this.data.officerVerdict as OfficerVerdict);
+    return this.memo('officerVerdictComputed', () =>
       getOfficerVerdict(this.db, this.ctx.user, this.genSlug(), this.ctx.request, vcOf(this.ctx)));
   }
   async genViewerCapabilities(): Promise<string[]> {
@@ -790,6 +839,9 @@ export class GuildAdminShell extends ShellBase {
   }
   genStats(){
     return this.memo('stats', async () => {
+      // Capability gate (P16) first: an officer without the stats
+      // capability gets the section-locked variant.
+      if (!this.hasCap('stats')) return new GuildAdminSectionLockedShell(this.ctx, {});
       // Premium read gate: gated guilds get the locked variant —
       // the computed stats are never even produced for them.
       if (await premiumGate(this.db, this.genSlug())) return new GuildAdminStatsLockedShell(this.ctx, {});
@@ -806,6 +858,10 @@ export class GuildAdminShell extends ShellBase {
    * above 0 and pastDue rides along for the notice). */
   genPremium(){
     return this.memo('premium', async () => {
+      // The premium panel rides the profile tab: an officer without
+      // the profile capability gets the surface's absence, as today
+      // when the master switch is off.
+      if (!this.hasCap('profile')) return null;
       if (!(await isPaygateEnabled(this.db))) return null;
       const eff = await getEffectiveEntitlement(this.db, this.genSlug());
       if (eff.tier > 0) {
@@ -840,12 +896,15 @@ export class GuildAdminShell extends ShellBase {
     return this.memo('whiteLabel', () => getWhiteLabelSettings(this.db, this.genSlug()));
   }
   async genWhiteLabelHideBranding(){
+    if (!this.hasCap('discord')) return false;
     return (await this.genWhiteLabel()).hideBranding;
   }
   async genOgAccent(){
+    if (!this.hasCap('discord')) return '';
     return (await this.genWhiteLabel()).ogAccent;
   }
   async genOgTitleSuffix(){
+    if (!this.hasCap('discord')) return '';
     return (await this.genWhiteLabel()).ogTitleSuffix;
   }
   genOgAccentOptions(){
@@ -865,12 +924,14 @@ export class GuildAdminShell extends ShellBase {
   /* Activity tools (F21, free — no gate). */
   genLotteries(){
     return this.memo('lotteries', async () => {
+      if (!this.hasCap('tools')) return [];
       const rows = await listLotteries(this.db, this.genSlug());
       return rows.map((r) => new GuildAdminLotteryShell(this.ctx, r));
     });
   }
   genLotteryRoster(){
     return this.memo('lotteryRoster', async () => {
+      if (!this.hasCap('tools')) return [];
       const rows = await listGuildMembers(this.db, this.genSlug());
       return rows.map((r) => new GuildAdminLotteryMemberShell(this.ctx, r));
     });
@@ -884,21 +945,24 @@ export class GuildAdminShell extends ShellBase {
    * only an open guild appears in the platform-home recruit
    * directory and accepts applications. The write path is
    * updateGuildRecruitOpen below. */
-  genRecruitOpen(){ return Number(this.access.tenant?.recruit_open || 0) === 1; }
+  genRecruitOpen(){ return this.hasCap('recruit') && Number(this.access.tenant?.recruit_open || 0) === 1; }
   genRecruitApplications(){
     return this.memo('recruitApplications', async () => {
+      if (!this.hasCap('recruit')) return [];
       const rows = await listApplicationsByTenant(this.db, this.genSlug());
       return rows.map((r) => new RecruitApplicationShell(this.ctx, r));
     });
   }
   genRecruitPairings(){
     return this.memo('recruitPairings', async () => {
+      if (!this.hasCap('recruit')) return [];
       const rows = await listPairingsByTenant(this.db, this.genSlug());
       return rows.map((r) => new MentorPairingShell(this.ctx, r));
     });
   }
   genRecruitRoster(){
     return this.memo('recruitRoster', async () => {
+      if (!this.hasCap('recruit')) return [];
       const rows = await listGuildMembers(this.db, this.genSlug());
       const mentors = new Set(await listMentorIds(this.db, this.genSlug()));
       const out = [];
@@ -918,6 +982,7 @@ export class GuildAdminShell extends ShellBase {
    * done first. Members who finished everything drop off the list. */
   genNewcomerProgress(){
     return this.memo('newcomerProgress', async () => {
+      if (!this.hasCap('recruit')) return [];
       const rows = await listGuildMembers(this.db, this.genSlug());
       const out = [];
       for (const r of rows || []) {
@@ -1153,6 +1218,29 @@ async function adminGate(ctx: Context, slug: string) {
   return { access: a };
 }
 
+/* Capability gate (P16): like adminGate, but a granted officer
+ * holding the named capability passes for that surface's writes.
+ * Denial codes preserve the pre-P16 surface exactly for callers who
+ * hold nothing (adminOnly, as every harness pins); an officer who
+ * holds some OTHER capability gets capabilityRequired, which names
+ * the actual problem. Discord admins pass every capability by
+ * construction, so admin behavior is unchanged. Surfaces whose
+ * writes stay admin-only by design (visibility, premium checkout,
+ * officer grants) keep using adminGate. */
+async function capGate(ctx: Context, slug: string, capability: OfficerCapability) {
+  const v = await getOfficerVerdict(ctx.env.DB, ctx.user, slug, ctx.request, vcOf(ctx));
+  if (!v.exists) return { fail: aFail(ctx, 'guildNotFound') };
+  if (!hasCapability(v, capability)) {
+    return { fail: aFail(ctx, v.isOfficer ? 'capabilityRequired' : 'adminOnly') };
+  }
+  return { access: v.access, verdict: v };
+}
+
+/* Audit actor snapshot for the guild log (P17). */
+const auditActorOf = (ctx: Context) => (ctx.user
+  ? { discordId: String(ctx.user.discordId), name: String(ctx.user.name || '') }
+  : null);
+
 const ENUM_TO_TYPE: Record<string, string> = { ACTIVITY: 'activity', TALENT: 'talent', RACE: 'race', TOWER: 'tower' };
 const WEBHOOK_RE = /^https:\/\/discord\.com\/api\/webhooks\/\d+\/[\w-]+$/;
 const DGID_RE = /^\d{5,25}$/;
@@ -1165,7 +1253,7 @@ function nudgeHub(ctx: Context, slug: string) {
 
 export const guildAdminMutations = {
   updateGuildProfile: async (_: any, { slug, input }: any, ctx: Context) => {
-    const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
+    const g = await capGate(ctx, slug, 'profile'); if (g.fail) return g.fail;
     const t = g.access.tenant;
     const name = input.name != null ? s(input.name, 20) : t.guild_name;
     if (String(name).trim().length < 2) return aFail(ctx, 'guildNameShort');
@@ -1177,11 +1265,15 @@ export const guildAdminMutations = {
       logoUrl: input.logoUrl != null ? s(input.logoUrl, 300) : (t.logo_url || ''),
       bgImageUrl: input.bgImageUrl != null ? s(input.bgImageUrl, 300) : (t.bg_image_url || ''),
     });
+    await recordGuildAudit(ctx.env.DB, {
+      tenant: g.access.slug, actor: auditActorOf(ctx), action: 'profile.update',
+      targetType: 'guild', targetLabel: String(name),
+    });
     return aOk(ctx);
   },
 
   updateGuildDiscord: async (_: any, { slug, input }: any, ctx: Context) => {
-    const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
+    const g = await capGate(ctx, slug, 'discord'); if (g.fail) return g.fail;
     const db = ctx.env.DB;
     let webhookChanged = false;
     if (input.webhook != null) {
@@ -1196,6 +1288,12 @@ export const guildAdminMutations = {
       await setTenantSetting(db, g.access.slug, 'discord_guild_id', d);
     }
     if (webhookChanged) nudgeHub(ctx, g.access.slug);
+    if (input.webhook != null || input.discordGuildId != null) {
+      await recordGuildAudit(db, {
+        tenant: g.access.slug, actor: auditActorOf(ctx), action: 'discord.update',
+        targetType: 'guild',
+      });
+    }
     return aOk(ctx);
   },
 
@@ -1203,7 +1301,7 @@ export const guildAdminMutations = {
    * of the presets; empty = no beats) + the custom embed line.
    * Always nudges the hub — the alarm schedule depends on these. */
   updateGuildReminderSettings: async (_: any, { slug, offsets, customText }: any, ctx: Context) => {
-    const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
+    const g = await capGate(ctx, slug, 'discord'); if (g.fail) return g.fail;
     // Premium write gate (advanced reminder settings).
     if (await premiumGate(ctx.env.DB, g.access.slug)) return aFail(ctx, 'premiumRequired');
     const db = ctx.env.DB;
@@ -1214,13 +1312,17 @@ export const guildAdminMutations = {
       await setTenantSetting(db, g.access.slug, 'reminder_custom_text', sanitizeReminderCustomText(customText));
     }
     nudgeHub(ctx, g.access.slug);
+    await recordGuildAudit(db, {
+      tenant: g.access.slug, actor: auditActorOf(ctx), action: 'reminder.update',
+      targetType: 'guild',
+    });
     return aOk(ctx);
   },
 
   /* White-label+: branding toggle + OG share-card accent (palette
    * key only — free-form colors are rejected) + title suffix. */
   updateGuildWhiteLabel: async (_: any, { slug, hideBranding, ogAccent, ogTitleSuffix }: any, ctx: Context) => {
-    const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
+    const g = await capGate(ctx, slug, 'discord'); if (g.fail) return g.fail;
     // Premium write gate (white-label settings).
     if (await premiumGate(ctx.env.DB, g.access.slug)) return aFail(ctx, 'premiumRequired');
     const accent = String(ogAccent ?? '').trim();
@@ -1229,6 +1331,10 @@ export const guildAdminMutations = {
       hideBranding: !!hideBranding,
       ogAccent: accent,
       ogTitleSuffix: sanitizeOgTitleSuffix(ogTitleSuffix),
+    });
+    await recordGuildAudit(ctx.env.DB, {
+      tenant: g.access.slug, actor: auditActorOf(ctx), action: 'whitelabel.update',
+      targetType: 'guild',
     });
     return aOk(ctx);
   },
@@ -1323,6 +1429,10 @@ export const guildAdminMutations = {
   updateGuildVisibility: async (_: any, { slug, devOnly }: any, ctx: Context) => {
     const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
     await setTenantSetting(ctx.env.DB, g.access.slug, 'dev_only', devOnly ? '1' : '');
+    await recordGuildAudit(ctx.env.DB, {
+      tenant: g.access.slug, actor: auditActorOf(ctx), action: 'visibility.update',
+      targetType: 'guild',
+    });
     return aOk(ctx);
   },
 
@@ -1332,13 +1442,17 @@ export const guildAdminMutations = {
    * the guild, while pending applications stay reviewable and
    * members' newcomer entries are untouched. */
   updateGuildRecruitOpen: async (_: any, { slug, open }: any, ctx: Context) => {
-    const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
+    const g = await capGate(ctx, slug, 'recruit'); if (g.fail) return g.fail;
     await updateTenantRecruitOpen(ctx.env.DB, g.access.slug, !!open);
+    await recordGuildAudit(ctx.env.DB, {
+      tenant: g.access.slug, actor: auditActorOf(ctx), action: 'recruit.open',
+      targetType: 'guild', targetId: open ? 'open' : 'closed',
+    });
     return aOk(ctx);
   },
 
   setGuildAvatar: async (_: any, { slug, dataBase64 }: any, ctx: Context) => {
-    const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
+    const g = await capGate(ctx, slug, 'profile'); if (g.fail) return g.fail;
     const db = ctx.env.DB;
     const raw = String(dataBase64 || '').replace(/^data:[^,]*,/, '').replace(/\s+/g, '');
     if (!raw) return aFail(ctx, 'avatarEmpty');
@@ -1355,19 +1469,27 @@ export const guildAdminMutations = {
     const type = sniffAvatarType(bytes);
     if (!type) return aFail(ctx, 'avatarBadType');
     const meta = await putGuildAvatar(db, g.access.slug, type, bytes);
+    await recordGuildAudit(db, {
+      tenant: g.access.slug, actor: auditActorOf(ctx), action: 'avatar.set',
+      targetType: 'guild',
+    });
     let origin = '';
     try { origin = new URL(ctx.request.url).origin; } catch { /* relative fallback */ }
     return aOk(ctx, { avatarUrl: origin + avatarPath(g.access.slug, meta.hash) });
   },
 
   deleteGuildAvatar: async (_: any, { slug }: any, ctx: Context) => {
-    const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
+    const g = await capGate(ctx, slug, 'profile'); if (g.fail) return g.fail;
     await deleteGuildAvatarRepo(ctx.env.DB, g.access.slug);
+    await recordGuildAudit(ctx.env.DB, {
+      tenant: g.access.slug, actor: auditActorOf(ctx), action: 'avatar.delete',
+      targetType: 'guild',
+    });
     return aOk(ctx);
   },
 
   createAdminEvent: async (_: any, { slug, input }: any, ctx: Context) => {
-    const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
+    const g = await capGate(ctx, slug, 'events'); if (g.fail) return g.fail;
     const db = ctx.env.DB;
     const title = s(input.title, 60);
     if (!title) return aFail(ctx, 'titleRequired');
@@ -1396,11 +1518,15 @@ export const guildAdminMutations = {
     }).catch(() => {});
     if (ctx.executionCtx && typeof ctx.executionCtx.waitUntil === 'function') ctx.executionCtx.waitUntil(notice);
     publishGroupingEvent(ctx, g.access.slug, r.last_row_id, 'created');
+    await recordGuildAudit(db, {
+      tenant: g.access.slug, actor: auditActorOf(ctx), action: 'event.create',
+      targetType: 'event', targetId: r.last_row_id, targetLabel: title,
+    });
     return aOk(ctx, { id: r.last_row_id });
   },
 
   updateAdminEvent: async (_: any, { slug, eventId, input }: any, ctx: Context) => {
-    const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
+    const g = await capGate(ctx, slug, 'events'); if (g.fail) return g.fail;
     const db = ctx.env.DB;
     const owned = await getEventRowByTenant(db, parseInt(eventId, 10), g.access.slug);
     if (!owned) return aFail(ctx, 'groupingNotFound');
@@ -1420,30 +1546,45 @@ export const guildAdminMutations = {
     if (!Object.keys(fields).length) return aFail(ctx, 'noFieldsToUpdate');
     await updateEventFields(db, owned.id, g.access.slug, fields);
     publishGroupingEvent(ctx, g.access.slug, owned.id, 'updated');
+    await recordGuildAudit(db, {
+      tenant: g.access.slug, actor: auditActorOf(ctx), action: 'event.update',
+      targetType: 'event', targetId: owned.id, targetLabel: owned.title || '',
+    });
+    publishGroupingEvent(ctx, g.access.slug, owned.id, 'updated');
     return aOk(ctx);
   },
 
   deleteAdminEvent: async (_: any, { slug, eventId }: any, ctx: Context) => {
-    const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
+    const g = await capGate(ctx, slug, 'events'); if (g.fail) return g.fail;
     const db = ctx.env.DB;
-    const owned = await getEventIdByTenant(db, parseInt(eventId, 10), g.access.slug);
+    const owned = await getEventRowByTenant(db, parseInt(eventId, 10), g.access.slug);
     if (!owned) return aFail(ctx, 'groupingNotFound');
     await deleteEventCascade(db, owned.id, g.access.slug);
+    publishGroupingEvent(ctx, g.access.slug, owned.id, 'deleted');
+    await recordGuildAudit(db, {
+      tenant: g.access.slug, actor: auditActorOf(ctx), action: 'event.delete',
+      targetType: 'event', targetId: owned.id, targetLabel: owned.title || '',
+    });
     publishGroupingEvent(ctx, g.access.slug, owned.id, 'deleted');
     return aOk(ctx);
   },
 
   removeEventSignup: async (_: any, { slug, signupId }: any, ctx: Context) => {
-    const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
+    const g = await capGate(ctx, slug, 'events'); if (g.fail) return g.fail;
     const db = ctx.env.DB;
     const owned = await getSignupTenant(db, parseInt(signupId, 10), g.access.slug);
     if (!owned) return aFail(ctx, 'signupNotFound');
+    await deleteSignupById(db, owned.id);
+    await recordGuildAudit(db, {
+      tenant: g.access.slug, actor: auditActorOf(ctx), action: 'signup.remove',
+      targetType: 'signup', targetId: owned.id,
+    });
     await deleteSignupById(db, owned.id);
     return aOk(ctx);
   },
 
   addEventResult: async (_: any, { slug, eventId, input }: any, ctx: Context) => {
-    const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
+    const g = await capGate(ctx, slug, 'events'); if (g.fail) return g.fail;
     const db = ctx.env.DB;
     const ev = await getEventIdByTenant(db, parseInt(eventId, 10), g.access.slug);
     if (!ev) return aFail(ctx, 'groupingNotFound');
@@ -1456,14 +1597,23 @@ export const guildAdminMutations = {
       members: String(input.members || ''), timeMs,
       proofUrl: String(input.proofUrl || ''), note: String(input.note || ''),
     });
+    await recordGuildAudit(db, {
+      tenant: g.access.slug, actor: auditActorOf(ctx), action: 'result.add',
+      targetType: 'result', targetId: r.last_row_id, targetLabel: teamName,
+    });
     return aOk(ctx, { id: r.last_row_id });
   },
 
   deleteEventResult: async (_: any, { slug, resultId }: any, ctx: Context) => {
-    const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
+    const g = await capGate(ctx, slug, 'events'); if (g.fail) return g.fail;
     const db = ctx.env.DB;
     const owned = await getResultIdOwnedByTenant(db, parseInt(resultId, 10), g.access.slug);
     if (!owned) return aFail(ctx, 'resultNotFound');
+    await deleteResultById(db, owned.id);
+    await recordGuildAudit(db, {
+      tenant: g.access.slug, actor: auditActorOf(ctx), action: 'result.delete',
+      targetType: 'result', targetId: owned.id,
+    });
     await deleteResultById(db, owned.id);
     return aOk(ctx);
   },
@@ -1476,7 +1626,7 @@ export const guildAdminMutations = {
    * weights. Weights are plain integers 1..1000 — deliberately no
    * points/attendance linkage (that is a paid-layer concern). */
   createLottery: async (_: any, { slug, input }: any, ctx: Context) => {
-    const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
+    const g = await capGate(ctx, slug, 'tools'); if (g.fail) return g.fail;
     const db = ctx.env.DB;
     const title = s(input.title, 60);
     if (!title) return aFail(ctx, 'lotteryTitleRequired');
@@ -1533,6 +1683,10 @@ export const guildAdminMutations = {
     for (const e of entries) {
       await insertLotteryEntry(db, { lotteryId: r.last_row_id, ...e });
     }
+    await recordGuildAudit(db, {
+      tenant: g.access.slug, actor: auditActorOf(ctx), action: 'lottery.create',
+      targetType: 'lottery', targetId: r.last_row_id, targetLabel: title,
+    });
     return aOk(ctx, { id: r.last_row_id });
   },
 
@@ -1541,7 +1695,7 @@ export const guildAdminMutations = {
    * the lottery row, its frozen entries and the winner rows are the
    * permanent record. A drawn lottery can never be drawn again. */
   drawLottery: async (_: any, { slug, lotteryId }: any, ctx: Context) => {
-    const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
+    const g = await capGate(ctx, slug, 'tools'); if (g.fail) return g.fail;
     const db = ctx.env.DB;
     const lot = await getLotteryByTenant(db, parseInt(String(lotteryId), 10) || 0, g.access.slug);
     if (!lot) return aFail(ctx, 'lotteryNotFound');
@@ -1555,6 +1709,11 @@ export const guildAdminMutations = {
         lotteryId: lot.id, discordId: w.discord_id, displayName: w.display_name, drawnAt: now,
       });
     }
+    await markLotteryDrawn(db, lot.id, now);
+    await recordGuildAudit(db, {
+      tenant: g.access.slug, actor: auditActorOf(ctx), action: 'lottery.draw',
+      targetType: 'lottery', targetId: lot.id, targetLabel: lot.title || '',
+    });
     await markLotteryDrawn(db, lot.id, now);
     return aOk(ctx, { id: lot.id });
   },
@@ -1573,7 +1732,7 @@ export const guildAdminMutations = {
    * recruit.ts), and the applicant's page states the remaining
    * Discord-side step verbatim. */
   reviewGuildApplication: async (_: any, { slug, applicationId, approve }: any, ctx: Context) => {
-    const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
+    const g = await capGate(ctx, slug, 'recruit'); if (g.fail) return g.fail;
     const db = ctx.env.DB;
     const app = await getApplicationByTenant(db, parseInt(String(applicationId), 10) || 0, g.access.slug);
     if (!app) return aFail(ctx, 'applicationNotFound');
@@ -1591,13 +1750,18 @@ export const guildAdminMutations = {
         : null;
       await upsertGuildMember(db, g.access.slug, app.discord_id, nick || '', app.applicant_name || '');
     }
+    await recordGuildAudit(db, {
+      tenant: g.access.slug, actor: auditActorOf(ctx),
+      action: approve ? 'application.approve' : 'application.reject',
+      targetType: 'application', targetId: app.id, targetLabel: app.applicant_name || '',
+    });
     return aOk(ctx, { id: app.id });
   },
 
   /* F17 mentor designation: the target must be on this guild's
    * roster. Undesignating never touches existing pairings. */
   setGuildMentor: async (_: any, { slug, discordId, isMentor }: any, ctx: Context) => {
-    const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
+    const g = await capGate(ctx, slug, 'recruit'); if (g.fail) return g.fail;
     const db = ctx.env.DB;
     const target = String(discordId || '');
     if (isMentor) {
@@ -1607,6 +1771,11 @@ export const guildAdminMutations = {
     } else {
       await deleteMentor(db, g.access.slug, target);
     }
+    await recordGuildAudit(db, {
+      tenant: g.access.slug, actor: auditActorOf(ctx),
+      action: isMentor ? 'mentor.set' : 'mentor.unset',
+      targetType: 'member', targetId: target,
+    });
     return aOk(ctx);
   },
 
@@ -1616,7 +1785,7 @@ export const guildAdminMutations = {
    * (re-pairing = end the old one first — the partial unique index
    * backstops the check). Display names snapshot from the roster. */
   createMentorPairing: async (_: any, { slug, mentorDiscordId, menteeDiscordId }: any, ctx: Context) => {
-    const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
+    const g = await capGate(ctx, slug, 'recruit'); if (g.fail) return g.fail;
     const db = ctx.env.DB;
     const mentorId = String(mentorDiscordId || '');
     const menteeId = String(menteeDiscordId || '');
@@ -1643,23 +1812,31 @@ export const guildAdminMutations = {
     } catch {
       return aFail(ctx, 'menteeAlreadyPaired');
     }
+    await recordGuildAudit(db, {
+      tenant: g.access.slug, actor: auditActorOf(ctx), action: 'pairing.create',
+      targetType: 'pairing', targetId: id, targetLabel: nameOf(menteeRow),
+    });
     return aOk(ctx, { id });
   },
 
   /* F17 pairing end: settles the row (status + ended_at), never
    * deletes it — the ended pairing stays in the list as history. */
   endMentorPairing: async (_: any, { slug, pairingId }: any, ctx: Context) => {
-    const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
+    const g = await capGate(ctx, slug, 'recruit'); if (g.fail) return g.fail;
     const db = ctx.env.DB;
     const pairing = await getPairingByTenant(db, parseInt(String(pairingId), 10) || 0, g.access.slug);
     if (!pairing) return aFail(ctx, 'pairingNotFound');
     const ended = await endPairing(db, pairing.id, g.access.slug, Math.floor(Date.now() / 1000));
     if (!ended.changes) return aFail(ctx, 'pairingAlreadyEnded');
+    await recordGuildAudit(db, {
+      tenant: g.access.slug, actor: auditActorOf(ctx), action: 'pairing.end',
+      targetType: 'pairing', targetId: pairing.id, targetLabel: pairing.mentee_name || '',
+    });
     return aOk(ctx, { id: pairing.id });
   },
 
   updateSchoolGuide: async (_: any, { slug, input }: any, ctx: Context) => {
-    const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
+    const g = await capGate(ctx, slug, 'guides'); if (g.fail) return g.fail;
     const db = ctx.env.DB;
     const school = s(input.school, 30);
     if (!school) return aFail(ctx, 'schoolRequired');
@@ -1675,6 +1852,10 @@ export const guildAdminMutations = {
     if (input.rotationJson != null) {
       await upsertSchoolRotation(db, { school, rotationJson: String(input.rotationJson) });
     }
+    await recordGuildAudit(db, {
+      tenant: g.access.slug, actor: auditActorOf(ctx), action: 'guide.update',
+      targetType: 'guide', targetId: school, targetLabel: school,
+    });
     return aOk(ctx);
   },
 };
