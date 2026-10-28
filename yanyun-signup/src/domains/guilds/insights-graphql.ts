@@ -97,6 +97,7 @@ export class GuildAdminHeatmapShell extends ShellBase {
   genTotalAttended(){ return this.data.totalAttended; }
   genPeakCount(){ return this.data.peakCount; }
   genTotalText(){ return this.t('guildAdmin_insightsHeatmapTotal', { count: this.data.totalAttended }); }
+  genWeekdayLabels(){ return WEEKDAY_KEYS.map((k) => this.t(k)); }
   genCells(){
     return this.data.cells.map((c: HeatmapCell) => new HeatmapCellShell(this.ctx, c));
   }
@@ -260,6 +261,7 @@ export const guildInsightsTypes = {
     totalAttended: (p: GuildAdminHeatmapShell) => p.genTotalAttended(),
     peakCount: (p: GuildAdminHeatmapShell) => p.genPeakCount(),
     totalText: (p: GuildAdminHeatmapShell) => p.genTotalText(),
+    weekdayLabels: (p: GuildAdminHeatmapShell) => p.genWeekdayLabels(),
     cells: (p: GuildAdminHeatmapShell) => p.genCells(),
   },
   ParticipationHeatmapCell: {

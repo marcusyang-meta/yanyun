@@ -2884,6 +2884,7 @@ type GuildAdminParticipationHeatmap {
   totalAttended: Int!
   peakCount: Int!
   totalText: String!
+  weekdayLabels: [String!]!
   cells: [ParticipationHeatmapCell!]!
 }
 
