@@ -35,6 +35,7 @@ type Seat {
 type Dungeon {
   id: ID!
   name: String!
+  sealText: String!
   version: String!
   playerCount: Int!
   size: Int!
@@ -85,6 +86,7 @@ type Query {
   tiaolvPage: TiaolvPage!
   gradPage: GradPage!
   settingsPage: SettingsPage!
+  guildSchedulePage(slug: String!): GuildSchedulePage!
   viewer: Viewer!
   slugAvailable(slug: String!): Boolean!
   ogGuildCard(slug: String!): OgGuildCard!
@@ -356,6 +358,15 @@ type GroupingListPage {
   formToastPosted: String!
   formToastCreateFailedTemplate: String!
   formTitleTemplate: String!
+  formCustomFieldsTitle: String!
+  formCustomFieldAddLabel: String!
+  formCustomFieldLabelPlaceholder: String!
+  formCustomFieldTypeText: String!
+  formCustomFieldTypeChoice: String!
+  formCustomFieldOptionsPlaceholder: String!
+  formCustomFieldRequiredLabel: String!
+  formCustomFieldRemoveLabel: String!
+  formCustomFieldEmptyText: String!
   templateSectionTitle: String!
   templateNameLabel: String!
   templateNamePlaceholder: String!
@@ -374,6 +385,39 @@ type GroupingListPage {
   templateMetaTemplate: String!
 }
 
+enum CustomFieldType {
+  TEXT
+  CHOICE
+}
+
+type CustomField {
+  id: ID!
+  label: String!
+  fieldType: CustomFieldType!
+  options: [String!]!
+  required: Boolean!
+}
+
+input CustomFieldInput {
+  label: String!
+  fieldType: CustomFieldType!
+  options: [String!]
+  required: Boolean
+}
+
+input SignupAnswerInput {
+  fieldId: ID!
+  value: String!
+}
+
+type RosterAnswer {
+  uid: String!
+  nickname: String!
+  fieldId: ID!
+  fieldLabel: String!
+  value: String!
+}
+
 type GroupingTemplate {
   id: ID!
   name: String!
@@ -388,6 +432,7 @@ type GroupingTemplate {
   creatorDiscordId: String
   creatorName: String
   manageActions: GroupingTemplateManageActions
+  customFields: [CustomField!]!
 }
 
 type GroupingTemplateManageActions {
@@ -421,6 +466,7 @@ input GroupingTemplateInput {
   startsInDays: Int!
   startHour: Int!
   startMinute: Int!
+  customFields: [CustomFieldInput!]
 }
 
 input CreateGroupingTemplateInput {
@@ -432,6 +478,7 @@ input CreateGroupingTemplateInput {
   startsInDays: Int!
   startHour: Int!
   startMinute: Int!
+  customFields: [CustomFieldInput!]
 }
 
 input SaveGroupingTemplateInput {
@@ -451,6 +498,7 @@ type Grouping {
   maxSlots: Int!
   status: String!
   creatorDiscordId: String
+  customFields: [CustomField!]!
 }
 
 type GroupingDetailPage {
@@ -459,6 +507,8 @@ type GroupingDetailPage {
   blocks(blocksVersion: Int): [Block!]!
   manageActions: GroupingManageActions
   templateSave: GroupingTemplateSave
+  rosterAnswers: [RosterAnswer!]
+  rosterAnswersTitle: String!
   detailNotFoundText: String!
   detailBackToListLabel: String!
   detailShareLabel: String!
@@ -561,6 +611,15 @@ type GroupingDetailPage {
   formToastPosted: String!
   formToastCreateFailedTemplate: String!
   formTitleTemplate: String!
+  formCustomFieldsTitle: String!
+  formCustomFieldAddLabel: String!
+  formCustomFieldLabelPlaceholder: String!
+  formCustomFieldTypeText: String!
+  formCustomFieldTypeChoice: String!
+  formCustomFieldOptionsPlaceholder: String!
+  formCustomFieldRequiredLabel: String!
+  formCustomFieldRemoveLabel: String!
+  formCustomFieldEmptyText: String!
 }
 
 type GroupingManageActions {
@@ -577,6 +636,7 @@ type GroupingManageActions {
 }
 
 type DexPage {
+  sectOptions: [SectOption!]!
   current: [Dungeon!]!
   past: [Dungeon!]!
   currentVersion: String!
@@ -640,8 +700,14 @@ type SlotAffix {
   affixKey: String!
 }
 
+type SectGroup {
+  key: String!
+  label: String!
+}
+
 type SectPage {
   sects: [Sect!]!
+  sectGroups: [SectGroup!]!
   sectEmptyText: String!
   sectBackLabel: String!
   sectTabBisLabel: String!
@@ -680,6 +746,7 @@ type SectPage {
 
 type Sect {
   slug: String!
+  groupKey: String!
   name: String!
   weapons: String!
   buildType: String!
@@ -734,10 +801,31 @@ type RateTargets {
   note: String
 }
 
+type TiaolvVocabOption {
+  id: String!
+  label: String!
+  isDefault: Boolean!
+}
+
+type TiaolvTuneRow {
+  row: Int!
+  label: String!
+}
+
+type TiaolvSectWuxue {
+  sectSlug: String!
+  wuxue: String!
+}
+
 type TiaolvPage {
   sects: [SectOption!]!
   innerSkills: [String!]!
   suits: [String!]!
+  tlSuitOptions: [TiaolvVocabOption!]!
+  tlBowOptions: [TiaolvVocabOption!]!
+  tlWukuOptions: [TiaolvVocabOption!]!
+  tlTuneRows: [TiaolvTuneRow!]!
+  tlSectWuxue: [TiaolvSectWuxue!]!
   maxValues: TiaolvMaxValues!
   sectWeights: [SectWeight!]!
   tlIntroText: String!
@@ -773,6 +861,16 @@ type SettingsPage {
   settingsLangEsLabel: String!
   settingsLangFrLabel: String!
   settingsSavedText: String!
+  feedbackEntryLabel: String!
+  feedbackTitle: String!
+  feedbackCategoryLabel: String!
+  feedbackCategoryProblemLabel: String!
+  feedbackCategorySuggestionLabel: String!
+  feedbackCategoryOtherLabel: String!
+  feedbackPlaceholder: String!
+  feedbackSubmitLabel: String!
+  feedbackSubmittingLabel: String!
+  feedbackSuccessText: String!
   localePref: String
   effectiveLocale: String!
   accountSectionTitle: String!
@@ -796,8 +894,26 @@ type SettingsPage {
   accountCancelDeletionLabel: String!
   accountDeletionRequestedText: String!
   accountDeletionCancelledText: String!
+  seasonGoals: MySeasonGoalPage!
   freshAuthAt: Int
   accountPendingDeletion: AccountPendingDeletion
+  availabilityTitle: String!
+  availabilityHint: String!
+  availabilityWeekdayNames: [String!]!
+  availabilityAddSlotLabel: String!
+  availabilityRemoveLabel: String!
+  availabilitySaveLabel: String!
+  availabilitySavedText: String!
+  availabilitySaveFailedTemplate: String!
+  availabilityEmptyText: String!
+  availabilityNoGuildsText: String!
+  availabilityGuilds: [SettingsAvailabilityGuild!]!
+}
+
+type SettingsAvailabilityGuild {
+  slug: String!
+  guildName: String!
+  slots: [AvailabilitySlot!]!
 }
 
 type AccountPendingDeletion {
@@ -805,6 +921,18 @@ type AccountPendingDeletion {
   daysLeft: Int!
   accountPendingTitle: String!
   accountPendingBody: String!
+}
+
+enum FeedbackCategory {
+  PROBLEM
+  SUGGESTION
+  OTHER
+}
+
+type SubmitFeedbackPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
 }
 
 type UpdateLocalePayload {
@@ -836,7 +964,35 @@ type PushTokenPayload {
   errorCode: String
 }
 
+type GradSlot {
+  id: String!
+  label: String!
+  icon: String!
+}
+
+type GradRate {
+  key: String!
+  label: String!
+  cap: Float!
+}
+
+type GearOcrFallback {
+  needle: String!
+  name: String!
+}
+
+type GearVocabRules {
+  weaponSlot: String!
+  weaponPositions: [String!]!
+  ocrStripPrefixes: [String!]!
+  ocrDingyinMarker: String!
+  ocrDingyinFallbacks: [GearOcrFallback!]!
+}
+
 type GradPage {
+  gradSlots: [GradSlot!]!
+  gradRates: [GradRate!]!
+  gearVocabRules: GearVocabRules!
   gradEnteringText: String!
   gradTitle: String!
   gradSubtitle: String!
@@ -974,6 +1130,8 @@ type GradPage {
   gearScoreTemplate: String!
   gearQualityLabel: String!
   gearExportLabel: String!
+  gearExportFileName: String!
+  gearImportNameTemplate: String!
   gearImportLabel: String!
   gearImportFailedToast: String!
   gearImportedToastTemplate: String!
@@ -1157,6 +1315,175 @@ type SectWeight {
   critDamageWeight: Float!
 }
 
+type GuildSchedulePage {
+  slug: String!
+  myAvailability: [AvailabilitySlot!]!
+  availabilitySummary: [MemberAvailabilitySummary!]
+  polls: [TimePoll!]!
+  weekdayNames: [String!]!
+  formCreateTitle: String!
+  formEditTitle: String!
+  formTypeLabel: String!
+  formTypeActivityLabel: String!
+  formTypeTalentLabel: String!
+  formTypeRaceLabel: String!
+  formTypeTowerLabel: String!
+  formCapacityTemplate: String!
+  formHintActivity: String!
+  formHintDungeonTemplate: String!
+  formHintTalent: String!
+  formHintRace: String!
+  formHintTower: String!
+  formTitleLabel: String!
+  formTitlePlaceholder: String!
+  formStartsLabel: String!
+  formMonthTemplate: String!
+  formDayTemplate: String!
+  formHourTemplate: String!
+  formMinuteTemplate: String!
+  formDungeonLabel: String!
+  formDungeonNoneLabel: String!
+  formNicknameLabel: String!
+  formNicknamePlaceholder: String!
+  formSectLabel: String!
+  formCancelLabel: String!
+  formSubmitCreateLabel: String!
+  formSubmitEditLabel: String!
+  formSubmittingLabel: String!
+  formToastSect: String!
+  formToastSaved: String!
+  formToastSaveFailedTemplate: String!
+  formToastPosted: String!
+  formToastCreateFailedTemplate: String!
+  formTitleTemplate: String!
+  formCustomFieldsTitle: String!
+  formCustomFieldAddLabel: String!
+  formCustomFieldLabelPlaceholder: String!
+  formCustomFieldTypeText: String!
+  formCustomFieldTypeChoice: String!
+  formCustomFieldOptionsPlaceholder: String!
+  formCustomFieldRequiredLabel: String!
+  formCustomFieldRemoveLabel: String!
+  formCustomFieldEmptyText: String!
+  typeShortActivity: String!
+  typeShortTalent: String!
+  typeShortRace: String!
+  typeShortTower: String!
+  scheduleTitle: String!
+  scheduleMyTitle: String!
+  scheduleMyHint: String!
+  scheduleSlotRangeTemplate: String!
+  scheduleAddSlotLabel: String!
+  scheduleRemoveLabel: String!
+  scheduleSaveLabel: String!
+  scheduleSavedText: String!
+  scheduleSaveFailedTemplate: String!
+  scheduleEmptyMineText: String!
+  scheduleSummaryTitle: String!
+  scheduleSummaryHint: String!
+  scheduleSummaryEmptyText: String!
+  schedulePollsTitle: String!
+  schedulePollsHint: String!
+  schedulePollEmptyText: String!
+  schedulePollCreateLabel: String!
+  schedulePollTitleLabel: String!
+  schedulePollTitlePlaceholder: String!
+  schedulePollCandidatesLabel: String!
+  schedulePollAddCandidateLabel: String!
+  schedulePollSubmitLabel: String!
+  schedulePollVoteLabel: String!
+  schedulePollVotedText: String!
+  schedulePollStatusOpenText: String!
+  schedulePollStatusClosedText: String!
+  schedulePollCloseLabel: String!
+  schedulePollVoteCountTemplate: String!
+  schedulePollLaunchLabel: String!
+  schedulePollCancelLabel: String!
+  scheduleToastPollCreated: String!
+  scheduleToastVoted: String!
+  scheduleToastClosed: String!
+  scheduleToastFailedTemplate: String!
+  scheduleSettingsLinkLabel: String!
+}
+
+type AvailabilitySlot {
+  weekday: Int!
+  startMinute: Int!
+  endMinute: Int!
+}
+
+input AvailabilitySlotInput {
+  weekday: Int!
+  startMinute: Int!
+  endMinute: Int!
+}
+
+type MemberAvailabilitySummary {
+  discordId: String!
+  displayName: String!
+  slots: [AvailabilitySlot!]!
+}
+
+type TimePoll {
+  id: ID!
+  title: String!
+  status: String!
+  creatorDiscordId: String!
+  creatorName: String
+  createdAtText: String!
+  options: [TimePollOption!]!
+  myOptionIds: [ID!]!
+  closeActions: TimePollCloseActions
+  launchActions: TimePollLaunchActions
+}
+
+type TimePollOption {
+  id: ID!
+  startsAtUtc: Int!
+  startsAtText: String!
+  voteCount: Int!
+  voterNames: [String!]!
+  votedByMe: Boolean!
+}
+
+type TimePollCloseActions {
+  closeLabel: String!
+}
+
+type TimePollLaunchActions {
+  launchLabel: String!
+}
+
+type AvailabilityPayload {
+  ok: Boolean!
+  slots: [AvailabilitySlot!]!
+  error: String
+  errorCode: String
+}
+
+type TimePollPayload {
+  ok: Boolean!
+  poll: TimePoll
+  error: String
+  errorCode: String
+}
+
+input SetAvailabilityInput {
+  slug: String!
+  slots: [AvailabilitySlotInput!]!
+}
+
+input CreateTimePollInput {
+  slug: String!
+  title: String!
+  candidateStartsAt: [String!]!
+}
+
+input VoteTimePollInput {
+  pollId: ID!
+  optionIds: [ID!]!
+}
+
 type Mutation {
   createGrouping(input: CreateGroupingInput!): GroupingPayload!
   updateGrouping(id: ID!, input: UpdateGroupingInput!): GroupingPayload!
@@ -1173,17 +1500,34 @@ type Mutation {
   deleteGroupingTemplate(id: ID!): DeletePayload!
   calcTiaolv(input: TiaolvInput!): TiaolvResult!
   calcGraduation(input: GraduationInput!): GraduationResult!
+  submitFeedback(category: FeedbackCategory!, text: String!): SubmitFeedbackPayload!
   updateMyLocale(locale: String): UpdateLocalePayload!
   exportMyData: ExportMyDataPayload!
   requestAccountDeletion(typedUsername: String!): AccountDeletionPayload!
   cancelAccountDeletion: AccountDeletionPayload!
   registerPushToken(token: String!, platform: String): PushTokenPayload!
   unregisterPushToken(token: String!): PushTokenPayload!
+  setMyAvailability(input: SetAvailabilityInput!): AvailabilityPayload!
+  createTimePoll(input: CreateTimePollInput!): TimePollPayload!
+  voteTimePoll(input: VoteTimePollInput!): TimePollPayload!
+  closeTimePoll(id: ID!): TimePollPayload!
+  postGuildAnnouncement(slug: String!, kind: AnnouncementKind!, title: String!, body: String!): GuildAnnouncementPayload!
+  markGuildAnnouncementRead(slug: String!, announcementId: ID!): GuildAnnouncementPayload!
+  deleteGuildAnnouncement(slug: String!, announcementId: ID!): GuildAnnouncementPayload!
+  addGuildMemberNote(slug: String!, memberDiscordId: ID!, body: String!): GuildMemberNotePayload!
+  updateGuildMemberNote(slug: String!, noteId: ID!, body: String!): GuildMemberNotePayload!
+  deleteGuildMemberNote(slug: String!, noteId: ID!): GuildMemberNotePayload!
+  exportGuildDataPackage(slug: String!): GuildExportPayload!
+  upsertMySeasonGoal(input: SeasonGoalInput!): SeasonGoalPayload!
+  deleteMySeasonGoal(goalId: ID!): SeasonGoalPayload!
   createGuild(input: CreateGuildInput!): CreateGuildPayload!
   updateGuildProfile(slug: String!, input: UpdateGuildProfileInput!): GuildAdminPayload!
   updateGuildDiscord(slug: String!, input: UpdateGuildDiscordInput!): GuildAdminPayload!
   updateGuildReminderSettings(slug: String!, offsets: [Int!]!, customText: String): GuildAdminPayload!
   updateGuildWhiteLabel(slug: String!, hideBranding: Boolean!, ogAccent: String!, ogTitleSuffix: String): GuildAdminPayload!
+  bindGuildCustomDomain(slug: String!, hostname: String!): GuildAdminPayload!
+  verifyGuildCustomDomain(slug: String!): GuildAdminPayload!
+  removeGuildCustomDomain(slug: String!): GuildAdminPayload!
   startPremiumCheckout(slug: String!): GuildAdminPayload!
   updateGuildVisibility(slug: String!, devOnly: Boolean!): GuildAdminPayload!
   setGuildAvatar(slug: String!, dataBase64: String!): GuildAdminPayload!
@@ -1195,6 +1539,18 @@ type Mutation {
   addEventResult(slug: String!, eventId: ID!, input: AddEventResultInput!): GuildAdminPayload!
   deleteEventResult(slug: String!, resultId: ID!): GuildAdminPayload!
   updateSchoolGuide(slug: String!, input: UpdateSchoolGuideInput!): GuildAdminPayload!
+  createLottery(slug: String!, input: CreateLotteryInput!): GuildAdminPayload!
+  drawLottery(slug: String!, lotteryId: ID!): GuildAdminPayload!
+  setSeasonChecklistItem(slug: String!, itemKey: String!, checked: Boolean!): GuildAdminPayload!
+  previewRosterImport(slug: String!, lines: [String!]!, imageCount: Int!): RosterImportPayload!
+  confirmRosterImport(slug: String!, batchId: ID!, rowIds: [ID!]!): RosterImportPayload!
+  deleteGuildRosterEntry(slug: String!, entryId: ID!): GuildAdminPayload!
+  updateGuildRecruitOpen(slug: String!, open: Boolean!): GuildAdminPayload!
+  reviewGuildApplication(slug: String!, applicationId: ID!, approve: Boolean!): GuildAdminPayload!
+  setGuildMentor(slug: String!, discordId: String!, isMentor: Boolean!): GuildAdminPayload!
+  createMentorPairing(slug: String!, mentorDiscordId: String!, menteeDiscordId: String!): GuildAdminPayload!
+  endMentorPairing(slug: String!, pairingId: ID!): GuildAdminPayload!
+  applyToGuild(slug: String!, message: String): RecruitPayload!
   gearPlan(input: GearPlanInput!): GearPlanResult!
   gearAutoCombine(targetIdx: Int!, lib: [GearItemInput!]!): GearAutoResult!
   gearParsePaste(text: String!): GearParseResult!
@@ -1248,6 +1604,7 @@ input CreateGroupingInput {
   startsAt: String!
   dungeonId: ID
   seats: [SeatInput!]
+  customFields: [CustomFieldInput!]
 }
 
 input SeatInput {
@@ -1267,6 +1624,7 @@ input JoinGroupingInput {
   weapon: String!
   seatIndex: Int!
   forDiscordId: ID
+  answers: [SignupAnswerInput!]
 }
 
 input LeaveGroupingInput {
@@ -1332,6 +1690,198 @@ type TiaolvResult {
   rows: [TiaolvRow!]!
 }
 
+enum AnnouncementKind {
+  STANDARD
+  URGENT
+}
+
+type GuildAnnouncement {
+  id: ID!
+  kind: AnnouncementKind!
+  urgent: Boolean!
+  urgentLabel: String
+  kindLabel: String!
+  title: String!
+  body: String!
+  authorName: String!
+  authorText: String
+  createdAtText: String!
+  viewerHasRead: Boolean
+  readCount: Int
+  memberCount: Int
+  readCountText: String
+  receipts: [GuildAnnouncementReceipt!]
+  deleteLabel: String!
+  deleteConfirmTitle: String!
+  deleteConfirmMessage: String!
+}
+
+type GuildAnnouncementReceipt {
+  discordId: ID!
+  displayName: String!
+  read: Boolean!
+  readAtText: String
+}
+
+type GuildAnnouncementPage {
+  title: String!
+  emptyText: String!
+  urgentLabel: String!
+  composeTitle: String!
+  kindLabel: String!
+  kindStandardLabel: String!
+  kindUrgentLabel: String!
+  titleLabel: String!
+  titlePlaceholder: String!
+  bodyLabel: String!
+  bodyPlaceholder: String!
+  postLabel: String!
+  postingLabel: String!
+  postedText: String!
+  deleteLabel: String!
+  receiptsTitle: String!
+  readListLabel: String!
+  unreadListLabel: String!
+  pushNote: String!
+  urgentNote: String!
+  dailyLimitText: String
+  canPost: Boolean!
+  standardRemaining: Int
+  urgentRemaining: Int
+  announcements: [GuildAnnouncement!]!
+}
+
+type GuildAnnouncementPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  announcement: GuildAnnouncement
+}
+
+enum SeasonGoalStatus {
+  ACTIVE
+  DONE
+  DROPPED
+}
+
+type GuildMemberNote {
+  id: ID!
+  body: String!
+  authorName: String!
+  authorText: String
+  createdAtText: String!
+  updatedAtText: String!
+}
+
+type MemberSeasonGoal {
+  id: ID!
+  guildSlug: String!
+  guildName: String!
+  title: String!
+  note: String!
+  status: SeasonGoalStatus!
+  statusLabel: String!
+  dungeonId: Int
+  dungeonName: String
+  seasonName: String
+  createdAtText: String!
+  updatedAtText: String!
+}
+
+type GuildOfficerMember {
+  discordId: ID!
+  displayName: String!
+  notes: [GuildMemberNote!]!
+  goals: [MemberSeasonGoal!]!
+}
+
+type GuildOfficerPage {
+  notesTitle: String!
+  notesHint: String!
+  notesEmptyText: String!
+  memberNoNotesText: String!
+  notePlaceholder: String!
+  noteAddLabel: String!
+  noteEditLabel: String!
+  noteSaveLabel: String!
+  noteDeleteLabel: String!
+  exportTitle: String!
+  exportHint: String!
+  exportLabel: String!
+  goalsTitle: String!
+  goalsHint: String!
+  goalsEmptyText: String!
+  members: [GuildOfficerMember!]!
+  hasGoals: Boolean!
+}
+
+type MySeasonGoalPage {
+  entryLabel: String!
+  title: String!
+  hint: String!
+  emptyText: String!
+  guildLabel: String!
+  goalTitleLabel: String!
+  goalTitlePlaceholder: String!
+  goalNoteLabel: String!
+  goalNotePlaceholder: String!
+  dungeonLabel: String!
+  dungeonNoneLabel: String!
+  statusLabel: String!
+  addLabel: String!
+  saveLabel: String!
+  editLabel: String!
+  deleteLabel: String!
+  statusActiveLabel: String!
+  statusDoneLabel: String!
+  statusDroppedLabel: String!
+  goals: [MemberSeasonGoal!]!
+  guildOptions: [SeasonGoalGuildOption!]!
+  dungeonOptions: [SeasonGoalDungeonOption!]!
+}
+
+type SeasonGoalGuildOption {
+  slug: String!
+  name: String!
+}
+
+type SeasonGoalDungeonOption {
+  id: Int!
+  name: String!
+  seasonName: String
+}
+
+type GuildMemberNotePayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  note: GuildMemberNote
+}
+
+type GuildExportPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  json: String
+  filename: String
+}
+
+type SeasonGoalPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  goal: MemberSeasonGoal
+}
+
+input SeasonGoalInput {
+  id: ID
+  slug: String!
+  title: String!
+  note: String
+  status: SeasonGoalStatus
+  dungeonId: Int
+}
+
 type DiscordUser {
   discordId: String!
   name: String!
@@ -1360,10 +1910,13 @@ type Guild {
   groupings(tab: GroupingTab!): GroupingListPage!
   viewerNick: String
   memberRoster: [GuildRosterMember!]!
+  announcements: GuildAnnouncementPage!
   homeBackToHubLabel: String!
   homeTabTeamLabel: String!
   homeTabDexLabel: String!
   homeTabSectLabel: String!
+  homeTabAnnouncementsLabel: String!
+  homeTabScheduleLabel: String!
   homeAdminLabel: String
   detailNotFoundText: String!
   detailBackToListLabel: String!
@@ -1380,10 +1933,13 @@ type GuildReadOnly {
   avatarUrl: String
   groupings(tab: GroupingTab!): GroupingListPage!
   viewerNick: String
+  announcements: GuildAnnouncementPage!
   homeBackToHubLabel: String!
   homeTabTeamLabel: String!
   homeTabDexLabel: String!
   homeTabSectLabel: String!
+  homeTabAnnouncementsLabel: String!
+  homeTabScheduleLabel: String!
   homeReadOnlyBanner: String!
   detailNotFoundText: String!
   detailBackToListLabel: String!
@@ -1408,15 +1964,26 @@ type Viewer {
   publicGuilds: [GuildReadOnly!]!
   guild(slug: String!): GuildResult!
   guildAdmin(slug: String!): GuildAdminResult!
+  homeRecruit: HomeRecruitSection!
   discordServers: [DiscordServer!]!
   siteTitle: String!
   siteSubtitle: String!
   siteHeroAlt: String!
+  siteSealText: String!
   loginCardTitle: String!
   loginCardBody1: String!
   loginCardBody2: String!
   loginButtonLabel: String!
   loginPrivacyText: String!
+  landingFeaturesTitle: String!
+  landingGroupingTitle: String!
+  landingGroupingBody: String!
+  landingReminderTitle: String!
+  landingReminderBody: String!
+  landingDexTitle: String!
+  landingDexBody: String!
+  landingGearTitle: String!
+  landingGearBody: String!
   footerDisclaimerText: String!
   footerTermsLabel: String!
   footerPrivacyLabel: String!
@@ -1511,14 +2078,27 @@ type GuildAdmin {
   gameVersion: String!
   events: [GuildAdminEvent!]!
   schoolGuides: GuildAdminSchoolGuides!
+  announcements: GuildAnnouncementPage!
+  officer: GuildOfficerPage!
   stats: GuildAdminStatsResult!
   premium: GuildAdminPremiumResult
+  customDomain: GuildAdminCustomDomainResult!
+  lotteries: [GuildAdminLottery!]!
+  lotteryRoster: [GuildAdminLotteryMember!]!
+  seasonChecklist: GuildSeasonChecklist!
+  roster: GuildRoster!
+  recruitOpen: Boolean!
+  recruitApplications: [RecruitApplication!]!
+  recruitPairings: [MentorPairing!]!
+  recruitRoster: [RecruitMember!]!
+  newcomerProgress: [NewcomerProgress!]!
   adminTitle: String!
   adminBackLinkLabel: String!
   adminTabProfileLabel: String!
   adminTabDiscordLabel: String!
   adminTabEventsLabel: String!
   adminTabGuidesLabel: String!
+  adminTabAnnouncementsLabel: String!
   adminSaveLabel: String!
   adminSavedText: String!
   adminDeleteLabel: String!
@@ -1553,6 +2133,7 @@ type GuildAdmin {
   adminVisibilityTitle: String!
   adminDevOnlyLabel: String!
   adminEventsTitle: String!
+  adminSignupCsvSuffix: String!
   adminEventEmptyText: String!
   adminEventTitleLabel: String!
   adminEventTypeLabel: String!
@@ -1589,6 +2170,7 @@ type GuildAdmin {
   adminGuideBisLabel: String!
   adminGuideRotationLabel: String!
   adminTabStatsLabel: String!
+  adminTabSeasonLabel: String!
   adminStatsTitle: String!
   adminStatsCurrentWeekLabel: String!
   adminStatsCarsLabel: String!
@@ -1609,9 +2191,228 @@ type GuildAdmin {
   adminOgAccentLabel: String!
   adminOgTitleSuffixLabel: String!
   adminOgTitleSuffixHint: String!
+  adminCustomDomainTitle: String!
+  adminCustomDomainHint: String!
+  adminCustomDomainHostnameLabel: String!
+  adminCustomDomainHostnamePlaceholder: String!
+  adminCustomDomainBindLabel: String!
+  adminCustomDomainRebindLabel: String!
+  adminCustomDomainVerifyLabel: String!
+  adminCustomDomainRemoveLabel: String!
+  adminCustomDomainDnsTitle: String!
+  adminCustomDomainCnameLabel: String!
+  adminCustomDomainTxtLabel: String!
+  adminCustomDomainRecordNameLabel: String!
+  adminCustomDomainRecordValueLabel: String!
   adminBillingSuccessText: String!
   adminBillingCanceledText: String!
   adminPremiumTitle: String!
+  adminTabToolsLabel: String!
+  adminTabOfficerLabel: String!
+  adminLotteryTitle: String!
+  adminLotteryHint: String!
+  adminLotteryEmptyText: String!
+  adminLotteryNameLabel: String!
+  adminLotteryPrizeLabel: String!
+  adminLotterySourceLabel: String!
+  adminLotterySourceGroupingText: String!
+  adminLotterySourceMembersText: String!
+  adminLotteryGroupingLabel: String!
+  adminLotteryWinnerCountLabel: String!
+  adminLotteryUniformWeightLabel: String!
+  adminLotteryWeightLabel: String!
+  adminLotteryEntriesLabel: String!
+  adminLotteryWinnersLabel: String!
+  adminLotteryCreateLabel: String!
+  adminLotteryDrawLabel: String!
+  adminLotteryStatusOpenText: String!
+  adminLotteryStatusDrawnText: String!
+  adminTabRecruitLabel: String!
+  adminRecruitApplicationsTitle: String!
+  adminRecruitApplicationsEmptyText: String!
+  adminRecruitApproveLabel: String!
+  adminRecruitRejectLabel: String!
+  adminRecruitMentorPoolTitle: String!
+  adminRecruitSetMentorLabel: String!
+  adminRecruitUnsetMentorLabel: String!
+  adminRecruitPairingsTitle: String!
+  adminRecruitPairingsEmptyText: String!
+  adminRecruitPairingCreateLabel: String!
+  adminRecruitPairingEndLabel: String!
+  adminRecruitMentorSelectLabel: String!
+  adminRecruitMenteeSelectLabel: String!
+  adminRecruitNewcomersTitle: String!
+  adminRecruitNewcomersEmptyText: String!
+  adminRecruitOpenLabel: String!
+  adminRecruitOpenHint: String!
+  adminRecruitProfileLabel: String!
+  adminRecruitMentorLabel: String!
+  adminRecruitFirstRunLabel: String!
+}
+
+enum LotterySource {
+  GROUPING
+  MEMBERS
+}
+
+enum LotteryStatus {
+  OPEN
+  DRAWN
+}
+
+type GuildAdminLottery {
+  id: ID!
+  title: String!
+  prize: String!
+  source: LotterySource!
+  sourceEventId: ID
+  sourceEventTitle: String
+  winnerCount: Int!
+  status: LotteryStatus!
+  entryCountText: String!
+  createdAtText: String!
+  drawnAtText: String
+  entries: [GuildAdminLotteryEntry!]!
+  winners: [GuildAdminLotteryEntry!]!
+}
+
+type GuildAdminLotteryEntry {
+  discordId: String!
+  displayName: String!
+  weight: Int!
+}
+
+enum RecruitApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum MentorPairingStatus {
+  ACTIVE
+  ENDED
+}
+
+type RecruitApplication {
+  id: ID!
+  applicantDiscordId: String!
+  applicantName: String!
+  message: String!
+  status: RecruitApplicationStatus!
+  statusLabel: String!
+  createdAtText: String!
+  reviewedByName: String
+  reviewedAtText: String
+}
+
+type MentorPairing {
+  id: ID!
+  mentorDiscordId: String!
+  mentorName: String!
+  menteeDiscordId: String!
+  menteeName: String!
+  status: MentorPairingStatus!
+  statusLabel: String!
+  createdAtText: String!
+  endedAtText: String
+}
+
+type RecruitMember {
+  discordId: String!
+  displayName: String!
+  isMentor: Boolean!
+}
+
+type NewcomerChecklistItem {
+  key: String!
+  label: String!
+  hint: String!
+  done: Boolean!
+}
+
+type NewcomerChecklist {
+  items: [NewcomerChecklistItem!]!
+  doneCount: Int!
+  totalCount: Int!
+  progressText: String!
+}
+
+type NewcomerProgress {
+  discordId: String!
+  displayName: String!
+  profileDone: Boolean!
+  availabilityDone: Boolean!
+  mentorDone: Boolean!
+  firstRunDone: Boolean!
+  doneCount: Int!
+  progressText: String!
+}
+
+type HomeRecruitSection {
+  recruitTitle: String!
+  homeBody: String!
+  homeLoginHint: String!
+  applySectionTitle: String!
+  messageLabel: String!
+  messagePlaceholder: String!
+  submitLabel: String!
+  submittingLabel: String!
+  myApplicationTitle: String!
+  pendingHint: String!
+  approvedNextStepText: String!
+  rejectedHint: String!
+  checklistTitle: String!
+  myPairingsTitle: String!
+  pairingMentorRoleLabel: String!
+  pairingMenteeRoleLabel: String!
+  guilds: [HomeRecruitGuild!]!
+  myNewcomer: [HomeRecruitNewcomer!]!
+}
+
+type HomeRecruitGuild {
+  slug: String!
+  name: String!
+  slogan: String
+  avatarUrl: String
+  myApplicationSection: HomeRecruitApplicationSection
+}
+
+type HomeRecruitApplicationSection {
+  application: RecruitApplication
+}
+
+type HomeRecruitNewcomer {
+  slug: String!
+  guildName: String!
+  checklist: NewcomerChecklist
+  myPairings: [MentorPairing!]!
+}
+
+type RecruitPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  application: RecruitApplication
+}
+
+type GuildAdminLotteryMember {
+  discordId: ID!
+  displayName: String!
+}
+
+input LotteryEntryInput {
+  discordId: ID!
+  weight: Int!
+}
+
+input CreateLotteryInput {
+  title: String!
+  prize: String
+  source: LotterySource!
+  sourceEventId: ID
+  uniformWeight: Int
+  entries: [LotteryEntryInput!]
+  winnerCount: Int!
 }
 
 type GuildAdminOgAccentOption {
@@ -1705,6 +2506,106 @@ type GuildAdminPremiumLocked {
   premiumPriceLabel: String
   premiumComingSoonText: String
   premiumCheckoutLabel: String!
+}
+
+enum CustomDomainStatus {
+  NONE
+  PENDING
+  ACTIVE
+  DISABLED
+}
+
+type GuildAdminCustomDomain {
+  status: CustomDomainStatus!
+  hostname: String
+  statusText: String!
+  guidanceText: String
+  dnsCnameName: String
+  dnsCnameValue: String
+  dnsTxtName: String
+  dnsTxtValue: String
+  boundAtText: String
+}
+
+type GuildAdminCustomDomainLocked {
+  premiumTitle: String!
+  premiumBody: String!
+}
+
+union GuildAdminCustomDomainResult = GuildAdminCustomDomain | GuildAdminCustomDomainLocked
+
+type GuildSeasonChecklist {
+  seasonKey: String!
+  versionLabel: String!
+  seasonLabel: String!
+  title: String!
+  hint: String!
+  progressTemplate: String!
+  items: [GuildSeasonChecklistItem!]!
+  doneCount: Int!
+  totalCount: Int!
+}
+
+type GuildSeasonChecklistItem {
+  key: String!
+  title: String!
+  detail: String!
+  checked: Boolean!
+  checkedByName: String
+}
+
+type GuildRoster {
+  entries: [GuildRosterEntry!]!
+  rosterTitle: String!
+  rosterHint: String!
+  rosterUploadLabel: String!
+  rosterOcrRunningText: String!
+  rosterPreviewTitle: String!
+  rosterConfirmLabel: String!
+  rosterEmptyText: String!
+  rosterDeleteLabel: String!
+  rosterSourceOcrLabel: String!
+  rosterMatchedMemberLabel: String!
+}
+
+type GuildRosterEntry {
+  id: ID!
+  displayName: String!
+  source: String!
+  matchedName: String
+  createdAt: Int!
+}
+
+enum RosterImportRowStatus {
+  MATCHED
+  NEW
+  UNRECOGNIZED
+}
+
+type RosterImportRow {
+  id: ID!
+  rawName: String!
+  status: RosterImportRowStatus!
+  statusLabel: String!
+  matchedName: String!
+  importable: Boolean!
+}
+
+type RosterImportPreview {
+  batchId: ID!
+  rows: [RosterImportRow!]!
+  matchedCount: Int!
+  newCount: Int!
+  unrecognizedCount: Int!
+}
+
+type RosterImportPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  preview: RosterImportPreview
+  importedCount: Int
+  message: String
 }
 
 type GuildAdminStatsWeek {

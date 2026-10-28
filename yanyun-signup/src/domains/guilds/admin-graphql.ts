@@ -37,6 +37,11 @@ import {
   sanitizeOgTitleSuffix, OG_ACCENT_PALETTE,
 } from './whitelabel.ts';
 import {
+  getCustomDomainByTenant, customDomainDnsGuidance, customDomainFallbackOrigin,
+  customDomainSaasConfigured, bindCustomDomain, verifyCustomDomainBinding,
+  deleteCustomDomainBinding,
+} from './customdomain.ts';
+import {
   listEventsAdmin, listSignupsByEvent, listResultsByEvent, fmtMs,
   getEventRow, getEventIdByTenant, getEventRowByTenant, insertEvent,
   updateEventFields, deleteEventCascade, getSignupTenant, deleteSignupById,
@@ -62,7 +67,7 @@ import {
 } from './recruit-graphql.ts';
 import { listSchoolBis, listSchoolRotations, upsertSchoolBis, upsertSchoolRotation } from '../dex/index.ts';
 import {
-  premiumGate, isPaygateEnabled, getEffectiveEntitlement,
+  premiumGate, isPaygateEnabled, getEffectiveEntitlement, tierLocked,
   PREMIUM_PLANS, PAST_DUE_GRACE_DAYS,
   stripeConfig, fetchStripePrice, createCheckoutSession, stripePriceIdForTier,
 } from '../platform/index.ts';
@@ -351,6 +356,71 @@ export class GuildAdminStatsLockedShell extends ShellBase {
   genPremiumBody(){ return this.t('guildAdmin_premiumLockedBody'); }
 }
 
+/* ---------------- custom domain sub shells (P23, T3) --------------
+ * Composed by GuildAdminShell.genCustomDomain from the tier
+ * verdict: below T3 the Locked variant (premium copy only, zero
+ * binding data — the response type is the gate); at T3 the full
+ * shell carries the binding, its state-machine status and the
+ * backend-composed DNS guidance. The seam state (Cloudflare for
+ * SaaS not yet connected platform-side) is composed INTO the
+ * status/guidance copy, never shipped as a flag. */
+
+export class GuildAdminCustomDomainLockedShell extends ShellBase {
+  __typename = 'GuildAdminCustomDomainLocked';
+  genPremiumTitle(){ return this.t('guildAdmin_premiumLockedTitle'); }
+  genPremiumBody(){ return this.t('guildAdmin_premiumLockedBody'); }
+}
+
+export class GuildAdminCustomDomainShell extends ShellBase {
+  __typename = 'GuildAdminCustomDomain';
+  genBinding(){
+    return this.memo('cdBinding', () => getCustomDomainByTenant(this.db, this.data.slug).catch(() => null));
+  }
+  async genStatus(){
+    const b = await this.genBinding();
+    return b ? b.status.toUpperCase() : 'NONE';
+  }
+  async genHostname(){
+    const b = await this.genBinding();
+    return b ? b.hostname : null;
+  }
+  async genStatusText(){
+    const b = await this.genBinding();
+    if (!b) return this.t('guildAdmin_customDomainStatusNone');
+    if (b.status === 'active') return this.t('guildAdmin_customDomainStatusActive');
+    if (b.status === 'disabled') return this.t('guildAdmin_customDomainStatusDisabled');
+    return this.t(customDomainSaasConfigured(this.ctx.env)
+      ? 'guildAdmin_customDomainStatusPendingDns' : 'guildAdmin_customDomainStatusPendingSeam');
+  }
+  async genGuidanceText(){
+    const b = await this.genBinding();
+    if (!b) return null;
+    if (b.status === 'active') return this.t('guildAdmin_customDomainActiveNote');
+    if (b.status === 'disabled') return this.t('guildAdmin_customDomainDisabledNote');
+    return this.t(customDomainSaasConfigured(this.ctx.env)
+      ? 'guildAdmin_customDomainDnsNote' : 'guildAdmin_customDomainSeamNote');
+  }
+  async genDnsGuidance(){
+    const b = await this.genBinding();
+    if (!b || b.status === 'disabled') return null;
+    return customDomainDnsGuidance(b, customDomainFallbackOrigin(this.ctx.env));
+  }
+  async genDnsCnameName(){ const g = await this.genDnsGuidance(); return g ? g.cnameName : null; }
+  async genDnsCnameValue(){ const g = await this.genDnsGuidance(); return g ? g.cnameValue : null; }
+  async genDnsTxtName(){ const g = await this.genDnsGuidance(); return g ? g.txtName : null; }
+  async genDnsTxtValue(){ const g = await this.genDnsGuidance(); return g ? g.txtValue : null; }
+  async genBoundAtText(){
+    const b = await this.genBinding();
+    if (!b || !b.createdAt) return null;
+    const tz = this.ctx.tz || 'Asia/Shanghai';
+    const opts: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'numeric', day: 'numeric', timeZone: tz };
+    let fmt: Intl.DateTimeFormat;
+    try { fmt = new Intl.DateTimeFormat(this.locale, opts); }
+    catch { fmt = new Intl.DateTimeFormat('zh-CN', { ...opts, timeZone: 'Asia/Shanghai' }); }
+    return this.t('guildAdmin_customDomainBoundAt', { date: fmt.format(new Date(b.createdAt * 1000)) });
+  }
+}
+
 /* ---------------- white-label sub shell (server-issued OG accent options) ---------------- */
 
 export class GuildAdminOgAccentOptionShell extends ShellBase {
@@ -524,6 +594,19 @@ const ADMIN_TEXT_SPEC: [string, string][] = [
   ['adminOgAccentLabel', 'guildAdmin_ogAccentLabel'],
   ['adminOgTitleSuffixLabel', 'guildAdmin_ogTitleSuffixLabel'],
   ['adminOgTitleSuffixHint', 'guildAdmin_ogTitleSuffixHint'],
+  ['adminCustomDomainTitle', 'guildAdmin_customDomainTitle'],
+  ['adminCustomDomainHint', 'guildAdmin_customDomainHint'],
+  ['adminCustomDomainHostnameLabel', 'guildAdmin_customDomainHostnameLabel'],
+  ['adminCustomDomainHostnamePlaceholder', 'guildAdmin_customDomainHostnamePlaceholder'],
+  ['adminCustomDomainBindLabel', 'guildAdmin_customDomainBindButton'],
+  ['adminCustomDomainRebindLabel', 'guildAdmin_customDomainRebindButton'],
+  ['adminCustomDomainVerifyLabel', 'guildAdmin_customDomainVerifyButton'],
+  ['adminCustomDomainRemoveLabel', 'guildAdmin_customDomainRemoveButton'],
+  ['adminCustomDomainDnsTitle', 'guildAdmin_customDomainDnsTitle'],
+  ['adminCustomDomainCnameLabel', 'guildAdmin_customDomainCnameLabel'],
+  ['adminCustomDomainTxtLabel', 'guildAdmin_customDomainTxtLabel'],
+  ['adminCustomDomainRecordNameLabel', 'guildAdmin_customDomainRecordNameLabel'],
+  ['adminCustomDomainRecordValueLabel', 'guildAdmin_customDomainRecordValueLabel'],
   ['adminTabToolsLabel', 'guildAdmin_tabTools'],
   ['adminLotteryTitle', 'guildAdmin_lotteryTitle'],
   ['adminLotteryHint', 'guildAdmin_lotteryHint'],
@@ -676,6 +759,20 @@ export class GuildAdminShell extends ShellBase {
       return new GuildAdminPremiumLockedShell(this.ctx, {});
     });
   }
+  /* Custom domain (P23, T3): tier verdict picks the variant —
+   * Locked carries only the premium copy (zero binding data);
+   * the full shell composes the binding + DNS guidance. Unlike
+   * the premium field this surface exists while the paygate is
+   * OFF too (tierLocked locks nobody then), exactly like the
+   * white-label settings above. */
+  genCustomDomain(){
+    return this.memo('customDomain', async () => {
+      if (await tierLocked(this.db, this.genSlug(), 3)) {
+        return new GuildAdminCustomDomainLockedShell(this.ctx, {});
+      }
+      return new GuildAdminCustomDomainShell(this.ctx, { slug: this.genSlug() });
+    });
+  }
   /* White-label+ (Premium tier 1): branding toggle + share-card
    * customization. All three live in tenant settings (whitelabel.ts);
    * the admin surface is the only read/write path — member-facing
@@ -810,6 +907,7 @@ function contentResolvers() {
     ops: (p: GuildAdminShell) => p.genOps(),
     stats: (p: GuildAdminShell) => p.genStats(),
     premium: (p: GuildAdminShell) => p.genPremium(),
+    customDomain: (p: GuildAdminShell) => p.genCustomDomain(),
     seasonChecklist: (p: GuildAdminShell) => p.genSeasonChecklist(),
     roster: (p: GuildAdminShell) => p.genRoster(),
     whiteLabelHideBranding: (p: any) => p.genWhiteLabelHideBranding(),
@@ -893,6 +991,22 @@ export const guildAdminTypes = {
     name: (p: GuildAdminPremiumTierPlanShell) => p.genName(),
     subtitle: (p: GuildAdminPremiumTierPlanShell) => p.genSubtitle(),
     priceLabel: (p: GuildAdminPremiumTierPlanShell) => p.genPriceLabel(),
+  },
+  GuildAdminCustomDomainResult: { __resolveType: (p: any) => p.__typename },
+  GuildAdminCustomDomain: {
+    status: (p: GuildAdminCustomDomainShell) => p.genStatus(),
+    hostname: (p: GuildAdminCustomDomainShell) => p.genHostname(),
+    statusText: (p: GuildAdminCustomDomainShell) => p.genStatusText(),
+    guidanceText: (p: GuildAdminCustomDomainShell) => p.genGuidanceText(),
+    dnsCnameName: (p: GuildAdminCustomDomainShell) => p.genDnsCnameName(),
+    dnsCnameValue: (p: GuildAdminCustomDomainShell) => p.genDnsCnameValue(),
+    dnsTxtName: (p: GuildAdminCustomDomainShell) => p.genDnsTxtName(),
+    dnsTxtValue: (p: GuildAdminCustomDomainShell) => p.genDnsTxtValue(),
+    boundAtText: (p: GuildAdminCustomDomainShell) => p.genBoundAtText(),
+  },
+  GuildAdminCustomDomainLocked: {
+    premiumTitle: (p: GuildAdminCustomDomainLockedShell) => p.genPremiumTitle(),
+    premiumBody: (p: GuildAdminCustomDomainLockedShell) => p.genPremiumBody(),
   },
   GuildAdminStatsWeek: {
     weekStartUtc: (p: GuildAdminStatsWeekShell) => p.genWeekStartUtc(),
@@ -1052,6 +1166,48 @@ export const guildAdminMutations = {
       ogAccent: accent,
       ogTitleSuffix: sanitizeOgTitleSuffix(ogTitleSuffix),
     });
+    return aOk(ctx);
+  },
+
+  /* Custom domain (P23, T3): admin self-service bind. The tier
+   * verdict runs before any validation, so a locked guild learns
+   * nothing about hostname availability; validation/conflict codes
+   * are the service's (customdomain.ts). */
+  bindGuildCustomDomain: async (_: any, { slug, hostname }: any, ctx: Context) => {
+    const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
+    if (await tierLocked(ctx.env.DB, g.access.slug, 3)) return aFail(ctx, 'premiumRequired');
+    const r = await bindCustomDomain(
+      ctx.env.DB, g.access.slug, hostname,
+      ctx.user ? ctx.user.discordId : '', Math.floor(Date.now() / 1000),
+    );
+    if (!r.ok) return aFail(ctx, r.code);
+    return aOk(ctx);
+  },
+
+  /* Verification: the service judges what code can judge (the
+   * SaaS seam, then the DNS records) and maps every non-activation
+   * to its catalog code; an already-active binding is a no-op
+   * success. */
+  verifyGuildCustomDomain: async (_: any, { slug }: any, ctx: Context) => {
+    const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
+    if (await tierLocked(ctx.env.DB, g.access.slug, 3)) return aFail(ctx, 'premiumRequired');
+    const r = await verifyCustomDomainBinding(
+      ctx.env.DB, g.access.slug, ctx.env, Math.floor(Date.now() / 1000),
+    );
+    if (r.outcome === 'activated' || r.outcome === 'alreadyActive') return aOk(ctx);
+    if (r.outcome === 'none') return aFail(ctx, 'customDomainNotBound');
+    if (r.outcome === 'disabled') return aFail(ctx, 'customDomainDisabled');
+    if (r.outcome === 'seam') return aFail(ctx, 'customDomainSeamPending');
+    return aFail(ctx, 'customDomainDnsPending');
+  },
+
+  /* Removal deletes the guild's own binding outright. No tier
+   * gate here on purpose: downgrade semantics are freeze-not-
+   * delete, and deleting one's own record must stay possible
+   * while frozen — it grants nothing and stops resolution. */
+  removeGuildCustomDomain: async (_: any, { slug }: any, ctx: Context) => {
+    const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
+    await deleteCustomDomainBinding(ctx.env.DB, g.access.slug);
     return aOk(ctx);
   },
 

@@ -168,6 +168,13 @@ export abstract class ErrorsFbtUtils {
   static accountDeletionPending(fbs: FbsAPI) { return fbs("已有一份删除申请在冷静期中", "Error message for account deletion, used when a deletion request is already in its cooling-off period."); }
   static accountDeletionNotPending(fbs: FbsAPI) { return fbs("当前没有待执行的删除申请", "Error message for account deletion cancellation, used when no pending deletion request exists to cancel."); }
   static premiumRequired(fbs: FbsAPI) { return fbs("该功能需要开通 Premium", "Error message for premium features, used when a guild without an active premium plan attempts a premium-only operation."); }
+  static customDomainInvalid(fbs: FbsAPI) { return fbs("域名格式不正确，请填写裸域名（如 www.example.com）", "Error message for custom domain binding, used when the submitted hostname is not a valid bare domain name."); }
+  static customDomainReserved(fbs: FbsAPI) { return fbs("该域名为平台保留域名，不能绑定", "Error message for custom domain binding, used when the submitted hostname belongs to the platform or a reserved suffix."); }
+  static customDomainConflict(fbs: FbsAPI) { return fbs("该域名已被其他百业绑定", "Error message for custom domain binding, used when the submitted hostname is already bound by another guild."); }
+  static customDomainNotBound(fbs: FbsAPI) { return fbs("本百业尚未绑定域名", "Error message for custom domain operations, used when an operation needs an existing binding but the guild has none."); }
+  static customDomainDisabled(fbs: FbsAPI) { return fbs("该域名已被平台停用", "Error message for custom domain verification, used when the binding has been switched off by the platform."); }
+  static customDomainSeamPending(fbs: FbsAPI) { return fbs("平台域名服务尚在接通中，暂不能验证", "Error message for custom domain verification, used while the platform domain service is not connected yet."); }
+  static customDomainDnsPending(fbs: FbsAPI) { return fbs("DNS 记录尚未生效或不完整，请确认两条记录后稍后再试", "Error message for custom domain verification, used when the CNAME or ownership TXT record does not check out yet."); }
   static premiumComingSoon(fbs: FbsAPI) { return fbs("Premium 开通即将开放", "Error message for premium activation, used while premium checkout is not open yet."); }
   static premiumActive(fbs: FbsAPI) { return fbs("本百业已开通 Premium", "Error message for premium activation, used when activating premium for a guild that already has it."); }
   static paygateDisabled(fbs: FbsAPI) { return fbs("收费功能尚未开启", "Error message for paid features, used while the platform paygate is switched off."); }

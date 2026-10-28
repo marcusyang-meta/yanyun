@@ -2140,6 +2140,27 @@ export abstract class ErrorsFbtUtils {
 	static premiumRequired(fbs: FbsRuntime) {
 		return fbs._("该功能需要开通 Premium", null, { hk: "2XIDnE" });
 	}
+	static customDomainInvalid(fbs: FbsRuntime) {
+		return fbs._("域名格式不正确，请填写裸域名（如 www.example.com）", null, { hk: "3wp5Hu" });
+	}
+	static customDomainReserved(fbs: FbsRuntime) {
+		return fbs._("该域名为平台保留域名，不能绑定", null, { hk: "2T9xkJ" });
+	}
+	static customDomainConflict(fbs: FbsRuntime) {
+		return fbs._("该域名已被其他百业绑定", null, { hk: "1gDvlL" });
+	}
+	static customDomainNotBound(fbs: FbsRuntime) {
+		return fbs._("本百业尚未绑定域名", null, { hk: "8NHoC" });
+	}
+	static customDomainDisabled(fbs: FbsRuntime) {
+		return fbs._("该域名已被平台停用", null, { hk: "1Zlfnr" });
+	}
+	static customDomainSeamPending(fbs: FbsRuntime) {
+		return fbs._("平台域名服务尚在接通中，暂不能验证", null, { hk: "36D48R" });
+	}
+	static customDomainDnsPending(fbs: FbsRuntime) {
+		return fbs._("DNS 记录尚未生效或不完整，请确认两条记录后稍后再试", null, { hk: "1E9FYb" });
+	}
 	static premiumComingSoon(fbs: FbsRuntime) {
 		return fbs._("Premium 开通即将开放", null, { hk: "2AKPwI" });
 	}
@@ -2819,6 +2840,75 @@ export abstract class GuildAdminFbtUtils {
 	}
 	static premiumPriceYear(fbs: FbsRuntime, p?: StringParams) {
 		return fbs._("{amount} / 年", [fbs._param("amount", pv(p, "amount"))], { hk: "2Osvuz" });
+	}
+	static customDomainTitle(fbs: FbsRuntime) {
+		return fbs._("自定义域名", null, { hk: "1UfnhR" });
+	}
+	static customDomainHint(fbs: FbsRuntime) {
+		return fbs._("把百业自己的域名（如 www.example.com）绑定到这里，成员就能用这个域名打开百业页面。每个百业可绑定一个域名；绑定后需要按下方指引在域名服务商处添加两条 DNS 记录。根域名（裸域）能否直接使用取决于注册商是否支持 CNAME 展平，建议使用 www 等子域名。", null, { hk: "iH5Ny" });
+	}
+	static customDomainHostnameLabel(fbs: FbsRuntime) {
+		return fbs._("域名", null, { hk: "3or9GY" });
+	}
+	static customDomainHostnamePlaceholder(fbs: FbsRuntime) {
+		return fbs._("www.example.com", null, { hk: "2jOyPt" });
+	}
+	static customDomainBindButton(fbs: FbsRuntime) {
+		return fbs._("绑定域名", null, { hk: "qTnKJ" });
+	}
+	static customDomainRebindButton(fbs: FbsRuntime) {
+		return fbs._("更换域名", null, { hk: "56aDh" });
+	}
+	static customDomainVerifyButton(fbs: FbsRuntime) {
+		return fbs._("验证并启用", null, { hk: "1eq0zI" });
+	}
+	static customDomainRemoveButton(fbs: FbsRuntime) {
+		return fbs._("解绑域名", null, { hk: "2X1lsX" });
+	}
+	static customDomainStatusNone(fbs: FbsRuntime) {
+		return fbs._("尚未绑定域名", null, { hk: "3mGbIM" });
+	}
+	static customDomainStatusPendingSeam(fbs: FbsRuntime) {
+		return fbs._("已绑定，待平台接通", null, { hk: "2CU3rB" });
+	}
+	static customDomainStatusPendingDns(fbs: FbsRuntime) {
+		return fbs._("已绑定，待验证 DNS", null, { hk: "4GcA5P" });
+	}
+	static customDomainStatusActive(fbs: FbsRuntime) {
+		return fbs._("已生效", null, { hk: "1CTLLp" });
+	}
+	static customDomainStatusDisabled(fbs: FbsRuntime) {
+		return fbs._("已被平台停用", null, { hk: "18o8bd" });
+	}
+	static customDomainBoundAt(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("绑定于 {date}", [fbs._param("date", pv(p, "date"))], { hk: "3cjEdL" });
+	}
+	static customDomainDnsTitle(fbs: FbsRuntime) {
+		return fbs._("DNS 设置指引", null, { hk: "1VZKK2" });
+	}
+	static customDomainCnameLabel(fbs: FbsRuntime) {
+		return fbs._("CNAME 记录（让域名指向平台）", null, { hk: "4dFKdv" });
+	}
+	static customDomainTxtLabel(fbs: FbsRuntime) {
+		return fbs._("TXT 记录（证明域名归你所有）", null, { hk: "3cHn1N" });
+	}
+	static customDomainRecordNameLabel(fbs: FbsRuntime) {
+		return fbs._("主机记录", null, { hk: "3jw4KT" });
+	}
+	static customDomainRecordValueLabel(fbs: FbsRuntime) {
+		return fbs._("记录值", null, { hk: "2n1K7R" });
+	}
+	static customDomainSeamNote(fbs: FbsRuntime) {
+		return fbs._("平台的域名服务尚在接通中：你可以先绑定域名并添加 DNS 记录，平台接通后点「验证并启用」即可生效；接通前该域名不会打开任何页面。", null, { hk: "1lHecd" });
+	}
+	static customDomainDnsNote(fbs: FbsRuntime) {
+		return fbs._("两条记录都添加后，点「验证并启用」：平台会检查 DNS 是否正确，证书由平台自动签发。DNS 生效可能需要几分钟到几小时，未通过时可稍后再试。", null, { hk: "kV8ua" });
+	}
+	static customDomainActiveNote(fbs: FbsRuntime) {
+		return fbs._("域名已生效：用这个域名打开的页面与主站一致。登录使用该域名自己的登录流程，平台会为该域名登记登录回调；更换或解绑域名后，该域名立即停止打开百业页面。", null, { hk: "BO2S6" });
+	}
+	static customDomainDisabledNote(fbs: FbsRuntime) {
+		return fbs._("该域名已被平台停用，当前不会打开任何页面。如需恢复，请联系平台。", null, { hk: "fCK4w" });
 	}
 	static billingSuccess(fbs: FbsRuntime) {
 		return fbs._("开通成功，Premium 已生效。", null, { hk: "2ux3TB" });
@@ -4710,6 +4800,13 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"errors_accountDeletionPending": ErrorsFbtUtils.accountDeletionPending,
 	"errors_accountDeletionNotPending": ErrorsFbtUtils.accountDeletionNotPending,
 	"errors_premiumRequired": ErrorsFbtUtils.premiumRequired,
+	"errors_customDomainInvalid": ErrorsFbtUtils.customDomainInvalid,
+	"errors_customDomainReserved": ErrorsFbtUtils.customDomainReserved,
+	"errors_customDomainConflict": ErrorsFbtUtils.customDomainConflict,
+	"errors_customDomainNotBound": ErrorsFbtUtils.customDomainNotBound,
+	"errors_customDomainDisabled": ErrorsFbtUtils.customDomainDisabled,
+	"errors_customDomainSeamPending": ErrorsFbtUtils.customDomainSeamPending,
+	"errors_customDomainDnsPending": ErrorsFbtUtils.customDomainDnsPending,
 	"errors_premiumComingSoon": ErrorsFbtUtils.premiumComingSoon,
 	"errors_premiumActive": ErrorsFbtUtils.premiumActive,
 	"errors_paygateDisabled": ErrorsFbtUtils.paygateDisabled,
@@ -4936,6 +5033,29 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"guildAdmin_premiumSourceTrial": GuildAdminFbtUtils.premiumSourceTrial,
 	"guildAdmin_premiumPastDueNotice": GuildAdminFbtUtils.premiumPastDueNotice,
 	"guildAdmin_premiumPriceYear": GuildAdminFbtUtils.premiumPriceYear,
+	"guildAdmin_customDomainTitle": GuildAdminFbtUtils.customDomainTitle,
+	"guildAdmin_customDomainHint": GuildAdminFbtUtils.customDomainHint,
+	"guildAdmin_customDomainHostnameLabel": GuildAdminFbtUtils.customDomainHostnameLabel,
+	"guildAdmin_customDomainHostnamePlaceholder": GuildAdminFbtUtils.customDomainHostnamePlaceholder,
+	"guildAdmin_customDomainBindButton": GuildAdminFbtUtils.customDomainBindButton,
+	"guildAdmin_customDomainRebindButton": GuildAdminFbtUtils.customDomainRebindButton,
+	"guildAdmin_customDomainVerifyButton": GuildAdminFbtUtils.customDomainVerifyButton,
+	"guildAdmin_customDomainRemoveButton": GuildAdminFbtUtils.customDomainRemoveButton,
+	"guildAdmin_customDomainStatusNone": GuildAdminFbtUtils.customDomainStatusNone,
+	"guildAdmin_customDomainStatusPendingSeam": GuildAdminFbtUtils.customDomainStatusPendingSeam,
+	"guildAdmin_customDomainStatusPendingDns": GuildAdminFbtUtils.customDomainStatusPendingDns,
+	"guildAdmin_customDomainStatusActive": GuildAdminFbtUtils.customDomainStatusActive,
+	"guildAdmin_customDomainStatusDisabled": GuildAdminFbtUtils.customDomainStatusDisabled,
+	"guildAdmin_customDomainBoundAt": GuildAdminFbtUtils.customDomainBoundAt,
+	"guildAdmin_customDomainDnsTitle": GuildAdminFbtUtils.customDomainDnsTitle,
+	"guildAdmin_customDomainCnameLabel": GuildAdminFbtUtils.customDomainCnameLabel,
+	"guildAdmin_customDomainTxtLabel": GuildAdminFbtUtils.customDomainTxtLabel,
+	"guildAdmin_customDomainRecordNameLabel": GuildAdminFbtUtils.customDomainRecordNameLabel,
+	"guildAdmin_customDomainRecordValueLabel": GuildAdminFbtUtils.customDomainRecordValueLabel,
+	"guildAdmin_customDomainSeamNote": GuildAdminFbtUtils.customDomainSeamNote,
+	"guildAdmin_customDomainDnsNote": GuildAdminFbtUtils.customDomainDnsNote,
+	"guildAdmin_customDomainActiveNote": GuildAdminFbtUtils.customDomainActiveNote,
+	"guildAdmin_customDomainDisabledNote": GuildAdminFbtUtils.customDomainDisabledNote,
 	"guildAdmin_billingSuccess": GuildAdminFbtUtils.billingSuccess,
 	"guildAdmin_billingCanceled": GuildAdminFbtUtils.billingCanceled,
 	"guildAdmin_tabAnnouncements": GuildAdminFbtUtils.tabAnnouncements,

@@ -2464,6 +2464,10 @@ type GuildAdmin {
   # 价格位与开通入口 (Stripe 未配置时价格位为 null、改由即将开放
   # 文案占据), Active 带方案来源与当前周期。
   premium: GuildAdminPremiumResult
+  # 自定义域名 (P23, T3 治理层): 档位结论由响应类型表达 — 未达 T3
+  # 组合为 GuildAdminCustomDomainLocked (只有未开通文案, 零绑定数据);
+  # 达档组合完整变体 (绑定 + 状态机状态 + 后端下发的 DNS 指引)。
+  customDomain: GuildAdminCustomDomainResult!
   # 活动工具 (免费功能, 不挂任何权益门): 活动日历订阅 (F8) + 活动
   # 抽奖 (F21), 只挂 GuildAdmin — Locked 零工具字段。日历订阅链在
   # 抽奖的名单在创建时定格 (来源: 某辆车的参与者, 或手选本百业
@@ -2592,6 +2596,19 @@ type GuildAdmin {
   adminOgAccentLabel: String!
   adminOgTitleSuffixLabel: String!
   adminOgTitleSuffixHint: String!
+  adminCustomDomainTitle: String!
+  adminCustomDomainHint: String!
+  adminCustomDomainHostnameLabel: String!
+  adminCustomDomainHostnamePlaceholder: String!
+  adminCustomDomainBindLabel: String!
+  adminCustomDomainRebindLabel: String!
+  adminCustomDomainVerifyLabel: String!
+  adminCustomDomainRemoveLabel: String!
+  adminCustomDomainDnsTitle: String!
+  adminCustomDomainCnameLabel: String!
+  adminCustomDomainTxtLabel: String!
+  adminCustomDomainRecordNameLabel: String!
+  adminCustomDomainRecordValueLabel: String!
   adminBillingSuccessText: String!
   adminBillingCanceledText: String!
   adminPremiumTitle: String!
@@ -3271,6 +3288,35 @@ type GuildAdminPremiumLocked {
   premiumTierPlans: [GuildAdminPremiumTierPlan!]!
 }
 
+# 自定义域名状态机 (P23): NONE 未绑定 / PENDING 待验证 (含平台接通
+# 接缝未通的状态, 细分由 statusText 文案表达) / ACTIVE 已生效 /
+# DISABLED 被平台停用。
+enum CustomDomainStatus {
+  NONE
+  PENDING
+  ACTIVE
+  DISABLED
+}
+
+type GuildAdminCustomDomain {
+  status: CustomDomainStatus!
+  hostname: String
+  statusText: String!
+  guidanceText: String
+  dnsCnameName: String
+  dnsCnameValue: String
+  dnsTxtName: String
+  dnsTxtValue: String
+  boundAtText: String
+}
+
+type GuildAdminCustomDomainLocked {
+  premiumTitle: String!
+  premiumBody: String!
+}
+
+union GuildAdminCustomDomainResult = GuildAdminCustomDomain | GuildAdminCustomDomainLocked
+
 # 赛季前检查清单: 条目本体由后端按赛季数据组合 (当前版本副本 /
 # 本百业组队模板 / 流派攻略数据 / 成员名册四项, 全部与既有实体
 # 挂钩, detail 里的计数为生成时刻的真实计数)。勾选状态按
@@ -3459,6 +3505,12 @@ extend type Mutation {
   updateGuildDiscord(slug: String!, input: UpdateGuildDiscordInput!): GuildAdminPayload!
   updateGuildReminderSettings(slug: String!, offsets: [Int!]!, customText: String): GuildAdminPayload!
   updateGuildWhiteLabel(slug: String!, hideBranding: Boolean!, ogAccent: String!, ogTitleSuffix: String): GuildAdminPayload!
+  # 自定义域名 (P23, T3): 管理员自助绑定 / 验证启用 / 解绑; 绑定与
+  # 验证在 resolver 内复验管理结论 + T3 档位结论, 解绑不挂档位门
+  # (降级语义为冻结不删, 删除自有记录恒可)。
+  bindGuildCustomDomain(slug: String!, hostname: String!): GuildAdminPayload!
+  verifyGuildCustomDomain(slug: String!): GuildAdminPayload!
+  removeGuildCustomDomain(slug: String!): GuildAdminPayload!
   # 开通 Premium: 服务端建 Stripe Checkout Session 并回带托管页
   # URL。总闸关 / 已开通 / Stripe 未配置时以 errors 目录文案拒绝
   # (paygateDisabled / premiumActive / premiumComingSoon)。

@@ -123,6 +123,13 @@ export type PlatformStringKey =
   | 'errors_accountDeletionPending'
   | 'errors_accountDeletionNotPending'
   | 'errors_premiumRequired'
+  | 'errors_customDomainInvalid'
+  | 'errors_customDomainReserved'
+  | 'errors_customDomainConflict'
+  | 'errors_customDomainNotBound'
+  | 'errors_customDomainDisabled'
+  | 'errors_customDomainSeamPending'
+  | 'errors_customDomainDnsPending'
   | 'errors_premiumComingSoon'
   | 'errors_premiumActive'
   | 'errors_paygateDisabled'
@@ -329,6 +336,13 @@ export const PLATFORM_STRING_KEYS: readonly PlatformStringKey[] = [
   'errors_accountDeletionPending',
   'errors_accountDeletionNotPending',
   'errors_premiumRequired',
+  'errors_customDomainInvalid',
+  'errors_customDomainReserved',
+  'errors_customDomainConflict',
+  'errors_customDomainNotBound',
+  'errors_customDomainDisabled',
+  'errors_customDomainSeamPending',
+  'errors_customDomainDnsPending',
   'errors_premiumComingSoon',
   'errors_premiumActive',
   'errors_paygateDisabled',

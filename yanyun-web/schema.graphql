@@ -1529,6 +1529,9 @@ type Mutation {
   updateGuildDiscord(slug: String!, input: UpdateGuildDiscordInput!): GuildAdminPayload!
   updateGuildReminderSettings(slug: String!, offsets: [Int!]!, customText: String): GuildAdminPayload!
   updateGuildWhiteLabel(slug: String!, hideBranding: Boolean!, ogAccent: String!, ogTitleSuffix: String): GuildAdminPayload!
+  bindGuildCustomDomain(slug: String!, hostname: String!): GuildAdminPayload!
+  verifyGuildCustomDomain(slug: String!): GuildAdminPayload!
+  removeGuildCustomDomain(slug: String!): GuildAdminPayload!
   startPremiumCheckout(slug: String!, tier: Int): GuildAdminPayload!
   updateGuildVisibility(slug: String!, devOnly: Boolean!): GuildAdminPayload!
   setGuildAvatar(slug: String!, dataBase64: String!): GuildAdminPayload!
@@ -2124,6 +2127,7 @@ type GuildAdmin {
   ops: GuildAdminOpsResult!
   stats: GuildAdminStatsResult!
   premium: GuildAdminPremiumResult
+  customDomain: GuildAdminCustomDomainResult!
   lotteries: [GuildAdminLottery!]!
   lotteryRoster: [GuildAdminLotteryMember!]!
   seasonChecklist: GuildSeasonChecklist!
@@ -2232,6 +2236,19 @@ type GuildAdmin {
   adminOgAccentLabel: String!
   adminOgTitleSuffixLabel: String!
   adminOgTitleSuffixHint: String!
+  adminCustomDomainTitle: String!
+  adminCustomDomainHint: String!
+  adminCustomDomainHostnameLabel: String!
+  adminCustomDomainHostnamePlaceholder: String!
+  adminCustomDomainBindLabel: String!
+  adminCustomDomainRebindLabel: String!
+  adminCustomDomainVerifyLabel: String!
+  adminCustomDomainRemoveLabel: String!
+  adminCustomDomainDnsTitle: String!
+  adminCustomDomainCnameLabel: String!
+  adminCustomDomainTxtLabel: String!
+  adminCustomDomainRecordNameLabel: String!
+  adminCustomDomainRecordValueLabel: String!
   adminBillingSuccessText: String!
   adminBillingCanceledText: String!
   adminPremiumTitle: String!
@@ -2812,6 +2829,32 @@ type GuildAdminPremiumLocked {
   premiumCheckoutLabel: String!
   premiumTierPlans: [GuildAdminPremiumTierPlan!]!
 }
+
+enum CustomDomainStatus {
+  NONE
+  PENDING
+  ACTIVE
+  DISABLED
+}
+
+type GuildAdminCustomDomain {
+  status: CustomDomainStatus!
+  hostname: String
+  statusText: String!
+  guidanceText: String
+  dnsCnameName: String
+  dnsCnameValue: String
+  dnsTxtName: String
+  dnsTxtValue: String
+  boundAtText: String
+}
+
+type GuildAdminCustomDomainLocked {
+  premiumTitle: String!
+  premiumBody: String!
+}
+
+union GuildAdminCustomDomainResult = GuildAdminCustomDomain | GuildAdminCustomDomainLocked
 
 type GuildSeasonChecklist {
   seasonKey: String!

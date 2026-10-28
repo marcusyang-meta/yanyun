@@ -4583,6 +4583,27 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
     "premiumRequired": {
       "zh-CN": "该功能需要开通 Premium"
     },
+    "customDomainInvalid": {
+      "zh-CN": "域名格式不正确，请填写裸域名（如 www.example.com）"
+    },
+    "customDomainReserved": {
+      "zh-CN": "该域名为平台保留域名，不能绑定"
+    },
+    "customDomainConflict": {
+      "zh-CN": "该域名已被其他百业绑定"
+    },
+    "customDomainNotBound": {
+      "zh-CN": "本百业尚未绑定域名"
+    },
+    "customDomainDisabled": {
+      "zh-CN": "该域名已被平台停用"
+    },
+    "customDomainSeamPending": {
+      "zh-CN": "平台域名服务尚在接通中，暂不能验证"
+    },
+    "customDomainDnsPending": {
+      "zh-CN": "DNS 记录尚未生效或不完整，请确认两条记录后稍后再试"
+    },
     "premiumComingSoon": {
       "zh-CN": "Premium 开通即将开放"
     },
@@ -5726,6 +5747,75 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
     },
     "premiumPriceYear": {
       "zh-CN": "{amount} / 年"
+    },
+    "customDomainTitle": {
+      "zh-CN": "自定义域名"
+    },
+    "customDomainHint": {
+      "zh-CN": "把百业自己的域名（如 www.example.com）绑定到这里，成员就能用这个域名打开百业页面。每个百业可绑定一个域名；绑定后需要按下方指引在域名服务商处添加两条 DNS 记录。根域名（裸域）能否直接使用取决于注册商是否支持 CNAME 展平，建议使用 www 等子域名。"
+    },
+    "customDomainHostnameLabel": {
+      "zh-CN": "域名"
+    },
+    "customDomainHostnamePlaceholder": {
+      "zh-CN": "www.example.com"
+    },
+    "customDomainBindButton": {
+      "zh-CN": "绑定域名"
+    },
+    "customDomainRebindButton": {
+      "zh-CN": "更换域名"
+    },
+    "customDomainVerifyButton": {
+      "zh-CN": "验证并启用"
+    },
+    "customDomainRemoveButton": {
+      "zh-CN": "解绑域名"
+    },
+    "customDomainStatusNone": {
+      "zh-CN": "尚未绑定域名"
+    },
+    "customDomainStatusPendingSeam": {
+      "zh-CN": "已绑定，待平台接通"
+    },
+    "customDomainStatusPendingDns": {
+      "zh-CN": "已绑定，待验证 DNS"
+    },
+    "customDomainStatusActive": {
+      "zh-CN": "已生效"
+    },
+    "customDomainStatusDisabled": {
+      "zh-CN": "已被平台停用"
+    },
+    "customDomainBoundAt": {
+      "zh-CN": "绑定于 {date}"
+    },
+    "customDomainDnsTitle": {
+      "zh-CN": "DNS 设置指引"
+    },
+    "customDomainCnameLabel": {
+      "zh-CN": "CNAME 记录（让域名指向平台）"
+    },
+    "customDomainTxtLabel": {
+      "zh-CN": "TXT 记录（证明域名归你所有）"
+    },
+    "customDomainRecordNameLabel": {
+      "zh-CN": "主机记录"
+    },
+    "customDomainRecordValueLabel": {
+      "zh-CN": "记录值"
+    },
+    "customDomainSeamNote": {
+      "zh-CN": "平台的域名服务尚在接通中：你可以先绑定域名并添加 DNS 记录，平台接通后点「验证并启用」即可生效；接通前该域名不会打开任何页面。"
+    },
+    "customDomainDnsNote": {
+      "zh-CN": "两条记录都添加后，点「验证并启用」：平台会检查 DNS 是否正确，证书由平台自动签发。DNS 生效可能需要几分钟到几小时，未通过时可稍后再试。"
+    },
+    "customDomainActiveNote": {
+      "zh-CN": "域名已生效：用这个域名打开的页面与主站一致。登录使用该域名自己的登录流程，平台会为该域名登记登录回调；更换或解绑域名后，该域名立即停止打开百业页面。"
+    },
+    "customDomainDisabledNote": {
+      "zh-CN": "该域名已被平台停用，当前不会打开任何页面。如需恢复，请联系平台。"
     },
     "billingSuccess": {
       "zh-CN": "开通成功，Premium 已生效。"

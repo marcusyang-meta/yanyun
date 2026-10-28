@@ -12,6 +12,7 @@ import {
   getTenantRow, getTenantSlug, listTenantSlugs, listTenantsHubAdmin, deleteTenantCascade,
   getSettingValue, setSettingValue, listGlobalSettings, listNonEmptySettingsByKey, updateTenantWebhook, listSettingsByKey,
   setGuildSubdomainEnabled, SUBDOMAIN_ENABLED_KEY,
+  getCustomDomainByTenant, setCustomDomainDisabled, customDomainSaasConfigured,
 } from '../guilds/index.ts';
 import {
   isPaygateEnabled, setPaygateEnabled, getEffectiveEntitlement, grantPremiumManual,
@@ -422,6 +423,12 @@ interface BillingTenantState {
   hasCard: boolean; trialUsed: boolean;
   stripeCustomerId: string; stripeSubscriptionId: string;
   subdomainEnabled: boolean;
+  /* Custom domain (P23): the guild's binding as the hub sees it —
+   * hostname + state-machine status, null when unbound. Binding is
+   * the guild admin's self-service (admin surface); the hub's part
+   * is visibility + the disable switch below. The verify token is
+   * never included here. */
+  customDomain: { hostname: string; status: string } | null;
 }
 
 async function billingStateFor(c: any) {
@@ -454,6 +461,10 @@ async function billingStateFor(c: any) {
       stripeCustomerId: row ? row.stripeCustomerId : '',
       stripeSubscriptionId: row ? row.stripeSubscriptionId : '',
       subdomainEnabled: (await getSettingValue(db, t.slug, SUBDOMAIN_ENABLED_KEY)) === '1',
+      customDomain: await (async () => {
+        const b = await getCustomDomainByTenant(db, t.slug).catch(() => null);
+        return b ? { hostname: b.hostname, status: b.status } : null;
+      })(),
     });
   }
   return {
@@ -463,6 +474,9 @@ async function billingStateFor(c: any) {
     // for the hub's pricing display; the hub is an operator surface
     // behind the hub password, not a tenant surface.
     plans: PREMIUM_PLANS,
+    /* The custom-domain seam state, platform-wide: false until the
+     * zone-level Cloudflare for SaaS setup is recorded in env. */
+    customDomainSaasConfigured: customDomainSaasConfigured(c.env),
     tenants: out,
   };
 }
@@ -536,6 +550,26 @@ hubRoutes.put('/billing/subdomain', async (c: any) => {
   }
   await setGuildSubdomainEnabled(c.env.DB, slug, enabled);
   await audit(c, 'billing.subdomain', slug, { enabled });
+  return json({ ok: true, billing: await billingStateFor(c) });
+});
+
+/* Custom-domain kill switch (P23): binding is the guild admin's
+ * self-service, but the platform keeps a hub-side disable — the
+ * operations answer to a hijacked or abusive domain. Disabling
+ * freezes resolution at once (record kept); re-enabling returns
+ * the binding to pending, never straight to active, so the guild
+ * re-verifies DNS before the hostname can resolve again. Audited
+ * like every billing write. */
+hubRoutes.put('/billing/custom-domain', async (c: any) => {
+  const body = await getBody(c);
+  const slug = s(body.slug, 40);
+  const disabled = !!body.disabled;
+  const t = await getTenantSlug(c.env.DB, slug);
+  if (!t) return err('百业不存在', 404);
+  const binding = await getCustomDomainByTenant(c.env.DB, slug).catch(() => null);
+  if (!binding) return err('该百业未绑定自定义域名', 404);
+  await setCustomDomainDisabled(c.env.DB, slug, disabled, Math.floor(Date.now() / 1000));
+  await audit(c, 'billing.custom_domain', slug, { disabled, hostname: binding.hostname });
   return json({ ok: true, billing: await billingStateFor(c) });
 });
 
