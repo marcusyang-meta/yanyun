@@ -284,8 +284,8 @@ function seqOf(blocks) {
 const bk = await gql(listBlocksQ, { variables: { slug: SLUG, tab: 'TALENT', wo: 0, bv: 4 } });
 const seq = seqOf(bk.data?.groupingListPage?.blocks);
 const p1 = localDayParts(D1 + 3600, 'Asia/Shanghai');
-const h1 = translate('groupingList', 'dayGroupHeader', 'zh-CN', {
-  month: p1.month, day: p1.day, weekday: translate('groupingList', 'weekday' + p1.weekday, 'zh-CN'),
+const h1 = translate('groupingList_dayGroupHeader', 'zh-CN', {
+  month: p1.month, day: p1.day, weekday: translate('groupingList_weekday' + p1.weekday, 'zh-CN'),
 });
 eq('组头[0] 整句 = 目录模板拼装 (D1 日)', seq[0], 'H:' + h1);
 eq('组内按时刻升序: 早场闭车 203 在晚场 202 前 (逆 SQL 的 open 优先序)', seq[1] + ',' + seq[2], 'C:203,C:202');

@@ -235,8 +235,8 @@ const gearKeys = Object.keys(CATALOG.gear);
 let matrixBad = 0;
 for (const k of gearKeys) {
   for (const loc of ['zh-CN', 'en', 'es', 'fr', 'zh-TW']) {
-    const t = translate('gear', k, loc);
-    if (!t || t === 'gear.' + k) matrixBad++;
+    const t = translate('gear_' + k, loc);
+    if (!t || t === 'gear_' + k) matrixBad++;
   }
 }
 eq(`catalog matrix ${gearKeys.length}x5 complete`, matrixBad, 0);
