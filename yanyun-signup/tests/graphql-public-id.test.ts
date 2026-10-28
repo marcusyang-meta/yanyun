@@ -22,10 +22,12 @@ import { parsePublicId } from '../src/domains/platform/ids.ts';
 import { insertTenant } from '../src/domains/guilds/tenants.ts';
 import { setSettingValue } from '../src/domains/guilds/settings.ts';
 import {
-  upsertUserOnLogin, upsertOAuthOnLogin, upsertGuildMember,
+  upsertUserOnLogin, upsertOAuthOnLogin, upsertGuildMember, upsertNick,
 } from '../src/domains/identity/index.ts';
 import { signJwt, getSessionUserChecked, SESSION_COOKIE } from '../src/domains/identity/auth.ts';
 import { insertAnnouncement } from '../src/domains/guilds/announcements.ts';
+import { getShortLinkByCode } from '../src/domains/groupings/shortlinks.ts';
+import { setUserLocalePref } from '../src/domains/identity/users.ts';
 
 function makeFakeD1(sqlite: DatabaseSync) {
   const prepare = (query: string) => {
@@ -105,12 +107,12 @@ async function bootRig() {
     sub: String(userId), name: 'RigUser', avatar: '', guilds: [DGID],
   });
   const env = { DB: db, SESSION_SECRET: SECRET };
-  const call = async (query: string, variables: any = {}) => {
+  const callAs = async (token: string, query: string, variables: any = {}) => {
     const req = new Request('https://yanyun.app/graphql', {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
-        cookie: `${SESSION_COOKIE}=${jwt}`,
+        cookie: `${SESSION_COOKIE}=${token}`,
       },
       body: JSON.stringify({ query, variables }),
     });
@@ -122,7 +124,38 @@ async function bootRig() {
     const res = await yoga.fetch(req, ctx);
     return res.json();
   };
-  return { db, guildId, userId, call };
+  const call = (query: string, variables: any = {}) => callAs(jwt, query, variables);
+  // A second roster member with her own account + session.
+  const DID2 = '222222222222222222';
+  const userId2 = await upsertUserOnLogin(db, {
+    discordId: DID2, username: 'JoinerGlobal', avatar: '',
+    guildsJson: JSON.stringify([{ id: DGID, name: 'Server', icon: '', owner: false }]),
+    checkedAtSec: now,
+  });
+  await upsertOAuthOnLogin(db, {
+    userId: userId2, refreshToken: 'rt', scope: 'identify guilds guilds.members.read', nowSec: now,
+  });
+  await upsertGuildMember(db, guildId, DID2, 'JoinerNick', 'JoinerGlobal');
+  // Her Discord server nickname (class-A snapshot, keyed by Discord
+  // user + Discord server) — the self-signup seat name source.
+  await upsertNick(db, DID2, DGID, 'JoinerNick', now);
+  const jwt2 = await signJwt(SECRET, {
+    sub: String(userId2), name: 'JoinerGlobal', avatar: '', guilds: [DGID],
+  });
+  const call2 = (query: string, variables: any = {}) => callAs(jwt2, query, variables);
+  return { db, sqlite, guildId, userId, userId2, call, call2 };
+}
+
+async function createRigCar(call: any) {
+  const startsAt = String(Math.floor(Date.now() / 1000) + 86400);
+  const created: any = await call(
+    `mutation($input: CreateGroupingInput!) {
+      createGrouping(input: $input) { ok errorCode grouping { id title } }
+    }`,
+    { input: { slug: SLUG, title: 'Rig Car', type: 'ACTIVITY', startsAt } },
+  );
+  expect(created.data.createGrouping.ok).toBe(true);
+  return created.data.createGrouping.grouping.id as string;
 }
 
 describe('GraphQL surface on typed public IDs', () => {
@@ -172,5 +205,85 @@ describe('GraphQL surface on typed public IDs', () => {
     // foreign-type ID: no grouping leaks across types.
     expect(detail.data?.groupingDetailPage ?? null).toBeNull();
     expect(detail.errors?.length).toBeGreaterThan(0);
+  });
+
+  it('a second member joins: the seat is stamped with her identity and roster nick', async () => {
+    const rig = await bootRig();
+    const gid = await createRigCar(rig.call);
+    const joined: any = await rig.call2(
+      `mutation($input: JoinGroupingInput!) {
+        joinGrouping(input: $input) { ok errorCode seats { nickname mine } }
+      }`,
+      { input: { groupingId: gid, nickname: 'ignored', weapon: '', seatIndex: 0 } },
+    );
+    expect(joined.errors).toBeUndefined();
+    expect(joined.data.joinGrouping.ok, JSON.stringify(joined.data.joinGrouping)).toBe(true);
+    const mine = joined.data.joinGrouping.seats.find((s: any) => s.mine);
+    expect(mine).toBeTruthy();
+    // Seat display name comes from the roster nick.
+    expect(mine.nickname).toBe('JoinerNick');
+    // The stored seat stamp is the real Discord ID (class A: reminder
+    // mentions are built from this column).
+    const rows = rig.sqlite
+      .prepare('SELECT discord_id FROM signups WHERE event_id = ?')
+      .all(Number(gid));
+    expect(rows.map((r: any) => r.discord_id)).toContain('222222222222222222');
+  });
+
+  it('seat mutations (ready toggle, leave) work against the numeric tenant', async () => {
+    const rig = await bootRig();
+    const gid = await createRigCar(rig.call);
+    const joined: any = await rig.call2(
+      `mutation($input: JoinGroupingInput!) {
+        joinGrouping(input: $input) { ok seats { uid mine } }
+      }`,
+      { input: { groupingId: gid, nickname: 'ignored', weapon: '', seatIndex: 0 } },
+    );
+    expect(joined.data.joinGrouping.ok).toBe(true);
+    const uid = joined.data.joinGrouping.seats.find((s: any) => s.mine).uid;
+    const ready: any = await rig.call2(
+      `mutation($input: SetSeatReadyInput!) {
+        setSeatReady(input: $input) { ok errorCode seats { mine ready } }
+      }`,
+      { input: { groupingId: gid, ready: true } },
+    );
+    expect(ready.errors).toBeUndefined();
+    expect(ready.data.setSeatReady.ok, JSON.stringify(ready.data.setSeatReady)).toBe(true);
+    expect(ready.data.setSeatReady.seats.find((s: any) => s.mine).ready).toBe(true);
+    const left: any = await rig.call2(
+      `mutation($input: LeaveGroupingInput!) {
+        leaveGrouping(input: $input) { ok errorCode seats { mine } }
+      }`,
+      { input: { groupingId: gid, uid } },
+    );
+    expect(left.errors).toBeUndefined();
+    expect(left.data.leaveGrouping.ok, JSON.stringify(left.data.leaveGrouping)).toBe(true);
+    expect(left.data.leaveGrouping.seats.some((s: any) => s.mine)).toBe(false);
+  });
+
+  it('the detail share URL resolves back through the short-link repository', async () => {
+    const { db, guildId, call } = await bootRig();
+    const gid = await createRigCar(call);
+    const detail: any = await call(
+      `query($slug: String, $id: ID!) {
+        groupingDetailPage(slug: $slug, id: $id) { shareUrl }
+      }`,
+      { slug: SLUG, id: gid },
+    );
+    expect(detail.errors).toBeUndefined();
+    const m = /\/c\/([0-9A-Za-z]{7})$/.exec(detail.data.groupingDetailPage.shareUrl);
+    expect(m).toBeTruthy();
+    const row = await getShortLinkByCode(db, m![1]);
+    expect(row).toBeTruthy();
+    expect(row!.tenant).toBe(guildId);
+    expect(row!.event_id).toBe(Number(gid));
+  });
+
+  it('the viewer locale preference round-trips by user ID', async () => {
+    const { db, userId, call } = await bootRig();
+    await setUserLocalePref(db, userId, 'fr');
+    const res: any = await call(`query { viewer { myLocalePref } }`);
+    expect(res.errors).toBeUndefined();
+    expect(res.data.viewer.myLocalePref).toBe('fr');
   });
 });

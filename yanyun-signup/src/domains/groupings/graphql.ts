@@ -492,7 +492,8 @@ export class GroupingDetailPageShell extends ShellBase {
   // car's title (client-side initial value, editable).
   async genTemplateSave(){
     return this.memo('templateSave', async () => {
-      const access = await getGuildAccess(this.db, this.ctx.user, this.data.tenant, this.ctx.request);
+      const tRow = await getTenantRowById(this.db, this.data.tenant).catch(() => null);
+      const access = await getGuildAccess(this.db, this.ctx.user, tRow ? tRow.slug : '', this.ctx.request);
       if (!access.canWrite) return null;
       return {
         buttonLabel: this.t('groupingTemplate_saveButton'),
@@ -962,7 +963,8 @@ export const groupingsResolvers = {
       const gid = parseInt(input.groupingId, 10) || 0;
       const ev = await getEventRow(db, gid);
       if (!ev) return tFail(ctx, 'groupingNotFound');
-      const gate = await requireWrite(db, ctx.user, ev.tenant, ctx.request);
+      const evTenantRow = await getTenantRowById(db, ev.tenant).catch(() => null);
+      const gate = await requireWrite(db, ctx.user, evTenantRow ? evTenantRow.slug : '', ctx.request);
       if (gate) return tFail(ctx, gate);
       const name = s(input.name, 40) || s(ev.title, 40);
       if (!name) return tFail(ctx, 'templateNameRequired');
@@ -1204,7 +1206,8 @@ export const groupingsResolvers = {
       const ev = await getEventRow(db, gid);
       if (!ev) return sFail(ctx, 'groupingNotFound');
       if (ev.status !== 'open') return sFail(ctx, 'groupingClosed');
-      const gate = await requireWrite(db, ctx.user, ev.tenant, ctx.request);
+      const evTenantRow = await getTenantRowById(db, ev.tenant).catch(() => null);
+      const gate = await requireWrite(db, ctx.user, evTenantRow ? evTenantRow.slug : '', ctx.request);
       if (gate) return sFail(ctx, gate);
       const weapon = s(input.weapon, 40);
       const uid = newUid();
@@ -1238,7 +1241,7 @@ export const groupingsResolvers = {
         nickname = nickname.slice(0, 30);
         stamp = forId;
       } else {
-        nickname = (await canonicalSignupName(db, ctx.user, ev.tenant)).slice(0, 30);
+        nickname = (await canonicalSignupName(db, ctx.user, evTenantRow ? evTenantRow.slug : '')).slice(0, 30);
         if (!nickname) return sFail(ctx, 'nicknameRequired');
         stamp = String(ctx.user!.discordId);
       }
@@ -1268,7 +1271,8 @@ export const groupingsResolvers = {
       const gid = parseInt(input.groupingId, 10) || 0;
       const ev0 = await getEventTenant(db, gid);
       if (!ev0) return sFail(ctx, 'groupingNotFound');
-      const gate = await requireWrite(db, ctx.user, ev0.tenant, ctx.request);
+      const ev0TenantRow = await getTenantRowById(db, ev0.tenant).catch(() => null);
+      const gate = await requireWrite(db, ctx.user, ev0TenantRow ? ev0TenantRow.slug : '', ctx.request);
       if (gate) return sFail(ctx, gate);
       const r = await deleteSignupByEventUid(db, gid, s(input.uid, 30));
       if (!r.changes) return sFail(ctx, 'seatNotFound');
@@ -1276,7 +1280,7 @@ export const groupingsResolvers = {
       await deleteSignupAnswersByEventUid(db, gid, s(input.uid, 30));
       const ev = await getEventRow(db, gid);
       const g = ev ? toGrouping(ctx, ev) : null;
-      publishGroupingEvent(ctx, ev0.tenant, gid, 'seats');
+      publishGroupingEvent(ctx, ev0TenantRow ? ev0TenantRow.slug : '', gid, 'seats');
       return new SeatPayloadShell(ctx, { ok: true, seats: g ? await g.genSeats() : null });
     },
 
@@ -1290,13 +1294,14 @@ export const groupingsResolvers = {
       if (!weapon) return sFail(ctx, 'paramsIncomplete');
       const ev0 = await getEventTenant(db, gid);
       if (!ev0) return sFail(ctx, 'groupingNotFound');
-      const gate = await requireWrite(db, ctx.user, ev0.tenant, ctx.request);
+      const ev0TenantRow = await getTenantRowById(db, ev0.tenant).catch(() => null);
+      const gate = await requireWrite(db, ctx.user, ev0TenantRow ? ev0TenantRow.slug : '', ctx.request);
       if (gate) return sFail(ctx, gate);
       const r = await updateSignupWeaponRoleByUid(db, gid, s(input.uid, 30), weapon, roleOf(weapon));
       if (!r.changes) return sFail(ctx, 'seatNotFound');
       const ev = await getEventRow(db, gid);
       const g = ev ? toGrouping(ctx, ev) : null;
-      publishGroupingEvent(ctx, ev0.tenant, gid, 'seats');
+      publishGroupingEvent(ctx, ev0TenantRow ? ev0TenantRow.slug : '', gid, 'seats');
       return new SeatPayloadShell(ctx, { ok: true, seats: g ? await g.genSeats() : null });
     },
 
@@ -1312,14 +1317,15 @@ export const groupingsResolvers = {
       const gid = parseInt(input.groupingId, 10) || 0;
       const ev0 = await getEventTenant(db, gid);
       if (!ev0) return sFail(ctx, 'groupingNotFound');
-      const gate = await requireWrite(db, ctx.user, ev0.tenant, ctx.request);
+      const ev0TenantRow = await getTenantRowById(db, ev0.tenant).catch(() => null);
+      const gate = await requireWrite(db, ctx.user, ev0TenantRow ? ev0TenantRow.slug : '', ctx.request);
       if (gate) return sFail(ctx, gate);
       const readyAt = input.ready ? Math.floor(Date.now() / 1000) : null;
       const r = await updateSignupReadyByEventDiscord(db, gid, String(ctx.user!.discordId), readyAt);
       if (!r.changes) return sFail(ctx, 'notSeated');
       const ev = await getEventRow(db, gid);
       const g = ev ? toGrouping(ctx, ev) : null;
-      publishGroupingEvent(ctx, ev0.tenant, gid, 'seats');
+      publishGroupingEvent(ctx, ev0TenantRow ? ev0TenantRow.slug : '', gid, 'seats');
       return new SeatPayloadShell(ctx, { ok: true, seats: g ? await g.genSeats() : null });
     },
   },
