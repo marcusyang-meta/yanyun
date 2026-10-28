@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<56f0f3bf747df98b6aac28f7d00f9a58>>
+ * @generated SignedSource<<83f318aa9bf07bf8868deca4adeba706>>
  * @lightSyntaxTransform
  */
 
@@ -91,6 +91,8 @@ export type GuildAdminPage_guildAdmin$data = {
   readonly adminRecruitMentorSelectLabel: string;
   readonly adminRecruitNewcomersEmptyText: string;
   readonly adminRecruitNewcomersTitle: string;
+  readonly adminRecruitOpenHint: string;
+  readonly adminRecruitOpenLabel: string;
   readonly adminRecruitPairingCreateLabel: string;
   readonly adminRecruitPairingEndLabel: string;
   readonly adminRecruitPairingsEmptyText: string;
@@ -311,6 +313,7 @@ export type GuildAdminPage_guildAdmin$data = {
     readonly status: RecruitApplicationStatus;
     readonly statusLabel: string;
   }>;
+  readonly recruitOpen: boolean;
   readonly recruitPairings: ReadonlyArray<{
     readonly createdAtText: string;
     readonly endedAtText: string | null | undefined;
@@ -1371,6 +1374,27 @@ return {
       "args": null,
       "kind": "ScalarField",
       "name": "adminRecruitNewcomersEmptyText",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminRecruitOpenLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminRecruitOpenHint",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "recruitOpen",
       "storageKey": null
     },
     {
@@ -2831,6 +2855,6 @@ return {
 };
 })();
 
-(node as any).hash = "9b54b207af8efc445e9364b4320c200b";
+(node as any).hash = "bba3e4d010fa53441227a7ccdffed0db";
 
 export default node;

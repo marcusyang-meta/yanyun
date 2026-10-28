@@ -52,6 +52,11 @@ const ReviewMutation = graphql`
     reviewGuildApplication(slug: $slug, applicationId: $id, approve: $approve) { ok error }
   }
 `;
+const RecruitOpenMutation = graphql`
+  mutation GuildAdminRecruitOpenMutation($slug: String!, $open: Boolean!) {
+    updateGuildRecruitOpen(slug: $slug, open: $open) { ok error }
+  }
+`;
 const SetMentorMutation = graphql`
   mutation GuildAdminRecruitSetMentorMutation($slug: String!, $id: String!, $v: Boolean!) {
     setGuildMentor(slug: $slug, discordId: $id, isMentor: $v) { ok error }
@@ -94,10 +99,11 @@ function CheckMark({ done }: { done: boolean }) {
   );
 }
 
-export default function GuildAdminRecruit({ slug, text, commonText, applications, pairings, roster, newcomers, refresh }: {
+export default function GuildAdminRecruit({ slug, text, commonText, recruitOpen, applications, pairings, roster, newcomers, refresh }: {
   slug: string;
   text: AdminText;
   commonText: CommonText;
+  recruitOpen: boolean;
   applications: RecruitApplication[];
   pairings: MentorPairing[];
   roster: RecruitMember[];
@@ -105,9 +111,11 @@ export default function GuildAdminRecruit({ slug, text, commonText, applications
   refresh: () => void;
 }) {
   const [commitReview] = useMutation(ReviewMutation);
+  const [commitRecruitOpen] = useMutation(RecruitOpenMutation);
   const [commitSetMentor] = useMutation(SetMentorMutation);
   const [commitPair] = useMutation(CreatePairingMutation);
   const [commitEnd] = useMutation(EndPairingMutation);
+  const runRecruitOpen = useAdminMutation(commitRecruitOpen, 'updateGuildRecruitOpen', refresh, commonText.unknownError);
   const runReview = useAdminMutation(commitReview, 'reviewGuildApplication', refresh, commonText.unknownError);
   const runSetMentor = useAdminMutation(commitSetMentor, 'setGuildMentor', refresh, commonText.unknownError);
   const runPair = useAdminMutation(commitPair, 'createMentorPairing', refresh, commonText.unknownError);
@@ -123,6 +131,15 @@ export default function GuildAdminRecruit({ slug, text, commonText, applications
 
   return (
     <>
+      <section style={adminSectionStyle}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: theme.paper, cursor: 'pointer' }}>
+          <input type="checkbox" checked={recruitOpen}
+            onChange={(e) => runRecruitOpen({ slug, open: e.target.checked })} />
+          {text.adminRecruitOpenLabel}
+        </label>
+        <p style={{ color: theme.muted, fontSize: 12, lineHeight: 1.7, margin: '8px 0 0' }}>{text.adminRecruitOpenHint}</p>
+      </section>
+
       <section style={adminSectionStyle}>
         <h2 style={adminSectionTitleStyle}>{text.adminRecruitApplicationsTitle}</h2>
         {applications.length === 0 ? (

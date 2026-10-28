@@ -141,6 +141,9 @@ const GuildAdminPage_guildAdmin = graphql`
     adminRecruitMenteeSelectLabel
     adminRecruitNewcomersTitle
     adminRecruitNewcomersEmptyText
+    adminRecruitOpenLabel
+    adminRecruitOpenHint
+    recruitOpen
     adminRecruitProfileLabel
     adminRecruitMentorLabel
     adminRecruitFirstRunLabel
@@ -758,6 +761,7 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
             slug={slug}
             text={text}
             commonText={commonText}
+            recruitOpen={!!data.recruitOpen}
             applications={data.recruitApplications}
             pairings={data.recruitPairings}
             roster={data.recruitRoster}
