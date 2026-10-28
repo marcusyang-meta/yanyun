@@ -214,6 +214,45 @@ export const guildMentors = sqliteTable('guild_mentors', {
   primaryKey({ columns: [t.tenant, t.discordId] }),
 ]);
 
+/* ---------------- guild member notes [alt: 0016] ------------------
+ * One row per officer note about a guild member (F12, membernotes.ts
+ * repository). Admin-side only: no member-facing surface reads this
+ * entity. The author snapshot keeps history readable after renames. */
+export const guildMemberNotes = sqliteTable('guild_member_notes', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  tenant: text('tenant').notNull(),
+  memberDiscordId: text('member_discord_id').notNull(),
+  body: text('body').notNull().default(''),
+  authorDiscordId: text('author_discord_id').notNull().default(''),
+  authorName: text('author_name').notNull().default(''),
+  createdAt: integer('created_at').notNull().default(0),
+  updatedAt: integer('updated_at').notNull().default(0),
+}, (t) => [
+  index('idx_guild_member_notes_tenant_member').on(t.tenant, t.memberDiscordId, t.id),
+]);
+
+/* ---------------- member season goals [alt: 0017] -----------------
+ * One row per season goal a member keeps for themselves in one guild
+ * (F19, seasongoals.ts repository). status is the member's own
+ * bookkeeping ('active' | 'done' | 'dropped'); dungeonId optionally
+ * binds the goal to an existing dex dungeon row — null is a plain
+ * text goal. memberName is the owner's display snapshot. */
+export const memberSeasonGoals = sqliteTable('member_season_goals', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  tenant: text('tenant').notNull(),
+  discordId: text('discord_id').notNull(),
+  memberName: text('member_name').notNull().default(''),
+  title: text('title').notNull().default(''),
+  note: text('note').notNull().default(''),
+  status: text('status').notNull().default('active'),
+  dungeonId: integer('dungeon_id'),
+  createdAt: integer('created_at').notNull().default(0),
+  updatedAt: integer('updated_at').notNull().default(0),
+}, (t) => [
+  index('idx_member_season_goals_tenant_user').on(t.tenant, t.discordId, t.id),
+  index('idx_member_season_goals_tenant_id').on(t.tenant, t.id),
+]);
+
 /* ---------------- guild avatars [ddl chain baseline] --------------- */
 export const guildAvatars = sqliteTable('guild_avatars', {
   tenant: text('tenant').primaryKey(),
