@@ -35,6 +35,7 @@ function check(name, ok, extra = '') {
 let eventId;
 let dev;
 let devLog;
+let rows;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 /* ---------- JWT (same HS256 format as auth) ---------- */
@@ -172,7 +173,7 @@ const UNREG = 'mutation($t: String!) { unregisterPushToken(token: $t) { ok error
 
 const r1 = await gql(REG, { t: FAKE_TOKEN, p: 'ios' });
 check('registerPushToken 合法令牌 ok', r1?.data?.registerPushToken?.ok === true, JSON.stringify(r1).slice(0, 160));
-let rows = await d1(`SELECT discord_id, token, platform FROM push_tokens WHERE discord_id='2001'`);
+rows = await d1(`SELECT discord_id, token, platform FROM push_tokens WHERE discord_id='2001'`);
 check('push_tokens 落表 1 行', rows.length === 1 && rows[0].token === FAKE_TOKEN && rows[0].platform === 'ios', JSON.stringify(rows));
 
 const r2 = await gql(REG, { t: 'not-a-token', p: 'ios' });
