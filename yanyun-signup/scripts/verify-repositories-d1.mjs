@@ -1595,6 +1595,8 @@ if (want('network')) {
   eq('double dissolve is a no-op', (await net.endAlliance(db, al1, 'beta', 1760002000)).changes, 0);
   const al2 = await net.insertAlliance(db, { fromTenant: 'alpha', toTenant: 'beta', requestedBy: 'UA', requestedByName: '甲管', at: 1760002100 });
   check('an ended pair can be re-invited as a new row', al2 > al1, `${al1} -> ${al2}`);
+}
+
 /* ---------------- governance (officer grants + board + audit, 0029) ---------------- */
 if (want('governance')) {
   console.log('== governance repositories on real D1 ==');
