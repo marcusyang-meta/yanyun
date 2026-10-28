@@ -16,10 +16,16 @@
 //    only input — car A's code can never surface car B's data);
 //  - follow-up ruling (2026-10-28): unbound guilds are login-gated
 //    on non-shared links too — anonymous direct reads (guild home,
-//    list/detail, publicGuilds, hub directory, WS) disclose nothing,
+//    list/detail, hub directory, WS) disclose nothing,
 //    signed-in readability is unchanged, and an unbound guild's car
 //    splits at /c exactly like a bound guild's (anonymous -> /s,
 //    signed-in -> canonical).
+//  - demo-face deletion (2026-10-28, later still): the GuildReadOnly /
+//    GuildLocked faces and the publicGuilds composition the gate was
+//    first expressed through are deleted — anonymous guild reads now
+//    resolve to null and publicGuilds no longer exists in the schema.
+//    The policy assertions below are unchanged in intent; only the
+//    face expectations moved to the absence contract.
 // FakeDB routes by SQL shape (same pattern as tests/shortlink).
 import { describe, it, expect } from 'vitest';
 import { yoga } from '../src/graphql.ts';
@@ -348,12 +354,12 @@ describe('shareaccess: GraphQL surfaces', () => {
 describe('shareaccess: unbound guild login gate (follow-up ruling)', () => {
   const FREE_SENTINELS = ['未绑百业名SENTINEL', '未绑标语SENTINEL', '未绑车标题601', '未绑阿珍', 'qFREEUID1', 'FREE_DISCORD_AAA'];
   const GUILD_Q = `query($slug: String!) { viewer { guild(slug: $slug) {
-    __typename ... on GuildReadOnly { name slogan memberCount } } } }`;
+    __typename ... on Guild { name slogan memberCount } } } }`;
 
-  it('anonymous viewer.guild -> GuildLocked, zero content bytes', async () => {
+  it('anonymous viewer.guild -> null, zero content bytes', async () => {
     const g = await gql(GUILD_Q, { slug: SLUG_FREE });
     check('无 errors', !g.errors, JSON.stringify(g.errors || '').slice(0, 200));
-    eq('匿名未绑定百业 = GuildLocked', g.data?.viewer?.guild?.__typename, 'GuildLocked');
+    eq('匿名未绑定百业 = null（锁定面已删）', g.data?.viewer?.guild, null);
     const raw = JSON.stringify(g);
     for (const sName of FREE_SENTINELS) check(`响应不含 ${sName}`, !raw.includes(sName));
   });
@@ -369,10 +375,10 @@ describe('shareaccess: unbound guild login gate (follow-up ruling)', () => {
     for (const sName of FREE_SENTINELS) check(`详情响应不含 ${sName}`, !raw.includes(sName));
   });
 
-  it('anonymous publicGuilds -> empty; hub directory omits the unbound guild', async () => {
+  it('publicGuilds deleted from the schema; hub directory omits the unbound guild', async () => {
     const pg = await gql(`query { viewer { publicGuilds { __typename slug } } }`, {});
-    check('publicGuilds 无 errors', !pg.errors, JSON.stringify(pg.errors || '').slice(0, 200));
-    eq('匿名 publicGuilds = []', JSON.stringify(pg.data?.viewer?.publicGuilds), '[]');
+    check('publicGuilds 查询 = 校验错误', Array.isArray(pg.errors) && /Cannot query field "publicGuilds"/.test(pg.errors[0]?.message || ''), JSON.stringify(pg).slice(0, 200));
+    eq('publicGuilds 无数据', pg.data?.viewer?.publicGuilds ?? null, null);
     const hub = await gql(`query { hubPage { guilds { slug name slogan } } }`, {});
     check('hubPage 无 errors', !hub.errors, JSON.stringify(hub.errors || '').slice(0, 200));
     check('匿名 hub 目录不含未绑定百业', !(hub.data?.hubPage?.guilds || []).some((x: any) => x.slug === SLUG_FREE), JSON.stringify(hub.data || {}).slice(0, 200));
@@ -383,17 +389,17 @@ describe('shareaccess: unbound guild login gate (follow-up ruling)', () => {
   it('signed-in non-member readability is unchanged', async () => {
     const g = await gql(GUILD_Q, { slug: SLUG_FREE }, NONMEMBER);
     check('登录读百业无 errors', !g.errors, JSON.stringify(g.errors || '').slice(0, 200));
-    eq('登录未绑定百业 = GuildReadOnly', g.data?.viewer?.guild?.__typename, 'GuildReadOnly');
+    eq('登录未绑定百业 = Guild', g.data?.viewer?.guild?.__typename, 'Guild');
     eq('登录可见百业名', g.data?.viewer?.guild?.name, '未绑百业名SENTINEL');
     const detail = await gql(DETAIL_Q0, { slug: SLUG_FREE, id: '601' }, NONMEMBER);
     check('登录详情无 errors', !detail.errors, JSON.stringify(detail.errors || '').slice(0, 200));
     eq('登录见车标题', detail.data?.groupingDetailPage?.grouping?.title, '未绑车标题601');
     eq('登录见座位昵称', detail.data?.groupingDetailPage?.grouping?.seats?.[0]?.nickname, '未绑阿珍');
     const pg = await gql(`query { viewer { publicGuilds { __typename slug } } }`, {}, NONMEMBER);
-    const mine = (pg.data?.viewer?.publicGuilds || []).find((x: any) => x.slug === SLUG_FREE);
-    check('登录 publicGuilds 含未绑定百业', !!mine, JSON.stringify(pg.data || {}).slice(0, 200));
-    eq('publicGuilds 条目 = GuildReadOnly', mine?.__typename, 'GuildReadOnly');
-    check('publicGuilds 不含已绑定百业', !(pg.data?.viewer?.publicGuilds || []).some((x: any) => x.slug === SLUG));
+    check('登录 publicGuilds 同为校验错误（字段已删）', Array.isArray(pg.errors) && /Cannot query field "publicGuilds"/.test(pg.errors[0]?.message || ''), JSON.stringify(pg).slice(0, 200));
+    const mine = await gql(`query { viewer { guilds { slug } } }`, {}, NONMEMBER);
+    check('登录 guilds（成员组合）不含未绑定百业', !(mine.data?.viewer?.guilds || []).some((x: any) => x.slug === SLUG_FREE), JSON.stringify(mine.data || {}).slice(0, 200));
+    check('登录 guilds（成员组合）不含已绑定百业', !(mine.data?.viewer?.guilds || []).some((x: any) => x.slug === SLUG));
     const hub = await gql(`query { hubPage { guilds { slug name slogan } } }`, {}, NONMEMBER);
     check('登录 hub 目录含未绑定百业', (hub.data?.hubPage?.guilds || []).some((x: any) => x.slug === SLUG_FREE), JSON.stringify(hub.data || {}).slice(0, 200));
   });

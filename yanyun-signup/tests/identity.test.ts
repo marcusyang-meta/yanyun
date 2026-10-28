@@ -8,9 +8,9 @@
 //     (guild_members); the seated name = roster nickname, falling back
 //     to the global name; the stamp = the person signed up for; anyone
 //     not in the roster is rejected. The roster read surface
-//     memberRoster exists only on the full Guild type (response type
-//     is the permission): querying it on GuildReadOnly / GuildLocked
-//     is a schema validation error.
+//     memberRoster exists only on the Guild type (response type is
+//     the permission): viewers without access resolve guild to null,
+//     so no other face can carry it.
 //  3) Creator backfill migration for cars with no creator: stamp only
 //     from the seat-1 stamp / a unique roster nickname match;
 //     ambiguity / empty seat / no match are skipped and audited; cars
@@ -233,10 +233,12 @@ check('schema: JoinGroupingInput.forDiscordId', /input JoinGroupingInput \{[^}]*
 check('schema: type GuildRosterMember', typeDefs.includes('type GuildRosterMember'));
 check('schema: Guild.memberRoster', /type Guild \{[^]*?memberRoster: \[GuildRosterMember!\]!/.test(typeDefs));
 {
-  const ro = typeDefs.slice(typeDefs.indexOf('type GuildReadOnly'), typeDefs.indexOf('type GuildLocked'));
-  check('schema: GuildReadOnly 无 memberRoster', !ro.includes('memberRoster'));
-  const lk = typeDefs.slice(typeDefs.indexOf('type GuildLocked'), typeDefs.indexOf('type GuildLocked') + 400);
-  check('schema: GuildLocked 无 memberRoster', !lk.includes('memberRoster'));
+  // The read-only / locked guild faces were deleted (demo surfaces,
+  // 2026-10-28): absence from the schema IS the contract now.
+  check('schema: 无 GuildReadOnly 类型', !typeDefs.includes('type GuildReadOnly'));
+  check('schema: 无 GuildLocked 类型', !typeDefs.includes('type GuildLocked'));
+  check('schema: 无 publicGuilds 字段', !typeDefs.includes('publicGuilds'));
+  check('schema: Viewer.guild 返回 Guild', /guild\(slug: String!\): Guild/.test(typeDefs));
 }
 for (const f of ['seatSelfTabLabel', 'seatProxyTabLabel', 'seatSelfNameHint', 'seatProxySearchPlaceholder', 'seatProxyPickRequired', 'seatProxyEmptyText']) {
   check('schema: 字段 ' + f, typeDefs.includes(f + ': String!'));
@@ -349,23 +351,15 @@ const rd = roster.find((m) => m.discordId === 'UD');
 check('名册含 UC 且展示名 = 服昵C', !!rc && rc.displayName === '服昵C' && rc.globalName === '全局C', JSON.stringify(roster));
 check('名册含 UD 且展示名回退全局D', !!rd && rd.displayName === '全局D', JSON.stringify(roster));
 
-// Read-only surface (unbound guild): the memberRoster field does not exist -> validation-error shape.
-const rosterOnRo = `query($slug: String!) { viewer { guild(slug: $slug) {
-  ... on GuildReadOnly { memberRoster { discordId } }
-} } }`;
-r = await gql(rosterOnRo, { user: userA, variables: { slug: 'opentest' } });
-check('GuildReadOnly 上 memberRoster = 校验错误',
-  Array.isArray(r.errors) && /Cannot query field "memberRoster" on type "GuildReadOnly"/.test(r.errors[0]?.message || ''),
-  JSON.stringify(r).slice(0, 240));
+// Unbound guild: the read-only variant is gone — the guild resolves on
+// the single Guild face (write access is composed inside, per field).
+const guildFaceQ = `query($slug: String!) { viewer { guild(slug: $slug) { __typename slug } } }`;
+r = await gql(guildFaceQ, { user: userA, variables: { slug: 'opentest' } });
+eq('未绑百业 guild 面 = Guild（只读变体已删）', r.data?.viewer?.guild?.__typename, 'Guild');
 
-// Locked surface (bound, non-member): the field likewise does not exist.
-const rosterOnLocked = `query($slug: String!) { viewer { guild(slug: $slug) {
-  ... on GuildLocked { memberRoster { discordId } }
-} } }`;
-r = await gql(rosterOnLocked, { user: userZ, variables: { slug: 'idtest' } });
-check('GuildLocked 上 memberRoster = 校验错误',
-  Array.isArray(r.errors) && /Cannot query field "memberRoster" on type "GuildLocked"/.test(r.errors[0]?.message || ''),
-  JSON.stringify(r).slice(0, 240));
+// Bound guild, non-member: no locked face either — guild resolves to null.
+r = await gql(guildFaceQ, { user: userZ, variables: { slug: 'idtest' } });
+eq('非成员 guild = null（锁定面已删）', r.data?.viewer?.guild, null);
 
 // New detail-page copy fields (both modes).
 const detailTextQ = `query($slug: String, $id: ID!) { groupingDetailPage(slug: $slug, id: $id) {
