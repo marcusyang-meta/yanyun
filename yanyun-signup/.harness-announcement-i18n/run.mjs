@@ -1,26 +1,27 @@
 // Multilingual announcements acceptance (premium P26):
-//  - State 0 (paygate OFF, production today): the admin surface
-//    carries NO translation entry (labels null, canGenerate false,
+//  - State A (no entitlement, tier < T2): the admin surface carries
+//    NO translation entry (labels null, canGenerate false,
 //    per-announcement status null) and the generate mutation refuses
 //    with translationTierLocked; the member surface is byte-identical
 //    to before P26 (display == original, source label = original).
-//  - State 1 (paygate ON + free guild, tier < T2): same no-entry
-//    composition; generate -> translationTierLocked.
-//  - State 2 (paygate ON + premium guild + AI binding MISSING):
+//    The tier verdict is a PURE entitlement verdict: the paygate
+//    master switch is never consulted, and it stays OFF for this
+//    whole suite — every state below is composed with it off.
+//  - State B (tier >= T2 via a premium grant + AI binding MISSING):
 //    the entry is visible in its disabled state (generate label
 //    served, canGenerateTranslations false, unavailable note served)
 //    and generate -> translationNotConfigured.
-//  - State 3 (paygate ON + premium + AI binding stub): generate
-//    lands one done row per target locale (4), the binding sees
-//    exactly title+body per locale, always on the m2m100 model id;
-//    a second announcement with identical text generates with ZERO
-//    new binding calls (translation_cache hit) and re-generating
-//    the first is a no-op (current rows skipped); members read
-//    display text in their own locale with the translated source
-//    label, locales without a current translation fall back to the
-//    original; a binding failure for one locale records a failed
-//    row, still returns ok, and that locale's members fall back to
-//    the original.
+//  - State C (tier >= T2 + AI binding stub, paygate still OFF):
+//    generate lands one done row per target locale (4), the binding
+//    sees exactly title+body per locale, always on the m2m100 model
+//    id; a second announcement with identical text generates with
+//    ZERO new binding calls (translation_cache hit) and
+//    re-generating the first is a no-op (current rows skipped);
+//    members read display text in their own locale with the
+//    translated source label, locales without a current translation
+//    fall back to the original; a binding failure for one locale
+//    records a failed row, still returns ok, and that locale's
+//    members fall back to the original.
 // Real yoga + real resolvers + FakeDB routing by SQL shape into
 // in-memory tables (same pattern as .harness-announcements).
 import { yoga } from '../src/graphql.ts';
@@ -276,39 +277,28 @@ eq('发布公告 ok', post.data?.postGuildAnnouncement?.ok, true);
 const annId = post.data?.postGuildAnnouncement?.announcement?.id;
 await Promise.all(pending);
 
-/* ================= State 0: paygate OFF ================= */
+/* ================= State A: no entitlement (tier < T2) ================= */
 {
   const page = await adminPage();
   const ann = page.data?.viewer?.guildAdmin?.announcements;
-  eq('OFF: 无生成入口文案', ann?.generateTranslationsLabel, null);
-  eq('OFF: canGenerateTranslations=false', ann?.canGenerateTranslations, false);
-  eq('OFF: 无未启用说明', ann?.translationUnavailableText, null);
-  eq('OFF: 公告无译文状态', ann?.announcements?.[0]?.translationStatusText, null);
-  eq('OFF: 公告无逐 locale 译文列表', ann?.announcements?.[0]?.translations, null);
+  eq('无档位: 无生成入口文案', ann?.generateTranslationsLabel, null);
+  eq('无档位: canGenerateTranslations=false', ann?.canGenerateTranslations, false);
+  eq('无档位: 无未启用说明', ann?.translationUnavailableText, null);
+  eq('无档位: 公告无译文状态', ann?.announcements?.[0]?.translationStatusText, null);
+  eq('无档位: 公告无逐 locale 译文列表', ann?.announcements?.[0]?.translations, null);
   const g = await gen(adminA, 'alpha', annId);
-  eq('OFF: 生成 -> translationTierLocked', g.data?.generateGuildAnnouncementTranslations?.errorCode, 'translationTierLocked');
-  eq('OFF: 未落任何译文行', state.translations.length, 0);
-  const mp = await memberPage(member1, 'en');
-  const item = mp.data?.viewer?.guild?.announcements?.announcements?.[0];
-  eq('OFF: 成员 display 回退原文', [item?.displayTitle, item?.displayBody], ['周六活动安排', '本周六晚八点集合。']);
-  eq('OFF: isTranslated=false', item?.isTranslated, false);
-  eq('OFF: 来源标记为原文', item?.contentSourceLabel, '原文');
-}
-
-/* ================= State 1: paygate ON, free guild ================= */
-state.settings.set('|paygate_enabled', '1');
-{
-  const page = await adminPage();
-  const ann = page.data?.viewer?.guildAdmin?.announcements;
-  eq('T<2: 无生成入口文案', ann?.generateTranslationsLabel, null);
-  eq('T<2: 公告无译文状态', ann?.announcements?.[0]?.translationStatusText, null);
-  const g = await gen(adminA, 'alpha', annId);
-  eq('T<2: 生成 -> translationTierLocked', g.data?.generateGuildAnnouncementTranslations?.errorCode, 'translationTierLocked');
+  eq('无档位: 生成 -> translationTierLocked', g.data?.generateGuildAnnouncementTranslations?.errorCode, 'translationTierLocked');
+  eq('无档位: 未落任何译文行', state.translations.length, 0);
   const memberGen = await gen(member1, 'alpha', annId);
   eq('普通成员生成 -> adminOnly', memberGen.data?.generateGuildAnnouncementTranslations?.errorCode, 'adminOnly');
+  const mp = await memberPage(member1, 'en');
+  const item = mp.data?.viewer?.guild?.announcements?.announcements?.[0];
+  eq('无档位: 成员 display 回退原文', [item?.displayTitle, item?.displayBody], ['周六活动安排', '本周六晚八点集合。']);
+  eq('无档位: isTranslated=false', item?.isTranslated, false);
+  eq('无档位: 来源标记为原文', item?.contentSourceLabel, '原文');
 }
 
-/* ================= State 2: premium, AI binding missing ================= */
+/* ================= State B: tier >= T2, AI binding missing (paygate still OFF) ================= */
 state.entitlements.set('alpha', {
   tenant: 'alpha', plan: 'premium', source: 'manual', current_period_end: null,
   stripe_customer_id: '', stripe_subscription_id: '', updated_at: 1,
@@ -325,7 +315,7 @@ state.entitlements.set('alpha', {
   eq('未配置: AI 零调用', aiCalls.length, 0);
 }
 
-/* ================= State 3: premium + AI binding stub ================= */
+/* ================= State C: tier >= T2 + AI binding stub (paygate still OFF) ================= */
 env.AI = aiStub();
 {
   const page = await adminPage();

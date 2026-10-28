@@ -1976,8 +1976,9 @@ type GuildAnnouncementPage {
   urgentRemaining: Int
   announcements: [GuildAnnouncement!]!
   # Multilingual entry (P26, admin variant only): entry copy is
-  # served only when the paygate is on and the guild's tier reaches
-  # T2; below that (or with the paygate off) everything here is
+  # served only when the guild's tier reaches T2 — a pure
+  # entitlement verdict that never consults the paygate master
+  # switch; below T2 everything here is
   # null/false and the surface is identical to before P26. When the
   # entry is visible but the translation provider is not
   # configured, canGenerateTranslations is false and
@@ -2010,7 +2011,7 @@ extend type Mutation {
   deleteGuildAnnouncement(slug: String!, announcementId: ID!): GuildAnnouncementPayload!
   # Generate the multilingual versions (P26): manual trigger
   # (translation is metered; posting never auto-translates); the
-  # admin verdict is re-checked, plus paygate on and tier at T2;
+  # admin verdict is re-checked, plus the tier-at-T2 verdict;
   # provider not configured -> translationNotConfigured; a single
   # locale's failure is recorded as a failed state and never
   # affects the original or this response (ok stays true, state is

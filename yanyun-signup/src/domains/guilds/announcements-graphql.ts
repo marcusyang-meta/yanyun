@@ -33,7 +33,7 @@ import {
 import { fmtStartsAt, translate, translateError } from '../platform/index.ts';
 import {
   getEffectiveLimits, getAnnouncementsUsedToday, recordAnnouncementUse,
-  sendAnnouncementPush, isPaygateEnabled, tierLocked,
+  sendAnnouncementPush, tierLocked,
   createTranslator, isTranslationConfigured, SOURCE_LOCALE,
 } from '../platform/index.ts';
 import { listGuildMembers } from '../identity/index.ts';
@@ -51,15 +51,18 @@ import {
 import type { AnnouncementTranslationRow } from './announcement-i18n.ts';
 
 /* P26 multilingual announcements: the translation entry exists only
- * on the admin variant, and only once the platform paygate is on AND
- * the guild's tier reaches T2 — below that (and in today's
- * paygate-off production) the announcement surface is composed
- * exactly as before P26. Within the entry, an unconfigured provider
- * composes the entry's disabled state instead of hiding it, so an
- * entitled admin can see the feature is pending configuration. */
+ * on the admin variant, and only once the guild's tier reaches T2.
+ * The verdict is the billing service's tierLocked — a PURE
+ * entitlement verdict that deliberately does not consult the
+ * paygate master switch (the programme-wide semantics for tiered
+ * surfaces): an ungranted guild composes exactly as before P26,
+ * while a hub-granted guild gets the entry even with the paygate
+ * off. Within the entry, an unconfigured provider (missing AI
+ * binding) composes the entry's disabled state instead of hiding
+ * it, so an entitled admin can see the feature is pending
+ * configuration. */
 async function translationEntryState(ctx: Context, slug: string): Promise<{ visible: boolean; enabled: boolean }> {
   const db = ctx.env.DB;
-  if (!(await isPaygateEnabled(db).catch(() => false))) return { visible: false, enabled: false };
   if (await tierLocked(db, slug, 2).catch(() => true)) return { visible: false, enabled: false };
   return { visible: true, enabled: isTranslationConfigured(ctx.env) };
 }
@@ -278,7 +281,7 @@ export class GuildAnnouncementPageShell extends ShellBase {
     });
   }
   /* P26 entry fields (admin variant only; member variant and
-   * below-tier / paygate-off guilds resolve null/false throughout,
+   * below-tier guilds resolve null/false throughout,
    * so their surface is byte-identical to before P26). */
   genTranslationEntry(){
     return this.memo('translationEntry', async () => {
@@ -472,7 +475,7 @@ export const guildAnnouncementMutations = {
   /* Generate the multilingual versions of one announcement (P26).
    * MANUAL trigger by design: translation burns provider quota, so
    * posting never auto-translates. Admin verdict first, then the
-   * launch/tier verdict (paygate on + tier >= T2), then the provider
+   * tier verdict (tierLocked at T2, pure entitlement), then the provider
    * seam. Generation runs synchronously against the bounded locale
    * set; per-locale provider failures land as 'failed' rows and the
    * mutation still returns ok with the refreshed announcement — the
