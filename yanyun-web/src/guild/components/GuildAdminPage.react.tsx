@@ -22,6 +22,7 @@ import GuildAdminRecruit from './GuildAdminRecruit.react.tsx';
 import GuildAdminSeason from './GuildAdminSeason.react.tsx';
 import GuildAdminOfficer from './GuildAdminOfficer.react.tsx';
 import GuildAdminOps from './GuildAdminOps.react.tsx';
+import GuildAdminGovernance from './GuildAdminGovernance.react.tsx';
 import { PremiumLockedPanel, PremiumActivePanel } from './GuildAdminPremium.react.tsx';
 import GuildAdminCustomDomain from './GuildAdminCustomDomain.react.tsx';
 
@@ -92,6 +93,40 @@ const GuildAdminPage_guildAdmin = graphql`
         pointsTitle pointsHint pointsBoardEmptyText pointsTotalLabel pointsEntriesLabel pointsSaveLabel
         contributionRules { actionKey actionLabel points enabled }
         contributionBoard { discordId displayName totalPoints entryCount }
+      }
+    }
+    adminTabGovernanceLabel
+    viewerCapabilities
+    governance {
+      __typename
+      ... on GuildGovernanceLocked { lockedTitle lockedBody }
+      ... on GuildGovernancePage {
+        title
+        hint
+        officersTitle
+        officersHint
+        officersEmptyText
+        grantMemberLabel
+        grantCapabilitiesLabel
+        grantButtonLabel
+        revokeButtonLabel
+        boardTitle
+        boardHint
+        boardEmptyText
+        boardPlaceholder
+        boardPostButtonLabel
+        boardDeleteButtonLabel
+        auditTitle
+        auditHint
+        auditEmptyText
+        auditLoadMoreButtonLabel
+        canManageGrants
+        officers { discordId displayName capabilities capabilityLabels grantedByName grantedByText grantedAtText }
+        capabilityOptions { key label }
+        roster { discordId displayName }
+        boardPosts { id body authorName mine canDelete createdAtText }
+        auditEvents { id action actionLabel actorName targetType targetLabel createdAtText }
+        auditTotalCount
       }
     }
     officer {
@@ -633,7 +668,22 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
     { key: 'recruit', label: text.adminTabRecruitLabel },
     { key: 'officer', label: text.adminTabOfficerLabel },
     { key: 'ops', label: text.adminTabOpsLabel },
+    { key: 'governance', label: text.adminTabGovernanceLabel },
   ];
+  /* P16: tabs follow the viewer's capability set (Discord admins
+   * hold all ten, so their tab bar is unchanged). The governance
+   * tab itself is capability-free — it is where officers land. */
+  const TAB_CAPABILITY: Record<string, string> = {
+    profile: 'profile', discord: 'discord', events: 'events', guides: 'guides',
+    announcements: 'announce', stats: 'stats', tools: 'tools', season: 'season',
+    recruit: 'recruit', officer: 'officer',
+  };
+  const viewerCaps: string[] = Array.isArray(data.viewerCapabilities) ? data.viewerCapabilities : [];
+  const visibleTabs = TABS.filter((t) => {
+    const cap = TAB_CAPABILITY[t.key];
+    return !cap || viewerCaps.includes(cap);
+  });
+  const activeTab = visibleTabs.some((t) => t.key === tab) ? tab : (visibleTabs[0]?.key || 'governance');
 
   return (
     <div className="yy-page">
@@ -648,16 +698,16 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
         <p style={{ color: theme.muted, fontSize: 13, margin: '0 0 18px' }}>{data.name}</p>
 
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 6 }}>
-          {TABS.map((t) => (
+          {visibleTabs.map((t) => (
             <button
               key={t.key}
               type="button"
               onClick={() => setTab(t.key)}
               style={{
                 padding: '8px 18px', borderRadius: 999, cursor: 'pointer', fontSize: 13,
-                border: `1px solid ${tab === t.key ? theme.gold : 'rgba(201,163,92,.3)'}`,
-                background: tab === t.key ? 'rgba(201,163,92,.16)' : 'transparent',
-                color: tab === t.key ? '#ecd28f' : theme.muted,
+                border: `1px solid ${activeTab === t.key ? theme.gold : 'rgba(201,163,92,.3)'}`,
+                background: activeTab === t.key ? 'rgba(201,163,92,.16)' : 'transparent',
+                color: activeTab === t.key ? '#ecd28f' : theme.muted,
               }}
             >
               {t.label}
@@ -665,7 +715,7 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
           ))}
         </div>
 
-        {tab === 'profile' && (
+        {activeTab === 'profile' && (
           <>
             {premiumActive && (
               <PremiumActivePanel title={text.adminPremiumTitle} premium={premiumActive} />
@@ -735,7 +785,7 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
           </>
         )}
 
-        {tab === 'discord' && (
+        {activeTab === 'discord' && (
           <>
             <section style={adminSectionStyle}>
               <h2 style={adminSectionTitleStyle}>{text.adminDiscordTitle}</h2>
@@ -839,22 +889,22 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
           </>
         )}
 
-        {tab === 'events' && (
+        {activeTab === 'events' && (
           <GuildAdminEvents slug={slug} text={text} commonText={commonText} events={data.events} refresh={refresh} />
         )}
-        {tab === 'guides' && (
+        {activeTab === 'guides' && (
           <GuildAdminGuides slug={slug} text={text} commonText={commonText} guides={data.schoolGuides} refresh={refresh} />
         )}
-        {tab === 'announcements' && (
+        {activeTab === 'announcements' && (
           <Suspense fallback={null}>
             <GuildAdminAnnouncementsRoute slug={slug} />
           </Suspense>
         )}
-        {tab === 'season' && (
+        {activeTab === 'season' && (
           <GuildAdminSeason slug={slug} commonText={commonText}
             checklist={data.seasonChecklist} roster={data.roster} refresh={refresh} />
         )}
-        {tab === 'stats' && (
+        {activeTab === 'stats' && (
           data.stats?.__typename === 'GuildAdminStats' ? (
             <GuildAdminStats text={text} stats={data.stats} />
           ) : premiumLocked ? (
@@ -874,6 +924,7 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
           />
         )}
         {tab === 'recruit' && (
+        {activeTab === 'recruit' && (
           <GuildAdminRecruit
             slug={slug}
             text={text}
@@ -886,7 +937,7 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
             refresh={refresh}
           />
         )}
-        {tab === 'officer' && (
+        {activeTab === 'officer' && (
           <GuildAdminOfficer
             slug={slug}
             officer={data.officer}
@@ -903,6 +954,7 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
           />
         )}
         {tab === 'tools' && (
+        {activeTab === 'tools' && (
           <GuildAdminTools
             slug={slug}
             text={text}
@@ -910,6 +962,14 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
             lotteries={data.lotteries}
             lotteryRoster={data.lotteryRoster}
             events={data.events}
+            refresh={refresh}
+          />
+        )}
+        {activeTab === 'governance' && (
+          <GuildAdminGovernance
+            slug={slug}
+            governance={data.governance}
+            commonText={commonText}
             refresh={refresh}
           />
         )}
