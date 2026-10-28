@@ -544,6 +544,7 @@ type GroupingDetailPage {
   templateSave: GroupingTemplateSave
   rosterAnswers: [RosterAnswer!]
   rosterAnswersTitle: String!
+  recap: GroupingRecapResult!
   detailNotFoundText: String!
   detailBackToListLabel: String!
   detailShareLabel: String!
@@ -654,6 +655,53 @@ type GroupingDetailPage {
   formCustomFieldRequiredLabel: String!
   formCustomFieldRemoveLabel: String!
   formCustomFieldEmptyText: String!
+}
+
+union GroupingRecapResult = GroupingRecapReady | GroupingRecapLocked | GroupingRecapNotEnabled | GroupingRecapEmpty
+
+type GroupingRecapActions {
+  generateLabel: String!
+  regenerateLabel: String!
+  generatingLabel: String!
+  confirmTitle: String!
+  confirmMessageTemplate: String!
+  toastGenerated: String!
+  toastFailedTemplate: String!
+}
+
+type GroupingRecapReady {
+  title: String!
+  paragraphs: [String!]!
+  summaryLines: [String!]!
+  generatedAtText: String!
+  providerText: String!
+  versionText: String!
+  failedHint: String
+  actions: GroupingRecapActions
+}
+
+type GroupingRecapEmpty {
+  title: String!
+  body: String!
+  failedHint: String
+  actions: GroupingRecapActions
+}
+
+type GroupingRecapLocked {
+  title: String!
+  body: String!
+}
+
+type GroupingRecapNotEnabled {
+  title: String!
+  body: String!
+}
+
+type RecapPayload {
+  ok: Boolean!
+  recap: GroupingRecapResult
+  error: String
+  errorCode: String
 }
 
 type GroupingManageActions {
@@ -1524,6 +1572,7 @@ type Mutation {
   updateGrouping(id: ID!, input: UpdateGroupingInput!): GroupingPayload!
   disbandGrouping(id: ID!): DeletePayload!
   completeGrouping(id: ID!): GroupingPayload!
+  generateGroupingRecap(id: ID!): RecapPayload!
   reopenGrouping(id: ID!): GroupingPayload!
   joinGrouping(input: JoinGroupingInput!): SeatPayload!
   leaveGrouping(input: LeaveGroupingInput!): SeatPayload!
@@ -2250,6 +2299,7 @@ type GuildAdmin {
   announcements: GuildAnnouncementPage!
   officer: GuildOfficerPage!
   ops: GuildAdminOpsResult!
+  recaps: GuildAdminRecapResult!
   stats: GuildAdminStatsResult!
   reliability: GuildAdminReliabilityResult!
   participationHeatmap: GuildAdminHeatmapResult!
@@ -2409,6 +2459,7 @@ type GuildAdmin {
   adminTabToolsLabel: String!
   adminTabOfficerLabel: String!
   adminTabOpsLabel: String!
+  adminTabRecapsLabel: String!
   adminLotteryTitle: String!
   adminLotteryHint: String!
   adminLotteryEmptyText: String!
@@ -2958,6 +3009,32 @@ type GuildAdminStats {
 }
 
 union GuildAdminStatsResult = GuildAdminStats | GuildAdminStatsLocked | GuildAdminSectionLocked
+
+union GuildAdminRecapResult = GuildAdminRecapList | GroupingRecapLocked | GroupingRecapNotEnabled
+
+type GuildAdminRecapList {
+  title: String!
+  emptyText: String!
+  items: [GuildAdminRecap!]!
+}
+
+enum GuildAdminRecapStatus {
+  READY
+  FAILED
+}
+
+type GuildAdminRecap {
+  id: ID!
+  groupingId: ID!
+  groupingTitle: String!
+  status: GuildAdminRecapStatus!
+  statusText: String!
+  provider: String!
+  version: Int!
+  paragraphCount: Int!
+  paragraphCountText: String!
+  generatedAtText: String
+}
 
 type GuildAdminStatsLocked {
   premiumTitle: String!

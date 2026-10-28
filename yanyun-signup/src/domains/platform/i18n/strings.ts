@@ -2429,6 +2429,24 @@ export abstract class ErrorsFbtUtils {
 	static seasonGoalDungeonNotFound(fbs: FbsRuntime) {
 		return fbs._("关联的副本不存在", null, { hk: "4rkG4k" });
 	}
+	static recapForbidden(fbs: FbsRuntime) {
+		return fbs._("只有车头或本百业管理员可以生成复盘", null, { hk: "Xs3KV" });
+	}
+	static recapNotCompleted(fbs: FbsRuntime) {
+		return fbs._("车队完成后才能生成复盘", null, { hk: "2ooaBT" });
+	}
+	static recapTierLocked(fbs: FbsRuntime) {
+		return fbs._("该百业尚未开通 AI 复盘（高阶订阅档功能）", null, { hk: "3sBJcs" });
+	}
+	static recapNotEnabled(fbs: FbsRuntime) {
+		return fbs._("AI 复盘尚未开启", null, { hk: "qgRsD" });
+	}
+	static recapDailyLimit(fbs: FbsRuntime) {
+		return fbs._("今日复盘生成次数已达上限，明天再试", null, { hk: "2XN78P" });
+	}
+	static recapProviderFailed(fbs: FbsRuntime) {
+		return fbs._("复盘生成失败，请稍后重试", null, { hk: "3ZuNJ8" });
+	}
 }
 export abstract class GuildAdminFbtUtils {
 	static title(fbs: FbsRuntime) {
@@ -4842,6 +4860,92 @@ export abstract class SchedulingAdviceFbtUtils {
 		return fbs._("同时段没有其他车冲突", null, { hk: "1ZXNcV" });
 	}
 }
+export abstract class RecapFbtUtils {
+	static title(fbs: FbsRuntime) {
+		return fbs._("AI 活动复盘", null, { hk: "2LbLN6" });
+	}
+	static lockedTitle(fbs: FbsRuntime) {
+		return fbs._("AI 复盘 · 高阶档专属", null, { hk: "1SxbNI" });
+	}
+	static lockedBody(fbs: FbsRuntime) {
+		return fbs._("AI 活动复盘是高阶订阅档功能：为每场完成的车队生成出席、就位与成绩小结，帮车头与军官快速回顾这一场。", null, { hk: "1TXDcb" });
+	}
+	static notEnabledTitle(fbs: FbsRuntime) {
+		return fbs._("AI 复盘尚未开启", null, { hk: "xcXfB" });
+	}
+	static notEnabledBody(fbs: FbsRuntime) {
+		return fbs._("平台尚未开启 AI 复盘服务，功能上线后，完成的车队可在此生成复盘。", null, { hk: "l5cem" });
+	}
+	static emptyNotCompletedBody(fbs: FbsRuntime) {
+		return fbs._("车队完成后，车头或百业管理员可在此生成 AI 复盘。", null, { hk: "XbYR7" });
+	}
+	static emptyNoRecapBody(fbs: FbsRuntime) {
+		return fbs._("本场车队还没有复盘。生成后，复盘将展示在这里，全车队成员可见。", null, { hk: "2Iqcmz" });
+	}
+	static generateLabel(fbs: FbsRuntime) {
+		return fbs._("生成复盘", null, { hk: "3LSh2E" });
+	}
+	static regenerateLabel(fbs: FbsRuntime) {
+		return fbs._("重新生成", null, { hk: "3L4e2r" });
+	}
+	static generatingLabel(fbs: FbsRuntime) {
+		return fbs._("生成中…", null, { hk: "3Sivnf" });
+	}
+	static generateConfirmTitle(fbs: FbsRuntime) {
+		return fbs._("生成 AI 复盘？", null, { hk: "3wUwks" });
+	}
+	static generateConfirmMessage(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("将为「{title}」生成 AI 复盘，内容基于本场车的报名、就位与成绩数据。", [fbs._param("title", pv(p, "title"))], { hk: "yAvv1" });
+	}
+	static toastGenerated(fbs: FbsRuntime) {
+		return fbs._("复盘已生成", null, { hk: "17z5j6" });
+	}
+	static toastGenerateFailed(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("复盘生成失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "3BDFCl" });
+	}
+	static generatedAt(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("生成于 {time}", [fbs._param("time", pv(p, "time"))], { hk: "2nhnLa" });
+	}
+	static providerText(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("由 {provider} 生成", [fbs._param("provider", pv(p, "provider"))], { hk: "To7kF" });
+	}
+	static versionText(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("第 {version} 版", [fbs._param("version", pv(p, "version"))], { hk: "Bg9tL" });
+	}
+	static failedHint(fbs: FbsRuntime) {
+		return fbs._("上次生成失败，可重试；下方仍是此前生成的复盘。", null, { hk: "CwHhs" });
+	}
+	static failedHintEmpty(fbs: FbsRuntime) {
+		return fbs._("上次生成失败，可重试。", null, { hk: "1SCJES" });
+	}
+	static summaryAttendance(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("出席 {seated}/{capacity} 人", [fbs._param("seated", pv(p, "seated")), fbs._param("capacity", pv(p, "capacity"))], { hk: "2uNBPn" });
+	}
+	static summaryReady(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("就位 {ready}/{seated} 人", [fbs._param("ready", pv(p, "ready")), fbs._param("seated", pv(p, "seated"))], { hk: "17v3Fe" });
+	}
+	static summaryResults(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("竞速成绩 {count} 条 · 最佳 {best}", [fbs._param("count", pv(p, "count")), fbs._param("best", pv(p, "best"))], { hk: "2XuMwQ" });
+	}
+	static adminTabLabel(fbs: FbsRuntime) {
+		return fbs._("复盘", null, { hk: "3J9wFJ" });
+	}
+	static adminTitle(fbs: FbsRuntime) {
+		return fbs._("AI 复盘记录", null, { hk: "1brAVk" });
+	}
+	static adminEmptyText(fbs: FbsRuntime) {
+		return fbs._("暂无复盘记录。在已完成车队的详情页生成复盘后，会在这里汇总。", null, { hk: "3GKag4" });
+	}
+	static adminStatusReadyText(fbs: FbsRuntime) {
+		return fbs._("已生成", null, { hk: "kUUwn" });
+	}
+	static adminStatusFailedText(fbs: FbsRuntime) {
+		return fbs._("生成失败", null, { hk: "4xpD5C" });
+	}
+	static adminParagraphCount(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("{count} 段", [fbs._param("count", pv(p, "count"))], { hk: "41Gi64" });
+	}
+}
 export const STRING_FNS: Record<string, StringFn> = {
 	"common_cancel": CommonFbtUtils.cancel,
 	"common_confirm": CommonFbtUtils.confirm,
@@ -5618,6 +5722,12 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"errors_seasonGoalNoteTooLong": ErrorsFbtUtils.seasonGoalNoteTooLong,
 	"errors_seasonGoalNotFound": ErrorsFbtUtils.seasonGoalNotFound,
 	"errors_seasonGoalDungeonNotFound": ErrorsFbtUtils.seasonGoalDungeonNotFound,
+	"errors_recapForbidden": ErrorsFbtUtils.recapForbidden,
+	"errors_recapNotCompleted": ErrorsFbtUtils.recapNotCompleted,
+	"errors_recapTierLocked": ErrorsFbtUtils.recapTierLocked,
+	"errors_recapNotEnabled": ErrorsFbtUtils.recapNotEnabled,
+	"errors_recapDailyLimit": ErrorsFbtUtils.recapDailyLimit,
+	"errors_recapProviderFailed": ErrorsFbtUtils.recapProviderFailed,
 	"guildAdmin_title": GuildAdminFbtUtils.title,
 	"guildAdmin_lockedTitle": GuildAdminFbtUtils.lockedTitle,
 	"guildAdmin_lockedBody": GuildAdminFbtUtils.lockedBody,
@@ -6403,5 +6513,33 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"schedulingAdvice_reasonAvailabilityUnknown": SchedulingAdviceFbtUtils.reasonAvailabilityUnknown,
 	"schedulingAdvice_reasonLongestWaiting": SchedulingAdviceFbtUtils.reasonLongestWaiting,
 	"schedulingAdvice_reasonFewRecent": SchedulingAdviceFbtUtils.reasonFewRecent,
-	"schedulingAdvice_reasonNoConflict": SchedulingAdviceFbtUtils.reasonNoConflict
+	"schedulingAdvice_reasonNoConflict": SchedulingAdviceFbtUtils.reasonNoConflict,
+	"recap_title": RecapFbtUtils.title,
+	"recap_lockedTitle": RecapFbtUtils.lockedTitle,
+	"recap_lockedBody": RecapFbtUtils.lockedBody,
+	"recap_notEnabledTitle": RecapFbtUtils.notEnabledTitle,
+	"recap_notEnabledBody": RecapFbtUtils.notEnabledBody,
+	"recap_emptyNotCompletedBody": RecapFbtUtils.emptyNotCompletedBody,
+	"recap_emptyNoRecapBody": RecapFbtUtils.emptyNoRecapBody,
+	"recap_generateLabel": RecapFbtUtils.generateLabel,
+	"recap_regenerateLabel": RecapFbtUtils.regenerateLabel,
+	"recap_generatingLabel": RecapFbtUtils.generatingLabel,
+	"recap_generateConfirmTitle": RecapFbtUtils.generateConfirmTitle,
+	"recap_generateConfirmMessage": RecapFbtUtils.generateConfirmMessage,
+	"recap_toastGenerated": RecapFbtUtils.toastGenerated,
+	"recap_toastGenerateFailed": RecapFbtUtils.toastGenerateFailed,
+	"recap_generatedAt": RecapFbtUtils.generatedAt,
+	"recap_providerText": RecapFbtUtils.providerText,
+	"recap_versionText": RecapFbtUtils.versionText,
+	"recap_failedHint": RecapFbtUtils.failedHint,
+	"recap_failedHintEmpty": RecapFbtUtils.failedHintEmpty,
+	"recap_summaryAttendance": RecapFbtUtils.summaryAttendance,
+	"recap_summaryReady": RecapFbtUtils.summaryReady,
+	"recap_summaryResults": RecapFbtUtils.summaryResults,
+	"recap_adminTabLabel": RecapFbtUtils.adminTabLabel,
+	"recap_adminTitle": RecapFbtUtils.adminTitle,
+	"recap_adminEmptyText": RecapFbtUtils.adminEmptyText,
+	"recap_adminStatusReadyText": RecapFbtUtils.adminStatusReadyText,
+	"recap_adminStatusFailedText": RecapFbtUtils.adminStatusFailedText,
+	"recap_adminParagraphCount": RecapFbtUtils.adminParagraphCount
 };
