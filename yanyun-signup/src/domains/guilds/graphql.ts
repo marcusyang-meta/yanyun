@@ -58,6 +58,7 @@ import { groupingListPage, touchGuildRoster } from '../groupings/index.ts';
 import { guildAdminTypes, guildAdminMutations, guildAdminPayloadResolvers } from './admin-graphql.ts';
 import { opsTypes, opsMutations, targetedNudgePreviewResult, myContributionResult } from './ops-graphql.ts';
 import { homeRecruitTypes, recruitTypes, recruitMutations } from './recruit-graphql.ts';
+import { networkTypes, networkMutations } from './network-graphql.ts';
 import {
   announcementPageForMember, guildAnnouncementMutations, guildAnnouncementTypes,
 } from './announcements-graphql.ts';
@@ -198,6 +199,8 @@ export const GUILD_HOME_TEXT_SPEC = [
   ['homeTabSectLabel', 'guildHome_tabSect'],
   ['homeTabAnnouncementsLabel', 'guildHome_tabAnnouncements'],
   ['homeTabScheduleLabel', 'guildHome_tabSchedule'],
+  ['homeTabMarketLabel', 'guildHome_tabMarket'],
+  ['homeTabAlliesLabel', 'guildHome_tabAllies'],
   ['detailNotFoundText', 'groupingDetail_notFound'],
   ['detailBackToListLabel', 'groupingDetail_backToList'],
 ];
@@ -390,6 +393,8 @@ export const guildsResolvers = {
     ...guildAnnouncementMutations,
 
     ...recruitMutations,
+
+    ...networkMutations,
     ...guildOfficerMutations,
 
     // Write gate (requireWrite): logged in + bound + member; an unbound guild's writes are fully locked.
@@ -442,5 +447,6 @@ export const guildsResolvers = {
   ...homeRecruitTypes,
   ...guildOfficerTypes,
   ...opsTypes,
+  ...networkTypes,
   },
 };

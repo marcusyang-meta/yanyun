@@ -205,6 +205,27 @@ export abstract class ErrorsFbtUtils {
   static pollOptionInvalid(fbs: FbsAPI) { return fbs("所选时间不属于该投票", "Error message for time polls, used when a vote targets a candidate time that is not part of the poll."); }
   static pollForbidden(fbs: FbsAPI) { return fbs("只有发起人或百业管理员可以关闭投票", "Error message for time polls, used when someone other than the poll creator or a guild admin tries to close the poll."); }
   static customFieldInvalid(fbs: FbsAPI) { return fbs("自定义字段不合法", "Error message for signup form fields, used when a custom field definition is invalid."); }
+  static fillOfferExists(fbs: FbsAPI) { return fbs("你已有一份发布中的补位供给，请先撤下再重新发布", "Error message for fill-in offers, used when a member publishes while an earlier offer is still open."); }
+  static fillSchoolRequired(fbs: FbsAPI) { return fbs("请填写流派", "Error message for fill-in offers, used when an offer or request is submitted without a school."); }
+  static fillWindowsInvalid(fbs: FbsAPI) { return fbs("可补位时段不合法", "Error message for fill-in offers, used when a submitted availability window is invalid, such as a reversed or out-of-range window."); }
+  static fillRequestNotFound(fbs: FbsAPI) { return fbs("补位需求不存在", "Error message for fill requests, used when an operation references a request that does not exist in this guild."); }
+  static fillRequestNotOpen(fbs: FbsAPI) { return fbs("该补位需求已撮合或已关闭", "Error message for fill requests, used when acting on a request that is no longer open."); }
+  static fillOfferNotOpen(fbs: FbsAPI) { return fbs("该补位供给已撤下", "Error message for fill invitations, used when inviting a supplier whose offer is no longer open."); }
+  static fillInviteExists(fbs: FbsAPI) { return fbs("已经邀请过这位补位人选了", "Error message for fill invitations, used when a live invitation already exists for this request and supplier."); }
+  static fillInviteNotFound(fbs: FbsAPI) { return fbs("补位邀请不存在", "Error message for fill invitations, used when an operation references an invitation that does not exist."); }
+  static fillInviteNotPending(fbs: FbsAPI) { return fbs("该邀请已经处理过了", "Error message for fill invitations, used when answering an invitation that was already accepted, declined or expired."); }
+  static fillInviteNotAccepted(fbs: FbsAPI) { return fbs("对方尚未接受邀请，不能落座", "Error message for fill seating, used when seating a supplier whose invitation is not in the accepted state."); }
+  static fillSelfInvite(fbs: FbsAPI) { return fbs("不能邀请自己补位", "Error message for fill invitations, used when a leader tries to invite their own offer."); }
+  static marketManageOnly(fbs: FbsAPI) { return fbs("只有该车队的车头或本百业管理员可以操作补位需求", "Error message for fill requests, used when someone other than the squad leader or a guild admin tries to post, invite or seat for that squad."); }
+  static allianceSelf(fbs: FbsAPI) { return fbs("不能和自己的百业结盟", "Error message for alliances, used when a guild tries to ally with itself."); }
+  static allianceExists(fbs: FbsAPI) { return fbs("与该百业已有待确认或生效中的结盟关系", "Error message for alliances, used when a live relation already exists between the two guilds."); }
+  static allianceNotFound(fbs: FbsAPI) { return fbs("结盟关系不存在", "Error message for alliances, used when an operation references an alliance that does not exist for this guild."); }
+  static allianceNotPending(fbs: FbsAPI) { return fbs("该结盟邀请已经处理过了", "Error message for alliances, used when answering an alliance invitation that is no longer pending."); }
+  static allianceNotActive(fbs: FbsAPI) { return fbs("该结盟已不在生效中", "Error message for alliances, used when dissolving an alliance that already ended or was rejected."); }
+  static allyNotAllied(fbs: FbsAPI) { return fbs("与主办百业尚未结盟（或结盟已解除）", "Error message for visitor seats, used when claiming a visitor seat in a squad whose guild is not a current ally."); }
+  static allyNotShared(fbs: FbsAPI) { return fbs("该车队未向盟友开放访客位", "Error message for visitor seats, used when a squad is not flagged ally-visible or its visitor quota is zero."); }
+  static visitorSlotsFull(fbs: FbsAPI) { return fbs("访客位已满", "Error message for visitor seats, used when all visitor seats of a squad are taken."); }
+  static visitorSlotsInvalid(fbs: FbsAPI) { return fbs("访客名额必须在 0 与车队总名额之间", "Error message for squad sharing settings, used when the visitor quota falls outside zero and the squad capacity."); }
   static customFieldTooMany(fbs: FbsAPI) { return fbs("自定义字段最多 5 个", "Error message for signup form fields, used when more than five custom fields are defined for a squad."); }
   static signupAnswerRequired(fbs: FbsAPI) { return fbs("请填写必填的报名信息", "Error message for squad signup, used when a required custom signup question is left unanswered."); }
   static signupAnswerInvalid(fbs: FbsAPI) { return fbs("报名信息不合法", "Error message for squad signup, used when a custom signup answer is invalid, such as an over-length text or an unknown option."); }

@@ -482,6 +482,23 @@ export class GroupingDetailPageShell extends ShellBase {
       };
     });
   }
+  // P20 ally sharing control: composed ONLY for viewers who may
+  // manage this car (the same shared verdict as manageActions);
+  // everyone else gets null and the sharing state is not sent as a
+  // control at all. The setGroupingAllySharing mutation re-verifies.
+  async genAllySharing(){
+    const verdict = await this.genManageVerdict();
+    if (!verdict.canManage) return null;
+    return {
+      allyVisible: Number(this.data.ally_visible) === 1,
+      visitorSlots: Number(this.data.visitor_slots) || 0,
+      title: this.t('allies_sharingTitle'),
+      hint: this.t('allies_sharingHint'),
+      allyVisibleLabel: this.t('allies_allyVisibleLabel'),
+      visitorSlotsLabel: this.t('allies_visitorSlotsLabel'),
+      saveLabel: this.t('allies_sharingSaveButton'),
+    };
+  }
   // F7 roster answers: composed ONLY for viewers who may manage this
   // car (leader / this guild's admins — the shared verdict); everyone
   // else gets null and the answers never leave the server.
@@ -1189,7 +1206,19 @@ export const groupingsResolvers = {
     templateSave: (p: any) => p.genTemplateSave(),
     blocks: (p: any, args: any) => p.genBlocks(args),
     manageActions: (p: any) => p.genManageActions(),
+    allySharing: (p: any) => p.genAllySharing(),
     ...DETAIL_TEXT_RESOLVERS,
+  },
+  // Plain-data sharing control (P20): fields delegate to the object
+  // the detail shell composed for managers of this grouping only.
+  AllySharingControl: {
+    allyVisible: (p: any) => p.allyVisible,
+    visitorSlots: (p: any) => p.visitorSlots,
+    title: (p: any) => p.title,
+    hint: (p: any) => p.hint,
+    allyVisibleLabel: (p: any) => p.allyVisibleLabel,
+    visitorSlotsLabel: (p: any) => p.visitorSlotsLabel,
+    saveLabel: (p: any) => p.saveLabel,
   },
   GroupingTemplate: {
     id: (p: any) => p.genId(),

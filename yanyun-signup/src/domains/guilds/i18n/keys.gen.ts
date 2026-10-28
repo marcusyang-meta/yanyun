@@ -15,6 +15,8 @@ export type GuildsStringKey =
   | 'guildHome_readOnlyBanner'
   | 'guildHome_adminLink'
   | 'guildHome_tabSchedule'
+  | 'guildHome_tabMarket'
+  | 'guildHome_tabAllies'
   | 'guildAdmin_title'
   | 'guildAdmin_lockedTitle'
   | 'guildAdmin_lockedBody'
@@ -353,7 +355,93 @@ export type GuildsStringKey =
   | 'ops_pointsEntriesLabel'
   | 'ops_saveButton'
   | 'ops_myPointsTitle'
-  | 'ops_myPointsTotal';
+  | 'ops_myPointsTotal'
+  | 'market_title'
+  | 'market_body'
+  | 'market_lockedTitle'
+  | 'market_lockedBody'
+  | 'market_supplyTitle'
+  | 'market_supplyHint'
+  | 'market_supplyEmpty'
+  | 'market_schoolLabel'
+  | 'market_windowsLabel'
+  | 'market_noteLabel'
+  | 'market_notePlaceholder'
+  | 'market_publishButton'
+  | 'market_withdrawButton'
+  | 'market_offerStatusOpen'
+  | 'market_homeGuildPattern'
+  | 'market_windowLine'
+  | 'market_weekday0'
+  | 'market_weekday1'
+  | 'market_weekday2'
+  | 'market_weekday3'
+  | 'market_weekday4'
+  | 'market_weekday5'
+  | 'market_weekday6'
+  | 'market_inboxTitle'
+  | 'market_inboxEmpty'
+  | 'market_acceptButton'
+  | 'market_declineButton'
+  | 'market_inviteStatusPending'
+  | 'market_inviteStatusAccepted'
+  | 'market_inviteStatusDeclined'
+  | 'market_inviteStatusExpired'
+  | 'market_inviteFromPattern'
+  | 'market_demandTitle'
+  | 'market_demandLockedTitle'
+  | 'market_demandLockedBody'
+  | 'market_demandNoManageHint'
+  | 'market_requestsTitle'
+  | 'market_requestsEmpty'
+  | 'market_createRequestTitle'
+  | 'market_groupingLabel'
+  | 'market_neededRoleLabel'
+  | 'market_neededSchoolLabel'
+  | 'market_requestNoteLabel'
+  | 'market_createRequestButton'
+  | 'market_closeRequestButton'
+  | 'market_requestStatusOpen'
+  | 'market_requestStatusMatched'
+  | 'market_requestStatusClosed'
+  | 'market_offersTitle'
+  | 'market_offersEmpty'
+  | 'market_inviteButton'
+  | 'market_invitedLabel'
+  | 'market_seatButton'
+  | 'market_seatedLabel'
+  | 'market_roleHealer'
+  | 'market_roleDps'
+  | 'market_backLabel'
+  | 'allies_title'
+  | 'allies_body'
+  | 'allies_lockedTitle'
+  | 'allies_lockedBody'
+  | 'allies_activeTitle'
+  | 'allies_activeEmpty'
+  | 'allies_statusPending'
+  | 'allies_statusActive'
+  | 'allies_adminTitle'
+  | 'allies_inviteLabel'
+  | 'allies_inviteHint'
+  | 'allies_inviteButton'
+  | 'allies_incomingTitle'
+  | 'allies_outgoingTitle'
+  | 'allies_acceptButton'
+  | 'allies_rejectButton'
+  | 'allies_endButton'
+  | 'allies_sharedTitle'
+  | 'allies_sharedEmpty'
+  | 'allies_hostPattern'
+  | 'allies_visitorLeftPattern'
+  | 'allies_visitorJoinButton'
+  | 'allies_visitorJoinedLabel'
+  | 'allies_sharingTitle'
+  | 'allies_sharingHint'
+  | 'allies_allyVisibleLabel'
+  | 'allies_visitorSlotsLabel'
+  | 'allies_sharingSaveButton'
+  | 'allies_backLabel';
 
 export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'locked_backLink',
@@ -370,6 +458,8 @@ export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'guildHome_readOnlyBanner',
   'guildHome_adminLink',
   'guildHome_tabSchedule',
+  'guildHome_tabMarket',
+  'guildHome_tabAllies',
   'guildAdmin_title',
   'guildAdmin_lockedTitle',
   'guildAdmin_lockedBody',
@@ -709,4 +799,90 @@ export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'ops_saveButton',
   'ops_myPointsTitle',
   'ops_myPointsTotal',
+  'market_title',
+  'market_body',
+  'market_lockedTitle',
+  'market_lockedBody',
+  'market_supplyTitle',
+  'market_supplyHint',
+  'market_supplyEmpty',
+  'market_schoolLabel',
+  'market_windowsLabel',
+  'market_noteLabel',
+  'market_notePlaceholder',
+  'market_publishButton',
+  'market_withdrawButton',
+  'market_offerStatusOpen',
+  'market_homeGuildPattern',
+  'market_windowLine',
+  'market_weekday0',
+  'market_weekday1',
+  'market_weekday2',
+  'market_weekday3',
+  'market_weekday4',
+  'market_weekday5',
+  'market_weekday6',
+  'market_inboxTitle',
+  'market_inboxEmpty',
+  'market_acceptButton',
+  'market_declineButton',
+  'market_inviteStatusPending',
+  'market_inviteStatusAccepted',
+  'market_inviteStatusDeclined',
+  'market_inviteStatusExpired',
+  'market_inviteFromPattern',
+  'market_demandTitle',
+  'market_demandLockedTitle',
+  'market_demandLockedBody',
+  'market_demandNoManageHint',
+  'market_requestsTitle',
+  'market_requestsEmpty',
+  'market_createRequestTitle',
+  'market_groupingLabel',
+  'market_neededRoleLabel',
+  'market_neededSchoolLabel',
+  'market_requestNoteLabel',
+  'market_createRequestButton',
+  'market_closeRequestButton',
+  'market_requestStatusOpen',
+  'market_requestStatusMatched',
+  'market_requestStatusClosed',
+  'market_offersTitle',
+  'market_offersEmpty',
+  'market_inviteButton',
+  'market_invitedLabel',
+  'market_seatButton',
+  'market_seatedLabel',
+  'market_roleHealer',
+  'market_roleDps',
+  'market_backLabel',
+  'allies_title',
+  'allies_body',
+  'allies_lockedTitle',
+  'allies_lockedBody',
+  'allies_activeTitle',
+  'allies_activeEmpty',
+  'allies_statusPending',
+  'allies_statusActive',
+  'allies_adminTitle',
+  'allies_inviteLabel',
+  'allies_inviteHint',
+  'allies_inviteButton',
+  'allies_incomingTitle',
+  'allies_outgoingTitle',
+  'allies_acceptButton',
+  'allies_rejectButton',
+  'allies_endButton',
+  'allies_sharedTitle',
+  'allies_sharedEmpty',
+  'allies_hostPattern',
+  'allies_visitorLeftPattern',
+  'allies_visitorJoinButton',
+  'allies_visitorJoinedLabel',
+  'allies_sharingTitle',
+  'allies_sharingHint',
+  'allies_allyVisibleLabel',
+  'allies_visitorSlotsLabel',
+  'allies_sharingSaveButton',
+  'allies_backLabel',
 ];

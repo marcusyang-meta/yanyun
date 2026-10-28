@@ -261,6 +261,12 @@ export abstract class GuildHomeFbtUtils {
 	static tabSchedule(fbs: FbsRuntime) {
 		return fbs._("排期", null, { hk: "1EEoyu" });
 	}
+	static tabMarket(fbs: FbsRuntime) {
+		return fbs._("补位市场", null, { hk: "1xsTTH" });
+	}
+	static tabAllies(fbs: FbsRuntime) {
+		return fbs._("盟友", null, { hk: "2c0jVq" });
+	}
 }
 export abstract class GroupingTypeFbtUtils {
 	static tabActivity(fbs: FbsRuntime) {
@@ -2245,6 +2251,69 @@ export abstract class ErrorsFbtUtils {
 	static customFieldInvalid(fbs: FbsRuntime) {
 		return fbs._("自定义字段不合法", null, { hk: "36ve4H" });
 	}
+	static fillOfferExists(fbs: FbsRuntime) {
+		return fbs._("你已有一份发布中的补位供给，请先撤下再重新发布", null, { hk: "VWY62" });
+	}
+	static fillSchoolRequired(fbs: FbsRuntime) {
+		return fbs._("请填写流派", null, { hk: "45mSYI" });
+	}
+	static fillWindowsInvalid(fbs: FbsRuntime) {
+		return fbs._("可补位时段不合法", null, { hk: "33usQH" });
+	}
+	static fillRequestNotFound(fbs: FbsRuntime) {
+		return fbs._("补位需求不存在", null, { hk: "4oQsOj" });
+	}
+	static fillRequestNotOpen(fbs: FbsRuntime) {
+		return fbs._("该补位需求已撮合或已关闭", null, { hk: "1doZyX" });
+	}
+	static fillOfferNotOpen(fbs: FbsRuntime) {
+		return fbs._("该补位供给已撤下", null, { hk: "3aErMD" });
+	}
+	static fillInviteExists(fbs: FbsRuntime) {
+		return fbs._("已经邀请过这位补位人选了", null, { hk: "286M71" });
+	}
+	static fillInviteNotFound(fbs: FbsRuntime) {
+		return fbs._("补位邀请不存在", null, { hk: "1dbwo2" });
+	}
+	static fillInviteNotPending(fbs: FbsRuntime) {
+		return fbs._("该邀请已经处理过了", null, { hk: "2PZXd" });
+	}
+	static fillInviteNotAccepted(fbs: FbsRuntime) {
+		return fbs._("对方尚未接受邀请，不能落座", null, { hk: "2588eH" });
+	}
+	static fillSelfInvite(fbs: FbsRuntime) {
+		return fbs._("不能邀请自己补位", null, { hk: "4xiqVM" });
+	}
+	static marketManageOnly(fbs: FbsRuntime) {
+		return fbs._("只有该车队的车头或本百业管理员可以操作补位需求", null, { hk: "mhXwx" });
+	}
+	static allianceSelf(fbs: FbsRuntime) {
+		return fbs._("不能和自己的百业结盟", null, { hk: "25JbBc" });
+	}
+	static allianceExists(fbs: FbsRuntime) {
+		return fbs._("与该百业已有待确认或生效中的结盟关系", null, { hk: "1faqXe" });
+	}
+	static allianceNotFound(fbs: FbsRuntime) {
+		return fbs._("结盟关系不存在", null, { hk: "2m0sVJ" });
+	}
+	static allianceNotPending(fbs: FbsRuntime) {
+		return fbs._("该结盟邀请已经处理过了", null, { hk: "2y5pxu" });
+	}
+	static allianceNotActive(fbs: FbsRuntime) {
+		return fbs._("该结盟已不在生效中", null, { hk: "1dnnZ1" });
+	}
+	static allyNotAllied(fbs: FbsRuntime) {
+		return fbs._("与主办百业尚未结盟（或结盟已解除）", null, { hk: "3dVJYa" });
+	}
+	static allyNotShared(fbs: FbsRuntime) {
+		return fbs._("该车队未向盟友开放访客位", null, { hk: "3GjNKO" });
+	}
+	static visitorSlotsFull(fbs: FbsRuntime) {
+		return fbs._("访客位已满", null, { hk: "3DmyRm" });
+	}
+	static visitorSlotsInvalid(fbs: FbsRuntime) {
+		return fbs._("访客名额必须在 0 与车队总名额之间", null, { hk: "qaWoB" });
+	}
 	static customFieldTooMany(fbs: FbsRuntime) {
 		return fbs._("自定义字段最多 5 个", null, { hk: "1gXwio" });
 	}
@@ -3696,6 +3765,272 @@ export abstract class OpsFbtUtils {
 		return fbs._("累计 {points} 分", [fbs._param("points", pv(p, "points"))], { hk: "1tRCSy" });
 	}
 }
+export abstract class MarketFbtUtils {
+	static title(fbs: FbsRuntime) {
+		return fbs._("补位市场", null, { hk: "1nNUrx" });
+	}
+	static body(fbs: FbsRuntime) {
+		return fbs._("缺人时来这里找补位：任何成员都可以免费发布自己的补位供给；百业盟主档的车头与管理员可以针对车队缺口发布需求、邀请补位。市场只负责撮合，是否落座由车头在车队里手动确认。", null, { hk: "3AScnP" });
+	}
+	static lockedTitle(fbs: FbsRuntime) {
+		return fbs._("无法打开补位市场", null, { hk: "57rLj" });
+	}
+	static lockedBody(fbs: FbsRuntime) {
+		return fbs._("登录并成为本百业成员后，可以发布补位供给、处理收到的邀请。", null, { hk: "b6KK8" });
+	}
+	static supplyTitle(fbs: FbsRuntime) {
+		return fbs._("我的补位供给", null, { hk: "1NFpif" });
+	}
+	static supplyHint(fbs: FbsRuntime) {
+		return fbs._("发布供给免费、与百业档位无关。公开面只展示你的流派、可补位时段与所属百业名，不展示任何联系方式。", null, { hk: "3DJoV0" });
+	}
+	static supplyEmpty(fbs: FbsRuntime) {
+		return fbs._("你还没有发布补位供给。", null, { hk: "6LtBE" });
+	}
+	static schoolLabel(fbs: FbsRuntime) {
+		return fbs._("流派", null, { hk: "411lAx" });
+	}
+	static windowsLabel(fbs: FbsRuntime) {
+		return fbs._("可补位时段", null, { hk: "3aLwnV" });
+	}
+	static noteLabel(fbs: FbsRuntime) {
+		return fbs._("自我说明", null, { hk: "nP5Hk" });
+	}
+	static notePlaceholder(fbs: FbsRuntime) {
+		return fbs._("一句说明：擅长的副本、装备情况……", null, { hk: "2od1ee" });
+	}
+	static publishButton(fbs: FbsRuntime) {
+		return fbs._("发布供给", null, { hk: "3wwmpt" });
+	}
+	static withdrawButton(fbs: FbsRuntime) {
+		return fbs._("撤下供给", null, { hk: "29G9l2" });
+	}
+	static offerStatusOpen(fbs: FbsRuntime) {
+		return fbs._("已发布", null, { hk: "1OwBXU" });
+	}
+	static homeGuildPattern(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("所属百业：{name}", [fbs._param("name", pv(p, "name"))], { hk: "3afQCt" });
+	}
+	static windowLine(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("{day} {start}–{end}", [
+			fbs._param("day", pv(p, "day")),
+			fbs._param("start", pv(p, "start")),
+			fbs._param("end", pv(p, "end"))
+		], { hk: "1YCF59" });
+	}
+	static weekday0(fbs: FbsRuntime) {
+		return fbs._("周日", null, { hk: "2VXzII" });
+	}
+	static weekday1(fbs: FbsRuntime) {
+		return fbs._("周一", null, { hk: "12hPrI" });
+	}
+	static weekday2(fbs: FbsRuntime) {
+		return fbs._("周二", null, { hk: "3cQ5id" });
+	}
+	static weekday3(fbs: FbsRuntime) {
+		return fbs._("周三", null, { hk: "ejtP9" });
+	}
+	static weekday4(fbs: FbsRuntime) {
+		return fbs._("周四", null, { hk: "3j6klw" });
+	}
+	static weekday5(fbs: FbsRuntime) {
+		return fbs._("周五", null, { hk: "1O4c5u" });
+	}
+	static weekday6(fbs: FbsRuntime) {
+		return fbs._("周六", null, { hk: "2tKKZ8" });
+	}
+	static inboxTitle(fbs: FbsRuntime) {
+		return fbs._("收到的补位邀请", null, { hk: "fBxcR" });
+	}
+	static inboxEmpty(fbs: FbsRuntime) {
+		return fbs._("暂无补位邀请。", null, { hk: "3oBbDA" });
+	}
+	static acceptButton(fbs: FbsRuntime) {
+		return fbs._("接受邀请", null, { hk: "3P1is8" });
+	}
+	static declineButton(fbs: FbsRuntime) {
+		return fbs._("婉拒", null, { hk: "2Gk7v6" });
+	}
+	static inviteStatusPending(fbs: FbsRuntime) {
+		return fbs._("待确认", null, { hk: "1McO66" });
+	}
+	static inviteStatusAccepted(fbs: FbsRuntime) {
+		return fbs._("已接受", null, { hk: "37I7kP" });
+	}
+	static inviteStatusDeclined(fbs: FbsRuntime) {
+		return fbs._("已婉拒", null, { hk: "1qVABK" });
+	}
+	static inviteStatusExpired(fbs: FbsRuntime) {
+		return fbs._("已失效", null, { hk: "UdOUN" });
+	}
+	static inviteFromPattern(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("来自 {guild} · {title}", [fbs._param("guild", pv(p, "guild")), fbs._param("title", pv(p, "title"))], { hk: "UOM31" });
+	}
+	static demandTitle(fbs: FbsRuntime) {
+		return fbs._("补位需求", null, { hk: "votGm" });
+	}
+	static demandLockedTitle(fbs: FbsRuntime) {
+		return fbs._("补位需求是盟主档功能", null, { hk: "3g7WH8" });
+	}
+	static demandLockedBody(fbs: FbsRuntime) {
+		return fbs._("发布补位需求、浏览并邀请补位人选需要百业开通盟主档（T3）。发布补位供给与处理收到的邀请不受档位限制，所有成员免费可用。", null, { hk: "2pogcc" });
+	}
+	static demandNoManageHint(fbs: FbsRuntime) {
+		return fbs._("只有本百业的车头与管理员可以发布需求与发出邀请。", null, { hk: "1yMt1G" });
+	}
+	static requestsTitle(fbs: FbsRuntime) {
+		return fbs._("本百业的补位需求", null, { hk: "1d7JFB" });
+	}
+	static requestsEmpty(fbs: FbsRuntime) {
+		return fbs._("暂无补位需求。在车队详情里针对缺口发布，或在这里新建。", null, { hk: "4s9USt" });
+	}
+	static createRequestTitle(fbs: FbsRuntime) {
+		return fbs._("发布补位需求", null, { hk: "hG0kh" });
+	}
+	static groupingLabel(fbs: FbsRuntime) {
+		return fbs._("缺人的车队", null, { hk: "3wmjHb" });
+	}
+	static neededRoleLabel(fbs: FbsRuntime) {
+		return fbs._("缺的职责", null, { hk: "m9Ywm" });
+	}
+	static neededSchoolLabel(fbs: FbsRuntime) {
+		return fbs._("指定流派（可选）", null, { hk: "AUxrr" });
+	}
+	static requestNoteLabel(fbs: FbsRuntime) {
+		return fbs._("需求说明", null, { hk: "20BY0s" });
+	}
+	static createRequestButton(fbs: FbsRuntime) {
+		return fbs._("发布需求", null, { hk: "479lEF" });
+	}
+	static closeRequestButton(fbs: FbsRuntime) {
+		return fbs._("关闭需求", null, { hk: "1Mm6ZK" });
+	}
+	static requestStatusOpen(fbs: FbsRuntime) {
+		return fbs._("招募中", null, { hk: "4D7xuS" });
+	}
+	static requestStatusMatched(fbs: FbsRuntime) {
+		return fbs._("已撮合", null, { hk: "4sjLm7" });
+	}
+	static requestStatusClosed(fbs: FbsRuntime) {
+		return fbs._("已关闭", null, { hk: "3jy3zK" });
+	}
+	static offersTitle(fbs: FbsRuntime) {
+		return fbs._("可邀请的补位人选", null, { hk: "MD8BF" });
+	}
+	static offersEmpty(fbs: FbsRuntime) {
+		return fbs._("市场里暂无补位供给。", null, { hk: "4cKv1R" });
+	}
+	static inviteButton(fbs: FbsRuntime) {
+		return fbs._("发出邀请", null, { hk: "2Zq2AM" });
+	}
+	static invitedLabel(fbs: FbsRuntime) {
+		return fbs._("已邀请", null, { hk: "akUtA" });
+	}
+	static seatButton(fbs: FbsRuntime) {
+		return fbs._("落座到车队", null, { hk: "4AvgbA" });
+	}
+	static seatedLabel(fbs: FbsRuntime) {
+		return fbs._("已落座", null, { hk: "4ioSPI" });
+	}
+	static roleHealer(fbs: FbsRuntime) {
+		return fbs._("奶", null, { hk: "2imgi8" });
+	}
+	static roleDps(fbs: FbsRuntime) {
+		return fbs._("输出", null, { hk: "Xi2D0" });
+	}
+	static backLabel(fbs: FbsRuntime) {
+		return fbs._("‹ 返回百业", null, { hk: "uq5Er" });
+	}
+}
+export abstract class AlliesFbtUtils {
+	static title(fbs: FbsRuntime) {
+		return fbs._("盟友百业", null, { hk: "2IqKi7" });
+	}
+	static body(fbs: FbsRuntime) {
+		return fbs._("结盟后，双方车队可以互相开放：车头把车队标为盟友可见并设置访客名额，盟友成员就能在自己百业看到并报名访客位。解除结盟后，共享立即失效。", null, { hk: "1M5oel" });
+	}
+	static lockedTitle(fbs: FbsRuntime) {
+		return fbs._("无法打开盟友百业", null, { hk: "1C6DhP" });
+	}
+	static lockedBody(fbs: FbsRuntime) {
+		return fbs._("登录并成为本百业成员后，可以查看盟友与共享活动。", null, { hk: "2IYUIR" });
+	}
+	static activeTitle(fbs: FbsRuntime) {
+		return fbs._("已结盟百业", null, { hk: "srINm" });
+	}
+	static activeEmpty(fbs: FbsRuntime) {
+		return fbs._("本百业暂无盟友。", null, { hk: "4A33WQ" });
+	}
+	static statusPending(fbs: FbsRuntime) {
+		return fbs._("待对方确认", null, { hk: "40OLju" });
+	}
+	static statusActive(fbs: FbsRuntime) {
+		return fbs._("已结盟", null, { hk: "2nPRCK" });
+	}
+	static adminTitle(fbs: FbsRuntime) {
+		return fbs._("结盟管理", null, { hk: "2UsVZO" });
+	}
+	static inviteLabel(fbs: FbsRuntime) {
+		return fbs._("对方百业", null, { hk: "INTDY" });
+	}
+	static inviteHint(fbs: FbsRuntime) {
+		return fbs._("结盟邀请由对方百业管理员确认后生效；任一方管理员都可以单方解除结盟。", null, { hk: "1ZHNpq" });
+	}
+	static inviteButton(fbs: FbsRuntime) {
+		return fbs._("发出结盟邀请", null, { hk: "EvaIp" });
+	}
+	static incomingTitle(fbs: FbsRuntime) {
+		return fbs._("待处理的结盟邀请", null, { hk: "Viy23" });
+	}
+	static outgoingTitle(fbs: FbsRuntime) {
+		return fbs._("已发出的结盟邀请", null, { hk: "1yR47" });
+	}
+	static acceptButton(fbs: FbsRuntime) {
+		return fbs._("接受结盟", null, { hk: "4wd1nF" });
+	}
+	static rejectButton(fbs: FbsRuntime) {
+		return fbs._("拒绝", null, { hk: "3BE9yW" });
+	}
+	static endButton(fbs: FbsRuntime) {
+		return fbs._("解除结盟", null, { hk: "2Lt68A" });
+	}
+	static sharedTitle(fbs: FbsRuntime) {
+		return fbs._("盟友共享活动", null, { hk: "19Z3dr" });
+	}
+	static sharedEmpty(fbs: FbsRuntime) {
+		return fbs._("暂无盟友共享活动。", null, { hk: "1pjEEp" });
+	}
+	static hostPattern(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("主办：{name}", [fbs._param("name", pv(p, "name"))], { hk: "3xmGEZ" });
+	}
+	static visitorLeftPattern(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("访客位 {left} / {total}", [fbs._param("left", pv(p, "left")), fbs._param("total", pv(p, "total"))], { hk: "2jQFYi" });
+	}
+	static visitorJoinButton(fbs: FbsRuntime) {
+		return fbs._("报名访客位", null, { hk: "3EcWpT" });
+	}
+	static visitorJoinedLabel(fbs: FbsRuntime) {
+		return fbs._("已报名访客位", null, { hk: "38FyNR" });
+	}
+	static sharingTitle(fbs: FbsRuntime) {
+		return fbs._("盟友共享设置", null, { hk: "vNGdu" });
+	}
+	static sharingHint(fbs: FbsRuntime) {
+		return fbs._("开启后，盟友百业成员可以在他们的盟友页看到这辆车，并报名访客位（计入车队总名额）。访客名额为 0 时不开放报名。", null, { hk: "1OXB8p" });
+	}
+	static allyVisibleLabel(fbs: FbsRuntime) {
+		return fbs._("对盟友可见", null, { hk: "40NsOC" });
+	}
+	static visitorSlotsLabel(fbs: FbsRuntime) {
+		return fbs._("访客名额", null, { hk: "4gnmtg" });
+	}
+	static sharingSaveButton(fbs: FbsRuntime) {
+		return fbs._("保存共享设置", null, { hk: "hkAcm" });
+	}
+	static backLabel(fbs: FbsRuntime) {
+		return fbs._("‹ 返回百业", null, { hk: "2IhABW" });
+	}
+}
 export const STRING_FNS: Record<string, StringFn> = {
 	"common_cancel": CommonFbtUtils.cancel,
 	"common_confirm": CommonFbtUtils.confirm,
@@ -3773,6 +4108,8 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"guildHome_readOnlyBanner": GuildHomeFbtUtils.readOnlyBanner,
 	"guildHome_adminLink": GuildHomeFbtUtils.adminLink,
 	"guildHome_tabSchedule": GuildHomeFbtUtils.tabSchedule,
+	"guildHome_tabMarket": GuildHomeFbtUtils.tabMarket,
+	"guildHome_tabAllies": GuildHomeFbtUtils.tabAllies,
 	"groupingType_tabActivity": GroupingTypeFbtUtils.tabActivity,
 	"groupingType_tabTalent": GroupingTypeFbtUtils.tabTalent,
 	"groupingType_tabRace": GroupingTypeFbtUtils.tabRace,
@@ -4410,6 +4747,27 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"errors_pollOptionInvalid": ErrorsFbtUtils.pollOptionInvalid,
 	"errors_pollForbidden": ErrorsFbtUtils.pollForbidden,
 	"errors_customFieldInvalid": ErrorsFbtUtils.customFieldInvalid,
+	"errors_fillOfferExists": ErrorsFbtUtils.fillOfferExists,
+	"errors_fillSchoolRequired": ErrorsFbtUtils.fillSchoolRequired,
+	"errors_fillWindowsInvalid": ErrorsFbtUtils.fillWindowsInvalid,
+	"errors_fillRequestNotFound": ErrorsFbtUtils.fillRequestNotFound,
+	"errors_fillRequestNotOpen": ErrorsFbtUtils.fillRequestNotOpen,
+	"errors_fillOfferNotOpen": ErrorsFbtUtils.fillOfferNotOpen,
+	"errors_fillInviteExists": ErrorsFbtUtils.fillInviteExists,
+	"errors_fillInviteNotFound": ErrorsFbtUtils.fillInviteNotFound,
+	"errors_fillInviteNotPending": ErrorsFbtUtils.fillInviteNotPending,
+	"errors_fillInviteNotAccepted": ErrorsFbtUtils.fillInviteNotAccepted,
+	"errors_fillSelfInvite": ErrorsFbtUtils.fillSelfInvite,
+	"errors_marketManageOnly": ErrorsFbtUtils.marketManageOnly,
+	"errors_allianceSelf": ErrorsFbtUtils.allianceSelf,
+	"errors_allianceExists": ErrorsFbtUtils.allianceExists,
+	"errors_allianceNotFound": ErrorsFbtUtils.allianceNotFound,
+	"errors_allianceNotPending": ErrorsFbtUtils.allianceNotPending,
+	"errors_allianceNotActive": ErrorsFbtUtils.allianceNotActive,
+	"errors_allyNotAllied": ErrorsFbtUtils.allyNotAllied,
+	"errors_allyNotShared": ErrorsFbtUtils.allyNotShared,
+	"errors_visitorSlotsFull": ErrorsFbtUtils.visitorSlotsFull,
+	"errors_visitorSlotsInvalid": ErrorsFbtUtils.visitorSlotsInvalid,
 	"errors_customFieldTooMany": ErrorsFbtUtils.customFieldTooMany,
 	"errors_signupAnswerRequired": ErrorsFbtUtils.signupAnswerRequired,
 	"errors_signupAnswerInvalid": ErrorsFbtUtils.signupAnswerInvalid,
@@ -4881,5 +5239,91 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"ops_pointsEntriesLabel": OpsFbtUtils.pointsEntriesLabel,
 	"ops_saveButton": OpsFbtUtils.saveButton,
 	"ops_myPointsTitle": OpsFbtUtils.myPointsTitle,
-	"ops_myPointsTotal": OpsFbtUtils.myPointsTotal
+	"ops_myPointsTotal": OpsFbtUtils.myPointsTotal,
+	"market_title": MarketFbtUtils.title,
+	"market_body": MarketFbtUtils.body,
+	"market_lockedTitle": MarketFbtUtils.lockedTitle,
+	"market_lockedBody": MarketFbtUtils.lockedBody,
+	"market_supplyTitle": MarketFbtUtils.supplyTitle,
+	"market_supplyHint": MarketFbtUtils.supplyHint,
+	"market_supplyEmpty": MarketFbtUtils.supplyEmpty,
+	"market_schoolLabel": MarketFbtUtils.schoolLabel,
+	"market_windowsLabel": MarketFbtUtils.windowsLabel,
+	"market_noteLabel": MarketFbtUtils.noteLabel,
+	"market_notePlaceholder": MarketFbtUtils.notePlaceholder,
+	"market_publishButton": MarketFbtUtils.publishButton,
+	"market_withdrawButton": MarketFbtUtils.withdrawButton,
+	"market_offerStatusOpen": MarketFbtUtils.offerStatusOpen,
+	"market_homeGuildPattern": MarketFbtUtils.homeGuildPattern,
+	"market_windowLine": MarketFbtUtils.windowLine,
+	"market_weekday0": MarketFbtUtils.weekday0,
+	"market_weekday1": MarketFbtUtils.weekday1,
+	"market_weekday2": MarketFbtUtils.weekday2,
+	"market_weekday3": MarketFbtUtils.weekday3,
+	"market_weekday4": MarketFbtUtils.weekday4,
+	"market_weekday5": MarketFbtUtils.weekday5,
+	"market_weekday6": MarketFbtUtils.weekday6,
+	"market_inboxTitle": MarketFbtUtils.inboxTitle,
+	"market_inboxEmpty": MarketFbtUtils.inboxEmpty,
+	"market_acceptButton": MarketFbtUtils.acceptButton,
+	"market_declineButton": MarketFbtUtils.declineButton,
+	"market_inviteStatusPending": MarketFbtUtils.inviteStatusPending,
+	"market_inviteStatusAccepted": MarketFbtUtils.inviteStatusAccepted,
+	"market_inviteStatusDeclined": MarketFbtUtils.inviteStatusDeclined,
+	"market_inviteStatusExpired": MarketFbtUtils.inviteStatusExpired,
+	"market_inviteFromPattern": MarketFbtUtils.inviteFromPattern,
+	"market_demandTitle": MarketFbtUtils.demandTitle,
+	"market_demandLockedTitle": MarketFbtUtils.demandLockedTitle,
+	"market_demandLockedBody": MarketFbtUtils.demandLockedBody,
+	"market_demandNoManageHint": MarketFbtUtils.demandNoManageHint,
+	"market_requestsTitle": MarketFbtUtils.requestsTitle,
+	"market_requestsEmpty": MarketFbtUtils.requestsEmpty,
+	"market_createRequestTitle": MarketFbtUtils.createRequestTitle,
+	"market_groupingLabel": MarketFbtUtils.groupingLabel,
+	"market_neededRoleLabel": MarketFbtUtils.neededRoleLabel,
+	"market_neededSchoolLabel": MarketFbtUtils.neededSchoolLabel,
+	"market_requestNoteLabel": MarketFbtUtils.requestNoteLabel,
+	"market_createRequestButton": MarketFbtUtils.createRequestButton,
+	"market_closeRequestButton": MarketFbtUtils.closeRequestButton,
+	"market_requestStatusOpen": MarketFbtUtils.requestStatusOpen,
+	"market_requestStatusMatched": MarketFbtUtils.requestStatusMatched,
+	"market_requestStatusClosed": MarketFbtUtils.requestStatusClosed,
+	"market_offersTitle": MarketFbtUtils.offersTitle,
+	"market_offersEmpty": MarketFbtUtils.offersEmpty,
+	"market_inviteButton": MarketFbtUtils.inviteButton,
+	"market_invitedLabel": MarketFbtUtils.invitedLabel,
+	"market_seatButton": MarketFbtUtils.seatButton,
+	"market_seatedLabel": MarketFbtUtils.seatedLabel,
+	"market_roleHealer": MarketFbtUtils.roleHealer,
+	"market_roleDps": MarketFbtUtils.roleDps,
+	"market_backLabel": MarketFbtUtils.backLabel,
+	"allies_title": AlliesFbtUtils.title,
+	"allies_body": AlliesFbtUtils.body,
+	"allies_lockedTitle": AlliesFbtUtils.lockedTitle,
+	"allies_lockedBody": AlliesFbtUtils.lockedBody,
+	"allies_activeTitle": AlliesFbtUtils.activeTitle,
+	"allies_activeEmpty": AlliesFbtUtils.activeEmpty,
+	"allies_statusPending": AlliesFbtUtils.statusPending,
+	"allies_statusActive": AlliesFbtUtils.statusActive,
+	"allies_adminTitle": AlliesFbtUtils.adminTitle,
+	"allies_inviteLabel": AlliesFbtUtils.inviteLabel,
+	"allies_inviteHint": AlliesFbtUtils.inviteHint,
+	"allies_inviteButton": AlliesFbtUtils.inviteButton,
+	"allies_incomingTitle": AlliesFbtUtils.incomingTitle,
+	"allies_outgoingTitle": AlliesFbtUtils.outgoingTitle,
+	"allies_acceptButton": AlliesFbtUtils.acceptButton,
+	"allies_rejectButton": AlliesFbtUtils.rejectButton,
+	"allies_endButton": AlliesFbtUtils.endButton,
+	"allies_sharedTitle": AlliesFbtUtils.sharedTitle,
+	"allies_sharedEmpty": AlliesFbtUtils.sharedEmpty,
+	"allies_hostPattern": AlliesFbtUtils.hostPattern,
+	"allies_visitorLeftPattern": AlliesFbtUtils.visitorLeftPattern,
+	"allies_visitorJoinButton": AlliesFbtUtils.visitorJoinButton,
+	"allies_visitorJoinedLabel": AlliesFbtUtils.visitorJoinedLabel,
+	"allies_sharingTitle": AlliesFbtUtils.sharingTitle,
+	"allies_sharingHint": AlliesFbtUtils.sharingHint,
+	"allies_allyVisibleLabel": AlliesFbtUtils.allyVisibleLabel,
+	"allies_visitorSlotsLabel": AlliesFbtUtils.visitorSlotsLabel,
+	"allies_sharingSaveButton": AlliesFbtUtils.sharingSaveButton,
+	"allies_backLabel": AlliesFbtUtils.backLabel
 };

@@ -63,7 +63,7 @@ import {
   PayloadBase, GroupingPayloadShell, SeatPayloadShell, DeletePayloadShell,
   CreateGuildPayloadShell, UpdateLocalePayloadShell, uFail, gFail, sFail, dFail, cFail,
 } from '../platform/graphql-base.ts';
-import { guildResult, guildAdminResult, homeRecruitResult } from '../guilds/index.ts';
+import { guildResult, guildAdminResult, homeRecruitResult, fillMarketResult, guildAlliesResult } from '../guilds/index.ts';
 import { touchGuildRoster } from '../groupings/index.ts';
 
 export async function identityNamesFor(db: any, discordId: any, dgid: any) {
@@ -164,6 +164,16 @@ export class ViewerShell extends ShellBase {
   async genGuildAdmin({ slug }: any){
     // Admin surface: the GuildAdmin / GuildAdminLocked type is the verdict.
     return guildAdminResult(this.ctx, slug);
+  }
+  async genFillMarket({ slug }: any){
+    // Fill-in market page (P19): the guilds domain composes the
+    // member page / locked verdict per viewer.
+    return fillMarketResult(this.ctx, slug);
+  }
+  async genGuildAllies({ slug }: any){
+    // Allied guilds page (P20): allies, admin section and the
+    // read-time ally-shared squads, composed per viewer.
+    return guildAlliesResult(this.ctx, slug);
   }
   genHomeRecruit(){
     // Recruit section of the platform home (F16/F24/F17): the
@@ -531,6 +541,8 @@ export const identityResolvers = {
     guild: (p: any, { slug }: any) => p.genGuild({ slug }),
     guildAdmin: (p: any, { slug }: any) => p.genGuildAdmin({ slug }),
     homeRecruit: (p: any) => p.genHomeRecruit(),
+    fillMarket: (p: any, { slug }: any) => p.genFillMarket({ slug }),
+    guildAllies: (p: any, { slug }: any) => p.genGuildAllies({ slug }),
     discordServers: (p: any) => p.genDiscordServers(),
     ...VIEWER_TEXT_RESOLVERS,
   },
