@@ -2922,10 +2922,12 @@ type GuildAdminStatsLocked {
 
 union GuildAdminPremiumResult = GuildAdminPremiumActive | GuildAdminPremiumLocked
 
-# 已开通变体: 方案名 + 来源 (Stripe 订阅 / 平台授予 / 试用授予) +
-# 当前周期止 (手工授予与订阅都有周期; 无周期记录时为 null)。
-# premiumPastDueText 只在 Stripe 订阅欠费宽限期内组合 (后端权益
-# 判定), 其余时候为 null。
+# Active variant: plan name + source (Stripe subscription /
+# platform grant / trial grant) + current period end (manual
+# grants and subscriptions both carry a period; null when none is
+# on file). premiumPastDueText is composed only inside a past-due
+# Stripe grace window (the backend entitlement judgement); it is
+# null at all other times.
 type GuildAdminPremiumActive {
   premiumPlanLabel: String!
   premiumSourceText: String!
@@ -2933,11 +2935,15 @@ type GuildAdminPremiumActive {
   premiumPastDueText: String
 }
 
-# 定价面的一档: 档位名 / 副标 / 月价全部由后端组合下发 (档位目录
-# 在后端 billing 服务, 名称走 i18n, 价格按后端目录金额格式化),
-# 前端不写死任何档位名或金额。此类型只出现在 GuildAdmin.premium
-# 的 Locked 变体上 — 该面本身受收费总闸门控 (总闸关时 premium
-# 字段为 null, 价格零下发), 各功能的分档 Locked 壳不带此类型。
+# One tier of the pricing surface: tier name / subtitle / monthly
+# price are all composed and served by the backend (the tier
+# catalog lives in the backend billing service, names go through
+# i18n, prices are formatted from the catalog amounts) — the
+# client hardcodes no tier name or amount. This type appears only
+# on the Locked variant of GuildAdmin.premium: that surface is
+# itself gated by the paygate master switch (switch OFF composes
+# premium as null and serves zero prices), and no feature's
+# tier-locked shell carries this type.
 type GuildAdminPremiumTierPlan {
   tier: Int!
   name: String!
@@ -2945,11 +2951,13 @@ type GuildAdminPremiumTierPlan {
   priceLabel: String!
 }
 
-# 未开通变体: 开通文案 + 价格位 + 开通入口 + 三档定价。价格只渲染
-# 后端组合的数据 (premiumPriceLabel 为 Stripe 读回的现行方案价,
-# premiumTierPlans 为后端档位目录的三档月价), 未配置 Stripe 时
-# premiumPriceLabel 为 null 并改由 premiumComingSoonText 占据 —
-# 前端不写死任何金额。
+# Locked variant: upsell copy + price slot + checkout entry + the
+# three-tier pricing. Prices render only backend-composed data
+# (premiumPriceLabel is the current plan price read back from
+# Stripe, premiumTierPlans is the backend tier catalog's monthly
+# prices); with Stripe unconfigured, premiumPriceLabel is null
+# and premiumComingSoonText takes its place — the client
+# hardcodes no amount.
 type GuildAdminPremiumLocked {
   premiumTitle: String!
   premiumBody: String!
@@ -3150,10 +3158,12 @@ extend type Mutation {
   # 开通 Premium: 服务端建 Stripe Checkout Session 并回带托管页
   # URL。总闸关 / 已开通 / Stripe 未配置时以 errors 目录文案拒绝
   # (paygateDisabled / premiumActive / premiumComingSoon)。
-  # tier 为目标档位 (1/2/3, 可空): 给档位时按该档配置的 Stripe
-  # 价格结账, 该档未配置价格时照未配置拒绝 (premiumComingSoon),
-  # 绝不回落到其他档或旧单价; 不给时走旧单价路径, 行为与分档前
-  # 逐字一致。
+  # tier is the target tier (1/2/3, nullable): when given, the
+  # checkout charges that tier's configured Stripe price; a tier
+  # without a configured price is refused as unconfigured
+  # (premiumComingSoon) and never falls back to another tier or
+  # the legacy price; when absent, the legacy single-price path
+  # runs, byte-identical to the pre-tier behavior.
   startPremiumCheckout(slug: String!, tier: Int): GuildAdminPayload!
   updateGuildVisibility(slug: String!, devOnly: Boolean!): GuildAdminPayload!
   # 头像以 base64 文本上传 (GraphQL 无二进制通道); 服务端解码后仍走

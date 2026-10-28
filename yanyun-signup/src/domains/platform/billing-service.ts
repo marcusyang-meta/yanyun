@@ -62,9 +62,11 @@ const TIER_BY_PLAN: Record<string, GuildTier> = {
 
 /* ---------------- plan catalog (names + prices) ------------------
  * The settled commercial facts (marcus's rulings, 2026-10-28):
- * theme-B names — T1 同道 (Kindred), T2 执事 (Steward), T3 盟主
- * (Guildmaster) — with the DESIGN §10 subtitles 数据 / 智能 / 旗舰,
- * and monthly-only prices $3.99 / $5.99 / $7.99. This catalog is
+ * theme-B names — T1 Kindred, T2 Steward, T3 Guildmaster — with
+ * the DESIGN §10 subtitles (Data / Smart / Flagship; the zh names
+ * and subtitles themselves are the catalog data below and the
+ * guildAdmin i18n strings), and monthly-only prices $3.99 /
+ * $5.99 / $7.99. This catalog is
  * the single backend source every pricing surface composes from:
  * the guild-admin upgrade panel localizes name/subtitle through
  * the i18n catalog (whose zh source and en translations carry the
@@ -302,7 +304,7 @@ export async function grantTierManual(
 
 /* ---------------- trial grant (one per guild) --------------------
  * The trial compromise (marcus's ruling, 2026-10-28): every new
- * guild is granted a trial at creation/binding time — T2 (执事)
+ * guild is granted a trial at creation/binding time — T2 (Steward)
  * for TRIAL_DAYS days, source 'trial', NO card required at the
  * door (the grant asks for no payment information at all). The
  * persistence-card verdict below is where the card comes in:
