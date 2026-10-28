@@ -98,6 +98,11 @@ export type PlatformStringKey =
   | 'errors_notInServer'
   | 'errors_cannotManageServer'
   | 'errors_adminOnly'
+  | 'errors_noCandidates'
+  | 'errors_nudgeDailyLimit'
+  | 'errors_nudgeCooldown'
+  | 'errors_nudgeEventInvalid'
+  | 'errors_contributionRuleInvalid'
   | 'errors_webhookInvalid'
   | 'errors_discordIdInvalid'
   | 'errors_noFieldsToUpdate'
@@ -278,6 +283,11 @@ export const PLATFORM_STRING_KEYS: readonly PlatformStringKey[] = [
   'errors_notInServer',
   'errors_cannotManageServer',
   'errors_adminOnly',
+  'errors_noCandidates',
+  'errors_nudgeDailyLimit',
+  'errors_nudgeCooldown',
+  'errors_nudgeEventInvalid',
+  'errors_contributionRuleInvalid',
   'errors_webhookInvalid',
   'errors_discordIdInvalid',
   'errors_noFieldsToUpdate',

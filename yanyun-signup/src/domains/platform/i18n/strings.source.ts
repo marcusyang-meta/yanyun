@@ -143,6 +143,11 @@ export abstract class ErrorsFbtUtils {
   static notInServer(fbs: FbsAPI) { return fbs("你不在这个 Discord 服务器中", "Error message for server membership, used when the user is not a member of the Discord server involved in the operation."); }
   static cannotManageServer(fbs: FbsAPI) { return fbs("你需要在该 Discord 服务器拥有管理员或「管理服务器」权限才能绑定它", "Error message for server binding, used when the user lacks administrator or Manage Server permission in the Discord server being bound."); }
   static adminOnly(fbs: FbsAPI) { return fbs("只有所绑服务器的管理员可以执行此操作", "Error message for guild admin operations, used when a non-admin of the bound Discord server attempts an admin-only operation."); }
+  static noCandidates(fbs: FbsAPI) { return fbs("没有符合条件的成员可发送", "Error message for targeted nudges, used when a nudge segment matches no unsigned guild member."); }
+  static nudgeDailyLimit(fbs: FbsAPI, p?: StringParams) { return fbs(["今天的定向催报已达上限（每天 ", fbs.param("limit", pv(p, "limit")), " 次），明天再发"], "Error message for targeted nudges, used when the guild reaches its daily nudge quota, where {limit} is the number of nudges allowed per day."); }
+  static nudgeCooldown(fbs: FbsAPI) { return fbs("这辆车刚催报过，24 小时内不能重复催报", "Error message for targeted nudges, used when the same grouping was already nudged within the per-event cooldown window."); }
+  static nudgeEventInvalid(fbs: FbsAPI) { return fbs("要催报的车队不存在或不属于本百业", "Error message for targeted nudges, used when the target grouping does not exist in this guild."); }
+  static contributionRuleInvalid(fbs: FbsAPI) { return fbs("积分规则不合法", "Error message for contribution points, used when a rule update names an unknown action or an out-of-range point value."); }
   static webhookInvalid(fbs: FbsAPI) { return fbs("Webhook 地址格式不正确", "Error message for webhook settings, used when a submitted Discord webhook URL is malformed."); }
   static discordIdInvalid(fbs: FbsAPI) { return fbs("Discord 服务器 ID 格式不正确", "Error message for Discord settings, used when a submitted Discord server ID is malformed."); }
   static noFieldsToUpdate(fbs: FbsAPI) { return fbs("没有可更新的字段", "Error message for update requests, used when the request contains no fields to change."); }

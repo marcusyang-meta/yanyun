@@ -56,6 +56,7 @@ import {
 } from '../platform/graphql-base.ts';
 import { groupingListPage, touchGuildRoster } from '../groupings/index.ts';
 import { guildAdminTypes, guildAdminMutations, guildAdminPayloadResolvers } from './admin-graphql.ts';
+import { opsTypes, opsMutations, targetedNudgePreviewResult, myContributionResult } from './ops-graphql.ts';
 import { homeRecruitTypes, recruitTypes, recruitMutations } from './recruit-graphql.ts';
 import {
   announcementPageForMember, guildAnnouncementMutations, guildAnnouncementTypes,
@@ -323,6 +324,10 @@ export const guildsResolvers = {
       });
     },
 
+    targetedNudgePreview: async (_: any, { slug, eventId, segmentKind, segmentValue }: any, ctx: Context) =>
+      targetedNudgePreviewResult(ctx, slug, Number(eventId), String(segmentKind || 'all'), String(segmentValue || '')),
+    myContribution: async (_: any, { slug }: any, ctx: Context) => myContributionResult(ctx, slug),
+
     slugAvailable: async (_: any, { slug }: any, ctx: Context) => {
       const db = ctx.env.DB;
       const v = String(slug || '').trim().toLowerCase();
@@ -379,6 +384,7 @@ export const guildsResolvers = {
     },
 
     ...guildAdminMutations,
+    ...opsMutations,
     ...seasonAdminMutations,
 
     ...guildAnnouncementMutations,
@@ -435,5 +441,6 @@ export const guildsResolvers = {
   ...recruitTypes,
   ...homeRecruitTypes,
   ...guildOfficerTypes,
+  ...opsTypes,
   },
 };

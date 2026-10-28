@@ -4426,6 +4426,21 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "fr": "Seuls les administrateurs du serveur lié peuvent faire cela",
       "zh-TW": "只有所綁伺服器的管理員可以執行此操作"
     },
+    "noCandidates": {
+      "zh-CN": "没有符合条件的成员可发送"
+    },
+    "nudgeDailyLimit": {
+      "zh-CN": "今天的定向催报已达上限（每天 {limit} 次），明天再发"
+    },
+    "nudgeCooldown": {
+      "zh-CN": "这辆车刚催报过，24 小时内不能重复催报"
+    },
+    "nudgeEventInvalid": {
+      "zh-CN": "要催报的车队不存在或不属于本百业"
+    },
+    "contributionRuleInvalid": {
+      "zh-CN": "积分规则不合法"
+    },
     "webhookInvalid": {
       "zh-CN": "Webhook 地址格式不正确",
       "en": "Invalid webhook URL format",
@@ -6935,6 +6950,143 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-CN": "删除",
       "en": "Delete",
       "zh-TW": "刪除"
+    }
+  },
+  "ops": {
+    "tabOps": {
+      "zh-CN": "运营引擎"
+    },
+    "title": {
+      "zh-CN": "运营引擎"
+    },
+    "hint": {
+      "zh-CN": "定向催报、流失预警、赛季滚动与贡献积分都在这里——都是给军官省时间的引擎，判定与数字全部由平台算好下发。"
+    },
+    "nudgeTitle": {
+      "zh-CN": "定向催报"
+    },
+    "nudgeHint": {
+      "zh-CN": "只催还没报名的人：按分段圈定目标，先预览人数与名单，确认后才发送（走百业 Discord 频道与 App 推送）。每天最多 3 次，同一辆车 24 小时内只催一次。"
+    },
+    "nudgeEventLabel": {
+      "zh-CN": "目标车队"
+    },
+    "nudgeSegmentLabel": {
+      "zh-CN": "圈人分段"
+    },
+    "segmentAll": {
+      "zh-CN": "全部未报名成员"
+    },
+    "segmentSchool": {
+      "zh-CN": "按流派（填流派名）"
+    },
+    "segmentRole": {
+      "zh-CN": "按职责（填职责名）"
+    },
+    "segmentLapsed": {
+      "zh-CN": "久未出勤（14 天以上）"
+    },
+    "nudgeSegmentValueLabel": {
+      "zh-CN": "分段值"
+    },
+    "nudgePreviewButton": {
+      "zh-CN": "预览圈人"
+    },
+    "nudgeSendButton": {
+      "zh-CN": "确认发送催报"
+    },
+    "nudgeCandidateCount": {
+      "zh-CN": "将催报 {count} 人"
+    },
+    "nudgeEmpty": {
+      "zh-CN": "没有符合条件的未报名成员。"
+    },
+    "nudgeDailyRemaining": {
+      "zh-CN": "今日还可发送 {remaining} 次"
+    },
+    "nudgeMessage": {
+      "zh-CN": "「{title}」还差人，快来报名啦！"
+    },
+    "lastNever": {
+      "zh-CN": "从未出勤"
+    },
+    "lastAt": {
+      "zh-CN": "上次出勤 {date}"
+    },
+    "churnTitle": {
+      "zh-CN": "流失预警"
+    },
+    "churnHint": {
+      "zh-CN": "参与下滑的成员会出现在这里（基线 = 此前 4 周，近期 = 最近 4 周；近期参与降到基线一半以下，或连续缺席最近 3 场已完成车队，即入名单）。名单只给军官看，不会自动联系任何人。"
+    },
+    "churnEmpty": {
+      "zh-CN": "暂无流失风险成员。"
+    },
+    "churnEvidence": {
+      "zh-CN": "基线 {baseline} 次 · 近期 {recent} 次 · 连缺 {streak} 场"
+    },
+    "rolloverTitle": {
+      "zh-CN": "赛季滚动"
+    },
+    "rolloverHint": {
+      "zh-CN": "把组队模板批量迁移为新赛季副本。先看预览，确认后才执行；执行结果会留痕。"
+    },
+    "rolloverSeason": {
+      "zh-CN": "目标赛季：{season}"
+    },
+    "rolloverPreview": {
+      "zh-CN": "将迁移 {count} 个模板（共 {total} 个，已有新赛季副本 {copied} 个）"
+    },
+    "rolloverExecuteButton": {
+      "zh-CN": "执行赛季滚动"
+    },
+    "rolloverDone": {
+      "zh-CN": "已迁移 {count} 个模板到新赛季"
+    },
+    "rolloverGearNote": {
+      "zh-CN": "旧赛季装备打季标：装备暂无赛季概念，本步跳过。"
+    },
+    "rolloverThresholdNote": {
+      "zh-CN": "达标线按新赛季重算：装备达标盘尚未上线，本步跳过，待其上线后接入。"
+    },
+    "rolloverLast": {
+      "zh-CN": "上次滚动：{date} · 迁移 {count} 个模板"
+    },
+    "pointsTitle": {
+      "zh-CN": "贡献积分"
+    },
+    "pointsHint": {
+      "zh-CN": "积分只认平台里的真实动作：出席已完成的车队、带队完成车队、成为导师。积分从功能启用后累计，不补历史；成员能看自己的余额与流水，规则与总览只有军官能改能看。"
+    },
+    "ruleAttendance": {
+      "zh-CN": "出席"
+    },
+    "ruleLeading": {
+      "zh-CN": "带队"
+    },
+    "ruleMentoring": {
+      "zh-CN": "导师"
+    },
+    "pointsValue": {
+      "zh-CN": "{points} 分"
+    },
+    "pointsBoardEmpty": {
+      "zh-CN": "暂无积分记录（从启用后的第一场已完成车队开始累计）。"
+    },
+    "pointsTotalLabel": {
+      "zh-CN": "总分"
+    },
+    "pointsEntriesLabel": {
+      "zh-CN": "笔数"
+    },
+    "saveButton": {
+      "zh-CN": "保存"
+    },
+    "myPointsTitle": {
+      "zh-CN": "我的贡献积分"
+    },
+    "myPointsTotal": {
+      "zh-CN": "累计 {points} 分"
     }
   }
 };

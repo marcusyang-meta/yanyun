@@ -356,3 +356,51 @@ export abstract class OfficerFbtUtils {
   static goalDeleteButton(fbs: FbsAPI) { return fbs("删除", "Button label for season goal rows, used to delete a goal."); }
 }
 
+
+export abstract class OpsFbtUtils {
+  static tabOps(fbs: FbsAPI) { return fbs("运营引擎", "Tab label for the guild admin page, used to switch to the premium operations engine tab."); }
+  static title(fbs: FbsAPI) { return fbs("运营引擎", "Title text for the operations engine tab, used as the tab heading."); }
+  static hint(fbs: FbsAPI) { return fbs("定向催报、流失预警、赛季滚动与贡献积分都在这里——都是给军官省时间的引擎，判定与数字全部由平台算好下发。", "Hint text for the operations engine tab, used under the heading to explain what the four engines do."); }
+  static nudgeTitle(fbs: FbsAPI) { return fbs("定向催报", "Title text for the targeted nudge section, used as the section heading for nudging members who have not signed up yet."); }
+  static nudgeHint(fbs: FbsAPI) { return fbs("只催还没报名的人：按分段圈定目标，先预览人数与名单，确认后才发送（走百业 Discord 频道与 App 推送）。每天最多 3 次，同一辆车 24 小时内只催一次。", "Hint text for the targeted nudge section, used to explain the segmentation, the preview-then-send flow and the frequency caps."); }
+  static nudgeEventLabel(fbs: FbsAPI) { return fbs("目标车队", "Field label for the targeted nudge section, used for the grouping picker."); }
+  static nudgeSegmentLabel(fbs: FbsAPI) { return fbs("圈人分段", "Field label for the targeted nudge section, used for the segment picker."); }
+  static segmentAll(fbs: FbsAPI) { return fbs("全部未报名成员", "Option label for the targeted nudge segment picker, used for the segment that targets every unsigned member."); }
+  static segmentSchool(fbs: FbsAPI) { return fbs("按流派（填流派名）", "Option label for the targeted nudge segment picker, used for the segment that targets unsigned members by their known school."); }
+  static segmentRole(fbs: FbsAPI) { return fbs("按职责（填职责名）", "Option label for the targeted nudge segment picker, used for the segment that targets unsigned members by their known role to fill a role gap."); }
+  static segmentLapsed(fbs: FbsAPI) { return fbs("久未出勤（14 天以上）", "Option label for the targeted nudge segment picker, used for the segment that targets members whose last participation was at least 14 days ago."); }
+  static nudgeSegmentValueLabel(fbs: FbsAPI) { return fbs("分段值", "Field label for the targeted nudge section, used for the free-text segment value such as a school or role name."); }
+  static nudgePreviewButton(fbs: FbsAPI) { return fbs("预览圈人", "Button label for the targeted nudge section, used to compute the candidate preview without sending anything."); }
+  static nudgeSendButton(fbs: FbsAPI) { return fbs("确认发送催报", "Button label for the targeted nudge section, used to confirm and send the previewed nudge."); }
+  static nudgeCandidateCount(fbs: FbsAPI, p?: StringParams) { return fbs(["将催报 ", fbs.param("count", pv(p, "count")), " 人"], "Status text for the targeted nudge preview, used to state how many members will be nudged, where {count} is the candidate count."); }
+  static nudgeEmpty(fbs: FbsAPI) { return fbs("没有符合条件的未报名成员。", "Empty-state text for the targeted nudge preview, used when the chosen segment matches nobody."); }
+  static nudgeDailyRemaining(fbs: FbsAPI, p?: StringParams) { return fbs(["今日还可发送 ", fbs.param("remaining", pv(p, "remaining")), " 次"], "Quota text for the targeted nudge section, used to show how many nudges can still be sent today, where {remaining} is the remaining daily count."); }
+  static nudgeMessage(fbs: FbsAPI, p?: StringParams) { return fbs(["「", fbs.param("title", pv(p, "title")), "」还差人，快来报名啦！"], "Message body for a targeted nudge, used as the webhook and push text sent to unsigned members, where {title} is the grouping title."); }
+  static lastNever(fbs: FbsAPI) { return fbs("从未出勤", "Evidence text for member lists, used when a member has no recorded participation yet."); }
+  static lastAt(fbs: FbsAPI, p?: StringParams) { return fbs(["上次出勤 ", fbs.param("date", pv(p, "date"))], "Evidence text for member lists, used to show when a member last participated, where {date} is the formatted date."); }
+  static churnTitle(fbs: FbsAPI) { return fbs("流失预警", "Title text for the churn warning section, used as the section heading for the officer watchlist of members whose participation is dropping."); }
+  static churnHint(fbs: FbsAPI) { return fbs("参与下滑的成员会出现在这里（基线 = 此前 4 周，近期 = 最近 4 周；近期参与降到基线一半以下，或连续缺席最近 3 场已完成车队，即入名单）。名单只给军官看，不会自动联系任何人。", "Hint text for the churn warning section, used to explain the detection rule and that outreach stays manual."); }
+  static churnEmpty(fbs: FbsAPI) { return fbs("暂无流失风险成员。", "Empty-state text for the churn warning section, used when no member matches the drop rule."); }
+  static churnEvidence(fbs: FbsAPI, p?: StringParams) { return fbs(["基线 ", fbs.param("baseline", pv(p, "baseline")), " 次 · 近期 ", fbs.param("recent", pv(p, "recent")), " 次 · 连缺 ", fbs.param("streak", pv(p, "streak")), " 场"], "Evidence text for one churn warning row, used to show the baseline count, the recent count and the consecutive-miss streak, where {baseline}, {recent} and {streak} are the member's numbers."); }
+  static rolloverTitle(fbs: FbsAPI) { return fbs("赛季滚动", "Title text for the season rollover section, used as the section heading for the one-click season migration engine."); }
+  static rolloverHint(fbs: FbsAPI) { return fbs("把组队模板批量迁移为新赛季副本。先看预览，确认后才执行；执行结果会留痕。", "Hint text for the season rollover section, used to explain the preview-then-execute flow."); }
+  static rolloverSeason(fbs: FbsAPI, p?: StringParams) { return fbs(["目标赛季：", fbs.param("season", pv(p, "season"))], "Status text for the season rollover section, used to name the season templates will be copied into, where {season} is the season label."); }
+  static rolloverPreview(fbs: FbsAPI, p?: StringParams) { return fbs(["将迁移 ", fbs.param("count", pv(p, "count")), " 个模板（共 ", fbs.param("total", pv(p, "total")), " 个，已有新赛季副本 ", fbs.param("copied", pv(p, "copied")), " 个）"], "Preview text for the season rollover section, used to state how many templates will be copied, where {count} is the pending count, {total} the library size and {copied} the count already copied."); }
+  static rolloverExecuteButton(fbs: FbsAPI) { return fbs("执行赛季滚动", "Button label for the season rollover section, used to confirm and run the previewed migration."); }
+  static rolloverDone(fbs: FbsAPI, p?: StringParams) { return fbs(["已迁移 ", fbs.param("count", pv(p, "count")), " 个模板到新赛季"], "Success text for the season rollover section, used after an execution copied templates, where {count} is the number copied."); }
+  static rolloverGearNote(fbs: FbsAPI) { return fbs("旧赛季装备打季标：装备暂无赛季概念，本步跳过。", "Note text for the season rollover report, used to state honestly that gear season tagging was skipped because gear carries no season concept."); }
+  static rolloverThresholdNote(fbs: FbsAPI) { return fbs("达标线按新赛季重算：装备达标盘尚未上线，本步跳过，待其上线后接入。", "Note text for the season rollover report, used to state honestly that threshold recalculation was skipped until the gear readiness board ships."); }
+  static rolloverLast(fbs: FbsAPI, p?: StringParams) { return fbs(["上次滚动：", fbs.param("date", pv(p, "date")), " · 迁移 ", fbs.param("count", pv(p, "count")), " 个模板"], "Status text for the season rollover section, used to show the last execution's date and copied count, where {date} is the formatted date and {count} the copied count."); }
+  static pointsTitle(fbs: FbsAPI) { return fbs("贡献积分", "Title text for the contribution points section, used as the section heading for point rules and the member points board."); }
+  static pointsHint(fbs: FbsAPI) { return fbs("积分只认平台里的真实动作：出席已完成的车队、带队完成车队、成为导师。积分从功能启用后累计，不补历史；成员能看自己的余额与流水，规则与总览只有军官能改能看。", "Hint text for the contribution points section, used to explain which actions earn points, that there is no historical backfill, and the member-versus-officer visibility split."); }
+  static ruleAttendance(fbs: FbsAPI) { return fbs("出席", "Label text for the attendance point rule, used for the action of attending a completed grouping."); }
+  static ruleLeading(fbs: FbsAPI) { return fbs("带队", "Label text for the leading point rule, used for the action of leading a completed grouping."); }
+  static ruleMentoring(fbs: FbsAPI) { return fbs("导师", "Label text for the mentoring point rule, used for the action of becoming a mentor on a pairing."); }
+  static pointsValue(fbs: FbsAPI, p?: StringParams) { return fbs([fbs.param("points", pv(p, "points")), " 分"], "Value text for contribution points, used to render a point amount, where {points} is the number of points."); }
+  static pointsBoardEmpty(fbs: FbsAPI) { return fbs("暂无积分记录（从启用后的第一场已完成车队开始累计）。", "Empty-state text for the contribution points board, used when no points have accrued yet."); }
+  static pointsTotalLabel(fbs: FbsAPI) { return fbs("总分", "Column label for the contribution points board, used above each member's total points."); }
+  static pointsEntriesLabel(fbs: FbsAPI) { return fbs("笔数", "Column label for the contribution points board, used above each member's ledger entry count."); }
+  static saveButton(fbs: FbsAPI) { return fbs("保存", "Button label for the contribution points rules, used to save one action's point value."); }
+  static myPointsTitle(fbs: FbsAPI) { return fbs("我的贡献积分", "Title text for the member's own contribution points view, used as the heading above their balance and ledger."); }
+  static myPointsTotal(fbs: FbsAPI, p?: StringParams) { return fbs(["累计 ", fbs.param("points", pv(p, "points")), " 分"], "Balance text for the member's own contribution points view, used to show their total, where {points} is the total point count."); }
+}

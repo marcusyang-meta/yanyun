@@ -308,7 +308,52 @@ export type GuildsStringKey =
   | 'officer_goalAddButton'
   | 'officer_goalSaveButton'
   | 'officer_goalEditButton'
-  | 'officer_goalDeleteButton';
+  | 'officer_goalDeleteButton'
+  | 'ops_tabOps'
+  | 'ops_title'
+  | 'ops_hint'
+  | 'ops_nudgeTitle'
+  | 'ops_nudgeHint'
+  | 'ops_nudgeEventLabel'
+  | 'ops_nudgeSegmentLabel'
+  | 'ops_segmentAll'
+  | 'ops_segmentSchool'
+  | 'ops_segmentRole'
+  | 'ops_segmentLapsed'
+  | 'ops_nudgeSegmentValueLabel'
+  | 'ops_nudgePreviewButton'
+  | 'ops_nudgeSendButton'
+  | 'ops_nudgeCandidateCount'
+  | 'ops_nudgeEmpty'
+  | 'ops_nudgeDailyRemaining'
+  | 'ops_nudgeMessage'
+  | 'ops_lastNever'
+  | 'ops_lastAt'
+  | 'ops_churnTitle'
+  | 'ops_churnHint'
+  | 'ops_churnEmpty'
+  | 'ops_churnEvidence'
+  | 'ops_rolloverTitle'
+  | 'ops_rolloverHint'
+  | 'ops_rolloverSeason'
+  | 'ops_rolloverPreview'
+  | 'ops_rolloverExecuteButton'
+  | 'ops_rolloverDone'
+  | 'ops_rolloverGearNote'
+  | 'ops_rolloverThresholdNote'
+  | 'ops_rolloverLast'
+  | 'ops_pointsTitle'
+  | 'ops_pointsHint'
+  | 'ops_ruleAttendance'
+  | 'ops_ruleLeading'
+  | 'ops_ruleMentoring'
+  | 'ops_pointsValue'
+  | 'ops_pointsBoardEmpty'
+  | 'ops_pointsTotalLabel'
+  | 'ops_pointsEntriesLabel'
+  | 'ops_saveButton'
+  | 'ops_myPointsTitle'
+  | 'ops_myPointsTotal';
 
 export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'locked_backLink',
@@ -619,4 +664,49 @@ export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'officer_goalSaveButton',
   'officer_goalEditButton',
   'officer_goalDeleteButton',
+  'ops_tabOps',
+  'ops_title',
+  'ops_hint',
+  'ops_nudgeTitle',
+  'ops_nudgeHint',
+  'ops_nudgeEventLabel',
+  'ops_nudgeSegmentLabel',
+  'ops_segmentAll',
+  'ops_segmentSchool',
+  'ops_segmentRole',
+  'ops_segmentLapsed',
+  'ops_nudgeSegmentValueLabel',
+  'ops_nudgePreviewButton',
+  'ops_nudgeSendButton',
+  'ops_nudgeCandidateCount',
+  'ops_nudgeEmpty',
+  'ops_nudgeDailyRemaining',
+  'ops_nudgeMessage',
+  'ops_lastNever',
+  'ops_lastAt',
+  'ops_churnTitle',
+  'ops_churnHint',
+  'ops_churnEmpty',
+  'ops_churnEvidence',
+  'ops_rolloverTitle',
+  'ops_rolloverHint',
+  'ops_rolloverSeason',
+  'ops_rolloverPreview',
+  'ops_rolloverExecuteButton',
+  'ops_rolloverDone',
+  'ops_rolloverGearNote',
+  'ops_rolloverThresholdNote',
+  'ops_rolloverLast',
+  'ops_pointsTitle',
+  'ops_pointsHint',
+  'ops_ruleAttendance',
+  'ops_ruleLeading',
+  'ops_ruleMentoring',
+  'ops_pointsValue',
+  'ops_pointsBoardEmpty',
+  'ops_pointsTotalLabel',
+  'ops_pointsEntriesLabel',
+  'ops_saveButton',
+  'ops_myPointsTitle',
+  'ops_myPointsTotal',
 ];
