@@ -2,7 +2,7 @@ name: pr-backend
 
 # Pre-merge verification for backend + web changes. Everything that gates a
 # release runs here, on the pull request: static gates (tsc, fbtee codegen),
-# the full harness suite, the real-D1 repository verification, a preview
+# the full vitest suite, the real-D1 repository verification, a preview
 # deploy of the exact bytes that would ship, HTTP/GraphQL probes and a
 # real-browser render smoke. A PR merges only when this workflow is green;
 # backend-deploy then promotes the artifact built here without rebuilding
@@ -35,7 +35,7 @@ concurrency:
 
 jobs:
   gate:
-    name: gate (static checks, harness, build)
+    name: gate (static checks, tests, build)
     runs-on: ubuntu-latest
     outputs:
       tree: ${{ steps.stage.outputs.tree }}
@@ -55,8 +55,8 @@ jobs:
         run: node yanyun-signup/scripts/i18n-codegen.mjs --check
       - name: 'any budget gate (no new any in domains; ctx:any banned)'
         run: node yanyun-signup/scripts/ci/check-any-budget.mjs
-      - name: Harness suite (all 24 suites, incl. the heirloom fixture)
-        run: node yanyun-signup/scripts/ci/run-harnesses.mjs
+      - name: Unit tests (vitest, all suites incl. the server fixture project)
+        run: pnpm --filter yanyun-signup run test
       - name: Repository verification against a real D1 (Miniflare)
         run: node yanyun-signup/scripts/verify-repositories-d1.mjs
       - name: Schema drift gate (migration chain vs Drizzle entities)

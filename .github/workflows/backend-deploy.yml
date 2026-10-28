@@ -5,7 +5,7 @@ name: backend-deploy
 # workflow_dispatch and no manual promote entry anywhere: an emergency fix
 # lands the same way everything else does, as a PR that goes green and
 # merges. Verification already happened on the PR (pr-backend: static gates,
-# the full harness suite, real-D1 verification, preview probes, real-browser
+# the full vitest suite, real-D1 verification, preview probes, real-browser
 # render smoke). This workflow:
 #   1. finds the successful pr-backend run for the PR head and downloads the
 #      exact artifact it built (never rebuilds),
