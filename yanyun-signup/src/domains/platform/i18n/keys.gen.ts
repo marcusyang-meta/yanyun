@@ -129,7 +129,14 @@ export type PlatformStringKey =
   | 'errors.announcementBodyTooLong'
   | 'errors.announcementNotFound'
   | 'errors.announcementDailyLimit'
-  | 'errors.urgentCallDailyLimit';
+  | 'errors.urgentCallDailyLimit'
+  | 'errors.lotteryTitleRequired'
+  | 'errors.lotteryEntriesEmpty'
+  | 'errors.lotteryNotFound'
+  | 'errors.lotteryAlreadyDrawn'
+  | 'errors.lotteryWinnerCountInvalid'
+  | 'errors.lotteryWeightInvalid'
+  | 'errors.lotteryMemberNotInGuild';
 
 export const PLATFORM_STRING_KEYS: readonly PlatformStringKey[] = [
   'common.cancel',
@@ -261,4 +268,11 @@ export const PLATFORM_STRING_KEYS: readonly PlatformStringKey[] = [
   'errors.announcementNotFound',
   'errors.announcementDailyLimit',
   'errors.urgentCallDailyLimit',
+  'errors.lotteryTitleRequired',
+  'errors.lotteryEntriesEmpty',
+  'errors.lotteryNotFound',
+  'errors.lotteryAlreadyDrawn',
+  'errors.lotteryWinnerCountInvalid',
+  'errors.lotteryWeightInvalid',
+  'errors.lotteryMemberNotInGuild',
 ];

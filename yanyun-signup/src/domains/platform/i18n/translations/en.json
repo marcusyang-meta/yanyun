@@ -8613,6 +8613,369 @@
         }
       ],
       "types": []
+    },
+    "wxwp61tRGmC2s1BC5taUPg==": {
+      "description": "guildAdmin.tabTools",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Activity Tools",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "MSSLhnkAJRYvS596t2Qawg==": {
+      "description": "guildAdmin.calendarTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Event Calendar Subscription",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "8Q+N1XsRekHd9J3Wv2V3LQ==": {
+      "description": "guildAdmin.calendarHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Paste the link below into the \"Subscribe to calendar\" option of your calendar app (or system calendar) and this guild's grouping events will sync automatically. The link works like a secret key — do not share it publicly; every member who has it can subscribe.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "xFPr47znb/NEbkhkZEF9Dg==": {
+      "description": "guildAdmin.calendarUrlLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Subscription link",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "QFkAyzKm3S/TPwrLte16Gw==": {
+      "description": "guildAdmin.calendarCopyButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Copy link",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "rkAK7s3QkvYWGaPwDjlIDQ==": {
+      "description": "guildAdmin.calendarResetButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Reset link",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+pIr58Se7RrGlwiGk4SF8g==": {
+      "description": "guildAdmin.calendarResetHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "After a reset the old link stops working immediately; anyone subscribed with it must subscribe again with the new link.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "b69A3HevEVfkx/+w2tQ2Ww==": {
+      "description": "guildAdmin.lotteryTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Event Lottery",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ehaX2UdooHPJS8Rfpva3/Q==": {
+      "description": "guildAdmin.lotteryHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "The participant list can come from one grouping's participants or be hand-picked from guild members; the list and weights are frozen at creation. Winners are drawn at random weighted by weight, and nobody can win twice in the same lottery; the lottery, its list, weights and result are all kept on record.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "84P94t4Jc/PoAOYqU37HfA==": {
+      "description": "guildAdmin.lotteryEmpty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "No lotteries yet — create the first one.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "5ToWLgfzY21tA/mCt9XlSA==": {
+      "description": "guildAdmin.lotteryNameLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Lottery title",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "5UgMiQPOIwI4CyXy64JeiQ==": {
+      "description": "guildAdmin.lotteryPrizeLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Prize / prize pool",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "omtWQYNozNOZTQNv81jeMQ==": {
+      "description": "guildAdmin.lotterySourceLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Participant list source",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "gcIDcgxK0ApqsNRyizC6Tw==": {
+      "description": "guildAdmin.lotterySourceGrouping",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "A grouping's participants",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "LkeBETahRb5NSHCU/UOrew==": {
+      "description": "guildAdmin.lotterySourceMembers",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Hand-picked guild members",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "j7UaGc9LijTINEnA9E/7QQ==": {
+      "description": "guildAdmin.lotteryGroupingLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Choose grouping",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "WYh8me5aN2ar/+M/gqu4iw==": {
+      "description": "guildAdmin.lotteryWinnerCountLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Number of winners",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "jAkgF7PAfejNTFLNVRh7eA==": {
+      "description": "guildAdmin.lotteryUniformWeightLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Uniform weight",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "YAuWw1fuM91dnqEfoDu0TA==": {
+      "description": "guildAdmin.lotteryWeightLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Weight",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "uLAVZFw489AZFVOUYl1tWg==": {
+      "description": "guildAdmin.lotteryEntriesLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Participants",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "j7og8BT5e7ZMrFJUjxARRw==": {
+      "description": "guildAdmin.lotteryWinnersLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Winners",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "i9+WRRMJ8rCmd38ngq3k7w==": {
+      "description": "guildAdmin.lotteryCreateButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Create lottery",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "TEgdi0io9GY+CMgtTDgf+w==": {
+      "description": "guildAdmin.lotteryDrawButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Draw winners",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "oYGHmVsLTt0wNyn4M2IzUg==": {
+      "description": "guildAdmin.lotteryStatusOpen",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Pending draw",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "0aZbXQGuLCqzmQaMq2Trkg==": {
+      "description": "guildAdmin.lotteryStatusDrawn",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Drawn",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "e/p73nG1tbs5ZcjfOsj+7Q==": {
+      "description": "guildAdmin.lotteryEntryCount",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{count} participants",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "euUfP9z8t3jPZiYA2kCqHQ==": {
+      "description": "errors.lotteryTitleRequired",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Please enter a lottery title",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "4Q8vs5Ic63h2lPgLzE8D7w==": {
+      "description": "errors.lotteryEntriesEmpty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "The participant list is empty — pick participants first",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "9++LVUfawqF4uhmjEyCE7Q==": {
+      "description": "errors.lotteryNotFound",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Lottery not found",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "gvve5T0I8Y2p0DaNv5OMaQ==": {
+      "description": "errors.lotteryAlreadyDrawn",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "This lottery has already been drawn",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "dWo8JtIz43aw4u9TSyIzGQ==": {
+      "description": "errors.lotteryWinnerCountInvalid",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "The number of winners must be between 1 and the number of participants",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "2Vf3LLtKXGLcY/NifykzKQ==": {
+      "description": "errors.lotteryWeightInvalid",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Weight must be an integer between 1 and 1000",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "1TMIfvPAByCSlclhx3+hpw==": {
+      "description": "errors.lotteryMemberNotInGuild",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "A selected member is not on this guild's roster",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

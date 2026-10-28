@@ -729,6 +729,13 @@ export const errors_announcementBodyTooLong = (fbs: FbsRuntime) => fbs._("公告
 export const errors_announcementNotFound = (fbs: FbsRuntime) => fbs._("公告不存在", null, { hk: "cBxPq" });
 export const errors_announcementDailyLimit = (fbs: FbsRuntime, p?: StringParams) => fbs._("今天的公告已达上限（每天 {limit} 条），明天再发", [fbs._param("limit", pv(p, "limit"))], { hk: "25h4tt" });
 export const errors_urgentCallDailyLimit = (fbs: FbsRuntime, p?: StringParams) => fbs._("今天的紧急集合呼叫已达上限（每天 {limit} 次），明天再试", [fbs._param("limit", pv(p, "limit"))], { hk: "GcIVw" });
+export const errors_lotteryTitleRequired = (fbs: FbsRuntime) => fbs._("请填写抽奖标题", null, { hk: "2Azyy8" });
+export const errors_lotteryEntriesEmpty = (fbs: FbsRuntime) => fbs._("参与名单为空，请先选择参与者", null, { hk: "3kzp4r" });
+export const errors_lotteryNotFound = (fbs: FbsRuntime) => fbs._("抽奖不存在", null, { hk: "mLRgt" });
+export const errors_lotteryAlreadyDrawn = (fbs: FbsRuntime) => fbs._("该抽奖已经开过奖了", null, { hk: "3M7wgo" });
+export const errors_lotteryWinnerCountInvalid = (fbs: FbsRuntime) => fbs._("中奖人数必须在 1 与参与人数之间", null, { hk: "e9shV" });
+export const errors_lotteryWeightInvalid = (fbs: FbsRuntime) => fbs._("权重必须是 1 到 1000 之间的整数", null, { hk: "3tNLSW" });
+export const errors_lotteryMemberNotInGuild = (fbs: FbsRuntime) => fbs._("所选成员不在本百业名册中", null, { hk: "2QTSNn" });
 export const guildAdmin_title = (fbs: FbsRuntime) => fbs._("管理百业", null, { hk: "23Vynb" });
 export const guildAdmin_lockedTitle = (fbs: FbsRuntime) => fbs._("无权管理这个百业", null, { hk: "4eqp6f" });
 export const guildAdmin_lockedBody = (fbs: FbsRuntime) => fbs._("只有该百业所绑 Discord 服务器的管理员（服务器主或拥有管理权限）可以进入管理页。", null, { hk: "248TMj" });
@@ -843,6 +850,32 @@ export const guildAdmin_premiumPriceYear = (fbs: FbsRuntime, p?: StringParams) =
 export const guildAdmin_billingSuccess = (fbs: FbsRuntime) => fbs._("开通成功，Premium 已生效。", null, { hk: "3TPHpK" });
 export const guildAdmin_billingCanceled = (fbs: FbsRuntime) => fbs._("已取消开通，未产生扣费。", null, { hk: "3G32RI" });
 export const guildAdmin_tabAnnouncements = (fbs: FbsRuntime) => fbs._("公告广播", null, { hk: "X5n" });
+export const guildAdmin_tabTools = (fbs: FbsRuntime) => fbs._("活动工具", null, { hk: "3LQGjs" });
+export const guildAdmin_calendarTitle = (fbs: FbsRuntime) => fbs._("活动日历订阅", null, { hk: "1vx41l" });
+export const guildAdmin_calendarHint = (fbs: FbsRuntime) => fbs._("把下面的链接粘贴到日历应用（或系统日历）的「订阅日历」里，本百业的车队活动会自动同步。链接等同密钥，请勿公开扩散；成员拿到链接即可订阅。", null, { hk: "2o4Ndi" });
+export const guildAdmin_calendarUrlLabel = (fbs: FbsRuntime) => fbs._("订阅链接", null, { hk: "k19x6" });
+export const guildAdmin_calendarCopyButton = (fbs: FbsRuntime) => fbs._("复制链接", null, { hk: "4gqJe0" });
+export const guildAdmin_calendarResetButton = (fbs: FbsRuntime) => fbs._("重置链接", null, { hk: "96s46" });
+export const guildAdmin_calendarResetHint = (fbs: FbsRuntime) => fbs._("重置后旧链接立即失效，已订阅的人需要换用新链接重新订阅。", null, { hk: "nSX6o" });
+export const guildAdmin_lotteryTitle = (fbs: FbsRuntime) => fbs._("活动抽奖", null, { hk: "24Bubb" });
+export const guildAdmin_lotteryHint = (fbs: FbsRuntime) => fbs._("参与名单可来自某辆车的参与者，或手选本百业成员；名单与权重在创建时定格。开奖按权重随机抽取，同一抽奖内不会重复中奖；抽奖、名单、权重与结果全部留痕可查。", null, { hk: "8RBeR" });
+export const guildAdmin_lotteryEmpty = (fbs: FbsRuntime) => fbs._("还没有抽奖，先创建一个。", null, { hk: "2YVymx" });
+export const guildAdmin_lotteryNameLabel = (fbs: FbsRuntime) => fbs._("抽奖标题", null, { hk: "XHMZj" });
+export const guildAdmin_lotteryPrizeLabel = (fbs: FbsRuntime) => fbs._("奖品 / 奖池", null, { hk: "28gq5e" });
+export const guildAdmin_lotterySourceLabel = (fbs: FbsRuntime) => fbs._("参与名单来源", null, { hk: "2JFp9e" });
+export const guildAdmin_lotterySourceGrouping = (fbs: FbsRuntime) => fbs._("某辆车的参与者", null, { hk: "DRlga" });
+export const guildAdmin_lotterySourceMembers = (fbs: FbsRuntime) => fbs._("手选百业成员", null, { hk: "F6ucB" });
+export const guildAdmin_lotteryGroupingLabel = (fbs: FbsRuntime) => fbs._("选择车队", null, { hk: "Om2tk" });
+export const guildAdmin_lotteryWinnerCountLabel = (fbs: FbsRuntime) => fbs._("中奖人数", null, { hk: "2zgO7O" });
+export const guildAdmin_lotteryUniformWeightLabel = (fbs: FbsRuntime) => fbs._("统一权重", null, { hk: "4atw5J" });
+export const guildAdmin_lotteryWeightLabel = (fbs: FbsRuntime) => fbs._("权重", null, { hk: "wlRYN" });
+export const guildAdmin_lotteryEntriesLabel = (fbs: FbsRuntime) => fbs._("参与名单", null, { hk: "3Yj7U6" });
+export const guildAdmin_lotteryWinnersLabel = (fbs: FbsRuntime) => fbs._("中奖名单", null, { hk: "1EObgV" });
+export const guildAdmin_lotteryCreateButton = (fbs: FbsRuntime) => fbs._("创建抽奖", null, { hk: "48BYdh" });
+export const guildAdmin_lotteryDrawButton = (fbs: FbsRuntime) => fbs._("开奖", null, { hk: "1EbZ3a" });
+export const guildAdmin_lotteryStatusOpen = (fbs: FbsRuntime) => fbs._("待开奖", null, { hk: "3F8y2x" });
+export const guildAdmin_lotteryStatusDrawn = (fbs: FbsRuntime) => fbs._("已开奖", null, { hk: "2q1FC9" });
+export const guildAdmin_lotteryEntryCount = (fbs: FbsRuntime, p?: StringParams) => fbs._("{count} 人参与", [fbs._param("count", pv(p, "count"))], { hk: "4ho8Cr" });
 export const groupingTemplate_sectionTitle = (fbs: FbsRuntime) => fbs._("车队模板", null, { hk: "GOM6P" });
 export const groupingTemplate_nameLabel = (fbs: FbsRuntime) => fbs._("模板名", null, { hk: "1k3Wki" });
 export const groupingTemplate_namePlaceholder = (fbs: FbsRuntime) => fbs._("给模板起个名字", null, { hk: "3MWfOY" });
@@ -1622,6 +1655,13 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"errors.announcementNotFound": errors_announcementNotFound,
 	"errors.announcementDailyLimit": errors_announcementDailyLimit,
 	"errors.urgentCallDailyLimit": errors_urgentCallDailyLimit,
+	"errors.lotteryTitleRequired": errors_lotteryTitleRequired,
+	"errors.lotteryEntriesEmpty": errors_lotteryEntriesEmpty,
+	"errors.lotteryNotFound": errors_lotteryNotFound,
+	"errors.lotteryAlreadyDrawn": errors_lotteryAlreadyDrawn,
+	"errors.lotteryWinnerCountInvalid": errors_lotteryWinnerCountInvalid,
+	"errors.lotteryWeightInvalid": errors_lotteryWeightInvalid,
+	"errors.lotteryMemberNotInGuild": errors_lotteryMemberNotInGuild,
 	"guildAdmin.title": guildAdmin_title,
 	"guildAdmin.lockedTitle": guildAdmin_lockedTitle,
 	"guildAdmin.lockedBody": guildAdmin_lockedBody,
@@ -1736,6 +1776,32 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"guildAdmin.billingSuccess": guildAdmin_billingSuccess,
 	"guildAdmin.billingCanceled": guildAdmin_billingCanceled,
 	"guildAdmin.tabAnnouncements": guildAdmin_tabAnnouncements,
+	"guildAdmin.tabTools": guildAdmin_tabTools,
+	"guildAdmin.calendarTitle": guildAdmin_calendarTitle,
+	"guildAdmin.calendarHint": guildAdmin_calendarHint,
+	"guildAdmin.calendarUrlLabel": guildAdmin_calendarUrlLabel,
+	"guildAdmin.calendarCopyButton": guildAdmin_calendarCopyButton,
+	"guildAdmin.calendarResetButton": guildAdmin_calendarResetButton,
+	"guildAdmin.calendarResetHint": guildAdmin_calendarResetHint,
+	"guildAdmin.lotteryTitle": guildAdmin_lotteryTitle,
+	"guildAdmin.lotteryHint": guildAdmin_lotteryHint,
+	"guildAdmin.lotteryEmpty": guildAdmin_lotteryEmpty,
+	"guildAdmin.lotteryNameLabel": guildAdmin_lotteryNameLabel,
+	"guildAdmin.lotteryPrizeLabel": guildAdmin_lotteryPrizeLabel,
+	"guildAdmin.lotterySourceLabel": guildAdmin_lotterySourceLabel,
+	"guildAdmin.lotterySourceGrouping": guildAdmin_lotterySourceGrouping,
+	"guildAdmin.lotterySourceMembers": guildAdmin_lotterySourceMembers,
+	"guildAdmin.lotteryGroupingLabel": guildAdmin_lotteryGroupingLabel,
+	"guildAdmin.lotteryWinnerCountLabel": guildAdmin_lotteryWinnerCountLabel,
+	"guildAdmin.lotteryUniformWeightLabel": guildAdmin_lotteryUniformWeightLabel,
+	"guildAdmin.lotteryWeightLabel": guildAdmin_lotteryWeightLabel,
+	"guildAdmin.lotteryEntriesLabel": guildAdmin_lotteryEntriesLabel,
+	"guildAdmin.lotteryWinnersLabel": guildAdmin_lotteryWinnersLabel,
+	"guildAdmin.lotteryCreateButton": guildAdmin_lotteryCreateButton,
+	"guildAdmin.lotteryDrawButton": guildAdmin_lotteryDrawButton,
+	"guildAdmin.lotteryStatusOpen": guildAdmin_lotteryStatusOpen,
+	"guildAdmin.lotteryStatusDrawn": guildAdmin_lotteryStatusDrawn,
+	"guildAdmin.lotteryEntryCount": guildAdmin_lotteryEntryCount,
 	"groupingTemplate.sectionTitle": groupingTemplate_sectionTitle,
 	"groupingTemplate.nameLabel": groupingTemplate_nameLabel,
 	"groupingTemplate.namePlaceholder": groupingTemplate_namePlaceholder,
