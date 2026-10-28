@@ -17,7 +17,7 @@ import {
   adminDeleteEvent, adminDeleteResult, adminRemoveSignup,
   adminSetAvatar, adminUpdateDiscord, adminUpdateEvent, adminUpdateGuide,
   adminStartPremiumCheckout,
-  adminResetCalendarFeed, adminCreateLottery, adminDrawLottery,
+  adminCreateLottery, adminDrawLottery,
   adminUpdateProfile, adminUpdateReminderSettings, adminUpdateVisibility,
   adminUpdateWhiteLabel,
   adminSetSeasonChecklistItem, adminDeleteRosterEntry,
@@ -958,7 +958,7 @@ function StatsPanel({ admin, premiumLocked, unknownError, onError }: {
   );
 }
 
-/* ---------- activity tools (calendar feed + lottery, isomorphic with Web) ---------- */
+/* ---------- activity tools (lottery, isomorphic with Web) ---------- */
 
 function ToolEntryChips({ entries, gold }: { entries: readonly any[]; gold?: boolean }) {
   return (
@@ -1014,20 +1014,6 @@ function ToolsPanel({ admin, run }: {
   };
   return (
     <View>
-      <Text style={s.sectionTitle}>{admin.adminCalendarTitle}</Text>
-      <Field label={admin.adminCalendarUrlLabel}>
-        <Text selectable style={s.linkText}>{admin.calendarFeedUrl}</Text>
-      </Field>
-      <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
-        <Pressable style={s.ghostBtn} onPress={() => { void Share.share({ url: admin.calendarFeedUrl }); }}>
-          <Text style={s.ghostBtnText}>{admin.adminCalendarCopyLabel}</Text>
-        </Pressable>
-        <ConfirmBtn label={admin.adminCalendarResetLabel} confirmLabel={confirmLabel}
-          onConfirm={() => run(adminResetCalendarFeed(slug))} />
-      </View>
-      <Text style={[s.muted, { marginTop: 10 }]}>{admin.adminCalendarHint}</Text>
-      <Text style={s.muted}>{admin.adminCalendarResetHint}</Text>
-
       <Text style={s.sectionTitle}>{admin.adminLotteryTitle}</Text>
       <Text style={[s.muted, { marginBottom: 12 }]}>{admin.adminLotteryHint}</Text>
       <Field label={admin.adminLotteryNameLabel}>

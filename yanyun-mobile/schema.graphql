@@ -1281,7 +1281,6 @@ type Mutation {
   addEventResult(slug: String!, eventId: ID!, input: AddEventResultInput!): GuildAdminPayload!
   deleteEventResult(slug: String!, resultId: ID!): GuildAdminPayload!
   updateSchoolGuide(slug: String!, input: UpdateSchoolGuideInput!): GuildAdminPayload!
-  resetCalendarFeed(slug: String!): GuildAdminPayload!
   createLottery(slug: String!, input: CreateLotteryInput!): GuildAdminPayload!
   drawLottery(slug: String!, lotteryId: ID!): GuildAdminPayload!
   setSeasonChecklistItem(slug: String!, itemKey: String!, checked: Boolean!): GuildAdminPayload!
@@ -1689,7 +1688,6 @@ type GuildAdmin {
   announcements: GuildAnnouncementPage!
   stats: GuildAdminStatsResult!
   premium: GuildAdminPremiumResult
-  calendarFeedUrl: String!
   lotteries: [GuildAdminLottery!]!
   lotteryRoster: [GuildAdminLotteryMember!]!
   seasonChecklist: GuildSeasonChecklist!
@@ -1797,12 +1795,6 @@ type GuildAdmin {
   adminBillingCanceledText: String!
   adminPremiumTitle: String!
   adminTabToolsLabel: String!
-  adminCalendarTitle: String!
-  adminCalendarHint: String!
-  adminCalendarUrlLabel: String!
-  adminCalendarCopyLabel: String!
-  adminCalendarResetLabel: String!
-  adminCalendarResetHint: String!
   adminLotteryTitle: String!
   adminLotteryHint: String!
   adminLotteryEmptyText: String!
