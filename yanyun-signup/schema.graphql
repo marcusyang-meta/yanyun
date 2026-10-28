@@ -2922,23 +2922,41 @@ type GuildAdminStatsLocked {
 
 union GuildAdminPremiumResult = GuildAdminPremiumActive | GuildAdminPremiumLocked
 
-# 已开通变体: 方案名 + 来源 (Stripe 订阅 / 平台授予) + 当前周期止
-# (手工授予与订阅都有周期; 无周期记录时为 null)。
+# 已开通变体: 方案名 + 来源 (Stripe 订阅 / 平台授予 / 试用授予) +
+# 当前周期止 (手工授予与订阅都有周期; 无周期记录时为 null)。
+# premiumPastDueText 只在 Stripe 订阅欠费宽限期内组合 (后端权益
+# 判定), 其余时候为 null。
 type GuildAdminPremiumActive {
   premiumPlanLabel: String!
   premiumSourceText: String!
   premiumPeriodEndText: String
+  premiumPastDueText: String
 }
 
-# 未开通变体: 开通文案 + 价格位 + 开通入口。价格只渲染后端从
-# Stripe 读回的价格数据 (premiumPriceLabel), 未配置 Stripe 时为
-# null 并改由 premiumComingSoonText 占据 — 前端不写死任何金额。
+# 定价面的一档: 档位名 / 副标 / 月价全部由后端组合下发 (档位目录
+# 在后端 billing 服务, 名称走 i18n, 价格按后端目录金额格式化),
+# 前端不写死任何档位名或金额。此类型只出现在 GuildAdmin.premium
+# 的 Locked 变体上 — 该面本身受收费总闸门控 (总闸关时 premium
+# 字段为 null, 价格零下发), 各功能的分档 Locked 壳不带此类型。
+type GuildAdminPremiumTierPlan {
+  tier: Int!
+  name: String!
+  subtitle: String!
+  priceLabel: String!
+}
+
+# 未开通变体: 开通文案 + 价格位 + 开通入口 + 三档定价。价格只渲染
+# 后端组合的数据 (premiumPriceLabel 为 Stripe 读回的现行方案价,
+# premiumTierPlans 为后端档位目录的三档月价), 未配置 Stripe 时
+# premiumPriceLabel 为 null 并改由 premiumComingSoonText 占据 —
+# 前端不写死任何金额。
 type GuildAdminPremiumLocked {
   premiumTitle: String!
   premiumBody: String!
   premiumPriceLabel: String
   premiumComingSoonText: String
   premiumCheckoutLabel: String!
+  premiumTierPlans: [GuildAdminPremiumTierPlan!]!
 }
 
 # 赛季前检查清单: 条目本体由后端按赛季数据组合 (当前版本副本 /

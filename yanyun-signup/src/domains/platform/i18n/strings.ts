@@ -2709,6 +2709,30 @@ export abstract class GuildAdminFbtUtils {
 	static premiumPriceMonth(fbs: FbsRuntime, p?: StringParams) {
 		return fbs._("{amount} / 月", [fbs._param("amount", pv(p, "amount"))], { hk: "4xgQIo" });
 	}
+	static premiumTier1Name(fbs: FbsRuntime) {
+		return fbs._("同道", null, { hk: "22zWat" });
+	}
+	static premiumTier2Name(fbs: FbsRuntime) {
+		return fbs._("执事", null, { hk: "2dWrJs" });
+	}
+	static premiumTier3Name(fbs: FbsRuntime) {
+		return fbs._("盟主", null, { hk: "1xam2d" });
+	}
+	static premiumTier1Subtitle(fbs: FbsRuntime) {
+		return fbs._("数据", null, { hk: "3Mj3yJ" });
+	}
+	static premiumTier2Subtitle(fbs: FbsRuntime) {
+		return fbs._("智能", null, { hk: "3dqtOo" });
+	}
+	static premiumTier3Subtitle(fbs: FbsRuntime) {
+		return fbs._("旗舰", null, { hk: "4sQgFH" });
+	}
+	static premiumSourceTrial(fbs: FbsRuntime) {
+		return fbs._("试用授予", null, { hk: "3qqZxm" });
+	}
+	static premiumPastDueNotice(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("订阅已欠费：宽限期 {days} 天内仍按原档位使用，请尽快完成续费。", [fbs._param("days", pv(p, "days"))], { hk: "wDUEp" });
+	}
 	static premiumPriceYear(fbs: FbsRuntime, p?: StringParams) {
 		return fbs._("{amount} / 年", [fbs._param("amount", pv(p, "amount"))], { hk: "2Osvuz" });
 	}
@@ -4380,6 +4404,14 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"guildAdmin_premiumSourceManual": GuildAdminFbtUtils.premiumSourceManual,
 	"guildAdmin_premiumPeriodEnd": GuildAdminFbtUtils.premiumPeriodEnd,
 	"guildAdmin_premiumPriceMonth": GuildAdminFbtUtils.premiumPriceMonth,
+	"guildAdmin_premiumTier1Name": GuildAdminFbtUtils.premiumTier1Name,
+	"guildAdmin_premiumTier2Name": GuildAdminFbtUtils.premiumTier2Name,
+	"guildAdmin_premiumTier3Name": GuildAdminFbtUtils.premiumTier3Name,
+	"guildAdmin_premiumTier1Subtitle": GuildAdminFbtUtils.premiumTier1Subtitle,
+	"guildAdmin_premiumTier2Subtitle": GuildAdminFbtUtils.premiumTier2Subtitle,
+	"guildAdmin_premiumTier3Subtitle": GuildAdminFbtUtils.premiumTier3Subtitle,
+	"guildAdmin_premiumSourceTrial": GuildAdminFbtUtils.premiumSourceTrial,
+	"guildAdmin_premiumPastDueNotice": GuildAdminFbtUtils.premiumPastDueNotice,
 	"guildAdmin_premiumPriceYear": GuildAdminFbtUtils.premiumPriceYear,
 	"guildAdmin_billingSuccess": GuildAdminFbtUtils.billingSuccess,
 	"guildAdmin_billingCanceled": GuildAdminFbtUtils.billingCanceled,

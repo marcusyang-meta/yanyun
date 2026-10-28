@@ -150,6 +150,14 @@ export type GuildsStringKey =
   | 'guildAdmin_premiumSourceManual'
   | 'guildAdmin_premiumPeriodEnd'
   | 'guildAdmin_premiumPriceMonth'
+  | 'guildAdmin_premiumTier1Name'
+  | 'guildAdmin_premiumTier2Name'
+  | 'guildAdmin_premiumTier3Name'
+  | 'guildAdmin_premiumTier1Subtitle'
+  | 'guildAdmin_premiumTier2Subtitle'
+  | 'guildAdmin_premiumTier3Subtitle'
+  | 'guildAdmin_premiumSourceTrial'
+  | 'guildAdmin_premiumPastDueNotice'
   | 'guildAdmin_premiumPriceYear'
   | 'guildAdmin_billingSuccess'
   | 'guildAdmin_billingCanceled'
@@ -452,6 +460,14 @@ export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'guildAdmin_premiumSourceManual',
   'guildAdmin_premiumPeriodEnd',
   'guildAdmin_premiumPriceMonth',
+  'guildAdmin_premiumTier1Name',
+  'guildAdmin_premiumTier2Name',
+  'guildAdmin_premiumTier3Name',
+  'guildAdmin_premiumTier1Subtitle',
+  'guildAdmin_premiumTier2Subtitle',
+  'guildAdmin_premiumTier3Subtitle',
+  'guildAdmin_premiumSourceTrial',
+  'guildAdmin_premiumPastDueNotice',
   'guildAdmin_premiumPriceYear',
   'guildAdmin_billingSuccess',
   'guildAdmin_billingCanceled',

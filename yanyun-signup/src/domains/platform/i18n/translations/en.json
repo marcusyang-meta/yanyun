@@ -11714,6 +11714,104 @@
         }
       ],
       "types": []
+    },
+    "n88UY38kQ7rf4Ldf5E1Cmw==": {
+      "description": "Plan name for the first premium tier, used on the pricing panel and the premium status panel to name the tier.",
+      "id": "guilds/guildAdmin_premiumTier1Name",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Kindred",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "jShU3TARbIh7HxdhNNG7tQ==": {
+      "description": "Plan name for the second premium tier, used on the pricing panel and the premium status panel to name the tier.",
+      "id": "guilds/guildAdmin_premiumTier2Name",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Steward",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "/Stq+4pzWqv2ptikegclIg==": {
+      "description": "Plan name for the third premium tier, used on the pricing panel and the premium status panel to name the tier.",
+      "id": "guilds/guildAdmin_premiumTier3Name",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Guildmaster",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "bGjsCziS3cKHt062/ECoKQ==": {
+      "description": "Subtitle text for the first premium tier, used on the pricing panel next to the tier name to summarize the tier's focus.",
+      "id": "guilds/guildAdmin_premiumTier1Subtitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Data",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "zlZEN34B4dks2CDDdKjWNA==": {
+      "description": "Subtitle text for the second premium tier, used on the pricing panel next to the tier name to summarize the tier's focus.",
+      "id": "guilds/guildAdmin_premiumTier2Subtitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Smart",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "soUxtVVVllgwTIlJ+btf7w==": {
+      "description": "Subtitle text for the third premium tier, used on the pricing panel next to the tier name to summarize the tier's focus.",
+      "id": "guilds/guildAdmin_premiumTier3Subtitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Flagship",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "aLm7AqwPk3gEpE7cQiN/jw==": {
+      "description": "Source label for the premium status panel, used when the guild's entitlement comes from the new-guild trial grant.",
+      "id": "guilds/guildAdmin_premiumSourceTrial",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Trial grant",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "wJtG2o+aCbg35trSuIaf3A==": {
+      "description": "Notice text for the premium status panel, used when a Stripe subscription is past due but still inside its grace window, where {days} is the grace length in days.",
+      "id": "guilds/guildAdmin_premiumPastDueNotice",
+      "tokens": [
+        "days"
+      ],
+      "translations": [
+        {
+          "translation": "Your subscription payment is overdue: your current tier stays in effect for a {days}-day grace window — please complete the payment soon.",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

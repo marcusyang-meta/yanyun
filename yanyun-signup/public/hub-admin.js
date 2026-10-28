@@ -41,15 +41,18 @@ async function loadBilling() {
   try {
     const { billing } = await api('/api/hub/billing');
     $('#paygateToggle').checked = !!billing.paygateEnabled;
-    $('#billingSummary').textContent = billing.stripeConfigured
+    $('#billingSummary').textContent = (billing.stripeConfigured
       ? 'Stripe 已配置（密钥/价格齐全）'
-      : 'Stripe 未配置：开通入口呈「即将开放」，可先用手工授予试点';
+      : 'Stripe 未配置：开通入口呈「即将开放」，可先用手工授予试点')
+      + ((billing.plans || []).length
+        ? '｜定价：' + billing.plans.map((p) => `${p.name} $${(p.priceMonthlyCents / 100).toFixed(2)}/月`).join(' · ')
+        : '');
     const fmtEnd = (ts) => ts ? new Date(ts * 1000).toLocaleDateString() : '—';
     $('#billingTable').innerHTML = `<tr><th>百业</th><th>当前权益</th><th>来源</th><th>周期至</th><th>Stripe 订阅</th><th>平台子域</th><th>手工授予</th><th></th></tr>` +
       (billing.tenants.map((t) => `<tr>
         <td>${esc(t.guild_name)}<br><span class="muted" style="font-family:monospace">${esc(t.slug)}</span></td>
-        <td>${t.plan === 'premium' ? '💎 Premium' : '免费'}${t.lapsed ? '<br><span class="muted">已过期回落</span>' : ''}</td>
-        <td>${t.source === 'stripe' ? 'Stripe' : t.source === 'manual' ? '手工授予' : '—'}</td>
+        <td>${t.tier > 0 ? `💎 ${esc(t.tierName)}${t.tierSubtitle ? ' · ' + esc(t.tierSubtitle) : ''}` : t.plan === 'premium' ? '💎 Premium' : '免费'}${t.lapsed ? '<br><span class="muted">已过期回落</span>' : ''}${t.pastDue ? '<br><span class="muted">欠费宽限中</span>' : ''}</td>
+        <td>${t.source === 'stripe' ? 'Stripe' : t.source === 'manual' ? '手工授予' : t.source === 'trial' ? '试用' : '—'}</td>
         <td style="white-space:nowrap">${fmtEnd(t.currentPeriodEnd)}</td>
         <td style="font-family:monospace">${esc(t.stripeSubscriptionId || '—')}</td>
         <td style="white-space:nowrap">${t.subdomainEnabled ? '已开通' : '未开通'}<br>
