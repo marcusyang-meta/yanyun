@@ -70,6 +70,7 @@ import { computeGuildStats } from './stats.ts';
 import { announcementPageForAdmin } from './announcements-graphql.ts';
 import { SeasonChecklistShell, GuildRosterShell } from './season-graphql.ts';
 import { officerPageForAdmin } from './officer-graphql.ts';
+import { opsPageForAdmin } from './ops-graphql.ts';
 import type { GuildStatsWeek, GuildStatsBoardEntry } from './stats.ts';
 
 export async function guildAdminResult(ctx: Context, slug: string) {
@@ -428,6 +429,7 @@ const ADMIN_TEXT_SPEC: [string, string][] = [
   ['adminTabGuidesLabel', 'guildAdmin_tabGuides'],
   ['adminTabAnnouncementsLabel', 'guildAdmin_tabAnnouncements'],
   ['adminTabOfficerLabel', 'guildAdmin_tabOfficer'],
+  ['adminTabOpsLabel', 'ops_tabOps'],
   ['adminSaveLabel', 'guildAdmin_saveButton'],
   ['adminSavedText', 'guildAdmin_savedText'],
   ['adminDeleteLabel', 'guildAdmin_deleteButton'],
@@ -639,6 +641,12 @@ export class GuildAdminShell extends ShellBase {
    * guild data export and the season-goal overview, composed as one
    * page object. Only on the GuildAdmin type, like announcements. */
   genOfficer(){ return officerPageForAdmin(this.ctx, this.genSlug()); }
+  /* Ops engine (P8/P11/P12/P14, T2): the tier verdict picks the
+   * full shell vs the Locked shell inside opsPageForAdmin — below
+   * tier the engines are never computed. */
+  genOps(){
+    return this.memo('ops', () => opsPageForAdmin(this.ctx, this.genSlug()));
+  }
   genStats(){
     return this.memo('stats', async () => {
       // Premium read gate: gated guilds get the locked variant —
@@ -799,6 +807,7 @@ function contentResolvers() {
     schoolGuides: (p: any) => p.genSchoolGuides(),
     announcements: (p: any) => p.genAnnouncements(),
     officer: (p: any) => p.genOfficer(),
+    ops: (p: GuildAdminShell) => p.genOps(),
     stats: (p: GuildAdminShell) => p.genStats(),
     premium: (p: GuildAdminShell) => p.genPremium(),
     seasonChecklist: (p: GuildAdminShell) => p.genSeasonChecklist(),

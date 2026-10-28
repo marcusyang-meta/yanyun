@@ -2059,6 +2059,21 @@ export abstract class ErrorsFbtUtils {
 	static adminOnly(fbs: FbsRuntime) {
 		return fbs._("只有所绑服务器的管理员可以执行此操作", null, { hk: "4quKVx" });
 	}
+	static noCandidates(fbs: FbsRuntime) {
+		return fbs._("没有符合条件的成员可发送", null, { hk: "3jeRkP" });
+	}
+	static nudgeDailyLimit(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("今天的定向催报已达上限（每天 {limit} 次），明天再发", [fbs._param("limit", pv(p, "limit"))], { hk: "1WbvW0" });
+	}
+	static nudgeCooldown(fbs: FbsRuntime) {
+		return fbs._("这辆车刚催报过，24 小时内不能重复催报", null, { hk: "2RZdK8" });
+	}
+	static nudgeEventInvalid(fbs: FbsRuntime) {
+		return fbs._("要催报的车队不存在或不属于本百业", null, { hk: "1EDLkK" });
+	}
+	static contributionRuleInvalid(fbs: FbsRuntime) {
+		return fbs._("积分规则不合法", null, { hk: "3kQt6V" });
+	}
 	static webhookInvalid(fbs: FbsRuntime) {
 		return fbs._("Webhook 地址格式不正确", null, { hk: "rSB9v" });
 	}
@@ -3536,6 +3551,151 @@ export abstract class OfficerFbtUtils {
 		return fbs._("删除", null, { hk: "1MpXfY" });
 	}
 }
+export abstract class OpsFbtUtils {
+	static tabOps(fbs: FbsRuntime) {
+		return fbs._("运营引擎", null, { hk: "10XHBU" });
+	}
+	static title(fbs: FbsRuntime) {
+		return fbs._("运营引擎", null, { hk: "2ucJkY" });
+	}
+	static hint(fbs: FbsRuntime) {
+		return fbs._("定向催报、流失预警、赛季滚动与贡献积分都在这里——都是给军官省时间的引擎，判定与数字全部由平台算好下发。", null, { hk: "2mXVUt" });
+	}
+	static nudgeTitle(fbs: FbsRuntime) {
+		return fbs._("定向催报", null, { hk: "1MeEZD" });
+	}
+	static nudgeHint(fbs: FbsRuntime) {
+		return fbs._("只催还没报名的人：按分段圈定目标，先预览人数与名单，确认后才发送（走百业 Discord 频道与 App 推送）。每天最多 3 次，同一辆车 24 小时内只催一次。", null, { hk: "1saUun" });
+	}
+	static nudgeEventLabel(fbs: FbsRuntime) {
+		return fbs._("目标车队", null, { hk: "2cS4vG" });
+	}
+	static nudgeSegmentLabel(fbs: FbsRuntime) {
+		return fbs._("圈人分段", null, { hk: "l0Q0F" });
+	}
+	static segmentAll(fbs: FbsRuntime) {
+		return fbs._("全部未报名成员", null, { hk: "1hrGmL" });
+	}
+	static segmentSchool(fbs: FbsRuntime) {
+		return fbs._("按流派（填流派名）", null, { hk: "22SaMF" });
+	}
+	static segmentRole(fbs: FbsRuntime) {
+		return fbs._("按职责（填职责名）", null, { hk: "3wkZMe" });
+	}
+	static segmentLapsed(fbs: FbsRuntime) {
+		return fbs._("久未出勤（14 天以上）", null, { hk: "4sXGpu" });
+	}
+	static nudgeSegmentValueLabel(fbs: FbsRuntime) {
+		return fbs._("分段值", null, { hk: "43meMH" });
+	}
+	static nudgePreviewButton(fbs: FbsRuntime) {
+		return fbs._("预览圈人", null, { hk: "43wq1C" });
+	}
+	static nudgeSendButton(fbs: FbsRuntime) {
+		return fbs._("确认发送催报", null, { hk: "IF6Pe" });
+	}
+	static nudgeCandidateCount(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("将催报 {count} 人", [fbs._param("count", pv(p, "count"))], { hk: "1v5JM2" });
+	}
+	static nudgeEmpty(fbs: FbsRuntime) {
+		return fbs._("没有符合条件的未报名成员。", null, { hk: "25Tlvd" });
+	}
+	static nudgeDailyRemaining(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("今日还可发送 {remaining} 次", [fbs._param("remaining", pv(p, "remaining"))], { hk: "8fx47" });
+	}
+	static nudgeMessage(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("「{title}」还差人，快来报名啦！", [fbs._param("title", pv(p, "title"))], { hk: "2e4Up1" });
+	}
+	static lastNever(fbs: FbsRuntime) {
+		return fbs._("从未出勤", null, { hk: "3U6S02" });
+	}
+	static lastAt(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("上次出勤 {date}", [fbs._param("date", pv(p, "date"))], { hk: "2IGt0W" });
+	}
+	static churnTitle(fbs: FbsRuntime) {
+		return fbs._("流失预警", null, { hk: "4lqPi6" });
+	}
+	static churnHint(fbs: FbsRuntime) {
+		return fbs._("参与下滑的成员会出现在这里（基线 = 此前 4 周，近期 = 最近 4 周；近期参与降到基线一半以下，或连续缺席最近 3 场已完成车队，即入名单）。名单只给军官看，不会自动联系任何人。", null, { hk: "o6Kwj" });
+	}
+	static churnEmpty(fbs: FbsRuntime) {
+		return fbs._("暂无流失风险成员。", null, { hk: "4CYTXO" });
+	}
+	static churnEvidence(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("基线 {baseline} 次 · 近期 {recent} 次 · 连缺 {streak} 场", [
+			fbs._param("baseline", pv(p, "baseline")),
+			fbs._param("recent", pv(p, "recent")),
+			fbs._param("streak", pv(p, "streak"))
+		], { hk: "2qlt79" });
+	}
+	static rolloverTitle(fbs: FbsRuntime) {
+		return fbs._("赛季滚动", null, { hk: "2bTcb6" });
+	}
+	static rolloverHint(fbs: FbsRuntime) {
+		return fbs._("把组队模板批量迁移为新赛季副本。先看预览，确认后才执行；执行结果会留痕。", null, { hk: "1EFZ91" });
+	}
+	static rolloverSeason(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("目标赛季：{season}", [fbs._param("season", pv(p, "season"))], { hk: "4jgM3i" });
+	}
+	static rolloverPreview(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("将迁移 {count} 个模板（共 {total} 个，已有新赛季副本 {copied} 个）", [
+			fbs._param("count", pv(p, "count")),
+			fbs._param("total", pv(p, "total")),
+			fbs._param("copied", pv(p, "copied"))
+		], { hk: "4ei1DP" });
+	}
+	static rolloverExecuteButton(fbs: FbsRuntime) {
+		return fbs._("执行赛季滚动", null, { hk: "2FGDZh" });
+	}
+	static rolloverDone(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("已迁移 {count} 个模板到新赛季", [fbs._param("count", pv(p, "count"))], { hk: "40In16" });
+	}
+	static rolloverGearNote(fbs: FbsRuntime) {
+		return fbs._("旧赛季装备打季标：装备暂无赛季概念，本步跳过。", null, { hk: "1wMHaB" });
+	}
+	static rolloverThresholdNote(fbs: FbsRuntime) {
+		return fbs._("达标线按新赛季重算：装备达标盘尚未上线，本步跳过，待其上线后接入。", null, { hk: "2yqPiO" });
+	}
+	static rolloverLast(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("上次滚动：{date} · 迁移 {count} 个模板", [fbs._param("date", pv(p, "date")), fbs._param("count", pv(p, "count"))], { hk: "20Cj56" });
+	}
+	static pointsTitle(fbs: FbsRuntime) {
+		return fbs._("贡献积分", null, { hk: "2pCDS" });
+	}
+	static pointsHint(fbs: FbsRuntime) {
+		return fbs._("积分只认平台里的真实动作：出席已完成的车队、带队完成车队、成为导师。积分从功能启用后累计，不补历史；成员能看自己的余额与流水，规则与总览只有军官能改能看。", null, { hk: "3AiUgQ" });
+	}
+	static ruleAttendance(fbs: FbsRuntime) {
+		return fbs._("出席", null, { hk: "1mPvpB" });
+	}
+	static ruleLeading(fbs: FbsRuntime) {
+		return fbs._("带队", null, { hk: "d1Mqw" });
+	}
+	static ruleMentoring(fbs: FbsRuntime) {
+		return fbs._("导师", null, { hk: "2IfNYQ" });
+	}
+	static pointsValue(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("{points} 分", [fbs._param("points", pv(p, "points"))], { hk: "16gXN3" });
+	}
+	static pointsBoardEmpty(fbs: FbsRuntime) {
+		return fbs._("暂无积分记录（从启用后的第一场已完成车队开始累计）。", null, { hk: "4ddvvW" });
+	}
+	static pointsTotalLabel(fbs: FbsRuntime) {
+		return fbs._("总分", null, { hk: "1cMOYj" });
+	}
+	static pointsEntriesLabel(fbs: FbsRuntime) {
+		return fbs._("笔数", null, { hk: "25idUf" });
+	}
+	static saveButton(fbs: FbsRuntime) {
+		return fbs._("保存", null, { hk: "3WdqEQ" });
+	}
+	static myPointsTitle(fbs: FbsRuntime) {
+		return fbs._("我的贡献积分", null, { hk: "3xZhO8" });
+	}
+	static myPointsTotal(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("累计 {points} 分", [fbs._param("points", pv(p, "points"))], { hk: "1tRCSy" });
+	}
+}
 export const STRING_FNS: Record<string, StringFn> = {
 	"common_cancel": CommonFbtUtils.cancel,
 	"common_confirm": CommonFbtUtils.confirm,
@@ -4188,6 +4348,11 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"errors_notInServer": ErrorsFbtUtils.notInServer,
 	"errors_cannotManageServer": ErrorsFbtUtils.cannotManageServer,
 	"errors_adminOnly": ErrorsFbtUtils.adminOnly,
+	"errors_noCandidates": ErrorsFbtUtils.noCandidates,
+	"errors_nudgeDailyLimit": ErrorsFbtUtils.nudgeDailyLimit,
+	"errors_nudgeCooldown": ErrorsFbtUtils.nudgeCooldown,
+	"errors_nudgeEventInvalid": ErrorsFbtUtils.nudgeEventInvalid,
+	"errors_contributionRuleInvalid": ErrorsFbtUtils.contributionRuleInvalid,
 	"errors_webhookInvalid": ErrorsFbtUtils.webhookInvalid,
 	"errors_discordIdInvalid": ErrorsFbtUtils.discordIdInvalid,
 	"errors_noFieldsToUpdate": ErrorsFbtUtils.noFieldsToUpdate,
@@ -4671,5 +4836,50 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"officer_goalAddButton": OfficerFbtUtils.goalAddButton,
 	"officer_goalSaveButton": OfficerFbtUtils.goalSaveButton,
 	"officer_goalEditButton": OfficerFbtUtils.goalEditButton,
-	"officer_goalDeleteButton": OfficerFbtUtils.goalDeleteButton
+	"officer_goalDeleteButton": OfficerFbtUtils.goalDeleteButton,
+	"ops_tabOps": OpsFbtUtils.tabOps,
+	"ops_title": OpsFbtUtils.title,
+	"ops_hint": OpsFbtUtils.hint,
+	"ops_nudgeTitle": OpsFbtUtils.nudgeTitle,
+	"ops_nudgeHint": OpsFbtUtils.nudgeHint,
+	"ops_nudgeEventLabel": OpsFbtUtils.nudgeEventLabel,
+	"ops_nudgeSegmentLabel": OpsFbtUtils.nudgeSegmentLabel,
+	"ops_segmentAll": OpsFbtUtils.segmentAll,
+	"ops_segmentSchool": OpsFbtUtils.segmentSchool,
+	"ops_segmentRole": OpsFbtUtils.segmentRole,
+	"ops_segmentLapsed": OpsFbtUtils.segmentLapsed,
+	"ops_nudgeSegmentValueLabel": OpsFbtUtils.nudgeSegmentValueLabel,
+	"ops_nudgePreviewButton": OpsFbtUtils.nudgePreviewButton,
+	"ops_nudgeSendButton": OpsFbtUtils.nudgeSendButton,
+	"ops_nudgeCandidateCount": OpsFbtUtils.nudgeCandidateCount,
+	"ops_nudgeEmpty": OpsFbtUtils.nudgeEmpty,
+	"ops_nudgeDailyRemaining": OpsFbtUtils.nudgeDailyRemaining,
+	"ops_nudgeMessage": OpsFbtUtils.nudgeMessage,
+	"ops_lastNever": OpsFbtUtils.lastNever,
+	"ops_lastAt": OpsFbtUtils.lastAt,
+	"ops_churnTitle": OpsFbtUtils.churnTitle,
+	"ops_churnHint": OpsFbtUtils.churnHint,
+	"ops_churnEmpty": OpsFbtUtils.churnEmpty,
+	"ops_churnEvidence": OpsFbtUtils.churnEvidence,
+	"ops_rolloverTitle": OpsFbtUtils.rolloverTitle,
+	"ops_rolloverHint": OpsFbtUtils.rolloverHint,
+	"ops_rolloverSeason": OpsFbtUtils.rolloverSeason,
+	"ops_rolloverPreview": OpsFbtUtils.rolloverPreview,
+	"ops_rolloverExecuteButton": OpsFbtUtils.rolloverExecuteButton,
+	"ops_rolloverDone": OpsFbtUtils.rolloverDone,
+	"ops_rolloverGearNote": OpsFbtUtils.rolloverGearNote,
+	"ops_rolloverThresholdNote": OpsFbtUtils.rolloverThresholdNote,
+	"ops_rolloverLast": OpsFbtUtils.rolloverLast,
+	"ops_pointsTitle": OpsFbtUtils.pointsTitle,
+	"ops_pointsHint": OpsFbtUtils.pointsHint,
+	"ops_ruleAttendance": OpsFbtUtils.ruleAttendance,
+	"ops_ruleLeading": OpsFbtUtils.ruleLeading,
+	"ops_ruleMentoring": OpsFbtUtils.ruleMentoring,
+	"ops_pointsValue": OpsFbtUtils.pointsValue,
+	"ops_pointsBoardEmpty": OpsFbtUtils.pointsBoardEmpty,
+	"ops_pointsTotalLabel": OpsFbtUtils.pointsTotalLabel,
+	"ops_pointsEntriesLabel": OpsFbtUtils.pointsEntriesLabel,
+	"ops_saveButton": OpsFbtUtils.saveButton,
+	"ops_myPointsTitle": OpsFbtUtils.myPointsTitle,
+	"ops_myPointsTotal": OpsFbtUtils.myPointsTotal
 };

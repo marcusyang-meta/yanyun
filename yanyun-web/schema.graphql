@@ -76,6 +76,8 @@ type Query {
   hubPage: HubPage!
   legalPage(kind: LegalKind!): LegalPage!
   guildPage(slug: String!): GuildPage!
+  targetedNudgePreview(slug: String!, eventId: Int!, segmentKind: String!, segmentValue: String): TargetedNudgePreviewResult!
+  myContribution(slug: String!): MyContributionResult!
   groupingListPage(slug: String!, tab: GroupingTab!): GroupingListPage!
   groupingDetailPage(slug: String, id: ID!): GroupingDetailPage!
   dexPage: DexPage!
@@ -1544,6 +1546,9 @@ type Mutation {
   confirmRosterImport(slug: String!, batchId: ID!, rowIds: [ID!]!): RosterImportPayload!
   deleteGuildRosterEntry(slug: String!, entryId: ID!): GuildAdminPayload!
   updateGuildRecruitOpen(slug: String!, open: Boolean!): GuildAdminPayload!
+  sendTargetedNudge(slug: String!, eventId: Int!, segmentKind: String!, segmentValue: String): OpsPayload!
+  executeSeasonRollover(slug: String!): OpsPayload!
+  updateContributionRule(slug: String!, actionKey: String!, points: Int!, enabled: Boolean!): OpsPayload!
   reviewGuildApplication(slug: String!, applicationId: ID!, approve: Boolean!): GuildAdminPayload!
   setGuildMentor(slug: String!, discordId: String!, isMentor: Boolean!): GuildAdminPayload!
   createMentorPairing(slug: String!, mentorDiscordId: String!, menteeDiscordId: String!): GuildAdminPayload!
@@ -2097,6 +2102,7 @@ type GuildAdmin {
   schoolGuides: GuildAdminSchoolGuides!
   announcements: GuildAnnouncementPage!
   officer: GuildOfficerPage!
+  ops: GuildAdminOpsResult!
   stats: GuildAdminStatsResult!
   premium: GuildAdminPremiumResult
   lotteries: [GuildAdminLottery!]!
@@ -2212,6 +2218,7 @@ type GuildAdmin {
   adminPremiumTitle: String!
   adminTabToolsLabel: String!
   adminTabOfficerLabel: String!
+  adminTabOpsLabel: String!
   adminLotteryTitle: String!
   adminLotteryHint: String!
   adminLotteryEmptyText: String!
@@ -3209,4 +3216,137 @@ type GearBuildPayload {
   build: GearSavedBuild
   error: String
   errorCode: String
+}
+
+union GuildAdminOpsResult = GuildAdminOps | GuildAdminOpsLocked
+
+type GuildAdminOpsLocked {
+  premiumTitle: String!
+  premiumBody: String!
+}
+
+type GuildAdminOps {
+  title: String!
+  hint: String!
+  nudgeTitle: String!
+  nudgeHint: String!
+  nudgeEventLabel: String!
+  nudgeSegmentLabel: String!
+  segmentAllText: String!
+  segmentSchoolText: String!
+  segmentRoleText: String!
+  segmentLapsedText: String!
+  nudgeSegmentValueLabel: String!
+  nudgePreviewLabel: String!
+  nudgeSendLabel: String!
+  nudgeDailyRemainingText: String
+  nudgeEvents: [OpsNudgeEvent!]!
+  churnTitle: String!
+  churnHint: String!
+  churnEmptyText: String!
+  churnRisks: [OpsChurnRisk!]!
+  rolloverTitle: String!
+  rolloverHint: String!
+  rolloverExecuteLabel: String!
+  rollover: OpsRollover!
+  pointsTitle: String!
+  pointsHint: String!
+  pointsBoardEmptyText: String!
+  pointsTotalLabel: String!
+  pointsEntriesLabel: String!
+  pointsSaveLabel: String!
+  contributionRules: [OpsContributionRule!]!
+  contributionBoard: [OpsContributionBoardEntry!]!
+}
+
+type OpsNudgeEvent {
+  id: ID!
+  title: String!
+  startsAtText: String!
+  signupCount: Int!
+  maxSlots: Int!
+}
+
+type OpsChurnRisk {
+  discordId: String!
+  displayName: String!
+  baselineCount: Int!
+  recentCount: Int!
+  missStreak: Int!
+  evidenceText: String!
+  lastText: String!
+}
+
+type OpsRollover {
+  seasonLabel: String!
+  targetSeasonKey: String!
+  pendingCount: Int!
+  totalCount: Int!
+  copiedCount: Int!
+  pendingNames: [String!]!
+  previewText: String!
+  seasonText: String!
+  gearNoteText: String!
+  thresholdNoteText: String!
+  lastText: String
+}
+
+type OpsContributionRule {
+  actionKey: String!
+  actionLabel: String!
+  points: Int!
+  enabled: Boolean!
+}
+
+type OpsContributionBoardEntry {
+  discordId: String!
+  displayName: String!
+  totalPoints: Int!
+  entryCount: Int!
+}
+
+union TargetedNudgePreviewResult = TargetedNudgePreview | GuildAdminOpsLocked
+
+type TargetedNudgePreview {
+  candidateCount: Int!
+  countText: String!
+  emptyText: String
+  dailyRemaining: Int!
+  candidates: [OpsNudgeCandidate!]!
+}
+
+type OpsNudgeCandidate {
+  discordId: String!
+  displayName: String!
+  knownWeapon: String!
+  knownRole: String!
+  lastText: String!
+}
+
+type OpsPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  recipientCount: Int
+  copiedCount: Int
+}
+
+union MyContributionResult = MyContribution | MyContributionLocked
+
+type MyContribution {
+  title: String!
+  totalPoints: Int!
+  totalText: String!
+  entries: [MyContributionEntry!]!
+}
+
+type MyContributionLocked {
+  slug: String!
+}
+
+type MyContributionEntry {
+  actionKey: String!
+  actionLabel: String!
+  points: Int!
+  createdAtText: String!
 }
