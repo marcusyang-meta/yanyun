@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<03cf327154d6d5cf0e576171300b08cf>>
+ * @generated SignedSource<<50edc76daa0a24ab13122cfc8a896488>>
  * @lightSyntaxTransform
  */
 
@@ -110,6 +110,20 @@ const node: NormalizationSplitOperation = {
       "alias": null,
       "args": null,
       "kind": "ScalarField",
+      "name": "homeTabMarketLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "homeTabAlliesLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
       "name": "homeAdminLabel",
       "storageKey": null
     },
@@ -130,6 +144,6 @@ const node: NormalizationSplitOperation = {
   ]
 };
 
-(node as any).hash = "6b34ecf884f638729e478e54458a8ebc";
+(node as any).hash = "2629ad64129b88fe7bca4b9e04254f66";
 
 export default node;

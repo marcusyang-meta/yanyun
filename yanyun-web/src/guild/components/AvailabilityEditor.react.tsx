@@ -51,7 +51,7 @@ export function utcToLocal(slot: UtcSlot): LocalSlot {
   };
 }
 
-function localToUtc(slot: LocalSlot): UtcSlot {
+export function localToUtc(slot: LocalSlot): UtcSlot {
   const base = refSunday();
   const start = new Date(base);
   start.setDate(base.getDate() + slot.weekday);

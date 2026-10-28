@@ -5,6 +5,8 @@ import { GroupingListRoute } from './GroupingList.react.tsx';
 import { GroupingDetailRoute } from './GroupingDetail.react.tsx';
 import { GuildAnnouncementsRoute } from './GuildAnnouncements.react.tsx';
 import { GuildScheduleRoute } from './GuildSchedule.react.tsx';
+import { GuildMarketRoute } from './GuildMarket.react.tsx';
+import { GuildAlliesRoute } from './GuildAllies.react.tsx';
 import { BossDexRoute } from './BossDex.react.tsx';
 import { SectDetailRoute } from './SectDetail.react.tsx';
 import { ToastHost } from './Toast.react.tsx';
@@ -51,6 +53,10 @@ export interface GuildHomeNode {
   // availability and poll voting are member surfaces, so the tab is
   // mounted only in the interactive branch.
   homeTabScheduleLabel?: string | null;
+  // Market / allies tab labels (P19/P20): member fragment only, like
+  // the schedule tab — both surfaces are member-only.
+  homeTabMarketLabel?: string | null;
+  homeTabAlliesLabel?: string | null;
   detailNotFoundText: string;
   detailBackToListLabel: string;
 }
@@ -77,6 +83,12 @@ export default function GuildHome({ node, slug, carId, user, userBarText, intera
       : []),
     ...(interactive && node.homeTabScheduleLabel
       ? [{ key: 'schedule', label: node.homeTabScheduleLabel }]
+      : []),
+    ...(interactive && node.homeTabMarketLabel
+      ? [{ key: 'market', label: node.homeTabMarketLabel }]
+      : []),
+    ...(interactive && node.homeTabAlliesLabel
+      ? [{ key: 'allies', label: node.homeTabAlliesLabel }]
       : []),
   ] as const;
   const [activeTab, setActiveTab] = useState<string>('team');
@@ -173,6 +185,8 @@ export default function GuildHome({ node, slug, carId, user, userBarText, intera
                 {activeTab === 'sect' && <SectDetailRoute />}
                 {activeTab === 'announcements' && <GuildAnnouncementsRoute slug={slug} />}
                 {activeTab === 'schedule' && <GuildScheduleRoute slug={slug} defaultNickname={defaultNickname} />}
+                {activeTab === 'market' && <GuildMarketRoute slug={slug} />}
+                {activeTab === 'allies' && <GuildAlliesRoute slug={slug} />}
               </Suspense>
             </div>
           </>
