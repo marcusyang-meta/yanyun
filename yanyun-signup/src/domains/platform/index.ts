@@ -20,6 +20,7 @@ export * from './admin-gate.ts';
 export * from './admin-service.ts';
 export * from './admin-backfills.ts';
 export { platformAdminResult } from './admin-graphql.ts';
+export * from './recap-provider.ts';
 export * from './billing.ts';
 export * from './billing-service.ts';
 export * from './stripe.ts';

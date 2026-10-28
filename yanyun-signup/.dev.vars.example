@@ -58,3 +58,16 @@ STRIPE_PRICE_ID=
 STRIPE_PRICE_ID_T1=
 STRIPE_PRICE_ID_T2=
 STRIPE_PRICE_ID_T3=
+
+# OPTIONAL — AI activity recaps (P18) provider seam. Absent = the
+# recap feature stays not-enabled and its surfaces compose the
+# not-enabled variant. AI_RECAP_API_KEY and AI_RECAP_MODEL are both
+# required to enable; AI_RECAP_BASE_URL points at any
+# OpenAI-compatible chat-completions origin (default
+# https://api.openai.com/v1) and AI_RECAP_PROVIDER is the label
+# stored with each generated recap (default openai). Fill with a
+# dev/test provider key only — never a production key locally.
+AI_RECAP_API_KEY=
+AI_RECAP_MODEL=
+AI_RECAP_BASE_URL=
+AI_RECAP_PROVIDER=
