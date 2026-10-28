@@ -246,9 +246,9 @@ export class GuildAdminStatsShell extends ShellBase {
 
 export class GuildAdminPremiumActiveShell extends ShellBase {
   __typename = 'GuildAdminPremiumActive';
-  genPremiumPlanLabel(){ return this.t('guildAdmin', 'premiumPlanName'); }
+  genPremiumPlanLabel(){ return this.t('guildAdmin_premiumPlanName'); }
   genPremiumSourceText(){
-    return this.t('guildAdmin', this.data.source === 'stripe' ? 'premiumSourceStripe' : 'premiumSourceManual');
+    return this.t(this.data.source === 'stripe' ? 'guildAdmin_premiumSourceStripe' : 'guildAdmin_premiumSourceManual');
   }
   genPremiumPeriodEndText(){
     const end = this.data.currentPeriodEnd;
@@ -258,15 +258,15 @@ export class GuildAdminPremiumActiveShell extends ShellBase {
     let fmt: Intl.DateTimeFormat;
     try { fmt = new Intl.DateTimeFormat(this.locale, opts); }
     catch { fmt = new Intl.DateTimeFormat('zh-CN', { ...opts, timeZone: 'Asia/Shanghai' }); }
-    return this.t('guildAdmin', 'premiumPeriodEnd', { date: fmt.format(new Date(end * 1000)) });
+    return this.t('guildAdmin_premiumPeriodEnd', { date: fmt.format(new Date(end * 1000)) });
   }
 }
 
 export class GuildAdminPremiumLockedShell extends ShellBase {
   __typename = 'GuildAdminPremiumLocked';
-  genPremiumTitle(){ return this.t('guildAdmin', 'premiumLockedTitle'); }
-  genPremiumBody(){ return this.t('guildAdmin', 'premiumLockedBody'); }
-  genPremiumCheckoutLabel(){ return this.t('guildAdmin', 'premiumCheckoutButton'); }
+  genPremiumTitle(){ return this.t('guildAdmin_premiumLockedTitle'); }
+  genPremiumBody(){ return this.t('guildAdmin_premiumLockedBody'); }
+  genPremiumCheckoutLabel(){ return this.t('guildAdmin_premiumCheckoutButton'); }
   /* Price slot: composed ONLY from the price object Stripe returns
    * for the configured price id — null when Stripe is not
    * configured (or unreachable), in which case the coming-soon
@@ -283,17 +283,17 @@ export class GuildAdminPremiumLockedShell extends ShellBase {
     } catch {
       amount = `${(price.unitAmount / 100).toFixed(2)} ${price.currency.toUpperCase()}`;
     }
-    return this.t('guildAdmin', price.interval === 'year' ? 'premiumPriceYear' : 'premiumPriceMonth', { amount });
+    return this.t(price.interval === 'year' ? 'guildAdmin_premiumPriceYear' : 'guildAdmin_premiumPriceMonth', { amount });
   }
   async genPremiumComingSoonText(){
-    return stripeConfig(this.ctx.env) ? null : this.t('guildAdmin', 'premiumComingSoon');
+    return stripeConfig(this.ctx.env) ? null : this.t('guildAdmin_premiumComingSoon');
   }
 }
 
 export class GuildAdminStatsLockedShell extends ShellBase {
   __typename = 'GuildAdminStatsLocked';
-  genPremiumTitle(){ return this.t('guildAdmin', 'premiumLockedTitle'); }
-  genPremiumBody(){ return this.t('guildAdmin', 'premiumLockedBody'); }
+  genPremiumTitle(){ return this.t('guildAdmin_premiumLockedTitle'); }
+  genPremiumBody(){ return this.t('guildAdmin_premiumLockedBody'); }
 }
 
 /* ---------------- white-label sub shell (server-issued OG accent options) ---------------- */
@@ -301,7 +301,7 @@ export class GuildAdminStatsLockedShell extends ShellBase {
 export class GuildAdminOgAccentOptionShell extends ShellBase {
   genKey(){ return this.data.key; }
   genHex(){ return this.data.hex; }
-  genLabel(){ return this.t('guildAdmin', this.data.labelField); }
+  genLabel(){ return this.t('guildAdmin_' + this.data.labelField); }
 }
 
 /* ---------------- activity tools sub shells (F8 + F21) ----------------
@@ -343,7 +343,7 @@ export class GuildAdminLotteryShell extends ShellBase {
   }
   async genEntryCountText(){
     const entries = await this.genEntries();
-    return this.t('guildAdmin', 'lotteryEntryCount', { count: entries.length });
+    return this.t('guildAdmin_lotteryEntryCount', { count: entries.length });
   }
   async genSourceEventTitle(){
     if (this.data.source !== 'grouping' || this.data.source_event_id == null) return null;
@@ -365,153 +365,153 @@ export class GuildAdminLotteryMemberShell extends ShellBase {
 
 /* ---------------- the admin shell ---------------- */
 
-const ADMIN_TEXT_SPEC: [string, string, string][] = [
-  ['adminTitle', 'guildAdmin', 'title'],
-  ['adminBackLinkLabel', 'guildAdmin', 'backLink'],
-  ['adminTabProfileLabel', 'guildAdmin', 'tabProfile'],
-  ['adminTabDiscordLabel', 'guildAdmin', 'tabDiscord'],
-  ['adminTabEventsLabel', 'guildAdmin', 'tabEvents'],
-  ['adminTabGuidesLabel', 'guildAdmin', 'tabGuides'],
-  ['adminTabAnnouncementsLabel', 'guildAdmin', 'tabAnnouncements'],
-  ['adminTabOfficerLabel', 'guildAdmin', 'tabOfficer'],
-  ['adminSaveLabel', 'guildAdmin', 'saveButton'],
-  ['adminSavedText', 'guildAdmin', 'savedText'],
-  ['adminDeleteLabel', 'guildAdmin', 'deleteButton'],
-  ['adminEditLabel', 'guildAdmin', 'editButton'],
-  ['adminAddLabel', 'guildAdmin', 'addButton'],
-  ['adminProfileTitle', 'guildAdmin', 'profileTitle'],
-  ['adminNameLabel', 'guildAdmin', 'nameLabel'],
-  ['adminAnnouncementLabel', 'guildAdmin', 'announcementLabel'],
-  ['adminSloganLabel', 'guildAdmin', 'sloganLabel'],
-  ['adminMasterNameLabel', 'guildAdmin', 'masterNameLabel'],
-  ['adminLogoUrlLabel', 'guildAdmin', 'logoUrlLabel'],
-  ['adminBgImageUrlLabel', 'guildAdmin', 'bgImageUrlLabel'],
-  ['adminAvatarTitle', 'guildAdmin', 'avatarTitle'],
-  ['adminAvatarUploadLabel', 'guildAdmin', 'avatarUpload'],
-  ['adminAvatarReplaceLabel', 'guildAdmin', 'avatarReplace'],
-  ['adminAvatarDeleteLabel', 'guildAdmin', 'avatarDelete'],
-  ['adminAvatarNoneText', 'guildAdmin', 'avatarNone'],
-  ['adminAvatarHint', 'guildAdmin', 'avatarHint'],
-  ['adminDiscordTitle', 'guildAdmin', 'discordTitle'],
-  ['adminWebhookLabel', 'guildAdmin', 'webhookLabel'],
-  ['adminWebhookUnsetText', 'guildAdmin', 'webhookUnset'],
-  ['adminWebhookHint', 'guildAdmin', 'webhookHint'],
-  ['adminWebhookClearLabel', 'guildAdmin', 'webhookClear'],
-  ['adminGuildIdLabel', 'guildAdmin', 'guildIdLabel'],
-  ['adminGuildIdUnboundText', 'guildAdmin', 'guildIdUnbound'],
-  ['adminReminderTitle', 'guildAdmin', 'reminderTitle'],
-  ['adminReminderOffsetsLabel', 'guildAdmin', 'reminderOffsetsLabel'],
-  ['adminReminderOffsetTemplate', 'guildAdmin', 'reminderOffsetOption'],
-  ['adminReminderCustomTextLabel', 'guildAdmin', 'reminderCustomTextLabel'],
-  ['adminReminderCustomTextHint', 'guildAdmin', 'reminderCustomTextHint'],
-  ['adminVisibilityTitle', 'guildAdmin', 'visibilityTitle'],
-  ['adminDevOnlyLabel', 'guildAdmin', 'devOnlyLabel'],
-  ['adminEventsTitle', 'guildAdmin', 'eventsTitle'],
-  ['adminSignupCsvSuffix', 'guildAdmin', 'signupCsvSuffix'],
-  ['adminEventEmptyText', 'guildAdmin', 'eventEmpty'],
-  ['adminEventTitleLabel', 'guildAdmin', 'eventTitleLabel'],
-  ['adminEventTypeLabel', 'guildAdmin', 'eventTypeLabel'],
-  ['adminEventStatusLabel', 'guildAdmin', 'eventStatusLabel'],
-  ['adminEventTimeLabel', 'guildAdmin', 'eventTimeLabel'],
-  ['adminEventSlotsLabel', 'guildAdmin', 'eventSlotsLabel'],
-  ['adminEventMeetLabel', 'guildAdmin', 'eventMeetLabel'],
-  ['adminEventDescLabel', 'guildAdmin', 'eventDescLabel'],
-  ['adminEventDungeonLabel', 'guildAdmin', 'eventDungeonLabel'],
-  ['adminTypeActivityText', 'groupingType', 'tabActivity'],
-  ['adminTypeTalentText', 'groupingType', 'tabTalent'],
-  ['adminTypeRaceText', 'groupingType', 'tabRace'],
-  ['adminTypeTowerText', 'groupingType', 'tabTower'],
-  ['adminStatusOpenText', 'guildAdmin', 'statusOpen'],
-  ['adminStatusClosedText', 'guildAdmin', 'statusClosed'],
-  ['adminStatusCompletedText', 'guildAdmin', 'statusCompleted'],
-  ['adminStatusDraftText', 'guildAdmin', 'statusDraft'],
-  ['adminSignupsTitle', 'guildAdmin', 'signupsTitle'],
-  ['adminSignupEmptyText', 'guildAdmin', 'signupEmpty'],
-  ['adminExportCsvLabel', 'guildAdmin', 'exportCsvButton'],
-  ['adminRemoveSignupLabel', 'guildAdmin', 'removeSignupButton'],
-  ['adminResultsTitle', 'guildAdmin', 'resultsTitle'],
-  ['adminResultTeamLabel', 'guildAdmin', 'resultTeamLabel'],
-  ['adminResultMembersLabel', 'guildAdmin', 'resultMembersLabel'],
-  ['adminResultTimeLabel', 'guildAdmin', 'resultTimeLabel'],
-  ['adminResultProofLabel', 'guildAdmin', 'resultProofLabel'],
-  ['adminResultNoteLabel', 'guildAdmin', 'resultNoteLabel'],
-  ['adminGuidesTitle', 'guildAdmin', 'guidesTitle'],
-  ['adminGuidesHint', 'guildAdmin', 'guidesHint'],
-  ['adminGuideSchoolLabel', 'guildAdmin', 'guideSchoolLabel'],
-  ['adminGuideBuildLabel', 'guildAdmin', 'guideBuildLabel'],
-  ['adminGuideAttrLabel', 'guildAdmin', 'guideAttrLabel'],
-  ['adminGuideRateLabel', 'guildAdmin', 'guideRateLabel'],
-  ['adminGuideBisLabel', 'guildAdmin', 'guideBisLabel'],
-  ['adminGuideRotationLabel', 'guildAdmin', 'guideRotationLabel'],
-  ['adminTabStatsLabel', 'guildAdmin', 'tabStats'],
-  ['adminTabSeasonLabel', 'guildAdmin', 'tabSeason'],
-  ['adminStatsTitle', 'guildAdmin', 'statsTitle'],
-  ['adminStatsCurrentWeekLabel', 'guildAdmin', 'statsCurrentWeek'],
-  ['adminStatsCarsLabel', 'guildAdmin', 'statsCars'],
-  ['adminStatsCompletedLabel', 'guildAdmin', 'statsCompleted'],
-  ['adminStatsSeatsLabel', 'guildAdmin', 'statsSeats'],
-  ['adminStatsFillRateLabel', 'guildAdmin', 'statsFillRate'],
-  ['adminStatsParticipantsLabel', 'guildAdmin', 'statsParticipants'],
-  ['adminStatsPerCapitaLabel', 'guildAdmin', 'statsPerCapita'],
-  ['adminStatsMembersTitle', 'guildAdmin', 'statsMembersTitle'],
-  ['adminStatsLeadersTitle', 'guildAdmin', 'statsLeadersTitle'],
-  ['adminStatsSeatCountLabel', 'guildAdmin', 'statsSeatCount'],
-  ['adminStatsCarCountLabel', 'guildAdmin', 'statsCarCount'],
-  ['adminStatsEmptyText', 'guildAdmin', 'statsEmpty'],
-  ['adminStatsBoardEmptyText', 'guildAdmin', 'statsBoardEmpty'],
-  ['adminBillingSuccessText', 'guildAdmin', 'billingSuccess'],
-  ['adminPremiumTitle', 'guildAdmin', 'premiumActiveTitle'],
-  ['adminBillingCanceledText', 'guildAdmin', 'billingCanceled'],
-  ['adminWhiteLabelTitle', 'guildAdmin', 'whiteLabelTitle'],
-  ['adminHideBrandingLabel', 'guildAdmin', 'hideBrandingLabel'],
-  ['adminHideBrandingHint', 'guildAdmin', 'hideBrandingHint'],
-  ['adminOgAccentLabel', 'guildAdmin', 'ogAccentLabel'],
-  ['adminOgTitleSuffixLabel', 'guildAdmin', 'ogTitleSuffixLabel'],
-  ['adminOgTitleSuffixHint', 'guildAdmin', 'ogTitleSuffixHint'],
-  ['adminTabToolsLabel', 'guildAdmin', 'tabTools'],
-  ['adminLotteryTitle', 'guildAdmin', 'lotteryTitle'],
-  ['adminLotteryHint', 'guildAdmin', 'lotteryHint'],
-  ['adminLotteryEmptyText', 'guildAdmin', 'lotteryEmpty'],
-  ['adminLotteryNameLabel', 'guildAdmin', 'lotteryNameLabel'],
-  ['adminLotteryPrizeLabel', 'guildAdmin', 'lotteryPrizeLabel'],
-  ['adminLotterySourceLabel', 'guildAdmin', 'lotterySourceLabel'],
-  ['adminLotterySourceGroupingText', 'guildAdmin', 'lotterySourceGrouping'],
-  ['adminLotterySourceMembersText', 'guildAdmin', 'lotterySourceMembers'],
-  ['adminLotteryGroupingLabel', 'guildAdmin', 'lotteryGroupingLabel'],
-  ['adminLotteryWinnerCountLabel', 'guildAdmin', 'lotteryWinnerCountLabel'],
-  ['adminLotteryUniformWeightLabel', 'guildAdmin', 'lotteryUniformWeightLabel'],
-  ['adminLotteryWeightLabel', 'guildAdmin', 'lotteryWeightLabel'],
-  ['adminLotteryEntriesLabel', 'guildAdmin', 'lotteryEntriesLabel'],
-  ['adminLotteryWinnersLabel', 'guildAdmin', 'lotteryWinnersLabel'],
-  ['adminLotteryCreateLabel', 'guildAdmin', 'lotteryCreateButton'],
-  ['adminLotteryDrawLabel', 'guildAdmin', 'lotteryDrawButton'],
-  ['adminLotteryStatusOpenText', 'guildAdmin', 'lotteryStatusOpen'],
-  ['adminLotteryStatusDrawnText', 'guildAdmin', 'lotteryStatusDrawn'],
-  ['adminTabRecruitLabel', 'guildAdmin', 'tabRecruit'],
-  ['adminRecruitApplicationsTitle', 'recruit', 'adminApplicationsTitle'],
-  ['adminRecruitApplicationsEmptyText', 'recruit', 'adminApplicationsEmpty'],
-  ['adminRecruitApproveLabel', 'recruit', 'adminApproveButton'],
-  ['adminRecruitRejectLabel', 'recruit', 'adminRejectButton'],
-  ['adminRecruitMentorPoolTitle', 'recruit', 'adminMentorPoolTitle'],
-  ['adminRecruitSetMentorLabel', 'recruit', 'adminSetMentorButton'],
-  ['adminRecruitUnsetMentorLabel', 'recruit', 'adminUnsetMentorButton'],
-  ['adminRecruitPairingsTitle', 'recruit', 'adminPairingsTitle'],
-  ['adminRecruitPairingsEmptyText', 'recruit', 'adminPairingsEmpty'],
-  ['adminRecruitPairingCreateLabel', 'recruit', 'adminPairingCreateButton'],
-  ['adminRecruitPairingEndLabel', 'recruit', 'adminPairingEndButton'],
-  ['adminRecruitMentorSelectLabel', 'recruit', 'adminMentorSelectLabel'],
-  ['adminRecruitMenteeSelectLabel', 'recruit', 'adminMenteeSelectLabel'],
-  ['adminRecruitNewcomersTitle', 'recruit', 'adminNewcomersTitle'],
-  ['adminRecruitNewcomersEmptyText', 'recruit', 'adminNewcomersEmpty'],
-  ['adminRecruitProfileLabel', 'recruit', 'itemProfileLabel'],
-  ['adminRecruitMentorLabel', 'recruit', 'itemMentorLabel'],
-  ['adminRecruitFirstRunLabel', 'recruit', 'itemFirstRunLabel'],
+const ADMIN_TEXT_SPEC: [string, string][] = [
+  ['adminTitle', 'guildAdmin_title'],
+  ['adminBackLinkLabel', 'guildAdmin_backLink'],
+  ['adminTabProfileLabel', 'guildAdmin_tabProfile'],
+  ['adminTabDiscordLabel', 'guildAdmin_tabDiscord'],
+  ['adminTabEventsLabel', 'guildAdmin_tabEvents'],
+  ['adminTabGuidesLabel', 'guildAdmin_tabGuides'],
+  ['adminTabAnnouncementsLabel', 'guildAdmin_tabAnnouncements'],
+  ['adminTabOfficerLabel', 'guildAdmin_tabOfficer'],
+  ['adminSaveLabel', 'guildAdmin_saveButton'],
+  ['adminSavedText', 'guildAdmin_savedText'],
+  ['adminDeleteLabel', 'guildAdmin_deleteButton'],
+  ['adminEditLabel', 'guildAdmin_editButton'],
+  ['adminAddLabel', 'guildAdmin_addButton'],
+  ['adminProfileTitle', 'guildAdmin_profileTitle'],
+  ['adminNameLabel', 'guildAdmin_nameLabel'],
+  ['adminAnnouncementLabel', 'guildAdmin_announcementLabel'],
+  ['adminSloganLabel', 'guildAdmin_sloganLabel'],
+  ['adminMasterNameLabel', 'guildAdmin_masterNameLabel'],
+  ['adminLogoUrlLabel', 'guildAdmin_logoUrlLabel'],
+  ['adminBgImageUrlLabel', 'guildAdmin_bgImageUrlLabel'],
+  ['adminAvatarTitle', 'guildAdmin_avatarTitle'],
+  ['adminAvatarUploadLabel', 'guildAdmin_avatarUpload'],
+  ['adminAvatarReplaceLabel', 'guildAdmin_avatarReplace'],
+  ['adminAvatarDeleteLabel', 'guildAdmin_avatarDelete'],
+  ['adminAvatarNoneText', 'guildAdmin_avatarNone'],
+  ['adminAvatarHint', 'guildAdmin_avatarHint'],
+  ['adminDiscordTitle', 'guildAdmin_discordTitle'],
+  ['adminWebhookLabel', 'guildAdmin_webhookLabel'],
+  ['adminWebhookUnsetText', 'guildAdmin_webhookUnset'],
+  ['adminWebhookHint', 'guildAdmin_webhookHint'],
+  ['adminWebhookClearLabel', 'guildAdmin_webhookClear'],
+  ['adminGuildIdLabel', 'guildAdmin_guildIdLabel'],
+  ['adminGuildIdUnboundText', 'guildAdmin_guildIdUnbound'],
+  ['adminReminderTitle', 'guildAdmin_reminderTitle'],
+  ['adminReminderOffsetsLabel', 'guildAdmin_reminderOffsetsLabel'],
+  ['adminReminderOffsetTemplate', 'guildAdmin_reminderOffsetOption'],
+  ['adminReminderCustomTextLabel', 'guildAdmin_reminderCustomTextLabel'],
+  ['adminReminderCustomTextHint', 'guildAdmin_reminderCustomTextHint'],
+  ['adminVisibilityTitle', 'guildAdmin_visibilityTitle'],
+  ['adminDevOnlyLabel', 'guildAdmin_devOnlyLabel'],
+  ['adminEventsTitle', 'guildAdmin_eventsTitle'],
+  ['adminSignupCsvSuffix', 'guildAdmin_signupCsvSuffix'],
+  ['adminEventEmptyText', 'guildAdmin_eventEmpty'],
+  ['adminEventTitleLabel', 'guildAdmin_eventTitleLabel'],
+  ['adminEventTypeLabel', 'guildAdmin_eventTypeLabel'],
+  ['adminEventStatusLabel', 'guildAdmin_eventStatusLabel'],
+  ['adminEventTimeLabel', 'guildAdmin_eventTimeLabel'],
+  ['adminEventSlotsLabel', 'guildAdmin_eventSlotsLabel'],
+  ['adminEventMeetLabel', 'guildAdmin_eventMeetLabel'],
+  ['adminEventDescLabel', 'guildAdmin_eventDescLabel'],
+  ['adminEventDungeonLabel', 'guildAdmin_eventDungeonLabel'],
+  ['adminTypeActivityText', 'groupingType_tabActivity'],
+  ['adminTypeTalentText', 'groupingType_tabTalent'],
+  ['adminTypeRaceText', 'groupingType_tabRace'],
+  ['adminTypeTowerText', 'groupingType_tabTower'],
+  ['adminStatusOpenText', 'guildAdmin_statusOpen'],
+  ['adminStatusClosedText', 'guildAdmin_statusClosed'],
+  ['adminStatusCompletedText', 'guildAdmin_statusCompleted'],
+  ['adminStatusDraftText', 'guildAdmin_statusDraft'],
+  ['adminSignupsTitle', 'guildAdmin_signupsTitle'],
+  ['adminSignupEmptyText', 'guildAdmin_signupEmpty'],
+  ['adminExportCsvLabel', 'guildAdmin_exportCsvButton'],
+  ['adminRemoveSignupLabel', 'guildAdmin_removeSignupButton'],
+  ['adminResultsTitle', 'guildAdmin_resultsTitle'],
+  ['adminResultTeamLabel', 'guildAdmin_resultTeamLabel'],
+  ['adminResultMembersLabel', 'guildAdmin_resultMembersLabel'],
+  ['adminResultTimeLabel', 'guildAdmin_resultTimeLabel'],
+  ['adminResultProofLabel', 'guildAdmin_resultProofLabel'],
+  ['adminResultNoteLabel', 'guildAdmin_resultNoteLabel'],
+  ['adminGuidesTitle', 'guildAdmin_guidesTitle'],
+  ['adminGuidesHint', 'guildAdmin_guidesHint'],
+  ['adminGuideSchoolLabel', 'guildAdmin_guideSchoolLabel'],
+  ['adminGuideBuildLabel', 'guildAdmin_guideBuildLabel'],
+  ['adminGuideAttrLabel', 'guildAdmin_guideAttrLabel'],
+  ['adminGuideRateLabel', 'guildAdmin_guideRateLabel'],
+  ['adminGuideBisLabel', 'guildAdmin_guideBisLabel'],
+  ['adminGuideRotationLabel', 'guildAdmin_guideRotationLabel'],
+  ['adminTabStatsLabel', 'guildAdmin_tabStats'],
+  ['adminTabSeasonLabel', 'guildAdmin_tabSeason'],
+  ['adminStatsTitle', 'guildAdmin_statsTitle'],
+  ['adminStatsCurrentWeekLabel', 'guildAdmin_statsCurrentWeek'],
+  ['adminStatsCarsLabel', 'guildAdmin_statsCars'],
+  ['adminStatsCompletedLabel', 'guildAdmin_statsCompleted'],
+  ['adminStatsSeatsLabel', 'guildAdmin_statsSeats'],
+  ['adminStatsFillRateLabel', 'guildAdmin_statsFillRate'],
+  ['adminStatsParticipantsLabel', 'guildAdmin_statsParticipants'],
+  ['adminStatsPerCapitaLabel', 'guildAdmin_statsPerCapita'],
+  ['adminStatsMembersTitle', 'guildAdmin_statsMembersTitle'],
+  ['adminStatsLeadersTitle', 'guildAdmin_statsLeadersTitle'],
+  ['adminStatsSeatCountLabel', 'guildAdmin_statsSeatCount'],
+  ['adminStatsCarCountLabel', 'guildAdmin_statsCarCount'],
+  ['adminStatsEmptyText', 'guildAdmin_statsEmpty'],
+  ['adminStatsBoardEmptyText', 'guildAdmin_statsBoardEmpty'],
+  ['adminBillingSuccessText', 'guildAdmin_billingSuccess'],
+  ['adminPremiumTitle', 'guildAdmin_premiumActiveTitle'],
+  ['adminBillingCanceledText', 'guildAdmin_billingCanceled'],
+  ['adminWhiteLabelTitle', 'guildAdmin_whiteLabelTitle'],
+  ['adminHideBrandingLabel', 'guildAdmin_hideBrandingLabel'],
+  ['adminHideBrandingHint', 'guildAdmin_hideBrandingHint'],
+  ['adminOgAccentLabel', 'guildAdmin_ogAccentLabel'],
+  ['adminOgTitleSuffixLabel', 'guildAdmin_ogTitleSuffixLabel'],
+  ['adminOgTitleSuffixHint', 'guildAdmin_ogTitleSuffixHint'],
+  ['adminTabToolsLabel', 'guildAdmin_tabTools'],
+  ['adminLotteryTitle', 'guildAdmin_lotteryTitle'],
+  ['adminLotteryHint', 'guildAdmin_lotteryHint'],
+  ['adminLotteryEmptyText', 'guildAdmin_lotteryEmpty'],
+  ['adminLotteryNameLabel', 'guildAdmin_lotteryNameLabel'],
+  ['adminLotteryPrizeLabel', 'guildAdmin_lotteryPrizeLabel'],
+  ['adminLotterySourceLabel', 'guildAdmin_lotterySourceLabel'],
+  ['adminLotterySourceGroupingText', 'guildAdmin_lotterySourceGrouping'],
+  ['adminLotterySourceMembersText', 'guildAdmin_lotterySourceMembers'],
+  ['adminLotteryGroupingLabel', 'guildAdmin_lotteryGroupingLabel'],
+  ['adminLotteryWinnerCountLabel', 'guildAdmin_lotteryWinnerCountLabel'],
+  ['adminLotteryUniformWeightLabel', 'guildAdmin_lotteryUniformWeightLabel'],
+  ['adminLotteryWeightLabel', 'guildAdmin_lotteryWeightLabel'],
+  ['adminLotteryEntriesLabel', 'guildAdmin_lotteryEntriesLabel'],
+  ['adminLotteryWinnersLabel', 'guildAdmin_lotteryWinnersLabel'],
+  ['adminLotteryCreateLabel', 'guildAdmin_lotteryCreateButton'],
+  ['adminLotteryDrawLabel', 'guildAdmin_lotteryDrawButton'],
+  ['adminLotteryStatusOpenText', 'guildAdmin_lotteryStatusOpen'],
+  ['adminLotteryStatusDrawnText', 'guildAdmin_lotteryStatusDrawn'],
+  ['adminTabRecruitLabel', 'guildAdmin_tabRecruit'],
+  ['adminRecruitApplicationsTitle', 'recruit_adminApplicationsTitle'],
+  ['adminRecruitApplicationsEmptyText', 'recruit_adminApplicationsEmpty'],
+  ['adminRecruitApproveLabel', 'recruit_adminApproveButton'],
+  ['adminRecruitRejectLabel', 'recruit_adminRejectButton'],
+  ['adminRecruitMentorPoolTitle', 'recruit_adminMentorPoolTitle'],
+  ['adminRecruitSetMentorLabel', 'recruit_adminSetMentorButton'],
+  ['adminRecruitUnsetMentorLabel', 'recruit_adminUnsetMentorButton'],
+  ['adminRecruitPairingsTitle', 'recruit_adminPairingsTitle'],
+  ['adminRecruitPairingsEmptyText', 'recruit_adminPairingsEmpty'],
+  ['adminRecruitPairingCreateLabel', 'recruit_adminPairingCreateButton'],
+  ['adminRecruitPairingEndLabel', 'recruit_adminPairingEndButton'],
+  ['adminRecruitMentorSelectLabel', 'recruit_adminMentorSelectLabel'],
+  ['adminRecruitMenteeSelectLabel', 'recruit_adminMenteeSelectLabel'],
+  ['adminRecruitNewcomersTitle', 'recruit_adminNewcomersTitle'],
+  ['adminRecruitNewcomersEmptyText', 'recruit_adminNewcomersEmpty'],
+  ['adminRecruitProfileLabel', 'recruit_itemProfileLabel'],
+  ['adminRecruitMentorLabel', 'recruit_itemMentorLabel'],
+  ['adminRecruitFirstRunLabel', 'recruit_itemFirstRunLabel'],
 ];
 
-const ADMIN_LOCKED_TEXT_SPEC: [string, string, string][] = [
-  ['adminLockedTitle', 'guildAdmin', 'lockedTitle'],
-  ['adminLockedBody', 'guildAdmin', 'lockedBody'],
-  ['adminBackLinkLabel', 'guildAdmin', 'backLink'],
+const ADMIN_LOCKED_TEXT_SPEC: [string, string][] = [
+  ['adminLockedTitle', 'guildAdmin_lockedTitle'],
+  ['adminLockedBody', 'guildAdmin_lockedBody'],
+  ['adminBackLinkLabel', 'guildAdmin_backLink'],
 ];
 
 export class GuildAdminShell extends ShellBase {
@@ -550,7 +550,7 @@ export class GuildAdminShell extends ShellBase {
     return m ? m[1] : null;
   }
   genAdminWebhookSetText(){
-    return this.t('guildAdmin', 'webhookSet', { id: this.genReminderWebhookId() || '' });
+    return this.t('guildAdmin_webhookSet', { id: this.genReminderWebhookId() || '' });
   }
   /* Advanced reminders: configured lead offsets (default [10] when
    * unset) and the custom embed line ('' = none). */
@@ -634,7 +634,7 @@ export class GuildAdminShell extends ShellBase {
    * either (same composition rule as the member-facing Guild shell). */
   async genPageFooterDisclaimerText(){
     const wl = await getEffectiveWhiteLabelSettings(this.db, this.genSlug());
-    return wl.hideBranding ? null : this.t('legal', 'disclaimer');
+    return wl.hideBranding ? null : this.t('legal_disclaimer');
   }
   /* Activity tools (F21, free — no gate). */
   genLotteries(){

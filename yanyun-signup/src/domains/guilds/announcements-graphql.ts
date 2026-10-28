@@ -30,7 +30,7 @@ import {
   ShellBase, defineTextGens, getGuildAccess, getGuildAdminAccess,
   PayloadBase,
 } from '../platform/graphql-base.ts';
-import { fmtStartsAt, translate } from '../platform/index.ts';
+import { fmtStartsAt, translate, translateError } from '../platform/index.ts';
 import {
   getEffectiveLimits, getAnnouncementsUsedToday, recordAnnouncementUse,
   sendAnnouncementPush,
@@ -60,23 +60,23 @@ export class GuildAnnouncementShell extends ShellBase {
   genKind(){ return this.row.kind === 'urgent' ? 'URGENT' : 'STANDARD'; }
   genUrgent(){ return this.row.kind === 'urgent'; }
   genUrgentLabel(){
-    return this.row.kind === 'urgent' ? this.t('announcements', 'urgentLabel') : null;
+    return this.row.kind === 'urgent' ? this.t('announcements_urgentLabel') : null;
   }
   genKindLabel(){
-    return this.t('announcements', this.row.kind === 'urgent' ? 'urgentLabel' : 'standardLabel');
+    return this.t(this.row.kind === 'urgent' ? 'announcements_urgentLabel' : 'announcements_standardLabel');
   }
   genTitle(){ return this.row.title; }
   genBody(){ return this.row.body; }
   genAuthorName(){ return this.row.author_name || ''; }
   genAuthorText(){
     return this.row.author_name
-      ? this.t('announcements', 'authorTemplate', { name: this.row.author_name })
+      ? this.t('announcements_authorTemplate', { name: this.row.author_name })
       : null;
   }
   genCreatedAtText(){ return fmtStartsAt(this.row.created_at, this.locale, this.ctx.tz); }
   genViewerHasRead(){ return this.data.viewerHasRead ?? null; }
   genDeleteConfirmMessage(){
-    return this.t('announcements', 'deleteConfirmMessage', { title: this.row.title });
+    return this.t('announcements_deleteConfirmMessage', { title: this.row.title });
   }
   /* Receipt aggregate: produced only on the admin variant (the page
    * builder sets data.admin); member variants resolve null without
@@ -118,36 +118,36 @@ export class GuildAnnouncementShell extends ShellBase {
   }
   async genReadCountText(){
     const d = await this.genReceiptData();
-    return d ? this.t('announcements', 'readCountTemplate', { read: d.readCount, total: d.memberCount }) : null;
+    return d ? this.t('announcements_readCountTemplate', { read: d.readCount, total: d.memberCount }) : null;
   }
 }
 
 export const ANNOUNCEMENT_TEXT_RESOLVERS = defineTextGens(GuildAnnouncementShell, [
-  ['deleteLabel', 'announcements', 'deleteLabel'],
-  ['deleteConfirmTitle', 'announcements', 'deleteConfirmTitle'],
+  ['deleteLabel', 'announcements_deleteLabel'],
+  ['deleteConfirmTitle', 'announcements_deleteConfirmTitle'],
 ]);
 
-const PAGE_TEXT_SPEC: [string, string, string][] = [
-  ['title', 'announcements', 'title'],
-  ['emptyText', 'announcements', 'emptyText'],
-  ['urgentLabel', 'announcements', 'urgentLabel'],
-  ['composeTitle', 'announcements', 'composeTitle'],
-  ['kindLabel', 'announcements', 'kindLabel'],
-  ['kindStandardLabel', 'announcements', 'kindStandardLabel'],
-  ['kindUrgentLabel', 'announcements', 'kindUrgentLabel'],
-  ['titleLabel', 'announcements', 'titleLabel'],
-  ['titlePlaceholder', 'announcements', 'titlePlaceholder'],
-  ['bodyLabel', 'announcements', 'bodyLabel'],
-  ['bodyPlaceholder', 'announcements', 'bodyPlaceholder'],
-  ['postLabel', 'announcements', 'postLabel'],
-  ['postingLabel', 'announcements', 'postingLabel'],
-  ['postedText', 'announcements', 'postedText'],
-  ['deleteLabel', 'announcements', 'deleteLabel'],
-  ['receiptsTitle', 'announcements', 'receiptsTitle'],
-  ['readListLabel', 'announcements', 'readListLabel'],
-  ['unreadListLabel', 'announcements', 'unreadListLabel'],
-  ['pushNote', 'announcements', 'pushNote'],
-  ['urgentNote', 'announcements', 'urgentNote'],
+const PAGE_TEXT_SPEC: [string, string][] = [
+  ['title', 'announcements_title'],
+  ['emptyText', 'announcements_emptyText'],
+  ['urgentLabel', 'announcements_urgentLabel'],
+  ['composeTitle', 'announcements_composeTitle'],
+  ['kindLabel', 'announcements_kindLabel'],
+  ['kindStandardLabel', 'announcements_kindStandardLabel'],
+  ['kindUrgentLabel', 'announcements_kindUrgentLabel'],
+  ['titleLabel', 'announcements_titleLabel'],
+  ['titlePlaceholder', 'announcements_titlePlaceholder'],
+  ['bodyLabel', 'announcements_bodyLabel'],
+  ['bodyPlaceholder', 'announcements_bodyPlaceholder'],
+  ['postLabel', 'announcements_postLabel'],
+  ['postingLabel', 'announcements_postingLabel'],
+  ['postedText', 'announcements_postedText'],
+  ['deleteLabel', 'announcements_deleteLabel'],
+  ['receiptsTitle', 'announcements_receiptsTitle'],
+  ['readListLabel', 'announcements_readListLabel'],
+  ['unreadListLabel', 'announcements_unreadListLabel'],
+  ['pushNote', 'announcements_pushNote'],
+  ['urgentNote', 'announcements_urgentNote'],
 ];
 
 export class GuildAnnouncementPageShell extends ShellBase {
@@ -199,7 +199,7 @@ export class GuildAnnouncementPageShell extends ShellBase {
   }
   async genDailyLimitText(){
     const q = await this.genQuota();
-    return q ? this.t('announcements', 'dailyLimitTemplate', { remaining: q.standardRemaining }) : null;
+    return q ? this.t('announcements_dailyLimitTemplate', { remaining: q.standardRemaining }) : null;
   }
 }
 
@@ -221,7 +221,7 @@ export class GuildAnnouncementPayloadShell extends PayloadBase {
   /* Error copy may carry catalog params (the daily-limit values). */
   genError(){
     return this.data.errorCode
-      ? translate('errors', this.data.errorCode, this.locale, this.data.errorParams)
+      ? translateError(this.data.errorCode, this.locale, this.data.errorParams)
       : null;
   }
   genAnnouncement(){ return this.data.announcement || null; }
@@ -287,7 +287,7 @@ export const guildAnnouncementMutations = {
       const pushP = sendAnnouncementPush(db, access.slug, {
         id, kind: storedKind, title: cleanTitle, body: cleanBody,
         guildName: access.tenant.guild_name,
-        urgentLabel: translate('announcements', 'urgentLabel', ctx.locale),
+        urgentLabel: translate('announcements_urgentLabel', ctx.locale),
       }, recipientIds, ctx.env.EXPO_PUSH_BASE).catch(() => {});
       if (ctx.executionCtx && typeof ctx.executionCtx.waitUntil === 'function') {
         ctx.executionCtx.waitUntil(pushP);

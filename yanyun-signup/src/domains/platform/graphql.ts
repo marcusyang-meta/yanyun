@@ -75,20 +75,20 @@ export class BlockShell extends ShellBase {
 
 export class SectionBlockShell extends BlockShell {
   constructor(ctx: Context, data: any){ super(ctx, 'SectionBlock', data); }
-  genTitle(){ return this.data.titleRef ? this.t(...(this.data.titleRef as [string, string, any?])) : (this.data.title ?? null); }
+  genTitle(){ return this.data.titleRef ? this.t(...(this.data.titleRef as [string, any?])) : (this.data.title ?? null); }
 }
 export class SectionHeaderBlockShell extends BlockShell {
   constructor(ctx: Context, data: any){ super(ctx, 'SectionHeaderBlock', data); }
-  genText(){ return this.data.textRef ? this.t(...(this.data.textRef as [string, string, any?])) : this.data.text; }
+  genText(){ return this.data.textRef ? this.t(...(this.data.textRef as [string, any?])) : this.data.text; }
 }
 export class TextBlockShell extends BlockShell {
   constructor(ctx: Context, data: any){ super(ctx, 'TextBlock', data); }
   genText(){
-    if (this.data.textRef) return this.t(...(this.data.textRef as [string, string, any?]));
+    if (this.data.textRef) return this.t(...(this.data.textRef as [string, any?]));
     if (this.data.variant === 'meta') {
       const parts = [];
       if (this.data.epoch != null) parts.push(fmtStartsAt(this.data.epoch, this.locale, this.ctx.tz));
-      parts.push(this.t('groupingDetail', 'people', { occupied: this.data.occupied, max: this.data.max }));
+      parts.push(this.t('groupingDetail_people', { occupied: this.data.occupied, max: this.data.max }));
       return parts.join(' · ');
     }
     return this.data.text;
@@ -102,11 +102,11 @@ export class BannerBlockShell extends BlockShell {
 export class ChipRowBlockShell extends BlockShell {
   constructor(ctx: Context, data: any){ super(ctx, 'ChipRowBlock', data); }
   genChips(){
-    const chips: any[] = [this.t('groupingType', TYPE_SHORT_KEY[this.data.evType] || 'shortActivity')];
+    const chips: any[] = [this.t('groupingType_' + (TYPE_SHORT_KEY[this.data.evType] || 'shortActivity'))];
     if (this.data.dungeonName) chips.push(enDungeonName(this.locale, this.data.dungeonName as any));
-    chips.push(this.data.status === 'open' ? this.t('groupingDetail', 'statusOpen')
-      : this.data.status === 'completed' ? this.t('appBlocks', 'completedStatus')
-      : this.t('appBlocks', 'closedStatus'));
+    chips.push(this.data.status === 'open' ? this.t('groupingDetail_statusOpen')
+      : this.data.status === 'completed' ? this.t('appBlocks_completedStatus')
+      : this.t('appBlocks_closedStatus'));
     return chips;
   }
 }
@@ -115,17 +115,17 @@ export class GroupingCardBlockShell extends BlockShell {
   get g() { return this.data.g; }
   genGroupingId(){ return this.g.genId(); }
   genTitle(){ return this.g.genTitle(); }
-  genBadgeText(){ return this.t('groupingType', TYPE_SHORT_KEY[this.g.ev.type] || 'shortActivity'); }
+  genBadgeText(){ return this.t('groupingType_' + (TYPE_SHORT_KEY[this.g.ev.type] || 'shortActivity')); }
   genTimeText(){
     const ts = startsAtEpoch(this.g.ev);
     return ts != null ? fmtStartsAt(ts, this.locale, this.ctx.tz) : '';
   }
   genDungeonName(){ return enDungeonName(this.locale, this.g.ev.dungeon || null); }
-  genPeopleText(){ return this.t('groupingList', 'people', { occupied: this.data.occupied, max: this.g.ev.max_slots }); }
+  genPeopleText(){ return this.t('groupingList_people', { occupied: this.data.occupied, max: this.g.ev.max_slots }); }
   genStatusText(){
-    return this.g.ev.status === 'open' ? this.t('groupingList', 'statusOpen')
-      : this.g.ev.status === 'completed' ? this.t('appBlocks', 'completedStatus')
-      : this.t('appBlocks', 'closedStatus');
+    return this.g.ev.status === 'open' ? this.t('groupingList_statusOpen')
+      : this.g.ev.status === 'completed' ? this.t('appBlocks_completedStatus')
+      : this.t('appBlocks_closedStatus');
   }
 }
 export class SeatEntryShell extends ShellBase {
@@ -137,7 +137,7 @@ export class SeatEntryShell extends ShellBase {
   genRole(){
     const r = this.data.row;
     if (!r) return null;
-    return r.role === '奶' || r.role === '治疗' ? this.t('seat', 'roleHealer') : this.t('seat', 'roleDps');
+    return r.role === '奶' || r.role === '治疗' ? this.t('seat_roleHealer') : this.t('seat_roleDps');
   }
   genHealer(){ return !!this.data.row && this.data.row.weapon === HEALER_SECT; }
   genIsLeader(){
@@ -182,12 +182,12 @@ export class SeatGridBlockShell extends BlockShell {
 }
 export class ActionButtonBlockShell extends BlockShell {
   constructor(ctx: Context, data: any){ super(ctx, 'ActionButtonBlock', data); }
-  genLabel(){ return this.t(...(this.data.labelRef as [string, string, any?])); }
+  genLabel(){ return this.t(...(this.data.labelRef as [string, any?])); }
   genStyle(){ return this.data.style; }
 }
 export class EmptyStateBlockShell extends BlockShell {
   constructor(ctx: Context, data: any){ super(ctx, 'EmptyStateBlock', data); }
-  genText(){ return this.t(...(this.data.textRef as [string, string, any?])); }
+  genText(){ return this.t(...(this.data.textRef as [string, any?])); }
 }
 export class SpacerBlockShell extends BlockShell {
   constructor(ctx: Context, data: any){ super(ctx, 'SpacerBlock', data); }
@@ -195,7 +195,7 @@ export class SpacerBlockShell extends BlockShell {
 }
 export class FallbackBlockShell extends BlockShell {
   constructor(ctx: Context){ super(ctx, 'FallbackBlock', {}); }
-  genText(){ return this.t('appBlocks', 'unknownBlock'); }
+  genText(){ return this.t('appBlocks_unknownBlock'); }
 }
 
 /* ---------- Bloks-lite action shells ---------- */
@@ -221,18 +221,18 @@ export class LeaveActionShell extends ActionShell {
   constructor(ctx: Context, data: any){ super(ctx, 'LeaveAction', data); }
   genGroupingId(){ return this.data.groupingId; }
   genUid(){ return this.data.uid; }
-  genConfirmTitle(){ return this.t('seat', 'leaveConfirmTitle'); }
-  genConfirmMessage(){ return this.t('seat', 'leaveConfirmMessage', { nickname: this.data.nickname }); }
-  genOkLabel(){ return this.t('common', 'confirm'); }
-  genCancelLabel(){ return this.t('common', 'cancel'); }
+  genConfirmTitle(){ return this.t('seat_leaveConfirmTitle'); }
+  genConfirmMessage(){ return this.t('seat_leaveConfirmMessage', { nickname: this.data.nickname }); }
+  genOkLabel(){ return this.t('common_confirm'); }
+  genCancelLabel(){ return this.t('common_cancel'); }
 }
 export class DisbandActionShell extends ActionShell {
   constructor(ctx: Context, data: any){ super(ctx, 'DisbandAction', data); }
   genGroupingId(){ return this.data.groupingId; }
-  genConfirmTitle(){ return this.t('groupingDetail', 'disbandConfirmTitle'); }
-  genConfirmMessage(){ return this.t('groupingDetail', 'disbandConfirmMessage', { title: this.data.title }); }
-  genOkLabel(){ return this.t('common', 'confirm'); }
-  genCancelLabel(){ return this.t('common', 'cancel'); }
+  genConfirmTitle(){ return this.t('groupingDetail_disbandConfirmTitle'); }
+  genConfirmMessage(){ return this.t('groupingDetail_disbandConfirmMessage', { title: this.data.title }); }
+  genOkLabel(){ return this.t('common_confirm'); }
+  genCancelLabel(){ return this.t('common_cancel'); }
 }
 export class EditActionShell extends ActionShell {
   constructor(ctx: Context, data: any){ super(ctx, 'EditAction', data); }
@@ -243,10 +243,10 @@ export class EditActionShell extends ActionShell {
 export class CompleteActionShell extends ActionShell {
   constructor(ctx: Context, data: any){ super(ctx, 'CompleteAction', data); }
   genGroupingId(){ return this.data.groupingId; }
-  genConfirmTitle(){ return this.t('groupingDetail', 'completeConfirmTitle'); }
-  genConfirmMessage(){ return this.t('groupingDetail', 'completeConfirmMessage', { title: this.data.title }); }
-  genOkLabel(){ return this.t('common', 'confirm'); }
-  genCancelLabel(){ return this.t('common', 'cancel'); }
+  genConfirmTitle(){ return this.t('groupingDetail_completeConfirmTitle'); }
+  genConfirmMessage(){ return this.t('groupingDetail_completeConfirmMessage', { title: this.data.title }); }
+  genOkLabel(){ return this.t('common_confirm'); }
+  genCancelLabel(){ return this.t('common_cancel'); }
 }
 // Uncomplete action (vocab v4): undoes completion, no confirmation
 // (reversible, low risk); emitted only for the leader once completed.
@@ -269,15 +269,15 @@ export class SetReadyActionShell extends ActionShell {
 
 export const LEGAL_SECTION_KEYS = ['s1', 's2', 's3', 's4', 's5', 's6'];
 export class LegalSectionShell extends ShellBase {
-  genHeading(){ return this.t(this.data.section, this.data.key + 'h'); }
-  genBody(){ return this.t(this.data.section, this.data.key + 'b'); }
+  genHeading(){ return this.t(this.data.section + '_' + this.data.key + 'h'); }
+  genBody(){ return this.t(this.data.section + '_' + this.data.key + 'b'); }
 }
 export class LegalPageShell extends ShellBase {
   get isTerms() { return this.data.kind === 'TERMS'; }
   genKind(){ return this.data.kind; }
-  genTitle(){ return this.t('legal', this.isTerms ? 'termsTitle' : 'privacyTitle'); }
-  genUpdatedText(){ return this.t('legal', 'updatedText'); }
-  genBackLabel(){ return this.t('common', 'backToHub'); }
+  genTitle(){ return this.t(this.isTerms ? 'legal_termsTitle' : 'legal_privacyTitle'); }
+  genUpdatedText(){ return this.t('legal_updatedText'); }
+  genBackLabel(){ return this.t('common_backToHub'); }
   genSections(){
     const section = this.isTerms ? 'termsBody' : 'privacyBody';
     return LEGAL_SECTION_KEYS.map((key: any) => new LegalSectionShell(this.ctx, { section, key }));

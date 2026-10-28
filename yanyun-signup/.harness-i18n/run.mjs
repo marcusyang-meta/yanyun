@@ -170,7 +170,7 @@ const u2001 = { discordId: '2001', name: '甲', guilds: [] };
   const j = await gql(`{ settingsPage { settingsTitle } }`, { locale: 'en' });
   eq('settingsTitle 值', j.data?.settingsPage?.settingsTitle, CATALOG.settings.title.en);
   const keys = [...i18nProbe.counts.keys()];
-  check('只生成 settings.title 一条', keys.length === 1 && keys[0] === 'settings.title', JSON.stringify(keys));
+  check('只生成 settings_title 一条', keys.length === 1 && keys[0] === 'settings_title', JSON.stringify(keys));
   i18nProbe.enabled = false;
 }
 

@@ -4,16 +4,22 @@
  *
  * Sources:
  *   src/domains/<domain>/i18n/strings.source.ts  per-domain fbtee
- *     declaration surfaces (fbs calls, desc = 'section.field'); each
- *     section is owned by exactly one domain (SECTION_OWNER below) and
- *     a declaration filed under the wrong domain fails the build.
+ *     declaration surfaces (fbs calls). A string's identity is its
+ *     declaration, <domain>/<export name> (guilds/guildAdmin_tabTeam);
+ *     desc is a natural-language description for translators, never a
+ *     key. Each section (the export name's prefix) is owned by exactly
+ *     one domain (SECTION_OWNER below) and a declaration filed under
+ *     the wrong domain fails the build.
  *   src/domains/platform/i18n/translations/<locale>.json  editable
- *     fbtee translations (keyed by md5(pattern+desc))
+ *     fbtee translations (keyed by md5(pattern+desc), fbtee's internal
+ *     join; every entry also carries the declaration identity in its
+ *     `id` field, and codegen verifies id + description against the
+ *     declaration, so translations hang off the identity)
  * Generated (do not hand-edit):
  *   platform/i18n/strings.ts    transformSync output (+ FbsRuntime post-processing)
  *   platform/i18n/catalogs/<locale>.json  translate-compiled catalogs { hk: pattern }
  *   platform/i18n/catalog.ts    CATALOG compatibility projection (error-copy set / harness use)
- *   <domain>/i18n/keys.gen.ts   per-domain string-key union types
+ *   <domain>/i18n/keys.gen.ts   per-domain export-name union types
  *
  * The per-domain declarations are merged back into one virtual source
  * (entries in SECTION_ORDER, the legacy catalog order) before compiling,
@@ -85,8 +91,14 @@ const fail = (msg) => { console.error('[i18n-codegen] ' + msg); process.exit(1);
 const MERGED_PRELUDE = `/* fbtee declaration surface (hand-maintained): the source declarations of
  * all UI copy, one entry = one fbs call. Merged by scripts/i18n-codegen.mjs
  * from the per-domain files src/domains/<domain>/i18n/strings.source.ts.
- * - desc is 'section.field', matching the legacy hand-rolled catalog keys
- *   one-to-one (unique and stable; the anchor translations hang off).
+ * - A string's identity is its declaration: <domain>/<export name>.
+ *   STRING_FNS, the per-domain key unions and every call site reference
+ *   the export name; translations hang off the identity via the id
+ *   field of each entry in translations/*.json. desc is a
+ *   natural-language description for translators — what the string is,
+ *   where it appears, what its parameters mean — never a key, label or
+ *   identifier; editing a desc must not move any reference (codegen
+ *   re-derives fbtee's internal hashes from the declaration).
  * - Source locale zh-CN; other locales' translations live in
  *   platform/i18n/translations/*.json (fbtee format).
  * - Parameterized entries use literal segments + fbs.param (required by the
@@ -112,8 +124,56 @@ function pv(p: StringParams | undefined, name: string): string {
 
 `;
 
+// Scan the fbs(...) call that starts at `at` in an entry body (index of
+// 'fbs('): returns { pattern, desc } where pattern is the reconstructed
+// source pattern (literal segments joined, fbs.param spans replaced by
+// '{name}') and desc is the call's final string argument. String-aware
+// paren matching; literals inside a param span (pv(p, "name")) are
+// consumed as part of the span, never read as pattern segments.
+function scanFbsCall(body, at) {
+  let i = at + 4, depth = 1, call = '';
+  while (i < body.length) {
+    const c = body[i];
+    if (c === '"') {
+      let j = i + 1;
+      while (j < body.length) { if (body[j] === '\\') { j += 2; continue; } if (body[j] === '"') break; j++; }
+      call += body.slice(i, j + 1); i = j + 1; continue;
+    }
+    if (c === '(') depth++;
+    else if (c === ')') { depth--; if (depth === 0) break; }
+    call += c; i++;
+  }
+  const segs = [];
+  let k = 0, lastLit = null;
+  while (k < call.length) {
+    if (call.startsWith('fbs.param(', k)) {
+      const j = call.indexOf('"', k), e = call.indexOf('"', j + 1);
+      segs.push('{' + call.slice(j + 1, e) + '}');
+      let d = 1; k += 'fbs.param('.length;
+      while (k < call.length && d) {
+        if (call[k] === '"') { k = call.indexOf('"', k + 1) + 1; continue; }
+        if (call[k] === '(') d++; else if (call[k] === ')') d--;
+        k++;
+      }
+      continue;
+    }
+    if (call[k] === '"') {
+      let j = k + 1;
+      while (call[j] !== '"') { if (call[j] === '\\') j++; j++; }
+      lastLit = JSON.parse(call.slice(k, j + 1));
+      segs.push(lastLit);
+      k = j + 1; continue;
+    }
+    k++;
+  }
+  return { pattern: segs.slice(0, -1).join(''), desc: lastLit };
+}
+
 // Extract the entry statements (`export const <name> = ...;`) of one
-// domain declaration file, in file order: [{ name, desc, body }].
+// domain declaration file, in file order:
+// [{ domain, name, section, desc, pattern, body }]. The export name is
+// the identity anchor: section = the name's prefix before its first
+// '_'; desc is free translator-facing text (validated separately).
 function parseDomainEntries(domain, text) {
   const out = [];
   const re = /export const ([A-Za-z0-9_]+) = /g;
@@ -123,14 +183,18 @@ function parseDomainEntries(domain, text) {
     const end = text.indexOf(';\n', m.index);
     if (end < 0) fail(domain + ': unterminated entry ' + m[1]);
     const body = text.slice(m.index, end + 2);
-    const descs = [...body.matchAll(/"([a-zA-Z]+\.[a-zA-Z0-9]+)"/g)];
-    if (!descs.length) fail(domain + ': no desc found in entry ' + m[1]);
-    const desc = descs[descs.length - 1][1];
-    const section = desc.slice(0, desc.indexOf('.'));
+    const name = m[1];
+    const us = name.indexOf('_');
+    if (us < 0) fail(domain + ': export name ' + name + ' has no section prefix');
+    const section = name.slice(0, us);
     if (SECTION_OWNER[section] !== domain) {
-      fail(`${domain}: entry ${m[1]} declares section '${section}', owned by ${SECTION_OWNER[section] || '(unknown section)'}`);
+      fail(`${domain}: entry ${name} declares section '${section}', owned by ${SECTION_OWNER[section] || '(unknown section)'}`);
     }
-    out.push({ name: m[1], desc, body });
+    const at = body.indexOf('fbs(');
+    if (at < 0) fail(domain + ': no fbs call in entry ' + name);
+    const { pattern, desc } = scanFbsCall(body, at);
+    if (!desc) fail(domain + ': no desc found in entry ' + name);
+    out.push({ domain, name, section, desc, pattern, body });
   }
   if (!out.length) fail(domain + ': no declaration entries found');
   return out;
@@ -146,11 +210,10 @@ function collectSources() {
     const entries = parseDomainEntries(d, readFileSync(domainSourcePath(d), 'utf8'));
     byDomain.set(d, entries);
     for (const e of entries) {
-      if (seen.has(e.desc)) fail('duplicate desc ' + e.desc);
-      seen.add(e.desc);
-      const section = e.desc.slice(0, e.desc.indexOf('.'));
-      if (!bySection.has(section)) bySection.set(section, []);
-      bySection.get(section).push(e);
+      if (seen.has(e.name)) fail('duplicate export name ' + e.name);
+      seen.add(e.name);
+      if (!bySection.has(e.section)) bySection.set(e.section, []);
+      bySection.get(e.section).push(e);
     }
   }
   for (const s of bySection.keys()) {
@@ -159,15 +222,16 @@ function collectSources() {
   const ordered = [];
   for (const s of SECTION_ORDER) for (const e of bySection.get(s) || []) ordered.push(e);
   const record = 'export const STRING_FNS: Record<string, (fbs: FbsAPI, p?: StringParams) => string> = {\n'
-    + ordered.map((e) => `  "${e.desc}": ${e.name},\n`).join('') + '};\n';
+    + ordered.map((e) => `  "${e.name}": ${e.name},\n`).join('') + '};\n';
   const merged = MERGED_PRELUDE + ordered.map((e) => e.body).join('') + '\n' + record;
-  return { byDomain, merged };
+  return { byDomain, merged, ordered };
 }
 
-// Per-domain key unions for the domains' text utils (typed accessors).
+// Per-domain key unions for the domains' text utils (typed accessors):
+// the union is the domain's export names.
 function genDomainKeys(domain, entries) {
   const cap = domain[0].toUpperCase() + domain.slice(1);
-  const keys = entries.map((e) => e.desc);
+  const keys = entries.map((e) => e.name);
   return '/* Generated by scripts/i18n-codegen.mjs from strings.source.ts in this\n'
     + ' * directory; do not hand-edit. Rerun the codegen after changing copy. */\n'
     + `export type ${cap}StringKey =\n`
@@ -231,15 +295,13 @@ function parseSourceMeta(sourceText) {
     const trailM = rest.match(/ \+ ("(?:[^"\\]|\\.)*")$/);
     if (trailM) { trail = JSON.parse(trailM[1]); rest = rest.slice(0, rest.length - trailM[0].length); }
     if (!rest.startsWith('fbs(')) fail('unparsable fn body for ' + m[1]);
-    const descM = rest.match(/,\s*"([^"]+)"\)$/);
-    if (!descM) fail('desc not found for ' + m[1]);
-    if (lead || trail) pads.set(descM[1], { lead, trail });
+    if (lead || trail) pads.set(m[1], { lead, trail });
   }
   return { order, pads };
 }
 
 // ---------- catalogs + catalog.ts: CLI collect/translate ----------
-function genCatalogsAndProjection(sourceText) {
+function genCatalogsAndProjection(sourceText, orderedDecls) {
   const bin = join(dirname(require.resolve('@nkzw/fbtee-compiler')), 'bin.mjs');
   const tmp = mkdtempSync(join(tmpdir(), 'i18n-codegen-'));
   const ssPath = join(tmp, 'source_strings.json');
@@ -253,46 +315,68 @@ function genCatalogsAndProjection(sourceText) {
     { stdio: ['ignore', 'ignore', 'inherit'] });
 
   const ss = JSON.parse(readFileSync(ssPath, 'utf8'));
-  const byDesc = new Map(); // desc -> {hash, text}
+  // Join collected phrases to declarations by (pattern, desc): the leaf
+  // carries both verbatim, so identity never enters fbtee's hash join.
+  // fbtee trims the pattern on collection; declarations join trimmed.
+  const leafByKey = new Map(); // (text \n desc) -> { hash, text }
   for (const phrase of ss.phrases) {
-    for (const [hash, leaf] of Object.entries(phrase.hashToLeaf)) byDesc.set(leaf.desc, { hash, text: leaf.text });
+    for (const [hash, leaf] of Object.entries(phrase.hashToLeaf)) {
+      const key = leaf.text + '\n' + leaf.desc;
+      const prev = leafByKey.get(key);
+      if (prev && prev.hash !== hash) fail('conflicting hashes for one (text, desc) pair');
+      leafByKey.set(key, { hash, text: leaf.text });
+    }
   }
   const { order, pads } = parseSourceMeta(sourceText);
-  const pad = (desc, txt) => { const p = pads.get(desc); return p ? p.lead + txt + p.trail : txt; };
+  const pad = (name, txt) => { const p = pads.get(name); return p ? p.lead + txt + p.trail : txt; };
+  // Declaration resolution: name -> { decl, hash, srcText }; a hash may
+  // serve exactly one declaration (identical pattern+desc declared twice
+  // would share translations ambiguously — differentiate the desc).
+  const declOf = new Map();
+  const hashToName = new Map();
+  for (const e of orderedDecls) {
+    const leaf = leafByKey.get(e.pattern.trim() + '\n' + e.desc);
+    if (!leaf) fail('no collected phrase for ' + e.domain + '/' + e.name);
+    if (hashToName.has(leaf.hash)) {
+      fail(`declarations ${hashToName.get(leaf.hash)} and ${e.domain}/${e.name} share one phrase hash (identical pattern + desc); differentiate the description`);
+    }
+    hashToName.set(leaf.hash, e.name);
+    declOf.set(e.name, { decl: e, hash: leaf.hash, srcText: leaf.text });
+  }
 
   // catalogs/<locale>.json: { hk: pattern } (CLI output with the outer locale key removed).
   const catalogs = {};
-  const perLocaleText = new Map(); // locale -> Map(desc -> full text)
+  const perLocaleText = new Map(); // locale -> Map(name -> full text)
   for (const locale of LOCALES) {
     const raw = JSON.parse(readFileSync(join(outDir, locale + '.json'), 'utf8'));
     const inner = raw[locale];
     if (!inner) fail('translate output missing locale ' + locale);
     catalogs[locale] = JSON.stringify(inner, null, 2) + '\n';
-    // Per-desc text (for the projection): read the editable translations,
-    // verify every hash belongs to the source, then apply padding.
+    // Per-name text (for the projection): read the editable translations,
+    // verify every entry against its declaration (hash known, id and
+    // description matching the declaration), then apply padding.
     const editable = JSON.parse(readFileSync(join(TRANSLATIONS_DIR, locale + '.json'), 'utf8'));
-    const byHash = new Map();
-    for (const [desc, v] of byDesc) byHash.set(v.hash, desc);
     const m = new Map();
     for (const [hash, e] of Object.entries(editable.translations)) {
-      const desc = byHash.get(hash);
-      if (!desc) fail(`translations/${locale}.json has unknown hash ${hash} (${e.description})`);
-      if (e.description !== desc) fail(`translations/${locale}.json desc mismatch for ${hash}`);
-      m.set(desc, pad(desc, e.translations[0].translation));
+      const name = hashToName.get(hash);
+      if (!name) fail(`translations/${locale}.json has unknown hash ${hash} (${e.description})`);
+      const { decl } = declOf.get(name);
+      if (e.id !== decl.domain + '/' + name) fail(`translations/${locale}.json id mismatch for ${hash}: '${e.id}' vs declaration '${decl.domain}/${name}'`);
+      if (e.description !== decl.desc) fail(`translations/${locale}.json desc mismatch for ${decl.domain}/${name}`);
+      m.set(name, pad(name, e.translations[0].translation));
     }
     perLocaleText.set(locale, m);
   }
 
-  // catalog.ts projection: structure identical to the old CATALOG (section -> field -> locale -> text).
+  // catalog.ts projection: a derived compat view (section -> field ->
+  // locale -> text), split from the export name; not an identity.
   const catalog = {};
-  for (const key of order) {
-    const dot = key.indexOf('.');
-    const section = key.slice(0, dot), field = key.slice(dot + 1);
-    const src = byDesc.get(key);
-    if (!src) fail('no collected phrase for ' + key);
-    const cell = { 'zh-CN': pad(key, src.text) };
+  for (const name of order) {
+    const { decl, srcText } = declOf.get(name);
+    const section = decl.section, field = name.slice(section.length + 1);
+    const cell = { 'zh-CN': pad(name, srcText) };
     for (const locale of LOCALES) {
-      const t = perLocaleText.get(locale).get(key);
+      const t = perLocaleText.get(locale).get(name);
       if (t !== undefined) cell[locale] = t;
     }
     (catalog[section] ??= {})[field] = cell;
@@ -309,10 +393,10 @@ function genCatalogsAndProjection(sourceText) {
 }
 
 // ---------- Main flow ----------
-const { byDomain, merged: sourceText } = collectSources();
+const { byDomain, merged: sourceText, ordered } = collectSources();
 const outputs = new Map();
 outputs.set(join(I18N_DIR, 'strings.ts'), genStringsTs(sourceText));
-const { catalogs, catalogTs } = genCatalogsAndProjection(sourceText);
+const { catalogs, catalogTs } = genCatalogsAndProjection(sourceText, ordered);
 for (const locale of LOCALES) outputs.set(join(I18N_DIR, 'catalogs', locale + '.json'), catalogs[locale]);
 outputs.set(join(I18N_DIR, 'catalog.ts'), catalogTs);
 for (const d of DOMAINS) outputs.set(domainKeysPath(d), genDomainKeys(d, byDomain.get(d)));

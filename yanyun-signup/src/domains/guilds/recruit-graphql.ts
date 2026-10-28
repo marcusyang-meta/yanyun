@@ -64,7 +64,7 @@ export class RecruitApplicationShell extends ShellBase {
   genApplicantName(){ return this.data.applicant_name || ''; }
   genMessage(){ return this.data.message || ''; }
   genStatus(){ return APPLICATION_STATUS_ENUM[this.data.status] || 'PENDING'; }
-  genStatusLabel(){ return this.t('recruit', APPLICATION_STATUS_TEXT[this.data.status] || 'statusPending'); }
+  genStatusLabel(){ return this.t('recruit_' + (APPLICATION_STATUS_TEXT[this.data.status] || 'statusPending')); }
   genCreatedAtText(){
     return this.data.created_at ? fmtStartsAt(this.data.created_at, this.locale, this.ctx.tz) : '';
   }
@@ -82,7 +82,7 @@ export class MentorPairingShell extends ShellBase {
   genMenteeDiscordId(){ return this.data.mentee_discord_id || ''; }
   genMenteeName(){ return this.data.mentee_name || ''; }
   genStatus(){ return this.data.status === 'ended' ? 'ENDED' : 'ACTIVE'; }
-  genStatusLabel(){ return this.t('recruit', this.data.status === 'ended' ? 'pairingStatusEnded' : 'pairingStatusActive'); }
+  genStatusLabel(){ return this.t(this.data.status === 'ended' ? 'recruit_pairingStatusEnded' : 'recruit_pairingStatusActive'); }
   genCreatedAtText(){
     return this.data.created_at ? fmtStartsAt(this.data.created_at, this.locale, this.ctx.tz) : '';
   }
@@ -101,8 +101,8 @@ export class RecruitMemberShell extends ShellBase {
 
 export class NewcomerChecklistItemShell extends ShellBase {
   genKey(){ return this.data.key; }
-  genLabel(){ return this.t('recruit', this.data.labelField); }
-  genHint(){ return this.t('recruit', this.data.hintField); }
+  genLabel(){ return this.t('recruit_' + this.data.labelField); }
+  genHint(){ return this.t('recruit_' + this.data.hintField); }
   genDone(){ return !!this.data.done; }
 }
 
@@ -118,7 +118,7 @@ export class NewcomerChecklistShell extends ShellBase {
   }
   genDoneCount(){ return this.data.facts.doneCount; }
   genTotalCount(){ return 4; }
-  genProgressText(){ return this.t('recruit', 'checklistProgress', { done: this.data.facts.doneCount, total: 4 }); }
+  genProgressText(){ return this.t('recruit_checklistProgress', { done: this.data.facts.doneCount, total: 4 }); }
 }
 
 export class NewcomerProgressShell extends ShellBase {
@@ -129,7 +129,7 @@ export class NewcomerProgressShell extends ShellBase {
   genMentorDone(){ return !!this.data.facts.mentorDone; }
   genFirstRunDone(){ return !!this.data.facts.firstRunDone; }
   genDoneCount(){ return this.data.facts.doneCount; }
-  genProgressText(){ return this.t('recruit', 'checklistProgress', { done: this.data.facts.doneCount, total: 4 }); }
+  genProgressText(){ return this.t('recruit_checklistProgress', { done: this.data.facts.doneCount, total: 4 }); }
 }
 
 /* ---------------- the platform-home recruit section ----------------
@@ -247,22 +247,22 @@ export class HomeRecruitSectionShell extends ShellBase {
 }
 
 export const HOME_RECRUIT_TEXT_RESOLVERS = defineTextGens(HomeRecruitSectionShell, [
-  ['recruitTitle', 'recruit', 'title'],
-  ['homeBody', 'recruit', 'homeBody'],
-  ['homeLoginHint', 'recruit', 'homeLoginHint'],
-  ['applySectionTitle', 'recruit', 'applySectionTitle'],
-  ['messageLabel', 'recruit', 'messageLabel'],
-  ['messagePlaceholder', 'recruit', 'messagePlaceholder'],
-  ['submitLabel', 'recruit', 'submitButton'],
-  ['submittingLabel', 'recruit', 'submittingButton'],
-  ['myApplicationTitle', 'recruit', 'myApplicationTitle'],
-  ['pendingHint', 'recruit', 'pendingHint'],
-  ['approvedNextStepText', 'recruit', 'approvedNextStep'],
-  ['rejectedHint', 'recruit', 'rejectedHint'],
-  ['checklistTitle', 'recruit', 'checklistTitle'],
-  ['myPairingsTitle', 'recruit', 'myPairingsTitle'],
-  ['pairingMentorRoleLabel', 'recruit', 'mentorRoleLabel'],
-  ['pairingMenteeRoleLabel', 'recruit', 'menteeRoleLabel'],
+  ['recruitTitle', 'recruit_title'],
+  ['homeBody', 'recruit_homeBody'],
+  ['homeLoginHint', 'recruit_homeLoginHint'],
+  ['applySectionTitle', 'recruit_applySectionTitle'],
+  ['messageLabel', 'recruit_messageLabel'],
+  ['messagePlaceholder', 'recruit_messagePlaceholder'],
+  ['submitLabel', 'recruit_submitButton'],
+  ['submittingLabel', 'recruit_submittingButton'],
+  ['myApplicationTitle', 'recruit_myApplicationTitle'],
+  ['pendingHint', 'recruit_pendingHint'],
+  ['approvedNextStepText', 'recruit_approvedNextStep'],
+  ['rejectedHint', 'recruit_rejectedHint'],
+  ['checklistTitle', 'recruit_checklistTitle'],
+  ['myPairingsTitle', 'recruit_myPairingsTitle'],
+  ['pairingMentorRoleLabel', 'recruit_mentorRoleLabel'],
+  ['pairingMenteeRoleLabel', 'recruit_menteeRoleLabel'],
 ]);
 
 export function homeRecruitResult(ctx: Context) {

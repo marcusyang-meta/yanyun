@@ -167,7 +167,7 @@ export class GuildShell extends ShellBase {
   genHomeAdminLabel(){
     return this.memo('homeAdminLabel', async () => {
       const access = await getGuildAdminAccess(this.db, this.ctx.user, this.genSlug(), this.ctx.request, this.vc).catch(() => null);
-      return access && access.isAdmin ? this.t('guildHome', 'adminLink') : null;
+      return access && access.isAdmin ? this.t('guildHome_adminLink') : null;
     });
   }
   /* White-label chrome composition (Premium tier 1): the server
@@ -182,23 +182,23 @@ export class GuildShell extends ShellBase {
   }
   async genPageBackLabel(){
     const wl = await this.genWhiteLabel();
-    return wl.hideBranding ? this.t('guildHome', 'backPlain') : this.t('guildHome', 'backToHub');
+    return wl.hideBranding ? this.t('guildHome_backPlain') : this.t('guildHome_backToHub');
   }
   async genPageFooterDisclaimerText(){
     const wl = await this.genWhiteLabel();
-    return wl.hideBranding ? null : this.t('legal', 'disclaimer');
+    return wl.hideBranding ? null : this.t('legal_disclaimer');
   }
 }
 
 export const GUILD_HOME_TEXT_SPEC = [
-  ['homeBackToHubLabel', 'guildHome', 'backToHub'],
-  ['homeTabTeamLabel', 'guildHome', 'tabTeam'],
-  ['homeTabDexLabel', 'guildHome', 'tabDex'],
-  ['homeTabSectLabel', 'guildHome', 'tabSect'],
-  ['homeTabAnnouncementsLabel', 'guildHome', 'tabAnnouncements'],
-  ['homeTabScheduleLabel', 'guildHome', 'tabSchedule'],
-  ['detailNotFoundText', 'groupingDetail', 'notFound'],
-  ['detailBackToListLabel', 'groupingDetail', 'backToList'],
+  ['homeBackToHubLabel', 'guildHome_backToHub'],
+  ['homeTabTeamLabel', 'guildHome_tabTeam'],
+  ['homeTabDexLabel', 'guildHome_tabDex'],
+  ['homeTabSectLabel', 'guildHome_tabSect'],
+  ['homeTabAnnouncementsLabel', 'guildHome_tabAnnouncements'],
+  ['homeTabScheduleLabel', 'guildHome_tabSchedule'],
+  ['detailNotFoundText', 'groupingDetail_notFound'],
+  ['detailBackToListLabel', 'groupingDetail_backToList'],
 ];
 export const GUILD_TEXT_RESOLVERS = defineTextGens(GuildShell, GUILD_HOME_TEXT_SPEC);
 // Admin entry label: declared only on the full Guild type (member
@@ -210,14 +210,14 @@ export const GUILD_ADMIN_LINK_RESOLVERS = {
   homeAdminLabel: (p: GuildShell) => p.genHomeAdminLabel(),
 };
 export const GUILD_READONLY_TEXT_RESOLVERS = defineTextGens(GuildShell, [
-  ['homeReadOnlyBanner', 'guildHome', 'readOnlyBanner'],
+  ['homeReadOnlyBanner', 'guildHome_readOnlyBanner'],
 ]);
 export const GUILD_LOCKED_TEXT_RESOLVERS = defineTextGens(GuildShell, [
-  ['lockedBackLinkLabel', 'locked', 'backLink'],
-  ['lockedTitle', 'locked', 'title'],
-  ['lockedBody1', 'locked', 'body1'],
-  ['lockedBody2', 'locked', 'body2'],
-  ['lockedBackButtonLabel', 'locked', 'backButton'],
+  ['lockedBackLinkLabel', 'locked_backLink'],
+  ['lockedTitle', 'locked_title'],
+  ['lockedBody1', 'locked_body1'],
+  ['lockedBody2', 'locked_body2'],
+  ['lockedBackButtonLabel', 'locked_backButton'],
 ]);
 
 // Content fields of Guild / GuildReadOnly (identical data surface; they differ only in type and in which components the frontend mounts).

@@ -3,7 +3,9 @@
  * - All UI text lives only on the server; the frontend ships no text
  *   dictionary. Page shells fetch text per field via gen methods
  *   (unselected fields are never generated).
- * - Source locale = zh-CN; entries are keyed 'section.field'.
+ * - Source locale = zh-CN; a string's identity is its declaration,
+ *   <domain>/<export name> (e.g. guilds/guildAdmin_tabTeam), and every
+ *   reference uses the export name.
  * - A missing translation falls back per field to the zh-CN source
  *   (never a whole-page fallback).
  * - Interpolation uses {name} placeholders, substituted server-side.
@@ -13,21 +15,26 @@
  *
  * Implementation (fbtee):
  * - Declarations: per-domain files src/domains/<domain>/i18n/
- *   strings.source.ts (hand-maintained), one fbs call per entry with
- *   desc = 'section.field'; each section is owned by one domain, and
+ *   strings.source.ts (hand-maintained), one fbs call per entry; each
+ *   section (the export name's prefix) is owned by one domain, and
  *   domain code reaches copy only through its own domain text util
- *   (src/domains/<domain>/i18n/text.ts). Parameterized entries use
- *   literal segments + fbs.param.
- * - Translations: i18n/translations/<locale>.json. Entries that exist
- *   only for zh-CN+en (e.g. termsBody/privacyBody) are absent from other
- *   locale files and from the compiled catalog, so runtime falls back
- *   per field to the source text.
+ *   (src/domains/<domain>/i18n/text.ts). The fbs desc is a
+ *   natural-language description for translators — what the string
+ *   is, where it appears, what its parameters mean — never a key or
+ *   identifier; nothing references a string by its desc.
+ * - Translations: i18n/translations/<locale>.json, keyed by fbtee's
+ *   phrase hash; each entry carries the declaration identity in its
+ *   `id` field (verified by codegen), so translations hang off the
+ *   identity. Entries that exist only for zh-CN+en (e.g.
+ *   termsBody/privacyBody) are absent from other locale files and
+ *   from the compiled catalog, so runtime falls back per field to
+ *   the source text.
  * - Generated (scripts/i18n-codegen.mjs collects the per-domain
  *   declarations; CI --check guards drift): i18n/strings.ts,
  *   i18n/catalogs/<locale>.json, i18n/catalog.ts (CATALOG compat
  *   projection for GraphQL business-error sets and harness catalog
  *   assertions only; not read at runtime), plus per-domain
- *   i18n/keys.gen.ts key unions.
+ *   i18n/keys.gen.ts export-name unions.
  * - Parameter packing happens inside the declaration functions (pv):
  *   a missing param keeps the literal '{name}', others use String(v) —
  *   matching the old translate semantics exactly and bypassing fbtee's
@@ -64,7 +71,7 @@ export function negotiateLocale(raw: any) {
 }
 
 /* Lazy verification probe (off by default): when on, translate counts
- * calls per (section.field) so a local harness can prove unselected gen
+ * calls per export name so a local harness can prove unselected gen
  * methods are never called and selected fields generate once per request
  * (shell memo). Always off in production; costs one boolean check. */
 export const i18nProbe: { enabled: boolean; counts: Map<string, number>; reset(): void } = {
@@ -99,13 +106,23 @@ export function getTextRuntime(locale: string): FbteeRuntime {
   return RUNTIMES[locale] ?? RUNTIMES[SOURCE_LOCALE];
 }
 
-export function translate(section: string, field: string, locale: string, params?: Record<string, any>) {
+/* Render one declared string by its export name (its identity within
+ * the merged declaration surface; the owning domain is the declaration
+ * file it lives in). A miss surfaces the name instead of a silent
+ * blank, matching the legacy key-miss behavior. */
+export function translate(name: string, locale: string, params?: Record<string, any>) {
   if (i18nProbe.enabled) {
-    const k = section + '.' + field;
-    i18nProbe.counts.set(k, (i18nProbe.counts.get(k) || 0) + 1);
+    i18nProbe.counts.set(name, (i18nProbe.counts.get(name) || 0) + 1);
   }
-  const fn = STRING_FNS[section + '.' + field];
-  if (!fn) return section + '.' + field; // catalog miss: surface the key instead of silent blank
+  const fn = STRING_FNS[name];
+  if (!fn) return name; // catalog miss: surface the name instead of silent blank
   const rt = RUNTIMES[locale] ?? RUNTIMES[SOURCE_LOCALE];
   return fn(rt.fbs as FbsRuntime, params);
+}
+
+/* Business-error copy by stable code (the errors section). Codes are
+ * dynamic by design (they double as the API's error vocabulary); the
+ * declaration for code <c> is the export errors_<c>. */
+export function translateError(code: string, locale: string, params?: Record<string, any>) {
+  return translate('errors_' + code, locale, params);
 }

@@ -113,7 +113,7 @@ export class GroupingShell extends ShellBase {
         const r = rows[i];
         seats.push(r ? {
           index: i, nickname: r.nickname, weapon: enSectName(this.locale, r.weapon),
-          role: r.role === '奶' || r.role === '治疗' ? this.t('seat', 'roleHealer') : this.t('seat', 'roleDps'),
+          role: r.role === '奶' || r.role === '治疗' ? this.t('seat_roleHealer') : this.t('seat_roleDps'),
           uid: r.uid, occupied: true,
           ready: !!r.ready_at,
           mine: !!(myId && r.discord_id && String(r.discord_id) === myId),
@@ -223,10 +223,10 @@ export class GroupingTemplateShell extends ShellBase {
     const verdict = await getGroupingManageVerdict(this.db, this.ctx.user, this.ctx.request, this.vc, this.row);
     if (!verdict.canManage) return null;
     return {
-      editLabel: this.t('groupingTemplate', 'edit'),
-      deleteLabel: this.t('groupingTemplate', 'delete'),
-      deleteConfirmTitle: this.t('groupingTemplate', 'deleteConfirmTitle'),
-      deleteConfirmMessageTemplate: this.t('groupingTemplate', 'deleteConfirmMessage'),
+      editLabel: this.t('groupingTemplate_edit'),
+      deleteLabel: this.t('groupingTemplate_delete'),
+      deleteConfirmTitle: this.t('groupingTemplate_deleteConfirmTitle'),
+      deleteConfirmMessageTemplate: this.t('groupingTemplate_deleteConfirmMessage'),
     };
   }
 }
@@ -314,7 +314,7 @@ export class GroupingListPageShell extends ShellBase {
       });
       if (!inWeek.length) {
         blocks.push(new EmptyStateBlockShell(this.ctx, {
-          textRef: access.canWrite ? ['groupingList', 'emptyInteractive'] : ['groupingList', 'emptyReadonly'],
+          textRef: access.canWrite ? ['groupingList_emptyInteractive'] : ['groupingList_emptyReadonly'],
         }));
       } else {
         // Grouped by natural day in the viewer's local timezone within one
@@ -327,8 +327,8 @@ export class GroupingListPageShell extends ShellBase {
         for (const group of groupByLocalDay(items, this.ctx.tz)) {
           const p = group.parts;
           blocks.push(new SectionHeaderBlockShell(this.ctx, {
-            text: this.t('groupingList', 'dayGroupHeader', {
-              month: p.month, day: p.day, weekday: this.t('groupingList', 'weekday' + p.weekday),
+            text: this.t('groupingList_dayGroupHeader', {
+              month: p.month, day: p.day, weekday: this.t('groupingList_weekday' + p.weekday),
             }),
           }));
           for (const { g } of group.items) {
@@ -362,7 +362,7 @@ export class GroupingListPageShell extends ShellBase {
   }
   // Weekday short names (index 0 = Sunday, aligned with JS getDay and the server's localDayParts): fills the {weekday} slot in web group-header templates; the whole table is generated per locale.
   genWeekdayNames(){
-    return this.memo('weekdayNames', () => [0, 1, 2, 3, 4, 5, 6].map((i: any) => this.t('groupingList', 'weekday' + i)));
+    return this.memo('weekdayNames', () => [0, 1, 2, 3, 4, 5, 6].map((i: any) => this.t('groupingList_weekday' + i)));
   }
   genCurrentVersion(){
     return this.ctxMemo('gameVersion', () => getGameVersion(this.db));
@@ -380,41 +380,41 @@ export { FORM_TEXT_SPEC, TYPE_SHORT_SPEC };
 // shell like the form* fields; the per-template edit/delete labels ride
 // the template's own manageActions object instead).
 export const TEMPLATE_TEXT_SPEC = [
-  ['templateSectionTitle', 'groupingTemplate', 'sectionTitle'],
-  ['templateNameLabel', 'groupingTemplate', 'nameLabel'],
-  ['templateNamePlaceholder', 'groupingTemplate', 'namePlaceholder'],
-  ['templateSaveLabel', 'groupingTemplate', 'saveFromForm'],
-  ['templateUpdateLabel', 'groupingTemplate', 'updateSubmit'],
-  ['templateEditingNoticeTemplate', 'groupingTemplate', 'editingNotice'],
-  ['templateCancelEditLabel', 'groupingTemplate', 'cancelEdit'],
-  ['templateEmptyText', 'groupingTemplate', 'empty'],
-  ['templateWhenTodayTemplate', 'groupingTemplate', 'whenToday'],
-  ['templateWhenTomorrowTemplate', 'groupingTemplate', 'whenTomorrow'],
-  ['templateWhenDaysTemplate', 'groupingTemplate', 'whenDays'],
-  ['templateToastSaved', 'groupingTemplate', 'toastSaved'],
-  ['templateToastSaveFailedTemplate', 'groupingTemplate', 'toastSaveFailed'],
-  ['templateToastDeleted', 'groupingTemplate', 'toastDeleted'],
-  ['templateToastDeleteFailedTemplate', 'groupingTemplate', 'toastDeleteFailed'],
-  ['templateMetaTemplate', 'groupingTemplate', 'metaTemplate'],
+  ['templateSectionTitle', 'groupingTemplate_sectionTitle'],
+  ['templateNameLabel', 'groupingTemplate_nameLabel'],
+  ['templateNamePlaceholder', 'groupingTemplate_namePlaceholder'],
+  ['templateSaveLabel', 'groupingTemplate_saveFromForm'],
+  ['templateUpdateLabel', 'groupingTemplate_updateSubmit'],
+  ['templateEditingNoticeTemplate', 'groupingTemplate_editingNotice'],
+  ['templateCancelEditLabel', 'groupingTemplate_cancelEdit'],
+  ['templateEmptyText', 'groupingTemplate_empty'],
+  ['templateWhenTodayTemplate', 'groupingTemplate_whenToday'],
+  ['templateWhenTomorrowTemplate', 'groupingTemplate_whenTomorrow'],
+  ['templateWhenDaysTemplate', 'groupingTemplate_whenDays'],
+  ['templateToastSaved', 'groupingTemplate_toastSaved'],
+  ['templateToastSaveFailedTemplate', 'groupingTemplate_toastSaveFailed'],
+  ['templateToastDeleted', 'groupingTemplate_toastDeleted'],
+  ['templateToastDeleteFailedTemplate', 'groupingTemplate_toastDeleteFailed'],
+  ['templateMetaTemplate', 'groupingTemplate_metaTemplate'],
 ];
 export const LIST_TEXT_RESOLVERS = {
   ...defineTextGens(GroupingListPageShell, [
-    ['tabActivityLabel', 'groupingType', 'tabActivity'],
-    ['tabTalentLabel', 'groupingType', 'tabTalent'],
-    ['tabRaceLabel', 'groupingType', 'tabRace'],
-    ['tabTowerLabel', 'groupingType', 'tabTower'],
+    ['tabActivityLabel', 'groupingType_tabActivity'],
+    ['tabTalentLabel', 'groupingType_tabTalent'],
+    ['tabRaceLabel', 'groupingType_tabRace'],
+    ['tabTowerLabel', 'groupingType_tabTower'],
     ...TYPE_SHORT_SPEC,
-    ['prevWeekLabel', 'groupingList', 'prevWeek'],
-    ['nextWeekLabel', 'groupingList', 'nextWeek'],
-    ['weekHeaderTemplate', 'groupingList', 'weekHeader'],
-    ['dayGroupHeaderTemplate', 'groupingList', 'dayGroupHeader'],
-    ['undatedGroupLabel', 'groupingList', 'undatedGroup'],
-    ['emptyInteractiveText', 'groupingList', 'emptyInteractive'],
-    ['emptyReadonlyText', 'groupingList', 'emptyReadonly'],
-    ['statusOpenLabel', 'groupingList', 'statusOpen'],
-    ['peopleTemplate', 'groupingList', 'people'],
-    ['newCarLabel', 'groupingList', 'newCar'],
-    ['sealText', 'groupingList', 'seal'],
+    ['prevWeekLabel', 'groupingList_prevWeek'],
+    ['nextWeekLabel', 'groupingList_nextWeek'],
+    ['weekHeaderTemplate', 'groupingList_weekHeader'],
+    ['dayGroupHeaderTemplate', 'groupingList_dayGroupHeader'],
+    ['undatedGroupLabel', 'groupingList_undatedGroup'],
+    ['emptyInteractiveText', 'groupingList_emptyInteractive'],
+    ['emptyReadonlyText', 'groupingList_emptyReadonly'],
+    ['statusOpenLabel', 'groupingList_statusOpen'],
+    ['peopleTemplate', 'groupingList_people'],
+    ['newCarLabel', 'groupingList_newCar'],
+    ['sealText', 'groupingList_seal'],
     ...FORM_TEXT_SPEC,
     ...TEMPLATE_TEXT_SPEC,
   ]),
@@ -451,16 +451,16 @@ export class GroupingDetailPageShell extends ShellBase {
     const verdict = await this.genManageVerdict();
     if (!verdict.canManage) return null;
     return {
-      editLabel: this.t('groupingDetail', 'edit'),
-      completeLabel: this.t('groupingDetail', 'complete'),
-      completingLabel: this.t('groupingDetail', 'completing'),
-      restoreLabel: this.t('groupingDetail', 'restore'),
-      disbandLabel: this.t('groupingDetail', 'disband'),
-      disbandingLabel: this.t('groupingDetail', 'disbanding'),
-      disbandConfirmTitle: this.t('groupingDetail', 'disbandConfirmTitle'),
-      disbandConfirmMessageTemplate: this.t('groupingDetail', 'disbandConfirmMessage'),
-      completeConfirmTitle: this.t('groupingDetail', 'completeConfirmTitle'),
-      completeConfirmMessageTemplate: this.t('groupingDetail', 'completeConfirmMessage'),
+      editLabel: this.t('groupingDetail_edit'),
+      completeLabel: this.t('groupingDetail_complete'),
+      completingLabel: this.t('groupingDetail_completing'),
+      restoreLabel: this.t('groupingDetail_restore'),
+      disbandLabel: this.t('groupingDetail_disband'),
+      disbandingLabel: this.t('groupingDetail_disbanding'),
+      disbandConfirmTitle: this.t('groupingDetail_disbandConfirmTitle'),
+      disbandConfirmMessageTemplate: this.t('groupingDetail_disbandConfirmMessage'),
+      completeConfirmTitle: this.t('groupingDetail_completeConfirmTitle'),
+      completeConfirmMessageTemplate: this.t('groupingDetail_completeConfirmMessage'),
     };
   }
   // Save-as-template action set: composed only for viewers who may
@@ -473,12 +473,12 @@ export class GroupingDetailPageShell extends ShellBase {
       const access = await getGuildAccess(this.db, this.ctx.user, this.data.tenant, this.ctx.request);
       if (!access.canWrite) return null;
       return {
-        buttonLabel: this.t('groupingTemplate', 'saveButton'),
-        dialogTitle: this.t('groupingTemplate', 'saveDialogTitle'),
-        nameLabel: this.t('groupingTemplate', 'nameLabel'),
-        submitLabel: this.t('groupingTemplate', 'saveSubmit'),
-        toastSaved: this.t('groupingTemplate', 'toastSavedFromCar'),
-        toastFailedTemplate: this.t('groupingTemplate', 'toastSaveFailed'),
+        buttonLabel: this.t('groupingTemplate_saveButton'),
+        dialogTitle: this.t('groupingTemplate_saveDialogTitle'),
+        nameLabel: this.t('groupingTemplate_nameLabel'),
+        submitLabel: this.t('groupingTemplate_saveSubmit'),
+        toastSaved: this.t('groupingTemplate_toastSavedFromCar'),
+        toastFailedTemplate: this.t('groupingTemplate_toastSaveFailed'),
       };
     });
   }
@@ -552,13 +552,13 @@ export class GroupingDetailPageShell extends ShellBase {
       }));
       blocks.push(new TextBlockShell(this.ctx, {
         variant: 'muted',
-        textRef: ev.status === 'completed' ? ['groupingDetail', 'completedHint']
-          : access.canWrite ? ['groupingDetail', 'openHint'] : ['groupingDetail', 'readonlyHint'],
+        textRef: ev.status === 'completed' ? ['groupingDetail_completedHint']
+          : access.canWrite ? ['groupingDetail_openHint'] : ['groupingDetail_readonlyHint'],
       }));
       blocks.push(new SectionBlockShell(this.ctx, {
         title: null,
         children: [
-          new SectionHeaderBlockShell(this.ctx, { textRef: ['appBlocks', 'rosterTitle'] }),
+          new SectionHeaderBlockShell(this.ctx, { textRef: ['appBlocks_rosterTitle'] }),
           new SeatGridBlockShell(this.ctx, { entries }),
         ],
       }));
@@ -568,22 +568,22 @@ export class GroupingDetailPageShell extends ShellBase {
         if (ev.status === 'completed') {
           // Completed: only the reopen entry is offered (edit/disband/complete are no longer sent).
           blocks.push(new ActionButtonBlockShell(this.ctx, {
-            labelRef: ['groupingDetail', 'restore'], style: 'ghost',
+            labelRef: ['groupingDetail_restore'], style: 'ghost',
             action: new UncompleteActionShell(this.ctx, { groupingId: String(ev.id) }),
           }));
         } else {
           blocks.push(new ActionButtonBlockShell(this.ctx, {
-            labelRef: ['groupingDetail', 'edit'], style: 'ghost',
+            labelRef: ['groupingDetail_edit'], style: 'ghost',
             action: new EditActionShell(this.ctx, { groupingId: String(ev.id) }),
           }));
           blocks.push(new SpacerBlockShell(this.ctx, { size: 10 }));
           blocks.push(new ActionButtonBlockShell(this.ctx, {
-            labelRef: ['groupingDetail', 'complete'], style: 'ghost',
+            labelRef: ['groupingDetail_complete'], style: 'ghost',
             action: new CompleteActionShell(this.ctx, { groupingId: String(ev.id), title: ev.title }),
           }));
           blocks.push(new SpacerBlockShell(this.ctx, { size: 10 }));
           blocks.push(new ActionButtonBlockShell(this.ctx, {
-            labelRef: ['groupingDetail', 'disband'], style: 'danger',
+            labelRef: ['groupingDetail_disband'], style: 'danger',
             action: new DisbandActionShell(this.ctx, { groupingId: String(ev.id), title: ev.title }),
           }));
         }
@@ -595,69 +595,69 @@ export class GroupingDetailPageShell extends ShellBase {
 
 export const DETAIL_TEXT_RESOLVERS = {
   ...defineTextGens(GroupingDetailPageShell, [
-    ['detailNotFoundText', 'groupingDetail', 'notFound'],
-    ['detailBackToListLabel', 'groupingDetail', 'backToList'],
-    ['detailShareLabel', 'groupingDetail', 'share'],
-    ['detailEditLabel', 'groupingDetail', 'edit'],
-    ['detailDisbandLabel', 'groupingDetail', 'disband'],
-    ['detailDisbandingLabel', 'groupingDetail', 'disbanding'],
-    ['detailStatusOpenLabel', 'groupingDetail', 'statusOpen'],
-    ['detailPeopleTemplate', 'groupingDetail', 'people'],
-    ['detailOpenHint', 'groupingDetail', 'openHint'],
-    ['detailReadonlyHint', 'groupingDetail', 'readonlyHint'],
-    ['detailToastDisbanded', 'groupingDetail', 'toastDisbanded'],
-    ['detailToastDisbandFailedTemplate', 'groupingDetail', 'toastDisbandFailed'],
-    ['detailCompleteLabel', 'groupingDetail', 'complete'],
-    ['detailCompletingLabel', 'groupingDetail', 'completing'],
-    ['detailStatusCompletedLabel', 'groupingDetail', 'statusCompleted'],
-    ['detailRestoreLabel', 'groupingDetail', 'restore'],
-    ['detailCompleteConfirmTitle', 'groupingDetail', 'completeConfirmTitle'],
-    ['detailCompleteConfirmMessageTemplate', 'groupingDetail', 'completeConfirmMessage'],
-    ['detailToastCompleted', 'groupingDetail', 'toastCompleted'],
-    ['detailToastCompleteFailedTemplate', 'groupingDetail', 'toastCompleteFailed'],
-    ['detailToastRestored', 'groupingDetail', 'toastRestored'],
-    ['detailToastRestoreFailedTemplate', 'groupingDetail', 'toastRestoreFailed'],
-    ['detailCompletedHint', 'groupingDetail', 'completedHint'],
-    ['detailLinkCopied', 'groupingDetail', 'linkCopied'],
-    ['detailCopyFailedManual', 'groupingDetail', 'copyFailedManual'],
-    ['detailDisbandConfirmTitle', 'groupingDetail', 'disbandConfirmTitle'],
-    ['detailDisbandConfirmMessageTemplate', 'groupingDetail', 'disbandConfirmMessage'],
-    ['confirmOkLabel', 'common', 'confirm'],
-    ['confirmCancelLabel', 'common', 'cancel'],
+    ['detailNotFoundText', 'groupingDetail_notFound'],
+    ['detailBackToListLabel', 'groupingDetail_backToList'],
+    ['detailShareLabel', 'groupingDetail_share'],
+    ['detailEditLabel', 'groupingDetail_edit'],
+    ['detailDisbandLabel', 'groupingDetail_disband'],
+    ['detailDisbandingLabel', 'groupingDetail_disbanding'],
+    ['detailStatusOpenLabel', 'groupingDetail_statusOpen'],
+    ['detailPeopleTemplate', 'groupingDetail_people'],
+    ['detailOpenHint', 'groupingDetail_openHint'],
+    ['detailReadonlyHint', 'groupingDetail_readonlyHint'],
+    ['detailToastDisbanded', 'groupingDetail_toastDisbanded'],
+    ['detailToastDisbandFailedTemplate', 'groupingDetail_toastDisbandFailed'],
+    ['detailCompleteLabel', 'groupingDetail_complete'],
+    ['detailCompletingLabel', 'groupingDetail_completing'],
+    ['detailStatusCompletedLabel', 'groupingDetail_statusCompleted'],
+    ['detailRestoreLabel', 'groupingDetail_restore'],
+    ['detailCompleteConfirmTitle', 'groupingDetail_completeConfirmTitle'],
+    ['detailCompleteConfirmMessageTemplate', 'groupingDetail_completeConfirmMessage'],
+    ['detailToastCompleted', 'groupingDetail_toastCompleted'],
+    ['detailToastCompleteFailedTemplate', 'groupingDetail_toastCompleteFailed'],
+    ['detailToastRestored', 'groupingDetail_toastRestored'],
+    ['detailToastRestoreFailedTemplate', 'groupingDetail_toastRestoreFailed'],
+    ['detailCompletedHint', 'groupingDetail_completedHint'],
+    ['detailLinkCopied', 'groupingDetail_linkCopied'],
+    ['detailCopyFailedManual', 'groupingDetail_copyFailedManual'],
+    ['detailDisbandConfirmTitle', 'groupingDetail_disbandConfirmTitle'],
+    ['detailDisbandConfirmMessageTemplate', 'groupingDetail_disbandConfirmMessage'],
+    ['confirmOkLabel', 'common_confirm'],
+    ['confirmCancelLabel', 'common_cancel'],
     ...TYPE_SHORT_SPEC,
-    ['seatEmptyJoinLabel', 'seat', 'emptyJoin'],
-    ['seatEmptyLabel', 'seat', 'empty'],
-    ['seatModalTitleTemplate', 'seat', 'modalTitle'],
-    ['seatModalSubtitle', 'seat', 'modalSubtitle'],
-    ['seatNameLabel', 'seat', 'nameLabel'],
-    ['seatNamePlaceholder', 'seat', 'namePlaceholder'],
-    ['seatNameRequired', 'seat', 'nameRequired'],
-    ['seatSelfTabLabel', 'seat', 'selfTab'],
-    ['seatProxyTabLabel', 'seat', 'proxyTab'],
-    ['seatSelfNameHint', 'seat', 'selfNameHint'],
-    ['seatProxySearchPlaceholder', 'seat', 'proxySearchPlaceholder'],
-    ['seatProxyPickRequired', 'seat', 'proxyPickRequired'],
-    ['seatProxyEmptyText', 'seat', 'proxyEmpty'],
-    ['seatSectLabel', 'seat', 'sectLabel'],
-    ['seatCancelLabel', 'common', 'cancel'],
-    ['seatConfirmJoinLabel', 'seat', 'confirmJoin'],
-    ['seatJoiningLabel', 'seat', 'joining'],
-    ['seatLeaderLabel', 'seat', 'leader'],
-    ['seatToastSect', 'seat', 'toastSect'],
-    ['seatToastJoined', 'seat', 'toastJoined'],
-    ['seatToastJoinFailedTemplate', 'seat', 'toastJoinFailed'],
-    ['seatToastLeft', 'seat', 'toastLeft'],
-    ['seatToastLeaveFailedTemplate', 'seat', 'toastLeaveFailed'],
-    ['detailReadyProgressTemplate', 'groupingDetail', 'readyProgress'],
-    ['rosterAnswersTitle', 'groupingDetail', 'rosterAnswersTitle'],
-    ['seatReadyLabel', 'seat', 'readyMark'],
-    ['seatReadyActionLabel', 'seat', 'readyAction'],
-    ['seatUnreadyActionLabel', 'seat', 'unreadyAction'],
-    ['seatToastReady', 'seat', 'toastReady'],
-    ['seatToastUnready', 'seat', 'toastUnready'],
-    ['seatToastReadyFailedTemplate', 'seat', 'toastReadyFailed'],
-    ['seatLeaveConfirmTitle', 'seat', 'leaveConfirmTitle'],
-    ['seatLeaveConfirmMessageTemplate', 'seat', 'leaveConfirmMessage'],
+    ['seatEmptyJoinLabel', 'seat_emptyJoin'],
+    ['seatEmptyLabel', 'seat_empty'],
+    ['seatModalTitleTemplate', 'seat_modalTitle'],
+    ['seatModalSubtitle', 'seat_modalSubtitle'],
+    ['seatNameLabel', 'seat_nameLabel'],
+    ['seatNamePlaceholder', 'seat_namePlaceholder'],
+    ['seatNameRequired', 'seat_nameRequired'],
+    ['seatSelfTabLabel', 'seat_selfTab'],
+    ['seatProxyTabLabel', 'seat_proxyTab'],
+    ['seatSelfNameHint', 'seat_selfNameHint'],
+    ['seatProxySearchPlaceholder', 'seat_proxySearchPlaceholder'],
+    ['seatProxyPickRequired', 'seat_proxyPickRequired'],
+    ['seatProxyEmptyText', 'seat_proxyEmpty'],
+    ['seatSectLabel', 'seat_sectLabel'],
+    ['seatCancelLabel', 'common_cancel'],
+    ['seatConfirmJoinLabel', 'seat_confirmJoin'],
+    ['seatJoiningLabel', 'seat_joining'],
+    ['seatLeaderLabel', 'seat_leader'],
+    ['seatToastSect', 'seat_toastSect'],
+    ['seatToastJoined', 'seat_toastJoined'],
+    ['seatToastJoinFailedTemplate', 'seat_toastJoinFailed'],
+    ['seatToastLeft', 'seat_toastLeft'],
+    ['seatToastLeaveFailedTemplate', 'seat_toastLeaveFailed'],
+    ['detailReadyProgressTemplate', 'groupingDetail_readyProgress'],
+    ['rosterAnswersTitle', 'groupingDetail_rosterAnswersTitle'],
+    ['seatReadyLabel', 'seat_readyMark'],
+    ['seatReadyActionLabel', 'seat_readyAction'],
+    ['seatUnreadyActionLabel', 'seat_unreadyAction'],
+    ['seatToastReady', 'seat_toastReady'],
+    ['seatToastUnready', 'seat_toastUnready'],
+    ['seatToastReadyFailedTemplate', 'seat_toastReadyFailed'],
+    ['seatLeaveConfirmTitle', 'seat_leaveConfirmTitle'],
+    ['seatLeaveConfirmMessageTemplate', 'seat_leaveConfirmMessage'],
     ...FORM_TEXT_SPEC,
   ]),
 };
