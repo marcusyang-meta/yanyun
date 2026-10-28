@@ -90,7 +90,7 @@ export function neededRoles(maxSlots: number): string[] {
 export function scoreTeamCandidate(f: MemberFacts, uncovered: string[]): { score: number; reasons: AdviceReason[] } {
   const reasons: AdviceReason[] = [];
   let roleScore = 10;
-  if (f.role && uncovered.includes(f.role)) { roleScore = 40; reasons.push({ key: 'roleNeeded', params: { role: f.role } }); }
+  if (f.role && uncovered.includes(f.role)) { roleScore = f.role === '奶' ? 50 : 40; reasons.push({ key: 'roleNeeded', params: { role: f.role } }); }
   else if (f.role === '随意') { roleScore = 25; reasons.push({ key: 'roleFlex', params: {} }); }
   else if (f.role) { roleScore = 15; reasons.push({ key: 'roleCovered', params: { role: f.role } }); }
   else reasons.push({ key: 'roleUnknown', params: {} });

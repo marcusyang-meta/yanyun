@@ -144,10 +144,9 @@ export class SchedulingBestSlotsShell extends ShellBase {
 export async function composeBestSlotsAdvice(ctx: Context, slug: string): Promise<any> {
   const db = ctx.env.DB;
   const user = ctx.user;
-  if (!user) return null;
   const admin = await getGuildAdminAccess(db, user, slug, ctx.request, vcOf(ctx));
   let allowed = !!admin.isAdmin;
-  if (!allowed) allowed = await hasEventsByTenantCreator(db, slug, String(user.discordId));
+  if (!allowed && user) allowed = await hasEventsByTenantCreator(db, slug, String(user.discordId));
   if (!allowed) return null;
   if (await tierLocked(db, slug, SCHEDULING_REQUIRED_TIER)) {
     return new SchedulingAdviceLockedShell(ctx, {});
@@ -178,10 +177,9 @@ export class SchedulingCrossCarShell extends ShellBase {
 export async function composeCrossCarAdvice(ctx: Context, slug: string): Promise<any> {
   const db = ctx.env.DB;
   const user = ctx.user;
-  if (!user) return null;
   const admin = await getGuildAdminAccess(db, user, slug, ctx.request, vcOf(ctx));
   let allowed = !!admin.isAdmin;
-  if (!allowed) allowed = await hasEventsByTenantCreator(db, slug, String(user.discordId));
+  if (!allowed && user) allowed = await hasEventsByTenantCreator(db, slug, String(user.discordId));
   if (!allowed) return null;
   if (await tierLocked(db, slug, SCHEDULING_REQUIRED_TIER)) {
     return new SchedulingAdviceLockedShell(ctx, {});
@@ -251,7 +249,7 @@ export const schedulingAdviceResolvers = {
       const now = Math.floor(Date.now() / 1000);
       const ranked = rankRotation(applicants, now);
       await insertRotationAdviceRecord(db, {
-        tenant: ev.tenant, eventId: ev.id, createdBy: String(ctx.user!.discordId), createdAt: now,
+        tenant: ev.tenant, eventId: ev.id, createdBy: ctx.user ? String(ctx.user.discordId) : 'omni', createdAt: now,
         adviceJson: JSON.stringify(ranked.map((r) => ({ discordId: r.facts.discordId, displayName: r.facts.displayName, score: r.score, reasonKeys: r.reasons.map((x) => x.key) }))),
       });
       return new SchedulingAdvicePayloadShell(ctx, { ok: true });
