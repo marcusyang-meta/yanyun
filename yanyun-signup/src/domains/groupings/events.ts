@@ -103,6 +103,37 @@ export async function getEventTenant(d1: D1Database, id: number): Promise<{ id: 
   return row ?? null;
 }
 
+/* Creator-backfill scan (platform admin one-off): every event's
+ * identity columns, oldest first. The matching policy lives in the
+ * caller (platform/admin-backfills.ts); this is the data access the
+ * retired /api/hub/events/backfill-creators handler used to hand-roll
+ * against the raw binding. */
+export interface EventCreatorScanRow {
+  id: number; tenant: string; created_by: string; creator_discord_id: string | null;
+}
+
+export async function listEventsForCreatorBackfill(d1: D1Database): Promise<EventCreatorScanRow[]> {
+  const db = createDb(d1);
+  const rows = await db.all<EventCreatorScanRow>(
+    sql`SELECT ${col('id')}, ${col('tenant')}, ${col('created_by')}, ${col('creator_discord_id')}
+        FROM ${events} ORDER BY ${col('id')} ASC`,
+  );
+  return rows || [];
+}
+
+/* Stamp creators resolved by the backfill. Each update stays
+ * conditional on the creator still being empty, so a concurrent
+ * stamp (or a re-run) can never overwrite a recorded creator. */
+export async function stampEventCreators(
+  d1: D1Database,
+  updates: Array<{ discordId: string; eventId: number }>,
+): Promise<void> {
+  if (!updates.length) return;
+  await d1.batch(updates.map(({ discordId, eventId }) => d1.prepare(
+    "UPDATE events SET creator_discord_id = ? WHERE id = ? AND (creator_discord_id IS NULL OR creator_discord_id = '')",
+  ).bind(discordId, eventId)));
+}
+
 /* REST weekly list: signup_count computed column; type/from/to are
  * optional filters assembled here. Ordering preserved: open first,
  * timeless last, newest first within a group. */

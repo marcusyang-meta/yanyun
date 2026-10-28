@@ -64,6 +64,7 @@ import {
   CreateGuildPayloadShell, UpdateLocalePayloadShell, uFail, gFail, sFail, dFail, cFail,
 } from '../platform/graphql-base.ts';
 import { guildResult, guildAdminResult, homeRecruitResult, fillMarketResult, guildAlliesResult } from '../guilds/index.ts';
+import { platformAdminResult } from '../platform/index.ts';
 import { touchGuildRoster } from '../groupings/index.ts';
 
 export async function identityNamesFor(db: any, discordId: any, dgid: any) {
@@ -164,6 +165,13 @@ export class ViewerShell extends ShellBase {
   async genGuildAdmin({ slug }: any){
     // Admin surface: the GuildAdmin / GuildAdminLocked type is the verdict.
     return guildAdminResult(this.ctx, slug);
+  }
+  async genPlatformAdmin(){
+    // Platform admin surface: the platform domain composes the
+    // PlatformAdmin / PlatformAdminLocked verdict by evaluating the
+    // gating-layer admin gate with this viewer as subject (the VC
+    // itself carries identity only, no verdict is stamped here).
+    return platformAdminResult(this.ctx);
   }
   async genFillMarket({ slug }: any){
     // Fill-in market page (P19): the guilds domain composes the
@@ -540,6 +548,7 @@ export const identityResolvers = {
     publicGuilds: (p: any) => p.genPublicGuilds(),
     guild: (p: any, { slug }: any) => p.genGuild({ slug }),
     guildAdmin: (p: any, { slug }: any) => p.genGuildAdmin({ slug }),
+    platformAdmin: (p: any) => p.genPlatformAdmin(),
     homeRecruit: (p: any) => p.genHomeRecruit(),
     fillMarket: (p: any, { slug }: any) => p.genFillMarket({ slug }),
     guildAllies: (p: any, { slug }: any) => p.genGuildAllies({ slug }),

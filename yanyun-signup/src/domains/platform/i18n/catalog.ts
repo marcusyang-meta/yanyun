@@ -4432,6 +4432,39 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "fr": "Seuls les administrateurs du serveur lié peuvent faire cela",
       "zh-TW": "只有所綁伺服器的管理員可以執行此操作"
     },
+    "platformAdminRequired": {
+      "zh-CN": "需要平台超管权限"
+    },
+    "tierInvalid": {
+      "zh-CN": "档位无效"
+    },
+    "feedbackNotFound": {
+      "zh-CN": "反馈不存在"
+    },
+    "bossNameRequired": {
+      "zh-CN": "首领名不能为空"
+    },
+    "webhookFormatInvalid": {
+      "zh-CN": "Webhook URL 格式不对（应为 https://discord.com/api/webhooks/...）"
+    },
+    "webhookNotConfigured": {
+      "zh-CN": "尚未配置 Webhook URL"
+    },
+    "subdomainTrialCardRequired": {
+      "zh-CN": "该百业处于试用期且未登记支付方式：启用平台子域名前需先登记卡（试用期启用持久化功能需绑卡）"
+    },
+    "backupStorageMissing": {
+      "zh-CN": "备份存储（R2 BACKUPS 绑定）未配置"
+    },
+    "backupNotFound": {
+      "zh-CN": "备份不存在"
+    },
+    "badParams": {
+      "zh-CN": "参数不正确"
+    },
+    "testSendFailed": {
+      "zh-CN": "测试发送失败"
+    },
     "noCandidates": {
       "zh-CN": "没有符合条件的成员可发送"
     },
@@ -8125,6 +8158,227 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-CN": "删除私密区留言",
       "en": "Delete officer board post",
       "zh-TW": "刪除私密區留言"
+    }
+  },
+  "platformAdmin": {
+    "entryLabel": {
+      "zh-CN": "平台管理"
+    },
+    "title": {
+      "zh-CN": "平台管理"
+    },
+    "subtitle": {
+      "zh-CN": "平台运营面：百业、计费、图鉴、配置与审计。原 hub 门户已并入主站，超管判定由平台 gate 在服务端求值。"
+    },
+    "lockedTitle": {
+      "zh-CN": "需要平台超管权限"
+    },
+    "lockedBody": {
+      "zh-CN": "这个页面只对平台超管开放。超管名单由平台 gate 在服务端求值，你的账号不在名单内，所以这里不会下发任何管理数据。"
+    },
+    "tenantsTitle": {
+      "zh-CN": "百业列表"
+    },
+    "tenantsEmpty": {
+      "zh-CN": "暂无百业"
+    },
+    "billingTitle": {
+      "zh-CN": "计费与权益"
+    },
+    "paygateLabel": {
+      "zh-CN": "付费总闸 (paygate)"
+    },
+    "paygateOnText": {
+      "zh-CN": "已开启"
+    },
+    "paygateOffText": {
+      "zh-CN": "已关闭"
+    },
+    "stripeLabel": {
+      "zh-CN": "Stripe"
+    },
+    "stripeConfiguredText": {
+      "zh-CN": "已配置"
+    },
+    "stripeMissingText": {
+      "zh-CN": "未配置（密钥或价格缺失）"
+    },
+    "saasLabel": {
+      "zh-CN": "自定义域名 SaaS"
+    },
+    "saasConfiguredText": {
+      "zh-CN": "已接入"
+    },
+    "saasMissingText": {
+      "zh-CN": "未接入"
+    },
+    "plansTitle": {
+      "zh-CN": "价格档位"
+    },
+    "billingTenantsTitle": {
+      "zh-CN": "各百业权益"
+    },
+    "errorsTitle": {
+      "zh-CN": "错误日志"
+    },
+    "errorsEmpty": {
+      "zh-CN": "暂无错误记录"
+    },
+    "auditTitle": {
+      "zh-CN": "操作审计"
+    },
+    "auditEmpty": {
+      "zh-CN": "暂无审计记录"
+    },
+    "feedbackTitle": {
+      "zh-CN": "用户反馈"
+    },
+    "feedbackEmpty": {
+      "zh-CN": "暂无反馈"
+    },
+    "settingsTitle": {
+      "zh-CN": "平台设置"
+    },
+    "gameVersionLabel": {
+      "zh-CN": "游戏版本"
+    },
+    "gameNoticeLabel": {
+      "zh-CN": "游戏公告"
+    },
+    "gameVersionCodeLabel": {
+      "zh-CN": "版本号 (version code)"
+    },
+    "bossesTitle": {
+      "zh-CN": "首领图鉴"
+    },
+    "bossesEmpty": {
+      "zh-CN": "暂无首领"
+    },
+    "dungeonsTitle": {
+      "zh-CN": "副本图鉴"
+    },
+    "dungeonsEmpty": {
+      "zh-CN": "暂无副本"
+    },
+    "remindersTitle": {
+      "zh-CN": "开车提醒配置"
+    },
+    "remindersEmpty": {
+      "zh-CN": "暂无百业"
+    },
+    "heirloomsTitle": {
+      "zh-CN": "传家宝推送配置"
+    },
+    "heirloomsEmpty": {
+      "zh-CN": "暂无百业"
+    },
+    "backupsTitle": {
+      "zh-CN": "数据备份"
+    },
+    "backupsEmpty": {
+      "zh-CN": "暂无备份文件"
+    },
+    "backupsUnavailableText": {
+      "zh-CN": "备份存储（R2 BACKUPS 绑定）未配置"
+    },
+    "rosterTitle": {
+      "zh-CN": "平台超管名单"
+    },
+    "rosterNote": {
+      "zh-CN": "名单按 Discord 用户 ID 在 gate 层求值；环境变量 PLATFORM_ADMIN_DISCORD_IDS 的引导名单始终有效，不在此列出。修改即时生效并写入审计。"
+    },
+    "backfillsTitle": {
+      "zh-CN": "一次性回填工具"
+    },
+    "saveLabel": {
+      "zh-CN": "保存"
+    },
+    "testLabel": {
+      "zh-CN": "发送测试"
+    },
+    "runLabel": {
+      "zh-CN": "执行"
+    },
+    "dryRunLabel": {
+      "zh-CN": "仅试运行（不写库）"
+    },
+    "deleteTenantLabel": {
+      "zh-CN": "删除百业"
+    },
+    "grantLabel": {
+      "zh-CN": "授予"
+    },
+    "revokeLabel": {
+      "zh-CN": "撤销"
+    },
+    "subdomainLabel": {
+      "zh-CN": "平台子域名"
+    },
+    "customDomainLabel": {
+      "zh-CN": "自定义域名"
+    },
+    "enabledText": {
+      "zh-CN": "已启用"
+    },
+    "disabledText": {
+      "zh-CN": "已禁用"
+    },
+    "webhookSetText": {
+      "zh-CN": "Webhook 已配置"
+    },
+    "webhookUnsetText": {
+      "zh-CN": "Webhook 未配置"
+    },
+    "runBackupLabel": {
+      "zh-CN": "立即备份"
+    },
+    "downloadLabel": {
+      "zh-CN": "下载"
+    },
+    "exportLabel": {
+      "zh-CN": "导出备份 JSON"
+    },
+    "backfillReminderIdentityLabel": {
+      "zh-CN": "回填提醒身份（名册+座位戳）"
+    },
+    "backfillCreatorsLabel": {
+      "zh-CN": "回填车头身份戳"
+    },
+    "migrateBossGuidesLabel": {
+      "zh-CN": "结构化首领攻略（从攻略文本生成）"
+    },
+    "statusOpenText": {
+      "zh-CN": "待处理"
+    },
+    "statusResolvedText": {
+      "zh-CN": "已解决"
+    },
+    "lastStatusLabel": {
+      "zh-CN": "最近状态"
+    },
+    "nextAlarmLabel": {
+      "zh-CN": "下次提醒"
+    },
+    "periodEndLabel": {
+      "zh-CN": "周期结束"
+    },
+    "sourceLabel": {
+      "zh-CN": "来源"
+    },
+    "tierLabel": {
+      "zh-CN": "档位"
+    },
+    "planLabel": {
+      "zh-CN": "方案"
+    },
+    "hasCardText": {
+      "zh-CN": "已绑卡"
+    },
+    "noCardText": {
+      "zh-CN": "未绑卡"
+    },
+    "trialUsedText": {
+      "zh-CN": "已用试用"
     }
   }
 };

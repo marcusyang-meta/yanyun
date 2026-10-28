@@ -2065,6 +2065,39 @@ export abstract class ErrorsFbtUtils {
 	static adminOnly(fbs: FbsRuntime) {
 		return fbs._("只有所绑服务器的管理员可以执行此操作", null, { hk: "4quKVx" });
 	}
+	static platformAdminRequired(fbs: FbsRuntime) {
+		return fbs._("需要平台超管权限", null, { hk: "13JVbw" });
+	}
+	static tierInvalid(fbs: FbsRuntime) {
+		return fbs._("档位无效", null, { hk: "CJ5UQ" });
+	}
+	static feedbackNotFound(fbs: FbsRuntime) {
+		return fbs._("反馈不存在", null, { hk: "1HI5j9" });
+	}
+	static bossNameRequired(fbs: FbsRuntime) {
+		return fbs._("首领名不能为空", null, { hk: "4GB25u" });
+	}
+	static webhookFormatInvalid(fbs: FbsRuntime) {
+		return fbs._("Webhook URL 格式不对（应为 https://discord.com/api/webhooks/...）", null, { hk: "3iBaHK" });
+	}
+	static webhookNotConfigured(fbs: FbsRuntime) {
+		return fbs._("尚未配置 Webhook URL", null, { hk: "1IM8hg" });
+	}
+	static subdomainTrialCardRequired(fbs: FbsRuntime) {
+		return fbs._("该百业处于试用期且未登记支付方式：启用平台子域名前需先登记卡（试用期启用持久化功能需绑卡）", null, { hk: "40mHIj" });
+	}
+	static backupStorageMissing(fbs: FbsRuntime) {
+		return fbs._("备份存储（R2 BACKUPS 绑定）未配置", null, { hk: "2OMHMJ" });
+	}
+	static backupNotFound(fbs: FbsRuntime) {
+		return fbs._("备份不存在", null, { hk: "uPJcJ" });
+	}
+	static badParams(fbs: FbsRuntime) {
+		return fbs._("参数不正确", null, { hk: "VQLwo" });
+	}
+	static testSendFailed(fbs: FbsRuntime) {
+		return fbs._("测试发送失败", null, { hk: "26RU2h" });
+	}
 	static noCandidates(fbs: FbsRuntime) {
 		return fbs._("没有符合条件的成员可发送", null, { hk: "3jeRkP" });
 	}
@@ -4496,6 +4529,227 @@ export abstract class GovernanceFbtUtils {
 		return fbs._("删除私密区留言", null, { hk: "4kFZL0" });
 	}
 }
+export abstract class PlatformAdminFbtUtils {
+	static entryLabel(fbs: FbsRuntime) {
+		return fbs._("平台管理", null, { hk: "1AfRLr" });
+	}
+	static title(fbs: FbsRuntime) {
+		return fbs._("平台管理", null, { hk: "41lTLE" });
+	}
+	static subtitle(fbs: FbsRuntime) {
+		return fbs._("平台运营面：百业、计费、图鉴、配置与审计。原 hub 门户已并入主站，超管判定由平台 gate 在服务端求值。", null, { hk: "2PUUrz" });
+	}
+	static lockedTitle(fbs: FbsRuntime) {
+		return fbs._("需要平台超管权限", null, { hk: "3xCJ8d" });
+	}
+	static lockedBody(fbs: FbsRuntime) {
+		return fbs._("这个页面只对平台超管开放。超管名单由平台 gate 在服务端求值，你的账号不在名单内，所以这里不会下发任何管理数据。", null, { hk: "21cE7V" });
+	}
+	static tenantsTitle(fbs: FbsRuntime) {
+		return fbs._("百业列表", null, { hk: "27JuB3" });
+	}
+	static tenantsEmpty(fbs: FbsRuntime) {
+		return fbs._("暂无百业", null, { hk: "1NlS1R" });
+	}
+	static billingTitle(fbs: FbsRuntime) {
+		return fbs._("计费与权益", null, { hk: "4mSA7V" });
+	}
+	static paygateLabel(fbs: FbsRuntime) {
+		return fbs._("付费总闸 (paygate)", null, { hk: "1g9iLg" });
+	}
+	static paygateOnText(fbs: FbsRuntime) {
+		return fbs._("已开启", null, { hk: "4CSzoa" });
+	}
+	static paygateOffText(fbs: FbsRuntime) {
+		return fbs._("已关闭", null, { hk: "1iFefc" });
+	}
+	static stripeLabel(fbs: FbsRuntime) {
+		return fbs._("Stripe", null, { hk: "1KjNkv" });
+	}
+	static stripeConfiguredText(fbs: FbsRuntime) {
+		return fbs._("已配置", null, { hk: "4sTLhQ" });
+	}
+	static stripeMissingText(fbs: FbsRuntime) {
+		return fbs._("未配置（密钥或价格缺失）", null, { hk: "2QvE8q" });
+	}
+	static saasLabel(fbs: FbsRuntime) {
+		return fbs._("自定义域名 SaaS", null, { hk: "1z1kqE" });
+	}
+	static saasConfiguredText(fbs: FbsRuntime) {
+		return fbs._("已接入", null, { hk: "2VLQVq" });
+	}
+	static saasMissingText(fbs: FbsRuntime) {
+		return fbs._("未接入", null, { hk: "1vPExF" });
+	}
+	static plansTitle(fbs: FbsRuntime) {
+		return fbs._("价格档位", null, { hk: "wgf1K" });
+	}
+	static billingTenantsTitle(fbs: FbsRuntime) {
+		return fbs._("各百业权益", null, { hk: "3ELoZx" });
+	}
+	static errorsTitle(fbs: FbsRuntime) {
+		return fbs._("错误日志", null, { hk: "1WL5QV" });
+	}
+	static errorsEmpty(fbs: FbsRuntime) {
+		return fbs._("暂无错误记录", null, { hk: "3Ujyqo" });
+	}
+	static auditTitle(fbs: FbsRuntime) {
+		return fbs._("操作审计", null, { hk: "49a50l" });
+	}
+	static auditEmpty(fbs: FbsRuntime) {
+		return fbs._("暂无审计记录", null, { hk: "2Rh0jo" });
+	}
+	static feedbackTitle(fbs: FbsRuntime) {
+		return fbs._("用户反馈", null, { hk: "LrZCY" });
+	}
+	static feedbackEmpty(fbs: FbsRuntime) {
+		return fbs._("暂无反馈", null, { hk: "3pDJLh" });
+	}
+	static settingsTitle(fbs: FbsRuntime) {
+		return fbs._("平台设置", null, { hk: "1VdUKm" });
+	}
+	static gameVersionLabel(fbs: FbsRuntime) {
+		return fbs._("游戏版本", null, { hk: "22IQd0" });
+	}
+	static gameNoticeLabel(fbs: FbsRuntime) {
+		return fbs._("游戏公告", null, { hk: "381uwb" });
+	}
+	static gameVersionCodeLabel(fbs: FbsRuntime) {
+		return fbs._("版本号 (version code)", null, { hk: "3fNqNY" });
+	}
+	static bossesTitle(fbs: FbsRuntime) {
+		return fbs._("首领图鉴", null, { hk: "2MGNoK" });
+	}
+	static bossesEmpty(fbs: FbsRuntime) {
+		return fbs._("暂无首领", null, { hk: "35Y6Y8" });
+	}
+	static dungeonsTitle(fbs: FbsRuntime) {
+		return fbs._("副本图鉴", null, { hk: "37nPWi" });
+	}
+	static dungeonsEmpty(fbs: FbsRuntime) {
+		return fbs._("暂无副本", null, { hk: "4t6jud" });
+	}
+	static remindersTitle(fbs: FbsRuntime) {
+		return fbs._("开车提醒配置", null, { hk: "xOKn6" });
+	}
+	static remindersEmpty(fbs: FbsRuntime) {
+		return fbs._("暂无百业", null, { hk: "DuJlh" });
+	}
+	static heirloomsTitle(fbs: FbsRuntime) {
+		return fbs._("传家宝推送配置", null, { hk: "Zequy" });
+	}
+	static heirloomsEmpty(fbs: FbsRuntime) {
+		return fbs._("暂无百业", null, { hk: "3pnlJV" });
+	}
+	static backupsTitle(fbs: FbsRuntime) {
+		return fbs._("数据备份", null, { hk: "3Ip68R" });
+	}
+	static backupsEmpty(fbs: FbsRuntime) {
+		return fbs._("暂无备份文件", null, { hk: "1lfVZL" });
+	}
+	static backupsUnavailableText(fbs: FbsRuntime) {
+		return fbs._("备份存储（R2 BACKUPS 绑定）未配置", null, { hk: "2eZ3F8" });
+	}
+	static rosterTitle(fbs: FbsRuntime) {
+		return fbs._("平台超管名单", null, { hk: "LdNtG" });
+	}
+	static rosterNote(fbs: FbsRuntime) {
+		return fbs._("名单按 Discord 用户 ID 在 gate 层求值；环境变量 PLATFORM_ADMIN_DISCORD_IDS 的引导名单始终有效，不在此列出。修改即时生效并写入审计。", null, { hk: "3b2cw8" });
+	}
+	static backfillsTitle(fbs: FbsRuntime) {
+		return fbs._("一次性回填工具", null, { hk: "2fv24C" });
+	}
+	static saveLabel(fbs: FbsRuntime) {
+		return fbs._("保存", null, { hk: "NXlGa" });
+	}
+	static testLabel(fbs: FbsRuntime) {
+		return fbs._("发送测试", null, { hk: "MZKcu" });
+	}
+	static runLabel(fbs: FbsRuntime) {
+		return fbs._("执行", null, { hk: "3RPVbx" });
+	}
+	static dryRunLabel(fbs: FbsRuntime) {
+		return fbs._("仅试运行（不写库）", null, { hk: "xFezy" });
+	}
+	static deleteTenantLabel(fbs: FbsRuntime) {
+		return fbs._("删除百业", null, { hk: "hMoir" });
+	}
+	static grantLabel(fbs: FbsRuntime) {
+		return fbs._("授予", null, { hk: "2s1eys" });
+	}
+	static revokeLabel(fbs: FbsRuntime) {
+		return fbs._("撤销", null, { hk: "TgqG" });
+	}
+	static subdomainLabel(fbs: FbsRuntime) {
+		return fbs._("平台子域名", null, { hk: "3gj41B" });
+	}
+	static customDomainLabel(fbs: FbsRuntime) {
+		return fbs._("自定义域名", null, { hk: "3591nL" });
+	}
+	static enabledText(fbs: FbsRuntime) {
+		return fbs._("已启用", null, { hk: "40YaQL" });
+	}
+	static disabledText(fbs: FbsRuntime) {
+		return fbs._("已禁用", null, { hk: "3QAYEj" });
+	}
+	static webhookSetText(fbs: FbsRuntime) {
+		return fbs._("Webhook 已配置", null, { hk: "3a3DkZ" });
+	}
+	static webhookUnsetText(fbs: FbsRuntime) {
+		return fbs._("Webhook 未配置", null, { hk: "3DoRYz" });
+	}
+	static runBackupLabel(fbs: FbsRuntime) {
+		return fbs._("立即备份", null, { hk: "2BM5nK" });
+	}
+	static downloadLabel(fbs: FbsRuntime) {
+		return fbs._("下载", null, { hk: "3IQ8Uy" });
+	}
+	static exportLabel(fbs: FbsRuntime) {
+		return fbs._("导出备份 JSON", null, { hk: "3Wrieg" });
+	}
+	static backfillReminderIdentityLabel(fbs: FbsRuntime) {
+		return fbs._("回填提醒身份（名册+座位戳）", null, { hk: "iEafa" });
+	}
+	static backfillCreatorsLabel(fbs: FbsRuntime) {
+		return fbs._("回填车头身份戳", null, { hk: "2YMa7q" });
+	}
+	static migrateBossGuidesLabel(fbs: FbsRuntime) {
+		return fbs._("结构化首领攻略（从攻略文本生成）", null, { hk: "4vzyyE" });
+	}
+	static statusOpenText(fbs: FbsRuntime) {
+		return fbs._("待处理", null, { hk: "xjuqt" });
+	}
+	static statusResolvedText(fbs: FbsRuntime) {
+		return fbs._("已解决", null, { hk: "37VE05" });
+	}
+	static lastStatusLabel(fbs: FbsRuntime) {
+		return fbs._("最近状态", null, { hk: "1jqtPk" });
+	}
+	static nextAlarmLabel(fbs: FbsRuntime) {
+		return fbs._("下次提醒", null, { hk: "1ifqdt" });
+	}
+	static periodEndLabel(fbs: FbsRuntime) {
+		return fbs._("周期结束", null, { hk: "1oygv2" });
+	}
+	static sourceLabel(fbs: FbsRuntime) {
+		return fbs._("来源", null, { hk: "Hrlwu" });
+	}
+	static tierLabel(fbs: FbsRuntime) {
+		return fbs._("档位", null, { hk: "2FzMRi" });
+	}
+	static planLabel(fbs: FbsRuntime) {
+		return fbs._("方案", null, { hk: "ZEG8D" });
+	}
+	static hasCardText(fbs: FbsRuntime) {
+		return fbs._("已绑卡", null, { hk: "3FKS52" });
+	}
+	static noCardText(fbs: FbsRuntime) {
+		return fbs._("未绑卡", null, { hk: "1IqgW" });
+	}
+	static trialUsedText(fbs: FbsRuntime) {
+		return fbs._("已用试用", null, { hk: "K0Ol2" });
+	}
+}
 export const STRING_FNS: Record<string, StringFn> = {
 	"common_cancel": CommonFbtUtils.cancel,
 	"common_confirm": CommonFbtUtils.confirm,
@@ -5150,6 +5404,17 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"errors_notInServer": ErrorsFbtUtils.notInServer,
 	"errors_cannotManageServer": ErrorsFbtUtils.cannotManageServer,
 	"errors_adminOnly": ErrorsFbtUtils.adminOnly,
+	"errors_platformAdminRequired": ErrorsFbtUtils.platformAdminRequired,
+	"errors_tierInvalid": ErrorsFbtUtils.tierInvalid,
+	"errors_feedbackNotFound": ErrorsFbtUtils.feedbackNotFound,
+	"errors_bossNameRequired": ErrorsFbtUtils.bossNameRequired,
+	"errors_webhookFormatInvalid": ErrorsFbtUtils.webhookFormatInvalid,
+	"errors_webhookNotConfigured": ErrorsFbtUtils.webhookNotConfigured,
+	"errors_subdomainTrialCardRequired": ErrorsFbtUtils.subdomainTrialCardRequired,
+	"errors_backupStorageMissing": ErrorsFbtUtils.backupStorageMissing,
+	"errors_backupNotFound": ErrorsFbtUtils.backupNotFound,
+	"errors_badParams": ErrorsFbtUtils.badParams,
+	"errors_testSendFailed": ErrorsFbtUtils.testSendFailed,
 	"errors_noCandidates": ErrorsFbtUtils.noCandidates,
 	"errors_nudgeDailyLimit": ErrorsFbtUtils.nudgeDailyLimit,
 	"errors_nudgeCooldown": ErrorsFbtUtils.nudgeCooldown,
@@ -5943,5 +6208,78 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"governance_actionOfficerGrant": GovernanceFbtUtils.actionOfficerGrant,
 	"governance_actionOfficerRevoke": GovernanceFbtUtils.actionOfficerRevoke,
 	"governance_actionBoardPost": GovernanceFbtUtils.actionBoardPost,
-	"governance_actionBoardDelete": GovernanceFbtUtils.actionBoardDelete
+	"governance_actionBoardDelete": GovernanceFbtUtils.actionBoardDelete,
+	"platformAdmin_entryLabel": PlatformAdminFbtUtils.entryLabel,
+	"platformAdmin_title": PlatformAdminFbtUtils.title,
+	"platformAdmin_subtitle": PlatformAdminFbtUtils.subtitle,
+	"platformAdmin_lockedTitle": PlatformAdminFbtUtils.lockedTitle,
+	"platformAdmin_lockedBody": PlatformAdminFbtUtils.lockedBody,
+	"platformAdmin_tenantsTitle": PlatformAdminFbtUtils.tenantsTitle,
+	"platformAdmin_tenantsEmpty": PlatformAdminFbtUtils.tenantsEmpty,
+	"platformAdmin_billingTitle": PlatformAdminFbtUtils.billingTitle,
+	"platformAdmin_paygateLabel": PlatformAdminFbtUtils.paygateLabel,
+	"platformAdmin_paygateOnText": PlatformAdminFbtUtils.paygateOnText,
+	"platformAdmin_paygateOffText": PlatformAdminFbtUtils.paygateOffText,
+	"platformAdmin_stripeLabel": PlatformAdminFbtUtils.stripeLabel,
+	"platformAdmin_stripeConfiguredText": PlatformAdminFbtUtils.stripeConfiguredText,
+	"platformAdmin_stripeMissingText": PlatformAdminFbtUtils.stripeMissingText,
+	"platformAdmin_saasLabel": PlatformAdminFbtUtils.saasLabel,
+	"platformAdmin_saasConfiguredText": PlatformAdminFbtUtils.saasConfiguredText,
+	"platformAdmin_saasMissingText": PlatformAdminFbtUtils.saasMissingText,
+	"platformAdmin_plansTitle": PlatformAdminFbtUtils.plansTitle,
+	"platformAdmin_billingTenantsTitle": PlatformAdminFbtUtils.billingTenantsTitle,
+	"platformAdmin_errorsTitle": PlatformAdminFbtUtils.errorsTitle,
+	"platformAdmin_errorsEmpty": PlatformAdminFbtUtils.errorsEmpty,
+	"platformAdmin_auditTitle": PlatformAdminFbtUtils.auditTitle,
+	"platformAdmin_auditEmpty": PlatformAdminFbtUtils.auditEmpty,
+	"platformAdmin_feedbackTitle": PlatformAdminFbtUtils.feedbackTitle,
+	"platformAdmin_feedbackEmpty": PlatformAdminFbtUtils.feedbackEmpty,
+	"platformAdmin_settingsTitle": PlatformAdminFbtUtils.settingsTitle,
+	"platformAdmin_gameVersionLabel": PlatformAdminFbtUtils.gameVersionLabel,
+	"platformAdmin_gameNoticeLabel": PlatformAdminFbtUtils.gameNoticeLabel,
+	"platformAdmin_gameVersionCodeLabel": PlatformAdminFbtUtils.gameVersionCodeLabel,
+	"platformAdmin_bossesTitle": PlatformAdminFbtUtils.bossesTitle,
+	"platformAdmin_bossesEmpty": PlatformAdminFbtUtils.bossesEmpty,
+	"platformAdmin_dungeonsTitle": PlatformAdminFbtUtils.dungeonsTitle,
+	"platformAdmin_dungeonsEmpty": PlatformAdminFbtUtils.dungeonsEmpty,
+	"platformAdmin_remindersTitle": PlatformAdminFbtUtils.remindersTitle,
+	"platformAdmin_remindersEmpty": PlatformAdminFbtUtils.remindersEmpty,
+	"platformAdmin_heirloomsTitle": PlatformAdminFbtUtils.heirloomsTitle,
+	"platformAdmin_heirloomsEmpty": PlatformAdminFbtUtils.heirloomsEmpty,
+	"platformAdmin_backupsTitle": PlatformAdminFbtUtils.backupsTitle,
+	"platformAdmin_backupsEmpty": PlatformAdminFbtUtils.backupsEmpty,
+	"platformAdmin_backupsUnavailableText": PlatformAdminFbtUtils.backupsUnavailableText,
+	"platformAdmin_rosterTitle": PlatformAdminFbtUtils.rosterTitle,
+	"platformAdmin_rosterNote": PlatformAdminFbtUtils.rosterNote,
+	"platformAdmin_backfillsTitle": PlatformAdminFbtUtils.backfillsTitle,
+	"platformAdmin_saveLabel": PlatformAdminFbtUtils.saveLabel,
+	"platformAdmin_testLabel": PlatformAdminFbtUtils.testLabel,
+	"platformAdmin_runLabel": PlatformAdminFbtUtils.runLabel,
+	"platformAdmin_dryRunLabel": PlatformAdminFbtUtils.dryRunLabel,
+	"platformAdmin_deleteTenantLabel": PlatformAdminFbtUtils.deleteTenantLabel,
+	"platformAdmin_grantLabel": PlatformAdminFbtUtils.grantLabel,
+	"platformAdmin_revokeLabel": PlatformAdminFbtUtils.revokeLabel,
+	"platformAdmin_subdomainLabel": PlatformAdminFbtUtils.subdomainLabel,
+	"platformAdmin_customDomainLabel": PlatformAdminFbtUtils.customDomainLabel,
+	"platformAdmin_enabledText": PlatformAdminFbtUtils.enabledText,
+	"platformAdmin_disabledText": PlatformAdminFbtUtils.disabledText,
+	"platformAdmin_webhookSetText": PlatformAdminFbtUtils.webhookSetText,
+	"platformAdmin_webhookUnsetText": PlatformAdminFbtUtils.webhookUnsetText,
+	"platformAdmin_runBackupLabel": PlatformAdminFbtUtils.runBackupLabel,
+	"platformAdmin_downloadLabel": PlatformAdminFbtUtils.downloadLabel,
+	"platformAdmin_exportLabel": PlatformAdminFbtUtils.exportLabel,
+	"platformAdmin_backfillReminderIdentityLabel": PlatformAdminFbtUtils.backfillReminderIdentityLabel,
+	"platformAdmin_backfillCreatorsLabel": PlatformAdminFbtUtils.backfillCreatorsLabel,
+	"platformAdmin_migrateBossGuidesLabel": PlatformAdminFbtUtils.migrateBossGuidesLabel,
+	"platformAdmin_statusOpenText": PlatformAdminFbtUtils.statusOpenText,
+	"platformAdmin_statusResolvedText": PlatformAdminFbtUtils.statusResolvedText,
+	"platformAdmin_lastStatusLabel": PlatformAdminFbtUtils.lastStatusLabel,
+	"platformAdmin_nextAlarmLabel": PlatformAdminFbtUtils.nextAlarmLabel,
+	"platformAdmin_periodEndLabel": PlatformAdminFbtUtils.periodEndLabel,
+	"platformAdmin_sourceLabel": PlatformAdminFbtUtils.sourceLabel,
+	"platformAdmin_tierLabel": PlatformAdminFbtUtils.tierLabel,
+	"platformAdmin_planLabel": PlatformAdminFbtUtils.planLabel,
+	"platformAdmin_hasCardText": PlatformAdminFbtUtils.hasCardText,
+	"platformAdmin_noCardText": PlatformAdminFbtUtils.noCardText,
+	"platformAdmin_trialUsedText": PlatformAdminFbtUtils.trialUsedText
 };

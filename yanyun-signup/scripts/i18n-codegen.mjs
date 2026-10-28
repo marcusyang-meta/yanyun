@@ -50,6 +50,7 @@ const TRANSLATIONS_DIR = join(I18N_DIR, 'translations');
 const SECTION_OWNER = {
   common: 'platform', errors: 'platform', legal: 'platform',
   termsBody: 'platform', privacyBody: 'platform', appBlocks: 'platform',
+  platformAdmin: 'platform',
   site: 'identity', login: 'identity', userBar: 'identity',
   settings: 'identity', picker: 'identity', create: 'identity',
   landing: 'identity', feedback: 'identity',
@@ -76,7 +77,7 @@ const SECTION_ORDER = [
   'grad', 'gear', 'legal', 'termsBody', 'privacyBody', 'errors', 'guildAdmin',
   'groupingTemplate', 'account', 'buildshare', 'landing', 'feedback',
   'announcements', 'schedule', 'recruit', 'officer', 'ops', 'market', 'allies',
-  'governance',
+  'governance', 'platformAdmin',
 ];
 const DOMAINS = ['identity', 'guilds', 'groupings', 'dex', 'gear', 'platform'];
 const domainSourcePath = (d) => join(APP, 'src', 'domains', d, 'i18n', 'strings.source.ts');
