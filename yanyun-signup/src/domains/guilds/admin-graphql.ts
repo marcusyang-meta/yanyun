@@ -64,7 +64,7 @@ import { listSchoolBis, listSchoolRotations, upsertSchoolBis, upsertSchoolRotati
 import {
   premiumGate, isPaygateEnabled, getEffectiveEntitlement,
   PREMIUM_PLANS, PAST_DUE_GRACE_DAYS,
-  stripeConfig, fetchStripePrice, createCheckoutSession,
+  stripeConfig, fetchStripePrice, createCheckoutSession, stripePriceIdForTier,
 } from '../platform/index.ts';
 import { computeGuildStats } from './stats.ts';
 import { announcementPageForAdmin } from './announcements-graphql.ts';
@@ -1052,19 +1052,39 @@ export const guildAdminMutations = {
    * OFF: the offer does not exist), premiumActive (already
    * entitled), premiumComingSoon (Stripe not configured yet), and
    * checkoutFailed (Stripe refused). The webhook, not this
-   * mutation, is what grants the entitlement. */
-  startPremiumCheckout: async (_: any, { slug }: any, ctx: Context) => {
+   * mutation, is what grants the entitlement.
+   *
+   * Tier selection: `tier` (1|2|3) charges that tier's configured
+   * Stripe price. A tier with no price configured — and a tier
+   * value outside 1|2|3 — is refused as premiumComingSoon, the
+   * existing unconfigured refusal: no other tier's price and not
+   * the legacy price is ever substituted. A guild already at or
+   * above the requested tier is premiumActive. Without `tier`,
+   * the legacy single-price path runs verbatim. */
+  startPremiumCheckout: async (_: any, { slug, tier }: any, ctx: Context) => {
     const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
     const db = ctx.env.DB;
     if (!(await isPaygateEnabled(db))) return aFail(ctx, 'paygateDisabled');
     const eff = await getEffectiveEntitlement(db, g.access.slug);
-    if (eff.plan === 'premium') return aFail(ctx, 'premiumActive');
+    const wantTier = tier == null ? null : Number(tier);
+    if (wantTier != null && wantTier !== 1 && wantTier !== 2 && wantTier !== 3) {
+      return aFail(ctx, 'premiumComingSoon');
+    }
+    if (wantTier == null ? eff.plan === 'premium' : eff.tier >= wantTier) {
+      return aFail(ctx, 'premiumActive');
+    }
     const cfg = stripeConfig(ctx.env);
     if (!cfg) return aFail(ctx, 'premiumComingSoon');
+    if (wantTier != null && !stripePriceIdForTier(cfg, wantTier as 1 | 2 | 3)) {
+      return aFail(ctx, 'premiumComingSoon');
+    }
     let origin = '';
     try { origin = new URL(ctx.request.url).origin; } catch { /* relative fallback */ }
     try {
-      const session = await createCheckoutSession(cfg, { slug: g.access.slug, origin });
+      const session = await createCheckoutSession(cfg, {
+        slug: g.access.slug, origin,
+        ...(wantTier != null ? { tier: wantTier as 1 | 2 | 3 } : {}),
+      });
       return new GuildAdminPayloadShell(ctx, { ok: true, checkoutUrl: session.url });
     } catch {
       return aFail(ctx, 'checkoutFailed');

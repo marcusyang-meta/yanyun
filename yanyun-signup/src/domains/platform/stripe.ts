@@ -2,31 +2,86 @@
 // billing flow needs, over plain fetch + WebCrypto — no SDK, which
 // keeps the Worker bundle and the local rig story identical.
 //
-// Configuration comes only from the environment (wrangler secrets):
+// Configuration comes only from the environment (wrangler secrets
+// for the two keys; the price ids are operator configuration set
+// the same way — price id VALUES never live in this repo):
 //   STRIPE_SECRET_KEY    sk_... — API calls (checkout, price, subs)
 //   STRIPE_WEBHOOK_SECRET whsec_... — webhook signature verification
-//   STRIPE_PRICE_ID      price_... — the Premium monthly price
-// Checkout is offerable only when ALL THREE are present; the webhook
-// verifies with the webhook secret alone. Nothing here invents a
-// price or an account: unconfigured simply means "not open yet", and
-// the admin surface composes its coming-soon variant from that fact.
+//   STRIPE_PRICE_ID      price_... — the legacy single Premium price:
+//     the price-display slot and the no-tier checkout path, kept
+//     verbatim from the single-price era.
+//   STRIPE_PRICE_ID_T1   price_... — tier 1 (同道) monthly price
+//   STRIPE_PRICE_ID_T2   price_... — tier 2 (执事) monthly price
+//   STRIPE_PRICE_ID_T3   price_... — tier 3 (盟主) monthly price
+// Stripe counts as configured when the two keys and at least one
+// price are present; OFFERABILITY is per path — a tier whose price
+// key is absent has no checkout (never a fallback to another
+// tier's price or to the legacy price), and the legacy display
+// slot is empty without STRIPE_PRICE_ID. The webhook verifies with
+// the webhook secret alone. Nothing here invents a price or an
+// account: unconfigured simply means "not open yet", and the admin
+// surface composes its coming-soon variant from that fact.
 import type { Env } from './context.ts';
 
 const STRIPE_API = 'https://api.stripe.com/v1';
 const SIGNATURE_TOLERANCE_SEC = 300;
 
+export type StripeTier = 1 | 2 | 3;
+
 export interface StripeConfig {
   secretKey: string;
   webhookSecret: string;
+  /** Legacy single price (STRIPE_PRICE_ID); '' when unset. */
   priceId: string;
+  /** Per-tier price ids (STRIPE_PRICE_ID_T1/T2/T3); '' per tier
+   *  whose price is not configured. */
+  priceIdsByTier: Record<StripeTier, string>;
 }
 
 export function stripeConfig(env: Env): StripeConfig | null {
   const secretKey = String(env.STRIPE_SECRET_KEY || '').trim();
   const webhookSecret = String(env.STRIPE_WEBHOOK_SECRET || '').trim();
   const priceId = String(env.STRIPE_PRICE_ID || '').trim();
-  if (!secretKey || !webhookSecret || !priceId) return null;
-  return { secretKey, webhookSecret, priceId };
+  const priceIdsByTier: Record<StripeTier, string> = {
+    1: String(env.STRIPE_PRICE_ID_T1 || '').trim(),
+    2: String(env.STRIPE_PRICE_ID_T2 || '').trim(),
+    3: String(env.STRIPE_PRICE_ID_T3 || '').trim(),
+  };
+  if (!secretKey || !webhookSecret) return null;
+  if (!priceId && !priceIdsByTier[1] && !priceIdsByTier[2] && !priceIdsByTier[3]) return null;
+  return { secretKey, webhookSecret, priceId, priceIdsByTier };
+}
+
+/** The price id a tier's checkout must use; '' when that tier is
+ *  not configured (the caller refuses as unconfigured — there is
+ *  deliberately no fallback to another tier or the legacy price). */
+export function stripePriceIdForTier(cfg: StripeConfig, tier: StripeTier): string {
+  return cfg.priceIdsByTier[tier] || '';
+}
+
+/** The tier price map read straight from the environment, for the
+ *  webhook apply path: it must work with whatever subset of keys
+ *  the operator set, independent of full checkout configuration.
+ *  Only the three tier keys participate — the legacy price is NOT
+ *  a tier price, so subscriptions on it keep the legacy verdict. */
+export function stripeTierPriceMap(env: Env): Partial<Record<string, StripeTier>> {
+  const map: Partial<Record<string, StripeTier>> = {};
+  const t1 = String(env.STRIPE_PRICE_ID_T1 || '').trim();
+  const t2 = String(env.STRIPE_PRICE_ID_T2 || '').trim();
+  const t3 = String(env.STRIPE_PRICE_ID_T3 || '').trim();
+  if (t1) map[t1] = 1;
+  if (t2) map[t2] = 2;
+  if (t3) map[t3] = 3;
+  return map;
+}
+
+/** Reverse lookup for subscription applies: the tier a Stripe
+ *  price id belongs to, or null when the price is not one of the
+ *  three configured tier prices (the caller then keeps the legacy
+ *  'premium' write, byte-compatible with the single-price era). */
+export function stripeTierForPriceId(env: Env, priceId: string): StripeTier | null {
+  if (!priceId) return null;
+  return stripeTierPriceMap(env)[priceId] ?? null;
 }
 
 export function stripeWebhookSecret(env: Env): string {
@@ -69,24 +124,39 @@ export interface CheckoutSession {
 /** Create a subscription Checkout Session bound to one guild: the
  *  slug rides in the session metadata AND the subscription metadata
  *  (subscription metadata is what later subscription events carry),
- *  plus client_reference_id for support-side lookup. */
+ *  plus client_reference_id for support-side lookup.
+ *
+ *  Price selection: with `tier`, the session charges THAT tier's
+ *  configured price and stamps the tier into both metadata sets —
+ *  a tier whose price is not configured throws before the API call
+ *  (no fallback price is ever substituted). Without `tier`, the
+ *  legacy single-price path runs verbatim on cfg.priceId. */
 export async function createCheckoutSession(
   cfg: StripeConfig,
-  opts: { slug: string; origin: string },
+  opts: { slug: string; origin: string; tier?: StripeTier },
 ): Promise<CheckoutSession> {
+  const priceId = opts.tier ? stripePriceIdForTier(cfg, opts.tier) : cfg.priceId;
+  if (!priceId) {
+    throw new Error(opts.tier
+      ? `stripe price not configured for tier ${opts.tier}`
+      : 'stripe legacy price not configured');
+  }
   const adminUrl = `${opts.origin}/${opts.slug}/admin`;
-  const data = await stripeFetch(cfg, '/checkout/sessions', {
-    form: {
-      mode: 'subscription',
-      'line_items[0][price]': cfg.priceId,
-      'line_items[0][quantity]': '1',
-      client_reference_id: opts.slug,
-      'metadata[guild_slug]': opts.slug,
-      'subscription_data[metadata][guild_slug]': opts.slug,
-      success_url: `${adminUrl}?billing=success`,
-      cancel_url: `${adminUrl}?billing=canceled`,
-    },
-  });
+  const form: Record<string, string> = {
+    mode: 'subscription',
+    'line_items[0][price]': priceId,
+    'line_items[0][quantity]': '1',
+    client_reference_id: opts.slug,
+    'metadata[guild_slug]': opts.slug,
+    'subscription_data[metadata][guild_slug]': opts.slug,
+    success_url: `${adminUrl}?billing=success`,
+    cancel_url: `${adminUrl}?billing=canceled`,
+  };
+  if (opts.tier) {
+    form['metadata[tier]'] = `t${opts.tier}`;
+    form['subscription_data[metadata][tier]'] = `t${opts.tier}`;
+  }
+  const data = await stripeFetch(cfg, '/checkout/sessions', { form });
   const url = String(data.url || '');
   if (!url) throw new Error('stripe checkout session has no url');
   return { id: String(data.id || ''), url };
@@ -107,6 +177,7 @@ let priceCache: { priceId: string; at: number; info: StripePriceInfo } | null = 
 const PRICE_CACHE_MS = 5 * 60 * 1000;
 
 export async function fetchStripePrice(cfg: StripeConfig): Promise<StripePriceInfo | null> {
+  if (!cfg.priceId) return null; // the legacy display slot has no price configured
   const now = Date.now();
   if (priceCache && priceCache.priceId === cfg.priceId && now - priceCache.at < PRICE_CACHE_MS) {
     return priceCache.info;
@@ -131,10 +202,20 @@ export interface StripeSubscriptionInfo {
   currentPeriodEnd: number | null;
   endedAt: number | null;
   guildSlug: string;
+  /** The subscription's price id (first item's price), '' when the
+   *  object carries none. The apply path reverse-maps it to a tier
+   *  (stripeTierForPriceId); unknown or absent keeps the legacy
+   *  'premium' write. */
+  priceId: string;
 }
 
 export function subscriptionInfoFromObject(sub: Record<string, unknown>): StripeSubscriptionInfo {
   const meta = (sub.metadata || {}) as Record<string, unknown>;
+  const items = (sub.items || {}) as { data?: unknown };
+  const firstItem = Array.isArray(items.data) ? (items.data[0] as Record<string, unknown> | undefined) : undefined;
+  const price = firstItem && typeof firstItem.price === 'object' && firstItem.price
+    ? (firstItem.price as Record<string, unknown>)
+    : null;
   return {
     id: String(sub.id || ''),
     status: String(sub.status || ''),
@@ -142,6 +223,7 @@ export function subscriptionInfoFromObject(sub: Record<string, unknown>): Stripe
     currentPeriodEnd: sub.current_period_end == null ? null : Number(sub.current_period_end),
     endedAt: sub.ended_at == null ? null : Number(sub.ended_at),
     guildSlug: String(meta.guild_slug || ''),
+    priceId: price ? String(price.id || '') : '',
   };
 }
 

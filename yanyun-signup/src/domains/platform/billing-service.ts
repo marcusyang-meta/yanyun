@@ -41,7 +41,7 @@ import {
 } from './billing.ts';
 import type { GuildEntitlementRow } from './billing.ts';
 import {
-  stripeConfig, fetchSubscription, subscriptionInfoFromObject,
+  stripeConfig, fetchSubscription, subscriptionInfoFromObject, stripeTierForPriceId,
 } from './stripe.ts';
 import type { StripeSubscriptionInfo } from './stripe.ts';
 import type { Env } from './context.ts';
@@ -444,6 +444,15 @@ async function applySubscription(
   }
   if (!slug) return; // not one of ours (or pre-checkout): nothing to apply
 
+  // Plan resolution (tiered pricing): the subscription's price id
+  // reverse-maps to its tier and the row is written with that
+  // tier's plan ('t1'/'t2'/'t3'). A price id that is not one of the
+  // three configured tier prices — or no price on the object at
+  // all — keeps the legacy 'premium' write verbatim, so
+  // single-price-era subscriptions behave exactly as before.
+  const tier = stripeTierForPriceId(env, sub.priceId);
+  const appliedPlan: GuildPlan = tier ? (`t${tier}` as GuildPlan) : 'premium';
+
   const prev = await getEntitlementRow(d1, slug);
   const at = nowSec();
   // Lifecycle carry: the card fact and the consumed-trial stamp are
@@ -464,7 +473,7 @@ async function applySubscription(
   if (LIVE_SUBSCRIPTION_STATUSES.has(sub.status)) {
     await upsertEntitlementRow(d1, {
       tenant: slug,
-      plan: 'premium',
+      plan: appliedPlan,
       source: 'stripe',
       currentPeriodEnd: sub.currentPeriodEnd,
       stripeCustomerId: sub.customerId || (prev ? prev.stripeCustomerId : ''),
@@ -484,7 +493,7 @@ async function applySubscription(
     // must not be resurrected by the grace judgement.
     await upsertEntitlementRow(d1, {
       tenant: slug,
-      plan: 'premium',
+      plan: appliedPlan,
       source: 'stripe',
       currentPeriodEnd: sub.endedAt ?? sub.currentPeriodEnd ?? at,
       stripeCustomerId: sub.customerId || (prev ? prev.stripeCustomerId : ''),
@@ -545,7 +554,7 @@ export async function handleStripeEvent(
       if (!sub) {
         sub = {
           id: subRaw, status: 'active', customerId,
-          currentPeriodEnd: null, endedAt: null, guildSlug: slug,
+          currentPeriodEnd: null, endedAt: null, guildSlug: slug, priceId: '',
         };
       }
     }
