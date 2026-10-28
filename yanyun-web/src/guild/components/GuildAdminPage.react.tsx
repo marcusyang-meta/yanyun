@@ -923,7 +923,6 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
             refresh={refresh}
           />
         )}
-        {tab === 'recruit' && (
         {activeTab === 'recruit' && (
           <GuildAdminRecruit
             slug={slug}
@@ -953,7 +952,6 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
             refresh={refresh}
           />
         )}
-        {tab === 'tools' && (
         {activeTab === 'tools' && (
           <GuildAdminTools
             slug={slug}
