@@ -1952,12 +1952,9 @@ type GuildAdmin {
   premium: GuildAdminPremiumResult
   # 活动工具 (免费功能, 不挂任何权益门): 活动日历订阅 (F8) + 活动
   # 抽奖 (F21), 只挂 GuildAdmin — Locked 零工具字段。日历订阅链在
-  # 本面首次读取时懒铸 (与车的分享短链同规), token 即凭证: 任何人
-  # 持链 GET /cal/<token> 即可拉到本百业车队的 iCal; 查看/重置只在
-  # 本面 (重置即换 token, 旧链当场失效)。抽奖的名单在创建时定格
-  # (来源: 某辆车的参与者, 或手选本百业成员), 开奖不重复中奖,
-  # 抽奖/名单/权重/结果全部留痕, 由 lotteries 字段回读。
-  calendarFeedUrl: String!
+  # 抽奖的名单在创建时定格 (来源: 某辆车的参与者, 或手选本百业
+  # 成员), 开奖不重复中奖, 抽奖/名单/权重/结果全部留痕, 由
+  # lotteries 字段回读。
   lotteries: [GuildAdminLottery!]!
   lotteryRoster: [GuildAdminLotteryMember!]!
   # 赛季前检查清单 (免费功能, 不挂 gate): 条目由后端按当前版本/赛季
@@ -2070,12 +2067,6 @@ type GuildAdmin {
   adminBillingCanceledText: String!
   adminPremiumTitle: String!
   adminTabToolsLabel: String!
-  adminCalendarTitle: String!
-  adminCalendarHint: String!
-  adminCalendarUrlLabel: String!
-  adminCalendarCopyLabel: String!
-  adminCalendarResetLabel: String!
-  adminCalendarResetHint: String!
   adminLotteryTitle: String!
   adminLotteryHint: String!
   adminLotteryEmptyText: String!
@@ -2474,7 +2465,6 @@ extend type Mutation {
   deleteEventResult(slug: String!, resultId: ID!): GuildAdminPayload!
   updateSchoolGuide(slug: String!, input: UpdateSchoolGuideInput!): GuildAdminPayload!
   # 活动工具 (免费, 不挂权益门; 全部在 resolver 内复验管理结论)
-  resetCalendarFeed(slug: String!): GuildAdminPayload!  # 换 token: 旧订阅链当场失效
   createLottery(slug: String!, input: CreateLotteryInput!): GuildAdminPayload!  # 名单创建时定格
   drawLottery(slug: String!, lotteryId: ID!): GuildAdminPayload!  # 按权重不重复抽取, 结果留痕
   # 赛季前检查: 勾选/取消一个条目 (键必须是当前赛季清单的真实条目键)
