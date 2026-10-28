@@ -224,15 +224,15 @@ function localToUtc(slot: LocalSlot): UtcSlot {
   return { weekday: startUtcDay, startMinute: startUtcMin, endMinute };
 }
 
-const sectionTitle: React.CSSProperties = { fontSize: 17, color: theme.goldHi, letterSpacing: 2, marginBottom: 6 };
+const sectionTitle: React.CSSProperties = { fontSize: 17, color: theme.accentHi, letterSpacing: 2, marginBottom: 6 };
 const hintStyle: React.CSSProperties = { fontSize: 12.5, color: theme.muted, lineHeight: 1.7, marginBottom: 14 };
 const inputStyle: React.CSSProperties = {
-  background: '#1e1b15', border: '1px solid rgba(201,163,92,.3)', color: theme.paper,
+  background: '#1e1b15', border: '1px solid rgba(67,160,134,.3)', color: theme.paper,
   borderRadius: 8, padding: '9px 10px', fontSize: 14, boxSizing: 'border-box',
 };
 const ghostBtn: React.CSSProperties = {
   padding: '8px 14px', borderRadius: 8, cursor: 'pointer', background: 'transparent',
-  border: `1px solid ${theme.gold}`, color: theme.goldHi, fontSize: 13, whiteSpace: 'nowrap',
+  border: `1px solid ${theme.accent}`, color: theme.accentHi, fontSize: 13, whiteSpace: 'nowrap',
 };
 
 export function GuildScheduleRoute({ slug, defaultNickname }: { slug: string; defaultNickname?: string }) {
@@ -359,7 +359,7 @@ export function GuildScheduleRoute({ slug, defaultNickname }: { slug: string; de
         ))}
       </div>
       {!slots.length && <div style={{ fontSize: 13, color: theme.muted, marginBottom: 10 }}>{page.scheduleEmptyMineText}</div>}
-      <button onClick={saveAvailability} disabled={savingAvail} className="yy-btn yy-btn-gold"
+      <button onClick={saveAvailability} disabled={savingAvail} className="yy-btn yy-btn-primary"
         style={{ padding: '9px 26px', fontSize: 14 }}>{page.scheduleSaveLabel}</button>
 
       {/* ---------- F5: summary (admins / car leaders only; the field itself is the verdict) ---------- */}
@@ -371,12 +371,12 @@ export function GuildScheduleRoute({ slug, defaultNickname }: { slug: string; de
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {summary.map((m) => (
               <div key={m.discordId} style={{ border: theme.border, borderRadius: 10, padding: '10px 14px' }}>
-                <span style={{ fontSize: 14, color: theme.goldHi }}>{m.displayName}</span>
+                <span style={{ fontSize: 14, color: theme.accentHi }}>{m.displayName}</span>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
                   {(m.slots ?? []).map((s: UtcSlot, i: number) => {
                     const l = utcToLocal(s);
                     return (
-                      <span key={i} style={{ fontSize: 12, color: theme.paper, border: '1px solid rgba(201,163,92,.35)', borderRadius: 6, padding: '2px 8px' }}>
+                      <span key={i} style={{ fontSize: 12, color: theme.paper, border: '1px solid rgba(67,160,134,.35)', borderRadius: 6, padding: '2px 8px' }}>
                         {weekdayNames[l.weekday] ?? ''} {fill(page.scheduleSlotRangeTemplate ?? '', { start: l.start, end: l.end })}
                       </span>
                     );
@@ -422,7 +422,7 @@ export function GuildScheduleRoute({ slug, defaultNickname }: { slug: string; de
             )}
             <span style={{ flex: 1 }} />
             <button onClick={() => setCreatingPoll(false)} style={ghostBtn}>{page.schedulePollCancelLabel}</button>
-            <button onClick={createPoll} disabled={creating} className="yy-btn yy-btn-gold" style={{ padding: '8px 22px', fontSize: 14 }}>
+            <button onClick={createPoll} disabled={creating} className="yy-btn yy-btn-primary" style={{ padding: '8px 22px', fontSize: 14 }}>
               {page.schedulePollSubmitLabel}
             </button>
           </div>
@@ -437,7 +437,7 @@ export function GuildScheduleRoute({ slug, defaultNickname }: { slug: string; de
           return (
             <div key={poll.id} style={{ border: theme.border, borderRadius: 10, padding: 14 }}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
-                <span style={{ fontSize: 15, color: theme.goldHi, flex: 1, minWidth: 140 }}>{poll.title}</span>
+                <span style={{ fontSize: 15, color: theme.accentHi, flex: 1, minWidth: 140 }}>{poll.title}</span>
                 <span style={{
                   fontSize: 12, borderRadius: 4, padding: '2px 8px',
                   color: open ? '#7fc97f' : theme.muted, border: `1px solid ${open ? '#7fc97f' : theme.muted}`,
@@ -456,7 +456,7 @@ export function GuildScheduleRoute({ slug, defaultNickname }: { slug: string; de
                         onChange={() => togglePick(poll.id, o.id, poll.myOptionIds ?? [])} />
                       <span style={{ fontSize: 14, color: theme.paper }}>{o.startsAtText}</span>
                     </label>
-                    <span style={{ fontSize: 12.5, color: theme.goldHi }}>
+                    <span style={{ fontSize: 12.5, color: theme.accentHi }}>
                       {fill(page.schedulePollVoteCountTemplate ?? '', { count: o.voteCount })}
                     </span>
                     {poll.launchActions && (
@@ -475,7 +475,7 @@ export function GuildScheduleRoute({ slug, defaultNickname }: { slug: string; de
               )}
               {open && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 12 }}>
-                  <button onClick={() => submitVote(poll)} disabled={voting} className="yy-btn yy-btn-gold" style={{ padding: '8px 22px', fontSize: 13.5 }}>
+                  <button onClick={() => submitVote(poll)} disabled={voting} className="yy-btn yy-btn-primary" style={{ padding: '8px 22px', fontSize: 13.5 }}>
                     {page.schedulePollVoteLabel}
                   </button>
                   {(poll.myOptionIds ?? []).length > 0 && <span style={{ fontSize: 12, color: theme.muted }}>{page.schedulePollVotedText}</span>}

@@ -1,18 +1,24 @@
-/* 燕云百业 · Ink-wash design system */
-@import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&display=swap');
-
+/* 燕云百业 · Flat tool design system (values mirror packages/theme tokens) */
 :root {
-  --ink: #0c0b09;
-  --ink-2: #14120e;
-  --gold: #c9a35c;
-  --gold-hi: #ecd28f;
-  --paper: #ece2cb;
-  --muted: #ab9c7d;
+  --ink: #15171b;
+  --ink-2: #1e2126;
+  --accent: #43a086;
+  --accent-hi: #93d2be;
+  --accent-light: #5cb59e;
+  --accent-deep: #2e7a64;
+  --accent-tint: rgba(67, 160, 134, .14);
+  --on-accent: #0a120e;
+  --paper: #e9ebee;
+  --muted: #9ba2ac;
   --seal: #a02c1a;
-  --border: rgba(201, 163, 92, .22);
-  --card-bg: linear-gradient(160deg, rgba(201,163,92,.07), rgba(0,0,0,.25));
-  --font-brush: 'Ma Shan Zheng', 'Noto Serif SC', serif;
-  --font-serif: 'Noto Serif SC', serif;
+  --border: rgba(255, 255, 255, .09);
+  --chip-border: rgba(255, 255, 255, .16);
+  --tabs-bg: rgba(255, 255, 255, .04);
+  --input-bg: #1a1d22;
+  --input-fill: rgba(255, 255, 255, .04);
+  --login-card-fill: #1e2126;
+  --card-bg: #1e2126;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
 }
 
 * { box-sizing: border-box; }
@@ -22,7 +28,7 @@ html, body {
   padding: 0;
   background: var(--ink);
   color: var(--paper);
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -45,8 +51,8 @@ body {
 /* ---------- themed scrollbars ----------
  * Every scroller in the app (the shell's .yy-scroll-region, modal panels,
  * sheets, push pages, long lists) gets the same ink-and-gold treatment
- * instead of the raw OS scrollbar: a slim bar, transparent track, and an
- * antique-gold thumb (the --gold / --gold-hi values as rgba). Skin only —
+ * instead of the raw OS scrollbar: a slim bar, transparent track, and a
+ * neutral gray thumb. Skin only —
  * no scroll behavior or layout changes.
  * WebKit/Blink (Chrome, Edge, Safari) via the ::-webkit-scrollbar
  * pseudo-elements below. Firefox via the standard scrollbar-width /
@@ -62,13 +68,13 @@ body {
   background: transparent;
 }
 *::-webkit-scrollbar-thumb {
-  background-color: rgba(201, 163, 92, .45); /* --gold */
+  background-color: rgba(255, 255, 255, .2);
   border: 2px solid transparent;
   border-radius: 8px;
   background-clip: padding-box;
 }
 *::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(236, 210, 143, .8); /* --gold-hi */
+  background-color: rgba(255, 255, 255, .32);
 }
 *::-webkit-scrollbar-button {
   display: none;
@@ -79,7 +85,7 @@ body {
 @supports (-moz-appearance: none) {
   * {
     scrollbar-width: thin;
-    scrollbar-color: rgba(201, 163, 92, .45) transparent; /* --gold thumb, clear track */
+    scrollbar-color: rgba(255, 255, 255, .2) transparent; /* neutral thumb, clear track */
   }
 }
 
@@ -139,8 +145,8 @@ body {
 }
 .yy-modal-panel {
   position: relative; width: 100%; max-width: 520px; max-height: 85vh; overflow-y: auto;
-  background: #14120e; border: 1px solid rgba(201, 163, 92, .4); border-top: 2px solid #c9a35c;
-  border-radius: 16px; padding: 20px 20px 32px; box-sizing: border-box;
+  background: var(--ink-2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 20px 20px 32px; box-sizing: border-box;
   transition: max-width .3s ease;
 }
 /* A dialog PAGE may widen the one shared panel (settings host: the gear
@@ -149,7 +155,7 @@ body {
 .yy-modal-panel.is-wide { max-width: 920px; }
 @media (max-width: 640px) {
   .yy-modal-overlay { align-items: flex-end; padding: 0; }
-  .yy-modal-panel { border-radius: 20px 20px 0 0; border-bottom: none; }
+  .yy-modal-panel { border-radius: 12px 12px 0 0; border-bottom: none; }
 }
 
 /* ---------- push page (移动端全屏推页) ----------
@@ -157,68 +163,68 @@ body {
  * 层 + 粘性页眉 (返回 + 标题), 内容区独立滚动, 如同导航到一个新页面。 */
 .yy-push-page {
   position: fixed; inset: 0; z-index: 200; overflow-y: auto;
-  background: #0c0b09; box-sizing: border-box;
+  background: var(--ink); box-sizing: border-box;
 }
 .yy-push-header {
   position: sticky; top: 0; z-index: 1;
   display: flex; align-items: center; gap: 6px;
-  padding: 12px 16px; background: rgba(12, 11, 9, .94);
-  border-bottom: 1px solid rgba(201, 163, 92, .25);
+  padding: 12px 16px; background: rgba(21, 23, 27, .94);
+  border-bottom: 1px solid var(--border);
 }
 
 /* ---------- cards ---------- */
 .yy-card {
   background: var(--card-bg);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 10px;
   transition: transform .25s cubic-bezier(.22,.9,.28,1), box-shadow .25s ease, border-color .25s ease;
 }
 .yy-card-hover:hover {
-  transform: translateY(-3px);
-  border-color: rgba(201,163,92,.55);
-  box-shadow: 0 12px 32px rgba(201,163,92,.14), 0 2px 8px rgba(0,0,0,.4);
+  transform: translateY(-2px);
+  border-color: rgba(255,255,255,.16);
+  box-shadow: 0 10px 28px rgba(0,0,0,.45);
 }
 .yy-card-hover:active { transform: translateY(-1px) scale(.995); }
 
 /* ---------- buttons ---------- */
 .yy-btn {
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   cursor: pointer;
-  border-radius: 10px;
+  border-radius: 8px;
   transition: transform .15s ease, box-shadow .2s ease, background .2s ease, color .2s ease;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
 }
 .yy-btn:active { transform: scale(.96); }
-.yy-btn-gold {
-  background: linear-gradient(160deg, #d9b26a, #b98f45);
-  color: #1a1814;
-  border: 1px solid rgba(236,210,143,.5);
-  font-weight: 700;
+.yy-btn-primary {
+  background: var(--accent);
+  color: var(--on-accent);
+  border: 1px solid transparent;
+  font-weight: 600;
 }
-.yy-btn-gold:hover { box-shadow: 0 6px 20px rgba(201,163,92,.35); }
+.yy-btn-primary:hover { background: var(--accent-light); }
 .yy-btn-ghost {
   background: transparent;
   color: var(--paper);
   border: 1px solid var(--border);
 }
-.yy-btn-ghost:hover { border-color: var(--gold); color: var(--gold-hi); }
+.yy-btn-ghost:hover { border-color: var(--accent); color: var(--accent-hi); }
 
 /* ---------- tabs (一级页签: 分段控件, 层级必须压过二级筛选项) ---------- */
 .yy-tabs {
   display: inline-flex;
   gap: 4px;
   padding: 4px;
-  background: rgba(201,163,92,.06);
+  background: var(--tabs-bg);
   border: 1px solid var(--border);
-  border-radius: 999px;
+  border-radius: 10px;
   position: relative;
 }
 .yy-tab {
-  font-family: var(--font-serif);
-  font-size: 16px;
-  padding: 9px 26px;
-  border-radius: 999px;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  padding: 8px 22px;
+  border-radius: 7px;
   background: transparent;
   border: none;
   color: var(--muted);
@@ -229,38 +235,38 @@ body {
 }
 .yy-tab:hover { color: var(--paper); }
 .yy-tab.active {
-  color: var(--gold-hi);
+  color: var(--accent-hi);
   font-weight: 600;
-  background: linear-gradient(160deg, rgba(217,178,106,.30), rgba(185,143,69,.18));
-  box-shadow: inset 0 0 0 1px rgba(236,210,143,.38);
+  background: var(--accent-tint);
+  box-shadow: inset 0 0 0 1px rgba(67,160,134,.35);
 }
 
 /* ---------- filter chips (二级筛选: 小号描边幽灵片, 不与一级页签抢层级) ---------- */
 .yy-fchip {
-  padding: 6px 16px;
-  border-radius: 999px;
-  border: 1px solid rgba(201,163,92,.32);
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--chip-border);
   background: transparent;
   color: var(--muted);
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   font-size: 13px;
   cursor: pointer;
   transition: color .2s ease, border-color .2s ease, background .2s ease;
   -webkit-tap-highlight-color: transparent;
 }
-.yy-fchip:hover { color: var(--paper); border-color: rgba(201,163,92,.6); }
+.yy-fchip:hover { color: var(--paper); border-color: rgba(255,255,255,.3); }
 .yy-fchip:active { transform: scale(.95); }
 .yy-fchip.active {
-  color: var(--gold-hi);
-  border-color: var(--gold);
-  background: rgba(201,163,92,.10);
+  color: var(--accent-hi);
+  border-color: var(--accent);
+  background: var(--accent-tint);
   font-weight: 600;
 }
 
 /* ---------- skeleton shimmer ---------- */
 .yy-skeleton {
-  border-radius: 12px;
-  background: linear-gradient(90deg, rgba(201,163,92,.06) 25%, rgba(201,163,92,.14) 50%, rgba(201,163,92,.06) 75%);
+  border-radius: 10px;
+  background: linear-gradient(90deg, rgba(255,255,255,.04) 25%, rgba(255,255,255,.08) 50%, rgba(255,255,255,.04) 75%);
   background-size: 800px 100%;
   animation: yy-shimmer 1.6s infinite linear;
   border: 1px solid var(--border);
@@ -275,38 +281,14 @@ body {
   width: 56px; height: 56px;
   background: var(--seal);
   color: var(--paper);
-  font-family: var(--font-brush);
+  font-family: var(--font-sans);
+  font-weight: 700;
   font-size: 28px;
   border-radius: 8px;
   animation: yy-seal-stamp .5s cubic-bezier(.22,.9,.28,1) both;
-  box-shadow: 0 4px 16px rgba(160,44,26,.4);
+  box-shadow: 0 4px 16px rgba(0,0,0,.4);
 }
 
-/* ---------- site backdrop ---------- */
-.yy-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  overflow: hidden;
-}
-.yy-backdrop img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center 18%;
-  display: block;
-}
-.yy-backdrop::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to bottom,
-    rgba(12,11,9,.58) 0%,
-    rgba(12,11,9,.80) 30%,
-    rgba(12,11,9,.95) 58%,
-    var(--ink) 80%);
-}
 .yy-app-main {
   position: relative;
   z-index: 1;
@@ -322,97 +304,33 @@ body {
   overflow-y: auto;
   overscroll-behavior: contain;
 }
-/* 底部氛围底: 同一张山水锚在视口底缘, 只透出很淡的山影,
-   让短页面"落在山上"而不是坠进纯黑 (与顶部底图同一层, 内容永远在上) */
-.yy-backdrop-bottom {
-  position: fixed;
-  left: 0; right: 0; bottom: 0;
-  height: 34vh;
-  z-index: 0;
-  pointer-events: none;
-  overflow: hidden;
-}
-.yy-backdrop-bottom img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center 100%;
-  display: block;
-  opacity: .55;
-}
-.yy-backdrop-bottom::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to top,
-    rgba(12,11,9,.34) 0%,
-    rgba(12,11,9,.68) 52%,
-    var(--ink) 98%);
-}
-
 /* ---------- hero ---------- */
 .yy-hero {
   position: relative;
-  overflow: hidden;
   text-align: center;
-  padding: 72px 20px 48px;
-}
-.yy-hero::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background:
-    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(201,163,92,.09), transparent 70%),
-    radial-gradient(ellipse 60% 40% at 50% 100%, rgba(160,44,26,.06), transparent 70%);
-  pointer-events: none;
-}
-.yy-hero::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background: linear-gradient(to bottom,
-    rgba(12,11,9,.34) 0%,
-    rgba(12,11,9,.05) 34%,
-    rgba(12,11,9,.10) 62%,
-    rgba(12,11,9,.78) 88%,
-    var(--ink) 100%);
-  pointer-events: none;
+  padding: 56px 20px 40px;
 }
 .yy-hero-title {
   position: relative;
   z-index: 2;
-  font-family: var(--font-brush);
-  font-size: clamp(56px, 12vw, 96px);
-  color: var(--gold-hi);
-  letter-spacing: .18em;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: clamp(34px, 7vw, 52px);
+  color: var(--paper);
+  letter-spacing: .02em;
   margin: 0;
-  text-shadow: 0 4px 32px rgba(201,163,92,.25);
   animation: yy-fade-up .7s cubic-bezier(.22,.9,.28,1) both;
 }
 .yy-hero-sub {
   position: relative;
   z-index: 2;
-  color: var(--paper);
-  opacity: .85;
-  text-shadow: 0 2px 14px rgba(0,0,0,.85);
+  color: var(--muted);
   font-size: 15px;
-  letter-spacing: .12em;
+  letter-spacing: .03em;
   margin: 18px 0 0;
   animation: yy-fade-up .7s cubic-bezier(.22,.9,.28,1) .12s both;
 }
-.yy-hero-img {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center 32%;
-  display: block;
-}
-/* 全屏 hero (登录页): 山水铺满整屏, 登录卡浮在画上。
+/* 全屏 hero (登录页): 纯色底上居中排布品牌标题与登录卡。
    高度来自登录页 .yy-page 的 flex 列 (撑满滚动区), 不再用视口单位。 */
 .yy-hero-full {
   flex: 1 0 auto;
@@ -423,11 +341,9 @@ body {
   padding: 56px 20px 26px;
 }
 .yy-card.yy-login-card {
-  background: rgba(14,12,9,.66);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(201,163,92,.30);
-  box-shadow: 0 24px 60px rgba(0,0,0,.5);
+  background: var(--login-card-fill);
+  border: 1px solid var(--border);
+  box-shadow: 0 16px 40px rgba(0,0,0,.45);
 }
 
 /* ---------- section heading ---------- */
@@ -439,11 +355,12 @@ body {
   animation: yy-fade-up .5s ease both;
 }
 .yy-section-head h2 {
-  font-family: var(--font-brush);
-  font-size: 28px;
-  color: var(--gold-hi);
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 22px;
+  color: var(--paper);
   margin: 0;
-  letter-spacing: .1em;
+  letter-spacing: .02em;
 }
 .yy-section-head .en {
   font-size: 11px;
@@ -485,7 +402,7 @@ body {
   overflow-y: auto;
   background: var(--ink-2);
   border-top: 1px solid var(--border);
-  border-radius: 20px 20px 0 0;
+  border-radius: 12px 12px 0 0;
   padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
   z-index: 51;
   animation: yy-sheet-up .35s cubic-bezier(.22,.9,.28,1) both;
@@ -505,11 +422,11 @@ body {
   pointer-events: none;
 }
 .yy-toast {
-  background: rgba(20,18,14,.95);
-  border: 1px solid var(--gold);
-  color: var(--gold-hi);
-  padding: 12px 24px;
-  border-radius: 999px;
+  background: rgba(30,33,38,.97);
+  border: 1px solid var(--chip-border);
+  color: var(--paper);
+  padding: 12px 20px;
+  border-radius: 10px;
   font-size: 14px;
   animation: yy-fade-up .3s cubic-bezier(.22,.9,.28,1) both;
   box-shadow: 0 8px 24px rgba(0,0,0,.5);
@@ -529,8 +446,7 @@ body {
 .yy-team-row .dot {
   width: 10px; height: 10px;
   border-radius: 50%;
-  background: var(--gold);
-  box-shadow: 0 0 12px rgba(201,163,92,.6);
+  background: var(--accent);
   flex-shrink: 0;
   animation: yy-fade-in .4s ease both;
 }
@@ -552,27 +468,27 @@ body {
   font-size: 12px;
   cursor: pointer;
   transition: transform .15s ease, border-color .2s ease, background .2s ease;
-  background: rgba(201,163,92,.04);
+  background: rgba(255,255,255,.03);
   color: var(--muted);
   min-height: 48px;
   -webkit-tap-highlight-color: transparent;
 }
 .yy-seat:active { transform: scale(.92); }
 .yy-seat.taken {
-  background: linear-gradient(160deg, rgba(201,163,92,.25), rgba(201,163,92,.08));
-  border-color: var(--gold);
-  color: var(--gold-hi);
+  background: var(--accent-tint);
+  border-color: var(--accent);
+  color: var(--accent-hi);
 }
-.yy-seat.empty:hover { border-color: var(--gold); color: var(--paper); }
+.yy-seat.empty:hover { border-color: var(--accent); color: var(--paper); }
 
 /* ---------- chip ---------- */
 .yy-chip {
-  padding: 10px 18px;
-  border-radius: 999px;
+  padding: 9px 16px;
+  border-radius: 8px;
   border: 1px solid var(--border);
   background: transparent;
   color: var(--paper);
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   font-size: 14px;
   cursor: pointer;
   transition: all .2s ease;
@@ -580,26 +496,26 @@ body {
 }
 .yy-chip:active { transform: scale(.94); }
 .yy-chip.selected {
-  background: linear-gradient(160deg, #d9b26a, #b98f45);
-  color: #1a1814;
-  border-color: rgba(236,210,143,.5);
-  font-weight: 700;
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: transparent;
+  font-weight: 600;
 }
 
 /* ---------- form controls ---------- */
 .yy-input, .yy-select {
   width: 100%;
   padding: 14px 16px;
-  border-radius: 10px;
+  border-radius: 8px;
   border: 1px solid var(--border);
-  background: rgba(0,0,0,.3);
+  background: var(--input-fill);
   color: var(--paper);
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   font-size: 16px;
   outline: none;
   transition: border-color .2s ease;
 }
-.yy-input:focus, .yy-select:focus { border-color: var(--gold); }
+.yy-input:focus, .yy-select:focus { border-color: var(--accent); }
 .yy-label {
   display: block;
   font-size: 13px;
@@ -648,18 +564,18 @@ body {
 }
 .yy-gear-card, .yy-slotbox { position: relative; }
 .yy-gear-card.heirloom {
-  border-color: var(--gold) !important;
-  box-shadow: 0 0 0 1px var(--gold), 0 0 14px rgba(201,163,92,.25);
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 1px var(--accent), 0 0 10px rgba(67,160,134,.18);
 }
 /* Immersive library: a near-full-attainment item carries a lit gold rim —
    deliberately softer than the heirloom treatment above (no extra ring). */
 .yy-gear-card.q-top {
-  border-color: rgba(236, 210, 143, .8) !important;
-  box-shadow: 0 0 12px rgba(201, 163, 92, .18), inset 0 0 16px rgba(201, 163, 92, .05);
+  border-color: rgba(147, 210, 190, .7) !important;
+  box-shadow: 0 0 10px rgba(67, 160, 134, .14), inset 0 0 16px rgba(67, 160, 134, .04);
 }
 .yy-slotbox.heirloom {
-  border-color: var(--gold) !important;
-  box-shadow: inset 0 0 0 1px var(--gold), 0 0 12px rgba(201,163,92,.22);
+  border-color: var(--accent) !important;
+  box-shadow: inset 0 0 0 1px var(--accent), 0 0 10px rgba(67,160,134,.16);
 }
 .jade-pendant {
   position: absolute; top: -14px; right: -4px; width: 30px; height: 62px; z-index: 4;

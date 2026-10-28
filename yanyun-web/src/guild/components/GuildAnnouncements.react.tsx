@@ -291,7 +291,7 @@ function AnnouncementCard({ item, page, slug, admin, refresh }: {
   return (
     <div
       style={{
-        border: `1px solid ${item.urgent ? 'rgba(192,57,43,.55)' : 'rgba(201,163,92,.22)'}`,
+        border: `1px solid ${item.urgent ? 'rgba(192,57,43,.55)' : 'rgba(67,160,134,.22)'}`,
         background: item.urgent ? 'rgba(192,57,43,.07)' : 'rgba(236,226,203,.03)',
         borderRadius: 12, padding: '14px 16px', marginTop: 12,
       }}
@@ -313,7 +313,7 @@ function AnnouncementCard({ item, page, slug, admin, refresh }: {
         <span style={{ fontSize: 15, color: theme.paper, fontWeight: 600, minWidth: 0 }}>{item.title}</span>
         {hasRead === false && (
           <span style={{
-            width: 8, height: 8, borderRadius: '50%', background: theme.gold, flexShrink: 0,
+            width: 8, height: 8, borderRadius: '50%', background: theme.accent, flexShrink: 0,
           }} />
         )}
         <span style={{ marginLeft: 'auto', fontSize: 12, color: theme.muted, flexShrink: 0 }}>
@@ -333,7 +333,7 @@ function AnnouncementCard({ item, page, slug, admin, refresh }: {
             </p>
           )}
           {admin && receipts && (
-            <div style={{ marginTop: 12, borderTop: '1px solid rgba(201,163,92,.15)', paddingTop: 10 }}>
+            <div style={{ marginTop: 12, borderTop: '1px solid rgba(67,160,134,.15)', paddingTop: 10 }}>
               <div style={{ fontSize: 12, color: theme.muted, letterSpacing: '.06em' }}>
                 {page.receiptsTitle}
                 {item.readCountText ? ` · ${item.readCountText}` : ''}
@@ -410,9 +410,9 @@ function ComposeForm({ page, slug, refresh, unknownError }: {
       onClick={() => setKind(value)}
       style={{
         padding: '7px 16px', borderRadius: 999, cursor: 'pointer', fontSize: 13,
-        border: `1px solid ${kind === value ? (value === 'URGENT' ? '#c0392b' : theme.gold) : 'rgba(201,163,92,.3)'}`,
-        background: kind === value ? (value === 'URGENT' ? 'rgba(192,57,43,.2)' : 'rgba(201,163,92,.16)') : 'transparent',
-        color: kind === value ? '#ecd28f' : theme.muted,
+        border: `1px solid ${kind === value ? (value === 'URGENT' ? '#c0392b' : theme.accent) : 'rgba(67,160,134,.3)'}`,
+        background: kind === value ? (value === 'URGENT' ? 'rgba(192,57,43,.2)' : 'rgba(67,160,134,.16)') : 'transparent',
+        color: kind === value ? '#93d2be' : theme.muted,
       }}
     >
       {label}
@@ -422,9 +422,9 @@ function ComposeForm({ page, slug, refresh, unknownError }: {
   return (
     <section style={{
       marginTop: 6, padding: '18px 18px 20px', borderRadius: 12,
-      border: '1px solid rgba(201,163,92,.22)', background: 'rgba(236,226,203,.03)',
+      border: '1px solid rgba(67,160,134,.22)', background: 'rgba(236,226,203,.03)',
     }}>
-      <h2 style={{ fontSize: 16, color: '#ecd28f', margin: '0 0 12px', letterSpacing: '.05em' }}>{page.composeTitle}</h2>
+      <h2 style={{ fontSize: 16, color: '#93d2be', margin: '0 0 12px', letterSpacing: '.05em' }}>{page.composeTitle}</h2>
       <span style={adminLabelStyle}>{page.kindLabel}</span>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
         {kindButton('STANDARD', page.kindStandardLabel)}
@@ -458,7 +458,7 @@ function ComposeForm({ page, slug, refresh, unknownError }: {
           onClick={submit}
           style={{
             padding: '9px 22px', borderRadius: 8, border: 'none', cursor: posting ? 'default' : 'pointer',
-            background: kind === 'URGENT' ? '#c0392b' : theme.gold,
+            background: kind === 'URGENT' ? '#c0392b' : theme.accent,
             color: kind === 'URGENT' ? '#fff' : '#221c10', fontSize: 14, fontWeight: 600,
             opacity: posting ? 0.6 : 1,
           }}

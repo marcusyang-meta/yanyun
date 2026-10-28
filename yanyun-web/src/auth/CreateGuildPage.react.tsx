@@ -148,7 +148,7 @@ function CreateForm({ queryRef, user }: { queryRef: any; user: ViewerUser }) {
     });
   };
 
-  const label: React.CSSProperties = { display: 'block', color: theme.gold, fontSize: 13.5, letterSpacing: '.08em', margin: '20px 0 8px' };
+  const label: React.CSSProperties = { display: 'block', color: theme.accent, fontSize: 13.5, letterSpacing: '.08em', margin: '20px 0 8px' };
 
   return (
     <>
@@ -157,8 +157,8 @@ function CreateForm({ queryRef, user }: { queryRef: any; user: ViewerUser }) {
         <UserBar user={user} text={{ logoutLabel: viewer.userBarLogoutLabel, loggingOutLabel: viewer.userBarLoggingOutLabel, settingsLabel: viewer.userBarSettingsLabel }} />
       </div>
       <h1 style={{
-        fontFamily: "'Ma Shan Zheng',serif", fontWeight: 400, fontSize: 34,
-        color: theme.goldHi, letterSpacing: '.1em', margin: '26px 0 6px',
+        fontFamily: "inherit", fontWeight: 400, fontSize: 34,
+        color: theme.accentHi, letterSpacing: '.1em', margin: '26px 0 6px',
       }}>{viewer.createTitle}</h1>
       <p style={{ color: theme.muted, fontSize: 13.5, margin: '0 0 24px' }}>
         {viewer.createSubtitle}
@@ -192,7 +192,7 @@ function CreateForm({ queryRef, user }: { queryRef: any; user: ViewerUser }) {
 
         <label style={label}>{viewer.createServerLabel}</label>
         {servers.length === 0 ? (
-          <div style={{ color: theme.muted, fontSize: 13.5, lineHeight: 1.8, border: '1px dashed rgba(201,163,92,.3)', borderRadius: 10, padding: '14px 16px' }}>
+          <div style={{ color: theme.muted, fontSize: 13.5, lineHeight: 1.8, border: '1px dashed rgba(67,160,134,.3)', borderRadius: 10, padding: '14px 16px' }}>
             {viewer.createNoServers1}<br />
             {viewer.createNoServers2}
           </div>
@@ -207,8 +207,8 @@ function CreateForm({ queryRef, user }: { queryRef: any; user: ViewerUser }) {
                   style={{
                     display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left',
                     padding: '12px 14px', borderRadius: 10, cursor: 'pointer',
-                    background: active ? 'rgba(201,163,92,.14)' : 'rgba(255,255,255,.02)',
-                    border: `1px solid ${active ? theme.gold : 'rgba(201,163,92,.25)'}`,
+                    background: active ? 'rgba(67,160,134,.14)' : 'rgba(255,255,255,.02)',
+                    border: `1px solid ${active ? theme.accent : 'rgba(67,160,134,.25)'}`,
                     color: theme.paper,
                   }}
                 >
@@ -216,12 +216,12 @@ function CreateForm({ queryRef, user }: { queryRef: any; user: ViewerUser }) {
                     <img src={`https://cdn.discordapp.com/icons/${sv.id}/${sv.icon}.png`} alt="" style={{ width: 34, height: 34, borderRadius: '50%' }} />
                   ) : (
                     <span style={{
-                      width: 34, height: 34, borderRadius: '50%', background: 'rgba(201,163,92,.15)',
-                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: theme.goldHi, fontSize: 15,
+                      width: 34, height: 34, borderRadius: '50%', background: 'rgba(67,160,134,.15)',
+                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: theme.accentHi, fontSize: 15,
                     }}>{(sv.name || '?').slice(0, 1)}</span>
                   )}
                   <span style={{ flex: 1, fontSize: 15 }}>{sv.name}</span>
-                  {active && <span style={{ color: theme.goldHi }}>✓</span>}
+                  {active && <span style={{ color: theme.accentHi }}>✓</span>}
                 </button>
               );
             })}
@@ -229,7 +229,7 @@ function CreateForm({ queryRef, user }: { queryRef: any; user: ViewerUser }) {
         )}
 
         <button
-          className="yy-btn yy-btn-gold"
+          className="yy-btn yy-btn-primary"
           onClick={submit}
           disabled={committing || servers.length === 0}
           style={{ width: '100%', marginTop: 28, padding: '13px 0', fontSize: 16 }}

@@ -280,29 +280,29 @@ const revokeShareMutation = graphql`
 
 const inp: React.CSSProperties = {
   width: '100%', boxSizing: 'border-box', background: 'rgba(0,0,0,.35)', color: theme.paper,
-  border: '1px solid rgba(201,163,92,.35)', borderRadius: 6, padding: '6px 8px', fontSize: 13,
+  border: '1px solid rgba(67,160,134,.35)', borderRadius: 6, padding: '6px 8px', fontSize: 13,
 };
 const sel: React.CSSProperties = { ...inp, appearance: 'auto' };
 const lbl: React.CSSProperties = { display: 'block', color: theme.muted, fontSize: 11, marginBottom: 3 };
 const btnGold: React.CSSProperties = {
-  padding: '7px 16px', borderRadius: 8, cursor: 'pointer', background: theme.gold,
-  border: 'none', color: '#1a1814', fontWeight: 600, fontSize: 13,
+  padding: '7px 16px', borderRadius: 8, cursor: 'pointer', background: theme.accent,
+  border: 'none', color: '#0a120e', fontWeight: 600, fontSize: 13,
 };
 const btnGhost: React.CSSProperties = {
   padding: '6px 13px', borderRadius: 8, cursor: 'pointer', background: 'transparent',
-  border: `1px solid ${theme.gold}`, color: theme.goldHi, fontSize: 12.5,
+  border: `1px solid ${theme.accent}`, color: theme.accentHi, fontSize: 12.5,
 };
 const btnMini: React.CSSProperties = {
   fontSize: 12, padding: '3px 10px', borderRadius: 6, cursor: 'pointer',
-  background: 'transparent', border: `1px solid ${theme.gold}`, color: theme.goldHi,
+  background: 'transparent', border: `1px solid ${theme.accent}`, color: theme.accentHi,
 };
-const secTitle: React.CSSProperties = { color: theme.goldHi, fontSize: 15, marginBottom: 8 };
+const secTitle: React.CSSProperties = { color: theme.accentHi, fontSize: 15, marginBottom: 8 };
 const btnQuiet: React.CSSProperties = {
   fontSize: 11.5, padding: '2px 4px', background: 'none', border: 'none', color: theme.muted,
   cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: 3,
 };
 const card: React.CSSProperties = {
-  border: '1px solid rgba(201,163,92,.22)', borderRadius: 10, padding: '10px 12px', background: 'rgba(0,0,0,.25)',
+  border: '1px solid rgba(67,160,134,.22)', borderRadius: 10, padding: '10px 12px', background: 'rgba(0,0,0,.25)',
 };
 
 function mapItem(r: {
@@ -907,7 +907,7 @@ export default function GearLibrary(props: {
   return (
     <div>
       {!loggedIn && (
-        <div style={{ ...card, color: theme.goldHi, fontSize: 12.5, marginBottom: 10 }}>{t.gearLoginHint}</div>
+        <div style={{ ...card, color: theme.accentHi, fontSize: 12.5, marginBottom: 10 }}>{t.gearLoginHint}</div>
       )}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
         <span style={secTitle}>{libHeading}</span>
@@ -934,7 +934,7 @@ export default function GearLibrary(props: {
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
           {([['paste', t.gearPasteTitle], ['ocr', t.gearOcrTitle], ['manual', t.gearManualTitle]] as const).map(([m, label]) => (
             <button key={m} onClick={() => setAddMode(m)}
-              style={{ ...btnMini, ...(addMode === m ? { background: theme.gold, color: '#1a1814', fontWeight: 600 } : {}) }}>{label}</button>
+              style={{ ...btnMini, ...(addMode === m ? { background: theme.accent, color: '#0a120e', fontWeight: 600 } : {}) }}>{label}</button>
           ))}
         </div>
         {addMode === 'paste' && (<>
@@ -954,8 +954,8 @@ export default function GearLibrary(props: {
           onDragOver={(e) => e.preventDefault()}
           onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files?.[0]; if (f) startOcr(f); }}
           style={{
-            marginTop: 4, border: '1px dashed rgba(201,163,92,.45)', borderRadius: 8, padding: '14px 10px',
-            textAlign: 'center', color: theme.goldHi, fontSize: 12.5, cursor: 'pointer',
+            marginTop: 4, border: '1px dashed rgba(67,160,134,.45)', borderRadius: 8, padding: '14px 10px',
+            textAlign: 'center', color: theme.accentHi, fontSize: 12.5, cursor: 'pointer',
           }}
         >
           {ocrBusy === 'prep' ? t.gearOcrPreparingText
@@ -966,7 +966,7 @@ export default function GearLibrary(props: {
         <input ref={ocrFileRef} type="file" accept="image/*" style={{ display: 'none' }}
           onChange={(e) => { const f = e.target.files?.[0]; if (f) startOcr(f); e.target.value = ''; }} />
         {review && (
-          <div style={{ marginTop: 10, borderTop: '1px solid rgba(201,163,92,.2)', paddingTop: 10 }}>
+          <div style={{ marginTop: 10, borderTop: '1px solid rgba(67,160,134,.2)', paddingTop: 10 }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: 8 }}>
               <label><span style={lbl}>{t.gearOcrSlotLabel}</span>
                 <select style={sel} value={review.slot} onChange={(e) => setReview({ ...review, slot: e.target.value })}>
@@ -1005,7 +1005,7 @@ export default function GearLibrary(props: {
                   const on = review.schools.includes(tag);
                   return (
                     <button key={tag} onClick={() => setReview({ ...review, schools: on ? review.schools.filter((x) => x !== tag) : [...review.schools, tag] })}
-                      style={{ ...btnMini, background: on ? theme.gold : 'transparent', color: on ? '#1a1814' : theme.goldHi, fontWeight: on ? 600 : 400 }}>{tag}</button>
+                      style={{ ...btnMini, background: on ? theme.accent : 'transparent', color: on ? '#0a120e' : theme.accentHi, fontWeight: on ? 600 : 400 }}>{tag}</button>
                   );
                 })}
               </div>
@@ -1077,7 +1077,7 @@ export default function GearLibrary(props: {
               const on = form.schools.includes(tag);
               return (
                 <button key={tag} onClick={() => setForm({ ...form, schools: on ? form.schools.filter((x) => x !== tag) : [...form.schools, tag] })}
-                  style={{ ...btnMini, background: on ? theme.gold : 'transparent', color: on ? '#1a1814' : theme.goldHi, fontWeight: on ? 600 : 400 }}>{tag}</button>
+                  style={{ ...btnMini, background: on ? theme.accent : 'transparent', color: on ? '#0a120e' : theme.accentHi, fontWeight: on ? 600 : 400 }}>{tag}</button>
               );
             })}
           </div>
@@ -1105,9 +1105,9 @@ export default function GearLibrary(props: {
       </div>
 
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', margin: '12px 0 8px' }}>
-        <button style={{ ...btnMini, ...(libFilter === '' ? { background: theme.gold, color: '#1a1814', fontWeight: 600 } : {}) }} onClick={() => setLibFilter('')}>{t.gearRecipeAllLabel}</button>
+        <button style={{ ...btnMini, ...(libFilter === '' ? { background: theme.accent, color: '#0a120e', fontWeight: 600 } : {}) }} onClick={() => setLibFilter('')}>{t.gearRecipeAllLabel}</button>
         {t.gearGearSlots.map((s) => (
-          <button key={s} style={{ ...btnMini, ...(libFilter === s ? { background: theme.gold, color: '#1a1814', fontWeight: 600 } : {}) }} onClick={() => setLibFilter(s)}>{s}</button>
+          <button key={s} style={{ ...btnMini, ...(libFilter === s ? { background: theme.accent, color: '#0a120e', fontWeight: 600 } : {}) }} onClick={() => setLibFilter(s)}>{s}</button>
         ))}
       </div>
       {items.length === 0 && <div style={{ color: theme.muted, fontSize: 12.5 }}>{t.gearLibEmptyText}</div>}
@@ -1136,8 +1136,8 @@ export default function GearLibrary(props: {
             const atCy = a ? l.val >= a.cy : false;
             return (
               <div key={ix} style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'baseline' }}>
-                <span style={isMain ? { color: theme.goldHi, fontWeight: 700 } : undefined}>{a ? a.label : l.key}</span>
-                <b style={{ color: atCy || isMain ? theme.goldHi : theme.paper, fontWeight: isMain ? 800 : 600 }}>{fmt1(l.val)}</b>
+                <span style={isMain ? { color: theme.accentHi, fontWeight: 700 } : undefined}>{a ? a.label : l.key}</span>
+                <b style={{ color: atCy || isMain ? theme.accentHi : theme.paper, fontWeight: isMain ? 800 : 600 }}>{fmt1(l.val)}</b>
               </div>
             );
           };
@@ -1158,14 +1158,14 @@ export default function GearLibrary(props: {
                   </span>
                 )}
               </div>
-              <div style={{ fontFamily: 'var(--font-serif)', color: theme.goldHi, fontSize: 15.5, fontWeight: 700, marginTop: 2, letterSpacing: 1 }}>
+              <div style={{ fontFamily: 'var(--font-sans)', color: theme.accentHi, fontSize: 15.5, fontWeight: 700, marginTop: 2, letterSpacing: 1 }}>
                 {g.name || g.slot}
               </div>
               <div style={{ marginTop: 4, fontSize: 12.5, lineHeight: 1.5, color: theme.paper }}>
                 {mainIdx >= 0 && lineRow(g.lines[mainIdx], mainIdx)}
                 {g.lines.map((l, ix) => (ix === mainIdx ? null : lineRow(l, ix)))}
                 {g.dingyin && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, color: theme.goldHi }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, color: theme.accentHi }}>
                     <span>{g.dingyin.name}</span><b>{fmt1(g.dingyin.val)}</b>
                   </div>
                 )}
@@ -1219,18 +1219,18 @@ export default function GearLibrary(props: {
         buildGroups.map((g) => (
           <Fragment key={g.school}>
             <div data-school-group={g.school} style={{ display: 'flex', alignItems: 'baseline', gap: 8, margin: '14px 0 8px' }}>
-              <span style={{ color: theme.goldHi, fontWeight: 700, fontSize: 13.5 }}>{g.school}</span>
+              <span style={{ color: theme.accentHi, fontWeight: 700, fontSize: 13.5 }}>{g.school}</span>
               <span style={{ color: theme.muted, fontSize: 11.5 }}>{fill(t.gearSchemeGroupCountTemplate, { n: g.list.length })}</span>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(250px,1fr))', gap: 9 }}>
               {g.list.map((b) => (
                 <div key={b.id} data-build-school={b.school} style={card}>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
-                    <b style={{ color: theme.goldHi, fontSize: 14 }}>{b.name}</b>
+                    <b style={{ color: theme.accentHi, fontSize: 14 }}>{b.name}</b>
                     <span style={{ color: theme.muted, fontSize: 11.5 }}>{b.buildLabel}</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 6 }}>
-                    <span style={{ fontFamily: 'var(--font-serif)', color: theme.goldHi, fontSize: 23, fontWeight: 700 }}>{pct1(b.snapTotal)}</span>
+                    <span style={{ fontFamily: 'var(--font-sans)', color: theme.accentHi, fontSize: 23, fontWeight: 700 }}>{pct1(b.snapTotal)}</span>
                     <span style={{ color: theme.muted, fontSize: 11.5 }}>{t.gearGradLabel}</span>
                   </div>
                   <div style={{ color: theme.muted, fontSize: 11.5, marginTop: 3, lineHeight: 1.7 }}>

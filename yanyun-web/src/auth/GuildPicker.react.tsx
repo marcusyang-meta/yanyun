@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import heroImg from '../assets/hero.jpg';
 import { theme } from '../lib/format';
 import type { ViewerUser } from '../lib/user';
 import UserBar, { type UserBarText } from './UserBar.react';
@@ -59,18 +58,18 @@ export default function GuildPicker({
           alt=""
           style={{
             width: 48, height: 48, borderRadius: '50%', objectFit: 'cover', flexShrink: 0,
-            border: '1px solid rgba(201,163,92,.45)', background: 'rgba(201,163,92,.08)',
+            border: '1px solid rgba(67,160,134,.45)', background: 'rgba(67,160,134,.08)',
           }}
         />
       ) : (
         <span className="yy-seal" style={{ width: 48, height: 48, fontSize: 24 }}>{site.sealText}</span>
       )}
       <span style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 18, color: theme.goldHi, fontWeight: 600 }}>
+        <div style={{ fontSize: 18, color: theme.accentHi, fontWeight: 600 }}>
           {t.name}
           {readOnly && (
             <span style={{
-              marginLeft: 10, fontSize: 11, color: theme.muted, border: '1px solid rgba(201,163,92,.35)',
+              marginLeft: 10, fontSize: 11, color: theme.muted, border: '1px solid rgba(67,160,134,.35)',
               borderRadius: 20, padding: '2px 9px', verticalAlign: 'middle', fontWeight: 400,
             }}>{text.readOnlyBadge}</span>
           )}
@@ -81,7 +80,7 @@ export default function GuildPicker({
           </div>
         )}
       </span>
-      <span style={{ color: theme.gold, fontSize: 22 }}>›</span>
+      <span style={{ color: theme.accent, fontSize: 22 }}>›</span>
     </Link>
   );
 
@@ -91,14 +90,13 @@ export default function GuildPicker({
         {/* The user bar floats inside the hero at the top-right (the image starts at the very top of the page — no separate black bar) */}
         <div style={{
           position: 'absolute', top: 14, right: 20, zIndex: 3,
-          background: 'rgba(12,11,9,.5)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
-          border: '1px solid rgba(201,163,92,.25)', borderRadius: 999, padding: '5px 10px 5px 12px',
+          background: 'rgba(21,23,27,.5)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+          border: '1px solid rgba(67,160,134,.25)', borderRadius: 999, padding: '5px 10px 5px 12px',
         }}>
           <UserBar user={user} text={userBarText} />
         </div>
         <h1 className="yy-hero-title">{site.title}</h1>
         <p className="yy-hero-sub">{site.subtitle}</p>
-        <img className="yy-hero-img" src={heroImg} alt={site.heroAlt} />
       </header>
 
       <div style={{ maxWidth: 800, margin: '0 auto', padding: '0 20px 40px' }}>
@@ -109,7 +107,7 @@ export default function GuildPicker({
 
         {guilds.length === 0 ? (
           <div className="yy-card yy-anim-fade-up" style={{ padding: '36px 24px', textAlign: 'center' }}>
-            <div style={{ fontSize: 18, color: theme.goldHi, letterSpacing: '.06em', marginBottom: 10 }}>
+            <div style={{ fontSize: 18, color: theme.accentHi, letterSpacing: '.06em', marginBottom: 10 }}>
               {text.emptyTitle}
             </div>
             <p style={{ color: theme.muted, fontSize: 14, lineHeight: 1.9, margin: '0 auto 24px', maxWidth: 440 }}>
@@ -117,7 +115,7 @@ export default function GuildPicker({
             </p>
             <Link
               to="/create"
-              className="yy-btn yy-btn-gold"
+              className="yy-btn yy-btn-primary"
               style={{ display: 'inline-block', padding: '12px 32px', fontSize: 15, textDecoration: 'none' }}
             >
               {text.createGuildLabel}

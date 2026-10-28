@@ -144,8 +144,8 @@ export default function GuildAdminSeason({ slug, commonText, checklist, roster, 
           {checklist.items.map((item) => (
             <label key={item.key} style={{
               display: 'flex', gap: 10, alignItems: 'flex-start', cursor: 'pointer',
-              padding: '10px 12px', borderRadius: 10, border: '1px solid rgba(201,163,92,.18)',
-              background: 'rgba(12,11,9,.35)',
+              padding: '10px 12px', borderRadius: 10, border: '1px solid rgba(67,160,134,.18)',
+              background: 'rgba(21,23,27,.35)',
             }}>
               <input
                 type="checkbox"
@@ -169,7 +169,7 @@ export default function GuildAdminSeason({ slug, commonText, checklist, roster, 
         <h2 style={adminSectionTitleStyle}>{roster.rosterTitle}</h2>
         <p style={{ color: theme.muted, fontSize: 12, margin: '0 0 14px' }}>{roster.rosterHint}</p>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-          <button type="button" className="yy-btn yy-btn-gold" disabled={ocrBusy} style={{ padding: '8px 18px' }}
+          <button type="button" className="yy-btn yy-btn-primary" disabled={ocrBusy} style={{ padding: '8px 18px' }}
             onClick={() => fileRef.current?.click()}>
             {roster.rosterUploadLabel}
           </button>
@@ -180,12 +180,12 @@ export default function GuildAdminSeason({ slug, commonText, checklist, roster, 
 
         {preview ? (
           <div style={{ marginTop: 16 }}>
-            <h3 style={{ fontSize: 14, color: '#ecd28f', margin: '0 0 10px' }}>{roster.rosterPreviewTitle}</h3>
+            <h3 style={{ fontSize: 14, color: '#93d2be', margin: '0 0 10px' }}>{roster.rosterPreviewTitle}</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {preview.rows.map((row) => (
                 <label key={row.id} style={{
                   display: 'flex', gap: 10, alignItems: 'center',
-                  padding: '7px 10px', borderRadius: 8, border: '1px solid rgba(201,163,92,.14)',
+                  padding: '7px 10px', borderRadius: 8, border: '1px solid rgba(67,160,134,.14)',
                   fontSize: 13, color: theme.paper,
                 }}>
                   <input
@@ -202,13 +202,13 @@ export default function GuildAdminSeason({ slug, commonText, checklist, roster, 
                   {row.matchedName ? <span style={{ color: theme.muted, fontSize: 12 }}>{row.matchedName}</span> : null}
                   <span style={{
                     fontSize: 12, padding: '2px 8px', borderRadius: 999,
-                    border: '1px solid rgba(201,163,92,.3)', color: theme.muted,
+                    border: '1px solid rgba(67,160,134,.3)', color: theme.muted,
                   }}>{row.statusLabel}</span>
                 </label>
               ))}
             </div>
             <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
-              <button type="button" className="yy-btn yy-btn-gold" style={{ padding: '8px 18px' }} onClick={onConfirm}>
+              <button type="button" className="yy-btn yy-btn-primary" style={{ padding: '8px 18px' }} onClick={onConfirm}>
                 {roster.rosterConfirmLabel}
               </button>
               <button type="button" className="yy-btn" style={{ padding: '8px 18px' }}
@@ -225,7 +225,7 @@ export default function GuildAdminSeason({ slug, commonText, checklist, roster, 
           ) : roster.entries.map((entry) => (
             <div key={entry.id} style={{
               display: 'flex', gap: 10, alignItems: 'center',
-              padding: '7px 10px', borderRadius: 8, border: '1px solid rgba(201,163,92,.14)',
+              padding: '7px 10px', borderRadius: 8, border: '1px solid rgba(67,160,134,.14)',
               fontSize: 13, color: theme.paper,
             }}>
               <span style={{ flex: 1 }}>{entry.displayName}</span>

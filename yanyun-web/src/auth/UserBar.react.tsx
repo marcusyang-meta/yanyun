@@ -41,13 +41,13 @@ export default function UserBar({ user, text }: { user: ViewerUser; text: UserBa
         <img
           src={user.avatar}
           alt=""
-          style={{ width: 30, height: 30, borderRadius: '50%', border: `1px solid ${theme.gold}`, objectFit: 'cover' }}
+          style={{ width: 30, height: 30, borderRadius: '50%', border: `1px solid ${theme.accent}`, objectFit: 'cover' }}
         />
       ) : (
         <span style={{
-          width: 30, height: 30, borderRadius: '50%', border: `1px solid ${theme.gold}`,
+          width: 30, height: 30, borderRadius: '50%', border: `1px solid ${theme.accent}`,
           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-          color: theme.goldHi, fontSize: 14, background: 'rgba(201,163,92,.12)',
+          color: theme.accentHi, fontSize: 14, background: 'rgba(67,160,134,.12)',
         }}>{(user.name || '?').slice(0, 1)}</span>
       )}
       <span style={{ color: theme.paper, fontSize: 14, maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -56,7 +56,7 @@ export default function UserBar({ user, text }: { user: ViewerUser; text: UserBa
       <button
         onClick={() => setSettingsOpen(true)}
         style={{
-          background: 'transparent', border: `1px solid rgba(201,163,92,.4)`, color: theme.muted,
+          background: 'transparent', border: '1px solid rgba(255,255,255,.16)', color: theme.muted,
           borderRadius: 8, padding: '5px 12px', fontSize: 12.5, cursor: 'pointer',
         }}
       >{text.settingsLabel}</button>
@@ -73,7 +73,7 @@ export default function UserBar({ user, text }: { user: ViewerUser; text: UserBa
         onClick={logout}
         disabled={leaving}
         style={{
-          background: 'transparent', border: `1px solid rgba(201,163,92,.4)`, color: theme.muted,
+          background: 'transparent', border: '1px solid rgba(255,255,255,.16)', color: theme.muted,
           borderRadius: 8, padding: '5px 12px', fontSize: 12.5, cursor: 'pointer',
         }}
       >{leaving ? text.loggingOutLabel : text.logoutLabel}</button>

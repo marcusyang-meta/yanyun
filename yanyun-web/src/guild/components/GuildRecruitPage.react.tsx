@@ -82,8 +82,8 @@ function StatusChip({ label, status }: { label: string; status: string }) {
   return (
     <span style={{
       fontSize: 11, borderRadius: 999, padding: '1px 8px',
-      color: hot ? '#ecd28f' : theme.muted,
-      border: `1px solid ${hot ? 'rgba(201,163,92,.5)' : 'rgba(201,163,92,.25)'}`,
+      color: hot ? '#93d2be' : theme.muted,
+      border: `1px solid ${hot ? 'rgba(67,160,134,.5)' : 'rgba(67,160,134,.25)'}`,
     }}>
       {label}
     </span>
@@ -131,7 +131,7 @@ export default function GuildRecruitPage({ guildRecruit, slug, user, userBarText
           <Link to={homePath} style={{ color: theme.muted, textDecoration: 'none', fontSize: 14 }}>{data.backLabel}</Link>
           <UserBar user={user} text={userBarText} />
         </div>
-        <h1 style={{ fontFamily: 'var(--font-brush)', fontSize: 34, color: '#ecd28f', margin: '18px 0 4px', letterSpacing: '.06em' }}>
+        <h1 style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: 30, color: theme.paper, margin: '18px 0 4px', letterSpacing: '.02em' }}>
           {data.recruitTitle}
         </h1>
         <p style={{ color: theme.muted, fontSize: 13, margin: '0 0 6px' }}>{data.guildName}</p>
@@ -179,7 +179,7 @@ export default function GuildRecruitPage({ guildRecruit, slug, user, userBarText
               onChange={(e) => setMessage(e.target.value)}
             />
             <div style={{ marginTop: 12 }}>
-              <button type="button" className="yy-btn yy-btn-gold" disabled={busy} style={{ padding: '9px 26px' }} onClick={submit}>
+              <button type="button" className="yy-btn yy-btn-primary" disabled={busy} style={{ padding: '9px 26px' }} onClick={submit}>
                 {busy ? data.submittingLabel : data.submitLabel}
               </button>
             </div>
@@ -198,9 +198,9 @@ export default function GuildRecruitPage({ guildRecruit, slug, user, userBarText
                   <span style={{
                     width: 22, height: 22, borderRadius: '50%', flexShrink: 0, marginTop: 1,
                     display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13,
-                    border: `1px solid ${item.done ? theme.gold : 'rgba(201,163,92,.3)'}`,
-                    background: item.done ? 'rgba(201,163,92,.16)' : 'transparent',
-                    color: item.done ? '#ecd28f' : theme.muted,
+                    border: `1px solid ${item.done ? theme.accent : 'rgba(67,160,134,.3)'}`,
+                    background: item.done ? 'rgba(67,160,134,.16)' : 'transparent',
+                    color: item.done ? '#93d2be' : theme.muted,
                   }}>
                     {item.done ? '✓' : ''}
                   </span>

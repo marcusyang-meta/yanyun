@@ -229,7 +229,7 @@ function SettingsShellFallback({ onClose }: { onClose: () => void }) {
     return createPortal(
       <div className="yy-push-page">
         <div className="yy-push-header">
-          <span onClick={onClose} style={{ fontSize: 22, color: theme.gold, cursor: 'pointer', padding: '0 6px' }}>‹</span>
+          <span onClick={onClose} style={{ fontSize: 22, color: theme.accent, cursor: 'pointer', padding: '0 6px' }}>‹</span>
         </div>
       </div>,
       document.body,
@@ -556,12 +556,12 @@ function SettingsDialogInner({ onClose, user, initialFlow }: {
       {user && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
           {user.avatar ? (
-            <img src={user.avatar} alt="" style={{ width: 46, height: 46, borderRadius: '50%', border: `1px solid ${theme.gold}`, objectFit: 'cover' }} />
+            <img src={user.avatar} alt="" style={{ width: 46, height: 46, borderRadius: '50%', border: `1px solid ${theme.accent}`, objectFit: 'cover' }} />
           ) : (
             <span style={{
-              width: 46, height: 46, borderRadius: '50%', border: `1px solid ${theme.gold}`,
+              width: 46, height: 46, borderRadius: '50%', border: `1px solid ${theme.accent}`,
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-              color: theme.goldHi, fontSize: 19, background: 'rgba(201,163,92,.12)',
+              color: theme.accentHi, fontSize: 19, background: 'rgba(67,160,134,.12)',
             }}>{(user.name || '?').slice(0, 1)}</span>
           )}
           <div>
@@ -586,13 +586,13 @@ function SettingsDialogInner({ onClose, user, initialFlow }: {
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 textAlign: 'left', padding: '11px 16px', borderRadius: 10, cursor: 'pointer',
-                background: active ? 'rgba(201,163,92,.14)' : 'rgba(255,255,255,.02)',
-                border: `1px solid ${active ? theme.gold : 'rgba(201,163,92,.25)'}`,
-                color: active ? theme.goldHi : theme.paper, fontSize: 14.5,
+                background: active ? 'rgba(67,160,134,.14)' : 'rgba(255,255,255,.02)',
+                border: `1px solid ${active ? theme.accent : 'rgba(67,160,134,.25)'}`,
+                color: active ? theme.accentHi : theme.paper, fontSize: 14.5,
               }}
             >
               <span>{opt.label}</span>
-              {active && <span style={{ color: theme.gold, fontSize: 13 }}>●</span>}
+              {active && <span style={{ color: theme.accent, fontSize: 13 }}>●</span>}
             </button>
           );
         })}
@@ -603,19 +603,19 @@ function SettingsDialogInner({ onClose, user, initialFlow }: {
       {error && (
         <div style={{ color: '#e58d7f', fontSize: 13, marginTop: 14 }}>{error}</div>
       )}
-      <div style={{ borderTop: '1px solid rgba(201,163,92,.22)', marginTop: 24, paddingTop: 18 }}>
+      <div style={{ borderTop: '1px solid rgba(67,160,134,.22)', marginTop: 24, paddingTop: 18 }}>
         <button
           data-gear-entry
           onClick={() => pushPage('gear')}
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             width: '100%', textAlign: 'left', padding: '11px 16px', borderRadius: 10, cursor: 'pointer',
-            background: 'rgba(255,255,255,.02)', border: '1px solid rgba(201,163,92,.25)',
+            background: 'rgba(255,255,255,.02)', border: '1px solid rgba(67,160,134,.25)',
             color: theme.paper, fontSize: 14.5,
           }}
         >
           <span>{data.gradPage?.gearMyLibTitle}</span>
-          <span style={{ color: theme.gold, fontSize: 19, lineHeight: 1 }}>›</span>
+          <span style={{ color: theme.accent, fontSize: 19, lineHeight: 1 }}>›</span>
         </button>
         <button
           data-goals-entry
@@ -636,12 +636,12 @@ function SettingsDialogInner({ onClose, user, initialFlow }: {
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             width: '100%', textAlign: 'left', padding: '11px 16px', borderRadius: 10, cursor: 'pointer',
-            background: 'rgba(255,255,255,.02)', border: '1px solid rgba(201,163,92,.25)',
+            background: 'rgba(255,255,255,.02)', border: '1px solid rgba(67,160,134,.25)',
             color: theme.paper, fontSize: 14.5, marginTop: 8,
           }}
         >
           <span>{page.feedbackEntryLabel}</span>
-          <span style={{ color: theme.gold, fontSize: 19, lineHeight: 1 }}>›</span>
+          <span style={{ color: theme.accent, fontSize: 19, lineHeight: 1 }}>›</span>
         </button>
       </div>
 
@@ -649,7 +649,7 @@ function SettingsDialogInner({ onClose, user, initialFlow }: {
           state arrives as data (accountPendingDeletion present/absent),
           never as a flag to interpret; all gates are enforced again by
           the mutations server-side. */}
-      <div style={{ borderTop: '1px solid rgba(201,163,92,.22)', marginTop: 24, paddingTop: 18 }}>
+      <div style={{ borderTop: '1px solid rgba(67,160,134,.22)', marginTop: 24, paddingTop: 18 }}>
         <div style={{ color: theme.paper, fontSize: 16, marginBottom: 12 }}>{page.accountSectionTitle}</div>
         {pending ? (
           <div data-account-pending style={{
@@ -664,8 +664,8 @@ function SettingsDialogInner({ onClose, user, initialFlow }: {
               disabled={cancelInFlight}
               style={{
                 padding: '9px 16px', borderRadius: 8, cursor: 'pointer',
-                background: 'transparent', border: `1px solid ${theme.gold}`,
-                color: theme.goldHi, fontSize: 13.5,
+                background: 'transparent', border: `1px solid ${theme.accent}`,
+                color: theme.accentHi, fontSize: 13.5,
               }}
             >{page.accountCancelDeletionLabel}</button>
           </div>
@@ -686,7 +686,7 @@ function SettingsDialogInner({ onClose, user, initialFlow }: {
                 onClick={() => (authFresh ? doExport() : startReauth('export'))}
                 style={{
                   background: 'none', border: 'none', padding: 0, marginLeft: 6,
-                  color: theme.gold, fontSize: 13, cursor: 'pointer', textDecoration: 'underline',
+                  color: theme.accent, fontSize: 13, cursor: 'pointer', textDecoration: 'underline',
                 }}
               >{page.accountExportLabel}</button>
             </div>
@@ -698,7 +698,7 @@ function SettingsDialogInner({ onClose, user, initialFlow }: {
               placeholder={user?.name || ''}
               style={{
                 width: '100%', boxSizing: 'border-box', padding: '10px 12px', borderRadius: 8,
-                background: 'rgba(255,255,255,.03)', border: '1px solid rgba(201,163,92,.35)',
+                background: 'rgba(255,255,255,.03)', border: '1px solid rgba(67,160,134,.35)',
                 color: theme.paper, fontSize: 14, marginBottom: 14, outline: 'none',
               }}
             />
@@ -707,7 +707,7 @@ function SettingsDialogInner({ onClose, user, initialFlow }: {
                 onClick={() => { setAcctView('main'); setAcctError(''); }}
                 style={{
                   flex: 1, padding: '10px 0', borderRadius: 8, cursor: 'pointer',
-                  background: 'transparent', border: '1px solid rgba(201,163,92,.35)',
+                  background: 'transparent', border: '1px solid rgba(67,160,134,.35)',
                   color: theme.paper, fontSize: 14,
                 }}
               >{page.accountBackLabel}</button>
@@ -733,12 +733,12 @@ function SettingsDialogInner({ onClose, user, initialFlow }: {
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 width: '100%', textAlign: 'left', padding: '11px 16px', borderRadius: 10, cursor: 'pointer',
-                background: 'rgba(255,255,255,.02)', border: '1px solid rgba(201,163,92,.25)',
+                background: 'rgba(255,255,255,.02)', border: '1px solid rgba(67,160,134,.25)',
                 color: theme.paper, fontSize: 14.5, marginBottom: 8,
               }}
             >
               <span>{page.accountExportLabel}</span>
-              <span style={{ color: theme.gold, fontSize: 19, lineHeight: 1 }}>›</span>
+              <span style={{ color: theme.accent, fontSize: 19, lineHeight: 1 }}>›</span>
             </button>
             <div style={{ color: theme.muted, fontSize: 12.5, lineHeight: 1.7, marginBottom: 16 }}>{page.accountExportHint}</div>
             {!authFresh && (
@@ -779,7 +779,7 @@ function SettingsDialogInner({ onClose, user, initialFlow }: {
         <div
           data-feedback-back
           onClick={popPage}
-          style={{ color: theme.gold, fontSize: 24, lineHeight: 1, cursor: 'pointer', padding: '0 8px 10px 0', width: 32 }}
+          style={{ color: theme.accent, fontSize: 24, lineHeight: 1, cursor: 'pointer', padding: '0 8px 10px 0', width: 32 }}
         >‹</div>
       )}
       {fbDone ? (
@@ -799,9 +799,9 @@ function SettingsDialogInner({ onClose, user, initialFlow }: {
                   onClick={() => setFbCategory(cat.value)}
                   style={{
                     padding: '9px 18px', borderRadius: 999, cursor: 'pointer',
-                    background: active ? 'rgba(201,163,92,.16)' : 'rgba(255,255,255,.02)',
-                    border: `1px solid ${active ? theme.gold : 'rgba(201,163,92,.25)'}`,
-                    color: active ? theme.goldHi : theme.paper, fontSize: 14,
+                    background: active ? 'rgba(67,160,134,.16)' : 'rgba(255,255,255,.02)',
+                    border: `1px solid ${active ? theme.accent : 'rgba(67,160,134,.25)'}`,
+                    color: active ? theme.accentHi : theme.paper, fontSize: 14,
                   }}
                 >
                   {cat.label}
@@ -817,7 +817,7 @@ function SettingsDialogInner({ onClose, user, initialFlow }: {
             rows={5}
             style={{
               width: '100%', boxSizing: 'border-box', resize: 'vertical',
-              background: 'rgba(255,255,255,.03)', border: '1px solid rgba(201,163,92,.25)',
+              background: 'rgba(255,255,255,.03)', border: '1px solid rgba(67,160,134,.25)',
               borderRadius: 10, padding: '12px 14px', color: theme.paper, fontSize: 14.5, lineHeight: 1.7,
               fontFamily: 'inherit', outline: 'none',
             }}
@@ -827,7 +827,7 @@ function SettingsDialogInner({ onClose, user, initialFlow }: {
           )}
           <button
             data-feedback-submit
-            className="yy-btn yy-btn-gold"
+            className="yy-btn yy-btn-primary"
             onClick={submitFeedback}
             disabled={fbInFlight || !fbText.trim()}
             style={{ marginTop: 18, padding: '11px 30px', fontSize: 15, letterSpacing: '.05em' }}
@@ -850,7 +850,7 @@ function SettingsDialogInner({ onClose, user, initialFlow }: {
         <div
           data-gear-back
           onClick={popPage}
-          style={{ color: theme.gold, fontSize: 24, lineHeight: 1, cursor: 'pointer', padding: '0 8px 10px 0', width: 32 }}
+          style={{ color: theme.accent, fontSize: 24, lineHeight: 1, cursor: 'pointer', padding: '0 8px 10px 0', width: 32 }}
         >‹</div>
       )}
       <Suspense fallback={<div className="yy-skeleton" style={{ height: 300 }} />}>
@@ -1003,10 +1003,10 @@ function SettingsDialogInner({ onClose, user, initialFlow }: {
     return createPortal(
       <div className="yy-push-page" ref={hostRef} onScroll={noteScroll}>
         <div className="yy-push-header">
-          <span onClick={headerBack} style={{ fontSize: 24, color: theme.gold, cursor: 'pointer', padding: '0 8px 0 0', lineHeight: 1 }}>‹</span>
+          <span onClick={headerBack} style={{ fontSize: 24, color: theme.accent, cursor: 'pointer', padding: '0 8px 0 0', lineHeight: 1 }}>‹</span>
           <span style={{
-            fontFamily: "'Ma Shan Zheng', 'Noto Serif SC', serif",
-            color: theme.goldHi, fontSize: 20, letterSpacing: 3,
+            fontFamily: "inherit",
+            color: theme.accentHi, fontSize: 20, letterSpacing: 3,
           }}>{headerTitle}</span>
         </div>
         <div style={{ padding: '20px 16px 0' }}>{body}</div>
@@ -1025,8 +1025,8 @@ function SettingsDialogInner({ onClose, user, initialFlow }: {
       >
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
           <div style={{
-            flex: 1, fontFamily: "'Ma Shan Zheng', 'Noto Serif SC', serif",
-            fontSize: 22, color: theme.goldHi, letterSpacing: 4,
+            flex: 1, fontFamily: "inherit",
+            fontSize: 22, color: theme.accentHi, letterSpacing: 4,
           }}>{headerTitle}</div>
           <div onClick={onClose} style={{ color: theme.muted, fontSize: 24, cursor: 'pointer', padding: 8 }}>✕</div>
         </div>

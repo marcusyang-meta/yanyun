@@ -31,7 +31,7 @@ export function ToastHost() {
     }}>
       {items.map((t) => (
         <div key={t.id} style={{
-          background: '#1a1814', border: `1px solid ${theme.gold}`, color: theme.paper,
+          background: '#0a120e', border: `1px solid ${theme.accent}`, color: theme.paper,
           padding: '12px 20px', borderRadius: 10, fontSize: 14, textAlign: 'center',
         }}>
           {t.msg}
@@ -53,19 +53,19 @@ export function ConfirmDialog({ title, message, onOk, onCancel, okLabel, cancelL
       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
     }} onClick={onCancel}>
       <div style={{
-        background: '#1a1814', border: `1px solid ${theme.gold}`, borderRadius: 12,
+        background: '#0a120e', border: `1px solid ${theme.accent}`, borderRadius: 12,
         padding: 24, maxWidth: 360, width: '100%', maxHeight: '85vh', overflowY: 'auto',
       }} onClick={(e) => e.stopPropagation()}>
-        <div style={{ fontSize: 18, color: theme.goldHi, marginBottom: 12 }}>{title}</div>
+        <div style={{ fontSize: 18, color: theme.accentHi, marginBottom: 12 }}>{title}</div>
         <div style={{ color: theme.paper, fontSize: 14, marginBottom: 20 }}>{message}</div>
         <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
           <button onClick={onCancel} style={{
             padding: '8px 20px', borderRadius: 8, cursor: 'pointer',
-            background: 'transparent', border: `1px solid ${theme.gold}`, color: theme.paper,
+            background: 'transparent', border: `1px solid ${theme.accent}`, color: theme.paper,
           }}>{cancelLabel}</button>
           <button onClick={onOk} style={{
             padding: '8px 20px', borderRadius: 8, cursor: 'pointer',
-            background: theme.gold, border: 'none', color: '#1a1814', fontWeight: 600,
+            background: theme.accent, border: 'none', color: '#0a120e', fontWeight: 600,
           }}>{okLabel}</button>
         </div>
       </div>
