@@ -11438,6 +11438,504 @@
         }
       ],
       "types": []
+    },
+    "4tsuUPWcTNTb/8ir3GYLxg==": {
+      "description": "Tab label for the guild admin page, used to switch to the premium insights tab.",
+      "id": "guilds/guildAdmin_tabInsights",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "數據洞察",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "JDOsGcksg2A7dBU7H6W1Nw==": {
+      "description": "Title text for the reliability profiles section in the insights tab, used as the section heading.",
+      "id": "guilds/guildAdmin_insightsReliabilityTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "可靠性檔案",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ZMKPJvt25st65JiBAYBl0w==": {
+      "description": "Hint text for the reliability profiles section, used to state the attendance and no-show definitions the counts follow.",
+      "id": "guilds/guildAdmin_insightsReliabilityHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "出席 = 已完成車輛上落座且已就位；鴿 = 已完成車輛上落座但始終未就位。未完成的車輛不計入出席率。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "vj1XlElMQpLzdBZ8SHVfjg==": {
+      "description": "Column label for the reliability profiles section, used for the signup count column.",
+      "id": "guilds/guildAdmin_insightsSignupsLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "報名",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "KxB0XeUWzPIHX3b9xvYgRg==": {
+      "description": "Column label for the reliability profiles section, used for the attended count column.",
+      "id": "guilds/guildAdmin_insightsAttendedLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "出席",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "HIR2fx1hdo7XZkbm1vB+NQ==": {
+      "description": "Column label for the reliability profiles section, used for the no-show count column.",
+      "id": "guilds/guildAdmin_insightsNoShowLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "鴿",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "dX48iWS8/HaGuDYzd4GLHw==": {
+      "description": "Column label for the reliability profiles section, used for the attendance rate column.",
+      "id": "guilds/guildAdmin_insightsRateLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "出席率",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "KvKpECiOQkfEpkQJ4SjXPw==": {
+      "description": "Empty-state text for the reliability profiles section, used when no member has a stamped signup record.",
+      "id": "guilds/guildAdmin_insightsReliabilityEmpty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "暫無帶身份戳的報名記錄。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "5i1mC3E8/dEnEKKK5hlTHg==": {
+      "description": "Title text for the participation heatmap section in the insights tab, used as the section heading.",
+      "id": "guilds/guildAdmin_insightsHeatmapTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "成員參與熱力圖",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "s1c3k16HvXDIvO5EPmp0DQ==": {
+      "description": "Hint text for the participation heatmap section, used to explain the buckets follow the viewer's timezone and count attended participations.",
+      "id": "guilds/guildAdmin_insightsHeatmapHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "按你所在時區統計已完成車輛的出席人次，格子越亮人越多。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "/dcSsOAAyxFlmXQU0LYt0A==": {
+      "description": "Empty-state text for the participation heatmap section, used when no attended participation exists yet.",
+      "id": "guilds/guildAdmin_insightsHeatmapEmpty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "暫無出席記錄。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "4VTVICN8DiaUqlIvCsxQPw==": {
+      "description": "Weekday label for the participation heatmap, used for the Monday row.",
+      "id": "guilds/guildAdmin_insightsWeekdayMon",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "週一",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "l/M1d+QeqHuCTS8pLBs4Yw==": {
+      "description": "Weekday label for the participation heatmap, used for the Tuesday row.",
+      "id": "guilds/guildAdmin_insightsWeekdayTue",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "週二",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "FjGqxQVt5pk5gkWnmiHxAQ==": {
+      "description": "Weekday label for the participation heatmap, used for the Wednesday row.",
+      "id": "guilds/guildAdmin_insightsWeekdayWed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "週三",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "PK8FRKT8laUas2yUnDsp6g==": {
+      "description": "Weekday label for the participation heatmap, used for the Thursday row.",
+      "id": "guilds/guildAdmin_insightsWeekdayThu",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "週四",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "R6iWUtDEkdLHvUSgwfcYQQ==": {
+      "description": "Weekday label for the participation heatmap, used for the Friday row.",
+      "id": "guilds/guildAdmin_insightsWeekdayFri",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "週五",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "05Lj8kXKW4ziq2H1Q2G4MQ==": {
+      "description": "Weekday label for the participation heatmap, used for the Saturday row.",
+      "id": "guilds/guildAdmin_insightsWeekdaySat",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "週六",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "PHj57j+5g1HiZCjHyVnxKg==": {
+      "description": "Weekday label for the participation heatmap, used for the Sunday row.",
+      "id": "guilds/guildAdmin_insightsWeekdaySun",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "週日",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Jbh3kxyEw1UBvbqAUkG0nA==": {
+      "description": "Title text for the gear readiness board section in the insights tab, used as the section heading.",
+      "id": "guilds/guildAdmin_insightsGearTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "裝備達標盤",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "jhEWsuR0S9ii6z4GG+gjGQ==": {
+      "description": "Hint text for the gear readiness board section, used to explain the board judges each member's best build graduation score against the line.",
+      "id": "guilds/guildAdmin_insightsGearHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "達標線按成員最佳構築的畢業分判定；缺口名單列出未達標成員與差距。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "DJUL0nP2zgx6oxOQpdYGXA==": {
+      "description": "Empty-state text for the gear readiness board section, used when the guild has no readiness line yet.",
+      "id": "guilds/guildAdmin_insightsGearEmpty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "尚未設置達標線，先在下方添加一條。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "UVQpvjF43YdxO5zegboJmg==": {
+      "description": "Field label for the gear readiness form, used for the scene name input.",
+      "id": "guilds/guildAdmin_insightsGearLabelLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "場景名稱",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "cgbxFHD1CScgCGAHnOUCXg==": {
+      "description": "Field label for the gear readiness form, used for the minimum graduation score input.",
+      "id": "guilds/guildAdmin_insightsGearMinScoreLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "達標線（畢業分）",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "1na6HWzvCJdWzduIr24plA==": {
+      "description": "Button label for the gear readiness form, used to add a new readiness line.",
+      "id": "guilds/guildAdmin_insightsGearAddLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "添加達標線",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "2tSIUUnxm8QM2LtVSpZbYQ==": {
+      "description": "Status label for the gear readiness board, used for a member whose best score meets the line.",
+      "id": "guilds/guildAdmin_insightsGearMetLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "達標",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "I0FTDvad6UnxoHDuuhQl0w==": {
+      "description": "Status label for the gear readiness board, used for a member whose best score is below the line.",
+      "id": "guilds/guildAdmin_insightsGearUnmetLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "未達標",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "WP45dDsmvnWqaynvccDmzw==": {
+      "description": "Status label for the gear readiness board, used for a member with no saved build snapshot.",
+      "id": "guilds/guildAdmin_insightsGearNoBuildLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "無構築",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "xN0uImOecv7LDfMNYjHgJg==": {
+      "description": "Column label for the gear readiness board, used for the best graduation score column.",
+      "id": "guilds/guildAdmin_insightsGearScoreLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "畢業分",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "44yD37DIjcDfpnA0WW+igw==": {
+      "description": "Column label for the gear readiness board, used for the gap-to-line column.",
+      "id": "guilds/guildAdmin_insightsGearGapLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "缺口",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "7s/Ep0LHyBLvqL75zgxG/w==": {
+      "description": "Title text for the race season board section, used as the section heading in the insights tab and on the guild home board.",
+      "id": "guilds/guildAdmin_insightsRaceTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "競速賽季總榜",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "iJ6UtF9Ti22bSer7k6eGYA==": {
+      "description": "Empty-state text for the race season board, used when the guild has no recorded race results.",
+      "id": "guilds/guildAdmin_insightsRaceEmpty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "暫無競速成績記錄。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "LiqlQznPj3c9Gmit8whwxg==": {
+      "description": "Column label for the race season board, used for the team name column.",
+      "id": "guilds/guildAdmin_insightsRaceTeamLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "隊伍",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "eUTpuOZ4AkPVhEk/ryKbtw==": {
+      "description": "Column label for the race season board, used for the run count column.",
+      "id": "guilds/guildAdmin_insightsRaceRunsLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "場次",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "z+2CU8jzKModS75h5EV5FQ==": {
+      "description": "Column label for the race season board, used for the win count column.",
+      "id": "guilds/guildAdmin_insightsRaceWinsLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "奪冠",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "k5jErb83wVl2/S1YoVtb7g==": {
+      "description": "Column label for the race season board, used for the best time column.",
+      "id": "guilds/guildAdmin_insightsRaceBestLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "最佳成績",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "oETY9YYFIFsa95tlWy2Q+Q==": {
+      "description": "Section label for the race season board, used for results whose dungeon has no season classification.",
+      "id": "guilds/guildAdmin_insightsRaceUnclassified",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "未分類賽季",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "0H0doKMDwYloYgB6AiS38g==": {
+      "description": "Title text for the member's own gear readiness status on the guild home page, used as the section heading.",
+      "id": "guilds/guildAdmin_insightsSelfGearTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "我的達標狀態",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "8iCuxYLHbk2ihgJX+oGujA==": {
+      "description": "Error message for gear readiness lines, used when a readiness line is saved with an empty scene label or a score outside the allowed range.",
+      "id": "platform/errors_gearStandardInvalid",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "達標線參數不合法",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Z/IQSYmf1B505r6UXAf3hw==": {
+      "description": "Error message for gear readiness lines, used when an update or delete references a line that does not exist in this guild.",
+      "id": "platform/errors_gearStandardNotFound",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "達標線不存在",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "buWTvF+212Xf0oFVMkqEnQ==": {
+      "description": "Summary text for the participation heatmap section, used to state the total attended participations, where {count} is that total.",
+      "id": "guilds/guildAdmin_insightsHeatmapTotal",
+      "tokens": [
+        "count"
+      ],
+      "translations": [
+        {
+          "translation": "共 {count} 人次出席",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "dS+Wdd6R0Ct9kuljikN6MQ==": {
+      "description": "Summary text for one gear readiness line, used to state its met, unmet and no-build member counts, where {met}, {unmet} and {nobuild} are those counts.",
+      "id": "guilds/guildAdmin_insightsGearSummary",
+      "tokens": [
+        "met",
+        "unmet",
+        "nobuild"
+      ],
+      "translations": [
+        {
+          "translation": "達標 {met} · 未達標 {unmet} · 無構築 {nobuild}",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }
