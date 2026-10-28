@@ -2003,6 +2003,9 @@ type Guild {
   homeTabSectLabel: String!
   homeTabAnnouncementsLabel: String!
   homeTabScheduleLabel: String!
+  # 招新入口文案 (F16/F24/F17 招新新人线): 三个 Guild 变体都下发 —
+  # 非成员在 Locked 页看到的正是入业申请入口, 成员看到的是新人清单入口。
+  recruitEntryLabel: String!
   # 管理入口文案: 仅通过管理判定 (getGuildAdminAccess, 与管理面同一
   # 口径, 含 omni) 的查看者才下发; 其余成员为 null, 主页不渲染入口 —
   # 进不去的入口不广告。可空即为此意, 勿改回 String!。
@@ -2035,6 +2038,7 @@ type GuildReadOnly {
   homeTabSectLabel: String!
   homeTabAnnouncementsLabel: String!
   homeTabScheduleLabel: String!
+  recruitEntryLabel: String!
   homeReadOnlyBanner: String!
   detailNotFoundText: String!
   detailBackToListLabel: String!
@@ -2046,6 +2050,8 @@ type GuildReadOnly {
 # 已绑定但非成员 / 百业不存在: 不携带任何百业内容数据 (仅 slug 与本页文案)
 type GuildLocked {
   slug: String!
+  # 非成员的入业申请入口文案 (招新页 GuildRecruitPage 承接申请全流程)
+  recruitEntryLabel: String!
   lockedBackLinkLabel: String!
   lockedTitle: String!
   lockedBody1: String!
@@ -2061,6 +2067,7 @@ type Viewer {
   publicGuilds: [GuildReadOnly!]!  # 未绑定服务器的公开百业 (只读)
   guild(slug: String!): GuildResult!
   guildAdmin(slug: String!): GuildAdminResult!  # 百业管理面: 响应类型即权限结论 (见下方 GuildAdmin)
+  guildRecruit(slug: String!): GuildRecruitResult!  # 招新页 (F16 申请 / F24 清单 / F17 我的配对): 响应类型即权限结论
   discordServers: [DiscordServer!]!  # 我有管理权限的服务器 (服务端过滤)
   # UI 文案: 站点/登录/选择页/创建页/通用 — 全部由 Viewer shell 的 gen
   # 方法按请求 locale 生成, 未选中永不生成 (无 Strings 类型, 文案字段
@@ -2232,6 +2239,17 @@ type GuildAdmin {
   # 成员名册 (免费功能, 不挂 gate): 游戏内名字名册, 与 Discord 成员
   # 资格 (guild_members) 正交; 截图 OCR 导入经待确认预览才落库。
   roster: GuildRoster!
+  # 招新新人线 (免费功能, 不挂任何权益门): 入业申请审核队列 (F16)、
+  # 导师人选与配对 (F17)、新人清单进度总览 (F24); 只挂 GuildAdmin —
+  # Locked 零招新字段。审核/配对写操作全部走下方 mutation 并在
+  # resolver 内复验管理结论。通过申请的平台侧效果 = 申请结案 +
+  # 登记进本百业名册; Discord 服务器成员身份平台无写通道 (无 bot
+  # 令牌, OAuth 为用户只读授权), 申请人通过后自行加入绑定服务器
+  # —— GuildRecruitPage 的 approvedNextStep 文案逐字说明这一步。
+  recruitApplications: [RecruitApplication!]!
+  recruitPairings: [MentorPairing!]!
+  recruitRoster: [RecruitMember!]!
+  newcomerProgress: [NewcomerProgress!]!
   # 管理页文案 (guildAdmin 目录, 按请求 locale 生成)
   adminTitle: String!
   adminBackLinkLabel: String!
@@ -2354,6 +2372,25 @@ type GuildAdmin {
   adminLotteryDrawLabel: String!
   adminLotteryStatusOpenText: String!
   adminLotteryStatusDrawnText: String!
+  adminTabRecruitLabel: String!
+  adminRecruitApplicationsTitle: String!
+  adminRecruitApplicationsEmptyText: String!
+  adminRecruitApproveLabel: String!
+  adminRecruitRejectLabel: String!
+  adminRecruitMentorPoolTitle: String!
+  adminRecruitSetMentorLabel: String!
+  adminRecruitUnsetMentorLabel: String!
+  adminRecruitPairingsTitle: String!
+  adminRecruitPairingsEmptyText: String!
+  adminRecruitPairingCreateLabel: String!
+  adminRecruitPairingEndLabel: String!
+  adminRecruitMentorSelectLabel: String!
+  adminRecruitMenteeSelectLabel: String!
+  adminRecruitNewcomersTitle: String!
+  adminRecruitNewcomersEmptyText: String!
+  adminRecruitProfileLabel: String!
+  adminRecruitMentorLabel: String!
+  adminRecruitFirstRunLabel: String!
 }
 
 # 抽奖参与名单来源: GROUPING = 某辆车的已落座参与者快照;
@@ -2393,6 +2430,127 @@ type GuildAdminLotteryEntry {
 }
 
 # 手选名单的候选行: 本百业名册 (guild_members) 的成员。
+# ============ 招新新人线 (F16 / F24 / F17, 免费功能) ============
+# 申请状态: PENDING 待审核 -> APPROVED 已通过 / REJECTED 未通过;
+# 结案后不可改判 (仓储层 still-pending 守卫), 未通过者可重新申请。
+enum RecruitApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum MentorPairingStatus {
+  ACTIVE
+  ENDED
+}
+
+# 一份入业申请的留痕全貌: 附言、状态、申请与审核时间、审核人。
+# 申请人本人在招新页读自己的 (最新一份), 管理员在审核队列读全量。
+type RecruitApplication {
+  id: ID!
+  applicantDiscordId: String!
+  applicantName: String!
+  message: String!
+  status: RecruitApplicationStatus!
+  statusLabel: String!
+  createdAtText: String!
+  reviewedByName: String
+  reviewedAtText: String
+}
+
+# 一段导师配对: 双方名快照 + 状态 + 建立/结束时间, 全部留痕。
+type MentorPairing {
+  id: ID!
+  mentorDiscordId: String!
+  mentorName: String!
+  menteeDiscordId: String!
+  menteeName: String!
+  status: MentorPairingStatus!
+  statusLabel: String!
+  createdAtText: String!
+  endedAtText: String
+}
+
+# 名册行 + 导师人选标记: 管理面据此设导师、建配对 (标记只是数据,
+# 写操作仍在 resolver 内复验人选资格, 前端不据标记自行放行)。
+type RecruitMember {
+  discordId: String!
+  displayName: String!
+  isMentor: Boolean!
+}
+
+type NewcomerChecklistItem {
+  key: String!
+  label: String!
+  hint: String!
+  done: Boolean!
+}
+
+# 新人入业清单 (F24): 三项全部从既有数据推导, 平台不存清单状态 —
+# profile = 本百业有落座且流派非空的座位 (时区由客户端每请求呈现,
+# 平台无存储型时区资料, 故该半项无需填写、永不阻塞); mentor = 本人
+# 为一段进行中配对的新人; firstRun = 在已完成的车队中落座。
+type NewcomerChecklist {
+  items: [NewcomerChecklistItem!]!
+  doneCount: Int!
+  totalCount: Int!
+  progressText: String!
+}
+
+# 军官侧新人总览行: 清单三项结论逐项下发 (与本人视图同一推导)。
+type NewcomerProgress {
+  discordId: String!
+  displayName: String!
+  profileDone: Boolean!
+  mentorDone: Boolean!
+  firstRunDone: Boolean!
+  doneCount: Int!
+  progressText: String!
+}
+
+union GuildRecruitResult = GuildRecruitPage | GuildRecruitLocked
+
+# 招新页 (登录用户): 申请人看自己的申请与状态 (尚未入业时 checklist
+# 为 null); 成员看自己的入业清单与配对。文案全部后端下发。
+type GuildRecruitPage {
+  slug: String!
+  guildName: String!
+  recruitTitle: String!
+  recruitBody: String!
+  applySectionTitle: String!
+  messageLabel: String!
+  messagePlaceholder: String!
+  submitLabel: String!
+  submittingLabel: String!
+  myApplicationTitle: String!
+  myApplication: RecruitApplication
+  pendingHint: String!
+  approvedNextStepText: String!
+  rejectedHint: String!
+  checklistTitle: String!
+  checklist: NewcomerChecklist
+  myPairingsTitle: String!
+  myPairings: [MentorPairing!]!
+  pairingMentorRoleLabel: String!
+  pairingMenteeRoleLabel: String!
+  backLabel: String!
+}
+
+# 未登录 / 百业不存在: 只带 slug 与本页文案, 无任何百业内容数据。
+type GuildRecruitLocked {
+  slug: String!
+  lockedTitle: String!
+  lockedBody: String!
+  backLabel: String!
+}
+
+type RecruitPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  application: RecruitApplication
+}
+
 type GuildAdminLotteryMember {
   discordId: ID!
   displayName: String!
@@ -2745,6 +2903,17 @@ extend type Mutation {
   # 确认导入: 仅 rowIds 里 NEW 状态的行落为名册条目; 批次随即关闭。
   confirmRosterImport(slug: String!, batchId: ID!, rowIds: [ID!]!): RosterImportPayload!
   deleteGuildRosterEntry(slug: String!, entryId: ID!): GuildAdminPayload!
+  # 招新线 (免费, 不挂权益门; 全部在 resolver 内复验管理结论)
+  reviewGuildApplication(slug: String!, applicationId: ID!, approve: Boolean!): GuildAdminPayload!  # 通过 = 结案 + 登记名册 (Discord 入服由申请人自行完成, 见 recruit 文案)
+  setGuildMentor(slug: String!, discordId: String!, isMentor: Boolean!): GuildAdminPayload!  # 设/取消导师人选 (不改已有配对)
+  createMentorPairing(slug: String!, mentorDiscordId: String!, menteeDiscordId: String!): GuildAdminPayload!  # 导师须已在人选中; 新人同时至多一段进行中配对
+  endMentorPairing(slug: String!, pairingId: ID!): GuildAdminPayload!  # 结束留痕, 不删行
+}
+
+extend type Mutation {
+  # 入业申请 (F16): 登录的非成员向已绑定百业提交; 已有待审申请时
+  # 以 applicationPending 拒绝 (仓储部分唯一索引同规兜底)。
+  applyToGuild(slug: String!, message: String): RecruitPayload!
 }
 
 # ============ OG 卡面数据通道 (公开, 只读) ============

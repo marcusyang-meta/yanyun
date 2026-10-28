@@ -9537,6 +9537,644 @@
         }
       ],
       "types": []
+    },
+    "MzuBVk+lymr8Osxodc0Tfg==": {
+      "description": "errors.alreadyMember",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "You are already a member of this guild",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "4HUAKL3wwPD6T7SQpUSEgQ==": {
+      "description": "errors.applicationNotFound",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Application not found",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "DT0PnTy78mqJG8fBzTFfPQ==": {
+      "description": "errors.applicationNotPending",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "This application has already been reviewed",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "7ZBRya8TkSwljP/yIUoagw==": {
+      "description": "errors.applicationPending",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "You already have an application pending review — please wait for the result",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "FvgEUHypKkRq2BmD+AWayg==": {
+      "description": "errors.menteeAlreadyPaired",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "This newcomer already has an active pairing — end it before re-pairing",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "a2coUVXfsQ++mEIY3yMgXA==": {
+      "description": "errors.menteeNotInGuild",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "The selected newcomer is not on this guild's roster",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "cV7AqzFGysGy0gU1N50QGQ==": {
+      "description": "errors.mentorNotDesignated",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "The selected mentor is not in this guild’s mentor pool — designate them first",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "a47wZGx7sCNb1stpxLHJ3Q==": {
+      "description": "errors.mentorNotInGuild",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "The selected mentor is not on this guild's roster",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "mITOQE6ibNAqkdqsWyxzBg==": {
+      "description": "errors.mentorSelfPairing",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Mentor and mentee cannot be the same person",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "/0GnYVjx6FN+AWBfonfbOg==": {
+      "description": "errors.pairingAlreadyEnded",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "This pairing has already ended",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "oHmEFBtgqAXOpMaMudX/+g==": {
+      "description": "errors.pairingNotFound",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Pairing not found",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "amVWFocnRz4ci1Faq8568g==": {
+      "description": "errors.recruitUnavailable",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "This guild has not bound a Discord server yet, so applications are not open",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "NLtQ8NqhIwFm2cxGjVirPQ==": {
+      "description": "guildAdmin.tabRecruit",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Recruiting & Mentors",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "/oFwk3a3qc0xzKt9MWBLiA==": {
+      "description": "recruit.adminApplicationsEmpty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "No applications yet.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "52Cbw6cBCirl4eiJgxMRnw==": {
+      "description": "recruit.adminApplicationsTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Application review",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "2KFiWYFydfHUb9DPVpCDxg==": {
+      "description": "recruit.adminApproveButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Approve",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ZqTvcBVYmP+L0nXP6UuBow==": {
+      "description": "recruit.adminMenteeSelectLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Pick a newcomer",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "4ICDgrKvmf11AeIQ5AQNDQ==": {
+      "description": "recruit.adminMentorPoolTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Mentor pool",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "rYy1NnaV4X66JzZbtVQk3g==": {
+      "description": "recruit.adminMentorSelectLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Pick a mentor",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "24TRnZ1+O2y4cM9UMY8t+A==": {
+      "description": "recruit.adminNewcomersEmpty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "No newcomers with an unfinished checklist.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "b0X0ZRakvJ6DCtOHBnmiNg==": {
+      "description": "recruit.adminNewcomersTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Newcomer checklist progress",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "W2cD41AaSRdOYhVZb5yBTA==": {
+      "description": "recruit.adminPairingCreateButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Create pairing",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "CJ0IebLYp6ACYkk+OQsr5Q==": {
+      "description": "recruit.adminPairingEndButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "End pairing",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "j3yKhxscJ1XTJLK529m/Rw==": {
+      "description": "recruit.adminPairingsEmpty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "No pairings yet.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "WwHxrpBa+luMT/AN3gI/vQ==": {
+      "description": "recruit.adminPairingsTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Mentor pairings",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "UqtIaZ38+DfV4yMZAXQPqA==": {
+      "description": "recruit.adminRejectButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Reject",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "a385Xt6n15AcTjDjRt0g6Q==": {
+      "description": "recruit.adminSetMentorButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Make mentor",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "c+oS+CGqXrPIZ0cOAoUR2w==": {
+      "description": "recruit.adminUnsetMentorButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Remove mentor",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "XDhV5kCPkqZjaDbkKB1jDQ==": {
+      "description": "recruit.applySectionTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Join application",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "p6WtbMscwVQ2ThWEtRiEAQ==": {
+      "description": "recruit.approvedNextStep",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Your application was approved and you are on the guild roster. The last step happens on Discord: join the Discord server this guild is bound to — membership is decided by Discord server membership, and the platform has no Discord bot permission, so it cannot add you to the server or grant you a role. Once you have joined, sign in with the same account to use everything.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "LjL9N8pmpkC48xXzL1zOJg==": {
+      "description": "recruit.body",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Want to join this guild? File an application and a guild admin will review it here. Already in? Check your newcomer checklist and mentor pairing below.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "YRcvUVxBMYkrBK5RowmRjA==": {
+      "description": "recruit.checklistProgress",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{done} / {total} done",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "YWJjlPRRffuMPQ2e9zgJWQ==": {
+      "description": "recruit.checklistTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Newcomer checklist",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "UM5qQlVn4+afqMvYMb7mRA==": {
+      "description": "recruit.entryLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Recruiting / Newcomers",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "gyNkq1U7dsJYzXQMy8kXAw==": {
+      "description": "recruit.itemFirstRunHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Ticks automatically once you hold a seat in a completed squad.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "PSIuB83lp852aBChdkThUQ==": {
+      "description": "recruit.itemFirstRunLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Finish your first run",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "yNdiuy+AnCLi9K+dnM85Hg==": {
+      "description": "recruit.itemMentorHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Ticks automatically once a guild admin pairs you with a mentor.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "CetNSOa1KFdYnf+fmavk/Q==": {
+      "description": "recruit.itemMentorLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Get a mentor",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "nSf65tFTfm3tU6Er8vunQw==": {
+      "description": "recruit.itemProfileHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Ticks once you fill in your school when taking a seat in any squad; your timezone syncs automatically from your client — nothing to fill in.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "j/RBbyvmHNLIfZUghrLbRQ==": {
+      "description": "recruit.itemProfileLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Complete school / timezone",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "wVxSIE5YkHr0K5MmcEoUTw==": {
+      "description": "recruit.lockedBody",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Please sign in with your Discord account first; if you are signed in, this guild may not exist.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "pq1BG8aGk6aUuP0qiWV/VA==": {
+      "description": "recruit.lockedTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Cannot open the recruiting page",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "5MY4BzHHswpQMIcV0nYIzg==": {
+      "description": "recruit.menteeRoleLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Newcomer",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ES0e9xX2jWb8vzWXxQg6IQ==": {
+      "description": "recruit.mentorRoleLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Mentor",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "6JTMZFFgtA5visC0L3pHcg==": {
+      "description": "recruit.messageLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Message",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "kfZe4dBHaIX+MQwyGoE3IQ==": {
+      "description": "recruit.messagePlaceholder",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "A short intro (optional): your school, when you are usually online…",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "JmyKqN3WPPIM4uI3vGWP/Q==": {
+      "description": "recruit.myApplicationTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "My application",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "XTVe/0WTANYwKZuuXfWJ9w==": {
+      "description": "recruit.myPairingsTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "My mentor pairings",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "HJkddWEatrlPithQeTsIOw==": {
+      "description": "recruit.pairingStatusActive",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Active",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "P8XoCFi8mZ3WnQ2umqpY7w==": {
+      "description": "recruit.pairingStatusEnded",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Ended",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "EEhIc/pq5Fzx5EV366k+mg==": {
+      "description": "recruit.pendingHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "An admin is reviewing your application — the result will appear right here.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Ig1HJlcjhMaMtUui+drckg==": {
+      "description": "recruit.rejectedHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "This application was not approved. You can adjust your message and submit a new one.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "/lvvXNE7FR+ZkgXk/2eHcg==": {
+      "description": "recruit.statusApproved",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Approved",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "xy1unEwqnvn54zbHbZRXdg==": {
+      "description": "recruit.statusPending",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Pending review",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+ouVzE7pwS0AYmMhdbmt8w==": {
+      "description": "recruit.statusRejected",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Not approved",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "qb/NcJvhJXtKhwCPo6xlYA==": {
+      "description": "recruit.submitButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Submit application",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "TOlaTKaCQPBTvw9+v3/6QA==": {
+      "description": "recruit.submittingButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Submitting…",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "rhnY9AqVy8ThjJYj6djBxw==": {
+      "description": "recruit.title",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Recruiting & newcomers",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

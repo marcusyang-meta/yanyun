@@ -9284,6 +9284,644 @@
         }
       ],
       "types": []
+    },
+    "MzuBVk+lymr8Osxodc0Tfg==": {
+      "description": "errors.alreadyMember",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "你已經是這個百業的成員了",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "4HUAKL3wwPD6T7SQpUSEgQ==": {
+      "description": "errors.applicationNotFound",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "申請不存在",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "DT0PnTy78mqJG8fBzTFfPQ==": {
+      "description": "errors.applicationNotPending",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "該申請已經審核過了",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "7ZBRya8TkSwljP/yIUoagw==": {
+      "description": "errors.applicationPending",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "你已有一份待審核的申請，請等待審核結果",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "FvgEUHypKkRq2BmD+AWayg==": {
+      "description": "errors.menteeAlreadyPaired",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "該新人已有一段進行中的配對，請先結束它再改配",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "a2coUVXfsQ++mEIY3yMgXA==": {
+      "description": "errors.menteeNotInGuild",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "所選新人不在本百業名冊中",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "cV7AqzFGysGy0gU1N50QGQ==": {
+      "description": "errors.mentorNotDesignated",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "所選導師不在本百業導師人選中，請先設為導師",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "a47wZGx7sCNb1stpxLHJ3Q==": {
+      "description": "errors.mentorNotInGuild",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "所選導師不在本百業名冊中",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "mITOQE6ibNAqkdqsWyxzBg==": {
+      "description": "errors.mentorSelfPairing",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "導師和新人不能是同一個人",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "/0GnYVjx6FN+AWBfonfbOg==": {
+      "description": "errors.pairingAlreadyEnded",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "該配對已經結束了",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "oHmEFBtgqAXOpMaMudX/+g==": {
+      "description": "errors.pairingNotFound",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "配對不存在",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "amVWFocnRz4ci1Faq8568g==": {
+      "description": "errors.recruitUnavailable",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "該百業尚未綁定 Discord 伺服器，暫不開放招新申請",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "NLtQ8NqhIwFm2cxGjVirPQ==": {
+      "description": "guildAdmin.tabRecruit",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "招新與導師",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "/oFwk3a3qc0xzKt9MWBLiA==": {
+      "description": "recruit.adminApplicationsEmpty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "暫無申請記錄。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "52Cbw6cBCirl4eiJgxMRnw==": {
+      "description": "recruit.adminApplicationsTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "入業申請審核",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "2KFiWYFydfHUb9DPVpCDxg==": {
+      "description": "recruit.adminApproveButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "通過",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ZqTvcBVYmP+L0nXP6UuBow==": {
+      "description": "recruit.adminMenteeSelectLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "選擇新人",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "4ICDgrKvmf11AeIQ5AQNDQ==": {
+      "description": "recruit.adminMentorPoolTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "導師人選",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "rYy1NnaV4X66JzZbtVQk3g==": {
+      "description": "recruit.adminMentorSelectLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "選擇導師",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "24TRnZ1+O2y4cM9UMY8t+A==": {
+      "description": "recruit.adminNewcomersEmpty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "暫無未完成清單的新人。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "b0X0ZRakvJ6DCtOHBnmiNg==": {
+      "description": "recruit.adminNewcomersTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "新人清單進度",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "W2cD41AaSRdOYhVZb5yBTA==": {
+      "description": "recruit.adminPairingCreateButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "建立配對",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "CJ0IebLYp6ACYkk+OQsr5Q==": {
+      "description": "recruit.adminPairingEndButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "結束配對",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "j3yKhxscJ1XTJLK529m/Rw==": {
+      "description": "recruit.adminPairingsEmpty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "暫無配對記錄。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "WwHxrpBa+luMT/AN3gI/vQ==": {
+      "description": "recruit.adminPairingsTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "導師配對",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "UqtIaZ38+DfV4yMZAXQPqA==": {
+      "description": "recruit.adminRejectButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "拒絕",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "a385Xt6n15AcTjDjRt0g6Q==": {
+      "description": "recruit.adminSetMentorButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "設為導師",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "c+oS+CGqXrPIZ0cOAoUR2w==": {
+      "description": "recruit.adminUnsetMentorButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "取消導師",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "XDhV5kCPkqZjaDbkKB1jDQ==": {
+      "description": "recruit.applySectionTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "入業申請",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "p6WtbMscwVQ2ThWEtRiEAQ==": {
+      "description": "recruit.approvedNextStep",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "申請已通過，你已登記進百業名冊。最後一步在 Discord 完成：加入本百業綁定的 Discord 伺服器——成員資格由 Discord 伺服器成員身分決定，平台沒有 Discord 機器人權限，無法替你加入伺服器或授予身分組；加入後用同一帳號登入即可使用百業全部功能。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "LjL9N8pmpkC48xXzL1zOJg==": {
+      "description": "recruit.body",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "想加入這個百業？提交一份入業申請，百業管理員會在管理面審核。已經在業的新人可以在這裡看自己的入業清單與導師配對。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "YRcvUVxBMYkrBK5RowmRjA==": {
+      "description": "recruit.checklistProgress",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "已完成 {done} / {total}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "YWJjlPRRffuMPQ2e9zgJWQ==": {
+      "description": "recruit.checklistTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "新手入業清單",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "UM5qQlVn4+afqMvYMb7mRA==": {
+      "description": "recruit.entryLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "招新 / 新人清單",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "gyNkq1U7dsJYzXQMy8kXAw==": {
+      "description": "recruit.itemFirstRunHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "在一輛已完成的車隊裡落座後自動完成。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "PSIuB83lp852aBChdkThUQ==": {
+      "description": "recruit.itemFirstRunLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "打完第一場",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "yNdiuy+AnCLi9K+dnM85Hg==": {
+      "description": "recruit.itemMentorHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "由百業管理員為你配對一位導師後自動完成。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "CetNSOa1KFdYnf+fmavk/Q==": {
+      "description": "recruit.itemMentorLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "認一位導師",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "nSf65tFTfm3tU6Er8vunQw==": {
+      "description": "recruit.itemProfileHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "在任意車隊報名落座時填上你的流派即算完成；時區由你的用戶端自動同步，無需手動填寫。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "j/RBbyvmHNLIfZUghrLbRQ==": {
+      "description": "recruit.itemProfileLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "完善流派 / 時區",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "wVxSIE5YkHr0K5MmcEoUTw==": {
+      "description": "recruit.lockedBody",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "請先用 Discord 帳號登入；若已登入，可能是該百業不存在。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "pq1BG8aGk6aUuP0qiWV/VA==": {
+      "description": "recruit.lockedTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "無法打開招新頁",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "5MY4BzHHswpQMIcV0nYIzg==": {
+      "description": "recruit.menteeRoleLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "新人",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ES0e9xX2jWb8vzWXxQg6IQ==": {
+      "description": "recruit.mentorRoleLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "導師",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "6JTMZFFgtA5visC0L3pHcg==": {
+      "description": "recruit.messageLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "申請附言",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "kfZe4dBHaIX+MQwyGoE3IQ==": {
+      "description": "recruit.messagePlaceholder",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "一句自我介紹（可選）：常玩的流派、在線時間……",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "JmyKqN3WPPIM4uI3vGWP/Q==": {
+      "description": "recruit.myApplicationTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "我的申請",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "XTVe/0WTANYwKZuuXfWJ9w==": {
+      "description": "recruit.myPairingsTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "我的導師配對",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "HJkddWEatrlPithQeTsIOw==": {
+      "description": "recruit.pairingStatusActive",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "進行中",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "P8XoCFi8mZ3WnQ2umqpY7w==": {
+      "description": "recruit.pairingStatusEnded",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "已結束",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "EEhIc/pq5Fzx5EV366k+mg==": {
+      "description": "recruit.pendingHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "管理員審核中，請耐心等待；審核結果會直接更新在這裡。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Ig1HJlcjhMaMtUui+drckg==": {
+      "description": "recruit.rejectedHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "本次申請未通過。可以修改附言後重新提交一份新申請。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "/lvvXNE7FR+ZkgXk/2eHcg==": {
+      "description": "recruit.statusApproved",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "已通過",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "xy1unEwqnvn54zbHbZRXdg==": {
+      "description": "recruit.statusPending",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "待審核",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+ouVzE7pwS0AYmMhdbmt8w==": {
+      "description": "recruit.statusRejected",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "未通過",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "qb/NcJvhJXtKhwCPo6xlYA==": {
+      "description": "recruit.submitButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "提交申請",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "TOlaTKaCQPBTvw9+v3/6QA==": {
+      "description": "recruit.submittingButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "提交中…",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "rhnY9AqVy8ThjJYj6djBxw==": {
+      "description": "recruit.title",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "招新與新人",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

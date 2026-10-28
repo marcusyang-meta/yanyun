@@ -14,3 +14,4 @@ export * from './seasonChecklist.ts';
 export * from './roster.ts';
 export * from './graphql.ts';
 export { guildAdminResult, guildAdminTypes, GuildAdminShell } from './admin-graphql.ts';
+export { recruitResult, recruitTypes, recruitMutations } from './recruit-graphql.ts';

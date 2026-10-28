@@ -154,7 +154,19 @@ export type PlatformStringKey =
   | 'errors.customFieldInvalid'
   | 'errors.customFieldTooMany'
   | 'errors.signupAnswerRequired'
-  | 'errors.signupAnswerInvalid';
+  | 'errors.signupAnswerInvalid'
+  | 'errors.applicationPending'
+  | 'errors.alreadyMember'
+  | 'errors.recruitUnavailable'
+  | 'errors.applicationNotFound'
+  | 'errors.applicationNotPending'
+  | 'errors.mentorNotDesignated'
+  | 'errors.mentorNotInGuild'
+  | 'errors.menteeNotInGuild'
+  | 'errors.menteeAlreadyPaired'
+  | 'errors.mentorSelfPairing'
+  | 'errors.pairingNotFound'
+  | 'errors.pairingAlreadyEnded';
 
 export const PLATFORM_STRING_KEYS: readonly PlatformStringKey[] = [
   'common.cancel',
@@ -311,4 +323,16 @@ export const PLATFORM_STRING_KEYS: readonly PlatformStringKey[] = [
   'errors.customFieldTooMany',
   'errors.signupAnswerRequired',
   'errors.signupAnswerInvalid',
+  'errors.applicationPending',
+  'errors.alreadyMember',
+  'errors.recruitUnavailable',
+  'errors.applicationNotFound',
+  'errors.applicationNotPending',
+  'errors.mentorNotDesignated',
+  'errors.mentorNotInGuild',
+  'errors.menteeNotInGuild',
+  'errors.menteeAlreadyPaired',
+  'errors.mentorSelfPairing',
+  'errors.pairingNotFound',
+  'errors.pairingAlreadyEnded',
 ];
