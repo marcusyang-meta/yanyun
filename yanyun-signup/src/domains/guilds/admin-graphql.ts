@@ -68,6 +68,7 @@ import {
 import { computeGuildStats } from './stats.ts';
 import { announcementPageForAdmin } from './announcements-graphql.ts';
 import { SeasonChecklistShell, GuildRosterShell } from './season-graphql.ts';
+import { officerPageForAdmin } from './officer-graphql.ts';
 import type { GuildStatsWeek, GuildStatsBoardEntry } from './stats.ts';
 
 export async function guildAdminResult(ctx: Context, slug: string) {
@@ -372,6 +373,7 @@ const ADMIN_TEXT_SPEC: [string, string, string][] = [
   ['adminTabEventsLabel', 'guildAdmin', 'tabEvents'],
   ['adminTabGuidesLabel', 'guildAdmin', 'tabGuides'],
   ['adminTabAnnouncementsLabel', 'guildAdmin', 'tabAnnouncements'],
+  ['adminTabOfficerLabel', 'guildAdmin', 'tabOfficer'],
   ['adminSaveLabel', 'guildAdmin', 'saveButton'],
   ['adminSavedText', 'guildAdmin', 'savedText'],
   ['adminDeleteLabel', 'guildAdmin', 'deleteButton'],
@@ -577,6 +579,10 @@ export class GuildAdminShell extends ShellBase {
    * admin field, so unselected season data costs nothing. */
   genSeasonChecklist(){ return new SeasonChecklistShell(this.ctx, { slug: this.genSlug() }); }
   genRoster(){ return new GuildRosterShell(this.ctx, { slug: this.genSlug() }); }
+  /* Officer tools (F12/F11/F19, free — no gate): member notes, the
+   * guild data export and the season-goal overview, composed as one
+   * page object. Only on the GuildAdmin type, like announcements. */
+  genOfficer(){ return officerPageForAdmin(this.ctx, this.genSlug()); }
   genStats(){
     return this.memo('stats', async () => {
       // Premium read gate: gated guilds get the locked variant —
@@ -724,6 +730,7 @@ function contentResolvers() {
     events: (p: any) => p.genEvents(),
     schoolGuides: (p: any) => p.genSchoolGuides(),
     announcements: (p: any) => p.genAnnouncements(),
+    officer: (p: any) => p.genOfficer(),
     stats: (p: GuildAdminShell) => p.genStats(),
     premium: (p: GuildAdminShell) => p.genPremium(),
     seasonChecklist: (p: GuildAdminShell) => p.genSeasonChecklist(),

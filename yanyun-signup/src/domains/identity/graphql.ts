@@ -23,6 +23,7 @@ import {
   cancelAccountDeletion as cancelAccountDeletionService,
   deletionExecutesAt,
 } from './account.ts';
+import { MySeasonGoalPageShell } from '../guilds/officer-graphql.ts';
 import { getBossById, listBossesByDungeon, listSchoolsFull, listSchoolsNameSlug, getSchoolNameBySlug, listSchoolBis, getSchoolBisJsonBySchool, listSchoolRotations, listSlotAffixByBuild, listAffixMax, listAffixMaxValues } from '../dex/index.ts';
 import { getDungeonByName, getDungeonNameSizeById, listDungeonsDex, getLatestDungeonVersion } from '../dex/index.ts';
 import {
@@ -271,6 +272,10 @@ export class SettingsPageShell extends ShellBase {
     const row = await loadMyAccountRow(this.ctx);
     return row && row.fresh_auth_at != null ? Number(row.fresh_auth_at) : null;
   }
+  /* My season goals (F19): the member's own goal page, composed by
+   * the guilds officer module; this shell only anchors it to the
+   * settings surface. Anonymous viewers get the empty page shell. */
+  genSeasonGoals(){ return new MySeasonGoalPageShell(this.ctx, {}); }
   async genAccountPendingDeletion(){
     const row = await loadMyAccountRow(this.ctx);
     const executesAt = deletionExecutesAt(row);
@@ -431,6 +436,7 @@ export const identityResolvers = {
     effectiveLocale: (p: any) => p.genEffectiveLocale(),
     freshAuthAt: (p: any) => p.genFreshAuthAt(),
     accountPendingDeletion: (p: any) => p.genAccountPendingDeletion(),
+    seasonGoals: (p: SettingsPageShell) => p.genSeasonGoals(),
     ...SETTINGS_TEXT_RESOLVERS,
   },
   AccountPendingDeletion: {

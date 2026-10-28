@@ -61,6 +61,7 @@ import {
   announcementPageForMember, guildAnnouncementMutations, guildAnnouncementTypes,
 } from './announcements-graphql.ts';
 import { seasonAdminTypes, seasonAdminMutations } from './season-graphql.ts';
+import { guildOfficerMutations, guildOfficerTypes } from './officer-graphql.ts';
 
 export const CREATE_RESERVED = new Set([
   'admin', 'api', 'auth', 'hub', 'login', 'logout', 'og', 'graphql', 'create',
@@ -377,6 +378,7 @@ export const guildsResolvers = {
     ...guildAnnouncementMutations,
 
     ...recruitMutations,
+    ...guildOfficerMutations,
 
     // Write gate (requireWrite): logged in + bound + member; an unbound guild's writes are fully locked.
   },
@@ -425,5 +427,6 @@ export const guildsResolvers = {
   ...guildAnnouncementTypes,
   ...seasonAdminTypes,
   ...recruitTypes,
+  ...guildOfficerTypes,
   },
 };

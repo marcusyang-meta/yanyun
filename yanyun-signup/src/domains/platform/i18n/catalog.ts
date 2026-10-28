@@ -4768,6 +4768,51 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-CN": "该配对已经结束了",
       "en": "This pairing has already ended",
       "zh-TW": "該配對已經結束了"
+    },
+    "officerNoteBodyRequired": {
+      "zh-CN": "请填写备注内容",
+      "en": "Please write the note",
+      "zh-TW": "請填寫備註內容"
+    },
+    "officerNoteBodyTooLong": {
+      "zh-CN": "备注太长，请精简到 500 字以内",
+      "en": "The note is too long — keep it within 500 characters",
+      "zh-TW": "備註太長，請精簡到 500 字以內"
+    },
+    "officerNoteNotFound": {
+      "zh-CN": "备注不存在",
+      "en": "Note not found",
+      "zh-TW": "備註不存在"
+    },
+    "officerMemberNotFound": {
+      "zh-CN": "该成员不在本百业名册中",
+      "en": "That member is not on this guild's roster",
+      "zh-TW": "該成員不在本百業名冊中"
+    },
+    "seasonGoalTitleRequired": {
+      "zh-CN": "请填写目标",
+      "en": "Please enter the goal",
+      "zh-TW": "請填寫目標"
+    },
+    "seasonGoalTitleTooLong": {
+      "zh-CN": "目标太长，请精简到 80 字以内",
+      "en": "The goal is too long — keep it within 80 characters",
+      "zh-TW": "目標太長，請精簡到 80 字以內"
+    },
+    "seasonGoalNoteTooLong": {
+      "zh-CN": "进度备注太长，请精简到 500 字以内",
+      "en": "The progress note is too long — keep it within 500 characters",
+      "zh-TW": "進度備註太長，請精簡到 500 字以內"
+    },
+    "seasonGoalNotFound": {
+      "zh-CN": "目标不存在",
+      "en": "Goal not found",
+      "zh-TW": "目標不存在"
+    },
+    "seasonGoalDungeonNotFound": {
+      "zh-CN": "关联的副本不存在",
+      "en": "The linked dungeon does not exist",
+      "zh-TW": "關聯的副本不存在"
     }
   },
   "guildAdmin": {
@@ -5668,6 +5713,11 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-CN": "招新与导师",
       "en": "Recruiting & Mentors",
       "zh-TW": "招新與導師"
+    },
+    "tabOfficer": {
+      "zh-CN": "军官工具",
+      "en": "Officer tools",
+      "zh-TW": "軍官工具"
     }
   },
   "groupingTemplate": {
@@ -6601,6 +6651,188 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-CN": "暂无未完成清单的新人。",
       "en": "No newcomers with an unfinished checklist.",
       "zh-TW": "暫無未完成清單的新人。"
+    }
+  },
+  "officer": {
+    "notesTitle": {
+      "zh-CN": "成员备注",
+      "en": "Member notes",
+      "zh-TW": "成員備註"
+    },
+    "notesHint": {
+      "zh-CN": "备注仅百业管理员可见，成员本人看不到关于自己的备注。",
+      "en": "Notes are visible to guild admins only — the member never sees notes about themselves.",
+      "zh-TW": "備註僅百業管理員可見，成員本人看不到關於自己的備註。"
+    },
+    "notesEmpty": {
+      "zh-CN": "本百业暂无成员名册。",
+      "en": "This guild has no roster yet.",
+      "zh-TW": "本百業暫無成員名冊。"
+    },
+    "memberNoNotes": {
+      "zh-CN": "暂无备注",
+      "en": "No notes yet",
+      "zh-TW": "暫無備註"
+    },
+    "notePlaceholder": {
+      "zh-CN": "写一条备注…",
+      "en": "Write a note…",
+      "zh-TW": "寫一條備註…"
+    },
+    "noteAddButton": {
+      "zh-CN": "添加备注",
+      "en": "Add note",
+      "zh-TW": "添加備註"
+    },
+    "noteEditButton": {
+      "zh-CN": "编辑",
+      "en": "Edit",
+      "zh-TW": "編輯"
+    },
+    "noteSaveButton": {
+      "zh-CN": "保存",
+      "en": "Save",
+      "zh-TW": "保存"
+    },
+    "noteDeleteButton": {
+      "zh-CN": "删除",
+      "en": "Delete",
+      "zh-TW": "刪除"
+    },
+    "noteAuthorTemplate": {
+      "zh-CN": "{name} 添加",
+      "en": "Added by {name}",
+      "zh-TW": "{name} 添加"
+    },
+    "exportTitle": {
+      "zh-CN": "百业数据包",
+      "en": "Guild data package",
+      "zh-TW": "百業資料包"
+    },
+    "exportHint": {
+      "zh-CN": "导出本百业的名册、组队历史与参与记录、成员赛季目标（JSON 文件）。导出动作会留痕记录。",
+      "en": "Export this guild's roster, grouping history and participation records, and member season goals (JSON file). Exports are recorded in the audit log.",
+      "zh-TW": "匯出本百業的名冊、組隊歷史與參與記錄、成員賽季目標（JSON 檔案）。匯出動作會留痕記錄。"
+    },
+    "exportButton": {
+      "zh-CN": "导出数据包",
+      "en": "Export data package",
+      "zh-TW": "匯出資料包"
+    },
+    "exportAbout": {
+      "zh-CN": "百业数据包导出：包含本百业名册、组队历史与参与记录、成员赛季目标。军官备注为内部工作记录，不包含在本数据包内。",
+      "en": "Guild data package export: this guild's roster, grouping history and participation records, and member season goals. Officer notes are an internal working record and are not included.",
+      "zh-TW": "百業資料包匯出：包含本百業名冊、組隊歷史與參與記錄、成員賽季目標。軍官備註為內部工作記錄，不包含在本資料包內。"
+    },
+    "goalsTitle": {
+      "zh-CN": "成员赛季目标",
+      "en": "Member season goals",
+      "zh-TW": "成員賽季目標"
+    },
+    "goalsHint": {
+      "zh-CN": "成员给自己设的赛季目标与进度，只读总览。",
+      "en": "Season goals and progress members keep for themselves — read-only overview.",
+      "zh-TW": "成員給自己設的賽季目標與進度，只讀總覽。"
+    },
+    "goalsEmpty": {
+      "zh-CN": "暂无成员设置赛季目标。",
+      "en": "No member has set a season goal yet.",
+      "zh-TW": "暫無成員設定賽季目標。"
+    },
+    "statusActive": {
+      "zh-CN": "进行中",
+      "en": "In progress",
+      "zh-TW": "進行中"
+    },
+    "statusDone": {
+      "zh-CN": "已完成",
+      "en": "Done",
+      "zh-TW": "已完成"
+    },
+    "statusDropped": {
+      "zh-CN": "已放弃",
+      "en": "Dropped",
+      "zh-TW": "已放棄"
+    },
+    "myEntryLabel": {
+      "zh-CN": "赛季目标",
+      "en": "Season goals",
+      "zh-TW": "賽季目標"
+    },
+    "myTitle": {
+      "zh-CN": "我的赛季目标",
+      "en": "My season goals",
+      "zh-TW": "我的賽季目標"
+    },
+    "myHint": {
+      "zh-CN": "在某个百业里给自己定一个本赛季目标，进度由你自己维护；该百业的管理员可以查看总览。",
+      "en": "Set yourself a season goal in one of your guilds and keep its progress up to date; that guild's admins can see the overview.",
+      "zh-TW": "在某個百業裡給自己定一個本賽季目標，進度由你自己維護；該百業的管理員可以查看總覽。"
+    },
+    "myEmpty": {
+      "zh-CN": "你还没有设置赛季目标。",
+      "en": "You have not set a season goal yet.",
+      "zh-TW": "你還沒有設定賽季目標。"
+    },
+    "goalGuildLabel": {
+      "zh-CN": "所属百业",
+      "en": "Guild",
+      "zh-TW": "所屬百業"
+    },
+    "goalTitleLabel": {
+      "zh-CN": "目标",
+      "en": "Goal",
+      "zh-TW": "目標"
+    },
+    "goalTitlePlaceholder": {
+      "zh-CN": "例如：打通某个副本、集齐一套装备…",
+      "en": "e.g. clear a certain dungeon, complete a gear set…",
+      "zh-TW": "例如：打通某個副本、集齊一套裝備…"
+    },
+    "goalNoteLabel": {
+      "zh-CN": "进度备注",
+      "en": "Progress note",
+      "zh-TW": "進度備註"
+    },
+    "goalNotePlaceholder": {
+      "zh-CN": "记录当前进度…",
+      "en": "Note your current progress…",
+      "zh-TW": "記錄目前進度…"
+    },
+    "goalDungeonLabel": {
+      "zh-CN": "关联副本（可选）",
+      "en": "Linked dungeon (optional)",
+      "zh-TW": "關聯副本（可選）"
+    },
+    "goalDungeonNone": {
+      "zh-CN": "不关联副本",
+      "en": "No linked dungeon",
+      "zh-TW": "不關聯副本"
+    },
+    "goalStatusLabel": {
+      "zh-CN": "状态",
+      "en": "Status",
+      "zh-TW": "狀態"
+    },
+    "goalAddButton": {
+      "zh-CN": "添加目标",
+      "en": "Add goal",
+      "zh-TW": "添加目標"
+    },
+    "goalSaveButton": {
+      "zh-CN": "保存",
+      "en": "Save",
+      "zh-TW": "保存"
+    },
+    "goalEditButton": {
+      "zh-CN": "编辑",
+      "en": "Edit",
+      "zh-TW": "編輯"
+    },
+    "goalDeleteButton": {
+      "zh-CN": "删除",
+      "en": "Delete",
+      "zh-TW": "刪除"
     }
   }
 };
