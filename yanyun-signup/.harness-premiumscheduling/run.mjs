@@ -119,8 +119,8 @@ await insertSignup(db, { event_id: carId, nickname: '输出', uid: 'uD2', role: 
 const car2 = await insertEvent(db, { tenant: SLUG, title: '重叠车', type: 'activity', status: 'open', max_slots: 10, starts_at_utc: monday + 1800, creator_discord_id: 'L', origin: 'admin', created_by: 'L', dungeon: '' });
 await insertSignup(db, { event_id: car2.last_row_id, nickname: '输出', uid: 'uD3', role: '输出', weapon: '剑', discord_id: 'D' });
 // Gear on file for H and D.
-await insertGearItemRow(db, { discordId: 'H', slot: '武器', name: '牵丝', dataJson: '{}' }).catch(() => {});
-await insertGearItemRow(db, { discordId: 'D', slot: '武器', name: '剑', dataJson: '{}' }).catch(() => {});
+await insertGearItemRow(db, { discordId: 'H', slot: '武器', name: '牵丝', payload: '{}', createdAt: 1 });
+await insertGearItemRow(db, { discordId: 'D', slot: '武器', name: '剑', payload: '{}', createdAt: 1 });
 // Availability: H + D free Monday 12:00-14:00 UTC.
 for (const id of ['H', 'D']) {
   await upsertMemberAvailability(db, { tenant: SLUG, discordId: id, displayName: id, slots: [{ weekday: 1, startMinute: 720, endMinute: 840 }], updatedAt: 1 });
@@ -191,4 +191,6 @@ await revokePremium(db, SLUG);
 await setPaygateEnabled(db, false);
 
 console.log(`\n[premiumscheduling] ${pass} passed, ${fail} failed`);
-if (fails.length) { console.log('FAILURES:\n - ' + fails.join('\n - ')); process.exit(1); }
+if (fails.length) { console.log('FAILURES:\n - ' + fails.join('\n - ')); }
+await mf.dispose().catch(() => {});
+process.exit(fail ? 1 : 0);
