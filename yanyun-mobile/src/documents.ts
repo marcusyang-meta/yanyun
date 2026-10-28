@@ -1891,6 +1891,19 @@ export const GuildAdminQuery = graphql`
           adminOgAccentLabel
           adminOgTitleSuffixLabel
           adminOgTitleSuffixHint
+          adminCustomDomainTitle
+          adminCustomDomainHint
+          adminCustomDomainHostnameLabel
+          adminCustomDomainHostnamePlaceholder
+          adminCustomDomainBindLabel
+          adminCustomDomainRebindLabel
+          adminCustomDomainVerifyLabel
+          adminCustomDomainRemoveLabel
+          adminCustomDomainDnsTitle
+          adminCustomDomainCnameLabel
+          adminCustomDomainTxtLabel
+          adminCustomDomainRecordNameLabel
+          adminCustomDomainRecordValueLabel
           adminPremiumTitle
           adminAddLabel
           adminEditLabel
@@ -1955,6 +1968,11 @@ export const GuildAdminQuery = graphql`
             __typename
             ... on GuildAdminPremiumActive { premiumPlanLabel premiumSourceText premiumPeriodEndText premiumPastDueText }
             ... on GuildAdminPremiumLocked { premiumTitle premiumBody premiumPriceLabel premiumComingSoonText premiumCheckoutLabel premiumTierPlans { tier name subtitle priceLabel } }
+          }
+          customDomain {
+            __typename
+            ... on GuildAdminCustomDomain { status hostname statusText guidanceText dnsCnameName dnsCnameValue dnsTxtName dnsTxtValue boundAtText }
+            ... on GuildAdminCustomDomainLocked { premiumTitle premiumBody }
           }
           adminTabProfileLabel
           adminTabDiscordLabel
@@ -2202,6 +2220,21 @@ export const UpdateGuildReminderSettingsAdminMutation = graphql`
 export const UpdateGuildWhiteLabelAdminMutation = graphql`
   mutation documentsUpdateGuildWhiteLabelAdminMutation($slug: String!, $hideBranding: Boolean!, $ogAccent: String!, $ogTitleSuffix: String) {
     updateGuildWhiteLabel(slug: $slug, hideBranding: $hideBranding, ogAccent: $ogAccent, ogTitleSuffix: $ogTitleSuffix) { ok error }
+  }
+`;
+export const BindGuildCustomDomainAdminMutation = graphql`
+  mutation documentsBindGuildCustomDomainAdminMutation($slug: String!, $hostname: String!) {
+    bindGuildCustomDomain(slug: $slug, hostname: $hostname) { ok error }
+  }
+`;
+export const VerifyGuildCustomDomainAdminMutation = graphql`
+  mutation documentsVerifyGuildCustomDomainAdminMutation($slug: String!) {
+    verifyGuildCustomDomain(slug: $slug) { ok error }
+  }
+`;
+export const RemoveGuildCustomDomainAdminMutation = graphql`
+  mutation documentsRemoveGuildCustomDomainAdminMutation($slug: String!) {
+    removeGuildCustomDomain(slug: $slug) { ok error }
   }
 `;
 export const StartPremiumCheckoutAdminMutation = graphql`
