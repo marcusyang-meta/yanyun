@@ -16,7 +16,7 @@
  *   events / gear / users / members / results / dex / reference /
  *   state / ddl / guard / stamp / membercount / atomic / audit /
  *   shortlinks / beats / templates / usage / buildshares / billing /
- *   feedback / activitytools / recruit, extended as the data-layer migration
+ *   feedback / activitytools / recruit / officer, extended as the data-layer migration
  *   progresses.
  *   Non-zero exit = an assertion failed.
  * =================================================== */
@@ -1255,6 +1255,48 @@ if (want('season')) {
   eq('batch confirmed', (await rosterRepo.getRosterImportBatch(db, 'alpha', batchId))?.status, 'confirmed');
   eq('delete entry cross-tenant refused', await rosterRepo.deleteGuildRosterEntry(db, 'beta', ins1.id), false);
   eq('delete entry own tenant', await rosterRepo.deleteGuildRosterEntry(db, 'alpha', ins1.id), true);
+}
+
+/* ---------------- officer (member notes + season goals, 0016/0017) ---------------- */
+if (want('officer')) {
+  console.log('== officer repositories on real D1 ==');
+  const notes = await import('../src/domains/guilds/membernotes.ts');
+  const goals = await import('../src/domains/guilds/seasongoals.ts');
+  const nid = await notes.insertMemberNote(db, {
+    tenant: 'alpha', memberDiscordId: 'U1', body: '备注一',
+    authorDiscordId: 'A1', authorName: '管理员', createdAt: 1760000000,
+  });
+  check('insertMemberNote returns a row id', nid > 0, String(nid));
+  eq('note roundtrip', (await notes.getMemberNote(db, 'alpha', nid))?.body, '备注一');
+  eq('note read is tenant-scoped', await notes.getMemberNote(db, 'beta', nid), null);
+  eq('notes list per member', (await notes.listMemberNotes(db, 'alpha', 'U1')).length, 1);
+  eq('notes list per tenant', (await notes.listMemberNotesByTenant(db, 'alpha')).length, 1);
+  eq('updateMemberNote moves the row', await notes.updateMemberNote(db, 'alpha', nid, '备注二', 1760001000), true);
+  eq('updated body persisted', (await notes.getMemberNote(db, 'alpha', nid))?.body, '备注二');
+  eq('updateMemberNote is tenant-scoped', await notes.updateMemberNote(db, 'beta', nid, 'x', 1), false);
+  eq('deleteMemberNote is tenant-scoped', await notes.deleteMemberNote(db, 'beta', nid), false);
+  eq('deleteMemberNote removes the row', await notes.deleteMemberNote(db, 'alpha', nid), true);
+
+  const gid = await goals.insertSeasonGoal(db, {
+    tenant: 'alpha', discordId: 'U1', memberName: '成员一', title: '目标一',
+    note: '', status: 'active', dungeonId: null, createdAt: 1760000000,
+  });
+  check('insertSeasonGoal returns a row id', gid > 0, String(gid));
+  eq('goal roundtrip', (await goals.getSeasonGoal(db, gid))?.title, '目标一');
+  eq('goals list per member', (await goals.listSeasonGoalsByMember(db, 'alpha', 'U1')).length, 1);
+  eq('goals list per user spans guilds', (await goals.listSeasonGoalsByUser(db, 'U1')).length, 1);
+  eq('goals list per tenant', (await goals.listSeasonGoalsByTenant(db, 'alpha')).length, 1);
+  eq('goal update pins owner (foreign owner matches nothing)', await goals.updateSeasonGoal(db, {
+    tenant: 'alpha', discordId: 'U2', id: gid, title: '篡改', note: '', status: 'done',
+    dungeonId: null, memberName: 'x', updatedAt: 1760001000,
+  }), false);
+  eq('goal update by owner', await goals.updateSeasonGoal(db, {
+    tenant: 'alpha', discordId: 'U1', id: gid, title: '目标一', note: '进度', status: 'done',
+    dungeonId: null, memberName: '成员一', updatedAt: 1760001000,
+  }), true);
+  eq('goal status persisted', (await goals.getSeasonGoal(db, gid))?.status, 'done');
+  eq('goal delete pins owner', await goals.deleteSeasonGoal(db, 'alpha', 'U2', gid), false);
+  eq('goal delete by owner', await goals.deleteSeasonGoal(db, 'alpha', 'U1', gid), true);
 }
 
 /* ---------------- availability + polls + custom fields (F5/F13/F7) ---------------- */
