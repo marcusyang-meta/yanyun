@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<d869358a65bc9aae010b1210e5f3feea>>
+ * @generated SignedSource<<8deedd018517a982c877a99e5466408d>>
  * @lightSyntaxTransform
  */
 
@@ -233,12 +233,12 @@ return {
     ]
   },
   "params": {
-    "cacheID": "2774e090c31e7b77734c223ad1fd2dab",
+    "cacheID": "617a20eb00575d5e1ce58e48d49589e6",
     "id": null,
     "metadata": {},
     "name": "GuildRouteQuery",
     "operationKind": "query",
-    "text": "query GuildRouteQuery(\n  $slug: String!\n) {\n  viewer {\n    user {\n      discordId\n      name\n      avatar\n    }\n    userBarLogoutLabel\n    userBarLoggingOutLabel\n    userBarSettingsLabel\n    commonLoadingGuildText\n    ...GuildRouteRoot_viewer_20J5Pl\n  }\n}\n\nfragment GuildLockedPage_guild on GuildLocked {\n  slug\n  lockedBackLinkLabel\n  lockedTitle\n  lockedBody1\n  lockedBody2\n  lockedBackButtonLabel\n}\n\nfragment GuildRouteRoot_viewer_20J5Pl on Viewer {\n  guild(slug: $slug) {\n    __typename\n    ... on Guild {\n      ...MemberGuildHome_guild\n    }\n    ... on GuildReadOnly {\n      ...PublicGuildHome_guild\n    }\n    ... on GuildLocked {\n      ...GuildLockedPage_guild\n    }\n  }\n}\n\nfragment MemberGuildHome_guild on Guild {\n  slug\n  name\n  slogan\n  gameVersion\n  avatarUrl\n  viewerNick\n  pageBackLabel\n  pageFooterDisclaimerText\n  homeTabTeamLabel\n  homeTabDexLabel\n  homeTabSectLabel\n  homeAdminLabel\n  detailNotFoundText\n  detailBackToListLabel\n}\n\nfragment PublicGuildHome_guild on GuildReadOnly {\n  slug\n  name\n  slogan\n  gameVersion\n  avatarUrl\n  pageBackLabel\n  pageFooterDisclaimerText\n  homeTabTeamLabel\n  homeTabDexLabel\n  homeTabSectLabel\n  homeReadOnlyBanner\n  detailNotFoundText\n  detailBackToListLabel\n}\n"
+    "text": "query GuildRouteQuery(\n  $slug: String!\n) {\n  viewer {\n    user {\n      discordId\n      name\n      avatar\n    }\n    userBarLogoutLabel\n    userBarLoggingOutLabel\n    userBarSettingsLabel\n    commonLoadingGuildText\n    ...GuildRouteRoot_viewer_20J5Pl\n  }\n}\n\nfragment GuildLockedPage_guild on GuildLocked {\n  slug\n  lockedBackLinkLabel\n  lockedTitle\n  lockedBody1\n  lockedBody2\n  lockedBackButtonLabel\n}\n\nfragment GuildRouteRoot_viewer_20J5Pl on Viewer {\n  guild(slug: $slug) {\n    __typename\n    ... on Guild {\n      ...MemberGuildHome_guild\n    }\n    ... on GuildReadOnly {\n      ...PublicGuildHome_guild\n    }\n    ... on GuildLocked {\n      ...GuildLockedPage_guild\n    }\n  }\n}\n\nfragment MemberGuildHome_guild on Guild {\n  slug\n  name\n  slogan\n  gameVersion\n  avatarUrl\n  viewerNick\n  pageBackLabel\n  pageFooterDisclaimerText\n  homeTabTeamLabel\n  homeTabDexLabel\n  homeTabSectLabel\n  homeTabAnnouncementsLabel\n  homeAdminLabel\n  detailNotFoundText\n  detailBackToListLabel\n}\n\nfragment PublicGuildHome_guild on GuildReadOnly {\n  slug\n  name\n  slogan\n  gameVersion\n  avatarUrl\n  pageBackLabel\n  pageFooterDisclaimerText\n  homeTabTeamLabel\n  homeTabDexLabel\n  homeTabSectLabel\n  homeTabAnnouncementsLabel\n  homeReadOnlyBanner\n  detailNotFoundText\n  detailBackToListLabel\n}\n"
   }
 };
 })();

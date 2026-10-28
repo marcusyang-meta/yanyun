@@ -3,6 +3,7 @@ import { useState, Suspense } from 'react';
 import type { ViewerUser } from '../../lib/user';
 import { GroupingListRoute } from './GroupingList.react.tsx';
 import { GroupingDetailRoute } from './GroupingDetail.react.tsx';
+import { GuildAnnouncementsRoute } from './GuildAnnouncements.react.tsx';
 import { BossDexRoute } from './BossDex.react.tsx';
 import { SectDetailRoute } from './SectDetail.react.tsx';
 import { ToastHost } from './Toast.react.tsx';
@@ -42,6 +43,9 @@ export interface GuildHomeNode {
   homeAdminLabel?: string | null;
   homeTabDexLabel: string;
   homeTabSectLabel: string;
+  // Announcements tab label (backend guildHome copy); optional in the
+  // node type so a stale fragment without it simply hides the tab.
+  homeTabAnnouncementsLabel?: string | null;
   detailNotFoundText: string;
   detailBackToListLabel: string;
 }
@@ -63,6 +67,9 @@ export default function GuildHome({ node, slug, carId, user, userBarText, intera
     { key: 'team', label: node.homeTabTeamLabel },
     { key: 'dex', label: node.homeTabDexLabel },
     { key: 'sect', label: node.homeTabSectLabel },
+    ...(node.homeTabAnnouncementsLabel
+      ? [{ key: 'announcements', label: node.homeTabAnnouncementsLabel }]
+      : []),
   ] as const;
   const [activeTab, setActiveTab] = useState<string>('team');
   const navigate = useNavigate();
@@ -156,6 +163,7 @@ export default function GuildHome({ node, slug, carId, user, userBarText, intera
                 {activeTab === 'team' && <GroupingListRoute slug={slug} interactive={interactive} defaultNickname={defaultNickname} />}
                 {activeTab === 'dex' && <BossDexRoute />}
                 {activeTab === 'sect' && <SectDetailRoute />}
+                {activeTab === 'announcements' && <GuildAnnouncementsRoute slug={slug} />}
               </Suspense>
             </div>
           </>

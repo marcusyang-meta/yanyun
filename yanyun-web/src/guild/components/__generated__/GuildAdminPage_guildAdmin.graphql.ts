@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<877a49b7ad2dbd04cad6750354d090f0>>
+ * @generated SignedSource<<2ebdf81bbf9e89de18a327d2b375ce10>>
  * @lightSyntaxTransform
  */
 
@@ -94,6 +94,7 @@ export type GuildAdminPage_guildAdmin$data = {
   readonly adminStatusCompletedText: string;
   readonly adminStatusDraftText: string;
   readonly adminStatusOpenText: string;
+  readonly adminTabAnnouncementsLabel: string;
   readonly adminTabDiscordLabel: string;
   readonly adminTabEventsLabel: string;
   readonly adminTabGuidesLabel: string;
@@ -575,6 +576,13 @@ return {
       "args": null,
       "kind": "ScalarField",
       "name": "adminTabGuidesLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminTabAnnouncementsLabel",
       "storageKey": null
     },
     {
@@ -1673,6 +1681,6 @@ return {
 };
 })();
 
-(node as any).hash = "5e22cacfbc2bda0d488f14f61143c946";
+(node as any).hash = "76309b42f0a5e36324026e44752a11ba";
 
 export default node;

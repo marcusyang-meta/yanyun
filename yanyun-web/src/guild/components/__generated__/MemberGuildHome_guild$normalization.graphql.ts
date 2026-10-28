@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<6e72268cc825b90dd8d99a223d35320e>>
+ * @generated SignedSource<<f5293411fee4921a01a1845071affff4>>
  * @lightSyntaxTransform
  */
 
@@ -96,6 +96,13 @@ const node: NormalizationSplitOperation = {
       "alias": null,
       "args": null,
       "kind": "ScalarField",
+      "name": "homeTabAnnouncementsLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
       "name": "homeAdminLabel",
       "storageKey": null
     },
@@ -116,6 +123,6 @@ const node: NormalizationSplitOperation = {
   ]
 };
 
-(node as any).hash = "2dbc7c81c5dc0f81affb5231478a4457";
+(node as any).hash = "4425630b42d323def1a0bc8f4186bc9c";
 
 export default node;

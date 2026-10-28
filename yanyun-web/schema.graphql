@@ -1262,6 +1262,9 @@ type Mutation {
   cancelAccountDeletion: AccountDeletionPayload!
   registerPushToken(token: String!, platform: String): PushTokenPayload!
   unregisterPushToken(token: String!): PushTokenPayload!
+  postGuildAnnouncement(slug: String!, kind: AnnouncementKind!, title: String!, body: String!): GuildAnnouncementPayload!
+  markGuildAnnouncementRead(slug: String!, announcementId: ID!): GuildAnnouncementPayload!
+  deleteGuildAnnouncement(slug: String!, announcementId: ID!): GuildAnnouncementPayload!
   createGuild(input: CreateGuildInput!): CreateGuildPayload!
   updateGuildProfile(slug: String!, input: UpdateGuildProfileInput!): GuildAdminPayload!
   updateGuildDiscord(slug: String!, input: UpdateGuildDiscordInput!): GuildAdminPayload!
@@ -1415,6 +1418,74 @@ type TiaolvResult {
   rows: [TiaolvRow!]!
 }
 
+enum AnnouncementKind {
+  STANDARD
+  URGENT
+}
+
+type GuildAnnouncement {
+  id: ID!
+  kind: AnnouncementKind!
+  urgent: Boolean!
+  urgentLabel: String
+  kindLabel: String!
+  title: String!
+  body: String!
+  authorName: String!
+  authorText: String
+  createdAtText: String!
+  viewerHasRead: Boolean
+  readCount: Int
+  memberCount: Int
+  readCountText: String
+  receipts: [GuildAnnouncementReceipt!]
+  deleteLabel: String!
+  deleteConfirmTitle: String!
+  deleteConfirmMessage: String!
+}
+
+type GuildAnnouncementReceipt {
+  discordId: ID!
+  displayName: String!
+  read: Boolean!
+  readAtText: String
+}
+
+type GuildAnnouncementPage {
+  title: String!
+  emptyText: String!
+  urgentLabel: String!
+  composeTitle: String!
+  kindLabel: String!
+  kindStandardLabel: String!
+  kindUrgentLabel: String!
+  titleLabel: String!
+  titlePlaceholder: String!
+  bodyLabel: String!
+  bodyPlaceholder: String!
+  postLabel: String!
+  postingLabel: String!
+  postedText: String!
+  deleteLabel: String!
+  receiptsTitle: String!
+  readListLabel: String!
+  unreadListLabel: String!
+  pushNote: String!
+  urgentNote: String!
+  dailyLimitText: String
+  canPost: Boolean!
+  standardRemaining: Int
+  urgentRemaining: Int
+  announcements: [GuildAnnouncement!]!
+}
+
+type GuildAnnouncementPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  announcement: GuildAnnouncement
+}
+
 type DiscordUser {
   discordId: String!
   name: String!
@@ -1443,10 +1514,12 @@ type Guild {
   groupings(tab: GroupingTab!): GroupingListPage!
   viewerNick: String
   memberRoster: [GuildRosterMember!]!
+  announcements: GuildAnnouncementPage!
   homeBackToHubLabel: String!
   homeTabTeamLabel: String!
   homeTabDexLabel: String!
   homeTabSectLabel: String!
+  homeTabAnnouncementsLabel: String!
   homeAdminLabel: String
   detailNotFoundText: String!
   detailBackToListLabel: String!
@@ -1463,10 +1536,12 @@ type GuildReadOnly {
   avatarUrl: String
   groupings(tab: GroupingTab!): GroupingListPage!
   viewerNick: String
+  announcements: GuildAnnouncementPage!
   homeBackToHubLabel: String!
   homeTabTeamLabel: String!
   homeTabDexLabel: String!
   homeTabSectLabel: String!
+  homeTabAnnouncementsLabel: String!
   homeReadOnlyBanner: String!
   detailNotFoundText: String!
   detailBackToListLabel: String!
@@ -1604,6 +1679,7 @@ type GuildAdmin {
   gameVersion: String!
   events: [GuildAdminEvent!]!
   schoolGuides: GuildAdminSchoolGuides!
+  announcements: GuildAnnouncementPage!
   stats: GuildAdminStatsResult!
   premium: GuildAdminPremiumResult
   adminTitle: String!
@@ -1612,6 +1688,7 @@ type GuildAdmin {
   adminTabDiscordLabel: String!
   adminTabEventsLabel: String!
   adminTabGuidesLabel: String!
+  adminTabAnnouncementsLabel: String!
   adminSaveLabel: String!
   adminSavedText: String!
   adminDeleteLabel: String!
