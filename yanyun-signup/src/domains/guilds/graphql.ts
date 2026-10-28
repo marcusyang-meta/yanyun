@@ -10,7 +10,7 @@ import { upsertGuildMember, countDistinctNicknamesByTenant } from '../groupings/
 import { isValidPushToken, savePushToken, deletePushToken } from '../platform/index.ts';
 import { evaluateHeirloomPushes } from '../gear/index.ts';
 import { translate, negotiateLocale, SUPPORTED_LOCALES, CATALOG } from '../platform/index.ts';
-import { logError } from '../platform/index.ts';
+import { logError, grantTrialEntitlement } from '../platform/index.ts';
 import { getGuildAvatarMeta, avatarPath } from './index.ts';
 import { getSettingValue, setSettingValue, listSettingsByKey } from './index.ts';
 import { getUsernameRow } from '../identity/index.ts';
@@ -366,6 +366,14 @@ export const guildsResolvers = {
       const hash = await sha256hexLocal(crypto.randomUUID() + ':' + user.discordId + ':' + Date.now());
       await insertTenant(db, { slug, guildName: name, passwordHash: hash, announcement: '' });
       await setTenantSetting(db, slug, 'discord_guild_id', dgid);
+      // Trial arming (lifecycle ruling, 2026-10-28): creating the
+      // guild IS completing the create/bind flow — the tenant row
+      // and its Discord binding both exist at this point — so the
+      // one-per-guild trial (14 days, T2, no card at the door) is
+      // granted here, the single creation path. The grant is
+      // idempotent by construction (trial_used stamp), so no retry
+      // or re-entry can ever issue a second one.
+      await grantTrialEntitlement(db, slug);
       const a = await getGuildAccess(db, user, slug, ctx.request);
       return new CreateGuildPayloadShell(ctx, { ok: true, guild: guildResult(ctx, a) });
     },

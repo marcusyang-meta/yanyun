@@ -1067,6 +1067,23 @@ if (want('billing')) {
   eq('effective free after period end', [lapsed.plan, lapsed.lapsed], ['free', true]);
   eq('stored row untouched by read-time expiry', (await repo.getEntitlementRow(db, 'gamma'))?.plan, 'premium');
 
+  // Lifecycle columns (0026): past-due marker, card fact and the
+  // consumed-trial stamp round-trip through the repository, and the
+  // service's grace judgement reads them at read time.
+  const lcRow = {
+    ...row, tenant: 'delta', plan: 't2', source: 'stripe',
+    currentPeriodEnd: future, pastDueSince: past + 100, hasCard: true, trialUsed: true,
+  };
+  await repo.upsertEntitlementRow(db, lcRow);
+  eq('lifecycle columns roundtrip', await repo.getEntitlementRow(db, 'delta'), lcRow);
+  const lcEff = await svc.getEffectiveEntitlement(db, 'delta', future + 13 * 86400);
+  eq('grace: stripe past-due inside 14d window keeps tier', [lcEff.tier, lcEff.lapsed, lcEff.pastDue], [2, false, true]);
+  const lcLate = await svc.getEffectiveEntitlement(db, 'delta', future + 14 * 86400);
+  eq('grace: stripe past-due past 14d lapses', [lcLate.plan, lcLate.tier, lcLate.lapsed], ['free', 0, true]);
+  await repo.upsertEntitlementRow(db, { ...lcRow, tenant: 'delta2', source: 'manual' });
+  const lcManual = await svc.getEffectiveEntitlement(db, 'delta2', future + 13 * 86400);
+  eq('grace: manual source never enters grace', [lcManual.plan, lcManual.lapsed, lcManual.pastDue], ['free', true, false]);
+
   // Stripe event dedupe ledger.
   eq('first event marks fresh', await repo.markStripeEventProcessed(db, 'evt_1', 'checkout.session.completed', 100), true);
   eq('replay marks duplicate', await repo.markStripeEventProcessed(db, 'evt_1', 'checkout.session.completed', 101), false);
