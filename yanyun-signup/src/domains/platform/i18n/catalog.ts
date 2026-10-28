@@ -4604,6 +4604,16 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
     "customDomainDnsPending": {
       "zh-CN": "DNS 记录尚未生效或不完整，请确认两条记录后稍后再试"
     },
+    "gearStandardInvalid": {
+      "zh-CN": "达标线参数不合法",
+      "en": "Invalid readiness line parameters",
+      "zh-TW": "達標線參數不合法"
+    },
+    "gearStandardNotFound": {
+      "zh-CN": "达标线不存在",
+      "en": "Readiness line not found",
+      "zh-TW": "達標線不存在"
+    },
     "premiumComingSoon": {
       "zh-CN": "Premium 开通即将开放"
     },
@@ -5598,6 +5608,201 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "es": "Sin datos de grupos en las últimas 4 semanas.",
       "fr": "Aucune donnée de groupe sur les 4 dernières semaines.",
       "zh-TW": "近 4 週暫無組隊數據。"
+    },
+    "tabInsights": {
+      "zh-CN": "数据洞察",
+      "en": "Insights",
+      "zh-TW": "數據洞察"
+    },
+    "insightsReliabilityTitle": {
+      "zh-CN": "可靠性档案",
+      "en": "Reliability profiles",
+      "zh-TW": "可靠性檔案"
+    },
+    "insightsReliabilityHint": {
+      "zh-CN": "出席 = 已完成车辆上落座且已就位；鸽 = 已完成车辆上落座但始终未就位。未完成的车辆不计入出席率。",
+      "en": "Attended = seated and checked in on a completed run; no-show = seated on a completed run but never checked in. Unfinished runs do not count toward the attendance rate.",
+      "zh-TW": "出席 = 已完成車輛上落座且已就位；鴿 = 已完成車輛上落座但始終未就位。未完成的車輛不計入出席率。"
+    },
+    "insightsSignupsLabel": {
+      "zh-CN": "报名",
+      "en": "Signups",
+      "zh-TW": "報名"
+    },
+    "insightsAttendedLabel": {
+      "zh-CN": "出席",
+      "en": "Attended",
+      "zh-TW": "出席"
+    },
+    "insightsNoShowLabel": {
+      "zh-CN": "鸽",
+      "en": "No-shows",
+      "zh-TW": "鴿"
+    },
+    "insightsRateLabel": {
+      "zh-CN": "出席率",
+      "en": "Attendance",
+      "zh-TW": "出席率"
+    },
+    "insightsReliabilityEmpty": {
+      "zh-CN": "暂无带身份戳的报名记录。",
+      "en": "No stamped signup records yet.",
+      "zh-TW": "暫無帶身份戳的報名記錄。"
+    },
+    "insightsHeatmapTitle": {
+      "zh-CN": "成员参与热力图",
+      "en": "Participation heatmap",
+      "zh-TW": "成員參與熱力圖"
+    },
+    "insightsHeatmapHint": {
+      "zh-CN": "按你所在时区统计已完成车辆的出席人次，格子越亮人越多。",
+      "en": "Attended participations on completed runs, bucketed in your timezone — brighter cells mean more people.",
+      "zh-TW": "按你所在時區統計已完成車輛的出席人次，格子越亮人越多。"
+    },
+    "insightsHeatmapEmpty": {
+      "zh-CN": "暂无出席记录。",
+      "en": "No attended participations yet.",
+      "zh-TW": "暫無出席記錄。"
+    },
+    "insightsHeatmapTotal": {
+      "zh-CN": "共 {count} 人次出席",
+      "en": "{count} attended participations in total",
+      "zh-TW": "共 {count} 人次出席"
+    },
+    "insightsWeekdayMon": {
+      "zh-CN": "周一",
+      "en": "Mon",
+      "zh-TW": "週一"
+    },
+    "insightsWeekdayTue": {
+      "zh-CN": "周二",
+      "en": "Tue",
+      "zh-TW": "週二"
+    },
+    "insightsWeekdayWed": {
+      "zh-CN": "周三",
+      "en": "Wed",
+      "zh-TW": "週三"
+    },
+    "insightsWeekdayThu": {
+      "zh-CN": "周四",
+      "en": "Thu",
+      "zh-TW": "週四"
+    },
+    "insightsWeekdayFri": {
+      "zh-CN": "周五",
+      "en": "Fri",
+      "zh-TW": "週五"
+    },
+    "insightsWeekdaySat": {
+      "zh-CN": "周六",
+      "en": "Sat",
+      "zh-TW": "週六"
+    },
+    "insightsWeekdaySun": {
+      "zh-CN": "周日",
+      "en": "Sun",
+      "zh-TW": "週日"
+    },
+    "insightsGearTitle": {
+      "zh-CN": "装备达标盘",
+      "en": "Gear readiness board",
+      "zh-TW": "裝備達標盤"
+    },
+    "insightsGearHint": {
+      "zh-CN": "达标线按成员最佳构筑的毕业分判定；缺口名单列出未达标成员与差距。",
+      "en": "Each line judges a member's best build graduation score; the gap list shows who is short and by how much.",
+      "zh-TW": "達標線按成員最佳構築的畢業分判定；缺口名單列出未達標成員與差距。"
+    },
+    "insightsGearEmpty": {
+      "zh-CN": "尚未设置达标线，先在下方添加一条。",
+      "en": "No readiness line yet — add one below.",
+      "zh-TW": "尚未設置達標線，先在下方添加一條。"
+    },
+    "insightsGearLabelLabel": {
+      "zh-CN": "场景名称",
+      "en": "Scene name",
+      "zh-TW": "場景名稱"
+    },
+    "insightsGearMinScoreLabel": {
+      "zh-CN": "达标线（毕业分）",
+      "en": "Readiness line (graduation score)",
+      "zh-TW": "達標線（畢業分）"
+    },
+    "insightsGearAddLabel": {
+      "zh-CN": "添加达标线",
+      "en": "Add readiness line",
+      "zh-TW": "添加達標線"
+    },
+    "insightsGearMetLabel": {
+      "zh-CN": "达标",
+      "en": "Ready",
+      "zh-TW": "達標"
+    },
+    "insightsGearUnmetLabel": {
+      "zh-CN": "未达标",
+      "en": "Not ready",
+      "zh-TW": "未達標"
+    },
+    "insightsGearNoBuildLabel": {
+      "zh-CN": "无构筑",
+      "en": "No build",
+      "zh-TW": "無構築"
+    },
+    "insightsGearScoreLabel": {
+      "zh-CN": "毕业分",
+      "en": "Graduation score",
+      "zh-TW": "畢業分"
+    },
+    "insightsGearGapLabel": {
+      "zh-CN": "缺口",
+      "en": "Gap",
+      "zh-TW": "缺口"
+    },
+    "insightsGearSummary": {
+      "zh-CN": "达标 {met} · 未达标 {unmet} · 无构筑 {nobuild}",
+      "en": "Ready {met} · Not ready {unmet} · No build {nobuild}",
+      "zh-TW": "達標 {met} · 未達標 {unmet} · 無構築 {nobuild}"
+    },
+    "insightsRaceTitle": {
+      "zh-CN": "竞速赛季总榜",
+      "en": "Race season board",
+      "zh-TW": "競速賽季總榜"
+    },
+    "insightsRaceEmpty": {
+      "zh-CN": "暂无竞速成绩记录。",
+      "en": "No race results recorded yet.",
+      "zh-TW": "暫無競速成績記錄。"
+    },
+    "insightsRaceTeamLabel": {
+      "zh-CN": "队伍",
+      "en": "Team",
+      "zh-TW": "隊伍"
+    },
+    "insightsRaceRunsLabel": {
+      "zh-CN": "场次",
+      "en": "Runs",
+      "zh-TW": "場次"
+    },
+    "insightsRaceWinsLabel": {
+      "zh-CN": "夺冠",
+      "en": "Wins",
+      "zh-TW": "奪冠"
+    },
+    "insightsRaceBestLabel": {
+      "zh-CN": "最佳成绩",
+      "en": "Best time",
+      "zh-TW": "最佳成績"
+    },
+    "insightsRaceUnclassified": {
+      "zh-CN": "未分类赛季",
+      "en": "Unclassified season",
+      "zh-TW": "未分類賽季"
+    },
+    "insightsSelfGearTitle": {
+      "zh-CN": "我的达标状态",
+      "en": "My readiness status",
+      "zh-TW": "我的達標狀態"
     },
     "statsBoardEmpty": {
       "zh-CN": "暂无记录。",

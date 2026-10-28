@@ -130,6 +130,8 @@ export type PlatformStringKey =
   | 'errors_customDomainDisabled'
   | 'errors_customDomainSeamPending'
   | 'errors_customDomainDnsPending'
+  | 'errors_gearStandardInvalid'
+  | 'errors_gearStandardNotFound'
   | 'errors_premiumComingSoon'
   | 'errors_premiumActive'
   | 'errors_paygateDisabled'
@@ -343,6 +345,8 @@ export const PLATFORM_STRING_KEYS: readonly PlatformStringKey[] = [
   'errors_customDomainDisabled',
   'errors_customDomainSeamPending',
   'errors_customDomainDnsPending',
+  'errors_gearStandardInvalid',
+  'errors_gearStandardNotFound',
   'errors_premiumComingSoon',
   'errors_premiumActive',
   'errors_paygateDisabled',

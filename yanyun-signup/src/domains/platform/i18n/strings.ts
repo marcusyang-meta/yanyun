@@ -2161,6 +2161,12 @@ export abstract class ErrorsFbtUtils {
 	static customDomainDnsPending(fbs: FbsRuntime) {
 		return fbs._("DNS 记录尚未生效或不完整，请确认两条记录后稍后再试", null, { hk: "1E9FYb" });
 	}
+	static gearStandardInvalid(fbs: FbsRuntime) {
+		return fbs._("达标线参数不合法", null, { hk: "eTWTZ" });
+	}
+	static gearStandardNotFound(fbs: FbsRuntime) {
+		return fbs._("达标线不存在", null, { hk: "HqhRP" });
+	}
 	static premiumComingSoon(fbs: FbsRuntime) {
 		return fbs._("Premium 开通即将开放", null, { hk: "2AKPwI" });
 	}
@@ -2747,6 +2753,127 @@ export abstract class GuildAdminFbtUtils {
 	}
 	static statsEmpty(fbs: FbsRuntime) {
 		return fbs._("近 4 周暂无组队数据。", null, { hk: "2cKSLW" });
+	}
+	static tabInsights(fbs: FbsRuntime) {
+		return fbs._("数据洞察", null, { hk: "1G3thU" });
+	}
+	static insightsReliabilityTitle(fbs: FbsRuntime) {
+		return fbs._("可靠性档案", null, { hk: "KvDkk" });
+	}
+	static insightsReliabilityHint(fbs: FbsRuntime) {
+		return fbs._("出席 = 已完成车辆上落座且已就位；鸽 = 已完成车辆上落座但始终未就位。未完成的车辆不计入出席率。", null, { hk: "2TN6kn" });
+	}
+	static insightsSignupsLabel(fbs: FbsRuntime) {
+		return fbs._("报名", null, { hk: "1yHhz2" });
+	}
+	static insightsAttendedLabel(fbs: FbsRuntime) {
+		return fbs._("出席", null, { hk: "3uOoGs" });
+	}
+	static insightsNoShowLabel(fbs: FbsRuntime) {
+		return fbs._("鸽", null, { hk: "1CGZvj" });
+	}
+	static insightsRateLabel(fbs: FbsRuntime) {
+		return fbs._("出席率", null, { hk: "uZshK" });
+	}
+	static insightsReliabilityEmpty(fbs: FbsRuntime) {
+		return fbs._("暂无带身份戳的报名记录。", null, { hk: "oUbzD" });
+	}
+	static insightsHeatmapTitle(fbs: FbsRuntime) {
+		return fbs._("成员参与热力图", null, { hk: "3hRcLJ" });
+	}
+	static insightsHeatmapHint(fbs: FbsRuntime) {
+		return fbs._("按你所在时区统计已完成车辆的出席人次，格子越亮人越多。", null, { hk: "1XAJr7" });
+	}
+	static insightsHeatmapEmpty(fbs: FbsRuntime) {
+		return fbs._("暂无出席记录。", null, { hk: "1ewFRf" });
+	}
+	static insightsHeatmapTotal(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("共 {count} 人次出席", [fbs._param("count", pv(p, "count"))], { hk: "3pnT6q" });
+	}
+	static insightsWeekdayMon(fbs: FbsRuntime) {
+		return fbs._("周一", null, { hk: "2lhzwr" });
+	}
+	static insightsWeekdayTue(fbs: FbsRuntime) {
+		return fbs._("周二", null, { hk: "2C7wRT" });
+	}
+	static insightsWeekdayWed(fbs: FbsRuntime) {
+		return fbs._("周三", null, { hk: "bAiwD" });
+	}
+	static insightsWeekdayThu(fbs: FbsRuntime) {
+		return fbs._("周四", null, { hk: "xUv0l" });
+	}
+	static insightsWeekdayFri(fbs: FbsRuntime) {
+		return fbs._("周五", null, { hk: "1FCLuT" });
+	}
+	static insightsWeekdaySat(fbs: FbsRuntime) {
+		return fbs._("周六", null, { hk: "3M8RNa" });
+	}
+	static insightsWeekdaySun(fbs: FbsRuntime) {
+		return fbs._("周日", null, { hk: "1ttpfv" });
+	}
+	static insightsGearTitle(fbs: FbsRuntime) {
+		return fbs._("装备达标盘", null, { hk: "jy71W" });
+	}
+	static insightsGearHint(fbs: FbsRuntime) {
+		return fbs._("达标线按成员最佳构筑的毕业分判定；缺口名单列出未达标成员与差距。", null, { hk: "49Hveh" });
+	}
+	static insightsGearEmpty(fbs: FbsRuntime) {
+		return fbs._("尚未设置达标线，先在下方添加一条。", null, { hk: "25DOn6" });
+	}
+	static insightsGearLabelLabel(fbs: FbsRuntime) {
+		return fbs._("场景名称", null, { hk: "2nY7z9" });
+	}
+	static insightsGearMinScoreLabel(fbs: FbsRuntime) {
+		return fbs._("达标线（毕业分）", null, { hk: "3634qI" });
+	}
+	static insightsGearAddLabel(fbs: FbsRuntime) {
+		return fbs._("添加达标线", null, { hk: "2fQLk5" });
+	}
+	static insightsGearMetLabel(fbs: FbsRuntime) {
+		return fbs._("达标", null, { hk: "1QV82A" });
+	}
+	static insightsGearUnmetLabel(fbs: FbsRuntime) {
+		return fbs._("未达标", null, { hk: "1tbl9O" });
+	}
+	static insightsGearNoBuildLabel(fbs: FbsRuntime) {
+		return fbs._("无构筑", null, { hk: "2xbGEN" });
+	}
+	static insightsGearScoreLabel(fbs: FbsRuntime) {
+		return fbs._("毕业分", null, { hk: "2m5Qk6" });
+	}
+	static insightsGearGapLabel(fbs: FbsRuntime) {
+		return fbs._("缺口", null, { hk: "33A8Ox" });
+	}
+	static insightsGearSummary(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("达标 {met} · 未达标 {unmet} · 无构筑 {nobuild}", [
+			fbs._param("met", pv(p, "met")),
+			fbs._param("unmet", pv(p, "unmet")),
+			fbs._param("nobuild", pv(p, "nobuild"))
+		], { hk: "1UNsvv" });
+	}
+	static insightsRaceTitle(fbs: FbsRuntime) {
+		return fbs._("竞速赛季总榜", null, { hk: "2YsFMh" });
+	}
+	static insightsRaceEmpty(fbs: FbsRuntime) {
+		return fbs._("暂无竞速成绩记录。", null, { hk: "CWk9I" });
+	}
+	static insightsRaceTeamLabel(fbs: FbsRuntime) {
+		return fbs._("队伍", null, { hk: "4zCTdf" });
+	}
+	static insightsRaceRunsLabel(fbs: FbsRuntime) {
+		return fbs._("场次", null, { hk: "2kKUFC" });
+	}
+	static insightsRaceWinsLabel(fbs: FbsRuntime) {
+		return fbs._("夺冠", null, { hk: "4fBvZl" });
+	}
+	static insightsRaceBestLabel(fbs: FbsRuntime) {
+		return fbs._("最佳成绩", null, { hk: "2zP15I" });
+	}
+	static insightsRaceUnclassified(fbs: FbsRuntime) {
+		return fbs._("未分类赛季", null, { hk: "4kMuoq" });
+	}
+	static insightsSelfGearTitle(fbs: FbsRuntime) {
+		return fbs._("我的达标状态", null, { hk: "1vMHi7" });
 	}
 	static statsBoardEmpty(fbs: FbsRuntime) {
 		return fbs._("暂无记录。", null, { hk: "2JXqs8" });
@@ -4807,6 +4934,8 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"errors_customDomainDisabled": ErrorsFbtUtils.customDomainDisabled,
 	"errors_customDomainSeamPending": ErrorsFbtUtils.customDomainSeamPending,
 	"errors_customDomainDnsPending": ErrorsFbtUtils.customDomainDnsPending,
+	"errors_gearStandardInvalid": ErrorsFbtUtils.gearStandardInvalid,
+	"errors_gearStandardNotFound": ErrorsFbtUtils.gearStandardNotFound,
 	"errors_premiumComingSoon": ErrorsFbtUtils.premiumComingSoon,
 	"errors_premiumActive": ErrorsFbtUtils.premiumActive,
 	"errors_paygateDisabled": ErrorsFbtUtils.paygateDisabled,
@@ -5002,6 +5131,45 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"guildAdmin_statsSeatCount": GuildAdminFbtUtils.statsSeatCount,
 	"guildAdmin_statsCarCount": GuildAdminFbtUtils.statsCarCount,
 	"guildAdmin_statsEmpty": GuildAdminFbtUtils.statsEmpty,
+	"guildAdmin_tabInsights": GuildAdminFbtUtils.tabInsights,
+	"guildAdmin_insightsReliabilityTitle": GuildAdminFbtUtils.insightsReliabilityTitle,
+	"guildAdmin_insightsReliabilityHint": GuildAdminFbtUtils.insightsReliabilityHint,
+	"guildAdmin_insightsSignupsLabel": GuildAdminFbtUtils.insightsSignupsLabel,
+	"guildAdmin_insightsAttendedLabel": GuildAdminFbtUtils.insightsAttendedLabel,
+	"guildAdmin_insightsNoShowLabel": GuildAdminFbtUtils.insightsNoShowLabel,
+	"guildAdmin_insightsRateLabel": GuildAdminFbtUtils.insightsRateLabel,
+	"guildAdmin_insightsReliabilityEmpty": GuildAdminFbtUtils.insightsReliabilityEmpty,
+	"guildAdmin_insightsHeatmapTitle": GuildAdminFbtUtils.insightsHeatmapTitle,
+	"guildAdmin_insightsHeatmapHint": GuildAdminFbtUtils.insightsHeatmapHint,
+	"guildAdmin_insightsHeatmapEmpty": GuildAdminFbtUtils.insightsHeatmapEmpty,
+	"guildAdmin_insightsHeatmapTotal": GuildAdminFbtUtils.insightsHeatmapTotal,
+	"guildAdmin_insightsWeekdayMon": GuildAdminFbtUtils.insightsWeekdayMon,
+	"guildAdmin_insightsWeekdayTue": GuildAdminFbtUtils.insightsWeekdayTue,
+	"guildAdmin_insightsWeekdayWed": GuildAdminFbtUtils.insightsWeekdayWed,
+	"guildAdmin_insightsWeekdayThu": GuildAdminFbtUtils.insightsWeekdayThu,
+	"guildAdmin_insightsWeekdayFri": GuildAdminFbtUtils.insightsWeekdayFri,
+	"guildAdmin_insightsWeekdaySat": GuildAdminFbtUtils.insightsWeekdaySat,
+	"guildAdmin_insightsWeekdaySun": GuildAdminFbtUtils.insightsWeekdaySun,
+	"guildAdmin_insightsGearTitle": GuildAdminFbtUtils.insightsGearTitle,
+	"guildAdmin_insightsGearHint": GuildAdminFbtUtils.insightsGearHint,
+	"guildAdmin_insightsGearEmpty": GuildAdminFbtUtils.insightsGearEmpty,
+	"guildAdmin_insightsGearLabelLabel": GuildAdminFbtUtils.insightsGearLabelLabel,
+	"guildAdmin_insightsGearMinScoreLabel": GuildAdminFbtUtils.insightsGearMinScoreLabel,
+	"guildAdmin_insightsGearAddLabel": GuildAdminFbtUtils.insightsGearAddLabel,
+	"guildAdmin_insightsGearMetLabel": GuildAdminFbtUtils.insightsGearMetLabel,
+	"guildAdmin_insightsGearUnmetLabel": GuildAdminFbtUtils.insightsGearUnmetLabel,
+	"guildAdmin_insightsGearNoBuildLabel": GuildAdminFbtUtils.insightsGearNoBuildLabel,
+	"guildAdmin_insightsGearScoreLabel": GuildAdminFbtUtils.insightsGearScoreLabel,
+	"guildAdmin_insightsGearGapLabel": GuildAdminFbtUtils.insightsGearGapLabel,
+	"guildAdmin_insightsGearSummary": GuildAdminFbtUtils.insightsGearSummary,
+	"guildAdmin_insightsRaceTitle": GuildAdminFbtUtils.insightsRaceTitle,
+	"guildAdmin_insightsRaceEmpty": GuildAdminFbtUtils.insightsRaceEmpty,
+	"guildAdmin_insightsRaceTeamLabel": GuildAdminFbtUtils.insightsRaceTeamLabel,
+	"guildAdmin_insightsRaceRunsLabel": GuildAdminFbtUtils.insightsRaceRunsLabel,
+	"guildAdmin_insightsRaceWinsLabel": GuildAdminFbtUtils.insightsRaceWinsLabel,
+	"guildAdmin_insightsRaceBestLabel": GuildAdminFbtUtils.insightsRaceBestLabel,
+	"guildAdmin_insightsRaceUnclassified": GuildAdminFbtUtils.insightsRaceUnclassified,
+	"guildAdmin_insightsSelfGearTitle": GuildAdminFbtUtils.insightsSelfGearTitle,
 	"guildAdmin_statsBoardEmpty": GuildAdminFbtUtils.statsBoardEmpty,
 	"guildAdmin_whiteLabelTitle": GuildAdminFbtUtils.whiteLabelTitle,
 	"guildAdmin_hideBrandingLabel": GuildAdminFbtUtils.hideBrandingLabel,

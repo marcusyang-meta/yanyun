@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<1ceec6df195dafd1ed4adb84cb2eed36>>
+ * @generated SignedSource<<85ac1da67062d71571a5fdb951571c71>>
  * @lightSyntaxTransform
  */
 
@@ -69,6 +69,30 @@ export type documentsGuildAdminQuery$data = {
       readonly adminGuidesTitle: string;
       readonly adminHideBrandingHint: string;
       readonly adminHideBrandingLabel: string;
+      readonly adminInsightsAttendedLabel: string;
+      readonly adminInsightsGearAddLabel: string;
+      readonly adminInsightsGearEmptyText: string;
+      readonly adminInsightsGearGapLabel: string;
+      readonly adminInsightsGearHint: string;
+      readonly adminInsightsGearLabelLabel: string;
+      readonly adminInsightsGearMinScoreLabel: string;
+      readonly adminInsightsGearScoreLabel: string;
+      readonly adminInsightsGearTitle: string;
+      readonly adminInsightsHeatmapEmptyText: string;
+      readonly adminInsightsHeatmapHint: string;
+      readonly adminInsightsHeatmapTitle: string;
+      readonly adminInsightsNoShowLabel: string;
+      readonly adminInsightsRaceBestLabel: string;
+      readonly adminInsightsRaceEmptyText: string;
+      readonly adminInsightsRaceRunsLabel: string;
+      readonly adminInsightsRaceTeamLabel: string;
+      readonly adminInsightsRaceTitle: string;
+      readonly adminInsightsRaceWinsLabel: string;
+      readonly adminInsightsRateLabel: string;
+      readonly adminInsightsReliabilityEmptyText: string;
+      readonly adminInsightsReliabilityHint: string;
+      readonly adminInsightsReliabilityTitle: string;
+      readonly adminInsightsSignupsLabel: string;
       readonly adminLogoLabel: string;
       readonly adminLotteryCreateLabel: string;
       readonly adminLotteryDrawLabel: string;
@@ -155,6 +179,7 @@ export type documentsGuildAdminQuery$data = {
       readonly adminTabDiscordLabel: string;
       readonly adminTabEventsLabel: string;
       readonly adminTabGuidesLabel: string;
+      readonly adminTabInsightsLabel: string;
       readonly adminTabProfileLabel: string;
       readonly adminTabRecruitLabel: string;
       readonly adminTabSeasonLabel: string;
@@ -234,6 +259,35 @@ export type documentsGuildAdminQuery$data = {
         readonly title: string;
         readonly type: GroupingType;
       }>;
+      readonly gearBoard: {
+        readonly __typename: "GuildAdminGearBoard";
+        readonly standards: ReadonlyArray<{
+          readonly id: string;
+          readonly label: string;
+          readonly members: ReadonlyArray<{
+            readonly bestScore: number | null | undefined;
+            readonly discordId: string;
+            readonly displayName: string;
+            readonly gap: number;
+            readonly hasBuild: boolean;
+            readonly met: boolean;
+            readonly statusText: string;
+          }>;
+          readonly metCount: number;
+          readonly minScore: number;
+          readonly noBuildCount: number;
+          readonly summaryText: string;
+          readonly unmetCount: number;
+        }>;
+      } | {
+        readonly __typename: "GuildInsightsLocked";
+        readonly premiumBody: string;
+        readonly premiumTitle: string;
+      } | {
+        // This will never be '%other', but we need some
+        // value in case none of the concrete values match.
+        readonly __typename: "%other";
+      };
       readonly logoUrl: string;
       readonly lotteries: ReadonlyArray<{
         readonly createdAtText: string;
@@ -279,6 +333,28 @@ export type documentsGuildAdminQuery$data = {
         readonly label: string;
       }>;
       readonly ogTitleSuffix: string;
+      readonly participationHeatmap: {
+        readonly __typename: "GuildAdminParticipationHeatmap";
+        readonly cells: ReadonlyArray<{
+          readonly count: number;
+          readonly hour: number;
+          readonly weekday: number;
+          readonly weekdayLabel: string;
+        }>;
+        readonly peakCount: number;
+        readonly timezone: string;
+        readonly totalAttended: number;
+        readonly totalText: string;
+        readonly weekdayLabels: ReadonlyArray<string>;
+      } | {
+        readonly __typename: "GuildInsightsLocked";
+        readonly premiumBody: string;
+        readonly premiumTitle: string;
+      } | {
+        // This will never be '%other', but we need some
+        // value in case none of the concrete values match.
+        readonly __typename: "%other";
+      };
       readonly premium: {
         readonly __typename: "GuildAdminPremiumActive";
         readonly premiumPastDueText: string | null | undefined;
@@ -303,6 +379,30 @@ export type documentsGuildAdminQuery$data = {
         // value in case none of the concrete values match.
         readonly __typename: "%other";
       } | null | undefined;
+      readonly raceSeasonBoard: {
+        readonly __typename: "GuildInsightsLocked";
+        readonly premiumBody: string;
+        readonly premiumTitle: string;
+      } | {
+        readonly __typename: "RaceSeasonBoard";
+        readonly seasons: ReadonlyArray<{
+          readonly entries: ReadonlyArray<{
+            readonly bestTimeMs: number;
+            readonly bestTimeText: string;
+            readonly members: string;
+            readonly runCount: number;
+            readonly teamName: string;
+            readonly winCount: number;
+          }>;
+          readonly season: string;
+          readonly seasonLabel: string;
+          readonly seasonName: string;
+        }>;
+      } | {
+        // This will never be '%other', but we need some
+        // value in case none of the concrete values match.
+        readonly __typename: "%other";
+      };
       readonly recruitApplications: ReadonlyArray<{
         readonly applicantDiscordId: string;
         readonly applicantName: string;
@@ -331,6 +431,26 @@ export type documentsGuildAdminQuery$data = {
         readonly displayName: string;
         readonly isMentor: boolean;
       }>;
+      readonly reliability: {
+        readonly __typename: "GuildAdminReliability";
+        readonly entries: ReadonlyArray<{
+          readonly attendanceRate: number;
+          readonly attendedCount: number;
+          readonly discordId: string;
+          readonly displayName: string;
+          readonly noShowCount: number;
+          readonly settledCount: number;
+          readonly signupCount: number;
+        }>;
+      } | {
+        readonly __typename: "GuildInsightsLocked";
+        readonly premiumBody: string;
+        readonly premiumTitle: string;
+      } | {
+        // This will never be '%other', but we need some
+        // value in case none of the concrete values match.
+        readonly __typename: "%other";
+      };
       readonly reminderCustomText: string;
       readonly reminderOffsets: ReadonlyArray<number>;
       readonly reminderWebhookId: string | null | undefined;
@@ -484,96 +604,121 @@ v6 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "premiumTitle",
+  "name": "label",
   "storageKey": null
 },
 v7 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "premiumBody",
+  "name": "premiumTitle",
   "storageKey": null
 },
 v8 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "status",
+  "name": "premiumBody",
   "storageKey": null
 },
 v9 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "id",
+  "name": "status",
   "storageKey": null
 },
 v10 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "title",
+  "name": "statusText",
   "storageKey": null
 },
-v11 = {
-  "alias": null,
-  "args": null,
-  "kind": "ScalarField",
-  "name": "teamName",
-  "storageKey": null
-},
+v11 = [
+  (v7/*:: as any*/),
+  (v8/*:: as any*/)
+],
 v12 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "members",
+  "name": "id",
   "storageKey": null
 },
 v13 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "note",
+  "name": "title",
   "storageKey": null
 },
 v14 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "createdAt",
+  "name": "signupCount",
   "storageKey": null
 },
 v15 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "source",
+  "name": "teamName",
   "storageKey": null
 },
 v16 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "createdAtText",
+  "name": "members",
   "storageKey": null
 },
 v17 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "discordId",
+  "name": "note",
   "storageKey": null
 },
 v18 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
+  "name": "createdAt",
+  "storageKey": null
+},
+v19 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "source",
+  "storageKey": null
+},
+v20 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "createdAtText",
+  "storageKey": null
+},
+v21 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "discordId",
+  "storageKey": null
+},
+v22 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
   "name": "displayName",
   "storageKey": null
 },
-v19 = [
-  (v17/*:: as any*/),
-  (v18/*:: as any*/),
+v23 = [
+  (v21/*:: as any*/),
+  (v22/*:: as any*/),
   {
     "alias": null,
     "args": null,
@@ -582,14 +727,27 @@ v19 = [
     "storageKey": null
   }
 ],
-v20 = {
+v24 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "statusLabel",
   "storageKey": null
 },
-v21 = [
+v25 = {
+  "kind": "InlineFragment",
+  "selections": (v11/*:: as any*/),
+  "type": "GuildInsightsLocked",
+  "abstractKey": null
+},
+v26 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "seasonLabel",
+  "storageKey": null
+},
+v27 = [
   {
     "alias": null,
     "args": null,
@@ -1386,13 +1544,7 @@ v21 = [
                     "name": "hex",
                     "storageKey": null
                   },
-                  {
-                    "alias": null,
-                    "args": null,
-                    "kind": "ScalarField",
-                    "name": "label",
-                    "storageKey": null
-                  }
+                  (v6/*:: as any*/)
                 ],
                 "storageKey": null
               },
@@ -1450,8 +1602,8 @@ v21 = [
                   {
                     "kind": "InlineFragment",
                     "selections": [
-                      (v6/*:: as any*/),
                       (v7/*:: as any*/),
+                      (v8/*:: as any*/),
                       {
                         "alias": null,
                         "args": null,
@@ -1525,7 +1677,7 @@ v21 = [
                   {
                     "kind": "InlineFragment",
                     "selections": [
-                      (v8/*:: as any*/),
+                      (v9/*:: as any*/),
                       {
                         "alias": null,
                         "args": null,
@@ -1533,13 +1685,7 @@ v21 = [
                         "name": "hostname",
                         "storageKey": null
                       },
-                      {
-                        "alias": null,
-                        "args": null,
-                        "kind": "ScalarField",
-                        "name": "statusText",
-                        "storageKey": null
-                      },
+                      (v10/*:: as any*/),
                       {
                         "alias": null,
                         "args": null,
@@ -1588,10 +1734,7 @@ v21 = [
                   },
                   {
                     "kind": "InlineFragment",
-                    "selections": [
-                      (v6/*:: as any*/),
-                      (v7/*:: as any*/)
-                    ],
+                    "selections": (v11/*:: as any*/),
                     "type": "GuildAdminCustomDomainLocked",
                     "abstractKey": null
                   }
@@ -1641,8 +1784,8 @@ v21 = [
                 "name": "events",
                 "plural": true,
                 "selections": [
-                  (v9/*:: as any*/),
-                  (v10/*:: as any*/),
+                  (v12/*:: as any*/),
+                  (v13/*:: as any*/),
                   {
                     "alias": null,
                     "args": null,
@@ -1650,7 +1793,7 @@ v21 = [
                     "name": "type",
                     "storageKey": null
                   },
-                  (v8/*:: as any*/),
+                  (v9/*:: as any*/),
                   {
                     "alias": null,
                     "args": null,
@@ -1700,13 +1843,7 @@ v21 = [
                     "name": "description",
                     "storageKey": null
                   },
-                  {
-                    "alias": null,
-                    "args": null,
-                    "kind": "ScalarField",
-                    "name": "signupCount",
-                    "storageKey": null
-                  },
+                  (v14/*:: as any*/),
                   {
                     "alias": null,
                     "args": null,
@@ -1715,7 +1852,7 @@ v21 = [
                     "name": "signups",
                     "plural": true,
                     "selections": [
-                      (v9/*:: as any*/),
+                      (v12/*:: as any*/),
                       {
                         "alias": null,
                         "args": null,
@@ -1751,10 +1888,10 @@ v21 = [
                         "name": "contact",
                         "storageKey": null
                       },
-                      (v11/*:: as any*/),
-                      (v12/*:: as any*/),
-                      (v13/*:: as any*/),
-                      (v14/*:: as any*/)
+                      (v15/*:: as any*/),
+                      (v16/*:: as any*/),
+                      (v17/*:: as any*/),
+                      (v18/*:: as any*/)
                     ],
                     "storageKey": null
                   },
@@ -1766,9 +1903,9 @@ v21 = [
                     "name": "results",
                     "plural": true,
                     "selections": [
-                      (v9/*:: as any*/),
-                      (v11/*:: as any*/),
                       (v12/*:: as any*/),
+                      (v15/*:: as any*/),
+                      (v16/*:: as any*/),
                       {
                         "alias": null,
                         "args": null,
@@ -1790,7 +1927,7 @@ v21 = [
                         "name": "proofUrl",
                         "storageKey": null
                       },
-                      (v13/*:: as any*/)
+                      (v17/*:: as any*/)
                     ],
                     "storageKey": null
                   },
@@ -2020,8 +2157,8 @@ v21 = [
                 "name": "lotteries",
                 "plural": true,
                 "selections": [
-                  (v9/*:: as any*/),
-                  (v10/*:: as any*/),
+                  (v12/*:: as any*/),
+                  (v13/*:: as any*/),
                   {
                     "alias": null,
                     "args": null,
@@ -2029,7 +2166,7 @@ v21 = [
                     "name": "prize",
                     "storageKey": null
                   },
-                  (v15/*:: as any*/),
+                  (v19/*:: as any*/),
                   {
                     "alias": null,
                     "args": null,
@@ -2051,7 +2188,7 @@ v21 = [
                     "name": "winnerCount",
                     "storageKey": null
                   },
-                  (v8/*:: as any*/),
+                  (v9/*:: as any*/),
                   {
                     "alias": null,
                     "args": null,
@@ -2059,7 +2196,7 @@ v21 = [
                     "name": "entryCountText",
                     "storageKey": null
                   },
-                  (v16/*:: as any*/),
+                  (v20/*:: as any*/),
                   {
                     "alias": null,
                     "args": null,
@@ -2074,7 +2211,7 @@ v21 = [
                     "kind": "LinkedField",
                     "name": "entries",
                     "plural": true,
-                    "selections": (v19/*:: as any*/),
+                    "selections": (v23/*:: as any*/),
                     "storageKey": null
                   },
                   {
@@ -2084,7 +2221,7 @@ v21 = [
                     "kind": "LinkedField",
                     "name": "winners",
                     "plural": true,
-                    "selections": (v19/*:: as any*/),
+                    "selections": (v23/*:: as any*/),
                     "storageKey": null
                   }
                 ],
@@ -2098,8 +2235,8 @@ v21 = [
                 "name": "lotteryRoster",
                 "plural": true,
                 "selections": [
-                  (v17/*:: as any*/),
-                  (v18/*:: as any*/)
+                  (v21/*:: as any*/),
+                  (v22/*:: as any*/)
                 ],
                 "storageKey": null
               },
@@ -2265,7 +2402,7 @@ v21 = [
                 "name": "recruitApplications",
                 "plural": true,
                 "selections": [
-                  (v9/*:: as any*/),
+                  (v12/*:: as any*/),
                   {
                     "alias": null,
                     "args": null,
@@ -2287,9 +2424,9 @@ v21 = [
                     "name": "message",
                     "storageKey": null
                   },
-                  (v8/*:: as any*/),
+                  (v9/*:: as any*/),
+                  (v24/*:: as any*/),
                   (v20/*:: as any*/),
-                  (v16/*:: as any*/),
                   {
                     "alias": null,
                     "args": null,
@@ -2315,7 +2452,7 @@ v21 = [
                 "name": "recruitPairings",
                 "plural": true,
                 "selections": [
-                  (v9/*:: as any*/),
+                  (v12/*:: as any*/),
                   {
                     "alias": null,
                     "args": null,
@@ -2344,9 +2481,9 @@ v21 = [
                     "name": "menteeName",
                     "storageKey": null
                   },
-                  (v8/*:: as any*/),
+                  (v9/*:: as any*/),
+                  (v24/*:: as any*/),
                   (v20/*:: as any*/),
-                  (v16/*:: as any*/),
                   {
                     "alias": null,
                     "args": null,
@@ -2365,8 +2502,8 @@ v21 = [
                 "name": "recruitRoster",
                 "plural": true,
                 "selections": [
-                  (v17/*:: as any*/),
-                  (v18/*:: as any*/),
+                  (v21/*:: as any*/),
+                  (v22/*:: as any*/),
                   {
                     "alias": null,
                     "args": null,
@@ -2385,8 +2522,8 @@ v21 = [
                 "name": "newcomerProgress",
                 "plural": true,
                 "selections": [
-                  (v17/*:: as any*/),
-                  (v18/*:: as any*/),
+                  (v21/*:: as any*/),
+                  (v22/*:: as any*/),
                   {
                     "alias": null,
                     "args": null,
@@ -2652,8 +2789,8 @@ v21 = [
                         "name": "memberLeaders",
                         "plural": true,
                         "selections": [
-                          (v17/*:: as any*/),
-                          (v18/*:: as any*/),
+                          (v21/*:: as any*/),
+                          (v22/*:: as any*/),
                           {
                             "alias": null,
                             "args": null,
@@ -2672,8 +2809,8 @@ v21 = [
                         "name": "leaderLeaders",
                         "plural": true,
                         "selections": [
-                          (v17/*:: as any*/),
-                          (v18/*:: as any*/),
+                          (v21/*:: as any*/),
+                          (v22/*:: as any*/),
                           {
                             "alias": null,
                             "args": null,
@@ -2688,6 +2825,534 @@ v21 = [
                     "type": "GuildAdminStats",
                     "abstractKey": null
                   }
+                ],
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminTabInsightsLabel",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminInsightsReliabilityTitle",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminInsightsReliabilityHint",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminInsightsSignupsLabel",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminInsightsAttendedLabel",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminInsightsNoShowLabel",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminInsightsRateLabel",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminInsightsReliabilityEmptyText",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminInsightsHeatmapTitle",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminInsightsHeatmapHint",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminInsightsHeatmapEmptyText",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminInsightsGearTitle",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminInsightsGearHint",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminInsightsGearEmptyText",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminInsightsGearLabelLabel",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminInsightsGearMinScoreLabel",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminInsightsGearAddLabel",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminInsightsGearScoreLabel",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminInsightsGearGapLabel",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminInsightsRaceTitle",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminInsightsRaceEmptyText",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminInsightsRaceTeamLabel",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminInsightsRaceRunsLabel",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminInsightsRaceWinsLabel",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminInsightsRaceBestLabel",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "concreteType": null,
+                "kind": "LinkedField",
+                "name": "reliability",
+                "plural": false,
+                "selections": [
+                  (v1/*:: as any*/),
+                  {
+                    "kind": "InlineFragment",
+                    "selections": [
+                      {
+                        "alias": null,
+                        "args": null,
+                        "concreteType": "ReliabilityEntry",
+                        "kind": "LinkedField",
+                        "name": "entries",
+                        "plural": true,
+                        "selections": [
+                          (v21/*:: as any*/),
+                          (v22/*:: as any*/),
+                          (v14/*:: as any*/),
+                          {
+                            "alias": null,
+                            "args": null,
+                            "kind": "ScalarField",
+                            "name": "attendedCount",
+                            "storageKey": null
+                          },
+                          {
+                            "alias": null,
+                            "args": null,
+                            "kind": "ScalarField",
+                            "name": "noShowCount",
+                            "storageKey": null
+                          },
+                          {
+                            "alias": null,
+                            "args": null,
+                            "kind": "ScalarField",
+                            "name": "settledCount",
+                            "storageKey": null
+                          },
+                          {
+                            "alias": null,
+                            "args": null,
+                            "kind": "ScalarField",
+                            "name": "attendanceRate",
+                            "storageKey": null
+                          }
+                        ],
+                        "storageKey": null
+                      }
+                    ],
+                    "type": "GuildAdminReliability",
+                    "abstractKey": null
+                  },
+                  (v25/*:: as any*/)
+                ],
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "concreteType": null,
+                "kind": "LinkedField",
+                "name": "participationHeatmap",
+                "plural": false,
+                "selections": [
+                  (v1/*:: as any*/),
+                  {
+                    "kind": "InlineFragment",
+                    "selections": [
+                      {
+                        "alias": null,
+                        "args": null,
+                        "kind": "ScalarField",
+                        "name": "timezone",
+                        "storageKey": null
+                      },
+                      {
+                        "alias": null,
+                        "args": null,
+                        "kind": "ScalarField",
+                        "name": "totalAttended",
+                        "storageKey": null
+                      },
+                      {
+                        "alias": null,
+                        "args": null,
+                        "kind": "ScalarField",
+                        "name": "peakCount",
+                        "storageKey": null
+                      },
+                      {
+                        "alias": null,
+                        "args": null,
+                        "kind": "ScalarField",
+                        "name": "totalText",
+                        "storageKey": null
+                      },
+                      {
+                        "alias": null,
+                        "args": null,
+                        "kind": "ScalarField",
+                        "name": "weekdayLabels",
+                        "storageKey": null
+                      },
+                      {
+                        "alias": null,
+                        "args": null,
+                        "concreteType": "ParticipationHeatmapCell",
+                        "kind": "LinkedField",
+                        "name": "cells",
+                        "plural": true,
+                        "selections": [
+                          {
+                            "alias": null,
+                            "args": null,
+                            "kind": "ScalarField",
+                            "name": "weekday",
+                            "storageKey": null
+                          },
+                          {
+                            "alias": null,
+                            "args": null,
+                            "kind": "ScalarField",
+                            "name": "weekdayLabel",
+                            "storageKey": null
+                          },
+                          {
+                            "alias": null,
+                            "args": null,
+                            "kind": "ScalarField",
+                            "name": "hour",
+                            "storageKey": null
+                          },
+                          {
+                            "alias": null,
+                            "args": null,
+                            "kind": "ScalarField",
+                            "name": "count",
+                            "storageKey": null
+                          }
+                        ],
+                        "storageKey": null
+                      }
+                    ],
+                    "type": "GuildAdminParticipationHeatmap",
+                    "abstractKey": null
+                  },
+                  (v25/*:: as any*/)
+                ],
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "concreteType": null,
+                "kind": "LinkedField",
+                "name": "gearBoard",
+                "plural": false,
+                "selections": [
+                  (v1/*:: as any*/),
+                  {
+                    "kind": "InlineFragment",
+                    "selections": [
+                      {
+                        "alias": null,
+                        "args": null,
+                        "concreteType": "GearBoardStandard",
+                        "kind": "LinkedField",
+                        "name": "standards",
+                        "plural": true,
+                        "selections": [
+                          (v12/*:: as any*/),
+                          (v6/*:: as any*/),
+                          {
+                            "alias": null,
+                            "args": null,
+                            "kind": "ScalarField",
+                            "name": "minScore",
+                            "storageKey": null
+                          },
+                          {
+                            "alias": null,
+                            "args": null,
+                            "kind": "ScalarField",
+                            "name": "metCount",
+                            "storageKey": null
+                          },
+                          {
+                            "alias": null,
+                            "args": null,
+                            "kind": "ScalarField",
+                            "name": "unmetCount",
+                            "storageKey": null
+                          },
+                          {
+                            "alias": null,
+                            "args": null,
+                            "kind": "ScalarField",
+                            "name": "noBuildCount",
+                            "storageKey": null
+                          },
+                          {
+                            "alias": null,
+                            "args": null,
+                            "kind": "ScalarField",
+                            "name": "summaryText",
+                            "storageKey": null
+                          },
+                          {
+                            "alias": null,
+                            "args": null,
+                            "concreteType": "GearBoardMember",
+                            "kind": "LinkedField",
+                            "name": "members",
+                            "plural": true,
+                            "selections": [
+                              (v21/*:: as any*/),
+                              (v22/*:: as any*/),
+                              {
+                                "alias": null,
+                                "args": null,
+                                "kind": "ScalarField",
+                                "name": "hasBuild",
+                                "storageKey": null
+                              },
+                              {
+                                "alias": null,
+                                "args": null,
+                                "kind": "ScalarField",
+                                "name": "bestScore",
+                                "storageKey": null
+                              },
+                              {
+                                "alias": null,
+                                "args": null,
+                                "kind": "ScalarField",
+                                "name": "met",
+                                "storageKey": null
+                              },
+                              {
+                                "alias": null,
+                                "args": null,
+                                "kind": "ScalarField",
+                                "name": "gap",
+                                "storageKey": null
+                              },
+                              (v10/*:: as any*/)
+                            ],
+                            "storageKey": null
+                          }
+                        ],
+                        "storageKey": null
+                      }
+                    ],
+                    "type": "GuildAdminGearBoard",
+                    "abstractKey": null
+                  },
+                  (v25/*:: as any*/)
+                ],
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "concreteType": null,
+                "kind": "LinkedField",
+                "name": "raceSeasonBoard",
+                "plural": false,
+                "selections": [
+                  (v1/*:: as any*/),
+                  {
+                    "kind": "InlineFragment",
+                    "selections": [
+                      {
+                        "alias": null,
+                        "args": null,
+                        "concreteType": "RaceSeason",
+                        "kind": "LinkedField",
+                        "name": "seasons",
+                        "plural": true,
+                        "selections": [
+                          {
+                            "alias": null,
+                            "args": null,
+                            "kind": "ScalarField",
+                            "name": "season",
+                            "storageKey": null
+                          },
+                          {
+                            "alias": null,
+                            "args": null,
+                            "kind": "ScalarField",
+                            "name": "seasonName",
+                            "storageKey": null
+                          },
+                          (v26/*:: as any*/),
+                          {
+                            "alias": null,
+                            "args": null,
+                            "concreteType": "RaceSeasonEntry",
+                            "kind": "LinkedField",
+                            "name": "entries",
+                            "plural": true,
+                            "selections": [
+                              (v15/*:: as any*/),
+                              (v16/*:: as any*/),
+                              {
+                                "alias": null,
+                                "args": null,
+                                "kind": "ScalarField",
+                                "name": "runCount",
+                                "storageKey": null
+                              },
+                              {
+                                "alias": null,
+                                "args": null,
+                                "kind": "ScalarField",
+                                "name": "winCount",
+                                "storageKey": null
+                              },
+                              {
+                                "alias": null,
+                                "args": null,
+                                "kind": "ScalarField",
+                                "name": "bestTimeMs",
+                                "storageKey": null
+                              },
+                              {
+                                "alias": null,
+                                "args": null,
+                                "kind": "ScalarField",
+                                "name": "bestTimeText",
+                                "storageKey": null
+                              }
+                            ],
+                            "storageKey": null
+                          }
+                        ],
+                        "storageKey": null
+                      }
+                    ],
+                    "type": "RaceSeasonBoard",
+                    "abstractKey": null
+                  },
+                  (v25/*:: as any*/)
                 ],
                 "storageKey": null
               },
@@ -2720,14 +3385,8 @@ v21 = [
                     "name": "versionLabel",
                     "storageKey": null
                   },
-                  {
-                    "alias": null,
-                    "args": null,
-                    "kind": "ScalarField",
-                    "name": "seasonLabel",
-                    "storageKey": null
-                  },
-                  (v10/*:: as any*/),
+                  (v26/*:: as any*/),
+                  (v13/*:: as any*/),
                   {
                     "alias": null,
                     "args": null,
@@ -2765,7 +3424,7 @@ v21 = [
                     "plural": true,
                     "selections": [
                       (v5/*:: as any*/),
-                      (v10/*:: as any*/),
+                      (v13/*:: as any*/),
                       {
                         "alias": null,
                         "args": null,
@@ -2879,9 +3538,9 @@ v21 = [
                     "name": "entries",
                     "plural": true,
                     "selections": [
-                      (v9/*:: as any*/),
-                      (v18/*:: as any*/),
-                      (v15/*:: as any*/),
+                      (v12/*:: as any*/),
+                      (v22/*:: as any*/),
+                      (v19/*:: as any*/),
                       {
                         "alias": null,
                         "args": null,
@@ -2889,7 +3548,7 @@ v21 = [
                         "name": "matchedName",
                         "storageKey": null
                       },
-                      (v14/*:: as any*/)
+                      (v18/*:: as any*/)
                     ],
                     "storageKey": null
                   }
@@ -2913,7 +3572,7 @@ return {
     "kind": "Fragment",
     "metadata": null,
     "name": "documentsGuildAdminQuery",
-    "selections": (v21/*:: as any*/),
+    "selections": (v27/*:: as any*/),
     "type": "Query",
     "abstractKey": null
   },
@@ -2922,19 +3581,19 @@ return {
     "argumentDefinitions": (v0/*:: as any*/),
     "kind": "Operation",
     "name": "documentsGuildAdminQuery",
-    "selections": (v21/*:: as any*/)
+    "selections": (v27/*:: as any*/)
   },
   "params": {
-    "cacheID": "dcf4c16a7115d500ad2088abd241b7a0",
+    "cacheID": "aa918db78d76b531c31911b53f540c28",
     "id": null,
     "metadata": {},
     "name": "documentsGuildAdminQuery",
     "operationKind": "query",
-    "text": "query documentsGuildAdminQuery(\n  $slug: String!\n) {\n  viewer {\n    commonUnknownErrorText\n    commonConfirmLabel\n    commonCancelLabel\n    guildAdmin(slug: $slug) {\n      __typename\n      ... on GuildAdminLocked {\n        slug\n        adminLockedTitle\n        adminLockedBody\n        adminBackLinkLabel\n      }\n      ... on GuildAdmin {\n        slug\n        avatarUrl\n        adminTitle\n        adminBackLinkLabel\n        adminProfileTitle\n        adminNameLabel\n        adminAnnouncementLabel\n        adminSloganLabel\n        adminMasterLabel: adminMasterNameLabel\n        adminLogoLabel: adminLogoUrlLabel\n        adminBgLabel: adminBgImageUrlLabel\n        adminSaveLabel\n        adminSavedText\n        adminAvatarLabel: adminAvatarTitle\n        adminUploadAvatarLabel: adminAvatarUploadLabel\n        adminReplaceAvatarLabel: adminAvatarReplaceLabel\n        adminDeleteAvatarLabel: adminAvatarDeleteLabel\n        adminAvatarNoneText\n        adminDiscordTitle\n        adminWebhookLabel\n        adminWebhookSetText\n        adminWebhookUnsetText\n        adminWebhookClearLabel\n        adminDiscordIdLabel: adminGuildIdLabel\n        adminReminderTitle\n        adminReminderOffsetsLabel\n        adminReminderOffsetTemplate\n        adminReminderCustomTextLabel\n        adminReminderCustomTextHint\n        adminVisibilityTitle\n        adminVisibilityLabel: adminDevOnlyLabel\n        adminWhiteLabelTitle\n        adminHideBrandingLabel\n        adminHideBrandingHint\n        adminOgAccentLabel\n        adminOgTitleSuffixLabel\n        adminOgTitleSuffixHint\n        adminCustomDomainTitle\n        adminCustomDomainHint\n        adminCustomDomainHostnameLabel\n        adminCustomDomainHostnamePlaceholder\n        adminCustomDomainBindLabel\n        adminCustomDomainRebindLabel\n        adminCustomDomainVerifyLabel\n        adminCustomDomainRemoveLabel\n        adminCustomDomainDnsTitle\n        adminCustomDomainCnameLabel\n        adminCustomDomainTxtLabel\n        adminCustomDomainRecordNameLabel\n        adminCustomDomainRecordValueLabel\n        adminPremiumTitle\n        adminAddLabel\n        adminEditLabel\n        adminDeleteLabel\n        adminEventsTitle\n        adminEventEmptyText\n        adminEventTitleLabel\n        adminEventTypeLabel\n        adminEventTimeLabel\n        adminEventDungeonLabel\n        adminEventSlotsLabel\n        adminEventMeetLabel\n        adminEventDescLabel\n        adminEventStatusLabel\n        adminStatusOpenText\n        adminStatusClosedText\n        adminStatusCompletedText\n        adminStatusDraftText\n        adminExportCsvLabel\n        adminSignupsTitle\n        adminSignupEmptyText\n        adminRemoveSignupLabel\n        adminResultsTitle\n        adminResultTeamLabel\n        adminResultMembersLabel\n        adminResultTimeLabel\n        adminResultProofLabel\n        adminResultNoteLabel\n        adminGuidesTitle\n        adminGuidesHint\n        adminGuideSchoolLabel\n        adminGuideBuildLabel\n        adminGuideAttrLabel\n        adminGuideRateLabel\n        adminGuideBisLabel\n        adminGuideRotationLabel\n        adminTypeActivityText\n        adminTypeTalentText\n        adminTypeRaceText\n        adminTypeTowerText\n        name\n        announcement\n        slogan\n        masterName\n        logoUrl\n        bgImageUrl\n        discordGuildId\n        reminderWebhookSet\n        reminderWebhookId\n        reminderOffsets\n        reminderCustomText\n        whiteLabelHideBranding\n        ogAccent\n        ogTitleSuffix\n        ogAccentOptions {\n          key\n          hex\n          label\n        }\n        devOnly\n        premium {\n          __typename\n          ... on GuildAdminPremiumActive {\n            premiumPlanLabel\n            premiumSourceText\n            premiumPeriodEndText\n            premiumPastDueText\n          }\n          ... on GuildAdminPremiumLocked {\n            premiumTitle\n            premiumBody\n            premiumPriceLabel\n            premiumComingSoonText\n            premiumCheckoutLabel\n            premiumTierPlans {\n              tier\n              name\n              subtitle\n              priceLabel\n            }\n          }\n        }\n        customDomain {\n          __typename\n          ... on GuildAdminCustomDomain {\n            status\n            hostname\n            statusText\n            guidanceText\n            dnsCnameName\n            dnsCnameValue\n            dnsTxtName\n            dnsTxtValue\n            boundAtText\n          }\n          ... on GuildAdminCustomDomainLocked {\n            premiumTitle\n            premiumBody\n          }\n        }\n        adminTabProfileLabel\n        adminTabDiscordLabel\n        adminTabEventsLabel\n        adminTabGuidesLabel\n        adminTabAnnouncementsLabel\n        events {\n          id\n          title\n          type\n          status\n          origin\n          startsAtUtc\n          startsAtText\n          dungeon\n          maxSlots\n          meetInfo\n          description\n          signupCount\n          signups {\n            id\n            nickname\n            uid\n            role\n            weapon\n            contact\n            teamName\n            members\n            note\n            createdAt\n          }\n          results {\n            id\n            teamName\n            members\n            timeMs\n            timeText\n            proofUrl\n            note\n          }\n          signupsCsv\n        }\n        schoolGuides {\n          schools {\n            school\n            builds {\n              build\n              attr\n              rate\n              bisJson\n            }\n            rotationJson\n          }\n        }\n        adminTabToolsLabel\n        adminLotteryTitle\n        adminLotteryHint\n        adminLotteryEmptyText\n        adminLotteryNameLabel\n        adminLotteryPrizeLabel\n        adminLotterySourceLabel\n        adminLotterySourceGroupingText\n        adminLotterySourceMembersText\n        adminLotteryGroupingLabel\n        adminLotteryWinnerCountLabel\n        adminLotteryUniformWeightLabel\n        adminLotteryWeightLabel\n        adminLotteryEntriesLabel\n        adminLotteryWinnersLabel\n        adminLotteryCreateLabel\n        adminLotteryDrawLabel\n        adminLotteryStatusOpenText\n        adminLotteryStatusDrawnText\n        lotteries {\n          id\n          title\n          prize\n          source\n          sourceEventId\n          sourceEventTitle\n          winnerCount\n          status\n          entryCountText\n          createdAtText\n          drawnAtText\n          entries {\n            discordId\n            displayName\n            weight\n          }\n          winners {\n            discordId\n            displayName\n            weight\n          }\n        }\n        lotteryRoster {\n          discordId\n          displayName\n        }\n        adminTabRecruitLabel\n        adminRecruitApplicationsTitle\n        adminRecruitApplicationsEmptyText\n        adminRecruitApproveLabel\n        adminRecruitRejectLabel\n        adminRecruitMentorPoolTitle\n        adminRecruitSetMentorLabel\n        adminRecruitUnsetMentorLabel\n        adminRecruitPairingsTitle\n        adminRecruitPairingsEmptyText\n        adminRecruitPairingCreateLabel\n        adminRecruitPairingEndLabel\n        adminRecruitMentorSelectLabel\n        adminRecruitMenteeSelectLabel\n        adminRecruitNewcomersTitle\n        adminRecruitNewcomersEmptyText\n        adminRecruitOpenLabel\n        adminRecruitOpenHint\n        recruitOpen\n        adminRecruitProfileLabel\n        adminRecruitMentorLabel\n        adminRecruitFirstRunLabel\n        recruitApplications {\n          id\n          applicantDiscordId\n          applicantName\n          message\n          status\n          statusLabel\n          createdAtText\n          reviewedByName\n          reviewedAtText\n        }\n        recruitPairings {\n          id\n          mentorDiscordId\n          mentorName\n          menteeDiscordId\n          menteeName\n          status\n          statusLabel\n          createdAtText\n          endedAtText\n        }\n        recruitRoster {\n          discordId\n          displayName\n          isMentor\n        }\n        newcomerProgress {\n          discordId\n          displayName\n          profileDone\n          mentorDone\n          firstRunDone\n          progressText\n        }\n        adminTabStatsLabel\n        adminStatsTitle\n        adminStatsCurrentWeekLabel\n        adminStatsCarsLabel\n        adminStatsCompletedLabel\n        adminStatsSeatsLabel\n        adminStatsFillRateLabel\n        adminStatsParticipantsLabel\n        adminStatsPerCapitaLabel\n        adminStatsMembersTitle\n        adminStatsLeadersTitle\n        adminStatsSeatCountLabel\n        adminStatsCarCountLabel\n        adminStatsEmptyText\n        adminStatsBoardEmptyText\n        stats {\n          __typename\n          ... on GuildAdminStats {\n            weeks {\n              weekLabel\n              isCurrent\n              carsActivity\n              carsTalent\n              carsRace\n              carsTower\n              carsTotal\n              completedCount\n              totalSeats\n              filledSeats\n              fillRate\n              participantCount\n              participationCount\n              perCapita\n            }\n            memberLeaders {\n              discordId\n              displayName\n              seatCount\n            }\n            leaderLeaders {\n              discordId\n              displayName\n              carCount\n            }\n          }\n        }\n        adminTabSeasonLabel\n        seasonChecklist {\n          seasonKey\n          versionLabel\n          seasonLabel\n          title\n          hint\n          progressTemplate\n          doneCount\n          totalCount\n          items {\n            key\n            title\n            detail\n            checked\n            checkedByName\n          }\n        }\n        roster {\n          rosterTitle\n          rosterHint\n          rosterUploadLabel\n          rosterOcrRunningText\n          rosterPreviewTitle\n          rosterConfirmLabel\n          rosterEmptyText\n          rosterDeleteLabel\n          rosterSourceOcrLabel\n          rosterMatchedMemberLabel\n          entries {\n            id\n            displayName\n            source\n            matchedName\n            createdAt\n          }\n        }\n      }\n    }\n  }\n}\n"
+    "text": "query documentsGuildAdminQuery(\n  $slug: String!\n) {\n  viewer {\n    commonUnknownErrorText\n    commonConfirmLabel\n    commonCancelLabel\n    guildAdmin(slug: $slug) {\n      __typename\n      ... on GuildAdminLocked {\n        slug\n        adminLockedTitle\n        adminLockedBody\n        adminBackLinkLabel\n      }\n      ... on GuildAdmin {\n        slug\n        avatarUrl\n        adminTitle\n        adminBackLinkLabel\n        adminProfileTitle\n        adminNameLabel\n        adminAnnouncementLabel\n        adminSloganLabel\n        adminMasterLabel: adminMasterNameLabel\n        adminLogoLabel: adminLogoUrlLabel\n        adminBgLabel: adminBgImageUrlLabel\n        adminSaveLabel\n        adminSavedText\n        adminAvatarLabel: adminAvatarTitle\n        adminUploadAvatarLabel: adminAvatarUploadLabel\n        adminReplaceAvatarLabel: adminAvatarReplaceLabel\n        adminDeleteAvatarLabel: adminAvatarDeleteLabel\n        adminAvatarNoneText\n        adminDiscordTitle\n        adminWebhookLabel\n        adminWebhookSetText\n        adminWebhookUnsetText\n        adminWebhookClearLabel\n        adminDiscordIdLabel: adminGuildIdLabel\n        adminReminderTitle\n        adminReminderOffsetsLabel\n        adminReminderOffsetTemplate\n        adminReminderCustomTextLabel\n        adminReminderCustomTextHint\n        adminVisibilityTitle\n        adminVisibilityLabel: adminDevOnlyLabel\n        adminWhiteLabelTitle\n        adminHideBrandingLabel\n        adminHideBrandingHint\n        adminOgAccentLabel\n        adminOgTitleSuffixLabel\n        adminOgTitleSuffixHint\n        adminCustomDomainTitle\n        adminCustomDomainHint\n        adminCustomDomainHostnameLabel\n        adminCustomDomainHostnamePlaceholder\n        adminCustomDomainBindLabel\n        adminCustomDomainRebindLabel\n        adminCustomDomainVerifyLabel\n        adminCustomDomainRemoveLabel\n        adminCustomDomainDnsTitle\n        adminCustomDomainCnameLabel\n        adminCustomDomainTxtLabel\n        adminCustomDomainRecordNameLabel\n        adminCustomDomainRecordValueLabel\n        adminPremiumTitle\n        adminAddLabel\n        adminEditLabel\n        adminDeleteLabel\n        adminEventsTitle\n        adminEventEmptyText\n        adminEventTitleLabel\n        adminEventTypeLabel\n        adminEventTimeLabel\n        adminEventDungeonLabel\n        adminEventSlotsLabel\n        adminEventMeetLabel\n        adminEventDescLabel\n        adminEventStatusLabel\n        adminStatusOpenText\n        adminStatusClosedText\n        adminStatusCompletedText\n        adminStatusDraftText\n        adminExportCsvLabel\n        adminSignupsTitle\n        adminSignupEmptyText\n        adminRemoveSignupLabel\n        adminResultsTitle\n        adminResultTeamLabel\n        adminResultMembersLabel\n        adminResultTimeLabel\n        adminResultProofLabel\n        adminResultNoteLabel\n        adminGuidesTitle\n        adminGuidesHint\n        adminGuideSchoolLabel\n        adminGuideBuildLabel\n        adminGuideAttrLabel\n        adminGuideRateLabel\n        adminGuideBisLabel\n        adminGuideRotationLabel\n        adminTypeActivityText\n        adminTypeTalentText\n        adminTypeRaceText\n        adminTypeTowerText\n        name\n        announcement\n        slogan\n        masterName\n        logoUrl\n        bgImageUrl\n        discordGuildId\n        reminderWebhookSet\n        reminderWebhookId\n        reminderOffsets\n        reminderCustomText\n        whiteLabelHideBranding\n        ogAccent\n        ogTitleSuffix\n        ogAccentOptions {\n          key\n          hex\n          label\n        }\n        devOnly\n        premium {\n          __typename\n          ... on GuildAdminPremiumActive {\n            premiumPlanLabel\n            premiumSourceText\n            premiumPeriodEndText\n            premiumPastDueText\n          }\n          ... on GuildAdminPremiumLocked {\n            premiumTitle\n            premiumBody\n            premiumPriceLabel\n            premiumComingSoonText\n            premiumCheckoutLabel\n            premiumTierPlans {\n              tier\n              name\n              subtitle\n              priceLabel\n            }\n          }\n        }\n        customDomain {\n          __typename\n          ... on GuildAdminCustomDomain {\n            status\n            hostname\n            statusText\n            guidanceText\n            dnsCnameName\n            dnsCnameValue\n            dnsTxtName\n            dnsTxtValue\n            boundAtText\n          }\n          ... on GuildAdminCustomDomainLocked {\n            premiumTitle\n            premiumBody\n          }\n        }\n        adminTabProfileLabel\n        adminTabDiscordLabel\n        adminTabEventsLabel\n        adminTabGuidesLabel\n        adminTabAnnouncementsLabel\n        events {\n          id\n          title\n          type\n          status\n          origin\n          startsAtUtc\n          startsAtText\n          dungeon\n          maxSlots\n          meetInfo\n          description\n          signupCount\n          signups {\n            id\n            nickname\n            uid\n            role\n            weapon\n            contact\n            teamName\n            members\n            note\n            createdAt\n          }\n          results {\n            id\n            teamName\n            members\n            timeMs\n            timeText\n            proofUrl\n            note\n          }\n          signupsCsv\n        }\n        schoolGuides {\n          schools {\n            school\n            builds {\n              build\n              attr\n              rate\n              bisJson\n            }\n            rotationJson\n          }\n        }\n        adminTabToolsLabel\n        adminLotteryTitle\n        adminLotteryHint\n        adminLotteryEmptyText\n        adminLotteryNameLabel\n        adminLotteryPrizeLabel\n        adminLotterySourceLabel\n        adminLotterySourceGroupingText\n        adminLotterySourceMembersText\n        adminLotteryGroupingLabel\n        adminLotteryWinnerCountLabel\n        adminLotteryUniformWeightLabel\n        adminLotteryWeightLabel\n        adminLotteryEntriesLabel\n        adminLotteryWinnersLabel\n        adminLotteryCreateLabel\n        adminLotteryDrawLabel\n        adminLotteryStatusOpenText\n        adminLotteryStatusDrawnText\n        lotteries {\n          id\n          title\n          prize\n          source\n          sourceEventId\n          sourceEventTitle\n          winnerCount\n          status\n          entryCountText\n          createdAtText\n          drawnAtText\n          entries {\n            discordId\n            displayName\n            weight\n          }\n          winners {\n            discordId\n            displayName\n            weight\n          }\n        }\n        lotteryRoster {\n          discordId\n          displayName\n        }\n        adminTabRecruitLabel\n        adminRecruitApplicationsTitle\n        adminRecruitApplicationsEmptyText\n        adminRecruitApproveLabel\n        adminRecruitRejectLabel\n        adminRecruitMentorPoolTitle\n        adminRecruitSetMentorLabel\n        adminRecruitUnsetMentorLabel\n        adminRecruitPairingsTitle\n        adminRecruitPairingsEmptyText\n        adminRecruitPairingCreateLabel\n        adminRecruitPairingEndLabel\n        adminRecruitMentorSelectLabel\n        adminRecruitMenteeSelectLabel\n        adminRecruitNewcomersTitle\n        adminRecruitNewcomersEmptyText\n        adminRecruitOpenLabel\n        adminRecruitOpenHint\n        recruitOpen\n        adminRecruitProfileLabel\n        adminRecruitMentorLabel\n        adminRecruitFirstRunLabel\n        recruitApplications {\n          id\n          applicantDiscordId\n          applicantName\n          message\n          status\n          statusLabel\n          createdAtText\n          reviewedByName\n          reviewedAtText\n        }\n        recruitPairings {\n          id\n          mentorDiscordId\n          mentorName\n          menteeDiscordId\n          menteeName\n          status\n          statusLabel\n          createdAtText\n          endedAtText\n        }\n        recruitRoster {\n          discordId\n          displayName\n          isMentor\n        }\n        newcomerProgress {\n          discordId\n          displayName\n          profileDone\n          mentorDone\n          firstRunDone\n          progressText\n        }\n        adminTabStatsLabel\n        adminStatsTitle\n        adminStatsCurrentWeekLabel\n        adminStatsCarsLabel\n        adminStatsCompletedLabel\n        adminStatsSeatsLabel\n        adminStatsFillRateLabel\n        adminStatsParticipantsLabel\n        adminStatsPerCapitaLabel\n        adminStatsMembersTitle\n        adminStatsLeadersTitle\n        adminStatsSeatCountLabel\n        adminStatsCarCountLabel\n        adminStatsEmptyText\n        adminStatsBoardEmptyText\n        stats {\n          __typename\n          ... on GuildAdminStats {\n            weeks {\n              weekLabel\n              isCurrent\n              carsActivity\n              carsTalent\n              carsRace\n              carsTower\n              carsTotal\n              completedCount\n              totalSeats\n              filledSeats\n              fillRate\n              participantCount\n              participationCount\n              perCapita\n            }\n            memberLeaders {\n              discordId\n              displayName\n              seatCount\n            }\n            leaderLeaders {\n              discordId\n              displayName\n              carCount\n            }\n          }\n        }\n        adminTabInsightsLabel\n        adminInsightsReliabilityTitle\n        adminInsightsReliabilityHint\n        adminInsightsSignupsLabel\n        adminInsightsAttendedLabel\n        adminInsightsNoShowLabel\n        adminInsightsRateLabel\n        adminInsightsReliabilityEmptyText\n        adminInsightsHeatmapTitle\n        adminInsightsHeatmapHint\n        adminInsightsHeatmapEmptyText\n        adminInsightsGearTitle\n        adminInsightsGearHint\n        adminInsightsGearEmptyText\n        adminInsightsGearLabelLabel\n        adminInsightsGearMinScoreLabel\n        adminInsightsGearAddLabel\n        adminInsightsGearScoreLabel\n        adminInsightsGearGapLabel\n        adminInsightsRaceTitle\n        adminInsightsRaceEmptyText\n        adminInsightsRaceTeamLabel\n        adminInsightsRaceRunsLabel\n        adminInsightsRaceWinsLabel\n        adminInsightsRaceBestLabel\n        reliability {\n          __typename\n          ... on GuildAdminReliability {\n            entries {\n              discordId\n              displayName\n              signupCount\n              attendedCount\n              noShowCount\n              settledCount\n              attendanceRate\n            }\n          }\n          ... on GuildInsightsLocked {\n            premiumTitle\n            premiumBody\n          }\n        }\n        participationHeatmap {\n          __typename\n          ... on GuildAdminParticipationHeatmap {\n            timezone\n            totalAttended\n            peakCount\n            totalText\n            weekdayLabels\n            cells {\n              weekday\n              weekdayLabel\n              hour\n              count\n            }\n          }\n          ... on GuildInsightsLocked {\n            premiumTitle\n            premiumBody\n          }\n        }\n        gearBoard {\n          __typename\n          ... on GuildAdminGearBoard {\n            standards {\n              id\n              label\n              minScore\n              metCount\n              unmetCount\n              noBuildCount\n              summaryText\n              members {\n                discordId\n                displayName\n                hasBuild\n                bestScore\n                met\n                gap\n                statusText\n              }\n            }\n          }\n          ... on GuildInsightsLocked {\n            premiumTitle\n            premiumBody\n          }\n        }\n        raceSeasonBoard {\n          __typename\n          ... on RaceSeasonBoard {\n            seasons {\n              season\n              seasonName\n              seasonLabel\n              entries {\n                teamName\n                members\n                runCount\n                winCount\n                bestTimeMs\n                bestTimeText\n              }\n            }\n          }\n          ... on GuildInsightsLocked {\n            premiumTitle\n            premiumBody\n          }\n        }\n        adminTabSeasonLabel\n        seasonChecklist {\n          seasonKey\n          versionLabel\n          seasonLabel\n          title\n          hint\n          progressTemplate\n          doneCount\n          totalCount\n          items {\n            key\n            title\n            detail\n            checked\n            checkedByName\n          }\n        }\n        roster {\n          rosterTitle\n          rosterHint\n          rosterUploadLabel\n          rosterOcrRunningText\n          rosterPreviewTitle\n          rosterConfirmLabel\n          rosterEmptyText\n          rosterDeleteLabel\n          rosterSourceOcrLabel\n          rosterMatchedMemberLabel\n          entries {\n            id\n            displayName\n            source\n            matchedName\n            createdAt\n          }\n        }\n      }\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "af09e533f27fe0079c0d2dc681f9c203";
+(node as any).hash = "a669e4cb490642c36d57420b46e3ff6a";
 
 export default node;

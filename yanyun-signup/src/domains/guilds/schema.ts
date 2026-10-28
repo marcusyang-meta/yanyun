@@ -407,7 +407,9 @@ export const guildCustomDomains = sqliteTable('guild_custom_domains', {
 }, (t) => [
   uniqueIndex('guild_custom_domains_hostname_unique').on(t.hostname),
   index('idx_guild_custom_domains_status').on(t.status),
-/* ---------------- guild gear standards [migration 0026] ----------
+]);
+
+/* ---------------- guild gear standards [migration 0034] ----------
  * One row per readiness threshold a guild admin sets for a scene
  * (P9 gear readiness board, premium insights line). minScore is the
  * minimum build graduation score in percent (0..100) read off a

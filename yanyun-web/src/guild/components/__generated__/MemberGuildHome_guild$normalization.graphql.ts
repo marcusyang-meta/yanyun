@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<50edc76daa0a24ab13122cfc8a896488>>
+ * @generated SignedSource<<769d32682bc6b005050c7758ba064418>>
  * @lightSyntaxTransform
  */
 
@@ -10,7 +10,29 @@
 import { NormalizationSplitOperation } from 'relay-runtime';
 
 
-const node: NormalizationSplitOperation = {
+const node: NormalizationSplitOperation = (function(){
+var v0 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "__typename",
+  "storageKey": null
+},
+v1 = {
+  "kind": "InlineFragment",
+  "selections": [
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "premiumTitle",
+      "storageKey": null
+    }
+  ],
+  "type": "GuildInsightsLocked",
+  "abstractKey": null
+};
+return {
   "kind": "SplitOperation",
   "metadata": {},
   "name": "MemberGuildHome_guild$normalization",
@@ -131,6 +153,240 @@ const node: NormalizationSplitOperation = {
       "alias": null,
       "args": null,
       "kind": "ScalarField",
+      "name": "homeInsightsRaceTitle",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "homeInsightsRaceEmptyText",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "homeInsightsRaceTeamLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "homeInsightsRaceRunsLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "homeInsightsRaceWinsLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "homeInsightsRaceBestLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "homeInsightsSelfGearTitle",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "homeInsightsGearScoreLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "homeInsightsGearMinScoreLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "concreteType": null,
+      "kind": "LinkedField",
+      "name": "raceSeasonBoard",
+      "plural": false,
+      "selections": [
+        (v0/*:: as any*/),
+        {
+          "kind": "InlineFragment",
+          "selections": [
+            {
+              "alias": null,
+              "args": null,
+              "concreteType": "RaceSeason",
+              "kind": "LinkedField",
+              "name": "seasons",
+              "plural": true,
+              "selections": [
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "season",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "seasonLabel",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "concreteType": "RaceSeasonEntry",
+                  "kind": "LinkedField",
+                  "name": "entries",
+                  "plural": true,
+                  "selections": [
+                    {
+                      "alias": null,
+                      "args": null,
+                      "kind": "ScalarField",
+                      "name": "teamName",
+                      "storageKey": null
+                    },
+                    {
+                      "alias": null,
+                      "args": null,
+                      "kind": "ScalarField",
+                      "name": "members",
+                      "storageKey": null
+                    },
+                    {
+                      "alias": null,
+                      "args": null,
+                      "kind": "ScalarField",
+                      "name": "runCount",
+                      "storageKey": null
+                    },
+                    {
+                      "alias": null,
+                      "args": null,
+                      "kind": "ScalarField",
+                      "name": "winCount",
+                      "storageKey": null
+                    },
+                    {
+                      "alias": null,
+                      "args": null,
+                      "kind": "ScalarField",
+                      "name": "bestTimeMs",
+                      "storageKey": null
+                    },
+                    {
+                      "alias": null,
+                      "args": null,
+                      "kind": "ScalarField",
+                      "name": "bestTimeText",
+                      "storageKey": null
+                    }
+                  ],
+                  "storageKey": null
+                }
+              ],
+              "storageKey": null
+            }
+          ],
+          "type": "RaceSeasonBoard",
+          "abstractKey": null
+        },
+        (v1/*:: as any*/)
+      ],
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "concreteType": null,
+      "kind": "LinkedField",
+      "name": "gearSelfStatus",
+      "plural": false,
+      "selections": [
+        (v0/*:: as any*/),
+        {
+          "kind": "InlineFragment",
+          "selections": [
+            {
+              "alias": null,
+              "args": null,
+              "concreteType": "GearSelfEntry",
+              "kind": "LinkedField",
+              "name": "entries",
+              "plural": true,
+              "selections": [
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "standardId",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "label",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "minScore",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "myScore",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "met",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "statusText",
+                  "storageKey": null
+                }
+              ],
+              "storageKey": null
+            }
+          ],
+          "type": "GuildGearSelfStatus",
+          "abstractKey": null
+        },
+        (v1/*:: as any*/)
+      ],
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
       "name": "detailNotFoundText",
       "storageKey": null
     },
@@ -143,7 +399,8 @@ const node: NormalizationSplitOperation = {
     }
   ]
 };
+})();
 
-(node as any).hash = "2629ad64129b88fe7bca4b9e04254f66";
+(node as any).hash = "d0890b4303b71ec3756be46c59050ca4";
 
 export default node;
