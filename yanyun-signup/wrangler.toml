@@ -21,9 +21,12 @@ custom_domain = true
 
 # Platform subdomains (white-label tier A): {slug}.yanyun.app reaches
 # this worker; the host gate in worker.ts resolves only guilds that
-# opted in (404 otherwise). og.yanyun.app stays on its own custom
-# domain (more specific than this wildcard). Requires the proxied
-# wildcard DNS record for *.yanyun.app to exist in the zone.
+# opted in (404 otherwise). Routes take precedence over custom
+# domains on the same hostname, so this wildcard also matches
+# og.yanyun.app — the OG image worker defends its hostname with an
+# explicit og.yanyun.app/* route, which outranks this wildcard.
+# Requires the proxied wildcard DNS record for *.yanyun.app to exist
+# in the zone.
 [[routes]]
 pattern = "*.yanyun.app/*"
 zone_name = "yanyun.app"
