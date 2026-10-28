@@ -6,7 +6,7 @@
  * overwrites the row in place and bumps version, so there is never
  * a version list to arbitrate. A failed attempt flips status to
  * 'failed' and records last_error WITHOUT touching paragraphs —
- * the previous successful recap (if any) keeps being served.
+ * the previous successful recap keeps being served.
  * Rows keep the legacy snake_case keys, like the sibling
  * repositories in this domain.
  * =================================================== */

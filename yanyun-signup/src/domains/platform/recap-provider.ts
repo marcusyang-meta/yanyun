@@ -22,7 +22,7 @@
  * nothing is stored, no recap content is ever dispatched.
  *
  * The built-in implementation speaks the OpenAI-compatible
- * chat-completions shape, so any conforming endpoint (OpenAI,
+ * chat-completions shape, so a conforming endpoint (OpenAI,
  * Azure, DeepSeek, a local gateway, ...) drops in by env alone.
  * Tests inject a fake provider through the service's provider
  * parameter — never through env.
@@ -65,7 +65,7 @@ export interface RecapProvider {
   /** Stored on the recap row: '<provider label>:<model>'. */
   id: string;
   /** Generate the recap paragraphs for one data package. Throws on
-   *  any provider failure; the caller records the failure state. */
+   *  provider failure of every kind; the caller records the failure state. */
   generate(pkg: RecapDataPackage): Promise<string[]>;
 }
 

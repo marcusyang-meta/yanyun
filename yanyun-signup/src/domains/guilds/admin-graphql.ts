@@ -81,6 +81,7 @@ import {
   reliabilityForAdmin, heatmapForAdmin, gearBoardForAdmin, raceBoardForViewer,
 } from './insights-graphql.ts';
 import { announcementPageForAdmin, announcementPageForMember } from './announcements-graphql.ts';
+import { adminRecapsForGuild } from '../groupings/index.ts';
 import { SeasonChecklistShell, GuildRosterShell } from './season-graphql.ts';
 import { officerPageForAdmin } from './officer-graphql.ts';
 import { opsPageForAdmin } from './ops-graphql.ts';
@@ -517,6 +518,7 @@ const ADMIN_TEXT_SPEC: [string, string][] = [
   ['adminTabAnnouncementsLabel', 'guildAdmin_tabAnnouncements'],
   ['adminTabOfficerLabel', 'guildAdmin_tabOfficer'],
   ['adminTabOpsLabel', 'ops_tabOps'],
+  ['adminTabRecapsLabel', 'recap_adminTabLabel'],
   ['adminSaveLabel', 'guildAdmin_saveButton'],
   ['adminSavedText', 'guildAdmin_savedText'],
   ['adminDeleteLabel', 'guildAdmin_deleteButton'],
@@ -835,6 +837,13 @@ export class GuildAdminShell extends ShellBase {
     const verdict = await this.genOfficerVerdict();
     return governanceResultFor(this.ctx, this.genSlug(), verdict);
   }
+  /* AI recap index (P18, premium T3): the guild's recap list,
+   * composed in the groupings domain with the detail surface's
+   * verdict order (Locked / NotEnabled / List). Only on the
+   * GuildAdmin type — Locked never resolves it. */
+  genRecaps(){
+    return this.memo('recaps', async () => adminRecapsForGuild(this.ctx, this.genSlug()));
+  }
   genStats(){
     return this.memo('stats', async () => {
       // Capability gate (P16) first: an officer without the stats
@@ -1028,6 +1037,7 @@ function contentResolvers() {
     ops: (p: GuildAdminShell) => p.genOps(),
     governance: (p: any) => p.genGovernance(),
     viewerCapabilities: (p: any) => p.genViewerCapabilities(),
+    recaps: (p: GuildAdminShell) => p.genRecaps(),
     stats: (p: GuildAdminShell) => p.genStats(),
     reliability: (p: GuildAdminShell) => p.genReliability(),
     participationHeatmap: (p: GuildAdminShell) => p.genParticipationHeatmap(),
@@ -1092,6 +1102,20 @@ export const guildAdminTypes = {
     weeks: (p: GuildAdminStatsShell) => p.genWeeks(),
     memberLeaders: (p: GuildAdminStatsShell) => p.genMemberLeaders(),
     leaderLeaders: (p: GuildAdminStatsShell) => p.genLeaderLeaders(),
+  },
+  GuildAdminRecapResult: { __resolveType: (p: any) => p.__typename },
+  GuildAdminRecapList: {
+    title: (p: any) => p.genTitle(),
+    emptyText: (p: any) => p.genEmptyText(),
+    items: (p: any) => p.genItems(),
+  },
+  GuildAdminRecap: {
+    id: (p: any) => p.genId(), groupingId: (p: any) => p.genGroupingId(),
+    groupingTitle: (p: any) => p.genGroupingTitle(), status: (p: any) => p.genStatus(),
+    statusText: (p: any) => p.genStatusText(), provider: (p: any) => p.genProvider(),
+    version: (p: any) => p.genVersion(), paragraphCount: (p: any) => p.genParagraphCount(),
+    paragraphCountText: (p: any) => p.genParagraphCountText(),
+    generatedAtText: (p: any) => p.genGeneratedAtText(),
   },
   GuildAdminStatsResult: { __resolveType: (p: any) => p.__typename },
   GuildAdminStatsLocked: {

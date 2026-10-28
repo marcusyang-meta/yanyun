@@ -276,6 +276,12 @@ export abstract class ErrorsFbtUtils {
   static seasonGoalNoteTooLong(fbs: FbsAPI) { return fbs("进度备注太长，请精简到 500 字以内", "Error message for season goals, used when a goal progress note exceeds five hundred characters."); }
   static seasonGoalNotFound(fbs: FbsAPI) { return fbs("目标不存在", "Error message for season goals, used when an operation references a goal that does not exist."); }
   static seasonGoalDungeonNotFound(fbs: FbsAPI) { return fbs("关联的副本不存在", "Error message for season goals, used when a goal references a dungeon that does not exist."); }
+  static recapForbidden(fbs: FbsAPI) { return fbs("只有车头或本百业管理员可以生成复盘", "Error message for AI recap generation, used when someone other than the squad leader or a guild admin tries to generate a recap."); }
+  static recapNotCompleted(fbs: FbsAPI) { return fbs("车队完成后才能生成复盘", "Error message for AI recap generation, used when generating a recap for a squad that has not been completed yet."); }
+  static recapTierLocked(fbs: FbsAPI) { return fbs("该百业尚未开通 AI 复盘（盟主版功能）", "Error message for AI recap generation, used when the guild is below the premium tier that includes AI recaps."); }
+  static recapNotEnabled(fbs: FbsAPI) { return fbs("AI 复盘尚未开启", "Error message for AI recap generation, used when the platform has not configured an AI recap provider yet."); }
+  static recapDailyLimit(fbs: FbsAPI) { return fbs("今日复盘生成次数已达上限，明天再试", "Error message for AI recap generation, used when the guild has used up its daily recap generation quota."); }
+  static recapProviderFailed(fbs: FbsAPI) { return fbs("复盘生成失败，请稍后重试", "Error message for AI recap generation, used when the AI provider call fails or returns no usable recap text."); }
 }
 
 

@@ -22,3 +22,4 @@ export * from './graphql.ts';
  './graphql.ts';
 
 export * from "./scheduling.ts";
+export * from './recap-graphql.ts';

@@ -16,7 +16,7 @@
  *     member who leaves frees the seat row), so an absentee list
  *     cannot be derived — 'absentees' is named in `missing` and
  *     the provider is instructed to omit it, never invent it.
- *   - results: the race-results rows when any were recorded;
+ *   - results: the race-results rows when recorded;
  *     for a race grouping with none, 'raceResults' is missing.
  *
  * Pipeline (manual trigger only — nothing auto-generates, so
