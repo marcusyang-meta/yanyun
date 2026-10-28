@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<40e95b42f739550786fd04f759f1faa1>>
+ * @generated SignedSource<<8df8bc787b5f0bb48f3d8d69b9127720>>
  * @lightSyntaxTransform
  */
 
@@ -20,6 +20,7 @@ export type documentsViewerQuery$data = {
     readonly guilds: ReadonlyArray<{
       readonly avatarUrl: string | null | undefined;
       readonly gameVersion: string;
+      readonly homeTabAnnouncementsLabel: string;
       readonly homeTabDexLabel: string;
       readonly homeTabSectLabel: string;
       readonly homeTabTeamLabel: string;
@@ -48,6 +49,7 @@ export type documentsViewerQuery$data = {
     readonly publicGuilds: ReadonlyArray<{
       readonly avatarUrl: string | null | undefined;
       readonly gameVersion: string;
+      readonly homeTabAnnouncementsLabel: string;
       readonly homeTabDexLabel: string;
       readonly homeTabSectLabel: string;
       readonly homeTabTeamLabel: string;
@@ -146,6 +148,13 @@ v1 = [
     "args": null,
     "kind": "ScalarField",
     "name": "homeTabSectLabel",
+    "storageKey": null
+  },
+  {
+    "alias": null,
+    "args": null,
+    "kind": "ScalarField",
+    "name": "homeTabAnnouncementsLabel",
     "storageKey": null
   },
   {
@@ -415,16 +424,16 @@ return {
     "selections": (v2/*:: as any*/)
   },
   "params": {
-    "cacheID": "8c5455edbbcb61f11d756e7d74f6b83b",
+    "cacheID": "65a446723da7f6c37ee4731550a28d32",
     "id": null,
     "metadata": {},
     "name": "documentsViewerQuery",
     "operationKind": "query",
-    "text": "query documentsViewerQuery {\n  viewer {\n    myLocalePref\n    commonUnknownErrorText\n    commonRenderErrorTemplate\n    commonRenderErrorHint\n    siteTitle\n    siteSubtitle\n    loginCardTitle\n    loginCardBody1\n    loginCardBody2\n    loginButtonLabel\n    loginPrivacyText\n    footerDisclaimerText\n    footerTermsLabel\n    footerPrivacyLabel\n    userBarSettingsLabel\n    userBarLogoutLabel\n    userBarLoggingOutLabel\n    pickerMyGuildsLabel\n    pickerMyGuildsEnLabel\n    pickerPublicGuildsLabel\n    pickerPublicGuildsEnLabel\n    pickerReadOnlyBadge\n    pickerEmptyTitle\n    pickerEmptyBody\n    pickerCreateGuildLabel\n    pickerCreateGuildMoreLabel\n    user {\n      name\n      discordId\n      avatar\n    }\n    guilds {\n      slug\n      name\n      slogan\n      gameVersion\n      memberCount\n      avatarUrl\n      viewerNick\n      homeTabTeamLabel\n      homeTabDexLabel\n      homeTabSectLabel\n      pageBackLabel\n    }\n    publicGuilds {\n      slug\n      name\n      slogan\n      gameVersion\n      memberCount\n      avatarUrl\n      viewerNick\n      homeTabTeamLabel\n      homeTabDexLabel\n      homeTabSectLabel\n      pageBackLabel\n    }\n  }\n}\n"
+    "text": "query documentsViewerQuery {\n  viewer {\n    myLocalePref\n    commonUnknownErrorText\n    commonRenderErrorTemplate\n    commonRenderErrorHint\n    siteTitle\n    siteSubtitle\n    loginCardTitle\n    loginCardBody1\n    loginCardBody2\n    loginButtonLabel\n    loginPrivacyText\n    footerDisclaimerText\n    footerTermsLabel\n    footerPrivacyLabel\n    userBarSettingsLabel\n    userBarLogoutLabel\n    userBarLoggingOutLabel\n    pickerMyGuildsLabel\n    pickerMyGuildsEnLabel\n    pickerPublicGuildsLabel\n    pickerPublicGuildsEnLabel\n    pickerReadOnlyBadge\n    pickerEmptyTitle\n    pickerEmptyBody\n    pickerCreateGuildLabel\n    pickerCreateGuildMoreLabel\n    user {\n      name\n      discordId\n      avatar\n    }\n    guilds {\n      slug\n      name\n      slogan\n      gameVersion\n      memberCount\n      avatarUrl\n      viewerNick\n      homeTabTeamLabel\n      homeTabDexLabel\n      homeTabSectLabel\n      homeTabAnnouncementsLabel\n      pageBackLabel\n    }\n    publicGuilds {\n      slug\n      name\n      slogan\n      gameVersion\n      memberCount\n      avatarUrl\n      viewerNick\n      homeTabTeamLabel\n      homeTabDexLabel\n      homeTabSectLabel\n      homeTabAnnouncementsLabel\n      pageBackLabel\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "5e606d91a5ddc7f18cadc45e7ae5a155";
+(node as any).hash = "a9a2da936cacb05c58cfe5a1a7f9ec2f";
 
 export default node;

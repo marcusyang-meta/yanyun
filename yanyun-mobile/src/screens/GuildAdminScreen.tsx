@@ -11,6 +11,7 @@ import { fonts, theme } from '../theme';
 import { Backdrop } from '../components/ui';
 import { LoadingView } from '../components/AsyncBoundary';
 import { GuildAdminQuery } from '../documents';
+import { AnnouncementsAdminPanel } from './AnnouncementsView';
 import {
   adminAddResult, adminCreateEvent, adminDeleteAvatar,
   adminDeleteEvent, adminDeleteResult, adminRemoveSignup,
@@ -81,7 +82,7 @@ function AdminLoader({ slug, epoch, refresh }: { slug: string; epoch: number; re
 function AdminMain({ admin, unknownError, refresh, router }: {
   admin: Admin; unknownError: string; refresh: () => void; router: ReturnType<typeof useRouter>;
 }) {
-  const [tab, setTab] = useState<'profile' | 'discord' | 'events' | 'guides' | 'stats'>('profile');
+  const [tab, setTab] = useState<'profile' | 'discord' | 'events' | 'guides' | 'announcements' | 'stats'>('profile');
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
 
@@ -98,6 +99,7 @@ function AdminMain({ admin, unknownError, refresh, router }: {
     { key: 'discord', label: admin.adminTabDiscordLabel },
     { key: 'events', label: admin.adminTabEventsLabel },
     { key: 'guides', label: admin.adminTabGuidesLabel },
+    { key: 'announcements', label: admin.adminTabAnnouncementsLabel },
     { key: 'stats', label: admin.adminTabStatsLabel },
   ];
   const premium: any = (admin as any).premium ?? null;
@@ -126,6 +128,7 @@ function AdminMain({ admin, unknownError, refresh, router }: {
       {tab === 'discord' && <DiscordPanel admin={admin} run={run} premiumLocked={premiumLocked} unknownError={unknownError} onError={setError} />}
       {tab === 'events' && <EventsPanel admin={admin} run={run} />}
       {tab === 'guides' && <GuidesPanel admin={admin} run={run} />}
+      {tab === 'announcements' && <AnnouncementsAdminPanel slug={admin.slug} />}
       {tab === 'stats' && <StatsPanel admin={admin} premiumLocked={premiumLocked} unknownError={unknownError} onError={setError} />}
     </ScrollView>
   );

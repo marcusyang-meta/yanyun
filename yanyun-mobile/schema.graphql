@@ -35,6 +35,7 @@ type Seat {
 type Dungeon {
   id: ID!
   name: String!
+  sealText: String!
   version: String!
   playerCount: Int!
   size: Int!
@@ -577,6 +578,7 @@ type GroupingManageActions {
 }
 
 type DexPage {
+  sectOptions: [SectOption!]!
   current: [Dungeon!]!
   past: [Dungeon!]!
   currentVersion: String!
@@ -640,8 +642,14 @@ type SlotAffix {
   affixKey: String!
 }
 
+type SectGroup {
+  key: String!
+  label: String!
+}
+
 type SectPage {
   sects: [Sect!]!
+  sectGroups: [SectGroup!]!
   sectEmptyText: String!
   sectBackLabel: String!
   sectTabBisLabel: String!
@@ -680,6 +688,7 @@ type SectPage {
 
 type Sect {
   slug: String!
+  groupKey: String!
   name: String!
   weapons: String!
   buildType: String!
@@ -734,10 +743,31 @@ type RateTargets {
   note: String
 }
 
+type TiaolvVocabOption {
+  id: String!
+  label: String!
+  isDefault: Boolean!
+}
+
+type TiaolvTuneRow {
+  row: Int!
+  label: String!
+}
+
+type TiaolvSectWuxue {
+  sectSlug: String!
+  wuxue: String!
+}
+
 type TiaolvPage {
   sects: [SectOption!]!
   innerSkills: [String!]!
   suits: [String!]!
+  tlSuitOptions: [TiaolvVocabOption!]!
+  tlBowOptions: [TiaolvVocabOption!]!
+  tlWukuOptions: [TiaolvVocabOption!]!
+  tlTuneRows: [TiaolvTuneRow!]!
+  tlSectWuxue: [TiaolvSectWuxue!]!
   maxValues: TiaolvMaxValues!
   sectWeights: [SectWeight!]!
   tlIntroText: String!
@@ -858,7 +888,35 @@ type PushTokenPayload {
   errorCode: String
 }
 
+type GradSlot {
+  id: String!
+  label: String!
+  icon: String!
+}
+
+type GradRate {
+  key: String!
+  label: String!
+  cap: Float!
+}
+
+type GearOcrFallback {
+  needle: String!
+  name: String!
+}
+
+type GearVocabRules {
+  weaponSlot: String!
+  weaponPositions: [String!]!
+  ocrStripPrefixes: [String!]!
+  ocrDingyinMarker: String!
+  ocrDingyinFallbacks: [GearOcrFallback!]!
+}
+
 type GradPage {
+  gradSlots: [GradSlot!]!
+  gradRates: [GradRate!]!
+  gearVocabRules: GearVocabRules!
   gradEnteringText: String!
   gradTitle: String!
   gradSubtitle: String!
@@ -996,6 +1054,8 @@ type GradPage {
   gearScoreTemplate: String!
   gearQualityLabel: String!
   gearExportLabel: String!
+  gearExportFileName: String!
+  gearImportNameTemplate: String!
   gearImportLabel: String!
   gearImportFailedToast: String!
   gearImportedToastTemplate: String!
@@ -1202,12 +1262,14 @@ type Mutation {
   cancelAccountDeletion: AccountDeletionPayload!
   registerPushToken(token: String!, platform: String): PushTokenPayload!
   unregisterPushToken(token: String!): PushTokenPayload!
+  postGuildAnnouncement(slug: String!, kind: AnnouncementKind!, title: String!, body: String!): GuildAnnouncementPayload!
+  markGuildAnnouncementRead(slug: String!, announcementId: ID!): GuildAnnouncementPayload!
+  deleteGuildAnnouncement(slug: String!, announcementId: ID!): GuildAnnouncementPayload!
   createGuild(input: CreateGuildInput!): CreateGuildPayload!
   updateGuildProfile(slug: String!, input: UpdateGuildProfileInput!): GuildAdminPayload!
   updateGuildDiscord(slug: String!, input: UpdateGuildDiscordInput!): GuildAdminPayload!
   updateGuildReminderSettings(slug: String!, offsets: [Int!]!, customText: String): GuildAdminPayload!
   updateGuildWhiteLabel(slug: String!, hideBranding: Boolean!, ogAccent: String!, ogTitleSuffix: String): GuildAdminPayload!
-  updateGuildSubdomain(slug: String!, enabled: Boolean!): GuildAdminPayload!
   startPremiumCheckout(slug: String!): GuildAdminPayload!
   updateGuildVisibility(slug: String!, devOnly: Boolean!): GuildAdminPayload!
   setGuildAvatar(slug: String!, dataBase64: String!): GuildAdminPayload!
@@ -1356,6 +1418,74 @@ type TiaolvResult {
   rows: [TiaolvRow!]!
 }
 
+enum AnnouncementKind {
+  STANDARD
+  URGENT
+}
+
+type GuildAnnouncement {
+  id: ID!
+  kind: AnnouncementKind!
+  urgent: Boolean!
+  urgentLabel: String
+  kindLabel: String!
+  title: String!
+  body: String!
+  authorName: String!
+  authorText: String
+  createdAtText: String!
+  viewerHasRead: Boolean
+  readCount: Int
+  memberCount: Int
+  readCountText: String
+  receipts: [GuildAnnouncementReceipt!]
+  deleteLabel: String!
+  deleteConfirmTitle: String!
+  deleteConfirmMessage: String!
+}
+
+type GuildAnnouncementReceipt {
+  discordId: ID!
+  displayName: String!
+  read: Boolean!
+  readAtText: String
+}
+
+type GuildAnnouncementPage {
+  title: String!
+  emptyText: String!
+  urgentLabel: String!
+  composeTitle: String!
+  kindLabel: String!
+  kindStandardLabel: String!
+  kindUrgentLabel: String!
+  titleLabel: String!
+  titlePlaceholder: String!
+  bodyLabel: String!
+  bodyPlaceholder: String!
+  postLabel: String!
+  postingLabel: String!
+  postedText: String!
+  deleteLabel: String!
+  receiptsTitle: String!
+  readListLabel: String!
+  unreadListLabel: String!
+  pushNote: String!
+  urgentNote: String!
+  dailyLimitText: String
+  canPost: Boolean!
+  standardRemaining: Int
+  urgentRemaining: Int
+  announcements: [GuildAnnouncement!]!
+}
+
+type GuildAnnouncementPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  announcement: GuildAnnouncement
+}
+
 type DiscordUser {
   discordId: String!
   name: String!
@@ -1384,10 +1514,12 @@ type Guild {
   groupings(tab: GroupingTab!): GroupingListPage!
   viewerNick: String
   memberRoster: [GuildRosterMember!]!
+  announcements: GuildAnnouncementPage!
   homeBackToHubLabel: String!
   homeTabTeamLabel: String!
   homeTabDexLabel: String!
   homeTabSectLabel: String!
+  homeTabAnnouncementsLabel: String!
   homeAdminLabel: String
   detailNotFoundText: String!
   detailBackToListLabel: String!
@@ -1404,10 +1536,12 @@ type GuildReadOnly {
   avatarUrl: String
   groupings(tab: GroupingTab!): GroupingListPage!
   viewerNick: String
+  announcements: GuildAnnouncementPage!
   homeBackToHubLabel: String!
   homeTabTeamLabel: String!
   homeTabDexLabel: String!
   homeTabSectLabel: String!
+  homeTabAnnouncementsLabel: String!
   homeReadOnlyBanner: String!
   detailNotFoundText: String!
   detailBackToListLabel: String!
@@ -1436,6 +1570,7 @@ type Viewer {
   siteTitle: String!
   siteSubtitle: String!
   siteHeroAlt: String!
+  siteSealText: String!
   loginCardTitle: String!
   loginCardBody1: String!
   loginCardBody2: String!
@@ -1539,14 +1674,12 @@ type GuildAdmin {
   ogAccent: String!
   ogTitleSuffix: String!
   ogAccentOptions: [GuildAdminOgAccentOption!]!
-  subdomainEnabled: Boolean!
-  subdomainUrl: String!
-  subdomainCallbackUrl: String!
   pageFooterDisclaimerText: String
   devOnly: Boolean!
   gameVersion: String!
   events: [GuildAdminEvent!]!
   schoolGuides: GuildAdminSchoolGuides!
+  announcements: GuildAnnouncementPage!
   stats: GuildAdminStatsResult!
   premium: GuildAdminPremiumResult
   adminTitle: String!
@@ -1555,6 +1688,7 @@ type GuildAdmin {
   adminTabDiscordLabel: String!
   adminTabEventsLabel: String!
   adminTabGuidesLabel: String!
+  adminTabAnnouncementsLabel: String!
   adminSaveLabel: String!
   adminSavedText: String!
   adminDeleteLabel: String!
@@ -1589,6 +1723,7 @@ type GuildAdmin {
   adminVisibilityTitle: String!
   adminDevOnlyLabel: String!
   adminEventsTitle: String!
+  adminSignupCsvSuffix: String!
   adminEventEmptyText: String!
   adminEventTitleLabel: String!
   adminEventTypeLabel: String!
@@ -1645,11 +1780,6 @@ type GuildAdmin {
   adminOgAccentLabel: String!
   adminOgTitleSuffixLabel: String!
   adminOgTitleSuffixHint: String!
-  adminSubdomainTitle: String!
-  adminSubdomainLabel: String!
-  adminSubdomainAddressLabel: String!
-  adminSubdomainCallbackLabel: String!
-  adminSubdomainNote: String!
   adminBillingSuccessText: String!
   adminBillingCanceledText: String!
   adminPremiumTitle: String!
