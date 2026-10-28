@@ -2,14 +2,19 @@
  * P8 targeted nudges, P11 churn warnings, P12 season rollover,
  * P14 contribution points.
  *
- * Gating doctrine (same as stats): the response type is the
- * verdict. GuildAdmin.ops resolves to GuildAdminOps only when the
- * guild clears tierLocked(db, slug, 2); below tier it resolves to
+ * Gating doctrine: the response type is the verdict.
+ * GuildAdmin.ops resolves to GuildAdminOps only when the guild
+ * clears tierLocked(db, slug, 2); below tier it resolves to
  * GuildAdminOpsLocked, which carries ONLY the premium lock copy —
  * the engines are never even computed for a locked guild. Every
  * mutation re-runs the admin verdict AND the tier verdict
- * server-side. While the paygate master switch is OFF, tierLocked
- * locks nobody and the surface composes in full (launch parity).
+ * server-side. tierLocked is the foundation line's pure
+ * entitlement verdict: the tier derives from the entitlement plan
+ * value alone and the paygate master switch plays no part in it —
+ * an ungranted guild composes the locked variant with the switch
+ * on or off, and a hub-granted guild verifies at full tier. (The
+ * older premiumGate surfaces keep their paygate semantics; this
+ * surface never consults that switch.)
  *
  * P14 split (DESIGN §9, records free / insight paid): the rules and
  * the guild-wide board live behind the T2 gate above; a member's
