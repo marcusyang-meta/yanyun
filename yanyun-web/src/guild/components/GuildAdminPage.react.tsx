@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { graphql, useFragment, useMutation } from 'react-relay';
 import type { ViewerUser } from '../../lib/user';
@@ -14,6 +14,7 @@ import {
 } from './GuildAdminUi.react.tsx';
 import GuildAdminEvents from './GuildAdminEvents.react.tsx';
 import GuildAdminGuides from './GuildAdminGuides.react.tsx';
+import { GuildAdminAnnouncementsRoute } from './GuildAnnouncements.react.tsx';
 import GuildAdminStats from './GuildAdminStats.react.tsx';
 import { PremiumLockedPanel, PremiumActivePanel } from './GuildAdminPremium.react.tsx';
 
@@ -58,6 +59,7 @@ const GuildAdminPage_guildAdmin = graphql`
     adminTabDiscordLabel
     adminTabEventsLabel
     adminTabGuidesLabel
+    adminTabAnnouncementsLabel
     adminTabStatsLabel
     adminSaveLabel
     adminSavedText
@@ -381,6 +383,7 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
     { key: 'discord', label: text.adminTabDiscordLabel },
     { key: 'events', label: text.adminTabEventsLabel },
     { key: 'guides', label: text.adminTabGuidesLabel },
+    { key: 'announcements', label: text.adminTabAnnouncementsLabel },
     { key: 'stats', label: text.adminTabStatsLabel },
   ];
 
@@ -590,6 +593,11 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
         )}
         {tab === 'guides' && (
           <GuildAdminGuides slug={slug} text={text} commonText={commonText} guides={data.schoolGuides} refresh={refresh} />
+        )}
+        {tab === 'announcements' && (
+          <Suspense fallback={null}>
+            <GuildAdminAnnouncementsRoute slug={slug} />
+          </Suspense>
         )}
         {tab === 'stats' && (
           data.stats?.__typename === 'GuildAdminStats' ? (

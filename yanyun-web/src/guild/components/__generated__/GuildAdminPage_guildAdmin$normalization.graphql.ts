@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<e7211a6fa2cee5b1eee6a2e3fd64144f>>
+ * @generated SignedSource<<bd8527124b17bc66abd7dffafa9ae454>>
  * @lightSyntaxTransform
  */
 
@@ -345,6 +345,13 @@ return {
       "args": null,
       "kind": "ScalarField",
       "name": "adminTabGuidesLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminTabAnnouncementsLabel",
       "storageKey": null
     },
     {
@@ -1441,6 +1448,6 @@ return {
 };
 })();
 
-(node as any).hash = "5e22cacfbc2bda0d488f14f61143c946";
+(node as any).hash = "76309b42f0a5e36324026e44752a11ba";
 
 export default node;

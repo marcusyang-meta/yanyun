@@ -18,6 +18,7 @@ const PublicGuildHome_guild = graphql`
     homeTabTeamLabel
     homeTabDexLabel
     homeTabSectLabel
+    homeTabAnnouncementsLabel
     homeReadOnlyBanner
     detailNotFoundText
     detailBackToListLabel
