@@ -248,7 +248,44 @@ export type GuildsStringKey =
   | 'recruit.adminMentorSelectLabel'
   | 'recruit.adminMenteeSelectLabel'
   | 'recruit.adminNewcomersTitle'
-  | 'recruit.adminNewcomersEmpty';
+  | 'recruit.adminNewcomersEmpty'
+  | 'guildAdmin.tabOfficer'
+  | 'officer.notesTitle'
+  | 'officer.notesHint'
+  | 'officer.notesEmpty'
+  | 'officer.memberNoNotes'
+  | 'officer.notePlaceholder'
+  | 'officer.noteAddButton'
+  | 'officer.noteEditButton'
+  | 'officer.noteSaveButton'
+  | 'officer.noteDeleteButton'
+  | 'officer.noteAuthorTemplate'
+  | 'officer.exportTitle'
+  | 'officer.exportHint'
+  | 'officer.exportButton'
+  | 'officer.exportAbout'
+  | 'officer.goalsTitle'
+  | 'officer.goalsHint'
+  | 'officer.goalsEmpty'
+  | 'officer.statusActive'
+  | 'officer.statusDone'
+  | 'officer.statusDropped'
+  | 'officer.myEntryLabel'
+  | 'officer.myTitle'
+  | 'officer.myHint'
+  | 'officer.myEmpty'
+  | 'officer.goalGuildLabel'
+  | 'officer.goalTitleLabel'
+  | 'officer.goalTitlePlaceholder'
+  | 'officer.goalNoteLabel'
+  | 'officer.goalNotePlaceholder'
+  | 'officer.goalDungeonLabel'
+  | 'officer.goalDungeonNone'
+  | 'officer.goalStatusLabel'
+  | 'officer.goalAddButton'
+  | 'officer.goalSaveButton'
+  | 'officer.goalEditButton'
+  | 'officer.goalDeleteButton';
 
 export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'locked.backLink',
@@ -499,4 +536,41 @@ export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'recruit.adminMenteeSelectLabel',
   'recruit.adminNewcomersTitle',
   'recruit.adminNewcomersEmpty',
+  'guildAdmin.tabOfficer',
+  'officer.notesTitle',
+  'officer.notesHint',
+  'officer.notesEmpty',
+  'officer.memberNoNotes',
+  'officer.notePlaceholder',
+  'officer.noteAddButton',
+  'officer.noteEditButton',
+  'officer.noteSaveButton',
+  'officer.noteDeleteButton',
+  'officer.noteAuthorTemplate',
+  'officer.exportTitle',
+  'officer.exportHint',
+  'officer.exportButton',
+  'officer.exportAbout',
+  'officer.goalsTitle',
+  'officer.goalsHint',
+  'officer.goalsEmpty',
+  'officer.statusActive',
+  'officer.statusDone',
+  'officer.statusDropped',
+  'officer.myEntryLabel',
+  'officer.myTitle',
+  'officer.myHint',
+  'officer.myEmpty',
+  'officer.goalGuildLabel',
+  'officer.goalTitleLabel',
+  'officer.goalTitlePlaceholder',
+  'officer.goalNoteLabel',
+  'officer.goalNotePlaceholder',
+  'officer.goalDungeonLabel',
+  'officer.goalDungeonNone',
+  'officer.goalStatusLabel',
+  'officer.goalAddButton',
+  'officer.goalSaveButton',
+  'officer.goalEditButton',
+  'officer.goalDeleteButton',
 ];

@@ -192,3 +192,12 @@ export const errors_menteeAlreadyPaired = (fbs: FbsAPI) =>fbs("该新人已有�
 export const errors_mentorSelfPairing = (fbs: FbsAPI) =>fbs("导师和新人不能是同一个人", "errors.mentorSelfPairing");
 export const errors_pairingNotFound = (fbs: FbsAPI) =>fbs("配对不存在", "errors.pairingNotFound");
 export const errors_pairingAlreadyEnded = (fbs: FbsAPI) =>fbs("该配对已经结束了", "errors.pairingAlreadyEnded");
+export const errors_officerNoteBodyRequired = (fbs: FbsAPI) =>fbs("请填写备注内容", "errors.officerNoteBodyRequired");
+export const errors_officerNoteBodyTooLong = (fbs: FbsAPI) =>fbs("备注太长，请精简到 500 字以内", "errors.officerNoteBodyTooLong");
+export const errors_officerNoteNotFound = (fbs: FbsAPI) =>fbs("备注不存在", "errors.officerNoteNotFound");
+export const errors_officerMemberNotFound = (fbs: FbsAPI) =>fbs("该成员不在本百业名册中", "errors.officerMemberNotFound");
+export const errors_seasonGoalTitleRequired = (fbs: FbsAPI) =>fbs("请填写目标", "errors.seasonGoalTitleRequired");
+export const errors_seasonGoalTitleTooLong = (fbs: FbsAPI) =>fbs("目标太长，请精简到 80 字以内", "errors.seasonGoalTitleTooLong");
+export const errors_seasonGoalNoteTooLong = (fbs: FbsAPI) =>fbs("进度备注太长，请精简到 500 字以内", "errors.seasonGoalNoteTooLong");
+export const errors_seasonGoalNotFound = (fbs: FbsAPI) =>fbs("目标不存在", "errors.seasonGoalNotFound");
+export const errors_seasonGoalDungeonNotFound = (fbs: FbsAPI) =>fbs("关联的副本不存在", "errors.seasonGoalDungeonNotFound");

@@ -166,7 +166,16 @@ export type PlatformStringKey =
   | 'errors.menteeAlreadyPaired'
   | 'errors.mentorSelfPairing'
   | 'errors.pairingNotFound'
-  | 'errors.pairingAlreadyEnded';
+  | 'errors.pairingAlreadyEnded'
+  | 'errors.officerNoteBodyRequired'
+  | 'errors.officerNoteBodyTooLong'
+  | 'errors.officerNoteNotFound'
+  | 'errors.officerMemberNotFound'
+  | 'errors.seasonGoalTitleRequired'
+  | 'errors.seasonGoalTitleTooLong'
+  | 'errors.seasonGoalNoteTooLong'
+  | 'errors.seasonGoalNotFound'
+  | 'errors.seasonGoalDungeonNotFound';
 
 export const PLATFORM_STRING_KEYS: readonly PlatformStringKey[] = [
   'common.cancel',
@@ -335,4 +344,13 @@ export const PLATFORM_STRING_KEYS: readonly PlatformStringKey[] = [
   'errors.mentorSelfPairing',
   'errors.pairingNotFound',
   'errors.pairingAlreadyEnded',
+  'errors.officerNoteBodyRequired',
+  'errors.officerNoteBodyTooLong',
+  'errors.officerNoteNotFound',
+  'errors.officerMemberNotFound',
+  'errors.seasonGoalTitleRequired',
+  'errors.seasonGoalTitleTooLong',
+  'errors.seasonGoalNoteTooLong',
+  'errors.seasonGoalNotFound',
+  'errors.seasonGoalDungeonNotFound',
 ];

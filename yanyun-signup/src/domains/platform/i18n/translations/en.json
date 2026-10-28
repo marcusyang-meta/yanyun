@@ -10175,6 +10175,514 @@
         }
       ],
       "types": []
-    }
+    },
+      "mOf1I93notxNsHRzaHklPQ==": {
+        "description": "guildAdmin.tabOfficer",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "Officer tools",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "v3hDR8DIb6Lytxjkse2D2w==": {
+        "description": "officer.notesTitle",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "Member notes",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "ZJu6D72d4ODgCSPki2546Q==": {
+        "description": "officer.notesHint",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "Notes are visible to guild admins only — the member never sees notes about themselves.",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "l+1AE06c79OJaiphjUXlFA==": {
+        "description": "officer.notesEmpty",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "This guild has no roster yet.",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "vKn11wafkOwGILqLHEj72Q==": {
+        "description": "officer.memberNoNotes",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "No notes yet",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "tXCXZDMQ0WuRJlH1CfiJDA==": {
+        "description": "officer.notePlaceholder",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "Write a note…",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "x7+XFDkSslrTwel4Msx4vw==": {
+        "description": "officer.noteAddButton",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "Add note",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "NNZmADlwBUSeadNfbfH5aQ==": {
+        "description": "officer.noteEditButton",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "Edit",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "4M+3uAFuynNxzZ9NtXX2zA==": {
+        "description": "officer.noteSaveButton",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "Save",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "XS874Bn1+B0PoYSMwb9H8A==": {
+        "description": "officer.noteDeleteButton",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "Delete",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "kbGsg7+A2/MYevnBGRAlCw==": {
+        "description": "officer.noteAuthorTemplate",
+        "tokens": [
+          "name"
+        ],
+        "translations": [
+          {
+            "translation": "Added by {name}",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "dAmsxdylsOV8YJKgErz89A==": {
+        "description": "officer.exportTitle",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "Guild data package",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "pBytJLJB6ZXmbLMMb+Y8Tw==": {
+        "description": "officer.exportHint",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "Export this guild's roster, grouping history and participation records, and member season goals (JSON file). Exports are recorded in the audit log.",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "6kwaxLrsIE7+JLSa3fnfgQ==": {
+        "description": "officer.exportButton",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "Export data package",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "lciDG74a3x/pQGZH59ubcQ==": {
+        "description": "officer.exportAbout",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "Guild data package export: this guild's roster, grouping history and participation records, and member season goals. Officer notes are an internal working record and are not included.",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "4CeYZvziNNZfUlLXAPjidQ==": {
+        "description": "officer.goalsTitle",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "Member season goals",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "tnh+oHUGmZYKUn9dbLK1OQ==": {
+        "description": "officer.goalsHint",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "Season goals and progress members keep for themselves — read-only overview.",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "Qb9vBsDBjJO+n2CjABMQeQ==": {
+        "description": "officer.goalsEmpty",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "No member has set a season goal yet.",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "qdfAL46oaM7d2J5W/WsoDg==": {
+        "description": "officer.statusActive",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "In progress",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "GlolkgORx+6zuxy7rAy5/Q==": {
+        "description": "officer.statusDone",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "Done",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "qFgLgb/8VYKCssx3s6fYCQ==": {
+        "description": "officer.statusDropped",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "Dropped",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "3yEWMRPxkxyBC9KgeJU4Wg==": {
+        "description": "officer.myEntryLabel",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "Season goals",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "TaOUnuJuhNekV9I736tWxQ==": {
+        "description": "officer.myTitle",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "My season goals",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "vkvQLH43RINnhjhnOaoayA==": {
+        "description": "officer.myHint",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "Set yourself a season goal in one of your guilds and keep its progress up to date; that guild's admins can see the overview.",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "LCy7KlWqcTuhFjzwVLpj6w==": {
+        "description": "officer.myEmpty",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "You have not set a season goal yet.",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "Ia05SnWcVUSDgvQcUH0BmQ==": {
+        "description": "officer.goalGuildLabel",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "Guild",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "BTSyYkunOMPdz2NseaK9GQ==": {
+        "description": "officer.goalTitleLabel",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "Goal",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "9SvG89CuKzpbGX8fO0gYpg==": {
+        "description": "officer.goalTitlePlaceholder",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "e.g. clear a certain dungeon, complete a gear set…",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "0NEiKx8/O/eLLNbLfc1V4A==": {
+        "description": "officer.goalNoteLabel",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "Progress note",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "1nn5fOU2ntlufaoKnms68Q==": {
+        "description": "officer.goalNotePlaceholder",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "Note your current progress…",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "fe21gOq9jdvW/9U+ylv3ew==": {
+        "description": "officer.goalDungeonLabel",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "Linked dungeon (optional)",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "d0xH9gNRXT6K3BllmW9kUw==": {
+        "description": "officer.goalDungeonNone",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "No linked dungeon",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "HqY622XbdXfsWdgziXJ+Cw==": {
+        "description": "officer.goalStatusLabel",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "Status",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "gVJH0wkE1CEfN22bU6p3NA==": {
+        "description": "officer.goalAddButton",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "Add goal",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "o450iBvIBQbTwtAFnGfFNA==": {
+        "description": "officer.goalSaveButton",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "Save",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "wT7D9QNtT46u1PaAXECfOQ==": {
+        "description": "officer.goalEditButton",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "Edit",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "NdCz+Yeo2QuaIUPWkXdOLA==": {
+        "description": "officer.goalDeleteButton",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "Delete",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "TLropS1Bwf31MsC8Ic8gBA==": {
+        "description": "errors.officerNoteBodyRequired",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "Please write the note",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "h/Q5pUwyDLRLYqmnX9ef0A==": {
+        "description": "errors.officerNoteBodyTooLong",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "The note is too long — keep it within 500 characters",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "3kpVCVCB3YH3emGD/rX4HQ==": {
+        "description": "errors.officerNoteNotFound",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "Note not found",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "4cvIQXA9Ck+A0nssUUV57Q==": {
+        "description": "errors.officerMemberNotFound",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "That member is not on this guild's roster",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "YUK2mlJLd5+vFbUtrarrGg==": {
+        "description": "errors.seasonGoalTitleRequired",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "Please enter the goal",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "IbioWmSJs7UnAvd0RLKvPw==": {
+        "description": "errors.seasonGoalTitleTooLong",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "The goal is too long — keep it within 80 characters",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "PmK1uJRgm5eb2mYV0GaJPQ==": {
+        "description": "errors.seasonGoalNoteTooLong",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "The progress note is too long — keep it within 500 characters",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "nVWVFddEec3oPdo0YOA+GQ==": {
+        "description": "errors.seasonGoalNotFound",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "Goal not found",
+            "variations": {}
+          }
+        ],
+        "types": []
+      },
+      "Oir1Mt/QXF2KuOGY1qZ7Zw==": {
+        "description": "errors.seasonGoalDungeonNotFound",
+        "tokens": [],
+        "translations": [
+          {
+            "translation": "The linked dungeon does not exist",
+            "variations": {}
+          }
+        ],
+        "types": []
+      }
   }
 }

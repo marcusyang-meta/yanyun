@@ -777,6 +777,15 @@ export const errors_menteeAlreadyPaired = (fbs: FbsRuntime) => fbs._("该新人�
 export const errors_mentorSelfPairing = (fbs: FbsRuntime) => fbs._("导师和新人不能是同一个人", null, { hk: "fdyQq" });
 export const errors_pairingNotFound = (fbs: FbsRuntime) => fbs._("配对不存在", null, { hk: "25HwHq" });
 export const errors_pairingAlreadyEnded = (fbs: FbsRuntime) => fbs._("该配对已经结束了", null, { hk: "3BQM7S" });
+export const errors_officerNoteBodyRequired = (fbs: FbsRuntime) => fbs._("请填写备注内容", null, { hk: "3VY4cV" });
+export const errors_officerNoteBodyTooLong = (fbs: FbsRuntime) => fbs._("备注太长，请精简到 500 字以内", null, { hk: "4aKCB0" });
+export const errors_officerNoteNotFound = (fbs: FbsRuntime) => fbs._("备注不存在", null, { hk: "4zYK9C" });
+export const errors_officerMemberNotFound = (fbs: FbsRuntime) => fbs._("该成员不在本百业名册中", null, { hk: "uGLd3" });
+export const errors_seasonGoalTitleRequired = (fbs: FbsRuntime) => fbs._("请填写目标", null, { hk: "1cqHEi" });
+export const errors_seasonGoalTitleTooLong = (fbs: FbsRuntime) => fbs._("目标太长，请精简到 80 字以内", null, { hk: "1j0JaT" });
+export const errors_seasonGoalNoteTooLong = (fbs: FbsRuntime) => fbs._("进度备注太长，请精简到 500 字以内", null, { hk: "3eY1Et" });
+export const errors_seasonGoalNotFound = (fbs: FbsRuntime) => fbs._("目标不存在", null, { hk: "1w2VQy" });
+export const errors_seasonGoalDungeonNotFound = (fbs: FbsRuntime) => fbs._("关联的副本不存在", null, { hk: "1oLQCb" });
 export const guildAdmin_title = (fbs: FbsRuntime) => fbs._("管理百业", null, { hk: "23Vynb" });
 export const guildAdmin_lockedTitle = (fbs: FbsRuntime) => fbs._("无权管理这个百业", null, { hk: "4eqp6f" });
 export const guildAdmin_lockedBody = (fbs: FbsRuntime) => fbs._("只有该百业所绑 Discord 服务器的管理员（服务器主或拥有管理权限）可以进入管理页。", null, { hk: "248TMj" });
@@ -937,6 +946,7 @@ export const guildAdmin_lotteryStatusOpen = (fbs: FbsRuntime) => fbs._("待开�
 export const guildAdmin_lotteryStatusDrawn = (fbs: FbsRuntime) => fbs._("已开奖", null, { hk: "2q1FC9" });
 export const guildAdmin_lotteryEntryCount = (fbs: FbsRuntime, p?: StringParams) => fbs._("{count} 人参与", [fbs._param("count", pv(p, "count"))], { hk: "4ho8Cr" });
 export const guildAdmin_tabRecruit = (fbs: FbsRuntime) => fbs._("招新与导师", null, { hk: "yK4MU" });
+export const guildAdmin_tabOfficer = (fbs: FbsRuntime) => fbs._("军官工具", null, { hk: "3tIenJ" });
 export const groupingTemplate_sectionTitle = (fbs: FbsRuntime) => fbs._("车队模板", null, { hk: "GOM6P" });
 export const groupingTemplate_nameLabel = (fbs: FbsRuntime) => fbs._("模板名", null, { hk: "1k3Wki" });
 export const groupingTemplate_namePlaceholder = (fbs: FbsRuntime) => fbs._("给模板起个名字", null, { hk: "3MWfOY" });
@@ -1122,6 +1132,42 @@ export const recruit_adminMentorSelectLabel = (fbs: FbsRuntime) => fbs._("选择
 export const recruit_adminMenteeSelectLabel = (fbs: FbsRuntime) => fbs._("选择新人", null, { hk: "3yg8YS" });
 export const recruit_adminNewcomersTitle = (fbs: FbsRuntime) => fbs._("新人清单进度", null, { hk: "3NjXLO" });
 export const recruit_adminNewcomersEmpty = (fbs: FbsRuntime) => fbs._("暂无未完成清单的新人。", null, { hk: "2B1p8r" });
+export const officer_notesTitle = (fbs: FbsRuntime) => fbs._("成员备注", null, { hk: "1uWjyO" });
+export const officer_notesHint = (fbs: FbsRuntime) => fbs._("备注仅百业管理员可见，成员本人看不到关于自己的备注。", null, { hk: "6QxqA" });
+export const officer_notesEmpty = (fbs: FbsRuntime) => fbs._("本百业暂无成员名册。", null, { hk: "3oQiWw" });
+export const officer_memberNoNotes = (fbs: FbsRuntime) => fbs._("暂无备注", null, { hk: "3ntGnC" });
+export const officer_notePlaceholder = (fbs: FbsRuntime) => fbs._("写一条备注…", null, { hk: "oJNSk" });
+export const officer_noteAddButton = (fbs: FbsRuntime) => fbs._("添加备注", null, { hk: "2hs9i4" });
+export const officer_noteEditButton = (fbs: FbsRuntime) => fbs._("编辑", null, { hk: "3wK2LT" });
+export const officer_noteSaveButton = (fbs: FbsRuntime) => fbs._("保存", null, { hk: "1seiVI" });
+export const officer_noteDeleteButton = (fbs: FbsRuntime) => fbs._("删除", null, { hk: "fnsto" });
+export const officer_noteAuthorTemplate = (fbs: FbsRuntime, p?: StringParams) => fbs._("{name} 添加", [fbs._param("name", pv(p, "name"))], { hk: "4n9nJ" });
+export const officer_exportTitle = (fbs: FbsRuntime) => fbs._("百业数据包", null, { hk: "4j60Zn" });
+export const officer_exportHint = (fbs: FbsRuntime) => fbs._("导出本百业的名册、组队历史与参与记录、成员赛季目标（JSON 文件）。导出动作会留痕记录。", null, { hk: "1BCLf9" });
+export const officer_exportButton = (fbs: FbsRuntime) => fbs._("导出数据包", null, { hk: "4dGVMI" });
+export const officer_exportAbout = (fbs: FbsRuntime) => fbs._("百业数据包导出：包含本百业名册、组队历史与参与记录、成员赛季目标。军官备注为内部工作记录，不包含在本数据包内。", null, { hk: "3jr56S" });
+export const officer_goalsTitle = (fbs: FbsRuntime) => fbs._("成员赛季目标", null, { hk: "1rICOR" });
+export const officer_goalsHint = (fbs: FbsRuntime) => fbs._("成员给自己设的赛季目标与进度，只读总览。", null, { hk: "4mSTfN" });
+export const officer_goalsEmpty = (fbs: FbsRuntime) => fbs._("暂无成员设置赛季目标。", null, { hk: "esfuV" });
+export const officer_statusActive = (fbs: FbsRuntime) => fbs._("进行中", null, { hk: "LOe21" });
+export const officer_statusDone = (fbs: FbsRuntime) => fbs._("已完成", null, { hk: "2LbTwa" });
+export const officer_statusDropped = (fbs: FbsRuntime) => fbs._("已放弃", null, { hk: "RUM93" });
+export const officer_myEntryLabel = (fbs: FbsRuntime) => fbs._("赛季目标", null, { hk: "3gJ3GY" });
+export const officer_myTitle = (fbs: FbsRuntime) => fbs._("我的赛季目标", null, { hk: "xW3DA" });
+export const officer_myHint = (fbs: FbsRuntime) => fbs._("在某个百业里给自己定一个本赛季目标，进度由你自己维护；该百业的管理员可以查看总览。", null, { hk: "1KSMNl" });
+export const officer_myEmpty = (fbs: FbsRuntime) => fbs._("你还没有设置赛季目标。", null, { hk: "oZld0" });
+export const officer_goalGuildLabel = (fbs: FbsRuntime) => fbs._("所属百业", null, { hk: "4D8LvC" });
+export const officer_goalTitleLabel = (fbs: FbsRuntime) => fbs._("目标", null, { hk: "2T1M5N" });
+export const officer_goalTitlePlaceholder = (fbs: FbsRuntime) => fbs._("例如：打通某个副本、集齐一套装备…", null, { hk: "qUYlz" });
+export const officer_goalNoteLabel = (fbs: FbsRuntime) => fbs._("进度备注", null, { hk: "3mDS7F" });
+export const officer_goalNotePlaceholder = (fbs: FbsRuntime) => fbs._("记录当前进度…", null, { hk: "4jXz2E" });
+export const officer_goalDungeonLabel = (fbs: FbsRuntime) => fbs._("关联副本（可选）", null, { hk: "4czy04" });
+export const officer_goalDungeonNone = (fbs: FbsRuntime) => fbs._("不关联副本", null, { hk: "13t8q3" });
+export const officer_goalStatusLabel = (fbs: FbsRuntime) => fbs._("状态", null, { hk: "3srvKd" });
+export const officer_goalAddButton = (fbs: FbsRuntime) => fbs._("添加目标", null, { hk: "11LtGX" });
+export const officer_goalSaveButton = (fbs: FbsRuntime) => fbs._("保存", null, { hk: "JTUNX" });
+export const officer_goalEditButton = (fbs: FbsRuntime) => fbs._("编辑", null, { hk: "3kyMdw" });
+export const officer_goalDeleteButton = (fbs: FbsRuntime) => fbs._("删除", null, { hk: "1uCukO" });
 export const STRING_FNS: Record<string, StringFn> = {
 	"common.cancel": common_cancel,
 	"common.confirm": common_confirm,
@@ -1843,6 +1889,15 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"errors.mentorSelfPairing": errors_mentorSelfPairing,
 	"errors.pairingNotFound": errors_pairingNotFound,
 	"errors.pairingAlreadyEnded": errors_pairingAlreadyEnded,
+	"errors.officerNoteBodyRequired": errors_officerNoteBodyRequired,
+	"errors.officerNoteBodyTooLong": errors_officerNoteBodyTooLong,
+	"errors.officerNoteNotFound": errors_officerNoteNotFound,
+	"errors.officerMemberNotFound": errors_officerMemberNotFound,
+	"errors.seasonGoalTitleRequired": errors_seasonGoalTitleRequired,
+	"errors.seasonGoalTitleTooLong": errors_seasonGoalTitleTooLong,
+	"errors.seasonGoalNoteTooLong": errors_seasonGoalNoteTooLong,
+	"errors.seasonGoalNotFound": errors_seasonGoalNotFound,
+	"errors.seasonGoalDungeonNotFound": errors_seasonGoalDungeonNotFound,
 	"guildAdmin.title": guildAdmin_title,
 	"guildAdmin.lockedTitle": guildAdmin_lockedTitle,
 	"guildAdmin.lockedBody": guildAdmin_lockedBody,
@@ -2003,6 +2058,7 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"guildAdmin.lotteryStatusDrawn": guildAdmin_lotteryStatusDrawn,
 	"guildAdmin.lotteryEntryCount": guildAdmin_lotteryEntryCount,
 	"guildAdmin.tabRecruit": guildAdmin_tabRecruit,
+	"guildAdmin.tabOfficer": guildAdmin_tabOfficer,
 	"groupingTemplate.sectionTitle": groupingTemplate_sectionTitle,
 	"groupingTemplate.nameLabel": groupingTemplate_nameLabel,
 	"groupingTemplate.namePlaceholder": groupingTemplate_namePlaceholder,
@@ -2183,5 +2239,41 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"recruit.adminMentorSelectLabel": recruit_adminMentorSelectLabel,
 	"recruit.adminMenteeSelectLabel": recruit_adminMenteeSelectLabel,
 	"recruit.adminNewcomersTitle": recruit_adminNewcomersTitle,
-	"recruit.adminNewcomersEmpty": recruit_adminNewcomersEmpty
+	"recruit.adminNewcomersEmpty": recruit_adminNewcomersEmpty,
+	"officer.notesTitle": officer_notesTitle,
+	"officer.notesHint": officer_notesHint,
+	"officer.notesEmpty": officer_notesEmpty,
+	"officer.memberNoNotes": officer_memberNoNotes,
+	"officer.notePlaceholder": officer_notePlaceholder,
+	"officer.noteAddButton": officer_noteAddButton,
+	"officer.noteEditButton": officer_noteEditButton,
+	"officer.noteSaveButton": officer_noteSaveButton,
+	"officer.noteDeleteButton": officer_noteDeleteButton,
+	"officer.noteAuthorTemplate": officer_noteAuthorTemplate,
+	"officer.exportTitle": officer_exportTitle,
+	"officer.exportHint": officer_exportHint,
+	"officer.exportButton": officer_exportButton,
+	"officer.exportAbout": officer_exportAbout,
+	"officer.goalsTitle": officer_goalsTitle,
+	"officer.goalsHint": officer_goalsHint,
+	"officer.goalsEmpty": officer_goalsEmpty,
+	"officer.statusActive": officer_statusActive,
+	"officer.statusDone": officer_statusDone,
+	"officer.statusDropped": officer_statusDropped,
+	"officer.myEntryLabel": officer_myEntryLabel,
+	"officer.myTitle": officer_myTitle,
+	"officer.myHint": officer_myHint,
+	"officer.myEmpty": officer_myEmpty,
+	"officer.goalGuildLabel": officer_goalGuildLabel,
+	"officer.goalTitleLabel": officer_goalTitleLabel,
+	"officer.goalTitlePlaceholder": officer_goalTitlePlaceholder,
+	"officer.goalNoteLabel": officer_goalNoteLabel,
+	"officer.goalNotePlaceholder": officer_goalNotePlaceholder,
+	"officer.goalDungeonLabel": officer_goalDungeonLabel,
+	"officer.goalDungeonNone": officer_goalDungeonNone,
+	"officer.goalStatusLabel": officer_goalStatusLabel,
+	"officer.goalAddButton": officer_goalAddButton,
+	"officer.goalSaveButton": officer_goalSaveButton,
+	"officer.goalEditButton": officer_goalEditButton,
+	"officer.goalDeleteButton": officer_goalDeleteButton
 };

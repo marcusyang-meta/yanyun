@@ -1047,6 +1047,9 @@ type SettingsPage {
   accountCancelDeletionLabel: String!
   accountDeletionRequestedText: String!
   accountDeletionCancelledText: String!
+  # 我的赛季目标 (F19): 成员给自己设的目标, 挂在设置语境 (设置
+  # dialog 的一个 dialogPage); 目标实体与文案见 MySeasonGoalPage。
+  seasonGoals: MySeasonGoalPage!
   # 最近一次完成 Discord OAuth 往返的 epoch 秒 (null = 从未); 导出与
   # 删除提交要求 10 分钟内的新鲜授权, 闸门在 mutation 服务端强制,
   # 此字段只供界面决定先展示哪一步。
@@ -1948,6 +1951,162 @@ extend type Mutation {
   deleteGuildAnnouncement(slug: String!, announcementId: ID!): GuildAnnouncementPayload!
 }
 
+# ============ 军官工具 (免费功能线 F12/F11/F19, 不挂权益门) ============
+# F12 成员备注只存在于 GuildOfficerPage (挂 GuildAdmin): 成员变体
+# 根本不带备注字段 — 不是前端隐藏, 是响应类型不下发。F19 赛季目标
+# 的写面只认调用者本人 (仓储按 owner 钉行), 军官侧只有只读总览。
+
+enum SeasonGoalStatus {
+  ACTIVE
+  DONE
+  DROPPED
+}
+
+type GuildMemberNote {
+  id: ID!
+  body: String!
+  authorName: String!       # 备注作者快照名 (写入时落库)
+  authorText: String        # 「X 添加」组合文案 (无快照名为 null)
+  createdAtText: String!
+  updatedAtText: String!
+}
+
+type MemberSeasonGoal {
+  id: ID!
+  guildSlug: String!
+  guildName: String!
+  title: String!
+  note: String!             # 成员自维护的进度备注
+  status: SeasonGoalStatus!
+  statusLabel: String!      # 状态文案 (后端按 locale 组合)
+  dungeonId: Int            # 可选关联副本 (dex 副本行 id; 纯文本目标为 null)
+  dungeonName: String       # 关联副本名 (后端数据, 非前端字典)
+  seasonName: String        # 关联副本所属赛季名 (后端赛季表)
+  createdAtText: String!
+  updatedAtText: String!
+}
+
+type GuildOfficerMember {
+  discordId: ID!
+  displayName: String!      # 名册口径: 昵称回退全局名
+  notes: [GuildMemberNote!]!
+  goals: [MemberSeasonGoal!]!
+}
+
+type GuildOfficerPage {
+  # 文案 (officer 目录, 后端按请求 locale 生成; 前端零字符串)
+  notesTitle: String!
+  notesHint: String!
+  notesEmptyText: String!
+  memberNoNotesText: String!
+  notePlaceholder: String!
+  noteAddLabel: String!
+  noteEditLabel: String!
+  noteSaveLabel: String!
+  noteDeleteLabel: String!
+  exportTitle: String!
+  exportHint: String!
+  exportLabel: String!
+  goalsTitle: String!
+  goalsHint: String!
+  goalsEmptyText: String!
+  # 名册为中心: 每位成员挂自己的备注 (F12) 与赛季目标 (F19 只读
+  # 总览); hasGoals 决定目标区空态文案是否出现 (组合结论, 非权限)。
+  members: [GuildOfficerMember!]!
+  hasGoals: Boolean!
+}
+
+type MySeasonGoalPage {
+  # 文案 (officer 目录, 后端按请求 locale 生成; 前端零字符串)
+  entryLabel: String!
+  title: String!
+  hint: String!
+  emptyText: String!
+  guildLabel: String!
+  goalTitleLabel: String!
+  goalTitlePlaceholder: String!
+  goalNoteLabel: String!
+  goalNotePlaceholder: String!
+  dungeonLabel: String!
+  dungeonNoneLabel: String!
+  statusLabel: String!
+  addLabel: String!
+  saveLabel: String!
+  editLabel: String!
+  deleteLabel: String!
+  statusActiveLabel: String!
+  statusDoneLabel: String!
+  statusDroppedLabel: String!
+  # 我在各百业的目标 (跨百业汇总, 每条带所属百业名); 可建目标的
+  # 百业 = 我的名册行; 副本选项来自 dex 数据 (含其赛季名)。
+  goals: [MemberSeasonGoal!]!
+  guildOptions: [SeasonGoalGuildOption!]!
+  dungeonOptions: [SeasonGoalDungeonOption!]!
+}
+
+type SeasonGoalGuildOption {
+  slug: String!
+  name: String!
+}
+
+type SeasonGoalDungeonOption {
+  id: Int!
+  name: String!
+  seasonName: String
+}
+
+type GuildMemberNotePayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  note: GuildMemberNote
+}
+
+type GuildExportPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  json: String              # 数据包文档 (guild-export v1, JSON)
+  filename: String
+}
+
+type SeasonGoalPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  goal: MemberSeasonGoal
+}
+
+input SeasonGoalInput {
+  id: ID                    # null = 新建; 给出 = 改自己的既有目标
+  slug: String!
+  title: String!
+  note: String
+  status: SeasonGoalStatus
+  dungeonId: Int            # null = 不关联副本
+}
+
+extend type Mutation {
+  # F12 写备注: 管理判定复验; 目标必须是本百业名册成员;
+  # 错误码 officerMemberNotFound / officerNoteBodyRequired /
+  # officerNoteBodyTooLong / adminOnly / guildNotFound
+  addGuildMemberNote(slug: String!, memberDiscordId: ID!, body: String!): GuildMemberNotePayload!
+  # F12 改备注: 管理判定复验, 备注按本百业解析 (跨百业 id 视为不存在)
+  updateGuildMemberNote(slug: String!, noteId: ID!, body: String!): GuildMemberNotePayload!
+  # F12 删备注: 管理判定复验, 按本百业解析
+  deleteGuildMemberNote(slug: String!, noteId: ID!): GuildMemberNotePayload!
+  # F11 导出本百业数据包: 管理判定复验, 只导本百业; 动作在
+  # hub_audit_log 留痕 (actor + tenant + 计数摘要)
+  exportGuildDataPackage(slug: String!): GuildExportPayload!
+  # F19 建/改自己的赛季目标: 成员写门 + 目标归属调用者本人;
+  # 错误码 seasonGoalTitleRequired / seasonGoalTitleTooLong /
+  # seasonGoalNoteTooLong / seasonGoalNotFound /
+  # seasonGoalDungeonNotFound / loginRequired / memberOnly / guildNotFound
+  upsertMySeasonGoal(input: SeasonGoalInput!): SeasonGoalPayload!
+  # F19 删自己的赛季目标: 归属调用者本人 (他人 id 视为不存在)
+  deleteMySeasonGoal(goalId: ID!): SeasonGoalPayload!
+}
+
 # ============ 登录 / Viewer 层级 (root = user) ============
 # 结构: Query.viewer -> guilds / guild(slug) -> groupings 等页面数据
 # 权限不用状态标志表达 (flag 可 forge), 用「响应的类型」表达:
@@ -2217,6 +2376,10 @@ type GuildAdmin {
   # 公告广播 (F9/F10/F18) 管理变体: 发布表单 + 每日余量 + 已读回执;
   # 只挂 GuildAdmin — Locked 零公告字段。
   announcements: GuildAnnouncementPage!
+  # 军官工具 (免费功能线 F12/F11/F19, 不挂任何权益门): 成员备注 +
+  # 数据包导出 + 成员赛季目标总览; 只挂 GuildAdmin — Locked 零工具
+  # 字段, 成员变体 (Guild / GuildReadOnly) 根本不带备注字段。
+  officer: GuildOfficerPage!
   # 出勤统计 (Premium, 读侧门控): 总闸开且本百业未开通时组合为
   # GuildAdminStatsLocked (只有未开通文案, 零统计数据); 总闸关或
   # 已开通时与从前一致。结论只由响应类型表达, 无标志位下发。
@@ -2354,6 +2517,7 @@ type GuildAdmin {
   adminBillingCanceledText: String!
   adminPremiumTitle: String!
   adminTabToolsLabel: String!
+  adminTabOfficerLabel: String!
   adminLotteryTitle: String!
   adminLotteryHint: String!
   adminLotteryEmptyText: String!
