@@ -204,9 +204,9 @@ export type GuildsStringKey =
   | 'guildAdmin_lotteryEntryCount'
   | 'guildHome_tabSchedule'
   | 'guildAdmin_tabRecruit'
-  | 'recruit_entryLabel'
   | 'recruit_title'
-  | 'recruit_body'
+  | 'recruit_homeBody'
+  | 'recruit_homeLoginHint'
   | 'recruit_applySectionTitle'
   | 'recruit_messageLabel'
   | 'recruit_messagePlaceholder'
@@ -234,8 +234,6 @@ export type GuildsStringKey =
   | 'recruit_pairingStatusEnded'
   | 'recruit_mentorRoleLabel'
   | 'recruit_menteeRoleLabel'
-  | 'recruit_lockedTitle'
-  | 'recruit_lockedBody'
   | 'recruit_adminApplicationsTitle'
   | 'recruit_adminApplicationsEmpty'
   | 'recruit_adminApproveButton'
@@ -493,9 +491,9 @@ export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'guildAdmin_lotteryEntryCount',
   'guildHome_tabSchedule',
   'guildAdmin_tabRecruit',
-  'recruit_entryLabel',
   'recruit_title',
-  'recruit_body',
+  'recruit_homeBody',
+  'recruit_homeLoginHint',
   'recruit_applySectionTitle',
   'recruit_messageLabel',
   'recruit_messagePlaceholder',
@@ -523,8 +521,6 @@ export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'recruit_pairingStatusEnded',
   'recruit_mentorRoleLabel',
   'recruit_menteeRoleLabel',
-  'recruit_lockedTitle',
-  'recruit_lockedBody',
   'recruit_adminApplicationsTitle',
   'recruit_adminApplicationsEmpty',
   'recruit_adminApproveButton',

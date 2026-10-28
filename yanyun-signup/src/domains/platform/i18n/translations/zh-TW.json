@@ -10489,18 +10489,6 @@
       ],
       "types": []
     },
-    "2toVoVvSmYwjbeKVIf4RZg==": {
-      "description": "Intro paragraph on the recruiting page: non-members can submit a join application for admin review, and newcomers can see their onboarding checklist and mentor pairing.",
-      "id": "guilds/recruit_body",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "想加入這個百業？提交一份入業申請，百業管理員會在管理面審核。已經在業的新人可以在這裡看自己的入業清單與導師配對。",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
     "2K5QyaXJCE1TI7EVi/Z13A==": {
       "description": "Progress line of the newcomer checklist; {done} is the number of completed items and {total} the item count.",
       "id": "guilds/recruit_checklistProgress",
@@ -10520,18 +10508,6 @@
       "translations": [
         {
           "translation": "新手入業清單",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "pLLoaV0+Wx8sSNKPR058bA==": {
-      "description": "Label of the entry point that leads to recruiting and the newcomer checklist.",
-      "id": "guilds/recruit_entryLabel",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "招新 / 新人清單",
           "variations": {}
         }
       ],
@@ -10604,30 +10580,6 @@
       "translations": [
         {
           "translation": "完善流派 / 時區",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "PAKaOvOA9Px/lUhyZCtFvw==": {
-      "description": "Explanation in the recruiting locked state: sign in with Discord first, and if already signed in the guild may not exist.",
-      "id": "guilds/recruit_lockedBody",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "請先用 Discord 帳號登入；若已登入，可能是該百業不存在。",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "BVCqkCGgS59aSm6/wUf2gA==": {
-      "description": "Title of the locked state of the recruiting page for signed-out or invalid-guild viewers.",
-      "id": "guilds/recruit_lockedTitle",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "無法打開招新頁",
           "variations": {}
         }
       ],
@@ -11422,6 +11374,30 @@
       "translations": [
         {
           "translation": "在個人設定裡填寫你每週固定有空的時段，方便管理員與車頭定檔期；可以先跳過，之後隨時補填。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "dPlQTo0fN01Gwl/AMpw2yA==": {
+      "description": "Intro paragraph of the recruiting section on the platform home page: visitors pick an open guild below and submit a join application for admin review, and newcomers see their onboarding checklist and mentor pairing here.",
+      "id": "guilds/recruit_homeBody",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "想加入一個百業？在下面挑一個開放招新的百業提交入業申請，百業管理員會在管理面審核。已經在業的新人可以在這裡看自己的入業清單與導師配對。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "XYdDpqFP2ze4FAobJ3Nt7Q==": {
+      "description": "Hint in the platform home recruiting section for signed-out visitors: after signing in they can apply to a guild of their choice and track the review progress here.",
+      "id": "guilds/recruit_homeLoginHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "登入後即可對心儀的百業提交入業申請，並在這裡查看審核進度。",
           "variations": {}
         }
       ],

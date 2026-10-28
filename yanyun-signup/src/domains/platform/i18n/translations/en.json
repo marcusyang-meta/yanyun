@@ -10765,18 +10765,6 @@
       ],
       "types": []
     },
-    "2toVoVvSmYwjbeKVIf4RZg==": {
-      "description": "Intro paragraph on the recruiting page: non-members can submit a join application for admin review, and newcomers can see their onboarding checklist and mentor pairing.",
-      "id": "guilds/recruit_body",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "Want to join this guild? File an application and a guild admin will review it here. Already in? Check your newcomer checklist and mentor pairing below.",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
     "2K5QyaXJCE1TI7EVi/Z13A==": {
       "description": "Progress line of the newcomer checklist; {done} is the number of completed items and {total} the item count.",
       "id": "guilds/recruit_checklistProgress",
@@ -10796,18 +10784,6 @@
       "translations": [
         {
           "translation": "Newcomer checklist",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "pLLoaV0+Wx8sSNKPR058bA==": {
-      "description": "Label of the entry point that leads to recruiting and the newcomer checklist.",
-      "id": "guilds/recruit_entryLabel",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "Recruiting / Newcomers",
           "variations": {}
         }
       ],
@@ -10880,30 +10856,6 @@
       "translations": [
         {
           "translation": "Complete school / timezone",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "PAKaOvOA9Px/lUhyZCtFvw==": {
-      "description": "Explanation in the recruiting locked state: sign in with Discord first, and if already signed in the guild may not exist.",
-      "id": "guilds/recruit_lockedBody",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "Please sign in with your Discord account first; if you are signed in, this guild may not exist.",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "BVCqkCGgS59aSm6/wUf2gA==": {
-      "description": "Title of the locked state of the recruiting page for signed-out or invalid-guild viewers.",
-      "id": "guilds/recruit_lockedTitle",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "Cannot open the recruiting page",
           "variations": {}
         }
       ],
@@ -11698,6 +11650,30 @@
       "translations": [
         {
           "translation": "Fill in the times you are regularly free each week under your profile settings, so admins and squad leaders can schedule around you. You can skip this for now and add it any time.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "dPlQTo0fN01Gwl/AMpw2yA==": {
+      "description": "Intro paragraph of the recruiting section on the platform home page: visitors pick an open guild below and submit a join application for admin review, and newcomers see their onboarding checklist and mentor pairing here.",
+      "id": "guilds/recruit_homeBody",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Want to join a guild? Choose a guild that is open for recruitment below and submit an application; guild admins review applications in the admin panel. Newcomers already in a guild can see their newcomer checklist and mentor pairing here.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "XYdDpqFP2ze4FAobJ3Nt7Q==": {
+      "description": "Hint in the platform home recruiting section for signed-out visitors: after signing in they can apply to a guild of their choice and track the review progress here.",
+      "id": "guilds/recruit_homeLoginHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "After logging in, you can submit an application to a guild you like and track its review progress here.",
           "variations": {}
         }
       ],
