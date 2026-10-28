@@ -64,10 +64,12 @@ bucket_name = "yanyun-backups"
 # 60 neurons); over-allocation calls fail and are recorded as
 # per-locale failed rows — never enable Workers Paid for this
 # without marcus's approval.
-# Workers AI (P18 AI 活动复盘): env.AI 绑定, 无需 key; 模型在
-# platform/recap-provider.ts 里钉死。免费额度 10,000 neurons/天
-# (账户级), 复盘单次约 15-25 neurons; 不得为此开通 Workers Paid
-# (超额时推理报错、复盘落 failed 态可重试, 等 marcus 裁定)。
+# Workers AI (P18 AI recaps): the env.AI binding, no key needed;
+# the model is pinned in platform/recap-provider.ts. Free
+# allocation is 10,000 neurons/day (account-wide) and one recap
+# costs roughly 15-25 neurons; never enable Workers Paid for
+# this — on overage, inference errors surface as the recap's
+# retryable failed state until marcus decides otherwise.
 [ai]
 binding = "AI"
 
