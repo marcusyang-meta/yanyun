@@ -34,7 +34,7 @@ import {
   ShellBase, defineTextGens, getGuildAdminAccess, getGameVersion,
   getCurrentVersionCode, errText, rateLimitGql as rateLimit, getClientIp, s,
 } from '../platform/graphql-base.ts';
-import { translate, getEffectiveLimits, getOcrBatchesUsedToday, recordOcrBatch } from '../platform/index.ts';
+import { translate, translateError, getEffectiveLimits, getOcrBatchesUsedToday, recordOcrBatch } from '../platform/index.ts';
 import { listGuildMembers } from '../identity/index.ts';
 import { listDungeonsDex, listSchoolBis, listSchoolRotations, SEASON_NAMES } from '../dex/index.ts';
 import type { DungeonRow } from '../dex/index.ts';
@@ -158,11 +158,11 @@ export class SeasonChecklistItemShell extends ShellBase {
   genKey(): string { return (this.data as ChecklistItemData).key; }
   genTitle(): string {
     const d = this.data as ChecklistItemData;
-    return this.t('guildAdmin', d.titleField);
+    return this.t('guildAdmin_' + d.titleField);
   }
   genDetail(): string {
     const d = this.data as ChecklistItemData;
-    return this.t('guildAdmin', d.detailField, d.params);
+    return this.t('guildAdmin_' + d.detailField, d.params);
   }
   genChecked(): boolean { return (this.data as ChecklistItemData).checked; }
   genCheckedByName(): string | null { return (this.data as ChecklistItemData).checkedByName; }
@@ -191,13 +191,13 @@ export class SeasonChecklistShell extends ShellBase {
   async genTotalCount(): Promise<number> { return (await this.composed()).items.length; }
   async genHint(): Promise<string> {
     const { season } = await this.composed();
-    return this.t('guildAdmin', 'seasonHint', { version: season.versionLabel, season: season.seasonLabel });
+    return this.t('guildAdmin_seasonHint', { version: season.versionLabel, season: season.seasonLabel });
   }
 }
 
 export const SEASON_CHECKLIST_TEXT_RESOLVERS = defineTextGens(SeasonChecklistShell, [
-  ['title', 'guildAdmin', 'seasonTitle'],
-  ['progressTemplate', 'guildAdmin', 'seasonProgress'],
+  ['title', 'guildAdmin_seasonTitle'],
+  ['progressTemplate', 'guildAdmin_seasonProgress'],
 ]);
 
 /* ---------------- F25 roster shells ------------------------------- */
@@ -233,16 +233,16 @@ export class GuildRosterShell extends ShellBase {
 }
 
 export const GUILD_ROSTER_TEXT_RESOLVERS = defineTextGens(GuildRosterShell, [
-  ['rosterTitle', 'guildAdmin', 'rosterTitle'],
-  ['rosterHint', 'guildAdmin', 'rosterHint'],
-  ['rosterUploadLabel', 'guildAdmin', 'rosterUpload'],
-  ['rosterOcrRunningText', 'guildAdmin', 'rosterOcrRunning'],
-  ['rosterPreviewTitle', 'guildAdmin', 'rosterPreviewTitle'],
-  ['rosterConfirmLabel', 'guildAdmin', 'rosterConfirm'],
-  ['rosterEmptyText', 'guildAdmin', 'rosterEmpty'],
-  ['rosterDeleteLabel', 'guildAdmin', 'deleteButton'],
-  ['rosterSourceOcrLabel', 'guildAdmin', 'rosterSourceOcr'],
-  ['rosterMatchedMemberLabel', 'guildAdmin', 'rosterMatchedMember'],
+  ['rosterTitle', 'guildAdmin_rosterTitle'],
+  ['rosterHint', 'guildAdmin_rosterHint'],
+  ['rosterUploadLabel', 'guildAdmin_rosterUpload'],
+  ['rosterOcrRunningText', 'guildAdmin_rosterOcrRunning'],
+  ['rosterPreviewTitle', 'guildAdmin_rosterPreviewTitle'],
+  ['rosterConfirmLabel', 'guildAdmin_rosterConfirm'],
+  ['rosterEmptyText', 'guildAdmin_rosterEmpty'],
+  ['rosterDeleteLabel', 'guildAdmin_deleteButton'],
+  ['rosterSourceOcrLabel', 'guildAdmin_rosterSourceOcr'],
+  ['rosterMatchedMemberLabel', 'guildAdmin_rosterMatchedMember'],
 ]);
 
 export class RosterImportRowShell extends ShellBase {
@@ -253,7 +253,7 @@ export class RosterImportRowShell extends ShellBase {
   genStatusLabel(): string {
     const st = String(this.row().status || 'new');
     const field = st === 'matched' ? 'rosterStatusMatched' : st === 'new' ? 'rosterStatusNew' : 'rosterStatusUnrecognized';
-    return this.t('guildAdmin', field);
+    return this.t('guildAdmin_' + field);
   }
   genMatchedName(): string { return this.row().matched_name || ''; }
   genImportable(): boolean {
@@ -290,7 +290,7 @@ function rosterFail(ctx: Context, code: string): RosterImportPayloadData {
 function rosterFailP(ctx: Context, code: string, params: Record<string, number>): RosterImportPayloadData {
   return {
     ok: false,
-    error: translate('errors', code, (ctx && ctx.locale) || 'zh-CN', params),
+    error: translateError(code, (ctx && ctx.locale) || 'zh-CN', params),
     errorCode: code, preview: null, importedCount: null, message: null,
   };
 }
@@ -439,7 +439,7 @@ export const seasonAdminMutations = {
       ok: true, error: null, errorCode: null,
       preview: new RosterImportPreviewShell(ctx, { batchId: batch.id, rows: after }),
       importedCount: imported,
-      message: translate('guildAdmin', 'rosterImported', (ctx && ctx.locale) || 'zh-CN', { count: imported }),
+      message: translate('guildAdmin_rosterImported', (ctx && ctx.locale) || 'zh-CN', { count: imported }),
     };
   },
 

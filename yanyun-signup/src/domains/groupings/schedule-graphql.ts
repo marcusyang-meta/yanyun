@@ -99,12 +99,12 @@ export class TimePollShell extends ShellBase {
     if (this.row.status !== 'open') return null;
     const verdict = await this.genManageVerdict();
     if (!verdict.canManage) return null;
-    return { closeLabel: this.t('schedule', 'pollCloseLabel') };
+    return { closeLabel: this.t('schedule_pollCloseLabel') };
   }
   async genLaunchActions(){
     const verdict = await this.genManageVerdict();
     if (!verdict.canManage) return null;
-    return { launchLabel: this.t('schedule', 'pollLaunchLabel') };
+    return { launchLabel: this.t('schedule_pollLaunchLabel') };
   }
 }
 
@@ -126,42 +126,41 @@ const pFail = (ctx: Context, code: string) => new TimePollPayloadShell(ctx, { ok
 /* ---------------- the schedule page shell ---------------- */
 
 const SCHEDULE_TEXT_SPEC = [
-  ['scheduleTitle', 'schedule', 'title'],
-  ['scheduleMyTitle', 'schedule', 'myTitle'],
-  ['scheduleMyHint', 'schedule', 'myHint'],
-  ['scheduleSlotRangeTemplate', 'schedule', 'slotRange'],
-  ['scheduleAddSlotLabel', 'schedule', 'addSlotLabel'],
-  ['scheduleRemoveLabel', 'schedule', 'removeLabel'],
-  ['scheduleSaveLabel', 'schedule', 'saveLabel'],
-  ['scheduleSavedText', 'schedule', 'savedText'],
-  ['scheduleSaveFailedTemplate', 'schedule', 'saveFailedTemplate'],
-  ['scheduleEmptyMineText', 'schedule', 'emptyMineText'],
-  ['scheduleSummaryTitle', 'schedule', 'summaryTitle'],
-  ['scheduleSummaryHint', 'schedule', 'summaryHint'],
-  ['scheduleSummaryEmptyText', 'schedule', 'summaryEmptyText'],
-  ['schedulePollsTitle', 'schedule', 'pollsTitle'],
-  ['schedulePollsHint', 'schedule', 'pollsHint'],
-  ['schedulePollEmptyText', 'schedule', 'pollEmptyText'],
-  ['schedulePollCreateLabel', 'schedule', 'pollCreateLabel'],
-  ['schedulePollTitleLabel', 'schedule', 'pollTitleLabel'],
-  ['schedulePollTitlePlaceholder', 'schedule', 'pollTitlePlaceholder'],
-  ['schedulePollCandidatesLabel', 'schedule', 'pollCandidatesLabel'],
-  ['schedulePollAddCandidateLabel', 'schedule', 'pollAddCandidateLabel'],
-  ['schedulePollSubmitLabel', 'schedule', 'pollSubmitLabel'],
-  ['schedulePollVoteLabel', 'schedule', 'pollVoteLabel'],
-  ['schedulePollVotedText', 'schedule', 'pollVotedText'],
-  ['schedulePollStatusOpenText', 'schedule', 'pollStatusOpenText'],
-  ['schedulePollStatusClosedText', 'schedule', 'pollStatusClosedText'],
-  ['schedulePollCloseLabel', 'schedule', 'pollCloseLabel'],
-  ['schedulePollVoteCountTemplate', 'schedule', 'pollVoteCountTemplate'],
-  ['schedulePollLaunchLabel', 'schedule', 'pollLaunchLabel'],
-  ['schedulePollCancelLabel', 'schedule', 'pollCancelLabel'],
-  ['scheduleToastPollCreated', 'schedule', 'toastPollCreated'],
-  ['scheduleToastVoted', 'schedule', 'toastVoted'],
-  ['scheduleToastClosed', 'schedule', 'toastClosed'],
-  ['scheduleToastFailedTemplate', 'schedule', 'toastFailedTemplate'],
-  ['scheduleSettingsLinkLabel', 'schedule', 'settingsLinkLabel'],
-];
+  ['scheduleTitle', 'schedule_title'],
+  ['scheduleMyTitle', 'schedule_myTitle'],
+  ['scheduleMyHint', 'schedule_myHint'],
+  ['scheduleSlotRangeTemplate', 'schedule_slotRange'],
+  ['scheduleAddSlotLabel', 'schedule_addSlotLabel'],
+  ['scheduleRemoveLabel', 'schedule_removeLabel'],
+  ['scheduleSaveLabel', 'schedule_saveLabel'],
+  ['scheduleSavedText', 'schedule_savedText'],
+  ['scheduleSaveFailedTemplate', 'schedule_saveFailedTemplate'],
+  ['scheduleEmptyMineText', 'schedule_emptyMineText'],
+  ['scheduleSummaryTitle', 'schedule_summaryTitle'],
+  ['scheduleSummaryHint', 'schedule_summaryHint'],
+  ['scheduleSummaryEmptyText', 'schedule_summaryEmptyText'],
+  ['schedulePollsTitle', 'schedule_pollsTitle'],
+  ['schedulePollsHint', 'schedule_pollsHint'],
+  ['schedulePollEmptyText', 'schedule_pollEmptyText'],
+  ['schedulePollCreateLabel', 'schedule_pollCreateLabel'],
+  ['schedulePollTitleLabel', 'schedule_pollTitleLabel'],
+  ['schedulePollTitlePlaceholder', 'schedule_pollTitlePlaceholder'],
+  ['schedulePollCandidatesLabel', 'schedule_pollCandidatesLabel'],
+  ['schedulePollAddCandidateLabel', 'schedule_pollAddCandidateLabel'],
+  ['schedulePollSubmitLabel', 'schedule_pollSubmitLabel'],
+  ['schedulePollVoteLabel', 'schedule_pollVoteLabel'],
+  ['schedulePollVotedText', 'schedule_pollVotedText'],
+  ['schedulePollStatusOpenText', 'schedule_pollStatusOpenText'],
+  ['schedulePollStatusClosedText', 'schedule_pollStatusClosedText'],
+  ['schedulePollCloseLabel', 'schedule_pollCloseLabel'],
+  ['schedulePollVoteCountTemplate', 'schedule_pollVoteCountTemplate'],
+  ['schedulePollLaunchLabel', 'schedule_pollLaunchLabel'],
+  ['schedulePollCancelLabel', 'schedule_pollCancelLabel'],
+  ['scheduleToastPollCreated', 'schedule_toastPollCreated'],
+  ['scheduleToastVoted', 'schedule_toastVoted'],
+  ['scheduleToastClosed', 'schedule_toastClosed'],
+  ['scheduleToastFailedTemplate', 'schedule_toastFailedTemplate'],
+  ['scheduleSettingsLinkLabel', 'schedule_settingsLinkLabel'],];
 
 export class GuildSchedulePageShell extends ShellBase {
   constructor(ctx: Context, slug: string){ super(ctx, { slug }); }
@@ -201,7 +200,7 @@ export class GuildSchedulePageShell extends ShellBase {
     });
   }
   genWeekdayNames(){
-    return this.memo('weekdayNames', () => [0, 1, 2, 3, 4, 5, 6].map((i) => this.t('groupingList', 'weekday' + i)));
+    return this.memo('weekdayNames', () => [0, 1, 2, 3, 4, 5, 6].map((i) => this.t('groupingList_weekday' + i)));
   }
 }
 

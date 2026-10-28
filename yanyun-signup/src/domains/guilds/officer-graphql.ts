@@ -59,7 +59,7 @@ export class GuildMemberNoteShell extends ShellBase {
   genAuthorName(){ return this.row.author_name || ''; }
   genAuthorText(){
     return this.row.author_name
-      ? this.t('officer', 'noteAuthorTemplate', { name: this.row.author_name })
+      ? this.t('officer_noteAuthorTemplate', { name: this.row.author_name })
       : null;
   }
   genCreatedAtText(){ return fmtStartsAt(this.row.created_at, this.locale, this.ctx.tz); }
@@ -73,7 +73,7 @@ export class MemberSeasonGoalShell extends ShellBase {
   genTitle(){ return this.row.title; }
   genNote(){ return this.row.note; }
   genStatus(){ return enumStatus(this.row.status); }
-  genStatusLabel(){ return this.t('officer', STATUS_LABEL_KEY[this.row.status] || 'statusActive'); }
+  genStatusLabel(){ return this.t('officer_' + (STATUS_LABEL_KEY[this.row.status] || 'statusActive')); }
   genDungeonId(){ return this.row.dungeon_id != null ? this.row.dungeon_id : null; }
   genDungeon(){
     return this.memo('dungeon', async (): Promise<DungeonRow | null> => {
@@ -108,22 +108,22 @@ export class GuildOfficerMemberShell extends ShellBase {
   genGoals(){ return this.data.goals; }
 }
 
-const OFFICER_PAGE_TEXT_SPEC: [string, string, string][] = [
-  ['notesTitle', 'officer', 'notesTitle'],
-  ['notesHint', 'officer', 'notesHint'],
-  ['notesEmptyText', 'officer', 'notesEmpty'],
-  ['memberNoNotesText', 'officer', 'memberNoNotes'],
-  ['notePlaceholder', 'officer', 'notePlaceholder'],
-  ['noteAddLabel', 'officer', 'noteAddButton'],
-  ['noteEditLabel', 'officer', 'noteEditButton'],
-  ['noteSaveLabel', 'officer', 'noteSaveButton'],
-  ['noteDeleteLabel', 'officer', 'noteDeleteButton'],
-  ['exportTitle', 'officer', 'exportTitle'],
-  ['exportHint', 'officer', 'exportHint'],
-  ['exportLabel', 'officer', 'exportButton'],
-  ['goalsTitle', 'officer', 'goalsTitle'],
-  ['goalsHint', 'officer', 'goalsHint'],
-  ['goalsEmptyText', 'officer', 'goalsEmpty'],
+const OFFICER_PAGE_TEXT_SPEC: [string, string][] = [
+  ['notesTitle', 'officer_notesTitle'],
+  ['notesHint', 'officer_notesHint'],
+  ['notesEmptyText', 'officer_notesEmpty'],
+  ['memberNoNotesText', 'officer_memberNoNotes'],
+  ['notePlaceholder', 'officer_notePlaceholder'],
+  ['noteAddLabel', 'officer_noteAddButton'],
+  ['noteEditLabel', 'officer_noteEditButton'],
+  ['noteSaveLabel', 'officer_noteSaveButton'],
+  ['noteDeleteLabel', 'officer_noteDeleteButton'],
+  ['exportTitle', 'officer_exportTitle'],
+  ['exportHint', 'officer_exportHint'],
+  ['exportLabel', 'officer_exportButton'],
+  ['goalsTitle', 'officer_goalsTitle'],
+  ['goalsHint', 'officer_goalsHint'],
+  ['goalsEmptyText', 'officer_goalsEmpty'],
 ];
 
 export class GuildOfficerPageShell extends ShellBase {
@@ -200,26 +200,26 @@ export class SeasonGoalDungeonOptionShell extends ShellBase {
   genSeasonName(){ return this.data.season ? (SEASON_NAMES[String(this.data.season)] || null) : null; }
 }
 
-const MY_GOALS_TEXT_SPEC: [string, string, string][] = [
-  ['entryLabel', 'officer', 'myEntryLabel'],
-  ['title', 'officer', 'myTitle'],
-  ['hint', 'officer', 'myHint'],
-  ['emptyText', 'officer', 'myEmpty'],
-  ['guildLabel', 'officer', 'goalGuildLabel'],
-  ['goalTitleLabel', 'officer', 'goalTitleLabel'],
-  ['goalTitlePlaceholder', 'officer', 'goalTitlePlaceholder'],
-  ['goalNoteLabel', 'officer', 'goalNoteLabel'],
-  ['goalNotePlaceholder', 'officer', 'goalNotePlaceholder'],
-  ['dungeonLabel', 'officer', 'goalDungeonLabel'],
-  ['dungeonNoneLabel', 'officer', 'goalDungeonNone'],
-  ['statusLabel', 'officer', 'goalStatusLabel'],
-  ['addLabel', 'officer', 'goalAddButton'],
-  ['saveLabel', 'officer', 'goalSaveButton'],
-  ['editLabel', 'officer', 'goalEditButton'],
-  ['deleteLabel', 'officer', 'goalDeleteButton'],
-  ['statusActiveLabel', 'officer', 'statusActive'],
-  ['statusDoneLabel', 'officer', 'statusDone'],
-  ['statusDroppedLabel', 'officer', 'statusDropped'],
+const MY_GOALS_TEXT_SPEC: [string, string][] = [
+  ['entryLabel', 'officer_myEntryLabel'],
+  ['title', 'officer_myTitle'],
+  ['hint', 'officer_myHint'],
+  ['emptyText', 'officer_myEmpty'],
+  ['guildLabel', 'officer_goalGuildLabel'],
+  ['goalTitleLabel', 'officer_goalTitleLabel'],
+  ['goalTitlePlaceholder', 'officer_goalTitlePlaceholder'],
+  ['goalNoteLabel', 'officer_goalNoteLabel'],
+  ['goalNotePlaceholder', 'officer_goalNotePlaceholder'],
+  ['dungeonLabel', 'officer_goalDungeonLabel'],
+  ['dungeonNoneLabel', 'officer_goalDungeonNone'],
+  ['statusLabel', 'officer_goalStatusLabel'],
+  ['addLabel', 'officer_goalAddButton'],
+  ['saveLabel', 'officer_goalSaveButton'],
+  ['editLabel', 'officer_goalEditButton'],
+  ['deleteLabel', 'officer_goalDeleteButton'],
+  ['statusActiveLabel', 'officer_statusActive'],
+  ['statusDoneLabel', 'officer_statusDone'],
+  ['statusDroppedLabel', 'officer_statusDropped'],
 ];
 
 export class MySeasonGoalPageShell extends ShellBase {

@@ -4,7 +4,7 @@
  * cross-domain services still go through the barrels. */
 import { vcOf, isOmniscientViewer } from './context.ts';
 import type { Context, ViewerContext } from './context.ts';
-import { translate, negotiateLocale, SUPPORTED_LOCALES, CATALOG } from './i18n.ts';
+import { translate, translateError, negotiateLocale, SUPPORTED_LOCALES, CATALOG } from './i18n.ts';
 import { getSettingValue, setSettingValue, listSettingsByKey } from '../guilds/settings.ts';
 import { getTenantRow, getTenantSlug, listTenantSlugs, listTenantsDirectory } from '../guilds/tenants.ts';
 import { listGuildMembers, getGuildMember } from '../identity/guildMembers.ts';
@@ -35,7 +35,7 @@ export class ShellBase {
   get locale() { return this.ctx.locale || 'zh-CN'; }
   /** The identity layer (ViewerContext): viewer ref + id, nothing else. */
   get vc(): ViewerContext { return vcOf(this.ctx); }
-  t(section: string, field: string, params?: any){ return translate(section, field, this.locale, params); }
+  t(name: string, params?: any){ return translate(name, this.locale, params); }
   memo<T>(key: string, producer: () => T): T {
     if (!this._memo.has(key)) this._memo.set(key, producer());
     return this._memo.get(key);
@@ -48,16 +48,16 @@ export class ShellBase {
   }
 }
 
-/* Batch-define text gen methods: spec = [field, catalog section, catalog
- * field, params fn?]. Generates gen<Field> on the prototype (instance
+/* Batch-define text gen methods: spec = [field, string export name,
+ * params fn?]. Generates gen<Field> on the prototype (instance
  * memo) plus the field resolver table — unselected fields never run. */
 export function defineTextGens(Class: any, spec: any) {
   const resolvers: Record<string, any> = {};
-  for (const [field, section, catField, paramsFn] of spec) {
+  for (const [field, name, paramsFn] of spec) {
     const genName = 'gen' + field[0].toUpperCase() + field.slice(1);
     Class.prototype[genName] = function (args: any) {
       const key = genName + ':' + JSON.stringify(args || {});
-      return this.memo(key, () => this.t(section, catField, paramsFn ? paramsFn(args || {}) : undefined));
+      return this.memo(key, () => this.t(name, paramsFn ? paramsFn(args || {}) : undefined));
     };
     resolvers[field] = (p: any, args: any) => p[genName](args);
   }
@@ -81,7 +81,7 @@ export function loadMyLocalePref(ctx: Context) {
 
 // Server error text: generated from the catalog by stable code + request locale
 export function errText(ctx: Context, code: any) {
-  return translate('errors', code, (ctx && ctx.locale) || 'zh-CN');
+  return translateError(code, (ctx && ctx.locale) || 'zh-CN');
 }
 
 /* ================= Tenant isolation & access control =================

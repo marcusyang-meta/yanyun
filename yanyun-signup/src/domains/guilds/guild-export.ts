@@ -69,7 +69,7 @@ export async function buildGuildExport(
   const doc = {
     format: GUILD_EXPORT_FORMAT,
     exportedAt: isoOf(atSec),
-    _about: guildsTextFor(locale).t('officer.exportAbout'),
+    _about: guildsTextFor(locale).t('officer_exportAbout'),
     guild: { slug: tenant.slug, name: tenant.guild_name },
     members: (roster || []).map((m) => ({
       discordId: m.discord_id,

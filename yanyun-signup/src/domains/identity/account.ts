@@ -141,7 +141,7 @@ export async function buildAccountExport(
   const doc = {
     format: EXPORT_FORMAT,
     exportedAt: new Date(atSec * 1000).toISOString(),
-    _about: identityTextFor(locale).t('account.exportAbout'),
+    _about: identityTextFor(locale).t('account_exportAbout'),
     account: {
       discordId: row.discord_id,
       username: row.username,
@@ -284,7 +284,7 @@ export interface DeletionCounts {
 export async function executeAccountDeletion(
   db: D1Database, discordId: string,
 ): Promise<DeletionCounts> {
-  const tombstone = identityTextFor('zh-CN').t('account.deletedUser');
+  const tombstone = identityTextFor('zh-CN').t('account_deletedUser');
   // 1. Credentials first: with the grant row gone, every live session
   //    fails the completeness check and is voided on its next request.
   const oauthRows = await deleteOAuthRow(db, discordId);
