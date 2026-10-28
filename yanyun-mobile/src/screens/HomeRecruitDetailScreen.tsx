@@ -30,7 +30,8 @@ export default function HomeRecruitDetailScreen() {
   const entry = isNewcomer
     ? section?.myNewcomer.find((e) => e.slug === slug) ?? null
     : null;
-  const title = guild?.name ?? entry?.guildName ?? section?.recruitTitle ?? '';
+  const title = guild?.name ?? entry?.guildName
+    ?? (isNewcomer ? section?.newcomerTitle : section?.directoryTitle) ?? '';
   return (
     <ScrollView
       showsVerticalScrollIndicator={false}

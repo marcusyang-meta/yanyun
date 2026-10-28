@@ -72,7 +72,8 @@ export const ViewerQuery = graphql`
         pageBackLabel
       }
       homeRecruit {
-        recruitTitle
+        directoryTitle
+        newcomerTitle
         homeBody
         homeLoginHint
         applySectionTitle

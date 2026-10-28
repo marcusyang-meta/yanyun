@@ -206,19 +206,35 @@ function DirectorySummary({ g }: { g: HomeRecruitGuildItem }) {
 export default function HomeRecruitSection({ section }: { section: HomeRecruitData | null }) {
   if (!section) return null;
   if (section.guilds.length === 0 && section.myNewcomer.length === 0) return null;
+  // Two independent sections, one per audience (ruling 2026-10-28,
+  // same split as Web): "newcomers" (my checklist / pairings, for
+  // members) above "recruiting" (the open directory + applications,
+  // for the not-yet-member). Each renders only when its composed
+  // list is non-empty.
   return (
-    <View style={{ marginTop: 34 }}>
-      <View style={s.sectionHead}>
-        <Text style={s.sectionZh}>{section.recruitTitle}</Text>
-      </View>
-      <Text style={s.body}>{section.homeBody}</Text>
-      {section.myNewcomer.map((entry) => (
-        <NewcomerSummary key={entry.slug} section={section} entry={entry} />
-      ))}
-      {section.guilds.map((g) => (
-        <DirectorySummary key={g.slug} g={g} />
-      ))}
-    </View>
+    <>
+      {section.myNewcomer.length > 0 && (
+        <View style={{ marginTop: 34 }}>
+          <View style={s.sectionHead}>
+            <Text style={s.sectionZh}>{section.newcomerTitle}</Text>
+          </View>
+          {section.myNewcomer.map((entry) => (
+            <NewcomerSummary key={entry.slug} section={section} entry={entry} />
+          ))}
+        </View>
+      )}
+      {section.guilds.length > 0 && (
+        <View style={{ marginTop: 34 }}>
+          <View style={s.sectionHead}>
+            <Text style={s.sectionZh}>{section.directoryTitle}</Text>
+          </View>
+          <Text style={s.body}>{section.homeBody}</Text>
+          {section.guilds.map((g) => (
+            <DirectorySummary key={g.slug} g={g} />
+          ))}
+        </View>
+      )}
+    </>
   );
 }
 
