@@ -28,8 +28,9 @@
  * destroys a previous successful recap.
  *
  * Tier gating is NOT this file's job: callers compose the surface
- * from tierLocked(db, slug, 3) + recapProviderFromEnv(env) and only
- * reach generateRecap for a guild that passed both.
+ * from tierLocked(db, slug, 3) + recapProviderFromEnv(env) — the
+ * Workers AI adapter over the env.AI binding — and only reach
+ * generateRecap for a guild that passed both.
  * =================================================== */
 import type { Env } from '../platform/context.ts';
 import { recapProviderFromEnv } from '../platform/recap-provider.ts';

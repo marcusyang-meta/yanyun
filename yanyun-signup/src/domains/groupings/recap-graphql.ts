@@ -6,8 +6,8 @@
  *   1. tierLocked(db, slug, 3)     -> GroupingRecapLocked
  *      (no recap content, no provider state, nothing else is read)
  *   2. provider unconfigured       -> GroupingRecapNotEnabled
- *      (production state until the provider/key decision lands:
- *      even a T3 guild sees only this; nothing generates or stores)
+ *      (the Workers AI binding is absent: even a T3 guild sees
+ *      only this; nothing generates or stores)
  *   3. stored recap with paragraphs -> GroupingRecapReady
  *      (visible to every viewer who can view the grouping — the
  *      detail page's own gate already decided that)
