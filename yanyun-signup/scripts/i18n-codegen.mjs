@@ -169,6 +169,21 @@ function scanFbsCall(body, at) {
   return { pattern: segs.slice(0, -1).join(''), desc: lastLit };
 }
 
+// Regression gate for the fbt desc contract: desc is a natural-language
+// description for translators, never an identity. Reject the historical
+// misuse shapes — a key-shaped 'section.field' string, or any spaceless
+// token that reads as an identifier rather than a sentence — so the old
+// style cannot re-enter the repo (runs in both normal and --check mode,
+// since every path parses the declarations through parseDomainEntries).
+function validateDesc(domain, name, desc) {
+  if (/^[a-z][a-zA-Z0-9]*\.[a-zA-Z0-9]+$/.test(desc)) {
+    fail(`${domain}: entry ${name} has a key-shaped desc '${desc}'; desc must be a natural-language description for translators, not 'section.field'`);
+  }
+  if (!desc.includes(' ')) {
+    fail(`${domain}: entry ${name} has a spaceless desc '${desc}'; desc must be a natural-language description sentence for translators`);
+  }
+}
+
 // Extract the entry statements (`export const <name> = ...;`) of one
 // domain declaration file, in file order:
 // [{ domain, name, section, desc, pattern, body }]. The export name is
@@ -194,6 +209,7 @@ function parseDomainEntries(domain, text) {
     if (at < 0) fail(domain + ': no fbs call in entry ' + name);
     const { pattern, desc } = scanFbsCall(body, at);
     if (!desc) fail(domain + ': no desc found in entry ' + name);
+    validateDesc(domain, name, desc);
     out.push({ domain, name, section, desc, pattern, body });
   }
   if (!out.length) fail(domain + ': no declaration entries found');
