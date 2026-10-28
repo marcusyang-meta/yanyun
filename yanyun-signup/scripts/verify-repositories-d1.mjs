@@ -1166,6 +1166,50 @@ if (want('announcements')) {
   eq('other announcements survive the delete', (await repo.listAnnouncements(db, 'alpha', 50)).map((r) => r.id), [id2]);
 }
 
+/* ---------------- announcement translations (P26) ---------------- */
+if (want('announcement-i18n')) {
+  console.log('== announcement translations repository on real D1 ==');
+  const repo = await import('../src/domains/guilds/announcements.ts');
+  const i18n = await import('../src/domains/guilds/announcement-i18n.ts');
+  const T0 = 1760000000;
+  const aid = await repo.insertAnnouncement(db, { tenant: 'alpha', kind: 'standard', title: '周六活动安排', body: '晚八点集合', authorDiscordId: 'A1', authorName: '管理员甲', createdAt: T0 });
+  const row = await repo.getAnnouncement(db, 'alpha', aid);
+  const hash = await i18n.announcementSourceHash(row);
+  check('source hash is a sha256 hex', /^[0-9a-f]{64}$/.test(hash), hash);
+
+  eq('translations on empty table -> empty map', (await i18n.listAnnouncementTranslations(db, 'alpha', [aid])).size, 0);
+  await i18n.upsertAnnouncementTranslation(db, { announcementId: aid, tenant: 'alpha', locale: 'en', title: 'T', body: 'B', status: 'done', sourceHash: hash, nowSec: T0 });
+  let map = await i18n.listAnnouncementTranslations(db, 'alpha', [aid]);
+  eq('upsert lands one row', map.size, 1);
+  eq('row round-trips', map.get(`${aid}|en`)?.title, 'T');
+  await i18n.upsertAnnouncementTranslation(db, { announcementId: aid, tenant: 'alpha', locale: 'en', title: 'T2', body: 'B2', status: 'failed', sourceHash: hash, nowSec: T0 + 10 });
+  map = await i18n.listAnnouncementTranslations(db, 'alpha', [aid]);
+  eq('upsert overwrites in place (no duplicate)', map.size, 1);
+  eq('overwrite persisted', [map.get(`${aid}|en`)?.title, map.get(`${aid}|en`)?.status], ['T2', 'failed']);
+  eq('list is tenant-scoped', (await i18n.listAnnouncementTranslations(db, 'beta', [aid])).size, 0);
+
+  /* Generation over a fake translator: cache dedupes across rows. */
+  let calls = 0;
+  const fake = { async translate(text, { targetLocale }) { calls++; return `[${targetLocale}] ${text}`; } };
+  const outcomes = await i18n.generateAnnouncementTranslations(db, fake, row, T0 + 20);
+  eq('generation covers all target locales', outcomes.map((o) => o.locale), i18n.ANNOUNCEMENT_TARGET_LOCALES);
+  check('generation all done', outcomes.every((o) => o.status === 'done'));
+  eq('provider calls = locales x 2 units', calls, i18n.ANNOUNCEMENT_TARGET_LOCALES.length * 2);
+  const aid2 = await repo.insertAnnouncement(db, { tenant: 'alpha', kind: 'standard', title: '周六活动安排', body: '晚八点集合', authorDiscordId: 'A1', authorName: '管理员甲', createdAt: T0 + 30 });
+  const row2 = await repo.getAnnouncement(db, 'alpha', aid2);
+  await i18n.generateAnnouncementTranslations(db, fake, row2, T0 + 40);
+  eq('identical text generates from cache (no new calls)', calls, i18n.ANNOUNCEMENT_TARGET_LOCALES.length * 2);
+  const failing = { async translate() { throw new Error('provider down'); } };
+  const aid3 = await repo.insertAnnouncement(db, { tenant: 'alpha', kind: 'standard', title: '另一条', body: '别的正文', authorDiscordId: 'A1', authorName: '管理员甲', createdAt: T0 + 50 });
+  const row3 = await repo.getAnnouncement(db, 'alpha', aid3);
+  const failOutcomes = await i18n.generateAnnouncementTranslations(db, failing, row3, T0 + 60);
+  check('provider failure records failed, never throws', failOutcomes.every((o) => o.status === 'failed'));
+  eq('state of failed announcement', i18n.translationStateOf([...(await i18n.listAnnouncementTranslations(db, 'alpha', [aid3])).values()], await i18n.announcementSourceHash(row3)), 'failed');
+
+  await i18n.deleteAnnouncementTranslations(db, 'alpha', aid);
+  eq('delete drops the translations', (await i18n.listAnnouncementTranslations(db, 'alpha', [aid])).size, 0);
+}
+
 /* ---------------- lotteries (F21) ---------------- */
 if (want('activitytools')) {
   console.log('== lotteries repositories on real D1 ==');
