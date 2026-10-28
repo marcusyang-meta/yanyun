@@ -9,13 +9,13 @@
 import { register } from 'node:module';
 import { readFileSync, existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
+import { describe, it, expect } from 'vitest';
 
 register('./loader.mjs', import.meta.url);
 
 const FIX = '/tmp/og-fixtures';
 if (!existsSync(`${FIX}/noto.ttf`) || !existsSync(`${FIX}/brush.ttf`) || !existsSync(`${FIX}/brush.css`)) {
-  console.error('font fixtures missing in /tmp/og-fixtures — download noto.ttf / brush.ttf / brush.css first');
-  process.exit(2);
+  throw new Error('font fixtures missing in /tmp/og-fixtures — download noto.ttf / brush.ttf / brush.css first');
 }
 const notoBytes = readFileSync(`${FIX}/noto.ttf`);
 const brushBytes = readFileSync(`${FIX}/brush.ttf`);
@@ -23,10 +23,8 @@ const brushCss = readFileSync(`${FIX}/brush.css`);
 const genericPngBytes = readFileSync(new URL('../generic.png', import.meta.url));
 const avatarBytes = genericPngBytes; // 头像 fixture: 一份真实 PNG 即可 (satori 只需合法图片)
 
-let pass = 0, fail = 0; const fails = [];
 function check(name, ok, extra = '') {
-  if (ok) pass++; else { fail++; fails.push(name + (extra ? ' — ' + extra : '')); }
-  console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${extra && !ok ? ' — ' + extra : ''}`);
+  expect(ok, extra ? `${name} — ${extra}` : name).toBe(true);
 }
 function eq(name, got, want) { check(name, got === want, `got=${JSON.stringify(got)} want=${JSON.stringify(want)}`); }
 async function sha256hex(buf) {
@@ -96,7 +94,7 @@ globalThis.fetch = async (url, opts = {}) => {
   throw new Error('unstubbed fetch: ' + u);
 };
 
-const worker = (await import('../worker.js')).default;
+const worker = (await import(/* @vite-ignore */ new URL('../worker.js', import.meta.url).href)).default;
 const ctxStub = { waitUntil() {} };
 async function ogGet(path) {
   const t0 = performance.now();
@@ -106,34 +104,33 @@ async function ogGet(path) {
 }
 const median = (xs) => xs.sort((a, b) => a - b)[Math.floor(xs.length / 2)];
 
-/* ---------- 场景 1: 无头像 (冷 + 暖渲染计时) ---------- */
+describe('og avatar', () => {
+let noAvatarHash: string;
+let warmNoAvatar: number[] = [];
+it('场景 1: 无头像 (冷 + 暖渲染计时)', async () => {
 state.avatarMode = 'off';
 const cold = await ogGet('/og/test1.png');
 eq('无头像冷请求 -> 200', cold.res.status, 200);
 eq('无头像 content-type', cold.res.headers.get('content-type'), 'image/png');
-const noAvatarHash = await sha256hex(cold.buf);
+noAvatarHash = await sha256hex(cold.buf);
 const dims = pngDims(cold.buf);
 eq('无头像尺寸 1200x630', `${dims.w}x${dims.h}`, '1200x630');
 console.log(`INFO  无头像冷渲染 ${cold.ms.toFixed(0)}ms, sha256=${noAvatarHash}`);
 
-const warmNoAvatar = [];
+warmNoAvatar = [];
 for (let i = 0; i < 3; i++) { clearRenderCache(); warmNoAvatar.push((await ogGet('/og/test1.png')).ms); }
 const again = await ogGet('/og/test1.png'); // 缓存命中路径
 eq('缓存命中仍 200', again.res.status, 200);
 console.log(`INFO  无头像暖渲染 ms: ${warmNoAvatar.map((x) => x.toFixed(0)).join(', ')} (median ${median([...warmNoAvatar]).toFixed(0)})`);
 
-if (process.env.OG_BASELINE === '1') {
-  console.log(`BASELINE_HASH=${noAvatarHash}`);
-  console.log(`BASELINE_WARM_MEDIAN_MS=${median([...warmNoAvatar]).toFixed(0)}`);
-  process.exit(0);
-}
-
 /* 基线一致性: 无头像输出须与改前 worker 逐字节相同 */
 if (process.env.OG_BASELINE_HASH) {
   eq('无头像输出与改前基线逐字节一致', noAvatarHash, process.env.OG_BASELINE_HASH);
 }
+});
 
 /* ---------- 场景 2: 有头像 ---------- */
+it('场景 2: 有头像', async () => {
 state.avatarMode = 'on';
 clearRenderCache();
 cacheStore.delete('https://yanyun.tbdlab.workers.dev/guilds/test1/avatar');
@@ -160,21 +157,24 @@ const warmAvatar = [];
 for (let i = 0; i < 3; i++) { clearRenderCache(); warmAvatar.push((await ogGet('/og/test1.png')).ms); }
 console.log(`INFO  有头像暖渲染 ms: ${warmAvatar.map((x) => x.toFixed(0)).join(', ')} (median ${median([...warmAvatar]).toFixed(0)})`);
 console.log(`TIMING  暖渲染 median: 无头像 ${median([...warmNoAvatar]).toFixed(0)}ms -> 有头像 ${median([...warmAvatar]).toFixed(0)}ms`);
+});
 
 /* ---------- 场景 3: 头像拉取失败 -> 当无头像渲染 ---------- */
+it('场景 3: 头像拉取失败 -> 当无头像渲染', async () => {
 state.avatarMode = 'fail';
 clearRenderCache();
 cacheStore.delete('https://yanyun.tbdlab.workers.dev/guilds/test1/avatar');
 const failRes = await ogGet('/og/test1.png');
 eq('头像拉取失败 -> 200', failRes.res.status, 200);
 eq('头像拉取失败输出 = 无头像输出', await sha256hex(failRes.buf), noAvatarHash);
+});
 
 /* ---------- 场景 4: hub 通用图 / 不存在 404 ---------- */
+it('场景 4: hub 通用图 / 不存在 404', async () => {
 const hub = await ogGet('/og/hub.png');
 eq('hub -> 200', hub.res.status, 200);
 eq('hub = 预渲染通用图字节', await sha256hex(hub.buf), await sha256hex(genericPngBytes));
 const ghost = await ogGet('/og/ghost.png');
 eq('不存在百业 -> 404', ghost.res.status, 404);
-
-console.log(`\n== og avatar harness: ${pass} passed, ${fail} failed ==`);
-if (fails.length) { console.log('FAILS:\n' + fails.map((f) => ' - ' + f).join('\n')); process.exit(1); }
+});
+});
