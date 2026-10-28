@@ -8,7 +8,7 @@
 //   Binding: `AI`, declared in wrangler.toml ([ai] section).
 //
 // A missing binding (local dev without the binding, harness
-// environments, any misconfigured deploy) reads as "provider not
+// environments, a misconfigured deploy) reads as "provider not
 // configured": createTranslator returns null and the announcement
 // surfaces compose exactly as before P26 — the defensive path is
 // deliberate, the binding is the normal state.
