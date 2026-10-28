@@ -10,9 +10,9 @@
 //   STRIPE_PRICE_ID      price_... — the legacy single Premium price:
 //     the price-display slot and the no-tier checkout path, kept
 //     verbatim from the single-price era.
-//   STRIPE_PRICE_ID_T1   price_... — tier 1 (同道) monthly price
-//   STRIPE_PRICE_ID_T2   price_... — tier 2 (执事) monthly price
-//   STRIPE_PRICE_ID_T3   price_... — tier 3 (盟主) monthly price
+//   STRIPE_PRICE_ID_T1   price_... — tier 1 (Kindred) monthly price
+//   STRIPE_PRICE_ID_T2   price_... — tier 2 (Steward) monthly price
+//   STRIPE_PRICE_ID_T3   price_... — tier 3 (Guildmaster) monthly price
 // Stripe counts as configured when the two keys and at least one
 // price are present; OFFERABILITY is per path — a tier whose price
 // key is absent has no checkout (never a fallback to another
