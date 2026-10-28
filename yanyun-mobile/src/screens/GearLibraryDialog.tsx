@@ -1,6 +1,5 @@
 import React, { Suspense, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLazyLoadQuery } from 'react-relay';
 import { fonts, theme } from '../theme';
@@ -11,33 +10,40 @@ import { GearToastHost } from '../gear/bits';
 import { GoldDustHost } from '../gear/GearSeal';
 import type { documentsGearPageQuery } from '../__generated__/documentsGearPageQuery.graphql';
 
-// Standalone gear library screen (push page; mirrors Web /gear). The
-// library used to be embedded at the bottom of Profile, below the
-// language list — it read as an appendix, not a library (marcus,
-// 2026-10-27). It now owns a full screen: back + library title header,
-// then the GearLibrary component (profile mode: its own header with
-// count / add-gear panel / management row / slot filter, the item grid
-// as the first content, my builds below). Profile keeps only an entry
-// row that pushes here. Same GearLibrary implementation and per-account
-// backend storage the bench uses — no second implementation.
-export default function GearLibraryScreen() {
+// Gear library as a dialog PAGE (marcus, 2026-10-27), replacing the /gear
+// push route: a single page-level Modal that Profile opens in place.
+// Profile is a route page (not a dialog), so this Modal is the only
+// layer — nothing stacks it on another dialog. Slide-up presentation,
+// full-screen sheet in the form language of the gear sheets (GradCalc /
+// SheetSelect): header (back chevron + library title), then the complete
+// GearLibrary in profile mode (its own header with count / add-gear
+// panel / management row / slot filter, the item grid, my builds below).
+// Same GearLibrary implementation and per-account backend storage the
+// bench uses — no second implementation. Toast and gold-dust hosts live
+// inside the Modal so library feedback renders within this layer.
+export default function GearLibraryDialog({ onClose }: { onClose: () => void }) {
   const insets = useSafeAreaInsets();
   const [epoch, setEpoch] = useState(0);
   return (
-    <View style={s.root}>
-      <AsyncBoundary key={epoch} onRetry={() => setEpoch((e) => e + 1)}>
-        <Suspense fallback={<LoadingView />}>
-          <GearInner topInset={insets.top} bottomInset={insets.bottom} />
-        </Suspense>
-      </AsyncBoundary>
-      <GearToastHost />
-      <GoldDustHost />
-    </View>
+    <Modal visible transparent animationType="slide" onRequestClose={onClose}>
+      <View style={s.root}>
+        <AsyncBoundary key={epoch} onRetry={() => setEpoch((e) => e + 1)}>
+          <Suspense fallback={<LoadingView />}>
+            <GearInner topInset={insets.top} bottomInset={insets.bottom} onClose={onClose} />
+          </Suspense>
+        </AsyncBoundary>
+        <GearToastHost />
+        <GoldDustHost />
+      </View>
+    </Modal>
   );
 }
 
-function GearInner({ topInset, bottomInset }: { topInset: number; bottomInset: number }) {
-  const router = useRouter();
+function GearInner({ topInset, bottomInset, onClose }: {
+  topInset: number;
+  bottomInset: number;
+  onClose: () => void;
+}) {
   const data = useLazyLoadQuery<documentsGearPageQuery>(
     GearPageQuery, {}, { fetchPolicy: 'store-or-network' },
   );
@@ -51,7 +57,7 @@ function GearInner({ topInset, bottomInset }: { topInset: number; bottomInset: n
       }}
     >
       <View style={s.head}>
-        <Pressable onPress={() => router.back()} hitSlop={10}>
+        <Pressable onPress={onClose} hitSlop={10}>
           <Text style={s.back}>‹</Text>
         </Pressable>
         <Text style={s.title}>{data.gradPage?.gearMyLibTitle}</Text>
