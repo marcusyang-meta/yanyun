@@ -30,10 +30,13 @@ export async function startHeirloomDev(): Promise<HeirloomFixture> {
   const devVars = fs.readFileSync(path.join(ROOT, '.dev.vars'), 'utf8');
   const get = (k: string) => (devVars.match(new RegExp(`^${k}=(.*)$`, 'm')) || [])[1]?.trim();
   const sessionSecret = get('SESSION_SECRET');
-  const adminPassword = get('ADMIN_PASSWORD');
-  if (!sessionSecret || !adminPassword) throw new Error('fixture .dev.vars lacks SESSION_SECRET / ADMIN_PASSWORD');
+  if (!sessionSecret) throw new Error('fixture .dev.vars lacks SESSION_SECRET');
 
-  const dev = spawn('pnpm', ['exec', 'wrangler', 'dev', '--port', '8799', '--local', '--ip', '127.0.0.1'],
+  // Hub overhaul: the admin surface is gated by the platform-admin
+  // gate, not a password. The fixture makes the seeded user 2001 a
+  // platform admin through the gate's env floor (--var beats
+  // .dev.vars), so the suite's session JWT doubles as the admin.
+  const dev = spawn('pnpm', ['exec', 'wrangler', 'dev', '--port', '8799', '--local', '--ip', '127.0.0.1', '--var', 'PLATFORM_ADMIN_DISCORD_IDS:2001'],
     { cwd: ROOT, env: { ...process.env, CI: 'true', WRANGLER_SEND_METRICS: 'false' }, stdio: ['ignore', 'pipe', 'pipe'], detached: true });
   dev.stdout?.on('data', (d) => process.stdout.write('[wrangler] ' + d));
   dev.stderr?.on('data', (d) => process.stderr.write('[wrangler] ' + d));
@@ -47,13 +50,9 @@ export async function startHeirloomDev(): Promise<HeirloomFixture> {
   if (!up) { stop(); throw new Error('wrangler dev :8799 did not come up'); }
   console.log('[fixture] wrangler dev is up');
 
-  // Exercise the worker once before seeding (hub login + a public
-  // GraphQL read), so any boot-path failure surfaces here rather than
-  // inside the suite. All tables come from the migration chain.
-  await fetch('http://127.0.0.1:8799/api/hub/login', {
-    method: 'POST', headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ ['pass' + 'word']: adminPassword }),
-  }).catch(() => null);
+  // Exercise the worker once before seeding (a public GraphQL read),
+  // so any boot-path failure surfaces here rather than inside the
+  // suite. All tables come from the migration chain.
   await fetch('http://127.0.0.1:8799/graphql', {
     method: 'POST', headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ query: '{ ogGuildSlugs }' }),

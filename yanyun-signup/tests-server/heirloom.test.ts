@@ -1,8 +1,10 @@
 // Heirloom push acceptance (local wrangler dev + stub webhook receiver):
-//  A) hub endpoints: login -> GET list (unconfigured) -> PUT save
-//     (masked, never echoes the full value; invalid URL -> 400) ->
-//     enable -> SQL swaps the stored address for the stub -> POST test
-//     (test-ok).
+//  A) admin endpoints (hub overhaul: the retired hub REST portal is
+//     replaced by the GraphQL admin surface; the fixture's session
+//     user 2001 is a platform admin via the gate's env floor):
+//     list (unconfigured) -> save (masked, never echoes the full
+//     value; invalid URL refused) -> enable -> SQL swaps the stored
+//     address for the stub -> test (test-ok).
 //  B) Triggering (gearPlan server-side evaluation, user 2001, livetest
 //     roster nickname 车头甲): 1 new heirloom -> repeat evaluation does
 //     not resend -> new row id with identical content does not resend
@@ -25,12 +27,8 @@ const WORKER = 'http://localhost:8799';
 const STUB_PORT = 18754;
 const SLUG = 'livetest';
 let JWT = '';
-let ADMIN_PASSWORD = '';
 function loadLocalSecrets() {
   JWT = fs.readFileSync('/tmp/jwt-a.txt', 'utf8').trim();
-  const devVars = fs.readFileSync(new URL('../.dev.vars', import.meta.url), 'utf8');
-  ADMIN_PASSWORD = (devVars.match(/^ADMIN_PASSWORD=(.*)$/m) || [])[1]?.trim();
-  if (!ADMIN_PASSWORD) throw new Error('NO LOCAL ADMIN_PASSWORD');
 }
 
 let pass = 0, fail = 0;
@@ -91,13 +89,41 @@ async function gql(query, variables, cookie = JWT) {
   });
   return r.json();
 }
-let hubToken = '';
+/* Platform-admin adapter (hub overhaul): keeps the {status, body}
+ * shape the A/B assertions were written against while driving the
+ * GraphQL admin surface with the fixture session (user 2001, admin
+ * via the env floor). Payload errorCodes map back to the old HTTP
+ * statuses (format refusal -> 400). */
+const HEIRLOOM_FIELDS = 'slug guildName webhookSet webhookMasked enabled lastAt lastStatus lastError lastEvent';
 async function hub(path, init = {}) {
-  const r = await fetch(WORKER + '/api/hub' + path, {
-    ...init,
-    headers: { 'content-type': 'application/json', authorization: `Bearer ${hubToken}`, ...(init.headers || {}) },
-  });
-  return { status: r.status, body: await r.json().catch(() => null) };
+  if (path === '/heirlooms' && (!init.method || init.method === 'GET')) {
+    const r = await gql(`{ viewer { platformAdmin { ... on PlatformAdmin { heirlooms { ${HEIRLOOM_FIELDS} } } } } }`, undefined);
+    const rows = r.data?.viewer?.platformAdmin?.heirlooms;
+    if (!rows) return { status: 401, body: null };
+    return { status: 200, body: { heirlooms: rows } };
+  }
+  const m = /^\/tenants\/([^/]+)\/heirloom(\/test)?$/.exec(path);
+  if (m && init.method === 'PUT') {
+    const bodyIn = JSON.parse(init.body || '{}');
+    const vars = { slug: m[1] };
+    if (bodyIn.webhook !== undefined) vars.webhook = bodyIn.webhook;
+    if (bodyIn.enabled !== undefined) vars.enabled = bodyIn.enabled;
+    const r = await gql(`mutation($slug: String!, $webhook: String, $enabled: Boolean) {
+      platformAdminUpdateHeirloom(slug: $slug, webhook: $webhook, enabled: $enabled) {
+        ok error errorCode heirloom { ${HEIRLOOM_FIELDS} } } }`, vars);
+    const payload = r.data?.platformAdminUpdateHeirloom;
+    if (!payload) return { status: 401, body: null };
+    const status = payload.ok ? 200 : payload.errorCode === 'webhookFormatInvalid' ? 400 : 400;
+    return { status, body: payload };
+  }
+  if (m && init.method === 'POST' && m[2] === '/test') {
+    const r = await gql(`mutation($slug: String!) {
+      platformAdminTestHeirloom(slug: $slug) { ok error errorCode message heirloom { ${HEIRLOOM_FIELDS} } } }`, { slug: m[1] });
+    const payload = r.data?.platformAdminTestHeirloom;
+    if (!payload) return { status: 401, body: null };
+    return { status: payload.ok ? 200 : 400, body: payload };
+  }
+  throw new Error('unmapped admin op: ' + (init.method || 'GET') + ' ' + path);
 }
 
 beforeAll(async () => {
@@ -143,38 +169,39 @@ fullLoadout = { '主武器': W1.id, '副武器': W2.id, '冠胄': GZ.id, '胸甲
 
 });
 
-/* ---------- A) hub endpoints ---------- */
-it('A) hub endpoints', async () => {
-  const login = await fetch(WORKER + '/api/hub/login', {
+/* ---------- A) admin endpoints ---------- */
+it('A) admin endpoints', async () => {
+  const oldLogin = await fetch(WORKER + '/api/hub/login', {
     method: 'POST', headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ password: ADMIN_PASSWORD }),
-  }).then((r) => r.json());
-  hubToken = login.token || '';
-  check('A0 hub 登录 (本地密码)', !!hubToken);
+    body: JSON.stringify({ password: 'whatever' }),
+  });
+  check('A0 旧 hub 登录已退役 -> 404', oldLogin.status === 404, 'status=' + oldLogin.status);
+  const pa = await gql('{ viewer { platformAdmin { __typename } } }', undefined);
+  check('A0 会话 + env 名单 -> 管理面可达', pa.data?.viewer?.platformAdmin?.__typename === 'PlatformAdmin');
 
   const list0 = await hub('/heirlooms');
   const row0 = (list0.body?.heirlooms || []).find((x) => x.slug === SLUG);
-  check('A1 GET /heirlooms: livetest 初始未配置', !!row0 && row0.webhookSet === false && row0.enabled === false, JSON.stringify(row0));
+  check('A1 heirlooms 列表: livetest 初始未配置', !!row0 && row0.webhookSet === false && row0.enabled === false, JSON.stringify(row0));
 
   const bad = await hub(`/tenants/${SLUG}/heirloom`, { method: 'PUT', body: JSON.stringify({ webhook: 'https://example.com/hook' }) });
-  check('A2 PUT 非法 URL -> 400', bad.status === 400, 'status=' + bad.status);
+  check('A2 非法 URL 保存被拒', bad.status === 400, 'status=' + bad.status);
 
   const fakeUrl = 'https://discord.com/api/webhooks/1111111111111111111/harnessToken_AbC-1234';
   const put = await hub(`/tenants/${SLUG}/heirloom`, { method: 'PUT', body: JSON.stringify({ webhook: fakeUrl }) });
-  check('A3 PUT 合法 URL 保存成功', put.status === 200 && put.body?.heirloom?.webhookSet === true);
+  check('A3 合法 URL 保存成功', put.status === 200 && put.body?.heirloom?.webhookSet === true);
   check('A4 掩码只露 id + 末 4 位, 不回显 token 全文',
     (put.body?.heirloom?.webhookMasked || '').includes('1111111111111111111')
     && (put.body?.heirloom?.webhookMasked || '').endsWith('1234')
     && !(put.body?.heirloom?.webhookMasked || '').includes('harnessToken'), put.body?.heirloom?.webhookMasked);
 
   const en = await hub(`/tenants/${SLUG}/heirloom`, { method: 'PUT', body: JSON.stringify({ enabled: true }) });
-  check('A5 PUT 启用开关', en.body?.heirloom?.enabled === true);
+  check('A5 启用开关', en.body?.heirloom?.enabled === true);
 
   // Swap the server-stored address for the stub (direct D1 write, bypassing format validation — the endpoint itself does not re-validate stored values).
   await d1(`UPDATE settings SET value='${STUB_URL}' WHERE tenant='${SLUG}' AND key='heirloom_webhook'`);
   const test = await hub(`/tenants/${SLUG}/heirloom/test`, { method: 'POST' });
   await waitCount(1, 'test message');
-  check('A6 POST test -> stub 收到测试消息', received[0].content.includes('传家宝推送已接通') && received[0].username === '燕云百业');
+  check('A6 test -> stub 收到测试消息', received[0].content.includes('传家宝推送已接通') && received[0].username === '燕云百业');
   check('A7 test 状态落 test-ok', test.body?.heirloom?.lastStatus === 'test-ok', JSON.stringify(test.body?.heirloom));
   received.length = 0;
 });
@@ -250,7 +277,7 @@ it('B) triggering', async () => {
 
   const listEnd = await hub('/heirlooms');
   const rowEnd = (listEnd.body?.heirlooms || []).find((x) => x.slug === SLUG);
-  check('B11 portal 状态: lastStatus=ok 且有事件摘要', rowEnd?.lastStatus === 'ok' && !!rowEnd?.lastEvent, JSON.stringify(rowEnd));
+  check('B11 管理面状态: lastStatus=ok 且有事件摘要', rowEnd?.lastStatus === 'ok' && !!rowEnd?.lastEvent, JSON.stringify(rowEnd));
 });
 
 /* ---------- C) Reminder config untouched ---------- */
