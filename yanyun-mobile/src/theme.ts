@@ -1,14 +1,15 @@
 // Central visual theme -- the token single source moved to @yanyun/theme
 // (packages/theme, data source tokens.json, same values as Web
 // index.css :root). This file only maps tokens into the app's usual
-// shapes (theme/fonts/space/radius); consumers are unaffected. Type is
-// the platform system sans on both platforms (token sansFamily 'System':
-// San Francisco on iOS, Roboto on Android) -- no bundled font files.
+// shapes (theme/fonts/space/radius); consumers are unaffected. Fonts are
+// registered via useFonts in _layout: MaShanZheng (calligraphy display)
+// and NotoSerifSC (serif body, weights 400/600/700/900 in one family,
+// picked via fontWeight).
 import { colors, fonts as tokenFonts, gradients, radius, space } from '@yanyun/theme';
 
 export const fonts = {
-  display: tokenFonts.sansFamily,
-  body: tokenFonts.sansFamily,
+  brush: tokenFonts.brushFamily,
+  serif: tokenFonts.serifFamily,
 } as const;
 
 export const theme = {
@@ -16,12 +17,11 @@ export const theme = {
   ink2: colors.ink2,
   cardBg: colors.ink2,
   paper: colors.paper,
-  accent: colors.accent,
-  accentHi: colors.accentHi,
-  accentLight: colors.accentLight,
-  accentDeep: colors.accentDeep,
-  onAccent: colors.onAccent,
-  accentTint: colors.accentTint,
+  gold: colors.gold,
+  goldHi: colors.goldHi,
+  goldLight: colors.goldLight,
+  goldDeep: colors.goldDeep,
+  onGold: colors.onGold,
   muted: colors.muted,
   seal: colors.seal,
   danger: colors.danger,
@@ -29,9 +29,8 @@ export const theme = {
   cardBorder: colors.border,
   inputBg: colors.inputBg,
   inputFill: colors.inputFill,
-  // Flat color pairs (kept as two-stop arrays for expo-linear-gradient
-  // consumers; both stops are the same color, so fills render flat)
-  accentGradient: gradients.accent,
+  // Gradients (RN has no CSS gradients; consumed by expo-linear-gradient)
+  goldGradient: gradients.gold,
   cardGradient: gradients.card,
   tabGradient: gradients.tab,
   tabsBg: colors.tabsBg,

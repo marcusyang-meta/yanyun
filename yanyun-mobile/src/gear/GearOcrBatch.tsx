@@ -149,7 +149,7 @@ function BatchAdjuster(props: {
           <View
             pointerEvents="none"
             style={{
-              position: 'absolute', borderWidth: 2, borderColor: theme.accentHi, borderRadius: 2,
+              position: 'absolute', borderWidth: 2, borderColor: theme.goldHi, borderRadius: 2,
               left: `${pct(edit.x, props.imgW)}%`, top: `${pct(edit.y, props.imgH)}%`,
               width: `${pct(edit.w, props.imgW)}%`, height: `${pct(edit.h, props.imgH)}%`,
             }}
@@ -370,7 +370,7 @@ export default function GearOcrBatch(props: {
                   <View
                     pointerEvents="none"
                     style={{
-                      position: 'absolute', borderWidth: 1.5, borderColor: theme.accentHi,
+                      position: 'absolute', borderWidth: 1.5, borderColor: theme.goldHi,
                       left: `${(r.box.x / r.imgW) * 100}%`, top: `${(r.box.y / r.imgH) * 100}%`,
                       width: `${(r.box.w / r.imgW) * 100}%`, height: `${(r.box.h / r.imgH) * 100}%`,
                     }}
@@ -386,12 +386,12 @@ export default function GearOcrBatch(props: {
 
             <View style={{ flex: 1, minWidth: 0 }}>
               <View style={s.rowHead}>
-                <Text style={{ color: r.status === 'failed' ? theme.seal : theme.accentHi, fontSize: 12.5, fontFamily: fonts.body }}>
+                <Text style={{ color: r.status === 'failed' ? theme.seal : theme.goldHi, fontSize: 12.5, fontFamily: fonts.serif }}>
                   {statusText(r)}
                 </Text>
                 {dup && <Text style={s.tagDup}>{t.gearOcrBatchDupTag}</Text>}
                 {dup && (
-                  <Text style={{ color: theme.seal, fontSize: 11.5, fontFamily: fonts.body }}>
+                  <Text style={{ color: theme.seal, fontSize: 11.5, fontFamily: fonts.serif }}>
                     {dup === 'lib' ? t.gearOcrBatchDupLibText : t.gearOcrBatchDupRowText}
                   </Text>
                 )}
@@ -515,35 +515,35 @@ export default function GearOcrBatch(props: {
 }
 
 const s = StyleSheet.create({
-  wrap: { marginTop: 12, borderTopWidth: 1, borderTopColor: 'rgba(67,160,134,.2)', paddingTop: 10 },
-  title: { fontFamily: fonts.body, color: theme.accentHi, fontSize: 13, marginBottom: 4 },
+  wrap: { marginTop: 12, borderTopWidth: 1, borderTopColor: 'rgba(201,163,92,.2)', paddingTop: 10 },
+  title: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 13, marginBottom: 4 },
   drop: {
-    marginTop: 4, borderWidth: 1, borderStyle: 'dashed', borderColor: 'rgba(67,160,134,.45)',
+    marginTop: 4, borderWidth: 1, borderStyle: 'dashed', borderColor: 'rgba(201,163,92,.45)',
     borderRadius: 8, paddingVertical: 12, paddingHorizontal: 10, alignItems: 'center',
   },
-  dropText: { fontFamily: fonts.body, color: theme.accentHi, fontSize: 12.5 },
+  dropText: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 12.5 },
   row: {
     flexDirection: 'row', gap: 10, marginTop: 10,
-    borderWidth: 1, borderColor: 'rgba(67,160,134,.22)', borderRadius: 8,
+    borderWidth: 1, borderColor: 'rgba(201,163,92,.22)', borderRadius: 8,
     paddingVertical: 8, paddingHorizontal: 10, backgroundColor: 'rgba(0,0,0,.18)',
   },
   thumbCol: { width: 92 },
   thumbWrap: { position: 'relative', width: 92 },
   thumb: { width: 92, height: 64, borderRadius: 5 },
-  thumbNote: { fontFamily: fonts.body, fontSize: 11, color: theme.muted, marginTop: 4 },
+  thumbNote: { fontFamily: fonts.serif, fontSize: 11, color: theme.muted, marginTop: 4 },
   rowHead: { flexDirection: 'row', gap: 8, alignItems: 'center', flexWrap: 'wrap' },
   tagDup: {
-    fontFamily: fonts.body, fontSize: 11, color: theme.seal,
+    fontFamily: fonts.serif, fontSize: 11, color: theme.seal,
     borderWidth: 1, borderColor: theme.seal, borderRadius: 5, paddingVertical: 1, paddingHorizontal: 6,
   },
   grid2: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 6 },
   gridCell: { flexBasis: '47%', flexGrow: 1 },
   lineRow: { flexDirection: 'row', gap: 6, marginTop: 5, alignItems: 'center' },
-  lowConf: { fontFamily: fonts.body, color: theme.seal, fontSize: 11 },
-  noLines: { fontFamily: fonts.body, color: theme.seal, fontSize: 12, marginTop: 6 },
+  lowConf: { fontFamily: fonts.serif, color: theme.seal, fontSize: 11 },
+  noLines: { fontFamily: fonts.serif, color: theme.seal, fontSize: 12, marginTop: 6 },
   schoolRow: { flexDirection: 'row', gap: 5, flexWrap: 'wrap', marginTop: 7, alignItems: 'center' },
-  schoolLbl: { fontFamily: fonts.body, color: theme.muted, fontSize: 11.5 },
-  unknowns: { fontFamily: fonts.body, color: theme.seal, fontSize: 12, marginTop: 6 },
+  schoolLbl: { fontFamily: fonts.serif, color: theme.muted, fontSize: 11.5 },
+  unknowns: { fontFamily: fonts.serif, color: theme.seal, fontSize: 12, marginTop: 6 },
   checkLine: { flexDirection: 'row', gap: 14, alignItems: 'center', flexWrap: 'wrap', marginTop: 8 },
   adjusterWrap: { position: 'relative', width: '100%', maxWidth: 560 },
   adjusterImg: { width: '100%', height: 300, borderRadius: 6 },

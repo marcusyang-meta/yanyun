@@ -147,8 +147,8 @@ function DexList({ dungeonId, setDungeonId, onBoss, notify }: {
         <Seal char={SEAL_MAP[d.name] ?? d.name.slice(0, 2)} size={44} brush={false} />
         <View style={{ flex: 1 }}>
           <Text style={s.rowNameLeft}>{d.name}</Text>
-          <View style={[s.tag, { borderColor: inCurrent ? theme.accent : theme.muted }]}>
-            <Text style={[s.tagText, { color: inCurrent ? theme.accentHi : theme.muted }]}>{levelTag}{sizeTag}</Text>
+          <View style={[s.tag, { borderColor: inCurrent ? theme.gold : theme.muted }]}>
+            <Text style={[s.tagText, { color: inCurrent ? theme.goldHi : theme.muted }]}>{levelTag}{sizeTag}</Text>
           </View>
           <Text style={s.dexLabel}>{dexLabel}</Text>
         </View>
@@ -288,14 +288,14 @@ function BossDetail({ bossId, onBack, notify }: { bossId: string; onBack: () => 
 }
 
 const s = StyleSheet.create({
-  back: { fontFamily: fonts.body, color: theme.accent, fontSize: 15, marginBottom: 12 },
-  h2: { fontFamily: fonts.body, color: theme.accentHi, fontSize: 24, letterSpacing: 2, marginBottom: 4 },
-  meta: { fontFamily: fonts.body, color: theme.muted, fontSize: 13, marginBottom: 16 },
+  back: { fontFamily: fonts.serif, color: theme.gold, fontSize: 15, marginBottom: 12 },
+  h2: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 24, letterSpacing: 2, marginBottom: 4 },
+  meta: { fontFamily: fonts.serif, color: theme.muted, fontSize: 13, marginBottom: 16 },
   // Section header mirrors Web SecHead: 16px bright gold + 11px sub + 1px gold rule
   secHead: { flexDirection: 'row', alignItems: 'baseline', gap: 8, marginTop: 20, marginBottom: 12 },
-  secTitle: { fontFamily: fonts.body, color: theme.accentHi, fontSize: 16, letterSpacing: 2 },
-  secSub: { fontFamily: fonts.body, color: theme.muted, fontSize: 11 },
-  secRule: { flex: 1, height: 1, backgroundColor: 'rgba(67,160,134,.25)' },
+  secTitle: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 16, letterSpacing: 2 },
+  secSub: { fontFamily: fonts.serif, color: theme.muted, fontSize: 11 },
+  secRule: { flex: 1, height: 1, backgroundColor: 'rgba(201,163,92,.25)' },
   // Dungeon/boss row mirrors Web rowBtn: row gap 12, padding 14/16, radius 10, card gradient
   row: {
     position: 'relative', overflow: 'hidden',
@@ -303,46 +303,46 @@ const s = StyleSheet.create({
     borderWidth: 1, borderColor: theme.cardBorder, borderRadius: 10,
     backgroundColor: theme.ink2, paddingVertical: 14, paddingHorizontal: 16,
   },
-  rowName: { flex: 1, fontFamily: fonts.body, color: theme.paper, fontSize: 15 },
-  rowNameLeft: { fontFamily: fonts.body, color: theme.paper, fontSize: 15 },
+  rowName: { flex: 1, fontFamily: fonts.serif, color: theme.paper, fontSize: 15 },
+  rowNameLeft: { fontFamily: fonts.serif, color: theme.paper, fontSize: 15 },
   tag: { alignSelf: 'flex-start', borderWidth: 1, borderRadius: 4, paddingVertical: 1, paddingHorizontal: 6, marginTop: 4 },
-  tagText: { fontFamily: fonts.body, fontSize: 11 },
-  dexLabel: { fontFamily: fonts.body, color: theme.muted, fontSize: 12, marginTop: 4 },
-  bossCount: { fontFamily: fonts.body, color: theme.accentHi, fontSize: 14 },
-  bossUnit: { fontFamily: fonts.body, color: theme.muted, fontSize: 11 },
-  chev: { fontFamily: fonts.body, color: theme.accent, fontSize: 18 },
-  empty: { fontFamily: fonts.body, color: theme.muted, fontSize: 14, textAlign: 'center', padding: 32 },
-  emptySmall: { fontFamily: fonts.body, color: theme.muted, fontSize: 14, textAlign: 'center', padding: 24 },
+  tagText: { fontFamily: fonts.serif, fontSize: 11 },
+  dexLabel: { fontFamily: fonts.serif, color: theme.muted, fontSize: 12, marginTop: 4 },
+  bossCount: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 14 },
+  bossUnit: { fontFamily: fonts.serif, color: theme.muted, fontSize: 11 },
+  chev: { fontFamily: fonts.serif, color: theme.gold, fontSize: 18 },
+  empty: { fontFamily: fonts.serif, color: theme.muted, fontSize: 14, textAlign: 'center', padding: 32 },
+  emptySmall: { fontFamily: fonts.serif, color: theme.muted, fontSize: 14, textAlign: 'center', padding: 24 },
   // Tabs mirror Web BossDetail: gold-outline buttons; active = solid gold fill + ink text 600
   tabRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
-  tabBtn: { borderWidth: 1, borderColor: theme.accent, borderRadius: 8, paddingVertical: 8, paddingHorizontal: 24 },
-  tabBtnOn: { backgroundColor: theme.accent },
-  tabBtnText: { fontFamily: fonts.body, color: theme.paper, fontSize: 14 },
-  tabBtnTextOn: { color: theme.onAccent, fontWeight: '600' },
+  tabBtn: { borderWidth: 1, borderColor: theme.gold, borderRadius: 8, paddingVertical: 8, paddingHorizontal: 24 },
+  tabBtnOn: { backgroundColor: theme.gold },
+  tabBtnText: { fontFamily: fonts.serif, color: theme.paper, fontSize: 14 },
+  tabBtnTextOn: { color: theme.onGold, fontWeight: '600' },
   // Content card mirrors Web card: padding 16, radius 10, border + card gradient
   card: {
     position: 'relative', overflow: 'hidden',
     borderWidth: 1, borderColor: theme.cardBorder, borderRadius: 10,
     backgroundColor: theme.ink2, padding: 16,
   },
-  cardTitle: { fontFamily: fonts.body, color: theme.accent, fontSize: 15, fontWeight: '600', marginBottom: 8 },
-  mechDesc: { fontFamily: fonts.body, color: theme.paper, fontSize: 14, lineHeight: 24 },
-  talentDesc: { fontFamily: fonts.body, color: theme.paper, fontSize: 13, lineHeight: 22 },
+  cardTitle: { fontFamily: fonts.serif, color: theme.gold, fontSize: 15, fontWeight: '600', marginBottom: 8 },
+  mechDesc: { fontFamily: fonts.serif, color: theme.paper, fontSize: 14, lineHeight: 24 },
+  talentDesc: { fontFamily: fonts.serif, color: theme.paper, fontSize: 13, lineHeight: 22 },
   shoutRow: {
     flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8,
-    backgroundColor: 'rgba(67,160,134,.08)', borderRadius: 8, paddingVertical: 8, paddingHorizontal: 12,
+    backgroundColor: 'rgba(201,163,92,.08)', borderRadius: 8, paddingVertical: 8, paddingHorizontal: 12,
   },
-  shoutText: { flex: 1, fontFamily: fonts.body, color: theme.paper, fontSize: 13 },
-  copyBtn: { backgroundColor: theme.accent, borderRadius: 6, paddingVertical: 4, paddingHorizontal: 12 },
-  copyBtnText: { fontFamily: fonts.body, color: theme.onAccent, fontSize: 12 },
+  shoutText: { flex: 1, fontFamily: fonts.serif, color: theme.paper, fontSize: 13 },
+  copyBtn: { backgroundColor: theme.gold, borderRadius: 6, paddingVertical: 4, paddingHorizontal: 12 },
+  copyBtnText: { fontFamily: fonts.serif, color: theme.onGold, fontSize: 12 },
   // Talent grid stays two columns (Web grid 1fr 1fr), even on narrow screens
   talentGrid: { flexDirection: 'row', gap: 12 },
   talentCol: { flex: 1, gap: 12 },
   // Toast overlay (the app counterpart of Web .yy-toast)
   toast: {
     position: 'absolute', alignSelf: 'center', maxWidth: '86%',
-    backgroundColor: 'rgba(30,33,38,.96)', borderWidth: 1, borderColor: 'rgba(67,160,134,.45)',
+    backgroundColor: 'rgba(20,18,14,.96)', borderWidth: 1, borderColor: 'rgba(201,163,92,.45)',
     borderRadius: 999, paddingVertical: 9, paddingHorizontal: 18,
   },
-  toastText: { fontFamily: fonts.body, color: theme.accentHi, fontSize: 13, textAlign: 'center' },
+  toastText: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 13, textAlign: 'center' },
 });
