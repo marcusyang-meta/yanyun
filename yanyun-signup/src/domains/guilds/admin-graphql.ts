@@ -31,7 +31,7 @@ import {
   getGuildAvatarMeta, avatarPath, putGuildAvatar,
   deleteGuildAvatar as deleteGuildAvatarRepo, sniffAvatarType, AVATAR_MAX_BYTES,
 } from './guildavatar.ts';
-import { updateTenantProfile, updateTenantWebhook } from './tenants.ts';
+import { updateTenantProfile, updateTenantWebhook, updateTenantRecruitOpen } from './tenants.ts';
 import {
   getWhiteLabelSettings, getEffectiveWhiteLabelSettings, setWhiteLabelSettings, ogAccentOption,
   sanitizeOgTitleSuffix, OG_ACCENT_PALETTE,
@@ -503,6 +503,8 @@ const ADMIN_TEXT_SPEC: [string, string][] = [
   ['adminRecruitMenteeSelectLabel', 'recruit_adminMenteeSelectLabel'],
   ['adminRecruitNewcomersTitle', 'recruit_adminNewcomersTitle'],
   ['adminRecruitNewcomersEmptyText', 'recruit_adminNewcomersEmpty'],
+  ['adminRecruitOpenLabel', 'recruit_adminRecruitOpenLabel'],
+  ['adminRecruitOpenHint', 'recruit_adminRecruitOpenHint'],
   ['adminRecruitProfileLabel', 'recruit_itemProfileLabel'],
   ['adminRecruitMentorLabel', 'recruit_itemMentorLabel'],
   ['adminRecruitFirstRunLabel', 'recruit_itemFirstRunLabel'],
@@ -654,6 +656,11 @@ export class GuildAdminShell extends ShellBase {
    * and the newcomer checklist overview. All four live only on the
    * GuildAdmin type; every write re-runs the admin verdict in the
    * mutations below. */
+  /* The recruitment switch (tenants.recruit_open, default closed):
+   * only an open guild appears in the platform-home recruit
+   * directory and accepts applications. The write path is
+   * updateGuildRecruitOpen below. */
+  genRecruitOpen(){ return Number(this.access.tenant?.recruit_open || 0) === 1; }
   genRecruitApplications(){
     return this.memo('recruitApplications', async () => {
       const rows = await listApplicationsByTenant(this.db, this.genSlug());
@@ -742,6 +749,7 @@ function contentResolvers() {
     pageFooterDisclaimerText: (p: any) => p.genPageFooterDisclaimerText(),
     lotteries: (p: any) => p.genLotteries(),
     lotteryRoster: (p: any) => p.genLotteryRoster(),
+    recruitOpen: (p: any) => p.genRecruitOpen(),
     recruitApplications: (p: any) => p.genRecruitApplications(),
     recruitPairings: (p: any) => p.genRecruitPairings(),
     recruitRoster: (p: any) => p.genRecruitRoster(),
@@ -997,6 +1005,17 @@ export const guildAdminMutations = {
   updateGuildVisibility: async (_: any, { slug, devOnly }: any, ctx: Context) => {
     const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
     await setTenantSetting(ctx.env.DB, g.access.slug, 'dev_only', devOnly ? '1' : '');
+    return aOk(ctx);
+  },
+
+  /* The recruitment switch: open guilds are listed in the
+   * platform-home recruit directory and accept applications;
+   * closing refuses new applications (recruitClosed) and unlists
+   * the guild, while pending applications stay reviewable and
+   * members' newcomer entries are untouched. */
+  updateGuildRecruitOpen: async (_: any, { slug, open }: any, ctx: Context) => {
+    const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
+    await updateTenantRecruitOpen(ctx.env.DB, g.access.slug, !!open);
     return aOk(ctx);
   },
 

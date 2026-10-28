@@ -2420,13 +2420,17 @@ type GuildAdmin {
   # 成员名册 (免费功能, 不挂 gate): 游戏内名字名册, 与 Discord 成员
   # 资格 (guild_members) 正交; 截图 OCR 导入经待确认预览才落库。
   roster: GuildRoster!
-  # 招新新人线 (免费功能, 不挂任何权益门): 入业申请审核队列 (F16)、
-  # 导师人选与配对 (F17)、新人清单进度总览 (F24); 只挂 GuildAdmin —
-  # Locked 零招新字段。审核/配对写操作全部走下方 mutation 并在
-  # resolver 内复验管理结论。通过申请的平台侧效果 = 申请结案 +
-  # 登记进本百业名册; Discord 服务器成员身份平台无写通道 (无 bot
-  # 令牌, OAuth 为用户只读授权), 申请人通过后自行加入绑定服务器
-  # —— 主页招新区的 approvedNextStep 文案逐字说明这一步。
+  # 招新新人线 (免费功能, 不挂任何权益门): 招新开关、入业申请审核
+  # 队列 (F16)、导师人选与配对 (F17)、新人清单进度总览 (F24); 只挂
+  # GuildAdmin — Locked 零招新字段。审核/配对写操作全部走下方
+  # mutation 并在 resolver 内复验管理结论。通过申请的平台侧效果 =
+  # 申请结案 + 登记进本百业名册; Discord 服务器成员身份平台无写
+  # 通道 (无 bot 令牌, OAuth 为用户只读授权), 申请人通过后自行
+  # 加入绑定服务器 —— 主页招新区的 approvedNextStep 文案逐字
+  # 说明这一步。
+  # 招新开关 (tenants.recruit_open, 默认关): 开启的百业才进平台
+  # 主页招新目录并接受入业申请; 成员的新人拼装不看此开关。
+  recruitOpen: Boolean!
   recruitApplications: [RecruitApplication!]!
   recruitPairings: [MentorPairing!]!
   recruitRoster: [RecruitMember!]!
@@ -2570,6 +2574,8 @@ type GuildAdmin {
   adminRecruitMenteeSelectLabel: String!
   adminRecruitNewcomersTitle: String!
   adminRecruitNewcomersEmptyText: String!
+  adminRecruitOpenLabel: String!
+  adminRecruitOpenHint: String!
   adminRecruitProfileLabel: String!
   adminRecruitMentorLabel: String!
   adminRecruitFirstRunLabel: String!
@@ -2694,10 +2700,13 @@ type NewcomerProgress {
 }
 
 # 平台主页招新区 (招新线 F16/F24/F17 的唯一会员面; 独立招新页已解
-# 散): 目录对所有人公开 (已绑定服务器的百业, 名称/简介/头像为平台
-# 公开口径, 与 GuildCard 同集); 申请区只为登录非成员按百业拼装;
-# 新人拼装只为成员 (清单) 与被配对者 (配对) 拼装。匿名两区皆空 —
-# 组成即结论, 无任何权限标志位。文案全部后端下发。
+# 散): 目录对所有人公开, 只列已绑定服务器且开启招新
+# (tenants.recruit_open) 的百业 (名称/简介/头像为平台公开口径, 与
+# GuildCard 同集); 申请区只为登录非成员按百业拼装; 新人拼装只为
+# 成员 (清单) 与被配对者 (配对) 拼装, 不看招新开关。匿名两区皆
+# 空 — 组成即结论, 无任何权限标志位。文案全部后端下发。主页只
+# 渲染摘要行, 细节 (申请区全文 / 清单四项 / 配对) 由前端在
+# dialog (web) / 推页 (mobile) 里呈现同一份下发数据。
 type HomeRecruitSection {
   recruitTitle: String!
   homeBody: String!
@@ -2719,9 +2728,9 @@ type HomeRecruitSection {
   myNewcomer: [HomeRecruitNewcomer!]!
 }
 
-# 招新目录条目: 一个可申请的百业 (已绑定 Discord 服务器)。
-# myApplicationSection 仅当查看者可对本百业申请 (已登录且非成员)
-# 时存在; 成员与匿名皆为 null。
+# 招新目录条目: 一个可申请的百业 (已绑定 Discord 服务器且已开启
+# 招新)。myApplicationSection 仅当查看者可对本百业申请 (已登录且
+# 非成员) 时存在; 成员与匿名皆为 null。
 type HomeRecruitGuild {
   slug: String!
   name: String!
@@ -3105,6 +3114,7 @@ extend type Mutation {
   confirmRosterImport(slug: String!, batchId: ID!, rowIds: [ID!]!): RosterImportPayload!
   deleteGuildRosterEntry(slug: String!, entryId: ID!): GuildAdminPayload!
   # 招新线 (免费, 不挂权益门; 全部在 resolver 内复验管理结论)
+  updateGuildRecruitOpen(slug: String!, open: Boolean!): GuildAdminPayload!  # 招新开关: 开 = 进主页目录 + 可申请; 关 = 下目录 + 新申请以 recruitClosed 拒绝
   reviewGuildApplication(slug: String!, applicationId: ID!, approve: Boolean!): GuildAdminPayload!  # 通过 = 结案 + 登记名册 (Discord 入服由申请人自行完成, 见 recruit 文案)
   setGuildMentor(slug: String!, discordId: String!, isMentor: Boolean!): GuildAdminPayload!  # 设/取消导师人选 (不改已有配对)
   createMentorPairing(slug: String!, mentorDiscordId: String!, menteeDiscordId: String!): GuildAdminPayload!  # 导师须已在人选中; 新人同时至多一段进行中配对
@@ -3112,8 +3122,9 @@ extend type Mutation {
 }
 
 extend type Mutation {
-  # 入业申请 (F16): 登录的非成员向已绑定百业提交; 已有待审申请时
-  # 以 applicationPending 拒绝 (仓储部分唯一索引同规兜底)。
+  # 入业申请 (F16): 登录的非成员向已绑定且开启招新的百业提交;
+  # 未开启时以 recruitClosed 拒绝; 已有待审申请时以
+  # applicationPending 拒绝 (仓储部分唯一索引同规兜底)。
   applyToGuild(slug: String!, message: String): RecruitPayload!
 }
 

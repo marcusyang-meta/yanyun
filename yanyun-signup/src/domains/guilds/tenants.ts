@@ -40,6 +40,7 @@ export interface TenantRow {
   master_name: string | null;
   logo_url: string | null;
   bg_image_url: string | null;
+  recruit_open: number;
 }
 
 /* Full-row read (a superset of the legacy per-site SELECT subsets; consumers read only the fields they need). */
@@ -68,20 +69,33 @@ export async function listTenantSlugs(d1: D1Database): Promise<{ slug: string }[
   return rows || [];
 }
 
-/* Tenant directory rows (shared by public navigation and the portal guild list, same legacy shape). */
+/* Tenant directory rows (shared by public navigation and the portal guild list, same legacy shape).
+ * recruit_open rides along: the platform-home recruit directory
+ * filters on it (open guilds only) while the other directory
+ * consumers simply ignore the extra field. */
 export async function listTenantsDirectory(d1: D1Database): Promise<{
   slug: string; guild_name: string; announcement: string;
-  slogan: string | null; created_at: string;
+  slogan: string | null; created_at: string; recruit_open: number;
 }[]> {
   const db = createDb(d1);
   const rows = await db.all<{
     slug: string; guild_name: string; announcement: string;
-    slogan: string | null; created_at: string;
+    slogan: string | null; created_at: string; recruit_open: number;
   }>(
-    sql`SELECT ${col('slug')}, ${col('guild_name')}, ${col('announcement')}, ${col('slogan')}, ${col('created_at')}
+    sql`SELECT ${col('slug')}, ${col('guild_name')}, ${col('announcement')}, ${col('slogan')}, ${col('created_at')}, ${col('recruit_open')}
         FROM ${tenants} ORDER BY ${col('created_at')} ASC`,
   );
   return rows || [];
+}
+
+/* The recruitment switch (admin recruit tab write path): 1 = open
+ * (listed in the home recruit directory, applications accepted),
+ * 0 = closed (the default for every guild). */
+export async function updateTenantRecruitOpen(d1: D1Database, slug: string, open: boolean): Promise<void> {
+  const db = createDb(d1);
+  await db.run(
+    sql`UPDATE ${tenants} SET ${col('recruit_open')} = ${open ? 1 : 0} WHERE ${col('slug')} = ${slug}`,
+  );
 }
 
 /* slug + name across the table (heirloom evaluation traversal; the legacy query had no ordering — keep it unordered). */

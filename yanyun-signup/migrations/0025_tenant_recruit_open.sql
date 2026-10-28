@@ -1,0 +1,23 @@
+-- 0025: tenant recruit-open switch — recruit_open.
+--
+-- The platform-home recruit directory used to list every bound
+-- guild; marcus ruled (2026-10-27) that the directory lists only
+-- guilds that have recruitment open, and that applying is refused
+-- while it is closed. The switch is a per-guild setting owned by
+-- the guild admin surface (recruit tab, both clients) — it needs a
+-- real column: an entity field on tenants, read through the data
+-- layer (tenants.ts) like every other tenant field.
+--
+-- Shape: INTEGER NOT NULL DEFAULT 0 — closed by default, so every
+-- existing guild (production's one bound guild included) leaves
+-- the directory the moment this lands until its admin opens
+-- recruitment; that disappearance is the ruling's expected effect,
+-- not a regression. Members' newcomer entries (checklist /
+-- pairings) do not consult this column at all.
+--
+-- Pure expand: one additive column, nothing else changes. The
+-- previous release's code never names this column, so it is
+-- unaffected if it briefly runs against the migrated shape (apply
+-- runs before promote anyway).
+
+ALTER TABLE tenants ADD COLUMN recruit_open INTEGER NOT NULL DEFAULT 0;

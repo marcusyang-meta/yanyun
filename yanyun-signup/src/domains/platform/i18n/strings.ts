@@ -1942,6 +1942,9 @@ export abstract class ErrorsFbtUtils {
 	static memberOnlyView(fbs: FbsRuntime) {
 		return fbs._("该百业仅对 Discord 服务器成员开放", null, { hk: "Hvf6X" });
 	}
+	static recruitClosed(fbs: FbsRuntime) {
+		return fbs._("该百业尚未开放招新，暂时不能提交申请", null, { hk: "1WRvI8" });
+	}
 	static titleRequired(fbs: FbsRuntime) {
 		return fbs._("请填写标题", null, { hk: "Lg5ef" });
 	}
@@ -3347,6 +3350,12 @@ export abstract class RecruitFbtUtils {
 	static adminNewcomersEmpty(fbs: FbsRuntime) {
 		return fbs._("暂无未完成清单的新人。", null, { hk: "p8Uup" });
 	}
+	static adminRecruitOpenLabel(fbs: FbsRuntime) {
+		return fbs._("开放招新", null, { hk: "4hN6BI" });
+	}
+	static adminRecruitOpenHint(fbs: FbsRuntime) {
+		return fbs._("开启后，本百业会出现在平台主页的招新目录里，登录用户可以提交入业申请；关闭后目录不再展示本百业，也不能提交新申请（已提交的申请仍可审核，成员的入业清单与导师配对不受影响）。", null, { hk: "35OepQ" });
+	}
 }
 export abstract class OfficerFbtUtils {
 	static notesTitle(fbs: FbsRuntime) {
@@ -4071,6 +4080,7 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"errors_guildUnboundWrite": ErrorsFbtUtils.guildUnboundWrite,
 	"errors_memberOnly": ErrorsFbtUtils.memberOnly,
 	"errors_memberOnlyView": ErrorsFbtUtils.memberOnlyView,
+	"errors_recruitClosed": ErrorsFbtUtils.recruitClosed,
 	"errors_titleRequired": ErrorsFbtUtils.titleRequired,
 	"errors_badStartTime": ErrorsFbtUtils.badStartTime,
 	"errors_startTimeTooFar": ErrorsFbtUtils.startTimeTooFar,
@@ -4532,6 +4542,8 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"recruit_adminMenteeSelectLabel": RecruitFbtUtils.adminMenteeSelectLabel,
 	"recruit_adminNewcomersTitle": RecruitFbtUtils.adminNewcomersTitle,
 	"recruit_adminNewcomersEmpty": RecruitFbtUtils.adminNewcomersEmpty,
+	"recruit_adminRecruitOpenLabel": RecruitFbtUtils.adminRecruitOpenLabel,
+	"recruit_adminRecruitOpenHint": RecruitFbtUtils.adminRecruitOpenHint,
 	"officer_notesTitle": OfficerFbtUtils.notesTitle,
 	"officer_notesHint": OfficerFbtUtils.notesHint,
 	"officer_notesEmpty": OfficerFbtUtils.notesEmpty,

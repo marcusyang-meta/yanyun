@@ -4163,6 +4163,11 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "fr": "Cette guilde est réservée aux membres de son serveur Discord",
       "zh-TW": "該百業僅對 Discord 伺服器成員開放"
     },
+    "recruitClosed": {
+      "zh-CN": "该百业尚未开放招新，暂时不能提交申请",
+      "en": "This guild has not opened recruitment yet, so applications cannot be submitted for now",
+      "zh-TW": "該百業尚未開放招新，暫時不能提交申請"
+    },
     "titleRequired": {
       "zh-CN": "请填写标题",
       "en": "Please enter a title",
@@ -6661,6 +6666,16 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-CN": "暂无未完成清单的新人。",
       "en": "No newcomers with an unfinished checklist.",
       "zh-TW": "暫無未完成清單的新人。"
+    },
+    "adminRecruitOpenLabel": {
+      "zh-CN": "开放招新",
+      "en": "Recruitment open",
+      "zh-TW": "開啟招新"
+    },
+    "adminRecruitOpenHint": {
+      "zh-CN": "开启后，本百业会出现在平台主页的招新目录里，登录用户可以提交入业申请；关闭后目录不再展示本百业，也不能提交新申请（已提交的申请仍可审核，成员的入业清单与导师配对不受影响）。",
+      "en": "When on, this guild appears in the recruitment directory on the platform home page and signed-in users can submit a join application. When off, the guild leaves the directory and no new applications can be submitted (submitted applications can still be reviewed, and members’ onboarding checklists and mentor pairings are unaffected).",
+      "zh-TW": "開啟後，本百業會出現在平台主頁的招新目錄裡，登入用戶可以提交入業申請；關閉後目錄不再展示本百業，也不能提交新申請（已提交的申請仍可稽核，成員的入業清單與導師配對不受影響）。"
     }
   },
   "officer": {

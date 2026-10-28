@@ -11678,6 +11678,42 @@
         }
       ],
       "types": []
+    },
+    "UyyUrEpx12dCkeAZtsWRmQ==": {
+      "description": "Label text for the recruitment switch in the guild admin recruit tab, used for opening or closing the guild's listing in the platform home recruitment directory.",
+      "id": "guilds/recruit_adminRecruitOpenLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Recruitment open",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "LLK2vsaneXpgCS2YLeHtWQ==": {
+      "description": "Hint text for the recruitment switch in the guild admin recruit tab, used for explaining that an open guild appears in the platform home recruitment directory and accepts join applications, and that closing it hides the guild and stops new applications while submitted applications, member checklists and mentor pairings stay unaffected.",
+      "id": "guilds/recruit_adminRecruitOpenHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "When on, this guild appears in the recruitment directory on the platform home page and signed-in users can submit a join application. When off, the guild leaves the directory and no new applications can be submitted (submitted applications can still be reviewed, and members’ onboarding checklists and mentor pairings are unaffected).",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Aa71AQn7YMIdhvqD9BlCKw==": {
+      "description": "Error message for a join application submitted to a guild whose recruitment switch is off, used for telling the applicant the guild is not open for recruitment yet.",
+      "id": "platform/errors_recruitClosed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "This guild has not opened recruitment yet, so applications cannot be submitted for now",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

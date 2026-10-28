@@ -24,7 +24,11 @@ import {
  * DDL ever created them — they were phantom columns and profile saves
  * naming them threw in production; 0002 adds them for real, in the
  * NOT NULL DEFAULT '' caliber of the other text columns. The chain
- * and the drift gate pin this shape. */
+ * and the drift gate pin this shape.
+ * recruit_open [alt: 0025]: the guild's recruitment switch (1 = the
+ * guild appears in the platform-home recruit directory and accepts
+ * applications; 0 = neither). Default closed; owned by the guild
+ * admin surface, read/written only through tenants.ts. */
 export const tenants = sqliteTable('tenants', {
   slug: text('slug').primaryKey(),
   guildName: text('guild_name').notNull(),
@@ -36,6 +40,7 @@ export const tenants = sqliteTable('tenants', {
   masterName: text('master_name').notNull().default(''),
   logoUrl: text('logo_url').notNull().default(''),
   bgImageUrl: text('bg_image_url').notNull().default(''),
+  recruitOpen: integer('recruit_open').notNull().default(0),
 });
 
 /* ---------------- settings [ddl chain baseline] -------------------- */

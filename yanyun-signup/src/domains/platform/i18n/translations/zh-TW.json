@@ -11402,6 +11402,42 @@
         }
       ],
       "types": []
+    },
+    "UyyUrEpx12dCkeAZtsWRmQ==": {
+      "description": "Label text for the recruitment switch in the guild admin recruit tab, used for opening or closing the guild's listing in the platform home recruitment directory.",
+      "id": "guilds/recruit_adminRecruitOpenLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "開啟招新",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "LLK2vsaneXpgCS2YLeHtWQ==": {
+      "description": "Hint text for the recruitment switch in the guild admin recruit tab, used for explaining that an open guild appears in the platform home recruitment directory and accepts join applications, and that closing it hides the guild and stops new applications while submitted applications, member checklists and mentor pairings stay unaffected.",
+      "id": "guilds/recruit_adminRecruitOpenHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "開啟後，本百業會出現在平台主頁的招新目錄裡，登入用戶可以提交入業申請；關閉後目錄不再展示本百業，也不能提交新申請（已提交的申請仍可稽核，成員的入業清單與導師配對不受影響）。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Aa71AQn7YMIdhvqD9BlCKw==": {
+      "description": "Error message for a join application submitted to a guild whose recruitment switch is off, used for telling the applicant the guild is not open for recruitment yet.",
+      "id": "platform/errors_recruitClosed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "該百業尚未開放招新，暫時不能提交申請",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

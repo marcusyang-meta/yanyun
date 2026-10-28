@@ -98,6 +98,7 @@ export abstract class ErrorsFbtUtils {
   static guildUnboundWrite(fbs: FbsAPI) { return fbs("该百业尚未绑定 Discord 服务器，写功能已锁定", "Error message for unbound guilds, used on a write to a guild that has not bound a Discord server yet, where writes stay locked until binding."); }
   static memberOnly(fbs: FbsAPI) { return fbs("只有该百业 Discord 服务器的成员可以操作", "Error message for member-only writes, used when a non-member of the guild's Discord server attempts a member-only operation."); }
   static memberOnlyView(fbs: FbsAPI) { return fbs("该百业仅对 Discord 服务器成员开放", "Error message for member-only content, used when a non-member of the guild's Discord server attempts to view restricted guild content."); }
+  static recruitClosed(fbs: FbsAPI) { return fbs("该百业尚未开放招新，暂时不能提交申请", "Error message for a join application submitted to a guild whose recruitment switch is off, used for telling the applicant the guild is not open for recruitment yet."); }
   static titleRequired(fbs: FbsAPI) { return fbs("请填写标题", "Error message for squad forms, used when a squad is submitted without a title."); }
   static badStartTime(fbs: FbsAPI) { return fbs("请选择有效的出发时间", "Error message for squad forms, used when the chosen departure time is invalid or in the past."); }
   static startTimeTooFar(fbs: FbsAPI) { return fbs("出发时间不能超过 60 天后", "Error message for squad forms, used when the departure time is more than sixty days ahead."); }

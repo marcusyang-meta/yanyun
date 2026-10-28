@@ -286,6 +286,8 @@ export abstract class RecruitFbtUtils {
   static adminMenteeSelectLabel(fbs: FbsAPI) { return fbs("选择新人", "Field label for the pairing creation form, used for the newcomer selector."); }
   static adminNewcomersTitle(fbs: FbsAPI) { return fbs("新人清单进度", "Title text for the newcomer progress section in the guild admin recruit tab, used as the section heading."); }
   static adminNewcomersEmpty(fbs: FbsAPI) { return fbs("暂无未完成清单的新人。", "Empty-state text for the newcomer progress section, used when no newcomers have unfinished checklists."); }
+  static adminRecruitOpenLabel(fbs: FbsAPI) { return fbs("开放招新", "Label text for the recruitment switch in the guild admin recruit tab, used for opening or closing the guild's listing in the platform home recruitment directory."); }
+  static adminRecruitOpenHint(fbs: FbsAPI) { return fbs("开启后，本百业会出现在平台主页的招新目录里，登录用户可以提交入业申请；关闭后目录不再展示本百业，也不能提交新申请（已提交的申请仍可审核，成员的入业清单与导师配对不受影响）。", "Hint text for the recruitment switch in the guild admin recruit tab, used for explaining that an open guild appears in the platform home recruitment directory and accepts join applications, and that closing it hides the guild and stops new applications while submitted applications, member checklists and mentor pairings stay unaffected."); }
 }
 
 export abstract class OfficerFbtUtils {
