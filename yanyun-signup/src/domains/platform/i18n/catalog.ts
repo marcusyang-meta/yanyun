@@ -5394,36 +5394,6 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "en": "Activity Tools",
       "zh-TW": "活動工具"
     },
-    "calendarTitle": {
-      "zh-CN": "活动日历订阅",
-      "en": "Event Calendar Subscription",
-      "zh-TW": "活動日曆訂閱"
-    },
-    "calendarHint": {
-      "zh-CN": "把下面的链接粘贴到日历应用（或系统日历）的「订阅日历」里，本百业的车队活动会自动同步。链接等同密钥，请勿公开扩散；成员拿到链接即可订阅。",
-      "en": "Paste the link below into the \"Subscribe to calendar\" option of your calendar app (or system calendar) and this guild's grouping events will sync automatically. The link works like a secret key — do not share it publicly; every member who has it can subscribe.",
-      "zh-TW": "把下面的連結貼到日曆應用（或系統日曆）的「訂閱日曆」裡，本百業的車隊活動會自動同步。連結等同密鑰，請勿公開擴散；成員拿到連結即可訂閱。"
-    },
-    "calendarUrlLabel": {
-      "zh-CN": "订阅链接",
-      "en": "Subscription link",
-      "zh-TW": "訂閱連結"
-    },
-    "calendarCopyButton": {
-      "zh-CN": "复制链接",
-      "en": "Copy link",
-      "zh-TW": "複製連結"
-    },
-    "calendarResetButton": {
-      "zh-CN": "重置链接",
-      "en": "Reset link",
-      "zh-TW": "重置連結"
-    },
-    "calendarResetHint": {
-      "zh-CN": "重置后旧链接立即失效，已订阅的人需要换用新链接重新订阅。",
-      "en": "After a reset the old link stops working immediately; anyone subscribed with it must subscribe again with the new link.",
-      "zh-TW": "重置後舊連結立即失效，已訂閱的人需要換用新連結重新訂閱。"
-    },
     "lotteryTitle": {
       "zh-CN": "活动抽奖",
       "en": "Event Lottery",

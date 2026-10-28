@@ -44,7 +44,6 @@ import {
   notifyDiscord, parseTimeMs, utcToText, nudgeReminderHub,
   getReminderOffsets, getReminderCustomText, serializeReminderOffsets,
   sanitizeReminderCustomText, REMINDER_OFFSET_PRESETS,
-  mintCalendarFeed, resetCalendarFeed, calendarFeedUrl,
   listLotteries, getLotteryByTenant, listLotteryEntries, listLotteryWinners,
   insertLottery, insertLotteryEntry, insertLotteryWinner, markLotteryDrawn,
   drawWinners,
@@ -457,12 +456,6 @@ const ADMIN_TEXT_SPEC: [string, string, string][] = [
   ['adminOgTitleSuffixLabel', 'guildAdmin', 'ogTitleSuffixLabel'],
   ['adminOgTitleSuffixHint', 'guildAdmin', 'ogTitleSuffixHint'],
   ['adminTabToolsLabel', 'guildAdmin', 'tabTools'],
-  ['adminCalendarTitle', 'guildAdmin', 'calendarTitle'],
-  ['adminCalendarHint', 'guildAdmin', 'calendarHint'],
-  ['adminCalendarUrlLabel', 'guildAdmin', 'calendarUrlLabel'],
-  ['adminCalendarCopyLabel', 'guildAdmin', 'calendarCopyButton'],
-  ['adminCalendarResetLabel', 'guildAdmin', 'calendarResetButton'],
-  ['adminCalendarResetHint', 'guildAdmin', 'calendarResetHint'],
   ['adminLotteryTitle', 'guildAdmin', 'lotteryTitle'],
   ['adminLotteryHint', 'guildAdmin', 'lotteryHint'],
   ['adminLotteryEmptyText', 'guildAdmin', 'lotteryEmpty'],
@@ -607,19 +600,7 @@ export class GuildAdminShell extends ShellBase {
     const wl = await getEffectiveWhiteLabelSettings(this.db, this.genSlug());
     return wl.hideBranding ? null : this.t('legal', 'disclaimer');
   }
-  /* Activity tools (F8/F21, free — no gate): the calendar feed is
-   * minted lazily on first read of this surface, like the car share
-   * link on the detail page; the URL is composed on the request's
-   * own origin so a subdomain admin copies a subdomain link. */
-  genCalendarFeed(){
-    return this.memo('calendarFeed', () => mintCalendarFeed(this.db, this.genSlug()));
-  }
-  async genCalendarFeedUrl(){
-    const feed = await this.genCalendarFeed();
-    let origin = '';
-    try { origin = new URL(this.ctx.request.url).origin; } catch { /* canonical fallback */ }
-    return calendarFeedUrl(feed.token, origin || undefined);
-  }
+  /* Activity tools (F21, free — no gate). */
   genLotteries(){
     return this.memo('lotteries', async () => {
       const rows = await listLotteries(this.db, this.genSlug());
@@ -668,7 +649,6 @@ function contentResolvers() {
     ogTitleSuffix: (p: any) => p.genOgTitleSuffix(),
     ogAccentOptions: (p: any) => p.genOgAccentOptions(),
     pageFooterDisclaimerText: (p: any) => p.genPageFooterDisclaimerText(),
-    calendarFeedUrl: (p: any) => p.genCalendarFeedUrl(),
     lotteries: (p: any) => p.genLotteries(),
     lotteryRoster: (p: any) => p.genLotteryRoster(),
   };
@@ -1053,15 +1033,6 @@ export const guildAdminMutations = {
     const owned = await getResultIdOwnedByTenant(db, parseInt(resultId, 10), g.access.slug);
     if (!owned) return aFail(ctx, 'resultNotFound');
     await deleteResultById(db, owned.id);
-    return aOk(ctx);
-  },
-
-  /* Calendar feed reset (F8): replaces the token in place — the old
-   * subscription link 404s from this moment. No entitlement gate:
-   * the feed is a free feature. */
-  resetCalendarFeed: async (_: any, { slug }: any, ctx: Context) => {
-    const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
-    await resetCalendarFeed(ctx.env.DB, g.access.slug);
     return aOk(ctx);
   },
 

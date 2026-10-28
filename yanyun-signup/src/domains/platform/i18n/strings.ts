@@ -882,12 +882,6 @@ export const guildAdmin_billingSuccess = (fbs: FbsRuntime) => fbs._("开通成�
 export const guildAdmin_billingCanceled = (fbs: FbsRuntime) => fbs._("已取消开通，未产生扣费。", null, { hk: "3G32RI" });
 export const guildAdmin_tabAnnouncements = (fbs: FbsRuntime) => fbs._("公告广播", null, { hk: "X5n" });
 export const guildAdmin_tabTools = (fbs: FbsRuntime) => fbs._("活动工具", null, { hk: "3LQGjs" });
-export const guildAdmin_calendarTitle = (fbs: FbsRuntime) => fbs._("活动日历订阅", null, { hk: "1vx41l" });
-export const guildAdmin_calendarHint = (fbs: FbsRuntime) => fbs._("把下面的链接粘贴到日历应用（或系统日历）的「订阅日历」里，本百业的车队活动会自动同步。链接等同密钥，请勿公开扩散；成员拿到链接即可订阅。", null, { hk: "2o4Ndi" });
-export const guildAdmin_calendarUrlLabel = (fbs: FbsRuntime) => fbs._("订阅链接", null, { hk: "k19x6" });
-export const guildAdmin_calendarCopyButton = (fbs: FbsRuntime) => fbs._("复制链接", null, { hk: "4gqJe0" });
-export const guildAdmin_calendarResetButton = (fbs: FbsRuntime) => fbs._("重置链接", null, { hk: "96s46" });
-export const guildAdmin_calendarResetHint = (fbs: FbsRuntime) => fbs._("重置后旧链接立即失效，已订阅的人需要换用新链接重新订阅。", null, { hk: "nSX6o" });
 export const guildAdmin_lotteryTitle = (fbs: FbsRuntime) => fbs._("活动抽奖", null, { hk: "24Bubb" });
 export const guildAdmin_lotteryHint = (fbs: FbsRuntime) => fbs._("参与名单可来自某辆车的参与者，或手选本百业成员；名单与权重在创建时定格。开奖按权重随机抽取，同一抽奖内不会重复中奖；抽奖、名单、权重与结果全部留痕可查。", null, { hk: "8RBeR" });
 export const guildAdmin_lotteryEmpty = (fbs: FbsRuntime) => fbs._("还没有抽奖，先创建一个。", null, { hk: "2YVymx" });
@@ -1839,12 +1833,6 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"guildAdmin.billingCanceled": guildAdmin_billingCanceled,
 	"guildAdmin.tabAnnouncements": guildAdmin_tabAnnouncements,
 	"guildAdmin.tabTools": guildAdmin_tabTools,
-	"guildAdmin.calendarTitle": guildAdmin_calendarTitle,
-	"guildAdmin.calendarHint": guildAdmin_calendarHint,
-	"guildAdmin.calendarUrlLabel": guildAdmin_calendarUrlLabel,
-	"guildAdmin.calendarCopyButton": guildAdmin_calendarCopyButton,
-	"guildAdmin.calendarResetButton": guildAdmin_calendarResetButton,
-	"guildAdmin.calendarResetHint": guildAdmin_calendarResetHint,
 	"guildAdmin.lotteryTitle": guildAdmin_lotteryTitle,
 	"guildAdmin.lotteryHint": guildAdmin_lotteryHint,
 	"guildAdmin.lotteryEmpty": guildAdmin_lotteryEmpty,

@@ -183,12 +183,6 @@ export type GuildsStringKey =
   | 'announcements.urgentNote'
   | 'announcements.dailyLimitTemplate'
   | 'guildAdmin.tabTools'
-  | 'guildAdmin.calendarTitle'
-  | 'guildAdmin.calendarHint'
-  | 'guildAdmin.calendarUrlLabel'
-  | 'guildAdmin.calendarCopyButton'
-  | 'guildAdmin.calendarResetButton'
-  | 'guildAdmin.calendarResetHint'
   | 'guildAdmin.lotteryTitle'
   | 'guildAdmin.lotteryHint'
   | 'guildAdmin.lotteryEmpty'
@@ -392,12 +386,6 @@ export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'announcements.urgentNote',
   'announcements.dailyLimitTemplate',
   'guildAdmin.tabTools',
-  'guildAdmin.calendarTitle',
-  'guildAdmin.calendarHint',
-  'guildAdmin.calendarUrlLabel',
-  'guildAdmin.calendarCopyButton',
-  'guildAdmin.calendarResetButton',
-  'guildAdmin.calendarResetHint',
   'guildAdmin.lotteryTitle',
   'guildAdmin.lotteryHint',
   'guildAdmin.lotteryEmpty',
