@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<37b47bd3712f0f18a85c5793b1fec2ac>>
+ * @generated SignedSource<<f522add8f6c11e613d75bc16f5502f38>>
  * @lightSyntaxTransform
  */
 
@@ -29,142 +29,163 @@ v2 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "__typename",
+  "name": "label",
   "storageKey": null
 },
 v3 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "premiumTitle",
+  "name": "__typename",
   "storageKey": null
 },
 v4 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "premiumBody",
+  "name": "premiumTitle",
   "storageKey": null
 },
 v5 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
+  "name": "premiumBody",
+  "storageKey": null
+},
+v6 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
   "name": "status",
   "storageKey": null
 },
-v6 = [
-  (v3/*:: as any*/),
-  (v4/*:: as any*/)
-],
 v7 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "statusText",
+  "storageKey": null
+},
+v8 = [
+  (v4/*:: as any*/),
+  (v5/*:: as any*/)
+],
+v9 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "title",
   "storageKey": null
 },
-v8 = {
+v10 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "hint",
   "storageKey": null
 },
-v9 = {
+v11 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "id",
   "storageKey": null
 },
-v10 = {
+v12 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "startsAtText",
   "storageKey": null
 },
-v11 = {
+v13 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "signupCount",
   "storageKey": null
 },
-v12 = {
+v14 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "maxSlots",
   "storageKey": null
 },
-v13 = {
+v15 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "discordId",
   "storageKey": null
 },
-v14 = {
+v16 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "displayName",
   "storageKey": null
 },
-v15 = {
+v17 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "lastText",
   "storageKey": null
 },
-v16 = {
+v18 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "seasonLabel",
   "storageKey": null
 },
-v17 = {
+v19 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "createdAtText",
   "storageKey": null
 },
-v18 = {
+v20 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "updatedAtText",
   "storageKey": null
 },
-v19 = {
+v21 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "note",
   "storageKey": null
 },
-v20 = {
+v22 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "statusLabel",
   "storageKey": null
 },
-v21 = {
+v23 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "seasonName",
+  "storageKey": null
+},
+v24 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "source",
   "storageKey": null
 },
-v22 = [
-  (v13/*:: as any*/),
-  (v14/*:: as any*/),
+v25 = [
+  (v15/*:: as any*/),
+  (v16/*:: as any*/),
   {
     "alias": null,
     "args": null,
@@ -173,26 +194,32 @@ v22 = [
     "storageKey": null
   }
 ],
-v23 = {
+v26 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "createdAt",
   "storageKey": null
 },
-v24 = {
+v27 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "teamName",
   "storageKey": null
 },
-v25 = {
+v28 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "members",
   "storageKey": null
+},
+v29 = {
+  "kind": "InlineFragment",
+  "selections": (v8/*:: as any*/),
+  "type": "GuildInsightsLocked",
+  "abstractKey": null
 };
 return {
   "kind": "SplitOperation",
@@ -328,13 +355,7 @@ return {
           "name": "hex",
           "storageKey": null
         },
-        {
-          "alias": null,
-          "args": null,
-          "kind": "ScalarField",
-          "name": "label",
-          "storageKey": null
-        }
+        (v2/*:: as any*/)
       ],
       "storageKey": null
     },
@@ -353,7 +374,7 @@ return {
       "name": "premium",
       "plural": false,
       "selections": [
-        (v2/*:: as any*/),
+        (v3/*:: as any*/),
         {
           "kind": "InlineFragment",
           "selections": [
@@ -392,8 +413,8 @@ return {
         {
           "kind": "InlineFragment",
           "selections": [
-            (v3/*:: as any*/),
             (v4/*:: as any*/),
+            (v5/*:: as any*/),
             {
               "alias": null,
               "args": null,
@@ -463,11 +484,11 @@ return {
       "name": "customDomain",
       "plural": false,
       "selections": [
-        (v2/*:: as any*/),
+        (v3/*:: as any*/),
         {
           "kind": "InlineFragment",
           "selections": [
-            (v5/*:: as any*/),
+            (v6/*:: as any*/),
             {
               "alias": null,
               "args": null,
@@ -475,13 +496,7 @@ return {
               "name": "hostname",
               "storageKey": null
             },
-            {
-              "alias": null,
-              "args": null,
-              "kind": "ScalarField",
-              "name": "statusText",
-              "storageKey": null
-            },
+            (v7/*:: as any*/),
             {
               "alias": null,
               "args": null,
@@ -530,7 +545,7 @@ return {
         },
         {
           "kind": "InlineFragment",
-          "selections": (v6/*:: as any*/),
+          "selections": (v8/*:: as any*/),
           "type": "GuildAdminCustomDomainLocked",
           "abstractKey": null
         }
@@ -622,18 +637,18 @@ return {
       "name": "ops",
       "plural": false,
       "selections": [
-        (v2/*:: as any*/),
+        (v3/*:: as any*/),
         {
           "kind": "InlineFragment",
-          "selections": (v6/*:: as any*/),
+          "selections": (v8/*:: as any*/),
           "type": "GuildAdminOpsLocked",
           "abstractKey": null
         },
         {
           "kind": "InlineFragment",
           "selections": [
-            (v7/*:: as any*/),
-            (v8/*:: as any*/),
+            (v9/*:: as any*/),
+            (v10/*:: as any*/),
             {
               "alias": null,
               "args": null,
@@ -726,11 +741,11 @@ return {
               "name": "nudgeEvents",
               "plural": true,
               "selections": [
-                (v9/*:: as any*/),
-                (v7/*:: as any*/),
-                (v10/*:: as any*/),
                 (v11/*:: as any*/),
-                (v12/*:: as any*/)
+                (v9/*:: as any*/),
+                (v12/*:: as any*/),
+                (v13/*:: as any*/),
+                (v14/*:: as any*/)
               ],
               "storageKey": null
             },
@@ -763,8 +778,8 @@ return {
               "name": "churnRisks",
               "plural": true,
               "selections": [
-                (v13/*:: as any*/),
-                (v14/*:: as any*/),
+                (v15/*:: as any*/),
+                (v16/*:: as any*/),
                 {
                   "alias": null,
                   "args": null,
@@ -772,7 +787,7 @@ return {
                   "name": "evidenceText",
                   "storageKey": null
                 },
-                (v15/*:: as any*/)
+                (v17/*:: as any*/)
               ],
               "storageKey": null
             },
@@ -805,7 +820,7 @@ return {
               "name": "rollover",
               "plural": false,
               "selections": [
-                (v16/*:: as any*/),
+                (v18/*:: as any*/),
                 {
                   "alias": null,
                   "args": null,
@@ -841,7 +856,7 @@ return {
                   "name": "thresholdNoteText",
                   "storageKey": null
                 },
-                (v15/*:: as any*/),
+                (v17/*:: as any*/),
                 {
                   "alias": null,
                   "args": null,
@@ -941,8 +956,8 @@ return {
               "name": "contributionBoard",
               "plural": true,
               "selections": [
-                (v13/*:: as any*/),
-                (v14/*:: as any*/),
+                (v15/*:: as any*/),
+                (v16/*:: as any*/),
                 {
                   "alias": null,
                   "args": null,
@@ -1095,8 +1110,8 @@ return {
           "name": "members",
           "plural": true,
           "selections": [
-            (v13/*:: as any*/),
-            (v14/*:: as any*/),
+            (v15/*:: as any*/),
+            (v16/*:: as any*/),
             {
               "alias": null,
               "args": null,
@@ -1105,7 +1120,7 @@ return {
               "name": "notes",
               "plural": true,
               "selections": [
-                (v9/*:: as any*/),
+                (v11/*:: as any*/),
                 {
                   "alias": null,
                   "args": null,
@@ -1120,8 +1135,8 @@ return {
                   "name": "authorText",
                   "storageKey": null
                 },
-                (v17/*:: as any*/),
-                (v18/*:: as any*/)
+                (v19/*:: as any*/),
+                (v20/*:: as any*/)
               ],
               "storageKey": null
             },
@@ -1133,11 +1148,11 @@ return {
               "name": "goals",
               "plural": true,
               "selections": [
+                (v11/*:: as any*/),
                 (v9/*:: as any*/),
-                (v7/*:: as any*/),
-                (v19/*:: as any*/),
-                (v5/*:: as any*/),
-                (v20/*:: as any*/),
+                (v21/*:: as any*/),
+                (v6/*:: as any*/),
+                (v22/*:: as any*/),
                 {
                   "alias": null,
                   "args": null,
@@ -1145,14 +1160,8 @@ return {
                   "name": "dungeonName",
                   "storageKey": null
                 },
-                {
-                  "alias": null,
-                  "args": null,
-                  "kind": "ScalarField",
-                  "name": "seasonName",
-                  "storageKey": null
-                },
-                (v18/*:: as any*/)
+                (v23/*:: as any*/),
+                (v20/*:: as any*/)
               ],
               "storageKey": null
             }
@@ -1296,8 +1305,8 @@ return {
       "name": "lotteries",
       "plural": true,
       "selections": [
+        (v11/*:: as any*/),
         (v9/*:: as any*/),
-        (v7/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -1305,7 +1314,7 @@ return {
           "name": "prize",
           "storageKey": null
         },
-        (v21/*:: as any*/),
+        (v24/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -1327,7 +1336,7 @@ return {
           "name": "winnerCount",
           "storageKey": null
         },
-        (v5/*:: as any*/),
+        (v6/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -1335,7 +1344,7 @@ return {
           "name": "entryCountText",
           "storageKey": null
         },
-        (v17/*:: as any*/),
+        (v19/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -1350,7 +1359,7 @@ return {
           "kind": "LinkedField",
           "name": "entries",
           "plural": true,
-          "selections": (v22/*:: as any*/),
+          "selections": (v25/*:: as any*/),
           "storageKey": null
         },
         {
@@ -1360,7 +1369,7 @@ return {
           "kind": "LinkedField",
           "name": "winners",
           "plural": true,
-          "selections": (v22/*:: as any*/),
+          "selections": (v25/*:: as any*/),
           "storageKey": null
         }
       ],
@@ -1374,8 +1383,8 @@ return {
       "name": "lotteryRoster",
       "plural": true,
       "selections": [
-        (v13/*:: as any*/),
-        (v14/*:: as any*/)
+        (v15/*:: as any*/),
+        (v16/*:: as any*/)
       ],
       "storageKey": null
     },
@@ -1541,7 +1550,7 @@ return {
       "name": "recruitApplications",
       "plural": true,
       "selections": [
-        (v9/*:: as any*/),
+        (v11/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -1563,9 +1572,9 @@ return {
           "name": "message",
           "storageKey": null
         },
-        (v5/*:: as any*/),
-        (v20/*:: as any*/),
-        (v17/*:: as any*/),
+        (v6/*:: as any*/),
+        (v22/*:: as any*/),
+        (v19/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -1591,7 +1600,7 @@ return {
       "name": "recruitPairings",
       "plural": true,
       "selections": [
-        (v9/*:: as any*/),
+        (v11/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -1620,9 +1629,9 @@ return {
           "name": "menteeName",
           "storageKey": null
         },
-        (v5/*:: as any*/),
-        (v20/*:: as any*/),
-        (v17/*:: as any*/),
+        (v6/*:: as any*/),
+        (v22/*:: as any*/),
+        (v19/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -1641,8 +1650,8 @@ return {
       "name": "recruitRoster",
       "plural": true,
       "selections": [
-        (v13/*:: as any*/),
-        (v14/*:: as any*/),
+        (v15/*:: as any*/),
+        (v16/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -1661,8 +1670,8 @@ return {
       "name": "newcomerProgress",
       "plural": true,
       "selections": [
-        (v13/*:: as any*/),
-        (v14/*:: as any*/),
+        (v15/*:: as any*/),
+        (v16/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -1723,9 +1732,9 @@ return {
           "name": "versionLabel",
           "storageKey": null
         },
-        (v16/*:: as any*/),
-        (v7/*:: as any*/),
-        (v8/*:: as any*/),
+        (v18/*:: as any*/),
+        (v9/*:: as any*/),
+        (v10/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -1756,7 +1765,7 @@ return {
           "plural": true,
           "selections": [
             (v1/*:: as any*/),
-            (v7/*:: as any*/),
+            (v9/*:: as any*/),
             {
               "alias": null,
               "args": null,
@@ -1870,9 +1879,9 @@ return {
           "name": "entries",
           "plural": true,
           "selections": [
-            (v9/*:: as any*/),
-            (v14/*:: as any*/),
-            (v21/*:: as any*/),
+            (v11/*:: as any*/),
+            (v16/*:: as any*/),
+            (v24/*:: as any*/),
             {
               "alias": null,
               "args": null,
@@ -1880,7 +1889,7 @@ return {
               "name": "matchedName",
               "storageKey": null
             },
-            (v23/*:: as any*/)
+            (v26/*:: as any*/)
           ],
           "storageKey": null
         }
@@ -2637,8 +2646,8 @@ return {
       "name": "events",
       "plural": true,
       "selections": [
+        (v11/*:: as any*/),
         (v9/*:: as any*/),
-        (v7/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -2646,7 +2655,7 @@ return {
           "name": "type",
           "storageKey": null
         },
-        (v5/*:: as any*/),
+        (v6/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -2661,7 +2670,7 @@ return {
           "name": "startsAtUtc",
           "storageKey": null
         },
-        (v10/*:: as any*/),
+        (v12/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -2669,7 +2678,7 @@ return {
           "name": "dungeon",
           "storageKey": null
         },
-        (v12/*:: as any*/),
+        (v14/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -2684,7 +2693,7 @@ return {
           "name": "description",
           "storageKey": null
         },
-        (v11/*:: as any*/),
+        (v13/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -2693,7 +2702,7 @@ return {
           "name": "signups",
           "plural": true,
           "selections": [
-            (v9/*:: as any*/),
+            (v11/*:: as any*/),
             {
               "alias": null,
               "args": null,
@@ -2729,10 +2738,10 @@ return {
               "name": "contact",
               "storageKey": null
             },
-            (v24/*:: as any*/),
-            (v25/*:: as any*/),
-            (v19/*:: as any*/),
-            (v23/*:: as any*/)
+            (v27/*:: as any*/),
+            (v28/*:: as any*/),
+            (v21/*:: as any*/),
+            (v26/*:: as any*/)
           ],
           "storageKey": null
         },
@@ -2744,9 +2753,9 @@ return {
           "name": "results",
           "plural": true,
           "selections": [
-            (v9/*:: as any*/),
-            (v24/*:: as any*/),
-            (v25/*:: as any*/),
+            (v11/*:: as any*/),
+            (v27/*:: as any*/),
+            (v28/*:: as any*/),
             {
               "alias": null,
               "args": null,
@@ -2768,7 +2777,7 @@ return {
               "name": "proofUrl",
               "storageKey": null
             },
-            (v19/*:: as any*/)
+            (v21/*:: as any*/)
           ],
           "storageKey": null
         },
@@ -2865,7 +2874,7 @@ return {
       "name": "stats",
       "plural": false,
       "selections": [
-        (v2/*:: as any*/),
+        (v3/*:: as any*/),
         {
           "kind": "InlineFragment",
           "selections": [
@@ -2986,8 +2995,8 @@ return {
               "name": "memberLeaders",
               "plural": true,
               "selections": [
-                (v13/*:: as any*/),
-                (v14/*:: as any*/),
+                (v15/*:: as any*/),
+                (v16/*:: as any*/),
                 {
                   "alias": null,
                   "args": null,
@@ -3006,8 +3015,8 @@ return {
               "name": "leaderLeaders",
               "plural": true,
               "selections": [
-                (v13/*:: as any*/),
-                (v14/*:: as any*/),
+                (v15/*:: as any*/),
+                (v16/*:: as any*/),
                 {
                   "alias": null,
                   "args": null,
@@ -3024,11 +3033,533 @@ return {
         }
       ],
       "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminTabInsightsLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminInsightsReliabilityTitle",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminInsightsReliabilityHint",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminInsightsSignupsLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminInsightsAttendedLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminInsightsNoShowLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminInsightsRateLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminInsightsReliabilityEmptyText",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminInsightsHeatmapTitle",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminInsightsHeatmapHint",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminInsightsHeatmapEmptyText",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminInsightsGearTitle",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminInsightsGearHint",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminInsightsGearEmptyText",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminInsightsGearLabelLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminInsightsGearMinScoreLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminInsightsGearAddLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminInsightsGearScoreLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminInsightsGearGapLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminInsightsRaceTitle",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminInsightsRaceEmptyText",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminInsightsRaceTeamLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminInsightsRaceRunsLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminInsightsRaceWinsLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminInsightsRaceBestLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "concreteType": null,
+      "kind": "LinkedField",
+      "name": "reliability",
+      "plural": false,
+      "selections": [
+        (v3/*:: as any*/),
+        {
+          "kind": "InlineFragment",
+          "selections": [
+            {
+              "alias": null,
+              "args": null,
+              "concreteType": "ReliabilityEntry",
+              "kind": "LinkedField",
+              "name": "entries",
+              "plural": true,
+              "selections": [
+                (v15/*:: as any*/),
+                (v16/*:: as any*/),
+                (v13/*:: as any*/),
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "attendedCount",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "noShowCount",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "settledCount",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "attendanceRate",
+                  "storageKey": null
+                }
+              ],
+              "storageKey": null
+            }
+          ],
+          "type": "GuildAdminReliability",
+          "abstractKey": null
+        },
+        (v29/*:: as any*/)
+      ],
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "concreteType": null,
+      "kind": "LinkedField",
+      "name": "participationHeatmap",
+      "plural": false,
+      "selections": [
+        (v3/*:: as any*/),
+        {
+          "kind": "InlineFragment",
+          "selections": [
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "timezone",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "totalAttended",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "peakCount",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "totalText",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "weekdayLabels",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "concreteType": "ParticipationHeatmapCell",
+              "kind": "LinkedField",
+              "name": "cells",
+              "plural": true,
+              "selections": [
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "weekday",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "weekdayLabel",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "hour",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "count",
+                  "storageKey": null
+                }
+              ],
+              "storageKey": null
+            }
+          ],
+          "type": "GuildAdminParticipationHeatmap",
+          "abstractKey": null
+        },
+        (v29/*:: as any*/)
+      ],
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "concreteType": null,
+      "kind": "LinkedField",
+      "name": "gearBoard",
+      "plural": false,
+      "selections": [
+        (v3/*:: as any*/),
+        {
+          "kind": "InlineFragment",
+          "selections": [
+            {
+              "alias": null,
+              "args": null,
+              "concreteType": "GearBoardStandard",
+              "kind": "LinkedField",
+              "name": "standards",
+              "plural": true,
+              "selections": [
+                (v11/*:: as any*/),
+                (v2/*:: as any*/),
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "minScore",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "metCount",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "unmetCount",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "noBuildCount",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "summaryText",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "concreteType": "GearBoardMember",
+                  "kind": "LinkedField",
+                  "name": "members",
+                  "plural": true,
+                  "selections": [
+                    (v15/*:: as any*/),
+                    (v16/*:: as any*/),
+                    {
+                      "alias": null,
+                      "args": null,
+                      "kind": "ScalarField",
+                      "name": "hasBuild",
+                      "storageKey": null
+                    },
+                    {
+                      "alias": null,
+                      "args": null,
+                      "kind": "ScalarField",
+                      "name": "bestScore",
+                      "storageKey": null
+                    },
+                    {
+                      "alias": null,
+                      "args": null,
+                      "kind": "ScalarField",
+                      "name": "met",
+                      "storageKey": null
+                    },
+                    {
+                      "alias": null,
+                      "args": null,
+                      "kind": "ScalarField",
+                      "name": "gap",
+                      "storageKey": null
+                    },
+                    (v7/*:: as any*/)
+                  ],
+                  "storageKey": null
+                }
+              ],
+              "storageKey": null
+            }
+          ],
+          "type": "GuildAdminGearBoard",
+          "abstractKey": null
+        },
+        (v29/*:: as any*/)
+      ],
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "concreteType": null,
+      "kind": "LinkedField",
+      "name": "raceSeasonBoard",
+      "plural": false,
+      "selections": [
+        (v3/*:: as any*/),
+        {
+          "kind": "InlineFragment",
+          "selections": [
+            {
+              "alias": null,
+              "args": null,
+              "concreteType": "RaceSeason",
+              "kind": "LinkedField",
+              "name": "seasons",
+              "plural": true,
+              "selections": [
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "season",
+                  "storageKey": null
+                },
+                (v23/*:: as any*/),
+                (v18/*:: as any*/),
+                {
+                  "alias": null,
+                  "args": null,
+                  "concreteType": "RaceSeasonEntry",
+                  "kind": "LinkedField",
+                  "name": "entries",
+                  "plural": true,
+                  "selections": [
+                    (v27/*:: as any*/),
+                    (v28/*:: as any*/),
+                    {
+                      "alias": null,
+                      "args": null,
+                      "kind": "ScalarField",
+                      "name": "runCount",
+                      "storageKey": null
+                    },
+                    {
+                      "alias": null,
+                      "args": null,
+                      "kind": "ScalarField",
+                      "name": "winCount",
+                      "storageKey": null
+                    },
+                    {
+                      "alias": null,
+                      "args": null,
+                      "kind": "ScalarField",
+                      "name": "bestTimeMs",
+                      "storageKey": null
+                    },
+                    {
+                      "alias": null,
+                      "args": null,
+                      "kind": "ScalarField",
+                      "name": "bestTimeText",
+                      "storageKey": null
+                    }
+                  ],
+                  "storageKey": null
+                }
+              ],
+              "storageKey": null
+            }
+          ],
+          "type": "RaceSeasonBoard",
+          "abstractKey": null
+        },
+        (v29/*:: as any*/)
+      ],
+      "storageKey": null
     }
   ]
 };
 })();
 
-(node as any).hash = "5b642df969c1d70a8a680aff287132de";
+(node as any).hash = "102ce46dc863da7fd91d9dfef26d40f6";
 
 export default node;

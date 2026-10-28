@@ -1,4 +1,4 @@
--- 0026: guild gear standards (premium insights line, P9).
+-- 0034: guild gear standards (premium insights line, P9).
 --
 -- guild_gear_standards: one row per readiness threshold a guild admin
 -- sets for a scene (a free-text scene label, typically a dungeon or a
