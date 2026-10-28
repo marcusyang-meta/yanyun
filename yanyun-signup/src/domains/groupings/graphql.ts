@@ -315,7 +315,7 @@ export class GroupingListPageShell extends ShellBase {
       });
       if (!inWeek.length) {
         blocks.push(new EmptyStateBlockShell(this.ctx, {
-          textRef: access.canWrite ? ['groupingList_emptyInteractive'] : ['groupingList_emptyReadonly'],
+          textRef: ['groupingList_emptyInteractive'],
         }));
       } else {
         // Grouped by natural day in the viewer's local timezone within one
@@ -335,7 +335,7 @@ export class GroupingListPageShell extends ShellBase {
           for (const { g } of group.items) {
             const nav = new NavigateActionShell(this.ctx, {
               slug: access.slug, groupingId: g.genId(), name: tRow ? tRow.guild_name : access.slug,
-              readOnly: !access.canWrite, nick: viewerNick || '',
+              nick: viewerNick || '',
             });
             blocks.push(new GroupingCardBlockShell(this.ctx, { g, occupied: await g.genOccupiedCount(), action: nav }));
           }
@@ -411,7 +411,6 @@ export const LIST_TEXT_RESOLVERS = {
     ['dayGroupHeaderTemplate', 'groupingList_dayGroupHeader'],
     ['undatedGroupLabel', 'groupingList_undatedGroup'],
     ['emptyInteractiveText', 'groupingList_emptyInteractive'],
-    ['emptyReadonlyText', 'groupingList_emptyReadonly'],
     ['statusOpenLabel', 'groupingList_statusOpen'],
     ['peopleTemplate', 'groupingList_people'],
     ['newCarLabel', 'groupingList_newCar'],
@@ -575,7 +574,7 @@ export class GroupingDetailPageShell extends ShellBase {
       blocks.push(new TextBlockShell(this.ctx, {
         variant: 'muted',
         textRef: ev.status === 'completed' ? ['groupingDetail_completedHint']
-          : access.canWrite ? ['groupingDetail_openHint'] : ['groupingDetail_readonlyHint'],
+          : ['groupingDetail_openHint'],
       }));
       blocks.push(new SectionBlockShell(this.ctx, {
         title: null,
@@ -679,7 +678,6 @@ export const DETAIL_TEXT_RESOLVERS = {
     ['detailStatusOpenLabel', 'groupingDetail_statusOpen'],
     ['detailPeopleTemplate', 'groupingDetail_people'],
     ['detailOpenHint', 'groupingDetail_openHint'],
-    ['detailReadonlyHint', 'groupingDetail_readonlyHint'],
     ['detailToastDisbanded', 'groupingDetail_toastDisbanded'],
     ['detailToastDisbandFailedTemplate', 'groupingDetail_toastDisbandFailed'],
     ['detailCompleteLabel', 'groupingDetail_complete'],

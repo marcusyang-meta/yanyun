@@ -129,7 +129,7 @@ for (const [locale, title] of Object.entries(PRIVACY_TITLES)) {
   check(`ogGuildCard ${LIST_TENANT} weekActivityCount is a number`,
     card?.exists === true && typeof card?.weekActivityCount === 'number',
     JSON.stringify(card));
-  const { body: lb } = await gql(`{ viewer { guild(slug: "${LIST_TENANT}") { __typename ... on GuildReadOnly { groupings(tab: ACTIVITY) { groupings { id title } } } } } }`);
+  const { body: lb } = await gql(`{ viewer { guild(slug: "${LIST_TENANT}") { __typename ... on Guild { groupings(tab: ACTIVITY) { groupings { id title } } } } } }`);
   const groupings = lb?.data?.viewer?.guild?.groupings?.groupings;
   if (Array.isArray(groupings) && groupings.length > 0) {
     const first = groupings[0];

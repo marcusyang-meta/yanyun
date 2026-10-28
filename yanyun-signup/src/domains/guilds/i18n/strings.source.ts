@@ -30,13 +30,6 @@ function pv(p: StringParams | undefined, name: string): string {
   return v === undefined ? '{' + name + '}' : String(v);
 }
 
-export abstract class LockedFbtUtils {
-  static backLink(fbs: FbsAPI) { return fbs("‹ 我的百业", "Back link for the guild locked page, used at the top of the page to return to the user's guild list."); }
-  static title(fbs: FbsAPI) { return fbs("无权访问这个百业", "Title text for the guild locked page, used as the heading shown when the viewer has no access to a guild."); }
-  static body1(fbs: FbsAPI) { return fbs("该百业不存在，或仅对某个 Discord 服务器的成员开放。", "Body text for the guild locked page, used as the first paragraph to explain the guild does not exist or is restricted to one Discord server's members."); }
-  static body2(fbs: FbsAPI) { return fbs("加入对应的 Discord 服务器后，用同一个账号登录即可访问。", "Body text for the guild locked page, used as the second paragraph to explain that joining that Discord server and signing in with the same account grants access."); }
-  static backButton(fbs: FbsAPI) { return fbs("回到我的百业", "Button label for the guild locked page, used to return to the user's guild list."); }
-}
 
 export abstract class GuildHomeFbtUtils {
   static backToHub(fbs: FbsAPI) { return fbs("← 百业集结", "Back link for the guild home page, used at the top of the page to return to the platform hub."); }
@@ -45,7 +38,6 @@ export abstract class GuildHomeFbtUtils {
   static tabDex(fbs: FbsAPI) { return fbs("攻略", "Tab label for the guild home page, used to switch to the guides tab."); }
   static tabSect(fbs: FbsAPI) { return fbs("流派攻略", "Tab label for the guild home page, used to switch to the sect guides tab."); }
   static tabAnnouncements(fbs: FbsAPI) { return fbs("公告", "Tab label for the guild home page, used to switch to the announcements tab."); }
-  static readOnlyBanner(fbs: FbsAPI) { return fbs("该百业尚未绑定 Discord 服务器 · 只读浏览", "Banner text for unbound guilds on the guild home page, used to warn that the guild has not bound a Discord server and is read-only."); }
   static adminLink(fbs: FbsAPI) { return fbs("管理", "Link label for the guild home page, used to open the guild admin area, shown only to viewers who pass the admin check."); }
   static tabSchedule(fbs: FbsAPI) { return fbs("排期", "Tab label for the guild home page, used to switch to the schedule tab."); }
   static tabMarket(fbs: FbsAPI) { return fbs("补位市场", "Tab label for the guild home page, used to switch to the fill-in market tab."); }

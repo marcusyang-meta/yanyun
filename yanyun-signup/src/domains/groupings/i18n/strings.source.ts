@@ -48,7 +48,6 @@ export abstract class GroupingListFbtUtils {
   static nextWeek(fbs: FbsAPI) { return fbs("下一周", "Button label for the squad list week navigation, used to move to the next week."); }
   static weekHeader(fbs: FbsAPI, p?: StringParams) { return fbs([fbs.param("range", pv(p, "range")), " · ", fbs.param("count", pv(p, "count")), " 队"], "Header text for the squad list week view, used to show the week range and squad count, where {range} is the formatted Monday-to-Sunday range and {count} the number of squads."); }
   static emptyInteractive(fbs: FbsAPI) { return fbs("暂无车队，来发第一车吧", "Empty-state text for the squad list, used when a writable week has no squads, inviting the viewer to post the first one."); }
-  static emptyReadonly(fbs: FbsAPI) { return fbs("暂无车队", "Empty-state text for the squad list, used when a read-only week has no squads."); }
   static statusOpen(fbs: FbsAPI) { return fbs("报名中", "Status label for squad cards, used to mark a squad that is open for signup."); }
   static people(fbs: FbsAPI, p?: StringParams) { return fbs([fbs.param("occupied", pv(p, "occupied")), "/", fbs.param("max", pv(p, "max")), " 人"], "Count text for squad cards, used to show seated members against capacity, where {occupied} is the seated count and {max} the capacity."); }
   static newCar(fbs: FbsAPI) { return fbs("📯 张贴告示 · 发新车", "Button label for the squad list, used to open the new squad form."); }
@@ -75,7 +74,6 @@ export abstract class GroupingDetailFbtUtils {
   static people(fbs: FbsAPI, p?: StringParams) { return fbs([fbs.param("occupied", pv(p, "occupied")), "/", fbs.param("max", pv(p, "max")), " 人"], "Count text for the squad detail page, used to show seated members against capacity, where {occupied} is the seated count and {max} the capacity."); }
   static readyProgress(fbs: FbsAPI, p?: StringParams) { return fbs(["已就位 ", fbs.param("ready", pv(p, "ready")), "/", fbs.param("occupied", pv(p, "occupied"))], "Progress text for the squad detail page, used to show how many seated members are marked ready, where {ready} is the ready count and {occupied} the seated count."); }
   static openHint(fbs: FbsAPI) { return fbs("人人可管 · 无需管理码 — 点空位即可落座", "Hint text for the squad detail page, used under the roster to explain that everyone can manage seats without an admin code."); }
-  static readonlyHint(fbs: FbsAPI) { return fbs("只读浏览 · 该百业尚未绑定 Discord 服务器", "Hint text for the squad detail page, used in read-only mode to explain that the guild has not bound a Discord server yet."); }
   static toastDisbanded(fbs: FbsAPI) { return fbs("车队已解散", "Toast message for the squad detail page, used after the squad is disbanded."); }
   static toastDisbandFailed(fbs: FbsAPI, p?: StringParams) { return fbs(["解散失败：", fbs.param("error", pv(p, "error"))], "Toast message for the squad detail page, used when disbanding fails, where {error} is the failure reason."); }
   static linkCopied(fbs: FbsAPI) { return fbs("链接已复制", "Confirmation text for the share action, used as a transient notice after the share link is copied."); }

@@ -2,7 +2,7 @@
  *
  * F12 member notes: the note fields exist ONLY on GuildOfficerPage,
  * which hangs off GuildAdmin — the response type IS the permission.
- * Member variants (Guild / GuildReadOnly / GuildLocked) carry no note
+ * The member variant (Guild) carries no note
  * field at all, so a member cannot see notes about themselves; there
  * is no client-side hiding involved. Note mutations re-run the guild
  * admin verdict server-side (bound Discord server admins, incl. the

@@ -68,9 +68,6 @@ export abstract class SettingsFbtUtils {
 export abstract class PickerFbtUtils {
   static myGuilds(fbs: FbsAPI) { return fbs("我的百业", "Section heading for the guild picker, used above the list of guilds the signed-in user can access."); }
   static myGuildsEn(fbs: FbsAPI) { return fbs("My Guilds", "English companion text for the guild picker, used next to the my-guilds heading as a decorative subtitle."); }
-  static publicGuilds(fbs: FbsAPI) { return fbs("公开百业", "Section heading for the guild picker, used above the list of publicly readable guilds."); }
-  static publicGuildsEn(fbs: FbsAPI) { return fbs("Public · Read Only", "English companion text for the guild picker, used next to the public-guilds heading to note that those guilds are read-only."); }
-  static readOnlyBadge(fbs: FbsAPI) { return fbs("只读", "Badge text for a guild card in the guild picker, used to mark a guild the viewer can read but not edit or join."); }
   static emptyTitle(fbs: FbsAPI) { return fbs("你还没有可用的百业", "Empty-state title for the guild picker, used when the signed-in user has no guilds available."); }
   static emptyBody(fbs: FbsAPI) { return fbs("百业按 Discord 服务器划分：你所在的服务器若已绑定百业，它会出现在这里。若还没有，你可以把自己管理的服务器绑成一个新百业。", "Empty-state body for the guild picker, used to explain that guilds are scoped to Discord servers, that bound guilds of the user's servers appear here, and that the user can bind a server they manage as a new guild."); }
   static createGuild(fbs: FbsAPI) { return fbs("创建百业", "Button label for the guild picker, used to start creating a new guild."); }

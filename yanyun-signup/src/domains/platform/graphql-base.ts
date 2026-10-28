@@ -366,9 +366,10 @@ export async function requireWrite(db: any, user: any, slug: any, request: any) 
   return null;
 }
 
-// Guild result: __typename IS the access verdict (Guild = full member /
-// GuildReadOnly = unbound read-only / GuildLocked = non-member or missing,
-// with no content data). The shell carries the verdict; gen methods resolve fields.
+// Guild result: the access verdict is expressed by presence — a Guild
+// shell exists only when the viewer may view the guild (bound-server
+// member); guildResult returns null otherwise (unbound / non-member /
+// missing), so no content data is ever composed for non-members.
 export async function sha256hexLocal(str: any) {
   const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
   return [...new Uint8Array(d)].map((b: any) => b.toString(16).padStart(2, '0')).join('');

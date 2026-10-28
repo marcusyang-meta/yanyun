@@ -81,6 +81,11 @@ export const CREATE_RESERVED = new Set([
 // settings.ts); these local names remain for the many call sites below.
 
 export function guildResult(ctx: Context, access: any) {
+  // The guild face exists only for viewers who may view it: missing
+  // guilds and bound guilds' non-members resolve to null — no shell, no
+  // data; the absence is the verdict. (Unbound guilds stay viewable per
+  // getGuildAccess; their write access is composed per field.)
+  if (!access.exists || !access.canView) return null;
   return new GuildShell(ctx, access);
 }
 
@@ -90,20 +95,17 @@ export class GuildRosterMemberShell extends ShellBase {
   genGlobalName(){ return this.data.globalName || null; }
 }
 
-/* ---------- Entity shell: Guild (Guild / GuildReadOnly / GuildLocked) ----------
- * One class, three __typenames (the permission conclusion is
- * expressed by type, as before): instances carry the
- * getGuildAccess conclusion, field generators resolve on demand —
- * content fields are declared only on the types that have them,
- * and a Locked instance is never asked for content. Copy fields
- * (home shell / detail-missing notice / locked page) live on this
- * class and dispatch resolvers by type. */
+/* ---------- Entity shell: Guild ----------
+ * One class, one __typename: guildResult only constructs a shell
+ * when the viewer may view the guild (bound-server member), so the
+ * type itself is the permission conclusion and every field generator
+ * may assume a member reader. Copy fields (home shell /
+ * detail-missing notice) live on this class. */
 export class GuildShell extends ShellBase {
   __typename: any;
   constructor(ctx: Context, access: any){
     super(ctx, access);
-    this.__typename = !access.exists || !access.canView ? 'GuildLocked'
-      : access.canWrite ? 'Guild' : 'GuildReadOnly';
+    this.__typename = 'Guild';
   }
   get access() { return this.data; }
   genSlug(){ return this.access.tenant ? this.access.tenant.slug : this.access.slug; }
@@ -129,8 +131,7 @@ export class GuildShell extends ShellBase {
     return groupingListPage(this.ctx, this.genSlug(), tab);
   }
   /* Announcements (F9/F10/F18): the member variant of the
-   * announcement page — declared on Guild and GuildReadOnly (the
-   * shared content surface), never on GuildLocked. Compose and
+   * announcement page — declared on Guild only. Compose and
    * receipts live only on the admin variant (GuildAdmin shell). */
   genAnnouncements(){
     return announcementPageForMember(this.ctx, this.genSlug());
@@ -140,7 +141,7 @@ export class GuildShell extends ShellBase {
    * member only their OWN P9 standing. Both compose through
    * insights-graphql, where tierLocked picks the full variant or
    * GuildInsightsLocked (zero data below tier 1). Declared on Guild
-   * and GuildReadOnly only — GuildLocked has neither field. */
+   * only. */
   genRaceSeasonBoard(){
     return this.memo('raceSeasonBoard', () => raceBoardForViewer(this.ctx, this.genSlug()));
   }
@@ -148,8 +149,7 @@ export class GuildShell extends ShellBase {
     return this.memo('gearSelfStatus', () => gearSelfForMember(this.ctx, this.genSlug()));
   }
   // This guild's member roster (proxy-signup picker): attached only
-  // to the full Guild type (GuildReadOnly / GuildLocked have no such
-  // field in the schema). Sent sorted by display name; rows whose
+  // to the Guild type. Sent sorted by display name; rows whose
   // display name is empty (no nickname and no global name) are not
   // sent — picking one could never seat.
   genMemberRoster(){
@@ -239,18 +239,8 @@ export const GUILD_TEXT_RESOLVERS = defineTextGens(GuildShell, GUILD_HOME_TEXT_S
 export const GUILD_ADMIN_LINK_RESOLVERS = {
   homeAdminLabel: (p: GuildShell) => p.genHomeAdminLabel(),
 };
-export const GUILD_READONLY_TEXT_RESOLVERS = defineTextGens(GuildShell, [
-  ['homeReadOnlyBanner', 'guildHome_readOnlyBanner'],
-]);
-export const GUILD_LOCKED_TEXT_RESOLVERS = defineTextGens(GuildShell, [
-  ['lockedBackLinkLabel', 'locked_backLink'],
-  ['lockedTitle', 'locked_title'],
-  ['lockedBody1', 'locked_body1'],
-  ['lockedBody2', 'locked_body2'],
-  ['lockedBackButtonLabel', 'locked_backButton'],
-]);
 
-// Content fields of Guild / GuildReadOnly (identical data surface; they differ only in type and in which components the frontend mounts).
+// Content fields of the Guild type (the only guild face).
 export function guildContentResolvers() {
   return {
     slug: (p: any) => p.genSlug(),
@@ -465,11 +455,6 @@ export const guildsResolvers = {
     discordId: (p: any) => p.genDiscordId(),
     displayName: (p: any) => p.genDisplayName(),
     globalName: (p: any) => p.genGlobalName(),
-  },
-  GuildReadOnly: { ...guildContentResolvers(), ...GUILD_READONLY_TEXT_RESOLVERS },
-  GuildLocked: {
-    slug: (p: any) => p.genSlug(),
-    ...GUILD_LOCKED_TEXT_RESOLVERS,
   },
   ...guildAdminTypes,
   ...guildAdminPayloadResolvers,
