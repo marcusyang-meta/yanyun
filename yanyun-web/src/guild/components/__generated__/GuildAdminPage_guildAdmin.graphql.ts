@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<5b4590f63283e16a5604ffc28d857fdf>>
+ * @generated SignedSource<<07dcb2be65d12cc195237879f025deca>>
  * @lightSyntaxTransform
  */
 
@@ -11,6 +11,8 @@ import { ReaderFragment } from 'relay-runtime';
 export type GroupingType = "ACTIVITY" | "RACE" | "TALENT" | "TOWER" | "%future added value";
 export type LotterySource = "GROUPING" | "MEMBERS" | "%future added value";
 export type LotteryStatus = "DRAWN" | "OPEN" | "%future added value";
+export type MentorPairingStatus = "ACTIVE" | "ENDED" | "%future added value";
+export type RecruitApplicationStatus = "APPROVED" | "PENDING" | "REJECTED" | "%future added value";
 import { FragmentRefs } from "relay-runtime";
 export type GuildAdminPage_guildAdmin$data = {
   readonly adminAddLabel: string;
@@ -78,6 +80,24 @@ export type GuildAdminPage_guildAdmin$data = {
   readonly adminOgTitleSuffixLabel: string;
   readonly adminPremiumTitle: string;
   readonly adminProfileTitle: string;
+  readonly adminRecruitApplicationsEmptyText: string;
+  readonly adminRecruitApplicationsTitle: string;
+  readonly adminRecruitApproveLabel: string;
+  readonly adminRecruitFirstRunLabel: string;
+  readonly adminRecruitMenteeSelectLabel: string;
+  readonly adminRecruitMentorLabel: string;
+  readonly adminRecruitMentorPoolTitle: string;
+  readonly adminRecruitMentorSelectLabel: string;
+  readonly adminRecruitNewcomersEmptyText: string;
+  readonly adminRecruitNewcomersTitle: string;
+  readonly adminRecruitPairingCreateLabel: string;
+  readonly adminRecruitPairingEndLabel: string;
+  readonly adminRecruitPairingsEmptyText: string;
+  readonly adminRecruitPairingsTitle: string;
+  readonly adminRecruitProfileLabel: string;
+  readonly adminRecruitRejectLabel: string;
+  readonly adminRecruitSetMentorLabel: string;
+  readonly adminRecruitUnsetMentorLabel: string;
   readonly adminReminderCustomTextHint: string;
   readonly adminReminderCustomTextLabel: string;
   readonly adminReminderOffsetTemplate: string;
@@ -119,6 +139,7 @@ export type GuildAdminPage_guildAdmin$data = {
   readonly adminTabEventsLabel: string;
   readonly adminTabGuidesLabel: string;
   readonly adminTabProfileLabel: string;
+  readonly adminTabRecruitLabel: string;
   readonly adminTabSeasonLabel: string;
   readonly adminTabStatsLabel: string;
   readonly adminTabToolsLabel: string;
@@ -205,6 +226,14 @@ export type GuildAdminPage_guildAdmin$data = {
   }>;
   readonly masterName: string;
   readonly name: string | null | undefined;
+  readonly newcomerProgress: ReadonlyArray<{
+    readonly discordId: string;
+    readonly displayName: string;
+    readonly firstRunDone: boolean;
+    readonly mentorDone: boolean;
+    readonly profileDone: boolean;
+    readonly progressText: string;
+  }>;
   readonly ogAccent: string;
   readonly ogAccentOptions: ReadonlyArray<{
     readonly hex: string;
@@ -230,6 +259,33 @@ export type GuildAdminPage_guildAdmin$data = {
     // value in case none of the concrete values match.
     readonly __typename: "%other";
   } | null | undefined;
+  readonly recruitApplications: ReadonlyArray<{
+    readonly applicantDiscordId: string;
+    readonly applicantName: string;
+    readonly createdAtText: string;
+    readonly id: string;
+    readonly message: string;
+    readonly reviewedAtText: string | null | undefined;
+    readonly reviewedByName: string | null | undefined;
+    readonly status: RecruitApplicationStatus;
+    readonly statusLabel: string;
+  }>;
+  readonly recruitPairings: ReadonlyArray<{
+    readonly createdAtText: string;
+    readonly endedAtText: string | null | undefined;
+    readonly id: string;
+    readonly menteeDiscordId: string;
+    readonly menteeName: string;
+    readonly mentorDiscordId: string;
+    readonly mentorName: string;
+    readonly status: MentorPairingStatus;
+    readonly statusLabel: string;
+  }>;
+  readonly recruitRoster: ReadonlyArray<{
+    readonly discordId: string;
+    readonly displayName: string;
+    readonly isMentor: boolean;
+  }>;
   readonly reminderCustomText: string;
   readonly reminderOffsets: ReadonlyArray<number>;
   readonly reminderWebhookId: string | null | undefined;
@@ -372,19 +428,26 @@ v6 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "discordId",
+  "name": "createdAtText",
   "storageKey": null
 },
 v7 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
+  "name": "discordId",
+  "storageKey": null
+},
+v8 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
   "name": "displayName",
   "storageKey": null
 },
-v8 = [
-  (v6/*:: as any*/),
+v9 = [
   (v7/*:: as any*/),
+  (v8/*:: as any*/),
   {
     "alias": null,
     "args": null,
@@ -393,28 +456,35 @@ v8 = [
     "storageKey": null
   }
 ],
-v9 = {
-  "alias": null,
-  "args": null,
-  "kind": "ScalarField",
-  "name": "createdAt",
-  "storageKey": null
-},
 v10 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "teamName",
+  "name": "statusLabel",
   "storageKey": null
 },
 v11 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "members",
+  "name": "createdAt",
   "storageKey": null
 },
 v12 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "teamName",
+  "storageKey": null
+},
+v13 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "members",
+  "storageKey": null
+},
+v14 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
@@ -897,13 +967,7 @@ return {
           "name": "entryCountText",
           "storageKey": null
         },
-        {
-          "alias": null,
-          "args": null,
-          "kind": "ScalarField",
-          "name": "createdAtText",
-          "storageKey": null
-        },
+        (v6/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -918,7 +982,7 @@ return {
           "kind": "LinkedField",
           "name": "entries",
           "plural": true,
-          "selections": (v8/*:: as any*/),
+          "selections": (v9/*:: as any*/),
           "storageKey": null
         },
         {
@@ -928,7 +992,7 @@ return {
           "kind": "LinkedField",
           "name": "winners",
           "plural": true,
-          "selections": (v8/*:: as any*/),
+          "selections": (v9/*:: as any*/),
           "storageKey": null
         }
       ],
@@ -942,8 +1006,302 @@ return {
       "name": "lotteryRoster",
       "plural": true,
       "selections": [
+        (v7/*:: as any*/),
+        (v8/*:: as any*/)
+      ],
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminTabRecruitLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminRecruitApplicationsTitle",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminRecruitApplicationsEmptyText",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminRecruitApproveLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminRecruitRejectLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminRecruitMentorPoolTitle",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminRecruitSetMentorLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminRecruitUnsetMentorLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminRecruitPairingsTitle",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminRecruitPairingsEmptyText",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminRecruitPairingCreateLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminRecruitPairingEndLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminRecruitMentorSelectLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminRecruitMenteeSelectLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminRecruitNewcomersTitle",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminRecruitNewcomersEmptyText",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminRecruitProfileLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminRecruitMentorLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminRecruitFirstRunLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "concreteType": "RecruitApplication",
+      "kind": "LinkedField",
+      "name": "recruitApplications",
+      "plural": true,
+      "selections": [
+        (v2/*:: as any*/),
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "applicantDiscordId",
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "applicantName",
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "message",
+          "storageKey": null
+        },
+        (v5/*:: as any*/),
+        (v10/*:: as any*/),
         (v6/*:: as any*/),
-        (v7/*:: as any*/)
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "reviewedByName",
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "reviewedAtText",
+          "storageKey": null
+        }
+      ],
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "concreteType": "MentorPairing",
+      "kind": "LinkedField",
+      "name": "recruitPairings",
+      "plural": true,
+      "selections": [
+        (v2/*:: as any*/),
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "mentorDiscordId",
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "mentorName",
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "menteeDiscordId",
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "menteeName",
+          "storageKey": null
+        },
+        (v5/*:: as any*/),
+        (v10/*:: as any*/),
+        (v6/*:: as any*/),
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "endedAtText",
+          "storageKey": null
+        }
+      ],
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "concreteType": "RecruitMember",
+      "kind": "LinkedField",
+      "name": "recruitRoster",
+      "plural": true,
+      "selections": [
+        (v7/*:: as any*/),
+        (v8/*:: as any*/),
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "isMentor",
+          "storageKey": null
+        }
+      ],
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "concreteType": "NewcomerProgress",
+      "kind": "LinkedField",
+      "name": "newcomerProgress",
+      "plural": true,
+      "selections": [
+        (v7/*:: as any*/),
+        (v8/*:: as any*/),
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "profileDone",
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "mentorDone",
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "firstRunDone",
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "progressText",
+          "storageKey": null
+        }
       ],
       "storageKey": null
     },
@@ -1136,7 +1494,7 @@ return {
           "plural": true,
           "selections": [
             (v2/*:: as any*/),
-            (v7/*:: as any*/),
+            (v8/*:: as any*/),
             (v4/*:: as any*/),
             {
               "alias": null,
@@ -1145,7 +1503,7 @@ return {
               "name": "matchedName",
               "storageKey": null
             },
-            (v9/*:: as any*/)
+            (v11/*:: as any*/)
           ],
           "storageKey": null
         }
@@ -1921,10 +2279,10 @@ return {
               "name": "contact",
               "storageKey": null
             },
-            (v10/*:: as any*/),
-            (v11/*:: as any*/),
             (v12/*:: as any*/),
-            (v9/*:: as any*/)
+            (v13/*:: as any*/),
+            (v14/*:: as any*/),
+            (v11/*:: as any*/)
           ],
           "storageKey": null
         },
@@ -1937,8 +2295,8 @@ return {
           "plural": true,
           "selections": [
             (v2/*:: as any*/),
-            (v10/*:: as any*/),
-            (v11/*:: as any*/),
+            (v12/*:: as any*/),
+            (v13/*:: as any*/),
             {
               "alias": null,
               "args": null,
@@ -1960,7 +2318,7 @@ return {
               "name": "proofUrl",
               "storageKey": null
             },
-            (v12/*:: as any*/)
+            (v14/*:: as any*/)
           ],
           "storageKey": null
         },
@@ -2178,8 +2536,8 @@ return {
               "name": "memberLeaders",
               "plural": true,
               "selections": [
-                (v6/*:: as any*/),
                 (v7/*:: as any*/),
+                (v8/*:: as any*/),
                 {
                   "alias": null,
                   "args": null,
@@ -2198,8 +2556,8 @@ return {
               "name": "leaderLeaders",
               "plural": true,
               "selections": [
-                (v6/*:: as any*/),
                 (v7/*:: as any*/),
+                (v8/*:: as any*/),
                 {
                   "alias": null,
                   "args": null,
@@ -2223,6 +2581,6 @@ return {
 };
 })();
 
-(node as any).hash = "636c700252889ace7dfb18863339ce67";
+(node as any).hash = "885cd1942c33f88b98f8a49ccaf0b4be";
 
 export default node;

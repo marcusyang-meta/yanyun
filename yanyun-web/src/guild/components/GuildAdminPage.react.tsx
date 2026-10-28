@@ -17,6 +17,7 @@ import GuildAdminGuides from './GuildAdminGuides.react.tsx';
 import { GuildAdminAnnouncementsRoute } from './GuildAnnouncements.react.tsx';
 import GuildAdminStats from './GuildAdminStats.react.tsx';
 import GuildAdminTools from './GuildAdminTools.react.tsx';
+import GuildAdminRecruit from './GuildAdminRecruit.react.tsx';
 import GuildAdminSeason from './GuildAdminSeason.react.tsx';
 import { PremiumLockedPanel, PremiumActivePanel } from './GuildAdminPremium.react.tsx';
 
@@ -98,6 +99,56 @@ const GuildAdminPage_guildAdmin = graphql`
       winners { discordId displayName weight }
     }
     lotteryRoster { discordId displayName }
+    adminTabRecruitLabel
+    adminRecruitApplicationsTitle
+    adminRecruitApplicationsEmptyText
+    adminRecruitApproveLabel
+    adminRecruitRejectLabel
+    adminRecruitMentorPoolTitle
+    adminRecruitSetMentorLabel
+    adminRecruitUnsetMentorLabel
+    adminRecruitPairingsTitle
+    adminRecruitPairingsEmptyText
+    adminRecruitPairingCreateLabel
+    adminRecruitPairingEndLabel
+    adminRecruitMentorSelectLabel
+    adminRecruitMenteeSelectLabel
+    adminRecruitNewcomersTitle
+    adminRecruitNewcomersEmptyText
+    adminRecruitProfileLabel
+    adminRecruitMentorLabel
+    adminRecruitFirstRunLabel
+    recruitApplications {
+      id
+      applicantDiscordId
+      applicantName
+      message
+      status
+      statusLabel
+      createdAtText
+      reviewedByName
+      reviewedAtText
+    }
+    recruitPairings {
+      id
+      mentorDiscordId
+      mentorName
+      menteeDiscordId
+      menteeName
+      status
+      statusLabel
+      createdAtText
+      endedAtText
+    }
+    recruitRoster { discordId displayName isMentor }
+    newcomerProgress {
+      discordId
+      displayName
+      profileDone
+      mentorDone
+      firstRunDone
+      progressText
+    }
     adminTabSeasonLabel
     seasonChecklist {
       seasonKey
@@ -449,6 +500,7 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
     { key: 'stats', label: text.adminTabStatsLabel },
     { key: 'tools', label: text.adminTabToolsLabel },
     { key: 'season', label: text.adminTabSeasonLabel },
+    { key: 'recruit', label: text.adminTabRecruitLabel },
   ];
 
   return (
@@ -673,6 +725,18 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
           ) : premiumLocked ? (
             <PremiumLockedPanel premium={premiumLocked} slug={slug} unknownError={commonText.unknownError} />
           ) : null
+        )}
+        {tab === 'recruit' && (
+          <GuildAdminRecruit
+            slug={slug}
+            text={text}
+            commonText={commonText}
+            applications={data.recruitApplications}
+            pairings={data.recruitPairings}
+            roster={data.recruitRoster}
+            newcomers={data.newcomerProgress}
+            refresh={refresh}
+          />
         )}
         {tab === 'tools' && (
           <GuildAdminTools

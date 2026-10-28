@@ -1517,6 +1517,11 @@ type Mutation {
   previewRosterImport(slug: String!, lines: [String!]!, imageCount: Int!): RosterImportPayload!
   confirmRosterImport(slug: String!, batchId: ID!, rowIds: [ID!]!): RosterImportPayload!
   deleteGuildRosterEntry(slug: String!, entryId: ID!): GuildAdminPayload!
+  reviewGuildApplication(slug: String!, applicationId: ID!, approve: Boolean!): GuildAdminPayload!
+  setGuildMentor(slug: String!, discordId: String!, isMentor: Boolean!): GuildAdminPayload!
+  createMentorPairing(slug: String!, mentorDiscordId: String!, menteeDiscordId: String!): GuildAdminPayload!
+  endMentorPairing(slug: String!, pairingId: ID!): GuildAdminPayload!
+  applyToGuild(slug: String!, message: String): RecruitPayload!
   gearPlan(input: GearPlanInput!): GearPlanResult!
   gearAutoCombine(targetIdx: Int!, lib: [GearItemInput!]!): GearAutoResult!
   gearParsePaste(text: String!): GearParseResult!
@@ -1759,6 +1764,7 @@ type Guild {
   homeTabSectLabel: String!
   homeTabAnnouncementsLabel: String!
   homeTabScheduleLabel: String!
+  recruitEntryLabel: String!
   homeAdminLabel: String
   detailNotFoundText: String!
   detailBackToListLabel: String!
@@ -1782,6 +1788,7 @@ type GuildReadOnly {
   homeTabSectLabel: String!
   homeTabAnnouncementsLabel: String!
   homeTabScheduleLabel: String!
+  recruitEntryLabel: String!
   homeReadOnlyBanner: String!
   detailNotFoundText: String!
   detailBackToListLabel: String!
@@ -1791,6 +1798,7 @@ type GuildReadOnly {
 
 type GuildLocked {
   slug: String!
+  recruitEntryLabel: String!
   lockedBackLinkLabel: String!
   lockedTitle: String!
   lockedBody1: String!
@@ -1806,6 +1814,7 @@ type Viewer {
   publicGuilds: [GuildReadOnly!]!
   guild(slug: String!): GuildResult!
   guildAdmin(slug: String!): GuildAdminResult!
+  guildRecruit(slug: String!): GuildRecruitResult!
   discordServers: [DiscordServer!]!
   siteTitle: String!
   siteSubtitle: String!
@@ -1926,6 +1935,10 @@ type GuildAdmin {
   lotteryRoster: [GuildAdminLotteryMember!]!
   seasonChecklist: GuildSeasonChecklist!
   roster: GuildRoster!
+  recruitApplications: [RecruitApplication!]!
+  recruitPairings: [MentorPairing!]!
+  recruitRoster: [RecruitMember!]!
+  newcomerProgress: [NewcomerProgress!]!
   adminTitle: String!
   adminBackLinkLabel: String!
   adminTabProfileLabel: String!
@@ -2047,6 +2060,25 @@ type GuildAdmin {
   adminLotteryDrawLabel: String!
   adminLotteryStatusOpenText: String!
   adminLotteryStatusDrawnText: String!
+  adminTabRecruitLabel: String!
+  adminRecruitApplicationsTitle: String!
+  adminRecruitApplicationsEmptyText: String!
+  adminRecruitApproveLabel: String!
+  adminRecruitRejectLabel: String!
+  adminRecruitMentorPoolTitle: String!
+  adminRecruitSetMentorLabel: String!
+  adminRecruitUnsetMentorLabel: String!
+  adminRecruitPairingsTitle: String!
+  adminRecruitPairingsEmptyText: String!
+  adminRecruitPairingCreateLabel: String!
+  adminRecruitPairingEndLabel: String!
+  adminRecruitMentorSelectLabel: String!
+  adminRecruitMenteeSelectLabel: String!
+  adminRecruitNewcomersTitle: String!
+  adminRecruitNewcomersEmptyText: String!
+  adminRecruitProfileLabel: String!
+  adminRecruitMentorLabel: String!
+  adminRecruitFirstRunLabel: String!
 }
 
 enum LotterySource {
@@ -2079,6 +2111,111 @@ type GuildAdminLotteryEntry {
   discordId: String!
   displayName: String!
   weight: Int!
+}
+
+enum RecruitApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum MentorPairingStatus {
+  ACTIVE
+  ENDED
+}
+
+type RecruitApplication {
+  id: ID!
+  applicantDiscordId: String!
+  applicantName: String!
+  message: String!
+  status: RecruitApplicationStatus!
+  statusLabel: String!
+  createdAtText: String!
+  reviewedByName: String
+  reviewedAtText: String
+}
+
+type MentorPairing {
+  id: ID!
+  mentorDiscordId: String!
+  mentorName: String!
+  menteeDiscordId: String!
+  menteeName: String!
+  status: MentorPairingStatus!
+  statusLabel: String!
+  createdAtText: String!
+  endedAtText: String
+}
+
+type RecruitMember {
+  discordId: String!
+  displayName: String!
+  isMentor: Boolean!
+}
+
+type NewcomerChecklistItem {
+  key: String!
+  label: String!
+  hint: String!
+  done: Boolean!
+}
+
+type NewcomerChecklist {
+  items: [NewcomerChecklistItem!]!
+  doneCount: Int!
+  totalCount: Int!
+  progressText: String!
+}
+
+type NewcomerProgress {
+  discordId: String!
+  displayName: String!
+  profileDone: Boolean!
+  mentorDone: Boolean!
+  firstRunDone: Boolean!
+  doneCount: Int!
+  progressText: String!
+}
+
+union GuildRecruitResult = GuildRecruitPage | GuildRecruitLocked
+
+type GuildRecruitPage {
+  slug: String!
+  guildName: String!
+  recruitTitle: String!
+  recruitBody: String!
+  applySectionTitle: String!
+  messageLabel: String!
+  messagePlaceholder: String!
+  submitLabel: String!
+  submittingLabel: String!
+  myApplicationTitle: String!
+  myApplication: RecruitApplication
+  pendingHint: String!
+  approvedNextStepText: String!
+  rejectedHint: String!
+  checklistTitle: String!
+  checklist: NewcomerChecklist
+  myPairingsTitle: String!
+  myPairings: [MentorPairing!]!
+  pairingMentorRoleLabel: String!
+  pairingMenteeRoleLabel: String!
+  backLabel: String!
+}
+
+type GuildRecruitLocked {
+  slug: String!
+  lockedTitle: String!
+  lockedBody: String!
+  backLabel: String!
+}
+
+type RecruitPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  application: RecruitApplication
 }
 
 type GuildAdminLotteryMember {
