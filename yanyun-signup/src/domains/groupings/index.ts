@@ -18,3 +18,5 @@ export { SeatHub } from './seathub.ts';
 export * from './rest-shared.ts';
 export * from './graphql.ts';
  './graphql.ts';
+
+export * from "./scheduling.ts";
