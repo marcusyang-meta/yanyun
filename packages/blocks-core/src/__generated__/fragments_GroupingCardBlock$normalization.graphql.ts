@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<0a2ad6a54bd73110e9aea9530f38abdb>>
+ * @generated SignedSource<<1cb99026d544c37f076b231fa01e4ef4>>
  * @lightSyntaxTransform
  */
 
@@ -139,13 +139,6 @@ return {
               "args": null,
               "kind": "ScalarField",
               "name": "name",
-              "storageKey": null
-            },
-            {
-              "alias": null,
-              "args": null,
-              "kind": "ScalarField",
-              "name": "readOnly",
               "storageKey": null
             },
             {

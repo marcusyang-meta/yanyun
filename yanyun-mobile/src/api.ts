@@ -102,7 +102,7 @@ export type GuildItem = {
   // Guild avatar (backend avatarUrl; null = none, display falls back to the seal glyph)
   avatarUrl?: string | null;
   viewerNick?: string | null;
-  // Guild home tab labels (supplied by the Guild/GuildReadOnly shell per locale; same source as Web GuildHome)
+  // Guild home tab labels (supplied by the Guild shell per locale; same source as Web GuildHome)
   homeTabTeamLabel?: string | null;
   homeTabDexLabel?: string | null;
   homeTabSectLabel?: string | null;
@@ -116,7 +116,6 @@ export type GuildItem = {
   // Server-composed white-label chrome copy (carries the platform name
   // only while this guild shows platform branding)
   pageBackLabel?: string | null;
-  readOnly: boolean;
 };
 
 // Site/login/picker copy: same viewer copy fields as Web AppViewerQuery,
@@ -137,9 +136,6 @@ export type SiteText = {
   userBarLoggingOutLabel?: string | null;
   pickerMyGuildsLabel?: string | null;
   pickerMyGuildsEnLabel?: string | null;
-  pickerPublicGuildsLabel?: string | null;
-  pickerPublicGuildsEnLabel?: string | null;
-  pickerReadOnlyBadge?: string | null;
   pickerEmptyTitle?: string | null;
   pickerEmptyBody?: string | null;
   pickerCreateGuildLabel?: string | null;
@@ -223,7 +219,6 @@ export type HomeRecruitData = {
 export type ViewerData = {
   user: DiscordUser | null;
   guilds: GuildItem[];
-  publicGuilds: GuildItem[];
   homeRecruit: HomeRecruitData | null;
   localePref?: string | null;
   text: SiteText;
@@ -236,8 +231,7 @@ export async function fetchViewer(): Promise<ViewerData> {
     user: viewer?.user
       ? { discordId: viewer.user.discordId, name: viewer.user.name, avatar: viewer.user.avatar }
       : null,
-    guilds: (viewer?.guilds ?? []).map((g) => ({ ...g, readOnly: false })),
-    publicGuilds: (viewer?.publicGuilds ?? []).map((g) => ({ ...g, readOnly: true })),
+    guilds: (viewer?.guilds ?? []).map((g) => ({ ...g })),
     homeRecruit: (viewer?.homeRecruit as unknown as HomeRecruitData | undefined) ?? null,
     localePref: viewer?.myLocalePref ?? null,
     text: {
@@ -256,9 +250,6 @@ export async function fetchViewer(): Promise<ViewerData> {
       userBarLoggingOutLabel: viewer?.userBarLoggingOutLabel,
       pickerMyGuildsLabel: viewer?.pickerMyGuildsLabel,
       pickerMyGuildsEnLabel: viewer?.pickerMyGuildsEnLabel,
-      pickerPublicGuildsLabel: viewer?.pickerPublicGuildsLabel,
-      pickerPublicGuildsEnLabel: viewer?.pickerPublicGuildsEnLabel,
-      pickerReadOnlyBadge: viewer?.pickerReadOnlyBadge,
       pickerEmptyTitle: viewer?.pickerEmptyTitle,
       pickerEmptyBody: viewer?.pickerEmptyBody,
       pickerCreateGuildLabel: viewer?.pickerCreateGuildLabel,

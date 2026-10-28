@@ -26,7 +26,6 @@ export function dispatchAction(
         slug: action.slug ?? '',
         groupingId: action.groupingId ?? '',
         name: action.name ?? '',
-        readOnly: !!action.readOnly,
         nick: action.nick ?? '',
       });
       break;

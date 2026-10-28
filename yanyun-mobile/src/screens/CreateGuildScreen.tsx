@@ -96,7 +96,6 @@ function CreateGuildForm() {
           params: {
             slug: res.guild.slug,
             name: res.guild.name || g?.name || '',
-            readOnly: '0',
             nick: g?.viewerNick || '',
             version: g?.gameVersion || '',
             avatar: g?.avatarUrl || '',

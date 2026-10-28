@@ -24,8 +24,8 @@ import type { documentsGroupingListBlocksQuery } from '../__generated__/document
 
 // Page skeleton mirrors Web GuildHome: header row (back link + UserBar)
 // -> guild name (calligraphy 42) + version row -> section pill tabs
-// (.yy-tabs: grouping/dex/sect guides; labels are the Guild/
-// GuildReadOnly shell's homeTab*Label, same source as Web) -> the active
+// (.yy-tabs: grouping/dex/sect guides; labels are the Guild
+// shell's homeTab*Label, same source as Web) -> the active
 // section panel. Grouping panel = new-grouping gold button (right-
 // aligned) -> type ghost chips -> week nav row -> the server-supplied
 // typed block tree (GroupingListPage.blocks); dex panel = DexView; sect
@@ -38,7 +38,7 @@ const TAB_KEYS = ['ACTIVITY', 'TALENT', 'RACE', 'TOWER'] as const;
 const TAB_FALLBACK_LABELS = ['双十人本', '天赋组队', '竞速报名', '爬塔'];
 
 type TabKey = (typeof TAB_KEYS)[number];
-type Props = { slug: string; name: string; readOnly: boolean; nick: string; gameVersion?: string; avatarUrl?: string };
+type Props = { slug: string; name: string; nick: string; gameVersion?: string; avatarUrl?: string };
 
 function fill(template: string, params: Record<string, string | number>): string {
   let out = template;
@@ -48,10 +48,10 @@ function fill(template: string, params: Record<string, string | number>): string
 
 type SectionKey = 'team' | 'dex' | 'sect' | 'announcements' | 'schedule' | 'insights';
 
-export default function GroupingListScreen({ slug, name, readOnly, nick, gameVersion, avatarUrl }: Props) {
+export default function GroupingListScreen({ slug, name, nick, gameVersion, avatarUrl }: Props) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { guilds, publicGuilds } = useSession();
+  const { guilds } = useSession();
   const [section, setSection] = useState<SectionKey>('team');
   const [tab, setTab] = useState<TabKey>('ACTIVITY');
   const [weekOffset, setWeekOffset] = useState(0);
@@ -71,7 +71,6 @@ export default function GroupingListScreen({ slug, name, readOnly, nick, gameVer
         slug: a.slug,
         id: a.groupingId,
         name: a.name,
-        readOnly: a.readOnly ? '1' : '0',
         nick: a.nick,
         version: gameVersion ?? '',
         guildName: name,
@@ -90,7 +89,7 @@ export default function GroupingListScreen({ slug, name, readOnly, nick, gameVer
   // Section pill labels: the shell labels for this guild in the session
   // (same fields as Web GuildHome); tabs render only when all three are
   // present (never fake them) -- otherwise only the grouping surface shows.
-  const guildItem = [...guilds, ...publicGuilds].find((g) => g.slug === slug);
+  const guildItem = guilds.find((g) => g.slug === slug);
   const sectionLabels: [SectionKey, string][] | null =
     guildItem?.homeTabTeamLabel && guildItem?.homeTabDexLabel && guildItem?.homeTabSectLabel
       ? [
@@ -102,10 +101,9 @@ export default function GroupingListScreen({ slug, name, readOnly, nick, gameVer
         ...(guildItem.homeTabAnnouncementsLabel
           ? [['announcements', guildItem.homeTabAnnouncementsLabel] as [SectionKey, string]]
           : []),
-        // Schedule tab (F5 summary + F13 polls): member branch only —
-        // Web mounts it solely in the interactive home, so a read-only
-        // guild never offers it even though the label field exists.
-        ...(!readOnly && guildItem.homeTabScheduleLabel
+        // Schedule tab (F5 summary + F13 polls): the label is carried
+        // only by the member shell, so its presence is the gate.
+        ...(guildItem.homeTabScheduleLabel
           ? [['schedule', guildItem.homeTabScheduleLabel] as [SectionKey, string]]
           : []),
         // Insights tab (P15 board + own P9 status): exists only when
@@ -145,16 +143,14 @@ export default function GroupingListScreen({ slug, name, readOnly, nick, gameVer
 
       {section === 'team' && (
         <>
-          {!readOnly && (
-            <View style={s.createRow}>
-              <Suspense fallback={null}>
-                <CreateCarButton slug={slug} onPress={() => setShowCreate(true)} />
-              </Suspense>
-              <Suspense fallback={null}>
-                <AdminEntryButton slug={slug} />
-              </Suspense>
-            </View>
-          )}
+          <View style={s.createRow}>
+            <Suspense fallback={null}>
+              <CreateCarButton slug={slug} onPress={() => setShowCreate(true)} />
+            </Suspense>
+            <Suspense fallback={null}>
+              <AdminEntryButton slug={slug} />
+            </Suspense>
+          </View>
 
           <View style={s.chipsZone}>
             <Suspense fallback={<ChipsRow labels={TAB_FALLBACK_LABELS} tab={tab} onChange={setTab} />}>
@@ -265,7 +261,7 @@ function AdminEntryButton({ slug }: { slug: string }) {
   );
   const g: any = (data as any)?.viewer?.guild;
   // The label itself is the variant signal: the shell emits it only on the
-  // admin-verdict Guild (null for plain members, absent on GuildLocked).
+  // admin-verdict Guild (null for plain members, absent when guild is null).
   // (No __typename check: the reader AST does not surface it on this field.)
   const label = g?.homeAdminLabel ?? null;
   if (!label) return null;

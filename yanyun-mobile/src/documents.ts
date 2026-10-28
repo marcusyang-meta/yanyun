@@ -25,9 +25,6 @@ export const ViewerQuery = graphql`
       userBarLoggingOutLabel
       pickerMyGuildsLabel
       pickerMyGuildsEnLabel
-      pickerPublicGuildsLabel
-      pickerPublicGuildsEnLabel
-      pickerReadOnlyBadge
       pickerEmptyTitle
       pickerEmptyBody
       pickerCreateGuildLabel
@@ -38,23 +35,6 @@ export const ViewerQuery = graphql`
         avatar
       }
       guilds {
-        slug
-        name
-        slogan
-        gameVersion
-        memberCount
-        avatarUrl
-        viewerNick
-        homeTabTeamLabel
-        homeTabDexLabel
-        homeTabSectLabel
-        homeTabAnnouncementsLabel
-        homeTabScheduleLabel
-        homeInsightsRaceTitle
-        raceSeasonBoard { __typename }
-        pageBackLabel
-      }
-      publicGuilds {
         slug
         name
         slogan
@@ -184,32 +164,6 @@ export const GuildInsightsBoardQuery = graphql`
       guild(slug: $slug) {
         __typename
         ... on Guild {
-          homeInsightsRaceTitle
-          homeInsightsRaceEmptyText
-          homeInsightsRaceTeamLabel
-          homeInsightsRaceRunsLabel
-          homeInsightsRaceWinsLabel
-          homeInsightsRaceBestLabel
-          homeInsightsSelfGearTitle
-          homeInsightsGearScoreLabel
-          homeInsightsGearMinScoreLabel
-          raceSeasonBoard {
-            __typename
-            ... on RaceSeasonBoard {
-              seasons {
-                season seasonLabel
-                entries { teamName members runCount winCount bestTimeMs bestTimeText }
-              }
-            }
-          }
-          gearSelfStatus {
-            __typename
-            ... on GuildGearSelfStatus {
-              entries { standardId label minScore myScore met statusText }
-            }
-          }
-        }
-        ... on GuildReadOnly {
           homeInsightsRaceTitle
           homeInsightsRaceEmptyText
           homeInsightsRaceTeamLabel
@@ -2470,7 +2424,7 @@ export const UpdateSchoolGuideAdminMutation = graphql`
 
 /* Guild announcements (communication line F9/F10/F18): same page
  * shell as Web — every label arrives on GuildAnnouncementPage; the
- * member query reads the member variant off Guild/GuildReadOnly, the
+ * member query reads the member variant off Guild, the
  * admin query reads the compose/receipts variant off GuildAdmin. */
 
 export const AnnouncementsPageQuery = graphql`
@@ -2479,29 +2433,6 @@ export const AnnouncementsPageQuery = graphql`
       guild(slug: $slug) {
         __typename
         ... on Guild {
-          announcements {
-            title
-            emptyText
-            canPost
-            announcements {
-              id
-              kind
-              urgent
-              urgentLabel
-              kindLabel
-              title
-              body
-              displayTitle
-              displayBody
-              isTranslated
-              contentSourceLabel
-              authorText
-              createdAtText
-              viewerHasRead
-            }
-          }
-        }
-        ... on GuildReadOnly {
           announcements {
             title
             emptyText

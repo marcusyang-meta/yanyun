@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<782dc1ce4a0e83cf5b063e00b935b92d>>
+ * @generated SignedSource<<d2738213276e1b27b63c42b0b7431661>>
  * @lightSyntaxTransform
  */
 
@@ -48,7 +48,6 @@ export type fragments_BlockAction$data = {
   readonly groupingId: string;
   readonly name: string;
   readonly nick: string;
-  readonly readOnly: boolean;
   readonly slug: string;
   readonly " $fragmentType": "fragments_BlockAction";
 } | {
@@ -152,13 +151,6 @@ return {
           "alias": null,
           "args": null,
           "kind": "ScalarField",
-          "name": "readOnly",
-          "storageKey": null
-        },
-        {
-          "alias": null,
-          "args": null,
-          "kind": "ScalarField",
           "name": "nick",
           "storageKey": null
         }
@@ -245,6 +237,6 @@ return {
 };
 })();
 
-(node as any).hash = "43ea66700d1b96fae0321305a21cfe68";
+(node as any).hash = "20c7a0bfef63e1019dbc97d8fd25ea02";
 
 export default node;

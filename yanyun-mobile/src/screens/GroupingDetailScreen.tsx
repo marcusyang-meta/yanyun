@@ -29,7 +29,7 @@ import type { documentsGuildRosterQuery } from '../__generated__/documentsGuildR
 // LeaveAction; empty seats carry JoinAction only when writable and the
 // grouping is open. The client only dispatches Action objects by type to
 // known handlers (confirm copy also comes from the action object).
-type Props = { slug: string; id: string; readOnly: boolean; nick: string; guildName?: string; gameVersion?: string };
+type Props = { slug: string; id: string; nick: string; guildName?: string; gameVersion?: string };
 
 function fill(template: string, params: Record<string, string | number>): string {
   let out = template;
@@ -41,7 +41,7 @@ export default function GroupingDetailScreen({ slug, id, nick, guildName, gameVe
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const env = useRelayEnvironment();
-  const { user, guilds, publicGuilds } = useSession();
+  const { user, guilds } = useSession();
   const [refreshTick, setRefreshTick] = useState(0);
   const [epoch, setEpoch] = useState(0);
   const refresh = useCallback(() => setRefreshTick((k) => k + 1), []);
@@ -141,7 +141,7 @@ export default function GroupingDetailScreen({ slug, id, nick, guildName, gameVe
     <View style={s.root}>
       <Backdrop />
       <View style={[s.headZone, { paddingTop: 12 + insets.top }]}>
-        <SiteChrome displayName={nick || undefined} backLabel={[...guilds, ...publicGuilds].find((g) => g.slug === slug)?.pageBackLabel} />
+        <SiteChrome displayName={nick || undefined} backLabel={guilds.find((g) => g.slug === slug)?.pageBackLabel} />
         {!!guildName && <GuildHeader name={guildName} version={gameVersion} />}
         <Suspense fallback={<BackLink label="‹ 返回车队列表" />}>
           <BackLinkLive slug={slug} id={id} />
