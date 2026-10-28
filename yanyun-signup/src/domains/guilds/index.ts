@@ -9,5 +9,7 @@ export * from './subdomain.ts';
 export * from './guildAvatars.ts';
 export * from './guildavatar.ts';
  './guildavatar.ts';
+export * from './seasonChecklist.ts';
+export * from './roster.ts';
 export * from './graphql.ts';
 export { guildAdminResult, guildAdminTypes, GuildAdminShell } from './admin-graphql.ts';

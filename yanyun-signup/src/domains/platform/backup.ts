@@ -21,6 +21,7 @@ import type { SQLiteTable } from 'drizzle-orm/sqlite-core';
 import { createDb } from '../../db/client.ts';
 import {
   tenants, settings, users, userOauth, userGuildNicks, guildMembers,
+  seasonChecklistChecks, guildRosterEntries, rosterImportBatches, rosterImportRows,
   events, signups, results, shortLinks, groupingTemplates, guildAvatars,
   calendarFeeds, lotteries, lotteryEntries, lotteryWinners,
   bosses, dungeons, schools, schoolBis, schoolRotations, slotAffix, affixMax,
@@ -44,6 +45,10 @@ export const BACKUP_ENTITIES: ReadonlyArray<readonly [string, SQLiteTable]> = [
   ['user_oauth', userOauth],
   ['user_guild_nicks', userGuildNicks],
   ['guild_members', guildMembers],
+  ['season_checklist_checks', seasonChecklistChecks],
+  ['guild_roster_entries', guildRosterEntries],
+  ['roster_import_batches', rosterImportBatches],
+  ['roster_import_rows', rosterImportRows],
   ['events', events],
   ['signups', signups],
   ['results', results],

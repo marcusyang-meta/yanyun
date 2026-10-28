@@ -81,6 +81,81 @@ export const guildAnnouncementReads = sqliteTable('guild_announcement_reads', {
   index('idx_guild_announcement_reads_tenant_user').on(t.tenant, t.discordId),
 ]);
 
+/* ---------------- season checklist state [migration 0022] --------
+ * Per-guild check-off state for the backend-composed pre-season
+ * checklist. Items themselves are NOT stored (composed per request
+ * from live season data); season_key is the backend-derived season
+ * identity "<versionCode>:<seasonCode>", so a new season starts
+ * unchecked by construction. */
+export const seasonChecklistChecks = sqliteTable('season_checklist_checks', {
+  tenant: text('tenant').notNull(),
+  seasonKey: text('season_key').notNull(),
+  itemKey: text('item_key').notNull(),
+  checked: integer('checked').notNull().default(0),
+  checkedBy: text('checked_by').notNull().default(''),
+  checkedByName: text('checked_by_name').notNull().default(''),
+  updatedAt: integer('updated_at').notNull().default(0),
+}, (t) => [
+  primaryKey({ columns: [t.tenant, t.seasonKey, t.itemKey] }),
+]);
+
+/* ---------------- guild game-name roster [migration 0023] ----------
+ * The guild's game-name roster, orthogonal to guild_members: entries
+ * carry a display name (typically read off a member-list screenshot)
+ * and, when the name matched a Discord roster member at import time,
+ * that member's Discord id as a LINK — never as membership. Nothing
+ * here creates or alters guild_members / users rows. name_norm is the
+ * backend normalization used for matching and dedupe (unique per
+ * guild). */
+export const guildRosterEntries = sqliteTable('guild_roster_entries', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  tenant: text('tenant').notNull(),
+  displayName: text('display_name').notNull(),
+  nameNorm: text('name_norm').notNull(),
+  source: text('source').notNull().default('ocr'),
+  matchedDiscordId: text('matched_discord_id'),
+  createdBy: text('created_by').notNull().default(''),
+  createdAt: integer('created_at').notNull().default(0),
+}, (t) => [
+  uniqueIndex('guild_roster_entries_tenant_norm_unique').on(t.tenant, t.nameNorm),
+  index('idx_guild_roster_entries_tenant').on(t.tenant),
+]);
+
+/* ---------------- roster import batches [migration 0023] -----------
+ * One uploaded screenshot batch awaiting (or past) admin confirmation.
+ * Recognition is metered through the existing batch-OCR daily counter
+ * (usage_counters), not through this table. */
+export const rosterImportBatches = sqliteTable('roster_import_batches', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  tenant: text('tenant').notNull(),
+  createdBy: text('created_by').notNull().default(''),
+  status: text('status').notNull().default('pending'),
+  imageCount: integer('image_count').notNull().default(0),
+  createdAt: integer('created_at').notNull().default(0),
+  confirmedAt: integer('confirmed_at'),
+}, (t) => [
+  index('idx_roster_import_batches_tenant').on(t.tenant, t.createdAt),
+]);
+
+/* ---------------- roster import rows [migration 0023] --------------
+ * The recognition preview: one row per recognized line, classified by
+ * the backend as matched / new / unrecognized. created_entry_id is set
+ * when (and only when) an admin confirms that row into the roster. */
+export const rosterImportRows = sqliteTable('roster_import_rows', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  batchId: integer('batch_id').notNull(),
+  tenant: text('tenant').notNull(),
+  rawName: text('raw_name').notNull().default(''),
+  nameNorm: text('name_norm').notNull().default(''),
+  status: text('status').notNull().default('new'),
+  matchedDiscordId: text('matched_discord_id'),
+  matchedName: text('matched_name').notNull().default(''),
+  createdEntryId: integer('created_entry_id'),
+}, (t) => [
+  index('idx_roster_import_rows_batch').on(t.batchId),
+  index('idx_roster_import_rows_tenant').on(t.tenant),
+]);
+
 /* ---------------- guild avatars [ddl chain baseline] --------------- */
 export const guildAvatars = sqliteTable('guild_avatars', {
   tenant: text('tenant').primaryKey(),
