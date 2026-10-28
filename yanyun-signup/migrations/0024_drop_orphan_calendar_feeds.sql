@@ -1,0 +1,27 @@
+-- 0024: drop the orphaned calendar_feeds table (F8 cleanup).
+--
+-- calendar_feeds was created by 0020 for the F8 activity-calendar
+-- subscription. F8 was cut as unnecessary: the removal release took
+-- out the entity, the repository, the /cal/<token> route and the
+-- admin surface, and deleted the 0020 file itself — but a migration
+-- file deletion does not un-apply production, so the (empty) table
+-- stayed behind in D1 with no code able to reach it. Whole-repo
+-- grep on master confirms zero references to calendar_feeds /
+-- calendar feed entities remain (code, Drizzle schema files,
+-- harnesses); this contract migration removes the table itself.
+--
+-- 0020 stays a permanent numbering gap: never renumbered, never
+-- reused. The next free number after 0023 is 0024.
+--
+-- IF EXISTS is load-bearing, not decoration: a fresh database
+-- applying the chain from 0001 never sees 0020 (the file is gone),
+-- so calendar_feeds does not exist there and a bare DROP TABLE
+-- would fail the whole apply. In production the table exists and
+-- is dropped, together with its calendar_feeds_token_unique index
+-- (SQLite drops a table's indexes with the table).
+--
+-- Pure contract: one orphan table, nothing else changes. No code
+-- reads or writes this table in either the previous or the new
+-- release, so apply order against promote is immaterial here.
+
+DROP TABLE IF EXISTS calendar_feeds;
