@@ -1,4 +1,4 @@
-// CI runner for all 24 backend harness suites (.harness-*).
+// CI runner for all 26 backend harness suites (.harness-*).
 // Twenty-two suites run in-process against FakeDB. Two need a real wrangler dev:
 //   - push: boots its own dev server on :8797, needs ../.dev.vars (SESSION_SECRET)
 //   - heirloom: needs a dev server on :8799, a seeded local D1 (livetest
@@ -30,7 +30,7 @@ const SUITES = [
   ['backup', 23], ['guildadmin', 213], ['shortlink', 27], ['templates', 49],
   ['account', 73], ['subdomain', 162],
   ['buildshare', 60], ['billing', 62], ['feedback', 44],
-  ['gates', 73], ['announcements', 90],
+  ['gates', 73], ['announcements', 90], ['activitytools', 91],
 ];
 const onlyArg = (process.argv.find((a) => a.startsWith('--only=')) || '').slice(7);
 const ONLY = onlyArg ? new Set(onlyArg.split(',')) : null;
