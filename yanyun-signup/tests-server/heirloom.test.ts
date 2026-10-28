@@ -17,20 +17,26 @@ import http from 'node:http';
 import fs from 'node:fs';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
+import { describe, it, beforeAll, afterAll, expect } from 'vitest';
+import { startHeirloomDev, type HeirloomFixture } from './helpers/heirloom-fixture.ts';
 
 const execFileP = promisify(execFile);
 const WORKER = 'http://localhost:8799';
 const STUB_PORT = 18754;
 const SLUG = 'livetest';
-const JWT = fs.readFileSync('/tmp/jwt-a.txt', 'utf8').trim();
-const devVars = fs.readFileSync(new URL('../.dev.vars', import.meta.url), 'utf8');
-const ADMIN_PASSWORD = (devVars.match(/^ADMIN_PASSWORD=(.*)$/m) || [])[1]?.trim();
-if (!ADMIN_PASSWORD) { console.log('NO LOCAL ADMIN_PASSWORD'); process.exit(1); }
+let JWT = '';
+let ADMIN_PASSWORD = '';
+function loadLocalSecrets() {
+  JWT = fs.readFileSync('/tmp/jwt-a.txt', 'utf8').trim();
+  const devVars = fs.readFileSync(new URL('../.dev.vars', import.meta.url), 'utf8');
+  ADMIN_PASSWORD = (devVars.match(/^ADMIN_PASSWORD=(.*)$/m) || [])[1]?.trim();
+  if (!ADMIN_PASSWORD) throw new Error('NO LOCAL ADMIN_PASSWORD');
+}
 
-let pass = 0, fail = 0; const fails = [];
+let pass = 0, fail = 0;
 function check(name, ok, extra = '') {
-  if (ok) pass++; else { fail++; fails.push(name + (extra ? ' — ' + extra : '')); }
-  console.log((ok ? 'PASS  ' : 'FAIL  ') + name + (extra ? ' — ' + extra : ''));
+  if (ok) pass++; else fail++;
+  expect(ok, extra ? `${name} — ${extra}` : name).toBe(true);
 }
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -53,7 +59,20 @@ const stub = http.createServer((req, res) => {
     res.writeHead(204); res.end();
   });
 });
+describe('heirloom', () => {
+let fixture: HeirloomFixture;
+let reminderBefore: string;
+let ref: any, cyOf: Map<any, any>, kit: any[], dud: any, plan: any, fullLoadout: any;
+let W1: any, W2: any, GZ: any, XJ: any, HUAN: any, PEI: any, JING: any, WAN: any;
+const reminderSnap = async () => JSON.stringify({
+  settings: await d1(`SELECT key, value FROM settings WHERE tenant='${SLUG}' AND key LIKE 'reminder%' ORDER BY key`),
+  webhook: await d1(`SELECT discord_webhook FROM tenants WHERE slug='${SLUG}'`),
+});
+beforeAll(async () => {
+fixture = await startHeirloomDev();
+loadLocalSecrets();
 await new Promise((r) => stub.listen(STUB_PORT, r));
+});
 const STUB_URL = `http://localhost:${STUB_PORT}/hook`;
 async function waitCount(n, label, timeout = 8000) {
   const t0 = Date.now();
@@ -81,6 +100,7 @@ async function hub(path, init = {}) {
   return { status: r.status, body: await r.json().catch(() => null) };
 }
 
+beforeAll(async () => {
 /* ---------- Fixture setup ---------- */
 await d1Try(`DELETE FROM heirloom_item_pushes WHERE tenant='${SLUG}'`);
 await d1Try(`DELETE FROM heirloom_set_state WHERE tenant='${SLUG}'`);
@@ -90,27 +110,23 @@ await d1(`INSERT INTO settings (tenant, key, value) VALUES ('${SLUG}', 'discord_
 await d1(`INSERT INTO guild_members (tenant, discord_id, nick, global_name, updated_at)
   VALUES ('${SLUG}', '2001', '车头甲', 'GlobalA', ${Math.floor(Date.now() / 1000)})
   ON CONFLICT(tenant, discord_id) DO UPDATE SET nick = excluded.nick, global_name = excluded.global_name`);
-const reminderSnap = async () => JSON.stringify({
-  settings: await d1(`SELECT key, value FROM settings WHERE tenant='${SLUG}' AND key LIKE 'reminder%' ORDER BY key`),
-  webhook: await d1(`SELECT discord_webhook FROM tenants WHERE slug='${SLUG}'`),
-});
-const reminderBefore = await reminderSnap();
+reminderBefore = await reminderSnap();
 
-const ref = (await gql('{ gradPage { gearDemoKit { slot name keys dingyinName dingyinVal } gearAffixes { key cy } gearBaseFields { key preset } } }')).data;
-const cyOf = new Map(ref.gradPage.gearAffixes.map((a) => [a.key, a.cy]));
-const kit = ref.gradPage.gearDemoKit.map((g, i) => ({
+ref = (await gql('{ gradPage { gearDemoKit { slot name keys dingyinName dingyinVal } gearAffixes { key cy } gearBaseFields { key preset } } }')).data;
+cyOf = new Map(ref.gradPage.gearAffixes.map((a) => [a.key, a.cy]));
+kit = ref.gradPage.gearDemoKit.map((g, i) => ({
   id: 5001 + i, slot: g.slot, name: g.name,
   lines: g.keys.map((k) => ({ key: k, val: cyOf.get(k) ?? 0 })),
   dingyin: g.dingyinName ? { name: g.dingyinName, val: g.dingyinVal } : null,
   schools: [],
 }));
-const [W1, W2, GZ, XJ, HUAN, PEI, JING, WAN] = kit;
-const dud = {
+[W1, W2, GZ, XJ, HUAN, PEI, JING, WAN] = kit;
+dud = {
   id: 5009, slot: '冠胄', name: 'DudFixture',
   lines: ['xiaowai', 'shu_mj_da', 'shu_mj_xiao'].map((k) => ({ key: k, val: cyOf.get(k) ?? 0 })),
   dingyin: null, schools: [],
 };
-const plan = async (lib, loadoutMap) => {
+plan = async (lib, loadoutMap) => {
   const resp = await gql('mutation($input: GearPlanInput!) { gearPlan(input: $input) { gearEvals { id verdict } grad { total } } }', {
     input: {
       targetIdx: 0, lib,
@@ -123,10 +139,12 @@ const plan = async (lib, loadoutMap) => {
   if (resp.errors) throw new Error('gearPlan error: ' + JSON.stringify(resp.errors).slice(0, 200));
   return resp.data.gearPlan;
 };
-const fullLoadout = { '主武器': W1.id, '副武器': W2.id, '冠胄': GZ.id, '胸甲': XJ.id, '环': HUAN.id, '佩': PEI.id, '胫甲': JING.id, '腕甲': WAN.id };
+fullLoadout = { '主武器': W1.id, '副武器': W2.id, '冠胄': GZ.id, '胸甲': XJ.id, '环': HUAN.id, '佩': PEI.id, '胫甲': JING.id, '腕甲': WAN.id };
+
+});
 
 /* ---------- A) hub endpoints ---------- */
-{
+it('A) hub endpoints', async () => {
   const login = await fetch(WORKER + '/api/hub/login', {
     method: 'POST', headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ password: ADMIN_PASSWORD }),
@@ -159,10 +177,10 @@ const fullLoadout = { '主武器': W1.id, '副武器': W2.id, '冠胄': GZ.id, '
   check('A6 POST test -> stub 收到测试消息', received[0].content.includes('传家宝推送已接通') && received[0].username === '燕云百业');
   check('A7 test 状态落 test-ok', test.body?.heirloom?.lastStatus === 'test-ok', JSON.stringify(test.body?.heirloom));
   received.length = 0;
-}
+});
 
 /* ---------- B) Triggering ---------- */
-{
+it('B) triggering', async () => {
   await plan([W1], {});
   await waitCount(1, 'T1');
   const m1 = received[0];
@@ -233,15 +251,16 @@ const fullLoadout = { '主武器': W1.id, '副武器': W2.id, '冠胄': GZ.id, '
   const listEnd = await hub('/heirlooms');
   const rowEnd = (listEnd.body?.heirlooms || []).find((x) => x.slug === SLUG);
   check('B11 portal 状态: lastStatus=ok 且有事件摘要', rowEnd?.lastStatus === 'ok' && !!rowEnd?.lastEvent, JSON.stringify(rowEnd));
-}
+});
 
 /* ---------- C) Reminder config untouched ---------- */
-{
+it('C) reminder config untouched', async () => {
   const after = await reminderSnap();
   check('C1 开车提醒配置全程未变', after === reminderBefore, after === reminderBefore ? '' : `before=${reminderBefore} after=${after}`);
-}
+});
 
-stub.close();
-console.log(`\nHEIRLOOM HARNESS pass=${pass} fail=${fail}`);
-if (fails.length) console.log(fails.join('\n'));
-process.exit(fail ? 1 : 0);
+afterAll(() => {
+  stub.close();
+  fixture.stop();
+});
+});
