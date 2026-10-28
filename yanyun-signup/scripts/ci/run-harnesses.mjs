@@ -32,7 +32,7 @@ const SUITES = [
   ['buildshare', 60], ['billing', 138], ['feedback', 44],
   ['gates', 73], ['announcements', 90], ['activitytools', 49], ['season', 70],
   ['schedule', 70], ['recruit', 100],
-  ['officer', 92], ['announcement-i18n', 47],
+  ['officer', 92], ['announcement-i18n', 49],
 ];
 const onlyArg = (process.argv.find((a) => a.startsWith('--only=')) || '').slice(7);
 const ONLY = onlyArg ? new Set(onlyArg.split(',')) : null;

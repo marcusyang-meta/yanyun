@@ -89,13 +89,11 @@ export interface Env {
   STATSIG_KV?: KVNamespace;
   STATSIG_SERVER_SECRET?: string;
   STATSIG_PROJECT_ID?: string;
-  /* Translation provider (premium P26, platform/translator.ts):
-   * the API key comes from wrangler secret; the base override is
-   * not a secret and exists only for local stub testing. Absent key
-   * = translation not configured, and announcement surfaces compose
-   * exactly as before P26. */
-  TRANSLATION_API_KEY?: string;
-  TRANSLATION_API_BASE?: string;
+  /* Workers AI (premium P26 translation, platform/translator.ts):
+   * the AI binding from wrangler.toml ([ai] section) — no key, no
+   * external account. Absent binding = translation not configured,
+   * and announcement surfaces compose exactly as before P26. */
+  AI?: Ai;
 }
 
 /** Framework layer: raw infrastructure, assembly edges only. */

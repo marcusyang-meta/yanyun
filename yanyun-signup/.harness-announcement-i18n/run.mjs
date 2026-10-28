@@ -6,21 +6,21 @@
 //    to before P26 (display == original, source label = original).
 //  - State 1 (paygate ON + free guild, tier < T2): same no-entry
 //    composition; generate -> translationTierLocked.
-//  - State 2 (paygate ON + premium guild + provider UNCONFIGURED):
+//  - State 2 (paygate ON + premium guild + AI binding MISSING):
 //    the entry is visible in its disabled state (generate label
 //    served, canGenerateTranslations false, unavailable note served)
 //    and generate -> translationNotConfigured.
-//  - State 3 (paygate ON + premium + fake provider over the
-//    TRANSLATION_API_BASE stub seam): generate lands one done row
-//    per target locale (4), the provider sees exactly title+body per
-//    locale; a second announcement with identical text generates
-//    with ZERO new provider calls (translation_cache hit) and
-//    re-generating the first is a no-op (current rows skipped);
-//    members read display text in their own locale with the
-//    translated source label, locales without a current translation
-//    fall back to the original; a provider failure for one locale
-//    records a failed row, still returns ok, and that locale's
-//    members fall back to the original.
+//  - State 3 (paygate ON + premium + AI binding stub): generate
+//    lands one done row per target locale (4), the binding sees
+//    exactly title+body per locale, always on the m2m100 model id;
+//    a second announcement with identical text generates with ZERO
+//    new binding calls (translation_cache hit) and re-generating
+//    the first is a no-op (current rows skipped); members read
+//    display text in their own locale with the translated source
+//    label, locales without a current translation fall back to the
+//    original; a binding failure for one locale records a failed
+//    row, still returns ok, and that locale's members fall back to
+//    the original.
 // Real yoga + real resolvers + FakeDB routing by SQL shape into
 // in-memory tables (same pattern as .harness-announcements).
 import { yoga } from '../src/graphql.ts';
@@ -212,11 +212,21 @@ const env = { DB: db };
 const adminA = { discordId: 'A1', name: '管理员甲', guilds: ['DG1'] };
 const member1 = { discordId: 'M1', name: '成员一', guilds: ['DG1'] };
 
-/* Fetch stub: Expo push ok; fake translation provider at the
- * TRANSLATION_API_BASE origin — echoes `[LANG] text`, counts calls,
- * and can be told to fail one target language. */
-const providerCalls = [];
+/* Fetch stub: Expo push ok. The translation provider is the
+ * Workers AI binding (env.AI), stubbed below as an object — it
+ * echoes `[LANG] text`, counts calls, and can be told to fail one
+ * target language. */
+const aiCalls = [];
 let failLang = null;
+function aiStub() {
+  return {
+    async run(model, inputs) {
+      aiCalls.push({ model, ...inputs });
+      if (failLang && inputs.target_lang === failLang) throw new Error('neurons exhausted');
+      return { translated_text: `[${String(inputs.target_lang).toUpperCase()}] ${inputs.text}` };
+    },
+  };
+}
 const realFetch = globalThis.fetch;
 globalThis.fetch = async (url, opts) => {
   const u = String(url);
@@ -226,16 +236,6 @@ globalThis.fetch = async (url, opts) => {
   }
   if (u.includes('/--/api/v2/push/getReceipts')) {
     return new Response(JSON.stringify({ data: {} }), { status: 200, headers: { 'content-type': 'application/json' } });
-  }
-  if (u.startsWith('http://fake-translate.local')) {
-    const body = JSON.parse(opts.body);
-    providerCalls.push(body);
-    if (failLang && body.target_lang === failLang) {
-      return new Response(JSON.stringify({ message: 'quota exceeded' }), { status: 456, headers: { 'content-type': 'application/json' } });
-    }
-    return new Response(JSON.stringify({
-      translations: body.text.map((t) => ({ detected_source_language: 'ZH', text: `[${body.target_lang}] ${t}` })),
-    }), { status: 200, headers: { 'content-type': 'application/json' } });
   }
   return realFetch(url, opts);
 };
@@ -308,7 +308,7 @@ state.settings.set('|paygate_enabled', '1');
   eq('普通成员生成 -> adminOnly', memberGen.data?.generateGuildAnnouncementTranslations?.errorCode, 'adminOnly');
 }
 
-/* ================= State 2: premium, provider unconfigured ================= */
+/* ================= State 2: premium, AI binding missing ================= */
 state.entitlements.set('alpha', {
   tenant: 'alpha', plan: 'premium', source: 'manual', current_period_end: null,
   stripe_customer_id: '', stripe_subscription_id: '', updated_at: 1,
@@ -322,12 +322,11 @@ state.entitlements.set('alpha', {
   eq('未配置: 译文状态为未生成', ann?.announcements?.[0]?.translationStatusText, '多语版：未生成');
   const g = await gen(adminA, 'alpha', annId);
   eq('未配置: 生成 -> translationNotConfigured', g.data?.generateGuildAnnouncementTranslations?.errorCode, 'translationNotConfigured');
-  eq('未配置: provider 零调用', providerCalls.length, 0);
+  eq('未配置: AI 零调用', aiCalls.length, 0);
 }
 
-/* ================= State 3: premium + fake provider ================= */
-env.TRANSLATION_API_KEY = 'test-key';
-env.TRANSLATION_API_BASE = 'http://fake-translate.local/v2';
+/* ================= State 3: premium + AI binding stub ================= */
+env.AI = aiStub();
 {
   const page = await adminPage();
   const ann = page.data?.viewer?.guildAdmin?.announcements;
@@ -338,20 +337,22 @@ env.TRANSLATION_API_BASE = 'http://fake-translate.local/v2';
   eq('生成 -> ok', g.data?.generateGuildAnnouncementTranslations?.ok, true);
   eq('落 4 行译文 (en/es/fr/zh-TW)', state.translations.filter((r) => r.announcement_id === Number(annId)).length, 4);
   check('4 行全 done', state.translations.every((r) => r.status === 'done'));
-  eq('provider 调用 = 4 locale x 标题+正文', providerCalls.length, 8);
+  eq('AI 调用 = 4 locale x 标题+正文', aiCalls.length, 8);
+  check('AI 调用全走 m2m100 模型', aiCalls.every((c) => c.model === '@cf/meta/m2m100-1.2b'));
+  eq('AI 入参带源/目标语言码', [aiCalls[0]?.source_lang, aiCalls[0]?.target_lang], ['zh', 'en']);
   eq('生成后状态文案', g.data?.generateGuildAnnouncementTranslations?.announcement?.translationStatusText, '多语版：已生成 4 / 4');
   eq('逐 locale 全 DONE', (g.data?.generateGuildAnnouncementTranslations?.announcement?.translations || []).map((t) => t.status), ['DONE', 'DONE', 'DONE', 'DONE']);
 
   const again = await gen(adminA, 'alpha', annId);
   eq('重复生成仍 ok（现行译文跳过）', again.data?.generateGuildAnnouncementTranslations?.ok, true);
-  eq('重复生成 provider 零新调用', providerCalls.length, 8);
+  eq('重复生成 AI 零新调用', aiCalls.length, 8);
 
   /* Cache: a second announcement with identical text pays nothing. */
   const post2 = await gql(postMut, { variables: { slug: 'alpha', kind: 'STANDARD', title: '周六活动安排', body: '本周六晚八点集合。' } });
   const ann2 = post2.data?.postGuildAnnouncement?.announcement?.id;
   const g2 = await gen(adminA, 'alpha', ann2);
   eq('同文公告生成 ok', g2.data?.generateGuildAnnouncementTranslations?.ok, true);
-  eq('同文公告 provider 零新调用 (缓存命中)', providerCalls.length, 8);
+  eq('同文公告 AI 零新调用 (缓存命中)', aiCalls.length, 8);
   eq('缓存行 = 2 文本 x 4 locale', state.cache.size, 8);
 
   /* Member reads by locale. */
@@ -366,11 +367,11 @@ env.TRANSLATION_API_BASE = 'http://fake-translate.local/v2';
   const zhItem = (zh.data?.viewer?.guild?.announcements?.announcements || []).find((a) => a.id === annId);
   eq('zh-CN 成员看原文 (源 locale)', [zhItem?.displayTitle, zhItem?.isTranslated], ['周六活动安排', false]);
 
-  /* Failure: FR provider error records a failed row, ok stays true,
+  /* Failure: fr binding error records a failed row, ok stays true,
    * and fr members fall back to the original. */
   const post3 = await gql(postMut, { variables: { slug: 'alpha', kind: 'STANDARD', title: '新公告标题', body: '全新正文内容。' } });
   const ann3 = post3.data?.postGuildAnnouncement?.announcement?.id;
-  failLang = 'FR';
+  failLang = 'fr';
   const g3 = await gen(adminA, 'alpha', ann3);
   failLang = null;
   eq('部分失败仍 ok', g3.data?.generateGuildAnnouncementTranslations?.ok, true);
