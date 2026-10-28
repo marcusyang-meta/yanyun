@@ -10,7 +10,7 @@
 // exists; none means null / default fallback everywhere.
 
 import { getGuildAvatarMetaRow, getGuildAvatarRow, putGuildAvatarRow, deleteGuildAvatarRow } from './guildAvatars.ts';
-import { getTenantRow } from './tenants.ts';
+import { getTenantRow, getGuildIdBySlug } from './tenants.ts';
 
 export const AVATAR_MAX_BYTES = 400 * 1024; // Stored-blob cap (the frontend already crops square and scales to <=512).
 export const AVATAR_CONTENT_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
@@ -48,23 +48,31 @@ export function avatarPublicUrl(slug: string, hash: string | null | undefined): 
 
 /* Metadata (no blob): the cheap query for GraphQL fields / webhook identity. */
 export async function getGuildAvatarMeta(db: any, tenant: string) {
-  return getGuildAvatarMetaRow(db, tenant).catch(() => null);
+  const guildId = await getGuildIdBySlug(db, tenant).catch(() => null);
+  if (guildId == null) return null;
+  return getGuildAvatarMetaRow(db, guildId).catch(() => null);
 }
 
 /* Full row (with blob bytes): for the public image route. D1 reads BLOBs back as ArrayBuffer. */
 export async function getGuildAvatar(db: any, tenant: string) {
-  return getGuildAvatarRow(db, tenant).catch(() => null);
+  const guildId = await getGuildIdBySlug(db, tenant).catch(() => null);
+  if (guildId == null) return null;
+  return getGuildAvatarRow(db, guildId).catch(() => null);
 }
 
 export async function putGuildAvatar(db: any, tenant: string, contentType: string, bytes: any) {
   const hash = await sha256hex(bytes);
   const nowSec = Math.floor(Date.now() / 1000);
-  await putGuildAvatarRow(db, tenant, contentType, bytes, hash, nowSec);
+  const guildId = await getGuildIdBySlug(db, tenant).catch(() => null);
+  if (guildId == null) throw new Error('guild not found');
+  await putGuildAvatarRow(db, guildId, contentType, bytes, hash, nowSec);
   return { hash, updatedAt: nowSec };
 }
 
 export async function deleteGuildAvatar(db: any, tenant: string) {
-  await deleteGuildAvatarRow(db, tenant);
+  const guildId = await getGuildIdBySlug(db, tenant).catch(() => null);
+  if (guildId == null) return;
+  await deleteGuildAvatarRow(db, guildId);
 }
 
 /* Webhook sender identity (shared by reminders and heirloom

@@ -22,7 +22,7 @@ interface FullRow extends MetaRow { bytes: unknown }
 
 export async function getGuildAvatarMetaRow(
   d1: D1Database,
-  tenant: string,
+  tenant: number,
 ): Promise<GuildAvatarMeta | null> {
   const db = createDb(d1);
   const rows = await db.all<MetaRow>(
@@ -36,7 +36,7 @@ export async function getGuildAvatarMetaRow(
 
 export async function getGuildAvatarRow(
   d1: D1Database,
-  tenant: string,
+  tenant: number,
 ): Promise<GuildAvatar | null> {
   const db = createDb(d1);
   const rows = await db.all<FullRow>(
@@ -53,7 +53,7 @@ export async function getGuildAvatarRow(
 
 export async function putGuildAvatarRow(
   d1: D1Database,
-  tenant: string,
+  tenant: number,
   contentType: string,
   bytes: Uint8Array,
   hash: string,
@@ -73,7 +73,7 @@ export async function putGuildAvatarRow(
 
 export async function deleteGuildAvatarRow(
   d1: D1Database,
-  tenant: string,
+  tenant: number,
 ): Promise<void> {
   const db = createDb(d1);
   await db.run(

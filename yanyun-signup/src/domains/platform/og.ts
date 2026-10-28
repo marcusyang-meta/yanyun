@@ -68,7 +68,8 @@ export async function guildOgTags(env: any, slug: string, pageUrl?: string) {
     let teamCount = 0;
     try {
       const [from, to] = ogWeekWindowUtc();
-      teamCount = await countActivityEventsInWindow(env.DB, slug, from, to);
+      const tRow = await getTenantRow(env.DB, slug).catch(() => null);
+      teamCount = tRow ? await countActivityEventsInWindow(env.DB, tRow.id, from, to) : 0;
     } catch { teamCount = 0; }
     const descParts = [];
     if (t.slogan) descParts.push(t.slogan);
@@ -89,9 +90,9 @@ export async function carOgTags(env: any, slug: string, carId: any, pageUrl?: st
   try {
     if (await isDevOnlyTenant(env.DB, slug)) return null;
     const ev = await getEventRow(env.DB, parseInt(carId, 10) || 0);
-    // Tenant isolation: no injection when the team is missing or belongs to another slug
-    if (!ev || ev.tenant !== slug) return null;
     const t = await getTenantRow(env.DB, slug);
+    // Tenant isolation: no injection when the team is missing or belongs to another guild
+    if (!ev || !t || ev.tenant !== t.id) return null;
     if (!t || !t.guild_name) return null;
     const cnt = await countSignupsByEvent(env.DB, ev.id);
     let dungeonName = '';

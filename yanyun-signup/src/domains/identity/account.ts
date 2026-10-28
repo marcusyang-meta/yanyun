@@ -79,17 +79,17 @@ export function deletionExecutesAt(row: AccountRow | null): number | null {
  * for callers that want to surface it. Never throws: the callback's
  * tolerant block treats failure as no-op. */
 export async function noteFreshAuthAndSettlePending(
-  db: D1Database, discordId: string, atSec: number = nowSec(),
+  db: D1Database, userId: number, atSec: number = nowSec(),
 ): Promise<'cancelled' | 'due' | 'none'> {
-  const row = await getAccountRow(db, discordId);
+  const row = await getAccountRow(db, userId);
   if (!row) return 'none';
-  await setFreshAuthAt(db, discordId, atSec);
+  await setFreshAuthAt(db, userId, atSec);
   if (row.deletion_requested_at == null) return 'none';
   const executesAt = deletionExecutesAt(row) ?? 0;
   if (atSec < executesAt) {
-    await clearDeletionRequestedAt(db, discordId);
+    await clearDeletionRequestedAt(db, userId);
     await auditHub(db, {
-      actor: discordId, action: 'account.delete.cancel',
+      actor: row.discord_id, action: 'account.delete.cancel',
       summary: { via: 'fresh-login' },
     });
     return 'cancelled';
@@ -113,21 +113,25 @@ export interface ExportCounts {
 }
 
 export async function buildAccountExport(
-  db: D1Database, discordId: string, locale: string, atSec: number = nowSec(),
+  db: D1Database, userId: number, locale: string, atSec: number = nowSec(),
 ): Promise<{ json: string; counts: ExportCounts } | null> {
-  const row = await getAccountRow(db, discordId);
+  const row = await getAccountRow(db, userId);
   if (!row) return null;
+  // Class-A tables (Discord-synced roster, server nicks, seats) are
+  // still keyed by the Discord ID on the account row; everything else
+  // is keyed by the internal user ID.
+  const discordId = row.discord_id;
   const [oauth, roster, nicks, cars, seats, gearItems, gearBuilds, heirloom, pushPlatforms] =
     await Promise.all([
-      getOAuthExportMeta(db, discordId),
+      getOAuthExportMeta(db, userId),
       listGuildMembersByUser(db, discordId),
       listNickEntriesByUser(db, discordId),
-      listEventsByCreator(db, discordId),
+      listEventsByCreator(db, userId),
       listSignupsByDiscordId(db, discordId),
-      listGearItemRows(db, discordId),
-      listGearBuildRows(db, discordId),
-      listHeirloomStateByUser(db, discordId),
-      listPushTokenPlatformsByUser(db, discordId),
+      listGearItemRows(db, userId),
+      listGearBuildRows(db, userId),
+      listHeirloomStateByUser(db, userId),
+      listPushTokenPlatformsByUser(db, userId),
     ]);
   const servers = (() => {
     const parsed = parseJsonOrRaw(row.guilds_json || '[]');
@@ -206,19 +210,19 @@ export type AccountActionResult =
  * before data is gathered, and a successful export leaves its
  * account.export audit row (counts only). */
 export async function exportMyData(
-  db: D1Database, discordId: string, locale: string, atSec: number = nowSec(),
+  db: D1Database, userId: number, locale: string, atSec: number = nowSec(),
 ): Promise<AccountActionResult> {
-  const row = await getAccountRow(db, discordId);
+  const row = await getAccountRow(db, userId);
   if (!row) return { ok: false, errorCode: 'loginRequired' };
   if (!isFreshAuth(row, atSec)) return { ok: false, errorCode: 'accountReauthRequired' };
   const recent = await countHubAuditByActorActionSince(
-    db, discordId, 'account.export', atSec - EXPORT_WINDOW_SEC,
+    db, row.discord_id, 'account.export', atSec - EXPORT_WINDOW_SEC,
   );
   if (recent >= 1) return { ok: false, errorCode: 'accountExportRateLimited' };
-  const built = await buildAccountExport(db, discordId, locale, atSec);
+  const built = await buildAccountExport(db, userId, locale, atSec);
   if (!built) return { ok: false, errorCode: 'loginRequired' };
   await auditHub(db, {
-    actor: discordId, action: 'account.export', summary: { ...built.counts },
+    actor: row.discord_id, action: 'account.export', summary: { ...built.counts },
   });
   return { ok: true, json: built.json, counts: built.counts };
 }
@@ -229,32 +233,32 @@ export async function exportMyData(
  * name must match the account's stored username (Q9). Starts the
  * 7-day cooling-off period. */
 export async function requestAccountDeletion(
-  db: D1Database, discordId: string, typedUsername: string, atSec: number = nowSec(),
+  db: D1Database, userId: number, typedUsername: string, atSec: number = nowSec(),
 ): Promise<AccountActionResult> {
-  const row = await getAccountRow(db, discordId);
+  const row = await getAccountRow(db, userId);
   if (!row) return { ok: false, errorCode: 'loginRequired' };
   if (!isFreshAuth(row, atSec)) return { ok: false, errorCode: 'accountReauthRequired' };
   if (row.deletion_requested_at != null) return { ok: false, errorCode: 'accountDeletionPending' };
   if (String(typedUsername || '').trim() !== String(row.username || '').trim()) {
     return { ok: false, errorCode: 'accountUsernameMismatch' };
   }
-  await setDeletionRequestedAt(db, discordId, atSec);
+  await setDeletionRequestedAt(db, userId, atSec);
   await auditHub(db, {
-    actor: discordId, action: 'account.delete.request',
+    actor: row.discord_id, action: 'account.delete.request',
     summary: { executesAt: atSec + DELETION_COOLING_OFF_SEC },
   });
   return { ok: true, executesAt: atSec + DELETION_COOLING_OFF_SEC };
 }
 
 export async function cancelAccountDeletion(
-  db: D1Database, discordId: string,
+  db: D1Database, userId: number,
 ): Promise<AccountActionResult> {
-  const row = await getAccountRow(db, discordId);
+  const row = await getAccountRow(db, userId);
   if (!row) return { ok: false, errorCode: 'loginRequired' };
   if (row.deletion_requested_at == null) return { ok: false, errorCode: 'accountDeletionNotPending' };
-  await clearDeletionRequestedAt(db, discordId);
+  await clearDeletionRequestedAt(db, userId);
   await auditHub(db, {
-    actor: discordId, action: 'account.delete.cancel', summary: { via: 'self-service' },
+    actor: row.discord_id, action: 'account.delete.cancel', summary: { via: 'self-service' },
   });
   return { ok: true };
 }
@@ -282,27 +286,32 @@ export interface DeletionCounts {
  * changes nothing. Returns the per-entity counts that land in the
  * audit summary (counts only, never content). */
 export async function executeAccountDeletion(
-  db: D1Database, discordId: string,
+  db: D1Database, userId: number,
 ): Promise<DeletionCounts> {
   const tombstone = identityTextFor('zh-CN').t('account_deletedUser');
+  // The Discord ID lives only on the account row: read it before the
+  // row goes, for the class-A tables keyed by it (server nicks,
+  // Discord-synced roster, seats, backfill log) and the audit actor.
+  const accountRow = await getAccountRow(db, userId);
+  const discordId = accountRow ? accountRow.discord_id : '';
   // 1. Credentials first: with the grant row gone, every live session
   //    fails the completeness check and is voided on its next request.
-  const oauthRows = await deleteOAuthRow(db, discordId);
+  const oauthRows = await deleteOAuthRow(db, userId);
   // 2. Personal assets (hard delete).
-  const gearItems = await deleteAllGearItemsByUser(db, discordId);
-  const gearBuilds = await deleteAllGearBuildsByUser(db, discordId);
-  const buildShareLinks = await deleteAllBuildShareLinksByUser(db, discordId);
-  const pushTokens = await deleteAllPushTokensByUser(db, discordId);
+  const gearItems = await deleteAllGearItemsByUser(db, userId);
+  const gearBuilds = await deleteAllGearBuildsByUser(db, userId);
+  const buildShareLinks = await deleteAllBuildShareLinksByUser(db, userId);
+  const pushTokens = await deleteAllPushTokensByUser(db, userId);
   const nickRows = await deleteNicksByUser(db, discordId);
   const rosterRows = await deleteGuildMembersByUser(db, discordId);
-  const heirloom = await deleteHeirloomStateByUser(db, discordId);
+  const heirloom = await deleteHeirloomStateByUser(db, userId);
   // 3. Shared records: cut the identity link, keep the history.
   const seatsAnonymized = await anonymizeSignupsByDiscordId(db, discordId, tombstone);
-  const carsOrphaned = await orphanEventsByCreator(db, discordId, tombstone);
-  const templatesOrphaned = await orphanGroupingTemplatesByCreator(db, discordId);
+  const carsOrphaned = await orphanEventsByCreator(db, userId, tombstone);
+  const templatesOrphaned = await orphanGroupingTemplatesByCreator(db, userId);
   const backfillAnonymized = await anonymizeCreatorBackfillLog(db, discordId);
   // 4. The account row itself.
-  const userRows = await deleteUserRow(db, discordId);
+  const userRows = await deleteUserRow(db, userId);
   const counts: DeletionCounts = {
     oauthRows, gearItems, gearBuilds, buildShareLinks, pushTokens, nickRows, rosterRows,
     heirloomPushes: heirloom.pushes, heirloomSetState: heirloom.setState,
@@ -323,9 +332,9 @@ export async function runDueAccountDeletions(
 ): Promise<number> {
   const due = await listDueDeletionUserIds(db, atSec - DELETION_COOLING_OFF_SEC);
   let executed = 0;
-  for (const discordId of due) {
+  for (const userId of due) {
     try {
-      await executeAccountDeletion(db, discordId);
+      await executeAccountDeletion(db, userId);
       executed++;
     } catch { /* one bad account must not stall the sweep */ }
   }

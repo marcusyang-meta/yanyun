@@ -8,6 +8,7 @@
 import { sql } from 'drizzle-orm';
 import { createDb } from '../../db/client.ts';
 import { guildAnnouncements, guildAnnouncementReads } from './schema.ts';
+import { mintPublicId } from '../platform/id-mint.ts';
 
 const col = (name: string) => sql.identifier(name);
 
@@ -22,17 +23,17 @@ export const ANNOUNCEMENT_LIST_LIMIT = 50;
 
 export interface AnnouncementRow {
   id: number;
-  tenant: string;
+  tenant: number;
   kind: string;
   title: string;
   body: string;
-  author_discord_id: string;
+  author_user_id: number;
   author_name: string;
   created_at: number;
 }
 
 export interface AnnouncementReadRow {
-  discord_id: string;
+  user_id: number;
   read_at: number;
 }
 
@@ -46,29 +47,31 @@ function metaOf(r: unknown): RunMeta {
   return { changes: m?.changes ?? 0, last_row_id: m?.last_row_id ?? 0 };
 }
 
-const ANNOUNCEMENT_COLS = sql`${guildAnnouncements.id}, ${guildAnnouncements.tenant}, ${guildAnnouncements.kind}, ${guildAnnouncements.title}, ${guildAnnouncements.body}, ${guildAnnouncements.authorDiscordId}, ${guildAnnouncements.authorName}, ${guildAnnouncements.createdAt}`;
+const ANNOUNCEMENT_COLS = sql`${guildAnnouncements.id}, ${guildAnnouncements.tenant}, ${guildAnnouncements.kind}, ${guildAnnouncements.title}, ${guildAnnouncements.body}, ${guildAnnouncements.authorUserId}, ${guildAnnouncements.authorName}, ${guildAnnouncements.createdAt}`;
 
 /** Insert one announcement; returns the new row id. */
 export async function insertAnnouncement(
   d1: D1Database,
   row: {
-    tenant: string; kind: string; title: string; body: string;
-    authorDiscordId: string; authorName: string; createdAt: number;
+    tenant: number; kind: string; title: string; body: string;
+    authorUserId: number; authorName: string; createdAt: number;
   },
 ): Promise<number> {
   const db = createDb(d1);
+  // The announcement ID (type code 20) is minted in the data layer.
+  const id = await mintPublicId(d1, 'announcement');
   // INSERT column lists must use bare column names (SQLite syntax); see settings.ts note.
-  const r = await db.run(
-    sql`INSERT INTO ${guildAnnouncements} (${col('tenant')}, ${col('kind')}, ${col('title')}, ${col('body')}, ${col('author_discord_id')}, ${col('author_name')}, ${col('created_at')})
-        VALUES (${row.tenant}, ${row.kind}, ${row.title}, ${row.body}, ${row.authorDiscordId}, ${row.authorName}, ${row.createdAt})`,
+  await db.run(
+    sql`INSERT INTO ${guildAnnouncements} (${col('id')}, ${col('tenant')}, ${col('kind')}, ${col('title')}, ${col('body')}, ${col('author_user_id')}, ${col('author_name')}, ${col('created_at')})
+        VALUES (${id}, ${row.tenant}, ${row.kind}, ${row.title}, ${row.body}, ${row.authorUserId}, ${row.authorName}, ${row.createdAt})`,
   );
-  return metaOf(r).last_row_id;
+  return id;
 }
 
 /** Newest-first announcements of one guild (member list page). */
 export async function listAnnouncements(
   d1: D1Database,
-  tenant: string,
+  tenant: number,
   limit: number,
 ): Promise<AnnouncementRow[]> {
   const db = createDb(d1);
@@ -84,7 +87,7 @@ export async function listAnnouncements(
  * (an id from another guild is indistinguishable from a missing id). */
 export async function getAnnouncement(
   d1: D1Database,
-  tenant: string,
+  tenant: number,
   id: number,
 ): Promise<AnnouncementRow | null> {
   const db = createDb(d1);
@@ -99,7 +102,7 @@ export async function getAnnouncement(
  * receipts; returns true when an announcement row actually went away. */
 export async function deleteAnnouncement(
   d1: D1Database,
-  tenant: string,
+  tenant: number,
   id: number,
 ): Promise<boolean> {
   const db = createDb(d1);
@@ -119,26 +122,26 @@ export async function deleteAnnouncement(
  * read wins: re-opening never moves read_at. */
 export async function markAnnouncementRead(
   d1: D1Database,
-  row: { tenant: string; announcementId: number; discordId: string; readAt: number },
+  row: { tenant: number; announcementId: number; userId: number; readAt: number },
 ): Promise<void> {
   const db = createDb(d1);
   await db.run(
-    sql`INSERT INTO ${guildAnnouncementReads} (${col('announcement_id')}, ${col('tenant')}, ${col('discord_id')}, ${col('read_at')})
-        VALUES (${row.announcementId}, ${row.tenant}, ${row.discordId}, ${row.readAt})
-        ON CONFLICT (${col('announcement_id')}, ${col('discord_id')}) DO NOTHING`,
+    sql`INSERT INTO ${guildAnnouncementReads} (${col('announcement_id')}, ${col('tenant')}, ${col('user_id')}, ${col('read_at')})
+        VALUES (${row.announcementId}, ${row.tenant}, ${row.userId}, ${row.readAt})
+        ON CONFLICT (${col('announcement_id')}, ${col('user_id')}) DO NOTHING`,
   );
 }
 
 /** Ids of this guild's announcements the member has already read. */
 export async function listReadAnnouncementIds(
   d1: D1Database,
-  tenant: string,
-  discordId: string,
+  tenant: number,
+  userId: number,
 ): Promise<number[]> {
   const db = createDb(d1);
   const rows = await db.all<{ announcement_id: number }>(
     sql`SELECT ${guildAnnouncementReads.announcementId} FROM ${guildAnnouncementReads}
-        WHERE ${guildAnnouncementReads.tenant} = ${tenant} AND ${guildAnnouncementReads.discordId} = ${discordId}`,
+        WHERE ${guildAnnouncementReads.tenant} = ${tenant} AND ${guildAnnouncementReads.userId} = ${userId}`,
   );
   return (rows || []).map((r) => Number(r.announcement_id));
 }
@@ -147,12 +150,12 @@ export async function listReadAnnouncementIds(
  * read first. */
 export async function listAnnouncementReads(
   d1: D1Database,
-  tenant: string,
+  tenant: number,
   announcementId: number,
 ): Promise<AnnouncementReadRow[]> {
   const db = createDb(d1);
   const rows = await db.all<AnnouncementReadRow>(
-    sql`SELECT ${guildAnnouncementReads.discordId}, ${guildAnnouncementReads.readAt} FROM ${guildAnnouncementReads}
+    sql`SELECT ${guildAnnouncementReads.userId}, ${guildAnnouncementReads.readAt} FROM ${guildAnnouncementReads}
         WHERE ${guildAnnouncementReads.tenant} = ${tenant} AND ${guildAnnouncementReads.announcementId} = ${announcementId}
         ORDER BY ${guildAnnouncementReads.readAt} ASC`,
   );

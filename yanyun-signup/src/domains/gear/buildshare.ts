@@ -48,21 +48,21 @@ export function buildShareUrl(code: string): string {
 export interface BuildShareLink {
   code: string;
   buildId: number;
-  discordId: string;
+  userId: number;
   createdAt: number;
 }
 
 function linkOf(row: BuildShareLinkRow): BuildShareLink {
-  return { code: row.code, buildId: row.build_id, discordId: row.discord_id, createdAt: row.created_at };
+  return { code: row.code, buildId: row.build_id, userId: row.user_id, createdAt: row.created_at };
 }
 
 /** The build's active link, if one exists (owner-scoped). */
 export async function getBuildShareLink(
   db: D1Database,
-  discordId: string,
+  userId: number,
   buildId: number,
 ): Promise<BuildShareLink | null> {
-  const row = await getBuildShareLinkRowByBuild(db, discordId, buildId);
+  const row = await getBuildShareLinkRowByBuild(db, userId, buildId);
   return row ? linkOf(row) : null;
 }
 
@@ -75,22 +75,22 @@ export async function getBuildShareLink(
  */
 export async function shareGearBuild(
   db: D1Database,
-  discordId: string,
+  userId: number,
   buildId: number,
   nextCode: () => string = generateBuildShareCode,
 ): Promise<BuildShareLink | null> {
-  const build = await getGearBuildRow(db, discordId, buildId);
+  const build = await getGearBuildRow(db, userId, buildId);
   if (!build) return null;
-  const existing = await getBuildShareLink(db, discordId, buildId);
+  const existing = await getBuildShareLink(db, userId, buildId);
   if (existing) return existing;
   const createdAt = Math.floor(Date.now() / 1000);
   for (let attempt = 0; attempt < 8; attempt++) {
     const code = nextCode();
     try {
-      await insertBuildShareLinkRow(db, { code, buildId, discordId, createdAt });
-      return { code, buildId, discordId, createdAt };
+      await insertBuildShareLinkRow(db, { code, buildId, userId, createdAt });
+      return { code, buildId, userId, createdAt };
     } catch {
-      const winner = await getBuildShareLink(db, discordId, buildId);
+      const winner = await getBuildShareLink(db, userId, buildId);
       if (winner) return winner;
       // Code collision with a different build: loop for a fresh code.
     }
@@ -101,10 +101,10 @@ export async function shareGearBuild(
 /** Revokes the build's link (the row goes away; the code dies at once). */
 export async function revokeBuildShare(
   db: D1Database,
-  discordId: string,
+  userId: number,
   buildId: number,
 ): Promise<boolean> {
-  const meta = await deleteBuildShareLinkRow(db, discordId, buildId);
+  const meta = await deleteBuildShareLinkRow(db, userId, buildId);
   return meta.changes > 0;
 }
 
@@ -149,10 +149,10 @@ export async function resolveSharedBuild(
   if (!BUILD_SHARE_CODE_RE.test(code || '')) return null;
   const link = await getBuildShareLinkRowByCode(db, code);
   if (!link) return null;
-  const builds = await listGearBuilds(db, link.discord_id);
+  const builds = await listGearBuilds(db, link.user_id);
   const build = builds.find((b) => b.id === link.build_id);
   if (!build) return null; // build deleted after sharing: the link is dead
-  const items = await listGearItems(db, link.discord_id);
+  const items = await listGearItems(db, link.user_id);
   const byId = new Map(items.map((g) => [g.id, g]));
   const sharedItems: SharedBuildItem[] = [];
   for (const gearId of Object.values(build.loadout || {})) {

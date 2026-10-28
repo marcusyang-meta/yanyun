@@ -32,29 +32,29 @@ function gearPayload(gear: any) {
   });
 }
 
-export async function listGearItems(db: any, discordId: string) {
-  const rows = await listGearItemRows(db, discordId);
+export async function listGearItems(db: any, userId: number) {
+  const rows = await listGearItemRows(db, userId);
   return rows.map(itemRowToGear);
 }
 
-export async function insertGearItem(db: any, discordId: string, gear: any) {
+export async function insertGearItem(db: any, userId: number, gear: any) {
   const meta = await insertGearItemRow(db, {
-    discordId, slot: gear.slot || '', name: gear.name || '',
+    userId, slot: gear.slot || '', name: gear.name || '',
     payload: gearPayload(gear), createdAt: Date.now(),
   });
   const id = meta.last_row_id || null;
   return { ...gear, id };
 }
 
-export async function updateGearItemRow(db: any, discordId: string, id: number, gear: any) {
-  const meta = await updateGearItemRowData(db, discordId, id, {
+export async function updateGearItemRow(db: any, userId: number, id: number, gear: any) {
+  const meta = await updateGearItemRowData(db, userId, id, {
     slot: gear.slot || '', name: gear.name || '', payload: gearPayload(gear),
   });
   return meta.changes > 0 ? { ...gear, id } : null;
 }
 
-export async function deleteGearItemRow(db: any, discordId: string, id: number) {
-  const meta = await deleteGearItemRowData(db, discordId, id);
+export async function deleteGearItemRow(db: any, userId: number, id: number) {
+  const meta = await deleteGearItemRowData(db, userId, id);
   return meta.changes > 0;
 }
 
@@ -77,12 +77,12 @@ function buildRowToSaved(row: any) {
   };
 }
 
-export async function listGearBuilds(db: any, discordId: string) {
-  const rows = await listGearBuildRows(db, discordId);
+export async function listGearBuilds(db: any, userId: number) {
+  const rows = await listGearBuildRows(db, userId);
   return rows.map(buildRowToSaved);
 }
 
-export async function insertGearBuild(db: any, discordId: string, build: any) {
+export async function insertGearBuild(db: any, userId: number, build: any) {
   const payload = JSON.stringify({
     buildLabel: build.buildLabel || '',
     loadout: build.loadout || {},
@@ -95,13 +95,13 @@ export async function insertGearBuild(db: any, discordId: string, build: any) {
   });
   const now = Date.now();
   const meta = await insertGearBuildRow(db, {
-    discordId, name: build.name || '', targetIdx: build.targetIdx || 0, payload, createdAt: now,
+    userId, name: build.name || '', targetIdx: build.targetIdx || 0, payload, createdAt: now,
   });
   const id = meta.last_row_id || null;
   return { ...build, id, createdAt: now };
 }
 
-export async function deleteGearBuildRow(db: any, discordId: string, id: number) {
-  const meta = await deleteGearBuildRowData(db, discordId, id);
+export async function deleteGearBuildRow(db: any, userId: number, id: number) {
+  const meta = await deleteGearBuildRowData(db, userId, id);
   return meta.changes > 0;
 }

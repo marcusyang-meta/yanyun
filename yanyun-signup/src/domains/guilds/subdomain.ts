@@ -42,7 +42,7 @@
  * subdomain already signed in. No per-subdomain Discord callback
  * registration is needed. */
 import { getSettingValue, setSettingValue } from './settings.ts';
-import { getTenantSlug } from './tenants.ts';
+import { getTenantSlug, getGuildIdBySlug } from './tenants.ts';
 import { premiumGate } from '../platform/billing-service.ts';
 
 export const SUBDOMAIN_ENABLED_KEY = 'subdomain_enabled';
@@ -86,12 +86,14 @@ export async function isGuildSubdomainEnabled(
   d1: D1Database,
   slug: string,
 ): Promise<boolean> {
+  const guildId = await getGuildIdBySlug(d1, slug).catch(() => null);
+  if (guildId == null) return false;
   const [on, devOnly] = await Promise.all([
-    getSettingValue(d1, slug, SUBDOMAIN_ENABLED_KEY),
-    getSettingValue(d1, slug, 'dev_only'),
+    getSettingValue(d1, guildId, SUBDOMAIN_ENABLED_KEY),
+    getSettingValue(d1, guildId, 'dev_only'),
   ]);
   if (on !== '1' || devOnly === '1') return false;
-  return !(await premiumGate(d1, slug));
+  return !(await premiumGate(d1, guildId));
 }
 
 export async function setGuildSubdomainEnabled(
@@ -99,7 +101,9 @@ export async function setGuildSubdomainEnabled(
   slug: string,
   enabled: boolean,
 ): Promise<void> {
-  await setSettingValue(d1, slug, SUBDOMAIN_ENABLED_KEY, enabled ? '1' : '0');
+  const guildId = await getGuildIdBySlug(d1, slug).catch(() => null);
+  if (guildId == null) return;
+  await setSettingValue(d1, guildId, SUBDOMAIN_ENABLED_KEY, enabled ? '1' : '0');
 }
 
 /** Full resolution for the worker's host gate: the slug when this

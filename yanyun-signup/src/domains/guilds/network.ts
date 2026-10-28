@@ -14,7 +14,7 @@
  * demand side's manual action on the grouping (groupings repo).
  *
  * P20 symmetry rule: an alliance pair is stored ONCE, with the two
- * slugs in lexicographic order (guild_low < guild_high) — the
+ * guild IDs in numeric order (guild_low < guild_high) — the
  * canonical pair key every function below derives via pairKey().
  * Sharing reads consult the CURRENT alliance status on every call,
  * so ending an alliance revokes sharing at read time; nothing here
@@ -28,6 +28,7 @@
 import { sql } from 'drizzle-orm';
 import { createDb } from '../../db/client.ts';
 import { fillOffers, fillRequests, fillInvites, guildAlliances } from './schema.ts';
+import { mintPublicId } from '../platform/id-mint.ts';
 
 const col = (name: string) => sql.identifier(name);
 
@@ -53,9 +54,9 @@ export const FILL_REQUEST_LIST_LIMIT = 100;
 
 export interface FillOfferRow {
   id: number;
-  discord_id: string;
+  user_id: number;
   display_name: string;
-  home_tenant: string;
+  home_tenant: number;
   school: string;
   windows_json: string;
   note: string;
@@ -64,31 +65,32 @@ export interface FillOfferRow {
   updated_at: number;
 }
 
-const OFFER_COLS = sql`${fillOffers.id}, ${fillOffers.discordId}, ${fillOffers.displayName}, ${fillOffers.homeTenant}, ${fillOffers.school}, ${fillOffers.windowsJson}, ${fillOffers.note}, ${fillOffers.status}, ${fillOffers.createdAt}, ${fillOffers.updatedAt}`;
+const OFFER_COLS = sql`${fillOffers.id}, ${fillOffers.userId}, ${fillOffers.displayName}, ${fillOffers.homeTenant}, ${fillOffers.school}, ${fillOffers.windowsJson}, ${fillOffers.note}, ${fillOffers.status}, ${fillOffers.createdAt}, ${fillOffers.updatedAt}`;
 
 /** Publish one offer (status 'open'); returns the new row id. The
  * partial unique index (one open offer per person) backstops the
  * mutation's already-published check. */
 export async function insertFillOffer(
   d1: D1Database,
-  row: { discordId: string; displayName: string; homeTenant: string; school: string; windowsJson: string; note: string; at: number },
+  row: { userId: number; displayName: string; homeTenant: number; school: string; windowsJson: string; note: string; at: number },
 ): Promise<number> {
   const db = createDb(d1);
-  const r = await db.run(
-    sql`INSERT INTO ${fillOffers} (${col('discord_id')}, ${col('display_name')}, ${col('home_tenant')}, ${col('school')}, ${col('windows_json')}, ${col('note')}, ${col('created_at')}, ${col('updated_at')})
-        VALUES (${row.discordId}, ${row.displayName}, ${row.homeTenant}, ${row.school}, ${row.windowsJson}, ${row.note}, ${row.at}, ${row.at})`,
+  const id = await mintPublicId(d1, 'fillOffer');
+  await db.run(
+    sql`INSERT INTO ${fillOffers} (${col('id')}, ${col('user_id')}, ${col('display_name')}, ${col('home_tenant')}, ${col('school')}, ${col('windows_json')}, ${col('note')}, ${col('created_at')}, ${col('updated_at')})
+        VALUES (${id}, ${row.userId}, ${row.displayName}, ${row.homeTenant}, ${row.school}, ${row.windowsJson}, ${row.note}, ${row.at}, ${row.at})`,
   );
-  return metaOf(r).last_row_id;
+  return id;
 }
 
 /** The person's open offer, if one exists (their supply-section read). */
 export async function getOpenOfferForUser(
-  d1: D1Database, discordId: string,
+  d1: D1Database, userId: number,
 ): Promise<FillOfferRow | null> {
   const db = createDb(d1);
   const row = await db.get<FillOfferRow>(
     sql`SELECT ${OFFER_COLS} FROM ${fillOffers}
-        WHERE ${fillOffers.discordId} = ${discordId} AND ${fillOffers.status} = 'open'`,
+        WHERE ${fillOffers.userId} = ${userId} AND ${fillOffers.status} = 'open'`,
   );
   return row ?? null;
 }
@@ -120,13 +122,13 @@ export async function listOpenFillOffers(
 /** Withdraw the person's open offer (still-open guard: a raced
  * second withdraw changes nothing). */
 export async function withdrawFillOffer(
-  d1: D1Database, discordId: string, at: number,
+  d1: D1Database, userId: number, at: number,
 ): Promise<RunMeta> {
   const db = createDb(d1);
   const r = await db.run(
     sql`UPDATE ${fillOffers}
         SET ${col('status')} = 'withdrawn', ${col('updated_at')} = ${at}
-        WHERE ${col('discord_id')} = ${discordId} AND ${col('status')} = 'open'`,
+        WHERE ${col('user_id')} = ${userId} AND ${col('status')} = 'open'`,
   );
   return metaOf(r);
 }
@@ -135,39 +137,40 @@ export async function withdrawFillOffer(
 
 export interface FillRequestRow {
   id: number;
-  tenant: string;
+  tenant: number;
   event_id: number;
   needed_role: string;
   needed_school: string;
   note: string;
   status: string;
-  created_by: string;
+  created_by_user_id: number;
   created_by_name: string;
   created_at: number;
   matched_at: number | null;
   closed_at: number | null;
 }
 
-const REQUEST_COLS = sql`${fillRequests.id}, ${fillRequests.tenant}, ${fillRequests.eventId}, ${fillRequests.neededRole}, ${fillRequests.neededSchool}, ${fillRequests.note}, ${fillRequests.status}, ${fillRequests.createdBy}, ${fillRequests.createdByName}, ${fillRequests.createdAt}, ${fillRequests.matchedAt}, ${fillRequests.closedAt}`;
+const REQUEST_COLS = sql`${fillRequests.id}, ${fillRequests.tenant}, ${fillRequests.eventId}, ${fillRequests.neededRole}, ${fillRequests.neededSchool}, ${fillRequests.note}, ${fillRequests.status}, ${fillRequests.createdByUserId}, ${fillRequests.createdByName}, ${fillRequests.createdAt}, ${fillRequests.matchedAt}, ${fillRequests.closedAt}`;
 
 export async function insertFillRequest(
   d1: D1Database,
   row: {
-    tenant: string; eventId: number; neededRole: string; neededSchool: string;
-    note: string; createdBy: string; createdByName: string; at: number;
+    tenant: number; eventId: number; neededRole: string; neededSchool: string;
+    note: string; createdByUserId: number; createdByName: string; at: number;
   },
 ): Promise<number> {
   const db = createDb(d1);
-  const r = await db.run(
-    sql`INSERT INTO ${fillRequests} (${col('tenant')}, ${col('event_id')}, ${col('needed_role')}, ${col('needed_school')}, ${col('note')}, ${col('created_by')}, ${col('created_by_name')}, ${col('created_at')})
-        VALUES (${row.tenant}, ${row.eventId}, ${row.neededRole}, ${row.neededSchool}, ${row.note}, ${row.createdBy}, ${row.createdByName}, ${row.at})`,
+  const id = await mintPublicId(d1, 'fillRequest');
+  await db.run(
+    sql`INSERT INTO ${fillRequests} (${col('id')}, ${col('tenant')}, ${col('event_id')}, ${col('needed_role')}, ${col('needed_school')}, ${col('note')}, ${col('created_by_user_id')}, ${col('created_by_name')}, ${col('created_at')})
+        VALUES (${id}, ${row.tenant}, ${row.eventId}, ${row.neededRole}, ${row.neededSchool}, ${row.note}, ${row.createdByUserId}, ${row.createdByName}, ${row.at})`,
   );
-  return metaOf(r).last_row_id;
+  return id;
 }
 
 /** One request of one guild; null when it does not exist THERE. */
 export async function getFillRequestByTenant(
-  d1: D1Database, id: number, tenant: string,
+  d1: D1Database, id: number, tenant: number,
 ): Promise<FillRequestRow | null> {
   const db = createDb(d1);
   const row = await db.get<FillRequestRow>(
@@ -189,7 +192,7 @@ export async function getFillRequestById(
 
 /** All of one guild's requests, newest first (the demand section). */
 export async function listFillRequestsByTenant(
-  d1: D1Database, tenant: string, limit: number = FILL_REQUEST_LIST_LIMIT,
+  d1: D1Database, tenant: number, limit: number = FILL_REQUEST_LIST_LIMIT,
 ): Promise<FillRequestRow[]> {
   const db = createDb(d1);
   const rows = await db.all<FillRequestRow>(
@@ -232,32 +235,33 @@ export interface FillInviteRow {
   id: number;
   request_id: number;
   offer_id: number;
-  tenant: string;
+  tenant: number;
   event_id: number;
-  from_discord_id: string;
+  from_user_id: number;
   from_name: string;
-  to_discord_id: string;
+  to_user_id: number;
   to_name: string;
   status: string;
   created_at: number;
   responded_at: number | null;
 }
 
-const INVITE_COLS = sql`${fillInvites.id}, ${fillInvites.requestId}, ${fillInvites.offerId}, ${fillInvites.tenant}, ${fillInvites.eventId}, ${fillInvites.fromDiscordId}, ${fillInvites.fromName}, ${fillInvites.toDiscordId}, ${fillInvites.toName}, ${fillInvites.status}, ${fillInvites.createdAt}, ${fillInvites.respondedAt}`;
+const INVITE_COLS = sql`${fillInvites.id}, ${fillInvites.requestId}, ${fillInvites.offerId}, ${fillInvites.tenant}, ${fillInvites.eventId}, ${fillInvites.fromUserId}, ${fillInvites.fromName}, ${fillInvites.toUserId}, ${fillInvites.toName}, ${fillInvites.status}, ${fillInvites.createdAt}, ${fillInvites.respondedAt}`;
 
 export async function insertFillInvite(
   d1: D1Database,
   row: {
-    requestId: number; offerId: number; tenant: string; eventId: number;
-    fromDiscordId: string; fromName: string; toDiscordId: string; toName: string; at: number;
+    requestId: number; offerId: number; tenant: number; eventId: number;
+    fromUserId: number; fromName: string; toUserId: number; toName: string; at: number;
   },
 ): Promise<number> {
   const db = createDb(d1);
-  const r = await db.run(
-    sql`INSERT INTO ${fillInvites} (${col('request_id')}, ${col('offer_id')}, ${col('tenant')}, ${col('event_id')}, ${col('from_discord_id')}, ${col('from_name')}, ${col('to_discord_id')}, ${col('to_name')}, ${col('created_at')})
-        VALUES (${row.requestId}, ${row.offerId}, ${row.tenant}, ${row.eventId}, ${row.fromDiscordId}, ${row.fromName}, ${row.toDiscordId}, ${row.toName}, ${row.at})`,
+  const id = await mintPublicId(d1, 'fillInvite');
+  await db.run(
+    sql`INSERT INTO ${fillInvites} (${col('id')}, ${col('request_id')}, ${col('offer_id')}, ${col('tenant')}, ${col('event_id')}, ${col('from_user_id')}, ${col('from_name')}, ${col('to_user_id')}, ${col('to_name')}, ${col('created_at')})
+        VALUES (${id}, ${row.requestId}, ${row.offerId}, ${row.tenant}, ${row.eventId}, ${row.fromUserId}, ${row.fromName}, ${row.toUserId}, ${row.toName}, ${row.at})`,
   );
-  return metaOf(r).last_row_id;
+  return id;
 }
 
 export async function getFillInviteById(
@@ -272,12 +276,12 @@ export async function getFillInviteById(
 
 /** The live (pending/accepted) invite for one (request, supplier) pair, if one exists. */
 export async function getLiveInviteForPair(
-  d1: D1Database, requestId: number, toDiscordId: string,
+  d1: D1Database, requestId: number, toUserId: number,
 ): Promise<FillInviteRow | null> {
   const db = createDb(d1);
   const row = await db.get<FillInviteRow>(
     sql`SELECT ${INVITE_COLS} FROM ${fillInvites}
-        WHERE ${fillInvites.requestId} = ${requestId} AND ${fillInvites.toDiscordId} = ${toDiscordId}
+        WHERE ${fillInvites.requestId} = ${requestId} AND ${fillInvites.toUserId} = ${toUserId}
           AND ${fillInvites.status} IN ('pending', 'accepted')`,
   );
   return row ?? null;
@@ -285,12 +289,12 @@ export async function getLiveInviteForPair(
 
 /** Invites addressed to one supplier, newest first (their inbox). */
 export async function listInvitesForSupplier(
-  d1: D1Database, discordId: string, limit: number = FILL_REQUEST_LIST_LIMIT,
+  d1: D1Database, userId: number, limit: number = FILL_REQUEST_LIST_LIMIT,
 ): Promise<FillInviteRow[]> {
   const db = createDb(d1);
   const rows = await db.all<FillInviteRow>(
     sql`SELECT ${INVITE_COLS} FROM ${fillInvites}
-        WHERE ${fillInvites.toDiscordId} = ${discordId}
+        WHERE ${fillInvites.toUserId} = ${userId}
         ORDER BY ${fillInvites.id} DESC LIMIT ${limit}`,
   );
   return rows || [];
@@ -311,13 +315,13 @@ export async function listInvitesByRequest(
 
 /** Supplier settles a pending invite. Still-pending guard. */
 export async function respondFillInvite(
-  d1: D1Database, id: number, toDiscordId: string, accept: boolean, at: number,
+  d1: D1Database, id: number, toUserId: number, accept: boolean, at: number,
 ): Promise<RunMeta> {
   const db = createDb(d1);
   const r = await db.run(
     sql`UPDATE ${fillInvites}
         SET ${col('status')} = ${accept ? 'accepted' : 'declined'}, ${col('responded_at')} = ${at}
-        WHERE ${col('id')} = ${id} AND ${col('to_discord_id')} = ${toDiscordId} AND ${col('status')} = 'pending'`,
+        WHERE ${col('id')} = ${id} AND ${col('to_user_id')} = ${toUserId} AND ${col('status')} = 'pending'`,
   );
   return metaOf(r);
 }
@@ -340,41 +344,42 @@ export async function expirePendingInvitesForRequest(
 
 export interface GuildAllianceRow {
   id: number;
-  guild_low: string;
-  guild_high: string;
+  guild_low: number;
+  guild_high: number;
   status: string;
-  requested_by_tenant: string;
-  requested_by: string;
+  requested_by_tenant: number;
+  requested_by_user_id: number;
   requested_by_name: string;
   created_at: number;
   responded_at: number | null;
   ended_at: number | null;
-  ended_by_tenant: string;
+  ended_by_tenant: number;
 }
 
-const ALLIANCE_COLS = sql`${guildAlliances.id}, ${guildAlliances.guildLow}, ${guildAlliances.guildHigh}, ${guildAlliances.status}, ${guildAlliances.requestedByTenant}, ${guildAlliances.requestedBy}, ${guildAlliances.requestedByName}, ${guildAlliances.createdAt}, ${guildAlliances.respondedAt}, ${guildAlliances.endedAt}, ${guildAlliances.endedByTenant}`;
+const ALLIANCE_COLS = sql`${guildAlliances.id}, ${guildAlliances.guildLow}, ${guildAlliances.guildHigh}, ${guildAlliances.status}, ${guildAlliances.requestedByTenant}, ${guildAlliances.requestedByUserId}, ${guildAlliances.requestedByName}, ${guildAlliances.createdAt}, ${guildAlliances.respondedAt}, ${guildAlliances.endedAt}, ${guildAlliances.endedByTenant}`;
 
-/** The canonical pair key: the two slugs in lexicographic order. */
-export function alliancePairKey(a: string, b: string): { low: string; high: string } {
+/** The canonical pair key: the two guild IDs in numeric order. */
+export function alliancePairKey(a: number, b: number): { low: number; high: number } {
   return a < b ? { low: a, high: b } : { low: b, high: a };
 }
 
 /** The other side of a pair, from one guild's point of view. */
-export function allianceOtherSlug(row: GuildAllianceRow, slug: string): string {
-  return row.guild_low === slug ? row.guild_high : row.guild_low;
+export function allianceOtherGuildId(row: GuildAllianceRow, guildId: number): number {
+  return row.guild_low === guildId ? row.guild_high : row.guild_low;
 }
 
 export async function insertAlliance(
   d1: D1Database,
-  row: { fromTenant: string; toTenant: string; requestedBy: string; requestedByName: string; at: number },
+  row: { fromTenant: number; toTenant: number; requestedByUserId: number; requestedByName: string; at: number },
 ): Promise<number> {
   const { low, high } = alliancePairKey(row.fromTenant, row.toTenant);
   const db = createDb(d1);
-  const r = await db.run(
-    sql`INSERT INTO ${guildAlliances} (${col('guild_low')}, ${col('guild_high')}, ${col('requested_by_tenant')}, ${col('requested_by')}, ${col('requested_by_name')}, ${col('created_at')})
-        VALUES (${low}, ${high}, ${row.fromTenant}, ${row.requestedBy}, ${row.requestedByName}, ${row.at})`,
+  const id = await mintPublicId(d1, 'alliance');
+  await db.run(
+    sql`INSERT INTO ${guildAlliances} (${col('id')}, ${col('guild_low')}, ${col('guild_high')}, ${col('requested_by_tenant')}, ${col('requested_by_user_id')}, ${col('requested_by_name')}, ${col('created_at')})
+        VALUES (${id}, ${low}, ${high}, ${row.fromTenant}, ${row.requestedByUserId}, ${row.requestedByName}, ${row.at})`,
   );
-  return metaOf(r).last_row_id;
+  return id;
 }
 
 export async function getAllianceById(
@@ -389,7 +394,7 @@ export async function getAllianceById(
 
 /** The pair's live (pending/active) relation, if one exists. */
 export async function getLiveAllianceBetween(
-  d1: D1Database, a: string, b: string,
+  d1: D1Database, a: number, b: number,
 ): Promise<GuildAllianceRow | null> {
   const { low, high } = alliancePairKey(a, b);
   const db = createDb(d1);
@@ -404,7 +409,7 @@ export async function getLiveAllianceBetween(
 /** The ACTIVE relation between two guilds, if one exists — THE sharing
  * verdict, consulted at read time on every shared read/signup. */
 export async function getActiveAllianceBetween(
-  d1: D1Database, a: string, b: string,
+  d1: D1Database, a: number, b: number,
 ): Promise<GuildAllianceRow | null> {
   const { low, high } = alliancePairKey(a, b);
   const db = createDb(d1);
@@ -418,31 +423,31 @@ export async function getActiveAllianceBetween(
 
 /** Every live relation touching one guild (its alliance page). */
 export async function listAlliancesForGuild(
-  d1: D1Database, slug: string, limit: number = FILL_REQUEST_LIST_LIMIT,
+  d1: D1Database, guildId: number, limit: number = FILL_REQUEST_LIST_LIMIT,
 ): Promise<GuildAllianceRow[]> {
   const db = createDb(d1);
   const rows = await db.all<GuildAllianceRow>(
     sql`SELECT ${ALLIANCE_COLS} FROM ${guildAlliances}
-        WHERE (${guildAlliances.guildLow} = ${slug} OR ${guildAlliances.guildHigh} = ${slug})
+        WHERE (${guildAlliances.guildLow} = ${guildId} OR ${guildAlliances.guildHigh} = ${guildId})
           AND ${guildAlliances.status} IN ('pending', 'active')
         ORDER BY ${guildAlliances.id} DESC LIMIT ${limit}`,
   );
   return rows || [];
 }
 
-/** Slugs of the guilds ACTIVELY allied with this one (the sharing
- * scope for ally-visible groupings; read fresh on every call). */
-export async function listActiveAllySlugs(
-  d1: D1Database, slug: string,
-): Promise<string[]> {
-  const rows = await listAlliancesForGuild(d1, slug);
-  return rows.filter((r) => r.status === 'active').map((r) => allianceOtherSlug(r, slug));
+/** Guild IDs of the guilds ACTIVELY allied with this one (the
+ * sharing scope for ally-visible groupings; read fresh on every call). */
+export async function listActiveAllyIds(
+  d1: D1Database, guildId: number,
+): Promise<number[]> {
+  const rows = await listAlliancesForGuild(d1, guildId);
+  return rows.filter((r) => r.status === 'active').map((r) => allianceOtherGuildId(r, guildId));
 }
 
 /** Target side settles a pending invitation. Guards: still pending
  * AND the responder is not the requesting side. */
 export async function respondAlliance(
-  d1: D1Database, id: number, responderTenant: string, accept: boolean, at: number,
+  d1: D1Database, id: number, responderTenant: number, accept: boolean, at: number,
 ): Promise<RunMeta> {
   const db = createDb(d1);
   const r = await db.run(
@@ -458,7 +463,7 @@ export async function respondAlliance(
 /** Either side dissolves an active alliance (read-time revocation
  * does the rest — no sharing rows exist to clean up). */
 export async function endAlliance(
-  d1: D1Database, id: number, byTenant: string, at: number,
+  d1: D1Database, id: number, byTenant: number, at: number,
 ): Promise<RunMeta> {
   const db = createDb(d1);
   const r = await db.run(

@@ -35,11 +35,12 @@ import {
   validatePollCandidates, hasEventsByTenantCreator,
   type TimePollRow,
 } from './index.ts';
-import { getGuildMember } from '../identity/index.ts';
+import { getGuildMember, getDiscordIdByUserId, listDiscordIdsByUserIds } from '../identity/index.ts';
 import { composeBestSlotsAdvice, schedulingAdviceResolvers } from './scheduling-graphql.ts';
+import { getGuildIdBySlug, getTenantRow, getTenantRowById } from '../guilds/index.ts';
 
 /** Roster-first display name for snapshots (availability rows, votes). */
-async function displayNameFor(db: any, tenant: string, user: any): Promise<string> {
+async function displayNameFor(db: any, tenant: number, user: any): Promise<string> {
   const m = await getGuildMember(db, tenant, String(user.discordId)).catch(() => null);
   const nick = m ? String(m.nick || '').trim() : '';
   if (nick) return nick;
@@ -56,11 +57,19 @@ export class TimePollShell extends ShellBase {
   genId(){ return String(this.row.id); }
   genTitle(){ return this.row.title; }
   genStatus(){ return this.row.status || 'open'; }
-  genCreatorDiscordId(){ return this.row.created_by ? String(this.row.created_by) : ''; }
+  genCreatorDiscordId(){
+    return this.memo('creatorDiscordId', async () => {
+      if (!this.row.created_by_user_id) return '';
+      const d = await getDiscordIdByUserId(this.db, this.row.created_by_user_id).catch(() => null);
+      return d || '';
+    });
+  }
   genCreatorName(){
     return this.memo('creatorName', async () => {
-      if (!this.row.created_by) return null;
-      const m = await getGuildMember(this.db, this.row.tenant, String(this.row.created_by)).catch(() => null);
+      if (!this.row.created_by_user_id) return null;
+      const discordId = await getDiscordIdByUserId(this.db, this.row.created_by_user_id).catch(() => null);
+      if (!discordId) return null;
+      const m = await getGuildMember(this.db, this.row.tenant, discordId).catch(() => null);
       const name = m ? (String(m.nick || '').trim() || String(m.global_name || '').trim()) : '';
       return name || null;
     });
@@ -72,7 +81,7 @@ export class TimePollShell extends ShellBase {
     return this.memo('options', async () => {
       const opts = await listTimePollOptions(this.db, this.row.id);
       const votes = await listTimePollVotes(this.db, this.row.id);
-      const myId = this.ctx.user ? String(this.ctx.user.discordId) : '';
+      const myId = this.ctx.user ? this.ctx.user.userId : 0;
       return opts.map((o) => {
         const mine = votes.filter((v) => v.option_id === o.id);
         return {
@@ -81,7 +90,7 @@ export class TimePollShell extends ShellBase {
           startsAtText: fmtStartsAt(o.starts_at_utc, this.locale, this.ctx.tz),
           voteCount: mine.length,
           voterNames: mine.map((v) => v.display_name || ''),
-          votedByMe: !!(myId && mine.some((v) => String(v.discord_id) === myId)),
+          votedByMe: !!(myId && mine.some((v) => v.user_id === myId)),
         };
       });
     });
@@ -93,7 +102,7 @@ export class TimePollShell extends ShellBase {
   genManageVerdict(){
     return this.memo('manageVerdict', async () => {
       return getGroupingManageVerdict(this.db, this.ctx.user, this.ctx.request, this.vc,
-        { tenant: this.row.tenant, creator_discord_id: this.row.created_by });
+        { tenant: this.row.tenant, creator_user_id: this.row.created_by_user_id });
     });
   }
   async genCloseActions(){
@@ -166,10 +175,15 @@ const SCHEDULE_TEXT_SPEC = [
 export class GuildSchedulePageShell extends ShellBase {
   constructor(ctx: Context, slug: string){ super(ctx, { slug }); }
   genSlug(){ return this.data.slug; }
+  guildId(){
+    return this.memo('guildId', async () => getGuildIdBySlug(this.db, this.data.slug));
+  }
   genMyAvailability(){
     return this.memo('myAvailability', async () => {
       if (!this.ctx.user) return [];
-      const row = await getMemberAvailability(this.db, this.data.slug, String(this.ctx.user.discordId));
+      const guildId = await this.guildId();
+      if (guildId == null) return [];
+      const row = await getMemberAvailability(this.db, guildId, this.ctx.user.userId);
       return row ? parseAvailabilitySlots(row.slots_json) : [];
     });
   }
@@ -182,13 +196,16 @@ export class GuildSchedulePageShell extends ShellBase {
       if (!user) return null;
       const admin = await getGuildAdminAccess(this.db, user, this.data.slug, this.ctx.request, this.vc);
       let allowed = !!admin.isAdmin;
+      const guildId = await this.guildId();
+      if (guildId == null) return null;
       if (!allowed) {
-        allowed = await hasEventsByTenantCreator(this.db, this.data.slug, String(user.discordId));
+        allowed = await hasEventsByTenantCreator(this.db, guildId, user.userId);
       }
       if (!allowed) return null;
-      const rows = await listGuildAvailability(this.db, this.data.slug);
+      const rows = await listGuildAvailability(this.db, guildId);
+      const discordIds = await listDiscordIdsByUserIds(this.db, rows.map((r) => r.user_id));
       return rows.map((r) => ({
-        discordId: String(r.discord_id),
+        discordId: discordIds.get(r.user_id) || '',
         displayName: r.display_name || '',
         slots: parseAvailabilitySlots(r.slots_json),
       }));
@@ -196,7 +213,9 @@ export class GuildSchedulePageShell extends ShellBase {
   }
   genPolls(){
     return this.memo('polls', async () => {
-      const rows = await listTimePolls(this.db, this.data.slug);
+      const guildId = await this.guildId();
+      if (guildId == null) return [];
+      const rows = await listTimePolls(this.db, guildId);
       return rows.map((r) => new TimePollShell(this.ctx, r));
     });
   }
@@ -246,9 +265,11 @@ export const scheduleResolvers = {
       if (gate) return aFail(ctx, gate);
       const parsed = validateAvailabilitySlots(input.slots);
       if ('error' in parsed) return aFail(ctx, parsed.error);
-      const displayName = await displayNameFor(db, slug, ctx.user);
+      const tenantRow = await getTenantRow(db, slug).catch(() => null);
+      if (!tenantRow) return aFail(ctx, 'guildNotFound');
+      const displayName = await displayNameFor(db, tenantRow.id, ctx.user);
       await upsertMemberAvailability(db, {
-        tenant: slug, discordId: String(ctx.user!.discordId), displayName,
+        tenant: tenantRow.id, userId: ctx.user!.userId, displayName,
         slots: parsed.slots, updatedAt: Math.floor(Date.now() / 1000),
       });
       return new AvailabilityPayloadShell(ctx, { ok: true, slots: parsed.slots });
@@ -267,9 +288,11 @@ export const scheduleResolvers = {
       const now = Math.floor(Date.now() / 1000);
       const parsed = validatePollCandidates(input.candidateStartsAt, now);
       if ('error' in parsed) return pFail(ctx, parsed.error);
+      const tenantRow = await getTenantRow(db, slug).catch(() => null);
+      if (!tenantRow) return pFail(ctx, 'guildNotFound');
       const r = await insertTimePoll(db, {
-        tenant: slug, title, status: 'open',
-        created_by: String(ctx.user!.discordId), created_at: now, closed_at: null,
+        tenant: tenantRow.id, title, status: 'open',
+        created_by_user_id: ctx.user!.userId, created_at: now, closed_at: null,
       });
       for (const utc of parsed.candidates) {
         await insertTimePollOption(db, { pollId: r.last_row_id, startsAtUtc: utc });
@@ -286,7 +309,8 @@ export const scheduleResolvers = {
       const pollId = parseInt(input.pollId, 10) || 0;
       const poll = await getTimePoll(db, pollId);
       if (!poll) return pFail(ctx, 'pollNotFound');
-      const gate = await requireWrite(db, ctx.user, poll.tenant, ctx.request);
+      const pollTenant = await getTenantRowById(db, poll.tenant).catch(() => null);
+      const gate = await requireWrite(db, ctx.user, pollTenant ? pollTenant.slug : '', ctx.request);
       if (gate) return pFail(ctx, gate);
       if (poll.status !== 'open') return pFail(ctx, 'pollClosed');
       const options = await listTimePollOptions(db, pollId);
@@ -299,7 +323,7 @@ export const scheduleResolvers = {
       }
       const displayName = await displayNameFor(db, poll.tenant, ctx.user);
       await replaceTimePollVotes(db, {
-        pollId, discordId: String(ctx.user!.discordId), displayName, optionIds: picked,
+        pollId, userId: ctx.user!.userId, displayName, optionIds: picked,
       });
       return new TimePollPayloadShell(ctx, { ok: true, poll: toTimePoll(ctx, poll) });
     },
@@ -313,7 +337,7 @@ export const scheduleResolvers = {
       const poll = await getTimePoll(db, pollId);
       if (!poll) return pFail(ctx, 'pollNotFound');
       const manage = await groupingManageGate(db, ctx.user, ctx.request, vcOf(ctx),
-        { tenant: poll.tenant, creator_discord_id: poll.created_by });
+        { tenant: poll.tenant, creator_user_id: poll.created_by_user_id });
       if (manage.writeCode) return pFail(ctx, manage.writeCode);
       if (!manage.canManage) return pFail(ctx, 'pollForbidden');
       if (poll.status !== 'open') return pFail(ctx, 'pollClosed');

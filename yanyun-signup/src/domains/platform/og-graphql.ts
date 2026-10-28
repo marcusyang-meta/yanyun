@@ -18,7 +18,7 @@ import { resolveSharedBuild } from '../gear/index.ts';
 async function ogTenant(ctx: Context, slug: string) {
   const t = await getTenantRow(ctx.env.DB, s(slug, 40));
   if (!t) return null;
-  const devOnly = (await getTenantSetting(ctx.env.DB, t.slug, 'dev_only')) === '1';
+  const devOnly = (await getTenantSetting(ctx.env.DB, t.id, 'dev_only')) === '1';
   if (devOnly && !isDevRequest(ctx.request)) return null;
   return t;
 }
@@ -83,7 +83,7 @@ export const ogCardResolvers = {
     ogCarCard: async (_: any, { slug, id }: any, ctx: Context) => {
       const tenant = await ogTenant(ctx, slug);
       if (!tenant) return null;
-      const ev = await getEventRowByTenant(ctx.env.DB, parseInt(id, 10), tenant.slug);
+      const ev = await getEventRowByTenant(ctx.env.DB, parseInt(id, 10), tenant.id);
       if (!ev) return null;
       const occupiedCount = await countSignupsByEvent(ctx.env.DB, ev.id);
       return new OgCarCardShell(ctx, { ...ev, occupiedCount });

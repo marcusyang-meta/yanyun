@@ -19,7 +19,11 @@ import {
 
 /* ---------------- users / oauth / nicks [ddl chain baseline] ------- */
 export const users = sqliteTable('users', {
-  discordId: text('discord_id').primaryKey(),
+  // Typed public ID primary key (migration 0033, code 02); discord_id
+  // is demoted to the UNIQUE identity column, resolved only at the
+  // login boundary. Every other table's user reference points at id.
+  id: integer('id').primaryKey(),
+  discordId: text('discord_id').notNull().unique(),
   username: text('username').notNull().default(''),
   avatar: text('avatar').notNull().default(''),
   guildsJson: text('guilds_json').notNull().default('[]'),
@@ -38,7 +42,7 @@ export const users = sqliteTable('users', {
 });
 
 export const userOauth = sqliteTable('user_oauth', {
-  discordId: text('discord_id').primaryKey(),
+  userId: integer('user_id').primaryKey(),
   refreshToken: text('refresh_token').notNull().default(''),
   scope: text('scope').notNull().default(''),
   refreshState: text('refresh_state').notNull().default('ok'),
@@ -57,7 +61,7 @@ export const userGuildNicks = sqliteTable('user_guild_nicks', {
 
 /* ---------------- guild roster [ddl chain baseline] ---------------- */
 export const guildMembers = sqliteTable('guild_members', {
-  tenant: text('tenant').notNull(),
+  tenant: integer('tenant').notNull(),
   discordId: text('discord_id').notNull(),
   nick: text('nick').notNull().default(''),
   globalName: text('global_name').notNull().default(''),

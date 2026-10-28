@@ -1,10 +1,16 @@
 import { SUPPORTED_LOCALES } from '../platform/index.ts';
+import { isPublicIdOfType } from '../platform/ids.ts';
 import { listDistinctSettingValues, parseGuildSubdomainSlug, guildSubdomainOrigin } from '../guilds/index.ts';
-import { upsertUserOnLogin, getUserLocalePref as getUserLocalePrefRepo, setUserLocalePref as setUserLocalePrefRepo, getUserGuildsJson, getOAuthGrant, getOAuthRefresh, upsertOAuthOnLogin, updateOAuthAfterRefresh, markOAuthNeedsRelogin, upsertNick as upsertNickRepo, touchNick as touchNickRepo, getNickRow, listNickRowsByUser } from './index.ts';
+import { upsertUserOnLogin, getDiscordIdByUserId, getUserLocalePref as getUserLocalePrefRepo, setUserLocalePref as setUserLocalePrefRepo, getUserGuildsJson, getOAuthGrant, getOAuthRefresh, upsertOAuthOnLogin, updateOAuthAfterRefresh, markOAuthNeedsRelogin, upsertNick as upsertNickRepo, touchNick as touchNickRepo, getNickRow, listNickRowsByUser } from './index.ts';
 import { noteFreshAuthAndSettlePending } from './account.ts';
 
 // Discord OAuth + stateless JWT session (yy_session cookie).
-// Payload: { sub: discord_id, name, avatar, guilds: [server ids...], gm?: [{i, p}], iat, exp }
+// Payload: { sub: numeric user id (users.id, type code 02), name, avatar, guilds: [Discord server ids...], gm?: [{i, p}], iat, exp }
+// The Discord ID itself never rides the token: getSessionUser resolves
+// it from the users row at the session boundary (the one sanctioned
+// conversion), and internal code carries userId. Sessions minted
+// before migration 0033 (sub = Discord ID) no longer parse as user
+// IDs and read as signed out.
 // gm is only for ops/test-issued sessions; the real login flow never writes
 // it (keeps the cookie small). createGuild's admin check reads
 // users.guilds_json first and falls back to gm only when that row is missing.
@@ -129,8 +135,20 @@ export async function getSessionUser(request: any, env: any) {
   for (const token of candidates) {
     const p = await verifyJwt(env.SESSION_SECRET, token);
     if (p && p.sub) {
+      const userId = Number(p.sub);
+      // sub must be a minted user ID; a pre-0033 token (sub = Discord
+      // ID) or any other shape is not a session.
+      if (!isPublicIdOfType(userId, 'user')) continue;
+      // The one sanctioned conversion: numeric ID -> Discord ID via
+      // the users row, materialized here at the session boundary for
+      // the Discord-facing consumers (mentions, membership checks).
+      let discordId = '';
+      try {
+        discordId = (env.DB ? await getDiscordIdByUserId(env.DB, userId) : null) || '';
+      } catch { /* resolution failure degrades to an empty Discord ID; the grant check still gates */ }
       return {
-        discordId: String(p.sub),
+        userId,
+        discordId,
         name: p.name || '',
         avatar: p.avatar || '',
         guilds: Array.isArray(p.guilds) ? p.guilds.map(String) : [],
@@ -149,10 +167,10 @@ export async function getSessionUser(request: any, env: any) {
  * the caller clears the yy_session cookie; re-login (with returnTo)
  * restores a complete grant. Query errors fail open, so a D1 hiccup
  * never kicks out a fully-authorized user. */
-export async function hasCompleteDiscordGrant(env: any, discordId: string) {
+export async function hasCompleteDiscordGrant(env: any, userId: number) {
   try {
-    if (!env || !env.DB || !discordId) return false;
-    const row = await getOAuthGrant(env.DB, discordId);
+    if (!env || !env.DB || !userId) return false;
+    const row = await getOAuthGrant(env.DB, userId);
     if (!row || !row.refresh_token) return false;
     if (row.refresh_state === 'needs_relogin') return false;
     const scopes = String(row.scope || '').split(/\s+/).filter(Boolean);
@@ -166,7 +184,7 @@ export async function hasCompleteDiscordGrant(env: any, discordId: string) {
 export async function getSessionUserChecked(request: any, env: any) {
   const user = await getSessionUser(request, env);
   if (!user) return { user: null, clearCookie: false };
-  const ok = await hasCompleteDiscordGrant(env, user.discordId);
+  const ok = await hasCompleteDiscordGrant(env, user.userId);
   return ok ? { user, clearCookie: false } : { user: null, clearCookie: true };
 }
 
@@ -179,22 +197,22 @@ export async function getSessionUserChecked(request: any, env: any) {
  * null = automatic (follow browser language); a set value beats the
  * browser. Reads and writes validate against the supported set; dirty
  * values count as unset. */
-export async function getUserLocalePref(env: any, discordId: string) {
+export async function getUserLocalePref(env: any, userId: number) {
   try {
-    if (!env || !env.DB || !discordId) return null;
-    const v = await getUserLocalePrefRepo(env.DB, String(discordId));
+    if (!env || !env.DB || !userId) return null;
+    const v = await getUserLocalePrefRepo(env.DB, userId);
     return v != null && SUPPORTED_LOCALES.includes(v) ? v : null;
   } catch { return null; }
 }
 
-export async function setUserLocalePref(env: any, discordId: string, pref: any) {
-  await setUserLocalePrefRepo(env.DB, String(discordId), pref);
+export async function setUserLocalePref(env: any, userId: number, pref: any) {
+  await setUserLocalePrefRepo(env.DB, userId, pref);
 }
 
 // Read the users row's server details [{id, name, icon, permissions, owner}]; no row -> null
-export async function getUserServers(db: D1Database, discordId: string) {
+export async function getUserServers(db: D1Database, userId: number) {
   try {
-    const guildsJson = await getUserGuildsJson(db, discordId);
+    const guildsJson = await getUserGuildsJson(db, userId);
     if (guildsJson === null) return null;
     const arr = JSON.parse(guildsJson || '[]');
     return Array.isArray(arr) ? arr : [];
@@ -275,7 +293,7 @@ export async function maybeRefreshGuildNicks(env: any, user: any) {
     if (!env || !env.DB || !user || !user.discordId) return;
     if (!env.DISCORD_CLIENT_ID || !env.DISCORD_CLIENT_SECRET) return;
     const db = env.DB;
-    const row = await getOAuthRefresh(db, user.discordId).catch(() => null);
+    const row = await getOAuthRefresh(db, user.userId).catch(() => null);
     if (!row || !row.refresh_token || row.refresh_state === 'needs_relogin') return;
     const bound = new Set(await boundGuildIds(db));
     const targets = (user.guilds || []).map(String).filter((g: string) => bound.has(g));
@@ -306,11 +324,11 @@ export async function maybeRefreshGuildNicks(env: any, user: any) {
         permanent = !!errBody && errBody.error === 'invalid_grant';
       }
       if (permanent) {
-        await markOAuthNeedsRelogin(db, user.discordId, now).catch(() => {});
+        await markOAuthNeedsRelogin(db, user.userId, now).catch(() => {});
       }
       return;
     }
-    await updateOAuthAfterRefresh(db, user.discordId, {
+    await updateOAuthAfterRefresh(db, user.userId, {
       refreshToken: String(token.refresh_token || row.refresh_token),
       scope: String(token.scope || ''), nowSec: now,
     }).catch(() => {});
@@ -473,13 +491,19 @@ export async function handleDiscordCallback(request: any, env: any) {
     : '';
   const displayName = me.global_name || me.username || '';
 
-  // Persist (server details incl. permission bits, for viewer.discordServers / createGuild checks)
+  // Persist (server details incl. permission bits, for viewer.discordServers / createGuild checks).
+  // The upsert returns the numeric user ID (minted on first login);
+  // the session below carries it as sub. If persistence fails the
+  // login cannot proceed — there is no internal ID to carry.
+  let userId: number;
   try {
-    await upsertUserOnLogin(env.DB, {
+    userId = await upsertUserOnLogin(env.DB, {
       discordId: String(me.id), username: displayName, avatar,
       guildsJson: JSON.stringify(servers), checkedAtSec: Math.floor(Date.now() / 1000),
     });
-  } catch { /* persistence failure must not block login; the session already carries the server ids */ }
+  } catch {
+    return fail('账号登记失败，请重试。');
+  }
 
   // Store the refresh token (D1 only, never JWT/frontend) + fetch bound-server
   // nicks once. Fully tolerant: no step's failure or timeout may fail the login.
@@ -489,10 +513,10 @@ export async function handleDiscordCallback(request: any, env: any) {
     // (the export / deletion gates measure from here) and settle a
     // pending account deletion — a login before the cooling-off
     // deadline cancels the request; after it, the sweep still runs.
-    await noteFreshAuthAndSettlePending(env.DB, String(me.id), nowSec).catch(() => {});
+    await noteFreshAuthAndSettlePending(env.DB, userId, nowSec).catch(() => {});
     if (token.refresh_token) {
       await upsertOAuthOnLogin(env.DB, {
-        discordId: String(me.id), refreshToken: String(token.refresh_token),
+        userId, refreshToken: String(token.refresh_token),
         scope: String(token.scope || ''), nowSec,
       });
     }
@@ -511,7 +535,7 @@ export async function handleDiscordCallback(request: any, env: any) {
   } catch { /* nick-chain failure must not block login */ }
 
   const jwt = await signJwt(env.SESSION_SECRET, {
-    sub: String(me.id),
+    sub: String(userId),
     name: displayName,
     avatar,
     guilds: servers.map((g) => g.id),

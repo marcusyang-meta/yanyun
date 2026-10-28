@@ -31,7 +31,7 @@ import {
   rateLimitGql as rateLimit, getClientIp,
 } from '../platform/graphql-base.ts';
 import { fmtStartsAt } from '../platform/index.ts';
-import { listTenantsDirectory } from './tenants.ts';
+import { listTenantsDirectory, getGuildIdBySlug } from './tenants.ts';
 import { listSettingsByKey } from './settings.ts';
 import { getGuildAvatarMeta, avatarPath } from './guildavatar.ts';
 import {
@@ -40,7 +40,7 @@ import {
   listPairingsForUser, computeNewcomerChecklist,
 } from './recruit.ts';
 import type { GuildApplicationRow, MentorPairingRow } from './recruit.ts';
-import { getUsernameRow } from '../identity/index.ts';
+import { getUsernameRow, getDiscordIdByUserId } from '../identity/index.ts';
 
 /* Applicant name snapshot: the stored global name (users.username,
  * written at login), falling back to the session name. A bound-server
@@ -64,7 +64,12 @@ const APPLICATION_STATUS_TEXT: Record<string, string> = {
 export class RecruitApplicationShell extends ShellBase {
   declare data: GuildApplicationRow;
   genId(){ return String(this.data.id); }
-  genApplicantDiscordId(){ return this.data.discord_id || ''; }
+  genApplicantDiscordId(){
+    return this.memo('applicantDiscordId', async () => {
+      if (!this.data.user_id) return '';
+      return (await getDiscordIdByUserId(this.db, this.data.user_id).catch(() => null)) || '';
+    });
+  }
   genApplicantName(){ return this.data.applicant_name || ''; }
   genMessage(){ return this.data.message || ''; }
   genStatus(){ return APPLICATION_STATUS_ENUM[this.data.status] || 'PENDING'; }
@@ -81,9 +86,19 @@ export class RecruitApplicationShell extends ShellBase {
 export class MentorPairingShell extends ShellBase {
   declare data: MentorPairingRow;
   genId(){ return String(this.data.id); }
-  genMentorDiscordId(){ return this.data.mentor_discord_id || ''; }
+  genMentorDiscordId(){
+    return this.memo('mentorDiscordId', async () => {
+      if (!this.data.mentor_user_id) return '';
+      return (await getDiscordIdByUserId(this.db, this.data.mentor_user_id).catch(() => null)) || '';
+    });
+  }
   genMentorName(){ return this.data.mentor_name || ''; }
-  genMenteeDiscordId(){ return this.data.mentee_discord_id || ''; }
+  genMenteeDiscordId(){
+    return this.memo('menteeDiscordId', async () => {
+      if (!this.data.mentee_user_id) return '';
+      return (await getDiscordIdByUserId(this.db, this.data.mentee_user_id).catch(() => null)) || '';
+    });
+  }
   genMenteeName(){ return this.data.mentee_name || ''; }
   genStatus(){ return this.data.status === 'ended' ? 'ENDED' : 'ACTIVE'; }
   genStatusLabel(){ return this.t(this.data.status === 'ended' ? 'recruit_pairingStatusEnded' : 'recruit_pairingStatusActive'); }
@@ -153,7 +168,9 @@ export class HomeRecruitApplicationSectionShell extends ShellBase {
     return this.memo('application', async () => {
       const user = this.ctx.user;
       if (!user) return null;
-      const row = await getLatestApplication(this.db, this.data.slug, user.discordId).catch(() => null);
+      const guildId = await getGuildIdBySlug(this.db, this.data.slug);
+      if (guildId == null) return null;
+      const row = await getLatestApplication(this.db, guildId, user.userId).catch(() => null);
       return row ? new RecruitApplicationShell(this.ctx, row) : null;
     });
   }
@@ -193,7 +210,9 @@ export class HomeRecruitNewcomerShell extends ShellBase {
     return this.memo('checklist', async () => {
       const user = this.ctx.user;
       if (!user || !this.data.isMember) return null;
-      const facts = await computeNewcomerChecklist(this.db, this.data.slug, user.discordId);
+      const guildId = await getGuildIdBySlug(this.db, this.data.slug);
+      if (guildId == null) return null;
+      const facts = await computeNewcomerChecklist(this.db, guildId, user.discordId, user.userId);
       return new NewcomerChecklistShell(this.ctx, { facts });
     });
   }
@@ -201,7 +220,9 @@ export class HomeRecruitNewcomerShell extends ShellBase {
     return this.memo('myPairings', async () => {
       const user = this.ctx.user;
       if (!user) return [];
-      const rows = await listPairingsForUser(this.db, this.data.slug, user.discordId).catch(() => []);
+      const guildId = await getGuildIdBySlug(this.db, this.data.slug);
+      if (guildId == null) return [];
+      const rows = await listPairingsForUser(this.db, guildId, user.userId).catch(() => []);
       return rows.map((r) => new MentorPairingShell(this.ctx, r));
     });
   }
@@ -239,7 +260,7 @@ export class HomeRecruitSectionShell extends ShellBase {
           // guild has paired (F17 serves the paired, member or not).
           let paired = false;
           if (!isMember) {
-            const rows = await listPairingsForUser(db, t.slug, this.ctx.user.discordId).catch(() => []);
+            const rows = await listPairingsForUser(db, t.id, this.ctx.user.userId).catch(() => []);
             paired = (rows || []).length > 0;
           }
           if (isMember || paired) {
@@ -305,14 +326,14 @@ export const recruitMutations = {
     if (!a.bound) return rFail(ctx, 'recruitUnavailable');
     if (a.isMember) return rFail(ctx, 'alreadyMember');
     if (Number(a.tenant?.recruit_open || 0) !== 1) return rFail(ctx, 'recruitClosed');
-    const pending = await getPendingApplication(db, a.tenant.slug, user.discordId).catch(() => null);
+    const pending = await getPendingApplication(db, a.tenant.id, user.userId).catch(() => null);
     if (pending) return rFail(ctx, 'applicationPending');
     const name = await applicantDisplayName(db, user);
     let id: number;
     try {
       id = await insertApplication(db, {
-        tenant: a.tenant.slug,
-        discordId: user.discordId,
+        tenant: a.tenant.id,
+        userId: user.userId,
         applicantName: name,
         message: s(message, APPLICATION_MAX_MESSAGE),
         createdAt: Math.floor(Date.now() / 1000),
@@ -320,7 +341,7 @@ export const recruitMutations = {
     } catch {
       return rFail(ctx, 'applicationPending');
     }
-    const row = await getLatestApplication(db, a.tenant.slug, user.discordId).catch(() => null);
+    const row = await getLatestApplication(db, a.tenant.id, user.userId).catch(() => null);
     void id;
     return new RecruitPayloadShell(ctx, {
       ok: true, errorCode: null,

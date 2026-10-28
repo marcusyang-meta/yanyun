@@ -17,6 +17,7 @@
  * suffix — an untouched guild renders byte-identically everywhere,
  * OG cards included. */
 import { getSettingValue, setSettingValue } from './settings.ts';
+import { getGuildIdBySlug } from './tenants.ts';
 import { premiumGate } from '../platform/billing-service.ts';
 
 export const WHITELABEL_HIDE_BRANDING_KEY = 'whitelabel_hide_branding';
@@ -73,10 +74,12 @@ export async function getWhiteLabelSettings(
   d1: D1Database,
   slug: string,
 ): Promise<WhiteLabelSettings> {
+  const guildId = await getGuildIdBySlug(d1, slug).catch(() => null);
+  if (guildId == null) return { ...WHITELABEL_DEFAULTS };
   const [hide, accent, suffix] = await Promise.all([
-    getSettingValue(d1, slug, WHITELABEL_HIDE_BRANDING_KEY),
-    getSettingValue(d1, slug, OG_ACCENT_KEY),
-    getSettingValue(d1, slug, OG_TITLE_SUFFIX_KEY),
+    getSettingValue(d1, guildId, WHITELABEL_HIDE_BRANDING_KEY),
+    getSettingValue(d1, guildId, OG_ACCENT_KEY),
+    getSettingValue(d1, guildId, OG_TITLE_SUFFIX_KEY),
   ]);
   return {
     hideBranding: hide === '1',
@@ -102,7 +105,9 @@ export async function getEffectiveWhiteLabelSettings(
   d1: D1Database,
   slug: string,
 ): Promise<WhiteLabelSettings> {
-  if (await premiumGate(d1, slug)) return { ...WHITELABEL_DEFAULTS };
+  const guildId = await getGuildIdBySlug(d1, slug).catch(() => null);
+  if (guildId == null) return { ...WHITELABEL_DEFAULTS };
+  if (await premiumGate(d1, guildId)) return { ...WHITELABEL_DEFAULTS };
   return getWhiteLabelSettings(d1, slug);
 }
 
@@ -111,7 +116,9 @@ export async function setWhiteLabelSettings(
   slug: string,
   next: WhiteLabelSettings,
 ): Promise<void> {
-  await setSettingValue(d1, slug, WHITELABEL_HIDE_BRANDING_KEY, next.hideBranding ? '1' : '0');
-  await setSettingValue(d1, slug, OG_ACCENT_KEY, next.ogAccent);
-  await setSettingValue(d1, slug, OG_TITLE_SUFFIX_KEY, next.ogTitleSuffix);
+  const guildId = await getGuildIdBySlug(d1, slug).catch(() => null);
+  if (guildId == null) return;
+  await setSettingValue(d1, guildId, WHITELABEL_HIDE_BRANDING_KEY, next.hideBranding ? '1' : '0');
+  await setSettingValue(d1, guildId, OG_ACCENT_KEY, next.ogAccent);
+  await setSettingValue(d1, guildId, OG_TITLE_SUFFIX_KEY, next.ogTitleSuffix);
 }

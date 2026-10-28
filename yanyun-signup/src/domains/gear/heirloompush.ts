@@ -34,7 +34,7 @@ import { getReminderSetting, setReminderSetting, postWebhook } from '../grouping
 import { getGuildNick } from '../identity/auth.ts';
 import { webhookIdentity } from '../guilds/index.ts';
 import { getTenantRow, listTenantNames } from '../guilds/index.ts';
-import { getUsernameRow } from '../identity/index.ts';
+import { getUsernameRow, getUserIdByDiscordId } from '../identity/index.ts';
 import { getGuildMember, hasGuildMember } from '../identity/index.ts';
 import { listPushedItemHashes, insertHeirloomItemPush, getHeirloomSetState, upsertHeirloomSetState } from './heirloom.ts';
 
@@ -75,8 +75,8 @@ export async function heirloomItemHash(g: any) {
  * This guild's roster (guild_members) nickname -> global name -> that
  * server's nickname snapshot -> users global name -> session name ->
  * fallback. Same ladder as the reminders' creator display name. */
-async function memberDisplayName(db: D1Database, slug: string, dgid: any, discordId: string, userName: any) {
-  const rm = await getGuildMember(db, slug, discordId).catch(() => null);
+async function memberDisplayName(db: D1Database, guildId: number, dgid: any, discordId: string, userName: any) {
+  const rm = await getGuildMember(db, guildId, discordId).catch(() => null);
   if (rm && String(rm.nick || '').trim()) return String(rm.nick).trim();
   if (rm && String(rm.global_name || '').trim()) return String(rm.global_name).trim();
   if (dgid) {
@@ -180,15 +180,19 @@ async function evaluateForTenant(db: D1Database, t: any, args: any) {
   const dgid = await getReminderSetting(db, slug, 'discord_guild_id');
   let member = !!(dgid && (args.userGuilds || []).includes(String(dgid)));
   if (!member) {
-    member = await hasGuildMember(db, slug, args.discordId).catch(() => false);
+    member = await hasGuildMember(db, t.id, args.discordId).catch(() => false);
   }
   if (!member) return;
+  // Dedupe state is keyed by the internal user ID; the Discord ID
+  // stays only on the mention path below.
+  const userId = await getUserIdByDiscordId(db, args.discordId).catch(() => null);
+  if (userId == null) return;
 
   const build = gpBuild(args.targetIdx || 0);
   const buildSig = `${build.school}|${build.set}`;
   const evalById = new Map((args.evals || []).map((e: any) => [e.id, e.verdict]));
   const nowSec = Math.floor(Date.now() / 1000);
-  const displayName = await memberDisplayName(db, slug, dgid, args.discordId, args.userName);
+  const displayName = await memberDisplayName(db, t.id, dgid, args.discordId, args.userName);
   // Sender identity is per-guild (switches only when a custom avatar exists; see guildavatar.webhookIdentity)
   const identity = await webhookIdentity(db, slug).catch(() => null);
 
@@ -197,7 +201,7 @@ async function evaluateForTenant(db: D1Database, t: any, args: any) {
   if (heirloomItems.length) {
     const hashed = [];
     for (const g of heirloomItems) hashed.push({ g, hash: await heirloomItemHash(g) });
-    const pushed = await listPushedItemHashes(db, slug, args.discordId, buildSig).catch(() => []);
+    const pushed = await listPushedItemHashes(db, t.id, userId, buildSig).catch(() => []);
     const seen = new Set(pushed);
     const fresh = hashed.filter((h) => !seen.has(h.hash));
     if (fresh.length) {
@@ -205,7 +209,7 @@ async function evaluateForTenant(db: D1Database, t: any, args: any) {
       const res = await postWebhook(cfg.webhook, content, [args.discordId], ['everyone'], identity);
       for (const h of fresh) {
         await insertHeirloomItemPush(db, {
-          tenant: slug, discordId: args.discordId, buildSig, itemHash: h.hash, createdAt: nowSec,
+          tenant: t.id, userId, buildSig, itemHash: h.hash, createdAt: nowSec,
         }).catch(() => {});
       }
       await recordHeirloomStatus(db, slug, {
@@ -221,11 +225,11 @@ async function evaluateForTenant(db: D1Database, t: any, args: any) {
     const id = args.loadout ? args.loadout[pos] : null;
     return id != null && evalById.get(id) === 'heirloom';
   });
-  const stRow = await getHeirloomSetState(db, slug, args.discordId, buildSig).catch(() => null);
+  const stRow = await getHeirloomSetState(db, t.id, userId, buildSig).catch(() => null);
   const wasComplete = !!(stRow && Number(stRow.complete) === 1);
   if (complete !== wasComplete) {
     await upsertHeirloomSetState(db, {
-      tenant: slug, discordId: args.discordId, buildSig, complete: complete ? 1 : 0, updatedAt: nowSec,
+      tenant: t.id, userId, buildSig, complete: complete ? 1 : 0, updatedAt: nowSec,
     }).catch(() => {});
     if (complete) {
       const content = buildHeirloomSetMessage({ displayName, mention: `<@${args.discordId}>`, build, gradTotal: args.gradTotal });

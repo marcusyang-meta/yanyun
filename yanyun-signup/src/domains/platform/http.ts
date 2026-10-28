@@ -4,7 +4,7 @@
  * (The HMAC bearer-token helpers that authenticated the retired hub
  * portal were removed with it — the platform admin surface uses the
  * site session plus the gating-layer admin gate instead.) */
-import { listSettingsByKey, getSettingValue } from '../guilds/index.ts';
+import { listSettingsByKey, getSettingValue, getGuildIdBySlug } from '../guilds/index.ts';
 import { getSessionUserChecked } from '../identity/auth.ts';
 
 export const TYPES: Record<string, string> = { activity: '双十人本', talent: '天赋组队', race: '竞速', tower: '爬塔', gather: '采集', explore: '探索' };
@@ -58,7 +58,9 @@ export async function getDevOnlySlugs(db: D1Database) {
   } catch { return new Set(); }
 }
 export async function isDevOnlyTenant(db: D1Database, slug: string) {
-  return (await getSettingValue(db, slug, 'dev_only')) === '1';
+  const guildId = await getGuildIdBySlug(db, slug).catch(() => null);
+  if (guildId == null) return false;
+  return (await getSettingValue(db, guildId, 'dev_only')) === '1';
 }
 // Only POST/PUT/PATCH read a body; parse failure defaults to {}
 export async function getBody(c: any): Promise<any> {

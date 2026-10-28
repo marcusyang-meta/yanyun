@@ -241,11 +241,11 @@ export class GradPageShell extends ShellBase {
   async genGearUsageCount(){
     const user = this.ctx.user;
     if (!user) return 0;
-    return countGearItemRows(this.db, user.discordId);
+    return countGearItemRows(this.db, user.userId);
   }
   async genGearUsageLimit(){
     const user = this.ctx.user;
-    const limits = await getEffectiveLimits(this.db, { discordId: user ? user.discordId : '' });
+    const limits = await getEffectiveLimits(this.db, { userId: user ? user.userId : 0 });
     return limits.gearItemCapacity;
   }
 }
@@ -584,11 +584,11 @@ export const gearResolvers = {
     // Gear library: only the caller's own (anonymous callers have no library -> empty)
     myGearItems: async (_: any, __: any, ctx: Context) => {
       if (!ctx.user) return [];
-      return listGearItems(ctx.env.DB, ctx.user.discordId);
+      return listGearItems(ctx.env.DB, ctx.user.userId);
     },
     myGearBuilds: async (_: any, __: any, ctx: Context) => {
       if (!ctx.user) return [];
-      return listGearBuilds(ctx.env.DB, ctx.user.discordId);
+      return listGearBuilds(ctx.env.DB, ctx.user.userId);
     },
 
     tiaolvPage: (_: any, __: any, ctx: Context) => new TiaolvPageShell(ctx, {}),
@@ -615,7 +615,7 @@ export const gearResolvers = {
       };
       const r = gpPlan(lib, loadout, state);
       // Heirloom push evaluation (server-side, async via waitUntil; silent when logged out or on failure; never affects the calculation)
-      if (ctx.user && ctx.user.discordId && ctx.env && ctx.env.DB) {
+      if (ctx.user && ctx.user.userId && ctx.env && ctx.env.DB) {
         const run = evaluateHeirloomPushes(ctx.env.DB, {
           discordId: String(ctx.user.discordId),
           userName: String(ctx.user.name || ''),
@@ -675,8 +675,8 @@ export const gearResolvers = {
       if (!rateLimit('mut:gearitem:' + getClientIp(ctx.request), 60)) {
         return { ok: false, item: null, error: errText(ctx, 'rateLimited'), errorCode: 'rateLimited' };
       }
-      const limits = await getEffectiveLimits(ctx.env.DB, { discordId: ctx.user.discordId });
-      const stored = await countGearItemRows(ctx.env.DB, ctx.user.discordId);
+      const limits = await getEffectiveLimits(ctx.env.DB, { userId: ctx.user.userId });
+      const stored = await countGearItemRows(ctx.env.DB, ctx.user.userId);
       if (stored >= limits.gearItemCapacity) {
         return { ok: false, item: null, error: errTextP(ctx, 'gearCapacityReached', { limit: limits.gearItemCapacity }), errorCode: 'gearCapacityReached' };
       }
@@ -684,7 +684,7 @@ export const gearResolvers = {
         slot: input.slot, name: input.name || '', lines: input.lines || [],
         dingyin: input.dingyin || null, schools: input.schools || [],
       }).gear;
-      const saved = await insertGearItem(ctx.env.DB, ctx.user.discordId, gear);
+      const saved = await insertGearItem(ctx.env.DB, ctx.user.userId, gear);
       return { ok: true, item: saved, error: null, errorCode: null };
     },
 
@@ -693,7 +693,7 @@ export const gearResolvers = {
       if (!rateLimit('mut:gearitem:' + getClientIp(ctx.request), 60)) {
         return { ok: false, item: null, error: errText(ctx, 'rateLimited'), errorCode: 'rateLimited' };
       }
-      const db = ctx.env.DB, did = ctx.user.discordId;
+      const db = ctx.env.DB, did = ctx.user.userId;
       let schools = input.schools;
       if (schools == null) {
         const mine = await listGearItems(db, did);
@@ -712,7 +712,7 @@ export const gearResolvers = {
 
     deleteGearItem: async (_: any, { id }: any, ctx: Context) => {
       if (!ctx.user) return { ok: false, error: errText(ctx, 'loginRequired'), errorCode: 'loginRequired' };
-      const done = await deleteGearItemRow(ctx.env.DB, ctx.user.discordId, id);
+      const done = await deleteGearItemRow(ctx.env.DB, ctx.user.userId, id);
       if (!done) return { ok: false, error: errText(ctx, 'gearNotFound'), errorCode: 'gearNotFound' };
       return { ok: true, error: null, errorCode: null };
     },
@@ -722,9 +722,9 @@ export const gearResolvers = {
       if (!rateLimit('mut:gearimport:' + getClientIp(ctx.request), 20)) {
         return { ok: false, items: [], autoSelect: [], error: errText(ctx, 'rateLimited'), errorCode: 'rateLimited' };
       }
-      const db = ctx.env.DB, did = ctx.user.discordId;
+      const db = ctx.env.DB, did = ctx.user.userId;
       const list = items || [];
-      const limits = await getEffectiveLimits(db, { discordId: did });
+      const limits = await getEffectiveLimits(db, { userId: did });
       const isOcr = source === 'ocr';
       const now = Date.now();
       if (isOcr) {
@@ -774,7 +774,7 @@ export const gearResolvers = {
       if (!rateLimit('mut:gearbuild:' + getClientIp(ctx.request), 30)) {
         return { ok: false, build: null, error: errText(ctx, 'rateLimited'), errorCode: 'rateLimited' };
       }
-      const db = ctx.env.DB, did = ctx.user.discordId;
+      const db = ctx.env.DB, did = ctx.user.userId;
       const items = await listGearItems(db, did);
       const owned = new Set(items.map((g: any) => g.id));
       const lo: Record<string, any> = {};
@@ -807,11 +807,11 @@ export const gearResolvers = {
 
     deleteGearBuild: async (_: any, { id }: any, ctx: Context) => {
       if (!ctx.user) return { ok: false, error: errText(ctx, 'loginRequired'), errorCode: 'loginRequired' };
-      const done = await deleteGearBuildRow(ctx.env.DB, ctx.user.discordId, id);
+      const done = await deleteGearBuildRow(ctx.env.DB, ctx.user.userId, id);
       if (!done) return { ok: false, error: errText(ctx, 'gearNotFound'), errorCode: 'gearNotFound' };
       // A deleted build leaves no live alias behind (resolve would 404
       // anyway; dropping the row now frees the build_id unique slot).
-      await revokeBuildShare(ctx.env.DB, ctx.user.discordId, id).catch(() => false);
+      await revokeBuildShare(ctx.env.DB, ctx.user.userId, id).catch(() => false);
       return { ok: true, error: null, errorCode: null };
     },
 
@@ -821,7 +821,7 @@ export const gearResolvers = {
       if (!rateLimit('mut:gearshare:' + getClientIp(ctx.request), 30)) {
         return { ok: false, shareUrl: null, error: errText(ctx, 'rateLimited'), errorCode: 'rateLimited' };
       }
-      const link = await shareGearBuildSvc(ctx.env.DB, ctx.user.discordId, id);
+      const link = await shareGearBuildSvc(ctx.env.DB, ctx.user.userId, id);
       if (!link) return { ok: false, shareUrl: null, error: errText(ctx, 'gearNotFound'), errorCode: 'gearNotFound' };
       return { ok: true, shareUrl: buildShareUrl(link.code), error: null, errorCode: null };
     },
@@ -831,7 +831,7 @@ export const gearResolvers = {
       if (!rateLimit('mut:gearshare:' + getClientIp(ctx.request), 30)) {
         return { ok: false, error: errText(ctx, 'rateLimited'), errorCode: 'rateLimited' };
       }
-      const done = await revokeBuildShare(ctx.env.DB, ctx.user.discordId, id);
+      const done = await revokeBuildShare(ctx.env.DB, ctx.user.userId, id);
       if (!done) return { ok: false, error: errText(ctx, 'gearNotFound'), errorCode: 'gearNotFound' };
       return { ok: true, error: null, errorCode: null };
     },
@@ -1108,7 +1108,7 @@ export const gearResolvers = {
     // (Only myGearBuilds/saveGearBuild produce GearSavedBuild values,
     // both owner-scoped, so ctx.user is the owner here.)
     shareUrl: async (p: any, _a: any, ctx: Context) => {
-      const did = ctx.user ? ctx.user.discordId : null;
+      const did = ctx.user ? ctx.user.userId : null;
       if (!did || !p.id) return null;
       const link = await getBuildShareLink(ctx.env.DB, did, p.id).catch(() => null);
       return link ? buildShareUrl(link.code) : null;

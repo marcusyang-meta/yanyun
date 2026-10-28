@@ -17,7 +17,7 @@ const SITE_ORIGIN = 'https://yanyun.app';
 
 export interface ShortLinkRow {
   code: string;
-  tenant: string;
+  tenant: number;
   event_id: number;
   created_at: number;
 }
@@ -52,7 +52,7 @@ export async function getShortLinkByCode(
 
 export async function getShortLinkByTarget(
   d1: D1Database,
-  tenant: string,
+  tenant: number,
   eventId: number,
 ): Promise<ShortLinkRow | null> {
   const db = createDb(d1);
@@ -67,7 +67,7 @@ export async function getShortLinkByTarget(
 async function insertShortLink(
   d1: D1Database,
   code: string,
-  tenant: string,
+  tenant: number,
   eventId: number,
 ): Promise<ShortLinkRow> {
   const db = createDb(d1);
@@ -87,7 +87,7 @@ async function insertShortLink(
  */
 export async function mintShortLink(
   d1: D1Database,
-  tenant: string,
+  tenant: number,
   eventId: number,
   nextCode: () => string = generateShortCode,
 ): Promise<ShortLinkRow> {
@@ -117,8 +117,8 @@ export function shortLinkUrl(code: string, origin: string = SITE_ORIGIN): string
   return `${origin}/c/${code}`;
 }
 
-export function canonicalGroupingUrl(tenant: string, eventId: number): string {
-  return `${SITE_ORIGIN}/${encodeURIComponent(tenant)}/car/${eventId}`;
+export function canonicalGroupingUrl(slug: string, eventId: number): string {
+  return `${SITE_ORIGIN}/${encodeURIComponent(slug)}/car/${eventId}`;
 }
 
 export function subdomainGroupingUrl(origin: string, eventId: number): string {

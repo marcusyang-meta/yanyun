@@ -6,11 +6,11 @@ import { sql } from 'drizzle-orm';
 import { createDb } from '../../db/client.ts';
 import { pushTokens } from './schema.ts';
 
-interface TokenRow { discord_id: string; token: string }
+interface TokenRow { user_id: number; token: string }
 
 export async function upsertPushToken(
   d1: D1Database,
-  discordId: string,
+  userId: number,
   token: string,
   platform: string,
   updatedAt: number,
@@ -18,9 +18,9 @@ export async function upsertPushToken(
   const db = createDb(d1);
   // Column lists / ON CONFLICT targets / SET LHS must use bare column names (SQLite syntax); see settings.ts note.
   await db.run(
-    sql`INSERT INTO ${pushTokens} (${sql.identifier('discord_id')}, ${sql.identifier('token')}, ${sql.identifier('platform')}, ${sql.identifier('updated_at')})
-        VALUES (${discordId}, ${token}, ${platform}, ${updatedAt})
-        ON CONFLICT (${sql.identifier('discord_id')}, ${sql.identifier('token')})
+    sql`INSERT INTO ${pushTokens} (${sql.identifier('user_id')}, ${sql.identifier('token')}, ${sql.identifier('platform')}, ${sql.identifier('updated_at')})
+        VALUES (${userId}, ${token}, ${platform}, ${updatedAt})
+        ON CONFLICT (${sql.identifier('user_id')}, ${sql.identifier('token')})
         DO UPDATE SET ${sql.identifier('platform')} = excluded.platform,
           ${sql.identifier('updated_at')} = excluded.updated_at`,
   );
@@ -28,13 +28,13 @@ export async function upsertPushToken(
 
 export async function deletePushTokenForUser(
   d1: D1Database,
-  discordId: string,
+  userId: number,
   token: string,
 ): Promise<void> {
   const db = createDb(d1);
   await db.run(
     sql`DELETE FROM ${pushTokens}
-        WHERE ${pushTokens.discordId} = ${discordId} AND ${pushTokens.token} = ${token}`,
+        WHERE ${pushTokens.userId} = ${userId} AND ${pushTokens.token} = ${token}`,
   );
 }
 
@@ -51,13 +51,13 @@ export async function deletePushTokenEverywhere(
 
 export async function listPushTokensForUsers(
   d1: D1Database,
-  discordIds: string[],
+  userIds: number[],
 ): Promise<TokenRow[]> {
   const db = createDb(d1);
-  const idList = sql.join(discordIds.map((id) => sql`${id}`), sql`, `);
+  const idList = sql.join(userIds.map((id) => sql`${id}`), sql`, `);
   const rows = await db.all<TokenRow>(
-    sql`SELECT ${pushTokens.discordId}, ${pushTokens.token} FROM ${pushTokens}
-        WHERE ${pushTokens.discordId} IN (${idList})`,
+    sql`SELECT ${pushTokens.userId}, ${pushTokens.token} FROM ${pushTokens}
+        WHERE ${pushTokens.userId} IN (${idList})`,
   );
   return rows || [];
 }
@@ -66,11 +66,11 @@ export async function listPushTokensForUsers(
  * the token values themselves are device credentials, never exported. */
 export async function listPushTokenPlatformsByUser(
   d1: D1Database,
-  discordId: string,
+  userId: number,
 ): Promise<string[]> {
   const db = createDb(d1);
   const rows = await db.all<{ platform: string }>(
-    sql`SELECT ${pushTokens.platform} FROM ${pushTokens} WHERE ${pushTokens.discordId} = ${discordId}`,
+    sql`SELECT ${pushTokens.platform} FROM ${pushTokens} WHERE ${pushTokens.userId} = ${userId}`,
   );
   return (rows || []).map((r) => String(r.platform || ''));
 }
@@ -88,11 +88,11 @@ function metaOf(r: unknown): RunMeta {
 
 export async function deleteAllPushTokensByUser(
   d1: D1Database,
-  discordId: string,
+  userId: number,
 ): Promise<number> {
   const db = createDb(d1);
   const r = await db.run(
-    sql`DELETE FROM ${pushTokens} WHERE ${pushTokens.discordId} = ${discordId}`,
+    sql`DELETE FROM ${pushTokens} WHERE ${pushTokens.userId} = ${userId}`,
   );
   return metaOf(r).changes;
 }

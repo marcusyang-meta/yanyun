@@ -8,6 +8,7 @@
 // here swallows all exceptions; callers need no try/catch.
 // Retention: 30 days + row cap, pruned lazily on a write counter, no cron.
 import { insertErrorLog, pruneErrorLog, listRecentErrors, countErrorsSince } from './errorLog.ts';
+import { getGuildIdBySlug } from '../guilds/tenants.ts';
 
 const KEEP_DAYS = 30;
 const MAX_ROWS = 5000;
@@ -44,10 +45,18 @@ export async function logError(db: D1Database, entry: any = {}) {
         ? clip(entry.context, 500)
         : clip(JSON.stringify(entry.context), 500);
     }
+    // The log's tenant column stores the numeric guild ID (migration
+    // 0033); callers still hand over the slug handle, resolved here —
+    // an unknown or absent tenant records as 0 (no guild).
+    const tenantId = typeof entry.tenant === 'number'
+      ? entry.tenant
+      : entry.tenant
+        ? (await getGuildIdBySlug(db, String(entry.tenant)).catch(() => null)) ?? 0
+        : 0;
     await insertErrorLog(db, {
       at: Math.floor(Date.now() / 1000),
       source: clip(entry.source, 40), name, message,
-      tenant: clip(entry.tenant, 40), context, stack,
+      tenant: tenantId, context, stack,
     });
     writeCount++;
     if (writeCount % PRUNE_EVERY === 0) await prune(db);

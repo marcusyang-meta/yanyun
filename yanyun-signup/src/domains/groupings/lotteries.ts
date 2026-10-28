@@ -14,19 +14,20 @@
 import { sql } from 'drizzle-orm';
 import { createDb } from '../../db/client.ts';
 import { lotteries, lotteryEntries, lotteryWinners } from './schema.ts';
+import { mintPublicId } from '../platform/id-mint.ts';
 
 const col = (name: string) => sql.identifier(name);
 
 export interface LotteryRow {
   id: number;
-  tenant: string;
+  tenant: number;
   title: string;
   prize: string;
   source: string;
   source_event_id: number | null;
   winner_count: number;
   status: string;
-  created_by: string;
+  created_by_user_id: number;
   created_at: number;
   drawn_at: number | null;
 }
@@ -61,7 +62,7 @@ function metaOf(r: unknown): RunMeta {
 
 /** One guild's lotteries, newest first (the admin tool list order). */
 export async function listLotteries(
-  d1: D1Database, tenant: string,
+  d1: D1Database, tenant: number,
 ): Promise<LotteryRow[]> {
   const db = createDb(d1);
   const rows = await db.all<LotteryRow>(
@@ -72,7 +73,7 @@ export async function listLotteries(
 
 /** Tenant-scoped read: a lottery id from another guild reads as null. */
 export async function getLotteryByTenant(
-  d1: D1Database, id: number, tenant: string,
+  d1: D1Database, id: number, tenant: number,
 ): Promise<LotteryRow | null> {
   const db = createDb(d1);
   const row = await db.get<LotteryRow>(
@@ -105,7 +106,7 @@ export async function listLotteryWinners(
 
 const LOTTERY_COLUMNS = new Set([
   'tenant', 'title', 'prize', 'source', 'source_event_id',
-  'winner_count', 'status', 'created_by', 'created_at', 'drawn_at',
+  'winner_count', 'status', 'created_by_user_id', 'created_at', 'drawn_at',
 ]);
 
 function checkedLotteryColumns(row: Record<string, unknown>): string[] {
@@ -121,10 +122,13 @@ export async function insertLottery(
   d1: D1Database, row: Record<string, unknown>,
 ): Promise<RunMeta> {
   const db = createDb(d1);
-  const cols = checkedLotteryColumns(row);
+  const id = await mintPublicId(d1, 'lottery');
+  const full = { id, ...row };
+  const cols = ['id', ...checkedLotteryColumns(row)];
   const r = await db.run(sql`INSERT INTO ${lotteries} (${sql.join(cols.map((c) => col(c)), sql`, `)})
-    VALUES (${sql.join(cols.map((c) => sql`${row[c]}`), sql`,`)})`);
-  return metaOf(r);
+    VALUES (${sql.join(cols.map((c) => sql`${full[c as keyof typeof full]}`), sql`,`)})`);
+  const meta = metaOf(r);
+  return { changes: meta.changes, last_row_id: id };
 }
 
 export async function insertLotteryEntry(

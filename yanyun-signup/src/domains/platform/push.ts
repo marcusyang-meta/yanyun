@@ -7,6 +7,7 @@
 // Discord channel remains the full-coverage one.
 import { logError } from './error-log.ts';
 import { upsertPushToken, deletePushTokenForUser, deletePushTokenEverywhere as deleteTokenEverywhere, listPushTokensForUsers } from './pushTokens.ts';
+import { listUserIdsByDiscordIds } from '../identity/index.ts';
 
 // Sends via the Expo Push Service HTTP API; DeviceNotRegistered tokens
 // are deleted immediately (checked in both tickets and receipts). Fully
@@ -29,15 +30,15 @@ export function isValidPushToken(token: any) {
   return typeof token === 'string' && PUSH_TOKEN_RE.test(token.trim());
 }
 
-export async function savePushToken(db: D1Database, discordId: string, token: string, platform: any) {
+export async function savePushToken(db: D1Database, userId: number, token: string, platform: any) {
   const now = Math.floor(Date.now() / 1000);
   await upsertPushToken(
-    db, String(discordId), String(token), String(platform || '').slice(0, 20), now,
+    db, userId, String(token), String(platform || '').slice(0, 20), now,
   );
 }
 
-export async function deletePushToken(db: D1Database, discordId: string, token: string) {
-  await deletePushTokenForUser(db, String(discordId), String(token));
+export async function deletePushToken(db: D1Database, userId: number, token: string) {
+  await deletePushTokenForUser(db, userId, String(token));
 }
 
 // Invalid-token cleanup deletes by token itself (receipts name tokens, not users)
@@ -45,14 +46,22 @@ async function deletePushTokenEverywhere(db: D1Database, token: string) {
   await deleteTokenEverywhere(db, String(token));
 }
 
-// discord_id -> [token...]
+// discord_id -> [token...]. Callers hold Discord IDs (reminder /
+// nudge recipient lists); tokens are stored per numeric user ID, so
+// the lookup resolves through the users row (the one sanctioned
+// conversion) and re-keys the result by Discord ID.
 export async function pushTokensForUsers(db: D1Database, discordIds: any) {
   const out = new Map<string, string[]>();
   const ids: string[] = [...new Set<string>((discordIds || []).map((x: any) => String(x)).filter(Boolean))];
   if (!ids.length) return out;
-  const results = await listPushTokensForUsers(db, ids).catch(() => []);
+  const byDiscord = await listUserIdsByDiscordIds(db, ids).catch(() => new Map<string, number>());
+  if (!byDiscord.size) return out;
+  const byUser = new Map<number, string>();
+  for (const [did, uid] of byDiscord) byUser.set(uid, did);
+  const results = await listPushTokensForUsers(db, [...byDiscord.values()]).catch(() => []);
   for (const r of results || []) {
-    const k = String(r.discord_id);
+    const k = byUser.get(Number(r.user_id));
+    if (!k) continue;
     if (!out.has(k)) out.set(k, []);
     out.get(k)!.push(String(r.token));
   }

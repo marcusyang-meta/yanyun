@@ -30,7 +30,11 @@ import {
  * applications; 0 = neither). Default closed; owned by the guild
  * admin surface, read/written only through tenants.ts. */
 export const tenants = sqliteTable('tenants', {
-  slug: text('slug').primaryKey(),
+  // Typed public ID primary key (migration 0033, code 01); the slug
+  // survives as the UNIQUE public handle (URLs, subdomains, short
+  // links) and resolves to this ID at the edge.
+  id: integer('id').primaryKey(),
+  slug: text('slug').notNull().unique(),
   guildName: text('guild_name').notNull(),
   passwordHash: text('password_hash').notNull(),
   announcement: text('announcement').notNull().default(''),
@@ -45,7 +49,7 @@ export const tenants = sqliteTable('tenants', {
 
 /* ---------------- settings [ddl chain baseline] -------------------- */
 export const settings = sqliteTable('settings', {
-  tenant: text('tenant').notNull().default(''),
+  tenant: integer('tenant').notNull().default(0),
   key: text('key').notNull(),
   value: text('value').notNull().default(''),
 }, (t) => [
@@ -59,12 +63,12 @@ export const settings = sqliteTable('settings', {
  * counters. The author snapshot keeps history readable after
  * renames. */
 export const guildAnnouncements = sqliteTable('guild_announcements', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  tenant: text('tenant').notNull(),
+  id: integer('id').primaryKey(),
+  tenant: integer('tenant').notNull(),
   kind: text('kind').notNull().default('standard'),
   title: text('title').notNull().default(''),
   body: text('body').notNull().default(''),
-  authorDiscordId: text('author_discord_id').notNull().default(''),
+  authorUserId: integer('author_user_id').notNull().default(0),
   authorName: text('author_name').notNull().default(''),
   createdAt: integer('created_at').notNull().default(0),
 }, (t) => [
@@ -78,12 +82,12 @@ export const guildAnnouncements = sqliteTable('guild_announcements', {
  * announcement so every read stays guild-scoped by construction. */
 export const guildAnnouncementReads = sqliteTable('guild_announcement_reads', {
   announcementId: integer('announcement_id').notNull(),
-  tenant: text('tenant').notNull(),
-  discordId: text('discord_id').notNull(),
+  tenant: integer('tenant').notNull(),
+  userId: integer('user_id').notNull(),
   readAt: integer('read_at').notNull().default(0),
 }, (t) => [
-  primaryKey({ columns: [t.announcementId, t.discordId] }),
-  index('idx_guild_announcement_reads_tenant_user').on(t.tenant, t.discordId),
+  primaryKey({ columns: [t.announcementId, t.userId] }),
+  index('idx_guild_announcement_reads_tenant_user').on(t.tenant, t.userId),
 ]);
 
 /* ---------------- announcement translations [migration 0032] ----
@@ -94,7 +98,7 @@ export const guildAnnouncementReads = sqliteTable('guild_announcement_reads', {
  * generated from — a mismatch reads as stale and is never served. */
 export const guildAnnouncementTranslations = sqliteTable('guild_announcement_translations', {
   announcementId: integer('announcement_id').notNull(),
-  tenant: text('tenant').notNull().default(''),
+  tenant: integer('tenant').notNull().default(0),
   locale: text('locale').notNull().default(''),
   title: text('title').notNull().default(''),
   body: text('body').notNull().default(''),
@@ -128,11 +132,11 @@ export const translationCache = sqliteTable('translation_cache', {
  * identity "<versionCode>:<seasonCode>", so a new season starts
  * unchecked by construction. */
 export const seasonChecklistChecks = sqliteTable('season_checklist_checks', {
-  tenant: text('tenant').notNull(),
+  tenant: integer('tenant').notNull(),
   seasonKey: text('season_key').notNull(),
   itemKey: text('item_key').notNull(),
   checked: integer('checked').notNull().default(0),
-  checkedBy: text('checked_by').notNull().default(''),
+  checkedByUserId: integer('checked_by_user_id').notNull().default(0),
   checkedByName: text('checked_by_name').notNull().default(''),
   updatedAt: integer('updated_at').notNull().default(0),
 }, (t) => [
@@ -148,13 +152,13 @@ export const seasonChecklistChecks = sqliteTable('season_checklist_checks', {
  * backend normalization used for matching and dedupe (unique per
  * guild). */
 export const guildRosterEntries = sqliteTable('guild_roster_entries', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  tenant: text('tenant').notNull(),
+  id: integer('id').primaryKey(),
+  tenant: integer('tenant').notNull(),
   displayName: text('display_name').notNull(),
   nameNorm: text('name_norm').notNull(),
   source: text('source').notNull().default('ocr'),
   matchedDiscordId: text('matched_discord_id'),
-  createdBy: text('created_by').notNull().default(''),
+  createdByUserId: integer('created_by_user_id').notNull().default(0),
   createdAt: integer('created_at').notNull().default(0),
 }, (t) => [
   uniqueIndex('guild_roster_entries_tenant_norm_unique').on(t.tenant, t.nameNorm),
@@ -166,9 +170,9 @@ export const guildRosterEntries = sqliteTable('guild_roster_entries', {
  * Recognition is metered through the existing batch-OCR daily counter
  * (usage_counters), not through this table. */
 export const rosterImportBatches = sqliteTable('roster_import_batches', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  tenant: text('tenant').notNull(),
-  createdBy: text('created_by').notNull().default(''),
+  id: integer('id').primaryKey(),
+  tenant: integer('tenant').notNull(),
+  createdByUserId: integer('created_by_user_id').notNull().default(0),
   status: text('status').notNull().default('pending'),
   imageCount: integer('image_count').notNull().default(0),
   createdAt: integer('created_at').notNull().default(0),
@@ -182,9 +186,9 @@ export const rosterImportBatches = sqliteTable('roster_import_batches', {
  * the backend as matched / new / unrecognized. created_entry_id is set
  * when (and only when) an admin confirms that row into the roster. */
 export const rosterImportRows = sqliteTable('roster_import_rows', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
+  id: integer('id').primaryKey(),
   batchId: integer('batch_id').notNull(),
-  tenant: text('tenant').notNull(),
+  tenant: integer('tenant').notNull(),
   rawName: text('raw_name').notNull().default(''),
   nameNorm: text('name_norm').notNull().default(''),
   status: text('status').notNull().default('new'),
@@ -204,19 +208,19 @@ export const rosterImportRows = sqliteTable('roster_import_rows', {
  * unique index in the chain; the .where() below keeps the model
  * faithful to it (the drift gate compares name/unique/columns). */
 export const guildApplications = sqliteTable('guild_applications', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  tenant: text('tenant').notNull().default(''),
-  discordId: text('discord_id').notNull().default(''),
+  id: integer('id').primaryKey(),
+  tenant: integer('tenant').notNull().default(0),
+  userId: integer('user_id').notNull().default(0),
   applicantName: text('applicant_name').notNull().default(''),
   message: text('message').notNull().default(''),
   status: text('status').notNull().default('pending'),
-  reviewedBy: text('reviewed_by').notNull().default(''),
+  reviewedByUserId: integer('reviewed_by_user_id').notNull().default(0),
   reviewedByName: text('reviewed_by_name').notNull().default(''),
   createdAt: integer('created_at').notNull().default(0),
   reviewedAt: integer('reviewed_at'),
 }, (t) => [
   index('idx_guild_applications_tenant').on(t.tenant, t.id),
-  uniqueIndex('guild_applications_pending_unique').on(t.tenant, t.discordId)
+  uniqueIndex('guild_applications_pending_unique').on(t.tenant, t.userId)
     .where(sql`status = 'pending'`),
 ]);
 
@@ -226,19 +230,19 @@ export const guildApplications = sqliteTable('guild_applications', {
  * one-ACTIVE-pairing-per-mentee rule is a partial unique index in
  * the chain, modeled with .where() as above. */
 export const mentorPairings = sqliteTable('mentor_pairings', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  tenant: text('tenant').notNull().default(''),
-  mentorDiscordId: text('mentor_discord_id').notNull().default(''),
+  id: integer('id').primaryKey(),
+  tenant: integer('tenant').notNull().default(0),
+  mentorUserId: integer('mentor_user_id').notNull().default(0),
   mentorName: text('mentor_name').notNull().default(''),
-  menteeDiscordId: text('mentee_discord_id').notNull().default(''),
+  menteeUserId: integer('mentee_user_id').notNull().default(0),
   menteeName: text('mentee_name').notNull().default(''),
   status: text('status').notNull().default('active'),
-  createdBy: text('created_by').notNull().default(''),
+  createdByUserId: integer('created_by_user_id').notNull().default(0),
   createdAt: integer('created_at').notNull().default(0),
   endedAt: integer('ended_at'),
 }, (t) => [
   index('idx_mentor_pairings_tenant').on(t.tenant, t.id),
-  uniqueIndex('mentor_pairings_active_mentee_unique').on(t.tenant, t.menteeDiscordId)
+  uniqueIndex('mentor_pairings_active_mentee_unique').on(t.tenant, t.menteeUserId)
     .where(sql`status = 'active'`),
 ]);
 
@@ -247,11 +251,11 @@ export const mentorPairings = sqliteTable('mentor_pairings', {
  * designates that member as a mentor candidate (absence IS the
  * undesignated state, announcement-reads caliber). */
 export const guildMentors = sqliteTable('guild_mentors', {
-  tenant: text('tenant').notNull().default(''),
-  discordId: text('discord_id').notNull().default(''),
+  tenant: integer('tenant').notNull().default(0),
+  userId: integer('user_id').notNull().default(0),
   createdAt: integer('created_at').notNull().default(0),
 }, (t) => [
-  primaryKey({ columns: [t.tenant, t.discordId] }),
+  primaryKey({ columns: [t.tenant, t.userId] }),
 ]);
 
 /* ---------------- guild member notes [alt: 0016] ------------------
@@ -259,16 +263,16 @@ export const guildMentors = sqliteTable('guild_mentors', {
  * repository). Admin-side only: no member-facing surface reads this
  * entity. The author snapshot keeps history readable after renames. */
 export const guildMemberNotes = sqliteTable('guild_member_notes', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  tenant: text('tenant').notNull(),
-  memberDiscordId: text('member_discord_id').notNull(),
+  id: integer('id').primaryKey(),
+  tenant: integer('tenant').notNull(),
+  memberUserId: integer('member_user_id').notNull(),
   body: text('body').notNull().default(''),
-  authorDiscordId: text('author_discord_id').notNull().default(''),
+  authorUserId: integer('author_user_id').notNull().default(0),
   authorName: text('author_name').notNull().default(''),
   createdAt: integer('created_at').notNull().default(0),
   updatedAt: integer('updated_at').notNull().default(0),
 }, (t) => [
-  index('idx_guild_member_notes_tenant_member').on(t.tenant, t.memberDiscordId, t.id),
+  index('idx_guild_member_notes_tenant_member').on(t.tenant, t.memberUserId, t.id),
 ]);
 
 /* ---------------- member season goals [alt: 0017] -----------------
@@ -278,9 +282,9 @@ export const guildMemberNotes = sqliteTable('guild_member_notes', {
  * binds the goal to an existing dex dungeon row — null is a plain
  * text goal. memberName is the owner's display snapshot. */
 export const memberSeasonGoals = sqliteTable('member_season_goals', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  tenant: text('tenant').notNull(),
-  discordId: text('discord_id').notNull(),
+  id: integer('id').primaryKey(),
+  tenant: integer('tenant').notNull(),
+  userId: integer('user_id').notNull(),
   memberName: text('member_name').notNull().default(''),
   title: text('title').notNull().default(''),
   note: text('note').notNull().default(''),
@@ -289,7 +293,7 @@ export const memberSeasonGoals = sqliteTable('member_season_goals', {
   createdAt: integer('created_at').notNull().default(0),
   updatedAt: integer('updated_at').notNull().default(0),
 }, (t) => [
-  index('idx_member_season_goals_tenant_user').on(t.tenant, t.discordId, t.id),
+  index('idx_member_season_goals_tenant_user').on(t.tenant, t.userId, t.id),
   index('idx_member_season_goals_tenant_id').on(t.tenant, t.id),
 ]);
 
@@ -300,10 +304,10 @@ export const memberSeasonGoals = sqliteTable('member_season_goals', {
  * caliber (UTC minutes of day). Status 'open' | 'withdrawn'; the
  * one-open-offer-per-person rule is the partial unique index. */
 export const fillOffers = sqliteTable('fill_offers', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  discordId: text('discord_id').notNull().default(''),
+  id: integer('id').primaryKey(),
+  userId: integer('user_id').notNull().default(0),
   displayName: text('display_name').notNull().default(''),
-  homeTenant: text('home_tenant').notNull().default(''),
+  homeTenant: integer('home_tenant').notNull().default(0),
   school: text('school').notNull().default(''),
   windowsJson: text('windows_json').notNull().default('[]'),
   note: text('note').notNull().default(''),
@@ -312,7 +316,7 @@ export const fillOffers = sqliteTable('fill_offers', {
   updatedAt: integer('updated_at').notNull().default(0),
 }, (t) => [
   index('idx_fill_offers_status').on(t.status, t.id),
-  uniqueIndex('fill_offers_open_unique').on(t.discordId)
+  uniqueIndex('fill_offers_open_unique').on(t.userId)
     .where(sql`status = 'open'`),
 ]);
 
@@ -322,14 +326,14 @@ export const fillOffers = sqliteTable('fill_offers', {
  * 'open' -> 'matched' | 'closed', terminal rows keep matched_at /
  * closed_at as the trail. */
 export const fillRequests = sqliteTable('fill_requests', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  tenant: text('tenant').notNull().default(''),
+  id: integer('id').primaryKey(),
+  tenant: integer('tenant').notNull().default(0),
   eventId: integer('event_id').notNull().default(0),
   neededRole: text('needed_role').notNull().default(''),
   neededSchool: text('needed_school').notNull().default(''),
   note: text('note').notNull().default(''),
   status: text('status').notNull().default('open'),
-  createdBy: text('created_by').notNull().default(''),
+  createdByUserId: integer('created_by_user_id').notNull().default(0),
   createdByName: text('created_by_name').notNull().default(''),
   createdAt: integer('created_at').notNull().default(0),
   matchedAt: integer('matched_at'),
@@ -345,23 +349,23 @@ export const fillRequests = sqliteTable('fill_requests', {
  * by the request-side transitions). The partial unique index states
  * one live (pending/accepted) invite per (request, supplier). */
 export const fillInvites = sqliteTable('fill_invites', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
+  id: integer('id').primaryKey(),
   requestId: integer('request_id').notNull().references(() => fillRequests.id, { onDelete: 'cascade' }),
   offerId: integer('offer_id').notNull().references(() => fillOffers.id, { onDelete: 'cascade' }),
-  tenant: text('tenant').notNull().default(''),
+  tenant: integer('tenant').notNull().default(0),
   eventId: integer('event_id').notNull().default(0),
-  fromDiscordId: text('from_discord_id').notNull().default(''),
+  fromUserId: integer('from_user_id').notNull().default(0),
   fromName: text('from_name').notNull().default(''),
-  toDiscordId: text('to_discord_id').notNull().default(''),
+  toUserId: integer('to_user_id').notNull().default(0),
   toName: text('to_name').notNull().default(''),
   status: text('status').notNull().default('pending'),
   createdAt: integer('created_at').notNull().default(0),
   respondedAt: integer('responded_at'),
 }, (t) => [
-  uniqueIndex('fill_invites_pair_unique').on(t.requestId, t.toDiscordId)
+  uniqueIndex('fill_invites_pair_unique').on(t.requestId, t.toUserId)
     .where(sql`status IN ('pending', 'accepted')`),
   index('idx_fill_invites_request').on(t.requestId, t.status),
-  index('idx_fill_invites_supplier').on(t.toDiscordId, t.status, t.id),
+  index('idx_fill_invites_supplier').on(t.toUserId, t.status, t.id),
 ]);
 
 /* ---------------- guild alliances [migration 0031] ----------------
@@ -371,17 +375,17 @@ export const fillInvites = sqliteTable('fill_invites', {
  * 'pending' -> 'active' | 'rejected'; 'active' -> 'ended'. The
  * partial unique index states one live relation per pair. */
 export const guildAlliances = sqliteTable('guild_alliances', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  guildLow: text('guild_low').notNull().default(''),
-  guildHigh: text('guild_high').notNull().default(''),
+  id: integer('id').primaryKey(),
+  guildLow: integer('guild_low').notNull().default(0),
+  guildHigh: integer('guild_high').notNull().default(0),
   status: text('status').notNull().default('pending'),
-  requestedByTenant: text('requested_by_tenant').notNull().default(''),
-  requestedBy: text('requested_by').notNull().default(''),
+  requestedByTenant: integer('requested_by_tenant').notNull().default(0),
+  requestedByUserId: integer('requested_by_user_id').notNull().default(0),
   requestedByName: text('requested_by_name').notNull().default(''),
   createdAt: integer('created_at').notNull().default(0),
   respondedAt: integer('responded_at'),
   endedAt: integer('ended_at'),
-  endedByTenant: text('ended_by_tenant').notNull().default(''),
+  endedByTenant: integer('ended_by_tenant').notNull().default(0),
 }, (t) => [
   uniqueIndex('guild_alliances_live_unique').on(t.guildLow, t.guildHigh)
     .where(sql`status IN ('pending', 'active')`),
@@ -485,7 +489,7 @@ export const guildAuditEvents = sqliteTable('guild_audit_events', {
 
 /* ---------------- guild avatars [ddl chain baseline] --------------- */
 export const guildAvatars = sqliteTable('guild_avatars', {
-  tenant: text('tenant').primaryKey(),
+  tenant: integer('tenant').primaryKey(),
   contentType: text('content_type').notNull(),
   // D1 returns BLOB values as ArrayBuffer; the repository boundary
   // normalizes to Uint8Array for callers.
@@ -500,14 +504,14 @@ export const guildAvatars = sqliteTable('guild_avatars', {
  * judged from these rows) and the audit trail. recipient_ids is a
  * JSON array of Discord ids the send targeted. */
 export const opsNudgeSends = sqliteTable('ops_nudge_sends', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  tenant: text('tenant').notNull(),
+  id: integer('id').primaryKey(),
+  tenant: integer('tenant').notNull(),
   eventId: integer('event_id').notNull(),
   segmentKind: text('segment_kind').notNull().default('all'),
   segmentValue: text('segment_value').notNull().default(''),
   recipientCount: integer('recipient_count').notNull().default(0),
   recipientIds: text('recipient_ids').notNull().default('[]'),
-  sentBy: text('sent_by').notNull().default(''),
+  sentByUserId: integer('sent_by_user_id').notNull().default(0),
   sentAt: integer('sent_at').notNull().default(0),
 }, (t) => [
   index('idx_ops_nudge_sends_tenant_at').on(t.tenant, t.sentAt),
@@ -520,12 +524,12 @@ export const opsNudgeSends = sqliteTable('ops_nudge_sends', {
  * this trace, with the full report as JSON. */
 export const seasonRollovers = sqliteTable('season_rollovers', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  tenant: text('tenant').notNull(),
+  tenant: integer('tenant').notNull(),
   fromSeasonKey: text('from_season_key').notNull().default(''),
   toSeasonKey: text('to_season_key').notNull().default(''),
   templatesCopied: integer('templates_copied').notNull().default(0),
   reportJson: text('report_json').notNull().default('{}'),
-  createdBy: text('created_by').notNull().default(''),
+  createdByUserId: integer('created_by_user_id').notNull().default(0),
   createdAt: integer('created_at').notNull().default(0),
 }, (t) => [
   index('idx_season_rollovers_tenant').on(t.tenant, t.id),
@@ -538,11 +542,11 @@ export const seasonRollovers = sqliteTable('season_rollovers', {
  * mentoring) — points only, no goods or donation concepts. */
 export const contributionRules = sqliteTable('contribution_rules', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  tenant: text('tenant').notNull(),
+  tenant: integer('tenant').notNull(),
   actionKey: text('action_key').notNull(),
   points: integer('points').notNull().default(0),
   enabled: integer('enabled').notNull().default(1),
-  updatedBy: text('updated_by').notNull().default(''),
+  updatedByUserId: integer('updated_by_user_id').notNull().default(0),
   updatedAt: integer('updated_at').notNull().default(0),
 }, (t) => [
   uniqueIndex('contribution_rules_tenant_action_unique').on(t.tenant, t.actionKey),
@@ -554,8 +558,8 @@ export const contributionRules = sqliteTable('contribution_rules', {
  * can never credit the same member twice for the same action. */
 export const contributionEntries = sqliteTable('contribution_entries', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  tenant: text('tenant').notNull(),
-  discordId: text('discord_id').notNull(),
+  tenant: integer('tenant').notNull(),
+  userId: integer('user_id').notNull(),
   actionKey: text('action_key').notNull(),
   points: integer('points').notNull().default(0),
   eventId: integer('event_id'),
@@ -563,6 +567,6 @@ export const contributionEntries = sqliteTable('contribution_entries', {
   createdAt: integer('created_at').notNull().default(0),
 }, (t) => [
   uniqueIndex('contribution_entries_dedupe_unique').on(t.dedupeKey),
-  index('idx_contribution_entries_tenant_user').on(t.tenant, t.discordId, t.id),
+  index('idx_contribution_entries_tenant_user').on(t.tenant, t.userId, t.id),
   index('idx_contribution_entries_tenant').on(t.tenant, t.id),
 ]);

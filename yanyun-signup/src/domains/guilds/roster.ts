@@ -13,6 +13,7 @@
  * =================================================== */
 import { sql } from 'drizzle-orm';
 import { createDb, schema } from '../../db/client.ts';
+import { mintPublicId } from '../platform/id-mint.ts';
 
 const { guildRosterEntries, rosterImportBatches, rosterImportRows } = schema;
 const col = (name: string) => sql.identifier(name);
@@ -89,21 +90,21 @@ export interface GuildRosterEntryRow {
   name_norm: string;
   source: string;
   matched_discord_id: string | null;
-  created_by: string;
+  created_by_user_id: number;
   created_at: number;
 }
 
 export async function listGuildRosterEntries(
-  d1: D1Database, tenant: string,
+  d1: D1Database, tenant: number,
 ): Promise<GuildRosterEntryRow[]> {
   const db = createDb(d1);
   const rows = await db.all<GuildRosterEntryRow>(
-    sql`SELECT ${col('id')}, ${col('display_name')}, ${col('name_norm')}, ${col('source')}, ${col('matched_discord_id')}, ${col('created_by')}, ${col('created_at')} FROM ${guildRosterEntries} WHERE ${col('tenant')} = ${tenant} ORDER BY ${col('id')} ASC`,
+    sql`SELECT ${col('id')}, ${col('display_name')}, ${col('name_norm')}, ${col('source')}, ${col('matched_discord_id')}, ${col('created_by_user_id')}, ${col('created_at')} FROM ${guildRosterEntries} WHERE ${col('tenant')} = ${tenant} ORDER BY ${col('id')} ASC`,
   );
   return rows || [];
 }
 
-export async function countGuildRosterEntries(d1: D1Database, tenant: string): Promise<number> {
+export async function countGuildRosterEntries(d1: D1Database, tenant: number): Promise<number> {
   const db = createDb(d1);
   const row = await db.get<{ n: number }>(
     sql`SELECT COUNT(*) AS ${col('n')} FROM ${guildRosterEntries} WHERE ${col('tenant')} = ${tenant}`,
@@ -116,7 +117,7 @@ export async function countGuildRosterEntries(d1: D1Database, tenant: string): P
  *  instead of an error or a duplicate. */
 export async function insertGuildRosterEntry(
   d1: D1Database,
-  row: { tenant: string; displayName: string; source: string; matchedDiscordId: string | null; createdBy: string; now: number },
+  row: { tenant: number; displayName: string; source: string; matchedDiscordId: string | null; createdByUserId: number; now: number },
 ): Promise<{ id: number; created: boolean }> {
   const db = createDb(d1);
   const nameNorm = normalizeRosterName(row.displayName);
@@ -125,14 +126,14 @@ export async function insertGuildRosterEntry(
   );
   if (existing) return { id: existing.id, created: false };
   const r = await db.run(
-    sql`INSERT INTO ${guildRosterEntries} (${col('tenant')}, ${col('display_name')}, ${col('name_norm')}, ${col('source')}, ${col('matched_discord_id')}, ${col('created_by')}, ${col('created_at')})
-        VALUES (${row.tenant}, ${row.displayName}, ${nameNorm}, ${row.source}, ${row.matchedDiscordId}, ${row.createdBy}, ${row.now})`,
+    sql`INSERT INTO ${guildRosterEntries} (${col('id')}, ${col('tenant')}, ${col('display_name')}, ${col('name_norm')}, ${col('source')}, ${col('matched_discord_id')}, ${col('created_by_user_id')}, ${col('created_at')})
+        VALUES (${await mintPublicId(d1, 'rosterEntry')}, ${row.tenant}, ${row.displayName}, ${nameNorm}, ${row.source}, ${row.matchedDiscordId}, ${row.createdByUserId}, ${row.now})`,
   );
   return { id: metaOf(r).last_row_id, created: true };
 }
 
 export async function deleteGuildRosterEntry(
-  d1: D1Database, tenant: string, id: number,
+  d1: D1Database, tenant: number, id: number,
 ): Promise<boolean> {
   const db = createDb(d1);
   const r = await db.run(
@@ -145,8 +146,8 @@ export async function deleteGuildRosterEntry(
 
 export interface RosterImportBatchRow {
   id: number;
-  tenant: string;
-  created_by: string;
+  tenant: number;
+  created_by_user_id: number;
   status: string;
   image_count: number;
   created_at: number;
@@ -166,33 +167,33 @@ export interface RosterImportRowRow {
 
 export async function createRosterImportBatch(
   d1: D1Database,
-  row: { tenant: string; createdBy: string; imageCount: number; now: number },
+  row: { tenant: number; createdByUserId: number; imageCount: number; now: number },
 ): Promise<number> {
   const db = createDb(d1);
   const r = await db.run(
-    sql`INSERT INTO ${rosterImportBatches} (${col('tenant')}, ${col('created_by')}, ${col('status')}, ${col('image_count')}, ${col('created_at')}, ${col('confirmed_at')})
-        VALUES (${row.tenant}, ${row.createdBy}, 'pending', ${row.imageCount}, ${row.now}, NULL)`,
+    sql`INSERT INTO ${rosterImportBatches} (${col('id')}, ${col('tenant')}, ${col('created_by_user_id')}, ${col('status')}, ${col('image_count')}, ${col('created_at')}, ${col('confirmed_at')})
+        VALUES (${await mintPublicId(d1, 'rosterImportBatch')}, ${row.tenant}, ${row.createdByUserId}, 'pending', ${row.imageCount}, ${row.now}, NULL)`,
   );
   return metaOf(r).last_row_id;
 }
 
 export async function insertRosterImportRow(
-  d1: D1Database, batchId: number, tenant: string, c: RosterClassification,
+  d1: D1Database, batchId: number, tenant: number, c: RosterClassification,
 ): Promise<number> {
   const db = createDb(d1);
   const r = await db.run(
-    sql`INSERT INTO ${rosterImportRows} (${col('batch_id')}, ${col('tenant')}, ${col('raw_name')}, ${col('name_norm')}, ${col('status')}, ${col('matched_discord_id')}, ${col('matched_name')}, ${col('created_entry_id')})
-        VALUES (${batchId}, ${tenant}, ${c.rawName}, ${c.nameNorm}, ${c.status}, ${c.matchedDiscordId}, ${c.matchedName}, NULL)`,
+    sql`INSERT INTO ${rosterImportRows} (${col('id')}, ${col('batch_id')}, ${col('tenant')}, ${col('raw_name')}, ${col('name_norm')}, ${col('status')}, ${col('matched_discord_id')}, ${col('matched_name')}, ${col('created_entry_id')})
+        VALUES (${await mintPublicId(d1, 'rosterImportRow')}, ${batchId}, ${tenant}, ${c.rawName}, ${c.nameNorm}, ${c.status}, ${c.matchedDiscordId}, ${c.matchedName}, NULL)`,
   );
   return metaOf(r).last_row_id;
 }
 
 export async function getRosterImportBatch(
-  d1: D1Database, tenant: string, batchId: number,
+  d1: D1Database, tenant: number, batchId: number,
 ): Promise<RosterImportBatchRow | null> {
   const db = createDb(d1);
   const row = await db.get<RosterImportBatchRow>(
-    sql`SELECT ${col('id')}, ${col('tenant')}, ${col('created_by')}, ${col('status')}, ${col('image_count')}, ${col('created_at')}, ${col('confirmed_at')} FROM ${rosterImportBatches} WHERE ${col('id')} = ${batchId} AND ${col('tenant')} = ${tenant}`,
+    sql`SELECT ${col('id')}, ${col('tenant')}, ${col('created_by_user_id')}, ${col('status')}, ${col('image_count')}, ${col('created_at')}, ${col('confirmed_at')} FROM ${rosterImportBatches} WHERE ${col('id')} = ${batchId} AND ${col('tenant')} = ${tenant}`,
   );
   return row ?? null;
 }

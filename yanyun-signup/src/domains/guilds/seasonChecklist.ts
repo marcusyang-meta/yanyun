@@ -15,18 +15,18 @@ const col = (name: string) => sql.identifier(name);
 export interface SeasonChecklistCheckRow {
   item_key: string;
   checked: number;
-  checked_by: string;
+  checked_by_user_id: number;
   checked_by_name: string;
   updated_at: number;
 }
 
 /** All check rows of one guild for one season, keyed reads in the service. */
 export async function listSeasonChecklistChecks(
-  d1: D1Database, tenant: string, seasonKey: string,
+  d1: D1Database, tenant: number, seasonKey: string,
 ): Promise<SeasonChecklistCheckRow[]> {
   const db = createDb(d1);
   const rows = await db.all<SeasonChecklistCheckRow>(
-    sql`SELECT ${col('item_key')}, ${col('checked')}, ${col('checked_by')}, ${col('checked_by_name')}, ${col('updated_at')} FROM ${seasonChecklistChecks} WHERE ${col('tenant')} = ${tenant} AND ${col('season_key')} = ${seasonKey}`,
+    sql`SELECT ${col('item_key')}, ${col('checked')}, ${col('checked_by_user_id')}, ${col('checked_by_name')}, ${col('updated_at')} FROM ${seasonChecklistChecks} WHERE ${col('tenant')} = ${tenant} AND ${col('season_key')} = ${seasonKey}`,
   );
   return rows || [];
 }
@@ -35,16 +35,16 @@ export async function listSeasonChecklistChecks(
 export async function setSeasonChecklistCheck(
   d1: D1Database,
   row: {
-    tenant: string; seasonKey: string; itemKey: string; checked: boolean;
-    checkedBy: string; checkedByName: string; now: number;
+    tenant: number; seasonKey: string; itemKey: string; checked: boolean;
+    checkedByUserId: number; checkedByName: string; now: number;
   },
 ): Promise<void> {
   const db = createDb(d1);
   await db.run(
-    sql`INSERT INTO ${seasonChecklistChecks} (${col('tenant')}, ${col('season_key')}, ${col('item_key')}, ${col('checked')}, ${col('checked_by')}, ${col('checked_by_name')}, ${col('updated_at')})
-        VALUES (${row.tenant}, ${row.seasonKey}, ${row.itemKey}, ${row.checked ? 1 : 0}, ${row.checkedBy}, ${row.checkedByName}, ${row.now})
+    sql`INSERT INTO ${seasonChecklistChecks} (${col('tenant')}, ${col('season_key')}, ${col('item_key')}, ${col('checked')}, ${col('checked_by_user_id')}, ${col('checked_by_name')}, ${col('updated_at')})
+        VALUES (${row.tenant}, ${row.seasonKey}, ${row.itemKey}, ${row.checked ? 1 : 0}, ${row.checkedByUserId}, ${row.checkedByName}, ${row.now})
         ON CONFLICT (${col('tenant')}, ${col('season_key')}, ${col('item_key')}) DO UPDATE SET
-          ${col('checked')} = excluded.checked, ${col('checked_by')} = excluded.checked_by,
+          ${col('checked')} = excluded.checked, ${col('checked_by_user_id')} = excluded.checked_by_user_id,
           ${col('checked_by_name')} = excluded.checked_by_name, ${col('updated_at')} = excluded.updated_at`,
   );
 }

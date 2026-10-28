@@ -16,7 +16,7 @@ export interface GuildMemberRow {
 /* ---------- Reads / writes ---------- */
 
 export async function upsertGuildMember(
-  d1: D1Database, tenant: string, discordId: string, nick: string, globalName: string,
+  d1: D1Database, tenant: number, discordId: string, nick: string, globalName: string,
 ): Promise<void> {
   const db = createDb(d1);
   const now = Math.floor(Date.now() / 1000);
@@ -29,7 +29,7 @@ export async function upsertGuildMember(
   );
 }
 
-export async function listGuildMembers(d1: D1Database, tenant: string): Promise<GuildMemberRow[]> {
+export async function listGuildMembers(d1: D1Database, tenant: number): Promise<GuildMemberRow[]> {
   const db = createDb(d1);
   const rows = await db.all<GuildMemberRow>(
     sql`SELECT ${col('discord_id')}, ${col('nick')}, ${col('global_name')} FROM ${guildMembers} WHERE ${col('tenant')} = ${tenant}`,
@@ -38,7 +38,7 @@ export async function listGuildMembers(d1: D1Database, tenant: string): Promise<
 }
 
 export async function getGuildMember(
-  d1: D1Database, tenant: string, discordId: string,
+  d1: D1Database, tenant: number, discordId: string,
 ): Promise<{ nick: string; global_name: string } | null> {
   const db = createDb(d1);
   const row = await db.get<{ nick: string; global_name: string }>(
@@ -48,7 +48,7 @@ export async function getGuildMember(
 }
 
 export async function hasGuildMember(
-  d1: D1Database, tenant: string, discordId: string,
+  d1: D1Database, tenant: number, discordId: string,
 ): Promise<boolean> {
   const db = createDb(d1);
   const row = await db.get<{ discord_id: string }>(
@@ -60,9 +60,9 @@ export async function hasGuildMember(
 /** One user's roster rows across all guilds (export + deletion cascade). */
 export async function listGuildMembersByUser(
   d1: D1Database, discordId: string,
-): Promise<Array<{ tenant: string; nick: string; global_name: string }>> {
+): Promise<Array<{ tenant: number; nick: string; global_name: string }>> {
   const db = createDb(d1);
-  const rows = await db.all<{ tenant: string; nick: string; global_name: string }>(
+  const rows = await db.all<{ tenant: number; nick: string; global_name: string }>(
     sql`SELECT ${col('tenant')}, ${col('nick')}, ${col('global_name')} FROM ${guildMembers} WHERE ${col('discord_id')} = ${discordId}`,
   );
   return rows || [];

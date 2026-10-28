@@ -9,6 +9,7 @@
 import { sql } from 'drizzle-orm';
 import { createDb } from '../../db/client.ts';
 import { guildMemberNotes } from './schema.ts';
+import { mintPublicId } from '../platform/id-mint.ts';
 
 const col = (name: string) => sql.identifier(name);
 
@@ -17,10 +18,10 @@ export const MEMBER_NOTE_MAX_BODY = 500;
 
 export interface MemberNoteRow {
   id: number;
-  tenant: string;
-  member_discord_id: string;
+  tenant: number;
+  member_user_id: number;
   body: string;
-  author_discord_id: string;
+  author_user_id: number;
   author_name: string;
   created_at: number;
   updated_at: number;
@@ -36,21 +37,21 @@ function metaOf(r: unknown): RunMeta {
   return { changes: m?.changes ?? 0, last_row_id: m?.last_row_id ?? 0 };
 }
 
-const NOTE_COLS = sql`${guildMemberNotes.id}, ${guildMemberNotes.tenant}, ${guildMemberNotes.memberDiscordId}, ${guildMemberNotes.body}, ${guildMemberNotes.authorDiscordId}, ${guildMemberNotes.authorName}, ${guildMemberNotes.createdAt}, ${guildMemberNotes.updatedAt}`;
+const NOTE_COLS = sql`${guildMemberNotes.id}, ${guildMemberNotes.tenant}, ${guildMemberNotes.memberUserId}, ${guildMemberNotes.body}, ${guildMemberNotes.authorUserId}, ${guildMemberNotes.authorName}, ${guildMemberNotes.createdAt}, ${guildMemberNotes.updatedAt}`;
 
 /** Insert one note; returns the new row id. */
 export async function insertMemberNote(
   d1: D1Database,
   row: {
-    tenant: string; memberDiscordId: string; body: string;
-    authorDiscordId: string; authorName: string; createdAt: number;
+    tenant: number; memberUserId: number; body: string;
+    authorUserId: number; authorName: string; createdAt: number;
   },
 ): Promise<number> {
   const db = createDb(d1);
   // INSERT column lists must use bare column names (SQLite syntax); see settings.ts note.
   const r = await db.run(
-    sql`INSERT INTO ${guildMemberNotes} (${col('tenant')}, ${col('member_discord_id')}, ${col('body')}, ${col('author_discord_id')}, ${col('author_name')}, ${col('created_at')}, ${col('updated_at')})
-        VALUES (${row.tenant}, ${row.memberDiscordId}, ${row.body}, ${row.authorDiscordId}, ${row.authorName}, ${row.createdAt}, ${row.createdAt})`,
+    sql`INSERT INTO ${guildMemberNotes} (${col('id')}, ${col('tenant')}, ${col('member_user_id')}, ${col('body')}, ${col('author_user_id')}, ${col('author_name')}, ${col('created_at')}, ${col('updated_at')})
+        VALUES (${await mintPublicId(d1, 'memberNote')}, ${row.tenant}, ${row.memberUserId}, ${row.body}, ${row.authorUserId}, ${row.authorName}, ${row.createdAt}, ${row.createdAt})`,
   );
   return metaOf(r).last_row_id;
 }
@@ -59,7 +60,7 @@ export async function insertMemberNote(
  * from another guild is indistinguishable from a missing id). */
 export async function getMemberNote(
   d1: D1Database,
-  tenant: string,
+  tenant: number,
   id: number,
 ): Promise<MemberNoteRow | null> {
   const db = createDb(d1);
@@ -73,13 +74,13 @@ export async function getMemberNote(
 /** Notes about one member of one guild, oldest first. */
 export async function listMemberNotes(
   d1: D1Database,
-  tenant: string,
-  memberDiscordId: string,
+  tenant: number,
+  memberUserId: number,
 ): Promise<MemberNoteRow[]> {
   const db = createDb(d1);
   const rows = await db.all<MemberNoteRow>(
     sql`SELECT ${NOTE_COLS} FROM ${guildMemberNotes}
-        WHERE ${guildMemberNotes.tenant} = ${tenant} AND ${guildMemberNotes.memberDiscordId} = ${memberDiscordId}
+        WHERE ${guildMemberNotes.tenant} = ${tenant} AND ${guildMemberNotes.memberUserId} = ${memberUserId}
         ORDER BY ${guildMemberNotes.id} ASC`,
   );
   return rows || [];
@@ -88,7 +89,7 @@ export async function listMemberNotes(
 /** Every note of one guild, oldest first (officer page composition). */
 export async function listMemberNotesByTenant(
   d1: D1Database,
-  tenant: string,
+  tenant: number,
 ): Promise<MemberNoteRow[]> {
   const db = createDb(d1);
   const rows = await db.all<MemberNoteRow>(
@@ -102,7 +103,7 @@ export async function listMemberNotesByTenant(
 /** Rewrite one note's body; returns true when a row actually moved. */
 export async function updateMemberNote(
   d1: D1Database,
-  tenant: string,
+  tenant: number,
   id: number,
   body: string,
   updatedAt: number,
@@ -118,7 +119,7 @@ export async function updateMemberNote(
 /** Delete one note of one guild; returns true when a row went away. */
 export async function deleteMemberNote(
   d1: D1Database,
-  tenant: string,
+  tenant: number,
   id: number,
 ): Promise<boolean> {
   const db = createDb(d1);

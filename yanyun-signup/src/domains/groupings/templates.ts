@@ -11,12 +11,13 @@
 import { sql } from 'drizzle-orm';
 import { createDb } from '../../db/client.ts';
 import { groupingTemplates } from './schema.ts';
+import { mintPublicId } from '../platform/id-mint.ts';
 
 const col = (name: string) => sql.identifier(name);
 
 export interface GroupingTemplateRow {
   id: number;
-  tenant: string;
+  tenant: number;
   name: string;
   type: string;
   title: string;
@@ -24,7 +25,7 @@ export interface GroupingTemplateRow {
   max_slots: number;
   start_days_ahead: number;
   start_minutes: number;
-  creator_discord_id: string | null;
+  creator_user_id: number | null;
   created_at: number;
   updated_at: number;
   season_key: string;
@@ -79,7 +80,7 @@ export function templateOffsetFromStartsAt(
 
 /** One guild's templates, newest first (the create form's picker order). */
 export async function listGroupingTemplates(
-  d1: D1Database, tenant: string,
+  d1: D1Database, tenant: number,
 ): Promise<GroupingTemplateRow[]> {
   const db = createDb(d1);
   const rows = await db.all<GroupingTemplateRow>(
@@ -105,7 +106,7 @@ export async function getGroupingTemplate(
  * arbitrary column names into SQL. */
 const TEMPLATE_COLUMNS = new Set([
   'tenant', 'name', 'type', 'title', 'dungeon', 'max_slots',
-  'start_days_ahead', 'start_minutes', 'creator_discord_id',
+  'start_days_ahead', 'start_minutes', 'creator_user_id',
   'created_at', 'updated_at', 'season_key',
 ]);
 
@@ -122,10 +123,13 @@ export async function insertGroupingTemplate(
   d1: D1Database, row: Record<string, unknown>,
 ): Promise<RunMeta> {
   const db = createDb(d1);
-  const cols = checkedColumns(row);
+  const id = await mintPublicId(d1, 'groupingTemplate');
+  const full = { id, ...row };
+  const cols = ['id', ...checkedColumns(row)];
   const r = await db.run(sql`INSERT INTO ${groupingTemplates} (${sql.join(cols.map((c) => col(c)), sql`, `)})
-    VALUES (${sql.join(cols.map((c) => sql`${row[c]}`), sql`,`)})`);
-  return metaOf(r);
+    VALUES (${sql.join(cols.map((c) => sql`${full[c as keyof typeof full]}`), sql`,`)})`);
+  const meta = metaOf(r);
+  return { changes: meta.changes, last_row_id: id };
 }
 
 export async function updateGroupingTemplateFields(
@@ -150,14 +154,14 @@ export async function deleteGroupingTemplate(
  * they persist for the guild; only the creator attribution is cut,
  * after which edit/delete falls to guild admins alone. */
 export async function orphanGroupingTemplatesByCreator(
-  d1: D1Database, discordId: string,
+  d1: D1Database, userId: number,
 ): Promise<number> {
   const db = createDb(d1);
   // SET LHS / WHERE use bare column names (SQLite syntax); see the
   // settings.ts note — table-qualified columns are invalid in UPDATE.
   const r = await db.run(
-    sql`UPDATE ${groupingTemplates} SET ${sql.identifier('creator_discord_id')} = NULL
-        WHERE ${sql.identifier('creator_discord_id')} = ${discordId}`,
+    sql`UPDATE ${groupingTemplates} SET ${sql.identifier('creator_user_id')} = NULL
+        WHERE ${sql.identifier('creator_user_id')} = ${userId}`,
   );
   return metaOf(r).changes;
 }

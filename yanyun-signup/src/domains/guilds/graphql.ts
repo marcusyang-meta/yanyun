@@ -12,7 +12,7 @@ import { evaluateHeirloomPushes } from '../gear/index.ts';
 import { translate, negotiateLocale, SUPPORTED_LOCALES, CATALOG } from '../platform/index.ts';
 import { logError, grantTrialEntitlement } from '../platform/index.ts';
 import { getGuildAvatarMeta, avatarPath } from './index.ts';
-import { getSettingValue, setSettingValue, listSettingsByKey } from './index.ts';
+import { getSettingValue, setSettingValue, listSettingsByKey, getGuildIdBySlug } from './index.ts';
 import { getUsernameRow } from '../identity/index.ts';
 import { listGuildMembers, getGuildMember } from '../identity/index.ts';
 import { getBossById, listBossesByDungeon, listSchoolsFull, listSchoolsNameSlug, getSchoolNameBySlug, listSchoolBis, getSchoolBisJsonBySchool, listSchoolRotations, listSlotAffixByBuild, listAffixMax, listAffixMaxValues } from '../dex/index.ts';
@@ -312,11 +312,11 @@ export class HubPageShell extends ShellBase {
       const gameVersion = await this.ctxMemo('gameVersion', () => getGameVersion(db));
       const guilds: any[] = [];
       for (const t of results || []) {
-        if (devSet.has(t.slug) && !devVisible) continue;
+        if (devSet.has(t.id) && !devVisible) continue;
         const dgid = bindMap[t.slug];
         if (dgid && !(this.ctx.user && (this.ctx.user.guilds || []).includes(dgid))) continue;
         if (!dgid && !this.ctx.user) continue;
-        const mc = await countDistinctNicknamesByTenant(db, t.slug).catch(() => 0);
+        const mc = await countDistinctNicknamesByTenant(db, t.id).catch(() => 0);
         guilds.push(new GuildCardShell(this.ctx, {
           slug: t.slug, name: t.guild_name, slogan: t.slogan || '', gameVersion, memberCount: mc,
         }));
@@ -406,8 +406,8 @@ export const guildsResolvers = {
       // on 2026-10-25 (audit A4); this mutation is the only creation
       // path.
       const hash = await sha256hexLocal(crypto.randomUUID() + ':' + user.discordId + ':' + Date.now());
-      await insertTenant(db, { slug, guildName: name, passwordHash: hash, announcement: '' });
-      await setTenantSetting(db, slug, 'discord_guild_id', dgid);
+      const newGuildId = await insertTenant(db, { slug, guildName: name, passwordHash: hash, announcement: '' });
+      await setTenantSetting(db, newGuildId, 'discord_guild_id', dgid);
       // Trial arming (lifecycle ruling, 2026-10-28): creating the
       // guild IS completing the create/bind flow — the tenant row
       // and its Discord binding both exist at this point — so the
@@ -415,7 +415,7 @@ export const guildsResolvers = {
       // granted here, the single creation path. The grant is
       // idempotent by construction (trial_used stamp), so no retry
       // or re-entry can ever issue a second one.
-      await grantTrialEntitlement(db, slug);
+      await grantTrialEntitlement(db, newGuildId);
       const a = await getGuildAccess(db, user, slug, ctx.request);
       return new CreateGuildPayloadShell(ctx, { ok: true, guild: guildResult(ctx, a) });
     },
