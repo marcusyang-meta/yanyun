@@ -39,6 +39,8 @@ export interface EventRow {
   creator_discord_id: string | null;
   reminder_sent_at: number | null;
   reminder_error: string | null;
+  ally_visible: number;
+  visitor_slots: number;
 }
 
 interface RunMeta {
@@ -262,6 +264,7 @@ const EVENT_COLUMNS = new Set([
   'tenant', 'title', 'type', 'description', 'starts_at', 'starts_at_utc',
   'meet_info', 'max_slots', 'status', 'origin', 'created_by', 'manage_code',
   'dungeon', 'creator_discord_id', 'reminder_sent_at', 'reminder_error',
+  'ally_visible', 'visitor_slots',
 ]);
 
 function checkedColumns(row: Record<string, unknown>): string[] {
@@ -375,4 +378,25 @@ export async function orphanEventsByCreator(
         WHERE ${col('creator_discord_id')} = ${discordId}`,
   );
   return metaOf(r).changes;
+}
+
+/* ---------- ally sharing (P20) ----------
+ * Open groupings of the given tenants flagged ally-visible. The
+ * CALLER (network surface) passes only tenants with a currently
+ * ACTIVE alliance — the alliance verdict is read-time, so this
+ * query deliberately knows nothing about alliances; an empty
+ * tenant list short-circuits to no rows. */
+export async function listAllySharedEvents(
+  d1: D1Database, tenants: string[], limit: number = 100,
+): Promise<EventRow[]> {
+  if (!tenants.length) return [];
+  const db = createDb(d1);
+  const rows = await db.all<EventRow>(
+    sql`SELECT * FROM ${events}
+        WHERE ${col('tenant')} IN (${sql.join(tenants.map((t) => sql`${t}`), sql`, `)})
+          AND ${col('ally_visible')} = 1 AND ${col('visitor_slots')} > 0
+          AND ${col('status')} = 'open'
+        ORDER BY ${col('id')} DESC LIMIT ${limit}`,
+  );
+  return rows || [];
 }

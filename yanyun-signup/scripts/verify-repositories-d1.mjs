@@ -16,7 +16,7 @@
  *   events / gear / users / members / results / dex / reference /
  *   state / ddl / guard / stamp / membercount / atomic / audit /
  *   shortlinks / beats / templates / usage / buildshares / billing /
- *   feedback / activitytools / recruit / officer, extended as the data-layer migration
+ *   feedback / activitytools / recruit / officer / network, extended as the data-layer migration
  *   progresses.
  *   Non-zero exit = an assertion failed.
  * =================================================== */
@@ -1477,6 +1477,87 @@ if (want('recruit')) {
   await rec.deleteMentor(db, 'alpha', 'M1');
   eq('mentor undesignation removes the pool row', await rec.listMentorIds(db, 'alpha'), []);
   eq('undesignation never rewrites pairings', (await rec.getActivePairingForMentee(db, 'alpha', 'U9'))?.id, p2);
+}
+
+/* ---------------- network: fill market + alliances (P19/P20) ---------------- */
+if (want('network')) {
+  console.log('== network repositories on real D1 ==');
+  const net = await import('../src/domains/guilds/network.ts');
+  const sg2 = await import('../src/domains/groupings/signups.ts');
+  const ev2 = await import('../src/domains/groupings/events.ts');
+
+  const o1 = await net.insertFillOffer(db, { discordId: 'US', displayName: '补位甲', homeTenant: 'beta', school: '牵丝·霖', windowsJson: '[{"weekday":5,"startMinute":1140,"endMinute":1380}]', note: '奶', at: 1760000000 });
+  check('insertFillOffer returns a row id', o1 > 0, String(o1));
+  eq('open offer read roundtrip', (await net.getOpenOfferForUser(db, 'US'))?.id, o1);
+  let offerDupThrew = false;
+  try { await net.insertFillOffer(db, { discordId: 'US', displayName: '补位甲', homeTenant: 'beta', school: '破竹·樽', windowsJson: '[]', note: '', at: 1760000100 }); }
+  catch { offerDupThrew = true; }
+  check('second open offer for the same person is rejected by the partial unique index', offerDupThrew);
+  eq('open offers list contains the offer', (await net.listOpenFillOffers(db)).map((r) => r.id), [o1]);
+
+  const evN = await ev2.insertEvent(db, { tenant: 'alpha', title: '缺奶车', type: 'activity', description: '', starts_at: null, starts_at_utc: null, dungeon: '', max_slots: 2, meet_info: '', status: 'open', origin: 'member', creator_discord_id: 'UL' });
+  const evIdN = evN.last_row_id;
+  const rq1 = await net.insertFillRequest(db, { tenant: 'alpha', eventId: evIdN, neededRole: '奶', neededSchool: '', note: '', createdBy: 'UL', createdByName: '车头', at: 1760000200 });
+  check('insertFillRequest returns a row id', rq1 > 0, String(rq1));
+  eq('request read is tenant-scoped', await net.getFillRequestByTenant(db, rq1, 'beta'), null);
+  eq('request read roundtrip', (await net.getFillRequestByTenant(db, rq1, 'alpha'))?.status, 'open');
+
+  const iv1 = await net.insertFillInvite(db, { requestId: rq1, offerId: o1, tenant: 'alpha', eventId: evIdN, fromDiscordId: 'UL', fromName: '车头', toDiscordId: 'US', toName: '补位甲', at: 1760000300 });
+  check('insertFillInvite returns a row id', iv1 > 0, String(iv1));
+  let invDupThrew = false;
+  try { await net.insertFillInvite(db, { requestId: rq1, offerId: o1, tenant: 'alpha', eventId: evIdN, fromDiscordId: 'UL', fromName: '车头', toDiscordId: 'US', toName: '补位甲', at: 1760000400 }); }
+  catch { invDupThrew = true; }
+  check('second live invite for the same pair is rejected by the partial unique index', invDupThrew);
+  eq('supplier inbox lists the invite', (await net.listInvitesForSupplier(db, 'US')).map((r) => r.id), [iv1]);
+
+  const declined = await net.respondFillInvite(db, iv1, 'US', false, 1760000500);
+  eq('decline settles the pending invite', declined.changes, 1);
+  const raced = await net.respondFillInvite(db, iv1, 'US', true, 1760000600);
+  eq('a settled invite cannot be re-answered (still-pending guard)', raced.changes, 0);
+  const iv2 = await net.insertFillInvite(db, { requestId: rq1, offerId: o1, tenant: 'alpha', eventId: evIdN, fromDiscordId: 'UL', fromName: '车头', toDiscordId: 'US', toName: '补位甲', at: 1760000700 });
+  check('a declined pair can be re-invited (partial index covers live rows only)', iv2 > iv1, `${iv1} -> ${iv2}`);
+  const accepted = await net.respondFillInvite(db, iv2, 'US', true, 1760000800);
+  eq('accept settles the pending invite', accepted.changes, 1);
+  eq('request matches', (await net.markFillRequestMatched(db, rq1, 1760000900)).changes, 1);
+  eq('a matched request cannot re-match (still-open guard)', (await net.markFillRequestMatched(db, rq1, 1760001000)).changes, 0);
+  eq('request closes from matched', (await net.closeFillRequest(db, rq1, 1760001100)).changes, 1);
+  eq('a closed request cannot re-close', (await net.closeFillRequest(db, rq1, 1760001200)).changes, 0);
+
+  const wd = await net.withdrawFillOffer(db, 'US', 1760001300);
+  eq('withdraw settles the open offer', wd.changes, 1);
+  eq('withdrawn offer no longer reads as open', await net.getOpenOfferForUser(db, 'US'), null);
+  eq('second withdraw is a no-op', (await net.withdrawFillOffer(db, 'US', 1760001400)).changes, 0);
+
+  // alliances: canonical pair ordering + state guards
+  const al1 = await net.insertAlliance(db, { fromTenant: 'beta', toTenant: 'alpha', requestedBy: 'UD', requestedByName: '乙管', at: 1760001500 });
+  check('insertAlliance returns a row id', al1 > 0, String(al1));
+  const alRow = await net.getAllianceById(db, al1);
+  eq('pair stored canonically (low, high)', [alRow?.guild_low, alRow?.guild_high], ['alpha', 'beta']);
+  eq('live relation found from either side', (await net.getLiveAllianceBetween(db, 'beta', 'alpha'))?.id, al1);
+  eq('no active relation while pending', await net.getActiveAllianceBetween(db, 'alpha', 'beta'), null);
+  let alDupThrew = false;
+  try { await net.insertAlliance(db, { fromTenant: 'alpha', toTenant: 'beta', requestedBy: 'UA', requestedByName: '甲管', at: 1760001600 }); }
+  catch { alDupThrew = true; }
+  check('second live relation for the pair is rejected by the partial unique index', alDupThrew);
+  eq('requester cannot respond to own invite', (await net.respondAlliance(db, al1, 'beta', true, 1760001700)).changes, 0);
+  eq('target side accepts', (await net.respondAlliance(db, al1, 'alpha', true, 1760001800)).changes, 1);
+  eq('active relation reads from either side', (await net.getActiveAllianceBetween(db, 'beta', 'alpha'))?.id, al1);
+  eq('ally slug list for alpha', await net.listActiveAllySlugs(db, 'alpha'), ['beta']);
+
+  // ally-shared events + visitor seats on the real seat model
+  await ev2.updateEventFields(db, evIdN, 'alpha', { ally_visible: 1, visitor_slots: 1 });
+  eq('ally-shared events list finds the flagged car', (await ev2.listAllySharedEvents(db, ['alpha'])).map((r) => r.id), [evIdN]);
+  eq('ally-shared events list is empty without allies', await ev2.listAllySharedEvents(db, []), []);
+  const seatOutcome = await sg2.insertSignupWithCapacityGuard(db, { event_id: evIdN, nickname: '乙员', uid: 'q-visitor', role: '输出', weapon: '破竹·樽', discord_id: 'UM', is_visitor: 1 });
+  eq('visitor seat inserts through the capacity guard', seatOutcome.outcome, 'inserted');
+  eq('visitor seats counted', await sg2.countVisitorSeatsByEvent(db, evIdN), 1);
+  eq('seat found by event + discord', (await sg2.findSeatByEventAndDiscord(db, evIdN, 'UM'))?.uid, 'q-visitor');
+
+  eq('either side dissolves', (await net.endAlliance(db, al1, 'beta', 1760001900)).changes, 1);
+  eq('dissolved alliance no longer reads active', await net.getActiveAllianceBetween(db, 'alpha', 'beta'), null);
+  eq('double dissolve is a no-op', (await net.endAlliance(db, al1, 'beta', 1760002000)).changes, 0);
+  const al2 = await net.insertAlliance(db, { fromTenant: 'alpha', toTenant: 'beta', requestedBy: 'UA', requestedByName: '甲管', at: 1760002100 });
+  check('an ended pair can be re-invited as a new row', al2 > al1, `${al1} -> ${al2}`);
 }
 
 await mf.dispose();
