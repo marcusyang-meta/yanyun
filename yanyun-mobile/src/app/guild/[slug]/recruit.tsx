@@ -1,8 +1,9 @@
-import React from 'react';
-import { useLocalSearchParams } from 'expo-router';
-import GuildRecruitScreen from '../../../screens/GuildRecruitScreen';
+import { Redirect } from 'expo-router';
 
-export default function GuildRecruit() {
-  const p = useLocalSearchParams<{ slug: string }>();
-  return <GuildRecruitScreen slug={p.slug} />;
+// The recruit page was dissolved into the app home (GuildsScreen's
+// recruit section carries applications, the newcomer checklist and
+// mentor pairings now); legacy deep links land on the home screen —
+// same disposition as Web's /:slug/recruit -> / redirect.
+export default function GuildRecruitRedirect() {
+  return <Redirect href="/" />;
 }

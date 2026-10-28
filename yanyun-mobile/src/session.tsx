@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { fetchViewer, type DiscordUser, type GuildItem, type SiteText } from './api';
+import { fetchViewer, type DiscordUser, type GuildItem, type HomeRecruitData, type SiteText } from './api';
 import { getToken, setToken } from './storage';
 import { logout as authLogout } from './auth';
 import { ensurePushRegistration, unregisterCurrentPushToken } from './push';
@@ -10,13 +10,14 @@ type SessionState = {
   user: DiscordUser | null;
   guilds: GuildItem[];
   publicGuilds: GuildItem[];
+  homeRecruit: HomeRecruitData | null;
   text: SiteText;
   refresh: () => Promise<void>;
   signOut: () => Promise<void>;
 };
 
 const Ctx = createContext<SessionState>({
-  ready: false, user: null, guilds: [], publicGuilds: [], text: {},
+  ready: false, user: null, guilds: [], publicGuilds: [], homeRecruit: null, text: {},
   refresh: async () => {}, signOut: async () => {},
 });
 
@@ -27,12 +28,13 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<DiscordUser | null>(null);
   const [guilds, setGuilds] = useState<GuildItem[]>([]);
   const [publicGuilds, setPublicGuilds] = useState<GuildItem[]>([]);
+  const [homeRecruit, setHomeRecruit] = useState<HomeRecruitData | null>(null);
   const [text, setText] = useState<SiteText>({});
 
   const refresh = useCallback(async () => {
     const token = await getToken();
     if (!token) {
-      setUser(null); setGuilds([]); setPublicGuilds([]);
+      setUser(null); setGuilds([]); setPublicGuilds([]); setHomeRecruit(null);
       // Site copy is fetched even when signed out: the login page's title/card
       // copy shares Web's source (viewer copy fields), and the anonymous
       // viewer supplies the same fields -- the login page never invents copy.
@@ -45,10 +47,10 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       if (!v.user) {
         // The server rejects this token (session voided when the grant is revoked/incomplete) -> clear it locally in sync
         await setToken(null);
-        setUser(null); setGuilds([]); setPublicGuilds([]);
+        setUser(null); setGuilds([]); setPublicGuilds([]); setHomeRecruit(null);
         return;
       }
-      setUser(v.user); setGuilds(v.guilds); setPublicGuilds(v.publicGuilds);
+      setUser(v.user); setGuilds(v.guilds); setPublicGuilds(v.publicGuilds); setHomeRecruit(v.homeRecruit);
       // Valid session -> silently sync the app push token (skips internally when permission/platform is unsupported)
       void ensurePushRegistration();
       // Locale reconciliation: server storage is the truth; when the local
@@ -80,12 +82,12 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     // Unregister the push token first (the mutation needs the current session), then clear the local session
     await unregisterCurrentPushToken();
     await authLogout();
-    setUser(null); setGuilds([]); setPublicGuilds([]);
+    setUser(null); setGuilds([]); setPublicGuilds([]); setHomeRecruit(null);
   }, []);
 
   const value = useMemo(
-    () => ({ ready, user, guilds, publicGuilds, text, refresh, signOut }),
-    [ready, user, guilds, publicGuilds, text, refresh, signOut],
+    () => ({ ready, user, guilds, publicGuilds, homeRecruit, text, refresh, signOut }),
+    [ready, user, guilds, publicGuilds, homeRecruit, text, refresh, signOut],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

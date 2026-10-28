@@ -6,6 +6,7 @@ import { fonts, theme } from '../theme';
 import { Backdrop, CardFill, GoldFill, Seal, UserBar } from '../components/ui';
 import { useSession } from '../session';
 import type { GuildItem } from '../api';
+import HomeRecruitSection from './HomeRecruitSection';
 
 // Guild picker mirrors Web GuildPicker: hero (centered brand title/
 // subtitle, UserBar frosted pill floating top-right) -> section head
@@ -61,7 +62,7 @@ function SectionHead({ zh, en, first = false }: { zh?: string | null; en?: strin
 }
 
 export default function GuildsScreen() {
-  const { guilds, publicGuilds, text } = useSession();
+  const { guilds, publicGuilds, homeRecruit, text } = useSession();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   return (
@@ -115,6 +116,12 @@ export default function GuildsScreen() {
               </View>
             </>
           )}
+
+          {/* Recruit section (Viewer.homeRecruit via session): my
+              newcomer checklist / pairings + the directory of guilds
+              I can apply to — the dissolved recruit page's content,
+              carried by the app home screen. */}
+          <HomeRecruitSection section={homeRecruit} />
         </View>
       </ScrollView>
     </View>

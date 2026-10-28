@@ -146,10 +146,70 @@ export type Seat = {
 };
 export type SeatPayload = { ok: boolean; error?: string | null; seats?: Seat[] | null };
 
+// Platform-home recruit section (Viewer.homeRecruit): composed by the
+// server per viewer — directory entries carry an application section
+// only for a logged-in non-member of that guild; newcomer entries only
+// for members / the paired. Mirrors the Web home section's selection.
+export type RecruitApplicationItem = {
+  id: string;
+  applicantName: string;
+  message?: string | null;
+  status: string;
+  statusLabel: string;
+  createdAtText: string;
+  reviewedByName?: string | null;
+  reviewedAtText?: string | null;
+};
+export type HomeRecruitGuildItem = {
+  slug: string;
+  name: string;
+  slogan?: string | null;
+  avatarUrl?: string | null;
+  myApplicationSection?: { application?: RecruitApplicationItem | null } | null;
+};
+export type HomeRecruitNewcomerItem = {
+  slug: string;
+  guildName: string;
+  checklist?: {
+    progressText: string;
+    items: { key: string; label: string; hint: string; done: boolean }[];
+  } | null;
+  myPairings?: {
+    id: string;
+    mentorName: string;
+    menteeName: string;
+    status: string;
+    statusLabel: string;
+    createdAtText: string;
+    endedAtText?: string | null;
+  }[] | null;
+};
+export type HomeRecruitData = {
+  recruitTitle: string;
+  homeBody: string;
+  homeLoginHint: string;
+  applySectionTitle: string;
+  messageLabel: string;
+  messagePlaceholder: string;
+  submitLabel: string;
+  submittingLabel: string;
+  myApplicationTitle: string;
+  pendingHint: string;
+  approvedNextStepText: string;
+  rejectedHint: string;
+  checklistTitle: string;
+  myPairingsTitle: string;
+  pairingMentorRoleLabel: string;
+  pairingMenteeRoleLabel: string;
+  guilds: HomeRecruitGuildItem[];
+  myNewcomer: HomeRecruitNewcomerItem[];
+};
+
 export type ViewerData = {
   user: DiscordUser | null;
   guilds: GuildItem[];
   publicGuilds: GuildItem[];
+  homeRecruit: HomeRecruitData | null;
   localePref?: string | null;
   text: SiteText;
 };
@@ -163,6 +223,7 @@ export async function fetchViewer(): Promise<ViewerData> {
       : null,
     guilds: (viewer?.guilds ?? []).map((g) => ({ ...g, readOnly: false })),
     publicGuilds: (viewer?.publicGuilds ?? []).map((g) => ({ ...g, readOnly: true })),
+    homeRecruit: (viewer?.homeRecruit as unknown as HomeRecruitData | undefined) ?? null,
     localePref: viewer?.myLocalePref ?? null,
     text: {
       siteTitle: viewer?.siteTitle,
