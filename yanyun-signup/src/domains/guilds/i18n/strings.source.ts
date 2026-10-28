@@ -239,9 +239,9 @@ export const guildAdmin_lotteryEntryCount = (fbs: FbsAPI, p?: StringParams) =>
   fbs([fbs.param("count", pv(p, "count")), " 人参与"], "guildAdmin.lotteryEntryCount");
 export const guildHome_tabSchedule = (fbs: FbsAPI) =>fbs("排期", "guildHome.tabSchedule");
 export const guildAdmin_tabRecruit = (fbs: FbsAPI) =>fbs("招新与导师", "guildAdmin.tabRecruit");
-export const recruit_entryLabel = (fbs: FbsAPI) =>fbs("招新 / 新人清单", "recruit.entryLabel");
 export const recruit_title = (fbs: FbsAPI) =>fbs("招新与新人", "recruit.title");
-export const recruit_body = (fbs: FbsAPI) =>fbs("想加入这个百业？提交一份入业申请，百业管理员会在管理面审核。已经在业的新人可以在这里看自己的入业清单与导师配对。", "recruit.body");
+export const recruit_homeBody = (fbs: FbsAPI) =>fbs("想加入一个百业？在下面挑一个开放招新的百业提交入业申请，百业管理员会在管理面审核。已经在业的新人可以在这里看自己的入业清单与导师配对。", "recruit.homeBody");
+export const recruit_homeLoginHint = (fbs: FbsAPI) =>fbs("登录后即可对心仪的百业提交入业申请，并在这里查看审核进度。", "recruit.homeLoginHint");
 export const recruit_applySectionTitle = (fbs: FbsAPI) =>fbs("入业申请", "recruit.applySectionTitle");
 export const recruit_messageLabel = (fbs: FbsAPI) =>fbs("申请附言", "recruit.messageLabel");
 export const recruit_messagePlaceholder = (fbs: FbsAPI) =>fbs("一句自我介绍（可选）：常玩的流派、在线时间……", "recruit.messagePlaceholder");
@@ -270,8 +270,6 @@ export const recruit_pairingStatusActive = (fbs: FbsAPI) =>fbs("进行中", "rec
 export const recruit_pairingStatusEnded = (fbs: FbsAPI) =>fbs("已结束", "recruit.pairingStatusEnded");
 export const recruit_mentorRoleLabel = (fbs: FbsAPI) =>fbs("导师", "recruit.mentorRoleLabel");
 export const recruit_menteeRoleLabel = (fbs: FbsAPI) =>fbs("新人", "recruit.menteeRoleLabel");
-export const recruit_lockedTitle = (fbs: FbsAPI) =>fbs("无法打开招新页", "recruit.lockedTitle");
-export const recruit_lockedBody = (fbs: FbsAPI) =>fbs("请先用 Discord 账号登录；若已登录，可能是该百业不存在。", "recruit.lockedBody");
 export const recruit_adminApplicationsTitle = (fbs: FbsAPI) =>fbs("入业申请审核", "recruit.adminApplicationsTitle");
 export const recruit_adminApplicationsEmpty = (fbs: FbsAPI) =>fbs("暂无申请记录。", "recruit.adminApplicationsEmpty");
 export const recruit_adminApproveButton = (fbs: FbsAPI) =>fbs("通过", "recruit.adminApproveButton");

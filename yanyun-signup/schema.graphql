@@ -2186,9 +2186,6 @@ type Guild {
   homeTabSectLabel: String!
   homeTabAnnouncementsLabel: String!
   homeTabScheduleLabel: String!
-  # 招新入口文案 (F16/F24/F17 招新新人线): 三个 Guild 变体都下发 —
-  # 非成员在 Locked 页看到的正是入业申请入口, 成员看到的是新人清单入口。
-  recruitEntryLabel: String!
   # 管理入口文案: 仅通过管理判定 (getGuildAdminAccess, 与管理面同一
   # 口径, 含 omni) 的查看者才下发; 其余成员为 null, 主页不渲染入口 —
   # 进不去的入口不广告。可空即为此意, 勿改回 String!。
@@ -2221,7 +2218,6 @@ type GuildReadOnly {
   homeTabSectLabel: String!
   homeTabAnnouncementsLabel: String!
   homeTabScheduleLabel: String!
-  recruitEntryLabel: String!
   homeReadOnlyBanner: String!
   detailNotFoundText: String!
   detailBackToListLabel: String!
@@ -2233,8 +2229,6 @@ type GuildReadOnly {
 # 已绑定但非成员 / 百业不存在: 不携带任何百业内容数据 (仅 slug 与本页文案)
 type GuildLocked {
   slug: String!
-  # 非成员的入业申请入口文案 (招新页 GuildRecruitPage 承接申请全流程)
-  recruitEntryLabel: String!
   lockedBackLinkLabel: String!
   lockedTitle: String!
   lockedBody1: String!
@@ -2250,7 +2244,7 @@ type Viewer {
   publicGuilds: [GuildReadOnly!]!  # 未绑定服务器的公开百业 (只读)
   guild(slug: String!): GuildResult!
   guildAdmin(slug: String!): GuildAdminResult!  # 百业管理面: 响应类型即权限结论 (见下方 GuildAdmin)
-  guildRecruit(slug: String!): GuildRecruitResult!  # 招新页 (F16 申请 / F24 清单 / F17 我的配对): 响应类型即权限结论
+  homeRecruit: HomeRecruitSection!  # 平台主页招新区 (F16 申请 / F24 清单 / F17 我的配对): 组成即权限结论 (见下方 HomeRecruitSection)
   discordServers: [DiscordServer!]!  # 我有管理权限的服务器 (服务端过滤)
   # UI 文案: 站点/登录/选择页/创建页/通用 — 全部由 Viewer shell 的 gen
   # 方法按请求 locale 生成, 未选中永不生成 (无 Strings 类型, 文案字段
@@ -2432,7 +2426,7 @@ type GuildAdmin {
   # resolver 内复验管理结论。通过申请的平台侧效果 = 申请结案 +
   # 登记进本百业名册; Discord 服务器成员身份平台无写通道 (无 bot
   # 令牌, OAuth 为用户只读授权), 申请人通过后自行加入绑定服务器
-  # —— GuildRecruitPage 的 approvedNextStep 文案逐字说明这一步。
+  # —— 主页招新区的 approvedNextStep 文案逐字说明这一步。
   recruitApplications: [RecruitApplication!]!
   recruitPairings: [MentorPairing!]!
   recruitRoster: [RecruitMember!]!
@@ -2699,40 +2693,56 @@ type NewcomerProgress {
   progressText: String!
 }
 
-union GuildRecruitResult = GuildRecruitPage | GuildRecruitLocked
-
-# 招新页 (登录用户): 申请人看自己的申请与状态 (尚未入业时 checklist
-# 为 null); 成员看自己的入业清单与配对。文案全部后端下发。
-type GuildRecruitPage {
-  slug: String!
-  guildName: String!
+# 平台主页招新区 (招新线 F16/F24/F17 的唯一会员面; 独立招新页已解
+# 散): 目录对所有人公开 (已绑定服务器的百业, 名称/简介/头像为平台
+# 公开口径, 与 GuildCard 同集); 申请区只为登录非成员按百业拼装;
+# 新人拼装只为成员 (清单) 与被配对者 (配对) 拼装。匿名两区皆空 —
+# 组成即结论, 无任何权限标志位。文案全部后端下发。
+type HomeRecruitSection {
   recruitTitle: String!
-  recruitBody: String!
+  homeBody: String!
+  homeLoginHint: String!
   applySectionTitle: String!
   messageLabel: String!
   messagePlaceholder: String!
   submitLabel: String!
   submittingLabel: String!
   myApplicationTitle: String!
-  myApplication: RecruitApplication
   pendingHint: String!
   approvedNextStepText: String!
   rejectedHint: String!
   checklistTitle: String!
-  checklist: NewcomerChecklist
   myPairingsTitle: String!
-  myPairings: [MentorPairing!]!
   pairingMentorRoleLabel: String!
   pairingMenteeRoleLabel: String!
-  backLabel: String!
+  guilds: [HomeRecruitGuild!]!
+  myNewcomer: [HomeRecruitNewcomer!]!
 }
 
-# 未登录 / 百业不存在: 只带 slug 与本页文案, 无任何百业内容数据。
-type GuildRecruitLocked {
+# 招新目录条目: 一个可申请的百业 (已绑定 Discord 服务器)。
+# myApplicationSection 仅当查看者可对本百业申请 (已登录且非成员)
+# 时存在; 成员与匿名皆为 null。
+type HomeRecruitGuild {
   slug: String!
-  lockedTitle: String!
-  lockedBody: String!
-  backLabel: String!
+  name: String!
+  slogan: String
+  avatarUrl: String
+  myApplicationSection: HomeRecruitApplicationSection
+}
+
+# 查看者在某百业的申请区: application 为其最近一份申请; 从未申请
+# 为 null (申请表单由 section 存在 + application 缺席/被拒驱动)。
+type HomeRecruitApplicationSection {
+  application: RecruitApplication
+}
+
+# 成员在主页的招新拼装 (按百业一条): checklist 仅成员有值 (被配对
+# 但非成员的条目为 null); myPairings 为本人在该百业的导师配对。
+type HomeRecruitNewcomer {
+  slug: String!
+  guildName: String!
+  checklist: NewcomerChecklist
+  myPairings: [MentorPairing!]!
 }
 
 type RecruitPayload {

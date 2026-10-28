@@ -9637,17 +9637,6 @@
       ],
       "types": []
     },
-    "LjL9N8pmpkC48xXzL1zOJg==": {
-      "description": "recruit.body",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "想加入這個百業？提交一份入業申請，百業管理員會在管理面審核。已經在業的新人可以在這裡看自己的入業清單與導師配對。",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
     "YRcvUVxBMYkrBK5RowmRjA==": {
       "description": "recruit.checklistProgress",
       "tokens": [],
@@ -9665,17 +9654,6 @@
       "translations": [
         {
           "translation": "新手入業清單",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "UM5qQlVn4+afqMvYMb7mRA==": {
-      "description": "recruit.entryLabel",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "招新 / 新人清單",
           "variations": {}
         }
       ],
@@ -9764,28 +9742,6 @@
       "translations": [
         {
           "translation": "完善流派 / 時區",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "wVxSIE5YkHr0K5MmcEoUTw==": {
-      "description": "recruit.lockedBody",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "請先用 Discord 帳號登入；若已登入，可能是該百業不存在。",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "pq1BG8aGk6aUuP0qiWV/VA==": {
-      "description": "recruit.lockedTitle",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "無法打開招新頁",
           "variations": {}
         }
       ],
@@ -9962,6 +9918,28 @@
       "translations": [
         {
           "translation": "招新與新人",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ZmkhBgcN6WCg9STnWdq5zw==": {
+      "description": "recruit.homeBody",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "想加入一個百業？在下面挑一個開放招新的百業提交入業申請，百業管理員會在管理面審核。已經在業的新人可以在這裡看自己的入業清單與導師配對。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "b9RU67wOdIHFyantZrjxFA==": {
+      "description": "recruit.homeLoginHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "登入後即可對心儀的百業提交入業申請，並在這裡查看審核進度。",
           "variations": {}
         }
       ],

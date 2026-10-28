@@ -6437,20 +6437,20 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
     }
   },
   "recruit": {
-    "entryLabel": {
-      "zh-CN": "招新 / 新人清单",
-      "en": "Recruiting / Newcomers",
-      "zh-TW": "招新 / 新人清單"
-    },
     "title": {
       "zh-CN": "招新与新人",
       "en": "Recruiting & newcomers",
       "zh-TW": "招新與新人"
     },
-    "body": {
-      "zh-CN": "想加入这个百业？提交一份入业申请，百业管理员会在管理面审核。已经在业的新人可以在这里看自己的入业清单与导师配对。",
-      "en": "Want to join this guild? File an application and a guild admin will review it here. Already in? Check your newcomer checklist and mentor pairing below.",
-      "zh-TW": "想加入這個百業？提交一份入業申請，百業管理員會在管理面審核。已經在業的新人可以在這裡看自己的入業清單與導師配對。"
+    "homeBody": {
+      "zh-CN": "想加入一个百业？在下面挑一个开放招新的百业提交入业申请，百业管理员会在管理面审核。已经在业的新人可以在这里看自己的入业清单与导师配对。",
+      "en": "Want to join a guild? Choose a guild that is open for recruitment below and submit an application; guild admins review applications in the admin panel. Newcomers already in a guild can see their newcomer checklist and mentor pairing here.",
+      "zh-TW": "想加入一個百業？在下面挑一個開放招新的百業提交入業申請，百業管理員會在管理面審核。已經在業的新人可以在這裡看自己的入業清單與導師配對。"
+    },
+    "homeLoginHint": {
+      "zh-CN": "登录后即可对心仪的百业提交入业申请，并在这里查看审核进度。",
+      "en": "After logging in, you can submit an application to a guild you like and track its review progress here.",
+      "zh-TW": "登入後即可對心儀的百業提交入業申請，並在這裡查看審核進度。"
     },
     "applySectionTitle": {
       "zh-CN": "入业申请",
@@ -6586,16 +6586,6 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-CN": "新人",
       "en": "Newcomer",
       "zh-TW": "新人"
-    },
-    "lockedTitle": {
-      "zh-CN": "无法打开招新页",
-      "en": "Cannot open the recruiting page",
-      "zh-TW": "無法打開招新頁"
-    },
-    "lockedBody": {
-      "zh-CN": "请先用 Discord 账号登录；若已登录，可能是该百业不存在。",
-      "en": "Please sign in with your Discord account first; if you are signed in, this guild may not exist.",
-      "zh-TW": "請先用 Discord 帳號登入；若已登入，可能是該百業不存在。"
     },
     "adminApplicationsTitle": {
       "zh-CN": "入业申请审核",

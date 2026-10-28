@@ -3,26 +3,33 @@
  * the row shells the guild-admin surface reuses for its review
  * queue / pairing list / newcomer overview.
  *
- * Permission shape (the platform rule): the response type is the
- * verdict. GuildRecruitLocked carries no guild data at all and is
- * what anonymous viewers and missing guilds get; GuildRecruitPage
- * composes per viewer — the application section serves logged-in
- * non-members, the checklist serves members, and my pairings serves
- * anyone the guild has paired. Copy is backend-issued throughout
- * (recruit section of the catalog).
+ * Permission shape (the platform rule): the composition is the
+ * verdict. The line's carrying page is the platform home
+ * (Viewer.homeRecruit, ruling 2026-10-27 — the standalone recruit
+ * page is dissolved): the section's guild directory is public
+ * (bound guilds, public-caliber fields), an application section
+ * exists only for a logged-in non-member of that guild, and a
+ * newcomer entry exists only for members (checklist) or paired
+ * viewers (pairings). Anonymous viewers get the directory alone —
+ * no application sections, no newcomer entries, nothing personal.
+ * Copy is backend-issued throughout (recruit section of the
+ * catalog).
  *
  * F16's Discord boundary, once more in the surface's own terms:
  * approval (an admin mutation in admin-graphql.ts) settles the
  * application and enrolls the applicant into the platform roster.
  * Joining the bound Discord server is the applicant's own step —
  * the platform holds no bot token and no Discord write grant — and
- * approvedNextStep names exactly that, verbatim, on this page. */
+ * approvedNextStep names exactly that, verbatim, in this section. */
 import type { Context } from '../platform/context.ts';
 import {
-  ShellBase, defineTextGens, getGuildAccess, PayloadBase, s,
+  ShellBase, defineTextGens, getGuildAccess, isDevRequest, PayloadBase, s,
   rateLimitGql as rateLimit, getClientIp,
 } from '../platform/graphql-base.ts';
 import { fmtStartsAt } from '../platform/index.ts';
+import { listTenantsDirectory } from './tenants.ts';
+import { listSettingsByKey } from './settings.ts';
+import { getGuildAvatarMeta, avatarPath } from './guildavatar.ts';
 import {
   APPLICATION_MAX_MESSAGE,
   getLatestApplication, getPendingApplication, insertApplication,
@@ -125,47 +132,124 @@ export class NewcomerProgressShell extends ShellBase {
   genProgressText(){ return this.t('recruit', 'checklistProgress', { done: this.data.facts.doneCount, total: 4 }); }
 }
 
-/* ---------------- the recruit page ---------------- */
+/* ---------------- the platform-home recruit section ----------------
+ * Viewer.homeRecruit: the whole recruit line on the platform home.
+ * The directory is assembled from the tenant directory + the
+ * binding scan (the hub directory's own sources); dev_only guilds
+ * stay hidden from non-dev surfaces (the hub rule). Per-guild
+ * access verdicts are computed only for logged-in viewers — the
+ * anonymous composition is the directory alone. */
 
-export class GuildRecruitPageShell extends ShellBase {
-  __typename = 'GuildRecruitPage';
-  genSlug(){ return this.data.slug; }
-  genGuildName(){ return this.data.tenant ? this.data.tenant.guild_name : ''; }
-  genMyApplication(){
-    return this.memo('myApplication', async () => {
-      if (!this.ctx.user) return null;
-      const row = await getLatestApplication(this.db, this.data.slug, this.ctx.user.discordId).catch(() => null);
+export class HomeRecruitApplicationSectionShell extends ShellBase {
+  /* The viewer's latest application to this guild; null when they
+   * have never applied (the apply form renders off the section's
+   * presence plus this absence — the dissolved page's composition,
+   * unchanged). */
+  genApplication(){
+    return this.memo('application', async () => {
+      const user = this.ctx.user;
+      if (!user) return null;
+      const row = await getLatestApplication(this.db, this.data.slug, user.discordId).catch(() => null);
       return row ? new RecruitApplicationShell(this.ctx, row) : null;
     });
   }
+}
+
+export class HomeRecruitGuildShell extends ShellBase {
+  genSlug(){ return this.data.tenant.slug; }
+  genName(){ return this.data.tenant.guild_name; }
+  genSlogan(){ return this.data.tenant.slogan || ''; }
+  // Custom guild avatar: same public brand image as GuildCard —
+  // a versioned URL carrying the hash, otherwise null.
+  genAvatarUrl(){
+    return this.memo('avatarUrl', async () => {
+      const meta = await getGuildAvatarMeta(this.db, this.data.tenant.slug).catch(() => null);
+      if (!meta) return null;
+      let origin = '';
+      try { origin = new URL(this.ctx.request.url).origin; } catch { /* Without a request, fall back to a relative path. */ }
+      return origin + avatarPath(this.data.tenant.slug, meta.hash);
+    });
+  }
+  /* The application section exists only for the audience that can
+   * apply: logged in and not a member of this guild. Members and
+   * anonymous viewers get null — the composition is the verdict. */
+  genMyApplicationSection(){
+    if (!this.ctx.user || this.data.isMember) return null;
+    return new HomeRecruitApplicationSectionShell(this.ctx, { slug: this.data.tenant.slug });
+  }
+}
+
+export class HomeRecruitNewcomerShell extends ShellBase {
+  genSlug(){ return this.data.slug; }
+  genGuildName(){ return this.data.guildName; }
   /* The checklist exists only for members of the guild (bound +
-   * in the bound server): non-members get null and the page renders
-   * the application section instead — the type composition carries
-   * the distinction, never a flag. */
+   * in the bound server): a pairing-only entry carries null here —
+   * the type composition carries the distinction, never a flag. */
   genChecklist(){
     return this.memo('checklist', async () => {
-      if (!this.ctx.user || !this.data.isMember) return null;
-      const facts = await computeNewcomerChecklist(this.db, this.data.slug, this.ctx.user.discordId);
+      const user = this.ctx.user;
+      if (!user || !this.data.isMember) return null;
+      const facts = await computeNewcomerChecklist(this.db, this.data.slug, user.discordId);
       return new NewcomerChecklistShell(this.ctx, { facts });
     });
   }
   genMyPairings(){
     return this.memo('myPairings', async () => {
-      if (!this.ctx.user) return [];
-      const rows = await listPairingsForUser(this.db, this.data.slug, this.ctx.user.discordId).catch(() => []);
+      const user = this.ctx.user;
+      if (!user) return [];
+      const rows = await listPairingsForUser(this.db, this.data.slug, user.discordId).catch(() => []);
       return rows.map((r) => new MentorPairingShell(this.ctx, r));
     });
   }
 }
 
-export class GuildRecruitLockedShell extends ShellBase {
-  __typename = 'GuildRecruitLocked';
-  genSlug(){ return this.data.slug; }
+export class HomeRecruitSectionShell extends ShellBase {
+  _assembled(){
+    return this.memo('assembled', async () => {
+      const db = this.db;
+      const results = await listTenantsDirectory(db).catch(() => []);
+      const bindRows = await listSettingsByKey(db, 'discord_guild_id').catch(() => []);
+      const bindSet = new Set((bindRows || []).filter((r: any) => r.value).map((r: any) => r.tenant));
+      const devRows = await listSettingsByKey(db, 'dev_only').catch(() => []);
+      const devSet = new Set((devRows || []).filter((r: any) => String(r.value) === '1').map((r: any) => r.tenant));
+      const devVisible = isDevRequest(this.ctx.request);
+      const guilds: any[] = [];
+      const newcomer: any[] = [];
+      for (const t of results || []) {
+        if (!bindSet.has(t.slug)) continue;
+        if (devSet.has(t.slug) && !devVisible) continue;
+        let isMember = false;
+        if (this.ctx.user) {
+          const a = await getGuildAccess(db, this.ctx.user, t.slug, this.ctx.request).catch(() => null);
+          isMember = !!(a && a.exists && a.isMember);
+        }
+        guilds.push(new HomeRecruitGuildShell(this.ctx, { tenant: t, isMember }));
+        if (this.ctx.user) {
+          // A newcomer entry exists for members, and for anyone the
+          // guild has paired (F17 serves the paired, member or not).
+          let paired = false;
+          if (!isMember) {
+            const rows = await listPairingsForUser(db, t.slug, this.ctx.user.discordId).catch(() => []);
+            paired = (rows || []).length > 0;
+          }
+          if (isMember || paired) {
+            newcomer.push(new HomeRecruitNewcomerShell(this.ctx, {
+              slug: t.slug, guildName: t.guild_name, isMember,
+            }));
+          }
+        }
+      }
+      return { guilds, newcomer };
+    });
+  }
+  async genGuilds(){ return (await this._assembled()).guilds; }
+  async genMyNewcomer(){ return (await this._assembled()).newcomer; }
 }
 
-export const RECRUIT_PAGE_TEXT_RESOLVERS = defineTextGens(GuildRecruitPageShell, [
+export const HOME_RECRUIT_TEXT_RESOLVERS = defineTextGens(HomeRecruitSectionShell, [
   ['recruitTitle', 'recruit', 'title'],
-  ['recruitBody', 'recruit', 'body'],
+  ['homeBody', 'recruit', 'homeBody'],
+  ['homeLoginHint', 'recruit', 'homeLoginHint'],
   ['applySectionTitle', 'recruit', 'applySectionTitle'],
   ['messageLabel', 'recruit', 'messageLabel'],
   ['messagePlaceholder', 'recruit', 'messagePlaceholder'],
@@ -179,20 +263,10 @@ export const RECRUIT_PAGE_TEXT_RESOLVERS = defineTextGens(GuildRecruitPageShell,
   ['myPairingsTitle', 'recruit', 'myPairingsTitle'],
   ['pairingMentorRoleLabel', 'recruit', 'mentorRoleLabel'],
   ['pairingMenteeRoleLabel', 'recruit', 'menteeRoleLabel'],
-  ['backLabel', 'guildHome', 'backToHub'],
-]);
-export const RECRUIT_LOCKED_TEXT_RESOLVERS = defineTextGens(GuildRecruitLockedShell, [
-  ['lockedTitle', 'recruit', 'lockedTitle'],
-  ['lockedBody', 'recruit', 'lockedBody'],
-  ['backLabel', 'guildHome', 'backToHub'],
 ]);
 
-export async function recruitResult(ctx: Context, slug: string) {
-  const a = await getGuildAccess(ctx.env.DB, ctx.user, slug, ctx.request);
-  if (!ctx.user || !a.exists) return new GuildRecruitLockedShell(ctx, { slug: String(slug || '') });
-  return new GuildRecruitPageShell(ctx, {
-    slug: a.tenant.slug, tenant: a.tenant, isMember: a.isMember, bound: a.bound,
-  });
+export function homeRecruitResult(ctx: Context) {
+  return new HomeRecruitSectionShell(ctx, {});
 }
 
 /* ---------------- payload + apply mutation (F16) ---------------- */
@@ -244,20 +318,31 @@ export const recruitMutations = {
 
 /* ---------------- type resolvers (registered once, shared) ---------------- */
 
-export const recruitTypes = {
-  GuildRecruitResult: { __resolveType: (p: any) => p.__typename },
-  GuildRecruitPage: {
+export const homeRecruitTypes = {
+  HomeRecruitSection: {
+    guilds: (p: any) => p.genGuilds(),
+    myNewcomer: (p: any) => p.genMyNewcomer(),
+    ...HOME_RECRUIT_TEXT_RESOLVERS,
+  },
+  HomeRecruitGuild: {
+    slug: (p: any) => p.genSlug(),
+    name: (p: any) => p.genName(),
+    slogan: (p: any) => p.genSlogan(),
+    avatarUrl: (p: any) => p.genAvatarUrl(),
+    myApplicationSection: (p: any) => p.genMyApplicationSection(),
+  },
+  HomeRecruitApplicationSection: {
+    application: (p: any) => p.genApplication(),
+  },
+  HomeRecruitNewcomer: {
     slug: (p: any) => p.genSlug(),
     guildName: (p: any) => p.genGuildName(),
-    myApplication: (p: any) => p.genMyApplication(),
     checklist: (p: any) => p.genChecklist(),
     myPairings: (p: any) => p.genMyPairings(),
-    ...RECRUIT_PAGE_TEXT_RESOLVERS,
   },
-  GuildRecruitLocked: {
-    slug: (p: any) => p.genSlug(),
-    ...RECRUIT_LOCKED_TEXT_RESOLVERS,
-  },
+};
+
+export const recruitTypes = {
   RecruitApplication: {
     id: (p: any) => p.genId(),
     applicantDiscordId: (p: any) => p.genApplicantDiscordId(),

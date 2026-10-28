@@ -1089,9 +1089,9 @@ export const schedule_toastClosed = (fbs: FbsRuntime) => fbs._("投票已关闭"
 export const schedule_toastFailedTemplate = (fbs: FbsRuntime, p?: StringParams) => fbs._("操作失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "DL1dY" });
 export const schedule_settingsLinkLabel = (fbs: FbsRuntime) => fbs._("在个人设置中填写", null, { hk: "ygogI" });
 export const schedule_noGuildsText = (fbs: FbsRuntime) => fbs._("你还没有加入任何百业，加入后可在此填写可用时间。", null, { hk: "26fgdQ" });
-export const recruit_entryLabel = (fbs: FbsRuntime) => fbs._("招新 / 新人清单", null, { hk: "2SNTpV" });
 export const recruit_title = (fbs: FbsRuntime) => fbs._("招新与新人", null, { hk: "4t6XP4" });
-export const recruit_body = (fbs: FbsRuntime) => fbs._("想加入这个百业？提交一份入业申请，百业管理员会在管理面审核。已经在业的新人可以在这里看自己的入业清单与导师配对。", null, { hk: "4heuQp" });
+export const recruit_homeBody = (fbs: FbsRuntime) => fbs._("想加入一个百业？在下面挑一个开放招新的百业提交入业申请，百业管理员会在管理面审核。已经在业的新人可以在这里看自己的入业清单与导师配对。", null, { hk: "ysPyU" });
+export const recruit_homeLoginHint = (fbs: FbsRuntime) => fbs._("登录后即可对心仪的百业提交入业申请，并在这里查看审核进度。", null, { hk: "26TTy3" });
 export const recruit_applySectionTitle = (fbs: FbsRuntime) => fbs._("入业申请", null, { hk: "3o8oyN" });
 export const recruit_messageLabel = (fbs: FbsRuntime) => fbs._("申请附言", null, { hk: "3wtkco" });
 export const recruit_messagePlaceholder = (fbs: FbsRuntime) => fbs._("一句自我介绍（可选）：常玩的流派、在线时间……", null, { hk: "3oSljV" });
@@ -1119,8 +1119,6 @@ export const recruit_pairingStatusActive = (fbs: FbsRuntime) => fbs._("进行中
 export const recruit_pairingStatusEnded = (fbs: FbsRuntime) => fbs._("已结束", null, { hk: "G2QDI" });
 export const recruit_mentorRoleLabel = (fbs: FbsRuntime) => fbs._("导师", null, { hk: "2o5QNB" });
 export const recruit_menteeRoleLabel = (fbs: FbsRuntime) => fbs._("新人", null, { hk: "1rZagp" });
-export const recruit_lockedTitle = (fbs: FbsRuntime) => fbs._("无法打开招新页", null, { hk: "3z4Q8J" });
-export const recruit_lockedBody = (fbs: FbsRuntime) => fbs._("请先用 Discord 账号登录；若已登录，可能是该百业不存在。", null, { hk: "KiI2u" });
 export const recruit_adminApplicationsTitle = (fbs: FbsRuntime) => fbs._("入业申请审核", null, { hk: "2FReE8" });
 export const recruit_adminApplicationsEmpty = (fbs: FbsRuntime) => fbs._("暂无申请记录。", null, { hk: "1LdEu6" });
 export const recruit_adminApproveButton = (fbs: FbsRuntime) => fbs._("通过", null, { hk: "1CywMp" });
@@ -2201,9 +2199,9 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"schedule.toastFailedTemplate": schedule_toastFailedTemplate,
 	"schedule.settingsLinkLabel": schedule_settingsLinkLabel,
 	"schedule.noGuildsText": schedule_noGuildsText,
-	"recruit.entryLabel": recruit_entryLabel,
 	"recruit.title": recruit_title,
-	"recruit.body": recruit_body,
+	"recruit.homeBody": recruit_homeBody,
+	"recruit.homeLoginHint": recruit_homeLoginHint,
 	"recruit.applySectionTitle": recruit_applySectionTitle,
 	"recruit.messageLabel": recruit_messageLabel,
 	"recruit.messagePlaceholder": recruit_messagePlaceholder,
@@ -2231,8 +2229,6 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"recruit.pairingStatusEnded": recruit_pairingStatusEnded,
 	"recruit.mentorRoleLabel": recruit_mentorRoleLabel,
 	"recruit.menteeRoleLabel": recruit_menteeRoleLabel,
-	"recruit.lockedTitle": recruit_lockedTitle,
-	"recruit.lockedBody": recruit_lockedBody,
 	"recruit.adminApplicationsTitle": recruit_adminApplicationsTitle,
 	"recruit.adminApplicationsEmpty": recruit_adminApplicationsEmpty,
 	"recruit.adminApproveButton": recruit_adminApproveButton,

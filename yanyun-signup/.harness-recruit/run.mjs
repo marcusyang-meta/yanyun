@@ -1,8 +1,10 @@
 // Recruitment line acceptance (F16 applications / F24 newcomer
 // checklist / F17 mentor pairings):
-//  - member surface: GuildRecruitLocked for anonymous / missing
-//    guild; the page composes per viewer (application for
-//    non-members, checklist for members, pairings for both);
+//  - member surface: the platform-home section (Viewer.homeRecruit)
+//    composes per viewer — public directory of bound guilds for
+//    everyone, application sections for logged-in non-members,
+//    newcomer entries (checklist + pairings) for members / the
+//    paired; anonymous gets the directory alone;
 //  - F16: apply validation + pending dedupe (alreadyMember /
 //    recruitUnavailable / guildNotFound / applicationPending),
 //    admin review settles once (second review refused), rejection
@@ -152,9 +154,18 @@ function makeDb(fx = {}) {
     const first = (row) => (kind === 'first' ? (row ?? null) : { results: row ? [row] : [] });
     const all = (rows) => ({ results: rows });
     if (/FROM tenants WHERE slug/i.test(sql)) return first(tables.tenants.find((t) => t.slug === b[0]));
+    if (/FROM tenants/i.test(sql)) return all(tables.tenants);
     if (/FROM settings WHERE tenant = \? AND key = \?/i.test(sql)) {
       const v = tables.settings.get(`${b[0]}|${b[1]}`);
       return first(v === undefined ? null : { value: v });
+    }
+    if (/FROM settings WHERE key = \?/i.test(sql)) {
+      const rows = [];
+      for (const [k, v] of tables.settings.entries()) {
+        const at = k.lastIndexOf('|');
+        if (k.slice(at + 1) === String(b[0])) rows.push({ tenant: k.slice(0, at), value: v });
+      }
+      return all(rows);
     }
     if (/FROM settings/i.test(sql)) return kind === 'first' ? null : all([]);
     if (/SELECT guilds_json FROM users/i.test(sql)) {
@@ -283,23 +294,31 @@ async function gql(query, { user = null, variables } = {}) {
   return res.json();
 }
 
-/* ================= the recruit page: gates ================= */
-const pageQ = `{ viewer { guildRecruit(slug: "rectest") { __typename
-  ... on GuildRecruitPage { slug guildName recruitTitle myApplication { id applicantName message status statusLabel reviewedByName }
-    checklist { doneCount totalCount progressText items { key label hint done } }
-    myPairings { id mentorName menteeName status statusLabel } }
-  ... on GuildRecruitLocked { slug lockedTitle lockedBody } } } }`;
+/* ================= the home recruit section: composition ================= */
+const homeQ = `{ viewer { homeRecruit { recruitTitle homeBody
+  guilds { slug name slogan myApplicationSection { application { id applicantName message status statusLabel reviewedByName } } }
+  myNewcomer { slug guildName checklist { doneCount totalCount progressText items { key label hint done } }
+    myPairings { id mentorName menteeName status statusLabel } } } } }`;
+const homeGuild = (r, slug) => (r.data?.viewer?.homeRecruit?.guilds || []).find((g) => g.slug === slug);
+const homeNewcomer = (r, slug) => (r.data?.viewer?.homeRecruit?.myNewcomer || []).find((g) => g.slug === slug);
+const myApp = (r, slug) => homeGuild(r, slug)?.myApplicationSection?.application ?? null;
 
-let r = await gql(pageQ, { user: null });
-eq('匿名 -> GuildRecruitLocked', r.data?.viewer?.guildRecruit?.__typename, 'GuildRecruitLocked');
-eq('Locked 文案由后端下发', r.data?.viewer?.guildRecruit?.lockedTitle, '无法打开招新页');
-r = await gql(pageQ.replace('rectest', 'nosuch'), { user: MEMBER });
-eq('百业不存在 -> GuildRecruitLocked', r.data?.viewer?.guildRecruit?.__typename, 'GuildRecruitLocked');
-r = await gql(pageQ, { user: APPLICANT });
-eq('未入业登录用户 -> GuildRecruitPage', r.data?.viewer?.guildRecruit?.__typename, 'GuildRecruitPage');
-eq('非成员页: 无申请时 myApplication 为 null', r.data?.viewer?.guildRecruit?.myApplication, null);
-eq('非成员页: checklist 为 null (未入业不下发清单)', r.data?.viewer?.guildRecruit?.checklist, null);
-eq('非成员页: myPairings 空', r.data?.viewer?.guildRecruit?.myPairings, []);
+let r = await gql(homeQ, { user: null });
+eq('匿名: 区标题文案由后端下发', r.data?.viewer?.homeRecruit?.recruitTitle, '招新与新人');
+eq('匿名: 目录 = 已绑定百业 (含甲/乙, 不含未绑)', (r.data?.viewer?.homeRecruit?.guilds || []).map((g) => g.slug), ['rectest', 'othertest']);
+eq('匿名: 目录带百业名 (公开口径)', homeGuild(r, 'rectest')?.name, '招新测试百业');
+eq('匿名: 无任何申请区', (r.data?.viewer?.homeRecruit?.guilds || []).every((g) => g.myApplicationSection === null), true);
+eq('匿名: 无新人拼装', r.data?.viewer?.homeRecruit?.myNewcomer, []);
+r = await gql(`{ viewer { guildRecruit(slug: "rectest") { __typename } } }`, { user: MEMBER });
+check('旧招新页字段已下线 (guildRecruit 不存在)', Array.isArray(r.errors) && r.errors.length > 0, JSON.stringify(r).slice(0, 120));
+r = await gql(homeQ, { user: APPLICANT });
+eq('未入业登录用户: 甲业有申请区', !!homeGuild(r, 'rectest')?.myApplicationSection, true);
+eq('未入业登录用户: 无申请时 application 为 null', myApp(r, 'rectest'), null);
+eq('未入业登录用户: 无新人拼装 (清单不下发)', r.data?.viewer?.homeRecruit?.myNewcomer, []);
+r = await gql(homeQ, { user: MEMBER });
+eq('成员: 自己百业无申请区', homeGuild(r, 'rectest')?.myApplicationSection ?? null, null);
+eq('成员: 新人拼装含甲业', !!homeNewcomer(r, 'rectest'), true);
+eq('成员: 他业仍可申请 (乙业有申请区)', !!homeGuild(r, 'othertest')?.myApplicationSection, true);
 
 /* ================= F16: apply + dedupe ================= */
 const applyMut = `mutation($slug: String!, $message: String) { applyToGuild(slug: $slug, message: $message) { ok error errorCode application { id status applicantName } } }`;
@@ -319,9 +338,9 @@ const app1 = r.data?.applyToGuild?.application?.id;
 r = await gql(applyMut, { user: APPLICANT, variables: { slug: 'rectest', message: '再来一份' } });
 eq('已有待审申请再提 -> applicationPending (去重)', r.data?.applyToGuild?.errorCode, 'applicationPending');
 eq('去重后仍只有一份申请', tables.applications.length, 1);
-r = await gql(pageQ, { user: APPLICANT });
-eq('申请人回读自己的待审申请', r.data?.viewer?.guildRecruit?.myApplication?.status, 'PENDING');
-eq('申请人回读状态文案', r.data?.viewer?.guildRecruit?.myApplication?.statusLabel, '待审核');
+r = await gql(homeQ, { user: APPLICANT });
+eq('申请人回读自己的待审申请', myApp(r, 'rectest')?.status, 'PENDING');
+eq('申请人回读状态文案', myApp(r, 'rectest')?.statusLabel, '待审核');
 eq('附言已落库 (裁剪后)', tables.applications[0].message, '我常玩奶，想入业');
 
 /* ================= F16: review (admin surface) ================= */
@@ -347,8 +366,8 @@ r = await gql(reviewMut, { user: ADMIN, variables: { slug: 'rectest', id: '42424
 eq('不存在的申请 -> applicationNotFound', r.data?.reviewGuildApplication?.errorCode, 'applicationNotFound');
 r = await gql(reviewMut, { user: ADMIN, variables: { slug: 'rectest', id: app1, approve: false } });
 eq('拒绝 ok', r.data?.reviewGuildApplication?.ok, true);
-r = await gql(pageQ, { user: APPLICANT });
-eq('申请人看到已拒绝 + 审核人留痕', [r.data?.viewer?.guildRecruit?.myApplication?.status, r.data?.viewer?.guildRecruit?.myApplication?.reviewedByName], ['REJECTED', '管理员甲']);
+r = await gql(homeQ, { user: APPLICANT });
+eq('申请人看到已拒绝 + 审核人留痕', [myApp(r, 'rectest')?.status, myApp(r, 'rectest')?.reviewedByName], ['REJECTED', '管理员甲']);
 r = await gql(reviewMut, { user: ADMIN, variables: { slug: 'rectest', id: app1, approve: true } });
 eq('已结案再审 -> applicationNotPending', r.data?.reviewGuildApplication?.errorCode, 'applicationNotPending');
 eq('拒绝不登记名册', tables.guildMembers.some((m) => m.discord_id === 'UN'), false);
@@ -361,8 +380,8 @@ r = await gql(reviewMut, { user: ADMIN, variables: { slug: 'rectest', id: app2, 
 eq('通过 ok', r.data?.reviewGuildApplication?.ok, true);
 eq('通过后登记进百业名册 (平台侧入业)', tables.guildMembers.some((m) => m.tenant === 'rectest' && m.discord_id === 'UN'), true);
 eq('名册行全局名 = 申请快照名', tables.guildMembers.find((m) => m.discord_id === 'UN')?.global_name, '新人甲全局名');
-r = await gql(pageQ, { user: APPLICANT });
-eq('申请人看到已通过', r.data?.viewer?.guildRecruit?.myApplication?.status, 'APPROVED');
+r = await gql(homeQ, { user: APPLICANT });
+eq('申请人看到已通过', myApp(r, 'rectest')?.status, 'APPROVED');
 r = await gql(adminQ, { user: ADMIN });
 eq('队列留痕: 两份申请最新在前', (r.data?.viewer?.guildAdmin?.recruitApplications || []).map((a) => a.status), ['APPROVED', 'REJECTED']);
 
@@ -393,23 +412,23 @@ eq('新人已有进行中配对 -> menteeAlreadyPaired', r.data?.createMentorPai
 eq('配对只落一行', tables.pairings.length, 1);
 
 /* ================= F24: checklist derivation ================= */
-r = await gql(pageQ, { user: MEMBER });
-const cl = r.data?.viewer?.guildRecruit?.checklist;
+r = await gql(homeQ, { user: MEMBER });
+const cl = homeNewcomer(r, 'rectest')?.checklist;
 eq('成员清单: 四项齐发', (cl?.items || []).map((i) => i.key), ['profile', 'availability', 'mentor', 'firstRun']);
 eq('清单条目文案后端下发', cl?.items?.[0]?.label, '完善流派 / 时区');
 eq('可用时间条目文案后端下发', cl?.items?.[1]?.label, '填写可用时间');
 eq('未填可用时间时仅该项未勾 (流派座位+导师+完成车已勾)', (cl?.items || []).map((i) => i.done), [true, false, true, true]);
 eq('清单进度文案后端拼', cl?.progressText, '已完成 3 / 4');
-eq('本人配对回读', (r.data?.viewer?.guildRecruit?.myPairings || []).map((p) => [p.mentorName, p.status]), [['导师甲', 'ACTIVE']]);
+eq('本人配对回读', (homeNewcomer(r, 'rectest')?.myPairings || []).map((p) => [p.mentorName, p.status]), [['导师甲', 'ACTIVE']]);
 const availMut = `mutation($input: SetAvailabilityInput!) { setMyAvailability(input: $input) { ok error errorCode } }`;
 r = await gql(availMut, { user: MEMBER, variables: { input: { slug: 'rectest', slots: [{ weekday: 5, startMinute: 1140, endMinute: 1320 }] } } });
 eq('成员保存可用时间 ok (清单完成态的事实来源)', r.data?.setMyAvailability?.ok, true);
-r = await gql(pageQ, { user: MEMBER });
-eq('填后四项全勾 (流派座位+可用时间+导师+完成车)', (r.data?.viewer?.guildRecruit?.checklist?.items || []).map((i) => i.done), [true, true, true, true]);
-eq('填后清单进度 4/4', r.data?.viewer?.guildRecruit?.checklist?.progressText, '已完成 4 / 4');
-r = await gql(pageQ, { user: MEMBER2 });
-eq('丙清单: 无流派/未填可用时间/无导师/未完成全未勾', (r.data?.viewer?.guildRecruit?.checklist?.items || []).map((i) => i.done), [false, false, false, false]);
-eq('丙清单进度 0/4', r.data?.viewer?.guildRecruit?.checklist?.doneCount, 0);
+r = await gql(homeQ, { user: MEMBER });
+eq('填后四项全勾 (流派座位+可用时间+导师+完成车)', (homeNewcomer(r, 'rectest')?.checklist?.items || []).map((i) => i.done), [true, true, true, true]);
+eq('填后清单进度 4/4', homeNewcomer(r, 'rectest')?.checklist?.progressText, '已完成 4 / 4');
+r = await gql(homeQ, { user: MEMBER2 });
+eq('丙清单: 无流派/未填可用时间/无导师/未完成全未勾', (homeNewcomer(r, 'rectest')?.checklist?.items || []).map((i) => i.done), [false, false, false, false]);
+eq('丙清单进度 0/4', homeNewcomer(r, 'rectest')?.checklist?.doneCount, 0);
 r = await gql(adminQ, { user: ADMIN });
 const prog = r.data?.viewer?.guildAdmin?.newcomerProgress || [];
 check('总览含未完成的丙 (0 项)', prog.some((p) => p.discordId === 'UC' && p.doneCount === 0), JSON.stringify(prog.map((p) => p.discordId)));
@@ -429,9 +448,9 @@ eq('结束留痕不删行', tables.pairings.length, 1);
 eq('结束行状态落痕', tables.pairings[0].status, 'ended');
 r = await gql(endMut, { user: ADMIN, variables: { slug: 'rectest', id: pair1 } });
 eq('重复结束 -> pairingAlreadyEnded', r.data?.endMentorPairing?.errorCode, 'pairingAlreadyEnded');
-r = await gql(pageQ, { user: MEMBER });
-eq('结束后导师项掉勾', r.data?.viewer?.guildRecruit?.checklist?.items?.find((i) => i.key === 'mentor')?.done, false);
-eq('本人配对列表仍见已结束配对 (留痕)', (r.data?.viewer?.guildRecruit?.myPairings || []).map((p) => p.status), ['ENDED']);
+r = await gql(homeQ, { user: MEMBER });
+eq('结束后导师项掉勾', homeNewcomer(r, 'rectest')?.checklist?.items?.find((i) => i.key === 'mentor')?.done, false);
+eq('本人配对列表仍见已结束配对 (留痕)', (homeNewcomer(r, 'rectest')?.myPairings || []).map((p) => p.status), ['ENDED']);
 r = await gql(pairMut, { user: ADMIN, variables: { slug: 'rectest', mentor: 'UM', mentee: 'UB' } });
 eq('结束后可改配', r.data?.createMentorPairing?.ok, true);
 
