@@ -1,88 +1,38 @@
 import React from 'react';
-import { Image, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { router } from 'expo-router';
 import { fonts, theme } from '../theme';
 import { useSession } from '../session';
 
-const HERO = require('../../assets/hero.jpg');
-
-// RN counterpart of Web CSS gradients: an absolute fill layer inside a
-// container with borderRadius + overflow:'hidden'.
-// Gold gradient of .yy-btn-gold / .yy-chip.selected:
+// Flat fill layers inside containers with borderRadius + overflow:'hidden'
+// (RN counterparts of Web's flat surfaces -- no gradients anywhere).
+// Solid accent of .yy-btn-primary / .yy-chip.selected:
 export function GoldFill() {
-  return (
-    <LinearGradient
-      colors={theme.goldGradient}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 0.7, y: 1 }}
-      style={StyleSheet.absoluteFill}
-      pointerEvents="none"
-    />
-  );
+  return <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.accent }]} pointerEvents="none" />;
 }
 
-// Card gradient for --card-bg (160deg gold haze to black):
+// Flat card surface for --card-bg:
 export function CardFill() {
-  return (
-    <LinearGradient
-      colors={theme.cardGradient}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 0.7, y: 1 }}
-      style={StyleSheet.absoluteFill}
-      pointerEvents="none"
-    />
-  );
+  return <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.cardBg }]} pointerEvents="none" />;
 }
 
-// Translucent gold gradient of .yy-tab.active:
+// Translucent accent tint of .yy-tab.active:
 export function TabFill() {
-  return (
-    <LinearGradient
-      colors={theme.tabGradient}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 0.7, y: 1 }}
-      style={StyleSheet.absoluteFill}
-      pointerEvents="none"
-    />
-  );
+  return <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.accentTint }]} pointerEvents="none" />;
 }
 
 // Page chrome mirroring Web (spec = Web's actual render at 390px):
-// SiteBackdrop ambience / UserBar user cluster / SiteChrome header row /
+// flat page backdrop / UserBar user cluster / SiteChrome header row /
 // GuildHeader guild name + version / Seal stamp.
 
-// Web SiteBackdrop: landscape image fixed as backdrop, heavily darkened,
-// melting into ink at the bottom; a second copy anchors the bottom edge
-// so short pages end on the mountain silhouette.
+// Web has no backdrop layer anymore: pages sit directly on the flat
+// neutral background. Kept as a component so call sites are unchanged.
 export function Backdrop() {
-  const { height } = useWindowDimensions();
-  return (
-    <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-      <Image source={HERO} style={StyleSheet.absoluteFill} resizeMode="cover" />
-      <LinearGradient
-        colors={['rgba(12,11,9,.58)', 'rgba(12,11,9,.80)', 'rgba(12,11,9,.95)', theme.bg]}
-        locations={[0, 0.3, 0.58, 0.8]}
-        style={StyleSheet.absoluteFill}
-      />
-      <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: height * 0.34, overflow: 'hidden' }}>
-        <Image
-          source={HERO}
-          style={{ position: 'absolute', left: 0, right: 0, bottom: 0, width: '100%', height, opacity: 0.55 }}
-          resizeMode="cover"
-        />
-        <LinearGradient
-          colors={[theme.bg, 'rgba(12,11,9,0)']}
-          locations={[0, 0.42]}
-          style={StyleSheet.absoluteFill}
-        />
-      </View>
-    </View>
-  );
+  return <View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: theme.bg }]} />;
 }
 
-// Seal: Web .yy-seal (48 brush text in the picker) / 36px seal inside .yy-card (serif bold).
+// Seal: Web .yy-seal (bold sans char in the picker) / 36px seal inside .yy-card.
 export function Seal({ char, size, brush = true }: { char: string; size: number; brush?: boolean }) {
   return (
     <View
@@ -95,8 +45,8 @@ export function Seal({ char, size, brush = true }: { char: string; size: number;
       <Text
         style={{
           color: theme.paper, fontSize: size * 0.5,
-          fontFamily: brush ? fonts.brush : fonts.serif,
-          fontWeight: brush ? '400' : '700',
+          fontFamily: brush ? fonts.display : fonts.body,
+          fontWeight: '700',
           lineHeight: size * 0.58,
         }}
       >
@@ -111,11 +61,11 @@ function GhostBtn({ label, onPress }: { label: string; onPress: () => void }) {
     <Pressable
       onPress={onPress}
       style={{
-        borderWidth: 1, borderColor: 'rgba(201,163,92,.4)', borderRadius: 8,
+        borderWidth: 1, borderColor: theme.chipBorder, borderRadius: 8,
         paddingVertical: 5, paddingHorizontal: 12,
       }}
     >
-      <Text style={{ color: theme.muted, fontSize: 12.5, fontFamily: fonts.serif }}>{label}</Text>
+      <Text style={{ color: theme.muted, fontSize: 12.5, fontFamily: fonts.body }}>{label}</Text>
     </Pressable>
   );
 }
@@ -131,20 +81,20 @@ export function UserBar({ displayName, floating = false }: { displayName?: strin
       {user.avatar ? (
         <Image
           source={{ uri: user.avatar }}
-          style={{ width: 30, height: 30, borderRadius: 15, borderWidth: 1, borderColor: theme.gold }}
+          style={{ width: 30, height: 30, borderRadius: 15, borderWidth: 1, borderColor: theme.accent }}
         />
       ) : (
         <View
           style={{
-            width: 30, height: 30, borderRadius: 15, backgroundColor: '#3a2c17',
+            width: 30, height: 30, borderRadius: 15, backgroundColor: '#26292f',
             alignItems: 'center', justifyContent: 'center',
-            borderWidth: 1, borderColor: theme.gold,
+            borderWidth: 1, borderColor: theme.accent,
           }}
         >
-          <Text style={{ color: theme.goldHi, fontSize: 13, fontFamily: fonts.serif }}>{name.slice(0, 1)}</Text>
+          <Text style={{ color: theme.accentHi, fontSize: 13, fontFamily: fonts.body }}>{name.slice(0, 1)}</Text>
         </View>
       )}
-      <Text numberOfLines={1} style={{ color: theme.paper, fontSize: 14, fontFamily: fonts.serif, maxWidth: 110, flexShrink: 1 }}>
+      <Text numberOfLines={1} style={{ color: theme.paper, fontSize: 14, fontFamily: fonts.body, maxWidth: 110, flexShrink: 1 }}>
         {name}
       </Text>
       <GhostBtn label={text.userBarSettingsLabel ?? '个人资料'} onPress={() => router.push('/profile')} />
@@ -159,11 +109,11 @@ export function UserBar({ displayName, floating = false }: { displayName?: strin
     <View
       style={{
         borderRadius: 999, overflow: 'hidden',
-        borderWidth: 1, borderColor: 'rgba(201,163,92,.25)',
+        borderWidth: 1, borderColor: 'rgba(67,160,134,.25)',
       }}
     >
       <BlurView intensity={24} tint="dark" style={StyleSheet.absoluteFill} />
-      <View style={{ backgroundColor: 'rgba(12,11,9,.5)', paddingVertical: 5, paddingLeft: 12, paddingRight: 10 }}>
+      <View style={{ backgroundColor: 'rgba(21,23,27,.5)', paddingVertical: 5, paddingLeft: 12, paddingRight: 10 }}>
         {inner}
       </View>
     </View>
@@ -179,7 +129,7 @@ export function SiteChrome({ displayName, backLabel }: { displayName?: string | 
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
       <Pressable onPress={() => router.navigate('/')} hitSlop={8} style={{ flexShrink: 1 }}>
-        <Text numberOfLines={1} style={{ color: theme.muted, fontSize: 13, letterSpacing: 1, fontFamily: fonts.serif }}>
+        <Text numberOfLines={1} style={{ color: theme.muted, fontSize: 13, letterSpacing: 1, fontFamily: fonts.body }}>
           {backLabel ?? `← ${text.siteTitle ?? '百业集结'}`}
         </Text>
       </Pressable>
@@ -188,7 +138,7 @@ export function SiteChrome({ displayName, backLabel }: { displayName?: string | 
   );
 }
 
-// Web guild header: guild name (calligraphy 42, gold) + gameVersion row.
+// Web guild header: guild name (sans bold, paper) + gameVersion row.
 // When the guild has a custom avatar (avatarUrl, passed in as a route
 // param from the picker), a round image sits left of the name.
 export function GuildHeader({ name, version, avatarUrl }: { name: string; version?: string | null; avatarUrl?: string | null }) {
@@ -199,16 +149,16 @@ export function GuildHeader({ name, version, avatarUrl }: { name: string; versio
           source={{ uri: avatarUrl }}
           style={{
             width: 56, height: 56, borderRadius: 28, marginTop: 12,
-            borderWidth: 1, borderColor: 'rgba(201,163,92,.5)', backgroundColor: 'rgba(201,163,92,.08)',
+            borderWidth: 1, borderColor: theme.border, backgroundColor: 'rgba(255,255,255,.04)',
           }}
         />
       ) : null}
       <View style={{ flex: 1, minWidth: 0 }}>
-        <Text style={{ fontFamily: fonts.brush, fontSize: 42, color: theme.goldHi, letterSpacing: 3, marginTop: 12, marginBottom: 4 }}>
+        <Text style={{ fontFamily: fonts.display, fontWeight: '700', fontSize: 30, color: theme.paper, letterSpacing: 1, marginTop: 12, marginBottom: 4 }}>
           {name}
         </Text>
         {version ? (
-          <Text style={{ color: theme.muted, fontSize: 13, letterSpacing: 1, fontFamily: fonts.serif }}>{version}</Text>
+          <Text style={{ color: theme.muted, fontSize: 13, letterSpacing: 1, fontFamily: fonts.body }}>{version}</Text>
         ) : null}
       </View>
     </View>
