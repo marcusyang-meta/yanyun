@@ -178,6 +178,14 @@ body {
   border-color: rgba(201,163,92,.55);
   box-shadow: 0 12px 32px rgba(201,163,92,.14), 0 2px 8px rgba(0,0,0,.4);
 }
+/* Solid card face: the base card tint is translucent by design over
+   the ink page ground, but where a card sits over the bright band of
+   the fixed backdrop image the landscape shows through the text.
+   This modifier keeps the same gold tint over an opaque ink base, so
+   the composite face is fully opaque wherever the card lands. */
+.yy-card.yy-card-solid {
+  background-color: var(--ink-2);
+}
 .yy-card-hover:active { transform: translateY(-1px) scale(.995); }
 
 /* ---------- buttons ---------- */
@@ -412,6 +420,25 @@ body {
   object-position: center 32%;
   display: block;
 }
+/* The signed-in user bar floats over the hero's top-right corner on
+   wide screens (the hero image starts at the very top of the page,
+   so there is no separate bar row). At mobile widths the pill is
+   nearly as wide as the viewport and would sit on top of the
+   centered hero title, so there it takes a real row at the top of
+   the hero flow instead: still right-aligned, still above the
+   hero's gradient overlays, and the title always renders below it. */
+.yy-hero-userbar {
+  position: absolute;
+  top: 14px;
+  right: 20px;
+  z-index: 3;
+  background: rgba(12,11,9,.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(201,163,92,.25);
+  border-radius: 999px;
+  padding: 5px 10px 5px 12px;
+}
 /* 全屏 hero (登录页): 山水铺满整屏, 登录卡浮在画上。
    高度来自登录页 .yy-page 的 flex 列 (撑满滚动区), 不再用视口单位。 */
 .yy-hero-full {
@@ -613,6 +640,14 @@ body {
 
 @media (max-width: 640px) {
   .yy-hero { padding: 48px 16px 32px; }
+  .yy-hero-userbar {
+    position: relative;
+    top: auto;
+    right: auto;
+    width: fit-content;
+    max-width: 100%;
+    margin: 0 0 12px auto;
+  }
   .yy-tab { padding: 9px 16px; font-size: 15px; }
 }
 
