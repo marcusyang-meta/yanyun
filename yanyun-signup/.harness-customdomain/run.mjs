@@ -204,6 +204,10 @@ function makeDb(fx = {}) {
       if (/discord_id = \?/i.test(sql) && b.length > 1) rows = rows.filter((x) => x.discord_id === String(b[1]));
       return kind === 'first' ? (rows[0] ?? null) : all(rows);
     }
+    // Governance line (P16): the fixture guilds carry no officer
+    // grants, so the verdict's grant read answers empty here (the
+    // dedicated governance harness covers granted shapes).
+    if (/FROM guild_officer_grants/i.test(sql)) return kind === 'first' ? null : all([]);
     unknownSql.add(kind + ': ' + sql.slice(0, 110));
     return kind === 'first' ? null : (kind === 'all' ? { results: [] } : { meta: { changes: 0 } });
   }
