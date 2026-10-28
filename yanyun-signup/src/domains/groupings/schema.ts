@@ -269,6 +269,34 @@ export const eventReminders = sqliteTable('event_reminders', {
   primaryKey({ columns: [t.eventId, t.offsetMin] }),
 ]);
 
+/* ---------------- grouping_recaps [migration 0035] ----------------
+ * P18 AI activity recaps (premium T3): at most one row per grouping —
+ * a regeneration overwrites in place and bumps version. paragraphs_json
+ * is a JSON array of generated paragraph strings (generated content,
+ * NOT UI copy — it never enters the strings catalog); snapshot_json is
+ * the compact summary of the data package the text was generated
+ * from. status 'ready' = paragraphs hold a successful generation;
+ * 'failed' = the last attempt failed and paragraphs still hold the
+ * previous success (or none). tenant is denormalized from the
+ * grouping so the guild recap index reads this entity alone. */
+export const groupingRecaps = sqliteTable('grouping_recaps', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  tenant: text('tenant').notNull().default(''),
+  eventId: integer('event_id').notNull().references(() => events.id, { onDelete: 'cascade' }),
+  status: text('status').notNull().default('ready'),
+  paragraphsJson: text('paragraphs_json').notNull().default('[]'),
+  snapshotJson: text('snapshot_json').notNull().default('{}'),
+  provider: text('provider').notNull().default(''),
+  generatedBy: text('generated_by').notNull().default(''),
+  version: integer('version').notNull().default(1),
+  lastError: text('last_error').notNull().default(''),
+  generatedAt: integer('generated_at').notNull().default(0),
+  updatedAt: integer('updated_at').notNull().default(0),
+}, (t) => [
+  uniqueIndex('grouping_recaps_event_unique').on(t.eventId),
+  index('idx_grouping_recaps_tenant').on(t.tenant, t.generatedAt),
+]);
+
 /* ---------------- results [ddl chain baseline] ----------------------- */
 export const results = sqliteTable('results', {
   id: integer('id').primaryKey({ autoIncrement: true }),

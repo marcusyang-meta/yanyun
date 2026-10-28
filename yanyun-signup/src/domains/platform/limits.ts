@@ -39,7 +39,8 @@ export type LimitKey =
   | 'ocrBatchImages'      // screenshots in one batch-OCR import
   | 'ocrBatchesPerDay'    // batch-OCR imports per user per day
   | 'announcementsPerDay' // guild announcements per guild per day (F9)
-  | 'urgentCallsPerDay';  // urgent rally calls per guild per day (F18)
+  | 'urgentCallsPerDay'   // urgent rally calls per guild per day (F18)
+  | 'aiRecapsPerDay';     // AI recap generations per guild per day (P18)
 
 export interface LimitContext {
   discordId: string;
@@ -63,6 +64,18 @@ export const FREE_LIMITS: Record<LimitKey, number> = {
    * launch never moves a communication quota. */
   announcementsPerDay: 5,
   urgentCallsPerDay: 2,
+  /* AI recap generations are metered per GUILD per day (see the
+   * metering section below). The free-table value is never actually
+   * reachable — generation is a T3-gated action — but the key must
+   * exist in both tables; it carries the same conservative ceiling
+   * as the premium table so the number has exactly one meaning.
+   * 10/day: a guild runs a handful of groupings a day at most, each
+   * generation is one paid provider call, and regeneration is a
+   * deliberate admin act — 10 leaves generous retry headroom while
+   * capping a stuck loop or a careless admin at 10 provider calls
+   * per guild per day. Conservative by design; raise it here (the
+   * single source) if real usage ever presses against it. */
+  aiRecapsPerDay: 10,
 };
 
 /* Per-tier tables (P25, values as decided in DESIGN §8; the numbers
@@ -76,6 +89,9 @@ export const TIER1_LIMITS: Record<LimitKey, number> = {
   ocrBatchesPerDay: 30,
   announcementsPerDay: 5,
   urgentCallsPerDay: 2,
+  // AI recap ceiling: a real cost ceiling (per-call provider cost),
+  // identical in both tables — see the free table's note.
+  aiRecapsPerDay: 10,
 };
 
 export const TIER2_LIMITS: Record<LimitKey, number> = {
@@ -83,7 +99,9 @@ export const TIER2_LIMITS: Record<LimitKey, number> = {
   ocrBatchImages: 100,
   ocrBatchesPerDay: 50,
   announcementsPerDay: 5,
-  urgentCallsPerDay: 2,
+  urgentCallsPerDay: 2,  // AI recap ceiling: a real cost ceiling (per-call provider cost),
+  // identical in both tables — see the free table's note.
+  aiRecapsPerDay: 10,
 };
 
 export const TIER3_LIMITS: Record<LimitKey, number> = {
@@ -91,7 +109,9 @@ export const TIER3_LIMITS: Record<LimitKey, number> = {
   ocrBatchImages: 100,
   ocrBatchesPerDay: 100,
   announcementsPerDay: 5,
-  urgentCallsPerDay: 2,
+  urgentCallsPerDay: 2,  // AI recap ceiling: a real cost ceiling (per-call provider cost),
+  // identical in both tables — see the free table's note.
+  aiRecapsPerDay: 10,
 };
 
 /** The pre-P25 single premium table, kept as a name alias: its
@@ -236,4 +256,32 @@ export async function recordAnnouncementUse(
   nowMs: number,
 ): Promise<number> {
   return incrementUsage(db, guildUsageScope(guildSlug), announcementMetric(kind), usageDayKey(nowMs), 1, nowMs);
+}
+
+/* ---------- AI recap metering (per guild per day, P18) ------------ */
+
+/** Metric key for AI recap generations in usage_counters. Metered
+ *  under the guild scope (guildUsageScope), like announcements:
+ *  the cost unit is the guild's provider usage, whoever on its
+ *  admin team pressed generate. Every generation ATTEMPT that
+ *  reaches the provider is metered (success or failure) — the
+ *  provider call is the cost, not the stored result. */
+export const METRIC_AI_RECAP_GENERATIONS = 'ai_recap_generations';
+
+/** Recap generations one guild has already consumed today. */
+export async function getAiRecapsUsedToday(
+  db: D1Database,
+  guildSlug: string,
+  nowMs: number,
+): Promise<number> {
+  return getUsageCount(db, guildUsageScope(guildSlug), METRIC_AI_RECAP_GENERATIONS, usageDayKey(nowMs));
+}
+
+/** Record one consumed recap generation for one guild (today). */
+export async function recordAiRecapUse(
+  db: D1Database,
+  guildSlug: string,
+  nowMs: number,
+): Promise<number> {
+  return incrementUsage(db, guildUsageScope(guildSlug), METRIC_AI_RECAP_GENERATIONS, usageDayKey(nowMs), 1, nowMs);
 }
