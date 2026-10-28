@@ -194,7 +194,40 @@ export type GroupingsStringKey =
   | 'carshare_notFoundBody'
   | 'carshare_readonlyHint'
   | 'carshare_statusClosed'
-  | 'carshare_seatsTitle';
+  | 'carshare_seatsTitle'
+  | 'schedulingAdvice_lockedTitle'
+  | 'schedulingAdvice_lockedBody'
+  | 'schedulingAdvice_title'
+  | 'schedulingAdvice_hint'
+  | 'schedulingAdvice_draftTitle'
+  | 'schedulingAdvice_draftApplyLabel'
+  | 'schedulingAdvice_substitutesTitle'
+  | 'schedulingAdvice_rotationTitle'
+  | 'schedulingAdvice_rotationSaveLabel'
+  | 'schedulingAdvice_rotationSavedText'
+  | 'schedulingAdvice_bestSlotsTitle'
+  | 'schedulingAdvice_bestSlotsEmptyText'
+  | 'schedulingAdvice_bestSlotCoverTemplate'
+  | 'schedulingAdvice_bestSlotUseLabel'
+  | 'schedulingAdvice_crossTitle'
+  | 'schedulingAdvice_conflictTemplate'
+  | 'schedulingAdvice_moveTemplate'
+  | 'schedulingAdvice_reasonRoleNeeded'
+  | 'schedulingAdvice_reasonRoleCovered'
+  | 'schedulingAdvice_reasonRoleFlex'
+  | 'schedulingAdvice_reasonRoleMatch'
+  | 'schedulingAdvice_reasonRoleOther'
+  | 'schedulingAdvice_reasonRoleUnknown'
+  | 'schedulingAdvice_reasonGearReady'
+  | 'schedulingAdvice_reasonGearUnknown'
+  | 'schedulingAdvice_reasonReliable'
+  | 'schedulingAdvice_reasonNoHistory'
+  | 'schedulingAdvice_reasonAvailable'
+  | 'schedulingAdvice_reasonUnavailable'
+  | 'schedulingAdvice_reasonAvailabilityUnknown'
+  | 'schedulingAdvice_reasonLongestWaiting'
+  | 'schedulingAdvice_reasonFewRecent'
+  | 'schedulingAdvice_reasonNoConflict';
 
 export const GROUPINGS_STRING_KEYS: readonly GroupingsStringKey[] = [
   'groupingType_tabActivity',
@@ -391,4 +424,37 @@ export const GROUPINGS_STRING_KEYS: readonly GroupingsStringKey[] = [
   'carshare_readonlyHint',
   'carshare_statusClosed',
   'carshare_seatsTitle',
+  'schedulingAdvice_lockedTitle',
+  'schedulingAdvice_lockedBody',
+  'schedulingAdvice_title',
+  'schedulingAdvice_hint',
+  'schedulingAdvice_draftTitle',
+  'schedulingAdvice_draftApplyLabel',
+  'schedulingAdvice_substitutesTitle',
+  'schedulingAdvice_rotationTitle',
+  'schedulingAdvice_rotationSaveLabel',
+  'schedulingAdvice_rotationSavedText',
+  'schedulingAdvice_bestSlotsTitle',
+  'schedulingAdvice_bestSlotsEmptyText',
+  'schedulingAdvice_bestSlotCoverTemplate',
+  'schedulingAdvice_bestSlotUseLabel',
+  'schedulingAdvice_crossTitle',
+  'schedulingAdvice_conflictTemplate',
+  'schedulingAdvice_moveTemplate',
+  'schedulingAdvice_reasonRoleNeeded',
+  'schedulingAdvice_reasonRoleCovered',
+  'schedulingAdvice_reasonRoleFlex',
+  'schedulingAdvice_reasonRoleMatch',
+  'schedulingAdvice_reasonRoleOther',
+  'schedulingAdvice_reasonRoleUnknown',
+  'schedulingAdvice_reasonGearReady',
+  'schedulingAdvice_reasonGearUnknown',
+  'schedulingAdvice_reasonReliable',
+  'schedulingAdvice_reasonNoHistory',
+  'schedulingAdvice_reasonAvailable',
+  'schedulingAdvice_reasonUnavailable',
+  'schedulingAdvice_reasonAvailabilityUnknown',
+  'schedulingAdvice_reasonLongestWaiting',
+  'schedulingAdvice_reasonFewRecent',
+  'schedulingAdvice_reasonNoConflict',
 ];

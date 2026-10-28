@@ -334,6 +334,11 @@ extend type Query {
 
 type GroupingListPage {
   groupings: [Grouping!]!
+  # Premium T2 cross-car advice (the P13 advice layer; the multi-car
+  # overview itself stays free and unchanged): non-null only for guild
+  # admins / leaders in this guild; Locked-vs-full shell as on the
+  # detail page.
+  crossCarAdvice: SchedulingCrossCarAdviceResult
   # 本百业共享模板 (与页签无关, 全百业一份): 建车表单据此渲染模板区
   # (列表/套用/存当前表单/改删入口); 改删判定在每个模板的 manageActions。
   groupingTemplates: [GroupingTemplate!]!
@@ -614,6 +619,12 @@ type SharedGroupingSeat {
 
 type GroupingDetailPage {
   grouping: Grouping!
+  # Premium T2 scheduling advice (P3 draft / P4 substitutes / P5
+  # rotation): non-null only for this car's managers (leader / guild
+  # admin); below T2 only the Locked shell ships (zero advice data),
+  # at tier the full shell. Advice never seats or substitutes anyone
+  # by itself; applying a draft goes through the existing seat actions.
+  schedulingAdvice: GroupingSchedulingAdviceResult
   # 分享 URL: 本车的稳定短链 (后端懒铸造, 首次下发时生成、之后恒同);
   # 客户端分享动作只用这个字符串, 不自拼 URL。
   shareUrl: String!
@@ -1579,6 +1590,11 @@ type GuildSchedulePage {
   # 成员可用性汇总: 仅管理员/车头非 null (权限结论由字段在否表达)
   availabilitySummary: [MemberAvailabilitySummary!]
   polls: [TimePoll!]!
+  # Premium T2 best-slot advice (P6): same audience verdict as the
+  # availability summary (admin / leader); Locked shell below T2, full
+  # shell at tier; with no availability data slots is empty and the
+  # backend empty-state copy ships — no slot is ever invented.
+  bestSlotsAdvice: SchedulingBestSlotsResult
   weekdayNames: [String!]!
   # 发车表单文案 (以投票时间发车时预填同一个建车表单, 与列表页同口径)
   formCreateTitle: String!
@@ -4719,6 +4735,119 @@ type MyContributionEntry {
   actionLabel: String!
   points: Int!
   createdAtText: String!
+}
+
+# ============ Premium T2 scheduling advice (P3/P4/P5/P6/P13) ============
+# Advice, never verdicts: the types below carry rankings and reasons
+# only, with no automatic-execution semantics anywhere.
+
+union GroupingSchedulingAdviceResult = GroupingSchedulingAdvice | SchedulingAdviceLocked
+union SchedulingBestSlotsResult = SchedulingBestSlots | SchedulingAdviceLocked
+union SchedulingCrossCarAdviceResult = SchedulingCrossCarAdvice | SchedulingAdviceLocked
+
+type SchedulingAdviceLocked {
+  lockedTitle: String!
+  lockedBody: String!
+}
+
+type SchedulingAdviceEntry {
+  discordId: String!
+  displayName: String!
+  role: String!
+  weapon: String!
+  score: Int!
+  # Structured reason keys (clients may icon/sort by them); reasons
+  # are the backend-rendered explanation copy, shown as-is.
+  reasonKeys: [String!]!
+  reasons: [String!]!
+}
+
+type SchedulingDraftSeat {
+  seatIndex: Int!
+  discordId: String!
+  displayName: String!
+  role: String!
+  weapon: String!
+  score: Int!
+  reasonKeys: [String!]!
+  reasons: [String!]!
+}
+
+type RotationAdviceRecord {
+  id: ID!
+  createdBy: String!
+  createdAtText: String!
+  # The saved ranking snapshot (JSON): members, scores and reason
+  # keys, kept so the basis can be looked up afterwards.
+  entriesJson: String!
+}
+
+type GroupingSchedulingAdvice {
+  title: String!
+  hint: String!
+  draftTitle: String!
+  draftApplyLabel: String!
+  substitutesTitle: String!
+  rotationTitle: String!
+  rotationSaveLabel: String!
+  rotationSavedText: String!
+  draft: [SchedulingDraftSeat!]!
+  substitutes: [SchedulingAdviceEntry!]!
+  rotation: [SchedulingAdviceEntry!]!
+  rotationRecords: [RotationAdviceRecord!]!
+}
+
+type SchedulingBestSlot {
+  weekday: Int!
+  startMinute: Int!
+  endMinute: Int!
+  coverCount: Int!
+  memberNames: [String!]!
+  coverText: String!
+}
+
+type SchedulingBestSlots {
+  title: String!
+  emptyText: String!
+  useLabel: String!
+  slots: [SchedulingBestSlot!]!
+}
+
+type SchedulingCrossCarConflict {
+  discordId: String!
+  displayName: String!
+  carIds: [ID!]!
+  text: String!
+}
+
+type SchedulingCrossCarMove {
+  carId: ID!
+  carTitle: String!
+  entry: SchedulingAdviceEntry!
+  text: String!
+}
+
+type SchedulingCrossCarAdvice {
+  title: String!
+  conflicts: [SchedulingCrossCarConflict!]!
+  moves: [SchedulingCrossCarMove!]!
+}
+
+input SaveRotationAdviceInput {
+  groupingId: ID!
+}
+
+type SchedulingAdvicePayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  savedText: String
+}
+
+extend type Mutation {
+  # P5 audit trail: the leader/admin saves the current rotation
+  # ranking as a queryable record (append-only).
+  saveRotationAdvice(input: SaveRotationAdviceInput!): SchedulingAdvicePayload!
 }
 
 # ============ 页面：平台管理 (超管面) ============

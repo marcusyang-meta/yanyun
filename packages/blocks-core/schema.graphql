@@ -80,6 +80,7 @@ type Query {
   myContribution(slug: String!): MyContributionResult!
   groupingListPage(slug: String!, tab: GroupingTab!): GroupingListPage!
   groupingDetailPage(slug: String, id: ID!): GroupingDetailPage!
+  sharedGrouping(code: String!): SharedGroupingPage!
   dexPage: DexPage!
   bossPage(bossId: ID!): BossPage!
   sectPage: SectPage!
@@ -299,6 +300,7 @@ type SetReadyAction implements Action {
 
 type GroupingListPage {
   groupings: [Grouping!]!
+  crossCarAdvice: SchedulingCrossCarAdviceResult
   groupingTemplates: [GroupingTemplate!]!
   currentVersion: String!
   blocks(blocksVersion: Int, weekOffset: Int): [Block!]!
@@ -501,8 +503,40 @@ type Grouping {
   customFields: [CustomField!]!
 }
 
+type SharedGroupingPage {
+  exists: Boolean!
+  slug: String
+  guildName: String
+  title: String
+  type: GroupingType
+  dungeonName: String
+  startsAt: String
+  status: String
+  occupiedCount: Int!
+  maxSlots: Int!
+  seats: [SharedGroupingSeat!]!
+  shareKicker: String!
+  shareLoginLabel: String!
+  shareOpenLabel: String!
+  shareNotFoundTitle: String!
+  shareNotFoundBody: String!
+  shareReadonlyHint: String!
+  shareStatusOpenLabel: String!
+  shareStatusClosedLabel: String!
+  shareStatusCompletedLabel: String!
+  sharePeopleTemplate: String!
+  shareSeatsTitle: String!
+  shareTypeLabel: String!
+}
+
+type SharedGroupingSeat {
+  index: Int!
+  occupied: Boolean!
+}
+
 type GroupingDetailPage {
   grouping: Grouping!
+  schedulingAdvice: GroupingSchedulingAdviceResult
   shareUrl: String!
   blocks(blocksVersion: Int): [Block!]!
   manageActions: GroupingManageActions
@@ -1320,6 +1354,7 @@ type GuildSchedulePage {
   myAvailability: [AvailabilitySlot!]!
   availabilitySummary: [MemberAvailabilitySummary!]
   polls: [TimePoll!]!
+  bestSlotsAdvice: SchedulingBestSlotsResult
   weekdayNames: [String!]!
   formCreateTitle: String!
   formEditTitle: String!
@@ -1585,6 +1620,28 @@ type Mutation {
   deleteGearBuild(id: Int!): GearOkPayload!
   shareGearBuild(id: Int!): GearBuildSharePayload!
   revokeGearBuildShare(id: Int!): GearOkPayload!
+  saveRotationAdvice(input: SaveRotationAdviceInput!): SchedulingAdvicePayload!
+  platformAdminSetPaygate(enabled: Boolean!): PlatformAdminBillingPayload!
+  platformAdminGrantPremium(slug: String!, days: Int!, tier: String): PlatformAdminBillingPayload!
+  platformAdminRevokePremium(slug: String!): PlatformAdminBillingPayload!
+  platformAdminSetSubdomain(slug: String!, enabled: Boolean!): PlatformAdminBillingPayload!
+  platformAdminSetCustomDomainDisabled(slug: String!, disabled: Boolean!): PlatformAdminBillingPayload!
+  platformAdminDeleteTenant(slug: String!): PlatformAdminPayload!
+  platformAdminSetFeedbackStatus(id: Int!, status: String!): PlatformAdminPayload!
+  platformAdminUpdateSettings(gameVersion: String, gameNotice: String, gameVersionCode: String): PlatformAdminPayload!
+  platformAdminCreateBoss(name: String!, talent: String, source: String, note: String, sortOrder: Int): PlatformAdminBossPayload!
+  platformAdminUpdateBoss(id: Int!, name: String, talent: String, source: String, note: String, sortOrder: Int, guide: String, mechanicsJson: String, talentsJson: String, shoutsJson: String): PlatformAdminPayload!
+  platformAdminDeleteBoss(id: Int!): PlatformAdminPayload!
+  platformAdminUpdateDungeon(id: Int!, isCurrent: Boolean, videoUrl: String, videoTitle: String): PlatformAdminPayload!
+  platformAdminUpdateReminder(slug: String!, webhook: String, enabled: Boolean): PlatformAdminReminderPayload!
+  platformAdminTestReminder(slug: String!): PlatformAdminReminderPayload!
+  platformAdminUpdateHeirloom(slug: String!, webhook: String, enabled: Boolean): PlatformAdminHeirloomPayload!
+  platformAdminTestHeirloom(slug: String!): PlatformAdminHeirloomPayload!
+  platformAdminRunBackup: PlatformAdminBackupRunPayload!
+  platformAdminSetRoster(discordIds: [String!]!): PlatformAdminRosterPayload!
+  platformAdminBackfillReminderIdentity(dryRun: Boolean!): PlatformReminderIdentityBackfillPayload!
+  platformAdminBackfillCreators(dryRun: Boolean!): PlatformCreatorBackfillPayload!
+  platformAdminMigrateBossGuides: PlatformGuideMigrationPayload!
 }
 
 input GraduationInput {
@@ -2071,7 +2128,6 @@ type Guild {
   pageFooterDisclaimerText: String
 }
 
-
 type Viewer {
   user: DiscordUser
   guilds: [Guild!]!
@@ -2080,6 +2136,7 @@ type Viewer {
   homeRecruit: HomeRecruitSection!
   fillMarket(slug: String!): FillMarketResult!
   guildAllies(slug: String!): GuildAlliesResult!
+  platformAdmin: PlatformAdminResult!
   discordServers: [DiscordServer!]!
   siteTitle: String!
   siteSubtitle: String!
@@ -3890,4 +3947,467 @@ type MyContributionEntry {
   actionLabel: String!
   points: Int!
   createdAtText: String!
+}
+
+union GroupingSchedulingAdviceResult = GroupingSchedulingAdvice | SchedulingAdviceLocked
+
+union SchedulingBestSlotsResult = SchedulingBestSlots | SchedulingAdviceLocked
+
+union SchedulingCrossCarAdviceResult = SchedulingCrossCarAdvice | SchedulingAdviceLocked
+
+type SchedulingAdviceLocked {
+  lockedTitle: String!
+  lockedBody: String!
+}
+
+type SchedulingAdviceEntry {
+  discordId: String!
+  displayName: String!
+  role: String!
+  weapon: String!
+  score: Int!
+  reasonKeys: [String!]!
+  reasons: [String!]!
+}
+
+type SchedulingDraftSeat {
+  seatIndex: Int!
+  discordId: String!
+  displayName: String!
+  role: String!
+  weapon: String!
+  score: Int!
+  reasonKeys: [String!]!
+  reasons: [String!]!
+}
+
+type RotationAdviceRecord {
+  id: ID!
+  createdBy: String!
+  createdAtText: String!
+  entriesJson: String!
+}
+
+type GroupingSchedulingAdvice {
+  title: String!
+  hint: String!
+  draftTitle: String!
+  draftApplyLabel: String!
+  substitutesTitle: String!
+  rotationTitle: String!
+  rotationSaveLabel: String!
+  rotationSavedText: String!
+  draft: [SchedulingDraftSeat!]!
+  substitutes: [SchedulingAdviceEntry!]!
+  rotation: [SchedulingAdviceEntry!]!
+  rotationRecords: [RotationAdviceRecord!]!
+}
+
+type SchedulingBestSlot {
+  weekday: Int!
+  startMinute: Int!
+  endMinute: Int!
+  coverCount: Int!
+  memberNames: [String!]!
+  coverText: String!
+}
+
+type SchedulingBestSlots {
+  title: String!
+  emptyText: String!
+  useLabel: String!
+  slots: [SchedulingBestSlot!]!
+}
+
+type SchedulingCrossCarConflict {
+  discordId: String!
+  displayName: String!
+  carIds: [ID!]!
+  text: String!
+}
+
+type SchedulingCrossCarMove {
+  carId: ID!
+  carTitle: String!
+  entry: SchedulingAdviceEntry!
+  text: String!
+}
+
+type SchedulingCrossCarAdvice {
+  title: String!
+  conflicts: [SchedulingCrossCarConflict!]!
+  moves: [SchedulingCrossCarMove!]!
+}
+
+input SaveRotationAdviceInput {
+  groupingId: ID!
+}
+
+type SchedulingAdvicePayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  savedText: String
+}
+
+union PlatformAdminResult = PlatformAdmin | PlatformAdminLocked
+
+type PlatformAdminLocked {
+  lockedTitle: String!
+  lockedBody: String!
+}
+
+type PlatformAdmin {
+  entryLabel: String!
+  title: String!
+  subtitle: String!
+  tenantsTitle: String!
+  tenantsEmpty: String!
+  billingTitle: String!
+  paygateLabel: String!
+  paygateOnText: String!
+  paygateOffText: String!
+  stripeLabel: String!
+  stripeConfiguredText: String!
+  stripeMissingText: String!
+  saasLabel: String!
+  saasConfiguredText: String!
+  saasMissingText: String!
+  plansTitle: String!
+  billingTenantsTitle: String!
+  errorsTitle: String!
+  errorsEmpty: String!
+  auditTitle: String!
+  auditEmpty: String!
+  feedbackTitle: String!
+  feedbackEmpty: String!
+  settingsTitle: String!
+  gameVersionLabel: String!
+  gameNoticeLabel: String!
+  gameVersionCodeLabel: String!
+  bossesTitle: String!
+  bossesEmpty: String!
+  dungeonsTitle: String!
+  dungeonsEmpty: String!
+  remindersTitle: String!
+  remindersEmpty: String!
+  heirloomsTitle: String!
+  heirloomsEmpty: String!
+  backupsTitle: String!
+  backupsEmpty: String!
+  backupsUnavailableText: String!
+  rosterTitle: String!
+  rosterNote: String!
+  backfillsTitle: String!
+  saveLabel: String!
+  testLabel: String!
+  runLabel: String!
+  dryRunLabel: String!
+  deleteTenantLabel: String!
+  grantLabel: String!
+  revokeLabel: String!
+  subdomainLabel: String!
+  customDomainLabel: String!
+  enabledText: String!
+  disabledText: String!
+  webhookSetText: String!
+  webhookUnsetText: String!
+  runBackupLabel: String!
+  downloadLabel: String!
+  exportLabel: String!
+  backfillReminderIdentityLabel: String!
+  backfillCreatorsLabel: String!
+  migrateBossGuidesLabel: String!
+  statusOpenText: String!
+  statusResolvedText: String!
+  lastStatusLabel: String!
+  nextAlarmLabel: String!
+  periodEndLabel: String!
+  sourceLabel: String!
+  tierLabel: String!
+  planLabel: String!
+  hasCardText: String!
+  noCardText: String!
+  trialUsedText: String!
+  tenants: [PlatformAdminTenant!]!
+  billing: PlatformAdminBilling!
+  errors: [PlatformAdminError!]!
+  errorCount24h: Int!
+  auditEntries(tenant: String, limit: Int, offset: Int): PlatformAdminAuditPage!
+  feedbackEntries(status: String, limit: Int, offset: Int): PlatformAdminFeedbackPage!
+  settings: PlatformAdminSettings!
+  bosses: [PlatformAdminBoss!]!
+  dungeons: [PlatformAdminDungeon!]!
+  reminders: [PlatformAdminReminder!]!
+  heirlooms: [PlatformAdminHeirloom!]!
+  backups: PlatformAdminBackups!
+  adminRoster: [String!]!
+}
+
+type PlatformAdminTenant {
+  slug: String!
+  guildName: String!
+  announcement: String!
+  createdAt: String!
+  eventCount: Int!
+}
+
+type PlatformAdminBilling {
+  paygateEnabled: Boolean!
+  stripeConfigured: Boolean!
+  customDomainSaasConfigured: Boolean!
+  plans: [PlatformAdminPlan!]!
+  tenants: [PlatformAdminBillingTenant!]!
+}
+
+type PlatformAdminPlan {
+  tier: Int!
+  plan: String!
+  name: String!
+  nameEn: String!
+  subtitle: String!
+  subtitleEn: String!
+  priceMonthlyCents: Int!
+}
+
+type PlatformAdminBillingTenant {
+  slug: String!
+  guildName: String!
+  plan: String!
+  source: String!
+  tier: Int!
+  effectiveTier: Int!
+  tierName: String!
+  tierNameEn: String!
+  tierSubtitle: String!
+  currentPeriodEnd: Int
+  lapsed: Boolean!
+  pastDue: Boolean!
+  hasCard: Boolean!
+  trialUsed: Boolean!
+  stripeCustomerId: String!
+  stripeSubscriptionId: String!
+  subdomainEnabled: Boolean!
+  customDomainHostname: String
+  customDomainStatus: String
+}
+
+type PlatformAdminError {
+  id: Int!
+  at: Int!
+  source: String!
+  name: String!
+  message: String!
+  tenant: String!
+  context: String!
+}
+
+type PlatformAdminAuditPage {
+  entries: [PlatformAdminAuditEntry!]!
+  total: Int!
+}
+
+type PlatformAdminAuditEntry {
+  id: Int!
+  at: Int!
+  actor: String!
+  action: String!
+  tenant: String!
+  summary: String!
+}
+
+type PlatformAdminFeedbackPage {
+  entries: [PlatformAdminFeedbackEntry!]!
+  total: Int!
+}
+
+type PlatformAdminFeedbackEntry {
+  id: Int!
+  discordId: String!
+  userName: String!
+  category: String!
+  content: String!
+  status: String!
+  createdAt: Float!
+  resolvedAt: Float
+}
+
+type PlatformAdminSettings {
+  gameVersion: String!
+  gameNotice: String!
+  gameVersionCode: String!
+}
+
+type PlatformAdminBoss {
+  id: Int!
+  name: String!
+  talent: String!
+  source: String!
+  note: String!
+  sortOrder: Int!
+  dungeon: String!
+  guide: String!
+  mechanicsJson: String
+  talentsJson: String
+  shoutsJson: String
+}
+
+type PlatformAdminDungeon {
+  id: Int!
+  name: String!
+  size: Int!
+  isCurrent: Boolean!
+  version: String!
+  videoUrl: String!
+  videoTitle: String!
+}
+
+type PlatformAdminReminder {
+  slug: String!
+  guildName: String!
+  webhookSet: Boolean!
+  webhookMasked: String!
+  enabled: Boolean!
+  lastAt: Int
+  lastStatus: String!
+  lastError: String!
+  lastEvent: String!
+  nextAlarmAt: Int
+}
+
+type PlatformAdminHeirloom {
+  slug: String!
+  guildName: String!
+  webhookSet: Boolean!
+  webhookMasked: String!
+  enabled: Boolean!
+  lastAt: Int
+  lastStatus: String!
+  lastError: String!
+  lastEvent: String!
+}
+
+type PlatformAdminBackups {
+  available: Boolean!
+  entries: [PlatformAdminBackupEntry!]!
+}
+
+type PlatformAdminBackupEntry {
+  key: String!
+  size: Int!
+  uploaded: Int!
+}
+
+type PlatformAdminPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+}
+
+type PlatformAdminBillingPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  billing: PlatformAdminBilling
+}
+
+type PlatformAdminReminderPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  message: String
+  reminder: PlatformAdminReminder
+}
+
+type PlatformAdminHeirloomPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  message: String
+  heirloom: PlatformAdminHeirloom
+}
+
+type PlatformAdminBossPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  bossId: Int
+}
+
+type PlatformAdminRosterPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  adminRoster: [String!]!
+}
+
+type PlatformAdminBackupRunPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  key: String
+  rows: Int
+  bytes: Int
+}
+
+type PlatformReminderIdentityBackfillPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  dryRun: Boolean!
+  guilds: [PlatformReminderIdentityGuild!]!
+  rosterSeeded: Int!
+  seatsTotal: Int!
+  stamped: Int!
+  ambiguous: Int!
+  unmatched: Int!
+}
+
+type PlatformReminderIdentityGuild {
+  slug: String!
+  discordGuildId: String!
+  rosterSeeded: Int!
+  seatsTotal: Int!
+  stamped: Int!
+  ambiguous: Int!
+  unmatched: Int!
+}
+
+type PlatformCreatorBackfillPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  dryRun: Boolean!
+  events: Int!
+  alreadyStamped: Int!
+  considered: Int!
+  backfilled: Int!
+  placeholder: Int!
+  noMatch: Int!
+  ambiguous: Int!
+  groups: [PlatformCreatorBackfillGroup!]!
+}
+
+type PlatformCreatorBackfillGroup {
+  tenant: String!
+  createdBy: String!
+  cars: Int!
+  outcome: String!
+  matchedDiscordId: String
+  candidates: Int!
+}
+
+type PlatformGuideMigrationPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  migrated: [PlatformGuideMigrationEntry!]!
+}
+
+type PlatformGuideMigrationEntry {
+  id: Int!
+  name: String!
+  mechanics: Int!
+  talents: Int!
+  shouts: Int!
 }
