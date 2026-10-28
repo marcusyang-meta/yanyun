@@ -65,7 +65,8 @@ export const FREE_LIMITS: Record<LimitKey, number> = {
   urgentCallsPerDay: 2,
 };
 
-/* Per-tier tables (P25, values as decided in DESIGN §8). The metered axes scale with
+/* Per-tier tables (P25, values as decided in DESIGN §8; the numbers
+ * move only when that decision changes). The metered axes scale with
  * tier; the communication quotas stay at the free values on every
  * tier — they are abuse ceilings, not plan tiers (see the free
  * table's note), and no tier buys more broadcasts. */
