@@ -199,7 +199,8 @@ export type HomeRecruitNewcomerItem = {
   }[] | null;
 };
 export type HomeRecruitData = {
-  recruitTitle: string;
+  directoryTitle: string;
+  newcomerTitle: string;
   homeBody: string;
   homeLoginHint: string;
   applySectionTitle: string;
