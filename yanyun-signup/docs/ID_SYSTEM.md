@@ -116,8 +116,8 @@ primary keys; their reference columns still remap (next section).
 
 ### Tenant class — slug text → guild ID (01), column name `tenant` kept
 
-Every `tenant` column in: `settings` (PK part), `events`, `signups`
-(no — signups has no tenant column; see entity class), `grouping_templates`,
+Every `tenant` column in: `settings` (PK part), `events`,
+`grouping_templates`,
 `short_links`, `lotteries`, `time_polls`, `guild_roster_entries`,
 `roster_import_batches`, `roster_import_rows`, `guild_announcements`,
 `guild_announcement_reads`, `guild_announcement_translations`,
@@ -161,7 +161,7 @@ now-unique Discord value):
 |--------|---------|
 | `users` PK / `user_oauth.discord_id` (PK) | `users.id` (02) / `user_oauth.user_id` |
 | `push_tokens.discord_id` (PK part) | `user_id` |
-| `usage_counters.discord_id` (PK part) | `user_id` |
+| `usage_counters.discord_id` (PK part) | `user_id` — dual-scope: `guild:<slug>` counter rows resolve through the guild map, plain values through the user map (generator action `S:`); post-migration, guild counters are keyed by the numeric guild ID and user counters by the user ID in the same INTEGER column |
 | `feedback.discord_id` | `user_id` |
 | `events.creator_discord_id` | `creator_user_id` |
 | `grouping_templates.creator_discord_id` | `creator_user_id` |
@@ -175,7 +175,9 @@ now-unique Discord value):
 | `guild_announcements.author_discord_id` | `author_user_id` |
 | `guild_applications.discord_id` | `user_id` |
 | `guild_applications.reviewed_by` | `reviewed_by_user_id` |
-| `mentor_pairings.mentor_discord_id` / `mentee_discord_id` | `mentor_user_id` / `mentee_user_id` |
+| `mentor_pairings.mentor_discord_id` / `mentee_discord_id` / `created_by` | `mentor_user_id` / `mentee_user_id` / `created_by_user_id` |
+| `ops_nudge_sends.sent_by` | `sent_by_user_id` (the recipient list stays class A) |
+| `roster_import_rows.created_by` | `created_by_user_id` |
 | `guild_mentors.discord_id` (PK part) | `user_id` |
 | `guild_member_notes.member_discord_id` / `author_discord_id` | `member_user_id` / `author_user_id` |
 | `member_season_goals.discord_id` | `user_id` |
@@ -198,10 +200,17 @@ the PR): `guild_roster_entries.matched_discord_id` and
 `roster_import_rows.matched_discord_id` are **kept as Discord IDs**
 (class A in effect): they link a roster name to a Discord server
 member who may never have registered, so no user row need exist.
-`contribution_entries.dedupe_key` values are historical opaque tokens
-(`attendance:<old event id>:<discord id>`); they are not remapped —
-post-migration keys are minted from new IDs, a disjoint key space, so
-uniqueness (their only job) is preserved.
+`contribution_entries.dedupe_key` values embed IDs in three known
+shapes (`leading:<event id>:<creator discord id>`,
+`attendance:<event id>:<seat discord id>`,
+`mentoring:pairing:<pairing id>:<mentor discord id>`) and ARE
+rewritten through the maps (generator action `DEDUPE`): leaving them
+untouched would let the post-migration ledger re-credit stock events
+under new-format keys and double-count points. Runtime writers emit
+the same shapes with the new IDs (`leading:{eventId}:{creatorUserId}`,
+`attendance:{eventId}:{seatUserId}`,
+`mentoring:pairing:{pairingId}:{mentorUserId}`); Discord IDs inside
+stock keys join orphan collection like any class-B reference.
 
 ### Entity foreign-key class — values remapped to the target's new ID
 

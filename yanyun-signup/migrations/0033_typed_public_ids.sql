@@ -80,44 +80,51 @@ INSERT INTO _idmig_guard SELECT CASE WHEN EXISTS (SELECT 1 FROM feedback WHERE c
 INSERT INTO _idmig_guard SELECT CASE WHEN EXISTS (SELECT 1 FROM ops_nudge_sends WHERE sent_at BETWEEN 1 AND 1767225599) THEN 0 ELSE 1 END; -- ops_nudge_sends pre-epoch
 
 CREATE TABLE _idmig_orphans (discord_id TEXT PRIMARY KEY);
-INSERT OR IGNORE INTO _idmig_orphans SELECT creator_discord_id FROM events WHERE creator_discord_id IS NOT NULL AND creator_discord_id <> '';
-INSERT OR IGNORE INTO _idmig_orphans SELECT creator_discord_id FROM grouping_templates WHERE creator_discord_id IS NOT NULL AND creator_discord_id <> '';
-INSERT OR IGNORE INTO _idmig_orphans SELECT created_by FROM lotteries WHERE created_by IS NOT NULL AND created_by <> '';
-INSERT OR IGNORE INTO _idmig_orphans SELECT discord_id FROM member_availability WHERE discord_id IS NOT NULL AND discord_id <> '';
-INSERT OR IGNORE INTO _idmig_orphans SELECT created_by FROM time_polls WHERE created_by IS NOT NULL AND created_by <> '';
-INSERT OR IGNORE INTO _idmig_orphans SELECT discord_id FROM time_poll_votes WHERE discord_id IS NOT NULL AND discord_id <> '';
-INSERT OR IGNORE INTO _idmig_orphans SELECT author_discord_id FROM guild_announcements WHERE author_discord_id IS NOT NULL AND author_discord_id <> '';
-INSERT OR IGNORE INTO _idmig_orphans SELECT discord_id FROM guild_announcement_reads WHERE discord_id IS NOT NULL AND discord_id <> '';
-INSERT OR IGNORE INTO _idmig_orphans SELECT checked_by FROM season_checklist_checks WHERE checked_by IS NOT NULL AND checked_by <> '';
-INSERT OR IGNORE INTO _idmig_orphans SELECT created_by FROM guild_roster_entries WHERE created_by IS NOT NULL AND created_by <> '';
-INSERT OR IGNORE INTO _idmig_orphans SELECT created_by FROM roster_import_batches WHERE created_by IS NOT NULL AND created_by <> '';
-INSERT OR IGNORE INTO _idmig_orphans SELECT discord_id FROM guild_applications WHERE discord_id IS NOT NULL AND discord_id <> '';
-INSERT OR IGNORE INTO _idmig_orphans SELECT reviewed_by FROM guild_applications WHERE reviewed_by IS NOT NULL AND reviewed_by <> '';
-INSERT OR IGNORE INTO _idmig_orphans SELECT mentor_discord_id FROM mentor_pairings WHERE mentor_discord_id IS NOT NULL AND mentor_discord_id <> '';
-INSERT OR IGNORE INTO _idmig_orphans SELECT mentee_discord_id FROM mentor_pairings WHERE mentee_discord_id IS NOT NULL AND mentee_discord_id <> '';
-INSERT OR IGNORE INTO _idmig_orphans SELECT created_by FROM mentor_pairings WHERE created_by IS NOT NULL AND created_by <> '';
-INSERT OR IGNORE INTO _idmig_orphans SELECT discord_id FROM guild_mentors WHERE discord_id IS NOT NULL AND discord_id <> '';
-INSERT OR IGNORE INTO _idmig_orphans SELECT member_discord_id FROM guild_member_notes WHERE member_discord_id IS NOT NULL AND member_discord_id <> '';
-INSERT OR IGNORE INTO _idmig_orphans SELECT author_discord_id FROM guild_member_notes WHERE author_discord_id IS NOT NULL AND author_discord_id <> '';
-INSERT OR IGNORE INTO _idmig_orphans SELECT discord_id FROM member_season_goals WHERE discord_id IS NOT NULL AND discord_id <> '';
-INSERT OR IGNORE INTO _idmig_orphans SELECT discord_id FROM fill_offers WHERE discord_id IS NOT NULL AND discord_id <> '';
-INSERT OR IGNORE INTO _idmig_orphans SELECT created_by FROM fill_requests WHERE created_by IS NOT NULL AND created_by <> '';
-INSERT OR IGNORE INTO _idmig_orphans SELECT from_discord_id FROM fill_invites WHERE from_discord_id IS NOT NULL AND from_discord_id <> '';
-INSERT OR IGNORE INTO _idmig_orphans SELECT to_discord_id FROM fill_invites WHERE to_discord_id IS NOT NULL AND to_discord_id <> '';
-INSERT OR IGNORE INTO _idmig_orphans SELECT requested_by FROM guild_alliances WHERE requested_by IS NOT NULL AND requested_by <> '';
-INSERT OR IGNORE INTO _idmig_orphans SELECT sent_by FROM ops_nudge_sends WHERE sent_by IS NOT NULL AND sent_by <> '';
-INSERT OR IGNORE INTO _idmig_orphans SELECT created_by FROM season_rollovers WHERE created_by IS NOT NULL AND created_by <> '';
-INSERT OR IGNORE INTO _idmig_orphans SELECT updated_by FROM contribution_rules WHERE updated_by IS NOT NULL AND updated_by <> '';
-INSERT OR IGNORE INTO _idmig_orphans SELECT discord_id FROM contribution_entries WHERE discord_id IS NOT NULL AND discord_id <> '';
-INSERT OR IGNORE INTO _idmig_orphans SELECT discord_id FROM user_gear_items WHERE discord_id IS NOT NULL AND discord_id <> '';
-INSERT OR IGNORE INTO _idmig_orphans SELECT discord_id FROM user_gear_builds WHERE discord_id IS NOT NULL AND discord_id <> '';
-INSERT OR IGNORE INTO _idmig_orphans SELECT discord_id FROM build_share_links WHERE discord_id IS NOT NULL AND discord_id <> '';
-INSERT OR IGNORE INTO _idmig_orphans SELECT discord_id FROM heirloom_item_pushes WHERE discord_id IS NOT NULL AND discord_id <> '';
-INSERT OR IGNORE INTO _idmig_orphans SELECT discord_id FROM heirloom_set_state WHERE discord_id IS NOT NULL AND discord_id <> '';
-INSERT OR IGNORE INTO _idmig_orphans SELECT discord_id FROM push_tokens WHERE discord_id IS NOT NULL AND discord_id <> '';
-INSERT OR IGNORE INTO _idmig_orphans SELECT discord_id FROM usage_counters WHERE discord_id IS NOT NULL AND discord_id <> '';
-INSERT OR IGNORE INTO _idmig_orphans SELECT discord_id FROM feedback WHERE discord_id IS NOT NULL AND discord_id <> '';
-INSERT OR IGNORE INTO _idmig_orphans SELECT discord_id FROM user_oauth WHERE discord_id IS NOT NULL AND discord_id <> '';
+INSERT OR IGNORE INTO _idmig_orphans SELECT creator_discord_id FROM events WHERE creator_discord_id IS NOT NULL AND creator_discord_id <> '' ;
+INSERT OR IGNORE INTO _idmig_orphans SELECT creator_discord_id FROM grouping_templates WHERE creator_discord_id IS NOT NULL AND creator_discord_id <> '' ;
+INSERT OR IGNORE INTO _idmig_orphans SELECT created_by FROM lotteries WHERE created_by IS NOT NULL AND created_by <> '' ;
+INSERT OR IGNORE INTO _idmig_orphans SELECT discord_id FROM member_availability WHERE discord_id IS NOT NULL AND discord_id <> '' ;
+INSERT OR IGNORE INTO _idmig_orphans SELECT created_by FROM time_polls WHERE created_by IS NOT NULL AND created_by <> '' ;
+INSERT OR IGNORE INTO _idmig_orphans SELECT discord_id FROM time_poll_votes WHERE discord_id IS NOT NULL AND discord_id <> '' ;
+INSERT OR IGNORE INTO _idmig_orphans SELECT author_discord_id FROM guild_announcements WHERE author_discord_id IS NOT NULL AND author_discord_id <> '' ;
+INSERT OR IGNORE INTO _idmig_orphans SELECT discord_id FROM guild_announcement_reads WHERE discord_id IS NOT NULL AND discord_id <> '' ;
+INSERT OR IGNORE INTO _idmig_orphans SELECT checked_by FROM season_checklist_checks WHERE checked_by IS NOT NULL AND checked_by <> '' ;
+INSERT OR IGNORE INTO _idmig_orphans SELECT created_by FROM guild_roster_entries WHERE created_by IS NOT NULL AND created_by <> '' ;
+INSERT OR IGNORE INTO _idmig_orphans SELECT created_by FROM roster_import_batches WHERE created_by IS NOT NULL AND created_by <> '' ;
+INSERT OR IGNORE INTO _idmig_orphans SELECT discord_id FROM guild_applications WHERE discord_id IS NOT NULL AND discord_id <> '' ;
+INSERT OR IGNORE INTO _idmig_orphans SELECT reviewed_by FROM guild_applications WHERE reviewed_by IS NOT NULL AND reviewed_by <> '' ;
+INSERT OR IGNORE INTO _idmig_orphans SELECT mentor_discord_id FROM mentor_pairings WHERE mentor_discord_id IS NOT NULL AND mentor_discord_id <> '' ;
+INSERT OR IGNORE INTO _idmig_orphans SELECT mentee_discord_id FROM mentor_pairings WHERE mentee_discord_id IS NOT NULL AND mentee_discord_id <> '' ;
+INSERT OR IGNORE INTO _idmig_orphans SELECT created_by FROM mentor_pairings WHERE created_by IS NOT NULL AND created_by <> '' ;
+INSERT OR IGNORE INTO _idmig_orphans SELECT discord_id FROM guild_mentors WHERE discord_id IS NOT NULL AND discord_id <> '' ;
+INSERT OR IGNORE INTO _idmig_orphans SELECT member_discord_id FROM guild_member_notes WHERE member_discord_id IS NOT NULL AND member_discord_id <> '' ;
+INSERT OR IGNORE INTO _idmig_orphans SELECT author_discord_id FROM guild_member_notes WHERE author_discord_id IS NOT NULL AND author_discord_id <> '' ;
+INSERT OR IGNORE INTO _idmig_orphans SELECT discord_id FROM member_season_goals WHERE discord_id IS NOT NULL AND discord_id <> '' ;
+INSERT OR IGNORE INTO _idmig_orphans SELECT discord_id FROM fill_offers WHERE discord_id IS NOT NULL AND discord_id <> '' ;
+INSERT OR IGNORE INTO _idmig_orphans SELECT created_by FROM fill_requests WHERE created_by IS NOT NULL AND created_by <> '' ;
+INSERT OR IGNORE INTO _idmig_orphans SELECT from_discord_id FROM fill_invites WHERE from_discord_id IS NOT NULL AND from_discord_id <> '' ;
+INSERT OR IGNORE INTO _idmig_orphans SELECT to_discord_id FROM fill_invites WHERE to_discord_id IS NOT NULL AND to_discord_id <> '' ;
+INSERT OR IGNORE INTO _idmig_orphans SELECT requested_by FROM guild_alliances WHERE requested_by IS NOT NULL AND requested_by <> '' ;
+INSERT OR IGNORE INTO _idmig_orphans SELECT sent_by FROM ops_nudge_sends WHERE sent_by IS NOT NULL AND sent_by <> '' ;
+INSERT OR IGNORE INTO _idmig_orphans SELECT created_by FROM season_rollovers WHERE created_by IS NOT NULL AND created_by <> '' ;
+INSERT OR IGNORE INTO _idmig_orphans SELECT updated_by FROM contribution_rules WHERE updated_by IS NOT NULL AND updated_by <> '' ;
+INSERT OR IGNORE INTO _idmig_orphans SELECT discord_id FROM contribution_entries WHERE discord_id IS NOT NULL AND discord_id <> '' ;
+INSERT OR IGNORE INTO _idmig_orphans SELECT discord_id FROM user_gear_items WHERE discord_id IS NOT NULL AND discord_id <> '' ;
+INSERT OR IGNORE INTO _idmig_orphans SELECT discord_id FROM user_gear_builds WHERE discord_id IS NOT NULL AND discord_id <> '' ;
+INSERT OR IGNORE INTO _idmig_orphans SELECT discord_id FROM build_share_links WHERE discord_id IS NOT NULL AND discord_id <> '' ;
+INSERT OR IGNORE INTO _idmig_orphans SELECT discord_id FROM heirloom_item_pushes WHERE discord_id IS NOT NULL AND discord_id <> '' ;
+INSERT OR IGNORE INTO _idmig_orphans SELECT discord_id FROM heirloom_set_state WHERE discord_id IS NOT NULL AND discord_id <> '' ;
+INSERT OR IGNORE INTO _idmig_orphans SELECT discord_id FROM push_tokens WHERE discord_id IS NOT NULL AND discord_id <> '' ;
+INSERT OR IGNORE INTO _idmig_orphans SELECT discord_id FROM usage_counters WHERE discord_id IS NOT NULL AND discord_id <> '' AND discord_id NOT LIKE 'guild:%';
+INSERT OR IGNORE INTO _idmig_orphans SELECT discord_id FROM feedback WHERE discord_id IS NOT NULL AND discord_id <> '' ;
+INSERT OR IGNORE INTO _idmig_orphans SELECT discord_id FROM user_oauth WHERE discord_id IS NOT NULL AND discord_id <> '' ;
+
+-- Discord IDs that exist ONLY inside contribution dedupe keys are
+-- class-B references too: collect them as orphans so their user IDs
+-- exist before the keys are rewritten.
+INSERT OR IGNORE INTO _idmig_orphans SELECT substr(dedupe_key, 9 + instr(substr(dedupe_key, 9), ':')) FROM contribution_entries WHERE dedupe_key LIKE 'leading:%';
+INSERT OR IGNORE INTO _idmig_orphans SELECT substr(dedupe_key, 12 + instr(substr(dedupe_key, 12), ':')) FROM contribution_entries WHERE dedupe_key LIKE 'attendance:%';
+INSERT OR IGNORE INTO _idmig_orphans SELECT substr(dedupe_key, 18 + instr(substr(dedupe_key, 18), ':')) FROM contribution_entries WHERE dedupe_key LIKE 'mentoring:pairing:%';
 DELETE FROM _idmig_orphans WHERE discord_id IN (SELECT discord_id FROM users);
 INSERT INTO users (discord_id, username, avatar, guilds_json, guilds_checked_at, created_at, updated_at, locale_pref, deletion_requested_at, fresh_auth_at)
 SELECT discord_id, '', '', '[]', 0, strftime('%s','now'), strftime('%s','now'), NULL, NULL, NULL FROM _idmig_orphans;
@@ -994,7 +1001,7 @@ CREATE TABLE contribution_entries__new (
   created_at INTEGER NOT NULL DEFAULT 0
 );
 INSERT INTO contribution_entries__new (id, tenant, user_id, action_key, points, event_id, dedupe_key, created_at)
-SELECT o.id, CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, CASE WHEN o.discord_id IS NULL THEN NULL WHEN o.discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.discord_id) END, o.action_key, o.points, (SELECT new_id FROM _idmig_map_events WHERE old_key = CAST(o.event_id AS TEXT)), o.dedupe_key, o.created_at FROM contribution_entries o;
+SELECT o.id, CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, CASE WHEN o.discord_id IS NULL THEN NULL WHEN o.discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.discord_id) END, o.action_key, o.points, (SELECT new_id FROM _idmig_map_events WHERE old_key = CAST(o.event_id AS TEXT)), CASE WHEN o.dedupe_key LIKE 'leading:%' THEN 'leading:' || (SELECT new_id FROM _idmig_map_events WHERE old_key = substr(o.dedupe_key, 9, instr(substr(o.dedupe_key, 9), ':') - 1)) || ':' || (SELECT new_id FROM _idmig_user WHERE old_key = substr(o.dedupe_key, 9 + instr(substr(o.dedupe_key, 9), ':'))) WHEN o.dedupe_key LIKE 'attendance:%' THEN 'attendance:' || (SELECT new_id FROM _idmig_map_events WHERE old_key = substr(o.dedupe_key, 12, instr(substr(o.dedupe_key, 12), ':') - 1)) || ':' || (SELECT new_id FROM _idmig_user WHERE old_key = substr(o.dedupe_key, 12 + instr(substr(o.dedupe_key, 12), ':'))) WHEN o.dedupe_key LIKE 'mentoring:pairing:%' THEN 'mentoring:pairing:' || (SELECT new_id FROM _idmig_map_mentor_pairings WHERE old_key = substr(o.dedupe_key, 18, instr(substr(o.dedupe_key, 18), ':') - 1)) || ':' || (SELECT new_id FROM _idmig_user WHERE old_key = substr(o.dedupe_key, 18 + instr(substr(o.dedupe_key, 18), ':'))) ELSE o.dedupe_key END, o.created_at FROM contribution_entries o;
 DROP TABLE contribution_entries;
 ALTER TABLE contribution_entries__new RENAME TO contribution_entries;
 CREATE INDEX idx_contribution_entries_tenant ON contribution_entries(tenant, id);
@@ -1060,7 +1067,7 @@ CREATE TABLE usage_counters__new (
   PRIMARY KEY (user_id, metric, day)
 );
 INSERT INTO usage_counters__new (user_id, metric, day, count, updated_at)
-SELECT CASE WHEN o.discord_id IS NULL THEN NULL WHEN o.discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.discord_id) END, o.metric, o.day, o.count, o.updated_at FROM usage_counters o;
+SELECT CASE WHEN o.discord_id IS NULL THEN NULL WHEN o.discord_id = '' THEN 0 WHEN o.discord_id LIKE 'guild:%' THEN (SELECT new_id FROM _idmig_guild WHERE old_key = substr(o.discord_id, 7)) ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.discord_id) END, o.metric, o.day, o.count, o.updated_at FROM usage_counters o;
 DROP TABLE usage_counters;
 ALTER TABLE usage_counters__new RENAME TO usage_counters;
 

@@ -168,6 +168,7 @@ const postMembers = sq(
 check('member<->guild equivalence', JSON.stringify(postMembers) === JSON.stringify(baseMembers),
   JSON.stringify(postMembers));
 const e1 = eventIdByTitle('周六双十人本');
+const e2 = eventIdByTitle('竞速周榜');
 const postSeats = sq(
   `SELECT nickname, discord_id, is_visitor FROM signups WHERE event_id = ${e1} ORDER BY id`,
 );
@@ -193,9 +194,18 @@ check('alliance requester tenant resolved',
 check('contribution recipient (orphan) resolves to a user',
   userDiscord(scalar(`SELECT user_id FROM contribution_entries WHERE action_key = 'leading'`)) ===
     '888888888888888888');
-check('contribution dedupe keys unchanged',
+check('contribution dedupe keys rewritten to new ids',
   JSON.stringify(sq(`SELECT dedupe_key FROM contribution_entries ORDER BY dedupe_key`).map((r) => r.dedupe_key)) ===
-    JSON.stringify(baseDedupe));
+    JSON.stringify([
+      'attendance:' + e1 + ':' + scalar(`SELECT user_id FROM contribution_entries WHERE action_key = 'attendance'`),
+      'leading:' + e2 + ':' + scalar(`SELECT user_id FROM contribution_entries WHERE action_key = 'leading'`),
+    ].sort()));
+check('user-scoped usage counter follows the user map',
+  scalar(`SELECT user_id FROM usage_counters WHERE metric = 'ocr_batch'`) ===
+    scalar(`SELECT id FROM users WHERE discord_id = '111111111111111111'`));
+check('guild-scoped usage counter resolves to the guild id (no fake user minted)',
+  scalar(`SELECT user_id FROM usage_counters WHERE metric = 'guild_announcements'`) === jili &&
+  sq(`SELECT id FROM users`).length === 8);
 
 // Class A byte-identity.
 check('lottery entries discord ids identical',
