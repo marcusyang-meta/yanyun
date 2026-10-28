@@ -47,7 +47,7 @@ export default function GuildPicker({
     <Link
       key={t.slug}
       to={`/${t.slug}`}
-      className="yy-card yy-card-hover"
+      className="yy-card yy-card-hover yy-card-solid"
       style={{
         // @ts-ignore stagger delay
         '--i': i,
@@ -91,12 +91,12 @@ export default function GuildPicker({
   return (
     <div className="yy-page">
       <header className="yy-hero" style={{ paddingTop: 8 }}>
-        {/* The user bar floats inside the hero at the top-right (the image starts at the very top of the page — no separate black bar) */}
-        <div style={{
-          position: 'absolute', top: 14, right: 20, zIndex: 3,
-          background: 'rgba(12,11,9,.5)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
-          border: '1px solid rgba(201,163,92,.25)', borderRadius: 999, padding: '5px 10px 5px 12px',
-        }}>
+        {/* The user bar floats inside the hero at the top-right on wide
+            screens (the image starts at the very top of the page — no
+            separate black bar); at mobile widths .yy-hero-userbar
+            switches it into the hero flow above the title instead, so
+            the pill never covers the title glyphs. */}
+        <div className="yy-hero-userbar">
           <UserBar user={user} text={userBarText} />
         </div>
         <h1 className="yy-hero-title">{site.title}</h1>
@@ -111,7 +111,7 @@ export default function GuildPicker({
         </div>
 
         {guilds.length === 0 ? (
-          <div className="yy-card yy-anim-fade-up" style={{ padding: '36px 24px', textAlign: 'center' }}>
+          <div className="yy-card yy-card-solid yy-anim-fade-up" style={{ padding: '36px 24px', textAlign: 'center' }}>
             <div style={{ fontSize: 18, color: theme.goldHi, letterSpacing: '.06em', marginBottom: 10 }}>
               {text.emptyTitle}
             </div>

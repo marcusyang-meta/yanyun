@@ -8,15 +8,23 @@ import { refetchAppViewerQueries } from '../lib/relay';
 import { toast, ToastHost } from '../guild/components/Toast.react.tsx';
 import { adminInputStyle } from '../guild/components/GuildAdminUi.react.tsx';
 
-// Platform-home recruit section (Viewer.homeRecruit): the recruit
+// Platform-home recruit sections (Viewer.homeRecruit): the recruit
 // line's only member surface since the standalone recruit page was
-// dissolved into the home page. The server composes the section per
+// dissolved into the home page. The server composes the data per
 // viewer — the guild directory lists only guilds whose recruitment
 // switch is open; an application section exists on an entry only
 // for a logged-in non-member of that guild; newcomer entries exist
 // only for members (checklist) and the paired (pairings), switch or
 // not. This component renders exactly what was composed and carries
 // no membership logic of its own.
+//
+// Presentation (ruling 2026-10-28): the two audiences get two
+// independent sections, each with its own heading — "newcomers"
+// (my checklist / pairings, for members) above "recruiting" (the
+// open directory + applications, for the not-yet-member). A section
+// renders only when its composed list is non-empty, so anonymous
+// visitors see recruiting alone and members without an open
+// directory around see newcomers alone.
 //
 // Presentation (ruling 2026-10-27): the home page carries SUMMARY
 // ROWS only — guild avatar/name plus one status line (checklist
@@ -266,80 +274,92 @@ export default function HomeRecruitSection({ section, user, sealText, unknownErr
 
   return (
     <div style={{ maxWidth: 800, margin: '0 auto', padding: '0 20px 48px' }}>
-      <div className="yy-section-head">
-        <h2>{section.recruitTitle}</h2>
-      </div>
-      <p style={{ color: theme.muted, fontSize: 13.5, lineHeight: 1.85, margin: '0 0 18px' }}>
-        {section.homeBody}
-      </p>
+      {newcomer.length > 0 && (
+        <>
+          <div className="yy-section-head">
+            <h2>{section.newcomerTitle}</h2>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {newcomer.map((entry: any) => {
+              const line = entry.checklist
+                ? `${section.checklistTitle} · ${entry.checklist.progressText}`
+                : (entry.myPairings && entry.myPairings.length > 0
+                  ? `${section.myPairingsTitle} · ${entry.myPairings[0].statusLabel}`
+                  : '');
+              return (
+                <div
+                  key={entry.slug}
+                  className="yy-card yy-card-solid"
+                  data-home-recruit-newcomer={entry.slug}
+                  onClick={() => setDetail({ kind: 'newcomer', slug: entry.slug })}
+                  style={{ padding: '16px 20px', cursor: 'pointer' }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                    <span style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 18, color: theme.goldHi, fontWeight: 600 }}>{entry.guildName}</div>
+                      {rowLine(line)}
+                    </span>
+                    {chevron}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {newcomer.map((entry: any) => {
-          const line = entry.checklist
-            ? `${section.checklistTitle} · ${entry.checklist.progressText}`
-            : (entry.myPairings && entry.myPairings.length > 0
-              ? `${section.myPairingsTitle} · ${entry.myPairings[0].statusLabel}`
-              : '');
-          return (
-            <div
-              key={entry.slug}
-              className="yy-card"
-              data-home-recruit-newcomer={entry.slug}
-              onClick={() => setDetail({ kind: 'newcomer', slug: entry.slug })}
-              style={{ padding: '16px 20px', cursor: 'pointer' }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                <span style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 18, color: theme.goldHi, fontWeight: 600 }}>{entry.guildName}</div>
-                  {rowLine(line)}
-                </span>
-                {chevron}
-              </div>
-            </div>
-          );
-        })}
+      {guilds.length > 0 && (
+        <>
+          <div className="yy-section-head">
+            <h2>{section.directoryTitle}</h2>
+          </div>
+          <p style={{ color: theme.muted, fontSize: 13.5, lineHeight: 1.85, margin: '0 0 18px' }}>
+            {section.homeBody}
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {guilds.map((g: any) => {
+              const app = g.myApplicationSection?.application ?? null;
+              const clickable = !!g.myApplicationSection;
+              const line = app ? null : g.slogan;
+              return (
+                <div
+                  key={g.slug}
+                  className="yy-card yy-card-solid"
+                  data-home-recruit-guild={g.slug}
+                  onClick={clickable ? () => setDetail({ kind: 'guild', slug: g.slug }) : undefined}
+                  style={{ padding: '16px 20px', cursor: clickable ? 'pointer' : undefined }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                    {g.avatarUrl ? (
+                      <img
+                        src={g.avatarUrl}
+                        alt=""
+                        style={{
+                          width: 48, height: 48, borderRadius: '50%', objectFit: 'cover', flexShrink: 0,
+                          border: '1px solid rgba(201,163,92,.45)', background: 'rgba(201,163,92,.08)',
+                        }}
+                      />
+                    ) : (
+                      <span className="yy-seal" style={{ width: 48, height: 48, fontSize: 24 }}>{sealText}</span>
+                    )}
+                    <span style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 18, color: theme.goldHi, fontWeight: 600 }}>{g.name}</div>
+                      {rowLine(line)}
+                    </span>
+                    {app && <StatusChip label={app.statusLabel} status={app.status} />}
+                    {clickable && chevron}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
 
-        {guilds.map((g: any) => {
-          const app = g.myApplicationSection?.application ?? null;
-          const clickable = !!g.myApplicationSection;
-          const line = app ? null : g.slogan;
-          return (
-            <div
-              key={g.slug}
-              className="yy-card"
-              data-home-recruit-guild={g.slug}
-              onClick={clickable ? () => setDetail({ kind: 'guild', slug: g.slug }) : undefined}
-              style={{ padding: '16px 20px', cursor: clickable ? 'pointer' : undefined }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                {g.avatarUrl ? (
-                  <img
-                    src={g.avatarUrl}
-                    alt=""
-                    style={{
-                      width: 48, height: 48, borderRadius: '50%', objectFit: 'cover', flexShrink: 0,
-                      border: '1px solid rgba(201,163,92,.45)', background: 'rgba(201,163,92,.08)',
-                    }}
-                  />
-                ) : (
-                  <span className="yy-seal" style={{ width: 48, height: 48, fontSize: 24 }}>{sealText}</span>
-                )}
-                <span style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 18, color: theme.goldHi, fontWeight: 600 }}>{g.name}</div>
-                  {rowLine(line)}
-                </span>
-                {app && <StatusChip label={app.statusLabel} status={app.status} />}
-                {clickable && chevron}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {!user && (
-        <p style={{ color: theme.muted, fontSize: 13, lineHeight: 1.8, margin: '16px 0 0' }}>
-          {section.homeLoginHint}
-        </p>
+          {!user && (
+            <p style={{ color: theme.muted, fontSize: 13, lineHeight: 1.8, margin: '16px 0 0' }}>
+              {section.homeLoginHint}
+            </p>
+          )}
+        </>
       )}
 
       {detailGuild && detailGuild.myApplicationSection && (

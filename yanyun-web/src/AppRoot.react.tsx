@@ -82,7 +82,8 @@ const AppViewerQueryNode = graphql`
       pickerCreateGuildMoreLabel
       commonUnknownErrorText
       homeRecruit {
-        recruitTitle
+        directoryTitle
+        newcomerTitle
         homeBody
         homeLoginHint
         applySectionTitle

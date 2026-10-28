@@ -2549,6 +2549,8 @@ type NewcomerProgress {
 
 type HomeRecruitSection {
   recruitTitle: String!
+  directoryTitle: String!
+  newcomerTitle: String!
   homeBody: String!
   homeLoginHint: String!
   applySectionTitle: String!
