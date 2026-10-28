@@ -23,6 +23,15 @@
 //     construction. Facts — entitlement rows, read-time expiry, the
 //     hub switch — never left this file; only policy did.
 //
+// Lifecycle (2026-10-28 rulings) also lives here: the plan catalog
+// (tier names + monthly prices), the 14-day past-due grace for
+// Stripe-sourced entitlements (past_due marker on the row, grace
+// judged at read time in getEffectiveEntitlement), the one-per-
+// guild 14-day T2 trial grant, and the persistence-card verdict.
+// Nothing here enables anything by itself: the paygate master
+// switch stays OFF and premiumGate / isPremiumActive semantics are
+// untouched by the lifecycle additions.
+//
 // Stripe event application also lives here: the webhook route only
 // verifies the signature and hands over the parsed event.
 import { getSettingValue, setSettingValue } from '../guilds/settings.ts';
@@ -51,6 +60,41 @@ const TIER_BY_PLAN: Record<string, GuildTier> = {
   free: 0, t1: 1, t2: 2, t3: 3, premium: 3,
 };
 
+/* ---------------- plan catalog (names + prices) ------------------
+ * The settled commercial facts (marcus's rulings, 2026-10-28):
+ * theme-B names — T1 同道 (Kindred), T2 执事 (Steward), T3 盟主
+ * (Guildmaster) — with the DESIGN §10 subtitles 数据 / 智能 / 旗舰,
+ * and monthly-only prices $3.99 / $5.99 / $7.99. This catalog is
+ * the single backend source every pricing surface composes from:
+ * the guild-admin upgrade panel localizes name/subtitle through
+ * the i18n catalog (whose zh source and en translations carry the
+ * same names) and formats priceMonthlyCents through the price
+ * pattern; the hub billing state ships these rows verbatim. No
+ * client and no feature line hardcodes a tier name or a price,
+ * and the tier-locked shells of individual features never receive
+ * prices at all — prices exist only on the pricing/upgrade
+ * surface, which the paygate master switch gates (OFF composes
+ * nothing, so production sees no price while the switch is off). */
+export interface PremiumPlanInfo {
+  tier: 1 | 2 | 3;
+  plan: 't1' | 't2' | 't3';
+  name: string;
+  subtitle: string;
+  nameEn: string;
+  subtitleEn: string;
+  priceMonthlyCents: number;
+}
+
+export const PREMIUM_PLANS: readonly PremiumPlanInfo[] = [
+  { tier: 1, plan: 't1', name: '同道', subtitle: '数据', nameEn: 'Kindred', subtitleEn: 'Data', priceMonthlyCents: 399 },
+  { tier: 2, plan: 't2', name: '执事', subtitle: '智能', nameEn: 'Steward', subtitleEn: 'Smart', priceMonthlyCents: 599 },
+  { tier: 3, plan: 't3', name: '盟主', subtitle: '旗舰', nameEn: 'Guildmaster', subtitleEn: 'Flagship', priceMonthlyCents: 799 },
+];
+
+export function premiumPlanForTier(tier: number): PremiumPlanInfo | null {
+  return PREMIUM_PLANS.find((p) => p.tier === tier) ?? null;
+}
+
 export const PAYGATE_ENABLED_KEY = 'paygate_enabled';
 
 const nowSec = () => Math.floor(Date.now() / 1000);
@@ -74,17 +118,32 @@ export interface EffectiveEntitlement {
    *  read time (see TIER_BY_PLAN): an expired assignment is tier 0,
    *  exactly like a free one, and lapsed keeps its meaning. */
   tier: GuildTier;
-  /** Stored source: 'stripe' | 'manual' | ''. */
+  /** Stored source: 'stripe' | 'manual' | 'trial' | ''. */
   source: string;
   /** Stored period end (unix seconds); null when no expiry on file. */
   currentPeriodEnd: number | null;
   /** Whether a stored premium assignment exists but has lapsed. */
   lapsed: boolean;
+  /** Whether a Stripe delinquency is marked on the stored row
+   *  (past_due_since set, stripe source only). Inside the grace
+   *  window (see PAST_DUE_GRACE_DAYS) the entitlement still reads
+   *  at its stored plan with this fact exposed; past the window it
+   *  reads lapsed like an expired row. */
+  pastDue: boolean;
 }
 
 const FREE_ENTITLEMENT: EffectiveEntitlement = {
-  plan: 'free', tier: 0, source: '', currentPeriodEnd: null, lapsed: false,
+  plan: 'free', tier: 0, source: '', currentPeriodEnd: null, lapsed: false, pastDue: false,
 };
+
+/** Past-due grace (marcus's ruling, 2026-10-28): a Stripe-sourced
+ *  entitlement marked past due keeps its stored plan until 14 days
+ *  after its current period end; from that instant it lapses (the
+ *  row is kept — frozen, not deleted — and reads as free). Manual
+ *  and trial sources never enter grace: the marker is only ever
+ *  set on stripe rows, and the judgement below double-checks the
+ *  source, so their period end is final exactly as before. */
+export const PAST_DUE_GRACE_DAYS = 14;
 
 export async function getEffectiveEntitlement(
   d1: D1Database,
@@ -95,8 +154,19 @@ export async function getEffectiveEntitlement(
   if (!row) return FREE_ENTITLEMENT;
   const storedTier = TIER_BY_PLAN[row.plan];
   if (storedTier === undefined || storedTier === 0) return FREE_ENTITLEMENT;
+  const pastDue = row.source === 'stripe' && row.pastDueSince != null;
   if (row.currentPeriodEnd != null && row.currentPeriodEnd <= atSec) {
-    return { plan: 'free', tier: 0, source: row.source, currentPeriodEnd: row.currentPeriodEnd, lapsed: true };
+    if (pastDue && atSec < row.currentPeriodEnd + PAST_DUE_GRACE_DAYS * 86400) {
+      return {
+        plan: row.plan as GuildPlan,
+        tier: storedTier,
+        source: row.source,
+        currentPeriodEnd: row.currentPeriodEnd,
+        lapsed: false,
+        pastDue: true,
+      };
+    }
+    return { plan: 'free', tier: 0, source: row.source, currentPeriodEnd: row.currentPeriodEnd, lapsed: true, pastDue };
   }
   return {
     plan: row.plan as GuildPlan,
@@ -104,6 +174,7 @@ export async function getEffectiveEntitlement(
     source: row.source,
     currentPeriodEnd: row.currentPeriodEnd,
     lapsed: false,
+    pastDue,
   };
 }
 
@@ -191,6 +262,9 @@ export async function grantPremiumManual(
     stripeCustomerId: prev ? prev.stripeCustomerId : '',
     stripeSubscriptionId: prev ? prev.stripeSubscriptionId : '',
     updatedAt: at,
+    pastDueSince: prev ? (prev.pastDueSince ?? null) : null,
+    hasCard: prev ? !!prev.hasCard : false,
+    trialUsed: prev ? !!prev.trialUsed : false,
   };
   await upsertEntitlementRow(d1, row);
   return row;
@@ -218,9 +292,84 @@ export async function grantTierManual(
     stripeCustomerId: prev ? prev.stripeCustomerId : '',
     stripeSubscriptionId: prev ? prev.stripeSubscriptionId : '',
     updatedAt: at,
+    pastDueSince: prev ? (prev.pastDueSince ?? null) : null,
+    hasCard: prev ? !!prev.hasCard : false,
+    trialUsed: prev ? !!prev.trialUsed : false,
   };
   await upsertEntitlementRow(d1, row);
   return row;
+}
+
+/* ---------------- trial grant (one per guild) --------------------
+ * The trial compromise (marcus's ruling, 2026-10-28): every new
+ * guild is granted a trial at creation/binding time — T2 (执事)
+ * for TRIAL_DAYS days, source 'trial', NO card required at the
+ * door (the grant asks for no payment information at all). The
+ * persistence-card verdict below is where the card comes in:
+ * enabling a persistence-class feature during the trial needs a
+ * card on file.
+ *
+ * Once per guild, ever: the grant stamps trial_used on the row,
+ * and that stamp is carried through every later write (grants,
+ * revoke, Stripe applies), so an expired, revoked or superseded
+ * trial can never be re-armed. A guild holding a live paid/manual
+ * entitlement is never overwritten by a trial. Trial rows carry a
+ * period end like manual grants, and expiry is the same read-time
+ * judgement — trials get NO past-due grace (stripe source only). */
+export const TRIAL_TIER = 2 as const;
+export const TRIAL_DAYS = 14;
+
+export async function grantTrialEntitlement(
+  d1: D1Database,
+  slug: string,
+): Promise<GuildEntitlementRow | null> {
+  if (!slug) return null;
+  const prev = await getEntitlementRow(d1, slug).catch(() => null);
+  if (prev && prev.trialUsed) return null;
+  if (prev) {
+    const eff = await getEffectiveEntitlement(d1, slug);
+    if (eff.tier > 0 && !eff.lapsed) return null; // a live entitlement stands
+  }
+  const at = nowSec();
+  const row: GuildEntitlementRow = {
+    tenant: slug,
+    plan: 't2',
+    source: 'trial',
+    currentPeriodEnd: at + TRIAL_DAYS * 86400,
+    stripeCustomerId: prev ? prev.stripeCustomerId : '',
+    stripeSubscriptionId: prev ? prev.stripeSubscriptionId : '',
+    updatedAt: at,
+    pastDueSince: null,
+    hasCard: prev ? !!prev.hasCard : false,
+    trialUsed: true,
+  };
+  await upsertEntitlementRow(d1, row);
+  return row;
+}
+
+/* ---------------- persistence-card verdict -----------------------
+ * Whether enabling a persistence-class feature for this guild
+ * requires a card on file first. True exactly when the guild is
+ * on a trial (or holds no paid entitlement at all) AND no card is
+ * on file. Paid Stripe entitlements and manual grants are never
+ * gated by it; a card on file satisfies it for everyone. The card
+ * fact is the entitlement row's has_card column — written by the
+ * future Stripe line, defaulting to false; this verdict only
+ * reads. Like tierLocked this is a pure entitlement verdict: it
+ * does not consult the paygate master switch. */
+export async function persistenceCardRequired(
+  d1: D1Database,
+  slug: string,
+): Promise<boolean> {
+  if (!slug) return true;
+  const row = await getEntitlementRow(d1, slug).catch(() => null);
+  if (row && row.hasCard) return false;
+  const eff = await getEffectiveEntitlement(d1, slug);
+  // A live paid (stripe) or platform-granted (manual) entitlement
+  // is never gated; everything else — a live trial, a free guild,
+  // a lapsed row of every source — needs the card first.
+  if (eff.tier > 0 && (eff.source === 'stripe' || eff.source === 'manual')) return false;
+  return true;
 }
 
 export async function revokePremium(
@@ -239,6 +388,12 @@ export async function revokePremium(
     stripeCustomerId: prev ? prev.stripeCustomerId : '',
     stripeSubscriptionId: prev ? prev.stripeSubscriptionId : '',
     updatedAt: at,
+    // The delinquency marker dies with the entitlement it marked;
+    // the card fact and the consumed-trial stamp are guild facts,
+    // not entitlement facts, and survive a revoke.
+    pastDueSince: null,
+    hasCard: prev ? !!prev.hasCard : false,
+    trialUsed: prev ? !!prev.trialUsed : false,
   };
   await upsertEntitlementRow(d1, row);
   return row;
@@ -291,6 +446,21 @@ async function applySubscription(
 
   const prev = await getEntitlementRow(d1, slug);
   const at = nowSec();
+  // Lifecycle carry: the card fact and the consumed-trial stamp are
+  // guild facts that survive every subscription apply; the past-due
+  // marker follows the subscription status — set when Stripe
+  // reports past_due (the first stamp sticks, so the grace clock
+  // is anchored at the delinquency, not at the latest event),
+  // cleared the moment the subscription is live again (paid up).
+  const lifecycleCarry = {
+    hasCard: prev ? !!prev.hasCard : false,
+    trialUsed: prev ? !!prev.trialUsed : false,
+  };
+  const pastDueSince = sub.status === 'past_due'
+    ? (prev && prev.pastDueSince != null ? prev.pastDueSince : at)
+    : sub.status === 'active' || sub.status === 'trialing'
+      ? null
+      : (prev ? (prev.pastDueSince ?? null) : null);
   if (LIVE_SUBSCRIPTION_STATUSES.has(sub.status)) {
     await upsertEntitlementRow(d1, {
       tenant: slug,
@@ -300,13 +470,18 @@ async function applySubscription(
       stripeCustomerId: sub.customerId || (prev ? prev.stripeCustomerId : ''),
       stripeSubscriptionId: sub.id || (prev ? prev.stripeSubscriptionId : ''),
       updatedAt: at,
+      pastDueSince,
+      ...lifecycleCarry,
     });
     return;
   }
   if (sub.status === 'canceled' || sub.status === 'incomplete_expired') {
     // Access runs to the recorded end; read-time expiry does the
     // rest. When Stripe says it already ended, that instant is the
-    // end — the guild reads as free from it.
+    // end — the guild reads as free from it. The past-due marker is
+    // cleared here on purpose: grace belongs to a live subscription
+    // in dunning, never to an ended one — a canceled subscription
+    // must not be resurrected by the grace judgement.
     await upsertEntitlementRow(d1, {
       tenant: slug,
       plan: 'premium',
@@ -315,6 +490,8 @@ async function applySubscription(
       stripeCustomerId: sub.customerId || (prev ? prev.stripeCustomerId : ''),
       stripeSubscriptionId: sub.id || (prev ? prev.stripeSubscriptionId : ''),
       updatedAt: at,
+      pastDueSince: null,
+      ...lifecycleCarry,
     });
     return;
   }
@@ -327,6 +504,7 @@ async function applySubscription(
       stripeCustomerId: sub.customerId || prev.stripeCustomerId,
       stripeSubscriptionId: sub.id || prev.stripeSubscriptionId,
       updatedAt: at,
+      pastDueSince,
     });
   }
 }
@@ -385,6 +563,9 @@ export async function handleStripeEvent(
         stripeCustomerId: customerId || (prev ? prev.stripeCustomerId : ''),
         stripeSubscriptionId: prev ? prev.stripeSubscriptionId : '',
         updatedAt: nowSec(),
+        pastDueSince: prev ? (prev.pastDueSince ?? null) : null,
+        hasCard: prev ? !!prev.hasCard : false,
+        trialUsed: prev ? !!prev.trialUsed : false,
       });
     }
     return done(true);
@@ -399,7 +580,20 @@ export async function handleStripeEvent(
   }
   if (type === 'invoice.payment_failed') {
     const customerId = String(obj.customer || '');
-    const row = customerId ? await getEntitlementByCustomer(d1, customerId).catch(() => null) : null;
+    const subscriptionId = String(obj.subscription || '');
+    let row = customerId ? await getEntitlementByCustomer(d1, customerId).catch(() => null) : null;
+    if (!row && subscriptionId) {
+      row = await getEntitlementBySubscription(d1, subscriptionId).catch(() => null);
+    }
+    // Lifecycle: a failed invoice marks the guild's Stripe
+    // entitlement past due (first stamp sticks — the 14-day grace
+    // is judged at read time from the period end, and the stamp is
+    // the delinquency fact surfaces display). Stripe source only:
+    // a row that is not Stripe-sourced is never marked, so manual
+    // and trial entitlements can never enter grace through here.
+    if (row && row.source === 'stripe' && row.pastDueSince == null) {
+      await upsertEntitlementRow(d1, { ...row, pastDueSince: nowSec(), updatedAt: nowSec() });
+    }
     void logError(d1, {
       source: 'stripe',
       name: 'InvoicePaymentFailed',
