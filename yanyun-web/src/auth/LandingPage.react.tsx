@@ -1,5 +1,6 @@
 import { theme } from '../lib/format';
 import type { SiteText, LoginText } from './LoginPage.react.tsx';
+import HomeRecruitSection from './HomeRecruitSection.react.tsx';
 
 export interface LandingText {
   featuresTitle: string;
@@ -21,11 +22,13 @@ export interface LandingText {
 // this page (AppRoot routes them to the guild picker). The feature
 // section under the hero only describes what the product already does.
 // All copy is backend-delivered via the viewer shell.
-export default function LandingPage({ returnTo = '/', site, text, landing }: {
+export default function LandingPage({ returnTo = '/', site, text, landing, recruit, unknownError }: {
   returnTo?: string;
   site: SiteText;
   text: LoginText;
   landing: LandingText;
+  recruit?: any;
+  unknownError?: string;
 }) {
   const loginHref = `/auth/discord/login?returnTo=${encodeURIComponent(returnTo || '/')}`;
   const features = [
@@ -87,6 +90,11 @@ export default function LandingPage({ returnTo = '/', site, text, landing }: {
           ))}
         </div>
       </div>
+
+      {/* Recruit section (Viewer.homeRecruit): the public directory
+          of guilds open for applications; applying itself requires
+          login, so anonymous visitors see the directory + login hint. */}
+      <HomeRecruitSection section={recruit} user={null} sealText={site.sealText} unknownError={unknownError ?? ''} />
     </div>
   );
 }

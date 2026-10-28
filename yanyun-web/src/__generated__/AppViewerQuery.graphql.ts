@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<1d12e609b4d5f788a2fc836bf1dc1554>>
+ * @generated SignedSource<<ede2229ce6ef863976f03563e8898204>>
  * @lightSyntaxTransform
  */
 
@@ -8,9 +8,12 @@
 // @ts-nocheck
 
 import { ConcreteRequest } from 'relay-runtime';
+export type MentorPairingStatus = "ACTIVE" | "ENDED" | "%future added value";
+export type RecruitApplicationStatus = "APPROVED" | "PENDING" | "REJECTED" | "%future added value";
 export type AppViewerQuery$variables = Record<PropertyKey, never>;
 export type AppViewerQuery$data = {
   readonly viewer: {
+    readonly commonUnknownErrorText: string;
     readonly footerDisclaimerText: string;
     readonly footerPrivacyLabel: string;
     readonly footerTermsLabel: string;
@@ -22,6 +25,64 @@ export type AppViewerQuery$data = {
       readonly slogan: string | null | undefined;
       readonly slug: string;
     }>;
+    readonly homeRecruit: {
+      readonly applySectionTitle: string;
+      readonly approvedNextStepText: string;
+      readonly checklistTitle: string;
+      readonly guilds: ReadonlyArray<{
+        readonly avatarUrl: string | null | undefined;
+        readonly myApplicationSection: {
+          readonly application: {
+            readonly applicantName: string;
+            readonly createdAtText: string;
+            readonly id: string;
+            readonly message: string;
+            readonly reviewedAtText: string | null | undefined;
+            readonly reviewedByName: string | null | undefined;
+            readonly status: RecruitApplicationStatus;
+            readonly statusLabel: string;
+          } | null | undefined;
+        } | null | undefined;
+        readonly name: string;
+        readonly slogan: string | null | undefined;
+        readonly slug: string;
+      }>;
+      readonly homeBody: string;
+      readonly homeLoginHint: string;
+      readonly messageLabel: string;
+      readonly messagePlaceholder: string;
+      readonly myApplicationTitle: string;
+      readonly myNewcomer: ReadonlyArray<{
+        readonly checklist: {
+          readonly items: ReadonlyArray<{
+            readonly done: boolean;
+            readonly hint: string;
+            readonly key: string;
+            readonly label: string;
+          }>;
+          readonly progressText: string;
+        } | null | undefined;
+        readonly guildName: string;
+        readonly myPairings: ReadonlyArray<{
+          readonly createdAtText: string;
+          readonly endedAtText: string | null | undefined;
+          readonly id: string;
+          readonly menteeName: string;
+          readonly mentorName: string;
+          readonly status: MentorPairingStatus;
+          readonly statusLabel: string;
+        }>;
+        readonly slug: string;
+      }>;
+      readonly myPairingsTitle: string;
+      readonly pairingMenteeRoleLabel: string;
+      readonly pairingMentorRoleLabel: string;
+      readonly pendingHint: string;
+      readonly recruitTitle: string;
+      readonly rejectedHint: string;
+      readonly submitLabel: string;
+      readonly submittingLabel: string;
+    };
     readonly landingDexBody: string;
     readonly landingDexTitle: string;
     readonly landingFeaturesTitle: string;
@@ -82,22 +143,31 @@ var v0 = {
   "name": "name",
   "storageKey": null
 },
-v1 = [
-  {
-    "alias": null,
-    "args": null,
-    "kind": "ScalarField",
-    "name": "slug",
-    "storageKey": null
-  },
+v1 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "slug",
+  "storageKey": null
+},
+v2 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "slogan",
+  "storageKey": null
+},
+v3 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "avatarUrl",
+  "storageKey": null
+},
+v4 = [
+  (v1/*:: as any*/),
   (v0/*:: as any*/),
-  {
-    "alias": null,
-    "args": null,
-    "kind": "ScalarField",
-    "name": "slogan",
-    "storageKey": null
-  },
+  (v2/*:: as any*/),
   {
     "alias": null,
     "args": null,
@@ -112,15 +182,37 @@ v1 = [
     "name": "memberCount",
     "storageKey": null
   },
-  {
-    "alias": null,
-    "args": null,
-    "kind": "ScalarField",
-    "name": "avatarUrl",
-    "storageKey": null
-  }
+  (v3/*:: as any*/)
 ],
-v2 = [
+v5 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "id",
+  "storageKey": null
+},
+v6 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "status",
+  "storageKey": null
+},
+v7 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "statusLabel",
+  "storageKey": null
+},
+v8 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "createdAtText",
+  "storageKey": null
+},
+v9 = [
   {
     "alias": null,
     "args": null,
@@ -162,7 +254,7 @@ v2 = [
         "kind": "LinkedField",
         "name": "guilds",
         "plural": true,
-        "selections": (v1/*:: as any*/),
+        "selections": (v4/*:: as any*/),
         "storageKey": null
       },
       {
@@ -172,7 +264,7 @@ v2 = [
         "kind": "LinkedField",
         "name": "publicGuilds",
         "plural": true,
-        "selections": (v1/*:: as any*/),
+        "selections": (v4/*:: as any*/),
         "storageKey": null
       },
       {
@@ -419,6 +511,317 @@ v2 = [
         "kind": "ScalarField",
         "name": "pickerCreateGuildMoreLabel",
         "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "commonUnknownErrorText",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "concreteType": "HomeRecruitSection",
+        "kind": "LinkedField",
+        "name": "homeRecruit",
+        "plural": false,
+        "selections": [
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "recruitTitle",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "homeBody",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "homeLoginHint",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "applySectionTitle",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "messageLabel",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "messagePlaceholder",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "submitLabel",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "submittingLabel",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "myApplicationTitle",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "pendingHint",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "approvedNextStepText",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "rejectedHint",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "checklistTitle",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "myPairingsTitle",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "pairingMentorRoleLabel",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "pairingMenteeRoleLabel",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "concreteType": "HomeRecruitGuild",
+            "kind": "LinkedField",
+            "name": "guilds",
+            "plural": true,
+            "selections": [
+              (v1/*:: as any*/),
+              (v0/*:: as any*/),
+              (v2/*:: as any*/),
+              (v3/*:: as any*/),
+              {
+                "alias": null,
+                "args": null,
+                "concreteType": "HomeRecruitApplicationSection",
+                "kind": "LinkedField",
+                "name": "myApplicationSection",
+                "plural": false,
+                "selections": [
+                  {
+                    "alias": null,
+                    "args": null,
+                    "concreteType": "RecruitApplication",
+                    "kind": "LinkedField",
+                    "name": "application",
+                    "plural": false,
+                    "selections": [
+                      (v5/*:: as any*/),
+                      {
+                        "alias": null,
+                        "args": null,
+                        "kind": "ScalarField",
+                        "name": "applicantName",
+                        "storageKey": null
+                      },
+                      {
+                        "alias": null,
+                        "args": null,
+                        "kind": "ScalarField",
+                        "name": "message",
+                        "storageKey": null
+                      },
+                      (v6/*:: as any*/),
+                      (v7/*:: as any*/),
+                      (v8/*:: as any*/),
+                      {
+                        "alias": null,
+                        "args": null,
+                        "kind": "ScalarField",
+                        "name": "reviewedByName",
+                        "storageKey": null
+                      },
+                      {
+                        "alias": null,
+                        "args": null,
+                        "kind": "ScalarField",
+                        "name": "reviewedAtText",
+                        "storageKey": null
+                      }
+                    ],
+                    "storageKey": null
+                  }
+                ],
+                "storageKey": null
+              }
+            ],
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "concreteType": "HomeRecruitNewcomer",
+            "kind": "LinkedField",
+            "name": "myNewcomer",
+            "plural": true,
+            "selections": [
+              (v1/*:: as any*/),
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "guildName",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "concreteType": "NewcomerChecklist",
+                "kind": "LinkedField",
+                "name": "checklist",
+                "plural": false,
+                "selections": [
+                  {
+                    "alias": null,
+                    "args": null,
+                    "kind": "ScalarField",
+                    "name": "progressText",
+                    "storageKey": null
+                  },
+                  {
+                    "alias": null,
+                    "args": null,
+                    "concreteType": "NewcomerChecklistItem",
+                    "kind": "LinkedField",
+                    "name": "items",
+                    "plural": true,
+                    "selections": [
+                      {
+                        "alias": null,
+                        "args": null,
+                        "kind": "ScalarField",
+                        "name": "key",
+                        "storageKey": null
+                      },
+                      {
+                        "alias": null,
+                        "args": null,
+                        "kind": "ScalarField",
+                        "name": "label",
+                        "storageKey": null
+                      },
+                      {
+                        "alias": null,
+                        "args": null,
+                        "kind": "ScalarField",
+                        "name": "hint",
+                        "storageKey": null
+                      },
+                      {
+                        "alias": null,
+                        "args": null,
+                        "kind": "ScalarField",
+                        "name": "done",
+                        "storageKey": null
+                      }
+                    ],
+                    "storageKey": null
+                  }
+                ],
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "concreteType": "MentorPairing",
+                "kind": "LinkedField",
+                "name": "myPairings",
+                "plural": true,
+                "selections": [
+                  (v5/*:: as any*/),
+                  {
+                    "alias": null,
+                    "args": null,
+                    "kind": "ScalarField",
+                    "name": "mentorName",
+                    "storageKey": null
+                  },
+                  {
+                    "alias": null,
+                    "args": null,
+                    "kind": "ScalarField",
+                    "name": "menteeName",
+                    "storageKey": null
+                  },
+                  (v6/*:: as any*/),
+                  (v7/*:: as any*/),
+                  (v8/*:: as any*/),
+                  {
+                    "alias": null,
+                    "args": null,
+                    "kind": "ScalarField",
+                    "name": "endedAtText",
+                    "storageKey": null
+                  }
+                ],
+                "storageKey": null
+              }
+            ],
+            "storageKey": null
+          }
+        ],
+        "storageKey": null
       }
     ],
     "storageKey": null
@@ -430,7 +833,7 @@ return {
     "kind": "Fragment",
     "metadata": null,
     "name": "AppViewerQuery",
-    "selections": (v2/*:: as any*/),
+    "selections": (v9/*:: as any*/),
     "type": "Query",
     "abstractKey": null
   },
@@ -439,19 +842,19 @@ return {
     "argumentDefinitions": [],
     "kind": "Operation",
     "name": "AppViewerQuery",
-    "selections": (v2/*:: as any*/)
+    "selections": (v9/*:: as any*/)
   },
   "params": {
-    "cacheID": "eadc6ea2d988d7bd094e749beedab7da",
+    "cacheID": "884fff4013a3fd354b681dbf56f17994",
     "id": null,
     "metadata": {},
     "name": "AppViewerQuery",
     "operationKind": "query",
-    "text": "query AppViewerQuery {\n  viewer {\n    user {\n      discordId\n      name\n      avatar\n    }\n    guilds {\n      slug\n      name\n      slogan\n      gameVersion\n      memberCount\n      avatarUrl\n    }\n    publicGuilds {\n      slug\n      name\n      slogan\n      gameVersion\n      memberCount\n      avatarUrl\n    }\n    siteTitle\n    siteSubtitle\n    siteHeroAlt\n    siteSealText\n    loginCardTitle\n    loginCardBody1\n    loginCardBody2\n    loginButtonLabel\n    loginPrivacyText\n    landingFeaturesTitle\n    landingGroupingTitle\n    landingGroupingBody\n    landingReminderTitle\n    landingReminderBody\n    landingDexTitle\n    landingDexBody\n    landingGearTitle\n    landingGearBody\n    footerDisclaimerText\n    footerTermsLabel\n    footerPrivacyLabel\n    userBarLogoutLabel\n    userBarLoggingOutLabel\n    userBarSettingsLabel\n    myLocalePref\n    myEffectiveLocale\n    pickerMyGuildsLabel\n    pickerMyGuildsEnLabel\n    pickerPublicGuildsLabel\n    pickerPublicGuildsEnLabel\n    pickerReadOnlyBadge\n    pickerEmptyTitle\n    pickerEmptyBody\n    pickerCreateGuildLabel\n    pickerCreateGuildMoreLabel\n  }\n}\n"
+    "text": "query AppViewerQuery {\n  viewer {\n    user {\n      discordId\n      name\n      avatar\n    }\n    guilds {\n      slug\n      name\n      slogan\n      gameVersion\n      memberCount\n      avatarUrl\n    }\n    publicGuilds {\n      slug\n      name\n      slogan\n      gameVersion\n      memberCount\n      avatarUrl\n    }\n    siteTitle\n    siteSubtitle\n    siteHeroAlt\n    siteSealText\n    loginCardTitle\n    loginCardBody1\n    loginCardBody2\n    loginButtonLabel\n    loginPrivacyText\n    landingFeaturesTitle\n    landingGroupingTitle\n    landingGroupingBody\n    landingReminderTitle\n    landingReminderBody\n    landingDexTitle\n    landingDexBody\n    landingGearTitle\n    landingGearBody\n    footerDisclaimerText\n    footerTermsLabel\n    footerPrivacyLabel\n    userBarLogoutLabel\n    userBarLoggingOutLabel\n    userBarSettingsLabel\n    myLocalePref\n    myEffectiveLocale\n    pickerMyGuildsLabel\n    pickerMyGuildsEnLabel\n    pickerPublicGuildsLabel\n    pickerPublicGuildsEnLabel\n    pickerReadOnlyBadge\n    pickerEmptyTitle\n    pickerEmptyBody\n    pickerCreateGuildLabel\n    pickerCreateGuildMoreLabel\n    commonUnknownErrorText\n    homeRecruit {\n      recruitTitle\n      homeBody\n      homeLoginHint\n      applySectionTitle\n      messageLabel\n      messagePlaceholder\n      submitLabel\n      submittingLabel\n      myApplicationTitle\n      pendingHint\n      approvedNextStepText\n      rejectedHint\n      checklistTitle\n      myPairingsTitle\n      pairingMentorRoleLabel\n      pairingMenteeRoleLabel\n      guilds {\n        slug\n        name\n        slogan\n        avatarUrl\n        myApplicationSection {\n          application {\n            id\n            applicantName\n            message\n            status\n            statusLabel\n            createdAtText\n            reviewedByName\n            reviewedAtText\n          }\n        }\n      }\n      myNewcomer {\n        slug\n        guildName\n        checklist {\n          progressText\n          items {\n            key\n            label\n            hint\n            done\n          }\n        }\n        myPairings {\n          id\n          mentorName\n          menteeName\n          status\n          statusLabel\n          createdAtText\n          endedAtText\n        }\n      }\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "37f606984f78d93fd04455ce0c08b343";
+(node as any).hash = "b74ec923aa041f1950f42b878c130667";
 
 export default node;

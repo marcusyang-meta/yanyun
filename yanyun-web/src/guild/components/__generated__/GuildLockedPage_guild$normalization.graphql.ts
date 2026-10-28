@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<50dec462b7dfda18c15230e2310f038b>>
+ * @generated SignedSource<<b2edeef6ad0c77127abf94c7d16dab8b>>
  * @lightSyntaxTransform
  */
 
@@ -20,13 +20,6 @@ const node: NormalizationSplitOperation = {
       "args": null,
       "kind": "ScalarField",
       "name": "slug",
-      "storageKey": null
-    },
-    {
-      "alias": null,
-      "args": null,
-      "kind": "ScalarField",
-      "name": "recruitEntryLabel",
       "storageKey": null
     },
     {
@@ -67,6 +60,6 @@ const node: NormalizationSplitOperation = {
   ]
 };
 
-(node as any).hash = "7d3f20cd4c3328470a229db0d32ea0e0";
+(node as any).hash = "12d1fe0319c9210ed2d861e8a79437c8";
 
 export default node;

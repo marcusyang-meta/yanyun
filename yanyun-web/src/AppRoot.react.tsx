@@ -10,7 +10,6 @@ import GuildPicker from './auth/GuildPicker.react.tsx';
 import CreateGuildPage from './auth/CreateGuildPage.react.tsx';
 import GuildRouteLoader from './guild/GuildRouteLoader.react.tsx';
 import GuildAdminRouteLoader from './guild/GuildAdminRouteLoader.react.tsx';
-import GuildRecruitRouteLoader from './guild/GuildRecruitRouteLoader.react.tsx';
 import LegalRoute from './LegalRoute.react.tsx';
 import BuildShareRoute from './BuildShareRoute.react.tsx';
 import SiteFooter from './lib/SiteFooter.react.tsx';
@@ -80,6 +79,60 @@ const AppViewerQueryNode = graphql`
       pickerEmptyBody
       pickerCreateGuildLabel
       pickerCreateGuildMoreLabel
+      commonUnknownErrorText
+      homeRecruit {
+        recruitTitle
+        homeBody
+        homeLoginHint
+        applySectionTitle
+        messageLabel
+        messagePlaceholder
+        submitLabel
+        submittingLabel
+        myApplicationTitle
+        pendingHint
+        approvedNextStepText
+        rejectedHint
+        checklistTitle
+        myPairingsTitle
+        pairingMentorRoleLabel
+        pairingMenteeRoleLabel
+        guilds {
+          slug
+          name
+          slogan
+          avatarUrl
+          myApplicationSection {
+            application {
+              id
+              applicantName
+              message
+              status
+              statusLabel
+              createdAtText
+              reviewedByName
+              reviewedAtText
+            }
+          }
+        }
+        myNewcomer {
+          slug
+          guildName
+          checklist {
+            progressText
+            items { key label hint done }
+          }
+          myPairings {
+            id
+            mentorName
+            menteeName
+            status
+            statusLabel
+            createdAtText
+            endedAtText
+          }
+        }
+      }
     }
   }
 `;
@@ -176,10 +229,10 @@ export default function AppRoot({ queries }: {
             hostSlug ? (
               <GuildRouteLoader slugOverride={hostSlug} />
             ) : (
-              <GuildPicker user={user} guilds={viewer.guilds} publicGuilds={viewer.publicGuilds} site={siteText} text={pickerText} userBarText={userBarText} />
+              <GuildPicker user={user} guilds={viewer.guilds} publicGuilds={viewer.publicGuilds} site={siteText} text={pickerText} userBarText={userBarText} recruit={viewer.homeRecruit} unknownError={viewer.commonUnknownErrorText} />
             )
           ) : (
-            <LandingPage returnTo="/" site={siteText} text={loginText} landing={landingText} />
+            <LandingPage returnTo="/" site={siteText} text={loginText} landing={landingText} recruit={viewer.homeRecruit} unknownError={viewer.commonUnknownErrorText} />
           )
         }
       />
@@ -193,10 +246,10 @@ export default function AppRoot({ queries }: {
             path="/admin"
             element={user ? <GuildAdminRouteLoader slugOverride={hostSlug} /> : <LoginGateWithText site={siteText} text={loginText} />}
           />
-          <Route
-            path="/recruit"
-            element={user ? <GuildRecruitRouteLoader slugOverride={hostSlug} /> : <LoginGateWithText site={siteText} text={loginText} />}
-          />
+          {/* The recruit page was dissolved into the platform home;
+              legacy /recruit deep links redirect home — same
+              disposition as /gear below */}
+          <Route path="/recruit" element={<Navigate to="/" replace />} />
         </>
       ) : null}
       {/* Profile is now a dialog opened from the user bar; legacy /settings
@@ -224,10 +277,10 @@ export default function AppRoot({ queries }: {
         path="/:slug/admin"
         element={user ? <GuildAdminRouteLoader /> : <LoginGateWithText site={siteText} text={loginText} />}
       />
-      <Route
-        path="/:slug/recruit"
-        element={user ? <GuildRecruitRouteLoader /> : <LoginGateWithText site={siteText} text={loginText} />}
-      />
+      {/* The recruit page was dissolved into the platform home;
+          legacy /:slug/recruit deep links redirect home — same
+          disposition as /gear above */}
+      <Route path="/:slug/recruit" element={<Navigate to="/" replace />} />
       <Route path="/:slug" element={user ? <GuildRouteLoader /> : <LoginGateWithText site={siteText} text={loginText} />} />
         </Routes>
         </div>

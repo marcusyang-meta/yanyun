@@ -21,7 +21,6 @@ const MemberGuildHome_guild = graphql`
     homeTabSectLabel
     homeTabAnnouncementsLabel
     homeTabScheduleLabel
-    recruitEntryLabel
     homeAdminLabel
     detailNotFoundText
     detailBackToListLabel

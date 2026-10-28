@@ -102,14 +102,15 @@ export async function refetchGuildAdminQueries(): Promise<void> {
   await Promise.all(jobs);
 }
 
-/* Recruit surface: after an application commits, refetch the
- * mounted GuildRecruitRouteQuery (same serialized-chain mechanism)
- * so the applicant's status card re-renders from the store. */
+/* Platform home: after an application commits from the home
+ * recruit section, refetch the mounted AppViewerQuery (same
+ * serialized-chain mechanism) so the applicant's status card
+ * re-renders from the store. */
 const recruitRefetchChains = new Map<string, Promise<unknown>>();
-export async function refetchGuildRecruitQueries(): Promise<void> {
+export async function refetchAppViewerQueries(): Promise<void> {
   const jobs: Promise<unknown>[] = [];
   for (const [key, entry] of executedQueries.entries()) {
-    if (!entry.node?.params || entry.node.params.name !== 'GuildRecruitRouteQuery') continue;
+    if (!entry.node?.params || entry.node.params.name !== 'AppViewerQuery') continue;
     entry.at = Date.now();
     const prev = recruitRefetchChains.get(key);
     const job = (async () => {

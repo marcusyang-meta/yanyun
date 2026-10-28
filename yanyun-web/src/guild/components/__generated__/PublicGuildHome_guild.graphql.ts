@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<612e8aeff3f73f33a9943703f89c5825>>
+ * @generated SignedSource<<f32d7482bab3be6724c138ff3910d4d6>>
  * @lightSyntaxTransform
  */
 
@@ -22,7 +22,6 @@ export type PublicGuildHome_guild$data = {
   readonly name: string | null | undefined;
   readonly pageBackLabel: string;
   readonly pageFooterDisclaimerText: string | null | undefined;
-  readonly recruitEntryLabel: string;
   readonly slogan: string | null | undefined;
   readonly slug: string;
   readonly " $fragmentType": "PublicGuildHome_guild";
@@ -119,13 +118,6 @@ const node: ReaderFragment = {
       "alias": null,
       "args": null,
       "kind": "ScalarField",
-      "name": "recruitEntryLabel",
-      "storageKey": null
-    },
-    {
-      "alias": null,
-      "args": null,
-      "kind": "ScalarField",
       "name": "homeReadOnlyBanner",
       "storageKey": null
     },
@@ -148,6 +140,6 @@ const node: ReaderFragment = {
   "abstractKey": null
 };
 
-(node as any).hash = "c85f8d8abd76ee1e5e8f56a765852355";
+(node as any).hash = "86a891ca9abe1f75c115ecd11b1adad0";
 
 export default node;
