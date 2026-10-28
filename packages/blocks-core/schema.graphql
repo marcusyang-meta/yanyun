@@ -76,6 +76,8 @@ type Query {
   hubPage: HubPage!
   legalPage(kind: LegalKind!): LegalPage!
   guildPage(slug: String!): GuildPage!
+  targetedNudgePreview(slug: String!, eventId: Int!, segmentKind: String!, segmentValue: String): TargetedNudgePreviewResult!
+  myContribution(slug: String!): MyContributionResult!
   groupingListPage(slug: String!, tab: GroupingTab!): GroupingListPage!
   groupingDetailPage(slug: String, id: ID!): GroupingDetailPage!
   dexPage: DexPage!
@@ -506,6 +508,7 @@ type GroupingDetailPage {
   shareUrl: String!
   blocks(blocksVersion: Int): [Block!]!
   manageActions: GroupingManageActions
+  allySharing: AllySharingControl
   templateSave: GroupingTemplateSave
   rosterAnswers: [RosterAnswer!]
   rosterAnswersTitle: String!
@@ -1514,6 +1517,7 @@ type Mutation {
   postGuildAnnouncement(slug: String!, kind: AnnouncementKind!, title: String!, body: String!): GuildAnnouncementPayload!
   markGuildAnnouncementRead(slug: String!, announcementId: ID!): GuildAnnouncementPayload!
   deleteGuildAnnouncement(slug: String!, announcementId: ID!): GuildAnnouncementPayload!
+  generateGuildAnnouncementTranslations(slug: String!, announcementId: ID!): GuildAnnouncementPayload!
   addGuildMemberNote(slug: String!, memberDiscordId: ID!, body: String!): GuildMemberNotePayload!
   updateGuildMemberNote(slug: String!, noteId: ID!, body: String!): GuildMemberNotePayload!
   deleteGuildMemberNote(slug: String!, noteId: ID!): GuildMemberNotePayload!
@@ -1528,7 +1532,7 @@ type Mutation {
   bindGuildCustomDomain(slug: String!, hostname: String!): GuildAdminPayload!
   verifyGuildCustomDomain(slug: String!): GuildAdminPayload!
   removeGuildCustomDomain(slug: String!): GuildAdminPayload!
-  startPremiumCheckout(slug: String!): GuildAdminPayload!
+  startPremiumCheckout(slug: String!, tier: Int): GuildAdminPayload!
   updateGuildVisibility(slug: String!, devOnly: Boolean!): GuildAdminPayload!
   setGuildAvatar(slug: String!, dataBase64: String!): GuildAdminPayload!
   deleteGuildAvatar(slug: String!): GuildAdminPayload!
@@ -1546,11 +1550,26 @@ type Mutation {
   confirmRosterImport(slug: String!, batchId: ID!, rowIds: [ID!]!): RosterImportPayload!
   deleteGuildRosterEntry(slug: String!, entryId: ID!): GuildAdminPayload!
   updateGuildRecruitOpen(slug: String!, open: Boolean!): GuildAdminPayload!
+  sendTargetedNudge(slug: String!, eventId: Int!, segmentKind: String!, segmentValue: String): OpsPayload!
+  executeSeasonRollover(slug: String!): OpsPayload!
+  updateContributionRule(slug: String!, actionKey: String!, points: Int!, enabled: Boolean!): OpsPayload!
   reviewGuildApplication(slug: String!, applicationId: ID!, approve: Boolean!): GuildAdminPayload!
   setGuildMentor(slug: String!, discordId: String!, isMentor: Boolean!): GuildAdminPayload!
   createMentorPairing(slug: String!, mentorDiscordId: String!, menteeDiscordId: String!): GuildAdminPayload!
   endMentorPairing(slug: String!, pairingId: ID!): GuildAdminPayload!
   applyToGuild(slug: String!, message: String): RecruitPayload!
+  publishFillOffer(slug: String!, school: String!, windows: [AvailabilitySlotInput!]!, note: String): FillOfferPayload!
+  withdrawFillOffer: NetworkOkPayload!
+  createFillRequest(slug: String!, groupingId: ID!, neededRole: String!, neededSchool: String, note: String): FillRequestPayload!
+  closeFillRequest(slug: String!, requestId: ID!): NetworkOkPayload!
+  inviteFillSupplier(slug: String!, requestId: ID!, offerId: ID!): FillInvitePayload!
+  respondFillInvite(inviteId: ID!, accept: Boolean!): FillInvitePayload!
+  seatFillSupplier(slug: String!, inviteId: ID!): NetworkOkPayload!
+  inviteAlliance(slug: String!, targetSlug: String!): AlliancePayload!
+  respondAlliance(slug: String!, allianceId: ID!, accept: Boolean!): AlliancePayload!
+  endAlliance(slug: String!, allianceId: ID!): AlliancePayload!
+  setGroupingAllySharing(slug: String!, groupingId: ID!, allyVisible: Boolean!, visitorSlots: Int!): NetworkOkPayload!
+  joinAllyGrouping(slug: String!, groupingId: ID!, weapon: String!): NetworkOkPayload!
   gearPlan(input: GearPlanInput!): GearPlanResult!
   gearAutoCombine(targetIdx: Int!, lib: [GearItemInput!]!): GearAutoResult!
   gearParsePaste(text: String!): GearParseResult!
@@ -1707,6 +1726,12 @@ type GuildAnnouncement {
   authorText: String
   createdAtText: String!
   viewerHasRead: Boolean
+  displayTitle: String!
+  displayBody: String!
+  isTranslated: Boolean!
+  contentSourceLabel: String!
+  translationStatusText: String
+  translations: [GuildAnnouncementTranslation!]
   readCount: Int
   memberCount: Int
   readCountText: String
@@ -1714,6 +1739,13 @@ type GuildAnnouncement {
   deleteLabel: String!
   deleteConfirmTitle: String!
   deleteConfirmMessage: String!
+}
+
+type GuildAnnouncementTranslation {
+  locale: String!
+  localeLabel: String!
+  status: String!
+  statusLabel: String!
 }
 
 type GuildAnnouncementReceipt {
@@ -1749,6 +1781,12 @@ type GuildAnnouncementPage {
   standardRemaining: Int
   urgentRemaining: Int
   announcements: [GuildAnnouncement!]!
+  canGenerateTranslations: Boolean!
+  generateTranslationsLabel: String
+  generatingTranslationsLabel: String
+  translationsGeneratedText: String
+  translationsPartialText: String
+  translationUnavailableText: String
 }
 
 type GuildAnnouncementPayload {
@@ -1917,6 +1955,8 @@ type Guild {
   homeTabSectLabel: String!
   homeTabAnnouncementsLabel: String!
   homeTabScheduleLabel: String!
+  homeTabMarketLabel: String!
+  homeTabAlliesLabel: String!
   homeAdminLabel: String
   detailNotFoundText: String!
   detailBackToListLabel: String!
@@ -1940,6 +1980,8 @@ type GuildReadOnly {
   homeTabSectLabel: String!
   homeTabAnnouncementsLabel: String!
   homeTabScheduleLabel: String!
+  homeTabMarketLabel: String!
+  homeTabAlliesLabel: String!
   homeReadOnlyBanner: String!
   detailNotFoundText: String!
   detailBackToListLabel: String!
@@ -1965,6 +2007,8 @@ type Viewer {
   guild(slug: String!): GuildResult!
   guildAdmin(slug: String!): GuildAdminResult!
   homeRecruit: HomeRecruitSection!
+  fillMarket(slug: String!): FillMarketResult!
+  guildAllies(slug: String!): GuildAlliesResult!
   discordServers: [DiscordServer!]!
   siteTitle: String!
   siteSubtitle: String!
@@ -2080,6 +2124,7 @@ type GuildAdmin {
   schoolGuides: GuildAdminSchoolGuides!
   announcements: GuildAnnouncementPage!
   officer: GuildOfficerPage!
+  ops: GuildAdminOpsResult!
   stats: GuildAdminStatsResult!
   premium: GuildAdminPremiumResult
   customDomain: GuildAdminCustomDomainResult!
@@ -2209,6 +2254,7 @@ type GuildAdmin {
   adminPremiumTitle: String!
   adminTabToolsLabel: String!
   adminTabOfficerLabel: String!
+  adminTabOpsLabel: String!
   adminLotteryTitle: String!
   adminLotteryHint: String!
   adminLotteryEmptyText: String!
@@ -2395,6 +2441,273 @@ type RecruitPayload {
   application: RecruitApplication
 }
 
+union FillMarketResult = FillMarketPage | FillMarketLocked
+
+type FillMarketPage {
+  slug: String!
+  guildName: String!
+  supply: FillSupplySection!
+  demand: FillDemandResult!
+  weekdayNames: [String!]!
+  marketTitle: String!
+  marketBody: String!
+  backLabel: String!
+}
+
+type FillMarketLocked {
+  slug: String!
+  lockedTitle: String!
+  lockedBody: String!
+  backLabel: String!
+}
+
+type FillSupplySection {
+  myOffer: FillOffer
+  myInvites: [FillInvite!]!
+  supplyTitle: String!
+  supplyHint: String!
+  supplyEmptyText: String!
+  schoolLabel: String!
+  windowsLabel: String!
+  noteLabel: String!
+  notePlaceholder: String!
+  publishLabel: String!
+  withdrawLabel: String!
+  inboxTitle: String!
+  inboxEmptyText: String!
+  acceptLabel: String!
+  declineLabel: String!
+}
+
+type FillOffer {
+  id: ID!
+  displayName: String!
+  school: String!
+  roleLabel: String!
+  note: String!
+  homeTenant: String!
+  homeGuildName: String!
+  homeGuildPattern: String!
+  windows: [AvailabilitySlot!]!
+  statusLabel: String!
+  createdAtText: String!
+}
+
+union FillDemandResult = FillDemandSection | FillDemandLocked
+
+type FillDemandLocked {
+  lockedTitle: String!
+  lockedBody: String!
+}
+
+type FillDemandSection {
+  requests: [FillRequest!]!
+  offers: [FillOffer!]!
+  manage: FillDemandManage
+  demandTitle: String!
+  requestsTitle: String!
+  requestsEmptyText: String!
+  offersTitle: String!
+  offersEmptyText: String!
+  noManageHint: String!
+}
+
+type FillDemandManage {
+  myGroupings: [FillDemandGrouping!]!
+  createTitle: String!
+  groupingLabel: String!
+  neededRoleLabel: String!
+  neededSchoolLabel: String!
+  noteLabel: String!
+  createLabel: String!
+  roleHealerLabel: String!
+  roleDpsLabel: String!
+}
+
+type FillDemandGrouping {
+  id: ID!
+  title: String!
+  dungeon: String!
+  startsAtText: String!
+}
+
+type FillRequest {
+  id: ID!
+  groupingId: ID!
+  groupingTitle: String!
+  dungeon: String!
+  startsAtText: String!
+  neededRole: String!
+  neededRoleLabel: String!
+  neededSchool: String
+  note: String!
+  status: FillRequestStatus!
+  statusLabel: String!
+  createdByName: String!
+  createdAtText: String!
+  manageActions: FillRequestManageActions
+}
+
+enum FillRequestStatus {
+  OPEN
+  MATCHED
+  CLOSED
+}
+
+type FillRequestManageActions {
+  closeLabel: String!
+  seatLabel: String!
+  seatedLabel: String!
+  inviteLabel: String!
+  invitedLabel: String!
+  invites: [FillInvite!]!
+}
+
+type FillInvite {
+  id: ID!
+  requestId: ID!
+  offerId: ID
+  status: FillInviteStatus!
+  statusLabel: String!
+  fromName: String!
+  toName: String!
+  guildName: String!
+  groupingTitle: String!
+  sourcePattern: String!
+  createdAtText: String!
+  seatAction: FillSeatAction
+}
+
+enum FillInviteStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  EXPIRED
+}
+
+type FillSeatAction {
+  seatLabel: String!
+}
+
+type FillOfferPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  offer: FillOffer
+}
+
+type FillRequestPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  request: FillRequest
+}
+
+type FillInvitePayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  invite: FillInvite
+}
+
+type NetworkOkPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+}
+
+union GuildAlliesResult = GuildAlliesPage | GuildAlliesLocked
+
+type GuildAlliesPage {
+  slug: String!
+  guildName: String!
+  allies: [AllyGuild!]!
+  adminSection: AllianceAdminSection
+  sharedGroupings: [AllySharedGrouping!]!
+  alliesTitle: String!
+  alliesBody: String!
+  activeTitle: String!
+  activeEmptyText: String!
+  sharedTitle: String!
+  sharedEmptyText: String!
+  visitorJoinLabel: String!
+  visitorJoinedLabel: String!
+  backLabel: String!
+}
+
+type GuildAlliesLocked {
+  slug: String!
+  lockedTitle: String!
+  lockedBody: String!
+  backLabel: String!
+}
+
+type AllyGuild {
+  slug: String!
+  name: String!
+}
+
+type AllianceAdminSection {
+  relations: [AllianceRelation!]!
+  candidates: [AllyGuild!]!
+  adminTitle: String!
+  inviteLabel: String!
+  inviteHint: String!
+  inviteButtonLabel: String!
+  incomingTitle: String!
+  outgoingTitle: String!
+  acceptLabel: String!
+  rejectLabel: String!
+  endLabel: String!
+}
+
+type AllianceRelation {
+  id: ID!
+  otherSlug: String!
+  otherName: String!
+  status: AllianceStatus!
+  statusLabel: String!
+  outgoing: Boolean!
+  requestedByName: String!
+  createdAtText: String!
+}
+
+enum AllianceStatus {
+  PENDING
+  ACTIVE
+}
+
+type AllySharedGrouping {
+  id: ID!
+  hostSlug: String!
+  hostName: String!
+  hostPattern: String!
+  title: String!
+  dungeon: String!
+  startsAtText: String!
+  visitorSlots: Int!
+  visitorLeft: Int!
+  visitorLeftPattern: String!
+  joined: Boolean!
+}
+
+type AlliancePayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  alliance: AllianceRelation
+}
+
+type AllySharingControl {
+  allyVisible: Boolean!
+  visitorSlots: Int!
+  title: String!
+  hint: String!
+  allyVisibleLabel: String!
+  visitorSlotsLabel: String!
+  saveLabel: String!
+}
+
 type GuildAdminLotteryMember {
   discordId: ID!
   displayName: String!
@@ -2498,6 +2811,14 @@ type GuildAdminPremiumActive {
   premiumPlanLabel: String!
   premiumSourceText: String!
   premiumPeriodEndText: String
+  premiumPastDueText: String
+}
+
+type GuildAdminPremiumTierPlan {
+  tier: Int!
+  name: String!
+  subtitle: String!
+  priceLabel: String!
 }
 
 type GuildAdminPremiumLocked {
@@ -2506,6 +2827,7 @@ type GuildAdminPremiumLocked {
   premiumPriceLabel: String
   premiumComingSoonText: String
   premiumCheckoutLabel: String!
+  premiumTierPlans: [GuildAdminPremiumTierPlan!]!
 }
 
 enum CustomDomainStatus {
@@ -3223,4 +3545,137 @@ type GearBuildPayload {
   build: GearSavedBuild
   error: String
   errorCode: String
+}
+
+union GuildAdminOpsResult = GuildAdminOps | GuildAdminOpsLocked
+
+type GuildAdminOpsLocked {
+  premiumTitle: String!
+  premiumBody: String!
+}
+
+type GuildAdminOps {
+  title: String!
+  hint: String!
+  nudgeTitle: String!
+  nudgeHint: String!
+  nudgeEventLabel: String!
+  nudgeSegmentLabel: String!
+  segmentAllText: String!
+  segmentSchoolText: String!
+  segmentRoleText: String!
+  segmentLapsedText: String!
+  nudgeSegmentValueLabel: String!
+  nudgePreviewLabel: String!
+  nudgeSendLabel: String!
+  nudgeDailyRemainingText: String
+  nudgeEvents: [OpsNudgeEvent!]!
+  churnTitle: String!
+  churnHint: String!
+  churnEmptyText: String!
+  churnRisks: [OpsChurnRisk!]!
+  rolloverTitle: String!
+  rolloverHint: String!
+  rolloverExecuteLabel: String!
+  rollover: OpsRollover!
+  pointsTitle: String!
+  pointsHint: String!
+  pointsBoardEmptyText: String!
+  pointsTotalLabel: String!
+  pointsEntriesLabel: String!
+  pointsSaveLabel: String!
+  contributionRules: [OpsContributionRule!]!
+  contributionBoard: [OpsContributionBoardEntry!]!
+}
+
+type OpsNudgeEvent {
+  id: ID!
+  title: String!
+  startsAtText: String!
+  signupCount: Int!
+  maxSlots: Int!
+}
+
+type OpsChurnRisk {
+  discordId: String!
+  displayName: String!
+  baselineCount: Int!
+  recentCount: Int!
+  missStreak: Int!
+  evidenceText: String!
+  lastText: String!
+}
+
+type OpsRollover {
+  seasonLabel: String!
+  targetSeasonKey: String!
+  pendingCount: Int!
+  totalCount: Int!
+  copiedCount: Int!
+  pendingNames: [String!]!
+  previewText: String!
+  seasonText: String!
+  gearNoteText: String!
+  thresholdNoteText: String!
+  lastText: String
+}
+
+type OpsContributionRule {
+  actionKey: String!
+  actionLabel: String!
+  points: Int!
+  enabled: Boolean!
+}
+
+type OpsContributionBoardEntry {
+  discordId: String!
+  displayName: String!
+  totalPoints: Int!
+  entryCount: Int!
+}
+
+union TargetedNudgePreviewResult = TargetedNudgePreview | GuildAdminOpsLocked
+
+type TargetedNudgePreview {
+  candidateCount: Int!
+  countText: String!
+  emptyText: String
+  dailyRemaining: Int!
+  candidates: [OpsNudgeCandidate!]!
+}
+
+type OpsNudgeCandidate {
+  discordId: String!
+  displayName: String!
+  knownWeapon: String!
+  knownRole: String!
+  lastText: String!
+}
+
+type OpsPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  recipientCount: Int
+  copiedCount: Int
+}
+
+union MyContributionResult = MyContribution | MyContributionLocked
+
+type MyContribution {
+  title: String!
+  totalPoints: Int!
+  totalText: String!
+  entries: [MyContributionEntry!]!
+}
+
+type MyContributionLocked {
+  slug: String!
+}
+
+type MyContributionEntry {
+  actionKey: String!
+  actionLabel: String!
+  points: Int!
+  createdAtText: String!
 }
