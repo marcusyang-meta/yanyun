@@ -166,7 +166,7 @@ export default function TiaolvTab({ sectName }: { sectSlug: string; sectName: st
               <Text style={[s.td, { width: 96 }]}>{r.label}</Text>
               <Text style={[s.td, { width: 72, textAlign: 'right' }]}>{fmt(r.base)}</Text>
               <Text style={[s.td, { width: 72, textAlign: 'right' }]}>{fmt(r.panel)}</Text>
-              <Text style={[s.td, { width: 72, textAlign: 'right', color: theme.goldHi, fontWeight: '700' }]}>{fmt(r.final)}</Text>
+              <Text style={[s.td, { width: 72, textAlign: 'right', color: theme.accentHi, fontWeight: '700' }]}>{fmt(r.final)}</Text>
             </View>
           ))}
         </View>
@@ -176,24 +176,24 @@ export default function TiaolvTab({ sectName }: { sectSlug: string; sectName: st
 }
 
 const s = StyleSheet.create({
-  intro: { fontFamily: fonts.serif, color: theme.muted, fontSize: 12.5, lineHeight: 21, marginBottom: 12 },
+  intro: { fontFamily: fonts.body, color: theme.muted, fontSize: 12.5, lineHeight: 21, marginBottom: 12 },
   grid2: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   cell: { flexBasis: '47%', flexGrow: 1 },
-  gridTitle: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 13.5, marginTop: 16, marginBottom: 8 },
+  gridTitle: { fontFamily: fonts.body, color: theme.accentHi, fontSize: 13.5, marginTop: 16, marginBottom: 8 },
   tr: {
     flexDirection: 'row', gap: 4, alignItems: 'center',
-    paddingVertical: 2.5, borderBottomWidth: 1, borderBottomColor: 'rgba(201,163,92,.08)',
+    paddingVertical: 2.5, borderBottomWidth: 1, borderBottomColor: 'rgba(67,160,134,.08)',
   },
   trHead: {
     flexDirection: 'row', gap: 4, alignItems: 'center',
-    paddingVertical: 5, borderBottomWidth: 1, borderBottomColor: 'rgba(201,163,92,.25)',
+    paddingVertical: 5, borderBottomWidth: 1, borderBottomColor: 'rgba(67,160,134,.25)',
   },
-  th: { fontFamily: fonts.serif, color: theme.muted, fontSize: 11.5 },
-  td: { fontFamily: fonts.serif, color: theme.paper, fontSize: 12.5 },
-  tdLabel: { fontFamily: fonts.serif, color: theme.paper, fontSize: 12 },
+  th: { fontFamily: fonts.body, color: theme.muted, fontSize: 11.5 },
+  td: { fontFamily: fonts.body, color: theme.paper, fontSize: 12.5 },
+  tdLabel: { fontFamily: fonts.body, color: theme.paper, fontSize: 12 },
   cellInput: {
-    width: 46, height: 30, borderWidth: 1, borderColor: 'rgba(201,163,92,.3)',
+    width: 46, height: 30, borderWidth: 1, borderColor: 'rgba(67,160,134,.3)',
     borderRadius: 6, backgroundColor: 'rgba(255,255,255,.05)',
-    color: theme.paper, fontFamily: fonts.serif, fontSize: 12, textAlign: 'center', paddingVertical: 0,
+    color: theme.paper, fontFamily: fonts.body, fontSize: 12, textAlign: 'center', paddingVertical: 0,
   },
 });

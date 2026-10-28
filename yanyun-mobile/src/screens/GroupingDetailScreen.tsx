@@ -515,7 +515,7 @@ function DetailBlocks({
         <RefreshControl
           refreshing={refreshing}
           onRefresh={() => { setRefreshing(true); refresh(); }}
-          tintColor={theme.gold}
+          tintColor={theme.accent}
         />
       }
     >
@@ -531,7 +531,7 @@ const s = StyleSheet.create({
   headZone: { paddingHorizontal: 20 },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   backWrap: { marginTop: 14, marginBottom: 12 },
-  back: { fontFamily: fonts.serif, color: theme.gold, fontSize: 15 },
+  back: { fontFamily: fonts.body, color: theme.accent, fontSize: 15 },
   // Seat dialog mirrors the Web modal: centered over a dark scrim; panel with ink-2 background, gold border and 2px gold top edge
   overlay: {
     flex: 1, backgroundColor: 'rgba(6,5,4,.72)',
@@ -539,18 +539,17 @@ const s = StyleSheet.create({
   },
   panel: {
     width: '100%', maxWidth: 420, backgroundColor: theme.ink2,
-    borderWidth: 1, borderColor: 'rgba(201,163,92,.4)',
-    borderTopWidth: 2, borderTopColor: theme.gold,
-    borderRadius: 14, padding: 24,
+    borderWidth: 1, borderColor: theme.border,
+    borderRadius: 12, padding: 24,
   },
-  formTitle: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 18, marginBottom: 4 },
-  formSub: { fontFamily: fonts.serif, color: theme.muted, fontSize: 12, marginBottom: 16 },
-  formNotice: { fontFamily: fonts.serif, color: theme.danger, fontSize: 12.5, marginTop: 4 },
-  nameErr: { fontFamily: fonts.serif, color: '#e08080', fontSize: 12, marginTop: 4 },
-  label: { fontFamily: fonts.serif, color: theme.paper, fontSize: 13, marginTop: 14, marginBottom: 6 },
+  formTitle: { fontFamily: fonts.body, color: theme.accentHi, fontSize: 18, marginBottom: 4 },
+  formSub: { fontFamily: fonts.body, color: theme.muted, fontSize: 12, marginBottom: 16 },
+  formNotice: { fontFamily: fonts.body, color: theme.danger, fontSize: 12.5, marginTop: 4 },
+  nameErr: { fontFamily: fonts.body, color: '#e08080', fontSize: 12, marginTop: 4 },
+  label: { fontFamily: fonts.body, color: theme.paper, fontSize: 13, marginTop: 14, marginBottom: 6 },
   input: {
     backgroundColor: theme.inputFill, borderWidth: 1, borderColor: theme.border,
-    borderRadius: 8, color: theme.paper, fontFamily: fonts.serif, fontSize: 15,
+    borderRadius: 8, color: theme.paper, fontFamily: fonts.body, fontSize: 15,
     paddingHorizontal: 12, paddingVertical: 10,
   },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 20 },
@@ -560,35 +559,35 @@ const s = StyleSheet.create({
     borderWidth: 1, borderColor: theme.border, borderRadius: 8,
     paddingHorizontal: 12, paddingVertical: 8,
   },
-  chipOn: { borderColor: 'rgba(236,210,143,.5)' },
-  chipText: { fontFamily: fonts.serif, color: theme.paper, fontSize: 13 },
-  chipTextOn: { color: theme.onGold, fontWeight: '700' },
+  chipOn: { borderColor: 'rgba(147,210,190,.5)' },
+  chipText: { fontFamily: fonts.body, color: theme.paper, fontSize: 13 },
+  chipTextOn: { color: theme.onAccent, fontWeight: '700' },
   formBtns: { flexDirection: 'row', gap: 12, justifyContent: 'flex-end' },
   cancelBtn: {
     borderWidth: 1, borderColor: theme.border, borderRadius: 8,
     paddingVertical: 8, paddingHorizontal: 20, alignItems: 'center',
   },
-  cancelText: { fontFamily: fonts.serif, color: theme.muted, fontSize: 14 },
+  cancelText: { fontFamily: fonts.body, color: theme.muted, fontSize: 14 },
   submitBtn: {
     position: 'relative', overflow: 'hidden', borderRadius: 8,
-    borderWidth: 1, borderColor: 'rgba(236,210,143,.5)',
+    borderWidth: 1, borderColor: 'rgba(147,210,190,.5)',
     paddingVertical: 8, paddingHorizontal: 20, alignItems: 'center',
   },
-  submitText: { fontFamily: fonts.serif, color: theme.onGold, fontSize: 14, fontWeight: '700' },
+  submitText: { fontFamily: fonts.body, color: theme.onAccent, fontSize: 14, fontWeight: '700' },
   // Signup identity: locked-name box for self signup / hint row / roster list for proxy signup
   lockedNameBox: {
-    backgroundColor: 'rgba(201,163,92,.08)', borderWidth: 1, borderColor: theme.border,
+    backgroundColor: 'rgba(67,160,134,.08)', borderWidth: 1, borderColor: theme.border,
     borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10,
   },
-  lockedName: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 15 },
-  hint: { fontFamily: fonts.serif, color: theme.muted, fontSize: 12, marginTop: 4 },
+  lockedName: { fontFamily: fonts.body, color: theme.accentHi, fontSize: 15 },
+  hint: { fontFamily: fonts.body, color: theme.muted, fontSize: 12, marginTop: 4 },
   rosterList: { maxHeight: 176, marginTop: 8 },
   memberRow: {
     position: 'relative', overflow: 'hidden',
     borderWidth: 1, borderColor: theme.border, borderRadius: 8,
     paddingHorizontal: 12, paddingVertical: 8, marginBottom: 6,
   },
-  memberRowOn: { borderColor: 'rgba(236,210,143,.5)' },
-  memberName: { fontFamily: fonts.serif, color: theme.paper, fontSize: 14 },
-  memberSub: { fontFamily: fonts.serif, color: theme.muted, fontSize: 12 },
+  memberRowOn: { borderColor: 'rgba(147,210,190,.5)' },
+  memberName: { fontFamily: fonts.body, color: theme.paper, fontSize: 14 },
+  memberSub: { fontFamily: fonts.body, color: theme.muted, fontSize: 12 },
 });

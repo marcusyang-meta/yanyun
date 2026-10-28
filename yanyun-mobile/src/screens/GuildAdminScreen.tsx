@@ -316,9 +316,9 @@ function DiscordPanel({ admin, run, premiumLocked, unknownError, onError }: {
                   onPress={() => setOffsets((prev) => on ? prev.filter((x) => x !== m) : [...prev, m])}
                   style={{
                     paddingVertical: 7, paddingHorizontal: 12, borderRadius: 8, borderWidth: 1,
-                    borderColor: theme.gold, backgroundColor: on ? theme.gold : 'transparent',
+                    borderColor: theme.accent, backgroundColor: on ? theme.accent : 'transparent',
                   }}>
-                  <Text style={{ color: on ? '#1a1814' : theme.paper, fontSize: 13, fontFamily: fonts.serif }}>
+                  <Text style={{ color: on ? '#0a120e' : theme.paper, fontSize: 13, fontFamily: fonts.body }}>
                     {fillTemplate(admin.adminReminderOffsetTemplate ?? '', { minutes: m })}
                   </Text>
                 </Pressable>
@@ -362,11 +362,11 @@ function DiscordPanel({ admin, run, premiumLocked, unknownError, onError }: {
                   style={{
                     flexDirection: 'row', alignItems: 'center', gap: 7,
                     paddingVertical: 7, paddingHorizontal: 12, borderRadius: 999, borderWidth: 1,
-                    borderColor: on ? theme.gold : 'rgba(201,163,92,.3)',
-                    backgroundColor: on ? 'rgba(201,163,92,.16)' : 'transparent',
+                    borderColor: on ? theme.accent : 'rgba(67,160,134,.3)',
+                    backgroundColor: on ? 'rgba(67,160,134,.16)' : 'transparent',
                   }}>
                   <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: o.hex }} />
-                  <Text style={{ color: on ? '#ecd28f' : theme.muted, fontSize: 13, fontFamily: fonts.serif }}>{o.label}</Text>
+                  <Text style={{ color: on ? '#93d2be' : theme.muted, fontSize: 13, fontFamily: fonts.body }}>{o.label}</Text>
                 </Pressable>
               );
             })}
@@ -540,7 +540,7 @@ function EventCard({ admin, ev, run }: {
           {(ev.results ?? []).map((r) => (
             <View key={r.id} style={s.memberRow}>
               <Text style={s.memberName}>{r.teamName}</Text>
-              <Text style={{ color: '#ecd28f', fontFamily: fonts.serif, fontSize: 13 }}>{r.timeText}</Text>
+              <Text style={{ color: '#93d2be', fontFamily: fonts.body, fontSize: 13 }}>{r.timeText}</Text>
               <Text style={s.muted}>{r.members}</Text>
               <Confirmer admin={admin} small onConfirm={() => run(adminDeleteResult(slug, r.id))} />
             </View>
@@ -613,7 +613,7 @@ function BuildEditor({ admin, school, build, run }: {
   const [rate, setRate] = useState(build.rate ?? '');
   const [bisJson, setBisJson] = useState(build.bisJson ?? '');
   return (
-    <View style={{ borderTopWidth: 1, borderTopColor: 'rgba(201,163,92,.15)', marginTop: 10, paddingTop: 10 }}>
+    <View style={{ borderTopWidth: 1, borderTopColor: 'rgba(67,160,134,.15)', marginTop: 10, paddingTop: 10 }}>
       <Field label={admin.adminGuideBuildLabel}><TInput value={name} onChangeText={setName} /></Field>
       <Field label={admin.adminGuideAttrLabel}><TInput value={attr} onChangeText={setAttr} /></Field>
       <Field label={admin.adminGuideRateLabel}><TInput value={rate} onChangeText={setRate} /></Field>
@@ -634,7 +634,7 @@ function RotationEditor({ admin, school, rotationJson, run }: {
   const slug = admin.slug;
   const [json, setJson] = useState(rotationJson);
   return (
-    <View style={{ borderTopWidth: 1, borderTopColor: 'rgba(201,163,92,.15)', marginTop: 10, paddingTop: 10 }}>
+    <View style={{ borderTopWidth: 1, borderTopColor: 'rgba(67,160,134,.15)', marginTop: 10, paddingTop: 10 }}>
       <Field label={admin.adminGuideRotationLabel}>
         <TInput value={json} onChangeText={setJson} multiline autoCapitalize="none"
           style={{ minHeight: 64, fontSize: 12 }} />
@@ -658,9 +658,9 @@ function PremiumLockedCard({ premium, slug, unknownError, onError }: {
     <View>
       <Text style={s.sectionTitle}>{premium.premiumTitle}</Text>
       <View style={s.card}>
-        <Text style={{ color: theme.paper, fontSize: 14, lineHeight: 21, fontFamily: fonts.serif }}>{premium.premiumBody}</Text>
+        <Text style={{ color: theme.paper, fontSize: 14, lineHeight: 21, fontFamily: fonts.body }}>{premium.premiumBody}</Text>
         {!!premium.premiumPriceLabel && (
-          <Text style={{ color: '#ecd28f', fontSize: 22, marginTop: 12, fontFamily: fonts.serif }}>{premium.premiumPriceLabel}</Text>
+          <Text style={{ color: '#93d2be', fontSize: 22, marginTop: 12, fontFamily: fonts.body }}>{premium.premiumPriceLabel}</Text>
         )}
         {premium.premiumComingSoonText ? (
           <Text style={[s.muted, { marginTop: 12 }]}>{premium.premiumComingSoonText}</Text>
@@ -676,8 +676,8 @@ function PremiumLockedCard({ premium, slug, unknownError, onError }: {
               } catch { onError(unknownError); }
               setBusy(false);
             }}
-            style={{ marginTop: 14, alignSelf: 'flex-start', backgroundColor: theme.gold, borderRadius: 8, paddingVertical: 9, paddingHorizontal: 22 }}>
-            <Text style={{ color: '#1a1814', fontSize: 14, fontFamily: fonts.serif }}>{premium.premiumCheckoutLabel}</Text>
+            style={{ marginTop: 14, alignSelf: 'flex-start', backgroundColor: theme.accent, borderRadius: 8, paddingVertical: 9, paddingHorizontal: 22 }}>
+            <Text style={{ color: '#0a120e', fontSize: 14, fontFamily: fonts.body }}>{premium.premiumCheckoutLabel}</Text>
           </Pressable>
         )}
       </View>
@@ -690,7 +690,7 @@ function PremiumActiveCard({ admin, premium }: { admin: Admin; premium: any }) {
     <View>
       <Text style={s.sectionTitle}>{admin.adminPremiumTitle}</Text>
       <View style={s.card}>
-        <Text style={{ color: theme.paper, fontSize: 14, fontFamily: fonts.serif }}>
+        <Text style={{ color: theme.paper, fontSize: 14, fontFamily: fonts.body }}>
           {premium.premiumPlanLabel} · {premium.premiumSourceText}
         </Text>
         {!!premium.premiumPeriodEndText && (
@@ -1122,10 +1122,10 @@ function CheckDot({ done }: { done: boolean }) {
   return (
     <View style={{
       width: 18, height: 18, borderRadius: 9, alignItems: 'center', justifyContent: 'center',
-      borderWidth: 1, borderColor: done ? theme.gold : 'rgba(201,163,92,.3)',
-      backgroundColor: done ? 'rgba(201,163,92,.16)' : 'transparent',
+      borderWidth: 1, borderColor: done ? theme.accent : 'rgba(67,160,134,.3)',
+      backgroundColor: done ? 'rgba(67,160,134,.16)' : 'transparent',
     }}>
-      <Text style={{ fontSize: 11, color: done ? theme.goldHi : theme.muted }}>{done ? '✓' : ''}</Text>
+      <Text style={{ fontSize: 11, color: done ? theme.accentHi : theme.muted }}>{done ? '✓' : ''}</Text>
     </View>
   );
 }
@@ -1258,88 +1258,88 @@ const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: theme.bg },
   content: { paddingHorizontal: 18, paddingBottom: 48 },
   head: { flexDirection: 'row', alignItems: 'center', marginBottom: 14 },
-  back: { color: theme.gold, fontSize: 30, lineHeight: 32, width: 22 },
-  title: { flex: 1, textAlign: 'center', fontFamily: fonts.brush, color: theme.goldHi, fontSize: 22, letterSpacing: 3 },
+  back: { color: theme.accent, fontSize: 30, lineHeight: 32, width: 22 },
+  title: { flex: 1, textAlign: 'center', fontFamily: fonts.display, fontWeight: '700', color: theme.paper, fontSize: 22, letterSpacing: 1 },
   tabs: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 16 },
-  tab: { paddingVertical: 7, paddingHorizontal: 13, borderRadius: 999, borderWidth: 1, borderColor: 'rgba(201,163,92,.3)' },
-  tabOn: { backgroundColor: 'rgba(201,163,92,.16)', borderColor: theme.gold },
-  tabText: { fontFamily: fonts.serif, color: theme.muted, fontSize: 13.5 },
-  tabTextOn: { color: theme.goldHi },
+  tab: { paddingVertical: 7, paddingHorizontal: 13, borderRadius: 999, borderWidth: 1, borderColor: 'rgba(67,160,134,.3)' },
+  tabOn: { backgroundColor: 'rgba(67,160,134,.16)', borderColor: theme.accent },
+  tabText: { fontFamily: fonts.body, color: theme.muted, fontSize: 13.5 },
+  tabTextOn: { color: theme.accentHi },
   statBarTrack: { flex: 1, height: 6, borderRadius: 3, backgroundColor: 'rgba(236,226,203,.10)', overflow: 'hidden' },
-  statBarFill: { height: '100%', backgroundColor: theme.gold, borderRadius: 3 },
+  statBarFill: { height: '100%', backgroundColor: theme.accent, borderRadius: 3 },
   statMetric: { minWidth: 62 },
-  statMetricLabel: { fontFamily: fonts.serif, color: theme.muted, fontSize: 11, marginBottom: 2 },
-  statMetricValue: { fontFamily: fonts.serif, color: theme.paper, fontSize: 16 },
+  statMetricLabel: { fontFamily: fonts.body, color: theme.muted, fontSize: 11, marginBottom: 2 },
+  statMetricValue: { fontFamily: fonts.body, color: theme.paper, fontSize: 16 },
   statBoardHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
-  statUnit: { fontFamily: fonts.serif, color: theme.muted, fontSize: 11 },
+  statUnit: { fontFamily: fonts.body, color: theme.muted, fontSize: 11 },
   statRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 7 },
-  statRowDiv: { borderTopWidth: 1, borderTopColor: 'rgba(201,163,92,.10)' },
-  statRank: { width: 22, fontFamily: fonts.serif, color: theme.muted, fontSize: 13 },
-  statName: { minWidth: 100, fontFamily: fonts.serif, color: theme.paper, fontSize: 14 },
-  statCount: { width: 36, textAlign: 'right', fontFamily: fonts.serif, color: theme.goldHi, fontSize: 14 },
+  statRowDiv: { borderTopWidth: 1, borderTopColor: 'rgba(67,160,134,.10)' },
+  statRank: { width: 22, fontFamily: fonts.body, color: theme.muted, fontSize: 13 },
+  statName: { minWidth: 100, fontFamily: fonts.body, color: theme.paper, fontSize: 14 },
+  statCount: { width: 36, textAlign: 'right', fontFamily: fonts.body, color: theme.accentHi, fontSize: 14 },
   statWeekHead: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
-  statChip: { borderWidth: 1, borderColor: 'rgba(201,163,92,.5)', borderRadius: 999, paddingVertical: 1, paddingHorizontal: 8 },
-  statChipText: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 11 },
+  statChip: { borderWidth: 1, borderColor: 'rgba(67,160,134,.5)', borderRadius: 999, paddingVertical: 1, paddingHorizontal: 8 },
+  statChipText: { fontFamily: fonts.body, color: theme.accentHi, fontSize: 11 },
   statMetrics: { flexDirection: 'row', flexWrap: 'wrap', gap: 16 },
   statFillRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 10 },
-  sectionTitle: { fontFamily: fonts.brush, color: theme.gold, fontSize: 16, letterSpacing: 2, marginTop: 20, marginBottom: 10 },
+  sectionTitle: { fontFamily: fonts.display, color: theme.accent, fontSize: 16, letterSpacing: 1, marginTop: 20, marginBottom: 10 },
   card: {
-    borderWidth: 1, borderColor: 'rgba(201,163,92,.25)', borderRadius: 12,
+    borderWidth: 1, borderColor: 'rgba(67,160,134,.25)', borderRadius: 12,
     padding: 14, marginBottom: 12, backgroundColor: 'rgba(255,255,255,.02)',
   },
-  label: { fontFamily: fonts.serif, color: theme.muted, fontSize: 12, marginBottom: 5 },
+  label: { fontFamily: fonts.body, color: theme.muted, fontSize: 12, marginBottom: 5 },
   input: {
-    borderWidth: 1, borderColor: 'rgba(201,163,92,.3)', borderRadius: 8,
+    borderWidth: 1, borderColor: 'rgba(67,160,134,.3)', borderRadius: 8,
     paddingVertical: 9, paddingHorizontal: 11, color: theme.paper,
-    fontFamily: fonts.serif, fontSize: 14, backgroundColor: 'rgba(0,0,0,.25)',
+    fontFamily: fonts.body, fontSize: 14, backgroundColor: 'rgba(0,0,0,.25)',
   },
   saveBtn: {
-    alignSelf: 'flex-start', backgroundColor: theme.gold, borderRadius: 8,
+    alignSelf: 'flex-start', backgroundColor: theme.accent, borderRadius: 8,
     paddingVertical: 9, paddingHorizontal: 20, marginTop: 2,
   },
-  saveBtnText: { color: '#171207', fontFamily: fonts.serif, fontSize: 14, fontWeight: '600' },
+  saveBtnText: { color: '#171207', fontFamily: fonts.body, fontSize: 14, fontWeight: '600' },
   ghostBtn: {
-    alignSelf: 'flex-start', borderWidth: 1, borderColor: 'rgba(201,163,92,.4)',
+    alignSelf: 'flex-start', borderWidth: 1, borderColor: 'rgba(67,160,134,.4)',
     borderRadius: 8, paddingVertical: 8, paddingHorizontal: 14,
   },
-  ghostBtnText: { color: theme.muted, fontFamily: fonts.serif, fontSize: 13 },
+  ghostBtnText: { color: theme.muted, fontFamily: fonts.body, fontSize: 13 },
   dangerBtn: {
     alignSelf: 'flex-start', borderWidth: 1, borderColor: 'rgba(220,90,60,.5)',
     borderRadius: 8, paddingVertical: 8, paddingHorizontal: 14,
   },
   dangerBtnSmall: { paddingVertical: 4, paddingHorizontal: 10 },
-  dangerText: { color: '#e0856e', fontFamily: fonts.serif, fontSize: 13 },
-  dangerInline: { color: '#e0856e', fontFamily: fonts.serif, fontSize: 12.5 },
-  muted: { fontFamily: fonts.serif, color: theme.muted, fontSize: 12.5 },
-  saved: { fontFamily: fonts.serif, color: '#7fb069', fontSize: 13, marginBottom: 10 },
-  error: { fontFamily: fonts.serif, color: theme.danger, fontSize: 13, marginBottom: 10 },
-  avatarImg: { width: 72, height: 72, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(201,163,92,.4)' },
+  dangerText: { color: '#e0856e', fontFamily: fonts.body, fontSize: 13 },
+  dangerInline: { color: '#e0856e', fontFamily: fonts.body, fontSize: 12.5 },
+  muted: { fontFamily: fonts.body, color: theme.muted, fontSize: 12.5 },
+  saved: { fontFamily: fonts.body, color: '#7fb069', fontSize: 13, marginBottom: 10 },
+  error: { fontFamily: fonts.body, color: theme.danger, fontSize: 13, marginBottom: 10 },
+  avatarImg: { width: 72, height: 72, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(67,160,134,.4)' },
   switchRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  switchLabel: { fontFamily: fonts.serif, color: theme.paper, fontSize: 14.5, flex: 1, paddingRight: 12 },
+  switchLabel: { fontFamily: fonts.body, color: theme.paper, fontSize: 14.5, flex: 1, paddingRight: 12 },
   memberRow: {
     flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap',
-    borderTopWidth: 1, borderTopColor: 'rgba(201,163,92,.12)', paddingVertical: 7, marginTop: 4,
+    borderTopWidth: 1, borderTopColor: 'rgba(67,160,134,.12)', paddingVertical: 7, marginTop: 4,
   },
-  memberName: { fontFamily: fonts.serif, color: theme.paper, fontSize: 13.5, minWidth: 70 },
+  memberName: { fontFamily: fonts.body, color: theme.paper, fontSize: 13.5, minWidth: 70 },
   roleChip: {
-    fontFamily: fonts.serif, fontSize: 11, color: theme.muted,
-    borderWidth: 1, borderColor: 'rgba(201,163,92,.35)', borderRadius: 999,
+    fontFamily: fonts.body, fontSize: 11, color: theme.muted,
+    borderWidth: 1, borderColor: 'rgba(67,160,134,.35)', borderRadius: 999,
     paddingVertical: 1, paddingHorizontal: 7, overflow: 'hidden',
   },
-  roleChipHeal: { color: '#ecd28f', borderColor: 'rgba(201,163,92,.6)' },
-  linkText: { color: theme.gold, fontFamily: fonts.serif, fontSize: 12.5 },
+  roleChipHeal: { color: '#93d2be', borderColor: 'rgba(67,160,134,.6)' },
+  linkText: { color: theme.accent, fontFamily: fonts.body, fontSize: 12.5 },
   chipWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  chip: { paddingVertical: 5, paddingHorizontal: 10, borderRadius: 999, borderWidth: 1, borderColor: 'rgba(201,163,92,.3)' },
-  chipOn: { backgroundColor: 'rgba(201,163,92,.16)', borderColor: theme.gold },
-  chipText: { fontFamily: fonts.serif, color: theme.muted, fontSize: 12.5 },
-  chipTextOn: { color: theme.goldHi },
-  eventTitle: { fontFamily: fonts.serif, color: theme.paper, fontSize: 15 },
+  chip: { paddingVertical: 5, paddingHorizontal: 10, borderRadius: 999, borderWidth: 1, borderColor: 'rgba(67,160,134,.3)' },
+  chipOn: { backgroundColor: 'rgba(67,160,134,.16)', borderColor: theme.accent },
+  chipText: { fontFamily: fonts.body, color: theme.muted, fontSize: 12.5 },
+  chipTextOn: { color: theme.accentHi },
+  eventTitle: { fontFamily: fonts.body, color: theme.paper, fontSize: 15 },
   statusChip: {
-    fontFamily: fonts.serif, fontSize: 11, color: theme.muted,
-    borderWidth: 1, borderColor: 'rgba(201,163,92,.4)', borderRadius: 999,
+    fontFamily: fonts.body, fontSize: 11, color: theme.muted,
+    borderWidth: 1, borderColor: 'rgba(67,160,134,.4)', borderRadius: 999,
     paddingVertical: 1, paddingHorizontal: 8, overflow: 'hidden',
   },
   lockWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, gap: 12 },
-  lockTitle: { fontFamily: fonts.brush, color: theme.goldHi, fontSize: 20, letterSpacing: 2, textAlign: 'center' },
-  lockBody: { fontFamily: fonts.serif, color: theme.muted, fontSize: 14, lineHeight: 22, textAlign: 'center' },
+  lockTitle: { fontFamily: fonts.display, fontWeight: '700', color: theme.paper, fontSize: 20, letterSpacing: 1, textAlign: 'center' },
+  lockBody: { fontFamily: fonts.body, color: theme.muted, fontSize: 14, lineHeight: 22, textAlign: 'center' },
 });

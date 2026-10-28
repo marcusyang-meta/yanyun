@@ -46,7 +46,7 @@ export default function GearQuick({ whites }: { whites: Whites }) {
   const line = (label: string, st: Status, barName: string) => (
     <View style={s.line}>
       <Text style={s.lineLabel}>
-        {label} <Text style={{ color: theme.goldHi, fontWeight: '700' }}>{fmt1(st.yellow)}%</Text>
+        {label} <Text style={{ color: theme.accentHi, fontWeight: '700' }}>{fmt1(st.yellow)}%</Text>
       </Text>
       <Text style={[s.lineStatus, { color: st.capped ? '#9dc08b' : theme.muted }]}>
         {st.capped
@@ -96,15 +96,15 @@ export default function GearQuick({ whites }: { whites: Whites }) {
 }
 
 const s = StyleSheet.create({
-  wrap: { marginTop: 14, borderTopWidth: 1, borderTopColor: 'rgba(201,163,92,.2)', paddingTop: 12 },
+  wrap: { marginTop: 14, borderTopWidth: 1, borderTopColor: 'rgba(67,160,134,.2)', paddingTop: 12 },
   head: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  title: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 14 },
+  title: { fontFamily: fonts.body, color: theme.accentHi, fontSize: 14 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 },
   cell: { flexBasis: '47%', flexGrow: 1 },
   line: {
     flexDirection: 'row', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap',
-    paddingVertical: 5, borderTopWidth: 1, borderTopColor: 'rgba(201,163,92,.15)',
+    paddingVertical: 5, borderTopWidth: 1, borderTopColor: 'rgba(67,160,134,.15)',
   },
-  lineLabel: { fontFamily: fonts.serif, color: theme.paper, fontSize: 13 },
-  lineStatus: { fontFamily: fonts.serif, fontSize: 13 },
+  lineLabel: { fontFamily: fonts.body, color: theme.paper, fontSize: 13 },
+  lineStatus: { fontFamily: fonts.body, fontSize: 13 },
 });

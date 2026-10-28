@@ -73,6 +73,6 @@ function GearInner({ topInset, bottomInset, onClose }: {
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: theme.bg },
   head: { flexDirection: 'row', alignItems: 'center', marginBottom: 22 },
-  back: { color: theme.gold, fontSize: 30, lineHeight: 32, width: 22 },
-  title: { flex: 1, textAlign: 'center', fontFamily: fonts.brush, color: theme.goldHi, fontSize: 22, letterSpacing: 3 },
+  back: { color: theme.accent, fontSize: 30, lineHeight: 32, width: 22 },
+  title: { flex: 1, textAlign: 'center', fontFamily: fonts.display, fontWeight: '700', color: theme.paper, fontSize: 22, letterSpacing: 1 },
 });

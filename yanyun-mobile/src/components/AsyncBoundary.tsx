@@ -55,9 +55,9 @@ export function LoadingView({ label = '加载中…' }: { label?: string }) {
 
 const styles = StyleSheet.create({
   box: { paddingVertical: 48, alignItems: 'center', gap: 16 },
-  text: { fontFamily: fonts.serif, color: '#e08080', fontSize: 14, textAlign: 'center', paddingHorizontal: 24 },
-  loadingText: { fontFamily: fonts.serif, color: theme.muted, fontSize: 14 },
-  hint: { fontFamily: fonts.serif, color: theme.muted, fontSize: 13, textAlign: 'center', paddingHorizontal: 24 },
+  text: { fontFamily: fonts.body, color: '#e08080', fontSize: 14, textAlign: 'center', paddingHorizontal: 24 },
+  loadingText: { fontFamily: fonts.body, color: theme.muted, fontSize: 14 },
+  hint: { fontFamily: fonts.body, color: theme.muted, fontSize: 13, textAlign: 'center', paddingHorizontal: 24 },
   btn: { borderWidth: 1, borderColor: theme.border, borderRadius: 10, paddingVertical: 10, paddingHorizontal: 22 },
-  btnText: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 14, fontWeight: '600' },
+  btnText: { fontFamily: fonts.body, color: theme.accentHi, fontSize: 14, fontWeight: '600' },
 });

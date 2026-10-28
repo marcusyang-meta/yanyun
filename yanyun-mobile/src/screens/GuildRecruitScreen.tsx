@@ -139,10 +139,10 @@ function RecruitInner({ slug, topInset, bottomInset, refresh }: {
             <View key={item.key} style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
               <View style={{
                 width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center',
-                borderWidth: 1, borderColor: item.done ? theme.gold : 'rgba(201,163,92,.3)',
-                backgroundColor: item.done ? 'rgba(201,163,92,.16)' : 'transparent',
+                borderWidth: 1, borderColor: item.done ? theme.accent : 'rgba(67,160,134,.3)',
+                backgroundColor: item.done ? 'rgba(67,160,134,.16)' : 'transparent',
               }}>
-                <Text style={{ fontSize: 12, color: item.done ? theme.goldHi : theme.muted }}>{item.done ? '✓' : ''}</Text>
+                <Text style={{ fontSize: 12, color: item.done ? theme.accentHi : theme.muted }}>{item.done ? '✓' : ''}</Text>
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={s.memberName}>{item.label}</Text>
@@ -176,34 +176,34 @@ function RecruitInner({ slug, topInset, bottomInset, refresh }: {
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: theme.bg },
   head: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
-  back: { color: theme.gold, fontSize: 30, lineHeight: 32, width: 22 },
-  headBack: { fontFamily: fonts.serif, color: theme.muted, fontSize: 14 },
-  title: { fontFamily: fonts.brush, color: theme.goldHi, fontSize: 26, letterSpacing: 2, marginBottom: 4 },
-  lockedTitle: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 17, textAlign: 'center', marginBottom: 10 },
-  sectionTitle: { fontFamily: fonts.brush, color: theme.gold, fontSize: 15, letterSpacing: 2, marginBottom: 10 },
+  back: { color: theme.accent, fontSize: 30, lineHeight: 32, width: 22 },
+  headBack: { fontFamily: fonts.body, color: theme.muted, fontSize: 14 },
+  title: { fontFamily: fonts.display, fontWeight: '700', color: theme.paper, fontSize: 26, letterSpacing: 1, marginBottom: 4 },
+  lockedTitle: { fontFamily: fonts.body, color: theme.accentHi, fontSize: 17, textAlign: 'center', marginBottom: 10 },
+  sectionTitle: { fontFamily: fonts.display, color: theme.accent, fontSize: 15, letterSpacing: 1, marginBottom: 10 },
   card: {
     marginTop: 16, padding: 16, borderRadius: 14, borderWidth: 1,
-    borderColor: 'rgba(201,163,92,.22)', backgroundColor: 'rgba(236,226,203,.03)',
+    borderColor: 'rgba(67,160,134,.22)', backgroundColor: 'rgba(236,226,203,.03)',
   },
-  body: { fontFamily: fonts.serif, color: theme.muted, fontSize: 13, lineHeight: 20 },
-  muted: { fontFamily: fonts.serif, color: theme.muted, fontSize: 12.5 },
-  memberName: { fontFamily: fonts.serif, color: theme.paper, fontSize: 14 },
-  label: { fontFamily: fonts.serif, color: theme.muted, fontSize: 12, marginBottom: 6 },
+  body: { fontFamily: fonts.body, color: theme.muted, fontSize: 13, lineHeight: 20 },
+  muted: { fontFamily: fonts.body, color: theme.muted, fontSize: 12.5 },
+  memberName: { fontFamily: fonts.body, color: theme.paper, fontSize: 14 },
+  label: { fontFamily: fonts.body, color: theme.muted, fontSize: 12, marginBottom: 6 },
   input: {
-    fontFamily: fonts.serif, color: theme.paper, fontSize: 14, minHeight: 64,
-    borderWidth: 1, borderColor: 'rgba(201,163,92,.3)', borderRadius: 10,
+    fontFamily: fonts.body, color: theme.paper, fontSize: 14, minHeight: 64,
+    borderWidth: 1, borderColor: 'rgba(67,160,134,.3)', borderRadius: 10,
     paddingHorizontal: 12, paddingVertical: 9, textAlignVertical: 'top',
   },
   statusChip: {
-    fontFamily: fonts.serif, fontSize: 11, color: theme.muted,
-    borderWidth: 1, borderColor: 'rgba(201,163,92,.3)', borderRadius: 999,
+    fontFamily: fonts.body, fontSize: 11, color: theme.muted,
+    borderWidth: 1, borderColor: 'rgba(67,160,134,.3)', borderRadius: 999,
     paddingVertical: 1, paddingHorizontal: 8, overflow: 'hidden',
   },
-  error: { fontFamily: fonts.serif, color: '#e8a09a', fontSize: 13, marginTop: 8 },
+  error: { fontFamily: fonts.body, color: '#e8a09a', fontSize: 13, marginTop: 8 },
   goldBtn: {
     marginTop: 12, alignSelf: 'flex-start', borderRadius: 10,
-    backgroundColor: 'rgba(201,163,92,.18)', borderWidth: 1, borderColor: theme.gold,
+    backgroundColor: 'rgba(67,160,134,.18)', borderWidth: 1, borderColor: theme.accent,
     paddingVertical: 9, paddingHorizontal: 24,
   },
-  goldBtnText: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 14 },
+  goldBtnText: { fontFamily: fonts.body, color: theme.accentHi, fontSize: 14 },
 });

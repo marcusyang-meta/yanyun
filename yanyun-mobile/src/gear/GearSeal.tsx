@@ -184,7 +184,7 @@ const s = StyleSheet.create({
     shadowColor: '#C9A35C', shadowOpacity: 0.45, shadowRadius: 5, shadowOffset: { width: 0, height: 0 },
   },
   heirloomText: {
-    fontFamily: fonts.serif, fontWeight: '900', fontSize: 13,
+    fontFamily: fonts.body, fontWeight: '900', fontSize: 13,
     letterSpacing: 3, color: '#EFC96E',
     textShadowColor: 'rgba(239,201,110,.65)', textShadowRadius: 4, textShadowOffset: { width: 0, height: 1 },
   },
@@ -199,7 +199,7 @@ const s = StyleSheet.create({
     transform: [{ rotate: '2.5deg' }],
   },
   dudText: {
-    fontFamily: fonts.serif, fontWeight: '700', fontSize: 12.5,
+    fontFamily: fonts.body, fontWeight: '700', fontSize: 12.5,
     letterSpacing: 2, color: theme.muted,
   },
   pendant: {
