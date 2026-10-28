@@ -401,12 +401,13 @@ export async function revokePremium(
   return row;
 }
 
-/* ---------------- plan verdict for limit resolution ----------------
+/* ---------------- premium-in-force verdict ----------------
  * Whether a guild's premium tier is in force right now: the master
- * switch is on AND the effective entitlement is premium. The limits
- * service (limits.ts) resolves its premium table through this one
- * verdict — while the switch is OFF nobody's limits move, so the
- * launch-day behavior of every quota stays the free constants. */
+ * switch is on AND the effective entitlement is premium. Note the
+ * limits service no longer resolves through this verdict: since
+ * P25 it reads the effective entitlement's tier directly (a pure
+ * entitlement read, paygate-independent — see limits.ts); this
+ * verdict keeps its semantics for its remaining consumers. */
 export async function isPremiumActive(
   d1: D1Database,
   slug: string,

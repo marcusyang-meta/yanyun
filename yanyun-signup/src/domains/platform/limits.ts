@@ -1,21 +1,38 @@
 /* ===================================================
  * Plan limits: the single source every quota check reads.
  *
- * One key space, one value table. Enforcement points never hardcode a
- * number and never read storage directly for a limit — they ask this
- * service, passing the caller context, and get the EFFECTIVE limit
- * back. The free-tier constants below are sized from measured
- * production usage (see the PR that introduced them: each sits far
- * above the largest real workload). Plan overrides resolve inside
- * getEffectiveLimits: when the caller's context names a guild whose
- * premium tier is in force (paygate on + entitlement premium, the
- * billing service's verdict), the PREMIUM_LIMITS table applies;
- * every other context — including every guild-less one, such as the
- * personal gear library — reads the free table, so the paygate's
- * launch day moves nobody's quota.
+ * One key space, one value table per tier. Enforcement points never
+ * hardcode a number and never read storage directly for a limit —
+ * they ask this service, passing the caller context, and get the
+ * EFFECTIVE limit back. The free-tier constants below are sized from
+ * measured production usage (see the PR that introduced them: each
+ * sits far above the largest real workload).
+ *
+ * Resolution is by EFFECTIVE TIER (P25): when the caller's context
+ * names a guild, the guild's tier — read from the billing service's
+ * EffectiveEntitlement.tier, with read-time expiry already applied
+ * there, and the legacy 'premium' plan reading as tier 3 — selects
+ * the table (DESIGN §8 values). Tier 0 (no entitlement, a lapsed
+ * entitlement, an unrecognized tier) is the free table. Guild-less
+ * contexts always read the free table: the personal gear library is
+ * the standing example — its call sites pass no guild slug, so gear
+ * capacity carries no guild attribution and stays on the free table
+ * exactly as before.
+ *
+ * CONTRACT CHANGE (P25, superseding the binary plan resolution):
+ * quota resolution is a pure entitlement read. It does NOT consult
+ * the paygate master switch — isPremiumActive keeps that verdict
+ * for its other consumers and this service no longer calls it. The
+ * fidelity the old note promised ("the paygate's launch day moves
+ * nobody's quota") is preserved where it was aimed: FREE guilds,
+ * whose table below is value-for-value identical to before. A guild
+ * holding a tier entitlement — today only hub-granted test guilds —
+ * resolves at its tier straight away; that is precisely how the
+ * build-but-do-not-enable phase verifies tier behaviour while the
+ * paygate stays OFF and gates no surface.
  * =================================================== */
 import { getUsageCount, incrementUsage } from './usageCounters.ts';
-import { isPremiumActive } from './billing-service.ts';
+import { getEffectiveEntitlement } from './billing-service.ts';
 
 export type LimitKey =
   | 'gearItemCapacity'    // stored gear items per user (gear library)
@@ -48,34 +65,105 @@ export const FREE_LIMITS: Record<LimitKey, number> = {
   urgentCallsPerDay: 2,
 };
 
-/** Premium-tier values, one order above the audited free tier on
- *  every axis. Read only through getEffectiveLimits. */
-export const PREMIUM_LIMITS: Record<LimitKey, number> = {
-  gearItemCapacity: 2000,
-  ocrBatchImages: 100,
-  ocrBatchesPerDay: 50,
-  // Communication quotas are abuse ceilings, identical on every tier
-  // (see the free table's note); premium never buys more broadcasts.
+/* Per-tier tables (P25, DESIGN §8 定版). The metered axes scale with
+ * tier; the communication quotas stay at the free values on every
+ * tier — they are abuse ceilings, not plan tiers (see the free
+ * table's note), and no tier buys more broadcasts. */
+export const TIER1_LIMITS: Record<LimitKey, number> = {
+  gearItemCapacity: 1000,
+  ocrBatchImages: 50,
+  ocrBatchesPerDay: 30,
   announcementsPerDay: 5,
   urgentCallsPerDay: 2,
 };
+
+export const TIER2_LIMITS: Record<LimitKey, number> = {
+  gearItemCapacity: 2000,
+  ocrBatchImages: 100,
+  ocrBatchesPerDay: 50,
+  announcementsPerDay: 5,
+  urgentCallsPerDay: 2,
+};
+
+export const TIER3_LIMITS: Record<LimitKey, number> = {
+  gearItemCapacity: 5000,
+  ocrBatchImages: 100,
+  ocrBatchesPerDay: 100,
+  announcementsPerDay: 5,
+  urgentCallsPerDay: 2,
+};
+
+/** The pre-P25 single premium table, kept as a name alias: its
+ *  values are exactly the tier-2 table. Legacy 'premium' itself no
+ *  longer resolves here — it reads as tier 3 (see the header). */
+export const PREMIUM_LIMITS: Record<LimitKey, number> = TIER2_LIMITS;
+
+/** Quota tiers: 0 = free, 1..3 = the paid tiers of DESIGN §8. */
+export type QuotaTier = 0 | 1 | 2 | 3;
+
+export const LIMITS_BY_TIER: Record<QuotaTier, Record<LimitKey, number>> = {
+  0: FREE_LIMITS,
+  1: TIER1_LIMITS,
+  2: TIER2_LIMITS,
+  3: TIER3_LIMITS,
+};
+
+/** The limit table for one tier (a fresh copy, like every read). */
+export function limitsForTier(tier: QuotaTier): Record<LimitKey, number> {
+  return { ...LIMITS_BY_TIER[tier] };
+}
+
+function tierFromToken(token: string): QuotaTier | null {
+  const t = token.trim().toLowerCase();
+  if (t === 'premium') return 3; // legacy plan reads as tier 3
+  if (t === 'free') return 0;
+  const m = /^(?:t(?:ier)?\s*)?([0-3])$/.exec(t);
+  return m ? (Number(m[1]) as QuotaTier) : null;
+}
+
+/** Normalize an effective entitlement to a quota tier. The tier
+ *  field is authoritative when the billing service carries one
+ *  (numeric or token form); without it the plan decides, with the
+ *  legacy 'premium' plan reading as tier 3 and 'free' as tier 0.
+ *  Unrecognized values resolve to tier 0 — a quota must never be
+ *  raised by a value this service does not understand. Expiry is
+ *  not re-judged here: the entitlement handed in is already the
+ *  effective (read-time) one, so a lapsed guild arrives as free. */
+export function quotaTierOfEntitlement(
+  eff: { plan?: unknown; tier?: unknown } | null | undefined,
+): QuotaTier {
+  if (!eff) return 0;
+  if (typeof eff.tier === 'number' && Number.isFinite(eff.tier)) {
+    return Math.max(0, Math.min(3, Math.trunc(eff.tier))) as QuotaTier;
+  }
+  if (typeof eff.tier === 'string') {
+    const tier = tierFromToken(eff.tier);
+    if (tier !== null) return tier;
+  }
+  if (typeof eff.plan === 'string') {
+    const tier = tierFromToken(eff.plan);
+    if (tier !== null) return tier;
+  }
+  return 0;
+}
 
 /** The base (free-tier) value of one limit key. */
 export function getLimit(key: LimitKey): number {
   return FREE_LIMITS[key];
 }
 
-/** Effective limits for one caller. Async on purpose: plan overrides
- *  will read entitlement state through the data layer, and callers
- *  written against this shape never change. */
+/** Effective limits for one caller: the table of the guild's
+ *  effective tier (see the header for the contract), or the free
+ *  table for a guild-less context. Async on purpose: the tier reads
+ *  entitlement state through the data layer, and callers written
+ *  against this shape never change. */
 export async function getEffectiveLimits(
   db: D1Database,
   ctx: LimitContext,
 ): Promise<Record<LimitKey, number>> {
-  if (ctx.guildSlug && (await isPremiumActive(db, ctx.guildSlug))) {
-    return { ...PREMIUM_LIMITS };
-  }
-  return { ...FREE_LIMITS };
+  if (!ctx.guildSlug) return { ...FREE_LIMITS };
+  const eff = await getEffectiveEntitlement(db, ctx.guildSlug);
+  return limitsForTier(quotaTierOfEntitlement(eff));
 }
 
 /* ---------- daily metering (metric keys + the day rule) ---------- */

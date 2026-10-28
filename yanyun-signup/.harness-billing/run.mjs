@@ -175,7 +175,8 @@ r = await gql(`mutation { updateGuildReminderSettings(slug: "${SLUG}", offsets: 
 eq('grant: reminder write open again', r.data?.updateGuildReminderSettings?.ok, true);
 {
   const lim = await getEffectiveLimits(db, { discordId: 'rig-user', guildSlug: SLUG });
-  eq('limits seam: premium table while granted', [lim.gearItemCapacity, lim.ocrBatchImages, lim.ocrBatchesPerDay], [2000, 100, 50]);
+  eq('limits seam: tier-3 table while granted (legacy premium reads as tier 3)',
+    [lim.gearItemCapacity, lim.ocrBatchImages, lim.ocrBatchesPerDay], [5000, 100, 100]);
   const limNoGuild = await getEffectiveLimits(db, { discordId: 'rig-user' });
   eq('limits seam: guild-less context stays free', limNoGuild.gearItemCapacity, 200);
 }
@@ -745,6 +746,16 @@ eq('checkout section: paygate on', h.json?.billing?.paygateEnabled, true);
 }
 h = await hub('/api/hub/billing/paygate', 'PUT', { enabled: false });
 eq('checkout section: paygate back off', h.json?.billing?.paygateEnabled, false);
+
+/* P25: quota resolution is a pure entitlement read — a guild with a
+ * live tier entitlement resolves at its tier even with the paygate
+ * OFF (free guilds are untouched; see the limits.ts header). */
+await grantPremiumManual(db, SLUG, 30);
+{
+  const lim = await getEffectiveLimits(db, { discordId: 'rig-user', guildSlug: SLUG });
+  eq('limits seam: tier-3 table with paygate OFF (pure entitlement read)',
+    [lim.gearItemCapacity, lim.ocrBatchImages, lim.ocrBatchesPerDay], [5000, 100, 100]);
+}
 
 console.log(`\nBILLING pass=${pass} fail=${fail}`);
 if (fails.length) console.log('FAILS:\n' + fails.join('\n'));
