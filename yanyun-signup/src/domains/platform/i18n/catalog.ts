@@ -6552,6 +6552,11 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "en": "Ticks automatically once you hold a seat in a completed squad.",
       "zh-TW": "在一輛已完成的車隊裡落座後自動完成。"
     },
+    "myPairingsTitle": {
+      "zh-CN": "我的导师配对",
+      "en": "My mentor pairings",
+      "zh-TW": "我的導師配對"
+    },
     "itemAvailabilityLabel": {
       "zh-CN": "填写可用时间",
       "en": "Fill in your availability",
@@ -6561,11 +6566,6 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-CN": "在个人设置里填写你每周固定有空的时段，方便管理员与车头定档期；可以先跳过，之后随时补填。",
       "en": "Fill in the times you are regularly free each week under your profile settings, so admins and squad leaders can schedule around you. You can skip this for now and add it any time.",
       "zh-TW": "在個人設定裡填寫你每週固定有空的時段，方便管理員與車頭定檔期；可以先跳過，之後隨時補填。"
-    },
-    "myPairingsTitle": {
-      "zh-CN": "我的导师配对",
-      "en": "My mentor pairings",
-      "zh-TW": "我的導師配對"
     },
     "pairingStatusActive": {
       "zh-CN": "进行中",

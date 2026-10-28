@@ -1087,6 +1087,8 @@ export const schedule_toastPollCreated = (fbs: FbsRuntime) => fbs._("投票已�
 export const schedule_toastVoted = (fbs: FbsRuntime) => fbs._("已提交", null, { hk: "10p0Jr" });
 export const schedule_toastClosed = (fbs: FbsRuntime) => fbs._("投票已关闭", null, { hk: "3aX8KY" });
 export const schedule_toastFailedTemplate = (fbs: FbsRuntime, p?: StringParams) => fbs._("操作失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "1yF32T" });
+export const schedule_settingsLinkLabel = (fbs: FbsRuntime) => fbs._("在个人设置中填写", null, { hk: "2v8aPQ" });
+export const schedule_noGuildsText = (fbs: FbsRuntime) => fbs._("你还没有加入任何百业，加入后可在此填写可用时间。", null, { hk: "1k5mpu" });
 export const recruit_entryLabel = (fbs: FbsRuntime) => fbs._("招新 / 新人清单", null, { hk: "2hnDTe" });
 export const recruit_title = (fbs: FbsRuntime) => fbs._("招新与新人", null, { hk: "2Kv5c8" });
 export const recruit_body = (fbs: FbsRuntime) => fbs._("想加入这个百业？提交一份入业申请，百业管理员会在管理面审核。已经在业的新人可以在这里看自己的入业清单与导师配对。", null, { hk: "2XYdGq" });
@@ -1111,6 +1113,8 @@ export const recruit_itemMentorHint = (fbs: FbsRuntime) => fbs._("由百业管�
 export const recruit_itemFirstRunLabel = (fbs: FbsRuntime) => fbs._("打完第一场", null, { hk: "1C3tvD" });
 export const recruit_itemFirstRunHint = (fbs: FbsRuntime) => fbs._("在一辆已完成的车队里落座后自动完成。", null, { hk: "2SJLl3" });
 export const recruit_myPairingsTitle = (fbs: FbsRuntime) => fbs._("我的导师配对", null, { hk: "33EX47" });
+export const recruit_itemAvailabilityLabel = (fbs: FbsRuntime) => fbs._("填写可用时间", null, { hk: "1ccGNR" });
+export const recruit_itemAvailabilityHint = (fbs: FbsRuntime) => fbs._("在个人设置里填写你每周固定有空的时段，方便管理员与车头定档期；可以先跳过，之后随时补填。", null, { hk: "4y5PHe" });
 export const recruit_pairingStatusActive = (fbs: FbsRuntime) => fbs._("进行中", null, { hk: "24mBsd" });
 export const recruit_pairingStatusEnded = (fbs: FbsRuntime) => fbs._("已结束", null, { hk: "eBun0" });
 export const recruit_mentorRoleLabel = (fbs: FbsRuntime) => fbs._("导师", null, { hk: "22AZ4f" });
@@ -2195,6 +2199,8 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"schedule_toastVoted": schedule_toastVoted,
 	"schedule_toastClosed": schedule_toastClosed,
 	"schedule_toastFailedTemplate": schedule_toastFailedTemplate,
+	"schedule_settingsLinkLabel": schedule_settingsLinkLabel,
+	"schedule_noGuildsText": schedule_noGuildsText,
 	"recruit_entryLabel": recruit_entryLabel,
 	"recruit_title": recruit_title,
 	"recruit_body": recruit_body,
@@ -2219,6 +2225,8 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"recruit_itemFirstRunLabel": recruit_itemFirstRunLabel,
 	"recruit_itemFirstRunHint": recruit_itemFirstRunHint,
 	"recruit_myPairingsTitle": recruit_myPairingsTitle,
+	"recruit_itemAvailabilityLabel": recruit_itemAvailabilityLabel,
+	"recruit_itemAvailabilityHint": recruit_itemAvailabilityHint,
 	"recruit_pairingStatusActive": recruit_pairingStatusActive,
 	"recruit_pairingStatusEnded": recruit_pairingStatusEnded,
 	"recruit_mentorRoleLabel": recruit_mentorRoleLabel,
