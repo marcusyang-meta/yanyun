@@ -335,6 +335,7 @@ r = await gql(setItem('alpha', 'current-dungeons', false), { user: ADMIN_A });
 eq('取消勾选成功', r.data?.setSeasonChecklistItem?.ok, true);
 r = await gql(seasonQ('alpha'), { user: ADMIN_A });
 eq('取消后 doneCount=0', ga(r)?.seasonChecklist?.doneCount, 0);
+eq('取消后不再显示操作者快照', ga(r)?.seasonChecklist?.items?.[0] && [ga(r).seasonChecklist.items[0].checked, ga(r).seasonChecklist.items[0].checkedByName], [false, null]);
 
 /* ---------- (4) season roll resets the checklist ---------- */
 T.settings.set('|game_version_code', 'intl-v9.9');

@@ -135,7 +135,7 @@ export async function buildChecklistItems(
     return {
       key, titleField, detailField, params,
       checked: !!(row && row.checked),
-      checkedByName: row && row.updated_at ? (row.checked_by_name || null) : null,
+      checkedByName: row && row.checked ? (row.checked_by_name || null) : null,
     };
   };
   return [
