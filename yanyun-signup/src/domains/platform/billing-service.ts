@@ -268,6 +268,34 @@ export async function isPremiumActive(
   );
 }
 
+/* ---------------- tier verdicts (premium tiers T1/T2/T3) --------
+ * The tier ladder (DESIGN §8 定版): T1 data, T2 intelligence
+ * (includes T1), T3 network & governance (includes T2). A feature
+ * surface asks tierLocked(db, slug, n) and serves its entry only
+ * when the answer is false.
+ *
+ * ALIGNMENT POINT (foundation line F0): the stored entitlement is
+ * still the single plan value free|premium, so the effective tier
+ * maps premium -> 3 (the legacy single plan included everything)
+ * and free -> 0. When F0 lands the stored tier column, only
+ * getEffectiveTier changes; every caller's signature stays.
+ *
+ * Paygate semantics mirror premiumGate exactly: the master switch
+ * OFF locks nobody (launch parity) — callers that must stay
+ * invisible until launch additionally consult isPaygateEnabled,
+ * the same composition the subdomain surface uses. */
+export async function getEffectiveTier(d1: D1Database, slug: string): Promise<number> {
+  if (!slug) return 0;
+  const eff = await getEffectiveEntitlement(d1, slug);
+  return eff.plan === 'premium' ? 3 : 0;
+}
+
+/** True when this guild's tier-n surfaces must stay locked. */
+export async function tierLocked(d1: D1Database, slug: string, tier: number): Promise<boolean> {
+  if (!(await isPaygateEnabled(d1))) return false;
+  return (await getEffectiveTier(d1, slug)) < tier;
+}
+
 /* ---------------- Stripe event application ---------------- */
 
 const LIVE_SUBSCRIPTION_STATUSES = new Set(['active', 'trialing', 'past_due']);
