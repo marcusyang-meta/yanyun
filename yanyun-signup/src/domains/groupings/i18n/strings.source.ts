@@ -25,211 +25,211 @@ function pv(p: StringParams | undefined, name: string): string {
 }
 
 export abstract class GroupingTypeFbtUtils {
-  static tabActivity(fbs: FbsAPI) { return fbs("双十人本", "Full tab label for the ten-player dungeon grouping type in grouping lists and forms."); }
-  static tabTalent(fbs: FbsAPI) { return fbs("天赋组队", "Full tab label for the talent grouping type in grouping lists and forms."); }
-  static tabRace(fbs: FbsAPI) { return fbs("竞速报名", "Full tab label for the racing signup grouping type in grouping lists and forms."); }
-  static tabTower(fbs: FbsAPI) { return fbs("爬塔", "Full tab label for the tower-climbing grouping type in grouping lists and forms."); }
-  static shortActivity(fbs: FbsAPI) { return fbs("双十", "Short label for the ten-player dungeon grouping type, used in compact lists and block compositions."); }
-  static shortTalent(fbs: FbsAPI) { return fbs("天赋", "Short label for the talent grouping type, used in compact lists and block compositions."); }
-  static shortRace(fbs: FbsAPI) { return fbs("竞速", "Short label for the racing grouping type, used in compact lists and block compositions."); }
-  static shortTower(fbs: FbsAPI) { return fbs("爬塔", "Short label for the tower grouping type, used in compact lists and block compositions."); }
-  static shortGather(fbs: FbsAPI) { return fbs("采集", "Short label for the gathering grouping type, used in compact lists and block compositions."); }
-  static shortExplore(fbs: FbsAPI) { return fbs("探索", "Short label for the exploration grouping type, used in compact lists and block compositions."); }
+  static tabActivity(fbs: FbsAPI) { return fbs("双十人本", "Tab label for the squad list, used to switch to the ten-player dungeon (shuangshi) squads tab."); }
+  static tabTalent(fbs: FbsAPI) { return fbs("天赋组队", "Tab label for the squad list, used to switch to the talent squads tab."); }
+  static tabRace(fbs: FbsAPI) { return fbs("竞速报名", "Tab label for the squad list, used to switch to the racing signup tab."); }
+  static tabTower(fbs: FbsAPI) { return fbs("爬塔", "Tab label for the squad list, used to switch to the tower squads tab."); }
+  static shortActivity(fbs: FbsAPI) { return fbs("双十", "Short label for the shuangshi squad type, used in compact squad type badges and default titles."); }
+  static shortTalent(fbs: FbsAPI) { return fbs("天赋", "Short label for the talent squad type, used in compact squad type badges and default titles."); }
+  static shortRace(fbs: FbsAPI) { return fbs("竞速", "Short label for the racing squad type, used in compact squad type badges and default titles."); }
+  static shortTower(fbs: FbsAPI) { return fbs("爬塔", "Short label for the tower squad type, used in compact squad type badges and default titles."); }
+  static shortGather(fbs: FbsAPI) { return fbs("采集", "Short label for the gathering activity type, used in compact type badges in officer attendance views."); }
+  static shortExplore(fbs: FbsAPI) { return fbs("探索", "Short label for the exploration activity type, used in compact type badges in officer attendance views."); }
 }
 
 export abstract class GroupingListFbtUtils {
-  static prevWeek(fbs: FbsAPI) { return fbs("上一周", "Button label in the grouping list that moves the weekly view to the previous week."); }
-  static nextWeek(fbs: FbsAPI) { return fbs("下一周", "Button label in the grouping list that moves the weekly view to the next week."); }
-  static weekHeader(fbs: FbsAPI, p?: StringParams) { return fbs([fbs.param("range", pv(p, "range")), " · ", fbs.param("count", pv(p, "count")), " 队"], "Header of a week group in the grouping list; {range} is the week's date range and {count} is the number of squads in that week."); }
-  static emptyInteractive(fbs: FbsAPI) { return fbs("暂无车队，来发第一车吧", "Empty-state text in the grouping list when the viewer can create squads, inviting them to post the first one."); }
-  static emptyReadonly(fbs: FbsAPI) { return fbs("暂无车队", "Empty-state text in the grouping list for read-only viewers when there are no squads."); }
-  static statusOpen(fbs: FbsAPI) { return fbs("报名中", "Status badge on a squad card in the grouping list while signups are open."); }
-  static people(fbs: FbsAPI, p?: StringParams) { return fbs([fbs.param("occupied", pv(p, "occupied")), "/", fbs.param("max", pv(p, "max")), " 人"], "Seat occupancy shown on a squad card; {occupied} is the number of taken seats and {max} the squad size."); }
-  static newCar(fbs: FbsAPI) { return fbs("📯 张贴告示 · 发新车", "Label of the button in the grouping list that opens the create-squad form."); }
-  static seal(fbs: FbsAPI) { return fbs("募", "Single-character seal glyph shown on squad cards in the grouping list, marking an open call for members."); }
-  static dayGroupHeader(fbs: FbsAPI, p?: StringParams) { return fbs([fbs.param("month", pv(p, "month")), "月", fbs.param("day", pv(p, "day")), "日 ", fbs.param("weekday", pv(p, "weekday"))], "Header of a day group in the grouping list; {month} and {day} are the date and {weekday} the localized weekday name."); }
-  static weekday0(fbs: FbsAPI) { return fbs("周日", "Weekday name for Sunday, used in grouping list day headers and schedule views."); }
-  static weekday1(fbs: FbsAPI) { return fbs("周一", "Weekday name for Monday, used in grouping list day headers and schedule views."); }
-  static weekday2(fbs: FbsAPI) { return fbs("周二", "Weekday name for Tuesday, used in grouping list day headers and schedule views."); }
-  static weekday3(fbs: FbsAPI) { return fbs("周三", "Weekday name for Wednesday, used in grouping list day headers and schedule views."); }
-  static weekday4(fbs: FbsAPI) { return fbs("周四", "Weekday name for Thursday, used in grouping list day headers and schedule views."); }
-  static weekday5(fbs: FbsAPI) { return fbs("周五", "Weekday name for Friday, used in grouping list day headers and schedule views."); }
-  static weekday6(fbs: FbsAPI) { return fbs("周六", "Weekday name for Saturday, used in grouping list day headers and schedule views."); }
-  static undatedGroup(fbs: FbsAPI) { return fbs("未定时间", "Header of the group in the grouping list for squads whose start time is not decided yet."); }
+  static prevWeek(fbs: FbsAPI) { return fbs("上一周", "Button label for the squad list week navigation, used to move to the previous week."); }
+  static nextWeek(fbs: FbsAPI) { return fbs("下一周", "Button label for the squad list week navigation, used to move to the next week."); }
+  static weekHeader(fbs: FbsAPI, p?: StringParams) { return fbs([fbs.param("range", pv(p, "range")), " · ", fbs.param("count", pv(p, "count")), " 队"], "Header text for the squad list week view, used to show the week range and squad count, where {range} is the formatted Monday-to-Sunday range and {count} the number of squads."); }
+  static emptyInteractive(fbs: FbsAPI) { return fbs("暂无车队，来发第一车吧", "Empty-state text for the squad list, used when a writable week has no squads, inviting the viewer to post the first one."); }
+  static emptyReadonly(fbs: FbsAPI) { return fbs("暂无车队", "Empty-state text for the squad list, used when a read-only week has no squads."); }
+  static statusOpen(fbs: FbsAPI) { return fbs("报名中", "Status label for squad cards, used to mark a squad that is open for signup."); }
+  static people(fbs: FbsAPI, p?: StringParams) { return fbs([fbs.param("occupied", pv(p, "occupied")), "/", fbs.param("max", pv(p, "max")), " 人"], "Count text for squad cards, used to show seated members against capacity, where {occupied} is the seated count and {max} the capacity."); }
+  static newCar(fbs: FbsAPI) { return fbs("📯 张贴告示 · 发新车", "Button label for the squad list, used to open the new squad form."); }
+  static seal(fbs: FbsAPI) { return fbs("募", "Seal character for squad list artwork, used as the decorative seal glyph on the recruit section of the list page."); }
+  static dayGroupHeader(fbs: FbsAPI, p?: StringParams) { return fbs([fbs.param("month", pv(p, "month")), "月", fbs.param("day", pv(p, "day")), "日 ", fbs.param("weekday", pv(p, "weekday"))], "Header text for day groups in the squad list, used above the squads of one day, where {month} and {day} form the date and {weekday} is the weekday name."); }
+  static weekday0(fbs: FbsAPI) { return fbs("周日", "Weekday name for Sunday, used in day group headers and schedule views to label the day."); }
+  static weekday1(fbs: FbsAPI) { return fbs("周一", "Weekday name for Monday, used in day group headers and schedule views to label the day."); }
+  static weekday2(fbs: FbsAPI) { return fbs("周二", "Weekday name for Tuesday, used in day group headers and schedule views to label the day."); }
+  static weekday3(fbs: FbsAPI) { return fbs("周三", "Weekday name for Wednesday, used in day group headers and schedule views to label the day."); }
+  static weekday4(fbs: FbsAPI) { return fbs("周四", "Weekday name for Thursday, used in day group headers and schedule views to label the day."); }
+  static weekday5(fbs: FbsAPI) { return fbs("周五", "Weekday name for Friday, used in day group headers and schedule views to label the day."); }
+  static weekday6(fbs: FbsAPI) { return fbs("周六", "Weekday name for Saturday, used in day group headers and schedule views to label the day."); }
+  static undatedGroup(fbs: FbsAPI) { return fbs("未定时间", "Header text for the undated group in the squad list, used above squads that have no scheduled start time."); }
 }
 
 export abstract class GroupingDetailFbtUtils {
-  static notFound(fbs: FbsAPI) { return fbs("车队不存在或已解散", "Message shown when a squad page is opened for a squad that does not exist or has been disbanded."); }
-  static backToList(fbs: FbsAPI) { return fbs("‹ 返回车队列表", "Back link at the top of the squad detail page, returning to the squad list."); }
-  static share(fbs: FbsAPI) { return fbs("🔗 分享车队", "Button label on the squad detail page that copies the squad's share link."); }
-  static edit(fbs: FbsAPI) { return fbs("✏️ 编辑", "Button label on the squad detail page that opens the edit form; only composed for the squad leader or a guild admin."); }
-  static disband(fbs: FbsAPI) { return fbs("解散车队", "Button label on the squad detail page that disbands the squad; only composed for the squad leader or a guild admin."); }
-  static disbanding(fbs: FbsAPI) { return fbs("解散中…", "Disband button label on the squad detail page while the disband request is in progress."); }
-  static statusOpen(fbs: FbsAPI) { return fbs("报名中", "Status badge on the squad detail page while signups are open."); }
-  static people(fbs: FbsAPI, p?: StringParams) { return fbs([fbs.param("occupied", pv(p, "occupied")), "/", fbs.param("max", pv(p, "max")), " 人"], "Seat occupancy on the squad detail page; {occupied} is the number of taken seats and {max} the squad size."); }
-  static readyProgress(fbs: FbsAPI, p?: StringParams) { return fbs(["已就位 ", fbs.param("ready", pv(p, "ready")), "/", fbs.param("occupied", pv(p, "occupied"))], "Ready-check progress on the squad detail page; {ready} is the number of seated members marked ready and {occupied} the number of taken seats."); }
-  static openHint(fbs: FbsAPI) { return fbs("人人可管 · 无需管理码 — 点空位即可落座", "Hint on the squad detail page for interactive viewers: anyone may manage, no admin code is needed, and tapping an empty seat signs up."); }
-  static readonlyHint(fbs: FbsAPI) { return fbs("只读浏览 · 该百业尚未绑定 Discord 服务器", "Hint on the squad detail page when the guild has not bound a Discord server and the page is read-only."); }
-  static toastDisbanded(fbs: FbsAPI) { return fbs("车队已解散", "Toast shown after a squad is disbanded."); }
-  static toastDisbandFailed(fbs: FbsAPI, p?: StringParams) { return fbs(["解散失败：", fbs.param("error", pv(p, "error"))], "Toast shown when disbanding a squad fails; {error} is the error message."); }
-  static linkCopied(fbs: FbsAPI) { return fbs("链接已复制", "Toast shown after the squad share link is copied to the clipboard."); }
-  static copyFailedManual(fbs: FbsAPI) { return fbs("复制失败，请手动复制地址栏链接", "Toast shown when copying the share link fails, asking the user to copy the address bar link manually."); }
-  static disbandConfirmTitle(fbs: FbsAPI) { return fbs("解散车队", "Title of the confirmation dialog for disbanding a squad."); }
-  static disbandConfirmMessage(fbs: FbsAPI, p?: StringParams) { return fbs(["确定解散「", fbs.param("title", pv(p, "title")), "」吗？所有报名将被清空。"], "Body of the disband confirmation dialog; {title} is the squad title, and the text warns all signups will be cleared."); }
-  static complete(fbs: FbsAPI) { return fbs("完成车队", "Button label on the squad detail page that marks the squad as completed; only composed for the squad leader or a guild admin."); }
-  static completing(fbs: FbsAPI) { return fbs("完成中…", "Complete button label on the squad detail page while the completion request is in progress."); }
-  static statusCompleted(fbs: FbsAPI) { return fbs("已完成", "Status badge on the squad detail page for a completed squad."); }
-  static restore(fbs: FbsAPI) { return fbs("恢复车队", "Button label on the squad detail page that restores a completed squad to open state."); }
-  static completeConfirmTitle(fbs: FbsAPI) { return fbs("完成车队", "Title of the confirmation dialog for completing a squad."); }
-  static completeConfirmMessage(fbs: FbsAPI, p?: StringParams) { return fbs(["确定完成「", fbs.param("title", pv(p, "title")), "」吗？完成后将从车队列表隐藏，也不再发送发车提醒；之后仍可在本页恢复。"], "Body of the complete confirmation dialog; {title} is the squad title, and the text explains the squad will be hidden from the list and stop sending reminders but can be restored from this page."); }
-  static toastCompleted(fbs: FbsAPI) { return fbs("车队已完成", "Toast shown after a squad is marked completed."); }
-  static toastCompleteFailed(fbs: FbsAPI, p?: StringParams) { return fbs(["完成失败：", fbs.param("error", pv(p, "error"))], "Toast shown when completing a squad fails; {error} is the error message."); }
-  static toastRestored(fbs: FbsAPI) { return fbs("车队已恢复", "Toast shown after a completed squad is restored."); }
-  static toastRestoreFailed(fbs: FbsAPI, p?: StringParams) { return fbs(["恢复失败：", fbs.param("error", pv(p, "error"))], "Toast shown when restoring a squad fails; {error} is the error message."); }
-  static completedHint(fbs: FbsAPI) { return fbs("该车队已完成 · 已从列表隐藏，不再发送发车提醒", "Hint banner on the detail page of a completed squad: it is hidden from the list and no longer sends departure reminders."); }
-  static rosterAnswersTitle(fbs: FbsAPI) { return fbs("报名表答案", "Title of the section on the squad detail page listing signups' answers to the custom signup form; only composed for viewers who manage the squad."); }
+  static notFound(fbs: FbsAPI) { return fbs("车队不存在或已解散", "Error text for the squad detail page, used when the squad does not exist or has been disbanded."); }
+  static backToList(fbs: FbsAPI) { return fbs("‹ 返回车队列表", "Back link for the squad detail page, used at the top of the page to return to the squad list."); }
+  static share(fbs: FbsAPI) { return fbs("🔗 分享车队", "Button label for the squad detail page, used to copy the squad's short share link."); }
+  static edit(fbs: FbsAPI) { return fbs("✏️ 编辑", "Button label for the squad detail page, used to open the edit form, shown to the leader or a guild admin."); }
+  static disband(fbs: FbsAPI) { return fbs("解散车队", "Button label for the squad detail page, used to start disbanding the squad, shown to the leader or a guild admin."); }
+  static disbanding(fbs: FbsAPI) { return fbs("解散中…", "Button label for the squad detail page, used while disbanding is in progress."); }
+  static statusOpen(fbs: FbsAPI) { return fbs("报名中", "Status label for the squad detail page, used to mark a squad that is open for signup."); }
+  static people(fbs: FbsAPI, p?: StringParams) { return fbs([fbs.param("occupied", pv(p, "occupied")), "/", fbs.param("max", pv(p, "max")), " 人"], "Count text for the squad detail page, used to show seated members against capacity, where {occupied} is the seated count and {max} the capacity."); }
+  static readyProgress(fbs: FbsAPI, p?: StringParams) { return fbs(["已就位 ", fbs.param("ready", pv(p, "ready")), "/", fbs.param("occupied", pv(p, "occupied"))], "Progress text for the squad detail page, used to show how many seated members are marked ready, where {ready} is the ready count and {occupied} the seated count."); }
+  static openHint(fbs: FbsAPI) { return fbs("人人可管 · 无需管理码 — 点空位即可落座", "Hint text for the squad detail page, used under the roster to explain that everyone can manage seats without an admin code."); }
+  static readonlyHint(fbs: FbsAPI) { return fbs("只读浏览 · 该百业尚未绑定 Discord 服务器", "Hint text for the squad detail page, used in read-only mode to explain that the guild has not bound a Discord server yet."); }
+  static toastDisbanded(fbs: FbsAPI) { return fbs("车队已解散", "Toast message for the squad detail page, used after the squad is disbanded."); }
+  static toastDisbandFailed(fbs: FbsAPI, p?: StringParams) { return fbs(["解散失败：", fbs.param("error", pv(p, "error"))], "Toast message for the squad detail page, used when disbanding fails, where {error} is the failure reason."); }
+  static linkCopied(fbs: FbsAPI) { return fbs("链接已复制", "Confirmation text for the share action, used as a transient notice after the share link is copied."); }
+  static copyFailedManual(fbs: FbsAPI) { return fbs("复制失败，请手动复制地址栏链接", "Hint text for the share action, used when copying fails so the user copies the address bar link manually."); }
+  static disbandConfirmTitle(fbs: FbsAPI) { return fbs("解散车队", "Title text for the disband confirmation, used as the confirmation dialog heading."); }
+  static disbandConfirmMessage(fbs: FbsAPI, p?: StringParams) { return fbs(["确定解散「", fbs.param("title", pv(p, "title")), "」吗？所有报名将被清空。"], "Confirmation message for disbanding a squad, used in the dialog to warn that all signups are cleared, where {title} is the squad title."); }
+  static complete(fbs: FbsAPI) { return fbs("完成车队", "Button label for the squad detail page, used to mark the squad as completed, shown to the leader or a guild admin."); }
+  static completing(fbs: FbsAPI) { return fbs("完成中…", "Button label for the squad detail page, used while completion is in progress."); }
+  static statusCompleted(fbs: FbsAPI) { return fbs("已完成", "Status label for the squad detail page, used to mark a squad that has been completed."); }
+  static restore(fbs: FbsAPI) { return fbs("恢复车队", "Button label for the squad detail page, used to restore a completed squad, shown to the leader or a guild admin."); }
+  static completeConfirmTitle(fbs: FbsAPI) { return fbs("完成车队", "Title text for the complete confirmation, used as the confirmation dialog heading."); }
+  static completeConfirmMessage(fbs: FbsAPI, p?: StringParams) { return fbs(["确定完成「", fbs.param("title", pv(p, "title")), "」吗？完成后将从车队列表隐藏，也不再发送发车提醒；之后仍可在本页恢复。"], "Confirmation message for completing a squad, used in the dialog to explain the squad is hidden from the list and stops receiving reminders but can be restored here, where {title} is the squad title."); }
+  static toastCompleted(fbs: FbsAPI) { return fbs("车队已完成", "Toast message for the squad detail page, used after the squad is marked completed."); }
+  static toastCompleteFailed(fbs: FbsAPI, p?: StringParams) { return fbs(["完成失败：", fbs.param("error", pv(p, "error"))], "Toast message for the squad detail page, used when completion fails, where {error} is the failure reason."); }
+  static toastRestored(fbs: FbsAPI) { return fbs("车队已恢复", "Toast message for the squad detail page, used after a completed squad is restored."); }
+  static toastRestoreFailed(fbs: FbsAPI, p?: StringParams) { return fbs(["恢复失败：", fbs.param("error", pv(p, "error"))], "Toast message for the squad detail page, used when restoring fails, where {error} is the failure reason."); }
+  static completedHint(fbs: FbsAPI) { return fbs("该车队已完成 · 已从列表隐藏，不再发送发车提醒", "Hint text for completed squads on the detail page, used to explain the squad is hidden from the list and no longer receives departure reminders."); }
+  static rosterAnswersTitle(fbs: FbsAPI) { return fbs("报名表答案", "Title text for the roster answers section on the squad detail page, used above the per-seat custom signup answers shown to the leader and guild admins."); }
 }
 
 export abstract class GroupingFormFbtUtils {
-  static createTitle(fbs: FbsAPI) { return fbs("张贴告示", "Title of the form for posting a new squad (create mode)."); }
-  static editTitle(fbs: FbsAPI) { return fbs("编辑告示", "Title of the squad form in edit mode."); }
-  static typeLabel(fbs: FbsAPI) { return fbs("类型", "Label of the grouping type selector on the squad form."); }
-  static capacity(fbs: FbsAPI, p?: StringParams) { return fbs(["人数上限 ", fbs.param("max", pv(p, "max")), " 人（", fbs.param("hint", pv(p, "hint")), "）"], "Capacity line on the squad form; {max} is the seat cap and {hint} explains how the cap is derived for the chosen type."); }
-  static hintActivity(fbs: FbsAPI) { return fbs("双十固定 10 人，不选副本", "Capacity hint on the squad form for the ten-player type: fixed at ten seats and no dungeon is chosen."); }
-  static hintDungeon(fbs: FbsAPI, p?: StringParams) { return fbs(["按所选副本「", fbs.param("name", pv(p, "name")), "」", fbs.param("max", pv(p, "max")), " 人"], "Capacity hint on the squad form when a dungeon is selected; {name} is the dungeon name and {max} its player count."); }
-  static hintTalent(fbs: FbsAPI) { return fbs("天赋默认 5 人，选副本后按副本人数", "Capacity hint on the squad form for the talent type: five seats by default, or the dungeon's player count once a dungeon is chosen."); }
-  static hintRace(fbs: FbsAPI) { return fbs("竞速默认 10 人，选副本后按副本人数", "Capacity hint on the squad form for the racing type: ten seats by default, or the dungeon's player count once a dungeon is chosen."); }
-  static hintTower(fbs: FbsAPI) { return fbs("爬塔固定 10 人，不选副本", "Capacity hint on the squad form for the tower type: fixed at ten seats and no dungeon is chosen."); }
-  static titleLabel(fbs: FbsAPI) { return fbs("标题", "Label of the squad title field on the squad form."); }
-  static titlePlaceholder(fbs: FbsAPI) { return fbs("如：周六晚双十来奶", "Placeholder example text in the squad title field."); }
-  static startsLabel(fbs: FbsAPI) { return fbs("出发时间", "Label of the departure time picker on the squad form."); }
-  static monthOption(fbs: FbsAPI, p?: StringParams) { return fbs([fbs.param("n", pv(p, "n")), "月"], "Month option in the departure time picker on the squad form; {n} is the month number."); }
-  static dayOption(fbs: FbsAPI, p?: StringParams) { return fbs([fbs.param("n", pv(p, "n")), "日"], "Day option in the departure time picker on the squad form; {n} is the day of the month."); }
-  static hourOption(fbs: FbsAPI, p?: StringParams) { return fbs([fbs.param("n", pv(p, "n")), "时"], "Hour option in the departure time picker on the squad form; {n} is the hour."); }
-  static minuteOption(fbs: FbsAPI, p?: StringParams) { return fbs([fbs.param("n", pv(p, "n")), "分"], "Minute option in the departure time picker on the squad form; {n} is the minute."); }
-  static dungeonLabel(fbs: FbsAPI) { return fbs("副本（可选）", "Label of the optional dungeon selector on the squad form."); }
-  static dungeonNone(fbs: FbsAPI) { return fbs("不指定", "Option in the dungeon selector on the squad form meaning no dungeon is specified."); }
-  static nicknameLabel(fbs: FbsAPI) { return fbs("你的昵称（发车人自动落座 0 号位）", "Label of the nickname field on the squad form, noting the poster is auto-seated in seat zero."); }
-  static nicknamePlaceholder(fbs: FbsAPI) { return fbs("游戏内昵称", "Placeholder text in the nickname field on the squad form, asking for the in-game nickname."); }
-  static sectLabel(fbs: FbsAPI) { return fbs("你的流派", "Label of the poster's sect selector on the squad form."); }
-  static submitCreate(fbs: FbsAPI) { return fbs("发布", "Submit button label on the squad form in create mode."); }
-  static submitEdit(fbs: FbsAPI) { return fbs("保存", "Submit button label on the squad form in edit mode."); }
-  static submitting(fbs: FbsAPI) { return fbs("提交中…", "Submit button label on the squad form while the request is in progress."); }
-  static toastSect(fbs: FbsAPI) { return fbs("请选择你的流派", "Toast shown when the squad form is submitted without choosing a sect."); }
-  static toastSaved(fbs: FbsAPI) { return fbs("已保存", "Toast shown after an edited squad is saved."); }
-  static toastSaveFailed(fbs: FbsAPI, p?: StringParams) { return fbs(["保存失败：", fbs.param("error", pv(p, "error"))], "Toast shown when saving a squad fails; {error} is the error message."); }
-  static toastPosted(fbs: FbsAPI) { return fbs("告示已张贴", "Toast shown after a new squad is posted."); }
-  static toastCreateFailed(fbs: FbsAPI, p?: StringParams) { return fbs(["创建失败：", fbs.param("error", pv(p, "error"))], "Toast shown when creating a squad fails; {error} is the error message."); }
-  static titleTemplate(fbs: FbsAPI, p?: StringParams) { return fbs([fbs.param("nickname", pv(p, "nickname")), "的", fbs.param("type", pv(p, "type")), "车队"], "Default squad title template on the squad form; {nickname} is the poster's nickname and {type} the grouping type name."); }
-  static customFieldsTitle(fbs: FbsAPI) { return fbs("报名表自定义字段", "Title of the custom signup fields editor section on the squad form."); }
-  static customFieldAddLabel(fbs: FbsAPI) { return fbs("添加字段", "Button label in the custom fields editor that adds another signup field."); }
-  static customFieldLabelPlaceholder(fbs: FbsAPI) { return fbs("字段名（如：联系方式）", "Placeholder text for a custom signup field's name input, with an example such as a contact field."); }
-  static customFieldTypeText(fbs: FbsAPI) { return fbs("单行文本", "Field type option in the custom fields editor for a single-line text answer."); }
-  static customFieldTypeChoice(fbs: FbsAPI) { return fbs("单选", "Field type option in the custom fields editor for a single-choice answer."); }
-  static customFieldOptionsPlaceholder(fbs: FbsAPI) { return fbs("选项，一行一个（2–6 个）", "Placeholder text for the options textarea of a choice-type signup field, one option per line, two to six options."); }
-  static customFieldRequiredLabel(fbs: FbsAPI) { return fbs("必填", "Label of the required toggle for a custom signup field in the editor."); }
-  static customFieldRemoveLabel(fbs: FbsAPI) { return fbs("删除", "Button label that removes a custom signup field in the editor."); }
-  static customFieldEmptyText(fbs: FbsAPI) { return fbs("未设置自定义字段时，成员报名只填固定信息。", "Explanation in the custom fields editor when no custom fields exist: members then only fill in the fixed signup information."); }
+  static createTitle(fbs: FbsAPI) { return fbs("张贴告示", "Title text for the squad form, used as the heading when posting a new squad."); }
+  static editTitle(fbs: FbsAPI) { return fbs("编辑告示", "Title text for the squad form, used as the heading when editing an existing squad."); }
+  static typeLabel(fbs: FbsAPI) { return fbs("类型", "Field label for the squad form, used for the squad type selector."); }
+  static capacity(fbs: FbsAPI, p?: StringParams) { return fbs(["人数上限 ", fbs.param("max", pv(p, "max")), " 人（", fbs.param("hint", pv(p, "hint")), "）"], "Capacity text for the squad form, used to show the squad size for the chosen type, where {max} is the capacity and {hint} the explanation of how it was derived."); }
+  static hintActivity(fbs: FbsAPI) { return fbs("双十固定 10 人，不选副本", "Capacity hint for the squad form, used for shuangshi squads to state the fixed size of ten and that no dungeon is chosen."); }
+  static hintDungeon(fbs: FbsAPI, p?: StringParams) { return fbs(["按所选副本「", fbs.param("name", pv(p, "name")), "」", fbs.param("max", pv(p, "max")), " 人"], "Capacity hint for the squad form, used when a dungeon sets the size, where {name} is the dungeon name and {max} its player count."); }
+  static hintTalent(fbs: FbsAPI) { return fbs("天赋默认 5 人，选副本后按副本人数", "Capacity hint for the squad form, used for talent squads to state the default size of five before a dungeon is chosen."); }
+  static hintRace(fbs: FbsAPI) { return fbs("竞速默认 10 人，选副本后按副本人数", "Capacity hint for the squad form, used for racing squads to state the default size of ten before a dungeon is chosen."); }
+  static hintTower(fbs: FbsAPI) { return fbs("爬塔固定 10 人，不选副本", "Capacity hint for the squad form, used for tower squads to state the fixed size of ten and that no dungeon is chosen."); }
+  static titleLabel(fbs: FbsAPI) { return fbs("标题", "Field label for the squad form, used for the squad title input."); }
+  static titlePlaceholder(fbs: FbsAPI) { return fbs("如：周六晚双十来奶", "Placeholder text for the squad form, used in the title input with an example title."); }
+  static startsLabel(fbs: FbsAPI) { return fbs("出发时间", "Field label for the squad form, used for the departure time selectors."); }
+  static monthOption(fbs: FbsAPI, p?: StringParams) { return fbs([fbs.param("n", pv(p, "n")), "月"], "Option pattern for the departure month selector on the squad form, used to label a month, where {n} is the month number."); }
+  static dayOption(fbs: FbsAPI, p?: StringParams) { return fbs([fbs.param("n", pv(p, "n")), "日"], "Option pattern for the departure day selector on the squad form, used to label a day of month, where {n} is the day number."); }
+  static hourOption(fbs: FbsAPI, p?: StringParams) { return fbs([fbs.param("n", pv(p, "n")), "时"], "Option pattern for the departure hour selector on the squad form, used to label an hour, where {n} is the hour."); }
+  static minuteOption(fbs: FbsAPI, p?: StringParams) { return fbs([fbs.param("n", pv(p, "n")), "分"], "Option pattern for the departure minute selector on the squad form, used to label a minute, where {n} is the minute."); }
+  static dungeonLabel(fbs: FbsAPI) { return fbs("副本（可选）", "Field label for the squad form, used for the optional dungeon selector."); }
+  static dungeonNone(fbs: FbsAPI) { return fbs("不指定", "Option label for the dungeon selector on the squad form, used for the choice that leaves the dungeon unspecified."); }
+  static nicknameLabel(fbs: FbsAPI) { return fbs("你的昵称（发车人自动落座 0 号位）", "Field label for the squad form, used for the creator nickname input and to note the creator auto-seats at seat zero."); }
+  static nicknamePlaceholder(fbs: FbsAPI) { return fbs("游戏内昵称", "Placeholder text for the squad form, used in the nickname input."); }
+  static sectLabel(fbs: FbsAPI) { return fbs("你的流派", "Field label for the squad form, used for the creator sect selector."); }
+  static submitCreate(fbs: FbsAPI) { return fbs("发布", "Button label for the squad form, used to publish a new squad."); }
+  static submitEdit(fbs: FbsAPI) { return fbs("保存", "Button label for the squad form, used to save edits to an existing squad."); }
+  static submitting(fbs: FbsAPI) { return fbs("提交中…", "Button label for the squad form, used while the form is being submitted."); }
+  static toastSect(fbs: FbsAPI) { return fbs("请选择你的流派", "Toast message for the squad form, used when submitting without choosing a sect."); }
+  static toastSaved(fbs: FbsAPI) { return fbs("已保存", "Toast message for the squad form, used after edits are saved."); }
+  static toastSaveFailed(fbs: FbsAPI, p?: StringParams) { return fbs(["保存失败：", fbs.param("error", pv(p, "error"))], "Toast message for the squad form, used when saving edits fails, where {error} is the failure reason."); }
+  static toastPosted(fbs: FbsAPI) { return fbs("告示已张贴", "Toast message for the squad form, used after a new squad is posted."); }
+  static toastCreateFailed(fbs: FbsAPI, p?: StringParams) { return fbs(["创建失败：", fbs.param("error", pv(p, "error"))], "Toast message for the squad form, used when creating a squad fails, where {error} is the failure reason."); }
+  static titleTemplate(fbs: FbsAPI, p?: StringParams) { return fbs([fbs.param("nickname", pv(p, "nickname")), "的", fbs.param("type", pv(p, "type")), "车队"], "Default title pattern for new squads, used to prefill the title when the creator leaves it blank, where {nickname} is the creator nickname and {type} the squad type label."); }
+  static customFieldsTitle(fbs: FbsAPI) { return fbs("报名表自定义字段", "Section heading for the squad form, used above the custom signup field editor."); }
+  static customFieldAddLabel(fbs: FbsAPI) { return fbs("添加字段", "Button label for the custom field editor on the squad form, used to add a signup field."); }
+  static customFieldLabelPlaceholder(fbs: FbsAPI) { return fbs("字段名（如：联系方式）", "Placeholder text for the custom field editor, used in the field name input with an example name."); }
+  static customFieldTypeText(fbs: FbsAPI) { return fbs("单行文本", "Option label for the custom field editor, used for the single-line text field type."); }
+  static customFieldTypeChoice(fbs: FbsAPI) { return fbs("单选", "Option label for the custom field editor, used for the single-choice field type."); }
+  static customFieldOptionsPlaceholder(fbs: FbsAPI) { return fbs("选项，一行一个（2–6 个）", "Placeholder text for the custom field editor, used in the options textarea to explain one option per line with two to six options."); }
+  static customFieldRequiredLabel(fbs: FbsAPI) { return fbs("必填", "Checkbox label for the custom field editor, used to mark a signup field as required."); }
+  static customFieldRemoveLabel(fbs: FbsAPI) { return fbs("删除", "Button label for the custom field editor, used to remove a signup field."); }
+  static customFieldEmptyText(fbs: FbsAPI) { return fbs("未设置自定义字段时，成员报名只填固定信息。", "Empty-state text for the custom field editor, used when no custom fields are set to explain that signups then collect only the standard information."); }
 }
 
 export abstract class SeatFbtUtils {
-  static emptyJoin(fbs: FbsAPI) { return fbs("空位 · 点击落座", "Label of an empty seat that the viewer can tap to sign up for it."); }
-  static empty(fbs: FbsAPI) { return fbs("空位", "Label of an empty seat shown to viewers who cannot sign up."); }
-  static modalTitle(fbs: FbsAPI, p?: StringParams) { return fbs(["落座 · ", fbs.param("n", pv(p, "n")), " 号位"], "Title of the seat signup dialog; {n} is the seat number."); }
-  static modalSubtitle(fbs: FbsAPI) { return fbs("人人可管 · 无需管理码", "Subtitle of the seat signup dialog: anyone may manage it and no admin code is needed."); }
-  static nameLabel(fbs: FbsAPI) { return fbs("名字", "Label of the name field in the seat signup dialog."); }
-  static namePlaceholder(fbs: FbsAPI) { return fbs("你的名字", "Placeholder text in the name field of the seat signup dialog."); }
-  static nameRequired(fbs: FbsAPI) { return fbs("请填写名字", "Validation message in the seat signup dialog when the name is empty."); }
-  static selfTab(fbs: FbsAPI) { return fbs("自己报名", "Tab label in the seat signup dialog for signing up oneself."); }
-  static proxyTab(fbs: FbsAPI) { return fbs("代报名", "Tab label in the seat signup dialog for signing up another member by proxy."); }
-  static selfNameHint(fbs: FbsAPI) { return fbs("名字取自你的 Discord 昵称，不可修改", "Hint in the self-signup tab: the name comes from the Discord nickname and cannot be changed."); }
-  static proxySearchPlaceholder(fbs: FbsAPI) { return fbs("搜索成员名字", "Placeholder text of the member search box in the proxy signup tab."); }
-  static proxyPickRequired(fbs: FbsAPI) { return fbs("请选择要代报的成员", "Validation message in the proxy signup tab when no member has been picked."); }
-  static proxyEmpty(fbs: FbsAPI) { return fbs("名册里还没有成员", "Empty-state text in the proxy signup tab when the roster has no members yet."); }
-  static sectLabel(fbs: FbsAPI) { return fbs("流派", "Label of the sect selector in the seat signup dialog."); }
-  static confirmJoin(fbs: FbsAPI) { return fbs("确认落座", "Confirm button label in the seat signup dialog."); }
-  static joining(fbs: FbsAPI) { return fbs("落座中…", "Confirm button label in the seat signup dialog while the signup is being submitted."); }
-  static toastSect(fbs: FbsAPI) { return fbs("请选择流派", "Toast shown when the seat signup is submitted without choosing a sect."); }
-  static toastJoined(fbs: FbsAPI) { return fbs("落座成功", "Toast shown after a seat signup succeeds."); }
-  static toastJoinFailed(fbs: FbsAPI, p?: StringParams) { return fbs(["报名失败：", fbs.param("error", pv(p, "error"))], "Toast shown when a seat signup fails; {error} is the error message."); }
-  static toastLeft(fbs: FbsAPI) { return fbs("已取消报名", "Toast shown after a signup is cancelled."); }
-  static toastLeaveFailed(fbs: FbsAPI, p?: StringParams) { return fbs(["取消失败：", fbs.param("error", pv(p, "error"))], "Toast shown when cancelling a signup fails; {error} is the error message."); }
-  static leaveConfirmTitle(fbs: FbsAPI) { return fbs("取消报名", "Title of the confirmation dialog for cancelling a signup."); }
-  static leaveConfirmMessage(fbs: FbsAPI, p?: StringParams) { return fbs(["确定取消「", fbs.param("nickname", pv(p, "nickname")), "」的报名吗？"], "Body of the cancel-signup confirmation dialog; {nickname} is the seated member's nickname."); }
-  static roleHealer(fbs: FbsAPI) { return fbs("奶", "Short role tag on a seat for a healer."); }
-  static roleDps(fbs: FbsAPI) { return fbs("输出", "Short role tag on a seat for a damage dealer."); }
-  static leader(fbs: FbsAPI) { return fbs("车头", "Tag on the seat occupied by the squad leader."); }
-  static readyMark(fbs: FbsAPI) { return fbs("已就位", "Badge on a seat whose member has marked themselves ready."); }
-  static readyAction(fbs: FbsAPI) { return fbs("我已就位", "Button label for a seated member to mark themselves ready."); }
-  static unreadyAction(fbs: FbsAPI) { return fbs("取消就位", "Button label for a seated member to undo their ready mark."); }
-  static toastReady(fbs: FbsAPI) { return fbs("已标记就位", "Toast shown after the member marks themselves ready."); }
-  static toastUnready(fbs: FbsAPI) { return fbs("已取消就位", "Toast shown after the member removes their ready mark."); }
-  static toastReadyFailed(fbs: FbsAPI, p?: StringParams) { return fbs(["操作失败：", fbs.param("error", pv(p, "error"))], "Toast shown when toggling the ready mark fails; {error} is the error message."); }
+  static emptyJoin(fbs: FbsAPI) { return fbs("空位 · 点击落座", "Seat cell text for empty seats, used on writable squad pages to invite clicking the seat to sign up."); }
+  static empty(fbs: FbsAPI) { return fbs("空位", "Seat cell text for empty seats, used on read-only squad pages."); }
+  static modalTitle(fbs: FbsAPI, p?: StringParams) { return fbs(["落座 · ", fbs.param("n", pv(p, "n")), " 号位"], "Title text for the seat signup dialog, used as the dialog heading, where {n} is the seat number."); }
+  static modalSubtitle(fbs: FbsAPI) { return fbs("人人可管 · 无需管理码", "Subtitle for the seat signup dialog, used under the title to explain that seats are self-managed without an admin code."); }
+  static nameLabel(fbs: FbsAPI) { return fbs("名字", "Field label for the seat signup dialog, used for the name input in proxy mode."); }
+  static namePlaceholder(fbs: FbsAPI) { return fbs("你的名字", "Placeholder text for the seat signup dialog, used in the proxy name input."); }
+  static nameRequired(fbs: FbsAPI) { return fbs("请填写名字", "Validation text for the seat signup dialog, used when the name is left empty."); }
+  static selfTab(fbs: FbsAPI) { return fbs("自己报名", "Tab label for the seat signup dialog, used to switch to signing up oneself."); }
+  static proxyTab(fbs: FbsAPI) { return fbs("代报名", "Tab label for the seat signup dialog, used to switch to signing up another member."); }
+  static selfNameHint(fbs: FbsAPI) { return fbs("名字取自你的 Discord 昵称，不可修改", "Hint text for the seat signup dialog, used in self mode to explain the name comes from the Discord nickname and cannot be edited."); }
+  static proxySearchPlaceholder(fbs: FbsAPI) { return fbs("搜索成员名字", "Placeholder text for the proxy member search in the seat signup dialog, used to prompt searching roster members by name."); }
+  static proxyPickRequired(fbs: FbsAPI) { return fbs("请选择要代报的成员", "Validation text for the seat signup dialog, used when proxy mode is submitted without picking a member."); }
+  static proxyEmpty(fbs: FbsAPI) { return fbs("名册里还没有成员", "Empty-state text for the proxy member picker, used when the guild roster has no members yet."); }
+  static sectLabel(fbs: FbsAPI) { return fbs("流派", "Field label for the seat signup dialog, used for the sect selector."); }
+  static confirmJoin(fbs: FbsAPI) { return fbs("确认落座", "Button label for the seat signup dialog, used to confirm taking the seat."); }
+  static joining(fbs: FbsAPI) { return fbs("落座中…", "Button label for the seat signup dialog, used while the signup is being submitted."); }
+  static toastSect(fbs: FbsAPI) { return fbs("请选择流派", "Toast message for the seat signup dialog, used when submitting without choosing a sect."); }
+  static toastJoined(fbs: FbsAPI) { return fbs("落座成功", "Toast message for the seat signup dialog, used after a successful signup."); }
+  static toastJoinFailed(fbs: FbsAPI, p?: StringParams) { return fbs(["报名失败：", fbs.param("error", pv(p, "error"))], "Toast message for the seat signup dialog, used when a signup fails, where {error} is the failure reason."); }
+  static toastLeft(fbs: FbsAPI) { return fbs("已取消报名", "Toast message for seat actions, used after a signup is cancelled."); }
+  static toastLeaveFailed(fbs: FbsAPI, p?: StringParams) { return fbs(["取消失败：", fbs.param("error", pv(p, "error"))], "Toast message for seat actions, used when cancelling a signup fails, where {error} is the failure reason."); }
+  static leaveConfirmTitle(fbs: FbsAPI) { return fbs("取消报名", "Title text for the leave-seat confirmation, used as the confirmation dialog heading."); }
+  static leaveConfirmMessage(fbs: FbsAPI, p?: StringParams) { return fbs(["确定取消「", fbs.param("nickname", pv(p, "nickname")), "」的报名吗？"], "Confirmation message for leaving a seat, used in the dialog, where {nickname} is the seated member's nickname."); }
+  static roleHealer(fbs: FbsAPI) { return fbs("奶", "Role tag for seated members, used on a seat cell when the member's sect is a healer."); }
+  static roleDps(fbs: FbsAPI) { return fbs("输出", "Role tag for seated members, used on a seat cell when the member's sect is a damage dealer."); }
+  static leader(fbs: FbsAPI) { return fbs("车头", "Tag text for the squad leader, used on the leader's seat cell and in roster views."); }
+  static readyMark(fbs: FbsAPI) { return fbs("已就位", "Status text for seated members, used on a seat cell when the member is marked ready."); }
+  static readyAction(fbs: FbsAPI) { return fbs("我已就位", "Button label for seat actions, used by a seated member to mark themselves ready."); }
+  static unreadyAction(fbs: FbsAPI) { return fbs("取消就位", "Button label for seat actions, used by a seated member to withdraw the ready mark."); }
+  static toastReady(fbs: FbsAPI) { return fbs("已标记就位", "Toast message for seat actions, used after the ready mark is set."); }
+  static toastUnready(fbs: FbsAPI) { return fbs("已取消就位", "Toast message for seat actions, used after the ready mark is withdrawn."); }
+  static toastReadyFailed(fbs: FbsAPI, p?: StringParams) { return fbs(["操作失败：", fbs.param("error", pv(p, "error"))], "Toast message for seat actions, used when toggling the ready mark fails, where {error} is the failure reason."); }
 }
 
 export abstract class GroupingTemplateFbtUtils {
-  static sectionTitle(fbs: FbsAPI) { return fbs("车队模板", "Title of the squad templates section on the squad form and template management area."); }
-  static nameLabel(fbs: FbsAPI) { return fbs("模板名", "Label of the template name field in the template editor."); }
-  static namePlaceholder(fbs: FbsAPI) { return fbs("给模板起个名字", "Placeholder text in the template name field."); }
-  static saveFromForm(fbs: FbsAPI) { return fbs("存为模板", "Button label on the squad form that saves the current form configuration as a template."); }
-  static updateSubmit(fbs: FbsAPI) { return fbs("保存模板修改", "Button label that saves changes to the template currently being edited."); }
-  static editingNotice(fbs: FbsAPI, p?: StringParams) { return fbs(["正在编辑模板「", fbs.param("name", pv(p, "name")), "」"], "Notice shown while a template is being edited; {name} is the template name."); }
-  static cancelEdit(fbs: FbsAPI) { return fbs("取消编辑", "Button label that cancels editing a template."); }
-  static empty(fbs: FbsAPI) { return fbs("还没有模板，把常用配置存下来，下次一键预填", "Empty-state text in the templates section: save a frequent configuration to prefill the squad form next time."); }
-  static whenToday(fbs: FbsAPI, p?: StringParams) { return fbs(["今天 ", fbs.param("time", pv(p, "time")), " 发车"], "Departure time preview in a template card for a departure today; {time} is the departure time."); }
-  static whenTomorrow(fbs: FbsAPI, p?: StringParams) { return fbs(["明天 ", fbs.param("time", pv(p, "time")), " 发车"], "Departure time preview in a template card for a departure tomorrow; {time} is the departure time."); }
-  static whenDays(fbs: FbsAPI, p?: StringParams) { return fbs([fbs.param("days", pv(p, "days")), " 天后 ", fbs.param("time", pv(p, "time")), " 发车"], "Departure time preview in a template card for a departure in some days; {days} is the number of days ahead and {time} the departure time."); }
-  static toastSaved(fbs: FbsAPI) { return fbs("模板已保存", "Toast shown after a template is saved."); }
-  static toastSaveFailed(fbs: FbsAPI, p?: StringParams) { return fbs(["模板保存失败：", fbs.param("error", pv(p, "error"))], "Toast shown when saving a template fails; {error} is the error message."); }
-  static toastDeleted(fbs: FbsAPI) { return fbs("模板已删除", "Toast shown after a template is deleted."); }
-  static toastDeleteFailed(fbs: FbsAPI, p?: StringParams) { return fbs(["模板删除失败：", fbs.param("error", pv(p, "error"))], "Toast shown when deleting a template fails; {error} is the error message."); }
-  static edit(fbs: FbsAPI) { return fbs("编辑", "Button label that starts editing a template."); }
-  static delete(fbs: FbsAPI) { return fbs("删除", "Button label that deletes a template."); }
-  static deleteConfirmTitle(fbs: FbsAPI) { return fbs("删除模板", "Title of the confirmation dialog for deleting a template."); }
-  static deleteConfirmMessage(fbs: FbsAPI, p?: StringParams) { return fbs(["确定删除模板「", fbs.param("name", pv(p, "name")), "」吗？"], "Body of the delete-template confirmation dialog; {name} is the template name."); }
-  static saveButton(fbs: FbsAPI) { return fbs("📋 存为模板", "Button label on the squad detail page that saves this squad's configuration as a template."); }
-  static saveDialogTitle(fbs: FbsAPI) { return fbs("存为车队模板", "Title of the dialog for saving a squad as a template."); }
-  static saveSubmit(fbs: FbsAPI) { return fbs("保存模板", "Submit button label in the save-as-template dialog."); }
-  static toastSavedFromCar(fbs: FbsAPI) { return fbs("已存为模板，可在发新车时一键预填", "Toast shown after a squad is saved as a template, noting it can prefill the new-squad form in one tap."); }
-  static metaTemplate(fbs: FbsAPI, p?: StringParams) { return fbs([fbs.param("type", pv(p, "type")), fbs.param("dungeon", pv(p, "dungeon")), " · ", fbs.param("max", pv(p, "max")), " 人"], "Meta line on a template card; {type} is the grouping type, {dungeon} the optional dungeon name, and {max} the seat count."); }
+  static sectionTitle(fbs: FbsAPI) { return fbs("车队模板", "Section heading for the squad form, used above the template picker and editor."); }
+  static nameLabel(fbs: FbsAPI) { return fbs("模板名", "Field label for the template editor, used for the template name input."); }
+  static namePlaceholder(fbs: FbsAPI) { return fbs("给模板起个名字", "Placeholder text for the template editor, used in the template name input."); }
+  static saveFromForm(fbs: FbsAPI) { return fbs("存为模板", "Button label for the squad form, used to save the current form content as a template."); }
+  static updateSubmit(fbs: FbsAPI) { return fbs("保存模板修改", "Button label for the template editor, used to save changes to the template being edited."); }
+  static editingNotice(fbs: FbsAPI, p?: StringParams) { return fbs(["正在编辑模板「", fbs.param("name", pv(p, "name")), "」"], "Notice text for the template editor, used to show which template is being edited, where {name} is the template name."); }
+  static cancelEdit(fbs: FbsAPI) { return fbs("取消编辑", "Button label for the template editor, used to cancel editing a template."); }
+  static empty(fbs: FbsAPI) { return fbs("还没有模板，把常用配置存下来，下次一键预填", "Empty-state text for the template section, used when the user has no templates, explaining that saved setups prefill future squad forms."); }
+  static whenToday(fbs: FbsAPI, p?: StringParams) { return fbs(["今天 ", fbs.param("time", pv(p, "time")), " 发车"], "Schedule text for template cards, used when the template departs today, where {time} is the departure time."); }
+  static whenTomorrow(fbs: FbsAPI, p?: StringParams) { return fbs(["明天 ", fbs.param("time", pv(p, "time")), " 发车"], "Schedule text for template cards, used when the template departs tomorrow, where {time} is the departure time."); }
+  static whenDays(fbs: FbsAPI, p?: StringParams) { return fbs([fbs.param("days", pv(p, "days")), " 天后 ", fbs.param("time", pv(p, "time")), " 发车"], "Schedule text for template cards, used when the template departs in a number of days, where {days} is the day offset and {time} the departure time."); }
+  static toastSaved(fbs: FbsAPI) { return fbs("模板已保存", "Toast message for templates, used after a template is saved."); }
+  static toastSaveFailed(fbs: FbsAPI, p?: StringParams) { return fbs(["模板保存失败：", fbs.param("error", pv(p, "error"))], "Toast message for templates, used when saving a template fails, where {error} is the failure reason."); }
+  static toastDeleted(fbs: FbsAPI) { return fbs("模板已删除", "Toast message for templates, used after a template is deleted."); }
+  static toastDeleteFailed(fbs: FbsAPI, p?: StringParams) { return fbs(["模板删除失败：", fbs.param("error", pv(p, "error"))], "Toast message for templates, used when deleting a template fails, where {error} is the failure reason."); }
+  static edit(fbs: FbsAPI) { return fbs("编辑", "Button label for template cards, used to edit a template."); }
+  static delete(fbs: FbsAPI) { return fbs("删除", "Button label for template cards, used to start deleting a template."); }
+  static deleteConfirmTitle(fbs: FbsAPI) { return fbs("删除模板", "Title text for the template deletion confirmation, used as the confirmation dialog heading."); }
+  static deleteConfirmMessage(fbs: FbsAPI, p?: StringParams) { return fbs(["确定删除模板「", fbs.param("name", pv(p, "name")), "」吗？"], "Confirmation message for deleting a template, used in the dialog, where {name} is the template name."); }
+  static saveButton(fbs: FbsAPI) { return fbs("📋 存为模板", "Button label for the squad detail page, used to open the save-as-template dialog for the current squad."); }
+  static saveDialogTitle(fbs: FbsAPI) { return fbs("存为车队模板", "Title text for the save-as-template dialog, used as the dialog heading."); }
+  static saveSubmit(fbs: FbsAPI) { return fbs("保存模板", "Button label for the save-as-template dialog, used to save the template."); }
+  static toastSavedFromCar(fbs: FbsAPI) { return fbs("已存为模板，可在发新车时一键预填", "Toast message for the save-as-template flow, used after a squad is saved as a template for one-tap prefilling."); }
+  static metaTemplate(fbs: FbsAPI, p?: StringParams) { return fbs([fbs.param("type", pv(p, "type")), fbs.param("dungeon", pv(p, "dungeon")), " · ", fbs.param("max", pv(p, "max")), " 人"], "Meta text for template cards, used to summarize a template, where {type} is the squad type label, {dungeon} the optional dungeon label and {max} the capacity."); }
 }
 
 export abstract class ScheduleFbtUtils {
-  static title(fbs: FbsAPI) { return fbs("排期", "Title of the schedule tab on the guild home page."); }
-  static myTitle(fbs: FbsAPI) { return fbs("我的可用时间", "Title of the my-availability section, where a member edits their weekly free time slots."); }
-  static myHint(fbs: FbsAPI) { return fbs("填写你每周固定有空的时段，按你所在时区显示；管理员与车头据此定档期。", "Hint in the my-availability section: slots are weekly recurring, shown in the member's own time zone, and used by admins and squad leaders to pick times."); }
-  static slotRange(fbs: FbsAPI, p?: StringParams) { return fbs([fbs.param("start", pv(p, "start")), "–", fbs.param("end", pv(p, "end"))], "Time range of one availability slot; {start} is the slot start and {end} the slot end, both local times."); }
-  static addSlotLabel(fbs: FbsAPI) { return fbs("添加时段", "Button label that adds an availability slot to a weekday in the my-availability editor."); }
-  static removeLabel(fbs: FbsAPI) { return fbs("删除", "Button label that removes an availability slot in the my-availability editor."); }
-  static saveLabel(fbs: FbsAPI) { return fbs("保存", "Save button label in the my-availability editor."); }
-  static savedText(fbs: FbsAPI) { return fbs("可用时间已保存", "Confirmation shown after the member's availability is saved."); }
-  static saveFailedTemplate(fbs: FbsAPI, p?: StringParams) { return fbs(["保存失败：", fbs.param("error", pv(p, "error"))], "Toast shown when saving availability fails; {error} is the error message."); }
-  static emptyMineText(fbs: FbsAPI) { return fbs("你还没有填写可用时间。", "Empty-state text in the my-availability section when the member has not entered availability yet."); }
-  static summaryTitle(fbs: FbsAPI) { return fbs("成员可用性汇总", "Title of the member availability summary section on the schedule tab."); }
-  static summaryHint(fbs: FbsAPI) { return fbs("汇总仅百业管理员与发过车的车头可见，用于定档期。", "Hint in the availability summary: it is visible only to guild admins and members who have led a squad, and is used to pick activity times."); }
-  static summaryEmptyText(fbs: FbsAPI) { return fbs("还没有成员填写可用时间。", "Empty-state text in the availability summary when no member has entered availability yet."); }
-  static pollsTitle(fbs: FbsAPI) { return fbs("活动时间投票", "Title of the activity time polls section on the schedule tab."); }
-  static pollsHint(fbs: FbsAPI) { return fbs("给出几个候选时间，成员勾选所有能参加的时间；可参加人数最多的时段最适合定档。", "Hint in the time polls section: members tick every candidate time they can make, and the time with the most available members suits best."); }
-  static pollEmptyText(fbs: FbsAPI) { return fbs("还没有时间投票。", "Empty-state text in the time polls section when no poll exists yet."); }
-  static pollCreateLabel(fbs: FbsAPI) { return fbs("发起投票", "Button label that opens the form for creating a time poll."); }
-  static pollTitleLabel(fbs: FbsAPI) { return fbs("投票标题", "Label of the poll title field in the time poll creation form."); }
-  static pollTitlePlaceholder(fbs: FbsAPI) { return fbs("如：本周开荒时间", "Placeholder example text in the poll title field."); }
-  static pollCandidatesLabel(fbs: FbsAPI) { return fbs("候选时间", "Label of the candidate times list in the time poll creation form."); }
-  static pollAddCandidateLabel(fbs: FbsAPI) { return fbs("添加候选", "Button label that adds another candidate time in the poll creation form."); }
-  static pollSubmitLabel(fbs: FbsAPI) { return fbs("发布投票", "Button label that publishes a new time poll."); }
-  static pollVoteLabel(fbs: FbsAPI) { return fbs("提交投票", "Button label that submits the member's votes in a time poll."); }
-  static pollVotedText(fbs: FbsAPI) { return fbs("已投票，可修改后重新提交。", "Note on a time poll the member has already voted in: the vote can be changed and resubmitted."); }
-  static pollStatusOpenText(fbs: FbsAPI) { return fbs("进行中", "Status label of an open time poll."); }
-  static pollStatusClosedText(fbs: FbsAPI) { return fbs("已关闭", "Status label of a closed time poll."); }
-  static pollCloseLabel(fbs: FbsAPI) { return fbs("关闭投票", "Button label that closes a time poll."); }
-  static pollVoteCountTemplate(fbs: FbsAPI, p?: StringParams) { return fbs([fbs.param("count", pv(p, "count")), " 人可参加"], "Availability count shown under a candidate time; {count} is the number of members who can make that time."); }
-  static pollLaunchLabel(fbs: FbsAPI) { return fbs("以此时间发车", "Button label on a candidate time that starts creating a squad prefilled with that time."); }
-  static pollCancelLabel(fbs: FbsAPI) { return fbs("取消", "Cancel button label in the time poll creation form."); }
-  static toastPollCreated(fbs: FbsAPI) { return fbs("投票已发布", "Toast shown after a time poll is published."); }
-  static toastVoted(fbs: FbsAPI) { return fbs("已提交", "Toast shown after the member's poll vote is submitted."); }
-  static toastClosed(fbs: FbsAPI) { return fbs("投票已关闭", "Toast shown after a time poll is closed."); }
-  static toastFailedTemplate(fbs: FbsAPI, p?: StringParams) { return fbs(["操作失败：", fbs.param("error", pv(p, "error"))], "Toast shown when a schedule operation fails; {error} is the error message."); }
-  static settingsLinkLabel(fbs: FbsAPI) { return fbs("在个人设置中填写", "Link text left on the schedule tab where the availability editor used to be, pointing members to the availability editor in their personal settings."); }
-  static noGuildsText(fbs: FbsAPI) { return fbs("你还没有加入任何百业，加入后可在此填写可用时间。", "Empty-state text in the personal settings availability section when the user has not joined a guild yet; availability can be filled in once they join one."); }
+  static title(fbs: FbsAPI) { return fbs("排期", "Title text for the guild schedule tab, used as the tab heading."); }
+  static myTitle(fbs: FbsAPI) { return fbs("我的可用时间", "Title text for the personal availability page, used as the heading of the weekly availability editor inside profile settings."); }
+  static myHint(fbs: FbsAPI) { return fbs("填写你每周固定有空的时段，按你所在时区显示；管理员与车头据此定档期。", "Hint text for the personal availability editor, used to explain that weekly recurring windows are shown in the viewer's timezone and read by admins and leaders when scheduling."); }
+  static slotRange(fbs: FbsAPI, p?: StringParams) { return fbs([fbs.param("start", pv(p, "start")), "–", fbs.param("end", pv(p, "end"))], "Range text pattern for availability slots, used to render one weekly window, where {start} and {end} are the formatted boundary times."); }
+  static addSlotLabel(fbs: FbsAPI) { return fbs("添加时段", "Button label for the availability editor, used to add a weekly window."); }
+  static removeLabel(fbs: FbsAPI) { return fbs("删除", "Button label for availability slot rows, used to delete the window."); }
+  static saveLabel(fbs: FbsAPI) { return fbs("保存", "Button label for the availability editor, used to save the weekly windows."); }
+  static savedText(fbs: FbsAPI) { return fbs("可用时间已保存", "Confirmation text for the availability editor, used after the windows are saved."); }
+  static saveFailedTemplate(fbs: FbsAPI, p?: StringParams) { return fbs(["保存失败：", fbs.param("error", pv(p, "error"))], "Error text for the availability editor, used when saving fails, where {error} is the failure reason."); }
+  static emptyMineText(fbs: FbsAPI) { return fbs("你还没有填写可用时间。", "Empty-state text for the availability editor, used when the user has not entered availability yet."); }
+  static summaryTitle(fbs: FbsAPI) { return fbs("成员可用性汇总", "Title text for the member availability summary in the guild schedule tab, used as the section heading."); }
+  static summaryHint(fbs: FbsAPI) { return fbs("汇总仅百业管理员与发过车的车头可见，用于定档期。", "Hint text for the availability summary, used to state that only guild admins and members who have led a squad can see it, for scheduling purposes."); }
+  static summaryEmptyText(fbs: FbsAPI) { return fbs("还没有成员填写可用时间。", "Empty-state text for the availability summary, used when no member has entered availability yet."); }
+  static pollsTitle(fbs: FbsAPI) { return fbs("活动时间投票", "Title text for the time polls section in the guild schedule tab, used as the section heading."); }
+  static pollsHint(fbs: FbsAPI) { return fbs("给出几个候选时间，成员勾选所有能参加的时间；可参加人数最多的时段最适合定档。", "Hint text for the time polls section, used to explain that members tick every time they can join and the slot with the most available members suits scheduling best."); }
+  static pollEmptyText(fbs: FbsAPI) { return fbs("还没有时间投票。", "Empty-state text for the time polls section, used when no polls exist yet."); }
+  static pollCreateLabel(fbs: FbsAPI) { return fbs("发起投票", "Button label for the time polls section, used to open the poll creation form."); }
+  static pollTitleLabel(fbs: FbsAPI) { return fbs("投票标题", "Field label for the poll creation form, used for the poll title input."); }
+  static pollTitlePlaceholder(fbs: FbsAPI) { return fbs("如：本周开荒时间", "Placeholder text for the poll creation form, used in the title input with an example title."); }
+  static pollCandidatesLabel(fbs: FbsAPI) { return fbs("候选时间", "Field label for the poll creation form, used for the candidate time list."); }
+  static pollAddCandidateLabel(fbs: FbsAPI) { return fbs("添加候选", "Button label for the poll creation form, used to add a candidate time."); }
+  static pollSubmitLabel(fbs: FbsAPI) { return fbs("发布投票", "Button label for the poll creation form, used to publish the poll."); }
+  static pollVoteLabel(fbs: FbsAPI) { return fbs("提交投票", "Button label for poll cards, used to submit or resubmit the viewer's votes."); }
+  static pollVotedText(fbs: FbsAPI) { return fbs("已投票，可修改后重新提交。", "Status text for poll cards, used when the viewer has voted and may still change and resubmit."); }
+  static pollStatusOpenText(fbs: FbsAPI) { return fbs("进行中", "Status label for poll cards, used for a poll that is still open."); }
+  static pollStatusClosedText(fbs: FbsAPI) { return fbs("已关闭", "Status label for poll cards, used for a poll that has been closed."); }
+  static pollCloseLabel(fbs: FbsAPI) { return fbs("关闭投票", "Button label for poll cards, used by the poll creator or a guild admin to close the poll."); }
+  static pollVoteCountTemplate(fbs: FbsAPI, p?: StringParams) { return fbs([fbs.param("count", pv(p, "count")), " 人可参加"], "Count text for poll candidate rows, used to show how many members can join at that time, where {count} is the number of available members."); }
+  static pollLaunchLabel(fbs: FbsAPI) { return fbs("以此时间发车", "Button label for poll candidate rows, used to create a squad at that candidate time with the form prefilled."); }
+  static pollCancelLabel(fbs: FbsAPI) { return fbs("取消", "Button label for the poll creation form, used to abandon creating a poll."); }
+  static toastPollCreated(fbs: FbsAPI) { return fbs("投票已发布", "Toast message for time polls, used after a poll is published."); }
+  static toastVoted(fbs: FbsAPI) { return fbs("已提交", "Toast message for time polls, used after votes are submitted."); }
+  static toastClosed(fbs: FbsAPI) { return fbs("投票已关闭", "Toast message for time polls, used after a poll is closed."); }
+  static toastFailedTemplate(fbs: FbsAPI, p?: StringParams) { return fbs(["操作失败：", fbs.param("error", pv(p, "error"))], "Toast message for schedule actions, used when an availability or poll operation fails, where {error} is the failure reason."); }
+  static settingsLinkLabel(fbs: FbsAPI) { return fbs("在个人设置中填写", "Link label for the guild schedule tab, used on the line that points members to the availability editor in their profile settings."); }
+  static noGuildsText(fbs: FbsAPI) { return fbs("你还没有加入任何百业，加入后可在此填写可用时间。", "Empty-state text for the personal availability page, used when the user belongs to no guild yet and must join one before entering availability."); }
 }
 
