@@ -12,6 +12,7 @@ import GuildRouteLoader from './guild/GuildRouteLoader.react.tsx';
 import GuildAdminRouteLoader from './guild/GuildAdminRouteLoader.react.tsx';
 import LegalRoute from './LegalRoute.react.tsx';
 import BuildShareRoute from './BuildShareRoute.react.tsx';
+import CarShareRoute from './CarShareRoute.react.tsx';
 import SiteFooter from './lib/SiteFooter.react.tsx';
 import { hostGuildSlug } from './lib/hostGuild';
 import { GuildFooterContext, type FooterOverride } from './lib/guildChrome';
@@ -264,6 +265,9 @@ export default function AppRoot({ queries }: {
       {/* Public build share page: anonymous by design (the code is the
           capability); the static segment must win over /:slug */}
       <Route path="/b/:code" element={<BuildShareRoute />} />
+      {/* Public car share page: anonymous read-only by design (the
+          short-link code is the capability); same precedence rule */}
+      <Route path="/s/:code" element={<CarShareRoute />} />
       <Route
         path="/create"
         element={user ? <CreateGuildPage user={user} /> : <LoginPage returnTo="/create" site={siteText} text={loginText} />}

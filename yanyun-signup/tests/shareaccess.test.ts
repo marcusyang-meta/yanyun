@@ -242,7 +242,7 @@ describe('shareaccess: GraphQL surfaces', () => {
     seats { index occupied }
     shareKicker shareLoginLabel shareOpenLabel shareNotFoundTitle shareNotFoundBody
     shareReadonlyHint shareStatusOpenLabel shareStatusClosedLabel shareStatusCompletedLabel
-    sharePeopleTemplate shareSeatsTitle } }`;
+    sharePeopleTemplate shareSeatsTitle shareTypeLabel } }`;
 
   it('anonymous sharedGrouping serves the public face, zero member bytes', async () => {
     const g = await gql(SHARE_Q, { code: codeA });
@@ -263,6 +263,7 @@ describe('shareaccess: GraphQL surfaces', () => {
     eq('shareKicker', p?.shareKicker, '车队招募 · 公开分享');
     eq('shareLoginLabel', p?.shareLoginLabel, '登录并报名');
     eq('sharePeopleTemplate', p?.sharePeopleTemplate, '2/10 人');
+    eq('shareTypeLabel', p?.shareTypeLabel, '双十');
     const raw = JSON.stringify(g);
     for (const sName of SENTINELS) check(`响应不含成员细节 ${sName}`, !raw.includes(sName));
   });
