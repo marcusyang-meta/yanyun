@@ -232,6 +232,8 @@ function makeDb(fx = {}) {
     }
     if (/FROM users/i.test(sql)) return first(null);
     if (/FROM user_guild_nicks/i.test(sql)) return kind === 'first' ? null : all([]);
+    // Governance line (P16): fixture guilds hold no officer grants.
+    if (/FROM guild_officer_grants/i.test(sql)) return kind === 'first' ? null : all([]);
     if (/FROM member_availability WHERE tenant = \? AND discord_id = \?/i.test(sql)) {
       return first(tables.availability.find((x) => x.tenant === b[0] && x.discord_id === String(b[1])));
     }
