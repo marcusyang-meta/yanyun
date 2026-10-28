@@ -1057,6 +1057,27 @@ type SettingsPage {
   # 待删除状态只由「在场」表达: 有未到期 (或已到期待执行) 的删除
   # 申请时此对象存在, 否则为 null — 前端不拿标志位自判。
   accountPendingDeletion: AccountPendingDeletion
+  # ---- 我的可用时间 (F5 编辑面归位个人设置): 文案与排期页同一组
+  # schedule 目录字符串; 数据按本人所属百业逐份下发, 编辑仍走
+  # setMyAvailability (同一实体、同一时区口径), 此处只是新落点。
+  availabilityTitle: String!
+  availabilityHint: String!
+  availabilityWeekdayNames: [String!]!
+  availabilityAddSlotLabel: String!
+  availabilityRemoveLabel: String!
+  availabilitySaveLabel: String!
+  availabilitySavedText: String!
+  availabilitySaveFailedTemplate: String!
+  availabilityEmptyText: String!
+  availabilityNoGuildsText: String!
+  availabilityGuilds: [SettingsAvailabilityGuild!]!
+}
+
+# 设置页里的一份可用时间: 一个本人所属百业 + 已存的 UTC 周时段。
+type SettingsAvailabilityGuild {
+  slug: String!
+  guildName: String!
+  slots: [AvailabilitySlot!]!
 }
 
 # 冷静期中的删除申请: executesAt 为执行时刻 (ISO), daysLeft 为剩余
@@ -1600,6 +1621,9 @@ type GuildSchedulePage {
   scheduleToastVoted: String!
   scheduleToastClosed: String!
   scheduleToastFailedTemplate: String!
+  # 可用时间编辑面已归位个人设置: 排期页原位置只留这一行文字链
+  # 指向新落点 (客户端点击后打开设置 dialog 的可用时间页)。
+  scheduleSettingsLinkLabel: String!
 }
 
 type AvailabilitySlot {
@@ -2650,10 +2674,12 @@ type NewcomerChecklistItem {
   done: Boolean!
 }
 
-# 新人入业清单 (F24): 三项全部从既有数据推导, 平台不存清单状态 —
+# 新人入业清单 (F24): 四项全部从既有数据推导, 平台不存清单状态 —
 # profile = 本百业有落座且流派非空的座位 (时区由客户端每请求呈现,
-# 平台无存储型时区资料, 故该半项无需填写、永不阻塞); mentor = 本人
-# 为一段进行中配对的新人; firstRun = 在已完成的车队中落座。
+# 平台无存储型时区资料, 故该半项无需填写、永不阻塞); availability =
+# 本人已在本百业填写可用时间 (个人设置中的编辑面, 可跳过、永不
+# 阻塞); mentor = 本人为一段进行中配对的新人; firstRun = 在已完
+# 成的车队中落座。
 type NewcomerChecklist {
   items: [NewcomerChecklistItem!]!
   doneCount: Int!
@@ -2661,11 +2687,12 @@ type NewcomerChecklist {
   progressText: String!
 }
 
-# 军官侧新人总览行: 清单三项结论逐项下发 (与本人视图同一推导)。
+# 军官侧新人总览行: 清单四项结论逐项下发 (与本人视图同一推导)。
 type NewcomerProgress {
   discordId: String!
   displayName: String!
   profileDone: Boolean!
+  availabilityDone: Boolean!
   mentorDone: Boolean!
   firstRunDone: Boolean!
   doneCount: Int!

@@ -186,7 +186,9 @@ export type GroupingsStringKey =
   | 'schedule.toastPollCreated'
   | 'schedule.toastVoted'
   | 'schedule.toastClosed'
-  | 'schedule.toastFailedTemplate';
+  | 'schedule.toastFailedTemplate'
+  | 'schedule.settingsLinkLabel'
+  | 'schedule.noGuildsText';
 
 export const GROUPINGS_STRING_KEYS: readonly GroupingsStringKey[] = [
   'groupingType.tabActivity',
@@ -375,4 +377,6 @@ export const GROUPINGS_STRING_KEYS: readonly GroupingsStringKey[] = [
   'schedule.toastVoted',
   'schedule.toastClosed',
   'schedule.toastFailedTemplate',
+  'schedule.settingsLinkLabel',
+  'schedule.noGuildsText',
 ];

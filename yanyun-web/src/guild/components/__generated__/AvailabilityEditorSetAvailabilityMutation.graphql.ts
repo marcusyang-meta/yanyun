@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<b28385178024990fed04471453e826b3>>
+ * @generated SignedSource<<fda9ddfc785215af270e2fa98b6b2b82>>
  * @lightSyntaxTransform
  */
 
@@ -17,10 +17,10 @@ export type AvailabilitySlotInput = {
   startMinute: number;
   weekday: number;
 };
-export type GuildScheduleSetAvailabilityMutation$variables = {
+export type AvailabilityEditorSetAvailabilityMutation$variables = {
   input: SetAvailabilityInput;
 };
-export type GuildScheduleSetAvailabilityMutation$data = {
+export type AvailabilityEditorSetAvailabilityMutation$data = {
   readonly setMyAvailability: {
     readonly error: string | null | undefined;
     readonly errorCode: string | null | undefined;
@@ -32,9 +32,9 @@ export type GuildScheduleSetAvailabilityMutation$data = {
     }>;
   };
 };
-export type GuildScheduleSetAvailabilityMutation = {
-  response: GuildScheduleSetAvailabilityMutation$data;
-  variables: GuildScheduleSetAvailabilityMutation$variables;
+export type AvailabilityEditorSetAvailabilityMutation = {
+  response: AvailabilityEditorSetAvailabilityMutation$data;
+  variables: AvailabilityEditorSetAvailabilityMutation$variables;
 };
 
 const node: ConcreteRequest = (function(){
@@ -122,7 +122,7 @@ return {
     "argumentDefinitions": (v0/*:: as any*/),
     "kind": "Fragment",
     "metadata": null,
-    "name": "GuildScheduleSetAvailabilityMutation",
+    "name": "AvailabilityEditorSetAvailabilityMutation",
     "selections": (v1/*:: as any*/),
     "type": "Mutation",
     "abstractKey": null
@@ -131,20 +131,20 @@ return {
   "operation": {
     "argumentDefinitions": (v0/*:: as any*/),
     "kind": "Operation",
-    "name": "GuildScheduleSetAvailabilityMutation",
+    "name": "AvailabilityEditorSetAvailabilityMutation",
     "selections": (v1/*:: as any*/)
   },
   "params": {
-    "cacheID": "1c5e4993cd36e34f571fdf1057486f76",
+    "cacheID": "8f1da54ca904a2a7e1628fdc23e7d760",
     "id": null,
     "metadata": {},
-    "name": "GuildScheduleSetAvailabilityMutation",
+    "name": "AvailabilityEditorSetAvailabilityMutation",
     "operationKind": "mutation",
-    "text": "mutation GuildScheduleSetAvailabilityMutation(\n  $input: SetAvailabilityInput!\n) {\n  setMyAvailability(input: $input) {\n    ok\n    error\n    errorCode\n    slots {\n      weekday\n      startMinute\n      endMinute\n    }\n  }\n}\n"
+    "text": "mutation AvailabilityEditorSetAvailabilityMutation(\n  $input: SetAvailabilityInput!\n) {\n  setMyAvailability(input: $input) {\n    ok\n    error\n    errorCode\n    slots {\n      weekday\n      startMinute\n      endMinute\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "1976c0f19e651c0f5314d7aea1e1648b";
+(node as any).hash = "1870130823024a4d8735a10fac85b6d1";
 
 export default node;

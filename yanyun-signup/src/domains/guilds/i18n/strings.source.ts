@@ -263,6 +263,8 @@ export const recruit_itemMentorLabel = (fbs: FbsAPI) =>fbs("认一位导师", "r
 export const recruit_itemMentorHint = (fbs: FbsAPI) =>fbs("由百业管理员为你配对一位导师后自动完成。", "recruit.itemMentorHint");
 export const recruit_itemFirstRunLabel = (fbs: FbsAPI) =>fbs("打完第一场", "recruit.itemFirstRunLabel");
 export const recruit_itemFirstRunHint = (fbs: FbsAPI) =>fbs("在一辆已完成的车队里落座后自动完成。", "recruit.itemFirstRunHint");
+export const recruit_itemAvailabilityLabel = (fbs: FbsAPI) =>fbs("填写可用时间", "recruit.itemAvailabilityLabel");
+export const recruit_itemAvailabilityHint = (fbs: FbsAPI) =>fbs("在个人设置里填写你每周固定有空的时段，方便管理员与车头定档期；可以先跳过，之后随时补填。", "recruit.itemAvailabilityHint");
 export const recruit_myPairingsTitle = (fbs: FbsAPI) =>fbs("我的导师配对", "recruit.myPairingsTitle");
 export const recruit_pairingStatusActive = (fbs: FbsAPI) =>fbs("进行中", "recruit.pairingStatusActive");
 export const recruit_pairingStatusEnded = (fbs: FbsAPI) =>fbs("已结束", "recruit.pairingStatusEnded");

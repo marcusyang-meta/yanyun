@@ -227,6 +227,8 @@ export type GuildsStringKey =
   | 'recruit.itemMentorHint'
   | 'recruit.itemFirstRunLabel'
   | 'recruit.itemFirstRunHint'
+  | 'recruit.itemAvailabilityLabel'
+  | 'recruit.itemAvailabilityHint'
   | 'recruit.myPairingsTitle'
   | 'recruit.pairingStatusActive'
   | 'recruit.pairingStatusEnded'
@@ -514,6 +516,8 @@ export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'recruit.itemMentorHint',
   'recruit.itemFirstRunLabel',
   'recruit.itemFirstRunHint',
+  'recruit.itemAvailabilityLabel',
+  'recruit.itemAvailabilityHint',
   'recruit.myPairingsTitle',
   'recruit.pairingStatusActive',
   'recruit.pairingStatusEnded',
