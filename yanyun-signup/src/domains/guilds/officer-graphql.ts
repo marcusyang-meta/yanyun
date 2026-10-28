@@ -25,8 +25,9 @@ import type { Context } from '../platform/context.ts';
 import { vcOf } from '../platform/context.ts';
 import {
   ShellBase, defineTextGens, getGuildAccess, getGuildAdminAccess,
-  PayloadBase,
+  getOfficerVerdict, hasCapability, PayloadBase,
 } from '../platform/graphql-base.ts';
+import { recordGuildAudit } from './guild-audit.ts';
 import { fmtStartsAt } from '../platform/index.ts';
 import { listGuildMembers, listGuildMembersByUser, getGuildMember } from '../identity/index.ts';
 import { getDungeonById, listDungeonsDex, SEASON_NAMES } from '../dex/index.ts';
@@ -134,6 +135,10 @@ export class GuildOfficerPageShell extends ShellBase {
    * so the overview never silently drops a goal. */
   genMembers(){
     return this.memo('members', async () => {
+      // Capability-denied composition (P16): the page object exists
+      // (its copy fields are the tab's own), but no member, note or
+      // goal datum is composed into it.
+      if (this.data.denied) return [];
       const [roster, notes, goals] = await Promise.all([
         listGuildMembers(this.db, this.slug).catch(() => []),
         listMemberNotesByTenant(this.db, this.slug).catch(() => []),
@@ -182,9 +187,11 @@ export class GuildOfficerPageShell extends ShellBase {
 
 export const OFFICER_PAGE_TEXT_RESOLVERS = defineTextGens(GuildOfficerPageShell, OFFICER_PAGE_TEXT_SPEC);
 
-/** Admin variant constructor (GuildAdmin shell calls this). */
-export function officerPageForAdmin(ctx: Context, slug: string) {
-  return new GuildOfficerPageShell(ctx, { slug });
+/** Admin variant constructor (GuildAdmin shell calls this). The
+ * denied variant serves officers who lack the officer capability:
+ * page copy only, zero member data. */
+export function officerPageForAdmin(ctx: Context, slug: string, denied = false) {
+  return new GuildOfficerPageShell(ctx, { slug, denied });
 }
 
 /* ---------------- my season goals (SettingsPage) ---------------- */
@@ -293,9 +300,12 @@ export const guildOfficerMutations = {
    * verdict first, then roster membership, then body shape. */
   addGuildMemberNote: async (_: unknown, { slug, memberDiscordId, body }: { slug: string; memberDiscordId: string; body: string }, ctx: Context) => {
     const db = ctx.env.DB;
-    const access = await getGuildAdminAccess(db, ctx.user, slug, ctx.request, vcOf(ctx));
-    if (!access.exists) return noteFail(ctx, 'guildNotFound');
-    if (!access.isAdmin) return noteFail(ctx, 'adminOnly');
+    const verdict = await getOfficerVerdict(db, ctx.user, slug, ctx.request, vcOf(ctx));
+    if (!verdict.exists) return noteFail(ctx, 'guildNotFound');
+    if (!hasCapability(verdict, 'officer')) {
+      return noteFail(ctx, verdict.isOfficer ? 'capabilityRequired' : 'adminOnly');
+    }
+    const access = verdict.access;
     const target = String(memberDiscordId || '');
     const roster = await listGuildMembers(db, access.slug).catch(() => []);
     if (!(roster || []).some((m) => String(m.discord_id) === target)) {
@@ -311,6 +321,15 @@ export const guildOfficerMutations = {
       authorName: ctx.user ? String(ctx.user.name || '') : '',
       createdAt: nowSec,
     });
+    await recordGuildAudit(db, {
+      tenant: access.slug,
+      actor: ctx.user ? { discordId: String(ctx.user.discordId), name: String(ctx.user.name || '') } : null,
+      action: 'note.add', targetType: 'member', targetId: target,
+      targetLabel: (() => {
+        const m = (roster || []).find((r) => String(r.discord_id) === target);
+        return m ? (String(m.nick || '').trim() || String(m.global_name || '').trim()) : '';
+      })(),
+    });
     const row = await getMemberNote(db, access.slug, id);
     return noteOk(ctx, row ? new GuildMemberNoteShell(ctx, { row }) : null);
   },
@@ -319,9 +338,12 @@ export const guildOfficerMutations = {
    * note id is indistinguishable from a missing one. */
   updateGuildMemberNote: async (_: unknown, { slug, noteId, body }: { slug: string; noteId: string; body: string }, ctx: Context) => {
     const db = ctx.env.DB;
-    const access = await getGuildAdminAccess(db, ctx.user, slug, ctx.request, vcOf(ctx));
-    if (!access.exists) return noteFail(ctx, 'guildNotFound');
-    if (!access.isAdmin) return noteFail(ctx, 'adminOnly');
+    const verdict = await getOfficerVerdict(db, ctx.user, slug, ctx.request, vcOf(ctx));
+    if (!verdict.exists) return noteFail(ctx, 'guildNotFound');
+    if (!hasCapability(verdict, 'officer')) {
+      return noteFail(ctx, verdict.isOfficer ? 'capabilityRequired' : 'adminOnly');
+    }
+    const access = verdict.access;
     const id = parseInt(String(noteId), 10) || 0;
     const row = await getMemberNote(db, access.slug, id);
     if (!row) return noteFail(ctx, 'officerNoteNotFound');
@@ -329,6 +351,11 @@ export const guildOfficerMutations = {
     const shapeError = noteBodyError(clean);
     if (shapeError) return noteFail(ctx, shapeError);
     await updateMemberNote(db, access.slug, id, clean, Math.floor(Date.now() / 1000));
+    await recordGuildAudit(db, {
+      tenant: access.slug,
+      actor: ctx.user ? { discordId: String(ctx.user.discordId), name: String(ctx.user.name || '') } : null,
+      action: 'note.update', targetType: 'member', targetId: String(row.member_discord_id),
+    });
     const fresh = await getMemberNote(db, access.slug, id);
     return noteOk(ctx, fresh ? new GuildMemberNoteShell(ctx, { row: fresh }) : null);
   },
@@ -336,13 +363,21 @@ export const guildOfficerMutations = {
   /* F12: delete one note. Admin verdict, guild-scoped. */
   deleteGuildMemberNote: async (_: unknown, { slug, noteId }: { slug: string; noteId: string }, ctx: Context) => {
     const db = ctx.env.DB;
-    const access = await getGuildAdminAccess(db, ctx.user, slug, ctx.request, vcOf(ctx));
-    if (!access.exists) return noteFail(ctx, 'guildNotFound');
-    if (!access.isAdmin) return noteFail(ctx, 'adminOnly');
+    const verdict = await getOfficerVerdict(db, ctx.user, slug, ctx.request, vcOf(ctx));
+    if (!verdict.exists) return noteFail(ctx, 'guildNotFound');
+    if (!hasCapability(verdict, 'officer')) {
+      return noteFail(ctx, verdict.isOfficer ? 'capabilityRequired' : 'adminOnly');
+    }
+    const access = verdict.access;
     const id = parseInt(String(noteId), 10) || 0;
     const row = await getMemberNote(db, access.slug, id);
     if (!row) return noteFail(ctx, 'officerNoteNotFound');
     await deleteMemberNote(db, access.slug, id);
+    await recordGuildAudit(db, {
+      tenant: access.slug,
+      actor: ctx.user ? { discordId: String(ctx.user.discordId), name: String(ctx.user.name || '') } : null,
+      action: 'note.delete', targetType: 'member', targetId: String(row.member_discord_id),
+    });
     return noteOk(ctx, null);
   },
 
@@ -351,15 +386,24 @@ export const guildOfficerMutations = {
    * and leaves the audit row. */
   exportGuildDataPackage: async (_: unknown, { slug }: { slug: string }, ctx: Context) => {
     const db = ctx.env.DB;
-    const access = await getGuildAdminAccess(db, ctx.user, slug, ctx.request, vcOf(ctx));
-    if (!access.exists) {
+    const verdict = await getOfficerVerdict(db, ctx.user, slug, ctx.request, vcOf(ctx));
+    if (!verdict.exists) {
       return new GuildExportPayloadShell(ctx, { ok: false, errorCode: 'guildNotFound', slug });
     }
-    if (!access.isAdmin) {
-      return new GuildExportPayloadShell(ctx, { ok: false, errorCode: 'adminOnly', slug });
+    if (!hasCapability(verdict, 'officer')) {
+      return new GuildExportPayloadShell(ctx, {
+        ok: false, slug,
+        errorCode: verdict.isOfficer ? 'capabilityRequired' : 'adminOnly',
+      });
     }
+    const access = verdict.access;
     const r = await exportGuildData(db, access.slug, ctx.user ? String(ctx.user.discordId) : '', ctx.locale);
     if (!r.ok) return new GuildExportPayloadShell(ctx, { ok: false, errorCode: r.errorCode, slug: access.slug });
+    await recordGuildAudit(db, {
+      tenant: access.slug,
+      actor: ctx.user ? { discordId: String(ctx.user.discordId), name: String(ctx.user.name || '') } : null,
+      action: 'export.package', targetType: 'guild',
+    });
     return new GuildExportPayloadShell(ctx, { ok: true, json: r.json, slug: access.slug });
   },
 

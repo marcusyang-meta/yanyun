@@ -151,6 +151,10 @@ function makeDb(fx = {}) {
     // no entitlement rows, so both shapes answer empty.
     if (/FROM guild_entitlements WHERE tenant = \?/i.test(sql)) return first(null);
     if (/FROM guild_entitlements/i.test(sql)) return all([]);
+    // Governance line (P16): the fixture guilds carry no officer
+    // grants, so the verdict's grant read answers empty here (the
+    // dedicated governance harness covers granted shapes).
+    if (/FROM guild_officer_grants/i.test(sql)) return kind === 'first' ? null : all([]);
     if (/FROM tenants WHERE slug/i.test(sql)) return first(tables.tenants.find((t) => t.slug === b[0]));
     if (/FROM tenants/i.test(sql)) return kind === 'first' ? (tables.tenants[0] ?? null) : all(tables.tenants);
     if (/FROM settings WHERE tenant = \? AND key = \?/i.test(sql)) {

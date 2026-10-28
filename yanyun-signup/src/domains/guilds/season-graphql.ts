@@ -31,9 +31,10 @@
 import type { Context } from '../platform/context.ts';
 import { vcOf } from '../platform/context.ts';
 import {
-  ShellBase, defineTextGens, getGuildAdminAccess, getGameVersion,
+  ShellBase, defineTextGens, getGuildAdminAccess, getOfficerVerdict, hasCapability, getGameVersion,
   getCurrentVersionCode, errText, rateLimitGql as rateLimit, getClientIp, s,
 } from '../platform/graphql-base.ts';
+import { recordGuildAudit } from './guild-audit.ts';
 import { translate, translateError, getEffectiveLimits, getOcrBatchesUsedToday, recordOcrBatch } from '../platform/index.ts';
 import { listGuildMembers } from '../identity/index.ts';
 import { listDungeonsDex, listSchoolBis, listSchoolRotations, SEASON_NAMES } from '../dex/index.ts';
@@ -173,6 +174,9 @@ export class SeasonChecklistShell extends ShellBase {
   private composed(): Promise<{ season: SeasonContextData; items: ChecklistItemData[] }> {
     return this.memo('composed', async () => {
       const season = await loadSeasonContext(this.db);
+      // Capability-denied composition (P16): season labels are dex
+      // data and stay; the guild's checklist state does not compose.
+      if ((this.data as { denied?: boolean }).denied) return { season, items: [] };
       const items = await buildChecklistItems(this.db, this.slug(), season);
       return { season, items };
     });
@@ -217,6 +221,7 @@ export class GuildRosterShell extends ShellBase {
   private slug(): string { return String((this.data as { slug: string }).slug); }
   genEntries(): Promise<GuildRosterEntryShell[]> {
     return this.memo('entries', async () => {
+      if ((this.data as { denied?: boolean }).denied) return [];
       const rows = await listGuildRosterEntries(this.db, this.slug()).catch(() => []);
       const members = await listGuildMembers(this.db, this.slug()).catch(() => []);
       const nameByDiscordId = new Map<string, string>();
@@ -298,9 +303,9 @@ function rosterFailP(ctx: Context, code: string, params: Record<string, number>)
 /* ---------------- gate + mutations -------------------------------- */
 
 async function gateFail(ctx: Context, slug: string): Promise<string | null> {
-  const a = await getGuildAdminAccess(ctx.env.DB, ctx.user, slug, ctx.request, vcOf(ctx));
-  if (!a.exists) return 'guildNotFound';
-  if (!a.isAdmin) return 'adminOnly';
+  const v = await getOfficerVerdict(ctx.env.DB, ctx.user, slug, ctx.request, vcOf(ctx));
+  if (!v.exists) return 'guildNotFound';
+  if (!hasCapability(v, 'season')) return v.isOfficer ? 'capabilityRequired' : 'adminOnly';
   return null;
 }
 
@@ -326,6 +331,11 @@ export const seasonAdminMutations = {
       checkedBy: ctx.user ? String(ctx.user.discordId) : '',
       checkedByName: ctx.user ? String(ctx.user.name || '') : '',
       now: Math.floor(Date.now() / 1000),
+    });
+    await recordGuildAudit(db, {
+      tenant: slug,
+      actor: ctx.user ? { discordId: String(ctx.user.discordId), name: String(ctx.user.name || '') } : null,
+      action: 'season.checklist', targetType: 'season', targetId: itemKey, targetLabel: itemKey,
     });
     return new GuildAdminPayloadShell(ctx, { ok: true });
   },
@@ -434,6 +444,11 @@ export const seasonAdminMutations = {
       if (res.created) imported += 1;
     }
     await confirmRosterImportBatch(db, batch.id, nowSec);
+    await recordGuildAudit(db, {
+      tenant: slug,
+      actor: ctx.user ? { discordId: String(ctx.user.discordId), name: String(ctx.user.name || '') } : null,
+      action: 'roster.import', targetType: 'roster', targetId: batch.id,
+    });
     const after = await listRosterImportRows(db, batch.id);
     return {
       ok: true, error: null, errorCode: null,
@@ -456,6 +471,11 @@ export const seasonAdminMutations = {
       ? await deleteGuildRosterEntry(ctx.env.DB, slug, id)
       : false;
     if (!done) return new GuildAdminPayloadShell(ctx, { ok: false, errorCode: 'rosterEntryNotFound' });
+    await recordGuildAudit(ctx.env.DB, {
+      tenant: slug,
+      actor: ctx.user ? { discordId: String(ctx.user.discordId), name: String(ctx.user.name || '') } : null,
+      action: 'roster.entryDelete', targetType: 'roster', targetId: id,
+    });
     return new GuildAdminPayloadShell(ctx, { ok: true });
   },
 };
