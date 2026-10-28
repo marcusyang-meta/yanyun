@@ -130,6 +130,7 @@ export interface GroupingTemplateItem {
   startHour: number;
   startMinute: number;
   creatorName?: string | null;
+  customFields?: CustomFieldItem[] | null;
   manageActions?: {
     editLabel: string;
     deleteLabel: string;
@@ -138,6 +139,46 @@ export interface GroupingTemplateItem {
   } | null;
 }
 
+
+// One custom signup-form field as the backend delivers it (F7):
+// label/options are creator data, fieldType the constrained set.
+export interface CustomFieldItem {
+  id?: string;
+  label: string;
+  fieldType: string; // TEXT | CHOICE
+  options?: string[] | null;
+  required?: boolean | null;
+}
+
+// Editor-side field draft: options edited as one-per-line text.
+export interface CustomFieldDraft {
+  label: string;
+  fieldType: string;
+  optionsText: string;
+  required: boolean;
+}
+
+export function draftsFromFields(fields?: CustomFieldItem[] | null): CustomFieldDraft[] {
+  return (fields ?? []).map((f) => ({
+    label: f.label,
+    fieldType: f.fieldType,
+    optionsText: (f.options ?? []).join('\n'),
+    required: !!f.required,
+  }));
+}
+
+export function fieldInputsFromDrafts(drafts: CustomFieldDraft[]) {
+  return drafts
+    .filter((d) => d.label.trim())
+    .map((d) => ({
+      label: d.label.trim(),
+      fieldType: d.fieldType as any,
+      options: d.fieldType === 'CHOICE'
+        ? d.optionsText.split('\n').map((o) => o.trim()).filter(Boolean)
+        : [],
+      required: d.required,
+    }));
+}
 
 export interface GroupingFormInitial {
   title: string;
@@ -205,6 +246,17 @@ export interface GroupingFormText {
   templateToastSaved?: string;
   templateToastSaveFailedTemplate?: string;
   templateToastDeleted?: string;
+  // Custom signup-field editor copy (backend groupingForm section);
+  // optional: surfaces that never open the editor simply omit them.
+  formCustomFieldsTitle?: string;
+  formCustomFieldAddLabel?: string;
+  formCustomFieldLabelPlaceholder?: string;
+  formCustomFieldTypeText?: string;
+  formCustomFieldTypeChoice?: string;
+  formCustomFieldOptionsPlaceholder?: string;
+  formCustomFieldRequiredLabel?: string;
+  formCustomFieldRemoveLabel?: string;
+  formCustomFieldEmptyText?: string;
   templateToastDeleteFailedTemplate?: string;
   templateMetaTemplate?: string;
 }
@@ -285,6 +337,11 @@ export default function GroupingForm({ slug, text, mode, groupingId, initial, de
   const shownTitle = isEdit || titleTouched ? title : autoTitle;
   const [titleErr, setTitleErr] = useState(false);
   const [nickErr, setNickErr] = useState(false);
+  // F7: the custom signup-field drafts for this car (create mode) —
+  // the same set is written into a saved template, and applying a
+  // template loads its set here, so a car built from it carries the
+  // fields (the backend copies them onto the car at creation).
+  const [fieldDrafts, setFieldDrafts] = useState<CustomFieldDraft[]>([]);
 
   const dexData = useLazyLoadQuery<GroupingFormDungeonsQueryType>(
     GroupingFormDungeonsQueryNode,
@@ -342,6 +399,7 @@ export default function GroupingForm({ slug, text, mode, groupingId, initial, de
             slug, title: t, type: type as any, startsAt,
             dungeonId: type === 'ACTIVITY' || type === 'TOWER' ? null : (dungeonId || null),
             seats: [{ nickname: nickname.trim(), weapon: sect }],
+            customFields: fieldInputsFromDrafts(fieldDrafts),
           },
         },
         // Own post appears in the list immediately: insert the new record
@@ -388,6 +446,7 @@ export default function GroupingForm({ slug, text, mode, groupingId, initial, de
     setHour(t.startHour);
     setMinute(t.startMinute);
     setAppliedTemplateId(t.id);
+    setFieldDrafts(draftsFromFields(t.customFields));
     setTitleErr(false);
   };
 
@@ -410,6 +469,7 @@ export default function GroupingForm({ slug, text, mode, groupingId, initial, de
       name: templateName.trim() || t, type: type as any, title: t,
       dungeonId: type === 'ACTIVITY' || type === 'TOWER' ? null : (dungeonId || null),
       startsInDays: daysAheadFromForm(), startHour: hour, startMinute: minute,
+      customFields: fieldInputsFromDrafts(fieldDrafts),
     };
     const fail = (error?: string | null) => toast(fill(text.templateToastSaveFailedTemplate ?? '', { error: error || text.unknownErrorText }));
     if (editingTemplate) {
@@ -577,6 +637,49 @@ export default function GroupingForm({ slug, text, mode, groupingId, initial, de
               </div>
             </div>
           </>
+        )}
+
+        {!isEdit && text.formCustomFieldsTitle && (
+          <div style={{ marginBottom: 16 }}>
+            <label style={labelStyle}>{text.formCustomFieldsTitle}</label>
+            {!fieldDrafts.length && (
+              <div style={{ fontSize: 12.5, color: theme.muted, marginBottom: 8 }}>{text.formCustomFieldEmptyText}</div>
+            )}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {fieldDrafts.map((d, i) => (
+                <div key={i} style={{ border: '1px solid rgba(201,163,92,.25)', borderRadius: 8, padding: 10 }}>
+                  <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                    <input value={d.label} data-custom-field-label={i}
+                      onChange={(e) => setFieldDrafts(fieldDrafts.map((x, xi) => (xi === i ? { ...x, label: e.target.value } : x)))}
+                      placeholder={text.formCustomFieldLabelPlaceholder} style={{ ...inputStyle, flex: 1 }} />
+                    <select value={d.fieldType} data-custom-field-type={i}
+                      onChange={(e) => setFieldDrafts(fieldDrafts.map((x, xi) => (xi === i ? { ...x, fieldType: e.target.value } : x)))}
+                      style={{ ...inputStyle, width: 110 }}>
+                      <option value="TEXT">{text.formCustomFieldTypeText}</option>
+                      <option value="CHOICE">{text.formCustomFieldTypeChoice}</option>
+                    </select>
+                    <button onClick={() => setFieldDrafts(fieldDrafts.filter((_, xi) => xi !== i))}
+                      style={{ ...tplActBtn, color: '#e08080' }}>{text.formCustomFieldRemoveLabel}</button>
+                  </div>
+                  {d.fieldType === 'CHOICE' && (
+                    <textarea value={d.optionsText} data-custom-field-options={i}
+                      onChange={(e) => setFieldDrafts(fieldDrafts.map((x, xi) => (xi === i ? { ...x, optionsText: e.target.value } : x)))}
+                      placeholder={text.formCustomFieldOptionsPlaceholder} rows={3}
+                      style={{ ...inputStyle, width: '100%', resize: 'vertical', marginBottom: 8 }} />
+                  )}
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: theme.paper, cursor: 'pointer' }}>
+                    <input type="checkbox" checked={d.required}
+                      onChange={(e) => setFieldDrafts(fieldDrafts.map((x, xi) => (xi === i ? { ...x, required: e.target.checked } : x)))} />
+                    {text.formCustomFieldRequiredLabel}
+                  </label>
+                </div>
+              ))}
+            </div>
+            {fieldDrafts.length < 5 && (
+              <button onClick={() => setFieldDrafts([...fieldDrafts, { label: '', fieldType: 'TEXT', optionsText: '', required: false }])}
+                style={{ ...tplActBtn, marginTop: 8, fontSize: 13 }}>{text.formCustomFieldAddLabel}</button>
+            )}
+          </div>
         )}
 
         {showTemplates && (

@@ -83,6 +83,15 @@ const GroupingListQueryNode = graphql`
             formToastPosted
             formToastCreateFailedTemplate
             formTitleTemplate
+            formCustomFieldsTitle
+            formCustomFieldAddLabel
+            formCustomFieldLabelPlaceholder
+            formCustomFieldTypeText
+            formCustomFieldTypeChoice
+            formCustomFieldOptionsPlaceholder
+            formCustomFieldRequiredLabel
+            formCustomFieldRemoveLabel
+            formCustomFieldEmptyText
             templateSectionTitle
             templateNameLabel
             templateNamePlaceholder
@@ -111,6 +120,13 @@ const GroupingListQueryNode = graphql`
               startHour
               startMinute
               creatorName
+              customFields {
+                id
+                label
+                fieldType
+                options
+                required
+              }
               manageActions {
                 editLabel
                 deleteLabel

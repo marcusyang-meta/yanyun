@@ -130,6 +130,14 @@ const GroupingDetailQueryNode = graphql`
       formToastPosted
       formToastCreateFailedTemplate
       formTitleTemplate
+      rosterAnswersTitle
+      rosterAnswers {
+        uid
+        nickname
+        fieldId
+        fieldLabel
+        value
+      }
       manageActions {
         editLabel
         completeLabel
@@ -164,6 +172,13 @@ const GroupingDetailQueryNode = graphql`
           occupied
           ready
           mine
+        }
+        customFields {
+          id
+          label
+          fieldType
+          options
+          required
         }
       }
     }
@@ -432,7 +447,22 @@ verticalAlign: 'middle',
 : <div style={{ color: theme.muted, fontSize: 12, marginTop: 8}}>{page.detailReadonlyHint}</div>}
 </div>
 
-<SeatGrid groupingId={g.id} slug={slug} seats={seats} maxSlots={g.maxSlots} onChanged={onChanged} interactive={interactive} defaultNickname={defaultNickname} text={seatText} />
+<SeatGrid groupingId={g.id} slug={slug} seats={seats} maxSlots={g.maxSlots} onChanged={onChanged} interactive={interactive} defaultNickname={defaultNickname} text={seatText} customFields={g.customFields ?? []} />
+
+{page.rosterAnswers && page.rosterAnswers.length > 0 && (
+<div style={{ marginTop: 22 }}>
+<div style={{ fontSize: 15, color: theme.goldHi, letterSpacing: 2, marginBottom: 10 }}>{page.rosterAnswersTitle}</div>
+<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+{page.rosterAnswers.map((a: any, i: number) => (
+<div key={i} style={{ display: 'flex', gap: 10, flexWrap: 'wrap', border: theme.border, borderRadius: 8, padding: '8px 12px', fontSize: 13.5 }}>
+<span style={{ color: theme.goldHi }}>{a.nickname}</span>
+<span style={{ color: theme.muted }}>{a.fieldLabel}</span>
+<span style={{ color: theme.paper, flex: 1 }}>{a.value}</span>
+</div>
+))}
+</div>
+</div>
+)}
 
 {confirmDelete && ma && (
 <ConfirmDialog
