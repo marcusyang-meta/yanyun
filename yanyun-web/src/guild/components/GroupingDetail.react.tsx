@@ -158,6 +158,17 @@ const GroupingDetailQueryNode = graphql`
         visitorSlotsLabel
         saveLabel
       }
+      schedulingAdvice {
+        __typename
+        ... on SchedulingAdviceLocked { lockedTitle lockedBody }
+        ... on GroupingSchedulingAdvice {
+          title hint draftTitle draftApplyLabel substitutesTitle rotationTitle rotationSaveLabel rotationSavedText
+          draft { seatIndex discordId displayName role weapon score reasons }
+          substitutes { discordId displayName role weapon score reasons }
+          rotation { discordId displayName role score reasons }
+          rotationRecords { id createdAtText }
+        }
+      }
       grouping {
         id
         title
@@ -249,6 +260,18 @@ const GroupingDetailReopenMutationNode = graphql`
         status
       }
     }
+  }
+`;
+
+const GroupingDetailApplyDraftMutationNode = graphql`
+  mutation GroupingDetailApplyDraftMutation($input: JoinGroupingInput!) {
+    joinGrouping(input: $input) { ok error }
+  }
+`;
+
+const GroupingDetailSaveRotationMutationNode = graphql`
+  mutation GroupingDetailSaveRotationMutation($input: SaveRotationAdviceInput!) {
+    saveRotationAdvice(input: $input) { ok error savedText }
   }
 `;
 
@@ -380,6 +403,40 @@ onError: (e: Error) => toast(fill(page.detailToastRestoreFailedTemplate ?? '', {
 });
 };
 
+const [commitApplyDraft, applying] = useMutation(GroupingDetailApplyDraftMutationNode);
+const [commitSaveRotation, savingRotation] = useMutation(GroupingDetailSaveRotationMutationNode);
+const [rotationSaved, setRotationSaved] = useState(false);
+// Apply the P3 draft through the EXISTING seat action (joinGrouping
+// proxy join), one seat at a time into the currently empty seats.
+// Advice never seats anyone by itself: this runs only on the
+// leader's tap, and entries without a recorded weapon are skipped
+// (the seat action requires a sect/weapon pick).
+const applyDraft = async () => {
+  const advice: any = page.schedulingAdvice;
+  if (!advice || advice.__typename !== 'GroupingSchedulingAdvice' || !g) return;
+  const emptyIdx = seats.filter((x) => !x.occupied).map((x) => x.index);
+  const entries = (advice.draft as any[]).filter((d) => d.weapon);
+  let seatPos = 0;
+  for (const d of entries) {
+    if (seatPos >= emptyIdx.length) break;
+    const seatIndex = emptyIdx[seatPos++];
+    await new Promise<void>((resolve) => {
+      commitApplyDraft({
+        variables: { input: { groupingId: g.id, nickname: d.displayName, weapon: d.weapon, seatIndex, forDiscordId: d.discordId } },
+        onCompleted: () => resolve(), onError: () => resolve(),
+      });
+    });
+  }
+  onChanged();
+};
+const saveRotation = () => {
+  if (!g) return;
+  commitSaveRotation({
+    variables: { input: { groupingId: g.id } },
+    onCompleted: (res: any) => { if (res.saveRotationAdvice?.ok) { setRotationSaved(true); onChanged(); } },
+  });
+};
+
 const share = async () => {
 const shareUrl = page.shareUrl;
 try {
@@ -494,6 +551,71 @@ verticalAlign: 'middle',
 </div>
 
 <SeatGrid groupingId={g.id} slug={slug} seats={seats} maxSlots={g.maxSlots} onChanged={onChanged} defaultNickname={defaultNickname} text={seatText} customFields={g.customFields ?? []} />
+
+{page.schedulingAdvice && (
+<div style={{ marginTop: 22 }}>
+{page.schedulingAdvice.__typename === 'SchedulingAdviceLocked' ? (
+<div style={{ border: theme.border, borderRadius: 8, padding: '12px 14px' }}>
+<div style={{ fontSize: 15, color: theme.goldHi, letterSpacing: 2, marginBottom: 6 }}>{page.schedulingAdvice.lockedTitle}</div>
+<div style={{ color: theme.muted, fontSize: 13.5 }}>{page.schedulingAdvice.lockedBody}</div>
+</div>
+) : (
+<div>
+<div style={{ fontSize: 15, color: theme.goldHi, letterSpacing: 2, marginBottom: 4 }}>{page.schedulingAdvice.title}</div>
+<div style={{ color: theme.muted, fontSize: 12.5, marginBottom: 10 }}>{page.schedulingAdvice.hint}</div>
+{page.schedulingAdvice.draft.length > 0 && (
+<div style={{ marginBottom: 14 }}>
+<div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+<span style={{ color: theme.paper, fontSize: 14 }}>{page.schedulingAdvice.draftTitle}</span>
+<button onClick={applyDraft} disabled={applying} style={smBtn}>{page.schedulingAdvice.draftApplyLabel}</button>
+</div>
+<div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+{page.schedulingAdvice.draft.map((d: any) => (
+<div key={d.discordId} style={{ border: theme.border, borderRadius: 8, padding: '7px 12px', fontSize: 13.5, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+<span style={{ color: theme.goldHi }}>{d.displayName}</span>
+<span style={{ color: theme.muted }}>{d.role}</span>
+<span style={{ color: theme.paper, flex: 1 }}>{d.reasons.join('；')}</span>
+</div>
+))}
+</div>
+</div>
+)}
+{page.schedulingAdvice.substitutes.length > 0 && (
+<div style={{ marginBottom: 14 }}>
+<div style={{ color: theme.paper, fontSize: 14, marginBottom: 8 }}>{page.schedulingAdvice.substitutesTitle}</div>
+<div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+{page.schedulingAdvice.substitutes.map((d: any) => (
+<div key={d.discordId} style={{ border: theme.border, borderRadius: 8, padding: '7px 12px', fontSize: 13.5, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+<span style={{ color: theme.goldHi }}>{d.displayName}</span>
+<span style={{ color: theme.muted }}>{d.role}</span>
+<span style={{ color: theme.paper, flex: 1 }}>{d.reasons.join('；')}</span>
+</div>
+))}
+</div>
+</div>
+)}
+{page.schedulingAdvice.rotation.length > 0 && (
+<div>
+<div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+<span style={{ color: theme.paper, fontSize: 14 }}>{page.schedulingAdvice.rotationTitle}</span>
+<button onClick={saveRotation} disabled={savingRotation} style={smBtn}>{page.schedulingAdvice.rotationSaveLabel}</button>
+{rotationSaved && <span style={{ color: theme.muted, fontSize: 12.5 }}>{page.schedulingAdvice.rotationSavedText}</span>}
+</div>
+<div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+{page.schedulingAdvice.rotation.map((d: any, i: number) => (
+<div key={d.discordId} style={{ border: theme.border, borderRadius: 8, padding: '7px 12px', fontSize: 13.5, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+<span style={{ color: theme.muted }}>{i + 1}</span>
+<span style={{ color: theme.goldHi }}>{d.displayName}</span>
+<span style={{ color: theme.paper, flex: 1 }}>{d.reasons.join('；')}</span>
+</div>
+))}
+</div>
+</div>
+)}
+</div>
+)}
+</div>
+)}
 
 {page.rosterAnswers && page.rosterAnswers.length > 0 && (
 <div style={{ marginTop: 22 }}>

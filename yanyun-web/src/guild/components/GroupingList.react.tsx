@@ -26,6 +26,11 @@ const GroupingListQueryNode = graphql`
         ... on Guild {
           groupings(tab: $tab) {
             currentVersion
+            crossCarAdvice {
+              __typename
+              ... on SchedulingAdviceLocked { lockedTitle lockedBody }
+              ... on SchedulingCrossCarAdvice { title conflicts { discordId text } moves { carId text entry { displayName } } }
+            }
             tabActivityLabel
             tabTalentLabel
             tabRaceLabel
@@ -288,6 +293,28 @@ function GroupingList({ queryRef, tab, onTabChange, onSelect }: {
         </span>
         <button onClick={() => setWeekOffset((w) => w + 1)} style={navBtn} aria-label={page.nextWeekLabel}>›</button>
       </div>
+
+      {/* P13 cross-car advice (Premium T2 advice layer; the list itself stays free) */}
+      {page.crossCarAdvice && (
+        <div style={{ marginBottom: 16 }}>
+          {page.crossCarAdvice.__typename === 'SchedulingAdviceLocked' ? (
+            <div style={{ border: theme.border, borderRadius: 8, padding: '10px 14px' }}>
+              <span style={{ color: theme.goldHi, fontSize: 14 }}>{page.crossCarAdvice.lockedTitle}</span>
+              <div style={{ color: theme.muted, fontSize: 13, marginTop: 4 }}>{page.crossCarAdvice.lockedBody}</div>
+            </div>
+          ) : (page.crossCarAdvice.conflicts.length > 0 || page.crossCarAdvice.moves.length > 0) ? (
+            <div style={{ border: theme.border, borderRadius: 8, padding: '10px 14px' }}>
+              <div style={{ color: theme.goldHi, fontSize: 14, marginBottom: 6 }}>{page.crossCarAdvice.title}</div>
+              {page.crossCarAdvice.conflicts.map((c: any) => (
+                <div key={c.discordId} style={{ color: '#e0a080', fontSize: 13, marginBottom: 4 }}>{c.text}</div>
+              ))}
+              {page.crossCarAdvice.moves.map((m: any, i: number) => (
+                <div key={i} style={{ color: theme.paper, fontSize: 13, marginBottom: 4 }}>{m.text}</div>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      )}
 
       {/* Grouping list, grouped by day (group header = date + a thin gold rule, same theme as the cards) */}
       <div className="yy-stagger" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>

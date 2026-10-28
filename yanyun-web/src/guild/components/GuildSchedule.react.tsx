@@ -25,6 +25,11 @@ const ScheduleQueryNode = graphql`
     guildSchedulePage(slug: $slug) {
       slug
       weekdayNames
+      bestSlotsAdvice {
+        __typename
+        ... on SchedulingAdviceLocked { lockedTitle lockedBody }
+        ... on SchedulingBestSlots { title emptyText useLabel slots { weekday startMinute endMinute coverCount memberNames coverText } }
+      }
       availabilitySummary { discordId displayName slots { weekday startMinute endMinute } }
       polls {
         id
@@ -272,6 +277,43 @@ export function GuildScheduleRoute({ slug, defaultNickname }: { slug: string; de
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* ---------- P6: best-slot advice (Premium T2) ---------- */}
+      {page.bestSlotsAdvice && (
+        <div style={{ marginTop: 34 }}>
+          {page.bestSlotsAdvice.__typename === 'SchedulingAdviceLocked' ? (
+            <div style={{ border: theme.border, borderRadius: 10, padding: '12px 14px' }}>
+              <div style={sectionTitle}>{page.bestSlotsAdvice.lockedTitle}</div>
+              <div style={hintStyle}>{page.bestSlotsAdvice.lockedBody}</div>
+            </div>
+          ) : (
+            <div>
+              <div style={sectionTitle}>{page.bestSlotsAdvice.title}</div>
+              {!page.bestSlotsAdvice.slots.length && <div style={{ fontSize: 13, color: theme.muted }}>{page.bestSlotsAdvice.emptyText}</div>}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {page.bestSlotsAdvice.slots.map((sl: any, i: number) => {
+                  const l = utcToLocal({ weekday: sl.weekday, startMinute: sl.startMinute, endMinute: sl.endMinute });
+                  return (
+                    <div key={i} style={{ border: theme.border, borderRadius: 10, padding: '10px 14px', display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+                      <span style={{ fontSize: 14, color: theme.goldHi }}>{weekdayNames[l.weekday] ?? ''} {l.start}</span>
+                      <span style={{ fontSize: 13, color: theme.paper }}>{sl.coverText}</span>
+                      <span style={{ fontSize: 12.5, color: theme.muted, flex: 1 }}>{sl.memberNames.join('、')}</span>
+                      <button style={{ ...ghostBtn, padding: '5px 12px', fontSize: 12 }}
+                        onClick={() => {
+                          // Next future occurrence of this weekly UTC window.
+                          const nowSec = Math.floor(Date.now() / 1000);
+                          let at = nowSec - (nowSec % 86400) + sl.startMinute * 60;
+                          while (new Date(at * 1000).getUTCDay() !== sl.weekday || at <= nowSec) at += 86400;
+                          setLaunch({ pollTitle: '', startsAtUtc: at });
+                        }}>{page.bestSlotsAdvice.useLabel}</button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
