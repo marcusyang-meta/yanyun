@@ -2,8 +2,10 @@
 //  - P19 edge matrix: supply edge is FREE (a free-tier guild's member
 //    publishes and answers invitations with the paygate ON); demand
 //    edge is T3 (below-tier guild composes FillDemandLocked with zero
-//    demand data, its demand mutations answer premiumRequired;
-//    paygate OFF locks nobody — launch parity);
+//    demand data, its demand mutations answer premiumRequired — the
+//    converged tierLocked is a pure entitlement verdict that never
+//    consults the paygate switch, so this holds with the paygate
+//    OFF too; granted guilds verify through hub tier grants);
 //  - matching chain: publish -> request -> invite -> accept (matches,
 //    seats NOBODY) -> the leader's manual seatFillSupplier writes the
 //    seat through the capacity guard; duplicate / self / non-manager
@@ -331,7 +333,7 @@ r = await gql(marketQ, { user: OUTSIDER });
 eq('非成员 -> FillMarketLocked', r.data?.viewer?.fillMarket?.__typename, 'FillMarketLocked');
 r = await gql(marketQ, { user: MEMBER_A });
 eq('成员 -> FillMarketPage', r.data?.viewer?.fillMarket?.__typename, 'FillMarketPage');
-eq('paygate OFF: 需求区直接合成 (上线平价)', r.data?.viewer?.fillMarket?.demand?.__typename, 'FillDemandSection');
+eq('paygate OFF: 已授予百业需求区直接合成 (hub 授予验档路径)', r.data?.viewer?.fillMarket?.demand?.__typename, 'FillDemandSection');
 
 /* ================= supply edge is FREE (paygate ON, guild below tier) ================= */
 setPaygate(true);
@@ -506,10 +508,13 @@ eq('解除后报名 (自家车) -> allyNotShared 口径外的主办车拒绝', r
 r = await gql(endAllyMut, { user: ADMIN_B, variables: { slug: 'allytest', id: ally1 } });
 eq('重复解除 -> allianceNotActive', r.data?.endAlliance?.errorCode, 'allianceNotActive');
 
-/* paygate OFF parity for demand mutations */
+/* converged verdict: tierLocked (foundation final) is a pure
+ * entitlement verdict and does NOT consult the paygate master
+ * switch — a T0 guild's demand mutation is tier-refused even with
+ * the paygate OFF (verification goes through hub tier grants). */
 setPaygate(false);
 r = await gql(createReqMut, { user: ADMIN_B, variables: { slug: 'allytest', gid: '702', role: '输出' } });
-eq('paygate OFF: T0 百业管理员发需求不被档位拦 (只建不启用)', r.data?.createFillRequest?.ok, true);
+eq('paygate OFF: T0 百业管理员发需求仍被档位拦 (F0 定版: tierLocked 纯权益判定)', r.data?.createFillRequest?.errorCode, 'premiumRequired');
 
 console.log(`\n== network harness: pass=${pass} fail=${fail} ==`);
 if (fails.length) { console.log('FAILS:\n' + fails.map((f) => ' - ' + f).join('\n')); process.exit(1); }
