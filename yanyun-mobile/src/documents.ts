@@ -1733,12 +1733,6 @@ export const GuildAdminQuery = graphql`
             }
           }
           adminTabToolsLabel
-          adminCalendarTitle
-          adminCalendarHint
-          adminCalendarUrlLabel
-          adminCalendarCopyLabel
-          adminCalendarResetLabel
-          adminCalendarResetHint
           adminLotteryTitle
           adminLotteryHint
           adminLotteryEmptyText
@@ -1757,7 +1751,6 @@ export const GuildAdminQuery = graphql`
           adminLotteryDrawLabel
           adminLotteryStatusOpenText
           adminLotteryStatusDrawnText
-          calendarFeedUrl
           lotteries {
             id
             title
@@ -1884,11 +1877,6 @@ export const UpdateGuildWhiteLabelAdminMutation = graphql`
 export const StartPremiumCheckoutAdminMutation = graphql`
   mutation documentsStartPremiumCheckoutAdminMutation($slug: String!) {
     startPremiumCheckout(slug: $slug) { ok error checkoutUrl }
-  }
-`;
-export const ResetCalendarFeedAdminMutation = graphql`
-  mutation documentsResetCalendarFeedAdminMutation($slug: String!) {
-    resetCalendarFeed(slug: $slug) { ok error }
   }
 `;
 export const CreateLotteryAdminMutation = graphql`

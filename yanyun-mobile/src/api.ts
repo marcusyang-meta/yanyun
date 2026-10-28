@@ -29,7 +29,6 @@ import {
   UpdateGuildReminderSettingsAdminMutation,
   UpdateGuildWhiteLabelAdminMutation,
   StartPremiumCheckoutAdminMutation,
-  ResetCalendarFeedAdminMutation,
   CreateLotteryAdminMutation,
   DrawLotteryAdminMutation,
   UpdateGuildVisibilityAdminMutation,
@@ -412,7 +411,6 @@ export const adminUpdateDiscord = (slug: string, input: any) => adminRun(UpdateG
 export const adminUpdateReminderSettings = (slug: string, offsets: number[], customText: string) => adminRun(UpdateGuildReminderSettingsAdminMutation, { slug, offsets, customText }, 'updateGuildReminderSettings');
 export const adminUpdateWhiteLabel = (slug: string, hideBranding: boolean, ogAccent: string, ogTitleSuffix: string) => adminRun(UpdateGuildWhiteLabelAdminMutation, { slug, hideBranding, ogAccent, ogTitleSuffix }, 'updateGuildWhiteLabel');
 export const adminStartPremiumCheckout = (slug: string) => adminRun(StartPremiumCheckoutAdminMutation, { slug }, 'startPremiumCheckout');
-export const adminResetCalendarFeed = (slug: string) => adminRun(ResetCalendarFeedAdminMutation, { slug }, 'resetCalendarFeed');
 export const adminCreateLottery = (slug: string, input: any) => adminRun(CreateLotteryAdminMutation, { slug, input }, 'createLottery');
 export const adminDrawLottery = (slug: string, lotteryId: string) => adminRun(DrawLotteryAdminMutation, { slug, lotteryId }, 'drawLottery');
 export const adminUpdateVisibility = (slug: string, devOnly: boolean) => adminRun(UpdateGuildVisibilityAdminMutation, { slug, devOnly }, 'updateGuildVisibility');
