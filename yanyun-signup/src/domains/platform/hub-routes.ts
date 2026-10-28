@@ -15,7 +15,7 @@ import {
 } from '../guilds/index.ts';
 import {
   isPaygateEnabled, setPaygateEnabled, getEffectiveEntitlement, grantPremiumManual,
-  revokePremium,
+  grantTierManual, revokePremium,
 } from './billing-service.ts';
 import { stripeConfig } from './stripe.ts';
 import { getEntitlementRow } from './billing.ts';
@@ -416,6 +416,7 @@ hubRoutes.post('/backfill/reminder-identity', async (c: any) => {
  * stays dark even with its switch on. */
 interface BillingTenantState {
   slug: string; guild_name: string; plan: string; source: string;
+  tier: number; effectiveTier: number;
   currentPeriodEnd: number | null; lapsed: boolean;
   stripeCustomerId: string; stripeSubscriptionId: string;
   subdomainEnabled: boolean;
@@ -432,6 +433,8 @@ async function billingStateFor(c: any) {
       slug: t.slug,
       guild_name: t.guild_name,
       plan: eff.plan,
+      tier: eff.tier,
+      effectiveTier: eff.tier,
       source: eff.source,
       currentPeriodEnd: eff.currentPeriodEnd,
       lapsed: eff.lapsed,
@@ -465,8 +468,19 @@ hubRoutes.post('/billing/grant', async (c: any) => {
   const days = Math.max(1, Math.min(3650, parseInt(body.days, 10) || 30));
   const t = await getTenantSlug(c.env.DB, slug);
   if (!t) return err('百业不存在', 404);
-  const row = await grantPremiumManual(c.env.DB, slug, days);
-  await audit(c, 'billing.grant', slug, { days, currentPeriodEnd: row.currentPeriodEnd, source: 'manual' });
+  // Optional tier ('t1'|'t2'|'t3'): absent keeps the historical
+  // behavior verbatim (grant legacy premium); present grants that
+  // tier instead. An unrecognized tier value is refused, never
+  // silently downgraded to a premium grant.
+  const tierRaw = body.tier == null ? '' : s(body.tier, 10);
+  if (tierRaw && tierRaw !== 't1' && tierRaw !== 't2' && tierRaw !== 't3') {
+    return err('档位无效', 400);
+  }
+  const tier = tierRaw as 't1' | 't2' | 't3' | '';
+  const row = tier
+    ? await grantTierManual(c.env.DB, slug, tier, days)
+    : await grantPremiumManual(c.env.DB, slug, days);
+  await audit(c, 'billing.grant', slug, { days, currentPeriodEnd: row.currentPeriodEnd, source: 'manual', plan: row.plan, ...(tier ? { tier } : {}) });
   return json({ ok: true, billing: await billingStateFor(c) });
 });
 

@@ -30,7 +30,8 @@ import { signStripePayload } from '../src/domains/platform/stripe.ts';
 import { insertTenant } from '../src/domains/guilds/tenants.ts';
 import { getSettingValue, setSettingValue } from '../src/domains/guilds/settings.ts';
 import {
-  getEffectiveEntitlement, grantPremiumManual, handleStripeEvent,
+  getEffectiveEntitlement, grantPremiumManual, grantTierManual, tierLocked,
+  premiumGate, isPremiumActive, handleStripeEvent,
 } from '../src/domains/platform/billing-service.ts';
 import { getEffectiveLimits } from '../src/domains/platform/limits.ts';
 import { getEntitlementRow } from '../src/domains/platform/billing.ts';
@@ -322,6 +323,122 @@ eq('hub: paygate switch off', h.json?.billing?.paygateEnabled, false);
 r = await gql(adminQ);
 eq('OFF again: premium absent', ga(r)?.premium ?? null, null);
 eq('OFF again: stats full', ga(r)?.stats?.__typename, 'GuildAdminStats');
+
+/* ---------------- I. tiers: tierLocked matrix + grant paths ----------------
+ * Tier foundation contract: effective tier is derived at read time
+ * (legacy premium maps to tier 3, anything expired reads tier 0 with
+ * lapsed intact); tierLocked is a pure entitlement verdict — the
+ * paygate switch does not move it — while premiumGate /
+ * isPremiumActive keep their pre-tier semantics verbatim (a t3 guild
+ * is NOT legacy-premium for those gates). */
+const TSLUG = 'tierguild';
+await insertTenant(db, { slug: TSLUG, guildName: '档位测试百业', passwordHash: '', announcement: '' });
+const { upsertEntitlementRow: upsertTierRow } = await import('../src/domains/platform/billing.ts');
+const FUTURE = nowS + 30 * 86400;
+const PAST = nowS - 100;
+async function setStoredPlan(plan, periodEnd, extra = {}) {
+  if (plan === null) {
+    await db.prepare('DELETE FROM guild_entitlements WHERE tenant = ?').bind(TSLUG).run();
+    return;
+  }
+  await upsertTierRow(db, {
+    tenant: TSLUG, plan, source: 'manual', currentPeriodEnd: periodEnd,
+    stripeCustomerId: extra.cus || '', stripeSubscriptionId: extra.sub || '', updatedAt: nowS,
+  });
+}
+// [label, stored plan, period end, expected tier, locked by minTier 1/2/3]
+const tierCases = [
+  ['no row', null, null, 0, [true, true, true]],
+  ['free', 'free', FUTURE, 0, [true, true, true]],
+  ['t1', 't1', FUTURE, 1, [false, true, true]],
+  ['t2', 't2', FUTURE, 2, [false, false, true]],
+  ['t3', 't3', FUTURE, 3, [false, false, false]],
+  ['premium (legacy -> tier 3)', 'premium', FUTURE, 3, [false, false, false]],
+  ['t1 expired', 't1', PAST, 0, [true, true, true]],
+  ['t2 expired', 't2', PAST, 0, [true, true, true]],
+  ['t3 expired', 't3', PAST, 0, [true, true, true]],
+  ['premium expired', 'premium', PAST, 0, [true, true, true]],
+];
+for (const [label, plan, periodEnd, wantTier, wantLocked] of tierCases) {
+  await setStoredPlan(plan, periodEnd);
+  const e = await getEffectiveEntitlement(db, TSLUG);
+  eq(`tier matrix: ${label} effective tier`, e.tier, wantTier);
+  if (periodEnd === PAST) eq(`tier matrix: ${label} lapsed intact`, [e.plan, e.lapsed], ['free', true]);
+  for (const minTier of [1, 2, 3]) {
+    eq(`tier matrix: ${label} tierLocked(min=${minTier})`, await tierLocked(db, TSLUG, minTier), wantLocked[minTier - 1]);
+  }
+}
+
+/* tierLocked ignores the paygate switch in both states */
+await setStoredPlan('t2', FUTURE);
+for (const minTier of [1, 2, 3]) {
+  eq(`paygate OFF: tierLocked t2 (min=${minTier})`, await tierLocked(db, TSLUG, minTier), [false, false, true][minTier - 1]);
+}
+h = await hub('/api/hub/billing/paygate', 'PUT', { enabled: true });
+eq('tier section: paygate switched on', h.json?.billing?.paygateEnabled, true);
+for (const minTier of [1, 2, 3]) {
+  eq(`paygate ON: tierLocked t2 unchanged (min=${minTier})`, await tierLocked(db, TSLUG, minTier), [false, false, true][minTier - 1]);
+}
+
+/* premiumGate / isPremiumActive: pre-tier semantics verbatim */
+await setStoredPlan('premium', FUTURE);
+eq('legacy gate ON: premium premiumGate open', await premiumGate(db, TSLUG), false);
+eq('legacy gate ON: premium isPremiumActive', await isPremiumActive(db, TSLUG), true);
+await setStoredPlan('t3', FUTURE);
+eq('legacy gate ON: t3 is not legacy premium (premiumGate)', await premiumGate(db, TSLUG), true);
+eq('legacy gate ON: t3 is not legacy premium (isPremiumActive)', await isPremiumActive(db, TSLUG), false);
+await setStoredPlan('free', FUTURE);
+eq('legacy gate ON: free premiumGate locked', await premiumGate(db, TSLUG), true);
+eq('legacy gate ON: free isPremiumActive false', await isPremiumActive(db, TSLUG), false);
+h = await hub('/api/hub/billing/paygate', 'PUT', { enabled: false });
+eq('tier section: paygate switched back off', h.json?.billing?.paygateEnabled, false);
+await setStoredPlan('premium', FUTURE);
+eq('legacy gate OFF: premium premiumGate open', await premiumGate(db, TSLUG), false);
+eq('legacy gate OFF: premium isPremiumActive false (switch off)', await isPremiumActive(db, TSLUG), false);
+await setStoredPlan('free', FUTURE);
+eq('legacy gate OFF: free premiumGate open', await premiumGate(db, TSLUG), false);
+eq('legacy gate OFF: free isPremiumActive false', await isPremiumActive(db, TSLUG), false);
+
+/* grantTierManual: grantPremiumManual shape, tiered plan */
+await setStoredPlan('free', null, { cus: 'cus_tier', sub: 'sub_tier' });
+{
+  const row = await grantTierManual(db, TSLUG, 2, 30);
+  eq('grantTierManual: plan/source/stripe ids preserved',
+    [row.plan, row.source, row.stripeCustomerId, row.stripeSubscriptionId],
+    ['t2', 'manual', 'cus_tier', 'sub_tier']);
+  check('grantTierManual: 30-day period end',
+    row.currentPeriodEnd > nowS + 29 * 86400 && row.currentPeriodEnd <= Math.floor(Date.now() / 1000) + 30 * 86400 + 5,
+    String(row.currentPeriodEnd));
+  eq('grantTierManual: effective tier 2', (await getEffectiveEntitlement(db, TSLUG)).tier, 2);
+  const rowStr = await grantTierManual(db, TSLUG, 't1', 0);
+  eq('grantTierManual: string tier + days clamped to 1', rowStr.plan, 't1');
+  check('grantTierManual: clamped period end ~1 day',
+    rowStr.currentPeriodEnd > nowS && rowStr.currentPeriodEnd <= Math.floor(Date.now() / 1000) + 86400 + 5,
+    String(rowStr.currentPeriodEnd));
+  const rowMax = await grantTierManual(db, TSLUG, 3, 99999);
+  check('grantTierManual: days clamped to 3650',
+    rowMax.currentPeriodEnd <= Math.floor(Date.now() / 1000) + 3650 * 86400 + 5,
+    String(rowMax.currentPeriodEnd));
+}
+
+/* hub grant: optional tier param; absent = legacy premium verbatim */
+h = await hub('/api/hub/billing/grant', 'POST', { slug: TSLUG, days: 30, tier: 't3' });
+eq('hub grant tier: ok', [h.status, h.json?.ok], [200, true]);
+{
+  const entry = (h.json?.billing?.tenants || []).find((x) => x.slug === TSLUG);
+  eq('hub grant tier: state plan t3', entry?.plan, 't3');
+  eq('hub grant tier: state tier field', entry?.tier, 3);
+  eq('hub grant tier: state effectiveTier field', entry?.effectiveTier, 3);
+}
+h = await hub('/api/hub/billing/grant', 'POST', { slug: TSLUG, days: 30 });
+{
+  const entry = (h.json?.billing?.tenants || []).find((x) => x.slug === TSLUG);
+  eq('hub grant default: still legacy premium', entry?.plan, 'premium');
+  eq('hub grant default: premium reads tier 3', entry?.tier, 3);
+}
+h = await hub('/api/hub/billing/grant', 'POST', { slug: TSLUG, days: 30, tier: 't9' });
+eq('hub grant invalid tier refused', h.status, 400);
+eq('hub grant invalid tier changed nothing', (await getEffectiveEntitlement(db, TSLUG)).plan, 'premium');
 
 console.log(`\nBILLING pass=${pass} fail=${fail}`);
 if (fails.length) console.log('FAILS:\n' + fails.join('\n'));
