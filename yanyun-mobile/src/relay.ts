@@ -67,6 +67,7 @@ function getDataID(
 // (same approach as Web).
 type StoreOptions = ConstructorParameters<typeof Store>[1];
 const storeOptions = {
+  operationLoader: blockOperationLoader,
   getDataID,
 } as StoreOptions & { getDataID: typeof getDataID };
 
@@ -77,6 +78,19 @@ export const relayEnvironment = new Environment({
   // operationLoader from server-returned references (the block split-
   // artifact registry lives in blocks-core).
   operationLoader: blockOperationLoader,
+  // Critical: operationLoader must also be passed to the Store (it is in
+  // storeOptions above). RelayModernEnvironment only builds a default
+  // store from config.operationLoader when no store is provided; with a
+  // supplied store, store._operationLoader is null, and store.check()
+  // (triggered by fetchQuery on the store-or-network path, e.g. when a
+  // blocks tab is re-entered with its data already cached) walks @module
+  // selections into DataChecker._checkModuleImport and throws an
+  // invariant ("DataChecker: Expected an operationLoader to be
+  // configured when using `@module`.", minified in production builds to
+  // "Minified exception occurred..."). getDataID needs the same dual
+  // wiring (see its comment above), hence storeOptions. Same trap as
+  // Web relay.ts, which carries both; this file previously carried only
+  // getDataID.
   store: new Store(new RecordSource(), storeOptions),
 });
 
