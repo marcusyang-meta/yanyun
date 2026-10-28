@@ -720,6 +720,12 @@ export const errors_premiumComingSoon = (fbs: FbsRuntime) => fbs._("Premium 开�
 export const errors_premiumActive = (fbs: FbsRuntime) => fbs._("本百业已开通 Premium", null, { hk: "v6s45" });
 export const errors_paygateDisabled = (fbs: FbsRuntime) => fbs._("收费功能尚未开启", null, { hk: "4cxV4g" });
 export const errors_checkoutFailed = (fbs: FbsRuntime) => fbs._("创建支付会话失败，请稍后再试", null, { hk: "4CxoXa" });
+export const errors_rosterImportEmpty = (fbs: FbsRuntime) => fbs._("没有收到任何识别文本，请重新截图后再试", null, { hk: "1REWAh" });
+export const errors_rosterBatchNotFound = (fbs: FbsRuntime) => fbs._("导入预览不存在或已失效，请重新识别", null, { hk: "1WnjIl" });
+export const errors_rosterBatchConfirmed = (fbs: FbsRuntime) => fbs._("这份预览已经确认导入过了", null, { hk: "2j2JA8" });
+export const errors_rosterNoImportableRows = (fbs: FbsRuntime) => fbs._("没有勾选任何可导入的新名", null, { hk: "470vK4" });
+export const errors_rosterEntryNotFound = (fbs: FbsRuntime) => fbs._("名册记录不存在", null, { hk: "1pB8kU" });
+export const errors_checklistItemUnknown = (fbs: FbsRuntime) => fbs._("检查条目不存在", null, { hk: "131EQy" });
 export const errors_feedbackEmpty = (fbs: FbsRuntime) => fbs._("反馈内容不能为空", null, { hk: "3XLeNf" });
 export const errors_feedbackTooLong = (fbs: FbsRuntime) => fbs._("反馈内容太长，请精简到 2000 字以内", null, { hk: "1FK6tt" });
 export const errors_feedbackRateLimited = (fbs: FbsRuntime) => fbs._("今天提交的反馈已达上限，请明天再来", null, { hk: "lO8z3" });
@@ -811,6 +817,31 @@ export const guildAdmin_guideRateLabel = (fbs: FbsRuntime) => fbs._("占比行",
 export const guildAdmin_guideBisLabel = (fbs: FbsRuntime) => fbs._("BiS（JSON）", null, { hk: "4FUXhX" });
 export const guildAdmin_guideRotationLabel = (fbs: FbsRuntime) => fbs._("循环（JSON）", null, { hk: "vkSW6" });
 export const guildAdmin_tabStats = (fbs: FbsRuntime) => fbs._("统计", null, { hk: "3WvV8a" });
+export const guildAdmin_tabSeason = (fbs: FbsRuntime) => fbs._("赛季", null, { hk: "2ybcHw" });
+export const guildAdmin_seasonTitle = (fbs: FbsRuntime) => fbs._("赛季前检查清单", null, { hk: "4u19ZR" });
+export const guildAdmin_seasonHint = (fbs: FbsRuntime, p?: StringParams) => fbs._("按当前版本 {version} 与赛季 {season} 自动生成；换季后清单自动重置，逐项复核后勾选。", [fbs._param("version", pv(p, "version")), fbs._param("season", pv(p, "season"))], { hk: "4s5M26" });
+export const guildAdmin_seasonProgress = (fbs: FbsRuntime, p?: StringParams) => fbs._("已完成 {done} / {total}", [fbs._param("done", pv(p, "done")), fbs._param("total", pv(p, "total"))], { hk: "8K7qZ" });
+export const guildAdmin_seasonItemDungeonsTitle = (fbs: FbsRuntime) => fbs._("复核当前版本副本", null, { hk: "AA5cY" });
+export const guildAdmin_seasonItemDungeonsDetail = (fbs: FbsRuntime, p?: StringParams) => fbs._("当前版本（{version}）共有 {count} 个副本，确认达标要求与攻略已按本赛季更新。", [fbs._param("version", pv(p, "version")), fbs._param("count", pv(p, "count"))], { hk: "3eGKuc" });
+export const guildAdmin_seasonItemTemplatesTitle = (fbs: FbsRuntime) => fbs._("复核组队模板", null, { hk: "2rTBPK" });
+export const guildAdmin_seasonItemTemplatesDetail = (fbs: FbsRuntime, p?: StringParams) => fbs._("本百业现有 {count} 个组队模板，确认模板的副本与人数仍适用于本赛季。", [fbs._param("count", pv(p, "count"))], { hk: "O8DQJ" });
+export const guildAdmin_seasonItemGuidesTitle = (fbs: FbsRuntime) => fbs._("复核流派攻略数据", null, { hk: "3ZPTln" });
+export const guildAdmin_seasonItemGuidesDetail = (fbs: FbsRuntime, p?: StringParams) => fbs._("攻略数据现有 {builds} 份 BiS 与 {rotations} 份循环，确认已按本赛季数值更新。", [fbs._param("builds", pv(p, "builds")), fbs._param("rotations", pv(p, "rotations"))], { hk: "3PAvfp" });
+export const guildAdmin_seasonItemRosterTitle = (fbs: FbsRuntime) => fbs._("复核成员名册", null, { hk: "1Wrubq" });
+export const guildAdmin_seasonItemRosterDetail = (fbs: FbsRuntime, p?: StringParams) => fbs._("Discord 名册 {members} 人，截图名册 {entries} 条；确认成员装备季标与名册均为本赛季最新。", [fbs._param("members", pv(p, "members")), fbs._param("entries", pv(p, "entries"))], { hk: "27uzhS" });
+export const guildAdmin_rosterTitle = (fbs: FbsRuntime) => fbs._("成员名册（截图导入）", null, { hk: "3VlV9Z" });
+export const guildAdmin_rosterHint = (fbs: FbsRuntime) => fbs._("上传游戏内成员名单截图，识别出的名字先进入预览，确认后才写入名册。名册只记录游戏内名字，不会改变任何人的 Discord 成员资格。", null, { hk: "49PRkk" });
+export const guildAdmin_rosterUpload = (fbs: FbsRuntime) => fbs._("上传名单截图", null, { hk: "2hFVPC" });
+export const guildAdmin_rosterOcrRunning = (fbs: FbsRuntime) => fbs._("识别中…", null, { hk: "FDmDE" });
+export const guildAdmin_rosterPreviewTitle = (fbs: FbsRuntime) => fbs._("导入预览", null, { hk: "1rUUdA" });
+export const guildAdmin_rosterConfirm = (fbs: FbsRuntime) => fbs._("确认导入", null, { hk: "4edb4K" });
+export const guildAdmin_rosterEmpty = (fbs: FbsRuntime) => fbs._("尚无名册记录，用上方按钮上传名单截图导入。", null, { hk: "33JFRP" });
+export const guildAdmin_rosterSourceOcr = (fbs: FbsRuntime) => fbs._("截图识别", null, { hk: "duR3T" });
+export const guildAdmin_rosterMatchedMember = (fbs: FbsRuntime) => fbs._("已匹配 Discord 成员", null, { hk: "2QxR8p" });
+export const guildAdmin_rosterStatusMatched = (fbs: FbsRuntime) => fbs._("已匹配", null, { hk: "xFaPx" });
+export const guildAdmin_rosterStatusNew = (fbs: FbsRuntime) => fbs._("疑似新名", null, { hk: "TVNTz" });
+export const guildAdmin_rosterStatusUnrecognized = (fbs: FbsRuntime) => fbs._("无法识别", null, { hk: "1zhpBy" });
+export const guildAdmin_rosterImported = (fbs: FbsRuntime, p?: StringParams) => fbs._("已导入 {count} 条名册记录", [fbs._param("count", pv(p, "count"))], { hk: "HA2yl" });
 export const guildAdmin_statsTitle = (fbs: FbsRuntime) => fbs._("出勤与活跃", null, { hk: "iuqgf" });
 export const guildAdmin_statsCurrentWeek = (fbs: FbsRuntime) => fbs._("本周", null, { hk: "2wJGBe" });
 export const guildAdmin_statsCars = (fbs: FbsRuntime) => fbs._("开车", null, { hk: "4Ey6h5" });
@@ -1646,6 +1677,12 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"errors.premiumActive": errors_premiumActive,
 	"errors.paygateDisabled": errors_paygateDisabled,
 	"errors.checkoutFailed": errors_checkoutFailed,
+	"errors.rosterImportEmpty": errors_rosterImportEmpty,
+	"errors.rosterBatchNotFound": errors_rosterBatchNotFound,
+	"errors.rosterBatchConfirmed": errors_rosterBatchConfirmed,
+	"errors.rosterNoImportableRows": errors_rosterNoImportableRows,
+	"errors.rosterEntryNotFound": errors_rosterEntryNotFound,
+	"errors.checklistItemUnknown": errors_checklistItemUnknown,
 	"errors.feedbackEmpty": errors_feedbackEmpty,
 	"errors.feedbackTooLong": errors_feedbackTooLong,
 	"errors.feedbackRateLimited": errors_feedbackRateLimited,
@@ -1737,6 +1774,31 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"guildAdmin.guideBisLabel": guildAdmin_guideBisLabel,
 	"guildAdmin.guideRotationLabel": guildAdmin_guideRotationLabel,
 	"guildAdmin.tabStats": guildAdmin_tabStats,
+	"guildAdmin.tabSeason": guildAdmin_tabSeason,
+	"guildAdmin.seasonTitle": guildAdmin_seasonTitle,
+	"guildAdmin.seasonHint": guildAdmin_seasonHint,
+	"guildAdmin.seasonProgress": guildAdmin_seasonProgress,
+	"guildAdmin.seasonItemDungeonsTitle": guildAdmin_seasonItemDungeonsTitle,
+	"guildAdmin.seasonItemDungeonsDetail": guildAdmin_seasonItemDungeonsDetail,
+	"guildAdmin.seasonItemTemplatesTitle": guildAdmin_seasonItemTemplatesTitle,
+	"guildAdmin.seasonItemTemplatesDetail": guildAdmin_seasonItemTemplatesDetail,
+	"guildAdmin.seasonItemGuidesTitle": guildAdmin_seasonItemGuidesTitle,
+	"guildAdmin.seasonItemGuidesDetail": guildAdmin_seasonItemGuidesDetail,
+	"guildAdmin.seasonItemRosterTitle": guildAdmin_seasonItemRosterTitle,
+	"guildAdmin.seasonItemRosterDetail": guildAdmin_seasonItemRosterDetail,
+	"guildAdmin.rosterTitle": guildAdmin_rosterTitle,
+	"guildAdmin.rosterHint": guildAdmin_rosterHint,
+	"guildAdmin.rosterUpload": guildAdmin_rosterUpload,
+	"guildAdmin.rosterOcrRunning": guildAdmin_rosterOcrRunning,
+	"guildAdmin.rosterPreviewTitle": guildAdmin_rosterPreviewTitle,
+	"guildAdmin.rosterConfirm": guildAdmin_rosterConfirm,
+	"guildAdmin.rosterEmpty": guildAdmin_rosterEmpty,
+	"guildAdmin.rosterSourceOcr": guildAdmin_rosterSourceOcr,
+	"guildAdmin.rosterMatchedMember": guildAdmin_rosterMatchedMember,
+	"guildAdmin.rosterStatusMatched": guildAdmin_rosterStatusMatched,
+	"guildAdmin.rosterStatusNew": guildAdmin_rosterStatusNew,
+	"guildAdmin.rosterStatusUnrecognized": guildAdmin_rosterStatusUnrecognized,
+	"guildAdmin.rosterImported": guildAdmin_rosterImported,
 	"guildAdmin.statsTitle": guildAdmin_statsTitle,
 	"guildAdmin.statsCurrentWeek": guildAdmin_statsCurrentWeek,
 	"guildAdmin.statsCars": guildAdmin_statsCars,

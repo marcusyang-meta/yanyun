@@ -109,6 +109,38 @@ export const guildAdmin_guideRateLabel = (fbs: FbsAPI) =>fbs("占比行", "guild
 export const guildAdmin_guideBisLabel = (fbs: FbsAPI) =>fbs("BiS（JSON）", "guildAdmin.guideBisLabel");
 export const guildAdmin_guideRotationLabel = (fbs: FbsAPI) =>fbs("循环（JSON）", "guildAdmin.guideRotationLabel");
 export const guildAdmin_tabStats = (fbs: FbsAPI) =>fbs("统计", "guildAdmin.tabStats");
+export const guildAdmin_tabSeason = (fbs: FbsAPI) =>fbs("赛季", "guildAdmin.tabSeason");
+export const guildAdmin_seasonTitle = (fbs: FbsAPI) =>fbs("赛季前检查清单", "guildAdmin.seasonTitle");
+export const guildAdmin_seasonHint = (fbs: FbsAPI, p?: StringParams) =>
+  fbs(["按当前版本 ", fbs.param("version", pv(p, "version")), " 与赛季 ", fbs.param("season", pv(p, "season")), " 自动生成；换季后清单自动重置，逐项复核后勾选。"], "guildAdmin.seasonHint");
+export const guildAdmin_seasonProgress = (fbs: FbsAPI, p?: StringParams) =>
+  fbs(["已完成 ", fbs.param("done", pv(p, "done")), " / ", fbs.param("total", pv(p, "total"))], "guildAdmin.seasonProgress");
+export const guildAdmin_seasonItemDungeonsTitle = (fbs: FbsAPI) =>fbs("复核当前版本副本", "guildAdmin.seasonItemDungeonsTitle");
+export const guildAdmin_seasonItemDungeonsDetail = (fbs: FbsAPI, p?: StringParams) =>
+  fbs(["当前版本（", fbs.param("version", pv(p, "version")), "）共有 ", fbs.param("count", pv(p, "count")), " 个副本，确认达标要求与攻略已按本赛季更新。"], "guildAdmin.seasonItemDungeonsDetail");
+export const guildAdmin_seasonItemTemplatesTitle = (fbs: FbsAPI) =>fbs("复核组队模板", "guildAdmin.seasonItemTemplatesTitle");
+export const guildAdmin_seasonItemTemplatesDetail = (fbs: FbsAPI, p?: StringParams) =>
+  fbs(["本百业现有 ", fbs.param("count", pv(p, "count")), " 个组队模板，确认模板的副本与人数仍适用于本赛季。"], "guildAdmin.seasonItemTemplatesDetail");
+export const guildAdmin_seasonItemGuidesTitle = (fbs: FbsAPI) =>fbs("复核流派攻略数据", "guildAdmin.seasonItemGuidesTitle");
+export const guildAdmin_seasonItemGuidesDetail = (fbs: FbsAPI, p?: StringParams) =>
+  fbs(["攻略数据现有 ", fbs.param("builds", pv(p, "builds")), " 份 BiS 与 ", fbs.param("rotations", pv(p, "rotations")), " 份循环，确认已按本赛季数值更新。"], "guildAdmin.seasonItemGuidesDetail");
+export const guildAdmin_seasonItemRosterTitle = (fbs: FbsAPI) =>fbs("复核成员名册", "guildAdmin.seasonItemRosterTitle");
+export const guildAdmin_seasonItemRosterDetail = (fbs: FbsAPI, p?: StringParams) =>
+  fbs(["Discord 名册 ", fbs.param("members", pv(p, "members")), " 人，截图名册 ", fbs.param("entries", pv(p, "entries")), " 条；确认成员装备季标与名册均为本赛季最新。"], "guildAdmin.seasonItemRosterDetail");
+export const guildAdmin_rosterTitle = (fbs: FbsAPI) =>fbs("成员名册（截图导入）", "guildAdmin.rosterTitle");
+export const guildAdmin_rosterHint = (fbs: FbsAPI) =>fbs("上传游戏内成员名单截图，识别出的名字先进入预览，确认后才写入名册。名册只记录游戏内名字，不会改变任何人的 Discord 成员资格。", "guildAdmin.rosterHint");
+export const guildAdmin_rosterUpload = (fbs: FbsAPI) =>fbs("上传名单截图", "guildAdmin.rosterUpload");
+export const guildAdmin_rosterOcrRunning = (fbs: FbsAPI) =>fbs("识别中…", "guildAdmin.rosterOcrRunning");
+export const guildAdmin_rosterPreviewTitle = (fbs: FbsAPI) =>fbs("导入预览", "guildAdmin.rosterPreviewTitle");
+export const guildAdmin_rosterConfirm = (fbs: FbsAPI) =>fbs("确认导入", "guildAdmin.rosterConfirm");
+export const guildAdmin_rosterEmpty = (fbs: FbsAPI) =>fbs("尚无名册记录，用上方按钮上传名单截图导入。", "guildAdmin.rosterEmpty");
+export const guildAdmin_rosterSourceOcr = (fbs: FbsAPI) =>fbs("截图识别", "guildAdmin.rosterSourceOcr");
+export const guildAdmin_rosterMatchedMember = (fbs: FbsAPI) =>fbs("已匹配 Discord 成员", "guildAdmin.rosterMatchedMember");
+export const guildAdmin_rosterStatusMatched = (fbs: FbsAPI) =>fbs("已匹配", "guildAdmin.rosterStatusMatched");
+export const guildAdmin_rosterStatusNew = (fbs: FbsAPI) =>fbs("疑似新名", "guildAdmin.rosterStatusNew");
+export const guildAdmin_rosterStatusUnrecognized = (fbs: FbsAPI) =>fbs("无法识别", "guildAdmin.rosterStatusUnrecognized");
+export const guildAdmin_rosterImported = (fbs: FbsAPI, p?: StringParams) =>
+  fbs(["已导入 ", fbs.param("count", pv(p, "count")), " 条名册记录"], "guildAdmin.rosterImported");
 export const guildAdmin_statsTitle = (fbs: FbsAPI) =>fbs("出勤与活跃", "guildAdmin.statsTitle");
 export const guildAdmin_statsCurrentWeek = (fbs: FbsAPI) =>fbs("本周", "guildAdmin.statsCurrentWeek");
 export const guildAdmin_statsCars = (fbs: FbsAPI) =>fbs("开车", "guildAdmin.statsCars");

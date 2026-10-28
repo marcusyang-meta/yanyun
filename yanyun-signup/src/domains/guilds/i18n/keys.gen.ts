@@ -89,6 +89,31 @@ export type GuildsStringKey =
   | 'guildAdmin.guideBisLabel'
   | 'guildAdmin.guideRotationLabel'
   | 'guildAdmin.tabStats'
+  | 'guildAdmin.tabSeason'
+  | 'guildAdmin.seasonTitle'
+  | 'guildAdmin.seasonHint'
+  | 'guildAdmin.seasonProgress'
+  | 'guildAdmin.seasonItemDungeonsTitle'
+  | 'guildAdmin.seasonItemDungeonsDetail'
+  | 'guildAdmin.seasonItemTemplatesTitle'
+  | 'guildAdmin.seasonItemTemplatesDetail'
+  | 'guildAdmin.seasonItemGuidesTitle'
+  | 'guildAdmin.seasonItemGuidesDetail'
+  | 'guildAdmin.seasonItemRosterTitle'
+  | 'guildAdmin.seasonItemRosterDetail'
+  | 'guildAdmin.rosterTitle'
+  | 'guildAdmin.rosterHint'
+  | 'guildAdmin.rosterUpload'
+  | 'guildAdmin.rosterOcrRunning'
+  | 'guildAdmin.rosterPreviewTitle'
+  | 'guildAdmin.rosterConfirm'
+  | 'guildAdmin.rosterEmpty'
+  | 'guildAdmin.rosterSourceOcr'
+  | 'guildAdmin.rosterMatchedMember'
+  | 'guildAdmin.rosterStatusMatched'
+  | 'guildAdmin.rosterStatusNew'
+  | 'guildAdmin.rosterStatusUnrecognized'
+  | 'guildAdmin.rosterImported'
   | 'guildAdmin.statsTitle'
   | 'guildAdmin.statsCurrentWeek'
   | 'guildAdmin.statsCars'
@@ -273,6 +298,31 @@ export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'guildAdmin.guideBisLabel',
   'guildAdmin.guideRotationLabel',
   'guildAdmin.tabStats',
+  'guildAdmin.tabSeason',
+  'guildAdmin.seasonTitle',
+  'guildAdmin.seasonHint',
+  'guildAdmin.seasonProgress',
+  'guildAdmin.seasonItemDungeonsTitle',
+  'guildAdmin.seasonItemDungeonsDetail',
+  'guildAdmin.seasonItemTemplatesTitle',
+  'guildAdmin.seasonItemTemplatesDetail',
+  'guildAdmin.seasonItemGuidesTitle',
+  'guildAdmin.seasonItemGuidesDetail',
+  'guildAdmin.seasonItemRosterTitle',
+  'guildAdmin.seasonItemRosterDetail',
+  'guildAdmin.rosterTitle',
+  'guildAdmin.rosterHint',
+  'guildAdmin.rosterUpload',
+  'guildAdmin.rosterOcrRunning',
+  'guildAdmin.rosterPreviewTitle',
+  'guildAdmin.rosterConfirm',
+  'guildAdmin.rosterEmpty',
+  'guildAdmin.rosterSourceOcr',
+  'guildAdmin.rosterMatchedMember',
+  'guildAdmin.rosterStatusMatched',
+  'guildAdmin.rosterStatusNew',
+  'guildAdmin.rosterStatusUnrecognized',
+  'guildAdmin.rosterImported',
   'guildAdmin.statsTitle',
   'guildAdmin.statsCurrentWeek',
   'guildAdmin.statsCars',

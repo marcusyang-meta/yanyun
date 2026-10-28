@@ -59,6 +59,7 @@ import { guildAdminTypes, guildAdminMutations, guildAdminPayloadResolvers } from
 import {
   announcementPageForMember, guildAnnouncementMutations, guildAnnouncementTypes,
 } from './announcements-graphql.ts';
+import { seasonAdminTypes, seasonAdminMutations } from './season-graphql.ts';
 
 export const CREATE_RESERVED = new Set([
   'admin', 'api', 'auth', 'hub', 'login', 'logout', 'og', 'graphql', 'create',
@@ -367,6 +368,7 @@ export const guildsResolvers = {
     },
 
     ...guildAdminMutations,
+    ...seasonAdminMutations,
 
     ...guildAnnouncementMutations,
 
@@ -415,5 +417,6 @@ export const guildsResolvers = {
   ...guildAdminTypes,
   ...guildAdminPayloadResolvers,
   ...guildAnnouncementTypes,
+  ...seasonAdminTypes,
   },
 };

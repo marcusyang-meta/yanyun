@@ -121,6 +121,12 @@ export type PlatformStringKey =
   | 'errors.premiumActive'
   | 'errors.paygateDisabled'
   | 'errors.checkoutFailed'
+  | 'errors.rosterImportEmpty'
+  | 'errors.rosterBatchNotFound'
+  | 'errors.rosterBatchConfirmed'
+  | 'errors.rosterNoImportableRows'
+  | 'errors.rosterEntryNotFound'
+  | 'errors.checklistItemUnknown'
   | 'errors.feedbackEmpty'
   | 'errors.feedbackTooLong'
   | 'errors.feedbackRateLimited'
@@ -259,6 +265,12 @@ export const PLATFORM_STRING_KEYS: readonly PlatformStringKey[] = [
   'errors.premiumActive',
   'errors.paygateDisabled',
   'errors.checkoutFailed',
+  'errors.rosterImportEmpty',
+  'errors.rosterBatchNotFound',
+  'errors.rosterBatchConfirmed',
+  'errors.rosterNoImportableRows',
+  'errors.rosterEntryNotFound',
+  'errors.checklistItemUnknown',
   'errors.feedbackEmpty',
   'errors.feedbackTooLong',
   'errors.feedbackRateLimited',
