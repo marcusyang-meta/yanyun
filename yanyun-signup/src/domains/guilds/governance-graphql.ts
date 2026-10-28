@@ -301,7 +301,7 @@ export class GuildGovernancePageShell extends ShellBase {
 export const GOVERNANCE_PAGE_TEXT_RESOLVERS = defineTextGens(GuildGovernancePageShell, GOVERNANCE_PAGE_TEXT_SPEC);
 
 /** Compose the governance union for one admin-surface viewer: the
- * T3 tier verdict picks Locked vs Page before any governance data
+ * T3 tier verdict picks Locked vs Page before governance data
  * is read. Called by GuildAdminShell.genGovernance with the
  * viewer's officer verdict. */
 export async function governanceResultFor(
@@ -404,9 +404,9 @@ export const guildGovernanceMutations = {
     return govOk(ctx);
   },
 
-  /* Post to the officer private board: any officer (admin or any
-   * granted capability) may post; the board is the shared officer
-   * space, not a per-capability surface. */
+  /* Post to the officer private board: an officer (admin or a
+   * granted capability holder) may post; the board is the shared
+   * officer space, not a per-capability surface. */
   postOfficerBoardMessage: async (
     _: unknown,
     { slug, body }: { slug: string; body: string },

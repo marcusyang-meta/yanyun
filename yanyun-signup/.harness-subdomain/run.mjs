@@ -134,6 +134,8 @@ function makeDb(fx = {}) {
     const first = (row) => (kind === 'first' ? (row ?? null) : { results: row ? [row] : [] });
     const all = (rows) => ({ results: rows });
     if (/FROM guild_entitlements WHERE tenant = \?/i.test(sql)) return first(tables.entitlements.get(b[0]) ?? null);
+    // Governance line (P16): fixture guilds hold no officer grants.
+    if (/FROM guild_officer_grants/i.test(sql)) return kind === 'first' ? null : all([]);
     if (/FROM tenants WHERE slug/i.test(sql)) return first(tables.tenants.find((t) => t.slug === b[0]));
     if (/FROM tenants/i.test(sql)) return kind === 'first' ? (tables.tenants[0] ?? null) : all(tables.tenants);
     if (/FROM settings WHERE tenant = \? AND key = \?/i.test(sql)) {
