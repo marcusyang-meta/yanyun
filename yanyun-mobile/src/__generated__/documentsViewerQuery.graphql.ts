@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<02752726d4c9b12ebdff0c78fec9efcc>>
+ * @generated SignedSource<<a5ae8af8210147232c8c4fd480c90314>>
  * @lightSyntaxTransform
  */
 
@@ -22,6 +22,7 @@ export type documentsViewerQuery$data = {
     readonly guilds: ReadonlyArray<{
       readonly avatarUrl: string | null | undefined;
       readonly gameVersion: string;
+      readonly homeInsightsRaceTitle: string;
       readonly homeTabAnnouncementsLabel: string;
       readonly homeTabDexLabel: string;
       readonly homeTabScheduleLabel: string;
@@ -30,6 +31,9 @@ export type documentsViewerQuery$data = {
       readonly memberCount: number;
       readonly name: string | null | undefined;
       readonly pageBackLabel: string;
+      readonly raceSeasonBoard: {
+        readonly __typename: string;
+      };
       readonly slogan: string | null | undefined;
       readonly slug: string;
       readonly viewerNick: string | null | undefined;
@@ -110,6 +114,7 @@ export type documentsViewerQuery$data = {
     readonly publicGuilds: ReadonlyArray<{
       readonly avatarUrl: string | null | undefined;
       readonly gameVersion: string;
+      readonly homeInsightsRaceTitle: string;
       readonly homeTabAnnouncementsLabel: string;
       readonly homeTabDexLabel: string;
       readonly homeTabScheduleLabel: string;
@@ -118,6 +123,9 @@ export type documentsViewerQuery$data = {
       readonly memberCount: number;
       readonly name: string | null | undefined;
       readonly pageBackLabel: string;
+      readonly raceSeasonBoard: {
+        readonly __typename: string;
+      };
       readonly slogan: string | null | undefined;
       readonly slug: string;
       readonly viewerNick: string | null | undefined;
@@ -227,6 +235,31 @@ v4 = [
     "args": null,
     "kind": "ScalarField",
     "name": "homeTabScheduleLabel",
+    "storageKey": null
+  },
+  {
+    "alias": null,
+    "args": null,
+    "kind": "ScalarField",
+    "name": "homeInsightsRaceTitle",
+    "storageKey": null
+  },
+  {
+    "alias": null,
+    "args": null,
+    "concreteType": null,
+    "kind": "LinkedField",
+    "name": "raceSeasonBoard",
+    "plural": false,
+    "selections": [
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "__typename",
+        "storageKey": null
+      }
+    ],
     "storageKey": null
   },
   {
@@ -828,16 +861,16 @@ return {
     "selections": (v9/*:: as any*/)
   },
   "params": {
-    "cacheID": "1bb378fb202794122eaf22fb90a61f8d",
+    "cacheID": "6f22cf31481bbcd0352d2d2a2cd4de65",
     "id": null,
     "metadata": {},
     "name": "documentsViewerQuery",
     "operationKind": "query",
-    "text": "query documentsViewerQuery {\n  viewer {\n    myLocalePref\n    commonUnknownErrorText\n    commonRenderErrorTemplate\n    commonRenderErrorHint\n    siteTitle\n    siteSubtitle\n    loginCardTitle\n    loginCardBody1\n    loginCardBody2\n    loginButtonLabel\n    loginPrivacyText\n    footerDisclaimerText\n    footerTermsLabel\n    footerPrivacyLabel\n    userBarSettingsLabel\n    userBarLogoutLabel\n    userBarLoggingOutLabel\n    pickerMyGuildsLabel\n    pickerMyGuildsEnLabel\n    pickerPublicGuildsLabel\n    pickerPublicGuildsEnLabel\n    pickerReadOnlyBadge\n    pickerEmptyTitle\n    pickerEmptyBody\n    pickerCreateGuildLabel\n    pickerCreateGuildMoreLabel\n    user {\n      name\n      discordId\n      avatar\n    }\n    guilds {\n      slug\n      name\n      slogan\n      gameVersion\n      memberCount\n      avatarUrl\n      viewerNick\n      homeTabTeamLabel\n      homeTabDexLabel\n      homeTabSectLabel\n      homeTabAnnouncementsLabel\n      homeTabScheduleLabel\n      pageBackLabel\n    }\n    publicGuilds {\n      slug\n      name\n      slogan\n      gameVersion\n      memberCount\n      avatarUrl\n      viewerNick\n      homeTabTeamLabel\n      homeTabDexLabel\n      homeTabSectLabel\n      homeTabAnnouncementsLabel\n      homeTabScheduleLabel\n      pageBackLabel\n    }\n    homeRecruit {\n      recruitTitle\n      homeBody\n      homeLoginHint\n      applySectionTitle\n      messageLabel\n      messagePlaceholder\n      submitLabel\n      submittingLabel\n      myApplicationTitle\n      pendingHint\n      approvedNextStepText\n      rejectedHint\n      checklistTitle\n      myPairingsTitle\n      pairingMentorRoleLabel\n      pairingMenteeRoleLabel\n      guilds {\n        slug\n        name\n        slogan\n        avatarUrl\n        myApplicationSection {\n          application {\n            id\n            applicantName\n            message\n            status\n            statusLabel\n            createdAtText\n            reviewedByName\n            reviewedAtText\n          }\n        }\n      }\n      myNewcomer {\n        slug\n        guildName\n        checklist {\n          progressText\n          items {\n            key\n            label\n            hint\n            done\n          }\n        }\n        myPairings {\n          id\n          mentorName\n          menteeName\n          status\n          statusLabel\n          createdAtText\n          endedAtText\n        }\n      }\n    }\n  }\n}\n"
+    "text": "query documentsViewerQuery {\n  viewer {\n    myLocalePref\n    commonUnknownErrorText\n    commonRenderErrorTemplate\n    commonRenderErrorHint\n    siteTitle\n    siteSubtitle\n    loginCardTitle\n    loginCardBody1\n    loginCardBody2\n    loginButtonLabel\n    loginPrivacyText\n    footerDisclaimerText\n    footerTermsLabel\n    footerPrivacyLabel\n    userBarSettingsLabel\n    userBarLogoutLabel\n    userBarLoggingOutLabel\n    pickerMyGuildsLabel\n    pickerMyGuildsEnLabel\n    pickerPublicGuildsLabel\n    pickerPublicGuildsEnLabel\n    pickerReadOnlyBadge\n    pickerEmptyTitle\n    pickerEmptyBody\n    pickerCreateGuildLabel\n    pickerCreateGuildMoreLabel\n    user {\n      name\n      discordId\n      avatar\n    }\n    guilds {\n      slug\n      name\n      slogan\n      gameVersion\n      memberCount\n      avatarUrl\n      viewerNick\n      homeTabTeamLabel\n      homeTabDexLabel\n      homeTabSectLabel\n      homeTabAnnouncementsLabel\n      homeTabScheduleLabel\n      homeInsightsRaceTitle\n      raceSeasonBoard {\n        __typename\n      }\n      pageBackLabel\n    }\n    publicGuilds {\n      slug\n      name\n      slogan\n      gameVersion\n      memberCount\n      avatarUrl\n      viewerNick\n      homeTabTeamLabel\n      homeTabDexLabel\n      homeTabSectLabel\n      homeTabAnnouncementsLabel\n      homeTabScheduleLabel\n      homeInsightsRaceTitle\n      raceSeasonBoard {\n        __typename\n      }\n      pageBackLabel\n    }\n    homeRecruit {\n      recruitTitle\n      homeBody\n      homeLoginHint\n      applySectionTitle\n      messageLabel\n      messagePlaceholder\n      submitLabel\n      submittingLabel\n      myApplicationTitle\n      pendingHint\n      approvedNextStepText\n      rejectedHint\n      checklistTitle\n      myPairingsTitle\n      pairingMentorRoleLabel\n      pairingMenteeRoleLabel\n      guilds {\n        slug\n        name\n        slogan\n        avatarUrl\n        myApplicationSection {\n          application {\n            id\n            applicantName\n            message\n            status\n            statusLabel\n            createdAtText\n            reviewedByName\n            reviewedAtText\n          }\n        }\n      }\n      myNewcomer {\n        slug\n        guildName\n        checklist {\n          progressText\n          items {\n            key\n            label\n            hint\n            done\n          }\n        }\n        myPairings {\n          id\n          mentorName\n          menteeName\n          status\n          statusLabel\n          createdAtText\n          endedAtText\n        }\n      }\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "f09bc71ebdc66cc9bbd5b6b88191068b";
+(node as any).hash = "fbf15f500856743b4c66ee0a22dc56d9";
 
 export default node;
