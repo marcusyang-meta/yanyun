@@ -156,6 +156,64 @@ export const rosterImportRows = sqliteTable('roster_import_rows', {
   index('idx_roster_import_rows_tenant').on(t.tenant),
 ]);
 
+/* ---------------- guild applications [migration 0013] -------------
+ * Recruitment applications (F16): one row per application a logged-in
+ * non-member filed against a guild, carrying the full state machine
+ * (pending -> approved | rejected) and its review trail. The dedupe
+ * rule (one PENDING application per guild + applicant) is a partial
+ * unique index in the chain; the .where() below keeps the model
+ * faithful to it (the drift gate compares name/unique/columns). */
+export const guildApplications = sqliteTable('guild_applications', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  tenant: text('tenant').notNull().default(''),
+  discordId: text('discord_id').notNull().default(''),
+  applicantName: text('applicant_name').notNull().default(''),
+  message: text('message').notNull().default(''),
+  status: text('status').notNull().default('pending'),
+  reviewedBy: text('reviewed_by').notNull().default(''),
+  reviewedByName: text('reviewed_by_name').notNull().default(''),
+  createdAt: integer('created_at').notNull().default(0),
+  reviewedAt: integer('reviewed_at'),
+}, (t) => [
+  index('idx_guild_applications_tenant').on(t.tenant, t.id),
+  uniqueIndex('guild_applications_pending_unique').on(t.tenant, t.discordId)
+    .where(sql`status = 'pending'`),
+]);
+
+/* ---------------- mentor pairings [migration 0014] ----------------
+ * Mentor pairings (F17): one row per admin-created pairing, 'active'
+ * until an admin ends it ('ended'); rows are never deleted. The
+ * one-ACTIVE-pairing-per-mentee rule is a partial unique index in
+ * the chain, modeled with .where() as above. */
+export const mentorPairings = sqliteTable('mentor_pairings', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  tenant: text('tenant').notNull().default(''),
+  mentorDiscordId: text('mentor_discord_id').notNull().default(''),
+  mentorName: text('mentor_name').notNull().default(''),
+  menteeDiscordId: text('mentee_discord_id').notNull().default(''),
+  menteeName: text('mentee_name').notNull().default(''),
+  status: text('status').notNull().default('active'),
+  createdBy: text('created_by').notNull().default(''),
+  createdAt: integer('created_at').notNull().default(0),
+  endedAt: integer('ended_at'),
+}, (t) => [
+  index('idx_mentor_pairings_tenant').on(t.tenant, t.id),
+  uniqueIndex('mentor_pairings_active_mentee_unique').on(t.tenant, t.menteeDiscordId)
+    .where(sql`status = 'active'`),
+]);
+
+/* ---------------- guild mentors [migration 0015] ------------------
+ * The designated mentor pool (F17): a row exists only while an admin
+ * designates that member as a mentor candidate (absence IS the
+ * undesignated state, announcement-reads caliber). */
+export const guildMentors = sqliteTable('guild_mentors', {
+  tenant: text('tenant').notNull().default(''),
+  discordId: text('discord_id').notNull().default(''),
+  createdAt: integer('created_at').notNull().default(0),
+}, (t) => [
+  primaryKey({ columns: [t.tenant, t.discordId] }),
+]);
+
 /* ---------------- guild avatars [ddl chain baseline] --------------- */
 export const guildAvatars = sqliteTable('guild_avatars', {
   tenant: text('tenant').primaryKey(),
