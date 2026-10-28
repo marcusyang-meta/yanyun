@@ -352,12 +352,20 @@ await r.text();
 link = await mintShortLink(A.db, 'subtest', 7);
 r = await call(`https://subtest.yanyun.app/c/${link.code}`);
 eq('子域上短链 -> 302', r.status, 302);
-eq('子域短链落点 = 子域车址', r.headers.get('location'), 'https://subtest.yanyun.app/car/7');
+// 2026-10-28 share-access ruling: subtest is a BOUND guild, so an
+// anonymous short-link visitor lands on the anonymous share page
+// (same origin), not the member-gated canonical car page. Members
+// keep the canonical landing (covered in shareaccess.test.ts).
+eq('子域短链落点 = 子域分享页 (匿名)', r.headers.get('location'), `https://subtest.yanyun.app/s/${link.code}`);
 await r.text();
 r = await call(`https://yanyun.app/c/${link.code}`);
 eq('主域短链 -> 302', r.status, 302);
-eq('主域短链落点不变', r.headers.get('location'), 'https://yanyun.app/subtest/car/7');
+eq('主域短链落点 = 主域分享页 (匿名)', r.headers.get('location'), `https://yanyun.app/s/${link.code}`);
 await r.text();
+r = await call(`https://subtest.yanyun.app/s/${link.code}`);
+eq('子域分享页 -> 200', r.status, 200);
+html = await r.text();
+check('子域分享页注入车 OG 图', html.includes('https://og.yanyun.app/og/subtest/car/7.png'), html.slice(0, 400));
   });
 
   it('D. GraphQL shareUrl follows the request host', async () => {

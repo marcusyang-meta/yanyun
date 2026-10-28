@@ -582,10 +582,14 @@ g = await gqlAt('https://yanyun.app/graphql', shareQ, { slug: 'guild-a', id: '7'
 eq('主域请求 shareUrl 不变', g.data?.groupingDetailPage?.shareUrl, `https://yanyun.app/c/${link.code}`);
 res = await callSeam(`https://www.guild-a.com/c/${link.code}`);
 eq('自定义域名短链 -> 302', res.status, 302);
-eq('自定义域名短链落点 = 该域名车页', res.headers.get('location'), 'https://www.guild-a.com/car/7');
+// 2026-10-28 share-access ruling: guild-a is a BOUND guild, so an
+// anonymous short-link visitor lands on the anonymous share page
+// (same origin), not the member-gated canonical car page. Members
+// keep the canonical landing (covered in shareaccess.test.ts).
+eq('自定义域名短链落点 = 该域名分享页 (匿名)', res.headers.get('location'), `https://www.guild-a.com/s/${link.code}`);
 await res.text();
 res = await callSeam(`https://yanyun.app/c/${link.code}`);
-eq('主域短链落点不变', res.headers.get('location'), 'https://yanyun.app/guild-a/car/7');
+eq('主域短链落点 = 主域分享页 (匿名)', res.headers.get('location'), `https://yanyun.app/s/${link.code}`);
 await res.text();
   });
 
