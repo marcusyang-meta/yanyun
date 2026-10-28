@@ -88,6 +88,30 @@ const SettingsDialogQueryNode = graphql`
       accountDeletionRequestedText
       accountDeletionCancelledText
       freshAuthAt
+      seasonGoals {
+        entryLabel
+        title
+        hint
+        emptyText
+        guildLabel
+        goalTitleLabel
+        goalTitlePlaceholder
+        goalNoteLabel
+        goalNotePlaceholder
+        dungeonLabel
+        dungeonNoneLabel
+        statusLabel
+        addLabel
+        saveLabel
+        editLabel
+        deleteLabel
+        statusActiveLabel
+        statusDoneLabel
+        statusDroppedLabel
+        goals { id guildSlug guildName title note status statusLabel dungeonId dungeonName seasonName }
+        guildOptions { slug name }
+        dungeonOptions { id name seasonName }
+      }
       accountPendingDeletion {
         executesAt
         daysLeft
@@ -155,11 +179,31 @@ const SettingsFeedbackMutationNode = graphql`
   }
 `;
 
+const SettingsUpsertGoalMutationNode = graphql`
+  mutation SettingsDialogUpsertGoalMutation($input: SeasonGoalInput!) {
+    upsertMySeasonGoal(input: $input) {
+      ok
+      error
+      errorCode
+    }
+  }
+`;
+
+const SettingsDeleteGoalMutationNode = graphql`
+  mutation SettingsDialogDeleteGoalMutation($goalId: ID!) {
+    deleteMySeasonGoal(goalId: $goalId) {
+      ok
+      error
+      errorCode
+    }
+  }
+`;
+
 export type AccountFlow = 'export' | 'delete';
 
 // The pages of this dialog host (see the file header): the root settings
 // page plus the pages pushed over it inside the same dialog.
-type DialogPage = 'main' | 'feedback' | 'gear';
+type DialogPage = 'main' | 'feedback' | 'gear' | 'goals';
 
 export default function SettingsDialog({ open, onClose, user, initialFlow }: {
   open: boolean;
@@ -248,6 +292,102 @@ function SettingsDialogInner({ onClose, user, initialFlow }: {
   const [fbDone, setFbDone] = useState(false);
 
   const openFeedback = () => { setFbDone(false); setFbError(''); pushPage('feedback'); };
+
+  /* Season goals page (F19): the member's own goals across their
+   * guilds. Writes go through upsertMySeasonGoal / deleteMySeasonGoal;
+   * the server pins every row to the caller, and its localized error
+   * comes back on the payload. Refetching the dialog query after a
+   * write re-reads the goal list in place. */
+  const goalsPage: any = page.seasonGoals ?? {};
+  const [commitGoal, goalInFlight] = useMutation<any>(SettingsUpsertGoalMutationNode);
+  const [commitDeleteGoal] = useMutation<any>(SettingsDeleteGoalMutationNode);
+  const [goalError, setGoalError] = useState('');
+  const [newGuild, setNewGuild] = useState('');
+  const [newTitle, setNewTitle] = useState('');
+  const [newNote, setNewNote] = useState('');
+  const [newDungeon, setNewDungeon] = useState('');
+  const [editGoalId, setEditGoalId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editNote, setEditNote] = useState('');
+  const [editStatus, setEditStatus] = useState('ACTIVE');
+  const [editDungeon, setEditDungeon] = useState('');
+  const [armedDeleteId, setArmedDeleteId] = useState<string | null>(null);
+
+  const goalGuildSlug = newGuild || goalsPage.guildOptions?.[0]?.slug || '';
+  const submitNewGoal = () => {
+    if (goalInFlight || !goalGuildSlug) return;
+    setGoalError('');
+    commitGoal({
+      variables: {
+        input: {
+          slug: goalGuildSlug,
+          title: newTitle,
+          note: newNote || undefined,
+          status: 'ACTIVE',
+          dungeonId: newDungeon ? parseInt(newDungeon, 10) : undefined,
+        },
+      },
+      onCompleted: (resp: any) => {
+        const payload = resp?.upsertMySeasonGoal;
+        if (payload?.ok) {
+          setNewTitle('');
+          setNewNote('');
+          setNewDungeon('');
+          refetchSelf();
+        } else {
+          setGoalError(payload?.error || viewer.commonUnknownErrorText || '');
+        }
+      },
+      onError: () => setGoalError(viewer.commonUnknownErrorText || ''),
+    });
+  };
+  const startEditGoal = (g: any) => {
+    setEditGoalId(g.id);
+    setEditTitle(g.title || '');
+    setEditNote(g.note || '');
+    setEditStatus(g.status || 'ACTIVE');
+    setEditDungeon(g.dungeonId != null ? String(g.dungeonId) : '');
+    setGoalError('');
+  };
+  const submitEditGoal = (g: any) => {
+    if (goalInFlight) return;
+    setGoalError('');
+    commitGoal({
+      variables: {
+        input: {
+          id: g.id,
+          slug: g.guildSlug,
+          title: editTitle,
+          note: editNote || undefined,
+          status: editStatus,
+          dungeonId: editDungeon ? parseInt(editDungeon, 10) : undefined,
+        },
+      },
+      onCompleted: (resp: any) => {
+        const payload = resp?.upsertMySeasonGoal;
+        if (payload?.ok) {
+          setEditGoalId(null);
+          refetchSelf();
+        } else {
+          setGoalError(payload?.error || viewer.commonUnknownErrorText || '');
+        }
+      },
+      onError: () => setGoalError(viewer.commonUnknownErrorText || ''),
+    });
+  };
+  const deleteGoal = (g: any) => {
+    if (armedDeleteId !== g.id) { setArmedDeleteId(g.id); return; }
+    setArmedDeleteId(null);
+    commitDeleteGoal({
+      variables: { goalId: g.id },
+      onCompleted: (resp: any) => {
+        const payload = resp?.deleteMySeasonGoal;
+        if (payload?.ok) refetchSelf();
+        else setGoalError(payload?.error || viewer.commonUnknownErrorText || '');
+      },
+      onError: () => setGoalError(viewer.commonUnknownErrorText || ''),
+    });
+  };
   const submitFeedback = () => {
     if (fbInFlight) return;
     setFbError('');
@@ -475,6 +615,19 @@ function SettingsDialogInner({ onClose, user, initialFlow }: {
           }}
         >
           <span>{data.gradPage?.gearMyLibTitle}</span>
+          <span style={{ color: theme.gold, fontSize: 19, lineHeight: 1 }}>›</span>
+        </button>
+        <button
+          data-goals-entry
+          onClick={() => { setGoalError(''); setEditGoalId(null); pushPage('goals'); }}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            width: '100%', textAlign: 'left', padding: '11px 16px', borderRadius: 10, cursor: 'pointer',
+            background: 'rgba(255,255,255,.02)', border: '1px solid rgba(201,163,92,.25)',
+            color: theme.paper, fontSize: 14.5, marginTop: 8,
+          }}
+        >
+          <span>{page.seasonGoals?.entryLabel}</span>
           <span style={{ color: theme.gold, fontSize: 19, lineHeight: 1 }}>›</span>
         </button>
         <button
@@ -707,10 +860,141 @@ function SettingsDialogInner({ onClose, user, initialFlow }: {
     </>
   );
 
-  const body = view === 'feedback' ? feedbackBody : view === 'gear' ? gearBody : mainBody;
+  const goalStatusOptions: { value: string; label: string }[] = [
+    { value: 'ACTIVE', label: goalsPage.statusActiveLabel },
+    { value: 'DONE', label: goalsPage.statusDoneLabel },
+    { value: 'DROPPED', label: goalsPage.statusDroppedLabel },
+  ];
+  const goalInputStyle = {
+    width: '100%', boxSizing: 'border-box', padding: '10px 12px', borderRadius: 8,
+    background: 'rgba(255,255,255,.03)', border: '1px solid rgba(201,163,92,.35)',
+    color: theme.paper, fontSize: 14, outline: 'none',
+  } as const;
+  const goalsBody = (
+    <>
+      {!isMobile && (
+        <div
+          data-goals-back
+          onClick={popPage}
+          style={{ color: theme.gold, fontSize: 24, lineHeight: 1, cursor: 'pointer', padding: '0 8px 10px 0', width: 32 }}
+        >‹</div>
+      )}
+      <div style={{ color: theme.muted, fontSize: 13, lineHeight: 1.7, marginBottom: 16 }}>{goalsPage.hint}</div>
+      {(goalsPage.goals ?? []).length === 0 ? (
+        <div style={{ color: theme.muted, fontSize: 13.5, marginBottom: 18 }}>{goalsPage.emptyText}</div>
+      ) : (goalsPage.goals ?? []).map((g: any) => (
+        <div key={g.id} data-goal-row={g.id} style={{
+          border: '1px solid rgba(201,163,92,.22)', borderRadius: 10,
+          padding: '12px 14px', marginBottom: 10, background: 'rgba(255,255,255,.02)',
+        }}>
+          {editGoalId === g.id ? (
+            <>
+              <div style={{ color: theme.muted, fontSize: 12.5, marginBottom: 6 }}>{g.guildName}</div>
+              <input data-goal-edit-title style={{ ...goalInputStyle, marginBottom: 8 }}
+                value={editTitle} maxLength={80} onChange={(e) => setEditTitle(e.target.value)}
+                placeholder={goalsPage.goalTitlePlaceholder} />
+              <input data-goal-edit-note style={{ ...goalInputStyle, marginBottom: 8 }}
+                value={editNote} maxLength={500} onChange={(e) => setEditNote(e.target.value)}
+                placeholder={goalsPage.goalNotePlaceholder} />
+              <div style={{ display: 'flex', gap: 8, marginBottom: 8 }} role="radiogroup">
+                {goalStatusOptions.map((opt) => (
+                  <button key={opt.value} role="radio" aria-checked={editStatus === opt.value}
+                    onClick={() => setEditStatus(opt.value)}
+                    style={{
+                      padding: '6px 14px', borderRadius: 999, cursor: 'pointer', fontSize: 13,
+                      background: editStatus === opt.value ? 'rgba(201,163,92,.16)' : 'rgba(255,255,255,.02)',
+                      border: `1px solid ${editStatus === opt.value ? theme.gold : 'rgba(201,163,92,.25)'}`,
+                      color: editStatus === opt.value ? theme.goldHi : theme.paper,
+                    }}>{opt.label}</button>
+                ))}
+              </div>
+              <select data-goal-edit-dungeon style={{ ...goalInputStyle, marginBottom: 10 }}
+                value={editDungeon} onChange={(e) => setEditDungeon(e.target.value)}>
+                <option value="">{goalsPage.dungeonNoneLabel}</option>
+                {(goalsPage.dungeonOptions ?? []).map((d: any) => (
+                  <option key={d.id} value={String(d.id)}>{d.name}</option>
+                ))}
+              </select>
+              <button data-goal-save className="yy-btn yy-btn-gold"
+                onClick={() => submitEditGoal(g)} disabled={goalInFlight || !editTitle.trim()}
+                style={{ padding: '8px 22px', fontSize: 14 }}>
+                {goalsPage.saveLabel}
+              </button>
+            </>
+          ) : (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
+                <span style={{ color: theme.paper, fontSize: 14.5 }}>{g.title}</span>
+                <span style={{
+                  fontSize: 11, borderRadius: 999, padding: '1px 8px', color: theme.goldHi,
+                  border: '1px solid rgba(201,163,92,.4)',
+                }}>{g.statusLabel}</span>
+                <span style={{ color: theme.muted, fontSize: 12 }}>{g.guildName}</span>
+                {g.dungeonName && (
+                  <span style={{ color: theme.muted, fontSize: 12 }}>
+                    {g.dungeonName}{g.seasonName ? ` · ${g.seasonName}` : ''}
+                  </span>
+                )}
+              </div>
+              {g.note && <div style={{ color: theme.muted, fontSize: 13, lineHeight: 1.6, marginBottom: 6 }}>{g.note}</div>}
+              <div style={{ display: 'flex', gap: 14 }}>
+                <button onClick={() => startEditGoal(g)}
+                  style={{ background: 'none', border: 'none', padding: 0, color: theme.gold, fontSize: 13, cursor: 'pointer' }}>
+                  {goalsPage.editLabel}
+                </button>
+                <button data-goal-delete onClick={() => deleteGoal(g)}
+                  style={{
+                    background: 'none', border: 'none', padding: 0, fontSize: 13, cursor: 'pointer',
+                    color: armedDeleteId === g.id ? '#e58d7f' : theme.muted,
+                  }}>
+                  {goalsPage.deleteLabel}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      ))}
+      <div style={{ borderTop: '1px solid rgba(201,163,92,.22)', marginTop: 18, paddingTop: 16 }}>
+        <div style={{ color: theme.paper, fontSize: 13.5, marginBottom: 6 }}>{goalsPage.guildLabel}</div>
+        <select data-goal-new-guild style={{ ...goalInputStyle, marginBottom: 10 }}
+          value={goalGuildSlug} onChange={(e) => setNewGuild(e.target.value)}>
+          {(goalsPage.guildOptions ?? []).map((opt: any) => (
+            <option key={opt.slug} value={opt.slug}>{opt.name}</option>
+          ))}
+        </select>
+        <div style={{ color: theme.paper, fontSize: 13.5, marginBottom: 6 }}>{goalsPage.goalTitleLabel}</div>
+        <input data-goal-new-title style={{ ...goalInputStyle, marginBottom: 10 }}
+          value={newTitle} maxLength={80} onChange={(e) => setNewTitle(e.target.value)}
+          placeholder={goalsPage.goalTitlePlaceholder} />
+        <div style={{ color: theme.paper, fontSize: 13.5, marginBottom: 6 }}>{goalsPage.goalNoteLabel}</div>
+        <input data-goal-new-note style={{ ...goalInputStyle, marginBottom: 10 }}
+          value={newNote} maxLength={500} onChange={(e) => setNewNote(e.target.value)}
+          placeholder={goalsPage.goalNotePlaceholder} />
+        <div style={{ color: theme.paper, fontSize: 13.5, marginBottom: 6 }}>{goalsPage.dungeonLabel}</div>
+        <select data-goal-new-dungeon style={{ ...goalInputStyle, marginBottom: 14 }}
+          value={newDungeon} onChange={(e) => setNewDungeon(e.target.value)}>
+          <option value="">{goalsPage.dungeonNoneLabel}</option>
+          {(goalsPage.dungeonOptions ?? []).map((d: any) => (
+            <option key={d.id} value={String(d.id)}>{d.name}</option>
+          ))}
+        </select>
+        <button data-goal-add className="yy-btn yy-btn-gold"
+          onClick={submitNewGoal} disabled={goalInFlight || !newTitle.trim() || !goalGuildSlug}
+          style={{ padding: '10px 26px', fontSize: 14.5 }}>
+          {goalsPage.addLabel}
+        </button>
+      </div>
+      {goalError && (
+        <div style={{ color: '#e58d7f', fontSize: 13, marginTop: 14 }}>{goalError}</div>
+      )}
+    </>
+  );
+
+  const body = view === 'feedback' ? feedbackBody : view === 'gear' ? gearBody : view === 'goals' ? goalsBody : mainBody;
   const headerTitle = view === 'feedback'
     ? page.feedbackTitle
-    : view === 'gear' ? data.gradPage?.gearMyLibTitle : page.settingsTitle;
+    : view === 'gear' ? data.gradPage?.gearMyLibTitle
+    : view === 'goals' ? goalsPage.title : page.settingsTitle;
   // The mobile header chevron pops one page; on the root page it closes
   // the dialog. (Desktop closes via the ✕ / scrim from any page.)
   const headerBack = view === 'main' ? onClose : popPage;

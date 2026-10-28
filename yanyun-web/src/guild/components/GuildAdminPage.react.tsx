@@ -19,6 +19,7 @@ import GuildAdminStats from './GuildAdminStats.react.tsx';
 import GuildAdminTools from './GuildAdminTools.react.tsx';
 import GuildAdminRecruit from './GuildAdminRecruit.react.tsx';
 import GuildAdminSeason from './GuildAdminSeason.react.tsx';
+import GuildAdminOfficer from './GuildAdminOfficer.react.tsx';
 import { PremiumLockedPanel, PremiumActivePanel } from './GuildAdminPremium.react.tsx';
 
 // Guild admin page (@match branch of viewer.guildAdmin): every label
@@ -65,6 +66,31 @@ const GuildAdminPage_guildAdmin = graphql`
     adminTabAnnouncementsLabel
     adminTabStatsLabel
     adminTabToolsLabel
+    adminTabOfficerLabel
+    officer {
+      notesTitle
+      notesHint
+      notesEmptyText
+      memberNoNotesText
+      notePlaceholder
+      noteAddLabel
+      noteEditLabel
+      noteSaveLabel
+      noteDeleteLabel
+      exportTitle
+      exportHint
+      exportLabel
+      goalsTitle
+      goalsHint
+      goalsEmptyText
+      hasGoals
+      members {
+        discordId
+        displayName
+        notes { id body authorText createdAtText updatedAtText }
+        goals { id title note status statusLabel dungeonName seasonName updatedAtText }
+      }
+    }
     adminLotteryTitle
     adminLotteryHint
     adminLotteryEmptyText
@@ -501,6 +527,7 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
     { key: 'tools', label: text.adminTabToolsLabel },
     { key: 'season', label: text.adminTabSeasonLabel },
     { key: 'recruit', label: text.adminTabRecruitLabel },
+    { key: 'officer', label: text.adminTabOfficerLabel },
   ];
 
   return (
@@ -735,6 +762,14 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
             pairings={data.recruitPairings}
             roster={data.recruitRoster}
             newcomers={data.newcomerProgress}
+            refresh={refresh}
+          />
+        )}
+        {tab === 'officer' && (
+          <GuildAdminOfficer
+            slug={slug}
+            officer={data.officer}
+            commonText={commonText}
             refresh={refresh}
           />
         )}

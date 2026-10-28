@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<6cde45d3485872f874028e09be3034ea>>
+ * @generated SignedSource<<2ea4c83219632caa742afcae41b98a7d>>
  * @lightSyntaxTransform
  */
 
@@ -8,6 +8,7 @@
 // @ts-nocheck
 
 import { ConcreteRequest } from 'relay-runtime';
+export type SeasonGoalStatus = "ACTIVE" | "DONE" | "DROPPED" | "%future added value";
 export type SettingsDialogQuery$variables = Record<PropertyKey, never>;
 export type SettingsDialogQuery$data = {
   readonly gradPage: {
@@ -54,6 +55,48 @@ export type SettingsDialogQuery$data = {
     readonly feedbackTitle: string;
     readonly freshAuthAt: number | null | undefined;
     readonly localePref: string | null | undefined;
+    readonly seasonGoals: {
+      readonly addLabel: string;
+      readonly deleteLabel: string;
+      readonly dungeonLabel: string;
+      readonly dungeonNoneLabel: string;
+      readonly dungeonOptions: ReadonlyArray<{
+        readonly id: number;
+        readonly name: string;
+        readonly seasonName: string | null | undefined;
+      }>;
+      readonly editLabel: string;
+      readonly emptyText: string;
+      readonly entryLabel: string;
+      readonly goalNoteLabel: string;
+      readonly goalNotePlaceholder: string;
+      readonly goalTitleLabel: string;
+      readonly goalTitlePlaceholder: string;
+      readonly goals: ReadonlyArray<{
+        readonly dungeonId: number | null | undefined;
+        readonly dungeonName: string | null | undefined;
+        readonly guildName: string;
+        readonly guildSlug: string;
+        readonly id: string;
+        readonly note: string;
+        readonly seasonName: string | null | undefined;
+        readonly status: SeasonGoalStatus;
+        readonly statusLabel: string;
+        readonly title: string;
+      }>;
+      readonly guildLabel: string;
+      readonly guildOptions: ReadonlyArray<{
+        readonly name: string;
+        readonly slug: string;
+      }>;
+      readonly hint: string;
+      readonly saveLabel: string;
+      readonly statusActiveLabel: string;
+      readonly statusDoneLabel: string;
+      readonly statusDroppedLabel: string;
+      readonly statusLabel: string;
+      readonly title: string;
+    };
     readonly settingsAutoLabel: string;
     readonly settingsDiscordLabel: string;
     readonly settingsLangEnLabel: string;
@@ -76,7 +119,42 @@ export type SettingsDialogQuery = {
 };
 
 const node: ConcreteRequest = (function(){
-var v0 = [
+var v0 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "title",
+  "storageKey": null
+},
+v1 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "statusLabel",
+  "storageKey": null
+},
+v2 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "id",
+  "storageKey": null
+},
+v3 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "seasonName",
+  "storageKey": null
+},
+v4 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "name",
+  "storageKey": null
+},
+v5 = [
   {
     "alias": null,
     "args": null,
@@ -421,6 +499,228 @@ var v0 = [
       {
         "alias": null,
         "args": null,
+        "concreteType": "MySeasonGoalPage",
+        "kind": "LinkedField",
+        "name": "seasonGoals",
+        "plural": false,
+        "selections": [
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "entryLabel",
+            "storageKey": null
+          },
+          (v0/*:: as any*/),
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "hint",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "emptyText",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "guildLabel",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "goalTitleLabel",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "goalTitlePlaceholder",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "goalNoteLabel",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "goalNotePlaceholder",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "dungeonLabel",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "dungeonNoneLabel",
+            "storageKey": null
+          },
+          (v1/*:: as any*/),
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "addLabel",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "saveLabel",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "editLabel",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "deleteLabel",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "statusActiveLabel",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "statusDoneLabel",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "statusDroppedLabel",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "concreteType": "MemberSeasonGoal",
+            "kind": "LinkedField",
+            "name": "goals",
+            "plural": true,
+            "selections": [
+              (v2/*:: as any*/),
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "guildSlug",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "guildName",
+                "storageKey": null
+              },
+              (v0/*:: as any*/),
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "note",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "status",
+                "storageKey": null
+              },
+              (v1/*:: as any*/),
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "dungeonId",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "dungeonName",
+                "storageKey": null
+              },
+              (v3/*:: as any*/)
+            ],
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "concreteType": "SeasonGoalGuildOption",
+            "kind": "LinkedField",
+            "name": "guildOptions",
+            "plural": true,
+            "selections": [
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "slug",
+                "storageKey": null
+              },
+              (v4/*:: as any*/)
+            ],
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "concreteType": "SeasonGoalDungeonOption",
+            "kind": "LinkedField",
+            "name": "dungeonOptions",
+            "plural": true,
+            "selections": [
+              (v2/*:: as any*/),
+              (v4/*:: as any*/),
+              (v3/*:: as any*/)
+            ],
+            "storageKey": null
+          }
+        ],
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
         "concreteType": "AccountPendingDeletion",
         "kind": "LinkedField",
         "name": "accountPendingDeletion",
@@ -485,7 +785,7 @@ return {
     "kind": "Fragment",
     "metadata": null,
     "name": "SettingsDialogQuery",
-    "selections": (v0/*:: as any*/),
+    "selections": (v5/*:: as any*/),
     "type": "Query",
     "abstractKey": null
   },
@@ -494,19 +794,19 @@ return {
     "argumentDefinitions": [],
     "kind": "Operation",
     "name": "SettingsDialogQuery",
-    "selections": (v0/*:: as any*/)
+    "selections": (v5/*:: as any*/)
   },
   "params": {
-    "cacheID": "75abfcba8825618354b939392b6998bc",
+    "cacheID": "1c142ab3d3ad7050811178831384ecfc",
     "id": null,
     "metadata": {},
     "name": "SettingsDialogQuery",
     "operationKind": "query",
-    "text": "query SettingsDialogQuery {\n  viewer {\n    commonUnknownErrorText\n  }\n  settingsPage {\n    settingsTitle\n    settingsDiscordLabel\n    settingsLanguageLabel\n    settingsLanguageHint\n    settingsAutoLabel\n    settingsLangZhCnLabel\n    settingsLangZhTwLabel\n    settingsLangEnLabel\n    settingsLangEsLabel\n    settingsLangFrLabel\n    settingsSavedText\n    feedbackEntryLabel\n    feedbackTitle\n    feedbackCategoryLabel\n    feedbackCategoryProblemLabel\n    feedbackCategorySuggestionLabel\n    feedbackCategoryOtherLabel\n    feedbackPlaceholder\n    feedbackSubmitLabel\n    feedbackSubmittingLabel\n    feedbackSuccessText\n    localePref\n    effectiveLocale\n    accountSectionTitle\n    accountExportLabel\n    accountExportHint\n    accountDeleteLabel\n    accountDeleteHint\n    accountReauthLabel\n    accountReauthHint\n    accountConfirmTitle\n    accountConfirmIntro\n    accountConsequenceCars\n    accountConsequenceData\n    accountConsequenceGuilds\n    accountConsequenceResidual\n    accountConsequenceReregister\n    accountExportFirstHint\n    accountUsernameLabel\n    accountSubmitLabel\n    accountBackLabel\n    accountCancelDeletionLabel\n    accountDeletionRequestedText\n    accountDeletionCancelledText\n    freshAuthAt\n    accountPendingDeletion {\n      executesAt\n      daysLeft\n      accountPendingTitle\n      accountPendingBody\n    }\n  }\n  gradPage {\n    gearMyLibTitle\n  }\n}\n"
+    "text": "query SettingsDialogQuery {\n  viewer {\n    commonUnknownErrorText\n  }\n  settingsPage {\n    settingsTitle\n    settingsDiscordLabel\n    settingsLanguageLabel\n    settingsLanguageHint\n    settingsAutoLabel\n    settingsLangZhCnLabel\n    settingsLangZhTwLabel\n    settingsLangEnLabel\n    settingsLangEsLabel\n    settingsLangFrLabel\n    settingsSavedText\n    feedbackEntryLabel\n    feedbackTitle\n    feedbackCategoryLabel\n    feedbackCategoryProblemLabel\n    feedbackCategorySuggestionLabel\n    feedbackCategoryOtherLabel\n    feedbackPlaceholder\n    feedbackSubmitLabel\n    feedbackSubmittingLabel\n    feedbackSuccessText\n    localePref\n    effectiveLocale\n    accountSectionTitle\n    accountExportLabel\n    accountExportHint\n    accountDeleteLabel\n    accountDeleteHint\n    accountReauthLabel\n    accountReauthHint\n    accountConfirmTitle\n    accountConfirmIntro\n    accountConsequenceCars\n    accountConsequenceData\n    accountConsequenceGuilds\n    accountConsequenceResidual\n    accountConsequenceReregister\n    accountExportFirstHint\n    accountUsernameLabel\n    accountSubmitLabel\n    accountBackLabel\n    accountCancelDeletionLabel\n    accountDeletionRequestedText\n    accountDeletionCancelledText\n    freshAuthAt\n    seasonGoals {\n      entryLabel\n      title\n      hint\n      emptyText\n      guildLabel\n      goalTitleLabel\n      goalTitlePlaceholder\n      goalNoteLabel\n      goalNotePlaceholder\n      dungeonLabel\n      dungeonNoneLabel\n      statusLabel\n      addLabel\n      saveLabel\n      editLabel\n      deleteLabel\n      statusActiveLabel\n      statusDoneLabel\n      statusDroppedLabel\n      goals {\n        id\n        guildSlug\n        guildName\n        title\n        note\n        status\n        statusLabel\n        dungeonId\n        dungeonName\n        seasonName\n      }\n      guildOptions {\n        slug\n        name\n      }\n      dungeonOptions {\n        id\n        name\n        seasonName\n      }\n    }\n    accountPendingDeletion {\n      executesAt\n      daysLeft\n      accountPendingTitle\n      accountPendingBody\n    }\n  }\n  gradPage {\n    gearMyLibTitle\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "f61affd8aa70ad68cde6aa00c957a92a";
+(node as any).hash = "f7afa3661b5d3e409a3d819d4914fa85";
 
 export default node;
