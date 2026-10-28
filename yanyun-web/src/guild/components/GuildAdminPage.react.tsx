@@ -16,6 +16,7 @@ import GuildAdminEvents from './GuildAdminEvents.react.tsx';
 import GuildAdminGuides from './GuildAdminGuides.react.tsx';
 import { GuildAdminAnnouncementsRoute } from './GuildAnnouncements.react.tsx';
 import GuildAdminStats from './GuildAdminStats.react.tsx';
+import GuildAdminTools from './GuildAdminTools.react.tsx';
 import { PremiumLockedPanel, PremiumActivePanel } from './GuildAdminPremium.react.tsx';
 
 // Guild admin page (@match branch of viewer.guildAdmin): every label
@@ -61,6 +62,48 @@ const GuildAdminPage_guildAdmin = graphql`
     adminTabGuidesLabel
     adminTabAnnouncementsLabel
     adminTabStatsLabel
+    adminTabToolsLabel
+    adminCalendarTitle
+    adminCalendarHint
+    adminCalendarUrlLabel
+    adminCalendarCopyLabel
+    adminCalendarResetLabel
+    adminCalendarResetHint
+    adminLotteryTitle
+    adminLotteryHint
+    adminLotteryEmptyText
+    adminLotteryNameLabel
+    adminLotteryPrizeLabel
+    adminLotterySourceLabel
+    adminLotterySourceGroupingText
+    adminLotterySourceMembersText
+    adminLotteryGroupingLabel
+    adminLotteryWinnerCountLabel
+    adminLotteryUniformWeightLabel
+    adminLotteryWeightLabel
+    adminLotteryEntriesLabel
+    adminLotteryWinnersLabel
+    adminLotteryCreateLabel
+    adminLotteryDrawLabel
+    adminLotteryStatusOpenText
+    adminLotteryStatusDrawnText
+    calendarFeedUrl
+    lotteries {
+      id
+      title
+      prize
+      source
+      sourceEventId
+      sourceEventTitle
+      winnerCount
+      status
+      entryCountText
+      createdAtText
+      drawnAtText
+      entries { discordId displayName weight }
+      winners { discordId displayName weight }
+    }
+    lotteryRoster { discordId displayName }
     adminSaveLabel
     adminSavedText
     adminDeleteLabel
@@ -385,6 +428,7 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
     { key: 'guides', label: text.adminTabGuidesLabel },
     { key: 'announcements', label: text.adminTabAnnouncementsLabel },
     { key: 'stats', label: text.adminTabStatsLabel },
+    { key: 'tools', label: text.adminTabToolsLabel },
   ];
 
   return (
@@ -605,6 +649,18 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
           ) : premiumLocked ? (
             <PremiumLockedPanel premium={premiumLocked} slug={slug} unknownError={commonText.unknownError} />
           ) : null
+        )}
+        {tab === 'tools' && (
+          <GuildAdminTools
+            slug={slug}
+            text={text}
+            commonText={commonText}
+            calendarFeedUrl={data.calendarFeedUrl}
+            lotteries={data.lotteries}
+            lotteryRoster={data.lotteryRoster}
+            events={data.events}
+            refresh={refresh}
+          />
         )}
       </div>
     </div>

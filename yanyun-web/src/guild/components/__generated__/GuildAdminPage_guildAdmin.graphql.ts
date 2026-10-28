@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<2ebdf81bbf9e89de18a327d2b375ce10>>
+ * @generated SignedSource<<4c50b349f7e12257530188acb2d125ae>>
  * @lightSyntaxTransform
  */
 
@@ -9,6 +9,8 @@
 
 import { ReaderFragment } from 'relay-runtime';
 export type GroupingType = "ACTIVITY" | "RACE" | "TALENT" | "TOWER" | "%future added value";
+export type LotterySource = "GROUPING" | "MEMBERS" | "%future added value";
+export type LotteryStatus = "DRAWN" | "OPEN" | "%future added value";
 import { FragmentRefs } from "relay-runtime";
 export type GuildAdminPage_guildAdmin$data = {
   readonly adminAddLabel: string;
@@ -23,6 +25,12 @@ export type GuildAdminPage_guildAdmin$data = {
   readonly adminBgImageUrlLabel: string;
   readonly adminBillingCanceledText: string;
   readonly adminBillingSuccessText: string;
+  readonly adminCalendarCopyLabel: string;
+  readonly adminCalendarHint: string;
+  readonly adminCalendarResetHint: string;
+  readonly adminCalendarResetLabel: string;
+  readonly adminCalendarTitle: string;
+  readonly adminCalendarUrlLabel: string;
   readonly adminDeleteLabel: string;
   readonly adminDevOnlyLabel: string;
   readonly adminDiscordTitle: string;
@@ -51,6 +59,24 @@ export type GuildAdminPage_guildAdmin$data = {
   readonly adminHideBrandingHint: string;
   readonly adminHideBrandingLabel: string;
   readonly adminLogoUrlLabel: string;
+  readonly adminLotteryCreateLabel: string;
+  readonly adminLotteryDrawLabel: string;
+  readonly adminLotteryEmptyText: string;
+  readonly adminLotteryEntriesLabel: string;
+  readonly adminLotteryGroupingLabel: string;
+  readonly adminLotteryHint: string;
+  readonly adminLotteryNameLabel: string;
+  readonly adminLotteryPrizeLabel: string;
+  readonly adminLotterySourceGroupingText: string;
+  readonly adminLotterySourceLabel: string;
+  readonly adminLotterySourceMembersText: string;
+  readonly adminLotteryStatusDrawnText: string;
+  readonly adminLotteryStatusOpenText: string;
+  readonly adminLotteryTitle: string;
+  readonly adminLotteryUniformWeightLabel: string;
+  readonly adminLotteryWeightLabel: string;
+  readonly adminLotteryWinnerCountLabel: string;
+  readonly adminLotteryWinnersLabel: string;
   readonly adminMasterNameLabel: string;
   readonly adminNameLabel: string;
   readonly adminOgAccentLabel: string;
@@ -100,6 +126,7 @@ export type GuildAdminPage_guildAdmin$data = {
   readonly adminTabGuidesLabel: string;
   readonly adminTabProfileLabel: string;
   readonly adminTabStatsLabel: string;
+  readonly adminTabToolsLabel: string;
   readonly adminTitle: string;
   readonly adminTypeActivityText: string;
   readonly adminTypeRaceText: string;
@@ -115,6 +142,7 @@ export type GuildAdminPage_guildAdmin$data = {
   readonly announcement: string;
   readonly avatarUrl: string | null | undefined;
   readonly bgImageUrl: string;
+  readonly calendarFeedUrl: string;
   readonly devOnly: boolean;
   readonly discordGuildId: string;
   readonly events: ReadonlyArray<{
@@ -154,6 +182,33 @@ export type GuildAdminPage_guildAdmin$data = {
     readonly type: GroupingType;
   }>;
   readonly logoUrl: string;
+  readonly lotteries: ReadonlyArray<{
+    readonly createdAtText: string;
+    readonly drawnAtText: string | null | undefined;
+    readonly entries: ReadonlyArray<{
+      readonly discordId: string;
+      readonly displayName: string;
+      readonly weight: number;
+    }>;
+    readonly entryCountText: string;
+    readonly id: string;
+    readonly prize: string;
+    readonly source: LotterySource;
+    readonly sourceEventId: string | null | undefined;
+    readonly sourceEventTitle: string | null | undefined;
+    readonly status: LotteryStatus;
+    readonly title: string;
+    readonly winnerCount: number;
+    readonly winners: ReadonlyArray<{
+      readonly discordId: string;
+      readonly displayName: string;
+      readonly weight: number;
+    }>;
+  }>;
+  readonly lotteryRoster: ReadonlyArray<{
+    readonly discordId: string;
+    readonly displayName: string;
+  }>;
   readonly masterName: string;
   readonly name: string | null | undefined;
   readonly ogAccent: string;
@@ -259,35 +314,60 @@ v2 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "teamName",
+  "name": "title",
   "storageKey": null
 },
 v3 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "members",
+  "name": "status",
   "storageKey": null
 },
 v4 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "note",
+  "name": "discordId",
   "storageKey": null
 },
 v5 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "discordId",
+  "name": "displayName",
   "storageKey": null
 },
-v6 = {
+v6 = [
+  (v4/*:: as any*/),
+  (v5/*:: as any*/),
+  {
+    "alias": null,
+    "args": null,
+    "kind": "ScalarField",
+    "name": "weight",
+    "storageKey": null
+  }
+],
+v7 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "displayName",
+  "name": "teamName",
+  "storageKey": null
+},
+v8 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "members",
+  "storageKey": null
+},
+v9 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "note",
   "storageKey": null
 };
 return {
@@ -590,6 +670,291 @@ return {
       "args": null,
       "kind": "ScalarField",
       "name": "adminTabStatsLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminTabToolsLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminCalendarTitle",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminCalendarHint",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminCalendarUrlLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminCalendarCopyLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminCalendarResetLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminCalendarResetHint",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminLotteryTitle",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminLotteryHint",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminLotteryEmptyText",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminLotteryNameLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminLotteryPrizeLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminLotterySourceLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminLotterySourceGroupingText",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminLotterySourceMembersText",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminLotteryGroupingLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminLotteryWinnerCountLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminLotteryUniformWeightLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminLotteryWeightLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminLotteryEntriesLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminLotteryWinnersLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminLotteryCreateLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminLotteryDrawLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminLotteryStatusOpenText",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "adminLotteryStatusDrawnText",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "calendarFeedUrl",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "concreteType": "GuildAdminLottery",
+      "kind": "LinkedField",
+      "name": "lotteries",
+      "plural": true,
+      "selections": [
+        (v1/*:: as any*/),
+        (v2/*:: as any*/),
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "prize",
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "source",
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "sourceEventId",
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "sourceEventTitle",
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "winnerCount",
+          "storageKey": null
+        },
+        (v3/*:: as any*/),
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "entryCountText",
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "createdAtText",
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "drawnAtText",
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "concreteType": "GuildAdminLotteryEntry",
+          "kind": "LinkedField",
+          "name": "entries",
+          "plural": true,
+          "selections": (v6/*:: as any*/),
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "concreteType": "GuildAdminLotteryEntry",
+          "kind": "LinkedField",
+          "name": "winners",
+          "plural": true,
+          "selections": (v6/*:: as any*/),
+          "storageKey": null
+        }
+      ],
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "concreteType": "GuildAdminLotteryMember",
+      "kind": "LinkedField",
+      "name": "lotteryRoster",
+      "plural": true,
+      "selections": [
+        (v4/*:: as any*/),
+        (v5/*:: as any*/)
+      ],
       "storageKey": null
     },
     {
@@ -1252,13 +1617,7 @@ return {
       "plural": true,
       "selections": [
         (v1/*:: as any*/),
-        {
-          "alias": null,
-          "args": null,
-          "kind": "ScalarField",
-          "name": "title",
-          "storageKey": null
-        },
+        (v2/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -1266,13 +1625,7 @@ return {
           "name": "type",
           "storageKey": null
         },
-        {
-          "alias": null,
-          "args": null,
-          "kind": "ScalarField",
-          "name": "status",
-          "storageKey": null
-        },
+        (v3/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -1373,9 +1726,9 @@ return {
               "name": "contact",
               "storageKey": null
             },
-            (v2/*:: as any*/),
-            (v3/*:: as any*/),
-            (v4/*:: as any*/),
+            (v7/*:: as any*/),
+            (v8/*:: as any*/),
+            (v9/*:: as any*/),
             {
               "alias": null,
               "args": null,
@@ -1395,8 +1748,8 @@ return {
           "plural": true,
           "selections": [
             (v1/*:: as any*/),
-            (v2/*:: as any*/),
-            (v3/*:: as any*/),
+            (v7/*:: as any*/),
+            (v8/*:: as any*/),
             {
               "alias": null,
               "args": null,
@@ -1418,7 +1771,7 @@ return {
               "name": "proofUrl",
               "storageKey": null
             },
-            (v4/*:: as any*/)
+            (v9/*:: as any*/)
           ],
           "storageKey": null
         },
@@ -1636,8 +1989,8 @@ return {
               "name": "memberLeaders",
               "plural": true,
               "selections": [
+                (v4/*:: as any*/),
                 (v5/*:: as any*/),
-                (v6/*:: as any*/),
                 {
                   "alias": null,
                   "args": null,
@@ -1656,8 +2009,8 @@ return {
               "name": "leaderLeaders",
               "plural": true,
               "selections": [
+                (v4/*:: as any*/),
                 (v5/*:: as any*/),
-                (v6/*:: as any*/),
                 {
                   "alias": null,
                   "args": null,
@@ -1681,6 +2034,6 @@ return {
 };
 })();
 
-(node as any).hash = "76309b42f0a5e36324026e44752a11ba";
+(node as any).hash = "a897d18feb3120bdabe7e0b6871103fd";
 
 export default node;
