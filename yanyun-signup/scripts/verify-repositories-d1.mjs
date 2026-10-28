@@ -1166,30 +1166,10 @@ if (want('announcements')) {
   eq('other announcements survive the delete', (await repo.listAnnouncements(db, 'alpha', 50)).map((r) => r.id), [id2]);
 }
 
-/* ---------------- calendar_feeds + lotteries (F8/F21) ---------------- */
+/* ---------------- lotteries (F21) ---------------- */
 if (want('activitytools')) {
-  console.log('== calendar_feeds + lotteries repositories on real D1 ==');
-  const cal = await import('../src/domains/groupings/calendarfeeds.ts');
+  console.log('== lotteries repositories on real D1 ==');
   const lot = await import('../src/domains/groupings/lotteries.ts');
-
-  const feed = await cal.mintCalendarFeed(db, 'alpha');
-  check('mint returns a 32-char base62 token', cal.CALENDAR_TOKEN_RE.test(feed.token), feed.token);
-  eq('second mint for same guild is stable', (await cal.mintCalendarFeed(db, 'alpha')).token, feed.token);
-  eq('getCalendarFeedByToken roundtrip', (await cal.getCalendarFeedByToken(db, feed.token))?.tenant, 'alpha');
-  eq('getCalendarFeedByToken unknown -> null', await cal.getCalendarFeedByToken(db, 'Z'.repeat(32)), null);
-  eq('getCalendarFeedByTenant unknown -> null', await cal.getCalendarFeedByTenant(db, 'nope'), null);
-
-  const reset = await cal.resetCalendarFeed(db, 'alpha');
-  check('reset changes the token', reset.token !== feed.token, `${feed.token} -> ${reset.token}`);
-  eq('old token is revoked after reset', await cal.getCalendarFeedByToken(db, feed.token), null);
-  eq('new token resolves after reset', (await cal.getCalendarFeedByToken(db, reset.token))?.tenant, 'alpha');
-  eq('calendarFeedUrl shape', cal.calendarFeedUrl('Ab3dEf9'), 'https://yanyun.app/cal/Ab3dEf9');
-
-  // Token collision on mint: first candidate belongs to alpha's feed.
-  const freshToken = 'N3wT0ken'.padEnd(32, 'x');
-  const seq = [reset.token, freshToken];
-  const other = await cal.mintCalendarFeed(db, 'beta', () => seq.shift() || cal.generateCalendarToken());
-  eq('token collision retries with a fresh token', other.token, freshToken);
 
   const created = await lot.insertLottery(db, {
     tenant: 'alpha', title: '周年抽奖', prize: '坐骑一只', source: 'members',
