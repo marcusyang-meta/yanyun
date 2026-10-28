@@ -10,7 +10,7 @@ import type { GuildItem } from '../api';
 import HomeRecruitSection from './HomeRecruitSection';
 
 // Guild picker mirrors Web GuildPicker: hero (centered brand title/
-// subtitle, UserBar frosted pill floating top-right) -> section head
+// subtitle, avatar circle floating top-right) -> section head
 // (Chinese calligraphy + EN small label) -> seal cards (seal + guild
 // name + read-only badge + slogan). All copy comes from viewer fields.
 function GuildCard({ g }: { g: GuildItem }) {
@@ -73,7 +73,7 @@ export default function GuildsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 + insets.bottom }}
       >
-        {/* .yy-hero: landscape band + centered brand title/subtitle, user pill floating top-right */}
+        {/* .yy-hero: landscape band + centered brand title/subtitle, avatar circle floating top-right */}
         <View style={[s.hero, { paddingTop: 34 + insets.top }]}>
           <Image
             source={require('../../assets/hero.jpg')}
@@ -86,8 +86,8 @@ export default function GuildsScreen() {
             style={StyleSheet.absoluteFill}
             pointerEvents="none"
           />
-          <View style={[s.pill, { top: 12 + insets.top }]}>
-            <UserBar floating />
+          <View style={[s.avatarSlot, { top: 12 + insets.top }]}>
+            <UserBar />
           </View>
           <Text style={s.heroTitle}>{text.siteTitle ?? '百业集结'}</Text>
           <Text style={s.heroSub}>{text.siteSubtitle ?? '燕云十六声 · 国际服百业车队与攻略集散地 —— 择一业而入，共赴双十。'}</Text>
@@ -151,7 +151,7 @@ const s = StyleSheet.create({
     alignItems: 'center', paddingHorizontal: 20, paddingBottom: 48,
   },
   heroImg: { top: '-30%' }, // Approximates Web object-position: center 32%
-  pill: { position: 'absolute', right: 16, zIndex: 2 },
+  avatarSlot: { position: 'absolute', right: 16, zIndex: 2 },
   heroTitle: {
     fontFamily: fonts.brush, color: theme.goldHi, fontSize: 56,
     letterSpacing: 10, textAlign: 'center',

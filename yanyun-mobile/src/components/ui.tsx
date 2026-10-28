@@ -1,7 +1,6 @@
 import React from 'react';
 import { Image, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
 import { router } from 'expo-router';
 import { fonts, theme } from '../theme';
 import { useSession } from '../session';
@@ -106,67 +105,51 @@ export function Seal({ char, size, brush = true }: { char: string; size: number;
   );
 }
 
-function GhostBtn({ label, onPress }: { label: string; onPress: () => void }) {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={{
-        borderWidth: 1, borderColor: 'rgba(201,163,92,.4)', borderRadius: 8,
-        paddingVertical: 5, paddingHorizontal: 12,
-      }}
-    >
-      <Text style={{ color: theme.muted, fontSize: 12.5, fontFamily: fonts.serif }}>{label}</Text>
-    </Pressable>
-  );
-}
-
-// Web UserBar: 30px round gold-bordered avatar (or initial circle) + name + outlined profile and sign-out buttons.
-// With floating=true it is the frosted-glass pill at the picker hero's top-right.
-export function UserBar({ displayName, floating = false }: { displayName?: string | null; floating?: boolean }) {
-  const { user, text, signOut } = useSession();
-  if (!user) return null;
+// The personal entry is a single round gold-bordered avatar (or an
+// initial circle when there is no avatar): no name, no spread-out
+// buttons, no pill. Tapping it opens the Profile page, which holds
+// every account option (identity, language, gear library,
+// availability, feedback, account, sign-out). Signed out — guild
+// pages are reachable by deep link without a session — the entry is
+// one compact login button routing to the entry gate, which renders
+// the login screen.
+export function UserBar({ displayName }: { displayName?: string | null }) {
+  const { user, text } = useSession();
+  if (!user) {
+    return (
+      <Pressable
+        onPress={() => router.replace('/')}
+        style={{
+          borderWidth: 1, borderColor: 'rgba(201,163,92,.4)', borderRadius: 8,
+          paddingVertical: 6, paddingHorizontal: 14,
+        }}
+      >
+        <Text style={{ color: theme.muted, fontSize: 12.5, fontFamily: fonts.serif }}>
+          {text.loginButtonLabel ?? '使用 Discord 登录'}
+        </Text>
+      </Pressable>
+    );
+  }
   const name = displayName ?? user.name;
-  const inner = (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9 }}>
+  return (
+    <Pressable onPress={() => router.push('/profile')} hitSlop={6}>
       {user.avatar ? (
         <Image
           source={{ uri: user.avatar }}
-          style={{ width: 30, height: 30, borderRadius: 15, borderWidth: 1, borderColor: theme.gold }}
+          style={{ width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: theme.gold }}
         />
       ) : (
         <View
           style={{
-            width: 30, height: 30, borderRadius: 15, backgroundColor: '#3a2c17',
+            width: 40, height: 40, borderRadius: 20, backgroundColor: '#3a2c17',
             alignItems: 'center', justifyContent: 'center',
             borderWidth: 1, borderColor: theme.gold,
           }}
         >
-          <Text style={{ color: theme.goldHi, fontSize: 13, fontFamily: fonts.serif }}>{name.slice(0, 1)}</Text>
+          <Text style={{ color: theme.goldHi, fontSize: 17, fontFamily: fonts.serif }}>{name.slice(0, 1)}</Text>
         </View>
       )}
-      <Text numberOfLines={1} style={{ color: theme.paper, fontSize: 14, fontFamily: fonts.serif, maxWidth: 110, flexShrink: 1 }}>
-        {name}
-      </Text>
-      <GhostBtn label={text.userBarSettingsLabel ?? '个人资料'} onPress={() => router.push('/profile')} />
-      <GhostBtn
-        label={text.userBarLogoutLabel ?? '退出登录'}
-        onPress={() => { void signOut().then(() => router.replace('/')); }}
-      />
-    </View>
-  );
-  if (!floating) return inner;
-  return (
-    <View
-      style={{
-        borderRadius: 999, overflow: 'hidden',
-        borderWidth: 1, borderColor: 'rgba(201,163,92,.25)',
-      }}
-    >
-      <BlurView intensity={24} tint="dark" style={StyleSheet.absoluteFill} />
-      <View style={{ backgroundColor: 'rgba(12,11,9,.5)', paddingVertical: 5, paddingLeft: 12, paddingRight: 10 }}>
-        {inner}
-      </View>
-    </View>
+    </Pressable>
   );
 }
 
