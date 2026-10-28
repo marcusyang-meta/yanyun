@@ -56,6 +56,9 @@ import {
 } from '../platform/graphql-base.ts';
 import { groupingListPage, touchGuildRoster } from '../groupings/index.ts';
 import { guildAdminTypes, guildAdminMutations, guildAdminPayloadResolvers } from './admin-graphql.ts';
+import {
+  announcementPageForMember, guildAnnouncementMutations, guildAnnouncementTypes,
+} from './announcements-graphql.ts';
 
 export const CREATE_RESERVED = new Set([
   'admin', 'api', 'auth', 'hub', 'login', 'logout', 'og', 'graphql', 'create',
@@ -113,6 +116,13 @@ export class GuildShell extends ShellBase {
   }
   genGroupings({ tab }: any){
     return groupingListPage(this.ctx, this.genSlug(), tab);
+  }
+  /* Announcements (F9/F10/F18): the member variant of the
+   * announcement page — declared on Guild and GuildReadOnly (the
+   * shared content surface), never on GuildLocked. Compose and
+   * receipts live only on the admin variant (GuildAdmin shell). */
+  genAnnouncements(){
+    return announcementPageForMember(this.ctx, this.genSlug());
   }
   // This guild's member roster (proxy-signup picker): attached only
   // to the full Guild type (GuildReadOnly / GuildLocked have no such
@@ -181,6 +191,7 @@ export const GUILD_HOME_TEXT_SPEC = [
   ['homeTabTeamLabel', 'guildHome', 'tabTeam'],
   ['homeTabDexLabel', 'guildHome', 'tabDex'],
   ['homeTabSectLabel', 'guildHome', 'tabSect'],
+  ['homeTabAnnouncementsLabel', 'guildHome', 'tabAnnouncements'],
   ['detailNotFoundText', 'groupingDetail', 'notFound'],
   ['detailBackToListLabel', 'groupingDetail', 'backToList'],
 ];
@@ -214,6 +225,7 @@ export function guildContentResolvers() {
     memberCount: (p: any) => p.genMemberCount(),
     avatarUrl: (p: any) => p.genAvatarUrl(),
     groupings: (p: any, { tab }: any) => p.genGroupings({ tab }),
+    announcements: (p: any) => p.genAnnouncements(),
     viewerNick: (p: any) => p.genViewerNick(),
     pageBackLabel: (p: any) => p.genPageBackLabel(),
     pageFooterDisclaimerText: (p: any) => p.genPageFooterDisclaimerText(),
@@ -355,6 +367,8 @@ export const guildsResolvers = {
 
     ...guildAdminMutations,
 
+    ...guildAnnouncementMutations,
+
     // Write gate (requireWrite): logged in + bound + member; an unbound guild's writes are fully locked.
   },
   types: {
@@ -399,5 +413,6 @@ export const guildsResolvers = {
   },
   ...guildAdminTypes,
   ...guildAdminPayloadResolvers,
+  ...guildAnnouncementTypes,
   },
 };

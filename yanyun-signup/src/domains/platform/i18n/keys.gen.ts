@@ -123,7 +123,13 @@ export type PlatformStringKey =
   | 'errors.checkoutFailed'
   | 'errors.feedbackEmpty'
   | 'errors.feedbackTooLong'
-  | 'errors.feedbackRateLimited';
+  | 'errors.feedbackRateLimited'
+  | 'errors.announcementTitleRequired'
+  | 'errors.announcementTitleTooLong'
+  | 'errors.announcementBodyTooLong'
+  | 'errors.announcementNotFound'
+  | 'errors.announcementDailyLimit'
+  | 'errors.urgentCallDailyLimit';
 
 export const PLATFORM_STRING_KEYS: readonly PlatformStringKey[] = [
   'common.cancel',
@@ -249,4 +255,10 @@ export const PLATFORM_STRING_KEYS: readonly PlatformStringKey[] = [
   'errors.feedbackEmpty',
   'errors.feedbackTooLong',
   'errors.feedbackRateLimited',
+  'errors.announcementTitleRequired',
+  'errors.announcementTitleTooLong',
+  'errors.announcementBodyTooLong',
+  'errors.announcementNotFound',
+  'errors.announcementDailyLimit',
+  'errors.urgentCallDailyLimit',
 ];

@@ -25,6 +25,7 @@ import {
   bosses, dungeons, schools, schoolBis, schoolRotations, slotAffix, affixMax,
   userGearItems, userGearBuilds, buildShareLinks, heirloomItemPushes, heirloomSetState,
   pushTokens, usageCounters, creatorBackfillLog, hubAuditLog, guildEntitlements, feedback,
+  guildAnnouncements, guildAnnouncementReads,
 } from '../../db/schema.ts';
 
 export const BACKUP_FORMAT = 'yanyun-backup';
@@ -66,6 +67,8 @@ export const BACKUP_ENTITIES: ReadonlyArray<readonly [string, SQLiteTable]> = [
   ['hub_audit_log', hubAuditLog],
   ['guild_entitlements', guildEntitlements],
   ['feedback', feedback],
+  ['guild_announcements', guildAnnouncements],
+  ['guild_announcement_reads', guildAnnouncementReads],
 ];
 
 export type EncodedValue = string | number | null | { $blob: string };

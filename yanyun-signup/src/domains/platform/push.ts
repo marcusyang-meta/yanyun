@@ -144,6 +144,55 @@ export async function sendExpoPush(db: D1Database, messages: any, expoBase: any)
   return summary;
 }
 
+/* Guild-announcement app channel (F9/F18): the SAME Expo pipeline as
+ * the departure reminder below — one token store, one sender, one
+ * cleanup path; announcements never grow a second push path. userIds
+ * are the guild roster's Discord ids (the announcement service
+ * resolves them); roster members without a registered token simply
+ * receive nothing here and still see the announcement in-app — the
+ * in-app list is the full-coverage channel. `urgent` posts (F18 rally
+ * calls) carry the server-composed urgent label in the push title.
+ * Copy arrives composed from the caller (catalog text), this layer
+ * only transports it. */
+export async function sendAnnouncementPush(
+  db: D1Database,
+  slug: string,
+  notice: { id: number; kind: string; title: string; body: string; guildName: string; urgentLabel: string },
+  userIds: string[],
+  expoBase: any,
+) {
+  const byUser = await pushTokensForUsers(db, userIds || []);
+  if (!byUser.size) return { attempted: 0, ticketOk: 0, removed: 0, errors: [] };
+  const urgent = notice.kind === 'urgent';
+  const title = urgent
+    ? `${notice.guildName} · ${notice.urgentLabel}`
+    : `${notice.guildName} · ${notice.title}`;
+  const body = urgent ? notice.title : notice.body;
+  const messages = [];
+  for (const tokens of byUser.values()) {
+    for (const token of tokens) {
+      messages.push({
+        to: token,
+        title,
+        body: String(body || '').slice(0, 200),
+        sound: 'default',
+        channelId: 'default',
+        data: { slug: String(slug), announcementId: String(notice.id), kind: notice.kind },
+      });
+    }
+  }
+  const summary = await sendExpoPush(db, messages, expoBase);
+  if (summary.errors.length) {
+    console.log(`[push] announcement ${notice.id} (${slug}): attempted=${summary.attempted} ok=${summary.ticketOk} removed=${summary.removed} errors=${summary.errors.slice(0, 3).join(' | ')}`);
+    void logError(db, {
+      source: 'push', name: 'PushError', tenant: slug,
+      message: summary.errors.slice(0, 3).join(' | '),
+      context: { announcementId: notice.id, attempted: summary.attempted, ticketOk: summary.ticketOk },
+    });
+  }
+  return summary;
+}
+
 /* Departure-reminder app channel: userIds are participants already
  * resolved to accounts. Same information as the Discord version
  * (title/minutes/dungeon/guild), in a concise form without the roster. */

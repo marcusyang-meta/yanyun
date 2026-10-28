@@ -13,6 +13,7 @@ import {
   sqliteTable,
   text,
   uniqueIndex,
+  index,
 } from 'drizzle-orm/sqlite-core';
 
 
@@ -44,6 +45,40 @@ export const settings = sqliteTable('settings', {
   value: text('value').notNull().default(''),
 }, (t) => [
   primaryKey({ columns: [t.tenant, t.key] }),
+]);
+
+/* ---------------- guild announcements [alt: 0010] ------------------
+ * One row per broadcast posted to a guild (announcements.ts
+ * repository). kind 'standard' (F9 announcement) | 'urgent' (F18
+ * rally call) — one pipeline, two presentations, separate daily
+ * counters. The author snapshot keeps history readable after
+ * renames. */
+export const guildAnnouncements = sqliteTable('guild_announcements', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  tenant: text('tenant').notNull(),
+  kind: text('kind').notNull().default('standard'),
+  title: text('title').notNull().default(''),
+  body: text('body').notNull().default(''),
+  authorDiscordId: text('author_discord_id').notNull().default(''),
+  authorName: text('author_name').notNull().default(''),
+  createdAt: integer('created_at').notNull().default(0),
+}, (t) => [
+  index('idx_guild_announcements_tenant_id').on(t.tenant, t.id),
+]);
+
+/* ---------------- announcement read receipts [alt: 0010] -----------
+ * One row per (announcement, member) read (F10): a row exists only
+ * once that member opened the announcement — absence IS the unread
+ * state, so no boolean is stored. tenant is denormalized from the
+ * announcement so every read stays guild-scoped by construction. */
+export const guildAnnouncementReads = sqliteTable('guild_announcement_reads', {
+  announcementId: integer('announcement_id').notNull(),
+  tenant: text('tenant').notNull(),
+  discordId: text('discord_id').notNull(),
+  readAt: integer('read_at').notNull().default(0),
+}, (t) => [
+  primaryKey({ columns: [t.announcementId, t.discordId] }),
+  index('idx_guild_announcement_reads_tenant_user').on(t.tenant, t.discordId),
 ]);
 
 /* ---------------- guild avatars [ddl chain baseline] --------------- */

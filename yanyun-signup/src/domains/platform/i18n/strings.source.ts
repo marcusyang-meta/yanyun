@@ -147,3 +147,11 @@ export const errors_checkoutFailed = (fbs: FbsAPI) =>fbs("创建支付会话失�
 export const errors_feedbackEmpty = (fbs: FbsAPI) =>fbs("反馈内容不能为空", "errors.feedbackEmpty");
 export const errors_feedbackTooLong = (fbs: FbsAPI) =>fbs("反馈内容太长，请精简到 2000 字以内", "errors.feedbackTooLong");
 export const errors_feedbackRateLimited = (fbs: FbsAPI) =>fbs("今天提交的反馈已达上限，请明天再来", "errors.feedbackRateLimited");
+export const errors_announcementTitleRequired = (fbs: FbsAPI) =>fbs("请填写公告标题", "errors.announcementTitleRequired");
+export const errors_announcementTitleTooLong = (fbs: FbsAPI) =>fbs("公告标题太长，请精简到 80 字以内", "errors.announcementTitleTooLong");
+export const errors_announcementBodyTooLong = (fbs: FbsAPI) =>fbs("公告正文太长，请精简到 2000 字以内", "errors.announcementBodyTooLong");
+export const errors_announcementNotFound = (fbs: FbsAPI) =>fbs("公告不存在", "errors.announcementNotFound");
+export const errors_announcementDailyLimit = (fbs: FbsAPI, p?: StringParams) =>
+  fbs(["今天的公告已达上限（每天 ", fbs.param("limit", pv(p, "limit")), " 条），明天再发"], "errors.announcementDailyLimit");
+export const errors_urgentCallDailyLimit = (fbs: FbsAPI, p?: StringParams) =>
+  fbs(["今天的紧急集合呼叫已达上限（每天 ", fbs.param("limit", pv(p, "limit")), " 次），明天再试"], "errors.urgentCallDailyLimit");

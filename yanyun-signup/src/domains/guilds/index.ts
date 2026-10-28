@@ -3,6 +3,7 @@
  * Other domains may only import from here. */
 export * from './tenants.ts';
 export * from './settings.ts';
+export * from './announcements.ts';
 export * from './whitelabel.ts';
 export * from './subdomain.ts';
 export * from './guildAvatars.ts';

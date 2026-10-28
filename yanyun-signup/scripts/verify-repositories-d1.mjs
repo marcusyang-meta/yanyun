@@ -1128,6 +1128,44 @@ if (want('feedback')) {
   eq('status flip on unknown id -> false', await repo.setFeedbackStatus(db, 99999, 'resolved', T0), false);
 }
 
+/* ---------------- guild announcements (F9/F10/F18) ---------------- */
+if (want('announcements')) {
+  console.log('== guild announcements repository on real D1 ==');
+  const repo = await import('../src/domains/guilds/announcements.ts');
+
+  eq('list on empty table -> []', await repo.listAnnouncements(db, 'alpha', 50), []);
+  eq('get on empty table -> null', await repo.getAnnouncement(db, 'alpha', 1), null);
+
+  const T0 = 1760000000; // epoch seconds
+  const id1 = await repo.insertAnnouncement(db, { tenant: 'alpha', kind: 'standard', title: '周六活动安排', body: '晚八点集合', authorDiscordId: 'A1', authorName: '管理员甲', createdAt: T0 });
+  const id2 = await repo.insertAnnouncement(db, { tenant: 'alpha', kind: 'urgent', title: '今晚集合', body: '看到请上线', authorDiscordId: 'A1', authorName: '管理员甲', createdAt: T0 + 60 });
+  const idB = await repo.insertAnnouncement(db, { tenant: 'beta', kind: 'standard', title: '乙公告', body: '', authorDiscordId: 'B1', authorName: '乙管理员', createdAt: T0 + 120 });
+  check('insert returns increasing ids', id1 > 0 && id2 > id1 && idB > id2, `${id1},${id2},${idB}`);
+
+  const list = await repo.listAnnouncements(db, 'alpha', 50);
+  eq('list returns guild rows newest first', list.map((r) => r.id), [id2, id1]);
+  eq('row shape round-trips', list[1] && [list[1].tenant, list[1].kind, list[1].title, list[1].body, list[1].author_discord_id, list[1].author_name, list[1].created_at],
+    ['alpha', 'standard', '周六活动安排', '晚八点集合', 'A1', '管理员甲', T0]);
+  eq('list is guild-scoped', (await repo.listAnnouncements(db, 'beta', 50)).map((r) => r.id), [idB]);
+  eq('get inside the guild', (await repo.getAnnouncement(db, 'alpha', id1))?.title, '周六活动安排');
+  eq('get with a foreign guild -> null', await repo.getAnnouncement(db, 'beta', id1), null);
+
+  eq('read ids on empty receipts -> []', await repo.listReadAnnouncementIds(db, 'alpha', 'M1'), []);
+  await repo.markAnnouncementRead(db, { tenant: 'alpha', announcementId: id1, discordId: 'M1', readAt: T0 + 300 });
+  await repo.markAnnouncementRead(db, { tenant: 'alpha', announcementId: id1, discordId: 'A1', readAt: T0 + 200 });
+  eq('read ids after marks', (await repo.listReadAnnouncementIds(db, 'alpha', 'M1')).map(Number), [id1]);
+  eq('receipts oldest-read first', (await repo.listAnnouncementReads(db, 'alpha', id1)).map((r) => r.discord_id), ['A1', 'M1']);
+  await repo.markAnnouncementRead(db, { tenant: 'alpha', announcementId: id1, discordId: 'M1', readAt: T0 + 999 });
+  eq('re-mark keeps the first read_at (DO NOTHING)', (await repo.listAnnouncementReads(db, 'alpha', id1)).find((r) => r.discord_id === 'M1')?.read_at, T0 + 300);
+  eq('receipts are guild-scoped', await repo.listAnnouncementReads(db, 'beta', id1), []);
+
+  eq('delete foreign-guild id -> false', await repo.deleteAnnouncement(db, 'beta', id1), false);
+  eq('delete own announcement -> true', await repo.deleteAnnouncement(db, 'alpha', id1), true);
+  eq('deleted row is gone', await repo.getAnnouncement(db, 'alpha', id1), null);
+  eq('delete cascades the receipts', await repo.listAnnouncementReads(db, 'alpha', id1), []);
+  eq('other announcements survive the delete', (await repo.listAnnouncements(db, 'alpha', 50)).map((r) => r.id), [id2]);
+}
+
 await mf.dispose();
 console.log(`\n== verify-repositories-d1: ${pass} passed, ${fail} failed ==`);
 if (fail) { console.log('FAILS:', fails.join(' | ')); process.exit(1); }
