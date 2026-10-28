@@ -376,6 +376,13 @@ export const opsTypes = {
     entries: (p: MyContributionShell) => p.genEntries(),
   },
   MyContributionLocked: { slug: (p: MyContributionLockedShell) => p.genSlug() },
+  OpsPayload: {
+    ok: (p: OpsPayloadShell) => p.genOk(),
+    error: (p: OpsPayloadShell) => p.genError(),
+    errorCode: (p: OpsPayloadShell) => p.genErrorCode(),
+    recipientCount: (p: OpsPayloadShell) => p.genRecipientCount(),
+    copiedCount: (p: OpsPayloadShell) => p.genCopiedCount(),
+  },
   MyContributionEntry: {
     actionKey: (p: MyContributionEntryShell) => p.genActionKey(),
     actionLabel: (p: MyContributionEntryShell) => p.genActionLabel(),
