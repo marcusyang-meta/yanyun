@@ -152,6 +152,7 @@ export class GuildOfficerBoardPostShell extends ShellBase {
   genMine(){
     return !!(this.ctx.user && String(this.ctx.user.discordId) === String(this.row.author_discord_id));
   }
+  genCanDelete(){ return !!this.data.canDelete; }
   genCreatedAtText(){ return fmtStartsAt(this.row.created_at, this.locale, this.ctx.tz); }
 }
 
@@ -276,7 +277,13 @@ export class GuildGovernancePageShell extends ShellBase {
   genBoardPosts(){
     return this.memo('boardPosts', async () => {
       const rows = await listOfficerPosts(this.db, this.slug).catch(() => []);
-      return (rows || []).map((row) => new GuildOfficerBoardPostShell(this.ctx, { row }));
+      const viewerId = this.ctx.user ? String(this.ctx.user.discordId) : '';
+      const isAdmin = !!this.verdict.isAdmin;
+      return (rows || []).map((row) => new GuildOfficerBoardPostShell(this.ctx, {
+        row,
+        // Same rule the delete mutation enforces: author or admin.
+        canDelete: isAdmin || (!!viewerId && viewerId === String(row.author_discord_id)),
+      }));
     });
   }
   genAuditEvents(args: { limit?: number | null; offset?: number | null }){
@@ -500,6 +507,7 @@ export const guildGovernanceTypes = {
     authorName: (p: GuildOfficerBoardPostShell) => p.genAuthorName(),
     authorText: (p: GuildOfficerBoardPostShell) => p.genAuthorText(),
     mine: (p: GuildOfficerBoardPostShell) => p.genMine(),
+    canDelete: (p: GuildOfficerBoardPostShell) => p.genCanDelete(),
     createdAtText: (p: GuildOfficerBoardPostShell) => p.genCreatedAtText(),
   },
   GuildAuditEvent: {

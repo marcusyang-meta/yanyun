@@ -1524,6 +1524,10 @@ type Mutation {
   exportGuildDataPackage(slug: String!): GuildExportPayload!
   upsertMySeasonGoal(input: SeasonGoalInput!): SeasonGoalPayload!
   deleteMySeasonGoal(goalId: ID!): SeasonGoalPayload!
+  setOfficerGrant(slug: String!, memberDiscordId: ID!, capabilities: [String!]!): GuildGovernancePayload!
+  revokeOfficerGrant(slug: String!, memberDiscordId: ID!): GuildGovernancePayload!
+  postOfficerBoardMessage(slug: String!, body: String!): GuildGovernancePayload!
+  deleteOfficerBoardPost(slug: String!, postId: ID!): GuildGovernancePayload!
   createGuild(input: CreateGuildInput!): CreateGuildPayload!
   updateGuildProfile(slug: String!, input: UpdateGuildProfileInput!): GuildAdminPayload!
   updateGuildDiscord(slug: String!, input: UpdateGuildDiscordInput!): GuildAdminPayload!
@@ -1920,6 +1924,99 @@ input SeasonGoalInput {
   note: String
   status: SeasonGoalStatus
   dungeonId: Int
+}
+
+type GuildAdminSectionLocked {
+  lockedTitle: String!
+  lockedBody: String!
+}
+
+union GuildGovernanceResult = GuildGovernancePage | GuildGovernanceLocked
+
+type GuildGovernanceLocked {
+  lockedTitle: String!
+  lockedBody: String!
+}
+
+type GuildCapabilityOption {
+  key: String!
+  label: String!
+}
+
+type GuildOfficerGrant {
+  discordId: ID!
+  displayName: String!
+  capabilities: [String!]!
+  capabilityLabels: [String!]!
+  grantedByName: String!
+  grantedByText: String
+  grantedAtText: String!
+  updatedAtText: String!
+}
+
+type GuildGovernanceRosterMember {
+  discordId: ID!
+  displayName: String!
+  isAdmin: Boolean!
+  capabilities: [String!]!
+}
+
+type GuildOfficerBoardPost {
+  id: ID!
+  body: String!
+  authorName: String!
+  authorText: String
+  mine: Boolean!
+  canDelete: Boolean!
+  createdAtText: String!
+}
+
+type GuildAuditEvent {
+  id: ID!
+  actorName: String!
+  action: String!
+  actionLabel: String!
+  targetType: String!
+  targetId: String!
+  targetLabel: String!
+  createdAtText: String!
+}
+
+type GuildGovernancePage {
+  title: String!
+  hint: String!
+  officersTitle: String!
+  officersHint: String!
+  officersEmptyText: String!
+  grantMemberLabel: String!
+  grantCapabilitiesLabel: String!
+  grantButtonLabel: String!
+  revokeButtonLabel: String!
+  adminBadgeText: String!
+  boardTitle: String!
+  boardHint: String!
+  boardEmptyText: String!
+  boardPlaceholder: String!
+  boardPostButtonLabel: String!
+  boardDeleteButtonLabel: String!
+  auditTitle: String!
+  auditHint: String!
+  auditEmptyText: String!
+  auditLoadMoreButtonLabel: String!
+  canManageGrants: Boolean!
+  officers: [GuildOfficerGrant!]!
+  capabilityOptions: [GuildCapabilityOption!]!
+  roster: [GuildGovernanceRosterMember!]!
+  boardPosts: [GuildOfficerBoardPost!]!
+  auditEvents(limit: Int, offset: Int): [GuildAuditEvent!]!
+  auditTotalCount: Int!
+}
+
+type GuildGovernancePayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  id: ID
 }
 
 type DiscordUser {
@@ -2347,6 +2444,9 @@ type GuildAdmin {
   adminRecruitProfileLabel: String!
   adminRecruitMentorLabel: String!
   adminRecruitFirstRunLabel: String!
+  adminTabGovernanceLabel: String!
+  governance: GuildGovernanceResult!
+  viewerCapabilities: [String!]!
 }
 
 enum LotterySource {
@@ -2851,7 +2951,7 @@ type GuildAdminStats {
   leaderLeaders: [GuildAdminStatsLeader!]!
 }
 
-union GuildAdminStatsResult = GuildAdminStats | GuildAdminStatsLocked
+union GuildAdminStatsResult = GuildAdminStats | GuildAdminStatsLocked | GuildAdminSectionLocked
 
 type GuildAdminStatsLocked {
   premiumTitle: String!
