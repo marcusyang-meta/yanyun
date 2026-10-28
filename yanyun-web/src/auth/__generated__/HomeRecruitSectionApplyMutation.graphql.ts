@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<35d81f5a1a214609ae863616d98ef5ab>>
+ * @generated SignedSource<<45f84e88a332e33ebce5b2cb226cdbaa>>
  * @lightSyntaxTransform
  */
 
@@ -8,19 +8,19 @@
 // @ts-nocheck
 
 import { ConcreteRequest } from 'relay-runtime';
-export type GuildRecruitPageApplyMutation$variables = {
+export type HomeRecruitSectionApplyMutation$variables = {
   message?: string | null | undefined;
   slug: string;
 };
-export type GuildRecruitPageApplyMutation$data = {
+export type HomeRecruitSectionApplyMutation$data = {
   readonly applyToGuild: {
     readonly error: string | null | undefined;
     readonly ok: boolean;
   };
 };
-export type GuildRecruitPageApplyMutation = {
-  response: GuildRecruitPageApplyMutation$data;
-  variables: GuildRecruitPageApplyMutation$variables;
+export type HomeRecruitSectionApplyMutation = {
+  response: HomeRecruitSectionApplyMutation$data;
+  variables: HomeRecruitSectionApplyMutation$variables;
 };
 
 const node: ConcreteRequest = (function(){
@@ -80,7 +80,7 @@ return {
     ],
     "kind": "Fragment",
     "metadata": null,
-    "name": "GuildRecruitPageApplyMutation",
+    "name": "HomeRecruitSectionApplyMutation",
     "selections": (v2/*:: as any*/),
     "type": "Mutation",
     "abstractKey": null
@@ -92,20 +92,20 @@ return {
       (v0/*:: as any*/)
     ],
     "kind": "Operation",
-    "name": "GuildRecruitPageApplyMutation",
+    "name": "HomeRecruitSectionApplyMutation",
     "selections": (v2/*:: as any*/)
   },
   "params": {
-    "cacheID": "1592b29ad699fbcf01a001316cf4a710",
+    "cacheID": "54dc9d1c8de37de194820d2d11e31265",
     "id": null,
     "metadata": {},
-    "name": "GuildRecruitPageApplyMutation",
+    "name": "HomeRecruitSectionApplyMutation",
     "operationKind": "mutation",
-    "text": "mutation GuildRecruitPageApplyMutation(\n  $slug: String!\n  $message: String\n) {\n  applyToGuild(slug: $slug, message: $message) {\n    ok\n    error\n  }\n}\n"
+    "text": "mutation HomeRecruitSectionApplyMutation(\n  $slug: String!\n  $message: String\n) {\n  applyToGuild(slug: $slug, message: $message) {\n    ok\n    error\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "90fdff3d04358497200b6d1e2b8225d3";
+(node as any).hash = "d9e0af529c54fdd6f0f9c37bc82211f2";
 
 export default node;

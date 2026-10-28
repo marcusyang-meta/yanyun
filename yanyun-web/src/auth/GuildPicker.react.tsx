@@ -3,6 +3,7 @@ import { theme } from '../lib/format';
 import type { ViewerUser } from '../lib/user';
 import UserBar, { type UserBarText } from './UserBar.react';
 import type { SiteText } from './LoginPage.react';
+import HomeRecruitSection from './HomeRecruitSection.react.tsx';
 
 export interface PickerText {
   myGuildsLabel: string;
@@ -30,7 +31,7 @@ export interface PickerGuild {
 // = public read-only); the frontend only renders and never fetches the full
 // set to filter itself.
 export default function GuildPicker({
-  user, guilds, publicGuilds, site, text, userBarText,
+  user, guilds, publicGuilds, site, text, userBarText, recruit, unknownError,
 }: {
   user: ViewerUser;
   guilds: ReadonlyArray<PickerGuild>;
@@ -38,6 +39,8 @@ export default function GuildPicker({
   site: SiteText;
   text: PickerText;
   userBarText: UserBarText;
+  recruit?: any;
+  unknownError?: string;
 }) {
   const card = (t: PickerGuild, i: number, readOnly: boolean) => (
     <Link
@@ -142,6 +145,10 @@ export default function GuildPicker({
           </>
         )}
       </div>
+
+      {/* Recruit section (Viewer.homeRecruit): my newcomer checklist
+          / pairings + the directory of guilds I can apply to. */}
+      <HomeRecruitSection section={recruit} user={user} sealText={site.sealText} unknownError={unknownError ?? ''} />
     </div>
   );
 }

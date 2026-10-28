@@ -1913,7 +1913,6 @@ type Guild {
   homeTabSectLabel: String!
   homeTabAnnouncementsLabel: String!
   homeTabScheduleLabel: String!
-  recruitEntryLabel: String!
   homeAdminLabel: String
   detailNotFoundText: String!
   detailBackToListLabel: String!
@@ -1937,7 +1936,6 @@ type GuildReadOnly {
   homeTabSectLabel: String!
   homeTabAnnouncementsLabel: String!
   homeTabScheduleLabel: String!
-  recruitEntryLabel: String!
   homeReadOnlyBanner: String!
   detailNotFoundText: String!
   detailBackToListLabel: String!
@@ -1947,7 +1945,6 @@ type GuildReadOnly {
 
 type GuildLocked {
   slug: String!
-  recruitEntryLabel: String!
   lockedBackLinkLabel: String!
   lockedTitle: String!
   lockedBody1: String!
@@ -1963,7 +1960,7 @@ type Viewer {
   publicGuilds: [GuildReadOnly!]!
   guild(slug: String!): GuildResult!
   guildAdmin(slug: String!): GuildAdminResult!
-  guildRecruit(slug: String!): GuildRecruitResult!
+  homeRecruit: HomeRecruitSection!
   discordServers: [DiscordServer!]!
   siteTitle: String!
   siteSubtitle: String!
@@ -2330,37 +2327,44 @@ type NewcomerProgress {
   progressText: String!
 }
 
-union GuildRecruitResult = GuildRecruitPage | GuildRecruitLocked
-
-type GuildRecruitPage {
-  slug: String!
-  guildName: String!
+type HomeRecruitSection {
   recruitTitle: String!
-  recruitBody: String!
+  homeBody: String!
+  homeLoginHint: String!
   applySectionTitle: String!
   messageLabel: String!
   messagePlaceholder: String!
   submitLabel: String!
   submittingLabel: String!
   myApplicationTitle: String!
-  myApplication: RecruitApplication
   pendingHint: String!
   approvedNextStepText: String!
   rejectedHint: String!
   checklistTitle: String!
-  checklist: NewcomerChecklist
   myPairingsTitle: String!
-  myPairings: [MentorPairing!]!
   pairingMentorRoleLabel: String!
   pairingMenteeRoleLabel: String!
-  backLabel: String!
+  guilds: [HomeRecruitGuild!]!
+  myNewcomer: [HomeRecruitNewcomer!]!
 }
 
-type GuildRecruitLocked {
+type HomeRecruitGuild {
   slug: String!
-  lockedTitle: String!
-  lockedBody: String!
-  backLabel: String!
+  name: String!
+  slogan: String
+  avatarUrl: String
+  myApplicationSection: HomeRecruitApplicationSection
+}
+
+type HomeRecruitApplicationSection {
+  application: RecruitApplication
+}
+
+type HomeRecruitNewcomer {
+  slug: String!
+  guildName: String!
+  checklist: NewcomerChecklist
+  myPairings: [MentorPairing!]!
 }
 
 type RecruitPayload {
