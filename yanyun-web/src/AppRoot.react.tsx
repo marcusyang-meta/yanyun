@@ -8,7 +8,6 @@ import LoginPage from './auth/LoginPage.react.tsx';
 import LandingPage from './auth/LandingPage.react.tsx';
 import GuildPicker from './auth/GuildPicker.react.tsx';
 import CreateGuildPage from './auth/CreateGuildPage.react.tsx';
-import GearPage from './auth/GearPage.react.tsx';
 import GuildRouteLoader from './guild/GuildRouteLoader.react.tsx';
 import GuildAdminRouteLoader from './guild/GuildAdminRouteLoader.react.tsx';
 import LegalRoute from './LegalRoute.react.tsx';
@@ -210,12 +209,10 @@ export default function AppRoot({ queries }: {
         path="/create"
         element={user ? <CreateGuildPage user={user} /> : <LoginPage returnTo="/create" site={siteText} text={loginText} />}
       />
-      {/* My gear library: a standalone page (Profile links here); the static
-          segment must win over /:slug, same as /create and the legal pages */}
-      <Route
-        path="/gear"
-        element={user ? <GearPage user={user} userBarText={userBarText} /> : <LoginPage returnTo="/gear" site={siteText} text={loginText} />}
-      />
+      {/* The gear library is a dialog page opened from Profile (UserBar);
+          legacy /gear deep links redirect home so /:slug doesn't capture
+          them as a guild slug — same disposition as /settings above */}
+      <Route path="/gear" element={<Navigate to="/" replace />} />
       <Route
         path="/:slug/car/:carId"
         element={user ? <GuildRouteLoader /> : <LoginGateWithText site={siteText} text={loginText} />}

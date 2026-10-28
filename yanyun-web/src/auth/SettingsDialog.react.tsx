@@ -1,6 +1,5 @@
 import { Suspense, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useNavigate } from 'react-router-dom';
 import { graphql, useLazyLoadQuery, useMutation, useRelayEnvironment } from 'react-relay';
 import { fetchQuery } from 'relay-runtime';
 import { theme } from '../lib/format';
@@ -12,9 +11,10 @@ import type { ViewerUser } from '../lib/user';
 // on desktop (portal to body, reusing the .yy-modal-* system); at mobile
 // widths (<=640px) it becomes a full-screen push page. Contents = Discord
 // identity + language preference (stored server-side in users.locale_pref)
-// + one entry row to the standalone gear library page (/gear) — the library
-// itself moved out of this dialog (it read as an appendix here, not a
-// library). All copy comes from settingsPage / gradPage gen fields.
+// + one entry row to the gear library. The library is its own dialog page
+// (GearDialog): this dialog closes first and UserBar opens GearDialog as a
+// top-level sibling — never a dialog stacked on top of this dialog.
+// All copy comes from settingsPage / gradPage gen fields.
 //
 // Selection state: the control's selected value = local pick override ??
 // query data. A click lands the local override first (the control reflects it
@@ -143,10 +143,14 @@ const SettingsFeedbackMutationNode = graphql`
 
 export type AccountFlow = 'export' | 'delete';
 
-export default function SettingsDialog({ open, onClose, user, initialFlow }: {
+export default function SettingsDialog({ open, onClose, user, initialFlow, onOpenGear }: {
   open: boolean;
   onClose: () => void;
   user?: ViewerUser | null;
+  // Opens the gear library dialog page. UserBar owns that dialog's state;
+  // the entry row below calls onClose() first, so GearDialog replaces this
+  // dialog at the top level instead of stacking on it.
+  onOpenGear: () => void;
   // Set when the dialog auto-opens after a fresh-OAuth round trip that
   // started here (the returnTo carries ?accountflow=export|delete and
   // UserBar forwards it): export resumes immediately, delete lands on
@@ -156,7 +160,7 @@ export default function SettingsDialog({ open, onClose, user, initialFlow }: {
   if (!open) return null;
   return (
     <Suspense fallback={<SettingsShellFallback onClose={onClose} />}>
-      <SettingsDialogInner onClose={onClose} user={user ?? null} initialFlow={initialFlow ?? null} />
+      <SettingsDialogInner onClose={onClose} user={user ?? null} initialFlow={initialFlow ?? null} onOpenGear={onOpenGear} />
     </Suspense>
   );
 }
@@ -181,10 +185,11 @@ function SettingsShellFallback({ onClose }: { onClose: () => void }) {
   );
 }
 
-function SettingsDialogInner({ onClose, user, initialFlow }: {
+function SettingsDialogInner({ onClose, user, initialFlow, onOpenGear }: {
   onClose: () => void;
   user: ViewerUser | null;
   initialFlow: AccountFlow | null;
+  onOpenGear: () => void;
 }) {
   const data = useLazyLoadQuery<any>(SettingsDialogQueryNode, {});
   const viewer: any = data.viewer ?? {};
@@ -198,7 +203,6 @@ function SettingsDialogInner({ onClose, user, initialFlow }: {
   const [picked, setPicked] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [saved, setSaved] = useState(false);
-  const navigate = useNavigate();
   // Feedback sub-view (profile's second zone): category + free text,
   // submitted through submitFeedback; the server validates, caps and
   // stores it, and its localized error comes back on the payload.
@@ -428,7 +432,7 @@ function SettingsDialogInner({ onClose, user, initialFlow }: {
       <div style={{ borderTop: '1px solid rgba(201,163,92,.22)', marginTop: 24, paddingTop: 18 }}>
         <button
           data-gear-entry
-          onClick={() => { onClose(); navigate('/gear'); }}
+          onClick={() => { onClose(); onOpenGear(); }}
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             width: '100%', textAlign: 'left', padding: '11px 16px', borderRadius: 10, cursor: 'pointer',
