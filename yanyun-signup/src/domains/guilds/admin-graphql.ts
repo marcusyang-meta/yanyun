@@ -802,7 +802,6 @@ export class GuildAdminShell extends ShellBase {
   /* Officer tools (F12/F11/F19, free — no gate): member notes, the
    * guild data export and the season-goal overview, composed as one
    * page object. Only on the GuildAdmin type, like announcements. */
-  genOfficer(){ return officerPageForAdmin(this.ctx, this.genSlug()); }
   /* Ops engine (P8/P11/P12/P14, T2): the tier verdict picks the
    * full shell vs the Locked shell inside opsPageForAdmin — below
    * tier the engines are never computed. */
