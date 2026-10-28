@@ -1567,6 +1567,7 @@ export const GuildAdminQuery = graphql`
     viewer {
       commonUnknownErrorText
       commonConfirmLabel
+      commonCancelLabel
       guildAdmin(slug: $slug) {
         __typename
         ... on GuildAdminLocked {
@@ -1819,6 +1820,31 @@ export const GuildAdminQuery = graphql`
             }
             }
           }
+          adminTabSeasonLabel
+          seasonChecklist {
+            seasonKey
+            versionLabel
+            seasonLabel
+            title
+            hint
+            progressTemplate
+            doneCount
+            totalCount
+            items { key title detail checked checkedByName }
+          }
+          roster {
+            rosterTitle
+            rosterHint
+            rosterUploadLabel
+            rosterOcrRunningText
+            rosterPreviewTitle
+            rosterConfirmLabel
+            rosterEmptyText
+            rosterDeleteLabel
+            rosterSourceOcrLabel
+            rosterMatchedMemberLabel
+            entries { id displayName source matchedName createdAt }
+          }
         }
       }
     }
@@ -2055,5 +2081,31 @@ export const DeleteGuildAnnouncementMutation = graphql`
       error
       errorCode
     }
+  }
+`;
+export const SetSeasonChecklistItemAdminMutation = graphql`
+  mutation documentsSetSeasonChecklistItemAdminMutation($slug: String!, $itemKey: String!, $checked: Boolean!) {
+    setSeasonChecklistItem(slug: $slug, itemKey: $itemKey, checked: $checked) { ok error }
+  }
+`;
+export const PreviewRosterImportAdminMutation = graphql`
+  mutation documentsPreviewRosterImportAdminMutation($slug: String!, $lines: [String!]!, $imageCount: Int!) {
+    previewRosterImport(slug: $slug, lines: $lines, imageCount: $imageCount) {
+      ok error importedCount message
+      preview {
+        batchId matchedCount newCount unrecognizedCount
+        rows { id rawName status statusLabel matchedName importable }
+      }
+    }
+  }
+`;
+export const ConfirmRosterImportAdminMutation = graphql`
+  mutation documentsConfirmRosterImportAdminMutation($slug: String!, $batchId: ID!, $rowIds: [ID!]!) {
+    confirmRosterImport(slug: $slug, batchId: $batchId, rowIds: $rowIds) { ok error importedCount message }
+  }
+`;
+export const DeleteGuildRosterEntryAdminMutation = graphql`
+  mutation documentsDeleteGuildRosterEntryAdminMutation($slug: String!, $entryId: ID!) {
+    deleteGuildRosterEntry(slug: $slug, entryId: $entryId) { ok error }
   }
 `;

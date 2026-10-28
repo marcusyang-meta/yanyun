@@ -43,6 +43,10 @@ import {
   AddEventResultAdminMutation,
   DeleteEventResultAdminMutation,
   UpdateSchoolGuideAdminMutation,
+  SetSeasonChecklistItemAdminMutation,
+  PreviewRosterImportAdminMutation,
+  ConfirmRosterImportAdminMutation,
+  DeleteGuildRosterEntryAdminMutation,
 } from './documents';
 import type { documentsViewerQuery } from './__generated__/documentsViewerQuery.graphql';
 import type { documentsJoinGroupingMutation } from './__generated__/documentsJoinGroupingMutation.graphql';
@@ -447,3 +451,21 @@ export async function deleteGuildAnnouncementRemote(slug: string, id: string): P
   const r = await commit<documentsDeleteGuildAnnouncementMutation>(DeleteGuildAnnouncementMutation, { slug, id });
   return r.deleteGuildAnnouncement as AnnouncementPayload;
 }
+export const adminSetSeasonChecklistItem = (slug: string, itemKey: string, checked: boolean) => adminRun(SetSeasonChecklistItemAdminMutation, { slug, itemKey, checked }, 'setSeasonChecklistItem');
+export const adminDeleteRosterEntry = (slug: string, entryId: string) => adminRun(DeleteGuildRosterEntryAdminMutation, { slug, entryId }, 'deleteGuildRosterEntry');
+
+/* Roster import payloads carry the preview / import result next to
+   the standard ok/error pair, so they get their own runner + type. */
+export type RosterImportPayload = {
+  ok: boolean; error?: string | null; importedCount?: number | null; message?: string | null;
+  preview?: {
+    batchId: string; matchedCount: number; newCount: number; unrecognizedCount: number;
+    rows: { id: string; rawName: string; status: string; statusLabel: string; matchedName: string; importable: boolean }[];
+  } | null;
+};
+async function rosterRun(mutation: any, variables: any, key: string): Promise<RosterImportPayload> {
+  const res: any = await commit<any>(mutation, variables);
+  return (res?.[key] as RosterImportPayload) ?? { ok: false };
+}
+export const adminPreviewRosterImport = (slug: string, lines: string[], imageCount: number) => rosterRun(PreviewRosterImportAdminMutation, { slug, lines, imageCount }, 'previewRosterImport');
+export const adminConfirmRosterImport = (slug: string, batchId: string, rowIds: string[]) => rosterRun(ConfirmRosterImportAdminMutation, { slug, batchId, rowIds }, 'confirmRosterImport');
