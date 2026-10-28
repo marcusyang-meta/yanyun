@@ -91,6 +91,7 @@ export const guildHome_tabSect = (fbs: FbsRuntime) => fbs._("流派攻略", null
 export const guildHome_tabAnnouncements = (fbs: FbsRuntime) => fbs._("公告", null, { hk: "4fVuCK" });
 export const guildHome_readOnlyBanner = (fbs: FbsRuntime) => fbs._("该百业尚未绑定 Discord 服务器 · 只读浏览", null, { hk: "3AuuxG" });
 export const guildHome_adminLink = (fbs: FbsRuntime) => fbs._("管理", null, { hk: "24ndE2" });
+export const guildHome_tabSchedule = (fbs: FbsRuntime) => fbs._("排期", null, { hk: "1qAdur" });
 export const groupingType_tabActivity = (fbs: FbsRuntime) => fbs._("双十人本", null, { hk: "4ED85v" });
 export const groupingType_tabTalent = (fbs: FbsRuntime) => fbs._("天赋组队", null, { hk: "2mJIoT" });
 export const groupingType_tabRace = (fbs: FbsRuntime) => fbs._("竞速报名", null, { hk: "LJwuK" });
@@ -151,6 +152,7 @@ export const groupingDetail_toastCompleteFailed = (fbs: FbsRuntime, p?: StringPa
 export const groupingDetail_toastRestored = (fbs: FbsRuntime) => fbs._("车队已恢复", null, { hk: "3QbybC" });
 export const groupingDetail_toastRestoreFailed = (fbs: FbsRuntime, p?: StringParams) => fbs._("恢复失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "1F35rq" });
 export const groupingDetail_completedHint = (fbs: FbsRuntime) => fbs._("该车队已完成 · 已从列表隐藏，不再发送发车提醒", null, { hk: "2N7V2X" });
+export const groupingDetail_rosterAnswersTitle = (fbs: FbsRuntime) => fbs._("报名表答案", null, { hk: "2eskS4" });
 export const groupingForm_createTitle = (fbs: FbsRuntime) => fbs._("张贴告示", null, { hk: "1c1hiS" });
 export const groupingForm_editTitle = (fbs: FbsRuntime) => fbs._("编辑告示", null, { hk: "ojtFZ" });
 export const groupingForm_typeLabel = (fbs: FbsRuntime) => fbs._("类型", null, { hk: "4iLEw8" });
@@ -181,6 +183,15 @@ export const groupingForm_toastSaveFailed = (fbs: FbsRuntime, p?: StringParams) 
 export const groupingForm_toastPosted = (fbs: FbsRuntime) => fbs._("告示已张贴", null, { hk: "3YaJAn" });
 export const groupingForm_toastCreateFailed = (fbs: FbsRuntime, p?: StringParams) => fbs._("创建失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "2fuBwy" });
 export const groupingForm_titleTemplate = (fbs: FbsRuntime, p?: StringParams) => fbs._("{nickname}的{type}车队", [fbs._param("nickname", pv(p, "nickname")), fbs._param("type", pv(p, "type"))], { hk: "1tnz07" });
+export const groupingForm_customFieldsTitle = (fbs: FbsRuntime) => fbs._("报名表自定义字段", null, { hk: "47vrHv" });
+export const groupingForm_customFieldAddLabel = (fbs: FbsRuntime) => fbs._("添加字段", null, { hk: "2gXhMo" });
+export const groupingForm_customFieldLabelPlaceholder = (fbs: FbsRuntime) => fbs._("字段名（如：联系方式）", null, { hk: "4lxqDq" });
+export const groupingForm_customFieldTypeText = (fbs: FbsRuntime) => fbs._("单行文本", null, { hk: "h6nZU" });
+export const groupingForm_customFieldTypeChoice = (fbs: FbsRuntime) => fbs._("单选", null, { hk: "4uxYYi" });
+export const groupingForm_customFieldOptionsPlaceholder = (fbs: FbsRuntime) => fbs._("选项，一行一个（2–6 个）", null, { hk: "3k7tp0" });
+export const groupingForm_customFieldRequiredLabel = (fbs: FbsRuntime) => fbs._("必填", null, { hk: "3fzAMZ" });
+export const groupingForm_customFieldRemoveLabel = (fbs: FbsRuntime) => fbs._("删除", null, { hk: "3RZPC5" });
+export const groupingForm_customFieldEmptyText = (fbs: FbsRuntime) => fbs._("未设置自定义字段时，成员报名只填固定信息。", null, { hk: "OcGRe" });
 export const seat_emptyJoin = (fbs: FbsRuntime) => fbs._("空位 · 点击落座", null, { hk: "2qq5cz" });
 export const seat_empty = (fbs: FbsRuntime) => fbs._("空位", null, { hk: "4C4xZf" });
 export const seat_modalTitle = (fbs: FbsRuntime, p?: StringParams) => fbs._("落座 · {n} 号位", [fbs._param("n", pv(p, "n"))], { hk: "mSN0Y" });
@@ -742,6 +753,18 @@ export const errors_lotteryAlreadyDrawn = (fbs: FbsRuntime) => fbs._("该抽奖�
 export const errors_lotteryWinnerCountInvalid = (fbs: FbsRuntime) => fbs._("中奖人数必须在 1 与参与人数之间", null, { hk: "e9shV" });
 export const errors_lotteryWeightInvalid = (fbs: FbsRuntime) => fbs._("权重必须是 1 到 1000 之间的整数", null, { hk: "3tNLSW" });
 export const errors_lotteryMemberNotInGuild = (fbs: FbsRuntime) => fbs._("所选成员不在本百业名册中", null, { hk: "2QTSNn" });
+export const errors_availabilitySlotInvalid = (fbs: FbsRuntime) => fbs._("可用时段不合法", null, { hk: "4DcHCe" });
+export const errors_availabilityTooManySlots = (fbs: FbsRuntime) => fbs._("可用时段太多（最多 21 个）", null, { hk: "2UVhij" });
+export const errors_pollTitleRequired = (fbs: FbsRuntime) => fbs._("请填写投票标题", null, { hk: "7gJb" });
+export const errors_pollOptionsInvalid = (fbs: FbsRuntime) => fbs._("候选时间不合法（需 2–8 个不同的未来时间）", null, { hk: "NzPZY" });
+export const errors_pollNotFound = (fbs: FbsRuntime) => fbs._("投票不存在", null, { hk: "3Ax9oX" });
+export const errors_pollClosed = (fbs: FbsRuntime) => fbs._("该投票已关闭", null, { hk: "cbI86" });
+export const errors_pollOptionInvalid = (fbs: FbsRuntime) => fbs._("所选时间不属于该投票", null, { hk: "wkcf5" });
+export const errors_pollForbidden = (fbs: FbsRuntime) => fbs._("只有发起人或百业管理员可以关闭投票", null, { hk: "1cpGnm" });
+export const errors_customFieldInvalid = (fbs: FbsRuntime) => fbs._("自定义字段不合法", null, { hk: "4bHYpW" });
+export const errors_customFieldTooMany = (fbs: FbsRuntime) => fbs._("自定义字段最多 5 个", null, { hk: "4PcIr" });
+export const errors_signupAnswerRequired = (fbs: FbsRuntime) => fbs._("请填写必填的报名信息", null, { hk: "mamUV" });
+export const errors_signupAnswerInvalid = (fbs: FbsRuntime) => fbs._("报名信息不合法", null, { hk: "pjHLi" });
 export const guildAdmin_title = (fbs: FbsRuntime) => fbs._("管理百业", null, { hk: "23Vynb" });
 export const guildAdmin_lockedTitle = (fbs: FbsRuntime) => fbs._("无权管理这个百业", null, { hk: "4eqp6f" });
 export const guildAdmin_lockedBody = (fbs: FbsRuntime) => fbs._("只有该百业所绑 Discord 服务器的管理员（服务器主或拥有管理权限）可以进入管理页。", null, { hk: "248TMj" });
@@ -1007,6 +1030,40 @@ export const announcements_authorTemplate = (fbs: FbsRuntime, p?: StringParams) 
 export const announcements_pushNote = (fbs: FbsRuntime) => fbs._("发布后会向全体成员推送通知；没有开启推送的成员也能在这里看到。", null, { hk: "3szI54" });
 export const announcements_urgentNote = (fbs: FbsRuntime) => fbs._("紧急集合呼叫请只用于临时集合等紧急情况，每天最多 2 次。", null, { hk: "1NQJD0" });
 export const announcements_dailyLimitTemplate = (fbs: FbsRuntime, p?: StringParams) => fbs._("今日还可发布 {remaining} 条", [fbs._param("remaining", pv(p, "remaining"))], { hk: "1X0GIk" });
+export const schedule_title = (fbs: FbsRuntime) => fbs._("排期", null, { hk: "3rqYaj" });
+export const schedule_myTitle = (fbs: FbsRuntime) => fbs._("我的可用时间", null, { hk: "4nxOrJ" });
+export const schedule_myHint = (fbs: FbsRuntime) => fbs._("填写你每周固定有空的时段，按你所在时区显示；管理员与车头据此定档期。", null, { hk: "2jZpwe" });
+export const schedule_slotRange = (fbs: FbsRuntime, p?: StringParams) => fbs._("{start}–{end}", [fbs._param("start", pv(p, "start")), fbs._param("end", pv(p, "end"))], { hk: "2ANqy7" });
+export const schedule_addSlotLabel = (fbs: FbsRuntime) => fbs._("添加时段", null, { hk: "2VYtW" });
+export const schedule_removeLabel = (fbs: FbsRuntime) => fbs._("删除", null, { hk: "ejdU9" });
+export const schedule_saveLabel = (fbs: FbsRuntime) => fbs._("保存", null, { hk: "3eoE6W" });
+export const schedule_savedText = (fbs: FbsRuntime) => fbs._("可用时间已保存", null, { hk: "1bh9RO" });
+export const schedule_saveFailedTemplate = (fbs: FbsRuntime, p?: StringParams) => fbs._("保存失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "2qONmn" });
+export const schedule_emptyMineText = (fbs: FbsRuntime) => fbs._("你还没有填写可用时间。", null, { hk: "4mmv6O" });
+export const schedule_summaryTitle = (fbs: FbsRuntime) => fbs._("成员可用性汇总", null, { hk: "1ZbKsN" });
+export const schedule_summaryHint = (fbs: FbsRuntime) => fbs._("汇总仅百业管理员与发过车的车头可见，用于定档期。", null, { hk: "3NXwyr" });
+export const schedule_summaryEmptyText = (fbs: FbsRuntime) => fbs._("还没有成员填写可用时间。", null, { hk: "3rgJIF" });
+export const schedule_pollsTitle = (fbs: FbsRuntime) => fbs._("活动时间投票", null, { hk: "2a4Zbn" });
+export const schedule_pollsHint = (fbs: FbsRuntime) => fbs._("给出几个候选时间，成员勾选所有能参加的时间；可参加人数最多的时段最适合定档。", null, { hk: "21C0Il" });
+export const schedule_pollEmptyText = (fbs: FbsRuntime) => fbs._("还没有时间投票。", null, { hk: "2D4gAX" });
+export const schedule_pollCreateLabel = (fbs: FbsRuntime) => fbs._("发起投票", null, { hk: "DfurE" });
+export const schedule_pollTitleLabel = (fbs: FbsRuntime) => fbs._("投票标题", null, { hk: "4aIGaN" });
+export const schedule_pollTitlePlaceholder = (fbs: FbsRuntime) => fbs._("如：本周开荒时间", null, { hk: "2TaAQ0" });
+export const schedule_pollCandidatesLabel = (fbs: FbsRuntime) => fbs._("候选时间", null, { hk: "467fwR" });
+export const schedule_pollAddCandidateLabel = (fbs: FbsRuntime) => fbs._("添加候选", null, { hk: "2CMdlo" });
+export const schedule_pollSubmitLabel = (fbs: FbsRuntime) => fbs._("发布投票", null, { hk: "2soFfm" });
+export const schedule_pollVoteLabel = (fbs: FbsRuntime) => fbs._("提交投票", null, { hk: "XP8Nz" });
+export const schedule_pollVotedText = (fbs: FbsRuntime) => fbs._("已投票，可修改后重新提交。", null, { hk: "edXVJ" });
+export const schedule_pollStatusOpenText = (fbs: FbsRuntime) => fbs._("进行中", null, { hk: "44Cw0j" });
+export const schedule_pollStatusClosedText = (fbs: FbsRuntime) => fbs._("已关闭", null, { hk: "4BmQiK" });
+export const schedule_pollCloseLabel = (fbs: FbsRuntime) => fbs._("关闭投票", null, { hk: "2W2n6k" });
+export const schedule_pollVoteCountTemplate = (fbs: FbsRuntime, p?: StringParams) => fbs._("{count} 人可参加", [fbs._param("count", pv(p, "count"))], { hk: "2EI6k0" });
+export const schedule_pollLaunchLabel = (fbs: FbsRuntime) => fbs._("以此时间发车", null, { hk: "3CtHJC" });
+export const schedule_pollCancelLabel = (fbs: FbsRuntime) => fbs._("取消", null, { hk: "1lAUHh" });
+export const schedule_toastPollCreated = (fbs: FbsRuntime) => fbs._("投票已发布", null, { hk: "1Q2uAf" });
+export const schedule_toastVoted = (fbs: FbsRuntime) => fbs._("已提交", null, { hk: "3ycOm9" });
+export const schedule_toastClosed = (fbs: FbsRuntime) => fbs._("投票已关闭", null, { hk: "3I4Yrg" });
+export const schedule_toastFailedTemplate = (fbs: FbsRuntime, p?: StringParams) => fbs._("操作失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "DL1dY" });
 export const STRING_FNS: Record<string, StringFn> = {
 	"common.cancel": common_cancel,
 	"common.confirm": common_confirm,
@@ -1083,6 +1140,7 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"guildHome.tabAnnouncements": guildHome_tabAnnouncements,
 	"guildHome.readOnlyBanner": guildHome_readOnlyBanner,
 	"guildHome.adminLink": guildHome_adminLink,
+	"guildHome.tabSchedule": guildHome_tabSchedule,
 	"groupingType.tabActivity": groupingType_tabActivity,
 	"groupingType.tabTalent": groupingType_tabTalent,
 	"groupingType.tabRace": groupingType_tabRace,
@@ -1139,6 +1197,7 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"groupingDetail.toastRestored": groupingDetail_toastRestored,
 	"groupingDetail.toastRestoreFailed": groupingDetail_toastRestoreFailed,
 	"groupingDetail.completedHint": groupingDetail_completedHint,
+	"groupingDetail.rosterAnswersTitle": groupingDetail_rosterAnswersTitle,
 	"groupingForm.createTitle": groupingForm_createTitle,
 	"groupingForm.editTitle": groupingForm_editTitle,
 	"groupingForm.typeLabel": groupingForm_typeLabel,
@@ -1169,6 +1228,15 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"groupingForm.toastPosted": groupingForm_toastPosted,
 	"groupingForm.toastCreateFailed": groupingForm_toastCreateFailed,
 	"groupingForm.titleTemplate": groupingForm_titleTemplate,
+	"groupingForm.customFieldsTitle": groupingForm_customFieldsTitle,
+	"groupingForm.customFieldAddLabel": groupingForm_customFieldAddLabel,
+	"groupingForm.customFieldLabelPlaceholder": groupingForm_customFieldLabelPlaceholder,
+	"groupingForm.customFieldTypeText": groupingForm_customFieldTypeText,
+	"groupingForm.customFieldTypeChoice": groupingForm_customFieldTypeChoice,
+	"groupingForm.customFieldOptionsPlaceholder": groupingForm_customFieldOptionsPlaceholder,
+	"groupingForm.customFieldRequiredLabel": groupingForm_customFieldRequiredLabel,
+	"groupingForm.customFieldRemoveLabel": groupingForm_customFieldRemoveLabel,
+	"groupingForm.customFieldEmptyText": groupingForm_customFieldEmptyText,
 	"seat.emptyJoin": seat_emptyJoin,
 	"seat.empty": seat_empty,
 	"seat.modalTitle": seat_modalTitle,
@@ -1693,6 +1761,18 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"errors.lotteryWinnerCountInvalid": errors_lotteryWinnerCountInvalid,
 	"errors.lotteryWeightInvalid": errors_lotteryWeightInvalid,
 	"errors.lotteryMemberNotInGuild": errors_lotteryMemberNotInGuild,
+	"errors.availabilitySlotInvalid": errors_availabilitySlotInvalid,
+	"errors.availabilityTooManySlots": errors_availabilityTooManySlots,
+	"errors.pollTitleRequired": errors_pollTitleRequired,
+	"errors.pollOptionsInvalid": errors_pollOptionsInvalid,
+	"errors.pollNotFound": errors_pollNotFound,
+	"errors.pollClosed": errors_pollClosed,
+	"errors.pollOptionInvalid": errors_pollOptionInvalid,
+	"errors.pollForbidden": errors_pollForbidden,
+	"errors.customFieldInvalid": errors_customFieldInvalid,
+	"errors.customFieldTooMany": errors_customFieldTooMany,
+	"errors.signupAnswerRequired": errors_signupAnswerRequired,
+	"errors.signupAnswerInvalid": errors_signupAnswerInvalid,
 	"guildAdmin.title": guildAdmin_title,
 	"guildAdmin.lockedTitle": guildAdmin_lockedTitle,
 	"guildAdmin.lockedBody": guildAdmin_lockedBody,
@@ -1953,5 +2033,39 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"announcements.authorTemplate": announcements_authorTemplate,
 	"announcements.pushNote": announcements_pushNote,
 	"announcements.urgentNote": announcements_urgentNote,
-	"announcements.dailyLimitTemplate": announcements_dailyLimitTemplate
+	"announcements.dailyLimitTemplate": announcements_dailyLimitTemplate,
+	"schedule.title": schedule_title,
+	"schedule.myTitle": schedule_myTitle,
+	"schedule.myHint": schedule_myHint,
+	"schedule.slotRange": schedule_slotRange,
+	"schedule.addSlotLabel": schedule_addSlotLabel,
+	"schedule.removeLabel": schedule_removeLabel,
+	"schedule.saveLabel": schedule_saveLabel,
+	"schedule.savedText": schedule_savedText,
+	"schedule.saveFailedTemplate": schedule_saveFailedTemplate,
+	"schedule.emptyMineText": schedule_emptyMineText,
+	"schedule.summaryTitle": schedule_summaryTitle,
+	"schedule.summaryHint": schedule_summaryHint,
+	"schedule.summaryEmptyText": schedule_summaryEmptyText,
+	"schedule.pollsTitle": schedule_pollsTitle,
+	"schedule.pollsHint": schedule_pollsHint,
+	"schedule.pollEmptyText": schedule_pollEmptyText,
+	"schedule.pollCreateLabel": schedule_pollCreateLabel,
+	"schedule.pollTitleLabel": schedule_pollTitleLabel,
+	"schedule.pollTitlePlaceholder": schedule_pollTitlePlaceholder,
+	"schedule.pollCandidatesLabel": schedule_pollCandidatesLabel,
+	"schedule.pollAddCandidateLabel": schedule_pollAddCandidateLabel,
+	"schedule.pollSubmitLabel": schedule_pollSubmitLabel,
+	"schedule.pollVoteLabel": schedule_pollVoteLabel,
+	"schedule.pollVotedText": schedule_pollVotedText,
+	"schedule.pollStatusOpenText": schedule_pollStatusOpenText,
+	"schedule.pollStatusClosedText": schedule_pollStatusClosedText,
+	"schedule.pollCloseLabel": schedule_pollCloseLabel,
+	"schedule.pollVoteCountTemplate": schedule_pollVoteCountTemplate,
+	"schedule.pollLaunchLabel": schedule_pollLaunchLabel,
+	"schedule.pollCancelLabel": schedule_pollCancelLabel,
+	"schedule.toastPollCreated": schedule_toastPollCreated,
+	"schedule.toastVoted": schedule_toastVoted,
+	"schedule.toastClosed": schedule_toastClosed,
+	"schedule.toastFailedTemplate": schedule_toastFailedTemplate
 };

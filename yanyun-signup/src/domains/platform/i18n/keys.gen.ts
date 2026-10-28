@@ -142,7 +142,19 @@ export type PlatformStringKey =
   | 'errors.lotteryAlreadyDrawn'
   | 'errors.lotteryWinnerCountInvalid'
   | 'errors.lotteryWeightInvalid'
-  | 'errors.lotteryMemberNotInGuild';
+  | 'errors.lotteryMemberNotInGuild'
+  | 'errors.availabilitySlotInvalid'
+  | 'errors.availabilityTooManySlots'
+  | 'errors.pollTitleRequired'
+  | 'errors.pollOptionsInvalid'
+  | 'errors.pollNotFound'
+  | 'errors.pollClosed'
+  | 'errors.pollOptionInvalid'
+  | 'errors.pollForbidden'
+  | 'errors.customFieldInvalid'
+  | 'errors.customFieldTooMany'
+  | 'errors.signupAnswerRequired'
+  | 'errors.signupAnswerInvalid';
 
 export const PLATFORM_STRING_KEYS: readonly PlatformStringKey[] = [
   'common.cancel',
@@ -287,4 +299,16 @@ export const PLATFORM_STRING_KEYS: readonly PlatformStringKey[] = [
   'errors.lotteryWinnerCountInvalid',
   'errors.lotteryWeightInvalid',
   'errors.lotteryMemberNotInGuild',
+  'errors.availabilitySlotInvalid',
+  'errors.availabilityTooManySlots',
+  'errors.pollTitleRequired',
+  'errors.pollOptionsInvalid',
+  'errors.pollNotFound',
+  'errors.pollClosed',
+  'errors.pollOptionInvalid',
+  'errors.pollForbidden',
+  'errors.customFieldInvalid',
+  'errors.customFieldTooMany',
+  'errors.signupAnswerRequired',
+  'errors.signupAnswerInvalid',
 ];

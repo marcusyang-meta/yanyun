@@ -8910,6 +8910,633 @@
         }
       ],
       "types": []
+    },
+    "k8ki2eZ9m+l/DSGfM0wgkQ==": {
+      "description": "groupingForm.customFieldsTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Custom signup fields",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+MMvaSqdp02PgDCTJhJs1w==": {
+      "description": "groupingForm.customFieldAddLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Add field",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "hoSEAI09pfeco0bfDDTW7A==": {
+      "description": "groupingForm.customFieldLabelPlaceholder",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Field name (e.g. contact info)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "BvRZrYyC9s/SXciUFJKx3w==": {
+      "description": "groupingForm.customFieldTypeText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Single-line text",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "R/SEJdPj5wgwScXsxXAPaw==": {
+      "description": "groupingForm.customFieldTypeChoice",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Single choice",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "mH1ViE5hY+OfZXpyz2JRQA==": {
+      "description": "groupingForm.customFieldOptionsPlaceholder",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Options, one per line (2–6)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "QVi5cbcaTHn5HXYKeJ+mXw==": {
+      "description": "groupingForm.customFieldRequiredLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Required",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "9FjZdbC69XbgyKT+bAZmhg==": {
+      "description": "groupingForm.customFieldRemoveLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Remove",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "aekKj9YVbyzqFh7gfmEq+Q==": {
+      "description": "groupingForm.customFieldEmptyText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "With no custom fields, members sign up with the standard fields only.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "GeutspYOyY+yNmnSw2ghbA==": {
+      "description": "groupingDetail.rosterAnswersTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Signup form answers",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "MXr7/XSyiuk3KYcj9FTS7w==": {
+      "description": "schedule.title",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Scheduling",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "pSv6fAXEuuLe5kJEpa8YSA==": {
+      "description": "schedule.myTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "My availability",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "QMdqgO63P5IWUPTgisBjFA==": {
+      "description": "schedule.myHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Enter the weekly times you are regularly free, shown in your own timezone; admins and grouping leaders use them to pick times.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Vvl+e/MpBvOQfelO4JSYaw==": {
+      "description": "schedule.slotRange",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{start}–{end}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "DFKc2PnEH+qeLVdBAHGcsg==": {
+      "description": "schedule.addSlotLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Add time slot",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "tef/CZCeakFPvUmpTZCHWg==": {
+      "description": "schedule.removeLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Remove",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+M4SMgHIwGfAq7WJS1N2xw==": {
+      "description": "schedule.saveLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Save",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "0nPwc/KOtLuaw/RILTlDfA==": {
+      "description": "schedule.savedText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Availability saved",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "WGF47xPbrxy0ifsHfyQADA==": {
+      "description": "schedule.saveFailedTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Save failed: {error}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "sAF2TVzwwZvJwNN6xP4z2g==": {
+      "description": "schedule.emptyMineText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "You have not entered your availability yet.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "4PqpvzilZ9V8SxHPcc+Gow==": {
+      "description": "schedule.summaryTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Member availability summary",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "CP0DcXxyFjtuFnKh5siFmA==": {
+      "description": "schedule.summaryHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "The summary is visible only to guild admins and members who have led a grouping, for scheduling.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "uS33vN0KxLV8z66xrL/cSw==": {
+      "description": "schedule.summaryEmptyText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "No member has entered availability yet.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "d3wHM3RhpqOJYKoA4XrlxA==": {
+      "description": "schedule.pollsTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Activity time polls",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "lKhHmk0TeMc+6p15gKqELw==": {
+      "description": "schedule.pollsHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Offer a few candidate times and members tick every time they can make; the time with the most available members wins.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "XF1CZDeAgwY5INo0KiV6uA==": {
+      "description": "schedule.pollEmptyText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "No time polls yet.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "r0fVQTfYxXqv6Y/36zclnw==": {
+      "description": "schedule.pollCreateLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Start a poll",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "6Khy+w47dkHVvvsY9HW9XA==": {
+      "description": "schedule.pollTitleLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Poll title",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "KiikJkwaNgGgHPctMXRJqQ==": {
+      "description": "schedule.pollTitlePlaceholder",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "e.g. This week's raid time",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "DeG4IbQWWRHrXuiqcZ4lYw==": {
+      "description": "schedule.pollCandidatesLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Candidate times",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "EbF12G7ediVjrdwZwggC5A==": {
+      "description": "schedule.pollAddCandidateLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Add candidate",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "66EDgaGvzUoB/AETHvTOMQ==": {
+      "description": "schedule.pollSubmitLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Publish poll",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "DAOKtuQnIUKaCzTdy1wORA==": {
+      "description": "schedule.pollVoteLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Submit vote",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Q5ua1ux2knd43s0P3dR7Cw==": {
+      "description": "schedule.pollVotedText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Voted — you can change your picks and resubmit.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "pX72fOATLxwpFrVKZ9OXcA==": {
+      "description": "schedule.pollStatusOpenText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Open",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "UjB0wcu5R9nGt6jaV1XoOA==": {
+      "description": "schedule.pollStatusClosedText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Closed",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "oYyqxjFfassHk29wd2vQKg==": {
+      "description": "schedule.pollCloseLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Close poll",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "T0jViKAlEFsBla5FczOzGg==": {
+      "description": "schedule.pollVoteCountTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{count} can make it",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+XRfDDDjOCSV+kaAouQPaw==": {
+      "description": "schedule.pollLaunchLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Create grouping at this time",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "n5FlRGLOi4PX0K4MqdYSiA==": {
+      "description": "schedule.pollCancelLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Cancel",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "wBz0RFx560qf3t7Ika3Oyg==": {
+      "description": "schedule.toastPollCreated",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Poll published",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "IFJtaYpGtieexnGBZ6FkGA==": {
+      "description": "schedule.toastVoted",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Submitted",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "GbN6+WxVBbCBGO5/PhvsIg==": {
+      "description": "schedule.toastClosed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Poll closed",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "BQhh9P7MMBYrYlZILWARPw==": {
+      "description": "schedule.toastFailedTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Action failed: {error}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "b1i6nz0OtIQcYev/bu/vOA==": {
+      "description": "guildHome.tabSchedule",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Scheduling",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "5PWvosGjyk0A6otbBEuNNg==": {
+      "description": "errors.availabilitySlotInvalid",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "That availability slot is invalid",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "SMeZ8OvFVddZRfTC15EMZA==": {
+      "description": "errors.availabilityTooManySlots",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Too many availability slots (max 21)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ysstM7eYzyMNNL20Edur3A==": {
+      "description": "errors.pollTitleRequired",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Enter a poll title",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "W2naFgaxi/lrCcs7mT1VfQ==": {
+      "description": "errors.pollOptionsInvalid",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Candidate times are invalid (need 2–8 distinct future times)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "nxSC6KUOHcczS/8AjqMCyg==": {
+      "description": "errors.pollNotFound",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Poll not found",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "NbCvqWBQyBr9k/+Qk+2fXQ==": {
+      "description": "errors.pollClosed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "This poll is closed",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "GVMsj3JFYZWf7nPnn29OjQ==": {
+      "description": "errors.pollOptionInvalid",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "A picked time does not belong to this poll",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "DtPiPBvgpE06rxyR6i13Qg==": {
+      "description": "errors.pollForbidden",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Only the poll creator or a guild admin can close it",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "iOIrPI2zSXlNAGdiTjRlsA==": {
+      "description": "errors.customFieldInvalid",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "That custom field is invalid",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "f8CRoPASYQCsvR2dAx53qA==": {
+      "description": "errors.customFieldTooMany",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "At most 5 custom fields",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "JOwrqU00hxjriJXPRKDt6w==": {
+      "description": "errors.signupAnswerRequired",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Fill in the required signup fields",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "1R+X8KCZVuxa9E7MzmLikQ==": {
+      "description": "errors.signupAnswerInvalid",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "That signup answer is invalid",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

@@ -193,3 +193,51 @@ export const groupingTemplate_saveSubmit = (fbs: FbsAPI) =>fbs("保存模板", "
 export const groupingTemplate_toastSavedFromCar = (fbs: FbsAPI) =>fbs("已存为模板，可在发新车时一键预填", "groupingTemplate.toastSavedFromCar");
 export const groupingTemplate_metaTemplate = (fbs: FbsAPI, p?: StringParams) =>
   fbs([fbs.param("type", pv(p, "type")), fbs.param("dungeon", pv(p, "dungeon")), " · ", fbs.param("max", pv(p, "max")), " 人"], "groupingTemplate.metaTemplate");
+export const groupingForm_customFieldsTitle = (fbs: FbsAPI) =>fbs("报名表自定义字段", "groupingForm.customFieldsTitle");
+export const groupingForm_customFieldAddLabel = (fbs: FbsAPI) =>fbs("添加字段", "groupingForm.customFieldAddLabel");
+export const groupingForm_customFieldLabelPlaceholder = (fbs: FbsAPI) =>fbs("字段名（如：联系方式）", "groupingForm.customFieldLabelPlaceholder");
+export const groupingForm_customFieldTypeText = (fbs: FbsAPI) =>fbs("单行文本", "groupingForm.customFieldTypeText");
+export const groupingForm_customFieldTypeChoice = (fbs: FbsAPI) =>fbs("单选", "groupingForm.customFieldTypeChoice");
+export const groupingForm_customFieldOptionsPlaceholder = (fbs: FbsAPI) =>fbs("选项，一行一个（2–6 个）", "groupingForm.customFieldOptionsPlaceholder");
+export const groupingForm_customFieldRequiredLabel = (fbs: FbsAPI) =>fbs("必填", "groupingForm.customFieldRequiredLabel");
+export const groupingForm_customFieldRemoveLabel = (fbs: FbsAPI) =>fbs("删除", "groupingForm.customFieldRemoveLabel");
+export const groupingForm_customFieldEmptyText = (fbs: FbsAPI) =>fbs("未设置自定义字段时，成员报名只填固定信息。", "groupingForm.customFieldEmptyText");
+export const groupingDetail_rosterAnswersTitle = (fbs: FbsAPI) =>fbs("报名表答案", "groupingDetail.rosterAnswersTitle");
+export const schedule_title = (fbs: FbsAPI) =>fbs("排期", "schedule.title");
+export const schedule_myTitle = (fbs: FbsAPI) =>fbs("我的可用时间", "schedule.myTitle");
+export const schedule_myHint = (fbs: FbsAPI) =>fbs("填写你每周固定有空的时段，按你所在时区显示；管理员与车头据此定档期。", "schedule.myHint");
+export const schedule_slotRange = (fbs: FbsAPI, p?: StringParams) =>
+  fbs([fbs.param("start", pv(p, "start")), "–", fbs.param("end", pv(p, "end"))], "schedule.slotRange");
+export const schedule_addSlotLabel = (fbs: FbsAPI) =>fbs("添加时段", "schedule.addSlotLabel");
+export const schedule_removeLabel = (fbs: FbsAPI) =>fbs("删除", "schedule.removeLabel");
+export const schedule_saveLabel = (fbs: FbsAPI) =>fbs("保存", "schedule.saveLabel");
+export const schedule_savedText = (fbs: FbsAPI) =>fbs("可用时间已保存", "schedule.savedText");
+export const schedule_saveFailedTemplate = (fbs: FbsAPI, p?: StringParams) =>
+  fbs(["保存失败：", fbs.param("error", pv(p, "error"))], "schedule.saveFailedTemplate");
+export const schedule_emptyMineText = (fbs: FbsAPI) =>fbs("你还没有填写可用时间。", "schedule.emptyMineText");
+export const schedule_summaryTitle = (fbs: FbsAPI) =>fbs("成员可用性汇总", "schedule.summaryTitle");
+export const schedule_summaryHint = (fbs: FbsAPI) =>fbs("汇总仅百业管理员与发过车的车头可见，用于定档期。", "schedule.summaryHint");
+export const schedule_summaryEmptyText = (fbs: FbsAPI) =>fbs("还没有成员填写可用时间。", "schedule.summaryEmptyText");
+export const schedule_pollsTitle = (fbs: FbsAPI) =>fbs("活动时间投票", "schedule.pollsTitle");
+export const schedule_pollsHint = (fbs: FbsAPI) =>fbs("给出几个候选时间，成员勾选所有能参加的时间；可参加人数最多的时段最适合定档。", "schedule.pollsHint");
+export const schedule_pollEmptyText = (fbs: FbsAPI) =>fbs("还没有时间投票。", "schedule.pollEmptyText");
+export const schedule_pollCreateLabel = (fbs: FbsAPI) =>fbs("发起投票", "schedule.pollCreateLabel");
+export const schedule_pollTitleLabel = (fbs: FbsAPI) =>fbs("投票标题", "schedule.pollTitleLabel");
+export const schedule_pollTitlePlaceholder = (fbs: FbsAPI) =>fbs("如：本周开荒时间", "schedule.pollTitlePlaceholder");
+export const schedule_pollCandidatesLabel = (fbs: FbsAPI) =>fbs("候选时间", "schedule.pollCandidatesLabel");
+export const schedule_pollAddCandidateLabel = (fbs: FbsAPI) =>fbs("添加候选", "schedule.pollAddCandidateLabel");
+export const schedule_pollSubmitLabel = (fbs: FbsAPI) =>fbs("发布投票", "schedule.pollSubmitLabel");
+export const schedule_pollVoteLabel = (fbs: FbsAPI) =>fbs("提交投票", "schedule.pollVoteLabel");
+export const schedule_pollVotedText = (fbs: FbsAPI) =>fbs("已投票，可修改后重新提交。", "schedule.pollVotedText");
+export const schedule_pollStatusOpenText = (fbs: FbsAPI) =>fbs("进行中", "schedule.pollStatusOpenText");
+export const schedule_pollStatusClosedText = (fbs: FbsAPI) =>fbs("已关闭", "schedule.pollStatusClosedText");
+export const schedule_pollCloseLabel = (fbs: FbsAPI) =>fbs("关闭投票", "schedule.pollCloseLabel");
+export const schedule_pollVoteCountTemplate = (fbs: FbsAPI, p?: StringParams) =>
+  fbs([fbs.param("count", pv(p, "count")), " 人可参加"], "schedule.pollVoteCountTemplate");
+export const schedule_pollLaunchLabel = (fbs: FbsAPI) =>fbs("以此时间发车", "schedule.pollLaunchLabel");
+export const schedule_pollCancelLabel = (fbs: FbsAPI) =>fbs("取消", "schedule.pollCancelLabel");
+export const schedule_toastPollCreated = (fbs: FbsAPI) =>fbs("投票已发布", "schedule.toastPollCreated");
+export const schedule_toastVoted = (fbs: FbsAPI) =>fbs("已提交", "schedule.toastVoted");
+export const schedule_toastClosed = (fbs: FbsAPI) =>fbs("投票已关闭", "schedule.toastClosed");
+export const schedule_toastFailedTemplate = (fbs: FbsAPI, p?: StringParams) =>
+  fbs(["操作失败：", fbs.param("error", pv(p, "error"))], "schedule.toastFailedTemplate");

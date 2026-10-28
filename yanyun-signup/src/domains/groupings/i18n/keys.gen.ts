@@ -142,7 +142,51 @@ export type GroupingsStringKey =
   | 'groupingTemplate.saveDialogTitle'
   | 'groupingTemplate.saveSubmit'
   | 'groupingTemplate.toastSavedFromCar'
-  | 'groupingTemplate.metaTemplate';
+  | 'groupingTemplate.metaTemplate'
+  | 'groupingForm.customFieldsTitle'
+  | 'groupingForm.customFieldAddLabel'
+  | 'groupingForm.customFieldLabelPlaceholder'
+  | 'groupingForm.customFieldTypeText'
+  | 'groupingForm.customFieldTypeChoice'
+  | 'groupingForm.customFieldOptionsPlaceholder'
+  | 'groupingForm.customFieldRequiredLabel'
+  | 'groupingForm.customFieldRemoveLabel'
+  | 'groupingForm.customFieldEmptyText'
+  | 'groupingDetail.rosterAnswersTitle'
+  | 'schedule.title'
+  | 'schedule.myTitle'
+  | 'schedule.myHint'
+  | 'schedule.slotRange'
+  | 'schedule.addSlotLabel'
+  | 'schedule.removeLabel'
+  | 'schedule.saveLabel'
+  | 'schedule.savedText'
+  | 'schedule.saveFailedTemplate'
+  | 'schedule.emptyMineText'
+  | 'schedule.summaryTitle'
+  | 'schedule.summaryHint'
+  | 'schedule.summaryEmptyText'
+  | 'schedule.pollsTitle'
+  | 'schedule.pollsHint'
+  | 'schedule.pollEmptyText'
+  | 'schedule.pollCreateLabel'
+  | 'schedule.pollTitleLabel'
+  | 'schedule.pollTitlePlaceholder'
+  | 'schedule.pollCandidatesLabel'
+  | 'schedule.pollAddCandidateLabel'
+  | 'schedule.pollSubmitLabel'
+  | 'schedule.pollVoteLabel'
+  | 'schedule.pollVotedText'
+  | 'schedule.pollStatusOpenText'
+  | 'schedule.pollStatusClosedText'
+  | 'schedule.pollCloseLabel'
+  | 'schedule.pollVoteCountTemplate'
+  | 'schedule.pollLaunchLabel'
+  | 'schedule.pollCancelLabel'
+  | 'schedule.toastPollCreated'
+  | 'schedule.toastVoted'
+  | 'schedule.toastClosed'
+  | 'schedule.toastFailedTemplate';
 
 export const GROUPINGS_STRING_KEYS: readonly GroupingsStringKey[] = [
   'groupingType.tabActivity',
@@ -287,4 +331,48 @@ export const GROUPINGS_STRING_KEYS: readonly GroupingsStringKey[] = [
   'groupingTemplate.saveSubmit',
   'groupingTemplate.toastSavedFromCar',
   'groupingTemplate.metaTemplate',
+  'groupingForm.customFieldsTitle',
+  'groupingForm.customFieldAddLabel',
+  'groupingForm.customFieldLabelPlaceholder',
+  'groupingForm.customFieldTypeText',
+  'groupingForm.customFieldTypeChoice',
+  'groupingForm.customFieldOptionsPlaceholder',
+  'groupingForm.customFieldRequiredLabel',
+  'groupingForm.customFieldRemoveLabel',
+  'groupingForm.customFieldEmptyText',
+  'groupingDetail.rosterAnswersTitle',
+  'schedule.title',
+  'schedule.myTitle',
+  'schedule.myHint',
+  'schedule.slotRange',
+  'schedule.addSlotLabel',
+  'schedule.removeLabel',
+  'schedule.saveLabel',
+  'schedule.savedText',
+  'schedule.saveFailedTemplate',
+  'schedule.emptyMineText',
+  'schedule.summaryTitle',
+  'schedule.summaryHint',
+  'schedule.summaryEmptyText',
+  'schedule.pollsTitle',
+  'schedule.pollsHint',
+  'schedule.pollEmptyText',
+  'schedule.pollCreateLabel',
+  'schedule.pollTitleLabel',
+  'schedule.pollTitlePlaceholder',
+  'schedule.pollCandidatesLabel',
+  'schedule.pollAddCandidateLabel',
+  'schedule.pollSubmitLabel',
+  'schedule.pollVoteLabel',
+  'schedule.pollVotedText',
+  'schedule.pollStatusOpenText',
+  'schedule.pollStatusClosedText',
+  'schedule.pollCloseLabel',
+  'schedule.pollVoteCountTemplate',
+  'schedule.pollLaunchLabel',
+  'schedule.pollCancelLabel',
+  'schedule.toastPollCreated',
+  'schedule.toastVoted',
+  'schedule.toastClosed',
+  'schedule.toastFailedTemplate',
 ];
