@@ -3,6 +3,12 @@
 // -> fall back to Chinese); zh-CN/zh-TW -> the canonical Chinese values,
 // byte-identical to before the overlay. FakeDB is fed production-shaped
 // seed data; runs through the real yoga.
+// The guild-surface queries (Q_GROUP / Q_DETAIL) run as the signed-in
+// USER: the fixture guild is unbound, and since the 2026-10-28
+// follow-up access ruling (unbound guilds also require login on
+// non-shared links) an anonymous read is locked before any name is
+// composed. The public game-data queries stay anonymous, as does
+// the surface itself. Localization assertions are unchanged.
 import { describe, it, expect } from 'vitest';
 import { yoga } from '../src/graphql.ts';
 
@@ -251,7 +257,7 @@ async function runLocale(loc: string) {
 
     /* Groupings: web fields + list blocks + detail blocks */
     {
-      const j = await gql(Q_GROUP, { locale: loc });
+      const j = await gql(Q_GROUP, { locale: loc, user: USER });
       check(`group ${tag} 无 errors`, !j.errors, JSON.stringify(j.errors || '').slice(0, 300));
       const g0 = j.data?.groupingListPage?.groupings?.[0];
       eq(`grouping dungeon ${tag}`, g0?.dungeon?.name, exp('玉魄染青苍', 'Liminal Ascension'));
@@ -260,7 +266,7 @@ async function runLocale(loc: string) {
       const card = (j.data?.groupingListPage?.blocks || []).find((b) => b.__typename === 'GroupingCardBlock');
       eq(`block card dungeonName ${tag}`, card?.dungeonName, exp('玉魄染青苍', 'Liminal Ascension'));
 
-      const jd = await gql(Q_DETAIL, { locale: loc });
+      const jd = await gql(Q_DETAIL, { locale: loc, user: USER });
       check(`detail ${tag} 无 errors`, !jd.errors, JSON.stringify(jd.errors || '').slice(0, 300));
       const flat = [];
       const walk = (bs) => { for (const b of bs || []) { flat.push(b); if (b.children) walk(b.children); } };

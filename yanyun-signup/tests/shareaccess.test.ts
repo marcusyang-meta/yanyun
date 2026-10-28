@@ -13,7 +13,13 @@
 //    member keeps the full view incl. seat nicknames); an anonymous
 //    joinGrouping mutation is rejected and writes nothing;
 //  - cross-car: a code resolves only its own car (the code is the
-//    only input — car A's code can never surface car B's data).
+//    only input — car A's code can never surface car B's data);
+//  - follow-up ruling (2026-10-28): unbound guilds are login-gated
+//    on non-shared links too — anonymous direct reads (guild home,
+//    list/detail, publicGuilds, hub directory, WS) disclose nothing,
+//    signed-in readability is unchanged, and an unbound guild's car
+//    splits at /c exactly like a bound guild's (anonymous -> /s,
+//    signed-in -> canonical).
 // FakeDB routes by SQL shape (same pattern as tests/shortlink).
 import { describe, it, expect } from 'vitest';
 import { yoga } from '../src/graphql.ts';
@@ -52,6 +58,7 @@ function toRawRows(sqlText, rows) {
 /* ---------------- FakeDB ---------------- */
 const SLUG = 'sharetest';
 const SLUG_B = 'othertest';
+const SLUG_FREE = 'freetest';
 const DGID = 'DG-SHARE-1';
 function ev(id, over = {}) {
   return {
@@ -67,6 +74,10 @@ function makeDb() {
     tenants: [
       { slug: SLUG, guild_name: '分享测试百业', slogan: '', announcement: '', password_hash: 'h', recruit_open: 0 },
       { slug: SLUG_B, guild_name: '另一百业', slogan: '', announcement: '', password_hash: 'h', recruit_open: 0 },
+      // Unbound guild (no discord_guild_id setting row): its name /
+      // slogan double as sentinels for the anonymous zero-disclosure
+      // scans in the follow-up-ruling suite below.
+      { slug: SLUG_FREE, guild_name: '未绑百业名SENTINEL', slogan: '未绑标语SENTINEL', announcement: '', password_hash: 'h', recruit_open: 0 },
     ],
     settings: [
       { tenant: SLUG, key: 'discord_guild_id', value: DGID },
@@ -77,10 +88,12 @@ function makeDb() {
       ev(402, { status: 'completed', title: '已完成车' }),
       ev(403, { status: 'draft', title: '草稿车' }),
       ev(501, { tenant: SLUG_B, title: 'B 车标题' }),
+      ev(601, { tenant: SLUG_FREE, title: '未绑车标题601' }),
     ],
     signups: [
       { id: 1, event_id: 401, nickname: '阿珍', uid: 'qSECRETUID1', role: '输出', weapon: '破竹·樽', discord_id: 'MEMBER_DISCORD_AAA', ready_at: 123 },
       { id: 2, event_id: 401, nickname: '阿强', uid: 'qSECRETUID2', role: '奶', weapon: '牵丝·霖', discord_id: 'MEMBER_DISCORD_BBB', ready_at: null },
+      { id: 3, event_id: 601, nickname: '未绑阿珍', uid: 'qFREEUID1', role: '输出', weapon: '破竹·樽', discord_id: 'FREE_DISCORD_AAA', ready_at: null },
     ],
     links: [],
     signupInserts: 0,
@@ -108,6 +121,12 @@ function makeDb() {
     }
     if (/INSERT INTO signups/.test(sql)) { state.signupInserts++; return { meta: { changes: 1 } }; }
     if (/FROM signups/.test(sql)) {
+      if (/COUNT\(DISTINCT/.test(sql)) {
+        const evIds = new Set(state.events.filter((e) => e.tenant === b[0]).map((e) => e.id));
+        const nicks = new Set(state.signups.filter((r) => evIds.has(r.event_id)).map((r) => r.nickname));
+        const row = { c: nicks.size };
+        return kind === 'first' ? row : { results: [row] };
+      }
       if (/COUNT\(\*\)/.test(sql)) {
         const rows = state.signups.filter((r) => r.event_id === Number(b[0]));
         return kind === 'first' ? { c: rows.length } : { results: [{ c: rows.length }] };
@@ -125,6 +144,7 @@ function makeDb() {
       return kind === 'first' ? row : { results: row ? [row] : [] };
     }
     if (/FROM tenants/.test(sql)) {
+      if (!/WHERE/.test(sql)) return kind === 'first' ? (state.tenants[0] || null) : { results: state.tenants };
       const t = state.tenants.find((x) => x.slug === b[0]) || null;
       return kind === 'first' ? t : { results: t ? [t] : [] };
     }
@@ -132,6 +152,10 @@ function makeDb() {
       if (/WHERE tenant = \? AND key = \?/.test(sql)) {
         const r = state.settings.find((x) => x.tenant === b[0] && x.key === b[1]) || null;
         return kind === 'first' ? (r ? { value: r.value } : null) : { results: r ? [{ value: r.value }] : [] };
+      }
+      if (/WHERE key = \?/.test(sql)) {
+        const rows = state.settings.filter((x) => x.key === b[0]);
+        return kind === 'first' ? (rows[0] || null) : { results: rows };
       }
       return kind === 'first' ? null : { results: state.settings };
     }
@@ -314,21 +338,99 @@ describe('shareaccess: GraphQL surfaces', () => {
   });
 });
 
+/* Follow-up ruling (2026-10-28, later the same day): unbound guilds
+ * join the login gate too — non-shared links require login for every
+ * guild. Anonymous direct reads of an unbound guild (guild home,
+ * grouping list/detail, viewer compositions, hub directory, WS) now
+ * disclose nothing, at the same level as a bound guild; signed-in
+ * readability is unchanged; the shared link stays the one anonymous
+ * exception, serving the projected public face. */
+describe('shareaccess: unbound guild login gate (follow-up ruling)', () => {
+  const FREE_SENTINELS = ['未绑百业名SENTINEL', '未绑标语SENTINEL', '未绑车标题601', '未绑阿珍', 'qFREEUID1', 'FREE_DISCORD_AAA'];
+  const GUILD_Q = `query($slug: String!) { viewer { guild(slug: $slug) {
+    __typename ... on GuildReadOnly { name slogan memberCount } } } }`;
+
+  it('anonymous viewer.guild -> GuildLocked, zero content bytes', async () => {
+    const g = await gql(GUILD_Q, { slug: SLUG_FREE });
+    check('无 errors', !g.errors, JSON.stringify(g.errors || '').slice(0, 200));
+    eq('匿名未绑定百业 = GuildLocked', g.data?.viewer?.guild?.__typename, 'GuildLocked');
+    const raw = JSON.stringify(g);
+    for (const sName of FREE_SENTINELS) check(`响应不含 ${sName}`, !raw.includes(sName));
+  });
+
+  it('anonymous grouping list + detail -> errors, zero bytes', async () => {
+    const list = await gql(`query($slug: String!, $tab: GroupingTab!) { groupingListPage(slug: $slug, tab: $tab) { groupings { id status } } }`, { slug: SLUG_FREE, tab: 'ACTIVITY' });
+    check('匿名列表 -> errors', Array.isArray(list.errors) && list.errors.length > 0, JSON.stringify(list).slice(0, 200));
+    eq('匿名列表无数据', list.data?.groupingListPage ?? null, null);
+    const detail = await gql(DETAIL_Q0, { slug: SLUG_FREE, id: '601' });
+    check('匿名详情 -> errors (groupingNotFound)', Array.isArray(detail.errors) && detail.errors.length > 0, JSON.stringify(detail).slice(0, 200));
+    eq('匿名详情无数据', detail.data?.groupingDetailPage ?? null, null);
+    const raw = JSON.stringify(detail);
+    for (const sName of FREE_SENTINELS) check(`详情响应不含 ${sName}`, !raw.includes(sName));
+  });
+
+  it('anonymous publicGuilds -> empty; hub directory omits the unbound guild', async () => {
+    const pg = await gql(`query { viewer { publicGuilds { __typename slug } } }`, {});
+    check('publicGuilds 无 errors', !pg.errors, JSON.stringify(pg.errors || '').slice(0, 200));
+    eq('匿名 publicGuilds = []', JSON.stringify(pg.data?.viewer?.publicGuilds), '[]');
+    const hub = await gql(`query { hubPage { guilds { slug name slogan } } }`, {});
+    check('hubPage 无 errors', !hub.errors, JSON.stringify(hub.errors || '').slice(0, 200));
+    check('匿名 hub 目录不含未绑定百业', !(hub.data?.hubPage?.guilds || []).some((x: any) => x.slug === SLUG_FREE), JSON.stringify(hub.data || {}).slice(0, 200));
+    const raw = JSON.stringify(hub);
+    for (const sName of FREE_SENTINELS) check(`hub 响应不含 ${sName}`, !raw.includes(sName));
+  });
+
+  it('signed-in non-member readability is unchanged', async () => {
+    const g = await gql(GUILD_Q, { slug: SLUG_FREE }, NONMEMBER);
+    check('登录读百业无 errors', !g.errors, JSON.stringify(g.errors || '').slice(0, 200));
+    eq('登录未绑定百业 = GuildReadOnly', g.data?.viewer?.guild?.__typename, 'GuildReadOnly');
+    eq('登录可见百业名', g.data?.viewer?.guild?.name, '未绑百业名SENTINEL');
+    const detail = await gql(DETAIL_Q0, { slug: SLUG_FREE, id: '601' }, NONMEMBER);
+    check('登录详情无 errors', !detail.errors, JSON.stringify(detail.errors || '').slice(0, 200));
+    eq('登录见车标题', detail.data?.groupingDetailPage?.grouping?.title, '未绑车标题601');
+    eq('登录见座位昵称', detail.data?.groupingDetailPage?.grouping?.seats?.[0]?.nickname, '未绑阿珍');
+    const pg = await gql(`query { viewer { publicGuilds { __typename slug } } }`, {}, NONMEMBER);
+    const mine = (pg.data?.viewer?.publicGuilds || []).find((x: any) => x.slug === SLUG_FREE);
+    check('登录 publicGuilds 含未绑定百业', !!mine, JSON.stringify(pg.data || {}).slice(0, 200));
+    eq('publicGuilds 条目 = GuildReadOnly', mine?.__typename, 'GuildReadOnly');
+    check('publicGuilds 不含已绑定百业', !(pg.data?.viewer?.publicGuilds || []).some((x: any) => x.slug === SLUG));
+    const hub = await gql(`query { hubPage { guilds { slug name slogan } } }`, {}, NONMEMBER);
+    check('登录 hub 目录含未绑定百业', (hub.data?.hubPage?.guilds || []).some((x: any) => x.slug === SLUG_FREE), JSON.stringify(hub.data || {}).slice(0, 200));
+  });
+
+  it('anonymous via the shared link still reads the public face (the one exception)', async () => {
+    const codeFree = (await mintShortLink(db, SLUG_FREE, 601)).code;
+    const g = await gql(`query($code: String!) { sharedGrouping(code: $code) {
+      exists slug guildName title occupiedCount maxSlots seats { index occupied } } }`, { code: codeFree });
+    check('分享面无 errors', !g.errors, JSON.stringify(g.errors || '').slice(0, 200));
+    const p = g.data?.sharedGrouping;
+    eq('exists', p?.exists, true);
+    eq('guildName = 公开面百业名', p?.guildName, '未绑百业名SENTINEL');
+    eq('title = 公开面车标题', p?.title, '未绑车标题601');
+    eq('occupiedCount', p?.occupiedCount, 1);
+    const raw = JSON.stringify(g);
+    for (const sName of ['未绑阿珍', 'qFREEUID1', 'FREE_DISCORD_AAA', '未绑标语SENTINEL']) check(`分享面不含成员细节 ${sName}`, !raw.includes(sName));
+  });
+
+  const DETAIL_Q0 = `query($slug: String, $id: ID!) { groupingDetailPage(slug: $slug, id: $id) { grouping { title seats { nickname occupied } } } }`;
+});
+
 describe('shareaccess: /c landing split + /s page', () => {
   const SECRET = 'share-access-test-secret';
   const env = { DB: db, SESSION_SECRET: SECRET, ASSETS: { fetch: async (req) => {
     const p = new URL(req.url).pathname;
     if (p === '/index.html') return new Response('<html><head></head><body>SPA-INDEX</body></html>', { status: 200, headers: { 'content-type': 'text/html' } });
     return new Response('not found', { status: 404 });
-  } } };
+  } }, GUILD_HUB: { idFromName: (name: string) => name, get: () => ({ fetch: async () => new Response('HUB-REACHED', { status: 200 }) }) } };
   const ectx = { waitUntil() {} };
-  let worker: any, codeA: string;
+  let worker: any, codeA: string, codeFree: string;
   const call = (path: string, headers: Record<string, string> = {}) =>
     worker.fetch(new Request('http://local' + path, { headers }), env, ectx);
 
   it('setup', async () => {
     worker = (await import('../src/worker.ts')).default;
     codeA = (await mintShortLink(db, SLUG, 401)).code;
+    codeFree = (await mintShortLink(db, SLUG_FREE, 601)).code;
   });
 
   it('anonymous /c lands on the share page, not the gated canonical page', async () => {
@@ -370,5 +472,45 @@ describe('shareaccess: /c landing split + /s page', () => {
     const html = await r.text();
     check('SPA 本体', html.includes('SPA-INDEX'));
     check('无车 OG 图注入', !html.includes(`/og/${SLUG}/car/`));
+  });
+
+  /* Unbound guild cars (follow-up ruling): the landing split is the
+   * same as for bound guilds — anonymous goes to the share page,
+   * any signed-in viewer keeps the canonical landing. */
+  it('unbound car: anonymous /c lands on the share page', async () => {
+    const r = await call(`/c/${codeFree}`);
+    eq('匿名 -> 302', r.status, 302);
+    eq('匿名落点 = /s/<code>', r.headers.get('location'), `http://local/s/${codeFree}`);
+    await r.text();
+  });
+
+  it('unbound car: signed-in non-member /c keeps the canonical landing', async () => {
+    const jwt = await signJwt(SECRET, { sub: 'M9', name: '路人', guilds: ['DG-ELSEWHERE'] });
+    const r = await call(`/c/${codeFree}`, { cookie: `yy_session=${jwt}` });
+    eq('登录 -> 302', r.status, 302);
+    eq('登录落点 = 规范长链', r.headers.get('location'), `http://local/${SLUG_FREE}/car/601`);
+    await r.text();
+  });
+
+  /* WS subscription gate (same getGuildAccess verdict as GraphQL):
+   * anonymous is refused for bound and unbound guilds alike; a
+   * signed-in viewer may subscribe to an unbound guild. */
+  it('WS: anonymous subscribe to an unbound guild -> 403', async () => {
+    const r = await call(`/ws/guild/${SLUG_FREE}`, { Upgrade: 'websocket' });
+    eq('匿名 WS 未绑定 -> 403', r.status, 403);
+    await r.text();
+  });
+
+  it('WS: anonymous subscribe to a bound guild -> 403 (parity)', async () => {
+    const r = await call(`/ws/guild/${SLUG}`, { Upgrade: 'websocket' });
+    eq('匿名 WS 已绑定 -> 403', r.status, 403);
+    await r.text();
+  });
+
+  it('WS: signed-in subscribe to an unbound guild reaches the hub', async () => {
+    const jwt = await signJwt(SECRET, { sub: 'M9', name: '路人', guilds: ['DG-ELSEWHERE'] });
+    const r = await call(`/ws/guild/${SLUG_FREE}`, { Upgrade: 'websocket', cookie: `yy_session=${jwt}` });
+    eq('登录 WS 未绑定 -> 200 (hub stub)', r.status, 200);
+    eq('hub stub 应答', await r.text(), 'HUB-REACHED');
   });
 });

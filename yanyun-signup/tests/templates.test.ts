@@ -412,7 +412,7 @@ describe('templates', () => {
     eq('成员详情页有 templateSave', r.data?.groupingDetailPage?.templateSave?.buttonLabel, '📋 存为模板');
     r = await gql(detailQ, { user: OUTSIDER });
     check('绑定百业非成员详情页 -> 报错 (按不存在处理)', Array.isArray(r.errors) && r.errors.length > 0);
-    // Unbound guild: anyone may view, nobody may write -> templateSave null.
+    // Unbound guild: any signed-in viewer may view, nobody may write -> templateSave null.
     r = await gql(`{ groupingDetailPage(slug: "freetest", id: "403") { templateSave { buttonLabel } } }`, { user: MEMBER });
     eq('未绑定百业详情页 templateSave 为 null', r.data?.groupingDetailPage?.templateSave, null);
 

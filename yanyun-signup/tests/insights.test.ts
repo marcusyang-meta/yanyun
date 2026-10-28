@@ -16,6 +16,11 @@
 // Counting checks pin the definitions: attended = completed car +
 // ready mark; no-show = completed car + never ready; an open car
 // counts signups only; a draft car counts nowhere.
+// The member-board reads below run as a signed-in viewer: the
+// fixture guild is unbound, and since the 2026-10-28 follow-up
+// access ruling (unbound guilds also require login on non-shared
+// links) an anonymous read composes GuildLocked, where the board
+// fields do not exist. The tier assertions themselves are unchanged.
 import { Miniflare, convertV4MiniflareOptions } from 'miniflare';
 import { yoga } from '../src/graphql.ts';
 import { OMNISCIENT_VIEWER } from '../src/domains/platform/context.ts';
@@ -145,6 +150,10 @@ const adminQ = `{ viewer { guildAdmin(slug: "${SLUG}") { __typename ... on Guild
     ... on GuildInsightsLocked { premiumTitle } }
 } } } }`;
 const ga = (r) => r.data?.viewer?.guildAdmin;
+// Signed-in viewer for the member-board reads (see the header note
+// on the follow-up access ruling); the admin surface keeps riding
+// the omniscient VC exactly as before.
+const MEMBER_VIEWER = { discordId: 'u1', name: '甲一', guilds: [] };
 
 let r: any;
 
@@ -165,7 +174,7 @@ eq('A: insights tab label is backend copy', ga(r)?.adminTabInsightsLabel, '数�
 r = await gql(`mutation { upsertGearStandard(slug: "${SLUG}", label: "S5 开荒", minScore: 80) { ok errorCode } }`);
 eq('A: gear standard write refused at tier 0', [r.data?.upsertGearStandard?.ok, r.data?.upsertGearStandard?.errorCode], [false, 'premiumRequired']);
 eq('A: no standard stored', (await listGearStandards(db, SLUG)).length, 0);
-r = await gql(`{ viewer { guild(slug: "${SLUG}") { __typename ... on Guild { raceSeasonBoard { __typename } gearSelfStatus { __typename } } ... on GuildReadOnly { raceSeasonBoard { __typename } } } } }`);
+r = await gql(`{ viewer { guild(slug: "${SLUG}") { __typename ... on Guild { raceSeasonBoard { __typename } gearSelfStatus { __typename } } ... on GuildReadOnly { raceSeasonBoard { __typename } } } } }`, { user: MEMBER_VIEWER });
 const memberBoard = r.data?.viewer?.guild?.raceSeasonBoard?.__typename;
 eq('A: member race board locked', memberBoard, 'GuildInsightsLocked');
   });
@@ -215,7 +224,7 @@ check('B: best time text formatted', typeof seasons[0]?.entries?.[0]?.bestTimeTe
 /* member self status: only the viewer's own standing is composed */
 const self = await computeGearSelfStatus(db, SLUG, 'u2');
 eq('B: u2 self status (own score only)', self.map((e) => [e.label, e.minScore, e.myScore, e.met]), [['S5 开荒', 80, 55, false]]);
-r = await gql(`{ viewer { guild(slug: "${SLUG}") { __typename ... on Guild { raceSeasonBoard { __typename } } ... on GuildReadOnly { raceSeasonBoard { __typename } } } } }`);
+r = await gql(`{ viewer { guild(slug: "${SLUG}") { __typename ... on Guild { raceSeasonBoard { __typename } } ... on GuildReadOnly { raceSeasonBoard { __typename } } } } }`, { user: MEMBER_VIEWER });
 eq('B: member race board full at tier 1', r.data?.viewer?.guild?.raceSeasonBoard?.__typename, 'RaceSeasonBoard');
 
 /* P9 write edges: invalid input, cross-guild id, update + delete */
