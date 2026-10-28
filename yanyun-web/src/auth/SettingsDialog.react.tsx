@@ -615,7 +615,7 @@ function SettingsDialogInner({ onClose, user, initialFlow, initialPage }: {
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 textAlign: 'left', padding: '11px 16px', borderRadius: 10, cursor: 'pointer',
                 background: active ? 'rgba(67,160,134,.14)' : 'rgba(255,255,255,.02)',
-                border: `1px solid ${active ? theme.accent : 'rgba(255,255,255,.14)'}`,
+                border: `1px solid ${active ? theme.accent : 'rgba(67,160,134,.25)'}`,
                 color: active ? theme.accentHi : theme.paper, fontSize: 14.5,
               }}
             >
@@ -651,12 +651,12 @@ function SettingsDialogInner({ onClose, user, initialFlow, initialPage }: {
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             width: '100%', textAlign: 'left', padding: '11px 16px', borderRadius: 10, cursor: 'pointer',
-            background: 'rgba(255,255,255,.02)', border: '1px solid rgba(67,160,134,.25)',
+            background: 'rgba(255,255,255,.02)', border: '1px solid rgba(201,163,92,.25)',
             color: theme.paper, fontSize: 14.5, marginTop: 8,
           }}
         >
           <span>{page.seasonGoals?.entryLabel}</span>
-          <span style={{ color: theme.accent, fontSize: 19, lineHeight: 1 }}>›</span>
+          <span style={{ color: theme.gold, fontSize: 19, lineHeight: 1 }}>›</span>
         </button>
         <button
           data-availability-entry
@@ -839,9 +839,9 @@ function SettingsDialogInner({ onClose, user, initialFlow, initialPage }: {
                   data-feedback-category={cat.value}
                   onClick={() => setFbCategory(cat.value)}
                   style={{
-                    padding: '9px 18px', borderRadius: 8, cursor: 'pointer',
+                    padding: '9px 18px', borderRadius: 999, cursor: 'pointer',
                     background: active ? 'rgba(67,160,134,.16)' : 'rgba(255,255,255,.02)',
-                    border: `1px solid ${active ? theme.accent : 'rgba(255,255,255,.14)'}`,
+                    border: `1px solid ${active ? theme.accent : 'rgba(67,160,134,.25)'}`,
                     color: active ? theme.accentHi : theme.paper, fontSize: 14,
                   }}
                 >
@@ -908,7 +908,7 @@ function SettingsDialogInner({ onClose, user, initialFlow, initialPage }: {
   ];
   const goalInputStyle = {
     width: '100%', boxSizing: 'border-box', padding: '10px 12px', borderRadius: 8,
-    background: 'rgba(255,255,255,.03)', border: '1px solid rgba(67,160,134,.35)',
+    background: 'rgba(255,255,255,.03)', border: '1px solid rgba(201,163,92,.35)',
     color: theme.paper, fontSize: 14, outline: 'none',
   } as const;
   const goalsBody = (
@@ -917,7 +917,7 @@ function SettingsDialogInner({ onClose, user, initialFlow, initialPage }: {
         <div
           data-goals-back
           onClick={popPage}
-          style={{ color: theme.accent, fontSize: 24, lineHeight: 1, cursor: 'pointer', padding: '0 8px 10px 0', width: 32 }}
+          style={{ color: theme.gold, fontSize: 24, lineHeight: 1, cursor: 'pointer', padding: '0 8px 10px 0', width: 32 }}
         >‹</div>
       )}
       <div style={{ color: theme.muted, fontSize: 13, lineHeight: 1.7, marginBottom: 16 }}>{goalsPage.hint}</div>
@@ -925,7 +925,7 @@ function SettingsDialogInner({ onClose, user, initialFlow, initialPage }: {
         <div style={{ color: theme.muted, fontSize: 13.5, marginBottom: 18 }}>{goalsPage.emptyText}</div>
       ) : (goalsPage.goals ?? []).map((g: any) => (
         <div key={g.id} data-goal-row={g.id} style={{
-          border: '1px solid rgba(67,160,134,.22)', borderRadius: 10,
+          border: '1px solid rgba(201,163,92,.22)', borderRadius: 10,
           padding: '12px 14px', marginBottom: 10, background: 'rgba(255,255,255,.02)',
         }}>
           {editGoalId === g.id ? (
@@ -942,10 +942,10 @@ function SettingsDialogInner({ onClose, user, initialFlow, initialPage }: {
                   <button key={opt.value} role="radio" aria-checked={editStatus === opt.value}
                     onClick={() => setEditStatus(opt.value)}
                     style={{
-                      padding: '6px 14px', borderRadius: 8, cursor: 'pointer', fontSize: 13,
-                      background: editStatus === opt.value ? 'rgba(67,160,134,.16)' : 'rgba(255,255,255,.02)',
-                      border: `1px solid ${editStatus === opt.value ? theme.accent : 'rgba(255,255,255,.14)'}`,
-                      color: editStatus === opt.value ? theme.accentHi : theme.paper,
+                      padding: '6px 14px', borderRadius: 999, cursor: 'pointer', fontSize: 13,
+                      background: editStatus === opt.value ? 'rgba(201,163,92,.16)' : 'rgba(255,255,255,.02)',
+                      border: `1px solid ${editStatus === opt.value ? theme.gold : 'rgba(201,163,92,.25)'}`,
+                      color: editStatus === opt.value ? theme.goldHi : theme.paper,
                     }}>{opt.label}</button>
                 ))}
               </div>
@@ -967,7 +967,8 @@ function SettingsDialogInner({ onClose, user, initialFlow, initialPage }: {
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
                 <span style={{ color: theme.paper, fontSize: 14.5 }}>{g.title}</span>
                 <span style={{
-                  fontSize: 11, borderRadius: 8, padding: '1px 8px', color: theme.accentHi,                  border: '1px solid rgba(67,160,134,.4)',
+                  fontSize: 11, borderRadius: 999, padding: '1px 8px', color: theme.goldHi,
+                  border: '1px solid rgba(201,163,92,.4)',
                 }}>{g.statusLabel}</span>
                 <span style={{ color: theme.muted, fontSize: 12 }}>{g.guildName}</span>
                 {g.dungeonName && (
@@ -979,7 +980,7 @@ function SettingsDialogInner({ onClose, user, initialFlow, initialPage }: {
               {g.note && <div style={{ color: theme.muted, fontSize: 13, lineHeight: 1.6, marginBottom: 6 }}>{g.note}</div>}
               <div style={{ display: 'flex', gap: 14 }}>
                 <button onClick={() => startEditGoal(g)}
-                  style={{ background: 'none', border: 'none', padding: 0, color: theme.accent, fontSize: 13, cursor: 'pointer' }}>
+                  style={{ background: 'none', border: 'none', padding: 0, color: theme.gold, fontSize: 13, cursor: 'pointer' }}>
                   {goalsPage.editLabel}
                 </button>
                 <button data-goal-delete onClick={() => deleteGoal(g)}
@@ -994,7 +995,7 @@ function SettingsDialogInner({ onClose, user, initialFlow, initialPage }: {
           )}
         </div>
       ))}
-      <div style={{ borderTop: '1px solid rgba(67,160,134,.22)', marginTop: 18, paddingTop: 16 }}>
+      <div style={{ borderTop: '1px solid rgba(201,163,92,.22)', marginTop: 18, paddingTop: 16 }}>
         <div style={{ color: theme.paper, fontSize: 13.5, marginBottom: 6 }}>{goalsPage.guildLabel}</div>
         <select data-goal-new-guild style={{ ...goalInputStyle, marginBottom: 10 }}
           value={goalGuildSlug} onChange={(e) => setNewGuild(e.target.value)}>
