@@ -1230,6 +1230,53 @@ if (want('activitytools')) {
   check('duplicate winner for one member is rejected by the schema', dupWinThrew);
 }
 
+/* ---------------- season checklist + roster (0022/0023) ---------------- */
+if (want('season')) {
+  console.log('== season checklist + roster repositories on real D1 ==');
+  const checksRepo = await import('../src/domains/guilds/seasonChecklist.ts');
+  const rosterRepo = await import('../src/domains/guilds/roster.ts');
+
+  eq('checklist empty -> []', await checksRepo.listSeasonChecklistChecks(db, 'alpha', 'intl-v2.3:S5'), []);
+  await checksRepo.setSeasonChecklistCheck(db, { tenant: 'alpha', seasonKey: 'intl-v2.3:S5', itemKey: 'current-dungeons', checked: true, checkedBy: 'U1', checkedByName: '甲军官', now: 1760000000 });
+  await checksRepo.setSeasonChecklistCheck(db, { tenant: 'alpha', seasonKey: 'intl-v2.3:S5', itemKey: 'member-roster', checked: true, checkedBy: 'U1', checkedByName: '甲军官', now: 1760000001 });
+  await checksRepo.setSeasonChecklistCheck(db, { tenant: 'beta', seasonKey: 'intl-v2.3:S5', itemKey: 'current-dungeons', checked: true, checkedBy: 'U2', checkedByName: '乙军官', now: 1760000002 });
+  let rows = await checksRepo.listSeasonChecklistChecks(db, 'alpha', 'intl-v2.3:S5');
+  eq('checklist rows per guild+season', rows.map((r) => [r.item_key, r.checked, r.checked_by_name]), [['current-dungeons', 1, '甲军官'], ['member-roster', 1, '甲军官']]);
+  eq('checklist season isolation', await checksRepo.listSeasonChecklistChecks(db, 'alpha', 'intl-v9.9:S6'), []);
+  await checksRepo.setSeasonChecklistCheck(db, { tenant: 'alpha', seasonKey: 'intl-v2.3:S5', itemKey: 'current-dungeons', checked: false, checkedBy: 'U1', checkedByName: '甲军官', now: 1760000003 });
+  rows = await checksRepo.listSeasonChecklistChecks(db, 'alpha', 'intl-v2.3:S5');
+  eq('uncheck upserts in place', rows.map((r) => [r.item_key, r.checked]), [['current-dungeons', 0], ['member-roster', 1]]);
+
+  eq('normalize strips spaces + folds case', rosterRepo.normalizeRosterName(' 老 Mo '), '老mo');
+  check('plausible: CJK name', rosterRepo.isPlausibleRosterName('新侠客'));
+  check('implausible: digits only', !rosterRepo.isPlausibleRosterName('12345'));
+  check('implausible: too short', !rosterRepo.isPlausibleRosterName('阿'));
+  const memberByNorm = new Map([[rosterRepo.normalizeRosterName('阿青'), { discordId: 'D1', displayName: '阿青' }]]);
+  eq('classify matched', rosterRepo.classifyRosterLine('阿 青', memberByNorm, new Map()).status, 'matched');
+  eq('classify new', rosterRepo.classifyRosterLine('新侠客', memberByNorm, new Map()).status, 'new');
+  eq('classify unrecognized', rosterRepo.classifyRosterLine('100', memberByNorm, new Map()).status, 'unrecognized');
+
+  eq('roster count empty', await rosterRepo.countGuildRosterEntries(db, 'alpha'), 0);
+  const ins1 = await rosterRepo.insertGuildRosterEntry(db, { tenant: 'alpha', displayName: '新侠客', source: 'ocr', matchedDiscordId: null, createdBy: 'U1', now: 1760000000 });
+  eq('roster insert created', ins1.created, true);
+  const ins2 = await rosterRepo.insertGuildRosterEntry(db, { tenant: 'alpha', displayName: '新 侠客', source: 'ocr', matchedDiscordId: null, createdBy: 'U1', now: 1760000001 });
+  eq('roster insert dedupes by normalized name', [ins2.created, ins2.id === ins1.id], [false, true]);
+  eq('roster count after dedupe', await rosterRepo.countGuildRosterEntries(db, 'alpha'), 1);
+  eq('roster list shape', (await rosterRepo.listGuildRosterEntries(db, 'alpha')).map((r) => [r.display_name, r.name_norm, r.source, r.matched_discord_id]), [['新侠客', '新侠客', 'ocr', null]]);
+
+  const batchId = await rosterRepo.createRosterImportBatch(db, { tenant: 'alpha', createdBy: 'U1', imageCount: 2, now: 1760000000 });
+  check('batch id issued', batchId > 0);
+  const rowId = await rosterRepo.insertRosterImportRow(db, batchId, 'alpha', rosterRepo.classifyRosterLine('某某', memberByNorm, new Map()));
+  eq('batch tenant scoping', await rosterRepo.getRosterImportBatch(db, 'beta', batchId), null);
+  eq('batch row readback', (await rosterRepo.listRosterImportRows(db, batchId)).map((r) => [r.raw_name, r.status]), [['某某', 'new']]);
+  await rosterRepo.markRosterImportRowImported(db, rowId, ins1.id);
+  eq('row marked imported', (await rosterRepo.listRosterImportRows(db, batchId))[0].created_entry_id, ins1.id);
+  await rosterRepo.confirmRosterImportBatch(db, batchId, 1760000100);
+  eq('batch confirmed', (await rosterRepo.getRosterImportBatch(db, 'alpha', batchId))?.status, 'confirmed');
+  eq('delete entry cross-tenant refused', await rosterRepo.deleteGuildRosterEntry(db, 'beta', ins1.id), false);
+  eq('delete entry own tenant', await rosterRepo.deleteGuildRosterEntry(db, 'alpha', ins1.id), true);
+}
+
 await mf.dispose();
 console.log(`\n== verify-repositories-d1: ${pass} passed, ${fail} failed ==`);
 if (fail) { console.log('FAILS:', fails.join(' | ')); process.exit(1); }
