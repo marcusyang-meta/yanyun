@@ -387,6 +387,24 @@ export const guildAlliances = sqliteTable('guild_alliances', {
     .where(sql`status IN ('pending', 'active')`),
   index('idx_guild_alliances_low').on(t.guildLow, t.status, t.id),
   index('idx_guild_alliances_high').on(t.guildHigh, t.status, t.id),
+/* ---------------- guild custom domains [migration 0033] ----------
+ * One row per guild that bound its own domain (P23, white-label
+ * tier B): hostname is globally unique, status is the binding
+ * state machine (pending | active | disabled), verify_token is
+ * the ownership-proof secret the admin publishes as a TXT record.
+ * Repository + verdicts live in customdomain.ts. */
+export const guildCustomDomains = sqliteTable('guild_custom_domains', {
+  tenant: text('tenant').primaryKey(),
+  hostname: text('hostname').notNull(),
+  status: text('status').notNull().default('pending'),
+  verifyToken: text('verify_token').notNull().default(''),
+  createdBy: text('created_by').notNull().default(''),
+  createdAt: integer('created_at').notNull().default(0),
+  updatedAt: integer('updated_at').notNull().default(0),
+  verifiedAt: integer('verified_at'),
+}, (t) => [
+  uniqueIndex('guild_custom_domains_hostname_unique').on(t.hostname),
+  index('idx_guild_custom_domains_status').on(t.status),
 ]);
 
 /* ---------------- guild avatars [ddl chain baseline] --------------- */

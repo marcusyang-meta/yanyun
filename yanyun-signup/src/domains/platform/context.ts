@@ -87,6 +87,13 @@ export interface Env {
   STRIPE_PRICE_ID_T1?: string;
   STRIPE_PRICE_ID_T2?: string;
   STRIPE_PRICE_ID_T3?: string;
+  /* Cloudflare for SaaS seam (guild custom domains, guilds/customdomain.ts):
+   * set via wrangler secret once the zone-level SaaS setup exists.
+   * Its presence means the seam is connected, and its value is the
+   * fallback origin hostname guild admins point their CNAME at.
+   * Absent = seam unconnected: bindings stay pending, nothing
+   * verifies, no custom hostname resolves. */
+  SAAS_FALLBACK_ORIGIN?: string;
   /* Statsig (platform gates, platform/gates.ts): all three must be
    * present before the gate wrapper talks to the provider — the KV
    * binding holds the Config Sync ruleset, the project id names

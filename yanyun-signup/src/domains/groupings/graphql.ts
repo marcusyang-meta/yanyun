@@ -15,7 +15,7 @@ import { evaluateHeirloomPushes } from '../gear/index.ts';
 import { translate, negotiateLocale, SUPPORTED_LOCALES, CATALOG } from '../platform/index.ts';
 import { logError } from '../platform/index.ts';
 import { getGuildAvatarMeta, avatarPath } from '../guilds/index.ts';
-import { getSettingValue, setSettingValue, listSettingsByKey, parseGuildSubdomainSlug, isGuildSubdomainEnabled, guildSubdomainOrigin } from '../guilds/index.ts';
+import { getSettingValue, setSettingValue, listSettingsByKey, parseGuildSubdomainSlug, isGuildSubdomainEnabled, guildSubdomainOrigin, isLiveCustomDomainHost } from '../guilds/index.ts';
 import { getUsernameRow } from '../identity/index.ts';
 import { listGuildMembers, getGuildMember } from '../identity/index.ts';
 import { getBossById, listBossesByDungeon, listSchoolsFull, listSchoolsNameSlug, getSchoolNameBySlug, listSchoolBis, getSchoolBisJsonBySchool, listSchoolRotations, listSlotAffixByBuild, listAffixMax, listAffixMaxValues } from '../dex/index.ts';
@@ -538,6 +538,10 @@ export class GroupingDetailPageShell extends ShellBase {
         if (parseGuildSubdomainSlug(host) === ev.tenant
           && await isGuildSubdomainEnabled(this.db, ev.tenant)) {
           origin = guildSubdomainOrigin(ev.tenant);
+        } else if (await isLiveCustomDomainHost(this.db, host, ev.tenant)) {
+          // A request that arrived through this guild's own custom
+          // domain (white-label tier B) shares links on that host.
+          origin = `https://${host.toLowerCase()}`;
         }
       } catch { origin = null; }
       try {

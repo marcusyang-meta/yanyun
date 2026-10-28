@@ -2,7 +2,7 @@ import { sendDeparturePush } from '../platform/index.ts';
 import { logError } from '../platform/index.ts';
 import { webhookIdentity } from '../guilds/index.ts';
 import { getTenantRow } from '../guilds/index.ts';
-import { getSettingValue, setSettingValue, isGuildSubdomainEnabled, guildSubdomainOrigin } from '../guilds/index.ts';
+import { getSettingValue, setSettingValue, isGuildSubdomainEnabled, guildSubdomainOrigin, guildCustomDomainOrigin } from '../guilds/index.ts';
 import { markReminderSent, markReminderError, listPendingReminderEvents, listPendingReminderEventRows, listSettledBeats, markBeatSent, markBeatError } from './events.ts';
  './signups.ts';
  './signups.ts';
@@ -374,13 +374,15 @@ const descLines = [`还有 ${mins} 分钟就发车咯，笨笨要加油哦！`];
 if (ev.dungeon && String(ev.dungeon).trim()) descLines.push(`此行险地：${String(ev.dungeon).trim()}`);
 if (customText) descLines.push(customText);
 // The embed's title link is this guild's canonical car URL: a guild
-// that opted into its platform subdomain (white-label tier A) links
-// there; everyone else keeps the main-host URL, byte-identical.
+// with a live custom domain (white-label tier B) links there — its
+// own domain outranks the platform subdomain (tier A); everyone
+// else keeps the main-host URL, byte-identical.
 const subOrigin = await isGuildSubdomainEnabled(db, slug).catch(() => false)
   ? guildSubdomainOrigin(slug) : null;
+const brandedOrigin = await guildCustomDomainOrigin(db, slug).catch(() => null) || subOrigin;
 const embed = {
 title: String(ev.title || ''),
-url: subOrigin ? `${subOrigin}/car/${ev.id}` : carDetailUrl(slug, ev.id),
+url: brandedOrigin ? `${brandedOrigin}/car/${ev.id}` : carDetailUrl(slug, ev.id),
 color: REMINDER_EMBED_COLOR,
 thumbnail: { url: carOgImageUrl(slug, ev.id) },
 description: descLines.join('\n'),

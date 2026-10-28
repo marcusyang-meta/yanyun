@@ -16,7 +16,7 @@ import { maybeRunCreatorManualFix } from './creatormanualfix.js';
 import { logError, runScheduledBackup, configureGateRuntime } from './domains/platform/index.ts';
 import { err } from './domains/platform/http.ts';
 import { hubOgTags, guildOgTags, carOgTags, buildOgTags } from './domains/platform/og.ts';
-import { getTenantSlug, parseGuildSubdomainSlug, resolveGuildSubdomain, guildSubdomainOrigin } from './domains/guilds/index.ts';
+import { getTenantSlug, parseGuildSubdomainSlug, resolveGuildSubdomain, guildSubdomainOrigin, isCustomDomainCandidateHost, lookupGuildCustomDomainHost, customDomainSaasConfigured } from './domains/guilds/index.ts';
 import { hubRoutes } from './domains/platform/hub-routes.ts';
 import { billingRoutes } from './domains/platform/billing-routes.ts';
 import { guildAvatarRoutes } from './domains/guilds/avatar-routes.ts';
@@ -139,6 +139,25 @@ async function handleFetch(request: Request, env: Env, ctx: ExecutionContext) {
       hostGuild = await resolveGuildSubdomain(env.DB, url.hostname).catch(() => null);
       if (!hostGuild) return new Response('Not found', { status: 404 });
       hostOrigin = guildSubdomainOrigin(hostGuild);
+    } else if (isCustomDomainCandidateHost(url.hostname)) {
+      // Guild custom domains (white-label tier B, P23): a foreign
+      // host is a guild's site only while its binding is live AND
+      // the Cloudflare for SaaS seam is configured. A host a
+      // binding NAMES but that is not live (pending / disabled /
+      // tier-lapsed / seam off) gets the same plain 404 — a
+      // guild's own domain never serves the main site. A host no
+      // binding names is not ours: fall through to today's exact
+      // behavior (both stay null), so previews, localhost and
+      // stray foreign hosts are untouched.
+      const look = await lookupGuildCustomDomainHost(
+        env.DB, url.hostname, customDomainSaasConfigured(env),
+      ).catch(() => null);
+      if (look?.kind === 'active') {
+        hostGuild = look.slug;
+        hostOrigin = `https://${url.hostname.toLowerCase()}`;
+      } else if (look?.kind === 'known') {
+        return new Response('Not found', { status: 404 });
+      }
     }
 
     // Discord OAuth (login/callback/logout): handled by the Worker, not the SPA.
