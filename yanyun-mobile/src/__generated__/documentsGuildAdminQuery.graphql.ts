@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<8354fbd2374fb361982f5d648fe648a2>>
+ * @generated SignedSource<<e72bc49c11ae0b77d7d7f9bd44ab722f>>
  * @lightSyntaxTransform
  */
 
@@ -9,6 +9,8 @@
 
 import { ConcreteRequest } from 'relay-runtime';
 export type GroupingType = "ACTIVITY" | "RACE" | "TALENT" | "TOWER" | "%future added value";
+export type LotterySource = "GROUPING" | "MEMBERS" | "%future added value";
+export type LotteryStatus = "DRAWN" | "OPEN" | "%future added value";
 export type documentsGuildAdminQuery$variables = {
   slug: string;
 };
@@ -24,6 +26,12 @@ export type documentsGuildAdminQuery$data = {
       readonly adminAvatarNoneText: string;
       readonly adminBackLinkLabel: string;
       readonly adminBgLabel: string;
+      readonly adminCalendarCopyLabel: string;
+      readonly adminCalendarHint: string;
+      readonly adminCalendarResetHint: string;
+      readonly adminCalendarResetLabel: string;
+      readonly adminCalendarTitle: string;
+      readonly adminCalendarUrlLabel: string;
       readonly adminDeleteAvatarLabel: string;
       readonly adminDeleteLabel: string;
       readonly adminDiscordIdLabel: string;
@@ -51,6 +59,24 @@ export type documentsGuildAdminQuery$data = {
       readonly adminHideBrandingHint: string;
       readonly adminHideBrandingLabel: string;
       readonly adminLogoLabel: string;
+      readonly adminLotteryCreateLabel: string;
+      readonly adminLotteryDrawLabel: string;
+      readonly adminLotteryEmptyText: string;
+      readonly adminLotteryEntriesLabel: string;
+      readonly adminLotteryGroupingLabel: string;
+      readonly adminLotteryHint: string;
+      readonly adminLotteryNameLabel: string;
+      readonly adminLotteryPrizeLabel: string;
+      readonly adminLotterySourceGroupingText: string;
+      readonly adminLotterySourceLabel: string;
+      readonly adminLotterySourceMembersText: string;
+      readonly adminLotteryStatusDrawnText: string;
+      readonly adminLotteryStatusOpenText: string;
+      readonly adminLotteryTitle: string;
+      readonly adminLotteryUniformWeightLabel: string;
+      readonly adminLotteryWeightLabel: string;
+      readonly adminLotteryWinnerCountLabel: string;
+      readonly adminLotteryWinnersLabel: string;
       readonly adminMasterLabel: string;
       readonly adminNameLabel: string;
       readonly adminOgAccentLabel: string;
@@ -100,6 +126,7 @@ export type documentsGuildAdminQuery$data = {
       readonly adminTabGuidesLabel: string;
       readonly adminTabProfileLabel: string;
       readonly adminTabStatsLabel: string;
+      readonly adminTabToolsLabel: string;
       readonly adminTitle: string;
       readonly adminTypeActivityText: string;
       readonly adminTypeRaceText: string;
@@ -116,6 +143,7 @@ export type documentsGuildAdminQuery$data = {
       readonly announcement: string;
       readonly avatarUrl: string | null | undefined;
       readonly bgImageUrl: string;
+      readonly calendarFeedUrl: string;
       readonly devOnly: boolean;
       readonly discordGuildId: string;
       readonly events: ReadonlyArray<{
@@ -155,6 +183,33 @@ export type documentsGuildAdminQuery$data = {
         readonly type: GroupingType;
       }>;
       readonly logoUrl: string;
+      readonly lotteries: ReadonlyArray<{
+        readonly createdAtText: string;
+        readonly drawnAtText: string | null | undefined;
+        readonly entries: ReadonlyArray<{
+          readonly discordId: string;
+          readonly displayName: string;
+          readonly weight: number;
+        }>;
+        readonly entryCountText: string;
+        readonly id: string;
+        readonly prize: string;
+        readonly source: LotterySource;
+        readonly sourceEventId: string | null | undefined;
+        readonly sourceEventTitle: string | null | undefined;
+        readonly status: LotteryStatus;
+        readonly title: string;
+        readonly winnerCount: number;
+        readonly winners: ReadonlyArray<{
+          readonly discordId: string;
+          readonly displayName: string;
+          readonly weight: number;
+        }>;
+      }>;
+      readonly lotteryRoster: ReadonlyArray<{
+        readonly discordId: string;
+        readonly displayName: string;
+      }>;
       readonly masterName: string;
       readonly name: string | null | undefined;
       readonly ogAccent: string;
@@ -291,38 +346,63 @@ v5 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "teamName",
+  "name": "title",
   "storageKey": null
 },
 v6 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "members",
+  "name": "status",
   "storageKey": null
 },
 v7 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "note",
+  "name": "teamName",
   "storageKey": null
 },
 v8 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "discordId",
+  "name": "members",
   "storageKey": null
 },
 v9 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
+  "name": "note",
+  "storageKey": null
+},
+v10 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "discordId",
+  "storageKey": null
+},
+v11 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
   "name": "displayName",
   "storageKey": null
 },
-v10 = [
+v12 = [
+  (v10/*:: as any*/),
+  (v11/*:: as any*/),
+  {
+    "alias": null,
+    "args": null,
+    "kind": "ScalarField",
+    "name": "weight",
+    "storageKey": null
+  }
+],
+v13 = [
   {
     "alias": null,
     "args": null,
@@ -1176,13 +1256,7 @@ v10 = [
                 "plural": true,
                 "selections": [
                   (v4/*:: as any*/),
-                  {
-                    "alias": null,
-                    "args": null,
-                    "kind": "ScalarField",
-                    "name": "title",
-                    "storageKey": null
-                  },
+                  (v5/*:: as any*/),
                   {
                     "alias": null,
                     "args": null,
@@ -1190,13 +1264,7 @@ v10 = [
                     "name": "type",
                     "storageKey": null
                   },
-                  {
-                    "alias": null,
-                    "args": null,
-                    "kind": "ScalarField",
-                    "name": "status",
-                    "storageKey": null
-                  },
+                  (v6/*:: as any*/),
                   {
                     "alias": null,
                     "args": null,
@@ -1297,9 +1365,9 @@ v10 = [
                         "name": "contact",
                         "storageKey": null
                       },
-                      (v5/*:: as any*/),
-                      (v6/*:: as any*/),
                       (v7/*:: as any*/),
+                      (v8/*:: as any*/),
+                      (v9/*:: as any*/),
                       {
                         "alias": null,
                         "args": null,
@@ -1319,8 +1387,8 @@ v10 = [
                     "plural": true,
                     "selections": [
                       (v4/*:: as any*/),
-                      (v5/*:: as any*/),
-                      (v6/*:: as any*/),
+                      (v7/*:: as any*/),
+                      (v8/*:: as any*/),
                       {
                         "alias": null,
                         "args": null,
@@ -1342,7 +1410,7 @@ v10 = [
                         "name": "proofUrl",
                         "storageKey": null
                       },
-                      (v7/*:: as any*/)
+                      (v9/*:: as any*/)
                     ],
                     "storageKey": null
                   },
@@ -1428,6 +1496,291 @@ v10 = [
                     ],
                     "storageKey": null
                   }
+                ],
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminTabToolsLabel",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminCalendarTitle",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminCalendarHint",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminCalendarUrlLabel",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminCalendarCopyLabel",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminCalendarResetLabel",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminCalendarResetHint",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminLotteryTitle",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminLotteryHint",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminLotteryEmptyText",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminLotteryNameLabel",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminLotteryPrizeLabel",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminLotterySourceLabel",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminLotterySourceGroupingText",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminLotterySourceMembersText",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminLotteryGroupingLabel",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminLotteryWinnerCountLabel",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminLotteryUniformWeightLabel",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminLotteryWeightLabel",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminLotteryEntriesLabel",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminLotteryWinnersLabel",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminLotteryCreateLabel",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminLotteryDrawLabel",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminLotteryStatusOpenText",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "adminLotteryStatusDrawnText",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "calendarFeedUrl",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "concreteType": "GuildAdminLottery",
+                "kind": "LinkedField",
+                "name": "lotteries",
+                "plural": true,
+                "selections": [
+                  (v4/*:: as any*/),
+                  (v5/*:: as any*/),
+                  {
+                    "alias": null,
+                    "args": null,
+                    "kind": "ScalarField",
+                    "name": "prize",
+                    "storageKey": null
+                  },
+                  {
+                    "alias": null,
+                    "args": null,
+                    "kind": "ScalarField",
+                    "name": "source",
+                    "storageKey": null
+                  },
+                  {
+                    "alias": null,
+                    "args": null,
+                    "kind": "ScalarField",
+                    "name": "sourceEventId",
+                    "storageKey": null
+                  },
+                  {
+                    "alias": null,
+                    "args": null,
+                    "kind": "ScalarField",
+                    "name": "sourceEventTitle",
+                    "storageKey": null
+                  },
+                  {
+                    "alias": null,
+                    "args": null,
+                    "kind": "ScalarField",
+                    "name": "winnerCount",
+                    "storageKey": null
+                  },
+                  (v6/*:: as any*/),
+                  {
+                    "alias": null,
+                    "args": null,
+                    "kind": "ScalarField",
+                    "name": "entryCountText",
+                    "storageKey": null
+                  },
+                  {
+                    "alias": null,
+                    "args": null,
+                    "kind": "ScalarField",
+                    "name": "createdAtText",
+                    "storageKey": null
+                  },
+                  {
+                    "alias": null,
+                    "args": null,
+                    "kind": "ScalarField",
+                    "name": "drawnAtText",
+                    "storageKey": null
+                  },
+                  {
+                    "alias": null,
+                    "args": null,
+                    "concreteType": "GuildAdminLotteryEntry",
+                    "kind": "LinkedField",
+                    "name": "entries",
+                    "plural": true,
+                    "selections": (v12/*:: as any*/),
+                    "storageKey": null
+                  },
+                  {
+                    "alias": null,
+                    "args": null,
+                    "concreteType": "GuildAdminLotteryEntry",
+                    "kind": "LinkedField",
+                    "name": "winners",
+                    "plural": true,
+                    "selections": (v12/*:: as any*/),
+                    "storageKey": null
+                  }
+                ],
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "concreteType": "GuildAdminLotteryMember",
+                "kind": "LinkedField",
+                "name": "lotteryRoster",
+                "plural": true,
+                "selections": [
+                  (v10/*:: as any*/),
+                  (v11/*:: as any*/)
                 ],
                 "storageKey": null
               },
@@ -1665,8 +2018,8 @@ v10 = [
                         "name": "memberLeaders",
                         "plural": true,
                         "selections": [
-                          (v8/*:: as any*/),
-                          (v9/*:: as any*/),
+                          (v10/*:: as any*/),
+                          (v11/*:: as any*/),
                           {
                             "alias": null,
                             "args": null,
@@ -1685,8 +2038,8 @@ v10 = [
                         "name": "leaderLeaders",
                         "plural": true,
                         "selections": [
-                          (v8/*:: as any*/),
-                          (v9/*:: as any*/),
+                          (v10/*:: as any*/),
+                          (v11/*:: as any*/),
                           {
                             "alias": null,
                             "args": null,
@@ -1721,7 +2074,7 @@ return {
     "kind": "Fragment",
     "metadata": null,
     "name": "documentsGuildAdminQuery",
-    "selections": (v10/*:: as any*/),
+    "selections": (v13/*:: as any*/),
     "type": "Query",
     "abstractKey": null
   },
@@ -1730,19 +2083,19 @@ return {
     "argumentDefinitions": (v0/*:: as any*/),
     "kind": "Operation",
     "name": "documentsGuildAdminQuery",
-    "selections": (v10/*:: as any*/)
+    "selections": (v13/*:: as any*/)
   },
   "params": {
-    "cacheID": "c0d4f81326e3cf23954283297644f07f",
+    "cacheID": "6bf3230e43da981703da18d26babeaa9",
     "id": null,
     "metadata": {},
     "name": "documentsGuildAdminQuery",
     "operationKind": "query",
-    "text": "query documentsGuildAdminQuery(\n  $slug: String!\n) {\n  viewer {\n    commonUnknownErrorText\n    commonConfirmLabel\n    guildAdmin(slug: $slug) {\n      __typename\n      ... on GuildAdminLocked {\n        slug\n        adminLockedTitle\n        adminLockedBody\n        adminBackLinkLabel\n      }\n      ... on GuildAdmin {\n        slug\n        avatarUrl\n        adminTitle\n        adminBackLinkLabel\n        adminProfileTitle\n        adminNameLabel\n        adminAnnouncementLabel\n        adminSloganLabel\n        adminMasterLabel: adminMasterNameLabel\n        adminLogoLabel: adminLogoUrlLabel\n        adminBgLabel: adminBgImageUrlLabel\n        adminSaveLabel\n        adminSavedText\n        adminAvatarLabel: adminAvatarTitle\n        adminUploadAvatarLabel: adminAvatarUploadLabel\n        adminReplaceAvatarLabel: adminAvatarReplaceLabel\n        adminDeleteAvatarLabel: adminAvatarDeleteLabel\n        adminAvatarNoneText\n        adminDiscordTitle\n        adminWebhookLabel\n        adminWebhookSetText\n        adminWebhookUnsetText\n        adminWebhookClearLabel\n        adminDiscordIdLabel: adminGuildIdLabel\n        adminReminderTitle\n        adminReminderOffsetsLabel\n        adminReminderOffsetTemplate\n        adminReminderCustomTextLabel\n        adminReminderCustomTextHint\n        adminVisibilityTitle\n        adminVisibilityLabel: adminDevOnlyLabel\n        adminWhiteLabelTitle\n        adminHideBrandingLabel\n        adminHideBrandingHint\n        adminOgAccentLabel\n        adminOgTitleSuffixLabel\n        adminOgTitleSuffixHint\n        adminPremiumTitle\n        adminAddLabel\n        adminEditLabel\n        adminDeleteLabel\n        adminEventsTitle\n        adminEventEmptyText\n        adminEventTitleLabel\n        adminEventTypeLabel\n        adminEventTimeLabel\n        adminEventDungeonLabel\n        adminEventSlotsLabel\n        adminEventMeetLabel\n        adminEventDescLabel\n        adminEventStatusLabel\n        adminStatusOpenText\n        adminStatusClosedText\n        adminStatusCompletedText\n        adminStatusDraftText\n        adminExportCsvLabel\n        adminSignupsTitle\n        adminSignupEmptyText\n        adminRemoveSignupLabel\n        adminResultsTitle\n        adminResultTeamLabel\n        adminResultMembersLabel\n        adminResultTimeLabel\n        adminResultProofLabel\n        adminResultNoteLabel\n        adminGuidesTitle\n        adminGuidesHint\n        adminGuideSchoolLabel\n        adminGuideBuildLabel\n        adminGuideAttrLabel\n        adminGuideRateLabel\n        adminGuideBisLabel\n        adminGuideRotationLabel\n        adminTypeActivityText\n        adminTypeTalentText\n        adminTypeRaceText\n        adminTypeTowerText\n        name\n        announcement\n        slogan\n        masterName\n        logoUrl\n        bgImageUrl\n        discordGuildId\n        reminderWebhookSet\n        reminderWebhookId\n        reminderOffsets\n        reminderCustomText\n        whiteLabelHideBranding\n        ogAccent\n        ogTitleSuffix\n        ogAccentOptions {\n          key\n          hex\n          label\n        }\n        devOnly\n        premium {\n          __typename\n          ... on GuildAdminPremiumActive {\n            premiumPlanLabel\n            premiumSourceText\n            premiumPeriodEndText\n          }\n          ... on GuildAdminPremiumLocked {\n            premiumTitle\n            premiumBody\n            premiumPriceLabel\n            premiumComingSoonText\n            premiumCheckoutLabel\n          }\n        }\n        adminTabProfileLabel\n        adminTabDiscordLabel\n        adminTabEventsLabel\n        adminTabGuidesLabel\n        adminTabAnnouncementsLabel\n        events {\n          id\n          title\n          type\n          status\n          origin\n          startsAtUtc\n          startsAtText\n          dungeon\n          maxSlots\n          meetInfo\n          description\n          signupCount\n          signups {\n            id\n            nickname\n            uid\n            role\n            weapon\n            contact\n            teamName\n            members\n            note\n            createdAt\n          }\n          results {\n            id\n            teamName\n            members\n            timeMs\n            timeText\n            proofUrl\n            note\n          }\n          signupsCsv\n        }\n        schoolGuides {\n          schools {\n            school\n            builds {\n              build\n              attr\n              rate\n              bisJson\n            }\n            rotationJson\n          }\n        }\n        adminTabStatsLabel\n        adminStatsTitle\n        adminStatsCurrentWeekLabel\n        adminStatsCarsLabel\n        adminStatsCompletedLabel\n        adminStatsSeatsLabel\n        adminStatsFillRateLabel\n        adminStatsParticipantsLabel\n        adminStatsPerCapitaLabel\n        adminStatsMembersTitle\n        adminStatsLeadersTitle\n        adminStatsSeatCountLabel\n        adminStatsCarCountLabel\n        adminStatsEmptyText\n        adminStatsBoardEmptyText\n        stats {\n          __typename\n          ... on GuildAdminStats {\n            weeks {\n              weekLabel\n              isCurrent\n              carsActivity\n              carsTalent\n              carsRace\n              carsTower\n              carsTotal\n              completedCount\n              totalSeats\n              filledSeats\n              fillRate\n              participantCount\n              participationCount\n              perCapita\n            }\n            memberLeaders {\n              discordId\n              displayName\n              seatCount\n            }\n            leaderLeaders {\n              discordId\n              displayName\n              carCount\n            }\n          }\n        }\n      }\n    }\n  }\n}\n"
+    "text": "query documentsGuildAdminQuery(\n  $slug: String!\n) {\n  viewer {\n    commonUnknownErrorText\n    commonConfirmLabel\n    guildAdmin(slug: $slug) {\n      __typename\n      ... on GuildAdminLocked {\n        slug\n        adminLockedTitle\n        adminLockedBody\n        adminBackLinkLabel\n      }\n      ... on GuildAdmin {\n        slug\n        avatarUrl\n        adminTitle\n        adminBackLinkLabel\n        adminProfileTitle\n        adminNameLabel\n        adminAnnouncementLabel\n        adminSloganLabel\n        adminMasterLabel: adminMasterNameLabel\n        adminLogoLabel: adminLogoUrlLabel\n        adminBgLabel: adminBgImageUrlLabel\n        adminSaveLabel\n        adminSavedText\n        adminAvatarLabel: adminAvatarTitle\n        adminUploadAvatarLabel: adminAvatarUploadLabel\n        adminReplaceAvatarLabel: adminAvatarReplaceLabel\n        adminDeleteAvatarLabel: adminAvatarDeleteLabel\n        adminAvatarNoneText\n        adminDiscordTitle\n        adminWebhookLabel\n        adminWebhookSetText\n        adminWebhookUnsetText\n        adminWebhookClearLabel\n        adminDiscordIdLabel: adminGuildIdLabel\n        adminReminderTitle\n        adminReminderOffsetsLabel\n        adminReminderOffsetTemplate\n        adminReminderCustomTextLabel\n        adminReminderCustomTextHint\n        adminVisibilityTitle\n        adminVisibilityLabel: adminDevOnlyLabel\n        adminWhiteLabelTitle\n        adminHideBrandingLabel\n        adminHideBrandingHint\n        adminOgAccentLabel\n        adminOgTitleSuffixLabel\n        adminOgTitleSuffixHint\n        adminPremiumTitle\n        adminAddLabel\n        adminEditLabel\n        adminDeleteLabel\n        adminEventsTitle\n        adminEventEmptyText\n        adminEventTitleLabel\n        adminEventTypeLabel\n        adminEventTimeLabel\n        adminEventDungeonLabel\n        adminEventSlotsLabel\n        adminEventMeetLabel\n        adminEventDescLabel\n        adminEventStatusLabel\n        adminStatusOpenText\n        adminStatusClosedText\n        adminStatusCompletedText\n        adminStatusDraftText\n        adminExportCsvLabel\n        adminSignupsTitle\n        adminSignupEmptyText\n        adminRemoveSignupLabel\n        adminResultsTitle\n        adminResultTeamLabel\n        adminResultMembersLabel\n        adminResultTimeLabel\n        adminResultProofLabel\n        adminResultNoteLabel\n        adminGuidesTitle\n        adminGuidesHint\n        adminGuideSchoolLabel\n        adminGuideBuildLabel\n        adminGuideAttrLabel\n        adminGuideRateLabel\n        adminGuideBisLabel\n        adminGuideRotationLabel\n        adminTypeActivityText\n        adminTypeTalentText\n        adminTypeRaceText\n        adminTypeTowerText\n        name\n        announcement\n        slogan\n        masterName\n        logoUrl\n        bgImageUrl\n        discordGuildId\n        reminderWebhookSet\n        reminderWebhookId\n        reminderOffsets\n        reminderCustomText\n        whiteLabelHideBranding\n        ogAccent\n        ogTitleSuffix\n        ogAccentOptions {\n          key\n          hex\n          label\n        }\n        devOnly\n        premium {\n          __typename\n          ... on GuildAdminPremiumActive {\n            premiumPlanLabel\n            premiumSourceText\n            premiumPeriodEndText\n          }\n          ... on GuildAdminPremiumLocked {\n            premiumTitle\n            premiumBody\n            premiumPriceLabel\n            premiumComingSoonText\n            premiumCheckoutLabel\n          }\n        }\n        adminTabProfileLabel\n        adminTabDiscordLabel\n        adminTabEventsLabel\n        adminTabGuidesLabel\n        adminTabAnnouncementsLabel\n        events {\n          id\n          title\n          type\n          status\n          origin\n          startsAtUtc\n          startsAtText\n          dungeon\n          maxSlots\n          meetInfo\n          description\n          signupCount\n          signups {\n            id\n            nickname\n            uid\n            role\n            weapon\n            contact\n            teamName\n            members\n            note\n            createdAt\n          }\n          results {\n            id\n            teamName\n            members\n            timeMs\n            timeText\n            proofUrl\n            note\n          }\n          signupsCsv\n        }\n        schoolGuides {\n          schools {\n            school\n            builds {\n              build\n              attr\n              rate\n              bisJson\n            }\n            rotationJson\n          }\n        }\n        adminTabToolsLabel\n        adminCalendarTitle\n        adminCalendarHint\n        adminCalendarUrlLabel\n        adminCalendarCopyLabel\n        adminCalendarResetLabel\n        adminCalendarResetHint\n        adminLotteryTitle\n        adminLotteryHint\n        adminLotteryEmptyText\n        adminLotteryNameLabel\n        adminLotteryPrizeLabel\n        adminLotterySourceLabel\n        adminLotterySourceGroupingText\n        adminLotterySourceMembersText\n        adminLotteryGroupingLabel\n        adminLotteryWinnerCountLabel\n        adminLotteryUniformWeightLabel\n        adminLotteryWeightLabel\n        adminLotteryEntriesLabel\n        adminLotteryWinnersLabel\n        adminLotteryCreateLabel\n        adminLotteryDrawLabel\n        adminLotteryStatusOpenText\n        adminLotteryStatusDrawnText\n        calendarFeedUrl\n        lotteries {\n          id\n          title\n          prize\n          source\n          sourceEventId\n          sourceEventTitle\n          winnerCount\n          status\n          entryCountText\n          createdAtText\n          drawnAtText\n          entries {\n            discordId\n            displayName\n            weight\n          }\n          winners {\n            discordId\n            displayName\n            weight\n          }\n        }\n        lotteryRoster {\n          discordId\n          displayName\n        }\n        adminTabStatsLabel\n        adminStatsTitle\n        adminStatsCurrentWeekLabel\n        adminStatsCarsLabel\n        adminStatsCompletedLabel\n        adminStatsSeatsLabel\n        adminStatsFillRateLabel\n        adminStatsParticipantsLabel\n        adminStatsPerCapitaLabel\n        adminStatsMembersTitle\n        adminStatsLeadersTitle\n        adminStatsSeatCountLabel\n        adminStatsCarCountLabel\n        adminStatsEmptyText\n        adminStatsBoardEmptyText\n        stats {\n          __typename\n          ... on GuildAdminStats {\n            weeks {\n              weekLabel\n              isCurrent\n              carsActivity\n              carsTalent\n              carsRace\n              carsTower\n              carsTotal\n              completedCount\n              totalSeats\n              filledSeats\n              fillRate\n              participantCount\n              participationCount\n              perCapita\n            }\n            memberLeaders {\n              discordId\n              displayName\n              seatCount\n            }\n            leaderLeaders {\n              discordId\n              displayName\n              carCount\n            }\n          }\n        }\n      }\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "26278ecb5ed58badddfc1ba57ffd8591";
+(node as any).hash = "778662ee670c22d111e5d024028ddb73";
 
 export default node;
