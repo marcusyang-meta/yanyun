@@ -32,8 +32,8 @@
     "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary"
   },
   "src/domains/groupings/graphql.ts": {
-    "max": 178,
-    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context); +11 for the GroupingManageActions plain-data resolver map and the detail page manageActions resolver (same (p: any) delegation shape as the Seat map); +7 for the seat readiness surface (advanced reminders, 2026-10-26): setSeatReady mutation and Seat/Grouping resolvers in the same parent/args pattern; +44 for the grouping templates surface (2026-10-26): GroupingTemplate/GroupingTemplateManageActions/GroupingTemplateSave/GroupingTemplatePayload resolver maps, the template shell gens and the four template mutations, all in the same parent/args pattern; +14 for the F7 custom-field surface (2026-10-27): Grouping/GroupingTemplate customFields gens, the detail page rosterAnswers gen and the CustomField/RosterAnswer plain-data resolver maps, in the same parent/args pattern; +8 for the P20 ally-sharing detail control (2026-10-27): the GroupingDetailPage allySharing gen and the AllySharingControl plain-data resolver map, in the same parent/args pattern; +16 for the public car share surface (2026-10-28): the SharedGroupingPageShell gens, the sharedGrouping query resolver and the SharedGroupingPage/SharedGroupingSeat plain-data resolver maps, in the same parent/args pattern; +1 for the shareTypeLabel resolver in the same map"
+    "max": 184,
+    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context); +11 for the GroupingManageActions plain-data resolver map and the detail page manageActions resolver (same (p: any) delegation shape as the Seat map); +7 for the seat readiness surface (advanced reminders, 2026-10-26): setSeatReady mutation and Seat/Grouping resolvers in the same parent/args pattern; +44 for the grouping templates surface (2026-10-26): GroupingTemplate/GroupingTemplateManageActions/GroupingTemplateSave/GroupingTemplatePayload resolver maps, the template shell gens and the four template mutations, all in the same parent/args pattern; +14 for the F7 custom-field surface (2026-10-27): Grouping/GroupingTemplate customFields gens, the detail page rosterAnswers gen and the CustomField/RosterAnswer plain-data resolver maps, in the same parent/args pattern; +8 for the P20 ally-sharing detail control (2026-10-27): the GroupingDetailPage allySharing gen and the AllySharingControl plain-data resolver map, in the same parent/args pattern; +16 for the public car share surface (2026-10-28): the SharedGroupingPageShell gens, the sharedGrouping query resolver and the SharedGroupingPage/SharedGroupingSeat plain-data resolver maps, in the same parent/args pattern; +1 for the shareTypeLabel resolver in the same map; +6 for the Premium T2 scheduling advice surface (2026-10-28): detail/list advice field resolvers and the detail blocks advice section, in the same parent/args pattern"
   },
   "src/domains/groupings/grouping-routes.ts": {
     "max": 30,
@@ -148,8 +148,8 @@
     "reason": "Hono handler context param at the framework boundary (Stripe webhook edge)"
   },
   "src/domains/groupings/schedule-graphql.ts": {
-    "max": 52,
-    "reason": "resolver parent/args values: shell instances and computed result objects on the F5/F13 schedule surface; the context parameter is fully typed (Context), same pattern as groupings/graphql.ts"
+    "max": 53,
+    "reason": "resolver parent/args values: shell instances and computed result objects on the F5/F13 schedule surface; the context parameter is fully typed (Context), same pattern as groupings/graphql.ts; +1 for the GuildSchedulePage bestSlotsAdvice field resolver (Premium T2, 2026-10-28), same pattern"
   },
   "src/domains/groupings/availability.ts": {
     "max": 1,
@@ -198,5 +198,9 @@
   "src/domains/platform/admin-graphql.ts": {
     "max": 251,
     "reason": "resolver parent/args values: shell instances and computed result objects (PlatformAdmin state compositions, payload shells, per-tenant reminder/heirloom entries); the context parameter is fully typed (Context), in the same pattern as guilds/admin-graphql.ts. Replaces the retired hub-routes.ts surface (65) inside the GraphQL layer"
+  },
+  "src/domains/groupings/scheduling-graphql.ts": {
+    "max": 88,
+    "reason": "resolver parent/args values: shell instances and computed advice objects on the Premium T2 scheduling advice surface (P3/P4/P5/P6/P13, 2026-10-28); the context parameter is fully typed (Context), same pattern as groupings/graphql.ts"
   }
 }

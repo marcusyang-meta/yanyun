@@ -253,16 +253,16 @@ export function availabilityCovers(slots: { weekday: number; startMinute: number
 
 /** Compose per-member facts for one guild from the underlying
  * records only (roster, past seats, gear library, F5 windows) —
- * deliberately NOT via any premium profile surface. */
+ * deliberately NOT via a premium profile surface. */
 export async function buildMemberFacts(d1: D1Database, tenant: string, startsAtUtc: number | null): Promise<MemberFacts[]> {
   const roster = await listGuildMembers(d1, tenant).catch(() => []);
-  const events = (await listEventsAdmin(d1, tenant).catch(() => [])).filter((e: any) => e.status !== 'draft');
+  const events = (await listEventsAdmin(d1, tenant).catch(() => [])).filter((e) => e.status !== 'draft');
   const availRows = await listGuildAvailability(d1, tenant).catch(() => []);
-  const availById = new Map(availRows.map((r: any) => [String(r.discord_id), parseAvailabilitySlots(r.slots_json)]));
+  const availById = new Map(availRows.map((r) => [String(r.discord_id), parseAvailabilitySlots(r.slots_json)] as const));
   const agg = new Map<string, { participations: number; readyCount: number; last: number | null; weapon: string; role: string }>();
-  for (const ev of events as any[]) {
+  for (const ev of events) {
     const seats = await listSignupsByEvent(d1, ev.id).catch(() => []);
-    for (const seat of seats as any[]) {
+    for (const seat of seats) {
       const did = seat.discord_id ? String(seat.discord_id) : '';
       if (!did) continue;
       const a = agg.get(did) || { participations: 0, readyCount: 0, last: null, weapon: '', role: '' };
@@ -274,7 +274,7 @@ export async function buildMemberFacts(d1: D1Database, tenant: string, startsAtU
     }
   }
   const out: MemberFacts[] = [];
-  for (const m of roster as any[]) {
+  for (const m of roster) {
     const did = String(m.discord_id);
     const a = agg.get(did);
     const gearItemCount = await countGearItemRows(d1, did).catch(() => 0);
@@ -301,10 +301,10 @@ export interface RotationAdviceRecordRow { id: number; tenant: string; event_id:
 
 export async function insertRotationAdviceRecord(d1: D1Database, row: { tenant: string; eventId: number; adviceJson: string; createdBy: string; createdAt: number }): Promise<{ changes: number; last_row_id: number }> {
   const db = createDb(d1);
-  const r: any = await db.run(
+  const r = await db.run(
     sql`INSERT INTO ${rotationAdviceRecords} (${col('tenant')}, ${col('event_id')}, ${col('advice_json')}, ${col('created_by')}, ${col('created_at')}) VALUES (${row.tenant}, ${row.eventId}, ${row.adviceJson}, ${row.createdBy}, ${row.createdAt})`,
   );
-  const m = (r as any)?.meta;
+  const m = (r as { meta?: { changes?: number; last_row_id?: number } } | null)?.meta;
   return { changes: m?.changes ?? 0, last_row_id: m?.last_row_id ?? 0 };
 }
 

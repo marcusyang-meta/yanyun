@@ -269,7 +269,7 @@ export abstract class SchedulingAdviceFbtUtils {
   static moveTemplate(fbs: FbsAPI, p?: StringParams) { return fbs(["可考虑邀请 ", fbs.param("name", pv(p, "name")), " 补入本车"], "Suggestion text for cross-squad advice, used to propose inviting an unconflicted member into an under-filled squad, where {name} is the member's display name."); }
   static reasonRoleNeeded(fbs: FbsAPI, p?: StringParams) { return fbs(["补齐所缺职责：", fbs.param("role", pv(p, "role"))], "Reason text for scheduling advice entries, used when the member fills a role the squad still lacks, where {role} is the role name."); }
   static reasonRoleCovered(fbs: FbsAPI, p?: StringParams) { return fbs(["职责 ", fbs.param("role", pv(p, "role")), " 已有覆盖"], "Reason text for scheduling advice entries, used when the member's role is already covered, where {role} is the role name."); }
-  static reasonRoleFlex(fbs: FbsAPI) { return fbs("职责灵活，可补任意位置", "Reason text for scheduling advice entries, used when the member can flex into any role."); }
+  static reasonRoleFlex(fbs: FbsAPI) { return fbs("职责灵活，可补任意位置", "Reason text for scheduling advice entries, used when the member can flex into every role."); }
   static reasonRoleMatch(fbs: FbsAPI, p?: StringParams) { return fbs(["职责与空缺一致：", fbs.param("role", pv(p, "role"))], "Reason text for substitute advice entries, used when the candidate's role matches the vacated role, where {role} is the role name."); }
   static reasonRoleOther(fbs: FbsAPI, p?: StringParams) { return fbs(["职责为 ", fbs.param("role", pv(p, "role")), "，与空缺不同"], "Reason text for substitute advice entries, used when the candidate's role differs from the vacated role, where {role} is the role name."); }
   static reasonRoleUnknown(fbs: FbsAPI) { return fbs("暂无职责记录", "Reason text for scheduling advice entries, used when the member has no recorded role yet."); }
@@ -279,7 +279,7 @@ export abstract class SchedulingAdviceFbtUtils {
   static reasonNoHistory(fbs: FbsAPI) { return fbs("暂无历史参与记录，按中性评估", "Reason text for scheduling advice entries, used when a member has no participation history and is scored neutrally."); }
   static reasonAvailable(fbs: FbsAPI) { return fbs("该时段在其可用时间内", "Reason text for scheduling advice entries, used when the member's saved availability covers the squad time."); }
   static reasonUnavailable(fbs: FbsAPI) { return fbs("该时段不在其可用时间内", "Reason text for scheduling advice entries, used when the member's saved availability does not cover the squad time."); }
-  static reasonAvailabilityUnknown(fbs: FbsAPI) { return fbs("未填写可用时间", "Reason text for scheduling advice entries, used when the member has not saved any availability."); }
+  static reasonAvailabilityUnknown(fbs: FbsAPI) { return fbs("未填写可用时间", "Reason text for scheduling advice entries, used when the member has not saved availability."); }
   static reasonLongestWaiting(fbs: FbsAPI, p?: StringParams) { return fbs(["距上次参与已 ", fbs.param("days", pv(p, "days")), " 天"], "Reason text for rotation advice entries, used to show how long the member has waited since their last participation, where {days} is the day count (30 means a month or more, or never)."); }
   static reasonFewRecent(fbs: FbsAPI, p?: StringParams) { return fbs(["近期参与 ", fbs.param("count", pv(p, "count")), " 次"], "Reason text for rotation advice entries, used to show the member's recent participation count, where {count} is the count."); }
   static reasonNoConflict(fbs: FbsAPI) { return fbs("同时段没有其他车冲突", "Reason text for cross-squad advice entries, used when the candidate has no overlapping squad at that time."); }
