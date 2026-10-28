@@ -12,6 +12,7 @@ export * from './customfields.ts';
 export * from './signups.ts';
 export * from './results.ts';
 export * from './recaps.ts';
+export * from './recap-service.ts';
 export * from './reminder.ts';
 export { GuildHub } from './guildhub.ts';
 export { SeatHub } from './seathub.ts';
