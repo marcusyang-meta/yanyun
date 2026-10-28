@@ -57,6 +57,7 @@ import {
 } from '../platform/index.ts';
 import { computeGuildStats } from './stats.ts';
 import { announcementPageForAdmin } from './announcements-graphql.ts';
+import { SeasonChecklistShell, GuildRosterShell } from './season-graphql.ts';
 import type { GuildStatsWeek, GuildStatsBoardEntry } from './stats.ts';
 
 export async function guildAdminResult(ctx: Context, slug: string) {
@@ -431,6 +432,7 @@ const ADMIN_TEXT_SPEC: [string, string, string][] = [
   ['adminGuideBisLabel', 'guildAdmin', 'guideBisLabel'],
   ['adminGuideRotationLabel', 'guildAdmin', 'guideRotationLabel'],
   ['adminTabStatsLabel', 'guildAdmin', 'tabStats'],
+  ['adminTabSeasonLabel', 'guildAdmin', 'tabSeason'],
   ['adminStatsTitle', 'guildAdmin', 'statsTitle'],
   ['adminStatsCurrentWeekLabel', 'guildAdmin', 'statsCurrentWeek'],
   ['adminStatsCarsLabel', 'guildAdmin', 'statsCars'],
@@ -547,6 +549,11 @@ export class GuildAdminShell extends ShellBase {
    * receipts. Only on the GuildAdmin type: GuildAdminLocked never
    * resolves it, the verdict is the type. */
   genAnnouncements(){ return announcementPageForAdmin(this.ctx, this.genSlug()); }
+  /* Season surface (F23 checklist + F25 roster): free features,
+   * composed in season-graphql.ts; shells are lazy like every other
+   * admin field, so unselected season data costs nothing. */
+  genSeasonChecklist(){ return new SeasonChecklistShell(this.ctx, { slug: this.genSlug() }); }
+  genRoster(){ return new GuildRosterShell(this.ctx, { slug: this.genSlug() }); }
   genStats(){
     return this.memo('stats', async () => {
       // Premium read gate: gated guilds get the locked variant —
@@ -654,6 +661,8 @@ function contentResolvers() {
     announcements: (p: any) => p.genAnnouncements(),
     stats: (p: GuildAdminShell) => p.genStats(),
     premium: (p: GuildAdminShell) => p.genPremium(),
+    seasonChecklist: (p: GuildAdminShell) => p.genSeasonChecklist(),
+    roster: (p: GuildAdminShell) => p.genRoster(),
     whiteLabelHideBranding: (p: any) => p.genWhiteLabelHideBranding(),
     ogAccent: (p: any) => p.genOgAccent(),
     ogTitleSuffix: (p: any) => p.genOgTitleSuffix(),

@@ -1960,6 +1960,12 @@ type GuildAdmin {
   calendarFeedUrl: String!
   lotteries: [GuildAdminLottery!]!
   lotteryRoster: [GuildAdminLotteryMember!]!
+  # 赛季前检查清单 (免费功能, 不挂 gate): 条目由后端按当前版本/赛季
+  # 数据组合下发, 勾选状态按百业 + 赛季持久化; 只挂 GuildAdmin。
+  seasonChecklist: GuildSeasonChecklist!
+  # 成员名册 (免费功能, 不挂 gate): 游戏内名字名册, 与 Discord 成员
+  # 资格 (guild_members) 正交; 截图 OCR 导入经待确认预览才落库。
+  roster: GuildRoster!
   # 管理页文案 (guildAdmin 目录, 按请求 locale 生成)
   adminTitle: String!
   adminBackLinkLabel: String!
@@ -2039,6 +2045,7 @@ type GuildAdmin {
   adminGuideBisLabel: String!
   adminGuideRotationLabel: String!
   adminTabStatsLabel: String!
+  adminTabSeasonLabel: String!
   adminStatsTitle: String!
   adminStatsCurrentWeekLabel: String!
   adminStatsCarsLabel: String!
@@ -2262,6 +2269,92 @@ type GuildAdminPremiumLocked {
   premiumCheckoutLabel: String!
 }
 
+# 赛季前检查清单: 条目本体由后端按赛季数据组合 (当前版本副本 /
+# 本百业组队模板 / 流派攻略数据 / 成员名册四项, 全部与既有实体
+# 挂钩, detail 里的计数为生成时刻的真实计数)。勾选状态按
+# (百业, seasonKey) 隔离持久化; 新赛季 seasonKey 变化, 清单
+# 自动回到未勾状态, 无需任何数据迁移。
+type GuildSeasonChecklist {
+  seasonKey: String!      # 后端赛季身份 "<版本码>:<赛季码>"
+  versionLabel: String!   # 当前版本展示串 (settings.game_version)
+  seasonLabel: String!    # 赛季展示串 (后端赛季表组合, 如 "S5 · Ever Aflame")
+  title: String!
+  hint: String!           # 已按当前版本/赛季插值完成的说明文案
+  progressTemplate: String!  # "{done}" / "{total}" 由客户端以计数填充
+  items: [GuildSeasonChecklistItem!]!
+  doneCount: Int!
+  totalCount: Int!
+}
+
+type GuildSeasonChecklistItem {
+  key: String!            # 稳定条目键 (后端条目表), 勾选 mutation 按键寻址
+  title: String!
+  detail: String!         # 与既有实体的真实计数插值后的说明
+  checked: Boolean!
+  checkedByName: String   # 最近一次勾选/取消的管理员显示名; 从未操作为 null
+}
+
+# 成员名册 (游戏内名字): 与 guild_members (Discord 成员资格) 正交 —
+# 名册条目不产生、不修改任何成员资格。matchedName 是导入时匹配到
+# 的 Discord 名册显示名 (经成员表实时解析, 无匹配为 null)。
+type GuildRoster {
+  entries: [GuildRosterEntry!]!
+  rosterTitle: String!
+  rosterHint: String!
+  rosterUploadLabel: String!
+  rosterOcrRunningText: String!
+  rosterPreviewTitle: String!
+  rosterConfirmLabel: String!
+  rosterEmptyText: String!
+  rosterDeleteLabel: String!
+  rosterSourceOcrLabel: String!
+  rosterMatchedMemberLabel: String!
+}
+
+type GuildRosterEntry {
+  id: ID!
+  displayName: String!
+  source: String!         # 数据值 ('ocr'), 非文案
+  matchedName: String     # 匹配到的 Discord 名册显示名; 未匹配为 null
+  createdAt: Int!
+}
+
+# 名册截图 OCR 导入预览: 识别行由后端逐行分类。MATCHED = 已在
+# Discord 名册或既有名册中; NEW = 疑似新名 (可勾选导入);
+# UNRECOGNIZED = 无法识别为名字。预览落库为待确认批次, 管理员
+# 确认前不产生任何名册条目, 更不触碰成员资格。
+enum RosterImportRowStatus {
+  MATCHED
+  NEW
+  UNRECOGNIZED
+}
+
+type RosterImportRow {
+  id: ID!
+  rawName: String!
+  status: RosterImportRowStatus!
+  statusLabel: String!
+  matchedName: String!    # MATCHED 时的既有显示名; 其余为空串
+  importable: Boolean!    # 数据状态: NEW 且尚未导入 (非权限标志)
+}
+
+type RosterImportPreview {
+  batchId: ID!
+  rows: [RosterImportRow!]!
+  matchedCount: Int!
+  newCount: Int!
+  unrecognizedCount: Int!
+}
+
+type RosterImportPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  preview: RosterImportPreview
+  importedCount: Int      # confirm 成功时新建的名册条数; 其余为 null
+  message: String         # 成功文案 (后端按结果计数插值); 失败为 null
+}
+
 type GuildAdminStatsWeek {
   weekStartUtc: Int!
   weekLabel: String!
@@ -2384,6 +2477,15 @@ extend type Mutation {
   resetCalendarFeed(slug: String!): GuildAdminPayload!  # 换 token: 旧订阅链当场失效
   createLottery(slug: String!, input: CreateLotteryInput!): GuildAdminPayload!  # 名单创建时定格
   drawLottery(slug: String!, lotteryId: ID!): GuildAdminPayload!  # 按权重不重复抽取, 结果留痕
+  # 赛季前检查: 勾选/取消一个条目 (键必须是当前赛季清单的真实条目键)
+  setSeasonChecklistItem(slug: String!, itemKey: String!, checked: Boolean!): GuildAdminPayload!
+  # 名册截图 OCR: 客户端识别出的文本行送后端分类, 生成待确认预览
+  # 批次。计量与装备批量 OCR 共用同一日计数 (usage_counters 的
+  # gear_ocr_batches) 与同一限额: 单批张数 + 每日批次, 不新开通道。
+  previewRosterImport(slug: String!, lines: [String!]!, imageCount: Int!): RosterImportPayload!
+  # 确认导入: 仅 rowIds 里 NEW 状态的行落为名册条目; 批次随即关闭。
+  confirmRosterImport(slug: String!, batchId: ID!, rowIds: [ID!]!): RosterImportPayload!
+  deleteGuildRosterEntry(slug: String!, entryId: ID!): GuildAdminPayload!
 }
 
 # ============ OG 卡面数据通道 (公开, 只读) ============

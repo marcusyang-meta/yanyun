@@ -59,7 +59,7 @@ export interface RosterClassification {
  *  roster entries (norm set). Exact normalized equality is the only
  *  match rule — no fuzzy guessing with people's names. A name that
  *  is already a roster entry counts as matched (to that entry's
- *  linked member, if any) so a re-import never duplicates it. */
+ *  linked member, when one exists) so a re-import never duplicates it. */
 export function classifyRosterLine(
   raw: string,
   memberByNorm: Map<string, { discordId: string; displayName: string }>,

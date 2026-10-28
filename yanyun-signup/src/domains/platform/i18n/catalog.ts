@@ -4514,6 +4514,24 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
     "checkoutFailed": {
       "zh-CN": "创建支付会话失败，请稍后再试"
     },
+    "rosterImportEmpty": {
+      "zh-CN": "没有收到任何识别文本，请重新截图后再试"
+    },
+    "rosterBatchNotFound": {
+      "zh-CN": "导入预览不存在或已失效，请重新识别"
+    },
+    "rosterBatchConfirmed": {
+      "zh-CN": "这份预览已经确认导入过了"
+    },
+    "rosterNoImportableRows": {
+      "zh-CN": "没有勾选任何可导入的新名"
+    },
+    "rosterEntryNotFound": {
+      "zh-CN": "名册记录不存在"
+    },
+    "checklistItemUnknown": {
+      "zh-CN": "检查条目不存在"
+    },
     "feedbackEmpty": {
       "zh-CN": "反馈内容不能为空"
     },
@@ -5078,6 +5096,81 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "es": "Estadísticas",
       "fr": "Statistiques",
       "zh-TW": "統計"
+    },
+    "tabSeason": {
+      "zh-CN": "赛季"
+    },
+    "seasonTitle": {
+      "zh-CN": "赛季前检查清单"
+    },
+    "seasonHint": {
+      "zh-CN": "按当前版本 {version} 与赛季 {season} 自动生成；换季后清单自动重置，逐项复核后勾选。"
+    },
+    "seasonProgress": {
+      "zh-CN": "已完成 {done} / {total}"
+    },
+    "seasonItemDungeonsTitle": {
+      "zh-CN": "复核当前版本副本"
+    },
+    "seasonItemDungeonsDetail": {
+      "zh-CN": "当前版本（{version}）共有 {count} 个副本，确认达标要求与攻略已按本赛季更新。"
+    },
+    "seasonItemTemplatesTitle": {
+      "zh-CN": "复核组队模板"
+    },
+    "seasonItemTemplatesDetail": {
+      "zh-CN": "本百业现有 {count} 个组队模板，确认模板的副本与人数仍适用于本赛季。"
+    },
+    "seasonItemGuidesTitle": {
+      "zh-CN": "复核流派攻略数据"
+    },
+    "seasonItemGuidesDetail": {
+      "zh-CN": "攻略数据现有 {builds} 份 BiS 与 {rotations} 份循环，确认已按本赛季数值更新。"
+    },
+    "seasonItemRosterTitle": {
+      "zh-CN": "复核成员名册"
+    },
+    "seasonItemRosterDetail": {
+      "zh-CN": "Discord 名册 {members} 人，截图名册 {entries} 条；确认成员装备季标与名册均为本赛季最新。"
+    },
+    "rosterTitle": {
+      "zh-CN": "成员名册（截图导入）"
+    },
+    "rosterHint": {
+      "zh-CN": "上传游戏内成员名单截图，识别出的名字先进入预览，确认后才写入名册。名册只记录游戏内名字，不会改变任何人的 Discord 成员资格。"
+    },
+    "rosterUpload": {
+      "zh-CN": "上传名单截图"
+    },
+    "rosterOcrRunning": {
+      "zh-CN": "识别中…"
+    },
+    "rosterPreviewTitle": {
+      "zh-CN": "导入预览"
+    },
+    "rosterConfirm": {
+      "zh-CN": "确认导入"
+    },
+    "rosterEmpty": {
+      "zh-CN": "尚无名册记录，用上方按钮上传名单截图导入。"
+    },
+    "rosterSourceOcr": {
+      "zh-CN": "截图识别"
+    },
+    "rosterMatchedMember": {
+      "zh-CN": "已匹配 Discord 成员"
+    },
+    "rosterStatusMatched": {
+      "zh-CN": "已匹配"
+    },
+    "rosterStatusNew": {
+      "zh-CN": "疑似新名"
+    },
+    "rosterStatusUnrecognized": {
+      "zh-CN": "无法识别"
+    },
+    "rosterImported": {
+      "zh-CN": "已导入 {count} 条名册记录"
     },
     "statsTitle": {
       "zh-CN": "出勤与活跃",

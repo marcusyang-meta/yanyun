@@ -144,6 +144,12 @@ export const errors_premiumComingSoon = (fbs: FbsAPI) =>fbs("Premium 开通即�
 export const errors_premiumActive = (fbs: FbsAPI) =>fbs("本百业已开通 Premium", "errors.premiumActive");
 export const errors_paygateDisabled = (fbs: FbsAPI) =>fbs("收费功能尚未开启", "errors.paygateDisabled");
 export const errors_checkoutFailed = (fbs: FbsAPI) =>fbs("创建支付会话失败，请稍后再试", "errors.checkoutFailed");
+export const errors_rosterImportEmpty = (fbs: FbsAPI) =>fbs("没有收到任何识别文本，请重新截图后再试", "errors.rosterImportEmpty");
+export const errors_rosterBatchNotFound = (fbs: FbsAPI) =>fbs("导入预览不存在或已失效，请重新识别", "errors.rosterBatchNotFound");
+export const errors_rosterBatchConfirmed = (fbs: FbsAPI) =>fbs("这份预览已经确认导入过了", "errors.rosterBatchConfirmed");
+export const errors_rosterNoImportableRows = (fbs: FbsAPI) =>fbs("没有勾选任何可导入的新名", "errors.rosterNoImportableRows");
+export const errors_rosterEntryNotFound = (fbs: FbsAPI) =>fbs("名册记录不存在", "errors.rosterEntryNotFound");
+export const errors_checklistItemUnknown = (fbs: FbsAPI) =>fbs("检查条目不存在", "errors.checklistItemUnknown");
 export const errors_feedbackEmpty = (fbs: FbsAPI) =>fbs("反馈内容不能为空", "errors.feedbackEmpty");
 export const errors_feedbackTooLong = (fbs: FbsAPI) =>fbs("反馈内容太长，请精简到 2000 字以内", "errors.feedbackTooLong");
 export const errors_feedbackRateLimited = (fbs: FbsAPI) =>fbs("今天提交的反馈已达上限，请明天再来", "errors.feedbackRateLimited");
