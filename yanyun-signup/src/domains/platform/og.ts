@@ -155,7 +155,7 @@ export async function buildOgTags(env: any, code: string) {
 /* ---------- Realtime subscription: GET /ws/guild/:slug (WebSocket) ----------
  * Auth is exactly the GraphQL read path: yy_session session (with grant
  * completeness check) + getGuildAccess — bound guilds are members-only,
- * unbound guilds are subscribable when publicly readable; non-members,
- * anonymous and missing guilds get 403 before reaching GuildHub. Events
+ * unbound guilds are subscribable by signed-in viewers; bound-guild
+ * non-members, anonymous and missing guilds get 403 before reaching GuildHub. Events
  * are only {slug, groupingId, kind}; clients re-query GraphQL on them,
  * no data flows over this channel. */

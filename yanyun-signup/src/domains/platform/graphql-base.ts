@@ -89,7 +89,12 @@ export function errText(ctx: Context, code: any) {
  * Public game data (no auth, read-only): dexPage, bossPage, sectPage,
  *   tiaolvPage, slotAffixList, affixMaxList, calcTiaolv, calcGraduation
  * Guild data (same rules for viewer hierarchy and flat compat queries):
- *   - Unbound guild: content publicly readable, writes locked
+ *   - Anonymous (signed-out) viewers read no guild content through
+ *     non-shared links, bound or unbound (access ruling, 2026-10-28:
+ *     non-shared links require login) — Locked / not-found, zero data.
+ *     The only anonymous read path is a shared link, which serves the
+ *     projected public face only (see sharedGrouping).
+ *   - Unbound guild: every signed-in viewer may read, writes locked
  *   - Bound guild: members of the bound server only (canView); non-members
  *     are stopped at the resolver layer
  *   - Writes: requireWrite = logged in + bound + member (no owner split)
@@ -105,7 +110,8 @@ export async function assertTenant(db: any, slug: any) {
 }
 
 /* ---------- Discord binding & access control ----------
- * - Unbound guild: writes fully locked (canWrite=false), content public
+ * - Unbound guild: writes fully locked (canWrite=false); reads open
+ *   to signed-in viewers, closed to anonymous (see header)
  * - Bound guild: members only (canView); write = login + bound + member
  * - ctx.user comes from the yy_session session; null when logged out */
 export async function getTenantSetting(db: any, slug: any, key: any) {
@@ -305,7 +311,10 @@ export async function getGuildAccess(db: any, user: any, slug: any, request: any
     bound,
     isMember,
     devOnly,
-    canView: !bound || isMember,
+    // Read gate (access ruling, 2026-10-28): bound guilds are
+    // members-only; unbound guilds have no membership to check, so
+    // the login itself is the gate — anonymous reads nothing here.
+    canView: bound ? isMember : !!user,
     canWrite: !!(user && bound && isMember),
   };
 }

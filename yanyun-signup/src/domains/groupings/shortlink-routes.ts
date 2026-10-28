@@ -4,8 +4,8 @@
  *
  * Landing split (access-policy ruling, 2026-10-28: shared links are
  * anonymously readable, non-shared links require login):
- * - A visitor who may view the car's guild (a signed-in member, or
- *   anyone for an unbound guild — the platform's public-read rule)
+ * - A visitor who may view the car's guild (a signed-in member of a
+ *   bound guild, or a signed-in viewer for an unbound guild)
  *   lands on the canonical car URL exactly as before, where the
  *   page's own gates apply.
  * - Everyone else (signed out, or signed in without membership)

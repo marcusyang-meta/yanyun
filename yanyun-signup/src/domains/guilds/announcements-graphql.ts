@@ -12,8 +12,8 @@
  *
  * Permissions:
  * - Read: the surface rides the existing response types — Guild
- *   (bound-server members) and GuildReadOnly (unbound, public) carry
- *   the list; GuildLocked carries nothing. The admin variant exists
+ *   (bound-server members) and GuildReadOnly (unbound, signed-in
+ *   readers) carry the list; GuildLocked carries nothing. The admin variant exists
  *   only on GuildAdmin, whose type IS the admin verdict.
  * - Post / delete: getGuildAdminAccess re-run server-side (bound
  *   Discord server admins, incl. the omniscient viewer), exactly the
