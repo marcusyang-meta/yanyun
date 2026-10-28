@@ -1,5 +1,5 @@
 /* Guild announcements GraphQL (communication line F9/F10/F18): the
- * member-facing announcement surface on Guild / GuildReadOnly, the
+ * member-facing announcement surface on Guild, the
  * admin variant on GuildAdmin (compose + read receipts), and the
  * three mutations.
  *
@@ -12,8 +12,8 @@
  *
  * Permissions:
  * - Read: the surface rides the existing response types — Guild
- *   (bound-server members) and GuildReadOnly (unbound, signed-in
- *   readers) carry the list; GuildLocked carries nothing. The admin variant exists
+ *   (bound-server members) carries the list; non-members resolve no
+ *   guild face at all. The admin variant exists
  *   only on GuildAdmin, whose type IS the admin verdict.
  * - Post / delete: getGuildAdminAccess re-run server-side (bound
  *   Discord server admins, incl. the omniscient viewer), exactly the
@@ -350,7 +350,7 @@ export class GuildAnnouncementPageShell extends ShellBase {
 
 export const ANNOUNCEMENT_PAGE_TEXT_RESOLVERS = defineTextGens(GuildAnnouncementPageShell, PAGE_TEXT_SPEC);
 
-/** Member variant (Guild / GuildReadOnly content surface). */
+/** Member variant (Guild content surface). */
 export function announcementPageForMember(ctx: Context, slug: string) {
   return new GuildAnnouncementPageShell(ctx, { slug, admin: false });
 }

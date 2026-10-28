@@ -262,7 +262,6 @@ type NavigateAction implements Action {
   slug: String!
   groupingId: ID!
   name: String!
-  readOnly: Boolean!
   nick: String!
 }
 
@@ -366,7 +365,6 @@ type GroupingListPage {
   weekdayNames: [String!]!
   undatedGroupLabel: String!
   emptyInteractiveText: String!
-  emptyReadonlyText: String!
   statusOpenLabel: String!
   peopleTemplate: String!
   newCarLabel: String!
@@ -648,7 +646,6 @@ type GroupingDetailPage {
   detailStatusOpenLabel: String!
   detailPeopleTemplate: String!
   detailOpenHint: String!
-  detailReadonlyHint: String!
   detailToastDisbanded: String!
   detailToastDisbandFailedTemplate: String!
   detailLinkCopied: String!
@@ -2389,11 +2386,10 @@ extend type Mutation {
 
 # ============ 登录 / Viewer 层级 (root = user) ============
 # 结构: Query.viewer -> guilds / guild(slug) -> groupings 等页面数据
-# 权限不用状态标志表达 (flag 可 forge), 用「响应的类型」表达:
-#   成员        -> Guild        (完整数据, 写入口只存在于该类型的组件里)
-#   未绑定百业  -> GuildReadOnly(公开只读数据, 无写入口)
-#   非成员/不存在 -> GuildLocked (不携带任何百业内容数据)
-# 前端按 __typename 分发组件; 没数据 = 没能力。mutation 在 resolver 内独立复验。
+# 权限不用状态标志表达 (flag 可 forge), 用「有没有数据」表达:
+#   成员 -> Guild (完整数据, 写入口只存在于该类型的组件里)
+#   未绑定 / 非成员 / 不存在 -> guild 字段为 null, 不下发任何百业数据。
+# 没数据 = 没能力。mutation 在 resolver 内独立复验。
 
 type DiscordUser {
   discordId: String!
@@ -2425,11 +2421,11 @@ type Guild {
   gameVersion: String!
   memberCount: Int!
   # 百业自定义头像 (管理员上传) 的版本化公开 URL; 无头像为 null。
-  # 公开品牌图, Guild / GuildReadOnly 两面都下发 (Locked 不带内容数据)。
+  # 公开品牌图 (仅成员面下发; 非成员拿不到本类型)。
   avatarUrl: String
   groupings(tab: GroupingTab!): GroupingListPage!
   viewerNick: String
-  # 成员名册: 仅完整 Guild 面声明 — GuildReadOnly / GuildLocked 无此
+  # 成员名册: 仅 Guild 面声明 (非成员无从查询本类型) —
   # 字段, 权限由响应类型本身表达 (不下发任何权限标志位)。
   memberRoster: [GuildRosterMember!]!
   # 百业公告 (沟通线 F9/F10/F18): 成员变体 — 公告列表 + 本人已读态;
@@ -2473,63 +2469,10 @@ type Guild {
   pageFooterDisclaimerText: String
 }
 
-# 未绑定 Discord 服务器: 公开可读, 写功能锁死 (该类型不含任何写入口)
-type GuildReadOnly {
-  slug: String!
-  name: String
-  slogan: String
-  gameVersion: String!
-  memberCount: Int!
-  avatarUrl: String
-  groupings(tab: GroupingTab!): GroupingListPage!
-  viewerNick: String
-  announcements: GuildAnnouncementPage!
-  # Member read surface for insights: same contract as on Guild (above).
-  raceSeasonBoard: RaceSeasonBoardResult!
-  gearSelfStatus: GuildGearSelfResult!
-  homeInsightsRaceTitle: String!
-  homeInsightsRaceEmptyText: String!
-  homeInsightsRaceTeamLabel: String!
-  homeInsightsRaceRunsLabel: String!
-  homeInsightsRaceWinsLabel: String!
-  homeInsightsRaceBestLabel: String!
-  homeInsightsSelfGearTitle: String!
-  homeInsightsGearScoreLabel: String!
-  homeInsightsGearMinScoreLabel: String!
-  # 百业主页外壳文案 (shell gen 方法按请求 locale 生成)
-  homeBackToHubLabel: String!
-  homeTabTeamLabel: String!
-  homeTabDexLabel: String!
-  homeTabSectLabel: String!
-  homeTabAnnouncementsLabel: String!
-  homeTabScheduleLabel: String!
-  homeTabMarketLabel: String!
-  homeTabAlliesLabel: String!
-  homeReadOnlyBanner: String!
-  detailNotFoundText: String!
-  detailBackToListLabel: String!
-  # 白标 chrome 组合: 与 Guild 同口径 (见上)。
-  pageBackLabel: String!
-  pageFooterDisclaimerText: String
-}
-
-# 已绑定但非成员 / 百业不存在: 不携带任何百业内容数据 (仅 slug 与本页文案)
-type GuildLocked {
-  slug: String!
-  lockedBackLinkLabel: String!
-  lockedTitle: String!
-  lockedBody1: String!
-  lockedBody2: String!
-  lockedBackButtonLabel: String!
-}
-
-union GuildResult = Guild | GuildReadOnly | GuildLocked
-
 type Viewer {
   user: DiscordUser             # 未登录为 null
   guilds: [Guild!]!             # 我可用的百业 (成员; 服务端过滤, 前端不许拉全量再筛)
-  publicGuilds: [GuildReadOnly!]!  # 未绑定服务器的公开百业 (只读)
-  guild(slug: String!): GuildResult!
+  guild(slug: String!): Guild  # 仅当查看者可看 (已绑定服务器的成员) 才有值; 其余 (未绑定/非成员/不存在) 一律 null, 不下发任何百业数据
   guildAdmin(slug: String!): GuildAdminResult!  # 百业管理面: 响应类型即权限结论 (见下方 GuildAdmin)
   homeRecruit: HomeRecruitSection!  # 平台主页招新区 (F16 申请 / F24 清单 / F17 我的配对): 组成即权限结论 (见下方 HomeRecruitSection)
   fillMarket(slug: String!): FillMarketResult!  # Fill market page (P19): member page / Locked; the demand section splits further by T3 (see FillMarketPage below)
@@ -2570,9 +2513,6 @@ type Viewer {
   myEffectiveLocale: String!
   pickerMyGuildsLabel: String!
   pickerMyGuildsEnLabel: String!
-  pickerPublicGuildsLabel: String!
-  pickerPublicGuildsEnLabel: String!
-  pickerReadOnlyBadge: String!
   pickerEmptyTitle: String!
   pickerEmptyBody: String!
   pickerCreateGuildLabel: String!
@@ -2686,7 +2626,7 @@ type GuildAdmin {
   announcements: GuildAnnouncementPage!
   # 军官工具 (免费功能线 F12/F11/F19, 不挂任何权益门): 成员备注 +
   # 数据包导出 + 成员赛季目标总览; 只挂 GuildAdmin — Locked 零工具
-  # 字段, 成员变体 (Guild / GuildReadOnly) 根本不带备注字段。
+  # 字段, 成员变体 (Guild) 根本不带备注字段。
   officer: GuildOfficerPage!
   ops: GuildAdminOpsResult!
   # 出勤统计 (Premium, 读侧门控): 总闸开且本百业未开通时组合为

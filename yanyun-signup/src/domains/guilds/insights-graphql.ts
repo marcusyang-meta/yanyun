@@ -16,10 +16,10 @@
  *   gearBoard / raceSeasonBoard): the admin verdict is the type
  *   itself (GuildAdminLocked has none of them), the tier verdict
  *   picks full vs Locked inside.
- * - Guild / GuildReadOnly field raceSeasonBoard: the board is a
+ * - Guild field raceSeasonBoard: the board is a
  *   showcase surface members may read; the same tier verdict picks
- *   the variant. GuildLocked carries no such field.
- * - Guild / GuildReadOnly field gearSelfStatus: a member's OWN P9
+ *   the variant.
+ * - Guild field gearSelfStatus: a member's OWN P9
  *   standing only (their score against each line) — other members'
  *   scores are never composed on a member surface.
  * - P9 writes (upsertGearStandard / deleteGearStandard) re-run the

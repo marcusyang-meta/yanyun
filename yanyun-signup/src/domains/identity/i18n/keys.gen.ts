@@ -26,9 +26,6 @@ export type IdentityStringKey =
   | 'settings_savedText'
   | 'picker_myGuilds'
   | 'picker_myGuildsEn'
-  | 'picker_publicGuilds'
-  | 'picker_publicGuildsEn'
-  | 'picker_readOnlyBadge'
   | 'picker_emptyTitle'
   | 'picker_emptyBody'
   | 'picker_createGuild'
@@ -126,9 +123,6 @@ export const IDENTITY_STRING_KEYS: readonly IdentityStringKey[] = [
   'settings_savedText',
   'picker_myGuilds',
   'picker_myGuildsEn',
-  'picker_publicGuilds',
-  'picker_publicGuildsEn',
-  'picker_readOnlyBadge',
   'picker_emptyTitle',
   'picker_emptyBody',
   'picker_createGuild',

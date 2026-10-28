@@ -15,7 +15,6 @@ export type GroupingsStringKey =
   | 'groupingList_nextWeek'
   | 'groupingList_weekHeader'
   | 'groupingList_emptyInteractive'
-  | 'groupingList_emptyReadonly'
   | 'groupingList_statusOpen'
   | 'groupingList_people'
   | 'groupingList_newCar'
@@ -39,7 +38,6 @@ export type GroupingsStringKey =
   | 'groupingDetail_people'
   | 'groupingDetail_readyProgress'
   | 'groupingDetail_openHint'
-  | 'groupingDetail_readonlyHint'
   | 'groupingDetail_toastDisbanded'
   | 'groupingDetail_toastDisbandFailed'
   | 'groupingDetail_linkCopied'
@@ -213,7 +211,6 @@ export const GROUPINGS_STRING_KEYS: readonly GroupingsStringKey[] = [
   'groupingList_nextWeek',
   'groupingList_weekHeader',
   'groupingList_emptyInteractive',
-  'groupingList_emptyReadonly',
   'groupingList_statusOpen',
   'groupingList_people',
   'groupingList_newCar',
@@ -237,7 +234,6 @@ export const GROUPINGS_STRING_KEYS: readonly GroupingsStringKey[] = [
   'groupingDetail_people',
   'groupingDetail_readyProgress',
   'groupingDetail_openHint',
-  'groupingDetail_readonlyHint',
   'groupingDetail_toastDisbanded',
   'groupingDetail_toastDisbandFailed',
   'groupingDetail_linkCopied',

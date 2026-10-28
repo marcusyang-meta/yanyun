@@ -243,27 +243,6 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "fr": "Mes guildes",
       "zh-TW": "My Guilds"
     },
-    "publicGuilds": {
-      "zh-CN": "公开百业",
-      "en": "Public Guilds",
-      "es": "Gremios públicos",
-      "fr": "Guildes publiques",
-      "zh-TW": "公開百業"
-    },
-    "publicGuildsEn": {
-      "zh-CN": "Public · Read Only",
-      "en": "Public · Read Only",
-      "es": "Públicos · Solo lectura",
-      "fr": "Publiques · Lecture seule",
-      "zh-TW": "Public · Read Only"
-    },
-    "readOnlyBadge": {
-      "zh-CN": "只读",
-      "en": "Read-only",
-      "es": "Solo lectura",
-      "fr": "Lecture seule",
-      "zh-TW": "唯讀"
-    },
     "emptyTitle": {
       "zh-CN": "你还没有可用的百业",
       "en": "You have no guilds yet",
@@ -449,43 +428,6 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-TW": "建立失敗，請稍後再試"
     }
   },
-  "locked": {
-    "backLink": {
-      "zh-CN": "‹ 我的百业",
-      "en": "‹ My Guilds",
-      "es": "‹ Mis gremios",
-      "fr": "‹ Mes guildes",
-      "zh-TW": "‹ 我的百業"
-    },
-    "title": {
-      "zh-CN": "无权访问这个百业",
-      "en": "You cannot access this guild",
-      "es": "No tienes acceso a este gremio",
-      "fr": "Vous n’avez pas accès à cette guilde",
-      "zh-TW": "無權存取這個百業"
-    },
-    "body1": {
-      "zh-CN": "该百业不存在，或仅对某个 Discord 服务器的成员开放。",
-      "en": "This guild does not exist, or is open only to members of a specific Discord server.",
-      "es": "Este gremio no existe o solo está abierto a los miembros de un servidor de Discord concreto.",
-      "fr": "Cette guilde n’existe pas, ou elle est réservée aux membres d’un serveur Discord précis.",
-      "zh-TW": "該百業不存在，或僅對某個 Discord 伺服器的成員開放。"
-    },
-    "body2": {
-      "zh-CN": "加入对应的 Discord 服务器后，用同一个账号登录即可访问。",
-      "en": "Join the corresponding Discord server, then sign in with the same account to access it.",
-      "es": "Únete al servidor de Discord correspondiente e inicia sesión con la misma cuenta para acceder.",
-      "fr": "Rejoignez le serveur Discord correspondant, puis connectez-vous avec le même compte pour y accéder.",
-      "zh-TW": "加入對應的 Discord 伺服器後，用同一個帳號登入即可存取。"
-    },
-    "backButton": {
-      "zh-CN": "回到我的百业",
-      "en": "Back to My Guilds",
-      "es": "Volver a mis gremios",
-      "fr": "Retour à mes guildes",
-      "zh-TW": "回到我的百業"
-    }
-  },
   "guildHome": {
     "backToHub": {
       "zh-CN": "← 百业集结",
@@ -524,13 +466,6 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
     },
     "tabAnnouncements": {
       "zh-CN": "公告"
-    },
-    "readOnlyBanner": {
-      "zh-CN": "该百业尚未绑定 Discord 服务器 · 只读浏览",
-      "en": "This guild is not bound to a Discord server yet · Read-only browsing",
-      "es": "Este gremio aún no está vinculado a un servidor de Discord · Solo lectura",
-      "fr": "Cette guilde n’est pas encore liée à un serveur Discord · Lecture seule",
-      "zh-TW": "該百業尚未綁定 Discord 伺服器 · 唯讀瀏覽"
     },
     "adminLink": {
       "zh-CN": "管理",
@@ -651,13 +586,6 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "es": "Aún no hay equipos: ¡publica el primero!",
       "fr": "Aucune équipe pour le moment — publiez la première !",
       "zh-TW": "暫無車隊，來發第一車吧"
-    },
-    "emptyReadonly": {
-      "zh-CN": "暂无车队",
-      "en": "No squads yet",
-      "es": "Aún no hay equipos",
-      "fr": "Aucune équipe pour le moment",
-      "zh-TW": "暫無車隊"
     },
     "statusOpen": {
       "zh-CN": "报名中",
@@ -817,13 +745,6 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "es": "Cualquiera puede gestionar · Sin códigos: toca un asiento vacío para unirte",
       "fr": "Tout le monde peut gérer · Aucun code — touchez un siège libre pour rejoindre",
       "zh-TW": "人人可管 · 無需管理碼 — 點空位即可落座"
-    },
-    "readonlyHint": {
-      "zh-CN": "只读浏览 · 该百业尚未绑定 Discord 服务器",
-      "en": "Read-only · This guild is not bound to a Discord server yet",
-      "es": "Solo lectura · Este gremio aún no está vinculado a un servidor de Discord",
-      "fr": "Lecture seule · Cette guilde n’est pas encore liée à un serveur Discord",
-      "zh-TW": "唯讀瀏覽 · 該百業尚未綁定 Discord 伺服器"
     },
     "toastDisbanded": {
       "zh-CN": "车队已解散",

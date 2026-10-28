@@ -111,7 +111,7 @@ export async function canonicalSignupName(db: any, user: any, slug: any) {
  * roster (guild_members), using only data login already fetched (global
  * name + that server's nick snapshot) — no new fetching. Fully tolerant
  * and via waitUntil; recording failure never affects the page read.
- * Anonymous / locked (GuildLocked) visits are not recorded. */
+ * Anonymous / non-viewable visits are not recorded. */
 
 export class DiscordUserShell extends ShellBase {
   genDiscordId(){ return String(this.data.discordId); }
@@ -144,28 +144,11 @@ export class ViewerShell extends ShellBase {
       return out;
     });
   }
-  async genPublicGuilds(){
-    return this.memo('publicGuilds', async () => {
-      // Unbound guilds are served as the public read-only type — to
-      // signed-in viewers. Anonymous gets an empty list (access
-      // ruling, 2026-10-28: non-shared links require login, so an
-      // unbound guild no longer appears in anonymous compositions;
-      // the homepage recruit directory is a separate surface and
-      // lists bound, recruiting guilds only).
-      if (!this.ctx.user) return [];
-      const results = await listTenantSlugs(this.db);
-      const out = [];
-      for (const t of results || []) {
-        const a = await getGuildAccess(this.db, this.ctx.user, t.slug, this.ctx.request);
-        if (a.exists && !a.bound && a.canView) out.push(guildResult(this.ctx, a));
-      }
-      return out;
-    });
-  }
   async genGuild({ slug }: any){
     const a = await getGuildAccess(this.db, this.ctx.user, slug, this.ctx.request);
-    touchGuildRoster(this.ctx, a); // entering a guild records the roster (locked/anonymous filtered inside the helper)
-    // A missing guild also returns GuildLocked (the type is the verdict; no content)
+    touchGuildRoster(this.ctx, a); // entering a guild records the roster (non-viewable/anonymous filtered inside the helper)
+    // Guilds the viewer may not view (missing, or bound + non-member)
+    // return null: the absence is the verdict; no content is composed.
     return guildResult(this.ctx, a);
   }
   async genGuildAdmin({ slug }: any){
@@ -234,9 +217,6 @@ export const VIEWER_TEXT_RESOLVERS = defineTextGens(ViewerShell, [
   ['userBarSettingsLabel', 'userBar_settings'],
   ['pickerMyGuildsLabel', 'picker_myGuilds'],
   ['pickerMyGuildsEnLabel', 'picker_myGuildsEn'],
-  ['pickerPublicGuildsLabel', 'picker_publicGuilds'],
-  ['pickerPublicGuildsEnLabel', 'picker_publicGuildsEn'],
-  ['pickerReadOnlyBadge', 'picker_readOnlyBadge'],
   ['pickerEmptyTitle', 'picker_emptyTitle'],
   ['pickerEmptyBody', 'picker_emptyBody'],
   ['pickerCreateGuildLabel', 'picker_createGuild'],
@@ -551,7 +531,6 @@ export const identityResolvers = {
     myEffectiveLocale: (p: any) => p.genMyEffectiveLocale(),
     user: (p: any) => p.genUser(),
     guilds: (p: any) => p.genGuilds(),
-    publicGuilds: (p: any) => p.genPublicGuilds(),
     guild: (p: any, { slug }: any) => p.genGuild({ slug }),
     guildAdmin: (p: any, { slug }: any) => p.genGuildAdmin({ slug }),
     platformAdmin: (p: any) => p.genPlatformAdmin(),
@@ -571,11 +550,5 @@ export const identityResolvers = {
     name: (p: any) => p.genName(),
     icon: (p: any) => p.genIcon(),
   },
-
-  // Guild / GuildReadOnly share field implementations (read-only types just
-  // mount no write-entry components; the data is public anyway). GuildLocked
-  // resolves only slug and locked-page text, no content fields. memberRoster
-  // is registered only on full Guild: GuildReadOnly / GuildLocked lack the
-  // field in the schema — roster permission is expressed by response type.
   },
 };

@@ -409,18 +409,6 @@
       ],
       "types": []
     },
-    "04HyIhQ9c4e54em9vQHrVw==": {
-      "description": "Hint text for the squad detail page, used in read-only mode to explain that the guild has not bound a Discord server yet.",
-      "id": "groupings/groupingDetail_readonlyHint",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "Read-only · This guild is not bound to a Discord server yet",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
     "iPNub71ZERjKJEpog1pLSg==": {
       "description": "Button label for affix rows in the gear entry form, used to fill the value input with the maximum roll.",
       "id": "gear/gear_fillMaxLabel",
@@ -3637,18 +3625,6 @@
       ],
       "types": []
     },
-    "k6th6B39cmhN+zur5LdIqA==": {
-      "description": "English companion text for the guild picker, used next to the public-guilds heading to note that those guilds are read-only.",
-      "id": "identity/picker_publicGuildsEn",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "Public · Read Only",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
     "NFVbCjMIbPTZsi39MNuEDA==": {
       "description": "Loading text for guild pages, used as a placeholder while a guild page is being loaded.",
       "id": "platform/common_loadingGuild",
@@ -4045,18 +4021,6 @@
       ],
       "types": []
     },
-    "nPyiEFPp6skj00osnz8k6g==": {
-      "description": "Button label for the guild locked page, used to return to the user's guild list.",
-      "id": "guilds/locked_backButton",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "Back to My Guilds",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
     "p9p6z/4bJl1DrCZjmgO1zQ==": {
       "description": "Column header for the appraisal maximum table, used for the affix name column.",
       "id": "gear/grad_colAffix",
@@ -4357,18 +4321,6 @@
       ],
       "types": []
     },
-    "6xkqEneZgAZnk7tczHZ2Cw==": {
-      "description": "Empty-state text for the squad list, used when a read-only week has no squads.",
-      "id": "groupings/groupingList_emptyReadonly",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "No squads yet",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
     "t0dluCqx4jbTquzwHm0mUw==": {
       "description": "Hint text for the build schemes section, used when saving is attempted with an empty desk setup.",
       "id": "gear/gear_schemeComposeFirstText",
@@ -4496,18 +4448,6 @@
       "translations": [
         {
           "translation": "Preparing image…",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "lkifQ1RnBowO36QV3bVxAQ==": {
-      "description": "Badge text for a guild card in the guild picker, used to mark a guild the viewer can read but not edit or join.",
-      "id": "identity/picker_readOnlyBadge",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "Read-only",
           "variations": {}
         }
       ],
@@ -5209,18 +5149,6 @@
       ],
       "types": []
     },
-    "6gnQnK8sQ/tTJ2hDs5pDYA==": {
-      "description": "Body text for the guild locked page, used as the first paragraph to explain the guild does not exist or is restricted to one Discord server's members.",
-      "id": "guilds/locked_body1",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "This guild does not exist, or is open only to members of a specific Discord server.",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
     "eCpB1MbJM9qvTCCQz2taRA==": {
       "description": "Status label for server-composed blocks, used to mark a grouping that has been closed.",
       "id": "platform/appBlocks_closedStatus",
@@ -5228,18 +5156,6 @@
       "translations": [
         {
           "translation": "Closed",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "4bINpfJomBpysBqn2sub4g==": {
-      "description": "Banner text for unbound guilds on the guild home page, used to warn that the guild has not bound a Discord server and is read-only.",
-      "id": "guilds/guildHome_readOnlyBanner",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "This guild is not bound to a Discord server yet · Read-only browsing",
           "variations": {}
         }
       ],
@@ -5384,18 +5300,6 @@
       "translations": [
         {
           "translation": "← Guild Rally",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "c8QZfhcfM0GBPTwLDJ+DOQ==": {
-      "description": "Section heading for the guild picker, used above the list of publicly readable guilds.",
-      "id": "identity/picker_publicGuilds",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "Public Guilds",
           "variations": {}
         }
       ],
@@ -5936,18 +5840,6 @@
       "translations": [
         {
           "translation": "Yellow crit = white crit ÷ resistance; white caps at {white}% for 80%.",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "0waEp0LY+MuZsk4JDmPjbQ==": {
-      "description": "Title text for the guild locked page, used as the heading shown when the viewer has no access to a guild.",
-      "id": "guilds/locked_title",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "You cannot access this guild",
           "variations": {}
         }
       ],
@@ -6937,18 +6829,6 @@
       ],
       "types": []
     },
-    "dhbWh0/R921wRYKMeaxCHA==": {
-      "description": "Body text for the guild locked page, used as the second paragraph to explain that joining that Discord server and signing in with the same account grants access.",
-      "id": "guilds/locked_body2",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "Join the corresponding Discord server, then sign in with the same account to access it.",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
     "hjCVQAwg13tgfXWFkFaKnQ==": {
       "description": "Subheading for the formula reference card, used above the three-rate conversion formulas.",
       "id": "gear/gear_formulaRatesTitle",
@@ -7112,18 +6992,6 @@
       "translations": [
         {
           "translation": "Run Simulation",
-          "variations": {}
-        }
-      ],
-      "types": []
-    },
-    "DOlsf4dQF6ktH+apOXurpQ==": {
-      "description": "Back link for the guild locked page, used at the top of the page to return to the user's guild list.",
-      "id": "guilds/locked_backLink",
-      "tokens": [],
-      "translations": [
-        {
-          "translation": "‹ My Guilds",
           "variations": {}
         }
       ],

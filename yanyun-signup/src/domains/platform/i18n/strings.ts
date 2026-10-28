@@ -126,15 +126,6 @@ export abstract class PickerFbtUtils {
 	static myGuildsEn(fbs: FbsRuntime) {
 		return fbs._("My Guilds", null, { hk: "q37mh" });
 	}
-	static publicGuilds(fbs: FbsRuntime) {
-		return fbs._("公开百业", null, { hk: "tkwHv" });
-	}
-	static publicGuildsEn(fbs: FbsRuntime) {
-		return fbs._("Public · Read Only", null, { hk: "1AhRUg" });
-	}
-	static readOnlyBadge(fbs: FbsRuntime) {
-		return fbs._("只读", null, { hk: "1UEQBg" });
-	}
 	static emptyTitle(fbs: FbsRuntime) {
 		return fbs._("你还没有可用的百业", null, { hk: "2sEnS1" });
 	}
@@ -216,23 +207,6 @@ export abstract class CreateFbtUtils {
 		return fbs._("创建失败，请稍后再试", null, { hk: "1wWEzO" });
 	}
 }
-export abstract class LockedFbtUtils {
-	static backLink(fbs: FbsRuntime) {
-		return fbs._("‹ 我的百业", null, { hk: "1Z5ivi" });
-	}
-	static title(fbs: FbsRuntime) {
-		return fbs._("无权访问这个百业", null, { hk: "4p9BwM" });
-	}
-	static body1(fbs: FbsRuntime) {
-		return fbs._("该百业不存在，或仅对某个 Discord 服务器的成员开放。", null, { hk: "33ZKg9" });
-	}
-	static body2(fbs: FbsRuntime) {
-		return fbs._("加入对应的 Discord 服务器后，用同一个账号登录即可访问。", null, { hk: "3tZzPe" });
-	}
-	static backButton(fbs: FbsRuntime) {
-		return fbs._("回到我的百业", null, { hk: "3Y3DAy" });
-	}
-}
 export abstract class GuildHomeFbtUtils {
 	static backToHub(fbs: FbsRuntime) {
 		return fbs._("← 百业集结", null, { hk: "4qETst" });
@@ -251,9 +225,6 @@ export abstract class GuildHomeFbtUtils {
 	}
 	static tabAnnouncements(fbs: FbsRuntime) {
 		return fbs._("公告", null, { hk: "2atzxz" });
-	}
-	static readOnlyBanner(fbs: FbsRuntime) {
-		return fbs._("该百业尚未绑定 Discord 服务器 · 只读浏览", null, { hk: "2CbCL5" });
 	}
 	static adminLink(fbs: FbsRuntime) {
 		return fbs._("管理", null, { hk: "2d78VF" });
@@ -312,9 +283,6 @@ export abstract class GroupingListFbtUtils {
 	}
 	static emptyInteractive(fbs: FbsRuntime) {
 		return fbs._("暂无车队，来发第一车吧", null, { hk: "2vDSDi" });
-	}
-	static emptyReadonly(fbs: FbsRuntime) {
-		return fbs._("暂无车队", null, { hk: "2VjYwK" });
 	}
 	static statusOpen(fbs: FbsRuntime) {
 		return fbs._("报名中", null, { hk: "2w0LaA" });
@@ -390,9 +358,6 @@ export abstract class GroupingDetailFbtUtils {
 	}
 	static openHint(fbs: FbsRuntime) {
 		return fbs._("人人可管 · 无需管理码 — 点空位即可落座", null, { hk: "1t3TFu" });
-	}
-	static readonlyHint(fbs: FbsRuntime) {
-		return fbs._("只读浏览 · 该百业尚未绑定 Discord 服务器", null, { hk: "3oO8aV" });
 	}
 	static toastDisbanded(fbs: FbsRuntime) {
 		return fbs._("车队已解散", null, { hk: "1X1Q25" });
@@ -4810,9 +4775,6 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"settings_savedText": SettingsFbtUtils.savedText,
 	"picker_myGuilds": PickerFbtUtils.myGuilds,
 	"picker_myGuildsEn": PickerFbtUtils.myGuildsEn,
-	"picker_publicGuilds": PickerFbtUtils.publicGuilds,
-	"picker_publicGuildsEn": PickerFbtUtils.publicGuildsEn,
-	"picker_readOnlyBadge": PickerFbtUtils.readOnlyBadge,
 	"picker_emptyTitle": PickerFbtUtils.emptyTitle,
 	"picker_emptyBody": PickerFbtUtils.emptyBody,
 	"picker_createGuild": PickerFbtUtils.createGuild,
@@ -4839,18 +4801,12 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"create_toastServerRequired": CreateFbtUtils.toastServerRequired,
 	"create_toastCreated": CreateFbtUtils.toastCreated,
 	"create_toastFailed": CreateFbtUtils.toastFailed,
-	"locked_backLink": LockedFbtUtils.backLink,
-	"locked_title": LockedFbtUtils.title,
-	"locked_body1": LockedFbtUtils.body1,
-	"locked_body2": LockedFbtUtils.body2,
-	"locked_backButton": LockedFbtUtils.backButton,
 	"guildHome_backToHub": GuildHomeFbtUtils.backToHub,
 	"guildHome_backPlain": GuildHomeFbtUtils.backPlain,
 	"guildHome_tabTeam": GuildHomeFbtUtils.tabTeam,
 	"guildHome_tabDex": GuildHomeFbtUtils.tabDex,
 	"guildHome_tabSect": GuildHomeFbtUtils.tabSect,
 	"guildHome_tabAnnouncements": GuildHomeFbtUtils.tabAnnouncements,
-	"guildHome_readOnlyBanner": GuildHomeFbtUtils.readOnlyBanner,
 	"guildHome_adminLink": GuildHomeFbtUtils.adminLink,
 	"guildHome_tabSchedule": GuildHomeFbtUtils.tabSchedule,
 	"guildHome_tabMarket": GuildHomeFbtUtils.tabMarket,
@@ -4869,7 +4825,6 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"groupingList_nextWeek": GroupingListFbtUtils.nextWeek,
 	"groupingList_weekHeader": GroupingListFbtUtils.weekHeader,
 	"groupingList_emptyInteractive": GroupingListFbtUtils.emptyInteractive,
-	"groupingList_emptyReadonly": GroupingListFbtUtils.emptyReadonly,
 	"groupingList_statusOpen": GroupingListFbtUtils.statusOpen,
 	"groupingList_people": GroupingListFbtUtils.people,
 	"groupingList_newCar": GroupingListFbtUtils.newCar,
@@ -4893,7 +4848,6 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"groupingDetail_people": GroupingDetailFbtUtils.people,
 	"groupingDetail_readyProgress": GroupingDetailFbtUtils.readyProgress,
 	"groupingDetail_openHint": GroupingDetailFbtUtils.openHint,
-	"groupingDetail_readonlyHint": GroupingDetailFbtUtils.readonlyHint,
 	"groupingDetail_toastDisbanded": GroupingDetailFbtUtils.toastDisbanded,
 	"groupingDetail_toastDisbandFailed": GroupingDetailFbtUtils.toastDisbandFailed,
 	"groupingDetail_linkCopied": GroupingDetailFbtUtils.linkCopied,

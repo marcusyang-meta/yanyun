@@ -245,7 +245,6 @@ type NavigateAction implements Action {
   slug: String!
   groupingId: ID!
   name: String!
-  readOnly: Boolean!
   nick: String!
 }
 
@@ -321,7 +320,6 @@ type GroupingListPage {
   weekdayNames: [String!]!
   undatedGroupLabel: String!
   emptyInteractiveText: String!
-  emptyReadonlyText: String!
   statusOpenLabel: String!
   peopleTemplate: String!
   newCarLabel: String!
@@ -553,7 +551,6 @@ type GroupingDetailPage {
   detailStatusOpenLabel: String!
   detailPeopleTemplate: String!
   detailOpenHint: String!
-  detailReadonlyHint: String!
   detailToastDisbanded: String!
   detailToastDisbandFailedTemplate: String!
   detailLinkCopied: String!
@@ -2106,58 +2103,11 @@ type Guild {
   pageFooterDisclaimerText: String
 }
 
-type GuildReadOnly {
-  slug: String!
-  name: String
-  slogan: String
-  gameVersion: String!
-  memberCount: Int!
-  avatarUrl: String
-  groupings(tab: GroupingTab!): GroupingListPage!
-  viewerNick: String
-  announcements: GuildAnnouncementPage!
-  raceSeasonBoard: RaceSeasonBoardResult!
-  gearSelfStatus: GuildGearSelfResult!
-  homeInsightsRaceTitle: String!
-  homeInsightsRaceEmptyText: String!
-  homeInsightsRaceTeamLabel: String!
-  homeInsightsRaceRunsLabel: String!
-  homeInsightsRaceWinsLabel: String!
-  homeInsightsRaceBestLabel: String!
-  homeInsightsSelfGearTitle: String!
-  homeInsightsGearScoreLabel: String!
-  homeInsightsGearMinScoreLabel: String!
-  homeBackToHubLabel: String!
-  homeTabTeamLabel: String!
-  homeTabDexLabel: String!
-  homeTabSectLabel: String!
-  homeTabAnnouncementsLabel: String!
-  homeTabScheduleLabel: String!
-  homeTabMarketLabel: String!
-  homeTabAlliesLabel: String!
-  homeReadOnlyBanner: String!
-  detailNotFoundText: String!
-  detailBackToListLabel: String!
-  pageBackLabel: String!
-  pageFooterDisclaimerText: String
-}
-
-type GuildLocked {
-  slug: String!
-  lockedBackLinkLabel: String!
-  lockedTitle: String!
-  lockedBody1: String!
-  lockedBody2: String!
-  lockedBackButtonLabel: String!
-}
-
-union GuildResult = Guild | GuildReadOnly | GuildLocked
 
 type Viewer {
   user: DiscordUser
   guilds: [Guild!]!
-  publicGuilds: [GuildReadOnly!]!
-  guild(slug: String!): GuildResult!
+  guild(slug: String!): Guild
   guildAdmin(slug: String!): GuildAdminResult!
   homeRecruit: HomeRecruitSection!
   fillMarket(slug: String!): FillMarketResult!
@@ -2191,9 +2141,6 @@ type Viewer {
   myEffectiveLocale: String!
   pickerMyGuildsLabel: String!
   pickerMyGuildsEnLabel: String!
-  pickerPublicGuildsLabel: String!
-  pickerPublicGuildsEnLabel: String!
-  pickerReadOnlyBadge: String!
   pickerEmptyTitle: String!
   pickerEmptyBody: String!
   pickerCreateGuildLabel: String!

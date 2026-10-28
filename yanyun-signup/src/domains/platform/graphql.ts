@@ -210,7 +210,6 @@ export class NavigateActionShell extends ActionShell {
   genSlug(){ return this.data.slug; }
   genGroupingId(){ return this.data.groupingId; }
   genName(){ return this.data.name; }
-  genReadOnly(){ return !!this.data.readOnly; }
   genNick(){ return this.data.nick || ''; }
 }
 export class JoinActionShell extends ActionShell {
@@ -385,7 +384,7 @@ export const platformResolvers = {
   NavigateAction: {
     actionType: (p: any) => p.genActionType(), slug: (p: any) => p.genSlug(),
     groupingId: (p: any) => p.genGroupingId(), name: (p: any) => p.genName(),
-    readOnly: (p: any) => p.genReadOnly(), nick: (p: any) => p.genNick(),
+    nick: (p: any) => p.genNick(),
   },
   JoinAction: {
     actionType: (p: any) => p.genActionType(), groupingId: (p: any) => p.genGroupingId(),
