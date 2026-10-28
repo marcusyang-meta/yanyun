@@ -156,7 +156,33 @@ export type GuildsStringKey =
   | 'announcements.authorTemplate'
   | 'announcements.pushNote'
   | 'announcements.urgentNote'
-  | 'announcements.dailyLimitTemplate';
+  | 'announcements.dailyLimitTemplate'
+  | 'guildAdmin.tabTools'
+  | 'guildAdmin.calendarTitle'
+  | 'guildAdmin.calendarHint'
+  | 'guildAdmin.calendarUrlLabel'
+  | 'guildAdmin.calendarCopyButton'
+  | 'guildAdmin.calendarResetButton'
+  | 'guildAdmin.calendarResetHint'
+  | 'guildAdmin.lotteryTitle'
+  | 'guildAdmin.lotteryHint'
+  | 'guildAdmin.lotteryEmpty'
+  | 'guildAdmin.lotteryNameLabel'
+  | 'guildAdmin.lotteryPrizeLabel'
+  | 'guildAdmin.lotterySourceLabel'
+  | 'guildAdmin.lotterySourceGrouping'
+  | 'guildAdmin.lotterySourceMembers'
+  | 'guildAdmin.lotteryGroupingLabel'
+  | 'guildAdmin.lotteryWinnerCountLabel'
+  | 'guildAdmin.lotteryUniformWeightLabel'
+  | 'guildAdmin.lotteryWeightLabel'
+  | 'guildAdmin.lotteryEntriesLabel'
+  | 'guildAdmin.lotteryWinnersLabel'
+  | 'guildAdmin.lotteryCreateButton'
+  | 'guildAdmin.lotteryDrawButton'
+  | 'guildAdmin.lotteryStatusOpen'
+  | 'guildAdmin.lotteryStatusDrawn'
+  | 'guildAdmin.lotteryEntryCount';
 
 export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'locked.backLink',
@@ -315,4 +341,30 @@ export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'announcements.pushNote',
   'announcements.urgentNote',
   'announcements.dailyLimitTemplate',
+  'guildAdmin.tabTools',
+  'guildAdmin.calendarTitle',
+  'guildAdmin.calendarHint',
+  'guildAdmin.calendarUrlLabel',
+  'guildAdmin.calendarCopyButton',
+  'guildAdmin.calendarResetButton',
+  'guildAdmin.calendarResetHint',
+  'guildAdmin.lotteryTitle',
+  'guildAdmin.lotteryHint',
+  'guildAdmin.lotteryEmpty',
+  'guildAdmin.lotteryNameLabel',
+  'guildAdmin.lotteryPrizeLabel',
+  'guildAdmin.lotterySourceLabel',
+  'guildAdmin.lotterySourceGrouping',
+  'guildAdmin.lotterySourceMembers',
+  'guildAdmin.lotteryGroupingLabel',
+  'guildAdmin.lotteryWinnerCountLabel',
+  'guildAdmin.lotteryUniformWeightLabel',
+  'guildAdmin.lotteryWeightLabel',
+  'guildAdmin.lotteryEntriesLabel',
+  'guildAdmin.lotteryWinnersLabel',
+  'guildAdmin.lotteryCreateButton',
+  'guildAdmin.lotteryDrawButton',
+  'guildAdmin.lotteryStatusOpen',
+  'guildAdmin.lotteryStatusDrawn',
+  'guildAdmin.lotteryEntryCount',
 ];

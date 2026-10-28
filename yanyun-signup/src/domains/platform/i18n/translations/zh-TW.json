@@ -8360,6 +8360,369 @@
         }
       ],
       "types": []
+    },
+    "wxwp61tRGmC2s1BC5taUPg==": {
+      "description": "guildAdmin.tabTools",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "活動工具",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "MSSLhnkAJRYvS596t2Qawg==": {
+      "description": "guildAdmin.calendarTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "活動日曆訂閱",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "8Q+N1XsRekHd9J3Wv2V3LQ==": {
+      "description": "guildAdmin.calendarHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "把下面的連結貼到日曆應用（或系統日曆）的「訂閱日曆」裡，本百業的車隊活動會自動同步。連結等同密鑰，請勿公開擴散；成員拿到連結即可訂閱。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "xFPr47znb/NEbkhkZEF9Dg==": {
+      "description": "guildAdmin.calendarUrlLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "訂閱連結",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "QFkAyzKm3S/TPwrLte16Gw==": {
+      "description": "guildAdmin.calendarCopyButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "複製連結",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "rkAK7s3QkvYWGaPwDjlIDQ==": {
+      "description": "guildAdmin.calendarResetButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "重置連結",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+pIr58Se7RrGlwiGk4SF8g==": {
+      "description": "guildAdmin.calendarResetHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "重置後舊連結立即失效，已訂閱的人需要換用新連結重新訂閱。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "b69A3HevEVfkx/+w2tQ2Ww==": {
+      "description": "guildAdmin.lotteryTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "活動抽獎",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ehaX2UdooHPJS8Rfpva3/Q==": {
+      "description": "guildAdmin.lotteryHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "參與名單可來自某輛車的參與者，或手選本百業成員；名單與權重在建立時定格。開獎按權重隨機抽取，同一抽獎內不會重複中獎；抽獎、名單、權重與結果全部留痕可查。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "84P94t4Jc/PoAOYqU37HfA==": {
+      "description": "guildAdmin.lotteryEmpty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "還沒有抽獎，先建立一個。",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "5ToWLgfzY21tA/mCt9XlSA==": {
+      "description": "guildAdmin.lotteryNameLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "抽獎標題",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "5UgMiQPOIwI4CyXy64JeiQ==": {
+      "description": "guildAdmin.lotteryPrizeLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "獎品 / 獎池",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "omtWQYNozNOZTQNv81jeMQ==": {
+      "description": "guildAdmin.lotterySourceLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "參與名單來源",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "gcIDcgxK0ApqsNRyizC6Tw==": {
+      "description": "guildAdmin.lotterySourceGrouping",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "某輛車的參與者",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "LkeBETahRb5NSHCU/UOrew==": {
+      "description": "guildAdmin.lotterySourceMembers",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "手選百業成員",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "j7UaGc9LijTINEnA9E/7QQ==": {
+      "description": "guildAdmin.lotteryGroupingLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "選擇車隊",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "WYh8me5aN2ar/+M/gqu4iw==": {
+      "description": "guildAdmin.lotteryWinnerCountLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "中獎人數",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "jAkgF7PAfejNTFLNVRh7eA==": {
+      "description": "guildAdmin.lotteryUniformWeightLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "統一權重",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "YAuWw1fuM91dnqEfoDu0TA==": {
+      "description": "guildAdmin.lotteryWeightLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "權重",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "uLAVZFw489AZFVOUYl1tWg==": {
+      "description": "guildAdmin.lotteryEntriesLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "參與名單",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "j7og8BT5e7ZMrFJUjxARRw==": {
+      "description": "guildAdmin.lotteryWinnersLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "中獎名單",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "i9+WRRMJ8rCmd38ngq3k7w==": {
+      "description": "guildAdmin.lotteryCreateButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "建立抽獎",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "TEgdi0io9GY+CMgtTDgf+w==": {
+      "description": "guildAdmin.lotteryDrawButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "開獎",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "oYGHmVsLTt0wNyn4M2IzUg==": {
+      "description": "guildAdmin.lotteryStatusOpen",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "待開獎",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "0aZbXQGuLCqzmQaMq2Trkg==": {
+      "description": "guildAdmin.lotteryStatusDrawn",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "已開獎",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "e/p73nG1tbs5ZcjfOsj+7Q==": {
+      "description": "guildAdmin.lotteryEntryCount",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{count} 人參與",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "euUfP9z8t3jPZiYA2kCqHQ==": {
+      "description": "errors.lotteryTitleRequired",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "請填寫抽獎標題",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "4Q8vs5Ic63h2lPgLzE8D7w==": {
+      "description": "errors.lotteryEntriesEmpty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "參與名單為空，請先選擇參與者",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "9++LVUfawqF4uhmjEyCE7Q==": {
+      "description": "errors.lotteryNotFound",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "抽獎不存在",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "gvve5T0I8Y2p0DaNv5OMaQ==": {
+      "description": "errors.lotteryAlreadyDrawn",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "該抽獎已經開過獎了",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "dWo8JtIz43aw4u9TSyIzGQ==": {
+      "description": "errors.lotteryWinnerCountInvalid",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "中獎人數必須在 1 與參與人數之間",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "2Vf3LLtKXGLcY/NifykzKQ==": {
+      "description": "errors.lotteryWeightInvalid",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "權重必須是 1 到 1000 之間的整數",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "1TMIfvPAByCSlclhx3+hpw==": {
+      "description": "errors.lotteryMemberNotInGuild",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "所選成員不在本百業名冊中",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

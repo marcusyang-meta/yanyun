@@ -184,3 +184,30 @@ export const announcements_pushNote = (fbs: FbsAPI) =>fbs("发布后会向全体
 export const announcements_urgentNote = (fbs: FbsAPI) =>fbs("紧急集合呼叫请只用于临时集合等紧急情况，每天最多 2 次。", "announcements.urgentNote");
 export const announcements_dailyLimitTemplate = (fbs: FbsAPI, p?: StringParams) =>
   fbs(["今日还可发布 ", fbs.param("remaining", pv(p, "remaining")), " 条"], "announcements.dailyLimitTemplate");
+export const guildAdmin_tabTools = (fbs: FbsAPI) =>fbs("活动工具", "guildAdmin.tabTools");
+export const guildAdmin_calendarTitle = (fbs: FbsAPI) =>fbs("活动日历订阅", "guildAdmin.calendarTitle");
+export const guildAdmin_calendarHint = (fbs: FbsAPI) =>fbs("把下面的链接粘贴到日历应用（或系统日历）的「订阅日历」里，本百业的车队活动会自动同步。链接等同密钥，请勿公开扩散；成员拿到链接即可订阅。", "guildAdmin.calendarHint");
+export const guildAdmin_calendarUrlLabel = (fbs: FbsAPI) =>fbs("订阅链接", "guildAdmin.calendarUrlLabel");
+export const guildAdmin_calendarCopyButton = (fbs: FbsAPI) =>fbs("复制链接", "guildAdmin.calendarCopyButton");
+export const guildAdmin_calendarResetButton = (fbs: FbsAPI) =>fbs("重置链接", "guildAdmin.calendarResetButton");
+export const guildAdmin_calendarResetHint = (fbs: FbsAPI) =>fbs("重置后旧链接立即失效，已订阅的人需要换用新链接重新订阅。", "guildAdmin.calendarResetHint");
+export const guildAdmin_lotteryTitle = (fbs: FbsAPI) =>fbs("活动抽奖", "guildAdmin.lotteryTitle");
+export const guildAdmin_lotteryHint = (fbs: FbsAPI) =>fbs("参与名单可来自某辆车的参与者，或手选本百业成员；名单与权重在创建时定格。开奖按权重随机抽取，同一抽奖内不会重复中奖；抽奖、名单、权重与结果全部留痕可查。", "guildAdmin.lotteryHint");
+export const guildAdmin_lotteryEmpty = (fbs: FbsAPI) =>fbs("还没有抽奖，先创建一个。", "guildAdmin.lotteryEmpty");
+export const guildAdmin_lotteryNameLabel = (fbs: FbsAPI) =>fbs("抽奖标题", "guildAdmin.lotteryNameLabel");
+export const guildAdmin_lotteryPrizeLabel = (fbs: FbsAPI) =>fbs("奖品 / 奖池", "guildAdmin.lotteryPrizeLabel");
+export const guildAdmin_lotterySourceLabel = (fbs: FbsAPI) =>fbs("参与名单来源", "guildAdmin.lotterySourceLabel");
+export const guildAdmin_lotterySourceGrouping = (fbs: FbsAPI) =>fbs("某辆车的参与者", "guildAdmin.lotterySourceGrouping");
+export const guildAdmin_lotterySourceMembers = (fbs: FbsAPI) =>fbs("手选百业成员", "guildAdmin.lotterySourceMembers");
+export const guildAdmin_lotteryGroupingLabel = (fbs: FbsAPI) =>fbs("选择车队", "guildAdmin.lotteryGroupingLabel");
+export const guildAdmin_lotteryWinnerCountLabel = (fbs: FbsAPI) =>fbs("中奖人数", "guildAdmin.lotteryWinnerCountLabel");
+export const guildAdmin_lotteryUniformWeightLabel = (fbs: FbsAPI) =>fbs("统一权重", "guildAdmin.lotteryUniformWeightLabel");
+export const guildAdmin_lotteryWeightLabel = (fbs: FbsAPI) =>fbs("权重", "guildAdmin.lotteryWeightLabel");
+export const guildAdmin_lotteryEntriesLabel = (fbs: FbsAPI) =>fbs("参与名单", "guildAdmin.lotteryEntriesLabel");
+export const guildAdmin_lotteryWinnersLabel = (fbs: FbsAPI) =>fbs("中奖名单", "guildAdmin.lotteryWinnersLabel");
+export const guildAdmin_lotteryCreateButton = (fbs: FbsAPI) =>fbs("创建抽奖", "guildAdmin.lotteryCreateButton");
+export const guildAdmin_lotteryDrawButton = (fbs: FbsAPI) =>fbs("开奖", "guildAdmin.lotteryDrawButton");
+export const guildAdmin_lotteryStatusOpen = (fbs: FbsAPI) =>fbs("待开奖", "guildAdmin.lotteryStatusOpen");
+export const guildAdmin_lotteryStatusDrawn = (fbs: FbsAPI) =>fbs("已开奖", "guildAdmin.lotteryStatusDrawn");
+export const guildAdmin_lotteryEntryCount = (fbs: FbsAPI, p?: StringParams) =>
+  fbs([fbs.param("count", pv(p, "count")), " 人参与"], "guildAdmin.lotteryEntryCount");

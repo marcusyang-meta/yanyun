@@ -155,3 +155,10 @@ export const errors_announcementDailyLimit = (fbs: FbsAPI, p?: StringParams) =>
   fbs(["今天的公告已达上限（每天 ", fbs.param("limit", pv(p, "limit")), " 条），明天再发"], "errors.announcementDailyLimit");
 export const errors_urgentCallDailyLimit = (fbs: FbsAPI, p?: StringParams) =>
   fbs(["今天的紧急集合呼叫已达上限（每天 ", fbs.param("limit", pv(p, "limit")), " 次），明天再试"], "errors.urgentCallDailyLimit");
+export const errors_lotteryTitleRequired = (fbs: FbsAPI) =>fbs("请填写抽奖标题", "errors.lotteryTitleRequired");
+export const errors_lotteryEntriesEmpty = (fbs: FbsAPI) =>fbs("参与名单为空，请先选择参与者", "errors.lotteryEntriesEmpty");
+export const errors_lotteryNotFound = (fbs: FbsAPI) =>fbs("抽奖不存在", "errors.lotteryNotFound");
+export const errors_lotteryAlreadyDrawn = (fbs: FbsAPI) =>fbs("该抽奖已经开过奖了", "errors.lotteryAlreadyDrawn");
+export const errors_lotteryWinnerCountInvalid = (fbs: FbsAPI) =>fbs("中奖人数必须在 1 与参与人数之间", "errors.lotteryWinnerCountInvalid");
+export const errors_lotteryWeightInvalid = (fbs: FbsAPI) =>fbs("权重必须是 1 到 1000 之间的整数", "errors.lotteryWeightInvalid");
+export const errors_lotteryMemberNotInGuild = (fbs: FbsAPI) =>fbs("所选成员不在本百业名册中", "errors.lotteryMemberNotInGuild");

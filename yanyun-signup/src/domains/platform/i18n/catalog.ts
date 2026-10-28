@@ -4540,6 +4540,41 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
     },
     "urgentCallDailyLimit": {
       "zh-CN": "今天的紧急集合呼叫已达上限（每天 {limit} 次），明天再试"
+    },
+    "lotteryTitleRequired": {
+      "zh-CN": "请填写抽奖标题",
+      "en": "Please enter a lottery title",
+      "zh-TW": "請填寫抽獎標題"
+    },
+    "lotteryEntriesEmpty": {
+      "zh-CN": "参与名单为空，请先选择参与者",
+      "en": "The participant list is empty — pick participants first",
+      "zh-TW": "參與名單為空，請先選擇參與者"
+    },
+    "lotteryNotFound": {
+      "zh-CN": "抽奖不存在",
+      "en": "Lottery not found",
+      "zh-TW": "抽獎不存在"
+    },
+    "lotteryAlreadyDrawn": {
+      "zh-CN": "该抽奖已经开过奖了",
+      "en": "This lottery has already been drawn",
+      "zh-TW": "該抽獎已經開過獎了"
+    },
+    "lotteryWinnerCountInvalid": {
+      "zh-CN": "中奖人数必须在 1 与参与人数之间",
+      "en": "The number of winners must be between 1 and the number of participants",
+      "zh-TW": "中獎人數必須在 1 與參與人數之間"
+    },
+    "lotteryWeightInvalid": {
+      "zh-CN": "权重必须是 1 到 1000 之间的整数",
+      "en": "Weight must be an integer between 1 and 1000",
+      "zh-TW": "權重必須是 1 到 1000 之間的整數"
+    },
+    "lotteryMemberNotInGuild": {
+      "zh-CN": "所选成员不在本百业名册中",
+      "en": "A selected member is not on this guild's roster",
+      "zh-TW": "所選成員不在本百業名冊中"
     }
   },
   "guildAdmin": {
@@ -5260,6 +5295,136 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
     },
     "tabAnnouncements": {
       "zh-CN": "公告广播"
+    },
+    "tabTools": {
+      "zh-CN": "活动工具",
+      "en": "Activity Tools",
+      "zh-TW": "活動工具"
+    },
+    "calendarTitle": {
+      "zh-CN": "活动日历订阅",
+      "en": "Event Calendar Subscription",
+      "zh-TW": "活動日曆訂閱"
+    },
+    "calendarHint": {
+      "zh-CN": "把下面的链接粘贴到日历应用（或系统日历）的「订阅日历」里，本百业的车队活动会自动同步。链接等同密钥，请勿公开扩散；成员拿到链接即可订阅。",
+      "en": "Paste the link below into the \"Subscribe to calendar\" option of your calendar app (or system calendar) and this guild's grouping events will sync automatically. The link works like a secret key — do not share it publicly; every member who has it can subscribe.",
+      "zh-TW": "把下面的連結貼到日曆應用（或系統日曆）的「訂閱日曆」裡，本百業的車隊活動會自動同步。連結等同密鑰，請勿公開擴散；成員拿到連結即可訂閱。"
+    },
+    "calendarUrlLabel": {
+      "zh-CN": "订阅链接",
+      "en": "Subscription link",
+      "zh-TW": "訂閱連結"
+    },
+    "calendarCopyButton": {
+      "zh-CN": "复制链接",
+      "en": "Copy link",
+      "zh-TW": "複製連結"
+    },
+    "calendarResetButton": {
+      "zh-CN": "重置链接",
+      "en": "Reset link",
+      "zh-TW": "重置連結"
+    },
+    "calendarResetHint": {
+      "zh-CN": "重置后旧链接立即失效，已订阅的人需要换用新链接重新订阅。",
+      "en": "After a reset the old link stops working immediately; anyone subscribed with it must subscribe again with the new link.",
+      "zh-TW": "重置後舊連結立即失效，已訂閱的人需要換用新連結重新訂閱。"
+    },
+    "lotteryTitle": {
+      "zh-CN": "活动抽奖",
+      "en": "Event Lottery",
+      "zh-TW": "活動抽獎"
+    },
+    "lotteryHint": {
+      "zh-CN": "参与名单可来自某辆车的参与者，或手选本百业成员；名单与权重在创建时定格。开奖按权重随机抽取，同一抽奖内不会重复中奖；抽奖、名单、权重与结果全部留痕可查。",
+      "en": "The participant list can come from one grouping's participants or be hand-picked from guild members; the list and weights are frozen at creation. Winners are drawn at random weighted by weight, and nobody can win twice in the same lottery; the lottery, its list, weights and result are all kept on record.",
+      "zh-TW": "參與名單可來自某輛車的參與者，或手選本百業成員；名單與權重在建立時定格。開獎按權重隨機抽取，同一抽獎內不會重複中獎；抽獎、名單、權重與結果全部留痕可查。"
+    },
+    "lotteryEmpty": {
+      "zh-CN": "还没有抽奖，先创建一个。",
+      "en": "No lotteries yet — create the first one.",
+      "zh-TW": "還沒有抽獎，先建立一個。"
+    },
+    "lotteryNameLabel": {
+      "zh-CN": "抽奖标题",
+      "en": "Lottery title",
+      "zh-TW": "抽獎標題"
+    },
+    "lotteryPrizeLabel": {
+      "zh-CN": "奖品 / 奖池",
+      "en": "Prize / prize pool",
+      "zh-TW": "獎品 / 獎池"
+    },
+    "lotterySourceLabel": {
+      "zh-CN": "参与名单来源",
+      "en": "Participant list source",
+      "zh-TW": "參與名單來源"
+    },
+    "lotterySourceGrouping": {
+      "zh-CN": "某辆车的参与者",
+      "en": "A grouping's participants",
+      "zh-TW": "某輛車的參與者"
+    },
+    "lotterySourceMembers": {
+      "zh-CN": "手选百业成员",
+      "en": "Hand-picked guild members",
+      "zh-TW": "手選百業成員"
+    },
+    "lotteryGroupingLabel": {
+      "zh-CN": "选择车队",
+      "en": "Choose grouping",
+      "zh-TW": "選擇車隊"
+    },
+    "lotteryWinnerCountLabel": {
+      "zh-CN": "中奖人数",
+      "en": "Number of winners",
+      "zh-TW": "中獎人數"
+    },
+    "lotteryUniformWeightLabel": {
+      "zh-CN": "统一权重",
+      "en": "Uniform weight",
+      "zh-TW": "統一權重"
+    },
+    "lotteryWeightLabel": {
+      "zh-CN": "权重",
+      "en": "Weight",
+      "zh-TW": "權重"
+    },
+    "lotteryEntriesLabel": {
+      "zh-CN": "参与名单",
+      "en": "Participants",
+      "zh-TW": "參與名單"
+    },
+    "lotteryWinnersLabel": {
+      "zh-CN": "中奖名单",
+      "en": "Winners",
+      "zh-TW": "中獎名單"
+    },
+    "lotteryCreateButton": {
+      "zh-CN": "创建抽奖",
+      "en": "Create lottery",
+      "zh-TW": "建立抽獎"
+    },
+    "lotteryDrawButton": {
+      "zh-CN": "开奖",
+      "en": "Draw winners",
+      "zh-TW": "開獎"
+    },
+    "lotteryStatusOpen": {
+      "zh-CN": "待开奖",
+      "en": "Pending draw",
+      "zh-TW": "待開獎"
+    },
+    "lotteryStatusDrawn": {
+      "zh-CN": "已开奖",
+      "en": "Drawn",
+      "zh-TW": "已開獎"
+    },
+    "lotteryEntryCount": {
+      "zh-CN": "{count} 人参与",
+      "en": "{count} participants",
+      "zh-TW": "{count} 人參與"
     }
   },
   "groupingTemplate": {

@@ -44,7 +44,12 @@ import {
   notifyDiscord, parseTimeMs, utcToText, nudgeReminderHub,
   getReminderOffsets, getReminderCustomText, serializeReminderOffsets,
   sanitizeReminderCustomText, REMINDER_OFFSET_PRESETS,
+  mintCalendarFeed, resetCalendarFeed, calendarFeedUrl,
+  listLotteries, getLotteryByTenant, listLotteryEntries, listLotteryWinners,
+  insertLottery, insertLotteryEntry, insertLotteryWinner, markLotteryDrawn,
+  drawWinners,
 } from '../groupings/index.ts';
+import { listGuildMembers } from '../identity/index.ts';
 import { listSchoolBis, listSchoolRotations, upsertSchoolBis, upsertSchoolRotation } from '../dex/index.ts';
 import {
   premiumGate, isPaygateEnabled, getEffectiveEntitlement,
@@ -287,6 +292,65 @@ export class GuildAdminOgAccentOptionShell extends ShellBase {
   genLabel(){ return this.t('guildAdmin', this.data.labelField); }
 }
 
+/* ---------------- activity tools sub shells (F8 + F21) ----------------
+ * Free features: no entitlement gate anywhere on this surface. The
+ * lottery shell composes its list from the groupings repositories;
+ * times render server-side in the viewer's timezone, like the stats
+ * week labels. */
+
+export class GuildAdminLotteryEntryShell extends ShellBase {
+  genDiscordId(){ return this.data.discord_id || ''; }
+  genDisplayName(){ return this.data.display_name || ''; }
+  genWeight(){ return this.data.weight || 1; }
+}
+
+export class GuildAdminLotteryShell extends ShellBase {
+  genId(){ return String(this.data.id); }
+  genTitle(){ return this.data.title || ''; }
+  genPrize(){ return this.data.prize || ''; }
+  genSource(){ return this.data.source === 'grouping' ? 'GROUPING' : 'MEMBERS'; }
+  genSourceEventId(){ return this.data.source_event_id != null ? String(this.data.source_event_id) : null; }
+  genWinnerCount(){ return this.data.winner_count || 1; }
+  genStatus(){ return this.data.status === 'drawn' ? 'DRAWN' : 'OPEN'; }
+  genEntries(){
+    return this.memo('entries', async () => {
+      const rows = await listLotteryEntries(this.db, this.data.id);
+      return rows.map((r) => new GuildAdminLotteryEntryShell(this.ctx, r));
+    });
+  }
+  genWinners(){
+    return this.memo('winners', async () => {
+      const rows = await listLotteryWinners(this.db, this.data.id);
+      // A winner's displayed weight is their frozen entry weight.
+      const entries = await listLotteryEntries(this.db, this.data.id);
+      const weightOf = new Map(entries.map((e) => [e.discord_id, e.weight]));
+      return rows.map((r) => new GuildAdminLotteryEntryShell(this.ctx, {
+        ...r, weight: weightOf.get(r.discord_id) ?? 1,
+      }));
+    });
+  }
+  async genEntryCountText(){
+    const entries = await this.genEntries();
+    return this.t('guildAdmin', 'lotteryEntryCount', { count: entries.length });
+  }
+  async genSourceEventTitle(){
+    if (this.data.source !== 'grouping' || this.data.source_event_id == null) return null;
+    const ev = await getEventRow(this.db, this.data.source_event_id).catch(() => null);
+    return ev && ev.tenant === this.data.tenant ? (ev.title || '') : null;
+  }
+  genCreatedAtText(){
+    return this.data.created_at ? fmtStartsAt(this.data.created_at, this.locale, this.ctx.tz) : '';
+  }
+  genDrawnAtText(){
+    return this.data.drawn_at ? fmtStartsAt(this.data.drawn_at, this.locale, this.ctx.tz) : null;
+  }
+}
+
+export class GuildAdminLotteryMemberShell extends ShellBase {
+  genDiscordId(){ return this.data.discord_id; }
+  genDisplayName(){ return this.data.nick || this.data.global_name || ''; }
+}
+
 /* ---------------- the admin shell ---------------- */
 
 const ADMIN_TEXT_SPEC: [string, string, string][] = [
@@ -390,6 +454,31 @@ const ADMIN_TEXT_SPEC: [string, string, string][] = [
   ['adminOgAccentLabel', 'guildAdmin', 'ogAccentLabel'],
   ['adminOgTitleSuffixLabel', 'guildAdmin', 'ogTitleSuffixLabel'],
   ['adminOgTitleSuffixHint', 'guildAdmin', 'ogTitleSuffixHint'],
+  ['adminTabToolsLabel', 'guildAdmin', 'tabTools'],
+  ['adminCalendarTitle', 'guildAdmin', 'calendarTitle'],
+  ['adminCalendarHint', 'guildAdmin', 'calendarHint'],
+  ['adminCalendarUrlLabel', 'guildAdmin', 'calendarUrlLabel'],
+  ['adminCalendarCopyLabel', 'guildAdmin', 'calendarCopyButton'],
+  ['adminCalendarResetLabel', 'guildAdmin', 'calendarResetButton'],
+  ['adminCalendarResetHint', 'guildAdmin', 'calendarResetHint'],
+  ['adminLotteryTitle', 'guildAdmin', 'lotteryTitle'],
+  ['adminLotteryHint', 'guildAdmin', 'lotteryHint'],
+  ['adminLotteryEmptyText', 'guildAdmin', 'lotteryEmpty'],
+  ['adminLotteryNameLabel', 'guildAdmin', 'lotteryNameLabel'],
+  ['adminLotteryPrizeLabel', 'guildAdmin', 'lotteryPrizeLabel'],
+  ['adminLotterySourceLabel', 'guildAdmin', 'lotterySourceLabel'],
+  ['adminLotterySourceGroupingText', 'guildAdmin', 'lotterySourceGrouping'],
+  ['adminLotterySourceMembersText', 'guildAdmin', 'lotterySourceMembers'],
+  ['adminLotteryGroupingLabel', 'guildAdmin', 'lotteryGroupingLabel'],
+  ['adminLotteryWinnerCountLabel', 'guildAdmin', 'lotteryWinnerCountLabel'],
+  ['adminLotteryUniformWeightLabel', 'guildAdmin', 'lotteryUniformWeightLabel'],
+  ['adminLotteryWeightLabel', 'guildAdmin', 'lotteryWeightLabel'],
+  ['adminLotteryEntriesLabel', 'guildAdmin', 'lotteryEntriesLabel'],
+  ['adminLotteryWinnersLabel', 'guildAdmin', 'lotteryWinnersLabel'],
+  ['adminLotteryCreateLabel', 'guildAdmin', 'lotteryCreateButton'],
+  ['adminLotteryDrawLabel', 'guildAdmin', 'lotteryDrawButton'],
+  ['adminLotteryStatusOpenText', 'guildAdmin', 'lotteryStatusOpen'],
+  ['adminLotteryStatusDrawnText', 'guildAdmin', 'lotteryStatusDrawn'],
 ];
 
 const ADMIN_LOCKED_TEXT_SPEC: [string, string, string][] = [
@@ -511,6 +600,31 @@ export class GuildAdminShell extends ShellBase {
     const wl = await getEffectiveWhiteLabelSettings(this.db, this.genSlug());
     return wl.hideBranding ? null : this.t('legal', 'disclaimer');
   }
+  /* Activity tools (F8/F21, free — no gate): the calendar feed is
+   * minted lazily on first read of this surface, like the car share
+   * link on the detail page; the URL is composed on the request's
+   * own origin so a subdomain admin copies a subdomain link. */
+  genCalendarFeed(){
+    return this.memo('calendarFeed', () => mintCalendarFeed(this.db, this.genSlug()));
+  }
+  async genCalendarFeedUrl(){
+    const feed = await this.genCalendarFeed();
+    let origin = '';
+    try { origin = new URL(this.ctx.request.url).origin; } catch { /* canonical fallback */ }
+    return calendarFeedUrl(feed.token, origin || undefined);
+  }
+  genLotteries(){
+    return this.memo('lotteries', async () => {
+      const rows = await listLotteries(this.db, this.genSlug());
+      return rows.map((r) => new GuildAdminLotteryShell(this.ctx, r));
+    });
+  }
+  genLotteryRoster(){
+    return this.memo('lotteryRoster', async () => {
+      const rows = await listGuildMembers(this.db, this.genSlug());
+      return rows.map((r) => new GuildAdminLotteryMemberShell(this.ctx, r));
+    });
+  }
 }
 
 export const GUILD_ADMIN_TEXT_RESOLVERS = defineTextGens(GuildAdminShell, ADMIN_TEXT_SPEC);
@@ -545,6 +659,9 @@ function contentResolvers() {
     ogTitleSuffix: (p: any) => p.genOgTitleSuffix(),
     ogAccentOptions: (p: any) => p.genOgAccentOptions(),
     pageFooterDisclaimerText: (p: any) => p.genPageFooterDisclaimerText(),
+    calendarFeedUrl: (p: any) => p.genCalendarFeedUrl(),
+    lotteries: (p: any) => p.genLotteries(),
+    lotteryRoster: (p: any) => p.genLotteryRoster(),
   };
 }
 
@@ -638,6 +755,30 @@ export const guildAdminTypes = {
     key: (p: GuildAdminOgAccentOptionShell) => p.genKey(),
     hex: (p: GuildAdminOgAccentOptionShell) => p.genHex(),
     label: (p: GuildAdminOgAccentOptionShell) => p.genLabel(),
+  },
+  GuildAdminLottery: {
+    id: (p: GuildAdminLotteryShell) => p.genId(),
+    title: (p: GuildAdminLotteryShell) => p.genTitle(),
+    prize: (p: GuildAdminLotteryShell) => p.genPrize(),
+    source: (p: GuildAdminLotteryShell) => p.genSource(),
+    sourceEventId: (p: GuildAdminLotteryShell) => p.genSourceEventId(),
+    sourceEventTitle: (p: GuildAdminLotteryShell) => p.genSourceEventTitle(),
+    winnerCount: (p: GuildAdminLotteryShell) => p.genWinnerCount(),
+    status: (p: GuildAdminLotteryShell) => p.genStatus(),
+    entryCountText: (p: GuildAdminLotteryShell) => p.genEntryCountText(),
+    createdAtText: (p: GuildAdminLotteryShell) => p.genCreatedAtText(),
+    drawnAtText: (p: GuildAdminLotteryShell) => p.genDrawnAtText(),
+    entries: (p: GuildAdminLotteryShell) => p.genEntries(),
+    winners: (p: GuildAdminLotteryShell) => p.genWinners(),
+  },
+  GuildAdminLotteryEntry: {
+    discordId: (p: GuildAdminLotteryEntryShell) => p.genDiscordId(),
+    displayName: (p: GuildAdminLotteryEntryShell) => p.genDisplayName(),
+    weight: (p: GuildAdminLotteryEntryShell) => p.genWeight(),
+  },
+  GuildAdminLotteryMember: {
+    discordId: (p: GuildAdminLotteryMemberShell) => p.genDiscordId(),
+    displayName: (p: GuildAdminLotteryMemberShell) => p.genDisplayName(),
   },
 };
 
@@ -904,6 +1045,106 @@ export const guildAdminMutations = {
     if (!owned) return aFail(ctx, 'resultNotFound');
     await deleteResultById(db, owned.id);
     return aOk(ctx);
+  },
+
+  /* Calendar feed reset (F8): replaces the token in place — the old
+   * subscription link 404s from this moment. No entitlement gate:
+   * the feed is a free feature. */
+  resetCalendarFeed: async (_: any, { slug }: any, ctx: Context) => {
+    const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
+    await resetCalendarFeed(ctx.env.DB, g.access.slug);
+    return aOk(ctx);
+  },
+
+  /* Activity lottery (F21): the participant list is frozen into
+   * lottery_entries at creation. GROUPING snapshots the source car's
+   * seated participants (identity = their Discord id; seats without
+   * one cannot be keyed and do not enter); MEMBERS snapshots the
+   * admin's hand-picked roster members with their per-person
+   * weights. Weights are plain integers 1..1000 — deliberately no
+   * points/attendance linkage (that is a paid-layer concern). */
+  createLottery: async (_: any, { slug, input }: any, ctx: Context) => {
+    const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
+    const db = ctx.env.DB;
+    const title = s(input.title, 60);
+    if (!title) return aFail(ctx, 'lotteryTitleRequired');
+    const prize = s(input.prize, 200);
+    const validWeight = (w: unknown) => {
+      const n = Number(w);
+      return Number.isInteger(n) && n >= 1 && n <= 1000 ? n : null;
+    };
+    const entries: { discordId: string; displayName: string; weight: number }[] = [];
+    let sourceEventId: number | null = null;
+    if (input.source === 'GROUPING') {
+      const ev = await getEventRowByTenant(db, parseInt(String(input.sourceEventId || ''), 10) || 0, g.access.slug);
+      if (!ev) return aFail(ctx, 'groupingNotFound');
+      sourceEventId = ev.id;
+      const w = validWeight(input.uniformWeight ?? 1);
+      if (w == null) return aFail(ctx, 'lotteryWeightInvalid');
+      const seen = new Set<string>();
+      for (const seat of await listSignupsByEvent(db, ev.id)) {
+        const did = seat.discord_id ? String(seat.discord_id) : '';
+        if (!did || seen.has(did)) continue;
+        seen.add(did);
+        entries.push({ discordId: did, displayName: seat.nickname || '', weight: w });
+      }
+    } else {
+      const roster = await listGuildMembers(db, g.access.slug);
+      const byId = new Map(roster.map((m) => [String(m.discord_id), m.nick || m.global_name || '']));
+      const picked = new Map<string, { discordId: string; displayName: string; weight: number }>();
+      for (const e of (Array.isArray(input.entries) ? input.entries : [])) {
+        const did = String(e.discordId || '');
+        if (!byId.has(did)) return aFail(ctx, 'lotteryMemberNotInGuild');
+        const w = validWeight(e.weight ?? 1);
+        if (w == null) return aFail(ctx, 'lotteryWeightInvalid');
+        picked.set(did, { discordId: did, displayName: byId.get(did) || '', weight: w });
+      }
+      entries.push(...picked.values());
+    }
+    if (!entries.length) return aFail(ctx, 'lotteryEntriesEmpty');
+    const winnerCount = Number(input.winnerCount);
+    if (!Number.isInteger(winnerCount) || winnerCount < 1 || winnerCount > entries.length) {
+      return aFail(ctx, 'lotteryWinnerCountInvalid');
+    }
+    const now = Math.floor(Date.now() / 1000);
+    const r = await insertLottery(db, {
+      tenant: g.access.slug,
+      title,
+      prize,
+      source: input.source === 'GROUPING' ? 'grouping' : 'members',
+      source_event_id: sourceEventId,
+      winner_count: winnerCount,
+      status: 'open',
+      created_by: ctx.user ? String(ctx.user.discordId) : '',
+      created_at: now,
+    });
+    for (const e of entries) {
+      await insertLotteryEntry(db, { lotteryId: r.last_row_id, ...e });
+    }
+    return aOk(ctx, { id: r.last_row_id });
+  },
+
+  /* The draw: weighted, without replacement (nobody wins twice in
+   * one lottery), then the winners and the draw time are written —
+   * the lottery row, its frozen entries and the winner rows are the
+   * permanent record. A drawn lottery can never be drawn again. */
+  drawLottery: async (_: any, { slug, lotteryId }: any, ctx: Context) => {
+    const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
+    const db = ctx.env.DB;
+    const lot = await getLotteryByTenant(db, parseInt(String(lotteryId), 10) || 0, g.access.slug);
+    if (!lot) return aFail(ctx, 'lotteryNotFound');
+    if (lot.status === 'drawn') return aFail(ctx, 'lotteryAlreadyDrawn');
+    const entries = await listLotteryEntries(db, lot.id);
+    if (!entries.length) return aFail(ctx, 'lotteryEntriesEmpty');
+    const now = Math.floor(Date.now() / 1000);
+    const winners = drawWinners(entries, lot.winner_count);
+    for (const w of winners) {
+      await insertLotteryWinner(db, {
+        lotteryId: lot.id, discordId: w.discord_id, displayName: w.display_name, drawnAt: now,
+      });
+    }
+    await markLotteryDrawn(db, lot.id, now);
+    return aOk(ctx, { id: lot.id });
   },
 
   updateSchoolGuide: async (_: any, { slug, input }: any, ctx: Context) => {
