@@ -18,7 +18,10 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 function ensureDevVars() {
   const p = path.join(ROOT, '.dev.vars');
   if (!fs.existsSync(p)) {
-    fs.writeFileSync(p, 'SESSION_SECRET=' + 'ci-fixture-session-secret' + '\n' + 'ADMIN_PASSWORD=' + 'ci-fixture-hub-password' + '\n');
+    // Hub overhaul: the fixture no longer needs an ADMIN_PASSWORD —
+    // the retired hub password gate is gone; the heirloom fixture
+    // passes its platform-admin floor via wrangler --var instead.
+    fs.writeFileSync(p, 'SESSION_SECRET=' + 'ci-fixture-session-secret' + '\n');
     console.log('[fixture] generated throwaway .dev.vars (CI-only fixture secrets)');
   }
 }
