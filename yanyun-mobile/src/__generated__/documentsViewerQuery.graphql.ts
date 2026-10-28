@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<a5ae8af8210147232c8c4fd480c90314>>
+ * @generated SignedSource<<eb9daab91d0a8666ed6a7c2dff85907d>>
  * @lightSyntaxTransform
  */
 
@@ -42,6 +42,7 @@ export type documentsViewerQuery$data = {
       readonly applySectionTitle: string;
       readonly approvedNextStepText: string;
       readonly checklistTitle: string;
+      readonly directoryTitle: string;
       readonly guilds: ReadonlyArray<{
         readonly avatarUrl: string | null | undefined;
         readonly myApplicationSection: {
@@ -88,10 +89,10 @@ export type documentsViewerQuery$data = {
         readonly slug: string;
       }>;
       readonly myPairingsTitle: string;
+      readonly newcomerTitle: string;
       readonly pairingMenteeRoleLabel: string;
       readonly pairingMentorRoleLabel: string;
       readonly pendingHint: string;
-      readonly recruitTitle: string;
       readonly rejectedHint: string;
       readonly submitLabel: string;
       readonly submittingLabel: string;
@@ -547,7 +548,14 @@ v9 = [
             "alias": null,
             "args": null,
             "kind": "ScalarField",
-            "name": "recruitTitle",
+            "name": "directoryTitle",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "newcomerTitle",
             "storageKey": null
           },
           {
@@ -861,16 +869,16 @@ return {
     "selections": (v9/*:: as any*/)
   },
   "params": {
-    "cacheID": "6f22cf31481bbcd0352d2d2a2cd4de65",
+    "cacheID": "9619d14bb4d0548079db813150bb0ba8",
     "id": null,
     "metadata": {},
     "name": "documentsViewerQuery",
     "operationKind": "query",
-    "text": "query documentsViewerQuery {\n  viewer {\n    myLocalePref\n    commonUnknownErrorText\n    commonRenderErrorTemplate\n    commonRenderErrorHint\n    siteTitle\n    siteSubtitle\n    loginCardTitle\n    loginCardBody1\n    loginCardBody2\n    loginButtonLabel\n    loginPrivacyText\n    footerDisclaimerText\n    footerTermsLabel\n    footerPrivacyLabel\n    userBarSettingsLabel\n    userBarLogoutLabel\n    userBarLoggingOutLabel\n    pickerMyGuildsLabel\n    pickerMyGuildsEnLabel\n    pickerPublicGuildsLabel\n    pickerPublicGuildsEnLabel\n    pickerReadOnlyBadge\n    pickerEmptyTitle\n    pickerEmptyBody\n    pickerCreateGuildLabel\n    pickerCreateGuildMoreLabel\n    user {\n      name\n      discordId\n      avatar\n    }\n    guilds {\n      slug\n      name\n      slogan\n      gameVersion\n      memberCount\n      avatarUrl\n      viewerNick\n      homeTabTeamLabel\n      homeTabDexLabel\n      homeTabSectLabel\n      homeTabAnnouncementsLabel\n      homeTabScheduleLabel\n      homeInsightsRaceTitle\n      raceSeasonBoard {\n        __typename\n      }\n      pageBackLabel\n    }\n    publicGuilds {\n      slug\n      name\n      slogan\n      gameVersion\n      memberCount\n      avatarUrl\n      viewerNick\n      homeTabTeamLabel\n      homeTabDexLabel\n      homeTabSectLabel\n      homeTabAnnouncementsLabel\n      homeTabScheduleLabel\n      homeInsightsRaceTitle\n      raceSeasonBoard {\n        __typename\n      }\n      pageBackLabel\n    }\n    homeRecruit {\n      recruitTitle\n      homeBody\n      homeLoginHint\n      applySectionTitle\n      messageLabel\n      messagePlaceholder\n      submitLabel\n      submittingLabel\n      myApplicationTitle\n      pendingHint\n      approvedNextStepText\n      rejectedHint\n      checklistTitle\n      myPairingsTitle\n      pairingMentorRoleLabel\n      pairingMenteeRoleLabel\n      guilds {\n        slug\n        name\n        slogan\n        avatarUrl\n        myApplicationSection {\n          application {\n            id\n            applicantName\n            message\n            status\n            statusLabel\n            createdAtText\n            reviewedByName\n            reviewedAtText\n          }\n        }\n      }\n      myNewcomer {\n        slug\n        guildName\n        checklist {\n          progressText\n          items {\n            key\n            label\n            hint\n            done\n          }\n        }\n        myPairings {\n          id\n          mentorName\n          menteeName\n          status\n          statusLabel\n          createdAtText\n          endedAtText\n        }\n      }\n    }\n  }\n}\n"
+    "text": "query documentsViewerQuery {\n  viewer {\n    myLocalePref\n    commonUnknownErrorText\n    commonRenderErrorTemplate\n    commonRenderErrorHint\n    siteTitle\n    siteSubtitle\n    loginCardTitle\n    loginCardBody1\n    loginCardBody2\n    loginButtonLabel\n    loginPrivacyText\n    footerDisclaimerText\n    footerTermsLabel\n    footerPrivacyLabel\n    userBarSettingsLabel\n    userBarLogoutLabel\n    userBarLoggingOutLabel\n    pickerMyGuildsLabel\n    pickerMyGuildsEnLabel\n    pickerPublicGuildsLabel\n    pickerPublicGuildsEnLabel\n    pickerReadOnlyBadge\n    pickerEmptyTitle\n    pickerEmptyBody\n    pickerCreateGuildLabel\n    pickerCreateGuildMoreLabel\n    user {\n      name\n      discordId\n      avatar\n    }\n    guilds {\n      slug\n      name\n      slogan\n      gameVersion\n      memberCount\n      avatarUrl\n      viewerNick\n      homeTabTeamLabel\n      homeTabDexLabel\n      homeTabSectLabel\n      homeTabAnnouncementsLabel\n      homeTabScheduleLabel\n      homeInsightsRaceTitle\n      raceSeasonBoard {\n        __typename\n      }\n      pageBackLabel\n    }\n    publicGuilds {\n      slug\n      name\n      slogan\n      gameVersion\n      memberCount\n      avatarUrl\n      viewerNick\n      homeTabTeamLabel\n      homeTabDexLabel\n      homeTabSectLabel\n      homeTabAnnouncementsLabel\n      homeTabScheduleLabel\n      homeInsightsRaceTitle\n      raceSeasonBoard {\n        __typename\n      }\n      pageBackLabel\n    }\n    homeRecruit {\n      directoryTitle\n      newcomerTitle\n      homeBody\n      homeLoginHint\n      applySectionTitle\n      messageLabel\n      messagePlaceholder\n      submitLabel\n      submittingLabel\n      myApplicationTitle\n      pendingHint\n      approvedNextStepText\n      rejectedHint\n      checklistTitle\n      myPairingsTitle\n      pairingMentorRoleLabel\n      pairingMenteeRoleLabel\n      guilds {\n        slug\n        name\n        slogan\n        avatarUrl\n        myApplicationSection {\n          application {\n            id\n            applicantName\n            message\n            status\n            statusLabel\n            createdAtText\n            reviewedByName\n            reviewedAtText\n          }\n        }\n      }\n      myNewcomer {\n        slug\n        guildName\n        checklist {\n          progressText\n          items {\n            key\n            label\n            hint\n            done\n          }\n        }\n        myPairings {\n          id\n          mentorName\n          menteeName\n          status\n          statusLabel\n          createdAtText\n          endedAtText\n        }\n      }\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "fbf15f500856743b4c66ee0a22dc56d9";
+(node as any).hash = "d207d05e0e541fccb7f57377520e9c87";
 
 export default node;
