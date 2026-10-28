@@ -51,6 +51,7 @@ import {
   stripeConfig, fetchStripePrice, createCheckoutSession,
 } from '../platform/index.ts';
 import { computeGuildStats } from './stats.ts';
+import { announcementPageForAdmin } from './announcements-graphql.ts';
 import type { GuildStatsWeek, GuildStatsBoardEntry } from './stats.ts';
 
 export async function guildAdminResult(ctx: Context, slug: string) {
@@ -295,6 +296,7 @@ const ADMIN_TEXT_SPEC: [string, string, string][] = [
   ['adminTabDiscordLabel', 'guildAdmin', 'tabDiscord'],
   ['adminTabEventsLabel', 'guildAdmin', 'tabEvents'],
   ['adminTabGuidesLabel', 'guildAdmin', 'tabGuides'],
+  ['adminTabAnnouncementsLabel', 'guildAdmin', 'tabAnnouncements'],
   ['adminSaveLabel', 'guildAdmin', 'saveButton'],
   ['adminSavedText', 'guildAdmin', 'savedText'],
   ['adminDeleteLabel', 'guildAdmin', 'deleteButton'],
@@ -451,6 +453,11 @@ export class GuildAdminShell extends ShellBase {
     });
   }
   genSchoolGuides(){ return new GuildAdminSchoolGuidesShell(this.ctx, {}); }
+  /* Announcements (F9/F10/F18): the admin variant of the announcement
+   * page — compose form copy, remaining daily quota and per-post read
+   * receipts. Only on the GuildAdmin type: GuildAdminLocked never
+   * resolves it, the verdict is the type. */
+  genAnnouncements(){ return announcementPageForAdmin(this.ctx, this.genSlug()); }
   genStats(){
     return this.memo('stats', async () => {
       // Premium read gate: gated guilds get the locked variant —
@@ -530,6 +537,7 @@ function contentResolvers() {
     gameVersion: (p: any) => p.genGameVersion(),
     events: (p: any) => p.genEvents(),
     schoolGuides: (p: any) => p.genSchoolGuides(),
+    announcements: (p: any) => p.genAnnouncements(),
     stats: (p: GuildAdminShell) => p.genStats(),
     premium: (p: GuildAdminShell) => p.genPremium(),
     whiteLabelHideBranding: (p: any) => p.genWhiteLabelHideBranding(),

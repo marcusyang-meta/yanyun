@@ -522,6 +522,9 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "fr": "Guides d’écoles",
       "zh-TW": "流派攻略"
     },
+    "tabAnnouncements": {
+      "zh-CN": "公告"
+    },
     "readOnlyBanner": {
       "zh-CN": "该百业尚未绑定 Discord 服务器 · 只读浏览",
       "en": "This guild is not bound to a Discord server yet · Read-only browsing",
@@ -4519,6 +4522,24 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
     },
     "feedbackRateLimited": {
       "zh-CN": "今天提交的反馈已达上限，请明天再来"
+    },
+    "announcementTitleRequired": {
+      "zh-CN": "请填写公告标题"
+    },
+    "announcementTitleTooLong": {
+      "zh-CN": "公告标题太长，请精简到 80 字以内"
+    },
+    "announcementBodyTooLong": {
+      "zh-CN": "公告正文太长，请精简到 2000 字以内"
+    },
+    "announcementNotFound": {
+      "zh-CN": "公告不存在"
+    },
+    "announcementDailyLimit": {
+      "zh-CN": "今天的公告已达上限（每天 {limit} 条），明天再发"
+    },
+    "urgentCallDailyLimit": {
+      "zh-CN": "今天的紧急集合呼叫已达上限（每天 {limit} 次），明天再试"
     }
   },
   "guildAdmin": {
@@ -5236,6 +5257,9 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
     },
     "billingCanceled": {
       "zh-CN": "已取消开通，未产生扣费。"
+    },
+    "tabAnnouncements": {
+      "zh-CN": "公告广播"
     }
   },
   "groupingTemplate": {
@@ -5681,6 +5705,95 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
     },
     "success": {
       "zh-CN": "已收到，感谢你的反馈。"
+    }
+  },
+  "announcements": {
+    "title": {
+      "zh-CN": "百业公告"
+    },
+    "emptyText": {
+      "zh-CN": "暂无公告"
+    },
+    "urgentLabel": {
+      "zh-CN": "紧急集合"
+    },
+    "standardLabel": {
+      "zh-CN": "公告"
+    },
+    "unreadLabel": {
+      "zh-CN": "未读"
+    },
+    "readLabel": {
+      "zh-CN": "已读"
+    },
+    "composeTitle": {
+      "zh-CN": "发布公告"
+    },
+    "kindLabel": {
+      "zh-CN": "类型"
+    },
+    "kindStandardLabel": {
+      "zh-CN": "普通公告"
+    },
+    "kindUrgentLabel": {
+      "zh-CN": "紧急集合呼叫"
+    },
+    "titleLabel": {
+      "zh-CN": "标题"
+    },
+    "titlePlaceholder": {
+      "zh-CN": "公告标题"
+    },
+    "bodyLabel": {
+      "zh-CN": "正文"
+    },
+    "bodyPlaceholder": {
+      "zh-CN": "公告正文"
+    },
+    "postLabel": {
+      "zh-CN": "发布并推送"
+    },
+    "postingLabel": {
+      "zh-CN": "发布中…"
+    },
+    "postedText": {
+      "zh-CN": "公告已发布"
+    },
+    "deleteLabel": {
+      "zh-CN": "删除"
+    },
+    "deleteConfirmTitle": {
+      "zh-CN": "删除这条公告？"
+    },
+    "deleteConfirmMessage": {
+      "zh-CN": "确定要删除公告「{title}」吗？已读记录会一并删除。"
+    },
+    "deletedText": {
+      "zh-CN": "公告已删除"
+    },
+    "receiptsTitle": {
+      "zh-CN": "阅读情况"
+    },
+    "readCountTemplate": {
+      "zh-CN": "已读 {read} / {total}"
+    },
+    "readListLabel": {
+      "zh-CN": "已读成员"
+    },
+    "unreadListLabel": {
+      "zh-CN": "未读成员"
+    },
+    "authorTemplate": {
+      "zh-CN": "{name} 发布"
+    },
+    "pushNote": {
+      "zh-CN": "发布后会向全体成员推送通知；没有开启推送的成员也能在这里看到。"
+    },
+    "urgentNote": {
+      "zh-CN": "紧急集合呼叫请只用于临时集合等紧急情况，每天最多 2 次。"
+    },
+    "dailyLimitTemplate": {
+      "zh-CN": "今日还可发布 {remaining} 条"
     }
   }
 };

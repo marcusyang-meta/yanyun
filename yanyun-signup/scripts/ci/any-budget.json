@@ -68,8 +68,8 @@
     "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary"
   },
   "src/domains/guilds/graphql.ts": {
-    "max": 51,
-    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context) + white-label chrome composition resolvers (pageBackLabel / pageFooterDisclaimerText) in the same pattern"
+    "max": 52,
+    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context) + white-label chrome composition resolvers (pageBackLabel / pageFooterDisclaimerText) in the same pattern + the announcements content resolver (same (p: any) delegation shape)"
   },
   "src/domains/guilds/guild-routes.ts": {
     "max": 34,
@@ -136,8 +136,8 @@
     "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary"
   },
   "src/domains/platform/push.ts": {
-    "max": 18,
-    "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary"
+    "max": 19,
+    "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary + sendAnnouncementPush's expoBase handle in the same shape as sendDeparturePush"
   },
   "src/domains/guilds/admin-graphql.ts": {
     "max": 139,

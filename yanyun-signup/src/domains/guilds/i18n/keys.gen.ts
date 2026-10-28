@@ -11,6 +11,7 @@ export type GuildsStringKey =
   | 'guildHome.tabTeam'
   | 'guildHome.tabDex'
   | 'guildHome.tabSect'
+  | 'guildHome.tabAnnouncements'
   | 'guildHome.readOnlyBanner'
   | 'guildHome.adminLink'
   | 'guildAdmin.title'
@@ -125,7 +126,37 @@ export type GuildsStringKey =
   | 'guildAdmin.premiumPriceMonth'
   | 'guildAdmin.premiumPriceYear'
   | 'guildAdmin.billingSuccess'
-  | 'guildAdmin.billingCanceled';
+  | 'guildAdmin.billingCanceled'
+  | 'guildAdmin.tabAnnouncements'
+  | 'announcements.title'
+  | 'announcements.emptyText'
+  | 'announcements.urgentLabel'
+  | 'announcements.standardLabel'
+  | 'announcements.unreadLabel'
+  | 'announcements.readLabel'
+  | 'announcements.composeTitle'
+  | 'announcements.kindLabel'
+  | 'announcements.kindStandardLabel'
+  | 'announcements.kindUrgentLabel'
+  | 'announcements.titleLabel'
+  | 'announcements.titlePlaceholder'
+  | 'announcements.bodyLabel'
+  | 'announcements.bodyPlaceholder'
+  | 'announcements.postLabel'
+  | 'announcements.postingLabel'
+  | 'announcements.postedText'
+  | 'announcements.deleteLabel'
+  | 'announcements.deleteConfirmTitle'
+  | 'announcements.deleteConfirmMessage'
+  | 'announcements.deletedText'
+  | 'announcements.receiptsTitle'
+  | 'announcements.readCountTemplate'
+  | 'announcements.readListLabel'
+  | 'announcements.unreadListLabel'
+  | 'announcements.authorTemplate'
+  | 'announcements.pushNote'
+  | 'announcements.urgentNote'
+  | 'announcements.dailyLimitTemplate';
 
 export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'locked.backLink',
@@ -138,6 +169,7 @@ export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'guildHome.tabTeam',
   'guildHome.tabDex',
   'guildHome.tabSect',
+  'guildHome.tabAnnouncements',
   'guildHome.readOnlyBanner',
   'guildHome.adminLink',
   'guildAdmin.title',
@@ -253,4 +285,34 @@ export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'guildAdmin.premiumPriceYear',
   'guildAdmin.billingSuccess',
   'guildAdmin.billingCanceled',
+  'guildAdmin.tabAnnouncements',
+  'announcements.title',
+  'announcements.emptyText',
+  'announcements.urgentLabel',
+  'announcements.standardLabel',
+  'announcements.unreadLabel',
+  'announcements.readLabel',
+  'announcements.composeTitle',
+  'announcements.kindLabel',
+  'announcements.kindStandardLabel',
+  'announcements.kindUrgentLabel',
+  'announcements.titleLabel',
+  'announcements.titlePlaceholder',
+  'announcements.bodyLabel',
+  'announcements.bodyPlaceholder',
+  'announcements.postLabel',
+  'announcements.postingLabel',
+  'announcements.postedText',
+  'announcements.deleteLabel',
+  'announcements.deleteConfirmTitle',
+  'announcements.deleteConfirmMessage',
+  'announcements.deletedText',
+  'announcements.receiptsTitle',
+  'announcements.readCountTemplate',
+  'announcements.readListLabel',
+  'announcements.unreadListLabel',
+  'announcements.authorTemplate',
+  'announcements.pushNote',
+  'announcements.urgentNote',
+  'announcements.dailyLimitTemplate',
 ];

@@ -1585,6 +1585,102 @@ type TiaolvResult {
   rows: [TiaolvRow!]!
 }
 
+# ============ 百业公告 (沟通线 F9 / F10 / F18) ============
+# 一条管道三种能力: 管理员发布公告 (F9) 或紧急集合呼叫 (F18, 同一
+# 实体同一 mutation, 仅 kind 不同 — 紧急带服务端组合的紧急标记且
+# 走自己更严的每日频控), 全体成员经同一 Expo 推送管线收到推送,
+# 站内列表是全覆盖面 (无推送令牌者不漏); 成员打开公告即记已读
+# (F10), 作者/管理员在管理变体上看每条的已读/未读回执。
+# 频控走 usage counter 计量: 每百业每日普通公告 5 条 / 紧急呼叫
+# 2 次 (limits 服务的 FREE_LIMITS, 理由见 limits.ts)。
+
+enum AnnouncementKind {
+  STANDARD  # 普通公告 (F9)
+  URGENT    # 紧急集合呼叫 (F18)
+}
+
+type GuildAnnouncement {
+  id: ID!
+  kind: AnnouncementKind!
+  urgent: Boolean!          # 紧急形态标记 (呈现区分; 与 kind 同源, 后端下发)
+  urgentLabel: String       # 紧急标记文案 (仅紧急公告下发, 其余为 null)
+  kindLabel: String!        # 类型文案 (公告 / 紧急集合, 后端按 locale 组合)
+  title: String!
+  body: String!
+  authorName: String!       # 发布者快照名 (发布时落库, 改名不影响历史)
+  authorText: String        # 「X 发布」组合文案 (无快照名为 null)
+  createdAtText: String!
+  viewerHasRead: Boolean    # 当前查看者本人已读态 (未登录为 null)
+  # 已读回执 (F10): 只在管理变体 (GuildAdmin.announcements) 的公告上
+  # 组合; 成员变体恒为 null — 回执名单不向普通成员下发。
+  readCount: Int
+  memberCount: Int
+  readCountText: String     # 「已读 x / y」组合文案 (管理变体)
+  receipts: [GuildAnnouncementReceipt!]
+  # 删除文案 (管理变体使用; 确认文案已在服务端按标题组合)
+  deleteLabel: String!
+  deleteConfirmTitle: String!
+  deleteConfirmMessage: String!
+}
+
+type GuildAnnouncementReceipt {
+  discordId: ID!
+  displayName: String!      # 名册口径: 昵称回退全局名
+  read: Boolean!
+  readAtText: String        # 已读时刻 (未读为 null)
+}
+
+type GuildAnnouncementPage {
+  # 文案 (announcements 目录, 后端按请求 locale 生成; 前端零字符串)
+  title: String!
+  emptyText: String!
+  urgentLabel: String!
+  composeTitle: String!
+  kindLabel: String!
+  kindStandardLabel: String!
+  kindUrgentLabel: String!
+  titleLabel: String!
+  titlePlaceholder: String!
+  bodyLabel: String!
+  bodyPlaceholder: String!
+  postLabel: String!
+  postingLabel: String!
+  postedText: String!
+  deleteLabel: String!
+  receiptsTitle: String!
+  readListLabel: String!
+  unreadListLabel: String!
+  pushNote: String!
+  urgentNote: String!
+  dailyLimitText: String    # 「今日还可发布 x 条」 (仅管理变体组合)
+  # 发布能力只存在于管理变体: 成员变体 canPost 恒 false、余量恒 null,
+  # 发布表单只在 canPost 时挂载; mutation 端独立复验管理判定。
+  canPost: Boolean!
+  standardRemaining: Int
+  urgentRemaining: Int
+  announcements: [GuildAnnouncement!]!
+}
+
+type GuildAnnouncementPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  announcement: GuildAnnouncement
+}
+
+extend type Mutation {
+  # 发布公告/紧急呼叫: 管理判定 (所绑服务器管理员, 含 omni) 复验;
+  # 错误码 announcementTitleRequired / announcementTitleTooLong /
+  # announcementBodyTooLong / announcementDailyLimit /
+  # urgentCallDailyLimit / adminOnly / guildNotFound (文案走 errors 目录)
+  postGuildAnnouncement(slug: String!, kind: AnnouncementKind!, title: String!, body: String!): GuildAnnouncementPayload!
+  # 标已读: 登录成员本人, 公告按本百业解析 (跨百业 id 视为不存在);
+  # 错误码 loginRequired / memberOnly / announcementNotFound / guildNotFound
+  markGuildAnnouncementRead(slug: String!, announcementId: ID!): GuildAnnouncementPayload!
+  # 删除公告 (连带其已读回执): 管理判定复验, 按本百业解析
+  deleteGuildAnnouncement(slug: String!, announcementId: ID!): GuildAnnouncementPayload!
+}
+
 # ============ 登录 / Viewer 层级 (root = user) ============
 # 结构: Query.viewer -> guilds / guild(slug) -> groupings 等页面数据
 # 权限不用状态标志表达 (flag 可 forge), 用「响应的类型」表达:
@@ -1630,11 +1726,15 @@ type Guild {
   # 成员名册: 仅完整 Guild 面声明 — GuildReadOnly / GuildLocked 无此
   # 字段, 权限由响应类型本身表达 (不下发任何权限标志位)。
   memberRoster: [GuildRosterMember!]!
+  # 百业公告 (沟通线 F9/F10/F18): 成员变体 — 公告列表 + 本人已读态;
+  # 发布与已读回执名单只在管理变体 (GuildAdmin.announcements)。
+  announcements: GuildAnnouncementPage!
   # 百业主页外壳文案 (shell gen 方法按请求 locale 生成)
   homeBackToHubLabel: String!
   homeTabTeamLabel: String!
   homeTabDexLabel: String!
   homeTabSectLabel: String!
+  homeTabAnnouncementsLabel: String!
   # 管理入口文案: 仅通过管理判定 (getGuildAdminAccess, 与管理面同一
   # 口径, 含 omni) 的查看者才下发; 其余成员为 null, 主页不渲染入口 —
   # 进不去的入口不广告。可空即为此意, 勿改回 String!。
@@ -1659,11 +1759,13 @@ type GuildReadOnly {
   avatarUrl: String
   groupings(tab: GroupingTab!): GroupingListPage!
   viewerNick: String
+  announcements: GuildAnnouncementPage!
   # 百业主页外壳文案 (shell gen 方法按请求 locale 生成)
   homeBackToHubLabel: String!
   homeTabTeamLabel: String!
   homeTabDexLabel: String!
   homeTabSectLabel: String!
+  homeTabAnnouncementsLabel: String!
   homeReadOnlyBanner: String!
   detailNotFoundText: String!
   detailBackToListLabel: String!
@@ -1836,6 +1938,9 @@ type GuildAdmin {
   gameVersion: String!
   events: [GuildAdminEvent!]!
   schoolGuides: GuildAdminSchoolGuides!
+  # 公告广播 (F9/F10/F18) 管理变体: 发布表单 + 每日余量 + 已读回执;
+  # 只挂 GuildAdmin — Locked 零公告字段。
+  announcements: GuildAnnouncementPage!
   # 出勤统计 (Premium, 读侧门控): 总闸开且本百业未开通时组合为
   # GuildAdminStatsLocked (只有未开通文案, 零统计数据); 总闸关或
   # 已开通时与从前一致。结论只由响应类型表达, 无标志位下发。
@@ -1852,6 +1957,7 @@ type GuildAdmin {
   adminTabDiscordLabel: String!
   adminTabEventsLabel: String!
   adminTabGuidesLabel: String!
+  adminTabAnnouncementsLabel: String!
   adminSaveLabel: String!
   adminSavedText: String!
   adminDeleteLabel: String!

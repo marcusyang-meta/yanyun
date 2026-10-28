@@ -29,6 +29,7 @@ export const guildHome_backPlain = (fbs: FbsAPI) =>fbs("← 返回", "guildHome.
 export const guildHome_tabTeam = (fbs: FbsAPI) =>fbs("组队", "guildHome.tabTeam");
 export const guildHome_tabDex = (fbs: FbsAPI) =>fbs("攻略", "guildHome.tabDex");
 export const guildHome_tabSect = (fbs: FbsAPI) =>fbs("流派攻略", "guildHome.tabSect");
+export const guildHome_tabAnnouncements = (fbs: FbsAPI) =>fbs("公告", "guildHome.tabAnnouncements");
 export const guildHome_readOnlyBanner = (fbs: FbsAPI) =>fbs("该百业尚未绑定 Discord 服务器 · 只读浏览", "guildHome.readOnlyBanner");
 export const guildHome_adminLink = (fbs: FbsAPI) =>fbs("管理", "guildHome.adminLink");
 export const guildAdmin_title = (fbs: FbsAPI) =>fbs("管理百业", "guildAdmin.title");
@@ -149,3 +150,37 @@ export const guildAdmin_premiumPriceYear = (fbs: FbsAPI, p?: StringParams) =>
   fbs([fbs.param("amount", pv(p, "amount")), " / 年"], "guildAdmin.premiumPriceYear");
 export const guildAdmin_billingSuccess = (fbs: FbsAPI) =>fbs("开通成功，Premium 已生效。", "guildAdmin.billingSuccess");
 export const guildAdmin_billingCanceled = (fbs: FbsAPI) =>fbs("已取消开通，未产生扣费。", "guildAdmin.billingCanceled");
+export const guildAdmin_tabAnnouncements = (fbs: FbsAPI) =>fbs("公告广播", "guildAdmin.tabAnnouncements");
+export const announcements_title = (fbs: FbsAPI) =>fbs("百业公告", "announcements.title");
+export const announcements_emptyText = (fbs: FbsAPI) =>fbs("暂无公告", "announcements.emptyText");
+export const announcements_urgentLabel = (fbs: FbsAPI) =>fbs("紧急集合", "announcements.urgentLabel");
+export const announcements_standardLabel = (fbs: FbsAPI) =>fbs("公告", "announcements.standardLabel");
+export const announcements_unreadLabel = (fbs: FbsAPI) =>fbs("未读", "announcements.unreadLabel");
+export const announcements_readLabel = (fbs: FbsAPI) =>fbs("已读", "announcements.readLabel");
+export const announcements_composeTitle = (fbs: FbsAPI) =>fbs("发布公告", "announcements.composeTitle");
+export const announcements_kindLabel = (fbs: FbsAPI) =>fbs("类型", "announcements.kindLabel");
+export const announcements_kindStandardLabel = (fbs: FbsAPI) =>fbs("普通公告", "announcements.kindStandardLabel");
+export const announcements_kindUrgentLabel = (fbs: FbsAPI) =>fbs("紧急集合呼叫", "announcements.kindUrgentLabel");
+export const announcements_titleLabel = (fbs: FbsAPI) =>fbs("标题", "announcements.titleLabel");
+export const announcements_titlePlaceholder = (fbs: FbsAPI) =>fbs("公告标题", "announcements.titlePlaceholder");
+export const announcements_bodyLabel = (fbs: FbsAPI) =>fbs("正文", "announcements.bodyLabel");
+export const announcements_bodyPlaceholder = (fbs: FbsAPI) =>fbs("公告正文", "announcements.bodyPlaceholder");
+export const announcements_postLabel = (fbs: FbsAPI) =>fbs("发布并推送", "announcements.postLabel");
+export const announcements_postingLabel = (fbs: FbsAPI) =>fbs("发布中…", "announcements.postingLabel");
+export const announcements_postedText = (fbs: FbsAPI) =>fbs("公告已发布", "announcements.postedText");
+export const announcements_deleteLabel = (fbs: FbsAPI) =>fbs("删除", "announcements.deleteLabel");
+export const announcements_deleteConfirmTitle = (fbs: FbsAPI) =>fbs("删除这条公告？", "announcements.deleteConfirmTitle");
+export const announcements_deleteConfirmMessage = (fbs: FbsAPI, p?: StringParams) =>
+  fbs(["确定要删除公告「", fbs.param("title", pv(p, "title")), "」吗？已读记录会一并删除。"], "announcements.deleteConfirmMessage");
+export const announcements_deletedText = (fbs: FbsAPI) =>fbs("公告已删除", "announcements.deletedText");
+export const announcements_receiptsTitle = (fbs: FbsAPI) =>fbs("阅读情况", "announcements.receiptsTitle");
+export const announcements_readCountTemplate = (fbs: FbsAPI, p?: StringParams) =>
+  fbs(["已读 ", fbs.param("read", pv(p, "read")), " / ", fbs.param("total", pv(p, "total"))], "announcements.readCountTemplate");
+export const announcements_readListLabel = (fbs: FbsAPI) =>fbs("已读成员", "announcements.readListLabel");
+export const announcements_unreadListLabel = (fbs: FbsAPI) =>fbs("未读成员", "announcements.unreadListLabel");
+export const announcements_authorTemplate = (fbs: FbsAPI, p?: StringParams) =>
+  fbs([fbs.param("name", pv(p, "name")), " 发布"], "announcements.authorTemplate");
+export const announcements_pushNote = (fbs: FbsAPI) =>fbs("发布后会向全体成员推送通知；没有开启推送的成员也能在这里看到。", "announcements.pushNote");
+export const announcements_urgentNote = (fbs: FbsAPI) =>fbs("紧急集合呼叫请只用于临时集合等紧急情况，每天最多 2 次。", "announcements.urgentNote");
+export const announcements_dailyLimitTemplate = (fbs: FbsAPI, p?: StringParams) =>
+  fbs(["今日还可发布 ", fbs.param("remaining", pv(p, "remaining")), " 条"], "announcements.dailyLimitTemplate");

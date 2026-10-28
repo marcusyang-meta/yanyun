@@ -20,7 +20,9 @@ import { isPremiumActive } from './billing-service.ts';
 export type LimitKey =
   | 'gearItemCapacity'    // stored gear items per user (gear library)
   | 'ocrBatchImages'      // screenshots in one batch-OCR import
-  | 'ocrBatchesPerDay';   // batch-OCR imports per user per day
+  | 'ocrBatchesPerDay'    // batch-OCR imports per user per day
+  | 'announcementsPerDay' // guild announcements per guild per day (F9)
+  | 'urgentCallsPerDay';  // urgent rally calls per guild per day (F18)
 
 export interface LimitContext {
   discordId: string;
@@ -31,6 +33,19 @@ export const FREE_LIMITS: Record<LimitKey, number> = {
   gearItemCapacity: 200,
   ocrBatchImages: 20,
   ocrBatchesPerDay: 10,
+  /* Announcement metering is per GUILD, not per user (the abuse unit
+   * is a guild's broadcast channel, whoever on its admin team posts).
+   * 5/day sits far above a real guild's announcement cadence (a
+   * busy guild posts a few per week) while capping a compromised or
+   * careless admin account at five whole-guild pushes a day. Urgent
+   * rally calls get their own stricter counter at 2/day: an emergency
+   * channel that fires daily is no longer an emergency channel, and
+   * urgent pushes must stay rare enough that members keep their
+   * notifications on. These are abuse ceilings, not plan tiers: the
+   * premium table deliberately carries the same values, so a paygate
+   * launch never moves a communication quota. */
+  announcementsPerDay: 5,
+  urgentCallsPerDay: 2,
 };
 
 /** Premium-tier values, one order above the audited free tier on
@@ -39,6 +54,10 @@ export const PREMIUM_LIMITS: Record<LimitKey, number> = {
   gearItemCapacity: 2000,
   ocrBatchImages: 100,
   ocrBatchesPerDay: 50,
+  // Communication quotas are abuse ceilings, identical on every tier
+  // (see the free table's note); premium never buys more broadcasts.
+  announcementsPerDay: 5,
+  urgentCallsPerDay: 2,
 };
 
 /** The base (free-tier) value of one limit key. */
@@ -88,4 +107,44 @@ export async function recordOcrBatch(
   nowMs: number,
 ): Promise<number> {
   return incrementUsage(db, discordId, METRIC_GEAR_OCR_BATCHES, usageDayKey(nowMs), 1, nowMs);
+}
+
+/* ---------- guild announcement metering (per guild per day) ------- */
+
+/** Metric keys for guild broadcasts in usage_counters. Standard and
+ *  urgent posts are metered separately so urgent calls keep their own
+ *  stricter budget even on a day the standard budget is untouched. */
+export const METRIC_GUILD_ANNOUNCEMENTS = 'guild_announcements';
+export const METRIC_GUILD_URGENT_CALLS = 'guild_urgent_calls';
+
+/** Counter scope for guild-scoped metering: the usage_counters entity
+ *  keys rows by an opaque scope string (its discord_id column); a
+ *  guild's broadcasts meter under 'guild:<slug>', a namespace no real
+ *  Discord id (all digits) can collide with. */
+export function guildUsageScope(guildSlug: string): string {
+  return 'guild:' + guildSlug;
+}
+
+function announcementMetric(kind: string): string {
+  return kind === 'urgent' ? METRIC_GUILD_URGENT_CALLS : METRIC_GUILD_ANNOUNCEMENTS;
+}
+
+/** Broadcasts of one kind one guild has already consumed today. */
+export async function getAnnouncementsUsedToday(
+  db: D1Database,
+  guildSlug: string,
+  kind: string,
+  nowMs: number,
+): Promise<number> {
+  return getUsageCount(db, guildUsageScope(guildSlug), announcementMetric(kind), usageDayKey(nowMs));
+}
+
+/** Record one consumed broadcast of one kind for one guild (today). */
+export async function recordAnnouncementUse(
+  db: D1Database,
+  guildSlug: string,
+  kind: string,
+  nowMs: number,
+): Promise<number> {
+  return incrementUsage(db, guildUsageScope(guildSlug), announcementMetric(kind), usageDayKey(nowMs), 1, nowMs);
 }

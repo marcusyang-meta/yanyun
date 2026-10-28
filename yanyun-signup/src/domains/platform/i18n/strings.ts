@@ -88,6 +88,7 @@ export const guildHome_backPlain = (fbs: FbsRuntime) => fbs._("← 返回", null
 export const guildHome_tabTeam = (fbs: FbsRuntime) => fbs._("组队", null, { hk: "2HMgLA" });
 export const guildHome_tabDex = (fbs: FbsRuntime) => fbs._("攻略", null, { hk: "3xrJT5" });
 export const guildHome_tabSect = (fbs: FbsRuntime) => fbs._("流派攻略", null, { hk: "39iHUL" });
+export const guildHome_tabAnnouncements = (fbs: FbsRuntime) => fbs._("公告", null, { hk: "4fVuCK" });
 export const guildHome_readOnlyBanner = (fbs: FbsRuntime) => fbs._("该百业尚未绑定 Discord 服务器 · 只读浏览", null, { hk: "3AuuxG" });
 export const guildHome_adminLink = (fbs: FbsRuntime) => fbs._("管理", null, { hk: "24ndE2" });
 export const groupingType_tabActivity = (fbs: FbsRuntime) => fbs._("双十人本", null, { hk: "4ED85v" });
@@ -722,6 +723,12 @@ export const errors_checkoutFailed = (fbs: FbsRuntime) => fbs._("创建支付会
 export const errors_feedbackEmpty = (fbs: FbsRuntime) => fbs._("反馈内容不能为空", null, { hk: "3XLeNf" });
 export const errors_feedbackTooLong = (fbs: FbsRuntime) => fbs._("反馈内容太长，请精简到 2000 字以内", null, { hk: "1FK6tt" });
 export const errors_feedbackRateLimited = (fbs: FbsRuntime) => fbs._("今天提交的反馈已达上限，请明天再来", null, { hk: "lO8z3" });
+export const errors_announcementTitleRequired = (fbs: FbsRuntime) => fbs._("请填写公告标题", null, { hk: "1eQwhZ" });
+export const errors_announcementTitleTooLong = (fbs: FbsRuntime) => fbs._("公告标题太长，请精简到 80 字以内", null, { hk: "1J86Bw" });
+export const errors_announcementBodyTooLong = (fbs: FbsRuntime) => fbs._("公告正文太长，请精简到 2000 字以内", null, { hk: "1r4u3" });
+export const errors_announcementNotFound = (fbs: FbsRuntime) => fbs._("公告不存在", null, { hk: "cBxPq" });
+export const errors_announcementDailyLimit = (fbs: FbsRuntime, p?: StringParams) => fbs._("今天的公告已达上限（每天 {limit} 条），明天再发", [fbs._param("limit", pv(p, "limit"))], { hk: "25h4tt" });
+export const errors_urgentCallDailyLimit = (fbs: FbsRuntime, p?: StringParams) => fbs._("今天的紧急集合呼叫已达上限（每天 {limit} 次），明天再试", [fbs._param("limit", pv(p, "limit"))], { hk: "GcIVw" });
 export const guildAdmin_title = (fbs: FbsRuntime) => fbs._("管理百业", null, { hk: "23Vynb" });
 export const guildAdmin_lockedTitle = (fbs: FbsRuntime) => fbs._("无权管理这个百业", null, { hk: "4eqp6f" });
 export const guildAdmin_lockedBody = (fbs: FbsRuntime) => fbs._("只有该百业所绑 Discord 服务器的管理员（服务器主或拥有管理权限）可以进入管理页。", null, { hk: "248TMj" });
@@ -835,6 +842,7 @@ export const guildAdmin_premiumPriceMonth = (fbs: FbsRuntime, p?: StringParams) 
 export const guildAdmin_premiumPriceYear = (fbs: FbsRuntime, p?: StringParams) => fbs._("{amount} / 年", [fbs._param("amount", pv(p, "amount"))], { hk: "4c5dav" });
 export const guildAdmin_billingSuccess = (fbs: FbsRuntime) => fbs._("开通成功，Premium 已生效。", null, { hk: "3TPHpK" });
 export const guildAdmin_billingCanceled = (fbs: FbsRuntime) => fbs._("已取消开通，未产生扣费。", null, { hk: "3G32RI" });
+export const guildAdmin_tabAnnouncements = (fbs: FbsRuntime) => fbs._("公告广播", null, { hk: "X5n" });
 export const groupingTemplate_sectionTitle = (fbs: FbsRuntime) => fbs._("车队模板", null, { hk: "GOM6P" });
 export const groupingTemplate_nameLabel = (fbs: FbsRuntime) => fbs._("模板名", null, { hk: "1k3Wki" });
 export const groupingTemplate_namePlaceholder = (fbs: FbsRuntime) => fbs._("给模板起个名字", null, { hk: "3MWfOY" });
@@ -912,6 +920,35 @@ export const feedback_placeholder = (fbs: FbsRuntime) => fbs._("请描述遇到�
 export const feedback_submit = (fbs: FbsRuntime) => fbs._("提交反馈", null, { hk: "2kl5j4" });
 export const feedback_submitting = (fbs: FbsRuntime) => fbs._("提交中…", null, { hk: "jtGVT" });
 export const feedback_success = (fbs: FbsRuntime) => fbs._("已收到，感谢你的反馈。", null, { hk: "24y5ze" });
+export const announcements_title = (fbs: FbsRuntime) => fbs._("百业公告", null, { hk: "2rdImP" });
+export const announcements_emptyText = (fbs: FbsRuntime) => fbs._("暂无公告", null, { hk: "2GZaOo" });
+export const announcements_urgentLabel = (fbs: FbsRuntime) => fbs._("紧急集合", null, { hk: "3EPS25" });
+export const announcements_standardLabel = (fbs: FbsRuntime) => fbs._("公告", null, { hk: "2B48Ti" });
+export const announcements_unreadLabel = (fbs: FbsRuntime) => fbs._("未读", null, { hk: "1yRIqp" });
+export const announcements_readLabel = (fbs: FbsRuntime) => fbs._("已读", null, { hk: "1n14MX" });
+export const announcements_composeTitle = (fbs: FbsRuntime) => fbs._("发布公告", null, { hk: "3LOq2v" });
+export const announcements_kindLabel = (fbs: FbsRuntime) => fbs._("类型", null, { hk: "4y9izH" });
+export const announcements_kindStandardLabel = (fbs: FbsRuntime) => fbs._("普通公告", null, { hk: "1iLQfw" });
+export const announcements_kindUrgentLabel = (fbs: FbsRuntime) => fbs._("紧急集合呼叫", null, { hk: "4veYft" });
+export const announcements_titleLabel = (fbs: FbsRuntime) => fbs._("标题", null, { hk: "4bgrzB" });
+export const announcements_titlePlaceholder = (fbs: FbsRuntime) => fbs._("公告标题", null, { hk: "1Cyezk" });
+export const announcements_bodyLabel = (fbs: FbsRuntime) => fbs._("正文", null, { hk: "3ST7yl" });
+export const announcements_bodyPlaceholder = (fbs: FbsRuntime) => fbs._("公告正文", null, { hk: "1vqVYz" });
+export const announcements_postLabel = (fbs: FbsRuntime) => fbs._("发布并推送", null, { hk: "2PBBqS" });
+export const announcements_postingLabel = (fbs: FbsRuntime) => fbs._("发布中…", null, { hk: "13ercY" });
+export const announcements_postedText = (fbs: FbsRuntime) => fbs._("公告已发布", null, { hk: "WkEht" });
+export const announcements_deleteLabel = (fbs: FbsRuntime) => fbs._("删除", null, { hk: "1kllN6" });
+export const announcements_deleteConfirmTitle = (fbs: FbsRuntime) => fbs._("删除这条公告？", null, { hk: "1NEaUQ" });
+export const announcements_deleteConfirmMessage = (fbs: FbsRuntime, p?: StringParams) => fbs._("确定要删除公告「{title}」吗？已读记录会一并删除。", [fbs._param("title", pv(p, "title"))], { hk: "1ByVUx" });
+export const announcements_deletedText = (fbs: FbsRuntime) => fbs._("公告已删除", null, { hk: "3DdIuK" });
+export const announcements_receiptsTitle = (fbs: FbsRuntime) => fbs._("阅读情况", null, { hk: "32uux3" });
+export const announcements_readCountTemplate = (fbs: FbsRuntime, p?: StringParams) => fbs._("已读 {read} / {total}", [fbs._param("read", pv(p, "read")), fbs._param("total", pv(p, "total"))], { hk: "1o2RBB" });
+export const announcements_readListLabel = (fbs: FbsRuntime) => fbs._("已读成员", null, { hk: "3CcsYP" });
+export const announcements_unreadListLabel = (fbs: FbsRuntime) => fbs._("未读成员", null, { hk: "4faIgU" });
+export const announcements_authorTemplate = (fbs: FbsRuntime, p?: StringParams) => fbs._("{name} 发布", [fbs._param("name", pv(p, "name"))], { hk: "2TBi3C" });
+export const announcements_pushNote = (fbs: FbsRuntime) => fbs._("发布后会向全体成员推送通知；没有开启推送的成员也能在这里看到。", null, { hk: "3szI54" });
+export const announcements_urgentNote = (fbs: FbsRuntime) => fbs._("紧急集合呼叫请只用于临时集合等紧急情况，每天最多 2 次。", null, { hk: "1NQJD0" });
+export const announcements_dailyLimitTemplate = (fbs: FbsRuntime, p?: StringParams) => fbs._("今日还可发布 {remaining} 条", [fbs._param("remaining", pv(p, "remaining"))], { hk: "1X0GIk" });
 export const STRING_FNS: Record<string, StringFn> = {
 	"common.cancel": common_cancel,
 	"common.confirm": common_confirm,
@@ -985,6 +1022,7 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"guildHome.tabTeam": guildHome_tabTeam,
 	"guildHome.tabDex": guildHome_tabDex,
 	"guildHome.tabSect": guildHome_tabSect,
+	"guildHome.tabAnnouncements": guildHome_tabAnnouncements,
 	"guildHome.readOnlyBanner": guildHome_readOnlyBanner,
 	"guildHome.adminLink": guildHome_adminLink,
 	"groupingType.tabActivity": groupingType_tabActivity,
@@ -1578,6 +1616,12 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"errors.feedbackEmpty": errors_feedbackEmpty,
 	"errors.feedbackTooLong": errors_feedbackTooLong,
 	"errors.feedbackRateLimited": errors_feedbackRateLimited,
+	"errors.announcementTitleRequired": errors_announcementTitleRequired,
+	"errors.announcementTitleTooLong": errors_announcementTitleTooLong,
+	"errors.announcementBodyTooLong": errors_announcementBodyTooLong,
+	"errors.announcementNotFound": errors_announcementNotFound,
+	"errors.announcementDailyLimit": errors_announcementDailyLimit,
+	"errors.urgentCallDailyLimit": errors_urgentCallDailyLimit,
 	"guildAdmin.title": guildAdmin_title,
 	"guildAdmin.lockedTitle": guildAdmin_lockedTitle,
 	"guildAdmin.lockedBody": guildAdmin_lockedBody,
@@ -1691,6 +1735,7 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"guildAdmin.premiumPriceYear": guildAdmin_premiumPriceYear,
 	"guildAdmin.billingSuccess": guildAdmin_billingSuccess,
 	"guildAdmin.billingCanceled": guildAdmin_billingCanceled,
+	"guildAdmin.tabAnnouncements": guildAdmin_tabAnnouncements,
 	"groupingTemplate.sectionTitle": groupingTemplate_sectionTitle,
 	"groupingTemplate.nameLabel": groupingTemplate_nameLabel,
 	"groupingTemplate.namePlaceholder": groupingTemplate_namePlaceholder,
@@ -1763,5 +1808,34 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"feedback.placeholder": feedback_placeholder,
 	"feedback.submit": feedback_submit,
 	"feedback.submitting": feedback_submitting,
-	"feedback.success": feedback_success
+	"feedback.success": feedback_success,
+	"announcements.title": announcements_title,
+	"announcements.emptyText": announcements_emptyText,
+	"announcements.urgentLabel": announcements_urgentLabel,
+	"announcements.standardLabel": announcements_standardLabel,
+	"announcements.unreadLabel": announcements_unreadLabel,
+	"announcements.readLabel": announcements_readLabel,
+	"announcements.composeTitle": announcements_composeTitle,
+	"announcements.kindLabel": announcements_kindLabel,
+	"announcements.kindStandardLabel": announcements_kindStandardLabel,
+	"announcements.kindUrgentLabel": announcements_kindUrgentLabel,
+	"announcements.titleLabel": announcements_titleLabel,
+	"announcements.titlePlaceholder": announcements_titlePlaceholder,
+	"announcements.bodyLabel": announcements_bodyLabel,
+	"announcements.bodyPlaceholder": announcements_bodyPlaceholder,
+	"announcements.postLabel": announcements_postLabel,
+	"announcements.postingLabel": announcements_postingLabel,
+	"announcements.postedText": announcements_postedText,
+	"announcements.deleteLabel": announcements_deleteLabel,
+	"announcements.deleteConfirmTitle": announcements_deleteConfirmTitle,
+	"announcements.deleteConfirmMessage": announcements_deleteConfirmMessage,
+	"announcements.deletedText": announcements_deletedText,
+	"announcements.receiptsTitle": announcements_receiptsTitle,
+	"announcements.readCountTemplate": announcements_readCountTemplate,
+	"announcements.readListLabel": announcements_readListLabel,
+	"announcements.unreadListLabel": announcements_unreadListLabel,
+	"announcements.authorTemplate": announcements_authorTemplate,
+	"announcements.pushNote": announcements_pushNote,
+	"announcements.urgentNote": announcements_urgentNote,
+	"announcements.dailyLimitTemplate": announcements_dailyLimitTemplate
 };
