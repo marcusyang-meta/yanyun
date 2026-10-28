@@ -2245,6 +2245,8 @@ type GuildOfficerBoardPost {
   authorName: String!
   authorText: String
   mine: Boolean!
+  # 删除权判定 (作者本人或百业管理员) 由后端组合下发, 前端不推导。
+  canDelete: Boolean!
   createdAtText: String!
 }
 
