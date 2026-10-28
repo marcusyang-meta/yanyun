@@ -13,6 +13,7 @@ import { hostGuildSlug } from '../../lib/hostGuild';
 const GuildLockedPage_guild = graphql`
   fragment GuildLockedPage_guild on GuildLocked {
     slug
+    recruitEntryLabel
     lockedBackLinkLabel
     lockedTitle
     lockedBody1
@@ -52,6 +53,17 @@ export default function GuildLockedPage({ guild, user, userBarText }: {
             {data.lockedBody2}
           </p>
           {backLink(data.lockedBackButtonLabel, { display: 'inline-block', marginTop: 24, padding: '11px 30px', textDecoration: 'none' }, 'yy-btn yy-btn-gold')}
+          {/* The non-member's way in: the recruit page carries the
+              join application for exactly this viewer (F16). */}
+          <div>
+            <Link
+              to={onOwnSubdomain ? '/recruit' : `/${data.slug}/recruit`}
+              className="yy-btn"
+              style={{ display: 'inline-block', marginTop: 12, padding: '11px 30px', textDecoration: 'none' }}
+            >
+              {data.recruitEntryLabel}
+            </Link>
+          </div>
         </div>
       </div>
     </div>

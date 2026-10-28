@@ -42,6 +42,10 @@ export interface GuildHomeNode {
   // Admin entry label: the backend emits it only for viewers who pass
   // the admin verdict; null (entry not rendered) for everyone else.
   homeAdminLabel?: string | null;
+  // Recruit entry label (backend recruit copy; the entry leads to the
+  // guild's recruit page: applications for non-members are served
+  // from the locked page instead, members land on checklist/pairings).
+  recruitEntryLabel?: string | null;
   homeTabDexLabel: string;
   homeTabSectLabel: string;
   // Announcements tab label (backend guildHome copy); optional in the
@@ -106,6 +110,11 @@ export default function GuildHome({ node, slug, carId, user, userBarText, intera
               {interactive && node.homeAdminLabel && (
                 <Link to={`/${slug}/admin`} style={{ color: theme.gold, fontSize: 13, textDecoration: 'none', letterSpacing: '.1em' }}>
                   {node.homeAdminLabel}
+                </Link>
+              )}
+              {interactive && node.recruitEntryLabel && (
+                <Link to={hostGuildSlug() === slug ? '/recruit' : `/${slug}/recruit`} style={{ color: theme.gold, fontSize: 13, textDecoration: 'none', letterSpacing: '.1em' }}>
+                  {node.recruitEntryLabel}
                 </Link>
               )}
             </span>

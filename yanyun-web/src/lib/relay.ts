@@ -102,6 +102,29 @@ export async function refetchGuildAdminQueries(): Promise<void> {
   await Promise.all(jobs);
 }
 
+/* Recruit surface: after an application commits, refetch the
+ * mounted GuildRecruitRouteQuery (same serialized-chain mechanism)
+ * so the applicant's status card re-renders from the store. */
+const recruitRefetchChains = new Map<string, Promise<unknown>>();
+export async function refetchGuildRecruitQueries(): Promise<void> {
+  const jobs: Promise<unknown>[] = [];
+  for (const [key, entry] of executedQueries.entries()) {
+    if (!entry.node?.params || entry.node.params.name !== 'GuildRecruitRouteQuery') continue;
+    entry.at = Date.now();
+    const prev = recruitRefetchChains.get(key);
+    const job = (async () => {
+      if (prev) { try { await prev; } catch { /* a failed predecessor must not block */ } }
+      try {
+        await fetchQuery(relayEnvironment, entry.node, entry.variables, { fetchPolicy: 'network-only' })
+          .toPromise();
+      } catch { /* ignore individual failures */ }
+    })();
+    recruitRefetchChains.set(key, job);
+    jobs.push(job);
+  }
+  await Promise.all(jobs);
+}
+
 async function fetchGraphQL(operation: any, variables: any) {
   // Always same-origin /graphql, on every host. One Worker serves both this
   // app (its public/ assets) and the API: production (yanyun.app) and the

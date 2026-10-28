@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<08244b715449a4252dd995b6c9087fcd>>
+ * @generated SignedSource<<91847b4c76a0b4287c44e9280e45acae>>
  * @lightSyntaxTransform
  */
 
@@ -15,6 +15,7 @@ export type GuildLockedPage_guild$data = {
   readonly lockedBody1: string;
   readonly lockedBody2: string;
   readonly lockedTitle: string;
+  readonly recruitEntryLabel: string;
   readonly slug: string;
   readonly " $fragmentType": "GuildLockedPage_guild";
 };
@@ -34,6 +35,13 @@ const node: ReaderFragment = {
       "args": null,
       "kind": "ScalarField",
       "name": "slug",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "recruitEntryLabel",
       "storageKey": null
     },
     {
@@ -76,6 +84,6 @@ const node: ReaderFragment = {
   "abstractKey": null
 };
 
-(node as any).hash = "12d1fe0319c9210ed2d861e8a79437c8";
+(node as any).hash = "7d3f20cd4c3328470a229db0d32ea0e0";
 
 export default node;

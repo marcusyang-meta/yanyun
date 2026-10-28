@@ -10,6 +10,7 @@ import GuildPicker from './auth/GuildPicker.react.tsx';
 import CreateGuildPage from './auth/CreateGuildPage.react.tsx';
 import GuildRouteLoader from './guild/GuildRouteLoader.react.tsx';
 import GuildAdminRouteLoader from './guild/GuildAdminRouteLoader.react.tsx';
+import GuildRecruitRouteLoader from './guild/GuildRecruitRouteLoader.react.tsx';
 import LegalRoute from './LegalRoute.react.tsx';
 import BuildShareRoute from './BuildShareRoute.react.tsx';
 import SiteFooter from './lib/SiteFooter.react.tsx';
@@ -194,6 +195,10 @@ export default function AppRoot({ queries }: {
             path="/admin"
             element={user ? <GuildAdminRouteLoader slugOverride={hostSlug} /> : <LoginGateWithText site={siteText} text={loginText} />}
           />
+          <Route
+            path="/recruit"
+            element={user ? <GuildRecruitRouteLoader slugOverride={hostSlug} /> : <LoginGateWithText site={siteText} text={loginText} />}
+          />
         </>
       ) : null}
       {/* Profile is now a dialog opened from the user bar; legacy /settings
@@ -220,6 +225,10 @@ export default function AppRoot({ queries }: {
       <Route
         path="/:slug/admin"
         element={user ? <GuildAdminRouteLoader /> : <LoginGateWithText site={siteText} text={loginText} />}
+      />
+      <Route
+        path="/:slug/recruit"
+        element={user ? <GuildRecruitRouteLoader /> : <LoginGateWithText site={siteText} text={loginText} />}
       />
       <Route path="/:slug" element={user ? <GuildRouteLoader /> : <LoginGateWithText site={siteText} text={loginText} />} />
         </Routes>
