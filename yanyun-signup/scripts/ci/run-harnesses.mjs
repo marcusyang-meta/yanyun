@@ -31,6 +31,7 @@ const SUITES = [
   ['account', 73], ['subdomain', 162],
   ['buildshare', 60], ['billing', 62], ['feedback', 44],
   ['gates', 73], ['announcements', 90], ['activitytools', 49], ['season', 70],
+  ['schedule', 70],
 ];
 const onlyArg = (process.argv.find((a) => a.startsWith('--only=')) || '').slice(7);
 const ONLY = onlyArg ? new Set(onlyArg.split(',')) : null;
