@@ -2,16 +2,18 @@ import { useState } from 'react';
 import { graphql, useLazyLoadQuery, useMutation, useRelayEnvironment } from 'react-relay';
 import { fetchQuery } from 'relay-runtime';
 import { theme, fill } from '../../lib/format';
+import { openSettingsAt } from '../../lib/settingsNav';
 import { toast } from './Toast.react.tsx';
 import GroupingForm, { type GroupingFormText } from './GroupingForm.react.tsx';
+import { utcToLocal, type UtcSlot } from './AvailabilityEditor.react.tsx';
 
-// Guild schedule surface (F5 availability + F13 time polls), member
-// branch only. Availability slots travel as UTC weekday/minutes and
-// are edited in the viewer's local timezone: conversion anchors on
-// the current week's Sunday and maps a local (weekday, minutes)
-// window to its UTC twin (and back). A window that would cross a
-// UTC day boundary clamps to that day's 24:00 — weekly patterns are
-// coarse scheduling signals, not appointments.
+// Guild schedule surface (F13 time polls + the F5 availability
+// summary), member branch only. The personal availability EDITOR
+// moved to personal settings (marcus, 2026-10-27: availability is
+// personal data) — this tab keeps the guild-level tools (summary +
+// polls) and a text link to the editor's new home. Summary slots
+// arrive as UTC weekday/minutes and render in the viewer's local
+// timezone via the shared conversion in AvailabilityEditor.
 // All copy comes from the guildSchedulePage shell; this component
 // holds no UI strings.
 
@@ -23,7 +25,6 @@ const ScheduleQueryNode = graphql`
     guildSchedulePage(slug: $slug) {
       slug
       weekdayNames
-      myAvailability { weekday startMinute endMinute }
       availabilitySummary { discordId displayName slots { weekday startMinute endMinute } }
       polls {
         id
@@ -86,14 +87,9 @@ const ScheduleQueryNode = graphql`
       typeShortTower
       scheduleTitle
       scheduleMyTitle
-      scheduleMyHint
       scheduleSlotRangeTemplate
-      scheduleAddSlotLabel
       scheduleRemoveLabel
-      scheduleSaveLabel
-      scheduleSavedText
-      scheduleSaveFailedTemplate
-      scheduleEmptyMineText
+      scheduleSettingsLinkLabel
       scheduleSummaryTitle
       scheduleSummaryHint
       scheduleSummaryEmptyText
@@ -118,17 +114,6 @@ const ScheduleQueryNode = graphql`
       scheduleToastVoted
       scheduleToastClosed
       scheduleToastFailedTemplate
-    }
-  }
-`;
-
-const SetAvailabilityMutationNode = graphql`
-  mutation GuildScheduleSetAvailabilityMutation($input: SetAvailabilityInput!) {
-    setMyAvailability(input: $input) {
-      ok
-      error
-      errorCode
-      slots { weekday startMinute endMinute }
     }
   }
 `;
@@ -170,60 +155,6 @@ const ClosePollMutationNode = graphql`
   }
 `;
 
-/* ---- UTC <-> local weekly-slot conversion (reference-week anchor) ---- */
-interface UtcSlot { weekday: number; startMinute: number; endMinute: number }
-interface LocalSlot { weekday: number; start: string; end: string } // HH:MM in local time
-
-function refSunday(): Date {
-  const n = new Date();
-  const d = new Date(n.getFullYear(), n.getMonth(), n.getDate());
-  d.setDate(d.getDate() - d.getDay());
-  return d;
-}
-const hhmm = (mins: number) => `${String(Math.floor(mins / 60)).padStart(2, '0')}:${String(mins % 60).padStart(2, '0')}`;
-const parseHhmm = (v: string) => {
-  const [h, m] = v.split(':').map((x) => parseInt(x, 10) || 0);
-  return h * 60 + m;
-};
-
-function utcToLocal(slot: UtcSlot): LocalSlot {
-  // Anchor the UTC weekday/minutes onto the reference week's UTC
-  // calendar, then read the same instants back in local time — the
-  // whole window shifts coherently, so a UTC window that ends at
-  // 24:00 simply shows its local clock time on the shifted day.
-  const base = refSunday();
-  const y = base.getFullYear(), m = base.getMonth(), d = base.getDate();
-  const start = new Date(Date.UTC(y, m, d + slot.weekday, 0, slot.startMinute));
-  const end = new Date(Date.UTC(y, m, d + slot.weekday, 0, slot.endMinute));
-  return {
-    weekday: start.getDay(),
-    start: hhmm(start.getHours() * 60 + start.getMinutes()),
-    end: hhmm(end.getHours() * 60 + end.getMinutes()),
-  };
-}
-
-function localToUtc(slot: LocalSlot): UtcSlot {
-  const base = refSunday();
-  const start = new Date(base);
-  start.setDate(base.getDate() + slot.weekday);
-  start.setMinutes(parseHhmm(slot.start), 0, 0);
-  const end = new Date(base);
-  end.setDate(base.getDate() + slot.weekday);
-  end.setMinutes(parseHhmm(slot.end), 0, 0);
-  if (end <= start) end.setDate(end.getDate() + 1);
-  const startUtcMin = start.getUTCHours() * 60 + start.getUTCMinutes();
-  const endUtcMinRaw = end.getUTCHours() * 60 + end.getUTCMinutes();
-  const endUtcDay = end.getUTCDay();
-  const startUtcDay = start.getUTCDay();
-  // Representable windows live inside one UTC day; a window ending
-  // exactly at the next UTC midnight becomes endMinute 1440, and any
-  // other spill clamps to 1440 of the start day.
-  const endMinute = endUtcDay === startUtcDay && endUtcMinRaw > startUtcMin
-    ? endUtcMinRaw
-    : 1440;
-  return { weekday: startUtcDay, startMinute: startUtcMin, endMinute };
-}
-
 const sectionTitle: React.CSSProperties = { fontSize: 17, color: theme.accentHi, letterSpacing: 2, marginBottom: 6 };
 const hintStyle: React.CSSProperties = { fontSize: 12.5, color: theme.muted, lineHeight: 1.7, marginBottom: 14 };
 const inputStyle: React.CSSProperties = {
@@ -246,28 +177,6 @@ export function GuildScheduleRoute({ slug, defaultNickname }: { slug: string; de
   const unknownErrorText: string = data?.viewer?.commonUnknownErrorText ?? '';
   const weekdayNames: string[] = page.weekdayNames ?? [];
   const fail = (error?: string | null) => toast(fill(page.scheduleToastFailedTemplate ?? '', { error: error || unknownErrorText }));
-
-  /* ---------- my availability ---------- */
-  const [mySlots, setMySlots] = useState<LocalSlot[] | null>(null);
-  const slots: LocalSlot[] = mySlots ?? (page.myAvailability ?? []).map((s: UtcSlot) => utcToLocal(s));
-  const [commitAvail, savingAvail] = useMutation<any>(SetAvailabilityMutationNode);
-  const saveAvailability = () => {
-    const utc = slots
-      .filter((s) => parseHhmm(s.end) > parseHhmm(s.start))
-      .map((s) => localToUtc(s));
-    commitAvail({
-      variables: { input: { slug, slots: utc } },
-      onCompleted: (res: any) => {
-        if (res.setMyAvailability?.ok) {
-          toast(page.scheduleSavedText);
-          // The page query is not refetched by the payload; mirror the
-          // server's normalized (sorted, UTC) set back into local time.
-          setMySlots((res.setMyAvailability.slots ?? []).map((s: UtcSlot) => utcToLocal(s)));
-        } else toast(fill(page.scheduleSaveFailedTemplate ?? '', { error: res.setMyAvailability?.error || unknownErrorText }));
-      },
-      onError: (e: any) => toast(fill(page.scheduleSaveFailedTemplate ?? '', { error: e.message })),
-    });
-  };
 
   /* ---------- polls ---------- */
   const [picks, setPicks] = useState<Record<string, Set<string>>>({});
@@ -330,37 +239,15 @@ export function GuildScheduleRoute({ slug, defaultNickname }: { slug: string; de
 
   return (
     <div data-schedule-page>
-      {/* ---------- F5: my availability ---------- */}
+      {/* ---------- F5: the editor lives in personal settings now;
+          only a text link remains here, pointing at its new home
+          (opens the settings dialog at its availability page). --- */}
       <div style={sectionTitle}>{page.scheduleMyTitle}</div>
-      <div style={hintStyle}>{page.scheduleMyHint}</div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
-        {[0, 1, 2, 3, 4, 5, 6].map((wd) => (
-          <div key={wd} style={{ display: 'flex', gap: 8, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-            <span style={{ width: 44, flexShrink: 0, fontSize: 13.5, color: theme.paper, paddingTop: 9 }}>{weekdayNames[wd] ?? ''}</span>
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6, minWidth: 220 }}>
-              {slots.map((s, i) => (s.weekday === wd ? (
-                <div key={i} style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
-                  <input type="time" value={s.start} data-avail-start={wd}
-                    onChange={(e) => setMySlots(slots.map((x, xi) => (xi === i ? { ...x, start: e.target.value } : x)))}
-                    style={{ ...inputStyle, width: 118 }} />
-                  <span style={{ color: theme.muted }}>–</span>
-                  <input type="time" value={s.end} data-avail-end={wd}
-                    onChange={(e) => setMySlots(slots.map((x, xi) => (xi === i ? { ...x, end: e.target.value } : x)))}
-                    style={{ ...inputStyle, width: 118 }} />
-                  <button onClick={() => setMySlots(slots.filter((_, xi) => xi !== i))}
-                    style={{ ...ghostBtn, padding: '6px 10px', fontSize: 12 }}>{page.scheduleRemoveLabel}</button>
-                </div>
-              ) : null))}
-            </div>
-            <button data-avail-add={wd}
-              onClick={() => setMySlots([...slots, { weekday: wd, start: '19:00', end: '22:00' }])}
-              style={{ ...ghostBtn, padding: '6px 10px', fontSize: 12 }}>{page.scheduleAddSlotLabel}</button>
-          </div>
-        ))}
-      </div>
-      {!slots.length && <div style={{ fontSize: 13, color: theme.muted, marginBottom: 10 }}>{page.scheduleEmptyMineText}</div>}
-      <button onClick={saveAvailability} disabled={savingAvail} className="yy-btn yy-btn-primary"
-        style={{ padding: '9px 26px', fontSize: 14 }}>{page.scheduleSaveLabel}</button>
+      <button data-availability-settings-link onClick={() => openSettingsAt('availability')}
+        style={{
+          background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+          color: theme.accent, fontSize: 13.5, textDecoration: 'underline', textUnderlineOffset: 3,
+        }}>{page.scheduleSettingsLinkLabel}</button>
 
       {/* ---------- F5: summary (admins / car leaders only; the field itself is the verdict) ---------- */}
       {summary && (
