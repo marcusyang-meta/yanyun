@@ -16,6 +16,7 @@ import GuildAdminEvents from './GuildAdminEvents.react.tsx';
 import GuildAdminGuides from './GuildAdminGuides.react.tsx';
 import { GuildAdminAnnouncementsRoute } from './GuildAnnouncements.react.tsx';
 import GuildAdminStats from './GuildAdminStats.react.tsx';
+import GuildAdminInsights from './GuildAdminInsights.react.tsx';
 import GuildAdminTools from './GuildAdminTools.react.tsx';
 import GuildAdminRecruit from './GuildAdminRecruit.react.tsx';
 import GuildAdminSeason from './GuildAdminSeason.react.tsx';
@@ -414,6 +415,66 @@ const GuildAdminPage_guildAdmin = graphql`
       }
       }
     }
+    adminTabInsightsLabel
+    adminInsightsReliabilityTitle
+    adminInsightsReliabilityHint
+    adminInsightsSignupsLabel
+    adminInsightsAttendedLabel
+    adminInsightsNoShowLabel
+    adminInsightsRateLabel
+    adminInsightsReliabilityEmptyText
+    adminInsightsHeatmapTitle
+    adminInsightsHeatmapHint
+    adminInsightsHeatmapEmptyText
+    adminInsightsGearTitle
+    adminInsightsGearHint
+    adminInsightsGearEmptyText
+    adminInsightsGearLabelLabel
+    adminInsightsGearMinScoreLabel
+    adminInsightsGearAddLabel
+    adminInsightsGearScoreLabel
+    adminInsightsGearGapLabel
+    adminInsightsRaceTitle
+    adminInsightsRaceEmptyText
+    adminInsightsRaceTeamLabel
+    adminInsightsRaceRunsLabel
+    adminInsightsRaceWinsLabel
+    adminInsightsRaceBestLabel
+    reliability {
+      __typename
+      ... on GuildAdminReliability {
+        entries { discordId displayName signupCount attendedCount noShowCount settledCount attendanceRate }
+      }
+      ... on GuildInsightsLocked { premiumTitle premiumBody }
+    }
+    participationHeatmap {
+      __typename
+      ... on GuildAdminParticipationHeatmap {
+        timezone totalAttended peakCount totalText weekdayLabels
+        cells { weekday weekdayLabel hour count }
+      }
+      ... on GuildInsightsLocked { premiumTitle premiumBody }
+    }
+    gearBoard {
+      __typename
+      ... on GuildAdminGearBoard {
+        standards {
+          id label minScore metCount unmetCount noBuildCount summaryText
+          members { discordId displayName hasBuild bestScore met gap statusText }
+        }
+      }
+      ... on GuildInsightsLocked { premiumTitle premiumBody }
+    }
+    raceSeasonBoard {
+      __typename
+      ... on RaceSeasonBoard {
+        seasons {
+          season seasonName seasonLabel
+          entries { teamName members runCount winCount bestTimeMs bestTimeText }
+        }
+      }
+      ... on GuildInsightsLocked { premiumTitle premiumBody }
+    }
   }
 `;
 
@@ -566,6 +627,7 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
     { key: 'guides', label: text.adminTabGuidesLabel },
     { key: 'announcements', label: text.adminTabAnnouncementsLabel },
     { key: 'stats', label: text.adminTabStatsLabel },
+    { key: 'insights', label: text.adminTabInsightsLabel },
     { key: 'tools', label: text.adminTabToolsLabel },
     { key: 'season', label: text.adminTabSeasonLabel },
     { key: 'recruit', label: text.adminTabRecruitLabel },
@@ -798,6 +860,18 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
           ) : premiumLocked ? (
             <PremiumLockedPanel premium={premiumLocked} slug={slug} unknownError={commonText.unknownError} />
           ) : null
+        )}
+        {tab === 'insights' && (
+          <GuildAdminInsights
+            text={text}
+            slug={slug}
+            commonText={commonText}
+            reliability={data.reliability}
+            heatmap={data.participationHeatmap}
+            gearBoard={data.gearBoard}
+            raceBoard={data.raceSeasonBoard}
+            refresh={refresh}
+          />
         )}
         {tab === 'recruit' && (
           <GuildAdminRecruit
