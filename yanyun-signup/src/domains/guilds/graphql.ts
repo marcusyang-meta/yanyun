@@ -64,6 +64,7 @@ export const CREATE_RESERVED = new Set([
   'admin', 'api', 'auth', 'hub', 'login', 'logout', 'og', 'graphql', 'create',
   'hub-admin', 'gadmin', 'index', 'bosses', 'tenants', 'onboard', 'settings',
   'events', 'static', 'assets', 'app', 'style', 'favicon', 'robots', 'www',
+  'c', 'cal', 'b',
 ]);
 
 // Settings access goes through the data layer (src/domains/guilds/
