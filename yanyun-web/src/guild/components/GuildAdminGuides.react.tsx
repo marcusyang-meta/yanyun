@@ -44,7 +44,7 @@ function BuildEditor({ slug, text, commonText, school, build, refresh }: {
   const [rate, setRate] = useState(build.rate || '');
   const [bisJson, setBisJson] = useState(build.bisJson || '');
   return (
-    <div style={{ borderTop: '1px solid rgba(67,160,134,.12)', paddingTop: 12, marginTop: 12 }}>
+    <div style={{ borderTop: '1px solid rgba(201,163,92,.12)', paddingTop: 12, marginTop: 12 }}>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
         <Field label={text.adminGuideBuildLabel}>
           <input style={adminInputStyle} value={name} onChange={(e) => setName(e.target.value)} />
@@ -80,7 +80,7 @@ function SchoolBlock({ slug, text, commonText, guide, refresh }: {
       {guide.builds.map((b) => (
         <BuildEditor key={b.build} slug={slug} text={text} commonText={commonText} school={guide.school} build={b} refresh={refresh} />
       ))}
-      <div style={{ borderTop: '1px solid rgba(67,160,134,.12)', paddingTop: 12, marginTop: 12 }}>
+      <div style={{ borderTop: '1px solid rgba(201,163,92,.12)', paddingTop: 12, marginTop: 12 }}>
         <Field label={text.adminGuideRotationLabel}>
           <textarea style={{ ...adminInputStyle, minHeight: 72, fontFamily: 'monospace', fontSize: 12 }} value={rotationJson} onChange={(e) => setRotationJson(e.target.value)} />
         </Field>

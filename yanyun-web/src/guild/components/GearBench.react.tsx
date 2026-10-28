@@ -149,21 +149,21 @@ type Plan = PlanType['response']['gearPlan'];
 
 const inp: React.CSSProperties = {
   width: '100%', boxSizing: 'border-box', background: 'rgba(0,0,0,.35)', color: theme.paper,
-  border: '1px solid rgba(67,160,134,.35)', borderRadius: 6, padding: '6px 8px', fontSize: 13,
+  border: '1px solid rgba(201,163,92,.35)', borderRadius: 6, padding: '6px 8px', fontSize: 13,
 };
 const sel: React.CSSProperties = { ...inp, appearance: 'auto' };
 const lbl: React.CSSProperties = { display: 'block', color: theme.muted, fontSize: 11, marginBottom: 3 };
 const btnGhost: React.CSSProperties = {
   padding: '6px 13px', borderRadius: 8, cursor: 'pointer', background: 'transparent',
-  border: `1px solid ${theme.accent}`, color: theme.accentHi, fontSize: 12.5,
+  border: `1px solid ${theme.gold}`, color: theme.goldHi, fontSize: 12.5,
 };
 const btnMini: React.CSSProperties = {
   fontSize: 12, padding: '3px 10px', borderRadius: 6, cursor: 'pointer',
-  background: 'transparent', border: `1px solid ${theme.accent}`, color: theme.accentHi,
+  background: 'transparent', border: `1px solid ${theme.gold}`, color: theme.goldHi,
 };
-const secTitle: React.CSSProperties = { color: theme.accentHi, fontSize: 15, marginBottom: 8 };
+const secTitle: React.CSSProperties = { color: theme.goldHi, fontSize: 15, marginBottom: 8 };
 const card: React.CSSProperties = {
-  border: '1px solid rgba(67,160,134,.22)', borderRadius: 10, padding: '10px 12px', background: 'rgba(0,0,0,.25)',
+  border: '1px solid rgba(201,163,92,.22)', borderRadius: 10, padding: '10px 12px', background: 'rgba(0,0,0,.25)',
 };
 
 export default function GearBench({ onWhites, defaultTargetSect }: {
@@ -392,7 +392,7 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 12, marginTop: 14 }}>
         <div style={card}>
-          <div style={{ color: theme.accentHi, fontSize: 13.5, marginBottom: 8 }}>{t.gearExtrasTitle}</div>
+          <div style={{ color: theme.goldHi, fontSize: 13.5, marginBottom: 8 }}>{t.gearExtrasTitle}</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
             <label><span style={lbl}>{t.gearResLabel}</span>
               <input style={inp} type="number" step="0.01" min="0.5" value={work.res}
@@ -434,7 +434,7 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
 
         <div style={card}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-            <span style={{ color: theme.accentHi, fontSize: 13.5 }}>{t.gearBaseTitle}</span>
+            <span style={{ color: theme.goldHi, fontSize: 13.5 }}>{t.gearBaseTitle}</span>
             <span style={{ flex: 1 }} />
             <button style={btnMini} onClick={() => setConfirmBase(true)}>{t.gearBaseResetLabel}</button>
           </div>
@@ -450,7 +450,7 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
                     {modified && <span style={{ color: theme.seal }}> · {t.gearModifiedTag}</span>}
                     <button
                       onClick={() => setUnlocked((prev) => { const n = new Set(prev); if (n.has(f.key)) n.delete(f.key); else n.add(f.key); return n; })}
-                      style={{ float: 'right', background: 'none', border: 'none', color: theme.accent, cursor: 'pointer', fontSize: 11, padding: 0 }}
+                      style={{ float: 'right', background: 'none', border: 'none', color: theme.gold, cursor: 'pointer', fontSize: 11, padding: 0 }}
                     >{isUnlocked ? t.gearLockLabel : t.gearUnlockLabel}</button>
                   </span>
                   <input
@@ -510,7 +510,7 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
               <div style={{ color: g ? theme.paper : theme.muted, fontSize: 13, margin: '3px 0', minHeight: 18, display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
                 <span>
                   {g ? (g.name || g.slot) : t.gearSlotEmptyText}
-                  {ev && <b style={{ color: theme.accentHi }}> · {ev.score}</b>}
+                  {ev && <b style={{ color: theme.goldHi }}> · {ev.score}</b>}
                 </span>
                 {ev && (
                   <VerdictSeal verdict={ev.verdict} heirloomLabel={t.gearVerdictHeirloom} dudLabel={t.gearVerdictDud} />
@@ -524,7 +524,7 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
                 {g && <button style={btnMini} onClick={() => unequipPos(pos)}>×</button>}
               </div>
               {pickerPos === pos && (
-                <div style={{ marginTop: 7, borderTop: '1px dashed rgba(67,160,134,.25)', paddingTop: 6, display: 'grid', gap: 4 }}>
+                <div style={{ marginTop: 7, borderTop: '1px dashed rgba(201,163,92,.25)', paddingTop: 6, display: 'grid', gap: 4 }}>
                   {items.filter((x) => poolOf(x.slot, rules).includes(pos)).map((x) => (
                     <button key={x.id} style={{ ...btnMini, textAlign: 'left' }} onClick={() => { equip(x, pos); setPickerPos(null); }}>
                       {x.name || x.slot} · {evalById.get(x.id)?.score ?? '—'}
@@ -546,8 +546,8 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(300px,1fr))', gap: 12 }}>
             <div style={card}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
-                <span style={{ color: theme.accentHi, fontSize: 14 }}>{t.gearGradLabel}</span>
-                <b ref={scoreRef} style={{ color: theme.accentHi, fontSize: 26 }}>{pct1(grad.total)}</b>
+                <span style={{ color: theme.goldHi, fontSize: 14 }}>{t.gearGradLabel}</span>
+                <b ref={scoreRef} style={{ color: theme.goldHi, fontSize: 26 }}>{pct1(grad.total)}</b>
                 <label style={{ marginLeft: 'auto', color: theme.muted, fontSize: 12, display: 'flex', gap: 5, alignItems: 'center' }}>
                   <input type="checkbox" checked={work.gradDy} onChange={(e) => patchWork({ gradDy: e.target.checked })} />
                   {t.gearGradDyToggleLabel}
@@ -562,16 +562,16 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
                 {simActive && <span> · {t.gearSimActiveTag}（{pct1(plan.realGrad.total)}）</span>}
               </div>
               <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 14px', fontSize: 13, color: theme.paper }}>
-                <span>{t.gearYAccLabel} <b style={{ color: theme.accentHi }}>{pct1(plan.panel.yAcc)}</b></span>
-                <span>{t.gearYCritLabel} <b style={{ color: theme.accentHi }}>{pct1(plan.panel.yCrit)}</b></span>
-                <span>{t.gearYIntLabel} <b style={{ color: theme.accentHi }}>{pct1(plan.panel.yInt)}</b></span>
-                <span>{t.gearFinalCritLabel} <b style={{ color: theme.accentHi }}>{pct1(plan.panel.finalCrit)}</b></span>
-                <span>{t.gearDawaiLabel} <b style={{ color: theme.accentHi }}>{Math.round(plan.panel.dawai)}</b></span>
-                <span>{t.gearXiaowaiLabel} <b style={{ color: theme.accentHi }}>{Math.round(plan.panel.xiaowai)}</b></span>
-                <span>{t.gearDashuLabel} <b style={{ color: theme.accentHi }}>{Math.round(plan.panel.dashu)}</b></span>
-                <span>{t.gearXiaoshuLabel} <b style={{ color: theme.accentHi }}>{Math.round(plan.panel.xiaoshu)}</b></span>
-                <span>{t.gearHpLabel} <b style={{ color: theme.accentHi }}>{Math.round(plan.panel.hp)}</b></span>
-                <span>{t.gearDefLabel} <b style={{ color: theme.accentHi }}>{Math.round(plan.panel.def)}</b></span>
+                <span>{t.gearYAccLabel} <b style={{ color: theme.goldHi }}>{pct1(plan.panel.yAcc)}</b></span>
+                <span>{t.gearYCritLabel} <b style={{ color: theme.goldHi }}>{pct1(plan.panel.yCrit)}</b></span>
+                <span>{t.gearYIntLabel} <b style={{ color: theme.goldHi }}>{pct1(plan.panel.yInt)}</b></span>
+                <span>{t.gearFinalCritLabel} <b style={{ color: theme.goldHi }}>{pct1(plan.panel.finalCrit)}</b></span>
+                <span>{t.gearDawaiLabel} <b style={{ color: theme.goldHi }}>{Math.round(plan.panel.dawai)}</b></span>
+                <span>{t.gearXiaowaiLabel} <b style={{ color: theme.goldHi }}>{Math.round(plan.panel.xiaowai)}</b></span>
+                <span>{t.gearDashuLabel} <b style={{ color: theme.goldHi }}>{Math.round(plan.panel.dashu)}</b></span>
+                <span>{t.gearXiaoshuLabel} <b style={{ color: theme.goldHi }}>{Math.round(plan.panel.xiaoshu)}</b></span>
+                <span>{t.gearHpLabel} <b style={{ color: theme.goldHi }}>{Math.round(plan.panel.hp)}</b></span>
+                <span>{t.gearDefLabel} <b style={{ color: theme.goldHi }}>{Math.round(plan.panel.def)}</b></span>
               </div>
               <div style={{ marginTop: 6, fontSize: 12, color: theme.muted }}>
                 {t.gearWhiteLabel}：{pct1(plan.panel.whiteAcc)} / {pct1(plan.panel.whiteCrit)} / {pct1(plan.panel.whiteInt)}
@@ -583,7 +583,7 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
               </div>
               {grad.dingyinRows.length > 0 && (
                 <div style={{ marginTop: 8 }}>
-                  <div style={{ color: theme.accentHi, fontSize: 13, marginBottom: 3 }}>{t.gearDySummaryTitle}</div>
+                  <div style={{ color: theme.goldHi, fontSize: 13, marginBottom: 3 }}>{t.gearDySummaryTitle}</div>
                   <div style={{ fontSize: 12.5, color: theme.paper, lineHeight: 1.8 }}>
                     {grad.dingyinRows.map((d, i) => (
                       <div key={i}>
@@ -601,7 +601,7 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
             </div>
 
             <div style={card}>
-              <div style={{ color: theme.accentHi, fontSize: 14, marginBottom: 6 }}>{t.gearDiffTitle}</div>
+              <div style={{ color: theme.goldHi, fontSize: 14, marginBottom: 6 }}>{t.gearDiffTitle}</div>
               {Object.keys(work.loadout).length === 0 ? (
                 <div style={{ color: theme.muted, fontSize: 12.5 }}>{t.gearDiffEmptyText}</div>
               ) : (
@@ -630,12 +630,12 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
                       && <div style={{ color: '#9dc08b' }}>{t.gearDiffDoneText}</div>}
                 </div>
               )}
-              <div style={{ color: theme.accentHi, fontSize: 14, margin: '12px 0 6px' }}>{t.gearSuggestTitle}</div>
+              <div style={{ color: theme.goldHi, fontSize: 14, margin: '12px 0 6px' }}>{t.gearSuggestTitle}</div>
               {plan.suggestions.list.length === 0 ? (
                 <div style={{ color: theme.muted, fontSize: 12.5 }}>{t.gearSuggestNoneText}</div>
               ) : (
                 <div style={{ fontSize: 12.5, lineHeight: 1.9, color: theme.paper }}>
-                  <div style={{ color: theme.accentHi }}>
+                  <div style={{ color: theme.goldHi }}>
                     {fill(t.gearSuggestHeadTemplate, {
                       cur: Math.round(plan.suggestions.cur * 1000) / 10,
                       final: Math.round(plan.suggestions.final * 1000) / 10,

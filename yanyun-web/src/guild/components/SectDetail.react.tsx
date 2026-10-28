@@ -217,8 +217,8 @@ function SectDetail({ queryRef }: { queryRef: PreloadedQuery<SectDetailQueryType
       {groups.map((g) => (
         <div key={g.menpai} style={{ marginTop: 8 }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, margin: '20px 0 12px' }}>
-            <h3 style={{ color: theme.accentHi, fontSize: 16, margin: 0, letterSpacing: 4 }}>{g.menpai}</h3>
-            <span style={{ flex: 1, height: 1, background: 'rgba(67,160,134,.25)' }} />
+            <h3 style={{ color: theme.goldHi, fontSize: 16, margin: 0, letterSpacing: 4 }}>{g.menpai}</h3>
+            <span style={{ flex: 1, height: 1, background: 'rgba(201,163,92,.25)' }} />
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
             {g.list.map((s) => (
@@ -230,7 +230,7 @@ function SectDetail({ queryRef }: { queryRef: PreloadedQuery<SectDetailQueryType
                   border: theme.border, background: theme.card, color: theme.paper, fontSize: 15,
                 }}
               >
-                <div style={{ color: theme.accentHi }}>{s.name}</div>
+                <div style={{ color: theme.goldHi }}>{s.name}</div>
                 <div style={{ fontSize: 11, color: theme.muted, marginTop: 4 }}>{s.buildType}</div>
               </button>
             ))}
@@ -288,9 +288,9 @@ function SectPageView({ sect, text, onBack }: { sect: Sect; text: any; onBack: (
             onClick={() => setStab(t)}
             style={{
               padding: '8px 20px', borderRadius: 8, cursor: 'pointer', fontSize: 14,
-              border: `1px solid ${theme.accent}`,
-              background: stab === t ? theme.accent : 'transparent',
-              color: stab === t ? '#0a120e' : theme.paper,
+              border: `1px solid ${theme.gold}`,
+              background: stab === t ? theme.gold : 'transparent',
+              color: stab === t ? '#1a1814' : theme.paper,
               fontWeight: stab === t ? 600 : 400,
             }}
           >{t === 'bis' ? text.sectTabBisLabel : t === 'affix' ? text.sectTabAffixLabel : t === 'rot' ? text.sectTabRotationLabel : t === 'rate' ? text.sectTabRatesLabel : t === 'tiaolv' ? text.sectTabTiaolvLabel : text.sectTabGradLabel}</button>
@@ -306,8 +306,8 @@ function SectPageView({ sect, text, onBack }: { sect: Sect; text: any; onBack: (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {affixes.map((a, i) => (
                   <span key={i} style={{
-                    fontSize: 12, color: theme.paper, background: 'rgba(67,160,134,.12)',
-                    border: '1px solid rgba(67,160,134,.3)', borderRadius: 6, padding: '4px 10px',
+                    fontSize: 12, color: theme.paper, background: 'rgba(201,163,92,.12)',
+                    border: '1px solid rgba(201,163,92,.3)', borderRadius: 6, padding: '4px 10px',
                   }}>{a}</span>
                 ))}
               </div>
@@ -325,16 +325,16 @@ function SectPageView({ sect, text, onBack }: { sect: Sect; text: any; onBack: (
           {sect.gradBuilds.map((b) => (
             <div key={b.name + '|' + b.setName} style={card}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
-                <span style={{ color: '#43a086', fontSize: 15, fontWeight: 600 }}>{b.name}</span>
+                <span style={{ color: '#c9a35c', fontSize: 15, fontWeight: 600 }}>{b.name}</span>
                 <span style={{
-                  fontSize: 11, color: theme.accentHi, border: '1px solid rgba(67,160,134,.4)',
+                  fontSize: 11, color: theme.goldHi, border: '1px solid rgba(201,163,92,.4)',
                   borderRadius: 999, padding: '2px 9px',
                 }}>{b.cat}</span>
               </div>
               <div style={{ fontSize: 12.5, color: theme.muted, lineHeight: 1.9 }}>
-                <span style={{ color: theme.accentHi }}>{text.sectAffixSetLabel}</span> {b.setName}
-                {b.bowLabel ? <>{' · '}<span style={{ color: theme.accentHi }}>{text.sectAffixBowLabel}</span> {b.bowLabel}</> : null}
-                {b.dingyinName ? <>{' · '}<span style={{ color: theme.accentHi }}>{text.sectAffixDingyinLabel}</span> {b.dingyinName}</> : null}
+                <span style={{ color: theme.goldHi }}>{text.sectAffixSetLabel}</span> {b.setName}
+                {b.bowLabel ? <>{' · '}<span style={{ color: theme.goldHi }}>{text.sectAffixBowLabel}</span> {b.bowLabel}</> : null}
+                {b.dingyinName ? <>{' · '}<span style={{ color: theme.goldHi }}>{text.sectAffixDingyinLabel}</span> {b.dingyinName}</> : null}
               </div>
               <div style={{ fontSize: 12.5, color: theme.paper, lineHeight: 1.8, margin: '2px 0 8px' }}>{b.recipe}</div>
               <div style={{ overflowX: 'auto' }}>
@@ -349,7 +349,7 @@ function SectPageView({ sect, text, onBack }: { sect: Sect; text: any; onBack: (
                     {b.targets.map((t) => (
                       <tr key={t.label}>
                         <td style={affixTd}>
-                          <span style={{ color: theme.accentHi }}>{t.label}</span>
+                          <span style={{ color: theme.goldHi }}>{t.label}</span>
                           {t.flexLabels.length > 0 && (
                             <span style={{ color: theme.muted, fontSize: 11.5 }}>（{t.flexLabels.join(' / ')}）</span>
                           )}
@@ -432,31 +432,31 @@ function SectPageView({ sect, text, onBack }: { sect: Sect; text: any; onBack: (
 }
 
 const backBtn: React.CSSProperties = {
-  background: 'none', border: 'none', color: '#43a086', cursor: 'pointer',
+  background: 'none', border: 'none', color: '#c9a35c', cursor: 'pointer',
   fontSize: 15, padding: 0, marginBottom: 12,
 };
 const h2: React.CSSProperties = {
-  color: '#93d2be', fontSize: 24, margin: '0 0 4px', letterSpacing: 2,
+  color: '#ecd28f', fontSize: 24, margin: '0 0 4px', letterSpacing: 2,
 };
 const card: React.CSSProperties = {
-  border: '1px solid rgba(67,160,134,.25)', borderRadius: 10, padding: 16,
-  background: '#1e2126',
+  border: '1px solid rgba(201,163,92,.25)', borderRadius: 10, padding: 16,
+  background: 'linear-gradient(160deg,rgba(201,163,92,.05),rgba(0,0,0,.15))',
 };
 const cardTitle: React.CSSProperties = {
-  color: '#43a086', fontSize: 15, fontWeight: 600, marginBottom: 10,
+  color: '#c9a35c', fontSize: 15, fontWeight: 600, marginBottom: 10,
 };
 const rateRow: React.CSSProperties = {
-  display: 'flex', gap: 12, fontSize: 14, color: '#e9ebee',
+  display: 'flex', gap: 12, fontSize: 14, color: '#ece2cb',
 };
 const rateLabel: React.CSSProperties = {
-  color: '#43a086', minWidth: 40, fontWeight: 600,
+  color: '#c9a35c', minWidth: 40, fontWeight: 600,
 };
 const affixTh: React.CSSProperties = {
   textAlign: 'left', color: theme.muted, fontWeight: 400, fontSize: 11.5,
-  padding: '5px 7px', borderBottom: '1px solid rgba(67,160,134,.25)',
+  padding: '5px 7px', borderBottom: '1px solid rgba(201,163,92,.25)',
 };
 const affixTd: React.CSSProperties = {
-  padding: '6px 7px', borderBottom: '1px solid rgba(67,160,134,.1)',
+  padding: '6px 7px', borderBottom: '1px solid rgba(201,163,92,.1)',
   fontSize: 12.5, color: theme.paper, verticalAlign: 'top',
 };
 function fmtVal(v: number): string {

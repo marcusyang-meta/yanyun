@@ -41,16 +41,16 @@ export type BatchRow = {
 
 const inp: React.CSSProperties = {
   width: '100%', boxSizing: 'border-box', background: 'rgba(0,0,0,.35)', color: theme.paper,
-  border: '1px solid rgba(67,160,134,.35)', borderRadius: 6, padding: '5px 7px', fontSize: 12.5,
+  border: '1px solid rgba(201,163,92,.35)', borderRadius: 6, padding: '5px 7px', fontSize: 12.5,
 };
 const sel: React.CSSProperties = { ...inp, appearance: 'auto' };
 const btnGold: React.CSSProperties = {
-  padding: '7px 16px', borderRadius: 8, cursor: 'pointer', background: theme.accent,
-  border: 'none', color: '#0a120e', fontWeight: 600, fontSize: 13,
+  padding: '7px 16px', borderRadius: 8, cursor: 'pointer', background: theme.gold,
+  border: 'none', color: '#1a1814', fontWeight: 600, fontSize: 13,
 };
 const btnMini: React.CSSProperties = {
   fontSize: 12, padding: '3px 10px', borderRadius: 6, cursor: 'pointer',
-  background: 'transparent', border: `1px solid ${theme.accent}`, color: theme.accentHi,
+  background: 'transparent', border: `1px solid ${theme.gold}`, color: theme.goldHi,
 };
 const tagDup: React.CSSProperties = {
   fontSize: 11, color: theme.seal, border: `1px solid ${theme.seal}`, borderRadius: 5, padding: '1px 6px',
@@ -151,7 +151,7 @@ function BatchAdjuster(props: {
           : <div style={{ height: 160, background: 'rgba(255,255,255,.04)', borderRadius: 6 }} />}
         {edit && props.imgW > 0 && (
           <div style={{
-            position: 'absolute', border: `2px solid ${theme.accentHi}`, borderRadius: 2,
+            position: 'absolute', border: `2px solid ${theme.goldHi}`, borderRadius: 2,
             left: pct(edit.x, props.imgW), top: pct(edit.y, props.imgH),
             width: pct(edit.w, props.imgW), height: pct(edit.h, props.imgH),
             boxShadow: '0 0 0 9999px rgba(0,0,0,.35)', pointerEvents: 'none',
@@ -331,16 +331,16 @@ export default function GearOcrBatch(props: {
     setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...p } : r)));
 
   return (
-    <div style={{ marginTop: 12, borderTop: '1px solid rgba(67,160,134,.2)', paddingTop: 10 }}>
-      <div style={{ color: theme.accentHi, fontSize: 13, marginBottom: 4 }}>{t.gearOcrBatchTitle}</div>
+    <div style={{ marginTop: 12, borderTop: '1px solid rgba(201,163,92,.2)', paddingTop: 10 }}>
+      <div style={{ color: theme.goldHi, fontSize: 13, marginBottom: 4 }}>{t.gearOcrBatchTitle}</div>
       <div
         data-testid="ocr-batch-drop"
         onClick={() => fileRef.current?.click()}
         onDragOver={(e) => e.preventDefault()}
         onDrop={(e) => { e.preventDefault(); enqueue([...(e.dataTransfer.files || [])]); }}
         style={{
-          marginTop: 4, border: '1px dashed rgba(67,160,134,.45)', borderRadius: 8, padding: '12px 10px',
-          textAlign: 'center', color: theme.accentHi, fontSize: 12.5, cursor: 'pointer',
+          marginTop: 4, border: '1px dashed rgba(201,163,92,.45)', borderRadius: 8, padding: '12px 10px',
+          textAlign: 'center', color: theme.goldHi, fontSize: 12.5, cursor: 'pointer',
         }}
       >
         {t.gearOcrBatchDropText}
@@ -354,7 +354,7 @@ export default function GearOcrBatch(props: {
         const excluded = !!dup && !r.dupOverride;
         return (
           <div key={r.id} data-testid="ocr-batch-row" style={{
-            display: 'flex', gap: 10, marginTop: 10, border: '1px solid rgba(67,160,134,.22)',
+            display: 'flex', gap: 10, marginTop: 10, border: '1px solid rgba(201,163,92,.22)',
             borderRadius: 8, padding: '8px 10px', background: 'rgba(0,0,0,.18)',
           }}>
             <div style={{ flex: '0 0 92px' }}>
@@ -364,7 +364,7 @@ export default function GearOcrBatch(props: {
                   : <div style={{ width: 92, height: 64, background: 'rgba(255,255,255,.05)', borderRadius: 5 }} />}
                 {r.box && r.imgW > 0 && (
                   <div style={{
-                    position: 'absolute', border: `1.5px solid ${theme.accentHi}`,
+                    position: 'absolute', border: `1.5px solid ${theme.goldHi}`,
                     left: `${(r.box.x / r.imgW) * 100}%`, top: `${(r.box.y / r.imgH) * 100}%`,
                     width: `${(r.box.w / r.imgW) * 100}%`, height: `${(r.box.h / r.imgH) * 100}%`,
                     pointerEvents: 'none',
@@ -380,7 +380,7 @@ export default function GearOcrBatch(props: {
 
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                <span style={{ color: r.status === 'failed' ? theme.seal : theme.accentHi, fontSize: 12.5 }}>
+                <span style={{ color: r.status === 'failed' ? theme.seal : theme.goldHi, fontSize: 12.5 }}>
                   {statusText(r)}
                 </span>
                 {dup && <span style={tagDup}>{t.gearOcrBatchDupTag}</span>}
@@ -440,7 +440,7 @@ export default function GearOcrBatch(props: {
                         const on = r.schools.includes(tag);
                         return (
                           <button key={tag} onClick={() => patch(r.id, { schools: on ? r.schools.filter((x) => x !== tag) : [...r.schools, tag] })}
-                            style={{ ...btnMini, background: on ? theme.accent : 'transparent', color: on ? '#0a120e' : theme.accentHi, fontWeight: on ? 600 : 400 }}>{tag}</button>
+                            style={{ ...btnMini, background: on ? theme.gold : 'transparent', color: on ? '#1a1814' : theme.goldHi, fontWeight: on ? 600 : 400 }}>{tag}</button>
                         );
                       })}
                     </div>

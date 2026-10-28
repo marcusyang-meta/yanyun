@@ -279,7 +279,7 @@ interface Props {
 }
 
 const inputStyle: React.CSSProperties = {
-  width: '100%', background: '#1e1b15', border: `1px solid rgba(67,160,134,.3)`,
+  width: '100%', background: '#1e1b15', border: `1px solid rgba(201,163,92,.3)`,
   color: theme.paper, borderRadius: 8, padding: '11px 10px', fontSize: 14, boxSizing: 'border-box',
 };
 const labelStyle: React.CSSProperties = {
@@ -288,7 +288,7 @@ const labelStyle: React.CSSProperties = {
 const errStyle: React.CSSProperties = { borderColor: '#a02c1a' };
 const tplActBtn: React.CSSProperties = {
   background: 'none', border: 'none', cursor: 'pointer', fontSize: 12.5,
-  color: theme.accent, padding: '2px 4px', flexShrink: 0,
+  color: theme.gold, padding: '2px 4px', flexShrink: 0,
 };
 
 export default function GroupingForm({ slug, text, mode, groupingId, initial, defaultType, defaultNickname, templates, onTemplatesChanged, onClose, onDone }: Props) {
@@ -532,7 +532,7 @@ export default function GroupingForm({ slug, text, mode, groupingId, initial, de
     <div className="yy-modal-overlay" onClick={onClose}>
       <div className="yy-modal-panel" onClick={(e) => e.stopPropagation()}>
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
-          <div style={{ flex: 1, fontSize: 20, color: theme.accentHi, letterSpacing: 4 }}>
+          <div style={{ flex: 1, fontSize: 20, color: theme.goldHi, letterSpacing: 4 }}>
             {isEdit ? text.formEditTitle : text.formCreateTitle}
           </div>
           <div onClick={onClose} style={{ color: theme.muted, fontSize: 24, cursor: 'pointer', padding: 8 }}>✕</div>
@@ -547,12 +547,12 @@ export default function GroupingForm({ slug, text, mode, groupingId, initial, de
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {(templates ?? []).map((t) => (
                 <div key={t.id} onClick={() => applyTemplate(t)} style={{
-                  border: `1px solid ${appliedTemplateId === t.id ? theme.accent : 'rgba(67,160,134,.25)'}`,
+                  border: `1px solid ${appliedTemplateId === t.id ? theme.gold : 'rgba(201,163,92,.25)'}`,
                   borderRadius: 8, padding: '9px 12px', cursor: 'pointer',
-                  background: appliedTemplateId === t.id ? 'rgba(67,160,134,.12)' : 'transparent',
+                  background: appliedTemplateId === t.id ? 'rgba(201,163,92,.12)' : 'transparent',
                 }}>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                    <span style={{ flex: 1, fontSize: 14, color: theme.accentHi, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</span>
+                    <span style={{ flex: 1, fontSize: 14, color: theme.goldHi, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</span>
                     <span style={{ fontSize: 12, color: theme.muted, flexShrink: 0 }}>{templateWhen(t)}</span>
                   </div>
                   <div style={{ fontSize: 13, color: theme.paper, marginTop: 2 }}>{t.title}</div>
@@ -629,9 +629,9 @@ export default function GroupingForm({ slug, text, mode, groupingId, initial, de
                 {sectOptions.map((s) => (
                   <button key={s.slug} onClick={() => setSect(s.name)} style={{
                     padding: '10px 4px', borderRadius: 8, cursor: 'pointer', fontSize: 13,
-                    border: `1px solid ${sect === s.name ? theme.accent : 'rgba(67,160,134,.25)'}`,
-                    background: sect === s.name ? 'rgba(67,160,134,.25)' : 'transparent',
-                    color: sect === s.name ? theme.accentHi : theme.paper,
+                    border: `1px solid ${sect === s.name ? theme.gold : 'rgba(201,163,92,.25)'}`,
+                    background: sect === s.name ? 'rgba(201,163,92,.25)' : 'transparent',
+                    color: sect === s.name ? theme.goldHi : theme.paper,
                   }}>{s.name}</button>
                 ))}
               </div>
@@ -647,7 +647,7 @@ export default function GroupingForm({ slug, text, mode, groupingId, initial, de
             )}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {fieldDrafts.map((d, i) => (
-                <div key={i} style={{ border: '1px solid rgba(67,160,134,.25)', borderRadius: 8, padding: 10 }}>
+                <div key={i} style={{ border: '1px solid rgba(201,163,92,.25)', borderRadius: 8, padding: 10 }}>
                   <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
                     <input value={d.label} data-custom-field-label={i}
                       onChange={(e) => setFieldDrafts(fieldDrafts.map((x, xi) => (xi === i ? { ...x, label: e.target.value } : x)))}
@@ -686,7 +686,7 @@ export default function GroupingForm({ slug, text, mode, groupingId, initial, de
           <div style={{ marginBottom: 16 }}>
             {editingTemplate && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <span style={{ flex: 1, fontSize: 12.5, color: theme.accentHi }}>{fill(text.templateEditingNoticeTemplate ?? '', { name: editingTemplate.name })}</span>
+                <span style={{ flex: 1, fontSize: 12.5, color: theme.goldHi }}>{fill(text.templateEditingNoticeTemplate ?? '', { name: editingTemplate.name })}</span>
                 <button onClick={() => { setEditingTemplate(null); setTemplateName(''); }} style={tplActBtn}>{text.templateCancelEditLabel}</button>
               </div>
             )}
@@ -696,7 +696,7 @@ export default function GroupingForm({ slug, text, mode, groupingId, initial, de
                 placeholder={text.templateNamePlaceholder} style={{ ...inputStyle, flex: 1 }} />
               <button onClick={saveTemplate} disabled={creatingTemplate || updatingTemplate} style={{
                 padding: '0 18px', borderRadius: 8, cursor: 'pointer', whiteSpace: 'nowrap',
-                background: 'transparent', border: `1px solid ${theme.accent}`, color: theme.accentHi, fontSize: 14,
+                background: 'transparent', border: `1px solid ${theme.gold}`, color: theme.goldHi, fontSize: 14,
               }}>{editingTemplate ? text.templateUpdateLabel : text.templateSaveLabel}</button>
             </div>
           </div>
@@ -705,11 +705,11 @@ export default function GroupingForm({ slug, text, mode, groupingId, initial, de
         <div style={{ display: 'flex', gap: 12 }}>
           <button onClick={onClose} style={{
             flex: 1, padding: 14, borderRadius: 10, cursor: 'pointer',
-            background: 'transparent', border: `1px solid ${theme.accent}`, color: theme.paper, fontSize: 15,
+            background: 'transparent', border: `1px solid ${theme.gold}`, color: theme.paper, fontSize: 15,
           }}>{text.formCancelLabel}</button>
           <button onClick={submit} disabled={busy} style={{
             flex: 2, padding: 14, borderRadius: 10, cursor: busy ? 'wait' : 'pointer',
-            background: theme.accent, border: 'none', color: '#0a120e', fontWeight: 700, fontSize: 15,
+            background: theme.gold, border: 'none', color: '#1a1814', fontWeight: 700, fontSize: 15,
             opacity: busy ? .6 : 1,
           }}>{busy ? text.formSubmittingLabel : isEdit ? text.formSubmitEditLabel : text.formSubmitCreateLabel}</button>
         </div>

@@ -1,3 +1,4 @@
+import heroImg from '../assets/hero.jpg';
 import { theme } from '../lib/format';
 
 export interface SiteText {
@@ -28,12 +29,13 @@ export default function LoginPage({ returnTo = '/', site, text }: {
   return (
     <div className="yy-page">
       <header className="yy-hero yy-hero-full">
+        <img className="yy-hero-img" src={heroImg} alt={site.heroAlt} />
         <h1 className="yy-hero-title">{site.title}</h1>
         <p className="yy-hero-sub">{site.subtitle}</p>
 
         <div style={{ position: 'relative', zIndex: 2, width: '100%', maxWidth: 520, margin: '40px auto 0', textAlign: 'center' }}>
           <div className="yy-card yy-login-card yy-anim-fade-up" style={{ padding: '32px 24px' }}>
-            <div style={{ fontSize: 17, color: theme.accentHi, letterSpacing: '.08em', marginBottom: 10 }}>
+            <div style={{ fontSize: 17, color: theme.goldHi, letterSpacing: '.08em', marginBottom: 10 }}>
               {text.cardTitle}
             </div>
             <p style={{ color: theme.muted, fontSize: 14, lineHeight: 1.8, margin: '0 0 24px' }}>
@@ -43,7 +45,7 @@ export default function LoginPage({ returnTo = '/', site, text }: {
             </p>
             <a
               href={loginHref}
-              className="yy-btn yy-btn-primary"
+              className="yy-btn yy-btn-gold"
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: 10,
                 padding: '13px 34px', fontSize: 16, textDecoration: 'none', letterSpacing: '.06em',

@@ -31,13 +31,13 @@ class ErrBound extends Component<{ resetKey?: string; children: any }, { err: an
         return <div style={{ padding: 32 }} />;
       }
       return (
-        <div style={{ color: '#e9ebee', padding: 32, textAlign: 'center' }}>
+        <div style={{ color: '#ece2cb', padding: 32, textAlign: 'center' }}>
           <div style={{ color: '#e08080', marginBottom: 12 }}>{fill(text.renderErrorTemplate, { message: String(this.state.err?.message || this.state.err) })}</div>
           <div style={{ color: '#8a7d65', fontSize: 13, marginBottom: 20 }}>{text.renderErrorHint}</div>
           <button
             onClick={() => { window.location.href = '/'; }}
             style={{
-              background: 'transparent', border: '1px solid rgba(67,160,134,.5)', color: '#43a086',
+              background: 'transparent', border: '1px solid rgba(201,163,92,.5)', color: '#c9a35c',
               borderRadius: 8, padding: '8px 22px', fontSize: 14, cursor: 'pointer',
             }}
           >{text.backToHubLabel}</button>

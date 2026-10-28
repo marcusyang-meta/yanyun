@@ -165,16 +165,16 @@ function EventCard({ slug, text, commonText, ev, refresh }: {
     <section style={adminSectionStyle}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
         <span style={{ fontSize: 15, color: theme.paper }}>{ev.title}</span>
-        <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 999, border: '1px solid rgba(255,255,255,.16)', color: theme.muted }}>{statusText}</span>
+        <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 999, border: '1px solid rgba(201,163,92,.4)', color: theme.muted }}>{statusText}</span>
         {!!ev.startsAtText && <span style={{ fontSize: 12, color: theme.muted }}>{ev.startsAtText}</span>}
         <span style={{ fontSize: 12, color: theme.muted }}>{ev.signupCount}/{ev.maxSlots}</span>
         <span style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
           <button type="button" onClick={() => downloadCsv(ev.title, text.adminSignupCsvSuffix, ev.signupsCsv)}
-            style={{ padding: '4px 12px', borderRadius: 8, border: '1px solid rgba(67,160,134,.35)', background: 'transparent', color: theme.muted, fontSize: 12, cursor: 'pointer' }}>
+            style={{ padding: '4px 12px', borderRadius: 8, border: '1px solid rgba(201,163,92,.35)', background: 'transparent', color: theme.muted, fontSize: 12, cursor: 'pointer' }}>
             {text.adminExportCsvLabel}
           </button>
           <button type="button" onClick={() => setOpen(!open)}
-            style={{ padding: '4px 12px', borderRadius: 8, border: '1px solid rgba(67,160,134,.35)', background: 'transparent', color: theme.muted, fontSize: 12, cursor: 'pointer' }}>
+            style={{ padding: '4px 12px', borderRadius: 8, border: '1px solid rgba(201,163,92,.35)', background: 'transparent', color: theme.muted, fontSize: 12, cursor: 'pointer' }}>
             {text.adminEditLabel}
           </button>
           <ConfirmButton small label={text.adminDeleteLabel} confirmLabel={commonText.confirm}
@@ -191,7 +191,7 @@ function EventCard({ slug, text, commonText, ev, refresh }: {
           <h3 style={{ ...adminSectionTitleStyle, marginTop: 22 }}>{text.adminSignupsTitle} ({ev.signups.length})</h3>
           {ev.signups.length === 0 && <p style={{ color: theme.muted, fontSize: 13 }}>{text.adminSignupEmptyText}</p>}
           {ev.signups.map((s) => (
-            <div key={s.id} style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '6px 0', borderTop: '1px solid rgba(67,160,134,.12)', flexWrap: 'wrap' }}>
+            <div key={s.id} style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '6px 0', borderTop: '1px solid rgba(201,163,92,.12)', flexWrap: 'wrap' }}>
               <span style={{ fontSize: 13, color: theme.paper, minWidth: 90 }}>{s.nickname}</span>
               <span style={{ fontSize: 12, color: theme.muted }}>{s.weapon}</span>
               <span style={{ fontSize: 12, color: theme.muted }}>{s.role}</span>
@@ -205,9 +205,9 @@ function EventCard({ slug, text, commonText, ev, refresh }: {
 
           <h3 style={{ ...adminSectionTitleStyle, marginTop: 22 }}>{text.adminResultsTitle}</h3>
           {ev.results.map((r) => (
-            <div key={r.id} style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '6px 0', borderTop: '1px solid rgba(67,160,134,.12)', flexWrap: 'wrap' }}>
+            <div key={r.id} style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '6px 0', borderTop: '1px solid rgba(201,163,92,.12)', flexWrap: 'wrap' }}>
               <span style={{ fontSize: 13, color: theme.paper, minWidth: 90 }}>{r.teamName}</span>
-              <span style={{ fontSize: 12, color: '#93d2be' }}>{r.timeText}</span>
+              <span style={{ fontSize: 12, color: '#ecd28f' }}>{r.timeText}</span>
               <span style={{ fontSize: 12, color: theme.muted }}>{r.members}</span>
               <span style={{ marginLeft: 'auto' }}>
                 <ConfirmButton small label={text.adminDeleteLabel} confirmLabel={commonText.confirm}

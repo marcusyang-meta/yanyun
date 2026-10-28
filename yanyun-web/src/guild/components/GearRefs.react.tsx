@@ -62,18 +62,18 @@ const refsQuery = graphql`
   }
 `;
 
-const th: React.CSSProperties = { textAlign: 'left', color: theme.muted, fontWeight: 400, fontSize: 11.5, padding: '5px 7px', borderBottom: '1px solid rgba(67,160,134,.25)' };
-const td: React.CSSProperties = { padding: '6px 7px', borderBottom: '1px solid rgba(67,160,134,.1)', fontSize: 12.5, color: theme.paper, verticalAlign: 'top' };
-const h3: React.CSSProperties = { color: theme.accentHi, fontSize: 14.5, margin: '18px 0 8px' };
+const th: React.CSSProperties = { textAlign: 'left', color: theme.muted, fontWeight: 400, fontSize: 11.5, padding: '5px 7px', borderBottom: '1px solid rgba(201,163,92,.25)' };
+const td: React.CSSProperties = { padding: '6px 7px', borderBottom: '1px solid rgba(201,163,92,.1)', fontSize: 12.5, color: theme.paper, verticalAlign: 'top' };
+const h3: React.CSSProperties = { color: theme.goldHi, fontSize: 14.5, margin: '18px 0 8px' };
 const miniBtn: React.CSSProperties = {
   fontSize: 12, padding: '3px 10px', borderRadius: 6, cursor: 'pointer',
-  background: 'transparent', border: `1px solid ${theme.accent}`, color: theme.accentHi,
+  background: 'transparent', border: `1px solid ${theme.gold}`, color: theme.goldHi,
 };
 function chip(active: boolean): React.CSSProperties {
   return {
     fontSize: 12, padding: '4px 11px', borderRadius: 999, cursor: 'pointer',
-    background: active ? theme.accent : 'transparent',
-    border: `1px solid ${theme.accent}`, color: active ? '#0a120e' : theme.accentHi,
+    background: active ? theme.gold : 'transparent',
+    border: `1px solid ${theme.gold}`, color: active ? '#1a1814' : theme.goldHi,
     fontWeight: active ? 600 : 400,
   };
 }
@@ -105,7 +105,7 @@ export default function GearRefs() {
         <tbody>
           {list.map((r) => (
             <tr key={r.slot}>
-              <td style={{ ...td, color: theme.accentHi, whiteSpace: 'nowrap' }}>{r.slot}</td>
+              <td style={{ ...td, color: theme.goldHi, whiteSpace: 'nowrap' }}>{r.slot}</td>
               <td style={td}>{r.lines.join('、')}</td>
             </tr>
           ))}
@@ -120,7 +120,7 @@ export default function GearRefs() {
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', marginBottom: 8 }}>
         <input
           value={q} onChange={(e) => setQ(e.target.value)} placeholder={t.gearRecipeSearchPlaceholder}
-          style={{ flex: '1 1 160px', background: 'rgba(0,0,0,.35)', color: theme.paper, border: '1px solid rgba(67,160,134,.35)', borderRadius: 6, padding: '6px 9px', fontSize: 12.5 }}
+          style={{ flex: '1 1 160px', background: 'rgba(0,0,0,.35)', color: theme.paper, border: '1px solid rgba(201,163,92,.35)', borderRadius: 6, padding: '6px 9px', fontSize: 12.5 }}
         />
         <button onClick={() => setCat('')} style={chip(cat === '')}>{t.gearRecipeAllLabel}</button>
         {cats.map((c) => (
@@ -138,7 +138,7 @@ export default function GearRefs() {
             {rows.map((b) => (
               <tr key={b.idx}>
                 <td style={{ ...td, whiteSpace: 'nowrap' }}>{b.cat}</td>
-                <td style={{ ...td, color: theme.accentHi, whiteSpace: 'nowrap' }}>{b.school}</td>
+                <td style={{ ...td, color: theme.goldHi, whiteSpace: 'nowrap' }}>{b.school}</td>
                 <td style={{ ...td, whiteSpace: 'nowrap' }}>{b.set}</td>
                 <td style={td}>{b.recipe}</td>
                 <td style={{ ...td, whiteSpace: 'nowrap' }}>{b.bowLabel || '—'}</td>
@@ -163,7 +163,7 @@ export default function GearRefs() {
           <tbody>
             {t.gearAffixes.map((a) => (
               <tr key={a.key}>
-                <td style={{ ...td, color: theme.accentHi, whiteSpace: 'nowrap' }}>
+                <td style={{ ...td, color: theme.goldHi, whiteSpace: 'nowrap' }}>
                   {a.label}
                   {a.recipeNames.length === 0 && <span style={{ color: theme.muted, fontSize: 11 }}> · {t.gearSurvivalNote}</span>}
                 </td>
@@ -183,13 +183,13 @@ export default function GearRefs() {
 
       <h3 style={h3}>{t.gearFormulaTitle}</h3>
       <div style={{ fontSize: 12.5, color: theme.paper, lineHeight: 1.9 }}>
-        <div style={{ color: theme.accentHi }}>{t.gearFormulaRatesTitle}</div>
+        <div style={{ color: theme.goldHi }}>{t.gearFormulaRatesTitle}</div>
         <div>· {fill(t.gearFormulaAccTemplate, { white: 130 })}</div>
         <div>· {fill(t.gearFormulaCritTemplate, { white: 148 })}</div>
         <div>· {fill(t.gearFormulaIntTemplate, { white: 74 })}</div>
         <div>· {fill(t.gearFormulaBarsTemplate, { acc: 8.8, crit: 9.8, int: 4.9, minCrit: 4.1, shiInt: 2.1 })}</div>
         <div>· {fill(t.gearFormulaBowTemplate, { acc: 4.7, crit: 5.2, int: 2.6, res: t.gearResDefault })}</div>
-        <div style={{ color: theme.accentHi, marginTop: 6 }}>{t.gearFormulaDimsTitle}</div>
+        <div style={{ color: theme.goldHi, marginTop: 6 }}>{t.gearFormulaDimsTitle}</div>
       </div>
       <div style={{ overflowX: 'auto', marginTop: 4 }}>
         <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: 480 }}>
@@ -197,7 +197,7 @@ export default function GearRefs() {
           <tbody>
             {t.gearDimRows.map((d) => (
               <tr key={d.name}>
-                <td style={{ ...td, color: theme.accentHi, whiteSpace: 'nowrap' }}>{d.name}</td>
+                <td style={{ ...td, color: theme.goldHi, whiteSpace: 'nowrap' }}>{d.name}</td>
                 <td style={td}>{d.conv}</td>
                 <td style={{ ...td, color: theme.muted }}>{d.full}</td>
               </tr>
@@ -206,7 +206,7 @@ export default function GearRefs() {
         </table>
       </div>
       <div style={{ fontSize: 12.5, color: theme.paper, lineHeight: 1.9, marginTop: 8 }}>
-        <span style={{ color: theme.accentHi }}>{t.gearFormulaOrderTitle}：</span>{t.gearFormulaOrderText}
+        <span style={{ color: theme.goldHi }}>{t.gearFormulaOrderTitle}：</span>{t.gearFormulaOrderText}
       </div>
     </div>
   );
@@ -241,15 +241,15 @@ export function GearSectRecipes({ sectName, onPicked }: { sectName: string; onPi
   if (!rows.length) return null;
   return (
     <div style={{ marginTop: 16 }}>
-      <div style={{ color: theme.accentHi, fontSize: 14, marginBottom: 8 }}>{t.gearSectRecipesTitle}</div>
+      <div style={{ color: theme.goldHi, fontSize: 14, marginBottom: 8 }}>{t.gearSectRecipesTitle}</div>
       <div style={{ display: 'grid', gap: 8 }}>
         {rows.map((b) => (
           <div key={b.idx} style={{
             display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap',
-            border: '1px solid rgba(67,160,134,.22)', borderRadius: 10, padding: '9px 12px',
+            border: '1px solid rgba(201,163,92,.22)', borderRadius: 10, padding: '9px 12px',
             background: 'rgba(0,0,0,.25)',
           }}>
-            <span style={{ color: theme.accentHi, fontSize: 13.5, whiteSpace: 'nowrap' }}>{b.school} · {b.set}</span>
+            <span style={{ color: theme.goldHi, fontSize: 13.5, whiteSpace: 'nowrap' }}>{b.school} · {b.set}</span>
             <span style={{ color: theme.paper, fontSize: 12.5, flex: '1 1 220px' }}>
               {b.recipe}
               {b.bowLabel ? ` · ${b.bowLabel}` : ''}
