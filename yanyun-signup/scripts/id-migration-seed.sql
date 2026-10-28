@@ -37,7 +37,8 @@ INSERT INTO user_guild_nicks (discord_id, guild_id, nick) VALUES
 INSERT INTO push_tokens (discord_id, token, platform) VALUES
   ('111111111111111111', 'ExponentPushToken[aaa]', 'ios');
 INSERT INTO usage_counters (discord_id, metric, day, count, updated_at) VALUES
-  ('111111111111111111', 'ocr_batch', '2026-10-28', 3, 0);
+  ('111111111111111111', 'ocr_batch', '2026-10-28', 3, 0),
+  ('guild:jiliguala', 'guild_announcements', '2026-10-28', 2, 0);
 
 INSERT INTO settings (tenant, key, value) VALUES
   ('jiliguala', 'discord_guild_id', '123456789012345678'),
@@ -181,8 +182,9 @@ INSERT INTO season_rollovers (tenant, from_season_key, to_season_key, templates_
   ('jiliguala', 'S4', 'S5', 1, '{}', '111111111111111111', strftime('%s','2026-10-27 18:00:00'));
 INSERT INTO contribution_rules (tenant, action_key, points, enabled, updated_by, updated_at) VALUES
   ('jiliguala', 'attendance', 5, 1, '111111111111111111', 0);
--- Dedupe keys embed the OLD event id + Discord id on purpose: they
--- are historical opaque tokens and must pass through unchanged.
+-- Dedupe keys embed the OLD event id + Discord id on purpose: the
+-- migration rewrites both segments through the maps, or the runtime
+-- (which writes new-format keys) would re-credit these events.
 INSERT INTO contribution_entries (tenant, discord_id, action_key, points, event_id, dedupe_key, created_at) VALUES
   ('jiliguala', '222222222222222222', 'attendance', 5, 1, 'attendance:1:222222222222222222', strftime('%s','2026-10-26 21:00:00')),
   ('jiliguala', '888888888888888888', 'leading', 10, 2, 'leading:2:888888888888888888', strftime('%s','2026-10-26 21:30:00'));

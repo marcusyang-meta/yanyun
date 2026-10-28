@@ -20,6 +20,18 @@
 //   Tl           lenient tenant (log tables): unmapped slug -> 0
 //   U:<newName>  Discord ID (class B, internal association) -> user
 //                ID, column renamed to <newName>
+//   DEDUPE       contribution_entries.dedupe_key: the three known
+//                key shapes embed an entity ID and a Discord ID
+//                (leading:<event>:<discord>, attendance:<event>:
+//                <discord>, mentoring:pairing:<pairing>:<discord>);
+//                both segments are rewritten through the maps, or a
+//                post-migration sync would re-credit stock events
+//                under new-format keys and double-count points
+//   S:<newName>  scope key (usage_counters): 'guild:<slug>' values
+//                resolve through the guild map, everything else
+//                through the user map; the typed IDs never collide
+//                (01xx guilds vs 02xx users), so one INTEGER column
+//                carries both scopes
 //   E:<table>    entity foreign key -> the target table's new ID
 //   OWNERKIND    grouping_custom_fields.owner_id, resolved through
 //                the events or templates map by owner_kind
@@ -172,14 +184,14 @@ const ACTIONS = {
   ops_nudge_sends: { tenant: 'T', event_id: 'E:events', sent_by: 'U:sent_by_user_id' },
   season_rollovers: { tenant: 'T', created_by: 'U:created_by_user_id' },
   contribution_rules: { tenant: 'T', updated_by: 'U:updated_by_user_id' },
-  contribution_entries: { tenant: 'T', discord_id: 'U:user_id', event_id: 'E:events' },
+  contribution_entries: { tenant: 'T', discord_id: 'U:user_id', event_id: 'E:events', dedupe_key: 'DEDUPE' },
   user_gear_items: { discord_id: 'U:user_id' },
   user_gear_builds: { discord_id: 'U:user_id' },
   build_share_links: { build_id: 'E:user_gear_builds', discord_id: 'U:user_id' },
   heirloom_item_pushes: { tenant: 'T', discord_id: 'U:user_id' },
   heirloom_set_state: { tenant: 'T', discord_id: 'U:user_id' },
   push_tokens: { discord_id: 'U:user_id' },
-  usage_counters: { discord_id: 'U:user_id' },
+  usage_counters: { discord_id: 'S:user_id' },
   feedback: { discord_id: 'U:user_id' },
   guild_entitlements: { tenant: 'T' },
   guild_members: { tenant: 'T' },
@@ -272,7 +284,7 @@ function parseTable(name) {
 const renameOf = (table) => {
   const out = {};
   for (const [col, action] of Object.entries(ACTIONS[table] || {})) {
-    if (action.startsWith('U:')) out[col] = action.slice(2);
+    if (action.startsWith('U:') || action.startsWith('S:')) out[col] = action.slice(2);
   }
   return out;
 };
@@ -388,16 +400,26 @@ for (const [table, spec] of Object.entries(RENUMBER)) {
 const orphanSources = [];
 for (const [table, actions] of Object.entries(ACTIONS)) {
   for (const [col, action] of Object.entries(actions)) {
-    if (action.startsWith('U:')) orphanSources.push([table, col]);
+    if (action.startsWith('U:')) orphanSources.push([table, col, '']);
+    // Scope keys: guild-scoped values are not users; only the plain
+    // Discord-ID values can be orphans.
+    if (action.startsWith('S:')) orphanSources.push([table, col, `AND ${col} NOT LIKE 'guild:%'`]);
   }
 }
 emit(`
 CREATE TABLE _idmig_orphans (discord_id TEXT PRIMARY KEY);`);
-for (const [table, col] of orphanSources) {
+for (const [table, col, extra] of orphanSources) {
   emit(
-    `INSERT OR IGNORE INTO _idmig_orphans SELECT ${col} FROM ${table} WHERE ${col} IS NOT NULL AND ${col} <> '';`,
+    `INSERT OR IGNORE INTO _idmig_orphans SELECT ${col} FROM ${table} WHERE ${col} IS NOT NULL AND ${col} <> '' ${extra};`,
   );
 }
+emit(`
+-- Discord IDs that exist ONLY inside contribution dedupe keys are
+-- class-B references too: collect them as orphans so their user IDs
+-- exist before the keys are rewritten.
+INSERT OR IGNORE INTO _idmig_orphans SELECT substr(dedupe_key, 9 + instr(substr(dedupe_key, 9), ':')) FROM contribution_entries WHERE dedupe_key LIKE 'leading:%';
+INSERT OR IGNORE INTO _idmig_orphans SELECT substr(dedupe_key, 12 + instr(substr(dedupe_key, 12), ':')) FROM contribution_entries WHERE dedupe_key LIKE 'attendance:%';
+INSERT OR IGNORE INTO _idmig_orphans SELECT substr(dedupe_key, 18 + instr(substr(dedupe_key, 18), ':')) FROM contribution_entries WHERE dedupe_key LIKE 'mentoring:pairing:%';`);
 emit(`DELETE FROM _idmig_orphans WHERE discord_id IN (SELECT discord_id FROM users);
 INSERT INTO users (discord_id, username, avatar, guilds_json, guilds_checked_at, created_at, updated_at, locale_pref, deletion_requested_at, fresh_auth_at)
 SELECT discord_id, '', '', '[]', 0, strftime('%s','now'), strftime('%s','now'), NULL, NULL, NULL FROM _idmig_orphans;`);
@@ -515,6 +537,16 @@ function exprFor(table, col) {
     // sender); in the typed shape unset is 0, the invalid-ID sentinel.
     return `CASE WHEN o.${col} IS NULL THEN NULL WHEN o.${col} = '' THEN 0 ELSE ${userExpr(col)} END`;
   }
+  if (action.startsWith('S:')) {
+    return `CASE WHEN o.${col} IS NULL THEN NULL WHEN o.${col} = '' THEN 0 WHEN o.${col} LIKE 'guild:%' THEN (SELECT new_id FROM _idmig_guild WHERE old_key = substr(o.${col}, 7)) ELSE ${userExpr(col)} END`;
+  }
+  if (action === 'DEDUPE') {
+    const seg = (restStart, map) =>
+      `(SELECT new_id FROM ${map} WHERE old_key = substr(o.dedupe_key, ${restStart}, instr(substr(o.dedupe_key, ${restStart}), ':') - 1))`;
+    const who = (restStart) =>
+      `(SELECT new_id FROM _idmig_user WHERE old_key = substr(o.dedupe_key, ${restStart} + instr(substr(o.dedupe_key, ${restStart}), ':')))`;
+    return `CASE WHEN o.dedupe_key LIKE 'leading:%' THEN 'leading:' || ${seg(9, '_idmig_map_events')} || ':' || ${who(9)} WHEN o.dedupe_key LIKE 'attendance:%' THEN 'attendance:' || ${seg(12, '_idmig_map_events')} || ':' || ${who(12)} WHEN o.dedupe_key LIKE 'mentoring:pairing:%' THEN 'mentoring:pairing:' || ${seg(18, '_idmig_map_mentor_pairings')} || ':' || ${who(18)} ELSE o.dedupe_key END`;
+  }
   if (action.startsWith('E:')) {
     const target = action.slice(2);
     const lookup = `(SELECT new_id FROM _idmig_map_${target} WHERE old_key = CAST(o.${col} AS TEXT))`;
@@ -547,7 +579,7 @@ function newDdl(table) {
     if (action === 'T' || action === 'Tl' || action === 'GUILDPAIR') {
       d = d.replace(new RegExp(`^(${name})\\s+TEXT`, 'i'), '$1 INTEGER');
     }
-    if (action && action.startsWith('U:')) {
+    if (action && (action.startsWith('U:') || action.startsWith('S:'))) {
       d = d.replace(
         new RegExp(`^${name}\\s+TEXT`, 'i'),
         `${renames[name]} INTEGER`,
@@ -557,7 +589,7 @@ function newDdl(table) {
       action === 'T' ||
       action === 'Tl' ||
       action === 'GUILDPAIR' ||
-      (action && action.startsWith('U:'))
+      (action && (action.startsWith('U:') || action.startsWith('S:')))
     ) {
       // The column's type just became INTEGER; a '' text default
       // would be a lie in the new shape.
