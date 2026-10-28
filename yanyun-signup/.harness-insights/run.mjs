@@ -99,7 +99,7 @@ await seat(e4, 'u2', '鸽王乙', false);
 // Unstamped seat: never credited to anyone.
 await insertSignup(db, { event_id: e1, nickname: '路人', uid: 'x', discord_id: null, ready_at: null });
 
-// Race: dungeon 雷泽 is an S5 dungeon in the dex.
+// Race: the seeded dex dungeon belongs to season S5.
 await insertDungeonDex(db, { name: '雷泽', size: 10, season: 'S5', category: '传薪', level: 100 });
 const r1 = (await insertEvent(db, {
   tenant: SLUG, title: '雷泽竞速一', type: 'race', status: 'completed',
