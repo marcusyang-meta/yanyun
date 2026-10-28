@@ -160,6 +160,27 @@ export type PlatformStringKey =
   | 'errors_pollOptionInvalid'
   | 'errors_pollForbidden'
   | 'errors_customFieldInvalid'
+  | 'errors_fillOfferExists'
+  | 'errors_fillSchoolRequired'
+  | 'errors_fillWindowsInvalid'
+  | 'errors_fillRequestNotFound'
+  | 'errors_fillRequestNotOpen'
+  | 'errors_fillOfferNotOpen'
+  | 'errors_fillInviteExists'
+  | 'errors_fillInviteNotFound'
+  | 'errors_fillInviteNotPending'
+  | 'errors_fillInviteNotAccepted'
+  | 'errors_fillSelfInvite'
+  | 'errors_marketManageOnly'
+  | 'errors_allianceSelf'
+  | 'errors_allianceExists'
+  | 'errors_allianceNotFound'
+  | 'errors_allianceNotPending'
+  | 'errors_allianceNotActive'
+  | 'errors_allyNotAllied'
+  | 'errors_allyNotShared'
+  | 'errors_visitorSlotsFull'
+  | 'errors_visitorSlotsInvalid'
   | 'errors_customFieldTooMany'
   | 'errors_signupAnswerRequired'
   | 'errors_signupAnswerInvalid'
@@ -345,6 +366,27 @@ export const PLATFORM_STRING_KEYS: readonly PlatformStringKey[] = [
   'errors_pollOptionInvalid',
   'errors_pollForbidden',
   'errors_customFieldInvalid',
+  'errors_fillOfferExists',
+  'errors_fillSchoolRequired',
+  'errors_fillWindowsInvalid',
+  'errors_fillRequestNotFound',
+  'errors_fillRequestNotOpen',
+  'errors_fillOfferNotOpen',
+  'errors_fillInviteExists',
+  'errors_fillInviteNotFound',
+  'errors_fillInviteNotPending',
+  'errors_fillInviteNotAccepted',
+  'errors_fillSelfInvite',
+  'errors_marketManageOnly',
+  'errors_allianceSelf',
+  'errors_allianceExists',
+  'errors_allianceNotFound',
+  'errors_allianceNotPending',
+  'errors_allianceNotActive',
+  'errors_allyNotAllied',
+  'errors_allyNotShared',
+  'errors_visitorSlotsFull',
+  'errors_visitorSlotsInvalid',
   'errors_customFieldTooMany',
   'errors_signupAnswerRequired',
   'errors_signupAnswerInvalid',

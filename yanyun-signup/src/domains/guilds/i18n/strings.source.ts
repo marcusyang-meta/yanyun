@@ -48,6 +48,8 @@ export abstract class GuildHomeFbtUtils {
   static readOnlyBanner(fbs: FbsAPI) { return fbs("该百业尚未绑定 Discord 服务器 · 只读浏览", "Banner text for unbound guilds on the guild home page, used to warn that the guild has not bound a Discord server and is read-only."); }
   static adminLink(fbs: FbsAPI) { return fbs("管理", "Link label for the guild home page, used to open the guild admin area, shown only to viewers who pass the admin check."); }
   static tabSchedule(fbs: FbsAPI) { return fbs("排期", "Tab label for the guild home page, used to switch to the schedule tab."); }
+  static tabMarket(fbs: FbsAPI) { return fbs("补位市场", "Tab label for the guild home page, used to switch to the fill-in market tab."); }
+  static tabAllies(fbs: FbsAPI) { return fbs("盟友", "Tab label for the guild home page, used to switch to the allied guilds tab."); }
 }
 
 export abstract class GuildAdminFbtUtils {
@@ -403,4 +405,96 @@ export abstract class OpsFbtUtils {
   static saveButton(fbs: FbsAPI) { return fbs("保存", "Button label for the contribution points rules, used to save one action's point value."); }
   static myPointsTitle(fbs: FbsAPI) { return fbs("我的贡献积分", "Title text for the member's own contribution points view, used as the heading above their balance and ledger."); }
   static myPointsTotal(fbs: FbsAPI, p?: StringParams) { return fbs(["累计 ", fbs.param("points", pv(p, "points")), " 分"], "Balance text for the member's own contribution points view, used to show their total, where {points} is the total point count."); }
+}
+
+export abstract class MarketFbtUtils {
+  static title(fbs: FbsAPI) { return fbs("补位市场", "Title text for the fill-in market page, used as the heading of the cross-guild substitute market."); }
+  static body(fbs: FbsAPI) { return fbs("缺人时来这里找补位：任何成员都可以免费发布自己的补位供给；百业盟主档的车头与管理员可以针对车队缺口发布需求、邀请补位。市场只负责撮合，是否落座由车头在车队里手动确认。", "Intro text for the fill-in market page, used to explain the supply side is free for every member, the demand side belongs to top-tier guild leaders and admins, and seating always stays a manual step by the squad leader."); }
+  static lockedTitle(fbs: FbsAPI) { return fbs("无法打开补位市场", "Title text for the fill-in market locked page, used when the viewer is signed out or not a member of the guild."); }
+  static lockedBody(fbs: FbsAPI) { return fbs("登录并成为本百业成员后，可以发布补位供给、处理收到的邀请。", "Body text for the fill-in market locked page, used to explain that signing in as a guild member unlocks publishing supply and handling invitations."); }
+  static supplyTitle(fbs: FbsAPI) { return fbs("我的补位供给", "Section heading for the my-supply area of the fill-in market page, used above the viewer's own fill-in offer."); }
+  static supplyHint(fbs: FbsAPI) { return fbs("发布供给免费、与百业档位无关。公开面只展示你的流派、可补位时段与所属百业名，不展示任何联系方式。", "Hint text for the my-supply area, used to explain publishing is free on every tier and only the school, windows and home guild name are shown publicly."); }
+  static supplyEmpty(fbs: FbsAPI) { return fbs("你还没有发布补位供给。", "Empty-state text for the my-supply area, used when the viewer has no open fill-in offer."); }
+  static schoolLabel(fbs: FbsAPI) { return fbs("流派", "Field label for the fill-in offer form, used for the school input."); }
+  static windowsLabel(fbs: FbsAPI) { return fbs("可补位时段", "Field label for the fill-in offer form, used for the weekly availability windows input."); }
+  static noteLabel(fbs: FbsAPI) { return fbs("自我说明", "Field label for the fill-in offer form, used for the short self-description input."); }
+  static notePlaceholder(fbs: FbsAPI) { return fbs("一句说明：擅长的副本、装备情况……", "Placeholder text for the fill-in offer form, used in the self-description input."); }
+  static publishButton(fbs: FbsAPI) { return fbs("发布供给", "Button label for the fill-in offer form, used to publish the viewer's fill-in offer."); }
+  static withdrawButton(fbs: FbsAPI) { return fbs("撤下供给", "Button label for the my-supply area, used to withdraw the viewer's open fill-in offer."); }
+  static offerStatusOpen(fbs: FbsAPI) { return fbs("已发布", "Status label for fill-in offers, used for an offer currently open on the market."); }
+  static homeGuildPattern(fbs: FbsAPI, p?: StringParams) { return fbs(["所属百业：", fbs.param("name", pv(p, "name"))], "Home guild line pattern for fill-in offers, used to show which guild the supplier belongs to, where {name} is the guild name."); }
+  static windowLine(fbs: FbsAPI, p?: StringParams) { return fbs([fbs.param("day", pv(p, "day")), " ", fbs.param("start", pv(p, "start")), "–", fbs.param("end", pv(p, "end"))], "Availability window line pattern for fill-in offers, used to render one weekly window, where {day} is the weekday label and {start} / {end} are local clock times."); }
+  static weekday0(fbs: FbsAPI) { return fbs("周日", "Weekday label for fill-in offer windows, used for Sunday."); }
+  static weekday1(fbs: FbsAPI) { return fbs("周一", "Weekday label for fill-in offer windows, used for Monday."); }
+  static weekday2(fbs: FbsAPI) { return fbs("周二", "Weekday label for fill-in offer windows, used for Tuesday."); }
+  static weekday3(fbs: FbsAPI) { return fbs("周三", "Weekday label for fill-in offer windows, used for Wednesday."); }
+  static weekday4(fbs: FbsAPI) { return fbs("周四", "Weekday label for fill-in offer windows, used for Thursday."); }
+  static weekday5(fbs: FbsAPI) { return fbs("周五", "Weekday label for fill-in offer windows, used for Friday."); }
+  static weekday6(fbs: FbsAPI) { return fbs("周六", "Weekday label for fill-in offer windows, used for Saturday."); }
+  static inboxTitle(fbs: FbsAPI) { return fbs("收到的补位邀请", "Section heading for the invitation inbox on the fill-in market page, used above the invitations addressed to the viewer."); }
+  static inboxEmpty(fbs: FbsAPI) { return fbs("暂无补位邀请。", "Empty-state text for the invitation inbox, used when the viewer has no fill-in invitations."); }
+  static acceptButton(fbs: FbsAPI) { return fbs("接受邀请", "Button label for invitation rows, used to accept a fill-in invitation."); }
+  static declineButton(fbs: FbsAPI) { return fbs("婉拒", "Button label for invitation rows, used to decline a fill-in invitation."); }
+  static inviteStatusPending(fbs: FbsAPI) { return fbs("待确认", "Status label for fill-in invitations, used for an invitation awaiting the supplier's answer."); }
+  static inviteStatusAccepted(fbs: FbsAPI) { return fbs("已接受", "Status label for fill-in invitations, used for an accepted invitation."); }
+  static inviteStatusDeclined(fbs: FbsAPI) { return fbs("已婉拒", "Status label for fill-in invitations, used for a declined invitation."); }
+  static inviteStatusExpired(fbs: FbsAPI) { return fbs("已失效", "Status label for fill-in invitations, used when the request matched someone else or closed."); }
+  static inviteFromPattern(fbs: FbsAPI, p?: StringParams) { return fbs(["来自 ", fbs.param("guild", pv(p, "guild")), " · ", fbs.param("title", pv(p, "title"))], "Invitation source line pattern, used to show which guild and squad an invitation belongs to, where {guild} is the demanding guild's name and {title} the squad title."); }
+  static demandTitle(fbs: FbsAPI) { return fbs("补位需求", "Section heading for the demand area of the fill-in market page, used above the guild's fill requests and the supplier browse list."); }
+  static demandLockedTitle(fbs: FbsAPI) { return fbs("补位需求是盟主档功能", "Title text for the locked demand area, used when the guild is below the top premium tier."); }
+  static demandLockedBody(fbs: FbsAPI) { return fbs("发布补位需求、浏览并邀请补位人选需要百业开通盟主档（T3）。发布补位供给与处理收到的邀请不受档位限制，所有成员免费可用。", "Body text for the locked demand area, used to explain posting requests and inviting suppliers needs the top tier while publishing supply and answering invitations stay free."); }
+  static demandNoManageHint(fbs: FbsAPI) { return fbs("只有本百业的车头与管理员可以发布需求与发出邀请。", "Hint text for the demand area, used when the viewer is a guild member but leads no squad and is not an admin."); }
+  static requestsTitle(fbs: FbsAPI) { return fbs("本百业的补位需求", "Subheading for the demand area, used above the guild's own fill requests."); }
+  static requestsEmpty(fbs: FbsAPI) { return fbs("暂无补位需求。在车队详情里针对缺口发布，或在这里新建。", "Empty-state text for the demand area, used when the guild has no fill requests."); }
+  static createRequestTitle(fbs: FbsAPI) { return fbs("发布补位需求", "Subheading for the request creation form in the demand area, used above the form."); }
+  static groupingLabel(fbs: FbsAPI) { return fbs("缺人的车队", "Field label for the request creation form, used for the squad selector."); }
+  static neededRoleLabel(fbs: FbsAPI) { return fbs("缺的职责", "Field label for the request creation form, used for the needed role selector."); }
+  static neededSchoolLabel(fbs: FbsAPI) { return fbs("指定流派（可选）", "Field label for the request creation form, used for the optional school input."); }
+  static requestNoteLabel(fbs: FbsAPI) { return fbs("需求说明", "Field label for the request creation form, used for the request note input."); }
+  static createRequestButton(fbs: FbsAPI) { return fbs("发布需求", "Button label for the request creation form, used to post a fill request."); }
+  static closeRequestButton(fbs: FbsAPI) { return fbs("关闭需求", "Button label for request rows, used to close a fill request."); }
+  static requestStatusOpen(fbs: FbsAPI) { return fbs("招募中", "Status label for fill requests, used for a request still looking for a supplier."); }
+  static requestStatusMatched(fbs: FbsAPI) { return fbs("已撮合", "Status label for fill requests, used when a supplier accepted an invitation."); }
+  static requestStatusClosed(fbs: FbsAPI) { return fbs("已关闭", "Status label for fill requests, used for a closed request."); }
+  static offersTitle(fbs: FbsAPI) { return fbs("可邀请的补位人选", "Subheading for the demand area, used above the browsable supplier list."); }
+  static offersEmpty(fbs: FbsAPI) { return fbs("市场里暂无补位供给。", "Empty-state text for the supplier browse list, used when no offers are open."); }
+  static inviteButton(fbs: FbsAPI) { return fbs("发出邀请", "Button label for supplier rows, used to invite that supplier to the selected request."); }
+  static invitedLabel(fbs: FbsAPI) { return fbs("已邀请", "Status text for supplier rows, used when an invitation is already pending or accepted for the selected request."); }
+  static seatButton(fbs: FbsAPI) { return fbs("落座到车队", "Button label for accepted invitation rows, used by the squad leader to manually seat the matched supplier into the squad."); }
+  static seatedLabel(fbs: FbsAPI) { return fbs("已落座", "Status text for accepted invitation rows, used once the supplier sits in the squad."); }
+  static roleHealer(fbs: FbsAPI) { return fbs("奶", "Role label for fill requests and offers, used for the healer role."); }
+  static roleDps(fbs: FbsAPI) { return fbs("输出", "Role label for fill requests and offers, used for the damage role."); }
+  static backLabel(fbs: FbsAPI) { return fbs("‹ 返回百业", "Back link for the fill-in market page, used at the top to return to the guild home page."); }
+}
+
+export abstract class AlliesFbtUtils {
+  static title(fbs: FbsAPI) { return fbs("盟友百业", "Title text for the allied guilds page, used as the page heading."); }
+  static body(fbs: FbsAPI) { return fbs("结盟后，双方车队可以互相开放：车头把车队标为盟友可见并设置访客名额，盟友成员就能在自己百业看到并报名访客位。解除结盟后，共享立即失效。", "Intro text for the allied guilds page, used to explain allied squads can be flagged visible with a visitor quota, allied members can claim visitor seats, and dissolving the alliance revokes sharing at once."); }
+  static lockedTitle(fbs: FbsAPI) { return fbs("无法打开盟友百业", "Title text for the allied guilds locked page, used when the viewer is signed out or not a member of the guild."); }
+  static lockedBody(fbs: FbsAPI) { return fbs("登录并成为本百业成员后，可以查看盟友与共享活动。", "Body text for the allied guilds locked page, used to explain signing in as a guild member unlocks allies and shared squads."); }
+  static activeTitle(fbs: FbsAPI) { return fbs("已结盟百业", "Section heading for the allied guilds page, used above the list of active allies."); }
+  static activeEmpty(fbs: FbsAPI) { return fbs("本百业暂无盟友。", "Empty-state text for the allied guilds page, used when the guild has no active allies."); }
+  static statusPending(fbs: FbsAPI) { return fbs("待对方确认", "Status label for alliance relations, used for an invitation awaiting the other guild's admin."); }
+  static statusActive(fbs: FbsAPI) { return fbs("已结盟", "Status label for alliance relations, used for an active alliance."); }
+  static adminTitle(fbs: FbsAPI) { return fbs("结盟管理", "Section heading for the alliance admin area, used above the invitation and relation management controls, shown only to guild admins."); }
+  static inviteLabel(fbs: FbsAPI) { return fbs("对方百业", "Field label for the alliance invitation form, used for the other guild selector."); }
+  static inviteHint(fbs: FbsAPI) { return fbs("结盟邀请由对方百业管理员确认后生效；任一方管理员都可以单方解除结盟。", "Hint text for the alliance invitation form, used to explain the other guild's admin must accept and either side's admin may dissolve later."); }
+  static inviteButton(fbs: FbsAPI) { return fbs("发出结盟邀请", "Button label for the alliance invitation form, used to send an alliance invitation."); }
+  static incomingTitle(fbs: FbsAPI) { return fbs("待处理的结盟邀请", "Subheading for the alliance admin area, used above invitations from other guilds awaiting this guild's admin."); }
+  static outgoingTitle(fbs: FbsAPI) { return fbs("已发出的结盟邀请", "Subheading for the alliance admin area, used above this guild's pending outgoing invitations."); }
+  static acceptButton(fbs: FbsAPI) { return fbs("接受结盟", "Button label for incoming alliance invitations, used to accept and activate the alliance."); }
+  static rejectButton(fbs: FbsAPI) { return fbs("拒绝", "Button label for incoming alliance invitations, used to decline the alliance."); }
+  static endButton(fbs: FbsAPI) { return fbs("解除结盟", "Button label for active alliance rows, used to dissolve the alliance; sharing stops immediately."); }
+  static sharedTitle(fbs: FbsAPI) { return fbs("盟友共享活动", "Section heading for the allied guilds page, used above the ally-visible squads of allied guilds."); }
+  static sharedEmpty(fbs: FbsAPI) { return fbs("暂无盟友共享活动。", "Empty-state text for the shared squads section, used when no allied guild has an open ally-visible squad."); }
+  static hostPattern(fbs: FbsAPI, p?: StringParams) { return fbs(["主办：", fbs.param("name", pv(p, "name"))], "Host line pattern for shared squads, used to show which allied guild hosts the squad, where {name} is the host guild name."); }
+  static visitorLeftPattern(fbs: FbsAPI, p?: StringParams) { return fbs(["访客位 ", fbs.param("left", pv(p, "left")), " / ", fbs.param("total", pv(p, "total"))], "Visitor quota pattern for shared squads, used to show remaining visitor seats against the quota, where {left} is the remaining count and {total} the quota."); }
+  static visitorJoinButton(fbs: FbsAPI) { return fbs("报名访客位", "Button label for shared squad rows, used to claim a visitor seat in the allied guild's squad."); }
+  static visitorJoinedLabel(fbs: FbsAPI) { return fbs("已报名访客位", "Status text for shared squad rows, used once the viewer holds a seat in that squad."); }
+  static sharingTitle(fbs: FbsAPI) { return fbs("盟友共享设置", "Section heading for the squad sharing controls, used in the squad detail area where the leader sets ally visibility and the visitor quota."); }
+  static sharingHint(fbs: FbsAPI) { return fbs("开启后，盟友百业成员可以在他们的盟友页看到这辆车，并报名访客位（计入车队总名额）。访客名额为 0 时不开放报名。", "Hint text for the squad sharing controls, used to explain ally-visible squads appear on allies' pages, visitor seats count toward the squad's total capacity, and a zero quota opens no seats."); }
+  static allyVisibleLabel(fbs: FbsAPI) { return fbs("对盟友可见", "Label text for the squad sharing switch, used to flag the squad visible to allied guilds."); }
+  static visitorSlotsLabel(fbs: FbsAPI) { return fbs("访客名额", "Field label for the squad sharing controls, used for the visitor seat quota input."); }
+  static sharingSaveButton(fbs: FbsAPI) { return fbs("保存共享设置", "Button label for the squad sharing controls, used to save ally visibility and the visitor quota."); }
+  static backLabel(fbs: FbsAPI) { return fbs("‹ 返回百业", "Back link for the allied guilds page, used at the top to return to the guild home page."); }
 }

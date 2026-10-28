@@ -32,8 +32,8 @@
     "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary"
   },
   "src/domains/groupings/graphql.ts": {
-    "max": 153,
-    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context); +11 for the GroupingManageActions plain-data resolver map and the detail page manageActions resolver (same (p: any) delegation shape as the Seat map); +7 for the seat readiness surface (advanced reminders, 2026-10-26): setSeatReady mutation and Seat/Grouping resolvers in the same parent/args pattern; +44 for the grouping templates surface (2026-10-26): GroupingTemplate/GroupingTemplateManageActions/GroupingTemplateSave/GroupingTemplatePayload resolver maps, the template shell gens and the four template mutations, all in the same parent/args pattern; +14 for the F7 custom-field surface (2026-10-27): Grouping/GroupingTemplate customFields gens, the detail page rosterAnswers gen and the CustomField/RosterAnswer plain-data resolver maps, in the same parent/args pattern"
+    "max": 161,
+    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context); +11 for the GroupingManageActions plain-data resolver map and the detail page manageActions resolver (same (p: any) delegation shape as the Seat map); +7 for the seat readiness surface (advanced reminders, 2026-10-26): setSeatReady mutation and Seat/Grouping resolvers in the same parent/args pattern; +44 for the grouping templates surface (2026-10-26): GroupingTemplate/GroupingTemplateManageActions/GroupingTemplateSave/GroupingTemplatePayload resolver maps, the template shell gens and the four template mutations, all in the same parent/args pattern; +14 for the F7 custom-field surface (2026-10-27): Grouping/GroupingTemplate customFields gens, the detail page rosterAnswers gen and the CustomField/RosterAnswer plain-data resolver maps, in the same parent/args pattern; +8 for the P20 ally-sharing detail control (2026-10-27): the GroupingDetailPage allySharing gen and the AllySharingControl plain-data resolver map, in the same parent/args pattern"
   },
   "src/domains/groupings/grouping-routes.ts": {
     "max": 30,
@@ -92,8 +92,8 @@
     "reason": "Discord OAuth payloads and JWT claims at the external boundary; narrowed immediately after parsing"
   },
   "src/domains/identity/graphql.ts": {
-    "max": 71,
-    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context). Raised for the account self-service surface (settingsPage account fields + export/deletion payload shells), written in this file's established resolver style + recruit line: the Viewer.guildRecruit resolver in the same pattern + availability relocation: the SettingsAvailabilityGuild shell and the two settingsPage availability resolvers in the same pattern"
+    "max": 75,
+    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context). Raised for the account self-service surface (settingsPage account fields + export/deletion payload shells), written in this file's established resolver style + recruit line: the Viewer.guildRecruit resolver in the same pattern + availability relocation: the SettingsAvailabilityGuild shell and the two settingsPage availability resolvers in the same pattern + network line: the Viewer.fillMarket / Viewer.guildAllies resolvers and shell gens in the same pattern"
   },
   "src/domains/platform/blocks.ts": {
     "max": 10,
@@ -174,5 +174,9 @@
   "src/domains/guilds/ops.ts": {
     "max": 11,
     "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary"
+  },
+  "src/domains/guilds/network-graphql.ts": {
+    "max": 135,
+    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context) — the P19 fill market + P20 allies surface (page / section / row shells, payload shells and the twelve network mutations) in the same pattern as recruit-graphql.ts"
   }
 }

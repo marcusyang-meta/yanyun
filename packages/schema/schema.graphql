@@ -586,6 +586,9 @@ type GroupingDetailPage {
   # 管理员——2026-10-26 裁决与车头同权); 否则为 null, 客户端不渲染
   # 编辑/完成/恢复/解散入口。服务端在 mutation 处独立复验。
   manageActions: GroupingManageActions
+  # 盟友共享控件 (P20): 仅当观看者可管理本车时存在 (同 manageActions
+  # 判定); 否则为 null。setGroupingAllySharing 在 mutation 处独立复验。
+  allySharing: AllySharingControl
   # 存为模板动作对象: 仅当观看者可在本百业写 (建车同权) 时存在, 否则 null;
   # 客户端据此渲染「存为模板」入口, mutation 处独立复验。
   templateSave: GroupingTemplateSave
@@ -2232,6 +2235,8 @@ type Guild {
   homeTabSectLabel: String!
   homeTabAnnouncementsLabel: String!
   homeTabScheduleLabel: String!
+  homeTabMarketLabel: String!
+  homeTabAlliesLabel: String!
   # 管理入口文案: 仅通过管理判定 (getGuildAdminAccess, 与管理面同一
   # 口径, 含 omni) 的查看者才下发; 其余成员为 null, 主页不渲染入口 —
   # 进不去的入口不广告。可空即为此意, 勿改回 String!。
@@ -2264,6 +2269,8 @@ type GuildReadOnly {
   homeTabSectLabel: String!
   homeTabAnnouncementsLabel: String!
   homeTabScheduleLabel: String!
+  homeTabMarketLabel: String!
+  homeTabAlliesLabel: String!
   homeReadOnlyBanner: String!
   detailNotFoundText: String!
   detailBackToListLabel: String!
@@ -2291,6 +2298,8 @@ type Viewer {
   guild(slug: String!): GuildResult!
   guildAdmin(slug: String!): GuildAdminResult!  # 百业管理面: 响应类型即权限结论 (见下方 GuildAdmin)
   homeRecruit: HomeRecruitSection!  # 平台主页招新区 (F16 申请 / F24 清单 / F17 我的配对): 组成即权限结论 (见下方 HomeRecruitSection)
+  fillMarket(slug: String!): FillMarketResult!  # 补位市场页 (P19): 成员页 / Locked, 需求区按 T3 再分型 (见下方 FillMarketPage)
+  guildAllies(slug: String!): GuildAlliesResult!  # 盟友百业页 (P20): 成员页 / Locked, 结盟与共享均为读时判定
   discordServers: [DiscordServer!]!  # 我有管理权限的服务器 (服务端过滤)
   # UI 文案: 站点/登录/选择页/创建页/通用 — 全部由 Viewer shell 的 gen
   # 方法按请求 locale 生成, 未选中永不生成 (无 Strings 类型, 文案字段
@@ -2809,6 +2818,282 @@ type RecruitPayload {
   application: RecruitApplication
 }
 
+# ============ 跨百业网络 (P19 补位市场 / P20 盟友百业) ============
+# 按边收费 (DESIGN.md §9): 供给侧免费 (发布供给 / 处理邀请不问档位),
+# 需求侧 T3 (需求区在未达档时合成 FillDemandLocked, 零需求数据下发;
+# 需求类 mutation 服务端以同一判定复验)。paygate 总闸 OFF 时无人锁定
+# (只建不启用)。市场只撮合不裁决: 接受邀请不落座, 落座是需求方车头
+# 在 seatFillSupplier 里的人工动作 (走既有容量守卫落座)。结盟共享是
+# 读时判定: 解除结盟即刻失效, 无清理写。
+
+union FillMarketResult = FillMarketPage | FillMarketLocked
+
+type FillMarketPage {
+  slug: String!
+  guildName: String!
+  supply: FillSupplySection!
+  demand: FillDemandResult!
+  weekdayNames: [String!]!
+  marketTitle: String!
+  marketBody: String!
+  backLabel: String!
+}
+
+type FillMarketLocked {
+  slug: String!
+  lockedTitle: String!
+  lockedBody: String!
+  backLabel: String!
+}
+
+# 供给区 (免费边): 我的供给 + 我收到的邀请。
+type FillSupplySection {
+  myOffer: FillOffer
+  myInvites: [FillInvite!]!
+  supplyTitle: String!
+  supplyHint: String!
+  supplyEmptyText: String!
+  schoolLabel: String!
+  windowsLabel: String!
+  noteLabel: String!
+  notePlaceholder: String!
+  publishLabel: String!
+  withdrawLabel: String!
+  inboxTitle: String!
+  inboxEmptyText: String!
+  acceptLabel: String!
+  declineLabel: String!
+}
+
+# 补位供给的公开面: 只含市场必需字段 (流派 / 时段 / 所属百业名 /
+# 自述), 无 Discord ID、无联系方式。
+type FillOffer {
+  id: ID!
+  displayName: String!
+  school: String!
+  roleLabel: String!
+  note: String!
+  homeTenant: String!
+  homeGuildName: String!
+  homeGuildPattern: String!
+  windows: [AvailabilitySlot!]!
+  statusLabel: String!
+  createdAtText: String!
+}
+
+union FillDemandResult = FillDemandSection | FillDemandLocked
+
+type FillDemandLocked {
+  lockedTitle: String!
+  lockedBody: String!
+}
+
+# 需求区 (T3 边): 本百业需求 + 全市场供给浏览。manage 仅当观看者
+# 在本百业有可管理的车 (车头 / 管理员) 时合成, 否则为 null。
+type FillDemandSection {
+  requests: [FillRequest!]!
+  offers: [FillOffer!]!
+  manage: FillDemandManage
+  demandTitle: String!
+  requestsTitle: String!
+  requestsEmptyText: String!
+  offersTitle: String!
+  offersEmptyText: String!
+  noManageHint: String!
+}
+
+type FillDemandManage {
+  myGroupings: [FillDemandGrouping!]!
+  createTitle: String!
+  groupingLabel: String!
+  neededRoleLabel: String!
+  neededSchoolLabel: String!
+  noteLabel: String!
+  createLabel: String!
+  roleHealerLabel: String!
+  roleDpsLabel: String!
+}
+
+type FillDemandGrouping {
+  id: ID!
+  title: String!
+  dungeon: String!
+  startsAtText: String!
+}
+
+type FillRequest {
+  id: ID!
+  groupingId: ID!
+  groupingTitle: String!
+  dungeon: String!
+  startsAtText: String!
+  neededRole: String!
+  neededRoleLabel: String!
+  neededSchool: String
+  note: String!
+  status: FillRequestStatus!
+  statusLabel: String!
+  createdByName: String!
+  createdAtText: String!
+  # 管理动作对象: 仅本车可管理者 (车头 / 本百业管理员) 有值; 本需求
+  # 的邀请名单只在该对象内下发。mutation 处独立复验。
+  manageActions: FillRequestManageActions
+}
+
+enum FillRequestStatus { OPEN MATCHED CLOSED }
+
+type FillRequestManageActions {
+  closeLabel: String!
+  seatLabel: String!
+  seatedLabel: String!
+  inviteLabel: String!
+  invitedLabel: String!
+  invites: [FillInvite!]!
+}
+
+type FillInvite {
+  id: ID!
+  requestId: ID!
+  offerId: ID
+  status: FillInviteStatus!
+  statusLabel: String!
+  fromName: String!
+  toName: String!
+  guildName: String!
+  groupingTitle: String!
+  sourcePattern: String!
+  createdAtText: String!
+  # 落座动作对象: 仅当邀请已接受、观看者可管理该车、且对方尚未
+  # 落座时合成 (需求侧管理视图); 收件箱视图恒为 null。
+  seatAction: FillSeatAction
+}
+
+enum FillInviteStatus { PENDING ACCEPTED DECLINED EXPIRED }
+
+type FillSeatAction {
+  seatLabel: String!
+}
+
+type FillOfferPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  offer: FillOffer
+}
+
+type FillRequestPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  request: FillRequest
+}
+
+type FillInvitePayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  invite: FillInvite
+}
+
+type NetworkOkPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+}
+
+union GuildAlliesResult = GuildAlliesPage | GuildAlliesLocked
+
+type GuildAlliesPage {
+  slug: String!
+  guildName: String!
+  allies: [AllyGuild!]!
+  # 结盟管理区: 仅本百业管理员有值 (关系列表 + 可邀请目录)。
+  adminSection: AllianceAdminSection
+  sharedGroupings: [AllySharedGrouping!]!
+  alliesTitle: String!
+  alliesBody: String!
+  activeTitle: String!
+  activeEmptyText: String!
+  sharedTitle: String!
+  sharedEmptyText: String!
+  visitorJoinLabel: String!
+  visitorJoinedLabel: String!
+  backLabel: String!
+}
+
+type GuildAlliesLocked {
+  slug: String!
+  lockedTitle: String!
+  lockedBody: String!
+  backLabel: String!
+}
+
+type AllyGuild {
+  slug: String!
+  name: String!
+}
+
+type AllianceAdminSection {
+  relations: [AllianceRelation!]!
+  candidates: [AllyGuild!]!
+  adminTitle: String!
+  inviteLabel: String!
+  inviteHint: String!
+  inviteButtonLabel: String!
+  incomingTitle: String!
+  outgoingTitle: String!
+  acceptLabel: String!
+  rejectLabel: String!
+  endLabel: String!
+}
+
+type AllianceRelation {
+  id: ID!
+  otherSlug: String!
+  otherName: String!
+  status: AllianceStatus!
+  statusLabel: String!
+  outgoing: Boolean!
+  requestedByName: String!
+  createdAtText: String!
+}
+
+enum AllianceStatus { PENDING ACTIVE }
+
+# 盟友共享活动行: 主办百业的盟友可见车队 + 访客位余量 (读时按当前
+# 结盟状态合成; 非盟友永远查不到这一行)。
+type AllySharedGrouping {
+  id: ID!
+  hostSlug: String!
+  hostName: String!
+  hostPattern: String!
+  title: String!
+  dungeon: String!
+  startsAtText: String!
+  visitorSlots: Int!
+  visitorLeft: Int!
+  visitorLeftPattern: String!
+  joined: Boolean!
+}
+
+type AlliancePayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  alliance: AllianceRelation
+}
+
+# 车队详情的盟友共享控件: 仅可管理本车者有值 (见 GroupingDetailPage)。
+type AllySharingControl {
+  allyVisible: Boolean!
+  visitorSlots: Int!
+  title: String!
+  hint: String!
+  allyVisibleLabel: String!
+  visitorSlotsLabel: String!
+  saveLabel: String!
+}
+
 type GuildAdminLotteryMember {
   discordId: ID!
   displayName: String!
@@ -3209,6 +3494,37 @@ extend type Mutation {
   # 未开启时以 recruitClosed 拒绝; 已有待审申请时以
   # applicationPending 拒绝 (仓储部分唯一索引同规兜底)。
   applyToGuild(slug: String!, message: String): RecruitPayload!
+}
+
+extend type Mutation {
+  # —— P19 补位市场 ——
+  # 供给侧 (免费): 本百业成员发布自己的补位供给; 一人同时一份。
+  publishFillOffer(slug: String!, school: String!, windows: [AvailabilitySlotInput!]!, note: String): FillOfferPayload!
+  # 供给侧 (免费): 撤下自己的供给。
+  withdrawFillOffer: NetworkOkPayload!
+  # 需求侧 (T3): 本车车头 / 本百业管理员针对具体车队缺口发布需求。
+  createFillRequest(slug: String!, groupingId: ID!, neededRole: String!, neededSchool: String, note: String): FillRequestPayload!
+  # 需求侧 (T3): 关闭需求 (其余待确认邀请随之失效)。
+  closeFillRequest(slug: String!, requestId: ID!): NetworkOkPayload!
+  # 需求侧 (T3): 向一份供给发出邀请。
+  inviteFillSupplier(slug: String!, requestId: ID!, offerId: ID!): FillInvitePayload!
+  # 供给侧 (免费): 补位人确认 / 婉拒邀请。接受只撮合, 不落座。
+  respondFillInvite(inviteId: ID!, accept: Boolean!): FillInvitePayload!
+  # 需求侧 (T3): 人工落座 — 车头把已接受邀请的补位人落进车队
+  # (既有容量守卫落座动作; 永不自动触发)。
+  seatFillSupplier(slug: String!, inviteId: ID!): NetworkOkPayload!
+  # —— P20 盟友百业 ——
+  # 本百业管理员向另一百业发起结盟邀请。
+  inviteAlliance(slug: String!, targetSlug: String!): AlliancePayload!
+  # 被邀请方百业管理员接受 / 拒绝结盟。
+  respondAlliance(slug: String!, allianceId: ID!, accept: Boolean!): AlliancePayload!
+  # 任一方管理员单方解除结盟 (共享读时即刻失效)。
+  endAlliance(slug: String!, allianceId: ID!): AlliancePayload!
+  # 车头 / 本百业管理员设置本车的盟友共享 (可见 + 访客名额)。
+  setGroupingAllySharing(slug: String!, groupingId: ID!, allyVisible: Boolean!, visitorSlots: Int!): NetworkOkPayload!
+  # 盟友成员报名访客位 (slug = 报名者自己的百业; 服务端复验当前
+  # 结盟状态 / 共享开关 / 访客余量, 走既有容量守卫)。
+  joinAllyGrouping(slug: String!, groupingId: ID!, weapon: String!): NetworkOkPayload!
 }
 
 # ============ OG 卡面数据通道 (公开, 只读) ============

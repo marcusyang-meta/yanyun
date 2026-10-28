@@ -543,6 +543,12 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-CN": "排期",
       "en": "Scheduling",
       "zh-TW": "排期"
+    },
+    "tabMarket": {
+      "zh-CN": "补位市场"
+    },
+    "tabAllies": {
+      "zh-CN": "盟友"
     }
   },
   "groupingType": {
@@ -4720,6 +4726,69 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "en": "That custom field is invalid",
       "zh-TW": "自訂欄位不合法"
     },
+    "fillOfferExists": {
+      "zh-CN": "你已有一份发布中的补位供给，请先撤下再重新发布"
+    },
+    "fillSchoolRequired": {
+      "zh-CN": "请填写流派"
+    },
+    "fillWindowsInvalid": {
+      "zh-CN": "可补位时段不合法"
+    },
+    "fillRequestNotFound": {
+      "zh-CN": "补位需求不存在"
+    },
+    "fillRequestNotOpen": {
+      "zh-CN": "该补位需求已撮合或已关闭"
+    },
+    "fillOfferNotOpen": {
+      "zh-CN": "该补位供给已撤下"
+    },
+    "fillInviteExists": {
+      "zh-CN": "已经邀请过这位补位人选了"
+    },
+    "fillInviteNotFound": {
+      "zh-CN": "补位邀请不存在"
+    },
+    "fillInviteNotPending": {
+      "zh-CN": "该邀请已经处理过了"
+    },
+    "fillInviteNotAccepted": {
+      "zh-CN": "对方尚未接受邀请，不能落座"
+    },
+    "fillSelfInvite": {
+      "zh-CN": "不能邀请自己补位"
+    },
+    "marketManageOnly": {
+      "zh-CN": "只有该车队的车头或本百业管理员可以操作补位需求"
+    },
+    "allianceSelf": {
+      "zh-CN": "不能和自己的百业结盟"
+    },
+    "allianceExists": {
+      "zh-CN": "与该百业已有待确认或生效中的结盟关系"
+    },
+    "allianceNotFound": {
+      "zh-CN": "结盟关系不存在"
+    },
+    "allianceNotPending": {
+      "zh-CN": "该结盟邀请已经处理过了"
+    },
+    "allianceNotActive": {
+      "zh-CN": "该结盟已不在生效中"
+    },
+    "allyNotAllied": {
+      "zh-CN": "与主办百业尚未结盟（或结盟已解除）"
+    },
+    "allyNotShared": {
+      "zh-CN": "该车队未向盟友开放访客位"
+    },
+    "visitorSlotsFull": {
+      "zh-CN": "访客位已满"
+    },
+    "visitorSlotsInvalid": {
+      "zh-CN": "访客名额必须在 0 与车队总名额之间"
+    },
     "customFieldTooMany": {
       "zh-CN": "自定义字段最多 5 个",
       "en": "At most 5 custom fields",
@@ -7087,6 +7156,268 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
     },
     "myPointsTotal": {
       "zh-CN": "累计 {points} 分"
+    }
+  },
+  "market": {
+    "title": {
+      "zh-CN": "补位市场"
+    },
+    "body": {
+      "zh-CN": "缺人时来这里找补位：任何成员都可以免费发布自己的补位供给；百业盟主档的车头与管理员可以针对车队缺口发布需求、邀请补位。市场只负责撮合，是否落座由车头在车队里手动确认。"
+    },
+    "lockedTitle": {
+      "zh-CN": "无法打开补位市场"
+    },
+    "lockedBody": {
+      "zh-CN": "登录并成为本百业成员后，可以发布补位供给、处理收到的邀请。"
+    },
+    "supplyTitle": {
+      "zh-CN": "我的补位供给"
+    },
+    "supplyHint": {
+      "zh-CN": "发布供给免费、与百业档位无关。公开面只展示你的流派、可补位时段与所属百业名，不展示任何联系方式。"
+    },
+    "supplyEmpty": {
+      "zh-CN": "你还没有发布补位供给。"
+    },
+    "schoolLabel": {
+      "zh-CN": "流派"
+    },
+    "windowsLabel": {
+      "zh-CN": "可补位时段"
+    },
+    "noteLabel": {
+      "zh-CN": "自我说明"
+    },
+    "notePlaceholder": {
+      "zh-CN": "一句说明：擅长的副本、装备情况……"
+    },
+    "publishButton": {
+      "zh-CN": "发布供给"
+    },
+    "withdrawButton": {
+      "zh-CN": "撤下供给"
+    },
+    "offerStatusOpen": {
+      "zh-CN": "已发布"
+    },
+    "homeGuildPattern": {
+      "zh-CN": "所属百业：{name}"
+    },
+    "windowLine": {
+      "zh-CN": "{day} {start}–{end}"
+    },
+    "weekday0": {
+      "zh-CN": "周日"
+    },
+    "weekday1": {
+      "zh-CN": "周一"
+    },
+    "weekday2": {
+      "zh-CN": "周二"
+    },
+    "weekday3": {
+      "zh-CN": "周三"
+    },
+    "weekday4": {
+      "zh-CN": "周四"
+    },
+    "weekday5": {
+      "zh-CN": "周五"
+    },
+    "weekday6": {
+      "zh-CN": "周六"
+    },
+    "inboxTitle": {
+      "zh-CN": "收到的补位邀请"
+    },
+    "inboxEmpty": {
+      "zh-CN": "暂无补位邀请。"
+    },
+    "acceptButton": {
+      "zh-CN": "接受邀请"
+    },
+    "declineButton": {
+      "zh-CN": "婉拒"
+    },
+    "inviteStatusPending": {
+      "zh-CN": "待确认"
+    },
+    "inviteStatusAccepted": {
+      "zh-CN": "已接受"
+    },
+    "inviteStatusDeclined": {
+      "zh-CN": "已婉拒"
+    },
+    "inviteStatusExpired": {
+      "zh-CN": "已失效"
+    },
+    "inviteFromPattern": {
+      "zh-CN": "来自 {guild} · {title}"
+    },
+    "demandTitle": {
+      "zh-CN": "补位需求"
+    },
+    "demandLockedTitle": {
+      "zh-CN": "补位需求是盟主档功能"
+    },
+    "demandLockedBody": {
+      "zh-CN": "发布补位需求、浏览并邀请补位人选需要百业开通盟主档（T3）。发布补位供给与处理收到的邀请不受档位限制，所有成员免费可用。"
+    },
+    "demandNoManageHint": {
+      "zh-CN": "只有本百业的车头与管理员可以发布需求与发出邀请。"
+    },
+    "requestsTitle": {
+      "zh-CN": "本百业的补位需求"
+    },
+    "requestsEmpty": {
+      "zh-CN": "暂无补位需求。在车队详情里针对缺口发布，或在这里新建。"
+    },
+    "createRequestTitle": {
+      "zh-CN": "发布补位需求"
+    },
+    "groupingLabel": {
+      "zh-CN": "缺人的车队"
+    },
+    "neededRoleLabel": {
+      "zh-CN": "缺的职责"
+    },
+    "neededSchoolLabel": {
+      "zh-CN": "指定流派（可选）"
+    },
+    "requestNoteLabel": {
+      "zh-CN": "需求说明"
+    },
+    "createRequestButton": {
+      "zh-CN": "发布需求"
+    },
+    "closeRequestButton": {
+      "zh-CN": "关闭需求"
+    },
+    "requestStatusOpen": {
+      "zh-CN": "招募中"
+    },
+    "requestStatusMatched": {
+      "zh-CN": "已撮合"
+    },
+    "requestStatusClosed": {
+      "zh-CN": "已关闭"
+    },
+    "offersTitle": {
+      "zh-CN": "可邀请的补位人选"
+    },
+    "offersEmpty": {
+      "zh-CN": "市场里暂无补位供给。"
+    },
+    "inviteButton": {
+      "zh-CN": "发出邀请"
+    },
+    "invitedLabel": {
+      "zh-CN": "已邀请"
+    },
+    "seatButton": {
+      "zh-CN": "落座到车队"
+    },
+    "seatedLabel": {
+      "zh-CN": "已落座"
+    },
+    "roleHealer": {
+      "zh-CN": "奶"
+    },
+    "roleDps": {
+      "zh-CN": "输出"
+    },
+    "backLabel": {
+      "zh-CN": "‹ 返回百业"
+    }
+  },
+  "allies": {
+    "title": {
+      "zh-CN": "盟友百业"
+    },
+    "body": {
+      "zh-CN": "结盟后，双方车队可以互相开放：车头把车队标为盟友可见并设置访客名额，盟友成员就能在自己百业看到并报名访客位。解除结盟后，共享立即失效。"
+    },
+    "lockedTitle": {
+      "zh-CN": "无法打开盟友百业"
+    },
+    "lockedBody": {
+      "zh-CN": "登录并成为本百业成员后，可以查看盟友与共享活动。"
+    },
+    "activeTitle": {
+      "zh-CN": "已结盟百业"
+    },
+    "activeEmpty": {
+      "zh-CN": "本百业暂无盟友。"
+    },
+    "statusPending": {
+      "zh-CN": "待对方确认"
+    },
+    "statusActive": {
+      "zh-CN": "已结盟"
+    },
+    "adminTitle": {
+      "zh-CN": "结盟管理"
+    },
+    "inviteLabel": {
+      "zh-CN": "对方百业"
+    },
+    "inviteHint": {
+      "zh-CN": "结盟邀请由对方百业管理员确认后生效；任一方管理员都可以单方解除结盟。"
+    },
+    "inviteButton": {
+      "zh-CN": "发出结盟邀请"
+    },
+    "incomingTitle": {
+      "zh-CN": "待处理的结盟邀请"
+    },
+    "outgoingTitle": {
+      "zh-CN": "已发出的结盟邀请"
+    },
+    "acceptButton": {
+      "zh-CN": "接受结盟"
+    },
+    "rejectButton": {
+      "zh-CN": "拒绝"
+    },
+    "endButton": {
+      "zh-CN": "解除结盟"
+    },
+    "sharedTitle": {
+      "zh-CN": "盟友共享活动"
+    },
+    "sharedEmpty": {
+      "zh-CN": "暂无盟友共享活动。"
+    },
+    "hostPattern": {
+      "zh-CN": "主办：{name}"
+    },
+    "visitorLeftPattern": {
+      "zh-CN": "访客位 {left} / {total}"
+    },
+    "visitorJoinButton": {
+      "zh-CN": "报名访客位"
+    },
+    "visitorJoinedLabel": {
+      "zh-CN": "已报名访客位"
+    },
+    "sharingTitle": {
+      "zh-CN": "盟友共享设置"
+    },
+    "sharingHint": {
+      "zh-CN": "开启后，盟友百业成员可以在他们的盟友页看到这辆车，并报名访客位（计入车队总名额）。访客名额为 0 时不开放报名。"
+    },
+    "allyVisibleLabel": {
+      "zh-CN": "对盟友可见"
+    },
+    "visitorSlotsLabel": {
+      "zh-CN": "访客名额"
+    },
+    "sharingSaveButton": {
+      "zh-CN": "保存共享设置"
+    },
+    "backLabel": {
+      "zh-CN": "‹ 返回百业"
     }
   }
 };
