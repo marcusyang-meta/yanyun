@@ -79,6 +79,57 @@ export interface GroupingFormText {
   templateToastDeleted?: string;
   templateToastDeleteFailedTemplate?: string;
   templateMetaTemplate?: string;
+  // Custom signup-field editor copy (backend groupingForm section);
+  // optional: surfaces that never open the editor simply omit them.
+  formCustomFieldsTitle?: string;
+  formCustomFieldAddLabel?: string;
+  formCustomFieldLabelPlaceholder?: string;
+  formCustomFieldTypeText?: string;
+  formCustomFieldTypeChoice?: string;
+  formCustomFieldOptionsPlaceholder?: string;
+  formCustomFieldRequiredLabel?: string;
+  formCustomFieldRemoveLabel?: string;
+  formCustomFieldEmptyText?: string;
+}
+
+// One custom signup-form field as the backend delivers it (F7):
+// label/options are creator data, fieldType the constrained set.
+export interface CustomFieldItem {
+  id?: string;
+  label: string;
+  fieldType: string; // TEXT | CHOICE
+  options?: string[] | null;
+  required?: boolean | null;
+}
+
+// Editor-side field draft: options edited as one-per-line text.
+export interface CustomFieldDraft {
+  label: string;
+  fieldType: string;
+  optionsText: string;
+  required: boolean;
+}
+
+export function draftsFromFields(fields?: CustomFieldItem[] | null): CustomFieldDraft[] {
+  return (fields ?? []).map((f) => ({
+    label: f.label,
+    fieldType: f.fieldType,
+    optionsText: (f.options ?? []).join('\n'),
+    required: !!f.required,
+  }));
+}
+
+export function fieldInputsFromDrafts(drafts: CustomFieldDraft[]) {
+  return drafts
+    .filter((d) => d.label.trim())
+    .map((d) => ({
+      label: d.label.trim(),
+      fieldType: d.fieldType as 'TEXT' | 'CHOICE',
+      options: d.fieldType === 'CHOICE'
+        ? d.optionsText.split('\n').map((o) => o.trim()).filter(Boolean)
+        : [],
+      required: d.required,
+    }));
 }
 
 // One guild-shared template as the list-page query delivers it. The
@@ -96,6 +147,7 @@ export interface GroupingTemplateItem {
   startHour: number;
   startMinute: number;
   creatorName?: string | null;
+  customFields?: CustomFieldItem[] | null;
   manageActions?: {
     editLabel: string;
     deleteLabel: string;
@@ -171,6 +223,11 @@ export default function GroupingForm({
   const [nickErr, setNickErr] = useState(false);
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
+  // F7: the custom signup-field drafts for this car (create mode) —
+  // the same set is written into a saved template, and applying a
+  // template loads its set here, so a car built from it carries the
+  // fields (the backend copies them onto the car at creation).
+  const [fieldDrafts, setFieldDrafts] = useState<CustomFieldDraft[]>([]);
 
   const dexData = useLazyLoadQuery<documentsFormDungeonsQuery>(FormDungeonsQuery, {});
   const dungeons = dexData?.dexPage?.current ?? [];
@@ -217,6 +274,7 @@ export default function GroupingForm({
     setHour(t.startHour);
     setMinute(t.startMinute);
     setAppliedTemplateId(t.id);
+    setFieldDrafts(draftsFromFields(t.customFields));
     setTitleErr(false);
     setTplNotice('');
   };
@@ -243,6 +301,7 @@ export default function GroupingForm({
         type, title: t,
         dungeonId: type === 'ACTIVITY' || type === 'TOWER' ? null : (dungeonId || null),
         startsInDays: daysAheadFromForm(), startHour: hour, startMinute: minute,
+        customFields: fieldInputsFromDrafts(fieldDrafts),
       };
       const r = editingTemplate
         ? await updateGroupingTemplate(editingTemplate.id, input)
@@ -322,6 +381,7 @@ export default function GroupingForm({
           slug, title: t, type, startsAt,
           dungeonId: type === 'ACTIVITY' || type === 'TOWER' ? null : (dungeonId || null),
           seats: [{ nickname: nickname.trim(), weapon: sect }],
+          customFields: fieldInputsFromDrafts(fieldDrafts),
         });
         if (r.ok) { onDone(); return; }
         setNotice(fill(text.formToastCreateFailedTemplate, { error: r.error || unknownErrorText }));
@@ -467,6 +527,68 @@ export default function GroupingForm({
                   </Pressable>
                 ))}
               </View>
+            </>
+          )}
+
+          {!isEdit && !!text.formCustomFieldsTitle && (
+            <>
+              <Text style={s.label}>{text.formCustomFieldsTitle}</Text>
+              {!fieldDrafts.length && <Text style={s.hint}>{text.formCustomFieldEmptyText}</Text>}
+              {fieldDrafts.map((d, i) => (
+                <View key={i} style={s.fieldCard}>
+                  <View style={s.fieldRow}>
+                    <TextInput
+                      style={[s.input, { flex: 1 }]}
+                      value={d.label}
+                      onChangeText={(v) => setFieldDrafts(fieldDrafts.map((x, xi) => (xi === i ? { ...x, label: v } : x)))}
+                      placeholder={text.formCustomFieldLabelPlaceholder}
+                      placeholderTextColor={theme.muted}
+                    />
+                    <Pressable hitSlop={6} onPress={() => setFieldDrafts(fieldDrafts.filter((_, xi) => xi !== i))}>
+                      <Text style={[s.tplAct, { color: '#e08080' }]}>{text.formCustomFieldRemoveLabel}</Text>
+                    </Pressable>
+                  </View>
+                  <View style={[s.chips, { marginTop: 10 }]}>
+                    {(['TEXT', 'CHOICE'] as const).map((ft) => (
+                      <Pressable
+                        key={ft}
+                        style={[s.chip, d.fieldType === ft && s.chipOn]}
+                        onPress={() => setFieldDrafts(fieldDrafts.map((x, xi) => (xi === i ? { ...x, fieldType: ft } : x)))}
+                      >
+                        {d.fieldType === ft && <GoldFill />}
+                        <Text style={[s.chipText, d.fieldType === ft && s.chipTextOn]}>
+                          {ft === 'TEXT' ? text.formCustomFieldTypeText : text.formCustomFieldTypeChoice}
+                        </Text>
+                      </Pressable>
+                    ))}
+                    <Pressable
+                      style={[s.chip, d.required && s.chipOn]}
+                      onPress={() => setFieldDrafts(fieldDrafts.map((x, xi) => (xi === i ? { ...x, required: !x.required } : x)))}
+                    >
+                      {d.required && <GoldFill />}
+                      <Text style={[s.chipText, d.required && s.chipTextOn]}>{text.formCustomFieldRequiredLabel}</Text>
+                    </Pressable>
+                  </View>
+                  {d.fieldType === 'CHOICE' && (
+                    <TextInput
+                      style={[s.input, { marginTop: 10, minHeight: 74, textAlignVertical: 'top' }]}
+                      value={d.optionsText}
+                      onChangeText={(v) => setFieldDrafts(fieldDrafts.map((x, xi) => (xi === i ? { ...x, optionsText: v } : x)))}
+                      placeholder={text.formCustomFieldOptionsPlaceholder}
+                      placeholderTextColor={theme.muted}
+                      multiline
+                    />
+                  )}
+                </View>
+              ))}
+              {fieldDrafts.length < 5 && (
+                <Pressable
+                  hitSlop={6}
+                  onPress={() => setFieldDrafts([...fieldDrafts, { label: '', fieldType: 'TEXT', optionsText: '', required: false }])}
+                >
+                  <Text style={[s.tplAct, { fontSize: 13 }]}>{text.formCustomFieldAddLabel}</Text>
+                </Pressable>
+              )}
             </>
           )}
 
@@ -691,4 +813,9 @@ const s = StyleSheet.create({
     paddingHorizontal: 18, justifyContent: 'center', alignItems: 'center',
   },
   tplSaveText: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 14 },
+  fieldCard: {
+    borderWidth: 1, borderColor: theme.border, borderRadius: 10,
+    padding: 10, marginBottom: 10,
+  },
+  fieldRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
 });

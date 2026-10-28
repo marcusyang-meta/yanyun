@@ -49,6 +49,7 @@ export const ViewerQuery = graphql`
         homeTabDexLabel
         homeTabSectLabel
         homeTabAnnouncementsLabel
+        homeTabScheduleLabel
         pageBackLabel
       }
       publicGuilds {
@@ -63,6 +64,7 @@ export const ViewerQuery = graphql`
         homeTabDexLabel
         homeTabSectLabel
         homeTabAnnouncementsLabel
+        homeTabScheduleLabel
         pageBackLabel
       }
       homeRecruit {
@@ -318,6 +320,15 @@ export const ListPageTextQuery = graphql`
       formToastPosted
       formToastCreateFailedTemplate
       formTitleTemplate
+      formCustomFieldsTitle
+      formCustomFieldAddLabel
+      formCustomFieldLabelPlaceholder
+      formCustomFieldTypeText
+      formCustomFieldTypeChoice
+      formCustomFieldOptionsPlaceholder
+      formCustomFieldRequiredLabel
+      formCustomFieldRemoveLabel
+      formCustomFieldEmptyText
       typeShortActivity
       typeShortTalent
       typeShortRace
@@ -350,6 +361,13 @@ export const ListPageTextQuery = graphql`
         startHour
         startMinute
         creatorName
+        customFields {
+          id
+          label
+          fieldType
+          options
+          required
+        }
         manageActions {
           editLabel
           deleteLabel
@@ -372,6 +390,21 @@ export const DetailPageTextQuery = graphql`
         title
         type
         startsAt
+        customFields {
+          id
+          label
+          fieldType
+          options
+          required
+        }
+      }
+      rosterAnswersTitle
+      rosterAnswers {
+        uid
+        nickname
+        fieldId
+        fieldLabel
+        value
       }
       detailBackToListLabel
       detailToastDisbanded
@@ -698,6 +731,155 @@ export const SetMyAvailabilityMutation = graphql`
       error
       errorCode
       slots { weekday startMinute endMinute }
+    }
+  }
+`;
+
+/* Guild schedule tab (F5 summary + F13 time polls; same shell and
+   copy pack as Web GuildSchedule): the availability editor itself
+   lives under Profile — this surface carries the guild-level tools
+   (member availability summary for admins/leaders, time polls for
+   everyone in the guild) plus the form* copy the poll-launch create
+   form reuses as its prefill form. */
+
+export const SchedulePageQuery = graphql`
+  query documentsSchedulePageQuery($slug: String!) {
+    viewer {
+      commonUnknownErrorText
+    }
+    guildSchedulePage(slug: $slug) {
+      slug
+      weekdayNames
+      availabilitySummary {
+        discordId
+        displayName
+        slots { weekday startMinute endMinute }
+      }
+      polls {
+        id
+        title
+        status
+        creatorName
+        createdAtText
+        myOptionIds
+        options { id startsAtUtc startsAtText voteCount voterNames votedByMe }
+        closeActions { closeLabel }
+        launchActions { launchLabel }
+      }
+      formCreateTitle
+      formEditTitle
+      formTypeLabel
+      formTypeActivityLabel
+      formTypeTalentLabel
+      formTypeRaceLabel
+      formTypeTowerLabel
+      formCapacityTemplate
+      formHintActivity
+      formHintDungeonTemplate
+      formHintTalent
+      formHintRace
+      formHintTower
+      formTitleLabel
+      formTitlePlaceholder
+      formStartsLabel
+      formMonthTemplate
+      formDayTemplate
+      formHourTemplate
+      formMinuteTemplate
+      formDungeonLabel
+      formDungeonNoneLabel
+      formNicknameLabel
+      formNicknamePlaceholder
+      formSectLabel
+      formCancelLabel
+      formSubmitCreateLabel
+      formSubmitEditLabel
+      formSubmittingLabel
+      formToastSect
+      formToastSaved
+      formToastSaveFailedTemplate
+      formToastPosted
+      formToastCreateFailedTemplate
+      formTitleTemplate
+      formCustomFieldsTitle
+      formCustomFieldAddLabel
+      formCustomFieldLabelPlaceholder
+      formCustomFieldTypeText
+      formCustomFieldTypeChoice
+      formCustomFieldOptionsPlaceholder
+      formCustomFieldRequiredLabel
+      formCustomFieldRemoveLabel
+      formCustomFieldEmptyText
+      typeShortActivity
+      typeShortTalent
+      typeShortRace
+      typeShortTower
+      scheduleTitle
+      scheduleMyTitle
+      scheduleSlotRangeTemplate
+      scheduleRemoveLabel
+      scheduleSettingsLinkLabel
+      scheduleSummaryTitle
+      scheduleSummaryHint
+      scheduleSummaryEmptyText
+      schedulePollsTitle
+      schedulePollsHint
+      schedulePollEmptyText
+      schedulePollCreateLabel
+      schedulePollTitleLabel
+      schedulePollTitlePlaceholder
+      schedulePollCandidatesLabel
+      schedulePollAddCandidateLabel
+      schedulePollSubmitLabel
+      schedulePollVoteLabel
+      schedulePollVotedText
+      schedulePollStatusOpenText
+      schedulePollStatusClosedText
+      schedulePollCloseLabel
+      schedulePollVoteCountTemplate
+      schedulePollLaunchLabel
+      schedulePollCancelLabel
+      scheduleToastPollCreated
+      scheduleToastVoted
+      scheduleToastClosed
+      scheduleToastFailedTemplate
+    }
+  }
+`;
+
+export const CreateTimePollMutation = graphql`
+  mutation documentsCreateTimePollMutation($input: CreateTimePollInput!) {
+    createTimePoll(input: $input) {
+      ok
+      error
+      errorCode
+      poll { id }
+    }
+  }
+`;
+
+export const VoteTimePollMutation = graphql`
+  mutation documentsVoteTimePollMutation($input: VoteTimePollInput!) {
+    voteTimePoll(input: $input) {
+      ok
+      error
+      errorCode
+      poll {
+        id
+        myOptionIds
+        options { id voteCount voterNames votedByMe }
+      }
+    }
+  }
+`;
+
+export const CloseTimePollMutation = graphql`
+  mutation documentsCloseTimePollMutation($id: ID!) {
+    closeTimePoll(id: $id) {
+      ok
+      error
+      errorCode
+      poll { id status }
     }
   }
 `;

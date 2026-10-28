@@ -11,6 +11,7 @@ import { CreateGroupingFormMount } from '../components/GroupingForm';
 import DexView from './DexView';
 import SectView from './SectView';
 import AnnouncementsView from './AnnouncementsView';
+import ScheduleView from './ScheduleView';
 import { useSession } from '../session';
 import type { documentsListPageTextQuery } from '../__generated__/documentsListPageTextQuery.graphql';
 import { BlockNode1View } from '../blocks/BlockRenderer';
@@ -44,7 +45,7 @@ function fill(template: string, params: Record<string, string | number>): string
   return out;
 }
 
-type SectionKey = 'team' | 'dex' | 'sect' | 'announcements';
+type SectionKey = 'team' | 'dex' | 'sect' | 'announcements' | 'schedule';
 
 export default function GroupingListScreen({ slug, name, readOnly, nick, gameVersion, avatarUrl }: Props) {
   const router = useRouter();
@@ -99,6 +100,12 @@ export default function GroupingListScreen({ slug, name, readOnly, nick, gameVer
         // three; a guild payload without it simply omits the tab.
         ...(guildItem.homeTabAnnouncementsLabel
           ? [['announcements', guildItem.homeTabAnnouncementsLabel] as [SectionKey, string]]
+          : []),
+        // Schedule tab (F5 summary + F13 polls): member branch only —
+        // Web mounts it solely in the interactive home, so a read-only
+        // guild never offers it even though the label field exists.
+        ...(!readOnly && guildItem.homeTabScheduleLabel
+          ? [['schedule', guildItem.homeTabScheduleLabel] as [SectionKey, string]]
           : []),
       ]
       : null;
@@ -182,6 +189,12 @@ export default function GroupingListScreen({ slug, name, readOnly, nick, gameVer
 
       {section === 'announcements' && (
         <AnnouncementsView key={`announcements:${epoch}`} slug={slug} />
+      )}
+
+      {section === 'schedule' && (
+        <AsyncBoundary key={`schedule:${epoch}`} onRetry={retry}>
+          <ScheduleView slug={slug} defaultNickname={nick} refreshTick={refreshTick} />
+        </AsyncBoundary>
       )}
 
       {showCreate && (
