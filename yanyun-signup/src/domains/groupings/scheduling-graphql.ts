@@ -1,5 +1,6 @@
 /* groupings domain GraphQL: Premium T2 scheduling advice surfaces
- * (P3 智能配队 / P4 替补推荐 / P5 名额轮换 / P6 最优档期 / P13 跨车调度).
+ * (P3 team draft / P4 substitutes / P5 rotation / P6 best slots /
+ * P13 cross-car advice).
  *
  * Gating contract (all five): tierLocked(db, slug, 2). Locked =>
  * the Locked shell ONLY (title/body copy, zero advice data).
@@ -17,7 +18,7 @@
  * Advice, never verdicts: no resolver here seats, invites, moves
  * or removes anyone. Applying a draft goes through the existing
  * seat actions, one tap per seat, by the leader. The single write
- * is saveRotationAdvice: an append-only audit snapshot (P5 留痕).
+ * is saveRotationAdvice: an append-only audit snapshot (P5 audit trail).
  */
 import type { Context } from '../platform/context.ts';
 import { vcOf } from '../platform/context.ts';

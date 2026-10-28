@@ -1,4 +1,4 @@
--- 0027: rotation advice records (Premium T2, P5 名额轮换建议留痕).
+-- 0027: rotation advice records (Premium T2, P5 rotation advice audit trail).
 -- Append-only snapshots of a saved rotation ranking for one grouping:
 -- the ranked members with their factor values, who saved it and when.
 -- Pure expand: one new table, nothing else changes.

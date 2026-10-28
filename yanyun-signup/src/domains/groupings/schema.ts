@@ -284,7 +284,7 @@ export const results = sqliteTable('results', {
 ]);
 
 /* ---------------- rotation_advice_records [migration 0027] --------
- * P5 留痕: a saved snapshot of one rotation-advice ranking for one
+ * P5 audit trail: a saved snapshot of one rotation-advice ranking for one
  * grouping — who saved it, when, and the exact ranked entries with
  * their factor values. Append-only: fairness disputes are settled
  * against these rows, so nothing updates or deletes them. */
