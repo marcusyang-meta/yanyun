@@ -22,6 +22,9 @@ import {
   adminUpdateRecruitOpen,
   adminUpdateProfile, adminUpdateReminderSettings, adminUpdateVisibility,
   adminUpdateWhiteLabel,
+  adminBindCustomDomain,
+  adminVerifyCustomDomain,
+  adminRemoveCustomDomain,
   adminSetSeasonChecklistItem, adminDeleteRosterEntry,
   adminPreviewRosterImport, adminConfirmRosterImport,
   type AdminPayload, type RosterImportPayload,
@@ -282,6 +285,11 @@ function DiscordPanel({ admin, run, premiumLocked, unknownError, onError }: {
   const [wlHide, setWlHide] = useState(!!admin.whiteLabelHideBranding);
   const [wlAccent, setWlAccent] = useState(admin.ogAccent ?? '');
   const [wlSuffix, setWlSuffix] = useState(admin.ogTitleSuffix ?? '');
+  const [cdHostname, setCdHostname] = useState('');
+  const cd = admin.customDomain ?? null;
+  const cdLocked = cd?.__typename === 'GuildAdminCustomDomainLocked' ? cd : null;
+  const cdFull = cd?.__typename === 'GuildAdminCustomDomain' ? cd : null;
+  const cdBound = !!cdFull && cdFull.status !== 'NONE';
   return (
     <View>
       <Text style={s.sectionTitle}>{admin.adminDiscordTitle}</Text>
@@ -381,6 +389,48 @@ function DiscordPanel({ admin, run, premiumLocked, unknownError, onError }: {
           onSave={() => run(adminUpdateWhiteLabel(slug, wlHide, wlAccent, wlSuffix))} />
       </View>
       </>)}
+
+      <Text style={s.sectionTitle}>{admin.adminCustomDomainTitle}</Text>
+      <View style={s.card}>
+        {cdLocked ? (<>
+          <Text style={{ color: theme.paper, fontSize: 14, fontFamily: fonts.serif }}>{cdLocked.premiumTitle}</Text>
+          <Text style={s.muted}>{cdLocked.premiumBody}</Text>
+        </>) : cdFull ? (<>
+          <Text style={s.muted}>{admin.adminCustomDomainHint}</Text>
+          <Text style={{ color: cdFull.status === 'ACTIVE' ? '#ecd28f' : theme.paper, fontSize: 14, fontFamily: fonts.serif }}>
+            {cdFull.statusText}{cdBound && cdFull.hostname ? `  ${cdFull.hostname}` : ''}
+          </Text>
+          {!!cdFull.boundAtText && <Text style={s.muted}>{cdFull.boundAtText}</Text>}
+          {!!cdFull.dnsCnameValue && (<>
+            <Text style={{ color: '#ecd28f', fontSize: 13, fontFamily: fonts.serif, marginTop: 6 }}>{admin.adminCustomDomainDnsTitle}</Text>
+            <Text style={s.muted}>{admin.adminCustomDomainCnameLabel}</Text>
+            <Text style={{ color: theme.paper, fontSize: 13 }}>{`${admin.adminCustomDomainRecordNameLabel}: ${cdFull.dnsCnameName}`}</Text>
+            <Text style={{ color: theme.paper, fontSize: 13 }}>{`${admin.adminCustomDomainRecordValueLabel}: ${cdFull.dnsCnameValue}`}</Text>
+            <Text style={s.muted}>{admin.adminCustomDomainTxtLabel}</Text>
+            <Text style={{ color: theme.paper, fontSize: 13 }}>{`${admin.adminCustomDomainRecordNameLabel}: ${cdFull.dnsTxtName}`}</Text>
+            <Text style={{ color: theme.paper, fontSize: 13 }}>{`${admin.adminCustomDomainRecordValueLabel}: ${cdFull.dnsTxtValue}`}</Text>
+          </>)}
+          {!!cdFull.guidanceText && <Text style={s.muted}>{cdFull.guidanceText}</Text>}
+          <Field label={admin.adminCustomDomainHostnameLabel}>
+            <TInput value={cdHostname} onChangeText={setCdHostname} autoCapitalize="none"
+              placeholder={cdBound && cdFull.hostname ? cdFull.hostname : (admin.adminCustomDomainHostnamePlaceholder ?? '')} />
+          </Field>
+          <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            <SaveBtn label={cdBound ? admin.adminCustomDomainRebindLabel : admin.adminCustomDomainBindLabel}
+              savedLabel={admin.adminSavedText}
+              onSave={() => { if (cdHostname.trim()) run(adminBindCustomDomain(slug, cdHostname.trim())); }} />
+            {cdFull.status === 'PENDING' && (
+              <Pressable onPress={() => run(adminVerifyCustomDomain(slug))}
+                style={{ paddingVertical: 8, paddingHorizontal: 14, borderRadius: 8, borderWidth: 1, borderColor: theme.gold }}>
+                <Text style={{ color: '#ecd28f', fontSize: 13, fontFamily: fonts.serif }}>{admin.adminCustomDomainVerifyLabel}</Text>
+              </Pressable>
+            )}
+            {cdBound && (
+              <DeleteWithLabel label={admin.adminCustomDomainRemoveLabel} onConfirm={() => run(adminRemoveCustomDomain(slug))} />
+            )}
+          </View>
+        </>) : null}
+      </View>
     </View>
   );
 }

@@ -28,6 +28,9 @@ import {
   UpdateGuildDiscordAdminMutation,
   UpdateGuildReminderSettingsAdminMutation,
   UpdateGuildWhiteLabelAdminMutation,
+  BindGuildCustomDomainAdminMutation,
+  VerifyGuildCustomDomainAdminMutation,
+  RemoveGuildCustomDomainAdminMutation,
   StartPremiumCheckoutAdminMutation,
   CreateLotteryAdminMutation,
   DrawLotteryAdminMutation,
@@ -500,6 +503,9 @@ export const adminDeleteAvatar = (slug: string) => adminRun(DeleteGuildAvatarAdm
 export const adminUpdateDiscord = (slug: string, input: any) => adminRun(UpdateGuildDiscordAdminMutation, { slug, input }, 'updateGuildDiscord');
 export const adminUpdateReminderSettings = (slug: string, offsets: number[], customText: string) => adminRun(UpdateGuildReminderSettingsAdminMutation, { slug, offsets, customText }, 'updateGuildReminderSettings');
 export const adminUpdateWhiteLabel = (slug: string, hideBranding: boolean, ogAccent: string, ogTitleSuffix: string) => adminRun(UpdateGuildWhiteLabelAdminMutation, { slug, hideBranding, ogAccent, ogTitleSuffix }, 'updateGuildWhiteLabel');
+export const adminBindCustomDomain = (slug: string, hostname: string) => adminRun(BindGuildCustomDomainAdminMutation, { slug, hostname }, 'bindGuildCustomDomain');
+export const adminVerifyCustomDomain = (slug: string) => adminRun(VerifyGuildCustomDomainAdminMutation, { slug }, 'verifyGuildCustomDomain');
+export const adminRemoveCustomDomain = (slug: string) => adminRun(RemoveGuildCustomDomainAdminMutation, { slug }, 'removeGuildCustomDomain');
 export const adminStartPremiumCheckout = (slug: string) => adminRun(StartPremiumCheckoutAdminMutation, { slug }, 'startPremiumCheckout');
 export const adminCreateLottery = (slug: string, input: any) => adminRun(CreateLotteryAdminMutation, { slug, input }, 'createLottery');
 export const adminDrawLottery = (slug: string, lotteryId: string) => adminRun(DrawLotteryAdminMutation, { slug, lotteryId }, 'drawLottery');
