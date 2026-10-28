@@ -22,6 +22,7 @@ import GuildAdminSeason from './GuildAdminSeason.react.tsx';
 import GuildAdminOfficer from './GuildAdminOfficer.react.tsx';
 import GuildAdminOps from './GuildAdminOps.react.tsx';
 import { PremiumLockedPanel, PremiumActivePanel } from './GuildAdminPremium.react.tsx';
+import GuildAdminCustomDomain from './GuildAdminCustomDomain.react.tsx';
 
 // Guild admin page (@match branch of viewer.guildAdmin): every label
 // comes from the GuildAdmin type's own copy fields; every write is a
@@ -57,6 +58,11 @@ const GuildAdminPage_guildAdmin = graphql`
       __typename
       ... on GuildAdminPremiumActive { premiumPlanLabel premiumSourceText premiumPeriodEndText premiumPastDueText }
       ... on GuildAdminPremiumLocked { premiumTitle premiumBody premiumPriceLabel premiumComingSoonText premiumCheckoutLabel premiumTierPlans { tier name subtitle priceLabel } }
+    }
+    customDomain {
+      __typename
+      ... on GuildAdminCustomDomain { status hostname statusText guidanceText dnsCnameName dnsCnameValue dnsTxtName dnsTxtValue boundAtText }
+      ... on GuildAdminCustomDomainLocked { premiumTitle premiumBody }
     }
     adminTitle
     adminBackLinkLabel
@@ -313,6 +319,19 @@ const GuildAdminPage_guildAdmin = graphql`
     adminOgAccentLabel
     adminOgTitleSuffixLabel
     adminOgTitleSuffixHint
+    adminCustomDomainTitle
+    adminCustomDomainHint
+    adminCustomDomainHostnameLabel
+    adminCustomDomainHostnamePlaceholder
+    adminCustomDomainBindLabel
+    adminCustomDomainRebindLabel
+    adminCustomDomainVerifyLabel
+    adminCustomDomainRemoveLabel
+    adminCustomDomainDnsTitle
+    adminCustomDomainCnameLabel
+    adminCustomDomainTxtLabel
+    adminCustomDomainRecordNameLabel
+    adminCustomDomainRecordValueLabel
     adminBillingSuccessText
     adminBillingCanceledText
     adminPremiumTitle
@@ -752,6 +771,9 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
                 onSave={() => runWhiteLabel({ slug, hideBranding: wlHideBranding, ogAccent: wlAccent, ogTitleSuffix: wlSuffix })} />
             </section>
             )}
+
+            <GuildAdminCustomDomain slug={slug} customDomain={data.customDomain}
+              text={text} commonText={commonText} refresh={refresh} />
           </>
         )}
 
