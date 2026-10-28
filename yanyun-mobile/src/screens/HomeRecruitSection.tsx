@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Image, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useRouter } from 'expo-router';
 import { fonts, theme } from '../theme';
 import { CardFill, Seal } from '../components/ui';
 import { useSession } from '../session';
@@ -14,16 +15,25 @@ import {
 // Platform-home recruit section (Viewer.homeRecruit via session):
 // the recruit line's only member surface since the standalone
 // recruit page dissolved into the home. The server composes the
-// section per viewer — the guild directory is public; an application
-// section exists on an entry only for a logged-in non-member of that
-// guild; newcomer entries exist only for members (checklist) and the
-// paired (pairings). This component renders exactly what was
-// composed and carries no membership logic of its own.
+// section per viewer — the guild directory lists only guilds whose
+// recruitment switch is open; an application section exists on an
+// entry only for a logged-in non-member of that guild; newcomer
+// entries exist only for members (checklist) and the paired
+// (pairings), switch or not. This component renders exactly what
+// was composed and carries no membership logic of its own.
+//
+// Presentation (ruling 2026-10-27): the home carries SUMMARY ROWS
+// only — guild avatar/name plus one status line (checklist progress
+// / application status / slogan). Tapping a row pushes the detail
+// page (/home-recruit/[slug]) where the full detail renders — the
+// apply form / my-application card, the four checklist items, my
+// pairings — from the same composed data (ApplicationBlock and
+// NewcomerCard below, shared with that page).
 function StatusChip({ label }: { label: string }) {
   return <Text style={s.statusChip}>{label}</Text>;
 }
 
-function ApplicationBlock({ section, slug, application }: {
+export function ApplicationBlock({ section, slug, application }: {
   section: HomeRecruitData;
   slug: string;
   application?: RecruitApplicationItem | null;
@@ -56,7 +66,7 @@ function ApplicationBlock({ section, slug, application }: {
     }
   };
   return (
-    <View style={s.appBlock}>
+    <View>
       {!!app && (
         <View style={{ marginBottom: showApplyForm ? 14 : 0 }}>
           <Text style={s.subTitle}>{section.myApplicationTitle}</Text>
@@ -97,7 +107,7 @@ function ApplicationBlock({ section, slug, application }: {
   );
 }
 
-function NewcomerCard({ section, entry }: { section: HomeRecruitData; entry: HomeRecruitNewcomerItem }) {
+export function NewcomerCard({ section, entry }: { section: HomeRecruitData; entry: HomeRecruitNewcomerItem }) {
   return (
     <View style={s.card}>
       <CardFill />
@@ -141,9 +151,40 @@ function NewcomerCard({ section, entry }: { section: HomeRecruitData; entry: Hom
   );
 }
 
-function DirectoryCard({ section, g }: { section: HomeRecruitData; g: HomeRecruitGuildItem }) {
+function NewcomerSummary({ section, entry }: { section: HomeRecruitData; entry: HomeRecruitNewcomerItem }) {
+  const router = useRouter();
+  const line = entry.checklist
+    ? `${section.checklistTitle} · ${entry.checklist.progressText}`
+    : (entry.myPairings && entry.myPairings.length > 0
+      ? `${section.myPairingsTitle} · ${entry.myPairings[0].statusLabel}`
+      : '');
   return (
-    <View style={s.card}>
+    <Pressable
+      style={s.card}
+      onPress={() => router.push({ pathname: '/home-recruit/[slug]', params: { slug: entry.slug, kind: 'newcomer' } })}
+    >
+      <CardFill />
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <Text style={s.gname}>{entry.guildName}</Text>
+          {!!line && <Text style={s.slogan} numberOfLines={1}>{line}</Text>}
+        </View>
+        <Text style={s.chevron}>›</Text>
+      </View>
+    </Pressable>
+  );
+}
+
+function DirectorySummary({ g }: { g: HomeRecruitGuildItem }) {
+  const router = useRouter();
+  const app = g.myApplicationSection?.application ?? null;
+  const clickable = !!g.myApplicationSection;
+  return (
+    <Pressable
+      style={s.card}
+      disabled={!clickable}
+      onPress={() => router.push({ pathname: '/home-recruit/[slug]', params: { slug: g.slug, kind: 'guild' } })}
+    >
       <CardFill />
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
         {g.avatarUrl ? (
@@ -153,13 +194,12 @@ function DirectoryCard({ section, g }: { section: HomeRecruitData; g: HomeRecrui
         )}
         <View style={{ flex: 1, minWidth: 0 }}>
           <Text style={s.gname}>{g.name}</Text>
-          {!!g.slogan && <Text style={s.slogan} numberOfLines={1}>{g.slogan}</Text>}
+          {!app && !!g.slogan && <Text style={s.slogan} numberOfLines={1}>{g.slogan}</Text>}
         </View>
+        {!!app && <StatusChip label={app.statusLabel} />}
+        {clickable && <Text style={s.chevron}>›</Text>}
       </View>
-      {!!g.myApplicationSection && (
-        <ApplicationBlock section={section} slug={g.slug} application={g.myApplicationSection.application} />
-      )}
-    </View>
+    </Pressable>
   );
 }
 
@@ -173,10 +213,10 @@ export default function HomeRecruitSection({ section }: { section: HomeRecruitDa
       </View>
       <Text style={s.body}>{section.homeBody}</Text>
       {section.myNewcomer.map((entry) => (
-        <NewcomerCard key={entry.slug} section={section} entry={entry} />
+        <NewcomerSummary key={entry.slug} section={section} entry={entry} />
       ))}
       {section.guilds.map((g) => (
-        <DirectoryCard key={g.slug} section={section} g={g} />
+        <DirectorySummary key={g.slug} g={g} />
       ))}
     </View>
   );
@@ -198,6 +238,7 @@ const s = StyleSheet.create({
   },
   gname: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 17, fontWeight: '600' },
   slogan: { fontFamily: fonts.serif, color: theme.muted, fontSize: 13, marginTop: 3 },
+  chevron: { fontFamily: fonts.serif, color: theme.gold, fontSize: 19 },
   body: { fontFamily: fonts.serif, color: theme.muted, fontSize: 13, lineHeight: 20 },
   muted: { fontFamily: fonts.serif, color: theme.muted, fontSize: 12.5 },
   memberName: { fontFamily: fonts.serif, color: theme.paper, fontSize: 14 },
@@ -207,7 +248,6 @@ const s = StyleSheet.create({
     borderWidth: 1, borderColor: 'rgba(201,163,92,.3)', borderRadius: 10,
     paddingHorizontal: 12, paddingVertical: 9, textAlignVertical: 'top',
   },
-  appBlock: { marginTop: 14, borderTopWidth: 1, borderTopColor: 'rgba(201,163,92,.16)', paddingTop: 14 },
   statusChip: {
     fontFamily: fonts.serif, fontSize: 11, color: theme.muted,
     borderWidth: 1, borderColor: 'rgba(201,163,92,.3)', borderRadius: 999,
