@@ -16,6 +16,7 @@ import { evaluateHeirloomPushes } from '../gear/index.ts';
 import { translate, negotiateLocale, SUPPORTED_LOCALES, CATALOG } from './index.ts';
 import { logError } from './index.ts';
 import { ogCardResolvers } from './og-graphql.ts';
+import { platformAdminResolvers } from './admin-graphql.ts';
 import { getGuildAvatarMeta, avatarPath } from '../guilds/index.ts';
 import { getSettingValue, setSettingValue, listSettingsByKey } from '../guilds/index.ts';
 import { getUsernameRow } from '../identity/index.ts';
@@ -338,9 +339,13 @@ export const platformResolvers = {
     },
 
     // Self-service guild creation: logged in + admin/owner of the bound Discord server
+    /* Platform admin (super-admin) surface: mutations re-evaluate
+     * the platform-admin gate server-side (admin-graphql.ts). */
+    ...platformAdminResolvers.Mutation,
   },
   types: {
     ...ogCardResolvers.types,
+    ...platformAdminResolvers.types,
     // Explicit field resolvers for plain-data result types: every field
     // delegates to the same-named property of the computed result object
     // (previously these relied on GraphQL default field resolution).

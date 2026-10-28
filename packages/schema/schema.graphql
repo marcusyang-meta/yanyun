@@ -2494,6 +2494,7 @@ type Viewer {
   homeRecruit: HomeRecruitSection!  # 平台主页招新区 (F16 申请 / F24 清单 / F17 我的配对): 组成即权限结论 (见下方 HomeRecruitSection)
   fillMarket(slug: String!): FillMarketResult!  # Fill market page (P19): member page / Locked; the demand section splits further by T3 (see FillMarketPage below)
   guildAllies(slug: String!): GuildAlliesResult!  # Allied guilds page (P20): member page / Locked; alliance and sharing are both read-time verdicts
+  platformAdmin: PlatformAdminResult!  # 平台管理面 (超管): gate 层求值即权限结论 (见下方 PlatformAdmin); 非超管只拿到 Locked, 零管理数据
   discordServers: [DiscordServer!]!  # 我有管理权限的服务器 (服务端过滤)
   # UI 文案: 站点/登录/选择页/创建页/通用 — 全部由 Viewer shell 的 gen
   # 方法按请求 locale 生成, 未选中永不生成 (无 Strings 类型, 文案字段
@@ -4738,4 +4739,413 @@ type MyContributionEntry {
   actionLabel: String!
   points: Int!
   createdAtText: String!
+}
+
+# ============ 页面：平台管理 (超管面) ============
+# URL: /platform-admin — 主站内路由, 与主站同源/同会话/同构建 (原独立
+# hub 门户 /api/hub/* + 密码门已退役, 能力全量并入本面)。
+# 入口 Viewer.platformAdmin: 超管判定在 gating 层求值
+# (platform/admin-gate.ts, 主体 = viewer 的 Discord ID; VC/会话只承载
+# 身份, 不盖任何判定标记)。gate 开才组成 PlatformAdmin; 非超管 (含
+# 未登录) 只拿到 PlatformAdminLocked — 零管理数据下发。每个 mutation
+# 服务端二次求值同一 gate, 非超管回 errorCode platformAdminRequired。
+# 审计 actor 记操作者的真实用户 ID (不再是笼统的 hub)。
+# 备份文件下载不走 GraphQL (流式文件下载): 走普通 HTTP 路由
+# /api/platform-admin/backup/export|download, 鉴权 = 主会话 + 同一
+# gate 求值; 备份列表与触发备份走本面字段/mutation。
+
+union PlatformAdminResult = PlatformAdmin | PlatformAdminLocked
+
+type PlatformAdminLocked {
+  lockedTitle: String!
+  lockedBody: String!
+}
+
+type PlatformAdmin {
+  # 文案 (platformAdmin 目录, 按请求 locale 生成; 未选中不生成)
+  entryLabel: String!          # 主页入口文案: 仅超管组成时下发, 前端据响应类型决定渲染入口
+  title: String!
+  subtitle: String!
+  tenantsTitle: String!
+  tenantsEmpty: String!
+  billingTitle: String!
+  paygateLabel: String!
+  paygateOnText: String!
+  paygateOffText: String!
+  stripeLabel: String!
+  stripeConfiguredText: String!
+  stripeMissingText: String!
+  saasLabel: String!
+  saasConfiguredText: String!
+  saasMissingText: String!
+  plansTitle: String!
+  billingTenantsTitle: String!
+  errorsTitle: String!
+  errorsEmpty: String!
+  auditTitle: String!
+  auditEmpty: String!
+  feedbackTitle: String!
+  feedbackEmpty: String!
+  settingsTitle: String!
+  gameVersionLabel: String!
+  gameNoticeLabel: String!
+  gameVersionCodeLabel: String!
+  bossesTitle: String!
+  bossesEmpty: String!
+  dungeonsTitle: String!
+  dungeonsEmpty: String!
+  remindersTitle: String!
+  remindersEmpty: String!
+  heirloomsTitle: String!
+  heirloomsEmpty: String!
+  backupsTitle: String!
+  backupsEmpty: String!
+  backupsUnavailableText: String!
+  rosterTitle: String!
+  rosterNote: String!
+  backfillsTitle: String!
+  saveLabel: String!
+  testLabel: String!
+  runLabel: String!
+  dryRunLabel: String!
+  deleteTenantLabel: String!
+  grantLabel: String!
+  revokeLabel: String!
+  subdomainLabel: String!
+  customDomainLabel: String!
+  enabledText: String!
+  disabledText: String!
+  webhookSetText: String!
+  webhookUnsetText: String!
+  runBackupLabel: String!
+  downloadLabel: String!
+  exportLabel: String!
+  backfillReminderIdentityLabel: String!
+  backfillCreatorsLabel: String!
+  migrateBossGuidesLabel: String!
+  statusOpenText: String!
+  statusResolvedText: String!
+  lastStatusLabel: String!
+  nextAlarmLabel: String!
+  periodEndLabel: String!
+  sourceLabel: String!
+  tierLabel: String!
+  planLabel: String!
+  hasCardText: String!
+  noCardText: String!
+  trialUsedText: String!
+  # 数据
+  tenants: [PlatformAdminTenant!]!
+  billing: PlatformAdminBilling!
+  errors: [PlatformAdminError!]!
+  errorCount24h: Int!
+  auditEntries(tenant: String, limit: Int, offset: Int): PlatformAdminAuditPage!
+  feedbackEntries(status: String, limit: Int, offset: Int): PlatformAdminFeedbackPage!
+  settings: PlatformAdminSettings!
+  bosses: [PlatformAdminBoss!]!
+  dungeons: [PlatformAdminDungeon!]!
+  reminders: [PlatformAdminReminder!]!
+  heirlooms: [PlatformAdminHeirloom!]!
+  backups: PlatformAdminBackups!
+  adminRoster: [String!]!     # 生效中的超管名单 (env 引导名单 ∪ 设置名单), Discord ID
+}
+
+type PlatformAdminTenant {
+  slug: String!
+  guildName: String!
+  announcement: String!
+  createdAt: String!
+  eventCount: Int!
+}
+
+type PlatformAdminBilling {
+  paygateEnabled: Boolean!
+  stripeConfigured: Boolean!
+  customDomainSaasConfigured: Boolean!
+  plans: [PlatformAdminPlan!]!
+  tenants: [PlatformAdminBillingTenant!]!
+}
+
+type PlatformAdminPlan {
+  tier: Int!
+  plan: String!
+  name: String!
+  nameEn: String!
+  subtitle: String!
+  subtitleEn: String!
+  priceMonthlyCents: Int!
+}
+
+type PlatformAdminBillingTenant {
+  slug: String!
+  guildName: String!
+  plan: String!
+  source: String!
+  tier: Int!
+  effectiveTier: Int!
+  tierName: String!
+  tierNameEn: String!
+  tierSubtitle: String!
+  currentPeriodEnd: Int
+  lapsed: Boolean!
+  pastDue: Boolean!
+  hasCard: Boolean!
+  trialUsed: Boolean!
+  stripeCustomerId: String!
+  stripeSubscriptionId: String!
+  subdomainEnabled: Boolean!
+  customDomainHostname: String
+  customDomainStatus: String
+}
+
+type PlatformAdminError {
+  id: Int!
+  at: Int!
+  source: String!
+  name: String!
+  message: String!
+  tenant: String!
+  context: String!
+}
+
+type PlatformAdminAuditPage {
+  entries: [PlatformAdminAuditEntry!]!
+  total: Int!
+}
+
+type PlatformAdminAuditEntry {
+  id: Int!
+  at: Int!
+  actor: String!
+  action: String!
+  tenant: String!
+  summary: String!
+}
+
+type PlatformAdminFeedbackPage {
+  entries: [PlatformAdminFeedbackEntry!]!
+  total: Int!
+}
+
+type PlatformAdminFeedbackEntry {
+  id: Int!
+  discordId: String!
+  userName: String!
+  category: String!
+  content: String!
+  status: String!
+  createdAt: Int!
+  resolvedAt: Int
+}
+
+type PlatformAdminSettings {
+  gameVersion: String!
+  gameNotice: String!
+  gameVersionCode: String!
+}
+
+type PlatformAdminBoss {
+  id: Int!
+  name: String!
+  talent: String!
+  source: String!
+  note: String!
+  sortOrder: Int!
+  dungeon: String!
+  guide: String!
+  mechanicsJson: String
+  talentsJson: String
+  shoutsJson: String
+}
+
+type PlatformAdminDungeon {
+  id: Int!
+  name: String!
+  size: Int!
+  isCurrent: Boolean!
+  version: String!
+  videoUrl: String!
+  videoTitle: String!
+}
+
+type PlatformAdminReminder {
+  slug: String!
+  guildName: String!
+  webhookSet: Boolean!
+  webhookMasked: String!
+  enabled: Boolean!
+  lastAt: Int
+  lastStatus: String!
+  lastError: String!
+  lastEvent: String!
+  nextAlarmAt: Int
+}
+
+type PlatformAdminHeirloom {
+  slug: String!
+  guildName: String!
+  webhookSet: Boolean!
+  webhookMasked: String!
+  enabled: Boolean!
+  lastAt: Int
+  lastStatus: String!
+  lastError: String!
+  lastEvent: String!
+}
+
+type PlatformAdminBackups {
+  available: Boolean!
+  entries: [PlatformAdminBackupEntry!]!
+}
+
+type PlatformAdminBackupEntry {
+  key: String!
+  size: Int!
+  uploaded: Int!
+}
+
+type PlatformAdminPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+}
+
+type PlatformAdminBillingPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  billing: PlatformAdminBilling
+}
+
+type PlatformAdminReminderPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  message: String
+  reminder: PlatformAdminReminder
+}
+
+type PlatformAdminHeirloomPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  message: String
+  heirloom: PlatformAdminHeirloom
+}
+
+type PlatformAdminBossPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  bossId: Int
+}
+
+type PlatformAdminRosterPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  adminRoster: [String!]!
+}
+
+type PlatformAdminBackupRunPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  key: String
+  rows: Int
+  bytes: Int
+}
+
+type PlatformReminderIdentityBackfillPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  dryRun: Boolean!
+  guilds: [PlatformReminderIdentityGuild!]!
+  rosterSeeded: Int!
+  seatsTotal: Int!
+  stamped: Int!
+  ambiguous: Int!
+  unmatched: Int!
+}
+
+type PlatformReminderIdentityGuild {
+  slug: String!
+  discordGuildId: String!
+  rosterSeeded: Int!
+  seatsTotal: Int!
+  stamped: Int!
+  ambiguous: Int!
+  unmatched: Int!
+}
+
+type PlatformCreatorBackfillPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  dryRun: Boolean!
+  events: Int!
+  alreadyStamped: Int!
+  considered: Int!
+  backfilled: Int!
+  placeholder: Int!
+  noMatch: Int!
+  ambiguous: Int!
+  groups: [PlatformCreatorBackfillGroup!]!
+}
+
+type PlatformCreatorBackfillGroup {
+  tenant: String!
+  createdBy: String!
+  cars: Int!
+  outcome: String!
+  matchedDiscordId: String
+  candidates: Int!
+}
+
+type PlatformGuideMigrationPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  migrated: [PlatformGuideMigrationEntry!]!
+}
+
+type PlatformGuideMigrationEntry {
+  id: Int!
+  name: String!
+  mechanics: Int!
+  talents: Int!
+  shouts: Int!
+}
+
+extend type Mutation {
+  # 计费: 总闸 / 手工授予 / 撤销 / 子域名开关 / 自定义域名停用
+  platformAdminSetPaygate(enabled: Boolean!): PlatformAdminBillingPayload!
+  platformAdminGrantPremium(slug: String!, days: Int!, tier: String): PlatformAdminBillingPayload!
+  platformAdminRevokePremium(slug: String!): PlatformAdminBillingPayload!
+  platformAdminSetSubdomain(slug: String!, enabled: Boolean!): PlatformAdminBillingPayload!
+  platformAdminSetCustomDomainDisabled(slug: String!, disabled: Boolean!): PlatformAdminBillingPayload!
+  # 百业与反馈
+  platformAdminDeleteTenant(slug: String!): PlatformAdminPayload!
+  platformAdminSetFeedbackStatus(id: Int!, status: String!): PlatformAdminPayload!
+  # 平台设置 (全局)
+  platformAdminUpdateSettings(gameVersion: String, gameNotice: String, gameVersionCode: String): PlatformAdminPayload!
+  # 图鉴维护
+  platformAdminCreateBoss(name: String!, talent: String, source: String, note: String, sortOrder: Int): PlatformAdminBossPayload!
+  platformAdminUpdateBoss(id: Int!, name: String, talent: String, source: String, note: String, sortOrder: Int, guide: String, mechanicsJson: String, talentsJson: String, shoutsJson: String): PlatformAdminPayload!
+  platformAdminDeleteBoss(id: Int!): PlatformAdminPayload!
+  platformAdminUpdateDungeon(id: Int!, isCurrent: Boolean, videoUrl: String, videoTitle: String): PlatformAdminPayload!
+  # 每百业提醒 / 传家宝配置
+  platformAdminUpdateReminder(slug: String!, webhook: String, enabled: Boolean): PlatformAdminReminderPayload!
+  platformAdminTestReminder(slug: String!): PlatformAdminReminderPayload!
+  platformAdminUpdateHeirloom(slug: String!, webhook: String, enabled: Boolean): PlatformAdminHeirloomPayload!
+  platformAdminTestHeirloom(slug: String!): PlatformAdminHeirloomPayload!
+  # 备份触发 (列表/下载见 PlatformAdmin.backups 与 HTTP 下载路由)
+  platformAdminRunBackup: PlatformAdminBackupRunPayload!
+  # 超管名单 (设置名单部分; env 引导名单不在此写)
+  platformAdminSetRoster(discordIds: [String!]!): PlatformAdminRosterPayload!
+  # 一次性回填 (使命未完/可重入, 保留为运维动作)
+  platformAdminBackfillReminderIdentity(dryRun: Boolean!): PlatformReminderIdentityBackfillPayload!
+  platformAdminBackfillCreators(dryRun: Boolean!): PlatformCreatorBackfillPayload!
+  platformAdminMigrateBossGuides: PlatformGuideMigrationPayload!
 }

@@ -143,6 +143,17 @@ export abstract class ErrorsFbtUtils {
   static notInServer(fbs: FbsAPI) { return fbs("你不在这个 Discord 服务器中", "Error message for server membership, used when the user is not a member of the Discord server involved in the operation."); }
   static cannotManageServer(fbs: FbsAPI) { return fbs("你需要在该 Discord 服务器拥有管理员或「管理服务器」权限才能绑定它", "Error message for server binding, used when the user lacks administrator or Manage Server permission in the Discord server being bound."); }
   static adminOnly(fbs: FbsAPI) { return fbs("只有所绑服务器的管理员可以执行此操作", "Error message for guild admin operations, used when a non-admin of the bound Discord server attempts an admin-only operation."); }
+  static platformAdminRequired(fbs: FbsAPI) { return fbs("需要平台超管权限", "Error message for platform admin operations, used when a viewer who does not pass the platform-admin gate attempts an admin mutation."); }
+  static tierInvalid(fbs: FbsAPI) { return fbs("档位无效", "Error message for premium grants, used when a grant names a tier that is not one of the known plan tiers."); }
+  static feedbackNotFound(fbs: FbsAPI) { return fbs("反馈不存在", "Error message for feedback triage, used when an operation references a feedback submission that does not exist."); }
+  static bossNameRequired(fbs: FbsAPI) { return fbs("首领名不能为空", "Error message for boss compendium editing, used when a boss is created without a name."); }
+  static webhookFormatInvalid(fbs: FbsAPI) { return fbs("Webhook URL 格式不对（应为 https://discord.com/api/webhooks/...）", "Error message for webhook configuration, used when a submitted Discord webhook URL does not match the official format."); }
+  static webhookNotConfigured(fbs: FbsAPI) { return fbs("尚未配置 Webhook URL", "Error message for webhook test sends, used when a test is attempted for a guild that has no webhook configured."); }
+  static subdomainTrialCardRequired(fbs: FbsAPI) { return fbs("该百业处于试用期且未登记支付方式：启用平台子域名前需先登记卡（试用期启用持久化功能需绑卡）", "Error message for the platform subdomain switch, used when enabling the subdomain for a trialing guild with no payment method on file."); }
+  static backupStorageMissing(fbs: FbsAPI) { return fbs("备份存储（R2 BACKUPS 绑定）未配置", "Error message for backup operations, used when the R2 BACKUPS binding is not configured on the Worker."); }
+  static backupNotFound(fbs: FbsAPI) { return fbs("备份不存在", "Error message for backup downloads, used when the requested backup object does not exist in the bucket."); }
+  static badParams(fbs: FbsAPI) { return fbs("参数不正确", "Error message for malformed admin requests, used when submitted parameters fail validation."); }
+  static testSendFailed(fbs: FbsAPI) { return fbs("测试发送失败", "Error message prefix for webhook test sends on the platform admin surface, used when a test message could not be delivered, followed by the delivery error detail."); }
   static noCandidates(fbs: FbsAPI) { return fbs("没有符合条件的成员可发送", "Error message for targeted nudges, used when a nudge segment matches no unsigned guild member."); }
   static nudgeDailyLimit(fbs: FbsAPI, p?: StringParams) { return fbs(["今天的定向催报已达上限（每天 ", fbs.param("limit", pv(p, "limit")), " 次），明天再发"], "Error message for targeted nudges, used when the guild reaches its daily nudge quota, where {limit} is the number of nudges allowed per day."); }
   static nudgeCooldown(fbs: FbsAPI) { return fbs("这辆车刚催报过，24 小时内不能重复催报", "Error message for targeted nudges, used when the same grouping was already nudged within the per-event cooldown window."); }
@@ -267,3 +278,79 @@ export abstract class ErrorsFbtUtils {
   static seasonGoalDungeonNotFound(fbs: FbsAPI) { return fbs("关联的副本不存在", "Error message for season goals, used when a goal references a dungeon that does not exist."); }
 }
 
+
+export abstract class PlatformAdminFbtUtils {
+  static entryLabel(fbs: FbsAPI) { return fbs("平台管理", "Link label for the platform admin entry on the home page, used only when the viewer's response composes the platform admin type (platform admins only)."); }
+  static title(fbs: FbsAPI) { return fbs("平台管理", "Title text for the platform admin page, used as the page heading for the super-admin surface inside the main site."); }
+  static subtitle(fbs: FbsAPI) { return fbs("平台运营面：百业、计费、图鉴、配置与审计。原 hub 门户已并入主站，超管判定由平台 gate 在服务端求值。", "Body text for the platform admin page, used under the page title to explain what the surface covers and that the old hub portal moved here."); }
+  static lockedTitle(fbs: FbsAPI) { return fbs("需要平台超管权限", "Title text for the platform admin locked state, used when a viewer who is not a platform admin opens the platform admin page."); }
+  static lockedBody(fbs: FbsAPI) { return fbs("这个页面只对平台超管开放。超管名单由平台 gate 在服务端求值，你的账号不在名单内，所以这里不会下发任何管理数据。", "Body text for the platform admin locked state, used to explain that the gate verdict happens server-side and no admin data is sent to non-admins."); }
+  static tenantsTitle(fbs: FbsAPI) { return fbs("百业列表", "Section title for the tenant list on the platform admin page, used above the table of all guilds on the platform."); }
+  static tenantsEmpty(fbs: FbsAPI) { return fbs("暂无百业", "Empty-state text for the tenant list on the platform admin page, used when the platform has no guilds yet."); }
+  static billingTitle(fbs: FbsAPI) { return fbs("计费与权益", "Section title for billing on the platform admin page, used above the paygate switch and per-guild entitlement controls."); }
+  static paygateLabel(fbs: FbsAPI) { return fbs("付费总闸 (paygate)", "Label text for the paygate master switch on the platform admin page, used beside the switch that turns the whole Premium gate on or off."); }
+  static paygateOnText(fbs: FbsAPI) { return fbs("已开启", "Status text for the paygate switch on the platform admin page, used when the Premium gate master switch is on."); }
+  static paygateOffText(fbs: FbsAPI) { return fbs("已关闭", "Status text for the paygate switch on the platform admin page, used when the Premium gate master switch is off."); }
+  static stripeLabel(fbs: FbsAPI) { return fbs("Stripe", "Label text for the Stripe status row on the platform admin page, used beside the indicator of whether Stripe keys and prices are configured."); }
+  static stripeConfiguredText(fbs: FbsAPI) { return fbs("已配置", "Status text for Stripe on the platform admin page, used when the Stripe secret, webhook secret and at least one price are all configured."); }
+  static stripeMissingText(fbs: FbsAPI) { return fbs("未配置（密钥或价格缺失）", "Status text for Stripe on the platform admin page, used when Stripe keys or prices are missing so checkout cannot run."); }
+  static saasLabel(fbs: FbsAPI) { return fbs("自定义域名 SaaS", "Label text for the custom-domain SaaS status row on the platform admin page, used beside the indicator of whether the zone-level Cloudflare for SaaS seam is connected."); }
+  static saasConfiguredText(fbs: FbsAPI) { return fbs("已接入", "Status text for the custom-domain SaaS seam on the platform admin page, used when the zone-level setup is recorded in the Worker env."); }
+  static saasMissingText(fbs: FbsAPI) { return fbs("未接入", "Status text for the custom-domain SaaS seam on the platform admin page, used when the zone-level setup has not been done yet."); }
+  static plansTitle(fbs: FbsAPI) { return fbs("价格档位", "Section title for the pricing catalog on the platform admin page, used above the list of Premium tiers and monthly prices."); }
+  static billingTenantsTitle(fbs: FbsAPI) { return fbs("各百业权益", "Section title for the per-guild entitlement table on the platform admin page, used above the rows carrying grant, revoke, subdomain and custom-domain controls."); }
+  static errorsTitle(fbs: FbsAPI) { return fbs("错误日志", "Section title for the error log on the platform admin page, used above the recent platform errors table."); }
+  static errorsEmpty(fbs: FbsAPI) { return fbs("暂无错误记录", "Empty-state text for the error log on the platform admin page, used when no recent errors are recorded."); }
+  static auditTitle(fbs: FbsAPI) { return fbs("操作审计", "Section title for the audit trail on the platform admin page, used above the operator action log."); }
+  static auditEmpty(fbs: FbsAPI) { return fbs("暂无审计记录", "Empty-state text for the audit trail on the platform admin page, used when no operator actions are recorded in range."); }
+  static feedbackTitle(fbs: FbsAPI) { return fbs("用户反馈", "Section title for user feedback triage on the platform admin page, used above the in-app feedback submissions list."); }
+  static feedbackEmpty(fbs: FbsAPI) { return fbs("暂无反馈", "Empty-state text for user feedback on the platform admin page, used when no feedback submissions match."); }
+  static settingsTitle(fbs: FbsAPI) { return fbs("平台设置", "Section title for platform settings on the platform admin page, used above the global game version and notice fields."); }
+  static gameVersionLabel(fbs: FbsAPI) { return fbs("游戏版本", "Label text for the game version field in platform settings, used beside the input carrying the current game version string."); }
+  static gameNoticeLabel(fbs: FbsAPI) { return fbs("游戏公告", "Label text for the game notice field in platform settings, used beside the input carrying the platform-wide game notice."); }
+  static gameVersionCodeLabel(fbs: FbsAPI) { return fbs("版本号 (version code)", "Label text for the game version code field in platform settings, used beside the input carrying the numeric version code."); }
+  static bossesTitle(fbs: FbsAPI) { return fbs("首领图鉴", "Section title for the boss compendium editor on the platform admin page, used above the boss list."); }
+  static bossesEmpty(fbs: FbsAPI) { return fbs("暂无首领", "Empty-state text for the boss compendium editor on the platform admin page, used when no bosses exist yet."); }
+  static dungeonsTitle(fbs: FbsAPI) { return fbs("副本图鉴", "Section title for the dungeon compendium editor on the platform admin page, used above the dungeon list."); }
+  static dungeonsEmpty(fbs: FbsAPI) { return fbs("暂无副本", "Empty-state text for the dungeon compendium editor on the platform admin page, used when no dungeons exist yet."); }
+  static remindersTitle(fbs: FbsAPI) { return fbs("开车提醒配置", "Section title for departure-reminder configs on the platform admin page, used above the per-guild reminder webhook table."); }
+  static remindersEmpty(fbs: FbsAPI) { return fbs("暂无百业", "Empty-state text for the reminder configs on the platform admin page, used when no guild has a reminder config."); }
+  static heirloomsTitle(fbs: FbsAPI) { return fbs("传家宝推送配置", "Section title for heirloom push configs on the platform admin page, used above the per-guild heirloom webhook table."); }
+  static heirloomsEmpty(fbs: FbsAPI) { return fbs("暂无百业", "Empty-state text for the heirloom push configs on the platform admin page, used when no guild has an heirloom config."); }
+  static backupsTitle(fbs: FbsAPI) { return fbs("数据备份", "Section title for backups on the platform admin page, used above the snapshot list and the export and run actions."); }
+  static backupsEmpty(fbs: FbsAPI) { return fbs("暂无备份文件", "Empty-state text for the backup list on the platform admin page, used when the backup bucket holds no snapshots yet."); }
+  static backupsUnavailableText(fbs: FbsAPI) { return fbs("备份存储（R2 BACKUPS 绑定）未配置", "Status text for backups on the platform admin page, used when the R2 BACKUPS binding is not configured on the Worker."); }
+  static rosterTitle(fbs: FbsAPI) { return fbs("平台超管名单", "Section title for the platform admin roster on the platform admin page, used above the editor for the settings-side admin list."); }
+  static rosterNote(fbs: FbsAPI) { return fbs("名单按 Discord 用户 ID 在 gate 层求值；环境变量 PLATFORM_ADMIN_DISCORD_IDS 的引导名单始终有效，不在此列出。修改即时生效并写入审计。", "Hint text for the platform admin roster editor, used to explain that the env bootstrap floor always applies and that roster edits take effect immediately and are audited."); }
+  static backfillsTitle(fbs: FbsAPI) { return fbs("一次性回填工具", "Section title for the one-off backfill tools on the platform admin page, used above the reminder-identity, creator-stamp and guide-migration actions."); }
+  static saveLabel(fbs: FbsAPI) { return fbs("保存", "Button label for saving on the platform admin page, used on the settings, reminder, heirloom and roster save actions."); }
+  static testLabel(fbs: FbsAPI) { return fbs("发送测试", "Button label for webhook test sends on the platform admin page, used on the reminder and heirloom test actions."); }
+  static runLabel(fbs: FbsAPI) { return fbs("执行", "Button label for running a backfill on the platform admin page, used on the one-off tool actions."); }
+  static dryRunLabel(fbs: FbsAPI) { return fbs("仅试运行（不写库）", "Checkbox label for dry-run mode on the platform admin page, used beside backfill actions to report without writing."); }
+  static deleteTenantLabel(fbs: FbsAPI) { return fbs("删除百业", "Button label for deleting a guild on the platform admin page, used on the destructive per-tenant action."); }
+  static grantLabel(fbs: FbsAPI) { return fbs("授予", "Button label for granting Premium on the platform admin page, used on the per-guild manual entitlement grant action."); }
+  static revokeLabel(fbs: FbsAPI) { return fbs("撤销", "Button label for revoking Premium on the platform admin page, used on the per-guild manual entitlement revoke action."); }
+  static subdomainLabel(fbs: FbsAPI) { return fbs("平台子域名", "Label text for the platform subdomain switch on the platform admin page, used beside the per-guild subdomain enable toggle."); }
+  static customDomainLabel(fbs: FbsAPI) { return fbs("自定义域名", "Label text for the custom domain row on the platform admin page, used beside the bound hostname and its disable switch."); }
+  static enabledText(fbs: FbsAPI) { return fbs("已启用", "Status text for an enabled switch on the platform admin page, used for reminder, heirloom and subdomain states."); }
+  static disabledText(fbs: FbsAPI) { return fbs("已禁用", "Status text for a disabled switch on the platform admin page, used for reminder, heirloom, subdomain and custom-domain states."); }
+  static webhookSetText(fbs: FbsAPI) { return fbs("Webhook 已配置", "Status text for webhook state on the platform admin page, used when a guild has a reminder or heirloom webhook on file (the full URL is never shown)."); }
+  static webhookUnsetText(fbs: FbsAPI) { return fbs("Webhook 未配置", "Status text for webhook state on the platform admin page, used when a guild has no reminder or heirloom webhook on file."); }
+  static runBackupLabel(fbs: FbsAPI) { return fbs("立即备份", "Button label for running a backup now on the platform admin page, used on the manual snapshot action."); }
+  static downloadLabel(fbs: FbsAPI) { return fbs("下载", "Button label for downloading a backup file on the platform admin page, used beside each snapshot row."); }
+  static exportLabel(fbs: FbsAPI) { return fbs("导出备份 JSON", "Button label for the streaming backup export on the platform admin page, used on the action that downloads a full JSON snapshot of the database."); }
+  static backfillReminderIdentityLabel(fbs: FbsAPI) { return fbs("回填提醒身份（名册+座位戳）", "Button label for the reminder identity backfill on the platform admin page, used on the tool that seeds rosters and stamps signup seats with Discord IDs."); }
+  static backfillCreatorsLabel(fbs: FbsAPI) { return fbs("回填车头身份戳", "Button label for the creator stamp backfill on the platform admin page, used on the tool that backfills creator Discord IDs for legacy squads."); }
+  static migrateBossGuidesLabel(fbs: FbsAPI) { return fbs("结构化首领攻略（从攻略文本生成）", "Button label for the boss guide structured migration on the platform admin page, used on the tool that parses guide text into structured mechanics, talents and shouts."); }
+  static statusOpenText(fbs: FbsAPI) { return fbs("待处理", "Status text for an open feedback item on the platform admin page, used in the feedback triage list."); }
+  static statusResolvedText(fbs: FbsAPI) { return fbs("已解决", "Status text for a resolved feedback item on the platform admin page, used in the feedback triage list."); }
+  static lastStatusLabel(fbs: FbsAPI) { return fbs("最近状态", "Label text for the last push status on the platform admin page, used in the reminder and heirloom config rows."); }
+  static nextAlarmLabel(fbs: FbsAPI) { return fbs("下次提醒", "Label text for the next reminder alarm on the platform admin page, used in the reminder config rows."); }
+  static periodEndLabel(fbs: FbsAPI) { return fbs("周期结束", "Label text for the entitlement period end on the platform admin page, used in the per-guild billing rows."); }
+  static sourceLabel(fbs: FbsAPI) { return fbs("来源", "Label text for the entitlement source on the platform admin page, used in the per-guild billing rows to show whether the grant came from Stripe, a manual grant or a trial."); }
+  static tierLabel(fbs: FbsAPI) { return fbs("档位", "Label text for the Premium tier on the platform admin page, used in the pricing catalog and the per-guild billing rows."); }
+  static planLabel(fbs: FbsAPI) { return fbs("方案", "Label text for the Premium plan on the platform admin page, used in the per-guild billing rows."); }
+  static hasCardText(fbs: FbsAPI) { return fbs("已绑卡", "Status text for the payment method state on the platform admin page, used when a guild has a card on file."); }
+  static noCardText(fbs: FbsAPI) { return fbs("未绑卡", "Status text for the payment method state on the platform admin page, used when a guild has no card on file."); }
+  static trialUsedText(fbs: FbsAPI) { return fbs("已用试用", "Status text for the trial state on the platform admin page, used when a guild has consumed its free trial."); }
+}

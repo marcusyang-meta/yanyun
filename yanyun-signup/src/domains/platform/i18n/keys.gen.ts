@@ -98,6 +98,17 @@ export type PlatformStringKey =
   | 'errors_notInServer'
   | 'errors_cannotManageServer'
   | 'errors_adminOnly'
+  | 'errors_platformAdminRequired'
+  | 'errors_tierInvalid'
+  | 'errors_feedbackNotFound'
+  | 'errors_bossNameRequired'
+  | 'errors_webhookFormatInvalid'
+  | 'errors_webhookNotConfigured'
+  | 'errors_subdomainTrialCardRequired'
+  | 'errors_backupStorageMissing'
+  | 'errors_backupNotFound'
+  | 'errors_badParams'
+  | 'errors_testSendFailed'
   | 'errors_noCandidates'
   | 'errors_nudgeDailyLimit'
   | 'errors_nudgeCooldown'
@@ -219,7 +230,80 @@ export type PlatformStringKey =
   | 'errors_seasonGoalTitleTooLong'
   | 'errors_seasonGoalNoteTooLong'
   | 'errors_seasonGoalNotFound'
-  | 'errors_seasonGoalDungeonNotFound';
+  | 'errors_seasonGoalDungeonNotFound'
+  | 'platformAdmin_entryLabel'
+  | 'platformAdmin_title'
+  | 'platformAdmin_subtitle'
+  | 'platformAdmin_lockedTitle'
+  | 'platformAdmin_lockedBody'
+  | 'platformAdmin_tenantsTitle'
+  | 'platformAdmin_tenantsEmpty'
+  | 'platformAdmin_billingTitle'
+  | 'platformAdmin_paygateLabel'
+  | 'platformAdmin_paygateOnText'
+  | 'platformAdmin_paygateOffText'
+  | 'platformAdmin_stripeLabel'
+  | 'platformAdmin_stripeConfiguredText'
+  | 'platformAdmin_stripeMissingText'
+  | 'platformAdmin_saasLabel'
+  | 'platformAdmin_saasConfiguredText'
+  | 'platformAdmin_saasMissingText'
+  | 'platformAdmin_plansTitle'
+  | 'platformAdmin_billingTenantsTitle'
+  | 'platformAdmin_errorsTitle'
+  | 'platformAdmin_errorsEmpty'
+  | 'platformAdmin_auditTitle'
+  | 'platformAdmin_auditEmpty'
+  | 'platformAdmin_feedbackTitle'
+  | 'platformAdmin_feedbackEmpty'
+  | 'platformAdmin_settingsTitle'
+  | 'platformAdmin_gameVersionLabel'
+  | 'platformAdmin_gameNoticeLabel'
+  | 'platformAdmin_gameVersionCodeLabel'
+  | 'platformAdmin_bossesTitle'
+  | 'platformAdmin_bossesEmpty'
+  | 'platformAdmin_dungeonsTitle'
+  | 'platformAdmin_dungeonsEmpty'
+  | 'platformAdmin_remindersTitle'
+  | 'platformAdmin_remindersEmpty'
+  | 'platformAdmin_heirloomsTitle'
+  | 'platformAdmin_heirloomsEmpty'
+  | 'platformAdmin_backupsTitle'
+  | 'platformAdmin_backupsEmpty'
+  | 'platformAdmin_backupsUnavailableText'
+  | 'platformAdmin_rosterTitle'
+  | 'platformAdmin_rosterNote'
+  | 'platformAdmin_backfillsTitle'
+  | 'platformAdmin_saveLabel'
+  | 'platformAdmin_testLabel'
+  | 'platformAdmin_runLabel'
+  | 'platformAdmin_dryRunLabel'
+  | 'platformAdmin_deleteTenantLabel'
+  | 'platformAdmin_grantLabel'
+  | 'platformAdmin_revokeLabel'
+  | 'platformAdmin_subdomainLabel'
+  | 'platformAdmin_customDomainLabel'
+  | 'platformAdmin_enabledText'
+  | 'platformAdmin_disabledText'
+  | 'platformAdmin_webhookSetText'
+  | 'platformAdmin_webhookUnsetText'
+  | 'platformAdmin_runBackupLabel'
+  | 'platformAdmin_downloadLabel'
+  | 'platformAdmin_exportLabel'
+  | 'platformAdmin_backfillReminderIdentityLabel'
+  | 'platformAdmin_backfillCreatorsLabel'
+  | 'platformAdmin_migrateBossGuidesLabel'
+  | 'platformAdmin_statusOpenText'
+  | 'platformAdmin_statusResolvedText'
+  | 'platformAdmin_lastStatusLabel'
+  | 'platformAdmin_nextAlarmLabel'
+  | 'platformAdmin_periodEndLabel'
+  | 'platformAdmin_sourceLabel'
+  | 'platformAdmin_tierLabel'
+  | 'platformAdmin_planLabel'
+  | 'platformAdmin_hasCardText'
+  | 'platformAdmin_noCardText'
+  | 'platformAdmin_trialUsedText';
 
 export const PLATFORM_STRING_KEYS: readonly PlatformStringKey[] = [
   'common_cancel',
@@ -319,6 +403,17 @@ export const PLATFORM_STRING_KEYS: readonly PlatformStringKey[] = [
   'errors_notInServer',
   'errors_cannotManageServer',
   'errors_adminOnly',
+  'errors_platformAdminRequired',
+  'errors_tierInvalid',
+  'errors_feedbackNotFound',
+  'errors_bossNameRequired',
+  'errors_webhookFormatInvalid',
+  'errors_webhookNotConfigured',
+  'errors_subdomainTrialCardRequired',
+  'errors_backupStorageMissing',
+  'errors_backupNotFound',
+  'errors_badParams',
+  'errors_testSendFailed',
   'errors_noCandidates',
   'errors_nudgeDailyLimit',
   'errors_nudgeCooldown',
@@ -441,4 +536,77 @@ export const PLATFORM_STRING_KEYS: readonly PlatformStringKey[] = [
   'errors_seasonGoalNoteTooLong',
   'errors_seasonGoalNotFound',
   'errors_seasonGoalDungeonNotFound',
+  'platformAdmin_entryLabel',
+  'platformAdmin_title',
+  'platformAdmin_subtitle',
+  'platformAdmin_lockedTitle',
+  'platformAdmin_lockedBody',
+  'platformAdmin_tenantsTitle',
+  'platformAdmin_tenantsEmpty',
+  'platformAdmin_billingTitle',
+  'platformAdmin_paygateLabel',
+  'platformAdmin_paygateOnText',
+  'platformAdmin_paygateOffText',
+  'platformAdmin_stripeLabel',
+  'platformAdmin_stripeConfiguredText',
+  'platformAdmin_stripeMissingText',
+  'platformAdmin_saasLabel',
+  'platformAdmin_saasConfiguredText',
+  'platformAdmin_saasMissingText',
+  'platformAdmin_plansTitle',
+  'platformAdmin_billingTenantsTitle',
+  'platformAdmin_errorsTitle',
+  'platformAdmin_errorsEmpty',
+  'platformAdmin_auditTitle',
+  'platformAdmin_auditEmpty',
+  'platformAdmin_feedbackTitle',
+  'platformAdmin_feedbackEmpty',
+  'platformAdmin_settingsTitle',
+  'platformAdmin_gameVersionLabel',
+  'platformAdmin_gameNoticeLabel',
+  'platformAdmin_gameVersionCodeLabel',
+  'platformAdmin_bossesTitle',
+  'platformAdmin_bossesEmpty',
+  'platformAdmin_dungeonsTitle',
+  'platformAdmin_dungeonsEmpty',
+  'platformAdmin_remindersTitle',
+  'platformAdmin_remindersEmpty',
+  'platformAdmin_heirloomsTitle',
+  'platformAdmin_heirloomsEmpty',
+  'platformAdmin_backupsTitle',
+  'platformAdmin_backupsEmpty',
+  'platformAdmin_backupsUnavailableText',
+  'platformAdmin_rosterTitle',
+  'platformAdmin_rosterNote',
+  'platformAdmin_backfillsTitle',
+  'platformAdmin_saveLabel',
+  'platformAdmin_testLabel',
+  'platformAdmin_runLabel',
+  'platformAdmin_dryRunLabel',
+  'platformAdmin_deleteTenantLabel',
+  'platformAdmin_grantLabel',
+  'platformAdmin_revokeLabel',
+  'platformAdmin_subdomainLabel',
+  'platformAdmin_customDomainLabel',
+  'platformAdmin_enabledText',
+  'platformAdmin_disabledText',
+  'platformAdmin_webhookSetText',
+  'platformAdmin_webhookUnsetText',
+  'platformAdmin_runBackupLabel',
+  'platformAdmin_downloadLabel',
+  'platformAdmin_exportLabel',
+  'platformAdmin_backfillReminderIdentityLabel',
+  'platformAdmin_backfillCreatorsLabel',
+  'platformAdmin_migrateBossGuidesLabel',
+  'platformAdmin_statusOpenText',
+  'platformAdmin_statusResolvedText',
+  'platformAdmin_lastStatusLabel',
+  'platformAdmin_nextAlarmLabel',
+  'platformAdmin_periodEndLabel',
+  'platformAdmin_sourceLabel',
+  'platformAdmin_tierLabel',
+  'platformAdmin_planLabel',
+  'platformAdmin_hasCardText',
+  'platformAdmin_noCardText',
+  'platformAdmin_trialUsedText',
 ];

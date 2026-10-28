@@ -19,6 +19,7 @@ import {
   grantTierManual, revokePremium, PREMIUM_PLANS, premiumPlanForTier, persistenceCardRequired,
 } from './billing-service.ts';
 import { stripeConfig } from './stripe.ts';
+import { billingStateFor, reminderStateFor, heirloomStateFor } from './admin-service.ts';
 import { getEntitlementRow } from './billing.ts';
 import { getReminderConfig, getReminderSetting, setReminderSetting, maskWebhook, postWebhook, WEBHOOK_RE, upsertGuildMember, nudgeReminderHub, listUnstampedSeatsByTenant, stampSignupDiscordId } from '../groupings/index.ts';
 import { getHeirloomConfig, sendHeirloomTest, heirloomStatusFor } from '../gear/index.ts';
@@ -183,41 +184,11 @@ hubRoutes.delete('/tenants/:slug', async (c: any) => {
  * enable switch + test send + status/next reminder. Admins may only
  * replace or clear the URL; validation matches the guild-admin endpoint
  * (official discord.com format). */
-async function reminderStateFor(c: any, slug: string) {
-  const cfg = await getReminderConfig(c.env.DB, slug);
-  if (!cfg) return null;
-  let nextAlarm = null;
-  try {
-    if (c.env.GUILD_HUB) {
-      const stub = c.env.GUILD_HUB.get(c.env.GUILD_HUB.idFromName('guild:' + slug));
-      const r = await stub.fetch('https://guild-hub/alarm-state', {
-        method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ slug }),
-      });
-      const j = await r.json().catch(() => null);
-      if (j && typeof j.alarm === 'number') nextAlarm = j.alarm;
-    }
-  } catch { /* leave empty when DO state is unreadable; the config surface is unaffected */ }
-  const lastAt = await getReminderSetting(c.env.DB, slug, 'reminder_last_at');
-  return {
-    slug,
-    guild_name: cfg.guildName,
-    webhookSet: !!cfg.webhook,
-    webhookMasked: cfg.webhook ? maskWebhook(cfg.webhook) : '',
-    enabled: cfg.enabled,
-    lastAt: lastAt ? parseInt(lastAt, 10) || null : null,
-    lastStatus: await getReminderSetting(c.env.DB, slug, 'reminder_last_status'),
-    lastError: await getReminderSetting(c.env.DB, slug, 'reminder_last_error'),
-    lastEvent: await getReminderSetting(c.env.DB, slug, 'reminder_last_event'),
-    nextAlarmAt: nextAlarm,
-  };
-}
-
 hubRoutes.get('/reminders', async (c: any) => {
   const results = await listTenantSlugs(c.env.DB);
   const out: any[] = [];
   for (const t of results) {
-    const st = await reminderStateFor(c, t.slug);
+    const st = await reminderStateFor(c.env, t.slug);
     if (st) out.push(st);
   }
   return json({ ok: true, reminders: out });
@@ -242,7 +213,7 @@ hubRoutes.put('/tenants/:slug/reminder', async (c: any) => {
   }
   nudgeReminderHub(c, slug); // a config change re-arms the reminder alarm immediately
   await audit(c, 'reminder.update', slug, changes);
-  return json({ ok: true, reminder: await reminderStateFor(c, slug) });
+  return json({ ok: true, reminder: await reminderStateFor(c.env, slug) });
 });
 
 hubRoutes.post('/tenants/:slug/reminder/test', async (c: any) => {
@@ -260,7 +231,7 @@ hubRoutes.post('/tenants/:slug/reminder/test', async (c: any) => {
   await setReminderSetting(c.env.DB, slug, 'reminder_last_error', res.ok ? '' : String(res.error || '发送失败').slice(0, 300));
   await audit(c, 'reminder.test', slug, { ok: res.ok });
   if (!res.ok) return json({ ok: false, message: '测试发送失败: ' + res.error }, 200);
-  return json({ ok: true, reminder: await reminderStateFor(c, slug) });
+  return json({ ok: true, reminder: await reminderStateFor(c.env, slug) });
 });
 
 /* ---------- Heirloom push config (hub portal; independent of reminders) ----------
@@ -269,29 +240,11 @@ hubRoutes.post('/tenants/:slug/reminder/test', async (c: any) => {
  * from the reminder's tenants.discord_webhook — replacing/clearing here
  * must never touch the reminder one. Triggering and dedup live in the
  * heirloom push service (server-side gearPlan evaluation). */
-async function heirloomStateFor(c: any, slug: string) {
-  const cfg = await getHeirloomConfig(c.env.DB, slug);
-  if (!cfg) return null;
-  const st = await heirloomStatusFor(c.env.DB, slug);
-  const t = await getTenantRow(c.env.DB, slug).catch(() => null);
-  return {
-    slug,
-    guild_name: t ? String(t.guild_name || slug) : slug,
-    webhookSet: !!cfg.webhook,
-    webhookMasked: cfg.webhook ? maskWebhook(cfg.webhook) : '',
-    enabled: cfg.enabled,
-    lastAt: st.lastAt ? parseInt(st.lastAt, 10) || null : null,
-    lastStatus: st.lastStatus || '',
-    lastError: st.lastError || '',
-    lastEvent: st.lastEvent || '',
-  };
-}
-
 hubRoutes.get('/heirlooms', async (c: any) => {
   const results = await listTenantSlugs(c.env.DB);
   const out: any[] = [];
   for (const t of results) {
-    const st = await heirloomStateFor(c, t.slug);
+    const st = await heirloomStateFor(c.env, t.slug);
     if (st) out.push(st);
   }
   return json({ ok: true, heirlooms: out });
@@ -315,7 +268,7 @@ hubRoutes.put('/tenants/:slug/heirloom', async (c: any) => {
     changes.enabled = !!body.enabled;
   }
   await audit(c, 'heirloom.update', slug, changes);
-  return json({ ok: true, heirloom: await heirloomStateFor(c, slug) });
+  return json({ ok: true, heirloom: await heirloomStateFor(c.env, slug) });
 });
 
 hubRoutes.post('/tenants/:slug/heirloom/test', async (c: any) => {
@@ -326,7 +279,7 @@ hubRoutes.post('/tenants/:slug/heirloom/test', async (c: any) => {
   if ((res as any).missing) return err(res.error, res.error === '百业不存在' ? 404 : 400);
   await audit(c, 'heirloom.test', slug, { ok: !!res.ok });
   if (!res.ok) return json({ ok: false, message: '测试发送失败: ' + res.error }, 200);
-  return json({ ok: true, heirloom: await heirloomStateFor(c, slug) });
+  return json({ ok: true, heirloom: await heirloomStateFor(c.env, slug) });
 });
 
 /* POST /api/hub/backfill/reminder-identity — reminder identity backfill.
@@ -415,74 +368,8 @@ hubRoutes.post('/backfill/reminder-identity', async (c: any) => {
  * resolves is the resolution-side verdict (switch + not dev_only +
  * the Premium gate), so with the paygate ON an unentitled guild
  * stays dark even with its switch on. */
-interface BillingTenantState {
-  slug: string; guild_name: string; plan: string; source: string;
-  tier: number; effectiveTier: number;
-  tierName: string; tierNameEn: string; tierSubtitle: string;
-  currentPeriodEnd: number | null; lapsed: boolean; pastDue: boolean;
-  hasCard: boolean; trialUsed: boolean;
-  stripeCustomerId: string; stripeSubscriptionId: string;
-  subdomainEnabled: boolean;
-  /* Custom domain (P23): the guild's binding as the hub sees it —
-   * hostname + state-machine status, null when unbound. Binding is
-   * the guild admin's self-service (admin surface); the hub's part
-   * is visibility + the disable switch below. The verify token is
-   * never included here. */
-  customDomain: { hostname: string; status: string } | null;
-}
-
-async function billingStateFor(c: any) {
-  const db = c.env.DB;
-  const tenants = await listTenantsHubAdmin(db);
-  const out: BillingTenantState[] = [];
-  for (const t of tenants) {
-    const eff = await getEffectiveEntitlement(db, t.slug);
-    const row = await getEntitlementRow(db, t.slug).catch(() => null);
-    // Tier display names come from the backend plan catalog (the
-    // same PREMIUM_PLANS rows the guild-admin pricing panel
-    // composes from) — the hub page renders what it is given and
-    // hardcodes no tier name of its own.
-    const planInfo = premiumPlanForTier(eff.tier);
-    out.push({
-      slug: t.slug,
-      guild_name: t.guild_name,
-      plan: eff.plan,
-      tier: eff.tier,
-      effectiveTier: eff.tier,
-      tierName: planInfo ? planInfo.name : '',
-      tierNameEn: planInfo ? planInfo.nameEn : '',
-      tierSubtitle: planInfo ? planInfo.subtitle : '',
-      source: eff.source,
-      currentPeriodEnd: eff.currentPeriodEnd,
-      lapsed: eff.lapsed,
-      pastDue: eff.pastDue,
-      hasCard: row ? !!row.hasCard : false,
-      trialUsed: row ? !!row.trialUsed : false,
-      stripeCustomerId: row ? row.stripeCustomerId : '',
-      stripeSubscriptionId: row ? row.stripeSubscriptionId : '',
-      subdomainEnabled: (await getSettingValue(db, t.slug, SUBDOMAIN_ENABLED_KEY)) === '1',
-      customDomain: await (async () => {
-        const b = await getCustomDomainByTenant(db, t.slug).catch(() => null);
-        return b ? { hostname: b.hostname, status: b.status } : null;
-      })(),
-    });
-  }
-  return {
-    paygateEnabled: await isPaygateEnabled(db),
-    stripeConfigured: !!stripeConfig(c.env),
-    // The settled pricing catalog (names + monthly prices), served
-    // for the hub's pricing display; the hub is an operator surface
-    // behind the hub password, not a tenant surface.
-    plans: PREMIUM_PLANS,
-    /* The custom-domain seam state, platform-wide: false until the
-     * zone-level Cloudflare for SaaS setup is recorded in env. */
-    customDomainSaasConfigured: customDomainSaasConfigured(c.env),
-    tenants: out,
-  };
-}
-
 hubRoutes.get('/billing', async (c: any) => {
-  return json({ ok: true, billing: await billingStateFor(c) });
+  return json({ ok: true, billing: await billingStateFor(c.env) });
 });
 
 hubRoutes.put('/billing/paygate', async (c: any) => {
@@ -490,7 +377,7 @@ hubRoutes.put('/billing/paygate', async (c: any) => {
   const enabled = !!body.enabled;
   await setPaygateEnabled(c.env.DB, enabled);
   await audit(c, 'billing.paygate', '', { enabled });
-  return json({ ok: true, billing: await billingStateFor(c) });
+  return json({ ok: true, billing: await billingStateFor(c.env) });
 });
 
 hubRoutes.post('/billing/grant', async (c: any) => {
@@ -512,7 +399,7 @@ hubRoutes.post('/billing/grant', async (c: any) => {
     ? await grantTierManual(c.env.DB, slug, tier, days)
     : await grantPremiumManual(c.env.DB, slug, days);
   await audit(c, 'billing.grant', slug, { days, currentPeriodEnd: row.currentPeriodEnd, source: 'manual', plan: row.plan, ...(tier ? { tier } : {}) });
-  return json({ ok: true, billing: await billingStateFor(c) });
+  return json({ ok: true, billing: await billingStateFor(c.env) });
 });
 
 hubRoutes.post('/billing/revoke', async (c: any) => {
@@ -522,7 +409,7 @@ hubRoutes.post('/billing/revoke', async (c: any) => {
   if (!t) return err('百业不存在', 404);
   await revokePremium(c.env.DB, slug);
   await audit(c, 'billing.revoke', slug, {});
-  return json({ ok: true, billing: await billingStateFor(c) });
+  return json({ ok: true, billing: await billingStateFor(c.env) });
 });
 
 hubRoutes.put('/billing/subdomain', async (c: any) => {
@@ -550,7 +437,7 @@ hubRoutes.put('/billing/subdomain', async (c: any) => {
   }
   await setGuildSubdomainEnabled(c.env.DB, slug, enabled);
   await audit(c, 'billing.subdomain', slug, { enabled });
-  return json({ ok: true, billing: await billingStateFor(c) });
+  return json({ ok: true, billing: await billingStateFor(c.env) });
 });
 
 /* Custom-domain kill switch (P23): binding is the guild admin's
@@ -570,7 +457,7 @@ hubRoutes.put('/billing/custom-domain', async (c: any) => {
   if (!binding) return err('该百业未绑定自定义域名', 404);
   await setCustomDomainDisabled(c.env.DB, slug, disabled, Math.floor(Date.now() / 1000));
   await audit(c, 'billing.custom_domain', slug, { disabled, hostname: binding.hostname });
-  return json({ ok: true, billing: await billingStateFor(c) });
+  return json({ ok: true, billing: await billingStateFor(c.env) });
 });
 
 hubRoutes.get('/settings', async (c: any) => {
