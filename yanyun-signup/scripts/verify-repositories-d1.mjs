@@ -12,12 +12,13 @@
  * construction.
  *
  * Usage: node scripts/verify-repositories-d1.mjs [section]
- *   Omitting section = all; currently twenty-two sections: tenants /
- *   events / gear / users / members / results / dex / reference /
+ *   Omitting section = all; currently thirty-one sections: tenants /
+ *   events / users / gear / members / results / dex / reference /
  *   state / ddl / guard / stamp / membercount / atomic / audit /
- *   shortlinks / beats / templates / usage / buildshares / billing /
- *   feedback / activitytools / recruit / officer / network, extended as the data-layer migration
- *   progresses.
+ *   shortlinks / beats / templates / usage / buildshares /
+ *   announcements / announcement-i18n / billing / feedback /
+ *   activitytools / season / officer / schedule / recruit / network /
+ *   governance, extended as the data-layer migration progresses.
  *   Non-zero exit = an assertion failed.
  * =================================================== */
 import { Miniflare, convertV4MiniflareOptions } from 'miniflare';
@@ -65,8 +66,8 @@ if (want('tenants')) {
   console.log('== tenants repository on real D1 ==');
   const repo = await import('../src/domains/guilds/tenants.ts');
 
-  await repo.insertTenant(db, { slug: 'alpha', guildName: '甲百业', passwordHash: 'h1', announcement: '' });
-  await repo.insertTenant(db, { slug: 'beta', guildName: '乙百业', passwordHash: 'h2', announcement: '公告乙' });
+  const alphaId = await repo.insertTenant(db, { slug: 'alpha', guildName: '甲百业', passwordHash: 'h1', announcement: '' });
+  const betaId = await repo.insertTenant(db, { slug: 'beta', guildName: '乙百业', passwordHash: 'h2', announcement: '公告乙' });
 
   const row = await repo.getTenantRow(db, 'alpha');
   check('insert+getTenantRow roundtrip', !!row && row.slug === 'alpha' && row.guild_name === '甲百业' && row.password_hash === 'h1');
@@ -84,8 +85,10 @@ if (want('tenants')) {
   const names = await repo.listTenantNames(db);
   eq('listTenantNames', names.map((r) => r.slug).sort(), ['alpha', 'beta']);
 
-  // events for the hub-admin composite count
-  await db.prepare("INSERT INTO events (tenant, title) VALUES ('alpha', '车一'), ('alpha', '车二'), ('beta', '车三')").run();
+  // events for the hub-admin composite count (tenant keys are the
+  // guilds' typed IDs since the ID reform)
+  await db.prepare('INSERT INTO events (tenant, title) VALUES (?, ?), (?, ?), (?, ?)')
+    .bind(alphaId, '车一', alphaId, '车二', betaId, '车三').run();
   const hub = await repo.listTenantsHubAdmin(db);
   const alphaHub = hub.find((r) => r.slug === 'alpha');
   const betaHub = hub.find((r) => r.slug === 'beta');
@@ -106,15 +109,15 @@ if (want('tenants')) {
   eq('updateTenantProfile writes bg_image_url', prof && prof.bg_image_url, 'http://b');
 
   // cascade: seed signups + results under alpha's events and beta's event
-  const evA = await db.prepare("SELECT id FROM events WHERE tenant='alpha' LIMIT 1").first();
-  const evB = await db.prepare("SELECT id FROM events WHERE tenant='beta' LIMIT 1").first();
+  const evA = await db.prepare('SELECT id FROM events WHERE tenant = ? LIMIT 1').bind(alphaId).first();
+  const evB = await db.prepare('SELECT id FROM events WHERE tenant = ? LIMIT 1').bind(betaId).first();
   await db.prepare('INSERT INTO signups (event_id, nickname, uid) VALUES (?, ?, ?), (?, ?, ?)')
     .bind(evA.id, '甲一', 'u1', evB.id, '乙一', 'u2').run();
   await db.prepare('INSERT INTO results (event_id, team_name, time_ms) VALUES (?, ?, ?), (?, ?, ?)')
     .bind(evA.id, '队甲', 1000, evB.id, '队乙', 2000).run();
   await repo.deleteTenantCascade(db, 'alpha');
   eq('cascade removes tenant', await repo.getTenantRow(db, 'alpha'), null);
-  const leftEvents = await db.prepare("SELECT COUNT(*) AS c FROM events WHERE tenant='alpha'").first();
+  const leftEvents = await db.prepare('SELECT COUNT(*) AS c FROM events WHERE tenant = ?').bind(alphaId).first();
   const leftSignups = await db.prepare('SELECT COUNT(*) AS c FROM signups WHERE event_id = ?').bind(evA.id).first();
   const leftResults = await db.prepare('SELECT COUNT(*) AS c FROM results WHERE event_id = ?').bind(evA.id).first();
   eq('cascade removes events', leftEvents.c, 0);
@@ -130,48 +133,57 @@ if (want('events')) {
   console.log('== events/signups repositories on real D1 ==');
   const evRepo = await import('../src/domains/groupings/events.ts');
   const suRepo = await import('../src/domains/groupings/signups.ts');
+  const tnRepo = await import('../src/domains/guilds/tenants.ts');
   const NOW = 1_800_000_000;
 
+  // Tenant keys are typed guild IDs since the ID reform; creator
+  // references are user IDs (111 stands for a seeded user row's key
+  // space — the column carries the opaque numeric key).
+  const tenantIdOf = async (slug) => (await tnRepo.getTenantRow(db, slug))?.id
+    ?? (await tnRepo.insertTenant(db, { slug, guildName: slug, passwordHash: 'h', announcement: '' }));
+  const gammaId = await tenantIdOf('gamma');
+  const alphaId = await tenantIdOf('alpha');
+
   const ins1 = await evRepo.insertEvent(db, {
-    tenant: 'gamma', title: '草稿车', type: 'talent', description: '', starts_at: '', starts_at_utc: NOW + 3600,
-    max_slots: 5, status: 'draft', origin: 'member', created_by: '热心车友', creator_discord_id: '111',
+    tenant: gammaId, title: '草稿车', type: 'talent', description: '', starts_at: '', starts_at_utc: NOW + 3600,
+    max_slots: 5, status: 'draft', origin: 'member', created_by: '热心车友', creator_user_id: 111,
   });
   check('insertEvent returns last_row_id', ins1.last_row_id > 0, JSON.stringify(ins1));
   const ev1 = await evRepo.getEventRow(db, ins1.last_row_id);
-  check('getEventRow roundtrip', !!ev1 && ev1.title === '草稿车' && ev1.status === 'draft' && ev1.creator_discord_id === '111');
+  check('getEventRow roundtrip', !!ev1 && ev1.title === '草稿车' && ev1.status === 'draft' && ev1.creator_user_id === 111);
   eq('getEventRow missing -> null', await evRepo.getEventRow(db, 99999), null);
-  check('getEventRowByTenant hit', !!(await evRepo.getEventRowByTenant(db, ins1.last_row_id, 'gamma')));
-  eq('getEventRowByTenant wrong tenant -> null', await evRepo.getEventRowByTenant(db, ins1.last_row_id, 'alpha'), null);
-  eq('getEventIdByTenant', await evRepo.getEventIdByTenant(db, ins1.last_row_id, 'gamma'), { id: ins1.last_row_id });
-  eq('getEventIdStatusByTenant', await evRepo.getEventIdStatusByTenant(db, ins1.last_row_id, 'gamma'),
+  check('getEventRowByTenant hit', !!(await evRepo.getEventRowByTenant(db, ins1.last_row_id, gammaId)));
+  eq('getEventRowByTenant wrong tenant -> null', await evRepo.getEventRowByTenant(db, ins1.last_row_id, alphaId), null);
+  eq('getEventIdByTenant', await evRepo.getEventIdByTenant(db, ins1.last_row_id, gammaId), { id: ins1.last_row_id });
+  eq('getEventIdStatusByTenant', await evRepo.getEventIdStatusByTenant(db, ins1.last_row_id, gammaId),
     { id: ins1.last_row_id, status: 'draft' });
   eq('getEventTenantCreator', await evRepo.getEventTenantCreator(db, ins1.last_row_id),
-    { id: ins1.last_row_id, tenant: 'gamma', creator_discord_id: '111' });
-  eq('getEventTenant', await evRepo.getEventTenant(db, ins1.last_row_id), { id: ins1.last_row_id, tenant: 'gamma' });
+    { id: ins1.last_row_id, tenant: gammaId, creator_user_id: 111 });
+  eq('getEventTenant', await evRepo.getEventTenant(db, ins1.last_row_id), { id: ins1.last_row_id, tenant: gammaId });
 
   let threw = false;
-  try { await evRepo.insertEvent(db, { tenant: 'x', bogus_col: 1 }); } catch { threw = true; }
+  try { await evRepo.insertEvent(db, { tenant: gammaId, bogus_col: 1 }); } catch { threw = true; }
   check('insertEvent unknown column throws', threw);
   threw = false;
   try { await suRepo.insertSignup(db, { event_id: 1, bogus: 2 }); } catch { threw = true; }
   check('insertSignup unknown column throws', threw);
 
   // publish the draft via generic field update (tenant-scoped)
-  const upd = await evRepo.updateEventFields(db, ins1.last_row_id, 'gamma', { status: 'open', title: '正式车' });
+  const upd = await evRepo.updateEventFields(db, ins1.last_row_id, gammaId, { status: 'open', title: '正式车' });
   eq('updateEventFields changes', upd.changes, 1);
   const ev1b = await evRepo.getEventRow(db, ins1.last_row_id);
   check('updateEventFields applied', !!ev1b && ev1b.status === 'open' && ev1b.title === '正式车');
-  const updBad = await evRepo.updateEventFields(db, ins1.last_row_id, 'alpha', { title: '不该改' });
+  const updBad = await evRepo.updateEventFields(db, ins1.last_row_id, alphaId, { title: '不该改' });
   eq('updateEventFields wrong tenant changes=0', updBad.changes, 0);
 
   // more events for list windows
   const ins2 = await evRepo.insertEvent(db, {
-    tenant: 'gamma', title: '已完成车', type: 'activity', description: '', starts_at: '', starts_at_utc: NOW + 7200,
-    max_slots: 10, status: 'completed', origin: 'member', created_by: 'x', dungeon: '', creator_discord_id: null,
+    tenant: gammaId, title: '已完成车', type: 'activity', description: '', starts_at: '', starts_at_utc: NOW + 7200,
+    max_slots: 10, status: 'completed', origin: 'member', created_by: 'x', dungeon: '', creator_user_id: null,
   });
   const ins3 = await evRepo.insertEvent(db, {
-    tenant: 'gamma', title: '活动车', type: 'activity', description: '', starts_at: '', starts_at_utc: NOW + 1800,
-    max_slots: 10, status: 'open', origin: 'admin', created_by: '', dungeon: '定极分更', creator_discord_id: null,
+    tenant: gammaId, title: '活动车', type: 'activity', description: '', starts_at: '', starts_at_utc: NOW + 1800,
+    max_slots: 10, status: 'open', origin: 'admin', created_by: '', dungeon: '定极分更', creator_user_id: null,
   });
 
   // signups on ev1 (2 seats, one healer) and ev3 (1 seat)
@@ -207,23 +219,23 @@ if (want('events')) {
   eq('updateSignupReady non-seated -> 0', (await suRepo.updateSignupReadyByEventDiscord(db, ins1.last_row_id, '404', NOW)).changes, 0);
   const stats = await suRepo.getSignupCapacityStats(db, ins1.last_row_id);
   eq('capacity stats c/h/m', stats, { c: 2, h: 1, m: 5 });
-  check('getSignupTenant hit', !!(await suRepo.getSignupTenant(db, s1.last_row_id, 'gamma')));
-  eq('getSignupTenant wrong tenant -> null', await suRepo.getSignupTenant(db, s1.last_row_id, 'alpha'), null);
+  check('getSignupTenant hit', !!(await suRepo.getSignupTenant(db, s1.last_row_id, gammaId)));
+  eq('getSignupTenant wrong tenant -> null', await suRepo.getSignupTenant(db, s1.last_row_id, alphaId), null);
 
   // week view: draft excluded, completed excluded, signup_count present
-  const week = await evRepo.listEventsWeekView(db, { tenant: 'gamma' });
+  const week = await evRepo.listEventsWeekView(db, { tenant: gammaId });
   check('weekView excludes completed', week.every((e) => e.status !== 'completed' && e.status !== 'draft'));
   check('weekView has open cars', week.some((e) => e.id === ins1.last_row_id) && week.some((e) => e.id === ins3.last_row_id));
   const wv1 = week.find((e) => e.id === ins1.last_row_id);
   eq('weekView signup_count', wv1 && wv1.signup_count, 2);
-  const weekTyped = await evRepo.listEventsWeekView(db, { tenant: 'gamma', type: 'activity' });
+  const weekTyped = await evRepo.listEventsWeekView(db, { tenant: gammaId, type: 'activity' });
   check('weekView type filter', weekTyped.length === 1 && weekTyped[0].id === ins3.last_row_id);
-  const weekWin = await evRepo.listEventsWeekView(db, { tenant: 'gamma', from: NOW + 3000, to: NOW + 4000 });
+  const weekWin = await evRepo.listEventsWeekView(db, { tenant: gammaId, from: NOW + 3000, to: NOW + 4000 });
   check('weekView window filter', weekWin.length === 1 && weekWin[0].id === ins1.last_row_id);
-  const admin = await evRepo.listEventsAdmin(db, 'gamma');
+  const admin = await evRepo.listEventsAdmin(db, gammaId);
   check('listEventsAdmin all statuses + desc', admin.length === 3 && admin[0].id === ins3.last_row_id
     && admin.some((e) => e.status === 'completed'));
-  eq('countActivityEventsInWindow', await evRepo.countActivityEventsInWindow(db, 'gamma', NOW, NOW + 86400), 1);
+  eq('countActivityEventsInWindow', await evRepo.countActivityEventsInWindow(db, gammaId, NOW, NOW + 86400), 1);
 
   // status flow
   await evRepo.setEventStatus(db, ins2.last_row_id, 'open');
@@ -231,17 +243,17 @@ if (want('events')) {
   await evRepo.setEventStatus(db, ins2.last_row_id, 'completed');
 
   // reminder scheduling: ev1 open at NOW+3600 unsettled; ev3 open at NOW+1800 unsettled
-  eq('nextPendingReminderStart = earliest', await evRepo.nextPendingReminderStart(db, 'gamma', NOW), NOW + 1800);
-  const due0 = await evRepo.listDueReminderEvents(db, 'gamma', NOW, 600);
+  eq('nextPendingReminderStart = earliest', await evRepo.nextPendingReminderStart(db, gammaId, NOW), NOW + 1800);
+  const due0 = await evRepo.listDueReminderEvents(db, gammaId, NOW, 600);
   eq('dueReminders none before lead window', due0.length, 0);
-  const due1 = await evRepo.listDueReminderEvents(db, 'gamma', NOW + 1500, 600);
+  const due1 = await evRepo.listDueReminderEvents(db, gammaId, NOW + 1500, 600);
   check('dueReminders hits ev3 in window', due1.length === 1 && due1[0].id === ins3.last_row_id);
   await evRepo.markReminderSent(db, ins3.last_row_id, NOW + 1500);
   eq('markReminderSent settles', (await evRepo.getEventRow(db, ins3.last_row_id))?.reminder_sent_at, NOW + 1500);
-  eq('nextPending after settle', await evRepo.nextPendingReminderStart(db, 'gamma', NOW), NOW + 3600);
+  eq('nextPending after settle', await evRepo.nextPendingReminderStart(db, gammaId, NOW), NOW + 3600);
   await evRepo.markReminderError(db, ins1.last_row_id, 'Webhook 返回 404');
   eq('markReminderError settles', (await evRepo.getEventRow(db, ins1.last_row_id))?.reminder_error, 'Webhook 返回 404');
-  eq('nextPending none left', await evRepo.nextPendingReminderStart(db, 'gamma', NOW), null);
+  eq('nextPending none left', await evRepo.nextPendingReminderStart(db, gammaId, NOW), null);
 
   // signup updates/deletes with changes semantics
   const wUpd = await suRepo.updateSignupWeaponRoleById(db, s1.last_row_id, ins1.last_row_id, '牵丝·霖', '奶');
@@ -274,71 +286,9 @@ if (want('events')) {
   eq('cascade removes its signups', await suRepo.countSignupsByEvent(db, ins3.last_row_id), 0);
   const resLeft = await db.prepare('SELECT COUNT(*) AS c FROM results WHERE event_id = ?').bind(ins3.last_row_id).first();
   eq('cascade removes its results', resLeft.c, 0);
-  await evRepo.deleteEventCascade(db, ins2.last_row_id, 'gamma');
+  await evRepo.deleteEventCascade(db, ins2.last_row_id, gammaId);
   eq('cascade with tenant removes event', await evRepo.getEventRow(db, ins2.last_row_id), null);
   check('cascade leaves ev1', !!(await evRepo.getEventRow(db, ins1.last_row_id)));
-}
-
-/* ---------------- gear ---------------- */
-if (want('gear')) {
-  console.log('== gear repository + gearstore on real D1 ==');
-  const repo = await import('../src/domains/gear/gear.ts');
-  const store = await import('../src/domains/gear/gearstore.ts');
-
-  const ins = await repo.insertGearItemRow(db, {
-    discordId: 'U1', slot: 'weapon', name: '测试剑', payload: '{"lines":[1]}', createdAt: 1000,
-  });
-  check('insertGearItemRow last_row_id', ins.last_row_id > 0);
-  await repo.insertGearItemRow(db, {
-    discordId: 'U2', slot: 'armor', name: '他人甲', payload: '{}', createdAt: 1001,
-  });
-  const rows = await repo.listGearItemRows(db, 'U1');
-  check('listGearItemRows owner-scoped', rows.length === 1 && rows[0].name === '测试剑' && rows[0].payload === '{"lines":[1]}');
-  const upd = await repo.updateGearItemRow(db, 'U1', ins.last_row_id, { slot: 'weapon2', name: '改名剑', payload: '{"lines":[2]}' });
-  eq('updateGearItemRow changes', upd.changes, 1);
-  const updOther = await repo.updateGearItemRow(db, 'U2', ins.last_row_id, { slot: 'x', name: 'x', payload: '{}' });
-  eq('updateGearItemRow wrong owner changes=0', updOther.changes, 0);
-  const rows2 = await repo.listGearItemRows(db, 'U1');
-  check('updateGearItemRow applied', rows2.length === 1 && rows2[0].name === '改名剑' && rows2[0].slot === 'weapon2');
-
-  const bIns = await repo.insertGearBuildRow(db, {
-    discordId: 'U1', name: '方案一', targetIdx: 3, payload: '{"buildLabel":"L"}', createdAt: 2000,
-  });
-  check('insertGearBuildRow last_row_id', bIns.last_row_id > 0);
-  const builds = await repo.listGearBuildRows(db, 'U1');
-  check('listGearBuildRows', builds.length === 1 && builds[0].target_idx === 3 && builds[0].created_at === 2000);
-  const bDelOther = await repo.deleteGearBuildRow(db, 'U2', bIns.last_row_id);
-  eq('deleteGearBuildRow wrong owner changes=0', bDelOther.changes, 0);
-  const bDel = await repo.deleteGearBuildRow(db, 'U1', bIns.last_row_id);
-  eq('deleteGearBuildRow changes', bDel.changes, 1);
-  const del = await repo.deleteGearItemRow(db, 'U1', ins.last_row_id);
-  eq('deleteGearItemRow changes', del.changes, 1);
-  eq('listGearItemRows empty after delete', (await repo.listGearItemRows(db, 'U1')).length, 0);
-
-  // gearstore domain mapping over the same real D1
-  const g1 = await store.insertGearItem(db, 'U9', {
-    slot: 'helm', name: '盔', lines: [{ k: 'a' }], dingyin: { t: 1 }, schools: ['鸣金·虹'], warnings: [],
-  });
-  check('gearstore insertGearItem returns id', !!g1.id);
-  const gList = await store.listGearItems(db, 'U9');
-  check('gearstore listGearItems maps payload', gList.length === 1 && gList[0].name === '盔'
-    && Array.isArray(gList[0].lines) && gList[0].lines.length === 1 && gList[0].schools[0] === '鸣金·虹');
-  const gUpd = await store.updateGearItemRow(db, 'U9', g1.id, { slot: 'helm', name: '盔2', lines: [], dingyin: null, schools: [], warnings: [] });
-  check('gearstore updateGearItemRow hit', !!gUpd && gUpd.name === '盔2');
-  const gUpdMiss = await store.updateGearItemRow(db, 'U8', g1.id, { slot: 'helm', name: 'x', lines: [] });
-  eq('gearstore updateGearItemRow wrong owner -> null', gUpdMiss, null);
-  eq('gearstore deleteGearItemRow', await store.deleteGearItemRow(db, 'U9', g1.id), true);
-  eq('gearstore deleteGearItemRow again -> false', await store.deleteGearItemRow(db, 'U9', g1.id), false);
-
-  const gb = await store.insertGearBuild(db, 'U9', {
-    name: '毕业配装', targetIdx: 1, buildLabel: '裂石钧', loadout: { a: 1 }, baseValues: {},
-    xinfa: [], extras: { res: 1.85, acc: 0, crit: 0, int: 0 }, bowKind: '', gradDingyinOn: true, snapshot: null,
-  });
-  check('gearstore insertGearBuild returns id+createdAt', !!gb.id && gb.createdAt > 0);
-  const gbList = await store.listGearBuilds(db, 'U9');
-  check('gearstore listGearBuilds maps payload', gbList.length === 1 && gbList[0].buildLabel === '裂石钧'
-    && gbList[0].targetIdx === 1 && gbList[0].gradDingyinOn === true);
-  eq('gearstore deleteGearBuildRow', await store.deleteGearBuildRow(db, 'U9', gb.id), true);
 }
 
 /* ---------------- users / oauth / nicks ---------------- */
@@ -364,29 +314,33 @@ if (want('users')) {
   const nameRow = await repo.getUsernameRow(db, 'U1');
   eq('upsertUserOnLogin conflict updates username', nameRow && nameRow.username, '全局甲改');
   eq('getUsernameRow missing -> null', await repo.getUsernameRow(db, 'nope'), null);
-  eq('getUserGuildsJson updated', await repo.getUserGuildsJson(db, 'U1'), '[{"id":"G1"},{"id":"G2"}]');
-  eq('getUserGuildsJson missing -> null', await repo.getUserGuildsJson(db, 'nope'), null);
+  const u1RowId = await repo.getUserIdByDiscordId(db, 'U1');
+  eq('getUserGuildsJson updated', await repo.getUserGuildsJson(db, u1RowId), '[{"id":"G1"},{"id":"G2"}]');
+  eq('getUserGuildsJson missing -> null', await repo.getUserGuildsJson(db, 987654321), null);
   const dir = await repo.listUsersDirectory(db);
   eq('listUsersDirectory both users', dir.map((r) => r.discord_id).sort(), ['U1', 'U2']);
   check('listUsersDirectory shape', dir.every((r) => 'username' in r && 'guilds_json' in r));
 
-  eq('locale pref default null', await repo.getUserLocalePref(db, 'U1'), null);
-  await repo.setUserLocalePref(db, 'U1', 'en');
-  eq('setUserLocalePref roundtrip', await repo.getUserLocalePref(db, 'U1'), 'en');
-  await repo.setUserLocalePref(db, 'U1', null);
-  eq('setUserLocalePref back to null', await repo.getUserLocalePref(db, 'U1'), null);
+  // Locale prefs and OAuth grants are keyed by user ID since the
+  // ID reform; the Discord-ID seams above stay as they are.
+  const u1Id = await repo.getUserIdByDiscordId(db, 'U1');
+  eq('locale pref default null', await repo.getUserLocalePref(db, u1Id), null);
+  await repo.setUserLocalePref(db, u1Id, 'en');
+  eq('setUserLocalePref roundtrip', await repo.getUserLocalePref(db, u1Id), 'en');
+  await repo.setUserLocalePref(db, u1Id, null);
+  eq('setUserLocalePref back to null', await repo.getUserLocalePref(db, u1Id), null);
 
-  await repo.upsertOAuthOnLogin(db, { discordId: 'U1', refreshToken: 'rt1', scope: 'identify guilds', nowSec: 1000 });
-  let grant = await repo.getOAuthGrant(db, 'U1');
+  await repo.upsertOAuthOnLogin(db, { userId: u1Id, refreshToken: 'rt1', scope: 'identify guilds', nowSec: 1000 });
+  let grant = await repo.getOAuthGrant(db, u1Id);
   check('upsertOAuthOnLogin state ok', !!grant && grant.refresh_token === 'rt1' && grant.refresh_state === 'ok');
-  await repo.markOAuthNeedsRelogin(db, 'U1', 1001);
-  grant = await repo.getOAuthGrant(db, 'U1');
+  await repo.markOAuthNeedsRelogin(db, u1Id, 1001);
+  grant = await repo.getOAuthGrant(db, u1Id);
   eq('markOAuthNeedsRelogin', grant && grant.refresh_state, 'needs_relogin');
-  await repo.updateOAuthAfterRefresh(db, 'U1', { refreshToken: 'rt2', scope: 'identify guilds guilds.members.read', nowSec: 1002 });
-  const refresh = await repo.getOAuthRefresh(db, 'U1');
+  await repo.updateOAuthAfterRefresh(db, u1Id, { refreshToken: 'rt2', scope: 'identify guilds guilds.members.read', nowSec: 1002 });
+  const refresh = await repo.getOAuthRefresh(db, u1Id);
   check('updateOAuthAfterRefresh rotates token + resets state',
     !!refresh && refresh.refresh_token === 'rt2' && refresh.refresh_state === 'ok');
-  eq('getOAuthGrant missing -> null', await repo.getOAuthGrant(db, 'nope'), null);
+  eq('getOAuthGrant missing -> null', await repo.getOAuthGrant(db, 987654321), null);
 
   await repo.upsertNick(db, 'U1', 'G1', '服内甲', 500);
   await repo.upsertNick(db, 'U1', 'G1', '服内甲二', 600);
@@ -407,6 +361,79 @@ if (want('users')) {
   eq('listNicksByGuild', byGuild.map((r) => r.discord_id).sort(), ['U1', 'U2', 'U3']);
   const allNicks = await repo.listAllNicks(db);
   eq('listAllNicks count', allNicks.length, 4);
+}
+
+/* ---------------- gear ---------------- */
+if (want('gear')) {
+  console.log('== gear repository + gearstore on real D1 ==');
+  const repo = await import('../src/domains/gear/gear.ts');
+  const store = await import('../src/domains/gear/gearstore.ts');
+  const usersRepo = await import('../src/domains/identity/users.ts');
+
+  // Gear rows are keyed by user ID since the ID reform; seed the
+  // fixture users through the login upsert and resolve their IDs.
+  for (const did of ['GU1', 'GU2', 'GU8', 'GU9']) {
+    await usersRepo.upsertUserOnLogin(db, { discordId: did, username: did, avatar: '', guildsJson: '[]', checkedAtSec: 1 });
+  }
+  const U1 = await usersRepo.getUserIdByDiscordId(db, 'GU1');
+  const U2 = await usersRepo.getUserIdByDiscordId(db, 'GU2');
+  const U8 = await usersRepo.getUserIdByDiscordId(db, 'GU8');
+  const U9 = await usersRepo.getUserIdByDiscordId(db, 'GU9');
+
+  const ins = await repo.insertGearItemRow(db, {
+    userId: U1, slot: 'weapon', name: '测试剑', payload: '{"lines":[1]}', createdAt: 1000,
+  });
+  check('insertGearItemRow last_row_id', ins.last_row_id > 0);
+  await repo.insertGearItemRow(db, {
+    userId: U2, slot: 'armor', name: '他人甲', payload: '{}', createdAt: 1001,
+  });
+  const rows = await repo.listGearItemRows(db, U1);
+  check('listGearItemRows owner-scoped', rows.length === 1 && rows[0].name === '测试剑' && rows[0].payload === '{"lines":[1]}');
+  const upd = await repo.updateGearItemRow(db, U1, ins.last_row_id, { slot: 'weapon2', name: '改名剑', payload: '{"lines":[2]}' });
+  eq('updateGearItemRow changes', upd.changes, 1);
+  const updOther = await repo.updateGearItemRow(db, U2, ins.last_row_id, { slot: 'x', name: 'x', payload: '{}' });
+  eq('updateGearItemRow wrong owner changes=0', updOther.changes, 0);
+  const rows2 = await repo.listGearItemRows(db, U1);
+  check('updateGearItemRow applied', rows2.length === 1 && rows2[0].name === '改名剑' && rows2[0].slot === 'weapon2');
+
+  const bIns = await repo.insertGearBuildRow(db, {
+    userId: U1, name: '方案一', targetIdx: 3, payload: '{"buildLabel":"L"}', createdAt: 2000,
+  });
+  check('insertGearBuildRow last_row_id', bIns.last_row_id > 0);
+  const builds = await repo.listGearBuildRows(db, U1);
+  check('listGearBuildRows', builds.length === 1 && builds[0].target_idx === 3 && builds[0].created_at === 2000);
+  const bDelOther = await repo.deleteGearBuildRow(db, U2, bIns.last_row_id);
+  eq('deleteGearBuildRow wrong owner changes=0', bDelOther.changes, 0);
+  const bDel = await repo.deleteGearBuildRow(db, U1, bIns.last_row_id);
+  eq('deleteGearBuildRow changes', bDel.changes, 1);
+  const del = await repo.deleteGearItemRow(db, U1, ins.last_row_id);
+  eq('deleteGearItemRow changes', del.changes, 1);
+  eq('listGearItemRows empty after delete', (await repo.listGearItemRows(db, U1)).length, 0);
+
+  // gearstore domain mapping over the same real D1
+  const g1 = await store.insertGearItem(db, U9, {
+    slot: 'helm', name: '盔', lines: [{ k: 'a' }], dingyin: { t: 1 }, schools: ['鸣金·虹'], warnings: [],
+  });
+  check('gearstore insertGearItem returns id', !!g1.id);
+  const gList = await store.listGearItems(db, U9);
+  check('gearstore listGearItems maps payload', gList.length === 1 && gList[0].name === '盔'
+    && Array.isArray(gList[0].lines) && gList[0].lines.length === 1 && gList[0].schools[0] === '鸣金·虹');
+  const gUpd = await store.updateGearItemRow(db, U9, g1.id, { slot: 'helm', name: '盔2', lines: [], dingyin: null, schools: [], warnings: [] });
+  check('gearstore updateGearItemRow hit', !!gUpd && gUpd.name === '盔2');
+  const gUpdMiss = await store.updateGearItemRow(db, U8, g1.id, { slot: 'helm', name: 'x', lines: [] });
+  eq('gearstore updateGearItemRow wrong owner -> null', gUpdMiss, null);
+  eq('gearstore deleteGearItemRow', await store.deleteGearItemRow(db, U9, g1.id), true);
+  eq('gearstore deleteGearItemRow again -> false', await store.deleteGearItemRow(db, U9, g1.id), false);
+
+  const gb = await store.insertGearBuild(db, U9, {
+    name: '毕业配装', targetIdx: 1, buildLabel: '裂石钧', loadout: { a: 1 }, baseValues: {},
+    xinfa: [], extras: { res: 1.85, acc: 0, crit: 0, int: 0 }, bowKind: '', gradDingyinOn: true, snapshot: null,
+  });
+  check('gearstore insertGearBuild returns id+createdAt', !!gb.id && gb.createdAt > 0);
+  const gbList = await store.listGearBuilds(db, U9);
+  check('gearstore listGearBuilds maps payload', gbList.length === 1 && gbList[0].buildLabel === '裂石钧'
+    && gbList[0].targetIdx === 1 && gbList[0].gradDingyinOn === true);
+  eq('gearstore deleteGearBuildRow', await store.deleteGearBuildRow(db, U9, gb.id), true);
 }
 
 /* ---------------- guild_members ---------------- */
@@ -438,15 +465,15 @@ if (want('results')) {
   const evRepo = await import('../src/domains/groupings/events.ts');
   const tnRepo = await import('../src/domains/guilds/tenants.ts');
 
-  await tnRepo.insertTenant(db, { slug: 'r-one', guildName: '丙百业', passwordHash: 'h3', announcement: '' });
-  await tnRepo.insertTenant(db, { slug: 'r-two', guildName: '丁百业', passwordHash: 'h4', announcement: '' });
+  const rOneId = await tnRepo.insertTenant(db, { slug: 'r-one', guildName: '丙百业', passwordHash: 'h3', announcement: '' });
+  const rTwoId = await tnRepo.insertTenant(db, { slug: 'r-two', guildName: '丁百业', passwordHash: 'h4', announcement: '' });
   const ev1 = await evRepo.insertEvent(db, {
-    tenant: 'r-one', title: '丙车', type: 'race', description: '', starts_at: '', starts_at_utc: 1700000000,
-    max_slots: 5, status: 'open', origin: 'admin', created_by: 't', creator_discord_id: null,
+    tenant: rOneId, title: '丙车', type: 'race', description: '', starts_at: '', starts_at_utc: 1700000000,
+    max_slots: 5, status: 'open', origin: 'admin', created_by: 't', creator_user_id: null,
   });
   const ev2 = await evRepo.insertEvent(db, {
-    tenant: 'r-two', title: '丁车', type: 'race', description: '', starts_at: '', starts_at_utc: 1700000000,
-    max_slots: 5, status: 'open', origin: 'admin', created_by: 't', creator_discord_id: null,
+    tenant: rTwoId, title: '丁车', type: 'race', description: '', starts_at: '', starts_at_utc: 1700000000,
+    max_slots: 5, status: 'open', origin: 'admin', created_by: 't', creator_user_id: null,
   });
 
   const rSlow = await repo.insertResult(db, { eventId: ev1.last_row_id, teamName: '慢队', members: 'a,b', timeMs: 300000, proofUrl: '', note: '' });
@@ -456,8 +483,8 @@ if (want('results')) {
   eq('listResultsByEvent ordered by time_ms', list.map((r) => r.team_name), ['快队', '慢队']);
   eq('listResultsByEvent empty for other event', await repo.listResultsByEvent(db, ev2.last_row_id), []);
 
-  eq('ownership check wrong tenant -> null', await repo.getResultIdOwnedByTenant(db, rFast.last_row_id, 'r-two'), null);
-  const own = await repo.getResultIdOwnedByTenant(db, rFast.last_row_id, 'r-one');
+  eq('ownership check wrong tenant -> null', await repo.getResultIdOwnedByTenant(db, rFast.last_row_id, rTwoId), null);
+  const own = await repo.getResultIdOwnedByTenant(db, rFast.last_row_id, rOneId);
   check('ownership check right tenant', !!own && own.id === rFast.last_row_id);
   const del = await repo.deleteResultById(db, rFast.last_row_id);
   eq('deleteResultById changes', del.changes, 1);
@@ -549,16 +576,24 @@ if (want('state')) {
   console.log('== heirloom state repositories on real D1 ==');
   const hl = await import('../src/domains/gear/heirloom.ts');
 
-  await hl.insertHeirloomItemPush(db, { tenant: 'g1', discordId: 'U1', buildSig: '校|套', itemHash: 'h1', createdAt: 100 });
-  await hl.insertHeirloomItemPush(db, { tenant: 'g1', discordId: 'U1', buildSig: '校|套', itemHash: 'h1', createdAt: 101 });
-  await hl.insertHeirloomItemPush(db, { tenant: 'g1', discordId: 'U1', buildSig: '校|套', itemHash: 'h2', createdAt: 102 });
-  eq('item pushes dedupe via OR IGNORE', (await hl.listPushedItemHashes(db, 'g1', 'U1', '校|套')).sort(), ['h1', 'h2']);
-  eq('item pushes scoped by build sig', await hl.listPushedItemHashes(db, 'g1', 'U1', '别|套'), []);
-  eq('set state missing -> null', await hl.getHeirloomSetState(db, 'g1', 'U1', '校|套'), null);
-  await hl.upsertHeirloomSetState(db, { tenant: 'g1', discordId: 'U1', buildSig: '校|套', complete: 1, updatedAt: 200 });
-  eq('set state upsert insert', (await hl.getHeirloomSetState(db, 'g1', 'U1', '校|套'))?.complete, 1);
-  await hl.upsertHeirloomSetState(db, { tenant: 'g1', discordId: 'U1', buildSig: '校|套', complete: 0, updatedAt: 201 });
-  eq('set state upsert conflict updates', (await hl.getHeirloomSetState(db, 'g1', 'U1', '校|套'))?.complete, 0);
+  // Heirloom rows are keyed by (guild ID, user ID) since the reform.
+  const tnRepo = await import('../src/domains/guilds/tenants.ts');
+  const usersRepo = await import('../src/domains/identity/users.ts');
+  const tenantIdOf = async (slug) => (await tnRepo.getTenantRow(db, slug))?.id
+    ?? (await tnRepo.insertTenant(db, { slug, guildName: slug, passwordHash: 'h', announcement: '' }));
+  const g1Id = await tenantIdOf('g1');
+  await usersRepo.upsertUserOnLogin(db, { discordId: 'U1', username: 'U1', avatar: '', guildsJson: '[]', checkedAtSec: 1 });
+  const u1Id = await usersRepo.getUserIdByDiscordId(db, 'U1');
+  await hl.insertHeirloomItemPush(db, { tenant: g1Id, userId: u1Id, buildSig: '校|套', itemHash: 'h1', createdAt: 100 });
+  await hl.insertHeirloomItemPush(db, { tenant: g1Id, userId: u1Id, buildSig: '校|套', itemHash: 'h1', createdAt: 101 });
+  await hl.insertHeirloomItemPush(db, { tenant: g1Id, userId: u1Id, buildSig: '校|套', itemHash: 'h2', createdAt: 102 });
+  eq('item pushes dedupe via OR IGNORE', (await hl.listPushedItemHashes(db, g1Id, u1Id, '校|套')).sort(), ['h1', 'h2']);
+  eq('item pushes scoped by build sig', await hl.listPushedItemHashes(db, g1Id, u1Id, '别|套'), []);
+  eq('set state missing -> null', await hl.getHeirloomSetState(db, g1Id, u1Id, '校|套'), null);
+  await hl.upsertHeirloomSetState(db, { tenant: g1Id, userId: u1Id, buildSig: '校|套', complete: 1, updatedAt: 200 });
+  eq('set state upsert insert', (await hl.getHeirloomSetState(db, g1Id, u1Id, '校|套'))?.complete, 1);
+  await hl.upsertHeirloomSetState(db, { tenant: g1Id, userId: u1Id, buildSig: '校|套', complete: 0, updatedAt: 201 });
+  eq('set state upsert conflict updates', (await hl.getHeirloomSetState(db, g1Id, u1Id, '校|套'))?.complete, 0);
 
 }
 
@@ -662,10 +697,13 @@ if (want('atomic')) {
   const rsRepo = await import('../src/domains/groupings/results.ts');
   const tnRepo = await import('../src/domains/guilds/tenants.ts');
 
+  const tenantIdOf = async (slug) => (await tnRepo.getTenantRow(db, slug))?.id
+    ?? (await tnRepo.insertTenant(db, { slug, guildName: slug, passwordHash: 'h', announcement: '' }));
+  const atomId = await tenantIdOf('atom');
   // Batch seating: the second row violates the (event_id, uid) unique
   // index, so the whole batch must roll back — no half-seated rows.
   const seatEv = await evRepo.insertEvent(db, {
-    tenant: 'atom', title: '原子车', type: 'activity', description: '', starts_at: '',
+    tenant: atomId, title: '原子车', type: 'activity', description: '', starts_at: '',
     starts_at_utc: 1800000000, max_slots: 10, status: 'open', origin: 'member', created_by: 'x',
   });
   let threw = false;
@@ -686,27 +724,27 @@ if (want('atomic')) {
   // Disband cascade: inject a failure on the results delete (trigger
   // RAISE ABORT); the earlier signups delete must roll back with it.
   const disEv = await evRepo.insertEvent(db, {
-    tenant: 'atom', title: '解散车', type: 'activity', description: '', starts_at: '',
+    tenant: atomId, title: '解散车', type: 'activity', description: '', starts_at: '',
     starts_at_utc: 1800000000, max_slots: 10, status: 'open', origin: 'member', created_by: 'x',
   });
   await suRepo.insertSignup(db, { event_id: disEv.last_row_id, nickname: '留守', uid: 'd1', role: '输出', weapon: '' });
   await rsRepo.insertResult(db, { eventId: disEv.last_row_id, teamName: '', members: '留守', timeMs: 12345, proofUrl: '', note: '' });
   await db.prepare("CREATE TRIGGER fail_res_del BEFORE DELETE ON results BEGIN SELECT RAISE(ABORT, 'injected'); END").run();
   threw = false;
-  try { await evRepo.deleteEventCascade(db, disEv.last_row_id, 'atom'); } catch { threw = true; }
+  try { await evRepo.deleteEventCascade(db, disEv.last_row_id, atomId); } catch { threw = true; }
   check('disband with injected failure throws', threw);
   eq('disband rolled back: signups survive', await suRepo.countSignupsByEvent(db, disEv.last_row_id), 1);
   check('disband rolled back: event survives', !!(await evRepo.getEventRow(db, disEv.last_row_id)));
   await db.prepare('DROP TRIGGER fail_res_del').run();
-  await evRepo.deleteEventCascade(db, disEv.last_row_id, 'atom');
+  await evRepo.deleteEventCascade(db, disEv.last_row_id, atomId);
   eq('disband success removes event', await evRepo.getEventRow(db, disEv.last_row_id), null);
   eq('disband success removes signups', await suRepo.countSignupsByEvent(db, disEv.last_row_id), 0);
 
   // Tenant cascade: inject a failure on the events delete; signups,
   // events and the tenant row must all survive.
-  await tnRepo.insertTenant(db, { slug: 'atomguild', guildName: '原子百业', passwordHash: 'x', announcement: '' });
+  const atomGuildId = await tenantIdOf('atomguild');
   const tEv = await evRepo.insertEvent(db, {
-    tenant: 'atomguild', title: '租户车', type: 'activity', description: '', starts_at: '',
+    tenant: atomGuildId, title: '租户车', type: 'activity', description: '', starts_at: '',
     starts_at_utc: 1800000000, max_slots: 10, status: 'open', origin: 'member', created_by: 'x',
   });
   await suRepo.insertSignup(db, { event_id: tEv.last_row_id, nickname: '成员', uid: 't1', role: '输出', weapon: '' });
@@ -733,7 +771,7 @@ if (want('ddl')) {
   check('chain created the formerly-lazy tables', ['push_tokens', 'error_log', 'user_gear_items', 'user_gear_builds', 'guild_avatars', 'event_reminders'].every((t) => names.has(t)));
   const evCols = await db.prepare('PRAGMA table_info(events)').all();
   const colNames = new Set(evCols.results.map((r) => r.name));
-  check('events carries creator + reminder columns', ['creator_discord_id', 'reminder_sent_at', 'reminder_error'].every((c) => colNames.has(c)));
+  check('events carries creator + reminder columns', ['creator_user_id', 'reminder_sent_at', 'reminder_error'].every((c) => colNames.has(c)));
   const suCols = await db.prepare('PRAGMA table_info(signups)').all();
   check('signups carries discord_id column', suCols.results.some((r) => r.name === 'discord_id'));
   check('signups carries ready_at column', suCols.results.some((r) => r.name === 'ready_at'));
@@ -743,25 +781,29 @@ if (want('ddl')) {
 if (want('beats')) {
   console.log('== reminder beats + pending queries on real D1 ==');
   const evRepo = await import('../src/domains/groupings/events.ts');
+  const tnRepo = await import('../src/domains/guilds/tenants.ts');
   const NOWB = 1_800_100_000;
+  const tenantIdOf = async (slug) => (await tnRepo.getTenantRow(db, slug))?.id
+    ?? (await tnRepo.insertTenant(db, { slug, guildName: slug, passwordHash: 'h', announcement: '' }));
+  const beatsId = await tenantIdOf('beats');
   const bEv = await evRepo.insertEvent(db, {
-    tenant: 'beats', title: '拍车', type: 'activity', description: '', starts_at: '', starts_at_utc: NOWB + 1800,
-    max_slots: 10, status: 'open', origin: 'member', created_by: 'x', creator_discord_id: '111',
+    tenant: beatsId, title: '拍车', type: 'activity', description: '', starts_at: '', starts_at_utc: NOWB + 1800,
+    max_slots: 10, status: 'open', origin: 'member', created_by: 'x', creator_user_id: 111,
   });
   const bDone = await evRepo.insertEvent(db, {
-    tenant: 'beats', title: '已结算车', type: 'activity', description: '', starts_at: '', starts_at_utc: NOWB + 1800,
-    max_slots: 10, status: 'open', origin: 'member', created_by: 'x', creator_discord_id: null,
+    tenant: beatsId, title: '已结算车', type: 'activity', description: '', starts_at: '', starts_at_utc: NOWB + 1800,
+    max_slots: 10, status: 'open', origin: 'member', created_by: 'x', creator_user_id: null,
   });
   await evRepo.markReminderSent(db, bDone.last_row_id, NOWB); // legacy-settled -> leaves the pending set
   const bCompleted = await evRepo.insertEvent(db, {
-    tenant: 'beats', title: '完成车', type: 'activity', description: '', starts_at: '', starts_at_utc: NOWB + 1800,
-    max_slots: 10, status: 'completed', origin: 'member', created_by: 'x', creator_discord_id: null,
+    tenant: beatsId, title: '完成车', type: 'activity', description: '', starts_at: '', starts_at_utc: NOWB + 1800,
+    max_slots: 10, status: 'completed', origin: 'member', created_by: 'x', creator_user_id: null,
   });
   const bPast = await evRepo.insertEvent(db, {
-    tenant: 'beats', title: '已发车', type: 'activity', description: '', starts_at: '', starts_at_utc: NOWB - 60,
-    max_slots: 10, status: 'open', origin: 'member', created_by: 'x', creator_discord_id: null,
+    tenant: beatsId, title: '已发车', type: 'activity', description: '', starts_at: '', starts_at_utc: NOWB - 60,
+    max_slots: 10, status: 'open', origin: 'member', created_by: 'x', creator_user_id: null,
   });
-  const pending = await evRepo.listPendingReminderEvents(db, 'beats', NOWB);
+  const pending = await evRepo.listPendingReminderEvents(db, beatsId, NOWB);
   eq('pending = unsettled open future cars only', pending.map((p) => p.id), [bEv.last_row_id]);
   eq('settled beats start empty', await evRepo.listSettledBeats(db, [bEv.last_row_id]), []);
   eq('settled beats empty ids -> []', await evRepo.listSettledBeats(db, []), []);
@@ -775,9 +817,9 @@ if (want('beats')) {
   const beats2 = await evRepo.listSettledBeats(db, [bEv.last_row_id]);
   check('beat upsert error->sent clears error', beats2.find((b) => b.offset_min === 10)?.sent_at === NOWB + 2
     && beats2.find((b) => b.offset_min === 10)?.error == null, JSON.stringify(beats2));
-  const rows = await evRepo.listPendingReminderEventRows(db, 'beats', [bEv.last_row_id, bDone.last_row_id]);
+  const rows = await evRepo.listPendingReminderEventRows(db, beatsId, [bEv.last_row_id, bDone.last_row_id]);
   eq('pending rows fetch by ids', rows.map((r) => r.id), [bEv.last_row_id, bDone.last_row_id]);
-  eq('pending rows empty ids -> []', await evRepo.listPendingReminderEventRows(db, 'beats', []), []);
+  eq('pending rows empty ids -> []', await evRepo.listPendingReminderEventRows(db, beatsId, []), []);
 }
 
 /* ---------------- hub audit ---------------- */
@@ -785,6 +827,13 @@ if (want('audit')) {
   console.log('== hub audit repository + service on real D1 ==');
   const repo = await import('../src/domains/platform/hubAudit.ts');
   const svc = await import('../src/domains/platform/hub-audit.ts');
+  const tnRepo = await import('../src/domains/guilds/tenants.ts');
+
+  // The stored audit tenant is the guild's typed ID since the ID
+  // reform; the service resolves the slug at its seam.
+  const tenantIdOf = async (slug) => (await tnRepo.getTenantRow(db, slug))?.id
+    ?? (await tnRepo.insertTenant(db, { slug, guildName: slug, passwordHash: 'h', announcement: '' }));
+  const alphaId = await tenantIdOf('alpha');
 
   const okWrite = await svc.auditHub(db, { action: 'reminder.update', tenant: 'alpha', summary: { webhook: 'replaced', enabled: true }, ip: '203.0.113.7' });
   check('auditHub write ok', okWrite === true);
@@ -795,7 +844,7 @@ if (want('audit')) {
   eq('audit page total', page.total, 3);
   eq('audit page newest first', page.entries[0].action, 'auth.login_failed');
   const row = page.entries.find((e) => e.action === 'reminder.update');
-  check('audit row fields roundtrip', !!row && row.tenant === 'alpha' && row.actor === 'hub' && row.ip === '203.0.113.7'
+  check('audit row fields roundtrip', !!row && row.tenant === alphaId && row.actor === 'hub' && row.ip === '203.0.113.7'
     && JSON.parse(row.summary).webhook === 'replaced', JSON.stringify(row));
 
   const filtered = await svc.listHubAuditPage(db, { tenant: 'alpha' });
@@ -807,7 +856,7 @@ if (want('audit')) {
   eq('audit pagination tail row', paged.entries[0].action, 'reminder.update');
 
   // Prune: an old row dies by the age cutoff; the row cap keeps newest N.
-  await repo.insertHubAudit(db, { at: 1000000, actor: 'hub', action: 'old.row', tenant: '', summary: '', ip: '' });
+  await repo.insertHubAudit(db, { at: 1000000, actor: 'hub', action: 'old.row', tenant: 0, summary: '', ip: '' });
   await repo.pruneHubAudit(db, 2000000, 20000);
   const afterAge = await svc.listHubAuditPage(db, {});
   check('audit prune drops aged rows', afterAge.entries.every((e) => e.action !== 'old.row'));
@@ -873,28 +922,32 @@ if (want('shortlinks')) {
 if (want('templates')) {
   console.log('== grouping_templates repository on real D1 ==');
   const repo = await import('../src/domains/groupings/templates.ts');
+  const tnRepo = await import('../src/domains/guilds/tenants.ts');
+  const tenantIdOf = async (slug) => (await tnRepo.getTenantRow(db, slug))?.id
+    ?? (await tnRepo.insertTenant(db, { slug, guildName: slug, passwordHash: 'h', announcement: '' }));
+  const alphaId = await tenantIdOf('alpha');
+  const betaId = await tenantIdOf('beta');
 
-  // The table is created by the repository's own lazy DDL on first use.
-  eq('list on empty tenant -> []', await repo.listGroupingTemplates(db, 'alpha'), []);
+  eq('list on empty tenant -> []', await repo.listGroupingTemplates(db, alphaId), []);
 
   const T0 = 1760000000;
   const base = {
-    tenant: 'alpha', name: '周常天赋', type: 'talent', title: '周常天赋车',
+    tenant: alphaId, name: '周常天赋', type: 'talent', title: '周常天赋车',
     dungeon: '定极分更', max_slots: 5, start_days_ahead: 2, start_minutes: 1230,
-    creator_discord_id: 'U1', created_at: T0, updated_at: T0,
+    creator_user_id: 111, created_at: T0, updated_at: T0,
   };
   const ins = await repo.insertGroupingTemplate(db, { ...base });
   check('insert returns last_row_id', ins.last_row_id > 0, String(ins.last_row_id));
   const row = await repo.getGroupingTemplate(db, ins.last_row_id);
-  eq('insert roundtrip fields', row && [row.tenant, row.name, row.type, row.title, row.dungeon, row.max_slots, row.start_days_ahead, row.start_minutes, row.creator_discord_id, row.created_at],
-    ['alpha', '周常天赋', 'talent', '周常天赋车', '定极分更', 5, 2, 1230, 'U1', T0]);
+  eq('insert roundtrip fields', row && [row.tenant, row.name, row.type, row.title, row.dungeon, row.max_slots, row.start_days_ahead, row.start_minutes, row.creator_user_id, row.created_at],
+    [alphaId, '周常天赋', 'talent', '周常天赋车', '定极分更', 5, 2, 1230, 111, T0]);
   eq('get unknown -> null', await repo.getGroupingTemplate(db, 99999), null);
 
   const ins2 = await repo.insertGroupingTemplate(db, { ...base, name: '双十老本', type: 'activity', dungeon: '', max_slots: 10 });
-  const insB = await repo.insertGroupingTemplate(db, { ...base, tenant: 'beta', name: '乙百业模板' });
-  const listA = await repo.listGroupingTemplates(db, 'alpha');
+  const insB = await repo.insertGroupingTemplate(db, { ...base, tenant: betaId, name: '乙百业模板' });
+  const listA = await repo.listGroupingTemplates(db, alphaId);
   eq('list is tenant-scoped, newest first', listA.map((r) => r.id), [ins2.last_row_id, ins.last_row_id]);
-  eq('other tenant list separate', (await repo.listGroupingTemplates(db, 'beta')).map((r) => r.id), [insB.last_row_id]);
+  eq('other tenant list separate', (await repo.listGroupingTemplates(db, betaId)).map((r) => r.id), [insB.last_row_id]);
 
   const upd = await repo.updateGroupingTemplateFields(db, ins.last_row_id, { name: '改名模板', start_minutes: 1200, updated_at: T0 + 60 });
   eq('update changes one row', upd.changes, 1);
@@ -929,15 +982,27 @@ if (want('usage')) {
   const usage = await import('../src/domains/platform/usageCounters.ts');
   const limits = await import('../src/domains/platform/limits.ts');
   const gearRepo = await import('../src/domains/gear/gear.ts');
+  const usersRepo = await import('../src/domains/identity/users.ts');
 
-  eq('fresh counter reads 0', await usage.getUsageCount(db, 'UQ', 'gear_ocr_batches', '2026-10-27'), 0);
-  eq('first increment creates the row at 1', await usage.incrementUsage(db, 'UQ', 'gear_ocr_batches', '2026-10-27', 1, 111), 1);
-  eq('second increment accumulates', await usage.incrementUsage(db, 'UQ', 'gear_ocr_batches', '2026-10-27', 1, 222), 2);
-  eq('increment by more than one', await usage.incrementUsage(db, 'UQ', 'gear_ocr_batches', '2026-10-27', 3, 333), 5);
-  eq('read-back matches', await usage.getUsageCount(db, 'UQ', 'gear_ocr_batches', '2026-10-27'), 5);
-  eq('another day is a separate counter (rollover)', await usage.getUsageCount(db, 'UQ', 'gear_ocr_batches', '2026-10-28'), 0);
-  eq('another metric is a separate counter', await usage.getUsageCount(db, 'UQ', 'other_metric', '2026-10-27'), 0);
-  eq('another user is a separate counter', await usage.getUsageCount(db, 'UR', 'gear_ocr_batches', '2026-10-27'), 0);
+  // Usage scopes are user IDs since the ID reform; seed the fixture
+  // users and resolve their IDs once.
+  for (const did of ['UQ', 'UR', 'UQ2', 'UC', 'UD']) {
+    await usersRepo.upsertUserOnLogin(db, { discordId: did, username: did, avatar: '', guildsJson: '[]', checkedAtSec: 1 });
+  }
+  const UQ = await usersRepo.getUserIdByDiscordId(db, 'UQ');
+  const UR = await usersRepo.getUserIdByDiscordId(db, 'UR');
+  const UQ2 = await usersRepo.getUserIdByDiscordId(db, 'UQ2');
+  const UC = await usersRepo.getUserIdByDiscordId(db, 'UC');
+  const UD = await usersRepo.getUserIdByDiscordId(db, 'UD');
+
+  eq('fresh counter reads 0', await usage.getUsageCount(db, UQ, 'gear_ocr_batches', '2026-10-27'), 0);
+  eq('first increment creates the row at 1', await usage.incrementUsage(db, UQ, 'gear_ocr_batches', '2026-10-27', 1, 111), 1);
+  eq('second increment accumulates', await usage.incrementUsage(db, UQ, 'gear_ocr_batches', '2026-10-27', 1, 222), 2);
+  eq('increment by more than one', await usage.incrementUsage(db, UQ, 'gear_ocr_batches', '2026-10-27', 3, 333), 5);
+  eq('read-back matches', await usage.getUsageCount(db, UQ, 'gear_ocr_batches', '2026-10-27'), 5);
+  eq('another day is a separate counter (rollover)', await usage.getUsageCount(db, UQ, 'gear_ocr_batches', '2026-10-28'), 0);
+  eq('another metric is a separate counter', await usage.getUsageCount(db, UQ, 'other_metric', '2026-10-27'), 0);
+  eq('another user is a separate counter', await usage.getUsageCount(db, UR, 'gear_ocr_batches', '2026-10-27'), 0);
 
   // Day key: Asia/Shanghai date of the instant (2026-10-26T16:30Z is
   // already 2026-10-27 00:30 in Beijing).
@@ -945,22 +1010,22 @@ if (want('usage')) {
   eq('usageDayKey same-day morning UTC', limits.usageDayKey(Date.UTC(2026, 9, 26, 2, 0)), '2026-10-26');
 
   // Service seam: effective limits come back whole, free values today.
-  const eff = await limits.getEffectiveLimits(db, { discordId: 'UQ' });
+  const eff = await limits.getEffectiveLimits(db, { userId: UQ });
   eq('effective limits are the free values', [eff.gearItemCapacity, eff.ocrBatchImages, eff.ocrBatchesPerDay], [200, 20, 10]);
 
   // Metering helpers accumulate under today's key only.
   const nowMs = Date.UTC(2026, 9, 27, 3, 0);
-  eq('ocr used starts at 0', await limits.getOcrBatchesUsedToday(db, 'UQ2', nowMs), 0);
-  await limits.recordOcrBatch(db, 'UQ2', nowMs);
-  eq('ocr used after one record', await limits.getOcrBatchesUsedToday(db, 'UQ2', nowMs), 1);
-  eq('ocr used is keyed to the Beijing day', await usage.getUsageCount(db, 'UQ2', 'gear_ocr_batches', '2026-10-27'), 1);
+  eq('ocr used starts at 0', await limits.getOcrBatchesUsedToday(db, UQ2, nowMs), 0);
+  await limits.recordOcrBatch(db, UQ2, nowMs);
+  eq('ocr used after one record', await limits.getOcrBatchesUsedToday(db, UQ2, nowMs), 1);
+  eq('ocr used is keyed to the Beijing day', await usage.getUsageCount(db, UQ2, 'gear_ocr_batches', '2026-10-27'), 1);
 
   // Gear item count on real D1 (the capacity check's read path).
-  eq('countGearItemRows empty', await gearRepo.countGearItemRows(db, 'UC'), 0);
-  await gearRepo.insertGearItemRow(db, { discordId: 'UC', slot: '武器', name: '计数剑', payload: '{}', createdAt: 1 });
-  await gearRepo.insertGearItemRow(db, { discordId: 'UC', slot: '环', name: '计数环', payload: '{}', createdAt: 2 });
-  eq('countGearItemRows counts owner rows', await gearRepo.countGearItemRows(db, 'UC'), 2);
-  eq('countGearItemRows is owner-scoped', await gearRepo.countGearItemRows(db, 'UD'), 0);
+  eq('countGearItemRows empty', await gearRepo.countGearItemRows(db, UC), 0);
+  await gearRepo.insertGearItemRow(db, { userId: UC, slot: '武器', name: '计数剑', payload: '{}', createdAt: 1 });
+  await gearRepo.insertGearItemRow(db, { userId: UC, slot: '环', name: '计数环', payload: '{}', createdAt: 2 });
+  eq('countGearItemRows counts owner rows', await gearRepo.countGearItemRows(db, UC), 2);
+  eq('countGearItemRows is owner-scoped', await gearRepo.countGearItemRows(db, UD), 0);
 }
 
 /* ---------------- build_share_links ---------------- */
@@ -969,11 +1034,19 @@ if (want('buildshares')) {
   const svc = await import('../src/domains/gear/buildshare.ts');
   const store = await import('../src/domains/gear/gearstore.ts');
   const repo = await import('../src/domains/gear/gear.ts');
+  const usersRepo = await import('../src/domains/identity/users.ts');
 
-  const item = await store.insertGearItem(db, 'share-a', {
+  // Builds and share links are keyed by user ID since the ID reform.
+  for (const did of ['share-a', 'share-b']) {
+    await usersRepo.upsertUserOnLogin(db, { discordId: did, username: did, avatar: '', guildsJson: '[]', checkedAtSec: 1 });
+  }
+  const shareA = await usersRepo.getUserIdByDiscordId(db, 'share-a');
+  const shareB = await usersRepo.getUserIdByDiscordId(db, 'share-b');
+
+  const item = await store.insertGearItem(db, shareA, {
     slot: '武器', name: '验剑', lines: [{ key: 'dawai', val: 85.2 }], dingyin: null, schools: [],
   });
-  const mk = (name) => store.insertGearBuild(db, 'share-a', {
+  const mk = (name) => store.insertGearBuild(db, shareA, {
     name, targetIdx: 0, buildLabel: '鸣金·虹 · 飞隼', loadout: { '主武器': item.id },
     baseValues: {}, xinfa: [], extras: { res: 1.85, acc: 0, crit: 0, int: 0 },
     bowKind: '', gradDingyinOn: true,
@@ -982,14 +1055,14 @@ if (want('buildshares')) {
   const b1 = await mk('验方案一');
   const b2 = await mk('验方案二');
 
-  eq('share for missing build -> null', await svc.shareGearBuild(db, 'share-a', 999999), null);
-  eq('share for another owner -> null', await svc.shareGearBuild(db, 'share-b', b1.id), null);
+  eq('share for missing build -> null', await svc.shareGearBuild(db, shareA, 999999), null);
+  eq('share for another owner -> null', await svc.shareGearBuild(db, shareB, b1.id), null);
 
-  const l1 = await svc.shareGearBuild(db, 'share-a', b1.id);
+  const l1 = await svc.shareGearBuild(db, shareA, b1.id);
   check('mint returns a 7-char base62 code', /^[0-9A-Za-z]{7}$/.test(l1.code), l1.code);
-  eq('mint row target', [l1.buildId, l1.discordId], [b1.id, 'share-a']);
-  eq('second share is stable (same code)', (await svc.shareGearBuild(db, 'share-a', b1.id)).code, l1.code);
-  eq('getBuildShareLink roundtrip', (await svc.getBuildShareLink(db, 'share-a', b1.id))?.code, l1.code);
+  eq('mint row target', [l1.buildId, l1.userId], [b1.id, shareA]);
+  eq('second share is stable (same code)', (await svc.shareGearBuild(db, shareA, b1.id)).code, l1.code);
+  eq('getBuildShareLink roundtrip', (await svc.getBuildShareLink(db, shareA, b1.id))?.code, l1.code);
   eq('repository read by code roundtrip', (await repo.getBuildShareLinkRowByCode(db, l1.code))?.build_id, b1.id);
   eq('unknown code repository read -> null', await repo.getBuildShareLinkRowByCode(db, 'ZZZZZZZ'), null);
 
@@ -1002,31 +1075,31 @@ if (want('buildshares')) {
   // Collision retry against real UNIQUE constraints: the first
   // candidate is b1's live code; the mint for b2 must skip it.
   const seq = [l1.code, 'Re4lD1x'];
-  const l2 = await svc.shareGearBuild(db, 'share-a', b2.id, () => seq.shift() || svc.generateBuildShareCode());
+  const l2 = await svc.shareGearBuild(db, shareA, b2.id, () => seq.shift() || svc.generateBuildShareCode());
   eq('code collision retries with a fresh code', l2.code, 'Re4lD1x');
   eq('collided code still resolves to its original build', (await svc.resolveSharedBuild(db, l1.code))?.build.id, b1.id);
 
   eq('buildShareUrl shape', svc.buildShareUrl('Ab3dEf9'), 'https://yanyun.app/b/Ab3dEf9');
 
-  eq('revoke by another owner changes nothing', await svc.revokeBuildShare(db, 'share-b', b1.id), false);
-  eq('revoke by owner', await svc.revokeBuildShare(db, 'share-a', b1.id), true);
+  eq('revoke by another owner changes nothing', await svc.revokeBuildShare(db, shareB, b1.id), false);
+  eq('revoke by owner', await svc.revokeBuildShare(db, shareA, b1.id), true);
   eq('revoked code resolves -> null', await svc.resolveSharedBuild(db, l1.code), null);
-  eq('revoke again -> false', await svc.revokeBuildShare(db, 'share-a', b1.id), false);
-  const l1n = await svc.shareGearBuild(db, 'share-a', b1.id);
+  eq('revoke again -> false', await svc.revokeBuildShare(db, shareA, b1.id), false);
+  const l1n = await svc.shareGearBuild(db, shareA, b1.id);
   check('re-share after revoke mints a fresh code', l1n.code !== l1.code, `${l1.code} -> ${l1n.code}`);
 
   // Deleting the build orphans the link: resolve must go dead even
   // though the link row still exists (the mutation layer also drops
   // the row; the service-level guard is the second line of defense).
-  await repo.deleteGearBuildRow(db, 'share-a', b1.id);
+  await repo.deleteGearBuildRow(db, shareA, b1.id);
   eq('deleted build resolves -> null (orphaned link)', await svc.resolveSharedBuild(db, l1n.code), null);
 
   // Account-deletion cascade: the bulk delete removes every link the
   // user owns — here the orphaned l1n row plus b2's still-live l2.
   check('second build link live before cascade', !!(await svc.resolveSharedBuild(db, l2.code)));
-  eq('cascade deletes the owner links', await repo.deleteAllBuildShareLinksByUser(db, 'share-a'), 2);
+  eq('cascade deletes the owner links', await repo.deleteAllBuildShareLinksByUser(db, shareA), 2);
   eq('cascaded code resolves -> null', await svc.resolveSharedBuild(db, l2.code), null);
-  eq('cascade again -> 0 (idempotent)', await repo.deleteAllBuildShareLinksByUser(db, 'share-a'), 0);
+  eq('cascade again -> 0 (idempotent)', await repo.deleteAllBuildShareLinksByUser(db, shareA), 0);
 }
 
 /* ---------------- billing (guild_entitlements + stripe_events) ---------------- */
@@ -1034,54 +1107,70 @@ if (want('billing')) {
   console.log('== billing repositories on real D1 ==');
   const repo = await import('../src/domains/platform/billing.ts');
   const svc = await import('../src/domains/platform/billing-service.ts');
+  const tnRepo = await import('../src/domains/guilds/tenants.ts');
+  const usersRepo = await import('../src/domains/identity/users.ts');
 
-  eq('entitlement missing -> null', await repo.getEntitlementRow(db, 'alpha'), null);
+  // Entitlements are keyed by guild ID since the ID reform.
+  const tenantIdOf = async (slug) => (await tnRepo.getTenantRow(db, slug))?.id
+    ?? (await tnRepo.insertTenant(db, { slug, guildName: slug, passwordHash: 'h', announcement: '' }));
+  const alphaId = await tenantIdOf('alpha');
+  const betaId = await tenantIdOf('beta');
+  const gammaId = await tenantIdOf('gamma');
+  const deltaId = await tenantIdOf('delta');
+  const delta2Id = await tenantIdOf('delta2');
+  const tieroneId = await tenantIdOf('tierone');
+  const tiertwoId = await tenantIdOf('tiertwo');
+  const neverId = await tenantIdOf('never-granted');
+  await usersRepo.upsertUserOnLogin(db, { discordId: 'U', username: 'U', avatar: '', guildsJson: '[]', checkedAtSec: 1 });
+  const U = await usersRepo.getUserIdByDiscordId(db, 'U');
+
+  eq('entitlement missing -> null', await repo.getEntitlementRow(db, alphaId), null);
 
   const row = {
-    tenant: 'alpha', plan: 'premium', source: 'manual',
+    tenant: alphaId, plan: 'premium', source: 'manual',
     currentPeriodEnd: 2000000000, stripeCustomerId: 'cus_1',
     stripeSubscriptionId: 'sub_1', updatedAt: 111,
     pastDueSince: null, hasCard: false, trialUsed: false,
   };
   await repo.upsertEntitlementRow(db, row);
-  eq('upsert+get roundtrip', await repo.getEntitlementRow(db, 'alpha'), row);
+  eq('upsert+get roundtrip', await repo.getEntitlementRow(db, alphaId), row);
 
   const row2 = { ...row, plan: 'free', source: '', currentPeriodEnd: null, stripeCustomerId: '', stripeSubscriptionId: '', updatedAt: 222 };
   await repo.upsertEntitlementRow(db, row2);
-  eq('upsert conflict path overwrites', await repo.getEntitlementRow(db, 'alpha'), row2);
+  eq('upsert conflict path overwrites', await repo.getEntitlementRow(db, alphaId), row2);
 
-  await repo.upsertEntitlementRow(db, { ...row, tenant: 'beta' });
-  eq('lookup by subscription', (await repo.getEntitlementBySubscription(db, 'sub_1'))?.tenant, 'beta');
-  eq('lookup by customer', (await repo.getEntitlementByCustomer(db, 'cus_1'))?.tenant, 'beta');
+  await repo.upsertEntitlementRow(db, { ...row, tenant: betaId });
+  eq('lookup by subscription', (await repo.getEntitlementBySubscription(db, 'sub_1'))?.tenant, betaId);
+  eq('lookup by customer', (await repo.getEntitlementByCustomer(db, 'cus_1'))?.tenant, betaId);
   eq('lookup by unknown subscription -> null', await repo.getEntitlementBySubscription(db, 'sub_x'), null);
-  eq('list rows ordered by tenant', (await repo.listEntitlementRows(db)).map((r) => r.tenant), ['alpha', 'beta']);
+  eq('list rows ordered by tenant', (await repo.listEntitlementRows(db)).map((r) => r.tenant), [Math.min(alphaId, betaId), Math.max(alphaId, betaId)]);
 
   // Read-time expiry: the stored row still says premium, the service
   // reads free once the period end has passed.
   const future = Math.floor(Date.now() / 1000) + 3600;
-  await repo.upsertEntitlementRow(db, { ...row, tenant: 'gamma', currentPeriodEnd: future });
-  eq('effective premium before period end', (await svc.getEffectiveEntitlement(db, 'gamma')).plan, 'premium');
+  await repo.upsertEntitlementRow(db, { ...row, tenant: gammaId, currentPeriodEnd: future });
+  eq('effective premium before period end', (await svc.getEffectiveEntitlement(db, gammaId)).plan, 'premium');
   const past = Math.floor(Date.now() / 1000) - 3600;
-  await repo.upsertEntitlementRow(db, { ...row, tenant: 'gamma', currentPeriodEnd: past });
-  const lapsed = await svc.getEffectiveEntitlement(db, 'gamma');
+  await repo.upsertEntitlementRow(db, { ...row, tenant: gammaId, currentPeriodEnd: past });
+  const lapsed = await svc.getEffectiveEntitlement(db, gammaId);
   eq('effective free after period end', [lapsed.plan, lapsed.lapsed], ['free', true]);
-  eq('stored row untouched by read-time expiry', (await repo.getEntitlementRow(db, 'gamma'))?.plan, 'premium');
+  eq('stored row untouched by read-time expiry', (await repo.getEntitlementRow(db, gammaId))?.plan, 'premium');
 
   // Lifecycle columns (0026): past-due marker, card fact and the
   // consumed-trial stamp round-trip through the repository, and the
   // service's grace judgement reads them at read time.
   const lcRow = {
-    ...row, tenant: 'delta', plan: 't2', source: 'stripe',
+    ...row, tenant: deltaId, plan: 't2', source: 'stripe',
     currentPeriodEnd: future, pastDueSince: past + 100, hasCard: true, trialUsed: true,
   };
   await repo.upsertEntitlementRow(db, lcRow);
-  eq('lifecycle columns roundtrip', await repo.getEntitlementRow(db, 'delta'), lcRow);
-  const lcEff = await svc.getEffectiveEntitlement(db, 'delta', future + 13 * 86400);
+  eq('lifecycle columns roundtrip', await repo.getEntitlementRow(db, deltaId), lcRow);
+  const lcEff = await svc.getEffectiveEntitlement(db, deltaId, future + 13 * 86400);
   eq('grace: stripe past-due inside 14d window keeps tier', [lcEff.tier, lcEff.lapsed, lcEff.pastDue], [2, false, true]);
-  const lcLate = await svc.getEffectiveEntitlement(db, 'delta', future + 14 * 86400);
+  const lcLate = await svc.getEffectiveEntitlement(db, deltaId, future + 14 * 86400);
   eq('grace: stripe past-due past 14d lapses', [lcLate.plan, lcLate.tier, lcLate.lapsed], ['free', 0, true]);
-  await repo.upsertEntitlementRow(db, { ...lcRow, tenant: 'delta2', source: 'manual' });
-  const lcManual = await svc.getEffectiveEntitlement(db, 'delta2', future + 13 * 86400);
+  await repo.upsertEntitlementRow(db, { ...lcRow, tenant: delta2Id, source: 'manual' });
+  const lcManual = await svc.getEffectiveEntitlement(db, delta2Id, future + 13 * 86400);
   eq('grace: manual source never enters grace', [lcManual.plan, lcManual.lapsed, lcManual.pastDue], ['free', true, false]);
 
   // Stripe event dedupe ledger.
@@ -1117,56 +1206,64 @@ if (want('billing')) {
   // End-to-end on real D1 rows, paygate OFF first: the tier table
   // applies anyway (the switch is not consulted), and flipping the
   // switch changes nothing.
-  await repo.upsertEntitlementRow(db, { ...row, tenant: 'alpha', plan: 'premium', currentPeriodEnd: future });
-  const offLimits = await limitsSvc.getEffectiveLimits(db, { discordId: 'U', guildSlug: 'alpha' });
+  await repo.upsertEntitlementRow(db, { ...row, tenant: alphaId, plan: 'premium', currentPeriodEnd: future });
+  const offLimits = await limitsSvc.getEffectiveLimits(db, { userId: U, guildId: alphaId });
   eq('limits: switch off -> tier-3 table for a premium row (paygate-independent)', triple(offLimits), [5000, 100, 100]);
-  await settingsRepo.setSettingValue(db, '', 'paygate_enabled', '1');
-  const onLimits = await limitsSvc.getEffectiveLimits(db, { discordId: 'U', guildSlug: 'alpha' });
+  await settingsRepo.setSettingValue(db, 0, 'paygate_enabled', '1');
+  const onLimits = await limitsSvc.getEffectiveLimits(db, { userId: U, guildId: alphaId });
   eq('limits: switch on -> same tier-3 table', triple(onLimits), [5000, 100, 100]);
   // Stored tier rows end to end (the foundation's read-time tier
   // derivation feeds the same resolution): t1 -> T1, t2 -> T2, and a
   // lapsed tier row falls back to free.
-  await repo.upsertEntitlementRow(db, { ...row, tenant: 'tierone', plan: 't1', currentPeriodEnd: future });
-  eq('limits: stored t1 row -> T1 table', triple(await limitsSvc.getEffectiveLimits(db, { discordId: 'U', guildSlug: 'tierone' })), [1000, 50, 30]);
-  await repo.upsertEntitlementRow(db, { ...row, tenant: 'tiertwo', plan: 't2', currentPeriodEnd: future });
-  eq('limits: stored t2 row -> T2 table', triple(await limitsSvc.getEffectiveLimits(db, { discordId: 'U', guildSlug: 'tiertwo' })), [2000, 100, 50]);
-  await repo.upsertEntitlementRow(db, { ...row, tenant: 'tierone', plan: 't1', currentPeriodEnd: past });
-  eq('limits: lapsed t1 row -> free table', triple(await limitsSvc.getEffectiveLimits(db, { discordId: 'U', guildSlug: 'tierone' })), [200, 20, 10]);
-  const noGuild = await limitsSvc.getEffectiveLimits(db, { discordId: 'U' });
+  await repo.upsertEntitlementRow(db, { ...row, tenant: tieroneId, plan: 't1', currentPeriodEnd: future });
+  eq('limits: stored t1 row -> T1 table', triple(await limitsSvc.getEffectiveLimits(db, { userId: U, guildId: tieroneId })), [1000, 50, 30]);
+  await repo.upsertEntitlementRow(db, { ...row, tenant: tiertwoId, plan: 't2', currentPeriodEnd: future });
+  eq('limits: stored t2 row -> T2 table', triple(await limitsSvc.getEffectiveLimits(db, { userId: U, guildId: tiertwoId })), [2000, 100, 50]);
+  await repo.upsertEntitlementRow(db, { ...row, tenant: tieroneId, plan: 't1', currentPeriodEnd: past });
+  eq('limits: lapsed t1 row -> free table', triple(await limitsSvc.getEffectiveLimits(db, { userId: U, guildId: tieroneId })), [200, 20, 10]);
+  const noGuild = await limitsSvc.getEffectiveLimits(db, { userId: U });
   eq('limits: guild-less context stays free', triple(noGuild), [200, 20, 10]);
-  const noRow = await limitsSvc.getEffectiveLimits(db, { discordId: 'U', guildSlug: 'never-granted' });
+  const noRow = await limitsSvc.getEffectiveLimits(db, { userId: U, guildId: neverId });
   eq('limits: guild without entitlement stays free', triple(noRow), [200, 20, 10]);
-  await repo.upsertEntitlementRow(db, { ...row, tenant: 'alpha', plan: 'premium', currentPeriodEnd: past });
-  const lapsedLimits = await limitsSvc.getEffectiveLimits(db, { discordId: 'U', guildSlug: 'alpha' });
+  await repo.upsertEntitlementRow(db, { ...row, tenant: alphaId, plan: 'premium', currentPeriodEnd: past });
+  const lapsedLimits = await limitsSvc.getEffectiveLimits(db, { userId: U, guildId: alphaId });
   eq('limits: lapsed entitlement -> free table', triple(lapsedLimits), [200, 20, 10]);
-  await repo.upsertEntitlementRow(db, { ...row, tenant: 'alpha', plan: 'premium', currentPeriodEnd: future });
-  await settingsRepo.setSettingValue(db, '', 'paygate_enabled', '0');
+  await repo.upsertEntitlementRow(db, { ...row, tenant: alphaId, plan: 'premium', currentPeriodEnd: future });
+  await settingsRepo.setSettingValue(db, 0, 'paygate_enabled', '0');
 }
 
 /* ---------------- feedback ---------------- */
 if (want('feedback')) {
   console.log('== feedback repository on real D1 ==');
   const repo = await import('../src/domains/platform/feedback.ts');
+  const usersRepo = await import('../src/domains/identity/users.ts');
+
+  // Feedback rows are keyed by user ID since the ID reform.
+  for (const did of ['U1', 'U2']) {
+    await usersRepo.upsertUserOnLogin(db, { discordId: did, username: did, avatar: '', guildsJson: '[]', checkedAtSec: 1 });
+  }
+  const U1 = await usersRepo.getUserIdByDiscordId(db, 'U1');
+  const U2 = await usersRepo.getUserIdByDiscordId(db, 'U2');
 
   eq('list on empty table -> []', await repo.listFeedback(db, { status: '', limit: 50, offset: 0 }), []);
   eq('count on empty table -> 0', await repo.countFeedback(db, ''), 0);
-  eq('countSince on empty table -> 0', await repo.countFeedbackSince(db, 'U1', 0), 0);
+  eq('countSince on empty table -> 0', await repo.countFeedbackSince(db, U1, 0), 0);
 
   const T0 = 1760000000000; // epoch ms
-  await repo.insertFeedback(db, { discordId: 'U1', userName: '反馈甲', category: 'problem', content: '报名页打不开', createdAt: T0 });
-  await repo.insertFeedback(db, { discordId: 'U1', userName: '反馈甲', category: 'suggestion', content: '希望有夜间模式', createdAt: T0 + 1000 });
-  await repo.insertFeedback(db, { discordId: 'U2', userName: '反馈乙', category: 'other', content: '路过', createdAt: T0 + 2000 });
+  await repo.insertFeedback(db, { userId: U1, userName: '反馈甲', category: 'problem', content: '报名页打不开', createdAt: T0 });
+  await repo.insertFeedback(db, { userId: U1, userName: '反馈甲', category: 'suggestion', content: '希望有夜间模式', createdAt: T0 + 1000 });
+  await repo.insertFeedback(db, { userId: U2, userName: '反馈乙', category: 'other', content: '路过', createdAt: T0 + 2000 });
 
   const all = await repo.listFeedback(db, { status: '', limit: 50, offset: 0 });
   eq('list returns all rows newest first', all.map((r) => r.content), ['路过', '希望有夜间模式', '报名页打不开']);
-  eq('inserted row shape', all[2] && [all[2].discord_id, all[2].user_name, all[2].category, all[2].status, all[2].created_at, all[2].resolved_at],
-    ['U1', '反馈甲', 'problem', 'open', T0, null]);
+  eq('inserted row shape', all[2] && [all[2].user_id, all[2].user_name, all[2].category, all[2].status, all[2].created_at, all[2].resolved_at],
+    [U1, '反馈甲', 'problem', 'open', T0, null]);
   eq('count all', await repo.countFeedback(db, ''), 3);
   eq('count open', await repo.countFeedback(db, 'open'), 3);
   eq('count resolved (none yet)', await repo.countFeedback(db, 'resolved'), 0);
-  eq('countSince U1 since T0', await repo.countFeedbackSince(db, 'U1', T0), 2);
-  eq('countSince U1 since T0+1500', await repo.countFeedbackSince(db, 'U1', T0 + 1500), 0);
-  eq('countSince U2 since T0', await repo.countFeedbackSince(db, 'U2', T0), 1);
+  eq('countSince U1 since T0', await repo.countFeedbackSince(db, U1, T0), 2);
+  eq('countSince U1 since T0+1500', await repo.countFeedbackSince(db, U1, T0 + 1500), 0);
+  eq('countSince U2 since T0', await repo.countFeedbackSince(db, U2, T0), 1);
 
   const page = await repo.listFeedback(db, { status: '', limit: 2, offset: 2 });
   eq('pagination offset reaches the oldest row', page.map((r) => r.content), ['报名页打不开']);
@@ -1187,38 +1284,50 @@ if (want('feedback')) {
 if (want('announcements')) {
   console.log('== guild announcements repository on real D1 ==');
   const repo = await import('../src/domains/guilds/announcements.ts');
+  const tnRepo = await import('../src/domains/guilds/tenants.ts');
+  const usersRepo = await import('../src/domains/identity/users.ts');
+  const tenantIdOf = async (slug) => (await tnRepo.getTenantRow(db, slug))?.id
+    ?? (await tnRepo.insertTenant(db, { slug, guildName: slug, passwordHash: 'h', announcement: '' }));
+  const alphaId = await tenantIdOf('alpha');
+  const betaId = await tenantIdOf('beta');
+  for (const did of ['A1', 'B1', 'M1']) {
+    await usersRepo.upsertUserOnLogin(db, { discordId: did, username: did, avatar: '', guildsJson: '[]', checkedAtSec: 1 });
+  }
+  const A1 = await usersRepo.getUserIdByDiscordId(db, 'A1');
+  const B1 = await usersRepo.getUserIdByDiscordId(db, 'B1');
+  const M1 = await usersRepo.getUserIdByDiscordId(db, 'M1');
 
-  eq('list on empty table -> []', await repo.listAnnouncements(db, 'alpha', 50), []);
-  eq('get on empty table -> null', await repo.getAnnouncement(db, 'alpha', 1), null);
+  eq('list on empty table -> []', await repo.listAnnouncements(db, alphaId, 50), []);
+  eq('get on empty table -> null', await repo.getAnnouncement(db, alphaId, 1), null);
 
   const T0 = 1760000000; // epoch seconds
-  const id1 = await repo.insertAnnouncement(db, { tenant: 'alpha', kind: 'standard', title: '周六活动安排', body: '晚八点集合', authorDiscordId: 'A1', authorName: '管理员甲', createdAt: T0 });
-  const id2 = await repo.insertAnnouncement(db, { tenant: 'alpha', kind: 'urgent', title: '今晚集合', body: '看到请上线', authorDiscordId: 'A1', authorName: '管理员甲', createdAt: T0 + 60 });
-  const idB = await repo.insertAnnouncement(db, { tenant: 'beta', kind: 'standard', title: '乙公告', body: '', authorDiscordId: 'B1', authorName: '乙管理员', createdAt: T0 + 120 });
+  const id1 = await repo.insertAnnouncement(db, { tenant: alphaId, kind: 'standard', title: '周六活动安排', body: '晚八点集合', authorUserId: A1, authorName: '管理员甲', createdAt: T0 });
+  const id2 = await repo.insertAnnouncement(db, { tenant: alphaId, kind: 'urgent', title: '今晚集合', body: '看到请上线', authorUserId: A1, authorName: '管理员甲', createdAt: T0 + 60 });
+  const idB = await repo.insertAnnouncement(db, { tenant: betaId, kind: 'standard', title: '乙公告', body: '', authorUserId: B1, authorName: '乙管理员', createdAt: T0 + 120 });
   check('insert returns increasing ids', id1 > 0 && id2 > id1 && idB > id2, `${id1},${id2},${idB}`);
 
-  const list = await repo.listAnnouncements(db, 'alpha', 50);
+  const list = await repo.listAnnouncements(db, alphaId, 50);
   eq('list returns guild rows newest first', list.map((r) => r.id), [id2, id1]);
-  eq('row shape round-trips', list[1] && [list[1].tenant, list[1].kind, list[1].title, list[1].body, list[1].author_discord_id, list[1].author_name, list[1].created_at],
-    ['alpha', 'standard', '周六活动安排', '晚八点集合', 'A1', '管理员甲', T0]);
-  eq('list is guild-scoped', (await repo.listAnnouncements(db, 'beta', 50)).map((r) => r.id), [idB]);
-  eq('get inside the guild', (await repo.getAnnouncement(db, 'alpha', id1))?.title, '周六活动安排');
-  eq('get with a foreign guild -> null', await repo.getAnnouncement(db, 'beta', id1), null);
+  eq('row shape round-trips', list[1] && [list[1].tenant, list[1].kind, list[1].title, list[1].body, list[1].author_user_id, list[1].author_name, list[1].created_at],
+    [alphaId, 'standard', '周六活动安排', '晚八点集合', A1, '管理员甲', T0]);
+  eq('list is guild-scoped', (await repo.listAnnouncements(db, betaId, 50)).map((r) => r.id), [idB]);
+  eq('get inside the guild', (await repo.getAnnouncement(db, alphaId, id1))?.title, '周六活动安排');
+  eq('get with a foreign guild -> null', await repo.getAnnouncement(db, betaId, id1), null);
 
-  eq('read ids on empty receipts -> []', await repo.listReadAnnouncementIds(db, 'alpha', 'M1'), []);
-  await repo.markAnnouncementRead(db, { tenant: 'alpha', announcementId: id1, discordId: 'M1', readAt: T0 + 300 });
-  await repo.markAnnouncementRead(db, { tenant: 'alpha', announcementId: id1, discordId: 'A1', readAt: T0 + 200 });
-  eq('read ids after marks', (await repo.listReadAnnouncementIds(db, 'alpha', 'M1')).map(Number), [id1]);
-  eq('receipts oldest-read first', (await repo.listAnnouncementReads(db, 'alpha', id1)).map((r) => r.discord_id), ['A1', 'M1']);
-  await repo.markAnnouncementRead(db, { tenant: 'alpha', announcementId: id1, discordId: 'M1', readAt: T0 + 999 });
-  eq('re-mark keeps the first read_at (DO NOTHING)', (await repo.listAnnouncementReads(db, 'alpha', id1)).find((r) => r.discord_id === 'M1')?.read_at, T0 + 300);
-  eq('receipts are guild-scoped', await repo.listAnnouncementReads(db, 'beta', id1), []);
+  eq('read ids on empty receipts -> []', await repo.listReadAnnouncementIds(db, alphaId, M1), []);
+  await repo.markAnnouncementRead(db, { tenant: alphaId, announcementId: id1, userId: M1, readAt: T0 + 300 });
+  await repo.markAnnouncementRead(db, { tenant: alphaId, announcementId: id1, userId: A1, readAt: T0 + 200 });
+  eq('read ids after marks', (await repo.listReadAnnouncementIds(db, alphaId, M1)).map(Number), [id1]);
+  eq('receipts oldest-read first', (await repo.listAnnouncementReads(db, alphaId, id1)).map((r) => r.user_id), [A1, M1]);
+  await repo.markAnnouncementRead(db, { tenant: alphaId, announcementId: id1, userId: M1, readAt: T0 + 999 });
+  eq('re-mark keeps the first read_at (DO NOTHING)', (await repo.listAnnouncementReads(db, alphaId, id1)).find((r) => r.user_id === M1)?.read_at, T0 + 300);
+  eq('receipts are guild-scoped', await repo.listAnnouncementReads(db, betaId, id1), []);
 
-  eq('delete foreign-guild id -> false', await repo.deleteAnnouncement(db, 'beta', id1), false);
-  eq('delete own announcement -> true', await repo.deleteAnnouncement(db, 'alpha', id1), true);
-  eq('deleted row is gone', await repo.getAnnouncement(db, 'alpha', id1), null);
-  eq('delete cascades the receipts', await repo.listAnnouncementReads(db, 'alpha', id1), []);
-  eq('other announcements survive the delete', (await repo.listAnnouncements(db, 'alpha', 50)).map((r) => r.id), [id2]);
+  eq('delete foreign-guild id -> false', await repo.deleteAnnouncement(db, betaId, id1), false);
+  eq('delete own announcement -> true', await repo.deleteAnnouncement(db, alphaId, id1), true);
+  eq('deleted row is gone', await repo.getAnnouncement(db, alphaId, id1), null);
+  eq('delete cascades the receipts', await repo.listAnnouncementReads(db, alphaId, id1), []);
+  eq('other announcements survive the delete', (await repo.listAnnouncements(db, alphaId, 50)).map((r) => r.id), [id2]);
 }
 
 /* ---------------- announcement translations (P26) ---------------- */
@@ -1226,22 +1335,30 @@ if (want('announcement-i18n')) {
   console.log('== announcement translations repository on real D1 ==');
   const repo = await import('../src/domains/guilds/announcements.ts');
   const i18n = await import('../src/domains/guilds/announcement-i18n.ts');
+  const tnRepo = await import('../src/domains/guilds/tenants.ts');
+  const usersRepo = await import('../src/domains/identity/users.ts');
+  const tenantIdOf = async (slug) => (await tnRepo.getTenantRow(db, slug))?.id
+    ?? (await tnRepo.insertTenant(db, { slug, guildName: slug, passwordHash: 'h', announcement: '' }));
+  const alphaId = await tenantIdOf('alpha');
+  const betaId = await tenantIdOf('beta');
+  await usersRepo.upsertUserOnLogin(db, { discordId: 'A1', username: 'A1', avatar: '', guildsJson: '[]', checkedAtSec: 1 });
+  const A1 = await usersRepo.getUserIdByDiscordId(db, 'A1');
   const T0 = 1760000000;
-  const aid = await repo.insertAnnouncement(db, { tenant: 'alpha', kind: 'standard', title: '周六活动安排', body: '晚八点集合', authorDiscordId: 'A1', authorName: '管理员甲', createdAt: T0 });
-  const row = await repo.getAnnouncement(db, 'alpha', aid);
+  const aid = await repo.insertAnnouncement(db, { tenant: alphaId, kind: 'standard', title: '周六活动安排', body: '晚八点集合', authorUserId: A1, authorName: '管理员甲', createdAt: T0 });
+  const row = await repo.getAnnouncement(db, alphaId, aid);
   const hash = await i18n.announcementSourceHash(row);
   check('source hash is a sha256 hex', /^[0-9a-f]{64}$/.test(hash), hash);
 
-  eq('translations on empty table -> empty map', (await i18n.listAnnouncementTranslations(db, 'alpha', [aid])).size, 0);
-  await i18n.upsertAnnouncementTranslation(db, { announcementId: aid, tenant: 'alpha', locale: 'en', title: 'T', body: 'B', status: 'done', sourceHash: hash, nowSec: T0 });
-  let map = await i18n.listAnnouncementTranslations(db, 'alpha', [aid]);
+  eq('translations on empty table -> empty map', (await i18n.listAnnouncementTranslations(db, alphaId, [aid])).size, 0);
+  await i18n.upsertAnnouncementTranslation(db, { announcementId: aid, tenant: alphaId, locale: 'en', title: 'T', body: 'B', status: 'done', sourceHash: hash, nowSec: T0 });
+  let map = await i18n.listAnnouncementTranslations(db, alphaId, [aid]);
   eq('upsert lands one row', map.size, 1);
   eq('row round-trips', map.get(`${aid}|en`)?.title, 'T');
-  await i18n.upsertAnnouncementTranslation(db, { announcementId: aid, tenant: 'alpha', locale: 'en', title: 'T2', body: 'B2', status: 'failed', sourceHash: hash, nowSec: T0 + 10 });
-  map = await i18n.listAnnouncementTranslations(db, 'alpha', [aid]);
+  await i18n.upsertAnnouncementTranslation(db, { announcementId: aid, tenant: alphaId, locale: 'en', title: 'T2', body: 'B2', status: 'failed', sourceHash: hash, nowSec: T0 + 10 });
+  map = await i18n.listAnnouncementTranslations(db, alphaId, [aid]);
   eq('upsert overwrites in place (no duplicate)', map.size, 1);
   eq('overwrite persisted', [map.get(`${aid}|en`)?.title, map.get(`${aid}|en`)?.status], ['T2', 'failed']);
-  eq('list is tenant-scoped', (await i18n.listAnnouncementTranslations(db, 'beta', [aid])).size, 0);
+  eq('list is tenant-scoped', (await i18n.listAnnouncementTranslations(db, betaId, [aid])).size, 0);
 
   /* Generation over a fake translator: cache dedupes across rows. */
   let calls = 0;
@@ -1250,29 +1367,37 @@ if (want('announcement-i18n')) {
   eq('generation covers all target locales', outcomes.map((o) => o.locale), i18n.ANNOUNCEMENT_TARGET_LOCALES);
   check('generation all done', outcomes.every((o) => o.status === 'done'));
   eq('provider calls = locales x 2 units', calls, i18n.ANNOUNCEMENT_TARGET_LOCALES.length * 2);
-  const aid2 = await repo.insertAnnouncement(db, { tenant: 'alpha', kind: 'standard', title: '周六活动安排', body: '晚八点集合', authorDiscordId: 'A1', authorName: '管理员甲', createdAt: T0 + 30 });
-  const row2 = await repo.getAnnouncement(db, 'alpha', aid2);
+  const aid2 = await repo.insertAnnouncement(db, { tenant: alphaId, kind: 'standard', title: '周六活动安排', body: '晚八点集合', authorUserId: A1, authorName: '管理员甲', createdAt: T0 + 30 });
+  const row2 = await repo.getAnnouncement(db, alphaId, aid2);
   await i18n.generateAnnouncementTranslations(db, fake, row2, T0 + 40);
   eq('identical text generates from cache (no new calls)', calls, i18n.ANNOUNCEMENT_TARGET_LOCALES.length * 2);
   const failing = { async translate() { throw new Error('provider down'); } };
-  const aid3 = await repo.insertAnnouncement(db, { tenant: 'alpha', kind: 'standard', title: '另一条', body: '别的正文', authorDiscordId: 'A1', authorName: '管理员甲', createdAt: T0 + 50 });
-  const row3 = await repo.getAnnouncement(db, 'alpha', aid3);
+  const aid3 = await repo.insertAnnouncement(db, { tenant: alphaId, kind: 'standard', title: '另一条', body: '别的正文', authorUserId: A1, authorName: '管理员甲', createdAt: T0 + 50 });
+  const row3 = await repo.getAnnouncement(db, alphaId, aid3);
   const failOutcomes = await i18n.generateAnnouncementTranslations(db, failing, row3, T0 + 60);
   check('provider failure records failed, never throws', failOutcomes.every((o) => o.status === 'failed'));
-  eq('state of failed announcement', i18n.translationStateOf([...(await i18n.listAnnouncementTranslations(db, 'alpha', [aid3])).values()], await i18n.announcementSourceHash(row3)), 'failed');
+  eq('state of failed announcement', i18n.translationStateOf([...(await i18n.listAnnouncementTranslations(db, alphaId, [aid3])).values()], await i18n.announcementSourceHash(row3)), 'failed');
 
-  await i18n.deleteAnnouncementTranslations(db, 'alpha', aid);
-  eq('delete drops the translations', (await i18n.listAnnouncementTranslations(db, 'alpha', [aid])).size, 0);
+  await i18n.deleteAnnouncementTranslations(db, alphaId, aid);
+  eq('delete drops the translations', (await i18n.listAnnouncementTranslations(db, alphaId, [aid])).size, 0);
 }
 
 /* ---------------- lotteries (F21) ---------------- */
 if (want('activitytools')) {
   console.log('== lotteries repositories on real D1 ==');
   const lot = await import('../src/domains/groupings/lotteries.ts');
+  const tnRepo = await import('../src/domains/guilds/tenants.ts');
+  const usersRepo = await import('../src/domains/identity/users.ts');
+  const tenantIdOf = async (slug) => (await tnRepo.getTenantRow(db, slug))?.id
+    ?? (await tnRepo.insertTenant(db, { slug, guildName: slug, passwordHash: 'h', announcement: '' }));
+  const alphaId = await tenantIdOf('alpha');
+  const betaId = await tenantIdOf('beta');
+  await usersRepo.upsertUserOnLogin(db, { discordId: 'U1', username: 'U1', avatar: '', guildsJson: '[]', checkedAtSec: 1 });
+  const U1 = await usersRepo.getUserIdByDiscordId(db, 'U1');
 
   const created = await lot.insertLottery(db, {
-    tenant: 'alpha', title: '周年抽奖', prize: '坐骑一只', source: 'members',
-    source_event_id: null, winner_count: 2, status: 'open', created_by: 'U1', created_at: 1760000000,
+    tenant: alphaId, title: '周年抽奖', prize: '坐骑一只', source: 'members',
+    source_event_id: null, winner_count: 2, status: 'open', created_by_user_id: U1, created_at: 1760000000,
   });
   const lid = created.last_row_id;
   check('insertLottery returns a row id', lid > 0, String(lid));
@@ -1280,9 +1405,9 @@ if (want('activitytools')) {
   await lot.insertLotteryEntry(db, { lotteryId: lid, discordId: 'U2', displayName: '乙', weight: 5 });
   await lot.insertLotteryEntry(db, { lotteryId: lid, discordId: 'U3', displayName: '丙', weight: 1 });
   eq('entries roundtrip in order', (await lot.listLotteryEntries(db, lid)).map((e) => e.discord_id), ['U1', 'U2', 'U3']);
-  eq('lottery read is tenant-scoped', await lot.getLotteryByTenant(db, lid, 'beta'), null);
-  eq('lottery row shape', (await lot.getLotteryByTenant(db, lid, 'alpha'))?.prize, '坐骑一只');
-  eq('listLotteries is tenant-scoped', (await lot.listLotteries(db, 'beta')).length, 0);
+  eq('lottery read is tenant-scoped', await lot.getLotteryByTenant(db, lid, betaId), null);
+  eq('lottery row shape', (await lot.getLotteryByTenant(db, lid, alphaId))?.prize, '坐骑一只');
+  eq('listLotteries is tenant-scoped', (await lot.listLotteries(db, betaId)).length, 0);
 
   // Duplicate entry for the same member violates the unique index.
   let dupThrew = false;
@@ -1301,7 +1426,7 @@ if (want('activitytools')) {
   }
   await lot.markLotteryDrawn(db, lid, 1760003600);
   eq('winners roundtrip', (await lot.listLotteryWinners(db, lid)).map((w) => w.discord_id), ['U1', 'U2']);
-  const drawn = await lot.getLotteryByTenant(db, lid, 'alpha');
+  const drawn = await lot.getLotteryByTenant(db, lid, alphaId);
   eq('drawn state persisted', drawn && [drawn.status, drawn.drawn_at], ['drawn', 1760003600]);
   let dupWinThrew = false;
   try { await lot.insertLotteryWinner(db, { lotteryId: lid, discordId: 'U1', displayName: '甲', drawnAt: 1760003600 }); }
@@ -1314,16 +1439,27 @@ if (want('season')) {
   console.log('== season checklist + roster repositories on real D1 ==');
   const checksRepo = await import('../src/domains/guilds/seasonChecklist.ts');
   const rosterRepo = await import('../src/domains/guilds/roster.ts');
+  const tnRepo = await import('../src/domains/guilds/tenants.ts');
+  const usersRepo = await import('../src/domains/identity/users.ts');
+  const tenantIdOf = async (slug) => (await tnRepo.getTenantRow(db, slug))?.id
+    ?? (await tnRepo.insertTenant(db, { slug, guildName: slug, passwordHash: 'h', announcement: '' }));
+  const alphaId = await tenantIdOf('alpha');
+  const betaId = await tenantIdOf('beta');
+  for (const did of ['U1', 'U2']) {
+    await usersRepo.upsertUserOnLogin(db, { discordId: did, username: did, avatar: '', guildsJson: '[]', checkedAtSec: 1 });
+  }
+  const U1 = await usersRepo.getUserIdByDiscordId(db, 'U1');
+  const U2 = await usersRepo.getUserIdByDiscordId(db, 'U2');
 
-  eq('checklist empty -> []', await checksRepo.listSeasonChecklistChecks(db, 'alpha', 'intl-v2.3:S5'), []);
-  await checksRepo.setSeasonChecklistCheck(db, { tenant: 'alpha', seasonKey: 'intl-v2.3:S5', itemKey: 'current-dungeons', checked: true, checkedBy: 'U1', checkedByName: '甲军官', now: 1760000000 });
-  await checksRepo.setSeasonChecklistCheck(db, { tenant: 'alpha', seasonKey: 'intl-v2.3:S5', itemKey: 'member-roster', checked: true, checkedBy: 'U1', checkedByName: '甲军官', now: 1760000001 });
-  await checksRepo.setSeasonChecklistCheck(db, { tenant: 'beta', seasonKey: 'intl-v2.3:S5', itemKey: 'current-dungeons', checked: true, checkedBy: 'U2', checkedByName: '乙军官', now: 1760000002 });
-  let rows = await checksRepo.listSeasonChecklistChecks(db, 'alpha', 'intl-v2.3:S5');
+  eq('checklist empty -> []', await checksRepo.listSeasonChecklistChecks(db, alphaId, 'intl-v2.3:S5'), []);
+  await checksRepo.setSeasonChecklistCheck(db, { tenant: alphaId, seasonKey: 'intl-v2.3:S5', itemKey: 'current-dungeons', checked: true, checkedByUserId: U1, checkedByName: '甲军官', now: 1760000000 });
+  await checksRepo.setSeasonChecklistCheck(db, { tenant: alphaId, seasonKey: 'intl-v2.3:S5', itemKey: 'member-roster', checked: true, checkedByUserId: U1, checkedByName: '甲军官', now: 1760000001 });
+  await checksRepo.setSeasonChecklistCheck(db, { tenant: betaId, seasonKey: 'intl-v2.3:S5', itemKey: 'current-dungeons', checked: true, checkedByUserId: U2, checkedByName: '乙军官', now: 1760000002 });
+  let rows = await checksRepo.listSeasonChecklistChecks(db, alphaId, 'intl-v2.3:S5');
   eq('checklist rows per guild+season', rows.map((r) => [r.item_key, r.checked, r.checked_by_name]), [['current-dungeons', 1, '甲军官'], ['member-roster', 1, '甲军官']]);
-  eq('checklist season isolation', await checksRepo.listSeasonChecklistChecks(db, 'alpha', 'intl-v9.9:S6'), []);
-  await checksRepo.setSeasonChecklistCheck(db, { tenant: 'alpha', seasonKey: 'intl-v2.3:S5', itemKey: 'current-dungeons', checked: false, checkedBy: 'U1', checkedByName: '甲军官', now: 1760000003 });
-  rows = await checksRepo.listSeasonChecklistChecks(db, 'alpha', 'intl-v2.3:S5');
+  eq('checklist season isolation', await checksRepo.listSeasonChecklistChecks(db, alphaId, 'intl-v9.9:S6'), []);
+  await checksRepo.setSeasonChecklistCheck(db, { tenant: alphaId, seasonKey: 'intl-v2.3:S5', itemKey: 'current-dungeons', checked: false, checkedByUserId: U1, checkedByName: '甲军官', now: 1760000003 });
+  rows = await checksRepo.listSeasonChecklistChecks(db, alphaId, 'intl-v2.3:S5');
   eq('uncheck upserts in place', rows.map((r) => [r.item_key, r.checked]), [['current-dungeons', 0], ['member-roster', 1]]);
 
   eq('normalize strips spaces + folds case', rosterRepo.normalizeRosterName(' 老 Mo '), '老mo');
@@ -1335,25 +1471,25 @@ if (want('season')) {
   eq('classify new', rosterRepo.classifyRosterLine('新侠客', memberByNorm, new Map()).status, 'new');
   eq('classify unrecognized', rosterRepo.classifyRosterLine('100', memberByNorm, new Map()).status, 'unrecognized');
 
-  eq('roster count empty', await rosterRepo.countGuildRosterEntries(db, 'alpha'), 0);
-  const ins1 = await rosterRepo.insertGuildRosterEntry(db, { tenant: 'alpha', displayName: '新侠客', source: 'ocr', matchedDiscordId: null, createdBy: 'U1', now: 1760000000 });
+  eq('roster count empty', await rosterRepo.countGuildRosterEntries(db, alphaId), 0);
+  const ins1 = await rosterRepo.insertGuildRosterEntry(db, { tenant: alphaId, displayName: '新侠客', source: 'ocr', matchedDiscordId: null, createdByUserId: U1, now: 1760000000 });
   eq('roster insert created', ins1.created, true);
-  const ins2 = await rosterRepo.insertGuildRosterEntry(db, { tenant: 'alpha', displayName: '新 侠客', source: 'ocr', matchedDiscordId: null, createdBy: 'U1', now: 1760000001 });
+  const ins2 = await rosterRepo.insertGuildRosterEntry(db, { tenant: alphaId, displayName: '新 侠客', source: 'ocr', matchedDiscordId: null, createdByUserId: U1, now: 1760000001 });
   eq('roster insert dedupes by normalized name', [ins2.created, ins2.id === ins1.id], [false, true]);
-  eq('roster count after dedupe', await rosterRepo.countGuildRosterEntries(db, 'alpha'), 1);
-  eq('roster list shape', (await rosterRepo.listGuildRosterEntries(db, 'alpha')).map((r) => [r.display_name, r.name_norm, r.source, r.matched_discord_id]), [['新侠客', '新侠客', 'ocr', null]]);
+  eq('roster count after dedupe', await rosterRepo.countGuildRosterEntries(db, alphaId), 1);
+  eq('roster list shape', (await rosterRepo.listGuildRosterEntries(db, alphaId)).map((r) => [r.display_name, r.name_norm, r.source, r.matched_discord_id]), [['新侠客', '新侠客', 'ocr', null]]);
 
-  const batchId = await rosterRepo.createRosterImportBatch(db, { tenant: 'alpha', createdBy: 'U1', imageCount: 2, now: 1760000000 });
+  const batchId = await rosterRepo.createRosterImportBatch(db, { tenant: alphaId, createdByUserId: U1, imageCount: 2, now: 1760000000 });
   check('batch id issued', batchId > 0);
-  const rowId = await rosterRepo.insertRosterImportRow(db, batchId, 'alpha', rosterRepo.classifyRosterLine('某某', memberByNorm, new Map()));
-  eq('batch tenant scoping', await rosterRepo.getRosterImportBatch(db, 'beta', batchId), null);
+  const rowId = await rosterRepo.insertRosterImportRow(db, batchId, alphaId, rosterRepo.classifyRosterLine('某某', memberByNorm, new Map()));
+  eq('batch tenant scoping', await rosterRepo.getRosterImportBatch(db, betaId, batchId), null);
   eq('batch row readback', (await rosterRepo.listRosterImportRows(db, batchId)).map((r) => [r.raw_name, r.status]), [['某某', 'new']]);
   await rosterRepo.markRosterImportRowImported(db, rowId, ins1.id);
   eq('row marked imported', (await rosterRepo.listRosterImportRows(db, batchId))[0].created_entry_id, ins1.id);
   await rosterRepo.confirmRosterImportBatch(db, batchId, 1760000100);
-  eq('batch confirmed', (await rosterRepo.getRosterImportBatch(db, 'alpha', batchId))?.status, 'confirmed');
-  eq('delete entry cross-tenant refused', await rosterRepo.deleteGuildRosterEntry(db, 'beta', ins1.id), false);
-  eq('delete entry own tenant', await rosterRepo.deleteGuildRosterEntry(db, 'alpha', ins1.id), true);
+  eq('batch confirmed', (await rosterRepo.getRosterImportBatch(db, alphaId, batchId))?.status, 'confirmed');
+  eq('delete entry cross-tenant refused', await rosterRepo.deleteGuildRosterEntry(db, betaId, ins1.id), false);
+  eq('delete entry own tenant', await rosterRepo.deleteGuildRosterEntry(db, alphaId, ins1.id), true);
 }
 
 /* ---------------- officer (member notes + season goals, 0016/0017) ---------------- */
@@ -1361,41 +1497,53 @@ if (want('officer')) {
   console.log('== officer repositories on real D1 ==');
   const notes = await import('../src/domains/guilds/membernotes.ts');
   const goals = await import('../src/domains/guilds/seasongoals.ts');
+  const tnRepo = await import('../src/domains/guilds/tenants.ts');
+  const usersRepo = await import('../src/domains/identity/users.ts');
+  const tenantIdOf = async (slug) => (await tnRepo.getTenantRow(db, slug))?.id
+    ?? (await tnRepo.insertTenant(db, { slug, guildName: slug, passwordHash: 'h', announcement: '' }));
+  const alphaId = await tenantIdOf('alpha');
+  const betaId = await tenantIdOf('beta');
+  for (const did of ['U1', 'U2', 'A1']) {
+    await usersRepo.upsertUserOnLogin(db, { discordId: did, username: did, avatar: '', guildsJson: '[]', checkedAtSec: 1 });
+  }
+  const U1 = await usersRepo.getUserIdByDiscordId(db, 'U1');
+  const U2 = await usersRepo.getUserIdByDiscordId(db, 'U2');
+  const A1 = await usersRepo.getUserIdByDiscordId(db, 'A1');
   const nid = await notes.insertMemberNote(db, {
-    tenant: 'alpha', memberDiscordId: 'U1', body: '备注一',
-    authorDiscordId: 'A1', authorName: '管理员', createdAt: 1760000000,
+    tenant: alphaId, memberUserId: U1, body: '备注一',
+    authorUserId: A1, authorName: '管理员', createdAt: 1760000000,
   });
   check('insertMemberNote returns a row id', nid > 0, String(nid));
-  eq('note roundtrip', (await notes.getMemberNote(db, 'alpha', nid))?.body, '备注一');
-  eq('note read is tenant-scoped', await notes.getMemberNote(db, 'beta', nid), null);
-  eq('notes list per member', (await notes.listMemberNotes(db, 'alpha', 'U1')).length, 1);
-  eq('notes list per tenant', (await notes.listMemberNotesByTenant(db, 'alpha')).length, 1);
-  eq('updateMemberNote moves the row', await notes.updateMemberNote(db, 'alpha', nid, '备注二', 1760001000), true);
-  eq('updated body persisted', (await notes.getMemberNote(db, 'alpha', nid))?.body, '备注二');
-  eq('updateMemberNote is tenant-scoped', await notes.updateMemberNote(db, 'beta', nid, 'x', 1), false);
-  eq('deleteMemberNote is tenant-scoped', await notes.deleteMemberNote(db, 'beta', nid), false);
-  eq('deleteMemberNote removes the row', await notes.deleteMemberNote(db, 'alpha', nid), true);
+  eq('note roundtrip', (await notes.getMemberNote(db, alphaId, nid))?.body, '备注一');
+  eq('note read is tenant-scoped', await notes.getMemberNote(db, betaId, nid), null);
+  eq('notes list per member', (await notes.listMemberNotes(db, alphaId, U1)).length, 1);
+  eq('notes list per tenant', (await notes.listMemberNotesByTenant(db, alphaId)).length, 1);
+  eq('updateMemberNote moves the row', await notes.updateMemberNote(db, alphaId, nid, '备注二', 1760001000), true);
+  eq('updated body persisted', (await notes.getMemberNote(db, alphaId, nid))?.body, '备注二');
+  eq('updateMemberNote is tenant-scoped', await notes.updateMemberNote(db, betaId, nid, 'x', 1), false);
+  eq('deleteMemberNote is tenant-scoped', await notes.deleteMemberNote(db, betaId, nid), false);
+  eq('deleteMemberNote removes the row', await notes.deleteMemberNote(db, alphaId, nid), true);
 
   const gid = await goals.insertSeasonGoal(db, {
-    tenant: 'alpha', discordId: 'U1', memberName: '成员一', title: '目标一',
+    tenant: alphaId, userId: U1, memberName: '成员一', title: '目标一',
     note: '', status: 'active', dungeonId: null, createdAt: 1760000000,
   });
   check('insertSeasonGoal returns a row id', gid > 0, String(gid));
   eq('goal roundtrip', (await goals.getSeasonGoal(db, gid))?.title, '目标一');
-  eq('goals list per member', (await goals.listSeasonGoalsByMember(db, 'alpha', 'U1')).length, 1);
-  eq('goals list per user spans guilds', (await goals.listSeasonGoalsByUser(db, 'U1')).length, 1);
-  eq('goals list per tenant', (await goals.listSeasonGoalsByTenant(db, 'alpha')).length, 1);
+  eq('goals list per member', (await goals.listSeasonGoalsByMember(db, alphaId, U1)).length, 1);
+  eq('goals list per user spans guilds', (await goals.listSeasonGoalsByUser(db, U1)).length, 1);
+  eq('goals list per tenant', (await goals.listSeasonGoalsByTenant(db, alphaId)).length, 1);
   eq('goal update pins owner (foreign owner matches nothing)', await goals.updateSeasonGoal(db, {
-    tenant: 'alpha', discordId: 'U2', id: gid, title: '篡改', note: '', status: 'done',
+    tenant: alphaId, userId: U2, id: gid, title: '篡改', note: '', status: 'done',
     dungeonId: null, memberName: 'x', updatedAt: 1760001000,
   }), false);
   eq('goal update by owner', await goals.updateSeasonGoal(db, {
-    tenant: 'alpha', discordId: 'U1', id: gid, title: '目标一', note: '进度', status: 'done',
+    tenant: alphaId, userId: U1, id: gid, title: '目标一', note: '进度', status: 'done',
     dungeonId: null, memberName: '成员一', updatedAt: 1760001000,
   }), true);
   eq('goal status persisted', (await goals.getSeasonGoal(db, gid))?.status, 'done');
-  eq('goal delete pins owner', await goals.deleteSeasonGoal(db, 'alpha', 'U2', gid), false);
-  eq('goal delete by owner', await goals.deleteSeasonGoal(db, 'alpha', 'U1', gid), true);
+  eq('goal delete pins owner', await goals.deleteSeasonGoal(db, alphaId, U2, gid), false);
+  eq('goal delete by owner', await goals.deleteSeasonGoal(db, alphaId, U1, gid), true);
 }
 
 /* ---------------- availability + polls + custom fields (F5/F13/F7) ---------------- */
@@ -1405,27 +1553,39 @@ if (want('schedule')) {
   const pl = await import('../src/domains/groupings/polls.ts');
   const cf = await import('../src/domains/groupings/customfields.ts');
 
-  await av.upsertMemberAvailability(db, { tenant: 'alpha', discordId: 'U1', displayName: '甲', slots: [{ weekday: 5, startMinute: 1140, endMinute: 1320 }], updatedAt: 1760000000 });
-  await av.upsertMemberAvailability(db, { tenant: 'alpha', discordId: 'U1', displayName: '甲', slots: [{ weekday: 6, startMinute: 600, endMinute: 720 }], updatedAt: 1760000100 });
-  const avRow = await av.getMemberAvailability(db, 'alpha', 'U1');
+  const tnRepo = await import('../src/domains/guilds/tenants.ts');
+  const usersRepo = await import('../src/domains/identity/users.ts');
+  const tenantIdOf = async (slug) => (await tnRepo.getTenantRow(db, slug))?.id
+    ?? (await tnRepo.insertTenant(db, { slug, guildName: slug, passwordHash: 'h', announcement: '' }));
+  const alphaId = await tenantIdOf('alpha');
+  const betaId = await tenantIdOf('beta');
+  for (const did of ['U1', 'U2', 'U9']) {
+    await usersRepo.upsertUserOnLogin(db, { discordId: did, username: did, avatar: '', guildsJson: '[]', checkedAtSec: 1 });
+  }
+  const U1 = await usersRepo.getUserIdByDiscordId(db, 'U1');
+  const U2 = await usersRepo.getUserIdByDiscordId(db, 'U2');
+  const U9 = await usersRepo.getUserIdByDiscordId(db, 'U9');
+  await av.upsertMemberAvailability(db, { tenant: alphaId, userId: U1, displayName: '甲', slots: [{ weekday: 5, startMinute: 1140, endMinute: 1320 }], updatedAt: 1760000000 });
+  await av.upsertMemberAvailability(db, { tenant: alphaId, userId: U1, displayName: '甲', slots: [{ weekday: 6, startMinute: 600, endMinute: 720 }], updatedAt: 1760000100 });
+  const avRow = await av.getMemberAvailability(db, alphaId, U1);
   eq('availability upsert replaces the whole set', av.parseAvailabilitySlots(avRow?.slots_json), [{ weekday: 6, startMinute: 600, endMinute: 720 }]);
-  eq('availability is tenant-scoped', await av.getMemberAvailability(db, 'beta', 'U1'), null);
-  eq('guild availability list', (await av.listGuildAvailability(db, 'alpha')).map((r) => r.discord_id), ['U1']);
-  eq('guild availability list is tenant-scoped', (await av.listGuildAvailability(db, 'beta')).length, 0);
+  eq('availability is tenant-scoped', await av.getMemberAvailability(db, betaId, U1), null);
+  eq('guild availability list', (await av.listGuildAvailability(db, alphaId)).map((r) => r.user_id), [U1]);
+  eq('guild availability list is tenant-scoped', (await av.listGuildAvailability(db, betaId)).length, 0);
 
-  const p = await pl.insertTimePoll(db, { tenant: 'alpha', title: '开荒时间', status: 'open', created_by: 'U1', created_at: 1760000000, closed_at: null });
+  const p = await pl.insertTimePoll(db, { tenant: alphaId, title: '开荒时间', status: 'open', created_by_user_id: U1, created_at: 1760000000, closed_at: null });
   const pid = p.last_row_id;
   const po1 = await pl.insertTimePollOption(db, { pollId: pid, startsAtUtc: 1760100000 });
   const po2 = await pl.insertTimePollOption(db, { pollId: pid, startsAtUtc: 1760200000 });
   eq('poll options roundtrip sorted', (await pl.listTimePollOptions(db, pid)).map((o) => o.starts_at_utc), [1760100000, 1760200000]);
-  eq('poll list is tenant-scoped', (await pl.listTimePolls(db, 'beta')).length, 0);
-  await pl.replaceTimePollVotes(db, { pollId: pid, discordId: 'U2', displayName: '乙', optionIds: [po1.last_row_id, po2.last_row_id] });
+  eq('poll list is tenant-scoped', (await pl.listTimePolls(db, betaId)).length, 0);
+  await pl.replaceTimePollVotes(db, { pollId: pid, userId: U2, displayName: '乙', optionIds: [po1.last_row_id, po2.last_row_id] });
   eq('multi-select votes stored', (await pl.listTimePollVotes(db, pid)).map((v) => v.option_id), [po1.last_row_id, po2.last_row_id]);
-  await pl.replaceTimePollVotes(db, { pollId: pid, discordId: 'U2', displayName: '乙', optionIds: [po2.last_row_id] });
+  await pl.replaceTimePollVotes(db, { pollId: pid, userId: U2, displayName: '乙', optionIds: [po2.last_row_id] });
   eq('re-vote replaces the whole set', (await pl.listTimePollVotes(db, pid)).map((v) => v.option_id), [po2.last_row_id]);
   let dupVoteThrew = false;
   try {
-    await db.prepare('INSERT INTO time_poll_votes (poll_id, option_id, discord_id, display_name) VALUES (?, ?, ?, ?)').bind(pid, po2.last_row_id, 'U2', '乙').run();
+    await db.prepare('INSERT INTO time_poll_votes (poll_id, option_id, user_id, display_name) VALUES (?, ?, ?, ?)').bind(pid, po2.last_row_id, U2, '乙').run();
   } catch { dupVoteThrew = true; }
   check('duplicate vote for one option is rejected by the schema', dupVoteThrew);
   await pl.closeTimePoll(db, pid, 1760300000);
@@ -1434,7 +1594,7 @@ if (want('schedule')) {
 
   // Custom fields + answers against a real event row (FK target).
   const evRepo = await import('../src/domains/groupings/events.ts');
-  const evIns = await evRepo.insertEvent(db, { tenant: 'alpha', title: '字段车', type: 'activity', starts_at_utc: 1760400000, max_slots: 10, status: 'open', origin: 'member', creator_discord_id: 'U1' });
+  const evIns = await evRepo.insertEvent(db, { tenant: alphaId, title: '字段车', type: 'activity', starts_at_utc: 1760400000, max_slots: 10, status: 'open', origin: 'member', creator_user_id: U1 });
   const evId = evIns.last_row_id;
   await cf.replaceCustomFields(db, 'event', evId, [
     { label: '联系方式', fieldType: 'text', options: [], required: true },
@@ -1461,59 +1621,71 @@ if (want('recruit')) {
   const rec = await import('../src/domains/guilds/recruit.ts');
   const sg = await import('../src/domains/groupings/signups.ts');
   const ev = await import('../src/domains/groupings/events.ts');
+  const tnRepo = await import('../src/domains/guilds/tenants.ts');
+  const usersRepo = await import('../src/domains/identity/users.ts');
+  const tenantIdOf = async (slug) => (await tnRepo.getTenantRow(db, slug))?.id
+    ?? (await tnRepo.insertTenant(db, { slug, guildName: slug, passwordHash: 'h', announcement: '' }));
+  const alphaId = await tenantIdOf('alpha');
+  const betaId = await tenantIdOf('beta');
+  for (const did of ['U9', 'M1', 'UA']) {
+    await usersRepo.upsertUserOnLogin(db, { discordId: did, username: did, avatar: '', guildsJson: '[]', checkedAtSec: 1 });
+  }
+  const U9 = await usersRepo.getUserIdByDiscordId(db, 'U9');
+  const M1 = await usersRepo.getUserIdByDiscordId(db, 'M1');
+  const UA = await usersRepo.getUserIdByDiscordId(db, 'UA');
 
-  const a1 = await rec.insertApplication(db, { tenant: 'alpha', discordId: 'U9', applicantName: '新人甲', message: '想入业', createdAt: 1760000000 });
+  const a1 = await rec.insertApplication(db, { tenant: alphaId, userId: U9, applicantName: '新人甲', message: '想入业', createdAt: 1760000000 });
   check('insertApplication returns a row id', a1 > 0, String(a1));
-  eq('pending read roundtrip', (await rec.getPendingApplication(db, 'alpha', 'U9'))?.id, a1);
-  eq('pending read is tenant-scoped', await rec.getPendingApplication(db, 'beta', 'U9'), null);
+  eq('pending read roundtrip', (await rec.getPendingApplication(db, alphaId, U9))?.id, a1);
+  eq('pending read is tenant-scoped', await rec.getPendingApplication(db, betaId, U9), null);
   let dupThrew = false;
-  try { await rec.insertApplication(db, { tenant: 'alpha', discordId: 'U9', applicantName: '新人甲', message: '再来一次', createdAt: 1760000100 }); }
+  try { await rec.insertApplication(db, { tenant: alphaId, userId: U9, applicantName: '新人甲', message: '再来一次', createdAt: 1760000100 }); }
   catch { dupThrew = true; }
   check('second pending application for the same applicant is rejected by the partial unique index', dupThrew);
 
-  const settled = await rec.reviewApplication(db, a1, 'alpha', { status: 'rejected', reviewedBy: 'UA', reviewedByName: '管理员', reviewedAt: 1760000200 });
+  const settled = await rec.reviewApplication(db, a1, alphaId, { status: 'rejected', reviewedByUserId: UA, reviewedByName: '管理员', reviewedAt: 1760000200 });
   eq('review settles the pending row', settled.changes, 1);
-  const raced = await rec.reviewApplication(db, a1, 'alpha', { status: 'approved', reviewedBy: 'UA', reviewedByName: '管理员', reviewedAt: 1760000300 });
+  const raced = await rec.reviewApplication(db, a1, alphaId, { status: 'approved', reviewedByUserId: UA, reviewedByName: '管理员', reviewedAt: 1760000300 });
   eq('a settled application cannot be re-reviewed (still-pending guard)', raced.changes, 0);
-  eq('latest application shows the first verdict', (await rec.getLatestApplication(db, 'alpha', 'U9'))?.status, 'rejected');
-  const a2 = await rec.insertApplication(db, { tenant: 'alpha', discordId: 'U9', applicantName: '新人甲', message: '再试一次', createdAt: 1760000400 });
+  eq('latest application shows the first verdict', (await rec.getLatestApplication(db, alphaId, U9))?.status, 'rejected');
+  const a2 = await rec.insertApplication(db, { tenant: alphaId, userId: U9, applicantName: '新人甲', message: '再试一次', createdAt: 1760000400 });
   check('rejected applicant may apply again (partial index only covers pending)', a2 > a1, `${a1} -> ${a2}`);
-  eq('application read is tenant-scoped', await rec.getApplicationByTenant(db, a2, 'beta'), null);
-  eq('tenant list newest first', (await rec.listApplicationsByTenant(db, 'alpha')).map((r) => r.id), [a2, a1]);
+  eq('application read is tenant-scoped', await rec.getApplicationByTenant(db, a2, betaId), null);
+  eq('tenant list newest first', (await rec.listApplicationsByTenant(db, alphaId)).map((r) => r.id), [a2, a1]);
 
-  await rec.insertMentor(db, 'alpha', 'M1', 1760000000);
-  await rec.insertMentor(db, 'alpha', 'M1', 1760000100);
-  eq('mentor designation is idempotent', await rec.listMentorIds(db, 'alpha'), ['M1']);
-  const p1 = await rec.insertPairing(db, { tenant: 'alpha', mentorDiscordId: 'M1', mentorName: '导师甲', menteeDiscordId: 'U9', menteeName: '新人甲', createdBy: 'UA', createdAt: 1760000500 });
+  await rec.insertMentor(db, alphaId, M1, 1760000000);
+  await rec.insertMentor(db, alphaId, M1, 1760000100);
+  eq('mentor designation is idempotent', await rec.listMentorIds(db, alphaId), [M1]);
+  const p1 = await rec.insertPairing(db, { tenant: alphaId, mentorUserId: M1, mentorName: '导师甲', menteeUserId: U9, menteeName: '新人甲', createdByUserId: UA, createdAt: 1760000500 });
   check('insertPairing returns a row id', p1 > 0, String(p1));
-  eq('active pairing read for mentee', (await rec.getActivePairingForMentee(db, 'alpha', 'U9'))?.id, p1);
+  eq('active pairing read for mentee', (await rec.getActivePairingForMentee(db, alphaId, U9))?.id, p1);
   let pairDupThrew = false;
-  try { await rec.insertPairing(db, { tenant: 'alpha', mentorDiscordId: 'M1', mentorName: '导师甲', menteeDiscordId: 'U9', menteeName: '新人甲', createdBy: 'UA', createdAt: 1760000600 }); }
+  try { await rec.insertPairing(db, { tenant: alphaId, mentorUserId: M1, mentorName: '导师甲', menteeUserId: U9, menteeName: '新人甲', createdByUserId: UA, createdAt: 1760000600 }); }
   catch { pairDupThrew = true; }
   check('second active pairing for the same mentee is rejected by the partial unique index', pairDupThrew);
-  eq('pairings list is tenant-scoped', await rec.listPairingsByTenant(db, 'beta'), []);
-  eq('pairings-for-user sees both sides', (await rec.listPairingsForUser(db, 'alpha', 'M1')).map((r) => r.id), [p1]);
+  eq('pairings list is tenant-scoped', await rec.listPairingsByTenant(db, betaId), []);
+  eq('pairings-for-user sees both sides', (await rec.listPairingsForUser(db, alphaId, M1)).map((r) => r.id), [p1]);
 
   // F24 derivation against real seats/events: no weapon yet, no completed run yet.
   const av = await import('../src/domains/groupings/availability.ts');
-  const evOpen = await ev.insertEvent(db, { tenant: 'alpha', title: '新人车', type: 'activity', description: '', starts_at: null, starts_at_utc: null, dungeon: '', max_slots: 10, meet_info: '', status: 'open', origin: 'member' });
+  const evOpen = await ev.insertEvent(db, { tenant: alphaId, title: '新人车', type: 'activity', description: '', starts_at: null, starts_at_utc: null, dungeon: '', max_slots: 10, meet_info: '', status: 'open', origin: 'member' });
   await sg.insertSignup(db, { event_id: evOpen.last_row_id, nickname: '新人甲', uid: 'q-u9', role: '输出', weapon: '', discord_id: 'U9' });
-  let facts = await rec.computeNewcomerChecklist(db, 'alpha', 'U9');
+  let facts = await rec.computeNewcomerChecklist(db, alphaId, 'U9', U9);
   eq('checklist: mentor item ticks from the active pairing alone', [facts.profileDone, facts.availabilityDone, facts.mentorDone, facts.firstRunDone, facts.doneCount], [false, false, true, false, 1]);
   await sg.updateSignupWeaponRoleByUid(db, evOpen.last_row_id, 'q-u9', '破竹·樽', '输出');
   await ev.setEventStatus(db, evOpen.last_row_id, 'completed');
-  await av.upsertMemberAvailability(db, { tenant: 'alpha', discordId: 'U9', displayName: '新人甲', slots: [{ weekday: 5, startMinute: 1140, endMinute: 1320 }], updatedAt: 1760000650 });
-  facts = await rec.computeNewcomerChecklist(db, 'alpha', 'U9');
+  await av.upsertMemberAvailability(db, { tenant: alphaId, userId: U9, displayName: '新人甲', slots: [{ weekday: 5, startMinute: 1140, endMinute: 1320 }], updatedAt: 1760000650 });
+  facts = await rec.computeNewcomerChecklist(db, alphaId, 'U9', U9);
   eq('checklist: weapon + completed seat + saved availability tick the other items', [facts.profileDone, facts.availabilityDone, facts.mentorDone, facts.firstRunDone, facts.allDone], [true, true, true, true, true]);
 
-  const ended = await rec.endPairing(db, p1, 'alpha', 1760000700);
+  const ended = await rec.endPairing(db, p1, alphaId, 1760000700);
   eq('endPairing settles the active row', ended.changes, 1);
-  eq('ended pairing no longer ticks the mentor item', (await rec.computeNewcomerChecklist(db, 'alpha', 'U9')).mentorDone, false);
-  const p2 = await rec.insertPairing(db, { tenant: 'alpha', mentorDiscordId: 'M1', mentorName: '导师甲', menteeDiscordId: 'U9', menteeName: '新人甲', createdBy: 'UA', createdAt: 1760000800 });
+  eq('ended pairing no longer ticks the mentor item', (await rec.computeNewcomerChecklist(db, alphaId, 'U9', U9)).mentorDone, false);
+  const p2 = await rec.insertPairing(db, { tenant: alphaId, mentorUserId: M1, mentorName: '导师甲', menteeUserId: U9, menteeName: '新人甲', createdByUserId: UA, createdAt: 1760000800 });
   check('mentee can be re-paired after the previous pairing ended', p2 > p1, `${p1} -> ${p2}`);
-  await rec.deleteMentor(db, 'alpha', 'M1');
-  eq('mentor undesignation removes the pool row', await rec.listMentorIds(db, 'alpha'), []);
-  eq('undesignation never rewrites pairings', (await rec.getActivePairingForMentee(db, 'alpha', 'U9'))?.id, p2);
+  await rec.deleteMentor(db, alphaId, M1);
+  eq('mentor undesignation removes the pool row', await rec.listMentorIds(db, alphaId), []);
+  eq('undesignation never rewrites pairings', (await rec.getActivePairingForMentee(db, alphaId, U9))?.id, p2);
 }
 
 /* ---------------- network: fill market + alliances (P19/P20) ---------------- */
@@ -1522,78 +1694,91 @@ if (want('network')) {
   const net = await import('../src/domains/guilds/network.ts');
   const sg2 = await import('../src/domains/groupings/signups.ts');
   const ev2 = await import('../src/domains/groupings/events.ts');
+  const tnRepo = await import('../src/domains/guilds/tenants.ts');
+  const usersRepo = await import('../src/domains/identity/users.ts');
+  const tenantIdOf = async (slug) => (await tnRepo.getTenantRow(db, slug))?.id
+    ?? (await tnRepo.insertTenant(db, { slug, guildName: slug, passwordHash: 'h', announcement: '' }));
+  const alphaId = await tenantIdOf('alpha');
+  const betaId = await tenantIdOf('beta');
+  for (const did of ['US', 'UL', 'UA', 'UD']) {
+    await usersRepo.upsertUserOnLogin(db, { discordId: did, username: did, avatar: '', guildsJson: '[]', checkedAtSec: 1 });
+  }
+  const US = await usersRepo.getUserIdByDiscordId(db, 'US');
+  const UL = await usersRepo.getUserIdByDiscordId(db, 'UL');
+  const UA = await usersRepo.getUserIdByDiscordId(db, 'UA');
+  const UD = await usersRepo.getUserIdByDiscordId(db, 'UD');
 
-  const o1 = await net.insertFillOffer(db, { discordId: 'US', displayName: '补位甲', homeTenant: 'beta', school: '牵丝·霖', windowsJson: '[{"weekday":5,"startMinute":1140,"endMinute":1380}]', note: '奶', at: 1760000000 });
+  const o1 = await net.insertFillOffer(db, { userId: US, displayName: '补位甲', homeTenant: betaId, school: '牵丝·霖', windowsJson: '[{"weekday":5,"startMinute":1140,"endMinute":1380}]', note: '奶', at: 1760000000 });
   check('insertFillOffer returns a row id', o1 > 0, String(o1));
-  eq('open offer read roundtrip', (await net.getOpenOfferForUser(db, 'US'))?.id, o1);
+  eq('open offer read roundtrip', (await net.getOpenOfferForUser(db, US))?.id, o1);
   let offerDupThrew = false;
-  try { await net.insertFillOffer(db, { discordId: 'US', displayName: '补位甲', homeTenant: 'beta', school: '破竹·樽', windowsJson: '[]', note: '', at: 1760000100 }); }
+  try { await net.insertFillOffer(db, { userId: US, displayName: '补位甲', homeTenant: betaId, school: '破竹·樽', windowsJson: '[]', note: '', at: 1760000100 }); }
   catch { offerDupThrew = true; }
   check('second open offer for the same person is rejected by the partial unique index', offerDupThrew);
   eq('open offers list contains the offer', (await net.listOpenFillOffers(db)).map((r) => r.id), [o1]);
 
-  const evN = await ev2.insertEvent(db, { tenant: 'alpha', title: '缺奶车', type: 'activity', description: '', starts_at: null, starts_at_utc: null, dungeon: '', max_slots: 2, meet_info: '', status: 'open', origin: 'member', creator_discord_id: 'UL' });
+  const evN = await ev2.insertEvent(db, { tenant: alphaId, title: '缺奶车', type: 'activity', description: '', starts_at: null, starts_at_utc: null, dungeon: '', max_slots: 2, meet_info: '', status: 'open', origin: 'member', creator_user_id: UL });
   const evIdN = evN.last_row_id;
-  const rq1 = await net.insertFillRequest(db, { tenant: 'alpha', eventId: evIdN, neededRole: '奶', neededSchool: '', note: '', createdBy: 'UL', createdByName: '车头', at: 1760000200 });
+  const rq1 = await net.insertFillRequest(db, { tenant: alphaId, eventId: evIdN, neededRole: '奶', neededSchool: '', note: '', createdByUserId: UL, createdByName: '车头', at: 1760000200 });
   check('insertFillRequest returns a row id', rq1 > 0, String(rq1));
-  eq('request read is tenant-scoped', await net.getFillRequestByTenant(db, rq1, 'beta'), null);
-  eq('request read roundtrip', (await net.getFillRequestByTenant(db, rq1, 'alpha'))?.status, 'open');
+  eq('request read is tenant-scoped', await net.getFillRequestByTenant(db, rq1, betaId), null);
+  eq('request read roundtrip', (await net.getFillRequestByTenant(db, rq1, alphaId))?.status, 'open');
 
-  const iv1 = await net.insertFillInvite(db, { requestId: rq1, offerId: o1, tenant: 'alpha', eventId: evIdN, fromDiscordId: 'UL', fromName: '车头', toDiscordId: 'US', toName: '补位甲', at: 1760000300 });
+  const iv1 = await net.insertFillInvite(db, { requestId: rq1, offerId: o1, tenant: alphaId, eventId: evIdN, fromUserId: UL, fromName: '车头', toUserId: US, toName: '补位甲', at: 1760000300 });
   check('insertFillInvite returns a row id', iv1 > 0, String(iv1));
   let invDupThrew = false;
-  try { await net.insertFillInvite(db, { requestId: rq1, offerId: o1, tenant: 'alpha', eventId: evIdN, fromDiscordId: 'UL', fromName: '车头', toDiscordId: 'US', toName: '补位甲', at: 1760000400 }); }
+  try { await net.insertFillInvite(db, { requestId: rq1, offerId: o1, tenant: alphaId, eventId: evIdN, fromUserId: UL, fromName: '车头', toUserId: US, toName: '补位甲', at: 1760000400 }); }
   catch { invDupThrew = true; }
   check('second live invite for the same pair is rejected by the partial unique index', invDupThrew);
-  eq('supplier inbox lists the invite', (await net.listInvitesForSupplier(db, 'US')).map((r) => r.id), [iv1]);
+  eq('supplier inbox lists the invite', (await net.listInvitesForSupplier(db, US)).map((r) => r.id), [iv1]);
 
-  const declined = await net.respondFillInvite(db, iv1, 'US', false, 1760000500);
+  const declined = await net.respondFillInvite(db, iv1, US, false, 1760000500);
   eq('decline settles the pending invite', declined.changes, 1);
-  const raced = await net.respondFillInvite(db, iv1, 'US', true, 1760000600);
+  const raced = await net.respondFillInvite(db, iv1, US, true, 1760000600);
   eq('a settled invite cannot be re-answered (still-pending guard)', raced.changes, 0);
-  const iv2 = await net.insertFillInvite(db, { requestId: rq1, offerId: o1, tenant: 'alpha', eventId: evIdN, fromDiscordId: 'UL', fromName: '车头', toDiscordId: 'US', toName: '补位甲', at: 1760000700 });
+  const iv2 = await net.insertFillInvite(db, { requestId: rq1, offerId: o1, tenant: alphaId, eventId: evIdN, fromUserId: UL, fromName: '车头', toUserId: US, toName: '补位甲', at: 1760000700 });
   check('a declined pair can be re-invited (partial index covers live rows only)', iv2 > iv1, `${iv1} -> ${iv2}`);
-  const accepted = await net.respondFillInvite(db, iv2, 'US', true, 1760000800);
+  const accepted = await net.respondFillInvite(db, iv2, US, true, 1760000800);
   eq('accept settles the pending invite', accepted.changes, 1);
   eq('request matches', (await net.markFillRequestMatched(db, rq1, 1760000900)).changes, 1);
   eq('a matched request cannot re-match (still-open guard)', (await net.markFillRequestMatched(db, rq1, 1760001000)).changes, 0);
   eq('request closes from matched', (await net.closeFillRequest(db, rq1, 1760001100)).changes, 1);
   eq('a closed request cannot re-close', (await net.closeFillRequest(db, rq1, 1760001200)).changes, 0);
 
-  const wd = await net.withdrawFillOffer(db, 'US', 1760001300);
+  const wd = await net.withdrawFillOffer(db, US, 1760001300);
   eq('withdraw settles the open offer', wd.changes, 1);
-  eq('withdrawn offer no longer reads as open', await net.getOpenOfferForUser(db, 'US'), null);
-  eq('second withdraw is a no-op', (await net.withdrawFillOffer(db, 'US', 1760001400)).changes, 0);
+  eq('withdrawn offer no longer reads as open', await net.getOpenOfferForUser(db, US), null);
+  eq('second withdraw is a no-op', (await net.withdrawFillOffer(db, US, 1760001400)).changes, 0);
 
   // alliances: canonical pair ordering + state guards
-  const al1 = await net.insertAlliance(db, { fromTenant: 'beta', toTenant: 'alpha', requestedBy: 'UD', requestedByName: '乙管', at: 1760001500 });
+  const al1 = await net.insertAlliance(db, { fromTenant: betaId, toTenant: alphaId, requestedByUserId: UD, requestedByName: '乙管', at: 1760001500 });
   check('insertAlliance returns a row id', al1 > 0, String(al1));
   const alRow = await net.getAllianceById(db, al1);
-  eq('pair stored canonically (low, high)', [alRow?.guild_low, alRow?.guild_high], ['alpha', 'beta']);
-  eq('live relation found from either side', (await net.getLiveAllianceBetween(db, 'beta', 'alpha'))?.id, al1);
-  eq('no active relation while pending', await net.getActiveAllianceBetween(db, 'alpha', 'beta'), null);
+  eq('pair stored canonically (low, high)', [alRow?.guild_low, alRow?.guild_high], [Math.min(alphaId, betaId), Math.max(alphaId, betaId)]);
+  eq('live relation found from either side', (await net.getLiveAllianceBetween(db, betaId, alphaId))?.id, al1);
+  eq('no active relation while pending', await net.getActiveAllianceBetween(db, alphaId, betaId), null);
   let alDupThrew = false;
-  try { await net.insertAlliance(db, { fromTenant: 'alpha', toTenant: 'beta', requestedBy: 'UA', requestedByName: '甲管', at: 1760001600 }); }
+  try { await net.insertAlliance(db, { fromTenant: alphaId, toTenant: betaId, requestedByUserId: UA, requestedByName: '甲管', at: 1760001600 }); }
   catch { alDupThrew = true; }
   check('second live relation for the pair is rejected by the partial unique index', alDupThrew);
-  eq('requester cannot respond to own invite', (await net.respondAlliance(db, al1, 'beta', true, 1760001700)).changes, 0);
-  eq('target side accepts', (await net.respondAlliance(db, al1, 'alpha', true, 1760001800)).changes, 1);
-  eq('active relation reads from either side', (await net.getActiveAllianceBetween(db, 'beta', 'alpha'))?.id, al1);
-  eq('ally slug list for alpha', await net.listActiveAllySlugs(db, 'alpha'), ['beta']);
+  eq('requester cannot respond to own invite', (await net.respondAlliance(db, al1, betaId, true, 1760001700)).changes, 0);
+  eq('target side accepts', (await net.respondAlliance(db, al1, alphaId, true, 1760001800)).changes, 1);
+  eq('active relation reads from either side', (await net.getActiveAllianceBetween(db, betaId, alphaId))?.id, al1);
+  eq('ally id list for alpha', await net.listActiveAllyIds(db, alphaId), [betaId]);
 
   // ally-shared events + visitor seats on the real seat model
-  await ev2.updateEventFields(db, evIdN, 'alpha', { ally_visible: 1, visitor_slots: 1 });
-  eq('ally-shared events list finds the flagged car', (await ev2.listAllySharedEvents(db, ['alpha'])).map((r) => r.id), [evIdN]);
+  await ev2.updateEventFields(db, evIdN, alphaId, { ally_visible: 1, visitor_slots: 1 });
+  eq('ally-shared events list finds the flagged car', (await ev2.listAllySharedEvents(db, [alphaId])).map((r) => r.id), [evIdN]);
   eq('ally-shared events list is empty without allies', await ev2.listAllySharedEvents(db, []), []);
   const seatOutcome = await sg2.insertSignupWithCapacityGuard(db, { event_id: evIdN, nickname: '乙员', uid: 'q-visitor', role: '输出', weapon: '破竹·樽', discord_id: 'UM', is_visitor: 1 });
   eq('visitor seat inserts through the capacity guard', seatOutcome.outcome, 'inserted');
   eq('visitor seats counted', await sg2.countVisitorSeatsByEvent(db, evIdN), 1);
   eq('seat found by event + discord', (await sg2.findSeatByEventAndDiscord(db, evIdN, 'UM'))?.uid, 'q-visitor');
 
-  eq('either side dissolves', (await net.endAlliance(db, al1, 'beta', 1760001900)).changes, 1);
-  eq('dissolved alliance no longer reads active', await net.getActiveAllianceBetween(db, 'alpha', 'beta'), null);
-  eq('double dissolve is a no-op', (await net.endAlliance(db, al1, 'beta', 1760002000)).changes, 0);
-  const al2 = await net.insertAlliance(db, { fromTenant: 'alpha', toTenant: 'beta', requestedBy: 'UA', requestedByName: '甲管', at: 1760002100 });
+  eq('either side dissolves', (await net.endAlliance(db, al1, betaId, 1760001900)).changes, 1);
+  eq('dissolved alliance no longer reads active', await net.getActiveAllianceBetween(db, alphaId, betaId), null);
+  eq('double dissolve is a no-op', (await net.endAlliance(db, al1, betaId, 1760002000)).changes, 0);
+  const al2 = await net.insertAlliance(db, { fromTenant: alphaId, toTenant: betaId, requestedByUserId: UA, requestedByName: '甲管', at: 1760002100 });
   check('an ended pair can be re-invited as a new row', al2 > al1, `${al1} -> ${al2}`);
 }
 
@@ -1602,65 +1787,77 @@ if (want('governance')) {
   console.log('== governance repositories on real D1 ==');
   const gov = await import('../src/domains/guilds/governance.ts');
   const aud = await import('../src/domains/guilds/guild-audit.ts');
+  const tnRepo = await import('../src/domains/guilds/tenants.ts');
+  const usersRepo = await import('../src/domains/identity/users.ts');
+  const tenantIdOf = async (slug) => (await tnRepo.getTenantRow(db, slug))?.id
+    ?? (await tnRepo.insertTenant(db, { slug, guildName: slug, passwordHash: 'h', announcement: '' }));
+  const alphaId = await tenantIdOf('alpha');
+  const betaId = await tenantIdOf('beta');
+  for (const did of ['U1', 'U2', 'A1']) {
+    await usersRepo.upsertUserOnLogin(db, { discordId: did, username: did, avatar: '', guildsJson: '[]', checkedAtSec: 1 });
+  }
+  const U1 = await usersRepo.getUserIdByDiscordId(db, 'U1');
+  const U2 = await usersRepo.getUserIdByDiscordId(db, 'U2');
+  const A1 = await usersRepo.getUserIdByDiscordId(db, 'A1');
 
-  eq('ungranted member has no grant row', await gov.getOfficerGrant(db, 'alpha', 'U1'), null);
+  eq('ungranted member has no grant row', await gov.getOfficerGrant(db, alphaId, U1), null);
   await gov.upsertOfficerGrant(db, {
-    tenant: 'alpha', discordId: 'U1', capabilities: ['events', 'recruit'],
+    tenant: alphaId, userId: U1, capabilities: ['events', 'recruit'],
     grantedBy: 'A1', grantedByName: '管理员', at: 1760000000,
   });
-  eq('grant roundtrip', (await gov.getOfficerGrant(db, 'alpha', 'U1'))?.capabilities, 'events,recruit');
-  eq('grant read is tenant-scoped', await gov.getOfficerGrant(db, 'beta', 'U1'), null);
+  eq('grant roundtrip', (await gov.getOfficerGrant(db, alphaId, U1))?.capabilities, 'events,recruit');
+  eq('grant read is tenant-scoped', await gov.getOfficerGrant(db, betaId, U1), null);
   await gov.upsertOfficerGrant(db, {
-    tenant: 'alpha', discordId: 'U1', capabilities: ['stats'],
+    tenant: alphaId, userId: U1, capabilities: ['stats'],
     grantedBy: 'A1', grantedByName: '管理员', at: 1760001000,
   });
-  eq('grant upsert replaces the set', (await gov.getOfficerGrant(db, 'alpha', 'U1'))?.capabilities, 'stats');
-  eq('grant upsert keeps created_at', (await gov.getOfficerGrant(db, 'alpha', 'U1'))?.created_at, 1760000000);
-  eq('grants list per tenant', (await gov.listOfficerGrants(db, 'alpha')).length, 1);
+  eq('grant upsert replaces the set', (await gov.getOfficerGrant(db, alphaId, U1))?.capabilities, 'stats');
+  eq('grant upsert keeps created_at', (await gov.getOfficerGrant(db, alphaId, U1))?.created_at, 1760000000);
+  eq('grants list per tenant', (await gov.listOfficerGrants(db, alphaId)).length, 1);
   eq('parseCapabilities drops unknown keys', gov.parseCapabilities('events,bogus, stats ', ['events', 'stats']), ['events', 'stats']);
   await gov.upsertOfficerGrant(db, {
-    tenant: 'alpha', discordId: 'U1', capabilities: [],
+    tenant: alphaId, userId: U1, capabilities: [],
     grantedBy: 'A1', grantedByName: '管理员', at: 1760002000,
   });
-  eq('granting an empty set deletes the row', await gov.getOfficerGrant(db, 'alpha', 'U1'), null);
+  eq('granting an empty set deletes the row', await gov.getOfficerGrant(db, alphaId, U1), null);
   await gov.upsertOfficerGrant(db, {
-    tenant: 'alpha', discordId: 'U2', capabilities: ['officer'],
+    tenant: alphaId, userId: U2, capabilities: ['officer'],
     grantedBy: 'A1', grantedByName: '管理员', at: 1760000000,
   });
-  eq('deleteOfficerGrant is tenant-scoped', await gov.deleteOfficerGrant(db, 'beta', 'U2'), false);
-  eq('deleteOfficerGrant removes the row', await gov.deleteOfficerGrant(db, 'alpha', 'U2'), true);
+  eq('deleteOfficerGrant is tenant-scoped', await gov.deleteOfficerGrant(db, betaId, U2), false);
+  eq('deleteOfficerGrant removes the row', await gov.deleteOfficerGrant(db, alphaId, U2), true);
 
   const pid = await gov.insertOfficerPost(db, {
-    tenant: 'alpha', body: '本周值班：甲',
-    authorDiscordId: 'A1', authorName: '管理员', createdAt: 1760000000,
+    tenant: alphaId, body: '本周值班：甲',
+    authorUserId: A1, authorName: '管理员', createdAt: 1760000000,
   });
   check('insertOfficerPost returns a row id', pid > 0, String(pid));
-  eq('board post roundtrip', (await gov.getOfficerPost(db, 'alpha', pid))?.body, '本周值班：甲');
-  eq('board post read is tenant-scoped', await gov.getOfficerPost(db, 'beta', pid), null);
-  eq('board list per tenant', (await gov.listOfficerPosts(db, 'alpha')).length, 1);
-  eq('deleteOfficerPost is tenant-scoped', await gov.deleteOfficerPost(db, 'beta', pid), false);
-  eq('deleteOfficerPost removes the row', await gov.deleteOfficerPost(db, 'alpha', pid), true);
+  eq('board post roundtrip', (await gov.getOfficerPost(db, alphaId, pid))?.body, '本周值班：甲');
+  eq('board post read is tenant-scoped', await gov.getOfficerPost(db, betaId, pid), null);
+  eq('board list per tenant', (await gov.listOfficerPosts(db, alphaId)).length, 1);
+  eq('deleteOfficerPost is tenant-scoped', await gov.deleteOfficerPost(db, betaId, pid), false);
+  eq('deleteOfficerPost removes the row', await gov.deleteOfficerPost(db, alphaId, pid), true);
 
   await aud.recordGuildAudit(db, {
-    tenant: 'alpha', actor: { discordId: 'A1', name: '管理员' },
+    tenant: alphaId, actor: { discordId: 'A1', name: '管理员' },
     action: 'event.create', targetType: 'event', targetId: 42, targetLabel: '周六双十人',
     at: 1760000000,
   });
   await aud.recordGuildAudit(db, {
-    tenant: 'alpha', actor: { discordId: 'U1', name: '军官' },
+    tenant: alphaId, actor: { discordId: 'U1', name: '军官' },
     action: 'note.add', targetType: 'member', targetId: 'U9', targetLabel: '成员九',
     at: 1760001000,
   });
   await aud.recordGuildAudit(db, {
-    tenant: 'alpha', actor: { discordId: 'A1', name: '管理员' },
+    tenant: alphaId, actor: { discordId: 'A1', name: '管理员' },
     action: 'bogus.action', targetType: 'event', targetId: 1, targetLabel: 'x',
     at: 1760002000,
   });
-  const events = await aud.listGuildAuditEvents(db, 'alpha');
+  const events = await aud.listGuildAuditEvents(db, alphaId);
   eq('audit list is newest first and drops unknown actions', events.map((e) => e.action), ['note.add', 'event.create']);
-  eq('audit rows are tenant-scoped', (await aud.listGuildAuditEvents(db, 'beta')).length, 0);
-  eq('audit count per tenant', await aud.countGuildAuditEvents(db, 'alpha'), 2);
-  eq('audit paging offset', (await aud.listGuildAuditEvents(db, 'alpha', 1, 1)).map((e) => e.action), ['event.create']);
+  eq('audit rows are tenant-scoped', (await aud.listGuildAuditEvents(db, betaId)).length, 0);
+  eq('audit count per tenant', await aud.countGuildAuditEvents(db, alphaId), 2);
+  eq('audit paging offset', (await aud.listGuildAuditEvents(db, alphaId, 1, 1)).map((e) => e.action), ['event.create']);
   eq('audit actor snapshot persisted', events[1]?.actor_name, '管理员');
 }
 

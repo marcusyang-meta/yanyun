@@ -128,7 +128,7 @@ export async function composeGroupingSchedulingAdvice(ctx: Context, ev: any): Pr
   // The record's creator is stored as a user ID; the surface keeps
   // the pre-reform wire value (the saver's Discord ID, or 'omni'
   // for the omniscient saver, which stores the 0 sentinel).
-  const creatorDiscord = await listDiscordIdsByUserIds(db, records.map((r: any) => Number(r.created_by_user_id))).catch(() => new Map<number, string>());
+  const creatorDiscord = await listDiscordIdsByUserIds(db, records.map((r) => Number(r.created_by_user_id))).catch(() => new Map<number, string>());
   (shell as any).data = {
     draft, substitutes, rotation,
     rotationRecords: records.map((r: any) => ({
