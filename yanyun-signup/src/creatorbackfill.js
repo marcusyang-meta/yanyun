@@ -1,5 +1,5 @@
 /* ---------- Backfill creator for legacy cars with none (user ruling, 2026-10-25) ----------
- * Background: member cars created before creator_discord_id was stored
+ * Background: member cars created before the creator was stored
  * have no creator record, so the creator gate for edit/complete/disband
  * lets nobody through. The user's ruling: ownership follows seat 1.
  * For origin='member' cars with no recorded creator, take the occupant
@@ -9,13 +9,21 @@
  *   guild's own roster (guild_members; display name = nick, falling
  *   back to global_name).
  * Cross-guild/global matches do not qualify and are not used. Only a
- * unique resolution stamps creator_discord_id; empty seat / no match /
+ * unique resolution stamps the creator; empty seat / no match /
  * ambiguous duplicates are skipped and audited (creator_backfill_log).
  * Cars that already have a creator are never touched.
  *
+ * ID-reform note (0036): resolution still happens in Discord space
+ * (seat stamps and roster rows carry Discord IDs), but the stamp
+ * lands on events.creator_user_id — the resolved Discord ID is
+ * converted through the users row (ensureUserIdByDiscordId, the
+ * runtime mirror of the migration's orphan minting). "No creator"
+ * is creator_user_id NULL/0; the settings flag lives at the global
+ * scope, tenant 0.
+ *
  * One-off lazy migration: guarded by the global settings flag
- * creator_backfill_v1 and idempotent (the UPDATE is conditional on the
- * creator still being empty; once the flag is set it never runs again).
+ * creator_backfill_v1 and idempotent (the UPDATE is conditional on
+ * the creator still being empty; once the flag is set it never runs again).
  *
  * SAFETY GATE (critical): may only trigger on a production host.
  * Preview (release-yanyun.tbdlab.workers.dev) and production share the
@@ -24,6 +32,8 @@
  * the allowlist (yanyun.app / yanyun.tbdlab.workers.dev) it must not
  * run at all — not even to write the flag. */
 
+import { ensureUserIdByDiscordId } from './domains/identity/users.ts';
+
 const PROD_HOSTS = new Set(['yanyun.app', 'yanyun.tbdlab.workers.dev']);
 const FLAG_KEY = 'creator_backfill_v1';
 // One attempt per DB per isolate (WeakSet keyed by DB object; tests
@@ -31,14 +41,14 @@ const FLAG_KEY = 'creator_backfill_v1';
 const attemptedDbs = new WeakSet();
 
 async function getGlobalFlag(db) {
-  const row = await db.prepare("SELECT value FROM settings WHERE tenant = '' AND key = ?")
+  const row = await db.prepare('SELECT value FROM settings WHERE tenant = 0 AND key = ?')
     .bind(FLAG_KEY).first().catch(() => null);
   return row ? String(row.value || '') : '';
 }
 
 async function setGlobalFlag(db) {
   await db.prepare(
-    "INSERT INTO settings(tenant, key, value) VALUES('', ?, '1') ON CONFLICT(tenant, key) DO UPDATE SET value = excluded.value"
+    "INSERT INTO settings(tenant, key, value) VALUES(0, ?, '1') ON CONFLICT(tenant, key) DO UPDATE SET value = excluded.value"
   ).bind(FLAG_KEY).run();
 }
 
@@ -50,7 +60,7 @@ export async function runCreatorBackfillOnce(db) {
   const now = Math.floor(Date.now() / 1000);
   const { results: events } = await db.prepare(
     `SELECT id, tenant FROM events
-     WHERE origin = 'member' AND (creator_discord_id IS NULL OR creator_discord_id = '')
+     WHERE origin = 'member' AND (creator_user_id IS NULL OR creator_user_id = 0)
      ORDER BY id ASC`
   ).all();
   // Fetch each tenant's roster once; index by display name:
@@ -85,7 +95,7 @@ export async function runCreatorBackfillOnce(db) {
       outcome = 'stamped'; reason = 'seat-stamp';
     } else {
       const nick = String(seat.nickname || '').trim();
-      const hits = nick ? (await rosterOf(String(ev.tenant))).get(nick) : undefined;
+      const hits = nick ? (await rosterOf(ev.tenant)).get(nick) : undefined;
       if (hits && hits.size === 1) {
         resolved = [...hits][0];
         outcome = 'stamped'; reason = 'roster-unique';
@@ -97,10 +107,11 @@ export async function runCreatorBackfillOnce(db) {
     }
     if (outcome === 'stamped' && resolved) {
       // Guarded update: if another writer stamped it concurrently, do not overwrite.
+      const creatorUserId = await ensureUserIdByDiscordId(db, resolved);
       const r = await db.prepare(
-        `UPDATE events SET creator_discord_id = ?
-         WHERE id = ? AND (creator_discord_id IS NULL OR creator_discord_id = '')`
-      ).bind(resolved, ev.id).run();
+        `UPDATE events SET creator_user_id = ?
+         WHERE id = ? AND (creator_user_id IS NULL OR creator_user_id = 0)`
+      ).bind(creatorUserId, ev.id).run();
       if (!r.meta || !r.meta.changes) { outcome = 'skipped'; reason = 'raced'; resolved = null; }
     }
     if (outcome === 'stamped') stamped++; else skipped++;
@@ -108,7 +119,7 @@ export async function runCreatorBackfillOnce(db) {
       `INSERT INTO creator_backfill_log
          (event_id, tenant, seat_nickname, resolved_discord_id, outcome, reason, created_at)
        VALUES (?, ?, ?, ?, ?, ?, ?)`
-    ).bind(ev.id, String(ev.tenant || ''), seat ? String(seat.nickname || '') : '',
+    ).bind(ev.id, ev.tenant ?? 0, seat ? String(seat.nickname || '') : '',
       resolved, outcome, reason, now).run().catch(() => {});
   }
   await setGlobalFlag(db);
