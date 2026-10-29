@@ -1417,13 +1417,13 @@ export const GearLibraryAddItemMutation = graphql`
 `;
 
 export const GearLibraryUpdateItemMutation = graphql`
-  mutation documentsGearLibraryUpdateItemMutation($id: Int!, $input: GearItemCreateInput!) {
+  mutation documentsGearLibraryUpdateItemMutation($id: ID!, $input: GearItemCreateInput!) {
     updateGearItem(id: $id, input: $input) { ok error item { id slot name lines { key val } dingyin { name val } schools warnings } }
   }
 `;
 
 export const GearLibraryDeleteItemMutation = graphql`
-  mutation documentsGearLibraryDeleteItemMutation($id: Int!) {
+  mutation documentsGearLibraryDeleteItemMutation($id: ID!) {
     deleteGearItem(id: $id) { ok error }
   }
 `;
@@ -1456,19 +1456,19 @@ export const GearLibrarySaveBuildMutation = graphql`
 `;
 
 export const GearLibraryDeleteBuildMutation = graphql`
-  mutation documentsGearLibraryDeleteBuildMutation($id: Int!) {
+  mutation documentsGearLibraryDeleteBuildMutation($id: ID!) {
     deleteGearBuild(id: $id) { ok error }
   }
 `;
 
 export const GearLibraryShareBuildMutation = graphql`
-  mutation documentsGearLibraryShareBuildMutation($id: Int!) {
+  mutation documentsGearLibraryShareBuildMutation($id: ID!) {
     shareGearBuild(id: $id) { ok error shareUrl }
   }
 `;
 
 export const GearLibraryRevokeShareMutation = graphql`
-  mutation documentsGearLibraryRevokeShareMutation($id: Int!) {
+  mutation documentsGearLibraryRevokeShareMutation($id: ID!) {
     revokeGearBuildShare(id: $id) { ok error }
   }
 `;

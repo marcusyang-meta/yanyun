@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<9d5039a7ad8ebbf320cb1bd3083f052f>>
+ * @generated SignedSource<<66818816fb7ec4de9df3b3de0c0f402e>>
  * @lightSyntaxTransform
  */
 
@@ -203,9 +203,9 @@ export type GearLibraryQuery$data = {
     readonly extraCrit: number;
     readonly extraInt: number;
     readonly gradDingyinOn: boolean;
-    readonly id: number;
+    readonly id: string;
     readonly loadout: ReadonlyArray<{
-      readonly gearId: number;
+      readonly gearId: string;
       readonly slot: string;
     }>;
     readonly name: string;
@@ -230,7 +230,7 @@ export type GearLibraryQuery$data = {
       readonly name: string;
       readonly val: number;
     } | null | undefined;
-    readonly id: number;
+    readonly id: string;
     readonly lines: ReadonlyArray<{
       readonly key: string;
       readonly val: number;

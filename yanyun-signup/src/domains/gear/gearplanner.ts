@@ -254,7 +254,7 @@ export function gpSanitizeGearData(raw: any) {
   }
   return {
     gear: {
-      id: (raw && typeof raw.id === 'number') ? raw.id : null,
+      id: (raw && raw.id != null && isFinite(Number(raw.id))) ? Math.floor(Number(raw.id)) : null,
       slot: gslot, name: raw && raw.name != null ? String(raw.name) : '',
       lines, dingyin: raw ? gpSanitizeDingyin(raw.dingyin, gslot) : null,
       schools, warnings,
@@ -268,7 +268,7 @@ export function gpNormalizeGearList(rawList: any) {
   (Array.isArray(rawList) ? rawList : []).forEach((raw: any) => {
     if (!raw || gpGearSlotOf(raw.slot) == null || !Array.isArray(raw.lines)) return;
     const g = gpSanitizeGearData(raw).gear;
-    const oldId = (typeof raw.id === 'number' && isFinite(raw.id)) ? Math.floor(raw.id) : null;
+    const oldId = (raw.id != null && isFinite(Number(raw.id))) ? Math.floor(Number(raw.id)) : null;
     let assigned: any = null;
     if (oldId != null && oldId > 0 && !seen[oldId]) assigned = oldId;
     else { assigned = usedMax + 1; while (seen[assigned]) assigned++; }

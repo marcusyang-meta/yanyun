@@ -603,7 +603,7 @@ export const gearResolvers = {
         dingyin: g.dingyin || null, schools: g.schools || [],
       }).gear);
       const loadout: Record<string, any> = {};
-      (input.loadout || []).forEach((e: any) => { loadout[e.slot] = e.gearId; });
+      (input.loadout || []).forEach((e: any) => { loadout[e.slot] = Number(e.gearId); });
       const baseValues: Record<string, any> = {};
       (input.baseValues || []).forEach((v: any) => { baseValues[v.key] = v.val; });
       const sim: Record<string, any> = {};
@@ -688,12 +688,13 @@ export const gearResolvers = {
       return { ok: true, item: saved, error: null, errorCode: null };
     },
 
-    updateGearItem: async (_: any, { id, input }: any, ctx: Context) => {
+    updateGearItem: async (_: any, { id: idArg, input }: any, ctx: Context) => {
       if (!ctx.user) return { ok: false, item: null, error: errText(ctx, 'loginRequired'), errorCode: 'loginRequired' };
       if (!rateLimit('mut:gearitem:' + getClientIp(ctx.request), 60)) {
         return { ok: false, item: null, error: errText(ctx, 'rateLimited'), errorCode: 'rateLimited' };
       }
       const db = ctx.env.DB, did = ctx.user.userId;
+      const id = Number(idArg);
       let schools = input.schools;
       if (schools == null) {
         const mine = await listGearItems(db, did);
@@ -712,7 +713,7 @@ export const gearResolvers = {
 
     deleteGearItem: async (_: any, { id }: any, ctx: Context) => {
       if (!ctx.user) return { ok: false, error: errText(ctx, 'loginRequired'), errorCode: 'loginRequired' };
-      const done = await deleteGearItemRow(ctx.env.DB, ctx.user.userId, id);
+      const done = await deleteGearItemRow(ctx.env.DB, ctx.user.userId, Number(id));
       if (!done) return { ok: false, error: errText(ctx, 'gearNotFound'), errorCode: 'gearNotFound' };
       return { ok: true, error: null, errorCode: null };
     },
@@ -778,7 +779,7 @@ export const gearResolvers = {
       const items = await listGearItems(db, did);
       const owned = new Set(items.map((g: any) => g.id));
       const lo: Record<string, any> = {};
-      (input.loadout || []).forEach((e: any) => { if (owned.has(e.gearId)) lo[e.slot] = e.gearId; });
+      (input.loadout || []).forEach((e: any) => { if (owned.has(Number(e.gearId))) lo[e.slot] = Number(e.gearId); });
       if (!Object.keys(lo).length) {
         return { ok: false, build: null, error: errText(ctx, 'gearEmptyBuild'), errorCode: 'gearEmptyBuild' };
       }
@@ -807,11 +808,11 @@ export const gearResolvers = {
 
     deleteGearBuild: async (_: any, { id }: any, ctx: Context) => {
       if (!ctx.user) return { ok: false, error: errText(ctx, 'loginRequired'), errorCode: 'loginRequired' };
-      const done = await deleteGearBuildRow(ctx.env.DB, ctx.user.userId, id);
+      const done = await deleteGearBuildRow(ctx.env.DB, ctx.user.userId, Number(id));
       if (!done) return { ok: false, error: errText(ctx, 'gearNotFound'), errorCode: 'gearNotFound' };
       // A deleted build leaves no live alias behind (resolve would 404
       // anyway; dropping the row now frees the build_id unique slot).
-      await revokeBuildShare(ctx.env.DB, ctx.user.userId, id).catch(() => false);
+      await revokeBuildShare(ctx.env.DB, ctx.user.userId, Number(id)).catch(() => false);
       return { ok: true, error: null, errorCode: null };
     },
 
@@ -821,7 +822,7 @@ export const gearResolvers = {
       if (!rateLimit('mut:gearshare:' + getClientIp(ctx.request), 30)) {
         return { ok: false, shareUrl: null, error: errText(ctx, 'rateLimited'), errorCode: 'rateLimited' };
       }
-      const link = await shareGearBuildSvc(ctx.env.DB, ctx.user.userId, id);
+      const link = await shareGearBuildSvc(ctx.env.DB, ctx.user.userId, Number(id));
       if (!link) return { ok: false, shareUrl: null, error: errText(ctx, 'gearNotFound'), errorCode: 'gearNotFound' };
       return { ok: true, shareUrl: buildShareUrl(link.code), error: null, errorCode: null };
     },
@@ -831,7 +832,7 @@ export const gearResolvers = {
       if (!rateLimit('mut:gearshare:' + getClientIp(ctx.request), 30)) {
         return { ok: false, error: errText(ctx, 'rateLimited'), errorCode: 'rateLimited' };
       }
-      const done = await revokeBuildShare(ctx.env.DB, ctx.user.userId, id);
+      const done = await revokeBuildShare(ctx.env.DB, ctx.user.userId, Number(id));
       if (!done) return { ok: false, error: errText(ctx, 'gearNotFound'), errorCode: 'gearNotFound' };
       return { ok: true, error: null, errorCode: null };
     },

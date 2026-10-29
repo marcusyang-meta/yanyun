@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<c41b63d6814beeedd0976dee4fc9e9d6>>
+ * @generated SignedSource<<62b50d91047cfe1314d1a5ef69a20a77>>
  * @lightSyntaxTransform
  */
 
@@ -24,7 +24,7 @@ export type GearDingyinInput = {
   val: number;
 };
 export type GearLoadoutEntryInput = {
-  gearId: number;
+  gearId: string;
   slot: string;
 };
 export type GearLibraryImportMutation$variables = {
@@ -36,7 +36,7 @@ export type GearLibraryImportMutation$variables = {
 export type GearLibraryImportMutation$data = {
   readonly importGearItems: {
     readonly autoSelect: ReadonlyArray<{
-      readonly gearId: number;
+      readonly gearId: string;
       readonly slot: string;
     }>;
     readonly error: string | null | undefined;
@@ -45,7 +45,7 @@ export type GearLibraryImportMutation$data = {
         readonly name: string;
         readonly val: number;
       } | null | undefined;
-      readonly id: number;
+      readonly id: string;
       readonly lines: ReadonlyArray<{
         readonly key: string;
         readonly val: number;
