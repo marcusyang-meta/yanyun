@@ -13,11 +13,17 @@
 -- class A Discord-boundary columns (signups.discord_id,
 -- lottery_entries/winners.discord_id, ops recipient lists, the
 -- Discord-synced roster keys) are carried over byte-identical.
--- One documented exception to strict remapping: short_links rows
--- whose car no longer exists (or whose guild slug is gone) are
--- dropped — a disbanded car's alias already resolves to a 404, so
--- no reachable behavior changes (see DROP_UNRESOLVED in the
--- generator).
+-- Unresolvable references follow the lazy-deletion doctrine (see
+-- DROP_UNRESOLVED in the generator): deletion leaves referencing
+-- rows behind as unreaped residue by design, so this pass doubles
+-- as the reaper — rows whose entire meaning was a dead car, guild,
+-- build or parent entity are dropped; rows with independent value
+-- keep the row and land the dead reference on NULL (nullable
+-- columns) or keep the original dedupe-key segment text; class B
+-- identity references resolve for every stored Discord ID via the
+-- orphan users minted below. Only signups/results event_id stay
+-- strict: a miss there proves the one cascade that provably runs
+-- has broken, and aborts the migration.
 -- The _idmig_* tables are dropped at the end; the leading DROPs make
 -- the file re-runnable after a failed attempt.
 DROP TABLE IF EXISTS _idmig_guild;
@@ -145,7 +151,7 @@ INSERT OR IGNORE INTO _idmig_orphans SELECT author_discord_id FROM guild_officer
 -- exist before the keys are rewritten.
 INSERT OR IGNORE INTO _idmig_orphans SELECT substr(dedupe_key, 9 + instr(substr(dedupe_key, 9), ':')) FROM contribution_entries WHERE dedupe_key LIKE 'leading:%';
 INSERT OR IGNORE INTO _idmig_orphans SELECT substr(dedupe_key, 12 + instr(substr(dedupe_key, 12), ':')) FROM contribution_entries WHERE dedupe_key LIKE 'attendance:%';
-INSERT OR IGNORE INTO _idmig_orphans SELECT substr(dedupe_key, 18 + instr(substr(dedupe_key, 18), ':')) FROM contribution_entries WHERE dedupe_key LIKE 'mentoring:pairing:%';
+INSERT OR IGNORE INTO _idmig_orphans SELECT substr(dedupe_key, 19 + instr(substr(dedupe_key, 19), ':')) FROM contribution_entries WHERE dedupe_key LIKE 'mentoring:pairing:%';
 
 -- The platform-admin roster is the one settings payload that stores
 -- identity keys (a JSON array of Discord IDs in the global scope):
@@ -436,7 +442,8 @@ CREATE TABLE events__new (
   visitor_slots INTEGER NOT NULL DEFAULT 0
 );
 INSERT INTO events__new (id, title, type, description, starts_at, meet_info, max_slots, status, created_at, tenant, starts_at_utc, origin, created_by, manage_code, dungeon, creator_user_id, reminder_sent_at, reminder_error, ally_visible, visitor_slots)
-SELECT (SELECT new_id FROM _idmig_map_events WHERE old_key = CAST(o.id AS TEXT)), o.title, o.type, o.description, o.starts_at, o.meet_info, o.max_slots, o.status, o.created_at, CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, o.starts_at_utc, o.origin, o.created_by, o.manage_code, o.dungeon, CASE WHEN o.creator_discord_id IS NULL THEN NULL WHEN o.creator_discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.creator_discord_id) END, o.reminder_sent_at, o.reminder_error, o.ally_visible, o.visitor_slots FROM events o;
+SELECT (SELECT new_id FROM _idmig_map_events WHERE old_key = CAST(o.id AS TEXT)), o.title, o.type, o.description, o.starts_at, o.meet_info, o.max_slots, o.status, o.created_at, CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, o.starts_at_utc, o.origin, o.created_by, o.manage_code, o.dungeon, CASE WHEN o.creator_discord_id IS NULL THEN NULL WHEN o.creator_discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.creator_discord_id) END, o.reminder_sent_at, o.reminder_error, o.ally_visible, o.visitor_slots FROM events o
+WHERE (o.tenant = '' OR (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) IS NOT NULL);
 DROP TABLE events;
 ALTER TABLE events__new RENAME TO events;
 CREATE INDEX idx_events_tenant ON events (tenant, type, status);
@@ -458,7 +465,8 @@ CREATE TABLE grouping_templates__new (
   season_key TEXT NOT NULL DEFAULT ''
 );
 INSERT INTO grouping_templates__new (id, tenant, name, type, title, dungeon, max_slots, start_days_ahead, start_minutes, creator_user_id, created_at, updated_at, season_key)
-SELECT (SELECT new_id FROM _idmig_map_grouping_templates WHERE old_key = CAST(o.id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, o.name, o.type, o.title, o.dungeon, o.max_slots, o.start_days_ahead, o.start_minutes, CASE WHEN o.creator_discord_id IS NULL THEN NULL WHEN o.creator_discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.creator_discord_id) END, o.created_at, o.updated_at, o.season_key FROM grouping_templates o;
+SELECT (SELECT new_id FROM _idmig_map_grouping_templates WHERE old_key = CAST(o.id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, o.name, o.type, o.title, o.dungeon, o.max_slots, o.start_days_ahead, o.start_minutes, CASE WHEN o.creator_discord_id IS NULL THEN NULL WHEN o.creator_discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.creator_discord_id) END, o.created_at, o.updated_at, o.season_key FROM grouping_templates o
+WHERE (o.tenant = '' OR (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) IS NOT NULL);
 DROP TABLE grouping_templates;
 ALTER TABLE grouping_templates__new RENAME TO grouping_templates;
 CREATE INDEX idx_grouping_templates_tenant ON grouping_templates (tenant);
@@ -513,7 +521,8 @@ CREATE TABLE grouping_custom_fields__new (
   sort INTEGER NOT NULL DEFAULT 0
 );
 INSERT INTO grouping_custom_fields__new (id, owner_kind, owner_id, label, field_type, options_json, required, sort)
-SELECT (SELECT new_id FROM _idmig_map_grouping_custom_fields WHERE old_key = CAST(o.id AS TEXT)), o.owner_kind, CASE o.owner_kind WHEN 'event' THEN (SELECT new_id FROM _idmig_map_events WHERE old_key = CAST(o.owner_id AS TEXT)) WHEN 'template' THEN (SELECT new_id FROM _idmig_map_grouping_templates WHERE old_key = CAST(o.owner_id AS TEXT)) ELSE o.owner_id END, o.label, o.field_type, o.options_json, o.required, o.sort FROM grouping_custom_fields o;
+SELECT (SELECT new_id FROM _idmig_map_grouping_custom_fields WHERE old_key = CAST(o.id AS TEXT)), o.owner_kind, CASE o.owner_kind WHEN 'event' THEN (SELECT new_id FROM _idmig_map_events WHERE old_key = CAST(o.owner_id AS TEXT)) WHEN 'template' THEN (SELECT new_id FROM _idmig_map_grouping_templates WHERE old_key = CAST(o.owner_id AS TEXT)) ELSE o.owner_id END, o.label, o.field_type, o.options_json, o.required, o.sort FROM grouping_custom_fields o
+WHERE (CASE o.owner_kind WHEN 'event' THEN (SELECT new_id FROM _idmig_map_events WHERE old_key = CAST(o.owner_id AS TEXT)) WHEN 'template' THEN (SELECT new_id FROM _idmig_map_grouping_templates WHERE old_key = CAST(o.owner_id AS TEXT)) ELSE o.owner_id END) IS NOT NULL;
 DROP TABLE grouping_custom_fields;
 ALTER TABLE grouping_custom_fields__new RENAME TO grouping_custom_fields;
 CREATE INDEX idx_grouping_custom_fields_owner ON grouping_custom_fields (owner_kind, owner_id, sort);
@@ -529,7 +538,8 @@ CREATE TABLE guild_announcements__new (
   created_at INTEGER NOT NULL DEFAULT 0
 );
 INSERT INTO guild_announcements__new (id, tenant, kind, title, body, author_user_id, author_name, created_at)
-SELECT (SELECT new_id FROM _idmig_map_guild_announcements WHERE old_key = CAST(o.id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, o.kind, o.title, o.body, CASE WHEN o.author_discord_id IS NULL THEN NULL WHEN o.author_discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.author_discord_id) END, o.author_name, o.created_at FROM guild_announcements o;
+SELECT (SELECT new_id FROM _idmig_map_guild_announcements WHERE old_key = CAST(o.id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, o.kind, o.title, o.body, CASE WHEN o.author_discord_id IS NULL THEN NULL WHEN o.author_discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.author_discord_id) END, o.author_name, o.created_at FROM guild_announcements o
+WHERE (o.tenant = '' OR (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) IS NOT NULL);
 DROP TABLE guild_announcements;
 ALTER TABLE guild_announcements__new RENAME TO guild_announcements;
 CREATE INDEX idx_guild_announcements_tenant_id ON guild_announcements (tenant, id);
@@ -575,7 +585,8 @@ CREATE TABLE guild_applications__new (
   reviewed_at INTEGER
 );
 INSERT INTO guild_applications__new (id, tenant, user_id, applicant_name, message, status, reviewed_by_user_id, reviewed_by_name, created_at, reviewed_at)
-SELECT (SELECT new_id FROM _idmig_map_guild_applications WHERE old_key = CAST(o.id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, CASE WHEN o.discord_id IS NULL THEN NULL WHEN o.discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.discord_id) END, o.applicant_name, o.message, o.status, CASE WHEN o.reviewed_by IS NULL THEN NULL WHEN o.reviewed_by = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.reviewed_by) END, o.reviewed_by_name, o.created_at, o.reviewed_at FROM guild_applications o;
+SELECT (SELECT new_id FROM _idmig_map_guild_applications WHERE old_key = CAST(o.id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, CASE WHEN o.discord_id IS NULL THEN NULL WHEN o.discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.discord_id) END, o.applicant_name, o.message, o.status, CASE WHEN o.reviewed_by IS NULL THEN NULL WHEN o.reviewed_by = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.reviewed_by) END, o.reviewed_by_name, o.created_at, o.reviewed_at FROM guild_applications o
+WHERE (o.tenant = '' OR (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) IS NOT NULL);
 DROP TABLE guild_applications;
 ALTER TABLE guild_applications__new RENAME TO guild_applications;
 CREATE UNIQUE INDEX guild_applications_pending_unique ON guild_applications (tenant, user_id) WHERE status = 'pending';
@@ -594,7 +605,8 @@ CREATE TABLE mentor_pairings__new (
   ended_at INTEGER
 );
 INSERT INTO mentor_pairings__new (id, tenant, mentor_user_id, mentor_name, mentee_user_id, mentee_name, status, created_by_user_id, created_at, ended_at)
-SELECT (SELECT new_id FROM _idmig_map_mentor_pairings WHERE old_key = CAST(o.id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, CASE WHEN o.mentor_discord_id IS NULL THEN NULL WHEN o.mentor_discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.mentor_discord_id) END, o.mentor_name, CASE WHEN o.mentee_discord_id IS NULL THEN NULL WHEN o.mentee_discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.mentee_discord_id) END, o.mentee_name, o.status, CASE WHEN o.created_by IS NULL THEN NULL WHEN o.created_by = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.created_by) END, o.created_at, o.ended_at FROM mentor_pairings o;
+SELECT (SELECT new_id FROM _idmig_map_mentor_pairings WHERE old_key = CAST(o.id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, CASE WHEN o.mentor_discord_id IS NULL THEN NULL WHEN o.mentor_discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.mentor_discord_id) END, o.mentor_name, CASE WHEN o.mentee_discord_id IS NULL THEN NULL WHEN o.mentee_discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.mentee_discord_id) END, o.mentee_name, o.status, CASE WHEN o.created_by IS NULL THEN NULL WHEN o.created_by = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.created_by) END, o.created_at, o.ended_at FROM mentor_pairings o
+WHERE (o.tenant = '' OR (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) IS NOT NULL);
 DROP TABLE mentor_pairings;
 ALTER TABLE mentor_pairings__new RENAME TO mentor_pairings;
 CREATE INDEX idx_mentor_pairings_tenant ON mentor_pairings (tenant, id);
@@ -611,7 +623,8 @@ CREATE TABLE guild_roster_entries__new (
   created_at INTEGER NOT NULL DEFAULT 0
 );
 INSERT INTO guild_roster_entries__new (id, tenant, display_name, name_norm, source, matched_discord_id, created_by_user_id, created_at)
-SELECT (SELECT new_id FROM _idmig_map_guild_roster_entries WHERE old_key = CAST(o.id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, o.display_name, o.name_norm, o.source, o.matched_discord_id, CASE WHEN o.created_by IS NULL THEN NULL WHEN o.created_by = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.created_by) END, o.created_at FROM guild_roster_entries o;
+SELECT (SELECT new_id FROM _idmig_map_guild_roster_entries WHERE old_key = CAST(o.id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, o.display_name, o.name_norm, o.source, o.matched_discord_id, CASE WHEN o.created_by IS NULL THEN NULL WHEN o.created_by = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.created_by) END, o.created_at FROM guild_roster_entries o
+WHERE (o.tenant = '' OR (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) IS NOT NULL);
 DROP TABLE guild_roster_entries;
 ALTER TABLE guild_roster_entries__new RENAME TO guild_roster_entries;
 CREATE UNIQUE INDEX guild_roster_entries_tenant_norm_unique ON guild_roster_entries (tenant, name_norm);
@@ -627,7 +640,8 @@ CREATE TABLE roster_import_batches__new (
   confirmed_at INTEGER
 );
 INSERT INTO roster_import_batches__new (id, tenant, created_by_user_id, status, image_count, created_at, confirmed_at)
-SELECT (SELECT new_id FROM _idmig_map_roster_import_batches WHERE old_key = CAST(o.id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, CASE WHEN o.created_by IS NULL THEN NULL WHEN o.created_by = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.created_by) END, o.status, o.image_count, o.created_at, o.confirmed_at FROM roster_import_batches o;
+SELECT (SELECT new_id FROM _idmig_map_roster_import_batches WHERE old_key = CAST(o.id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, CASE WHEN o.created_by IS NULL THEN NULL WHEN o.created_by = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.created_by) END, o.status, o.image_count, o.created_at, o.confirmed_at FROM roster_import_batches o
+WHERE (o.tenant = '' OR (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) IS NOT NULL);
 DROP TABLE roster_import_batches;
 ALTER TABLE roster_import_batches__new RENAME TO roster_import_batches;
 CREATE INDEX idx_roster_import_batches_tenant ON roster_import_batches (tenant, created_at);
@@ -644,7 +658,9 @@ CREATE TABLE roster_import_rows__new (
   created_entry_id INTEGER
 );
 INSERT INTO roster_import_rows__new (id, batch_id, tenant, raw_name, name_norm, status, matched_discord_id, matched_name, created_entry_id)
-SELECT (SELECT new_id FROM _idmig_map_roster_import_rows WHERE old_key = CAST(o.id AS TEXT)), (SELECT new_id FROM _idmig_map_roster_import_batches WHERE old_key = CAST(o.batch_id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, o.raw_name, o.name_norm, o.status, o.matched_discord_id, o.matched_name, (SELECT new_id FROM _idmig_map_guild_roster_entries WHERE old_key = CAST(o.created_entry_id AS TEXT)) FROM roster_import_rows o;
+SELECT (SELECT new_id FROM _idmig_map_roster_import_rows WHERE old_key = CAST(o.id AS TEXT)), (SELECT new_id FROM _idmig_map_roster_import_batches WHERE old_key = CAST(o.batch_id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, o.raw_name, o.name_norm, o.status, o.matched_discord_id, o.matched_name, (SELECT new_id FROM _idmig_map_guild_roster_entries WHERE old_key = CAST(o.created_entry_id AS TEXT)) FROM roster_import_rows o
+WHERE (o.tenant = '' OR (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) IS NOT NULL)
+  AND ((SELECT new_id FROM _idmig_map_roster_import_batches WHERE old_key = CAST(o.batch_id AS TEXT))) IS NOT NULL;
 DROP TABLE roster_import_rows;
 ALTER TABLE roster_import_rows__new RENAME TO roster_import_rows;
 CREATE INDEX idx_roster_import_rows_batch ON roster_import_rows (batch_id);
@@ -661,7 +677,8 @@ CREATE TABLE guild_member_notes__new (
   updated_at INTEGER NOT NULL DEFAULT 0
 );
 INSERT INTO guild_member_notes__new (id, tenant, member_user_id, body, author_user_id, author_name, created_at, updated_at)
-SELECT (SELECT new_id FROM _idmig_map_guild_member_notes WHERE old_key = CAST(o.id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, CASE WHEN o.member_discord_id IS NULL THEN NULL WHEN o.member_discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.member_discord_id) END, o.body, CASE WHEN o.author_discord_id IS NULL THEN NULL WHEN o.author_discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.author_discord_id) END, o.author_name, o.created_at, o.updated_at FROM guild_member_notes o;
+SELECT (SELECT new_id FROM _idmig_map_guild_member_notes WHERE old_key = CAST(o.id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, CASE WHEN o.member_discord_id IS NULL THEN NULL WHEN o.member_discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.member_discord_id) END, o.body, CASE WHEN o.author_discord_id IS NULL THEN NULL WHEN o.author_discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.author_discord_id) END, o.author_name, o.created_at, o.updated_at FROM guild_member_notes o
+WHERE (o.tenant = '' OR (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) IS NOT NULL);
 DROP TABLE guild_member_notes;
 ALTER TABLE guild_member_notes__new RENAME TO guild_member_notes;
 CREATE INDEX idx_guild_member_notes_tenant_member ON guild_member_notes (tenant, member_user_id, id);
@@ -679,7 +696,8 @@ CREATE TABLE member_season_goals__new (
   updated_at INTEGER NOT NULL DEFAULT 0
 );
 INSERT INTO member_season_goals__new (id, tenant, user_id, member_name, title, note, status, dungeon_id, created_at, updated_at)
-SELECT (SELECT new_id FROM _idmig_map_member_season_goals WHERE old_key = CAST(o.id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, CASE WHEN o.discord_id IS NULL THEN NULL WHEN o.discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.discord_id) END, o.member_name, o.title, o.note, o.status, o.dungeon_id, o.created_at, o.updated_at FROM member_season_goals o;
+SELECT (SELECT new_id FROM _idmig_map_member_season_goals WHERE old_key = CAST(o.id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, CASE WHEN o.discord_id IS NULL THEN NULL WHEN o.discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.discord_id) END, o.member_name, o.title, o.note, o.status, o.dungeon_id, o.created_at, o.updated_at FROM member_season_goals o
+WHERE (o.tenant = '' OR (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) IS NOT NULL);
 DROP TABLE member_season_goals;
 ALTER TABLE member_season_goals__new RENAME TO member_season_goals;
 CREATE INDEX idx_member_season_goals_tenant_id ON member_season_goals (tenant, id);
@@ -699,7 +717,11 @@ CREATE TABLE guild_alliances__new (
   ended_by_tenant INTEGER NOT NULL DEFAULT 0
 );
 INSERT INTO guild_alliances__new (id, guild_low, guild_high, status, requested_by_tenant, requested_by_user_id, requested_by_name, created_at, responded_at, ended_at, ended_by_tenant)
-SELECT (SELECT new_id FROM _idmig_map_guild_alliances WHERE old_key = CAST(o.id AS TEXT)), MIN((SELECT new_id FROM _idmig_guild WHERE old_key = o.guild_low), (SELECT new_id FROM _idmig_guild WHERE old_key = o.guild_high)), MAX((SELECT new_id FROM _idmig_guild WHERE old_key = o.guild_low), (SELECT new_id FROM _idmig_guild WHERE old_key = o.guild_high)), o.status, CASE WHEN o.requested_by_tenant IS NULL THEN NULL WHEN o.requested_by_tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.requested_by_tenant) END, CASE WHEN o.requested_by IS NULL THEN NULL WHEN o.requested_by = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.requested_by) END, o.requested_by_name, o.created_at, o.responded_at, o.ended_at, CASE WHEN o.ended_by_tenant IS NULL THEN NULL WHEN o.ended_by_tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.ended_by_tenant) END FROM guild_alliances o;
+SELECT (SELECT new_id FROM _idmig_map_guild_alliances WHERE old_key = CAST(o.id AS TEXT)), MIN((SELECT new_id FROM _idmig_guild WHERE old_key = o.guild_low), (SELECT new_id FROM _idmig_guild WHERE old_key = o.guild_high)), MAX((SELECT new_id FROM _idmig_guild WHERE old_key = o.guild_low), (SELECT new_id FROM _idmig_guild WHERE old_key = o.guild_high)), o.status, CASE WHEN o.requested_by_tenant IS NULL THEN NULL WHEN o.requested_by_tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.requested_by_tenant) END, CASE WHEN o.requested_by IS NULL THEN NULL WHEN o.requested_by = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.requested_by) END, o.requested_by_name, o.created_at, o.responded_at, o.ended_at, CASE WHEN o.ended_by_tenant IS NULL THEN NULL WHEN o.ended_by_tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.ended_by_tenant) END FROM guild_alliances o
+WHERE (o.requested_by_tenant = '' OR (SELECT new_id FROM _idmig_guild WHERE old_key = o.requested_by_tenant) IS NOT NULL)
+  AND (o.ended_by_tenant = '' OR (SELECT new_id FROM _idmig_guild WHERE old_key = o.ended_by_tenant) IS NOT NULL)
+  AND (MIN((SELECT new_id FROM _idmig_guild WHERE old_key = o.guild_low), (SELECT new_id FROM _idmig_guild WHERE old_key = o.guild_high))) IS NOT NULL
+  AND (MAX((SELECT new_id FROM _idmig_guild WHERE old_key = o.guild_low), (SELECT new_id FROM _idmig_guild WHERE old_key = o.guild_high))) IS NOT NULL;
 DROP TABLE guild_alliances;
 ALTER TABLE guild_alliances__new RENAME TO guild_alliances;
 CREATE UNIQUE INDEX guild_alliances_live_unique ON guild_alliances (guild_low, guild_high) WHERE status IN ('pending', 'active');
@@ -719,7 +741,8 @@ CREATE TABLE fill_offers__new (
   updated_at INTEGER NOT NULL DEFAULT 0
 );
 INSERT INTO fill_offers__new (id, user_id, display_name, home_tenant, school, windows_json, note, status, created_at, updated_at)
-SELECT (SELECT new_id FROM _idmig_map_fill_offers WHERE old_key = CAST(o.id AS TEXT)), CASE WHEN o.discord_id IS NULL THEN NULL WHEN o.discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.discord_id) END, o.display_name, CASE WHEN o.home_tenant IS NULL THEN NULL WHEN o.home_tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.home_tenant) END, o.school, o.windows_json, o.note, o.status, o.created_at, o.updated_at FROM fill_offers o;
+SELECT (SELECT new_id FROM _idmig_map_fill_offers WHERE old_key = CAST(o.id AS TEXT)), CASE WHEN o.discord_id IS NULL THEN NULL WHEN o.discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.discord_id) END, o.display_name, CASE WHEN o.home_tenant IS NULL THEN NULL WHEN o.home_tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.home_tenant) END, o.school, o.windows_json, o.note, o.status, o.created_at, o.updated_at FROM fill_offers o
+WHERE (o.home_tenant = '' OR (SELECT new_id FROM _idmig_guild WHERE old_key = o.home_tenant) IS NOT NULL);
 DROP TABLE fill_offers;
 ALTER TABLE fill_offers__new RENAME TO fill_offers;
 CREATE UNIQUE INDEX fill_offers_open_unique ON fill_offers (user_id) WHERE status = 'open';
@@ -740,7 +763,9 @@ CREATE TABLE fill_requests__new (
   closed_at INTEGER
 );
 INSERT INTO fill_requests__new (id, tenant, event_id, needed_role, needed_school, note, status, created_by_user_id, created_by_name, created_at, matched_at, closed_at)
-SELECT (SELECT new_id FROM _idmig_map_fill_requests WHERE old_key = CAST(o.id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, CASE WHEN o.event_id = 0 THEN 0 ELSE (SELECT new_id FROM _idmig_map_events WHERE old_key = CAST(o.event_id AS TEXT)) END, o.needed_role, o.needed_school, o.note, o.status, CASE WHEN o.created_by IS NULL THEN NULL WHEN o.created_by = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.created_by) END, o.created_by_name, o.created_at, o.matched_at, o.closed_at FROM fill_requests o;
+SELECT (SELECT new_id FROM _idmig_map_fill_requests WHERE old_key = CAST(o.id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, CASE WHEN o.event_id = 0 THEN 0 ELSE (SELECT new_id FROM _idmig_map_events WHERE old_key = CAST(o.event_id AS TEXT)) END, o.needed_role, o.needed_school, o.note, o.status, CASE WHEN o.created_by IS NULL THEN NULL WHEN o.created_by = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.created_by) END, o.created_by_name, o.created_at, o.matched_at, o.closed_at FROM fill_requests o
+WHERE (o.tenant = '' OR (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) IS NOT NULL)
+  AND (CASE WHEN o.event_id = 0 THEN 0 ELSE (SELECT new_id FROM _idmig_map_events WHERE old_key = CAST(o.event_id AS TEXT)) END) IS NOT NULL;
 DROP TABLE fill_requests;
 ALTER TABLE fill_requests__new RENAME TO fill_requests;
 CREATE INDEX idx_fill_requests_event ON fill_requests (event_id, status);
@@ -761,7 +786,11 @@ CREATE TABLE fill_invites__new (
   responded_at INTEGER
 );
 INSERT INTO fill_invites__new (id, request_id, offer_id, tenant, event_id, from_user_id, from_name, to_user_id, to_name, status, created_at, responded_at)
-SELECT (SELECT new_id FROM _idmig_map_fill_invites WHERE old_key = CAST(o.id AS TEXT)), (SELECT new_id FROM _idmig_map_fill_requests WHERE old_key = CAST(o.request_id AS TEXT)), (SELECT new_id FROM _idmig_map_fill_offers WHERE old_key = CAST(o.offer_id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, CASE WHEN o.event_id = 0 THEN 0 ELSE (SELECT new_id FROM _idmig_map_events WHERE old_key = CAST(o.event_id AS TEXT)) END, CASE WHEN o.from_discord_id IS NULL THEN NULL WHEN o.from_discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.from_discord_id) END, o.from_name, CASE WHEN o.to_discord_id IS NULL THEN NULL WHEN o.to_discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.to_discord_id) END, o.to_name, o.status, o.created_at, o.responded_at FROM fill_invites o;
+SELECT (SELECT new_id FROM _idmig_map_fill_invites WHERE old_key = CAST(o.id AS TEXT)), (SELECT new_id FROM _idmig_map_fill_requests WHERE old_key = CAST(o.request_id AS TEXT)), (SELECT new_id FROM _idmig_map_fill_offers WHERE old_key = CAST(o.offer_id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, CASE WHEN o.event_id = 0 THEN 0 ELSE (SELECT new_id FROM _idmig_map_events WHERE old_key = CAST(o.event_id AS TEXT)) END, CASE WHEN o.from_discord_id IS NULL THEN NULL WHEN o.from_discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.from_discord_id) END, o.from_name, CASE WHEN o.to_discord_id IS NULL THEN NULL WHEN o.to_discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.to_discord_id) END, o.to_name, o.status, o.created_at, o.responded_at FROM fill_invites o
+WHERE (o.tenant = '' OR (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) IS NOT NULL)
+  AND (CASE WHEN o.event_id = 0 THEN 0 ELSE (SELECT new_id FROM _idmig_map_events WHERE old_key = CAST(o.event_id AS TEXT)) END) IS NOT NULL
+  AND ((SELECT new_id FROM _idmig_map_fill_requests WHERE old_key = CAST(o.request_id AS TEXT))) IS NOT NULL
+  AND ((SELECT new_id FROM _idmig_map_fill_offers WHERE old_key = CAST(o.offer_id AS TEXT))) IS NOT NULL;
 DROP TABLE fill_invites;
 ALTER TABLE fill_invites__new RENAME TO fill_invites;
 CREATE UNIQUE INDEX fill_invites_pair_unique ON fill_invites (request_id, to_user_id) WHERE status IN ('pending', 'accepted');
@@ -782,7 +811,8 @@ CREATE TABLE lotteries__new (
   drawn_at INTEGER
 );
 INSERT INTO lotteries__new (id, tenant, title, prize, source, source_event_id, winner_count, status, created_by_user_id, created_at, drawn_at)
-SELECT (SELECT new_id FROM _idmig_map_lotteries WHERE old_key = CAST(o.id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, o.title, o.prize, o.source, (SELECT new_id FROM _idmig_map_events WHERE old_key = CAST(o.source_event_id AS TEXT)), o.winner_count, o.status, CASE WHEN o.created_by IS NULL THEN NULL WHEN o.created_by = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.created_by) END, o.created_at, o.drawn_at FROM lotteries o;
+SELECT (SELECT new_id FROM _idmig_map_lotteries WHERE old_key = CAST(o.id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, o.title, o.prize, o.source, (SELECT new_id FROM _idmig_map_events WHERE old_key = CAST(o.source_event_id AS TEXT)), o.winner_count, o.status, CASE WHEN o.created_by IS NULL THEN NULL WHEN o.created_by = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.created_by) END, o.created_at, o.drawn_at FROM lotteries o
+WHERE (o.tenant = '' OR (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) IS NOT NULL);
 DROP TABLE lotteries;
 ALTER TABLE lotteries__new RENAME TO lotteries;
 CREATE INDEX idx_lotteries_tenant ON lotteries (tenant, id);
@@ -797,7 +827,8 @@ CREATE TABLE time_polls__new (
   closed_at INTEGER
 );
 INSERT INTO time_polls__new (id, tenant, title, status, created_by_user_id, created_at, closed_at)
-SELECT (SELECT new_id FROM _idmig_map_time_polls WHERE old_key = CAST(o.id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, o.title, o.status, CASE WHEN o.created_by IS NULL THEN NULL WHEN o.created_by = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.created_by) END, o.created_at, o.closed_at FROM time_polls o;
+SELECT (SELECT new_id FROM _idmig_map_time_polls WHERE old_key = CAST(o.id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, o.title, o.status, CASE WHEN o.created_by IS NULL THEN NULL WHEN o.created_by = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.created_by) END, o.created_at, o.closed_at FROM time_polls o
+WHERE (o.tenant = '' OR (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) IS NOT NULL);
 DROP TABLE time_polls;
 ALTER TABLE time_polls__new RENAME TO time_polls;
 CREATE INDEX idx_time_polls_tenant ON time_polls (tenant, id);
@@ -808,7 +839,8 @@ CREATE TABLE time_poll_options__new (
   starts_at_utc INTEGER NOT NULL DEFAULT 0
 );
 INSERT INTO time_poll_options__new (id, poll_id, starts_at_utc)
-SELECT (SELECT new_id FROM _idmig_map_time_poll_options WHERE old_key = CAST(o.id AS TEXT)), (SELECT new_id FROM _idmig_map_time_polls WHERE old_key = CAST(o.poll_id AS TEXT)), o.starts_at_utc FROM time_poll_options o;
+SELECT (SELECT new_id FROM _idmig_map_time_poll_options WHERE old_key = CAST(o.id AS TEXT)), (SELECT new_id FROM _idmig_map_time_polls WHERE old_key = CAST(o.poll_id AS TEXT)), o.starts_at_utc FROM time_poll_options o
+WHERE ((SELECT new_id FROM _idmig_map_time_polls WHERE old_key = CAST(o.poll_id AS TEXT))) IS NOT NULL;
 DROP TABLE time_poll_options;
 ALTER TABLE time_poll_options__new RENAME TO time_poll_options;
 CREATE INDEX idx_time_poll_options_poll ON time_poll_options (poll_id);
@@ -843,7 +875,9 @@ CREATE TABLE ops_nudge_sends__new (
   sent_at INTEGER NOT NULL DEFAULT 0
 );
 INSERT INTO ops_nudge_sends__new (id, tenant, event_id, segment_kind, segment_value, recipient_count, recipient_ids, sent_by_user_id, sent_at)
-SELECT (SELECT new_id FROM _idmig_map_ops_nudge_sends WHERE old_key = CAST(o.id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, (SELECT new_id FROM _idmig_map_events WHERE old_key = CAST(o.event_id AS TEXT)), o.segment_kind, o.segment_value, o.recipient_count, o.recipient_ids, CASE WHEN o.sent_by IS NULL THEN NULL WHEN o.sent_by = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.sent_by) END, o.sent_at FROM ops_nudge_sends o;
+SELECT (SELECT new_id FROM _idmig_map_ops_nudge_sends WHERE old_key = CAST(o.id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, (SELECT new_id FROM _idmig_map_events WHERE old_key = CAST(o.event_id AS TEXT)), o.segment_kind, o.segment_value, o.recipient_count, o.recipient_ids, CASE WHEN o.sent_by IS NULL THEN NULL WHEN o.sent_by = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.sent_by) END, o.sent_at FROM ops_nudge_sends o
+WHERE (o.tenant = '' OR (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) IS NOT NULL)
+  AND ((SELECT new_id FROM _idmig_map_events WHERE old_key = CAST(o.event_id AS TEXT))) IS NOT NULL;
 DROP TABLE ops_nudge_sends;
 ALTER TABLE ops_nudge_sends__new RENAME TO ops_nudge_sends;
 CREATE INDEX idx_ops_nudge_sends_tenant_at ON ops_nudge_sends(tenant, sent_at);
@@ -858,7 +892,9 @@ CREATE TABLE rotation_advice_records__new (
   created_at INTEGER NOT NULL DEFAULT 0
 );
 INSERT INTO rotation_advice_records__new (id, tenant, event_id, advice_json, created_by_user_id, created_at)
-SELECT (SELECT new_id FROM _idmig_map_rotation_advice_records WHERE old_key = CAST(o.id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, (SELECT new_id FROM _idmig_map_events WHERE old_key = CAST(o.event_id AS TEXT)), o.advice_json, CASE WHEN o.created_by IS NULL THEN NULL WHEN o.created_by = '' THEN 0 WHEN o.created_by = 'omni' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.created_by) END, o.created_at FROM rotation_advice_records o;
+SELECT (SELECT new_id FROM _idmig_map_rotation_advice_records WHERE old_key = CAST(o.id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, (SELECT new_id FROM _idmig_map_events WHERE old_key = CAST(o.event_id AS TEXT)), o.advice_json, CASE WHEN o.created_by IS NULL THEN NULL WHEN o.created_by = '' THEN 0 WHEN o.created_by = 'omni' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.created_by) END, o.created_at FROM rotation_advice_records o
+WHERE (o.tenant = '' OR (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) IS NOT NULL)
+  AND ((SELECT new_id FROM _idmig_map_events WHERE old_key = CAST(o.event_id AS TEXT))) IS NOT NULL;
 DROP TABLE rotation_advice_records;
 ALTER TABLE rotation_advice_records__new RENAME TO rotation_advice_records;
 CREATE INDEX idx_rotation_advice_records_event ON rotation_advice_records (tenant, event_id, id);
@@ -878,7 +914,9 @@ CREATE TABLE grouping_recaps__new (
   updated_at INTEGER NOT NULL DEFAULT 0
 );
 INSERT INTO grouping_recaps__new (id, tenant, event_id, status, paragraphs_json, snapshot_json, provider, generated_by_user_id, version, last_error, generated_at, updated_at)
-SELECT (SELECT new_id FROM _idmig_map_grouping_recaps WHERE old_key = CAST(o.id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, (SELECT new_id FROM _idmig_map_events WHERE old_key = CAST(o.event_id AS TEXT)), o.status, o.paragraphs_json, o.snapshot_json, o.provider, CASE WHEN o.generated_by IS NULL THEN NULL WHEN o.generated_by = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.generated_by) END, o.version, o.last_error, o.generated_at, o.updated_at FROM grouping_recaps o;
+SELECT (SELECT new_id FROM _idmig_map_grouping_recaps WHERE old_key = CAST(o.id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, (SELECT new_id FROM _idmig_map_events WHERE old_key = CAST(o.event_id AS TEXT)), o.status, o.paragraphs_json, o.snapshot_json, o.provider, CASE WHEN o.generated_by IS NULL THEN NULL WHEN o.generated_by = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.generated_by) END, o.version, o.last_error, o.generated_at, o.updated_at FROM grouping_recaps o
+WHERE (o.tenant = '' OR (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) IS NOT NULL)
+  AND ((SELECT new_id FROM _idmig_map_events WHERE old_key = CAST(o.event_id AS TEXT))) IS NOT NULL;
 DROP TABLE grouping_recaps;
 ALTER TABLE grouping_recaps__new RENAME TO grouping_recaps;
 CREATE UNIQUE INDEX grouping_recaps_event_unique ON grouping_recaps (event_id);
@@ -894,7 +932,8 @@ CREATE TABLE guild_gear_standards__new (
   updated_at INTEGER NOT NULL DEFAULT 0
 );
 INSERT INTO guild_gear_standards__new (id, tenant, label, min_score, created_by_user_id, created_at, updated_at)
-SELECT (SELECT new_id FROM _idmig_map_guild_gear_standards WHERE old_key = CAST(o.id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, o.label, o.min_score, CASE WHEN o.created_by IS NULL THEN NULL WHEN o.created_by = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.created_by) END, o.created_at, o.updated_at FROM guild_gear_standards o;
+SELECT (SELECT new_id FROM _idmig_map_guild_gear_standards WHERE old_key = CAST(o.id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, o.label, o.min_score, CASE WHEN o.created_by IS NULL THEN NULL WHEN o.created_by = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.created_by) END, o.created_at, o.updated_at FROM guild_gear_standards o
+WHERE (o.tenant = '' OR (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) IS NOT NULL);
 DROP TABLE guild_gear_standards;
 ALTER TABLE guild_gear_standards__new RENAME TO guild_gear_standards;
 CREATE INDEX idx_guild_gear_standards_tenant ON guild_gear_standards (tenant, id);
@@ -909,7 +948,8 @@ CREATE TABLE guild_officer_posts__new (
   updated_at INTEGER NOT NULL DEFAULT 0
 );
 INSERT INTO guild_officer_posts__new (id, tenant, body, author_user_id, author_name, created_at, updated_at)
-SELECT (SELECT new_id FROM _idmig_map_guild_officer_posts WHERE old_key = CAST(o.id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, o.body, CASE WHEN o.author_discord_id IS NULL THEN NULL WHEN o.author_discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.author_discord_id) END, o.author_name, o.created_at, o.updated_at FROM guild_officer_posts o;
+SELECT (SELECT new_id FROM _idmig_map_guild_officer_posts WHERE old_key = CAST(o.id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, o.body, CASE WHEN o.author_discord_id IS NULL THEN NULL WHEN o.author_discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.author_discord_id) END, o.author_name, o.created_at, o.updated_at FROM guild_officer_posts o
+WHERE (o.tenant = '' OR (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) IS NOT NULL);
 DROP TABLE guild_officer_posts;
 ALTER TABLE guild_officer_posts__new RENAME TO guild_officer_posts;
 CREATE INDEX idx_guild_officer_posts_tenant_id ON guild_officer_posts (tenant, id);
@@ -926,7 +966,8 @@ CREATE TABLE guild_audit_events__new (
   created_at INTEGER NOT NULL DEFAULT 0
 );
 INSERT INTO guild_audit_events__new (id, tenant, actor_discord_id, actor_name, action, target_type, target_id, target_label, created_at)
-SELECT (SELECT new_id FROM _idmig_map_guild_audit_events WHERE old_key = CAST(o.id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, o.actor_discord_id, o.actor_name, o.action, o.target_type, CASE o.target_type WHEN 'announcement' THEN COALESCE((SELECT new_id FROM _idmig_map_guild_announcements WHERE old_key = o.target_id), o.target_id) WHEN 'application' THEN COALESCE((SELECT new_id FROM _idmig_map_guild_applications WHERE old_key = o.target_id), o.target_id) WHEN 'board' THEN COALESCE((SELECT new_id FROM _idmig_map_guild_officer_posts WHERE old_key = o.target_id), o.target_id) WHEN 'event' THEN COALESCE((SELECT new_id FROM _idmig_map_events WHERE old_key = o.target_id), o.target_id) WHEN 'lottery' THEN COALESCE((SELECT new_id FROM _idmig_map_lotteries WHERE old_key = o.target_id), o.target_id) WHEN 'pairing' THEN COALESCE((SELECT new_id FROM _idmig_map_mentor_pairings WHERE old_key = o.target_id), o.target_id) WHEN 'result' THEN COALESCE((SELECT new_id FROM _idmig_map_results WHERE old_key = o.target_id), o.target_id) WHEN 'signup' THEN COALESCE((SELECT new_id FROM _idmig_map_signups WHERE old_key = o.target_id), o.target_id) WHEN 'roster' THEN COALESCE(CASE WHEN o.action = 'roster.import' THEN (SELECT new_id FROM _idmig_map_roster_import_batches WHERE old_key = o.target_id) ELSE (SELECT new_id FROM _idmig_map_guild_roster_entries WHERE old_key = o.target_id) END, o.target_id) ELSE o.target_id END, o.target_label, o.created_at FROM guild_audit_events o;
+SELECT (SELECT new_id FROM _idmig_map_guild_audit_events WHERE old_key = CAST(o.id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, o.actor_discord_id, o.actor_name, o.action, o.target_type, CASE o.target_type WHEN 'announcement' THEN COALESCE((SELECT new_id FROM _idmig_map_guild_announcements WHERE old_key = o.target_id), o.target_id) WHEN 'application' THEN COALESCE((SELECT new_id FROM _idmig_map_guild_applications WHERE old_key = o.target_id), o.target_id) WHEN 'board' THEN COALESCE((SELECT new_id FROM _idmig_map_guild_officer_posts WHERE old_key = o.target_id), o.target_id) WHEN 'event' THEN COALESCE((SELECT new_id FROM _idmig_map_events WHERE old_key = o.target_id), o.target_id) WHEN 'lottery' THEN COALESCE((SELECT new_id FROM _idmig_map_lotteries WHERE old_key = o.target_id), o.target_id) WHEN 'pairing' THEN COALESCE((SELECT new_id FROM _idmig_map_mentor_pairings WHERE old_key = o.target_id), o.target_id) WHEN 'result' THEN COALESCE((SELECT new_id FROM _idmig_map_results WHERE old_key = o.target_id), o.target_id) WHEN 'signup' THEN COALESCE((SELECT new_id FROM _idmig_map_signups WHERE old_key = o.target_id), o.target_id) WHEN 'roster' THEN COALESCE(CASE WHEN o.action = 'roster.import' THEN (SELECT new_id FROM _idmig_map_roster_import_batches WHERE old_key = o.target_id) ELSE (SELECT new_id FROM _idmig_map_guild_roster_entries WHERE old_key = o.target_id) END, o.target_id) ELSE o.target_id END, o.target_label, o.created_at FROM guild_audit_events o
+WHERE (o.tenant = '' OR (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) IS NOT NULL);
 DROP TABLE guild_audit_events;
 ALTER TABLE guild_audit_events__new RENAME TO guild_audit_events;
 CREATE INDEX idx_guild_audit_events_tenant_id ON guild_audit_events (tenant, id);
@@ -939,8 +980,8 @@ CREATE TABLE short_links__new (
 );
 INSERT INTO short_links__new (code, tenant, event_id, created_at)
 SELECT o.code, CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, (SELECT new_id FROM _idmig_map_events WHERE old_key = CAST(o.event_id AS TEXT)), o.created_at FROM short_links o
-WHERE ((SELECT new_id FROM _idmig_map_events WHERE old_key = CAST(o.event_id AS TEXT))) IS NOT NULL
-  AND (o.tenant = '' OR (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) IS NOT NULL);
+WHERE (o.tenant = '' OR (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) IS NOT NULL)
+  AND ((SELECT new_id FROM _idmig_map_events WHERE old_key = CAST(o.event_id AS TEXT))) IS NOT NULL;
 DROP TABLE short_links;
 ALTER TABLE short_links__new RENAME TO short_links;
 CREATE UNIQUE INDEX short_links_target_unique ON short_links (tenant, event_id);
@@ -953,7 +994,8 @@ CREATE TABLE lottery_entries__new (
   weight INTEGER NOT NULL DEFAULT 1
 );
 INSERT INTO lottery_entries__new (id, lottery_id, discord_id, display_name, weight)
-SELECT o.id, (SELECT new_id FROM _idmig_map_lotteries WHERE old_key = CAST(o.lottery_id AS TEXT)), o.discord_id, o.display_name, o.weight FROM lottery_entries o;
+SELECT o.id, (SELECT new_id FROM _idmig_map_lotteries WHERE old_key = CAST(o.lottery_id AS TEXT)), o.discord_id, o.display_name, o.weight FROM lottery_entries o
+WHERE ((SELECT new_id FROM _idmig_map_lotteries WHERE old_key = CAST(o.lottery_id AS TEXT))) IS NOT NULL;
 DROP TABLE lottery_entries;
 ALTER TABLE lottery_entries__new RENAME TO lottery_entries;
 CREATE INDEX idx_lottery_entries_lottery ON lottery_entries (lottery_id);
@@ -967,7 +1009,8 @@ CREATE TABLE lottery_winners__new (
   drawn_at INTEGER NOT NULL DEFAULT 0
 );
 INSERT INTO lottery_winners__new (id, lottery_id, discord_id, display_name, drawn_at)
-SELECT o.id, (SELECT new_id FROM _idmig_map_lotteries WHERE old_key = CAST(o.lottery_id AS TEXT)), o.discord_id, o.display_name, o.drawn_at FROM lottery_winners o;
+SELECT o.id, (SELECT new_id FROM _idmig_map_lotteries WHERE old_key = CAST(o.lottery_id AS TEXT)), o.discord_id, o.display_name, o.drawn_at FROM lottery_winners o
+WHERE ((SELECT new_id FROM _idmig_map_lotteries WHERE old_key = CAST(o.lottery_id AS TEXT))) IS NOT NULL;
 DROP TABLE lottery_winners;
 ALTER TABLE lottery_winners__new RENAME TO lottery_winners;
 CREATE INDEX idx_lottery_winners_lottery ON lottery_winners (lottery_id);
@@ -982,7 +1025,8 @@ CREATE TABLE member_availability__new (
   PRIMARY KEY (tenant, user_id)
 );
 INSERT INTO member_availability__new (tenant, user_id, display_name, slots_json, updated_at)
-SELECT CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, CASE WHEN o.discord_id IS NULL THEN NULL WHEN o.discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.discord_id) END, o.display_name, o.slots_json, o.updated_at FROM member_availability o;
+SELECT CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, CASE WHEN o.discord_id IS NULL THEN NULL WHEN o.discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.discord_id) END, o.display_name, o.slots_json, o.updated_at FROM member_availability o
+WHERE (o.tenant = '' OR (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) IS NOT NULL);
 DROP TABLE member_availability;
 ALTER TABLE member_availability__new RENAME TO member_availability;
 
@@ -994,7 +1038,9 @@ CREATE TABLE time_poll_votes__new (
   display_name TEXT NOT NULL DEFAULT ''
 );
 INSERT INTO time_poll_votes__new (id, poll_id, option_id, user_id, display_name)
-SELECT o.id, (SELECT new_id FROM _idmig_map_time_polls WHERE old_key = CAST(o.poll_id AS TEXT)), (SELECT new_id FROM _idmig_map_time_poll_options WHERE old_key = CAST(o.option_id AS TEXT)), CASE WHEN o.discord_id IS NULL THEN NULL WHEN o.discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.discord_id) END, o.display_name FROM time_poll_votes o;
+SELECT o.id, (SELECT new_id FROM _idmig_map_time_polls WHERE old_key = CAST(o.poll_id AS TEXT)), (SELECT new_id FROM _idmig_map_time_poll_options WHERE old_key = CAST(o.option_id AS TEXT)), CASE WHEN o.discord_id IS NULL THEN NULL WHEN o.discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.discord_id) END, o.display_name FROM time_poll_votes o
+WHERE ((SELECT new_id FROM _idmig_map_time_polls WHERE old_key = CAST(o.poll_id AS TEXT))) IS NOT NULL
+  AND ((SELECT new_id FROM _idmig_map_time_poll_options WHERE old_key = CAST(o.option_id AS TEXT))) IS NOT NULL;
 DROP TABLE time_poll_votes;
 ALTER TABLE time_poll_votes__new RENAME TO time_poll_votes;
 CREATE INDEX idx_time_poll_votes_poll ON time_poll_votes (poll_id);
@@ -1008,7 +1054,9 @@ CREATE TABLE signup_answers__new (
   value TEXT NOT NULL DEFAULT ''
 );
 INSERT INTO signup_answers__new (id, event_id, signup_uid, field_id, value)
-SELECT o.id, (SELECT new_id FROM _idmig_map_events WHERE old_key = CAST(o.event_id AS TEXT)), o.signup_uid, CASE WHEN o.field_id = 0 THEN 0 ELSE (SELECT new_id FROM _idmig_map_grouping_custom_fields WHERE old_key = CAST(o.field_id AS TEXT)) END, o.value FROM signup_answers o;
+SELECT o.id, (SELECT new_id FROM _idmig_map_events WHERE old_key = CAST(o.event_id AS TEXT)), o.signup_uid, CASE WHEN o.field_id = 0 THEN 0 ELSE (SELECT new_id FROM _idmig_map_grouping_custom_fields WHERE old_key = CAST(o.field_id AS TEXT)) END, o.value FROM signup_answers o
+WHERE ((SELECT new_id FROM _idmig_map_events WHERE old_key = CAST(o.event_id AS TEXT))) IS NOT NULL
+  AND (CASE WHEN o.field_id = 0 THEN 0 ELSE (SELECT new_id FROM _idmig_map_grouping_custom_fields WHERE old_key = CAST(o.field_id AS TEXT)) END) IS NOT NULL;
 DROP TABLE signup_answers;
 ALTER TABLE signup_answers__new RENAME TO signup_answers;
 CREATE INDEX idx_signup_answers_event ON signup_answers (event_id);
@@ -1022,7 +1070,8 @@ CREATE TABLE event_reminders__new (
   PRIMARY KEY (event_id, offset_min)
 );
 INSERT INTO event_reminders__new (event_id, offset_min, sent_at, error)
-SELECT (SELECT new_id FROM _idmig_map_events WHERE old_key = CAST(o.event_id AS TEXT)), o.offset_min, o.sent_at, o.error FROM event_reminders o;
+SELECT (SELECT new_id FROM _idmig_map_events WHERE old_key = CAST(o.event_id AS TEXT)), o.offset_min, o.sent_at, o.error FROM event_reminders o
+WHERE ((SELECT new_id FROM _idmig_map_events WHERE old_key = CAST(o.event_id AS TEXT))) IS NOT NULL;
 DROP TABLE event_reminders;
 ALTER TABLE event_reminders__new RENAME TO event_reminders;
 
@@ -1033,7 +1082,8 @@ CREATE TABLE settings__new (
   PRIMARY KEY (tenant, key)
 );
 INSERT INTO settings__new (tenant, key, value)
-SELECT CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, o.key, o.value FROM settings o;
+SELECT CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, o.key, o.value FROM settings o
+WHERE (o.tenant = '' OR (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) IS NOT NULL);
 DROP TABLE settings;
 ALTER TABLE settings__new RENAME TO settings;
 
@@ -1045,7 +1095,9 @@ CREATE TABLE guild_announcement_reads__new (
   PRIMARY KEY (announcement_id, user_id)
 );
 INSERT INTO guild_announcement_reads__new (announcement_id, tenant, user_id, read_at)
-SELECT (SELECT new_id FROM _idmig_map_guild_announcements WHERE old_key = CAST(o.announcement_id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, CASE WHEN o.discord_id IS NULL THEN NULL WHEN o.discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.discord_id) END, o.read_at FROM guild_announcement_reads o;
+SELECT (SELECT new_id FROM _idmig_map_guild_announcements WHERE old_key = CAST(o.announcement_id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, CASE WHEN o.discord_id IS NULL THEN NULL WHEN o.discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.discord_id) END, o.read_at FROM guild_announcement_reads o
+WHERE (o.tenant = '' OR (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) IS NOT NULL)
+  AND ((SELECT new_id FROM _idmig_map_guild_announcements WHERE old_key = CAST(o.announcement_id AS TEXT))) IS NOT NULL;
 DROP TABLE guild_announcement_reads;
 ALTER TABLE guild_announcement_reads__new RENAME TO guild_announcement_reads;
 CREATE INDEX idx_guild_announcement_reads_tenant_user ON guild_announcement_reads (tenant, user_id);
@@ -1063,7 +1115,9 @@ CREATE TABLE guild_announcement_translations__new (
   PRIMARY KEY (announcement_id, locale)
 );
 INSERT INTO guild_announcement_translations__new (announcement_id, tenant, locale, title, body, status, source_hash, created_at, updated_at)
-SELECT (SELECT new_id FROM _idmig_map_guild_announcements WHERE old_key = CAST(o.announcement_id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, o.locale, o.title, o.body, o.status, o.source_hash, o.created_at, o.updated_at FROM guild_announcement_translations o;
+SELECT (SELECT new_id FROM _idmig_map_guild_announcements WHERE old_key = CAST(o.announcement_id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, o.locale, o.title, o.body, o.status, o.source_hash, o.created_at, o.updated_at FROM guild_announcement_translations o
+WHERE (o.tenant = '' OR (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) IS NOT NULL)
+  AND ((SELECT new_id FROM _idmig_map_guild_announcements WHERE old_key = CAST(o.announcement_id AS TEXT))) IS NOT NULL;
 DROP TABLE guild_announcement_translations;
 ALTER TABLE guild_announcement_translations__new RENAME TO guild_announcement_translations;
 CREATE INDEX idx_guild_announcement_translations_tenant ON guild_announcement_translations (tenant, announcement_id);
@@ -1079,7 +1133,8 @@ CREATE TABLE season_checklist_checks__new (
   PRIMARY KEY (tenant, season_key, item_key)
 );
 INSERT INTO season_checklist_checks__new (tenant, season_key, item_key, checked, checked_by_user_id, checked_by_name, updated_at)
-SELECT CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, o.season_key, o.item_key, o.checked, CASE WHEN o.checked_by IS NULL THEN NULL WHEN o.checked_by = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.checked_by) END, o.checked_by_name, o.updated_at FROM season_checklist_checks o;
+SELECT CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, o.season_key, o.item_key, o.checked, CASE WHEN o.checked_by IS NULL THEN NULL WHEN o.checked_by = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.checked_by) END, o.checked_by_name, o.updated_at FROM season_checklist_checks o
+WHERE (o.tenant = '' OR (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) IS NOT NULL);
 DROP TABLE season_checklist_checks;
 ALTER TABLE season_checklist_checks__new RENAME TO season_checklist_checks;
 
@@ -1090,7 +1145,8 @@ CREATE TABLE guild_mentors__new (
   PRIMARY KEY (tenant, user_id)
 );
 INSERT INTO guild_mentors__new (tenant, user_id, created_at)
-SELECT CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, CASE WHEN o.discord_id IS NULL THEN NULL WHEN o.discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.discord_id) END, o.created_at FROM guild_mentors o;
+SELECT CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, CASE WHEN o.discord_id IS NULL THEN NULL WHEN o.discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.discord_id) END, o.created_at FROM guild_mentors o
+WHERE (o.tenant = '' OR (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) IS NOT NULL);
 DROP TABLE guild_mentors;
 ALTER TABLE guild_mentors__new RENAME TO guild_mentors;
 
@@ -1102,7 +1158,8 @@ CREATE TABLE guild_avatars__new (
   updated_at INTEGER NOT NULL
 );
 INSERT INTO guild_avatars__new (tenant, content_type, bytes, hash, updated_at)
-SELECT CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, o.content_type, o.bytes, o.hash, o.updated_at FROM guild_avatars o;
+SELECT CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, o.content_type, o.bytes, o.hash, o.updated_at FROM guild_avatars o
+WHERE (o.tenant = '' OR (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) IS NOT NULL);
 DROP TABLE guild_avatars;
 ALTER TABLE guild_avatars__new RENAME TO guild_avatars;
 
@@ -1117,7 +1174,8 @@ CREATE TABLE season_rollovers__new (
   created_at INTEGER NOT NULL DEFAULT 0
 );
 INSERT INTO season_rollovers__new (id, tenant, from_season_key, to_season_key, templates_copied, report_json, created_by_user_id, created_at)
-SELECT o.id, CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, o.from_season_key, o.to_season_key, o.templates_copied, o.report_json, CASE WHEN o.created_by IS NULL THEN NULL WHEN o.created_by = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.created_by) END, o.created_at FROM season_rollovers o;
+SELECT o.id, CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, o.from_season_key, o.to_season_key, o.templates_copied, o.report_json, CASE WHEN o.created_by IS NULL THEN NULL WHEN o.created_by = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.created_by) END, o.created_at FROM season_rollovers o
+WHERE (o.tenant = '' OR (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) IS NOT NULL);
 DROP TABLE season_rollovers;
 ALTER TABLE season_rollovers__new RENAME TO season_rollovers;
 CREATE INDEX idx_season_rollovers_tenant ON season_rollovers(tenant, id);
@@ -1133,7 +1191,8 @@ CREATE TABLE contribution_rules__new (
   UNIQUE(tenant, action_key)
 );
 INSERT INTO contribution_rules__new (id, tenant, action_key, points, enabled, updated_by_user_id, updated_at)
-SELECT o.id, CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, o.action_key, o.points, o.enabled, CASE WHEN o.updated_by IS NULL THEN NULL WHEN o.updated_by = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.updated_by) END, o.updated_at FROM contribution_rules o;
+SELECT o.id, CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, o.action_key, o.points, o.enabled, CASE WHEN o.updated_by IS NULL THEN NULL WHEN o.updated_by = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.updated_by) END, o.updated_at FROM contribution_rules o
+WHERE (o.tenant = '' OR (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) IS NOT NULL);
 DROP TABLE contribution_rules;
 ALTER TABLE contribution_rules__new RENAME TO contribution_rules;
 
@@ -1148,7 +1207,8 @@ CREATE TABLE contribution_entries__new (
   created_at INTEGER NOT NULL DEFAULT 0
 );
 INSERT INTO contribution_entries__new (id, tenant, user_id, action_key, points, event_id, dedupe_key, created_at)
-SELECT o.id, CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, CASE WHEN o.discord_id IS NULL THEN NULL WHEN o.discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.discord_id) END, o.action_key, o.points, (SELECT new_id FROM _idmig_map_events WHERE old_key = CAST(o.event_id AS TEXT)), CASE WHEN o.dedupe_key LIKE 'leading:%' THEN 'leading:' || (SELECT new_id FROM _idmig_map_events WHERE old_key = substr(o.dedupe_key, 9, instr(substr(o.dedupe_key, 9), ':') - 1)) || ':' || (SELECT new_id FROM _idmig_user WHERE old_key = substr(o.dedupe_key, 9 + instr(substr(o.dedupe_key, 9), ':'))) WHEN o.dedupe_key LIKE 'attendance:%' THEN 'attendance:' || (SELECT new_id FROM _idmig_map_events WHERE old_key = substr(o.dedupe_key, 12, instr(substr(o.dedupe_key, 12), ':') - 1)) || ':' || (SELECT new_id FROM _idmig_user WHERE old_key = substr(o.dedupe_key, 12 + instr(substr(o.dedupe_key, 12), ':'))) WHEN o.dedupe_key LIKE 'mentoring:pairing:%' THEN 'mentoring:pairing:' || (SELECT new_id FROM _idmig_map_mentor_pairings WHERE old_key = substr(o.dedupe_key, 18, instr(substr(o.dedupe_key, 18), ':') - 1)) || ':' || (SELECT new_id FROM _idmig_user WHERE old_key = substr(o.dedupe_key, 18 + instr(substr(o.dedupe_key, 18), ':'))) ELSE o.dedupe_key END, o.created_at FROM contribution_entries o;
+SELECT o.id, CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, CASE WHEN o.discord_id IS NULL THEN NULL WHEN o.discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.discord_id) END, o.action_key, o.points, (SELECT new_id FROM _idmig_map_events WHERE old_key = CAST(o.event_id AS TEXT)), CASE WHEN o.dedupe_key LIKE 'leading:%' THEN 'leading:' || COALESCE((SELECT new_id FROM _idmig_map_events WHERE old_key = substr(o.dedupe_key, 9, instr(substr(o.dedupe_key, 9), ':') - 1)), substr(o.dedupe_key, 9, instr(substr(o.dedupe_key, 9), ':') - 1)) || ':' || COALESCE((SELECT new_id FROM _idmig_user WHERE old_key = substr(o.dedupe_key, 9 + instr(substr(o.dedupe_key, 9), ':'))), substr(o.dedupe_key, 9 + instr(substr(o.dedupe_key, 9), ':'))) WHEN o.dedupe_key LIKE 'attendance:%' THEN 'attendance:' || COALESCE((SELECT new_id FROM _idmig_map_events WHERE old_key = substr(o.dedupe_key, 12, instr(substr(o.dedupe_key, 12), ':') - 1)), substr(o.dedupe_key, 12, instr(substr(o.dedupe_key, 12), ':') - 1)) || ':' || COALESCE((SELECT new_id FROM _idmig_user WHERE old_key = substr(o.dedupe_key, 12 + instr(substr(o.dedupe_key, 12), ':'))), substr(o.dedupe_key, 12 + instr(substr(o.dedupe_key, 12), ':'))) WHEN o.dedupe_key LIKE 'mentoring:pairing:%' THEN 'mentoring:pairing:' || COALESCE((SELECT new_id FROM _idmig_map_mentor_pairings WHERE old_key = substr(o.dedupe_key, 19, instr(substr(o.dedupe_key, 19), ':') - 1)), substr(o.dedupe_key, 19, instr(substr(o.dedupe_key, 19), ':') - 1)) || ':' || COALESCE((SELECT new_id FROM _idmig_user WHERE old_key = substr(o.dedupe_key, 19 + instr(substr(o.dedupe_key, 19), ':'))), substr(o.dedupe_key, 19 + instr(substr(o.dedupe_key, 19), ':'))) ELSE o.dedupe_key END, o.created_at FROM contribution_entries o
+WHERE (o.tenant = '' OR (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) IS NOT NULL);
 DROP TABLE contribution_entries;
 ALTER TABLE contribution_entries__new RENAME TO contribution_entries;
 CREATE INDEX idx_contribution_entries_tenant ON contribution_entries(tenant, id);
@@ -1161,7 +1221,8 @@ CREATE TABLE build_share_links__new (
   created_at INTEGER NOT NULL DEFAULT 0
 );
 INSERT INTO build_share_links__new (code, build_id, user_id, created_at)
-SELECT o.code, (SELECT new_id FROM _idmig_map_user_gear_builds WHERE old_key = CAST(o.build_id AS TEXT)), CASE WHEN o.discord_id IS NULL THEN NULL WHEN o.discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.discord_id) END, o.created_at FROM build_share_links o;
+SELECT o.code, (SELECT new_id FROM _idmig_map_user_gear_builds WHERE old_key = CAST(o.build_id AS TEXT)), CASE WHEN o.discord_id IS NULL THEN NULL WHEN o.discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.discord_id) END, o.created_at FROM build_share_links o
+WHERE ((SELECT new_id FROM _idmig_map_user_gear_builds WHERE old_key = CAST(o.build_id AS TEXT))) IS NOT NULL;
 DROP TABLE build_share_links;
 ALTER TABLE build_share_links__new RENAME TO build_share_links;
 CREATE UNIQUE INDEX build_share_links_build_unique ON build_share_links (build_id);
@@ -1176,7 +1237,8 @@ CREATE TABLE heirloom_item_pushes__new (
   PRIMARY KEY (tenant, user_id, build_sig, item_hash)
 );
 INSERT INTO heirloom_item_pushes__new (tenant, user_id, build_sig, item_hash, created_at)
-SELECT CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, CASE WHEN o.discord_id IS NULL THEN NULL WHEN o.discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.discord_id) END, o.build_sig, o.item_hash, o.created_at FROM heirloom_item_pushes o;
+SELECT CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, CASE WHEN o.discord_id IS NULL THEN NULL WHEN o.discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.discord_id) END, o.build_sig, o.item_hash, o.created_at FROM heirloom_item_pushes o
+WHERE (o.tenant = '' OR (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) IS NOT NULL);
 DROP TABLE heirloom_item_pushes;
 ALTER TABLE heirloom_item_pushes__new RENAME TO heirloom_item_pushes;
 
@@ -1189,7 +1251,8 @@ CREATE TABLE heirloom_set_state__new (
   PRIMARY KEY (tenant, user_id, build_sig)
 );
 INSERT INTO heirloom_set_state__new (tenant, user_id, build_sig, complete, updated_at)
-SELECT CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, CASE WHEN o.discord_id IS NULL THEN NULL WHEN o.discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.discord_id) END, o.build_sig, o.complete, o.updated_at FROM heirloom_set_state o;
+SELECT CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, CASE WHEN o.discord_id IS NULL THEN NULL WHEN o.discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.discord_id) END, o.build_sig, o.complete, o.updated_at FROM heirloom_set_state o
+WHERE (o.tenant = '' OR (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) IS NOT NULL);
 DROP TABLE heirloom_set_state;
 ALTER TABLE heirloom_set_state__new RENAME TO heirloom_set_state;
 
@@ -1214,7 +1277,8 @@ CREATE TABLE usage_counters__new (
   PRIMARY KEY (user_id, metric, day)
 );
 INSERT INTO usage_counters__new (user_id, metric, day, count, updated_at)
-SELECT CASE WHEN o.discord_id IS NULL THEN NULL WHEN o.discord_id = '' THEN 0 WHEN o.discord_id LIKE 'guild:%' THEN (SELECT new_id FROM _idmig_guild WHERE old_key = substr(o.discord_id, 7)) ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.discord_id) END, o.metric, o.day, o.count, o.updated_at FROM usage_counters o;
+SELECT CASE WHEN o.discord_id IS NULL THEN NULL WHEN o.discord_id = '' THEN 0 WHEN o.discord_id LIKE 'guild:%' THEN (SELECT new_id FROM _idmig_guild WHERE old_key = substr(o.discord_id, 7)) ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.discord_id) END, o.metric, o.day, o.count, o.updated_at FROM usage_counters o
+WHERE (CASE WHEN o.discord_id IS NULL THEN NULL WHEN o.discord_id = '' THEN 0 WHEN o.discord_id LIKE 'guild:%' THEN (SELECT new_id FROM _idmig_guild WHERE old_key = substr(o.discord_id, 7)) ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.discord_id) END) IS NOT NULL;
 DROP TABLE usage_counters;
 ALTER TABLE usage_counters__new RENAME TO usage_counters;
 
@@ -1231,7 +1295,8 @@ CREATE TABLE guild_entitlements__new (
   trial_used INTEGER NOT NULL DEFAULT 0
 );
 INSERT INTO guild_entitlements__new (tenant, plan, source, current_period_end, stripe_customer_id, stripe_subscription_id, updated_at, past_due_since, has_card, trial_used)
-SELECT CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, o.plan, o.source, o.current_period_end, o.stripe_customer_id, o.stripe_subscription_id, o.updated_at, o.past_due_since, o.has_card, o.trial_used FROM guild_entitlements o;
+SELECT CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, o.plan, o.source, o.current_period_end, o.stripe_customer_id, o.stripe_subscription_id, o.updated_at, o.past_due_since, o.has_card, o.trial_used FROM guild_entitlements o
+WHERE (o.tenant = '' OR (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) IS NOT NULL);
 DROP TABLE guild_entitlements;
 ALTER TABLE guild_entitlements__new RENAME TO guild_entitlements;
 
@@ -1244,7 +1309,8 @@ CREATE TABLE guild_members__new (
   PRIMARY KEY (tenant, discord_id)
 );
 INSERT INTO guild_members__new (tenant, discord_id, nick, global_name, updated_at)
-SELECT CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, o.discord_id, o.nick, o.global_name, o.updated_at FROM guild_members o;
+SELECT CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, o.discord_id, o.nick, o.global_name, o.updated_at FROM guild_members o
+WHERE (o.tenant = '' OR (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) IS NOT NULL);
 DROP TABLE guild_members;
 ALTER TABLE guild_members__new RENAME TO guild_members;
 
@@ -1292,7 +1358,8 @@ CREATE TABLE creator_backfill_log__new (
   detail TEXT
 );
 INSERT INTO creator_backfill_log__new (id, event_id, tenant, seat_nickname, resolved_discord_id, outcome, reason, created_at, detail)
-SELECT o.id, (SELECT new_id FROM _idmig_map_events WHERE old_key = CAST(o.event_id AS TEXT)), CASE WHEN o.tenant IS NULL OR o.tenant = '' THEN 0 ELSE COALESCE((SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant), 0) END, o.seat_nickname, o.resolved_discord_id, o.outcome, o.reason, o.created_at, o.detail FROM creator_backfill_log o;
+SELECT o.id, (SELECT new_id FROM _idmig_map_events WHERE old_key = CAST(o.event_id AS TEXT)), CASE WHEN o.tenant IS NULL OR o.tenant = '' THEN 0 ELSE COALESCE((SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant), 0) END, o.seat_nickname, o.resolved_discord_id, o.outcome, o.reason, o.created_at, o.detail FROM creator_backfill_log o
+WHERE ((SELECT new_id FROM _idmig_map_events WHERE old_key = CAST(o.event_id AS TEXT))) IS NOT NULL;
 DROP TABLE creator_backfill_log;
 ALTER TABLE creator_backfill_log__new RENAME TO creator_backfill_log;
 
@@ -1320,7 +1387,8 @@ CREATE TABLE guild_custom_domains__new (
   verified_at INTEGER
 );
 INSERT INTO guild_custom_domains__new (tenant, hostname, status, verify_token, created_by_user_id, created_at, updated_at, verified_at)
-SELECT CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, o.hostname, o.status, o.verify_token, CASE WHEN o.created_by IS NULL THEN NULL WHEN o.created_by = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.created_by) END, o.created_at, o.updated_at, o.verified_at FROM guild_custom_domains o;
+SELECT CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, o.hostname, o.status, o.verify_token, CASE WHEN o.created_by IS NULL THEN NULL WHEN o.created_by = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.created_by) END, o.created_at, o.updated_at, o.verified_at FROM guild_custom_domains o
+WHERE (o.tenant = '' OR (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) IS NOT NULL);
 DROP TABLE guild_custom_domains;
 ALTER TABLE guild_custom_domains__new RENAME TO guild_custom_domains;
 CREATE UNIQUE INDEX guild_custom_domains_hostname_unique ON guild_custom_domains (hostname);
@@ -1337,7 +1405,8 @@ CREATE TABLE guild_officer_grants__new (
   PRIMARY KEY (tenant, user_id)
 );
 INSERT INTO guild_officer_grants__new (tenant, user_id, capabilities, granted_by, granted_by_name, created_at, updated_at)
-SELECT CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, CASE WHEN o.discord_id IS NULL THEN NULL WHEN o.discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.discord_id) END, o.capabilities, o.granted_by, o.granted_by_name, o.created_at, o.updated_at FROM guild_officer_grants o;
+SELECT CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, CASE WHEN o.discord_id IS NULL THEN NULL WHEN o.discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.discord_id) END, o.capabilities, o.granted_by, o.granted_by_name, o.created_at, o.updated_at FROM guild_officer_grants o
+WHERE (o.tenant = '' OR (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) IS NOT NULL);
 DROP TABLE guild_officer_grants;
 ALTER TABLE guild_officer_grants__new RENAME TO guild_officer_grants;
 

@@ -26,7 +26,10 @@
 //                <discord>, mentoring:pairing:<pairing>:<discord>);
 //                both segments are rewritten through the maps, or a
 //                post-migration sync would re-credit stock events
-//                under new-format keys and double-count points
+//                under new-format keys and double-count points. A
+//                segment whose target is gone keeps its original
+//                text instead of nulling the key (see the DEDUPE
+//                branch of exprFor for why that is safe)
 //   S:<newName>  scope key (usage_counters): 'guild:<slug>' values
 //                resolve through the guild map, everything else
 //                through the user map; the typed IDs never collide
@@ -253,23 +256,98 @@ const ZERO_MEANS_NONE = new Set([
   'signup_answers.field_id',
 ]);
 
-// Reference columns whose UNRESOLVABLE rows are dropped by the
-// rebuild instead of aborting the migration on the NOT NULL
-// constraint. This is the exception, not the rule: strictness is
-// what caught this defect class in rehearsal, so a column earns a
-// drop disposition only when the row's entire meaning was the
-// reference and the target's deletion path provably leaves the row
-// behind. short_links is the founding case: a car's share alias
-// whose car was disbanded. deleteEventCascade removes signups,
-// results and the event, but not the alias; the orphaned alias
-// resolves to a 404 at its landing today, so dropping it changes
-// no reachable behavior, while aborting blocks the whole renumber
-// (production, 2026-10-28: migration 0036 died exactly here).
+// Dispositions for unresolvable references — the lazy-deletion
+// doctrine. Deletion in this product is lazy by design (marcus,
+// 2026-10-28): dissolving a car or deleting a guild removes the
+// entity itself plus the few dependents its hand-written cascade
+// happens to know about (deleteEventCascade: signups, results, the
+// event; deleteTenantCascade: signups, results, events, the
+// tenant), and every other referencing row is left behind as
+// unreaped residue. Dangling references are therefore the steady
+// state of the data, not corruption — production carried exactly
+// one dangling reminder and three dead guilds' settings rows when
+// this was settled — and this migration, the one pass that touches
+// every row anyway, doubles as the reaper:
+//
+//   * a row whose ENTIRE meaning was the dead reference is dropped
+//     (a reminder for a dissolved car, a dead guild's settings: all
+//     reads of it are keyed by the dead parent, so it can never be
+//     reached again — dropping changes no reachable behavior);
+//   * a row with independent value keeps the row and lands its
+//     dead reference on NULL where the schema allows one (the
+//     nullable E columns contribution_entries.event_id,
+//     lotteries.source_event_id, roster_import_rows.created_entry_id
+//     are deliberately ABSENT below), or keeps the original key
+//     text (DEDUPE segments, see exprFor);
+//   * class B identity references never dangle by construction:
+//     orphan collection mints a user row for every stored Discord
+//     ID before the rebuilds run, so nothing drops on a user miss.
+//
+// Strictness survives only where a dangling row would prove the
+// one cascade that provably runs has broken: signups.event_id and
+// results.event_id stay strict, so a miss there aborts the
+// migration instead of silently eating participation records.
+// History: the founding case was short_links (production,
+// 2026-10-28: 0036 died on a disbanded car's alias), the second
+// was event_reminders — same class, one deploy later. Enumerating
+// the classes one abort at a time is what this table ends: every
+// reference that CAN dangle under lazy deletion has a disposition
+// here, decided by semantics, not by today's row counts (the site
+// stays live on the old code until this lands, and old code keeps
+// dissolving cars).
 // 'tenant' in this list means: drop when the guild slug neither is
 // the '' no-guild sentinel nor resolves through the guild map.
-const DROP_UNRESOLVED = {
-  short_links: ['event_id', 'tenant'],
+const DROP_UNRESOLVED = {};
+const dropUnresolved = (table, ...cols) => {
+  (DROP_UNRESOLVED[table] ??= []).push(...cols);
 };
+// Every strict tenant column: a dead guild's satellite rows are
+// unreaped garbage by the definition above. The lenient Tl log
+// columns (error_log, hub_audit_log, creator_backfill_log) are
+// excluded on purpose: logs land unknown tenants on the 0
+// sentinel and keep the row.
+for (const [table, actions] of Object.entries(ACTIONS)) {
+  for (const [col, action] of Object.entries(actions)) {
+    if (action === 'T') dropUnresolved(table, col);
+  }
+}
+// Car-derivative references: the row was a shadow of the car.
+dropUnresolved('short_links', 'event_id');
+dropUnresolved('event_reminders', 'event_id');
+dropUnresolved('signup_answers', 'event_id', 'field_id');
+dropUnresolved('ops_nudge_sends', 'event_id');
+dropUnresolved('rotation_advice_records', 'event_id');
+dropUnresolved('grouping_recaps', 'event_id');
+dropUnresolved('creator_backfill_log', 'event_id');
+dropUnresolved('fill_requests', 'event_id');
+dropUnresolved('fill_invites', 'event_id', 'request_id', 'offer_id');
+// Custom-field definitions whose owner (car or template) is gone.
+// Dropping a field cannot strand an answer: a car's fields are its
+// own rows, copied from the template's set at creation time
+// (src/domains/groupings/customfields.ts), so answers only ever
+// reference event-owned fields — and a dead car's answers drop by
+// their own event_id disposition above.
+dropUnresolved('grouping_custom_fields', 'owner_id');
+// Entity-derivative references: share links (a link to a deleted
+// build lands on a 404 today), lottery and poll children,
+// announcement children, roster import rows.
+dropUnresolved('build_share_links', 'build_id');
+dropUnresolved('lottery_entries', 'lottery_id');
+dropUnresolved('lottery_winners', 'lottery_id');
+dropUnresolved('time_poll_options', 'poll_id');
+dropUnresolved('time_poll_votes', 'poll_id', 'option_id');
+dropUnresolved('guild_announcement_reads', 'announcement_id');
+dropUnresolved('guild_announcement_translations', 'announcement_id');
+dropUnresolved('roster_import_rows', 'batch_id');
+// Alliance pair ends: an alliance against a deleted guild is over
+// by definition. Both columns carry the drop: the MIN/MAX pair
+// expression yields NULL when either end misses, so each column's
+// predicate is the same whole-pair test.
+dropUnresolved('guild_alliances', 'guild_low', 'guild_high');
+// Usage counters scoped to a deleted guild (user-scoped values
+// always resolve via orphan collection, so only the guild scope
+// can ever trigger this drop).
+dropUnresolved('usage_counters', 'discord_id');
 
 /* --------------------------- schema reading ---------------------------- */
 
@@ -409,11 +487,17 @@ emit(`-- Migration 0036: typed public IDs (docs/ID_SYSTEM.md).
 -- class A Discord-boundary columns (signups.discord_id,
 -- lottery_entries/winners.discord_id, ops recipient lists, the
 -- Discord-synced roster keys) are carried over byte-identical.
--- One documented exception to strict remapping: short_links rows
--- whose car no longer exists (or whose guild slug is gone) are
--- dropped — a disbanded car's alias already resolves to a 404, so
--- no reachable behavior changes (see DROP_UNRESOLVED in the
--- generator).
+-- Unresolvable references follow the lazy-deletion doctrine (see
+-- DROP_UNRESOLVED in the generator): deletion leaves referencing
+-- rows behind as unreaped residue by design, so this pass doubles
+-- as the reaper — rows whose entire meaning was a dead car, guild,
+-- build or parent entity are dropped; rows with independent value
+-- keep the row and land the dead reference on NULL (nullable
+-- columns) or keep the original dedupe-key segment text; class B
+-- identity references resolve for every stored Discord ID via the
+-- orphan users minted below. Only signups/results event_id stay
+-- strict: a miss there proves the one cascade that provably runs
+-- has broken, and aborts the migration.
 -- The _idmig_* tables are dropped at the end; the leading DROPs make
 -- the file re-runnable after a failed attempt.`);
 
@@ -489,7 +573,7 @@ emit(`
 -- exist before the keys are rewritten.
 INSERT OR IGNORE INTO _idmig_orphans SELECT substr(dedupe_key, 9 + instr(substr(dedupe_key, 9), ':')) FROM contribution_entries WHERE dedupe_key LIKE 'leading:%';
 INSERT OR IGNORE INTO _idmig_orphans SELECT substr(dedupe_key, 12 + instr(substr(dedupe_key, 12), ':')) FROM contribution_entries WHERE dedupe_key LIKE 'attendance:%';
-INSERT OR IGNORE INTO _idmig_orphans SELECT substr(dedupe_key, 18 + instr(substr(dedupe_key, 18), ':')) FROM contribution_entries WHERE dedupe_key LIKE 'mentoring:pairing:%';`);
+INSERT OR IGNORE INTO _idmig_orphans SELECT substr(dedupe_key, 19 + instr(substr(dedupe_key, 19), ':')) FROM contribution_entries WHERE dedupe_key LIKE 'mentoring:pairing:%';`);
 emit(`
 -- The platform-admin roster is the one settings payload that stores
 -- identity keys (a JSON array of Discord IDs in the global scope):
@@ -633,11 +717,29 @@ function exprFor(table, col) {
     return `CASE WHEN o.${col} IS NULL THEN NULL WHEN o.${col} = '' THEN 0 WHEN o.${col} LIKE 'guild:%' THEN (SELECT new_id FROM _idmig_guild WHERE old_key = substr(o.${col}, 7)) ELSE ${userExpr(col)} END`;
   }
   if (action === 'DEDUPE') {
+    // Segment starts are 1-based and easy to get wrong by one:
+    // 'leading:' is 8 chars, so its event segment starts at 9;
+    // 'attendance:' is 11, so 12; 'mentoring:pairing:' is 18, so
+    // the pairing segment starts at 19. (This branch once cut the
+    // mentoring segment at 18 — on its leading ':' — producing an
+    // empty segment whose lookup missed, a NULL key, and a
+    // dedupe_key NOT NULL abort on ANY mentoring row.)
+    // A segment whose target is gone keeps its original text: a
+    // dedupe key is a pure uniqueness string, and the old small-int
+    // segments (<= 45 in production) can never collide with a typed
+    // ID (>= 1,000,000,001) or with a key the runtime writes now —
+    // so the ledger row and its key survive a dead parent intact,
+    // and no future sync can re-credit under a rewritten key. The
+    // row is the value; the reference is not.
+    const segText = (restStart) =>
+      `substr(o.dedupe_key, ${restStart}, instr(substr(o.dedupe_key, ${restStart}), ':') - 1)`;
     const seg = (restStart, map) =>
-      `(SELECT new_id FROM ${map} WHERE old_key = substr(o.dedupe_key, ${restStart}, instr(substr(o.dedupe_key, ${restStart}), ':') - 1))`;
+      `COALESCE((SELECT new_id FROM ${map} WHERE old_key = ${segText(restStart)}), ${segText(restStart)})`;
+    const whoText = (restStart) =>
+      `substr(o.dedupe_key, ${restStart} + instr(substr(o.dedupe_key, ${restStart}), ':'))`;
     const who = (restStart) =>
-      `(SELECT new_id FROM _idmig_user WHERE old_key = substr(o.dedupe_key, ${restStart} + instr(substr(o.dedupe_key, ${restStart}), ':')))`;
-    return `CASE WHEN o.dedupe_key LIKE 'leading:%' THEN 'leading:' || ${seg(9, '_idmig_map_events')} || ':' || ${who(9)} WHEN o.dedupe_key LIKE 'attendance:%' THEN 'attendance:' || ${seg(12, '_idmig_map_events')} || ':' || ${who(12)} WHEN o.dedupe_key LIKE 'mentoring:pairing:%' THEN 'mentoring:pairing:' || ${seg(18, '_idmig_map_mentor_pairings')} || ':' || ${who(18)} ELSE o.dedupe_key END`;
+      `COALESCE((SELECT new_id FROM _idmig_user WHERE old_key = ${whoText(restStart)}), ${whoText(restStart)})`;
+    return `CASE WHEN o.dedupe_key LIKE 'leading:%' THEN 'leading:' || ${seg(9, '_idmig_map_events')} || ':' || ${who(9)} WHEN o.dedupe_key LIKE 'attendance:%' THEN 'attendance:' || ${seg(12, '_idmig_map_events')} || ':' || ${who(12)} WHEN o.dedupe_key LIKE 'mentoring:pairing:%' THEN 'mentoring:pairing:' || ${seg(19, '_idmig_map_mentor_pairings')} || ':' || ${who(19)} ELSE o.dedupe_key END`;
   }
   if (action.startsWith('E:')) {
     const target = action.slice(2);
