@@ -19,7 +19,7 @@ import {
 
 /* ---------------- users / oauth / nicks [ddl chain baseline] ------- */
 export const users = sqliteTable('users', {
-  // Typed public ID primary key (migration 0033, code 02); discord_id
+  // Typed public ID primary key (migration 0036, code 02); discord_id
   // is demoted to the UNIQUE identity column, resolved only at the
   // login boundary. Every other table's user reference points at id.
   id: integer('id').primaryKey(),

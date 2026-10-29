@@ -9,7 +9,7 @@ import { noteFreshAuthAndSettlePending } from './account.ts';
 // The Discord ID itself never rides the token: getSessionUser resolves
 // it from the users row at the session boundary (the one sanctioned
 // conversion), and internal code carries userId. Sessions minted
-// before migration 0033 (sub = Discord ID) no longer parse as user
+// before migration 0036 (sub = Discord ID) no longer parse as user
 // IDs and read as signed out.
 // gm is only for ops/test-issued sessions; the real login flow never writes
 // it (keeps the cookie small). createGuild's admin check reads
@@ -136,7 +136,7 @@ export async function getSessionUser(request: any, env: any) {
     const p = await verifyJwt(env.SESSION_SECRET, token);
     if (p && p.sub) {
       const userId = Number(p.sub);
-      // sub must be a minted user ID; a pre-0033 token (sub = Discord
+      // sub must be a minted user ID; a pre-0036 token (sub = Discord
       // ID) or any other shape is not a session.
       if (!isPublicIdOfType(userId, 'user')) continue;
       // The one sanctioned conversion: numeric ID -> Discord ID via

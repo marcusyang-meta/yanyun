@@ -1,4 +1,4 @@
-// Rehearsal for migration 0033 (typed public IDs, docs/ID_SYSTEM.md).
+// Rehearsal for migration 0036 (typed public IDs, docs/ID_SYSTEM.md).
 //
 // Builds a production-shaped snapshot (full migration chain + the
 // deterministic seed in id-migration-seed.sql), captures a baseline,
@@ -64,7 +64,7 @@ const dayOf = (id) => Math.floor(id / 100_000) % 10_000;
 /* ------------------------------ build ------------------------------ */
 console.log(`rehearsal db: ${db}`);
 const chain = readdirSync(join(signupDir, 'migrations'))
-  .filter((f) => f.endsWith('.sql') && f < '0033')
+  .filter((f) => f.endsWith('.sql') && f < '0036')
   .sort();
 for (const f of chain) sqExec(join(signupDir, 'migrations', f));
 sqExec(join(here, 'id-migration-seed.sql'));
@@ -103,8 +103,8 @@ const baseNonOrphanA = '999999999999999999';
 check('baseline mentions captured', baseMentions.length === 4, JSON.stringify(baseMentions));
 
 /* ------------------------------ migrate ---------------------------- */
-sqExec(join(signupDir, 'migrations', '0033_typed_public_ids.sql'));
-console.log('migration 0033 applied');
+sqExec(join(signupDir, 'migrations', '0036_typed_public_ids.sql'));
+console.log('migration 0036 applied');
 
 /* ----------------------------- assertions -------------------------- */
 console.log('assertions:');

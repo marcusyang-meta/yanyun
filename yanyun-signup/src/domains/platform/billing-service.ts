@@ -470,7 +470,7 @@ async function applySubscription(
   slugHint: string,
 ): Promise<void> {
   const d1 = env.DB;
-  // The entitlement key is the numeric guild ID (migration 0033).
+  // The entitlement key is the numeric guild ID (migration 0036).
   // The Stripe metadata hint carries the slug HANDLE (Stripe is an
   // external system; the handle is its key) and resolves here, at
   // the boundary; stored rows already carry the numeric ID.

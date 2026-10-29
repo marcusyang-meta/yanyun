@@ -30,7 +30,7 @@ import {
  * applications; 0 = neither). Default closed; owned by the guild
  * admin surface, read/written only through tenants.ts. */
 export const tenants = sqliteTable('tenants', {
-  // Typed public ID primary key (migration 0033, code 01); the slug
+  // Typed public ID primary key (migration 0036, code 01); the slug
   // survives as the UNIQUE public handle (URLs, subdomains, short
   // links) and resolves to this ID at the edge.
   id: integer('id').primaryKey(),

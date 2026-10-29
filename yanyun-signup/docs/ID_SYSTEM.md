@@ -86,7 +86,7 @@ Free segments for future entities: 03–09 (platform roots), 15–19,
   the signal to open an extension layout under a 9x code, never to
   wrap or reuse.
 
-## Backfill rules (migration 0033)
+## Backfill rules (migration 0036)
 
 Existing rows receive IDs by the same formula, deterministically:
 
@@ -255,7 +255,7 @@ snapshot (full chain 0001–0032 + seeded multi-guild data: seats with
 Discord IDs, lotteries, alliances, fill market, gear, polls,
 contributions), captures a pre-migration baseline (row counts, sample
 relationship joins, and the reminder mention list for a seeded
-grouping), applies migration 0033, and asserts:
+grouping), applies migration 0036, and asserts:
 
 1. `PRAGMA foreign_key_check` returns zero rows.
 2. Every table's row count is unchanged.
