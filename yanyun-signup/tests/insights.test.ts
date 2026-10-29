@@ -35,6 +35,7 @@ import { insertEvent, insertSignup, insertResult } from '../src/domains/grouping
 import { insertGearBuild } from '../src/domains/gear/index.ts';
 import { insertDungeonDex } from '../src/domains/dex/index.ts';
 import { grantTierManual, setPaygateEnabled } from '../src/domains/platform/billing-service.ts';
+import { upsertUserOnLogin } from '../src/domains/identity/users.ts';
 import { upsertEntitlementRow, getEntitlementRow } from '../src/domains/platform/billing.ts';
 import { computeGearSelfStatus } from '../src/domains/guilds/insights.ts';
 import { listGearStandards } from '../src/domains/guilds/gearstandards.ts';
@@ -68,32 +69,37 @@ const db = await mf.getD1Database('DB');
 
 const SLUG = 'insguild';
 const OTHER = 'otherguild';
-await insertTenant(db, { slug: SLUG, guildName: '洞察测试百业', passwordHash: '', announcement: '' });
-await insertTenant(db, { slug: OTHER, guildName: '邻居百业', passwordHash: '', announcement: '' });
+const GID = await insertTenant(db, { slug: SLUG, guildName: '洞察测试百业', passwordHash: '', announcement: '' });
+const GID_OTHER = await insertTenant(db, { slug: OTHER, guildName: '邻居百业', passwordHash: '', announcement: '' });
+// Users are seeded through the login path so gear rows (keyed by
+// user ID) and event creators resolve to typed user IDs; roster rows
+// and seat stamps stay keyed by Discord ID by design.
+const UID: Record<string, number> = {};
 for (const [id, nick] of [['u1', '靠谱甲'], ['u2', '鸽王乙'], ['u3', '新人丙']]) {
-  await upsertGuildMember(db, SLUG, id, nick, '');
+  UID[id] = await upsertUserOnLogin(db, { discordId: id, username: nick, avatar: '', guildsJson: '[]', checkedAtSec: 1760000000 });
+  await upsertGuildMember(db, GID, id, nick, '');
 }
 
 /* ---- seed cars, seats, results, builds ---- */
 // E1: completed, Sat 2026-10-24 12:00 UTC = 20:00 Asia/Shanghai.
 const e1 = (await insertEvent(db, {
-  tenant: SLUG, title: '周六团本', type: 'activity', status: 'completed',
-  starts_at_utc: Date.UTC(2026, 9, 24, 12, 0) / 1000, max_slots: 10, dungeon: '', creator_discord_id: 'u1',
+  tenant: GID, title: '周六团本', type: 'activity', status: 'completed',
+  starts_at_utc: Date.UTC(2026, 9, 24, 12, 0) / 1000, max_slots: 10, dungeon: '', creator_user_id: UID.u1,
 })).last_row_id;
 // E2: completed, Sun 2026-10-25 02:00 UTC = 10:00 Asia/Shanghai.
 const e2 = (await insertEvent(db, {
-  tenant: SLUG, title: '周日团本', type: 'activity', status: 'completed',
-  starts_at_utc: Date.UTC(2026, 9, 25, 2, 0) / 1000, max_slots: 10, dungeon: '', creator_discord_id: 'u1',
+  tenant: GID, title: '周日团本', type: 'activity', status: 'completed',
+  starts_at_utc: Date.UTC(2026, 9, 25, 2, 0) / 1000, max_slots: 10, dungeon: '', creator_user_id: UID.u1,
 })).last_row_id;
 // E3: still open — counts signups only, settles nothing.
 const e3 = (await insertEvent(db, {
-  tenant: SLUG, title: '下周团本', type: 'activity', status: 'open',
-  starts_at_utc: Date.UTC(2026, 10, 1, 12, 0) / 1000, max_slots: 10, dungeon: '', creator_discord_id: 'u1',
+  tenant: GID, title: '下周团本', type: 'activity', status: 'open',
+  starts_at_utc: Date.UTC(2026, 10, 1, 12, 0) / 1000, max_slots: 10, dungeon: '', creator_user_id: UID.u1,
 })).last_row_id;
 // E4: draft — counts nowhere.
 const e4 = (await insertEvent(db, {
-  tenant: SLUG, title: '草稿车', type: 'activity', status: 'draft',
-  starts_at_utc: Date.UTC(2026, 9, 24, 12, 0) / 1000, max_slots: 10, dungeon: '', creator_discord_id: 'u1',
+  tenant: GID, title: '草稿车', type: 'activity', status: 'draft',
+  starts_at_utc: Date.UTC(2026, 9, 24, 12, 0) / 1000, max_slots: 10, dungeon: '', creator_user_id: UID.u1,
 })).last_row_id;
 const seat = (eventId, did, nick, ready) => insertSignup(db, {
   event_id: eventId, nickname: nick, uid: `uid-${eventId}-${did}`, discord_id: did, ready_at: ready ? 1760000000 : null,
@@ -111,12 +117,12 @@ await insertSignup(db, { event_id: e1, nickname: '路人', uid: 'x', discord_id:
 // Race: the seeded dex dungeon belongs to season S5.
 await insertDungeonDex(db, { name: '雷泽', size: 10, season: 'S5', category: '传薪', level: 100 });
 const r1 = (await insertEvent(db, {
-  tenant: SLUG, title: '雷泽竞速一', type: 'race', status: 'completed',
-  starts_at_utc: Date.UTC(2026, 9, 24, 13, 0) / 1000, max_slots: 10, dungeon: '雷泽', creator_discord_id: 'u1',
+  tenant: GID, title: '雷泽竞速一', type: 'race', status: 'completed',
+  starts_at_utc: Date.UTC(2026, 9, 24, 13, 0) / 1000, max_slots: 10, dungeon: '雷泽', creator_user_id: UID.u1,
 })).last_row_id;
 const r2 = (await insertEvent(db, {
-  tenant: SLUG, title: '雷泽竞速二', type: 'race', status: 'completed',
-  starts_at_utc: Date.UTC(2026, 9, 25, 13, 0) / 1000, max_slots: 10, dungeon: '雷泽', creator_discord_id: 'u1',
+  tenant: GID, title: '雷泽竞速二', type: 'race', status: 'completed',
+  starts_at_utc: Date.UTC(2026, 9, 25, 13, 0) / 1000, max_slots: 10, dungeon: '雷泽', creator_user_id: UID.u1,
 })).last_row_id;
 await insertResult(db, { eventId: r1, teamName: '甲队', members: '甲一,甲二', timeMs: 600000, proofUrl: '', note: '' });
 await insertResult(db, { eventId: r1, teamName: '乙队', members: '乙一,乙二', timeMs: 700000, proofUrl: '', note: '' });
@@ -124,9 +130,9 @@ await insertResult(db, { eventId: r2, teamName: '甲队', members: '甲一,甲�
 await insertResult(db, { eventId: r2, teamName: '乙队', members: '乙一,乙二', timeMs: 620000, proofUrl: '', note: '' });
 
 // Gear builds: u1 best 92, u2 best 55 (two builds, max wins), u3 none.
-await insertGearBuild(db, 'u1', { name: '甲构筑', targetIdx: 0, snapshot: { total: 0.92, a: 0, b: 0, d: 0, loan: 0, yAcc: 0, yCrit: 0 } });
-await insertGearBuild(db, 'u2', { name: '乙旧构筑', targetIdx: 0, snapshot: { total: 0.4, a: 0, b: 0, d: 0, loan: 0, yAcc: 0, yCrit: 0 } });
-await insertGearBuild(db, 'u2', { name: '乙构筑', targetIdx: 0, snapshot: { total: 0.55, a: 0, b: 0, d: 0, loan: 0, yAcc: 0, yCrit: 0 } });
+await insertGearBuild(db, UID.u1, { name: '甲构筑', targetIdx: 0, snapshot: { total: 0.92, a: 0, b: 0, d: 0, loan: 0, yAcc: 0, yCrit: 0 } });
+await insertGearBuild(db, UID.u2, { name: '乙旧构筑', targetIdx: 0, snapshot: { total: 0.4, a: 0, b: 0, d: 0, loan: 0, yAcc: 0, yCrit: 0 } });
+await insertGearBuild(db, UID.u2, { name: '乙构筑', targetIdx: 0, snapshot: { total: 0.55, a: 0, b: 0, d: 0, loan: 0, yAcc: 0, yCrit: 0 } });
 
 /* ---- GraphQL plumbing (omniscient viewer, as .harness-billing) ---- */
 const env = { DB: db, SITE_URL: 'http://local' };
@@ -158,7 +164,7 @@ const ga = (r) => r.data?.viewer?.guildAdmin;
 // Signed-in viewer for the member-board reads (see the header note
 // on the follow-up access ruling); the admin surface keeps riding
 // the omniscient VC exactly as before.
-const MEMBER_VIEWER = { discordId: 'u1', name: '甲一', guilds: [] };
+const MEMBER_VIEWER = { userId: UID.u1, discordId: 'u1', name: '甲一', guilds: [] };
 
 let r: any;
 
@@ -176,7 +182,7 @@ eq('A: race board absent (null)', ga(r)?.raceSeasonBoard ?? null, null);
 eq('A: insights tab label is backend copy (tab visibility is data-driven)', ga(r)?.adminTabInsightsLabel, '数据洞察');
 r = await gql(`mutation { upsertGearStandard(slug: "${SLUG}", label: "S5 开荒", minScore: 80) { ok errorCode } }`);
 eq('A: gear standard write refused at tier 0', [r.data?.upsertGearStandard?.ok, r.data?.upsertGearStandard?.errorCode], [false, 'premiumRequired']);
-eq('A: no standard stored', (await listGearStandards(db, SLUG)).length, 0);
+eq('A: no standard stored', (await listGearStandards(db, GID)).length, 0);
 r = await gql(`{ viewer { guild(slug: "${SLUG}") { __typename ... on Guild { raceSeasonBoard { __typename } gearSelfStatus { __typename } } } } }`, { user: MEMBER_VIEWER });
 eq('A: member race board absent (null)', r.data?.viewer?.guild?.raceSeasonBoard ?? null, null);
 eq('A: member gear self status absent (null)', r.data?.viewer?.guild?.gearSelfStatus ?? null, null);
@@ -203,7 +209,7 @@ await setPaygateEnabled(db, false);
 
   it('B. tier 1: full variants with the seeded numbers', async () => {
 /* ---------------- B. tier 1: full variants with the seeded numbers ---------------- */
-await grantTierManual(db, SLUG, 1, 30);
+await grantTierManual(db, GID, 1, 30);
 r = await gql(adminQ);
 check('B: no GraphQL errors', !r.errors, JSON.stringify(r.errors || []));
 eq('B: reliability full', ga(r)?.reliability?.__typename, 'GuildAdminReliability');
@@ -244,7 +250,7 @@ eq('B: race entries ranked (wins tie -> best time asc)', (seasons[0]?.entries ||
 check('B: best time text formatted', typeof seasons[0]?.entries?.[0]?.bestTimeText === 'string' && seasons[0].entries[0].bestTimeText.length > 0);
 
 /* member self status: only the viewer's own standing is composed */
-const self = await computeGearSelfStatus(db, SLUG, 'u2');
+const self = await computeGearSelfStatus(db, GID, 'u2');
 eq('B: u2 self status (own score only)', self.map((e) => [e.label, e.minScore, e.myScore, e.met]), [['S5 开荒', 80, 55, false]]);
 r = await gql(`{ viewer { guild(slug: "${SLUG}") { __typename ... on Guild { raceSeasonBoard { __typename } } } } }`, { user: MEMBER_VIEWER });
 eq('B: member race board full at tier 1', r.data?.viewer?.guild?.raceSeasonBoard?.__typename, 'RaceSeasonBoard');
@@ -254,23 +260,23 @@ r = await gql(`mutation { upsertGearStandard(slug: "${SLUG}", label: "", minScor
 eq('B: empty label refused', [r.data?.upsertGearStandard?.ok, r.data?.upsertGearStandard?.errorCode], [false, 'gearStandardInvalid']);
 r = await gql(`mutation { upsertGearStandard(slug: "${SLUG}", label: "x", minScore: 101) { ok errorCode } }`);
 eq('B: score > 100 refused', [r.data?.upsertGearStandard?.ok, r.data?.upsertGearStandard?.errorCode], [false, 'gearStandardInvalid']);
-await grantTierManual(db, OTHER, 1, 30);
+await grantTierManual(db, GID_OTHER, 1, 30);
 r = await gql(`mutation { upsertGearStandard(slug: "${OTHER}", label: "邻居线", minScore: 50) { ok standardId } }`);
 const otherStdId = r.data?.upsertGearStandard?.standardId;
 r = await gql(`mutation { deleteGearStandard(slug: "${SLUG}", id: "${otherStdId}") { ok errorCode } }`);
 eq('B: cross-guild standard id reads as not found', [r.data?.deleteGearStandard?.ok, r.data?.deleteGearStandard?.errorCode], [false, 'gearStandardNotFound']);
 r = await gql(`mutation { upsertGearStandard(slug: "${SLUG}", id: "${stdId}", label: "S5 开荒·严", minScore: 90) { ok errorCode } }`);
 eq('B: standard update ok', r.data?.upsertGearStandard?.ok, true);
-eq('B: standard updated in repository', (await listGearStandards(db, SLUG)).map((x) => [x.label, x.min_score]), [['S5 开荒·严', 90]]);
+eq('B: standard updated in repository', (await listGearStandards(db, GID)).map((x) => [x.label, x.min_score]), [['S5 开荒·严', 90]]);
   });
 
   it('C. tier 2 / tier 3: still full', async () => {
 /* ---------------- C. tier 2 / tier 3: still full ---------------- */
-await grantTierManual(db, SLUG, 2, 30);
+await grantTierManual(db, GID, 2, 30);
 r = await gql(adminQ);
 eq('C: tier 2 reliability full', ga(r)?.reliability?.__typename, 'GuildAdminReliability');
 eq('C: tier 2 race board full', ga(r)?.raceSeasonBoard?.__typename, 'RaceSeasonBoard');
-await grantTierManual(db, SLUG, 3, 30);
+await grantTierManual(db, GID, 3, 30);
 r = await gql(adminQ);
 eq('C: tier 3 heatmap full', ga(r)?.participationHeatmap?.__typename, 'GuildAdminParticipationHeatmap');
 eq('C: tier 3 gear board full', ga(r)?.gearBoard?.__typename, 'GuildAdminGearBoard');
@@ -279,7 +285,7 @@ eq('C: tier 3 gear board full', ga(r)?.gearBoard?.__typename, 'GuildAdminGearBoa
   it('D. expired tier: absent again (paygate OFF), lines frozen', async () => {
 /* ---------------- D. expired tier: absent again, lines frozen ---------------- */
 {
-  const prev = await getEntitlementRow(db, SLUG);
+  const prev = await getEntitlementRow(db, GID);
   await upsertEntitlementRow(db, { ...prev, currentPeriodEnd: Math.floor(Date.now() / 1000) - 60 });
 }
 r = await gql(adminQ);
@@ -289,13 +295,13 @@ eq('D: expired gear board absent (null)', ga(r)?.gearBoard ?? null, null);
 eq('D: expired race board absent (null)', ga(r)?.raceSeasonBoard ?? null, null);
 r = await gql(`mutation { deleteGearStandard(slug: "${SLUG}", id: "${stdId}") { ok errorCode } }`);
 eq('D: expired write refused', [r.data?.deleteGearStandard?.ok, r.data?.deleteGearStandard?.errorCode], [false, 'premiumRequired']);
-eq('D: standard frozen, not deleted', (await listGearStandards(db, SLUG)).length, 1);
-await grantTierManual(db, SLUG, 1, 30);
+eq('D: standard frozen, not deleted', (await listGearStandards(db, GID)).length, 1);
+await grantTierManual(db, GID, 1, 30);
 r = await gql(adminQ);
 eq('D: re-grant restores the board with its line', (ga(r)?.gearBoard?.standards || []).map((x) => x.label), ['S5 开荒·严']);
 r = await gql(`mutation { deleteGearStandard(slug: "${SLUG}", id: "${stdId}") { ok errorCode } }`);
 eq('D: delete works again at tier 1', r.data?.deleteGearStandard?.ok, true);
-eq('D: standard gone after delete', (await listGearStandards(db, SLUG)).length, 0);
+eq('D: standard gone after delete', (await listGearStandards(db, GID)).length, 0);
   });
 
   afterAll(async () => { await mf.dispose(); });

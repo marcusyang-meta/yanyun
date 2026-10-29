@@ -38,6 +38,7 @@ import { setTenantSetting } from '../src/domains/platform/graphql-base.ts';
 import { setPaygateEnabled, grantPremiumManual, revokePremium, tierLocked, tierSurfaceState, getEffectiveEntitlement } from '../src/domains/platform/billing-service.ts';
 import { insertEvent, insertSignup, upsertGuildMember, upsertMemberAvailability } from '../src/domains/groupings/index.ts';
 import { insertGearItemRow } from '../src/domains/gear/index.ts';
+import { upsertUserOnLogin } from '../src/domains/identity/users.ts';
 import {
   buildTeamDraft, rankSubstitutes, rankRotation, rankBestSlots,
   crossCarConflicts, crossCarMoves, neededRoles,
@@ -119,13 +120,15 @@ let migrationFiles: string[] = [];
 
 const SLUG = 'schedguild';
 const DGID = '434343434343434343';
-await insertTenant(db, { slug: SLUG, guildName: '调度测试百业', passwordHash: '', announcement: '' });
+const GID = await insertTenant(db, { slug: SLUG, guildName: '调度测试百业', passwordHash: '', announcement: '' });
 // Bound to a Discord server: the converged write gate refuses
 // writes for unbound guilds (guildUnboundWrite) before any tier
 // verdict runs, and premium flows live on bound guilds.
-await setTenantSetting(db, SLUG, 'discord_guild_id', DGID);
+await setTenantSetting(db, GID, 'discord_guild_id', DGID);
 // Roster: leader L, healer H, dps D, newcomer N.
+const UID: Record<string, number> = {};
 for (const [id, nick] of [['L', '车头'], ['H', '奶妈'], ['D', '输出'], ['N', '新人']]) {
+  UID[id] = await upsertUserOnLogin(db, { discordId: id, username: nick, avatar: '', guildsJson: '[]', checkedAtSec: 1760000000 });
   await upsertGuildMember(db, SLUG, id, nick, nick);
 }
 // Next Monday 12:30 UTC as the target car time.
@@ -133,22 +136,22 @@ const nowD = new Date(); let monday = Date.UTC(nowD.getUTCFullYear(), nowD.getUT
 while (new Date(monday * 1000).getUTCDay() !== 1 || monday < Math.floor(Date.now() / 1000) + 86400) monday += 86400;
 const pastMonday = monday - 7 * 86400;
 // A past car: H healed (ready), D dps'd (ready), giving both history.
-const past = await insertEvent(db, { tenant: SLUG, title: '上周车', type: 'activity', status: 'completed', max_slots: 10, starts_at_utc: pastMonday, creator_discord_id: 'L', origin: 'admin', created_by: 'L', dungeon: '' });
+const past = await insertEvent(db, { tenant: GID, title: '上周车', type: 'activity', status: 'completed', max_slots: 10, starts_at_utc: pastMonday, creator_user_id: UID.L, origin: 'admin', created_by: 'L', dungeon: '' });
 await insertSignup(db, { event_id: past.last_row_id, nickname: '奶妈', uid: 'uH', role: '奶', weapon: '牵丝·霖', discord_id: 'H', ready_at: pastMonday });
 await insertSignup(db, { event_id: past.last_row_id, nickname: '输出', uid: 'uD', role: '输出', weapon: '剑', discord_id: 'D', ready_at: pastMonday });
 // Target car led by L, one seat taken by D.
-const car = await insertEvent(db, { tenant: SLUG, title: '本周车', type: 'activity', status: 'open', max_slots: 10, starts_at_utc: monday, creator_discord_id: 'L', origin: 'admin', created_by: 'L', dungeon: '' });
+const car = await insertEvent(db, { tenant: GID, title: '本周车', type: 'activity', status: 'open', max_slots: 10, starts_at_utc: monday, creator_user_id: UID.L, origin: 'admin', created_by: 'L', dungeon: '' });
 const carId = car.last_row_id;
 await insertSignup(db, { event_id: carId, nickname: '输出', uid: 'uD2', role: '输出', weapon: '剑', discord_id: 'D' });
 // Overlapping second car with D seated -> P13 conflict.
-const car2 = await insertEvent(db, { tenant: SLUG, title: '重叠车', type: 'activity', status: 'open', max_slots: 10, starts_at_utc: monday + 1800, creator_discord_id: 'L', origin: 'admin', created_by: 'L', dungeon: '' });
+const car2 = await insertEvent(db, { tenant: GID, title: '重叠车', type: 'activity', status: 'open', max_slots: 10, starts_at_utc: monday + 1800, creator_user_id: UID.L, origin: 'admin', created_by: 'L', dungeon: '' });
 await insertSignup(db, { event_id: car2.last_row_id, nickname: '输出', uid: 'uD3', role: '输出', weapon: '剑', discord_id: 'D' });
 // Gear on file for H and D.
-await insertGearItemRow(db, { discordId: 'H', slot: '武器', name: '牵丝', payload: '{}', createdAt: 1 });
-await insertGearItemRow(db, { discordId: 'D', slot: '武器', name: '剑', payload: '{}', createdAt: 1 });
+await insertGearItemRow(db, { userId: UID.H, slot: '武器', name: '牵丝', payload: '{}', createdAt: 1 });
+await insertGearItemRow(db, { userId: UID.D, slot: '武器', name: '剑', payload: '{}', createdAt: 1 });
 // Availability: H + D free Monday 12:00-14:00 UTC.
 for (const id of ['H', 'D']) {
-  await upsertMemberAvailability(db, { tenant: SLUG, discordId: id, displayName: id, slots: [{ weekday: 1, startMinute: 720, endMinute: 840 }], updatedAt: 1 });
+  await upsertMemberAvailability(db, { tenant: GID, userId: UID[id], displayName: id, slots: [{ weekday: 1, startMinute: 720, endMinute: 840 }], updatedAt: 1 });
 }
 
 const env = { DB: db, SITE_URL: 'http://local' };
@@ -159,7 +162,7 @@ async function gql(query) {
   // ctx shape the guildadmin suite uses. (The retired harness acted
   // through the omniscient VC with a null user; that bypass no
   // longer feeds the verdict.)
-  const ctx = { env, request: new Request('http://local/graphql'), user: { discordId: 'L', name: '车头', guilds: [DGID] }, locale: 'zh-CN', browserLocale: 'zh-CN', tz: 'Asia/Shanghai', executionCtx: undefined };
+  const ctx = { env, request: new Request('http://local/graphql'), user: { userId: UID.L, discordId: 'L', name: '车头', guilds: [DGID] }, locale: 'zh-CN', browserLocale: 'zh-CN', tz: 'Asia/Shanghai', executionCtx: undefined };
   const res = await yoga.fetch(new Request('http://local/graphql', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ query }) }), ctx);
   return res.json();
 }
@@ -187,20 +190,20 @@ describe('premiumscheduling (real D1)', () => {
     // No setting row yet: the paygate reads OFF by default, and the
     // converged tierLocked never consults it — a free guild is
     // locked purely for lack of entitlement.
-    eq('tierLocked: paygate OFF leaves a free guild locked at T2 (verdict ignores the paygate)', await tierLocked(db, SLUG, 2), true);
+    eq('tierLocked: paygate OFF leaves a free guild locked at T2 (verdict ignores the paygate)', await tierLocked(db, GID, 2), true);
     eq('surfaceState: paygate OFF + free guild is absent', await tierSurfaceState(db, SLUG, 2), 'absent');
     await setPaygateEnabled(db, true);
-    eq('tierLocked: paygate ON + free guild locked at T2', await tierLocked(db, SLUG, 2), true);
+    eq('tierLocked: paygate ON + free guild locked at T2', await tierLocked(db, GID, 2), true);
     eq('surfaceState: paygate ON + free guild is locked', await tierSurfaceState(db, SLUG, 2), 'locked');
-    eq('effective tier: free guild is 0', (await getEffectiveEntitlement(db, SLUG)).tier, 0);
-    await grantPremiumManual(db, SLUG, 30);
-    eq('tierLocked: manual premium grant unlocks T2', await tierLocked(db, SLUG, 2), false);
+    eq('effective tier: free guild is 0', (await getEffectiveEntitlement(db, GID)).tier, 0);
+    await grantPremiumManual(db, GID, 30);
+    eq('tierLocked: manual premium grant unlocks T2', await tierLocked(db, GID, 2), false);
     eq('surfaceState: paygate ON + granted guild is open', await tierSurfaceState(db, SLUG, 2), 'open');
-    eq('effective tier: legacy premium maps to tier 3 (TIER_BY_PLAN)', (await getEffectiveEntitlement(db, SLUG)).tier, 3);
+    eq('effective tier: legacy premium maps to tier 3 (TIER_BY_PLAN)', (await getEffectiveEntitlement(db, GID)).tier, 3);
     await setPaygateEnabled(db, false);
     eq('surfaceState: paygate OFF + granted guild stays open', await tierSurfaceState(db, SLUG, 2), 'open');
-    await revokePremium(db, SLUG);
-    eq('tierLocked: revoke re-locks T2', await tierLocked(db, SLUG, 2), true);
+    await revokePremium(db, GID);
+    eq('tierLocked: revoke re-locks T2', await tierLocked(db, GID, 2), true);
     eq('surfaceState: revoked guild is absent again while OFF', await tierSurfaceState(db, SLUG, 2), 'absent');
   });
 
@@ -237,7 +240,7 @@ describe('premiumscheduling (real D1)', () => {
   });
 
   it('legacy premium grant: full shells with data, P5 audit write + readback', async () => {
-    await grantPremiumManual(db, SLUG, 30);
+    await grantPremiumManual(db, GID, 30);
     let r = await gql(detailQ);
     eq('granted detail: full advice shell', r.data?.groupingDetailPage?.schedulingAdvice?.__typename, 'GroupingSchedulingAdvice');
     check('granted detail: draft seats the healer candidate', (r.data?.groupingDetailPage?.schedulingAdvice?.draft || []).some((d) => d.discordId === 'H'), JSON.stringify(r).slice(0, 300));
@@ -261,7 +264,7 @@ describe('premiumscheduling (real D1)', () => {
     r = await gql(detailQ);
     eq('granted+ON detail: full advice shell', r.data?.groupingDetailPage?.schedulingAdvice?.__typename, 'GroupingSchedulingAdvice');
     await setPaygateEnabled(db, false);
-    await revokePremium(db, SLUG);
+    await revokePremium(db, GID);
   });
 });
 

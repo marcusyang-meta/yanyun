@@ -37,6 +37,8 @@ import {
 const { upsertEntitlementRow: upsertTierRow } = await import('../src/domains/platform/billing.ts');
 import { getEffectiveLimits } from '../src/domains/platform/limits.ts';
 import { getEntitlementRow } from '../src/domains/platform/billing.ts';
+import { getGuildIdBySlug } from '../src/domains/guilds/tenants.ts';
+import { upsertUserOnLogin } from '../src/domains/identity/users.ts';
 
 function check(name: string, ok: boolean, extra = '') {
   expect(ok, extra ? `${name} — ${extra}` : name).toBe(true);
@@ -65,9 +67,9 @@ const db = await mf.getD1Database('DB');
 }
 
 const SLUG = 'billguild';
-await insertTenant(db, { slug: SLUG, guildName: '计费测试百业', passwordHash: '', announcement: '' });
-await setSettingValue(db, SLUG, 'whitelabel_hide_branding', '0');
-await setSettingValue(db, SLUG, 'whitelabel_og_suffix', '专属后缀');
+const GID = await insertTenant(db, { slug: SLUG, guildName: '计费测试百业', passwordHash: '', announcement: '' });
+await setSettingValue(db, GID, 'whitelabel_hide_branding', '0');
+await setSettingValue(db, GID, 'whitelabel_og_suffix', '专属后缀');
 
 const envPlain = { DB: db, SITE_URL: 'http://local' };
 const STRIPE_ENV = {
@@ -110,7 +112,8 @@ const ADMIN_BILLING_FIELDS = `paygateEnabled stripeConfigured customDomainSaasCo
     currentPeriodEnd lapsed pastDue hasCard trialUsed stripeCustomerId stripeSubscriptionId
     subdomainEnabled customDomainHostname customDomainStatus }`;
 const adminEnv = { DB: db, SITE_URL: 'http://local', PLATFORM_ADMIN_DISCORD_IDS: 'BILLING-ADMIN' };
-const adminUser = { discordId: 'BILLING-ADMIN', name: 'billing-test admin', guilds: [] as string[] };
+const ADMIN_UID = await upsertUserOnLogin(db, { discordId: 'BILLING-ADMIN', username: 'billing-test admin', avatar: '', guildsJson: '[]', checkedAtSec: 1760000000 });
+const adminUser = { userId: ADMIN_UID, discordId: 'BILLING-ADMIN', name: 'billing-test admin', guilds: [] as string[] };
 function shapeBilling(b: any) {
   if (!b) return null;
   return { ...b, tenants: (b.tenants || []).map((t: any) => ({ ...t,
@@ -160,18 +163,18 @@ let h: any;
 let eff: any;
 let nowS: number = Math.floor(Date.now() / 1000);
 const TSLUG = 'tierguild';
-await insertTenant(db, { slug: TSLUG, guildName: '档位测试百业', passwordHash: '', announcement: '' });
+const GID_T = await insertTenant(db, { slug: TSLUG, guildName: '档位测试百业', passwordHash: '', announcement: '' });
 const GSLUG = 'graceguild';
-await insertTenant(db, { slug: GSLUG, guildName: '宽限测试百业', passwordHash: '', announcement: '' });
+const GID_G = await insertTenant(db, { slug: GSLUG, guildName: '宽限测试百业', passwordHash: '', announcement: '' });
 const FUTURE = nowS + 30 * 86400;
 const PAST = nowS - 100;
 async function setStoredPlan(plan, periodEnd, extra = {}) {
   if (plan === null) {
-    await db.prepare('DELETE FROM guild_entitlements WHERE tenant = ?').bind(TSLUG).run();
+    await db.prepare('DELETE FROM guild_entitlements WHERE tenant = ?').bind(GID_T).run();
     return;
   }
   await upsertTierRow(db, {
-    tenant: TSLUG, plan, source: 'manual', currentPeriodEnd: periodEnd,
+    tenant: GID_T, plan, source: 'manual', currentPeriodEnd: periodEnd,
     stripeCustomerId: extra.cus || '', stripeSubscriptionId: extra.sub || '', updatedAt: nowS,
   });
 }
@@ -185,7 +188,7 @@ eq('OFF: stats compose the full variant', ga(r)?.stats?.__typename, 'GuildAdminS
 check('OFF: stats weeks present', Array.isArray(ga(r)?.stats?.weeks));
 check('OFF: footer disclaimer shown while branding visible',
   typeof ga(r)?.pageFooterDisclaimerText === 'string' && ga(r).pageFooterDisclaimerText.length > 0);
-await setSettingValue(db, SLUG, 'whitelabel_hide_branding', '1');
+await setSettingValue(db, GID, 'whitelabel_hide_branding', '1');
 r = await gql(adminQ);
 check('OFF: stored hide-branding honored (footer blank)',
   ga(r)?.pageFooterDisclaimerText === '' || ga(r)?.pageFooterDisclaimerText === null);
@@ -220,7 +223,7 @@ eq('ON: stats compose Locked', ga(r)?.stats?.__typename, 'GuildAdminStatsLocked'
 eq('ON: stats locked carries no weeks', ga(r)?.stats?.weeks ?? null, null);
 check('ON: branding presentation falls back (footer returns)',
   typeof ga(r)?.pageFooterDisclaimerText === 'string' && ga(r).pageFooterDisclaimerText.length > 0);
-eq('ON: stored branding setting untouched', await getSettingValue(db, SLUG, 'whitelabel_hide_branding'), '1');
+eq('ON: stored branding setting untouched', await getSettingValue(db, GID, 'whitelabel_hide_branding'), '1');
 r = await gql(`mutation { updateGuildReminderSettings(slug: "${SLUG}", offsets: [30]) { ok errorCode } }`);
 eq('ON: reminder write refused', [r.data?.updateGuildReminderSettings?.ok, r.data?.updateGuildReminderSettings?.errorCode], [false, 'premiumRequired']);
 r = await gql(`mutation { updateGuildWhiteLabel(slug: "${SLUG}", hideBranding: false, ogAccent: "", ogTitleSuffix: "") { ok errorCode } }`);
@@ -235,7 +238,7 @@ eq('ON: checkout composes coming-soon refusal',
 /* ---------------- C. admin grant unlocks, D. revoke re-locks ---------------- */
 h = await hub('/api/hub/billing/grant', 'POST', { slug: SLUG, days: 30 });
 eq('admin: grant ok', [h.status, h.json?.ok], [200, true]);
-eff = await getEffectiveEntitlement(db, SLUG);
+eff = await getEffectiveEntitlement(db, GID);
 eq('grant: effective premium/manual', [eff.plan, eff.source, eff.lapsed], ['premium', 'manual', false]);
 r = await gql(adminQ);
 eq('grant: premium composes Active', ga(r)?.premium?.__typename, 'GuildAdminPremiumActive');
@@ -247,10 +250,10 @@ check('grant: branding honored again (footer blank)',
 r = await gql(`mutation { updateGuildReminderSettings(slug: "${SLUG}", offsets: [60]) { ok errorCode } }`);
 eq('grant: reminder write open again', r.data?.updateGuildReminderSettings?.ok, true);
 {
-  const lim = await getEffectiveLimits(db, { discordId: 'rig-user', guildSlug: SLUG });
+  const lim = await getEffectiveLimits(db, { guildId: GID });
   eq('limits seam: tier-3 table while granted (legacy premium reads as tier 3)',
     [lim.gearItemCapacity, lim.ocrBatchImages, lim.ocrBatchesPerDay], [5000, 100, 100]);
-  const limNoGuild = await getEffectiveLimits(db, { discordId: 'rig-user' });
+  const limNoGuild = await getEffectiveLimits(db, {});
   eq('limits seam: guild-less context stays free', limNoGuild.gearItemCapacity, 200);
 }
 
@@ -260,7 +263,7 @@ r = await gql(adminQ);
 eq('revoke: premium Locked again', ga(r)?.premium?.__typename, 'GuildAdminPremiumLocked');
 eq('revoke: stats Locked again', ga(r)?.stats?.__typename, 'GuildAdminStatsLocked');
 {
-  const lim = await getEffectiveLimits(db, { discordId: 'rig-user', guildSlug: SLUG });
+  const lim = await getEffectiveLimits(db, { guildId: GID });
   eq('limits seam: free table after revoke', [lim.gearItemCapacity, lim.ocrBatchImages, lim.ocrBatchesPerDay], [200, 20, 10]);
 }
 
@@ -298,15 +301,15 @@ const evCompleted = JSON.stringify({
   } },
 });
 eq('webhook: completed accepted', await whPost(evCompleted), 200);
-eff = await getEffectiveEntitlement(db, SLUG);
+eff = await getEffectiveEntitlement(db, GID);
 eq('webhook: entitlement premium via stripe', [eff.plan, eff.source], ['premium', 'stripe']);
 eq('webhook: period end recorded', eff.currentPeriodEnd, nowS + 30 * 86400);
-const rowAfterFirst = await getEntitlementRow(db, SLUG);
+const rowAfterFirst = await getEntitlementRow(db, GID);
 eq('webhook: stripe ids recorded', [rowAfterFirst?.stripeCustomerId, rowAfterFirst?.stripeSubscriptionId], ['cus_bill', 'sub_bill']);
 
 const dup = await handleStripeEvent(envStripe, JSON.parse(evCompleted));
 eq('webhook: replay detected as duplicate', dup, { applied: false, duplicate: true });
-const rowAfterDup = await getEntitlementRow(db, SLUG);
+const rowAfterDup = await getEntitlementRow(db, GID);
 eq('webhook: replay changed nothing', rowAfterDup?.updatedAt, rowAfterFirst?.updatedAt);
 eq('webhook: replay via route still 200', await whPost(evCompleted), 200);
 
@@ -315,7 +318,7 @@ const evUpdated = JSON.stringify({
   data: { object: { id: 'sub_bill', status: 'active', current_period_end: nowS + 60 * 86400, metadata: { guild_slug: SLUG } } },
 });
 eq('webhook: updated accepted', await whPost(evUpdated), 200);
-eff = await getEffectiveEntitlement(db, SLUG);
+eff = await getEffectiveEntitlement(db, GID);
 eq('webhook: period end extended', eff.currentPeriodEnd, nowS + 60 * 86400);
 
 const evFailed = JSON.stringify({
@@ -334,7 +337,7 @@ const evDeleted = JSON.stringify({
   data: { object: { id: 'sub_bill', status: 'canceled', ended_at: nowS - 10, current_period_end: nowS + 60 * 86400, metadata: { guild_slug: SLUG } } },
 });
 eq('webhook: deleted accepted', await whPost(evDeleted), 200);
-eff = await getEffectiveEntitlement(db, SLUG);
+eff = await getEffectiveEntitlement(db, GID);
 eq('webhook: ended subscription reads as free', [eff.plan, eff.lapsed], ['free', true]);
 
 const badStatus = await whPost(evCompleted, 'whsec_wrong');
@@ -348,15 +351,15 @@ eq('webhook: bad signature rejected', badStatus, 400);
 
   it('G. read-time expiry + checkout session shape', async () => {
 /* ---------------- G. read-time expiry + checkout session shape ---------------- */
-await grantPremiumManual(db, SLUG, 30);
+await grantPremiumManual(db, GID, 30);
 {
   const { upsertEntitlementRow } = await import('../src/domains/platform/billing.ts');
   await upsertEntitlementRow(db, {
-    tenant: SLUG, plan: 'premium', source: 'manual', currentPeriodEnd: nowS - 100,
+    tenant: GID, plan: 'premium', source: 'manual', currentPeriodEnd: nowS - 100,
     stripeCustomerId: '', stripeSubscriptionId: '', updatedAt: nowS,
   });
 }
-eff = await getEffectiveEntitlement(db, SLUG);
+eff = await getEffectiveEntitlement(db, GID);
 eq('expiry: stored premium past period end reads free', [eff.plan, eff.lapsed], ['free', true]);
 
 {
@@ -429,61 +432,61 @@ const tierCases = [
 ];
 for (const [label, plan, periodEnd, wantTier, wantLocked] of tierCases) {
   await setStoredPlan(plan, periodEnd);
-  const e = await getEffectiveEntitlement(db, TSLUG);
+  const e = await getEffectiveEntitlement(db, GID_T);
   eq(`tier matrix: ${label} effective tier`, e.tier, wantTier);
   if (periodEnd === PAST) eq(`tier matrix: ${label} lapsed intact`, [e.plan, e.lapsed], ['free', true]);
   for (const minTier of [1, 2, 3]) {
-    eq(`tier matrix: ${label} tierLocked(min=${minTier})`, await tierLocked(db, TSLUG, minTier), wantLocked[minTier - 1]);
+    eq(`tier matrix: ${label} tierLocked(min=${minTier})`, await tierLocked(db, GID_T, minTier), wantLocked[minTier - 1]);
   }
 }
 
 /* tierLocked ignores the paygate switch in both states */
 await setStoredPlan('t2', FUTURE);
 for (const minTier of [1, 2, 3]) {
-  eq(`paygate OFF: tierLocked t2 (min=${minTier})`, await tierLocked(db, TSLUG, minTier), [false, false, true][minTier - 1]);
+  eq(`paygate OFF: tierLocked t2 (min=${minTier})`, await tierLocked(db, GID_T, minTier), [false, false, true][minTier - 1]);
 }
 h = await hub('/api/hub/billing/paygate', 'PUT', { enabled: true });
 eq('tier section: paygate switched on', h.json?.billing?.paygateEnabled, true);
 for (const minTier of [1, 2, 3]) {
-  eq(`paygate ON: tierLocked t2 unchanged (min=${minTier})`, await tierLocked(db, TSLUG, minTier), [false, false, true][minTier - 1]);
+  eq(`paygate ON: tierLocked t2 unchanged (min=${minTier})`, await tierLocked(db, GID_T, minTier), [false, false, true][minTier - 1]);
 }
 
 /* premiumGate / isPremiumActive: pre-tier semantics verbatim */
 await setStoredPlan('premium', FUTURE);
-eq('legacy gate ON: premium premiumGate open', await premiumGate(db, TSLUG), false);
-eq('legacy gate ON: premium isPremiumActive', await isPremiumActive(db, TSLUG), true);
+eq('legacy gate ON: premium premiumGate open', await premiumGate(db, GID_T), false);
+eq('legacy gate ON: premium isPremiumActive', await isPremiumActive(db, GID_T), true);
 await setStoredPlan('t3', FUTURE);
-eq('legacy gate ON: t3 is not legacy premium (premiumGate)', await premiumGate(db, TSLUG), true);
-eq('legacy gate ON: t3 is not legacy premium (isPremiumActive)', await isPremiumActive(db, TSLUG), false);
+eq('legacy gate ON: t3 is not legacy premium (premiumGate)', await premiumGate(db, GID_T), true);
+eq('legacy gate ON: t3 is not legacy premium (isPremiumActive)', await isPremiumActive(db, GID_T), false);
 await setStoredPlan('free', FUTURE);
-eq('legacy gate ON: free premiumGate locked', await premiumGate(db, TSLUG), true);
-eq('legacy gate ON: free isPremiumActive false', await isPremiumActive(db, TSLUG), false);
+eq('legacy gate ON: free premiumGate locked', await premiumGate(db, GID_T), true);
+eq('legacy gate ON: free isPremiumActive false', await isPremiumActive(db, GID_T), false);
 h = await hub('/api/hub/billing/paygate', 'PUT', { enabled: false });
 eq('tier section: paygate switched back off', h.json?.billing?.paygateEnabled, false);
 await setStoredPlan('premium', FUTURE);
-eq('legacy gate OFF: premium premiumGate open', await premiumGate(db, TSLUG), false);
-eq('legacy gate OFF: premium isPremiumActive false (switch off)', await isPremiumActive(db, TSLUG), false);
+eq('legacy gate OFF: premium premiumGate open', await premiumGate(db, GID_T), false);
+eq('legacy gate OFF: premium isPremiumActive false (switch off)', await isPremiumActive(db, GID_T), false);
 await setStoredPlan('free', FUTURE);
-eq('legacy gate OFF: free premiumGate open', await premiumGate(db, TSLUG), false);
-eq('legacy gate OFF: free isPremiumActive false', await isPremiumActive(db, TSLUG), false);
+eq('legacy gate OFF: free premiumGate open', await premiumGate(db, GID_T), false);
+eq('legacy gate OFF: free isPremiumActive false', await isPremiumActive(db, GID_T), false);
 
 /* grantTierManual: grantPremiumManual shape, tiered plan */
 await setStoredPlan('free', null, { cus: 'cus_tier', sub: 'sub_tier' });
 {
-  const row = await grantTierManual(db, TSLUG, 2, 30);
+  const row = await grantTierManual(db, GID_T, 2, 30);
   eq('grantTierManual: plan/source/stripe ids preserved',
     [row.plan, row.source, row.stripeCustomerId, row.stripeSubscriptionId],
     ['t2', 'manual', 'cus_tier', 'sub_tier']);
   check('grantTierManual: 30-day period end',
     row.currentPeriodEnd > nowS + 29 * 86400 && row.currentPeriodEnd <= Math.floor(Date.now() / 1000) + 30 * 86400 + 5,
     String(row.currentPeriodEnd));
-  eq('grantTierManual: effective tier 2', (await getEffectiveEntitlement(db, TSLUG)).tier, 2);
-  const rowStr = await grantTierManual(db, TSLUG, 't1', 0);
+  eq('grantTierManual: effective tier 2', (await getEffectiveEntitlement(db, GID_T)).tier, 2);
+  const rowStr = await grantTierManual(db, GID_T, 't1', 0);
   eq('grantTierManual: string tier + days clamped to 1', rowStr.plan, 't1');
   check('grantTierManual: clamped period end ~1 day',
     rowStr.currentPeriodEnd > nowS && rowStr.currentPeriodEnd <= Math.floor(Date.now() / 1000) + 86400 + 5,
     String(rowStr.currentPeriodEnd));
-  const rowMax = await grantTierManual(db, TSLUG, 3, 99999);
+  const rowMax = await grantTierManual(db, GID_T, 3, 99999);
   check('grantTierManual: days clamped to 3650',
     rowMax.currentPeriodEnd <= Math.floor(Date.now() / 1000) + 3650 * 86400 + 5,
     String(rowMax.currentPeriodEnd));
@@ -559,7 +562,7 @@ eq('pricing section: paygate back off', h.json?.billing?.paygateEnabled, false);
 /* ---------------- K. past-due grace matrix (stripe only, 14 days) ---------------- */
 const G_END = nowS + 30 * 86400;
 await upsertTierRow(db, {
-  tenant: GSLUG, plan: 't2', source: 'stripe', currentPeriodEnd: G_END,
+  tenant: GID_G, plan: 't2', source: 'stripe', currentPeriodEnd: G_END,
   stripeCustomerId: 'cus_grace', stripeSubscriptionId: 'sub_grace', updatedAt: nowS,
 });
 eq('grace: payment_failed applied', await handleStripeEvent(envStripe, {
@@ -567,37 +570,37 @@ eq('grace: payment_failed applied', await handleStripeEvent(envStripe, {
   data: { object: { id: 'in_grace', customer: 'cus_grace', subscription: 'sub_grace' } },
 }), { applied: true, duplicate: false });
 {
-  const row = await getEntitlementRow(db, GSLUG);
+  const row = await getEntitlementRow(db, GID_G);
   check('grace: past-due marker stamped', row?.pastDueSince != null, String(row?.pastDueSince));
 }
-eff = await getEffectiveEntitlement(db, GSLUG, G_END - 100);
+eff = await getEffectiveEntitlement(db, GID_G, G_END - 100);
 eq('grace: before period end still tier 2 + pastDue', [eff.tier, eff.lapsed, eff.pastDue], [2, false, true]);
-eff = await getEffectiveEntitlement(db, GSLUG, G_END + 13 * 86400);
+eff = await getEffectiveEntitlement(db, GID_G, G_END + 13 * 86400);
 eq('grace: 13 days past end still tier 2', [eff.plan, eff.tier, eff.lapsed, eff.pastDue], ['t2', 2, false, true]);
-eff = await getEffectiveEntitlement(db, GSLUG, G_END + 14 * 86400 - 1);
+eff = await getEffectiveEntitlement(db, GID_G, G_END + 14 * 86400 - 1);
 eq('grace: last second of window still tier 2', [eff.tier, eff.lapsed], [2, false]);
-eff = await getEffectiveEntitlement(db, GSLUG, G_END + 14 * 86400);
+eff = await getEffectiveEntitlement(db, GID_G, G_END + 14 * 86400);
 eq('grace: window over -> lapsed free, row kept', [eff.plan, eff.tier, eff.lapsed, eff.pastDue], ['free', 0, true, true]);
-eq('grace: stored row not deleted by lapse', (await getEntitlementRow(db, GSLUG))?.plan, 't2');
+eq('grace: stored row not deleted by lapse', (await getEntitlementRow(db, GID_G))?.plan, 't2');
 eq('grace: subscription active applied', await handleStripeEvent(envStripe, {
   id: 'evt_grace_2', type: 'customer.subscription.updated',
   data: { object: { id: 'sub_grace', status: 'active', customer: 'cus_grace', current_period_end: nowS + 30 * 86400, metadata: { guild_slug: GSLUG } } },
 }), { applied: true, duplicate: false });
 {
-  const row = await getEntitlementRow(db, GSLUG);
+  const row = await getEntitlementRow(db, GID_G);
   eq('grace: paid-up clears the marker', row?.pastDueSince ?? null, null);
 }
-eff = await getEffectiveEntitlement(db, GSLUG);
+eff = await getEffectiveEntitlement(db, GID_G);
 eq('grace: recovered entitlement clean', [eff.plan, eff.pastDue, eff.lapsed], ['premium', false, false]);
 eq('grace: subscription past_due applied', await handleStripeEvent(envStripe, {
   id: 'evt_grace_3', type: 'customer.subscription.updated',
   data: { object: { id: 'sub_grace', status: 'past_due', customer: 'cus_grace', current_period_end: nowS + 30 * 86400, metadata: { guild_slug: GSLUG } } },
 }), { applied: true, duplicate: false });
 {
-  const row = await getEntitlementRow(db, GSLUG);
+  const row = await getEntitlementRow(db, GID_G);
   check('grace: past_due status re-stamps the marker', row?.pastDueSince != null);
 }
-eff = await getEffectiveEntitlement(db, GSLUG);
+eff = await getEffectiveEntitlement(db, GID_G);
 eq('grace: past_due status exposes the fact', [eff.pastDue, eff.lapsed], [true, false]);
 
 /* manual source: no marker, no grace — period end is final */
@@ -607,19 +610,19 @@ await handleStripeEvent(envStripe, {
   data: { object: { id: 'in_manual', customer: 'cus_manual', subscription: 'sub_manual' } },
 });
 {
-  const row = await getEntitlementRow(db, TSLUG);
+  const row = await getEntitlementRow(db, GID_T);
   eq('grace: manual row never marked', row?.pastDueSince ?? null, null);
 }
-eff = await getEffectiveEntitlement(db, TSLUG, nowS + 13 * 86400);
+eff = await getEffectiveEntitlement(db, GID_T, nowS + 13 * 86400);
 eq('grace: manual lapsed at period end, no window', [eff.plan, eff.tier, eff.lapsed, eff.pastDue], ['free', 0, true, false]);
   });
 
   it('L. trial grant + persistence-card verdict', async () => {
 /* ---------------- L. trial grant + persistence-card verdict ---------------- */
 const RSLUG = 'trialguild';
-await insertTenant(db, { slug: RSLUG, guildName: '试用测试百业', passwordHash: '', announcement: '' });
+const GID_R = await insertTenant(db, { slug: RSLUG, guildName: '试用测试百业', passwordHash: '', announcement: '' });
 {
-  const row = await grantTrialEntitlement(db, RSLUG);
+  const row = await grantTrialEntitlement(db, GID_R);
   eq('trial: granted plan/source', [row?.plan, row?.source], ['t2', 'trial']);
   check('trial: 14-day period end',
     row != null && row.currentPeriodEnd > nowS + 13 * 86400 && row.currentPeriodEnd <= Math.floor(Date.now() / 1000) + 14 * 86400 + 5,
@@ -627,49 +630,49 @@ await insertTenant(db, { slug: RSLUG, guildName: '试用测试百业', passwordH
   eq('trial: trial_used stamped', row?.trialUsed, true);
   eq('trial: no card asked or recorded', row?.hasCard, false);
 }
-eff = await getEffectiveEntitlement(db, RSLUG);
+eff = await getEffectiveEntitlement(db, GID_R);
 eq('trial: effective tier 2 via trial', [eff.plan, eff.tier, eff.source, eff.lapsed], ['t2', 2, 'trial', false]);
 {
-  const before = await getEntitlementRow(db, RSLUG);
-  eq('trial: second grant refused', await grantTrialEntitlement(db, RSLUG), null);
-  eq('trial: refusal changed nothing', (await getEntitlementRow(db, RSLUG))?.updatedAt, before?.updatedAt);
+  const before = await getEntitlementRow(db, GID_R);
+  eq('trial: second grant refused', await grantTrialEntitlement(db, GID_R), null);
+  eq('trial: refusal changed nothing', (await getEntitlementRow(db, GID_R))?.updatedAt, before?.updatedAt);
 }
-eq('card matrix: trial without card -> required', await persistenceCardRequired(db, RSLUG), true);
+eq('card matrix: trial without card -> required', await persistenceCardRequired(db, GID_R), true);
 {
-  const prev = await getEntitlementRow(db, RSLUG);
+  const prev = await getEntitlementRow(db, GID_R);
   await upsertTierRow(db, { ...prev, hasCard: true, updatedAt: nowS });
-  eq('card matrix: trial with card on file -> not required', await persistenceCardRequired(db, RSLUG), false);
+  eq('card matrix: trial with card on file -> not required', await persistenceCardRequired(db, GID_R), false);
   await upsertTierRow(db, { ...prev, hasCard: false, updatedAt: nowS });
-  eq('card matrix: card removed -> required again', await persistenceCardRequired(db, RSLUG), true);
+  eq('card matrix: card removed -> required again', await persistenceCardRequired(db, GID_R), true);
 }
-eq('card matrix: stripe (past_due, live) -> not required', await persistenceCardRequired(db, GSLUG), false);
+eq('card matrix: stripe (past_due, live) -> not required', await persistenceCardRequired(db, GID_G), false);
 await setStoredPlan('t2', FUTURE);
-eq('card matrix: manual live -> not required', await persistenceCardRequired(db, TSLUG), false);
-eq('card matrix: lapsed guild -> required', await persistenceCardRequired(db, SLUG), true);
-await insertTenant(db, { slug: 'emptyguild', guildName: '空权益百业', passwordHash: '', announcement: '' });
-eq('card matrix: no entitlement row -> required', await persistenceCardRequired(db, 'emptyguild'), true);
-eq('trial: live manual entitlement blocks a trial grant', await grantTrialEntitlement(db, TSLUG), null);
-eq('trial: manual entitlement untouched by the attempt', (await getEffectiveEntitlement(db, TSLUG)).source, 'manual');
+eq('card matrix: manual live -> not required', await persistenceCardRequired(db, GID_T), false);
+eq('card matrix: lapsed guild -> required', await persistenceCardRequired(db, GID), true);
+const GID_EMPTY = await insertTenant(db, { slug: 'emptyguild', guildName: '空权益百业', passwordHash: '', announcement: '' });
+eq('card matrix: no entitlement row -> required', await persistenceCardRequired(db, GID_EMPTY), true);
+eq('trial: live manual entitlement blocks a trial grant', await grantTrialEntitlement(db, GID_T), null);
+eq('trial: manual entitlement untouched by the attempt', (await getEffectiveEntitlement(db, GID_T)).source, 'manual');
 {
-  const prev = await getEntitlementRow(db, RSLUG);
+  const prev = await getEntitlementRow(db, GID_R);
   await upsertTierRow(db, { ...prev, currentPeriodEnd: nowS - 10, updatedAt: nowS });
 }
-eff = await getEffectiveEntitlement(db, RSLUG, nowS + 13 * 86400);
+eff = await getEffectiveEntitlement(db, GID_R, nowS + 13 * 86400);
 eq('trial: expired trial gets no grace window', [eff.plan, eff.tier, eff.lapsed, eff.pastDue], ['free', 0, true, false]);
-eq('trial: consumed trial never re-arms after expiry', await grantTrialEntitlement(db, RSLUG), null);
+eq('trial: consumed trial never re-arms after expiry', await grantTrialEntitlement(db, GID_R), null);
 
 /* platform-admin subdomain enable: the persistence-card verdict at the admin seam */
 const HSLUG = 'hubtrial';
-await insertTenant(db, { slug: HSLUG, guildName: '子域试用百业', passwordHash: '', announcement: '' });
-await grantTrialEntitlement(db, HSLUG);
+const GID_H = await insertTenant(db, { slug: HSLUG, guildName: '子域试用百业', passwordHash: '', announcement: '' });
+await grantTrialEntitlement(db, GID_H);
 h = await hub('/api/hub/billing/subdomain', 'PUT', { slug: HSLUG, enabled: true });
 eq('admin subdomain: trial without card refused', h.status, 400);
 check('admin subdomain: refusal states the trial/card reason',
   String(h.json?.message || '').includes('试用') && String(h.json?.message || '').includes('卡'),
   String(h.json?.message || ''));
-eq('admin subdomain: refusal flipped nothing', await getSettingValue(db, HSLUG, 'subdomain_enabled'), '');
+eq('admin subdomain: refusal flipped nothing', await getSettingValue(db, GID_H, 'subdomain_enabled'), '');
 {
-  const prev = await getEntitlementRow(db, HSLUG);
+  const prev = await getEntitlementRow(db, GID_H);
   await upsertTierRow(db, { ...prev, hasCard: true, updatedAt: nowS });
 }
 h = await hub('/api/hub/billing/subdomain', 'PUT', { slug: HSLUG, enabled: true });
@@ -679,9 +682,10 @@ eq('admin subdomain: manual guild enabled without a card', [h.status, h.json?.ok
 
 /* trial arming: the real createGuild mutation grants the trial */
 {
+  const CREATOR_UID = await upsertUserOnLogin(db, { discordId: 'rig-creator', username: 'rig-creator', avatar: '', guildsJson: '[{"id":"123456789","name":"测试服务器","icon":"","owner":false,"permissions":"8"}]', checkedAtSec: 1760000000 });
   const ctxUser = {
     env: envPlain, request: new Request('http://local/graphql'),
-    user: { discordId: 'rig-creator', guildsMeta: [{ i: '123456789', p: '8' }] },
+    user: { userId: CREATOR_UID, discordId: 'rig-creator', name: 'rig-creator', guilds: [] as string[], guildsMeta: [{ i: '123456789', p: '8' }] },
     vc: OMNISCIENT_VIEWER, locale: 'zh-CN', browserLocale: 'zh-CN', tz: 'Asia/Shanghai', executionCtx: undefined,
   };
   const res = await yoga.fetch(new Request('http://local/graphql', {
@@ -692,7 +696,7 @@ eq('admin subdomain: manual guild enabled without a card', [h.status, h.json?.ok
   }), ctxUser);
   const created = await res.json();
   eq('arming: createGuild succeeds', created.data?.createGuild?.ok, true);
-  const effFresh = await getEffectiveEntitlement(db, 'freshguild');
+  const effFresh = await getEffectiveEntitlement(db, (await getGuildIdBySlug(db, 'freshguild')) ?? 0);
   eq('arming: fresh guild holds the T2 trial', [effFresh.plan, effFresh.tier, effFresh.source], ['t2', 2, 'trial']);
   check('arming: fresh guild trial period is 14 days',
     effFresh.currentPeriodEnd != null && effFresh.currentPeriodEnd > nowS + 13 * 86400,
@@ -738,7 +742,7 @@ const envTierPartial = {
   eq('price map: unknown price is not a tier', stripeTierForPriceId(envTierFull, 'price_unknown'), null);
 }
 const SSLUG = 'stripeguild';
-await insertTenant(db, { slug: SSLUG, guildName: '映射测试百业', passwordHash: '', announcement: '' });
+const GID_S = await insertTenant(db, { slug: SSLUG, guildName: '映射测试百业', passwordHash: '', announcement: '' });
 const subObj = (priceId) => ({
   id: 'sub_map', status: 'active', customer: 'cus_map',
   current_period_end: nowS + 30 * 86400, metadata: { guild_slug: SSLUG },
@@ -748,27 +752,27 @@ eq('reverse: checkout completed (t2 price) applied', await handleStripeEvent(env
   id: 'evt_map_1', type: 'checkout.session.completed',
   data: { object: { id: 'cs_map', customer: 'cus_map', metadata: { guild_slug: SSLUG }, subscription: subObj('price_t2_harness') } },
 }), { applied: true, duplicate: false });
-eff = await getEffectiveEntitlement(db, SSLUG);
+eff = await getEffectiveEntitlement(db, GID_S);
 eq('reverse: t2 price writes plan t2', [eff.plan, eff.tier, eff.source], ['t2', 2, 'stripe']);
 eq('reverse: updated to t3 price applied', await handleStripeEvent(envTierFull, {
   id: 'evt_map_2', type: 'customer.subscription.updated', data: { object: subObj('price_t3_harness') },
 }), { applied: true, duplicate: false });
-eff = await getEffectiveEntitlement(db, SSLUG);
+eff = await getEffectiveEntitlement(db, GID_S);
 eq('reverse: t3 price writes plan t3', [eff.plan, eff.tier], ['t3', 3]);
 eq('reverse: updated to t1 price applied', await handleStripeEvent(envTierFull, {
   id: 'evt_map_3', type: 'customer.subscription.updated', data: { object: subObj('price_t1_harness') },
 }), { applied: true, duplicate: false });
-eff = await getEffectiveEntitlement(db, SSLUG);
+eff = await getEffectiveEntitlement(db, GID_S);
 eq('reverse: t1 price writes plan t1', [eff.plan, eff.tier], ['t1', 1]);
 eq('reverse: unknown price applied', await handleStripeEvent(envTierFull, {
   id: 'evt_map_4', type: 'customer.subscription.updated', data: { object: subObj('price_unknown') },
 }), { applied: true, duplicate: false });
-eff = await getEffectiveEntitlement(db, SSLUG);
+eff = await getEffectiveEntitlement(db, GID_S);
 eq('reverse: unknown price falls back to legacy premium', [eff.plan, eff.tier], ['premium', 3]);
 eq('reverse: priceless subscription applied', await handleStripeEvent(envTierFull, {
   id: 'evt_map_5', type: 'customer.subscription.updated', data: { object: subObj(null) },
 }), { applied: true, duplicate: false });
-eff = await getEffectiveEntitlement(db, SSLUG);
+eff = await getEffectiveEntitlement(db, GID_S);
 eq('reverse: no price keeps legacy premium', eff.plan, 'premium');
 
 /* forward: per-tier checkout sessions (fetch stubbed at the edge) */
@@ -819,9 +823,9 @@ eq('checkout section: paygate back off', h.json?.billing?.paygateEnabled, false)
 /* P25: quota resolution is a pure entitlement read — a guild with a
  * live tier entitlement resolves at its tier even with the paygate
  * OFF (free guilds are untouched; see the limits.ts header). */
-await grantPremiumManual(db, SLUG, 30);
+await grantPremiumManual(db, GID, 30);
 {
-  const lim = await getEffectiveLimits(db, { discordId: 'rig-user', guildSlug: SLUG });
+  const lim = await getEffectiveLimits(db, { guildId: GID });
   eq('limits seam: tier-3 table with paygate OFF (pure entitlement read)',
     [lim.gearItemCapacity, lim.ocrBatchImages, lim.ocrBatchesPerDay], [5000, 100, 100]);
 }

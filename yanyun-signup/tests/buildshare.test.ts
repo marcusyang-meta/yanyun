@@ -16,6 +16,8 @@
 //    a live code and no build tags for an unknown one.
 // FakeDB routes by SQL shape (same pattern as .harness-gear /
 // .harness-shortlink); build_share_links keeps real UNIQUE semantics.
+// Typed-ID port: gear rows and share links key on the owner's user_id;
+// the Discord IDs survive only as the viewers' boundary identity.
 import { yoga } from '../src/graphql.ts';
 import { describe, it, expect } from 'vitest';
 import {
@@ -56,7 +58,7 @@ function toRawRows(sqlText, rows) {
 
 /* ---------------- FakeDB ---------------- */
 const tables = { user_gear_items: [], user_gear_builds: [], build_share_links: [] };
-let rowId = 0;
+const mint = new Map<string, number>();
 function stmt(sqlText) {
   const sql = sqlText.replace(/"/g, '');
   const q = {
@@ -65,23 +67,29 @@ function stmt(sqlText) {
     async first() { const res = await this.all(); return (res.results && res.results[0]) || null; },
     async all() {
       const b = q._b;
+      if (sql.includes('INSERT INTO id_mint_counters')) {
+        const key = `${b[0]}|${b[1]}`;
+        const seq = (mint.get(key) || 0) + 1;
+        mint.set(key, seq);
+        return { results: [{ seq }] };
+      }
       if (sql.includes('FROM build_share_links')) {
         let rows = tables.build_share_links;
-        if (/WHERE build_id = \? AND discord_id = \?/.test(sql)) {
-          rows = rows.filter((r) => r.build_id === Number(b[0]) && r.discord_id === String(b[1]));
+        if (/WHERE build_id = \? AND user_id = \?/.test(sql)) {
+          rows = rows.filter((r) => r.build_id === Number(b[0]) && r.user_id === Number(b[1]));
         } else if (/WHERE code = \?/.test(sql)) {
           rows = rows.filter((r) => r.code === String(b[0]));
         }
         return { results: rows };
       }
       if (sql.includes('FROM user_gear_builds')) {
-        if (/WHERE id = \? AND discord_id = \?/.test(sql)) {
-          return { results: tables.user_gear_builds.filter((r) => r.id === Number(b[0]) && r.discord_id === String(b[1])) };
+        if (/WHERE id = \? AND user_id = \?/.test(sql)) {
+          return { results: tables.user_gear_builds.filter((r) => r.id === Number(b[0]) && r.user_id === Number(b[1])) };
         }
-        return { results: tables.user_gear_builds.filter((r) => r.discord_id === String(b[0])) };
+        return { results: tables.user_gear_builds.filter((r) => r.user_id === Number(b[0])) };
       }
       if (sql.includes('FROM user_gear_items')) {
-        return { results: tables.user_gear_items.filter((r) => r.discord_id === String(b[0])) };
+        return { results: tables.user_gear_items.filter((r) => r.user_id === Number(b[0])) };
       }
       return { results: [] };
     },
@@ -89,36 +97,42 @@ function stmt(sqlText) {
       const b = q._b;
       if (sql.startsWith('CREATE')) return { meta: { changes: 0 } };
       if (sql.startsWith('INSERT INTO user_gear_items')) {
-        const row = { id: ++rowId, discord_id: String(b[0]), slot: b[1], name: b[2], payload: b[3], created_at: b[4] };
+        const cols = /INSERT INTO user_gear_items \(([^)]+)\)/.exec(sql)![1].split(',').map((c) => c.trim());
+        const v: any = {};
+        cols.forEach((c, i) => { v[c] = b[i]; });
+        const row = { id: Number(v.id), user_id: Number(v.user_id), slot: v.slot, name: v.name, payload: v.payload, created_at: v.created_at };
         tables.user_gear_items.push(row);
         return { meta: { changes: 1, last_row_id: row.id } };
       }
       if (sql.startsWith('INSERT INTO user_gear_builds')) {
-        const row = { id: ++rowId, discord_id: String(b[0]), name: b[1], target_idx: b[2], payload: b[3], created_at: b[4] };
+        const cols = /INSERT INTO user_gear_builds \(([^)]+)\)/.exec(sql)![1].split(',').map((c) => c.trim());
+        const v: any = {};
+        cols.forEach((c, i) => { v[c] = b[i]; });
+        const row = { id: Number(v.id), user_id: Number(v.user_id), name: v.name, target_idx: v.target_idx, payload: v.payload, created_at: v.created_at };
         tables.user_gear_builds.push(row);
         return { meta: { changes: 1, last_row_id: row.id } };
       }
       if (sql.startsWith('INSERT INTO build_share_links')) {
-        const [code, buildId, discordId, createdAt] = b;
+        const [code, buildId, userId, createdAt] = b;
         if (tables.build_share_links.some((l) => l.code === code)) throw new Error('UNIQUE constraint failed: build_share_links.code');
         if (tables.build_share_links.some((l) => l.build_id === Number(buildId))) throw new Error('UNIQUE constraint failed: build_share_links_build_unique');
-        tables.build_share_links.push({ code, build_id: Number(buildId), discord_id: String(discordId), created_at: createdAt });
+        tables.build_share_links.push({ code, build_id: Number(buildId), user_id: Number(userId), created_at: createdAt });
         return { meta: { changes: 1 } };
       }
       if (sql.startsWith('DELETE FROM build_share_links')) {
-        const i = tables.build_share_links.findIndex((r) => r.build_id === Number(b[0]) && r.discord_id === String(b[1]));
+        const i = tables.build_share_links.findIndex((r) => r.build_id === Number(b[0]) && r.user_id === Number(b[1]));
         if (i < 0) return { meta: { changes: 0 } };
         tables.build_share_links.splice(i, 1);
         return { meta: { changes: 1 } };
       }
       if (sql.startsWith('DELETE FROM user_gear_builds')) {
-        const i = tables.user_gear_builds.findIndex((r) => r.id === Number(b[0]) && r.discord_id === String(b[1]));
+        const i = tables.user_gear_builds.findIndex((r) => r.id === Number(b[0]) && r.user_id === Number(b[1]));
         if (i < 0) return { meta: { changes: 0 } };
         tables.user_gear_builds.splice(i, 1);
         return { meta: { changes: 1 } };
       }
       if (sql.startsWith('DELETE FROM user_gear_items')) {
-        const i = tables.user_gear_items.findIndex((r) => r.id === Number(b[0]) && r.discord_id === String(b[1]));
+        const i = tables.user_gear_items.findIndex((r) => r.id === Number(b[0]) && r.user_id === Number(b[1]));
         if (i < 0) return { meta: { changes: 0 } };
         tables.user_gear_items.splice(i, 1);
         return { meta: { changes: 1 } };
@@ -131,8 +145,8 @@ function stmt(sqlText) {
 const db = { prepare: (sql) => stmt(sql) };
 const env = { DB: db };
 
-const A = { discordId: 'user-a', name: 'A' };
-const B = { discordId: 'user-b', name: 'B' };
+const A = { userId: 2030100001, discordId: 'user-a', name: 'A' };
+const B = { userId: 2030100002, discordId: 'user-b', name: 'B' };
 
 async function gql(query, { user = null, variables } = {}) {
   const ctx = { env, request: new Request('http://local/graphql'), user, locale: 'zh-CN', browserLocale: 'zh-CN', tz: 'Asia/Shanghai', executionCtx: undefined };
@@ -144,19 +158,19 @@ async function gql(query, { user = null, variables } = {}) {
 }
 
 /* ---------------- seed: A owns items + two builds ---------------- */
-const w = await insertGearItem(db, A.discordId, {
+const w = await insertGearItem(db, A.userId, {
   slot: '武器', name: '甲剑', lines: [{ key: 'dawai', val: 85.2 }], dingyin: { name: '外功穿透', val: 12 }, schools: ['鸣金·虹'],
 });
-const h = await insertGearItem(db, A.discordId, {
+const h = await insertGearItem(db, A.userId, {
   slot: '冠胄', name: '甲冠', lines: [{ key: 'jin', val: 40 }], dingyin: null, schools: [],
 });
 const SNAP = { total: 87.3, a: 90.1, b: 85, d: 80, loan: 88.8, yAcc: 71.2, yCrit: 65.4, yInt: 60.9, dawai: 1, xiaowai: 2 };
-const build1 = await insertGearBuild(db, A.discordId, {
+const build1 = await insertGearBuild(db, A.userId, {
   name: '甲的主力方案', targetIdx: 0, buildLabel: '鸣金·虹 · 飞隼',
   loadout: { '主武器': w.id, '冠胄': h.id }, baseValues: {}, xinfa: ['易水歌'],
   extras: { res: 1.85, acc: 0, crit: 0, int: 0 }, bowKind: '', gradDingyinOn: true, snapshot: SNAP,
 });
-const build2 = await insertGearBuild(db, A.discordId, {
+const build2 = await insertGearBuild(db, A.userId, {
   name: '甲的备用方案', targetIdx: 0, buildLabel: '鸣金·虹 · 飞隼',
   loadout: { '主武器': w.id }, baseValues: {}, xinfa: [],
   extras: { res: 1.85, acc: 0, crit: 0, int: 0 }, bowKind: '', gradDingyinOn: true, snapshot: SNAP,
@@ -170,21 +184,21 @@ describe('buildshare', () => {
 /* ================= service ================= */
 check('铸码格式 = 7 位 base62', BUILD_SHARE_CODE_RE.test(generateBuildShareCode()));
 eq('buildShareUrl 形态', buildShareUrl('Ab3dEf9'), 'https://yanyun.app/b/Ab3dEf9');
-eq('给不存在的方案铸链 -> null', await shareGearBuild(db, A.discordId, 99999), null);
-eq('给别人的方案铸链 -> null', await shareGearBuild(db, B.discordId, build1.id), null);
+eq('给不存在的方案铸链 -> null', await shareGearBuild(db, A.userId, 99999), null);
+eq('给别人的方案铸链 -> null', await shareGearBuild(db, B.userId, build1.id), null);
 
-link1 = await shareGearBuild(db, A.discordId, build1.id);
+link1 = await shareGearBuild(db, A.userId, build1.id);
 check('铸链成功且码合规', !!link1 && BUILD_SHARE_CODE_RE.test(link1.code), link1 && link1.code);
 eq('台账一行', tables.build_share_links.length, 1);
-const link1b = await shareGearBuild(db, A.discordId, build1.id);
+const link1b = await shareGearBuild(db, A.userId, build1.id);
 eq('同方案再铸 = 同码 (稳定复用)', link1b.code, link1.code);
 eq('仍只一行', tables.build_share_links.length, 1);
-eq('getBuildShareLink roundtrip', (await getBuildShareLink(db, A.discordId, build1.id))?.code, link1.code);
-eq('别人读不到 A 的链', await getBuildShareLink(db, B.discordId, build1.id), null);
+eq('getBuildShareLink roundtrip', (await getBuildShareLink(db, A.userId, build1.id))?.code, link1.code);
+eq('别人读不到 A 的链', await getBuildShareLink(db, B.userId, build1.id), null);
 
 // Collision retry on a second build: first candidate is build1's code.
 const seq = [link1.code, 'Fr3sh42'];
-link2 = await shareGearBuild(db, A.discordId, build2.id, () => seq.shift() || generateBuildShareCode());
+link2 = await shareGearBuild(db, A.userId, build2.id, () => seq.shift() || generateBuildShareCode());
 eq('碰撞后换新码铸成', link2.code, 'Fr3sh42');
 eq('被撞的码仍指向原方案', (await resolveSharedBuild(db, link1.code))?.build.id, build1.id);
   });
@@ -267,7 +281,7 @@ eq('新码可用', r.data.sharedBuild.exists, true);
 /* deleteGearBuild cleans the link row. */
 r = await gql('mutation($id: Int!) { deleteGearBuild(id: $id) { ok } }', { user: A, variables: { id: build1.id } });
 eq('删方案 ok', r.data.deleteGearBuild.ok, true);
-eq('删方案后链行已清', await getBuildShareLink(db, A.discordId, build1.id), null);
+eq('删方案后链行已清', await getBuildShareLink(db, A.userId, build1.id), null);
 r = await gql(pageQ, { variables: { c: newCode } });
 eq('删方案后链失效', r.data.sharedBuild.exists, false);
   });
@@ -281,7 +295,7 @@ const wenv = { DB: db, ASSETS: { fetch: async (req) => {
   return new Response('not found', { status: 404 });
 } } };
 const wctx = { waitUntil() {} };
-const live = await shareGearBuild(db, A.discordId, build2.id); // build2 already has link2 (Fr3sh42) — reuse returns it
+const live = await shareGearBuild(db, A.userId, build2.id); // build2 already has link2 (Fr3sh42) — reuse returns it
 let wr = await worker.fetch(new Request('http://local/b/' + live.code), wenv, wctx);
 eq('/b/<活码> -> 200', wr.status, 200);
 const html = await wr.text();

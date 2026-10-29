@@ -8,7 +8,7 @@
 //      full matrix — paygate on/off × no row / premium / lapsed.
 //   B. A fixture backend (the console rules, mirrored) drives the
 //      same matrix to the same verdicts; attributes arrive intact
-//      (guild slug as unit id, plan + paygate as private attributes,
+//      (guild id as unit id, plan + paygate as private attributes,
 //      nothing in the public bag); a backend that DISAGREES with the
 //      local computation wins — the wiring is live, not decorative.
 //   C. Degradation: a throwing backend, an abstaining backend, and
@@ -61,22 +61,23 @@ const nowS = Math.floor(Date.now() / 1000);
 const G_NONE = 'g-none';
 const G_PREM = 'g-premium';
 const G_LAPSED = 'g-lapsed';
+const GID: Record<string, number> = {};
 for (const slug of [G_NONE, G_PREM, G_LAPSED]) {
-  await insertTenant(db, { slug, guildName: '门控测试 ' + slug, passwordHash: '', announcement: '' });
+  GID[slug] = await insertTenant(db, { slug, guildName: '门控测试 ' + slug, passwordHash: '', announcement: '' });
 }
 await upsertEntitlementRow(db, {
-  tenant: G_PREM, plan: 'premium', source: 'manual', currentPeriodEnd: nowS + 30 * 86400,
+  tenant: GID[G_PREM], plan: 'premium', source: 'manual', currentPeriodEnd: nowS + 30 * 86400,
   stripeCustomerId: '', stripeSubscriptionId: '', updatedAt: nowS,
 });
 await upsertEntitlementRow(db, {
-  tenant: G_LAPSED, plan: 'premium', source: 'manual', currentPeriodEnd: nowS - 100,
+  tenant: GID[G_LAPSED], plan: 'premium', source: 'manual', currentPeriodEnd: nowS - 100,
   stripeCustomerId: '', stripeSubscriptionId: '', updatedAt: nowS,
 });
 describe('gates', () => {
 // Fixture sanity: the effective plans the matrix math below assumes.
   it('fixture sanity', async () => {
-eq('fixture: lapsed row reads as free', (await getEffectiveEntitlement(db, G_LAPSED)).plan, 'free');
-eq('fixture: live row reads as premium', (await getEffectiveEntitlement(db, G_PREM)).plan, 'premium');
+eq('fixture: lapsed row reads as free', (await getEffectiveEntitlement(db, GID[G_LAPSED])).plan, 'free');
+eq('fixture: live row reads as premium', (await getEffectiveEntitlement(db, GID[G_PREM])).plan, 'premium');
   });
 
 async function setPaygate(on) {
@@ -101,9 +102,9 @@ async function runMatrix(label) {
     await setPaygate(on);
     const want = legacy(on, plan);
     eq(`${label}: premiumGate paygate=${on ? 'on' : 'off'} ${slug}`,
-      await premiumGate(db, slug), want.locked);
+      await premiumGate(db, GID[slug]), want.locked);
     eq(`${label}: isPremiumActive paygate=${on ? 'on' : 'off'} ${slug}`,
-      await isPremiumActive(db, slug), want.active);
+      await isPremiumActive(db, GID[slug]), want.active);
   }
 }
 
@@ -134,24 +135,24 @@ __setGateBackendForTests(rulesBackend);
 await runMatrix('B fixture-rules');
 
 // Attribute plumbing, exactly: one premiumGate call, paygate ON,
-// premium guild. unit id is the slug; plan/paygate ride the private
+// premium guild. unit id is the guild ID; plan/paygate ride the private
 // bag; the public bag is empty (facts never enter provider logs).
 records.length = 0;
 await setPaygate(true);
-await premiumGate(db, G_PREM);
+await premiumGate(db, GID[G_PREM]);
 eq('B attributes: single premium_access check', records.map((r) => r.key), [PREMIUM_ACCESS_GATE_KEY]);
-eq('B attributes: unit id is the guild slug', records[0]?.unitId, G_PREM);
+eq('B attributes: unit id is the guild id', records[0]?.unitId, String(GID[G_PREM]));
 eq('B attributes: private bag carries the facts', records[0]?.priv, { plan: 'premium', paygate: 'on' });
 eq('B attributes: public bag stays empty', records[0]?.pub, {});
 
 // No cross-guild leakage: two guilds checked back to back keep
 // their own unit ids and plans.
 records.length = 0;
-await premiumGate(db, G_NONE);
-await isPremiumActive(db, G_PREM);
+await premiumGate(db, GID[G_NONE]);
+await isPremiumActive(db, GID[G_PREM]);
 eq('B attributes: per-guild unit ids stay separate',
   records.map((r) => [r.key, r.unitId, r.priv.plan]),
-  [[PREMIUM_ACCESS_GATE_KEY, G_NONE, 'free'], [PREMIUM_ACTIVE_GATE_KEY, G_PREM, 'premium']]);
+  [[PREMIUM_ACCESS_GATE_KEY, String(GID[G_NONE]), 'free'], [PREMIUM_ACTIVE_GATE_KEY, String(GID[G_PREM]), 'premium']]);
 
 // A backend that disagrees with the local computation WINS: the
 // path is live. Paygate ON + free guild is locked/inactive
@@ -167,8 +168,8 @@ __setGateBackendForTests({
   },
 });
 await setPaygate(true);
-eq('B live wiring: backend can unlock against local fallback', await premiumGate(db, G_NONE), false);
-eq('B live wiring: backend can activate against local fallback', await isPremiumActive(db, G_NONE), true);
+eq('B live wiring: backend can unlock against local fallback', await premiumGate(db, GID[G_NONE]), false);
+eq('B live wiring: backend can activate against local fallback', await isPremiumActive(db, GID[G_NONE]), true);
   });
 
 /* ------------- C. degradation resolves to the fallback --------- */
@@ -190,8 +191,8 @@ __setGateBackendForTests({
   },
 });
 await setPaygate(true);
-eq('C partial: ruled gate follows the backend', await premiumGate(db, G_PREM), true);
-eq('C partial: abstained gate follows the fallback', await isPremiumActive(db, G_PREM), true);
+eq('C partial: ruled gate follows the backend', await premiumGate(db, GID[G_PREM]), true);
+eq('C partial: abstained gate follows the fallback', await isPremiumActive(db, GID[G_PREM]), true);
 __resetGateRuntimeForTests();
   });
 
@@ -206,12 +207,12 @@ __resetGateRuntimeForTests();
     kv: brokenKv, serverSecret: 'secret-harness-not-real', projectId: 'harnessproj',
   });
   eq('D broken KV: backend abstains', await backend.check(PREMIUM_ACCESS_GATE_KEY,
-    { unitId: G_PREM, privateAttributes: { plan: 'premium', paygate: 'off' } }), null);
+    { unitId: String(GID[G_PREM]), privateAttributes: { plan: 'premium', paygate: 'off' } }), null);
   __setGateBackendForTests(backend);
   eq('D broken KV: gateOpen true-fallback holds', await gateOpen(PREMIUM_ACCESS_GATE_KEY,
-    { unitId: G_PREM, privateAttributes: { plan: 'free', paygate: 'on' } }, true), true);
+    { unitId: String(GID[G_PREM]), privateAttributes: { plan: 'free', paygate: 'on' } }, true), true);
   eq('D broken KV: gateOpen false-fallback holds', await gateOpen(PREMIUM_ACCESS_GATE_KEY,
-    { unitId: G_PREM, privateAttributes: { plan: 'free', paygate: 'on' } }, false), false);
+    { unitId: String(GID[G_PREM]), privateAttributes: { plan: 'free', paygate: 'on' } }, false), false);
   __resetGateRuntimeForTests();
   });
 
