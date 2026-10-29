@@ -47,19 +47,36 @@ function toRawRows(sqlText, rows) {
     : Object.values(r)));
 }
 
+/* Typed-ID fixture keys (0036): feedback rows carry the minted
+   feedback ID as PK and key the submitter by user_id; users rows
+   resolve Discord IDs to user IDs for the admin gate's env floor. */
+const UID = { UF1: 2030100001, UF2: 2030100002, ADMIN: 2030100003 };
+const USERS_BY_DISCORD = new Map([
+  ['UF1', UID.UF1], ['UF2', UID.UF2], ['FB-ADMIN', UID.ADMIN],
+]);
+
 /* ---------------- FakeDB ---------------- */
 function makeDb() {
   const state = {
-    feedback: [], // {id, discord_id, user_name, category, content, status, created_at, resolved_at}
+    feedback: [], // {id, user_id, user_name, category, content, status, created_at, resolved_at}
     audit: [],    // {id, at, actor, action, tenant, summary, ip}
+    mint: new Map(),
   };
   function route(kind, sql, b) {
     sql = sql.replace(/"/g, '').replace(/feedback\./g, '').replace(/hub_audit_log\./g, '');
+    if (/INSERT INTO id_mint_counters/.test(sql)) {
+      const key = `${b[0]}|${b[1]}`;
+      const seq = (state.mint.get(key) || 0) + 1;
+      state.mint.set(key, seq);
+      return kind === 'first' ? { seq } : { results: [{ seq }] };
+    }
     if (/feedback/.test(sql)) {
       if (/INSERT INTO feedback/.test(sql)) {
-        const [discordId, userName, category, content, createdAt] = b;
+        // Binds follow the SQL column list: the minted id leads,
+        // then user_id (status is the 'open' literal, not a bind).
+        const [id, userId, userName, category, content, createdAt] = b;
         state.feedback.push({
-          id: state.feedback.length + 1, discord_id: discordId, user_name: userName,
+          id, user_id: userId, user_name: userName,
           category, content, status: 'open', created_at: createdAt, resolved_at: null,
         });
         return { meta: { changes: 1 } };
@@ -73,7 +90,7 @@ function makeDb() {
       }
       if (/COUNT\(\*\)/.test(sql)) {
         let rows = state.feedback;
-        if (/WHERE discord_id =/.test(sql)) rows = rows.filter((r) => r.discord_id === b[0] && r.created_at >= b[1]);
+        if (/WHERE user_id =/.test(sql)) rows = rows.filter((r) => r.user_id === b[0] && r.created_at >= b[1]);
         else if (/WHERE status =/.test(sql)) rows = rows.filter((r) => r.status === b[0]);
         return kind === 'first' ? { c: rows.length } : { results: [{ c: rows.length }] };
       }
@@ -100,7 +117,20 @@ function makeDb() {
       if (/COUNT\(\*\)/.test(sql)) return kind === 'first' ? { c: 0 } : { results: [{ c: 0 }] };
       return { results: [] };
     }
-    if (/FROM users/.test(sql)) return kind === 'first' ? null : { results: [] };
+    if (/FROM users/.test(sql)) {
+      if (/WHERE id IN/.test(sql)) {
+        // Feedback triage: batch Discord-ID resolution by user ID
+        // (listDiscordIdsByUserIds) for the entry shells.
+        const byId = new Map([...USERS_BY_DISCORD].map(([d, u]) => [u, d]));
+        const rows = b.map((u) => ({ id: Number(u), discord_id: byId.get(Number(u)) }))
+          .filter((r) => r.discord_id !== undefined);
+        return kind === 'first' ? (rows[0] || null) : { results: rows };
+      }
+      // Admin-gate floor resolution: SELECT id FROM users WHERE discord_id = ?
+      const id = USERS_BY_DISCORD.get(String(b[0]));
+      const row = id === undefined ? null : { id, discord_id: String(b[0]) };
+      return kind === 'first' ? row : { results: row ? [row] : [] };
+    }
     if (kind === 'first') return null;
     return { results: [] };
   }
@@ -120,8 +150,8 @@ function makeDb() {
 
 const { db, state } = makeDb();
 const env = { DB: db, PLATFORM_ADMIN_DISCORD_IDS: 'FB-ADMIN' };
-const userA = { discordId: 'UF1', name: '反馈用户甲', guilds: [] };
-const userB = { discordId: 'UF2', name: '反馈用户乙', guilds: [] };
+const userA = { userId: UID.UF1, discordId: 'UF1', name: '反馈用户甲', guilds: [] };
+const userB = { userId: UID.UF2, discordId: 'UF2', name: '反馈用户乙', guilds: [] };
 
 async function gql(query, { user = userA, variables, locale = 'zh-CN' } = {}) {
   const ctx = { env, request: new Request('http://local/graphql'), user, locale, browserLocale: locale, tz: 'Asia/Shanghai', executionCtx: undefined };
@@ -150,7 +180,7 @@ describe('feedback', () => {
   const row1 = state.feedback[0];
   eq('内容已去空白', row1.content, '报名页偶尔打不开');
   eq('类别 PROBLEM -> problem', row1.category, 'problem');
-  eq('提交者快照', [row1.discord_id, row1.user_name], ['UF1', '反馈用户甲']);
+  eq('提交者快照', [row1.user_id, row1.user_name], [UID.UF1, '反馈用户甲']);
   eq('新行状态 open', row1.status, 'open');
   check('created_at 为毫秒时间戳', typeof row1.created_at === 'number' && Math.abs(row1.created_at - Date.now()) < 60000, String(row1.created_at));
 
@@ -163,7 +193,7 @@ describe('feedback', () => {
   eq('feedbackEmpty 文案走目录', empty.data?.submitFeedback?.error, '反馈内容不能为空');
   const tooLong = await submit(userB, 'PROBLEM', '长'.repeat(2001));
   eq('2001 字 -> feedbackTooLong', tooLong.data?.submitFeedback?.errorCode, 'feedbackTooLong');
-  eq('拒绝不落库', state.feedback.filter((r) => r.discord_id === 'UF2').length, 0);
+  eq('拒绝不落库', state.feedback.filter((r) => r.user_id === UID.UF2).length, 0);
   const exact = await submit(userB, 'SUGGESTION', '长'.repeat(2000));
   eq('恰好 2000 字 -> ok', exact.data?.submitFeedback?.ok, true);
 
@@ -173,7 +203,7 @@ describe('feedback', () => {
   const sixth = await submit(userA, 'OTHER', '第六条');
   eq('24h 第 6 条 -> feedbackRateLimited', sixth.data?.submitFeedback?.errorCode, 'feedbackRateLimited');
   eq('限流文案走目录', sixth.data?.submitFeedback?.error, '今天提交的反馈已达上限，请明天再来');
-  eq('限流不落库', state.feedback.filter((r) => r.discord_id === 'UF1').length, 5);
+  eq('限流不落库', state.feedback.filter((r) => r.user_id === UID.UF1).length, 5);
   const otherUser = await submit(userB, 'OTHER', '乙的第二条');
   eq('限流按用户隔离', otherUser.data?.submitFeedback?.ok, true);
   });
@@ -212,7 +242,7 @@ describe('feedback', () => {
  * payload outcomes (refusal -> Locked / badParams /
  * feedbackNotFound). */
   it('Admin: list + triage', async () => {
-  const admin = { discordId: 'FB-ADMIN', name: '反馈管理员', guilds: [] };
+  const admin = { userId: UID.ADMIN, discordId: 'FB-ADMIN', name: '反馈管理员', guilds: [] };
   const listQ = (status) => `{ viewer { platformAdmin { __typename
     ... on PlatformAdmin { feedbackEntries(status: ${status ? JSON.stringify(status) : 'null'}) { total entries { id discordId userName category content status createdAt resolvedAt } } } } } }`;
   const flipM = (id, status) => `mutation { platformAdminSetFeedbackStatus(id: ${id}, status: ${JSON.stringify(status)}) { ok error errorCode } }`;
@@ -231,7 +261,7 @@ describe('feedback', () => {
   const firstId = lj.entries[0].id;
   const flip = await gql(flipM(firstId, 'resolved'), { user: admin });
   eq('标记已处理 -> ok', flip.data?.platformAdminSetFeedbackStatus?.ok, true);
-  const flipped = state.feedback.find((r) => r.id === firstId);
+  const flipped = state.feedback.find((r) => r.id === Number(firstId));
   eq('行状态 resolved 且有 resolved_at', [flipped.status, typeof flipped.resolved_at], ['resolved', 'number']);
 
   const openList = (await gql(listQ('open'), { user: admin })).data?.viewer?.platformAdmin?.feedbackEntries;
@@ -249,8 +279,10 @@ describe('feedback', () => {
   eq('重开 -> ok', reopen.data?.platformAdminSetFeedbackStatus?.ok, true);
   eq('重开清 resolved_at', [flipped.status, flipped.resolved_at], ['open', null]);
 
-  check('查看反馈留痕 feedback.view', state.audit.some((r) => r.action === 'feedback.view' && r.actor === 'FB-ADMIN'));
-  check('状态变更留痕 feedback.status', state.audit.some((r) => r.action === 'feedback.status' && r.actor === 'FB-ADMIN'));
+  // Audit actor is the acting admin's typed user ID (post-0036
+  // admin surfaces record String(userId), never the Discord ID).
+  check('查看反馈留痕 feedback.view', state.audit.some((r) => r.action === 'feedback.view' && r.actor === String(UID.ADMIN)));
+  check('状态变更留痕 feedback.status', state.audit.some((r) => r.action === 'feedback.status' && r.actor === String(UID.ADMIN)));
   check('审计摘要绝不含反馈正文', !JSON.stringify(state.audit).includes('报名页偶尔打不开') && !JSON.stringify(state.audit).includes('乙的第二条'));
   });
 });

@@ -1676,7 +1676,7 @@ type Mutation {
   platformAdminSetSubdomain(slug: String!, enabled: Boolean!): PlatformAdminBillingPayload!
   platformAdminSetCustomDomainDisabled(slug: String!, disabled: Boolean!): PlatformAdminBillingPayload!
   platformAdminDeleteTenant(slug: String!): PlatformAdminPayload!
-  platformAdminSetFeedbackStatus(id: Int!, status: String!): PlatformAdminPayload!
+  platformAdminSetFeedbackStatus(id: ID!, status: String!): PlatformAdminPayload!
   platformAdminUpdateSettings(gameVersion: String, gameNotice: String, gameVersionCode: String): PlatformAdminPayload!
   platformAdminCreateBoss(name: String!, talent: String, source: String, note: String, sortOrder: Int): PlatformAdminBossPayload!
   platformAdminUpdateBoss(id: Int!, name: String, talent: String, source: String, note: String, sortOrder: Int, guide: String, mechanicsJson: String, talentsJson: String, shoutsJson: String): PlatformAdminPayload!
@@ -4285,7 +4285,7 @@ type PlatformAdminAuditPage {
 }
 
 type PlatformAdminAuditEntry {
-  id: Int!
+  id: ID!
   at: Int!
   actor: String!
   action: String!
@@ -4299,7 +4299,7 @@ type PlatformAdminFeedbackPage {
 }
 
 type PlatformAdminFeedbackEntry {
-  id: Int!
+  id: ID!
   discordId: String!
   userName: String!
   category: String!

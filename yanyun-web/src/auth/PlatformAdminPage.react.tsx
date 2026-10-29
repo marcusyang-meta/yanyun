@@ -161,7 +161,7 @@ const DeleteTenantNode = graphql`
   }
 `;
 const SetFeedbackStatusNode = graphql`
-  mutation PlatformAdminPageSetFeedbackStatusMutation($id: Int!, $status: String!) {
+  mutation PlatformAdminPageSetFeedbackStatusMutation($id: ID!, $status: String!) {
     platformAdminSetFeedbackStatus(id: $id, status: $status) { ok error errorCode }
   }
 `;

@@ -230,6 +230,11 @@ export class PlatformAdminShell extends ShellBase {
       listFeedback(this.db, { status, limit, offset }),
       countFeedback(this.db, status),
     ]);
+    // The submitter's Discord ID is display-only here and resolves
+    // through the users row (the one sanctioned conversion point);
+    // feedback rows themselves carry only the internal user ID.
+    const discordByUser = await listDiscordIdsByUserIds(this.db, entries.map((e: any) => Number(e.user_id))).catch(() => new Map<number, string>());
+    for (const e of entries as any[]) e.discord_id = discordByUser.get(Number(e.user_id)) || '';
     await audit(this.ctx, 'feedback.view', '', { shown: entries.length, status: status || 'all', offset });
     return new PlatformAdminFeedbackPageShell(this.ctx, { entries, total });
   }

@@ -5152,7 +5152,7 @@ type PlatformAdminAuditPage {
 }
 
 type PlatformAdminAuditEntry {
-  id: Int!
+  id: ID!
   at: Int!
   actor: String!
   action: String!
@@ -5166,7 +5166,7 @@ type PlatformAdminFeedbackPage {
 }
 
 type PlatformAdminFeedbackEntry {
-  id: Int!
+  id: ID!
   discordId: String!
   userName: String!
   category: String!
@@ -5365,7 +5365,7 @@ extend type Mutation {
   platformAdminSetCustomDomainDisabled(slug: String!, disabled: Boolean!): PlatformAdminBillingPayload!
   # 百业与反馈
   platformAdminDeleteTenant(slug: String!): PlatformAdminPayload!
-  platformAdminSetFeedbackStatus(id: Int!, status: String!): PlatformAdminPayload!
+  platformAdminSetFeedbackStatus(id: ID!, status: String!): PlatformAdminPayload!
   # 平台设置 (全局)
   platformAdminUpdateSettings(gameVersion: String, gameNotice: String, gameVersionCode: String): PlatformAdminPayload!
   # 图鉴维护

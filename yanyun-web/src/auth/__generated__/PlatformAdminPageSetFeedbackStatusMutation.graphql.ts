@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<d9215c6abf4d9a228df73ba5841f3913>>
+ * @generated SignedSource<<c1b0a2eb9603a7be0cd9a06683eacc28>>
  * @lightSyntaxTransform
  */
 
@@ -9,7 +9,7 @@
 
 import { ConcreteRequest } from 'relay-runtime';
 export type PlatformAdminPageSetFeedbackStatusMutation$variables = {
-  id: number;
+  id: string;
   status: string;
 };
 export type PlatformAdminPageSetFeedbackStatusMutation$data = {
@@ -100,16 +100,16 @@ return {
     "selections": (v1/*:: as any*/)
   },
   "params": {
-    "cacheID": "042237d8e5e58aeccefd22349d0c5d58",
+    "cacheID": "1b70e1e20e426ea610880130f8980c37",
     "id": null,
     "metadata": {},
     "name": "PlatformAdminPageSetFeedbackStatusMutation",
     "operationKind": "mutation",
-    "text": "mutation PlatformAdminPageSetFeedbackStatusMutation(\n  $id: Int!\n  $status: String!\n) {\n  platformAdminSetFeedbackStatus(id: $id, status: $status) {\n    ok\n    error\n    errorCode\n  }\n}\n"
+    "text": "mutation PlatformAdminPageSetFeedbackStatusMutation(\n  $id: ID!\n  $status: String!\n) {\n  platformAdminSetFeedbackStatus(id: $id, status: $status) {\n    ok\n    error\n    errorCode\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "9e1a288c3c6020e282b8109a4774179a";
+(node as any).hash = "5c40e0b3006fc4cd3675322f6f32853a";
 
 export default node;
