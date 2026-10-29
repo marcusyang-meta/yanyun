@@ -201,7 +201,8 @@ export class GuildSchedulePageShell extends ShellBase {
     });
   }
   // Premium T2 best-slot advice (P6): same audience verdict as the
-  // availability summary; Locked vs full shell by tierLocked.
+  // availability summary; composed by tierSurfaceState (full /
+  // Locked / absent — see scheduling-graphql.ts).
   genBestSlotsAdvice(){
     return this.memo('bestSlotsAdvice', async () => composeBestSlotsAdvice(this.ctx, this.data.slug));
   }

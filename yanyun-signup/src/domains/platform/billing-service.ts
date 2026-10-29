@@ -9,10 +9,11 @@
 //     global scope, key 'paygate_enabled', default OFF). OFF means
 //     every guild keeps today's full behavior and no gated variant
 //     is ever composed; ON means the gates below apply per guild.
-//   - premiumGate(db, slug) is THE verdict every gated surface
-//     consults (admin settings writes, the stats read, white-label
-//     presentation composition). Core grouping features are never
-//     behind it.
+//   - premiumGate(db, slug) is THE verdict the legacy (pre-tier)
+//     gated surfaces consult (admin settings writes, the stats
+//     read, white-label presentation composition). The tiered
+//     surfaces resolve through tierLocked / tierSurfaceState
+//     below. Core grouping features are never behind either.
 //   - The verdict's POLICY moved to Statsig (phase one of the gate
 //     migration): premiumGate and isPremiumActive ask the platform
 //     gate wrapper (gates.ts), passing the facts computed here —
@@ -224,18 +225,27 @@ export async function premiumGate(d1: D1Database, slug: string): Promise<boolean
   return !unlocked;
 }
 
-/* ---------------- tier verdict (new paid surfaces) ----------------
- * tierLocked is a PURE entitlement verdict: it deliberately does NOT
- * consult the paygate master switch. Rationale: the new tiered paid
- * surfaces have no historical behavior that needs preserving, so
- * there is nothing for the master switch to keep at parity — the
- * enablement lever for them is the entitlement itself. With the
- * paygate OFF a hub-granted test guild can be verified against the
- * real production tier gates while every ungranted guild composes
- * the locked variant and gets nothing. premiumGate /
- * isPremiumActive above keep their paygate-gated semantics verbatim
- * for the surfaces that predate tiers; this verdict never feeds
- * them and they never feed it. */
+/* ---------------- tier verdicts (new paid surfaces) --------------
+ * Two verdicts, two consumers:
+ *   - tierLocked is the PURE entitlement verdict, and the only
+ *     verdict mutations consult: an unentitled guild's writes
+ *     refuse with premiumRequired in EVERY paygate state — the
+ *     master switch never licenses a write.
+ *   - tierSurfaceState is the composition verdict (marcus's
+ *     ruling, 2026-10-28: an unlaunched feature "should not even
+ *     be visible" to unentitled guilds). An entitled guild
+ *     composes the full surface in every paygate state — the
+ *     platform grant list is the acceptance path, so a granted
+ *     guild verifies against production with the switch still
+ *     OFF. An unentitled guild composes the Locked variant only
+ *     while the paygate is ON (that variant is the launched
+ *     product's sales surface); while the paygate is OFF the
+ *     surface composes nothing at all — the field resolves null,
+ *     the tab/page does not exist — so an unlaunched feature
+ *     leaves zero footprint on unentitled guilds.
+ * premiumGate / isPremiumActive above keep their paygate-gated
+ * semantics verbatim for the surfaces that predate tiers; the two
+ * families never feed each other. */
 export async function tierLocked(
   d1: D1Database,
   slug: string,
@@ -244,6 +254,24 @@ export async function tierLocked(
   if (!slug) return true;
   const eff = await getEffectiveEntitlement(d1, slug);
   return eff.tier < minTier;
+}
+
+/** Composition state of one tiered paid surface for one guild:
+ *  'open' (entitled — compose the full surface), 'locked'
+ *  (unentitled with the paygate ON — compose the Locked variant),
+ *  or 'absent' (unentitled with the paygate OFF — compose nothing;
+ *  the field resolves null and no entry point is served). Every
+ *  tiered composition point resolves through this one predicate;
+ *  no surface reads the master switch on its own. */
+export type TierSurfaceState = 'open' | 'locked' | 'absent';
+
+export async function tierSurfaceState(
+  d1: D1Database,
+  slug: string,
+  minTier: 1 | 2 | 3,
+): Promise<TierSurfaceState> {
+  if (!(await tierLocked(d1, slug, minTier))) return 'open';
+  return (await isPaygateEnabled(d1)) ? 'locked' : 'absent';
 }
 
 /* ---------------- manual grant / revoke (hub) ---------------- */

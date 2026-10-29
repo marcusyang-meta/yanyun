@@ -72,7 +72,7 @@ import {
 } from './recruit-graphql.ts';
 import { listSchoolBis, listSchoolRotations, upsertSchoolBis, upsertSchoolRotation } from '../dex/index.ts';
 import {
-  premiumGate, isPaygateEnabled, getEffectiveEntitlement, tierLocked,
+  premiumGate, isPaygateEnabled, getEffectiveEntitlement, tierLocked, tierSurfaceState,
   PREMIUM_PLANS, PAST_DUE_GRACE_DAYS,
   stripeConfig, fetchStripePrice, createCheckoutSession, stripePriceIdForTier,
 } from '../platform/index.ts';
@@ -803,17 +803,17 @@ export class GuildAdminShell extends ShellBase {
   /* Officer tools (F12/F11/F19, free — no gate): member notes, the
    * guild data export and the season-goal overview, composed as one
    * page object. Only on the GuildAdmin type, like announcements. */
-  /* Ops engine (P8/P11/P12/P14, T2): the tier verdict picks the
-   * full shell vs the Locked shell inside opsPageForAdmin — below
-   * tier the engines are never computed. */
+  /* Ops engine (P8/P11/P12/P14, T2): the surface state picks the
+   * full shell vs the Locked shell vs absence inside
+   * opsPageForAdmin — below tier the engines are never computed. */
   genOps(){
     return this.memo('ops', () => opsPageForAdmin(this.ctx, this.genSlug()));
   }
   /* Premium insights (T1 data layer: P2 / P9 / P10 / P15): each
-   * field composes through insights-graphql, where the tierLocked
-   * verdict picks the full variant or GuildInsightsLocked — below
-   * tier 1 the aggregations are never computed. Only on the
-   * GuildAdmin type, like stats. */
+   * field composes through insights-graphql, where the surface
+   * state picks the full variant, GuildInsightsLocked (paygate
+   * ON), or absence (paygate OFF) — below tier 1 the aggregations
+   * are never computed. Only on the GuildAdmin type, like stats. */
   genReliability(){ return this.memo('reliability', () => reliabilityForAdmin(this.ctx, this.genSlug())); }
   genParticipationHeatmap(){ return this.memo('heatmap', () => heatmapForAdmin(this.ctx, this.genSlug())); }
   genGearBoard(){ return this.memo('gearBoard', () => gearBoardForAdmin(this.ctx, this.genSlug())); }
@@ -831,16 +831,17 @@ export class GuildAdminShell extends ShellBase {
   async genViewerCapabilities(): Promise<string[]> {
     return (await this.genOfficerVerdict()).capabilities;
   }
-  /* Governance surface (P16/P17, T3): the tier verdict picks the
-   * Locked variant before any governance datum is composed. */
+  /* Governance surface (P16/P17, T3): the surface state picks
+   * the Page / Locked variant / absence before any governance
+   * datum is composed. */
   async genGovernance() {
     const verdict = await this.genOfficerVerdict();
     return governanceResultFor(this.ctx, this.genSlug(), verdict);
   }
   /* AI recap index (P18, premium T3): the guild's recap list,
    * composed in the groupings domain with the detail surface's
-   * verdict order (Locked / NotEnabled / List). Only on the
-   * GuildAdmin type — Locked never resolves it. */
+   * verdict order (absent / Locked / NotEnabled / List). Only on
+   * the GuildAdmin type — Locked never resolves it. */
   genRecaps(){
     return this.memo('recaps', async () => adminRecapsForGuild(this.ctx, this.genSlug()));
   }
@@ -880,15 +881,18 @@ export class GuildAdminShell extends ShellBase {
       return new GuildAdminPremiumLockedShell(this.ctx, {});
     });
   }
-  /* Custom domain (P23, T3): tier verdict picks the variant —
-   * Locked carries only the premium copy (zero binding data);
-   * the full shell composes the binding + DNS guidance. Unlike
-   * the premium field this surface exists while the paygate is
-   * OFF too (tierLocked locks nobody then), exactly like the
-   * white-label settings above. */
+  /* Custom domain (P23, T3): composed by tierSurfaceState —
+   * the full shell (binding + DNS guidance) for entitled guilds
+   * in every paygate state; the Locked variant (premium copy
+   * only, zero binding data) below tier while the paygate is ON;
+   * null below tier while the paygate is OFF, so the section
+   * does not exist — the same absence the premium field above
+   * composes while the master switch is off. */
   genCustomDomain(){
     return this.memo('customDomain', async () => {
-      if (await tierLocked(this.db, this.genSlug(), 3)) {
+      const state = await tierSurfaceState(this.db, this.genSlug(), 3);
+      if (state === 'absent') return null;
+      if (state === 'locked') {
         return new GuildAdminCustomDomainLockedShell(this.ctx, {});
       }
       return new GuildAdminCustomDomainShell(this.ctx, { slug: this.genSlug() });

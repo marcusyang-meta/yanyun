@@ -40,16 +40,18 @@
  * custom domain per guild), and a hostname belongs to one guild
  * globally (unique index + the bind-time conflict check).
  *
- * Tier: custom domains are T3 (premium-model DESIGN §8). Every
- * surface consults tierLocked(d1, slug, 3) — the billing
- * foundation's pure entitlement verdict, which deliberately does
- * not consult the paygate master switch: the admin surface
- * composes its Locked variant (zero binding data) below T3, and
- * resolution follows the same verdict — a guild that drops below
- * T3 stops resolving on its own (downgrade = freeze, never
- * delete), and a hub tier grant is what turns the surface on for
- * a guild (which is also how test guilds are verified before the
- * tiers launch commercially).
+ * Tier: custom domains are T3 (premium-model DESIGN §8). The
+ * write/resolution verdict is tierLocked(d1, slug, 3) — the
+ * billing foundation's pure entitlement verdict, which never
+ * consults the paygate master switch: resolution follows it
+ * directly — a guild that drops below T3 stops resolving on its
+ * own (downgrade = freeze, never delete), and a hub tier grant is
+ * what turns the feature on for a guild (which is also how test
+ * guilds are verified before the tiers launch commercially).
+ * The admin surface's COMPOSITION goes through tierSurfaceState
+ * instead (see admin-graphql.ts): Locked variant (zero binding
+ * data) below T3 while the paygate is ON, and no section at all
+ * below T3 while it is OFF.
  *
  * Sessions on a custom domain follow the tier-B design, NOT the
  * subdomain rule: the Domain=yanyun.app cookie cannot cover a

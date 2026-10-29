@@ -2,11 +2,13 @@
  * (P3 team draft / P4 substitutes / P5 rotation / P6 best slots /
  * P13 cross-car advice).
  *
- * Gating contract (all five): tierLocked(db, slug, 2). Locked =>
- * the Locked shell ONLY (title/body copy, zero advice data).
- * Unlocked => the full shell. Paygate OFF locks nobody (the
- * billing-service master-switch parity), so launch behavior is
- * unchanged until the gate is ever turned on.
+ * Gating contract (all five): the composition verdict is
+ * tierSurfaceState(db, slug, 2) from the billing service —
+ * entitled => the full shell; unentitled with the paygate ON =>
+ * the Locked shell ONLY (title/body copy, zero advice data);
+ * unentitled with the paygate OFF => null, the surface does not
+ * exist. Writes re-verify the pure tierLocked verdict and refuse
+ * with premiumRequired in every paygate state.
  *
  * Audience: advice is a leader tool. Detail-page advice composes
  * only for viewers who pass the grouping manage verdict; schedule
@@ -27,7 +29,7 @@ import {
   groupingManageGate, rateLimitGql as rateLimit, getClientIp, s, PayloadBase,
 } from '../platform/graphql-base.ts';
 import { fmtStartsAt } from '../platform/index.ts';
-import { tierLocked } from '../platform/billing-service.ts';
+import { tierLocked, tierSurfaceState } from '../platform/billing-service.ts';
 import {
   buildMemberFacts, buildTeamDraft, rankSubstitutes, rankRotation,
   rankBestSlots, crossCarConflicts, crossCarMoves, neededRoles,
@@ -92,7 +94,9 @@ export class GroupingSchedulingAdviceShell extends ShellBase {
 export async function composeGroupingSchedulingAdvice(ctx: Context, ev: any): Promise<any> {
   const verdict = await getGroupingManageVerdict(ctx.env.DB, ctx.user, ctx.request, vcOf(ctx), ev);
   if (!verdict.canManage) return null;
-  if (await tierLocked(ctx.env.DB, ev.tenant, SCHEDULING_REQUIRED_TIER)) {
+  const state = await tierSurfaceState(ctx.env.DB, ev.tenant, SCHEDULING_REQUIRED_TIER);
+  if (state === 'absent') return null;
+  if (state === 'locked') {
     return new SchedulingAdviceLockedShell(ctx, {});
   }
   const db = ctx.env.DB;
@@ -149,7 +153,9 @@ export async function composeBestSlotsAdvice(ctx: Context, slug: string): Promis
   let allowed = !!admin.isAdmin;
   if (!allowed && user) allowed = await hasEventsByTenantCreator(db, slug, String(user.discordId));
   if (!allowed) return null;
-  if (await tierLocked(db, slug, SCHEDULING_REQUIRED_TIER)) {
+  const state = await tierSurfaceState(db, slug, SCHEDULING_REQUIRED_TIER);
+  if (state === 'absent') return null;
+  if (state === 'locked') {
     return new SchedulingAdviceLockedShell(ctx, {});
   }
   const rows = await listGuildAvailability(db, slug);
@@ -182,7 +188,9 @@ export async function composeCrossCarAdvice(ctx: Context, slug: string): Promise
   let allowed = !!admin.isAdmin;
   if (!allowed && user) allowed = await hasEventsByTenantCreator(db, slug, String(user.discordId));
   if (!allowed) return null;
-  if (await tierLocked(db, slug, SCHEDULING_REQUIRED_TIER)) {
+  const state = await tierSurfaceState(db, slug, SCHEDULING_REQUIRED_TIER);
+  if (state === 'absent') return null;
+  if (state === 'locked') {
     return new SchedulingAdviceLockedShell(ctx, {});
   }
   const shell = new SchedulingCrossCarShell(ctx, {});

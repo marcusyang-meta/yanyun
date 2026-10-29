@@ -365,7 +365,7 @@ export class GroupingListPageShell extends ShellBase {
     });
   }
   // Premium T2 cross-car advice (P13): admins / car leaders only,
-  // Locked vs full shell by tierLocked (see scheduling-graphql.ts).
+  // composed by tierSurfaceState (see scheduling-graphql.ts).
   genCrossCarAdvice(){
     return this.memo('crossCarAdvice', async () => composeCrossCarAdvice(this.ctx, s(this.data.slug, 40)));
   }
@@ -512,11 +512,12 @@ export class GroupingDetailPageShell extends ShellBase {
     };
   }
   // P18 AI recap (premium T3): the union variant is the verdict —
-  // Locked (tier) / NotEnabled (provider unconfigured) / Ready /
-  // Empty, composed in recap-graphql.ts. The detail page's own
-  // canView gate already ran, so every viewer here may see a Ready
-  // recap; the generate action object inside the variants is
-  // manage-verdict-gated there.
+  // null (below T3 with the paygate OFF: the section does not
+  // exist) / Locked (below T3, paygate ON) / NotEnabled (provider
+  // unconfigured) / Ready / Empty, composed in recap-graphql.ts.
+  // The detail page's own canView gate already ran, so every
+  // viewer here may see a Ready recap; the generate action object
+  // inside the variants is manage-verdict-gated there.
   genRecap(){
     return this.memo('recap', async () => recapSurfaceForGrouping(this.ctx, this.data));
   }
@@ -544,8 +545,10 @@ export class GroupingDetailPageShell extends ShellBase {
     });
   }
   // Premium T2 scheduling advice (P3/P4/P5): composed only for the
-  // car's managers; Locked shell when tierLocked, full shell when
-  // unlocked, null for everyone else (see scheduling-graphql.ts).
+  // car's managers; full shell when entitled, Locked shell when
+  // unentitled with the paygate ON, null for everyone else —
+  // including unentitled guilds while the paygate is OFF
+  // (see scheduling-graphql.ts).
   genSchedulingAdvice(){
     return this.memo('schedulingAdvice', async () => composeGroupingSchedulingAdvice(this.ctx, this.data));
   }
@@ -612,16 +615,19 @@ export class GroupingDetailPageShell extends ShellBase {
       }));
       const manage = await this.genManageVerdict();
       // Premium T2 scheduling advice (P3/P4/P5 summary lines for
-      // mobile): managers only. Locked tier -> the locked copy as
-      // plain text blocks; unlocked -> draft + substitute headline
-      // lines with server-rendered reasons. Advice only: no block
-      // here carries a seat/invite action.
+      // mobile): managers only, composed by tierSurfaceState —
+      // absent (unentitled, paygate OFF) pushes no block at all;
+      // locked (paygate ON) pushes the locked copy as a plain text
+      // block; open pushes draft + substitute headline lines with
+      // server-rendered reasons. Advice only: no block here
+      // carries a seat/invite action.
       if (manage.canManage) {
         try {
-          const { tierLocked: tl } = await import('../platform/billing-service.ts');
-          if (await tl(this.db, ev.tenant, 2)) {
+          const { tierSurfaceState } = await import('../platform/billing-service.ts');
+          const adviceState = await tierSurfaceState(this.db, ev.tenant, 2);
+          if (adviceState === 'locked') {
             blocks.push(new TextBlockShell(this.ctx, { variant: 'muted', text: this.t('schedulingAdvice_lockedBody') }));
-          } else {
+          } else if (adviceState === 'open') {
             const facts = await buildMemberFacts(this.db, ev.tenant, startsAtEpoch(ev));
             const seatedIds = new Set(rows.map((r: any) => String(r.discord_id || '')).filter(Boolean));
             const pool = facts.filter((f: any) => !seatedIds.has(f.discordId));
