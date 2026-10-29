@@ -2,14 +2,18 @@
  * profiles, P9 gear readiness board, P10 participation heatmap,
  * P15 race season board.
  *
- * Tier contract: every read on this surface is judged by
- * tierLocked(db, slug, 1) from the billing service — a pure
- * entitlement verdict (the paygate master switch is NOT consulted;
- * see billing-service). Below tier 1 (free / no entitlement /
- * lapsed) the surface composes ONLY the GuildInsightsLocked variant
- * and the aggregations in insights.ts are never even run: zero data
- * below the tier, by construction. The verdict composes per field,
- * so each of the four surfaces locks independently.
+ * Tier contract: every read on this surface is composed by
+ * tierSurfaceState(db, slug, 1) from the billing service (see
+ * there): entitled guilds compose the full variant in every
+ * paygate state; below tier 1 (free / no entitlement / lapsed)
+ * with the paygate ON the surface composes ONLY the
+ * GuildInsightsLocked variant; with the paygate OFF the field
+ * resolves null and the surface does not exist. In both
+ * unentitled states the aggregations in insights.ts are never
+ * even run: zero data below the tier, by construction. The
+ * verdict composes per field, so each of the four surfaces locks
+ * independently. Writes re-run the pure tierLocked verdict
+ * (premiumRequired in every paygate state).
  *
  * Surfaces:
  * - GuildAdmin fields (reliability / participationHeatmap /
@@ -31,7 +35,7 @@ import { vcOf } from '../platform/context.ts';
 import {
   ShellBase, getGuildAdminAccess, PayloadBase, s,
 } from '../platform/graphql-base.ts';
-import { tierLocked } from '../platform/index.ts';
+import { tierLocked, tierSurfaceState } from '../platform/index.ts';
 import { fmtMs } from '../groupings/index.ts';
 import {
   computeReliability, computeParticipationHeatmap, computeGearBoard,
@@ -210,32 +214,43 @@ export class RaceSeasonBoardShell extends ShellBase {
  * Called by the GuildAdmin shell (admin verdict already applied by
  * its type) and by the Guild shell (member variants). Each returns
  * the Locked variant without computing anything when the guild is
- * below tier 1. */
+ * below tier 1 with the paygate ON, and null — no surface at all —
+ * when the guild is below tier 1 with the paygate OFF. */
 
 export async function reliabilityForAdmin(ctx: Context, slug: string) {
-  if (await tierLocked(ctx.env.DB, slug, 1)) return new GuildInsightsLockedShell(ctx, {});
+  const state = await tierSurfaceState(ctx.env.DB, slug, 1);
+  if (state === 'absent') return null;
+  if (state === 'locked') return new GuildInsightsLockedShell(ctx, {});
   return new GuildAdminReliabilityShell(ctx, { entries: await computeReliability(ctx.env.DB, slug) });
 }
 
 export async function heatmapForAdmin(ctx: Context, slug: string) {
-  if (await tierLocked(ctx.env.DB, slug, 1)) return new GuildInsightsLockedShell(ctx, {});
+  const state = await tierSurfaceState(ctx.env.DB, slug, 1);
+  if (state === 'absent') return null;
+  if (state === 'locked') return new GuildInsightsLockedShell(ctx, {});
   const heat = await computeParticipationHeatmap(ctx.env.DB, slug, ctx.tz || 'Asia/Shanghai');
   return new GuildAdminHeatmapShell(ctx, heat);
 }
 
 export async function gearBoardForAdmin(ctx: Context, slug: string) {
-  if (await tierLocked(ctx.env.DB, slug, 1)) return new GuildInsightsLockedShell(ctx, {});
+  const state = await tierSurfaceState(ctx.env.DB, slug, 1);
+  if (state === 'absent') return null;
+  if (state === 'locked') return new GuildInsightsLockedShell(ctx, {});
   return new GuildAdminGearBoardShell(ctx, await computeGearBoard(ctx.env.DB, slug));
 }
 
 export async function raceBoardForViewer(ctx: Context, slug: string) {
-  if (await tierLocked(ctx.env.DB, slug, 1)) return new GuildInsightsLockedShell(ctx, {});
+  const state = await tierSurfaceState(ctx.env.DB, slug, 1);
+  if (state === 'absent') return null;
+  if (state === 'locked') return new GuildInsightsLockedShell(ctx, {});
   return new RaceSeasonBoardShell(ctx, { slug });
 }
 
 export async function gearSelfForMember(ctx: Context, slug: string) {
   if (!ctx.user) return new GuildInsightsLockedShell(ctx, {});
-  if (await tierLocked(ctx.env.DB, slug, 1)) return new GuildInsightsLockedShell(ctx, {});
+  const state = await tierSurfaceState(ctx.env.DB, slug, 1);
+  if (state === 'absent') return null;
+  if (state === 'locked') return new GuildInsightsLockedShell(ctx, {});
   const entries = await computeGearSelfStatus(ctx.env.DB, slug, ctx.user.discordId);
   return new GuildGearSelfStatusShell(ctx, { entries });
 }

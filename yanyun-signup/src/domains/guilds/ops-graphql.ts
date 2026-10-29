@@ -3,18 +3,17 @@
  * P14 contribution points.
  *
  * Gating doctrine: the response type is the verdict.
- * GuildAdmin.ops resolves to GuildAdminOps only when the guild
- * clears tierLocked(db, slug, 2); below tier it resolves to
- * GuildAdminOpsLocked, which carries ONLY the premium lock copy —
- * the engines are never even computed for a locked guild. Every
- * mutation re-runs the admin verdict AND the tier verdict
- * server-side. tierLocked is the foundation line's pure
- * entitlement verdict: the tier derives from the entitlement plan
- * value alone and the paygate master switch plays no part in it —
- * an ungranted guild composes the locked variant with the switch
- * on or off, and a hub-granted guild verifies at full tier. (The
- * older premiumGate surfaces keep their paygate semantics; this
- * surface never consults that switch.)
+ * GuildAdmin.ops composes by tierSurfaceState(db, slug, 2) from
+ * the billing service: entitled guilds resolve GuildAdminOps in
+ * every paygate state; below tier with the paygate ON the field
+ * resolves to GuildAdminOpsLocked, which carries ONLY the premium
+ * lock copy; below tier with the paygate OFF the field resolves
+ * null and the section does not exist. The engines are never even
+ * computed for an unentitled guild. Every mutation re-runs the
+ * admin verdict AND the pure tierLocked verdict server-side, so
+ * writes refuse with premiumRequired in every paygate state.
+ * (The older premiumGate surfaces keep their own paygate
+ * semantics, untouched by this one.)
  *
  * P14 split (DESIGN §9, records free / insight paid): the rules and
  * the guild-wide board live behind the T2 gate above; a member's
@@ -25,7 +24,7 @@ import { vcOf } from '../platform/context.ts';
 import {
   ShellBase, defineTextGens, getGuildAdminAccess, PayloadBase, s,
 } from '../platform/graphql-base.ts';
-import { tierLocked, translate, translateError, fmtStartsAt } from '../platform/index.ts';
+import { tierLocked, tierSurfaceState, translate, translateError, fmtStartsAt } from '../platform/index.ts';
 import { listEventsAdmin } from '../groupings/index.ts';
 import { hasGuildMember } from '../identity/index.ts';
 import {
@@ -208,9 +207,13 @@ export class GuildAdminOpsShell extends ShellBase {
 
 export const OPS_TEXT_RESOLVERS = defineTextGens(GuildAdminOpsShell, OPS_TEXT_SPEC);
 
-/** Compose the admin ops field: Locked below tier, full above. */
+/** Compose the admin ops field by tierSurfaceState: full above
+ *  tier, Locked below tier with the paygate ON, null (the section
+ *  does not exist) below tier with the paygate OFF. */
 export async function opsPageForAdmin(ctx: Context, slug: string) {
-  if (await tierLocked(ctx.env.DB, slug, OPS_TIER)) {
+  const state = await tierSurfaceState(ctx.env.DB, slug, OPS_TIER);
+  if (state === 'absent') return null;
+  if (state === 'locked') {
     return new GuildAdminOpsLockedShell(ctx, {});
   }
   return new GuildAdminOpsShell(ctx, { slug });
@@ -250,7 +253,9 @@ export async function targetedNudgePreviewResult(
 ) {
   const access = await getGuildAdminAccess(ctx.env.DB, ctx.user, slug, ctx.request, vcOf(ctx));
   if (!access.isAdmin) return new GuildAdminOpsLockedShell(ctx, {});
-  if (await tierLocked(ctx.env.DB, access.slug, OPS_TIER)) {
+  const state = await tierSurfaceState(ctx.env.DB, access.slug, OPS_TIER);
+  if (state === 'absent') return null;
+  if (state === 'locked') {
     return new GuildAdminOpsLockedShell(ctx, {});
   }
   const kind = (NUDGE_SEGMENT_KINDS as string[]).includes(segmentKind)

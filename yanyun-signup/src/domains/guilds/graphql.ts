@@ -139,9 +139,10 @@ export class GuildShell extends ShellBase {
   /* Premium insights member reads (T1): the race season board is a
    * showcase surface members may read, and gear self status shows a
    * member only their OWN P9 standing. Both compose through
-   * insights-graphql, where tierLocked picks the full variant or
-   * GuildInsightsLocked (zero data below tier 1). Declared on Guild
-   * only. */
+   * insights-graphql, where the surface state picks the full
+   * variant, GuildInsightsLocked (paygate ON), or absence (paygate
+   * OFF) — zero data below tier 1 in every state. Declared on
+   * Guild only. */
   genRaceSeasonBoard(){
     return this.memo('raceSeasonBoard', () => raceBoardForViewer(this.ctx, this.genSlug()));
   }
@@ -189,6 +190,19 @@ export class GuildShell extends ShellBase {
       return access && access.isAdmin ? this.t('guildHome_adminLink') : null;
     });
   }
+  // Allies tab label (P20): verdict-gated like the admin entry
+  // above — served only while the allies surface exists for this
+  // guild (entitled, or unentitled with the paygate ON, where the
+  // page composes its Locked variant). While the surface is
+  // absent (unentitled, paygate OFF) the label is null and the
+  // home page renders no allies tab at all.
+  genHomeTabAlliesLabel(){
+    return this.memo('homeTabAlliesLabel', async () => {
+      const { tierSurfaceState } = await import('../platform/billing-service.ts');
+      const state = await tierSurfaceState(this.db, this.genSlug(), 3);
+      return state === 'absent' ? null : this.t('guildHome_tabAllies');
+    });
+  }
   /* White-label chrome composition (Premium tier 1): the server
    * sends this guild's effective chrome copy, so clients render it
    * verbatim with zero branding logic of their own. Branding on
@@ -217,7 +231,6 @@ export const GUILD_HOME_TEXT_SPEC = [
   ['homeTabAnnouncementsLabel', 'guildHome_tabAnnouncements'],
   ['homeTabScheduleLabel', 'guildHome_tabSchedule'],
   ['homeTabMarketLabel', 'guildHome_tabMarket'],
-  ['homeTabAlliesLabel', 'guildHome_tabAllies'],
   ['homeInsightsRaceTitle', 'guildAdmin_insightsRaceTitle'],
   ['homeInsightsRaceEmptyText', 'guildAdmin_insightsRaceEmpty'],
   ['homeInsightsRaceTeamLabel', 'guildAdmin_insightsRaceTeamLabel'],
@@ -238,6 +251,7 @@ export const GUILD_TEXT_RESOLVERS = defineTextGens(GuildShell, GUILD_HOME_TEXT_S
 // instead of a defineTextGens entry.
 export const GUILD_ADMIN_LINK_RESOLVERS = {
   homeAdminLabel: (p: GuildShell) => p.genHomeAdminLabel(),
+  homeTabAlliesLabel: (p: GuildShell) => p.genHomeTabAlliesLabel(),
 };
 
 // Content fields of the Guild type (the only guild face).

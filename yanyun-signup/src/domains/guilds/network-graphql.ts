@@ -6,11 +6,12 @@
  *    answering invitations never consult a tier. A market whose
  *    supply is paywalled has no liquidity.
  *  - Demand edge T3: the demand section (this guild's requests +
- *    the browsable supplier list) composes as FillDemandLocked with
- *    ZERO demand data while tierLocked(db, slug, 3) holds, and the
- *    demand mutations (create request / invite / seat) re-verify
- *    the same verdict server-side. The paygate master switch stays
- *    OFF in production: this is built, not enabled.
+ *    the browsable supplier list) composes by tierSurfaceState:
+ *    FillDemandLocked with ZERO demand data while the guild is
+ *    below T3 with the paygate ON, and null (no demand section at
+ *    all) below T3 with the paygate OFF. The demand mutations
+ *    (create request / invite / seat) re-verify the pure
+ *    tierLocked verdict server-side in every paygate state.
  *
  * Matching, never adjudication (solution principle ③): the market
  * publishes, browses, invites and records both sides' confirmation.
@@ -29,18 +30,22 @@
  * model (events.visitor_slots quota + signups.is_visitor), they
  * are not a parallel system.
  *
- * Alliances are a T3 surface: the page composes GuildAlliesLocked
- * below tier (with tier copy, not the member copy), and invite /
- * accept / the sharing switch / visitor joins re-verify
- * tierLocked(db, slug, 3) server-side. The exit paths stay open
- * at every tier — rejecting an invitation and dissolving an
- * alliance never consult a tier, so a guild whose tier lapses is
- * never trapped inside an alliance. Existing alliances are data,
- * not a verdict: nothing dissolves them retroactively.
+ * Alliances are a T3 surface, composed by tierSurfaceState: the
+ * page composes GuildAlliesLocked below tier with the paygate ON
+ * (with tier copy, not the member copy), resolves null below tier
+ * with the paygate OFF (the page and its home tab do not exist),
+ * and invite / accept / the sharing switch / visitor joins
+ * re-verify the pure tierLocked(db, slug, 3) verdict server-side
+ * in every paygate state. The exit paths stay open at every
+ * tier — rejecting an invitation and dissolving an alliance never
+ * consult a tier, so a guild whose tier lapses is never trapped
+ * inside an alliance. Existing alliances are data, not a verdict:
+ * nothing dissolves them retroactively.
  *
  * Permission shape (the platform rule): response types carry the
  * verdict — FillMarketLocked / GuildAlliesLocked for non-members,
- * FillDemandLocked for below-tier guilds, nullable manage/admin
+ * FillDemandLocked for below-tier guilds while the paygate is ON
+ * (a null demand section while it is OFF), nullable manage/admin
  * action objects composed only for viewers who pass the verdict
  * (the mutations re-verify independently). No permission flags.
  *
@@ -58,7 +63,7 @@ import {
   rateLimitGql as rateLimit, getClientIp,
 } from '../platform/graphql-base.ts';
 import { fmtStartsAt } from '../platform/index.ts';
-import { tierLocked } from '../platform/billing-service.ts';
+import { tierLocked, tierSurfaceState } from '../platform/billing-service.ts';
 import {
   FILL_NOTE_MAX,
   insertFillOffer, getOpenOfferForUser, getFillOfferById, listOpenFillOffers, withdrawFillOffer,
@@ -347,7 +352,9 @@ export class FillMarketPageShell extends ShellBase {
   }
   genDemand(){
     return this.memo('demand', async () => {
-      if (await tierLocked(this.db, this.data.slug, 3)) return new FillDemandLockedShell(this.ctx, {});
+      const state = await tierSurfaceState(this.db, this.data.slug, 3);
+      if (state === 'absent') return null;
+      if (state === 'locked') return new FillDemandLockedShell(this.ctx, {});
       return new FillDemandSectionShell(this.ctx, {
         slug: this.data.slug, manageGroupings: this.data.manageGroupings,
       });
@@ -553,10 +560,15 @@ export async function guildAlliesResult(ctx: Context, slug: string) {
   if (!ctx.user || !a.exists || !a.isMember) {
     return new GuildAlliesLockedShell(ctx, { slug: String(slug || '') });
   }
-  // P20 is a T3 surface: below tier the page composes the locked
-  // variant (tier copy) and serves zero alliance data — the same
-  // verdict the mutations below re-verify.
-  if (await tierLocked(ctx.env.DB, a.tenant.slug, 3)) {
+  // P20 is a T3 surface, composed by tierSurfaceState: below tier
+  // with the paygate ON the page composes the locked variant (tier
+  // copy) and serves zero alliance data; below tier with the
+  // paygate OFF the field resolves null — the page does not exist
+  // for this guild. The mutations below re-verify the pure
+  // tierLocked verdict.
+  const state = await tierSurfaceState(ctx.env.DB, a.tenant.slug, 3);
+  if (state === 'absent') return null;
+  if (state === 'locked') {
     return new GuildAlliesLockedShell(ctx, { slug: a.tenant.slug, tierLocked: true });
   }
   const admin = await getGuildAdminAccess(ctx.env.DB, ctx.user, a.tenant.slug, ctx.request).catch(() => null);

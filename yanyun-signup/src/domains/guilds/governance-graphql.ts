@@ -8,9 +8,12 @@
  * data, the officer private board, and the audit read page.
  *
  * Composition rules (response type = the verdict, as everywhere):
- * - The whole surface hangs off GuildAdmin.governance as a union:
- *   below T3 (tierLocked(d1, slug, 3)) it composes
- *   GuildGovernanceLocked — copy only, zero governance data.
+ * - The whole surface hangs off GuildAdmin.governance as a union,
+ *   composed by tierSurfaceState(d1, slug, 3): entitled guilds get
+ *   the page in every paygate state; below T3 with the paygate ON
+ *   it composes GuildGovernanceLocked — copy only, zero governance
+ *   data; below T3 with the paygate OFF the field resolves null
+ *   and the surface does not exist.
  * - The grant-management trio (officers / capabilityOptions /
  *   roster) is composed ONLY for Discord admins: an officer sees
  *   the board and the audit log, never the grant list — delegation
@@ -24,9 +27,9 @@
  * target summary only. The write side lives in guild-audit.ts and
  * is called from the management mutations across this domain.
  *
- * Grant/board mutations re-run the verdict server-side and the T3
- * tier gate; the paygate master switch keeps its platform meaning
- * (OFF while the feature is built-not-enabled, tierLocked passes). */
+ * Grant/board mutations re-run the verdict server-side and the
+ * pure tierLocked T3 gate, which refuses writes in every paygate
+ * state. */
 import type { Context } from '../platform/context.ts';
 import { vcOf } from '../platform/context.ts';
 import {
@@ -34,7 +37,7 @@ import {
   getOfficerVerdict, getServersForUser, serverCanManage,
 } from '../platform/graphql-base.ts';
 import type { OfficerCapability, OfficerVerdict } from '../platform/graphql-base.ts';
-import { fmtStartsAt, tierLocked } from '../platform/index.ts';
+import { fmtStartsAt, tierLocked, tierSurfaceState } from '../platform/index.ts';
 import { listGuildMembers } from '../identity/index.ts';
 import {
   listOfficerGrants, upsertOfficerGrant, deleteOfficerGrant,
@@ -301,15 +304,18 @@ export class GuildGovernancePageShell extends ShellBase {
 export const GOVERNANCE_PAGE_TEXT_RESOLVERS = defineTextGens(GuildGovernancePageShell, GOVERNANCE_PAGE_TEXT_SPEC);
 
 /** Compose the governance union for one admin-surface viewer: the
- * T3 tier verdict picks Locked vs Page before governance data
- * is read. Called by GuildAdminShell.genGovernance with the
+ * T3 surface state picks Page vs Locked (paygate ON) vs null
+ * (paygate OFF — the surface does not exist) before governance
+ * data is read. Called by GuildAdminShell.genGovernance with the
  * viewer's officer verdict. */
 export async function governanceResultFor(
   ctx: Context,
   slug: string,
   verdict: OfficerVerdict,
-): Promise<GuildGovernancePageShell | GuildGovernanceLockedShell> {
-  if (await tierLocked(ctx.env.DB, slug, 3)) return new GuildGovernanceLockedShell(ctx, {});
+): Promise<GuildGovernancePageShell | GuildGovernanceLockedShell | null> {
+  const state = await tierSurfaceState(ctx.env.DB, slug, 3);
+  if (state === 'absent') return null;
+  if (state === 'locked') return new GuildGovernanceLockedShell(ctx, {});
   return new GuildGovernancePageShell(ctx, { slug, verdict });
 }
 

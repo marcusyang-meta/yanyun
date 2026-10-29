@@ -3,7 +3,11 @@
  *
  * One union, four variants — the response type IS the verdict, and
  * the composition order is fixed:
- *   1. tierLocked(db, slug, 3)     -> GroupingRecapLocked
+ *   0. tierSurfaceState(db, slug, 3) = 'absent' (below T3 with the
+ *      paygate OFF)               -> null: the field does not
+ *      resolve at all, the surface leaves zero footprint
+ *   1. tierSurfaceState = 'locked' (below T3, paygate ON)
+ *                                   -> GroupingRecapLocked
  *      (no recap content, no provider state, nothing else is read)
  *   2. provider unconfigured       -> GroupingRecapNotEnabled
  *      (the Workers AI binding is absent: even a T3 guild sees
@@ -25,7 +29,7 @@ import {
   ShellBase, PayloadBase, getGroupingManageVerdict, groupingManageGate,
   rateLimitGql as rateLimit, getClientIp,
 } from '../platform/graphql-base.ts';
-import { fmtStartsAt, tierLocked } from '../platform/index.ts';
+import { fmtStartsAt, tierLocked, tierSurfaceState } from '../platform/index.ts';
 import { recapProviderFromEnv } from '../platform/index.ts';
 import type { RecapProvider } from '../platform/index.ts';
 import { getEventRow } from './events.ts';
@@ -120,9 +124,11 @@ export async function recapSurfaceForGrouping(
   ctx: Context,
   ev: { id: number; tenant: string; status: string; creator_discord_id?: string | null },
   providerOverride?: RecapProvider | null,
-): Promise<ShellBase> {
+): Promise<ShellBase | null> {
   const db = ctx.env.DB;
-  if (await tierLocked(db, ev.tenant, 3)) return new GroupingRecapLockedShell(ctx, {});
+  const state = await tierSurfaceState(db, ev.tenant, 3);
+  if (state === 'absent') return null;
+  if (state === 'locked') return new GroupingRecapLockedShell(ctx, {});
   const provider = providerOverride === undefined ? recapProviderFromEnv(ctx.env) : providerOverride;
   if (!provider) return new GroupingRecapNotEnabledShell(ctx, {});
   const row = await getRecapByEvent(db, ev.id).catch(() => null);
@@ -212,16 +218,20 @@ export class GuildAdminRecapListShell extends ShellBase {
 }
 
 /** The admin recap index for one guild, composed with the same
- *  verdict order as the detail surface: tier-locked guilds get the
- *  Locked variant (zero rows are even read), an unconfigured
- *  provider yields the NotEnabled variant, and only then are rows
- *  listed — joined (through the events repository) with their
- *  grouping titles. Rows whose grouping was disbanded are
- *  cascade-deleted with it, so a missing event here is impossible
- *  in practice; it composes as ''. */
-export async function adminRecapsForGuild(ctx: Context, slug: string): Promise<ShellBase> {
+ *  verdict order as the detail surface: absent guilds (below T3,
+ *  paygate OFF) resolve null and the section does not exist;
+ *  tier-locked guilds with the paygate ON get the Locked variant
+ *  (zero rows are even read); an unconfigured provider yields the
+ *  NotEnabled variant, and only then are rows listed — joined
+ *  (through the events repository) with their grouping titles.
+ *  Rows whose grouping was disbanded are cascade-deleted with it,
+ *  so a missing event here is impossible in practice; it composes
+ *  as ''. */
+export async function adminRecapsForGuild(ctx: Context, slug: string): Promise<ShellBase | null> {
   const db = ctx.env.DB;
-  if (await tierLocked(db, slug, 3)) return new GroupingRecapLockedShell(ctx, {});
+  const state = await tierSurfaceState(db, slug, 3);
+  if (state === 'absent') return null;
+  if (state === 'locked') return new GroupingRecapLockedShell(ctx, {});
   if (!recapProviderFromEnv(ctx.env)) return new GroupingRecapNotEnabledShell(ctx, {});
   const rows = await listRecapsByTenant(db, slug);
   const items: GuildAdminRecapShell[] = [];
