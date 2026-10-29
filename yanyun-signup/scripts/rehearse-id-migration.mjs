@@ -2,7 +2,7 @@
 //
 // Builds a production-shaped snapshot (full migration chain + the
 // deterministic seed in id-migration-seed.sql), captures a baseline,
-// applies 0033, and asserts the protocol in ID_SYSTEM.md: foreign key
+// applies 0036, and asserts the protocol in ID_SYSTEM.md: foreign key
 // integrity, row counts, bijective typed IDs, relationship
 // equivalence, Discord class A byte-identity, and the reminder
 // mention list (the webhook payload core) unchanged.
@@ -45,7 +45,9 @@ const check = (label, ok, detail = '') => {
  * covered by tests/ids.test.ts; the rehearsal checks shape + codes). */
 const REGISTRY = {
   tenants: 1, users: 2, events: 10, grouping_templates: 11, signups: 12,
-  results: 13, grouping_custom_fields: 14, guild_announcements: 20,
+  results: 13, grouping_custom_fields: 14, rotation_advice_records: 15,
+  grouping_recaps: 16, guild_announcements: 20, guild_gear_standards: 32,
+  guild_officer_posts: 47, guild_audit_events: 48,
   user_gear_items: 30, user_gear_builds: 31, guild_applications: 40,
   mentor_pairings: 41, guild_roster_entries: 42, roster_import_batches: 43,
   roster_import_rows: 44, guild_member_notes: 45, member_season_goals: 46,
@@ -230,6 +232,57 @@ check('error_log tenant mapping (mapped / sentinel / lenient-miss)',
     JSON.stringify([jili, 0, 0]),
   JSON.stringify(sq(`SELECT tenant FROM error_log ORDER BY id`)));
 
+// Premium-wave coverage (ID_SYSTEM.md protocol point 7): the tables
+// that landed on master after the branch's original base.
+const u1 = scalar(`SELECT id FROM users WHERE discord_id = '111111111111111111'`);
+const u2 = scalar(`SELECT id FROM users WHERE discord_id = '222222222222222222'`);
+check('officer grant keyed by guild id, grantee follows the user map',
+  scalar(`SELECT tenant FROM guild_officer_grants`) === jili &&
+  scalar(`SELECT user_id FROM guild_officer_grants`) === u2);
+check('officer grant granted_by snapshot byte-identical (class A)',
+  scalar(`SELECT granted_by FROM guild_officer_grants`) === '111111111111111111');
+const postId = scalar(`SELECT id FROM guild_officer_posts`);
+check('officer post author follows the user map',
+  scalar(`SELECT author_user_id FROM guild_officer_posts`) === u2);
+check('audit actor snapshot byte-identical (class A)',
+  scalar(`SELECT actor_discord_id FROM guild_audit_events WHERE action = 'event.create'`) ===
+    '111111111111111111');
+const auditTarget = (action) =>
+  scalar(`SELECT target_id FROM guild_audit_events WHERE action = '${action}'`);
+check('audit target announcement rewritten',
+  auditTarget('announcement.post') === String(scalar(`SELECT id FROM guild_announcements WHERE tenant = ${jili}`)));
+check('audit target event rewritten', auditTarget('event.create') === String(e1));
+check('audit target board rewritten', auditTarget('board.post') === String(postId));
+check('audit target signup rewritten',
+  auditTarget('signup.remove') === String(scalar(`SELECT id FROM signups WHERE event_id = ${e1} ORDER BY id LIMIT 1`)));
+check('audit target roster.import rewritten to the batch',
+  auditTarget('roster.import') === String(scalar(`SELECT id FROM roster_import_batches`)));
+check('audit target roster.entryDelete rewritten to the entry',
+  auditTarget('roster.entryDelete') ===
+    String(scalar(`SELECT id FROM guild_roster_entries ORDER BY id LIMIT 1 OFFSET 1`)));
+check('audit target member stays a Discord ID (class A)',
+  auditTarget('note.add') === '333333333333333333');
+check('audit target guide stays a school name', auditTarget('guide.publish') === '试锋');
+check('custom domain keyed by guild id, creator follows the user map',
+  scalar(`SELECT tenant FROM guild_custom_domains`) === jili &&
+  scalar(`SELECT created_by_user_id FROM guild_custom_domains`) === u1);
+const stdId = scalar(`SELECT id FROM guild_gear_standards`);
+check('gear standard creator follows the user map',
+  scalar(`SELECT created_by_user_id FROM guild_gear_standards`) === u1);
+const recapRow = sq(`SELECT id, tenant, event_id, generated_by_user_id FROM grouping_recaps`)[0];
+check('recap hangs off the new grouping id, generator follows the user map',
+  recapRow.tenant === jili && recapRow.event_id === e1 && recapRow.generated_by_user_id === u1);
+const rotRows = sq(`SELECT created_by_user_id FROM rotation_advice_records ORDER BY id`);
+check('rotation creator follows the user map, omni sentinel lands on 0',
+  rotRows.length === 2 && rotRows[0].created_by_user_id === u2 && rotRows[1].created_by_user_id === 0);
+check('no fake omni user minted',
+  scalar(`SELECT COUNT(*) FROM users WHERE discord_id = 'omni'`) === 0);
+check('platform-admin roster rewritten to user ids',
+  JSON.stringify(JSON.parse(scalar(
+    `SELECT value FROM settings WHERE tenant = 0 AND key = 'platform_admin_discord_ids'`))) ===
+    JSON.stringify([String(u1), String(scalar(
+      `SELECT id FROM users WHERE discord_id = '777777777777777777'`))]));
+
 // Day inheritance for parent-derived tables.
 const pollDay = dayOf(scalar(`SELECT id FROM time_polls`));
 const optionDays = sq(`SELECT id FROM time_poll_options`).map((r) => dayOf(r.id));
@@ -254,6 +307,20 @@ for (const [table, code] of Object.entries(REGISTRY)) {
     check(`mint counter ${table} day ${g.day}`, counter === g.maxseq, `counter=${counter} max=${g.maxseq}`);
   }
 }
+
+// Epoch guard: a planted pre-epoch row must abort the migration
+// (the _idmig_guard CHECK tripwire), leaving the snapshot untouched.
+const guardDb = join(work, 'guard.sqlite');
+for (const f of chain) sqExec(join(signupDir, 'migrations', f), guardDb);
+sqExec(join(here, 'id-migration-seed.sql'), guardDb);
+sq(`UPDATE events SET created_at = '2025-06-01' WHERE id = 1`, guardDb);
+let guardAborted = false;
+try {
+  sqExec(join(signupDir, 'migrations', '0036_typed_public_ids.sql'), guardDb);
+} catch {
+  guardAborted = true;
+}
+check('epoch guard aborts on a planted pre-epoch row', guardAborted);
 
 // A non-renumbered AUTOINCREMENT table still sequences sanely.
 sq(`INSERT INTO lottery_entries (lottery_id, discord_id, display_name, weight) VALUES (${scalar('SELECT id FROM lotteries')}, '424242424242424242', 'probe', 1)`);
