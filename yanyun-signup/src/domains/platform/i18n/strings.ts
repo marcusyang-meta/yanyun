@@ -4215,6 +4215,12 @@ export abstract class AlliesFbtUtils {
 	static lockedBody(fbs: FbsRuntime) {
 		return fbs._("登录并成为本百业成员后，可以查看盟友与共享活动。", null, { hk: "2IYUIR" });
 	}
+	static tierLockedTitle(fbs: FbsRuntime) {
+		return fbs._("盟友百业是盟主档功能", null, { hk: "2l5tBf" });
+	}
+	static tierLockedBody(fbs: FbsRuntime) {
+		return fbs._("结盟、查看盟友与共享活动需要百业开通盟主档（T3）。解除既有结盟不受档位限制。", null, { hk: "3vbBRQ" });
+	}
 	static activeTitle(fbs: FbsRuntime) {
 		return fbs._("已结盟百业", null, { hk: "srINm" });
 	}
@@ -6302,6 +6308,8 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"allies_body": AlliesFbtUtils.body,
 	"allies_lockedTitle": AlliesFbtUtils.lockedTitle,
 	"allies_lockedBody": AlliesFbtUtils.lockedBody,
+	"allies_tierLockedTitle": AlliesFbtUtils.tierLockedTitle,
+	"allies_tierLockedBody": AlliesFbtUtils.tierLockedBody,
 	"allies_activeTitle": AlliesFbtUtils.activeTitle,
 	"allies_activeEmpty": AlliesFbtUtils.activeEmpty,
 	"allies_statusPending": AlliesFbtUtils.statusPending,

@@ -13262,6 +13262,30 @@
         }
       ],
       "types": []
+    },
+    "9h8SCzP9BL8tJJv5si4NkA==": {
+      "description": "Title text for the allied guilds tier locked page, used when a guild member's guild is below the top premium tier.",
+      "id": "guilds/allies_tierLockedTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Guild alliances are a top-tier feature",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "YEsdjfMBqzBP+A5EnRTj+w==": {
+      "description": "Body text for the allied guilds tier locked page, used to explain alliances, viewing allies and joining shared squads need the top tier, while dissolving an existing alliance stays unrestricted.",
+      "id": "guilds/allies_tierLockedBody",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Forming alliances, viewing allies and taking part in shared squads requires the guild to have the top tier (T3). Dissolving an existing alliance is not restricted by tier.",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

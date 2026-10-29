@@ -12888,6 +12888,30 @@
         }
       ],
       "types": []
+    },
+    "9h8SCzP9BL8tJJv5si4NkA==": {
+      "description": "Title text for the allied guilds tier locked page, used when a guild member's guild is below the top premium tier.",
+      "id": "guilds/allies_tierLockedTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "盟友百業是盟主檔功能",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "YEsdjfMBqzBP+A5EnRTj+w==": {
+      "description": "Body text for the allied guilds tier locked page, used to explain alliances, viewing allies and joining shared squads need the top tier, while dissolving an existing alliance stays unrestricted.",
+      "id": "guilds/allies_tierLockedBody",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "結盟、查看盟友與共享活動需要百業開通盟主檔（T3）。解除既有結盟不受檔位限制。",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

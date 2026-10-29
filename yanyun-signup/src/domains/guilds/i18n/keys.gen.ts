@@ -476,6 +476,8 @@ export type GuildsStringKey =
   | 'allies_body'
   | 'allies_lockedTitle'
   | 'allies_lockedBody'
+  | 'allies_tierLockedTitle'
+  | 'allies_tierLockedBody'
   | 'allies_activeTitle'
   | 'allies_activeEmpty'
   | 'allies_statusPending'
@@ -1051,6 +1053,8 @@ export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'allies_body',
   'allies_lockedTitle',
   'allies_lockedBody',
+  'allies_tierLockedTitle',
+  'allies_tierLockedBody',
   'allies_activeTitle',
   'allies_activeEmpty',
   'allies_statusPending',
