@@ -227,9 +227,9 @@ eq('删件后公开视图少一件', (await resolveSharedBuild(db, link1.code)).
 
   it('GraphQL lifecycle', async () => {
 /* ================= GraphQL lifecycle ================= */
-let r = await gql('mutation($id: Int!) { shareGearBuild(id: $id) { ok errorCode shareUrl } }', { variables: { id: build2.id } });
+let r = await gql('mutation($id: ID!) { shareGearBuild(id: $id) { ok errorCode shareUrl } }', { variables: { id: build2.id } });
 eq('匿名分享 -> loginRequired', [r.data.shareGearBuild.ok, r.data.shareGearBuild.errorCode], [false, 'loginRequired']);
-r = await gql('mutation($id: Int!) { shareGearBuild(id: $id) { ok errorCode } }', { user: B, variables: { id: build1.id } });
+r = await gql('mutation($id: ID!) { shareGearBuild(id: $id) { ok errorCode } }', { user: B, variables: { id: build1.id } });
 eq('他人分享 A 的方案 -> gearNotFound', [r.data.shareGearBuild.ok, r.data.shareGearBuild.errorCode], [false, 'gearNotFound']);
 r = await gql('{ myGearBuilds { id shareUrl } }', { user: A });
 const mine = Object.fromEntries(r.data.myGearBuilds.map((b) => [b.id, b.shareUrl]));
@@ -258,20 +258,20 @@ r = await gql('query($c: String!) { ogBuildCard(code: $c) { name } }', { variabl
 eq('ogBuildCard 未知码 -> null', r.data.ogBuildCard, null);
 
 /* Revoke via GraphQL, then re-share mints a fresh code. */
-r = await gql('mutation($id: Int!) { revokeGearBuildShare(id: $id) { ok errorCode } }', { user: B, variables: { id: build1.id } });
+r = await gql('mutation($id: ID!) { revokeGearBuildShare(id: $id) { ok errorCode } }', { user: B, variables: { id: build1.id } });
 eq('他人撤销 -> gearNotFound', [r.data.revokeGearBuildShare.ok, r.data.revokeGearBuildShare.errorCode], [false, 'gearNotFound']);
 r = await gql(pageQ, { variables: { c: link1.code } });
 eq('他人撤销未遂: 链仍活', r.data.sharedBuild.exists, true);
-r = await gql('mutation($id: Int!) { revokeGearBuildShare(id: $id) { ok errorCode } }', { user: A, variables: { id: build1.id } });
+r = await gql('mutation($id: ID!) { revokeGearBuildShare(id: $id) { ok errorCode } }', { user: A, variables: { id: build1.id } });
 eq('所有者撤销 ok', r.data.revokeGearBuildShare.ok, true);
 r = await gql(pageQ, { variables: { c: link1.code } });
 eq('撤销后旧链立即失效', r.data.sharedBuild.exists, false);
 eq('撤销后服务层 resolve -> null', await resolveSharedBuild(db, link1.code), null);
 r = await gql('{ myGearBuilds { id shareUrl } }', { user: A });
 eq('撤销后所有者列表 shareUrl 回 null', Object.fromEntries(r.data.myGearBuilds.map((b) => [b.id, b.shareUrl]))[build1.id], null);
-r = await gql('mutation($id: Int!) { revokeGearBuildShare(id: $id) { ok } }', { user: A, variables: { id: build1.id } });
+r = await gql('mutation($id: ID!) { revokeGearBuildShare(id: $id) { ok } }', { user: A, variables: { id: build1.id } });
 eq('重复撤销 -> ok=false', r.data.revokeGearBuildShare.ok, false);
-r = await gql('mutation($id: Int!) { shareGearBuild(id: $id) { ok shareUrl } }', { user: A, variables: { id: build1.id } });
+r = await gql('mutation($id: ID!) { shareGearBuild(id: $id) { ok shareUrl } }', { user: A, variables: { id: build1.id } });
 check('重新分享 ok', r.data.shareGearBuild.ok === true, JSON.stringify(r.data));
 const newCode = (r.data.shareGearBuild.shareUrl || '').split('/b/')[1];
 check('重新分享 = 新码', !!newCode && newCode !== link1.code && BUILD_SHARE_CODE_RE.test(newCode), newCode);
@@ -279,7 +279,7 @@ r = await gql(pageQ, { variables: { c: newCode } });
 eq('新码可用', r.data.sharedBuild.exists, true);
 
 /* deleteGearBuild cleans the link row. */
-r = await gql('mutation($id: Int!) { deleteGearBuild(id: $id) { ok } }', { user: A, variables: { id: build1.id } });
+r = await gql('mutation($id: ID!) { deleteGearBuild(id: $id) { ok } }', { user: A, variables: { id: build1.id } });
 eq('删方案 ok', r.data.deleteGearBuild.ok, true);
 eq('删方案后链行已清', await getBuildShareLink(db, A.userId, build1.id), null);
 r = await gql(pageQ, { variables: { c: newCode } });
