@@ -62,43 +62,52 @@ function toRawRows(sqlText, rows) {
     : Object.values(r)));
 }
 
+/* Typed-ID fixtures: guilds/users carry their 0036 primary keys;
+   Discord-space values (server ids, roster discord_id, receipt
+   discordId on the wire) stay Discord IDs by design. */
+const GID = { alpha: 1030100001, beta: 1030100002 };
+const UID = { A1: 2030100001, M1: 2030100002, M2: 2030100003, B1: 2030100004, X1: 2030100005 };
+
 /* ---------------- FakeDB ---------------- */
 function makeDb() {
   const state = {
     tenants: [
-      { slug: 'alpha', guild_name: '甲百业', password_hash: 'x', announcement: '', slogan: '', master_name: '', logo_url: '', bg_image_url: '' },
-      { slug: 'beta', guild_name: '乙百业', password_hash: 'x', announcement: '', slogan: '', master_name: '', logo_url: '', bg_image_url: '' },
+      { id: GID.alpha, slug: 'alpha', guild_name: '甲百业', password_hash: 'x', announcement: '', slogan: '', master_name: '', logo_url: '', bg_image_url: '' },
+      { id: GID.beta, slug: 'beta', guild_name: '乙百业', password_hash: 'x', announcement: '', slogan: '', master_name: '', logo_url: '', bg_image_url: '' },
     ],
     settings: new Map([
-      ['alpha|discord_guild_id', 'DG1'],
-      ['beta|discord_guild_id', 'DG2'],
+      [`${GID.alpha}|discord_guild_id`, 'DG1'],
+      [`${GID.beta}|discord_guild_id`, 'DG2'],
     ]),
-    users: new Map([
-      // Admin of DG1 (Administrator bit), plain member of DG1, admin of DG2.
-      ['A1', JSON.stringify([{ id: 'DG1', name: 'S1', permissions: '8', owner: false }])],
-      ['M1', JSON.stringify([{ id: 'DG1', name: 'S1', permissions: '0', owner: false }])],
-      ['M2', JSON.stringify([{ id: 'DG1', name: 'S1', permissions: '0', owner: false }])],
-      ['B1', JSON.stringify([{ id: 'DG2', name: 'S2', permissions: '8', owner: false }])],
-    ]),
+    // User rows keyed by typed id; guilds_json is the stored server list
+    // (Admin of DG1 has the Administrator bit, B1 administers DG2).
+    users: [
+      { id: UID.A1, discord_id: 'A1', username: '管理员甲', guilds_json: JSON.stringify([{ id: 'DG1', name: 'S1', permissions: '8', owner: false }]) },
+      { id: UID.M1, discord_id: 'M1', username: '成员一', guilds_json: JSON.stringify([{ id: 'DG1', name: 'S1', permissions: '0', owner: false }]) },
+      { id: UID.M2, discord_id: 'M2', username: '成员二', guilds_json: JSON.stringify([{ id: 'DG1', name: 'S1', permissions: '0', owner: false }]) },
+      { id: UID.B1, discord_id: 'B1', username: '乙管理员', guilds_json: JSON.stringify([{ id: 'DG2', name: 'S2', permissions: '8', owner: false }]) },
+    ],
     guildMembers: [
-      { tenant: 'alpha', discord_id: 'A1', nick: '管理员甲', global_name: 'AdminA' },
-      { tenant: 'alpha', discord_id: 'M1', nick: '成员一', global_name: 'MemberOne' },
-      { tenant: 'alpha', discord_id: 'M2', nick: '', global_name: '成员二' },
-      { tenant: 'beta', discord_id: 'B1', nick: '乙管理员', global_name: 'AdminB' },
+      { tenant: GID.alpha, discord_id: 'A1', nick: '管理员甲', global_name: 'AdminA' },
+      { tenant: GID.alpha, discord_id: 'M1', nick: '成员一', global_name: 'MemberOne' },
+      { tenant: GID.alpha, discord_id: 'M2', nick: '', global_name: '成员二' },
+      { tenant: GID.beta, discord_id: 'B1', nick: '乙管理员', global_name: 'AdminB' },
     ],
     pushTokens: [
-      { discord_id: 'M1', token: 'ExponentPushToken[member-one]', platform: 'ios' },
-      { discord_id: 'A1', token: 'ExponentPushToken[admin-a]', platform: 'ios' },
+      { user_id: UID.M1, token: 'ExponentPushToken[member-one]', platform: 'ios' },
+      { user_id: UID.A1, token: 'ExponentPushToken[admin-a]', platform: 'ios' },
     ],
-    announcements: [], // {id, tenant, kind, title, body, author_discord_id, author_name, created_at}
-    reads: [],         // {announcement_id, tenant, discord_id, read_at}
+    announcements: [], // {id, tenant, kind, title, body, author_user_id, author_name, created_at}
+    reads: [],         // {announcement_id, tenant, user_id, read_at}
     usage: new Map(),  // `${scope}|${metric}|${day}` -> count
+    auditEvents: [],   // guild_audit_events rows
+    mint: new Map(),   // id_mint_counters: `${type_code}|${day_index}` -> seq
   };
   let nextId = 100;
 
   function norm(sql) {
     return sql.replace(/"/g, '')
-      .replace(/\b(tenants|settings|users|guild_members|guild_announcements|guild_announcement_reads|usage_counters|push_tokens|guild_entitlements)\./g, '')
+      .replace(/\b(tenants|settings|users|guild_members|guild_announcements|guild_announcement_reads|usage_counters|push_tokens|guild_entitlements|guild_audit_events|id_mint_counters)\./g, '')
       .replace(/\s+/g, ' ');
   }
 
@@ -107,18 +116,32 @@ function makeDb() {
     if (/^INSERT INTO error_log/i.test(sql)) return { meta: { changes: 1 } };
     const first = (row) => (kind === 'first' ? (row ?? null) : { results: row ? [row] : [] });
     const all = (rows) => ({ results: rows });
+    if (/INSERT INTO id_mint_counters/i.test(sql)) {
+      const key = `${b[0]}|${b[1]}`;
+      const seq = (state.mint.get(key) || 0) + 1;
+      state.mint.set(key, seq);
+      return kind === 'first' ? { seq } : { results: [{ seq }] };
+    }
+    if (/^INSERT INTO guild_audit_events/i.test(sql)) {
+      const cols = /INSERT INTO guild_audit_events \(([^)]+)\)/i.exec(sql)[1].split(',').map((c) => c.trim());
+      const v = {}; cols.forEach((c, i) => { v[c] = b[i]; });
+      state.auditEvents.push({ id: Number(v.id), tenant: v.tenant, actor_discord_id: v.actor_discord_id, actor_name: v.actor_name, action: v.action, target_type: v.target_type, target_id: v.target_id, target_label: v.target_label, created_at: v.created_at });
+      return { meta: { changes: 1 } };
+    }
 
     /* announcements */
     if (/^INSERT INTO guild_announcements/i.test(sql)) {
-      const [tenant, kindV, title, body, authorId, authorName, createdAt] = b;
-      const row = { id: nextId++, tenant, kind: kindV, title, body, author_discord_id: authorId, author_name: authorName, created_at: createdAt };
+      const cols = /INSERT INTO guild_announcements \(([^)]+)\)/i.exec(sql)[1].split(',').map((c) => c.trim());
+      const v = {}; cols.forEach((c, i) => { v[c] = b[i]; });
+      const row = { id: Number(v.id) || nextId++, tenant: v.tenant, kind: v.kind, title: v.title, body: v.body, author_user_id: v.author_user_id, author_name: v.author_name, created_at: v.created_at };
       state.announcements.push(row);
       return { meta: { changes: 1, last_row_id: row.id } };
     }
     if (/^INSERT INTO guild_announcement_reads/i.test(sql)) {
-      const [announcementId, tenant, discordId, readAt] = b;
-      if (!state.reads.some((r) => r.announcement_id === Number(announcementId) && r.discord_id === discordId)) {
-        state.reads.push({ announcement_id: Number(announcementId), tenant, discord_id: discordId, read_at: readAt });
+      const cols = /INSERT INTO guild_announcement_reads \(([^)]+)\)/i.exec(sql)[1].split(',').map((c) => c.trim());
+      const v = {}; cols.forEach((c, i) => { v[c] = b[i]; });
+      if (!state.reads.some((r) => r.announcement_id === Number(v.announcement_id) && r.user_id === Number(v.user_id))) {
+        state.reads.push({ announcement_id: Number(v.announcement_id), tenant: v.tenant, user_id: Number(v.user_id), read_at: v.read_at });
       }
       return { meta: { changes: 1 } };
     }
@@ -142,12 +165,12 @@ function makeDb() {
     }
     if (/FROM guild_announcement_reads/i.test(sql)) {
       if (/announcement_id FROM/i.test(sql) || /^SELECT announcement_id/i.test(sql)) {
-        return all(state.reads.filter((r) => r.tenant === b[0] && r.discord_id === b[1]).map((r) => ({ announcement_id: r.announcement_id })));
+        return all(state.reads.filter((r) => r.tenant === b[0] && r.user_id === Number(b[1])).map((r) => ({ announcement_id: r.announcement_id })));
       }
       const rows = state.reads
         .filter((r) => r.tenant === b[0] && r.announcement_id === Number(b[1]))
         .sort((x, y) => x.read_at - y.read_at)
-        .map((r) => ({ discord_id: r.discord_id, read_at: r.read_at }));
+        .map((r) => ({ user_id: r.user_id, read_at: r.read_at }));
       return all(rows);
     }
     /* usage counters */
@@ -163,6 +186,8 @@ function makeDb() {
     }
     /* tenants / settings / users / roster / tokens / entitlements */
     if (/FROM tenants WHERE slug/i.test(sql)) return first(state.tenants.find((t) => t.slug === b[0]));
+    if (/FROM tenants/i.test(sql) && /WHERE id =/i.test(sql)) return first(state.tenants.find((t) => t.id === Number(b[0])));
+    if (/FROM tenants/i.test(sql)) return all(state.tenants);
     if (/FROM settings WHERE tenant = \? AND key = \?/i.test(sql)) {
       const v = state.settings.get(`${b[0]}|${b[1]}`);
       return first(v === undefined ? null : { value: v });
@@ -173,16 +198,28 @@ function makeDb() {
       return all(rows);
     }
     if (/SELECT guilds_json FROM users/i.test(sql)) {
-      const v = state.users.get(String(b[0]));
-      return first(v === undefined ? null : { guilds_json: v });
+      const u = state.users.find((x) => x.id === Number(b[0]));
+      return first(u === undefined ? null : { guilds_json: u.guilds_json });
+    }
+    if (/FROM users/i.test(sql) && /discord_id IN/i.test(sql)) {
+      const ids = b.map(String);
+      return all(state.users.filter((u) => ids.includes(u.discord_id)).map((u) => ({ id: u.id, discord_id: u.discord_id })));
+    }
+    if (/FROM users/i.test(sql) && /discord_id =/i.test(sql)) {
+      const u = state.users.find((x) => x.discord_id === String(b[0]));
+      return first(u ? { id: u.id, discord_id: u.discord_id, username: u.username } : null);
+    }
+    if (/FROM users/i.test(sql) && /WHERE id =/i.test(sql)) {
+      const u = state.users.find((x) => x.id === Number(b[0]));
+      return first(u ? { ...u } : null);
     }
     if (/FROM users/i.test(sql)) return first(null);
     if (/FROM guild_members/i.test(sql)) {
       return all(state.guildMembers.filter((m) => m.tenant === b[0]).map((m) => ({ ...m })));
     }
     if (/FROM push_tokens/i.test(sql)) {
-      const ids = b.map(String);
-      return all(state.pushTokens.filter((t) => ids.includes(t.discord_id)).map((t) => ({ ...t })));
+      const ids = b.map(Number);
+      return all(state.pushTokens.filter((t) => ids.includes(t.user_id)).map((t) => ({ ...t })));
     }
     if (/FROM guild_entitlements/i.test(sql)) return first(null);
     if (/FROM settings/i.test(sql)) return all([]);
@@ -206,11 +243,11 @@ function makeDb() {
 
 const { db, state } = makeDb();
 const env = { DB: db };
-const adminA = { discordId: 'A1', name: '管理员甲', guilds: ['DG1'] };
-const member1 = { discordId: 'M1', name: '成员一', guilds: ['DG1'] };
-const member2 = { discordId: 'M2', name: '成员二', guilds: ['DG1'] };
-const adminB = { discordId: 'B1', name: '乙管理员', guilds: ['DG2'] };
-const outsider = { discordId: 'X1', name: '路人', guilds: [] };
+const adminA = { userId: UID.A1, discordId: 'A1', name: '管理员甲', guilds: ['DG1'] };
+const member1 = { userId: UID.M1, discordId: 'M1', name: '成员一', guilds: ['DG1'] };
+const member2 = { userId: UID.M2, discordId: 'M2', name: '成员二', guilds: ['DG1'] };
+const adminB = { userId: UID.B1, discordId: 'B1', name: '乙管理员', guilds: ['DG2'] };
+const outsider = { userId: UID.X1, discordId: 'X1', name: '路人', guilds: [] };
 
 /* Expo push stub: count sends, answer ok tickets (no receipts work). */
 const pushCalls = [];
@@ -287,11 +324,11 @@ let firstId;
   firstId = row.id;
   eq('标题/正文已去空白', [row.title, row.body], ['周六活动安排', '本周六晚八点集合。']);
   eq('kind 落 standard', row.kind, 'standard');
-  eq('作者快照', [row.author_discord_id, row.author_name], ['A1', '管理员甲']);
+  eq('作者快照', [row.author_user_id, row.author_name], [UID.A1, '管理员甲']);
   check('created_at 为秒级时间戳', Math.abs(row.created_at - Math.floor(Date.now() / 1000)) < 60, String(row.created_at));
-  eq('作者自动已读一行回执', state.reads.map((x) => [x.announcement_id, x.discord_id]), [[firstId, 'A1']]);
+  eq('作者自动已读一行回执', state.reads.map((x) => [x.announcement_id, x.user_id]), [[firstId, UID.A1]]);
   const usageKeys = [...state.usage.keys()];
-  check('频控计入 guild:alpha 的 guild_announcements', usageKeys.some((k) => k.startsWith('guild:alpha|guild_announcements|')), usageKeys.join(','));
+  check('频控计入 guild:alpha 的 guild_announcements', usageKeys.some((k) => k.startsWith(`${GID.alpha}|guild_announcements|`)), usageKeys.join(','));
   eq('普通计数 = 1', [...state.usage.values()].reduce((a, b) => a + b, 0), 1);
 
   await Promise.all(pending);
@@ -339,12 +376,12 @@ const memberPageQ = `query($slug: String!) { viewer { guild(slug: $slug) { __typ
   const m1 = await mark(member1, 'alpha', firstId);
   eq('成员标已读 -> ok', m1.data?.markGuildAnnouncementRead?.ok, true);
   eq('返回本人已读态 true', m1.data?.markGuildAnnouncementRead?.announcement?.viewerHasRead, true);
-  eq('回执落一行', state.reads.filter((x) => x.discord_id === 'M1').length, 1);
-  const firstReadAt = state.reads.find((x) => x.discord_id === 'M1').read_at;
+  eq('回执落一行', state.reads.filter((x) => x.user_id === UID.M1).length, 1);
+  const firstReadAt = state.reads.find((x) => x.user_id === UID.M1).read_at;
   const again = await mark(member1, 'alpha', firstId);
   eq('重复标已读仍 ok (幂等)', again.data?.markGuildAnnouncementRead?.ok, true);
-  eq('重复标已读不新增行', state.reads.filter((x) => x.discord_id === 'M1').length, 1);
-  eq('首次已读时刻不变', state.reads.find((x) => x.discord_id === 'M1').read_at, firstReadAt);
+  eq('重复标已读不新增行', state.reads.filter((x) => x.user_id === UID.M1).length, 1);
+  eq('首次已读时刻不变', state.reads.find((x) => x.user_id === UID.M1).read_at, firstReadAt);
 
   const page2 = await gql(memberPageQ, { user: member1, variables: { slug: 'alpha' } });
   eq('标后成员面显示本人已读', page2.data?.viewer?.guild?.announcements?.announcements?.[0]?.viewerHasRead, true);
@@ -415,11 +452,11 @@ const adminPageQ = `query($slug: String!) { viewer { guildAdmin(slug: $slug) { _
   const sixth = await post(adminA, 'alpha', 'STANDARD', '第六条', '正文');
   eq('第 6 条普通公告 -> announcementDailyLimit', sixth.data?.postGuildAnnouncement?.errorCode, 'announcementDailyLimit');
   eq('普通上限文案带数值', sixth.data?.postGuildAnnouncement?.error, '今天的公告已达上限（每天 5 条），明天再发');
-  eq('普通公告落库恰 5 条', state.announcements.filter((r) => r.tenant === 'alpha' && r.kind === 'standard').length, 5);
+  eq('普通公告落库恰 5 条', state.announcements.filter((r) => r.tenant === GID.alpha && r.kind === 'standard').length, 5);
 
   const beta = await post(adminB, 'beta', 'STANDARD', '乙百业公告', '正文');
   eq('另一百业频控独立 -> ok', beta.data?.postGuildAnnouncement?.ok, true);
-  eq('乙百业落库一行', state.announcements.filter((r) => r.tenant === 'beta').length, 1);
+  eq('乙百业落库一行', state.announcements.filter((r) => r.tenant === GID.beta).length, 1);
   });
 
 /* ================= delete ================= */

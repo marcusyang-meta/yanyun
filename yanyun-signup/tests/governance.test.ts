@@ -67,35 +67,41 @@ function toRawRows(sqlText, rows) {
     : Object.values(r)));
 }
 
+/* Typed-ID fixtures: guilds/users carry their 0036 primary keys;
+   Discord-space values (server ids, roster discord_id, audit actor
+   and member targets) stay Discord IDs by design. */
+const GID = { alpha: 1030100001, beta: 1030100002 };
+const UID = { A1: 2030100001, M1: 2030100002, M2: 2030100003, M3: 2030100004, B1: 2030100005 };
+
 /* ---------------- FakeDB ---------------- */
 function makeDb() {
   const state = {
     tenants: [
-      { slug: 'alpha', guild_name: '甲百业', password_hash: 'x', announcement: '甲公告原文', slogan: '甲标语', master_name: '甲掌门', logo_url: '', bg_image_url: '', recruit_open: 0 },
-      { slug: 'beta', guild_name: '乙百业', password_hash: 'x', announcement: '', slogan: '', master_name: '', logo_url: '', bg_image_url: '', recruit_open: 0 },
+      { id: GID.alpha, slug: 'alpha', guild_name: '甲百业', password_hash: 'x', announcement: '甲公告原文', slogan: '甲标语', master_name: '甲掌门', logo_url: '', bg_image_url: '', recruit_open: 0 },
+      { id: GID.beta, slug: 'beta', guild_name: '乙百业', password_hash: 'x', announcement: '', slogan: '', master_name: '', logo_url: '', bg_image_url: '', recruit_open: 0 },
     ],
     settings: new Map([
-      ['alpha|discord_guild_id', 'DG1'],
-      ['beta|discord_guild_id', 'DG2'],
+      [`${GID.alpha}|discord_guild_id`, 'DG1'],
+      [`${GID.beta}|discord_guild_id`, 'DG2'],
     ]),
-    users: new Map([
-      ['A1', JSON.stringify([{ id: 'DG1', name: 'S1', permissions: '8', owner: false }])],
-      ['M1', JSON.stringify([{ id: 'DG1', name: 'S1', permissions: '0', owner: false }])],
-      ['M2', JSON.stringify([{ id: 'DG1', name: 'S1', permissions: '0', owner: false }])],
-      ['M3', JSON.stringify([{ id: 'DG1', name: 'S1', permissions: '0', owner: false }])],
-      ['B1', JSON.stringify([{ id: 'DG2', name: 'S2', permissions: '8', owner: false }])],
-    ]),
+    users: [
+      { id: UID.A1, discord_id: 'A1', username: '管理员甲', guilds_json: JSON.stringify([{ id: 'DG1', name: 'S1', permissions: '8', owner: false }]) },
+      { id: UID.M1, discord_id: 'M1', username: '成员一', guilds_json: JSON.stringify([{ id: 'DG1', name: 'S1', permissions: '0', owner: false }]) },
+      { id: UID.M2, discord_id: 'M2', username: '成员二', guilds_json: JSON.stringify([{ id: 'DG1', name: 'S1', permissions: '0', owner: false }]) },
+      { id: UID.M3, discord_id: 'M3', username: '成员三', guilds_json: JSON.stringify([{ id: 'DG1', name: 'S1', permissions: '0', owner: false }]) },
+      { id: UID.B1, discord_id: 'B1', username: '乙管理员', guilds_json: JSON.stringify([{ id: 'DG2', name: 'S2', permissions: '8', owner: false }]) },
+    ],
     guildMembers: [
-      { tenant: 'alpha', discord_id: 'A1', nick: '管理员甲', global_name: 'AdminA' },
-      { tenant: 'alpha', discord_id: 'M1', nick: '成员一', global_name: 'MemberOne' },
-      { tenant: 'alpha', discord_id: 'M2', nick: '成员二', global_name: 'MemberTwo' },
-      { tenant: 'alpha', discord_id: 'M3', nick: '成员三', global_name: 'MemberThree' },
-      { tenant: 'beta', discord_id: 'B1', nick: '乙管理员', global_name: 'AdminB' },
+      { tenant: GID.alpha, discord_id: 'A1', nick: '管理员甲', global_name: 'AdminA' },
+      { tenant: GID.alpha, discord_id: 'M1', nick: '成员一', global_name: 'MemberOne' },
+      { tenant: GID.alpha, discord_id: 'M2', nick: '成员二', global_name: 'MemberTwo' },
+      { tenant: GID.alpha, discord_id: 'M3', nick: '成员三', global_name: 'MemberThree' },
+      { tenant: GID.beta, discord_id: 'B1', nick: '乙管理员', global_name: 'AdminB' },
     ],
     // EventRow key order mirrors .harness-officer.
     events: [
-      { id: 11, tenant: 'alpha', title: '周六双十人', type: 'activity', description: '', starts_at: null, meet_info: '', max_slots: 20, status: 'open', starts_at_utc: 1760000000, origin: 'web', created_by: '管理员甲', manage_code: '', dungeon: '', creator_discord_id: 'M2', reminder_sent_at: null, reminder_error: null },
-      { id: 21, tenant: 'beta', title: '乙百业活动', type: 'activity', description: '', starts_at: null, meet_info: '', max_slots: 20, status: 'open', starts_at_utc: 1760200000, origin: 'web', created_by: '乙管理员', manage_code: '', dungeon: '', creator_discord_id: 'B1', reminder_sent_at: null, reminder_error: null },
+      { id: 11, tenant: GID.alpha, title: '周六双十人', type: 'activity', description: '', starts_at: null, meet_info: '', max_slots: 20, status: 'open', starts_at_utc: 1760000000, origin: 'web', created_by: '管理员甲', manage_code: '', dungeon: '', creator_user_id: UID.M2, reminder_sent_at: null, reminder_error: null },
+      { id: 21, tenant: GID.beta, title: '乙百业活动', type: 'activity', description: '', starts_at: null, meet_info: '', max_slots: 20, status: 'open', starts_at_utc: 1760200000, origin: 'web', created_by: '乙管理员', manage_code: '', dungeon: '', creator_user_id: UID.B1, reminder_sent_at: null, reminder_error: null },
     ],
     signups: [],
     entitlements: new Map(), // tenant -> row
@@ -104,12 +110,13 @@ function makeDb() {
     auditEvents: [],         // guild_audit_events rows
     notes: [],               // guild_member_notes rows
     announcements: [],       // guild_announcements rows
+    mint: new Map(),         // id_mint_counters: `${type_code}|${day_index}` -> seq
   };
   let nextId = 1000;
 
   function norm(sql) {
     return sql.replace(/"/g, '')
-      .replace(/\b(tenants|settings|users|guild_members|guild_officer_grants|guild_officer_posts|guild_audit_events|guild_entitlements|guild_member_notes|member_season_goals|events|signups|guild_announcements|guild_announcement_reads|usage_counters|push_tokens)\./g, '')
+      .replace(/\b(tenants|settings|users|guild_members|guild_officer_grants|guild_officer_posts|guild_audit_events|guild_entitlements|guild_member_notes|member_season_goals|events|signups|guild_announcements|guild_announcement_reads|usage_counters|push_tokens|id_mint_counters)\./g, '')
       .replace(/\s+/g, ' ');
   }
 
@@ -118,29 +125,36 @@ function makeDb() {
     if (/^INSERT INTO error_log/i.test(sql)) return { meta: { changes: 1 } };
     const first = (row) => (kind === 'first' ? (row ?? null) : { results: row ? [row] : [] });
     const all = (rows) => ({ results: rows });
+    if (/INSERT INTO id_mint_counters/i.test(sql)) {
+      const key = `${b[0]}|${b[1]}`;
+      const seq = (state.mint.get(key) || 0) + 1;
+      state.mint.set(key, seq);
+      return kind === 'first' ? { seq } : { results: [{ seq }] };
+    }
 
     /* officer grants */
     if (/^INSERT INTO guild_officer_grants/i.test(sql)) {
-      const [tenant, discordId, capabilities, grantedBy, grantedByName, createdAt, updatedAt] = b;
-      const ex = state.grants.find((r) => r.tenant === tenant && r.discord_id === discordId);
+      const [tenant, userId, capabilities, grantedBy, grantedByName, createdAt, updatedAt] = b;
+      const ex = state.grants.find((r) => r.tenant === tenant && r.user_id === Number(userId));
       if (ex) Object.assign(ex, { capabilities, granted_by: grantedBy, granted_by_name: grantedByName, updated_at: updatedAt });
-      else state.grants.push({ tenant, discord_id: discordId, capabilities, granted_by: grantedBy, granted_by_name: grantedByName, created_at: createdAt, updated_at: updatedAt });
+      else state.grants.push({ tenant, user_id: Number(userId), capabilities, granted_by: grantedBy, granted_by_name: grantedByName, created_at: createdAt, updated_at: updatedAt });
       return { meta: { changes: 1 } };
     }
     if (/^DELETE FROM guild_officer_grants/i.test(sql)) {
       const before = state.grants.length;
-      state.grants = state.grants.filter((r) => !(r.tenant === b[0] && r.discord_id === b[1]));
+      state.grants = state.grants.filter((r) => !(r.tenant === b[0] && r.user_id === Number(b[1])));
       return { meta: { changes: before - state.grants.length } };
     }
     if (/FROM guild_officer_grants/i.test(sql)) {
       let rows = state.grants.filter((r) => r.tenant === b[0]);
-      if (/discord_id = \?/i.test(sql) && b.length > 1) rows = rows.filter((r) => r.discord_id === b[1]);
+      if (/user_id = \?/i.test(sql) && b.length > 1) rows = rows.filter((r) => r.user_id === Number(b[1]));
       return kind === 'first' ? (rows[0] ?? null) : all(rows.map((r) => ({ ...r })));
     }
     /* board posts */
     if (/^INSERT INTO guild_officer_posts/i.test(sql)) {
-      const [tenant, body, authorId, authorName, createdAt, updatedAt] = b;
-      const row = { id: nextId++, tenant, body, author_discord_id: authorId, author_name: authorName, created_at: createdAt, updated_at: updatedAt };
+      const cols = /INSERT INTO guild_officer_posts \(([^)]+)\)/i.exec(sql)[1].split(',').map((c) => c.trim());
+      const v = {}; cols.forEach((c, i) => { v[c] = b[i]; });
+      const row = { id: Number(v.id) || nextId++, tenant: v.tenant, body: v.body, author_user_id: v.author_user_id, author_name: v.author_name, created_at: v.created_at, updated_at: v.updated_at };
       state.posts.push(row);
       return { meta: { changes: 1, last_row_id: row.id } };
     }
@@ -160,8 +174,9 @@ function makeDb() {
     }
     /* audit events */
     if (/^INSERT INTO guild_audit_events/i.test(sql)) {
-      const [tenant, actorId, actorName, action, targetType, targetId, targetLabel, createdAt] = b;
-      const row = { id: nextId++, tenant, actor_discord_id: actorId, actor_name: actorName, action, target_type: targetType, target_id: targetId, target_label: targetLabel, created_at: createdAt };
+      const cols = /INSERT INTO guild_audit_events \(([^)]+)\)/i.exec(sql)[1].split(',').map((c) => c.trim());
+      const v = {}; cols.forEach((c, i) => { v[c] = b[i]; });
+      const row = { id: Number(v.id) || nextId++, tenant: v.tenant, actor_discord_id: v.actor_discord_id, actor_name: v.actor_name, action: v.action, target_type: v.target_type, target_id: v.target_id, target_label: v.target_label, created_at: v.created_at };
       state.auditEvents.push(row);
       return { meta: { changes: 1, last_row_id: row.id } };
     }
@@ -175,8 +190,9 @@ function makeDb() {
     }
     /* officer notes (F12 surface sharing) */
     if (/^INSERT INTO guild_member_notes/i.test(sql)) {
-      const [tenant, memberDiscordId, body, authorId, authorName, createdAt, updatedAt] = b;
-      const row = { id: nextId++, tenant, member_discord_id: memberDiscordId, body, author_discord_id: authorId, author_name: authorName, created_at: createdAt, updated_at: updatedAt };
+      const cols = /INSERT INTO guild_member_notes \(([^)]+)\)/i.exec(sql)[1].split(',').map((c) => c.trim());
+      const v = {}; cols.forEach((c, i) => { v[c] = b[i]; });
+      const row = { id: Number(v.id) || nextId++, tenant: v.tenant, member_user_id: v.member_user_id, body: v.body, author_user_id: v.author_user_id, author_name: v.author_name, created_at: v.created_at, updated_at: v.updated_at };
       state.notes.push(row);
       return { meta: { changes: 1, last_row_id: row.id } };
     }
@@ -191,8 +207,9 @@ function makeDb() {
     if (/FROM member_season_goals/i.test(sql)) return all([]);
     /* announcements (post path only) */
     if (/^INSERT INTO guild_announcements/i.test(sql)) {
-      const [tenant, kind2, title, body, authorId, authorName, createdAt] = b;
-      const row = { id: nextId++, tenant, kind: kind2, title, body, author_discord_id: authorId, author_name: authorName, created_at: createdAt };
+      const cols = /INSERT INTO guild_announcements \(([^)]+)\)/i.exec(sql)[1].split(',').map((c) => c.trim());
+      const v = {}; cols.forEach((c, i) => { v[c] = b[i]; });
+      const row = { id: Number(v.id) || nextId++, tenant: v.tenant, kind: v.kind, title: v.title, body: v.body, author_user_id: v.author_user_id, author_name: v.author_name, created_at: v.created_at };
       state.announcements.push(row);
       return { meta: { changes: 1, last_row_id: row.id } };
     }
@@ -204,6 +221,7 @@ function makeDb() {
       }
       return all(rows.map((r) => ({ ...r })));
     }
+    if (/^INSERT INTO guild_announcement_reads/i.test(sql)) return { meta: { changes: 1 } };
     if (/FROM guild_announcement_reads/i.test(sql)) return all([]);
     if (/FROM usage_counters/i.test(sql)) return kind === 'first' ? null : all([]);
     if (/^INSERT INTO usage_counters/i.test(sql)) return { meta: { changes: 1 } };
@@ -211,7 +229,9 @@ function makeDb() {
     if (/FROM push_tokens/i.test(sql)) return all([]);
     /* events / signups */
     if (/^INSERT INTO events/i.test(sql)) {
-      const row = { id: nextId++, tenant: b[0], title: b[1], type: b[2], description: b[3], starts_at: b[4], starts_at_utc: b[5], dungeon: b[6], max_slots: b[7], meet_info: b[8], status: b[9], origin: b[10], created_by: '', manage_code: '', creator_discord_id: '', reminder_sent_at: null, reminder_error: null };
+      const cols = /INSERT INTO events \(([^)]+)\)/i.exec(sql)[1].split(',').map((c) => c.trim());
+      const v = {}; cols.forEach((c, i) => { v[c] = b[i]; });
+      const row = { id: Number(v.id) || nextId++, tenant: v.tenant, title: v.title, type: v.type, description: v.description ?? '', starts_at: v.starts_at ?? null, starts_at_utc: v.starts_at_utc ?? null, dungeon: v.dungeon ?? '', max_slots: v.max_slots, meet_info: v.meet_info ?? '', status: v.status, origin: v.origin, created_by: v.created_by ?? '', manage_code: v.manage_code ?? '', creator_user_id: v.creator_user_id ?? null, reminder_sent_at: null, reminder_error: null };
       state.events.push(row);
       return { meta: { changes: 1, last_row_id: row.id } };
     }
@@ -236,6 +256,8 @@ function makeDb() {
     }
     /* tenants / settings / users / roster / entitlements */
     if (/FROM tenants WHERE slug/i.test(sql)) return first(state.tenants.find((t) => t.slug === b[0]));
+    if (/FROM tenants/i.test(sql) && /WHERE id =/i.test(sql)) return first(state.tenants.find((t) => t.id === Number(b[0])));
+    if (/FROM tenants/i.test(sql)) return all(state.tenants);
     if (/FROM settings WHERE tenant = \? AND key = \?/i.test(sql)) {
       const v = state.settings.get(`${b[0]}|${b[1]}`);
       return first(v === undefined ? null : { value: v });
@@ -246,8 +268,24 @@ function makeDb() {
       return all(rows);
     }
     if (/SELECT guilds_json FROM users/i.test(sql)) {
-      const v = state.users.get(String(b[0]));
-      return first(v === undefined ? null : { guilds_json: v });
+      const u = state.users.find((x) => x.id === Number(b[0]));
+      return first(u === undefined ? null : { guilds_json: u.guilds_json });
+    }
+    if (/FROM users/i.test(sql) && /discord_id IN/i.test(sql)) {
+      const ids = b.map(String);
+      return all(state.users.filter((u) => ids.includes(u.discord_id)).map((u) => ({ id: u.id, discord_id: u.discord_id })));
+    }
+    if (/FROM users/i.test(sql) && /id IN/i.test(sql)) {
+      const ids = b.map(Number);
+      return all(state.users.filter((u) => ids.includes(u.id)).map((u) => ({ id: u.id, discord_id: u.discord_id })));
+    }
+    if (/FROM users/i.test(sql) && /discord_id =/i.test(sql)) {
+      const u = state.users.find((x) => x.discord_id === String(b[0]));
+      return first(u ? { id: u.id, discord_id: u.discord_id, username: u.username } : null);
+    }
+    if (/FROM users/i.test(sql) && /WHERE id =/i.test(sql)) {
+      const u = state.users.find((x) => x.id === Number(b[0]));
+      return first(u ? { ...u } : null);
     }
     if (/FROM users/i.test(sql)) return first(null);
     if (/FROM guild_members/i.test(sql)) {
@@ -258,7 +296,7 @@ function makeDb() {
       return all(state.guildMembers.filter((m) => m.tenant === b[0]).map((m) => ({ ...m })));
     }
     if (/FROM guild_entitlements/i.test(sql)) {
-      const row = state.entitlements.get(String(b[0]));
+      const row = state.entitlements.get(b[0]) ?? state.entitlements.get(String(b[0]));
       return first(row ? { ...row } : null);
     }
     if (/FROM settings/i.test(sql)) return all([]);
@@ -282,11 +320,11 @@ function makeDb() {
 
 const { db, state } = makeDb();
 const env = { DB: db };
-const adminA = { discordId: 'A1', name: '管理员甲', guilds: ['DG1'] };
-const member1 = { discordId: 'M1', name: '成员一', guilds: ['DG1'] };
-const member2 = { discordId: 'M2', name: '成员二', guilds: ['DG1'] };
-const member3 = { discordId: 'M3', name: '成员三', guilds: ['DG1'] };
-const adminB = { discordId: 'B1', name: '乙管理员', guilds: ['DG2'] };
+const adminA = { userId: UID.A1, discordId: 'A1', name: '管理员甲', guilds: ['DG1'] };
+const member1 = { userId: UID.M1, discordId: 'M1', name: '成员一', guilds: ['DG1'] };
+const member2 = { userId: UID.M2, discordId: 'M2', name: '成员二', guilds: ['DG1'] };
+const member3 = { userId: UID.M3, discordId: 'M3', name: '成员三', guilds: ['DG1'] };
+const adminB = { userId: UID.B1, discordId: 'B1', name: '乙管理员', guilds: ['DG2'] };
 
 async function gql(query, { user = adminA, variables } = {}) {
   const ctx = {
@@ -343,7 +381,7 @@ describe('governance', () => {
 /* ---- B. Tier matrix (admin viewer) ---- */
 {
   const ENT = (plan, current_period_end = null) => ({
-    tenant: 'alpha', plan, source: 'manual', current_period_end,
+    tenant: GID.alpha, plan, source: 'manual', current_period_end,
     stripe_customer_id: null, stripe_subscription_id: null, updated_at: 1,
   });
   // No entitlement (today's production shape for every guild) and
@@ -364,7 +402,7 @@ describe('governance', () => {
     && !('boardPosts' in (r.data?.viewer?.guildAdmin?.governance || {})));
   state.settings.delete('|paygate_enabled');
 
-  state.entitlements.set('alpha', ENT('t1'));
+  state.entitlements.set(GID.alpha, ENT('t1'));
   r = await gql(GOV_Q, { variables: { slug: 'alpha' } });
   eq('T1+总闸关: governance 为 null', r.data?.viewer?.guildAdmin?.governance ?? null, null);
   state.settings.set('|paygate_enabled', '1');
@@ -372,7 +410,7 @@ describe('governance', () => {
   eq('T1+总闸开: Locked', r.data?.viewer?.guildAdmin?.governance?.__typename, 'GuildGovernanceLocked');
   state.settings.delete('|paygate_enabled');
 
-  state.entitlements.set('alpha', ENT('t2'));
+  state.entitlements.set(GID.alpha, ENT('t2'));
   r = await gql(GOV_Q, { variables: { slug: 'alpha' } });
   eq('T2+总闸关: governance 为 null', r.data?.viewer?.guildAdmin?.governance ?? null, null);
   state.settings.set('|paygate_enabled', '1');
@@ -386,16 +424,16 @@ describe('governance', () => {
 
   // Legacy boolean premium reads as tier 3 in the foundation's
   // derivation, so a stored premium grant unlocks governance.
-  state.entitlements.set('alpha', ENT('premium'));
+  state.entitlements.set(GID.alpha, ENT('premium'));
   r = await gql(GOV_Q, { variables: { slug: 'alpha' } });
   eq('旧 premium(底座读作 T3): Page 下发', r.data?.viewer?.guildAdmin?.governance?.__typename, 'GuildGovernancePage');
 
-  state.entitlements.set('alpha', ENT('t3'));
+  state.entitlements.set(GID.alpha, ENT('t3'));
   r = await gql(GOV_Q, { variables: { slug: 'alpha' } });
   eq('T3: Page 下发', r.data?.viewer?.guildAdmin?.governance?.__typename, 'GuildGovernancePage');
   eq('T3: canManageGrants=true', r.data?.viewer?.guildAdmin?.governance?.canManageGrants, true);
 
-  state.entitlements.set('alpha', ENT('t3', 1));
+  state.entitlements.set(GID.alpha, ENT('t3', 1));
   r = await gql(GOV_Q, { variables: { slug: 'alpha' } });
   eq('T3 已过期+总闸关: governance 为 null', r.data?.viewer?.guildAdmin?.governance ?? null, null);
   state.settings.set('|paygate_enabled', '1');
@@ -405,11 +443,12 @@ describe('governance', () => {
 
   // Entitled guilds ignore the switch both ways: switch ON with a
   // live t3 still composes the page.
-  state.entitlements.set('alpha', ENT('t3'));
-  state.settings.set('|paygate_enabled', '1');
+  state.entitlements.set(GID.alpha, ENT('t3'));
+  state.settings.set('0|paygate_enabled', '1');
   r = await gql(GOV_Q, { variables: { slug: 'alpha' } });
   eq('paygate ON + T3: Page 下发(已开通不受总闸影响)', r.data?.viewer?.guildAdmin?.governance?.__typename, 'GuildGovernancePage');
-  state.settings.delete('|paygate_enabled');
+  state.settings.delete('0|paygate_enabled');
+([WWM][Backend][18/n] Port admin and governance suites to typed IDs)
 }
   });
 
@@ -429,7 +468,7 @@ describe('governance', () => {
   // Admin grants M1 events+stats.
   m = await gql(`mutation { setOfficerGrant(slug: "alpha", memberDiscordId: "M1", capabilities: ["events", "stats", "bogus"]) { ok errorCode } }`);
   eq('管理员授权 M1 成功', m.data?.setOfficerGrant?.ok, true);
-  eq('授权行落库(未知能力已过滤)', state.grants.find((g) => g.discord_id === 'M1')?.capabilities, 'events,stats');
+  eq('授权行落库(未知能力已过滤)', state.grants.find((g) => g.user_id === UID.M1)?.capabilities, 'events,stats');
 
   r = await gql(GOV_Q, { user: member1, variables: { slug: 'alpha' } });
   eq('被授军官 M1: GuildAdmin 解析', r.data?.viewer?.guildAdmin?.__typename, 'GuildAdmin');
@@ -565,7 +604,7 @@ describe('governance', () => {
 /* ---- F. Grouping manage verdict: events officer joins ---- */
 {
   const fakeReq = new Request('http://local/graphql');
-  const grouping = { creator_discord_id: 'M2', tenant: 'alpha' };
+  const grouping = { creator_user_id: UID.M2, tenant: GID.alpha };
   let v = await getGroupingManageVerdict(db, member1, fakeReq, null, grouping);
   eq('分组判定: events 军官可管他人车', v.canManage, false); // M1 was revoked above
   await gql(`mutation { setOfficerGrant(slug: "alpha", memberDiscordId: "M1", capabilities: ["events"]) { ok } }`);
@@ -575,7 +614,7 @@ describe('governance', () => {
   eq('分组判定: 普通成员仍不可管', v.canManage, false);
   v = await getGroupingManageVerdict(db, member2, fakeReq, null, grouping);
   eq('分组判定: 车头本人可管(回归)', v.canManage, true);
-  const other = { creator_discord_id: 'B1', tenant: 'beta' };
+  const other = { creator_user_id: UID.B1, tenant: GID.beta };
   v = await getGroupingManageVerdict(db, member1, fakeReq, null, other);
   eq('分组判定: 甲军官不管乙百业的车(不串权)', v.canManage, false);
   v = await getGroupingManageVerdict(db, adminA, fakeReq, null, grouping);

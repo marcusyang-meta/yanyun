@@ -46,22 +46,52 @@ function toRawRows(sqlText, rows) {
     : Object.values(r)));
 }
 
+/* Typed-ID fixtures: guilds/users carry their 0036 primary keys;
+   the admin's Discord ID stays 'AUDIT-ADMIN' (env-floor name and
+   session identity), while the session sub is the typed user ID —
+   and the hub audit actor is that typed user ID (#94: the actor is
+   the real platform user ID, never 'hub'). */
+const GID = { alpha: 1030100001, beta: 1030100002 };
+const UID_ADMIN = 2030100001;
+
 /* ---------------- FakeDB ---------------- */
 function makeDb({ failAudit = false } = {}) {
   const state = {
     // Key order mirrors the tenants entity column order (SELECT * mapping).
     tenants: [
-      { slug: 'alpha', guild_name: '甲百业', password_hash: 'h1', announcement: '', created_at: '2026-01-01', discord_webhook: '', slogan: null, master_name: null, logo_url: null, bg_image_url: null, },
-      { slug: 'beta', guild_name: '乙百业', password_hash: 'h2', announcement: '', created_at: '2026-01-02', discord_webhook: '', slogan: null, master_name: null, logo_url: null, bg_image_url: null, },
+      { id: GID.alpha, slug: 'alpha', guild_name: '甲百业', password_hash: 'h1', announcement: '', created_at: '2026-01-01', discord_webhook: '', slogan: null, master_name: null, logo_url: null, bg_image_url: null, },
+      { id: GID.beta, slug: 'beta', guild_name: '乙百业', password_hash: 'h2', announcement: '', created_at: '2026-01-02', discord_webhook: '', slogan: null, master_name: null, logo_url: null, bg_image_url: null, },
     ],
     settings: [], // {tenant, key, value}
     audit: [],    // {id, at, actor, action, tenant, summary, ip}
-    events: [{ id: 1, tenant: 'alpha' }, { id: 2, tenant: 'beta' }],
+    users: [{ id: UID_ADMIN, discord_id: 'AUDIT-ADMIN', username: '审计管理员', guilds_json: '[]' }],
+    mint: new Map(), // id_mint_counters: `${type_code}|${day_index}` -> seq
+    events: [{ id: 1, tenant: GID.alpha }, { id: 2, tenant: GID.beta }],
     signups: [{ id: 1, event_id: 1 }, { id: 2, event_id: 2 }],
   };
   function route(kind, sql, b) {
     const raw = sql;
     sql = sql.replace(/"/g, '').replace(/hub_audit_log\./g, '').replace(/tenants\./g, '').replace(/settings\./g, '');
+    if (/INSERT INTO id_mint_counters/.test(sql)) {
+      const key = `${b[0]}|${b[1]}`;
+      const seq = (state.mint.get(key) || 0) + 1;
+      state.mint.set(key, seq);
+      return kind === 'first' ? { seq } : { results: [{ seq }] };
+    }
+    if (/FROM users/.test(sql) && !/user_oauth/.test(sql)) {
+      if (/discord_id IN/.test(sql)) {
+        const ids = b.map(String);
+        return { results: state.users.filter((u) => ids.includes(u.discord_id)).map((u) => ({ id: u.id, discord_id: u.discord_id })) };
+      }
+      if (/discord_id =/.test(sql)) {
+        const u = state.users.find((x) => x.discord_id === String(b[0])) || null;
+        return kind === 'first' ? u : { results: u ? [u] : [] };
+      }
+      if (/WHERE id =/.test(sql)) {
+        const u = state.users.find((x) => x.id === Number(b[0])) || null;
+        return kind === 'first' ? u : { results: u ? [u] : [] };
+      }
+    }
     if (/hub_audit_log/.test(sql)) {
       if (/INSERT INTO hub_audit_log/.test(sql)) {
         if (failAudit) throw new Error('audit store down');
@@ -115,7 +145,7 @@ function makeDb({ failAudit = false } = {}) {
           const row = state.settings.find((r) => r.tenant === b[0] && r.key === b[1]);
           return { results: row ? [{ value: row.value }] : [] };
         }
-        return { results: state.settings.filter((r) => r.tenant === '').map((r) => ({ key: r.key, value: r.value })) };
+        return { results: state.settings.filter((r) => Number(r.tenant) === 0).map((r) => ({ key: r.key, value: r.value })) };
       }
       return { meta: {} };
     }
@@ -126,12 +156,17 @@ function makeDb({ failAudit = false } = {}) {
         return { meta: {} };
       }
       if (/DELETE FROM tenants/.test(sql)) {
-        state.tenants = state.tenants.filter((x) => x.slug !== b[0]);
+        if (/WHERE id =/.test(sql)) state.tenants = state.tenants.filter((x) => x.id !== Number(b[0]));
+        else state.tenants = state.tenants.filter((x) => x.slug !== b[0]);
         return { meta: {} };
       }
       if (/FROM tenants/.test(sql)) {
         if (/WHERE slug/.test(sql)) {
           const t = state.tenants.find((x) => x.slug === b[0]) || null;
+          return kind === 'first' ? t : { results: t ? [t] : [] };
+        }
+        if (/WHERE id =/.test(sql)) {
+          const t = state.tenants.find((x) => x.id === Number(b[0])) || null;
           return kind === 'first' ? t : { results: t ? [t] : [] };
         }
         return { results: state.tenants };
@@ -179,7 +214,7 @@ const worker = (await import('../src/worker.ts')).default;
 const { signJwt } = await import('../src/domains/identity/auth.ts');
 const SESSION_SECRET = 'audit-test-secret';
 const ADMIN_ENV = (db) => ({ DB: db, ASSETS, SESSION_SECRET, PLATFORM_ADMIN_DISCORD_IDS: 'AUDIT-ADMIN' });
-const adminJwt = () => signJwt(SESSION_SECRET, { sub: 'AUDIT-ADMIN', name: '审计管理员', guilds: [] });
+const adminJwt = () => signJwt(SESSION_SECRET, { sub: String(UID_ADMIN), name: '审计管理员', guilds: [] });
 
 function req(path, { method = 'GET', token, jwt, body } = {}) {
   const headers = {};
@@ -225,8 +260,8 @@ describe('audit', () => {
   const put = await (await worker.fetch(gqlReq(`mutation { platformAdminUpdateReminder(slug: "alpha", webhook: ${JSON.stringify(WEBHOOK)}, enabled: true) { ok errorCode } }`, jwt), env, ctx)).json();
   eq('reminder 配置写入 -> ok', put.data?.platformAdminUpdateReminder?.ok, true);
   const remRow = state.audit.find((r) => r.action === 'reminder.update');
-  check('reminder 写入留痕', !!remRow && remRow.tenant === 'alpha');
-  eq('reminder 留痕 actor 是真实用户 ID', remRow?.actor, 'AUDIT-ADMIN');
+  check('reminder 写入留痕', !!remRow && remRow.tenant === GID.alpha);
+  eq('reminder 留痕 actor 是真实用户 ID', remRow?.actor, String(UID_ADMIN));
   const remSummary = remRow ? JSON.parse(remRow.summary) : {};
   eq('摘要记 webhook=replaced', remSummary.webhook, 'replaced');
   eq('摘要记 enabled=true', remSummary.enabled, true);
@@ -253,14 +288,14 @@ describe('audit', () => {
   check('错误日志查看可达', Array.isArray(er.data?.viewer?.platformAdmin?.errors));
   eq('errors.view 留痕 +1', state.audit.filter((r) => r.action === 'errors.view').length, beforeErrors + 1);
   await worker.fetch(gqlReq('{ viewer { platformAdmin { ... on PlatformAdmin { feedbackEntries { total } } } } }', jwt), env, ctx);
-  check('feedback.view 留痕', state.audit.some((r) => r.action === 'feedback.view' && r.actor === 'AUDIT-ADMIN'));
+  check('feedback.view 留痕', state.audit.some((r) => r.action === 'feedback.view' && r.actor === String(UID_ADMIN)));
 
   // Tenant delete is audited and really cascades.
   const del = await (await worker.fetch(gqlReq('mutation { platformAdminDeleteTenant(slug: "beta") { ok errorCode } }', jwt), env, ctx)).json();
   eq('删除百业 -> ok', del.data?.platformAdminDeleteTenant?.ok, true);
-  check('删除百业留痕', state.audit.some((r) => r.action === 'tenant.delete' && r.tenant === 'beta' && r.actor === 'AUDIT-ADMIN'));
+  check('删除百业留痕', state.audit.some((r) => r.action === 'tenant.delete' && r.tenant === GID.beta && r.actor === String(UID_ADMIN)));
   check('百业真的删掉', !state.tenants.some((t) => t.slug === 'beta'));
-  check('级联删掉其活动', !state.events.some((e) => e.tenant === 'beta'));
+  check('级联删掉其活动', !state.events.some((e) => e.tenant === GID.beta));
 
   // Audit read: gate required, newest first, tenant filter, pagination.
   const noTok = await (await worker.fetch(gqlReq('{ viewer { platformAdmin { __typename ... on PlatformAdmin { auditEntries(limit: 50) { total } } } } }', undefined), env, ctx)).json();
@@ -270,9 +305,9 @@ describe('audit', () => {
   const lj = list.data?.viewer?.platformAdmin?.auditEntries;
   check('审计列表非空', !!lj && lj.total >= 6 && lj.entries.length >= 6, `total=${lj?.total}`);
   check('审计列表最新在前', lj.entries[0].action === 'errors.view' || lj.entries[0].action === 'tenant.delete', lj.entries[0].action);
-  check('查看审计本身也留痕', state.audit.some((r) => r.action === 'audit.view' && r.actor === 'AUDIT-ADMIN'));
+  check('查看审计本身也留痕', state.audit.some((r) => r.action === 'audit.view' && r.actor === String(UID_ADMIN)));
   const aj = (await (await worker.fetch(gqlReq(auditQ('tenant: "alpha"'), jwt), env, ctx)).json()).data?.viewer?.platformAdmin?.auditEntries;
-  check('按租户筛选全中', aj.entries.every((r) => r.tenant === 'alpha') && aj.total >= 2, `total=${aj.total}`);
+  check('按租户筛选全中', aj.entries.every((r) => r.tenant === String(GID.alpha)) && aj.total >= 2, `total=${aj.total}`);
   const p1 = (await (await worker.fetch(gqlReq(auditQ('limit: 3, offset: 0'), jwt), env, ctx)).json()).data?.viewer?.platformAdmin?.auditEntries;
   const p2 = (await (await worker.fetch(gqlReq(auditQ('limit: 3, offset: 3'), jwt), env, ctx)).json()).data?.viewer?.platformAdmin?.auditEntries;
   eq('分页第一页 3 条', p1.entries.length, 3);

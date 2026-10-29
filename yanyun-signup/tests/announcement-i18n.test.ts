@@ -54,33 +54,40 @@ function toRawRows(sqlText, rows) {
     : Object.values(r)));
 }
 
+/* Typed-ID fixtures: guilds/users carry their 0036 primary keys;
+   Discord-space values stay Discord IDs by design. */
+const GID = { alpha: 1030100001 };
+const UID = { A1: 2030100001, M1: 2030100002 };
+
 function makeDb() {
   const state = {
     tenants: [
-      { slug: 'alpha', guild_name: '甲百业', password_hash: 'x', announcement: '', slogan: '', master_name: '', logo_url: '', bg_image_url: '' },
+      { id: GID.alpha, slug: 'alpha', guild_name: '甲百业', password_hash: 'x', announcement: '', slogan: '', master_name: '', logo_url: '', bg_image_url: '' },
     ],
-    settings: new Map([['alpha|discord_guild_id', 'DG1']]),
-    users: new Map([
-      ['A1', JSON.stringify([{ id: 'DG1', name: 'S1', permissions: '8', owner: false }])],
-      ['M1', JSON.stringify([{ id: 'DG1', name: 'S1', permissions: '0', owner: false }])],
-    ]),
+    settings: new Map([[`${GID.alpha}|discord_guild_id`, 'DG1']]),
+    users: [
+      { id: UID.A1, discord_id: 'A1', username: '管理员甲', guilds_json: JSON.stringify([{ id: 'DG1', name: 'S1', permissions: '8', owner: false }]) },
+      { id: UID.M1, discord_id: 'M1', username: '成员一', guilds_json: JSON.stringify([{ id: 'DG1', name: 'S1', permissions: '0', owner: false }]) },
+    ],
     guildMembers: [
-      { tenant: 'alpha', discord_id: 'A1', nick: '管理员甲', global_name: 'AdminA' },
-      { tenant: 'alpha', discord_id: 'M1', nick: '成员一', global_name: 'MemberOne' },
+      { tenant: GID.alpha, discord_id: 'A1', nick: '管理员甲', global_name: 'AdminA' },
+      { tenant: GID.alpha, discord_id: 'M1', nick: '成员一', global_name: 'MemberOne' },
     ],
-    pushTokens: [{ discord_id: 'M1', token: 'ExponentPushToken[member-one]', platform: 'ios' }],
+    pushTokens: [{ user_id: UID.M1, token: 'ExponentPushToken[member-one]', platform: 'ios' }],
     announcements: [],
     reads: [],
     translations: [], // {announcement_id, tenant, locale, title, body, status, source_hash, created_at, updated_at}
     cache: new Map(), // `${hash}|${locale}` -> translated_text
     entitlements: new Map(), // slug -> raw row
     usage: new Map(),
+    auditEvents: [],   // guild_audit_events rows
+    mint: new Map(),   // id_mint_counters: `${type_code}|${day_index}` -> seq
   };
   let nextId = 100;
 
   function norm(sql) {
     return sql.replace(/"/g, '')
-      .replace(/\b(tenants|settings|users|guild_members|guild_announcements|guild_announcement_reads|guild_announcement_translations|translation_cache|usage_counters|push_tokens|guild_entitlements)\./g, '')
+      .replace(/\b(tenants|settings|users|guild_members|guild_announcements|guild_announcement_reads|guild_announcement_translations|translation_cache|usage_counters|push_tokens|guild_entitlements|guild_audit_events|id_mint_counters)\./g, '')
       .replace(/\s+/g, ' ');
   }
 
@@ -89,17 +96,31 @@ function makeDb() {
     if (/^INSERT INTO error_log/i.test(sql)) return { meta: { changes: 1 } };
     const first = (row) => (kind === 'first' ? (row ?? null) : { results: row ? [row] : [] });
     const all = (rows) => ({ results: rows });
+    if (/INSERT INTO id_mint_counters/i.test(sql)) {
+      const key = `${b[0]}|${b[1]}`;
+      const seq = (state.mint.get(key) || 0) + 1;
+      state.mint.set(key, seq);
+      return kind === 'first' ? { seq } : { results: [{ seq }] };
+    }
+    if (/^INSERT INTO guild_audit_events/i.test(sql)) {
+      const cols = /INSERT INTO guild_audit_events \(([^)]+)\)/i.exec(sql)[1].split(',').map((c) => c.trim());
+      const v = {}; cols.forEach((c, i) => { v[c] = b[i]; });
+      state.auditEvents.push({ id: Number(v.id), tenant: v.tenant, actor_discord_id: v.actor_discord_id, actor_name: v.actor_name, action: v.action, target_type: v.target_type, target_id: v.target_id, target_label: v.target_label, created_at: v.created_at });
+      return { meta: { changes: 1 } };
+    }
 
     if (/^INSERT INTO guild_announcements/i.test(sql)) {
-      const [tenant, kindV, title, body, authorId, authorName, createdAt] = b;
-      const row = { id: nextId++, tenant, kind: kindV, title, body, author_discord_id: authorId, author_name: authorName, created_at: createdAt };
+      const cols = /INSERT INTO guild_announcements \(([^)]+)\)/i.exec(sql)[1].split(',').map((c) => c.trim());
+      const v = {}; cols.forEach((c, i) => { v[c] = b[i]; });
+      const row = { id: Number(v.id) || nextId++, tenant: v.tenant, kind: v.kind, title: v.title, body: v.body, author_user_id: v.author_user_id, author_name: v.author_name, created_at: v.created_at };
       state.announcements.push(row);
       return { meta: { changes: 1, last_row_id: row.id } };
     }
     if (/^INSERT INTO guild_announcement_reads/i.test(sql)) {
-      const [announcementId, tenant, discordId, readAt] = b;
-      if (!state.reads.some((r) => r.announcement_id === Number(announcementId) && r.discord_id === discordId)) {
-        state.reads.push({ announcement_id: Number(announcementId), tenant, discord_id: discordId, read_at: readAt });
+      const cols = /INSERT INTO guild_announcement_reads \(([^)]+)\)/i.exec(sql)[1].split(',').map((c) => c.trim());
+      const v = {}; cols.forEach((c, i) => { v[c] = b[i]; });
+      if (!state.reads.some((r) => r.announcement_id === Number(v.announcement_id) && r.user_id === Number(v.user_id))) {
+        state.reads.push({ announcement_id: Number(v.announcement_id), tenant: v.tenant, user_id: Number(v.user_id), read_at: v.read_at });
       }
       return { meta: { changes: 1 } };
     }
@@ -153,7 +174,7 @@ function makeDb() {
     }
     if (/FROM guild_announcement_reads/i.test(sql)) {
       if (/announcement_id FROM/i.test(sql) || /^SELECT announcement_id/i.test(sql)) {
-        return all(state.reads.filter((r) => r.tenant === b[0] && r.discord_id === b[1]).map((r) => ({ announcement_id: r.announcement_id })));
+        return all(state.reads.filter((r) => r.tenant === b[0] && r.user_id === Number(b[1])).map((r) => ({ announcement_id: r.announcement_id })));
       }
       return all(state.reads.filter((r) => r.tenant === b[0] && r.announcement_id === Number(b[1])));
     }
@@ -168,6 +189,8 @@ function makeDb() {
       return all(state.usage.has(key) ? [{ count: state.usage.get(key) }] : []);
     }
     if (/FROM tenants WHERE slug/i.test(sql)) return first(state.tenants.find((t) => t.slug === b[0]));
+    if (/FROM tenants/i.test(sql) && /WHERE id =/i.test(sql)) return first(state.tenants.find((t) => t.id === Number(b[0])));
+    if (/FROM tenants/i.test(sql)) return all(state.tenants);
     if (/FROM settings WHERE tenant = \? AND key = \?/i.test(sql)) {
       const v = state.settings.get(`${b[0]}|${b[1]}`);
       return first(v === undefined ? null : { value: v });
@@ -178,14 +201,26 @@ function makeDb() {
       return all(rows);
     }
     if (/SELECT guilds_json FROM users/i.test(sql)) {
-      const v = state.users.get(String(b[0]));
-      return first(v === undefined ? null : { guilds_json: v });
+      const u = state.users.find((x) => x.id === Number(b[0]));
+      return first(u === undefined ? null : { guilds_json: u.guilds_json });
+    }
+    if (/FROM users/i.test(sql) && /discord_id IN/i.test(sql)) {
+      const ids = b.map(String);
+      return all(state.users.filter((u) => ids.includes(u.discord_id)).map((u) => ({ id: u.id, discord_id: u.discord_id })));
+    }
+    if (/FROM users/i.test(sql) && /discord_id =/i.test(sql)) {
+      const u = state.users.find((x) => x.discord_id === String(b[0]));
+      return first(u ? { id: u.id, discord_id: u.discord_id, username: u.username } : null);
+    }
+    if (/FROM users/i.test(sql) && /WHERE id =/i.test(sql)) {
+      const u = state.users.find((x) => x.id === Number(b[0]));
+      return first(u ? { ...u } : null);
     }
     if (/FROM users/i.test(sql)) return first(null);
     if (/FROM guild_members/i.test(sql)) return all(state.guildMembers.filter((m) => m.tenant === b[0]).map((m) => ({ ...m })));
     if (/FROM push_tokens/i.test(sql)) {
-      const ids = b.map(String);
-      return all(state.pushTokens.filter((t) => ids.includes(t.discord_id)).map((t) => ({ ...t })));
+      const ids = b.map(Number);
+      return all(state.pushTokens.filter((t) => ids.includes(t.user_id)).map((t) => ({ ...t })));
     }
     if (/FROM guild_entitlements/i.test(sql)) return first(state.entitlements.get(b[0]) ?? null);
     if (/FROM settings/i.test(sql)) return all([]);
@@ -209,8 +244,8 @@ function makeDb() {
 
 const { db, state } = makeDb();
 const env = { DB: db };
-const adminA = { discordId: 'A1', name: '管理员甲', guilds: ['DG1'] };
-const member1 = { discordId: 'M1', name: '成员一', guilds: ['DG1'] };
+const adminA = { userId: UID.A1, discordId: 'A1', name: '管理员甲', guilds: ['DG1'] };
+const member1 = { userId: UID.M1, discordId: 'M1', name: '成员一', guilds: ['DG1'] };
 
 /* Fetch stub: Expo push ok. The translation provider is the
  * Workers AI binding (env.AI), stubbed below as an object — it
@@ -302,8 +337,8 @@ describe('announcement-i18n', () => {
 
   it('State B: tier >= T2, AI binding missing (paygate still OFF)', async () => {
 /* ================= State B: tier >= T2, AI binding missing (paygate still OFF) ================= */
-state.entitlements.set('alpha', {
-  tenant: 'alpha', plan: 'premium', source: 'manual', current_period_end: null,
+state.entitlements.set(GID.alpha, {
+  tenant: GID.alpha, plan: 'premium', source: 'manual', current_period_end: null,
   stripe_customer_id: '', stripe_subscription_id: '', updated_at: 1,
 });
 {
