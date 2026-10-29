@@ -38,7 +38,7 @@ export interface HubAuditInput {
   actor?: string;
   action: string;
   /** The guild's slug handle (portal callers) or its numeric ID; the
-   *  stored column is the numeric guild ID (migration 0033). */
+   *  stored column is the numeric guild ID (migration 0036). */
   tenant?: string | number;
   /** Digest object (JSON-serialized) or pre-built string. Digests only:
    *  never a password, a webhook URL, or a secret value. */

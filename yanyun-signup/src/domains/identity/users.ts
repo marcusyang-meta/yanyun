@@ -54,7 +54,7 @@ export async function listDiscordIdsByUserIds(
  * a blank account row when the person has none yet. Class-B write
  * paths that take a Discord-keyed target (a note subject, a mentor)
  * go through here so every internal reference resolves; the row is
- * completed by the person's first real login. Mirrors the 0033
+ * completed by the person's first real login. Mirrors the 0036
  * migration's orphan-minting semantics. */
 export async function ensureUserIdByDiscordId(d1: D1Database, discordId: string): Promise<number> {
   const existing = await getUserIdByDiscordId(d1, discordId);

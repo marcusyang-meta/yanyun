@@ -1,4 +1,4 @@
-/* GraphQL surface rig for typed public IDs (migration 0033).
+/* GraphQL surface rig for typed public IDs (migration 0036).
  *
  * Boots the real schema + resolvers (graphql-yoga) on an in-memory
  * SQLite standing in for D1, bootstrapped from the full migration

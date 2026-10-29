@@ -1,4 +1,4 @@
--- Production-shaped seed for the migration 0033 rehearsal
+-- Production-shaped seed for the migration 0036 rehearsal
 -- (scripts/rehearse-id-migration.mjs). Deterministic data exercising
 -- every remap class in docs/ID_SYSTEM.md:
 --   * three guilds created on different days; 'fengyue' sorts before

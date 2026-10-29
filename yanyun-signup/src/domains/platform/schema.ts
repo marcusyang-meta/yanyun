@@ -87,7 +87,7 @@ export const stripeEvents = sqliteTable('stripe_events', {
   processedAt: integer('processed_at').notNull().default(0),
 });
 
-/* ---------------- public ID mint counters [migration 0033] --------
+/* ---------------- public ID mint counters [migration 0036] --------
  * Per-(type code, day) serial source for typed public IDs (ids.ts).
  * One row per type per UTC day; the sequence is handed out by a single
  * atomic upsert (id-mint.ts), so concurrent minters never collide.
