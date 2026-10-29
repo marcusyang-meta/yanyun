@@ -113,9 +113,15 @@ console.log('assertions:');
 const fk = sq(`PRAGMA foreign_key_check`);
 check('foreign_key_check returns zero rows', fk.length === 0, JSON.stringify(fk).slice(0, 200));
 
+// short_links is the one table whose count drops by design: the
+// two seeded unresolvable aliases (dead car, dead guild) are
+// dropped by 0036's DROP_UNRESOLVED handling.
+const DROPPED_ROWS = { short_links: 2 };
 for (const t of TABLES) {
   const now = scalar(`SELECT COUNT(*) FROM ${t}`);
-  const want = t === 'users' ? baseCounts[t] + baseOrphans.length : baseCounts[t];
+  const want = t === 'users'
+    ? baseCounts[t] + baseOrphans.length
+    : baseCounts[t] - (DROPPED_ROWS[t] || 0);
   check(`row count ${t}`, now === want, `before=${baseCounts[t]} after=${now} want=${want}`);
 }
 check(
@@ -187,6 +193,18 @@ const gearOwner = scalar(
 check('gear<->owner equivalence', gearOwner === '111111111111111111', String(gearOwner));
 check('short link still targets the same grouping',
   scalar(`SELECT event_id FROM short_links WHERE code = 'abc1234'`) === e1);
+const e3 = eventIdByTitle('风月活动车');
+check('second short link still targets the same grouping',
+  scalar(`SELECT event_id FROM short_links WHERE code = 'xyz9876'`) === e3);
+check('short link tenant remapped to the guild id',
+  scalar(`SELECT tenant FROM short_links WHERE code = 'abc1234'`) === jili);
+// The production failure class of 0036, kept as a permanent
+// sentinel: aliases whose car or guild no longer exists must be
+// dropped by DROP_UNRESOLVED, never abort the rebuild (the
+// foreign_key_check assertion above covers the dropped rows
+// leaving no dangling references behind).
+check('unresolvable short link aliases are dropped, not carried over',
+  scalar(`SELECT COUNT(*) FROM short_links WHERE code IN ('dead001', 'dead002')`) === 0);
 check('alliance pair flipped to numeric low/high',
   scalar(`SELECT guild_low FROM guild_alliances WHERE status = 'active'`) === Math.min(jili, feng) &&
   scalar(`SELECT guild_high FROM guild_alliances WHERE status = 'active'`) === Math.max(jili, feng) &&
