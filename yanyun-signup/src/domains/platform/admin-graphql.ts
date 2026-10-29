@@ -38,10 +38,11 @@ import {
   grantTierManual, revokePremium, persistenceCardRequired,
 } from './billing-service.ts';
 import {
-  getTenantSlug, deleteTenantCascade, setSettingValue, updateTenantWebhook,
+  getTenantSlug, getTenantRow, deleteTenantCascade, setSettingValue, updateTenantWebhook,
   setGuildSubdomainEnabled, getCustomDomainByTenant, setCustomDomainDisabled,
   listTenantsHubAdmin,
 } from '../guilds/index.ts';
+import { getUserIdByDiscordId, listDiscordIdsByUserIds } from '../identity/index.ts';
 import {
   getReminderConfig, setReminderSetting, postWebhook, WEBHOOK_RE, nudgeReminderHub,
 } from '../groupings/index.ts';
@@ -64,6 +65,16 @@ function actorOf(ctx: Context): string {
 
 function audit(ctx: Context, action: string, tenant: string, summary: Record<string, unknown>) {
   return auditAdmin(ctx.env, actorOf(ctx), getClientIp(ctx.request), action, tenant, summary);
+}
+
+/* The roster's wire form is Discord IDs (what an operator types
+ * and recognizes); storage and the gate speak user IDs since the
+ * ID reform. Presentation resolves back through the users rows —
+ * the only sanctioned conversion point. */
+async function presentAdminRoster(ctx: Context): Promise<string[]> {
+  const ids = await listPlatformAdminIds(ctx.env);
+  const byUser = await listDiscordIdsByUserIds(ctx.env.DB, ids.map((x) => Number(x))).catch(() => new Map<number, string>());
+  return ids.map((x) => byUser.get(Number(x))).filter((x): x is string => !!x);
 }
 
 function denied(ctx: Context) {
@@ -254,7 +265,7 @@ export class PlatformAdminShell extends ShellBase {
   }
 
   async genAdminRoster() {
-    return listPlatformAdminIds(this.ctx.env);
+    return presentAdminRoster(this.ctx);
   }
 }
 
@@ -443,7 +454,7 @@ const platformAdminMutations = {
   platformAdminGrantPremium: async (_: any, { slug, days, tier }: any, ctx: Context) => {
     if (!(await viewerIsPlatformAdmin(ctx))) return { ...denied(ctx), billing: null };
     const tenantSlug = s(slug, 40);
-    const t = await getTenantSlug(ctx.env.DB, tenantSlug);
+    const t = await getTenantRow(ctx.env.DB, tenantSlug);
     if (!t) return { ok: false, error: errText(ctx, 'guildNotFound'), errorCode: 'guildNotFound', billing: null };
     const tierRaw = tier == null ? '' : s(tier, 10);
     if (tierRaw && tierRaw !== 't1' && tierRaw !== 't2' && tierRaw !== 't3') {
@@ -451,8 +462,8 @@ const platformAdminMutations = {
     }
     const grantDays = Math.max(1, Math.min(3650, parseInt(days, 10) || 30));
     const row = tierRaw
-      ? await grantTierManual(ctx.env.DB, tenantSlug, tierRaw as 't1' | 't2' | 't3', grantDays)
-      : await grantPremiumManual(ctx.env.DB, tenantSlug, grantDays);
+      ? await grantTierManual(ctx.env.DB, t.id, tierRaw as 't1' | 't2' | 't3', grantDays)
+      : await grantPremiumManual(ctx.env.DB, t.id, grantDays);
     await audit(ctx, 'billing.grant', tenantSlug, {
       days: grantDays, currentPeriodEnd: (row as any).currentPeriodEnd, source: 'manual',
       plan: (row as any).plan, ...(tierRaw ? { tier: tierRaw } : {}),
@@ -463,9 +474,9 @@ const platformAdminMutations = {
   platformAdminRevokePremium: async (_: any, { slug }: any, ctx: Context) => {
     if (!(await viewerIsPlatformAdmin(ctx))) return { ...denied(ctx), billing: null };
     const tenantSlug = s(slug, 40);
-    const t = await getTenantSlug(ctx.env.DB, tenantSlug);
+    const t = await getTenantRow(ctx.env.DB, tenantSlug);
     if (!t) return { ok: false, error: errText(ctx, 'guildNotFound'), errorCode: 'guildNotFound', billing: null };
-    await revokePremium(ctx.env.DB, tenantSlug);
+    await revokePremium(ctx.env.DB, t.id);
     await audit(ctx, 'billing.revoke', tenantSlug, {});
     return { ok: true, billing: await billingPayload(ctx) };
   },
@@ -478,11 +489,11 @@ const platformAdminMutations = {
   platformAdminSetSubdomain: async (_: any, { slug, enabled }: any, ctx: Context) => {
     if (!(await viewerIsPlatformAdmin(ctx))) return { ...denied(ctx), billing: null };
     const tenantSlug = s(slug, 40);
-    const t = await getTenantSlug(ctx.env.DB, tenantSlug);
+    const t = await getTenantRow(ctx.env.DB, tenantSlug);
     if (!t) return { ok: false, error: errText(ctx, 'guildNotFound'), errorCode: 'guildNotFound', billing: null };
     if (enabled) {
-      const eff = await getEffectiveEntitlement(ctx.env.DB, tenantSlug);
-      if (eff.source === 'trial' && eff.tier > 0 && await persistenceCardRequired(ctx.env.DB, tenantSlug)) {
+      const eff = await getEffectiveEntitlement(ctx.env.DB, t.id);
+      if (eff.source === 'trial' && eff.tier > 0 && await persistenceCardRequired(ctx.env.DB, t.id)) {
         return { ok: false, error: errText(ctx, 'subdomainTrialCardRequired'), errorCode: 'subdomainTrialCardRequired', billing: null };
       }
     }
@@ -499,11 +510,11 @@ const platformAdminMutations = {
   platformAdminSetCustomDomainDisabled: async (_: any, { slug, disabled }: any, ctx: Context) => {
     if (!(await viewerIsPlatformAdmin(ctx))) return { ...denied(ctx), billing: null };
     const tenantSlug = s(slug, 40);
-    const t = await getTenantSlug(ctx.env.DB, tenantSlug);
+    const t = await getTenantRow(ctx.env.DB, tenantSlug);
     if (!t) return { ok: false, error: errText(ctx, 'guildNotFound'), errorCode: 'guildNotFound', billing: null };
-    const binding = await getCustomDomainByTenant(ctx.env.DB, tenantSlug).catch(() => null);
+    const binding = await getCustomDomainByTenant(ctx.env.DB, t.id).catch(() => null);
     if (!binding) return { ok: false, error: errText(ctx, 'customDomainNotBound'), errorCode: 'customDomainNotBound', billing: null };
-    await setCustomDomainDisabled(ctx.env.DB, tenantSlug, !!disabled, Math.floor(Date.now() / 1000));
+    await setCustomDomainDisabled(ctx.env.DB, t.id, !!disabled, Math.floor(Date.now() / 1000));
     await audit(ctx, 'billing.custom_domain', tenantSlug, { disabled: !!disabled, hostname: binding.hostname });
     return { ok: true, billing: await billingPayload(ctx) };
   },
@@ -538,7 +549,7 @@ const platformAdminMutations = {
     const changed: string[] = [];
     for (const [key, value] of fields) {
       if (value !== undefined && value !== null) {
-        await setSettingValue(ctx.env.DB, '', key, s(value, 2000));
+        await setSettingValue(ctx.env.DB, 0, key, s(value, 2000));
         changed.push(key);
       }
     }
@@ -716,9 +727,18 @@ const platformAdminMutations = {
    * readable through the admin surface. */
   platformAdminSetRoster: async (_: any, { discordIds }: any, ctx: Context) => {
     if (!(await viewerIsPlatformAdmin(ctx))) return { ...denied(ctx), adminRoster: [] };
-    const clean = await setPlatformAdminRoster(ctx.env.DB, Array.isArray(discordIds) ? discordIds : []);
+    // The wire speaks Discord IDs (what an operator types and
+    // recognizes); storage holds user IDs since the ID reform. An
+    // entry whose owner has no account yet cannot be stored and is
+    // dropped — fail closed, same as the gate's env floor.
+    const userIds: string[] = [];
+    for (const did of Array.isArray(discordIds) ? discordIds : []) {
+      const uid = await getUserIdByDiscordId(ctx.env.DB, String(did)).catch(() => null);
+      if (uid != null) userIds.push(String(uid));
+    }
+    const clean = await setPlatformAdminRoster(ctx.env.DB, userIds);
     await audit(ctx, 'platform_admin.roster', '', { count: clean.length });
-    return { ok: true, adminRoster: await listPlatformAdminIds(ctx.env) };
+    return { ok: true, adminRoster: await presentAdminRoster(ctx) };
   },
 
   platformAdminBackfillReminderIdentity: async (_: any, { dryRun }: any, ctx: Context) => {

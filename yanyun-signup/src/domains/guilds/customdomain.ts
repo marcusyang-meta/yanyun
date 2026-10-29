@@ -64,6 +64,7 @@
 import { sql } from 'drizzle-orm';
 import { createDb, schema } from '../../db/client.ts';
 import { getSettingValue } from './settings.ts';
+import { getGuildIdBySlug, getTenantRowById } from './tenants.ts';
 import { tierLocked } from '../platform/billing-service.ts';
 import type { Env } from '../platform/context.ts';
 
@@ -73,22 +74,22 @@ const col = (name: string) => sql.identifier(name);
 export type CustomDomainStatus = 'pending' | 'active' | 'disabled';
 
 export interface CustomDomainBinding {
-  tenant: string;
+  tenant: number;
   hostname: string;
   status: CustomDomainStatus;
   verifyToken: string;
-  createdBy: string;
+  createdByUserId: number;
   createdAt: number;
   updatedAt: number;
   verifiedAt: number | null;
 }
 
 interface RawBindingRow {
-  tenant: string; hostname: string; status: string; verify_token: string;
-  created_by: string; created_at: number; updated_at: number; verified_at: number | null;
+  tenant: number; hostname: string; status: string; verify_token: string;
+  created_by_user_id: number; created_at: number; updated_at: number; verified_at: number | null;
 }
 
-const COLS = sql`${col('tenant')}, ${col('hostname')}, ${col('status')}, ${col('verify_token')}, ${col('created_by')}, ${col('created_at')}, ${col('updated_at')}, ${col('verified_at')}`;
+const COLS = sql`${col('tenant')}, ${col('hostname')}, ${col('status')}, ${col('verify_token')}, ${col('created_by_user_id')}, ${col('created_at')}, ${col('updated_at')}, ${col('verified_at')}`;
 
 function toBinding(r: RawBindingRow): CustomDomainBinding {
   return {
@@ -96,7 +97,7 @@ function toBinding(r: RawBindingRow): CustomDomainBinding {
     hostname: r.hostname,
     status: (r.status === 'active' || r.status === 'disabled') ? r.status : 'pending',
     verifyToken: r.verify_token || '',
-    createdBy: r.created_by || '',
+    createdByUserId: r.created_by_user_id || 0,
     createdAt: r.created_at || 0,
     updatedAt: r.updated_at || 0,
     verifiedAt: r.verified_at ?? null,
@@ -106,11 +107,11 @@ function toBinding(r: RawBindingRow): CustomDomainBinding {
 /* ---------------- repository (data layer only) ---------------- */
 
 export async function getCustomDomainByTenant(
-  d1: D1Database, slug: string,
+  d1: D1Database, tenant: number,
 ): Promise<CustomDomainBinding | null> {
   const db = createDb(d1);
   const row = await db.get<RawBindingRow>(
-    sql`SELECT ${COLS} FROM ${guildCustomDomains} WHERE ${col('tenant')} = ${slug}`,
+    sql`SELECT ${COLS} FROM ${guildCustomDomains} WHERE ${col('tenant')} = ${tenant}`,
   );
   return row ? toBinding(row) : null;
 }
@@ -140,41 +141,41 @@ async function upsertCustomDomainBinding(
 ): Promise<void> {
   const db = createDb(d1);
   await db.run(
-    sql`INSERT INTO ${guildCustomDomains} (${col('tenant')}, ${col('hostname')}, ${col('status')}, ${col('verify_token')}, ${col('created_by')}, ${col('created_at')}, ${col('updated_at')}, ${col('verified_at')})
-        VALUES (${b.tenant}, ${b.hostname}, ${b.status}, ${b.verifyToken}, ${b.createdBy}, ${b.createdAt}, ${b.updatedAt}, ${b.verifiedAt})
+    sql`INSERT INTO ${guildCustomDomains} (${col('tenant')}, ${col('hostname')}, ${col('status')}, ${col('verify_token')}, ${col('created_by_user_id')}, ${col('created_at')}, ${col('updated_at')}, ${col('verified_at')})
+        VALUES (${b.tenant}, ${b.hostname}, ${b.status}, ${b.verifyToken}, ${b.createdByUserId}, ${b.createdAt}, ${b.updatedAt}, ${b.verifiedAt})
         ON CONFLICT (${col('tenant')}) DO UPDATE SET
           ${col('hostname')} = excluded.hostname,
           ${col('status')} = excluded.status,
           ${col('verify_token')} = excluded.verify_token,
-          ${col('created_by')} = excluded.created_by,
+          ${col('created_by_user_id')} = excluded.created_by_user_id,
           ${col('updated_at')} = excluded.updated_at,
           ${col('verified_at')} = excluded.verified_at`,
   );
 }
 
 async function updateCustomDomainStatus(
-  d1: D1Database, slug: string, status: CustomDomainStatus, at: number,
+  d1: D1Database, tenant: number, status: CustomDomainStatus, at: number,
 ): Promise<void> {
   const db = createDb(d1);
   if (status === 'active') {
     await db.run(
       sql`UPDATE ${guildCustomDomains} SET ${col('status')} = ${status}, ${col('updated_at')} = ${at}, ${col('verified_at')} = ${at}
-          WHERE ${col('tenant')} = ${slug}`,
+          WHERE ${col('tenant')} = ${tenant}`,
     );
   } else {
     await db.run(
       sql`UPDATE ${guildCustomDomains} SET ${col('status')} = ${status}, ${col('updated_at')} = ${at}
-          WHERE ${col('tenant')} = ${slug}`,
+          WHERE ${col('tenant')} = ${tenant}`,
     );
   }
 }
 
 export async function deleteCustomDomainBinding(
-  d1: D1Database, slug: string,
+  d1: D1Database, tenant: number,
 ): Promise<void> {
   const db = createDb(d1);
   await db.run(
-    sql`DELETE FROM ${guildCustomDomains} WHERE ${col('tenant')} = ${slug}`,
+    sql`DELETE FROM ${guildCustomDomains} WHERE ${col('tenant')} = ${tenant}`,
   );
 }
 
@@ -298,22 +299,22 @@ export type BindCustomDomainResult =
  * ownership token. Re-binding the SAME hostname while active is a
  * no-op success (the row is already the desired state). */
 export async function bindCustomDomain(
-  d1: D1Database, slug: string, rawHostname: unknown, actorDiscordId: string, at: number,
+  d1: D1Database, tenant: number, rawHostname: unknown, actorUserId: number, at: number,
 ): Promise<BindCustomDomainResult> {
   const v = validateCustomDomainHostname(rawHostname);
   if (!v.ok) return { ok: false, code: v.code };
   const clash = await getCustomDomainByHostname(d1, v.hostname).catch(() => null);
-  if (clash && clash.tenant !== slug) return { ok: false, code: 'customDomainConflict' };
-  const prev = await getCustomDomainByTenant(d1, slug).catch(() => null);
+  if (clash && clash.tenant !== tenant) return { ok: false, code: 'customDomainConflict' };
+  const prev = await getCustomDomainByTenant(d1, tenant).catch(() => null);
   if (prev && prev.hostname === v.hostname && prev.status === 'active') {
     return { ok: true, binding: prev };
   }
   const binding: CustomDomainBinding = {
-    tenant: slug,
+    tenant,
     hostname: v.hostname,
     status: 'pending',
     verifyToken: newVerifyToken(),
-    createdBy: actorDiscordId || '',
+    createdByUserId: actorUserId || 0,
     createdAt: prev ? prev.createdAt : at,
     updatedAt: at,
     verifiedAt: null,
@@ -326,9 +327,9 @@ export async function bindCustomDomain(
  * record; re-enabling returns the binding to pending so it must
  * re-verify before it can resolve again. */
 export async function setCustomDomainDisabled(
-  d1: D1Database, slug: string, disabled: boolean, at: number,
+  d1: D1Database, tenant: number, disabled: boolean, at: number,
 ): Promise<void> {
-  await updateCustomDomainStatus(d1, slug, disabled ? 'disabled' : 'pending', at);
+  await updateCustomDomainStatus(d1, tenant, disabled ? 'disabled' : 'pending', at);
 }
 
 /* ---------------- verification ----------------
@@ -384,10 +385,10 @@ export type VerifyCustomDomainOutcome =
   | { outcome: 'dns'; check: CustomDomainDnsCheck };
 
 export async function verifyCustomDomainBinding(
-  d1: D1Database, slug: string, env: Partial<Env> | null | undefined,
+  d1: D1Database, tenant: number, env: Partial<Env> | null | undefined,
   at: number, fetchFn?: FetchFn,
 ): Promise<VerifyCustomDomainOutcome> {
-  const binding = await getCustomDomainByTenant(d1, slug).catch(() => null);
+  const binding = await getCustomDomainByTenant(d1, tenant).catch(() => null);
   if (!binding) return { outcome: 'none' };
   if (binding.status === 'disabled') return { outcome: 'disabled' };
   if (binding.status === 'active') return { outcome: 'alreadyActive' };
@@ -396,8 +397,8 @@ export async function verifyCustomDomainBinding(
     binding, customDomainFallbackOrigin(env), fetchFn,
   );
   if (!check.cnameOk || !check.txtOk) return { outcome: 'dns', check };
-  await updateCustomDomainStatus(d1, slug, 'active', at);
-  const next = await getCustomDomainByTenant(d1, slug);
+  await updateCustomDomainStatus(d1, tenant, 'active', at);
+  const next = await getCustomDomainByTenant(d1, tenant);
   return { outcome: 'activated', binding: next || { ...binding, status: 'active', verifiedAt: at } };
 }
 
@@ -421,9 +422,9 @@ export async function isCustomDomainLive(
 
 /** This guild's live custom-domain origin, or null. */
 export async function guildCustomDomainOrigin(
-  d1: D1Database, slug: string,
+  d1: D1Database, tenant: number,
 ): Promise<string | null> {
-  const binding = await getCustomDomainByTenant(d1, slug).catch(() => null);
+  const binding = await getCustomDomainByTenant(d1, tenant).catch(() => null);
   if (!binding || !(await isCustomDomainLive(d1, binding))) return null;
   return `https://${binding.hostname}`;
 }
@@ -436,7 +437,9 @@ export async function isLiveCustomDomainHost(
   const binding = await getCustomDomainByHostname(
     d1, normalizeCustomDomainHostname(hostname),
   ).catch(() => null);
-  if (!binding || binding.tenant !== slug) return false;
+  if (!binding) return false;
+  const guildId = await getGuildIdBySlug(d1, slug).catch(() => null);
+  if (guildId == null || binding.tenant !== guildId) return false;
   return isCustomDomainLive(d1, binding);
 }
 
@@ -478,7 +481,8 @@ export async function lookupGuildCustomDomainHost(
   ).catch(() => null);
   if (!binding) return null;
   if (seamConfigured && (await isCustomDomainLive(d1, binding))) {
-    return { kind: 'active', slug: binding.tenant };
+    const tenantRow = await getTenantRowById(d1, binding.tenant).catch(() => null);
+    if (tenantRow) return { kind: 'active', slug: tenantRow.slug };
   }
   return { kind: 'known' };
 }

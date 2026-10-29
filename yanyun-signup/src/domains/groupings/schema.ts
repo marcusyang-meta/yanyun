@@ -280,14 +280,14 @@ export const eventReminders = sqliteTable('event_reminders', {
  * previous success (or none). tenant is denormalized from the
  * grouping so the guild recap index reads this entity alone. */
 export const groupingRecaps = sqliteTable('grouping_recaps', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  tenant: text('tenant').notNull().default(''),
+  id: integer('id').primaryKey(),
+  tenant: integer('tenant').notNull().default(0),
   eventId: integer('event_id').notNull().references(() => events.id, { onDelete: 'cascade' }),
   status: text('status').notNull().default('ready'),
   paragraphsJson: text('paragraphs_json').notNull().default('[]'),
   snapshotJson: text('snapshot_json').notNull().default('{}'),
   provider: text('provider').notNull().default(''),
-  generatedBy: text('generated_by').notNull().default(''),
+  generatedByUserId: integer('generated_by_user_id').notNull().default(0),
   version: integer('version').notNull().default(1),
   lastError: text('last_error').notNull().default(''),
   generatedAt: integer('generated_at').notNull().default(0),
@@ -317,11 +317,11 @@ export const results = sqliteTable('results', {
  * their factor values. Append-only: fairness disputes are settled
  * against these rows, so nothing updates or deletes them. */
 export const rotationAdviceRecords = sqliteTable('rotation_advice_records', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  tenant: text('tenant').notNull().default(''),
+  id: integer('id').primaryKey(),
+  tenant: integer('tenant').notNull().default(0),
   eventId: integer('event_id').notNull().references(() => events.id, { onDelete: 'cascade' }),
   adviceJson: text('advice_json').notNull().default('[]'),
-  createdBy: text('created_by').notNull().default(''),
+  createdByUserId: integer('created_by_user_id').notNull().default(0),
   createdAt: integer('created_at').notNull().default(0),
 }, (t) => [
   index('idx_rotation_advice_records_event').on(t.tenant, t.eventId, t.id),

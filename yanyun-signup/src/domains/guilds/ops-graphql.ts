@@ -423,7 +423,7 @@ async function opsGate(ctx: Context, slug: string) {
   const access = await getGuildAdminAccess(ctx.env.DB, ctx.user, slug, ctx.request, vcOf(ctx));
   if (!access.exists) return { fail: opsFail(ctx, 'guildNotFound') };
   if (!access.isAdmin) return { fail: opsFail(ctx, 'adminOnly') };
-  if (await tierLocked(ctx.env.DB, access.slug, OPS_TIER)) {
+  if (await tierLocked(ctx.env.DB, access.tenant.id, OPS_TIER)) {
     return { fail: opsFail(ctx, 'premiumRequired') };
   }
   return { access };

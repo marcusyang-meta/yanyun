@@ -31,7 +31,8 @@ import { rotationAdviceRecords } from './schema.ts';
 import { listEventsAdmin } from './events.ts';
 import { listSignupsByEvent } from './signups.ts';
 import { listGuildAvailability, parseAvailabilitySlots } from './availability.ts';
-import { listGuildMembers } from '../identity/index.ts';
+import { listGuildMembers, listDiscordIdsByUserIds, listUserIdsByDiscordIds } from '../identity/index.ts';
+import { mintPublicId } from '../platform/id-mint.ts';
 import { countGearItemRows } from '../gear/index.ts';
 import { roleOf } from '../platform/graphql-base.ts';
 
@@ -256,11 +257,15 @@ export function availabilityCovers(slots: { weekday: number; startMinute: number
 /** Compose per-member facts for one guild from the underlying
  * records only (roster, past seats, gear library, F5 windows) —
  * deliberately NOT via a premium profile surface. */
-export async function buildMemberFacts(d1: D1Database, tenant: string, startsAtUtc: number | null): Promise<MemberFacts[]> {
+export async function buildMemberFacts(d1: D1Database, tenant: number, startsAtUtc: number | null): Promise<MemberFacts[]> {
   const roster = await listGuildMembers(d1, tenant).catch(() => []);
   const events = (await listEventsAdmin(d1, tenant).catch(() => [])).filter((e) => e.status !== 'draft');
   const availRows = await listGuildAvailability(d1, tenant).catch(() => []);
-  const availById = new Map(availRows.map((r) => [String(r.discord_id), parseAvailabilitySlots(r.slots_json)] as const));
+  // Availability rows are keyed by user ID; the facts (like the roster
+  // and the seats) are keyed by Discord ID, so resolve the bridge
+  // through the users rows — the only sanctioned conversion point.
+  const availDiscordByUser = await listDiscordIdsByUserIds(d1, availRows.map((r) => Number(r.user_id))).catch(() => new Map<number, string>());
+  const availById = new Map(availRows.map((r) => [availDiscordByUser.get(Number(r.user_id)) || '', parseAvailabilitySlots(r.slots_json)] as const));
   const agg = new Map<string, { participations: number; readyCount: number; last: number | null; weapon: string; role: string }>();
   for (const ev of events) {
     const seats = await listSignupsByEvent(d1, ev.id).catch(() => []);
@@ -275,11 +280,12 @@ export async function buildMemberFacts(d1: D1Database, tenant: string, startsAtU
       agg.set(did, a);
     }
   }
+  const userIdByDiscord = await listUserIdsByDiscordIds(d1, roster.map((m) => String(m.discord_id))).catch(() => new Map<string, number>());
   const out: MemberFacts[] = [];
   for (const m of roster) {
     const did = String(m.discord_id);
     const a = agg.get(did);
-    const gearItemCount = await countGearItemRows(d1, did).catch(() => 0);
+    const gearItemCount = await countGearItemRows(d1, userIdByDiscord.get(did) || 0).catch(() => 0);
     out.push({
       discordId: did,
       displayName: String(m.nick || '').trim() || String(m.global_name || '').trim() || did,
@@ -299,18 +305,20 @@ export async function buildMemberFacts(d1: D1Database, tenant: string, startsAtU
  * (the ranked snapshot as JSON). Records are never mutated; the
  * audit trail is the list itself. */
 
-export interface RotationAdviceRecordRow { id: number; tenant: string; event_id: number; advice_json: string; created_by: string; created_at: number; }
+export interface RotationAdviceRecordRow { id: number; tenant: number; event_id: number; advice_json: string; created_by_user_id: number; created_at: number; }
 
-export async function insertRotationAdviceRecord(d1: D1Database, row: { tenant: string; eventId: number; adviceJson: string; createdBy: string; createdAt: number }): Promise<{ changes: number; last_row_id: number }> {
+export async function insertRotationAdviceRecord(d1: D1Database, row: { tenant: number; eventId: number; adviceJson: string; createdByUserId: number; createdAt: number }): Promise<{ changes: number; last_row_id: number }> {
   const db = createDb(d1);
+  // The record ID (type code 15) is minted in the data layer.
+  const id = await mintPublicId(d1, 'rotationAdviceRecord');
   const r = await db.run(
-    sql`INSERT INTO ${rotationAdviceRecords} (${col('tenant')}, ${col('event_id')}, ${col('advice_json')}, ${col('created_by')}, ${col('created_at')}) VALUES (${row.tenant}, ${row.eventId}, ${row.adviceJson}, ${row.createdBy}, ${row.createdAt})`,
+    sql`INSERT INTO ${rotationAdviceRecords} (${col('id')}, ${col('tenant')}, ${col('event_id')}, ${col('advice_json')}, ${col('created_by_user_id')}, ${col('created_at')}) VALUES (${id}, ${row.tenant}, ${row.eventId}, ${row.adviceJson}, ${row.createdByUserId}, ${row.createdAt})`,
   );
   const m = (r as { meta?: { changes?: number; last_row_id?: number } } | null)?.meta;
-  return { changes: m?.changes ?? 0, last_row_id: m?.last_row_id ?? 0 };
+  return { changes: m?.changes ?? 0, last_row_id: id };
 }
 
-export async function listRotationAdviceRecords(d1: D1Database, tenant: string, eventId: number): Promise<RotationAdviceRecordRow[]> {
+export async function listRotationAdviceRecords(d1: D1Database, tenant: number, eventId: number): Promise<RotationAdviceRecordRow[]> {
   const db = createDb(d1);
   const rows = await db.all<RotationAdviceRecordRow>(
     sql`SELECT * FROM ${rotationAdviceRecords} WHERE ${col('tenant')} = ${tenant} AND ${col('event_id')} = ${eventId} ORDER BY ${col('id')} DESC`,

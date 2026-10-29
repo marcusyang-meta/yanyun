@@ -711,6 +711,7 @@ export class GuildAdminShell extends ShellBase {
       ? 'GuildAdmin' : 'GuildAdminLocked';
   }
   get access() { return this.data; }
+  get guildId(): number { return this.access.tenant ? this.access.tenant.id : 0; }
   /* The viewer's officer verdict, precomputed by guildAdminResult.
    * The fallback (shells built without one) derives it from the
    * admin access alone: admins hold everything, others nothing. */
@@ -779,7 +780,7 @@ export class GuildAdminShell extends ShellBase {
   genEvents(){
     return this.memo('events', async () => {
       if (!this.hasCap('events')) return [];
-      const rows = await listEventsAdmin(this.db, this.genSlug());
+      const rows = await listEventsAdmin(this.db, this.guildId);
       return rows.map((r: any) => new GuildAdminEventShell(this.ctx, r));
     });
   }
@@ -852,7 +853,7 @@ export class GuildAdminShell extends ShellBase {
       if (!this.hasCap('stats')) return new GuildAdminSectionLockedShell(this.ctx, {});
       // Premium read gate: gated guilds get the locked variant —
       // the computed stats are never even produced for them.
-      if (await premiumGate(this.db, this.genSlug())) return new GuildAdminStatsLockedShell(this.ctx, {});
+      if (await premiumGate(this.db, this.guildId)) return new GuildAdminStatsLockedShell(this.ctx, {});
       return new GuildAdminStatsShell(this.ctx, await computeGuildStats(this.db, this.genSlug()));
     });
   }
@@ -871,7 +872,7 @@ export class GuildAdminShell extends ShellBase {
       // when the master switch is off.
       if (!this.hasCap('profile')) return null;
       if (!(await isPaygateEnabled(this.db))) return null;
-      const eff = await getEffectiveEntitlement(this.db, this.genSlug());
+      const eff = await getEffectiveEntitlement(this.db, this.guildId);
       if (eff.tier > 0) {
         return new GuildAdminPremiumActiveShell(this.ctx, {
           source: eff.source, currentPeriodEnd: eff.currentPeriodEnd,
@@ -936,14 +937,14 @@ export class GuildAdminShell extends ShellBase {
   genLotteries(){
     return this.memo('lotteries', async () => {
       if (!this.hasCap('tools')) return [];
-      const rows = await listLotteries(this.db, this.genSlug());
+      const rows = await listLotteries(this.db, this.guildId);
       return rows.map((r) => new GuildAdminLotteryShell(this.ctx, r));
     });
   }
   genLotteryRoster(){
     return this.memo('lotteryRoster', async () => {
       if (!this.hasCap('tools')) return [];
-      const rows = await listGuildMembers(this.db, this.genSlug());
+      const rows = await listGuildMembers(this.db, this.guildId);
       return rows.map((r) => new GuildAdminLotteryMemberShell(this.ctx, r));
     });
   }
@@ -960,22 +961,22 @@ export class GuildAdminShell extends ShellBase {
   genRecruitApplications(){
     return this.memo('recruitApplications', async () => {
       if (!this.hasCap('recruit')) return [];
-      const rows = await listApplicationsByTenant(this.db, this.genSlug());
+      const rows = await listApplicationsByTenant(this.db, this.guildId);
       return rows.map((r) => new RecruitApplicationShell(this.ctx, r));
     });
   }
   genRecruitPairings(){
     return this.memo('recruitPairings', async () => {
       if (!this.hasCap('recruit')) return [];
-      const rows = await listPairingsByTenant(this.db, this.genSlug());
+      const rows = await listPairingsByTenant(this.db, this.guildId);
       return rows.map((r) => new MentorPairingShell(this.ctx, r));
     });
   }
   genRecruitRoster(){
     return this.memo('recruitRoster', async () => {
       if (!this.hasCap('recruit')) return [];
-      const rows = await listGuildMembers(this.db, this.genSlug());
-      const guildId = await getGuildIdBySlug(this.db, this.genSlug());
+      const rows = await listGuildMembers(this.db, this.guildId);
+      const guildId = this.guildId || null;
       const mentors = new Set(guildId == null ? [] : await listMentorIds(this.db, guildId));
       const memberUserIds = await listUserIdsByDiscordIds(
         this.db, (rows || []).map((r) => String(r.discord_id))).catch(() => new Map());
@@ -1300,7 +1301,7 @@ export const guildAdminMutations = {
       bgImageUrl: input.bgImageUrl != null ? s(input.bgImageUrl, 300) : (t.bg_image_url || ''),
     });
     await recordGuildAudit(ctx.env.DB, {
-      tenant: g.access.slug, actor: auditActorOf(ctx), action: 'profile.update',
+      tenant: g.access.tenant.id, actor: auditActorOf(ctx), action: 'profile.update',
       targetType: 'guild', targetLabel: String(name),
     });
     return aOk(ctx);
@@ -1324,7 +1325,7 @@ export const guildAdminMutations = {
     if (webhookChanged) nudgeHub(ctx, g.access.slug);
     if (input.webhook != null || input.discordGuildId != null) {
       await recordGuildAudit(db, {
-        tenant: g.access.slug, actor: auditActorOf(ctx), action: 'discord.update',
+        tenant: g.access.tenant.id, actor: auditActorOf(ctx), action: 'discord.update',
         targetType: 'guild',
       });
     }
@@ -1347,7 +1348,7 @@ export const guildAdminMutations = {
     }
     nudgeHub(ctx, g.access.slug);
     await recordGuildAudit(db, {
-      tenant: g.access.slug, actor: auditActorOf(ctx), action: 'reminder.update',
+      tenant: g.access.tenant.id, actor: auditActorOf(ctx), action: 'reminder.update',
       targetType: 'guild',
     });
     return aOk(ctx);
@@ -1367,7 +1368,7 @@ export const guildAdminMutations = {
       ogTitleSuffix: sanitizeOgTitleSuffix(ogTitleSuffix),
     });
     await recordGuildAudit(ctx.env.DB, {
-      tenant: g.access.slug, actor: auditActorOf(ctx), action: 'whitelabel.update',
+      tenant: g.access.tenant.id, actor: auditActorOf(ctx), action: 'whitelabel.update',
       targetType: 'guild',
     });
     return aOk(ctx);
@@ -1379,10 +1380,10 @@ export const guildAdminMutations = {
    * are the service's (customdomain.ts). */
   bindGuildCustomDomain: async (_: any, { slug, hostname }: any, ctx: Context) => {
     const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
-    if (await tierLocked(ctx.env.DB, g.access.slug, 3)) return aFail(ctx, 'premiumRequired');
+    if (await tierLocked(ctx.env.DB, g.access.tenant.id, 3)) return aFail(ctx, 'premiumRequired');
     const r = await bindCustomDomain(
-      ctx.env.DB, g.access.slug, hostname,
-      ctx.user ? ctx.user.discordId : '', Math.floor(Date.now() / 1000),
+      ctx.env.DB, g.access.tenant.id, hostname,
+      ctx.user ? Number(ctx.user.userId) : 0, Math.floor(Date.now() / 1000),
     );
     if (!r.ok) return aFail(ctx, r.code);
     return aOk(ctx);
@@ -1394,9 +1395,9 @@ export const guildAdminMutations = {
    * success. */
   verifyGuildCustomDomain: async (_: any, { slug }: any, ctx: Context) => {
     const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
-    if (await tierLocked(ctx.env.DB, g.access.slug, 3)) return aFail(ctx, 'premiumRequired');
+    if (await tierLocked(ctx.env.DB, g.access.tenant.id, 3)) return aFail(ctx, 'premiumRequired');
     const r = await verifyCustomDomainBinding(
-      ctx.env.DB, g.access.slug, ctx.env, Math.floor(Date.now() / 1000),
+      ctx.env.DB, g.access.tenant.id, ctx.env, Math.floor(Date.now() / 1000),
     );
     if (r.outcome === 'activated' || r.outcome === 'alreadyActive') return aOk(ctx);
     if (r.outcome === 'none') return aFail(ctx, 'customDomainNotBound');
@@ -1411,7 +1412,7 @@ export const guildAdminMutations = {
    * while frozen — it grants nothing and stops resolution. */
   removeGuildCustomDomain: async (_: any, { slug }: any, ctx: Context) => {
     const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
-    await deleteCustomDomainBinding(ctx.env.DB, g.access.slug);
+    await deleteCustomDomainBinding(ctx.env.DB, g.access.tenant.id);
     return aOk(ctx);
   },
 
@@ -1464,7 +1465,7 @@ export const guildAdminMutations = {
     const g = await adminGate(ctx, slug); if (g.fail) return g.fail;
     await setTenantSetting(ctx.env.DB, g.access.tenant.id, 'dev_only', devOnly ? '1' : '');
     await recordGuildAudit(ctx.env.DB, {
-      tenant: g.access.slug, actor: auditActorOf(ctx), action: 'visibility.update',
+      tenant: g.access.tenant.id, actor: auditActorOf(ctx), action: 'visibility.update',
       targetType: 'guild',
     });
     return aOk(ctx);
@@ -1479,7 +1480,7 @@ export const guildAdminMutations = {
     const g = await capGate(ctx, slug, 'recruit'); if (g.fail) return g.fail;
     await updateTenantRecruitOpen(ctx.env.DB, g.access.slug, !!open);
     await recordGuildAudit(ctx.env.DB, {
-      tenant: g.access.slug, actor: auditActorOf(ctx), action: 'recruit.open',
+      tenant: g.access.tenant.id, actor: auditActorOf(ctx), action: 'recruit.open',
       targetType: 'guild', targetId: open ? 'open' : 'closed',
     });
     return aOk(ctx);
@@ -1504,7 +1505,7 @@ export const guildAdminMutations = {
     if (!type) return aFail(ctx, 'avatarBadType');
     const meta = await putGuildAvatar(db, g.access.slug, type, bytes);
     await recordGuildAudit(db, {
-      tenant: g.access.slug, actor: auditActorOf(ctx), action: 'avatar.set',
+      tenant: g.access.tenant.id, actor: auditActorOf(ctx), action: 'avatar.set',
       targetType: 'guild',
     });
     let origin = '';
@@ -1516,7 +1517,7 @@ export const guildAdminMutations = {
     const g = await capGate(ctx, slug, 'profile'); if (g.fail) return g.fail;
     await deleteGuildAvatarRepo(ctx.env.DB, g.access.slug);
     await recordGuildAudit(ctx.env.DB, {
-      tenant: g.access.slug, actor: auditActorOf(ctx), action: 'avatar.delete',
+      tenant: g.access.tenant.id, actor: auditActorOf(ctx), action: 'avatar.delete',
       targetType: 'guild',
     });
     return aOk(ctx);
@@ -1553,7 +1554,7 @@ export const guildAdminMutations = {
     if (ctx.executionCtx && typeof ctx.executionCtx.waitUntil === 'function') ctx.executionCtx.waitUntil(notice);
     publishGroupingEvent(ctx, g.access.slug, r.last_row_id, 'created');
     await recordGuildAudit(db, {
-      tenant: g.access.slug, actor: auditActorOf(ctx), action: 'event.create',
+      tenant: g.access.tenant.id, actor: auditActorOf(ctx), action: 'event.create',
       targetType: 'event', targetId: r.last_row_id, targetLabel: title,
     });
     return aOk(ctx, { id: r.last_row_id });
@@ -1581,7 +1582,7 @@ export const guildAdminMutations = {
     await updateEventFields(db, owned.id, g.access.tenant.id, fields);
     publishGroupingEvent(ctx, g.access.slug, owned.id, 'updated');
     await recordGuildAudit(db, {
-      tenant: g.access.slug, actor: auditActorOf(ctx), action: 'event.update',
+      tenant: g.access.tenant.id, actor: auditActorOf(ctx), action: 'event.update',
       targetType: 'event', targetId: owned.id, targetLabel: owned.title || '',
     });
     publishGroupingEvent(ctx, g.access.slug, owned.id, 'updated');
@@ -1591,12 +1592,12 @@ export const guildAdminMutations = {
   deleteAdminEvent: async (_: any, { slug, eventId }: any, ctx: Context) => {
     const g = await capGate(ctx, slug, 'events'); if (g.fail) return g.fail;
     const db = ctx.env.DB;
-    const owned = await getEventIdByTenant(db, parseInt(eventId, 10), g.access.tenant.id);
+    const owned = await getEventRowByTenant(db, parseInt(eventId, 10), g.access.tenant.id);
     if (!owned) return aFail(ctx, 'groupingNotFound');
     await deleteEventCascade(db, owned.id, g.access.tenant.id);
     publishGroupingEvent(ctx, g.access.slug, owned.id, 'deleted');
     await recordGuildAudit(db, {
-      tenant: g.access.slug, actor: auditActorOf(ctx), action: 'event.delete',
+      tenant: g.access.tenant.id, actor: auditActorOf(ctx), action: 'event.delete',
       targetType: 'event', targetId: owned.id, targetLabel: owned.title || '',
     });
     publishGroupingEvent(ctx, g.access.slug, owned.id, 'deleted');
@@ -1610,7 +1611,7 @@ export const guildAdminMutations = {
     if (!owned) return aFail(ctx, 'signupNotFound');
     await deleteSignupById(db, owned.id);
     await recordGuildAudit(db, {
-      tenant: g.access.slug, actor: auditActorOf(ctx), action: 'signup.remove',
+      tenant: g.access.tenant.id, actor: auditActorOf(ctx), action: 'signup.remove',
       targetType: 'signup', targetId: owned.id,
     });
     await deleteSignupById(db, owned.id);
@@ -1632,7 +1633,7 @@ export const guildAdminMutations = {
       proofUrl: String(input.proofUrl || ''), note: String(input.note || ''),
     });
     await recordGuildAudit(db, {
-      tenant: g.access.slug, actor: auditActorOf(ctx), action: 'result.add',
+      tenant: g.access.tenant.id, actor: auditActorOf(ctx), action: 'result.add',
       targetType: 'result', targetId: r.last_row_id, targetLabel: teamName,
     });
     return aOk(ctx, { id: r.last_row_id });
@@ -1645,7 +1646,7 @@ export const guildAdminMutations = {
     if (!owned) return aFail(ctx, 'resultNotFound');
     await deleteResultById(db, owned.id);
     await recordGuildAudit(db, {
-      tenant: g.access.slug, actor: auditActorOf(ctx), action: 'result.delete',
+      tenant: g.access.tenant.id, actor: auditActorOf(ctx), action: 'result.delete',
       targetType: 'result', targetId: owned.id,
     });
     await deleteResultById(db, owned.id);
@@ -1718,7 +1719,7 @@ export const guildAdminMutations = {
       await insertLotteryEntry(db, { lotteryId: r.last_row_id, ...e });
     }
     await recordGuildAudit(db, {
-      tenant: g.access.slug, actor: auditActorOf(ctx), action: 'lottery.create',
+      tenant: g.access.tenant.id, actor: auditActorOf(ctx), action: 'lottery.create',
       targetType: 'lottery', targetId: r.last_row_id, targetLabel: title,
     });
     return aOk(ctx, { id: r.last_row_id });
@@ -1745,7 +1746,7 @@ export const guildAdminMutations = {
     }
     await markLotteryDrawn(db, lot.id, now);
     await recordGuildAudit(db, {
-      tenant: g.access.slug, actor: auditActorOf(ctx), action: 'lottery.draw',
+      tenant: g.access.tenant.id, actor: auditActorOf(ctx), action: 'lottery.draw',
       targetType: 'lottery', targetId: lot.id, targetLabel: lot.title || '',
     });
     await markLotteryDrawn(db, lot.id, now);
@@ -1788,7 +1789,7 @@ export const guildAdminMutations = {
       }
     }
     await recordGuildAudit(db, {
-      tenant: g.access.slug, actor: auditActorOf(ctx),
+      tenant: g.access.tenant.id, actor: auditActorOf(ctx),
       action: approve ? 'application.approve' : 'application.reject',
       targetType: 'application', targetId: app.id, targetLabel: app.applicant_name || '',
     });
@@ -1811,7 +1812,7 @@ export const guildAdminMutations = {
       if (mentorUserId != null) await deleteMentor(db, g.access.tenant.id, mentorUserId);
     }
     await recordGuildAudit(db, {
-      tenant: g.access.slug, actor: auditActorOf(ctx),
+      tenant: g.access.tenant.id, actor: auditActorOf(ctx),
       action: isMentor ? 'mentor.set' : 'mentor.unset',
       targetType: 'member', targetId: target,
     });
@@ -1854,7 +1855,7 @@ export const guildAdminMutations = {
       return aFail(ctx, 'menteeAlreadyPaired');
     }
     await recordGuildAudit(db, {
-      tenant: g.access.slug, actor: auditActorOf(ctx), action: 'pairing.create',
+      tenant: g.access.tenant.id, actor: auditActorOf(ctx), action: 'pairing.create',
       targetType: 'pairing', targetId: id, targetLabel: nameOf(menteeRow),
     });
     return aOk(ctx, { id });
@@ -1870,7 +1871,7 @@ export const guildAdminMutations = {
     const ended = await endPairing(db, pairing.id, g.access.tenant.id, Math.floor(Date.now() / 1000));
     if (!ended.changes) return aFail(ctx, 'pairingAlreadyEnded');
     await recordGuildAudit(db, {
-      tenant: g.access.slug, actor: auditActorOf(ctx), action: 'pairing.end',
+      tenant: g.access.tenant.id, actor: auditActorOf(ctx), action: 'pairing.end',
       targetType: 'pairing', targetId: pairing.id, targetLabel: pairing.mentee_name || '',
     });
     return aOk(ctx, { id: pairing.id });
@@ -1894,7 +1895,7 @@ export const guildAdminMutations = {
       await upsertSchoolRotation(db, { school, rotationJson: String(input.rotationJson) });
     }
     await recordGuildAudit(db, {
-      tenant: g.access.slug, actor: auditActorOf(ctx), action: 'guide.update',
+      tenant: g.access.tenant.id, actor: auditActorOf(ctx), action: 'guide.update',
       targetType: 'guide', targetId: school, targetLabel: school,
     });
     return aOk(ctx);

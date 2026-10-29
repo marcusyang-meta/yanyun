@@ -108,6 +108,7 @@ export class GuildShell extends ShellBase {
     this.__typename = 'Guild';
   }
   get access() { return this.data; }
+  get guildId(): number { return this.access.tenant ? this.access.tenant.id : 0; }
   genSlug(){ return this.access.tenant ? this.access.tenant.slug : this.access.slug; }
   genName(){ return this.access.tenant.guild_name; }
   // Custom guild avatar: only with an avatar, a versioned URL carrying the hash (relative to this origin); otherwise null — clients render the field as-is and must not build URLs themselves.
@@ -124,7 +125,7 @@ export class GuildShell extends ShellBase {
   genGameVersion(){ return this.ctxMemo('gameVersion', () => getGameVersion(this.db)); }
   genMemberCount(){
     return this.memo('memberCount', async () => {
-      return countDistinctNicknamesByTenant(this.db, this.genSlug()).catch(() => 0);
+      return countDistinctNicknamesByTenant(this.db, this.guildId).catch(() => 0);
     });
   }
   genGroupings({ tab }: any){
@@ -155,7 +156,7 @@ export class GuildShell extends ShellBase {
   // sent — picking one could never seat.
   genMemberRoster(){
     return this.memo('memberRoster', async () => {
-      const results = await listGuildMembers(this.db, this.genSlug()).catch(() => []);
+      const results = await listGuildMembers(this.db, this.guildId).catch(() => []);
       const out = [];
       for (const r of results || []) {
         const displayName = String(r.nick || '').trim() || String(r.global_name || '').trim();

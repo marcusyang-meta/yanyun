@@ -110,13 +110,13 @@ export async function getEventTenant(d1: D1Database, id: number): Promise<{ id: 
  * retired /api/hub/events/backfill-creators handler used to hand-roll
  * against the raw binding. */
 export interface EventCreatorScanRow {
-  id: number; tenant: string; created_by: string; creator_discord_id: string | null;
+  id: number; tenant: number; created_by: string; creator_user_id: number | null;
 }
 
 export async function listEventsForCreatorBackfill(d1: D1Database): Promise<EventCreatorScanRow[]> {
   const db = createDb(d1);
   const rows = await db.all<EventCreatorScanRow>(
-    sql`SELECT ${col('id')}, ${col('tenant')}, ${col('created_by')}, ${col('creator_discord_id')}
+    sql`SELECT ${col('id')}, ${col('tenant')}, ${col('created_by')}, ${col('creator_user_id')}
         FROM ${events} ORDER BY ${col('id')} ASC`,
   );
   return rows || [];
@@ -127,12 +127,12 @@ export async function listEventsForCreatorBackfill(d1: D1Database): Promise<Even
  * stamp (or a re-run) can never overwrite a recorded creator. */
 export async function stampEventCreators(
   d1: D1Database,
-  updates: Array<{ discordId: string; eventId: number }>,
+  updates: Array<{ userId: number; eventId: number }>,
 ): Promise<void> {
   if (!updates.length) return;
-  await d1.batch(updates.map(({ discordId, eventId }) => d1.prepare(
-    "UPDATE events SET creator_discord_id = ? WHERE id = ? AND (creator_discord_id IS NULL OR creator_discord_id = '')",
-  ).bind(discordId, eventId)));
+  await d1.batch(updates.map(({ userId, eventId }) => d1.prepare(
+    'UPDATE events SET creator_user_id = ? WHERE id = ? AND (creator_user_id IS NULL OR creator_user_id = 0)',
+  ).bind(userId, eventId)));
 }
 
 /* REST weekly list: signup_count computed column; type/from/to are

@@ -338,7 +338,7 @@ export const seasonAdminMutations = {
       now: Math.floor(Date.now() / 1000),
     });
     await recordGuildAudit(db, {
-      tenant: slug,
+      tenant: tenantRow.id,
       actor: ctx.user ? { discordId: String(ctx.user.discordId), name: String(ctx.user.name || '') } : null,
       action: 'season.checklist', targetType: 'season', targetId: itemKey, targetLabel: itemKey,
     });
@@ -454,7 +454,7 @@ export const seasonAdminMutations = {
     }
     await confirmRosterImportBatch(db, batch.id, nowSec);
     await recordGuildAudit(db, {
-      tenant: slug,
+      tenant: tenantRow ? tenantRow.id : 0,
       actor: ctx.user ? { discordId: String(ctx.user.discordId), name: String(ctx.user.name || '') } : null,
       action: 'roster.import', targetType: 'roster', targetId: batch.id,
     });
@@ -482,7 +482,7 @@ export const seasonAdminMutations = {
       : false;
     if (!done) return new GuildAdminPayloadShell(ctx, { ok: false, errorCode: 'rosterEntryNotFound' });
     await recordGuildAudit(ctx.env.DB, {
-      tenant: slug,
+      tenant: tenantRow!.id,
       actor: ctx.user ? { discordId: String(ctx.user.discordId), name: String(ctx.user.name || '') } : null,
       action: 'roster.entryDelete', targetType: 'roster', targetId: id,
     });

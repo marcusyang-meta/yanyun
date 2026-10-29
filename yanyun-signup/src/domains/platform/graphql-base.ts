@@ -238,7 +238,7 @@ export async function getOfficerVerdict(db: any, user: any, slug: any, request: 
   }
   let capabilities: string[] = [];
   if (user) {
-    const grant = await getOfficerGrant(db, access.slug, String(user.discordId)).catch(() => null);
+    const grant = await getOfficerGrant(db, access.tenant.id, Number(user.userId)).catch(() => null);
     if (grant) capabilities = parseCapabilities(grant.capabilities, OFFICER_CAPABILITIES);
   }
   return { exists: true, access, isAdmin: false, isOfficer: capabilities.length > 0, capabilities };

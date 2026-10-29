@@ -29,7 +29,7 @@ import {
 } from '../platform/graphql-base.ts';
 import { recordGuildAudit } from './guild-audit.ts';
 import { fmtStartsAt } from '../platform/index.ts';
-import { listGuildMembers, listGuildMembersByUser, getGuildMember, listUserIdsByDiscordIds, listDiscordIdsByUserIds, ensureUserIdByDiscordId } from '../identity/index.ts';
+import { listGuildMembers, listGuildMembersByUser, getGuildMember, listUserIdsByDiscordIds, listDiscordIdsByUserIds, ensureUserIdByDiscordId, getDiscordIdByUserId } from '../identity/index.ts';
 import { getDungeonById, listDungeonsDex, SEASON_NAMES } from '../dex/index.ts';
 import type { DungeonRow } from '../dex/index.ts';
 import {
@@ -334,7 +334,7 @@ export const guildOfficerMutations = {
       createdAt: nowSec,
     });
     await recordGuildAudit(db, {
-      tenant: access.slug,
+      tenant: access.tenant.id,
       actor: ctx.user ? { discordId: String(ctx.user.discordId), name: String(ctx.user.name || '') } : null,
       action: 'note.add', targetType: 'member', targetId: target,
       targetLabel: (() => {
@@ -357,18 +357,21 @@ export const guildOfficerMutations = {
     }
     const access = verdict.access;
     const id = parseInt(String(noteId), 10) || 0;
-    const row = await getMemberNote(db, access.slug, id);
+    const row = await getMemberNote(db, access.tenant.id, id);
     if (!row) return noteFail(ctx, 'officerNoteNotFound');
     const clean = cleanNoteBody(body);
     const shapeError = noteBodyError(clean);
     if (shapeError) return noteFail(ctx, shapeError);
-    await updateMemberNote(db, access.slug, id, clean, Math.floor(Date.now() / 1000));
+    await updateMemberNote(db, access.tenant.id, id, clean, Math.floor(Date.now() / 1000));
     await recordGuildAudit(db, {
-      tenant: access.slug,
+      tenant: access.tenant.id,
       actor: ctx.user ? { discordId: String(ctx.user.discordId), name: String(ctx.user.name || '') } : null,
-      action: 'note.update', targetType: 'member', targetId: String(row.member_discord_id),
+      // Member targets stay Discord IDs in the audit log (class A
+      // key space); resolve through the subject's users row.
+      action: 'note.update', targetType: 'member',
+      targetId: (await getDiscordIdByUserId(db, row.member_user_id).catch(() => null)) || '',
     });
-    const fresh = await getMemberNote(db, access.slug, id);
+    const fresh = await getMemberNote(db, access.tenant.id, id);
     return noteOk(ctx, fresh ? new GuildMemberNoteShell(ctx, { row: fresh }) : null);
   },
 
@@ -382,13 +385,14 @@ export const guildOfficerMutations = {
     }
     const access = verdict.access;
     const id = parseInt(String(noteId), 10) || 0;
-    const row = await getMemberNote(db, access.slug, id);
+    const row = await getMemberNote(db, access.tenant.id, id);
     if (!row) return noteFail(ctx, 'officerNoteNotFound');
-    await deleteMemberNote(db, access.slug, id);
+    await deleteMemberNote(db, access.tenant.id, id);
     await recordGuildAudit(db, {
-      tenant: access.slug,
+      tenant: access.tenant.id,
       actor: ctx.user ? { discordId: String(ctx.user.discordId), name: String(ctx.user.name || '') } : null,
-      action: 'note.delete', targetType: 'member', targetId: String(row.member_discord_id),
+      action: 'note.delete', targetType: 'member',
+      targetId: (await getDiscordIdByUserId(db, row.member_user_id).catch(() => null)) || '',
     });
     return noteOk(ctx, null);
   },
@@ -412,7 +416,7 @@ export const guildOfficerMutations = {
     const r = await exportGuildData(db, access.slug, ctx.user ? String(ctx.user.discordId) : '', ctx.locale);
     if (!r.ok) return new GuildExportPayloadShell(ctx, { ok: false, errorCode: r.errorCode, slug: access.slug });
     await recordGuildAudit(db, {
-      tenant: access.slug,
+      tenant: access.tenant.id,
       actor: ctx.user ? { discordId: String(ctx.user.discordId), name: String(ctx.user.name || '') } : null,
       action: 'export.package', targetType: 'guild',
     });

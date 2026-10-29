@@ -59,7 +59,7 @@ import {
   listEventsInWindow, listSignupsByEvent, listEventsAdmin, listResultsByEvent,
 } from '../groupings/index.ts';
 import type { SignupRow } from '../groupings/index.ts';
-import { listGuildMembers, getUsernameRow } from '../identity/index.ts';
+import { listGuildMembers, getUsernameRow, getUserIdByDiscordId } from '../identity/index.ts';
 import { listGearBuilds } from '../gear/index.ts';
 import { getDungeonByName, SEASON_NAMES } from '../dex/index.ts';
 import { listGearStandards } from './gearstandards.ts';
@@ -72,8 +72,8 @@ interface NameResolver {
   noteSeat(discordId: string, nickname: string): void;
 }
 
-async function makeNameResolver(db: D1Database, slug: string): Promise<NameResolver> {
-  const roster = await listGuildMembers(db, slug).catch((): { discord_id: string; nick: string; global_name: string }[] => []);
+async function makeNameResolver(db: D1Database, guildId: number): Promise<NameResolver> {
+  const roster = await listGuildMembers(db, guildId).catch((): { discord_id: string; nick: string; global_name: string }[] => []);
   const rosterName = new Map<string, string>();
   for (const m of roster) {
     const name = (m.nick || '').trim() || (m.global_name || '').trim();
@@ -98,8 +98,8 @@ async function makeNameResolver(db: D1Database, slug: string): Promise<NameResol
 /** Every non-draft car of the guild that has a start time, oldest
  * first — the shared frame for P2 / P10 (P1 uses a 4-week window;
  * archives are cross-period by definition, so no window is applied). */
-async function listTimedCars(db: D1Database, slug: string) {
-  const rows = await listEventsInWindow(db, slug, 0, Math.floor(Date.now() / 1000) + 366 * 86400);
+async function listTimedCars(db: D1Database, guildId: number) {
+  const rows = await listEventsInWindow(db, guildId, 0, Math.floor(Date.now() / 1000) + 366 * 86400);
   return rows.filter((e) => e.status !== 'draft' && e.starts_at_utc != null);
 }
 
@@ -117,9 +117,9 @@ export interface ReliabilityEntry {
 
 function round2(n: number): number { return Math.round(n * 100) / 100; }
 
-export async function computeReliability(db: D1Database, slug: string): Promise<ReliabilityEntry[]> {
-  const cars = await listTimedCars(db, slug);
-  const names = await makeNameResolver(db, slug);
+export async function computeReliability(db: D1Database, guildId: number): Promise<ReliabilityEntry[]> {
+  const cars = await listTimedCars(db, guildId);
+  const names = await makeNameResolver(db, guildId);
   const byMember = new Map<string, ReliabilityEntry>();
   const entryOf = (did: string): ReliabilityEntry => {
     let e = byMember.get(did);
@@ -179,7 +179,7 @@ const WEEKDAY_INDEX: Record<string, number> = {
 };
 
 export async function computeParticipationHeatmap(
-  db: D1Database, slug: string, tz: string,
+  db: D1Database, guildId: number, tz: string,
 ): Promise<ParticipationHeatmap> {
   const zone = tz || 'Asia/Shanghai';
   let fmt: Intl.DateTimeFormat;
@@ -192,7 +192,7 @@ export async function computeParticipationHeatmap(
       timeZone: 'Asia/Shanghai', weekday: 'short', hour: '2-digit', hourCycle: 'h23',
     });
   }
-  const cars = await listTimedCars(db, slug);
+  const cars = await listTimedCars(db, guildId);
   const counts = new Map<string, HeatmapCell>();
   let total = 0;
   let peak = 0;
@@ -248,7 +248,10 @@ export interface GearBoard {
 /** A member's best saved-build graduation score in percent (one
  * decimal), or null when they have no build snapshot at all. */
 export async function bestBuildScorePct(db: D1Database, discordId: string): Promise<number | null> {
-  const builds = await listGearBuilds(db, discordId).catch(() => []);
+  // Gear rows are keyed by user ID; resolve through the users row.
+  const userId = await getUserIdByDiscordId(db, discordId).catch(() => null);
+  if (userId == null) return null;
+  const builds = await listGearBuilds(db, userId).catch(() => []);
   let best: number | null = null;
   for (const b of builds || []) {
     const total = b && b.snapshot && typeof b.snapshot.total === 'number' ? b.snapshot.total : null;
@@ -259,9 +262,9 @@ export async function bestBuildScorePct(db: D1Database, discordId: string): Prom
   return best;
 }
 
-export async function computeGearBoard(db: D1Database, slug: string): Promise<GearBoard> {
-  const standards = await listGearStandards(db, slug);
-  const roster = await listGuildMembers(db, slug).catch((): { discord_id: string; nick: string; global_name: string }[] => []);
+export async function computeGearBoard(db: D1Database, guildId: number): Promise<GearBoard> {
+  const standards = await listGearStandards(db, guildId);
+  const roster = await listGuildMembers(db, guildId).catch((): { discord_id: string; nick: string; global_name: string }[] => []);
   const scores = new Map<string, number | null>();
   for (const m of roster) {
     scores.set(m.discord_id, await bestBuildScorePct(db, m.discord_id));
@@ -307,9 +310,9 @@ export interface GearSelfEntry {
 /** The member-side P9 view: only the viewer's own standing against
  * each of the guild's standards — never another member's score. */
 export async function computeGearSelfStatus(
-  db: D1Database, slug: string, discordId: string,
+  db: D1Database, guildId: number, discordId: string,
 ): Promise<GearSelfEntry[]> {
-  const standards = await listGearStandards(db, slug);
+  const standards = await listGearStandards(db, guildId);
   if (!standards.length) return [];
   const mine = await bestBuildScorePct(db, discordId);
   return standards.map((std: GearStandardRow) => ({
@@ -341,10 +344,10 @@ export interface RaceSeasonBoard {
   seasons: RaceSeason[];
 }
 
-export async function computeRaceSeasonBoard(db: D1Database, slug: string): Promise<RaceSeasonBoard> {
+export async function computeRaceSeasonBoard(db: D1Database, guildId: number): Promise<RaceSeasonBoard> {
   // The admin list is the only all-statuses read (the tenant-type
   // list is a recruiting view and excludes completed cars by design).
-  const cars = (await listEventsAdmin(db, slug)).filter((e) => e.type === 'race' && e.status !== 'draft');
+  const cars = (await listEventsAdmin(db, guildId)).filter((e) => e.type === 'race' && e.status !== 'draft');
   const seasonOfDungeon = new Map<string, string>();
   const buckets = new Map<string, Map<string, RaceSeasonEntry & { bestEventIds: Set<number> }>>();
   for (const ev of cars) {

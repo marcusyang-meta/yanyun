@@ -49,6 +49,7 @@ import {
   listGearStandards, getGearStandard, insertGearStandard,
   updateGearStandard, deleteGearStandard, GEAR_STANDARD_MAX_LABEL,
 } from './gearstandards.ts';
+import { getGuildIdBySlug } from './tenants.ts';
 
 /* ---------------- locked variant (shared by all four reads) ---------------- */
 
@@ -204,7 +205,7 @@ export class RaceSeasonBoardShell extends ShellBase {
     return this.memo('seasons', async () => {
       const board = this.data.seasons
         ? { seasons: this.data.seasons }
-        : await computeRaceSeasonBoard(this.db, this.data.slug);
+        : await computeRaceSeasonBoard(this.db, (await getGuildIdBySlug(this.db, this.data.slug).catch(() => null)) ?? 0);
       return board.seasons.map((season: RaceSeason) => new RaceSeasonShell(this.ctx, season));
     });
   }
@@ -221,14 +222,16 @@ export async function reliabilityForAdmin(ctx: Context, slug: string) {
   const state = await tierSurfaceState(ctx.env.DB, slug, 1);
   if (state === 'absent') return null;
   if (state === 'locked') return new GuildInsightsLockedShell(ctx, {});
-  return new GuildAdminReliabilityShell(ctx, { entries: await computeReliability(ctx.env.DB, slug) });
+  const guildId = (await getGuildIdBySlug(ctx.env.DB, slug).catch(() => null)) ?? 0;
+  return new GuildAdminReliabilityShell(ctx, { entries: await computeReliability(ctx.env.DB, guildId) });
 }
 
 export async function heatmapForAdmin(ctx: Context, slug: string) {
   const state = await tierSurfaceState(ctx.env.DB, slug, 1);
   if (state === 'absent') return null;
   if (state === 'locked') return new GuildInsightsLockedShell(ctx, {});
-  const heat = await computeParticipationHeatmap(ctx.env.DB, slug, ctx.tz || 'Asia/Shanghai');
+  const guildId = (await getGuildIdBySlug(ctx.env.DB, slug).catch(() => null)) ?? 0;
+  const heat = await computeParticipationHeatmap(ctx.env.DB, guildId, ctx.tz || 'Asia/Shanghai');
   return new GuildAdminHeatmapShell(ctx, heat);
 }
 
@@ -236,13 +239,15 @@ export async function gearBoardForAdmin(ctx: Context, slug: string) {
   const state = await tierSurfaceState(ctx.env.DB, slug, 1);
   if (state === 'absent') return null;
   if (state === 'locked') return new GuildInsightsLockedShell(ctx, {});
-  return new GuildAdminGearBoardShell(ctx, await computeGearBoard(ctx.env.DB, slug));
+  const guildId = (await getGuildIdBySlug(ctx.env.DB, slug).catch(() => null)) ?? 0;
+  return new GuildAdminGearBoardShell(ctx, await computeGearBoard(ctx.env.DB, guildId));
 }
 
 export async function raceBoardForViewer(ctx: Context, slug: string) {
   const state = await tierSurfaceState(ctx.env.DB, slug, 1);
   if (state === 'absent') return null;
   if (state === 'locked') return new GuildInsightsLockedShell(ctx, {});
+  const guildId = (await getGuildIdBySlug(ctx.env.DB, slug).catch(() => null)) ?? 0;
   return new RaceSeasonBoardShell(ctx, { slug });
 }
 
@@ -251,7 +256,8 @@ export async function gearSelfForMember(ctx: Context, slug: string) {
   const state = await tierSurfaceState(ctx.env.DB, slug, 1);
   if (state === 'absent') return null;
   if (state === 'locked') return new GuildInsightsLockedShell(ctx, {});
-  const entries = await computeGearSelfStatus(ctx.env.DB, slug, ctx.user.discordId);
+  const guildId = (await getGuildIdBySlug(ctx.env.DB, slug).catch(() => null)) ?? 0;
+  const entries = await computeGearSelfStatus(ctx.env.DB, guildId, ctx.user.discordId);
   return new GuildGearSelfStatusShell(ctx, { entries });
 }
 
@@ -357,7 +363,7 @@ async function insightsAdminGate(ctx: Context, slug: string) {
   const a = await getGuildAdminAccess(ctx.env.DB, ctx.user, slug, ctx.request, vcOf(ctx));
   if (!a.exists) return { fail: gFail(ctx, 'guildNotFound') };
   if (!a.isAdmin) return { fail: gFail(ctx, 'adminOnly') };
-  if (await tierLocked(ctx.env.DB, a.slug, 1)) return { fail: gFail(ctx, 'premiumRequired') };
+  if (await tierLocked(ctx.env.DB, a.tenant.id, 1)) return { fail: gFail(ctx, 'premiumRequired') };
   return { access: a };
 }
 
@@ -375,25 +381,25 @@ export const guildInsightsMutations = {
     const now = Math.floor(Date.now() / 1000);
     const rounded = Math.round(score);
     if (id != null) {
-      const existing = await getGearStandard(db, g.access.slug, Number(id));
+      const existing = await getGearStandard(db, g.access.tenant.id, Number(id));
       if (!existing) return gFail(ctx, 'gearStandardNotFound');
       await updateGearStandard(db, {
-        tenant: g.access.slug, id: existing.id, label: text, minScore: rounded, updatedAt: now,
+        tenant: g.access.tenant.id, id: existing.id, label: text, minScore: rounded, updatedAt: now,
       });
       return gOk(ctx, { standardId: existing.id });
     }
     const newId = await insertGearStandard(db, {
-      tenant: g.access.slug, label: text, minScore: rounded,
-      createdBy: ctx.user ? ctx.user.discordId : '', createdAt: now,
+      tenant: g.access.tenant.id, label: text, minScore: rounded,
+      createdByUserId: ctx.user ? Number(ctx.user.userId) : 0, createdAt: now,
     });
     return gOk(ctx, { standardId: newId });
   },
 
   deleteGearStandard: async (_: any, { slug, id }: any, ctx: Context) => {
     const g = await insightsAdminGate(ctx, slug); if (g.fail) return g.fail;
-    const existing = await getGearStandard(ctx.env.DB, g.access.slug, Number(id));
+    const existing = await getGearStandard(ctx.env.DB, g.access.tenant.id, Number(id));
     if (!existing) return gFail(ctx, 'gearStandardNotFound');
-    await deleteGearStandard(ctx.env.DB, g.access.slug, existing.id);
+    await deleteGearStandard(ctx.env.DB, g.access.tenant.id, existing.id);
     return gOk(ctx);
   },
 };

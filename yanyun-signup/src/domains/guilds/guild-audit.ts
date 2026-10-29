@@ -17,6 +17,7 @@
 import { sql } from 'drizzle-orm';
 import { createDb } from '../../db/client.ts';
 import { guildAuditEvents } from './schema.ts';
+import { mintPublicId } from '../platform/id-mint.ts';
 
 const col = (name: string) => sql.identifier(name);
 
@@ -82,7 +83,7 @@ const ACTION_SET = new Set<string>(GUILD_AUDIT_ACTIONS);
 
 export interface GuildAuditEventRow {
   id: number;
-  tenant: string;
+  tenant: number;
   actor_discord_id: string;
   actor_name: string;
   action: string;
@@ -98,25 +99,26 @@ const EVENT_COLS = sql`${guildAuditEvents.id}, ${guildAuditEvents.tenant}, ${gui
 export async function insertGuildAuditEvent(
   d1: D1Database,
   row: {
-    tenant: string; actorDiscordId: string; actorName: string;
+    tenant: number; actorDiscordId: string; actorName: string;
     action: string; targetType: string; targetId: string;
     targetLabel: string; createdAt: number;
   },
 ): Promise<number> {
   const db = createDb(d1);
+  // The audit event ID (type code 48) is minted in the data layer.
+  const id = await mintPublicId(d1, 'guildAuditEvent');
   // INSERT column lists must use bare column names (SQLite syntax); see settings.ts note.
-  const r = await db.run(
-    sql`INSERT INTO ${guildAuditEvents} (${col('tenant')}, ${col('actor_discord_id')}, ${col('actor_name')}, ${col('action')}, ${col('target_type')}, ${col('target_id')}, ${col('target_label')}, ${col('created_at')})
-        VALUES (${row.tenant}, ${row.actorDiscordId}, ${row.actorName}, ${row.action}, ${row.targetType}, ${row.targetId}, ${row.targetLabel}, ${row.createdAt})`,
+  await db.run(
+    sql`INSERT INTO ${guildAuditEvents} (${col('id')}, ${col('tenant')}, ${col('actor_discord_id')}, ${col('actor_name')}, ${col('action')}, ${col('target_type')}, ${col('target_id')}, ${col('target_label')}, ${col('created_at')})
+        VALUES (${id}, ${row.tenant}, ${row.actorDiscordId}, ${row.actorName}, ${row.action}, ${row.targetType}, ${row.targetId}, ${row.targetLabel}, ${row.createdAt})`,
   );
-  const m = (r as { meta?: { last_row_id?: number } } | null)?.meta;
-  return m?.last_row_id ?? 0;
+  return id;
 }
 
 /** One guild's audit events, newest first, paged by limit/offset. */
 export async function listGuildAuditEvents(
   d1: D1Database,
-  tenant: string,
+  tenant: number,
   limit: number = GUILD_AUDIT_LIST_LIMIT,
   offset: number = 0,
 ): Promise<GuildAuditEventRow[]> {
@@ -134,7 +136,7 @@ export async function listGuildAuditEvents(
 /** Total event count of one guild (the page's has-more arithmetic). */
 export async function countGuildAuditEvents(
   d1: D1Database,
-  tenant: string,
+  tenant: number,
 ): Promise<number> {
   const db = createDb(d1);
   const rows = await db.all<{ c: number }>(
@@ -158,7 +160,7 @@ export interface GuildAuditActor {
 export async function recordGuildAudit(
   d1: D1Database,
   input: {
-    tenant: string;
+    tenant: number;
     actor: GuildAuditActor | null;
     action: string;
     targetType?: string;

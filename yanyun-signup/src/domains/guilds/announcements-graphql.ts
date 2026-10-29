@@ -437,7 +437,7 @@ export const guildAnnouncementMutations = {
     }
     const row = await getAnnouncement(db, access.tenant.id, id);
     await recordGuildAudit(db, {
-      tenant: access.slug,
+      tenant: access.tenant.id,
       actor: ctx.user ? { discordId: String(ctx.user.discordId), name: String(ctx.user.name || '') } : null,
       action: 'announcement.post', targetType: 'announcement', targetId: id, targetLabel: cleanTitle,
     });
@@ -488,12 +488,12 @@ export const guildAnnouncementMutations = {
     }
     const access = verdict.access;
     const id = parseInt(String(announcementId), 10) || 0;
-    const row = await getAnnouncement(db, access.slug, id);
+    const row = await getAnnouncement(db, access.tenant.id, id);
     if (!row) return annFail(ctx, 'announcementNotFound');
-    await deleteAnnouncement(db, access.slug, id);
-    await deleteAnnouncementTranslations(db, access.slug, id).catch(() => {});
+    await deleteAnnouncement(db, access.tenant.id, id);
+    await deleteAnnouncementTranslations(db, access.tenant.id, id).catch(() => {});
     await recordGuildAudit(db, {
-      tenant: access.slug,
+      tenant: access.tenant.id,
       actor: ctx.user ? { discordId: String(ctx.user.discordId), name: String(ctx.user.name || '') } : null,
       action: 'announcement.delete', targetType: 'announcement', targetId: id, targetLabel: row.title || '',
     });
@@ -514,14 +514,14 @@ export const guildAnnouncementMutations = {
     if (!access.exists) return annFail(ctx, 'guildNotFound');
     if (!access.isAdmin) return annFail(ctx, 'adminOnly');
     const id = parseInt(String(announcementId), 10) || 0;
-    const row = await getAnnouncement(db, access.slug, id);
+    const row = await getAnnouncement(db, access.tenant.id, id);
     if (!row) return annFail(ctx, 'announcementNotFound');
     const entry = await translationEntryState(ctx, access.slug);
     if (!entry.visible) return annFail(ctx, 'translationTierLocked');
     const translator = createTranslator(ctx.env);
     if (!translator) return annFail(ctx, 'translationNotConfigured');
     await generateAnnouncementTranslations(db, translator, row, Math.floor(Date.now() / 1000));
-    const translations = await listAnnouncementTranslations(db, access.slug, [row.id]).catch(() => new Map());
+    const translations = await listAnnouncementTranslations(db, access.tenant.id, [row.id]).catch(() => new Map());
     return annOk(ctx, new GuildAnnouncementShell(ctx, {
       row, admin: true, viewerHasRead: true,
       translations: [...translations.values()],

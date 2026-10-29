@@ -838,7 +838,7 @@ export const networkMutations = {
     const admin = await getGuildAdminAccess(db, user, slug, ctx.request);
     if (!admin.exists) return aFail(ctx, 'guildNotFound');
     if (!admin.isAdmin) return aFail(ctx, 'adminOnly');
-    if (await tierLocked(db, admin.slug, 3)) return aFail(ctx, 'premiumRequired');
+    if (await tierLocked(db, admin.tenant.id, 3)) return aFail(ctx, 'premiumRequired');
     const target = String(targetSlug || '');
     if (target === admin.slug) return aFail(ctx, 'allianceSelf');
     const t = await getTenantRow(db, target).catch(() => null);
@@ -963,7 +963,7 @@ export const networkMutations = {
     // Visitor seats are this guild's T3 alliance surface: the
     // allies page that offers them is tier-locked below T3, and
     // the mutation re-verifies the same verdict for this guild.
-    if (await tierLocked(db, a.tenant.slug, 3)) return nFail(ctx, 'premiumRequired');
+    if (await tierLocked(db, a.tenant.id, 3)) return nFail(ctx, 'premiumRequired');
     if (ev.status !== 'open' || Number(ev.ally_visible) !== 1 || !(Number(ev.visitor_slots) > 0)) {
       return nFail(ctx, 'allyNotShared');
     }

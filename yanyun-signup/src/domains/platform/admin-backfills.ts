@@ -10,7 +10,7 @@
  * auditing is the caller's job (the resolver records the real actor).
  */
 import {
-  listNonEmptySettingsByKey, listSettingsByKey,
+  listNonEmptySettingsByKey, listSettingsByKey, getTenantRowById,
 } from '../guilds/index.ts';
 import {
   upsertGuildMember, listUnstampedSeatsByTenant, stampSignupDiscordId,
@@ -56,7 +56,9 @@ export async function runReminderIdentityBackfill(
   const guilds: ReminderIdentityGuildReport[] = [];
   const totals = { rosterSeeded: 0, seatsTotal: 0, stamped: 0, ambiguous: 0, unmatched: 0 };
   for (const b of bindRows) {
-    const slug = String(b.tenant), dgid = String(b.value);
+    const guildId = Number(b.tenant), dgid = String(b.value);
+    const slugRow = await getTenantRowById(db, guildId).catch(() => null);
+    const slug = slugRow ? slugRow.slug : String(guildId);
     const members = (allUsers || []).filter((u) => userInGuild(u, dgid));
     const nickRows = await listNicksByGuild(db, dgid);
     const nickOf = new Map((nickRows || []).map((r) => [String(r.discord_id), String(r.nick || '')]));
@@ -69,7 +71,7 @@ export async function runReminderIdentityBackfill(
       }
     }
     // 2) Stamp seats
-    const seats = await listUnstampedSeatsByTenant(db, slug);
+    const seats = await listUnstampedSeatsByTenant(db, guildId);
     let stamped = 0, ambiguous = 0, unmatched = 0;
     for (const seat of seats || []) {
       const nick = String(seat.nickname || '').trim();
@@ -102,7 +104,7 @@ export async function runReminderIdentityBackfill(
 
 /* ---------- Creator stamps backfill ----------
  * Backfill leader identity for legacy teams. Teams created before
- * creator_discord_id have only the created_by display string
+ * a recorded creator have only the created_by display string
  * (hand-typed on REST creation; a hardcoded placeholder on GraphQL
  * creation) and no authoritative identity, so the leader-only
  * disband/delete rule could never apply to them. Backfill accepts
@@ -114,8 +116,10 @@ export async function runReminderIdentityBackfill(
  * membership evidence). Placeholders, no match and multiple
  * candidates are left untouched (leaderless; only the admin path can
  * delete). Never guess, never fuzzy-match. dryRun reports only.
- * Idempotent: only rows with an empty creator_discord_id are
- * processed. */
+ * Idempotent: only rows with an empty creator_user_id are
+ * processed. Matching runs in Discord-ID space (names and nick
+ * snapshots are Discord-side evidence); the stamp writes the
+ * matched user's typed user ID. */
 export interface CreatorBackfillGroup {
   tenant: string; createdBy: string; cars: number; outcome: string;
   matchedDiscordId: string | null; candidates: number;
@@ -136,6 +140,8 @@ export async function runCreatorBackfillStamps(
 ): Promise<CreatorBackfillReport> {
   // User directory: global name -> discord_id set; membership: discord_id -> server set
   const userRows = await listUsersDirectory(db);
+  const userIdByDiscord = new Map<string, number>();
+  for (const u of userRows) userIdByDiscord.set(String(u.discord_id), Number(u.id));
   const byGlobalName = new Map<string, Set<string>>();
   const memberOf = new Map<string, Set<string>>();
   for (const u of userRows) {
@@ -188,9 +194,9 @@ export async function runCreatorBackfillStamps(
     }
     return groupMap.get(key)!;
   };
-  const updates: Array<{ discordId: string; eventId: number }> = [];
+  const updates: Array<{ userId: number; eventId: number }> = [];
   for (const car of cars) {
-    if (car.creator_discord_id && String(car.creator_discord_id).trim()) {
+    if (car.creator_user_id) {
       rep.totals.alreadyStamped++;
       continue;
     }
@@ -215,7 +221,7 @@ export async function runCreatorBackfillStamps(
       g.outcome = 'matched';
       g.matchedDiscordId = scoped[0];
       rep.totals.backfilled++;
-      updates.push({ discordId: scoped[0], eventId: car.id });
+      updates.push({ userId: userIdByDiscord.get(scoped[0]) || 0, eventId: car.id });
     } else if (scoped.length === 0) {
       rep.totals.noMatch++;
       g.outcome = 'noMatch';

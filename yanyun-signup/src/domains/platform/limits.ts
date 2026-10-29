@@ -272,17 +272,17 @@ export const METRIC_AI_RECAP_GENERATIONS = 'ai_recap_generations';
 /** Recap generations one guild has already consumed today. */
 export async function getAiRecapsUsedToday(
   db: D1Database,
-  guildSlug: string,
+  guildId: number,
   nowMs: number,
 ): Promise<number> {
-  return getUsageCount(db, guildUsageScope(guildSlug), METRIC_AI_RECAP_GENERATIONS, usageDayKey(nowMs));
+  return getUsageCount(db, guildUsageScope(guildId), METRIC_AI_RECAP_GENERATIONS, usageDayKey(nowMs));
 }
 
 /** Record one consumed recap generation for one guild (today). */
 export async function recordAiRecapUse(
   db: D1Database,
-  guildSlug: string,
+  guildId: number,
   nowMs: number,
 ): Promise<number> {
-  return incrementUsage(db, guildUsageScope(guildSlug), METRIC_AI_RECAP_GENERATIONS, usageDayKey(nowMs), 1, nowMs);
+  return incrementUsage(db, guildUsageScope(guildId), METRIC_AI_RECAP_GENERATIONS, usageDayKey(nowMs), 1, nowMs);
 }
