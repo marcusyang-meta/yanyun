@@ -37,7 +37,21 @@
  * hosts (yanyun.app / yanyun.tbdlab.workers.dev) trigger it; preview
  * (release-yanyun) shares the same D1 as production, so it must never
  * run on preview/localhost and must never write the flag there.
- * Roster/account data is looked up only on the Worker side. */
+ * Roster/account data is looked up only on the Worker side.
+ *
+ * ID-reform note (0036): the guild is resolved from its slug handle
+ * to the numeric guild ID at run time; resolution still happens in
+ * Discord space, but the stamp lands on events.creator_user_id via
+ * the users row (ensureUserIdByDiscordId). "Creator still empty" is
+ * creator_user_id NULL/0; the settings flag lives at tenant 0.
+ * CAVEAT: CAR39/CAR40 eventId values are PRE-0036 row IDs — the
+ * renumber retired them, so post-migration this job no longer finds
+ * its two cars (it records event-missing and sets its flag). Whether
+ * the designations are still needed under the new IDs is a ruling
+ * for the parent; the mechanics below are converted so the job can
+ * never stamp wrongly in the meantime. */
+
+import { ensureUserIdByDiscordId } from './domains/identity/users.ts';
 
 const PROD_HOSTS = new Set(['yanyun.app', 'yanyun.tbdlab.workers.dev']);
 const FLAG_KEY = 'creator_manual_fix_v1';
@@ -49,15 +63,23 @@ const attemptedDbs = new WeakSet();
 
 
 async function getGlobalFlag(db) {
-  const row = await db.prepare("SELECT value FROM settings WHERE tenant = '' AND key = ?")
+  const row = await db.prepare('SELECT value FROM settings WHERE tenant = 0 AND key = ?')
     .bind(FLAG_KEY).first().catch(() => null);
   return row ? String(row.value || '') : '';
 }
 
 async function setGlobalFlag(db) {
   await db.prepare(
-    "INSERT INTO settings(tenant, key, value) VALUES('', ?, '1') ON CONFLICT(tenant, key) DO UPDATE SET value = excluded.value"
+    "INSERT INTO settings(tenant, key, value) VALUES(0, ?, '1') ON CONFLICT(tenant, key) DO UPDATE SET value = excluded.value"
   ).bind(FLAG_KEY).run();
+}
+
+/* The tenant is addressed by its slug handle at the edge; resolve
+ * once to the numeric guild ID everything below keys on. */
+async function resolveTenantId(db) {
+  const row = await db.prepare('SELECT id FROM tenants WHERE slug = ?')
+    .bind(TENANT).first().catch(() => null);
+  return row ? Number(row.id) : null;
 }
 
 async function writeAudit(db, { eventId, tenant, label, resolved, outcome, reason, detail, now }) {
@@ -70,33 +92,35 @@ async function writeAudit(db, { eventId, tenant, label, resolved, outcome, reaso
 }
 
 async function loadEvent(db, eventId) {
-  return db.prepare('SELECT id, tenant, creator_discord_id FROM events WHERE id = ?')
+  return db.prepare('SELECT id, tenant, creator_user_id FROM events WHERE id = ?')
     .bind(eventId).first().catch(() => null);
 }
 
 /* Guarded stamp: write only while the creator is still empty;
- * returns whether it actually wrote. */
+ * returns whether it actually wrote. The resolver works in Discord
+ * space; the stamp converts through the users row. */
 async function stampCreator(db, eventId, discordId) {
+  const creatorUserId = await ensureUserIdByDiscordId(db, discordId);
   const r = await db.prepare(
-    `UPDATE events SET creator_discord_id = ?
-     WHERE id = ? AND (creator_discord_id IS NULL OR creator_discord_id = '')`
-  ).bind(discordId, eventId).run();
+    `UPDATE events SET creator_user_id = ?
+     WHERE id = ? AND (creator_user_id IS NULL OR creator_user_id = 0)`
+  ).bind(creatorUserId, eventId).run();
   return !!(r.meta && r.meta.changes);
 }
 
 /* Car 39 resolution: seat stamp (exact name in this guild) ->
  * unique roster display-name match; unique only. */
-async function resolveCar39(db) {
+async function resolveCar39(db, tenantId) {
   const { results: stampRows } = await db.prepare(
     `SELECT s.discord_id AS did FROM signups s JOIN events e ON e.id = s.event_id
      WHERE e.tenant = ? AND s.nickname = ?
        AND s.discord_id IS NOT NULL AND s.discord_id != ''`
-  ).bind(TENANT, CAR39.name).all().catch(() => ({ results: [] }));
+  ).bind(tenantId, CAR39.name).all().catch(() => ({ results: [] }));
   const stampIds = [...new Set((stampRows || [])
     .map((r) => String(r.did || '').trim()).filter(Boolean))];
   const { results: roster } = await db.prepare(
     'SELECT discord_id, nick, global_name FROM guild_members WHERE tenant = ?'
-  ).bind(TENANT).all().catch(() => ({ results: [] }));
+  ).bind(tenantId).all().catch(() => ({ results: [] }));
   const rosterIds = [...new Set((roster || [])
     .filter((r) => (String(r.nick || '').trim() || String(r.global_name || '').trim()) === CAR39.name)
     .map((r) => String(r.discord_id)))];
@@ -115,7 +139,7 @@ async function resolveCar39(db) {
 
 /* Car 40 resolution: case-insensitive exact match for both names
  * across the four account-side sources, deduplicated. */
-async function resolveCar40(db) {
+async function resolveCar40(db, tenantId) {
   const wanted = CAR40.names.map((n) => n.toLowerCase());
   // perName: name -> Map(discord_id -> Set(source))
   const perName = new Map(CAR40.names.map((n) => [n, new Map()]));
@@ -137,7 +161,7 @@ async function resolveCar40(db) {
   // Sources 2/3: this guild's roster nick / global_name (either column exactly equal to either name).
   const { results: roster } = await db.prepare(
     'SELECT discord_id, nick, global_name FROM guild_members WHERE tenant = ?'
-  ).bind(TENANT).all().catch(() => ({ results: [] }));
+  ).bind(tenantId).all().catch(() => ({ results: [] }));
   for (const r of roster || []) {
     const iNick = matchIdx(r.nick);
     if (iNick >= 0) hit(iNick, r.discord_id, 'guild_members.nick');
@@ -146,7 +170,7 @@ async function resolveCar40(db) {
   }
   // Source 4: nickname snapshot for this guild's bound server, user_guild_nicks.nick.
   const dgidRow = await db.prepare('SELECT value FROM settings WHERE tenant = ? AND key = ?')
-    .bind(TENANT, 'discord_guild_id').first().catch(() => null);
+    .bind(tenantId, 'discord_guild_id').first().catch(() => null);
   const dgid = dgidRow ? String(dgidRow.value || '').trim() : '';
   if (dgid) {
     const { results: nicks } = await db.prepare(
@@ -174,18 +198,18 @@ async function resolveCar40(db) {
 
 /* Per-car handling: exactly one audit row whatever the outcome;
  * stamps only while the creator is still empty. */
-async function processCar(db, spec, resolver, now) {
+async function processCar(db, tenantId, spec, resolver, now) {
   const ev = await loadEvent(db, spec.eventId);
   const label = spec.label;
   if (!ev) {
     await writeAudit(db, {
-      eventId: spec.eventId, tenant: TENANT, label, resolved: null,
+      eventId: spec.eventId, tenant: tenantId, label, resolved: null,
       outcome: 'skipped', reason: 'manual-fix:event-missing', detail: '', now,
     });
     return 'skipped';
   }
-  const tenant = String(ev.tenant || '');
-  if (tenant !== TENANT) {
+  const tenant = Number(ev.tenant || 0);
+  if (tenant !== tenantId) {
     await writeAudit(db, {
       eventId: spec.eventId, tenant, label, resolved: null,
       outcome: 'skipped', reason: 'manual-fix:tenant-mismatch',
@@ -193,7 +217,7 @@ async function processCar(db, spec, resolver, now) {
     });
     return 'skipped';
   }
-  const existing = String(ev.creator_discord_id || '').trim();
+  const existing = ev.creator_user_id == null ? 0 : Number(ev.creator_user_id);
   if (existing) {
     await writeAudit(db, {
       eventId: spec.eventId, tenant, label, resolved: null,
@@ -202,7 +226,7 @@ async function processCar(db, spec, resolver, now) {
     });
     return 'skipped';
   }
-  const r = await resolver(db);
+  const r = await resolver(db, tenantId);
   if (r.resolved) {
     const wrote = await stampCreator(db, spec.eventId, r.resolved);
     if (wrote) {
@@ -232,10 +256,12 @@ export async function runCreatorManualFixOnce(db) {
   if ((await getGlobalFlag(db)) === '1') return { done: false, reason: 'flag-set' };
   const now = Math.floor(Date.now() / 1000);
   let stamped = 0, skipped = 0;
-  const r39 = await processCar(db,
+  const tenantId = await resolveTenantId(db);
+  if (tenantId == null) return { done: false, reason: 'tenant-missing' };
+  const r39 = await processCar(db, tenantId,
     { eventId: CAR39.eventId, label: CAR39.name }, resolveCar39, now);
   if (r39 === 'stamped') stamped++; else skipped++;
-  const r40 = await processCar(db,
+  const r40 = await processCar(db, tenantId,
     { eventId: CAR40.eventId, label: CAR40.names.join('/') }, resolveCar40, now);
   if (r40 === 'stamped') stamped++; else skipped++;
   await setGlobalFlag(db);
