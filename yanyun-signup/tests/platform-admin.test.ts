@@ -17,7 +17,7 @@
 //     bosses, dungeons, feedback, reminders, heirlooms, backfills and
 //     tenant deletion all land like the portal's did.
 //   - Audit: every action lands in hub_audit_log with the acting
-//     admin's REAL Discord ID as actor — never the generic 'hub'.
+//     admin's REAL user ID as actor — never the generic 'hub'.
 // Real D1 (Miniflare, migration-chain bootstrap), real yoga + real
 // resolvers (billing.test.ts pattern).
 import { Miniflare, convertV4MiniflareOptions } from 'miniflare';
@@ -34,6 +34,7 @@ import {
 import { insertBoss, updateBossFields, listAllBosses } from '../src/domains/dex/index.ts';
 import { insertDungeonDex } from '../src/domains/dex/index.ts';
 import { getEventTenantCreator } from '../src/domains/groupings/index.ts';
+import { upsertUserOnLogin } from '../src/domains/identity/users.ts';
 
 function check(name: string, ok: boolean, extra = '') {
   expect(ok, extra ? `${name} — ${extra}` : name).toBe(true);
@@ -64,10 +65,16 @@ const db = await mf.getD1Database('DB');
 }
 
 /* ---------- fixtures ---------- */
-await insertTenant(db, { slug: 'alpha', guildName: '甲百业', passwordHash: 'x', announcement: '甲公告' });
-await insertTenant(db, { slug: 'beta', guildName: '乙百业', passwordHash: 'x', announcement: '' });
-await setSettingValue(db, '', 'game_version', 'intl-v2.3');
-await insertFeedback(db, { discordId: 'USER9', userName: '反馈者', category: 'bug', content: '反馈内容甲', createdAt: 1760000000000 });
+const GID_ALPHA = await insertTenant(db, { slug: 'alpha', guildName: '甲百业', passwordHash: 'x', announcement: '甲公告' });
+const GID_BETA = await insertTenant(db, { slug: 'beta', guildName: '乙百业', passwordHash: 'x', announcement: '' });
+await setSettingValue(db, 0, 'game_version', 'intl-v2.3');
+// Seeded accounts: the env floor names Discord IDs and resolves them
+// through these rows; viewer fixtures carry the minted user IDs.
+const ADMIN_UID = await upsertUserOnLogin(db, { discordId: 'ADMIN1', username: '超管甲', avatar: '', guildsJson: '[]', checkedAtSec: 1760000000 });
+const ADMIN2_UID = await upsertUserOnLogin(db, { discordId: 'ADMIN2', username: '超管乙', avatar: '', guildsJson: '[]', checkedAtSec: 1760000000 });
+const PLAIN_UID = await upsertUserOnLogin(db, { discordId: 'USER1', username: '路人', avatar: '', guildsJson: '[]', checkedAtSec: 1760000000 });
+const USER9_UID = await upsertUserOnLogin(db, { discordId: 'USER9', username: '反馈者', avatar: '', guildsJson: '[]', checkedAtSec: 1760000000 });
+await insertFeedback(db, { userId: USER9_UID, userName: '反馈者', category: 'bug', content: '反馈内容甲', createdAt: 1760000000000 });
 const bossFixture = await insertBoss(db, { name: '测试首领', talent: '', source: '', note: '', sortOrder: 10 });
 const BOSS_ID = (bossFixture as any).last_row_id as number;
 await updateBossFields(db, BOSS_ID, { guide: '第一阶段\n机制说明若干', dungeon: '云梦金明池' });
@@ -75,19 +82,18 @@ const dungeonFixture = await insertDungeonDex(db, { name: '测试副本', size: 
 const DUNGEON_ID = (dungeonFixture as any).last_row_id as number;
 // Creator-backfill fixtures: one legacy car whose created_by matches
 // exactly one user's global name.
-await db.prepare('INSERT INTO users (discord_id, username, guilds_json) VALUES (?, ?, ?)')
-  .bind('U100', '车头甲', '[]').run();
-await db.prepare('INSERT INTO events (tenant, title, created_by, creator_discord_id) VALUES (?, ?, ?, ?)')
-  .bind('alpha', '旧车一辆', '车头甲', '').run();
+const U100_UID = await upsertUserOnLogin(db, { discordId: 'U100', username: '车头甲', avatar: '', guildsJson: '[]', checkedAtSec: 1760000000 });
+await db.prepare('INSERT INTO events (tenant, title, created_by, creator_user_id) VALUES (?, ?, ?, ?)')
+  .bind(GID_ALPHA, '旧车一辆', '车头甲', 0).run();
 const legacyCar = await db.prepare('SELECT id FROM events WHERE tenant = ? ORDER BY id DESC LIMIT 1')
-  .bind('alpha').first<{ id: number }>();
+  .bind(GID_ALPHA).first<{ id: number }>();
 const LEGACY_CAR_ID = legacyCar!.id;
 
 const env = { DB: db, PLATFORM_ADMIN_DISCORD_IDS: 'ADMIN1' };
 const envNoFloor = { DB: db };
-const adminUser = { discordId: 'ADMIN1', name: '超管甲', guilds: [] as string[] };
-const rosterUser = { discordId: 'ADMIN2', name: '超管乙', guilds: [] as string[] };
-const plainUser = { discordId: 'USER1', name: '路人', guilds: [] as string[] };
+const adminUser = { userId: ADMIN_UID, discordId: 'ADMIN1', name: '超管甲', guilds: [] as string[] };
+const rosterUser = { userId: ADMIN2_UID, discordId: 'ADMIN2', name: '超管乙', guilds: [] as string[] };
+const plainUser = { userId: PLAIN_UID, discordId: 'USER1', name: '路人', guilds: [] as string[] };
 
 async function gql(query: string, { user = adminUser, variables, env: useEnv = env }: any = {}) {
   const ctx = {
@@ -257,7 +263,7 @@ describe('platform-admin surface', () => {
     const page = await listHubAuditPage(db, { limit: 200 });
     const flips = page.entries.filter((e) => e.action === 'billing.paygate');
     eq('two flips audited', flips.length, 2);
-    check('actor is the real admin id', flips.every((e) => e.actor === 'ADMIN1'));
+    check('actor is the real admin id', flips.every((e) => e.actor === String(ADMIN_UID)));
   });
 
   it('grant (tier + legacy) moves entitlement verdicts; revoke restores', async () => {
@@ -266,28 +272,28 @@ describe('platform-admin surface', () => {
     eq('grant ok', g.data.platformAdminGrantPremium.ok, true);
     const alphaRow = g.data.platformAdminGrantPremium.billing.tenants.find((t: any) => t.slug === 'alpha');
     eq('alpha tier after grant', [alphaRow.tier, alphaRow.tierName], [2, '执事']);
-    eq('effective entitlement verdict', (await getEffectiveEntitlement(db, 'alpha')).tier, 2);
+    eq('effective entitlement verdict', (await getEffectiveEntitlement(db, GID_ALPHA)).tier, 2);
 
     const badTier = await gql(`mutation { platformAdminGrantPremium(slug: "alpha", days: 30, tier: "t9") { ok errorCode } }`);
     eq('unknown tier refused', badTier.data.platformAdminGrantPremium.errorCode, 'tierInvalid');
-    eq('verdict unchanged after refused grant', (await getEffectiveEntitlement(db, 'alpha')).tier, 2);
+    eq('verdict unchanged after refused grant', (await getEffectiveEntitlement(db, GID_ALPHA)).tier, 2);
 
     const legacy = await gql(`mutation { platformAdminGrantPremium(slug: "beta", days: 30) {
       ok billing { tenants { slug plan tier } } } }`);
     const betaRow = legacy.data.platformAdminGrantPremium.billing.tenants.find((t: any) => t.slug === 'beta');
     eq('legacy grant = premium plan', betaRow.plan, 'premium');
-    eq('legacy premium reads as tier 3', (await getEffectiveEntitlement(db, 'beta')).tier, 3);
+    eq('legacy premium reads as tier 3', (await getEffectiveEntitlement(db, GID_BETA)).tier, 3);
 
     const r = await gql(`mutation { platformAdminRevokePremium(slug: "alpha") { ok } }`);
     eq('revoke ok', r.data.platformAdminRevokePremium.ok, true);
-    eq('alpha back to free', (await getEffectiveEntitlement(db, 'alpha')).tier, 0);
+    eq('alpha back to free', (await getEffectiveEntitlement(db, GID_ALPHA)).tier, 0);
 
     const missing = await gql(`mutation { platformAdminGrantPremium(slug: "ghost", days: 30) { ok errorCode } }`);
     eq('unknown guild refused', missing.data.platformAdminGrantPremium.errorCode, 'guildNotFound');
 
     const page = await listHubAuditPage(db, { limit: 200 });
     const grants = page.entries.filter((e) => e.action === 'billing.grant');
-    check('grants audited with real actor', grants.length >= 2 && grants.every((e) => e.actor === 'ADMIN1'));
+    check('grants audited with real actor', grants.length >= 2 && grants.every((e) => e.actor === String(ADMIN_UID)));
   });
 
   it('roster edits open and close the surface (gate rollback proof)', async () => {
@@ -325,7 +331,7 @@ describe('platform-admin surface', () => {
     const page = fb.data.viewer.platformAdmin.feedbackEntries;
     eq('feedback listed', page.total, 1);
     const fid = page.entries[0].id;
-    const rs = await gql(`mutation($id: Int!) { platformAdminSetFeedbackStatus(id: $id, status: "resolved") { ok } }`,
+    const rs = await gql(`mutation($id: ID!) { platformAdminSetFeedbackStatus(id: $id, status: "resolved") { ok } }`,
       { variables: { id: fid } });
     eq('feedback resolve ok', rs.data.platformAdminSetFeedbackStatus.ok, true);
     const fb2 = await gql(`query { viewer { platformAdmin { ... on PlatformAdmin {
@@ -395,12 +401,12 @@ describe('platform-admin surface', () => {
     eq('creator dry-run ok', dry.data.platformAdminBackfillCreators.ok, true);
     eq('one legacy car considered', dry.data.platformAdminBackfillCreators.considered, 1);
     eq('one unique match found', dry.data.platformAdminBackfillCreators.backfilled, 1);
-    eq('dry run stamps nothing', (await getEventTenantCreator(db, LEGACY_CAR_ID))?.creator_discord_id ?? '', '');
+    eq('dry run stamps nothing', (await getEventTenantCreator(db, LEGACY_CAR_ID))?.creator_user_id ?? 0, 0);
 
     const real = await gql(`mutation { platformAdminBackfillCreators(dryRun: false) {
       ok considered backfilled } }`);
     eq('real run backfills', real.data.platformAdminBackfillCreators.backfilled, 1);
-    eq('creator stamped from the unique match', (await getEventTenantCreator(db, LEGACY_CAR_ID))?.creator_discord_id, 'U100');
+    eq('creator stamped from the unique match', (await getEventTenantCreator(db, LEGACY_CAR_ID))?.creator_user_id, U100_UID);
 
     const again = await gql(`mutation { platformAdminBackfillCreators(dryRun: false) {
       ok considered alreadyStamped } }`);
@@ -434,7 +440,7 @@ describe('platform-admin surface', () => {
       auditEntries(limit: 5) { total entries { actor action } } } } } }`);
     const page = res.data.viewer.platformAdmin.auditEntries;
     check('audit page has entries', page.total > 5, `total=${page.total}`);
-    check('page actors are the admin', page.entries.every((e: any) => e.actor === 'ADMIN1'));
+    check('page actors are the admin', page.entries.every((e: any) => e.actor === String(ADMIN_UID)));
     const all = await listHubAuditPage(db, { limit: 200 });
     check('audit rows exist', all.entries.length > 10, `rows=${all.entries.length}`);
     check('no generic hub actor anywhere', all.entries.every((e) => e.actor !== 'hub'),

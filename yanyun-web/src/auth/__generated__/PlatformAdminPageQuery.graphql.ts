@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<0c1b9d1ed24e5df36f8a962131ac7889>>
+ * @generated SignedSource<<edc64ad79a5fa15b6f59686815799da0>>
  * @lightSyntaxTransform
  */
 
@@ -20,7 +20,7 @@ export type PlatformAdminPageQuery$data = {
           readonly action: string;
           readonly actor: string;
           readonly at: number;
-          readonly id: number;
+          readonly id: string;
           readonly summary: string;
           readonly tenant: string;
         }>;
@@ -130,7 +130,7 @@ export type PlatformAdminPageQuery$data = {
           readonly content: string;
           readonly createdAt: number;
           readonly discordId: string;
-          readonly id: number;
+          readonly id: string;
           readonly resolvedAt: number | null | undefined;
           readonly status: string;
           readonly userName: string;
