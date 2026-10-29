@@ -392,7 +392,7 @@ export class GuildAdminCustomDomainLockedShell extends ShellBase {
 export class GuildAdminCustomDomainShell extends ShellBase {
   __typename = 'GuildAdminCustomDomain';
   genBinding(){
-    return this.memo('cdBinding', () => getCustomDomainByTenant(this.db, this.data.slug).catch(() => null));
+    return this.memo('cdBinding', () => getCustomDomainByTenant(this.db, Number(this.data.guildId)).catch(() => null));
   }
   async genStatus(){
     const b = await this.genBinding();
@@ -896,7 +896,8 @@ export class GuildAdminShell extends ShellBase {
       if (state === 'locked') {
         return new GuildAdminCustomDomainLockedShell(this.ctx, {});
       }
-      return new GuildAdminCustomDomainShell(this.ctx, { slug: this.genSlug() });
+      const guildId = await getGuildIdBySlug(this.db, this.genSlug()).catch(() => null);
+      return new GuildAdminCustomDomainShell(this.ctx, { slug: this.genSlug(), guildId });
     });
   }
   /* White-label+ (Premium tier 1): branding toggle + share-card
