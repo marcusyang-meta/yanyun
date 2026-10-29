@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<4c77e5f66877bea47c9f6427e9ac9ee8>>
+ * @generated SignedSource<<e220dac26443b62e9c4365e284f8673a>>
  * @lightSyntaxTransform
  */
 
@@ -71,7 +71,7 @@ export type GuildAlliesQuery$data = {
       // This will never be '%other', but we need some
       // value in case none of the concrete values match.
       readonly __typename: "%other";
-    };
+    } | null | undefined;
   };
 };
 export type GuildAlliesQuery = {

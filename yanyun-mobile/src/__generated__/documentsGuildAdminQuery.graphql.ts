@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<85ac1da67062d71571a5fdb951571c71>>
+ * @generated SignedSource<<028726537643b75411c1be6f3c976901>>
  * @lightSyntaxTransform
  */
 
@@ -220,7 +220,7 @@ export type documentsGuildAdminQuery$data = {
         // This will never be '%other', but we need some
         // value in case none of the concrete values match.
         readonly __typename: "%other";
-      };
+      } | null | undefined;
       readonly devOnly: boolean;
       readonly discordGuildId: string;
       readonly events: ReadonlyArray<{
@@ -287,7 +287,7 @@ export type documentsGuildAdminQuery$data = {
         // This will never be '%other', but we need some
         // value in case none of the concrete values match.
         readonly __typename: "%other";
-      };
+      } | null | undefined;
       readonly logoUrl: string;
       readonly lotteries: ReadonlyArray<{
         readonly createdAtText: string;
@@ -354,7 +354,7 @@ export type documentsGuildAdminQuery$data = {
         // This will never be '%other', but we need some
         // value in case none of the concrete values match.
         readonly __typename: "%other";
-      };
+      } | null | undefined;
       readonly premium: {
         readonly __typename: "GuildAdminPremiumActive";
         readonly premiumPastDueText: string | null | undefined;
@@ -402,7 +402,7 @@ export type documentsGuildAdminQuery$data = {
         // This will never be '%other', but we need some
         // value in case none of the concrete values match.
         readonly __typename: "%other";
-      };
+      } | null | undefined;
       readonly recruitApplications: ReadonlyArray<{
         readonly applicantDiscordId: string;
         readonly applicantName: string;
@@ -450,7 +450,7 @@ export type documentsGuildAdminQuery$data = {
         // This will never be '%other', but we need some
         // value in case none of the concrete values match.
         readonly __typename: "%other";
-      };
+      } | null | undefined;
       readonly reminderCustomText: string;
       readonly reminderOffsets: ReadonlyArray<number>;
       readonly reminderWebhookId: string | null | undefined;

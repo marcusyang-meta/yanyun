@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<78ada39a7b611f482f0d0da14085a91e>>
+ * @generated SignedSource<<aa20ddba30928a54444a07bdc84c3e50>>
  * @lightSyntaxTransform
  */
 
@@ -176,7 +176,7 @@ export type GroupingDetailQuery$data = {
       // This will never be '%other', but we need some
       // value in case none of the concrete values match.
       readonly __typename: "%other";
-    };
+    } | null | undefined;
     readonly rosterAnswers: ReadonlyArray<{
       readonly fieldId: string;
       readonly fieldLabel: string;

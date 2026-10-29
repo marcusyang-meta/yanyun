@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<00b88a3a16efd208c8382b610f13cf1f>>
+ * @generated SignedSource<<f2ea35c774645186c2c536660360d8a2>>
  * @lightSyntaxTransform
  */
 
@@ -31,7 +31,7 @@ export type MemberGuildHome_guild$data = {
     // This will never be '%other', but we need some
     // value in case none of the concrete values match.
     readonly __typename: "%other";
-  };
+  } | null | undefined;
   readonly homeAdminLabel: string | null | undefined;
   readonly homeInsightsGearMinScoreLabel: string;
   readonly homeInsightsGearScoreLabel: string;
@@ -42,7 +42,7 @@ export type MemberGuildHome_guild$data = {
   readonly homeInsightsRaceTitle: string;
   readonly homeInsightsRaceWinsLabel: string;
   readonly homeInsightsSelfGearTitle: string;
-  readonly homeTabAlliesLabel: string;
+  readonly homeTabAlliesLabel: string | null | undefined;
   readonly homeTabAnnouncementsLabel: string;
   readonly homeTabDexLabel: string;
   readonly homeTabMarketLabel: string;
@@ -73,7 +73,7 @@ export type MemberGuildHome_guild$data = {
     // This will never be '%other', but we need some
     // value in case none of the concrete values match.
     readonly __typename: "%other";
-  };
+  } | null | undefined;
   readonly slogan: string | null | undefined;
   readonly slug: string;
   readonly viewerNick: string | null | undefined;

@@ -76,7 +76,7 @@ type Query {
   hubPage: HubPage!
   legalPage(kind: LegalKind!): LegalPage!
   guildPage(slug: String!): GuildPage!
-  targetedNudgePreview(slug: String!, eventId: Int!, segmentKind: String!, segmentValue: String): TargetedNudgePreviewResult!
+  targetedNudgePreview(slug: String!, eventId: Int!, segmentKind: String!, segmentValue: String): TargetedNudgePreviewResult
   myContribution(slug: String!): MyContributionResult!
   groupingListPage(slug: String!, tab: GroupingTab!): GroupingListPage!
   groupingDetailPage(slug: String, id: ID!): GroupingDetailPage!
@@ -544,7 +544,7 @@ type GroupingDetailPage {
   templateSave: GroupingTemplateSave
   rosterAnswers: [RosterAnswer!]
   rosterAnswersTitle: String!
-  recap: GroupingRecapResult!
+  recap: GroupingRecapResult
   detailNotFoundText: String!
   detailBackToListLabel: String!
   detailShareLabel: String!
@@ -2151,8 +2151,8 @@ type Guild {
   viewerNick: String
   memberRoster: [GuildRosterMember!]!
   announcements: GuildAnnouncementPage!
-  raceSeasonBoard: RaceSeasonBoardResult!
-  gearSelfStatus: GuildGearSelfResult!
+  raceSeasonBoard: RaceSeasonBoardResult
+  gearSelfStatus: GuildGearSelfResult
   homeInsightsRaceTitle: String!
   homeInsightsRaceEmptyText: String!
   homeInsightsRaceTeamLabel: String!
@@ -2169,7 +2169,7 @@ type Guild {
   homeTabAnnouncementsLabel: String!
   homeTabScheduleLabel: String!
   homeTabMarketLabel: String!
-  homeTabAlliesLabel: String!
+  homeTabAlliesLabel: String
   homeAdminLabel: String
   detailNotFoundText: String!
   detailBackToListLabel: String!
@@ -2184,7 +2184,7 @@ type Viewer {
   guildAdmin(slug: String!): GuildAdminResult!
   homeRecruit: HomeRecruitSection!
   fillMarket(slug: String!): FillMarketResult!
-  guildAllies(slug: String!): GuildAlliesResult!
+  guildAllies(slug: String!): GuildAlliesResult
   platformAdmin: PlatformAdminResult!
   discordServers: [DiscordServer!]!
   siteTitle: String!
@@ -2298,15 +2298,15 @@ type GuildAdmin {
   schoolGuides: GuildAdminSchoolGuides!
   announcements: GuildAnnouncementPage!
   officer: GuildOfficerPage!
-  ops: GuildAdminOpsResult!
-  recaps: GuildAdminRecapResult!
+  ops: GuildAdminOpsResult
+  recaps: GuildAdminRecapResult
   stats: GuildAdminStatsResult!
-  reliability: GuildAdminReliabilityResult!
-  participationHeatmap: GuildAdminHeatmapResult!
-  gearBoard: GuildAdminGearBoardResult!
-  raceSeasonBoard: RaceSeasonBoardResult!
+  reliability: GuildAdminReliabilityResult
+  participationHeatmap: GuildAdminHeatmapResult
+  gearBoard: GuildAdminGearBoardResult
+  raceSeasonBoard: RaceSeasonBoardResult
   premium: GuildAdminPremiumResult
-  customDomain: GuildAdminCustomDomainResult!
+  customDomain: GuildAdminCustomDomainResult
   lotteries: [GuildAdminLottery!]!
   lotteryRoster: [GuildAdminLotteryMember!]!
   seasonChecklist: GuildSeasonChecklist!
@@ -2500,7 +2500,7 @@ type GuildAdmin {
   adminRecruitMentorLabel: String!
   adminRecruitFirstRunLabel: String!
   adminTabGovernanceLabel: String!
-  governance: GuildGovernanceResult!
+  governance: GuildGovernanceResult
   viewerCapabilities: [String!]!
 }
 
@@ -2657,7 +2657,7 @@ type FillMarketPage {
   slug: String!
   guildName: String!
   supply: FillSupplySection!
-  demand: FillDemandResult!
+  demand: FillDemandResult
   weekdayNames: [String!]!
   marketTitle: String!
   marketBody: String!

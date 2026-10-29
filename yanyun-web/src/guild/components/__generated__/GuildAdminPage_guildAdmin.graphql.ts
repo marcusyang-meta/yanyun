@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<8d8e84c343245ad35b754bbb6e919d00>>
+ * @generated SignedSource<<4944d0c24f4034c019fd7bd09746bb37>>
  * @lightSyntaxTransform
  */
 
@@ -224,7 +224,7 @@ export type GuildAdminPage_guildAdmin$data = {
     // This will never be '%other', but we need some
     // value in case none of the concrete values match.
     readonly __typename: "%other";
-  };
+  } | null | undefined;
   readonly devOnly: boolean;
   readonly discordGuildId: string;
   readonly events: ReadonlyArray<{
@@ -291,7 +291,7 @@ export type GuildAdminPage_guildAdmin$data = {
     // This will never be '%other', but we need some
     // value in case none of the concrete values match.
     readonly __typename: "%other";
-  };
+  } | null | undefined;
   readonly governance: {
     readonly __typename: "GuildGovernanceLocked";
     readonly lockedBody: string;
@@ -357,7 +357,7 @@ export type GuildAdminPage_guildAdmin$data = {
     // This will never be '%other', but we need some
     // value in case none of the concrete values match.
     readonly __typename: "%other";
-  };
+  } | null | undefined;
   readonly logoUrl: string;
   readonly lotteries: ReadonlyArray<{
     readonly createdAtText: string;
@@ -513,7 +513,7 @@ export type GuildAdminPage_guildAdmin$data = {
     // This will never be '%other', but we need some
     // value in case none of the concrete values match.
     readonly __typename: "%other";
-  };
+  } | null | undefined;
   readonly pageFooterDisclaimerText: string | null | undefined;
   readonly participationHeatmap: {
     readonly __typename: "GuildAdminParticipationHeatmap";
@@ -536,7 +536,7 @@ export type GuildAdminPage_guildAdmin$data = {
     // This will never be '%other', but we need some
     // value in case none of the concrete values match.
     readonly __typename: "%other";
-  };
+  } | null | undefined;
   readonly premium: {
     readonly __typename: "GuildAdminPremiumActive";
     readonly premiumPastDueText: string | null | undefined;
@@ -584,7 +584,7 @@ export type GuildAdminPage_guildAdmin$data = {
     // This will never be '%other', but we need some
     // value in case none of the concrete values match.
     readonly __typename: "%other";
-  };
+  } | null | undefined;
   readonly recaps: {
     readonly __typename: "GroupingRecapLocked";
     readonly body: string;
@@ -612,7 +612,7 @@ export type GuildAdminPage_guildAdmin$data = {
     // This will never be '%other', but we need some
     // value in case none of the concrete values match.
     readonly __typename: "%other";
-  };
+  } | null | undefined;
   readonly recruitApplications: ReadonlyArray<{
     readonly applicantDiscordId: string;
     readonly applicantName: string;
@@ -660,7 +660,7 @@ export type GuildAdminPage_guildAdmin$data = {
     // This will never be '%other', but we need some
     // value in case none of the concrete values match.
     readonly __typename: "%other";
-  };
+  } | null | undefined;
   readonly reminderCustomText: string;
   readonly reminderOffsets: ReadonlyArray<number>;
   readonly reminderWebhookId: string | null | undefined;

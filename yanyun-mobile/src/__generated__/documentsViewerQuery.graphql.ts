@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<2f8fffaca89b1bc3f94b30d347beef5a>>
+ * @generated SignedSource<<9edb52502fecfaa1cf39e22180c4a82d>>
  * @lightSyntaxTransform
  */
 
@@ -33,7 +33,7 @@ export type documentsViewerQuery$data = {
       readonly pageBackLabel: string;
       readonly raceSeasonBoard: {
         readonly __typename: string;
-      };
+      } | null | undefined;
       readonly slogan: string | null | undefined;
       readonly slug: string;
       readonly viewerNick: string | null | undefined;
