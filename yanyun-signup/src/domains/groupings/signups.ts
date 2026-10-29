@@ -270,16 +270,18 @@ export async function insertSignup(d1: D1Database, row: Record<string, unknown>)
 export async function insertSignups(d1: D1Database, rows: Record<string, unknown>[]): Promise<void> {
   if (!rows.length) return;
   // One minted ID (type code 12) per row, minted before the batch;
-  // the batch itself stays atomic as before.
-  const withIds: Record<string, unknown>[] = [];
+  // the batch itself stays atomic as before. The column check runs
+  // on the caller's row (without the minted id), as in insertSignup.
+  const withIds: Array<{ id: number; row: Record<string, unknown> }> = [];
   for (const row of rows) {
-    withIds.push({ id: await mintPublicId(d1, 'signup'), ...row });
+    withIds.push({ id: await mintPublicId(d1, 'signup'), row });
   }
-  const stmts = withIds.map((row) => {
+  const stmts = withIds.map(({ id, row }) => {
     const cols = ['id', ...checkedColumns(row)];
+    const full: Record<string, unknown> = { id, ...row };
     return d1
       .prepare(`INSERT INTO signups (${cols.join(', ')}) VALUES (${cols.map(() => '?').join(', ')})`)
-      .bind(...cols.map((c) => row[c]));
+      .bind(...cols.map((c) => full[c]));
   });
   await d1.batch(stmts);
 }
