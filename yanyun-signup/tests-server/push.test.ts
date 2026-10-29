@@ -40,14 +40,17 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 /* ---------- JWT (same HS256 format as auth) ---------- */
 const b64u = (buf) => Buffer.from(buf).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-function mintJwt(sub = '2001', name = '车头甲') {
+function mintJwt(sub, name = '车头甲') {
   const now = Math.floor(Date.now() / 1000);
   const head = b64u(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
   const body = b64u(JSON.stringify({ sub, name, avatar: '', guilds: [DGID], iat: now, exp: now + 3600 }));
   const sig = crypto.createHmac('sha256', SECRET).update(`${head}.${body}`).digest();
   return `${head}.${body}.${b64u(sig)}`;
 }
-const JWT = mintJwt();
+// Post-0036 the session subject is the numeric user ID (users.id),
+// resolved during fixture seeding below; a token whose sub is the
+// Discord ID no longer parses as a session at all.
+let JWT;
 
 /* ---------- Direct D1 writes (local) ---------- */
 async function d1(sql) {
@@ -57,6 +60,60 @@ async function d1(sql) {
   return arr[0]?.results || [];
 }
 async function d1Try(sql) { try { return await d1(sql); } catch { return []; } }
+
+/* ---------- Typed-ID seeding (post-0036) ----------
+ * Tenants / users / events / signups now carry minted 11-digit
+ * primary keys ([type code][day index][daily sequence]); settings,
+ * guild_members, push_tokens and user_oauth key by the numeric guild
+ * / user ID, and events name their creator via creator_user_id.
+ * Raw-SQL seeding cannot call the data layer's mintPublicId, so it
+ * replicates the same atomic counter step against id_mint_counters
+ * and composes IDs with the ids.ts formula. Existing guild / user
+ * rows are reused by natural key (slug / discord_id) so repeated
+ * runs keep their IDs; a pre-0036 leftover row with a small
+ * auto-assigned ID is dropped and re-minted. Discord-boundary values
+ * (signups.discord_id stamps, guild_members.discord_id, webhook
+ * mention targets) keep the real Discord IDs, unchanged. */
+const PUBLIC_ID_EPOCH_MS = Date.UTC(2026, 0, 1);
+function isTypedId(id, typeCode) {
+  return Number.isSafeInteger(id) && Math.floor(id / 1_000_000_000) === typeCode && id % 100_000 >= 1;
+}
+async function mintTypedId(typeCode) {
+  const dayIndex = Math.floor((Date.now() - PUBLIC_ID_EPOCH_MS) / 86_400_000);
+  const rows = await d1(`INSERT INTO id_mint_counters (type_code, day_index, seq) VALUES (${typeCode}, ${dayIndex}, 1)
+    ON CONFLICT(type_code, day_index) DO UPDATE SET seq = seq + 1 RETURNING seq`);
+  const seq = Number(rows[0]?.seq);
+  if (!seq) throw new Error('typed ID mint returned no sequence');
+  return typeCode * 1_000_000_000 + dayIndex * 100_000 + seq;
+}
+let guildId;
+let userId1;
+let userId2;
+async function ensureGuildRow() {
+  const rows = await d1(`SELECT id FROM tenants WHERE slug='${SLUG}'`);
+  if (rows[0]?.id && isTypedId(Number(rows[0].id), 1)) {
+    guildId = Number(rows[0].id);
+    await d1(`UPDATE tenants SET guild_name='推送验收百业', password_hash='x', discord_webhook='http://localhost:${STUB_PORT}/hook' WHERE slug='${SLUG}'`);
+    return;
+  }
+  if (rows[0]?.id) await d1Try(`DELETE FROM tenants WHERE slug='${SLUG}'`);
+  guildId = await mintTypedId(1); // guild type code 01
+  await d1(`INSERT INTO tenants (id, slug, guild_name, password_hash, discord_webhook)
+    VALUES (${guildId}, '${SLUG}', '推送验收百业', 'x', 'http://localhost:${STUB_PORT}/hook')`);
+}
+async function ensureUserRow(discordId, username) {
+  const rows = await d1(`SELECT id FROM users WHERE discord_id='${discordId}'`);
+  if (rows[0]?.id && isTypedId(Number(rows[0].id), 2)) {
+    const id = Number(rows[0].id);
+    await d1(`UPDATE users SET username='${username}', guilds_json='["${DGID}"]' WHERE discord_id='${discordId}'`);
+    return id;
+  }
+  if (rows[0]?.id) await d1Try(`DELETE FROM users WHERE discord_id='${discordId}'`);
+  const id = await mintTypedId(2); // user type code 02
+  await d1(`INSERT INTO users (id, discord_id, username, avatar, guilds_json)
+    VALUES (${id}, '${discordId}', '${username}', '', '["${DGID}"]')`);
+  return id;
+}
 
 /* ---------- Stub receiver (Discord webhook + Expo Push API replay) ----------
  * A local workerd outbound fetch to exp.host has its TLS broken by this
@@ -105,35 +162,32 @@ const nowSec = Math.floor(Date.now() / 1000);
 // stops a leftover local DO alarm from settling the car early during a
 // dev cold start; phase B then moves departure to T-9 and triggers it.
 const startsAt = nowSec + 660;
-await d1Try(`DELETE FROM event_reminders WHERE event_id IN (SELECT id FROM events WHERE tenant='${SLUG}')`);
-await d1Try(`DELETE FROM signups WHERE event_id IN (SELECT id FROM events WHERE tenant='${SLUG}')`);
-await d1Try(`DELETE FROM events WHERE tenant='${SLUG}'`);
-await d1Try(`DELETE FROM settings WHERE tenant='${SLUG}'`);
-await d1Try(`DELETE FROM guild_members WHERE tenant='${SLUG}'`);
-await d1Try(`DELETE FROM push_tokens WHERE discord_id='2001'`);
-await d1Try(`DELETE FROM tenants WHERE slug='${SLUG}'`);
-await d1(`INSERT INTO tenants (slug, guild_name, password_hash, discord_webhook)
-  VALUES ('${SLUG}', '推送验收百业', 'x', 'http://localhost:${STUB_PORT}/hook')`);
-await d1(`INSERT INTO settings (tenant, key, value) VALUES ('${SLUG}', 'reminder_enabled', '1')
+await ensureGuildRow();
+userId1 = await ensureUserRow('2001', '车头甲');
+JWT = mintJwt(String(userId1));
+await d1Try(`DELETE FROM event_reminders WHERE event_id IN (SELECT id FROM events WHERE tenant=${guildId})`);
+await d1Try(`DELETE FROM signups WHERE event_id IN (SELECT id FROM events WHERE tenant=${guildId})`);
+await d1Try(`DELETE FROM events WHERE tenant=${guildId}`);
+await d1Try(`DELETE FROM settings WHERE tenant=${guildId}`);
+await d1Try(`DELETE FROM guild_members WHERE tenant=${guildId}`);
+await d1Try(`DELETE FROM push_tokens WHERE user_id=${userId1}`);
+await d1(`INSERT INTO settings (tenant, key, value) VALUES (${guildId}, 'reminder_enabled', '1')
   ON CONFLICT(tenant, key) DO UPDATE SET value = excluded.value`);
-await d1(`INSERT INTO settings (tenant, key, value) VALUES ('${SLUG}', 'discord_guild_id', '${DGID}')
+await d1(`INSERT INTO settings (tenant, key, value) VALUES (${guildId}, 'discord_guild_id', '${DGID}')
   ON CONFLICT(tenant, key) DO UPDATE SET value = excluded.value`);
-await d1(`INSERT INTO users (discord_id, username, avatar, guilds_json)
-  VALUES ('2001', '车头甲', '', '["${DGID}"]')
-  ON CONFLICT(discord_id) DO UPDATE SET username = excluded.username, guilds_json = excluded.guilds_json`);
-await d1(`INSERT INTO user_oauth (discord_id, refresh_token, scope, refresh_state)
-  VALUES ('2001', 'fake-refresh', 'identify guilds guilds.members.read', 'ok')
-  ON CONFLICT(discord_id) DO UPDATE SET refresh_token = excluded.refresh_token, scope = excluded.scope, refresh_state = 'ok'`);
+await d1(`INSERT INTO user_oauth (user_id, refresh_token, scope, refresh_state)
+  VALUES (${userId1}, 'fake-refresh', 'identify guilds guilds.members.read', 'ok')
+  ON CONFLICT(user_id) DO UPDATE SET refresh_token = excluded.refresh_token, scope = excluded.scope, refresh_state = 'ok'`);
 await d1(`INSERT INTO guild_members (tenant, discord_id, nick, global_name, updated_at)
-  VALUES ('${SLUG}', '2001', '车头甲', 'GlobalA', ${nowSec})
+  VALUES (${guildId}, '2001', '车头甲', 'GlobalA', ${nowSec})
   ON CONFLICT(tenant, discord_id) DO UPDATE SET nick = excluded.nick, global_name = excluded.global_name`);
-await d1(`INSERT INTO events (tenant, title, type, description, starts_at_utc, max_slots, status, origin, created_by, creator_discord_id, dungeon)
-  VALUES ('${SLUG}', '推送验收车 · 今晚双十', 'activity', '', ${startsAt}, 10, 'open', 'member', '车头甲', '2001', '玉魄染青苍')`);
-const evRows = await d1(`SELECT id FROM events WHERE tenant='${SLUG}' ORDER BY id DESC LIMIT 1`);
-eventId = evRows[0]?.id;
+eventId = await mintTypedId(10); // grouping type code 10
+await d1(`INSERT INTO events (id, tenant, title, type, description, starts_at_utc, max_slots, status, origin, created_by, creator_user_id, dungeon)
+  VALUES (${eventId}, ${guildId}, '推送验收车 · 今晚双十', 'activity', '', ${startsAt}, 10, 'open', 'member', '车头甲', ${userId1}, '玉魄染青苍')`);
 check('夹具车已播种', !!eventId, `event=${eventId}`);
-await d1(`INSERT INTO signups (event_id, nickname, uid, weapon, discord_id)
-  VALUES (${eventId}, '车头甲', 'u2001', '破竹·樽', '2001')`);
+const signupId1 = await mintTypedId(12); // signup type code 12
+await d1(`INSERT INTO signups (id, event_id, nickname, uid, weapon, discord_id)
+  VALUES (${signupId1}, ${eventId}, '车头甲', 'u2001', '破竹·樽', '2001')`);
 
 /* ---------- Start wrangler dev ---------- */
 // The port must be free: a leftover dev process from a previous round
@@ -173,7 +227,7 @@ const UNREG = 'mutation($t: String!) { unregisterPushToken(token: $t) { ok error
 
 const r1 = await gql(REG, { t: FAKE_TOKEN, p: 'ios' });
 check('registerPushToken 合法令牌 ok', r1?.data?.registerPushToken?.ok === true, JSON.stringify(r1).slice(0, 160));
-rows = await d1(`SELECT discord_id, token, platform FROM push_tokens WHERE discord_id='2001'`);
+rows = await d1(`SELECT user_id, token, platform FROM push_tokens WHERE user_id=${userId1}`);
 check('push_tokens 落表 1 行', rows.length === 1 && rows[0].token === FAKE_TOKEN && rows[0].platform === 'ios', JSON.stringify(rows));
 
 const r2 = await gql(REG, { t: 'not-a-token', p: 'ios' });
@@ -186,7 +240,7 @@ check('匿名注册被拒 (loginRequired)', r3?.data?.registerPushToken?.ok === 
 
 const r4 = await gql(UNREG, { t: FAKE_TOKEN });
 check('unregisterPushToken ok', r4?.data?.unregisterPushToken?.ok === true);
-rows = await d1(`SELECT token FROM push_tokens WHERE discord_id='2001'`);
+rows = await d1(`SELECT token FROM push_tokens WHERE user_id=${userId1}`);
 check('注销后行消失', rows.length === 0);
 
 const r5 = await gql(REG, { t: FAKE_TOKEN, p: 'ios' });
@@ -195,9 +249,9 @@ check('重新注册供 alarm 验收', r5?.data?.registerPushToken?.ok === true);
 
 it('B) WS-triggered reschedule -> alarm dual-channel send', async () => {
 // Token in place (direct write simulating registered state) + departure moved to T-9 minutes (reminder time already past).
-await d1(`INSERT INTO push_tokens (discord_id, token, platform, updated_at)
-  VALUES ('2001', '${FAKE_TOKEN}', 'ios', ${Math.floor(Date.now() / 1000)})
-  ON CONFLICT(discord_id, token) DO UPDATE SET platform = excluded.platform`);
+await d1(`INSERT INTO push_tokens (user_id, token, platform, updated_at)
+  VALUES (${userId1}, '${FAKE_TOKEN}', 'ios', ${Math.floor(Date.now() / 1000)})
+  ON CONFLICT(user_id, token) DO UPDATE SET platform = excluded.platform`);
 await d1(`UPDATE events SET starts_at_utc = ${Math.floor(Date.now() / 1000) + 540} WHERE id = ${eventId}`);
 const wsResult = await new Promise((resolve) => {
   const key = crypto.randomBytes(16).toString('base64');
@@ -233,7 +287,7 @@ check('events.reminder_sent_at 已落定', !!(evAfter[0] && evAfter[0].reminder_
 
 let cleaned = false;
 for (let i = 0; i < 60 && !cleaned; i++) {
-  rows = await d1(`SELECT token FROM push_tokens WHERE discord_id='2001'`);
+  rows = await d1(`SELECT token FROM push_tokens WHERE user_id=${userId1}`);
   if (rows.length === 0) cleaned = true;
   else await sleep(1500);
 }
@@ -265,29 +319,28 @@ it('C) advanced reminders: multi-beat + nag-only-not-ready', async () => {
 await sleep(2000);
 const TOKEN2 = 'ExponentPushToken[push-harness-fake-0002]';
 const nowC = Math.floor(Date.now() / 1000);
-await d1(`INSERT INTO users (discord_id, username, avatar, guilds_json)
-  VALUES ('2002', '队员乙', '', '["${DGID}"]')
-  ON CONFLICT(discord_id) DO UPDATE SET username = excluded.username, guilds_json = excluded.guilds_json`);
-await d1(`INSERT INTO user_oauth (discord_id, refresh_token, scope, refresh_state)
-  VALUES ('2002', 'fake-refresh', 'identify guilds guilds.members.read', 'ok')
-  ON CONFLICT(discord_id) DO UPDATE SET refresh_token = excluded.refresh_token, scope = excluded.scope, refresh_state = 'ok'`);
+userId2 = await ensureUserRow('2002', '队员乙');
+await d1(`INSERT INTO user_oauth (user_id, refresh_token, scope, refresh_state)
+  VALUES (${userId2}, 'fake-refresh', 'identify guilds guilds.members.read', 'ok')
+  ON CONFLICT(user_id) DO UPDATE SET refresh_token = excluded.refresh_token, scope = excluded.scope, refresh_state = 'ok'`);
 await d1(`INSERT INTO guild_members (tenant, discord_id, nick, global_name, updated_at)
-  VALUES ('${SLUG}', '2002', '队员乙', 'GlobalB', ${nowC})
+  VALUES (${guildId}, '2002', '队员乙', 'GlobalB', ${nowC})
   ON CONFLICT(tenant, discord_id) DO UPDATE SET nick = excluded.nick, global_name = excluded.global_name`);
-await d1(`INSERT INTO settings (tenant, key, value) VALUES ('${SLUG}', 'reminder_offsets', '30,10')
+await d1(`INSERT INTO settings (tenant, key, value) VALUES (${guildId}, 'reminder_offsets', '30,10')
   ON CONFLICT(tenant, key) DO UPDATE SET value = excluded.value`);
-await d1(`INSERT INTO settings (tenant, key, value) VALUES ('${SLUG}', 'reminder_custom_text', '今晚稳住')
+await d1(`INSERT INTO settings (tenant, key, value) VALUES (${guildId}, 'reminder_custom_text', '今晚稳住')
   ON CONFLICT(tenant, key) DO UPDATE SET value = excluded.value`);
-await d1(`INSERT INTO events (tenant, title, type, description, starts_at_utc, max_slots, status, origin, created_by, creator_discord_id, dungeon)
-  VALUES ('${SLUG}', '多拍验收车', 'activity', '', ${nowC + 1500}, 10, 'open', 'member', '车头甲', '2001', '')`);
-const evCRows = await d1(`SELECT id FROM events WHERE tenant='${SLUG}' AND title='多拍验收车' ORDER BY id DESC LIMIT 1`);
-const eventCId = evCRows[0]?.id;
+const eventCId = await mintTypedId(10); // grouping type code 10
+await d1(`INSERT INTO events (id, tenant, title, type, description, starts_at_utc, max_slots, status, origin, created_by, creator_user_id, dungeon)
+  VALUES (${eventCId}, ${guildId}, '多拍验收车', 'activity', '', ${nowC + 1500}, 10, 'open', 'member', '车头甲', ${userId1}, '')`);
 check('多拍夹具车已播种', !!eventCId, `event=${eventCId}`);
-await d1(`INSERT INTO signups (event_id, nickname, uid, weapon, discord_id)
-  VALUES (${eventCId}, '车头甲', 'u2001c', '破竹·樽', '2001'), (${eventCId}, '队员乙', 'u2002c', '鸣金·虹', '2002')`);
-await d1(`INSERT INTO push_tokens (discord_id, token, platform, updated_at)
-  VALUES ('2001', '${FAKE_TOKEN}', 'ios', ${nowC}), ('2002', '${TOKEN2}', 'android', ${nowC})
-  ON CONFLICT(discord_id, token) DO UPDATE SET platform = excluded.platform`);
+const signupIdC1 = await mintTypedId(12); // signup type code 12
+const signupIdC2 = await mintTypedId(12);
+await d1(`INSERT INTO signups (id, event_id, nickname, uid, weapon, discord_id)
+  VALUES (${signupIdC1}, ${eventCId}, '车头甲', 'u2001c', '破竹·樽', '2001'), (${signupIdC2}, ${eventCId}, '队员乙', 'u2002c', '鸣金·虹', '2002')`);
+await d1(`INSERT INTO push_tokens (user_id, token, platform, updated_at)
+  VALUES (${userId1}, '${FAKE_TOKEN}', 'ios', ${nowC}), (${userId2}, '${TOKEN2}', 'android', ${nowC})
+  ON CONFLICT(user_id, token) DO UPDATE SET platform = excluded.platform`);
 
 async function wsTrigger() {
   return new Promise((resolve) => {
@@ -368,12 +421,12 @@ check('多拍: 末拍后整车结算 reminder_sent_at', !!(evCEnd[0] && evCEnd[0
 afterAll(async () => {
 try { process.kill(-dev.pid, 'SIGTERM'); } catch { dev.kill('SIGTERM'); }
 stub.close();
-await d1Try(`DELETE FROM event_reminders WHERE event_id IN (SELECT id FROM events WHERE tenant='${SLUG}')`);
-await d1Try(`DELETE FROM push_tokens WHERE discord_id='2002'`);
+await d1Try(`DELETE FROM event_reminders WHERE event_id IN (SELECT id FROM events WHERE tenant=${guildId})`);
+await d1Try(`DELETE FROM push_tokens WHERE user_id=${userId2}`);
 await d1Try(`DELETE FROM signups WHERE event_id=${eventId}`);
-await d1Try(`DELETE FROM events WHERE tenant='${SLUG}'`);
-await d1Try(`DELETE FROM settings WHERE tenant='${SLUG}'`);
-await d1Try(`DELETE FROM guild_members WHERE tenant='${SLUG}'`);
+await d1Try(`DELETE FROM events WHERE tenant=${guildId}`);
+await d1Try(`DELETE FROM settings WHERE tenant=${guildId}`);
+await d1Try(`DELETE FROM guild_members WHERE tenant=${guildId}`);
 await d1Try(`DELETE FROM tenants WHERE slug='${SLUG}'`);
 });
 });
