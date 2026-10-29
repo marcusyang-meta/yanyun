@@ -119,6 +119,13 @@ export function GuildAlliesRoute({ slug }: { slug: string }) {
   const [targetSlug, setTargetSlug] = useState('');
   const [weapons, setWeapons] = useState<Record<string, string>>({});
 
+  // A null guildAllies field = the allies surface does not exist
+  // for this guild (unentitled while the paygate is OFF): render
+  // nothing at all — not even an empty locked card. The guild
+  // home carries no allies tab in this state either; a direct
+  // landing simply finds no surface here.
+  if (data?.viewer?.guildAllies == null) return null;
+
   if (page.__typename === 'GuildAlliesLocked' || !page.alliesTitle) {
     return (
       <div style={card}>
