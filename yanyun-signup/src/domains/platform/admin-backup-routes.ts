@@ -33,7 +33,7 @@ export const platformAdminBackupRoutes = new Hono();
 async function requireBackupAdmin(c: any) {
   const { user } = await restCheckedUser(c);
   if (!user) return { denied: err('未登录或登录已过期', 401) };
-  const admin = await isPlatformAdmin(c.env, user.discordId).catch(() => false);
+  const admin = await isPlatformAdmin(c.env, String(user.userId)).catch(() => false);
   if (!admin) return { denied: err(translateError('platformAdminRequired', 'zh-CN'), 403) };
   return { user };
 }
@@ -46,7 +46,7 @@ platformAdminBackupRoutes.get('/backup/export', async (c: any) => {
   const stamp = new Date().toISOString().slice(0, 19).replace(/[T:]/g, '-');
   const stream = streamBackupJson(c.env.DB, async (counts) => {
     const rows = Object.values(counts).reduce((a: number, b: number) => a + b, 0);
-    await auditAdmin(c.env, gate.user.discordId, c.get('ip') || '', 'backup.export', '', {
+    await auditAdmin(c.env, String(gate.user.userId), c.get('ip') || '', 'backup.export', '', {
       rows, entities: Object.keys(counts).length,
     });
   });
@@ -68,7 +68,7 @@ platformAdminBackupRoutes.get('/backup/download', async (c: any) => {
   const key = s(c.req.query('key'), 120);
   const obj = await getBackupObject(c.env.BACKUPS, key);
   if (!obj) return err(translateError('backupNotFound', 'zh-CN'), 404);
-  await auditAdmin(c.env, gate.user.discordId, c.get('ip') || '', 'backup.download', '', {
+  await auditAdmin(c.env, String(gate.user.userId), c.get('ip') || '', 'backup.download', '', {
     key, bytes: obj.size,
   });
   return new Response(obj.body, {

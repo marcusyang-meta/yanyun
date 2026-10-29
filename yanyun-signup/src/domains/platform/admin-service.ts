@@ -35,7 +35,7 @@ export function auditAdmin(
   actor: string,
   ip: string,
   action: string,
-  tenant: string,
+  tenant: string | number,
   summary: Record<string, unknown>,
 ): Promise<boolean> {
   return auditHub(env.DB, { action, tenant, summary, ip, actor });

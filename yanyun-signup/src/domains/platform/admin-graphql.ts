@@ -56,14 +56,16 @@ import {
 
 async function viewerIsPlatformAdmin(ctx: Context): Promise<boolean> {
   if (!ctx.user) return false;
-  return isPlatformAdmin(ctx.env, ctx.user.discordId);
+  // The gate's subject is the typed user ID (the roster stores user
+  // IDs; the env floor resolves to user IDs) — never the Discord ID.
+  return isPlatformAdmin(ctx.env, String(ctx.user.userId));
 }
 
 function actorOf(ctx: Context): string {
-  return ctx.user ? ctx.user.discordId : '';
+  return ctx.user ? String(ctx.user.userId) : '';
 }
 
-function audit(ctx: Context, action: string, tenant: string, summary: Record<string, unknown>) {
+function audit(ctx: Context, action: string, tenant: string | number, summary: Record<string, unknown>) {
   return auditAdmin(ctx.env, actorOf(ctx), getClientIp(ctx.request), action, tenant, summary);
 }
 
@@ -522,8 +524,13 @@ const platformAdminMutations = {
   platformAdminDeleteTenant: async (_: any, { slug }: any, ctx: Context) => {
     if (!(await viewerIsPlatformAdmin(ctx))) return denied(ctx);
     const tenantSlug = s(slug, 30);
+    // Resolve the guild ID before the cascade: auditHub keys the
+    // audit row by guild ID (resolving slugs itself), and after the
+    // delete the slug no longer resolves — the row would land on 0
+    // and lose its guild association.
+    const t = await getTenantRow(ctx.env.DB, tenantSlug).catch(() => null);
     await deleteTenantCascade(ctx.env.DB, tenantSlug);
-    await audit(ctx, 'tenant.delete', tenantSlug, {});
+    await audit(ctx, 'tenant.delete', t ? t.id : tenantSlug, {});
     return { ok: true };
   },
 
