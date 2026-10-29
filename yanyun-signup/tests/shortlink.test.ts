@@ -56,17 +56,21 @@ function toRawRows(sqlText, rows) {
 
 /* ---------------- FakeDB ---------------- */
 const SLUG = 'linktest';
+/* Typed-ID fixtures (0036): the guild's numeric primary key; the slug
+   stays only a public handle, resolved at the edge. */
+const GID = 1030100001;
+const UID1 = 2030100001;
 function ev(id, over = {}) {
   return {
-    id, tenant: SLUG, type: 'activity', title: '短链车' + id, description: '', dungeon: '',
+    id, tenant: GID, type: 'activity', title: '短链车' + id, description: '', dungeon: '',
     max_slots: 10, starts_at: '', starts_at_utc: null, status: 'open', origin: 'member',
-    creator_discord_id: 'U1', created_by: '', reminder_sent_at: null, reminder_error: null,
+    creator_user_id: UID1, created_by: '', reminder_sent_at: null, reminder_error: null,
     ...over,
   };
 }
 function makeDb() {
   const state = {
-    tenants: [{ slug: SLUG, guild_name: '短链测试百业', slogan: '', announcement: '', password_hash: 'h' }],
+    tenants: [{ id: GID, slug: SLUG, guild_name: '短链测试百业', slogan: '', announcement: '', password_hash: 'h' }],
     events: [ev(301), ev(302)],
     links: [], // { code, tenant, event_id, created_at }
   };
@@ -101,6 +105,10 @@ function makeDb() {
       return kind === 'first' ? row : { results: row ? [row] : [] };
     }
     if (/FROM tenants/.test(sql)) {
+      if (/WHERE id = \?/.test(sql)) {
+        const t = state.tenants.find((x) => x.id === Number(b[0])) || null;
+        return kind === 'first' ? t : { results: t ? [t] : [] };
+      }
       const t = state.tenants.find((x) => x.slug === b[0]) || null;
       return kind === 'first' ? t : { results: t ? [t] : [] };
     }
@@ -136,23 +144,23 @@ describe('shortlink', () => {
 
   /* ================= repository ================= */
   it('repository', async () => {
-    a = await mintShortLink(db, SLUG, 301);
+    a = await mintShortLink(db, GID, 301);
     check('铸码格式 = 7 位 base62', SHORT_CODE_RE.test(a.code), a.code);
-    eq('铸码行 target', `${a.tenant}/${a.event_id}`, `${SLUG}/301`);
-    const a2 = await mintShortLink(db, SLUG, 301);
+    eq('铸码行 target', `${a.tenant}/${a.event_id}`, `${GID}/301`);
+    const a2 = await mintShortLink(db, GID, 301);
     eq('同车再铸 = 同码 (稳定)', a2.code, a.code);
-    eq('同车只一行', state.links.filter((l) => l.tenant === SLUG && l.event_id === 301).length, 1);
-    bLink = await mintShortLink(db, SLUG, 302);
+    eq('同车只一行', state.links.filter((l) => l.tenant === GID && l.event_id === 301).length, 1);
+    bLink = await mintShortLink(db, GID, 302);
     check('异车异码', bLink.code !== a.code, `${a.code} vs ${bLink.code}`);
     eq('按码解析 roundtrip', (await getShortLinkByCode(db, a.code))?.event_id, 301);
-    eq('按 target 解析 roundtrip', (await getShortLinkByTarget(db, SLUG, 302))?.code, bLink.code);
+    eq('按 target 解析 roundtrip', (await getShortLinkByTarget(db, GID, 302))?.code, bLink.code);
     eq('未知码解析 -> null', await getShortLinkByCode(db, 'ZZZZZZZ'), null);
 
     // Collision retry: first candidate is car 301's code (taken by another
     // target); the mint must skip it and land on the second candidate.
     state.events.push(ev(303));
     const seq = [a.code, 'Zz9Yy8X'];
-    const c = await mintShortLink(db, SLUG, 303, () => seq.shift() || 'Qq7Ww6E');
+    const c = await mintShortLink(db, GID, 303, () => seq.shift() || 'Qq7Ww6E');
     eq('碰撞后换新码铸成', c.code, 'Zz9Yy8X');
     eq('被撞的码仍指向原车', (await getShortLinkByCode(db, a.code))?.event_id, 301);
 

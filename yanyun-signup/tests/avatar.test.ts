@@ -63,13 +63,22 @@ function makeDb({ tenants = [], settings = {}, users = {} } = {}) {
     tenants: tenants.map((t) => ({ ...t })),
     settings: new Map(Object.entries(settings)), // `${tenant}::${key}` -> value
     users: new Map(Object.entries(users)), // discord_id -> guilds_json string
-    avatars: new Map(), // tenant -> { content_type, bytes, hash, updated_at }
+    avatars: new Map(), // tenant (guild ID) -> { content_type, bytes, hash, updated_at }
+    mint: new Map(),
   };
   function route(kind, sql, b) {
     // Data-layer (Drizzle) SQL carries quoted identifiers and
     // table-qualified prefixes; normalize back to the old shape before
     // matching (routing match only; assertions and state semantics unchanged).
     sql = sql.replace(/"/g, '').replace(/settings\./g, '');
+    if (/INSERT INTO id_mint_counters/.test(sql)) {
+      const key = `${b[0]}|${b[1]}`;
+      const seq = (state.mint.get(key) || 0) + 1;
+      state.mint.set(key, seq);
+      if (kind === 'first') return { seq };
+      if (kind === 'all') return { results: [{ seq }] };
+      return { meta: {} };
+    }
     if (/guild_avatars/.test(sql)) {
       if (/INSERT INTO guild_avatars/.test(sql)) {
         state.avatars.set(b[0], { content_type: b[1], bytes: b[2], hash: b[3], updated_at: b[4] });
@@ -84,13 +93,24 @@ function makeDb({ tenants = [], settings = {}, users = {} } = {}) {
       return { meta: {} }; // CREATE TABLE
     }
     if (/FROM users/.test(sql)) {
+      if (/WHERE id = \?/.test(sql)) {
+        const row = [...state.users.entries()].map(([discord_id, u]) => ({ discord_id, ...u })).find((u) => u.id === Number(b[0])) || null;
+        if (/guilds_json/.test(sql)) {
+          return kind === 'first' ? (row ? { guilds_json: row.guilds_json } : null) : { results: row ? [{ guilds_json: row.guilds_json }] : [] };
+        }
+        return kind === 'first' ? row : { results: row ? [row] : [] };
+      }
       const uj = state.users.get(String(b[0]));
       if (/guilds_json/.test(sql)) {
-        return kind === 'first' ? (uj === undefined ? null : { guilds_json: uj }) : { results: uj === undefined ? [] : [{ guilds_json: uj }] };
+        return kind === 'first' ? (uj === undefined ? null : { guilds_json: uj.guilds_json }) : { results: uj === undefined ? [] : [{ guilds_json: uj.guilds_json }] };
       }
       return kind === 'first' ? null : { results: [] };
     }
     if (/FROM tenants/.test(sql)) {
+      if (/WHERE id = \?/.test(sql)) {
+        const t = state.tenants.find((x) => x.id === Number(b[0])) || null;
+        return kind === 'first' ? t : { results: t ? [t] : [] };
+      }
       if (/WHERE slug/.test(sql)) {
         const t = state.tenants.find((x) => x.slug === b[0]) || null;
         return kind === 'first' ? t : { results: t ? [t] : [] };
@@ -114,7 +134,7 @@ function makeDb({ tenants = [], settings = {}, users = {} } = {}) {
         const rows = [];
         for (const [k, v] of state.settings) {
           const [tenant, key] = k.split('::');
-          if (tenant === b[0]) rows.push({ key, value: v });
+          if (String(tenant) === String(b[0])) rows.push({ key, value: v });
         }
         return kind === 'first' ? (rows[0] || null) : { results: rows };
       }
@@ -158,6 +178,12 @@ function jpegBytes(n = 96) {
 }
 
 /* ================= GraphQL admin: gate / upload / serve / limit / delete ================= */
+/* Typed-ID fixtures (0036): guilds/users carry their numeric primary
+   keys; avatars and settings key by the guild ID, the slug stays a
+   public handle resolved at the edge. */
+const GID1 = 1030100001;
+const GID2 = 1030100002;
+const UID = { A1: 2030100001, A2: 2030100002, M1: 2030100003 };
 const worker = (await import('../src/worker.ts')).default;
 const pwHash = await sha256hex('guildpass123');
 const DG1 = '111111111111111111';
@@ -165,19 +191,19 @@ const DG2 = '222222222222222222';
 const serversJson = (rows) => JSON.stringify(rows);
 const { db, state } = makeDb({
   tenants: [
-    { slug: 'test1', guild_name: '测试一业', slogan: 's1', password_hash: pwHash },
-    { slug: 'test2', guild_name: '测试二业', slogan: '', password_hash: pwHash },
+    { id: GID1, slug: 'test1', guild_name: '测试一业', slogan: 's1', password_hash: pwHash },
+    { id: GID2, slug: 'test2', guild_name: '测试二业', slogan: '', password_hash: pwHash },
   ],
-  settings: { 'test1::discord_guild_id': DG1, 'test2::discord_guild_id': DG2 },
+  settings: { [`${GID1}::discord_guild_id`]: DG1, [`${GID2}::discord_guild_id`]: DG2 },
   users: {
-    A1: serversJson([{ id: DG1, name: '一业服', icon: '', permissions: '0', owner: true }]),
-    A2: serversJson([{ id: DG2, name: '二业服', icon: '', permissions: '0', owner: true }]),
-    M1: serversJson([{ id: DG1, name: '一业服', icon: '', permissions: '0', owner: false }]),
+    A1: { id: UID.A1, guilds_json: serversJson([{ id: DG1, name: '一业服', icon: '', permissions: '0', owner: true }]) },
+    A2: { id: UID.A2, guilds_json: serversJson([{ id: DG2, name: '二业服', icon: '', permissions: '0', owner: true }]) },
+    M1: { id: UID.M1, guilds_json: serversJson([{ id: DG1, name: '一业服', icon: '', permissions: '0', owner: false }]) },
   },
 });
-const ADMIN1 = { discordId: 'A1', name: '一业服主', guilds: [DG1] };
-const ADMIN2 = { discordId: 'A2', name: '二业服主', guilds: [DG2] };
-const MEMBER1 = { discordId: 'M1', name: '一业成员', guilds: [DG1] };
+const ADMIN1 = { userId: UID.A1, discordId: 'A1', name: '一业服主', guilds: [DG1] };
+const ADMIN2 = { userId: UID.A2, discordId: 'A2', name: '二业服主', guilds: [DG2] };
+const MEMBER1 = { userId: UID.M1, discordId: 'M1', name: '一业成员', guilds: [DG1] };
 const env = { DB: db, ADMIN_PASSWORD: 'test-admin-pw', ASSETS };
 const { ctx, pending } = makeCtx();
 const call = (path, opts = {}) => worker.fetch(new Request('http://local' + path, opts), env, ctx);
@@ -245,7 +271,7 @@ describe('avatar', () => {
     g1 = await gqlAdmin(SET_AVATAR, { slug: 'test1', data: b64(png) }, { user: ADMIN1 });
     check('本业管理员 setGuildAvatar PNG -> ok', g1.data?.setGuildAvatar?.ok === true, JSON.stringify(g1.data?.setGuildAvatar || g1.errors));
     pngHash = await sha256hex(png);
-    eq('落库 hash = 内容 sha256', state.avatars.get('test1')?.hash, pngHash);
+    eq('落库 hash = 内容 sha256', state.avatars.get(GID1)?.hash, pngHash);
     eq('上传返回 avatarUrl 带 hash8', g1.data?.setGuildAvatar?.avatarUrl, `http://local/guilds/test1/avatar?v=${pngHash.slice(0, 8)}`);
 
     // Serving round-trip: identical bytes + content-type + long cache + ETag.
@@ -284,7 +310,7 @@ describe('avatar', () => {
     check('非法 base64 -> ok=false', g1.data?.setGuildAvatar?.ok === false, JSON.stringify(g1.data?.setGuildAvatar));
     eq('非法 base64 errorCode', g1.data?.setGuildAvatar?.errorCode, 'avatarDataInvalid');
     // After a rejection the old avatar is unaffected.
-    eq('拒绝后头像仍是 PNG 版', state.avatars.get('test1')?.hash, pngHash);
+    eq('拒绝后头像仍是 PNG 版', state.avatars.get(GID1)?.hash, pngHash);
 
     // Switching to JPEG: hash/URL/served type follow.
     const jpg = jpegBytes();
@@ -348,8 +374,8 @@ describe('avatar', () => {
   it('[3/3] Webhook send body: identity switching between both states', async () => {
     {
       const { db: db2 } = makeDb({
-        tenants: [{ slug: 'test1', guild_name: '测试一业', slogan: '', password_hash: pwHash }],
-        settings: { 'test1::heirloom_webhook': 'https://discord.test/webhook' },
+        tenants: [{ id: GID1, slug: 'test1', guild_name: '测试一业', slogan: '', password_hash: pwHash }],
+        settings: { [`${GID1}::heirloom_webhook`]: 'https://discord.test/webhook' },
       });
       const sent = [];
       const realFetch = globalThis.fetch;
