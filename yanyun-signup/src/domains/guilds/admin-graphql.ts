@@ -58,9 +58,8 @@ import {
   insertLottery, insertLotteryEntry, insertLotteryWinner, markLotteryDrawn,
   drawWinners,
 } from '../groupings/index.ts';
-import { listGuildMembers, getGuildMember, listUserIdsByDiscordIds, getDiscordIdByUserId, getUserIdByDiscordId, ensureUserIdByDiscordId } from '../identity/index.ts';
+import { listGuildMembers, getGuildMember, upsertGuildMember, listUserIdsByDiscordIds, getDiscordIdByUserId, getUserIdByDiscordId, ensureUserIdByDiscordId } from '../identity/index.ts';
 import { getGuildNick } from '../identity/auth.ts';
-import { upsertGuildMember } from '../groupings/index.ts';
 import {
   listApplicationsByTenant, getApplicationByTenant, reviewApplication,
   listMentorIds, insertMentor, deleteMentor,

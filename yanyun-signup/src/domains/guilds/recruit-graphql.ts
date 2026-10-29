@@ -234,15 +234,17 @@ export class HomeRecruitSectionShell extends ShellBase {
       const db = this.db;
       const results = await listTenantsDirectory(db).catch(() => []);
       const bindRows = await listSettingsByKey(db, 'discord_guild_id').catch(() => []);
-      const bindSet = new Set((bindRows || []).filter((r: any) => r.value).map((r: any) => r.tenant));
+      // Settings rows key by guild ID since 0036; the directory rows
+      // are tenant rows, so membership is tested by ID, not slug.
+      const bindSet = new Set((bindRows || []).filter((r: any) => r.value).map((r: any) => Number(r.tenant)));
       const devRows = await listSettingsByKey(db, 'dev_only').catch(() => []);
-      const devSet = new Set((devRows || []).filter((r: any) => String(r.value) === '1').map((r: any) => r.tenant));
+      const devSet = new Set((devRows || []).filter((r: any) => String(r.value) === '1').map((r: any) => Number(r.tenant)));
       const devVisible = isDevRequest(this.ctx.request);
       const guilds: any[] = [];
       const newcomer: any[] = [];
       for (const t of results || []) {
-        if (!bindSet.has(t.slug)) continue;
-        if (devSet.has(t.slug) && !devVisible) continue;
+        if (!bindSet.has(Number(t.id))) continue;
+        if (devSet.has(Number(t.id)) && !devVisible) continue;
         let isMember = false;
         if (this.ctx.user) {
           const a = await getGuildAccess(db, this.ctx.user, t.slug, this.ctx.request).catch(() => null);
