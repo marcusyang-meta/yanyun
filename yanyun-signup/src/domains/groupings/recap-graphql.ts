@@ -33,6 +33,7 @@ import { fmtStartsAt, tierLocked, tierSurfaceState } from '../platform/index.ts'
 import { recapProviderFromEnv } from '../platform/index.ts';
 import type { RecapProvider } from '../platform/index.ts';
 import { getEventRow } from './events.ts';
+import { getTenantRowById } from '../guilds/tenants.ts';
 import { getGuildIdBySlug } from '../guilds/index.ts';
 import { getRecapByEvent, listRecapsByTenant } from './recaps.ts';
 import type { RecapRow } from './recaps.ts';
@@ -127,7 +128,10 @@ export async function recapSurfaceForGrouping(
   providerOverride?: RecapProvider | null,
 ): Promise<ShellBase | null> {
   const db = ctx.env.DB;
-  const state = await tierSurfaceState(db, ev.tenant, 3);
+  // tierSurfaceState addresses guilds by slug; the event row keys
+  // by guild ID, so resolve the tenant row for its slug first.
+  const tenantRow = await getTenantRowById(db, ev.tenant).catch(() => null);
+  const state = await tierSurfaceState(db, tenantRow ? tenantRow.slug : '', 3);
   if (state === 'absent') return null;
   if (state === 'locked') return new GroupingRecapLockedShell(ctx, {});
   const provider = providerOverride === undefined ? recapProviderFromEnv(ctx.env) : providerOverride;
