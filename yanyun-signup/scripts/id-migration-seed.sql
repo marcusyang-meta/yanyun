@@ -95,9 +95,18 @@ INSERT INTO grouping_custom_fields (owner_kind, owner_id, label, field_type, opt
 INSERT INTO signup_answers (event_id, signup_uid, field_id, value) VALUES
   (1, 'seat-uid-1', 1, '破竹');
 
+-- Share aliases: two live ones, plus two hostile rows — an alias
+-- whose car was dissolved (event 999 never exists here; the real
+-- event was deleted) and an alias whose guild is gone entirely.
+-- Dissolving a car never removed its alias (deleteEventCascade
+-- leaves short_links behind), so both shapes exist in production
+-- data; 0036 drops unresolvable short_links rows
+-- (DROP_UNRESOLVED) instead of failing the rebuild on them.
 INSERT INTO short_links (code, tenant, event_id, created_at) VALUES
   ('abc1234', 'jiliguala', 1, 0),
-  ('xyz9876', 'fengyue', 3, 0);
+  ('xyz9876', 'fengyue', 3, 0),
+  ('dead001', 'jiliguala', 999, 0),
+  ('dead002', 'ghost-guild', 1, 0);
 
 -- Lottery L1 (id 1) day 298, sourced from E1; entries/winners carry
 -- class A Discord IDs (winner broadcasts).
