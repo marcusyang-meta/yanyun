@@ -38,7 +38,7 @@ import {
 } from '../platform/graphql-base.ts';
 import type { OfficerCapability, OfficerVerdict } from '../platform/graphql-base.ts';
 import { fmtStartsAt, tierLocked, tierSurfaceState } from '../platform/index.ts';
-import { listGuildMembers } from '../identity/index.ts';
+import { listGuildMembers, ensureUserIdByDiscordId, getUserIdByDiscordId, listDiscordIdsByUserIds, listUserIdsByDiscordIds } from '../identity/index.ts';
 import {
   listOfficerGrants, upsertOfficerGrant, deleteOfficerGrant,
   parseCapabilities, insertOfficerPost, getOfficerPost,
@@ -119,7 +119,7 @@ export class GuildCapabilityOptionShell extends ShellBase {
 
 export class GuildOfficerGrantShell extends ShellBase {
   get row(): OfficerGrantRow { return this.data.row; }
-  genDiscordId(){ return String(this.row.discord_id); }
+  genDiscordId(){ return String(this.data.discordId || ''); }
   genDisplayName(){ return this.data.displayName || ''; }
   genCapabilities(){ return parseCapabilities(this.row.capabilities, OFFICER_CAPABILITIES); }
   genCapabilityLabels(){
@@ -153,7 +153,7 @@ export class GuildOfficerBoardPostShell extends ShellBase {
       : null;
   }
   genMine(){
-    return !!(this.ctx.user && String(this.ctx.user.discordId) === String(this.row.author_discord_id));
+    return !!(this.ctx.user && Number(this.ctx.user.userId) === Number(this.row.author_user_id));
   }
   genCanDelete(){ return !!this.data.canDelete; }
   genCreatedAtText(){ return fmtStartsAt(this.row.created_at, this.locale, this.ctx.tz); }
@@ -217,6 +217,7 @@ const GOVERNANCE_PAGE_TEXT_SPEC: [string, string][] = [
 export class GuildGovernancePageShell extends ShellBase {
   __typename = 'GuildGovernancePage';
   get slug(): string { return this.data.slug; }
+  get guildId(): number { return this.verdict.access.tenant.id; }
   get verdict(): OfficerVerdict { return this.data.verdict; }
   genCanManageGrants(){ return this.verdict.isAdmin; }
   /* Grant list: composed only for Discord admins (see header). */
@@ -224,16 +225,29 @@ export class GuildGovernancePageShell extends ShellBase {
     return this.memo('officers', async () => {
       if (!this.verdict.isAdmin) return [];
       const [grants, roster] = await Promise.all([
-        listOfficerGrants(this.db, this.slug).catch(() => []),
-        listGuildMembers(this.db, this.slug).catch(() => []),
+        listOfficerGrants(this.db, this.guildId).catch(() => []),
+        listGuildMembers(this.db, this.guildId).catch(() => []),
       ]);
       const nameById = new Map<string, string>();
       for (const m of roster || []) {
         const display = String(m.nick || '').trim() || String(m.global_name || '').trim();
         if (display) nameById.set(String(m.discord_id), display);
       }
+      // Grants are keyed by user ID; the surface keeps speaking
+      // Discord IDs (the roster's key space), resolved through the
+      // users rows — the only sanctioned conversion point.
+      const discordByUser = await listDiscordIdsByUserIds(
+        this.db, (grants || []).map((g) => Number(g.user_id))).catch(() => new Map<number, string>());
+      const userByDiscord = await listUserIdsByDiscordIds(
+        this.db, (roster || []).map((m) => String(m.discord_id))).catch(() => new Map<string, number>());
       return (grants || []).map((row) => new GuildOfficerGrantShell(this.ctx, {
-        row, displayName: nameById.get(String(row.discord_id)) || '',
+        row,
+        discordId: discordByUser.get(Number(row.user_id)) || '',
+        displayName: (() => {
+          const did = discordByUser.get(Number(row.user_id));
+          return (did && nameById.get(did)) || '';
+        })(),
+        userByDiscord,
       }));
     });
   }
@@ -250,12 +264,14 @@ export class GuildGovernancePageShell extends ShellBase {
       if (!this.verdict.isAdmin) return [];
       const dgid = this.verdict.access.discordGuildId || '';
       const [roster, grants] = await Promise.all([
-        listGuildMembers(this.db, this.slug).catch(() => []),
-        listOfficerGrants(this.db, this.slug).catch(() => []),
+        listGuildMembers(this.db, this.guildId).catch(() => []),
+        listOfficerGrants(this.db, this.guildId).catch(() => []),
       ]);
+      const userByDiscord = await listUserIdsByDiscordIds(
+        this.db, (roster || []).map((m) => String(m.discord_id))).catch(() => new Map<string, number>());
       const capsById = new Map<string, string[]>();
       for (const g of grants || []) {
-        capsById.set(String(g.discord_id), parseCapabilities(g.capabilities, OFFICER_CAPABILITIES));
+        capsById.set(String(g.user_id), parseCapabilities(g.capabilities, OFFICER_CAPABILITIES));
       }
       const out: GuildGovernanceRosterMemberShell[] = [];
       for (const m of roster || []) {
@@ -270,7 +286,7 @@ export class GuildGovernancePageShell extends ShellBase {
           discordId,
           displayName: String(m.nick || '').trim() || String(m.global_name || '').trim(),
           isAdmin,
-          capabilities: capsById.get(discordId) || [],
+          capabilities: capsById.get(String(userByDiscord.get(discordId) || 0)) || [],
         }));
       }
       out.sort((a, b) => String(a.data.displayName).localeCompare(String(b.data.displayName), 'zh-Hans-CN'));
@@ -279,25 +295,25 @@ export class GuildGovernancePageShell extends ShellBase {
   }
   genBoardPosts(){
     return this.memo('boardPosts', async () => {
-      const rows = await listOfficerPosts(this.db, this.slug).catch(() => []);
-      const viewerId = this.ctx.user ? String(this.ctx.user.discordId) : '';
+      const rows = await listOfficerPosts(this.db, this.guildId).catch(() => []);
+      const viewerId = this.ctx.user ? Number(this.ctx.user.userId) : 0;
       const isAdmin = !!this.verdict.isAdmin;
       return (rows || []).map((row) => new GuildOfficerBoardPostShell(this.ctx, {
         row,
         // Same rule the delete mutation enforces: author or admin.
-        canDelete: isAdmin || (!!viewerId && viewerId === String(row.author_discord_id)),
+        canDelete: isAdmin || (!!viewerId && viewerId === Number(row.author_user_id)),
       }));
     });
   }
   genAuditEvents(args: { limit?: number | null; offset?: number | null }){
     const limit = args && args.limit != null ? Number(args.limit) : undefined;
     const offset = args && args.offset != null ? Number(args.offset) : undefined;
-    return listGuildAuditEvents(this.db, this.slug, limit, offset)
+    return listGuildAuditEvents(this.db, this.guildId, limit, offset)
       .then((rows) => (rows || []).map((row) => new GuildAuditEventShell(this.ctx, { row })))
       .catch(() => []);
   }
   genAuditTotalCount(){
-    return countGuildAuditEvents(this.db, this.slug).catch(() => 0);
+    return countGuildAuditEvents(this.db, this.guildId).catch(() => 0);
   }
 }
 
@@ -340,7 +356,7 @@ async function governanceGate(
   if (!verdict.exists) return { fail: govFail(ctx, 'guildNotFound') };
   if (level === 'admin' && !verdict.isAdmin) return { fail: govFail(ctx, 'adminOnly') };
   if (level === 'officer' && !verdict.isOfficer) return { fail: govFail(ctx, 'capabilityRequired') };
-  if (await tierLocked(ctx.env.DB, verdict.access.slug, 3)) {
+  if (await tierLocked(ctx.env.DB, verdict.access.tenant.id, 3)) {
     return { fail: govFail(ctx, 'governanceTierRequired') };
   }
   return { verdict };
@@ -360,7 +376,7 @@ export const guildGovernanceMutations = {
     const g = await governanceGate(ctx, slug, 'admin');
     if ('fail' in g) return g.fail;
     const db = ctx.env.DB;
-    const tenant = g.verdict.access.slug;
+    const tenant = g.verdict.access.tenant.id;
     const target = String(memberDiscordId || '');
     const roster = await listGuildMembers(db, tenant).catch(() => []);
     const member = (roster || []).find((m) => String(m.discord_id) === target);
@@ -370,7 +386,7 @@ export const guildGovernanceMutations = {
       .map((c) => String(c)).filter((c) => known.has(c)))];
     const now = Math.floor(Date.now() / 1000);
     await upsertOfficerGrant(db, {
-      tenant, discordId: target, capabilities: caps,
+      tenant, userId: await ensureUserIdByDiscordId(db, target), capabilities: caps,
       grantedBy: ctx.user ? String(ctx.user.discordId) : '',
       grantedByName: ctx.user ? String(ctx.user.name || '') : '',
       at: now,
@@ -395,9 +411,10 @@ export const guildGovernanceMutations = {
     const g = await governanceGate(ctx, slug, 'admin');
     if ('fail' in g) return g.fail;
     const db = ctx.env.DB;
-    const tenant = g.verdict.access.slug;
+    const tenant = g.verdict.access.tenant.id;
     const target = String(memberDiscordId || '');
-    const removed = await deleteOfficerGrant(db, tenant, target);
+    const targetUserId = await getUserIdByDiscordId(db, target).catch(() => null);
+    const removed = targetUserId == null ? false : await deleteOfficerGrant(db, tenant, targetUserId);
     if (removed) {
       const roster = await listGuildMembers(db, tenant).catch(() => []);
       const member = (roster || []).find((m) => String(m.discord_id) === target);
@@ -421,14 +438,14 @@ export const guildGovernanceMutations = {
     const g = await governanceGate(ctx, slug, 'officer');
     if ('fail' in g) return g.fail;
     const db = ctx.env.DB;
-    const tenant = g.verdict.access.slug;
+    const tenant = g.verdict.access.tenant.id;
     const clean = String(body ?? '').trim();
     if (!clean) return govFail(ctx, 'officerBoardBodyRequired');
     if (clean.length > OFFICER_POST_MAX_BODY) return govFail(ctx, 'officerBoardBodyTooLong');
     const now = Math.floor(Date.now() / 1000);
     const id = await insertOfficerPost(db, {
       tenant, body: clean,
-      authorDiscordId: ctx.user ? String(ctx.user.discordId) : '',
+      authorUserId: ctx.user ? Number(ctx.user.userId) : 0,
       authorName: ctx.user ? String(ctx.user.name || '') : '',
       createdAt: now,
     });
@@ -450,11 +467,11 @@ export const guildGovernanceMutations = {
     const g = await governanceGate(ctx, slug, 'officer');
     if ('fail' in g) return g.fail;
     const db = ctx.env.DB;
-    const tenant = g.verdict.access.slug;
+    const tenant = g.verdict.access.tenant.id;
     const id = parseInt(String(postId), 10) || 0;
     const row = await getOfficerPost(db, tenant, id);
     if (!row) return govFail(ctx, 'officerBoardPostNotFound');
-    const mine = !!(ctx.user && String(ctx.user.discordId) === String(row.author_discord_id));
+    const mine = !!(ctx.user && Number(ctx.user.userId) === Number(row.author_user_id));
     if (!mine && !g.verdict.isAdmin) return govFail(ctx, 'capabilityRequired');
     await deleteOfficerPost(db, tenant, id);
     await recordGuildAudit(db, {

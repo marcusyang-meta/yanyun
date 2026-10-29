@@ -17,8 +17,9 @@
  *
  * Roster sources, unioned (either one grants):
  *   1. The living roster: the global-scope settings row under
- *      PLATFORM_ADMIN_ROSTER_KEY, a JSON array of Discord user IDs,
- *      read through the settings repository (data layer). Written by
+ *      PLATFORM_ADMIN_ROSTER_KEY, a JSON array of user IDs (the key
+ *      name predates the ID reform and is kept), read through the
+ *      settings repository (data layer). Written by
  *      the platform-admin roster mutation on the admin surface
  *      itself, audited with the acting admin's real user ID. Day to
  *      day roster changes go here.
@@ -34,17 +35,17 @@
  * roster JSON all evaluate to NOT admin. A broken roster locks the
  * admin surface; it never opens it.
  *
- * Identity key note (#92 reconciliation point): subjects are Discord
- * user IDs because that is the platform's identity key today — the
- * session resolves a user by Discord ID and the VC's viewerId IS the
- * Discord ID (see identity/auth.ts and platform/context.ts). When
- * the ID reform (PR #92) re-keys user references to the typed
- * numeric user ID, this module's subject and both roster sources
- * migrate together; the roster rows store identity keys, not a
- * separate user reference, so the migration is a value rewrite of
- * one settings row plus the env var, called out here so it is not
- * missed. */
+ * Identity key note (reconciled by the ID reform, PR #92): the
+ * subject is the viewer's typed numeric user ID — sessions carry it
+ * and the VC's viewerId IS that ID (see identity/auth.ts and
+ * platform/context.ts). The roster row stores user IDs: the
+ * migration rewrote the stored JSON in place, and the roster
+ * mutation resolves the Discord IDs it is handed to user IDs
+ * before storing. The env floor still names Discord IDs (its
+ * variable name stays honest) and resolves through the users rows
+ * at verdict time; see listPlatformAdminIds. */
 import { getSettingValue, setSettingValue } from '../guilds/settings.ts';
+import { getUserIdByDiscordId } from '../identity/users.ts';
 
 export const PLATFORM_ADMIN_ROSTER_KEY = 'platform_admin_discord_ids';
 
@@ -91,13 +92,23 @@ interface AdminGateEnv {
   PLATFORM_ADMIN_DISCORD_IDS?: string;
 }
 
-/** The full effective roster: env floor first, then roster extras. */
+/** The full effective roster: env floor first, then roster extras.
+ * The roster row stores user IDs (the ID reform rewrote it in
+ * place); the env floor still names Discord IDs — ops configuration
+ * predates the reform and its variable name stays honest — so floor
+ * entries resolve through the users rows at verdict time and an
+ * entry whose owner has no account yet contributes nothing. */
 export async function listPlatformAdminIds(env: AdminGateEnv): Promise<string[]> {
-  const floor = parseAdminEnvIds(env?.PLATFORM_ADMIN_DISCORD_IDS);
+  const floorDiscord = parseAdminEnvIds(env?.PLATFORM_ADMIN_DISCORD_IDS);
+  const floor: string[] = [];
+  for (const did of floorDiscord) {
+    const uid = env?.DB ? await getUserIdByDiscordId(env.DB, did).catch(() => null) : null;
+    if (uid != null) floor.push(String(uid));
+  }
   let roster: string[] = [];
   try {
     roster = parseAdminRosterJson(
-      await getSettingValue(env.DB, '', PLATFORM_ADMIN_ROSTER_KEY),
+      await getSettingValue(env.DB, 0, PLATFORM_ADMIN_ROSTER_KEY),
     );
   } catch {
     roster = [];
@@ -128,6 +139,6 @@ export async function setPlatformAdminRoster(
   ids: string[],
 ): Promise<string[]> {
   const clean = normalizeAdminIds(ids);
-  await setSettingValue(d1, '', PLATFORM_ADMIN_ROSTER_KEY, JSON.stringify(clean));
+  await setSettingValue(d1, 0, PLATFORM_ADMIN_ROSTER_KEY, JSON.stringify(clean));
   return clean;
 }

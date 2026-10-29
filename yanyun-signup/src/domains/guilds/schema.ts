@@ -400,11 +400,11 @@ export const guildAlliances = sqliteTable('guild_alliances', {
  * the ownership-proof secret the admin publishes as a TXT record.
  * Repository + verdicts live in customdomain.ts. */
 export const guildCustomDomains = sqliteTable('guild_custom_domains', {
-  tenant: text('tenant').primaryKey(),
+  tenant: integer('tenant').primaryKey(),
   hostname: text('hostname').notNull(),
   status: text('status').notNull().default('pending'),
   verifyToken: text('verify_token').notNull().default(''),
-  createdBy: text('created_by').notNull().default(''),
+  createdByUserId: integer('created_by_user_id').notNull().default(0),
   createdAt: integer('created_at').notNull().default(0),
   updatedAt: integer('updated_at').notNull().default(0),
   verifiedAt: integer('verified_at'),
@@ -421,11 +421,11 @@ export const guildCustomDomains = sqliteTable('guild_custom_domains', {
  * is computed at read time; this entity stores only the admin-set
  * lines, never member results (freeze-not-delete on lapse). */
 export const guildGearStandards = sqliteTable('guild_gear_standards', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  tenant: text('tenant').notNull(),
+  id: integer('id').primaryKey(),
+  tenant: integer('tenant').notNull(),
   label: text('label').notNull().default(''),
   minScore: integer('min_score').notNull().default(0),
-  createdBy: text('created_by').notNull().default(''),
+  createdByUserId: integer('created_by_user_id').notNull().default(0),
   createdAt: integer('created_at').notNull().default(0),
   updatedAt: integer('updated_at').notNull().default(0),
 }, (t) => [
@@ -440,15 +440,15 @@ export const guildGearStandards = sqliteTable('guild_gear_standards', {
  * absence of a row IS the ungranted state. Discord admins are never
  * rows here — the admin verdict itself carries every capability. */
 export const guildOfficerGrants = sqliteTable('guild_officer_grants', {
-  tenant: text('tenant').notNull(),
-  discordId: text('discord_id').notNull(),
+  tenant: integer('tenant').notNull(),
+  userId: integer('user_id').notNull(),
   capabilities: text('capabilities').notNull().default(''),
   grantedBy: text('granted_by').notNull().default(''),
   grantedByName: text('granted_by_name').notNull().default(''),
   createdAt: integer('created_at').notNull().default(0),
   updatedAt: integer('updated_at').notNull().default(0),
 }, (t) => [
-  primaryKey({ columns: [t.tenant, t.discordId] }),
+  primaryKey({ columns: [t.tenant, t.userId] }),
 ]);
 
 /* ---------------- officer private board posts [migration 0029] ----
@@ -456,10 +456,10 @@ export const guildOfficerGrants = sqliteTable('guild_officer_grants', {
  * only to the guild's officers (Discord admins + granted capability
  * holders). Author snapshot caliber like guild_member_notes. */
 export const guildOfficerPosts = sqliteTable('guild_officer_posts', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  tenant: text('tenant').notNull(),
+  id: integer('id').primaryKey(),
+  tenant: integer('tenant').notNull(),
   body: text('body').notNull().default(''),
-  authorDiscordId: text('author_discord_id').notNull().default(''),
+  authorUserId: integer('author_user_id').notNull().default(0),
   authorName: text('author_name').notNull().default(''),
   createdAt: integer('created_at').notNull().default(0),
   updatedAt: integer('updated_at').notNull().default(0),
@@ -474,8 +474,8 @@ export const guildOfficerPosts = sqliteTable('guild_officer_posts', {
  * id + short label snapshot). Sensitive body text is never copied
  * here. Distinct from the platform hub_audit_log. */
 export const guildAuditEvents = sqliteTable('guild_audit_events', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  tenant: text('tenant').notNull(),
+  id: integer('id').primaryKey(),
+  tenant: integer('tenant').notNull(),
   actorDiscordId: text('actor_discord_id').notNull().default(''),
   actorName: text('actor_name').notNull().default(''),
   action: text('action').notNull().default(''),

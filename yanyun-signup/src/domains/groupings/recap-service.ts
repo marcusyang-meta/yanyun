@@ -138,14 +138,14 @@ export async function generateRecap(
   db: D1Database,
   env: Env,
   ev: EventRow,
-  actorDiscordId: string,
+  actorUserId: number,
   provider?: RecapProvider | null,
 ): Promise<GenerateRecapResult> {
   const prov = provider === undefined ? recapProviderFromEnv(env) : provider;
   if (!prov) return { ok: false, errorCode: 'recapProviderFailed' };
   const nowMs = Date.now();
   const nowSec = Math.floor(nowMs / 1000);
-  const limits = await getEffectiveLimits(db, { discordId: actorDiscordId, guildSlug: ev.tenant });
+  const limits = await getEffectiveLimits(db, { userId: actorUserId, guildId: ev.tenant });
   const used = await getAiRecapsUsedToday(db, ev.tenant, nowMs);
   if (used >= limits.aiRecapsPerDay) return { ok: false, errorCode: 'recapDailyLimit' };
   const pkg = await assembleRecapPackage(db, ev);
@@ -162,13 +162,13 @@ export async function generateRecap(
       paragraphsJson: JSON.stringify(clean),
       snapshotJson: JSON.stringify(summarizePackage(pkg)),
       provider: prov.id,
-      generatedBy: actorDiscordId,
+      generatedByUserId: actorUserId,
       atSec: nowSec,
     });
   } catch (e) {
     const message = (e instanceof Error ? e.message : String(e)).slice(0, 200);
     await upsertRecapFailed(db, {
-      tenant: ev.tenant, eventId: ev.id, generatedBy: actorDiscordId,
+      tenant: ev.tenant, eventId: ev.id, generatedByUserId: actorUserId,
       error: message, atSec: nowSec,
     }).catch(() => {});
     return { ok: false, errorCode: 'recapProviderFailed' };

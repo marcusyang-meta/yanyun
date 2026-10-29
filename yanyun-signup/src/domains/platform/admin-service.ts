@@ -172,8 +172,8 @@ export async function billingStateFor(env: Env): Promise<PlatformBillingState> {
   const tenants = await listTenantsHubAdmin(db);
   const out: PlatformBillingTenantState[] = [];
   for (const t of tenants) {
-    const eff = await getEffectiveEntitlement(db, t.slug);
-    const row = await getEntitlementRow(db, t.slug).catch(() => null);
+    const eff = await getEffectiveEntitlement(db, t.id);
+    const row = await getEntitlementRow(db, t.id).catch(() => null);
     // Tier display names come from the backend plan catalog (the
     // same PREMIUM_PLANS rows the guild-admin pricing panel composes
     // from) — clients render what they are given and hardcode no
@@ -196,9 +196,9 @@ export async function billingStateFor(env: Env): Promise<PlatformBillingState> {
       trialUsed: row ? !!row.trialUsed : false,
       stripeCustomerId: row ? row.stripeCustomerId : '',
       stripeSubscriptionId: row ? row.stripeSubscriptionId : '',
-      subdomainEnabled: (await getSettingValue(db, t.slug, SUBDOMAIN_ENABLED_KEY)) === '1',
+      subdomainEnabled: (await getSettingValue(db, t.id, SUBDOMAIN_ENABLED_KEY)) === '1',
       customDomain: await (async () => {
-        const b = await getCustomDomainByTenant(db, t.slug).catch(() => null);
+        const b = await getCustomDomainByTenant(db, t.id).catch(() => null);
         return b ? { hostname: b.hostname, status: b.status } : null;
       })(),
     });

@@ -16,7 +16,7 @@
 import { getShortLinkByCode, SHORT_CODE_RE } from './shortlinks.ts';
 import { getEventRowByTenant } from './events.ts';
 import { listSignupSeats } from './signups.ts';
-import { getTenantRow } from '../guilds/tenants.ts';
+import { getTenantRowById } from '../guilds/tenants.ts';
 import { getSettingValue } from '../guilds/settings.ts';
 
 /* The dev_only visibility verdict is the caller's to compute (the
@@ -59,7 +59,7 @@ export async function resolveSharedGrouping(
   const ev = await getEventRowByTenant(d1, link.event_id, link.tenant);
   if (!ev) return null; // car disbanded/deleted after the link was shared
   if (ev.status === 'draft') return null;
-  const tenant = await getTenantRow(d1, link.tenant);
+  const tenant = await getTenantRowById(d1, link.tenant);
   if (!tenant) return null;
   // dev_only guilds count as nonexistent from non-dev origins.
   const devOnly = (await getSettingValue(d1, link.tenant, 'dev_only')) === '1';
@@ -72,7 +72,7 @@ export async function resolveSharedGrouping(
     seats.push({ index: i, occupied: !!rows[i] });
   }
   return {
-    slug: link.tenant,
+    slug: tenant.slug,
     guildName: tenant.guild_name || '',
     eventId: ev.id,
     title: ev.title,

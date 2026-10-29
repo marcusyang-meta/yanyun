@@ -9,6 +9,7 @@
 import { sql } from 'drizzle-orm';
 import { createDb } from '../../db/client.ts';
 import { guildGearStandards } from './schema.ts';
+import { mintPublicId } from '../platform/id-mint.ts';
 
 const col = (name: string) => sql.identifier(name);
 
@@ -17,10 +18,10 @@ export const GEAR_STANDARD_MAX_LABEL = 40;
 
 export interface GearStandardRow {
   id: number;
-  tenant: string;
+  tenant: number;
   label: string;
   min_score: number;
-  created_by: string;
+  created_by_user_id: number;
   created_at: number;
   updated_at: number;
 }
@@ -35,11 +36,11 @@ function metaOf(r: unknown): RunMeta {
   return { changes: m?.changes ?? 0, last_row_id: m?.last_row_id ?? 0 };
 }
 
-const STANDARD_COLS = sql`${guildGearStandards.id}, ${guildGearStandards.tenant}, ${guildGearStandards.label}, ${guildGearStandards.minScore}, ${guildGearStandards.createdBy}, ${guildGearStandards.createdAt}, ${guildGearStandards.updatedAt}`;
+const STANDARD_COLS = sql`${guildGearStandards.id}, ${guildGearStandards.tenant}, ${guildGearStandards.label}, ${guildGearStandards.minScore}, ${guildGearStandards.createdByUserId}, ${guildGearStandards.createdAt}, ${guildGearStandards.updatedAt}`;
 
 /** All threshold lines of one guild, oldest first. */
 export async function listGearStandards(
-  d1: D1Database, tenant: string,
+  d1: D1Database, tenant: number,
 ): Promise<GearStandardRow[]> {
   const db = createDb(d1);
   const rows = await db.all<GearStandardRow>(
@@ -50,7 +51,7 @@ export async function listGearStandards(
 
 /** One threshold line of one guild; null when it does not exist THERE. */
 export async function getGearStandard(
-  d1: D1Database, tenant: string, id: number,
+  d1: D1Database, tenant: number, id: number,
 ): Promise<GearStandardRow | null> {
   const db = createDb(d1);
   const row = await db.get<GearStandardRow>(
@@ -62,21 +63,23 @@ export async function getGearStandard(
 /** Insert one threshold line; returns the new row id. */
 export async function insertGearStandard(
   d1: D1Database,
-  row: { tenant: string; label: string; minScore: number; createdBy: string; createdAt: number },
+  row: { tenant: number; label: string; minScore: number; createdByUserId: number; createdAt: number },
 ): Promise<number> {
   const db = createDb(d1);
+  // The standard ID (type code 32) is minted in the data layer.
+  const id = await mintPublicId(d1, 'gearStandard');
   // INSERT column lists must use bare column names (SQLite syntax); see settings.ts note.
-  const r = await db.run(
-    sql`INSERT INTO ${guildGearStandards} (${col('tenant')}, ${col('label')}, ${col('min_score')}, ${col('created_by')}, ${col('created_at')}, ${col('updated_at')})
-        VALUES (${row.tenant}, ${row.label}, ${row.minScore}, ${row.createdBy}, ${row.createdAt}, ${row.createdAt})`,
+  await db.run(
+    sql`INSERT INTO ${guildGearStandards} (${col('id')}, ${col('tenant')}, ${col('label')}, ${col('min_score')}, ${col('created_by_user_id')}, ${col('created_at')}, ${col('updated_at')})
+        VALUES (${id}, ${row.tenant}, ${row.label}, ${row.minScore}, ${row.createdByUserId}, ${row.createdAt}, ${row.createdAt})`,
   );
-  return metaOf(r).last_row_id;
+  return id;
 }
 
 /** Update one threshold line of one guild; false when not there. */
 export async function updateGearStandard(
   d1: D1Database,
-  row: { tenant: string; id: number; label: string; minScore: number; updatedAt: number },
+  row: { tenant: number; id: number; label: string; minScore: number; updatedAt: number },
 ): Promise<boolean> {
   const db = createDb(d1);
   const r = await db.run(
@@ -88,7 +91,7 @@ export async function updateGearStandard(
 
 /** Delete one threshold line of one guild; false when not there. */
 export async function deleteGearStandard(
-  d1: D1Database, tenant: string, id: number,
+  d1: D1Database, tenant: number, id: number,
 ): Promise<boolean> {
   const db = createDb(d1);
   const r = await db.run(

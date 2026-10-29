@@ -38,6 +38,7 @@ import {
 } from './scheduling.ts';
 import { listSignupsByEvent, listEventsByTenantType } from './index.ts';
 import { listGuildAvailability, parseAvailabilitySlots, hasEventsByTenantCreator } from './index.ts';
+import { listDiscordIdsByUserIds } from '../identity/index.ts';
 
 export const SCHEDULING_REQUIRED_TIER = 2;
 
@@ -124,11 +125,15 @@ export async function composeGroupingSchedulingAdvice(ctx: Context, ev: any): Pr
     .filter(Boolean) as MemberFacts[];
   const rotation = rankRotation(applicants, Math.floor(Date.now() / 1000)).map((r) => entryOf(ctx, tt, r));
   const records = await listRotationAdviceRecords(db, ev.tenant, ev.id).catch(() => []);
+  // The record's creator is stored as a user ID; the surface keeps
+  // the pre-reform wire value (the saver's Discord ID, or 'omni'
+  // for the omniscient saver, which stores the 0 sentinel).
+  const creatorDiscord = await listDiscordIdsByUserIds(db, records.map((r: any) => Number(r.created_by_user_id))).catch(() => new Map<number, string>());
   (shell as any).data = {
     draft, substitutes, rotation,
     rotationRecords: records.map((r: any) => ({
       __typename: 'RotationAdviceRecord',
-      id: String(r.id), createdBy: r.created_by,
+      id: String(r.id), createdBy: Number(r.created_by_user_id) === 0 ? 'omni' : (creatorDiscord.get(Number(r.created_by_user_id)) || ''),
       createdAtText: r.created_at ? fmtStartsAt(r.created_at, (shell as any).locale, ctx.tz) : '',
       entriesJson: r.advice_json,
     })),
@@ -150,15 +155,16 @@ export async function composeBestSlotsAdvice(ctx: Context, slug: string): Promis
   const db = ctx.env.DB;
   const user = ctx.user;
   const admin = await getGuildAdminAccess(db, user, slug, ctx.request, vcOf(ctx));
+  const guildId = admin.tenant ? admin.tenant.id : 0;
   let allowed = !!admin.isAdmin;
-  if (!allowed && user) allowed = await hasEventsByTenantCreator(db, slug, String(user.discordId));
+  if (!allowed && user) allowed = await hasEventsByTenantCreator(db, guildId, Number(user.userId));
   if (!allowed) return null;
   const state = await tierSurfaceState(db, slug, SCHEDULING_REQUIRED_TIER);
   if (state === 'absent') return null;
   if (state === 'locked') {
     return new SchedulingAdviceLockedShell(ctx, {});
   }
-  const rows = await listGuildAvailability(db, slug);
+  const rows = await listGuildAvailability(db, guildId);
   const slots = rankBestSlots(rows.map((r: any) => ({ displayName: r.display_name || '', slots: parseAvailabilitySlots(r.slots_json) })));
   const shell = new SchedulingBestSlotsShell(ctx, {});
   (shell as any).data = {
@@ -185,8 +191,9 @@ export async function composeCrossCarAdvice(ctx: Context, slug: string): Promise
   const db = ctx.env.DB;
   const user = ctx.user;
   const admin = await getGuildAdminAccess(db, user, slug, ctx.request, vcOf(ctx));
+  const guildId = admin.tenant ? admin.tenant.id : 0;
   let allowed = !!admin.isAdmin;
-  if (!allowed && user) allowed = await hasEventsByTenantCreator(db, slug, String(user.discordId));
+  if (!allowed && user) allowed = await hasEventsByTenantCreator(db, guildId, Number(user.userId));
   if (!allowed) return null;
   const state = await tierSurfaceState(db, slug, SCHEDULING_REQUIRED_TIER);
   if (state === 'absent') return null;
@@ -197,7 +204,7 @@ export async function composeCrossCarAdvice(ctx: Context, slug: string): Promise
   const tt = (k: string, p?: any) => (shell as any).t(k, p);
   const cars: CarSnapshot[] = [];
   for (const type of ['activity', 'talent', 'race', 'tower']) {
-    const evs = await listEventsByTenantType(db, slug, type).catch(() => []);
+    const evs = await listEventsByTenantType(db, guildId, type).catch(() => []);
     for (const ev of evs as any[]) {
       const seats = await listSignupsByEvent(db, ev.id).catch(() => []);
       cars.push({
@@ -206,7 +213,7 @@ export async function composeCrossCarAdvice(ctx: Context, slug: string): Promise
       });
     }
   }
-  const facts = await buildMemberFacts(db, slug, null);
+  const facts = await buildMemberFacts(db, guildId, null);
   const factsById = new Map(facts.map((f) => [f.discordId, f]));
   const conflicts = crossCarConflicts(cars).map((c) => ({
     __typename: 'SchedulingCrossCarConflict',
@@ -247,7 +254,7 @@ export const schedulingAdviceResolvers = {
       const { getEventRow } = await import('./index.ts');
       const ev: any = await getEventRow(db, groupingId).catch(() => null);
       if (!ev) return sFail(ctx, 'groupingNotFound');
-      const gate = await groupingManageGate(db, ctx.user, ctx.request, vcOf(ctx), { tenant: ev.tenant, creator_discord_id: ev.creator_discord_id });
+      const gate = await groupingManageGate(db, ctx.user, ctx.request, vcOf(ctx), { tenant: ev.tenant, creator_user_id: ev.creator_user_id });
       if (gate.writeCode) return sFail(ctx, gate.writeCode);
       if (!gate.canManage) return sFail(ctx, 'groupingForbidden');
       if (await tierLocked(db, ev.tenant, SCHEDULING_REQUIRED_TIER)) return sFail(ctx, 'premiumRequired');
@@ -258,7 +265,7 @@ export const schedulingAdviceResolvers = {
       const now = Math.floor(Date.now() / 1000);
       const ranked = rankRotation(applicants, now);
       await insertRotationAdviceRecord(db, {
-        tenant: ev.tenant, eventId: ev.id, createdBy: ctx.user ? String(ctx.user.discordId) : 'omni', createdAt: now,
+        tenant: ev.tenant, eventId: ev.id, createdByUserId: ctx.user ? Number(ctx.user.userId) : 0, createdAt: now,
         adviceJson: JSON.stringify(ranked.map((r) => ({ discordId: r.facts.discordId, displayName: r.facts.displayName, score: r.score, reasonKeys: r.reasons.map((x) => x.key) }))),
       });
       return new SchedulingAdvicePayloadShell(ctx, { ok: true });

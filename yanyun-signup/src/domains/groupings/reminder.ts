@@ -398,7 +398,7 @@ if (customText) descLines.push(customText);
 // else keeps the main-host URL, byte-identical.
 const subOrigin = await isGuildSubdomainEnabled(db, slug).catch(() => false)
   ? guildSubdomainOrigin(slug) : null;
-const brandedOrigin = await guildCustomDomainOrigin(db, slug).catch(() => null) || subOrigin;
+const brandedOrigin = await guildCustomDomainOrigin(db, (await getGuildIdBySlug(db, slug).catch(() => null)) ?? 0).catch(() => null) || subOrigin;
 const embed = {
 title: String(ev.title || ''),
 url: brandedOrigin ? `${brandedOrigin}/car/${ev.id}` : carDetailUrl(slug, ev.id),

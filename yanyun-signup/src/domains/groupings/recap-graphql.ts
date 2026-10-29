@@ -33,6 +33,7 @@ import { fmtStartsAt, tierLocked, tierSurfaceState } from '../platform/index.ts'
 import { recapProviderFromEnv } from '../platform/index.ts';
 import type { RecapProvider } from '../platform/index.ts';
 import { getEventRow } from './events.ts';
+import { getGuildIdBySlug } from '../guilds/index.ts';
 import { getRecapByEvent, listRecapsByTenant } from './recaps.ts';
 import type { RecapRow } from './recaps.ts';
 import { generateRecap, recapParagraphs, recapSnapshot } from './recap-service.ts';
@@ -122,7 +123,7 @@ export class GroupingRecapReadyShell extends ShellBase {
  *  nothing and the provider resolves from env. */
 export async function recapSurfaceForGrouping(
   ctx: Context,
-  ev: { id: number; tenant: string; status: string; creator_discord_id?: string | null },
+  ev: { id: number; tenant: number; status: string; creator_user_id?: number | null },
   providerOverride?: RecapProvider | null,
 ): Promise<ShellBase | null> {
   const db = ctx.env.DB;
@@ -176,7 +177,7 @@ export const recapResolvers = {
       if (await tierLocked(db, ev.tenant, 3)) return rFail(ctx, 'recapTierLocked');
       const provider = recapProviderFromEnv(ctx.env);
       if (!provider) return rFail(ctx, 'recapNotEnabled');
-      const result = await generateRecap(db, ctx.env, ev, String(ctx.user!.discordId), provider);
+      const result = await generateRecap(db, ctx.env, ev, Number(ctx.user!.userId), provider);
       if (!result.ok) return rFail(ctx, result.errorCode);
       const fresh = await getEventRow(db, gid);
       return new RecapPayloadShell(ctx, {
@@ -232,8 +233,9 @@ export async function adminRecapsForGuild(ctx: Context, slug: string): Promise<S
   const state = await tierSurfaceState(db, slug, 3);
   if (state === 'absent') return null;
   if (state === 'locked') return new GroupingRecapLockedShell(ctx, {});
+  const guildId = (await getGuildIdBySlug(db, slug).catch(() => null)) ?? 0;
   if (!recapProviderFromEnv(ctx.env)) return new GroupingRecapNotEnabledShell(ctx, {});
-  const rows = await listRecapsByTenant(db, slug);
+  const rows = await listRecapsByTenant(db, guildId);
   const items: GuildAdminRecapShell[] = [];
   for (const row of rows) {
     const ev = await getEventRow(db, row.event_id).catch(() => null);

@@ -33,7 +33,7 @@ export class OgGuildCardShell extends ShellBase {
   async genWeekActivityCount({ fromUtc, toUtc }: any){
     if (!this.data.tenant) return 0;
     const rows = await listEventsWeekView(this.db, {
-      tenant: this.data.tenant.slug, type: 'activity', from: fromUtc, to: toUtc,
+      tenant: this.data.tenant.id, type: 'activity', from: fromUtc, to: toUtc,
     });
     return rows.length;
   }
