@@ -13,6 +13,11 @@
 -- class A Discord-boundary columns (signups.discord_id,
 -- lottery_entries/winners.discord_id, ops recipient lists, the
 -- Discord-synced roster keys) are carried over byte-identical.
+-- One documented exception to strict remapping: short_links rows
+-- whose car no longer exists (or whose guild slug is gone) are
+-- dropped — a disbanded car's alias already resolves to a 404, so
+-- no reachable behavior changes (see DROP_UNRESOLVED in the
+-- generator).
 -- The _idmig_* tables are dropped at the end; the leading DROPs make
 -- the file re-runnable after a failed attempt.
 DROP TABLE IF EXISTS _idmig_guild;
@@ -933,7 +938,9 @@ CREATE TABLE short_links__new (
   created_at INTEGER NOT NULL DEFAULT 0
 );
 INSERT INTO short_links__new (code, tenant, event_id, created_at)
-SELECT o.code, CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, (SELECT new_id FROM _idmig_map_events WHERE old_key = CAST(o.event_id AS TEXT)), o.created_at FROM short_links o;
+SELECT o.code, CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, (SELECT new_id FROM _idmig_map_events WHERE old_key = CAST(o.event_id AS TEXT)), o.created_at FROM short_links o
+WHERE ((SELECT new_id FROM _idmig_map_events WHERE old_key = CAST(o.event_id AS TEXT))) IS NOT NULL
+  AND (o.tenant = '' OR (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) IS NOT NULL);
 DROP TABLE short_links;
 ALTER TABLE short_links__new RENAME TO short_links;
 CREATE UNIQUE INDEX short_links_target_unique ON short_links (tenant, event_id);
