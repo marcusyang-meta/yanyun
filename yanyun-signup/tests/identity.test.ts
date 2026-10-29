@@ -57,6 +57,16 @@ function toRawRows(sqlText, rows) {
     : Object.values(r)));
 }
 
+/* Typed-ID fixture keys: guilds/users carry their 0036 primary keys;
+   Discord-space values (roster rows, seat stamps, nicks) stay Discord
+   IDs by design. */
+const GID = { idtest: 1030100001, opentest: 1030100002, migtest: 1030100003 };
+const UID = {
+  UA: 2030100001, UB: 2030100002, UC0: 2030100003, UZ: 2030100004,
+  U1: 2030100005, U2: 2030100006, U3a: 2030100007, U3b: 2030100008,
+  U7: 2030100009, U8: 2030100010, U9: 2030100011,
+};
+
 /* ---------------- FakeDB ---------------- */
 function makeDb(fx = {}) {
   const tables = {
@@ -64,10 +74,11 @@ function makeDb(fx = {}) {
     settings: new Map(fx.settings || []),
     events: (fx.events || []).map((e) => ({ ...e })),
     signups: (fx.signups || []).map((r) => ({ ...r })),
-    users: new Map(fx.users || []),           // discord_id -> username
+    users: new Map((fx.users || []).map(([did, name]) => [did, { id: UID[did] || 0, username: name }])), // discord_id -> {id, username}
     nicks: (fx.nicks || []).map((r) => ({ ...r })), // {discord_id, guild_id, nick}
     guildMembers: (fx.guildMembers || []).map((r) => ({ ...r })),
     audit: [],
+    mint: new Map(),
   };
   let nextSignupId = 1000;
   const unknownSql = new Set();
@@ -82,8 +93,8 @@ function makeDb(fx = {}) {
         const b = this._binds;
         if (/FROM tenants WHERE slug/.test(sql)) return tables.tenants.find((t) => t.slug === b[0]) || null;
         if (/FROM settings/.test(sql)) {
-          // Two shapes: tenant/key two-binding form; or a tenant = '' literal binding only the key.
-          const k = /tenant = ''/.test(sql) ? `|${b[0]}` : `${b[0]}|${b[1]}`;
+          // Shapes: tenant/key two-binding form; or a tenant = 0 literal binding only the key (global-scope jobs).
+          const k = /tenant = 0/.test(sql) ? `0|${b[0]}` : `${b[0]}|${b[1]}`;
           const v = tables.settings.get(k);
           return v === undefined ? null : { value: v };
         }
@@ -94,7 +105,15 @@ function makeDb(fx = {}) {
         }
         if (/SELECT username FROM users/.test(sql)) {
           const u = tables.users.get(String(b[0]));
-          return u === undefined ? null : { username: u };
+          return u === undefined ? null : { username: u.username };
+        }
+        if (/FROM users/.test(sql) && /discord_id = \?/.test(sql)) {
+          const u = tables.users.get(String(b[0]));
+          return u === undefined ? null : { id: u.id, discord_id: String(b[0]), username: u.username };
+        }
+        if (/FROM users/.test(sql) && /WHERE id = \?/.test(sql)) {
+          const u = [...tables.users.values()].find((x) => x.id === Number(b[0]));
+          return u === undefined ? null : u;
         }
         if (/FROM guild_members/.test(sql) && /discord_id = \?/.test(sql)) {
           return tables.guildMembers.find((m) => m.tenant === b[0] && m.discord_id === String(b[1])) || null;
@@ -108,12 +127,24 @@ function makeDb(fx = {}) {
           const rows = tables.signups.filter((r) => r.event_id === Number(b[0]));
           return { c: rows.length, h: rows.filter((r) => r.role === '奶' || r.role === '治疗').length, m: ev ? ev.max_slots : 0 };
         }
+        if (/INSERT INTO id_mint_counters/.test(sql)) {
+          const key = `${b[0]}|${b[1]}`;
+          const seq = (tables.mint.get(key) || 0) + 1;
+          tables.mint.set(key, seq);
+          return { seq };
+        }
         if (/CREATE|ALTER|PRAGMA/.test(sql)) return null;
         unknownSql.add('first: ' + sql.slice(0, 90));
         return null;
       },
       async all() {
         const b = this._binds;
+        if (/INSERT INTO id_mint_counters/.test(sql)) {
+          const key = `${b[0]}|${b[1]}`;
+          const seq = (tables.mint.get(key) || 0) + 1;
+          tables.mint.set(key, seq);
+          return { results: [{ seq }] };
+        }
         if (/FROM settings/.test(sql)) {
           // The data layer reads settings via the .all() channel (drizzle db.get/all): point lookups and per-key scans.
           if (/tenant = \?/.test(sql)) {
@@ -139,10 +170,14 @@ function makeDb(fx = {}) {
         }
         if (/SELECT username FROM users/.test(sql)) {
           const u = tables.users.get(String(b[0]));
-          return { results: u === undefined ? [] : [{ username: u }] };
+          return { results: u === undefined ? [] : [{ username: u.username }] };
+        }
+        if (/FROM users/.test(sql) && /discord_id = \?/.test(sql)) {
+          const u = tables.users.get(String(b[0]));
+          return { results: u === undefined ? [] : [{ id: u.id, discord_id: String(b[0]), username: u.username }] };
         }
         if (/FROM events/.test(sql) && /origin = 'member'/.test(sql)) {
-          return { results: tables.events.filter((e) => e.origin === 'member' && (e.creator_discord_id == null || e.creator_discord_id === '')).sort((a, c) => a.id - c.id) };
+          return { results: tables.events.filter((e) => e.origin === 'member' && (e.creator_user_id == null || e.creator_user_id === 0)).sort((a, c) => a.id - c.id) };
         }
         if (/FROM signups WHERE event_id/.test(sql)) {
           return { results: tables.signups.filter((r) => r.event_id === Number(b[0])).sort((a, c) => a.id - c.id) };
@@ -157,6 +192,14 @@ function makeDb(fx = {}) {
         if (/FROM guild_members WHERE tenant = \?/.test(sql)) {
           return { results: tables.guildMembers.filter((m) => m.tenant === b[0]) };
         }
+        if (/FROM tenants/.test(sql) && /slug = \?/.test(sql)) {
+          const row = tables.tenants.find((t) => t.slug === b[0]) || null;
+          return { results: row ? [row] : [] };
+        }
+        if (/FROM tenants/.test(sql) && /WHERE id = \?/.test(sql)) {
+          const row = tables.tenants.find((t) => t.id === Number(b[0])) || null;
+          return { results: row ? [row] : [] };
+        }
         if (/FROM tenants/.test(sql)) return { results: tables.tenants };
         if (/CREATE|ALTER|PRAGMA/.test(sql)) return { results: [] };
         unknownSql.add('all: ' + sql.slice(0, 90));
@@ -167,11 +210,14 @@ function makeDb(fx = {}) {
         if (/CREATE|ALTER/.test(sql)) return { meta: { changes: 0 } };
         if (/INSERT INTO signups/.test(sql) && /SELECT \?/.test(sql)) {
           // join's conditional insert: seat only when not full and open.
-          const [gid, nickname, uid, role, weapon, stamp] = b;
-          const ev = tables.events.find((e) => e.id === Number(gid));
-          const count = tables.signups.filter((r) => r.event_id === Number(gid)).length;
+          // Binds follow the SQL column list (the minted id leads since 0036).
+          const cols = /INSERT INTO signups \(([^)]+)\)/.exec(sql)[1].split(',').map((c) => c.trim());
+          const v = {};
+          cols.forEach((c, i) => { v[c] = b[i]; });
+          const ev = tables.events.find((e) => e.id === Number(v.event_id));
+          const count = tables.signups.filter((r) => r.event_id === Number(v.event_id)).length;
           if (!ev || ev.status !== 'open' || count >= ev.max_slots) return { meta: { changes: 0 } };
-          const row = { id: nextSignupId++, event_id: Number(gid), nickname, uid, role, weapon, discord_id: stamp };
+          const row = { id: Number(v.id) || nextSignupId++, event_id: Number(v.event_id), nickname: v.nickname, uid: v.uid, role: v.role, weapon: v.weapon, discord_id: v.discord_id };
           tables.signups.push(row);
           return { meta: { changes: 1, last_row_id: row.id } };
         }
@@ -187,14 +233,14 @@ function makeDb(fx = {}) {
           return { meta: { changes: 1 } };
         }
         if (/INSERT INTO settings/.test(sql)) {
-          if (/VALUES\('', \?, '1'\)/.test(sql)) tables.settings.set(`|${b[0]}`, '1');
+          if (/VALUES\(0, \?, '1'\)/.test(sql)) tables.settings.set(`0|${b[0]}`, '1');
           else tables.settings.set(`${b[0]}|${b[1]}`, b[2]);
           return { meta: { changes: 1 } };
         }
-        if (/UPDATE events SET creator_discord_id/.test(sql)) {
+        if (/UPDATE events SET creator_user_id/.test(sql)) {
           const ev = tables.events.find((e) => e.id === Number(b[1]));
-          if (ev && (ev.creator_discord_id == null || ev.creator_discord_id === '')) {
-            ev.creator_discord_id = b[0];
+          if (ev && (ev.creator_user_id == null || ev.creator_user_id === 0)) {
+            ev.creator_user_id = b[0];
             return { meta: { changes: 1 } };
           }
           return { meta: { changes: 0 } };
@@ -217,9 +263,9 @@ function makeDb(fx = {}) {
 
 function ev(id, over = {}) {
   return {
-    id, tenant: 'idtest', type: 'activity', title: '车' + id, description: '', dungeon: '',
+    id, tenant: GID.idtest, type: 'activity', title: '车' + id, description: '', dungeon: '',
     max_slots: 10, starts_at: '', starts_at_utc: null, status: 'open', origin: 'member',
-    creator_discord_id: 'U1', created_by: '', reminder_sent_at: null, reminder_error: null,
+    creator_user_id: UID.U1, created_by: '', reminder_sent_at: null, reminder_error: null,
     ...over,
   };
 }
@@ -249,24 +295,24 @@ for (const f of ['seatSelfTabLabel', 'seatProxyTabLabel', 'seatSelfNameHint', 's
 let r: any;
 const A = makeDb({
   tenants: [
-    { slug: 'idtest', guild_name: '身份测试百业', slogan: '' },
-    { slug: 'opentest', guild_name: '公开百业', slogan: '' },
+    { id: GID.idtest, slug: 'idtest', guild_name: '身份测试百业', slogan: '' },
+    { id: GID.opentest, slug: 'opentest', guild_name: '公开百业', slogan: '' },
   ],
-  settings: [['idtest|discord_guild_id', 'G1']],
+  settings: [[`${GID.idtest}|discord_guild_id`, 'G1']],
   users: [['UA', '全局A'], ['UB', '全局B']],
   nicks: [{ discord_id: 'UA', guild_id: 'G1', nick: '服昵A' }],
   guildMembers: [
-    { tenant: 'idtest', discord_id: 'UC', nick: '服昵C', global_name: '全局C', updated_at: 1 },
-    { tenant: 'idtest', discord_id: 'UD', nick: '', global_name: '全局D', updated_at: 1 },
+    { tenant: GID.idtest, discord_id: 'UC', nick: '服昵C', global_name: '全局C', updated_at: 1 },
+    { tenant: GID.idtest, discord_id: 'UD', nick: '', global_name: '全局D', updated_at: 1 },
   ],
   events: [ev(101), ev(102), ev(103)],
   signups: [],
 });
 const envA = { DB: A.db };
-const userA = { discordId: 'UA', name: '全局A', guilds: ['G1'] };
-const userB = { discordId: 'UB', name: '会话名B', guilds: ['G1'] };
-const userC = { discordId: 'UC0', name: '会话名C', guilds: ['G1'] };
-const userZ = { discordId: 'UZ', name: '路人', guilds: [] };
+const userA = { userId: UID.UA, discordId: 'UA', name: '全局A', guilds: ['G1'] };
+const userB = { userId: UID.UB, discordId: 'UB', name: '会话名B', guilds: ['G1'] };
+const userC = { userId: UID.UC0, discordId: 'UC0', name: '会话名C', guilds: ['G1'] };
+const userZ = { userId: UID.UZ, discordId: 'UZ', name: '路人', guilds: [] };
 
 async function gql(query, { user = userA, variables } = {}) {
   const ctx = { env: envA, request: new Request('http://local/graphql'), user, locale: 'zh-CN', browserLocale: 'zh-CN', tz: 'Asia/Shanghai', executionCtx: undefined };
@@ -376,22 +422,23 @@ eq('seatProxyEmptyText (zh)', r.data?.groupingDetailPage?.seatProxyEmptyText, '�
 /* ---------------- Migration ---------------- */
 function migDb() {
   return makeDb({
-    tenants: [{ slug: 'migtest', guild_name: '迁移百业', slogan: '' }],
-    settings: [['migtest|discord_guild_id', 'G9']],
+    tenants: [{ id: GID.migtest, slug: 'migtest', guild_name: '迁移百业', slogan: '' }],
+    settings: [[`${GID.migtest}|discord_guild_id`, 'G9']],
+    users: [['U1', ''], ['U2', ''], ['U3a', ''], ['U3b', ''], ['U7', ''], ['U8', ''], ['U9', '']],
     guildMembers: [
-      { tenant: 'migtest', discord_id: 'U2', nick: '小明', global_name: '', updated_at: 1 },
-      { tenant: 'migtest', discord_id: 'U3a', nick: '重名', global_name: '', updated_at: 1 },
-      { tenant: 'migtest', discord_id: 'U3b', nick: '重名', global_name: '', updated_at: 1 },
+      { tenant: GID.migtest, discord_id: 'U2', nick: '小明', global_name: '', updated_at: 1 },
+      { tenant: GID.migtest, discord_id: 'U3a', nick: '重名', global_name: '', updated_at: 1 },
+      { tenant: GID.migtest, discord_id: 'U3b', nick: '重名', global_name: '', updated_at: 1 },
     ],
     events: [
-      ev(201, { tenant: 'migtest', creator_discord_id: null }),
-      ev(202, { tenant: 'migtest', creator_discord_id: null }),
-      ev(203, { tenant: 'migtest', creator_discord_id: null }),
-      ev(204, { tenant: 'migtest', creator_discord_id: null }),
-      ev(205, { tenant: 'migtest', creator_discord_id: 'U9' }),
-      ev(206, { tenant: 'migtest', creator_discord_id: null, origin: 'official' }),
-      ev(207, { tenant: 'migtest', creator_discord_id: null }),
-      ev(208, { tenant: 'migtest', creator_discord_id: '' }),
+      ev(201, { tenant: GID.migtest, creator_user_id: null }),
+      ev(202, { tenant: GID.migtest, creator_user_id: null }),
+      ev(203, { tenant: GID.migtest, creator_user_id: null }),
+      ev(204, { tenant: GID.migtest, creator_user_id: null }),
+      ev(205, { tenant: GID.migtest, creator_user_id: UID.U9 }),
+      ev(206, { tenant: GID.migtest, creator_user_id: null, origin: 'official' }),
+      ev(207, { tenant: GID.migtest, creator_user_id: null }),
+      ev(208, { tenant: GID.migtest, creator_user_id: 0 }),
     ],
     signups: [
       { id: 1, event_id: 201, nickname: '甲', uid: 'a', role: '输出', weapon: '破竹·樽', discord_id: 'U1' },
@@ -405,19 +452,19 @@ function migDb() {
   });
 }
 const M = migDb();
-const creatorOf = (id) => M.tables.events.find((e) => e.id === id)?.creator_discord_id;
+const creatorOf = (id) => M.tables.events.find((e) => e.id === id)?.creator_user_id;
 let sum = await runCreatorBackfillOnce(M.db);
 check('迁移执行 done', sum.done === true, JSON.stringify(sum));
 eq('迁移 stamped 数', sum.stamped, 3);
 eq('迁移 skipped 数', sum.skipped, 3);
-eq('201 座位戳命中 -> U1', creatorOf(201), 'U1');
-eq('202 名册唯一命中 -> U2', creatorOf(202), 'U2');
+eq('201 座位戳命中 -> U1 的 user id', creatorOf(201), UID.U1);
+eq('202 名册唯一命中 -> U2 的 user id', creatorOf(202), UID.U2);
 eq('203 重名歧义 -> 不补', creatorOf(203), null);
 eq('204 空座 -> 不补', creatorOf(204), null);
-eq('205 已有车头 -> 不动', creatorOf(205), 'U9');
+eq('205 已有车头 -> 不动', creatorOf(205), UID.U9);
 eq('206 官方车 -> 不碰', creatorOf(206), null);
 eq('207 无匹配 -> 不补', creatorOf(207), null);
-eq('208 空串车头按未记录处理 -> U8', creatorOf(208), 'U8');
+eq('208 零值车头按未记录处理 -> U8 的 user id', creatorOf(208), UID.U8);
 eq('审计行数 = 候选车数 6', M.tables.audit.length, 6);
 const auditOf = (id) => M.tables.audit.find((a) => a.event_id === id);
 eq('审计 201 reason', auditOf(201)?.reason, 'seat-stamp');
@@ -425,7 +472,7 @@ eq('审计 202 reason', auditOf(202)?.reason, 'roster-unique');
 eq('审计 203 outcome/reason', `${auditOf(203)?.outcome}/${auditOf(203)?.reason}`, 'skipped/ambiguous');
 eq('审计 204 reason', auditOf(204)?.reason, 'no-seat1');
 eq('审计 207 reason', auditOf(207)?.reason, 'no-match');
-eq('迁移标志已置位', M.tables.settings.get('|creator_backfill_v1'), '1');
+eq('迁移标志已置位', M.tables.settings.get('0|creator_backfill_v1'), '1');
 sum = await runCreatorBackfillOnce(M.db);
 check('迁移幂等: 二次运行 flag-set 跳过', sum.done === false && sum.reason === 'flag-set', JSON.stringify(sum));
 eq('迁移幂等: 审计不增行', M.tables.audit.length, 6);
@@ -435,17 +482,19 @@ eq('迁移幂等: 审计不增行', M.tables.audit.length, 6);
   it('migration host safety gate', async () => {
 // Host safety gate: preview / localhost never trigger; only production hosts run it.
 const H = makeDb({
-  events: [ev(301, { tenant: 'migtest', creator_discord_id: null })],
+  tenants: [{ id: GID.migtest, slug: 'migtest', guild_name: '迁移百业', slogan: '' }],
+  users: [['U1', '']],
+  events: [ev(301, { tenant: GID.migtest, creator_user_id: null })],
   signups: [{ id: 1, event_id: 301, nickname: '甲', uid: 'a', role: '输出', weapon: '破竹·樽', discord_id: 'U1' }],
 });
 const envH = { DB: H.db };
 let hr = await maybeRunCreatorBackfill(envH, new Request('https://release-yanyun.tbdlab.workers.dev/graphql', { method: 'POST' }));
 check('preview host 不触发', hr.done === false && hr.reason === 'host-not-prod', JSON.stringify(hr));
-eq('preview host 未写数据', H.tables.events[0].creator_discord_id, null);
+eq('preview host 未写数据', H.tables.events[0].creator_user_id, null);
 hr = await maybeRunCreatorBackfill(envH, new Request('http://localhost:8787/graphql', { method: 'POST' }));
 check('localhost 不触发', hr.done === false && hr.reason === 'host-not-prod', JSON.stringify(hr));
 hr = await maybeRunCreatorBackfill(envH, new Request('https://yanyun.app/graphql', { method: 'POST' }));
 check('生产 host 触发', hr.done === true, JSON.stringify(hr));
-eq('生产 host 已补登记', H.tables.events[0].creator_discord_id, 'U1');
+eq('生产 host 已补登记', H.tables.events[0].creator_user_id, UID.U1);
   });
 });
