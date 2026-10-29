@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<9cb4a6dda9341a58be80900bb0006157>>
+ * @generated SignedSource<<a8593b02fddab1166d9293f57794b648>>
  * @lightSyntaxTransform
  */
 
@@ -29,7 +29,7 @@ export type documentsGuildInsightsBoardQuery$data = {
         // This will never be '%other', but we need some
         // value in case none of the concrete values match.
         readonly __typename: "%other";
-      };
+      } | null | undefined;
       readonly homeInsightsGearMinScoreLabel: string;
       readonly homeInsightsGearScoreLabel: string;
       readonly homeInsightsRaceBestLabel: string;
@@ -57,7 +57,7 @@ export type documentsGuildInsightsBoardQuery$data = {
         // This will never be '%other', but we need some
         // value in case none of the concrete values match.
         readonly __typename: "%other";
-      };
+      } | null | undefined;
     } | null | undefined;
   };
 };

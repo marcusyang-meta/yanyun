@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<228b9a099ec55f61ddc5732d1b20e8dc>>
+ * @generated SignedSource<<c1c6ff77901bd8a6a63120ccf850dbf5>>
  * @lightSyntaxTransform
  */
 
@@ -26,7 +26,7 @@ export type GuildAdminGovernanceAuditMoreQuery$data = {
           readonly targetLabel: string;
           readonly targetType: string;
         }>;
-      };
+      } | null | undefined;
     };
   };
 };

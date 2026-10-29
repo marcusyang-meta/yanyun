@@ -130,7 +130,7 @@ type GuildCard {
 
 extend type Query {
   guildPage(slug: String!): GuildPage!
-  targetedNudgePreview(slug: String!, eventId: Int!, segmentKind: String!, segmentValue: String): TargetedNudgePreviewResult!
+  targetedNudgePreview(slug: String!, eventId: Int!, segmentKind: String!, segmentValue: String): TargetedNudgePreviewResult
   myContribution(slug: String!): MyContributionResult!
 }
 
@@ -336,8 +336,9 @@ type GroupingListPage {
   groupings: [Grouping!]!
   # Premium T2 cross-car advice (the P13 advice layer; the multi-car
   # overview itself stays free and unchanged): non-null only for guild
-  # admins / leaders in this guild; Locked-vs-full shell as on the
-  # detail page.
+  # admins / leaders in this guild; full vs Locked shell as on the
+  # detail page, and null for a below-tier guild while the paygate
+  # is OFF.
   crossCarAdvice: SchedulingCrossCarAdviceResult
   # 本百业共享模板 (与页签无关, 全百业一份): 建车表单据此渲染模板区
   # (列表/套用/存当前表单/改删入口); 改删判定在每个模板的 manageActions。
@@ -621,9 +622,11 @@ type GroupingDetailPage {
   grouping: Grouping!
   # Premium T2 scheduling advice (P3 draft / P4 substitutes / P5
   # rotation): non-null only for this car's managers (leader / guild
-  # admin); below T2 only the Locked shell ships (zero advice data),
-  # at tier the full shell. Advice never seats or substitutes anyone
-  # by itself; applying a draft goes through the existing seat actions.
+  # admin) of an entitled guild; below T2 with the paygate ON only
+  # the Locked shell ships (zero advice data); below T2 with the
+  # paygate OFF the field is null and the section does not exist.
+  # Advice never seats or substitutes anyone by itself; applying a
+  # draft goes through the existing seat actions.
   schedulingAdvice: GroupingSchedulingAdviceResult
   # 分享 URL: 本车的稳定短链 (后端懒铸造, 首次下发时生成、之后恒同);
   # 客户端分享动作只用这个字符串, 不自拼 URL。
@@ -647,15 +650,16 @@ type GroupingDetailPage {
   rosterAnswers: [RosterAnswer!]
   rosterAnswersTitle: String!
   # AI activity recap (Premium T3, P18): the response type IS the
-  # verdict — Locked = this guild is below T3 (zero recap content
-  # dispatched); NotEnabled = no AI provider configured (the
-  # Workers AI binding is absent; every guild incl. T3 gets this
-  # variant, nothing generates or stores); Ready = a stored recap
-  # (member-visible, follows the grouping's own visibility);
-  # Empty = available but not generated yet. The generate action
-  # object rides only Ready/Empty and only for the leader or this
-  # guild's admins.
-  recap: GroupingRecapResult!
+  # verdict — null = this guild is below T3 with the paygate OFF
+  # (the section does not exist); Locked = below T3 with the
+  # paygate ON (zero recap content dispatched); NotEnabled = no AI
+  # provider configured (the Workers AI binding is absent; every
+  # guild incl. T3 gets this variant, nothing generates or stores);
+  # Ready = a stored recap (member-visible, follows the grouping's
+  # own visibility); Empty = available but not generated yet. The
+  # generate action object rides only Ready/Empty and only for the
+  # leader or this guild's admins.
+  recap: GroupingRecapResult
   # 无管理码，人人可管
   # UI 文案: 全部由本页 shell 的 gen 方法按请求 locale 生成
   detailNotFoundText: String!
@@ -1665,8 +1669,9 @@ type GuildSchedulePage {
   availabilitySummary: [MemberAvailabilitySummary!]
   polls: [TimePoll!]!
   # Premium T2 best-slot advice (P6): same audience verdict as the
-  # availability summary (admin / leader); Locked shell below T2, full
-  # shell at tier; with no availability data slots is empty and the
+  # availability summary (admin / leader); Locked shell below T2 with
+  # the paygate ON, full shell at tier, null below T2 with the
+  # paygate OFF; with no availability data slots is empty and the
   # backend empty-state copy ships — no slot is ever invented.
   bestSlotsAdvice: SchedulingBestSlotsResult
   weekdayNames: [String!]!
@@ -2524,10 +2529,12 @@ type Guild {
   announcements: GuildAnnouncementPage!
   # Member read surface for insights (Premium T1): the race season
   # board (P15, display surface) and the viewer's own gear readiness
-  # status (P9, only the viewer's own verdict rows); both compose
-  # the full variant or GuildInsightsLocked (zero data) via tierLocked.
-  raceSeasonBoard: RaceSeasonBoardResult!
-  gearSelfStatus: GuildGearSelfResult!
+  # status (P9, only the viewer's own verdict rows); both compose by
+  # tierSurfaceState — the full variant, GuildInsightsLocked (zero
+  # data, paygate ON), or null (paygate OFF: the surface does not
+  # exist and no home tab is rendered for it).
+  raceSeasonBoard: RaceSeasonBoardResult
+  gearSelfStatus: GuildGearSelfResult
   homeInsightsRaceTitle: String!
   homeInsightsRaceEmptyText: String!
   homeInsightsRaceTeamLabel: String!
@@ -2545,7 +2552,11 @@ type Guild {
   homeTabAnnouncementsLabel: String!
   homeTabScheduleLabel: String!
   homeTabMarketLabel: String!
-  homeTabAlliesLabel: String!
+  # Allies tab label: null while the allies surface is absent for
+  # this guild (below T3 with the paygate OFF) — the home page
+  # renders no allies tab then, exactly like the admin entry
+  # label below. Served in every other state.
+  homeTabAlliesLabel: String
   # 管理入口文案: 仅通过管理判定 (getGuildAdminAccess, 与管理面同一
   # 口径, 含 omni) 的查看者才下发; 其余成员为 null, 主页不渲染入口 —
   # 进不去的入口不广告。可空即为此意, 勿改回 String!。
@@ -2567,7 +2578,7 @@ type Viewer {
   guildAdmin(slug: String!): GuildAdminResult!  # 百业管理面: 响应类型即权限结论 (见下方 GuildAdmin)
   homeRecruit: HomeRecruitSection!  # 平台主页招新区 (F16 申请 / F24 清单 / F17 我的配对): 组成即权限结论 (见下方 HomeRecruitSection)
   fillMarket(slug: String!): FillMarketResult!  # Fill market page (P19): member page / Locked; the demand section splits further by T3 (see FillMarketPage below)
-  guildAllies(slug: String!): GuildAlliesResult!  # Allied guilds page (P20): member page / Locked; alliance and sharing are both read-time verdicts
+  guildAllies(slug: String!): GuildAlliesResult  # Allied guilds page (P20): member page / Locked for non-members; null for members of a below-T3 guild while the paygate is OFF (the page does not exist, and the home tab label is null with it); alliance and sharing are both read-time verdicts
   platformAdmin: PlatformAdminResult!  # 平台管理面 (超管): gate 层求值即权限结论 (见下方 PlatformAdmin); 非超管只拿到 Locked, 零管理数据
   discordServers: [DiscordServer!]!  # 我有管理权限的服务器 (服务端过滤)
   # UI 文案: 站点/登录/选择页/创建页/通用 — 全部由 Viewer shell 的 gen
@@ -2719,38 +2730,41 @@ type GuildAdmin {
   # 数据包导出 + 成员赛季目标总览; 只挂 GuildAdmin — Locked 零工具
   # 字段, 成员变体 (Guild) 根本不带备注字段。
   officer: GuildOfficerPage!
-  ops: GuildAdminOpsResult!
+  ops: GuildAdminOpsResult
   # AI recap index (P18, Premium T3): this guild's recap records;
   # the verdict composes in the same order as the detail page —
-  # Locked (below T3, zero records read) / NotEnabled (no provider
-  # configured) / List. GuildAdmin only — Locked carries zero
-  # recap fields.
-  recaps: GuildAdminRecapResult!
+  # null (below T3, paygate OFF) / Locked (below T3, paygate ON,
+  # zero records read) / NotEnabled (no provider configured) /
+  # List. GuildAdmin only — Locked carries zero recap fields.
+  recaps: GuildAdminRecapResult
   # 出勤统计 (Premium, 读侧门控): 总闸开且本百业未开通时组合为
   # GuildAdminStatsLocked (只有未开通文案, 零统计数据); 总闸关或
   # 已开通时与从前一致。结论只由响应类型表达, 无标志位下发。
   stats: GuildAdminStatsResult!
   # Insights (Premium T1 data layer, P2/P9/P10/P15): each surface
-  # composes the full variant or GuildInsightsLocked (locked copy
-  # only, zero data, the aggregation is never computed) via
-  # tierLocked (a pure entitlement verdict that ignores the paygate
-  # switch); GuildAdmin only — the locked guild shell ships no
-  # insight fields at all. See each type's comment for its caliber.
-  reliability: GuildAdminReliabilityResult!
-  participationHeatmap: GuildAdminHeatmapResult!
-  gearBoard: GuildAdminGearBoardResult!
-  raceSeasonBoard: RaceSeasonBoardResult!
+  # composes by tierSurfaceState — the full variant, or
+  # GuildInsightsLocked (locked copy only, zero data, the
+  # aggregation is never computed) while the paygate is ON, or
+  # null while it is OFF; GuildAdmin only — the locked guild shell
+  # ships no insight fields at all. See each type's comment for
+  # its caliber.
+  reliability: GuildAdminReliabilityResult
+  participationHeatmap: GuildAdminHeatmapResult
+  gearBoard: GuildAdminGearBoardResult
+  raceSeasonBoard: RaceSeasonBoardResult
   # Premium 权益面: 总闸关时为 null (管理面与从前逐字一致, 该面
   # 不出现); 总闸开时按权益组合 Active / Locked 变体 — Locked 带
   # 价格位与开通入口 (Stripe 未配置时价格位为 null、改由即将开放
   # 文案占据), Active 带方案来源与当前周期。
   premium: GuildAdminPremiumResult
-  # Custom domain (P23, T3 governance layer): the tier verdict is expressed
-  # by the response type — below T3 it composes as
+  # Custom domain (P23, T3 governance layer): the verdict is expressed
+  # by the response type — at tier it composes as the full variant
+  # (binding + state-machine status + server-issued DNS guidance);
+  # below T3 with the paygate ON it composes as
   # GuildAdminCustomDomainLocked (locked copy only, zero binding data);
-  # at tier it composes as the full variant (binding + state-machine status
-  # + server-issued DNS guidance).
-  customDomain: GuildAdminCustomDomainResult!
+  # below T3 with the paygate OFF it is null and the section does
+  # not exist.
+  customDomain: GuildAdminCustomDomainResult
   # 活动工具 (免费功能, 不挂任何权益门): 活动日历订阅 (F8) + 活动
   # 抽奖 (F21), 只挂 GuildAdmin — Locked 零工具字段。日历订阅链在
   # 抽奖的名单在创建时定格 (来源: 某辆车的参与者, 或手选本百业
@@ -2966,12 +2980,13 @@ type GuildAdmin {
   adminRecruitFirstRunLabel: String!
   adminTabGovernanceLabel: String!
   # Governance surface (P16/P17, T3): officer grants + the
-  # officer private area + the guild audit log. Below tier it
-  # composes GuildGovernanceLocked (not-enabled copy only, zero
-  # governance data); the verdict is expressed by response type
-  # alone. GuildAdmin only — the Locked and member variants carry
-  # zero governance fields.
-  governance: GuildGovernanceResult!
+  # officer private area + the guild audit log. Below tier with
+  # the paygate ON it composes GuildGovernanceLocked (not-enabled
+  # copy only, zero governance data); below tier with the paygate
+  # OFF it is null and the surface does not exist; the verdict is
+  # expressed by response type alone. GuildAdmin only — the Locked
+  # and member variants carry zero governance fields.
+  governance: GuildGovernanceResult
   # The officer capability keys the viewer themselves holds in
   # this guild (admins = all of them): clients use this to decide
   # which admin tabs to render; data issuance itself is still
@@ -3165,11 +3180,13 @@ type RecruitPayload {
 # ============ Cross-guild network (P19 fill market / P20 allied guilds) ============
 # Per-edge pricing (DESIGN.md S9): the supply side is free
 # (publishing supply and answering invites never consult a tier);
-# the demand side is T3 (below tier, the demand section composes
-# as FillDemandLocked with zero demand data delivered, and demand
-# mutations re-verify with the same verdict server-side). While
-# the paygate master switch is OFF nobody is locked (built, not
-# enabled). The market matches, it never decides: accepting an
+# the demand side is T3, composed by tierSurfaceState (below tier
+# with the paygate ON, the demand section composes as
+# FillDemandLocked with zero demand data delivered; below tier
+# with the paygate OFF the demand field is null and the section
+# does not exist; demand mutations re-verify with the pure
+# tierLocked verdict server-side in every paygate state). The
+# market matches, it never decides: accepting an
 # invite seats nobody; seating is the demand-side leader's manual
 # action in seatFillSupplier (through the existing capacity-guard
 # seat insert). Alliance sharing is a read-time verdict:
@@ -3182,7 +3199,7 @@ type FillMarketPage {
   slug: String!
   guildName: String!
   supply: FillSupplySection!
-  demand: FillDemandResult!
+  demand: FillDemandResult
   weekdayNames: [String!]!
   marketTitle: String!
   marketBody: String!
@@ -4708,9 +4725,11 @@ extend type Mutation {
 }
 
 # ============ Premium ops engine (P8/P11/P12/P14, T2) ============
-# The GuildAdmin.ops verdict is the type itself: below T2 it resolves
-# only GuildAdminOpsLocked (lock copy only; the engines are never
-# computed or shipped); at tier it resolves the full GuildAdminOps.
+# The GuildAdmin.ops verdict is the type itself: below T2 with the
+# paygate ON it resolves only GuildAdminOpsLocked (lock copy only;
+# the engines are never computed or shipped); below T2 with the
+# paygate OFF it resolves null; at tier it resolves the full
+# GuildAdminOps.
 
 union GuildAdminOpsResult = GuildAdminOps | GuildAdminOpsLocked
 

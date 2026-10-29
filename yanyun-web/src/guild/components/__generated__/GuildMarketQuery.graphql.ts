@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<e3214a0e3974c1b9103c1c2a866caa0d>>
+ * @generated SignedSource<<791ea4603d2e2e9b2a1045abf98a8417>>
  * @lightSyntaxTransform
  */
 
@@ -92,7 +92,7 @@ export type GuildMarketQuery$data = {
         // This will never be '%other', but we need some
         // value in case none of the concrete values match.
         readonly __typename: "%other";
-      };
+      } | null | undefined;
       readonly marketBody: string;
       readonly marketTitle: string;
       readonly supply: {

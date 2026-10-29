@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<457d07495cfe10175cfe4331a0cd0ece>>
+ * @generated SignedSource<<fa5cb81bbf37264601d0b02f809b3dda>>
  * @lightSyntaxTransform
  */
 
@@ -32,7 +32,7 @@ export type GuildAdminOpsPreviewQuery$data = {
     // This will never be '%other', but we need some
     // value in case none of the concrete values match.
     readonly __typename: "%other";
-  };
+  } | null | undefined;
 };
 export type GuildAdminOpsPreviewQuery = {
   response: GuildAdminOpsPreviewQuery$data;
