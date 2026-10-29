@@ -57,14 +57,19 @@ function toRawRows(sqlText, rows) {
 
 /* ---------------- FakeDB ---------------- */
 const SLUG = 'daytest';
+/* Typed-ID fixture keys (0036): tenant columns hold the guild ID;
+   the creator column is creator_user_id (seat stamps stay Discord). */
+const GID = 1030100001;
+const UID_U1 = 2030100001;
+const UID_U2 = 2030100002;
 const now = Math.floor(Date.now() / 1000);
 const [ws, we] = weekWindowUtc(0);
 const D1 = ws + 2 * 86400; // A day inside this week (Wednesday, from 05:00 Beijing time).
 function ev(id, over = {}) {
   return {
-    id, tenant: SLUG, type: 'activity', title: '车' + id, description: '', dungeon: '',
+    id, tenant: GID, type: 'activity', title: '车' + id, description: '', dungeon: '',
     max_slots: 10, starts_at: '', starts_at_utc: null, status: 'open', origin: 'member',
-    creator_discord_id: 'U1', created_by: '', reminder_sent_at: null, reminder_error: null,
+    creator_user_id: UID_U1, created_by: '', reminder_sent_at: null, reminder_error: null,
     ...over,
   };
 }
@@ -72,7 +77,7 @@ const tables = {
   events: [
     // Group A (activity): reminder/completion chain.
     ev(201, { title: '提醒车', starts_at_utc: now + 300 }),
-    ev(207, { title: '无车头老车', creator_discord_id: null, starts_at_utc: now + 400 }),
+    ev(207, { title: '无车头老车', creator_user_id: null, starts_at_utc: now + 400 }),
     ev(208, { title: '已关闭待完成车', status: 'closed', starts_at_utc: now + 500 }),
     ev(209, { title: '官方车', origin: 'official', starts_at_utc: now + 600 }),
     // Group B (talent): per-day grouping — two same-day cars (SQL order puts open first; within the group they must be re-sorted by time).
@@ -86,8 +91,14 @@ const tables = {
     { id: 1, event_id: 201, nickname: '车头', uid: 'u1', role: '输出', weapon: '破竹·樽', discord_id: 'U1' },
   ],
 };
-const tenants = [{ slug: SLUG, guild_name: '按天测试百业', slogan: '', announcement: '' }];
-const settings = new Map([[`${SLUG}|discord_guild_id`, 'G1']]);
+const tenants = [{ id: GID, slug: SLUG, guild_name: '按天测试百业', slogan: '', announcement: '' }];
+/* users rows keyed by typed user ID (creator_user_id -> discord_id
+   resolution for the seat leader marker goes through this table). */
+const users = [
+  { id: UID_U1, discord_id: 'U1', username: '车头' },
+  { id: UID_U2, discord_id: 'U2', username: '队员' },
+];
+const settings = new Map([[`${GID}|discord_guild_id`, 'G1']]);
 const unknownSql = new Set();
 
 // List ordering matches the product SQL: open first, starts_at_utc ascending (nulls last), id descending.
@@ -133,7 +144,9 @@ function stmt(sql) {
       if (/FROM signups/.test(sql) && /COUNT/.test(sql)) {
         return { c: tables.signups.filter((r) => r.event_id === Number(b[0])).length, h: 0, m: 10 };
       }
-      if (/FROM users|FROM user_guild_nicks|FROM guild_members/.test(sql)) return null;
+      if (/FROM users/.test(sql) && /WHERE id = \?/.test(sql)) return users.find((u) => u.id === Number(b[0])) || null;
+      if (/FROM users/.test(sql) && /discord_id = \?/.test(sql)) return users.find((u) => u.discord_id === String(b[0])) || null;
+      if (/FROM user_guild_nicks|FROM guild_members/.test(sql)) return null;
       if (/CREATE|ALTER|PRAGMA/.test(sql)) return null;
       unknownSql.add('first: ' + sql.slice(0, 90));
       return null;
@@ -193,6 +206,18 @@ function stmt(sql) {
       if (/FROM signups WHERE event_id\s*=\s*\?/.test(sql)) {
         return { results: tables.signups.filter((r) => r.event_id === Number(b[0])).sort((a, c) => a.id - c.id) };
       }
+      if (/FROM users/.test(sql) && /WHERE id = \?/.test(sql)) {
+        const row = users.find((u) => u.id === Number(b[0])) || null;
+        return { results: row ? [row] : [] };
+      }
+      if (/FROM users/.test(sql) && /discord_id = \?/.test(sql)) {
+        const row = users.find((u) => u.discord_id === String(b[0])) || null;
+        return { results: row ? [row] : [] };
+      }
+      if (/FROM tenants/.test(sql) && /WHERE id = \?/.test(sql)) {
+        const row = tenants.find((t) => t.id === Number(b[0])) || null;
+        return { results: row ? [row] : [] };
+      }
       if (/FROM tenants/.test(sql)) return { results: tenants };
       if (/CREATE|ALTER|PRAGMA/.test(sql)) return { results: [] };
       unknownSql.add('all: ' + sql.slice(0, 90));
@@ -228,8 +253,8 @@ const db = {
 };
 const env = { DB: db };
 
-const leader = { discordId: 'U1', name: '车头', guilds: ['G1'] };
-const member = { discordId: 'U2', name: '队员', guilds: ['G1'] };
+const leader = { userId: UID_U1, discordId: 'U1', name: '车头', guilds: ['G1'] };
+const member = { userId: UID_U2, discordId: 'U2', name: '队员', guilds: ['G1'] };
 
 async function gql(query, { user = leader, locale = 'zh-CN', tz = 'Asia/Shanghai', variables } = {}) {
   const ctx = { env, request: new Request('http://local/graphql'), user, locale, browserLocale: locale, tz, executionCtx: undefined };

@@ -61,6 +61,13 @@ function toRawRows(sqlText, rows) {
     : Object.values(r)));
 }
 
+/* Typed-ID fixture keys (0036): the compliance admin's Discord ID
+   'CMP-ADMIN' resolves through the users row to this typed user ID;
+   sessions are minted with sub = user ID. */
+const UID_CMP = 2030100001;
+const UID_CMP_USER = 2030100002;
+const CMP_USER_ROW = { id: UID_CMP, discord_id: 'CMP-ADMIN', username: '合规管理员' };
+
 /* ---------------- FakeDB ---------------- */
 function makeDb({ tenants = [], throwOnTenantsList = false } = {}) {
   // throwOnTenantsList now targets the hub-admin tenant list query
@@ -83,12 +90,21 @@ function makeDb({ tenants = [], throwOnTenantsList = false } = {}) {
       return { meta: {} }; // CREATE TABLE / INDEX / DELETE(prune)
     }
     if (/user_oauth/.test(sql)) {
-      const row = { discord_id: 'CMP-ADMIN', refresh_token: 'rt-cmp', scope: 'identify guilds.members.read', refresh_state: 'ok' };
+      const row = { user_id: UID_CMP, refresh_token: 'rt-cmp', scope: 'identify guilds.members.read', refresh_state: 'ok' };
       return kind === 'first' ? row : { results: [row] };
+    }
+    if (/FROM users/.test(sql)) {
+      // Session boundary (id -> discord_id) and gate floor
+      // resolution (discord_id -> id) both go through this row.
+      const row = /discord_id =/.test(sql)
+        ? (String(b[0]) === 'CMP-ADMIN' ? CMP_USER_ROW : null)
+        : (Number(b[0]) === UID_CMP ? CMP_USER_ROW : null);
+      return kind === 'first' ? row : { results: row ? [row] : [] };
     }
     if (/INSERT INTO tenants/.test(sql)) {
       state.tenantInserts++;
-      state.tenants.push({ slug: b[0], guild_name: b[1], password_hash: b[2], announcement: b[3] });
+      // Binds follow the column list: the minted guild id leads.
+      state.tenants.push({ id: b[0], slug: b[1], guild_name: b[2], password_hash: b[3], announcement: b[4] });
       return { meta: {} };
     }
     if (/FROM tenants/.test(sql)) {
@@ -124,7 +140,7 @@ const ASSETS = { fetch: async () => new Response('not found', { status: 404 }) }
 const CMP_SECRET = 'compliance-test-secret';
 async function cmpAdminJwt() {
   const { signJwt } = await import('../src/domains/identity/auth.ts');
-  return signJwt(CMP_SECRET, { sub: 'CMP-ADMIN', name: '合规管理员', guilds: [] });
+  return signJwt(CMP_SECRET, { sub: String(UID_CMP), name: '合规管理员', guilds: [] });
 }
 async function gqlAs(query, { db, user = null, env = {} }) {
   const ctx = { env: { DB: db, ...env }, request: new Request('http://local/graphql'), user,
@@ -152,7 +168,7 @@ describe('compliance', () => {
   it('A4: onboard removal + fallback fail-closed', async () => {
     {
       const worker = (await import('../src/worker.ts')).default;
-      const { db, state } = makeDb({ tenants: [{ slug: 'jijiguagua', guild_name: '叽哩呱啦', password_hash: 'x' }] });
+      const { db, state } = makeDb({ tenants: [{ id: 1030100001, slug: 'jijiguagua', guild_name: '叽哩呱啦', password_hash: 'x' }] });
       const env = { DB: db, ADMIN_PASSWORD: 'test-admin-pw', ASSETS };
       const { ctx, pending } = makeCtx();
 
@@ -175,7 +191,7 @@ describe('compliance', () => {
      * retired paths and on the GraphQL gate). */
     {
       const worker = (await import('../src/worker.ts')).default;
-      const { db } = makeDb({ tenants: [{ slug: 'testguild', guild_name: '测试百业', password_hash: await sha256hex('guildpass123') }] });
+      const { db } = makeDb({ tenants: [{ id: 1030100002, slug: 'testguild', guild_name: '测试百业', password_hash: await sha256hex('guildpass123') }] });
       const { ctx } = makeCtx();
       const PA = '{ viewer { platformAdmin { __typename } } }';
 
@@ -196,12 +212,12 @@ describe('compliance', () => {
 
       // No roster anywhere (no env floor, no settings roster): even a
       // signed-in user composes Locked — fail closed.
-      const locked = await gqlAs(PA, { db, user: { discordId: 'CMP-USER', name: '普通用户', guilds: [] } });
+      const locked = await gqlAs(PA, { db, user: { userId: UID_CMP_USER, discordId: 'CMP-USER', name: '普通用户', guilds: [] } });
       eq('A4 无名单配置时登录用户 -> Locked', locked.data?.viewer?.platformAdmin?.__typename, 'PlatformAdminLocked');
 
       // With the env floor configured (production bootstrap shape):
       // the listed admin composes the surface.
-      const open = await gqlAs(PA, { db, user: { discordId: 'CMP-ADMIN', name: '合规管理员', guilds: [] },
+      const open = await gqlAs(PA, { db, user: { userId: UID_CMP, discordId: 'CMP-ADMIN', name: '合规管理员', guilds: [] },
         env: { PLATFORM_ADMIN_DISCORD_IDS: 'CMP-ADMIN' } });
       eq('A4 env 名单内超管 -> 管理面可达', open.data?.viewer?.platformAdmin?.__typename, 'PlatformAdmin');
     }

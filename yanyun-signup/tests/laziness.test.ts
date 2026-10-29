@@ -47,19 +47,23 @@ for (const mod of [groupingsGql, guildsGql, identityGql, dexGql, gearGql, platfo
 
 /* ---------------- FakeDB (same routing style as daycomplete) ---------------- */
 const SLUG = 'laztest';
+/* Typed-ID fixture keys (0036): tenant rows carry their guild ID and
+   tenant columns hold it; the slug stays an edge handle only. */
+const GID = 1030100001;
+const UID_LEADER = 2030100001;
 const now = Math.floor(Date.now() / 1000);
 const tables = {
   events: [
-    { id: 201, tenant: SLUG, type: 'activity', title: '惰性测试车', description: '', dungeon: '',
+    { id: 201, tenant: GID, type: 'activity', title: '惰性测试车', description: '', dungeon: '',
       max_slots: 10, starts_at: '', starts_at_utc: now + 7200, status: 'open', origin: 'member',
-      creator_discord_id: 'U1', created_by: '', reminder_sent_at: null, reminder_error: null },
+      creator_user_id: UID_LEADER, created_by: '', reminder_sent_at: null, reminder_error: null },
   ],
   signups: [
     { id: 1, event_id: 201, nickname: '车头', uid: 'u1', role: '输出', weapon: '破竹·樽', discord_id: 'U1' },
   ],
 };
-const tenants = [{ slug: SLUG, guild_name: '惰性测试百业', slogan: '', announcement: '' }];
-const settings = new Map([[`${SLUG}|discord_guild_id`, 'G1']]);
+const tenants = [{ id: GID, slug: SLUG, guild_name: '惰性测试百业', slogan: '', announcement: '' }];
+const settings = new Map([[`${GID}|discord_guild_id`, 'G1']]);
 let dbStatements = 0;
 function stmt(sql: string) {
   sql = sql.replace(/"/g, '').replace(/settings\./g, '');
@@ -97,7 +101,7 @@ function stmt(sql: string) {
 }
 const db = { prepare: (sql: string) => { dbStatements++; return stmt(sql); }, async batch(s: any[]) { const o = []; for (const x of s) o.push(await x.run()); return o; } };
 const env = { DB: db };
-const leader = { discordId: 'U1', name: '车头', guilds: ['G1'] };
+const leader = { userId: UID_LEADER, discordId: 'U1', name: '车头', guilds: ['G1'] };
 
 async function gql(query: string, variables?: unknown) {
   resetCounts(); dbStatements = 0;
@@ -133,7 +137,10 @@ describe('laziness', () => {
     check('detail leaf: genOccupiedCount 0', countOf('GroupingShell', 'genOccupiedCount') === 0);
     let textGens = 0; for (const [k, v] of counts) if (k.startsWith('GroupingDetailPageShell.gen') && k !== 'GroupingDetailPageShell.genGrouping') textGens += v;
     check('detail leaf: all other detail-page loaders 0', textGens === 0, [...counts.keys()].join(','));
-    check('detail leaf: db statements <= 6', dbStatements <= 6, 'got ' + dbStatements);
+    // Budget was 6 under the slug-tenant model; the typed-ID model
+    // adds exactly one sanctioned slug -> guild-ID resolution
+    // statement (tenants.ts: getGuildIdBySlug) to this path.
+    check('detail leaf: db statements <= 7', dbStatements <= 7, 'got ' + dbStatements);
   });
 
   /* ---------- 2. detail seats-only ---------- */

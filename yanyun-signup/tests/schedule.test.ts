@@ -56,11 +56,16 @@ function toRawRows(sqlText, rows) {
 /* ================= FakeDB ================= */
 const DGID_A = '111111111111111111';
 const DGID_B = '222222222222222222';
+/* Typed-ID fixture keys: guilds/users carry their 0036 primary keys;
+   Discord-space values (server ids, seat stamps) stay Discord IDs. */
+const GID = { schedtest: 1030100001, othertest: 1030100002 };
+const UID = { UA: 2030100001, UL: 2030100002, UB: 2030100003, UC: 2030100004, UD: 2030100005 };
 function makeDb(fx = {}) {
   const tables = {
     tenants: (fx.tenants || []).map((t) => ({ ...t })),
     settings: new Map(fx.settings || []),
-    users: new Map(fx.users || []),
+    users: (fx.users || []).map(([did, gj]) => ({ id: UID[did] || 0, discord_id: did, username: '', guilds_json: gj })),
+    mint: new Map(),
     events: (fx.events || []).map((e) => ({ ...e })),
     signups: (fx.signups || []).map((x) => ({ ...x })),
     guildMembers: (fx.guildMembers || []).map((m) => ({ ...m })),
@@ -87,10 +92,16 @@ function makeDb(fx = {}) {
   function route(kind, rawSql, b) {
     const sql = norm(rawSql);
     if (/^INSERT INTO error_log/i.test(sql)) return { meta: { changes: 1 } };
-    // Availability upsert (PK tenant+discord_id, DO UPDATE).
+    if (/^INSERT INTO id_mint_counters/i.test(sql)) {
+      const key = `${b[0]}|${b[1]}`;
+      const seq = (tables.mint.get(key) || 0) + 1;
+      tables.mint.set(key, seq);
+      return kind === 'first' ? { seq } : (kind === 'all' ? { results: [{ seq }] } : { meta: { changes: 1 } });
+    }
+    // Availability upsert (PK tenant+user_id, DO UPDATE).
     if (/^INSERT INTO member_availability/i.test(sql)) {
-      const row = { tenant: b[0], discord_id: b[1], display_name: b[2], slots_json: b[3], updated_at: b[4] };
-      const ex = tables.availability.find((x) => x.tenant === row.tenant && x.discord_id === row.discord_id);
+      const row = { tenant: b[0], user_id: b[1], display_name: b[2], slots_json: b[3], updated_at: b[4] };
+      const ex = tables.availability.find((x) => x.tenant === row.tenant && x.user_id === row.user_id);
       if (ex) Object.assign(ex, row); else tables.availability.push(row);
       return { meta: { changes: 1 } };
     }
@@ -104,7 +115,7 @@ function makeDb(fx = {}) {
       const count = tables.signups.filter((x) => x.event_id === Number(row.event_id)).length;
       if (!ev || ev.status !== 'open' || count >= (ev.max_slots || 0)) return { meta: { changes: 0 } };
       if (tables.signups.some((x) => x.event_id === row.event_id && x.uid === row.uid)) throw new Error('UNIQUE constraint failed: signups_event_uid_unique');
-      row.id = nextId++;
+      if (row.id === undefined) row.id = nextId++;
       tables.signups.push(row);
       return { meta: { changes: 1, last_row_id: row.id } };
     }
@@ -122,8 +133,9 @@ function makeDb(fx = {}) {
           return { meta: { changes: 1 } };
         }
       }
-      row.id = nextId++;
-      (tableOf[table] || tables.polls).push(row);
+      if (row.id === undefined) row.id = nextId++;
+      if (table === 'users') { if (!tables.users.some((u) => u.discord_id === row.discord_id)) tables.users.push(row); }
+      else (tableOf[table] || tables.polls).push(row);
       return { meta: { changes: 1, last_row_id: row.id } };
     }
     m = /^UPDATE (\w+) SET (.+?) WHERE (.+)$/i.exec(sql);
@@ -154,7 +166,7 @@ function makeDb(fx = {}) {
     }
     if (/^DELETE FROM time_poll_votes WHERE poll_id/i.test(sql)) {
       const before = tables.pollVotes.length;
-      spliceWhere(tables.pollVotes, (t) => t.poll_id === Number(b[0]) && t.discord_id === String(b[1]));
+      spliceWhere(tables.pollVotes, (t) => t.poll_id === Number(b[0]) && t.user_id === Number(b[1]));
       return { meta: { changes: before - tables.pollVotes.length } };
     }
     if (/^DELETE FROM signup_answers WHERE event_id/i.test(sql)) {
@@ -177,7 +189,12 @@ function makeDb(fx = {}) {
     const first = (row) => (kind === 'first' ? (row ?? null) : { results: row ? [row] : [] });
     const all = (rows) => ({ results: rows });
     if (/FROM tenants WHERE slug/i.test(sql)) return first(tables.tenants.find((t) => t.slug === b[0]));
+    if (/FROM tenants/i.test(sql) && /id = \?/i.test(sql)) return first(tables.tenants.find((t) => t.id === Number(b[0])));
     if (/FROM tenants/i.test(sql)) return kind === 'first' ? (tables.tenants[0] ?? null) : all(tables.tenants);
+    if (/FROM settings/i.test(sql) && /tenant = 0/i.test(sql)) {
+      const v = tables.settings.get(`0|${b[0]}`);
+      return first(v === undefined ? null : { value: v });
+    }
     if (/FROM settings WHERE tenant = \? AND key = \?/i.test(sql)) {
       const v = tables.settings.get(`${b[0]}|${b[1]}`);
       return first(v === undefined ? null : { value: v });
@@ -189,15 +206,27 @@ function makeDb(fx = {}) {
     }
     if (/FROM settings/i.test(sql)) return kind === 'first' ? null : all([]);
     if (/SELECT guilds_json FROM users/i.test(sql)) {
-      const v = tables.users.get(String(b[0]));
-      return first(v === undefined ? null : { guilds_json: v });
+      const u = tables.users.find((x) => x.id === Number(b[0])) || tables.users.find((x) => x.discord_id === String(b[0]));
+      return first(u === undefined ? null : { guilds_json: u.guilds_json });
     }
-    if (/FROM users/i.test(sql)) return first(null);
+    if (/FROM users/i.test(sql)) {
+      if (/discord_id IN/i.test(sql)) {
+        const rows = tables.users.filter((x) => b.map(String).includes(x.discord_id));
+        return kind === 'first' ? (rows[0] ?? null) : all(rows);
+      }
+      if (/id IN/i.test(sql)) {
+        const rows = tables.users.filter((x) => b.map(Number).includes(x.id));
+        return kind === 'first' ? (rows[0] ?? null) : all(rows);
+      }
+      if (/discord_id = \?/i.test(sql)) return first(tables.users.find((x) => x.discord_id === String(b[0])));
+      if (/id = \?/i.test(sql)) return first(tables.users.find((x) => x.id === Number(b[0])));
+      return kind === 'first' ? (tables.users[0] ?? null) : all(tables.users);
+    }
     if (/FROM user_guild_nicks/i.test(sql)) return kind === 'first' ? null : all([]);
     // Governance line (P16): fixture guilds hold no officer grants.
     if (/FROM guild_officer_grants/i.test(sql)) return kind === 'first' ? null : all([]);
-    if (/FROM member_availability WHERE tenant = \? AND discord_id = \?/i.test(sql)) {
-      return first(tables.availability.find((x) => x.tenant === b[0] && x.discord_id === String(b[1])));
+    if (/FROM member_availability WHERE tenant = \? AND user_id = \?/i.test(sql)) {
+      return first(tables.availability.find((x) => x.tenant === b[0] && x.user_id === Number(b[1])));
     }
     if (/FROM member_availability WHERE tenant = \?/i.test(sql)) {
       return all(tables.availability.filter((x) => x.tenant === b[0]));
@@ -226,8 +255,8 @@ function makeDb(fx = {}) {
     if (/FROM grouping_templates WHERE id = \?/i.test(sql)) {
       return first(tables.templates.find((t) => t.id === Number(b[0])));
     }
-    if (/SELECT id FROM events WHERE tenant = \? AND creator_discord_id = \?/i.test(sql)) {
-      return first(tables.events.find((e) => e.tenant === b[0] && e.creator_discord_id === String(b[1])) ? { id: 1 } : null);
+    if (/SELECT id FROM events WHERE tenant = \? AND creator_user_id = \?/i.test(sql)) {
+      return first(tables.events.find((e) => e.tenant === b[0] && e.creator_user_id === Number(b[1])) ? { id: 1 } : null);
     }
     if (/SELECT id, tenant FROM events WHERE id = \?/i.test(sql)) {
       const ev = tables.events.find((e) => e.id === Number(b[0]));
@@ -279,21 +308,21 @@ function makeDb(fx = {}) {
 /* ---------------- fixtures ---------------- */
 const serversJson = (rows) => JSON.stringify(rows);
 const srv = (id, permissions = '0', owner = false) => ({ id, name: '测试服', icon: '', permissions, owner });
-const ADMIN = { discordId: 'UA', name: '管理员甲', guilds: [DGID_A] };
-const LEADER = { discordId: 'UL', name: '车头甲', guilds: [DGID_A] };
-const MEMBER = { discordId: 'UB', name: '成员乙', guilds: [DGID_A] };
-const MEMBER2 = { discordId: 'UC', name: '成员丙', guilds: [DGID_A] };
-const ADMIN_B = { discordId: 'UD', name: '乙业管理员', guilds: [DGID_B] };
+const ADMIN = { userId: UID.UA, discordId: 'UA', name: '管理员甲', guilds: [DGID_A] };
+const LEADER = { userId: UID.UL, discordId: 'UL', name: '车头甲', guilds: [DGID_A] };
+const MEMBER = { userId: UID.UB, discordId: 'UB', name: '成员乙', guilds: [DGID_A] };
+const MEMBER2 = { userId: UID.UC, discordId: 'UC', name: '成员丙', guilds: [DGID_A] };
+const ADMIN_B = { userId: UID.UD, discordId: 'UD', name: '乙业管理员', guilds: [DGID_B] };
 
 const { db, tables, unknownSql } = makeDb({
   tenants: [
-    { slug: 'schedtest', guild_name: '排期测试百业', password_hash: 'x', announcement: '', slogan: '', master_name: '', logo_url: '', bg_image_url: '', discord_webhook: '', created_at: '2026-01-01 00:00:00' },
-    { slug: 'othertest', guild_name: '乙百业', password_hash: 'x', announcement: '', slogan: '', master_name: '', logo_url: '', bg_image_url: '', discord_webhook: '', created_at: '2026-01-01 00:00:00' },
+    { id: GID.schedtest, slug: 'schedtest', guild_name: '排期测试百业', password_hash: 'x', announcement: '', slogan: '', master_name: '', logo_url: '', bg_image_url: '', discord_webhook: '', created_at: '2026-01-01 00:00:00' },
+    { id: GID.othertest, slug: 'othertest', guild_name: '乙百业', password_hash: 'x', announcement: '', slogan: '', master_name: '', logo_url: '', bg_image_url: '', discord_webhook: '', created_at: '2026-01-01 00:00:00' },
   ],
   settings: [
-    ['schedtest|discord_guild_id', DGID_A],
-    ['othertest|discord_guild_id', DGID_B],
-    ['|game_version', 'intl-v2.3'],
+    [`${GID.schedtest}|discord_guild_id`, DGID_A],
+    [`${GID.othertest}|discord_guild_id`, DGID_B],
+    ['0|game_version', 'intl-v2.3'],
   ],
   users: [
     ['UA', serversJson([srv(DGID_A, '32')])],
@@ -303,13 +332,13 @@ const { db, tables, unknownSql } = makeDb({
     ['UD', serversJson([srv(DGID_B, '32')])],
   ],
   guildMembers: [
-    { tenant: 'schedtest', discord_id: 'UA', nick: '管理员', global_name: '管理员甲' },
-    { tenant: 'schedtest', discord_id: 'UL', nick: '车头', global_name: '车头甲' },
-    { tenant: 'schedtest', discord_id: 'UB', nick: '乙', global_name: '成员乙' },
-    { tenant: 'schedtest', discord_id: 'UC', nick: '丙', global_name: '成员丙' },
+    { tenant: GID.schedtest, discord_id: 'UA', nick: '管理员', global_name: '管理员甲' },
+    { tenant: GID.schedtest, discord_id: 'UL', nick: '车头', global_name: '车头甲' },
+    { tenant: GID.schedtest, discord_id: 'UB', nick: '乙', global_name: '成员乙' },
+    { tenant: GID.schedtest, discord_id: 'UC', nick: '丙', global_name: '成员丙' },
   ],
   events: [
-    { id: 601, tenant: 'schedtest', title: '车头甲的车', type: 'activity', description: '', starts_at: '', starts_at_utc: 1999999999, meet_info: '', max_slots: 10, status: 'open', origin: 'member', created_by: '', manage_code: '', dungeon: '', creator_discord_id: 'UL', reminder_sent_at: null, reminder_error: null },
+    { id: 601, tenant: GID.schedtest, title: '车头甲的车', type: 'activity', description: '', starts_at: '', starts_at_utc: 1999999999, meet_info: '', max_slots: 10, status: 'open', origin: 'member', created_by: '', manage_code: '', dungeon: '', creator_user_id: UID.UL, reminder_sent_at: null, reminder_error: null },
   ],
 });
 const env = { DB: db, ASSETS: { fetch: async () => new Response('not found', { status: 404 }) } };

@@ -65,11 +65,16 @@ const DGID_A = '111111111111111111';
 const DGID_B = '222222222222222222';
 const DGID_C = '333333333333333333';
 const DGID_D = '444444444444444444';
+/* Typed-ID fixture keys: guilds/users carry their 0036 primary keys;
+   Discord-space values (server ids, seat stamps) stay Discord IDs. */
+const GID = { nettest: 1030100001, allytest: 1030100002, thirdtest: 1030100003, paidtest: 1030100004 };
+const UID = { UA: 2030100001, UL: 2030100002, UB: 2030100003, UD: 2030100004, US: 2030100005, UM: 2030100006, UN: 2030100007, UC: 2030100008, UP1: 2030100009, UP2: 2030100010, UP3: 2030100011, UX: 2030100012 };
 function makeDb(fx = {}) {
   const tables = {
     tenants: (fx.tenants || []).map((t) => ({ ...t })),
     settings: new Map(fx.settings || []),
-    users: new Map(fx.users || []),
+    users: (fx.users || []).map(([did, gj]) => ({ id: UID[did] || 0, discord_id: did, username: '', guilds_json: gj })),
+    mint: new Map(),
     guildMembers: (fx.guildMembers || []).map((m) => ({ ...m })),
     events: (fx.events || []).map((e) => ({ ...e })),
     signups: (fx.signups || []).map((x) => ({ ...x })),
@@ -82,7 +87,8 @@ function makeDb(fx = {}) {
   let nextId = 9000;
   function norm(sql) {
     return sql.replace(/"(\w+)"\."(\w+)"/g, '$2').replace(/"/g, '')
-      .replace(/\s+/g, ' ');
+      .replace(/\s+/g, ' ')
+      .trim();
   }
   function parseCols(list) { return list.split(',').map((c) => c.trim().split('.').pop()); }
   function applySets(rows, setList, b) {
@@ -103,6 +109,12 @@ function makeDb(fx = {}) {
   function route(kind, rawSql, b) {
     const sql = norm(rawSql);
     if (/^INSERT INTO error_log/i.test(sql)) return { meta: { changes: 1 } };
+    if (/^INSERT INTO id_mint_counters/i.test(sql)) {
+      const key = `${b[0]}|${b[1]}`;
+      const seq = (tables.mint.get(key) || 0) + 1;
+      tables.mint.set(key, seq);
+      return kind === 'first' ? { seq } : (kind === 'all' ? { results: [{ seq }] } : { meta: { changes: 1 } });
+    }
     let m = /^INSERT INTO (\w+) \(([^)]+)\) VALUES \(([^)]+)\)/i.exec(sql);
     if (m) {
       const [, table, colList] = m;
@@ -110,21 +122,30 @@ function makeDb(fx = {}) {
       const row = {};
       cols.forEach((c, i) => { row[c] = b[i]; });
       const store = { fill_offers: tables.offers, fill_requests: tables.requests, fill_invites: tables.invites, guild_alliances: tables.alliances }[table];
-      if (!store) return { meta: { changes: 0 } };
+      if (!store) {
+        if (table === 'users') { if (!tables.users.some((u) => u.discord_id === row.discord_id)) tables.users.push(row); return { meta: { changes: 1 } }; }
+        if (table === 'settings') { tables.settings.set(`${row.tenant}|${row.key}`, row.value); return { meta: { changes: 1 } }; }
+        if (table === 'guild_members') {
+          const hit = tables.guildMembers.find((x) => x.tenant === row.tenant && x.discord_id === row.discord_id);
+          if (hit) Object.assign(hit, row); else tables.guildMembers.push(row);
+          return { meta: { changes: 1 } };
+        }
+        return { meta: { changes: 0 } };
+      }
       if (table === 'fill_offers') {
-        if (store.some((x) => x.discord_id === row.discord_id && x.status === 'open')) throw new Error('UNIQUE constraint failed: fill_offers_open_unique');
+        if (store.some((x) => x.user_id === row.user_id && x.status === 'open')) throw new Error('UNIQUE constraint failed: fill_offers_open_unique');
         row.status = 'open';
       }
       if (table === 'fill_requests') { row.status = 'open'; row.matched_at = null; row.closed_at = null; }
       if (table === 'fill_invites') {
-        if (store.some((x) => x.request_id === row.request_id && x.to_discord_id === row.to_discord_id && (x.status === 'pending' || x.status === 'accepted'))) throw new Error('UNIQUE constraint failed: fill_invites_pair_unique');
+        if (store.some((x) => x.request_id === row.request_id && x.to_user_id === row.to_user_id && (x.status === 'pending' || x.status === 'accepted'))) throw new Error('UNIQUE constraint failed: fill_invites_pair_unique');
         row.status = 'pending'; row.responded_at = null;
       }
       if (table === 'guild_alliances') {
         if (store.some((x) => x.guild_low === row.guild_low && x.guild_high === row.guild_high && (x.status === 'pending' || x.status === 'active'))) throw new Error('UNIQUE constraint failed: guild_alliances_live_unique');
         row.status = 'pending'; row.responded_at = null; row.ended_at = null; row.ended_by_tenant = '';
       }
-      row.id = nextId++;
+      if (row.id === undefined) row.id = nextId++;
       store.push(row);
       return { meta: { changes: 1, last_row_id: row.id } };
     }
@@ -137,7 +158,7 @@ function makeDb(fx = {}) {
       const ev = tables.events.find((e) => e.id === Number(row.event_id));
       const count = tables.signups.filter((x) => x.event_id === Number(row.event_id)).length;
       if (!ev || ev.status !== 'open' || count >= ev.max_slots) return { meta: { changes: 0 } };
-      row.id = nextId++;
+      if (row.id === undefined) row.id = nextId++;
       row.ready_at = null;
       tables.signups.push(row);
       return { meta: { changes: 1, last_row_id: row.id } };
@@ -159,17 +180,17 @@ function makeDb(fx = {}) {
       }
       const wb = b.slice(bi);
       let rows = [];
-      if (table === 'fill_offers') rows = tables.offers.filter((x) => x.discord_id === String(wb[0]) && x.status === 'open');
+      if (table === 'fill_offers') rows = tables.offers.filter((x) => x.user_id === Number(wb[0]) && x.status === 'open');
       else if (table === 'fill_requests' && /status = 'open'/i.test(sql)) rows = tables.requests.filter((x) => x.id === Number(wb[0]) && x.status === 'open');
       else if (table === 'fill_requests') rows = tables.requests.filter((x) => x.id === Number(wb[0]) && (x.status === 'open' || x.status === 'matched'));
-      else if (table === 'fill_invites' && /to_discord_id/i.test(sql)) rows = tables.invites.filter((x) => x.id === Number(wb[0]) && x.to_discord_id === String(wb[1]) && x.status === 'pending');
+      else if (table === 'fill_invites' && /to_user_id/i.test(sql)) rows = tables.invites.filter((x) => x.id === Number(wb[0]) && x.to_user_id === Number(wb[1]) && x.status === 'pending');
       else if (table === 'fill_invites') rows = tables.invites.filter((x) => x.request_id === Number(wb[0]) && x.status === 'pending');
       else if (table === 'guild_alliances' && /responded_at/i.test(setList)) {
-        rows = tables.alliances.filter((x) => x.id === Number(wb[0]) && x.status === 'pending' && x.requested_by_tenant !== String(wb[1]) && (x.guild_low === String(wb[1]) || x.guild_high === String(wb[1])));
+        rows = tables.alliances.filter((x) => x.id === Number(wb[0]) && x.status === 'pending' && x.requested_by_tenant !== Number(wb[1]) && (x.guild_low === Number(wb[1]) || x.guild_high === Number(wb[1])));
       } else if (table === 'guild_alliances') {
-        rows = tables.alliances.filter((x) => x.id === Number(wb[0]) && x.status === 'active' && (x.guild_low === String(wb[1]) || x.guild_high === String(wb[1])));
+        rows = tables.alliances.filter((x) => x.id === Number(wb[0]) && x.status === 'active' && (x.guild_low === Number(wb[1]) || x.guild_high === Number(wb[1])));
       } else if (table === 'events') {
-        rows = tables.events.filter((x) => x.id === Number(wb[0]) && x.tenant === String(wb[1]));
+        rows = tables.events.filter((x) => x.id === Number(wb[0]) && x.tenant === Number(wb[1]));
       }
       // fill_alliances end: SET carries ended_by bind too — wb[0]=id, wb[1]=byTenant is wrong there:
       // end SET = status, ended_at, ended_by_tenant (3 binds), WHERE id, byTenant.
@@ -181,15 +202,38 @@ function makeDb(fx = {}) {
     const first = (row) => (kind === 'first' ? (row ?? null) : { results: row ? [row] : [] });
     const all = (rows) => ({ results: rows });
     if (/FROM tenants WHERE slug/i.test(sql)) return first(tables.tenants.find((t) => t.slug === b[0]));
+    if (/FROM tenants/i.test(sql) && /id = \?/i.test(sql)) return first(tables.tenants.find((t) => t.id === Number(b[0])));
     if (/FROM tenants ORDER BY/i.test(sql)) return all(tables.tenants.slice().sort((x, y) => String(x.created_at).localeCompare(String(y.created_at))));
+    if (/FROM settings/i.test(sql) && /tenant = 0/i.test(sql)) {
+      const v = tables.settings.get(`0|${b[0]}`);
+      return first(v === undefined ? null : { value: v });
+    }
     if (/FROM settings WHERE tenant = \? AND key = \?/i.test(sql)) {
       const v = tables.settings.get(`${b[0]}|${b[1]}`);
       return first(v === undefined ? null : { value: v });
     }
+    if (/FROM settings WHERE key = \?/i.test(sql)) {
+      const rows = [];
+      for (const [k, v] of tables.settings) { const at = k.lastIndexOf('|'); if (k.slice(at + 1) === String(b[0])) rows.push({ tenant: Number(k.slice(0, at)), value: v }); }
+      return kind === 'first' ? (rows[0] ?? null) : all(rows);
+    }
     if (/FROM settings/i.test(sql)) return kind === 'first' ? null : all([]);
     if (/SELECT guilds_json FROM users/i.test(sql)) {
-      const v = tables.users.get(String(b[0]));
-      return first(v === undefined ? null : { guilds_json: v });
+      const u = tables.users.find((x) => x.id === Number(b[0])) || tables.users.find((x) => x.discord_id === String(b[0]));
+      return first(u === undefined ? null : { guilds_json: u.guilds_json });
+    }
+    if (/FROM users/i.test(sql)) {
+      if (/discord_id IN/i.test(sql)) {
+        const rows = tables.users.filter((x) => b.map(String).includes(x.discord_id));
+        return kind === 'first' ? (rows[0] ?? null) : all(rows);
+      }
+      if (/id IN/i.test(sql)) {
+        const rows = tables.users.filter((x) => b.map(Number).includes(x.id));
+        return kind === 'first' ? (rows[0] ?? null) : all(rows);
+      }
+      if (/discord_id = \?/i.test(sql)) return first(tables.users.find((x) => x.discord_id === String(b[0])));
+      if (/id = \?/i.test(sql)) return first(tables.users.find((x) => x.id === Number(b[0])));
+      return kind === 'first' ? (tables.users[0] ?? null) : all(tables.users);
     }
     if (/FROM user_guild_nicks/i.test(sql)) return kind === 'first' ? null : all([]);
     if (/FROM guild_entitlements/i.test(sql)) return first(tables.entitlements.find((e) => e.tenant === b[0]));
@@ -216,21 +260,21 @@ function makeDb(fx = {}) {
       return all(rows);
     }
     if (/FROM events WHERE tenant IN/i.test(sql)) {
-      const tenants = b.slice(0, b.length - 1).map(String);
+      const tenants = b.slice(0, b.length - 1).map(Number);
       const rows = tables.events.filter((e) => tenants.includes(e.tenant) && Number(e.ally_visible) === 1 && Number(e.visitor_slots) > 0 && e.status === 'open')
         .sort((x, y) => y.id - x.id);
       return all(rows);
     }
     if (/FROM events WHERE id = \? AND tenant = \?/i.test(sql)) return first(tables.events.find((e) => e.id === Number(b[0]) && e.tenant === b[1]));
     if (/FROM events WHERE id = \?/i.test(sql)) return first(tables.events.find((e) => e.id === Number(b[0])));
-    if (/FROM fill_offers WHERE discord_id = \? AND status = 'open'/i.test(sql)) return first(tables.offers.find((x) => x.discord_id === String(b[0]) && x.status === 'open'));
+    if (/FROM fill_offers WHERE user_id = \? AND status = 'open'/i.test(sql)) return first(tables.offers.find((x) => x.user_id === Number(b[0]) && x.status === 'open'));
     if (/FROM fill_offers WHERE id = \?/i.test(sql)) return first(tables.offers.find((x) => x.id === Number(b[0])));
     if (/FROM fill_offers WHERE status = 'open'/i.test(sql)) return all(tables.offers.filter((x) => x.status === 'open').sort((x, y) => y.id - x.id));
     if (/FROM fill_requests WHERE id = \? AND tenant = \?/i.test(sql)) return first(tables.requests.find((x) => x.id === Number(b[0]) && x.tenant === b[1]));
     if (/FROM fill_requests WHERE tenant = \?/i.test(sql)) return all(tables.requests.filter((x) => x.tenant === b[0]).sort((x, y) => y.id - x.id));
     if (/FROM fill_requests WHERE id = \?/i.test(sql)) return first(tables.requests.find((x) => x.id === Number(b[0])));
-    if (/FROM fill_invites WHERE request_id = \? AND to_discord_id = \?/i.test(sql)) return first(tables.invites.find((x) => x.request_id === Number(b[0]) && x.to_discord_id === String(b[1]) && (x.status === 'pending' || x.status === 'accepted')));
-    if (/FROM fill_invites WHERE to_discord_id = \?/i.test(sql)) return all(tables.invites.filter((x) => x.to_discord_id === String(b[0])).sort((x, y) => y.id - x.id));
+    if (/FROM fill_invites WHERE request_id = \? AND to_user_id = \?/i.test(sql)) return first(tables.invites.find((x) => x.request_id === Number(b[0]) && x.to_user_id === Number(b[1]) && (x.status === 'pending' || x.status === 'accepted')));
+    if (/FROM fill_invites WHERE to_user_id = \?/i.test(sql)) return all(tables.invites.filter((x) => x.to_user_id === Number(b[0])).sort((x, y) => y.id - x.id));
     if (/FROM fill_invites WHERE request_id = \?/i.test(sql)) return all(tables.invites.filter((x) => x.request_id === Number(b[0])).sort((x, y) => y.id - x.id));
     if (/FROM fill_invites WHERE id = \?/i.test(sql)) return first(tables.invites.find((x) => x.id === Number(b[0])));
     if (/FROM guild_alliances WHERE guild_low = \? AND guild_high = \? AND status = 'active'/i.test(sql)) {
@@ -265,38 +309,38 @@ function makeDb(fx = {}) {
 /* ---------------- fixtures ---------------- */
 const serversJson = (rows) => JSON.stringify(rows);
 const srv = (id, permissions = '0', owner = false) => ({ id, name: '测试服', icon: '', permissions, owner });
-const ADMIN_A = { discordId: 'UA', name: '甲业管理员', guilds: [DGID_A] };
-const LEADER_A = { discordId: 'UL', name: '甲业车头', guilds: [DGID_A] };
-const MEMBER_A = { discordId: 'UB', name: '甲业成员', guilds: [DGID_A] };
-const ADMIN_B = { discordId: 'UD', name: '乙业管理员', guilds: [DGID_B] };
-const SUPPLIER_B = { discordId: 'US', name: '乙业补位', guilds: [DGID_B] };
-const MEMBER_B = { discordId: 'UM', name: '乙业成员', guilds: [DGID_B] };
-const MEMBER_B2 = { discordId: 'UN', name: '乙业成员二', guilds: [DGID_B] };
-const MEMBER_C = { discordId: 'UC', name: '丙业成员', guilds: [DGID_C] };
-const ADMIN_P = { discordId: 'UP1', name: '丁业管理员', guilds: [DGID_D] };
-const MEMBER_P = { discordId: 'UP2', name: '丁业成员', guilds: [DGID_D] };
-const MEMBER_P2 = { discordId: 'UP3', name: '丁业成员二', guilds: [DGID_D] };
-const OUTSIDER = { discordId: 'UX', name: '路人', guilds: [] };
+const ADMIN_A = { userId: UID.UA, discordId: 'UA', name: '甲业管理员', guilds: [DGID_A] };
+const LEADER_A = { userId: UID.UL, discordId: 'UL', name: '甲业车头', guilds: [DGID_A] };
+const MEMBER_A = { userId: UID.UB, discordId: 'UB', name: '甲业成员', guilds: [DGID_A] };
+const ADMIN_B = { userId: UID.UD, discordId: 'UD', name: '乙业管理员', guilds: [DGID_B] };
+const SUPPLIER_B = { userId: UID.US, discordId: 'US', name: '乙业补位', guilds: [DGID_B] };
+const MEMBER_B = { userId: UID.UM, discordId: 'UM', name: '乙业成员', guilds: [DGID_B] };
+const MEMBER_B2 = { userId: UID.UN, discordId: 'UN', name: '乙业成员二', guilds: [DGID_B] };
+const MEMBER_C = { userId: UID.UC, discordId: 'UC', name: '丙业成员', guilds: [DGID_C] };
+const ADMIN_P = { userId: UID.UP1, discordId: 'UP1', name: '丁业管理员', guilds: [DGID_D] };
+const MEMBER_P = { userId: UID.UP2, discordId: 'UP2', name: '丁业成员', guilds: [DGID_D] };
+const MEMBER_P2 = { userId: UID.UP3, discordId: 'UP3', name: '丁业成员二', guilds: [DGID_D] };
+const OUTSIDER = { userId: UID.UX, discordId: 'UX', name: '路人', guilds: [] };
 
 const FUTURE = Math.floor(Date.now() / 1000) + 365 * 86400;
 const tenantRow = (slug, name) => ({
-  slug, guild_name: name, password_hash: 'x', announcement: '', slogan: '',
+  id: GID[slug], slug, guild_name: name, password_hash: 'x', announcement: '', slogan: '',
   master_name: '', logo_url: '', bg_image_url: '', discord_webhook: '', created_at: '2026-01-01 00:00:00', recruit_open: 0,
 });
 const evRow = (id, tenant, title, creator) => ({
   id, tenant, title, type: 'activity', description: '', starts_at: null, meet_info: '',
   max_slots: 10, status: 'open', created_at: '2026-01-01 00:00:00', starts_at_utc: 1799999999,
-  origin: 'member', created_by: '', manage_code: '', dungeon: '测试副本', creator_discord_id: creator,
+  origin: 'member', created_by: '', manage_code: '', dungeon: '测试副本', creator_user_id: creator,
   reminder_sent_at: null, reminder_error: null, ally_visible: 0, visitor_slots: 0,
 });
 const { db, tables } = makeDb({
   tenants: [tenantRow('nettest', '甲百业'), tenantRow('allytest', '乙百业'), tenantRow('thirdtest', '丙百业'), tenantRow('paidtest', '丁百业')],
   settings: [
-    ['nettest|discord_guild_id', DGID_A],
-    ['allytest|discord_guild_id', DGID_B],
-    ['thirdtest|discord_guild_id', DGID_C],
-    ['paidtest|discord_guild_id', DGID_D],
-    ['|game_version', 'intl-v2.3'],
+    [`${GID.nettest}|discord_guild_id`, DGID_A],
+    [`${GID.allytest}|discord_guild_id`, DGID_B],
+    [`${GID.thirdtest}|discord_guild_id`, DGID_C],
+    [`${GID.paidtest}|discord_guild_id`, DGID_D],
+    ['0|game_version', 'intl-v2.3'],
   ],
   users: [
     ['UA', serversJson([srv(DGID_A, '32')])],
@@ -313,22 +357,22 @@ const { db, tables } = makeDb({
     ['UX', serversJson([])],
   ],
   guildMembers: [
-    { tenant: 'nettest', discord_id: 'UA', nick: '甲业管理员', global_name: '甲管' },
-    { tenant: 'nettest', discord_id: 'UL', nick: '甲业车头', global_name: '甲头' },
-    { tenant: 'nettest', discord_id: 'UB', nick: '甲业成员', global_name: '甲员' },
-    { tenant: 'allytest', discord_id: 'UD', nick: '乙业管理员', global_name: '乙管' },
-    { tenant: 'allytest', discord_id: 'US', nick: '乙业补位', global_name: '乙补' },
-    { tenant: 'allytest', discord_id: 'UM', nick: '乙业成员', global_name: '乙员' },
-    { tenant: 'allytest', discord_id: 'UN', nick: '乙业成员二', global_name: '乙员二' },
-    { tenant: 'thirdtest', discord_id: 'UC', nick: '丙业成员', global_name: '丙员' },
-    { tenant: 'paidtest', discord_id: 'UP1', nick: '丁业管理员', global_name: '丁管' },
-    { tenant: 'paidtest', discord_id: 'UP2', nick: '丁业成员', global_name: '丁员' },
-    { tenant: 'paidtest', discord_id: 'UP3', nick: '丁业成员二', global_name: '丁员二' },
+    { tenant: GID.nettest, discord_id: 'UA', nick: '甲业管理员', global_name: '甲管' },
+    { tenant: GID.nettest, discord_id: 'UL', nick: '甲业车头', global_name: '甲头' },
+    { tenant: GID.nettest, discord_id: 'UB', nick: '甲业成员', global_name: '甲员' },
+    { tenant: GID.allytest, discord_id: 'UD', nick: '乙业管理员', global_name: '乙管' },
+    { tenant: GID.allytest, discord_id: 'US', nick: '乙业补位', global_name: '乙补' },
+    { tenant: GID.allytest, discord_id: 'UM', nick: '乙业成员', global_name: '乙员' },
+    { tenant: GID.allytest, discord_id: 'UN', nick: '乙业成员二', global_name: '乙员二' },
+    { tenant: GID.thirdtest, discord_id: 'UC', nick: '丙业成员', global_name: '丙员' },
+    { tenant: GID.paidtest, discord_id: 'UP1', nick: '丁业管理员', global_name: '丁管' },
+    { tenant: GID.paidtest, discord_id: 'UP2', nick: '丁业成员', global_name: '丁员' },
+    { tenant: GID.paidtest, discord_id: 'UP3', nick: '丁业成员二', global_name: '丁员二' },
   ],
-  events: [evRow(701, 'nettest', '甲业缺奶车', 'UL'), evRow(702, 'allytest', '乙业自家车', 'UD')],
+  events: [evRow(701, GID.nettest, '甲业缺奶车', UID.UL), evRow(702, GID.allytest, '乙业自家车', UID.UD)],
   entitlements: [
-    { tenant: 'nettest', plan: 'premium', source: 'manual', current_period_end: FUTURE, stripe_customer_id: '', stripe_subscription_id: '', updated_at: 1 },
-    { tenant: 'paidtest', plan: 't3', source: 'manual', current_period_end: FUTURE, stripe_customer_id: '', stripe_subscription_id: '', updated_at: 1 },
+    { tenant: GID.nettest, plan: 'premium', source: 'manual', current_period_end: FUTURE, stripe_customer_id: '', stripe_subscription_id: '', updated_at: 1 },
+    { tenant: GID.paidtest, plan: 't3', source: 'manual', current_period_end: FUTURE, stripe_customer_id: '', stripe_subscription_id: '', updated_at: 1 },
   ],
 });
 const env = { DB: db, ASSETS: { fetch: async () => new Response('not found', { status: 404 }) } };
@@ -341,7 +385,7 @@ async function gql(query, { user = null, variables } = {}) {
   }), ctx);
   return res.json();
 }
-const setPaygate = (on) => { tables.settings.set('|paygate_enabled', on ? '1' : ''); };
+const setPaygate = (on) => { tables.settings.set('0|paygate_enabled', on ? '1' : ''); };
 
 let r: any;
 let req1: any;
@@ -505,7 +549,7 @@ r = await gql(inviteAllyMut, { user: ADMIN_P, variables: { slug: 'paidtest', tar
 eq('T3 丁业管理员向甲业发起结盟 ok', r.data?.inviteAlliance?.ok, true);
 ally1 = r.data?.inviteAlliance?.alliance?.id;
 eq('结盟待确认 PENDING', r.data?.inviteAlliance?.alliance?.status, 'PENDING');
-eq('关系对称存储: 一行 (low, high) 排序', [tables.alliances[0].guild_low, tables.alliances[0].guild_high], ['nettest', 'paidtest']);
+eq('关系对称存储: 一行 (low, high) 排序', [tables.alliances[0].guild_low, tables.alliances[0].guild_high], [GID.nettest, GID.paidtest]);
 r = await gql(inviteAllyMut, { user: ADMIN_A, variables: { slug: 'nettest', target: 'paidtest' } });
 eq('反向重复邀请 -> allianceExists (同一对只一行)', r.data?.inviteAlliance?.errorCode, 'allianceExists');
 
@@ -586,7 +630,7 @@ eq('档位过期前重建结盟: 甲业邀请丁业 ok', r.data?.inviteAlliance?
 const ally2 = r.data?.inviteAlliance?.alliance?.id;
 r = await gql(respondAllyMut2, { user: ADMIN_P, variables: { slug: 'paidtest', id: ally2, accept: true } });
 eq('丁业接受重建结盟 ok', r.data?.respondAlliance?.ok, true);
-tables.entitlements.splice(tables.entitlements.findIndex((e) => e.tenant === 'paidtest'), 1);
+tables.entitlements.splice(tables.entitlements.findIndex((e) => e.tenant === GID.paidtest), 1);
 r = await gql(alliesQP, { user: MEMBER_P });
 eq('档位过期: 丁业盟友页 -> GuildAlliesLocked', r.data?.viewer?.guildAllies?.__typename, 'GuildAlliesLocked');
 r = await gql(inviteAllyMut2, { user: ADMIN_P, variables: { slug: 'paidtest', target: 'thirdtest' } });
