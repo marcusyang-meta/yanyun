@@ -1,18 +1,23 @@
 // Premium insights acceptance (T1 data layer line: P2 reliability /
 // P9 gear readiness / P10 participation heatmap / P15 race season
 // board): real D1 (Miniflare, migration-chain bootstrap), real yoga
-// resolvers, the real tier verdict (tierLocked, pure entitlement —
-// the paygate master switch stays OFF for the whole suite, which is
-// the production state while the program is build-only).
+// resolvers, the real tier verdict (tierLocked, pure entitlement).
+// Composition resolves through tierSurfaceState: the paygate master
+// switch stays OFF for most of the suite (the production state
+// while the program is build-only); scenario A2 flips it ON.
 //
-// Proves the tier matrix on all four surfaces:
-//   - tier 0 (no entitlement): every read composes ONLY the
+// Proves the surface-state matrix on all four surfaces:
+//   - tier 0 + paygate OFF: every read resolves null — the surface
+//     does not exist (2026-10-28 zero-footprint ruling) — and the
+//     P9 write refuses with premiumRequired;
+//   - tier 0 + paygate ON (A2): every read composes ONLY the
 //     GuildInsightsLocked variant (zero data fields exist on it),
-//     and the P9 write refuses with premiumRequired;
+//     and the write still refuses;
 //   - tier 1 / 2 / 3 (manual grants): every read composes the full
 //     variant with the seeded numbers, and the P9 write path works;
-//   - expired tier 1: locked again, and the stored gear standard is
-//     FROZEN (not deleted) — re-granting restores the board as it was.
+//   - expired tier 1: absent again while OFF, and the stored gear
+//     standard is FROZEN (not deleted) — re-granting restores the
+//     board as it was.
 // Counting checks pin the definitions: attended = completed car +
 // ready mark; no-show = completed car + never ready; an open car
 // counts signups only; a draft car counts nowhere.
@@ -29,7 +34,7 @@ import { upsertGuildMember } from '../src/domains/identity/guildMembers.ts';
 import { insertEvent, insertSignup, insertResult } from '../src/domains/groupings/index.ts';
 import { insertGearBuild } from '../src/domains/gear/index.ts';
 import { insertDungeonDex } from '../src/domains/dex/index.ts';
-import { grantTierManual } from '../src/domains/platform/billing-service.ts';
+import { grantTierManual, setPaygateEnabled } from '../src/domains/platform/billing-service.ts';
 import { upsertEntitlementRow, getEntitlementRow } from '../src/domains/platform/billing.ts';
 import { computeGearSelfStatus } from '../src/domains/guilds/insights.ts';
 import { listGearStandards } from '../src/domains/guilds/gearstandards.ts';
@@ -160,23 +165,40 @@ let r: any;
 let stdId: any;
 
 describe('insights', () => {
-  it('A. tier 0: all four Locked, zero data, write refused', async () => {
-/* ---------------- A. tier 0: all four Locked, zero data, write refused ---------------- */
+  it('A. tier 0 + paygate OFF: all four absent (null), zero data, write refused', async () => {
+/* ---------------- A. tier 0 + OFF: absent, zero data, write refused ---------------- */
 r = await gql(adminQ);
 check('A: no GraphQL errors', !r.errors, JSON.stringify(r.errors || []));
-eq('A: reliability locked', ga(r)?.reliability?.__typename, 'GuildInsightsLocked');
-eq('A: heatmap locked', ga(r)?.participationHeatmap?.__typename, 'GuildInsightsLocked');
-eq('A: gearBoard locked', ga(r)?.gearBoard?.__typename, 'GuildInsightsLocked');
-eq('A: race board locked', ga(r)?.raceSeasonBoard?.__typename, 'GuildInsightsLocked');
-check('A: locked variant carries copy only', typeof ga(r)?.reliability?.premiumTitle === 'string'
-  && ga(r).reliability.premiumTitle.length > 0 && !('entries' in ga(r).reliability));
-eq('A: insights tab label is backend copy', ga(r)?.adminTabInsightsLabel, '数据洞察');
+eq('A: reliability absent (null)', ga(r)?.reliability ?? null, null);
+eq('A: heatmap absent (null)', ga(r)?.participationHeatmap ?? null, null);
+eq('A: gearBoard absent (null)', ga(r)?.gearBoard ?? null, null);
+eq('A: race board absent (null)', ga(r)?.raceSeasonBoard ?? null, null);
+eq('A: insights tab label is backend copy (tab visibility is data-driven)', ga(r)?.adminTabInsightsLabel, '数据洞察');
 r = await gql(`mutation { upsertGearStandard(slug: "${SLUG}", label: "S5 开荒", minScore: 80) { ok errorCode } }`);
 eq('A: gear standard write refused at tier 0', [r.data?.upsertGearStandard?.ok, r.data?.upsertGearStandard?.errorCode], [false, 'premiumRequired']);
 eq('A: no standard stored', (await listGearStandards(db, SLUG)).length, 0);
 r = await gql(`{ viewer { guild(slug: "${SLUG}") { __typename ... on Guild { raceSeasonBoard { __typename } gearSelfStatus { __typename } } } } }`, { user: MEMBER_VIEWER });
-const memberBoard = r.data?.viewer?.guild?.raceSeasonBoard?.__typename;
-eq('A: member race board locked', memberBoard, 'GuildInsightsLocked');
+eq('A: member race board absent (null)', r.data?.viewer?.guild?.raceSeasonBoard ?? null, null);
+eq('A: member gear self status absent (null)', r.data?.viewer?.guild?.gearSelfStatus ?? null, null);
+  });
+
+  it('A2. tier 0 + paygate ON: all four Locked (sales variant), write refused', async () => {
+/* ---------------- A2. tier 0 + ON: Locked sales variant ---------------- */
+await setPaygateEnabled(db, true);
+r = await gql(adminQ);
+check('A2: no GraphQL errors', !r.errors, JSON.stringify(r.errors || []));
+eq('A2: reliability locked', ga(r)?.reliability?.__typename, 'GuildInsightsLocked');
+eq('A2: heatmap locked', ga(r)?.participationHeatmap?.__typename, 'GuildInsightsLocked');
+eq('A2: gearBoard locked', ga(r)?.gearBoard?.__typename, 'GuildInsightsLocked');
+eq('A2: race board locked', ga(r)?.raceSeasonBoard?.__typename, 'GuildInsightsLocked');
+check('A2: locked variant carries copy only', typeof ga(r)?.reliability?.premiumTitle === 'string'
+  && ga(r).reliability.premiumTitle.length > 0 && !('entries' in ga(r).reliability));
+r = await gql(`mutation { upsertGearStandard(slug: "${SLUG}", label: "S5 开荒", minScore: 80) { ok errorCode } }`);
+eq('A2: gear standard write refused at tier 0 (switch never licenses a write)', [r.data?.upsertGearStandard?.ok, r.data?.upsertGearStandard?.errorCode], [false, 'premiumRequired']);
+eq('A2: no standard stored', (await listGearStandards(db, SLUG)).length, 0);
+r = await gql(`{ viewer { guild(slug: "${SLUG}") { __typename ... on Guild { raceSeasonBoard { __typename } gearSelfStatus { __typename } } } } }`, { user: MEMBER_VIEWER });
+eq('A2: member race board locked', r.data?.viewer?.guild?.raceSeasonBoard?.__typename, 'GuildInsightsLocked');
+await setPaygateEnabled(db, false);
   });
 
   it('B. tier 1: full variants with the seeded numbers', async () => {
@@ -254,17 +276,17 @@ eq('C: tier 3 heatmap full', ga(r)?.participationHeatmap?.__typename, 'GuildAdmi
 eq('C: tier 3 gear board full', ga(r)?.gearBoard?.__typename, 'GuildAdminGearBoard');
   });
 
-  it('D. expired tier: locked again, lines frozen', async () => {
-/* ---------------- D. expired tier: locked again, lines frozen ---------------- */
+  it('D. expired tier: absent again (paygate OFF), lines frozen', async () => {
+/* ---------------- D. expired tier: absent again, lines frozen ---------------- */
 {
   const prev = await getEntitlementRow(db, SLUG);
   await upsertEntitlementRow(db, { ...prev, currentPeriodEnd: Math.floor(Date.now() / 1000) - 60 });
 }
 r = await gql(adminQ);
-eq('D: expired reliability locked', ga(r)?.reliability?.__typename, 'GuildInsightsLocked');
-eq('D: expired heatmap locked', ga(r)?.participationHeatmap?.__typename, 'GuildInsightsLocked');
-eq('D: expired gear board locked', ga(r)?.gearBoard?.__typename, 'GuildInsightsLocked');
-eq('D: expired race board locked', ga(r)?.raceSeasonBoard?.__typename, 'GuildInsightsLocked');
+eq('D: expired reliability absent (null)', ga(r)?.reliability ?? null, null);
+eq('D: expired heatmap absent (null)', ga(r)?.participationHeatmap ?? null, null);
+eq('D: expired gear board absent (null)', ga(r)?.gearBoard ?? null, null);
+eq('D: expired race board absent (null)', ga(r)?.raceSeasonBoard ?? null, null);
 r = await gql(`mutation { deleteGearStandard(slug: "${SLUG}", id: "${stdId}") { ok errorCode } }`);
 eq('D: expired write refused', [r.data?.deleteGearStandard?.ok, r.data?.deleteGearStandard?.errorCode], [false, 'premiumRequired']);
 eq('D: standard frozen, not deleted', (await listGearStandards(db, SLUG)).length, 1);

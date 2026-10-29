@@ -16,12 +16,14 @@
 //    binding NAMES but that is not live gets the plain 404; a
 //    host NO binding names falls through to today's behavior;
 //  - tier matrix (T3, F0 semantics: tierLocked is a pure
-//    entitlement verdict that never consults the paygate switch):
-//    below T3 -> admin surface composes the Locked variant (zero
-//    binding data), writes refuse with premiumRequired, and an
-//    active binding stops resolving (freeze, not delete); a
-//    manual grant (legacy premium maps to tier 3) restores all
-//    of it;
+//    entitlement verdict that never consults the paygate switch
+//    and alone gates the writes): below T3 -> with the paygate
+//    OFF the admin section resolves null (zero footprint,
+//    2026-10-28 ruling), with it ON the Locked variant composes
+//    (zero binding data); writes refuse with premiumRequired in
+//    both states, and an active binding stops resolving (freeze,
+//    not delete); a manual grant (legacy premium maps to tier 3)
+//    restores all of it;
 //  - composition: reminder links prefer the custom origin over
 //    the platform subdomain; shareUrl and short-link landings
 //    follow a live custom host; main-host outputs unchanged;
@@ -39,7 +41,7 @@ import {
   isCustomDomainLive, guildCustomDomainOrigin, lookupGuildCustomDomainHost,
   DEFAULT_SAAS_FALLBACK_ORIGIN,
 } from '../src/domains/guilds/customdomain.ts';
-import { tierLocked, grantPremiumManual, revokePremium } from '../src/domains/platform/billing-service.ts';
+import { tierLocked, grantPremiumManual, revokePremium, setPaygateEnabled } from '../src/domains/platform/billing-service.ts';
 import { resolveGuildSubdomain } from '../src/domains/guilds/subdomain.ts';
 import { mintShortLink } from '../src/domains/groupings/shortlinks.ts';
 import { buildReminderMessage } from '../src/domains/groupings/reminder.ts';
@@ -540,17 +542,25 @@ eq('接缝通 + DNS 齐: 验证 ok', g.data?.verifyGuildCustomDomain?.ok, true);
 g = await gql(cdQ, { user: ADMIN, env: SEAM_ENV });
 eq('guild-b 转 ACTIVE', g.data?.viewer?.guildAdmin?.customDomain?.status, 'ACTIVE');
 eq('guild-b statusText 已生效', g.data?.viewer?.guildAdmin?.customDomain?.statusText, '已生效');
-/* tier lock: entitlement revoked (pure verdict, no paygate) */
+/* tier lock: entitlement revoked. Composition follows the surface
+ * state: with the paygate OFF (this suite's default) the section
+ * does not exist — the field resolves null; with it ON the Locked
+ * variant composes. Writes refuse with premiumRequired either way
+ * (the mutation verdict is the pure tierLocked). */
 await revokePremium(A.db, 'guild-b');
 g = await gql(cdQ, { user: ADMIN });
-eq('未达 T3: Locked 变体', g.data?.viewer?.guildAdmin?.customDomain?.__typename, 'GuildAdminCustomDomainLocked');
-eq('Locked 变体带 premium 文案', g.data?.viewer?.guildAdmin?.customDomain?.premiumTitle, '开通百业 Premium');
-eq('Locked 变体零绑定数据 (hostname 不下发)', g.data?.viewer?.guildAdmin?.customDomain?.hostname, undefined);
-eq('Locked 变体零 DNS 数据', g.data?.viewer?.guildAdmin?.customDomain?.dnsTxtValue, undefined);
+eq('未达 T3+总闸关: customDomain 为 null (零足迹)', g.data?.viewer?.guildAdmin?.customDomain ?? null, null);
 g = await gql(bindM, { user: ADMIN, variables: { slug: 'guild-b', hostname: 'www.other-b.com' } });
 eq('未达 T3 绑定 -> premiumRequired', g.data?.bindGuildCustomDomain?.errorCode, 'premiumRequired');
 g = await gql(verifyM, { user: ADMIN, variables: { slug: 'guild-b' } });
 eq('未达 T3 验证 -> premiumRequired', g.data?.verifyGuildCustomDomain?.errorCode, 'premiumRequired');
+await setPaygateEnabled(A.db, true);
+g = await gql(cdQ, { user: ADMIN });
+eq('未达 T3+总闸开: Locked 变体', g.data?.viewer?.guildAdmin?.customDomain?.__typename, 'GuildAdminCustomDomainLocked');
+eq('Locked 变体带 premium 文案', g.data?.viewer?.guildAdmin?.customDomain?.premiumTitle, '开通百业 Premium');
+eq('Locked 变体零绑定数据 (hostname 不下发)', g.data?.viewer?.guildAdmin?.customDomain?.hostname, undefined);
+eq('Locked 变体零 DNS 数据', g.data?.viewer?.guildAdmin?.customDomain?.dnsTxtValue, undefined);
+await setPaygateEnabled(A.db, false);
 const removeM = `mutation($slug: String!) { removeGuildCustomDomain(slug: $slug) { ok errorCode } }`;
 await grantPremiumManual(A.db, 'guild-b', 30);
 g = await gql(cdQ, { user: ADMIN });
