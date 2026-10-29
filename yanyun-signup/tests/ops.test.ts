@@ -58,24 +58,41 @@ function toRawRows(sqlText, rows) {
     : Object.values(r)));
 }
 
+/* Typed-ID fixture keys (0036): the guild and its members carry
+   typed IDs; tenant columns, entitlement rows and settings keys use
+   the guild ID (global scope = 0), ledger rows key by user_id, and
+   roster/seat stamps stay Discord IDs (class A). */
+const GID = 1030100001;
+const UID = {
+  A1: 2030100001, R1: 2030100002, R2: 2030100003, R3: 2030100004,
+  R4: 2030100005, R5: 2030100006, R6: 2030100007, X1: 2030100008,
+};
+
 /* ---------------- fixture ---------------- */
 const W = (off) => weekWindowUtc(off)[0] + 3600; // one hour into the product week
 function makeDb() {
   const state = {
     tenants: [
-      { slug: 'alpha', guild_name: '甲百业', password_hash: 'x', announcement: '', slogan: '', master_name: '', logo_url: '', bg_image_url: '', discord_webhook: '', recruit_open: 0, created_at: '0' },
+      { id: GID, slug: 'alpha', guild_name: '甲百业', password_hash: 'x', announcement: '', slogan: '', master_name: '', logo_url: '', bg_image_url: '', discord_webhook: '', recruit_open: 0, created_at: '0' },
     ],
     settings: new Map([
-      ['alpha|discord_guild_id', 'DG1'],
+      [`${GID}|discord_guild_id`, 'DG1'],
       ['', ''], // placeholder, removed below
     ]),
-    users: new Map([
-      ['A1', JSON.stringify([{ id: 'DG1', name: 'S1', permissions: '8', owner: false }])],
-      ['R1', JSON.stringify([{ id: 'DG1', name: 'S1', permissions: '0', owner: false }])],
-      ['R2', JSON.stringify([{ id: 'DG1', name: 'S1', permissions: '0', owner: false }])],
-    ]),
+    // users rows: {id, discord_id, username, guilds_json} — looked up
+    // by typed user ID (guilds_json) and by Discord ID (seat-stamp
+    // resolution for the contribution ledger).
+    users: [
+      { id: UID.A1, discord_id: 'A1', username: '管理员', guilds_json: JSON.stringify([{ id: 'DG1', name: 'S1', permissions: '8', owner: false }]) },
+      { id: UID.R1, discord_id: 'R1', username: '流失君', guilds_json: JSON.stringify([{ id: 'DG1', name: 'S1', permissions: '0', owner: false }]) },
+      { id: UID.R2, discord_id: 'R2', username: '稳定君', guilds_json: JSON.stringify([{ id: 'DG1', name: 'S1', permissions: '0', owner: false }]) },
+      { id: UID.R3, discord_id: 'R3', username: '新兵', guilds_json: '[]' },
+      { id: UID.R4, discord_id: 'R4', username: '连缺君', guilds_json: '[]' },
+      { id: UID.R5, discord_id: 'R5', username: '潜水君', guilds_json: '[]' },
+      { id: UID.R6, discord_id: 'R6', username: '破竹君', guilds_json: '[]' },
+    ],
     guildMembers: ['A1', 'R1', 'R2', 'R3', 'R4', 'R5', 'R6'].map((id) => ({
-      tenant: 'alpha', discord_id: id,
+      tenant: GID, discord_id: id,
       nick: { A1: '管理员', R1: '流失君', R2: '稳定君', R3: '新兵', R4: '连缺君', R5: '潜水君', R6: '破竹君' }[id],
       global_name: id,
     })),
@@ -86,24 +103,25 @@ function makeDb() {
     events: [],
     signups: [],
     templates: [
-      { id: 1, tenant: 'alpha', name: '双十模板', type: 'activity', title: '双十', dungeon: '试炼本', max_slots: 20, start_days_ahead: 1, start_minutes: 1200, creator_discord_id: 'A1', created_at: 1, updated_at: 1, season_key: '' },
-      { id: 2, tenant: 'alpha', name: '爬塔模板', type: 'tower', title: '爬塔', dungeon: '', max_slots: 10, start_days_ahead: 2, start_minutes: 1260, creator_discord_id: 'A1', created_at: 1, updated_at: 1, season_key: '' },
-      { id: 3, tenant: 'alpha', name: '双十模板', type: 'activity', title: '双十', dungeon: '试炼本', max_slots: 20, start_days_ahead: 1, start_minutes: 1200, creator_discord_id: 'A1', created_at: 2, updated_at: 2, season_key: 'intl-v2.3:S5' },
+      { id: 1, tenant: GID, name: '双十模板', type: 'activity', title: '双十', dungeon: '试炼本', max_slots: 20, start_days_ahead: 1, start_minutes: 1200, creator_user_id: UID.A1, created_at: 1, updated_at: 1, season_key: '' },
+      { id: 2, tenant: GID, name: '爬塔模板', type: 'tower', title: '爬塔', dungeon: '', max_slots: 10, start_days_ahead: 2, start_minutes: 1260, creator_user_id: UID.A1, created_at: 1, updated_at: 1, season_key: '' },
+      { id: 3, tenant: GID, name: '双十模板', type: 'activity', title: '双十', dungeon: '试炼本', max_slots: 20, start_days_ahead: 1, start_minutes: 1200, creator_user_id: UID.A1, created_at: 2, updated_at: 2, season_key: 'intl-v2.3:S5' },
     ],
     pairings: [],
     nudgeSends: [],
     rollovers: [],
     contribRules: [],
     contribEntries: [],
+    mint: new Map(),
   };
   state.settings.delete('');
   let evId = 100; let seatId = 1000; let tplId = 100; let entryId = 1;
   const addEvent = (title, status, startsAt, creator, seats) => {
     const id = evId++;
     state.events.push({
-      id, tenant: 'alpha', title, type: 'activity', description: '', starts_at: null,
+      id, tenant: GID, title, type: 'activity', description: '', starts_at: null,
       meet_info: '', max_slots: 20, status, starts_at_utc: startsAt, origin: 'web',
-      created_by: creator, manage_code: '', dungeon: '试炼本', creator_discord_id: creator,
+      created_by: creator, manage_code: '', dungeon: '试炼本', creator_user_id: UID[creator],
       reminder_sent_at: null, reminder_error: null,
     });
     for (const [did, weapon, role] of seats) {
@@ -148,6 +166,12 @@ function makeDb() {
   }
   function route(kind, rawSql, b) {
     const sql = norm(rawSql);
+    if (/^INSERT INTO id_mint_counters/i.test(sql)) {
+      const key = `${b[0]}|${b[1]}`;
+      const seq = (state.mint.get(key) || 0) + 1;
+      state.mint.set(key, seq);
+      return kind === 'first' ? { seq } : { results: [{ seq }] };
+    }
     if (/^INSERT INTO error_log/i.test(sql)) return { meta: { changes: 1 } };
     const first = (row) => (kind === 'first' ? (row ?? null) : { results: row ? [row] : [] });
     const all = (rows) => ({ results: rows });
@@ -162,7 +186,8 @@ function makeDb() {
       }
       if (table === 'ops_nudge_sends') {
         const row = {}; cols.forEach((c, i) => { row[c] = b[i]; });
-        row.id = 5000 + state.nudgeSends.length; state.nudgeSends.push(row);
+        if (row.id == null) row.id = 5000 + state.nudgeSends.length;
+        state.nudgeSends.push(row);
         return { meta: { changes: 1, last_row_id: row.id } };
       }
       if (table === 'season_rollovers') {
@@ -178,8 +203,8 @@ function makeDb() {
       if (table === 'contribution_rules') {
         const [tenant, actionKey, points, enabled, by, at] = b;
         const ex = state.contribRules.find((x) => x.tenant === tenant && x.action_key === actionKey);
-        if (ex) Object.assign(ex, { points, enabled, updated_by: by, updated_at: at });
-        else state.contribRules.push({ id: 900 + state.contribRules.length, tenant, action_key: actionKey, points, enabled, updated_by: by, updated_at: at });
+        if (ex) Object.assign(ex, { points, enabled, updated_by_user_id: by, updated_at: at });
+        else state.contribRules.push({ id: 900 + state.contribRules.length, tenant, action_key: actionKey, points, enabled, updated_by_user_id: by, updated_at: at });
         return { meta: { changes: 1 } };
       }
       if (table === 'contribution_entries') {
@@ -209,7 +234,7 @@ function makeDb() {
     }
     if (/FROM contribution_entries/i.test(sql)) {
       let rows = state.contribEntries.filter((x) => x.tenant === b[0]);
-      if (/discord_id =/i.test(sql)) rows = rows.filter((x) => x.discord_id === b[1]);
+      if (/user_id =/i.test(sql)) rows = rows.filter((x) => x.user_id === b[1]);
       return all(rows);
     }
     if (/FROM grouping_templates/i.test(sql)) {
@@ -239,7 +264,7 @@ function makeDb() {
       return all(state.signups.filter((s) => s.event_id === Number(b[0])).map((s) => ({ ...s })));
     }
     if (/FROM dungeons/i.test(sql)) return all(state.dungeons.map((d) => ({ ...d })));
-    if (/FROM tenants/i.test(sql)) return first(state.tenants.find((t) => t.slug === b[0]) || null);
+    if (/FROM tenants/i.test(sql)) return first(state.tenants.find((t) => t.slug === b[0] || t.id === Number(b[0])) || null);
     if (/FROM settings/i.test(sql)) {
       if (/tenant = \? AND key = \?/i.test(sql)) {
         const v = state.settings.get(`${b[0]}|${b[1]}`);
@@ -253,10 +278,17 @@ function makeDb() {
       return all([]);
     }
     if (/SELECT guilds_json FROM users/i.test(sql)) {
-      const v = state.users.get(String(b[0]));
-      return first(v === undefined ? null : { guilds_json: v });
+      const u = state.users.find((x) => x.id === Number(b[0]));
+      return first(u ? { guilds_json: u.guilds_json } : null);
     }
-    if (/FROM users/i.test(sql)) return first(null);
+    if (/FROM users/i.test(sql)) {
+      // Point lookups both ways across the identity boundary:
+      // discord_id -> {id} and id -> {discord_id} / {username}.
+      let u = null;
+      if (/discord_id = \?/i.test(sql)) u = state.users.find((x) => x.discord_id === String(b[0])) || null;
+      else if (/WHERE id = \?/i.test(sql)) u = state.users.find((x) => x.id === Number(b[0])) || null;
+      return first(u ? { ...u } : null);
+    }
     if (/FROM guild_members/i.test(sql)) {
       if (/tenant = \? AND discord_id =/i.test(sql)) {
         const row = state.guildMembers.find((m) => m.tenant === b[0] && m.discord_id === b[1]);
@@ -292,9 +324,9 @@ function makeDb() {
 
 const { db, state } = makeDb();
 const env = { DB: db };
-const adminA = { discordId: 'A1', name: '管理员', guilds: ['DG1'] };
-const member1 = { discordId: 'R1', name: '流失君', guilds: ['DG1'] };
-const outsider = { discordId: 'X1', name: '路人', guilds: [] };
+const adminA = { userId: UID.A1, discordId: 'A1', name: '管理员', guilds: ['DG1'] };
+const member1 = { userId: UID.R1, discordId: 'R1', name: '流失君', guilds: ['DG1'] };
+const outsider = { userId: UID.X1, discordId: 'X1', name: '路人', guilds: [] };
 
 async function gql(query, { user = adminA, variables } = {}) {
   const ctx = {
@@ -342,7 +374,7 @@ const setPlan = (plan, daysAhead = 30) => {
   state.entitlements.length = 0;
   if (plan) {
     state.entitlements.push({
-      tenant: 'alpha', plan, source: 'manual',
+      tenant: GID, plan, source: 'manual',
       current_period_end: Math.floor(Date.now() / 1000) + daysAhead * 86400,
       stripe_customer_id: '', stripe_subscription_id: '', updated_at: 0,
     });
@@ -353,7 +385,7 @@ const setPlan = (plan, daysAhead = 30) => {
   eq('管理面页签文案下发', (await getOps()).data?.viewer?.guildAdmin?.adminTabOpsLabel, '运营引擎');
   setPlan(null);
   eq('未授予 + 总闸关: ops 为 null (零足迹)', (await getOps()).data?.viewer?.guildAdmin?.ops ?? null, null);
-  state.settings.set('|paygate_enabled', '1');
+  state.settings.set('0|paygate_enabled', '1');
   const locked = await getOps();
   eq('未授予 + 总闸开: Locked (销售变体)', locked.data?.viewer?.guildAdmin?.ops?.__typename, 'GuildAdminOpsLocked');
   check('Locked 只带未开通文案', !!locked.data?.viewer?.guildAdmin?.ops?.premiumTitle && !('churnRisks' in locked.data.viewer.guildAdmin.ops));
@@ -373,7 +405,7 @@ const setPlan = (plan, daysAhead = 30) => {
   eq('T2 已过期 + 总闸开: Locked', await opsType(), 'GuildAdminOpsLocked');
   // Downstream sections run against a granted guild.
   setPlan('t2');
-  state.settings.delete('|paygate_enabled');
+  state.settings.delete('0|paygate_enabled');
 }
   });
 
@@ -392,10 +424,10 @@ const setPlan = (plan, daysAhead = 30) => {
 
   it('P8 preview + send + frequency', async () => {
 /* ============ P8 preview + send + frequency ============ */
-const previewQ = `query($slug: String!, $e: Int!, $k: String!, $v: String) {
+const previewQ = `query($slug: String!, $e: ID!, $k: String!, $v: String) {
   targetedNudgePreview(slug: $slug, eventId: $e, segmentKind: $k, segmentValue: $v) { __typename
     ... on TargetedNudgePreview { candidateCount dailyRemaining candidates { discordId knownWeapon } } } }`;
-const sendM = `mutation($slug: String!, $e: Int!, $k: String!, $v: String) {
+const sendM = `mutation($slug: String!, $e: ID!, $k: String!, $v: String) {
   sendTargetedNudge(slug: $slug, eventId: $e, segmentKind: $k, segmentValue: $v) { ok error errorCode recipientCount } }`;
 const { open1, open2, open3, open4 } = state.fixtureIds;
 {
@@ -462,9 +494,9 @@ const myQ = `query($slug: String!) { myContribution(slug: $slug) { __typename
   const nowS = Math.floor(Date.now() / 1000);
   const newId = 900;
   state.events.push({
-    id: newId, tenant: 'alpha', title: '启用后新车', type: 'activity', description: '', starts_at: null,
+    id: newId, tenant: GID, title: '启用后新车', type: 'activity', description: '', starts_at: null,
     meet_info: '', max_slots: 20, status: 'completed', starts_at_utc: nowS + 3600, origin: 'web',
-    created_by: '稳定君', manage_code: '', dungeon: '试炼本', creator_discord_id: 'R2',
+    created_by: '稳定君', manage_code: '', dungeon: '试炼本', creator_user_id: UID.R2,
     reminder_sent_at: null, reminder_error: null,
   });
   state.signups.push(
@@ -486,12 +518,12 @@ const myQ = `query($slug: String!) { myContribution(slug: $slug) { __typename
   const okRule = await gql(ruleM, { variables: { slug: 'alpha', a: 'attendance', p: 30, e: true } });
   eq('P14 改出席为 30 分 ok', okRule.data?.updateContributionRule?.ok, true);
 
-  state.pairings.push({ id: 9, tenant: 'alpha', mentor_discord_id: 'R3', mentor_name: '新兵', mentee_discord_id: 'R5', mentee_name: '潜水君', status: 'active', created_by: 'A1', created_at: nowS + 10, ended_at: null });
+  state.pairings.push({ id: 9, tenant: GID, mentor_user_id: UID.R3, mentor_name: '新兵', mentee_user_id: UID.R5, mentee_name: '潜水君', status: 'active', created_by_user_id: UID.A1, created_at: nowS + 10, ended_at: null });
   const newId2 = 901;
   state.events.push({
-    id: newId2, tenant: 'alpha', title: '改规后新车', type: 'activity', description: '', starts_at: null,
+    id: newId2, tenant: GID, title: '改规后新车', type: 'activity', description: '', starts_at: null,
     meet_info: '', max_slots: 20, status: 'completed', starts_at_utc: nowS + 7200, origin: 'web',
-    created_by: '稳定君', manage_code: '', dungeon: '试炼本', creator_discord_id: 'R2',
+    created_by: '稳定君', manage_code: '', dungeon: '试炼本', creator_user_id: UID.R2,
     reminder_sent_at: null, reminder_error: null,
   });
   state.signups.push({ id: 9003, event_id: newId2, nickname: '流失君', uid: 'uR1', role: '奶', weapon: '万丝', contact: '', note: '', team_name: '', members: '', created_at: '2026-01-01 00:00:00', discord_id: 'R1', ready_at: null });

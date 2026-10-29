@@ -156,30 +156,33 @@ const OPS_TEXT_SPEC: [string, string][] = [
 export class GuildAdminOpsShell extends ShellBase {
   __typename = 'GuildAdminOps';
   slug(){ return this.data.slug; }
+  // Ops services key by guild ID since 0036; the slug stays the
+  // display/addressing value only.
+  guildId(){ return Number(this.data.guildId); }
   genChurnRisks(){
     return this.memo('churnRisks', async () => {
-      const rows = await computeChurnRisks(this.db, this.slug());
+      const rows = await computeChurnRisks(this.db, this.guildId());
       return rows.map((r) => new OpsChurnRiskShell(this.ctx, r));
     });
   }
   genContributionRules(){
     return this.memo('contributionRules', async () => {
-      const rows = await listContributionRules(this.db, this.slug());
+      const rows = await listContributionRules(this.db, this.guildId());
       return rows.map((r) => new OpsContributionRuleShell(this.ctx, r));
     });
   }
   genContributionBoard(){
     return this.memo('contributionBoard', async () => {
-      const rows = await contributionBoard(this.db, this.slug());
+      const rows = await contributionBoard(this.db, this.guildId());
       return rows.map((r) => new OpsContributionBoardShell(this.ctx, r));
     });
   }
   genRollover(){
     return this.memo('rollover', async () => {
       const season = await loadSeasonContext(this.db);
-      const templates = await listGroupingTemplates(this.db, this.slug());
+      const templates = await listGroupingTemplates(this.db, this.guildId());
       const plan = planRollover(templates as any, season.seasonKey);
-      const last = await lastRollover(this.db, this.slug());
+      const last = await lastRollover(this.db, this.guildId());
       return new OpsRolloverShell(this.ctx, {
         seasonLabel: season.seasonLabel, targetSeasonKey: season.seasonKey, plan, last,
       });
@@ -187,7 +190,7 @@ export class GuildAdminOpsShell extends ShellBase {
   }
   genNudgeEvents(){
     return this.memo('nudgeEvents', async () => {
-      const rows = await listEventsAdmin(this.db, this.slug());
+      const rows = await listEventsAdmin(this.db, this.guildId());
       const open = (rows || [])
         .filter((r: any) => r.status !== 'completed' && r.status !== 'draft')
         .sort((a: any, b: any) => (a.starts_at_utc ?? 0) - (b.starts_at_utc ?? 0))
@@ -200,7 +203,7 @@ export class GuildAdminOpsShell extends ShellBase {
     // with no open event the quota text is simply not composed.
     const events = await this.genNudgeEvents();
     if (!events.length) return null;
-    const preview = await previewTargetedNudge(this.db, this.slug(), Number(events[0].data.id), 'all', '');
+    const preview = await previewTargetedNudge(this.db, this.guildId(), Number(events[0].data.id), 'all', '');
     if (!preview) return null;
     return this.t('ops_nudgeDailyRemaining', { remaining: preview.dailyRemaining });
   }
@@ -217,7 +220,8 @@ export async function opsPageForAdmin(ctx: Context, slug: string) {
   if (state === 'locked') {
     return new GuildAdminOpsLockedShell(ctx, {});
   }
-  return new GuildAdminOpsShell(ctx, { slug });
+  const guildId = await getGuildIdBySlug(ctx.env.DB, slug).catch(() => null);
+  return new GuildAdminOpsShell(ctx, { slug, guildId });
 }
 
 /* ---------------- nudge preview (argument-carrying query) -------- */
@@ -262,7 +266,7 @@ export async function targetedNudgePreviewResult(
   const kind = (NUDGE_SEGMENT_KINDS as string[]).includes(segmentKind)
     ? (segmentKind as NudgeSegmentKind) : 'all';
   const preview = await previewTargetedNudge(
-    ctx.env.DB, access.slug, eventId, kind, s(segmentValue, 40),
+    ctx.env.DB, access.tenant.id, eventId, kind, s(segmentValue, 40),
   );
   if (!preview) return new GuildAdminOpsLockedShell(ctx, {});
   return new OpsNudgePreviewShell(ctx, { preview });
