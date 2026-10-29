@@ -702,9 +702,23 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
     recruit: 'recruit', officer: 'officer',
   };
   const viewerCaps: string[] = Array.isArray(data.viewerCapabilities) ? data.viewerCapabilities : [];
+  /* Tiered tabs follow the surface data itself: a tiered field
+   * that resolves null (unentitled guild while the paygate is
+   * OFF — the surface does not exist) removes its tab entirely;
+   * a Locked variant or full data keeps it. Presence is the
+   * signal the backend composes; no tier logic lives here. */
+  const TAB_SURFACE: Record<string, boolean> = {
+    insights: data.reliability != null || data.participationHeatmap != null
+      || data.gearBoard != null || data.raceSeasonBoard != null,
+    ops: data.ops != null,
+    governance: data.governance != null,
+    recaps: data.recaps != null,
+  };
   const visibleTabs = TABS.filter((t) => {
     const cap = TAB_CAPABILITY[t.key];
-    return !cap || viewerCaps.includes(cap);
+    if (cap && !viewerCaps.includes(cap)) return false;
+    const surface = TAB_SURFACE[t.key];
+    return surface === undefined || surface;
   });
   const activeTab = visibleTabs.some((t) => t.key === tab) ? tab : (visibleTabs[0]?.key || 'governance');
 
@@ -934,7 +948,7 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
             <PremiumLockedPanel premium={premiumLocked} slug={slug} unknownError={commonText.unknownError} />
           ) : null
         )}
-        {tab === 'insights' && (
+        {activeTab === 'insights' && (
           <GuildAdminInsights
             text={text}
             slug={slug}
@@ -967,7 +981,7 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
             refresh={refresh}
           />
         )}
-        {tab === 'ops' && (
+        {activeTab === 'ops' && (
           <GuildAdminOps
             slug={slug}
             ops={data.ops}
@@ -975,7 +989,7 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
             refresh={refresh}
           />
         )}
-        {tab === 'recaps' && (
+        {activeTab === 'recaps' && (
           <GuildAdminRecaps recaps={data.recaps} />
         )}
         {activeTab === 'tools' && (

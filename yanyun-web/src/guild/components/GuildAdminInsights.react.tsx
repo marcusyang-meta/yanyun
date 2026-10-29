@@ -231,12 +231,16 @@ export default function GuildAdminInsights({ text, slug, commonText, reliability
   text: AdminText;
   slug: string;
   commonText: CommonText;
-  reliability: Locked & { entries?: ReliabilityEntry[] };
-  heatmap: Locked & { totalAttended?: number; peakCount?: number; totalText?: string; weekdayLabels?: string[]; cells?: HeatCell[] };
-  gearBoard: Locked & { standards?: GearStandard[] };
-  raceBoard: Locked & { seasons?: RaceSeason[] };
+  reliability: (Locked & { entries?: ReliabilityEntry[] }) | null;
+  heatmap: (Locked & { totalAttended?: number; peakCount?: number; totalText?: string; weekdayLabels?: string[]; cells?: HeatCell[] }) | null;
+  gearBoard: (Locked & { standards?: GearStandard[] }) | null;
+  raceBoard: (Locked & { seasons?: RaceSeason[] }) | null;
   refresh: () => void;
 }) {
+  // All four fields null = the insights surface does not exist
+  // for this guild (unentitled, paygate OFF); the four share one
+  // tier verdict, so they are null together or not at all.
+  if (!reliability && !heatmap && !gearBoard && !raceBoard) return null;
   if (reliability?.__typename !== 'GuildAdminReliability') {
     const locked = reliability as Locked;
     return (

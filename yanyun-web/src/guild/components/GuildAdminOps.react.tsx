@@ -94,7 +94,7 @@ type Preview = {
 
 export default function GuildAdminOps({ slug, ops, commonText, refresh }: {
   slug: string;
-  ops: OpsPage;
+  ops: OpsPage | null;
   commonText: CommonText;
   refresh: () => void;
 }) {
@@ -111,6 +111,11 @@ export default function GuildAdminOps({ slug, ops, commonText, refresh }: {
   const [previewBusy, setPreviewBusy] = useState(false);
   const [ruleDrafts, setRuleDrafts] = useState<Record<string, string>>({});
 
+  // Null = the surface does not exist for this guild (unentitled,
+  // paygate OFF); the parent only renders this panel when the
+  // field is present, so this is a defensive no-op (after hooks,
+  // so a refresh that lands the field cannot change hook order).
+  if (!ops) return null;
   if (ops.__typename === 'GuildAdminOpsLocked') {
     return (
       <section style={adminSectionStyle}>

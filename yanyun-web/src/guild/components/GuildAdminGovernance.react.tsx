@@ -120,7 +120,7 @@ const chipStyle = (active: boolean): React.CSSProperties => ({
 });
 
 export default function GuildAdminGovernance({ governance, slug, refresh, commonText }: {
-  governance: GovernanceData;
+  governance: GovernanceData | null;
   slug: string;
   refresh: () => void;
   commonText: CommonText;
@@ -141,6 +141,11 @@ export default function GuildAdminGovernance({ governance, slug, refresh, common
   const [extraAudit, setExtraAudit] = useState<GovernanceAuditEvent[]>([]);
   const [auditBusy, setAuditBusy] = useState(false);
 
+  // Null = the surface does not exist for this guild (unentitled,
+  // paygate OFF); the parent only renders this panel when the
+  // field is present, so this is a defensive no-op (after hooks,
+  // so a refresh that lands the field cannot change hook order).
+  if (!governance) return null;
   if (governance.__typename !== 'GuildGovernancePage') {
     const locked = governance as { lockedTitle: string; lockedBody: string };
     return (
