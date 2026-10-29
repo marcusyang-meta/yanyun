@@ -37,6 +37,12 @@
 //                the events or templates map by owner_kind
 //   GUILDPAIR    guild_alliances guild_low/guild_high (recomputed
 //                numeric low/high from the guild map)
+//   AUDITTARGET  guild_audit_events.target_id: a polymorphic TEXT
+//                reference keyed by target_type; rows naming a
+//                renumbered entity are rewritten through that
+//                entity's map, every other row (member Discord IDs,
+//                guide school names, guild/season state strings)
+//                carries over byte-identical
 //   (absent)     carried over verbatim (class A Discord-boundary
 //                columns land here: they keep real Discord IDs)
 import { execFileSync } from 'node:child_process';
@@ -94,6 +100,16 @@ const RENUMBER = {
   },
   feedback: { code: 70, day: { kind: 'unix', col: 'created_at' } },
   ops_nudge_sends: { code: 80, day: { kind: 'unix', col: 'sent_at' } },
+  // Premium-wave entities (migrations 0027/0029/0034/0035), coded
+  // when this migration was rebased over them (docs/ID_SYSTEM.md).
+  rotation_advice_records: { code: 15, day: { kind: 'unix', col: 'created_at' } },
+  // (grouping_recaps has no created_at: generated_at is its creation
+  // stamp — a row is born by a generation; 0 = never succeeded, which
+  // falls back to day 0 like every never-stamped row.)
+  grouping_recaps: { code: 16, day: { kind: 'unix', col: 'generated_at' } },
+  guild_gear_standards: { code: 32, day: { kind: 'unix', col: 'created_at' } },
+  guild_officer_posts: { code: 47, day: { kind: 'unix', col: 'created_at' } },
+  guild_audit_events: { code: 48, day: { kind: 'unix', col: 'created_at' } },
 };
 
 // Reference-column actions for every table that changes shape.
@@ -199,6 +215,34 @@ const ACTIONS = {
   hub_audit_log: { tenant: 'Tl' },
   creator_backfill_log: { tenant: 'Tl', event_id: 'E:events' },
   user_oauth: { discord_id: 'U:user_id' },
+  // Premium-wave tables: tenant + reference remaps. The governance
+  // actor/granter snapshot columns (guild_audit_events.actor_discord_id,
+  // guild_officer_grants.granted_by) are deliberately ABSENT here:
+  // absent means carried over verbatim (class A, docs/ID_SYSTEM.md).
+  rotation_advice_records: {
+    tenant: 'T',
+    event_id: 'E:events',
+    created_by: 'U:created_by_user_id',
+  },
+  grouping_recaps: {
+    tenant: 'T',
+    event_id: 'E:events',
+    generated_by: 'U:generated_by_user_id',
+  },
+  guild_gear_standards: { tenant: 'T', created_by: 'U:created_by_user_id' },
+  guild_custom_domains: { tenant: 'T', created_by: 'U:created_by_user_id' },
+  guild_officer_grants: { tenant: 'T', discord_id: 'U:user_id' },
+  guild_officer_posts: { tenant: 'T', author_discord_id: 'U:author_user_id' },
+  guild_audit_events: { tenant: 'T', target_id: 'AUDITTARGET' },
+};
+
+// Class-B columns whose stored values can be a non-Discord sentinel
+// rather than an identity: the sentinel is excluded from orphan
+// collection and lands on the 0 (invalid ID) value instead of
+// minting a fake user row. (The omniscient VC's rotation saves are
+// stamped 'omni'; there is no user behind them.)
+const SENTINEL_VALUES = {
+  'rotation_advice_records.created_by': ['omni'],
 };
 
 // Entity-FK columns whose 0 value means "no target" (keep 0, do not
@@ -400,7 +444,10 @@ for (const [table, spec] of Object.entries(RENUMBER)) {
 const orphanSources = [];
 for (const [table, actions] of Object.entries(ACTIONS)) {
   for (const [col, action] of Object.entries(actions)) {
-    if (action.startsWith('U:')) orphanSources.push([table, col, '']);
+    const sentinels = (SENTINEL_VALUES[`${table}.${col}`] || [])
+      .map((v) => `AND ${col} <> '${v}'`)
+      .join(' ');
+    if (action.startsWith('U:')) orphanSources.push([table, col, sentinels]);
     // Scope keys: guild-scoped values are not users; only the plain
     // Discord-ID values can be orphans.
     if (action.startsWith('S:')) orphanSources.push([table, col, `AND ${col} NOT LIKE 'guild:%'`]);
@@ -420,6 +467,13 @@ emit(`
 INSERT OR IGNORE INTO _idmig_orphans SELECT substr(dedupe_key, 9 + instr(substr(dedupe_key, 9), ':')) FROM contribution_entries WHERE dedupe_key LIKE 'leading:%';
 INSERT OR IGNORE INTO _idmig_orphans SELECT substr(dedupe_key, 12 + instr(substr(dedupe_key, 12), ':')) FROM contribution_entries WHERE dedupe_key LIKE 'attendance:%';
 INSERT OR IGNORE INTO _idmig_orphans SELECT substr(dedupe_key, 18 + instr(substr(dedupe_key, 18), ':')) FROM contribution_entries WHERE dedupe_key LIKE 'mentoring:pairing:%';`);
+emit(`
+-- The platform-admin roster is the one settings payload that stores
+-- identity keys (a JSON array of Discord IDs in the global scope):
+-- its values are class-B references for orphan purposes, so every
+-- rostered admin resolves to a user ID when the row is rewritten
+-- after the rebuilds (see the settings rewrite below).
+INSERT OR IGNORE INTO _idmig_orphans SELECT je.value FROM settings s, json_each(s.value) je WHERE s.tenant = '' AND s.key = 'platform_admin_discord_ids' AND json_valid(s.value);`);
 emit(`DELETE FROM _idmig_orphans WHERE discord_id IN (SELECT discord_id FROM users);
 INSERT INTO users (discord_id, username, avatar, guilds_json, guilds_checked_at, created_at, updated_at, locale_pref, deletion_requested_at, fresh_auth_at)
 SELECT discord_id, '', '', '[]', 0, strftime('%s','now'), strftime('%s','now'), NULL, NULL, NULL FROM _idmig_orphans;`);
@@ -467,6 +521,11 @@ const mapOrder = [
   'fill_invites',
   'roster_import_rows',
   'time_poll_options',
+  'rotation_advice_records',
+  'grouping_recaps',
+  'guild_gear_standards',
+  'guild_officer_posts',
+  'guild_audit_events',
   'grouping_custom_fields',
 ];
 for (const table of mapOrder) {
@@ -535,7 +594,17 @@ function exprFor(table, col) {
     // '' is the text-era "unset" marker on several of these columns
     // (an unreviewed application's reviewed_by, an unset invite
     // sender); in the typed shape unset is 0, the invalid-ID sentinel.
-    return `CASE WHEN o.${col} IS NULL THEN NULL WHEN o.${col} = '' THEN 0 ELSE ${userExpr(col)} END`;
+    // Declared non-Discord sentinels (SENTINEL_VALUES) land on 0 too.
+    const sentinels = SENTINEL_VALUES[`${table}.${col}`] || [];
+    const sentinelCase = sentinels.length
+      ? sentinels.map((v) => `WHEN o.${col} = '${v}' THEN 0 `).join('')
+      : '';
+    return `CASE WHEN o.${col} IS NULL THEN NULL WHEN o.${col} = '' THEN 0 ${sentinelCase}ELSE ${userExpr(col)} END`;
+  }
+  if (action === 'AUDITTARGET') {
+    const m = (t) =>
+      `(SELECT new_id FROM _idmig_map_${t} WHERE old_key = o.target_id)`;
+    return `CASE o.target_type WHEN 'announcement' THEN COALESCE(${m('guild_announcements')}, o.target_id) WHEN 'application' THEN COALESCE(${m('guild_applications')}, o.target_id) WHEN 'board' THEN COALESCE(${m('guild_officer_posts')}, o.target_id) WHEN 'event' THEN COALESCE(${m('events')}, o.target_id) WHEN 'lottery' THEN COALESCE(${m('lotteries')}, o.target_id) WHEN 'pairing' THEN COALESCE(${m('mentor_pairings')}, o.target_id) WHEN 'result' THEN COALESCE(${m('results')}, o.target_id) WHEN 'signup' THEN COALESCE(${m('signups')}, o.target_id) WHEN 'roster' THEN COALESCE(CASE WHEN o.action = 'roster.import' THEN ${m('roster_import_batches')} ELSE ${m('guild_roster_entries')} END, o.target_id) ELSE o.target_id END`;
   }
   if (action.startsWith('S:')) {
     return `CASE WHEN o.${col} IS NULL THEN NULL WHEN o.${col} = '' THEN 0 WHEN o.${col} LIKE 'guild:%' THEN (SELECT new_id FROM _idmig_guild WHERE old_key = substr(o.${col}, 7)) ELSE ${userExpr(col)} END`;
@@ -682,6 +751,19 @@ for (const table of rebuildOrder) {
   if (!tableSql.has(table)) throw new Error(`unknown table ${table}`);
   rebuild(table);
 }
+
+/* The platform-admin roster rewrite: the settings rebuild above
+ * carried the value verbatim (settings payloads are opaque), but this
+ * one row stores identity keys and the admin gate's subject is the
+ * user ID from this migration on — rewrite its JSON array through
+ * the user map while the maps still exist. Values stay strings (the
+ * gate compares string subjects); an unmapped value would land as
+ * JSON null, which the gate's parser drops (fail closed). */
+emit(`
+UPDATE settings SET value = (
+  SELECT json_group_array(CAST((SELECT new_id FROM _idmig_user WHERE old_key = je.value) AS TEXT))
+  FROM json_each(settings.value) je
+) WHERE tenant = 0 AND key = 'platform_admin_discord_ids' AND json_valid(value);`);
 
 emit(`
 DROP TABLE _idmig_guard;

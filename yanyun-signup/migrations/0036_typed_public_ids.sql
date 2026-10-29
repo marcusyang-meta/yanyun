@@ -41,6 +41,11 @@ DROP TABLE IF EXISTS _idmig_map_time_polls;
 DROP TABLE IF EXISTS _idmig_map_time_poll_options;
 DROP TABLE IF EXISTS _idmig_map_feedback;
 DROP TABLE IF EXISTS _idmig_map_ops_nudge_sends;
+DROP TABLE IF EXISTS _idmig_map_rotation_advice_records;
+DROP TABLE IF EXISTS _idmig_map_grouping_recaps;
+DROP TABLE IF EXISTS _idmig_map_guild_gear_standards;
+DROP TABLE IF EXISTS _idmig_map_guild_officer_posts;
+DROP TABLE IF EXISTS _idmig_map_guild_audit_events;
 DROP TABLE IF EXISTS _idmig_guard;
 DROP TABLE IF EXISTS _idmig_orphans;
 
@@ -78,6 +83,11 @@ INSERT INTO _idmig_guard SELECT CASE WHEN EXISTS (SELECT 1 FROM lotteries WHERE 
 INSERT INTO _idmig_guard SELECT CASE WHEN EXISTS (SELECT 1 FROM time_polls WHERE created_at BETWEEN 1 AND 1767225599) THEN 0 ELSE 1 END; -- time_polls pre-epoch
 INSERT INTO _idmig_guard SELECT CASE WHEN EXISTS (SELECT 1 FROM feedback WHERE created_at BETWEEN 1 AND 1767225599) THEN 0 ELSE 1 END; -- feedback pre-epoch
 INSERT INTO _idmig_guard SELECT CASE WHEN EXISTS (SELECT 1 FROM ops_nudge_sends WHERE sent_at BETWEEN 1 AND 1767225599) THEN 0 ELSE 1 END; -- ops_nudge_sends pre-epoch
+INSERT INTO _idmig_guard SELECT CASE WHEN EXISTS (SELECT 1 FROM rotation_advice_records WHERE created_at BETWEEN 1 AND 1767225599) THEN 0 ELSE 1 END; -- rotation_advice_records pre-epoch
+INSERT INTO _idmig_guard SELECT CASE WHEN EXISTS (SELECT 1 FROM grouping_recaps WHERE generated_at BETWEEN 1 AND 1767225599) THEN 0 ELSE 1 END; -- grouping_recaps pre-epoch
+INSERT INTO _idmig_guard SELECT CASE WHEN EXISTS (SELECT 1 FROM guild_gear_standards WHERE created_at BETWEEN 1 AND 1767225599) THEN 0 ELSE 1 END; -- guild_gear_standards pre-epoch
+INSERT INTO _idmig_guard SELECT CASE WHEN EXISTS (SELECT 1 FROM guild_officer_posts WHERE created_at BETWEEN 1 AND 1767225599) THEN 0 ELSE 1 END; -- guild_officer_posts pre-epoch
+INSERT INTO _idmig_guard SELECT CASE WHEN EXISTS (SELECT 1 FROM guild_audit_events WHERE created_at BETWEEN 1 AND 1767225599) THEN 0 ELSE 1 END; -- guild_audit_events pre-epoch
 
 CREATE TABLE _idmig_orphans (discord_id TEXT PRIMARY KEY);
 INSERT OR IGNORE INTO _idmig_orphans SELECT creator_discord_id FROM events WHERE creator_discord_id IS NOT NULL AND creator_discord_id <> '' ;
@@ -118,6 +128,12 @@ INSERT OR IGNORE INTO _idmig_orphans SELECT discord_id FROM push_tokens WHERE di
 INSERT OR IGNORE INTO _idmig_orphans SELECT discord_id FROM usage_counters WHERE discord_id IS NOT NULL AND discord_id <> '' AND discord_id NOT LIKE 'guild:%';
 INSERT OR IGNORE INTO _idmig_orphans SELECT discord_id FROM feedback WHERE discord_id IS NOT NULL AND discord_id <> '' ;
 INSERT OR IGNORE INTO _idmig_orphans SELECT discord_id FROM user_oauth WHERE discord_id IS NOT NULL AND discord_id <> '' ;
+INSERT OR IGNORE INTO _idmig_orphans SELECT created_by FROM rotation_advice_records WHERE created_by IS NOT NULL AND created_by <> '' AND created_by <> 'omni';
+INSERT OR IGNORE INTO _idmig_orphans SELECT generated_by FROM grouping_recaps WHERE generated_by IS NOT NULL AND generated_by <> '' ;
+INSERT OR IGNORE INTO _idmig_orphans SELECT created_by FROM guild_gear_standards WHERE created_by IS NOT NULL AND created_by <> '' ;
+INSERT OR IGNORE INTO _idmig_orphans SELECT created_by FROM guild_custom_domains WHERE created_by IS NOT NULL AND created_by <> '' ;
+INSERT OR IGNORE INTO _idmig_orphans SELECT discord_id FROM guild_officer_grants WHERE discord_id IS NOT NULL AND discord_id <> '' ;
+INSERT OR IGNORE INTO _idmig_orphans SELECT author_discord_id FROM guild_officer_posts WHERE author_discord_id IS NOT NULL AND author_discord_id <> '' ;
 
 -- Discord IDs that exist ONLY inside contribution dedupe keys are
 -- class-B references too: collect them as orphans so their user IDs
@@ -125,6 +141,13 @@ INSERT OR IGNORE INTO _idmig_orphans SELECT discord_id FROM user_oauth WHERE dis
 INSERT OR IGNORE INTO _idmig_orphans SELECT substr(dedupe_key, 9 + instr(substr(dedupe_key, 9), ':')) FROM contribution_entries WHERE dedupe_key LIKE 'leading:%';
 INSERT OR IGNORE INTO _idmig_orphans SELECT substr(dedupe_key, 12 + instr(substr(dedupe_key, 12), ':')) FROM contribution_entries WHERE dedupe_key LIKE 'attendance:%';
 INSERT OR IGNORE INTO _idmig_orphans SELECT substr(dedupe_key, 18 + instr(substr(dedupe_key, 18), ':')) FROM contribution_entries WHERE dedupe_key LIKE 'mentoring:pairing:%';
+
+-- The platform-admin roster is the one settings payload that stores
+-- identity keys (a JSON array of Discord IDs in the global scope):
+-- its values are class-B references for orphan purposes, so every
+-- rostered admin resolves to a user ID when the row is rewritten
+-- after the rebuilds (see the settings rewrite below).
+INSERT OR IGNORE INTO _idmig_orphans SELECT je.value FROM settings s, json_each(s.value) je WHERE s.tenant = '' AND s.key = 'platform_admin_discord_ids' AND json_valid(s.value);
 DELETE FROM _idmig_orphans WHERE discord_id IN (SELECT discord_id FROM users);
 INSERT INTO users (discord_id, username, avatar, guilds_json, guilds_checked_at, created_at, updated_at, locale_pref, deletion_requested_at, fresh_auth_at)
 SELECT discord_id, '', '', '[]', 0, strftime('%s','now'), strftime('%s','now'), NULL, NULL, NULL FROM _idmig_orphans;
@@ -254,6 +277,31 @@ INSERT INTO _idmig_map_time_poll_options
 SELECT CAST(id AS TEXT), 62 * 1000000000 + day * 100000 + ROW_NUMBER() OVER (PARTITION BY day ORDER BY id)
 FROM (SELECT id, COALESCE((((SELECT new_id FROM _idmig_map_time_polls WHERE old_key = CAST(poll_id AS TEXT))) / 100000) % 10000, 0) AS day FROM time_poll_options);
 
+CREATE TABLE _idmig_map_rotation_advice_records (old_key TEXT PRIMARY KEY, new_id INTEGER NOT NULL UNIQUE);
+INSERT INTO _idmig_map_rotation_advice_records
+SELECT CAST(id AS TEXT), 15 * 1000000000 + day * 100000 + ROW_NUMBER() OVER (PARTITION BY day ORDER BY id)
+FROM (SELECT id, CASE WHEN created_at IS NULL OR created_at = 0 THEN 0 ELSE created_at / 86400 - 20454 END AS day FROM rotation_advice_records);
+
+CREATE TABLE _idmig_map_grouping_recaps (old_key TEXT PRIMARY KEY, new_id INTEGER NOT NULL UNIQUE);
+INSERT INTO _idmig_map_grouping_recaps
+SELECT CAST(id AS TEXT), 16 * 1000000000 + day * 100000 + ROW_NUMBER() OVER (PARTITION BY day ORDER BY id)
+FROM (SELECT id, CASE WHEN generated_at IS NULL OR generated_at = 0 THEN 0 ELSE generated_at / 86400 - 20454 END AS day FROM grouping_recaps);
+
+CREATE TABLE _idmig_map_guild_gear_standards (old_key TEXT PRIMARY KEY, new_id INTEGER NOT NULL UNIQUE);
+INSERT INTO _idmig_map_guild_gear_standards
+SELECT CAST(id AS TEXT), 32 * 1000000000 + day * 100000 + ROW_NUMBER() OVER (PARTITION BY day ORDER BY id)
+FROM (SELECT id, CASE WHEN created_at IS NULL OR created_at = 0 THEN 0 ELSE created_at / 86400 - 20454 END AS day FROM guild_gear_standards);
+
+CREATE TABLE _idmig_map_guild_officer_posts (old_key TEXT PRIMARY KEY, new_id INTEGER NOT NULL UNIQUE);
+INSERT INTO _idmig_map_guild_officer_posts
+SELECT CAST(id AS TEXT), 47 * 1000000000 + day * 100000 + ROW_NUMBER() OVER (PARTITION BY day ORDER BY id)
+FROM (SELECT id, CASE WHEN created_at IS NULL OR created_at = 0 THEN 0 ELSE created_at / 86400 - 20454 END AS day FROM guild_officer_posts);
+
+CREATE TABLE _idmig_map_guild_audit_events (old_key TEXT PRIMARY KEY, new_id INTEGER NOT NULL UNIQUE);
+INSERT INTO _idmig_map_guild_audit_events
+SELECT CAST(id AS TEXT), 48 * 1000000000 + day * 100000 + ROW_NUMBER() OVER (PARTITION BY day ORDER BY id)
+FROM (SELECT id, CASE WHEN created_at IS NULL OR created_at = 0 THEN 0 ELSE created_at / 86400 - 20454 END AS day FROM guild_audit_events);
+
 CREATE TABLE _idmig_map_grouping_custom_fields (old_key TEXT PRIMARY KEY, new_id INTEGER NOT NULL UNIQUE);
 INSERT INTO _idmig_map_grouping_custom_fields
 SELECT CAST(id AS TEXT), 14 * 1000000000 + day * 100000 + ROW_NUMBER() OVER (PARTITION BY day ORDER BY id)
@@ -284,6 +332,11 @@ INSERT INTO _idmig_guard SELECT CASE WHEN EXISTS (SELECT 1 FROM (SELECT new_id /
 INSERT INTO _idmig_guard SELECT CASE WHEN EXISTS (SELECT 1 FROM (SELECT new_id / 100000 AS grp, COUNT(*) AS c FROM _idmig_map_time_poll_options GROUP BY grp) WHERE c > 99999) THEN 0 ELSE 1 END; -- _idmig_map_time_poll_options daily sequence overflow
 INSERT INTO _idmig_guard SELECT CASE WHEN EXISTS (SELECT 1 FROM (SELECT new_id / 100000 AS grp, COUNT(*) AS c FROM _idmig_map_feedback GROUP BY grp) WHERE c > 99999) THEN 0 ELSE 1 END; -- _idmig_map_feedback daily sequence overflow
 INSERT INTO _idmig_guard SELECT CASE WHEN EXISTS (SELECT 1 FROM (SELECT new_id / 100000 AS grp, COUNT(*) AS c FROM _idmig_map_ops_nudge_sends GROUP BY grp) WHERE c > 99999) THEN 0 ELSE 1 END; -- _idmig_map_ops_nudge_sends daily sequence overflow
+INSERT INTO _idmig_guard SELECT CASE WHEN EXISTS (SELECT 1 FROM (SELECT new_id / 100000 AS grp, COUNT(*) AS c FROM _idmig_map_rotation_advice_records GROUP BY grp) WHERE c > 99999) THEN 0 ELSE 1 END; -- _idmig_map_rotation_advice_records daily sequence overflow
+INSERT INTO _idmig_guard SELECT CASE WHEN EXISTS (SELECT 1 FROM (SELECT new_id / 100000 AS grp, COUNT(*) AS c FROM _idmig_map_grouping_recaps GROUP BY grp) WHERE c > 99999) THEN 0 ELSE 1 END; -- _idmig_map_grouping_recaps daily sequence overflow
+INSERT INTO _idmig_guard SELECT CASE WHEN EXISTS (SELECT 1 FROM (SELECT new_id / 100000 AS grp, COUNT(*) AS c FROM _idmig_map_guild_gear_standards GROUP BY grp) WHERE c > 99999) THEN 0 ELSE 1 END; -- _idmig_map_guild_gear_standards daily sequence overflow
+INSERT INTO _idmig_guard SELECT CASE WHEN EXISTS (SELECT 1 FROM (SELECT new_id / 100000 AS grp, COUNT(*) AS c FROM _idmig_map_guild_officer_posts GROUP BY grp) WHERE c > 99999) THEN 0 ELSE 1 END; -- _idmig_map_guild_officer_posts daily sequence overflow
+INSERT INTO _idmig_guard SELECT CASE WHEN EXISTS (SELECT 1 FROM (SELECT new_id / 100000 AS grp, COUNT(*) AS c FROM _idmig_map_guild_audit_events GROUP BY grp) WHERE c > 99999) THEN 0 ELSE 1 END; -- _idmig_map_guild_audit_events daily sequence overflow
 
 -- Mint counters continue where the backfill left off, per type/day.
 INSERT INTO id_mint_counters SELECT 10, (new_id / 100000) % 10000, MAX(new_id % 100000) FROM _idmig_map_events GROUP BY (new_id / 100000) % 10000;
@@ -310,6 +363,11 @@ INSERT INTO id_mint_counters SELECT 61, (new_id / 100000) % 10000, MAX(new_id % 
 INSERT INTO id_mint_counters SELECT 62, (new_id / 100000) % 10000, MAX(new_id % 100000) FROM _idmig_map_time_poll_options GROUP BY (new_id / 100000) % 10000;
 INSERT INTO id_mint_counters SELECT 70, (new_id / 100000) % 10000, MAX(new_id % 100000) FROM _idmig_map_feedback GROUP BY (new_id / 100000) % 10000;
 INSERT INTO id_mint_counters SELECT 80, (new_id / 100000) % 10000, MAX(new_id % 100000) FROM _idmig_map_ops_nudge_sends GROUP BY (new_id / 100000) % 10000;
+INSERT INTO id_mint_counters SELECT 15, (new_id / 100000) % 10000, MAX(new_id % 100000) FROM _idmig_map_rotation_advice_records GROUP BY (new_id / 100000) % 10000;
+INSERT INTO id_mint_counters SELECT 16, (new_id / 100000) % 10000, MAX(new_id % 100000) FROM _idmig_map_grouping_recaps GROUP BY (new_id / 100000) % 10000;
+INSERT INTO id_mint_counters SELECT 32, (new_id / 100000) % 10000, MAX(new_id % 100000) FROM _idmig_map_guild_gear_standards GROUP BY (new_id / 100000) % 10000;
+INSERT INTO id_mint_counters SELECT 47, (new_id / 100000) % 10000, MAX(new_id % 100000) FROM _idmig_map_guild_officer_posts GROUP BY (new_id / 100000) % 10000;
+INSERT INTO id_mint_counters SELECT 48, (new_id / 100000) % 10000, MAX(new_id % 100000) FROM _idmig_map_guild_audit_events GROUP BY (new_id / 100000) % 10000;
 INSERT INTO id_mint_counters SELECT 1, (new_id / 100000) % 10000, MAX(new_id % 100000) FROM _idmig_guild GROUP BY (new_id / 100000) % 10000;
 INSERT INTO id_mint_counters SELECT 2, (new_id / 100000) % 10000, MAX(new_id % 100000) FROM _idmig_user GROUP BY (new_id / 100000) % 10000;
 
@@ -786,6 +844,88 @@ ALTER TABLE ops_nudge_sends__new RENAME TO ops_nudge_sends;
 CREATE INDEX idx_ops_nudge_sends_tenant_at ON ops_nudge_sends(tenant, sent_at);
 CREATE INDEX idx_ops_nudge_sends_tenant_event ON ops_nudge_sends(tenant, event_id, sent_at);
 
+CREATE TABLE rotation_advice_records__new (
+  id INTEGER PRIMARY KEY,
+  tenant INTEGER NOT NULL DEFAULT 0,
+  event_id INTEGER NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+  advice_json TEXT NOT NULL DEFAULT '[]',
+  created_by_user_id INTEGER NOT NULL DEFAULT 0,
+  created_at INTEGER NOT NULL DEFAULT 0
+);
+INSERT INTO rotation_advice_records__new (id, tenant, event_id, advice_json, created_by_user_id, created_at)
+SELECT (SELECT new_id FROM _idmig_map_rotation_advice_records WHERE old_key = CAST(o.id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, (SELECT new_id FROM _idmig_map_events WHERE old_key = CAST(o.event_id AS TEXT)), o.advice_json, CASE WHEN o.created_by IS NULL THEN NULL WHEN o.created_by = '' THEN 0 WHEN o.created_by = 'omni' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.created_by) END, o.created_at FROM rotation_advice_records o;
+DROP TABLE rotation_advice_records;
+ALTER TABLE rotation_advice_records__new RENAME TO rotation_advice_records;
+CREATE INDEX idx_rotation_advice_records_event ON rotation_advice_records (tenant, event_id, id);
+
+CREATE TABLE grouping_recaps__new (
+  id INTEGER PRIMARY KEY,
+  tenant INTEGER NOT NULL DEFAULT 0,
+  event_id INTEGER NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+  status TEXT NOT NULL DEFAULT 'ready',
+  paragraphs_json TEXT NOT NULL DEFAULT '[]',
+  snapshot_json TEXT NOT NULL DEFAULT '{}',
+  provider TEXT NOT NULL DEFAULT '',
+  generated_by_user_id INTEGER NOT NULL DEFAULT 0,
+  version INTEGER NOT NULL DEFAULT 1,
+  last_error TEXT NOT NULL DEFAULT '',
+  generated_at INTEGER NOT NULL DEFAULT 0,
+  updated_at INTEGER NOT NULL DEFAULT 0
+);
+INSERT INTO grouping_recaps__new (id, tenant, event_id, status, paragraphs_json, snapshot_json, provider, generated_by_user_id, version, last_error, generated_at, updated_at)
+SELECT (SELECT new_id FROM _idmig_map_grouping_recaps WHERE old_key = CAST(o.id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, (SELECT new_id FROM _idmig_map_events WHERE old_key = CAST(o.event_id AS TEXT)), o.status, o.paragraphs_json, o.snapshot_json, o.provider, CASE WHEN o.generated_by IS NULL THEN NULL WHEN o.generated_by = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.generated_by) END, o.version, o.last_error, o.generated_at, o.updated_at FROM grouping_recaps o;
+DROP TABLE grouping_recaps;
+ALTER TABLE grouping_recaps__new RENAME TO grouping_recaps;
+CREATE UNIQUE INDEX grouping_recaps_event_unique ON grouping_recaps (event_id);
+CREATE INDEX idx_grouping_recaps_tenant ON grouping_recaps (tenant, generated_at);
+
+CREATE TABLE guild_gear_standards__new (
+  id INTEGER PRIMARY KEY,
+  tenant INTEGER NOT NULL,
+  label TEXT NOT NULL DEFAULT '',
+  min_score INTEGER NOT NULL DEFAULT 0,
+  created_by_user_id INTEGER NOT NULL DEFAULT 0,
+  created_at INTEGER NOT NULL DEFAULT 0,
+  updated_at INTEGER NOT NULL DEFAULT 0
+);
+INSERT INTO guild_gear_standards__new (id, tenant, label, min_score, created_by_user_id, created_at, updated_at)
+SELECT (SELECT new_id FROM _idmig_map_guild_gear_standards WHERE old_key = CAST(o.id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, o.label, o.min_score, CASE WHEN o.created_by IS NULL THEN NULL WHEN o.created_by = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.created_by) END, o.created_at, o.updated_at FROM guild_gear_standards o;
+DROP TABLE guild_gear_standards;
+ALTER TABLE guild_gear_standards__new RENAME TO guild_gear_standards;
+CREATE INDEX idx_guild_gear_standards_tenant ON guild_gear_standards (tenant, id);
+
+CREATE TABLE guild_officer_posts__new (
+  id INTEGER PRIMARY KEY,
+  tenant INTEGER NOT NULL,
+  body TEXT NOT NULL DEFAULT '',
+  author_user_id INTEGER NOT NULL DEFAULT 0,
+  author_name TEXT NOT NULL DEFAULT '',
+  created_at INTEGER NOT NULL DEFAULT 0,
+  updated_at INTEGER NOT NULL DEFAULT 0
+);
+INSERT INTO guild_officer_posts__new (id, tenant, body, author_user_id, author_name, created_at, updated_at)
+SELECT (SELECT new_id FROM _idmig_map_guild_officer_posts WHERE old_key = CAST(o.id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, o.body, CASE WHEN o.author_discord_id IS NULL THEN NULL WHEN o.author_discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.author_discord_id) END, o.author_name, o.created_at, o.updated_at FROM guild_officer_posts o;
+DROP TABLE guild_officer_posts;
+ALTER TABLE guild_officer_posts__new RENAME TO guild_officer_posts;
+CREATE INDEX idx_guild_officer_posts_tenant_id ON guild_officer_posts (tenant, id);
+
+CREATE TABLE guild_audit_events__new (
+  id INTEGER PRIMARY KEY,
+  tenant INTEGER NOT NULL,
+  actor_discord_id TEXT NOT NULL DEFAULT '',
+  actor_name TEXT NOT NULL DEFAULT '',
+  action TEXT NOT NULL DEFAULT '',
+  target_type TEXT NOT NULL DEFAULT '',
+  target_id TEXT NOT NULL DEFAULT '',
+  target_label TEXT NOT NULL DEFAULT '',
+  created_at INTEGER NOT NULL DEFAULT 0
+);
+INSERT INTO guild_audit_events__new (id, tenant, actor_discord_id, actor_name, action, target_type, target_id, target_label, created_at)
+SELECT (SELECT new_id FROM _idmig_map_guild_audit_events WHERE old_key = CAST(o.id AS TEXT)), CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, o.actor_discord_id, o.actor_name, o.action, o.target_type, CASE o.target_type WHEN 'announcement' THEN COALESCE((SELECT new_id FROM _idmig_map_guild_announcements WHERE old_key = o.target_id), o.target_id) WHEN 'application' THEN COALESCE((SELECT new_id FROM _idmig_map_guild_applications WHERE old_key = o.target_id), o.target_id) WHEN 'board' THEN COALESCE((SELECT new_id FROM _idmig_map_guild_officer_posts WHERE old_key = o.target_id), o.target_id) WHEN 'event' THEN COALESCE((SELECT new_id FROM _idmig_map_events WHERE old_key = o.target_id), o.target_id) WHEN 'lottery' THEN COALESCE((SELECT new_id FROM _idmig_map_lotteries WHERE old_key = o.target_id), o.target_id) WHEN 'pairing' THEN COALESCE((SELECT new_id FROM _idmig_map_mentor_pairings WHERE old_key = o.target_id), o.target_id) WHEN 'result' THEN COALESCE((SELECT new_id FROM _idmig_map_results WHERE old_key = o.target_id), o.target_id) WHEN 'signup' THEN COALESCE((SELECT new_id FROM _idmig_map_signups WHERE old_key = o.target_id), o.target_id) WHEN 'roster' THEN COALESCE(CASE WHEN o.action = 'roster.import' THEN (SELECT new_id FROM _idmig_map_roster_import_batches WHERE old_key = o.target_id) ELSE (SELECT new_id FROM _idmig_map_guild_roster_entries WHERE old_key = o.target_id) END, o.target_id) ELSE o.target_id END, o.target_label, o.created_at FROM guild_audit_events o;
+DROP TABLE guild_audit_events;
+ALTER TABLE guild_audit_events__new RENAME TO guild_audit_events;
+CREATE INDEX idx_guild_audit_events_tenant_id ON guild_audit_events (tenant, id);
+
 CREATE TABLE short_links__new (
   code TEXT PRIMARY KEY,
   tenant INTEGER NOT NULL DEFAULT 0,
@@ -1162,6 +1302,43 @@ SELECT CASE WHEN o.discord_id IS NULL THEN NULL WHEN o.discord_id = '' THEN 0 EL
 DROP TABLE user_oauth;
 ALTER TABLE user_oauth__new RENAME TO user_oauth;
 
+CREATE TABLE guild_custom_domains__new (
+  tenant INTEGER PRIMARY KEY,
+  hostname TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending',
+  verify_token TEXT NOT NULL DEFAULT '',
+  created_by_user_id INTEGER NOT NULL DEFAULT 0,
+  created_at INTEGER NOT NULL DEFAULT 0,
+  updated_at INTEGER NOT NULL DEFAULT 0,
+  verified_at INTEGER
+);
+INSERT INTO guild_custom_domains__new (tenant, hostname, status, verify_token, created_by_user_id, created_at, updated_at, verified_at)
+SELECT CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, o.hostname, o.status, o.verify_token, CASE WHEN o.created_by IS NULL THEN NULL WHEN o.created_by = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.created_by) END, o.created_at, o.updated_at, o.verified_at FROM guild_custom_domains o;
+DROP TABLE guild_custom_domains;
+ALTER TABLE guild_custom_domains__new RENAME TO guild_custom_domains;
+CREATE UNIQUE INDEX guild_custom_domains_hostname_unique ON guild_custom_domains (hostname);
+CREATE INDEX idx_guild_custom_domains_status ON guild_custom_domains (status);
+
+CREATE TABLE guild_officer_grants__new (
+  tenant INTEGER NOT NULL,
+  user_id INTEGER NOT NULL,
+  capabilities TEXT NOT NULL DEFAULT '',
+  granted_by TEXT NOT NULL DEFAULT '',
+  granted_by_name TEXT NOT NULL DEFAULT '',
+  created_at INTEGER NOT NULL DEFAULT 0,
+  updated_at INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (tenant, user_id)
+);
+INSERT INTO guild_officer_grants__new (tenant, user_id, capabilities, granted_by, granted_by_name, created_at, updated_at)
+SELECT CASE WHEN o.tenant IS NULL THEN NULL WHEN o.tenant = '' THEN 0 ELSE (SELECT new_id FROM _idmig_guild WHERE old_key = o.tenant) END, CASE WHEN o.discord_id IS NULL THEN NULL WHEN o.discord_id = '' THEN 0 ELSE (SELECT new_id FROM _idmig_user WHERE old_key = o.discord_id) END, o.capabilities, o.granted_by, o.granted_by_name, o.created_at, o.updated_at FROM guild_officer_grants o;
+DROP TABLE guild_officer_grants;
+ALTER TABLE guild_officer_grants__new RENAME TO guild_officer_grants;
+
+UPDATE settings SET value = (
+  SELECT json_group_array(CAST((SELECT new_id FROM _idmig_user WHERE old_key = je.value) AS TEXT))
+  FROM json_each(settings.value) je
+) WHERE tenant = 0 AND key = 'platform_admin_discord_ids' AND json_valid(value);
+
 DROP TABLE _idmig_guard;
 DROP TABLE _idmig_orphans;
 DROP TABLE _idmig_guild;
@@ -1190,3 +1367,8 @@ DROP TABLE _idmig_map_time_polls;
 DROP TABLE _idmig_map_time_poll_options;
 DROP TABLE _idmig_map_feedback;
 DROP TABLE _idmig_map_ops_nudge_sends;
+DROP TABLE _idmig_map_rotation_advice_records;
+DROP TABLE _idmig_map_grouping_recaps;
+DROP TABLE _idmig_map_guild_gear_standards;
+DROP TABLE _idmig_map_guild_officer_posts;
+DROP TABLE _idmig_map_guild_audit_events;
