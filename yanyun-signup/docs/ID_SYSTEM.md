@@ -44,9 +44,12 @@ id = typeCode * 1_000_000_000 + dayIndex * 100_000 + sequence
 | 12 | signup (seat) | `signups` |
 | 13 | race result | `results` |
 | 14 | custom signup field | `grouping_custom_fields` |
+| 15 | rotation advice record | `rotation_advice_records` |
+| 16 | grouping recap | `grouping_recaps` |
 | 20 | guild announcement | `guild_announcements` |
 | 30 | gear item | `user_gear_items` |
 | 31 | gear build | `user_gear_builds` |
+| 32 | gear standard | `guild_gear_standards` |
 | 40 | recruit application | `guild_applications` |
 | 41 | mentor pairing | `mentor_pairings` |
 | 42 | roster entry | `guild_roster_entries` |
@@ -54,6 +57,8 @@ id = typeCode * 1_000_000_000 + dayIndex * 100_000 + sequence
 | 44 | roster import row | `roster_import_rows` |
 | 45 | member note | `guild_member_notes` |
 | 46 | member season goal | `member_season_goals` |
+| 47 | officer board post | `guild_officer_posts` |
+| 48 | guild audit event | `guild_audit_events` |
 | 50 | alliance | `guild_alliances` |
 | 51 | fill offer | `fill_offers` |
 | 52 | fill request | `fill_requests` |
@@ -65,8 +70,21 @@ id = typeCode * 1_000_000_000 + dayIndex * 100_000 + sequence
 | 80 | ops nudge send | `ops_nudge_sends` |
 | 90–99 | RESERVED extension segment | — |
 
-Free segments for future entities: 03–09 (platform roots), 15–19,
-21–29, 32–39, 47–49, 54–59, 63–69, 71–79, 81–89.
+Free segments for future entities: 03–09 (platform roots), 17–19,
+21–29, 33–39, 49, 54–59, 63–69, 71–79, 81–89.
+
+Codes 15, 16, 32, 47 and 48 were assigned when this migration was
+rebased over the premium wave (migrations 0027/0029/0034/0035 landed
+after the registry's first draft): the rotation advice records and
+grouping recaps join the grouping block, the gear standards join the
+gear block, and the officer board posts and guild audit events join
+the guild-administration block. All five are served as a GraphQL
+`id` (posts and standards are also accepted as mutation input), so
+the held-surface test (never served, never input) does not apply to
+them. `guild_officer_grants` has a composite (guild, member) key and
+no row id, and `guild_custom_domains` is keyed by the guild itself;
+neither takes a code — their tenant/member columns remap like every
+other reference column.
 
 ## Minting
 
@@ -132,6 +150,11 @@ Plus the alliance pair columns: `guild_alliances.guild_low`,
 `guild_alliances.guild_high` (the low/high ordering rule becomes
 numeric order on guild IDs), `guild_alliances.requested_by_tenant`,
 `guild_alliances.ended_by_tenant`; and `fill_offers.home_tenant`.
+Premium-wave tables (migrations 0027/0029/0033/0034/0035, landed
+after the first draft of this inventory): `rotation_advice_records`,
+`grouping_recaps`, `guild_gear_standards`, `guild_custom_domains`
+(the tenant column IS the primary key), `guild_officer_grants`
+(PK part), `guild_officer_posts`, `guild_audit_events`.
 
 ### Discord class A — Discord-boundary columns, NOT remapped
 
@@ -150,6 +173,9 @@ reaches one of these boundaries resolves the Discord ID through the
 | `guild_members.discord_id` | Roster synced from Discord; membership verdicts compare Discord IDs at the boundary (members may have no platform user row) |
 | `user_guild_nicks.discord_id` | Discord-side nick snapshot, keyed by Discord user + Discord server |
 | `hub_audit_log.actor` | Free-text actor label (`hub` / admin name), not a join key |
+| `guild_audit_events.actor_discord_id` | Actor snapshot paired with `actor_name` (the governance migration's stated design); written from the acting user's Discord identity, never compared, filtered or resolved in code — display history only |
+| `guild_officer_grants.granted_by` | Write-only snapshot companion of `granted_by_name`; never read back, compared or served |
+| `guild_audit_events.target_id` when `target_type` is `member` / `guide` / `guild` / `season` | `member` targets carry a Discord ID, `guide` a school name, `guild`/`season` carry state/key strings — none is an entity reference (entity-typed targets ARE rewritten, see below) |
 
 ### Discord class B — internal association columns, remapped to user ID (02)
 
@@ -194,6 +220,12 @@ now-unique Discord value):
 | `lotteries.created_by` | `created_by_user_id` |
 | `time_polls.created_by` | `created_by_user_id` |
 | `fill_requests.created_by` | `created_by_user_id` |
+| `guild_officer_grants.discord_id` (PK part) | `user_id` — the capability verdict's live lookup key |
+| `guild_officer_posts.author_discord_id` | `author_user_id` — live ownership verdicts (`mine` / `canDelete` / delete) compare it |
+| `rotation_advice_records.created_by` | `created_by_user_id` (the pre-reform `omni` marker lands on the 0 sentinel) |
+| `grouping_recaps.generated_by` | `generated_by_user_id` |
+| `guild_gear_standards.created_by` | `created_by_user_id` |
+| `guild_custom_domains.created_by` | `created_by_user_id` |
 
 Class-B judgement calls worth a second look (treated B, flagged in
 the PR): `guild_roster_entries.matched_discord_id` and
@@ -227,7 +259,29 @@ when `owner_kind = 'template'`), `short_links.event_id`,
 (→ roster entry), `guild_announcement_reads.announcement_id`,
 `guild_announcement_translations.announcement_id`,
 `ops_nudge_sends.event_id`, `contribution_entries.event_id`,
-`build_share_links.build_id` (→ gear build), `creator_backfill_log.event_id`.
+`build_share_links.build_id` (→ gear build), `creator_backfill_log.event_id`,
+`rotation_advice_records.event_id`, `grouping_recaps.event_id`.
+
+One embedded reference rides along: `guild_audit_events.target_id`
+is a polymorphic TEXT reference keyed by `target_type`. Rows naming
+a renumbered entity (`announcement`, `application`, `board`,
+`event`, `lottery`, `pairing`, `result`, `signup`, and `roster` —
+the import batch for `roster.import`, the roster entry otherwise)
+are rewritten through that entity's map (generator action
+`AUDITTARGET`); every other row keeps its value byte-identical.
+Runtime writers pass the target's (already typed) ID, so no writer
+changes shape.
+
+One settings payload is the exception to "`settings.value` is
+opaque": the platform-admin roster (global scope, key
+`platform_admin_discord_ids`) stores identity keys, and the admin
+gate's subject becomes the user ID (02) with this migration — so
+0036 rewrites that one row's JSON array from Discord IDs to user
+IDs (values orphan-collected first, like any class-B reference).
+The env floor `PLATFORM_ADMIN_DISCORD_IDS` keeps Discord IDs, true
+to its name; the gate resolves floor entries through the `users`
+row at verdict time. This is the reconciliation point PR #94's
+admin-gate header leaves open.
 
 Explicitly NOT remapped: `member_season_goals.dungeon_id` (dungeons
 are not renumbered — see held surfaces), `user_guild_nicks.guild_id`
@@ -251,7 +305,7 @@ values are external keys), `tenants.discord_webhook` (external URL).
 ## Rehearsal protocol (gate for the migration)
 
 `scripts/rehearse-id-migration.mjs` builds a production-shaped
-snapshot (full chain 0001–0032 + seeded multi-guild data: seats with
+snapshot (full chain 0001–0035 + seeded multi-guild data: seats with
 Discord IDs, lotteries, alliances, fill market, gear, polls,
 contributions), captures a pre-migration baseline (row counts, sample
 relationship joins, and the reminder mention list for a seeded
@@ -269,3 +323,11 @@ grouping), applies migration 0036, and asserts:
 6. Every tenant column value is an existing guild ID; every class-B
    user column value is an existing user ID; every class-A column is
    byte-identical to the snapshot.
+7. Premium-wave coverage: the seeded officer grants resolve to the
+   same members (by user ID) with identical capabilities, an officer
+   post's author resolves to the same user, audit rows keep their
+   actor snapshot byte-identical while entity-typed `target_id`
+   values point at the targets' new IDs (`member` targets stay
+   Discord IDs), the custom-domain row hangs off the guild ID, recap
+   and rotation rows hang off the new grouping ID, and the seeded
+   platform-admin roster row comes out as user IDs.
