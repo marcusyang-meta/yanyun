@@ -394,29 +394,29 @@ describe('governance', () => {
     ['announce', 'discord', 'events', 'guides', 'officer', 'profile', 'recruit', 'season', 'stats', 'tools']);
 
   // Switch ON: the Locked sales variant composes instead.
-  state.settings.set('|paygate_enabled', '1');
+  state.settings.set('0|paygate_enabled', '1');
   r = await gql(GOV_Q, { variables: { slug: 'alpha' } });
   eq('无权益+总闸开: 管理员治理面 Locked', r.data?.viewer?.guildAdmin?.governance?.__typename, 'GuildGovernanceLocked');
   check('无权益+总闸开: Locked 只带文案两字段',
     r.data?.viewer?.guildAdmin?.governance?.lockedTitle != null && r.data?.viewer?.guildAdmin?.governance?.lockedBody != null
     && !('boardPosts' in (r.data?.viewer?.guildAdmin?.governance || {})));
-  state.settings.delete('|paygate_enabled');
+  state.settings.delete('0|paygate_enabled');
 
   state.entitlements.set(GID.alpha, ENT('t1'));
   r = await gql(GOV_Q, { variables: { slug: 'alpha' } });
   eq('T1+总闸关: governance 为 null', r.data?.viewer?.guildAdmin?.governance ?? null, null);
-  state.settings.set('|paygate_enabled', '1');
+  state.settings.set('0|paygate_enabled', '1');
   r = await gql(GOV_Q, { variables: { slug: 'alpha' } });
   eq('T1+总闸开: Locked', r.data?.viewer?.guildAdmin?.governance?.__typename, 'GuildGovernanceLocked');
-  state.settings.delete('|paygate_enabled');
+  state.settings.delete('0|paygate_enabled');
 
   state.entitlements.set(GID.alpha, ENT('t2'));
   r = await gql(GOV_Q, { variables: { slug: 'alpha' } });
   eq('T2+总闸关: governance 为 null', r.data?.viewer?.guildAdmin?.governance ?? null, null);
-  state.settings.set('|paygate_enabled', '1');
+  state.settings.set('0|paygate_enabled', '1');
   r = await gql(GOV_Q, { variables: { slug: 'alpha' } });
   eq('T2+总闸开: Locked', r.data?.viewer?.guildAdmin?.governance?.__typename, 'GuildGovernanceLocked');
-  state.settings.delete('|paygate_enabled');
+  state.settings.delete('0|paygate_enabled');
 
   let m = await gql(`mutation { setOfficerGrant(slug: "alpha", memberDiscordId: "M1", capabilities: ["events"]) { ok errorCode } }`);
   eq('档位不足时授权写入拒绝 governanceTierRequired', m.data?.setOfficerGrant?.errorCode, 'governanceTierRequired');
@@ -436,10 +436,10 @@ describe('governance', () => {
   state.entitlements.set(GID.alpha, ENT('t3', 1));
   r = await gql(GOV_Q, { variables: { slug: 'alpha' } });
   eq('T3 已过期+总闸关: governance 为 null', r.data?.viewer?.guildAdmin?.governance ?? null, null);
-  state.settings.set('|paygate_enabled', '1');
+  state.settings.set('0|paygate_enabled', '1');
   r = await gql(GOV_Q, { variables: { slug: 'alpha' } });
   eq('T3 已过期+总闸开: Locked', r.data?.viewer?.guildAdmin?.governance?.__typename, 'GuildGovernanceLocked');
-  state.settings.delete('|paygate_enabled');
+  state.settings.delete('0|paygate_enabled');
 
   // Entitled guilds ignore the switch both ways: switch ON with a
   // live t3 still composes the page.
@@ -448,7 +448,6 @@ describe('governance', () => {
   r = await gql(GOV_Q, { variables: { slug: 'alpha' } });
   eq('paygate ON + T3: Page 下发(已开通不受总闸影响)', r.data?.viewer?.guildAdmin?.governance?.__typename, 'GuildGovernancePage');
   state.settings.delete('0|paygate_enabled');
-([WWM][Backend][18/n] Port admin and governance suites to typed IDs)
 }
   });
 
