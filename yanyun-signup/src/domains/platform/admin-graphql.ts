@@ -31,7 +31,7 @@ import {
 } from './admin-backfills.ts';
 import { recentErrors } from './error-log.ts';
 import { listHubAuditPage } from './hub-audit.ts';
-import { listFeedback, countFeedback, setFeedbackStatus } from './feedback.ts';
+import { listFeedback, countFeedback, setFeedbackStatus, type FeedbackRow } from './feedback.ts';
 import { runBackupToR2, listBackups } from './backup-service.ts';
 import {
   setPaygateEnabled, getEffectiveEntitlement, grantPremiumManual,
@@ -233,8 +233,8 @@ export class PlatformAdminShell extends ShellBase {
     // The submitter's Discord ID is display-only here and resolves
     // through the users row (the one sanctioned conversion point);
     // feedback rows themselves carry only the internal user ID.
-    const discordByUser = await listDiscordIdsByUserIds(this.db, entries.map((e: any) => Number(e.user_id))).catch(() => new Map<number, string>());
-    for (const e of entries as any[]) e.discord_id = discordByUser.get(Number(e.user_id)) || '';
+    const discordByUser = await listDiscordIdsByUserIds(this.db, entries.map((e) => Number(e.user_id))).catch(() => new Map<number, string>());
+    for (const e of entries) (e as FeedbackRow & { discord_id?: string }).discord_id = discordByUser.get(Number(e.user_id)) || '';
     await audit(this.ctx, 'feedback.view', '', { shown: entries.length, status: status || 'all', offset });
     return new PlatformAdminFeedbackPageShell(this.ctx, { entries, total });
   }
