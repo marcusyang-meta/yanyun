@@ -29,6 +29,15 @@
  * model (events.visitor_slots quota + signups.is_visitor), they
  * are not a parallel system.
  *
+ * Alliances are a T3 surface: the page composes GuildAlliesLocked
+ * below tier (with tier copy, not the member copy), and invite /
+ * accept / the sharing switch / visitor joins re-verify
+ * tierLocked(db, slug, 3) server-side. The exit paths stay open
+ * at every tier — rejecting an invitation and dissolving an
+ * alliance never consult a tier, so a guild whose tier lapses is
+ * never trapped inside an alliance. Existing alliances are data,
+ * not a verdict: nothing dissolves them retroactively.
+ *
  * Permission shape (the platform rule): response types carry the
  * verdict — FillMarketLocked / GuildAlliesLocked for non-members,
  * FillDemandLocked for below-tier guilds, nullable manage/admin
@@ -523,18 +532,32 @@ export const ALLIES_PAGE_TEXT_RESOLVERS = defineTextGens(GuildAlliesPageShell, [
 
 export class GuildAlliesLockedShell extends ShellBase {
   __typename = 'GuildAlliesLocked';
+  // data: { slug, tierLocked?: boolean } — the locked copy follows
+  // the reason: signed-out / non-member viewers get the member
+  // copy; members of a below-tier guild get the tier copy (the
+  // member copy would tell a member to "join the guild").
   genSlug(){ return this.data.slug; }
+  genLockedTitle(){ return this.t(this.data.tierLocked ? 'allies_tierLockedTitle' : 'allies_lockedTitle'); }
+  genLockedBody(){ return this.t(this.data.tierLocked ? 'allies_tierLockedBody' : 'allies_lockedBody'); }
 }
-export const ALLIES_LOCKED_TEXT_RESOLVERS = defineTextGens(GuildAlliesLockedShell, [
-  ['lockedTitle', 'allies_lockedTitle'],
-  ['lockedBody', 'allies_lockedBody'],
-  ['backLabel', 'allies_backLabel'],
-]);
+export const ALLIES_LOCKED_TEXT_RESOLVERS = {
+  lockedTitle: (p: GuildAlliesLockedShell) => p.genLockedTitle(),
+  lockedBody: (p: GuildAlliesLockedShell) => p.genLockedBody(),
+  ...defineTextGens(GuildAlliesLockedShell, [
+    ['backLabel', 'allies_backLabel'],
+  ]),
+};
 
 export async function guildAlliesResult(ctx: Context, slug: string) {
   const a = await getGuildAccess(ctx.env.DB, ctx.user, slug, ctx.request);
   if (!ctx.user || !a.exists || !a.isMember) {
     return new GuildAlliesLockedShell(ctx, { slug: String(slug || '') });
+  }
+  // P20 is a T3 surface: below tier the page composes the locked
+  // variant (tier copy) and serves zero alliance data — the same
+  // verdict the mutations below re-verify.
+  if (await tierLocked(ctx.env.DB, a.tenant.slug, 3)) {
+    return new GuildAlliesLockedShell(ctx, { slug: a.tenant.slug, tierLocked: true });
   }
   const admin = await getGuildAdminAccess(ctx.env.DB, ctx.user, a.tenant.slug, ctx.request).catch(() => null);
   return new GuildAlliesPageShell(ctx, {
@@ -782,6 +805,7 @@ export const networkMutations = {
     const admin = await getGuildAdminAccess(db, user, slug, ctx.request);
     if (!admin.exists) return aFail(ctx, 'guildNotFound');
     if (!admin.isAdmin) return aFail(ctx, 'adminOnly');
+    if (await tierLocked(db, admin.slug, 3)) return aFail(ctx, 'premiumRequired');
     const target = String(targetSlug || '');
     if (target === admin.slug) return aFail(ctx, 'allianceSelf');
     const t = await getTenantRow(db, target).catch(() => null);
@@ -818,6 +842,10 @@ export const networkMutations = {
       return aFail(ctx, 'allianceNotFound');
     }
     if (row.requested_by_tenant === admin.slug) return aFail(ctx, 'allianceNotPending');
+    // Accepting activates a T3 feature for this guild, so the
+    // accept path re-verifies the tier; rejecting is an exit
+    // path and stays open at every tier.
+    if (accept && await tierLocked(db, admin.slug, 3)) return aFail(ctx, 'premiumRequired');
     const r = await respondAlliance(db, row.id, admin.slug, !!accept, nowSec());
     if (!r.changes) return aFail(ctx, 'allianceNotPending');
     const after = await getAllianceById(db, row.id).catch(() => null);
@@ -828,7 +856,10 @@ export const networkMutations = {
   },
 
   /* Alliances: either side's admin dissolves an active alliance.
-   * Sharing revokes at read time from this status flip alone. */
+   * Sharing revokes at read time from this status flip alone.
+   * Deliberately NO tier verdict: dissolving is the exit path —
+   * a guild whose tier lapses must never be trapped in an
+   * alliance it can no longer use. */
   endAlliance: async (_: any, { slug, allianceId }: any, ctx: Context) => {
     const db = ctx.env.DB;
     const user = ctx.user;
@@ -857,6 +888,10 @@ export const networkMutations = {
     if (!user) return nFail(ctx, 'loginRequired');
     const a = await getGuildAccess(db, user, slug, ctx.request);
     if (!a.exists) return nFail(ctx, 'guildNotFound');
+    // P20 is T3: the sharing switch re-verifies this guild's tier
+    // (the grouping detail page stops composing the control below
+    // tier, and the mutation is the real gate).
+    if (await tierLocked(db, a.tenant.slug, 3)) return nFail(ctx, 'premiumRequired');
     const ev = await getEventRowByTenant(db, Number(groupingId), a.tenant.slug).catch(() => null);
     if (!ev) return nFail(ctx, 'groupingNotFound');
     const gate = await groupingManageGate(db, user, ctx.request, undefined, ev);
@@ -892,6 +927,10 @@ export const networkMutations = {
     if (ev.tenant === a.tenant.slug) return nFail(ctx, 'allyNotShared');
     const alliance = await getActiveAllianceBetween(db, a.tenant.slug, ev.tenant).catch(() => null);
     if (!alliance) return nFail(ctx, 'allyNotAllied');
+    // Visitor seats are this guild's T3 alliance surface: the
+    // allies page that offers them is tier-locked below T3, and
+    // the mutation re-verifies the same verdict for this guild.
+    if (await tierLocked(db, a.tenant.slug, 3)) return nFail(ctx, 'premiumRequired');
     if (ev.status !== 'open' || Number(ev.ally_visible) !== 1 || !(Number(ev.visitor_slots) > 0)) {
       return nFail(ctx, 'allyNotShared');
     }

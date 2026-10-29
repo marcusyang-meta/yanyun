@@ -7656,6 +7656,20 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
     "lockedBody": {
       "zh-CN": "登录并成为本百业成员后，可以查看盟友与共享活动。"
     },
+    "tierLockedTitle": {
+      "zh-CN": "盟友百业是盟主档功能",
+      "en": "Guild alliances are a top-tier feature",
+      "es": "Las alianzas de gremios son una función del nivel máximo",
+      "fr": "Les alliances de guildes sont une fonctionnalité du niveau maximal",
+      "zh-TW": "盟友百業是盟主檔功能"
+    },
+    "tierLockedBody": {
+      "zh-CN": "结盟、查看盟友与共享活动需要百业开通盟主档（T3）。解除既有结盟不受档位限制。",
+      "en": "Forming alliances, viewing allies and taking part in shared squads requires the guild to have the top tier (T3). Dissolving an existing alliance is not restricted by tier.",
+      "es": "Formar alianzas, ver a los aliados y participar en escuadrones compartidos requiere que el gremio tenga el nivel máximo (T3). Disolver una alianza existente no está restringido por el nivel.",
+      "fr": "Former des alliances, voir les alliés et participer aux escouades partagées nécessite que la guilde ait le niveau maximal (T3). Dissoudre une alliance existante n'est pas restreint par le niveau.",
+      "zh-TW": "結盟、查看盟友與共享活動需要百業開通盟主檔（T3）。解除既有結盟不受檔位限制。"
+    },
     "activeTitle": {
       "zh-CN": "已结盟百业"
     },

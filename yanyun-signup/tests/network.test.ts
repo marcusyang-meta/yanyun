@@ -14,6 +14,13 @@
 //    ally-visible squads appear on the ally's page and take visitor
 //    signups (quota enforced) -> dissolve revokes at read time
 //    (feed empty, joins refuse allyNotAllied);
+//  - P20 tier matrix: alliances are T3 — a below-tier guild's
+//    member composes GuildAlliesLocked (tier copy, zero alliance
+//    data) and invite / accept / the sharing switch / visitor
+//    joins answer premiumRequired; the exit paths (reject,
+//    dissolve) never consult a tier, proven by lapsing the
+//    granted guild (paidtest, plan t3) mid-alliance (allytest
+//    stays the below-tier guild throughout);
 //  - cross-guild power lines: another guild's admin cannot manage
 //    this guild's requests, sharing or alliances (tenant-scoped
 //    repositories + the shared manage verdict resolved per-event).
@@ -53,6 +60,7 @@ function toRawRows(sqlText, rows) {
 const DGID_A = '111111111111111111';
 const DGID_B = '222222222222222222';
 const DGID_C = '333333333333333333';
+const DGID_D = '444444444444444444';
 function makeDb(fx = {}) {
   const tables = {
     tenants: (fx.tenants || []).map((t) => ({ ...t })),
@@ -261,6 +269,9 @@ const SUPPLIER_B = { discordId: 'US', name: '乙业补位', guilds: [DGID_B] };
 const MEMBER_B = { discordId: 'UM', name: '乙业成员', guilds: [DGID_B] };
 const MEMBER_B2 = { discordId: 'UN', name: '乙业成员二', guilds: [DGID_B] };
 const MEMBER_C = { discordId: 'UC', name: '丙业成员', guilds: [DGID_C] };
+const ADMIN_P = { discordId: 'UP1', name: '丁业管理员', guilds: [DGID_D] };
+const MEMBER_P = { discordId: 'UP2', name: '丁业成员', guilds: [DGID_D] };
+const MEMBER_P2 = { discordId: 'UP3', name: '丁业成员二', guilds: [DGID_D] };
 const OUTSIDER = { discordId: 'UX', name: '路人', guilds: [] };
 
 const FUTURE = Math.floor(Date.now() / 1000) + 365 * 86400;
@@ -275,11 +286,12 @@ const evRow = (id, tenant, title, creator) => ({
   reminder_sent_at: null, reminder_error: null, ally_visible: 0, visitor_slots: 0,
 });
 const { db, tables } = makeDb({
-  tenants: [tenantRow('nettest', '甲百业'), tenantRow('allytest', '乙百业'), tenantRow('thirdtest', '丙百业')],
+  tenants: [tenantRow('nettest', '甲百业'), tenantRow('allytest', '乙百业'), tenantRow('thirdtest', '丙百业'), tenantRow('paidtest', '丁百业')],
   settings: [
     ['nettest|discord_guild_id', DGID_A],
     ['allytest|discord_guild_id', DGID_B],
     ['thirdtest|discord_guild_id', DGID_C],
+    ['paidtest|discord_guild_id', DGID_D],
     ['|game_version', 'intl-v2.3'],
   ],
   users: [
@@ -291,6 +303,9 @@ const { db, tables } = makeDb({
     ['UM', serversJson([srv(DGID_B)])],
     ['UN', serversJson([srv(DGID_B)])],
     ['UC', serversJson([srv(DGID_C)])],
+    ['UP1', serversJson([srv(DGID_D, '32')])],
+    ['UP2', serversJson([srv(DGID_D)])],
+    ['UP3', serversJson([srv(DGID_D)])],
     ['UX', serversJson([])],
   ],
   guildMembers: [
@@ -302,10 +317,14 @@ const { db, tables } = makeDb({
     { tenant: 'allytest', discord_id: 'UM', nick: '乙业成员', global_name: '乙员' },
     { tenant: 'allytest', discord_id: 'UN', nick: '乙业成员二', global_name: '乙员二' },
     { tenant: 'thirdtest', discord_id: 'UC', nick: '丙业成员', global_name: '丙员' },
+    { tenant: 'paidtest', discord_id: 'UP1', nick: '丁业管理员', global_name: '丁管' },
+    { tenant: 'paidtest', discord_id: 'UP2', nick: '丁业成员', global_name: '丁员' },
+    { tenant: 'paidtest', discord_id: 'UP3', nick: '丁业成员二', global_name: '丁员二' },
   ],
   events: [evRow(701, 'nettest', '甲业缺奶车', 'UL'), evRow(702, 'allytest', '乙业自家车', 'UD')],
   entitlements: [
     { tenant: 'nettest', plan: 'premium', source: 'manual', current_period_end: FUTURE, stripe_customer_id: '', stripe_subscription_id: '', updated_at: 1 },
+    { tenant: 'paidtest', plan: 't3', source: 'manual', current_period_end: FUTURE, stripe_customer_id: '', stripe_subscription_id: '', updated_at: 1 },
   ],
 });
 const env = { DB: db, ASSETS: { fetch: async () => new Response('not found', { status: 404 }) } };
@@ -332,7 +351,9 @@ const marketQ = `{ viewer { fillMarket(slug: "nettest") { __typename
 const alliesQ = `{ viewer { guildAllies(slug: "allytest") { __typename
   ... on GuildAlliesPage { slug allies { slug name } adminSection { relations { id otherSlug status outgoing } candidates { slug } }
     sharedGroupings { id hostSlug title visitorLeft joined } }
-  ... on GuildAlliesLocked { slug } } } }`;
+  ... on GuildAlliesLocked { slug lockedTitle lockedBody } } } }`;
+
+const alliesQP = alliesQ.replaceAll('allytest', 'paidtest');
 
 let offerB: any;
 
@@ -456,34 +477,50 @@ eq('重复关闭 -> fillRequestNotOpen', r.data?.closeFillRequest?.errorCode, 'f
 /* ================= P20: alliance lifecycle ================= */
 r = await gql(alliesQ, { user: null });
 eq('匿名盟友页 -> GuildAlliesLocked', r.data?.viewer?.guildAllies?.__typename, 'GuildAlliesLocked');
+eq('匿名锁定文案 = 成员口径', r.data?.viewer?.guildAllies?.lockedTitle, '无法打开盟友百业');
 r = await gql(alliesQ, { user: MEMBER_B });
-eq('成员盟友页合成', r.data?.viewer?.guildAllies?.__typename, 'GuildAlliesPage');
+eq('T0 百业成员盟友页 -> GuildAlliesLocked (档位面)', r.data?.viewer?.guildAllies?.__typename, 'GuildAlliesLocked');
+eq('T0 锁定文案 = 档位口径 (不是成员口径)', r.data?.viewer?.guildAllies?.lockedTitle, '盟友百业是盟主档功能');
+check('Locked 零联盟数据下发 (无 allies/adminSection/sharedGroupings 字段)', r.data?.viewer?.guildAllies?.allies === undefined && r.data?.viewer?.guildAllies?.adminSection === undefined && r.data?.viewer?.guildAllies?.sharedGroupings === undefined);
+r = await gql(alliesQP, { user: MEMBER_P });
+eq('T3 百业成员盟友页合成', r.data?.viewer?.guildAllies?.__typename, 'GuildAlliesPage');
 eq('非管理员: adminSection 为 null (零管理数据)', r.data?.viewer?.guildAllies?.adminSection, null);
 eq('未结盟: 共享活动为空', r.data?.viewer?.guildAllies?.sharedGroupings, []);
 
 const inviteAllyMut = `mutation($slug: String!, $target: String!) { inviteAlliance(slug: $slug, targetSlug: $target) { ok errorCode alliance { id status otherSlug outgoing } } }`;
 r = await gql(inviteAllyMut, { user: MEMBER_B, variables: { slug: 'allytest', target: 'nettest' } });
 eq('普通成员发起结盟 -> adminOnly', r.data?.inviteAlliance?.errorCode, 'adminOnly');
-r = await gql(inviteAllyMut, { user: ADMIN_B, variables: { slug: 'allytest', target: 'allytest' } });
-eq('与自己结盟 -> allianceSelf', r.data?.inviteAlliance?.errorCode, 'allianceSelf');
 r = await gql(inviteAllyMut, { user: ADMIN_B, variables: { slug: 'allytest', target: 'nettest' } });
-eq('乙业管理员向甲业发起结盟 ok', r.data?.inviteAlliance?.ok, true);
+eq('T0 百业管理员发起结盟 -> premiumRequired', r.data?.inviteAlliance?.errorCode, 'premiumRequired');
+r = await gql(inviteAllyMut, { user: ADMIN_P, variables: { slug: 'paidtest', target: 'paidtest' } });
+eq('与自己结盟 -> allianceSelf', r.data?.inviteAlliance?.errorCode, 'allianceSelf');
+r = await gql(inviteAllyMut, { user: ADMIN_P, variables: { slug: 'paidtest', target: 'nettest' } });
+eq('T3 丁业管理员向甲业发起结盟 ok', r.data?.inviteAlliance?.ok, true);
 ally1 = r.data?.inviteAlliance?.alliance?.id;
 eq('结盟待确认 PENDING', r.data?.inviteAlliance?.alliance?.status, 'PENDING');
-eq('关系对称存储: 一行 (low, high) 排序', [tables.alliances[0].guild_low, tables.alliances[0].guild_high], ['allytest', 'nettest']);
-r = await gql(inviteAllyMut, { user: ADMIN_A, variables: { slug: 'nettest', target: 'allytest' } });
+eq('关系对称存储: 一行 (low, high) 排序', [tables.alliances[0].guild_low, tables.alliances[0].guild_high], ['nettest', 'paidtest']);
+r = await gql(inviteAllyMut, { user: ADMIN_A, variables: { slug: 'nettest', target: 'paidtest' } });
 eq('反向重复邀请 -> allianceExists (同一对只一行)', r.data?.inviteAlliance?.errorCode, 'allianceExists');
 
 const respondAllyMut = `mutation($slug: String!, $id: ID!, $accept: Boolean!) { respondAlliance(slug: $slug, allianceId: $id, accept: $accept) { ok errorCode alliance { id status } } }`;
-r = await gql(respondAllyMut, { user: ADMIN_B, variables: { slug: 'allytest', id: ally1, accept: true } });
+r = await gql(respondAllyMut, { user: ADMIN_P, variables: { slug: 'paidtest', id: ally1, accept: true } });
 eq('发起方自答 -> allianceNotPending', r.data?.respondAlliance?.errorCode, 'allianceNotPending');
-r = await gql(respondAllyMut, { user: ADMIN_B, variables: { slug: 'nettest', id: ally1, accept: true } });
-eq('乙业管理员冒充甲业处理 -> adminOnly (不串权)', r.data?.respondAlliance?.errorCode, 'adminOnly');
+r = await gql(respondAllyMut, { user: ADMIN_P, variables: { slug: 'nettest', id: ally1, accept: true } });
+eq('丁业管理员冒充甲业处理 -> adminOnly (不串权)', r.data?.respondAlliance?.errorCode, 'adminOnly');
 r = await gql(respondAllyMut, { user: ADMIN_A, variables: { slug: 'nettest', id: ally1, accept: true } });
 eq('甲业管理员接受 ok', r.data?.respondAlliance?.ok, true);
 eq('结盟生效 ACTIVE', r.data?.respondAlliance?.alliance?.status, 'ACTIVE');
-r = await gql(alliesQ, { user: MEMBER_B });
+r = await gql(alliesQP, { user: MEMBER_P });
 eq('结盟后盟友列表含甲业', (r.data?.viewer?.guildAllies?.allies || []).map((a) => a.slug), ['nettest']);
+
+/* below-tier accept is refused; the reject exit stays open */
+r = await gql(inviteAllyMut, { user: ADMIN_A, variables: { slug: 'nettest', target: 'allytest' } });
+eq('甲业 (T3) 向乙业 (T0) 发起结盟 ok (发起方验档)', r.data?.inviteAlliance?.ok, true);
+const allyT0 = r.data?.inviteAlliance?.alliance?.id;
+r = await gql(respondAllyMut, { user: ADMIN_B, variables: { slug: 'allytest', id: allyT0, accept: true } });
+eq('T0 百业管理员接受结盟 -> premiumRequired', r.data?.respondAlliance?.errorCode, 'premiumRequired');
+r = await gql(respondAllyMut, { user: ADMIN_B, variables: { slug: 'allytest', id: allyT0, accept: false } });
+eq('T0 百业管理员拒绝结盟 ok (退出通道不验档)', r.data?.respondAlliance?.ok, true);
   });
 
   it('P20: sharing + visitor seats', async () => {
@@ -497,40 +534,60 @@ r = await gql(shareMut, { user: LEADER_A, variables: { slug: 'nettest', gid: '70
 eq('访客名额超总名额 -> visitorSlotsInvalid', r.data?.setGroupingAllySharing?.errorCode, 'visitorSlotsInvalid');
 r = await gql(shareMut, { user: LEADER_A, variables: { slug: 'nettest', gid: '701', vis: true, slots: 1 } });
 eq('车头开启盟友共享 (访客位 1) ok', r.data?.setGroupingAllySharing?.ok, true);
+r = await gql(shareMut, { user: ADMIN_B, variables: { slug: 'allytest', gid: '702', vis: true, slots: 1 } });
+eq('T0 百业管理员设自家车共享 -> premiumRequired', r.data?.setGroupingAllySharing?.errorCode, 'premiumRequired');
 
-r = await gql(alliesQ, { user: MEMBER_B });
+r = await gql(alliesQP, { user: MEMBER_P });
 eq('盟友页见到共享车', (r.data?.viewer?.guildAllies?.sharedGroupings || []).map((g) => g.id), ['701']);
 eq('访客位余量 1', r.data?.viewer?.guildAllies?.sharedGroupings?.[0]?.visitorLeft, 1);
 
 const joinMut = `mutation($slug: String!, $gid: ID!, $w: String!) { joinAllyGrouping(slug: $slug, groupingId: $gid, weapon: $w) { ok errorCode } }`;
 r = await gql(joinMut, { user: MEMBER_C, variables: { slug: 'thirdtest', gid: '701', w: '破竹·樽' } });
 eq('未结盟百业成员报名访客位 -> allyNotAllied', r.data?.joinAllyGrouping?.errorCode, 'allyNotAllied');
-r = await gql(joinMut, { user: MEMBER_B, variables: { slug: 'allytest', gid: '701', w: '破竹·樽' } });
+r = await gql(joinMut, { user: MEMBER_P, variables: { slug: 'paidtest', gid: '701', w: '破竹·樽' } });
 eq('盟友成员报名访客位 ok', r.data?.joinAllyGrouping?.ok, true);
-const vSeat = tables.signups.find((x) => x.event_id === 701 && x.discord_id === 'UM');
+const vSeat = tables.signups.find((x) => x.event_id === 701 && x.discord_id === 'UP2');
 check('访客座位标记 is_visitor=1 (既有座位模型)', !!vSeat && Number(vSeat.is_visitor) === 1, JSON.stringify(vSeat));
-r = await gql(joinMut, { user: MEMBER_B, variables: { slug: 'allytest', gid: '701', w: '破竹·樽' } });
+r = await gql(joinMut, { user: MEMBER_P, variables: { slug: 'paidtest', gid: '701', w: '破竹·樽' } });
 eq('重复报名访客位 -> alreadyJoined', r.data?.joinAllyGrouping?.errorCode, 'alreadyJoined');
-r = await gql(joinMut, { user: MEMBER_B2, variables: { slug: 'allytest', gid: '701', w: '牵丝·霖' } });
+r = await gql(joinMut, { user: MEMBER_P2, variables: { slug: 'paidtest', gid: '701', w: '牵丝·霖' } });
 eq('访客位满 -> visitorSlotsFull', r.data?.joinAllyGrouping?.errorCode, 'visitorSlotsFull');
-r = await gql(alliesQ, { user: MEMBER_B2 });
+r = await gql(alliesQP, { user: MEMBER_P2 });
 eq('满员后余量 0 且本人未报名', [r.data?.viewer?.guildAllies?.sharedGroupings?.[0]?.visitorLeft, r.data?.viewer?.guildAllies?.sharedGroupings?.[0]?.joined], [0, false]);
-r = await gql(alliesQ, { user: SUPPLIER_B });
-eq('经市场落座者在共享行显示已报名 (同一座位模型)', r.data?.viewer?.guildAllies?.sharedGroupings?.[0]?.joined, true);
+r = await gql(alliesQP, { user: MEMBER_P });
+eq('访客本人在共享行显示已报名 (同一座位模型)', r.data?.viewer?.guildAllies?.sharedGroupings?.[0]?.joined, true);
 
 /* dissolve revokes at read time */
 const endAllyMut = `mutation($slug: String!, $id: ID!) { endAlliance(slug: $slug, allianceId: $id) { ok errorCode } }`;
-r = await gql(endAllyMut, { user: MEMBER_B, variables: { slug: 'allytest', id: ally1 } });
+r = await gql(endAllyMut, { user: MEMBER_P, variables: { slug: 'paidtest', id: ally1 } });
 eq('普通成员解除结盟 -> adminOnly', r.data?.endAlliance?.errorCode, 'adminOnly');
-r = await gql(endAllyMut, { user: ADMIN_B, variables: { slug: 'allytest', id: ally1 } });
+r = await gql(endAllyMut, { user: ADMIN_P, variables: { slug: 'paidtest', id: ally1 } });
 eq('任一方管理员单方解除 ok', r.data?.endAlliance?.ok, true);
-r = await gql(alliesQ, { user: MEMBER_B });
+r = await gql(alliesQP, { user: MEMBER_P });
 eq('解除后共享即刻失效: 盟友页共享列表为空', r.data?.viewer?.guildAllies?.sharedGroupings, []);
 eq('解除后盟友列表为空', r.data?.viewer?.guildAllies?.allies, []);
 r = await gql(joinMut, { user: MEMBER_B, variables: { slug: 'allytest', gid: '702', w: '破竹·樽' } });
 eq('解除后报名 (自家车) -> allyNotShared 口径外的主办车拒绝', r.data?.joinAllyGrouping?.errorCode, 'allyNotShared');
-r = await gql(endAllyMut, { user: ADMIN_B, variables: { slug: 'allytest', id: ally1 } });
+r = await gql(endAllyMut, { user: ADMIN_A, variables: { slug: 'nettest', id: ally1 } });
 eq('重复解除 -> allianceNotActive', r.data?.endAlliance?.errorCode, 'allianceNotActive');
+
+/* tier lapse: new actions refuse, the dissolve exit stays open */
+const inviteAllyMut2 = `mutation($slug: String!, $target: String!) { inviteAlliance(slug: $slug, targetSlug: $target) { ok errorCode alliance { id status } } }`;
+const respondAllyMut2 = `mutation($slug: String!, $id: ID!, $accept: Boolean!) { respondAlliance(slug: $slug, allianceId: $id, accept: $accept) { ok errorCode } }`;
+r = await gql(inviteAllyMut2, { user: ADMIN_A, variables: { slug: 'nettest', target: 'paidtest' } });
+eq('档位过期前重建结盟: 甲业邀请丁业 ok', r.data?.inviteAlliance?.ok, true);
+const ally2 = r.data?.inviteAlliance?.alliance?.id;
+r = await gql(respondAllyMut2, { user: ADMIN_P, variables: { slug: 'paidtest', id: ally2, accept: true } });
+eq('丁业接受重建结盟 ok', r.data?.respondAlliance?.ok, true);
+tables.entitlements.splice(tables.entitlements.findIndex((e) => e.tenant === 'paidtest'), 1);
+r = await gql(alliesQP, { user: MEMBER_P });
+eq('档位过期: 丁业盟友页 -> GuildAlliesLocked', r.data?.viewer?.guildAllies?.__typename, 'GuildAlliesLocked');
+r = await gql(inviteAllyMut2, { user: ADMIN_P, variables: { slug: 'paidtest', target: 'thirdtest' } });
+eq('档位过期: 丁业发起新结盟 -> premiumRequired', r.data?.inviteAlliance?.errorCode, 'premiumRequired');
+r = await gql(joinMut, { user: MEMBER_P, variables: { slug: 'paidtest', gid: '701', w: '牵丝·霖' } });
+eq('档位过期: 存量联盟下报名访客位 -> premiumRequired', r.data?.joinAllyGrouping?.errorCode, 'premiumRequired');
+r = await gql(endAllyMut, { user: ADMIN_P, variables: { slug: 'paidtest', id: ally2 } });
+eq('档位过期: 解除存量结盟仍 ok (退出通道恒开)', r.data?.endAlliance?.ok, true);
 
 /* converged verdict: tierLocked (foundation final) is a pure
  * entitlement verdict and does NOT consult the paygate master

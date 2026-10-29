@@ -9084,6 +9084,30 @@
         }
       ],
       "types": []
+    },
+    "9h8SCzP9BL8tJJv5si4NkA==": {
+      "description": "Title text for the allied guilds tier locked page, used when a guild member's guild is below the top premium tier.",
+      "id": "guilds/allies_tierLockedTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Las alianzas de gremios son una función del nivel máximo",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "YEsdjfMBqzBP+A5EnRTj+w==": {
+      "description": "Body text for the allied guilds tier locked page, used to explain alliances, viewing allies and joining shared squads need the top tier, while dissolving an existing alliance stays unrestricted.",
+      "id": "guilds/allies_tierLockedBody",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Formar alianzas, ver a los aliados y participar en escuadrones compartidos requiere que el gremio tenga el nivel máximo (T3). Disolver una alianza existente no está restringido por el nivel.",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

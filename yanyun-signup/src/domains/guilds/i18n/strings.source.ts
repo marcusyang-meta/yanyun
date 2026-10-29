@@ -529,6 +529,8 @@ export abstract class AlliesFbtUtils {
   static body(fbs: FbsAPI) { return fbs("结盟后，双方车队可以互相开放：车头把车队标为盟友可见并设置访客名额，盟友成员就能在自己百业看到并报名访客位。解除结盟后，共享立即失效。", "Intro text for the allied guilds page, used to explain allied squads can be flagged visible with a visitor quota, allied members can claim visitor seats, and dissolving the alliance revokes sharing at once."); }
   static lockedTitle(fbs: FbsAPI) { return fbs("无法打开盟友百业", "Title text for the allied guilds locked page, used when the viewer is signed out or not a member of the guild."); }
   static lockedBody(fbs: FbsAPI) { return fbs("登录并成为本百业成员后，可以查看盟友与共享活动。", "Body text for the allied guilds locked page, used to explain signing in as a guild member unlocks allies and shared squads."); }
+  static tierLockedTitle(fbs: FbsAPI) { return fbs("盟友百业是盟主档功能", "Title text for the allied guilds tier locked page, used when a guild member's guild is below the top premium tier."); }
+  static tierLockedBody(fbs: FbsAPI) { return fbs("结盟、查看盟友与共享活动需要百业开通盟主档（T3）。解除既有结盟不受档位限制。", "Body text for the allied guilds tier locked page, used to explain alliances, viewing allies and joining shared squads need the top tier, while dissolving an existing alliance stays unrestricted."); }
   static activeTitle(fbs: FbsAPI) { return fbs("已结盟百业", "Section heading for the allied guilds page, used above the list of active allies."); }
   static activeEmpty(fbs: FbsAPI) { return fbs("本百业暂无盟友。", "Empty-state text for the allied guilds page, used when the guild has no active allies."); }
   static statusPending(fbs: FbsAPI) { return fbs("待对方确认", "Status label for alliance relations, used for an invitation awaiting the other guild's admin."); }

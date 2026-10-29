@@ -5,7 +5,7 @@ import { mintShortLink, shortLinkUrl, canonicalGroupingUrl, subdomainGroupingUrl
 /* groupings domain GraphQL: grouping shells, list/detail pages, and all grouping mutations. */
 import {
   clampBlocksVersion, substituteForVersion, weekWindowUtc, startsAtEpoch,
-  fmtStartsAt, groupByLocalDay, TYPE_SHORT_KEY, HEALER_SECT,
+  fmtStartsAt, groupByLocalDay, TYPE_SHORT_KEY, HEALER_SECT, tierLocked,
 } from '../platform/index.ts';
 import { tlCalculateExcel } from '../gear/index.ts';
 import { getUserServers, getGuildNick, maybeRefreshGuildNicks, getUserLocalePref, setUserLocalePref } from '../identity/auth.ts';
@@ -497,6 +497,10 @@ export class GroupingDetailPageShell extends ShellBase {
   async genAllySharing(){
     const verdict = await this.genManageVerdict();
     if (!verdict.canManage) return null;
+    // P20 is a T3 surface: below tier the sharing control is not
+    // composed at all (the setGroupingAllySharing mutation
+    // re-verifies the same verdict server-side).
+    if (await tierLocked(this.db, this.data.tenant, 3)) return null;
     return {
       allyVisible: Number(this.data.ally_visible) === 1,
       visitorSlots: Number(this.data.visitor_slots) || 0,
