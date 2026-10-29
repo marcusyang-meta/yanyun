@@ -59,11 +59,19 @@ function toRawRows(sqlText, rows) {
 /* ================= FakeDB ================= */
 const DGID_A = '111111111111111111';
 const DGID_B = '222222222222222222';
+/* Typed-ID fixture keys: guilds/users carry their 0036 primary keys;
+   Discord-space values (server ids, roster ids) stay Discord IDs. */
+const GID = { rectest: 1030100001, othertest: 1030100002, freetest: 1030100003 };
+const UID = { UA: 2030100001, UB: 2030100002, UC: 2030100003, UN: 2030100004, UD: 2030100005 };
 function makeDb(fx = {}) {
   const tables = {
     tenants: (fx.tenants || []).map((t) => ({ ...t })),
     settings: new Map(fx.settings || []),
-    users: new Map(fx.users || []),
+    users: (fx.users || []).map(([did, gj]) => ({ id: UID[did] || 0, discord_id: did, username: (fx.usernames || []).find(([d]) => d === did)?.[1] || '', guilds_json: gj })),
+    // Seed the user mint counter past the fixture users' sequences
+    // (fixture ids are day-301 seq 1..5) so ensure-minted users for
+    // roster-only members (UM, U9) never collide with a fixture PK.
+    mint: new Map([[`2|${Math.floor((Date.now() - Date.UTC(2026, 0, 1)) / 86400000)}`, 5]]),
     usernames: new Map(fx.usernames || []),
     events: (fx.events || []).map((e) => ({ ...e })),
     signups: (fx.signups || []).map((x) => ({ ...x })),
@@ -77,12 +85,19 @@ function makeDb(fx = {}) {
   function norm(sql) {
     return sql.replace(/"/g, '')
       .replace(/\b(tenants|settings|users|events|signups|guild_members|guild_applications|guild_mentors|mentor_pairings|user_guild_nicks|member_availability)\./g, '')
-      .replace(/\s+/g, ' ');
+      .replace(/\s+/g, ' ')
+      .trim();
   }
   function parseCols(list) { return list.split(',').map((c) => c.trim().split('.').pop()); }
   function route(kind, rawSql, b) {
     const sql = norm(rawSql);
     if (/^INSERT INTO error_log/i.test(sql)) return { meta: { changes: 1 } };
+    if (/^INSERT INTO id_mint_counters/i.test(sql)) {
+      const key = `${b[0]}|${b[1]}`;
+      const seq = (tables.mint.get(key) || 0) + 1;
+      tables.mint.set(key, seq);
+      return kind === 'first' ? { seq } : (kind === 'all' ? { results: [{ seq }] } : { meta: { changes: 1 } });
+    }
     let m = /^INSERT INTO (\w+) \(([^)]+)\) VALUES \(([^)]+)\)/i.exec(sql);
     if (m) {
       const [, table, colList] = m;
@@ -95,30 +110,34 @@ function makeDb(fx = {}) {
         else tables.guildMembers.push(row);
         return { meta: { changes: 1 } };
       }
+      if (table === 'users') {
+        if (!tables.users.some((u) => u.discord_id === row.discord_id)) tables.users.push(row);
+        return { meta: { changes: 1 } };
+      }
       if (table === 'member_availability') {
-        const hit = tables.availability.find((x) => x.tenant === row.tenant && x.discord_id === row.discord_id);
+        const hit = tables.availability.find((x) => x.tenant === row.tenant && x.user_id === row.user_id);
         if (hit) Object.assign(hit, row);
         else tables.availability.push(row);
         return { meta: { changes: 1 } };
       }
       if (table === 'guild_mentors') {
-        if (!tables.mentors.some((x) => x.tenant === row.tenant && x.discord_id === row.discord_id)) tables.mentors.push(row);
+        if (!tables.mentors.some((x) => x.tenant === row.tenant && x.user_id === row.user_id)) tables.mentors.push(row);
         return { meta: { changes: 1 } };
       }
       if (table === 'guild_applications') {
-        if (tables.applications.some((x) => x.tenant === row.tenant && x.discord_id === row.discord_id && x.status === 'pending')) {
+        if (tables.applications.some((x) => x.tenant === row.tenant && x.user_id === row.user_id && x.status === 'pending')) {
           throw new Error('UNIQUE constraint failed: guild_applications_pending_unique');
         }
-        row.id = nextId++;
-        row.status = 'pending'; row.reviewed_by = ''; row.reviewed_by_name = ''; row.reviewed_at = null;
+        if (row.id === undefined) row.id = nextId++;
+        row.status = 'pending'; row.reviewed_by_user_id = 0; row.reviewed_by_name = ''; row.reviewed_at = null;
         tables.applications.push(row);
         return { meta: { changes: 1, last_row_id: row.id } };
       }
       if (table === 'mentor_pairings') {
-        if (tables.pairings.some((x) => x.tenant === row.tenant && x.mentee_discord_id === row.mentee_discord_id && x.status === 'active')) {
+        if (tables.pairings.some((x) => x.tenant === row.tenant && x.mentee_user_id === row.mentee_user_id && x.status === 'active')) {
           throw new Error('UNIQUE constraint failed: mentor_pairings_active_mentee_unique');
         }
-        row.id = nextId++;
+        if (row.id === undefined) row.id = nextId++;
         row.status = 'active'; row.ended_at = null;
         tables.pairings.push(row);
         return { meta: { changes: 1, last_row_id: row.id } };
@@ -153,14 +172,19 @@ function makeDb(fx = {}) {
     }
     if (/^DELETE FROM guild_mentors/i.test(sql)) {
       const before = tables.mentors.length;
-      tables.mentors = tables.mentors.filter((x) => !(x.tenant === b[0] && x.discord_id === String(b[1])));
+      tables.mentors = tables.mentors.filter((x) => !(x.tenant === b[0] && x.user_id === Number(b[1])));
       return { meta: { changes: before - tables.mentors.length } };
     }
     if (/\b(CREATE TABLE|CREATE INDEX|ALTER TABLE|PRAGMA)\b/i.test(sql)) return kind === 'run' ? { meta: { changes: 0 } } : (kind === 'first' ? null : { results: [] });
     const first = (row) => (kind === 'first' ? (row ?? null) : { results: row ? [row] : [] });
     const all = (rows) => ({ results: rows });
     if (/FROM tenants WHERE slug/i.test(sql)) return first(tables.tenants.find((t) => t.slug === b[0]));
+    if (/FROM tenants/i.test(sql) && /id = \?/i.test(sql)) return first(tables.tenants.find((t) => t.id === Number(b[0])));
     if (/FROM tenants/i.test(sql)) return all(tables.tenants);
+    if (/FROM settings/i.test(sql) && /tenant = 0/i.test(sql)) {
+      const v = tables.settings.get(`0|${b[0]}`);
+      return first(v === undefined ? null : { value: v });
+    }
     if (/FROM settings WHERE tenant = \? AND key = \?/i.test(sql)) {
       const v = tables.settings.get(`${b[0]}|${b[1]}`);
       return first(v === undefined ? null : { value: v });
@@ -169,18 +193,32 @@ function makeDb(fx = {}) {
       const rows = [];
       for (const [k, v] of tables.settings.entries()) {
         const at = k.lastIndexOf('|');
-        if (k.slice(at + 1) === String(b[0])) rows.push({ tenant: k.slice(0, at), value: v });
+        if (k.slice(at + 1) === String(b[0])) rows.push({ tenant: Number(k.slice(0, at)), value: v });
       }
       return all(rows);
     }
     if (/FROM settings/i.test(sql)) return kind === 'first' ? null : all([]);
     if (/SELECT guilds_json FROM users/i.test(sql)) {
-      const v = tables.users.get(String(b[0]));
-      return first(v === undefined ? null : { guilds_json: v });
+      const u = tables.users.find((x) => x.id === Number(b[0])) || tables.users.find((x) => x.discord_id === String(b[0]));
+      return first(u === undefined ? null : { guilds_json: u.guilds_json });
     }
     if (/SELECT username FROM users/i.test(sql)) {
-      const v = tables.usernames.get(String(b[0]));
+      const u = tables.users.find((x) => x.discord_id === String(b[0])) || tables.users.find((x) => x.id === Number(b[0]));
+      const v = u ? (u.username || tables.usernames.get(u.discord_id)) : tables.usernames.get(String(b[0]));
       return first(v === undefined ? null : { username: v });
+    }
+    if (/FROM users/i.test(sql)) {
+      if (/discord_id IN/i.test(sql)) {
+        const rows = tables.users.filter((x) => b.map(String).includes(x.discord_id));
+        return kind === 'first' ? (rows[0] ?? null) : all(rows);
+      }
+      if (/id IN/i.test(sql)) {
+        const rows = tables.users.filter((x) => b.map(Number).includes(x.id));
+        return kind === 'first' ? (rows[0] ?? null) : all(rows);
+      }
+      if (/discord_id = \?/i.test(sql)) return first(tables.users.find((x) => x.discord_id === String(b[0])));
+      if (/id = \?/i.test(sql)) return first(tables.users.find((x) => x.id === Number(b[0])));
+      return kind === 'first' ? (tables.users[0] ?? null) : all(tables.users);
     }
     if (/FROM user_guild_nicks/i.test(sql)) return kind === 'first' ? null : all([]);
     if (/FROM guild_members WHERE tenant = \?/i.test(sql)) {
@@ -193,29 +231,29 @@ function makeDb(fx = {}) {
       if (/^SELECT .* FROM guild_applications WHERE id = \?/i.test(sql)) {
         return first(tables.applications.find((x) => x.id === Number(b[0]) && x.tenant === b[1]));
       }
-      if (/discord_id = \?/i.test(sql) && b.length > 1) rows = rows.filter((x) => x.discord_id === String(b[1]));
+      if (/user_id = \?/i.test(sql) && b.length > 1) rows = rows.filter((x) => x.user_id === Number(b[1]));
       if (/status = 'pending'/i.test(sql)) rows = rows.filter((x) => x.status === 'pending');
       rows = rows.slice().sort((x, y) => y.id - x.id);
       return kind === 'first' ? (rows[0] ?? null) : all(rows);
     }
     if (/FROM member_availability/i.test(sql)) {
-      const rows = tables.availability.filter((x) => x.tenant === b[0] && x.discord_id === String(b[1]));
+      const rows = tables.availability.filter((x) => x.tenant === b[0] && x.user_id === Number(b[1]));
       return kind === 'first' ? (rows[0] ?? null) : all(rows);
     }
     if (/FROM guild_mentors/i.test(sql)) {
-      return all(tables.mentors.filter((x) => x.tenant === b[0]).map((x) => ({ discord_id: x.discord_id })));
+      return all(tables.mentors.filter((x) => x.tenant === b[0]).map((x) => ({ user_id: x.user_id })));
     }
     if (/FROM mentor_pairings/i.test(sql)) {
       if (/^SELECT .* FROM mentor_pairings WHERE id = \?/i.test(sql)) {
         return first(tables.pairings.find((x) => x.id === Number(b[0]) && x.tenant === b[1]));
       }
       let rows = tables.pairings.filter((x) => x.tenant === b[0]);
-      if (/mentee_discord_id = \? AND status = 'active'/i.test(sql)) {
-        rows = rows.filter((x) => x.mentee_discord_id === String(b[1]) && x.status === 'active');
+      if (/mentee_user_id = \? AND status = 'active'/i.test(sql)) {
+        rows = rows.filter((x) => x.mentee_user_id === Number(b[1]) && x.status === 'active');
         return first(rows[0]);
       }
-      if (/mentor_discord_id = \? OR mentee_discord_id = \?/i.test(sql)) {
-        rows = rows.filter((x) => x.mentor_discord_id === String(b[1]) || x.mentee_discord_id === String(b[1]));
+      if (/mentor_user_id = \? OR mentee_user_id = \?/i.test(sql)) {
+        rows = rows.filter((x) => x.mentor_user_id === Number(b[1]) || x.mentee_user_id === Number(b[1]));
       }
       rows = rows.slice().sort((x, y) => y.id - x.id);
       return kind === 'first' ? (rows[0] ?? null) : all(rows);
@@ -249,23 +287,23 @@ function makeDb(fx = {}) {
 /* ---------------- fixtures ---------------- */
 const serversJson = (rows) => JSON.stringify(rows);
 const srv = (id, permissions = '0', owner = false) => ({ id, name: '测试服', icon: '', permissions, owner });
-const ADMIN = { discordId: 'UA', name: '管理员甲', guilds: [DGID_A] };
-const MEMBER = { discordId: 'UB', name: '成员乙', guilds: [DGID_A] };
-const MEMBER2 = { discordId: 'UC', name: '成员丙', guilds: [DGID_A] };
-const APPLICANT = { discordId: 'UN', name: '新人甲', guilds: [] };
-const ADMIN_B = { discordId: 'UD', name: '乙业管理员', guilds: [DGID_B] };
+const ADMIN = { userId: UID.UA, discordId: 'UA', name: '管理员甲', guilds: [DGID_A] };
+const MEMBER = { userId: UID.UB, discordId: 'UB', name: '成员乙', guilds: [DGID_A] };
+const MEMBER2 = { userId: UID.UC, discordId: 'UC', name: '成员丙', guilds: [DGID_A] };
+const APPLICANT = { userId: UID.UN, discordId: 'UN', name: '新人甲', guilds: [] };
+const ADMIN_B = { userId: UID.UD, discordId: 'UD', name: '乙业管理员', guilds: [DGID_B] };
 
 const tenantRow = (slug, name, recruitOpen = 0) => ({
-  slug, guild_name: name, password_hash: 'x', announcement: '', slogan: '',
+  id: GID[slug], slug, guild_name: name, password_hash: 'x', announcement: '', slogan: '',
   master_name: '', logo_url: '', bg_image_url: '', discord_webhook: '', created_at: '2026-01-01 00:00:00',
   recruit_open: recruitOpen,
 });
 const { db, tables } = makeDb({
   tenants: [tenantRow('rectest', '招新测试百业', 1), tenantRow('othertest', '乙百业'), tenantRow('freetest', '未绑百业')],
   settings: [
-    ['rectest|discord_guild_id', DGID_A],
-    ['othertest|discord_guild_id', DGID_B],
-    ['|game_version', 'intl-v2.3'],
+    [`${GID.rectest}|discord_guild_id`, DGID_A],
+    [`${GID.othertest}|discord_guild_id`, DGID_B],
+    ['0|game_version', 'intl-v2.3'],
   ],
   users: [
     ['UA', serversJson([srv(DGID_A, '32')])],
@@ -276,14 +314,14 @@ const { db, tables } = makeDb({
   ],
   usernames: [['UN', '新人甲全局名']],
   guildMembers: [
-    { tenant: 'rectest', discord_id: 'UB', nick: '成员乙', global_name: '乙' },
-    { tenant: 'rectest', discord_id: 'UC', nick: '成员丙', global_name: '丙' },
-    { tenant: 'rectest', discord_id: 'UM', nick: '导师甲', global_name: '甲' },
-    { tenant: 'othertest', discord_id: 'U9', nick: '乙业成员', global_name: '玖' },
+    { tenant: GID.rectest, discord_id: 'UB', nick: '成员乙', global_name: '乙' },
+    { tenant: GID.rectest, discord_id: 'UC', nick: '成员丙', global_name: '丙' },
+    { tenant: GID.rectest, discord_id: 'UM', nick: '导师甲', global_name: '甲' },
+    { tenant: GID.othertest, discord_id: 'U9', nick: '乙业成员', global_name: '玖' },
   ],
   events: [
-    { id: 601, tenant: 'rectest', title: '已完成车', status: 'completed' },
-    { id: 602, tenant: 'rectest', title: '进行中车', status: 'open' },
+    { id: 601, tenant: GID.rectest, title: '已完成车', status: 'completed' },
+    { id: 602, tenant: GID.rectest, title: '进行中车', status: 'open' },
   ],
   signups: [
     { id: 1, event_id: 601, nickname: '成员乙', uid: 'q1', weapon: '破竹·樽', discord_id: 'UB' },
@@ -401,7 +439,7 @@ const app2 = r.data?.applyToGuild?.application?.id;
 check('新申请是新行', app2 && app2 !== app1, `${app1} -> ${app2}`);
 r = await gql(reviewMut, { user: ADMIN, variables: { slug: 'rectest', id: app2, approve: true } });
 eq('通过 ok', r.data?.reviewGuildApplication?.ok, true);
-eq('通过后登记进百业名册 (平台侧入业)', tables.guildMembers.some((m) => m.tenant === 'rectest' && m.discord_id === 'UN'), true);
+eq('通过后登记进百业名册 (平台侧入业)', tables.guildMembers.some((m) => m.tenant === GID.rectest && m.discord_id === 'UN'), true);
 eq('名册行全局名 = 申请快照名', tables.guildMembers.find((m) => m.discord_id === 'UN')?.global_name, '新人甲全局名');
 r = await gql(homeQ, { user: APPLICANT });
 eq('申请人看到已通过', myApp(r, 'rectest')?.status, 'APPROVED');
