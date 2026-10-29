@@ -59,15 +59,20 @@ const stub = http.createServer((req, res) => {
 });
 describe('heirloom', () => {
 let fixture: HeirloomFixture;
+let guildId: number;
 let reminderBefore: string;
 let ref: any, cyOf: Map<any, any>, kit: any[], dud: any, plan: any, fullLoadout: any;
 let W1: any, W2: any, GZ: any, XJ: any, HUAN: any, PEI: any, JING: any, WAN: any;
+// Post-0036, settings / guild_members / heirloom state rows are keyed
+// by the numeric guild ID (tenants.id); the slug survives only as the
+// tenant's handle (and in slug-addressed GraphQL / admin arguments).
 const reminderSnap = async () => JSON.stringify({
-  settings: await d1(`SELECT key, value FROM settings WHERE tenant='${SLUG}' AND key LIKE 'reminder%' ORDER BY key`),
+  settings: await d1(`SELECT key, value FROM settings WHERE tenant=${guildId} AND key LIKE 'reminder%' ORDER BY key`),
   webhook: await d1(`SELECT discord_webhook FROM tenants WHERE slug='${SLUG}'`),
 });
 beforeAll(async () => {
 fixture = await startHeirloomDev();
+guildId = fixture.guildId;
 loadLocalSecrets();
 await new Promise((r) => stub.listen(STUB_PORT, r));
 });
@@ -128,13 +133,13 @@ async function hub(path, init = {}) {
 
 beforeAll(async () => {
 /* ---------- Fixture setup ---------- */
-await d1Try(`DELETE FROM heirloom_item_pushes WHERE tenant='${SLUG}'`);
-await d1Try(`DELETE FROM heirloom_set_state WHERE tenant='${SLUG}'`);
-await d1(`DELETE FROM settings WHERE tenant='${SLUG}' AND key LIKE 'heirloom_%'`);
-await d1(`INSERT INTO settings (tenant, key, value) VALUES ('${SLUG}', 'discord_guild_id', '424242424242424242')
+await d1Try(`DELETE FROM heirloom_item_pushes WHERE tenant=${guildId}`);
+await d1Try(`DELETE FROM heirloom_set_state WHERE tenant=${guildId}`);
+await d1(`DELETE FROM settings WHERE tenant=${guildId} AND key LIKE 'heirloom_%'`);
+await d1(`INSERT INTO settings (tenant, key, value) VALUES (${guildId}, 'discord_guild_id', '424242424242424242')
   ON CONFLICT(tenant, key) DO UPDATE SET value = excluded.value`);
 await d1(`INSERT INTO guild_members (tenant, discord_id, nick, global_name, updated_at)
-  VALUES ('${SLUG}', '2001', '车头甲', 'GlobalA', ${Math.floor(Date.now() / 1000)})
+  VALUES (${guildId}, '2001', '车头甲', 'GlobalA', ${Math.floor(Date.now() / 1000)})
   ON CONFLICT(tenant, discord_id) DO UPDATE SET nick = excluded.nick, global_name = excluded.global_name`);
 reminderBefore = await reminderSnap();
 
@@ -198,7 +203,7 @@ it('A) admin endpoints', async () => {
   check('A5 启用开关', en.body?.heirloom?.enabled === true);
 
   // Swap the server-stored address for the stub (direct D1 write, bypassing format validation — the endpoint itself does not re-validate stored values).
-  await d1(`UPDATE settings SET value='${STUB_URL}' WHERE tenant='${SLUG}' AND key='heirloom_webhook'`);
+  await d1(`UPDATE settings SET value='${STUB_URL}' WHERE tenant=${guildId} AND key='heirloom_webhook'`);
   const test = await hub(`/tenants/${SLUG}/heirloom/test`, { method: 'POST' });
   await waitCount(1, 'test message');
   check('A6 test -> stub 收到测试消息', received[0].content.includes('传家宝推送已接通') && received[0].username === '燕云百业');
@@ -266,11 +271,11 @@ it('B) triggering', async () => {
   check('B9 无多余消息', received.length === 5, 'n=' + received.length);
 
   const variant = { ...W1, id: 6001, lines: W1.lines.map((l, i) => (i === 0 ? { ...l, val: l.val + 0.1 } : l)) };
-  await d1(`UPDATE settings SET value='0' WHERE tenant='${SLUG}' AND key='heirloom_enabled'`);
+  await d1(`UPDATE settings SET value='0' WHERE tenant=${guildId} AND key='heirloom_enabled'`);
   await plan([variant], {});
   await sleep(900);
   check('B10 停用时新传家宝不发', received.length === 5, 'n=' + received.length);
-  await d1(`UPDATE settings SET value='1' WHERE tenant='${SLUG}' AND key='heirloom_enabled'`);
+  await d1(`UPDATE settings SET value='1' WHERE tenant=${guildId} AND key='heirloom_enabled'`);
   await plan([variant], {});
   await waitCount(6, 'T10 re-enabled');
   check('B10 复启后补发 (停用期间未预记)', received[5].content.includes('传家宝出世'), received[5].content.split('\n')[0] || '');

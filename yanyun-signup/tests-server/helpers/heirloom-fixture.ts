@@ -21,9 +21,52 @@ async function d1exec(sql: string) {
   await execFileP('pnpm', ['exec', 'wrangler', 'd1', 'execute', 'yanyun-signup', '--local', '--command', sql], { cwd: ROOT });
 }
 
+async function d1query(sql: string): Promise<any[]> {
+  const { stdout } = await execFileP('pnpm', ['exec', 'wrangler', 'd1', 'execute', 'yanyun-signup', '--local', '--json', '--command', sql], { cwd: ROOT });
+  const i = stdout.indexOf('[');
+  const arr = i >= 0 ? JSON.parse(stdout.slice(i)) : [];
+  return arr[0]?.results || [];
+}
+
+/* Typed public IDs (migration 0036): tenants / users carry minted
+ * 11-digit primary keys ([type code][day index][daily sequence]).
+ * Raw-SQL seeding cannot call the data layer's mintPublicId, so it
+ * replicates the same atomic counter step against id_mint_counters
+ * and composes the ID with the ids.ts formula. Existing rows are
+ * reused by their natural keys (slug / discord_id) so repeated runs
+ * keep the same IDs instead of orphaning tenant-keyed rows. */
+const PUBLIC_ID_EPOCH_MS = Date.UTC(2026, 0, 1);
+async function mintTypedId(typeCode: number): Promise<number> {
+  const dayIndex = Math.floor((Date.now() - PUBLIC_ID_EPOCH_MS) / 86_400_000);
+  const rows = await d1query(`INSERT INTO id_mint_counters (type_code, day_index, seq) VALUES (${typeCode}, ${dayIndex}, 1)
+    ON CONFLICT(type_code, day_index) DO UPDATE SET seq = seq + 1 RETURNING seq`);
+  const seq = Number(rows[0]?.seq);
+  if (!seq) throw new Error('fixture: typed ID mint returned no sequence');
+  return typeCode * 1_000_000_000 + dayIndex * 100_000 + seq;
+}
+function isTypedId(id: number, typeCode: number): boolean {
+  return Number.isSafeInteger(id) && Math.floor(id / 1_000_000_000) === typeCode && id % 100_000 >= 1;
+}
+async function ensureTenantId(slug: string): Promise<number> {
+  const rows = await d1query(`SELECT id FROM tenants WHERE slug='${slug}'`);
+  if (rows[0]?.id && isTypedId(Number(rows[0].id), 1)) return Number(rows[0].id);
+  // A pre-0036 leftover row carries a small auto-assigned ID, which the
+  // converted code does not recognize; drop it and mint a typed ID.
+  if (rows[0]?.id) await d1exec(`DELETE FROM tenants WHERE slug='${slug}'`);
+  return mintTypedId(1); // guild type code 01
+}
+async function ensureUserId(discordId: string): Promise<number> {
+  const rows = await d1query(`SELECT id FROM users WHERE discord_id='${discordId}'`);
+  if (rows[0]?.id && isTypedId(Number(rows[0].id), 2)) return Number(rows[0].id);
+  if (rows[0]?.id) await d1exec(`DELETE FROM users WHERE discord_id='${discordId}'`);
+  return mintTypedId(2); // user type code 02
+}
+
 export interface HeirloomFixture {
   dev: ChildProcess;
   stop: () => void;
+  guildId: number;
+  userId: number;
 }
 
 export async function startHeirloomDev(): Promise<HeirloomFixture> {
@@ -59,22 +102,27 @@ export async function startHeirloomDev(): Promise<HeirloomFixture> {
   }).catch(() => null);
 
   const now = Math.floor(Date.now() / 1000);
+  const guildId = await ensureTenantId('livetest');
+  const userId = await ensureUserId('2001');
   await d1exec(`
-    INSERT OR REPLACE INTO tenants (slug, guild_name, password_hash) VALUES ('livetest', 'CI Livetest', 'ci-fixture');
-    INSERT OR REPLACE INTO users (discord_id, username, avatar, guilds_json, guilds_checked_at) VALUES ('2001', 'CI Tester', '', '["424242424242424242"]', ${now});
-    INSERT OR REPLACE INTO user_oauth (discord_id, refresh_token, scope, refresh_state, updated_at) VALUES ('2001', 'ci-fixture-refresh', 'identify guilds guilds.members.read', 'ok', ${now});
+    INSERT OR REPLACE INTO tenants (id, slug, guild_name, password_hash) VALUES (${guildId}, 'livetest', 'CI Livetest', 'ci-fixture');
+    INSERT OR REPLACE INTO users (id, discord_id, username, avatar, guilds_json, guilds_checked_at) VALUES (${userId}, '2001', 'CI Tester', '', '["424242424242424242"]', ${now});
+    INSERT OR REPLACE INTO user_oauth (user_id, refresh_token, scope, refresh_state, updated_at) VALUES (${userId}, 'ci-fixture-refresh', 'identify guilds guilds.members.read', 'ok', ${now});
   `);
   console.log('[fixture] seeded livetest tenant + user 2001 + user_oauth');
 
   // Mint the session JWT exactly like src/domains/identity/auth.ts signJwt.
+  // Post-0036 the subject is the numeric user ID (users.id): a token
+  // whose sub is the Discord ID no longer parses as a session at all.
+  // The Discord ID is resolved back from the users row by the worker.
   const b64u = (buf: Buffer | string) => Buffer.from(buf).toString('base64url');
   const head = b64u(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
   const body = b64u(JSON.stringify({
-    sub: '2001', name: 'CI Tester', avatar: '', guilds: ['424242424242424242'],
+    sub: String(userId), name: 'CI Tester', avatar: '', guilds: ['424242424242424242'],
     iat: now, exp: now + 86400,
   }));
   const sig = crypto.createHmac('sha256', sessionSecret).update(`${head}.${body}`).digest();
   fs.writeFileSync('/tmp/jwt-a.txt', `${head}.${body}.${b64u(sig)}\n`);
   console.log('[fixture] wrote /tmp/jwt-a.txt');
-  return { dev, stop };
+  return { dev, stop, guildId, userId };
 }
