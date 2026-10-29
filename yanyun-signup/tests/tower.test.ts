@@ -46,11 +46,20 @@ function toRawRows(sqlText, rows) {
 
 /* ---------------- FakeDB: in-memory tables routed by SQL shape ---------------- */
 const SLUG = 'towertest';
+/* Typed-ID fixtures (0036): the guild's numeric primary key and the
+   viewers' numeric user IDs; Discord IDs stay as Discord-space values. */
+const GID = 1030100001;
+const UID = { U1: 2030100001, U2: 2030100002 };
 const tables = {
   events: [], signups: [], guild_members: [],
+  users: [
+    { id: UID.U1, discord_id: 'U1', username: '塔主', guilds_json: '[]' },
+    { id: UID.U2, discord_id: 'U2', username: '队员', guilds_json: '[]' },
+  ],
+  mint: new Map(),
 };
-const tenants = [{ slug: SLUG, guild_name: '爬塔测试百业', slogan: '', announcement: '' }];
-const settings = new Map([[`${SLUG}|discord_guild_id`, 'G123']]);
+const tenants = [{ id: GID, slug: SLUG, guild_name: '爬塔测试百业', slogan: '', announcement: '' }];
+const settings = new Map([[`${GID}|discord_guild_id`, 'G123']]);
 const dungeons = [
   { id: 7, name: '定极分更', size: 5 },
   { id: 4, name: '玉魄染青苍', size: 10 },
@@ -115,6 +124,14 @@ function stmt(sql) {
     async raw() { const res = await this.all(); return toRawRows(sql, (res && res.results) || []); },
     async first() {
       const b = this._binds;
+      if (/INSERT INTO id_mint_counters/.test(sql)) {
+        const key = `${b[0]}|${b[1]}`;
+        const seq = (tables.mint.get(key) || 0) + 1;
+        tables.mint.set(key, seq);
+        return { seq };
+      }
+      if (/FROM users/.test(sql) && /WHERE id = \?/.test(sql)) return tables.users.find((u) => u.id === Number(b[0])) || null;
+      if (/FROM users/.test(sql) && /discord_id = \?/.test(sql)) return tables.users.find((u) => u.discord_id === String(b[0])) || null;
       if (/FROM tenants WHERE slug/.test(sql)) return tenants.find((t) => t.slug === b[0]) || null;
       if (/FROM settings/.test(sql)) {
         const v = settings.get(`${b[0]}|${b[1]}`);
@@ -138,6 +155,21 @@ function stmt(sql) {
     },
     async all() {
       const b = this._binds;
+      if (/INSERT INTO id_mint_counters/.test(sql)) {
+        const key = `${b[0]}|${b[1]}`;
+        const seq = (tables.mint.get(key) || 0) + 1;
+        tables.mint.set(key, seq);
+        return { results: [{ seq }] };
+      }
+      if (/FROM users/.test(sql) && /WHERE id = \?/.test(sql)) {
+        const u = tables.users.find((x) => x.id === Number(b[0])) || null;
+        return { results: u ? [u] : [] };
+      }
+      if (/FROM users/.test(sql) && /discord_id = \?/.test(sql)) {
+        const u = tables.users.find((x) => x.discord_id === String(b[0])) || null;
+        return { results: u ? [u] : [] };
+      }
+      if (/FROM users/.test(sql)) return { results: tables.users };
       if (/FROM settings/.test(sql)) {
         // Data-layer point lookups use the .all() channel (drizzle db.get): same shape as first()'s settings branch.
         if (/tenant = \?/.test(sql)) {
@@ -169,6 +201,14 @@ function stmt(sql) {
       if (/FROM signups WHERE event_id\s*=\s*\?/.test(sql)) {
         return { results: tables.signups.filter((r) => r.event_id === Number(b[0])) };
       }
+      if (/FROM tenants/.test(sql) && /slug = \?/.test(sql)) {
+        const row = tenants.find((x) => x.slug === b[0]) || null;
+        return { results: row ? [row] : [] };
+      }
+      if (/FROM tenants/.test(sql) && /WHERE id = \?/.test(sql)) {
+        const row = tenants.find((x) => x.id === Number(b[0])) || null;
+        return { results: row ? [row] : [] };
+      }
       if (/FROM tenants/.test(sql)) return { results: tenants };
       if (/CREATE|ALTER|PRAGMA/.test(sql)) return { results: [] };
       unknownSql.add('all: ' + sql.slice(0, 90));
@@ -183,7 +223,9 @@ function stmt(sql) {
         // joinGrouping's conditional insert: INSERT ... SELECT ?,?,... WHERE (COUNT) < (max_slots)
         // (no VALUES clause; the leading binds are the column values).
         if (/INSERT INTO signups/.test(sql) && /COUNT\(\*\) FROM signups/.test(sql) && !/VALUES/.test(sql)) {
-          const gid = Number(b[0]);
+          const v = {};
+          ins.cols.forEach((c, i) => { v[c] = b[i]; });
+          const gid = Number(v.event_id);
           const ev = tables.events.find((e) => e.id === gid);
           const cnt = tables.signups.filter((r) => r.event_id === gid).length;
           if (!ev || ev.status !== 'open' || cnt >= ev.max_slots) return { meta: { changes: 0 } };
@@ -213,8 +255,8 @@ const db = {
 };
 const env = { DB: db };
 
-const leader = { discordId: 'U1', name: '塔主', guilds: ['G123'] };
-const member = { discordId: 'U2', name: '队员', guilds: ['G123'] };
+const leader = { userId: UID.U1, discordId: 'U1', name: '塔主', guilds: ['G123'] };
+const member = { userId: UID.U2, discordId: 'U2', name: '队员', guilds: ['G123'] };
 
 async function gql(query, { user = leader, locale = 'zh-CN', variables } = {}) {
   const ctx = { env, request: new Request('http://local/graphql'), user, locale, browserLocale: locale, executionCtx: undefined };

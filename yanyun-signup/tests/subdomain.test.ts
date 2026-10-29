@@ -90,6 +90,7 @@ function makeDb(fx = {}) {
     links: (fx.links || []).map((l) => ({ ...l })),
     guildMembers: (fx.guildMembers || []).map((m) => ({ ...m })),
     entitlements: new Map(fx.entitlements || []),
+    mint: new Map(),
   };
   const unknownSql = new Set();
   function norm(sql) {
@@ -98,6 +99,12 @@ function makeDb(fx = {}) {
   function route(kind, rawSql, b) {
     const sql = norm(rawSql);
     if (/^INSERT INTO error_log/i.test(sql)) return { meta: { changes: 1 } };
+    if (/INSERT INTO id_mint_counters/i.test(sql)) {
+      const key = `${b[0]}|${b[1]}`;
+      const seq = (tables.mint.get(key) || 0) + 1;
+      tables.mint.set(key, seq);
+      return kind === 'first' ? { seq } : (kind === 'all' ? { results: [{ seq }] } : { meta: { changes: 1 } });
+    }
     /* short_links: real UNIQUE semantics (mirrors .harness-shortlink) */
     if (/short_links/i.test(sql)) {
       if (/^INSERT INTO short_links/i.test(sql)) {
@@ -131,9 +138,20 @@ function makeDb(fx = {}) {
     const first = (row) => (kind === 'first' ? (row ?? null) : { results: row ? [row] : [] });
     const all = (rows) => ({ results: rows });
     if (/FROM guild_entitlements WHERE tenant = \?/i.test(sql)) return first(tables.entitlements.get(b[0]) ?? null);
+    if (/FROM guild_entitlements/i.test(sql)) return all([...tables.entitlements.values()]);
     // Governance line (P16): fixture guilds hold no officer grants.
     if (/FROM guild_officer_grants/i.test(sql)) return kind === 'first' ? null : all([]);
+    if (/FROM tenants/i.test(sql) && /event_count/i.test(sql)) {
+      // listTenantsHubAdmin: shaped rows in SELECT order (the raw-row
+      // fallback in stmt.raw() maps values positionally).
+      return all(tables.tenants.map((x) => ({
+        id: x.id, slug: x.slug, guild_name: x.guild_name, announcement: x.announcement,
+        created_at: x.created_at,
+        event_count: tables.events.filter((e) => e.tenant === x.id).length,
+      })));
+    }
     if (/FROM tenants WHERE slug/i.test(sql)) return first(tables.tenants.find((t) => t.slug === b[0]));
+    if (/FROM tenants WHERE id = \?/i.test(sql)) return first(tables.tenants.find((t) => t.id === Number(b[0])));
     if (/FROM tenants/i.test(sql)) return kind === 'first' ? (tables.tenants[0] ?? null) : all(tables.tenants);
     if (/FROM settings WHERE tenant = \? AND key = \?/i.test(sql)) {
       const v = tables.settings.get(`${b[0]}|${b[1]}`);
@@ -144,11 +162,14 @@ function makeDb(fx = {}) {
       for (const [k, v] of tables.settings) { const [t, key] = k.split('|'); if (key === b[0]) rows.push({ tenant: t, value: v }); }
       return kind === 'first' ? (rows[0] ?? null) : all(rows);
     }
+    const userRows = () => [...tables.users.entries()].map(([discord_id, u]) => ({ discord_id, ...(u as any) }));
     if (/SELECT guilds_json FROM users/i.test(sql)) {
-      const v = tables.users.get(String(b[0]));
-      return first(v === undefined ? null : { guilds_json: v });
+      const row = userRows().find((u) => u.id === Number(b[0])) || userRows().find((u) => u.discord_id === String(b[0])) || null;
+      return first(row ? { guilds_json: row.guilds_json } : null);
     }
-    if (/FROM users/i.test(sql)) return first(null);
+    if (/FROM users/i.test(sql) && /WHERE id = \?/i.test(sql)) return first(userRows().find((u) => u.id === Number(b[0])) ?? null);
+    if (/FROM users/i.test(sql) && /discord_id = \?/i.test(sql)) return first(userRows().find((u) => u.discord_id === String(b[0])) ?? null);
+    if (/FROM users/i.test(sql)) return kind === 'first' ? null : all(userRows());
     if (/FROM guild_avatars/i.test(sql)) return first(null);
     /* custom domains (P23): this suite's world has no bindings —
      * the composition points (reminder / shareUrl) read an empty
@@ -201,10 +222,16 @@ function makeDb(fx = {}) {
 }
 
 /* ---------------- fixtures ---------------- */
+/* Typed-ID fixtures (0036): guilds/users carry numeric primary keys;
+   settings and entitlements key by the guild ID (global scope = 0);
+   slugs stay public handles, Discord IDs stay Discord-space values. */
+const GID = { subtest: 1030100001, offtest: 1030100002, paytest: 1030100003, stripetest: 1030100004 };
+const UID = { UA: 2030100001, UB: 2030100002, U1: 2030100003, U9: 2030100009, SDADMIN: 2030100010 };
 const NOW = Math.floor(Date.now() / 1000);
+const GID_BY_SLUG = { subtest: GID.subtest, offtest: GID.offtest, paytest: GID.paytest, stripetest: GID.stripetest } as Record<string, number>;
 function tenantRow(slug, guildName) {
   return {
-    slug, guild_name: guildName, password_hash: 'x', announcement: '', slogan: '同舟共济',
+    id: GID_BY_SLUG[slug], slug, guild_name: guildName, password_hash: 'x', announcement: '', slogan: '同舟共济',
     master_name: '', logo_url: '', bg_image_url: '', discord_webhook: '',
     created_at: '2026-01-01 00:00:00',
   };
@@ -213,26 +240,26 @@ function evRow(id, tenant, over = {}) {
   return {
     id, tenant, title: '车' + id, type: 'activity', description: '', dungeon: '',
     starts_at: null, starts_at_utc: NOW + 7200, max_slots: 10, status: 'open',
-    origin: 'member', created_by: '', creator_discord_id: 'U1',
+    origin: 'member', created_by: '', creator_user_id: UID.UA,
     reminder_sent_at: null, reminder_error: null, ...over,
   };
 }
 const A = makeDb({
   tenants: [tenantRow('subtest', '子域测试百业'), tenantRow('offtest', '未开子域百业')],
   settings: [
-    ['subtest|discord_guild_id', DGID],
-    ['offtest|discord_guild_id', DGID],
-    ['subtest|subdomain_enabled', '1'],
-    ['|game_version', 'intl-v2.3'],
+    [`${GID.subtest}|discord_guild_id`, DGID],
+    [`${GID.offtest}|discord_guild_id`, DGID],
+    [`${GID.subtest}|subdomain_enabled`, '1'],
+    ['0|game_version', 'intl-v2.3'],
   ],
   users: [
-    ['UA', JSON.stringify([{ id: DGID, name: '测试服', icon: '', permissions: '0', owner: true }])],
-    ['UB', JSON.stringify([{ id: DGID, name: '测试服', icon: '', permissions: '0', owner: false }])],
+    ['UA', { id: UID.UA, guilds_json: JSON.stringify([{ id: DGID, name: '测试服', icon: '', permissions: '0', owner: true }]) }],
+    ['UB', { id: UID.UB, guilds_json: JSON.stringify([{ id: DGID, name: '测试服', icon: '', permissions: '0', owner: false }]) }],
   ],
-  events: [evRow(7, 'subtest', { title: '子域周六车' }), evRow(8, 'offtest', { title: '未开子域车' })],
+  events: [evRow(7, GID.subtest, { title: '子域周六车' }), evRow(8, GID.offtest, { title: '未开子域车' })],
 });
-const ADMIN = { discordId: 'UA', name: '服主', guilds: [DGID] };
-const MEMBER = { discordId: 'UB', name: '成员', guilds: [DGID] };
+const ADMIN = { userId: UID.UA, discordId: 'UA', name: '服主', guilds: [DGID] };
+const MEMBER = { userId: UID.UB, discordId: 'UB', name: '成员', guilds: [DGID] };
 
 const env = { DB: A.db, ASSETS: { fetch: async (req) => {
   const p = new URL(req.url).pathname;
@@ -279,9 +306,9 @@ eq('不存在子域不解析', await resolveGuildSubdomain(A.db, 'ghost.yanyun.a
 eq('origin 组合', guildSubdomainOrigin('jijiguagua'), 'https://jijiguagua.yanyun.app');
 eq('enabled 读 (开)', await isGuildSubdomainEnabled(A.db, 'subtest'), true);
 eq('enabled 读 (默认关)', await isGuildSubdomainEnabled(A.db, 'offtest'), false);
-A.tables.settings.set('subtest|dev_only', '1');
+A.tables.settings.set(`${GID.subtest}|dev_only`, '1');
 eq('dev_only 百业永不经子域解析', await resolveGuildSubdomain(A.db, 'subtest.yanyun.app'), null);
-A.tables.settings.delete('subtest|dev_only');
+A.tables.settings.delete(`${GID.subtest}|dev_only`);
 eq('dev_only 复位后恢复解析', await resolveGuildSubdomain(A.db, 'subtest.yanyun.app'), 'subtest');
   });
 
@@ -349,7 +376,7 @@ eq('og 主机名不被子域门挡 (回落既有处理)', r.status, 200);
 await r.text();
 
 /* short-link landings follow the host */
-link = await mintShortLink(A.db, 'subtest', 7);
+link = await mintShortLink(A.db, GID.subtest, 7);
 r = await call(`https://subtest.yanyun.app/c/${link.code}`);
 eq('子域上短链 -> 302', r.status, 302);
 // 2026-10-28 share-access ruling: subtest is a BOUND guild, so an
@@ -412,7 +439,7 @@ eq('普通成员只见 Locked (不变)', g.data?.viewer?.guildAdmin?.__typename,
 g = await gql(`mutation { updateGuildSubdomain(slug: "offtest", enabled: true) { ok errorCode } }`, { user: ADMIN });
 check('updateGuildSubdomain 已不存在 -> 校验错误', Array.isArray(g.errors) && g.errors.length > 0
   && JSON.stringify(g.errors).includes('updateGuildSubdomain'), JSON.stringify(g.errors || '').slice(0, 160));
-eq('旧写路径未落库', A.tables.settings.get('offtest|subdomain_enabled'), undefined);
+eq('旧写路径未落库', A.tables.settings.get(`${GID.offtest}|subdomain_enabled`), undefined);
 g = await gql(`mutation { updateGuildSubdomain(slug: "offtest", enabled: true) { ok errorCode } }`, { user: MEMBER });
 check('成员调用旧写路径同样只是校验错误', Array.isArray(g.errors) && g.errors.length > 0);
 
@@ -420,7 +447,7 @@ check('成员调用旧写路径同样只是校验错误', Array.isArray(g.errors
  * still flips resolution immediately — the data-layer write the
  * hub route performs, driven directly here */
 await setGuildSubdomainEnabled(A.db, 'offtest', true);
-eq('开关落库', A.tables.settings.get('offtest|subdomain_enabled'), '1');
+eq('开关落库', A.tables.settings.get(`${GID.offtest}|subdomain_enabled`), '1');
 eq('开后子域立即解析', await resolveGuildSubdomain(A.db, 'offtest.yanyun.app'), 'offtest');
 r = await call('https://offtest.yanyun.app/');
 eq('开后子域根立即出页', r.status, 200);
@@ -435,9 +462,13 @@ const SECRET = 'harness-session-secret';
 const G = makeDb({
   tenants: [tenantRow('subtest', '子域测试百业')],
   settings: [
-    ['subtest|discord_guild_id', DGID],
-    ['subtest|subdomain_enabled', '1'],
-    ['|game_version', 'intl-v2.3'],
+    [`${GID.subtest}|discord_guild_id`, DGID],
+    [`${GID.subtest}|subdomain_enabled`, '1'],
+    ['0|game_version', 'intl-v2.3'],
+  ],
+  users: [
+    ['U1', { id: UID.U1, guilds_json: JSON.stringify([{ id: DGID, name: '测试服', icon: null, permissions: '0', owner: true }]) }],
+    ['U9', { id: UID.U9, guilds_json: '[]' }],
   ],
 });
 const envG = {
@@ -598,8 +629,8 @@ eq('预览 host 登出条内容', sc[0],
   'yy_session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0');
 
 /* G10. duplicate cookie values: the first valid one wins */
-const goodJwt = await signJwt(SECRET, { sub: 'U9', name: '九', avatar: '', guilds: [] });
-const expiredJwt = await signJwt(SECRET, { sub: 'U9', name: '九', avatar: '', guilds: [] }, -60);
+const goodJwt = await signJwt(SECRET, { sub: String(UID.U9), name: '九', avatar: '', guilds: [] });
+const expiredJwt = await signJwt(SECRET, { sub: String(UID.U9), name: '九', avatar: '', guilds: [] }, -60);
 const reqCookie = (cookie) => new Request('https://yanyun.app/graphql', { headers: { cookie } });
 eq('垃圾在前、有效在后 -> 认有效', (await getSessionUser(reqCookie(`yy_session=garbage; yy_session=${goodJwt}`), envG))?.discordId, 'U9');
 eq('有效在前、垃圾在后 -> 认有效', (await getSessionUser(reqCookie(`yy_session=${goodJwt}; yy_session=garbage`), envG))?.discordId, 'U9');
@@ -627,16 +658,19 @@ globalThis.fetch = realFetch;
 const P = makeDb({
   tenants: [tenantRow('paytest', '权益测试百业'), tenantRow('stripetest', '订阅测试百业')],
   settings: [
-    ['paytest|discord_guild_id', DGID],
-    ['stripetest|discord_guild_id', DGID],
-    ['paytest|subdomain_enabled', '1'],
-    ['stripetest|subdomain_enabled', '1'],
-    ['|game_version', 'intl-v2.3'],
+    [`${GID.paytest}|discord_guild_id`, DGID],
+    [`${GID.stripetest}|discord_guild_id`, DGID],
+    [`${GID.paytest}|subdomain_enabled`, '1'],
+    [`${GID.stripetest}|subdomain_enabled`, '1'],
+    ['0|game_version', 'intl-v2.3'],
   ],
-  events: [evRow(9, 'paytest', { title: '权益测试车' })],
+  users: [
+    ['SD-ADMIN', { id: UID.SDADMIN, guilds_json: '[]' }],
+  ],
+  events: [evRow(9, GID.paytest, { title: '权益测试车' })],
   entitlements: [
-    ['stripetest', {
-      tenant: 'stripetest', plan: 'premium', source: 'stripe',
+    [GID.stripetest, {
+      tenant: GID.stripetest, plan: 'premium', source: 'stripe',
       current_period_end: NOW + 86400 * 30, stripe_customer_id: 'cus_x',
       stripe_subscription_id: 'sub_x', updated_at: NOW,
     }],
@@ -658,7 +692,7 @@ const ADMIN_BILLING_FIELDS_SD = `paygateEnabled stripeConfigured customDomainSaa
     currentPeriodEnd lapsed pastDue hasCard trialUsed stripeCustomerId stripeSubscriptionId
     subdomainEnabled customDomainHostname customDomainStatus }`;
 const adminEnvSd = { DB: P.db, SITE_URL: 'http://local', PLATFORM_ADMIN_DISCORD_IDS: 'SD-ADMIN' };
-const adminUserSd = { discordId: 'SD-ADMIN', name: 'subdomain-test admin', guilds: [] as string[] };
+const adminUserSd = { userId: UID.SDADMIN, discordId: 'SD-ADMIN', name: 'subdomain-test admin', guilds: [] as string[] };
 function shapeBillingSd(b: any) {
   if (!b) return null;
   return { ...b, tenants: (b.tenants || []).map((t: any) => ({ ...t,
@@ -734,27 +768,27 @@ eq('未达标与不存在 404 一致 (防枚举)', await r.text(), gatedBody);
 const msgGated = await buildReminderMessage(P.db, P.tables.events.find((e) => e.id === 9), 'paytest', NOW);
 eq('总闸开 + 无权益 -> 提醒链接回主域形态', msgGated.embeds[0].url, 'https://yanyun.app/paytest/car/9');
 eq('总闸开 + Stripe 权益有效 -> 解析', await resolveGuildSubdomain(P.db, 'stripetest.yanyun.app'), 'stripetest');
-await grantPremiumManual(P.db, 'paytest', 30);
+await grantPremiumManual(P.db, GID.paytest, 30);
 eq('总闸开 + 手工授予 -> 解析', await resolveGuildSubdomain(P.db, 'paytest.yanyun.app'), 'paytest');
 r = await callP('https://paytest.yanyun.app/');
 eq('授予后子域出页', r.status, 200);
 await r.text();
 const msgPremium = await buildReminderMessage(P.db, P.tables.events.find((e) => e.id === 9), 'paytest', NOW);
 eq('授予后提醒链接回子域', msgPremium.embeds[0].url, 'https://paytest.yanyun.app/car/9');
-await revokePremium(P.db, 'paytest');
+await revokePremium(P.db, GID.paytest);
 eq('撤销后立即停解析', await resolveGuildSubdomain(P.db, 'paytest.yanyun.app'), null);
-P.tables.entitlements.set('paytest', {
-  tenant: 'paytest', plan: 'premium', source: 'manual',
+P.tables.entitlements.set(GID.paytest, {
+  tenant: GID.paytest, plan: 'premium', source: 'manual',
   current_period_end: NOW - 60, stripe_customer_id: '',
   stripe_subscription_id: '', updated_at: NOW,
 });
 eq('权益过期 -> 停解析', await resolveGuildSubdomain(P.db, 'paytest.yanyun.app'), null);
-await grantPremiumManual(P.db, 'paytest', 30);
+await grantPremiumManual(P.db, GID.paytest, 30);
 await setGuildSubdomainEnabled(P.db, 'paytest', false);
 eq('开关关 + 有权益 -> 不解析', await resolveGuildSubdomain(P.db, 'paytest.yanyun.app'), null);
 await setGuildSubdomainEnabled(P.db, 'paytest', true);
 eq('开关重开 + 权益在 -> 恢复解析', await resolveGuildSubdomain(P.db, 'paytest.yanyun.app'), 'paytest');
-await revokePremium(P.db, 'paytest');
+await revokePremium(P.db, GID.paytest);
 await setPaygateEnabled(P.db, false);
 eq('总闸关 + 无权益 + 开关开 -> 解析 (回到现状口径)', await resolveGuildSubdomain(P.db, 'paytest.yanyun.app'), 'paytest');
 

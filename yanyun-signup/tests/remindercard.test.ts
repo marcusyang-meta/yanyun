@@ -120,6 +120,10 @@ return kind === 'first'? row: { results: row? [row]: []};
 return { results: []};
 }
 if (/FROM users/.test(sql)) {
+if (/WHERE id\s*=\s*\?/.test(sql)) {
+const u = fx.users.find((x) => x.id === Number(b[0])) || null;
+return kind === 'first'? u: { results: u? [u]: []};
+}
 if (/WHERE discord_id/.test(sql)) {
 const u = fx.users.find((x) => x.discord_id === b[0]) || null;
 return kind === 'first'? u: { results: u? [u]: []};
@@ -146,18 +150,23 @@ return { db: { prepare: (sql) => stmt(sql)}, state};
 
 /* ---------------- Fixtures ---------------- */
 const SLUG = 'cardtest';
+/* Typed-ID fixtures (0036): guild/user numeric primary keys; Discord
+   IDs stay only where they are class-A values (seat stamps, roster). */
+const GID = 1030100001;
+const UID9001 = 2030100001;
+const UID9002 = 2030100002;
 const DGID = '777000111222333444';
 const NOW = Math.floor(Date.now() / 1000);
 const fx = {
-tenants: [{ slug: SLUG, guild_name: '卡面验收百业'}],
-settings: { [`${SLUG}::discord_guild_id`]: DGID},
+tenants: [{ id: GID, slug: SLUG, guild_name: '卡面验收百业'}],
+settings: { [`${GID}::discord_guild_id`]: DGID},
 roster: [
 { discord_id: '9001', nick: '路怀', global_name: 'LeaderGlobal'},
 { discord_id: '9002', nick: '鱼崽', global_name: 'FishGlobal'},
 ],
 users: [
-{ discord_id: '9001', username: 'LeaderGlobal', guilds_json: `["${DGID}"]`},
-{ discord_id: '9002', username: 'FishGlobal', guilds_json: `["${DGID}"]`},
+{ id: UID9001, discord_id: '9001', username: 'LeaderGlobal', guilds_json: `["${DGID}"]`},
+{ id: UID9002, discord_id: '9002', username: 'FishGlobal', guilds_json: `["${DGID}"]`},
 ],
 guildNicks: [
 { discord_id: '9001', nick: '路怀'},
@@ -173,22 +182,22 @@ signups: [
 { event_id: 503, nickname: '鱼崽', discord_id: '', weapon: ''},
 ],
 events: [
-{ id: 501, tenant: SLUG, title: '今晚双十·冲层', type: 'activity', dungeon: '玉魄染青苍', max_slots: 3, starts_at_utc: NOW + 540, creator_discord_id: '9001', created_by: '', status: 'open', reminder_sent_at: null, reminder_error: null},
-{ id: 502, tenant: SLUG, title: '爬塔试水', type: 'tower', dungeon: '', max_slots: 10, starts_at_utc: NOW + 1500, creator_discord_id: '', created_by: '热心侠客', status: 'open', reminder_sent_at: null, reminder_error: null},
-{ id: 503, tenant: SLUG, title: '就位验收车', type: 'activity', dungeon: '', max_slots: 2, starts_at_utc: NOW + 1500, creator_discord_id: '9001', created_by: '', status: 'open', reminder_sent_at: null, reminder_error: null},
+{ id: 501, tenant: GID, title: '今晚双十·冲层', type: 'activity', dungeon: '玉魄染青苍', max_slots: 3, starts_at_utc: NOW + 540, creator_user_id: UID9001, created_by: '', status: 'open', reminder_sent_at: null, reminder_error: null},
+{ id: 502, tenant: GID, title: '爬塔试水', type: 'tower', dungeon: '', max_slots: 10, starts_at_utc: NOW + 1500, creator_user_id: null, created_by: '热心侠客', status: 'open', reminder_sent_at: null, reminder_error: null},
+{ id: 503, tenant: GID, title: '就位验收车', type: 'activity', dungeon: '', max_slots: 2, starts_at_utc: NOW + 1500, creator_user_id: UID9001, created_by: '', status: 'open', reminder_sent_at: null, reminder_error: null},
 ],
 };
 const { db, state} = makeDb(fx);
 
 /* Car A: full 3/3 + has a dungeon + stamped creator + healer seat + same person in two seats (deduplicated) */
 const evA = {
-id: 501, tenant: SLUG, title: '今晚双十·冲层', type: 'activity', dungeon: '玉魄染青苍',
-max_slots: 3, starts_at_utc: NOW + 540, creator_discord_id: '9001', created_by: '',
+id: 501, tenant: GID, title: '今晚双十·冲层', type: 'activity', dungeon: '玉魄染青苍',
+max_slots: 3, starts_at_utc: NOW + 540, creator_user_id: UID9001, created_by: '',
 };
 /* Car B: not full 2/10 + no dungeon + no creator record (created_by text fallback marks the creator) */
 const evB = {
-id: 502, tenant: SLUG, title: '爬塔试水', type: 'tower', dungeon: '',
-max_slots: 10, starts_at_utc: NOW + 1500, creator_discord_id: '', created_by: '热心侠客',
+id: 502, tenant: GID, title: '爬塔试水', type: 'tower', dungeon: '',
+max_slots: 10, starts_at_utc: NOW + 1500, creator_user_id: null, created_by: '热心侠客',
 };
 
 let msgA: any;
