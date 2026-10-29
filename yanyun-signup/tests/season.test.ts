@@ -49,12 +49,19 @@ function toRawRows(sqlText, rows) {
     : Object.values(r)));
 }
 
+/* Typed-ID fixture keys: guilds/users carry their 0036 primary keys;
+   Discord-space values (server ids, roster ids) stay Discord IDs. */
+const GID = { alpha: 1030100001, beta: 1030100002 };
+const UID = { ADMIN_A: 2030100001, ADMIN_B: 2030100002, MEMBER_A: 2030100003 };
+const UID_BY_DID = { 'admin-a': UID.ADMIN_A, 'admin-b': UID.ADMIN_B, 'member-a': UID.MEMBER_A };
+
 /* ---------------- FakeDB ---------------- */
 function makeDb(fx = {}) {
   const tables = {
     tenants: (fx.tenants || []).map((t) => ({ ...t })),
     settings: new Map(fx.settings || []),
-    users: new Map(fx.users || []),
+    users: (fx.users || []).map(([did, gj]) => ({ id: UID_BY_DID[did] || 0, discord_id: did, username: '', guilds_json: gj })),
+    mint: new Map(),
     dungeons: (fx.dungeons || []).map((d) => ({ ...d })),
     templates: (fx.templates || []).map((t) => ({ ...t })),
     schoolBis: (fx.schoolBis || []).map((r) => ({ ...r })),
@@ -76,6 +83,12 @@ function makeDb(fx = {}) {
   function route(kind, rawSql, b) {
     const sql = norm(rawSql);
     if (/^INSERT INTO error_log/i.test(sql)) return { meta: { changes: 1 } };
+    if (/^INSERT INTO id_mint_counters/i.test(sql)) {
+      const key = `${b[0]}|${b[1]}`;
+      const seq = (tables.mint.get(key) || 0) + 1;
+      tables.mint.set(key, seq);
+      return kind === 'first' ? { seq } : (kind === 'all' ? { results: [{ seq }] } : { meta: { changes: 1 } });
+    }
     if (/\b(CREATE TABLE|ALTER TABLE|PRAGMA)\b/i.test(sql)) return kind === 'run' ? { meta: { changes: 0 } } : (kind === 'first' ? null : { results: [] });
     const first = (row) => (kind === 'first' ? (row ?? null) : { results: row ? [row] : [] });
     const all = (rows) => ({ results: rows });
@@ -110,8 +123,9 @@ function makeDb(fx = {}) {
         tables.usage.set(key, (tables.usage.get(key) || 0) + Number(b[5] ?? b[3] ?? 1));
         return { meta: { changes: 1 } };
       }
-      row.id = nextId++;
-      if (table === 'guild_roster_entries') tables.rosterEntries.push(row);
+      if (row.id === undefined) row.id = nextId++;
+      if (table === 'users') { if (!tables.users.some((u) => u.discord_id === row.discord_id)) tables.users.push(row); }
+      else if (table === 'guild_roster_entries') tables.rosterEntries.push(row);
       else if (table === 'roster_import_batches') tables.importBatches.push(row);
       else if (table === 'roster_import_rows') tables.importRows.push(row);
       else if (table === 'settings') tables.settings.set(`${row.tenant}|${row.key}`, row.value);
@@ -144,7 +158,12 @@ function makeDb(fx = {}) {
     /* ---- reads ---- */
     if (/FROM guild_entitlements/i.test(sql)) return kind === 'first' ? null : all([]);
     if (/FROM tenants WHERE slug/i.test(sql)) return first(tables.tenants.find((t) => t.slug === b[0]));
+    if (/FROM tenants/i.test(sql) && /id = \?/i.test(sql)) return first(tables.tenants.find((t) => t.id === Number(b[0])));
     if (/FROM tenants/i.test(sql)) return kind === 'first' ? (tables.tenants[0] ?? null) : all(tables.tenants);
+    if (/FROM settings/i.test(sql) && /tenant = 0/i.test(sql)) {
+      const v = tables.settings.get(`0|${b[0]}`);
+      return first(v === undefined ? null : { value: v });
+    }
     if (/FROM settings WHERE tenant = \? AND key = \?/i.test(sql)) {
       const v = tables.settings.get(`${b[0]}|${b[1]}`);
       return first(v === undefined ? null : { value: v });
@@ -155,10 +174,22 @@ function makeDb(fx = {}) {
       return kind === 'first' ? (rows[0] ?? null) : all(rows);
     }
     if (/SELECT guilds_json FROM users/i.test(sql)) {
-      const v = tables.users.get(String(b[0]));
-      return first(v === undefined ? null : { guilds_json: v });
+      const u = tables.users.find((x) => x.id === Number(b[0])) || tables.users.find((x) => x.discord_id === String(b[0]));
+      return first(u === undefined ? null : { guilds_json: u.guilds_json });
     }
-    if (/FROM users/i.test(sql)) return first(null);
+    if (/FROM users/i.test(sql)) {
+      if (/discord_id IN/i.test(sql)) {
+        const rows = tables.users.filter((x) => b.map(String).includes(x.discord_id));
+        return kind === 'first' ? (rows[0] ?? null) : all(rows);
+      }
+      if (/id IN/i.test(sql)) {
+        const rows = tables.users.filter((x) => b.map(Number).includes(x.id));
+        return kind === 'first' ? (rows[0] ?? null) : all(rows);
+      }
+      if (/discord_id = \?/i.test(sql)) return first(tables.users.find((x) => x.discord_id === String(b[0])));
+      if (/id = \?/i.test(sql)) return first(tables.users.find((x) => x.id === Number(b[0])));
+      return kind === 'first' ? (tables.users[0] ?? null) : all(tables.users);
+    }
     if (/FROM guild_avatars/i.test(sql)) return first(null);
     if (/FROM dungeons/i.test(sql)) {
       const rows = [...tables.dungeons].sort((x, y) => (y.size - x.size) || (y.sort_order - x.sort_order) || (x.id - y.id));
@@ -219,13 +250,13 @@ function makeDb(fx = {}) {
 const DGID_A = '555555555555555555';
 const DGID_B = '777777777777777777';
 const serversJson = (rows) => JSON.stringify(rows);
-const ADMIN_A = { discordId: 'admin-a', name: '甲军官', guilds: [DGID_A] };
-const ADMIN_B = { discordId: 'admin-b', name: '乙军官', guilds: [DGID_B] };
-const MEMBER_A = { discordId: 'member-a', name: '甲成员', guilds: [DGID_A] };
+const ADMIN_A = { userId: UID.ADMIN_A, discordId: 'admin-a', name: '甲军官', guilds: [DGID_A] };
+const ADMIN_B = { userId: UID.ADMIN_B, discordId: 'admin-b', name: '乙军官', guilds: [DGID_B] };
+const MEMBER_A = { userId: UID.MEMBER_A, discordId: 'member-a', name: '甲成员', guilds: [DGID_A] };
 
 function tenantRow(slug, name) {
   return {
-    slug, guild_name: name, password_hash: 'x', announcement: '', slogan: '',
+    id: GID[slug], slug, guild_name: name, password_hash: 'x', announcement: '', slogan: '',
     master_name: '', logo_url: '', bg_image_url: '', discord_webhook: '', created_at: '2026-01-01 00:00:00',
   };
 }
@@ -239,10 +270,10 @@ function dungeonRow(id, over = {}) {
 const A = makeDb({
   tenants: [tenantRow('alpha', '甲百业'), tenantRow('beta', '乙百业')],
   settings: [
-    ['alpha|discord_guild_id', DGID_A],
-    ['beta|discord_guild_id', DGID_B],
-    ['|game_version', '国际服 V2.3「青州」'],
-    ['|game_version_code', 'intl-v2.3'],
+    [`${GID.alpha}|discord_guild_id`, DGID_A],
+    [`${GID.beta}|discord_guild_id`, DGID_B],
+    ['0|game_version', '国际服 V2.3「青州」'],
+    ['0|game_version_code', 'intl-v2.3'],
   ],
   users: [
     ['admin-a', serversJson([{ id: DGID_A, name: '甲服', icon: '', permissions: '8', owner: false }])],
@@ -254,14 +285,14 @@ const A = makeDb({
     dungeonRow(4, { version: 'intl-v2.2', season: 'S4' }), dungeonRow(5, { version: 'intl-v2.2', season: 'S4' }),
   ],
   templates: [
-    { id: 11, tenant: 'alpha' }, { id: 12, tenant: 'alpha' }, { id: 13, tenant: 'beta' },
+    { id: 11, tenant: GID.alpha }, { id: 12, tenant: GID.alpha }, { id: 13, tenant: GID.beta },
   ],
   schoolBis: [{ school: '鸣金·虹', build: 'a' }, { school: '牵丝·玉', build: 'a' }, { school: '裂石·威', build: 'a' }],
   schoolRotations: [{ school: '鸣金·虹' }, { school: '牵丝·玉' }],
   guildMembers: [
-    { tenant: 'alpha', discord_id: 'd-aqing', nick: '阿青', global_name: 'Aq' },
-    { tenant: 'alpha', discord_id: 'd-laomo', nick: '', global_name: '老墨' },
-    { tenant: 'beta', discord_id: 'd-beiwang', nick: '北望', global_name: 'Bw' },
+    { tenant: GID.alpha, discord_id: 'd-aqing', nick: '阿青', global_name: 'Aq' },
+    { tenant: GID.alpha, discord_id: 'd-laomo', nick: '', global_name: '老墨' },
+    { tenant: GID.beta, discord_id: 'd-beiwang', nick: '北望', global_name: 'Bw' },
   ],
 });
 const env = { DB: A.db };
@@ -348,17 +379,17 @@ eq('取消后不再显示操作者快照', ga(r)?.seasonChecklist?.items?.[0] &&
 
 it('season roll resets the checklist', async () => {
 /* ---------- (4) season roll resets the checklist ---------- */
-T.settings.set('|game_version_code', 'intl-v9.9');
+T.settings.set('0|game_version_code', 'intl-v9.9');
 let r = await gql(setItem('alpha', 'member-roster', true), { user: ADMIN_A });
 eq('新赛季下勾选成功', r.data?.setSeasonChecklistItem?.ok, true);
-T.settings.set('|game_version_code', 'intl-v2.3');
+T.settings.set('0|game_version_code', 'intl-v2.3');
 r = await gql(seasonQ('alpha'), { user: ADMIN_A });
 eq('回到 intl-v2.3 赛季: 旧勾选仍在原赛季 (member-roster 未勾)', ga(r)?.seasonChecklist?.items?.[3]?.checked, false);
-T.settings.set('|game_version_code', 'intl-v9.9');
+T.settings.set('0|game_version_code', 'intl-v9.9');
 r = await gql(seasonQ('alpha'), { user: ADMIN_A });
 eq('intl-v9.9 赛季 key 无赛季码时为版本码', ga(r)?.seasonChecklist?.seasonKey, 'intl-v9.9');
 eq('intl-v9.9 赛季保留自己的勾选', ga(r)?.seasonChecklist?.items?.[3]?.checked, true);
-T.settings.set('|game_version_code', 'intl-v2.3');
+T.settings.set('0|game_version_code', 'intl-v2.3');
 });
 
 const previewQ = `mutation($slug: String!, $lines: [String!]!, $imgs: Int!) {
@@ -368,7 +399,7 @@ const previewQ = `mutation($slug: String!, $lines: [String!]!, $imgs: Int!) {
       rows { id rawName status statusLabel matchedName importable } }
   } }`;
 const todayKey = usageDayKey(Date.now());
-const usageOf = (did) => T.usage.get(`${did}|gear_ocr_batches|${todayKey}`) || 0;
+const usageOf = (uid) => T.usage.get(`${uid}|gear_ocr_batches|${todayKey}`) || 0;
 
 it('roster OCR preview: classification + no silent landing', async () => {
 /* ---------- (5) roster OCR preview: classification + no silent landing ---------- */
@@ -376,12 +407,12 @@ membersBefore = JSON.stringify(T.guildMembers);
 
 let r = await gql(previewQ, { user: ADMIN_A, variables: { slug: 'alpha', lines: [], imgs: 1 } });
 eq('空识别被拒', [r.data?.previewRosterImport?.ok, r.data?.previewRosterImport?.errorCode], [false, 'rosterImportEmpty']);
-eq('空识别不计量', usageOf('admin-a'), 0);
+eq('空识别不计量', usageOf(UID.ADMIN_A), 0);
 r = await gql(previewQ, { user: MEMBER_A, variables: { slug: 'alpha', lines: ['新侠客'], imgs: 1 } });
 eq('成员预览被拒', [r.data?.previewRosterImport?.ok, r.data?.previewRosterImport?.errorCode], [false, 'adminOnly']);
 r = await gql(previewQ, { user: ADMIN_A, variables: { slug: 'alpha', lines: ['新侠客'], imgs: 21 } });
 eq('单批超张数被拒 (与装备 OCR 同限额)', [r.data?.previewRosterImport?.ok, r.data?.previewRosterImport?.errorCode], [false, 'gearOcrBatchTooLarge']);
-eq('超张数不计量', usageOf('admin-a'), 0);
+eq('超张数不计量', usageOf(UID.ADMIN_A), 0);
 
 r = await gql(previewQ, {
   user: ADMIN_A,
@@ -400,7 +431,7 @@ eq('纯数字行 -> 无法识别', [byName['12345']?.status, byName['12345']?.im
 check('状态文案后端下发', byName['阿青']?.statusLabel === '已匹配' && byName['新侠客']?.statusLabel === '疑似新名' && byName['12345']?.statusLabel === '无法识别',
   JSON.stringify([byName['阿青']?.statusLabel, byName['新侠客']?.statusLabel, byName['12345']?.statusLabel]));
 eq('预览后名册仍为空 (确认前不落库)', T.rosterEntries.length, 0);
-eq('预览计量 +1 批 (同一 gear_ocr_batches 计数)', usageOf('admin-a'), 1);
+eq('预览计量 +1 批 (同一 gear_ocr_batches 计数)', usageOf(UID.ADMIN_A), 1);
 eq('预览不触碰 guild_members', JSON.stringify(T.guildMembers), membersBefore);
 batch1 = pv.preview.batchId;
 newRowId = byName['新侠客'].id;
@@ -434,7 +465,7 @@ it('re-import: roster entries now match, no duplicates', async () => {
 /* ---------- (7) re-import: roster entries now match, no duplicates ---------- */
 let r = await gql(previewQ, { user: ADMIN_A, variables: { slug: 'alpha', lines: ['新侠客', '阿青'], imgs: 1 } });
 eq('二次预览: 已落册名转为已匹配', r.data?.previewRosterImport?.preview && [r.data.previewRosterImport.preview.matchedCount, r.data.previewRosterImport.preview.newCount], [2, 0]);
-eq('二次预览计量 +1', usageOf('admin-a'), 2);
+eq('二次预览计量 +1', usageOf(UID.ADMIN_A), 2);
 r = await gql(seasonQ('alpha'), { user: ADMIN_A });
 const readEntries = ga(r)?.roster?.entries || [];
 eq('名册读回条数', readEntries.length, 1);
@@ -456,10 +487,10 @@ eq('名册已清空', T.rosterEntries.length, 0);
 
 it('daily metering cap (same counter as gear OCR)', async () => {
 /* ---------- (9) daily metering cap (same counter as gear OCR) ---------- */
-T.usage.set(`admin-a|gear_ocr_batches|${todayKey}`, 10);
+T.usage.set(`${UID.ADMIN_A}|gear_ocr_batches|${todayKey}`, 10);
 let r = await gql(previewQ, { user: ADMIN_A, variables: { slug: 'alpha', lines: ['某某'], imgs: 1 } });
 eq('日批次达上限被拒 (与装备 OCR 同一计数)', [r.data?.previewRosterImport?.ok, r.data?.previewRosterImport?.errorCode], [false, 'gearOcrDailyLimit']);
-T.usage.delete(`admin-a|gear_ocr_batches|${todayKey}`);
+T.usage.delete(`${UID.ADMIN_A}|gear_ocr_batches|${todayKey}`);
 r = await gql(previewQ, { user: ADMIN_A, variables: { slug: 'alpha', lines: ['某某'], imgs: 1 } });
 eq('清零后预览恢复', r.data?.previewRosterImport?.ok, true);
 

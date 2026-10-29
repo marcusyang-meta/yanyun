@@ -41,10 +41,15 @@ function toRawRows(sqlText, rows) {
 }
 
 /* ---------------- FakeDB ---------------- */
-const users = new Map(); // discord_id -> { locale_pref }
-users.set('2001', { locale_pref: null });
-users.set('2002', { locale_pref: 'zh-CN' });
-const tenants = [{ slug: 'livetest', guild_name: '测试百业', slogan: '', announcement: '', discord_guild_id: '', created_at: 1 }];
+/* Typed-ID fixture keys (0036): users rows are keyed by their typed
+   user ID (locale_pref reads/writes go WHERE id = ?); the Discord
+   IDs '2001'/'2002' survive only as the viewers' discordId. */
+const UID = { U2001: 2030100001, U2002: 2030100002 };
+const GID = 1030100001;
+const users = new Map(); // user id (string form) -> { locale_pref }
+users.set(String(UID.U2001), { locale_pref: null });
+users.set(String(UID.U2002), { locale_pref: 'zh-CN' });
+const tenants = [{ id: GID, slug: 'livetest', guild_name: '测试百业', slogan: '', announcement: '', discord_guild_id: '', created_at: 1 }];
 function stmt(sql) {
   // Data-layer (Drizzle) SQL normalization: strip quotes (routing match only; same rule as the identity suite).
   sql = sql.replace(/"/g, '');
@@ -81,10 +86,10 @@ async function gql(query, { user = null, locale = 'zh-CN', browserLocale } = {})
   return res.json();
 }
 
-// Simulate worker.ts: effective = pref || negotiateLocale(header); pref goes through the real auth helper.
+// Simulate worker.ts: effective = pref || negotiateLocale(header); pref goes through the real auth helper (keyed by userId, as in worker.ts).
 async function workerLocale(user, headerTag) {
   const browser = negotiateLocale(headerTag);
-  const pref = user ? await getUserLocalePref(env, user.discordId) : null;
+  const pref = user ? await getUserLocalePref(env, user.userId) : null;
   return { effective: pref || browser, browser };
 }
 
@@ -121,7 +126,7 @@ for (const loc of SUPPORTED_LOCALES) {
   it('(c) Preference beats browser language (same composition as the worker)', async () => {
 /* ---------------- (c) Preference beats browser language (same composition as the worker) ---------------- */
 {
-  const u2002 = { discordId: '2002', name: '乙', guilds: [] };
+  const u2002 = { userId: UID.U2002, discordId: '2002', name: '乙', guilds: [] };
   const { effective, browser } = await workerLocale(u2002, 'en-US');
   eq('pref=zh-CN + 浏览器 en → effective', effective, 'zh-CN');
   const j = await gql(`{ viewer { siteTitle myLocalePref myEffectiveLocale } }`, { user: u2002, locale: effective, browserLocale: browser });
@@ -129,7 +134,7 @@ for (const loc of SUPPORTED_LOCALES) {
   eq('viewer.myLocalePref', j.data?.viewer?.myLocalePref, 'zh-CN');
   eq('viewer.myEffectiveLocale', j.data?.viewer?.myEffectiveLocale, 'zh-CN');
 
-  const u2001 = { discordId: '2001', name: '甲', guilds: [] };
+  const u2001 = { userId: UID.U2001, discordId: '2001', name: '甲', guilds: [] };
   const w2 = await workerLocale(u2001, 'fr-FR');
   eq('无 pref + 浏览器 fr → effective', w2.effective, 'fr');
   const j2 = await gql(`{ viewer { siteTitle myLocalePref myEffectiveLocale } }`, { user: u2001, locale: w2.effective, browserLocale: w2.browser });
@@ -140,7 +145,7 @@ for (const loc of SUPPORTED_LOCALES) {
 
   it('(d) updateMyLocale', async () => {
 /* ---------------- (d) updateMyLocale ---------------- */
-const u2001 = { discordId: '2001', name: '甲', guilds: [] };
+const u2001 = { userId: UID.U2001, discordId: '2001', name: '甲', guilds: [] };
 {
   // Anonymous -> loginRequired (error copy in all 5 locales).
   for (const loc of SUPPORTED_LOCALES) {
@@ -155,13 +160,13 @@ const u2001 = { discordId: '2001', name: '甲', guilds: [] };
     eq(`非法 locale error @${loc}`, j.data?.updateMyLocale?.error, CATALOG.errors.localeUnsupported[loc]);
     eq(`非法 locale ok @${loc}`, j.data?.updateMyLocale?.ok, false);
   }
-  eq('非法值未落库', users.get('2001').locale_pref, null);
+  eq('非法值未落库', users.get(String(UID.U2001)).locale_pref, null);
   // Set fr -> persisted + returns pref/effective.
   const set = await gql(`mutation { updateMyLocale(locale: "fr") { ok errorCode localePref effectiveLocale } }`, { user: u2001, locale: 'en', browserLocale: 'en' });
   eq('设置 fr ok', set.data?.updateMyLocale?.ok, true);
   eq('设置 fr 回带 localePref', set.data?.updateMyLocale?.localePref, 'fr');
   eq('设置 fr 回带 effectiveLocale', set.data?.updateMyLocale?.effectiveLocale, 'fr');
-  eq('fr 已落库', users.get('2001').locale_pref, 'fr');
+  eq('fr 已落库', users.get(String(UID.U2001)).locale_pref, 'fr');
   // After setting, the worker composition speaks French even with an en browser.
   const w = await workerLocale(u2001, 'en-US');
   eq('落库后 effective 被偏好压过', w.effective, 'fr');
@@ -170,7 +175,7 @@ const u2001 = { discordId: '2001', name: '甲', guilds: [] };
   eq('清除 ok', clear.data?.updateMyLocale?.ok, true);
   eq('清除回带 localePref', clear.data?.updateMyLocale?.localePref, null);
   eq('清除回带 effectiveLocale=浏览器', clear.data?.updateMyLocale?.effectiveLocale, 'es');
-  eq('清除已落库', users.get('2001').locale_pref, null);
+  eq('清除已落库', users.get(String(UID.U2001)).locale_pref, null);
   const w2 = await workerLocale(u2001, 'es-ES');
   eq('清除后 effective 跟随浏览器', w2.effective, 'es');
 }

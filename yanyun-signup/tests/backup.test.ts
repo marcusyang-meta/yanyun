@@ -50,17 +50,23 @@ function toRawRows(sqlText, rows) {
 }
 
 const AVATAR = new Uint8Array([137, 80, 78, 71, 1, 2, 3, 4]);
+/* Typed-ID fixture keys (0036): tenants/users carry their typed IDs
+   (id is the first schema column, so it leads each row object);
+   tenant columns and user_oauth hold the numeric IDs; sessions are
+   minted with sub = user ID. Discord IDs stay on users.discord_id. */
+const GID = 1030100001;
+const UID = { ADMIN: 2030100001, USER: 2030100002 };
 function makeDb() {
   const tables = {
-    tenants: [{ slug: 'alpha', guild_name: '甲百业', password_hash: 'hash-alpha', announcement: '', created_at: '2026-01-01', discord_webhook: 'https://discord.com/api/webhooks/111/aaa', slogan: null, master_name: null, logo_url: null, bg_image_url: null }],
-    users: [{ discord_id: '1001', username: '甲用户', avatar: '', guilds_json: '[]', guilds_checked_at: 0, created_at: '2026-01-01', updated_at: '2026-01-01', locale_pref: null },
-            { discord_id: '2002', username: '乙用户', avatar: '', guilds_json: '[]', guilds_checked_at: 0, created_at: '2026-01-01', updated_at: '2026-01-01', locale_pref: null }],
+    tenants: [{ id: GID, slug: 'alpha', guild_name: '甲百业', password_hash: 'hash-alpha', announcement: '', created_at: '2026-01-01', discord_webhook: 'https://discord.com/api/webhooks/111/aaa', slogan: null, master_name: null, logo_url: null, bg_image_url: null }],
+    users: [{ id: UID.ADMIN, discord_id: '1001', username: '甲用户', avatar: '', guilds_json: '[]', guilds_checked_at: 0, created_at: '2026-01-01', updated_at: '2026-01-01', locale_pref: null },
+            { id: UID.USER, discord_id: '2002', username: '乙用户', avatar: '', guilds_json: '[]', guilds_checked_at: 0, created_at: '2026-01-01', updated_at: '2026-01-01', locale_pref: null }],
     // Complete grants (refresh token + guilds.members.read scope):
     // the checked session voids anything less (session ruling).
-    user_oauth: [{ discord_id: '1001', refresh_token: 'REFRESH-DO-NOT-LEAK-INTO-AUDIT', scope: 'identify guilds.members.read', refresh_state: 'ok', last_refresh_at: 0, updated_at: 0 },
-                 { discord_id: '2002', refresh_token: 'REFRESH-USER-2002', scope: 'identify guilds.members.read', refresh_state: 'ok', last_refresh_at: 0, updated_at: 0 }],
-    guild_avatars: [{ tenant: 'alpha', content_type: 'image/png', bytes: AVATAR.buffer, hash: 'abc', updated_at: 1700000000 }],
-    events: [{ id: 101, tenant: 'alpha', title: '车', type: 'activity', description: '', starts_at: null, meet_info: '', max_slots: 10, status: 'open', starts_at_utc: 1800000000, origin: 'admin', created_by: '甲', manage_code: '', dungeon: '', creator_discord_id: '1001', reminder_sent_at: null, reminder_error: null }],
+    user_oauth: [{ user_id: UID.ADMIN, refresh_token: 'REFRESH-DO-NOT-LEAK-INTO-AUDIT', scope: 'identify guilds.members.read', refresh_state: 'ok', last_refresh_at: 0, updated_at: 0 },
+                 { user_id: UID.USER, refresh_token: 'REFRESH-USER-2002', scope: 'identify guilds.members.read', refresh_state: 'ok', last_refresh_at: 0, updated_at: 0 }],
+    guild_avatars: [{ tenant: GID, content_type: 'image/png', bytes: AVATAR.buffer, hash: 'abc', updated_at: 1700000000 }],
+    events: [{ id: 101, tenant: GID, title: '车', type: 'activity', description: '', starts_at: null, meet_info: '', max_slots: 10, status: 'open', starts_at_utc: 1800000000, origin: 'admin', created_by: '甲', manage_code: '', dungeon: '', creator_user_id: UID.ADMIN, reminder_sent_at: null, reminder_error: null }],
     hub_audit_log: [],
   };
   const state = { tables, audit: tables.hub_audit_log };
@@ -69,6 +75,20 @@ function makeDb() {
     if (/INSERT INTO hub_audit_log/.test(sql)) {
       state.audit.push({ id: state.audit.length + 1, at: b[0], actor: b[1], action: b[2], tenant: b[3], summary: b[4], ip: b[5] });
       return { meta: {} };
+    }
+    // Point lookups by the typed keys (session boundary + grant check):
+    // filter by the bound key instead of taking the table's first row.
+    if (/from users/i.test(sql) && /where id = \?/i.test(sql)) {
+      const row = state.tables.users.find((u) => u.id === Number(b[0])) || null;
+      return kind === 'first' ? row : { results: row ? [row] : [] };
+    }
+    if (/from users/i.test(sql) && /where discord_id = \?/i.test(sql)) {
+      const row = state.tables.users.find((u) => u.discord_id === String(b[0])) || null;
+      return kind === 'first' ? row : { results: row ? [row] : [] };
+    }
+    if (/from user_oauth/i.test(sql) && /user_id = \?/i.test(sql)) {
+      const row = state.tables.user_oauth.find((u) => u.user_id === Number(b[0])) || null;
+      return kind === 'first' ? row : { results: row ? [row] : [] };
     }
     const m = /from\s+([a-z_]+)/i.exec(sql);
     if (m && /^\s*select/i.test(sql)) {
@@ -138,8 +158,8 @@ describe('backup', () => {
   const r2 = makeR2();
   const env = { DB: db, ASSETS, BACKUPS: r2, SESSION_SECRET, PLATFORM_ADMIN_DISCORD_IDS: '1001' };
   const { ctx } = makeCtx();
-  const adminJwt = await signJwt(SESSION_SECRET, { sub: '1001', name: '甲用户', guilds: [] });
-  const userJwt = await signJwt(SESSION_SECRET, { sub: '2002', name: '乙用户', guilds: [] });
+  const adminJwt = await signJwt(SESSION_SECRET, { sub: String(UID.ADMIN), name: '甲用户', guilds: [] });
+  const userJwt = await signJwt(SESSION_SECRET, { sub: String(UID.USER), name: '乙用户', guilds: [] });
 
   // The retired portal is gone.
   const oldLogin = await worker.fetch(req('/api/hub/login', { method: 'POST', body: { password: 'test-admin-pw' } }), env, ctx);
@@ -166,7 +186,7 @@ describe('backup', () => {
   check('R2 里真的存了对象', r2.store.has(runJson.key));
   const runAudit = state.audit.find((r) => r.action === 'backup.run');
   check('backup.run 留痕', !!runAudit);
-  eq('backup.run actor 是真实用户 ID', runAudit?.actor, '1001');
+  eq('backup.run actor 是真实用户 ID', runAudit?.actor, String(UID.ADMIN));
   check('备份留痕不含文件内容（无 refresh token）', !!runAudit && !runAudit.summary.includes('REFRESH-DO-NOT-LEAK'));
 
   const listRes = await worker.fetch(await gqlReq('{ viewer { platformAdmin { ... on PlatformAdmin { backups { available entries { key } } } } } }', adminJwt), env, ctx);
@@ -181,7 +201,7 @@ describe('backup', () => {
   eq('文件内 oauth token 保真', file.entities.user_oauth.rows[0].refresh_token, 'REFRESH-DO-NOT-LEAK-INTO-AUDIT');
   const dlAudit = state.audit.find((r) => r.action === 'backup.download');
   check('下载留痕 backup.download', !!dlAudit);
-  eq('backup.download actor 是真实用户 ID', dlAudit?.actor, '1001');
+  eq('backup.download actor 是真实用户 ID', dlAudit?.actor, String(UID.ADMIN));
 
   const trav = await worker.fetch(req('/api/platform-admin/backup/download?key=' + encodeURIComponent('../secret.json'), { jwt: adminJwt }), env, ctx);
   eq('路径穿越 key -> 404', trav.status, 404);
@@ -199,7 +219,7 @@ describe('backup', () => {
   check('导出头像 blob 可解码且字节一致', decoded.length === AVATAR.length && decoded.every((v, i) => v === AVATAR[i]));
   const expAudit = state.audit.find((r) => r.action === 'backup.export');
   check('导出留痕 backup.export', !!expAudit);
-  eq('backup.export actor 是真实用户 ID', expAudit?.actor, '1001');
+  eq('backup.export actor 是真实用户 ID', expAudit?.actor, String(UID.ADMIN));
 }
   });
 
@@ -209,7 +229,7 @@ describe('backup', () => {
   const { db } = makeDb();
   const env = { DB: db, ASSETS, SESSION_SECRET, PLATFORM_ADMIN_DISCORD_IDS: '1001' };
   const { ctx } = makeCtx();
-  const adminJwt = await signJwt(SESSION_SECRET, { sub: '1001', name: '甲用户', guilds: [] });
+  const adminJwt = await signJwt(SESSION_SECRET, { sub: String(UID.ADMIN), name: '甲用户', guilds: [] });
   const runRes = await worker.fetch(await gqlReq('mutation { platformAdminRunBackup { ok errorCode } }', adminJwt), env, ctx);
   const runJson = (await runRes.json()).data.platformAdminRunBackup;
   eq('无 BACKUPS 绑定时立即备份被拒', runJson.ok, false);

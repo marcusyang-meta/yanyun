@@ -71,49 +71,55 @@ function toRawRows(sqlText: string, rows: any[]) {
     : Object.values(r)));
 }
 
+/* Typed-ID fixture keys (0036): tenants carry their guild IDs and
+   tenant columns / settings keys / entitlement rows key by them
+   (global scope = 0); users rows key by typed user ID. */
+const GID = { alpha: 1030100001, beta: 1030100002, gamma: 1030100003 };
+const UID = { A1: 2030100001, B1: 2030100002, BM: 2030100003, G1: 2030100004 };
+
 /* ---------------- FakeDB ---------------- */
 function makeDb() {
   const state: any = {
     tenants: [
-      { slug: 'alpha', guild_name: '甲百业', password_hash: 'x', announcement: '', slogan: '', master_name: '', logo_url: '', bg_image_url: '', recruit_open: 0 },
-      { slug: 'beta', guild_name: '乙百业', password_hash: 'x', announcement: '', slogan: '', master_name: '', logo_url: '', bg_image_url: '', recruit_open: 0 },
-      { slug: 'gamma', guild_name: '丙百业', password_hash: 'x', announcement: '', slogan: '', master_name: '', logo_url: '', bg_image_url: '', recruit_open: 0 },
+      { id: GID.alpha, slug: 'alpha', guild_name: '甲百业', password_hash: 'x', announcement: '', slogan: '', master_name: '', logo_url: '', bg_image_url: '', recruit_open: 0 },
+      { id: GID.beta, slug: 'beta', guild_name: '乙百业', password_hash: 'x', announcement: '', slogan: '', master_name: '', logo_url: '', bg_image_url: '', recruit_open: 0 },
+      { id: GID.gamma, slug: 'gamma', guild_name: '丙百业', password_hash: 'x', announcement: '', slogan: '', master_name: '', logo_url: '', bg_image_url: '', recruit_open: 0 },
     ],
     settings: new Map([
-      ['alpha|discord_guild_id', 'DG1'],
-      ['beta|discord_guild_id', 'DG2'],
-      ['gamma|discord_guild_id', 'DG3'],
-      ['|paygate_enabled', '1'],
+      [`${GID.alpha}|discord_guild_id`, 'DG1'],
+      [`${GID.beta}|discord_guild_id`, 'DG2'],
+      [`${GID.gamma}|discord_guild_id`, 'DG3'],
+      ['0|paygate_enabled', '1'],
     ]),
     users: new Map([
-      ['A1', JSON.stringify([{ id: 'DG1', name: 'S1', permissions: '8', owner: false }])],
-      ['B1', JSON.stringify([{ id: 'DG2', name: 'S2', permissions: '8', owner: false }])],
-      ['BM', JSON.stringify([{ id: 'DG2', name: 'S2', permissions: '0', owner: false }])],
-      ['G1', JSON.stringify([{ id: 'DG3', name: 'S3', permissions: '8', owner: false }])],
+      [String(UID.A1), JSON.stringify([{ id: 'DG1', name: 'S1', permissions: '8', owner: false }])],
+      [String(UID.B1), JSON.stringify([{ id: 'DG2', name: 'S2', permissions: '8', owner: false }])],
+      [String(UID.BM), JSON.stringify([{ id: 'DG2', name: 'S2', permissions: '0', owner: false }])],
+      [String(UID.G1), JSON.stringify([{ id: 'DG3', name: 'S3', permissions: '8', owner: false }])],
     ]),
     // Entitlement rows (snake_case, repository shape) under the
     // converged plan model: alpha holds plan 't1'; beta plan 't3';
     // gamma a legacy 'premium' row (reads as tier 3 via
     // TIER_BY_PLAN). The retired stored-tier column is gone.
     entitlements: new Map([
-      ['alpha', { tenant: 'alpha', plan: 't1', source: 'manual', current_period_end: null, stripe_customer_id: '', stripe_subscription_id: '', updated_at: 1 }],
-      ['beta', { tenant: 'beta', plan: 't3', source: 'manual', current_period_end: null, stripe_customer_id: '', stripe_subscription_id: '', updated_at: 1 }],
-      ['gamma', { tenant: 'gamma', plan: 'premium', source: 'manual', current_period_end: null, stripe_customer_id: '', stripe_subscription_id: '', updated_at: 1 }],
+      [String(GID.alpha), { tenant: GID.alpha, plan: 't1', source: 'manual', current_period_end: null, stripe_customer_id: '', stripe_subscription_id: '', updated_at: 1 }],
+      [String(GID.beta), { tenant: GID.beta, plan: 't3', source: 'manual', current_period_end: null, stripe_customer_id: '', stripe_subscription_id: '', updated_at: 1 }],
+      [String(GID.gamma), { tenant: GID.gamma, plan: 'premium', source: 'manual', current_period_end: null, stripe_customer_id: '', stripe_subscription_id: '', updated_at: 1 }],
     ]),
     guildMembers: [
-      { tenant: 'beta', discord_id: 'B1', nick: '乙车头', global_name: 'LeaderB' },
-      { tenant: 'beta', discord_id: 'BM', nick: '乙成员', global_name: 'MemberB' },
+      { tenant: GID.beta, discord_id: 'B1', nick: '乙车头', global_name: 'LeaderB' },
+      { tenant: GID.beta, discord_id: 'BM', nick: '乙成员', global_name: 'MemberB' },
     ],
     // EventRow key order: id, tenant, title, type, description, starts_at,
     // meet_info, max_slots, status, starts_at_utc, origin, created_by,
-    // manage_code, dungeon, creator_discord_id, reminder_sent_at,
+    // manage_code, dungeon, creator_user_id, reminder_sent_at,
     // reminder_error, created_at
     events: [
-      { id: 11, tenant: 'alpha', title: '甲竞速车', type: 'race', description: '', starts_at: null, meet_info: '', max_slots: 10, status: 'completed', starts_at_utc: 1760000000, origin: 'member', created_by: '管理员甲', manage_code: '', dungeon: '试炼本', creator_discord_id: 'A1', reminder_sent_at: 1759999900, reminder_error: null, created_at: '2026-10-01 09:00:00' },
-      { id: 12, tenant: 'beta', title: '乙竞速车', type: 'race', description: '', starts_at: null, meet_info: '', max_slots: 10, status: 'completed', starts_at_utc: 1760000000, origin: 'member', created_by: '乙车头', manage_code: '', dungeon: '试炼本', creator_discord_id: 'B1', reminder_sent_at: 1759999900, reminder_error: null, created_at: '2026-10-01 09:00:00' },
-      { id: 13, tenant: 'beta', title: '乙未完成车', type: 'activity', description: '', starts_at: null, meet_info: '', max_slots: 10, status: 'open', starts_at_utc: 1760500000, origin: 'member', created_by: '乙车头', manage_code: '', dungeon: '', creator_discord_id: 'B1', reminder_sent_at: null, reminder_error: null, created_at: '2026-10-02 09:00:00' },
-      { id: 14, tenant: 'beta', title: '乙成员的车', type: 'activity', description: '', starts_at: null, meet_info: '', max_slots: 10, status: 'completed', starts_at_utc: 1760100000, origin: 'member', created_by: '乙成员', manage_code: '', dungeon: '', creator_discord_id: 'BM', reminder_sent_at: null, reminder_error: null, created_at: '2026-10-03 09:00:00' },
-      { id: 31, tenant: 'gamma', title: '丙竞速车', type: 'race', description: '', starts_at: null, meet_info: '', max_slots: 10, status: 'completed', starts_at_utc: 1760000000, origin: 'member', created_by: '丙管理员', manage_code: '', dungeon: '试炼本', creator_discord_id: 'G1', reminder_sent_at: null, reminder_error: null, created_at: '2026-10-01 09:00:00' },
+      { id: 11, tenant: GID.alpha, title: '甲竞速车', type: 'race', description: '', starts_at: null, meet_info: '', max_slots: 10, status: 'completed', starts_at_utc: 1760000000, origin: 'member', created_by: '管理员甲', manage_code: '', dungeon: '试炼本', creator_user_id: UID.A1, reminder_sent_at: 1759999900, reminder_error: null, created_at: '2026-10-01 09:00:00' },
+      { id: 12, tenant: GID.beta, title: '乙竞速车', type: 'race', description: '', starts_at: null, meet_info: '', max_slots: 10, status: 'completed', starts_at_utc: 1760000000, origin: 'member', created_by: '乙车头', manage_code: '', dungeon: '试炼本', creator_user_id: UID.B1, reminder_sent_at: 1759999900, reminder_error: null, created_at: '2026-10-01 09:00:00' },
+      { id: 13, tenant: GID.beta, title: '乙未完成车', type: 'activity', description: '', starts_at: null, meet_info: '', max_slots: 10, status: 'open', starts_at_utc: 1760500000, origin: 'member', created_by: '乙车头', manage_code: '', dungeon: '', creator_user_id: UID.B1, reminder_sent_at: null, reminder_error: null, created_at: '2026-10-02 09:00:00' },
+      { id: 14, tenant: GID.beta, title: '乙成员的车', type: 'activity', description: '', starts_at: null, meet_info: '', max_slots: 10, status: 'completed', starts_at_utc: 1760100000, origin: 'member', created_by: '乙成员', manage_code: '', dungeon: '', creator_user_id: UID.BM, reminder_sent_at: null, reminder_error: null, created_at: '2026-10-03 09:00:00' },
+      { id: 31, tenant: GID.gamma, title: '丙竞速车', type: 'race', description: '', starts_at: null, meet_info: '', max_slots: 10, status: 'completed', starts_at_utc: 1760000000, origin: 'member', created_by: '丙管理员', manage_code: '', dungeon: '试炼本', creator_user_id: UID.G1, reminder_sent_at: null, reminder_error: null, created_at: '2026-10-01 09:00:00' },
     ],
     // SignupRow key order: id, event_id, nickname, uid, role, weapon,
     // contact, note, team_name, members, created_at, discord_id, ready_at
@@ -128,9 +134,9 @@ function makeDb() {
       { id: 2, event_id: 12, team_name: '一队', members: '乙车头,乙成员', time_ms: 702000, proof_url: '', note: '二刷', created_at: '2026-10-01 12:30:00' },
     ],
     recaps: [], // grouping_recaps rows
-    usage: new Map(), // 'scope|metric|day' -> count
+    usage: new Map(), // 'scope|metric|day' -> count (scope = numeric guild ID)
+    mint: new Map(),
   };
-  let nextRecapId = 100;
 
   function norm(sql: string) {
     return sql.replace(/"/g, '')
@@ -140,13 +146,19 @@ function makeDb() {
 
   function route(kind: string, rawSql: string, b: any[]) {
     const sql = norm(rawSql);
+    if (/^INSERT INTO id_mint_counters/i.test(sql)) {
+      const key = `${b[0]}|${b[1]}`;
+      const seq = (state.mint.get(key) || 0) + 1;
+      state.mint.set(key, seq);
+      return kind === 'first' ? { seq } : { results: [{ seq }] };
+    }
     if (/^INSERT INTO error_log/i.test(sql)) return { meta: { changes: 1 } };
     if (/^INSERT INTO guild_members/i.test(sql)) return { meta: { changes: 1 } };
     const first = (row: any) => (kind === 'first' ? (row ?? null) : { results: row ? [row] : [] });
     const all = (rows: any[]) => ({ results: rows });
 
     if (/FROM tenants/i.test(sql)) {
-      const row = state.tenants.find((t: any) => t.slug === b[0]);
+      const row = state.tenants.find((t: any) => t.slug === b[0] || t.id === Number(b[0]));
       return first(row ? { ...row } : null);
     }
     if (/FROM settings/i.test(sql)) {
@@ -191,35 +203,37 @@ function makeDb() {
     /* grouping_recaps */
     if (/^INSERT INTO grouping_recaps/i.test(sql)) {
       if (/status.*'ready'/i.test(sql) || /VALUES \(\?, \?, 'ready'/i.test(sql) || sql.includes("'ready'")) {
-        const [tenant, eventId, paragraphsJson, snapshotJson, provider, generatedBy, atSec] = b;
+        // Binds follow the SQL column list: minted id, tenant,
+        // event_id, then the ready payload (status/version are literals).
+        const [id, tenant, eventId, paragraphsJson, snapshotJson, provider, generatedBy, atSec] = b;
         const existing = state.recaps.find((r: any) => r.event_id === Number(eventId));
         if (existing) {
           Object.assign(existing, {
             tenant, status: 'ready', paragraphs_json: paragraphsJson, snapshot_json: snapshotJson,
-            provider, generated_by: generatedBy, version: existing.version + 1, last_error: '',
+            provider, generated_by_user_id: generatedBy, version: existing.version + 1, last_error: '',
             generated_at: atSec, updated_at: atSec,
           });
           return { meta: { changes: 1, last_row_id: existing.id } };
         }
         const row = {
-          id: nextRecapId++, tenant, event_id: Number(eventId), status: 'ready',
+          id, tenant, event_id: Number(eventId), status: 'ready',
           paragraphs_json: paragraphsJson, snapshot_json: snapshotJson, provider,
-          generated_by: generatedBy, version: 1, last_error: '',
+          generated_by_user_id: generatedBy, version: 1, last_error: '',
           generated_at: atSec, updated_at: atSec,
         };
         state.recaps.push(row);
         return { meta: { changes: 1, last_row_id: row.id } };
       }
-      const [tenant, eventId, generatedBy, error, atSec] = b;
+      const [id, tenant, eventId, generatedBy, error, atSec] = b;
       const existing = state.recaps.find((r: any) => r.event_id === Number(eventId));
       if (existing) {
-        Object.assign(existing, { status: 'failed', last_error: error, generated_by: generatedBy, updated_at: atSec });
+        Object.assign(existing, { status: 'failed', last_error: error, generated_by_user_id: generatedBy, updated_at: atSec });
         return { meta: { changes: 1, last_row_id: existing.id } };
       }
       const row = {
-        id: nextRecapId++, tenant, event_id: Number(eventId), status: 'failed',
+        id, tenant, event_id: Number(eventId), status: 'failed',
         paragraphs_json: '[]', snapshot_json: '{}', provider: '',
-        generated_by: generatedBy, version: 0, last_error: error,
+        generated_by_user_id: generatedBy, version: 0, last_error: error,
         generated_at: 0, updated_at: atSec,
       };
       state.recaps.push(row);
@@ -254,10 +268,10 @@ function makeDb() {
 }
 
 const { db, state } = makeDb();
-const adminA = { discordId: 'A1', name: '管理员甲', guilds: ['DG1'] };
-const leaderB = { discordId: 'B1', name: '乙车头', guilds: ['DG2'] };
-const memberB = { discordId: 'BM', name: '乙成员', guilds: ['DG2'] };
-const adminG = { discordId: 'G1', name: '丙管理员', guilds: ['DG3'] };
+const adminA = { userId: UID.A1, discordId: 'A1', name: '管理员甲', guilds: ['DG1'] };
+const leaderB = { userId: UID.B1, discordId: 'B1', name: '乙车头', guilds: ['DG2'] };
+const memberB = { userId: UID.BM, discordId: 'BM', name: '乙成员', guilds: ['DG2'] };
+const adminG = { userId: UID.G1, discordId: 'G1', name: '丙管理员', guilds: ['DG3'] };
 
 /* Workers AI binding stub: stands in for env.AI. Records the model
  * and the data package it was handed, answers in the model's real
@@ -315,7 +329,7 @@ const genMut = `mutation($id: ID!) { generateGroupingRecap(id: $id) { ok error e
   ... on GroupingRecapReady { paragraphs versionText } } } }`;
 const recapOf = (r: any) => r.data?.groupingDetailPage?.recap;
 const dayKey = new Date(Date.now() + 8 * 3600_000).toISOString().slice(0, 10);
-const betaUsage = () => state.usage.get(`guild:beta|ai_recap_generations|${dayKey}`) || 0;
+const betaUsage = () => state.usage.get(`${GID.beta}|ai_recap_generations|${dayKey}`) || 0;
 
 describe('recap', () => {
   it('SDL shape', () => {
@@ -398,7 +412,7 @@ describe('recap', () => {
     const row = state.recaps[0];
     eq('B: 存储行 provider 标识', row.provider, PROVIDER_ID);
     eq('B: 存储行 version = 1', row.version, 1);
-    eq('B: 存储行生成者为车头', row.generated_by, 'B1');
+    eq('B: 存储行生成者为车头', row.generated_by_user_id, UID.B1);
     const snap = JSON.parse(row.snapshot_json);
     eq('B: 快照摘要 seated/capacity', [snap.seated, snap.capacity], [3, 10]);
     eq('B: 快照摘要成绩数与最佳时间', [snap.resultCount, snap.bestTimeMs], [2, 702000]);
@@ -483,7 +497,7 @@ describe('recap', () => {
   });
 
   it('D: daily ceiling', async () => {
-    state.usage.set(`guild:beta|ai_recap_generations|${dayKey}`, 10);
+    state.usage.set(`${GID.beta}|ai_recap_generations|${dayKey}`, 10);
     const callsBefore = providerCalls;
     const limited = await gql(genMut, { user: leaderB, variables: { id: '12' }, env: ENV_ON });
     eq('D: 达每日上限 -> recapDailyLimit', limited.data?.generateGroupingRecap?.errorCode, 'recapDailyLimit');

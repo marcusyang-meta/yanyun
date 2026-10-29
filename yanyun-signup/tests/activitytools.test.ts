@@ -73,11 +73,16 @@ describe('activitytools', () => {
 /* ================= FakeDB ================= */
 const DGID_A = '111111111111111111';
 const DGID_B = '222222222222222222';
+/* Typed-ID fixture keys: guilds/users carry their 0036 primary keys;
+   Discord-space values (server ids, lottery entries) stay Discord IDs. */
+const GID = { acttest: 1030100001, othertest: 1030100002 };
+const UID = { UA: 2030100001, UB: 2030100002, UD: 2030100003 };
 function makeDb(fx = {}) {
   const tables = {
     tenants: (fx.tenants || []).map((t) => ({ ...t })),
     settings: new Map(fx.settings || []),
-    users: new Map(fx.users || []),
+    users: (fx.users || []).map(([did, gj]) => ({ id: UID[did] || 0, discord_id: did, username: '', guilds_json: gj })),
+    mint: new Map(),
     events: (fx.events || []).map((e) => ({ ...e })),
     signups: (fx.signups || []).map((x) => ({ ...x })),
     guildMembers: (fx.guildMembers || []).map((m) => ({ ...m })),
@@ -99,6 +104,12 @@ function makeDb(fx = {}) {
   function route(kind, rawSql, b) {
     const sql = norm(rawSql);
     if (/^INSERT INTO error_log/i.test(sql)) return { meta: { changes: 1 } };
+    if (/^INSERT INTO id_mint_counters/i.test(sql)) {
+      const key = `${b[0]}|${b[1]}`;
+      const seq = (tables.mint.get(key) || 0) + 1;
+      tables.mint.set(key, seq);
+      return kind === 'first' ? { seq } : (kind === 'all' ? { results: [{ seq }] } : { meta: { changes: 1 } });
+    }
     let m = /^INSERT INTO (\w+) \(([^)]+)\) VALUES \(([^)]+)\)/i.exec(sql);
     if (m) {
       const [, table, colList] = m;
@@ -115,8 +126,9 @@ function makeDb(fx = {}) {
       if (table === 'lottery_winners' && tables.winners.some((e) => e.lottery_id === row.lottery_id && e.discord_id === row.discord_id)) {
         throw new Error('UNIQUE constraint failed: lottery_winners_member_unique');
       }
-      row.id = nextId++;
-      (tableOf[table] || tables.lotteries).push(row);
+      if (row.id === undefined) row.id = nextId++;
+      if (table === 'users') { if (!tables.users.some((u) => u.discord_id === row.discord_id)) tables.users.push(row); }
+      else (tableOf[table] || tables.lotteries).push(row);
       return { meta: { changes: 1, last_row_id: row.id } };
     }
     m = /^UPDATE (\w+) SET (.+?) WHERE (.+)$/i.exec(sql);
@@ -145,16 +157,39 @@ if (table === 'lotteries') rows = tables.lotteries.filter((l) => l.id === Number
     const first = (row) => (kind === 'first' ? (row ?? null) : { results: row ? [row] : [] });
     const all = (rows) => ({ results: rows });
     if (/FROM tenants WHERE slug/i.test(sql)) return first(tables.tenants.find((t) => t.slug === b[0]));
+    if (/FROM tenants/i.test(sql) && /id = \?/i.test(sql)) return first(tables.tenants.find((t) => t.id === Number(b[0])));
+    if (/FROM tenants/i.test(sql)) return kind === 'first' ? (tables.tenants[0] ?? null) : all(tables.tenants);
+    if (/FROM settings/i.test(sql) && /tenant = 0/i.test(sql)) {
+      const v = tables.settings.get(`0|${b[0]}`);
+      return first(v === undefined ? null : { value: v });
+    }
     if (/FROM settings WHERE tenant = \? AND key = \?/i.test(sql)) {
       const v = tables.settings.get(`${b[0]}|${b[1]}`);
       return first(v === undefined ? null : { value: v });
     }
+    if (/FROM settings WHERE key = \?/i.test(sql)) {
+      const rows = [];
+      for (const [k, v] of tables.settings) { const [t, key] = k.split('|'); if (key === b[0]) rows.push({ tenant: t, value: v }); }
+      return kind === 'first' ? (rows[0] ?? null) : all(rows);
+    }
     if (/FROM settings/i.test(sql)) return kind === 'first' ? null : all([]);
     if (/SELECT guilds_json FROM users/i.test(sql)) {
-      const v = tables.users.get(String(b[0]));
-      return first(v === undefined ? null : { guilds_json: v });
+      const u = tables.users.find((x) => x.id === Number(b[0])) || tables.users.find((x) => x.discord_id === String(b[0]));
+      return first(u === undefined ? null : { guilds_json: u.guilds_json });
     }
-    if (/FROM users/i.test(sql)) return first(null);
+    if (/FROM users/i.test(sql)) {
+      if (/discord_id IN/i.test(sql)) {
+        const rows = tables.users.filter((x) => b.map(String).includes(x.discord_id));
+        return kind === 'first' ? (rows[0] ?? null) : all(rows);
+      }
+      if (/id IN/i.test(sql)) {
+        const rows = tables.users.filter((x) => b.map(Number).includes(x.id));
+        return kind === 'first' ? (rows[0] ?? null) : all(rows);
+      }
+      if (/discord_id = \?/i.test(sql)) return first(tables.users.find((x) => x.discord_id === String(b[0])));
+      if (/id = \?/i.test(sql)) return first(tables.users.find((x) => x.id === Number(b[0])));
+      return kind === 'first' ? (tables.users[0] ?? null) : all(tables.users);
+    }
     if (/FROM user_guild_nicks/i.test(sql)) return kind === 'first' ? null : all([]);
     if (/SELECT \* FROM events WHERE id = \? AND tenant = \?/i.test(sql)) {
       return first(tables.events.find((e) => e.id === Number(b[0]) && e.tenant === b[1]));
@@ -204,20 +239,20 @@ if (table === 'lotteries') rows = tables.lotteries.filter((l) => l.id === Number
 /* ---------------- fixtures ---------------- */
 const serversJson = (rows) => JSON.stringify(rows);
 const srv = (id, permissions = '0', owner = false) => ({ id, name: '测试服', icon: '', permissions, owner });
-const ADMIN = { discordId: 'UA', name: '管理员甲', guilds: [DGID_A] };
-const MEMBER = { discordId: 'UB', name: '成员', guilds: [DGID_A] };
-const ADMIN_B = { discordId: 'UD', name: '乙业管理员', guilds: [DGID_B] };
+const ADMIN = { userId: UID.UA, discordId: 'UA', name: '管理员甲', guilds: [DGID_A] };
+const MEMBER = { userId: UID.UB, discordId: 'UB', name: '成员', guilds: [DGID_A] };
+const ADMIN_B = { userId: UID.UD, discordId: 'UD', name: '乙业管理员', guilds: [DGID_B] };
 
 const START_501 = Date.UTC(2026, 9, 30, 12, 0, 0) / 1000;
 const { db, tables } = makeDb({
   tenants: [
-    { slug: 'acttest', guild_name: '活动测试百业', password_hash: 'x', announcement: '', slogan: '', master_name: '', logo_url: '', bg_image_url: '', discord_webhook: '', created_at: '2026-01-01 00:00:00' },
-    { slug: 'othertest', guild_name: '乙百业', password_hash: 'x', announcement: '', slogan: '', master_name: '', logo_url: '', bg_image_url: '', discord_webhook: '', created_at: '2026-01-01 00:00:00' },
+    { id: GID.acttest, slug: 'acttest', guild_name: '活动测试百业', password_hash: 'x', announcement: '', slogan: '', master_name: '', logo_url: '', bg_image_url: '', discord_webhook: '', created_at: '2026-01-01 00:00:00' },
+    { id: GID.othertest, slug: 'othertest', guild_name: '乙百业', password_hash: 'x', announcement: '', slogan: '', master_name: '', logo_url: '', bg_image_url: '', discord_webhook: '', created_at: '2026-01-01 00:00:00' },
   ],
   settings: [
-    ['acttest|discord_guild_id', DGID_A],
-    ['othertest|discord_guild_id', DGID_B],
-    ['|game_version', 'intl-v2.3'],
+    [`${GID.acttest}|discord_guild_id`, DGID_A],
+    [`${GID.othertest}|discord_guild_id`, DGID_B],
+    ['0|game_version', 'intl-v2.3'],
   ],
   users: [
     ['UA', serversJson([srv(DGID_A, '32')])],
@@ -225,16 +260,16 @@ const { db, tables } = makeDb({
     ['UD', serversJson([srv(DGID_B, '32')])],
   ],
   guildMembers: [
-    { tenant: 'acttest', discord_id: 'M1', nick: '名册甲', global_name: '甲' },
-    { tenant: 'acttest', discord_id: 'M2', nick: '名册乙', global_name: '乙' },
-    { tenant: 'acttest', discord_id: 'M3', nick: '', global_name: '丙全名' },
-    { tenant: 'othertest', discord_id: 'M9', nick: '乙业成员', global_name: '玖' },
+    { tenant: GID.acttest, discord_id: 'M1', nick: '名册甲', global_name: '甲' },
+    { tenant: GID.acttest, discord_id: 'M2', nick: '名册乙', global_name: '乙' },
+    { tenant: GID.acttest, discord_id: 'M3', nick: '', global_name: '丙全名' },
+    { tenant: GID.othertest, discord_id: 'M9', nick: '乙业成员', global_name: '玖' },
   ],
   events: [
-    { id: 501, tenant: 'acttest', title: '万圣节活动车', type: 'activity', description: '带好药', starts_at: '', starts_at_utc: START_501, meet_info: '语音频道 2', max_slots: 10, status: 'open', origin: 'member', created_by: '', manage_code: '', dungeon: '', creator_discord_id: 'UB', reminder_sent_at: null, reminder_error: null },
-    { id: 502, tenant: 'acttest', title: '未定时间车', type: 'activity', description: '', starts_at: '', starts_at_utc: null, meet_info: '', max_slots: 10, status: 'open', origin: 'member', created_by: '', manage_code: '', dungeon: '', creator_discord_id: 'UB', reminder_sent_at: null, reminder_error: null },
-    { id: 503, tenant: 'acttest', title: '草稿车', type: 'activity', description: '', starts_at: '', starts_at_utc: START_501, meet_info: '', max_slots: 10, status: 'draft', origin: 'admin', created_by: '', manage_code: '', dungeon: '', creator_discord_id: 'UA', reminder_sent_at: null, reminder_error: null },
-    { id: 504, tenant: 'othertest', title: '乙业的车', type: 'activity', description: '', starts_at: '', starts_at_utc: START_501, meet_info: '', max_slots: 10, status: 'open', origin: 'member', created_by: '', manage_code: '', dungeon: '', creator_discord_id: 'UD', reminder_sent_at: null, reminder_error: null },
+    { id: 501, tenant: GID.acttest, title: '万圣节活动车', type: 'activity', description: '带好药', starts_at: '', starts_at_utc: START_501, meet_info: '语音频道 2', max_slots: 10, status: 'open', origin: 'member', created_by: '', manage_code: '', dungeon: '', creator_user_id: UID.UB, reminder_sent_at: null, reminder_error: null },
+    { id: 502, tenant: GID.acttest, title: '未定时间车', type: 'activity', description: '', starts_at: '', starts_at_utc: null, meet_info: '', max_slots: 10, status: 'open', origin: 'member', created_by: '', manage_code: '', dungeon: '', creator_user_id: UID.UB, reminder_sent_at: null, reminder_error: null },
+    { id: 503, tenant: GID.acttest, title: '草稿车', type: 'activity', description: '', starts_at: '', starts_at_utc: START_501, meet_info: '', max_slots: 10, status: 'draft', origin: 'admin', created_by: '', manage_code: '', dungeon: '', creator_user_id: UID.UA, reminder_sent_at: null, reminder_error: null },
+    { id: 504, tenant: GID.othertest, title: '乙业的车', type: 'activity', description: '', starts_at: '', starts_at_utc: START_501, meet_info: '', max_slots: 10, status: 'open', origin: 'member', created_by: '', manage_code: '', dungeon: '', creator_user_id: UID.UD, reminder_sent_at: null, reminder_error: null },
   ],
   signups: [
     { id: 1, event_id: 501, nickname: '座位甲', uid: 'q1', role: '输出', weapon: '', contact: '', note: '', team_name: '', members: '', created_at: '2026-10-01 00:00:00', discord_id: 'M1', ready_at: null },
