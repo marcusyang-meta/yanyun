@@ -130,7 +130,7 @@ type GuildCard {
 
 extend type Query {
   guildPage(slug: String!): GuildPage!
-  targetedNudgePreview(slug: String!, eventId: Int!, segmentKind: String!, segmentValue: String): TargetedNudgePreviewResult
+  targetedNudgePreview(slug: String!, eventId: ID!, segmentKind: String!, segmentValue: String): TargetedNudgePreviewResult
   myContribution(slug: String!): MyContributionResult!
 }
 
@@ -4072,7 +4072,7 @@ extend type Mutation {
   deleteGuildRosterEntry(slug: String!, entryId: ID!): GuildAdminPayload!
   # 招新线 (免费, 不挂权益门; 全部在 resolver 内复验管理结论)
   updateGuildRecruitOpen(slug: String!, open: Boolean!): GuildAdminPayload!  # 招新开关: 开 = 进主页目录 + 可申请; 关 = 下目录 + 新申请以 recruitClosed 拒绝
-  sendTargetedNudge(slug: String!, eventId: Int!, segmentKind: String!, segmentValue: String): OpsPayload!
+  sendTargetedNudge(slug: String!, eventId: ID!, segmentKind: String!, segmentValue: String): OpsPayload!
   executeSeasonRollover(slug: String!): OpsPayload!
   updateContributionRule(slug: String!, actionKey: String!, points: Int!, enabled: Boolean!): OpsPayload!
   reviewGuildApplication(slug: String!, applicationId: ID!, approve: Boolean!): GuildAdminPayload!  # 通过 = 结案 + 登记名册 (Discord 入服由申请人自行完成, 见 recruit 文案)
@@ -4317,7 +4317,7 @@ input GearDingyinInput {
 }
 
 input GearItemInput {
-  id: Int!
+  id: ID!
   slot: String!
   name: String
   lines: [GearLineInput!]!
@@ -4331,13 +4331,13 @@ input GearBaseValueInput {
 }
 
 input GearSimInput {
-  id: Int!
+  id: ID!
   tier: String!
 }
 
 input GearLoadoutEntryInput {
   slot: String!
-  gearId: Int!
+  gearId: ID!
 }
 
 input GearPlanInput {
@@ -4368,7 +4368,7 @@ type GearOtherShu {
 }
 
 type GearInvalidLine {
-  gearId: Int!
+  gearId: ID!
   key: String!
   val: Float!
 }
@@ -4415,7 +4415,7 @@ type GearGradRow {
 }
 
 type GearLowLine {
-  gearId: Int!
+  gearId: ID!
   key: String!
   val: Float!
   score: Float!
@@ -4446,7 +4446,7 @@ type GearGrad {
 type GearSuggestion {
   kind: String!
   slot: String!
-  gearId: Int
+  gearId: ID
   name: String
   lineIdx: Int
   fromCls: String
@@ -4469,7 +4469,7 @@ type GearExtraClass {
 }
 
 type GearEval {
-  id: Int!
+  id: ID!
   score: Int!
   quality: Float!
   hits: Int!
@@ -4497,7 +4497,7 @@ type GearAutoResult {
 
 type GearLoadoutEntry {
   slot: String!
-  gearId: Int!
+  gearId: ID!
 }
 
 type GearParsedItem {
@@ -4561,7 +4561,7 @@ extend type Mutation {
 # ============ 配装台装备库 (D1 按账号存储; 匿名无库, 查询只回自己的) ============
 
 type GearItem {
-  id: Int!
+  id: ID!
   slot: String!
   name: String!
   lines: [GearLine!]!
@@ -4576,7 +4576,7 @@ type GearBaseValue {
 }
 
 type GearSavedBuild {
-  id: Int!
+  id: ID!
   name: String!
   targetIdx: Int!
   buildLabel: String!
@@ -4709,8 +4709,8 @@ type GearBuildPayload {
 
 extend type Mutation {
   addGearItem(input: GearItemCreateInput!): GearItemPayload!
-  updateGearItem(id: Int!, input: GearItemCreateInput!): GearItemPayload!
-  deleteGearItem(id: Int!): GearOkPayload!
+  updateGearItem(id: ID!, input: GearItemCreateInput!): GearItemPayload!
+  deleteGearItem(id: ID!): GearOkPayload!
   # 批量导入 (文件导入/粘贴导入/OCR 批量共用); autoSelect 按传入的当前搭配
   # 复刻原站「导入后自动选入空位」: 武器先主后副, 其余取空位。
   # source='ocr' 时为批量截图识别导入, imageCount 为本批截图张数, 服务端
@@ -4718,10 +4718,10 @@ extend type Mutation {
   # 约束, 超限整批拒绝、不截断。
   importGearItems(items: [GearItemCreateInput!]!, loadout: [GearLoadoutEntryInput!], source: String, imageCount: Int): GearImportResult!
   saveGearBuild(input: GearBuildSaveInput!): GearBuildPayload!
-  deleteGearBuild(id: Int!): GearOkPayload!
+  deleteGearBuild(id: ID!): GearOkPayload!
   # 方案公开分享: 生成 (或复用已有) 分享链 / 取消分享 (旧链立即失效)
-  shareGearBuild(id: Int!): GearBuildSharePayload!
-  revokeGearBuildShare(id: Int!): GearOkPayload!
+  shareGearBuild(id: ID!): GearBuildSharePayload!
+  revokeGearBuildShare(id: ID!): GearOkPayload!
 }
 
 # ============ Premium ops engine (P8/P11/P12/P14, T2) ============

@@ -46,28 +46,41 @@ function toRawRows(sqlText, rows) {
 /* ---------------- FakeDB (in-memory tables routed by SQL shape) ---------------- */
 const SECT_NAMES = ['鸣金·虹', '鸣金·影', '牵丝·玉', '牵丝·霖', '牵丝·翊', '裂石·威', '裂石·钧', '破竹·樽', '破竹·鸢', '破竹·尘', '破竹·风'];
 const schoolRows = SECT_NAMES.map((name, i) => ({ name, slug: 'sect-' + i, short: '', family: name.split('·')[0], color: null, attr: '', talent_desc: null }));
-const tables = { user_gear_items: [], user_gear_builds: [], usage_counters: [] };
-let rowId = 0;
+const tables = { user_gear_items: [], user_gear_builds: [], usage_counters: [], mint: new Map() };
 function stmt(sql) {
   // Data-layer (Drizzle) SQL normalization: strip quotes (routing match only; assertions unchanged).
   sql = sql.replace(/"/g, '');
   const q = {
     _b: [], bind(...a) { this._b = a; return this; },
     async raw() { const res = await this.all(); return toRawRows(sql, (res && res.results) || []); },
-    async first() { return null; },
+    async first() {
+      if (sql.includes('INSERT INTO id_mint_counters')) {
+        const key = `${q._b[0]}|${q._b[1]}`;
+        const seq = (tables.mint.get(key) || 0) + 1;
+        tables.mint.set(key, seq);
+        return { seq };
+      }
+      return null;
+    },
     async all() {
+      if (sql.includes('INSERT INTO id_mint_counters')) {
+        const key = `${q._b[0]}|${q._b[1]}`;
+        const seq = (tables.mint.get(key) || 0) + 1;
+        tables.mint.set(key, seq);
+        return { results: [{ seq }] };
+      }
       if (sql.includes('COUNT(*)') && sql.includes('FROM user_gear_items')) {
-        return { results: [{ n: tables.user_gear_items.filter((r) => r.discord_id === String(q._b[0])).length }] };
+        return { results: [{ n: tables.user_gear_items.filter((r) => r.user_id === Number(q._b[0])).length }] };
       }
       if (sql.includes('FROM user_gear_items')) {
-        return { results: tables.user_gear_items.filter((r) => r.discord_id === String(q._b[0])) };
+        return { results: tables.user_gear_items.filter((r) => r.user_id === Number(q._b[0])) };
       }
       if (sql.includes('FROM usage_counters')) {
-        const rows = tables.usage_counters.filter((r) => r.discord_id === String(q._b[0]) && r.metric === q._b[1] && r.day === q._b[2]);
+        const rows = tables.usage_counters.filter((r) => r.user_id === Number(q._b[0]) && r.metric === q._b[1] && r.day === q._b[2]);
         return { results: rows.map((r) => ({ count: r.count })) };
       }
       if (sql.includes('FROM user_gear_builds')) {
-        return { results: tables.user_gear_builds.filter((r) => r.discord_id === String(q._b[0])) };
+        return { results: tables.user_gear_builds.filter((r) => r.user_id === Number(q._b[0])) };
       }
       if (sql.includes('FROM schools')) {
         return { results: schoolRows };
@@ -77,38 +90,42 @@ function stmt(sql) {
     async run() {
       if (sql.startsWith('CREATE')) return { meta: { changes: 0 } };
       if (sql.startsWith('INSERT INTO user_gear_items')) {
-        const row = { id: ++rowId, discord_id: String(q._b[0]), slot: q._b[1], name: q._b[2], payload: q._b[3], created_at: q._b[4] };
+        const cols = /INSERT INTO user_gear_items \(([^)]+)\)/.exec(sql)[1].split(',').map((c) => c.trim());
+        const row = {};
+        cols.forEach((c, i) => { row[c] = q._b[i]; });
         tables.user_gear_items.push(row);
         return { meta: { changes: 1, last_row_id: row.id } };
       }
       if (sql.startsWith('INSERT INTO usage_counters')) {
-        const [did, metric, day, by, now] = q._b;
-        const row = tables.usage_counters.find((r) => r.discord_id === String(did) && r.metric === metric && r.day === day);
-        if (row) { row.count += by; row.updated_at = now; } else { tables.usage_counters.push({ discord_id: String(did), metric, day, count: by, updated_at: now }); }
+        const [userId, metric, day, by, now] = q._b;
+        const row = tables.usage_counters.find((r) => r.user_id === Number(userId) && r.metric === metric && r.day === day);
+        if (row) { row.count += by; row.updated_at = now; } else { tables.usage_counters.push({ user_id: Number(userId), metric, day, count: by, updated_at: now }); }
         return { meta: { changes: 1 } };
       }
       if (sql.startsWith('INSERT INTO user_gear_builds')) {
-        const row = { id: ++rowId, discord_id: String(q._b[0]), name: q._b[1], target_idx: q._b[2], payload: q._b[3], created_at: q._b[4] };
+        const cols = /INSERT INTO user_gear_builds \(([^)]+)\)/.exec(sql)[1].split(',').map((c) => c.trim());
+        const row = {};
+        cols.forEach((c, i) => { row[c] = q._b[i]; });
         tables.user_gear_builds.push(row);
         return { meta: { changes: 1, last_row_id: row.id } };
       }
       if (sql.startsWith('UPDATE user_gear_items')) {
-        const [slot, name, payload, id, did] = q._b;
-        const row = tables.user_gear_items.find((r) => r.id === id && r.discord_id === String(did));
+        const [slot, name, payload, id, userId] = q._b;
+        const row = tables.user_gear_items.find((r) => r.id === id && r.user_id === Number(userId));
         if (!row) return { meta: { changes: 0 } };
         row.slot = slot; row.name = name; row.payload = payload;
         return { meta: { changes: 1 } };
       }
       if (sql.startsWith('DELETE FROM user_gear_items')) {
-        const [id, did] = q._b;
-        const i = tables.user_gear_items.findIndex((r) => r.id === id && r.discord_id === String(did));
+        const [id, userId] = q._b;
+        const i = tables.user_gear_items.findIndex((r) => r.id === id && r.user_id === Number(userId));
         if (i < 0) return { meta: { changes: 0 } };
         tables.user_gear_items.splice(i, 1);
         return { meta: { changes: 1 } };
       }
       if (sql.startsWith('DELETE FROM user_gear_builds')) {
-        const [id, did] = q._b;
-        const i = tables.user_gear_builds.findIndex((r) => r.id === id && r.discord_id === String(did));
+        const [id, userId] = q._b;
+        const i = tables.user_gear_builds.findIndex((r) => r.id === id && r.user_id === Number(userId));
         if (i < 0) return { meta: { changes: 0 } };
         tables.user_gear_builds.splice(i, 1);
         return { meta: { changes: 1 } };
@@ -129,8 +146,11 @@ async function gql(query, { user = null, locale = 'zh-CN', variables } = {}) {
   }), ctx);
   return res.json();
 }
-const A = { discordId: 'user-a', name: 'A' };
-const B = { discordId: 'user-b', name: 'B' };
+/* Typed-ID fixtures (0036): gear rows scope by the numeric user ID;
+   the Discord ID stays on the viewer only as its Discord-space face. */
+const UID = { A: 2030100001, B: 2030100002, C: 2030100003, D: 2030100004, E: 2030100005 };
+const A = { userId: UID.A, discordId: 'user-a', name: 'A' };
+const B = { userId: UID.B, discordId: 'user-b', name: 'B' };
 
 let r: any;
 let aWeaponId: any, aHatId: any;
@@ -166,9 +186,9 @@ eq('A sees own 2 items', r.data.myGearItems.map((i) => i.id), [aWeaponId, aHatId
 r = await gql('{ myGearItems { id } myGearBuilds { id } }', { user: B });
 eq('B items empty', r.data.myGearItems, []);
 eq('B builds empty', r.data.myGearBuilds, []);
-r = await gql('mutation($id: Int!, $i: GearItemCreateInput!) { updateGearItem(id: $id, input: $i) { ok errorCode } }', { user: B, variables: { id: aWeaponId, i: { slot: '武器', name: 'hacked', lines: [{ key: 'jin', val: 1 }] } } });
+r = await gql('mutation($id: ID!, $i: GearItemCreateInput!) { updateGearItem(id: $id, input: $i) { ok errorCode } }', { user: B, variables: { id: aWeaponId, i: { slot: '武器', name: 'hacked', lines: [{ key: 'jin', val: 1 }] } } });
 eq('B update A item rejected', [r.data.updateGearItem.ok, r.data.updateGearItem.errorCode], [false, 'gearNotFound']);
-r = await gql('mutation($id: Int!) { deleteGearItem(id: $id) { ok errorCode } }', { user: B, variables: { id: aWeaponId } });
+r = await gql('mutation($id: ID!) { deleteGearItem(id: $id) { ok errorCode } }', { user: B, variables: { id: aWeaponId } });
 eq('B delete A item rejected', [r.data.deleteGearItem.ok, r.data.deleteGearItem.errorCode], [false, 'gearNotFound']);
 r = await gql('{ myGearItems { id name } }', { user: A });
 eq('A items untouched after B attacks', r.data.myGearItems.map((i) => i.name), ['A剑', 'A冠']);
@@ -176,13 +196,13 @@ eq('A items untouched after B attacks', r.data.myGearItems.map((i) => i.name), [
 
   it('(4) Device switch (new request, same session)', async () => {
 /* ---------------- (4) Device switch (new request, same session) ---------------- */
-r = await gql('{ myGearItems { id name } }', { user: { discordId: 'user-a', name: 'A' } });
+r = await gql('{ myGearItems { id name } }', { user: { userId: UID.A, discordId: 'user-a', name: 'A' } });
 eq('device switch: same items', r.data.myGearItems.map((i) => i.id), [aWeaponId, aHatId]);
   });
 
   it('(5) A updates its own (omitted schools are kept)', async () => {
 /* ---------------- (5) A updates its own (omitted schools are kept) ---------------- */
-r = await gql('mutation($id: Int!, $i: GearItemCreateInput!) { updateGearItem(id: $id, input: $i) { ok item { schools lines { key val } } } }', { user: A, variables: { id: aWeaponId, i: { slot: '武器', name: 'A剑', lines: [{ key: 'dawai', val: 90.6 }] } } });
+r = await gql('mutation($id: ID!, $i: GearItemCreateInput!) { updateGearItem(id: $id, input: $i) { ok item { schools lines { key val } } } }', { user: A, variables: { id: aWeaponId, i: { slot: '武器', name: 'A剑', lines: [{ key: 'dawai', val: 90.6 }] } } });
 eq('A update keeps schools', r.data.updateGearItem.item.schools, ['鸣金-虹']);
   });
 
@@ -223,7 +243,7 @@ r = await gql('mutation($i: GearBuildSaveInput!) { saveGearBuild(input: $i) { ok
 eq('B cannot build on A items (empty after filter)', [r.data.saveGearBuild.ok, r.data.saveGearBuild.errorCode], [false, 'gearEmptyBuild']);
 r = await gql('{ myGearBuilds { id name } }', { user: B });
 eq('B builds still empty', r.data.myGearBuilds, []);
-r = await gql('mutation($id: Int!) { deleteGearBuild(id: $id) { ok errorCode } }', { user: B, variables: { id: aBuild.id } });
+r = await gql('mutation($id: ID!) { deleteGearBuild(id: $id) { ok errorCode } }', { user: B, variables: { id: aBuild.id } });
 eq('B delete A build rejected', [r.data.deleteGearBuild.ok, r.data.deleteGearBuild.errorCode], [false, 'gearNotFound']);
 r = await gql('{ myGearBuilds { id name snapTotal } }', { user: A });
 eq('A build survives', r.data.myGearBuilds.map((b) => b.id), [aBuild.id]);
@@ -320,9 +340,9 @@ eq('en sect + build names localized', (() => { const s = (r.data.sectPage.sects 
 
   it('(12) Library capacity (limits service: 200)', async () => {
 /* ---------------- (12) Library capacity (limits service: 200) ---------------- */
-C = { discordId: 'user-c', name: 'C' };
-D = { discordId: 'user-d', name: 'D' };
-E = { discordId: 'user-e', name: 'E' };
+C = { userId: UID.C, discordId: 'user-c', name: 'C' };
+D = { userId: UID.D, discordId: 'user-d', name: 'D' };
+E = { userId: UID.E, discordId: 'user-e', name: 'E' };
 bulkItems = (n, tag) => Array.from({ length: n }, (_, i) => ({ slot: '环', name: tag + i, lines: [{ key: 'jin', val: 50 }] }));
 importAs = (user, items, extra = {}) => gql('mutation($items: [GearItemCreateInput!]!, $lo: [GearLoadoutEntryInput!], $src: String, $ic: Int) { importGearItems(items: $items, loadout: $lo, source: $src, imageCount: $ic) { ok items { id } error errorCode } }', {
   user, variables: { items, lo: [], src: extra.source ?? null, ic: extra.imageCount ?? null },
@@ -351,7 +371,7 @@ eq('D import 60 more rejected as overflow', [r.data.importGearItems.ok, r.data.i
 check('overflow copy states batch, total and limit', ['60', '210', '200'].every((s) => (r.data.importGearItems.error || '').includes(s)), r.data.importGearItems.error);
 r = await gql('{ myGearItems { id } }', { user: D });
 eq('D still holds exactly 150 (no silent truncation)', r.data.myGearItems.length, 150);
-eq('non-OCR imports never touch the OCR counter', tables.usage_counters.filter((x) => x.discord_id === 'user-d').length, 0);
+eq('non-OCR imports never touch the OCR counter', tables.usage_counters.filter((x) => x.user_id === UID.D).length, 0);
   });
 
   it('(14) Batch-OCR metering: per-batch images + daily batches', async () => {
@@ -366,13 +386,13 @@ for (let i = 0; i < 9; i++) {
   if (!r.data.importGearItems.ok) break;
 }
 check('OCR batches 2..10 of the day ok', r.data.importGearItems.ok === true, JSON.stringify(r.data.importGearItems).slice(0, 200));
-eq('counter accumulated to 10 across batches', tables.usage_counters.filter((x) => x.discord_id === 'user-e').reduce((a, x) => a + x.count, 0), 10);
+eq('counter accumulated to 10 across batches', tables.usage_counters.filter((x) => x.user_id === UID.E).reduce((a, x) => a + x.count, 0), 10);
 r = await importAs(E, bulkItems(1, 'eX'), { source: 'ocr', imageCount: 1 });
 eq('11th OCR batch of the day rejected', [r.data.importGearItems.ok, r.data.importGearItems.errorCode], [false, 'gearOcrDailyLimit']);
 check('daily-limit copy states the limit', (r.data.importGearItems.error || '').includes('10'), r.data.importGearItems.error);
 // Day rollover: move today's counter rows to a past day — the quota is
 // keyed by day, so today starts fresh without touching the old rows.
-for (const row of tables.usage_counters) if (row.discord_id === 'user-e') row.day = '2000-01-01';
+for (const row of tables.usage_counters) if (row.user_id === UID.E) row.day = '2000-01-01';
 r = await importAs(E, bulkItems(1, 'eY'), { source: 'ocr', imageCount: 1 });
 check('after day rollover OCR import ok again', r.data.importGearItems.ok === true, JSON.stringify(r.data.importGearItems).slice(0, 200));
   });

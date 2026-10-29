@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<8af0a3bab0d885013a7ad1f3d5733876>>
+ * @generated SignedSource<<b8ca33eb3d46211f9960179168620f5f>>
  * @lightSyntaxTransform
  */
 
@@ -9,7 +9,7 @@
 
 import { ConcreteRequest } from 'relay-runtime';
 export type GuildAdminOpsSendMutation$variables = {
-  eventId: number;
+  eventId: string;
   segmentKind: string;
   segmentValue?: string | null | undefined;
   slug: string;
@@ -130,16 +130,16 @@ return {
     "selections": (v4/*:: as any*/)
   },
   "params": {
-    "cacheID": "1bf08dfa53235fcef7c7cc1dd39f06a5",
+    "cacheID": "e58102d979af20acf509e7bc56d4e93b",
     "id": null,
     "metadata": {},
     "name": "GuildAdminOpsSendMutation",
     "operationKind": "mutation",
-    "text": "mutation GuildAdminOpsSendMutation(\n  $slug: String!\n  $eventId: Int!\n  $segmentKind: String!\n  $segmentValue: String\n) {\n  sendTargetedNudge(slug: $slug, eventId: $eventId, segmentKind: $segmentKind, segmentValue: $segmentValue) {\n    ok\n    error\n    recipientCount\n  }\n}\n"
+    "text": "mutation GuildAdminOpsSendMutation(\n  $slug: String!\n  $eventId: ID!\n  $segmentKind: String!\n  $segmentValue: String\n) {\n  sendTargetedNudge(slug: $slug, eventId: $eventId, segmentKind: $segmentKind, segmentValue: $segmentValue) {\n    ok\n    error\n    recipientCount\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "49be7f94ae73a51434b793b594535d22";
+(node as any).hash = "a5abf93627d661dfc8ded7ae4e3e1c10";
 
 export default node;

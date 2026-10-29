@@ -54,7 +54,7 @@ export type OpsPage = {
 };
 
 const PreviewQuery = graphql`
-  query GuildAdminOpsPreviewQuery($slug: String!, $eventId: Int!, $segmentKind: String!, $segmentValue: String) {
+  query GuildAdminOpsPreviewQuery($slug: String!, $eventId: ID!, $segmentKind: String!, $segmentValue: String) {
     targetedNudgePreview(slug: $slug, eventId: $eventId, segmentKind: $segmentKind, segmentValue: $segmentValue) {
       __typename
       ... on TargetedNudgePreview {
@@ -68,7 +68,7 @@ const PreviewQuery = graphql`
   }
 `;
 const SendMutation = graphql`
-  mutation GuildAdminOpsSendMutation($slug: String!, $eventId: Int!, $segmentKind: String!, $segmentValue: String) {
+  mutation GuildAdminOpsSendMutation($slug: String!, $eventId: ID!, $segmentKind: String!, $segmentValue: String) {
     sendTargetedNudge(slug: $slug, eventId: $eventId, segmentKind: $segmentKind, segmentValue: $segmentValue) {
       ok error recipientCount
     }

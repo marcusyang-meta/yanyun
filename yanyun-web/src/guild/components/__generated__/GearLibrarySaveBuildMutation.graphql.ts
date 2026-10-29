@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<b8d865c2b21b62f3de3252fcc81bc04d>>
+ * @generated SignedSource<<9f50a47f83bc635b69d31b874149d297>>
  * @lightSyntaxTransform
  */
 
@@ -22,7 +22,7 @@ export type GearBuildSaveInput = {
   xinfa?: ReadonlyArray<string> | null | undefined;
 };
 export type GearLoadoutEntryInput = {
-  gearId: number;
+  gearId: string;
   slot: string;
 };
 export type GearBaseValueInput = {
@@ -45,9 +45,9 @@ export type GearLibrarySaveBuildMutation$data = {
       readonly extraCrit: number;
       readonly extraInt: number;
       readonly gradDingyinOn: boolean;
-      readonly id: number;
+      readonly id: string;
       readonly loadout: ReadonlyArray<{
-        readonly gearId: number;
+        readonly gearId: string;
         readonly slot: string;
       }>;
       readonly name: string;

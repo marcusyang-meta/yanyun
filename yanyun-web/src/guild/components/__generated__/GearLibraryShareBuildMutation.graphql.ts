@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<eb85bc9ad6e310e6411640ba08ed815b>>
+ * @generated SignedSource<<55796758265e67006657745622d9ba86>>
  * @lightSyntaxTransform
  */
 
@@ -9,7 +9,7 @@
 
 import { ConcreteRequest } from 'relay-runtime';
 export type GearLibraryShareBuildMutation$variables = {
-  id: number;
+  id: string;
 };
 export type GearLibraryShareBuildMutation$data = {
   readonly shareGearBuild: {
@@ -89,16 +89,16 @@ return {
     "selections": (v1/*:: as any*/)
   },
   "params": {
-    "cacheID": "9247c6e1392c3ab3ad3545f846630af5",
+    "cacheID": "9b3b9429eabda84e57a626053894353d",
     "id": null,
     "metadata": {},
     "name": "GearLibraryShareBuildMutation",
     "operationKind": "mutation",
-    "text": "mutation GearLibraryShareBuildMutation(\n  $id: Int!\n) {\n  shareGearBuild(id: $id) {\n    ok\n    error\n    shareUrl\n  }\n}\n"
+    "text": "mutation GearLibraryShareBuildMutation(\n  $id: ID!\n) {\n  shareGearBuild(id: $id) {\n    ok\n    error\n    shareUrl\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "460b77c21bca1d7082475a521a1f7a58";
+(node as any).hash = "29020b6095b2ed29770b05fc5f8adb5a";
 
 export default node;

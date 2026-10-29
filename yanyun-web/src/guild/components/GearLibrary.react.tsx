@@ -228,12 +228,12 @@ const addItemMutation = graphql`
   }
 `;
 const updateItemMutation = graphql`
-  mutation GearLibraryUpdateItemMutation($id: Int!, $input: GearItemCreateInput!) {
+  mutation GearLibraryUpdateItemMutation($id: ID!, $input: GearItemCreateInput!) {
     updateGearItem(id: $id, input: $input) { ok error item { id slot name lines { key val } dingyin { name val } schools warnings } }
   }
 `;
 const deleteItemMutation = graphql`
-  mutation GearLibraryDeleteItemMutation($id: Int!) {
+  mutation GearLibraryDeleteItemMutation($id: ID!) {
     deleteGearItem(id: $id) { ok error }
   }
 `;
@@ -263,17 +263,17 @@ const saveBuildMutation = graphql`
   }
 `;
 const deleteBuildMutation = graphql`
-  mutation GearLibraryDeleteBuildMutation($id: Int!) {
+  mutation GearLibraryDeleteBuildMutation($id: ID!) {
     deleteGearBuild(id: $id) { ok error }
   }
 `;
 const shareBuildMutation = graphql`
-  mutation GearLibraryShareBuildMutation($id: Int!) {
+  mutation GearLibraryShareBuildMutation($id: ID!) {
     shareGearBuild(id: $id) { ok error shareUrl }
   }
 `;
 const revokeShareMutation = graphql`
-  mutation GearLibraryRevokeShareMutation($id: Int!) {
+  mutation GearLibraryRevokeShareMutation($id: ID!) {
     revokeGearBuildShare(id: $id) { ok error }
   }
 `;
@@ -306,21 +306,21 @@ const card: React.CSSProperties = {
 };
 
 function mapItem(r: {
-  id: number; slot: string; name: string;
+  id: string; slot: string; name: string;
   lines: ReadonlyArray<{ key: string; val: number }>;
   dingyin: { name: string; val: number } | null | undefined;
   schools: ReadonlyArray<string>; warnings: ReadonlyArray<string>;
 }): GearItem {
   return {
-    id: r.id, slot: r.slot, name: r.name,
+    id: Number(r.id), slot: r.slot, name: r.name,
     lines: r.lines.map((l) => ({ key: l.key, val: l.val })),
     dingyin: r.dingyin ? { name: r.dingyin.name, val: r.dingyin.val } : null,
     schools: [...r.schools], warnings: [...r.warnings],
   };
 }
 function mapBuild(b: {
-  id: number; name: string; targetIdx: number; buildLabel: string; school: string;
-  loadout: ReadonlyArray<{ slot: string; gearId: number }>;
+  id: string; name: string; targetIdx: number; buildLabel: string; school: string;
+  loadout: ReadonlyArray<{ slot: string; gearId: string }>;
   baseValues: ReadonlyArray<{ key: string; val: number | null | undefined }>;
   xinfa: ReadonlyArray<string>;
   res: number; extraAcc: number; extraCrit: number; extraInt: number;
@@ -330,8 +330,8 @@ function mapBuild(b: {
   shareUrl: string | null | undefined;
 }): SavedBuild {
   return {
-    id: b.id, name: b.name, targetIdx: b.targetIdx, buildLabel: b.buildLabel, school: b.school,
-    loadout: Object.fromEntries(b.loadout.map((e) => [e.slot, e.gearId])),
+    id: Number(b.id), name: b.name, targetIdx: b.targetIdx, buildLabel: b.buildLabel, school: b.school,
+    loadout: Object.fromEntries(b.loadout.map((e) => [e.slot, Number(e.gearId)])),
     baseValues: Object.fromEntries(b.baseValues.map((e) => [e.key, e.val ?? null])),
     xinfa: [...b.xinfa], res: b.res, extraAcc: b.extraAcc, extraCrit: b.extraCrit, extraInt: b.extraInt,
     bowKind: b.bowKind, gradDingyinOn: b.gradDingyinOn,
@@ -409,7 +409,7 @@ export default function GearLibrary(props: {
 
   const deleteItem = (g: GearItem) => {
     commitDelete({
-      variables: { id: g.id },
+      variables: { id: String(g.id) },
       onCompleted: (resp) => {
         if (!resp.deleteGearItem.ok) { toast(resp.deleteGearItem.error || t.gearCalcFailedText); return; }
         setItems((prev) => prev.filter((x) => x.id !== g.id));
@@ -439,7 +439,7 @@ export default function GearLibrary(props: {
     commitImport({
       variables: {
         items: list,
-        loadout: Object.entries(loadout).map(([slot, gearId]) => ({ slot, gearId })),
+        loadout: Object.entries(loadout).map(([slot, gearId]) => ({ slot, gearId: String(gearId) })),
         source: opts?.source ?? null,
         imageCount: opts?.imageCount ?? null,
       },
@@ -449,8 +449,8 @@ export default function GearLibrary(props: {
         const added = r.items.map(mapItem);
         setItems((prev) => [...prev, ...added]);
         if (r.autoSelect.length) {
-          if (mode === 'bench') props.onAutoSelect?.(r.autoSelect.map((e) => ({ slot: e.slot, gearId: e.gearId })));
-          else mergeAutoSelectIntoSavedWork(r.autoSelect.map((e) => ({ slot: e.slot, gearId: e.gearId })));
+          if (mode === 'bench') props.onAutoSelect?.(r.autoSelect.map((e) => ({ slot: e.slot, gearId: Number(e.gearId) })));
+          else mergeAutoSelectIntoSavedWork(r.autoSelect.map((e) => ({ slot: e.slot, gearId: Number(e.gearId) })));
         }
         bumpWork();
         onDone?.(added);
@@ -510,7 +510,7 @@ export default function GearLibrary(props: {
     };
     if (form.id != null) {
       commitUpdate({
-        variables: { id: form.id, input },
+        variables: { id: String(form.id), input },
         onCompleted: (resp) => {
           if (!resp.updateGearItem.ok || !resp.updateGearItem.item) { toast(resp.updateGearItem.error || t.gearCalcFailedText); return; }
           done(mapItem(resp.updateGearItem.item), false);
@@ -619,10 +619,10 @@ export default function GearLibrary(props: {
   const clearLib = () => {
     setConfirmClear(false);
     [...items].forEach((g) => {
-      commitDelete({ variables: { id: g.id }, onCompleted: () => undefined, onError: () => undefined });
+      commitDelete({ variables: { id: String(g.id) }, onCompleted: () => undefined, onError: () => undefined });
     });
     [...builds].forEach((b) => {
-      commitDeleteBuild({ variables: { id: b.id }, onCompleted: () => undefined, onError: () => undefined });
+      commitDeleteBuild({ variables: { id: String(b.id) }, onCompleted: () => undefined, onError: () => undefined });
     });
     setItems([]);
     setBuilds([]);
@@ -797,7 +797,7 @@ export default function GearLibrary(props: {
       variables: {
         input: {
           name, targetIdx: st.targetIdx,
-          loadout: Object.entries(lo).map(([slot, gearId]) => ({ slot, gearId })),
+          loadout: Object.entries(lo).map(([slot, gearId]) => ({ slot, gearId: String(gearId) })),
           baseValues: st.baseValues,
           xinfa: st.xinfa, res: st.res,
           extraAcc: st.extraAcc, extraCrit: st.extraCrit, extraInt: st.extraInt,
@@ -827,7 +827,7 @@ export default function GearLibrary(props: {
   };
   const deleteScheme = (b: SavedBuild) => {
     commitDeleteBuild({
-      variables: { id: b.id },
+      variables: { id: String(b.id) },
       onCompleted: (resp) => {
         if (!resp.deleteGearBuild.ok) { toast(resp.deleteGearBuild.error || t.gearCalcFailedText); return; }
         setBuilds((prev) => prev.filter((x) => x.id !== b.id));
@@ -854,7 +854,7 @@ export default function GearLibrary(props: {
   };
   const shareScheme = (b: SavedBuild) => {
     commitShareBuild({
-      variables: { id: b.id },
+      variables: { id: String(b.id) },
       onCompleted: (resp) => {
         if (!resp.shareGearBuild.ok || !resp.shareGearBuild.shareUrl) { toast(resp.shareGearBuild.error || t.gearCalcFailedText); return; }
         const url = resp.shareGearBuild.shareUrl;
@@ -867,7 +867,7 @@ export default function GearLibrary(props: {
   };
   const revokeScheme = (b: SavedBuild) => {
     commitRevokeShare({
-      variables: { id: b.id },
+      variables: { id: String(b.id) },
       onCompleted: (resp) => {
         if (!resp.revokeGearBuildShare.ok) { toast(resp.revokeGearBuildShare.error || t.gearCalcFailedText); return; }
         setBuilds((prev) => prev.map((x) => (x.id === b.id ? { ...x, shareUrl: null } : x)));

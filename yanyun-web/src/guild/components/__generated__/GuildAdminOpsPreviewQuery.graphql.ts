@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<fa5cb81bbf37264601d0b02f809b3dda>>
+ * @generated SignedSource<<d1f4a0456ce0dcea1e62d15b520195cb>>
  * @lightSyntaxTransform
  */
 
@@ -9,7 +9,7 @@
 
 import { ConcreteRequest } from 'relay-runtime';
 export type GuildAdminOpsPreviewQuery$variables = {
-  eventId: number;
+  eventId: string;
   segmentKind: string;
   segmentValue?: string | null | undefined;
   slug: string;
@@ -210,16 +210,16 @@ return {
     "selections": (v4/*:: as any*/)
   },
   "params": {
-    "cacheID": "8f19723a63aeb75c86efef88e3bd0018",
+    "cacheID": "29e9544c4e63fd8acc4afb1d85d4bc82",
     "id": null,
     "metadata": {},
     "name": "GuildAdminOpsPreviewQuery",
     "operationKind": "query",
-    "text": "query GuildAdminOpsPreviewQuery(\n  $slug: String!\n  $eventId: Int!\n  $segmentKind: String!\n  $segmentValue: String\n) {\n  targetedNudgePreview(slug: $slug, eventId: $eventId, segmentKind: $segmentKind, segmentValue: $segmentValue) {\n    __typename\n    ... on TargetedNudgePreview {\n      candidateCount\n      countText\n      emptyText\n      dailyRemaining\n      candidates {\n        discordId\n        displayName\n        knownWeapon\n        knownRole\n        lastText\n      }\n    }\n  }\n}\n"
+    "text": "query GuildAdminOpsPreviewQuery(\n  $slug: String!\n  $eventId: ID!\n  $segmentKind: String!\n  $segmentValue: String\n) {\n  targetedNudgePreview(slug: $slug, eventId: $eventId, segmentKind: $segmentKind, segmentValue: $segmentValue) {\n    __typename\n    ... on TargetedNudgePreview {\n      candidateCount\n      countText\n      emptyText\n      dailyRemaining\n      candidates {\n        discordId\n        displayName\n        knownWeapon\n        knownRole\n        lastText\n      }\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "5b243a63bc0ccd0366e5fff991f3ad0c";
+(node as any).hash = "a9a7217da0538d6702a46fd9f3b44ee9";
 
 export default node;

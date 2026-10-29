@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<a0b0ef697b6fcba637e78ed93eccf8b5>>
+ * @generated SignedSource<<b4778c7c2be53b3ee466d23381970281>>
  * @lightSyntaxTransform
  */
 
@@ -9,7 +9,7 @@
 
 import { ConcreteRequest } from 'relay-runtime';
 export type GearLibraryDeleteBuildMutation$variables = {
-  id: number;
+  id: string;
 };
 export type GearLibraryDeleteBuildMutation$data = {
   readonly deleteGearBuild: {
@@ -81,16 +81,16 @@ return {
     "selections": (v1/*:: as any*/)
   },
   "params": {
-    "cacheID": "5f903d85372ad5ee1f1c457fd023b581",
+    "cacheID": "809bba3718662a72a4a3355aa2762a2c",
     "id": null,
     "metadata": {},
     "name": "GearLibraryDeleteBuildMutation",
     "operationKind": "mutation",
-    "text": "mutation GearLibraryDeleteBuildMutation(\n  $id: Int!\n) {\n  deleteGearBuild(id: $id) {\n    ok\n    error\n  }\n}\n"
+    "text": "mutation GearLibraryDeleteBuildMutation(\n  $id: ID!\n) {\n  deleteGearBuild(id: $id) {\n    ok\n    error\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "8c1ce9e1265ee71029a1bfc31c62136c";
+(node as any).hash = "68cfce7a529986958707f97da6d9ef36";
 
 export default node;

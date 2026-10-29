@@ -76,7 +76,7 @@ type Query {
   hubPage: HubPage!
   legalPage(kind: LegalKind!): LegalPage!
   guildPage(slug: String!): GuildPage!
-  targetedNudgePreview(slug: String!, eventId: Int!, segmentKind: String!, segmentValue: String): TargetedNudgePreviewResult
+  targetedNudgePreview(slug: String!, eventId: ID!, segmentKind: String!, segmentValue: String): TargetedNudgePreviewResult
   myContribution(slug: String!): MyContributionResult!
   groupingListPage(slug: String!, tab: GroupingTab!): GroupingListPage!
   groupingDetailPage(slug: String, id: ID!): GroupingDetailPage!
@@ -1635,7 +1635,7 @@ type Mutation {
   confirmRosterImport(slug: String!, batchId: ID!, rowIds: [ID!]!): RosterImportPayload!
   deleteGuildRosterEntry(slug: String!, entryId: ID!): GuildAdminPayload!
   updateGuildRecruitOpen(slug: String!, open: Boolean!): GuildAdminPayload!
-  sendTargetedNudge(slug: String!, eventId: Int!, segmentKind: String!, segmentValue: String): OpsPayload!
+  sendTargetedNudge(slug: String!, eventId: ID!, segmentKind: String!, segmentValue: String): OpsPayload!
   executeSeasonRollover(slug: String!): OpsPayload!
   updateContributionRule(slug: String!, actionKey: String!, points: Int!, enabled: Boolean!): OpsPayload!
   reviewGuildApplication(slug: String!, applicationId: ID!, approve: Boolean!): GuildAdminPayload!
@@ -1662,13 +1662,13 @@ type Mutation {
   gearParsePaste(text: String!): GearParseResult!
   gearQuickCalc(input: GearQuickInput!): GearQuickResult!
   addGearItem(input: GearItemCreateInput!): GearItemPayload!
-  updateGearItem(id: Int!, input: GearItemCreateInput!): GearItemPayload!
-  deleteGearItem(id: Int!): GearOkPayload!
+  updateGearItem(id: ID!, input: GearItemCreateInput!): GearItemPayload!
+  deleteGearItem(id: ID!): GearOkPayload!
   importGearItems(items: [GearItemCreateInput!]!, loadout: [GearLoadoutEntryInput!], source: String, imageCount: Int): GearImportResult!
   saveGearBuild(input: GearBuildSaveInput!): GearBuildPayload!
-  deleteGearBuild(id: Int!): GearOkPayload!
-  shareGearBuild(id: Int!): GearBuildSharePayload!
-  revokeGearBuildShare(id: Int!): GearOkPayload!
+  deleteGearBuild(id: ID!): GearOkPayload!
+  shareGearBuild(id: ID!): GearBuildSharePayload!
+  revokeGearBuildShare(id: ID!): GearOkPayload!
   saveRotationAdvice(input: SaveRotationAdviceInput!): SchedulingAdvicePayload!
   platformAdminSetPaygate(enabled: Boolean!): PlatformAdminBillingPayload!
   platformAdminGrantPremium(slug: String!, days: Int!, tier: String): PlatformAdminBillingPayload!
@@ -3531,7 +3531,7 @@ input GearDingyinInput {
 }
 
 input GearItemInput {
-  id: Int!
+  id: ID!
   slot: String!
   name: String
   lines: [GearLineInput!]!
@@ -3545,13 +3545,13 @@ input GearBaseValueInput {
 }
 
 input GearSimInput {
-  id: Int!
+  id: ID!
   tier: String!
 }
 
 input GearLoadoutEntryInput {
   slot: String!
-  gearId: Int!
+  gearId: ID!
 }
 
 input GearPlanInput {
@@ -3582,7 +3582,7 @@ type GearOtherShu {
 }
 
 type GearInvalidLine {
-  gearId: Int!
+  gearId: ID!
   key: String!
   val: Float!
 }
@@ -3629,7 +3629,7 @@ type GearGradRow {
 }
 
 type GearLowLine {
-  gearId: Int!
+  gearId: ID!
   key: String!
   val: Float!
   score: Float!
@@ -3660,7 +3660,7 @@ type GearGrad {
 type GearSuggestion {
   kind: String!
   slot: String!
-  gearId: Int
+  gearId: ID
   name: String
   lineIdx: Int
   fromCls: String
@@ -3683,7 +3683,7 @@ type GearExtraClass {
 }
 
 type GearEval {
-  id: Int!
+  id: ID!
   score: Int!
   quality: Float!
   hits: Int!
@@ -3711,7 +3711,7 @@ type GearAutoResult {
 
 type GearLoadoutEntry {
   slot: String!
-  gearId: Int!
+  gearId: ID!
 }
 
 type GearParsedItem {
@@ -3762,7 +3762,7 @@ type GearQuickResult {
 }
 
 type GearItem {
-  id: Int!
+  id: ID!
   slot: String!
   name: String!
   lines: [GearLine!]!
@@ -3777,7 +3777,7 @@ type GearBaseValue {
 }
 
 type GearSavedBuild {
-  id: Int!
+  id: ID!
   name: String!
   targetIdx: Int!
   buildLabel: String!
