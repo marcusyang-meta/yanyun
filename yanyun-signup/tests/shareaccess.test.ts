@@ -66,11 +66,19 @@ const SLUG = 'sharetest';
 const SLUG_B = 'othertest';
 const SLUG_FREE = 'freetest';
 const DGID = 'DG-SHARE-1';
+/* Typed-ID fixture keys (migration 0036): guilds/users carry their
+   numeric primary keys; Discord-space values (seat stamps, roster
+   rows, the bound server id) stay Discord IDs by design. The
+   creator's user ID deliberately has no users row: it must never
+   resolve back to (or leak) a Discord identity on the share face. */
+const GID = { sharetest: 1030100001, othertest: 1030100002, freetest: 1030100003 };
+const UID = { M1: 2030100001, M9: 2030100002 };
+const CREATOR_UID = 2030100099;
 function ev(id, over = {}) {
   return {
-    id, tenant: SLUG, type: 'activity', title: '周六双十本' + id, description: '', dungeon: '',
+    id, tenant: GID.sharetest, type: 'activity', title: '周六双十本' + id, description: '', dungeon: '',
     max_slots: 10, starts_at: '', starts_at_utc: 1794000000, status: 'open', origin: 'member',
-    creator_discord_id: 'CREATOR_DISCORD_XYZ', created_by: '', reminder_sent_at: null, reminder_error: null,
+    creator_user_id: CREATOR_UID, created_by: '', reminder_sent_at: null, reminder_error: null,
     ally_visible: 0, visitor_slots: 0,
     ...over,
   };
@@ -78,23 +86,27 @@ function ev(id, over = {}) {
 function makeDb() {
   const state = {
     tenants: [
-      { slug: SLUG, guild_name: '分享测试百业', slogan: '', announcement: '', password_hash: 'h', recruit_open: 0 },
-      { slug: SLUG_B, guild_name: '另一百业', slogan: '', announcement: '', password_hash: 'h', recruit_open: 0 },
+      { id: GID.sharetest, slug: SLUG, guild_name: '分享测试百业', slogan: '', announcement: '', password_hash: 'h', recruit_open: 0 },
+      { id: GID.othertest, slug: SLUG_B, guild_name: '另一百业', slogan: '', announcement: '', password_hash: 'h', recruit_open: 0 },
       // Unbound guild (no discord_guild_id setting row): its name /
       // slogan double as sentinels for the anonymous zero-disclosure
       // scans in the follow-up-ruling suite below.
-      { slug: SLUG_FREE, guild_name: '未绑百业名SENTINEL', slogan: '未绑标语SENTINEL', announcement: '', password_hash: 'h', recruit_open: 0 },
+      { id: GID.freetest, slug: SLUG_FREE, guild_name: '未绑百业名SENTINEL', slogan: '未绑标语SENTINEL', announcement: '', password_hash: 'h', recruit_open: 0 },
     ],
     settings: [
-      { tenant: SLUG, key: 'discord_guild_id', value: DGID },
-      { tenant: SLUG_B, key: 'discord_guild_id', value: 'DG-OTHER-1' },
+      { tenant: GID.sharetest, key: 'discord_guild_id', value: DGID },
+      { tenant: GID.othertest, key: 'discord_guild_id', value: 'DG-OTHER-1' },
+    ],
+    users: [
+      { id: UID.M1, discord_id: 'M1', username: '成员甲' },
+      { id: UID.M9, discord_id: 'M9', username: '路人' },
     ],
     events: [
       ev(401),
       ev(402, { status: 'completed', title: '已完成车' }),
       ev(403, { status: 'draft', title: '草稿车' }),
-      ev(501, { tenant: SLUG_B, title: 'B 车标题' }),
-      ev(601, { tenant: SLUG_FREE, title: '未绑车标题601' }),
+      ev(501, { tenant: GID.othertest, title: 'B 车标题' }),
+      ev(601, { tenant: GID.freetest, title: '未绑车标题601' }),
     ],
     signups: [
       { id: 1, event_id: 401, nickname: '阿珍', uid: 'qSECRETUID1', role: '输出', weapon: '破竹·樽', discord_id: 'MEMBER_DISCORD_AAA', ready_at: 123 },
@@ -151,6 +163,10 @@ function makeDb() {
     }
     if (/FROM tenants/.test(sql)) {
       if (!/WHERE/.test(sql)) return kind === 'first' ? (state.tenants[0] || null) : { results: state.tenants };
+      if (/WHERE id = \?/.test(sql)) {
+        const t = state.tenants.find((x) => x.id === Number(b[0])) || null;
+        return kind === 'first' ? t : { results: t ? [t] : [] };
+      }
       const t = state.tenants.find((x) => x.slug === b[0]) || null;
       return kind === 'first' ? t : { results: t ? [t] : [] };
     }
@@ -164,6 +180,16 @@ function makeDb() {
         return kind === 'first' ? (rows[0] || null) : { results: rows };
       }
       return kind === 'first' ? null : { results: state.settings };
+    }
+    if (/FROM users/.test(sql)) {
+      // Users repository shapes: session-boundary conversion by id,
+      // point lookups by discord_id, and the batch IN-list variants.
+      let rows = state.users;
+      if (/discord_id IN \(/.test(sql)) rows = rows.filter((u) => b.map(String).includes(u.discord_id));
+      else if (/WHERE id IN \(/.test(sql)) rows = rows.filter((u) => b.map(Number).includes(u.id));
+      else if (/discord_id = \?/.test(sql)) rows = rows.filter((u) => u.discord_id === String(b[0]));
+      else if (/WHERE id = \?/.test(sql)) rows = rows.filter((u) => u.id === Number(b[0]));
+      return kind === 'first' ? (rows[0] || null) : { results: rows };
     }
     if (/FROM user_oauth/.test(sql)) {
       // Any test session user holds a complete grant (refresh token +
@@ -198,16 +224,16 @@ async function gql(query, variables, user = null, origin = '') {
   return res.json();
 }
 
-const MEMBER = { discordId: 'M1', name: '成员甲', guilds: [DGID] };
-const NONMEMBER = { discordId: 'M9', name: '路人', guilds: ['DG-ELSEWHERE'] };
+const MEMBER = { userId: UID.M1, discordId: 'M1', name: '成员甲', guilds: [DGID] };
+const NONMEMBER = { userId: UID.M9, discordId: 'M9', name: '路人', guilds: ['DG-ELSEWHERE'] };
 const SENTINELS = ['阿珍', '阿强', 'qSECRETUID1', 'qSECRETUID2', 'MEMBER_DISCORD_AAA', 'MEMBER_DISCORD_BBB', 'CREATOR_DISCORD_XYZ', '破竹·樽'];
 
 describe('shareaccess: service resolveSharedGrouping', () => {
   let codeA: string, codeB: string, codeDraft: string;
   it('setup: mint codes', async () => {
-    codeA = (await mintShortLink(db, SLUG, 401)).code;
-    codeB = (await mintShortLink(db, SLUG_B, 501)).code;
-    codeDraft = (await mintShortLink(db, SLUG, 403)).code;
+    codeA = (await mintShortLink(db, GID.sharetest, 401)).code;
+    codeB = (await mintShortLink(db, GID.othertest, 501)).code;
+    codeDraft = (await mintShortLink(db, GID.sharetest, 403)).code;
     check('三码互不相同', codeA !== codeB && codeA !== codeDraft && codeB !== codeDraft);
   });
 
@@ -235,19 +261,19 @@ describe('shareaccess: service resolveSharedGrouping', () => {
     eq('草稿车 -> null', await resolveSharedGrouping(db, codeDraft), null);
     // Deleted car: mint a code for a car, then remove the car.
     state.events.push(ev(499));
-    const codeGone = (await mintShortLink(db, SLUG, 499)).code;
+    const codeGone = (await mintShortLink(db, GID.sharetest, 499)).code;
     state.events = state.events.filter((e) => e.id !== 499);
     eq('车已删 -> null', await resolveSharedGrouping(db, codeGone), null);
   });
 
   it('dev_only guild is nonexistent from non-dev origins', async () => {
-    state.settings.push({ tenant: SLUG, key: 'dev_only', value: '1' });
+    state.settings.push({ tenant: GID.sharetest, key: 'dev_only', value: '1' });
     try {
       eq('生产来源 -> null', await resolveSharedGrouping(db, codeA), null);
       const devView = await resolveSharedGrouping(db, codeA, true);
       check('dev 来源仍可解析', !!devView);
     } finally {
-      state.settings = state.settings.filter((r) => !(r.tenant === SLUG && r.key === 'dev_only'));
+      state.settings = state.settings.filter((r) => !(r.tenant === GID.sharetest && r.key === 'dev_only'));
     }
   });
 
@@ -263,8 +289,8 @@ describe('shareaccess: service resolveSharedGrouping', () => {
 describe('shareaccess: GraphQL surfaces', () => {
   let codeA: string, codeB: string;
   it('setup', async () => {
-    codeA = (await mintShortLink(db, SLUG, 401)).code;
-    codeB = (await mintShortLink(db, SLUG_B, 501)).code;
+    codeA = (await mintShortLink(db, GID.sharetest, 401)).code;
+    codeB = (await mintShortLink(db, GID.othertest, 501)).code;
   });
 
   const SHARE_Q = `query($code: String!) { sharedGrouping(code: $code) {
@@ -405,7 +431,7 @@ describe('shareaccess: unbound guild login gate (follow-up ruling)', () => {
   });
 
   it('anonymous via the shared link still reads the public face (the one exception)', async () => {
-    const codeFree = (await mintShortLink(db, SLUG_FREE, 601)).code;
+    const codeFree = (await mintShortLink(db, GID.freetest, 601)).code;
     const g = await gql(`query($code: String!) { sharedGrouping(code: $code) {
       exists slug guildName title occupiedCount maxSlots seats { index occupied } } }`, { code: codeFree });
     check('分享面无 errors', !g.errors, JSON.stringify(g.errors || '').slice(0, 200));
@@ -435,8 +461,8 @@ describe('shareaccess: /c landing split + /s page', () => {
 
   it('setup', async () => {
     worker = (await import('../src/worker.ts')).default;
-    codeA = (await mintShortLink(db, SLUG, 401)).code;
-    codeFree = (await mintShortLink(db, SLUG_FREE, 601)).code;
+    codeA = (await mintShortLink(db, GID.sharetest, 401)).code;
+    codeFree = (await mintShortLink(db, GID.freetest, 601)).code;
   });
 
   it('anonymous /c lands on the share page, not the gated canonical page', async () => {
@@ -447,7 +473,7 @@ describe('shareaccess: /c landing split + /s page', () => {
   });
 
   it('member /c keeps the canonical landing', async () => {
-    const jwt = await signJwt(SECRET, { sub: 'M1', name: '成员甲', guilds: [DGID] });
+    const jwt = await signJwt(SECRET, { sub: String(UID.M1), name: '成员甲', guilds: [DGID] });
     const r = await call(`/c/${codeA}`, { cookie: `yy_session=${jwt}` });
     eq('成员 -> 302', r.status, 302);
     eq('成员落点 = 规范长链', r.headers.get('location'), `http://local/${SLUG}/car/401`);
@@ -455,7 +481,7 @@ describe('shareaccess: /c landing split + /s page', () => {
   });
 
   it('logged-in non-member /c lands on the share page', async () => {
-    const jwt = await signJwt(SECRET, { sub: 'M9', name: '路人', guilds: ['DG-ELSEWHERE'] });
+    const jwt = await signJwt(SECRET, { sub: String(UID.M9), name: '路人', guilds: ['DG-ELSEWHERE'] });
     const r = await call(`/c/${codeA}`, { cookie: `yy_session=${jwt}` });
     eq('非成员 -> 302', r.status, 302);
     eq('非成员落点 = /s/<code>', r.headers.get('location'), `http://local/s/${codeA}`);
@@ -491,7 +517,7 @@ describe('shareaccess: /c landing split + /s page', () => {
   });
 
   it('unbound car: signed-in non-member /c keeps the canonical landing', async () => {
-    const jwt = await signJwt(SECRET, { sub: 'M9', name: '路人', guilds: ['DG-ELSEWHERE'] });
+    const jwt = await signJwt(SECRET, { sub: String(UID.M9), name: '路人', guilds: ['DG-ELSEWHERE'] });
     const r = await call(`/c/${codeFree}`, { cookie: `yy_session=${jwt}` });
     eq('登录 -> 302', r.status, 302);
     eq('登录落点 = 规范长链', r.headers.get('location'), `http://local/${SLUG_FREE}/car/601`);
@@ -514,7 +540,7 @@ describe('shareaccess: /c landing split + /s page', () => {
   });
 
   it('WS: signed-in subscribe to an unbound guild reaches the hub', async () => {
-    const jwt = await signJwt(SECRET, { sub: 'M9', name: '路人', guilds: ['DG-ELSEWHERE'] });
+    const jwt = await signJwt(SECRET, { sub: String(UID.M9), name: '路人', guilds: ['DG-ELSEWHERE'] });
     const r = await call(`/ws/guild/${SLUG_FREE}`, { Upgrade: 'websocket', cookie: `yy_session=${jwt}` });
     eq('登录 WS 未绑定 -> 200 (hub stub)', r.status, 200);
     eq('hub stub 应答', await r.text(), 'HUB-REACHED');

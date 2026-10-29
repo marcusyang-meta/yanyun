@@ -52,7 +52,7 @@ function makeDb(fx = {}) {
   const tables = {
     tenants: (fx.tenants || []).map((t) => ({ ...t })),
     settings: new Map(fx.settings || []), // `${tenant}|${key}` -> value
-    users: new Map(fx.users || []),       // discord_id -> guilds_json string
+    users: (fx.users || []).map(([discordId, guildsJson]) => ({ id: UID[discordId] || 0, discord_id: discordId, username: '', guilds_json: guildsJson })), // user rows keyed by numeric id + discord_id
     events: (fx.events || []).map((e) => ({ ...e })),
     signups: (fx.signups || []).map((r) => ({ ...r })),
     results: (fx.results || []).map((r) => ({ ...r })),
@@ -60,6 +60,7 @@ function makeDb(fx = {}) {
     schoolBis: (fx.schoolBis || []).map((r) => ({ ...r })),
     schoolRotations: (fx.schoolRotations || []).map((r) => ({ ...r })),
     guildMembers: (fx.guildMembers || []).map((m) => ({ ...m })),
+    mint: new Map(), // `${type_code}|${day_index}` -> last seq
   };
   let nextId = 5000;
   const unknownSql = new Set();
@@ -74,6 +75,12 @@ function makeDb(fx = {}) {
   function route(kind, rawSql, b) {
     const sql = norm(rawSql);
     if (/^INSERT INTO error_log/i.test(sql)) return { meta: { changes: 1 } }; // error sink: swallowed
+    if (/INSERT INTO id_mint_counters/i.test(sql)) {
+      const key = `${b[0]}|${b[1]}`;
+      const seq = (tables.mint.get(key) || 0) + 1;
+      tables.mint.set(key, seq);
+      return kind === 'first' ? { seq } : (kind === 'all' ? { results: [{ seq }] } : { meta: { changes: 1 } });
+    }
     /* ---- generic INSERT (column list parsed) ---- */
     let m = /^INSERT INTO (\w+) \(([^)]+)\) VALUES \(([^)]+)\)/i.exec(sql);
     if (m) {
@@ -95,7 +102,7 @@ function makeDb(fx = {}) {
         }
         if (table === 'guild_avatars') { tables.avatars.set(row.tenant, row); return { meta: { changes: 1 } }; }
       }
-      row.id = nextId++;
+      if (row.id == null) row.id = nextId++;
       if (table === 'events') tables.events.push(row);
       else if (table === 'signups') tables.signups.push(row);
       else if (table === 'results') tables.results.push(row);
@@ -155,10 +162,16 @@ function makeDb(fx = {}) {
     // dedicated governance harness covers granted shapes).
     if (/FROM guild_officer_grants/i.test(sql)) return kind === 'first' ? null : all([]);
     if (/FROM tenants WHERE slug/i.test(sql)) return first(tables.tenants.find((t) => t.slug === b[0]));
+    if (/FROM tenants WHERE id/i.test(sql)) return first(tables.tenants.find((t) => t.id === Number(b[0])));
     if (/FROM tenants/i.test(sql)) return kind === 'first' ? (tables.tenants[0] ?? null) : all(tables.tenants);
     if (/FROM settings WHERE tenant = \? AND key = \?/i.test(sql)) {
       const v = tables.settings.get(`${b[0]}|${b[1]}`);
       return first(v === undefined ? null : { value: v });
+    }
+    if (/FROM settings WHERE tenant = 0 AND key IN/i.test(sql)) {
+      const rows = [];
+      for (const k of b) { const v = tables.settings.get(`0|${k}`); if (v !== undefined) rows.push({ key: k, value: v }); }
+      return all(rows);
     }
     if (/FROM settings WHERE key = \?/i.test(sql)) {
       const rows = [];
@@ -166,10 +179,20 @@ function makeDb(fx = {}) {
       return kind === 'first' ? (rows[0] ?? null) : all(rows);
     }
     if (/SELECT guilds_json FROM users/i.test(sql)) {
-      const v = tables.users.get(String(b[0]));
-      return first(v === undefined ? null : { guilds_json: v });
+      const u = tables.users.find((x) => x.id === Number(b[0]));
+      return first(u ? { guilds_json: u.guilds_json } : null);
     }
-    if (/FROM users/i.test(sql)) return first(null);
+    if (/FROM users/i.test(sql)) {
+      // Users repository shapes: batch ID<->Discord-ID conversion
+      // (IN lists), point lookups by discord_id or by numeric id,
+      // and the whole-table directory read.
+      if (/discord_id IN \(/i.test(sql)) return all(tables.users.filter((u) => b.map(String).includes(u.discord_id)));
+      if (/WHERE id IN \(/i.test(sql)) return all(tables.users.filter((u) => b.map(Number).includes(u.id)));
+      if (/discord_id = \?/i.test(sql)) return first(tables.users.find((u) => u.discord_id === String(b[0])) || null);
+      if (/WHERE id = \?/i.test(sql)) return first(tables.users.find((u) => u.id === Number(b[0])) || null);
+      if (!/WHERE/i.test(sql)) return all(tables.users);
+      return first(null);
+    }
     if (/FROM guild_avatars/i.test(sql)) {
       const row = tables.avatars.get(b[0]);
       return first(row ? { content_type: row.content_type, bytes: row.bytes, hash: row.hash, updated_at: row.updated_at } : null);
@@ -185,7 +208,7 @@ function makeDb(fx = {}) {
       if (/ORDER BY e\.id DESC/i.test(sql)) rows.sort((a, c) => c.id - a.id);
       return all(rows.map((e) => ({ ...e, signup_count: tables.signups.filter((r) => r.event_id === e.id).length })));
     }
-    if (/SELECT id, tenant, creator_discord_id FROM events WHERE id = \?/i.test(sql)) {
+    if (/SELECT id, tenant, creator_user_id FROM events WHERE id = \?/i.test(sql)) {
       return first(tables.events.find((e) => e.id === Number(b[0])));
     }
     if (/SELECT \* FROM events WHERE id = \? AND tenant = \?/i.test(sql)) {
@@ -260,15 +283,25 @@ function makeDb(fx = {}) {
 
 /* ---------------- fixtures ---------------- */
 const DGID = '424242424242424242';
+/* Typed-ID fixture keys (migration 0036): guilds/users carry their
+   numeric primary keys; Discord-space values (server ids, seat
+   stamps, roster rows) stay Discord IDs by design. */
+const GID = { admintest: 1030100001, unbound: 1030100002, devtest: 1030100003, othertest: 1030100004, statsguild: 1030100005, emptyguild: 1030100006 };
+const UID = {
+  UA: 2030100001, UM: 2030100002, UB: 2030100003, UZ: 2030100004,
+  UL: 2030100005, UC: 2030100006, UO: 2030100007,
+  U1: 2030100008, U2: 2030100009, U3: 2030100010,
+};
 const serversJson = (rows) => JSON.stringify(rows);
-const ADMIN = { discordId: 'UA', name: '服主', guilds: [DGID] };
-const MANAGER = { discordId: 'UM', name: '管理员', guilds: [DGID] };
-const MEMBER = { discordId: 'UB', name: '成员', guilds: [DGID] };
-const OUTSIDER = { discordId: 'UZ', name: '路人', guilds: [] };
+const ADMIN = { userId: UID.UA, discordId: 'UA', name: '服主', guilds: [DGID] };
+const MANAGER = { userId: UID.UM, discordId: 'UM', name: '管理员', guilds: [DGID] };
+const MEMBER = { userId: UID.UB, discordId: 'UB', name: '成员', guilds: [DGID] };
+const OUTSIDER = { userId: UID.UZ, discordId: 'UZ', name: '路人', guilds: [] };
 
 const WEEK_FROM = 1_700_000_000, WEEK_TO = WEEK_FROM + 7 * 86400;
 function tenantRow(over = {}) {
   return {
+    id: GID[over.slug || 'admintest'],
     slug: 'admintest', guild_name: '管理测试百业', password_hash: 'x', announcement: '本周六晚八点集合',
     slogan: '同舟共济', master_name: '老船长', logo_url: '', bg_image_url: '',
     discord_webhook: '', created_at: '2026-01-01 00:00:00', ...over,
@@ -276,10 +309,10 @@ function tenantRow(over = {}) {
 }
 function evRow(id, over = {}) {
   return {
-    id, tenant: 'admintest', title: '车' + id, type: 'activity', description: '',
+    id, tenant: GID.admintest, title: '车' + id, type: 'activity', description: '',
     starts_at: null, meet_info: '', max_slots: 10, status: 'open',
     starts_at_utc: null, origin: 'member', created_by: '', manage_code: '',
-    dungeon: '', creator_discord_id: 'UB', reminder_sent_at: null, reminder_error: null, ...over,
+    dungeon: '', creator_user_id: UID.UB, reminder_sent_at: null, reminder_error: null, ...over,
   };
 }
 const A = makeDb({
@@ -289,10 +322,10 @@ const A = makeDb({
     tenantRow({ slug: 'devtest', guild_name: '开发百业' }),
   ],
   settings: [
-    ['admintest|discord_guild_id', DGID],
-    ['devtest|discord_guild_id', DGID],
-    ['devtest|dev_only', '1'],
-    ['|game_version', 'intl-v2.3'],
+    [`${GID.admintest}|discord_guild_id`, DGID],
+    [`${GID.devtest}|discord_guild_id`, DGID],
+    [`${GID.devtest}|dev_only`, '1'],
+    ['0|game_version', 'intl-v2.3'],
   ],
   users: [
     ['UA', serversJson([{ id: DGID, name: '测试服', icon: '', permissions: '0', owner: true }])],
@@ -341,9 +374,9 @@ const B = makeDb({
     tenantRow({ slug: 'othertest', guild_name: '他业测试' }),
   ],
   settings: [
-    ['admintest|discord_guild_id', DGID],
-    ['othertest|discord_guild_id', DGID2],
-    ['|game_version', 'intl-v2.3'],
+    [`${GID.admintest}|discord_guild_id`, DGID],
+    [`${GID.othertest}|discord_guild_id`, DGID2],
+    ['0|game_version', 'intl-v2.3'],
   ],
   users: [
     ['UA', serversJson([{ id: DGID, name: '测试服', icon: '', permissions: '0', owner: true }])],
@@ -357,12 +390,12 @@ const B = makeDb({
     ['UO', serversJson([{ id: DGID2, name: '他服', icon: '', permissions: '0', owner: true }])],
   ],
   events: [
-    evRow(201, { title: '管理员全链车', creator_discord_id: 'UL', starts_at_utc: WEEK_FROM + 3600 }),
-    evRow(202, { title: '拒绝矩阵车', creator_discord_id: 'UL', starts_at_utc: WEEK_FROM + 3600 }),
-    evRow(203, { title: '无车头老车', creator_discord_id: null, starts_at_utc: WEEK_FROM + 3600 }),
-    evRow(204, { title: '车头自己的车', creator_discord_id: 'UL', starts_at_utc: WEEK_FROM + 3600 }),
-    evRow(205, { title: '车头解散车', creator_discord_id: 'UL', starts_at_utc: WEEK_FROM + 3600 }),
-    evRow(206, { tenant: 'othertest', title: '他业的车', creator_discord_id: 'UL', starts_at_utc: WEEK_FROM + 3600 }),
+    evRow(201, { title: '管理员全链车', creator_user_id: UID.UL, starts_at_utc: WEEK_FROM + 3600 }),
+    evRow(202, { title: '拒绝矩阵车', creator_user_id: UID.UL, starts_at_utc: WEEK_FROM + 3600 }),
+    evRow(203, { title: '无车头老车', creator_user_id: null, starts_at_utc: WEEK_FROM + 3600 }),
+    evRow(204, { title: '车头自己的车', creator_user_id: UID.UL, starts_at_utc: WEEK_FROM + 3600 }),
+    evRow(205, { title: '车头解散车', creator_user_id: UID.UL, starts_at_utc: WEEK_FROM + 3600 }),
+    evRow(206, { tenant: GID.othertest, title: '他业的车', creator_user_id: UID.UL, starts_at_utc: WEEK_FROM + 3600 }),
   ],
   signups: [
     { id: 51, event_id: 201, nickname: '阿青', uid: '2001', role: '输出', weapon: '鸣金·虹', discord_id: 'UB' },
@@ -379,12 +412,12 @@ async function gqlB(query, { user = null, variables, vc } = {}) {
   }), ctx);
   return res.json();
 }
-const B_ADMIN = { discordId: 'UA', name: '服主', guilds: [DGID] };
-const B_MANAGER = { discordId: 'UM', name: '管理员', guilds: [DGID] };
-const B_MEMBER = { discordId: 'UB', name: '成员', guilds: [DGID] };
-const B_LEADER = { discordId: 'UL', name: '车头', guilds: [DGID] };
-const B_CROSS = { discordId: 'UC', name: '双业成员', guilds: [DGID, DGID2] };
-const B_OTHER = { discordId: 'UO', name: '他业服主', guilds: [DGID2] };
+const B_ADMIN = { userId: UID.UA, discordId: 'UA', name: '服主', guilds: [DGID] };
+const B_MANAGER = { userId: UID.UM, discordId: 'UM', name: '管理员', guilds: [DGID] };
+const B_MEMBER = { userId: UID.UB, discordId: 'UB', name: '成员', guilds: [DGID] };
+const B_LEADER = { userId: UID.UL, discordId: 'UL', name: '车头', guilds: [DGID] };
+const B_CROSS = { userId: UID.UC, discordId: 'UC', name: '双业成员', guilds: [DGID, DGID2] };
+const B_OTHER = { userId: UID.UO, discordId: 'UO', name: '他业服主', guilds: [DGID2] };
 const evB = (id) => B.tables.events.find((e) => e.id === id);
 
 /* ---------------- admin stats (Premium tier 1: attendance/activity) ----------------
@@ -417,23 +450,28 @@ const S = makeDb({
     tenantRow({ slug: 'emptyguild', guild_name: '空百业' }),
   ],
   settings: [
-    ['statsguild|discord_guild_id', DGID],
-    ['emptyguild|discord_guild_id', DGID],
-    ['|game_version', 'intl-v2.3'],
+    [`${GID.statsguild}|discord_guild_id`, DGID],
+    [`${GID.emptyguild}|discord_guild_id`, DGID],
+    ['0|game_version', 'intl-v2.3'],
   ],
   users: [
     ['UA', serversJson([{ id: DGID, name: '测试服', icon: '', permissions: '0', owner: true }])],
     ['UB', serversJson([{ id: DGID, name: '测试服', icon: '', permissions: '0', owner: false }])],
+    // Stats leader board resolves creator_user_id back to Discord
+    // IDs through the users rows, so the board's creators need rows.
+    ['U1', serversJson([])],
+    ['U2', serversJson([])],
+    ['U3', serversJson([])],
   ],
   events: [
-    evRow(201, { tenant: 'statsguild', type: 'activity', status: 'open', max_slots: 10, starts_at_utc: SW0 + 3600, creator_discord_id: 'U1' }),
-    evRow(202, { tenant: 'statsguild', type: 'talent', status: 'completed', max_slots: 5, starts_at_utc: SW0 + 7200, creator_discord_id: 'U2' }),
-    evRow(203, { tenant: 'statsguild', type: 'race', status: 'draft', max_slots: 10, starts_at_utc: SW0 + 8000, creator_discord_id: 'U1' }),
-    evRow(204, { tenant: 'statsguild', type: 'tower', status: 'open', max_slots: 10, starts_at_utc: SW0 + 9000, creator_discord_id: null }),
-    evRow(205, { tenant: 'statsguild', type: 'activity', status: 'open', max_slots: 10, starts_at_utc: null, creator_discord_id: 'U1' }),
-    evRow(206, { tenant: 'statsguild', type: 'activity', status: 'closed', max_slots: 10, starts_at_utc: SW1 + 3600, creator_discord_id: 'U1' }),
-    evRow(207, { tenant: 'statsguild', type: 'race', status: 'open', max_slots: 20, starts_at_utc: SW1 + 4000, creator_discord_id: 'U3' }),
-    evRow(208, { tenant: 'statsguild', type: 'talent', status: 'completed', max_slots: 5, starts_at_utc: SW3 + 100, creator_discord_id: 'U2' }),
+    evRow(201, { tenant: GID.statsguild, type: 'activity', status: 'open', max_slots: 10, starts_at_utc: SW0 + 3600, creator_user_id: UID.U1 }),
+    evRow(202, { tenant: GID.statsguild, type: 'talent', status: 'completed', max_slots: 5, starts_at_utc: SW0 + 7200, creator_user_id: UID.U2 }),
+    evRow(203, { tenant: GID.statsguild, type: 'race', status: 'draft', max_slots: 10, starts_at_utc: SW0 + 8000, creator_user_id: UID.U1 }),
+    evRow(204, { tenant: GID.statsguild, type: 'tower', status: 'open', max_slots: 10, starts_at_utc: SW0 + 9000, creator_user_id: null }),
+    evRow(205, { tenant: GID.statsguild, type: 'activity', status: 'open', max_slots: 10, starts_at_utc: null, creator_user_id: UID.U1 }),
+    evRow(206, { tenant: GID.statsguild, type: 'activity', status: 'closed', max_slots: 10, starts_at_utc: SW1 + 3600, creator_user_id: UID.U1 }),
+    evRow(207, { tenant: GID.statsguild, type: 'race', status: 'open', max_slots: 20, starts_at_utc: SW1 + 4000, creator_user_id: UID.U3 }),
+    evRow(208, { tenant: GID.statsguild, type: 'talent', status: 'completed', max_slots: 5, starts_at_utc: SW3 + 100, creator_user_id: UID.U2 }),
   ],
   signups: [
     seatRow(301, 201, '阿青', 'U1'),
@@ -448,9 +486,9 @@ const S = makeDb({
     seatRow(310, 208, '小三', 'U3'),
   ],
   guildMembers: [
-    { tenant: 'statsguild', discord_id: 'U1', nick: '阿青', global_name: 'Alice' },
-    { tenant: 'statsguild', discord_id: 'U2', nick: '', global_name: 'Bob' },
-    { tenant: 'statsguild', discord_id: 'U3', nick: '小三', global_name: '' },
+    { tenant: GID.statsguild, discord_id: 'U1', nick: '阿青', global_name: 'Alice' },
+    { tenant: GID.statsguild, discord_id: 'U2', nick: '', global_name: 'Bob' },
+    { tenant: GID.statsguild, discord_id: 'U3', nick: '小三', global_name: '' },
   ],
 });
 const envS = { DB: S.db };
@@ -562,7 +600,7 @@ describe('guildadmin', () => {
     eq('dev_only 后非 dev 来源 -> Locked', r.data?.viewer?.guildAdmin?.__typename, 'GuildAdminLocked');
     r = await gql(visMut, { user: ADMIN, variables: { v: false } });
     eq('已 dev_only 时连管理员也进不去 (同 REST 门控, 预期)', r.data?.updateGuildVisibility?.errorCode, 'guildNotFound');
-    A.tables.settings.set('admintest|dev_only', ''); // 复位 (生产中由 dev 来源操作)
+    A.tables.settings.set(`${GID.admintest}|dev_only`, ''); // 复位 (生产中由 dev 来源操作)
   });
 
   /* ---------------- advanced reminder settings ---------------- */
@@ -583,17 +621,17 @@ describe('guildadmin', () => {
     eq('非法提前量 -> reminderOffsetsInvalid', r.data?.updateGuildReminderSettings?.errorCode, 'reminderOffsetsInvalid');
     r = await gql(remindMut, { user: ADMIN, variables: { o: [30, 60], c: '今晚提前集合\n带好药' } });
     eq('保存提醒设置 ok', r.data?.updateGuildReminderSettings?.ok, true);
-    eq('提前量已落库 (降序逗号)', A.tables.settings.get('admintest|reminder_offsets'), '60,30');
-    eq('自定义文案已落库 (单行化)', A.tables.settings.get('admintest|reminder_custom_text'), '今晚提前集合 带好药');
+    eq('提前量已落库 (降序逗号)', A.tables.settings.get(`${GID.admintest}|reminder_offsets`), '60,30');
+    eq('自定义文案已落库 (单行化)', A.tables.settings.get(`${GID.admintest}|reminder_custom_text`), '今晚提前集合 带好药');
     r = await gql(remindQ, { user: ADMIN });
     eq('读回提前量 [60,30]', JSON.stringify(r.data?.viewer?.guildAdmin?.reminderOffsets), '[60,30]');
     eq('读回自定义文案', r.data?.viewer?.guildAdmin?.reminderCustomText, '今晚提前集合 带好药');
     r = await gql(remindMut, { user: ADMIN, variables: { o: [], c: '' } });
     eq('清空提前量 ok', r.data?.updateGuildReminderSettings?.ok, true);
-    eq('清空后落库为 none', A.tables.settings.get('admintest|reminder_offsets'), 'none');
+    eq('清空后落库为 none', A.tables.settings.get(`${GID.admintest}|reminder_offsets`), 'none');
     r = await gql(remindQ, { user: ADMIN });
     eq('读回提前量 [] (全关)', JSON.stringify(r.data?.viewer?.guildAdmin?.reminderOffsets), '[]');
-    A.tables.settings.set('admintest|reminder_offsets', '60,30'); // 复位给后续段落
+    A.tables.settings.set(`${GID.admintest}|reminder_offsets`, '60,30'); // 复位给后续段落
   });
 
   /* ---------------- white-label+ (branding + OG card) ---------------- */
@@ -630,9 +668,9 @@ describe('guildadmin', () => {
     eq('色板外 key -> ogAccentInvalid', r.data?.updateGuildWhiteLabel?.errorCode, 'ogAccentInvalid');
     r = await gql(wlMut, { user: ADMIN, variables: { h: true, a: 'jade', sfx: '· 招募中\n第二行' } });
     eq('保存白标 ok', r.data?.updateGuildWhiteLabel?.ok, true);
-    eq('隐藏品牌已落库', A.tables.settings.get('admintest|whitelabel_hide_branding'), '1');
-    eq('强调色已落库', A.tables.settings.get('admintest|og_accent'), 'jade');
-    eq('标题后缀已落库 (单行化)', A.tables.settings.get('admintest|og_title_suffix'), '· 招募中 第二行');
+    eq('隐藏品牌已落库', A.tables.settings.get(`${GID.admintest}|whitelabel_hide_branding`), '1');
+    eq('强调色已落库', A.tables.settings.get(`${GID.admintest}|og_accent`), 'jade');
+    eq('标题后缀已落库 (单行化)', A.tables.settings.get(`${GID.admintest}|og_title_suffix`), '· 招募中 第二行');
     r = await gql(wlQ, { user: ADMIN });
     eq('读回: 隐藏品牌', r.data?.viewer?.guildAdmin?.whiteLabelHideBranding, true);
     eq('读回: 强调色 jade', r.data?.viewer?.guildAdmin?.ogAccent, 'jade');
@@ -658,7 +696,7 @@ describe('guildadmin', () => {
     r = await gql(setAv, { user: ADMIN, variables: { d: pngB64 } });
     eq('上传 PNG 头像 ok', r.data?.setGuildAvatar?.ok, true);
     eq('头像 URL = avatarPath 口径', r.data?.setGuildAvatar?.avatarUrl,
-      'http://local' + avatarPath('admintest', A.tables.avatars.get('admintest')?.hash || ''));
+      'http://local' + avatarPath('admintest', A.tables.avatars.get(GID.admintest)?.hash || ''));
     r = await gql(setAv, { user: ADMIN, variables: { d: Buffer.from('not an image at all').toString('base64') } });
     eq('非图片 -> avatarBadType', r.data?.setGuildAvatar?.errorCode, 'avatarBadType');
     r = await gql(setAv, { user: ADMIN, variables: { d: '!!!not-base64!!!' } });
@@ -667,7 +705,7 @@ describe('guildadmin', () => {
     eq('超限 -> avatarTooLarge', r.data?.setGuildAvatar?.errorCode, 'avatarTooLarge');
     r = await gql(`mutation { deleteGuildAvatar(slug: "admintest") { ok } }`, { user: ADMIN });
     eq('删除头像 ok', r.data?.deleteGuildAvatar?.ok, true);
-    eq('头像已清', A.tables.avatars.has('admintest'), false);
+    eq('头像已清', A.tables.avatars.has(GID.admintest), false);
   });
 
   /* ---------------- events admin ---------------- */
@@ -801,7 +839,7 @@ describe('guildadmin', () => {
     check('omni webhook 响应不含密钥段', !JSON.stringify(r).includes('abcdef-XYZ_123'));
     r = await gql(setAv, { ...OMNI, variables: { d: pngB64 } });
     eq('omni 设头像 ok', r.data?.setGuildAvatar?.ok, true);
-    eq('omni 头像已落库', A.tables.avatars.has('admintest'), true);
+    eq('omni 头像已落库', A.tables.avatars.has(GID.admintest), true);
   });
 
   /* composition: manage actions exist only for leader / guild admin */
