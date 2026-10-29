@@ -118,6 +118,11 @@ function AdminMain({ admin, unknownError, cancelLabel, refresh, router }: {
     { key: 'season', label: admin.adminTabSeasonLabel },
     { key: 'recruit', label: (admin as any).adminTabRecruitLabel },
   ];
+  /* The insights tab follows surface presence: when the
+   * reliability field resolves null (unentitled guild while the
+   * paygate is OFF — the surface does not exist) the tab is not
+   * offered at all. A Locked variant counts as present. */
+  const visibleTabs = tabs.filter((t) => t.key !== 'insights' || (admin as any).reliability != null);
   const premium: any = (admin as any).premium ?? null;
   const premiumLocked = premium?.__typename === 'GuildAdminPremiumLocked' ? premium : null;
   const premiumActive = premium?.__typename === 'GuildAdminPremiumActive' ? premium : null;
@@ -131,7 +136,7 @@ function AdminMain({ admin, unknownError, cancelLabel, refresh, router }: {
         <View style={{ width: 22 }} />
       </View>
       <View style={s.tabs}>
-        {tabs.map((t) => (
+        {visibleTabs.map((t) => (
           <Pressable key={t.key} onPress={() => setTab(t.key)} style={[s.tab, tab === t.key && s.tabOn]}>
             <Text style={[s.tabText, tab === t.key && s.tabTextOn]}>{t.label}</Text>
           </Pressable>
@@ -393,6 +398,7 @@ function DiscordPanel({ admin, run, premiumLocked, unknownError, onError }: {
       </View>
       </>)}
 
+      {cd && (<>
       <Text style={s.sectionTitle}>{admin.adminCustomDomainTitle}</Text>
       <View style={s.card}>
         {cdLocked ? (<>
@@ -434,6 +440,7 @@ function DiscordPanel({ admin, run, premiumLocked, unknownError, onError }: {
           </View>
         </>) : null}
       </View>
+      </>)}
     </View>
   );
 }
@@ -1044,6 +1051,10 @@ function InsightsPanel({ admin, run }: {
   const [label, setLabel] = useState('');
   const [minScore, setMinScore] = useState('80');
   const reliability = a.reliability ?? null;
+  // Null = the insights surface does not exist for this guild
+  // (unentitled, paygate OFF): render nothing — the tab is hidden
+  // too, so this only guards a stale tab selection.
+  if (!reliability) return null;
   if (reliability?.__typename !== 'GuildAdminReliability') {
     return (
       <View style={s.card}>
