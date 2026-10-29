@@ -391,7 +391,7 @@ const setPlan = (plan, daysAhead = 30) => {
   check('Locked 只带未开通文案', !!locked.data?.viewer?.guildAdmin?.ops?.premiumTitle && !('churnRisks' in locked.data.viewer.guildAdmin.ops));
   setPlan('t1');
   eq('T1 (<2) + 总闸开: Locked', await opsType(), 'GuildAdminOpsLocked');
-  state.settings.delete('|paygate_enabled');
+  state.settings.delete('0|paygate_enabled');
   eq('T1 (<2) + 总闸关: ops 为 null', (await getOps()).data?.viewer?.guildAdmin?.ops ?? null, null);
   setPlan('t2');
   eq('T2 + 总闸关: 全量下发', await opsType(), 'GuildAdminOps');
@@ -401,7 +401,7 @@ const setPlan = (plan, daysAhead = 30) => {
   eq('存量 premium (映射 T3): 全量下发', await opsType(), 'GuildAdminOps');
   setPlan('t2', -1);
   eq('T2 已过期 (lapsed = tier 0) + 总闸关: ops 为 null', (await getOps()).data?.viewer?.guildAdmin?.ops ?? null, null);
-  state.settings.set('|paygate_enabled', '1');
+  state.settings.set('0|paygate_enabled', '1');
   eq('T2 已过期 + 总闸开: Locked', await opsType(), 'GuildAdminOpsLocked');
   // Downstream sections run against a granted guild.
   setPlan('t2');

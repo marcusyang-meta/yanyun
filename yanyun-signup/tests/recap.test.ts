@@ -486,14 +486,14 @@ describe('recap', () => {
     // proven in B — and is not re-run here: the whole suite
     // shares one per-IP generation rate-limit bucket that D's
     // ceiling scenario depends on staying under.)
-    state.settings.set('|paygate_enabled', '0');
+    state.settings.set('0|paygate_enabled', '0');
     const detail = await gql(detailQ, { user: adminA, variables: { slug: 'alpha', id: '11' }, env: ENV_OFF });
     eq('E: OFF+T1 详情 recap 为 null', detail.data?.groupingDetailPage?.recap ?? null, null);
     const adminAlpha = await gql(adminQ, { user: adminA, variables: { slug: 'alpha' }, env: ENV_OFF });
     eq('E: OFF+T1 管理面 recaps 为 null', adminAlpha.data?.viewer?.guildAdmin?.recaps ?? null, null);
     const beta = await gql(detailQ, { user: leaderB, variables: { slug: 'beta', id: '12' }, env: ENV_OFF });
     eq('E: OFF+T3 详情仍组合 NotEnabled (已开通不受总闸影响)', recapOf(beta)?.__typename, 'GroupingRecapNotEnabled');
-    state.settings.set('|paygate_enabled', '1');
+    state.settings.set('0|paygate_enabled', '1');
   });
 
   it('D: daily ceiling', async () => {

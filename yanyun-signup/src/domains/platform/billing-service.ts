@@ -268,13 +268,16 @@ export type TierSurfaceState = 'open' | 'locked' | 'absent';
 
 export async function tierSurfaceState(
   d1: D1Database,
-  slug: string,
+  slugOrGuildId: string | number,
   minTier: 1 | 2 | 3,
 ): Promise<TierSurfaceState> {
-  // Callers address guilds by slug; the tier verdict keys by guild
-  // ID since 0036, so resolve at this boundary. An unknown guild
-  // has no surface at all.
-  const guildId = await getGuildIdBySlug(d1, slug).catch(() => null);
+  // Callers address guilds by slug (page composers) or by guild ID
+  // (row composers holding an event/tenant row); the tier verdict
+  // keys by guild ID since 0036, so resolve the slug form at this
+  // boundary. An unknown guild has no surface at all.
+  const guildId = typeof slugOrGuildId === 'number'
+    ? slugOrGuildId
+    : await getGuildIdBySlug(d1, slugOrGuildId).catch(() => null);
   if (guildId == null) return 'absent';
   if (!(await tierLocked(d1, guildId, minTier))) return 'open';
   return (await isPaygateEnabled(d1)) ? 'locked' : 'absent';
