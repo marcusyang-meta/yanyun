@@ -253,6 +253,24 @@ const ZERO_MEANS_NONE = new Set([
   'signup_answers.field_id',
 ]);
 
+// Reference columns whose UNRESOLVABLE rows are dropped by the
+// rebuild instead of aborting the migration on the NOT NULL
+// constraint. This is the exception, not the rule: strictness is
+// what caught this defect class in rehearsal, so a column earns a
+// drop disposition only when the row's entire meaning was the
+// reference and the target's deletion path provably leaves the row
+// behind. short_links is the founding case: a car's share alias
+// whose car was disbanded. deleteEventCascade removes signups,
+// results and the event, but not the alias; the orphaned alias
+// resolves to a 404 at its landing today, so dropping it changes
+// no reachable behavior, while aborting blocks the whole renumber
+// (production, 2026-10-28: migration 0036 died exactly here).
+// 'tenant' in this list means: drop when the guild slug neither is
+// the '' no-guild sentinel nor resolves through the guild map.
+const DROP_UNRESOLVED = {
+  short_links: ['event_id', 'tenant'],
+};
+
 /* --------------------------- schema reading ---------------------------- */
 
 // DDL text itself contains newlines, so every statement is fetched
@@ -391,6 +409,11 @@ emit(`-- Migration 0036: typed public IDs (docs/ID_SYSTEM.md).
 -- class A Discord-boundary columns (signups.discord_id,
 -- lottery_entries/winners.discord_id, ops recipient lists, the
 -- Discord-synced roster keys) are carried over byte-identical.
+-- One documented exception to strict remapping: short_links rows
+-- whose car no longer exists (or whose guild slug is gone) are
+-- dropped — a disbanded car's alias already resolves to a 404, so
+-- no reachable behavior changes (see DROP_UNRESOLVED in the
+-- generator).
 -- The _idmig_* tables are dropped at the end; the leading DROPs make
 -- the file re-runnable after a failed attempt.`);
 
@@ -677,15 +700,29 @@ function newDdl(table) {
   return `CREATE TABLE ${table} (\n  ${parts.join(',\n  ')}\n)`;
 }
 
+/** "Reference resolves" predicate for a DROP_UNRESOLVED column. */
+function resolvedPredicate(table, col) {
+  const action = (ACTIONS[table] || {})[col];
+  if (action === 'T') {
+    return `(o.${col} = '' OR (SELECT new_id FROM _idmig_guild WHERE old_key = o.${col}) IS NOT NULL)`;
+  }
+  // Entity FK: the remap expression itself yields NULL on a miss.
+  return `(${exprFor(table, col)}) IS NOT NULL`;
+}
+
 function rebuild(table) {
   const { columns } = parseTable(table);
   const renames = renameOf(table);
   const newCols = columns.map((c) => renames[c.name] || c.name);
   const exprs = columns.map((c) => exprFor(table, c.name));
+  const drops = DROP_UNRESOLVED[table] || [];
+  const where = drops.length
+    ? `\nWHERE ${drops.map((c) => resolvedPredicate(table, c)).join('\n  AND ')}`
+    : '';
   emit(`
 CREATE TABLE ${table}__new ${newDdl(table).slice(`CREATE TABLE ${table} `.length)};
 INSERT INTO ${table}__new (${newCols.join(', ')})
-SELECT ${exprs.join(', ')} FROM ${table} o;
+SELECT ${exprs.join(', ')} FROM ${table} o${where};
 DROP TABLE ${table};
 ALTER TABLE ${table}__new RENAME TO ${table};`);
   for (const isql of indexSql.get(table) || []) {
