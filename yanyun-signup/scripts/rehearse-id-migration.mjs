@@ -113,10 +113,29 @@ console.log('assertions:');
 const fk = sq(`PRAGMA foreign_key_check`);
 check('foreign_key_check returns zero rows', fk.length === 0, JSON.stringify(fk).slice(0, 200));
 
-// short_links is the one table whose count drops by design: the
-// two seeded unresolvable aliases (dead car, dead guild) are
-// dropped by 0036's DROP_UNRESOLVED handling.
-const DROPPED_ROWS = { short_links: 2 };
+// Tables whose count drops by design: 0036 doubles as the
+// lazy-deletion reaper (DROP_UNRESOLVED in the generator), so the
+// seeded residue rows are dropped — short_links loses its two
+// unresolvable aliases (dead car, dead guild); settings and
+// guild_entitlements lose the dead guild's rows; event_reminders,
+// signup_answers and ops_nudge_sends lose the dead car's rows;
+// grouping_custom_fields loses both dead-owner fields;
+// build_share_links loses the dead build's link; guild_alliances
+// loses the dead-end pair; usage_counters loses the dead guild's
+// scope row. Every other table must match its baseline exactly —
+// the contribution ledger in particular keeps all five rows.
+const DROPPED_ROWS = {
+  short_links: 2,
+  settings: 1,
+  guild_entitlements: 1,
+  event_reminders: 1,
+  signup_answers: 1,
+  ops_nudge_sends: 1,
+  grouping_custom_fields: 2,
+  build_share_links: 1,
+  guild_alliances: 1,
+  usage_counters: 1,
+};
 for (const t of TABLES) {
   const now = scalar(`SELECT COUNT(*) FROM ${t}`);
   const want = t === 'users'
@@ -205,6 +224,27 @@ check('short link tenant remapped to the guild id',
 // leaving no dangling references behind).
 check('unresolvable short link aliases are dropped, not carried over',
   scalar(`SELECT COUNT(*) FROM short_links WHERE code IN ('dead001', 'dead002')`) === 0);
+// The same reaping for every other lazy-deletion residue class in
+// the seed (the 2026-10-28 production census): derivative rows of
+// a dead car / guild / build / pair end are gone, and the live
+// rows sharing their tables survive untouched.
+check('dead guild settings + entitlement rows are reaped',
+  scalar(`SELECT COUNT(*) FROM settings WHERE key = 'discord_guild_id'`) === 1 &&
+  scalar(`SELECT COUNT(*) FROM guild_entitlements`) === 1);
+check('dead car derivative rows are reaped (reminder / answer / ops send)',
+  scalar(`SELECT COUNT(*) FROM event_reminders`) === 2 &&
+  scalar(`SELECT COUNT(*) FROM signup_answers`) === 1 &&
+  scalar(`SELECT COUNT(*) FROM ops_nudge_sends`) === 1);
+check('dead-owner custom fields are reaped, live fields survive',
+  scalar(`SELECT COUNT(*) FROM grouping_custom_fields`) === 3);
+check('dead build share link is reaped, live link survives',
+  scalar(`SELECT COUNT(*) FROM build_share_links`) === 1 &&
+  scalar(`SELECT build_id FROM build_share_links WHERE code = 'buildcd1'`) ===
+    scalar(`SELECT id FROM user_gear_builds`));
+check('dead-end alliance is reaped, live pairs survive',
+  scalar(`SELECT COUNT(*) FROM guild_alliances`) === 2);
+check('dead guild usage scope is reaped',
+  scalar(`SELECT COUNT(*) FROM usage_counters`) === 2);
 check('alliance pair flipped to numeric low/high',
   scalar(`SELECT guild_low FROM guild_alliances WHERE status = 'active'`) === Math.min(jili, feng) &&
   scalar(`SELECT guild_high FROM guild_alliances WHERE status = 'active'`) === Math.max(jili, feng) &&
@@ -214,12 +254,26 @@ check('alliance requester tenant resolved',
 check('contribution recipient (orphan) resolves to a user',
   userDiscord(scalar(`SELECT user_id FROM contribution_entries WHERE action_key = 'leading'`)) ===
     '888888888888888888');
-check('contribution dedupe keys rewritten to new ids',
+const dkU2 = scalar(`SELECT id FROM users WHERE discord_id = '222222222222222222'`);
+const dkU3 = scalar(`SELECT id FROM users WHERE discord_id = '333333333333333333'`);
+const dkU4 = scalar(`SELECT id FROM users WHERE discord_id = '444444444444444444'`);
+const dkU5 = scalar(`SELECT id FROM users WHERE discord_id = '555555555555555555'`);
+const dkMp1 = scalar(
+  `SELECT id FROM mentor_pairings WHERE mentor_user_id = ${scalar(`SELECT id FROM users WHERE discord_id = '777777777777777777'`)}`,
+);
+check('contribution dedupe keys rewritten to new ids, dead segments kept verbatim',
   JSON.stringify(sq(`SELECT dedupe_key FROM contribution_entries ORDER BY dedupe_key`).map((r) => r.dedupe_key)) ===
     JSON.stringify([
-      'attendance:' + e1 + ':' + scalar(`SELECT user_id FROM contribution_entries WHERE action_key = 'attendance'`),
-      'leading:' + e2 + ':' + scalar(`SELECT user_id FROM contribution_entries WHERE action_key = 'leading'`),
-    ].sort()));
+      'attendance:' + e1 + ':' + dkU2,
+      'attendance:999:' + dkU3,
+      'leading:' + e2 + ':' + scalar(`SELECT id FROM users WHERE discord_id = '888888888888888888'`),
+      'mentoring:pairing:' + dkMp1 + ':' + dkU4,
+      'mentoring:pairing:999:' + dkU5,
+    ].sort()),
+  JSON.stringify(sq(`SELECT dedupe_key FROM contribution_entries ORDER BY dedupe_key`).map((r) => r.dedupe_key)));
+check('dead-event ledger row survives with event_id NULL',
+  scalar(`SELECT COUNT(*) FROM contribution_entries`) === 5 &&
+  scalar(`SELECT event_id FROM contribution_entries WHERE dedupe_key LIKE 'attendance:999:%'`) === null);
 check('user-scoped usage counter follows the user map',
   scalar(`SELECT user_id FROM usage_counters WHERE metric = 'ocr_batch'`) ===
     scalar(`SELECT id FROM users WHERE discord_id = '111111111111111111'`));
@@ -312,7 +366,11 @@ const fieldDays = sq(`SELECT id FROM grouping_custom_fields ORDER BY id`).map((r
 check('custom fields inherit owner days (event 297 / template 298 / event 299)',
   JSON.stringify(fieldDays) === JSON.stringify([297, 298, 299]), JSON.stringify(fieldDays));
 
-// Mint counters continue from the backfill maxima.
+// Mint counters continue from the backfill maxima. Counters are
+// seeded from the full maps, so a reaped row's sequence stays
+// burned: the invariant is counter >= surviving max (never below
+// — a lower counter would re-mint a colliding ID), with gaps
+// where the reaper dropped a mapped row.
 for (const [table, code] of Object.entries(REGISTRY)) {
   if (table === 'tenants' || table === 'users') continue;
   const groups = sq(
@@ -322,9 +380,13 @@ for (const [table, code] of Object.entries(REGISTRY)) {
     const counter = scalar(
       `SELECT seq FROM id_mint_counters WHERE type_code = ${code} AND day_index = ${g.day}`,
     );
-    check(`mint counter ${table} day ${g.day}`, counter === g.maxseq, `counter=${counter} max=${g.maxseq}`);
+    check(`mint counter ${table} day ${g.day}`, counter !== null && counter >= g.maxseq,
+      `counter=${counter} max=${g.maxseq}`);
   }
 }
+check('mint counters seed from the full maps, reaped sequences stay burned',
+  scalar(`SELECT seq FROM id_mint_counters WHERE type_code = 80 AND day_index = 299`) === 2 &&
+  scalar(`SELECT seq FROM id_mint_counters WHERE type_code = 50 AND day_index = 300`) === 2);
 
 // Epoch guard: a planted pre-epoch row must abort the migration
 // (the _idmig_guard CHECK tripwire), leaving the snapshot untouched.

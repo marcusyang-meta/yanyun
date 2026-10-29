@@ -266,3 +266,54 @@ INSERT INTO rotation_advice_records (tenant, event_id, advice_json, created_by, 
 -- so the roster rewrite can resolve it — no extra user appears).
 INSERT INTO settings (tenant, key, value) VALUES
   ('', 'platform_admin_discord_ids', '["111111111111111111","777777777777777777"]');
+
+-- Lazy-deletion residue — the classes from the production census
+-- of 2026-10-28, one specimen each. Deletion removes the entity
+-- plus the few dependents its hand-written cascade knows; the rows
+-- below are what the cascades leave behind (dead car 999 and dead
+-- guild 'ghost-guild' have no entity row anywhere in this seed).
+-- 0036 reaps the derivative rows (DROP_UNRESOLVED in the
+-- generator) and preserves the ledger rows: a dead dedupe segment
+-- keeps its original text and the nullable event_id lands on NULL.
+-- A dead guild's settings + entitlement: the production shape was
+-- three settings rows over three dead test guilds; the entitlement
+-- is the gating satellite of the same class.
+INSERT INTO settings (tenant, key, value) VALUES
+  ('ghost-guild', 'discord_guild_id', '999999999999999999');
+INSERT INTO guild_entitlements (tenant, plan, source) VALUES ('ghost-guild', 't3', 'manual');
+-- A dead car's sent reminder (the production row's shape: offset
+-- 10, already sent), an answer on a live field, and an ops send.
+INSERT INTO event_reminders (event_id, offset_min, sent_at, error) VALUES
+  (999, 10, 1793069400, NULL);
+INSERT INTO signup_answers (event_id, signup_uid, field_id, value) VALUES
+  (999, 'seat-uid-9', 1, '残页');
+INSERT INTO ops_nudge_sends (tenant, event_id, segment_kind, segment_value, recipient_count, recipient_ids, sent_by, sent_at) VALUES
+  ('jiliguala', 999, 'all', '', 0, '[]', '111111111111111111', strftime('%s','2026-10-27 17:30:00'));
+-- Field definitions whose owners are gone: a dead car's field and
+-- a dead template's field. No answers reference either (a car's
+-- fields are copied from its template at creation, so answers only
+-- ever point at event-owned fields).
+INSERT INTO grouping_custom_fields (owner_kind, owner_id, label, field_type, options_json, required, sort) VALUES
+  ('event', 999, '死车字段', 'text', '[]', 0, 0),
+  ('template', 999, '死模板字段', 'text', '[]', 0, 0);
+-- A share link to a deleted build (the link lands on a 404 today).
+INSERT INTO build_share_links (code, build_id, discord_id, created_at) VALUES
+  ('deadbuild', 999, '111111111111111111', 0);
+-- An alliance against the dead guild: one pair end unresolvable.
+INSERT INTO guild_alliances (guild_low, guild_high, status, requested_by_tenant, requested_by, requested_by_name, created_at) VALUES
+  ('ghost-guild', 'jiliguala', 'pending', 'jiliguala', '111111111111111111', '队长', strftime('%s','2026-10-28 09:30:00'));
+-- A usage counter scoped to the dead guild.
+INSERT INTO usage_counters (discord_id, metric, day, count, updated_at) VALUES
+  ('guild:ghost-guild', 'guild_announcements', '2026-10-28', 7, 0);
+-- Contribution ledger rows the migration must PRESERVE:
+--   * a mentoring key on live pairing MP1 — the off-by-one class:
+--     with the old segment offset, ANY mentoring key aborted the
+--     migration outright (empty segment -> NULL key);
+--   * a mentoring key on dead pairing 999 — the pairing segment
+--     keeps its original text, the user segment still rewrites;
+--   * an attendance key on dead car 999 with event_id set — the
+--     row survives, event_id lands on NULL, the key keeps 999.
+INSERT INTO contribution_entries (tenant, discord_id, action_key, points, event_id, dedupe_key, created_at) VALUES
+  ('jiliguala', '444444444444444444', 'mentoring', 15, NULL, 'mentoring:pairing:1:444444444444444444', strftime('%s','2026-10-27 21:10:00')),
+  ('jiliguala', '555555555555555555', 'mentoring', 15, NULL, 'mentoring:pairing:999:555555555555555555', strftime('%s','2026-10-27 21:20:00')),
+  ('jiliguala', '333333333333333333', 'attendance', 5, 999, 'attendance:999:333333333333333333', strftime('%s','2026-10-27 21:30:00'));
