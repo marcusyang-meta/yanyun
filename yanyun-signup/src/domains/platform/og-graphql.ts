@@ -32,6 +32,15 @@ export class OgGuildCardShell extends ShellBase {
    * byte-parity with the old OG fetchTeamCount. */
   async genWeekActivityCount({ fromUtc, toUtc }: any){
     if (!this.data.tenant) return 0;
+    /* Transitional guard: on a pre-0036 schema the tenant row carries
+     * no typed id yet, so there is no typed key to count activity
+     * under — the count is definitionally zero. This branch is only
+     * reachable inside the unmigrated-schema window: the PR preview
+     * shares the production D1 and never applies migrations, while
+     * promote applies migrations before deploying the new code, so
+     * production never reaches it. Once migration 0036 has landed
+     * everywhere this is a dead branch and can be removed. */
+    if (!this.data.tenant.id) return 0;
     const rows = await listEventsWeekView(this.db, {
       tenant: this.data.tenant.id, type: 'activity', from: fromUtc, to: toUtc,
     });
