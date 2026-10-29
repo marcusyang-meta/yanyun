@@ -22,6 +22,10 @@
 //      recap keeps the old paragraphs and gains the failed hint.
 //   D. daily ceiling: at the per-guild daily limit, generation is
 //      refused with recapDailyLimit and the provider is not called.
+//   E. paygate OFF (fixture pins the switch ON for A–D): an
+//      unentitled guild's recap fields resolve null — the surface
+//      does not exist (2026-10-28 zero-footprint ruling) — while a
+//      T3 guild stays open and generation still refuses below tier.
 // Real yoga + real resolvers + FakeDB routing by SQL shape into
 // in-memory tables (same pattern as tests/officer.test.ts). The
 // provider seam itself is the real binding-assembled Workers AI
@@ -315,9 +319,9 @@ const betaUsage = () => state.usage.get(`guild:beta|ai_recap_generations|${dayKe
 
 describe('recap', () => {
   it('SDL shape', () => {
-    check('SDL: GroupingDetailPage 带 recap 字段', /type GroupingDetailPage \{[\s\S]*?\n  recap: GroupingRecapResult!/.test(typeDefs));
+    check('SDL: GroupingDetailPage 带 recap 字段 (可空 = 零足迹)', /type GroupingDetailPage \{[\s\S]*?\n  recap: GroupingRecapResult\n/.test(typeDefs));
     check('SDL: generateGroupingRecap mutation 存在', typeDefs.includes('generateGroupingRecap(id: ID!): RecapPayload!'));
-    check('SDL: GuildAdmin 带 recaps 字段', /type GuildAdmin \{[\s\S]*?\n  recaps: GuildAdminRecapResult!/.test(typeDefs));
+    check('SDL: GuildAdmin 带 recaps 字段 (可空 = 零足迹)', /type GuildAdmin \{[\s\S]*?\n  recaps: GuildAdminRecapResult\n/.test(typeDefs));
     check('SDL: 复盘 union 含四变体', typeDefs.includes('union GroupingRecapResult = GroupingRecapReady | GroupingRecapLocked | GroupingRecapNotEnabled | GroupingRecapEmpty'));
   });
 
@@ -456,6 +460,26 @@ describe('recap', () => {
     check('C: Ready 带失败提示', !!(recapOf(readyAfterFail)?.failedHint || '').length);
     eq('C: 失败重试不升 version', state.recaps.find((r: any) => r.event_id === 12)?.version, 2);
     providerMode = 'ok';
+  });
+
+  it('E: paygate OFF zero footprint (2026-10-28 ruling)', async () => {
+    // The fixture settings pin the paygate ON for A–D, so the
+    // Locked scenarios above are the ON quadrant. With the switch
+    // OFF an unentitled guild's recap surface does not exist at
+    // all: both fields resolve null (no Locked card, no copy),
+    // while an entitled guild stays fully open. (Generation's
+    // below-tier refusal is switch-independent by construction —
+    // proven in B — and is not re-run here: the whole suite
+    // shares one per-IP generation rate-limit bucket that D's
+    // ceiling scenario depends on staying under.)
+    state.settings.set('|paygate_enabled', '0');
+    const detail = await gql(detailQ, { user: adminA, variables: { slug: 'alpha', id: '11' }, env: ENV_OFF });
+    eq('E: OFF+T1 详情 recap 为 null', detail.data?.groupingDetailPage?.recap ?? null, null);
+    const adminAlpha = await gql(adminQ, { user: adminA, variables: { slug: 'alpha' }, env: ENV_OFF });
+    eq('E: OFF+T1 管理面 recaps 为 null', adminAlpha.data?.viewer?.guildAdmin?.recaps ?? null, null);
+    const beta = await gql(detailQ, { user: leaderB, variables: { slug: 'beta', id: '12' }, env: ENV_OFF });
+    eq('E: OFF+T3 详情仍组合 NotEnabled (已开通不受总闸影响)', recapOf(beta)?.__typename, 'GroupingRecapNotEnabled');
+    state.settings.set('|paygate_enabled', '1');
   });
 
   it('D: daily ceiling', async () => {

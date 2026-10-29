@@ -1,12 +1,15 @@
 // Premium ops engine acceptance (T2 line: P8/P11/P12/P14):
-//  - Tier matrix (pure entitlement semantics, foundation-line
-//    verdict): the tier derives from the entitlement plan value
-//    alone — the paygate master switch is never consulted, so an
-//    ungranted guild resolves GuildAdminOpsLocked with the switch
-//    OFF and ON alike; t1 locks, t2/t3 compose in full, legacy
-//    premium maps to tier 3, and a lapsed grant locks again.
-//    Mutations re-check: locked guilds get premiumRequired,
-//    non-admins adminOnly.
+//  - Tier matrix: the tier derives from the entitlement plan value
+//    alone (tierLocked never consults the paygate master switch);
+//    composition resolves through tierSurfaceState, so an
+//    ungranted guild resolves null while the switch is OFF (the
+//    surface does not exist — 2026-10-28 zero-footprint ruling)
+//    and GuildAdminOpsLocked while it is ON; t1 is below tier in
+//    both states, t2/t3 compose in full in both states, legacy
+//    premium maps to tier 3, and a lapsed grant falls back to
+//    absent/locked by switch state. Mutations re-check the pure
+//    verdict: unentitled guilds get premiumRequired in every
+//    switch state, non-admins adminOnly.
 //  - P8: segmentation is deterministic over unsigned members
 //    (all / school / role / lapsed); a send writes its frequency
 //    row first, the per-event 24h cooldown and the 3/day guild cap
@@ -349,21 +352,25 @@ const setPlan = (plan, daysAhead = 30) => {
 {
   eq('管理面页签文案下发', (await getOps()).data?.viewer?.guildAdmin?.adminTabOpsLabel, '运营引擎');
   setPlan(null);
-  eq('未授予 + 总闸关: Locked (分档面不看总闸)', await opsType(), 'GuildAdminOpsLocked');
+  eq('未授予 + 总闸关: ops 为 null (零足迹)', (await getOps()).data?.viewer?.guildAdmin?.ops ?? null, null);
   state.settings.set('|paygate_enabled', '1');
   const locked = await getOps();
-  eq('未授予 + 总闸开: 仍 Locked (判定与总闸无关)', locked.data?.viewer?.guildAdmin?.ops?.__typename, 'GuildAdminOpsLocked');
+  eq('未授予 + 总闸开: Locked (销售变体)', locked.data?.viewer?.guildAdmin?.ops?.__typename, 'GuildAdminOpsLocked');
   check('Locked 只带未开通文案', !!locked.data?.viewer?.guildAdmin?.ops?.premiumTitle && !('churnRisks' in locked.data.viewer.guildAdmin.ops));
   setPlan('t1');
-  eq('T1 (<2): Locked', await opsType(), 'GuildAdminOpsLocked');
+  eq('T1 (<2) + 总闸开: Locked', await opsType(), 'GuildAdminOpsLocked');
+  state.settings.delete('|paygate_enabled');
+  eq('T1 (<2) + 总闸关: ops 为 null', (await getOps()).data?.viewer?.guildAdmin?.ops ?? null, null);
   setPlan('t2');
-  eq('T2: 全量下发', await opsType(), 'GuildAdminOps');
+  eq('T2 + 总闸关: 全量下发', await opsType(), 'GuildAdminOps');
   setPlan('t3');
   eq('T3: 全量下发', await opsType(), 'GuildAdminOps');
   setPlan('premium');
   eq('存量 premium (映射 T3): 全量下发', await opsType(), 'GuildAdminOps');
   setPlan('t2', -1);
-  eq('T2 已过期 (lapsed = tier 0): Locked', await opsType(), 'GuildAdminOpsLocked');
+  eq('T2 已过期 (lapsed = tier 0) + 总闸关: ops 为 null', (await getOps()).data?.viewer?.guildAdmin?.ops ?? null, null);
+  state.settings.set('|paygate_enabled', '1');
+  eq('T2 已过期 + 总闸开: Locked', await opsType(), 'GuildAdminOpsLocked');
   // Downstream sections run against a granted guild.
   setPlan('t2');
   state.settings.delete('|paygate_enabled');
@@ -503,7 +510,7 @@ const myQ = `query($slug: String!) { myContribution(slug: $slug) { __typename
   it('SDL shape', async () => {
 /* ============ SDL shape ============ */
 {
-  check('SDL: ops 只挂 GuildAdmin', (typeDefs.match(/ops: GuildAdminOpsResult!/g) || []).length === 1);
+  check('SDL: ops 只挂 GuildAdmin (可空 = 零足迹)', (typeDefs.match(/\n  ops: GuildAdminOpsResult\n/g) || []).length === 1);
   check('SDL: 无物资/捐献概念', !/donation|物资|捐献/.test(typeDefs.replace(/贡献积分/g, '')));
   check('无未路由 SQL 泄漏 (近似): 引擎表名只出现在迁移与仓储', true);
 }

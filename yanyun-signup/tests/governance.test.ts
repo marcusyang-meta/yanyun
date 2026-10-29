@@ -1,12 +1,15 @@
 // Governance acceptance (premium governance line P16/P17, both T3):
-//  - Tier matrix on the governance union, over the foundation's
-//    tierLocked (a pure entitlement verdict that never consults
-//    the paygate master switch): no entitlement / t1 / t2 / an
-//    expired t3 composes GuildGovernanceLocked with zero
-//    governance data, and governance writes answer
-//    governanceTierRequired; plan t3 — and legacy 'premium', which
-//    the foundation reads as tier 3 — composes the full page, with
-//    the paygate switch on or off alike.
+//  - Tier matrix on the governance union: tierLocked stays a pure
+//    entitlement verdict (never consults the paygate master
+//    switch) and alone gates the writes; composition resolves
+//    through tierSurfaceState — no entitlement / t1 / t2 / an
+//    expired t3 resolves null while the switch is OFF (the
+//    surface does not exist; 2026-10-28 zero-footprint ruling)
+//    and GuildGovernanceLocked with zero governance data while it
+//    is ON; governance writes answer governanceTierRequired in
+//    every switch state; plan t3 — and legacy 'premium', which
+//    the foundation reads as tier 3 — composes the full page,
+//    with the paygate switch on or off alike.
 //  - Permission matrix: an ungranted member's guildAdmin is
 //    GuildAdminLocked and the governance field does not exist for
 //    them (SDL pins it to GuildAdmin only). A granted officer
@@ -343,24 +346,39 @@ describe('governance', () => {
     tenant: 'alpha', plan, source: 'manual', current_period_end,
     stripe_customer_id: null, stripe_subscription_id: null, updated_at: 1,
   });
-  // No entitlement (today's production shape for every guild):
-  // Locked, and the admin's capability set still composes on the
-  // shell — capabilities are a verdict fact, not tier data.
+  // No entitlement (today's production shape for every guild) and
+  // the switch OFF: governance does not exist — the field resolves
+  // null. The admin's capability set still composes on the shell —
+  // capabilities are a verdict fact, not tier data.
   let r = await gql(GOV_Q, { variables: { slug: 'alpha' } });
-  eq('无权益: 管理员治理面 Locked', r.data?.viewer?.guildAdmin?.governance?.__typename, 'GuildGovernanceLocked');
+  eq('无权益+总闸关: governance 为 null (零足迹)', r.data?.viewer?.guildAdmin?.governance ?? null, null);
   eq('无权益: 管理员能力全集仍下发', [...(r.data?.viewer?.guildAdmin?.viewerCapabilities || [])].sort(),
     ['announce', 'discord', 'events', 'guides', 'officer', 'profile', 'recruit', 'season', 'stats', 'tools']);
-  check('无权益: Locked 只带文案两字段',
+
+  // Switch ON: the Locked sales variant composes instead.
+  state.settings.set('|paygate_enabled', '1');
+  r = await gql(GOV_Q, { variables: { slug: 'alpha' } });
+  eq('无权益+总闸开: 管理员治理面 Locked', r.data?.viewer?.guildAdmin?.governance?.__typename, 'GuildGovernanceLocked');
+  check('无权益+总闸开: Locked 只带文案两字段',
     r.data?.viewer?.guildAdmin?.governance?.lockedTitle != null && r.data?.viewer?.guildAdmin?.governance?.lockedBody != null
     && !('boardPosts' in (r.data?.viewer?.guildAdmin?.governance || {})));
+  state.settings.delete('|paygate_enabled');
 
   state.entitlements.set('alpha', ENT('t1'));
   r = await gql(GOV_Q, { variables: { slug: 'alpha' } });
-  eq('T1: Locked', r.data?.viewer?.guildAdmin?.governance?.__typename, 'GuildGovernanceLocked');
+  eq('T1+总闸关: governance 为 null', r.data?.viewer?.guildAdmin?.governance ?? null, null);
+  state.settings.set('|paygate_enabled', '1');
+  r = await gql(GOV_Q, { variables: { slug: 'alpha' } });
+  eq('T1+总闸开: Locked', r.data?.viewer?.guildAdmin?.governance?.__typename, 'GuildGovernanceLocked');
+  state.settings.delete('|paygate_enabled');
 
   state.entitlements.set('alpha', ENT('t2'));
   r = await gql(GOV_Q, { variables: { slug: 'alpha' } });
-  eq('T2: Locked', r.data?.viewer?.guildAdmin?.governance?.__typename, 'GuildGovernanceLocked');
+  eq('T2+总闸关: governance 为 null', r.data?.viewer?.guildAdmin?.governance ?? null, null);
+  state.settings.set('|paygate_enabled', '1');
+  r = await gql(GOV_Q, { variables: { slug: 'alpha' } });
+  eq('T2+总闸开: Locked', r.data?.viewer?.guildAdmin?.governance?.__typename, 'GuildGovernanceLocked');
+  state.settings.delete('|paygate_enabled');
 
   let m = await gql(`mutation { setOfficerGrant(slug: "alpha", memberDiscordId: "M1", capabilities: ["events"]) { ok errorCode } }`);
   eq('档位不足时授权写入拒绝 governanceTierRequired', m.data?.setOfficerGrant?.errorCode, 'governanceTierRequired');
@@ -379,14 +397,18 @@ describe('governance', () => {
 
   state.entitlements.set('alpha', ENT('t3', 1));
   r = await gql(GOV_Q, { variables: { slug: 'alpha' } });
-  eq('T3 已过期: Locked', r.data?.viewer?.guildAdmin?.governance?.__typename, 'GuildGovernanceLocked');
+  eq('T3 已过期+总闸关: governance 为 null', r.data?.viewer?.guildAdmin?.governance ?? null, null);
+  state.settings.set('|paygate_enabled', '1');
+  r = await gql(GOV_Q, { variables: { slug: 'alpha' } });
+  eq('T3 已过期+总闸开: Locked', r.data?.viewer?.guildAdmin?.governance?.__typename, 'GuildGovernanceLocked');
+  state.settings.delete('|paygate_enabled');
 
-  // The verdict ignores the paygate master switch both ways:
-  // switch ON with a live t3 still composes the page.
+  // Entitled guilds ignore the switch both ways: switch ON with a
+  // live t3 still composes the page.
   state.entitlements.set('alpha', ENT('t3'));
   state.settings.set('|paygate_enabled', '1');
   r = await gql(GOV_Q, { variables: { slug: 'alpha' } });
-  eq('paygate ON + T3: Page 下发(tierLocked 不看总闸)', r.data?.viewer?.guildAdmin?.governance?.__typename, 'GuildGovernancePage');
+  eq('paygate ON + T3: Page 下发(已开通不受总闸影响)', r.data?.viewer?.guildAdmin?.governance?.__typename, 'GuildGovernancePage');
   state.settings.delete('|paygate_enabled');
 }
   });

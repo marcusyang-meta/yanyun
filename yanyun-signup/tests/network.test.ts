@@ -1,11 +1,13 @@
 // Cross-guild network line acceptance (P19 fill market + P20 alliances):
 //  - P19 edge matrix: supply edge is FREE (a free-tier guild's member
 //    publishes and answers invitations with the paygate ON); demand
-//    edge is T3 (below-tier guild composes FillDemandLocked with zero
-//    demand data, its demand mutations answer premiumRequired — the
-//    converged tierLocked is a pure entitlement verdict that never
-//    consults the paygate switch, so this holds with the paygate
-//    OFF too; granted guilds verify through hub tier grants);
+//    edge is T3 (with the paygate ON a below-tier guild composes
+//    FillDemandLocked with zero demand data; with it OFF the demand
+//    field resolves null — the surface does not exist, 2026-10-28
+//    zero-footprint ruling; its demand mutations answer
+//    premiumRequired in both states — the converged tierLocked is
+//    a pure entitlement verdict that never consults the paygate
+//    switch; granted guilds verify through hub tier grants);
 //  - matching chain: publish -> request -> invite -> accept (matches,
 //    seats NOBODY) -> the leader's manual seatFillSupplier writes the
 //    seat through the capacity guard; duplicate / self / non-manager
@@ -14,10 +16,12 @@
 //    ally-visible squads appear on the ally's page and take visitor
 //    signups (quota enforced) -> dissolve revokes at read time
 //    (feed empty, joins refuse allyNotAllied);
-//  - P20 tier matrix: alliances are T3 — a below-tier guild's
-//    member composes GuildAlliesLocked (tier copy, zero alliance
-//    data) and invite / accept / the sharing switch / visitor
-//    joins answer premiumRequired; the exit paths (reject,
+//  - P20 tier matrix: alliances are T3 — with the paygate ON a
+//    below-tier guild's member composes GuildAlliesLocked (tier
+//    copy, zero alliance data); with it OFF the guildAllies field
+//    and the home allies-tab label resolve null (zero footprint).
+//    Invite / accept / the sharing switch / visitor joins answer
+//    premiumRequired in both states; the exit paths (reject,
 //    dissolve) never consult a tier, proven by lapsing the
 //    granted guild (paidtest, plan t3) mid-alliance (allytest
 //    stays the below-tier guild throughout);
@@ -375,6 +379,9 @@ eq('非成员 -> FillMarketLocked', r.data?.viewer?.fillMarket?.__typename, 'Fil
 r = await gql(marketQ, { user: MEMBER_A });
 eq('成员 -> FillMarketPage', r.data?.viewer?.fillMarket?.__typename, 'FillMarketPage');
 eq('paygate OFF: 已授予百业需求区直接合成 (hub 授予验档路径)', r.data?.viewer?.fillMarket?.demand?.__typename, 'FillDemandSection');
+r = await gql(marketQB, { user: MEMBER_B });
+eq('paygate OFF: T0 百业市场页仍合成 (供给层免费)', r.data?.viewer?.fillMarket?.__typename, 'FillMarketPage');
+eq('paygate OFF + T0 百业: 需求区为 null (零足迹)', r.data?.viewer?.fillMarket?.demand ?? null, null);
   });
 
   it('supply edge is FREE (paygate ON, guild below tier)', async () => {
@@ -596,6 +603,24 @@ eq('档位过期: 解除存量结盟仍 ok (退出通道恒开)', r.data?.endAll
 setPaygate(false);
 r = await gql(createReqMut, { user: ADMIN_B, variables: { slug: 'allytest', gid: '702', role: '输出' } });
 eq('paygate OFF: T0 百业管理员发需求仍被档位拦 (F0 定版: tierLocked 纯权益判定)', r.data?.createFillRequest?.errorCode, 'premiumRequired');
+  });
+
+  it('paygate OFF: zero footprint on the tiered network surfaces', async () => {
+/* ============ paygate OFF: zero footprint (2026-10-28 ruling) ============ */
+// State here: paygate OFF (set by the block above), allytest is
+// T0 throughout, paidtest's grant has lapsed (tier 0). The Locked
+// assertions in the lifecycle sections above ran with the
+// paygate ON — the sales variant. With the switch OFF the tiered
+// surfaces do not exist: the allies root field resolves null and
+// the guild home carries no allies tab label, while the free
+// market tab label keeps shipping.
+r = await gql(alliesQ, { user: MEMBER_B });
+eq('paygate OFF + T0: 盟友页根字段为 null (零足迹)', r.data?.viewer?.guildAllies ?? null, null);
+r = await gql(alliesQP, { user: MEMBER_P });
+eq('paygate OFF + 档位过期: 丁业盟友页根字段为 null', r.data?.viewer?.guildAllies ?? null, null);
+r = await gql(`{ viewer { guild(slug: "allytest") { __typename ... on Guild { homeTabAlliesLabel homeTabMarketLabel } } } }`, { user: MEMBER_B });
+eq('paygate OFF + T0: 百业主页无盟友页签 (label 为 null)', r.data?.viewer?.guild?.homeTabAlliesLabel ?? null, null);
+check('paygate OFF + T0: 补位市场页签文案照常下发 (供给层免费)', typeof r.data?.viewer?.guild?.homeTabMarketLabel === 'string' && r.data.viewer.guild.homeTabMarketLabel.length > 0);
   });
 
 });

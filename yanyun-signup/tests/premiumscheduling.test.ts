@@ -5,30 +5,37 @@
 //    coverage-desc for best slots, overlap conflicts + free-member
 //    moves cross-car); empty availability yields an empty ranking;
 //  - tier matrix over real D1 (Miniflare, migration chain), on the
-//    CONVERGED master verdict: tierLocked is a pure entitlement read
-//    (it never consults the paygate master switch) and a legacy
-//    'premium' plan reads as tier 3 via TIER_BY_PLAN. So a guild
-//    with no entitlement composes ONLY the Locked shell on every
-//    surface (whatever the paygate says) and its writes refuse with
-//    premiumRequired; a legacy premium grant unlocks the full
-//    shells with data; revoke re-locks.
+//    post-2026-10-28 doctrine: tierLocked is a pure entitlement
+//    read (it never consults the paygate master switch) and is the
+//    only verdict writes consult — a legacy 'premium' plan reads
+//    as tier 3 via TIER_BY_PLAN. COMPOSITION resolves through
+//    tierSurfaceState instead: an unentitled guild composes null
+//    (the surface does not exist) while the paygate is OFF and the
+//    Locked shell while it is ON; an entitled guild composes the
+//    full shells in both states; writes refuse with
+//    premiumRequired in every state; revoke re-locks.
 //  - P5 audit: saveRotationAdvice writes one record readable back
 //    on the detail page, and refuses with premiumRequired while
-//    locked (no record written).
+//    unentitled (no record written).
 // Migrated from .harness-premiumscheduling/run.mjs with a
 // per-assertion reconciliation (39 -> 39) in PR #83's description:
 // the engine, migration-chain and readback assertions are verbatim;
 // the tier scenarios were rewritten from this line's retired
 // branch-local verdict (paygate-parity tierLocked + a stored-tier
 // effectiveTier mapping legacy premium to 2) to the converged
-// master verdict above.
+// master verdict above. The paygate-visibility scenarios were
+// rewritten once more for the 2026-10-28 zero-footprint ruling
+// (marcus: an unlaunched surface "should not even be visible"):
+// "OFF + unentitled = Locked" expectations became null
+// expectations, and the Locked expectations moved to the new
+// "ON + unentitled" phase; assertion count only grew.
 import { Miniflare, convertV4MiniflareOptions } from 'miniflare';
 import { describe, it, expect, afterAll } from 'vitest';
 import { yoga } from '../src/graphql.ts';
 
 import { insertTenant } from '../src/domains/guilds/tenants.ts';
 import { setTenantSetting } from '../src/domains/platform/graphql-base.ts';
-import { setPaygateEnabled, grantPremiumManual, revokePremium, tierLocked, getEffectiveEntitlement } from '../src/domains/platform/billing-service.ts';
+import { setPaygateEnabled, grantPremiumManual, revokePremium, tierLocked, tierSurfaceState, getEffectiveEntitlement } from '../src/domains/platform/billing-service.ts';
 import { insertEvent, insertSignup, upsertGuildMember, upsertMemberAvailability } from '../src/domains/groupings/index.ts';
 import { insertGearItemRow } from '../src/domains/gear/index.ts';
 import {
@@ -165,6 +172,11 @@ const schedQ = `{ guildSchedulePage(slug: "${SLUG}") { bestSlotsAdvice { __typen
 const listQ = `{ groupingListPage(slug: "${SLUG}", tab: ACTIVITY) { crossCarAdvice { __typename
   ... on SchedulingAdviceLocked { lockedTitle }
   ... on SchedulingCrossCarAdvice { title conflicts { discordId } moves { carId entry { discordId } } } } } }`;
+const blocksQ = `{ groupingDetailPage(slug: "${SLUG}", id: "${carId}") { blocks {
+  __typename ... on TextBlock { text } ... on SectionHeaderBlock { text }
+  children { __typename ... on TextBlock { text } ... on SectionHeaderBlock { text }
+    children { __typename ... on TextBlock { text } ... on SectionHeaderBlock { text } } } } } }`;
+const blocksText = (r: any) => JSON.stringify(r.data?.groupingDetailPage?.blocks || []);
 
 describe('premiumscheduling (real D1)', () => {
   it('migration chain bootstraps incl. 0027', () => {
@@ -176,30 +188,52 @@ describe('premiumscheduling (real D1)', () => {
     // converged tierLocked never consults it — a free guild is
     // locked purely for lack of entitlement.
     eq('tierLocked: paygate OFF leaves a free guild locked at T2 (verdict ignores the paygate)', await tierLocked(db, SLUG, 2), true);
+    eq('surfaceState: paygate OFF + free guild is absent', await tierSurfaceState(db, SLUG, 2), 'absent');
     await setPaygateEnabled(db, true);
     eq('tierLocked: paygate ON + free guild locked at T2', await tierLocked(db, SLUG, 2), true);
+    eq('surfaceState: paygate ON + free guild is locked', await tierSurfaceState(db, SLUG, 2), 'locked');
     eq('effective tier: free guild is 0', (await getEffectiveEntitlement(db, SLUG)).tier, 0);
     await grantPremiumManual(db, SLUG, 30);
     eq('tierLocked: manual premium grant unlocks T2', await tierLocked(db, SLUG, 2), false);
+    eq('surfaceState: paygate ON + granted guild is open', await tierSurfaceState(db, SLUG, 2), 'open');
     eq('effective tier: legacy premium maps to tier 3 (TIER_BY_PLAN)', (await getEffectiveEntitlement(db, SLUG)).tier, 3);
+    await setPaygateEnabled(db, false);
+    eq('surfaceState: paygate OFF + granted guild stays open', await tierSurfaceState(db, SLUG, 2), 'open');
     await revokePremium(db, SLUG);
     eq('tierLocked: revoke re-locks T2', await tierLocked(db, SLUG, 2), true);
-    await setPaygateEnabled(db, false);
+    eq('surfaceState: revoked guild is absent again while OFF', await tierSurfaceState(db, SLUG, 2), 'absent');
   });
 
-  it('free guild: Locked shells on every surface, writes refused', async () => {
+  it('free guild: absent while paygate OFF, Locked while ON, writes refused in both', async () => {
     // State: no entitlement, paygate OFF (restored by the matrix
-    // above). Under the converged verdict the composition is the
-    // same as with the paygate ON: Locked, zero advice data.
+    // above). Zero footprint: every advice field resolves null —
+    // no Locked shell, no locked copy, zero advice data.
     let r = await gql(detailQ);
-    eq('free detail: Locked shell only', r.data?.groupingDetailPage?.schedulingAdvice?.__typename, 'SchedulingAdviceLocked');
-    check('free detail: locked copy present, no draft key', !!r.data?.groupingDetailPage?.schedulingAdvice?.lockedTitle && !('draft' in (r.data?.groupingDetailPage?.schedulingAdvice || {})));
+    eq('free+OFF detail: schedulingAdvice is null', r.data?.groupingDetailPage?.schedulingAdvice ?? null, null);
     r = await gql(schedQ);
-    eq('free schedule: Locked shell only', r.data?.guildSchedulePage?.bestSlotsAdvice?.__typename, 'SchedulingAdviceLocked');
+    eq('free+OFF schedule: bestSlotsAdvice is null', r.data?.guildSchedulePage?.bestSlotsAdvice ?? null, null);
     r = await gql(listQ);
-    eq('free list: Locked shell only', r.data?.groupingListPage?.crossCarAdvice?.__typename, 'SchedulingAdviceLocked');
+    eq('free+OFF list: crossCarAdvice is null', r.data?.groupingListPage?.crossCarAdvice ?? null, null);
+    r = await gql(blocksQ);
+    check('free+OFF detail blocks: no advice block at all (no locked copy, no draft)', !blocksText(r).includes('智能配队'), blocksText(r).slice(0, 200));
     r = await gql(`mutation { saveRotationAdvice(input: { groupingId: "${carId}" }) { ok errorCode } }`);
-    eq('free: saveRotationAdvice refuses premiumRequired', [r.data?.saveRotationAdvice?.ok, r.data?.saveRotationAdvice?.errorCode], [false, 'premiumRequired']);
+    eq('free+OFF: saveRotationAdvice refuses premiumRequired', [r.data?.saveRotationAdvice?.ok, r.data?.saveRotationAdvice?.errorCode], [false, 'premiumRequired']);
+    // Paygate ON: the Locked sales variant composes (zero advice
+    // data), and writes still refuse — the switch never licenses
+    // a write.
+    await setPaygateEnabled(db, true);
+    r = await gql(detailQ);
+    eq('free+ON detail: Locked shell only', r.data?.groupingDetailPage?.schedulingAdvice?.__typename, 'SchedulingAdviceLocked');
+    check('free+ON detail: locked copy present, no draft key', !!r.data?.groupingDetailPage?.schedulingAdvice?.lockedTitle && !('draft' in (r.data?.groupingDetailPage?.schedulingAdvice || {})));
+    r = await gql(schedQ);
+    eq('free+ON schedule: Locked shell only', r.data?.guildSchedulePage?.bestSlotsAdvice?.__typename, 'SchedulingAdviceLocked');
+    r = await gql(listQ);
+    eq('free+ON list: Locked shell only', r.data?.groupingListPage?.crossCarAdvice?.__typename, 'SchedulingAdviceLocked');
+    r = await gql(blocksQ);
+    check('free+ON detail blocks: locked copy block present', blocksText(r).includes('升级后即可使用'), blocksText(r).slice(0, 200));
+    r = await gql(`mutation { saveRotationAdvice(input: { groupingId: "${carId}" }) { ok errorCode } }`);
+    eq('free+ON: saveRotationAdvice refuses premiumRequired', [r.data?.saveRotationAdvice?.ok, r.data?.saveRotationAdvice?.errorCode], [false, 'premiumRequired']);
+    await setPaygateEnabled(db, false);
   });
 
   it('legacy premium grant: full shells with data, P5 audit write + readback', async () => {
@@ -220,6 +254,13 @@ describe('premiumscheduling (real D1)', () => {
     r = await gql(detailQ);
     eq('granted detail after save: full advice shell', r.data?.groupingDetailPage?.schedulingAdvice?.__typename, 'GroupingSchedulingAdvice');
     eq('P5 record readable back on detail page', (r.data?.groupingDetailPage?.schedulingAdvice?.rotationRecords || []).length, 1);
+    r = await gql(blocksQ);
+    check('granted detail blocks: draft advice block present', blocksText(r).includes('智能配队草案'), blocksText(r).slice(0, 200));
+    // Entitled guilds stay open with the paygate ON too.
+    await setPaygateEnabled(db, true);
+    r = await gql(detailQ);
+    eq('granted+ON detail: full advice shell', r.data?.groupingDetailPage?.schedulingAdvice?.__typename, 'GroupingSchedulingAdvice');
+    await setPaygateEnabled(db, false);
     await revokePremium(db, SLUG);
   });
 });
