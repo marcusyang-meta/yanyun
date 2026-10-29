@@ -75,13 +75,20 @@ function toRawRows(sqlText, rows) {
     : Object.values(r)));
 }
 
+/* Typed-ID fixture keys (0036): guilds/users carry typed IDs;
+   tenant columns, settings keys, entitlement rows and the custom
+   domain row's PK key by guild ID; created_by becomes
+   created_by_user_id. Slugs and Discord IDs stay at the edges. */
+const GID = { a: 1030100001, b: 1030100002, c: 1030100003, sub: 1030100004 };
+const UID = { UA: 2030100001, UB: 2030100002, CDADMIN: 2030100003, U1: 2030100004 };
+
 /* ---------------- FakeDB ---------------- */
 const DGID = '424242424242424242';
 function makeDb(fx = {}) {
   const tables = {
     tenants: (fx.tenants || []).map((t) => ({ ...t })),
     settings: new Map(fx.settings || []),
-    users: new Map(fx.users || []),
+    users: (fx.users || []).map((u) => ({ ...u })),
     events: (fx.events || []).map((e) => ({ ...e })),
     signups: (fx.signups || []).map((r) => ({ ...r })),
     links: (fx.links || []).map((l) => ({ ...l })),
@@ -105,7 +112,7 @@ function makeDb(fx = {}) {
           if (row.hostname === hostname && row.tenant !== tenant) throw new Error('UNIQUE constraint failed: guild_custom_domains.hostname');
         }
         tables.customDomains.set(tenant, {
-          tenant, hostname, status, verify_token: verifyToken, created_by: createdBy,
+          tenant, hostname, status, verify_token: verifyToken, created_by_user_id: createdBy,
           created_at: createdAt, updated_at: updatedAt, verified_at: verifiedAt,
         });
         return { meta: { changes: 1 } };
@@ -160,6 +167,8 @@ function makeDb(fx = {}) {
     const first = (row) => (kind === 'first' ? (row ?? null) : { results: row ? [row] : [] });
     const all = (rows) => ({ results: rows });
     if (/FROM guild_entitlements WHERE tenant = \?/i.test(sql)) return first(tables.entitlements.get(b[0]) ?? null);
+    if (/FROM guild_entitlements/i.test(sql)) return all([...tables.entitlements.values()]);
+    if (/FROM tenants WHERE id/i.test(sql)) return first(tables.tenants.find((t) => t.id === Number(b[0])));
     if (/FROM tenants WHERE slug/i.test(sql)) return first(tables.tenants.find((t) => t.slug === b[0]));
     if (/FROM tenants/i.test(sql)) return kind === 'first' ? (tables.tenants[0] ?? null) : all(tables.tenants);
     if (/FROM settings WHERE tenant = \? AND key = \?/i.test(sql)) {
@@ -171,11 +180,14 @@ function makeDb(fx = {}) {
       for (const [k, v] of tables.settings) { const [t, key] = k.split('|'); if (key === b[0]) rows.push({ tenant: t, value: v }); }
       return kind === 'first' ? (rows[0] ?? null) : all(rows);
     }
-    if (/SELECT guilds_json FROM users/i.test(sql)) {
-      const v = tables.users.get(String(b[0]));
-      return first(v === undefined ? null : { guilds_json: v });
+    if (/FROM users/i.test(sql)) {
+      // Point lookups both ways across the identity boundary:
+      // guilds_json by user ID; gate floor discord_id -> {id}.
+      let u = null;
+      if (/discord_id = \?/i.test(sql)) u = tables.users.find((x) => x.discord_id === String(b[0])) || null;
+      else if (/WHERE id = \?/i.test(sql)) u = tables.users.find((x) => x.id === Number(b[0])) || null;
+      return first(u ? { ...u } : null);
     }
-    if (/FROM users/i.test(sql)) return first(null);
     if (/FROM guild_avatars/i.test(sql)) return first(null);
     if (/FROM dungeons/i.test(sql)) return kind === 'first' ? null : all([]);
     if (/FROM user_guild_nicks/i.test(sql)) return kind === 'first' ? null : all([]);
@@ -229,9 +241,9 @@ function makeDb(fx = {}) {
 
 /* ---------------- fixtures ---------------- */
 const NOW = Math.floor(Date.now() / 1000);
-function tenantRow(slug, guildName) {
+function tenantRow(id, slug, guildName) {
   return {
-    slug, guild_name: guildName, password_hash: 'x', announcement: '', slogan: '同舟共济',
+    id, slug, guild_name: guildName, password_hash: 'x', announcement: '', slogan: '同舟共济',
     master_name: '', logo_url: '', bg_image_url: '', discord_webhook: '',
     created_at: '2026-01-01 00:00:00',
   };
@@ -240,29 +252,30 @@ function evRow(id, tenant, over = {}) {
   return {
     id, tenant, title: '车' + id, type: 'activity', description: '', dungeon: '',
     starts_at: null, starts_at_utc: NOW + 7200, max_slots: 10, status: 'open',
-    origin: 'member', created_by: '', creator_discord_id: 'U1',
+    origin: 'member', created_by: '', creator_user_id: UID.U1,
     reminder_sent_at: null, reminder_error: null, ...over,
   };
 }
 const A = makeDb({
-  tenants: [tenantRow('guild-a', '甲百业'), tenantRow('guild-b', '乙百业'), tenantRow('guild-c', '丙百业'), tenantRow('subtest', '子域测试百业')],
+  tenants: [tenantRow(GID.a, 'guild-a', '甲百业'), tenantRow(GID.b, 'guild-b', '乙百业'), tenantRow(GID.c, 'guild-c', '丙百业'), tenantRow(GID.sub, 'subtest', '子域测试百业')],
   settings: [
-    ['guild-a|discord_guild_id', DGID],
-    ['guild-b|discord_guild_id', DGID],
-    ['guild-c|discord_guild_id', DGID],
-    ['subtest|discord_guild_id', DGID],
-    ['guild-a|subdomain_enabled', '1'],
-    ['subtest|subdomain_enabled', '1'],
-    ['|game_version', 'intl-v2.3'],
+    [`${GID.a}|discord_guild_id`, DGID],
+    [`${GID.b}|discord_guild_id`, DGID],
+    [`${GID.c}|discord_guild_id`, DGID],
+    [`${GID.sub}|discord_guild_id`, DGID],
+    [`${GID.a}|subdomain_enabled`, '1'],
+    [`${GID.sub}|subdomain_enabled`, '1'],
+    ['0|game_version', 'intl-v2.3'],
   ],
   users: [
-    ['UA', JSON.stringify([{ id: DGID, name: '测试服', icon: '', permissions: '0', owner: true }])],
-    ['UB', JSON.stringify([{ id: DGID, name: '测试服', icon: '', permissions: '0', owner: false }])],
+    { id: UID.UA, discord_id: 'UA', username: '服主', guilds_json: JSON.stringify([{ id: DGID, name: '测试服', icon: '', permissions: '0', owner: true }]) },
+    { id: UID.UB, discord_id: 'UB', username: '成员', guilds_json: JSON.stringify([{ id: DGID, name: '测试服', icon: '', permissions: '0', owner: false }]) },
+    { id: UID.CDADMIN, discord_id: 'CD-ADMIN', username: 'customdomain-test admin', guilds_json: '[]' },
   ],
-  events: [evRow(7, 'guild-a', { title: '甲业周六车' }), evRow(8, 'guild-b', { title: '乙业车' })],
+  events: [evRow(7, GID.a, { title: '甲业周六车' }), evRow(8, GID.b, { title: '乙业车' })],
 });
-const ADMIN = { discordId: 'UA', name: '服主', guilds: [DGID] };
-const MEMBER = { discordId: 'UB', name: '成员', guilds: [DGID] };
+const ADMIN = { userId: UID.UA, discordId: 'UA', name: '服主', guilds: [DGID] };
+const MEMBER = { userId: UID.UB, discordId: 'UB', name: '成员', guilds: [DGID] };
 const SEAM_ENV = { SAAS_FALLBACK_ORIGIN: 'fallback.yanyun.app' };
 
 let r: any;
@@ -321,28 +334,28 @@ eq('外部域名是候选', isCustomDomainCandidateHost('www.guild-a.com'), true
 
   it('C. bind service', async () => {
 /* ---------------- C. bind service ---------------- */
-r = await bindCustomDomain(A.db, 'guild-a', 'www.guild-a.com', 'UA', NOW);
+r = await bindCustomDomain(A.db, GID.a, 'www.guild-a.com', UID.UA, NOW);
 eq('绑定成功', r.ok, true);
 eq('绑定初始 pending', r.binding.status, 'pending');
 check('所有权令牌 = 32 hex', /^[0-9a-f]{32}$/.test(r.binding.verifyToken), r.binding.verifyToken);
-eq('按租户回读', (await getCustomDomainByTenant(A.db, 'guild-a'))?.hostname, 'www.guild-a.com');
-eq('按域名回读', (await getCustomDomainByHostname(A.db, 'www.guild-a.com'))?.tenant, 'guild-a');
-r = await bindCustomDomain(A.db, 'guild-b', 'www.guild-a.com', 'UA', NOW);
+eq('按租户回读', (await getCustomDomainByTenant(A.db, GID.a))?.hostname, 'www.guild-a.com');
+eq('按域名回读', (await getCustomDomainByHostname(A.db, 'www.guild-a.com'))?.tenant, GID.a);
+r = await bindCustomDomain(A.db, GID.b, 'www.guild-a.com', UID.UA, NOW);
 eq('他人域名冲突', r.ok === false && r.code, 'customDomainConflict');
-r = await bindCustomDomain(A.db, 'guild-b', 'yanyun.app', 'UA', NOW);
+r = await bindCustomDomain(A.db, GID.b, 'yanyun.app', UID.UA, NOW);
 eq('服务层保留拦截', r.ok === false && r.code, 'customDomainReserved');
-r = await bindCustomDomain(A.db, 'guild-b', 'not a host', 'UA', NOW);
+r = await bindCustomDomain(A.db, GID.b, 'not a host', UID.UA, NOW);
 eq('服务层格式拦截', r.ok === false && r.code, 'customDomainInvalid');
-const tokenA = (await getCustomDomainByTenant(A.db, 'guild-a')).verifyToken;
-r = await bindCustomDomain(A.db, 'guild-a', 'www.guild-a.com', 'UA', NOW + 10);
+const tokenA = (await getCustomDomainByTenant(A.db, GID.a)).verifyToken;
+r = await bindCustomDomain(A.db, GID.a, 'www.guild-a.com', UID.UA, NOW + 10);
 eq('pending 同名重绑仍 pending', r.binding.status, 'pending');
 check('重绑换新令牌', r.binding.verifyToken !== tokenA);
 eq('清单含一条', (await listCustomDomainBindings(A.db)).length, 1);
-const guide = customDomainDnsGuidance(await getCustomDomainByTenant(A.db, 'guild-a'), DEFAULT_SAAS_FALLBACK_ORIGIN);
+const guide = customDomainDnsGuidance(await getCustomDomainByTenant(A.db, GID.a), DEFAULT_SAAS_FALLBACK_ORIGIN);
 eq('指引 CNAME 名 = 域名', guide.cnameName, 'www.guild-a.com');
 eq('指引 CNAME 值 = fallback', guide.cnameValue, 'fallback.yanyun.app');
 eq('指引 TXT 名', guide.txtName, '_yanyun-verify.www.guild-a.com');
-eq('指引 TXT 值 = 令牌', guide.txtValue, (await getCustomDomainByTenant(A.db, 'guild-a')).verifyToken);
+eq('指引 TXT 值 = 令牌', guide.txtValue, (await getCustomDomainByTenant(A.db, GID.a)).verifyToken);
   });
 
   it('D. seam + DNS verification', async () => {
@@ -350,10 +363,10 @@ eq('指引 TXT 值 = 令牌', guide.txtValue, (await getCustomDomainByTenant(A.d
 eq('接缝未配置判定', customDomainSaasConfigured({}), false);
 eq('接缝已配置判定', customDomainSaasConfigured(SEAM_ENV), true);
 eq('未配置时 fallback 用计划值 (仅指引用)', customDomainFallbackOrigin({}), DEFAULT_SAAS_FALLBACK_ORIGIN);
-let v = await verifyCustomDomainBinding(A.db, 'guild-a', {}, NOW);
+let v = await verifyCustomDomainBinding(A.db, GID.a, {}, NOW);
 eq('接缝未通: 验证停在 seam', v.outcome, 'seam');
-eq('接缝未通: 仍 pending', (await getCustomDomainByTenant(A.db, 'guild-a')).status, 'pending');
-v = await verifyCustomDomainBinding(A.db, 'guild-b', SEAM_ENV, NOW);
+eq('接缝未通: 仍 pending', (await getCustomDomainByTenant(A.db, GID.a)).status, 'pending');
+v = await verifyCustomDomainBinding(A.db, GID.b, SEAM_ENV, NOW);
 eq('未绑定: none', v.outcome, 'none');
 
 /* DNS stub: CNAME/TXT answers keyed by "name|type" */
@@ -367,31 +380,31 @@ globalThis.fetch = async (input) => {
   }
   return new Response('unstubbed', { status: 404 });
 };
-const bindingA = await getCustomDomainByTenant(A.db, 'guild-a');
+const bindingA = await getCustomDomainByTenant(A.db, GID.a);
 dnsTable.set('www.guild-a.com|CNAME', ['other.example.net.']);
 dnsTable.set('_yanyun-verify.www.guild-a.com|TXT', [`"${bindingA.verifyToken}"`]);
 let dc = await checkCustomDomainDns(bindingA, 'fallback.yanyun.app');
 eq('CNAME 错: cnameOk=false', dc.cnameOk, false);
 eq('TXT 对: txtOk=true', dc.txtOk, true);
-v = await verifyCustomDomainBinding(A.db, 'guild-a', SEAM_ENV, NOW);
+v = await verifyCustomDomainBinding(A.db, GID.a, SEAM_ENV, NOW);
 eq('DNS 未齐: 停在 dns', v.outcome, 'dns');
-eq('DNS 未齐: 仍 pending', (await getCustomDomainByTenant(A.db, 'guild-a')).status, 'pending');
+eq('DNS 未齐: 仍 pending', (await getCustomDomainByTenant(A.db, GID.a)).status, 'pending');
 dnsTable.set('www.guild-a.com|CNAME', ['fallback.yanyun.app.']);
 dc = await checkCustomDomainDns(bindingA, 'fallback.yanyun.app');
 eq('CNAME 对 (尾点容忍)', dc.cnameOk, true);
-v = await verifyCustomDomainBinding(A.db, 'guild-a', SEAM_ENV, NOW + 60);
+v = await verifyCustomDomainBinding(A.db, GID.a, SEAM_ENV, NOW + 60);
 eq('DNS 齐 + 接缝通: 激活', v.outcome, 'activated');
-eq('激活落库 active', (await getCustomDomainByTenant(A.db, 'guild-a')).status, 'active');
-eq('verified_at 落库', (await getCustomDomainByTenant(A.db, 'guild-a')).verifiedAt, NOW + 60);
-v = await verifyCustomDomainBinding(A.db, 'guild-a', SEAM_ENV, NOW);
+eq('激活落库 active', (await getCustomDomainByTenant(A.db, GID.a)).status, 'active');
+eq('verified_at 落库', (await getCustomDomainByTenant(A.db, GID.a)).verifiedAt, NOW + 60);
+v = await verifyCustomDomainBinding(A.db, GID.a, SEAM_ENV, NOW);
 eq('已 active 再验证: alreadyActive', v.outcome, 'alreadyActive');
-r = await bindCustomDomain(A.db, 'guild-a', 'www.guild-a.com', 'UA', NOW + 120);
+r = await bindCustomDomain(A.db, GID.a, 'www.guild-a.com', UID.UA, NOW + 120);
 eq('active 同名重绑 = 无操作成功', r.ok && r.binding.status, 'active');
 
 /* F0 tier semantics: live resolution follows the pure tier
  * verdict, so the resolution matrix below runs with guild-a
  * granted (legacy premium maps to tier 3). */
-await grantPremiumManual(A.db, 'guild-a', 30);
+await grantPremiumManual(A.db, GID.a, 30);
   });
 
   it('E. lookup + worker resolution', async () => {
@@ -434,7 +447,7 @@ res = await callSeam('https://www.unknown-guild.com/');
 eq('无绑定外部域名 -> 回退现状 (200 主站)', res.status, 200);
 await res.text();
 /* pending host behaves like the seam-off host: plain 404 */
-await bindCustomDomain(A.db, 'guild-b', 'www.guild-b.com', 'UA', NOW);
+await bindCustomDomain(A.db, GID.b, 'www.guild-b.com', UID.UA, NOW);
 res = await callSeam('https://www.guild-b.com/');
 eq('pending 域名 -> 404', res.status, 404);
 eq('pending 与接缝断 404 响应体一致', await res.text(), seamOffBody);
@@ -454,31 +467,31 @@ eq('子域解析回归', await resolveGuildSubdomain(A.db, 'subtest.yanyun.app')
 
   it('F. tier matrix (F0 pure verdict)', async () => {
 /* ---------------- F. tier matrix (F0 pure verdict) ---------------- */
-eq('有权益: tierLocked(3) 不锁', await tierLocked(A.db, 'guild-a', 3), false);
-eq('有权益: active 判定 live', await isCustomDomainLive(A.db, await getCustomDomainByTenant(A.db, 'guild-a')), true);
-eq('有权益: canonical origin = 自定义域名', await guildCustomDomainOrigin(A.db, 'guild-a'), 'https://www.guild-a.com');
-await revokePremium(A.db, 'guild-a');
-eq('无权益: tierLocked(3) 锁 (纯权益判定, 不看总闸)', await tierLocked(A.db, 'guild-a', 3), true);
-eq('无权益: tierLocked(1) 也锁 (tier 0)', await tierLocked(A.db, 'guild-a', 1), true);
-eq('无权益: 不再 live', await isCustomDomainLive(A.db, await getCustomDomainByTenant(A.db, 'guild-a')), false);
+eq('有权益: tierLocked(3) 不锁', await tierLocked(A.db, GID.a, 3), false);
+eq('有权益: active 判定 live', await isCustomDomainLive(A.db, await getCustomDomainByTenant(A.db, GID.a)), true);
+eq('有权益: canonical origin = 自定义域名', await guildCustomDomainOrigin(A.db, GID.a), 'https://www.guild-a.com');
+await revokePremium(A.db, GID.a);
+eq('无权益: tierLocked(3) 锁 (纯权益判定, 不看总闸)', await tierLocked(A.db, GID.a, 3), true);
+eq('无权益: tierLocked(1) 也锁 (tier 0)', await tierLocked(A.db, GID.a, 1), true);
+eq('无权益: 不再 live', await isCustomDomainLive(A.db, await getCustomDomainByTenant(A.db, GID.a)), false);
 eq('无权益: lookup = known', (await lookupGuildCustomDomainHost(A.db, 'www.guild-a.com', true))?.kind, 'known');
 res = await callSeam('https://www.guild-a.com/');
 eq('无权益: 域名 404 (冻结)', res.status, 404);
 await res.text();
-await grantPremiumManual(A.db, 'guild-a', 30);
-eq('授予后 tierLocked(3) 解锁', await tierLocked(A.db, 'guild-a', 3), false);
-eq('授予后恢复 live', await isCustomDomainLive(A.db, await getCustomDomainByTenant(A.db, 'guild-a')), true);
+await grantPremiumManual(A.db, GID.a, 30);
+eq('授予后 tierLocked(3) 解锁', await tierLocked(A.db, GID.a, 3), false);
+eq('授予后恢复 live', await isCustomDomainLive(A.db, await getCustomDomainByTenant(A.db, GID.a)), true);
 res = await callSeam('https://www.guild-a.com/');
 eq('授予后域名恢复出页', res.status, 200);
 await res.text();
-await revokePremium(A.db, 'guild-a');
+await revokePremium(A.db, GID.a);
 eq('撤销后停解析 (记录仍在)', (await lookupGuildCustomDomainHost(A.db, 'www.guild-a.com', true))?.kind, 'known');
-eq('撤销后绑定记录保留 (冻结不删)', (await getCustomDomainByTenant(A.db, 'guild-a'))?.status, 'active');
-await grantPremiumManual(A.db, 'guild-a', 30);
-eq('再授予后恢复 live (供组合点与 hub 段)', await isCustomDomainLive(A.db, await getCustomDomainByTenant(A.db, 'guild-a')), true);
-A.tables.settings.set('guild-a|dev_only', '1');
-eq('dev_only 百业自定义域名永不 live', await isCustomDomainLive(A.db, await getCustomDomainByTenant(A.db, 'guild-a')), false);
-A.tables.settings.delete('guild-a|dev_only');
+eq('撤销后绑定记录保留 (冻结不删)', (await getCustomDomainByTenant(A.db, GID.a))?.status, 'active');
+await grantPremiumManual(A.db, GID.a, 30);
+eq('再授予后恢复 live (供组合点与 hub 段)', await isCustomDomainLive(A.db, await getCustomDomainByTenant(A.db, GID.a)), true);
+A.tables.settings.set(`${GID.a}|dev_only`, '1');
+eq('dev_only 百业自定义域名永不 live', await isCustomDomainLive(A.db, await getCustomDomainByTenant(A.db, GID.a)), false);
+A.tables.settings.delete(`${GID.a}|dev_only`);
   });
 
   it('G. GraphQL admin surface', async () => {
@@ -498,8 +511,8 @@ const cdQFor = (slug) => `{ viewer { guildAdmin(slug: "${slug}") { ... on GuildA
 const cdQ = cdQFor('guild-b');
 /* entitled guilds compose the full variant and may bind;
  * the tier-lock sub-section below revokes guild-b on purpose. */
-await grantPremiumManual(A.db, 'guild-b', 30);
-await grantPremiumManual(A.db, 'guild-c', 30);
+await grantPremiumManual(A.db, GID.b, 30);
+await grantPremiumManual(A.db, GID.c, 30);
 g = await gql(cdQFor('guild-c'), { user: ADMIN });
 eq('未绑定: 变体为完整壳', g.data?.viewer?.guildAdmin?.customDomain?.__typename, 'GuildAdminCustomDomain');
 eq('未绑定: status NONE', g.data?.viewer?.guildAdmin?.customDomain?.status, 'NONE');
@@ -534,7 +547,7 @@ const verifyM = `mutation($slug: String!) { verifyGuildCustomDomain(slug: $slug)
 g = await gql(verifyM, { user: ADMIN, variables: { slug: 'guild-b' } });
 eq('无接缝验证 -> seam 错误码', g.data?.verifyGuildCustomDomain?.errorCode, 'customDomainSeamPending');
 /* seam on + DNS stubbed for guild-b */
-const bindingB = await getCustomDomainByTenant(A.db, 'guild-b');
+const bindingB = await getCustomDomainByTenant(A.db, GID.b);
 dnsTable.set('www.guild-b.com|CNAME', ['fallback.yanyun.app.']);
 dnsTable.set('_yanyun-verify.www.guild-b.com|TXT', [`"${bindingB.verifyToken}"`]);
 g = await gql(verifyM, { user: ADMIN, variables: { slug: 'guild-b' }, env: SEAM_ENV });
@@ -547,7 +560,7 @@ eq('guild-b statusText 已生效', g.data?.viewer?.guildAdmin?.customDomain?.sta
  * does not exist — the field resolves null; with it ON the Locked
  * variant composes. Writes refuse with premiumRequired either way
  * (the mutation verdict is the pure tierLocked). */
-await revokePremium(A.db, 'guild-b');
+await revokePremium(A.db, GID.b);
 g = await gql(cdQ, { user: ADMIN });
 eq('未达 T3+总闸关: customDomain 为 null (零足迹)', g.data?.viewer?.guildAdmin?.customDomain ?? null, null);
 g = await gql(bindM, { user: ADMIN, variables: { slug: 'guild-b', hostname: 'www.other-b.com' } });
@@ -562,19 +575,19 @@ eq('Locked 变体零绑定数据 (hostname 不下发)', g.data?.viewer?.guildAdm
 eq('Locked 变体零 DNS 数据', g.data?.viewer?.guildAdmin?.customDomain?.dnsTxtValue, undefined);
 await setPaygateEnabled(A.db, false);
 const removeM = `mutation($slug: String!) { removeGuildCustomDomain(slug: $slug) { ok errorCode } }`;
-await grantPremiumManual(A.db, 'guild-b', 30);
+await grantPremiumManual(A.db, GID.b, 30);
 g = await gql(cdQ, { user: ADMIN });
 eq('授予后回到完整变体', g.data?.viewer?.guildAdmin?.customDomain?.__typename, 'GuildAdminCustomDomain');
 g = await gql(removeM, { user: ADMIN, variables: { slug: 'guild-b' } });
 eq('解绑 ok', g.data?.removeGuildCustomDomain?.ok, true);
-eq('解绑后记录删除', await getCustomDomainByTenant(A.db, 'guild-b'), null);
+eq('解绑后记录删除', await getCustomDomainByTenant(A.db, GID.b), null);
 g = await gql(verifyM, { user: ADMIN, variables: { slug: 'guild-b' }, env: SEAM_ENV });
 eq('解绑后验证 -> notBound', g.data?.verifyGuildCustomDomain?.errorCode, 'customDomainNotBound');
   });
 
   it('H. composition points', async () => {
 /* ---------------- H. composition points ---------------- */
-const link = await mintShortLink(A.db, 'guild-a', 7);
+const link = await mintShortLink(A.db, GID.a, 7);
 const msgCustom = await buildReminderMessage(A.db, A.tables.events.find((e) => e.id === 7), 'guild-a', NOW);
 eq('提醒链接: 自定义域名优先于子域', msgCustom.embeds[0].url, 'https://www.guild-a.com/car/7');
 const shareQ = `query($slug: String, $id: ID!) { groupingDetailPage(slug: $slug, id: $id) { shareUrl } }`;
@@ -619,7 +632,7 @@ const ADMIN_BILLING_FIELDS_CD = `paygateEnabled stripeConfigured customDomainSaa
     currentPeriodEnd lapsed pastDue hasCard trialUsed stripeCustomerId stripeSubscriptionId
     subdomainEnabled customDomainHostname customDomainStatus }`;
 const adminEnvCd = { DB: A.db, SITE_URL: 'http://local', SAAS_FALLBACK_ORIGIN: 'fallback.yanyun.app', PLATFORM_ADMIN_DISCORD_IDS: 'CD-ADMIN' };
-const adminUserCd = { discordId: 'CD-ADMIN', name: 'customdomain-test admin', guilds: [] as string[] };
+const adminUserCd = { userId: UID.CDADMIN, discordId: 'CD-ADMIN', name: 'customdomain-test admin', guilds: [] as string[] };
 function shapeBillingCd(b: any) {
   if (!b) return null;
   return { ...b, tenants: (b.tenants || []).map((t: any) => ({ ...t,
@@ -665,7 +678,7 @@ const tstate = (slug) => hb.json?.billing?.tenants?.find((t) => t.slug === slug)
 eq('admin: guild-a 绑定可见', tstate('guild-a')?.customDomain?.hostname, 'www.guild-a.com');
 eq('admin: guild-a 状态 active', tstate('guild-a')?.customDomain?.status, 'active');
 eq('admin: guild-b 未绑定为 null', tstate('guild-b')?.customDomain, null);
-check('admin: 令牌不下发', !JSON.stringify(hb.json).includes((await getCustomDomainByTenant(A.db, 'guild-a')).verifyToken));
+check('admin: 令牌不下发', !JSON.stringify(hb.json).includes((await getCustomDomainByTenant(A.db, GID.a)).verifyToken));
 hb = await hub('/api/hub/billing/custom-domain', 'PUT', { slug: 'guild-a', disabled: true });
 eq('admin: 停用 ok', hb.status, 200);
 eq('admin: 停用后状态 disabled', tstate('guild-a')?.customDomain?.status, 'disabled');
@@ -679,8 +692,8 @@ eq('admin: 未绑定百业停用 -> 404', hb.status, 404);
 hb = await hub('/api/hub/billing/custom-domain', 'PUT', { slug: 'ghost', disabled: true });
 eq('admin: 不存在百业 -> 404', hb.status, 404);
 /* restore guild-a to active for the backup assertion below */
-await verifyCustomDomainBinding(A.db, 'guild-a', SEAM_ENV, NOW + 300);
-eq('重验后恢复 active', (await getCustomDomainByTenant(A.db, 'guild-a')).status, 'active');
+await verifyCustomDomainBinding(A.db, GID.a, SEAM_ENV, NOW + 300);
+eq('重验后恢复 active', (await getCustomDomainByTenant(A.db, GID.a)).status, 'active');
 
 check('无未路由 SQL (备份全表导出前)', A.unknownSql.size === 0, [...A.unknownSql].join(' | '));
   });
