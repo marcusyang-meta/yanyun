@@ -218,3 +218,42 @@ INSERT INTO creator_backfill_log (event_id, tenant, seat_nickname, resolved_disc
   (1, 'jiliguala', '李四', '999999999999999999', 'resolved', 1793600000);
 INSERT INTO stripe_events (event_id, type, processed_at) VALUES ('evt_1', 'checkout.session.completed', 1793500000);
 INSERT INTO translation_cache (source_hash, target_locale, translated_text, created_at) VALUES ('h1', 'en', 'Rally', 0);
+
+-- Premium wave (tables that landed on master after this branch's
+-- original base): officer grants/posts, audit events, custom
+-- domain, gear standard, grouping recap, rotation records, and the
+-- platform-admin roster settings row. Shapes are the pre-migration
+-- ones (slug tenants, Discord-ID user references).
+INSERT INTO guild_officer_grants (tenant, discord_id, capabilities, granted_by, granted_by_name, created_at, updated_at) VALUES
+  ('jiliguala', '222222222222222222', 'events,announce', '111111111111111111', '队长', strftime('%s','2026-10-27 10:00:00'), 0);
+INSERT INTO guild_officer_posts (tenant, body, author_discord_id, author_name, created_at, updated_at) VALUES
+  ('jiliguala', '本周先打试锋', '222222222222222222', '老二', strftime('%s','2026-10-27 10:05:00'), 0);
+-- Audit targets cover the AUDITTARGET map: announcement (A1),
+-- event (E1), board (the post above), signup (first seat of E1),
+-- roster.import (batch B1), roster.entryDelete (entry R2), a member
+-- target (stays a Discord ID) and a guide target (stays a name).
+INSERT INTO guild_audit_events (tenant, actor_discord_id, actor_name, action, target_type, target_id, target_label, created_at) VALUES
+  ('jiliguala', '111111111111111111', '队长', 'announcement.post', 'announcement', '1', '集合', strftime('%s','2026-10-27 11:00:00')),
+  ('jiliguala', '111111111111111111', '队长', 'event.create', 'event', '1', '周六双十人本', strftime('%s','2026-10-27 11:01:00')),
+  ('jiliguala', '222222222222222222', '老二', 'board.post', 'board', '1', '军官留言', strftime('%s','2026-10-27 11:02:00')),
+  ('jiliguala', '111111111111111111', '队长', 'signup.remove', 'signup', '1', '', strftime('%s','2026-10-27 11:03:00')),
+  ('jiliguala', '111111111111111111', '队长', 'roster.import', 'roster', '1', '', strftime('%s','2026-10-27 11:04:00')),
+  ('jiliguala', '111111111111111111', '队长', 'roster.entryDelete', 'roster', '2', '', strftime('%s','2026-10-27 11:05:00')),
+  ('jiliguala', '111111111111111111', '队长', 'note.add', 'member', '333333333333333333', '老三', strftime('%s','2026-10-27 11:06:00')),
+  ('jiliguala', '111111111111111111', '队长', 'guide.publish', 'guide', '试锋', '', strftime('%s','2026-10-27 11:07:00'));
+INSERT INTO guild_custom_domains (tenant, hostname, status, verify_token, created_by, created_at, updated_at, verified_at) VALUES
+  ('jiliguala', 'play.example.com', 'active', 'tok123', '111111111111111111', strftime('%s','2026-10-27 12:00:00'), 0, strftime('%s','2026-10-27 12:30:00'));
+INSERT INTO guild_gear_standards (tenant, label, min_score, created_by, created_at, updated_at) VALUES
+  ('jiliguala', '毕业线', 85, '111111111111111111', strftime('%s','2026-10-27 12:10:00'), 0);
+INSERT INTO grouping_recaps (tenant, event_id, status, paragraphs_json, snapshot_json, provider, generated_by, version, last_error, generated_at, updated_at) VALUES
+  ('jiliguala', 1, 'ready', '["打得不错"]', '{}', 'workers-ai', '111111111111111111', 1, '', strftime('%s','2026-10-27 21:00:00'), 0);
+-- Rotation records: one saved by U2, one by the omniscient saver
+-- (the 'omni' sentinel must land on user ID 0, never a minted user).
+INSERT INTO rotation_advice_records (tenant, event_id, advice_json, created_by, created_at) VALUES
+  ('jiliguala', 1, '[]', '222222222222222222', strftime('%s','2026-10-27 15:00:00')),
+  ('jiliguala', 1, '[]', 'omni', strftime('%s','2026-10-27 15:05:00'));
+-- Platform-admin roster: U1 (has an account) + orphan 777... (the
+-- class B orphan above; the migration collects it as a user first,
+-- so the roster rewrite can resolve it — no extra user appears).
+INSERT INTO settings (tenant, key, value) VALUES
+  ('', 'platform_admin_discord_ids', '["111111111111111111","777777777777777777"]');
