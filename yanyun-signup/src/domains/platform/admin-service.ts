@@ -69,7 +69,11 @@ export async function reminderStateFor(env: Env, slug: string): Promise<Platform
         body: JSON.stringify({ slug }),
       });
       const j: any = await r.json().catch(() => null);
-      if (j && typeof j.alarm === 'number') nextAlarm = j.alarm;
+      // The DO reports its alarm as a millisecond timestamp
+      // (storage.getAlarm()); every timestamp on this surface is in
+      // seconds and the SDL field is a 32-bit Int, so convert at this
+      // — the only — consumption point.
+      if (j && typeof j.alarm === 'number') nextAlarm = Math.floor(j.alarm / 1000);
     }
   } catch { /* leave empty when DO state is unreadable; the config surface is unaffected */ }
   const lastAt = await getReminderSetting(env.DB, slug, 'reminder_last_at');

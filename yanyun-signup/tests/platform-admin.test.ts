@@ -102,21 +102,54 @@ async function gql(query: string, { user = adminUser, variables, env: useEnv = e
   return res.json();
 }
 
+// Mirrors the web admin page's PlatformAdminPageQuery field-for-field
+// (yanyun-web/src/auth/PlatformAdminPage.react.tsx): every field the
+// real page selects must resolve here too, so a field that breaks in
+// composition (bad resolver, unit overflow) fails this suite instead
+// of reaching the page. entryLabel is kept on top: the settings entry
+// point selects it even though the page query does not.
 const ADMIN_Q = `query {
   viewer { platformAdmin {
     __typename
     ... on PlatformAdmin {
-      entryLabel title
-      tenants { slug guildName eventCount }
-      billing { paygateEnabled stripeConfigured plans { tier name priceMonthlyCents }
-                tenants { slug plan tier tierName subdomainEnabled } }
-      errors { id } errorCount24h
-      settings { gameVersion gameVersionCode }
-      bosses { id name dungeon }
-      dungeons { id name isCurrent }
-      reminders { slug webhookSet enabled }
-      heirlooms { slug webhookSet enabled }
-      backups { available entries { key } }
+      entryLabel title subtitle
+      tenantsTitle tenantsEmpty
+      billingTitle paygateLabel paygateOnText paygateOffText
+      stripeLabel stripeConfiguredText stripeMissingText
+      saasLabel saasConfiguredText saasMissingText
+      plansTitle billingTenantsTitle
+      errorsTitle errorsEmpty auditTitle auditEmpty
+      feedbackTitle feedbackEmpty
+      settingsTitle gameVersionLabel gameNoticeLabel gameVersionCodeLabel
+      bossesTitle bossesEmpty dungeonsTitle dungeonsEmpty
+      remindersTitle remindersEmpty heirloomsTitle heirloomsEmpty
+      backupsTitle backupsEmpty backupsUnavailableText
+      rosterTitle rosterNote backfillsTitle
+      saveLabel testLabel runLabel dryRunLabel
+      deleteTenantLabel grantLabel revokeLabel
+      subdomainLabel customDomainLabel
+      enabledText disabledText webhookSetText webhookUnsetText
+      runBackupLabel downloadLabel exportLabel
+      backfillReminderIdentityLabel backfillCreatorsLabel migrateBossGuidesLabel
+      statusOpenText statusResolvedText
+      lastStatusLabel nextAlarmLabel periodEndLabel sourceLabel
+      tierLabel planLabel hasCardText noCardText trialUsedText
+      tenants { slug guildName announcement createdAt eventCount }
+      billing { paygateEnabled stripeConfigured customDomainSaasConfigured
+                plans { tier plan name nameEn subtitle subtitleEn priceMonthlyCents }
+                tenants { slug guildName plan source tier effectiveTier tierName tierNameEn tierSubtitle
+                          currentPeriodEnd lapsed pastDue hasCard trialUsed
+                          stripeCustomerId stripeSubscriptionId
+                          subdomainEnabled customDomainHostname customDomainStatus } }
+      errors { id at source name message tenant context } errorCount24h
+      auditEntries(limit: 50) { total entries { id at actor action tenant summary } }
+      feedbackEntries(limit: 50) { total entries { id discordId userName category content status createdAt resolvedAt } }
+      settings { gameVersion gameNotice gameVersionCode }
+      bosses { id name talent source note sortOrder dungeon guide mechanicsJson talentsJson shoutsJson }
+      dungeons { id name size isCurrent version videoUrl videoTitle }
+      reminders { slug guildName webhookSet webhookMasked enabled lastAt lastStatus lastError lastEvent nextAlarmAt }
+      heirlooms { slug guildName webhookSet webhookMasked enabled lastAt lastStatus lastError lastEvent }
+      backups { available entries { key size uploaded } }
       adminRoster
     }
     ... on PlatformAdminLocked { lockedTitle lockedBody }
@@ -172,6 +205,37 @@ describe('platform-admin surface', () => {
     check('boss fixture listed', pa.bosses.some((b: any) => b.id === BOSS_ID));
     check('dungeon fixture listed', pa.dungeons.some((d: any) => d.id === DUNGEON_ID));
     check('reminder state listed for alpha', pa.reminders.some((r: any) => r.slug === 'alpha' && r.webhookSet === false));
+    eq('no errors in the 24h window', pa.errorCount24h, 0);
+    eq('errors list empty', pa.errors, []);
+    eq('feedback fixture listed', pa.feedbackEntries.total, 1);
+    check('audit page composes', typeof pa.auditEntries.total === 'number' && Array.isArray(pa.auditEntries.entries));
+    const remAlpha = pa.reminders.find((r: any) => r.slug === 'alpha');
+    eq('reminder carries the guild name', remAlpha.guildName, '甲百业');
+    eq('no hub binding -> next alarm stays null', remAlpha.nextAlarmAt, null);
+  });
+
+  it('reminder nextAlarmAt converts the hub millisecond alarm to seconds', async () => {
+    // GuildHub's /alarm-state returns storage.getAlarm() verbatim: a
+    // MILLISECOND timestamp. This surface speaks seconds and the SDL
+    // field is a 32-bit Int — an unconverted ms value overflows Int,
+    // the executor errors, and the masked error takes the whole admin
+    // page down (production incident, 2026-10-28). The suite env used
+    // to carry no GUILD_HUB binding, so nextAlarmAt was always null
+    // here and the overflow stayed invisible.
+    const ALARM_MS = 1760000000123;
+    const hubStub = {
+      idFromName: (name: string) => name,
+      get: (_id: unknown) => ({
+        fetch: async () => Response.json({ ok: true, slug: 'alpha', alarm: ALARM_MS }),
+      }),
+    };
+    const envHub = { DB: db, PLATFORM_ADMIN_DISCORD_IDS: 'ADMIN1', GUILD_HUB: hubStub };
+    const res = await gql(ADMIN_Q, { env: envHub });
+    check('no GraphQL errors', !res.errors, JSON.stringify(res.errors || {}));
+    const pa = res.data.viewer.platformAdmin;
+    eq('typename', pa.__typename, 'PlatformAdmin');
+    const rem = pa.reminders.find((r: any) => r.slug === 'alpha');
+    eq('nextAlarmAt is the floored second value', rem.nextAlarmAt, 1760000000);
   });
 
   it('non-admin mutations are refused and change nothing', async () => {
