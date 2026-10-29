@@ -250,7 +250,7 @@ export function hasCapability(verdict: OfficerVerdict, capability: OfficerCapabi
 }
 
 /* Grouping manage verdict (ruling 2026-10-26): a grouping is managed
- * by its leader (events.creator_discord_id) OR by an admin of the
+ * by its leader (events.creator_user_id) OR by an admin of the
  * grouping's OWN guild — the guild-admin verdict above, resolved
  * against the guild the grouping belongs to, never against a guild
  * the caller happens to administer elsewhere. This one verdict backs
@@ -269,8 +269,10 @@ export async function getGroupingManageVerdict(db: any, user: any, request: any,
   if (isAdmin) return { isLeader: false, isAdmin, isOfficer: false, canManage: true };
   // P16 delegation: an officer holding the events capability of the
   // grouping's OWN guild manages its groupings like an admin does.
+  // Same slug seam as the admin verdict above (getOfficerVerdict is
+  // slug-addressed; ev.tenant is the numeric guild ID).
   if (user) {
-    const v = await getOfficerVerdict(db, user, ev.tenant, request, vc);
+    const v = await getOfficerVerdict(db, user, tenantRow ? tenantRow.slug : '', request, vc);
     if (hasCapability(v, 'events')) {
       return { isLeader: false, isAdmin: false, isOfficer: true, canManage: true };
     }
