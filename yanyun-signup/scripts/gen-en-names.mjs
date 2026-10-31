@@ -62,7 +62,7 @@ function expect(name, map, n) {
   const got = Object.keys(map).length;
   if (got !== n) throw new Error(`${name}: expected ${n} entries, got ${got}`);
 }
-expect('dungeons', dungeons, 25); // 21 基础 + 5 个 ·极, 减白驹飞霞 (en=null 回退)
+expect('dungeons', dungeons, 26); // 21 base + 5 Supreme suffix rows; 白驹飞霞 filled 2026-10-31 from intl client locale data
 expect('bosses', bosses, 35);
 expect('paths', paths, 11);
 expect('schools', schools, 4);
