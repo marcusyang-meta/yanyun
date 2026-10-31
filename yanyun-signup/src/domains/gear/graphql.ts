@@ -97,18 +97,21 @@ export class TiaolvPageShell extends ShellBase {
   genSectWeights(){ return SECT_WEIGHTS; }
   /* Closed vocabularies as {id, label} options (vocab.ts is the single
    * source): the client keys its state by id and renders label; the
-   * "none" entry's label is UI copy and follows the request locale,
-   * the game-term labels are the canonical names in every locale. */
+   * "none" entry's label is UI copy and follows the request locale.
+   * Game-term labels are display-only, so they pass through the official
+   * English name overlay like every other game-name surface (a name with
+   * no official EN falls back to the canonical Chinese); the id and the
+   * canonical name the calc engine keys by never change. */
   genTlSuitOptions(){
     return TL_SUIT_OPTIONS.map((o) => ({
       id: o.id, isDefault: o.isDefault,
-      label: o.id === 'none' ? translate('tiaolv_none', this.locale) : o.name,
+      label: o.id === 'none' ? translate('tiaolv_none', this.locale) : enGearSetName(this.locale, o.name),
     }));
   }
   genTlBowOptions(){
     return TL_BOW_OPTIONS.map((o) => ({
       id: o.id, isDefault: o.isDefault,
-      label: o.id === 'none' ? translate('tiaolv_none', this.locale) : o.name,
+      label: o.id === 'none' ? translate('tiaolv_none', this.locale) : enClassLabel(this.locale, o.name),
     }));
   }
   genTlWukuOptions(){

@@ -125,7 +125,7 @@ async function gql(query, { user = null, locale = 'zh-CN' } = {}) {
 /* ---------------- Queries ---------------- */
 const Q_DEX = `{ dexPage { categories { category dungeons { name bosses { name } } } } }`;
 const Q_SECT = `{ sectPage { sects { slug name weapons buildType } } }`;
-const Q_TIAOLV = `{ tiaolvPage { sects { slug name } suits innerSkills } }`;
+const Q_TIAOLV = `{ tiaolvPage { sects { slug name } suits innerSkills tlSuitOptions { id label isDefault } tlBowOptions { id label isDefault } } }`;
 const Q_GRAD = `{ gradPage {
   gearAffixes { key label short sys }
   gearBuilds { idx school set sectName targets { label } }
@@ -210,6 +210,22 @@ async function runLocale(loc: string) {
       deepEq(`tiaolv suits 规范不变 ${tag}`, j.data?.tiaolvPage?.suits, ['飞隼', '白虹', '青衿', '素问']);
       deepEq(`tiaolv innerSkills 规范不变 ${tag}`, j.data?.tiaolvPage?.innerSkills,
         ['千营一呼', '易水歌', '征人归', '断石之构', '大唐歌', '极乐泣血', '忘川绝响', '花上月令', '剑气纵横']);
+      /* Vocab options: ids/defaults are locale-invariant data; game-term
+       * labels are display-only and go through the EN overlay (a name with
+       * no official EN falls back to the canonical Chinese). */
+      const suitOpts = j.data?.tiaolvPage?.tlSuitOptions || [];
+      deepEq(`tiaolv suit ids/defaults 规范不变 ${tag}`, suitOpts.map((o) => [o.id, o.isDefault]),
+        [['none', false], ['yuangui', false], ['hantian', true], ['lianxing', false], ['caiyun', false],
+         ['duanyue', false], ['yudou', false], ['shiyu', false], ['yanliu', false], ['huanhua', false], ['feixun', false]]);
+      const suitById = Object.fromEntries(suitOpts.map((o) => [o.id, o.label]));
+      eq(`tiaolv suit 燕归 ${tag}`, suitById.yuangui, exp('燕归', 'Swallowcall'));
+      eq(`tiaolv suit 时雨 ${tag}`, suitById.shiyu, exp('时雨', 'Rainwhisper'));
+      eq(`tiaolv suit 飞隼 ${tag}`, suitById.feixun, exp('飞隼', 'Hawkwing'));
+      eq(`tiaolv suit 撼天回退 ${tag}`, suitById.hantian, '撼天');
+      const bowById = Object.fromEntries((j.data?.tiaolvPage?.tlBowOptions || []).map((o) => [o.id, o.label]));
+      eq(`tiaolv bow 精准 ${tag}`, bowById.jingzhun, exp('精准', 'Precision Rate'));
+      eq(`tiaolv bow 会心 ${tag}`, bowById.huixin, exp('会心', 'Critical Rate'));
+      eq(`tiaolv bow 会意 ${tag}`, bowById.huiyi, exp('会意', 'Affinity Rate'));
     }
 
     /* Gear-bench data */
@@ -295,12 +311,21 @@ describe('ennames', () => {
     it(`locale matrix @${loc}`, async () => { await runLocale(loc); });
   }
 
-  /* zh-CN and zh-TW data surfaces are byte-identical (spot-checked on pure data queries only) */
+  /* zh-CN and zh-TW data surfaces are byte-identical (spot-checked on pure data queries only).
+   * The vocab options' "none" label is catalog UI copy (无 / 無), which
+   * legitimately differs between the two Chinese locales; it is stripped
+   * before the comparison — every game-term label stays in. */
+  function dataOnly(d) {
+    const c = JSON.parse(JSON.stringify(d || {}));
+    const tp = c.tiaolvPage;
+    if (tp) for (const k of ['tlSuitOptions', 'tlBowOptions']) for (const o of tp[k] || []) if (o.id === 'none') o.label = '';
+    return c;
+  }
   it('zh-CN ≡ zh-TW 数据面', async () => {
     for (const q of [Q_DEX, Q_SECT, Q_TIAOLV, Q_GRAD]) {
       const a = await gql(q, { locale: 'zh-CN' });
       const b = await gql(q, { locale: 'zh-TW' });
-      deepEq('zh-CN ≡ zh-TW 数据面', a.data, b.data);
+      deepEq('zh-CN ≡ zh-TW 数据面', dataOnly(a.data), dataOnly(b.data));
     }
   });
 });
