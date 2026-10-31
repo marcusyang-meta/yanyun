@@ -156,7 +156,7 @@ const CHINESE = ['zh-CN', 'zh-TW'];
 // Expected values: [canonical Chinese, overlay EN].
 const DUNGEON_EXP = [
   ['玉魄染青苍', 'Liminal Ascension'],
-  ['白驹飞霞', '白驹飞霞'], // en=null -> falls back
+  ['白驹飞霞', 'Dragonscale Tamer'], // filled 2026-10-31 from intl client locale data (was the en=null fallback case)
   ['云梦金明池·极', 'Dream Jinming Pool Supreme'],
 ];
 const BOSS_EXP = { '柏楚玉': 'Bai Chuyu', '青': 'Halcyon', '舞马人': 'Horse Tamer', '冯如之': 'Feng Ruzhi', '睡道人': 'Sleeping Daoist', '容鸢': 'Murong Yuan' };

@@ -1,6 +1,6 @@
 // Official English name overlay — generated file, do not hand-edit (edit the names.json data and rerun the generator).
 // Generator: scripts/gen-en-names.mjs; data source: research_notes/official-en-names/names.json
-// Version: names-2026-10-25
+// Version: names-2026-10-31
 //
 // Rules (user ruling, 2026-10-25):
 // - Display overlay only: names are swapped by locale when GraphQL display
@@ -9,7 +9,7 @@
 //   catalog in Spanish/French; only game names follow the EN client); zh-CN / zh-TW keep the Chinese names.
 // - Entries with en=null in names.json (no official source) are absent from this module -> display falls back to Chinese.
 // - Discord reminders and OG cards never pass through this layer; always Chinese.
-export const EN_NAMES_VERSION = "names-2026-10-25";
+export const EN_NAMES_VERSION = "names-2026-10-31";
 
 // Dungeons (key = D1 dungeons.name; the extreme tier is a separate `·极` suffix row)
 export const EN_DUNGEONS: Record<string, string> = {
@@ -25,6 +25,7 @@ export const EN_DUNGEONS: Record<string, string> = {
   "云梦金明池": "Dream Jinming Pool",
   "定极分更": "Compass & Chime",
   "俣俣神浒": "Segmented Puppets",
+  "白驹飞霞": "Dragonscale Tamer",
   "煞地惊雷": "Landscourge Thunder",
   "幽牙蛇影": "Serpent's Fang",
   "沉棺泊梦": "Abyssal Lament",
