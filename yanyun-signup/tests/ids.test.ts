@@ -127,7 +127,7 @@ describe('parsePublicId', () => {
     expect(() => parsePublicId(3000000001)).toThrowError(
       expect.objectContaining({ code: 'unknown-type' }),
     );
-    expect(() => parsePublicId(17000000001)).toThrowError(
+    expect(() => parsePublicId(18000000001)).toThrowError(
       expect.objectContaining({ code: 'unknown-type' }),
     );
   });

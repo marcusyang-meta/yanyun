@@ -297,6 +297,35 @@ export const groupingRecaps = sqliteTable('grouping_recaps', {
   index('idx_grouping_recaps_tenant').on(t.tenant, t.generatedAt),
 ]);
 
+/* ---------------- combat_encounters [migration 0038] -------------
+ * Combat reports v1 (premium T2): one row per imported encounter
+ * (a grouping holds many, 1:N). The aggregation snapshot and the
+ * per-encounter actor identity map ride as JSON documents; the
+ * retained raw import document (events_json, service-capped) lets
+ * a future attribution model recompute old reports. */
+export const combatEncounters = sqliteTable('combat_encounters', {
+  id: integer('id').primaryKey(),
+  tenant: integer('tenant').notNull().default(0),
+  eventId: integer('event_id').notNull().references(() => events.id, { onDelete: 'cascade' }),
+  uploaderUserId: integer('uploader_user_id').notNull().default(0),
+  bossName: text('boss_name').notNull().default(''),
+  startedAtMs: integer('started_at_ms').notNull().default(0),
+  durationMs: integer('duration_ms').notNull().default(0),
+  result: text('result').notNull().default('unknown'),
+  source: text('source').notNull().default('events'),
+  formatVersion: integer('format_version').notNull().default(1),
+  modelVersion: integer('model_version').notNull().default(1),
+  status: text('status').notNull().default('parsed'),
+  lastError: text('last_error').notNull().default(''),
+  snapshotJson: text('snapshot_json').notNull().default('{}'),
+  actorMapJson: text('actor_map_json').notNull().default('[]'),
+  eventsJson: text('events_json').notNull().default(''),
+  createdAt: integer('created_at').notNull().default(0),
+}, (t) => [
+  index('idx_combat_encounters_event').on(t.eventId, t.startedAtMs),
+  index('idx_combat_encounters_tenant').on(t.tenant, t.createdAt),
+]);
+
 /* ---------------- results [ddl chain baseline] ----------------------- */
 export const results = sqliteTable('results', {
   id: integer('id').primaryKey(),
