@@ -19178,6 +19178,954 @@
         }
       ],
       "types": []
+    },
+    "wqnXwlSyYIke52n2sbGTKA==": {
+      "description": "Title text for the combat report section on the squad detail page and the combat report page, used as the heading above one squad's encounter reports.",
+      "id": "groupings/combatReport_title",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Combat Reports",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "AmdMxWnbov1Qytb0TrygSQ==": {
+      "description": "Title text for the locked combat report section on the squad detail page, used when the guild is below the premium tier that includes combat reports.",
+      "id": "groupings/combatReport_lockedTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Combat Reports · Subscription Only",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "b0CP5WYpmjR/JWJdeG2iUQ==": {
+      "description": "Body text for the locked combat report section on the squad detail page, used to explain what the combat report feature does for guilds that have not unlocked it.",
+      "id": "groupings/combatReport_lockedBody",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Combat reports are an advanced subscription tier (T2 and up) feature: import a combat event file for an encounter to generate a skill breakdown, a buff-uptime timeline, and an rDPS attribution table, so the whole squad can see where every point of damage came from.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "QU4mK1RiPr4j+lYESJLc7A==": {
+      "description": "Body text for the empty combat report section on the squad detail page, used when a squad has no imported encounter yet.",
+      "id": "groupings/combatReport_emptyBody",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "This squad has no combat reports yet. Once a squad member imports a combat event file, the report will appear here, visible to the whole squad.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "G3o+BlunUAhjZcVTeAF9hA==": {
+      "description": "Hint text for the combat report section, used when the latest import attempt failed during processing but earlier reports are unaffected.",
+      "id": "groupings/combatReport_failedHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "The last import failed to process. You can import again; reports already generated are unaffected.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "WfDQhVvKEGSJtz0CB6XTHA==": {
+      "description": "Heading text for the encounter (attempt) list in the combat report section, used above the rows of imported encounters of one squad.",
+      "id": "groupings/combatReport_encountersTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Encounters",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "qbH9PkqXPfRFKIZDa7D7yg==": {
+      "description": "Link label for the combat report section on the squad detail page, used to open the full combat report page of the selected encounter.",
+      "id": "groupings/combatReport_viewReportLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "View Full Report",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "vp7mHKzjPzOehaFkCIvR3A==": {
+      "description": "Result label for a combat encounter, used when the encounter file declares the boss was killed.",
+      "id": "groupings/combatReport_resultKill",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Kill",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "jhZIl5XyBB0TNNasopbZhw==": {
+      "description": "Result label for a combat encounter, used when the encounter file declares the attempt wiped.",
+      "id": "groupings/combatReport_resultWipe",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Wipe",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "FN7bQQv45bD5j+FmV08qgw==": {
+      "description": "Result label for a combat encounter, used when the encounter file does not declare an outcome.",
+      "id": "groupings/combatReport_resultUnknown",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Result Not Recorded",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "iGB/OxEcYTIPXbP0w4L/1g==": {
+      "description": "Fallback boss name for a combat encounter, used when the imported data carries no boss name (overlay session exports).",
+      "id": "groupings/combatReport_bossFallback",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Unknown Target",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "7HqzdZOgJUp1/kg8Aa3ojA==": {
+      "description": "Summary line for the combat report overview, used when the encounter was imported from a layer-1 event file.",
+      "id": "groupings/combatReport_summarySourceEvents",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Source: Combat Event File",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "EFBHBA1aSkl+AwcVViB3Fw==": {
+      "description": "Summary line for the combat report overview, used when the encounter was imported from an overlay session export whose damage comes from the game's own team panel.",
+      "id": "groupings/combatReport_summarySourceOverlay",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Source: Screen-Vision Recording (Official Team Panel Basis)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "WmzTgwbjd/eL1e8doNpdxA==": {
+      "description": "Tag text for a combat report party row, used when the in-game character name matched no member of this guild's roster and is shown as a guest.",
+      "id": "groupings/combatReport_guestTag",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Guest",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "F5gys050DRcfDPrPBeu1Qg==": {
+      "description": "Marker text for a combat report buff row, used when the buff's damage multiplier is in neither the file nor the platform dictionary, so attribution treats it as 1.0 and says so.",
+      "id": "groupings/combatReport_multiplierUndetermined",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Multiplier Undetermined",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "mLB9TLyvhDT5fsxW1X6Daw==": {
+      "description": "Applier name for a combat report buff row, used when the buff was applied by the game system rather than a player.",
+      "id": "groupings/combatReport_applierSystem",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "System",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "G8QBVly2yCf3UgR3kff9rQ==": {
+      "description": "Skill name for a combat report skill row of an overlay import, used for damage that comes from the team panel totals without per-skill attribution.",
+      "id": "groupings/combatReport_panelSkillLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Panel Damage",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "TEw+QMZnAP/cIHfcqp+mAA==": {
+      "description": "Cast name for a combat report cast point, used when the cast's skill name was not identified.",
+      "id": "groupings/combatReport_unnamedCast",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Unnamed Skill",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "UCSnw5eCq7EMghx3YEeInQ==": {
+      "description": "Button label for the combat report section, used by a squad member to import one encounter file.",
+      "id": "groupings/combatReport_importLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Import Combat Report",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "m0n0LUWdv6JiAKcMoi/n6A==": {
+      "description": "Button label for the combat report section, used while an encounter import request is in progress.",
+      "id": "groupings/combatReport_importingLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Importing…",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "fWVlAFIcy0iE2Ce88JR5LA==": {
+      "description": "Hint text for the combat report section, used to explain which files the import accepts.",
+      "id": "groupings/combatReport_importHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Choose a combat event file (JSON) for one encounter, or an overlay session export. Once imported, the report is visible to the whole squad.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "9yvm+Thu91Xzfwiq4w5PuQ==": {
+      "description": "Toast message for the combat report section, used after an encounter import succeeds.",
+      "id": "groupings/combatReport_toastImported",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Combat report imported",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "kivlTN5OZMQRUgZ1zALxUA==": {
+      "description": "Error reason for a combat report import, used when the file's format version is not supported.",
+      "id": "groupings/combatReport_importErrorFormat",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Unsupported file format version",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "psT0QnF+Wm9fH0f9co5YHw==": {
+      "description": "Error reason for a combat report import, used when the file fails validation and nothing was imported.",
+      "id": "groupings/combatReport_importErrorValidation",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "File content failed validation",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "9M3p8wyPDxwlOzdlxS/zWQ==": {
+      "description": "Error reason for a combat report import, used when the guild reaches its daily import ceiling.",
+      "id": "groupings/combatReport_importErrorLimit",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Today's import limit has been reached",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "CLDLNilNU32xP0E5uAdd2Q==": {
+      "description": "Error reason for a combat report import, used when the caller may not import into this squad.",
+      "id": "groupings/combatReport_importErrorForbidden",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "You do not have permission to import",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "O+xoGtlKvcvHywXj14j3BA==": {
+      "description": "Error reason for a combat report import, used when the target squad does not exist.",
+      "id": "groupings/combatReport_importErrorNotFound",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "This squad does not exist",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "wmpqg4VS5w5/Le5phk5Qlg==": {
+      "description": "Error reason for a combat report import, used when the guild is below the tier that includes combat reports.",
+      "id": "groupings/combatReport_importErrorTier",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "This guild has not unlocked combat reports",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "SABXedm1wn3uTTVFHJEz3g==": {
+      "description": "Button label for a combat encounter row, used by the uploader or a squad manager to delete that encounter's report.",
+      "id": "groupings/combatReport_deleteLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Delete",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "5rm7MCF9t9ruDiYpndwG4g==": {
+      "description": "Title text for the combat encounter deletion confirmation dialog, used to confirm deleting one encounter report.",
+      "id": "groupings/combatReport_deleteConfirmTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Delete this combat report?",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "d4HgSU3W4uL3J5x0AytPIA==": {
+      "description": "Toast message for the combat report section, used after an encounter report is deleted.",
+      "id": "groupings/combatReport_toastDeleted",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Deleted",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "tzo+c4I8gOQKBWaeKyFUTw==": {
+      "description": "Tab label for the combat report page, used to switch to the overview tab (summary and party table).",
+      "id": "groupings/combatReport_tabOverviewLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Overview",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Ow97aWx//KT9pFrHN2Dm9Q==": {
+      "description": "Tab label for the combat report page, used to switch to the per-player skill breakdown tab.",
+      "id": "groupings/combatReport_tabDamageLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Damage",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "VofI24wpMcnfBevIdhPtag==": {
+      "description": "Tab label for the combat report page, used to switch to the buff uptime timeline tab.",
+      "id": "groupings/combatReport_tabBuffsLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Buffs",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "KkyU/rhkq1ks5+7YzaWC4A==": {
+      "description": "Tab label for the combat report page, used to switch to the cast list tab.",
+      "id": "groupings/combatReport_tabCastsLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Casts",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "uuDPdadKLhJ95lxiaMRsPA==": {
+      "description": "Tab label for the combat report page, used to switch to the team damage timeline tab.",
+      "id": "groupings/combatReport_tabTimelineLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Timeline",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "BJnxakojr1o4XXGGaoEm2Q==": {
+      "description": "Link label for the combat report page, used to go back to the squad detail page.",
+      "id": "groupings/combatReport_backLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Back to Squad",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "N84LkcV7QUQKu18tGIYlzQ==": {
+      "description": "Column header for the combat report party table, used above the player name column.",
+      "id": "groupings/combatReport_colPlayer",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Player",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ByJSG7hVFnHSeHUT0+S7bw==": {
+      "description": "Column header for combat report tables, used above a total damage column.",
+      "id": "groupings/combatReport_colTotal",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Total",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "zrMf8h3iQCef4jlwWUov4w==": {
+      "description": "Column header for the combat report party table, used above the activity percentage column.",
+      "id": "groupings/combatReport_colActivity",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Activity",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "sMdQDNgzsDMjX2NInapx3Q==": {
+      "description": "Column header for combat report tables, used above a damage-per-second column.",
+      "id": "groupings/combatReport_colDps",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "DPS",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "mMOK/5abY/cWBq2fs1VQ0g==": {
+      "description": "Column header for the combat report party table, used above the attributed damage-per-second column.",
+      "id": "groupings/combatReport_colRdps",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "rDPS",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "sGNCWp/vghLlv5d2nnK3HA==": {
+      "description": "Column header for the combat report party table, used above the attributed share column.",
+      "id": "groupings/combatReport_colRShare",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "rDPS Share",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Up7RYXWj1/zezdYaiGNqQg==": {
+      "description": "Column header for the combat report skill table, used above the skill name column.",
+      "id": "groupings/combatReport_colSkill",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Skill",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "plYOb/1v2SJ+Hg60nJpBPw==": {
+      "description": "Column header for the combat report skill table, used above the cast count column.",
+      "id": "groupings/combatReport_colCasts",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Casts",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Wl/mQvmrKYYCKgRlWsJz6w==": {
+      "description": "Column header for the combat report skill table, used above the hit count column.",
+      "id": "groupings/combatReport_colHits",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Hits",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "3CL3YzTye/Wh1kNXpFkYVQ==": {
+      "description": "Column header for the combat report skill table, used above the average hit column.",
+      "id": "groupings/combatReport_colAvg",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Average",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "4gnEuRAfhaIeKOwYnWM1DA==": {
+      "description": "Column header for the combat report skill table, used above the huiXin crit percentage column.",
+      "id": "groupings/combatReport_colCrit",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Critical",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "R+EB8no2sgVF0J9M20Z2Fg==": {
+      "description": "Column header for the combat report skill table, used above the huiYi crit percentage column.",
+      "id": "groupings/combatReport_colSpec",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Affinity",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "J2Jt1ergXLsEpsgHTWOhwA==": {
+      "description": "Column header for the combat report skill table, used above the maximum single hit column.",
+      "id": "groupings/combatReport_colMax",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Max",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "mDt1QGhIdCgBTcFuAvQQFg==": {
+      "description": "Column header for the combat report skill table, used above the share-of-player column.",
+      "id": "groupings/combatReport_colShare",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Share",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "mcZaxw1K7+bo7NaP2DYhBQ==": {
+      "description": "Column header for the combat report buff table, used above the buff name column.",
+      "id": "groupings/combatReport_colBuff",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Buff",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "yS/ml/QSUszsByAhIHahRw==": {
+      "description": "Column header for the combat report buff table, used above the applier column.",
+      "id": "groupings/combatReport_colApplier",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Applier",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "1Z/wewP8r1Ih67wOCNS93w==": {
+      "description": "Column header for the combat report buff table, used above the target column.",
+      "id": "groupings/combatReport_colTarget",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Target",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "F9gzQ3j3N/Wusy2SOTNQkQ==": {
+      "description": "Column header for the combat report buff table, used above the uptime percentage column.",
+      "id": "groupings/combatReport_colUptime",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Uptime",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "UUYQiLbnDRoWDmI2p9Qtbw==": {
+      "description": "Column header for the combat report cast list, used above the time-offset column.",
+      "id": "groupings/combatReport_colTime",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Time",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ADMeJDivSL8RUQkTTm6gWA==": {
+      "description": "Footnote for the combat report party table, used to state the activity percentage definition.",
+      "id": "groupings/combatReport_activityNote",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Activity basis: time is divided into 1-second cells; a player counts as active in a cell when they cast, land a hit, or apply a buff within it.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "srDbLt3GtD0GfJnrtcfCxQ==": {
+      "description": "Footnote for the combat report party table, used to state the rDPS attribution definition.",
+      "id": "groupings/combatReport_rdpsNote",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "rDPS basis: the extra damage granted by a buff is credited back to its applier by the log-weights of each buff's multiplier; system buffs stay with the beneficiary, and team rDPS is conserved against total damage.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "4OJhqlYPODySLeD97Fls5g==": {
+      "description": "Heading text for the combat report casts tab of an overlay import, used because overlay cast points belong to the local player only.",
+      "id": "groupings/combatReport_castsLocalTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Local Cast Record",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Fh9YbA0k0sjmeuhk28IHJg==": {
+      "description": "Heading text for the combat report timeline tab, used above the per-second team damage chart.",
+      "id": "groupings/combatReport_timelineTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Team Damage per Second",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "mwphY9Kd7Q9gtOQDL3M5Uw==": {
+      "description": "Tab label for the guild admin page, used to switch to the combat report index tab.",
+      "id": "groupings/combatReport_adminTabLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Combat Reports",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "P4VSey6ImRUZq01c6X8OIw==": {
+      "description": "Title text for the combat report index on the guild admin page, used as the heading above the guild's encounter list.",
+      "id": "groupings/combatReport_adminTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Combat Report Records",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "qKyWLyio7uE5o9mLUK0c7A==": {
+      "description": "Empty-state text for the combat report index on the guild admin page, used when the guild has no encounters yet.",
+      "id": "groupings/combatReport_adminEmptyText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "No combat report records yet. Once squad members import combat reports, they will be collected here.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "8VxBo1indbmlwLFlzofbsQ==": {
+      "description": "Status label for the combat report index on the guild admin page, used for an encounter that was processed successfully.",
+      "id": "groupings/combatReport_adminStatusParsedText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Generated",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "wX7VhbVIkO/VgJa1GqwrRg==": {
+      "description": "Status label for the combat report index on the guild admin page, used for an encounter whose import processing failed.",
+      "id": "groupings/combatReport_adminStatusFailedText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Processing Failed",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "27f3hBUW30+uWzrnuTWeZA==": {
+      "description": "Error message for combat report deletion, used when someone other than the uploader, the squad leader or a guild admin tries to delete an encounter report.",
+      "id": "platform/errors_combatReportForbidden",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Only the importer, the squad leader, or a guild admin of this guild can delete this report",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "7P1Lb2dI0w285bWlyrESNw==": {
+      "description": "Error message for combat reports, used when an operation references an encounter report that does not exist.",
+      "id": "platform/errors_combatEncounterNotFound",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "This combat report does not exist",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "49vJs8E+MfWyb9a28MZeyA==": {
+      "description": "Error message for combat reports, used when the guild is below the premium tier that includes combat reports.",
+      "id": "platform/errors_combatTierLocked",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "This guild has not unlocked combat reports (an advanced subscription tier feature)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Mlw9QJXWpRvbiwG/d6X/bA==": {
+      "description": "Summary line for the combat report overview, used to show the team's total damage and team DPS, where {total} is the formatted team damage and {dps} the formatted team DPS.",
+      "id": "groupings/combatReport_summaryTeam",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Team total {total} · DPS {dps}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "k9Ec/hy38C4ADmPoiJfjJw==": {
+      "description": "Summary line for the combat report overview, used to show the encounter duration, where {duration} is the formatted duration.",
+      "id": "groupings/combatReport_summaryDuration",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Duration {duration}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "93o/Atech9OQ5plRrANm0Q==": {
+      "description": "Summary line for the combat report overview, used to show how many players were observed in the encounter, where {count} is the player count.",
+      "id": "groupings/combatReport_summaryPlayers",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{count} players",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "W4rzqtDM3FZ6e62BJmn0Pw==": {
+      "description": "Data-quality line for the combat report overview, used when buff intervals had to be closed at the encounter end, where {count} is how many intervals were affected.",
+      "id": "groupings/combatReport_qualityUnclosed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Data note: {count} buff intervals were not closed properly and were closed at the encounter end",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "/rsV61szNn9l9g7KrW7kHg==": {
+      "description": "Meta text for the combat report, used to name the attribution model version that computed the report, where {version} is the model version number.",
+      "id": "groupings/combatReport_modelVersionText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Attribution model v{version}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "3PEQYPx/RE0yI5SvLK0BPQ==": {
+      "description": "Meta text for a combat encounter row, used to show when the encounter started, where {time} is the formatted start time.",
+      "id": "groupings/combatReport_startedAtText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Started at {time}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "PfIKNbQX0rPXmnIIL+/AJw==": {
+      "description": "Meta text for a combat encounter row, used to show when the encounter was imported (for overlay exports that carry no start time), where {time} is the formatted import time.",
+      "id": "groupings/combatReport_importedAtText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Imported at {time}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "XLyU7JKRGXkvPGfAx26mFg==": {
+      "description": "Meta text for a combat encounter row, used to name the member who imported it, where {name} is the uploader's display name.",
+      "id": "groupings/combatReport_uploaderText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Imported by {name}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "SS4DT65kpStcKwFe+wqEKA==": {
+      "description": "Toast message for the combat report section, used when an encounter import fails, where {error} is the failure reason.",
+      "id": "groupings/combatReport_toastImportFailedTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Import failed: {error}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ztW+k656EUfNNr5OLMZJww==": {
+      "description": "Body text for the combat encounter deletion confirmation dialog, where {boss} is the encounter's boss name.",
+      "id": "groupings/combatReport_deleteConfirmMessageTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "This will delete the combat report for \"{boss}\", and it cannot be restored.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Q/pW9kihS3whVqaAlB5CRQ==": {
+      "description": "Toast message for the combat report section, used when deleting an encounter report fails, where {error} is the failure reason.",
+      "id": "groupings/combatReport_toastDeleteFailedTemplate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Delete failed: {error}",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

@@ -282,6 +282,9 @@ export abstract class ErrorsFbtUtils {
   static recapNotEnabled(fbs: FbsAPI) { return fbs("AI 复盘尚未开启", "Error message for AI recap generation, used when the platform has not configured an AI recap provider yet."); }
   static recapDailyLimit(fbs: FbsAPI) { return fbs("今日复盘生成次数已达上限，明天再试", "Error message for AI recap generation, used when the guild has used up its daily recap generation quota."); }
   static recapProviderFailed(fbs: FbsAPI) { return fbs("复盘生成失败，请稍后重试", "Error message for AI recap generation, used when the AI provider call fails or returns no usable recap text."); }
+  static combatReportForbidden(fbs: FbsAPI) { return fbs("只有导入者本人、车头或本百业管理员可以删除这场报告", "Error message for combat report deletion, used when someone other than the uploader, the squad leader or a guild admin tries to delete an encounter report."); }
+  static combatEncounterNotFound(fbs: FbsAPI) { return fbs("战斗报告不存在", "Error message for combat reports, used when an operation references an encounter report that does not exist."); }
+  static combatTierLocked(fbs: FbsAPI) { return fbs("该百业尚未开通战斗报告（进阶订阅档功能）", "Error message for combat reports, used when the guild is below the premium tier that includes combat reports."); }
 }
 
 

@@ -315,3 +315,82 @@ export abstract class RecapFbtUtils {
   static adminStatusFailedText(fbs: FbsAPI) { return fbs("生成失败", "Status label for the AI recap index on the guild admin page, used for a recap whose latest generation attempt failed."); }
   static adminParagraphCount(fbs: FbsAPI, p?: StringParams) { return fbs([fbs.param("count", pv(p, "count")), " 段"], "Count text for the AI recap index on the guild admin page, used to show how many paragraphs a recap holds, where {count} is the paragraph count."); }
 }
+
+export abstract class CombatReportFbtUtils {
+  static title(fbs: FbsAPI) { return fbs("战斗报告", "Title text for the combat report section on the squad detail page and the combat report page, used as the heading above one squad's encounter reports."); }
+  static lockedTitle(fbs: FbsAPI) { return fbs("战斗报告 · 订阅专属", "Title text for the locked combat report section on the squad detail page, used when the guild is below the premium tier that includes combat reports."); }
+  static lockedBody(fbs: FbsAPI) { return fbs("战斗报告是进阶订阅档（执事起）功能：导入一场的战斗事件文件后，生成技能构成、增益覆盖时间轴与 rDPS 归因表，帮全车看清每一份伤害的来历。", "Body text for the locked combat report section on the squad detail page, used to explain what the combat report feature does for guilds that have not unlocked it."); }
+  static emptyBody(fbs: FbsAPI) { return fbs("本场车队还没有战斗报告。车队成员导入一场战斗的事件文件后，报告将展示在这里，全车队成员可见。", "Body text for the empty combat report section on the squad detail page, used when a squad has no imported encounter yet."); }
+  static failedHint(fbs: FbsAPI) { return fbs("上次导入处理失败，可重新导入；已经生成的报告不受影响。", "Hint text for the combat report section, used when the latest import attempt failed during processing but earlier reports are unaffected."); }
+  static encountersTitle(fbs: FbsAPI) { return fbs("场次", "Heading text for the encounter (attempt) list in the combat report section, used above the rows of imported encounters of one squad."); }
+  static viewReportLabel(fbs: FbsAPI) { return fbs("查看完整报告", "Link label for the combat report section on the squad detail page, used to open the full combat report page of the selected encounter."); }
+  static resultKill(fbs: FbsAPI) { return fbs("击杀", "Result label for a combat encounter, used when the encounter file declares the boss was killed."); }
+  static resultWipe(fbs: FbsAPI) { return fbs("团灭", "Result label for a combat encounter, used when the encounter file declares the attempt wiped."); }
+  static resultUnknown(fbs: FbsAPI) { return fbs("结果未记录", "Result label for a combat encounter, used when the encounter file does not declare an outcome."); }
+  static bossFallback(fbs: FbsAPI) { return fbs("未知目标", "Fallback boss name for a combat encounter, used when the imported data carries no boss name (overlay session exports)."); }
+  static summaryTeam(fbs: FbsAPI, p?: StringParams) { return fbs(["全队总伤 ", fbs.param("total", pv(p, "total")), " · 秒伤 ", fbs.param("dps", pv(p, "dps"))], "Summary line for the combat report overview, used to show the team's total damage and team DPS, where {total} is the formatted team damage and {dps} the formatted team DPS."); }
+  static summaryDuration(fbs: FbsAPI, p?: StringParams) { return fbs(["战斗时长 ", fbs.param("duration", pv(p, "duration"))], "Summary line for the combat report overview, used to show the encounter duration, where {duration} is the formatted duration."); }
+  static summaryPlayers(fbs: FbsAPI, p?: StringParams) { return fbs(["参战 ", fbs.param("count", pv(p, "count")), " 人"], "Summary line for the combat report overview, used to show how many players were observed in the encounter, where {count} is the player count."); }
+  static summarySourceEvents(fbs: FbsAPI) { return fbs("数据来源：战斗事件文件", "Summary line for the combat report overview, used when the encounter was imported from a layer-1 event file."); }
+  static summarySourceOverlay(fbs: FbsAPI) { return fbs("数据来源：屏幕视觉记录（官方团队面板口径）", "Summary line for the combat report overview, used when the encounter was imported from an overlay session export whose damage comes from the game's own team panel."); }
+  static qualityUnclosed(fbs: FbsAPI, p?: StringParams) { return fbs(["数据提示：", fbs.param("count", pv(p, "count")), " 处增益区间未正常关闭，已按战斗结束时刻收口"], "Data-quality line for the combat report overview, used when buff intervals had to be closed at the encounter end, where {count} is how many intervals were affected."); }
+  static modelVersionText(fbs: FbsAPI, p?: StringParams) { return fbs(["归因模型 v", fbs.param("version", pv(p, "version"))], "Meta text for the combat report, used to name the attribution model version that computed the report, where {version} is the model version number."); }
+  static startedAtText(fbs: FbsAPI, p?: StringParams) { return fbs(["开场于 ", fbs.param("time", pv(p, "time"))], "Meta text for a combat encounter row, used to show when the encounter started, where {time} is the formatted start time."); }
+  static importedAtText(fbs: FbsAPI, p?: StringParams) { return fbs(["导入于 ", fbs.param("time", pv(p, "time"))], "Meta text for a combat encounter row, used to show when the encounter was imported (for overlay exports that carry no start time), where {time} is the formatted import time."); }
+  static uploaderText(fbs: FbsAPI, p?: StringParams) { return fbs(["由 ", fbs.param("name", pv(p, "name")), " 导入"], "Meta text for a combat encounter row, used to name the member who imported it, where {name} is the uploader's display name."); }
+  static guestTag(fbs: FbsAPI) { return fbs("访客", "Tag text for a combat report party row, used when the in-game character name matched no member of this guild's roster and is shown as a guest."); }
+  static multiplierUndetermined(fbs: FbsAPI) { return fbs("倍率未定", "Marker text for a combat report buff row, used when the buff's damage multiplier is in neither the file nor the platform dictionary, so attribution treats it as 1.0 and says so."); }
+  static applierSystem(fbs: FbsAPI) { return fbs("系统", "Applier name for a combat report buff row, used when the buff was applied by the game system rather than a player."); }
+  static panelSkillLabel(fbs: FbsAPI) { return fbs("面板伤害", "Skill name for a combat report skill row of an overlay import, used for damage that comes from the team panel totals without per-skill attribution."); }
+  static unnamedCast(fbs: FbsAPI) { return fbs("未命名技能", "Cast name for a combat report cast point, used when the cast's skill name was not identified."); }
+  static importLabel(fbs: FbsAPI) { return fbs("导入战斗报告", "Button label for the combat report section, used by a squad member to import one encounter file."); }
+  static importingLabel(fbs: FbsAPI) { return fbs("导入中…", "Button label for the combat report section, used while an encounter import request is in progress."); }
+  static importHint(fbs: FbsAPI) { return fbs("选择一场战斗的事件文件（JSON）或 overlay 会话导出，导入后全车队可见。", "Hint text for the combat report section, used to explain which files the import accepts."); }
+  static toastImported(fbs: FbsAPI) { return fbs("战斗报告已导入", "Toast message for the combat report section, used after an encounter import succeeds."); }
+  static toastImportFailedTemplate(fbs: FbsAPI, p?: StringParams) { return fbs(["导入失败：", fbs.param("error", pv(p, "error"))], "Toast message for the combat report section, used when an encounter import fails, where {error} is the failure reason."); }
+  static importErrorFormat(fbs: FbsAPI) { return fbs("文件格式版本不受支持", "Error reason for a combat report import, used when the file's format version is not supported."); }
+  static importErrorValidation(fbs: FbsAPI) { return fbs("文件内容校验未通过", "Error reason for a combat report import, used when the file fails validation and nothing was imported."); }
+  static importErrorLimit(fbs: FbsAPI) { return fbs("今日导入次数已达上限", "Error reason for a combat report import, used when the guild reaches its daily import ceiling."); }
+  static importErrorForbidden(fbs: FbsAPI) { return fbs("没有导入权限", "Error reason for a combat report import, used when the caller may not import into this squad."); }
+  static importErrorNotFound(fbs: FbsAPI) { return fbs("车队不存在", "Error reason for a combat report import, used when the target squad does not exist."); }
+  static importErrorTier(fbs: FbsAPI) { return fbs("本百业尚未开通战斗报告", "Error reason for a combat report import, used when the guild is below the tier that includes combat reports."); }
+  static deleteLabel(fbs: FbsAPI) { return fbs("删除", "Button label for a combat encounter row, used by the uploader or a squad manager to delete that encounter's report."); }
+  static deleteConfirmTitle(fbs: FbsAPI) { return fbs("删除这场战斗报告？", "Title text for the combat encounter deletion confirmation dialog, used to confirm deleting one encounter report."); }
+  static deleteConfirmMessageTemplate(fbs: FbsAPI, p?: StringParams) { return fbs(["将删除「", fbs.param("boss", pv(p, "boss")), "」的这场战斗报告，删除后不可恢复。"], "Body text for the combat encounter deletion confirmation dialog, where {boss} is the encounter's boss name."); }
+  static toastDeleted(fbs: FbsAPI) { return fbs("已删除", "Toast message for the combat report section, used after an encounter report is deleted."); }
+  static toastDeleteFailedTemplate(fbs: FbsAPI, p?: StringParams) { return fbs(["删除失败：", fbs.param("error", pv(p, "error"))], "Toast message for the combat report section, used when deleting an encounter report fails, where {error} is the failure reason."); }
+  static tabOverviewLabel(fbs: FbsAPI) { return fbs("总览", "Tab label for the combat report page, used to switch to the overview tab (summary and party table)."); }
+  static tabDamageLabel(fbs: FbsAPI) { return fbs("伤害", "Tab label for the combat report page, used to switch to the per-player skill breakdown tab."); }
+  static tabBuffsLabel(fbs: FbsAPI) { return fbs("增益", "Tab label for the combat report page, used to switch to the buff uptime timeline tab."); }
+  static tabCastsLabel(fbs: FbsAPI) { return fbs("施法", "Tab label for the combat report page, used to switch to the cast list tab."); }
+  static tabTimelineLabel(fbs: FbsAPI) { return fbs("时间线", "Tab label for the combat report page, used to switch to the team damage timeline tab."); }
+  static backLabel(fbs: FbsAPI) { return fbs("返回车队", "Link label for the combat report page, used to go back to the squad detail page."); }
+  static colPlayer(fbs: FbsAPI) { return fbs("玩家", "Column header for the combat report party table, used above the player name column."); }
+  static colTotal(fbs: FbsAPI) { return fbs("总量", "Column header for combat report tables, used above a total damage column."); }
+  static colActivity(fbs: FbsAPI) { return fbs("活跃", "Column header for the combat report party table, used above the activity percentage column."); }
+  static colDps(fbs: FbsAPI) { return fbs("秒伤", "Column header for combat report tables, used above a damage-per-second column."); }
+  static colRdps(fbs: FbsAPI) { return fbs("rDPS", "Column header for the combat report party table, used above the attributed damage-per-second column."); }
+  static colRShare(fbs: FbsAPI) { return fbs("rDPS 占比", "Column header for the combat report party table, used above the attributed share column."); }
+  static colSkill(fbs: FbsAPI) { return fbs("技能", "Column header for the combat report skill table, used above the skill name column."); }
+  static colCasts(fbs: FbsAPI) { return fbs("次数", "Column header for the combat report skill table, used above the cast count column."); }
+  static colHits(fbs: FbsAPI) { return fbs("命中", "Column header for the combat report skill table, used above the hit count column."); }
+  static colAvg(fbs: FbsAPI) { return fbs("平均", "Column header for the combat report skill table, used above the average hit column."); }
+  static colCrit(fbs: FbsAPI) { return fbs("会心", "Column header for the combat report skill table, used above the huiXin crit percentage column."); }
+  static colSpec(fbs: FbsAPI) { return fbs("会意", "Column header for the combat report skill table, used above the huiYi crit percentage column."); }
+  static colMax(fbs: FbsAPI) { return fbs("最高", "Column header for the combat report skill table, used above the maximum single hit column."); }
+  static colShare(fbs: FbsAPI) { return fbs("占比", "Column header for the combat report skill table, used above the share-of-player column."); }
+  static colBuff(fbs: FbsAPI) { return fbs("增益", "Column header for the combat report buff table, used above the buff name column."); }
+  static colApplier(fbs: FbsAPI) { return fbs("施加者", "Column header for the combat report buff table, used above the applier column."); }
+  static colTarget(fbs: FbsAPI) { return fbs("目标", "Column header for the combat report buff table, used above the target column."); }
+  static colUptime(fbs: FbsAPI) { return fbs("覆盖率", "Column header for the combat report buff table, used above the uptime percentage column."); }
+  static colTime(fbs: FbsAPI) { return fbs("时刻", "Column header for the combat report cast list, used above the time-offset column."); }
+  static activityNote(fbs: FbsAPI) { return fbs("活跃口径：以 1 秒为格，玩家在格内有施法、命中或施加增益事件即记为活跃。", "Footnote for the combat report party table, used to state the activity percentage definition."); }
+  static rdpsNote(fbs: FbsAPI) { return fbs("rDPS 口径：增益带来的额外伤害按各增益倍率的对数权重归还施加者；系统增益留在受益者名下，全队 rDPS 与总伤守恒。", "Footnote for the combat report party table, used to state the rDPS attribution definition."); }
+  static castsLocalTitle(fbs: FbsAPI) { return fbs("本地施法记录", "Heading text for the combat report casts tab of an overlay import, used because overlay cast points belong to the local player only."); }
+  static timelineTitle(fbs: FbsAPI) { return fbs("每秒全队伤害", "Heading text for the combat report timeline tab, used above the per-second team damage chart."); }
+  static adminTabLabel(fbs: FbsAPI) { return fbs("战斗报告", "Tab label for the guild admin page, used to switch to the combat report index tab."); }
+  static adminTitle(fbs: FbsAPI) { return fbs("战斗报告记录", "Title text for the combat report index on the guild admin page, used as the heading above the guild's encounter list."); }
+  static adminEmptyText(fbs: FbsAPI) { return fbs("暂无战斗报告记录。车队成员导入战斗报告后，会在这里汇总。", "Empty-state text for the combat report index on the guild admin page, used when the guild has no encounters yet."); }
+  static adminStatusParsedText(fbs: FbsAPI) { return fbs("已生成", "Status label for the combat report index on the guild admin page, used for an encounter that was processed successfully."); }
+  static adminStatusFailedText(fbs: FbsAPI) { return fbs("处理失败", "Status label for the combat report index on the guild admin page, used for an encounter whose import processing failed."); }
+}

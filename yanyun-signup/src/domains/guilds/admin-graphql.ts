@@ -80,7 +80,7 @@ import {
   reliabilityForAdmin, heatmapForAdmin, gearBoardForAdmin, raceBoardForViewer,
 } from './insights-graphql.ts';
 import { announcementPageForAdmin, announcementPageForMember } from './announcements-graphql.ts';
-import { adminRecapsForGuild } from '../groupings/index.ts';
+import { adminRecapsForGuild, adminCombatReportsForGuild } from '../groupings/index.ts';
 import { SeasonChecklistShell, GuildRosterShell } from './season-graphql.ts';
 import { officerPageForAdmin } from './officer-graphql.ts';
 import { opsPageForAdmin } from './ops-graphql.ts';
@@ -518,6 +518,7 @@ const ADMIN_TEXT_SPEC: [string, string][] = [
   ['adminTabOfficerLabel', 'guildAdmin_tabOfficer'],
   ['adminTabOpsLabel', 'ops_tabOps'],
   ['adminTabRecapsLabel', 'recap_adminTabLabel'],
+  ['adminTabCombatReportsLabel', 'combatReport_adminTabLabel'],
   ['adminSaveLabel', 'guildAdmin_saveButton'],
   ['adminSavedText', 'guildAdmin_savedText'],
   ['adminDeleteLabel', 'guildAdmin_deleteButton'],
@@ -845,6 +846,14 @@ export class GuildAdminShell extends ShellBase {
   genRecaps(){
     return this.memo('recaps', async () => adminRecapsForGuild(this.ctx, this.genSlug()));
   }
+  /* Combat report index (combat reports v1, premium T2): the
+   * guild's encounter list, composed in the groupings domain
+   * with the detail surface's verdict order (absent / Locked /
+   * List). Only on the GuildAdmin type — Locked never resolves
+   * it. */
+  genCombatReports(){
+    return this.memo('combatReports', async () => adminCombatReportsForGuild(this.ctx, this.genSlug()));
+  }
   genStats(){
     return this.memo('stats', async () => {
       // Capability gate (P16) first: an officer without the stats
@@ -1051,6 +1060,7 @@ function contentResolvers() {
     governance: (p: any) => p.genGovernance(),
     viewerCapabilities: (p: any) => p.genViewerCapabilities(),
     recaps: (p: GuildAdminShell) => p.genRecaps(),
+    combatReports: (p: GuildAdminShell) => p.genCombatReports(),
     stats: (p: GuildAdminShell) => p.genStats(),
     reliability: (p: GuildAdminShell) => p.genReliability(),
     participationHeatmap: (p: GuildAdminShell) => p.genParticipationHeatmap(),
@@ -1129,6 +1139,21 @@ export const guildAdminTypes = {
     version: (p: any) => p.genVersion(), paragraphCount: (p: any) => p.genParagraphCount(),
     paragraphCountText: (p: any) => p.genParagraphCountText(),
     generatedAtText: (p: any) => p.genGeneratedAtText(),
+  },
+  GuildAdminCombatReportResult: { __resolveType: (p: any) => p.__typename },
+  GuildAdminCombatReportList: {
+    title: (p: any) => p.genTitle(),
+    emptyText: (p: any) => p.genEmptyText(),
+    items: (p: any) => p.genItems(),
+  },
+  GuildAdminCombatEncounter: {
+    id: (p: any) => p.genId(), groupingId: (p: any) => p.genGroupingId(),
+    groupingTitle: (p: any) => p.genGroupingTitle(),
+    bossName: (p: any) => p.genBossName(),
+    status: (p: any) => p.genStatus(), statusText: (p: any) => p.genStatusText(),
+    resultText: (p: any) => p.genResultText(),
+    teamDpsText: (p: any) => p.genTeamDpsText(),
+    importedAtText: (p: any) => p.genImportedAtText(),
   },
   GuildAdminStatsResult: { __resolveType: (p: any) => p.__typename },
   GuildAdminStatsLocked: {

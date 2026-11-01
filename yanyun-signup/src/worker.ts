@@ -21,6 +21,7 @@ import { platformAdminBackupRoutes } from './domains/platform/admin-backup-route
 import { billingRoutes } from './domains/platform/billing-routes.ts';
 import { guildAvatarRoutes } from './domains/guilds/avatar-routes.ts';
 import { shortLinkRoutes } from './domains/groupings/shortlink-routes.ts';
+import { combatReportRoutes } from './domains/groupings/combat-routes.ts';
 
 /* Hono app */
 const app = new Hono();
@@ -44,6 +45,7 @@ app.route('/api/platform-admin', platformAdminBackupRoutes); // backup file down
 app.route('/', billingRoutes); // Stripe webhook /stripe/webhook (signature-authenticated, no session)
 app.route('/', guildAvatarRoutes); // avatar public path /guilds/:slug/avatar (standalone, survives the REST shutdown)
 app.route('/', shortLinkRoutes); // share short links /c/:code -> 302 to the canonical car URL
+app.route('/', combatReportRoutes); // combat report imports POST /api/groupings/:id/combat-reports (session + tier gate)
 
 app.all('/graphql', async (c: any) => {
   // Sessions with incomplete Discord authorization are voided here

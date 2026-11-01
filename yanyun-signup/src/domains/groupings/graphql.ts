@@ -44,6 +44,7 @@ import { resolveSharedGrouping } from './shareview.ts';
 import { schedulingAdviceResolvers, composeGroupingSchedulingAdvice, composeCrossCarAdvice } from './scheduling-graphql.ts';
 import { buildMemberFacts, buildTeamDraft, rankSubstitutes } from './scheduling.ts';
 import { recapSurfaceForGrouping, recapResolvers } from './recap-graphql.ts';
+import { combatReportSurfaceForGrouping, combatResolvers } from './combat-graphql.ts';
 import {
   listSignupSeats, listSignupSeatsBasic, listSignupNamesStamps,
   insertSignups, insertSignupWithCapacityGuard, deleteSignupByEventUid, deleteSignupsByEvent,
@@ -536,6 +537,16 @@ export class GroupingDetailPageShell extends ShellBase {
   genRecap(){
     return this.memo('recap', async () => recapSurfaceForGrouping(this.ctx, this.data));
   }
+  // Combat reports v1 (premium T2): the union variant is the
+  // verdict — null (below T2 with the paygate OFF: the section
+  // does not exist) / Locked (below T2, paygate ON) / Ready /
+  // Empty, composed in combat-graphql.ts. The detail page's own
+  // canView gate already ran, so every viewer here may see a
+  // Ready report; the per-encounter delete action objects inside
+  // are uploader/manage-gated there.
+  genCombatReport(){
+    return this.memo('combatReport', async () => combatReportSurfaceForGrouping(this.ctx, this.data));
+  }
   // F7 roster answers: composed ONLY for viewers who may manage this
   // car (leader / this guild's admins — the shared verdict); everyone
   // else gets null and the answers never leave the server.
@@ -828,6 +839,7 @@ export const DETAIL_TEXT_RESOLVERS = {
 export const groupingsResolvers = {
   Query: {
     ...scheduleResolvers.Query,
+    ...combatResolvers.Query,
     groupingListPage: async (_: any, { slug, tab }: any, ctx: Context) => {
       const db = ctx.env.DB;
       // Tenant must exist; bound guilds are members-only (enforced server-side — non-members get no data).
@@ -866,6 +878,7 @@ export const groupingsResolvers = {
     ...scheduleResolvers.Mutation,
     ...schedulingAdviceResolvers.Mutation,
     ...recapResolvers.Mutation,
+    ...combatResolvers.Mutation,
     createGrouping: async (_: any, { input }: any, ctx: Context) => {
       const db = ctx.env.DB;
       if (!rateLimit('mut:create:' + getClientIp(ctx.request), 10)) {
@@ -1389,6 +1402,126 @@ export const groupingsResolvers = {
     ok: (p: any) => p.genOk(), error: (p: any) => p.genError(),
     errorCode: (p: any) => p.genErrorCode(), recap: (p: any) => p.genRecap(),
   },
+  GroupingCombatReportResult: { __resolveType: (p: any) => p.__typename },
+  GroupingCombatReportLocked: {
+    title: (p: any) => p.genTitle(), body: (p: any) => p.genBody(),
+  },
+  GroupingCombatReportEmpty: {
+    title: (p: any) => p.genTitle(), body: (p: any) => p.genBody(),
+    failedHint: (p: any) => p.genFailedHint(), actions: (p: any) => p.genActions(),
+  },
+  GroupingCombatReportReady: {
+    title: (p: any) => p.genTitle(),
+    encountersTitle: (p: any) => p.genEncountersTitle(),
+    viewReportLabel: (p: any) => p.genViewReportLabel(),
+    backLabel: (p: any) => p.genBackLabel(),
+    tabOverviewLabel: (p: any) => p.genTabOverviewLabel(),
+    tabDamageLabel: (p: any) => p.genTabDamageLabel(),
+    tabBuffsLabel: (p: any) => p.genTabBuffsLabel(),
+    tabCastsLabel: (p: any) => p.genTabCastsLabel(),
+    tabTimelineLabel: (p: any) => p.genTabTimelineLabel(),
+    encounters: (p: any) => p.genEncounters(),
+    detail: (p: any) => p.genDetail(),
+    failedHint: (p: any) => p.genFailedHint(), actions: (p: any) => p.genActions(),
+  },
+  CombatEncounterSummary: {
+    id: (p: any) => p.genId(), bossName: (p: any) => p.genBossName(),
+    startedAtText: (p: any) => p.genStartedAtText(),
+    durationText: (p: any) => p.genDurationText(),
+    result: (p: any) => p.genResult(), resultText: (p: any) => p.genResultText(),
+    teamDpsText: (p: any) => p.genTeamDpsText(),
+    uploaderText: (p: any) => p.genUploaderText(),
+    sourceText: (p: any) => p.genSourceText(),
+    deleteAction: (p: any) => p.genDeleteAction(),
+  },
+  CombatEncounterDetail: {
+    bossName: (p: any) => p.genBossName(),
+    resultText: (p: any) => p.genResultText(),
+    durationText: (p: any) => p.genDurationText(),
+    startedAtText: (p: any) => p.genStartedAtText(),
+    overviewLines: (p: any) => p.genOverviewLines(),
+    modelVersionText: (p: any) => p.genModelVersionText(),
+    activityNote: (p: any) => p.genActivityNote(),
+    rdpsNote: (p: any) => p.genRdpsNote(),
+    colPlayer: (p: any) => p.genColPlayer(), colTotal: (p: any) => p.genColTotal(),
+    colActivity: (p: any) => p.genColActivity(), colDps: (p: any) => p.genColDps(),
+    colRdps: (p: any) => p.genColRdps(), colRShare: (p: any) => p.genColRShare(),
+    colSkill: (p: any) => p.genColSkill(), colCasts: (p: any) => p.genColCasts(),
+    colHits: (p: any) => p.genColHits(), colAvg: (p: any) => p.genColAvg(),
+    colCrit: (p: any) => p.genColCrit(), colSpec: (p: any) => p.genColSpec(),
+    colMax: (p: any) => p.genColMax(), colShare: (p: any) => p.genColShare(),
+    colBuff: (p: any) => p.genColBuff(), colApplier: (p: any) => p.genColApplier(),
+    colTarget: (p: any) => p.genColTarget(), colUptime: (p: any) => p.genColUptime(),
+    colTime: (p: any) => p.genColTime(),
+    castsLocalTitle: (p: any) => p.genCastsLocalTitle(),
+    timelineTitle: (p: any) => p.genTimelineTitle(),
+    durationMs: (p: any) => p.genDurationMs(),
+    partyRows: (p: any) => p.genPartyRows(),
+    skillTables: (p: any) => p.genSkillTables(),
+    buffRows: (p: any) => p.genBuffRows(),
+    castRows: (p: any) => p.genCastRows(),
+    dpsSeries: (p: any) => p.genDpsSeries(),
+  },
+  CombatReportActions: {
+    importLabel: (p: any) => p.genImportLabel(),
+    importingLabel: (p: any) => p.genImportingLabel(),
+    importHint: (p: any) => p.genImportHint(),
+    toastImported: (p: any) => p.genToastImported(),
+    toastImportFailedTemplate: (p: any) => p.genToastImportFailedTemplate(),
+    importErrorFormat: (p: any) => p.genImportErrorFormat(),
+    importErrorValidation: (p: any) => p.genImportErrorValidation(),
+    importErrorLimit: (p: any) => p.genImportErrorLimit(),
+    importErrorForbidden: (p: any) => p.genImportErrorForbidden(),
+    importErrorNotFound: (p: any) => p.genImportErrorNotFound(),
+    importErrorTier: (p: any) => p.genImportErrorTier(),
+    deleteLabel: (p: any) => p.genDeleteLabel(),
+    deleteConfirmTitle: (p: any) => p.genDeleteConfirmTitle(),
+    deleteConfirmMessageTemplate: (p: any) => p.genDeleteConfirmMessageTemplate(),
+    toastDeleted: (p: any) => p.genToastDeleted(),
+    toastDeleteFailedTemplate: (p: any) => p.genToastDeleteFailedTemplate(),
+  },
+  CombatEncounterDeleteAction: {
+    deleteLabel: (p: any) => p.genDeleteLabel(),
+    confirmTitle: (p: any) => p.genConfirmTitle(),
+    confirmMessageTemplate: (p: any) => p.genConfirmMessageTemplate(),
+    toastDeleted: (p: any) => p.genToastDeleted(),
+    toastDeleteFailedTemplate: (p: any) => p.genToastDeleteFailedTemplate(),
+  },
+  CombatReportPayload: {
+    ok: (p: any) => p.genOk(), error: (p: any) => p.genError(),
+    errorCode: (p: any) => p.genErrorCode(), combatReport: (p: any) => p.genCombatReport(),
+  },
+  CombatPartyRow: {
+    playerName: (p: any) => p.playerName, memberName: (p: any) => p.memberName,
+    guestTag: (p: any) => p.guestTag, total: (p: any) => p.total,
+    activityPctText: (p: any) => p.activityPctText, dpsText: (p: any) => p.dpsText,
+    rdpsText: (p: any) => p.rdpsText, rSharePctText: (p: any) => p.rSharePctText,
+  },
+  CombatSkillTable: {
+    playerName: (p: any) => p.playerName, rows: (p: any) => p.rows,
+  },
+  CombatSkillRow: {
+    skillName: (p: any) => p.skillName, total: (p: any) => p.total,
+    casts: (p: any) => p.casts, hits: (p: any) => p.hits,
+    avgText: (p: any) => p.avgText, critPctText: (p: any) => p.critPctText,
+    specPctText: (p: any) => p.specPctText, maxHit: (p: any) => p.maxHit,
+    dpsText: (p: any) => p.dpsText, sharePctText: (p: any) => p.sharePctText,
+  },
+  CombatBuffRow: {
+    buffName: (p: any) => p.buffName, applierName: (p: any) => p.applierName,
+    targetName: (p: any) => p.targetName, multiplierText: (p: any) => p.multiplierText,
+    uptimePctText: (p: any) => p.uptimePctText, intervals: (p: any) => p.intervals,
+  },
+  CombatInterval: {
+    startMs: (p: any) => p.startMs, endMs: (p: any) => p.endMs,
+  },
+  CombatCastRow: {
+    timeText: (p: any) => p.timeText, playerName: (p: any) => p.playerName,
+    skillName: (p: any) => p.skillName,
+  },
+  CombatDpsPoint: {
+    second: (p: any) => p.second, damage: (p: any) => p.damage,
+  },
   GroupingListPage: {
     groupings: (p: any) => p.genGroupings(),
     crossCarAdvice: (p: any) => p.genCrossCarAdvice(),
@@ -1401,6 +1534,7 @@ export const groupingsResolvers = {
     grouping: (p: any) => p.genGrouping(),
     schedulingAdvice: (p: any) => p.genSchedulingAdvice(),
     recap: (p: any) => p.genRecap(),
+    combatReport: (p: any) => p.genCombatReport(),
     rosterAnswers: (p: any) => p.genRosterAnswers(),
     shareUrl: (p: GroupingDetailPageShell) => p.genShareUrl(),
     templateSave: (p: any) => p.genTemplateSave(),

@@ -2447,6 +2447,15 @@ export abstract class ErrorsFbtUtils {
 	static recapProviderFailed(fbs: FbsRuntime) {
 		return fbs._("复盘生成失败，请稍后重试", null, { hk: "3ZuNJ8" });
 	}
+	static combatReportForbidden(fbs: FbsRuntime) {
+		return fbs._("只有导入者本人、车头或本百业管理员可以删除这场报告", null, { hk: "292Rmf" });
+	}
+	static combatEncounterNotFound(fbs: FbsRuntime) {
+		return fbs._("战斗报告不存在", null, { hk: "NEZSl" });
+	}
+	static combatTierLocked(fbs: FbsRuntime) {
+		return fbs._("该百业尚未开通战斗报告（进阶订阅档功能）", null, { hk: "1RmU0Z" });
+	}
 }
 export abstract class GuildAdminFbtUtils {
 	static title(fbs: FbsRuntime) {
@@ -4952,6 +4961,236 @@ export abstract class RecapFbtUtils {
 		return fbs._("{count} 段", [fbs._param("count", pv(p, "count"))], { hk: "41Gi64" });
 	}
 }
+export abstract class CombatReportFbtUtils {
+	static title(fbs: FbsRuntime) {
+		return fbs._("战斗报告", null, { hk: "4vbcmj" });
+	}
+	static lockedTitle(fbs: FbsRuntime) {
+		return fbs._("战斗报告 · 订阅专属", null, { hk: "hczwK" });
+	}
+	static lockedBody(fbs: FbsRuntime) {
+		return fbs._("战斗报告是进阶订阅档（执事起）功能：导入一场的战斗事件文件后，生成技能构成、增益覆盖时间轴与 rDPS 归因表，帮全车看清每一份伤害的来历。", null, { hk: "23SyAC" });
+	}
+	static emptyBody(fbs: FbsRuntime) {
+		return fbs._("本场车队还没有战斗报告。车队成员导入一场战斗的事件文件后，报告将展示在这里，全车队成员可见。", null, { hk: "3xJ4FC" });
+	}
+	static failedHint(fbs: FbsRuntime) {
+		return fbs._("上次导入处理失败，可重新导入；已经生成的报告不受影响。", null, { hk: "1Lc8gQ" });
+	}
+	static encountersTitle(fbs: FbsRuntime) {
+		return fbs._("场次", null, { hk: "4rwHWD" });
+	}
+	static viewReportLabel(fbs: FbsRuntime) {
+		return fbs._("查看完整报告", null, { hk: "3oIhJd" });
+	}
+	static resultKill(fbs: FbsRuntime) {
+		return fbs._("击杀", null, { hk: "2SYMmW" });
+	}
+	static resultWipe(fbs: FbsRuntime) {
+		return fbs._("团灭", null, { hk: "1pelcm" });
+	}
+	static resultUnknown(fbs: FbsRuntime) {
+		return fbs._("结果未记录", null, { hk: "a3U4I" });
+	}
+	static bossFallback(fbs: FbsRuntime) {
+		return fbs._("未知目标", null, { hk: "84B4L" });
+	}
+	static summaryTeam(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("全队总伤 {total} · 秒伤 {dps}", [fbs._param("total", pv(p, "total")), fbs._param("dps", pv(p, "dps"))], { hk: "2iDUV5" });
+	}
+	static summaryDuration(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("战斗时长 {duration}", [fbs._param("duration", pv(p, "duration"))], { hk: "2KzORg" });
+	}
+	static summaryPlayers(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("参战 {count} 人", [fbs._param("count", pv(p, "count"))], { hk: "4y9EEo" });
+	}
+	static summarySourceEvents(fbs: FbsRuntime) {
+		return fbs._("数据来源：战斗事件文件", null, { hk: "5UQVx" });
+	}
+	static summarySourceOverlay(fbs: FbsRuntime) {
+		return fbs._("数据来源：屏幕视觉记录（官方团队面板口径）", null, { hk: "3CcCkM" });
+	}
+	static qualityUnclosed(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("数据提示：{count} 处增益区间未正常关闭，已按战斗结束时刻收口", [fbs._param("count", pv(p, "count"))], { hk: "3icT0x" });
+	}
+	static modelVersionText(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("归因模型 v{version}", [fbs._param("version", pv(p, "version"))], { hk: "2ZAy9q" });
+	}
+	static startedAtText(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("开场于 {time}", [fbs._param("time", pv(p, "time"))], { hk: "1bssDz" });
+	}
+	static importedAtText(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("导入于 {time}", [fbs._param("time", pv(p, "time"))], { hk: "1wMU72" });
+	}
+	static uploaderText(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("由 {name} 导入", [fbs._param("name", pv(p, "name"))], { hk: "eMSoe" });
+	}
+	static guestTag(fbs: FbsRuntime) {
+		return fbs._("访客", null, { hk: "4kR7ro" });
+	}
+	static multiplierUndetermined(fbs: FbsRuntime) {
+		return fbs._("倍率未定", null, { hk: "4dXI0S" });
+	}
+	static applierSystem(fbs: FbsRuntime) {
+		return fbs._("系统", null, { hk: "2sfSop" });
+	}
+	static panelSkillLabel(fbs: FbsRuntime) {
+		return fbs._("面板伤害", null, { hk: "3oPTU" });
+	}
+	static unnamedCast(fbs: FbsRuntime) {
+		return fbs._("未命名技能", null, { hk: "HJFGo" });
+	}
+	static importLabel(fbs: FbsRuntime) {
+		return fbs._("导入战斗报告", null, { hk: "pNl1K" });
+	}
+	static importingLabel(fbs: FbsRuntime) {
+		return fbs._("导入中…", null, { hk: "4oIZwR" });
+	}
+	static importHint(fbs: FbsRuntime) {
+		return fbs._("选择一场战斗的事件文件（JSON）或 overlay 会话导出，导入后全车队可见。", null, { hk: "1x7QYt" });
+	}
+	static toastImported(fbs: FbsRuntime) {
+		return fbs._("战斗报告已导入", null, { hk: "4cgNKv" });
+	}
+	static toastImportFailedTemplate(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("导入失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "2h23Tu" });
+	}
+	static importErrorFormat(fbs: FbsRuntime) {
+		return fbs._("文件格式版本不受支持", null, { hk: "1SC8YS" });
+	}
+	static importErrorValidation(fbs: FbsRuntime) {
+		return fbs._("文件内容校验未通过", null, { hk: "4BfqBj" });
+	}
+	static importErrorLimit(fbs: FbsRuntime) {
+		return fbs._("今日导入次数已达上限", null, { hk: "2gtfpW" });
+	}
+	static importErrorForbidden(fbs: FbsRuntime) {
+		return fbs._("没有导入权限", null, { hk: "w5eV8" });
+	}
+	static importErrorNotFound(fbs: FbsRuntime) {
+		return fbs._("车队不存在", null, { hk: "3wxcWX" });
+	}
+	static importErrorTier(fbs: FbsRuntime) {
+		return fbs._("本百业尚未开通战斗报告", null, { hk: "w3F2s" });
+	}
+	static deleteLabel(fbs: FbsRuntime) {
+		return fbs._("删除", null, { hk: "1DPDde" });
+	}
+	static deleteConfirmTitle(fbs: FbsRuntime) {
+		return fbs._("删除这场战斗报告？", null, { hk: "4dbJyv" });
+	}
+	static deleteConfirmMessageTemplate(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("将删除「{boss}」的这场战斗报告，删除后不可恢复。", [fbs._param("boss", pv(p, "boss"))], { hk: "1Zr1qI" });
+	}
+	static toastDeleted(fbs: FbsRuntime) {
+		return fbs._("已删除", null, { hk: "uippr" });
+	}
+	static toastDeleteFailedTemplate(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("删除失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "2b4wGl" });
+	}
+	static tabOverviewLabel(fbs: FbsRuntime) {
+		return fbs._("总览", null, { hk: "1AvtSc" });
+	}
+	static tabDamageLabel(fbs: FbsRuntime) {
+		return fbs._("伤害", null, { hk: "MJgw8" });
+	}
+	static tabBuffsLabel(fbs: FbsRuntime) {
+		return fbs._("增益", null, { hk: "1rtgl2" });
+	}
+	static tabCastsLabel(fbs: FbsRuntime) {
+		return fbs._("施法", null, { hk: "1CG1Vt" });
+	}
+	static tabTimelineLabel(fbs: FbsRuntime) {
+		return fbs._("时间线", null, { hk: "3PlFMP" });
+	}
+	static backLabel(fbs: FbsRuntime) {
+		return fbs._("返回车队", null, { hk: "3LqirH" });
+	}
+	static colPlayer(fbs: FbsRuntime) {
+		return fbs._("玩家", null, { hk: "3pE1Es" });
+	}
+	static colTotal(fbs: FbsRuntime) {
+		return fbs._("总量", null, { hk: "3jhATH" });
+	}
+	static colActivity(fbs: FbsRuntime) {
+		return fbs._("活跃", null, { hk: "186Mos" });
+	}
+	static colDps(fbs: FbsRuntime) {
+		return fbs._("秒伤", null, { hk: "3gUvAy" });
+	}
+	static colRdps(fbs: FbsRuntime) {
+		return fbs._("rDPS", null, { hk: "2eiDbs" });
+	}
+	static colRShare(fbs: FbsRuntime) {
+		return fbs._("rDPS 占比", null, { hk: "4qTEi8" });
+	}
+	static colSkill(fbs: FbsRuntime) {
+		return fbs._("技能", null, { hk: "MREHM" });
+	}
+	static colCasts(fbs: FbsRuntime) {
+		return fbs._("次数", null, { hk: "3SwWrX" });
+	}
+	static colHits(fbs: FbsRuntime) {
+		return fbs._("命中", null, { hk: "m4R6k" });
+	}
+	static colAvg(fbs: FbsRuntime) {
+		return fbs._("平均", null, { hk: "2P7Vbd" });
+	}
+	static colCrit(fbs: FbsRuntime) {
+		return fbs._("会心", null, { hk: "1erFAJ" });
+	}
+	static colSpec(fbs: FbsRuntime) {
+		return fbs._("会意", null, { hk: "3T74YN" });
+	}
+	static colMax(fbs: FbsRuntime) {
+		return fbs._("最高", null, { hk: "sv94Q" });
+	}
+	static colShare(fbs: FbsRuntime) {
+		return fbs._("占比", null, { hk: "2WwQGX" });
+	}
+	static colBuff(fbs: FbsRuntime) {
+		return fbs._("增益", null, { hk: "21OxrN" });
+	}
+	static colApplier(fbs: FbsRuntime) {
+		return fbs._("施加者", null, { hk: "34j9Kw" });
+	}
+	static colTarget(fbs: FbsRuntime) {
+		return fbs._("目标", null, { hk: "3zatpm" });
+	}
+	static colUptime(fbs: FbsRuntime) {
+		return fbs._("覆盖率", null, { hk: "368sUu" });
+	}
+	static colTime(fbs: FbsRuntime) {
+		return fbs._("时刻", null, { hk: "4rJXvV" });
+	}
+	static activityNote(fbs: FbsRuntime) {
+		return fbs._("活跃口径：以 1 秒为格，玩家在格内有施法、命中或施加增益事件即记为活跃。", null, { hk: "4p3KL8" });
+	}
+	static rdpsNote(fbs: FbsRuntime) {
+		return fbs._("rDPS 口径：增益带来的额外伤害按各增益倍率的对数权重归还施加者；系统增益留在受益者名下，全队 rDPS 与总伤守恒。", null, { hk: "36TmqP" });
+	}
+	static castsLocalTitle(fbs: FbsRuntime) {
+		return fbs._("本地施法记录", null, { hk: "2qV5v0" });
+	}
+	static timelineTitle(fbs: FbsRuntime) {
+		return fbs._("每秒全队伤害", null, { hk: "1m3nwh" });
+	}
+	static adminTabLabel(fbs: FbsRuntime) {
+		return fbs._("战斗报告", null, { hk: "477lHT" });
+	}
+	static adminTitle(fbs: FbsRuntime) {
+		return fbs._("战斗报告记录", null, { hk: "3QlgEO" });
+	}
+	static adminEmptyText(fbs: FbsRuntime) {
+		return fbs._("暂无战斗报告记录。车队成员导入战斗报告后，会在这里汇总。", null, { hk: "1he6sk" });
+	}
+	static adminStatusParsedText(fbs: FbsRuntime) {
+		return fbs._("已生成", null, { hk: "15LNI0" });
+	}
+	static adminStatusFailedText(fbs: FbsRuntime) {
+		return fbs._("处理失败", null, { hk: "x42Ne" });
+	}
+}
 export const STRING_FNS: Record<string, StringFn> = {
 	"common_cancel": CommonFbtUtils.cancel,
 	"common_confirm": CommonFbtUtils.confirm,
@@ -5734,6 +5973,9 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"errors_recapNotEnabled": ErrorsFbtUtils.recapNotEnabled,
 	"errors_recapDailyLimit": ErrorsFbtUtils.recapDailyLimit,
 	"errors_recapProviderFailed": ErrorsFbtUtils.recapProviderFailed,
+	"errors_combatReportForbidden": ErrorsFbtUtils.combatReportForbidden,
+	"errors_combatEncounterNotFound": ErrorsFbtUtils.combatEncounterNotFound,
+	"errors_combatTierLocked": ErrorsFbtUtils.combatTierLocked,
 	"guildAdmin_title": GuildAdminFbtUtils.title,
 	"guildAdmin_lockedTitle": GuildAdminFbtUtils.lockedTitle,
 	"guildAdmin_lockedBody": GuildAdminFbtUtils.lockedBody,
@@ -6549,5 +6791,81 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"recap_adminEmptyText": RecapFbtUtils.adminEmptyText,
 	"recap_adminStatusReadyText": RecapFbtUtils.adminStatusReadyText,
 	"recap_adminStatusFailedText": RecapFbtUtils.adminStatusFailedText,
-	"recap_adminParagraphCount": RecapFbtUtils.adminParagraphCount
+	"recap_adminParagraphCount": RecapFbtUtils.adminParagraphCount,
+	"combatReport_title": CombatReportFbtUtils.title,
+	"combatReport_lockedTitle": CombatReportFbtUtils.lockedTitle,
+	"combatReport_lockedBody": CombatReportFbtUtils.lockedBody,
+	"combatReport_emptyBody": CombatReportFbtUtils.emptyBody,
+	"combatReport_failedHint": CombatReportFbtUtils.failedHint,
+	"combatReport_encountersTitle": CombatReportFbtUtils.encountersTitle,
+	"combatReport_viewReportLabel": CombatReportFbtUtils.viewReportLabel,
+	"combatReport_resultKill": CombatReportFbtUtils.resultKill,
+	"combatReport_resultWipe": CombatReportFbtUtils.resultWipe,
+	"combatReport_resultUnknown": CombatReportFbtUtils.resultUnknown,
+	"combatReport_bossFallback": CombatReportFbtUtils.bossFallback,
+	"combatReport_summaryTeam": CombatReportFbtUtils.summaryTeam,
+	"combatReport_summaryDuration": CombatReportFbtUtils.summaryDuration,
+	"combatReport_summaryPlayers": CombatReportFbtUtils.summaryPlayers,
+	"combatReport_summarySourceEvents": CombatReportFbtUtils.summarySourceEvents,
+	"combatReport_summarySourceOverlay": CombatReportFbtUtils.summarySourceOverlay,
+	"combatReport_qualityUnclosed": CombatReportFbtUtils.qualityUnclosed,
+	"combatReport_modelVersionText": CombatReportFbtUtils.modelVersionText,
+	"combatReport_startedAtText": CombatReportFbtUtils.startedAtText,
+	"combatReport_importedAtText": CombatReportFbtUtils.importedAtText,
+	"combatReport_uploaderText": CombatReportFbtUtils.uploaderText,
+	"combatReport_guestTag": CombatReportFbtUtils.guestTag,
+	"combatReport_multiplierUndetermined": CombatReportFbtUtils.multiplierUndetermined,
+	"combatReport_applierSystem": CombatReportFbtUtils.applierSystem,
+	"combatReport_panelSkillLabel": CombatReportFbtUtils.panelSkillLabel,
+	"combatReport_unnamedCast": CombatReportFbtUtils.unnamedCast,
+	"combatReport_importLabel": CombatReportFbtUtils.importLabel,
+	"combatReport_importingLabel": CombatReportFbtUtils.importingLabel,
+	"combatReport_importHint": CombatReportFbtUtils.importHint,
+	"combatReport_toastImported": CombatReportFbtUtils.toastImported,
+	"combatReport_toastImportFailedTemplate": CombatReportFbtUtils.toastImportFailedTemplate,
+	"combatReport_importErrorFormat": CombatReportFbtUtils.importErrorFormat,
+	"combatReport_importErrorValidation": CombatReportFbtUtils.importErrorValidation,
+	"combatReport_importErrorLimit": CombatReportFbtUtils.importErrorLimit,
+	"combatReport_importErrorForbidden": CombatReportFbtUtils.importErrorForbidden,
+	"combatReport_importErrorNotFound": CombatReportFbtUtils.importErrorNotFound,
+	"combatReport_importErrorTier": CombatReportFbtUtils.importErrorTier,
+	"combatReport_deleteLabel": CombatReportFbtUtils.deleteLabel,
+	"combatReport_deleteConfirmTitle": CombatReportFbtUtils.deleteConfirmTitle,
+	"combatReport_deleteConfirmMessageTemplate": CombatReportFbtUtils.deleteConfirmMessageTemplate,
+	"combatReport_toastDeleted": CombatReportFbtUtils.toastDeleted,
+	"combatReport_toastDeleteFailedTemplate": CombatReportFbtUtils.toastDeleteFailedTemplate,
+	"combatReport_tabOverviewLabel": CombatReportFbtUtils.tabOverviewLabel,
+	"combatReport_tabDamageLabel": CombatReportFbtUtils.tabDamageLabel,
+	"combatReport_tabBuffsLabel": CombatReportFbtUtils.tabBuffsLabel,
+	"combatReport_tabCastsLabel": CombatReportFbtUtils.tabCastsLabel,
+	"combatReport_tabTimelineLabel": CombatReportFbtUtils.tabTimelineLabel,
+	"combatReport_backLabel": CombatReportFbtUtils.backLabel,
+	"combatReport_colPlayer": CombatReportFbtUtils.colPlayer,
+	"combatReport_colTotal": CombatReportFbtUtils.colTotal,
+	"combatReport_colActivity": CombatReportFbtUtils.colActivity,
+	"combatReport_colDps": CombatReportFbtUtils.colDps,
+	"combatReport_colRdps": CombatReportFbtUtils.colRdps,
+	"combatReport_colRShare": CombatReportFbtUtils.colRShare,
+	"combatReport_colSkill": CombatReportFbtUtils.colSkill,
+	"combatReport_colCasts": CombatReportFbtUtils.colCasts,
+	"combatReport_colHits": CombatReportFbtUtils.colHits,
+	"combatReport_colAvg": CombatReportFbtUtils.colAvg,
+	"combatReport_colCrit": CombatReportFbtUtils.colCrit,
+	"combatReport_colSpec": CombatReportFbtUtils.colSpec,
+	"combatReport_colMax": CombatReportFbtUtils.colMax,
+	"combatReport_colShare": CombatReportFbtUtils.colShare,
+	"combatReport_colBuff": CombatReportFbtUtils.colBuff,
+	"combatReport_colApplier": CombatReportFbtUtils.colApplier,
+	"combatReport_colTarget": CombatReportFbtUtils.colTarget,
+	"combatReport_colUptime": CombatReportFbtUtils.colUptime,
+	"combatReport_colTime": CombatReportFbtUtils.colTime,
+	"combatReport_activityNote": CombatReportFbtUtils.activityNote,
+	"combatReport_rdpsNote": CombatReportFbtUtils.rdpsNote,
+	"combatReport_castsLocalTitle": CombatReportFbtUtils.castsLocalTitle,
+	"combatReport_timelineTitle": CombatReportFbtUtils.timelineTitle,
+	"combatReport_adminTabLabel": CombatReportFbtUtils.adminTabLabel,
+	"combatReport_adminTitle": CombatReportFbtUtils.adminTitle,
+	"combatReport_adminEmptyText": CombatReportFbtUtils.adminEmptyText,
+	"combatReport_adminStatusParsedText": CombatReportFbtUtils.adminStatusParsedText,
+	"combatReport_adminStatusFailedText": CombatReportFbtUtils.adminStatusFailedText
 };
