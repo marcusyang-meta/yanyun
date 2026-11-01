@@ -3600,6 +3600,7 @@ type OgCarCard {
   occupiedCount: Int!
   maxSlots: Int!
   status: String!
+  shareCode: String
 }
 
 type OgBuildCard {
