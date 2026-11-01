@@ -279,15 +279,21 @@ eq('executor idempotent (second run changes nothing)', [again.userRows, again.se
   it('re-registration', async () => {
 /* ---------------- re-registration ---------------- */
 console.log('== re-registration ==');
-await usersRepo.upsertUserOnLogin(db, {
+const rebornId = await usersRepo.upsertUserOnLogin(db, {
   discordId: U1, username: NAME1, avatar: 'av1',
   guildsJson: '[{"id":"G1","name":"测试服务器","icon":"","owner":false}]', checkedAtSec: now,
 });
-const reborn = await usersRepo.getAccountRow(db, UID1);
+// Design contract (account-deletion DESIGN Q7 + typed-ID minting):
+// re-login after deletion creates a NEW users row — the login upsert
+// mints a fresh typed ID and returns it; the deleted account's ID is
+// never resurrected (minted sequences are burned, never reused).
+check('re-registration mints a fresh ID (deleted ID not resurrected)',
+  typeof rebornId === 'number' && rebornId !== UID1, String(rebornId));
+const reborn = await usersRepo.getAccountRow(db, rebornId);
 check('re-registered account exists with no pending state',
   !!reborn && reborn.deletion_requested_at === null && reborn.fresh_auth_at === null,
   JSON.stringify(reborn));
-const rebuilt = await acct.buildAccountExport(db, UID1, 'zh-CN', now);
+const rebuilt = await acct.buildAccountExport(db, rebornId, 'zh-CN', now);
 eq('re-registered export is a clean slate', rebuilt?.counts,
   { guilds: 0, serverNicks: 0, carsLed: 0, seats: 0, gearItems: 0, gearBuilds: 0 });
   });
