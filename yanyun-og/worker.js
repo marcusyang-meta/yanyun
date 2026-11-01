@@ -259,7 +259,7 @@ async function fetchTeamCount(slug) {
 
 const CAR_TYPE_LABEL = { ACTIVITY: '双十人本', TALENT: '天赋组队', RACE: '竞速报名' };
 
-// 车时间格式化：与前端 fmtDate 同源（UTC 时间戳），OG 图用 UTC 墙钟时间并显式标注 UTC，如“周六 20:00 UTC”——分享卡跨时区传播，无标注的墙钟时间对外时区观众没有意义。此函数仅车卡渲染调用（百业卡等不共用）。
+// 车时间格式化（旧格式，仅作回退）：卡面时间现在由后端按车的归属时区渲染成整串下发（ogCarCard.cardTimeText，如“周日 13:30 美西”，与 og:description 同源），本函数只在后端尚未提供该字段时兜底——即两个部署单元的滚动窗口内——仍按旧口径输出 UTC 墙钟并显式标注 UTC。此函数仅车卡渲染调用（百业卡等不共用）。
 function formatCarTime(startsAt) {
   if (!startsAt) return '';
   const t = String(startsAt).trim();
@@ -285,7 +285,7 @@ async function fetchGroupingData(slug, id) {
       query: `
         query($slug: String!, $id: ID!) {
           ogCarCard(slug: $slug, id: $id) {
-            title type startsAtUtc dungeonName occupiedCount maxSlots status shareCode
+            title type startsAtUtc dungeonName occupiedCount maxSlots status shareCode cardTimeText
           }
         }
       `,
@@ -307,6 +307,11 @@ async function fetchGroupingData(slug, id) {
     // it read-only and never mints for the card). Null -> the card
     // renders without a QR code.
     shareUrl: ev.shareCode ? `${SITE_URL}/c/${ev.shareCode}` : null,
+    // The card's time line, rendered by the backend in the car's
+    // home timezone with its Chinese label (e.g. 周日 13:30 美西).
+    // Printed verbatim when present; absent only when the backend
+    // predates the field, in which case formatCarTime is the fallback.
+    cardTimeText: ev.cardTimeText || '',
   };
 }
 
@@ -541,7 +546,7 @@ async function handleCarImage(request, url, slug, id) {
   const brushFont = await getBrushFont(cache);
   const title = g.title || '车队招募';
   const typeLabel = CAR_TYPE_LABEL[g.type] || g.type || '';
-  const timeLabel = formatCarTime(g.startsAt);
+  const timeLabel = g.cardTimeText || formatCarTime(g.startsAt);
   const meta = [typeLabel, timeLabel, g.dungeon?.name].filter(Boolean).join(' · ');
   const pct = g.maxSlots > 0 ? Math.min(1, g.occupiedCount / g.maxSlots) : 0;
   const barW = Math.round(640 * pct);
