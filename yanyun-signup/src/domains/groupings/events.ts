@@ -38,6 +38,7 @@ export interface EventRow {
   manage_code: string;
   dungeon: string;
   creator_user_id: number | null;
+  created_tz: string | null;
   reminder_sent_at: number | null;
   reminder_error: string | null;
   ally_visible: number;
@@ -74,6 +75,21 @@ export async function getEventRowByTenant(d1: D1Database, id: number, tenant: nu
     sql`SELECT * FROM ${events} WHERE ${col('id')} = ${id} AND ${col('tenant')} = ${tenant}`,
   );
   return row ?? null;
+}
+
+/* The most recent framing timezone a creator has captured on
+ * another car in the same guild (share-card time resolution, link 2 —
+ * see car-tz.ts). Typed ids are day-sequential, so id DESC is the
+ * recency order. Returns null when the creator has no captured zone
+ * in this guild yet. */
+export async function getCreatorLatestCarTz(
+  d1: D1Database, tenant: number, creatorUserId: number, excludeId: number,
+): Promise<string | null> {
+  const db = createDb(d1);
+  const row = await db.get<{ created_tz: string | null }>(
+    sql`SELECT ${col('created_tz')} FROM ${events} WHERE ${col('tenant')} = ${tenant} AND ${col('creator_user_id')} = ${creatorUserId} AND ${col('created_tz')} IS NOT NULL AND ${col('id')} != ${excludeId} ORDER BY ${col('id')} DESC LIMIT 1`,
+  );
+  return row && row.created_tz ? row.created_tz : null;
 }
 
 export async function getEventIdByTenant(d1: D1Database, id: number, tenant: number): Promise<{ id: number } | null> {
@@ -303,7 +319,7 @@ export async function markBeatError(d1: D1Database, eventId: number, offsetMin: 
 const EVENT_COLUMNS = new Set([
   'tenant', 'title', 'type', 'description', 'starts_at', 'starts_at_utc',
   'meet_info', 'max_slots', 'status', 'origin', 'created_by', 'manage_code',
-  'dungeon', 'creator_user_id', 'reminder_sent_at', 'reminder_error',
+  'dungeon', 'creator_user_id', 'created_tz', 'reminder_sent_at', 'reminder_error',
   'ally_visible', 'visitor_slots',
 ]);
 

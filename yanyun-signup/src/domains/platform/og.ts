@@ -4,8 +4,9 @@
 import { getTenantRow } from '../guilds/index.ts';
 import { isDevOnlyTenant } from './http.ts';
 import { getDungeonByName } from '../dex/index.ts';
-import { getEventRowByTenant, getEventRow, listEventsWeekView, countActivityEventsInWindow, countSignupsByEvent, resolveSharedGrouping } from '../groupings/index.ts';
+import { getEventRowByTenant, getEventRow, listEventsWeekView, countActivityEventsInWindow, countSignupsByEvent, resolveSharedGrouping, resolveCarHomeTz, fmtCarTimeZoned } from '../groupings/index.ts';
 import { resolveSharedBuild } from '../gear/index.ts';
+import { startsAtEpoch } from './blocks.ts';
 
 
 const OG_WORKER = 'https://og.yanyun.app';
@@ -14,19 +15,13 @@ const SITE_URL = 'https://yanyun.app';
 const escHtml = (str: any) => String(str ?? '')
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-// Team time: unix seconds (UTC) -> weekday + HH:MM with an explicit
-// UTC marker, same UTC wall-clock format as the OG worker's car card.
-// The marker matters: share cards travel across timezones, and an
-// unlabelled wall-clock time is meaningless to an out-of-zone viewer.
-export function fmtCarTimeUtc(sec: any) {
-  const n = parseInt(sec, 10);
-  if (!n) return '';
-  const d = new Date(n * 1000);
-  if (isNaN(d.getTime())) return '';
-  const week = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
-  const p = (x: number) => String(x).padStart(2, '0');
-  return `${week[d.getUTCDay()]} ${p(d.getUTCHours())}:${p(d.getUTCMinutes())} UTC`;
-}
+// Team time on share text: the car's start rendered in its home
+// timezone with a Chinese zone label (e.g. 周日 13:30 美西) — the
+// resolution chain and the formatter live in the groupings data
+// layer (car-tz.ts) and are shared verbatim with the OG card image
+// via ogCarCard.cardTimeText, so text and image can never disagree.
+// (The previous UTC wall-clock format was retired by the 2026-11-01
+// ruling: card times follow the guild's own timezone, never UTC.)
 
 const CAR_TYPE_LABEL: Record<string, string> = { activity: '双十人本', talent: '天赋组队', race: '竞速报名', tower: '爬塔' };
 
@@ -104,7 +99,9 @@ export async function carOgTags(env: any, slug: string, carId: any, pageUrl?: st
       if (d) dungeonName = d.name;
     }
     const typeLabel = CAR_TYPE_LABEL[ev.type] || '';
-    const descParts = [typeLabel, dungeonName, fmtCarTimeUtc(ev.starts_at_utc), `已报名 ${cnt || 0}/${ev.max_slots}`].filter(Boolean);
+    const epoch = startsAtEpoch(ev);
+    const timeText = epoch ? fmtCarTimeZoned(epoch, await resolveCarHomeTz(env.DB, ev)) : '';
+    const descParts = [typeLabel, dungeonName, timeText, `已报名 ${cnt || 0}/${ev.max_slots}`].filter(Boolean);
     return [
       `<meta property="og:title" content="${escHtml(ev.title)} · ${escHtml(t.guild_name)}" />`,
       `<meta property="og:description" content="${escHtml(descParts.join(' | '))} · 燕云十六声百业车队" />`,

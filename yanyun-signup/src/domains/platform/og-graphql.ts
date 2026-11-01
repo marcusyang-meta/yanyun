@@ -12,7 +12,9 @@ import { listTenantsDirectory } from '../guilds/tenants.ts';
 import { getDevOnlySlugs } from './http.ts';
 import {
   listEventsWeekView, getEventRowByTenant, countSignupsByEvent, getShortLinkByTarget,
+  resolveCarHomeTz, fmtCarTimeZoned, CAR_HOME_TZ_FALLBACK,
 } from '../groupings/index.ts';
+import { startsAtEpoch } from './blocks.ts';
 import { resolveSharedBuild } from '../gear/index.ts';
 
 async function ogTenant(ctx: Context, slug: string) {
@@ -68,6 +70,17 @@ export class OgCarCardShell extends ShellBase {
   genType(){ return this.data.type || ''; }
   genStartsAtUtc(){ return this.data.starts_at_utc ?? null; }
   genStartsAtText(){ return this.data.starts_at || ''; }
+  /* The card's time line, fully rendered by the backend in the car's
+   * home timezone with its Chinese label (car-tz.ts owns the chain
+   * and the labels): the OG worker prints this verbatim, so the card
+   * image and the og:description always agree and the label table
+   * exists exactly once. '' when the car has no start time. */
+  async genCardTimeText(){
+    const epoch = startsAtEpoch(this.data);
+    if (!epoch) return '';
+    const tz = await resolveCarHomeTz(this.db, this.data).catch(() => CAR_HOME_TZ_FALLBACK);
+    return fmtCarTimeZoned(epoch, tz);
+  }
   genDungeonName(){ return this.data.dungeon || ''; }
   genOccupiedCount(){ return this.data.occupiedCount || 0; }
   genMaxSlots(){ return this.data.max_slots || 0; }
@@ -152,6 +165,7 @@ export const ogCardResolvers = {
       maxSlots: (p: any) => p.genMaxSlots(),
       status: (p: any) => p.genStatus(),
       shareCode: (p: OgCarCardShell) => p.genShareCode(),
+      cardTimeText: (p: OgCarCardShell) => p.genCardTimeText(),
     },
   },
 };

@@ -27,6 +27,7 @@ import {
 import {
   getEventRow, getEventTenant, getEventTenantCreator, listEventsByTenantType,
   insertEvent, updateEventFields, setEventStatus, deleteEventCascade,
+  capturedTzOrNull,
 } from './index.ts';
 import {
   listGroupingTemplates, getGroupingTemplate, insertGroupingTemplate,
@@ -938,6 +939,10 @@ export const groupingsResolvers = {
         tenant: tenantRow.id, title, type, description: '', starts_at: '', starts_at_utc: utc,
         max_slots: maxSlots, status: 'open', origin: 'member', created_by: GROUPING_DEFAULT_CREATED_BY,
         dungeon: dungeonName, creator_user_id: ctx.user!.userId,
+        // The car's home timezone: the leader's own zone as presented
+        // by their client on this request (share cards print the
+        // start in it — see car-tz.ts). Null when the client sent none.
+        created_tz: capturedTzOrNull(ctx.tz),
       });
       const eventId = r.last_row_id;
       if (fieldParse.defs.length) {
@@ -1106,7 +1111,13 @@ export const groupingsResolvers = {
       if (input.startsAt !== undefined && input.startsAt !== null) {
         let u = parseInt(input.startsAt, 10) || 0;
         if (!u) { const ms = Date.parse(input.startsAt); if (!Number.isNaN(ms)) u = Math.floor(ms / 1000); }
-        if (u > 0) set('starts_at_utc', u);
+        if (u > 0) {
+          set('starts_at_utc', u);
+          // Re-framing the start re-frames the car's home timezone:
+          // it follows whoever set the time, from their client's zone.
+          const tz = capturedTzOrNull(ctx.tz);
+          if (tz) set('created_tz', tz);
+        }
       }
       if (ev.status === 'draft') set('status', 'open');
       if (Object.keys(patch).length) {
