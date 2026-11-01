@@ -35,6 +35,17 @@ export function effectiveLocaleTag(): string {
   return tag;
 }
 
+// The browser's IANA timezone, sent as x-tz on every GraphQL request
+// (the same header the mobile client sends). The backend renders time
+// copy in it and captures it as the home timezone of any grouping
+// this client creates or re-times. Undefined when the runtime cannot
+// name its zone — the header is then simply omitted.
+export function clientTimeZone(): string | undefined {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || undefined;
+  } catch { return undefined; }
+}
+
 // Locale-changed event: emitted after a settings save or a reconciliation
 // mismatch. relay.ts subscribes and refetches all executed queries with the
 // new x-locale (chromeText drops its cache), so the UI switches language in

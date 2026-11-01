@@ -1,5 +1,5 @@
 import { Environment, Network, RecordSource, Store, fetchQuery } from 'relay-runtime';
-import { effectiveLocaleTag, onLocaleChanged } from './locale';
+import { effectiveLocaleTag, onLocaleChanged, clientTimeZone } from './locale';
 import { jsOperationLoader } from './JSResource';
 
 /* ---------- Registry of executed queries (for locale-change refetch) ----------
@@ -138,6 +138,7 @@ async function fetchGraphQL(operation: any, variables: any) {
   // own schema and data behavior — which is the point of a preview, and what
   // lets CI's render smoke exercise the PR's schema instead of production's.
   const graphqlUrl = '/graphql';
+  const tz = clientTimeZone();
   const res = await fetch(graphqlUrl, {
     method: 'POST',
     headers: {
@@ -147,6 +148,10 @@ async function fetchGraphQL(operation: any, variables: any) {
       // it to a supported locale (zh-TW/en/es/fr, otherwise zh-CN) and
       // generates all UI copy in that locale.
       'x-locale': effectiveLocaleTag(),
+      // Client timezone (IANA), same header the mobile client sends:
+      // the backend renders time copy in it and captures it as the
+      // home timezone of any grouping this client creates or re-times.
+      ...(tz ? { 'x-tz': tz } : {}),
     },
     body: JSON.stringify({
       query: operation.text,

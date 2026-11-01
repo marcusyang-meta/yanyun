@@ -3604,6 +3604,7 @@ type OgCarCard {
   maxSlots: Int!
   status: String!
   shareCode: String
+  cardTimeText: String!
 }
 
 type OgBuildCard {
