@@ -4,26 +4,36 @@
  * the squad card has to travel as an image file. This module fetches
  * the car's OG card PNG (the URL is composed server-side and shipped
  * as the page's shareImageUrl field; clients never compose OG URLs)
- * and either hands it to the system share sheet — when the browser
- * can share files — or falls back to downloading the image while
- * copying the short link, so the user posts the picture into the
- * group and pastes the link under it in two steps.
+ * and delivers it by the best channel the browser offers, in order:
+ * the system share sheet when the browser can share files; the
+ * system clipboard as an image on desktop (the card carries its own
+ * short-link QR since #114, so the pasted picture is self-contained);
+ * or, as the last resort, downloading the image while copying the
+ * short link, so the user posts the picture into the group and
+ * pastes the link under it in two steps.
  *
  * The plan decision and the effect orchestration are pure /
  * dependency-injected here so vitest covers every branch without a
  * DOM; browserShareImageDeps() is the production wiring. */
 
-export type ShareImagePlan = 'share-file' | 'download-and-copy';
+export type ShareImagePlan = 'share-file' | 'copy-image' | 'download-and-copy';
 
-/* The whole branch decision: native file sharing when the browser
- * can share this file, the download+copy fallback otherwise. */
+/* First branch decision: native file sharing when the browser can
+ * share this file; the fallback stage decides the rest. */
 export function planShareImage(canShareFiles: boolean): ShareImagePlan {
   return canShareFiles ? 'share-file' : 'download-and-copy';
+}
+
+/* Fallback-stage decision (no file sharing): write the image to the
+ * clipboard when the browser can do that, download+copy otherwise. */
+export function planShareImageFallback(canCopyImage: boolean): ShareImagePlan {
+  return canCopyImage ? 'copy-image' : 'download-and-copy';
 }
 
 export type ShareImageResult =
   | { kind: 'shared' }
   | { kind: 'cancelled' }
+  | { kind: 'clipboard' }
   | { kind: 'fallback'; copied: boolean }
   | { kind: 'failed' };
 
@@ -32,6 +42,8 @@ export interface ShareImageDeps {
   makeFile: (blob: Blob, fileName: string) => File;
   canShareFiles: (file: File) => boolean;
   shareFiles: (file: File, text: string) => Promise<void>;
+  canCopyImage: () => boolean;
+  writeImageToClipboard: (blob: Blob, text: string) => Promise<void>;
   downloadBlob: (blob: Blob, fileName: string) => void;
   copyText: (text: string) => Promise<boolean>;
 }
@@ -66,8 +78,18 @@ export async function runShareImage(
     } catch (err) {
       // The user closing the share sheet is a choice, not a failure.
       if (isAbortError(err)) return { kind: 'cancelled' };
-      // Any other share failure still leaves the fallback path: the
-      // user gets the image file plus the link on the clipboard.
+      // Any other share failure still leaves the fallback stage: the
+      // clipboard on desktop, the download path below it.
+    }
+  }
+  if (planShareImageFallback(deps.canCopyImage()) === 'copy-image') {
+    try {
+      await deps.writeImageToClipboard(blob, req.linkUrl);
+      return { kind: 'clipboard' };
+    } catch {
+      // Clipboard refused (permission, expired user activation, an
+      // item shape the browser rejects): degrade to the download
+      // path instead of failing the whole action.
     }
   }
   deps.downloadBlob(blob, req.fileName);
@@ -102,6 +124,33 @@ export function browserShareImageDeps(): ShareImageDeps {
     },
     shareFiles: async (file, text) => {
       await navigator.share({ files: [file], text });
+    },
+    canCopyImage: () => {
+      // Async Clipboard image writes need both the write method and
+      // the ClipboardItem constructor (Chromium ships both; where
+      // either is missing the plan falls through to download+copy).
+      return typeof ClipboardItem !== 'undefined'
+        && !!navigator.clipboard
+        && typeof navigator.clipboard.write === 'function';
+    },
+    writeImageToClipboard: async (blob, text) => {
+      // The ClipboardItem type key must be the PNG mime even if the
+      // fetched blob reports an empty/generic type.
+      const png = blob.type === 'image/png' ? blob : new Blob([blob], { type: 'image/png' });
+      try {
+        // Preferred shape: the image plus the short link as plain
+        // text, so a paste into a rich editor can offer either. The
+        // card already prints the link as a QR, so the text is a
+        // bonus — never let it sink the image write.
+        await navigator.clipboard.write([new ClipboardItem({
+          'image/png': png,
+          'text/plain': new Blob([text], { type: 'text/plain' }),
+        })]);
+      } catch {
+        // Browsers that accept only one item type (or reject the
+        // text payload) get the image alone.
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': png })]);
+      }
     },
     downloadBlob: (blob, fileName) => {
       const url = URL.createObjectURL(blob);

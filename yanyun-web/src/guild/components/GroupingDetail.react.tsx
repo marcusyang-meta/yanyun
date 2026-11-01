@@ -30,6 +30,7 @@ const GroupingDetailQueryNode = graphql`
       shareImageUrl
       detailShareImageLabel
       detailShareImageSaved
+      detailShareImageCopied
       detailShareImageFailed
       templateSave {
         buttonLabel
@@ -576,9 +577,10 @@ toast(page.detailCopyFailedManual);
 };
 
 // Share this grouping's card image: native file share when the
-// browser supports it, otherwise download the PNG + copy the short
-// link (chat groups like WeChat show no link preview, so the card
-// travels as a picture with the link pasted under it).
+// browser supports it, the clipboard as an image on desktop,
+// otherwise download the PNG + copy the short link (chat groups
+// like WeChat show no link preview, so the card travels as a
+// picture with the link pasted under it).
 const shareCardImage = async () => {
 const imageUrl = page.shareImageUrl;
 if (!imageUrl || !g) return;
@@ -588,7 +590,9 @@ fileName: shareImageFileName(imageUrl),
 shareText: `${g.title} ${page.shareUrl}`,
 linkUrl: page.shareUrl,
 });
-if (result.kind === 'fallback') {
+if (result.kind === 'clipboard') {
+toast(page.detailShareImageCopied);
+} else if (result.kind === 'fallback') {
 toast(result.copied ? page.detailShareImageSaved : page.detailCopyFailedManual);
 } else if (result.kind === 'failed') {
 toast(page.detailShareImageFailed);

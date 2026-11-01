@@ -53,6 +53,7 @@ const CarSharePageQueryNode = graphql`
       shareImageUrl
       shareImageLabel
       shareImageSaved
+      shareImageCopied
       shareImageFailed
       shareCopyFailedManual
     }
@@ -93,9 +94,10 @@ export default function CarSharePage({ queries, extraProps }: {
       : page.shareStatusClosedLabel;
 
   // Share this squad's card image: native file share when the
-  // browser supports it, otherwise download the PNG + copy the short
-  // link (chat groups like WeChat show no link preview, so the card
-  // travels as a picture with the link pasted under it).
+  // browser supports it, the clipboard as an image on desktop,
+  // otherwise download the PNG + copy the short link (chat groups
+  // like WeChat show no link preview, so the card travels as a
+  // picture with the link pasted under it).
   const shareCardImage = async () => {
     const imageUrl = page.shareImageUrl;
     if (!imageUrl) return;
@@ -106,7 +108,9 @@ export default function CarSharePage({ queries, extraProps }: {
       shareText: `${page.title} ${linkUrl}`,
       linkUrl,
     });
-    if (result.kind === 'fallback') {
+    if (result.kind === 'clipboard') {
+      toast(page.shareImageCopied);
+    } else if (result.kind === 'fallback') {
       toast(result.copied ? page.shareImageSaved : page.shareCopyFailedManual);
     } else if (result.kind === 'failed') {
       toast(page.shareImageFailed);
