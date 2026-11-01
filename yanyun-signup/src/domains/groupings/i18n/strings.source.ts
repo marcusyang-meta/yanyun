@@ -69,6 +69,7 @@ export abstract class GroupingDetailFbtUtils {
   static share(fbs: FbsAPI) { return fbs("🔗 分享车队", "Button label for the squad detail page, used to copy the squad's short share link."); }
   static shareImage(fbs: FbsAPI) { return fbs("🖼 分享图", "Button label for the squad detail page and the public squad share page, used to share the squad's card image together with its short link, for posting into chat groups that render no link previews."); }
   static shareImageSaved(fbs: FbsAPI) { return fbs("图片已保存、链接已复制，去微信发图粘贴即可", "Toast message for the share image action, used after the card image is saved and the short link copied, telling the user to post the image in WeChat and paste the link there."); }
+  static shareImageCopied(fbs: FbsAPI) { return fbs("图片已复制，去聊天里粘贴即可", "Toast message for the share image action, used after the card image is copied to the system clipboard on desktop, telling the user to paste it into a chat window."); }
   static shareImageFailed(fbs: FbsAPI) { return fbs("分享图获取失败，请重试", "Toast message for the share image action, used when the card image cannot be fetched or shared."); }
   static edit(fbs: FbsAPI) { return fbs("✏️ 编辑", "Button label for the squad detail page, used to open the edit form, shown to the leader or a guild admin."); }
   static disband(fbs: FbsAPI) { return fbs("解散车队", "Button label for the squad detail page, used to start disbanding the squad, shown to the leader or a guild admin."); }

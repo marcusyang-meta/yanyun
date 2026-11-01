@@ -33,6 +33,7 @@ export type GroupingsStringKey =
   | 'groupingDetail_share'
   | 'groupingDetail_shareImage'
   | 'groupingDetail_shareImageSaved'
+  | 'groupingDetail_shareImageCopied'
   | 'groupingDetail_shareImageFailed'
   | 'groupingDetail_edit'
   | 'groupingDetail_disband'
@@ -370,6 +371,7 @@ export const GROUPINGS_STRING_KEYS: readonly GroupingsStringKey[] = [
   'groupingDetail_share',
   'groupingDetail_shareImage',
   'groupingDetail_shareImageSaved',
+  'groupingDetail_shareImageCopied',
   'groupingDetail_shareImageFailed',
   'groupingDetail_edit',
   'groupingDetail_disband',
