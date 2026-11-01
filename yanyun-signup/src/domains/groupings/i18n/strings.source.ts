@@ -67,6 +67,9 @@ export abstract class GroupingDetailFbtUtils {
   static notFound(fbs: FbsAPI) { return fbs("车队不存在或已解散", "Error text for the squad detail page, used when the squad does not exist or has been disbanded."); }
   static backToList(fbs: FbsAPI) { return fbs("‹ 返回车队列表", "Back link for the squad detail page, used at the top of the page to return to the squad list."); }
   static share(fbs: FbsAPI) { return fbs("🔗 分享车队", "Button label for the squad detail page, used to copy the squad's short share link."); }
+  static shareImage(fbs: FbsAPI) { return fbs("🖼 分享图", "Button label for the squad detail page and the public squad share page, used to share the squad's card image together with its short link, for posting into chat groups that render no link previews."); }
+  static shareImageSaved(fbs: FbsAPI) { return fbs("图片已保存、链接已复制，去微信发图粘贴即可", "Toast message for the share image action, used after the card image is saved and the short link copied, telling the user to post the image in WeChat and paste the link there."); }
+  static shareImageFailed(fbs: FbsAPI) { return fbs("分享图获取失败，请重试", "Toast message for the share image action, used when the card image cannot be fetched or shared."); }
   static edit(fbs: FbsAPI) { return fbs("✏️ 编辑", "Button label for the squad detail page, used to open the edit form, shown to the leader or a guild admin."); }
   static disband(fbs: FbsAPI) { return fbs("解散车队", "Button label for the squad detail page, used to start disbanding the squad, shown to the leader or a guild admin."); }
   static disbanding(fbs: FbsAPI) { return fbs("解散中…", "Button label for the squad detail page, used while disbanding is in progress."); }

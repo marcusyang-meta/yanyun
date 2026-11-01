@@ -705,6 +705,18 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "fr": "🔗 Partager l’équipe",
       "zh-TW": "🔗 分享車隊"
     },
+    "shareImage": {
+      "zh-CN": "🖼 分享图",
+      "en": "🖼 Share Image"
+    },
+    "shareImageSaved": {
+      "zh-CN": "图片已保存、链接已复制，去微信发图粘贴即可",
+      "en": "Image saved and link copied — post the image in WeChat and paste the link."
+    },
+    "shareImageFailed": {
+      "zh-CN": "分享图获取失败，请重试",
+      "en": "Could not get the share image. Please try again."
+    },
     "edit": {
       "zh-CN": "✏️ 编辑",
       "en": "✏️ Edit",

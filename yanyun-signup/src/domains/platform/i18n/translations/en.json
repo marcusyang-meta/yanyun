@@ -20234,6 +20234,42 @@
         }
       ],
       "types": []
+    },
+    "1iBgjmFZLSuDBeHWFjOnJw==": {
+      "description": "Button label for the squad detail page and the public squad share page, used to share the squad's card image together with its short link, for posting into chat groups that render no link previews.",
+      "id": "groupings/groupingDetail_shareImage",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "🖼 Share Image",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "umkSLOUfYxv31zuk9b0ySg==": {
+      "description": "Toast message for the share image action, used after the card image is saved and the short link copied, telling the user to post the image in WeChat and paste the link there.",
+      "id": "groupings/groupingDetail_shareImageSaved",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Image saved and link copied — post the image in WeChat and paste the link.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "It9rPt51hCEdllnk6grL3g==": {
+      "description": "Toast message for the share image action, used when the card image cannot be fetched or shared.",
+      "id": "groupings/groupingDetail_shareImageFailed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Could not get the share image. Please try again.",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }
