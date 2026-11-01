@@ -229,7 +229,12 @@ describe('feedback', () => {
   eq('反馈类别文案', [sp.feedbackCategoryProblemLabel, sp.feedbackCategorySuggestionLabel, sp.feedbackCategoryOtherLabel], ['问题', '建议', '其他']);
 
   const en = await gql(q, { user: null, locale: 'en' });
-  eq('en 未译字符串逐字段回退源文', en.data?.viewer?.landingGroupingTitle, '组队报名');
+  eq('en 落地页组队块标题已译', en.data?.viewer?.landingGroupingTitle, 'Squad Signups');
+  // The per-field fallback proof rides es now: landing_groupingTitle
+  // is translated in en but still missing in es, so the es read must
+  // return the zh-CN source verbatim while other fields localize.
+  const es = await gql(q, { user: null, locale: 'es' });
+  eq('es 未译字符串逐字段回退源文', es.data?.viewer?.landingGroupingTitle, '组队报名');
   });
 
 /* ================= Admin: list + triage =================

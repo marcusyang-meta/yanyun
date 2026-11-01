@@ -331,7 +331,7 @@ describe('announcement-i18n', () => {
   const item = mp.data?.viewer?.guild?.announcements?.announcements?.[0];
   eq('无档位: 成员 display 回退原文', [item?.displayTitle, item?.displayBody], ['周六活动安排', '本周六晚八点集合。']);
   eq('无档位: isTranslated=false', item?.isTranslated, false);
-  eq('无档位: 来源标记为原文', item?.contentSourceLabel, '原文');
+  eq('无档位: 来源标记为原文', item?.contentSourceLabel, 'Original');
 }
   });
 
@@ -391,7 +391,7 @@ env.AI = aiStub();
   eq('en 成员看译文标题', enItem?.displayTitle, '[EN] 周六活动安排');
   eq('en 成员看译文正文', enItem?.displayBody, '[EN] 本周六晚八点集合。');
   eq('en isTranslated=true', enItem?.isTranslated, true);
-  eq('en 来源标记为译文', enItem?.contentSourceLabel, '译文');
+  eq('en 来源标记为译文', enItem?.contentSourceLabel, 'Translated');
   eq('原文 title 字段不动', enItem?.title, '周六活动安排');
   const zh = await memberPage(member1, 'zh-CN');
   const zhItem = (zh.data?.viewer?.guild?.announcements?.announcements || []).find((a) => a.id === annId);
