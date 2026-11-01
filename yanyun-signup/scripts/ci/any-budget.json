@@ -124,8 +124,8 @@
     "reason": "fbtee runtime interop: generated catalog access at the data edge"
   },
   "src/domains/platform/i18n/catalog.ts": {
-    "max": 10,
-    "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary. Generated file: the count includes the word as it appears inside compiled translation string data (account section copy) (recruit section copy contains the word in compiled string data) (availability relocation: the en translations of the new schedule/recruit strings contain the word)"
+    "max": 15,
+    "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary. Generated file: the count includes the word as it appears inside compiled translation string data (account section copy) (recruit section copy contains the word in compiled string data) (availability relocation: the en translations of the new schedule/recruit strings contain the word) (en coverage fill, 2026-10-31: the newly translated en strings contain the word in compiled string data)"
   },
   "src/domains/platform/og.ts": {
     "max": 7,

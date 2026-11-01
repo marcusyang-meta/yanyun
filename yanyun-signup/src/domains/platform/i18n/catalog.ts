@@ -86,7 +86,8 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-TW": "水墨山水"
     },
     "seal": {
-      "zh-CN": "燕"
+      "zh-CN": "燕",
+      "en": "燕"
     }
   },
   "login": {
@@ -465,7 +466,8 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-TW": "流派攻略"
     },
     "tabAnnouncements": {
-      "zh-CN": "公告"
+      "zh-CN": "公告",
+      "en": "Announcements"
     },
     "adminLink": {
       "zh-CN": "管理",
@@ -480,10 +482,12 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-TW": "排期"
     },
     "tabMarket": {
-      "zh-CN": "补位市场"
+      "zh-CN": "补位市场",
+      "en": "Fill-In Market"
     },
     "tabAllies": {
-      "zh-CN": "盟友"
+      "zh-CN": "盟友",
+      "en": "Allies"
     }
   },
   "groupingType": {
@@ -737,7 +741,8 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-TW": "{occupied}/{max} 人"
     },
     "readyProgress": {
-      "zh-CN": "已就位 {ready}/{occupied}"
+      "zh-CN": "已就位 {ready}/{occupied}",
+      "en": "Ready {ready}/{occupied}"
     },
     "openHint": {
       "zh-CN": "人人可管 · 无需管理码 — 点空位即可落座",
@@ -1312,22 +1317,28 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-TW": "車頭"
     },
     "readyMark": {
-      "zh-CN": "已就位"
+      "zh-CN": "已就位",
+      "en": "Ready"
     },
     "readyAction": {
-      "zh-CN": "我已就位"
+      "zh-CN": "我已就位",
+      "en": "I'm Ready"
     },
     "unreadyAction": {
-      "zh-CN": "取消就位"
+      "zh-CN": "取消就位",
+      "en": "Cancel Ready"
     },
     "toastReady": {
-      "zh-CN": "已标记就位"
+      "zh-CN": "已标记就位",
+      "en": "Marked as ready"
     },
     "toastUnready": {
-      "zh-CN": "已取消就位"
+      "zh-CN": "已取消就位",
+      "en": "Ready mark removed"
     },
     "toastReadyFailed": {
-      "zh-CN": "操作失败：{error}"
+      "zh-CN": "操作失败：{error}",
+      "en": "Action failed: {error}"
     }
   },
   "appBlocks": {
@@ -2224,13 +2235,16 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-TW": "定音"
     },
     "ratePrecision": {
-      "zh-CN": "精准"
+      "zh-CN": "精准",
+      "en": "Precision"
     },
     "rateCrit": {
-      "zh-CN": "会心"
+      "zh-CN": "会心",
+      "en": "Critical"
     },
     "rateAffinity": {
-      "zh-CN": "会意"
+      "zh-CN": "会意",
+      "en": "Affinity"
     },
     "affixPlaceholder": {
       "zh-CN": "— 待镌刻 —",
@@ -2473,10 +2487,12 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-TW": "共 {n} 件"
     },
     "usageTemplate": {
-      "zh-CN": "已存 {n} / {limit} 件"
+      "zh-CN": "已存 {n} / {limit} 件",
+      "en": "{n} / {limit} items stored"
     },
     "usageNearLimitText": {
-      "zh-CN": "装备库快满了，导入新装备前先清理不用的装备"
+      "zh-CN": "装备库快满了，导入新装备前先清理不用的装备",
+      "en": "Your gear library is almost full — clear out gear you no longer use before importing more."
     },
     "formSlotLabel": {
       "zh-CN": "部位",
@@ -2717,10 +2733,12 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-TW": "匯出資料"
     },
     "exportFileName": {
-      "zh-CN": "100阶配装数据.json"
+      "zh-CN": "100阶配装数据.json",
+      "en": "tier-100-build-data.json"
     },
     "importNameTemplate": {
-      "zh-CN": "导入 · {slot}"
+      "zh-CN": "导入 · {slot}",
+      "en": "Import · {slot}"
     },
     "importLabel": {
       "zh-CN": "导入数据",
@@ -2744,7 +2762,8 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-TW": "已匯入 {n} 件"
     },
     "manualTitle": {
-      "zh-CN": "手动录入"
+      "zh-CN": "手动录入",
+      "en": "Manual Entry"
     },
     "pasteTitle": {
       "zh-CN": "粘贴代码导入",
@@ -4030,16 +4049,20 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-TW": "搭配為空"
     },
     "gearCapacityReached": {
-      "zh-CN": "装备库已满（上限 {limit} 件），删掉不用的装备后再添加"
+      "zh-CN": "装备库已满（上限 {limit} 件），删掉不用的装备后再添加",
+      "en": "Your gear library is full (limit {limit}); delete unused gear before adding more"
     },
     "gearImportOverflow": {
-      "zh-CN": "本批 {n} 件会让装备库达到 {total} 件，超过上限 {limit} 件，整批未导入"
+      "zh-CN": "本批 {n} 件会让装备库达到 {total} 件，超过上限 {limit} 件，整批未导入",
+      "en": "This batch of {n} items would bring your library to {total}, over the {limit} limit — the whole batch was not imported"
     },
     "gearOcrBatchTooLarge": {
-      "zh-CN": "单批最多识别 {limit} 张截图，本批有 {n} 张，请分批导入"
+      "zh-CN": "单批最多识别 {limit} 张截图，本批有 {n} 张，请分批导入",
+      "en": "One batch can recognize at most {limit} screenshots; this batch has {n} — please split it into smaller batches"
     },
     "gearOcrDailyLimit": {
-      "zh-CN": "今天的批量识别次数已达上限（{limit} 批），明天再试"
+      "zh-CN": "今天的批量识别次数已达上限（{limit} 批），明天再试",
+      "en": "Today's batch recognition quota is used up ({limit} batches); try again tomorrow"
     },
     "loginRequired": {
       "zh-CN": "请先登录 Discord 后再操作",
@@ -4250,10 +4273,12 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-TW": "未找到該報名"
     },
     "notSeated": {
-      "zh-CN": "你还没有落座这辆车"
+      "zh-CN": "你还没有落座这辆车",
+      "en": "You have not taken a seat in this squad yet"
     },
     "reminderOffsetsInvalid": {
-      "zh-CN": "提醒提前量不在可选范围内"
+      "zh-CN": "提醒提前量不在可选范围内",
+      "en": "Reminder lead times are outside the allowed range"
     },
     "ogAccentInvalid": {
       "zh-CN": "强调色不在可选范围内",
@@ -4354,52 +4379,68 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-TW": "只有所綁伺服器的管理員可以執行此操作"
     },
     "platformAdminRequired": {
-      "zh-CN": "需要平台超管权限"
+      "zh-CN": "需要平台超管权限",
+      "en": "Platform admin permission required"
     },
     "tierInvalid": {
-      "zh-CN": "档位无效"
+      "zh-CN": "档位无效",
+      "en": "Invalid tier"
     },
     "feedbackNotFound": {
-      "zh-CN": "反馈不存在"
+      "zh-CN": "反馈不存在",
+      "en": "Feedback not found"
     },
     "bossNameRequired": {
-      "zh-CN": "首领名不能为空"
+      "zh-CN": "首领名不能为空",
+      "en": "Boss name cannot be empty"
     },
     "webhookFormatInvalid": {
-      "zh-CN": "Webhook URL 格式不对（应为 https://discord.com/api/webhooks/...）"
+      "zh-CN": "Webhook URL 格式不对（应为 https://discord.com/api/webhooks/...）",
+      "en": "Invalid webhook URL format (expected https://discord.com/api/webhooks/...)"
     },
     "webhookNotConfigured": {
-      "zh-CN": "尚未配置 Webhook URL"
+      "zh-CN": "尚未配置 Webhook URL",
+      "en": "No webhook URL configured yet"
     },
     "subdomainTrialCardRequired": {
-      "zh-CN": "该百业处于试用期且未登记支付方式：启用平台子域名前需先登记卡（试用期启用持久化功能需绑卡）"
+      "zh-CN": "该百业处于试用期且未登记支付方式：启用平台子域名前需先登记卡（试用期启用持久化功能需绑卡）",
+      "en": "This guild is in its trial period with no payment method on file: a card must be registered before enabling the platform subdomain (persistent features require a card during trial)"
     },
     "backupStorageMissing": {
-      "zh-CN": "备份存储（R2 BACKUPS 绑定）未配置"
+      "zh-CN": "备份存储（R2 BACKUPS 绑定）未配置",
+      "en": "Backup storage (R2 BACKUPS binding) is not configured"
     },
     "backupNotFound": {
-      "zh-CN": "备份不存在"
+      "zh-CN": "备份不存在",
+      "en": "Backup not found"
     },
     "badParams": {
-      "zh-CN": "参数不正确"
+      "zh-CN": "参数不正确",
+      "en": "Invalid parameters"
     },
     "testSendFailed": {
-      "zh-CN": "测试发送失败"
+      "zh-CN": "测试发送失败",
+      "en": "Test send failed"
     },
     "noCandidates": {
-      "zh-CN": "没有符合条件的成员可发送"
+      "zh-CN": "没有符合条件的成员可发送",
+      "en": "No members match the nudge criteria"
     },
     "nudgeDailyLimit": {
-      "zh-CN": "今天的定向催报已达上限（每天 {limit} 次），明天再发"
+      "zh-CN": "今天的定向催报已达上限（每天 {limit} 次），明天再发",
+      "en": "Today's targeted nudge quota is used up ({limit} per day); try again tomorrow"
     },
     "nudgeCooldown": {
-      "zh-CN": "这辆车刚催报过，24 小时内不能重复催报"
+      "zh-CN": "这辆车刚催报过，24 小时内不能重复催报",
+      "en": "This squad was nudged recently; it cannot be nudged again within 24 hours"
     },
     "nudgeEventInvalid": {
-      "zh-CN": "要催报的车队不存在或不属于本百业"
+      "zh-CN": "要催报的车队不存在或不属于本百业",
+      "en": "The squad to nudge does not exist or does not belong to this guild"
     },
     "contributionRuleInvalid": {
-      "zh-CN": "积分规则不合法"
+      "zh-CN": "积分规则不合法",
+      "en": "Invalid contribution point rule"
     },
     "webhookInvalid": {
       "zh-CN": "Webhook 地址格式不正确",
@@ -4535,28 +4576,36 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-TW": "目前沒有待執行的刪除申請"
     },
     "premiumRequired": {
-      "zh-CN": "该功能需要开通 Premium"
+      "zh-CN": "该功能需要开通 Premium",
+      "en": "This feature requires Premium"
     },
     "customDomainInvalid": {
-      "zh-CN": "域名格式不正确，请填写裸域名（如 www.example.com）"
+      "zh-CN": "域名格式不正确，请填写裸域名（如 www.example.com）",
+      "en": "Invalid domain format; enter a bare domain name (e.g. www.example.com)"
     },
     "customDomainReserved": {
-      "zh-CN": "该域名为平台保留域名，不能绑定"
+      "zh-CN": "该域名为平台保留域名，不能绑定",
+      "en": "This domain is reserved by the platform and cannot be bound"
     },
     "customDomainConflict": {
-      "zh-CN": "该域名已被其他百业绑定"
+      "zh-CN": "该域名已被其他百业绑定",
+      "en": "This domain is already bound by another guild"
     },
     "customDomainNotBound": {
-      "zh-CN": "本百业尚未绑定域名"
+      "zh-CN": "本百业尚未绑定域名",
+      "en": "This guild has no domain bound yet"
     },
     "customDomainDisabled": {
-      "zh-CN": "该域名已被平台停用"
+      "zh-CN": "该域名已被平台停用",
+      "en": "This domain has been disabled by the platform"
     },
     "customDomainSeamPending": {
-      "zh-CN": "平台域名服务尚在接通中，暂不能验证"
+      "zh-CN": "平台域名服务尚在接通中，暂不能验证",
+      "en": "The platform domain service is still being connected; verification is unavailable for now"
     },
     "customDomainDnsPending": {
-      "zh-CN": "DNS 记录尚未生效或不完整，请确认两条记录后稍后再试"
+      "zh-CN": "DNS 记录尚未生效或不完整，请确认两条记录后稍后再试",
+      "en": "The DNS records are not in effect or are incomplete yet; check both records and try again later"
     },
     "gearStandardInvalid": {
       "zh-CN": "达标线参数不合法",
@@ -4599,67 +4648,88 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-TW": "私密區留言不存在"
     },
     "premiumComingSoon": {
-      "zh-CN": "Premium 开通即将开放"
+      "zh-CN": "Premium 开通即将开放",
+      "en": "Premium activation is coming soon"
     },
     "premiumActive": {
-      "zh-CN": "本百业已开通 Premium"
+      "zh-CN": "本百业已开通 Premium",
+      "en": "This guild already has Premium"
     },
     "paygateDisabled": {
-      "zh-CN": "收费功能尚未开启"
+      "zh-CN": "收费功能尚未开启",
+      "en": "Paid features are not enabled yet"
     },
     "checkoutFailed": {
-      "zh-CN": "创建支付会话失败，请稍后再试"
+      "zh-CN": "创建支付会话失败，请稍后再试",
+      "en": "Failed to create the checkout session; please try again later"
     },
     "rosterImportEmpty": {
-      "zh-CN": "没有收到任何识别文本，请重新截图后再试"
+      "zh-CN": "没有收到任何识别文本，请重新截图后再试",
+      "en": "No recognized text was received; please retake the screenshot and try again"
     },
     "rosterBatchNotFound": {
-      "zh-CN": "导入预览不存在或已失效，请重新识别"
+      "zh-CN": "导入预览不存在或已失效，请重新识别",
+      "en": "The import preview no longer exists or has expired; please recognize again"
     },
     "rosterBatchConfirmed": {
-      "zh-CN": "这份预览已经确认导入过了"
+      "zh-CN": "这份预览已经确认导入过了",
+      "en": "This preview was already confirmed and imported"
     },
     "rosterNoImportableRows": {
-      "zh-CN": "没有勾选任何可导入的新名"
+      "zh-CN": "没有勾选任何可导入的新名",
+      "en": "No importable new names are selected"
     },
     "rosterEntryNotFound": {
-      "zh-CN": "名册记录不存在"
+      "zh-CN": "名册记录不存在",
+      "en": "Roster entry not found"
     },
     "checklistItemUnknown": {
-      "zh-CN": "检查条目不存在"
+      "zh-CN": "检查条目不存在",
+      "en": "Checklist item not found"
     },
     "feedbackEmpty": {
-      "zh-CN": "反馈内容不能为空"
+      "zh-CN": "反馈内容不能为空",
+      "en": "Feedback cannot be empty"
     },
     "feedbackTooLong": {
-      "zh-CN": "反馈内容太长，请精简到 2000 字以内"
+      "zh-CN": "反馈内容太长，请精简到 2000 字以内",
+      "en": "Feedback is too long; please trim it to 2,000 characters or fewer"
     },
     "feedbackRateLimited": {
-      "zh-CN": "今天提交的反馈已达上限，请明天再来"
+      "zh-CN": "今天提交的反馈已达上限，请明天再来",
+      "en": "You have reached today's feedback limit; please come back tomorrow"
     },
     "announcementTitleRequired": {
-      "zh-CN": "请填写公告标题"
+      "zh-CN": "请填写公告标题",
+      "en": "Please enter an announcement title"
     },
     "announcementTitleTooLong": {
-      "zh-CN": "公告标题太长，请精简到 80 字以内"
+      "zh-CN": "公告标题太长，请精简到 80 字以内",
+      "en": "The announcement title is too long; please trim it to 80 characters or fewer"
     },
     "announcementBodyTooLong": {
-      "zh-CN": "公告正文太长，请精简到 2000 字以内"
+      "zh-CN": "公告正文太长，请精简到 2000 字以内",
+      "en": "The announcement body is too long; please trim it to 2,000 characters or fewer"
     },
     "announcementNotFound": {
-      "zh-CN": "公告不存在"
+      "zh-CN": "公告不存在",
+      "en": "Announcement not found"
     },
     "translationNotConfigured": {
-      "zh-CN": "多语翻译尚未配置"
+      "zh-CN": "多语翻译尚未配置",
+      "en": "Multilingual translation is not configured yet"
     },
     "translationTierLocked": {
-      "zh-CN": "多语公告需要更高的百业档位"
+      "zh-CN": "多语公告需要更高的百业档位",
+      "en": "Multilingual announcements require a higher guild tier"
     },
     "announcementDailyLimit": {
-      "zh-CN": "今天的公告已达上限（每天 {limit} 条），明天再发"
+      "zh-CN": "今天的公告已达上限（每天 {limit} 条），明天再发",
+      "en": "Today's announcement limit is reached ({limit} per day); try again tomorrow"
     },
     "urgentCallDailyLimit": {
-      "zh-CN": "今天的紧急集合呼叫已达上限（每天 {limit} 次），明天再试"
+      "zh-CN": "今天的紧急集合呼叫已达上限（每天 {limit} 次），明天再试",
+      "en": "Today's urgent call limit is reached ({limit} per day); try again tomorrow"
     },
     "lotteryTitleRequired": {
       "zh-CN": "请填写抽奖标题",
@@ -4742,67 +4812,88 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-TW": "自訂欄位不合法"
     },
     "fillOfferExists": {
-      "zh-CN": "你已有一份发布中的补位供给，请先撤下再重新发布"
+      "zh-CN": "你已有一份发布中的补位供给，请先撤下再重新发布",
+      "en": "You already have an open fill-in offer; withdraw it before publishing a new one"
     },
     "fillSchoolRequired": {
-      "zh-CN": "请填写流派"
+      "zh-CN": "请填写流派",
+      "en": "Please enter a sect"
     },
     "fillWindowsInvalid": {
-      "zh-CN": "可补位时段不合法"
+      "zh-CN": "可补位时段不合法",
+      "en": "Invalid fill-in availability window"
     },
     "fillRequestNotFound": {
-      "zh-CN": "补位需求不存在"
+      "zh-CN": "补位需求不存在",
+      "en": "Fill request not found"
     },
     "fillRequestNotOpen": {
-      "zh-CN": "该补位需求已撮合或已关闭"
+      "zh-CN": "该补位需求已撮合或已关闭",
+      "en": "This fill request has been matched or closed"
     },
     "fillOfferNotOpen": {
-      "zh-CN": "该补位供给已撤下"
+      "zh-CN": "该补位供给已撤下",
+      "en": "This fill-in offer has been withdrawn"
     },
     "fillInviteExists": {
-      "zh-CN": "已经邀请过这位补位人选了"
+      "zh-CN": "已经邀请过这位补位人选了",
+      "en": "You have already invited this fill-in candidate"
     },
     "fillInviteNotFound": {
-      "zh-CN": "补位邀请不存在"
+      "zh-CN": "补位邀请不存在",
+      "en": "Fill invitation not found"
     },
     "fillInviteNotPending": {
-      "zh-CN": "该邀请已经处理过了"
+      "zh-CN": "该邀请已经处理过了",
+      "en": "This invitation has already been answered"
     },
     "fillInviteNotAccepted": {
-      "zh-CN": "对方尚未接受邀请，不能落座"
+      "zh-CN": "对方尚未接受邀请，不能落座",
+      "en": "The supplier has not accepted the invitation yet, so they cannot be seated"
     },
     "fillSelfInvite": {
-      "zh-CN": "不能邀请自己补位"
+      "zh-CN": "不能邀请自己补位",
+      "en": "You cannot invite yourself as a fill-in"
     },
     "marketManageOnly": {
-      "zh-CN": "只有该车队的车头或本百业管理员可以操作补位需求"
+      "zh-CN": "只有该车队的车头或本百业管理员可以操作补位需求",
+      "en": "Only the squad leader or a guild admin can manage fill requests for this squad"
     },
     "allianceSelf": {
-      "zh-CN": "不能和自己的百业结盟"
+      "zh-CN": "不能和自己的百业结盟",
+      "en": "A guild cannot ally with itself"
     },
     "allianceExists": {
-      "zh-CN": "与该百业已有待确认或生效中的结盟关系"
+      "zh-CN": "与该百业已有待确认或生效中的结盟关系",
+      "en": "A pending or active alliance already exists with this guild"
     },
     "allianceNotFound": {
-      "zh-CN": "结盟关系不存在"
+      "zh-CN": "结盟关系不存在",
+      "en": "Alliance not found"
     },
     "allianceNotPending": {
-      "zh-CN": "该结盟邀请已经处理过了"
+      "zh-CN": "该结盟邀请已经处理过了",
+      "en": "This alliance invitation has already been answered"
     },
     "allianceNotActive": {
-      "zh-CN": "该结盟已不在生效中"
+      "zh-CN": "该结盟已不在生效中",
+      "en": "This alliance is no longer active"
     },
     "allyNotAllied": {
-      "zh-CN": "与主办百业尚未结盟（或结盟已解除）"
+      "zh-CN": "与主办百业尚未结盟（或结盟已解除）",
+      "en": "Not allied with the host guild (or the alliance has ended)"
     },
     "allyNotShared": {
-      "zh-CN": "该车队未向盟友开放访客位"
+      "zh-CN": "该车队未向盟友开放访客位",
+      "en": "This squad is not open to allies for visitor seats"
     },
     "visitorSlotsFull": {
-      "zh-CN": "访客位已满"
+      "zh-CN": "访客位已满",
+      "en": "All visitor seats are taken"
     },
     "visitorSlotsInvalid": {
-      "zh-CN": "访客名额必须在 0 与车队总名额之间"
+      "zh-CN": "访客名额必须在 0 与车队总名额之间",
+      "en": "Visitor seats must be between 0 and the squad's total capacity"
     },
     "customFieldTooMany": {
       "zh-CN": "自定义字段最多 5 个",
@@ -4925,22 +5016,28 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-TW": "關聯的副本不存在"
     },
     "recapForbidden": {
-      "zh-CN": "只有车头或本百业管理员可以生成复盘"
+      "zh-CN": "只有车头或本百业管理员可以生成复盘",
+      "en": "Only the squad leader or a guild admin can generate a recap"
     },
     "recapNotCompleted": {
-      "zh-CN": "车队完成后才能生成复盘"
+      "zh-CN": "车队完成后才能生成复盘",
+      "en": "A recap can only be generated after the squad is completed"
     },
     "recapTierLocked": {
-      "zh-CN": "该百业尚未开通 AI 复盘（高阶订阅档功能）"
+      "zh-CN": "该百业尚未开通 AI 复盘（高阶订阅档功能）",
+      "en": "This guild has not unlocked AI recaps (a top subscription tier feature)"
     },
     "recapNotEnabled": {
-      "zh-CN": "AI 复盘尚未开启"
+      "zh-CN": "AI 复盘尚未开启",
+      "en": "AI recaps are not enabled yet"
     },
     "recapDailyLimit": {
-      "zh-CN": "今日复盘生成次数已达上限，明天再试"
+      "zh-CN": "今日复盘生成次数已达上限，明天再试",
+      "en": "Today's recap generation limit is reached; try again tomorrow"
     },
     "recapProviderFailed": {
-      "zh-CN": "复盘生成失败，请稍后重试"
+      "zh-CN": "复盘生成失败，请稍后重试",
+      "en": "Recap generation failed; please try again later"
     }
   },
   "guildAdmin": {
@@ -5183,19 +5280,24 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-TW": "未綁定"
     },
     "reminderTitle": {
-      "zh-CN": "发车提醒设置"
+      "zh-CN": "发车提醒设置",
+      "en": "Departure Reminder Settings"
     },
     "reminderOffsetsLabel": {
-      "zh-CN": "提醒提前量（可多选）"
+      "zh-CN": "提醒提前量（可多选）",
+      "en": "Reminder Lead Times (select all that apply)"
     },
     "reminderOffsetOption": {
-      "zh-CN": "提前 {minutes} 分钟"
+      "zh-CN": "提前 {minutes} 分钟",
+      "en": "{minutes} minutes before"
     },
     "reminderCustomTextLabel": {
-      "zh-CN": "自定义提醒文案"
+      "zh-CN": "自定义提醒文案",
+      "en": "Custom Reminder Text"
     },
     "reminderCustomTextHint": {
-      "zh-CN": "一行文字，会出现在提醒卡片里；最多 100 字，留空不显示。第一次提前提醒会通知所有人，之后的只催还没就位的人。"
+      "zh-CN": "一行文字，会出现在提醒卡片里；最多 100 字，留空不显示。第一次提前提醒会通知所有人，之后的只催还没就位的人。",
+      "en": "One line of text shown on the reminder card; at most 100 characters, and left empty it is not shown. The first lead-time reminder notifies everyone; later ones only nudge members who are not ready yet."
     },
     "visibilityTitle": {
       "zh-CN": "可见性",
@@ -5219,7 +5321,8 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-TW": "活動管理"
     },
     "signupCsvSuffix": {
-      "zh-CN": "报名表"
+      "zh-CN": "报名表",
+      "en": "signups"
     },
     "eventEmpty": {
       "zh-CN": "暂无活动。",
@@ -5446,79 +5549,104 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-TW": "統計"
     },
     "tabSeason": {
-      "zh-CN": "赛季"
+      "zh-CN": "赛季",
+      "en": "Season"
     },
     "seasonTitle": {
-      "zh-CN": "赛季前检查清单"
+      "zh-CN": "赛季前检查清单",
+      "en": "Pre-Season Checklist"
     },
     "seasonHint": {
-      "zh-CN": "按当前版本 {version} 与赛季 {season} 自动生成；换季后清单自动重置，逐项复核后勾选。"
+      "zh-CN": "按当前版本 {version} 与赛季 {season} 自动生成；换季后清单自动重置，逐项复核后勾选。",
+      "en": "Auto-generated from the current version {version} and season {season}; the list resets itself after a season change — review and tick off each item."
     },
     "seasonProgress": {
-      "zh-CN": "已完成 {done} / {total}"
+      "zh-CN": "已完成 {done} / {total}",
+      "en": "Done {done} / {total}"
     },
     "seasonItemDungeonsTitle": {
-      "zh-CN": "复核当前版本副本"
+      "zh-CN": "复核当前版本副本",
+      "en": "Review Current-Version Dungeons"
     },
     "seasonItemDungeonsDetail": {
-      "zh-CN": "当前版本（{version}）共有 {count} 个副本，确认达标要求与攻略已按本赛季更新。"
+      "zh-CN": "当前版本（{version}）共有 {count} 个副本，确认达标要求与攻略已按本赛季更新。",
+      "en": "The current version ({version}) has {count} dungeons; confirm the readiness standards and guides are updated for this season."
     },
     "seasonItemTemplatesTitle": {
-      "zh-CN": "复核组队模板"
+      "zh-CN": "复核组队模板",
+      "en": "Review Squad Templates"
     },
     "seasonItemTemplatesDetail": {
-      "zh-CN": "本百业现有 {count} 个组队模板，确认模板的副本与人数仍适用于本赛季。"
+      "zh-CN": "本百业现有 {count} 个组队模板，确认模板的副本与人数仍适用于本赛季。",
+      "en": "This guild has {count} squad templates; confirm each template's dungeon and size still fit this season."
     },
     "seasonItemGuidesTitle": {
-      "zh-CN": "复核流派攻略数据"
+      "zh-CN": "复核流派攻略数据",
+      "en": "Review Sect Guide Data"
     },
     "seasonItemGuidesDetail": {
-      "zh-CN": "攻略数据现有 {builds} 份 BiS 与 {rotations} 份循环，确认已按本赛季数值更新。"
+      "zh-CN": "攻略数据现有 {builds} 份 BiS 与 {rotations} 份循环，确认已按本赛季数值更新。",
+      "en": "The guide data currently holds {builds} BiS sets and {rotations} rotations; confirm they are updated to this season's numbers."
     },
     "seasonItemRosterTitle": {
-      "zh-CN": "复核成员名册"
+      "zh-CN": "复核成员名册",
+      "en": "Review the Member Roster"
     },
     "seasonItemRosterDetail": {
-      "zh-CN": "Discord 名册 {members} 人，截图名册 {entries} 条；确认成员装备季标与名册均为本赛季最新。"
+      "zh-CN": "Discord 名册 {members} 人，截图名册 {entries} 条；确认成员装备季标与名册均为本赛季最新。",
+      "en": "Discord roster: {members} members; screenshot roster: {entries} entries; confirm members' gear season tags and the roster are current for this season."
     },
     "rosterTitle": {
-      "zh-CN": "成员名册（截图导入）"
+      "zh-CN": "成员名册（截图导入）",
+      "en": "Member Roster (Screenshot Import)"
     },
     "rosterHint": {
-      "zh-CN": "上传游戏内成员名单截图，识别出的名字先进入预览，确认后才写入名册。名册只记录游戏内名字，不会改变任何人的 Discord 成员资格。"
+      "zh-CN": "上传游戏内成员名单截图，识别出的名字先进入预览，确认后才写入名册。名册只记录游戏内名字，不会改变任何人的 Discord 成员资格。",
+      "en": "Upload a screenshot of the in-game member list; recognized names go to a preview first and are written to the roster only after you confirm. The roster only records in-game names and never changes anyone's Discord membership."
     },
     "rosterUpload": {
-      "zh-CN": "上传名单截图"
+      "zh-CN": "上传名单截图",
+      "en": "Upload Member List Screenshot"
     },
     "rosterOcrRunning": {
-      "zh-CN": "识别中…"
+      "zh-CN": "识别中…",
+      "en": "Recognizing…"
     },
     "rosterPreviewTitle": {
-      "zh-CN": "导入预览"
+      "zh-CN": "导入预览",
+      "en": "Import Preview"
     },
     "rosterConfirm": {
-      "zh-CN": "确认导入"
+      "zh-CN": "确认导入",
+      "en": "Confirm Import"
     },
     "rosterEmpty": {
-      "zh-CN": "尚无名册记录，用上方按钮上传名单截图导入。"
+      "zh-CN": "尚无名册记录，用上方按钮上传名单截图导入。",
+      "en": "No roster records yet — use the button above to upload a member list screenshot."
     },
     "rosterSourceOcr": {
-      "zh-CN": "截图识别"
+      "zh-CN": "截图识别",
+      "en": "Screenshot Recognition"
     },
     "rosterMatchedMember": {
-      "zh-CN": "已匹配 Discord 成员"
+      "zh-CN": "已匹配 Discord 成员",
+      "en": "Matched to a Discord member"
     },
     "rosterStatusMatched": {
-      "zh-CN": "已匹配"
+      "zh-CN": "已匹配",
+      "en": "Matched"
     },
     "rosterStatusNew": {
-      "zh-CN": "疑似新名"
+      "zh-CN": "疑似新名",
+      "en": "Likely new"
     },
     "rosterStatusUnrecognized": {
-      "zh-CN": "无法识别"
+      "zh-CN": "无法识别",
+      "en": "Unrecognized"
     },
     "rosterImported": {
-      "zh-CN": "已导入 {count} 条名册记录"
+      "zh-CN": "已导入 {count} 条名册记录",
+      "en": "Imported {count} roster records"
     },
     "statsTitle": {
       "zh-CN": "出勤与活跃",
@@ -5891,34 +6019,44 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-TW": "紫檀"
     },
     "premiumLockedTitle": {
-      "zh-CN": "开通百业 Premium"
+      "zh-CN": "开通百业 Premium",
+      "en": "Activate Guild Premium"
     },
     "premiumLockedBody": {
-      "zh-CN": "高级发车提醒、出勤统计、品牌与分享卡定制均为 Premium 功能。开通后立即生效，可随时取消。"
+      "zh-CN": "高级发车提醒、出勤统计、品牌与分享卡定制均为 Premium 功能。开通后立即生效，可随时取消。",
+      "en": "Advanced departure reminders, attendance statistics, branding and share-card customization are Premium features. Premium takes effect immediately once activated, and you can cancel anytime."
     },
     "premiumCheckoutButton": {
-      "zh-CN": "立即开通"
+      "zh-CN": "立即开通",
+      "en": "Activate Now"
     },
     "premiumComingSoon": {
-      "zh-CN": "即将开放"
+      "zh-CN": "即将开放",
+      "en": "Coming Soon"
     },
     "premiumActiveTitle": {
-      "zh-CN": "百业 Premium"
+      "zh-CN": "百业 Premium",
+      "en": "Guild Premium"
     },
     "premiumPlanName": {
-      "zh-CN": "Premium"
+      "zh-CN": "Premium",
+      "en": "Premium"
     },
     "premiumSourceStripe": {
-      "zh-CN": "通过 Stripe 订阅"
+      "zh-CN": "通过 Stripe 订阅",
+      "en": "Subscribed via Stripe"
     },
     "premiumSourceManual": {
-      "zh-CN": "由平台授予"
+      "zh-CN": "由平台授予",
+      "en": "Granted by the platform"
     },
     "premiumPeriodEnd": {
-      "zh-CN": "当前周期至 {date}"
+      "zh-CN": "当前周期至 {date}",
+      "en": "Current period ends {date}"
     },
     "premiumPriceMonth": {
-      "zh-CN": "{amount} / 月"
+      "zh-CN": "{amount} / 月",
+      "en": "{amount} / month"
     },
     "premiumTier1Name": {
       "zh-CN": "同道",
@@ -5953,85 +6091,112 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "en": "Your subscription payment is overdue: your current tier stays in effect for a {days}-day grace window — please complete the payment soon."
     },
     "premiumPriceYear": {
-      "zh-CN": "{amount} / 年"
+      "zh-CN": "{amount} / 年",
+      "en": "{amount} / year"
     },
     "customDomainTitle": {
-      "zh-CN": "自定义域名"
+      "zh-CN": "自定义域名",
+      "en": "Custom Domain"
     },
     "customDomainHint": {
-      "zh-CN": "把百业自己的域名（如 www.example.com）绑定到这里，成员就能用这个域名打开百业页面。每个百业可绑定一个域名；绑定后需要按下方指引在域名服务商处添加两条 DNS 记录。根域名（裸域）能否直接使用取决于注册商是否支持 CNAME 展平，建议使用 www 等子域名。"
+      "zh-CN": "把百业自己的域名（如 www.example.com）绑定到这里，成员就能用这个域名打开百业页面。每个百业可绑定一个域名；绑定后需要按下方指引在域名服务商处添加两条 DNS 记录。根域名（裸域）能否直接使用取决于注册商是否支持 CNAME 展平，建议使用 www 等子域名。",
+      "en": "Bind your guild's own domain (e.g. www.example.com) here so members can open the guild pages on that domain. Each guild can bind one domain; after binding, add the two DNS records below at your domain provider as instructed. Whether a root (apex) domain can be used directly depends on whether the registrar supports CNAME flattening — a subdomain such as www is recommended."
     },
     "customDomainHostnameLabel": {
-      "zh-CN": "域名"
+      "zh-CN": "域名",
+      "en": "Domain"
     },
     "customDomainHostnamePlaceholder": {
-      "zh-CN": "www.example.com"
+      "zh-CN": "www.example.com",
+      "en": "www.example.com"
     },
     "customDomainBindButton": {
-      "zh-CN": "绑定域名"
+      "zh-CN": "绑定域名",
+      "en": "Bind Domain"
     },
     "customDomainRebindButton": {
-      "zh-CN": "更换域名"
+      "zh-CN": "更换域名",
+      "en": "Change Domain"
     },
     "customDomainVerifyButton": {
-      "zh-CN": "验证并启用"
+      "zh-CN": "验证并启用",
+      "en": "Verify & Activate"
     },
     "customDomainRemoveButton": {
-      "zh-CN": "解绑域名"
+      "zh-CN": "解绑域名",
+      "en": "Unbind Domain"
     },
     "customDomainStatusNone": {
-      "zh-CN": "尚未绑定域名"
+      "zh-CN": "尚未绑定域名",
+      "en": "No domain bound yet"
     },
     "customDomainStatusPendingSeam": {
-      "zh-CN": "已绑定，待平台接通"
+      "zh-CN": "已绑定，待平台接通",
+      "en": "Bound — awaiting platform connection"
     },
     "customDomainStatusPendingDns": {
-      "zh-CN": "已绑定，待验证 DNS"
+      "zh-CN": "已绑定，待验证 DNS",
+      "en": "Bound — awaiting DNS verification"
     },
     "customDomainStatusActive": {
-      "zh-CN": "已生效"
+      "zh-CN": "已生效",
+      "en": "Active"
     },
     "customDomainStatusDisabled": {
-      "zh-CN": "已被平台停用"
+      "zh-CN": "已被平台停用",
+      "en": "Disabled by the platform"
     },
     "customDomainBoundAt": {
-      "zh-CN": "绑定于 {date}"
+      "zh-CN": "绑定于 {date}",
+      "en": "Bound on {date}"
     },
     "customDomainDnsTitle": {
-      "zh-CN": "DNS 设置指引"
+      "zh-CN": "DNS 设置指引",
+      "en": "DNS Setup Guide"
     },
     "customDomainCnameLabel": {
-      "zh-CN": "CNAME 记录（让域名指向平台）"
+      "zh-CN": "CNAME 记录（让域名指向平台）",
+      "en": "CNAME record (points your domain at the platform)"
     },
     "customDomainTxtLabel": {
-      "zh-CN": "TXT 记录（证明域名归你所有）"
+      "zh-CN": "TXT 记录（证明域名归你所有）",
+      "en": "TXT record (proves the domain is yours)"
     },
     "customDomainRecordNameLabel": {
-      "zh-CN": "主机记录"
+      "zh-CN": "主机记录",
+      "en": "Host record"
     },
     "customDomainRecordValueLabel": {
-      "zh-CN": "记录值"
+      "zh-CN": "记录值",
+      "en": "Record value"
     },
     "customDomainSeamNote": {
-      "zh-CN": "平台的域名服务尚在接通中：你可以先绑定域名并添加 DNS 记录，平台接通后点「验证并启用」即可生效；接通前该域名不会打开任何页面。"
+      "zh-CN": "平台的域名服务尚在接通中：你可以先绑定域名并添加 DNS 记录，平台接通后点「验证并启用」即可生效；接通前该域名不会打开任何页面。",
+      "en": "The platform's domain service is still being connected: you can bind the domain and add the DNS records now, and once the platform is connected, click “Verify & Activate” to take it live; until then the domain will not open any page."
     },
     "customDomainDnsNote": {
-      "zh-CN": "两条记录都添加后，点「验证并启用」：平台会检查 DNS 是否正确，证书由平台自动签发。DNS 生效可能需要几分钟到几小时，未通过时可稍后再试。"
+      "zh-CN": "两条记录都添加后，点「验证并启用」：平台会检查 DNS 是否正确，证书由平台自动签发。DNS 生效可能需要几分钟到几小时，未通过时可稍后再试。",
+      "en": "After adding both records, click “Verify & Activate”: the platform checks the DNS and issues the certificate automatically. DNS can take anywhere from a few minutes to a few hours to take effect; if verification fails, try again later."
     },
     "customDomainActiveNote": {
-      "zh-CN": "域名已生效：用这个域名打开的页面与主站一致。登录使用该域名自己的登录流程，平台会为该域名登记登录回调；更换或解绑域名后，该域名立即停止打开百业页面。"
+      "zh-CN": "域名已生效：用这个域名打开的页面与主站一致。登录使用该域名自己的登录流程，平台会为该域名登记登录回调；更换或解绑域名后，该域名立即停止打开百业页面。",
+      "en": "The domain is live: pages opened on it match the main site. Sign-in uses this domain's own flow, and the platform registers a login callback for it; after changing or unbinding the domain, it immediately stops opening guild pages."
     },
     "customDomainDisabledNote": {
-      "zh-CN": "该域名已被平台停用，当前不会打开任何页面。如需恢复，请联系平台。"
+      "zh-CN": "该域名已被平台停用，当前不会打开任何页面。如需恢复，请联系平台。",
+      "en": "This domain has been disabled by the platform and currently opens no pages. Contact the platform if you need it restored."
     },
     "billingSuccess": {
-      "zh-CN": "开通成功，Premium 已生效。"
+      "zh-CN": "开通成功，Premium 已生效。",
+      "en": "Activation complete — Premium is now active."
     },
     "billingCanceled": {
-      "zh-CN": "已取消开通，未产生扣费。"
+      "zh-CN": "已取消开通，未产生扣费。",
+      "en": "Activation cancelled; no charge was made."
     },
     "tabAnnouncements": {
-      "zh-CN": "公告广播"
+      "zh-CN": "公告广播",
+      "en": "Announcement Broadcast"
     },
     "tabTools": {
       "zh-CN": "活动工具",
@@ -6535,191 +6700,252 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
   },
   "landing": {
     "featuresTitle": {
-      "zh-CN": "为百业同道而备"
+      "zh-CN": "为百业同道而备",
+      "en": "Built for Fellow Guildmates"
     },
     "groupingTitle": {
-      "zh-CN": "组队报名"
+      "zh-CN": "组队报名",
+      "en": "Squad Signups"
     },
     "groupingBody": {
-      "zh-CN": "双十、天赋、竞速、爬塔四类车队一键成行，席位名册一目了然，短链分享直达车队页。"
+      "zh-CN": "双十、天赋、竞速、爬塔四类车队一键成行，席位名册一目了然，短链分享直达车队页。",
+      "en": "10-Man Raids, Talent, Speedrun and Tower Climb squads form in one tap, with the seat roster at a glance and short links that go straight to the squad page."
     },
     "reminderTitle": {
-      "zh-CN": "发车提醒"
+      "zh-CN": "发车提醒",
+      "en": "Departure Reminders"
     },
     "reminderBody": {
-      "zh-CN": "发车前自动提醒到 Discord 频道与手机 App，就位确认先行，只催还没到场的人。"
+      "zh-CN": "发车前自动提醒到 Discord 频道与手机 App，就位确认先行，只催还没到场的人。",
+      "en": "Automatic reminders land in your Discord channel and the mobile app before departure; ready checks come first, and only members who have not arrived yet get nudged."
     },
     "dexTitle": {
-      "zh-CN": "图鉴与攻略"
+      "zh-CN": "图鉴与攻略",
+      "en": "Compendium & Guides"
     },
     "dexBody": {
-      "zh-CN": "副本、首领图鉴与机制攻略，十一流派毕业词缀与配装参考，随国际服版本更新。"
+      "zh-CN": "副本、首领图鉴与机制攻略，十一流派毕业词缀与配装参考，随国际服版本更新。",
+      "en": "Dungeon and boss compendiums with mechanics guides, graduation affixes and build references for all eleven schools, kept in step with the global server."
     },
     "gearTitle": {
-      "zh-CN": "装备规划"
+      "zh-CN": "装备规划",
+      "en": "Gear Planning"
     },
     "gearBody": {
-      "zh-CN": "个人装备库与搭配筹谋：粘贴、截图识别或手动录入，承音调律与毕业度测算，离毕业还差多少一眼看清。"
+      "zh-CN": "个人装备库与搭配筹谋：粘贴、截图识别或手动录入，承音调律与毕业度测算，离毕业还差多少一眼看清。",
+      "en": "Your personal gear library and build planner: paste, screenshot recognition or manual entry, with resonance tuning and graduation scoring that shows exactly how far you have to go."
     }
   },
   "feedback": {
     "entryLabel": {
-      "zh-CN": "意见反馈"
+      "zh-CN": "意见反馈",
+      "en": "Feedback"
     },
     "title": {
-      "zh-CN": "意见反馈"
+      "zh-CN": "意见反馈",
+      "en": "Feedback"
     },
     "categoryLabel": {
-      "zh-CN": "类别"
+      "zh-CN": "类别",
+      "en": "Category"
     },
     "catProblem": {
-      "zh-CN": "问题"
+      "zh-CN": "问题",
+      "en": "Problem"
     },
     "catSuggestion": {
-      "zh-CN": "建议"
+      "zh-CN": "建议",
+      "en": "Suggestion"
     },
     "catOther": {
-      "zh-CN": "其他"
+      "zh-CN": "其他",
+      "en": "Other"
     },
     "placeholder": {
-      "zh-CN": "请描述遇到的问题，或写下你的建议…"
+      "zh-CN": "请描述遇到的问题，或写下你的建议…",
+      "en": "Describe the problem you ran into, or write down your suggestion…"
     },
     "submit": {
-      "zh-CN": "提交反馈"
+      "zh-CN": "提交反馈",
+      "en": "Submit Feedback"
     },
     "submitting": {
-      "zh-CN": "提交中…"
+      "zh-CN": "提交中…",
+      "en": "Submitting…"
     },
     "success": {
-      "zh-CN": "已收到，感谢你的反馈。"
+      "zh-CN": "已收到，感谢你的反馈。",
+      "en": "Received — thank you for your feedback."
     }
   },
   "announcements": {
     "title": {
-      "zh-CN": "百业公告"
+      "zh-CN": "百业公告",
+      "en": "Guild Announcements"
     },
     "emptyText": {
-      "zh-CN": "暂无公告"
+      "zh-CN": "暂无公告",
+      "en": "No announcements yet"
     },
     "urgentLabel": {
-      "zh-CN": "紧急集合"
+      "zh-CN": "紧急集合",
+      "en": "Urgent Call"
     },
     "standardLabel": {
-      "zh-CN": "公告"
+      "zh-CN": "公告",
+      "en": "Announcement"
     },
     "unreadLabel": {
-      "zh-CN": "未读"
+      "zh-CN": "未读",
+      "en": "Unread"
     },
     "readLabel": {
-      "zh-CN": "已读"
+      "zh-CN": "已读",
+      "en": "Read"
     },
     "composeTitle": {
-      "zh-CN": "发布公告"
+      "zh-CN": "发布公告",
+      "en": "Post Announcement"
     },
     "kindLabel": {
-      "zh-CN": "类型"
+      "zh-CN": "类型",
+      "en": "Type"
     },
     "kindStandardLabel": {
-      "zh-CN": "普通公告"
+      "zh-CN": "普通公告",
+      "en": "Standard Announcement"
     },
     "kindUrgentLabel": {
-      "zh-CN": "紧急集合呼叫"
+      "zh-CN": "紧急集合呼叫",
+      "en": "Urgent Call"
     },
     "titleLabel": {
-      "zh-CN": "标题"
+      "zh-CN": "标题",
+      "en": "Title"
     },
     "titlePlaceholder": {
-      "zh-CN": "公告标题"
+      "zh-CN": "公告标题",
+      "en": "Announcement title"
     },
     "bodyLabel": {
-      "zh-CN": "正文"
+      "zh-CN": "正文",
+      "en": "Body"
     },
     "bodyPlaceholder": {
-      "zh-CN": "公告正文"
+      "zh-CN": "公告正文",
+      "en": "Announcement body"
     },
     "postLabel": {
-      "zh-CN": "发布并推送"
+      "zh-CN": "发布并推送",
+      "en": "Publish & Push"
     },
     "postingLabel": {
-      "zh-CN": "发布中…"
+      "zh-CN": "发布中…",
+      "en": "Publishing…"
     },
     "postedText": {
-      "zh-CN": "公告已发布"
+      "zh-CN": "公告已发布",
+      "en": "Announcement published"
     },
     "deleteLabel": {
-      "zh-CN": "删除"
+      "zh-CN": "删除",
+      "en": "Delete"
     },
     "deleteConfirmTitle": {
-      "zh-CN": "删除这条公告？"
+      "zh-CN": "删除这条公告？",
+      "en": "Delete this announcement?"
     },
     "deleteConfirmMessage": {
-      "zh-CN": "确定要删除公告「{title}」吗？已读记录会一并删除。"
+      "zh-CN": "确定要删除公告「{title}」吗？已读记录会一并删除。",
+      "en": "Delete the announcement “{title}”? Its read records will be deleted with it."
     },
     "deletedText": {
-      "zh-CN": "公告已删除"
+      "zh-CN": "公告已删除",
+      "en": "Announcement deleted"
     },
     "receiptsTitle": {
-      "zh-CN": "阅读情况"
+      "zh-CN": "阅读情况",
+      "en": "Read Receipts"
     },
     "readCountTemplate": {
-      "zh-CN": "已读 {read} / {total}"
+      "zh-CN": "已读 {read} / {total}",
+      "en": "Read {read} / {total}"
     },
     "readListLabel": {
-      "zh-CN": "已读成员"
+      "zh-CN": "已读成员",
+      "en": "Read by"
     },
     "unreadListLabel": {
-      "zh-CN": "未读成员"
+      "zh-CN": "未读成员",
+      "en": "Not read by"
     },
     "authorTemplate": {
-      "zh-CN": "{name} 发布"
+      "zh-CN": "{name} 发布",
+      "en": "Posted by {name}"
     },
     "pushNote": {
-      "zh-CN": "发布后会向全体成员推送通知；没有开启推送的成员也能在这里看到。"
+      "zh-CN": "发布后会向全体成员推送通知；没有开启推送的成员也能在这里看到。",
+      "en": "Publishing pushes a notification to all members; members without push enabled can still see it here."
     },
     "urgentNote": {
-      "zh-CN": "紧急集合呼叫请只用于临时集合等紧急情况，每天最多 2 次。"
+      "zh-CN": "紧急集合呼叫请只用于临时集合等紧急情况，每天最多 2 次。",
+      "en": "Urgent calls are for emergencies such as last-minute gatherings only — at most 2 per day."
     },
     "dailyLimitTemplate": {
-      "zh-CN": "今日还可发布 {remaining} 条"
+      "zh-CN": "今日还可发布 {remaining} 条",
+      "en": "{remaining} more can be posted today"
     },
     "translatedSourceLabel": {
-      "zh-CN": "译文"
+      "zh-CN": "译文",
+      "en": "Translated"
     },
     "originalSourceLabel": {
-      "zh-CN": "原文"
+      "zh-CN": "原文",
+      "en": "Original"
     },
     "generateTranslationsLabel": {
-      "zh-CN": "生成多语版"
+      "zh-CN": "生成多语版",
+      "en": "Generate Translations"
     },
     "generatingTranslationsLabel": {
-      "zh-CN": "生成中…"
+      "zh-CN": "生成中…",
+      "en": "Generating…"
     },
     "translationsGeneratedText": {
-      "zh-CN": "多语版已生成"
+      "zh-CN": "多语版已生成",
+      "en": "Translations generated"
     },
     "translationsPartialText": {
-      "zh-CN": "多语版部分生成失败，可重试"
+      "zh-CN": "多语版部分生成失败，可重试",
+      "en": "Some translations failed to generate; you can retry"
     },
     "translationUnavailableText": {
-      "zh-CN": "多语翻译尚未配置，配置完成后可生成多语版公告。"
+      "zh-CN": "多语翻译尚未配置，配置完成后可生成多语版公告。",
+      "en": "Multilingual translation is not configured yet. Once it is, you will be able to generate multilingual announcements."
     },
     "translationStatusNone": {
-      "zh-CN": "多语版：未生成"
+      "zh-CN": "多语版：未生成",
+      "en": "Translations: not generated"
     },
     "translationStatusDoneTemplate": {
-      "zh-CN": "多语版：已生成 {done} / {total}"
+      "zh-CN": "多语版：已生成 {done} / {total}",
+      "en": "Translations: {done} / {total} generated"
     },
     "translationStatusFailed": {
-      "zh-CN": "多语版：生成失败"
+      "zh-CN": "多语版：生成失败",
+      "en": "Translations: generation failed"
     },
     "translationLocaleDoneLabel": {
-      "zh-CN": "已生成"
+      "zh-CN": "已生成",
+      "en": "Generated"
     },
     "translationLocaleFailedLabel": {
-      "zh-CN": "生成失败"
+      "zh-CN": "生成失败",
+      "en": "Failed"
     },
     "translationLocalePendingLabel": {
-      "zh-CN": "未生成"
+      "zh-CN": "未生成",
+      "en": "Not generated"
     }
   },
   "schedule": {
@@ -7335,326 +7561,432 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
   },
   "ops": {
     "tabOps": {
-      "zh-CN": "运营引擎"
+      "zh-CN": "运营引擎",
+      "en": "Operations Engine"
     },
     "title": {
-      "zh-CN": "运营引擎"
+      "zh-CN": "运营引擎",
+      "en": "Operations Engine"
     },
     "hint": {
-      "zh-CN": "定向催报、流失预警、赛季滚动与贡献积分都在这里——都是给军官省时间的引擎，判定与数字全部由平台算好下发。"
+      "zh-CN": "定向催报、流失预警、赛季滚动与贡献积分都在这里——都是给军官省时间的引擎，判定与数字全部由平台算好下发。",
+      "en": "Targeted nudges, churn warnings, season rollover and contribution points all live here — engines that save officers time, with every verdict and number computed by the platform."
     },
     "nudgeTitle": {
-      "zh-CN": "定向催报"
+      "zh-CN": "定向催报",
+      "en": "Targeted Nudges"
     },
     "nudgeHint": {
-      "zh-CN": "只催还没报名的人：按分段圈定目标，先预览人数与名单，确认后才发送（走百业 Discord 频道与 App 推送）。每天最多 3 次，同一辆车 24 小时内只催一次。"
+      "zh-CN": "只催还没报名的人：按分段圈定目标，先预览人数与名单，确认后才发送（走百业 Discord 频道与 App 推送）。每天最多 3 次，同一辆车 24 小时内只催一次。",
+      "en": "Only nudge members who have not signed up yet: pick a segment, preview the count and the names, then confirm to send (via the guild's Discord channel and app push). At most 3 per day, and the same squad can only be nudged once every 24 hours."
     },
     "nudgeEventLabel": {
-      "zh-CN": "目标车队"
+      "zh-CN": "目标车队",
+      "en": "Target Squad"
     },
     "nudgeSegmentLabel": {
-      "zh-CN": "圈人分段"
+      "zh-CN": "圈人分段",
+      "en": "Segment"
     },
     "segmentAll": {
-      "zh-CN": "全部未报名成员"
+      "zh-CN": "全部未报名成员",
+      "en": "All unsigned members"
     },
     "segmentSchool": {
-      "zh-CN": "按流派（填流派名）"
+      "zh-CN": "按流派（填流派名）",
+      "en": "By school (enter a school name)"
     },
     "segmentRole": {
-      "zh-CN": "按职责（填职责名）"
+      "zh-CN": "按职责（填职责名）",
+      "en": "By role (enter a role name)"
     },
     "segmentLapsed": {
-      "zh-CN": "久未出勤（14 天以上）"
+      "zh-CN": "久未出勤（14 天以上）",
+      "en": "Long absent (14+ days)"
     },
     "nudgeSegmentValueLabel": {
-      "zh-CN": "分段值"
+      "zh-CN": "分段值",
+      "en": "Segment value"
     },
     "nudgePreviewButton": {
-      "zh-CN": "预览圈人"
+      "zh-CN": "预览圈人",
+      "en": "Preview Members"
     },
     "nudgeSendButton": {
-      "zh-CN": "确认发送催报"
+      "zh-CN": "确认发送催报",
+      "en": "Confirm & Send Nudge"
     },
     "nudgeCandidateCount": {
-      "zh-CN": "将催报 {count} 人"
+      "zh-CN": "将催报 {count} 人",
+      "en": "{count} members will be nudged"
     },
     "nudgeEmpty": {
-      "zh-CN": "没有符合条件的未报名成员。"
+      "zh-CN": "没有符合条件的未报名成员。",
+      "en": "No unsigned members match this segment."
     },
     "nudgeDailyRemaining": {
-      "zh-CN": "今日还可发送 {remaining} 次"
+      "zh-CN": "今日还可发送 {remaining} 次",
+      "en": "{remaining} sends left today"
     },
     "nudgeMessage": {
-      "zh-CN": "「{title}」还差人，快来报名啦！"
+      "zh-CN": "「{title}」还差人，快来报名啦！",
+      "en": "“{title}” still needs people — come sign up!"
     },
     "lastNever": {
-      "zh-CN": "从未出勤"
+      "zh-CN": "从未出勤",
+      "en": "Never attended"
     },
     "lastAt": {
-      "zh-CN": "上次出勤 {date}"
+      "zh-CN": "上次出勤 {date}",
+      "en": "Last attended {date}"
     },
     "churnTitle": {
-      "zh-CN": "流失预警"
+      "zh-CN": "流失预警",
+      "en": "Churn Warnings"
     },
     "churnHint": {
-      "zh-CN": "参与下滑的成员会出现在这里（基线 = 此前 4 周，近期 = 最近 4 周；近期参与降到基线一半以下，或连续缺席最近 3 场已完成车队，即入名单）。名单只给军官看，不会自动联系任何人。"
+      "zh-CN": "参与下滑的成员会出现在这里（基线 = 此前 4 周，近期 = 最近 4 周；近期参与降到基线一半以下，或连续缺席最近 3 场已完成车队，即入名单）。名单只给军官看，不会自动联系任何人。",
+      "en": "Members whose participation is dropping appear here (baseline = the previous 4 weeks, recent = the last 4 weeks; a member joins the list when recent participation falls below half the baseline, or after missing the last 3 completed squads in a row). The list is officers-only, and nobody is contacted automatically."
     },
     "churnEmpty": {
-      "zh-CN": "暂无流失风险成员。"
+      "zh-CN": "暂无流失风险成员。",
+      "en": "No members at churn risk right now."
     },
     "churnEvidence": {
-      "zh-CN": "基线 {baseline} 次 · 近期 {recent} 次 · 连缺 {streak} 场"
+      "zh-CN": "基线 {baseline} 次 · 近期 {recent} 次 · 连缺 {streak} 场",
+      "en": "Baseline {baseline} · Recent {recent} · Missed {streak} in a row"
     },
     "rolloverTitle": {
-      "zh-CN": "赛季滚动"
+      "zh-CN": "赛季滚动",
+      "en": "Season Rollover"
     },
     "rolloverHint": {
-      "zh-CN": "把组队模板批量迁移为新赛季副本。先看预览，确认后才执行；执行结果会留痕。"
+      "zh-CN": "把组队模板批量迁移为新赛季副本。先看预览，确认后才执行；执行结果会留痕。",
+      "en": "Migrate squad templates in bulk to the new season's dungeons. Preview first and execute only after confirming; every execution is recorded."
     },
     "rolloverSeason": {
-      "zh-CN": "目标赛季：{season}"
+      "zh-CN": "目标赛季：{season}",
+      "en": "Target season: {season}"
     },
     "rolloverPreview": {
-      "zh-CN": "将迁移 {count} 个模板（共 {total} 个，已有新赛季副本 {copied} 个）"
+      "zh-CN": "将迁移 {count} 个模板（共 {total} 个，已有新赛季副本 {copied} 个）",
+      "en": "{count} templates will be migrated ({total} in the library, {copied} already copied to the new season)"
     },
     "rolloverExecuteButton": {
-      "zh-CN": "执行赛季滚动"
+      "zh-CN": "执行赛季滚动",
+      "en": "Run Season Rollover"
     },
     "rolloverDone": {
-      "zh-CN": "已迁移 {count} 个模板到新赛季"
+      "zh-CN": "已迁移 {count} 个模板到新赛季",
+      "en": "Migrated {count} templates to the new season"
     },
     "rolloverGearNote": {
-      "zh-CN": "旧赛季装备打季标：装备暂无赛季概念，本步跳过。"
+      "zh-CN": "旧赛季装备打季标：装备暂无赛季概念，本步跳过。",
+      "en": "Old-season gear tagging: gear has no season concept yet, so this step was skipped."
     },
     "rolloverThresholdNote": {
-      "zh-CN": "达标线按新赛季重算：装备达标盘尚未上线，本步跳过，待其上线后接入。"
+      "zh-CN": "达标线按新赛季重算：装备达标盘尚未上线，本步跳过，待其上线后接入。",
+      "en": "Readiness thresholds are recomputed for the new season: the gear readiness board is not live yet, so this step was skipped and will hook in once it ships."
     },
     "rolloverLast": {
-      "zh-CN": "上次滚动：{date} · 迁移 {count} 个模板"
+      "zh-CN": "上次滚动：{date} · 迁移 {count} 个模板",
+      "en": "Last rollover: {date} · {count} templates migrated"
     },
     "pointsTitle": {
-      "zh-CN": "贡献积分"
+      "zh-CN": "贡献积分",
+      "en": "Contribution Points"
     },
     "pointsHint": {
-      "zh-CN": "积分只认平台里的真实动作：出席已完成的车队、带队完成车队、成为导师。积分从功能启用后累计，不补历史；成员能看自己的余额与流水，规则与总览只有军官能改能看。"
+      "zh-CN": "积分只认平台里的真实动作：出席已完成的车队、带队完成车队、成为导师。积分从功能启用后累计，不补历史；成员能看自己的余额与流水，规则与总览只有军官能改能看。",
+      "en": "Points only count real actions on the platform: attending a completed squad, leading a completed squad, and becoming a mentor. Points accrue from when the feature is enabled, with no historical backfill; members can see their own balance and ledger, while only officers can change the rules or see the overview."
     },
     "ruleAttendance": {
-      "zh-CN": "出席"
+      "zh-CN": "出席",
+      "en": "Attendance"
     },
     "ruleLeading": {
-      "zh-CN": "带队"
+      "zh-CN": "带队",
+      "en": "Leading"
     },
     "ruleMentoring": {
-      "zh-CN": "导师"
+      "zh-CN": "导师",
+      "en": "Mentoring"
     },
     "pointsValue": {
-      "zh-CN": "{points} 分"
+      "zh-CN": "{points} 分",
+      "en": "{points} pts"
     },
     "pointsBoardEmpty": {
-      "zh-CN": "暂无积分记录（从启用后的第一场已完成车队开始累计）。"
+      "zh-CN": "暂无积分记录（从启用后的第一场已完成车队开始累计）。",
+      "en": "No point records yet (points start accruing from the first completed squad after the feature is enabled)."
     },
     "pointsTotalLabel": {
-      "zh-CN": "总分"
+      "zh-CN": "总分",
+      "en": "Total"
     },
     "pointsEntriesLabel": {
-      "zh-CN": "笔数"
+      "zh-CN": "笔数",
+      "en": "Entries"
     },
     "saveButton": {
-      "zh-CN": "保存"
+      "zh-CN": "保存",
+      "en": "Save"
     },
     "myPointsTitle": {
-      "zh-CN": "我的贡献积分"
+      "zh-CN": "我的贡献积分",
+      "en": "My Contribution Points"
     },
     "myPointsTotal": {
-      "zh-CN": "累计 {points} 分"
+      "zh-CN": "累计 {points} 分",
+      "en": "Total {points} points"
     }
   },
   "market": {
     "title": {
-      "zh-CN": "补位市场"
+      "zh-CN": "补位市场",
+      "en": "Fill-In Market"
     },
     "body": {
-      "zh-CN": "缺人时来这里找补位：任何成员都可以免费发布自己的补位供给；百业盟主档的车头与管理员可以针对车队缺口发布需求、邀请补位。市场只负责撮合，是否落座由车头在车队里手动确认。"
+      "zh-CN": "缺人时来这里找补位：任何成员都可以免费发布自己的补位供给；百业盟主档的车头与管理员可以针对车队缺口发布需求、邀请补位。市场只负责撮合，是否落座由车头在车队里手动确认。",
+      "en": "Short a player? Find a fill-in here: any member can publish their own fill-in supply for free; squad leaders and admins of Guildmaster-tier guilds can post requests for a squad's gaps and invite fill-ins. The market only matches — whether someone takes a seat is always confirmed manually by the squad leader in the squad."
     },
     "lockedTitle": {
-      "zh-CN": "无法打开补位市场"
+      "zh-CN": "无法打开补位市场",
+      "en": "Fill-In Market Unavailable"
     },
     "lockedBody": {
-      "zh-CN": "登录并成为本百业成员后，可以发布补位供给、处理收到的邀请。"
+      "zh-CN": "登录并成为本百业成员后，可以发布补位供给、处理收到的邀请。",
+      "en": "Sign in and become a member of this guild to publish fill-in supply and handle invitations you receive."
     },
     "supplyTitle": {
-      "zh-CN": "我的补位供给"
+      "zh-CN": "我的补位供给",
+      "en": "My Fill-In Supply"
     },
     "supplyHint": {
-      "zh-CN": "发布供给免费、与百业档位无关。公开面只展示你的流派、可补位时段与所属百业名，不展示任何联系方式。"
+      "zh-CN": "发布供给免费、与百业档位无关。公开面只展示你的流派、可补位时段与所属百业名，不展示任何联系方式。",
+      "en": "Publishing supply is free and does not depend on your guild's tier. Public listings only show your school, your fill-in windows and your home guild's name — never any contact details."
     },
     "supplyEmpty": {
-      "zh-CN": "你还没有发布补位供给。"
+      "zh-CN": "你还没有发布补位供给。",
+      "en": "You have not published any fill-in supply yet."
     },
     "schoolLabel": {
-      "zh-CN": "流派"
+      "zh-CN": "流派",
+      "en": "School"
     },
     "windowsLabel": {
-      "zh-CN": "可补位时段"
+      "zh-CN": "可补位时段",
+      "en": "Fill-In Windows"
     },
     "noteLabel": {
-      "zh-CN": "自我说明"
+      "zh-CN": "自我说明",
+      "en": "About Me"
     },
     "notePlaceholder": {
-      "zh-CN": "一句说明：擅长的副本、装备情况……"
+      "zh-CN": "一句说明：擅长的副本、装备情况……",
+      "en": "A line about you: dungeons you are good at, your gear situation…"
     },
     "publishButton": {
-      "zh-CN": "发布供给"
+      "zh-CN": "发布供给",
+      "en": "Publish Supply"
     },
     "withdrawButton": {
-      "zh-CN": "撤下供给"
+      "zh-CN": "撤下供给",
+      "en": "Withdraw Supply"
     },
     "offerStatusOpen": {
-      "zh-CN": "已发布"
+      "zh-CN": "已发布",
+      "en": "Published"
     },
     "homeGuildPattern": {
-      "zh-CN": "所属百业：{name}"
+      "zh-CN": "所属百业：{name}",
+      "en": "Home guild: {name}"
     },
     "windowLine": {
-      "zh-CN": "{day} {start}–{end}"
+      "zh-CN": "{day} {start}–{end}",
+      "en": "{day} {start}–{end}"
     },
     "weekday0": {
-      "zh-CN": "周日"
+      "zh-CN": "周日",
+      "en": "Sun"
     },
     "weekday1": {
-      "zh-CN": "周一"
+      "zh-CN": "周一",
+      "en": "Mon"
     },
     "weekday2": {
-      "zh-CN": "周二"
+      "zh-CN": "周二",
+      "en": "Tue"
     },
     "weekday3": {
-      "zh-CN": "周三"
+      "zh-CN": "周三",
+      "en": "Wed"
     },
     "weekday4": {
-      "zh-CN": "周四"
+      "zh-CN": "周四",
+      "en": "Thu"
     },
     "weekday5": {
-      "zh-CN": "周五"
+      "zh-CN": "周五",
+      "en": "Fri"
     },
     "weekday6": {
-      "zh-CN": "周六"
+      "zh-CN": "周六",
+      "en": "Sat"
     },
     "inboxTitle": {
-      "zh-CN": "收到的补位邀请"
+      "zh-CN": "收到的补位邀请",
+      "en": "Fill-In Invitations Received"
     },
     "inboxEmpty": {
-      "zh-CN": "暂无补位邀请。"
+      "zh-CN": "暂无补位邀请。",
+      "en": "No fill-in invitations yet."
     },
     "acceptButton": {
-      "zh-CN": "接受邀请"
+      "zh-CN": "接受邀请",
+      "en": "Accept Invitation"
     },
     "declineButton": {
-      "zh-CN": "婉拒"
+      "zh-CN": "婉拒",
+      "en": "Decline"
     },
     "inviteStatusPending": {
-      "zh-CN": "待确认"
+      "zh-CN": "待确认",
+      "en": "Pending"
     },
     "inviteStatusAccepted": {
-      "zh-CN": "已接受"
+      "zh-CN": "已接受",
+      "en": "Accepted"
     },
     "inviteStatusDeclined": {
-      "zh-CN": "已婉拒"
+      "zh-CN": "已婉拒",
+      "en": "Declined"
     },
     "inviteStatusExpired": {
-      "zh-CN": "已失效"
+      "zh-CN": "已失效",
+      "en": "Expired"
     },
     "inviteFromPattern": {
-      "zh-CN": "来自 {guild} · {title}"
+      "zh-CN": "来自 {guild} · {title}",
+      "en": "From {guild} · {title}"
     },
     "demandTitle": {
-      "zh-CN": "补位需求"
+      "zh-CN": "补位需求",
+      "en": "Fill Requests"
     },
     "demandLockedTitle": {
-      "zh-CN": "补位需求是盟主档功能"
+      "zh-CN": "补位需求是盟主档功能",
+      "en": "Fill Requests Are a Guildmaster-Tier Feature"
     },
     "demandLockedBody": {
-      "zh-CN": "发布补位需求、浏览并邀请补位人选需要百业开通盟主档（T3）。发布补位供给与处理收到的邀请不受档位限制，所有成员免费可用。"
+      "zh-CN": "发布补位需求、浏览并邀请补位人选需要百业开通盟主档（T3）。发布补位供给与处理收到的邀请不受档位限制，所有成员免费可用。",
+      "en": "Posting fill requests, browsing and inviting fill-in candidates requires your guild to be on the Guildmaster tier (T3). Publishing fill-in supply and answering invitations you receive are not tier-limited and stay free for all members."
     },
     "demandNoManageHint": {
-      "zh-CN": "只有本百业的车头与管理员可以发布需求与发出邀请。"
+      "zh-CN": "只有本百业的车头与管理员可以发布需求与发出邀请。",
+      "en": "Only this guild's squad leaders and admins can post requests and send invitations."
     },
     "requestsTitle": {
-      "zh-CN": "本百业的补位需求"
+      "zh-CN": "本百业的补位需求",
+      "en": "This Guild's Fill Requests"
     },
     "requestsEmpty": {
-      "zh-CN": "暂无补位需求。在车队详情里针对缺口发布，或在这里新建。"
+      "zh-CN": "暂无补位需求。在车队详情里针对缺口发布，或在这里新建。",
+      "en": "No fill requests yet. Post one against a gap in a squad's detail page, or create one here."
     },
     "createRequestTitle": {
-      "zh-CN": "发布补位需求"
+      "zh-CN": "发布补位需求",
+      "en": "Post a Fill Request"
     },
     "groupingLabel": {
-      "zh-CN": "缺人的车队"
+      "zh-CN": "缺人的车队",
+      "en": "Squad Short a Player"
     },
     "neededRoleLabel": {
-      "zh-CN": "缺的职责"
+      "zh-CN": "缺的职责",
+      "en": "Role Needed"
     },
     "neededSchoolLabel": {
-      "zh-CN": "指定流派（可选）"
+      "zh-CN": "指定流派（可选）",
+      "en": "School (optional)"
     },
     "requestNoteLabel": {
-      "zh-CN": "需求说明"
+      "zh-CN": "需求说明",
+      "en": "Request Note"
     },
     "createRequestButton": {
-      "zh-CN": "发布需求"
+      "zh-CN": "发布需求",
+      "en": "Post Request"
     },
     "closeRequestButton": {
-      "zh-CN": "关闭需求"
+      "zh-CN": "关闭需求",
+      "en": "Close Request"
     },
     "requestStatusOpen": {
-      "zh-CN": "招募中"
+      "zh-CN": "招募中",
+      "en": "Recruiting"
     },
     "requestStatusMatched": {
-      "zh-CN": "已撮合"
+      "zh-CN": "已撮合",
+      "en": "Matched"
     },
     "requestStatusClosed": {
-      "zh-CN": "已关闭"
+      "zh-CN": "已关闭",
+      "en": "Closed"
     },
     "offersTitle": {
-      "zh-CN": "可邀请的补位人选"
+      "zh-CN": "可邀请的补位人选",
+      "en": "Fill-In Candidates"
     },
     "offersEmpty": {
-      "zh-CN": "市场里暂无补位供给。"
+      "zh-CN": "市场里暂无补位供给。",
+      "en": "No fill-in supply on the market right now."
     },
     "inviteButton": {
-      "zh-CN": "发出邀请"
+      "zh-CN": "发出邀请",
+      "en": "Send Invitation"
     },
     "invitedLabel": {
-      "zh-CN": "已邀请"
+      "zh-CN": "已邀请",
+      "en": "Invited"
     },
     "seatButton": {
-      "zh-CN": "落座到车队"
+      "zh-CN": "落座到车队",
+      "en": "Seat into Squad"
     },
     "seatedLabel": {
-      "zh-CN": "已落座"
+      "zh-CN": "已落座",
+      "en": "Seated"
     },
     "roleHealer": {
-      "zh-CN": "奶"
+      "zh-CN": "奶",
+      "en": "Healer"
     },
     "roleDps": {
-      "zh-CN": "输出"
+      "zh-CN": "输出",
+      "en": "DPS"
     },
     "backLabel": {
-      "zh-CN": "‹ 返回百业"
+      "zh-CN": "‹ 返回百业",
+      "en": "‹ Back to Guild Home"
     }
   },
   "allies": {
     "title": {
-      "zh-CN": "盟友百业"
+      "zh-CN": "盟友百业",
+      "en": "Allied Guilds"
     },
     "body": {
-      "zh-CN": "结盟后，双方车队可以互相开放：车头把车队标为盟友可见并设置访客名额，盟友成员就能在自己百业看到并报名访客位。解除结盟后，共享立即失效。"
+      "zh-CN": "结盟后，双方车队可以互相开放：车头把车队标为盟友可见并设置访客名额，盟友成员就能在自己百业看到并报名访客位。解除结盟后，共享立即失效。",
+      "en": "Once allied, both guilds can open their squads to each other: a squad leader flags a squad as ally-visible and sets a visitor quota, and members of the allied guild can then see it from their own guild and sign up for a visitor seat. Dissolving the alliance revokes sharing immediately."
     },
     "lockedTitle": {
-      "zh-CN": "无法打开盟友百业"
+      "zh-CN": "无法打开盟友百业",
+      "en": "Allied Guilds Unavailable"
     },
     "lockedBody": {
-      "zh-CN": "登录并成为本百业成员后，可以查看盟友与共享活动。"
+      "zh-CN": "登录并成为本百业成员后，可以查看盟友与共享活动。",
+      "en": "Sign in and become a member of this guild to view allies and shared squads."
     },
     "tierLockedTitle": {
       "zh-CN": "盟友百业是盟主档功能",
@@ -7671,79 +8003,104 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-TW": "結盟、查看盟友與共享活動需要百業開通盟主檔（T3）。解除既有結盟不受檔位限制。"
     },
     "activeTitle": {
-      "zh-CN": "已结盟百业"
+      "zh-CN": "已结盟百业",
+      "en": "Active Alliances"
     },
     "activeEmpty": {
-      "zh-CN": "本百业暂无盟友。"
+      "zh-CN": "本百业暂无盟友。",
+      "en": "This guild has no allies yet."
     },
     "statusPending": {
-      "zh-CN": "待对方确认"
+      "zh-CN": "待对方确认",
+      "en": "Awaiting Their Confirmation"
     },
     "statusActive": {
-      "zh-CN": "已结盟"
+      "zh-CN": "已结盟",
+      "en": "Allied"
     },
     "adminTitle": {
-      "zh-CN": "结盟管理"
+      "zh-CN": "结盟管理",
+      "en": "Alliance Management"
     },
     "inviteLabel": {
-      "zh-CN": "对方百业"
+      "zh-CN": "对方百业",
+      "en": "Other Guild"
     },
     "inviteHint": {
-      "zh-CN": "结盟邀请由对方百业管理员确认后生效；任一方管理员都可以单方解除结盟。"
+      "zh-CN": "结盟邀请由对方百业管理员确认后生效；任一方管理员都可以单方解除结盟。",
+      "en": "An alliance takes effect once the other guild's admin accepts the invitation; either guild's admin can dissolve it unilaterally later."
     },
     "inviteButton": {
-      "zh-CN": "发出结盟邀请"
+      "zh-CN": "发出结盟邀请",
+      "en": "Send Alliance Invitation"
     },
     "incomingTitle": {
-      "zh-CN": "待处理的结盟邀请"
+      "zh-CN": "待处理的结盟邀请",
+      "en": "Pending Alliance Invitations"
     },
     "outgoingTitle": {
-      "zh-CN": "已发出的结盟邀请"
+      "zh-CN": "已发出的结盟邀请",
+      "en": "Sent Alliance Invitations"
     },
     "acceptButton": {
-      "zh-CN": "接受结盟"
+      "zh-CN": "接受结盟",
+      "en": "Accept Alliance"
     },
     "rejectButton": {
-      "zh-CN": "拒绝"
+      "zh-CN": "拒绝",
+      "en": "Decline"
     },
     "endButton": {
-      "zh-CN": "解除结盟"
+      "zh-CN": "解除结盟",
+      "en": "Dissolve Alliance"
     },
     "sharedTitle": {
-      "zh-CN": "盟友共享活动"
+      "zh-CN": "盟友共享活动",
+      "en": "Ally-Shared Squads"
     },
     "sharedEmpty": {
-      "zh-CN": "暂无盟友共享活动。"
+      "zh-CN": "暂无盟友共享活动。",
+      "en": "No ally-shared squads right now."
     },
     "hostPattern": {
-      "zh-CN": "主办：{name}"
+      "zh-CN": "主办：{name}",
+      "en": "Hosted by {name}"
     },
     "visitorLeftPattern": {
-      "zh-CN": "访客位 {left} / {total}"
+      "zh-CN": "访客位 {left} / {total}",
+      "en": "Visitor seats {left} / {total}"
     },
     "visitorJoinButton": {
-      "zh-CN": "报名访客位"
+      "zh-CN": "报名访客位",
+      "en": "Take a Visitor Seat"
     },
     "visitorJoinedLabel": {
-      "zh-CN": "已报名访客位"
+      "zh-CN": "已报名访客位",
+      "en": "Visitor seat claimed"
     },
     "sharingTitle": {
-      "zh-CN": "盟友共享设置"
+      "zh-CN": "盟友共享设置",
+      "en": "Ally Sharing Settings"
     },
     "sharingHint": {
-      "zh-CN": "开启后，盟友百业成员可以在他们的盟友页看到这辆车，并报名访客位（计入车队总名额）。访客名额为 0 时不开放报名。"
+      "zh-CN": "开启后，盟友百业成员可以在他们的盟友页看到这辆车，并报名访客位（计入车队总名额）。访客名额为 0 时不开放报名。",
+      "en": "When on, members of allied guilds can see this squad on their allies page and sign up for visitor seats (counted toward the squad's total capacity). A visitor quota of 0 opens no seats."
     },
     "allyVisibleLabel": {
-      "zh-CN": "对盟友可见"
+      "zh-CN": "对盟友可见",
+      "en": "Visible to Allies"
     },
     "visitorSlotsLabel": {
-      "zh-CN": "访客名额"
+      "zh-CN": "访客名额",
+      "en": "Visitor Seats"
     },
     "sharingSaveButton": {
-      "zh-CN": "保存共享设置"
+      "zh-CN": "保存共享设置",
+      "en": "Save Sharing Settings"
     },
     "backLabel": {
-      "zh-CN": "‹ 返回百业"
+      "zh-CN": "‹ 返回百业",
+      "en": "‹ Back to Guild Home"
     }
   },
   "governance": {
@@ -8115,223 +8472,296 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
   },
   "platformAdmin": {
     "entryLabel": {
-      "zh-CN": "平台管理"
+      "zh-CN": "平台管理",
+      "en": "Platform Admin"
     },
     "title": {
-      "zh-CN": "平台管理"
+      "zh-CN": "平台管理",
+      "en": "Platform Admin"
     },
     "subtitle": {
-      "zh-CN": "平台运营面：百业、计费、图鉴、配置与审计。原 hub 门户已并入主站，超管判定由平台 gate 在服务端求值。"
+      "zh-CN": "平台运营面：百业、计费、图鉴、配置与审计。原 hub 门户已并入主站，超管判定由平台 gate 在服务端求值。",
+      "en": "The platform operations surface: guilds, billing, compendiums, configuration and audit. The old hub portal has moved into the main site, and the super-admin verdict is evaluated server-side by the platform gate."
     },
     "lockedTitle": {
-      "zh-CN": "需要平台超管权限"
+      "zh-CN": "需要平台超管权限",
+      "en": "Platform Admin Permission Required"
     },
     "lockedBody": {
-      "zh-CN": "这个页面只对平台超管开放。超管名单由平台 gate 在服务端求值，你的账号不在名单内，所以这里不会下发任何管理数据。"
+      "zh-CN": "这个页面只对平台超管开放。超管名单由平台 gate 在服务端求值，你的账号不在名单内，所以这里不会下发任何管理数据。",
+      "en": "This page is only open to platform super admins. The admin roster is evaluated server-side by the platform gate; your account is not on it, so no admin data is sent here."
     },
     "tenantsTitle": {
-      "zh-CN": "百业列表"
+      "zh-CN": "百业列表",
+      "en": "Guilds"
     },
     "tenantsEmpty": {
-      "zh-CN": "暂无百业"
+      "zh-CN": "暂无百业",
+      "en": "No guilds yet"
     },
     "billingTitle": {
-      "zh-CN": "计费与权益"
+      "zh-CN": "计费与权益",
+      "en": "Billing & Entitlements"
     },
     "paygateLabel": {
-      "zh-CN": "付费总闸 (paygate)"
+      "zh-CN": "付费总闸 (paygate)",
+      "en": "Paygate master switch"
     },
     "paygateOnText": {
-      "zh-CN": "已开启"
+      "zh-CN": "已开启",
+      "en": "On"
     },
     "paygateOffText": {
-      "zh-CN": "已关闭"
+      "zh-CN": "已关闭",
+      "en": "Off"
     },
     "stripeLabel": {
-      "zh-CN": "Stripe"
+      "zh-CN": "Stripe",
+      "en": "Stripe"
     },
     "stripeConfiguredText": {
-      "zh-CN": "已配置"
+      "zh-CN": "已配置",
+      "en": "Configured"
     },
     "stripeMissingText": {
-      "zh-CN": "未配置（密钥或价格缺失）"
+      "zh-CN": "未配置（密钥或价格缺失）",
+      "en": "Not configured (keys or prices missing)"
     },
     "saasLabel": {
-      "zh-CN": "自定义域名 SaaS"
+      "zh-CN": "自定义域名 SaaS",
+      "en": "Custom Domain SaaS"
     },
     "saasConfiguredText": {
-      "zh-CN": "已接入"
+      "zh-CN": "已接入",
+      "en": "Connected"
     },
     "saasMissingText": {
-      "zh-CN": "未接入"
+      "zh-CN": "未接入",
+      "en": "Not connected"
     },
     "plansTitle": {
-      "zh-CN": "价格档位"
+      "zh-CN": "价格档位",
+      "en": "Pricing Tiers"
     },
     "billingTenantsTitle": {
-      "zh-CN": "各百业权益"
+      "zh-CN": "各百业权益",
+      "en": "Per-Guild Entitlements"
     },
     "errorsTitle": {
-      "zh-CN": "错误日志"
+      "zh-CN": "错误日志",
+      "en": "Error Log"
     },
     "errorsEmpty": {
-      "zh-CN": "暂无错误记录"
+      "zh-CN": "暂无错误记录",
+      "en": "No error records yet"
     },
     "auditTitle": {
-      "zh-CN": "操作审计"
+      "zh-CN": "操作审计",
+      "en": "Audit Trail"
     },
     "auditEmpty": {
-      "zh-CN": "暂无审计记录"
+      "zh-CN": "暂无审计记录",
+      "en": "No audit records yet"
     },
     "feedbackTitle": {
-      "zh-CN": "用户反馈"
+      "zh-CN": "用户反馈",
+      "en": "User Feedback"
     },
     "feedbackEmpty": {
-      "zh-CN": "暂无反馈"
+      "zh-CN": "暂无反馈",
+      "en": "No feedback yet"
     },
     "settingsTitle": {
-      "zh-CN": "平台设置"
+      "zh-CN": "平台设置",
+      "en": "Platform Settings"
     },
     "gameVersionLabel": {
-      "zh-CN": "游戏版本"
+      "zh-CN": "游戏版本",
+      "en": "Game Version"
     },
     "gameNoticeLabel": {
-      "zh-CN": "游戏公告"
+      "zh-CN": "游戏公告",
+      "en": "Game Notice"
     },
     "gameVersionCodeLabel": {
-      "zh-CN": "版本号 (version code)"
+      "zh-CN": "版本号 (version code)",
+      "en": "Version code"
     },
     "bossesTitle": {
-      "zh-CN": "首领图鉴"
+      "zh-CN": "首领图鉴",
+      "en": "Boss Compendium"
     },
     "bossesEmpty": {
-      "zh-CN": "暂无首领"
+      "zh-CN": "暂无首领",
+      "en": "No bosses yet"
     },
     "dungeonsTitle": {
-      "zh-CN": "副本图鉴"
+      "zh-CN": "副本图鉴",
+      "en": "Dungeon Compendium"
     },
     "dungeonsEmpty": {
-      "zh-CN": "暂无副本"
+      "zh-CN": "暂无副本",
+      "en": "No dungeons yet"
     },
     "remindersTitle": {
-      "zh-CN": "开车提醒配置"
+      "zh-CN": "开车提醒配置",
+      "en": "Departure Reminder Configs"
     },
     "remindersEmpty": {
-      "zh-CN": "暂无百业"
+      "zh-CN": "暂无百业",
+      "en": "No guilds yet"
     },
     "heirloomsTitle": {
-      "zh-CN": "传家宝推送配置"
+      "zh-CN": "传家宝推送配置",
+      "en": "Heirloom Push Configs"
     },
     "heirloomsEmpty": {
-      "zh-CN": "暂无百业"
+      "zh-CN": "暂无百业",
+      "en": "No guilds yet"
     },
     "backupsTitle": {
-      "zh-CN": "数据备份"
+      "zh-CN": "数据备份",
+      "en": "Data Backups"
     },
     "backupsEmpty": {
-      "zh-CN": "暂无备份文件"
+      "zh-CN": "暂无备份文件",
+      "en": "No backup files yet"
     },
     "backupsUnavailableText": {
-      "zh-CN": "备份存储（R2 BACKUPS 绑定）未配置"
+      "zh-CN": "备份存储（R2 BACKUPS 绑定）未配置",
+      "en": "Backup storage (R2 BACKUPS binding) is not configured"
     },
     "rosterTitle": {
-      "zh-CN": "平台超管名单"
+      "zh-CN": "平台超管名单",
+      "en": "Platform Admin Roster"
     },
     "rosterNote": {
-      "zh-CN": "名单按 Discord 用户 ID 在 gate 层求值；环境变量 PLATFORM_ADMIN_DISCORD_IDS 的引导名单始终有效，不在此列出。修改即时生效并写入审计。"
+      "zh-CN": "名单按 Discord 用户 ID 在 gate 层求值；环境变量 PLATFORM_ADMIN_DISCORD_IDS 的引导名单始终有效，不在此列出。修改即时生效并写入审计。",
+      "en": "The roster is evaluated by Discord user ID at the gate layer; the bootstrap roster from the PLATFORM_ADMIN_DISCORD_IDS environment variable always applies and is not listed here. Edits take effect immediately and are written to the audit trail."
     },
     "backfillsTitle": {
-      "zh-CN": "一次性回填工具"
+      "zh-CN": "一次性回填工具",
+      "en": "One-Off Backfill Tools"
     },
     "saveLabel": {
-      "zh-CN": "保存"
+      "zh-CN": "保存",
+      "en": "Save"
     },
     "testLabel": {
-      "zh-CN": "发送测试"
+      "zh-CN": "发送测试",
+      "en": "Send Test"
     },
     "runLabel": {
-      "zh-CN": "执行"
+      "zh-CN": "执行",
+      "en": "Run"
     },
     "dryRunLabel": {
-      "zh-CN": "仅试运行（不写库）"
+      "zh-CN": "仅试运行（不写库）",
+      "en": "Dry run only (no writes)"
     },
     "deleteTenantLabel": {
-      "zh-CN": "删除百业"
+      "zh-CN": "删除百业",
+      "en": "Delete Guild"
     },
     "grantLabel": {
-      "zh-CN": "授予"
+      "zh-CN": "授予",
+      "en": "Grant"
     },
     "revokeLabel": {
-      "zh-CN": "撤销"
+      "zh-CN": "撤销",
+      "en": "Revoke"
     },
     "subdomainLabel": {
-      "zh-CN": "平台子域名"
+      "zh-CN": "平台子域名",
+      "en": "Platform Subdomain"
     },
     "customDomainLabel": {
-      "zh-CN": "自定义域名"
+      "zh-CN": "自定义域名",
+      "en": "Custom Domain"
     },
     "enabledText": {
-      "zh-CN": "已启用"
+      "zh-CN": "已启用",
+      "en": "Enabled"
     },
     "disabledText": {
-      "zh-CN": "已禁用"
+      "zh-CN": "已禁用",
+      "en": "Disabled"
     },
     "webhookSetText": {
-      "zh-CN": "Webhook 已配置"
+      "zh-CN": "Webhook 已配置",
+      "en": "Webhook configured"
     },
     "webhookUnsetText": {
-      "zh-CN": "Webhook 未配置"
+      "zh-CN": "Webhook 未配置",
+      "en": "Webhook not configured"
     },
     "runBackupLabel": {
-      "zh-CN": "立即备份"
+      "zh-CN": "立即备份",
+      "en": "Back Up Now"
     },
     "downloadLabel": {
-      "zh-CN": "下载"
+      "zh-CN": "下载",
+      "en": "Download"
     },
     "exportLabel": {
-      "zh-CN": "导出备份 JSON"
+      "zh-CN": "导出备份 JSON",
+      "en": "Export Backup JSON"
     },
     "backfillReminderIdentityLabel": {
-      "zh-CN": "回填提醒身份（名册+座位戳）"
+      "zh-CN": "回填提醒身份（名册+座位戳）",
+      "en": "Backfill Reminder Identity (roster + seat stamps)"
     },
     "backfillCreatorsLabel": {
-      "zh-CN": "回填车头身份戳"
+      "zh-CN": "回填车头身份戳",
+      "en": "Backfill Leader Identity Stamps"
     },
     "migrateBossGuidesLabel": {
-      "zh-CN": "结构化首领攻略（从攻略文本生成）"
+      "zh-CN": "结构化首领攻略（从攻略文本生成）",
+      "en": "Structure Boss Guides (from guide text)"
     },
     "statusOpenText": {
-      "zh-CN": "待处理"
+      "zh-CN": "待处理",
+      "en": "Open"
     },
     "statusResolvedText": {
-      "zh-CN": "已解决"
+      "zh-CN": "已解决",
+      "en": "Resolved"
     },
     "lastStatusLabel": {
-      "zh-CN": "最近状态"
+      "zh-CN": "最近状态",
+      "en": "Last status"
     },
     "nextAlarmLabel": {
-      "zh-CN": "下次提醒"
+      "zh-CN": "下次提醒",
+      "en": "Next reminder"
     },
     "periodEndLabel": {
-      "zh-CN": "周期结束"
+      "zh-CN": "周期结束",
+      "en": "Period end"
     },
     "sourceLabel": {
-      "zh-CN": "来源"
+      "zh-CN": "来源",
+      "en": "Source"
     },
     "tierLabel": {
-      "zh-CN": "档位"
+      "zh-CN": "档位",
+      "en": "Tier"
     },
     "planLabel": {
-      "zh-CN": "方案"
+      "zh-CN": "方案",
+      "en": "Plan"
     },
     "hasCardText": {
-      "zh-CN": "已绑卡"
+      "zh-CN": "已绑卡",
+      "en": "Card on file"
     },
     "noCardText": {
-      "zh-CN": "未绑卡"
+      "zh-CN": "未绑卡",
+      "en": "No card on file"
     },
     "trialUsedText": {
-      "zh-CN": "已用试用"
+      "zh-CN": "已用试用",
+      "en": "Trial used"
     }
   },
   "carshare": {
@@ -8394,189 +8824,250 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
   },
   "schedulingAdvice": {
     "lockedTitle": {
-      "zh-CN": "智能调度建议"
+      "zh-CN": "智能调度建议",
+      "en": "Smart Scheduling Advice"
     },
     "lockedBody": {
-      "zh-CN": "智能配队、替补推荐、名额轮换、最优档期与跨车调度建议属于执事档（T2）权益，升级后即可使用。"
+      "zh-CN": "智能配队、替补推荐、名额轮换、最优档期与跨车调度建议属于执事档（T2）权益，升级后即可使用。",
+      "en": "Smart team drafts, substitute recommendations, seat rotation, best slots and cross-squad scheduling advice are Steward tier (T2) benefits — upgrade to use them."
     },
     "title": {
-      "zh-CN": "调度建议"
+      "zh-CN": "调度建议",
+      "en": "Scheduling Advice"
     },
     "hint": {
-      "zh-CN": "建议仅供参考，最终人选由车头点选决定，系统不会自动落座或递补。"
+      "zh-CN": "建议仅供参考，最终人选由车头点选决定，系统不会自动落座或递补。",
+      "en": "Advice is for reference only: the leader makes the final picks, and the system never seats or substitutes anyone automatically."
     },
     "draftTitle": {
-      "zh-CN": "智能配队草案"
+      "zh-CN": "智能配队草案",
+      "en": "Smart Team Draft"
     },
     "draftApplyLabel": {
-      "zh-CN": "套用草案"
+      "zh-CN": "套用草案",
+      "en": "Apply Draft"
     },
     "substitutesTitle": {
-      "zh-CN": "替补推荐"
+      "zh-CN": "替补推荐",
+      "en": "Substitute Recommendations"
     },
     "rotationTitle": {
-      "zh-CN": "名额轮换建议"
+      "zh-CN": "名额轮换建议",
+      "en": "Seat Rotation Advice"
     },
     "rotationSaveLabel": {
-      "zh-CN": "保存本次轮换依据"
+      "zh-CN": "保存本次轮换依据",
+      "en": "Save This Rotation Basis"
     },
     "rotationSavedText": {
-      "zh-CN": "轮换依据已留痕保存"
+      "zh-CN": "轮换依据已留痕保存",
+      "en": "Rotation basis saved for the record"
     },
     "bestSlotsTitle": {
-      "zh-CN": "最优档期推荐"
+      "zh-CN": "最优档期推荐",
+      "en": "Best Slot Recommendations"
     },
     "bestSlotsEmptyText": {
-      "zh-CN": "还没有成员填写可用时间，暂无法推荐档期。"
+      "zh-CN": "还没有成员填写可用时间，暂无法推荐档期。",
+      "en": "No members have filled in their availability yet, so no slot can be recommended."
     },
     "bestSlotCoverTemplate": {
-      "zh-CN": "{count} 人有空"
+      "zh-CN": "{count} 人有空",
+      "en": "{count} members available"
     },
     "bestSlotUseLabel": {
-      "zh-CN": "以此时段发车"
+      "zh-CN": "以此时段发车",
+      "en": "Start a Squad in This Slot"
     },
     "crossTitle": {
-      "zh-CN": "跨车调度建议"
+      "zh-CN": "跨车调度建议",
+      "en": "Cross-Squad Scheduling Advice"
     },
     "conflictTemplate": {
-      "zh-CN": "{name} 同时出现在时段重叠的多辆车中"
+      "zh-CN": "{name} 同时出现在时段重叠的多辆车中",
+      "en": "{name} appears in multiple squads with overlapping times"
     },
     "moveTemplate": {
-      "zh-CN": "可考虑邀请 {name} 补入本车"
+      "zh-CN": "可考虑邀请 {name} 补入本车",
+      "en": "Consider inviting {name} to fill in for this squad"
     },
     "reasonRoleNeeded": {
-      "zh-CN": "补齐所缺职责：{role}"
+      "zh-CN": "补齐所缺职责：{role}",
+      "en": "Fills a missing role: {role}"
     },
     "reasonRoleCovered": {
-      "zh-CN": "职责 {role} 已有覆盖"
+      "zh-CN": "职责 {role} 已有覆盖",
+      "en": "Role {role} is already covered"
     },
     "reasonRoleFlex": {
-      "zh-CN": "职责灵活，可补任意位置"
+      "zh-CN": "职责灵活，可补任意位置",
+      "en": "Flexible role — can fill any seat"
     },
     "reasonRoleMatch": {
-      "zh-CN": "职责与空缺一致：{role}"
+      "zh-CN": "职责与空缺一致：{role}",
+      "en": "Role matches the vacancy: {role}"
     },
     "reasonRoleOther": {
-      "zh-CN": "职责为 {role}，与空缺不同"
+      "zh-CN": "职责为 {role}，与空缺不同",
+      "en": "Role is {role}, different from the vacancy"
     },
     "reasonRoleUnknown": {
-      "zh-CN": "暂无职责记录"
+      "zh-CN": "暂无职责记录",
+      "en": "No role on record yet"
     },
     "reasonGearReady": {
-      "zh-CN": "装备库已有 {count} 件装备"
+      "zh-CN": "装备库已有 {count} 件装备",
+      "en": "{count} gear items in their library"
     },
     "reasonGearUnknown": {
-      "zh-CN": "装备库暂无记录"
+      "zh-CN": "装备库暂无记录",
+      "en": "No gear records in their library"
     },
     "reasonReliable": {
-      "zh-CN": "历史就位率 {rate}%（参加 {count} 次）"
+      "zh-CN": "历史就位率 {rate}%（参加 {count} 次）",
+      "en": "Historical ready rate {rate}% ({count} participations)"
     },
     "reasonNoHistory": {
-      "zh-CN": "暂无历史参与记录，按中性评估"
+      "zh-CN": "暂无历史参与记录，按中性评估",
+      "en": "No participation history; scored neutrally"
     },
     "reasonAvailable": {
-      "zh-CN": "该时段在其可用时间内"
+      "zh-CN": "该时段在其可用时间内",
+      "en": "This slot falls within their availability"
     },
     "reasonUnavailable": {
-      "zh-CN": "该时段不在其可用时间内"
+      "zh-CN": "该时段不在其可用时间内",
+      "en": "This slot is outside their availability"
     },
     "reasonAvailabilityUnknown": {
-      "zh-CN": "未填写可用时间"
+      "zh-CN": "未填写可用时间",
+      "en": "Availability not filled in"
     },
     "reasonLongestWaiting": {
-      "zh-CN": "距上次参与已 {days} 天"
+      "zh-CN": "距上次参与已 {days} 天",
+      "en": "{days} days since last participation"
     },
     "reasonFewRecent": {
-      "zh-CN": "近期参与 {count} 次"
+      "zh-CN": "近期参与 {count} 次",
+      "en": "{count} recent participations"
     },
     "reasonNoConflict": {
-      "zh-CN": "同时段没有其他车冲突"
+      "zh-CN": "同时段没有其他车冲突",
+      "en": "No other squad conflicts at this time"
     }
   },
   "recap": {
     "title": {
-      "zh-CN": "AI 活动复盘"
+      "zh-CN": "AI 活动复盘",
+      "en": "AI Squad Recap"
     },
     "lockedTitle": {
-      "zh-CN": "AI 复盘 · 高阶档专属"
+      "zh-CN": "AI 复盘 · 高阶档专属",
+      "en": "AI Recaps · Top Tier Only"
     },
     "lockedBody": {
-      "zh-CN": "AI 活动复盘是高阶订阅档功能：为每场完成的车队生成出席、就位与成绩小结，帮车头与军官快速回顾这一场。"
+      "zh-CN": "AI 活动复盘是高阶订阅档功能：为每场完成的车队生成出席、就位与成绩小结，帮车头与军官快速回顾这一场。",
+      "en": "AI squad recaps are a top subscription tier feature: for every completed squad it generates an attendance, readiness and results summary so leaders and officers can review the run quickly."
     },
     "notEnabledTitle": {
-      "zh-CN": "AI 复盘尚未开启"
+      "zh-CN": "AI 复盘尚未开启",
+      "en": "AI Recaps Are Not Enabled Yet"
     },
     "notEnabledBody": {
-      "zh-CN": "平台尚未开启 AI 复盘服务，功能上线后，完成的车队可在此生成复盘。"
+      "zh-CN": "平台尚未开启 AI 复盘服务，功能上线后，完成的车队可在此生成复盘。",
+      "en": "The platform has not switched the AI recap service on yet. Once it launches, completed squads can generate recaps here."
     },
     "emptyNotCompletedBody": {
-      "zh-CN": "车队完成后，车头或百业管理员可在此生成 AI 复盘。"
+      "zh-CN": "车队完成后，车头或百业管理员可在此生成 AI 复盘。",
+      "en": "Once the squad is completed, the leader or a guild admin can generate an AI recap here."
     },
     "emptyNoRecapBody": {
-      "zh-CN": "本场车队还没有复盘。生成后，复盘将展示在这里，全车队成员可见。"
+      "zh-CN": "本场车队还没有复盘。生成后，复盘将展示在这里，全车队成员可见。",
+      "en": "This squad has no recap yet. Once generated, the recap will be shown here, visible to the whole squad."
     },
     "generateLabel": {
-      "zh-CN": "生成复盘"
+      "zh-CN": "生成复盘",
+      "en": "Generate Recap"
     },
     "regenerateLabel": {
-      "zh-CN": "重新生成"
+      "zh-CN": "重新生成",
+      "en": "Regenerate"
     },
     "generatingLabel": {
-      "zh-CN": "生成中…"
+      "zh-CN": "生成中…",
+      "en": "Generating…"
     },
     "generateConfirmTitle": {
-      "zh-CN": "生成 AI 复盘？"
+      "zh-CN": "生成 AI 复盘？",
+      "en": "Generate AI Recap?"
     },
     "generateConfirmMessage": {
-      "zh-CN": "将为「{title}」生成 AI 复盘，内容基于本场车的报名、就位与成绩数据。"
+      "zh-CN": "将为「{title}」生成 AI 复盘，内容基于本场车的报名、就位与成绩数据。",
+      "en": "An AI recap will be generated for “{title}” from this squad's signup, readiness and results data."
     },
     "toastGenerated": {
-      "zh-CN": "复盘已生成"
+      "zh-CN": "复盘已生成",
+      "en": "Recap generated"
     },
     "toastGenerateFailed": {
-      "zh-CN": "复盘生成失败：{error}"
+      "zh-CN": "复盘生成失败：{error}",
+      "en": "Recap generation failed: {error}"
     },
     "generatedAt": {
-      "zh-CN": "生成于 {time}"
+      "zh-CN": "生成于 {time}",
+      "en": "Generated at {time}"
     },
     "providerText": {
-      "zh-CN": "由 {provider} 生成"
+      "zh-CN": "由 {provider} 生成",
+      "en": "Generated by {provider}"
     },
     "versionText": {
-      "zh-CN": "第 {version} 版"
+      "zh-CN": "第 {version} 版",
+      "en": "Version {version}"
     },
     "failedHint": {
-      "zh-CN": "上次生成失败，可重试；下方仍是此前生成的复盘。"
+      "zh-CN": "上次生成失败，可重试；下方仍是此前生成的复盘。",
+      "en": "The last generation failed; you can retry. The previously generated recap is still shown below."
     },
     "failedHintEmpty": {
-      "zh-CN": "上次生成失败，可重试。"
+      "zh-CN": "上次生成失败，可重试。",
+      "en": "The last generation failed; you can retry."
     },
     "summaryAttendance": {
-      "zh-CN": "出席 {seated}/{capacity} 人"
+      "zh-CN": "出席 {seated}/{capacity} 人",
+      "en": "Attended {seated}/{capacity}"
     },
     "summaryReady": {
-      "zh-CN": "就位 {ready}/{seated} 人"
+      "zh-CN": "就位 {ready}/{seated} 人",
+      "en": "Ready {ready}/{seated}"
     },
     "summaryResults": {
-      "zh-CN": "竞速成绩 {count} 条 · 最佳 {best}"
+      "zh-CN": "竞速成绩 {count} 条 · 最佳 {best}",
+      "en": "Race results: {count} · Best {best}"
     },
     "adminTabLabel": {
-      "zh-CN": "复盘"
+      "zh-CN": "复盘",
+      "en": "Recaps"
     },
     "adminTitle": {
-      "zh-CN": "AI 复盘记录"
+      "zh-CN": "AI 复盘记录",
+      "en": "AI Recap Records"
     },
     "adminEmptyText": {
-      "zh-CN": "暂无复盘记录。在已完成车队的详情页生成复盘后，会在这里汇总。"
+      "zh-CN": "暂无复盘记录。在已完成车队的详情页生成复盘后，会在这里汇总。",
+      "en": "No recap records yet. Recaps generated on completed squads' detail pages will be collected here."
     },
     "adminStatusReadyText": {
-      "zh-CN": "已生成"
+      "zh-CN": "已生成",
+      "en": "Generated"
     },
     "adminStatusFailedText": {
-      "zh-CN": "生成失败"
+      "zh-CN": "生成失败",
+      "en": "Generation failed"
     },
     "adminParagraphCount": {
-      "zh-CN": "{count} 段"
+      "zh-CN": "{count} 段",
+      "en": "{count} paragraphs"
     }
   }
 };
