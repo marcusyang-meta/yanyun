@@ -20259,6 +20259,18 @@
       ],
       "types": []
     },
+    "cdj8qdjdgHwnLY372Y54yw==": {
+      "description": "Toast message for the share image action, used after the card image is copied to the system clipboard on desktop, telling the user to paste it into a chat window.",
+      "id": "groupings/groupingDetail_shareImageCopied",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Image copied — paste it into a chat to send it.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
     "It9rPt51hCEdllnk6grL3g==": {
       "description": "Toast message for the share image action, used when the card image cannot be fetched or shared.",
       "id": "groupings/groupingDetail_shareImageFailed",

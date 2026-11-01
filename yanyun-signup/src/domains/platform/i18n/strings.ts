@@ -344,6 +344,9 @@ export abstract class GroupingDetailFbtUtils {
 	static shareImageSaved(fbs: FbsRuntime) {
 		return fbs._("图片已保存、链接已复制，去微信发图粘贴即可", null, { hk: "3hPFEj" });
 	}
+	static shareImageCopied(fbs: FbsRuntime) {
+		return fbs._("图片已复制，去聊天里粘贴即可", null, { hk: "8GPQT" });
+	}
 	static shareImageFailed(fbs: FbsRuntime) {
 		return fbs._("分享图获取失败，请重试", null, { hk: "22wMuj" });
 	}
@@ -5329,6 +5332,7 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"groupingDetail_share": GroupingDetailFbtUtils.share,
 	"groupingDetail_shareImage": GroupingDetailFbtUtils.shareImage,
 	"groupingDetail_shareImageSaved": GroupingDetailFbtUtils.shareImageSaved,
+	"groupingDetail_shareImageCopied": GroupingDetailFbtUtils.shareImageCopied,
 	"groupingDetail_shareImageFailed": GroupingDetailFbtUtils.shareImageFailed,
 	"groupingDetail_edit": GroupingDetailFbtUtils.edit,
 	"groupingDetail_disband": GroupingDetailFbtUtils.disband,

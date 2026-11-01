@@ -713,6 +713,10 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-CN": "图片已保存、链接已复制，去微信发图粘贴即可",
       "en": "Image saved and link copied — post the image in WeChat and paste the link."
     },
+    "shareImageCopied": {
+      "zh-CN": "图片已复制，去聊天里粘贴即可",
+      "en": "Image copied — paste it into a chat to send it."
+    },
     "shareImageFailed": {
       "zh-CN": "分享图获取失败，请重试",
       "en": "Could not get the share image. Please try again."
