@@ -24,6 +24,7 @@ import GuildAdminOfficer from './GuildAdminOfficer.react.tsx';
 import GuildAdminOps from './GuildAdminOps.react.tsx';
 import GuildAdminGovernance from './GuildAdminGovernance.react.tsx';
 import GuildAdminRecaps from './GuildAdminRecaps.react.tsx';
+import GuildAdminCombatReports from './GuildAdminCombatReports.react.tsx';
 import { PremiumLockedPanel, PremiumActivePanel } from './GuildAdminPremium.react.tsx';
 import GuildAdminCustomDomain from './GuildAdminCustomDomain.react.tsx';
 
@@ -148,6 +149,26 @@ const GuildAdminPage_guildAdmin = graphql`
           version
           paragraphCountText
           generatedAtText
+        }
+      }
+    }
+    adminTabCombatReportsLabel
+    combatReports {
+      __typename
+      ... on GroupingCombatReportLocked { title body }
+      ... on GuildAdminCombatReportList {
+        title
+        emptyText
+        items {
+          id
+          groupingId
+          groupingTitle
+          bossName
+          status
+          statusText
+          resultText
+          teamDpsText
+          importedAtText
         }
       }
     }
@@ -692,6 +713,7 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
     { key: 'ops', label: text.adminTabOpsLabel },
     { key: 'governance', label: text.adminTabGovernanceLabel },
     { key: 'recaps', label: text.adminTabRecapsLabel },
+    { key: 'combat', label: text.adminTabCombatReportsLabel },
   ];
   /* P16: tabs follow the viewer's capability set (Discord admins
    * hold all ten, so their tab bar is unchanged). The governance
@@ -713,6 +735,7 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
     ops: data.ops != null,
     governance: data.governance != null,
     recaps: data.recaps != null,
+    combat: data.combatReports != null,
   };
   const visibleTabs = TABS.filter((t) => {
     const cap = TAB_CAPABILITY[t.key];
@@ -991,6 +1014,9 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
         )}
         {activeTab === 'recaps' && (
           <GuildAdminRecaps recaps={data.recaps} />
+        )}
+        {activeTab === 'combat' && (
+          <GuildAdminCombatReports combatReports={data.combatReports} />
         )}
         {activeTab === 'tools' && (
           <GuildAdminTools

@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<aa20ddba30928a54444a07bdc84c3e50>>
+ * @generated SignedSource<<535131b50e0d0ae304f1a48c17de3e03>>
  * @lightSyntaxTransform
  */
 
@@ -24,6 +24,69 @@ export type GroupingDetailQuery$data = {
       readonly title: string;
       readonly visitorSlots: number;
       readonly visitorSlotsLabel: string;
+    } | null | undefined;
+    readonly combatReport: {
+      readonly __typename: "GroupingCombatReportEmpty";
+      readonly actions: {
+        readonly importErrorForbidden: string;
+        readonly importErrorFormat: string;
+        readonly importErrorLimit: string;
+        readonly importErrorNotFound: string;
+        readonly importErrorTier: string;
+        readonly importErrorValidation: string;
+        readonly importHint: string;
+        readonly importLabel: string;
+        readonly importingLabel: string;
+        readonly toastImportFailedTemplate: string;
+        readonly toastImported: string;
+      } | null | undefined;
+      readonly body: string;
+      readonly failedHint: string | null | undefined;
+      readonly title: string;
+    } | {
+      readonly __typename: "GroupingCombatReportLocked";
+      readonly body: string;
+      readonly title: string;
+    } | {
+      readonly __typename: "GroupingCombatReportReady";
+      readonly actions: {
+        readonly importErrorForbidden: string;
+        readonly importErrorFormat: string;
+        readonly importErrorLimit: string;
+        readonly importErrorNotFound: string;
+        readonly importErrorTier: string;
+        readonly importErrorValidation: string;
+        readonly importHint: string;
+        readonly importLabel: string;
+        readonly importingLabel: string;
+        readonly toastImportFailedTemplate: string;
+        readonly toastImported: string;
+      } | null | undefined;
+      readonly encounters: ReadonlyArray<{
+        readonly bossName: string;
+        readonly deleteAction: {
+          readonly confirmMessageTemplate: string;
+          readonly confirmTitle: string;
+          readonly deleteLabel: string;
+          readonly toastDeleteFailedTemplate: string;
+          readonly toastDeleted: string;
+        } | null | undefined;
+        readonly durationText: string;
+        readonly id: string;
+        readonly resultText: string;
+        readonly sourceText: string;
+        readonly startedAtText: string;
+        readonly teamDpsText: string;
+        readonly uploaderText: string;
+      }>;
+      readonly encountersTitle: string;
+      readonly failedHint: string | null | undefined;
+      readonly title: string;
+      readonly viewReportLabel: string;
+    } | {
+      // This will never be '%other', but we need some
+      // value in case none of the concrete values match.
+      readonly __typename: "%other";
     } | null | undefined;
     readonly confirmCancelLabel: string;
     readonly confirmOkLabel: string;
@@ -1153,6 +1216,20 @@ v113 = {
 v114 = {
   "alias": null,
   "args": null,
+  "kind": "ScalarField",
+  "name": "confirmTitle",
+  "storageKey": null
+},
+v115 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "confirmMessageTemplate",
+  "storageKey": null
+},
+v116 = {
+  "alias": null,
+  "args": null,
   "concreteType": "GroupingRecapActions",
   "kind": "LinkedField",
   "name": "actions",
@@ -1179,20 +1256,8 @@ v114 = {
       "name": "generatingLabel",
       "storageKey": null
     },
-    {
-      "alias": null,
-      "args": null,
-      "kind": "ScalarField",
-      "name": "confirmTitle",
-      "storageKey": null
-    },
-    {
-      "alias": null,
-      "args": null,
-      "kind": "ScalarField",
-      "name": "confirmMessageTemplate",
-      "storageKey": null
-    },
+    (v114/*:: as any*/),
+    (v115/*:: as any*/),
     {
       "alias": null,
       "args": null,
@@ -1204,7 +1269,7 @@ v114 = {
   ],
   "storageKey": null
 },
-v115 = {
+v117 = {
   "alias": null,
   "args": null,
   "concreteType": null,
@@ -1231,7 +1296,7 @@ v115 = {
         (v110/*:: as any*/),
         (v111/*:: as any*/),
         (v113/*:: as any*/),
-        (v114/*:: as any*/)
+        (v116/*:: as any*/)
       ],
       "type": "GroupingRecapEmpty",
       "abstractKey": null
@@ -1276,7 +1341,7 @@ v115 = {
           "storageKey": null
         },
         (v113/*:: as any*/),
-        (v114/*:: as any*/)
+        (v116/*:: as any*/)
       ],
       "type": "GroupingRecapReady",
       "abstractKey": null
@@ -1284,21 +1349,264 @@ v115 = {
   ],
   "storageKey": null
 },
-v116 = {
+v118 = {
+  "alias": null,
+  "args": null,
+  "concreteType": "CombatReportActions",
+  "kind": "LinkedField",
+  "name": "actions",
+  "plural": false,
+  "selections": [
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "importLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "importingLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "importHint",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "toastImported",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "toastImportFailedTemplate",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "importErrorFormat",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "importErrorValidation",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "importErrorLimit",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "importErrorForbidden",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "importErrorNotFound",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "importErrorTier",
+      "storageKey": null
+    }
+  ],
+  "storageKey": null
+},
+v119 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "id",
+  "storageKey": null
+},
+v120 = {
+  "alias": null,
+  "args": null,
+  "concreteType": null,
+  "kind": "LinkedField",
+  "name": "combatReport",
+  "plural": false,
+  "selections": [
+    (v109/*:: as any*/),
+    {
+      "kind": "InlineFragment",
+      "selections": (v112/*:: as any*/),
+      "type": "GroupingCombatReportLocked",
+      "abstractKey": null
+    },
+    {
+      "kind": "InlineFragment",
+      "selections": [
+        (v110/*:: as any*/),
+        (v111/*:: as any*/),
+        (v113/*:: as any*/),
+        (v118/*:: as any*/)
+      ],
+      "type": "GroupingCombatReportEmpty",
+      "abstractKey": null
+    },
+    {
+      "kind": "InlineFragment",
+      "selections": [
+        (v110/*:: as any*/),
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "encountersTitle",
+          "storageKey": null
+        },
+        {
+          "alias": null,
+          "args": null,
+          "kind": "ScalarField",
+          "name": "viewReportLabel",
+          "storageKey": null
+        },
+        (v113/*:: as any*/),
+        {
+          "alias": null,
+          "args": null,
+          "concreteType": "CombatEncounterSummary",
+          "kind": "LinkedField",
+          "name": "encounters",
+          "plural": true,
+          "selections": [
+            (v119/*:: as any*/),
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "bossName",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "startedAtText",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "durationText",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "resultText",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "teamDpsText",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "uploaderText",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "kind": "ScalarField",
+              "name": "sourceText",
+              "storageKey": null
+            },
+            {
+              "alias": null,
+              "args": null,
+              "concreteType": "CombatEncounterDeleteAction",
+              "kind": "LinkedField",
+              "name": "deleteAction",
+              "plural": false,
+              "selections": [
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "deleteLabel",
+                  "storageKey": null
+                },
+                (v114/*:: as any*/),
+                (v115/*:: as any*/),
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "toastDeleted",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
+                  "name": "toastDeleteFailedTemplate",
+                  "storageKey": null
+                }
+              ],
+              "storageKey": null
+            }
+          ],
+          "storageKey": null
+        },
+        (v118/*:: as any*/)
+      ],
+      "type": "GroupingCombatReportReady",
+      "abstractKey": null
+    }
+  ],
+  "storageKey": null
+},
+v121 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "uid",
   "storageKey": null
 },
-v117 = {
+v122 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "nickname",
   "storageKey": null
 },
-v118 = {
+v123 = {
   "alias": null,
   "args": null,
   "concreteType": "RosterAnswer",
@@ -1306,8 +1614,8 @@ v118 = {
   "name": "rosterAnswers",
   "plural": true,
   "selections": [
-    (v116/*:: as any*/),
-    (v117/*:: as any*/),
+    (v121/*:: as any*/),
+    (v122/*:: as any*/),
     {
       "alias": null,
       "args": null,
@@ -1332,7 +1640,7 @@ v118 = {
   ],
   "storageKey": null
 },
-v119 = {
+v124 = {
   "alias": null,
   "args": null,
   "concreteType": "GroupingManageActions",
@@ -1413,14 +1721,14 @@ v119 = {
   ],
   "storageKey": null
 },
-v120 = {
+v125 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "hint",
   "storageKey": null
 },
-v121 = {
+v126 = {
   "alias": null,
   "args": null,
   "concreteType": "AllySharingControl",
@@ -1443,7 +1751,7 @@ v121 = {
       "storageKey": null
     },
     (v110/*:: as any*/),
-    (v120/*:: as any*/),
+    (v125/*:: as any*/),
     {
       "alias": null,
       "args": null,
@@ -1468,49 +1776,42 @@ v121 = {
   ],
   "storageKey": null
 },
-v122 = {
+v127 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "displayName",
   "storageKey": null
 },
-v123 = {
+v128 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "role",
   "storageKey": null
 },
-v124 = {
+v129 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "weapon",
   "storageKey": null
 },
-v125 = {
+v130 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "score",
   "storageKey": null
 },
-v126 = {
+v131 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "reasons",
   "storageKey": null
 },
-v127 = {
-  "alias": null,
-  "args": null,
-  "kind": "ScalarField",
-  "name": "id",
-  "storageKey": null
-},
-v128 = {
+v132 = {
   "alias": null,
   "args": null,
   "concreteType": null,
@@ -1544,7 +1845,7 @@ v128 = {
       "kind": "InlineFragment",
       "selections": [
         (v110/*:: as any*/),
-        (v120/*:: as any*/),
+        (v125/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -1603,11 +1904,11 @@ v128 = {
               "storageKey": null
             },
             (v2/*:: as any*/),
-            (v122/*:: as any*/),
-            (v123/*:: as any*/),
-            (v124/*:: as any*/),
-            (v125/*:: as any*/),
-            (v126/*:: as any*/)
+            (v127/*:: as any*/),
+            (v128/*:: as any*/),
+            (v129/*:: as any*/),
+            (v130/*:: as any*/),
+            (v131/*:: as any*/)
           ],
           "storageKey": null
         },
@@ -1620,11 +1921,11 @@ v128 = {
           "plural": true,
           "selections": [
             (v2/*:: as any*/),
-            (v122/*:: as any*/),
-            (v123/*:: as any*/),
-            (v124/*:: as any*/),
-            (v125/*:: as any*/),
-            (v126/*:: as any*/)
+            (v127/*:: as any*/),
+            (v128/*:: as any*/),
+            (v129/*:: as any*/),
+            (v130/*:: as any*/),
+            (v131/*:: as any*/)
           ],
           "storageKey": null
         },
@@ -1637,10 +1938,10 @@ v128 = {
           "plural": true,
           "selections": [
             (v2/*:: as any*/),
-            (v122/*:: as any*/),
-            (v123/*:: as any*/),
-            (v125/*:: as any*/),
-            (v126/*:: as any*/)
+            (v127/*:: as any*/),
+            (v128/*:: as any*/),
+            (v130/*:: as any*/),
+            (v131/*:: as any*/)
           ],
           "storageKey": null
         },
@@ -1652,7 +1953,7 @@ v128 = {
           "name": "rotationRecords",
           "plural": true,
           "selections": [
-            (v127/*:: as any*/),
+            (v119/*:: as any*/),
             {
               "alias": null,
               "args": null,
@@ -1670,63 +1971,63 @@ v128 = {
   ],
   "storageKey": null
 },
-v129 = {
+v133 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "type",
   "storageKey": null
 },
-v130 = {
+v134 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "creatorDiscordId",
   "storageKey": null
 },
-v131 = {
+v135 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "startsAt",
   "storageKey": null
 },
-v132 = {
+v136 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "name",
   "storageKey": null
 },
-v133 = {
+v137 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "occupiedCount",
   "storageKey": null
 },
-v134 = {
+v138 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "readyCount",
   "storageKey": null
 },
-v135 = {
+v139 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "maxSlots",
   "storageKey": null
 },
-v136 = {
+v140 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "status",
   "storageKey": null
 },
-v137 = {
+v141 = {
   "alias": null,
   "args": null,
   "concreteType": "Seat",
@@ -1741,10 +2042,10 @@ v137 = {
       "name": "index",
       "storageKey": null
     },
-    (v117/*:: as any*/),
-    (v124/*:: as any*/),
-    (v123/*:: as any*/),
-    (v116/*:: as any*/),
+    (v122/*:: as any*/),
+    (v129/*:: as any*/),
+    (v128/*:: as any*/),
+    (v121/*:: as any*/),
     {
       "alias": null,
       "args": null,
@@ -1769,7 +2070,7 @@ v137 = {
   ],
   "storageKey": null
 },
-v138 = {
+v142 = {
   "alias": null,
   "args": null,
   "concreteType": "CustomField",
@@ -1777,7 +2078,7 @@ v138 = {
   "name": "customFields",
   "plural": true,
   "selections": [
-    (v127/*:: as any*/),
+    (v119/*:: as any*/),
     {
       "alias": null,
       "args": null,
@@ -1931,11 +2232,12 @@ return {
           (v106/*:: as any*/),
           (v107/*:: as any*/),
           (v108/*:: as any*/),
-          (v115/*:: as any*/),
-          (v118/*:: as any*/),
-          (v119/*:: as any*/),
-          (v121/*:: as any*/),
-          (v128/*:: as any*/),
+          (v117/*:: as any*/),
+          (v120/*:: as any*/),
+          (v123/*:: as any*/),
+          (v124/*:: as any*/),
+          (v126/*:: as any*/),
+          (v132/*:: as any*/),
           {
             "alias": null,
             "args": null,
@@ -1944,11 +2246,11 @@ return {
             "name": "grouping",
             "plural": false,
             "selections": [
-              (v127/*:: as any*/),
+              (v119/*:: as any*/),
               (v110/*:: as any*/),
-              (v129/*:: as any*/),
-              (v130/*:: as any*/),
-              (v131/*:: as any*/),
+              (v133/*:: as any*/),
+              (v134/*:: as any*/),
+              (v135/*:: as any*/),
               {
                 "alias": null,
                 "args": null,
@@ -1957,16 +2259,16 @@ return {
                 "name": "dungeon",
                 "plural": false,
                 "selections": [
-                  (v132/*:: as any*/)
+                  (v136/*:: as any*/)
                 ],
                 "storageKey": null
               },
-              (v133/*:: as any*/),
-              (v134/*:: as any*/),
-              (v135/*:: as any*/),
-              (v136/*:: as any*/),
               (v137/*:: as any*/),
-              (v138/*:: as any*/)
+              (v138/*:: as any*/),
+              (v139/*:: as any*/),
+              (v140/*:: as any*/),
+              (v141/*:: as any*/),
+              (v142/*:: as any*/)
             ],
             "storageKey": null
           }
@@ -2098,11 +2400,12 @@ return {
           (v106/*:: as any*/),
           (v107/*:: as any*/),
           (v108/*:: as any*/),
-          (v115/*:: as any*/),
-          (v118/*:: as any*/),
-          (v119/*:: as any*/),
-          (v121/*:: as any*/),
-          (v128/*:: as any*/),
+          (v117/*:: as any*/),
+          (v120/*:: as any*/),
+          (v123/*:: as any*/),
+          (v124/*:: as any*/),
+          (v126/*:: as any*/),
+          (v132/*:: as any*/),
           {
             "alias": null,
             "args": null,
@@ -2111,11 +2414,11 @@ return {
             "name": "grouping",
             "plural": false,
             "selections": [
-              (v127/*:: as any*/),
+              (v119/*:: as any*/),
               (v110/*:: as any*/),
-              (v129/*:: as any*/),
-              (v130/*:: as any*/),
-              (v131/*:: as any*/),
+              (v133/*:: as any*/),
+              (v134/*:: as any*/),
+              (v135/*:: as any*/),
               {
                 "alias": null,
                 "args": null,
@@ -2124,17 +2427,17 @@ return {
                 "name": "dungeon",
                 "plural": false,
                 "selections": [
-                  (v132/*:: as any*/),
-                  (v127/*:: as any*/)
+                  (v136/*:: as any*/),
+                  (v119/*:: as any*/)
                 ],
                 "storageKey": null
               },
-              (v133/*:: as any*/),
-              (v134/*:: as any*/),
-              (v135/*:: as any*/),
-              (v136/*:: as any*/),
               (v137/*:: as any*/),
-              (v138/*:: as any*/)
+              (v138/*:: as any*/),
+              (v139/*:: as any*/),
+              (v140/*:: as any*/),
+              (v141/*:: as any*/),
+              (v142/*:: as any*/)
             ],
             "storageKey": null
           }
@@ -2144,16 +2447,16 @@ return {
     ]
   },
   "params": {
-    "cacheID": "e015c2d60b359c481268beb758da0f1f",
+    "cacheID": "7fb73518cdf3ae407f9697881f96b4c0",
     "id": null,
     "metadata": {},
     "name": "GroupingDetailQuery",
     "operationKind": "query",
-    "text": "query GroupingDetailQuery(\n  $slug: String\n  $id: ID!\n) {\n  viewer {\n    user {\n      discordId\n    }\n    commonUnknownErrorText\n  }\n  groupingDetailPage(slug: $slug, id: $id) {\n    detailNotFoundText\n    detailBackToListLabel\n    detailShareLabel\n    shareUrl\n    templateSave {\n      buttonLabel\n      dialogTitle\n      nameLabel\n      submitLabel\n      toastSaved\n      toastFailedTemplate\n    }\n    detailEditLabel\n    detailDisbandLabel\n    detailDisbandingLabel\n    detailStatusOpenLabel\n    detailPeopleTemplate\n    detailOpenHint\n    detailToastDisbanded\n    detailToastDisbandFailedTemplate\n    detailLinkCopied\n    detailCopyFailedManual\n    detailDisbandConfirmTitle\n    detailDisbandConfirmMessageTemplate\n    detailCompleteLabel\n    detailCompletingLabel\n    detailStatusCompletedLabel\n    detailRestoreLabel\n    detailCompleteConfirmTitle\n    detailCompleteConfirmMessageTemplate\n    detailToastCompleted\n    detailToastCompleteFailedTemplate\n    detailToastRestored\n    detailToastRestoreFailedTemplate\n    detailCompletedHint\n    confirmOkLabel\n    confirmCancelLabel\n    typeShortActivity\n    typeShortTalent\n    typeShortRace\n    typeShortTower\n    typeShortGather\n    typeShortExplore\n    seatEmptyJoinLabel\n    seatEmptyLabel\n    seatModalTitleTemplate\n    seatModalSubtitle\n    seatNameLabel\n    seatNamePlaceholder\n    seatNameRequired\n    seatSelfTabLabel\n    seatProxyTabLabel\n    seatSelfNameHint\n    seatProxySearchPlaceholder\n    seatProxyPickRequired\n    seatProxyEmptyText\n    seatSectLabel\n    seatCancelLabel\n    seatConfirmJoinLabel\n    seatJoiningLabel\n    seatToastSect\n    seatToastJoined\n    seatToastJoinFailedTemplate\n    seatToastLeft\n    seatToastLeaveFailedTemplate\n    seatLeaveConfirmTitle\n    seatLeaveConfirmMessageTemplate\n    detailReadyProgressTemplate\n    seatReadyLabel\n    seatReadyActionLabel\n    seatUnreadyActionLabel\n    seatToastReady\n    seatToastUnready\n    seatToastReadyFailedTemplate\n    formCreateTitle\n    formEditTitle\n    formTypeLabel\n    formTypeActivityLabel\n    formTypeTalentLabel\n    formTypeRaceLabel\n    formTypeTowerLabel\n    formCapacityTemplate\n    formHintActivity\n    formHintDungeonTemplate\n    formHintTalent\n    formHintRace\n    formHintTower\n    formTitleLabel\n    formTitlePlaceholder\n    formStartsLabel\n    formMonthTemplate\n    formDayTemplate\n    formHourTemplate\n    formMinuteTemplate\n    formDungeonLabel\n    formDungeonNoneLabel\n    formNicknameLabel\n    formNicknamePlaceholder\n    formSectLabel\n    formCancelLabel\n    formSubmitCreateLabel\n    formSubmitEditLabel\n    formSubmittingLabel\n    formToastSect\n    formToastSaved\n    formToastSaveFailedTemplate\n    formToastPosted\n    formToastCreateFailedTemplate\n    formTitleTemplate\n    rosterAnswersTitle\n    recap {\n      __typename\n      ... on GroupingRecapLocked {\n        title\n        body\n      }\n      ... on GroupingRecapNotEnabled {\n        title\n        body\n      }\n      ... on GroupingRecapEmpty {\n        title\n        body\n        failedHint\n        actions {\n          generateLabel\n          regenerateLabel\n          generatingLabel\n          confirmTitle\n          confirmMessageTemplate\n          toastGenerated\n          toastFailedTemplate\n        }\n      }\n      ... on GroupingRecapReady {\n        title\n        paragraphs\n        summaryLines\n        generatedAtText\n        providerText\n        versionText\n        failedHint\n        actions {\n          generateLabel\n          regenerateLabel\n          generatingLabel\n          confirmTitle\n          confirmMessageTemplate\n          toastGenerated\n          toastFailedTemplate\n        }\n      }\n    }\n    rosterAnswers {\n      uid\n      nickname\n      fieldId\n      fieldLabel\n      value\n    }\n    manageActions {\n      editLabel\n      completeLabel\n      completingLabel\n      restoreLabel\n      disbandLabel\n      disbandingLabel\n      disbandConfirmTitle\n      disbandConfirmMessageTemplate\n      completeConfirmTitle\n      completeConfirmMessageTemplate\n    }\n    allySharing {\n      allyVisible\n      visitorSlots\n      title\n      hint\n      allyVisibleLabel\n      visitorSlotsLabel\n      saveLabel\n    }\n    schedulingAdvice {\n      __typename\n      ... on SchedulingAdviceLocked {\n        lockedTitle\n        lockedBody\n      }\n      ... on GroupingSchedulingAdvice {\n        title\n        hint\n        draftTitle\n        draftApplyLabel\n        substitutesTitle\n        rotationTitle\n        rotationSaveLabel\n        rotationSavedText\n        draft {\n          seatIndex\n          discordId\n          displayName\n          role\n          weapon\n          score\n          reasons\n        }\n        substitutes {\n          discordId\n          displayName\n          role\n          weapon\n          score\n          reasons\n        }\n        rotation {\n          discordId\n          displayName\n          role\n          score\n          reasons\n        }\n        rotationRecords {\n          id\n          createdAtText\n        }\n      }\n    }\n    grouping {\n      id\n      title\n      type\n      creatorDiscordId\n      startsAt\n      dungeon {\n        name\n        id\n      }\n      occupiedCount\n      readyCount\n      maxSlots\n      status\n      seats {\n        index\n        nickname\n        weapon\n        role\n        uid\n        occupied\n        ready\n        mine\n      }\n      customFields {\n        id\n        label\n        fieldType\n        options\n        required\n      }\n    }\n  }\n}\n"
+    "text": "query GroupingDetailQuery(\n  $slug: String\n  $id: ID!\n) {\n  viewer {\n    user {\n      discordId\n    }\n    commonUnknownErrorText\n  }\n  groupingDetailPage(slug: $slug, id: $id) {\n    detailNotFoundText\n    detailBackToListLabel\n    detailShareLabel\n    shareUrl\n    templateSave {\n      buttonLabel\n      dialogTitle\n      nameLabel\n      submitLabel\n      toastSaved\n      toastFailedTemplate\n    }\n    detailEditLabel\n    detailDisbandLabel\n    detailDisbandingLabel\n    detailStatusOpenLabel\n    detailPeopleTemplate\n    detailOpenHint\n    detailToastDisbanded\n    detailToastDisbandFailedTemplate\n    detailLinkCopied\n    detailCopyFailedManual\n    detailDisbandConfirmTitle\n    detailDisbandConfirmMessageTemplate\n    detailCompleteLabel\n    detailCompletingLabel\n    detailStatusCompletedLabel\n    detailRestoreLabel\n    detailCompleteConfirmTitle\n    detailCompleteConfirmMessageTemplate\n    detailToastCompleted\n    detailToastCompleteFailedTemplate\n    detailToastRestored\n    detailToastRestoreFailedTemplate\n    detailCompletedHint\n    confirmOkLabel\n    confirmCancelLabel\n    typeShortActivity\n    typeShortTalent\n    typeShortRace\n    typeShortTower\n    typeShortGather\n    typeShortExplore\n    seatEmptyJoinLabel\n    seatEmptyLabel\n    seatModalTitleTemplate\n    seatModalSubtitle\n    seatNameLabel\n    seatNamePlaceholder\n    seatNameRequired\n    seatSelfTabLabel\n    seatProxyTabLabel\n    seatSelfNameHint\n    seatProxySearchPlaceholder\n    seatProxyPickRequired\n    seatProxyEmptyText\n    seatSectLabel\n    seatCancelLabel\n    seatConfirmJoinLabel\n    seatJoiningLabel\n    seatToastSect\n    seatToastJoined\n    seatToastJoinFailedTemplate\n    seatToastLeft\n    seatToastLeaveFailedTemplate\n    seatLeaveConfirmTitle\n    seatLeaveConfirmMessageTemplate\n    detailReadyProgressTemplate\n    seatReadyLabel\n    seatReadyActionLabel\n    seatUnreadyActionLabel\n    seatToastReady\n    seatToastUnready\n    seatToastReadyFailedTemplate\n    formCreateTitle\n    formEditTitle\n    formTypeLabel\n    formTypeActivityLabel\n    formTypeTalentLabel\n    formTypeRaceLabel\n    formTypeTowerLabel\n    formCapacityTemplate\n    formHintActivity\n    formHintDungeonTemplate\n    formHintTalent\n    formHintRace\n    formHintTower\n    formTitleLabel\n    formTitlePlaceholder\n    formStartsLabel\n    formMonthTemplate\n    formDayTemplate\n    formHourTemplate\n    formMinuteTemplate\n    formDungeonLabel\n    formDungeonNoneLabel\n    formNicknameLabel\n    formNicknamePlaceholder\n    formSectLabel\n    formCancelLabel\n    formSubmitCreateLabel\n    formSubmitEditLabel\n    formSubmittingLabel\n    formToastSect\n    formToastSaved\n    formToastSaveFailedTemplate\n    formToastPosted\n    formToastCreateFailedTemplate\n    formTitleTemplate\n    rosterAnswersTitle\n    recap {\n      __typename\n      ... on GroupingRecapLocked {\n        title\n        body\n      }\n      ... on GroupingRecapNotEnabled {\n        title\n        body\n      }\n      ... on GroupingRecapEmpty {\n        title\n        body\n        failedHint\n        actions {\n          generateLabel\n          regenerateLabel\n          generatingLabel\n          confirmTitle\n          confirmMessageTemplate\n          toastGenerated\n          toastFailedTemplate\n        }\n      }\n      ... on GroupingRecapReady {\n        title\n        paragraphs\n        summaryLines\n        generatedAtText\n        providerText\n        versionText\n        failedHint\n        actions {\n          generateLabel\n          regenerateLabel\n          generatingLabel\n          confirmTitle\n          confirmMessageTemplate\n          toastGenerated\n          toastFailedTemplate\n        }\n      }\n    }\n    combatReport {\n      __typename\n      ... on GroupingCombatReportLocked {\n        title\n        body\n      }\n      ... on GroupingCombatReportEmpty {\n        title\n        body\n        failedHint\n        actions {\n          importLabel\n          importingLabel\n          importHint\n          toastImported\n          toastImportFailedTemplate\n          importErrorFormat\n          importErrorValidation\n          importErrorLimit\n          importErrorForbidden\n          importErrorNotFound\n          importErrorTier\n        }\n      }\n      ... on GroupingCombatReportReady {\n        title\n        encountersTitle\n        viewReportLabel\n        failedHint\n        encounters {\n          id\n          bossName\n          startedAtText\n          durationText\n          resultText\n          teamDpsText\n          uploaderText\n          sourceText\n          deleteAction {\n            deleteLabel\n            confirmTitle\n            confirmMessageTemplate\n            toastDeleted\n            toastDeleteFailedTemplate\n          }\n        }\n        actions {\n          importLabel\n          importingLabel\n          importHint\n          toastImported\n          toastImportFailedTemplate\n          importErrorFormat\n          importErrorValidation\n          importErrorLimit\n          importErrorForbidden\n          importErrorNotFound\n          importErrorTier\n        }\n      }\n    }\n    rosterAnswers {\n      uid\n      nickname\n      fieldId\n      fieldLabel\n      value\n    }\n    manageActions {\n      editLabel\n      completeLabel\n      completingLabel\n      restoreLabel\n      disbandLabel\n      disbandingLabel\n      disbandConfirmTitle\n      disbandConfirmMessageTemplate\n      completeConfirmTitle\n      completeConfirmMessageTemplate\n    }\n    allySharing {\n      allyVisible\n      visitorSlots\n      title\n      hint\n      allyVisibleLabel\n      visitorSlotsLabel\n      saveLabel\n    }\n    schedulingAdvice {\n      __typename\n      ... on SchedulingAdviceLocked {\n        lockedTitle\n        lockedBody\n      }\n      ... on GroupingSchedulingAdvice {\n        title\n        hint\n        draftTitle\n        draftApplyLabel\n        substitutesTitle\n        rotationTitle\n        rotationSaveLabel\n        rotationSavedText\n        draft {\n          seatIndex\n          discordId\n          displayName\n          role\n          weapon\n          score\n          reasons\n        }\n        substitutes {\n          discordId\n          displayName\n          role\n          weapon\n          score\n          reasons\n        }\n        rotation {\n          discordId\n          displayName\n          role\n          score\n          reasons\n        }\n        rotationRecords {\n          id\n          createdAtText\n        }\n      }\n    }\n    grouping {\n      id\n      title\n      type\n      creatorDiscordId\n      startsAt\n      dungeon {\n        name\n        id\n      }\n      occupiedCount\n      readyCount\n      maxSlots\n      status\n      seats {\n        index\n        nickname\n        weapon\n        role\n        uid\n        occupied\n        ready\n        mine\n      }\n      customFields {\n        id\n        label\n        fieldType\n        options\n        required\n      }\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "94929b7a6f0bfcfbb20da9c2f2996695";
+(node as any).hash = "ad3fb5a09d363400132f8c8e35afc636";
 
 export default node;

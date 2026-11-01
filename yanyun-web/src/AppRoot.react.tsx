@@ -13,6 +13,7 @@ import GuildAdminRouteLoader from './guild/GuildAdminRouteLoader.react.tsx';
 import LegalRoute from './LegalRoute.react.tsx';
 import BuildShareRoute from './BuildShareRoute.react.tsx';
 import CarShareRoute from './CarShareRoute.react.tsx';
+import CombatReportRoute from './CombatReportRoute.react.tsx';
 import SiteFooter from './lib/SiteFooter.react.tsx';
 import { hostGuildSlug } from './lib/hostGuild';
 import { GuildFooterContext, type FooterOverride } from './lib/guildChrome';
@@ -235,6 +236,10 @@ export default function AppRoot({ queries }: {
             element={user ? <GuildRouteLoader slugOverride={hostSlug} /> : <LoginGateWithText site={siteText} text={loginText} />}
           />
           <Route
+            path="/car/:carId/report"
+            element={user ? <CombatReportRoute slugOverride={hostSlug} /> : <LoginGateWithText site={siteText} text={loginText} />}
+          />
+          <Route
             path="/admin"
             element={user ? <GuildAdminRouteLoader slugOverride={hostSlug} /> : <LoginGateWithText site={siteText} text={loginText} />}
           />
@@ -267,6 +272,10 @@ export default function AppRoot({ queries }: {
       <Route
         path="/:slug/car/:carId"
         element={user ? <GuildRouteLoader /> : <LoginGateWithText site={siteText} text={loginText} />}
+      />
+      <Route
+        path="/:slug/car/:carId/report"
+        element={user ? <CombatReportRoute /> : <LoginGateWithText site={siteText} text={loginText} />}
       />
       <Route
         path="/:slug/admin"

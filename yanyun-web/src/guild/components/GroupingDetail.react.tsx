@@ -11,6 +11,7 @@ import { toast, ConfirmDialog} from './Toast.react.tsx';
 import SeatGrid, { type SeatData} from './SeatGrid.react.tsx';
 import GroupingForm from './GroupingForm.react.tsx';
 import GuildRecapSection from './GuildRecapSection.react.tsx';
+import GuildCombatReportSection from './GuildCombatReportSection.react.tsx';
 
 const GroupingDetailQueryNode = graphql`
   query GroupingDetailQuery($slug: String, $id: ID!) {
@@ -171,6 +172,67 @@ const GroupingDetailQueryNode = graphql`
             confirmMessageTemplate
             toastGenerated
             toastFailedTemplate
+          }
+        }
+      }
+      combatReport {
+        __typename
+        ... on GroupingCombatReportLocked {
+          title
+          body
+        }
+        ... on GroupingCombatReportEmpty {
+          title
+          body
+          failedHint
+          actions {
+            importLabel
+            importingLabel
+            importHint
+            toastImported
+            toastImportFailedTemplate
+            importErrorFormat
+            importErrorValidation
+            importErrorLimit
+            importErrorForbidden
+            importErrorNotFound
+            importErrorTier
+          }
+        }
+        ... on GroupingCombatReportReady {
+          title
+          encountersTitle
+          viewReportLabel
+          failedHint
+          encounters {
+            id
+            bossName
+            startedAtText
+            durationText
+            resultText
+            teamDpsText
+            uploaderText
+            sourceText
+            deleteAction {
+              deleteLabel
+              confirmTitle
+              confirmMessageTemplate
+              toastDeleted
+              toastDeleteFailedTemplate
+            }
+          }
+          actions {
+            importLabel
+            importingLabel
+            importHint
+            toastImported
+            toastImportFailedTemplate
+            importErrorFormat
+            importErrorValidation
+            importErrorLimit
+            importErrorForbidden
+            importErrorNotFound
+            importErrorTier
           }
         }
       }
@@ -665,6 +727,16 @@ verticalAlign: 'middle',
 recap={page.recap}
 groupingId={g.id}
 groupingTitle={g.title}
+confirmOkLabel={page.confirmOkLabel}
+confirmCancelLabel={page.confirmCancelLabel}
+unknownErrorText={unknownErrorText}
+onChanged={onChanged}
+/>
+
+<GuildCombatReportSection
+combatReport={page.combatReport}
+groupingId={g.id}
+reportPathBase={slug ? `/${slug}/car/${g.id}/report` : `/car/${g.id}/report`}
 confirmOkLabel={page.confirmOkLabel}
 confirmCancelLabel={page.confirmCancelLabel}
 unknownErrorText={unknownErrorText}
