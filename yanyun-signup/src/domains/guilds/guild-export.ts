@@ -16,7 +16,7 @@
  * counts-only summary (the account.export precedent). */
 import { getTenantRow } from './tenants.ts';
 import { listGuildMembers, listDiscordIdsByUserIds } from '../identity/index.ts';
-import { listEventsAdmin, listSignupsByEvent } from '../groupings/index.ts';
+import { listEventsAdmin, listSignupsByEvent, GROUPING_DEFAULT_CREATED_BY } from '../groupings/index.ts';
 import { listSeasonGoalsByTenant } from './seasongoals.ts';
 import { auditHub } from '../platform/index.ts';
 import { guildsTextFor } from './i18n/text.ts';
@@ -44,6 +44,7 @@ export async function buildGuildExport(
   ]);
   const goalDiscordIds = await listDiscordIdsByUserIds(
     db, (goals || []).map((g) => g.user_id)).catch(() => new Map());
+  const text = guildsTextFor(locale);
   const groupings = [];
   let seats = 0;
   for (const ev of events || []) {
@@ -56,7 +57,12 @@ export async function buildGuildExport(
       status: ev.status,
       dungeon: ev.dungeon,
       startsAtUtc: ev.starts_at_utc,
-      createdBy: ev.created_by,
+      // The system default creator label is a storage sentinel:
+      // the package renders its localized default name instead.
+      // A creator's own stored name is data and passes through.
+      createdBy: String(ev.created_by ?? '').trim() === GROUPING_DEFAULT_CREATED_BY
+        ? text.t('officer_exportDefaultCreatorName')
+        : ev.created_by,
       participants: (signups || []).map((s) => ({
         nickname: s.nickname,
         uid: s.uid,
@@ -71,7 +77,7 @@ export async function buildGuildExport(
   const doc = {
     format: GUILD_EXPORT_FORMAT,
     exportedAt: isoOf(atSec),
-    _about: guildsTextFor(locale).t('officer_exportAbout'),
+    _about: text.t('officer_exportAbout'),
     guild: { slug: tenant.slug, name: tenant.guild_name },
     members: (roster || []).map((m) => ({
       discordId: m.discord_id,

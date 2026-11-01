@@ -7464,6 +7464,10 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "en": "Guild data package export: this guild's roster, grouping history and participation records, and member season goals. Officer notes are an internal working record and are not included.",
       "zh-TW": "百業資料包匯出：包含本百業名冊、組隊歷史與參與記錄、成員賽季目標。軍官備註為內部工作記錄，不包含在本資料包內。"
     },
+    "exportDefaultCreatorName": {
+      "zh-CN": "热心侠客",
+      "en": "Helpful Hand"
+    },
     "goalsTitle": {
       "zh-CN": "成员赛季目标",
       "en": "Member season goals",

@@ -391,6 +391,7 @@ export abstract class OfficerFbtUtils {
   static exportHint(fbs: FbsAPI) { return fbs("导出本百业的名册、组队历史与参与记录、成员赛季目标（JSON 文件）。导出动作会留痕记录。", "Hint text for the guild data export, used to explain the JSON package contents and that the export action itself is audit-logged."); }
   static exportButton(fbs: FbsAPI) { return fbs("导出数据包", "Button label for the guild data export section, used to download the data package."); }
   static exportAbout(fbs: FbsAPI) { return fbs("百业数据包导出：包含本百业名册、组队历史与参与记录、成员赛季目标。军官备注为内部工作记录，不包含在本数据包内。", "Readme text for the exported guild data package, used inside the JSON file to explain its contents and why officer notes are excluded."); }
+  static exportDefaultCreatorName(fbs: FbsAPI) { return fbs("热心侠客", "Default creator name for squads in the exported guild data package, used when a squad's stored creator label is the system default written at creation rather than a member's own name."); }
   static goalsTitle(fbs: FbsAPI) { return fbs("成员赛季目标", "Title text for the member season goals section in the officer tab, used as the section heading."); }
   static goalsHint(fbs: FbsAPI) { return fbs("成员给自己设的赛季目标与进度，只读总览。", "Hint text for the member season goals section, used to explain the overview is read-only and covers member-set goals and their progress."); }
   static goalsEmpty(fbs: FbsAPI) { return fbs("暂无成员设置赛季目标。", "Empty-state text for the member season goals section, used when no member has set a season goal."); }

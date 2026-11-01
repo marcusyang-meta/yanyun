@@ -2,6 +2,7 @@ import type { Context } from '../platform/context.ts';
 import { vcOf } from '../platform/context.ts';
  './events.ts';
 import { mintShortLink, shortLinkUrl, canonicalGroupingUrl, subdomainGroupingUrl } from './shortlinks.ts';
+import { GROUPING_DEFAULT_CREATED_BY } from './events.ts';
 /* groupings domain GraphQL: grouping shells, list/detail pages, and all grouping mutations. */
 import {
   clampBlocksVersion, substituteForVersion, weekWindowUtc, startsAtEpoch,
@@ -909,7 +910,7 @@ export const groupingsResolvers = {
       if (!tenantRow) return gFail(ctx, 'guildNotFound');
       const r = await insertEvent(db, {
         tenant: tenantRow.id, title, type, description: '', starts_at: '', starts_at_utc: utc,
-        max_slots: maxSlots, status: 'open', origin: 'member', created_by: '热心侠客',
+        max_slots: maxSlots, status: 'open', origin: 'member', created_by: GROUPING_DEFAULT_CREATED_BY,
         dungeon: dungeonName, creator_user_id: ctx.user!.userId,
       });
       const eventId = r.last_row_id;
