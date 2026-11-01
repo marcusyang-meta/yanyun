@@ -81,6 +81,7 @@ type Query {
   groupingListPage(slug: String!, tab: GroupingTab!): GroupingListPage!
   groupingDetailPage(slug: String, id: ID!): GroupingDetailPage!
   sharedGrouping(code: String!): SharedGroupingPage!
+  combatReportPage(slug: String, groupingId: ID!, encounterId: ID): GroupingCombatReportResult
   dexPage: DexPage!
   bossPage(bossId: ID!): BossPage!
   sectPage: SectPage!
@@ -527,6 +528,11 @@ type SharedGroupingPage {
   sharePeopleTemplate: String!
   shareSeatsTitle: String!
   shareTypeLabel: String!
+  shareImageUrl: String
+  shareImageLabel: String!
+  shareImageSaved: String!
+  shareImageFailed: String!
+  shareCopyFailedManual: String!
 }
 
 type SharedGroupingSeat {
@@ -538,6 +544,7 @@ type GroupingDetailPage {
   grouping: Grouping!
   schedulingAdvice: GroupingSchedulingAdviceResult
   shareUrl: String!
+  shareImageUrl: String
   blocks(blocksVersion: Int): [Block!]!
   manageActions: GroupingManageActions
   allySharing: AllySharingControl
@@ -545,9 +552,13 @@ type GroupingDetailPage {
   rosterAnswers: [RosterAnswer!]
   rosterAnswersTitle: String!
   recap: GroupingRecapResult
+  combatReport: GroupingCombatReportResult
   detailNotFoundText: String!
   detailBackToListLabel: String!
   detailShareLabel: String!
+  detailShareImageLabel: String!
+  detailShareImageSaved: String!
+  detailShareImageFailed: String!
   detailEditLabel: String!
   detailDisbandLabel: String!
   detailDisbandingLabel: String!
@@ -702,6 +713,206 @@ type RecapPayload {
   recap: GroupingRecapResult
   error: String
   errorCode: String
+}
+
+union GroupingCombatReportResult = GroupingCombatReportReady | GroupingCombatReportLocked | GroupingCombatReportEmpty
+
+enum CombatEncounterResult {
+  KILL
+  WIPE
+  UNKNOWN
+}
+
+type CombatReportActions {
+  importLabel: String!
+  importingLabel: String!
+  importHint: String!
+  toastImported: String!
+  toastImportFailedTemplate: String!
+  importErrorFormat: String!
+  importErrorValidation: String!
+  importErrorLimit: String!
+  importErrorForbidden: String!
+  importErrorNotFound: String!
+  importErrorTier: String!
+  deleteLabel: String!
+  deleteConfirmTitle: String!
+  deleteConfirmMessageTemplate: String!
+  toastDeleted: String!
+  toastDeleteFailedTemplate: String!
+}
+
+type CombatEncounterDeleteAction {
+  deleteLabel: String!
+  confirmTitle: String!
+  confirmMessageTemplate: String!
+  toastDeleted: String!
+  toastDeleteFailedTemplate: String!
+}
+
+type CombatEncounterSummary {
+  id: ID!
+  bossName: String!
+  startedAtText: String!
+  durationText: String!
+  result: CombatEncounterResult!
+  resultText: String!
+  teamDpsText: String!
+  uploaderText: String!
+  sourceText: String!
+  deleteAction: CombatEncounterDeleteAction
+}
+
+type CombatPartyRow {
+  playerName: String!
+  memberName: String
+  guestTag: String
+  total: Int!
+  activityPctText: String!
+  dpsText: String!
+  rdpsText: String!
+  rSharePctText: String!
+}
+
+type CombatSkillRow {
+  skillName: String!
+  total: Int!
+  casts: Int!
+  hits: Int!
+  avgText: String!
+  critPctText: String!
+  specPctText: String!
+  maxHit: Int!
+  dpsText: String!
+  sharePctText: String!
+}
+
+type CombatSkillTable {
+  playerName: String!
+  rows: [CombatSkillRow!]!
+}
+
+type CombatInterval {
+  startMs: Int!
+  endMs: Int!
+}
+
+type CombatBuffRow {
+  buffName: String!
+  applierName: String!
+  targetName: String!
+  multiplierText: String!
+  uptimePctText: String!
+  intervals: [CombatInterval!]!
+}
+
+type CombatCastRow {
+  timeText: String!
+  playerName: String!
+  skillName: String!
+}
+
+type CombatDpsPoint {
+  second: Int!
+  damage: Int!
+}
+
+type CombatEncounterDetail {
+  bossName: String!
+  resultText: String!
+  durationText: String!
+  startedAtText: String!
+  overviewLines: [String!]!
+  modelVersionText: String!
+  activityNote: String!
+  rdpsNote: String!
+  colPlayer: String!
+  colTotal: String!
+  colActivity: String!
+  colDps: String!
+  colRdps: String!
+  colRShare: String!
+  colSkill: String!
+  colCasts: String!
+  colHits: String!
+  colAvg: String!
+  colCrit: String!
+  colSpec: String!
+  colMax: String!
+  colShare: String!
+  colBuff: String!
+  colApplier: String!
+  colTarget: String!
+  colUptime: String!
+  colTime: String!
+  castsLocalTitle: String
+  timelineTitle: String!
+  durationMs: Int!
+  partyRows: [CombatPartyRow!]!
+  skillTables: [CombatSkillTable!]!
+  buffRows: [CombatBuffRow!]!
+  castRows: [CombatCastRow!]!
+  dpsSeries: [CombatDpsPoint!]!
+}
+
+type GroupingCombatReportReady {
+  title: String!
+  encountersTitle: String!
+  viewReportLabel: String!
+  backLabel: String!
+  tabOverviewLabel: String!
+  tabDamageLabel: String!
+  tabBuffsLabel: String!
+  tabCastsLabel: String!
+  tabTimelineLabel: String!
+  encounters: [CombatEncounterSummary!]!
+  detail: CombatEncounterDetail
+  failedHint: String
+  actions: CombatReportActions
+}
+
+type GroupingCombatReportEmpty {
+  title: String!
+  body: String!
+  failedHint: String
+  actions: CombatReportActions
+}
+
+type GroupingCombatReportLocked {
+  title: String!
+  body: String!
+}
+
+type CombatReportPayload {
+  ok: Boolean!
+  combatReport: GroupingCombatReportResult
+  error: String
+  errorCode: String
+}
+
+union GuildAdminCombatReportResult = GuildAdminCombatReportList | GroupingCombatReportLocked
+
+type GuildAdminCombatReportList {
+  title: String!
+  emptyText: String!
+  items: [GuildAdminCombatEncounter!]!
+}
+
+enum GuildAdminCombatStatus {
+  PARSED
+  FAILED
+}
+
+type GuildAdminCombatEncounter {
+  id: ID!
+  groupingId: ID!
+  groupingTitle: String!
+  bossName: String!
+  status: GuildAdminCombatStatus!
+  statusText: String!
+  resultText: String!
+  teamDpsText: String!
+  importedAtText: String!
 }
 
 type GroupingManageActions {
@@ -1573,6 +1784,7 @@ type Mutation {
   disbandGrouping(id: ID!): DeletePayload!
   completeGrouping(id: ID!): GroupingPayload!
   generateGroupingRecap(id: ID!): RecapPayload!
+  deleteCombatEncounter(id: ID!): CombatReportPayload!
   reopenGrouping(id: ID!): GroupingPayload!
   joinGrouping(input: JoinGroupingInput!): SeatPayload!
   leaveGrouping(input: LeaveGroupingInput!): SeatPayload!
@@ -1690,6 +1902,7 @@ type Mutation {
   platformAdminSetRoster(discordIds: [String!]!): PlatformAdminRosterPayload!
   platformAdminBackfillReminderIdentity(dryRun: Boolean!): PlatformReminderIdentityBackfillPayload!
   platformAdminBackfillCreators(dryRun: Boolean!): PlatformCreatorBackfillPayload!
+  platformAdminBackfillKunpengDex(dryRun: Boolean!): PlatformKunpengDexBackfillPayload!
   platformAdminMigrateBossGuides: PlatformGuideMigrationPayload!
 }
 
@@ -2300,6 +2513,7 @@ type GuildAdmin {
   officer: GuildOfficerPage!
   ops: GuildAdminOpsResult
   recaps: GuildAdminRecapResult
+  combatReports: GuildAdminCombatReportResult
   stats: GuildAdminStatsResult!
   reliability: GuildAdminReliabilityResult
   participationHeatmap: GuildAdminHeatmapResult
@@ -2460,6 +2674,7 @@ type GuildAdmin {
   adminTabOfficerLabel: String!
   adminTabOpsLabel: String!
   adminTabRecapsLabel: String!
+  adminTabCombatReportsLabel: String!
   adminLotteryTitle: String!
   adminLotteryHint: String!
   adminLotteryEmptyText: String!
@@ -3386,6 +3601,7 @@ type OgCarCard {
   occupiedCount: Int!
   maxSlots: Int!
   status: String!
+  shareCode: String
 }
 
 type OgBuildCard {
@@ -4194,6 +4410,7 @@ type PlatformAdmin {
   exportLabel: String!
   backfillReminderIdentityLabel: String!
   backfillCreatorsLabel: String!
+  backfillKunpengDexLabel: String!
   migrateBossGuidesLabel: String!
   statusOpenText: String!
   statusResolvedText: String!
@@ -4484,6 +4701,28 @@ type PlatformGuideMigrationPayload {
 type PlatformGuideMigrationEntry {
   id: Int!
   name: String!
+  mechanics: Int!
+  talents: Int!
+  shouts: Int!
+}
+
+type PlatformKunpengDexBackfillPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  dryRun: Boolean!
+  dungeonCreated: Boolean!
+  dungeonName: String!
+  bossesCreated: Int!
+  previousCurrentCleared: Boolean!
+  bosses: [PlatformKunpengDexBossEntry!]!
+}
+
+type PlatformKunpengDexBossEntry {
+  id: Int
+  name: String!
+  created: Boolean!
+  guideWritten: Boolean!
   mechanics: Int!
   talents: Int!
   shouts: Int!

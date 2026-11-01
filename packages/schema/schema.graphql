@@ -5330,6 +5330,7 @@ type PlatformAdmin {
   exportLabel: String!
   backfillReminderIdentityLabel: String!
   backfillCreatorsLabel: String!
+  backfillKunpengDexLabel: String!
   migrateBossGuidesLabel: String!
   statusOpenText: String!
   statusResolvedText: String!
@@ -5626,6 +5627,28 @@ type PlatformGuideMigrationEntry {
   shouts: Int!
 }
 
+type PlatformKunpengDexBackfillPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  dryRun: Boolean!
+  dungeonCreated: Boolean!
+  dungeonName: String!
+  bossesCreated: Int!
+  previousCurrentCleared: Boolean!
+  bosses: [PlatformKunpengDexBossEntry!]!
+}
+
+type PlatformKunpengDexBossEntry {
+  id: Int
+  name: String!
+  created: Boolean!
+  guideWritten: Boolean!
+  mechanics: Int!
+  talents: Int!
+  shouts: Int!
+}
+
 extend type Mutation {
   # 计费: 总闸 / 手工授予 / 撤销 / 子域名开关 / 自定义域名停用
   platformAdminSetPaygate(enabled: Boolean!): PlatformAdminBillingPayload!
@@ -5655,5 +5678,6 @@ extend type Mutation {
   # 一次性回填 (使命未完/可重入, 保留为运维动作)
   platformAdminBackfillReminderIdentity(dryRun: Boolean!): PlatformReminderIdentityBackfillPayload!
   platformAdminBackfillCreators(dryRun: Boolean!): PlatformCreatorBackfillPayload!
+  platformAdminBackfillKunpengDex(dryRun: Boolean!): PlatformKunpengDexBackfillPayload!
   platformAdminMigrateBossGuides: PlatformGuideMigrationPayload!
 }

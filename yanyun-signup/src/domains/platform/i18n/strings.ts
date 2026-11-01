@@ -4732,6 +4732,9 @@ export abstract class PlatformAdminFbtUtils {
 	static backfillCreatorsLabel(fbs: FbsRuntime) {
 		return fbs._("回填车头身份戳", null, { hk: "2YMa7q" });
 	}
+	static backfillKunpengDexLabel(fbs: FbsRuntime) {
+		return fbs._("回填鲲鹏图千山图鉴（副本+双首领）", null, { hk: "4f8rY2" });
+	}
 	static migrateBossGuidesLabel(fbs: FbsRuntime) {
 		return fbs._("结构化首领攻略（从攻略文本生成）", null, { hk: "4vzyyE" });
 	}
@@ -6757,6 +6760,7 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"platformAdmin_exportLabel": PlatformAdminFbtUtils.exportLabel,
 	"platformAdmin_backfillReminderIdentityLabel": PlatformAdminFbtUtils.backfillReminderIdentityLabel,
 	"platformAdmin_backfillCreatorsLabel": PlatformAdminFbtUtils.backfillCreatorsLabel,
+	"platformAdmin_backfillKunpengDexLabel": PlatformAdminFbtUtils.backfillKunpengDexLabel,
 	"platformAdmin_migrateBossGuidesLabel": PlatformAdminFbtUtils.migrateBossGuidesLabel,
 	"platformAdmin_statusOpenText": PlatformAdminFbtUtils.statusOpenText,
 	"platformAdmin_statusResolvedText": PlatformAdminFbtUtils.statusResolvedText,

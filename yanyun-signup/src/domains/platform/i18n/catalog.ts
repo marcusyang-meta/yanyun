@@ -8755,6 +8755,10 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-CN": "回填车头身份戳",
       "en": "Backfill Leader Identity Stamps"
     },
+    "backfillKunpengDexLabel": {
+      "zh-CN": "回填鲲鹏图千山图鉴（副本+双首领）",
+      "en": "Backfill Kunpeng Dex (dungeon + two bosses)"
+    },
     "migrateBossGuidesLabel": {
       "zh-CN": "结构化首领攻略（从攻略文本生成）",
       "en": "Structure Boss Guides (from guide text)"
