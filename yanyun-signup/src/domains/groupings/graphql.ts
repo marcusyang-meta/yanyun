@@ -40,6 +40,7 @@ import {
   deleteSignupAnswersByEventUid, deleteSignupAnswersByEvent,
   parseFieldOptions, type CustomFieldDef,
 } from './index.ts';
+import { carOgImageUrl } from './reminder.ts';
 import { scheduleResolvers } from './schedule-graphql.ts';
 import { resolveSharedGrouping } from './shareview.ts';
 import { schedulingAdviceResolvers, composeGroupingSchedulingAdvice, composeCrossCarAdvice, renderAdviceReason, adviceRoleLabel } from './scheduling-graphql.ts';
@@ -611,6 +612,18 @@ export class GroupingDetailPageShell extends ShellBase {
       }
     });
   }
+  // Share-card image for this car: the same OG card URL the share
+  // page's og:image and the reminder embed thumbnail use. The web
+  // share-image action fetches exactly this URL and never composes
+  // OG URLs itself; a missing tenant row yields null and the client
+  // renders no share-image button.
+  async genShareImageUrl(){
+    return this.memo('shareImageUrl', async () => {
+      const ev = this.data;
+      const tenantRow = await getTenantRowById(this.db, ev.tenant).catch(() => null);
+      return tenantRow ? carOgImageUrl(tenantRow.slug, ev.id) : null;
+    });
+  }
   // Mobile Bloks-lite: block tree for this page's content area. Per-seat actions and the disband button are composed per viewer (identity-stamp / leader-or-guild-admin checks all server-side), then substituted by blocksVersion.
   async genBlocks({ blocksVersion }: any = {}){
     const v = clampBlocksVersion(blocksVersion);
@@ -736,6 +749,10 @@ export class SharedGroupingPageShell extends ShellBase {
   genOccupiedCount(){ return this.view ? this.view.occupiedCount : 0; }
   genMaxSlots(){ return this.view ? this.view.maxSlots : 0; }
   genSeats(){ return this.view ? this.view.seats : []; }
+  // OG card image for this shared car (the view already carries the
+  // public slug + event id the card URL is built from; the same URL
+  // this page's og:image names). Null for a missing target.
+  genShareImageUrl(){ return this.view ? carOgImageUrl(this.view.slug, this.view.eventId) : null; }
   // People count line: the detail page's own template, filled with
   // this view's public counts (never rendered for a missing target).
   genSharePeopleTemplate(){
@@ -763,6 +780,10 @@ export const SHARED_GROUPING_TEXT_RESOLVERS = {
     ['shareSeatsTitle', 'carshare_seatsTitle'],
     ['shareStatusOpenLabel', 'groupingDetail_statusOpen'],
     ['shareStatusCompletedLabel', 'groupingDetail_statusCompleted'],
+    ['shareImageLabel', 'groupingDetail_shareImage'],
+    ['shareImageSaved', 'groupingDetail_shareImageSaved'],
+    ['shareImageFailed', 'groupingDetail_shareImageFailed'],
+    ['shareCopyFailedManual', 'groupingDetail_copyFailedManual'],
   ]),
 };
 
@@ -771,6 +792,9 @@ export const DETAIL_TEXT_RESOLVERS = {
     ['detailNotFoundText', 'groupingDetail_notFound'],
     ['detailBackToListLabel', 'groupingDetail_backToList'],
     ['detailShareLabel', 'groupingDetail_share'],
+    ['detailShareImageLabel', 'groupingDetail_shareImage'],
+    ['detailShareImageSaved', 'groupingDetail_shareImageSaved'],
+    ['detailShareImageFailed', 'groupingDetail_shareImageFailed'],
     ['detailEditLabel', 'groupingDetail_edit'],
     ['detailDisbandLabel', 'groupingDetail_disband'],
     ['detailDisbandingLabel', 'groupingDetail_disbanding'],
@@ -1537,6 +1561,7 @@ export const groupingsResolvers = {
     combatReport: (p: any) => p.genCombatReport(),
     rosterAnswers: (p: any) => p.genRosterAnswers(),
     shareUrl: (p: GroupingDetailPageShell) => p.genShareUrl(),
+    shareImageUrl: (p: GroupingDetailPageShell) => p.genShareImageUrl(),
     templateSave: (p: any) => p.genTemplateSave(),
     blocks: (p: any, args: any) => p.genBlocks(args),
     manageActions: (p: any) => p.genManageActions(),
@@ -1555,6 +1580,7 @@ export const groupingsResolvers = {
     occupiedCount: (p: any) => p.genOccupiedCount(),
     maxSlots: (p: any) => p.genMaxSlots(),
     seats: (p: any) => p.genSeats(),
+    shareImageUrl: (p: SharedGroupingPageShell) => p.genShareImageUrl(),
     sharePeopleTemplate: (p: any) => p.genSharePeopleTemplate(),
     shareTypeLabel: (p: any) => p.genShareTypeLabel(),
     ...SHARED_GROUPING_TEXT_RESOLVERS,

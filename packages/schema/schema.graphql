@@ -616,6 +616,11 @@ type SharedGroupingPage {
   sharePeopleTemplate: String!
   shareSeatsTitle: String!
   shareTypeLabel: String!   # 车型短标 (双十/天赋/竞速/爬塔, groupingType 目录)
+  shareImageUrl: String        # 本车 OG 卡图 URL (分享图动作用; 目标不存在时为 null)
+  shareImageLabel: String!
+  shareImageSaved: String!
+  shareImageFailed: String!
+  shareCopyFailedManual: String!
 }
 
 type SharedGroupingSeat {
@@ -636,6 +641,9 @@ type GroupingDetailPage {
   # 分享 URL: 本车的稳定短链 (后端懒铸造, 首次下发时生成、之后恒同);
   # 客户端分享动作只用这个字符串, 不自拼 URL。
   shareUrl: String!
+  # 分享图 URL: 本车 OG 卡图 (与分享页 og:image、发车提醒 embed 同一构造);
+  # 客户端「分享图」动作只用这个字符串取图, 不自拼 URL; 无百业行时为 null。
+  shareImageUrl: String
   # 移动端 Bloks-lite: 本页内容区积木对象树 (同 GroupingListPage.blocks);
   # 逐座动作与解散按钮按观看者在服务端生成, 客户端不重建权限。
   blocks(blocksVersion: Int): [Block!]!
@@ -680,6 +688,9 @@ type GroupingDetailPage {
   detailNotFoundText: String!
   detailBackToListLabel: String!
   detailShareLabel: String!
+  detailShareImageLabel: String!
+  detailShareImageSaved: String!
+  detailShareImageFailed: String!
   detailEditLabel: String!
   detailDisbandLabel: String!
   detailDisbandingLabel: String!

@@ -31,6 +31,9 @@ export type GroupingsStringKey =
   | 'groupingDetail_notFound'
   | 'groupingDetail_backToList'
   | 'groupingDetail_share'
+  | 'groupingDetail_shareImage'
+  | 'groupingDetail_shareImageSaved'
+  | 'groupingDetail_shareImageFailed'
   | 'groupingDetail_edit'
   | 'groupingDetail_disband'
   | 'groupingDetail_disbanding'
@@ -365,6 +368,9 @@ export const GROUPINGS_STRING_KEYS: readonly GroupingsStringKey[] = [
   'groupingDetail_notFound',
   'groupingDetail_backToList',
   'groupingDetail_share',
+  'groupingDetail_shareImage',
+  'groupingDetail_shareImageSaved',
+  'groupingDetail_shareImageFailed',
   'groupingDetail_edit',
   'groupingDetail_disband',
   'groupingDetail_disbanding',

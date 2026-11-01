@@ -338,6 +338,15 @@ export abstract class GroupingDetailFbtUtils {
 	static share(fbs: FbsRuntime) {
 		return fbs._("🔗 分享车队", null, { hk: "2T1YHP" });
 	}
+	static shareImage(fbs: FbsRuntime) {
+		return fbs._("🖼 分享图", null, { hk: "13bpIc" });
+	}
+	static shareImageSaved(fbs: FbsRuntime) {
+		return fbs._("图片已保存、链接已复制，去微信发图粘贴即可", null, { hk: "3hPFEj" });
+	}
+	static shareImageFailed(fbs: FbsRuntime) {
+		return fbs._("分享图获取失败，请重试", null, { hk: "22wMuj" });
+	}
 	static edit(fbs: FbsRuntime) {
 		return fbs._("✏️ 编辑", null, { hk: "1w0Ren" });
 	}
@@ -5318,6 +5327,9 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"groupingDetail_notFound": GroupingDetailFbtUtils.notFound,
 	"groupingDetail_backToList": GroupingDetailFbtUtils.backToList,
 	"groupingDetail_share": GroupingDetailFbtUtils.share,
+	"groupingDetail_shareImage": GroupingDetailFbtUtils.shareImage,
+	"groupingDetail_shareImageSaved": GroupingDetailFbtUtils.shareImageSaved,
+	"groupingDetail_shareImageFailed": GroupingDetailFbtUtils.shareImageFailed,
 	"groupingDetail_edit": GroupingDetailFbtUtils.edit,
 	"groupingDetail_disband": GroupingDetailFbtUtils.disband,
 	"groupingDetail_disbanding": GroupingDetailFbtUtils.disbanding,
