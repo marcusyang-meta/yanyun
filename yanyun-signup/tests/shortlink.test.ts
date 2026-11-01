@@ -8,6 +8,11 @@
 //    who pass the guild's view gate; unknown / malformed codes and
 //    codes whose car was deleted 404; the SPA car page (and its OG
 //    tags) is not shadowed by the /c route.
+//  - crawler preview: recognised link-preview bot UAs instead get a
+//    200 document at the short URL itself carrying the car's share
+//    tags (dead codes: no named tags) plus a 0s meta refresh to the
+//    share page; human UAs keep the 302. Car times in share text
+//    carry an explicit UTC marker (fmtCarTimeUtc).
 //    (This suite's fixture guild is UNBOUND. Under the original
 //    doctrine anonymous visitors passed its view gate and kept the
 //    canonical landing; the 2026-10-28 follow-up ruling — unbound
@@ -23,6 +28,8 @@ import {
   mintShortLink, getShortLinkByCode, getShortLinkByTarget,
   shortLinkUrl, canonicalGroupingUrl, SHORT_CODE_RE,
 } from '../src/domains/groupings/shortlinks.ts';
+import { isLinkPreviewBot } from '../src/domains/groupings/shortlink-routes.ts';
+import { fmtCarTimeUtc } from '../src/domains/platform/og.ts';
 
 function check(name: string, ok: boolean, extra = '') {
   expect(ok, extra ? `${name} — ${extra}` : name).toBe(true);
@@ -229,6 +236,61 @@ describe('shortlink', () => {
     state.events = state.events.filter((e) => e.id !== 302);
     r = await call(`/c/${bLink.code}`);
     eq('车已删 -> 404', r.status, 404);
+    await r.text();
+  });
+
+  /* ================= route: /c/:code crawler preview ================= */
+  it('route: /c/:code crawler preview', async () => {
+    // UA classifier: mainstream unfurlers in, browsers out.
+    check('Discordbot 是爬虫', isLinkPreviewBot('Discordbot/2.0; (+https://discordapp.com)'));
+    check('facebookexternalhit 是爬虫', isLinkPreviewBot('facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)'));
+    check('WhatsApp 是爬虫', isLinkPreviewBot('WhatsApp/2.23.20.0 A'));
+    check('微信 MicroMessenger 是爬虫', isLinkPreviewBot('Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 MicroMessenger/8.0.42'));
+    check('TelegramBot 是爬虫', isLinkPreviewBot('TelegramBot (like TwitterBot)'));
+    check('普通 Chrome 不是爬虫', !isLinkPreviewBot('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36'));
+    check('空 UA 不是爬虫', !isLinkPreviewBot(''));
+
+    // Time format: explicit UTC marker; empty stays empty.
+    eq('fmtCarTimeUtc 带 UTC 标注', fmtCarTimeUtc(1735689600), '周三 00:00 UTC');
+    eq('fmtCarTimeUtc 空值', fmtCarTimeUtc(0), '');
+    eq('fmtCarTimeUtc null', fmtCarTimeUtc(null), '');
+
+    // A car with a concrete UTC start so the description carries the time.
+    state.events.push(ev(401, { title: '时区车', starts_at_utc: 1735689600 }));
+    const tzLink = await mintShortLink(db, GID, 401);
+    const callUa = (path, ua) => worker.fetch(new Request('http://local' + path, { headers: { 'user-agent': ua } }), env, ctx);
+    const HUMAN = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36';
+
+    r = await callUa(`/c/${tzLink.code}`, 'Discordbot/2.0; (+https://discordapp.com)');
+    eq('爬虫 UA -> 200 (不再是裸 302)', r.status, 200);
+    check('爬虫文档是 HTML', (r.headers.get('content-type') || '').includes('text/html'));
+    const doc = await r.text();
+    check('og:title = 车名 · 百业名', doc.includes('<meta property="og:title" content="时区车 · 短链测试百业" />'), doc.slice(0, 400));
+    check('og:description 时间带 UTC 标注', doc.includes('双十人本 | 周三 00:00 UTC | 已报名 0/10'), doc.slice(0, 500));
+    check('og:image 指向 OG 车卡图', doc.includes(`https://og.yanyun.app/og/${SLUG}/car/401.png`), doc.slice(0, 500));
+    check('带 0 秒 meta refresh 到分享页', doc.includes(`<meta http-equiv="refresh" content="0; url=http://local/s/${tzLink.code}" />`), doc.slice(0, 600));
+    check('带可见跳转链接兜底', doc.includes(`<a href="http://local/s/${tzLink.code}">`), doc.slice(0, 600));
+
+    r = await callUa(`/c/${tzLink.code}`, 'WhatsApp/2.23.20.0 A');
+    eq('WhatsApp UA -> 200', r.status, 200);
+    check('WhatsApp 文档同样带 og:title', (await r.text()).includes('og:title'));
+
+    r = await callUa(`/c/${tzLink.code}`, HUMAN);
+    eq('普通浏览器 UA 仍 302', r.status, 302);
+    eq('普通 UA 302 目标仍是分享页', r.headers.get('location'), `http://local/s/${tzLink.code}`);
+    await r.text();
+
+    // Dead code under a crawler UA: 200 stub, but no named tags —
+    // the refresh lands on the share page's not-found state.
+    r = await callUa('/c/ZZZZZZZ', 'Discordbot/2.0');
+    eq('死码 + 爬虫 UA -> 200 存根', r.status, 200);
+    const deadDoc = await r.text();
+    check('死码无具名 og 标签', !deadDoc.includes('og:title') && !deadDoc.includes('og:image'), deadDoc.slice(0, 300));
+    check('死码存根仍带 refresh', deadDoc.includes('url=http://local/s/ZZZZZZZ'), deadDoc.slice(0, 300));
+
+    // Malformed codes 404 for crawlers too.
+    r = await callUa('/c/abc', 'Discordbot/2.0');
+    eq('非法码 + 爬虫 UA -> 404', r.status, 404);
     await r.text();
   });
 
