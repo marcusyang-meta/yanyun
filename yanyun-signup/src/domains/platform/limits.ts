@@ -40,7 +40,8 @@ export type LimitKey =
   | 'ocrBatchesPerDay'    // batch-OCR imports per user per day
   | 'announcementsPerDay' // guild announcements per guild per day (F9)
   | 'urgentCallsPerDay'   // urgent rally calls per guild per day (F18)
-  | 'aiRecapsPerDay';     // AI recap generations per guild per day (P18)
+  | 'aiRecapsPerDay'      // AI recap generations per guild per day (P18)
+  | 'combatImportsPerDay'; // combat report imports per guild per day
 
 export interface LimitContext {
   userId?: number;
@@ -76,6 +77,13 @@ export const FREE_LIMITS: Record<LimitKey, number> = {
    * per guild per day. Conservative by design; raise it here (the
    * single source) if real usage ever presses against it. */
   aiRecapsPerDay: 10,
+  /* Combat report imports are metered per GUILD per day (see the
+   * metering section below). An abuse ceiling, not a plan tier:
+   * the premium tables carry the same value. 20/day: a guild
+   * imports the attempts of its evening runs — a busy guild's
+   * whole week fits in one day's budget — while a stuck upload
+   * loop stops at 20 stored documents per guild per day. */
+  combatImportsPerDay: 20,
 };
 
 /* Per-tier tables (P25, values as decided in DESIGN §8; the numbers
@@ -92,6 +100,9 @@ export const TIER1_LIMITS: Record<LimitKey, number> = {
   // AI recap ceiling: a real cost ceiling (per-call provider cost),
   // identical in both tables — see the free table's note.
   aiRecapsPerDay: 10,
+  // Combat import ceiling: an abuse ceiling, identical in every
+  // table — see the free table's note.
+  combatImportsPerDay: 20,
 };
 
 export const TIER2_LIMITS: Record<LimitKey, number> = {
@@ -102,6 +113,9 @@ export const TIER2_LIMITS: Record<LimitKey, number> = {
   urgentCallsPerDay: 2,  // AI recap ceiling: a real cost ceiling (per-call provider cost),
   // identical in both tables — see the free table's note.
   aiRecapsPerDay: 10,
+  // Combat import ceiling: an abuse ceiling, identical in every
+  // table — see the free table's note.
+  combatImportsPerDay: 20,
 };
 
 export const TIER3_LIMITS: Record<LimitKey, number> = {
@@ -112,6 +126,9 @@ export const TIER3_LIMITS: Record<LimitKey, number> = {
   urgentCallsPerDay: 2,  // AI recap ceiling: a real cost ceiling (per-call provider cost),
   // identical in both tables — see the free table's note.
   aiRecapsPerDay: 10,
+  // Combat import ceiling: an abuse ceiling, identical in every
+  // table — see the free table's note.
+  combatImportsPerDay: 20,
 };
 
 /** The pre-P25 single premium table, kept as a name alias: its
@@ -285,4 +302,32 @@ export async function recordAiRecapUse(
   nowMs: number,
 ): Promise<number> {
   return incrementUsage(db, guildUsageScope(guildId), METRIC_AI_RECAP_GENERATIONS, usageDayKey(nowMs), 1, nowMs);
+}
+
+/* ---------- combat report import metering (per guild per day) --- */
+
+/** Metric key for combat report imports in usage_counters.
+ *  Metered under the guild scope, like announcements and recaps:
+ *  the cost unit is the guild's stored report documents, whoever
+ *  on the team uploaded them. Every import ATTEMPT that passes
+ *  validation is metered (success or processing failure) — the
+ *  stored document is the cost. */
+export const METRIC_COMBAT_REPORT_IMPORTS = 'combat_report_imports';
+
+/** Combat report imports one guild has already consumed today. */
+export async function getCombatImportsUsedToday(
+  db: D1Database,
+  guildId: number,
+  nowMs: number,
+): Promise<number> {
+  return getUsageCount(db, guildUsageScope(guildId), METRIC_COMBAT_REPORT_IMPORTS, usageDayKey(nowMs));
+}
+
+/** Record one consumed combat report import for one guild. */
+export async function recordCombatImportUse(
+  db: D1Database,
+  guildId: number,
+  nowMs: number,
+): Promise<number> {
+  return incrementUsage(db, guildUsageScope(guildId), METRIC_COMBAT_REPORT_IMPORTS, usageDayKey(nowMs), 1, nowMs);
 }
