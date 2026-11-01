@@ -1,0 +1,3937 @@
+{
+ "formatVersion": 1,
+ "encounter": {
+  "bossName": "演武木桩",
+  "startedAtMs": 1793335920000,
+  "durationMs": 36600,
+  "result": "unknown"
+ },
+ "actors": [
+  {
+   "id": "p1",
+   "name": "主视角",
+   "kind": "player"
+  },
+  {
+   "id": "p2",
+   "name": "队友·辅助",
+   "kind": "player"
+  },
+  {
+   "id": "boss",
+   "name": "演武木桩",
+   "kind": "boss"
+  }
+ ],
+ "buffs": {
+  "zengshang-lin": {
+   "name": "增伤·霖",
+   "kind": "damageDealt",
+   "multiplier": 1.2
+  },
+  "yishang": {
+   "name": "易伤",
+   "kind": "damageTaken",
+   "multiplier": 1.15
+  }
+ },
+ "events": [
+  {
+   "t": 904,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 1002,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "yinzhen-duxue",
+   "skillName": "银针渡穴"
+  },
+  {
+   "t": 1024,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 5095,
+   "crit": "none"
+  },
+  {
+   "t": 1122,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "yinzhen-duxue",
+   "skillName": "银针渡穴",
+   "amount": 7454,
+   "crit": "none"
+  },
+  {
+   "t": 1198,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 1318,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 1524,
+   "crit": "none"
+  },
+  {
+   "t": 1578,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "feixu-qingji",
+   "skillName": "飞絮轻击"
+  },
+  {
+   "t": 1698,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "feixu-qingji",
+   "skillName": "飞絮轻击",
+   "amount": 4794,
+   "crit": "huiXin"
+  },
+  {
+   "t": 1735,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "qingyin-fanchang",
+   "skillName": "清音梵唱"
+  },
+  {
+   "t": 1855,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "qingyin-fanchang",
+   "skillName": "清音梵唱",
+   "amount": 8217,
+   "crit": "none"
+  },
+  {
+   "t": 1975,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "qingyin-fanchang",
+   "skillName": "清音梵唱",
+   "amount": 6760,
+   "crit": "huiYi"
+  },
+  {
+   "t": 2072,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 2112,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "wuhen-jianyi",
+   "skillName": "无痕剑意"
+  },
+  {
+   "t": 2192,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 2651,
+   "crit": "huiYi"
+  },
+  {
+   "t": 2232,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "wuhen-jianyi",
+   "skillName": "无痕剑意",
+   "amount": 14676,
+   "crit": "huiXin"
+  },
+  {
+   "t": 2259,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢"
+  },
+  {
+   "t": 2379,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢",
+   "amount": 2030,
+   "crit": "huiXin"
+  },
+  {
+   "t": 2441,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 2499,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢",
+   "amount": 1321,
+   "crit": "none"
+  },
+  {
+   "t": 2509,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "lingbo-hanyu",
+   "skillName": "凌波·撼玉"
+  },
+  {
+   "t": 2561,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 4237,
+   "crit": "huiXin"
+  },
+  {
+   "t": 2619,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢",
+   "amount": 1895,
+   "crit": "none"
+  },
+  {
+   "t": 2629,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "lingbo-hanyu",
+   "skillName": "凌波·撼玉",
+   "amount": 26432,
+   "crit": "huiXin"
+  },
+  {
+   "t": 2694,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "huifeng-fuliu",
+   "skillName": "回风拂柳"
+  },
+  {
+   "t": 2725,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "yinzhen-duxue",
+   "skillName": "银针渡穴"
+  },
+  {
+   "t": 2749,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "lingbo-hanyu",
+   "skillName": "凌波·撼玉",
+   "amount": 42026,
+   "crit": "huiXin"
+  },
+  {
+   "t": 2814,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "huifeng-fuliu",
+   "skillName": "回风拂柳",
+   "amount": 5213,
+   "crit": "huiXin"
+  },
+  {
+   "t": 2845,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "yinzhen-duxue",
+   "skillName": "银针渡穴",
+   "amount": 7036,
+   "crit": "none"
+  },
+  {
+   "t": 2869,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "lingbo-hanyu",
+   "skillName": "凌波·撼玉",
+   "amount": 17343,
+   "crit": "none"
+  },
+  {
+   "t": 2934,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "huifeng-fuliu",
+   "skillName": "回风拂柳",
+   "amount": 4807,
+   "crit": "huiXin"
+  },
+  {
+   "t": 3000,
+   "type": "buffApply",
+   "source": "p2",
+   "target": "p1",
+   "buffId": "zengshang-lin",
+   "buffName": "增伤·霖",
+   "applier": "p2"
+  },
+  {
+   "t": 3131,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "feixu-qingji",
+   "skillName": "飞絮轻击"
+  },
+  {
+   "t": 3251,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "feixu-qingji",
+   "skillName": "飞絮轻击",
+   "amount": 4340,
+   "crit": "none"
+  },
+  {
+   "t": 3485,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 3522,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "pokong-zhi",
+   "skillName": "破空指"
+  },
+  {
+   "t": 3584,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 3605,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 6752,
+   "crit": "huiYi"
+  },
+  {
+   "t": 3642,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "pokong-zhi",
+   "skillName": "破空指",
+   "amount": 6826,
+   "crit": "none"
+  },
+  {
+   "t": 3704,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 1316,
+   "crit": "none"
+  },
+  {
+   "t": 3762,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "pokong-zhi",
+   "skillName": "破空指",
+   "amount": 9004,
+   "crit": "huiYi"
+  },
+  {
+   "t": 3961,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "hanjiang-diaoxue",
+   "skillName": "寒江钓雪"
+  },
+  {
+   "t": 4081,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "hanjiang-diaoxue",
+   "skillName": "寒江钓雪",
+   "amount": 4438,
+   "crit": "huiYi"
+  },
+  {
+   "t": 4201,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "hanjiang-diaoxue",
+   "skillName": "寒江钓雪",
+   "amount": 4918,
+   "crit": "both"
+  },
+  {
+   "t": 4321,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "hanjiang-diaoxue",
+   "skillName": "寒江钓雪",
+   "amount": 3415,
+   "crit": "huiXin"
+  },
+  {
+   "t": 4408,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢"
+  },
+  {
+   "t": 4423,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 4432,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "feixu-qingji",
+   "skillName": "飞絮轻击"
+  },
+  {
+   "t": 4528,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢",
+   "amount": 2862,
+   "crit": "huiYi"
+  },
+  {
+   "t": 4543,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 4800,
+   "crit": "huiXin"
+  },
+  {
+   "t": 4552,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "feixu-qingji",
+   "skillName": "飞絮轻击",
+   "amount": 4043,
+   "crit": "none"
+  },
+  {
+   "t": 4648,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢",
+   "amount": 1251,
+   "crit": "none"
+  },
+  {
+   "t": 4768,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢",
+   "amount": 3618,
+   "crit": "huiXin"
+  },
+  {
+   "t": 4827,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 4947,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 2183,
+   "crit": "huiYi"
+  },
+  {
+   "t": 5000,
+   "type": "buffApply",
+   "source": "p2",
+   "target": "boss",
+   "buffId": "yishang",
+   "buffName": "易伤",
+   "applier": "p2"
+  },
+  {
+   "t": 5083,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "yinzhen-duxue",
+   "skillName": "银针渡穴"
+  },
+  {
+   "t": 5203,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "yinzhen-duxue",
+   "skillName": "银针渡穴",
+   "amount": 7773,
+   "crit": "huiXin"
+  },
+  {
+   "t": 5341,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "wuhen-jianyi",
+   "skillName": "无痕剑意"
+  },
+  {
+   "t": 5461,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "wuhen-jianyi",
+   "skillName": "无痕剑意",
+   "amount": 8992,
+   "crit": "huiXin"
+  },
+  {
+   "t": 5509,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "xiaoyin-qianlang",
+   "skillName": "箫吟千浪"
+  },
+  {
+   "t": 5629,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "xiaoyin-qianlang",
+   "skillName": "箫吟千浪",
+   "amount": 9264,
+   "crit": "huiXin"
+  },
+  {
+   "t": 5749,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "xiaoyin-qianlang",
+   "skillName": "箫吟千浪",
+   "amount": 6591,
+   "crit": "none"
+  },
+  {
+   "t": 5795,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 5799,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "lingbo-hanyu",
+   "skillName": "凌波·撼玉"
+  },
+  {
+   "t": 5840,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "qingyin-fanchang",
+   "skillName": "清音梵唱"
+  },
+  {
+   "t": 5869,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "xiaoyin-qianlang",
+   "skillName": "箫吟千浪",
+   "amount": 3332,
+   "crit": "none"
+  },
+  {
+   "t": 5915,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 3324,
+   "crit": "none"
+  },
+  {
+   "t": 5919,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "lingbo-hanyu",
+   "skillName": "凌波·撼玉",
+   "amount": 42722,
+   "crit": "huiXin"
+  },
+  {
+   "t": 5960,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "qingyin-fanchang",
+   "skillName": "清音梵唱",
+   "amount": 6512,
+   "crit": "none"
+  },
+  {
+   "t": 6039,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "lingbo-hanyu",
+   "skillName": "凌波·撼玉",
+   "amount": 27501,
+   "crit": "huiXin"
+  },
+  {
+   "t": 6066,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 6067,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "feixu-qingji",
+   "skillName": "飞絮轻击"
+  },
+  {
+   "t": 6080,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "qingyin-fanchang",
+   "skillName": "清音梵唱",
+   "amount": 9791,
+   "crit": "huiYi"
+  },
+  {
+   "t": 6159,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "lingbo-hanyu",
+   "skillName": "凌波·撼玉",
+   "amount": 22176,
+   "crit": "huiYi"
+  },
+  {
+   "t": 6171,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "yinzhen-duxue",
+   "skillName": "银针渡穴"
+  },
+  {
+   "t": 6186,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 1087,
+   "crit": "none"
+  },
+  {
+   "t": 6187,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "feixu-qingji",
+   "skillName": "飞絮轻击",
+   "amount": 6099,
+   "crit": "huiXin"
+  },
+  {
+   "t": 6291,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "yinzhen-duxue",
+   "skillName": "银针渡穴",
+   "amount": 6943,
+   "crit": "none"
+  },
+  {
+   "t": 6353,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢"
+  },
+  {
+   "t": 6473,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢",
+   "amount": 2440,
+   "crit": "none"
+  },
+  {
+   "t": 6513,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "huifeng-fuliu",
+   "skillName": "回风拂柳"
+  },
+  {
+   "t": 6593,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢",
+   "amount": 1879,
+   "crit": "huiXin"
+  },
+  {
+   "t": 6633,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "huifeng-fuliu",
+   "skillName": "回风拂柳",
+   "amount": 4152,
+   "crit": "both"
+  },
+  {
+   "t": 6713,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢",
+   "amount": 2463,
+   "crit": "none"
+  },
+  {
+   "t": 6753,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "huifeng-fuliu",
+   "skillName": "回风拂柳",
+   "amount": 3466,
+   "crit": "none"
+  },
+  {
+   "t": 6975,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 7095,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 4361,
+   "crit": "none"
+  },
+  {
+   "t": 7280,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "wuhen-jianyi",
+   "skillName": "无痕剑意"
+  },
+  {
+   "t": 7400,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "wuhen-jianyi",
+   "skillName": "无痕剑意",
+   "amount": 12171,
+   "crit": "huiXin"
+  },
+  {
+   "t": 7438,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 7558,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 2798,
+   "crit": "huiXin"
+  },
+  {
+   "t": 7571,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "pokong-zhi",
+   "skillName": "破空指"
+  },
+  {
+   "t": 7619,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "feixu-qingji",
+   "skillName": "飞絮轻击"
+  },
+  {
+   "t": 7691,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "pokong-zhi",
+   "skillName": "破空指",
+   "amount": 5044,
+   "crit": "none"
+  },
+  {
+   "t": 7739,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "feixu-qingji",
+   "skillName": "飞絮轻击",
+   "amount": 3529,
+   "crit": "none"
+  },
+  {
+   "t": 7811,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "pokong-zhi",
+   "skillName": "破空指",
+   "amount": 6239,
+   "crit": "none"
+  },
+  {
+   "t": 7996,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 8000,
+   "type": "buffRefresh",
+   "source": "p2",
+   "target": "p1",
+   "buffId": "zengshang-lin",
+   "buffName": "增伤·霖",
+   "applier": "p2"
+  },
+  {
+   "t": 8116,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 8676,
+   "crit": "huiXin"
+  },
+  {
+   "t": 8123,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "yinzhen-duxue",
+   "skillName": "银针渡穴"
+  },
+  {
+   "t": 8243,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "yinzhen-duxue",
+   "skillName": "银针渡穴",
+   "amount": 5413,
+   "crit": "none"
+  },
+  {
+   "t": 8568,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 8639,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢"
+  },
+  {
+   "t": 8688,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 1467,
+   "crit": "none"
+  },
+  {
+   "t": 8759,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢",
+   "amount": 2465,
+   "crit": "huiYi"
+  },
+  {
+   "t": 8879,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢",
+   "amount": 2266,
+   "crit": "none"
+  },
+  {
+   "t": 8999,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢",
+   "amount": 2185,
+   "crit": "huiXin"
+  },
+  {
+   "t": 9035,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "feixu-qingji",
+   "skillName": "飞絮轻击"
+  },
+  {
+   "t": 9155,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "feixu-qingji",
+   "skillName": "飞絮轻击",
+   "amount": 3461,
+   "crit": "none"
+  },
+  {
+   "t": 9386,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 9506,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 6080,
+   "crit": "huiXin"
+  },
+  {
+   "t": 9514,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "yinzhen-duxue",
+   "skillName": "银针渡穴"
+  },
+  {
+   "t": 9634,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "yinzhen-duxue",
+   "skillName": "银针渡穴",
+   "amount": 12522,
+   "crit": "huiXin"
+  },
+  {
+   "t": 9719,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "qingyin-fanchang",
+   "skillName": "清音梵唱"
+  },
+  {
+   "t": 9839,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "qingyin-fanchang",
+   "skillName": "清音梵唱",
+   "amount": 12452,
+   "crit": "both"
+  },
+  {
+   "t": 9959,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "qingyin-fanchang",
+   "skillName": "清音梵唱",
+   "amount": 11065,
+   "crit": "huiYi"
+  },
+  {
+   "t": 10005,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 10125,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 2504,
+   "crit": "huiYi"
+  },
+  {
+   "t": 10216,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "huifeng-fuliu",
+   "skillName": "回风拂柳"
+  },
+  {
+   "t": 10249,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 10336,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "huifeng-fuliu",
+   "skillName": "回风拂柳",
+   "amount": 2812,
+   "crit": "none"
+  },
+  {
+   "t": 10369,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 4035,
+   "crit": "none"
+  },
+  {
+   "t": 10456,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "huifeng-fuliu",
+   "skillName": "回风拂柳",
+   "amount": 2909,
+   "crit": "none"
+  },
+  {
+   "t": 10689,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "wuhen-jianyi",
+   "skillName": "无痕剑意"
+  },
+  {
+   "t": 10809,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "wuhen-jianyi",
+   "skillName": "无痕剑意",
+   "amount": 9508,
+   "crit": "none"
+  },
+  {
+   "t": 10889,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "feixu-qingji",
+   "skillName": "飞絮轻击"
+  },
+  {
+   "t": 11009,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "feixu-qingji",
+   "skillName": "飞絮轻击",
+   "amount": 4207,
+   "crit": "huiXin"
+  },
+  {
+   "t": 11137,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "lingbo-hanyu",
+   "skillName": "凌波·撼玉"
+  },
+  {
+   "t": 11149,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "xiaoyin-qianlang",
+   "skillName": "箫吟千浪"
+  },
+  {
+   "t": 11170,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 11251,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 11257,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "lingbo-hanyu",
+   "skillName": "凌波·撼玉",
+   "amount": 22018,
+   "crit": "huiXin"
+  },
+  {
+   "t": 11269,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "xiaoyin-qianlang",
+   "skillName": "箫吟千浪",
+   "amount": 7671,
+   "crit": "huiXin"
+  },
+  {
+   "t": 11290,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 1324,
+   "crit": "none"
+  },
+  {
+   "t": 11369,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢"
+  },
+  {
+   "t": 11371,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 7029,
+   "crit": "huiYi"
+  },
+  {
+   "t": 11377,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "lingbo-hanyu",
+   "skillName": "凌波·撼玉",
+   "amount": 43334,
+   "crit": "huiXin"
+  },
+  {
+   "t": 11389,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "xiaoyin-qianlang",
+   "skillName": "箫吟千浪",
+   "amount": 8743,
+   "crit": "huiXin"
+  },
+  {
+   "t": 11489,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢",
+   "amount": 1258,
+   "crit": "none"
+  },
+  {
+   "t": 11497,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "lingbo-hanyu",
+   "skillName": "凌波·撼玉",
+   "amount": 15279,
+   "crit": "none"
+  },
+  {
+   "t": 11509,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "xiaoyin-qianlang",
+   "skillName": "箫吟千浪",
+   "amount": 5305,
+   "crit": "huiXin"
+  },
+  {
+   "t": 11562,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "yinzhen-duxue",
+   "skillName": "银针渡穴"
+  },
+  {
+   "t": 11609,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢",
+   "amount": 2147,
+   "crit": "huiYi"
+  },
+  {
+   "t": 11682,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "yinzhen-duxue",
+   "skillName": "银针渡穴",
+   "amount": 8572,
+   "crit": "huiYi"
+  },
+  {
+   "t": 11729,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢",
+   "amount": 1934,
+   "crit": "none"
+  },
+  {
+   "t": 12309,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "feixu-qingji",
+   "skillName": "飞絮轻击"
+  },
+  {
+   "t": 12352,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "pokong-zhi",
+   "skillName": "破空指"
+  },
+  {
+   "t": 12429,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "feixu-qingji",
+   "skillName": "飞絮轻击",
+   "amount": 3188,
+   "crit": "none"
+  },
+  {
+   "t": 12431,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 12472,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "pokong-zhi",
+   "skillName": "破空指",
+   "amount": 5240,
+   "crit": "none"
+  },
+  {
+   "t": 12481,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 12551,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 5301,
+   "crit": "huiXin"
+  },
+  {
+   "t": 12592,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "pokong-zhi",
+   "skillName": "破空指",
+   "amount": 5354,
+   "crit": "none"
+  },
+  {
+   "t": 12601,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 1659,
+   "crit": "huiXin"
+  },
+  {
+   "t": 13000,
+   "type": "buffRemove",
+   "source": "p2",
+   "target": "p1",
+   "buffId": "zengshang-lin",
+   "buffName": "增伤·霖"
+  },
+  {
+   "t": 13039,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "wuhen-jianyi",
+   "skillName": "无痕剑意"
+  },
+  {
+   "t": 13055,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "yinzhen-duxue",
+   "skillName": "银针渡穴"
+  },
+  {
+   "t": 13095,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "hanjiang-diaoxue",
+   "skillName": "寒江钓雪"
+  },
+  {
+   "t": 13159,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "wuhen-jianyi",
+   "skillName": "无痕剑意",
+   "amount": 8663,
+   "crit": "none"
+  },
+  {
+   "t": 13175,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "yinzhen-duxue",
+   "skillName": "银针渡穴",
+   "amount": 7738,
+   "crit": "none"
+  },
+  {
+   "t": 13215,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "hanjiang-diaoxue",
+   "skillName": "寒江钓雪",
+   "amount": 2930,
+   "crit": "none"
+  },
+  {
+   "t": 13243,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "gule-he",
+   "skillName": "鼓乐和"
+  },
+  {
+   "t": 13335,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "hanjiang-diaoxue",
+   "skillName": "寒江钓雪",
+   "amount": 3469,
+   "crit": "none"
+  },
+  {
+   "t": 13336,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 13363,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "gule-he",
+   "skillName": "鼓乐和",
+   "amount": 6984,
+   "crit": "none"
+  },
+  {
+   "t": 13390,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "qingyin-fanchang",
+   "skillName": "清音梵唱"
+  },
+  {
+   "t": 13430,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "huifeng-fuliu",
+   "skillName": "回风拂柳"
+  },
+  {
+   "t": 13455,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "hanjiang-diaoxue",
+   "skillName": "寒江钓雪",
+   "amount": 3257,
+   "crit": "none"
+  },
+  {
+   "t": 13456,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 3139,
+   "crit": "huiXin"
+  },
+  {
+   "t": 13483,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "gule-he",
+   "skillName": "鼓乐和",
+   "amount": 12195,
+   "crit": "huiYi"
+  },
+  {
+   "t": 13510,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "qingyin-fanchang",
+   "skillName": "清音梵唱",
+   "amount": 5635,
+   "crit": "none"
+  },
+  {
+   "t": 13550,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "huifeng-fuliu",
+   "skillName": "回风拂柳",
+   "amount": 2628,
+   "crit": "none"
+  },
+  {
+   "t": 13603,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "gule-he",
+   "skillName": "鼓乐和",
+   "amount": 9704,
+   "crit": "huiYi"
+  },
+  {
+   "t": 13630,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "qingyin-fanchang",
+   "skillName": "清音梵唱",
+   "amount": 7499,
+   "crit": "none"
+  },
+  {
+   "t": 13647,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 13670,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "huifeng-fuliu",
+   "skillName": "回风拂柳",
+   "amount": 4107,
+   "crit": "huiYi"
+  },
+  {
+   "t": 13723,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "gule-he",
+   "skillName": "鼓乐和",
+   "amount": 11325,
+   "crit": "none"
+  },
+  {
+   "t": 13767,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 2884,
+   "crit": "none"
+  },
+  {
+   "t": 14033,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "lingbo-hanyu",
+   "skillName": "凌波·撼玉"
+  },
+  {
+   "t": 14153,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "lingbo-hanyu",
+   "skillName": "凌波·撼玉",
+   "amount": 23331,
+   "crit": "none"
+  },
+  {
+   "t": 14273,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "lingbo-hanyu",
+   "skillName": "凌波·撼玉",
+   "amount": 20223,
+   "crit": "none"
+  },
+  {
+   "t": 14393,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "lingbo-hanyu",
+   "skillName": "凌波·撼玉",
+   "amount": 38265,
+   "crit": "huiYi"
+  },
+  {
+   "t": 14407,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "feixu-qingji",
+   "skillName": "飞絮轻击"
+  },
+  {
+   "t": 14527,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "feixu-qingji",
+   "skillName": "飞絮轻击",
+   "amount": 4597,
+   "crit": "none"
+  },
+  {
+   "t": 14709,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢"
+  },
+  {
+   "t": 14829,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢",
+   "amount": 2421,
+   "crit": "none"
+  },
+  {
+   "t": 14949,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢",
+   "amount": 3581,
+   "crit": "both"
+  },
+  {
+   "t": 15003,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 15031,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 15069,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢",
+   "amount": 2195,
+   "crit": "none"
+  },
+  {
+   "t": 15123,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 4724,
+   "crit": "none"
+  },
+  {
+   "t": 15151,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 2003,
+   "crit": "none"
+  },
+  {
+   "t": 15225,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "yinzhen-duxue",
+   "skillName": "银针渡穴"
+  },
+  {
+   "t": 15345,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "yinzhen-duxue",
+   "skillName": "银针渡穴",
+   "amount": 8521,
+   "crit": "huiXin"
+  },
+  {
+   "t": 15817,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "feixu-qingji",
+   "skillName": "飞絮轻击"
+  },
+  {
+   "t": 15937,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "feixu-qingji",
+   "skillName": "飞絮轻击",
+   "amount": 2375,
+   "crit": "none"
+  },
+  {
+   "t": 15937,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 15967,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 16057,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 4356,
+   "crit": "huiXin"
+  },
+  {
+   "t": 16087,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 1918,
+   "crit": "none"
+  },
+  {
+   "t": 16894,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "yinzhen-duxue",
+   "skillName": "银针渡穴"
+  },
+  {
+   "t": 16902,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢"
+  },
+  {
+   "t": 16957,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "wuhen-jianyi",
+   "skillName": "无痕剑意"
+  },
+  {
+   "t": 17000,
+   "type": "buffRemove",
+   "source": "p2",
+   "target": "boss",
+   "buffId": "yishang",
+   "buffName": "易伤"
+  },
+  {
+   "t": 17014,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "yinzhen-duxue",
+   "skillName": "银针渡穴",
+   "amount": 12346,
+   "crit": "huiYi"
+  },
+  {
+   "t": 17022,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢",
+   "amount": 2472,
+   "crit": "both"
+  },
+  {
+   "t": 17077,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "wuhen-jianyi",
+   "skillName": "无痕剑意",
+   "amount": 6392,
+   "crit": "huiXin"
+  },
+  {
+   "t": 17142,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢",
+   "amount": 2652,
+   "crit": "none"
+  },
+  {
+   "t": 17230,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "feixu-qingji",
+   "skillName": "飞絮轻击"
+  },
+  {
+   "t": 17262,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢",
+   "amount": 1904,
+   "crit": "huiYi"
+  },
+  {
+   "t": 17350,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "feixu-qingji",
+   "skillName": "飞絮轻击",
+   "amount": 3053,
+   "crit": "none"
+  },
+  {
+   "t": 17379,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "lingbo-hanyu",
+   "skillName": "凌波·撼玉"
+  },
+  {
+   "t": 17467,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 17499,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "lingbo-hanyu",
+   "skillName": "凌波·撼玉",
+   "amount": 21818,
+   "crit": "none"
+  },
+  {
+   "t": 17576,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 17587,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 5461,
+   "crit": "both"
+  },
+  {
+   "t": 17619,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "lingbo-hanyu",
+   "skillName": "凌波·撼玉",
+   "amount": 27367,
+   "crit": "none"
+  },
+  {
+   "t": 17696,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 1897,
+   "crit": "huiXin"
+  },
+  {
+   "t": 17739,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "lingbo-hanyu",
+   "skillName": "凌波·撼玉",
+   "amount": 20496,
+   "crit": "none"
+  },
+  {
+   "t": 17763,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "qingyin-fanchang",
+   "skillName": "清音梵唱"
+  },
+  {
+   "t": 17883,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "qingyin-fanchang",
+   "skillName": "清音梵唱",
+   "amount": 12991,
+   "crit": "huiXin"
+  },
+  {
+   "t": 18003,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "qingyin-fanchang",
+   "skillName": "清音梵唱",
+   "amount": 6795,
+   "crit": "huiXin"
+  },
+  {
+   "t": 18169,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 18289,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 4700,
+   "crit": "none"
+  },
+  {
+   "t": 18654,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "yinzhen-duxue",
+   "skillName": "银针渡穴"
+  },
+  {
+   "t": 18734,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢"
+  },
+  {
+   "t": 18762,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 18774,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "yinzhen-duxue",
+   "skillName": "银针渡穴",
+   "amount": 10060,
+   "crit": "huiXin"
+  },
+  {
+   "t": 18854,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢",
+   "amount": 1228,
+   "crit": "none"
+  },
+  {
+   "t": 18865,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "huifeng-fuliu",
+   "skillName": "回风拂柳"
+  },
+  {
+   "t": 18882,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 5033,
+   "crit": "both"
+  },
+  {
+   "t": 18929,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "feixu-qingji",
+   "skillName": "飞絮轻击"
+  },
+  {
+   "t": 18948,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "xiaoyin-qianlang",
+   "skillName": "箫吟千浪"
+  },
+  {
+   "t": 18974,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢",
+   "amount": 2944,
+   "crit": "huiYi"
+  },
+  {
+   "t": 18981,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "pokong-zhi",
+   "skillName": "破空指"
+  },
+  {
+   "t": 18985,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "huifeng-fuliu",
+   "skillName": "回风拂柳",
+   "amount": 2800,
+   "crit": "huiYi"
+  },
+  {
+   "t": 19049,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "feixu-qingji",
+   "skillName": "飞絮轻击",
+   "amount": 2171,
+   "crit": "none"
+  },
+  {
+   "t": 19068,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "xiaoyin-qianlang",
+   "skillName": "箫吟千浪",
+   "amount": 6361,
+   "crit": "none"
+  },
+  {
+   "t": 19094,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢",
+   "amount": 1976,
+   "crit": "huiYi"
+  },
+  {
+   "t": 19101,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "pokong-zhi",
+   "skillName": "破空指",
+   "amount": 4235,
+   "crit": "none"
+  },
+  {
+   "t": 19105,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "huifeng-fuliu",
+   "skillName": "回风拂柳",
+   "amount": 4566,
+   "crit": "both"
+  },
+  {
+   "t": 19188,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "xiaoyin-qianlang",
+   "skillName": "箫吟千浪",
+   "amount": 5337,
+   "crit": "none"
+  },
+  {
+   "t": 19221,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "pokong-zhi",
+   "skillName": "破空指",
+   "amount": 7161,
+   "crit": "huiXin"
+  },
+  {
+   "t": 19308,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "xiaoyin-qianlang",
+   "skillName": "箫吟千浪",
+   "amount": 4648,
+   "crit": "none"
+  },
+  {
+   "t": 19711,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "wuhen-jianyi",
+   "skillName": "无痕剑意"
+  },
+  {
+   "t": 19831,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "wuhen-jianyi",
+   "skillName": "无痕剑意",
+   "amount": 8152,
+   "crit": "none"
+  },
+  {
+   "t": 19884,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 19905,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 20000,
+   "type": "buffApply",
+   "source": "p2",
+   "target": "p1",
+   "buffId": "zengshang-lin",
+   "buffName": "增伤·霖",
+   "applier": "p2"
+  },
+  {
+   "t": 20004,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 4706,
+   "crit": "huiXin"
+  },
+  {
+   "t": 20025,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 1967,
+   "crit": "none"
+  },
+  {
+   "t": 20183,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "yinzhen-duxue",
+   "skillName": "银针渡穴"
+  },
+  {
+   "t": 20255,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "feixu-qingji",
+   "skillName": "飞絮轻击"
+  },
+  {
+   "t": 20303,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "yinzhen-duxue",
+   "skillName": "银针渡穴",
+   "amount": 13731,
+   "crit": "huiXin"
+  },
+  {
+   "t": 20375,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "feixu-qingji",
+   "skillName": "飞絮轻击",
+   "amount": 4705,
+   "crit": "none"
+  },
+  {
+   "t": 20745,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "qingyin-fanchang",
+   "skillName": "清音梵唱"
+  },
+  {
+   "t": 20840,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 20865,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "qingyin-fanchang",
+   "skillName": "清音梵唱",
+   "amount": 4046,
+   "crit": "none"
+  },
+  {
+   "t": 20960,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 7208,
+   "crit": "huiYi"
+  },
+  {
+   "t": 20985,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "qingyin-fanchang",
+   "skillName": "清音梵唱",
+   "amount": 8948,
+   "crit": "none"
+  },
+  {
+   "t": 21303,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 21333,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "huifeng-fuliu",
+   "skillName": "回风拂柳"
+  },
+  {
+   "t": 21423,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 1266,
+   "crit": "none"
+  },
+  {
+   "t": 21453,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "huifeng-fuliu",
+   "skillName": "回风拂柳",
+   "amount": 3310,
+   "crit": "none"
+  },
+  {
+   "t": 21536,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢"
+  },
+  {
+   "t": 21573,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "huifeng-fuliu",
+   "skillName": "回风拂柳",
+   "amount": 4291,
+   "crit": "huiYi"
+  },
+  {
+   "t": 21653,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 21656,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢",
+   "amount": 1309,
+   "crit": "none"
+  },
+  {
+   "t": 21773,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 6838,
+   "crit": "huiYi"
+  },
+  {
+   "t": 21776,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢",
+   "amount": 3309,
+   "crit": "huiYi"
+  },
+  {
+   "t": 21853,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "yinzhen-duxue",
+   "skillName": "银针渡穴"
+  },
+  {
+   "t": 21896,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢",
+   "amount": 2639,
+   "crit": "huiXin"
+  },
+  {
+   "t": 21973,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "yinzhen-duxue",
+   "skillName": "银针渡穴",
+   "amount": 14521,
+   "crit": "huiXin"
+  },
+  {
+   "t": 22065,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "feixu-qingji",
+   "skillName": "飞絮轻击"
+  },
+  {
+   "t": 22185,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "feixu-qingji",
+   "skillName": "飞絮轻击",
+   "amount": 2295,
+   "crit": "none"
+  },
+  {
+   "t": 22248,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "lingbo-hanyu",
+   "skillName": "凌波·撼玉"
+  },
+  {
+   "t": 22368,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "lingbo-hanyu",
+   "skillName": "凌波·撼玉",
+   "amount": 15854,
+   "crit": "none"
+  },
+  {
+   "t": 22488,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "lingbo-hanyu",
+   "skillName": "凌波·撼玉",
+   "amount": 33315,
+   "crit": "huiXin"
+  },
+  {
+   "t": 22608,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "lingbo-hanyu",
+   "skillName": "凌波·撼玉",
+   "amount": 17416,
+   "crit": "none"
+  },
+  {
+   "t": 22612,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 22732,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 4847,
+   "crit": "both"
+  },
+  {
+   "t": 22773,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "wuhen-jianyi",
+   "skillName": "无痕剑意"
+  },
+  {
+   "t": 22893,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "wuhen-jianyi",
+   "skillName": "无痕剑意",
+   "amount": 11029,
+   "crit": "huiXin"
+  },
+  {
+   "t": 22947,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "pokong-zhi",
+   "skillName": "破空指"
+  },
+  {
+   "t": 23052,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "hanjiang-diaoxue",
+   "skillName": "寒江钓雪"
+  },
+  {
+   "t": 23067,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "pokong-zhi",
+   "skillName": "破空指",
+   "amount": 5452,
+   "crit": "none"
+  },
+  {
+   "t": 23172,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "hanjiang-diaoxue",
+   "skillName": "寒江钓雪",
+   "amount": 5072,
+   "crit": "huiYi"
+  },
+  {
+   "t": 23187,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "pokong-zhi",
+   "skillName": "破空指",
+   "amount": 5808,
+   "crit": "none"
+  },
+  {
+   "t": 23292,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "hanjiang-diaoxue",
+   "skillName": "寒江钓雪",
+   "amount": 3022,
+   "crit": "none"
+  },
+  {
+   "t": 23412,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "hanjiang-diaoxue",
+   "skillName": "寒江钓雪",
+   "amount": 3556,
+   "crit": "none"
+  },
+  {
+   "t": 23676,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 23796,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 2553,
+   "crit": "both"
+  },
+  {
+   "t": 23809,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "feixu-qingji",
+   "skillName": "飞絮轻击"
+  },
+  {
+   "t": 23929,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "feixu-qingji",
+   "skillName": "飞絮轻击",
+   "amount": 4070,
+   "crit": "none"
+  },
+  {
+   "t": 24000,
+   "type": "buffApply",
+   "source": "p2",
+   "target": "boss",
+   "buffId": "yishang",
+   "buffName": "易伤",
+   "applier": "p2"
+  },
+  {
+   "t": 24297,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢"
+  },
+  {
+   "t": 24408,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "xiaoyin-qianlang",
+   "skillName": "箫吟千浪"
+  },
+  {
+   "t": 24417,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢",
+   "amount": 4234,
+   "crit": "both"
+  },
+  {
+   "t": 24528,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "xiaoyin-qianlang",
+   "skillName": "箫吟千浪",
+   "amount": 5781,
+   "crit": "none"
+  },
+  {
+   "t": 24537,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢",
+   "amount": 3783,
+   "crit": "huiXin"
+  },
+  {
+   "t": 24648,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "xiaoyin-qianlang",
+   "skillName": "箫吟千浪",
+   "amount": 4214,
+   "crit": "none"
+  },
+  {
+   "t": 24657,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢",
+   "amount": 2003,
+   "crit": "none"
+  },
+  {
+   "t": 24762,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 24768,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "xiaoyin-qianlang",
+   "skillName": "箫吟千浪",
+   "amount": 5242,
+   "crit": "none"
+  },
+  {
+   "t": 24829,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "huifeng-fuliu",
+   "skillName": "回风拂柳"
+  },
+  {
+   "t": 24882,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 1663,
+   "crit": "huiXin"
+  },
+  {
+   "t": 24949,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "huifeng-fuliu",
+   "skillName": "回风拂柳",
+   "amount": 3972,
+   "crit": "huiYi"
+  },
+  {
+   "t": 25069,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "huifeng-fuliu",
+   "skillName": "回风拂柳",
+   "amount": 2514,
+   "crit": "none"
+  },
+  {
+   "t": 25274,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "wuhen-jianyi",
+   "skillName": "无痕剑意"
+  },
+  {
+   "t": 25283,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "feixu-qingji",
+   "skillName": "飞絮轻击"
+  },
+  {
+   "t": 25394,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "wuhen-jianyi",
+   "skillName": "无痕剑意",
+   "amount": 12480,
+   "crit": "huiXin"
+  },
+  {
+   "t": 25403,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "feixu-qingji",
+   "skillName": "飞絮轻击",
+   "amount": 3736,
+   "crit": "huiXin"
+  },
+  {
+   "t": 26349,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 26469,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 3475,
+   "crit": "both"
+  },
+  {
+   "t": 26711,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "lingbo-hanyu",
+   "skillName": "凌波·撼玉"
+  },
+  {
+   "t": 26785,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "feixu-qingji",
+   "skillName": "飞絮轻击"
+  },
+  {
+   "t": 26831,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "lingbo-hanyu",
+   "skillName": "凌波·撼玉",
+   "amount": 20443,
+   "crit": "none"
+  },
+  {
+   "t": 26905,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "feixu-qingji",
+   "skillName": "飞絮轻击",
+   "amount": 7112,
+   "crit": "huiXin"
+  },
+  {
+   "t": 26932,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢"
+  },
+  {
+   "t": 26951,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "lingbo-hanyu",
+   "skillName": "凌波·撼玉",
+   "amount": 32554,
+   "crit": "huiXin"
+  },
+  {
+   "t": 27052,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢",
+   "amount": 2149,
+   "crit": "none"
+  },
+  {
+   "t": 27071,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "lingbo-hanyu",
+   "skillName": "凌波·撼玉",
+   "amount": 20381,
+   "crit": "none"
+  },
+  {
+   "t": 27172,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢",
+   "amount": 3752,
+   "crit": "huiXin"
+  },
+  {
+   "t": 27292,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢",
+   "amount": 1941,
+   "crit": "huiXin"
+  },
+  {
+   "t": 27310,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "gule-he",
+   "skillName": "鼓乐和"
+  },
+  {
+   "t": 27430,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "gule-he",
+   "skillName": "鼓乐和",
+   "amount": 12028,
+   "crit": "none"
+  },
+  {
+   "t": 27550,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "gule-he",
+   "skillName": "鼓乐和",
+   "amount": 9950,
+   "crit": "none"
+  },
+  {
+   "t": 27641,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 27670,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "gule-he",
+   "skillName": "鼓乐和",
+   "amount": 20408,
+   "crit": "huiXin"
+  },
+  {
+   "t": 27761,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 1217,
+   "crit": "none"
+  },
+  {
+   "t": 27790,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "gule-he",
+   "skillName": "鼓乐和",
+   "amount": 10950,
+   "crit": "none"
+  },
+  {
+   "t": 27800,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "wuhen-jianyi",
+   "skillName": "无痕剑意"
+  },
+  {
+   "t": 27920,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "wuhen-jianyi",
+   "skillName": "无痕剑意",
+   "amount": 7344,
+   "crit": "none"
+  },
+  {
+   "t": 28639,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "pokong-zhi",
+   "skillName": "破空指"
+  },
+  {
+   "t": 28668,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "feixu-qingji",
+   "skillName": "飞絮轻击"
+  },
+  {
+   "t": 28727,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 28759,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "pokong-zhi",
+   "skillName": "破空指",
+   "amount": 3530,
+   "crit": "none"
+  },
+  {
+   "t": 28788,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "feixu-qingji",
+   "skillName": "飞絮轻击",
+   "amount": 4475,
+   "crit": "huiXin"
+  },
+  {
+   "t": 28847,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 1283,
+   "crit": "none"
+  },
+  {
+   "t": 28879,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "pokong-zhi",
+   "skillName": "破空指",
+   "amount": 3933,
+   "crit": "none"
+  },
+  {
+   "t": 29118,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "huifeng-fuliu",
+   "skillName": "回风拂柳"
+  },
+  {
+   "t": 29238,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "huifeng-fuliu",
+   "skillName": "回风拂柳",
+   "amount": 2536,
+   "crit": "huiXin"
+  },
+  {
+   "t": 29358,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "huifeng-fuliu",
+   "skillName": "回风拂柳",
+   "amount": 2301,
+   "crit": "none"
+  },
+  {
+   "t": 29486,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢"
+  },
+  {
+   "t": 29519,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "lingbo-hanyu",
+   "skillName": "凌波·撼玉"
+  },
+  {
+   "t": 29606,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢",
+   "amount": 1299,
+   "crit": "none"
+  },
+  {
+   "t": 29639,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "lingbo-hanyu",
+   "skillName": "凌波·撼玉",
+   "amount": 28218,
+   "crit": "huiXin"
+  },
+  {
+   "t": 29726,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢",
+   "amount": 2095,
+   "crit": "huiXin"
+  },
+  {
+   "t": 29759,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "lingbo-hanyu",
+   "skillName": "凌波·撼玉",
+   "amount": 44413,
+   "crit": "huiXin"
+  },
+  {
+   "t": 29846,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢",
+   "amount": 1808,
+   "crit": "none"
+  },
+  {
+   "t": 29879,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "lingbo-hanyu",
+   "skillName": "凌波·撼玉",
+   "amount": 25835,
+   "crit": "none"
+  },
+  {
+   "t": 29964,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "feixu-qingji",
+   "skillName": "飞絮轻击"
+  },
+  {
+   "t": 30000,
+   "type": "buffRemove",
+   "source": "p2",
+   "target": "p1",
+   "buffId": "zengshang-lin",
+   "buffName": "增伤·霖"
+  },
+  {
+   "t": 30084,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "feixu-qingji",
+   "skillName": "飞絮轻击",
+   "amount": 3685,
+   "crit": "none"
+  },
+  {
+   "t": 30137,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 30257,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 1675,
+   "crit": "none"
+  },
+  {
+   "t": 30989,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 31109,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 4210,
+   "crit": "none"
+  },
+  {
+   "t": 31246,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "hanjiang-diaoxue",
+   "skillName": "寒江钓雪"
+  },
+  {
+   "t": 31284,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 31366,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "hanjiang-diaoxue",
+   "skillName": "寒江钓雪",
+   "amount": 4658,
+   "crit": "none"
+  },
+  {
+   "t": 31404,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 2089,
+   "crit": "none"
+  },
+  {
+   "t": 31406,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "feixu-qingji",
+   "skillName": "飞絮轻击"
+  },
+  {
+   "t": 31486,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "hanjiang-diaoxue",
+   "skillName": "寒江钓雪",
+   "amount": 4397,
+   "crit": "none"
+  },
+  {
+   "t": 31526,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "feixu-qingji",
+   "skillName": "飞絮轻击",
+   "amount": 4304,
+   "crit": "none"
+  },
+  {
+   "t": 31606,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "hanjiang-diaoxue",
+   "skillName": "寒江钓雪",
+   "amount": 6808,
+   "crit": "huiXin"
+  },
+  {
+   "t": 31633,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "yinzhen-duxue",
+   "skillName": "银针渡穴"
+  },
+  {
+   "t": 31753,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "yinzhen-duxue",
+   "skillName": "银针渡穴",
+   "amount": 9934,
+   "crit": "none"
+  },
+  {
+   "t": 31757,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "wuhen-jianyi",
+   "skillName": "无痕剑意"
+  },
+  {
+   "t": 31877,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "wuhen-jianyi",
+   "skillName": "无痕剑意",
+   "amount": 9932,
+   "crit": "huiXin"
+  },
+  {
+   "t": 32098,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "xiaoyin-qianlang",
+   "skillName": "箫吟千浪"
+  },
+  {
+   "t": 32161,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 32218,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "xiaoyin-qianlang",
+   "skillName": "箫吟千浪",
+   "amount": 6421,
+   "crit": "huiXin"
+  },
+  {
+   "t": 32232,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢"
+  },
+  {
+   "t": 32281,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 4280,
+   "crit": "none"
+  },
+  {
+   "t": 32338,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "xiaoyin-qianlang",
+   "skillName": "箫吟千浪",
+   "amount": 6214,
+   "crit": "huiXin"
+  },
+  {
+   "t": 32349,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "qingyin-fanchang",
+   "skillName": "清音梵唱"
+  },
+  {
+   "t": 32352,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢",
+   "amount": 2149,
+   "crit": "none"
+  },
+  {
+   "t": 32366,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 32458,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "xiaoyin-qianlang",
+   "skillName": "箫吟千浪",
+   "amount": 7498,
+   "crit": "huiXin"
+  },
+  {
+   "t": 32469,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "qingyin-fanchang",
+   "skillName": "清音梵唱",
+   "amount": 8413,
+   "crit": "none"
+  },
+  {
+   "t": 32472,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢",
+   "amount": 2549,
+   "crit": "huiYi"
+  },
+  {
+   "t": 32486,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 1256,
+   "crit": "none"
+  },
+  {
+   "t": 32589,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "qingyin-fanchang",
+   "skillName": "清音梵唱",
+   "amount": 8583,
+   "crit": "none"
+  },
+  {
+   "t": 32592,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢",
+   "amount": 1670,
+   "crit": "huiYi"
+  },
+  {
+   "t": 32752,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "lingbo-hanyu",
+   "skillName": "凌波·撼玉"
+  },
+  {
+   "t": 32872,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "lingbo-hanyu",
+   "skillName": "凌波·撼玉",
+   "amount": 39589,
+   "crit": "huiXin"
+  },
+  {
+   "t": 32946,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "yinzhen-duxue",
+   "skillName": "银针渡穴"
+  },
+  {
+   "t": 32951,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "feixu-qingji",
+   "skillName": "飞絮轻击"
+  },
+  {
+   "t": 32992,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "lingbo-hanyu",
+   "skillName": "凌波·撼玉",
+   "amount": 39371,
+   "crit": "huiXin"
+  },
+  {
+   "t": 33066,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "yinzhen-duxue",
+   "skillName": "银针渡穴",
+   "amount": 9897,
+   "crit": "huiYi"
+  },
+  {
+   "t": 33071,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "feixu-qingji",
+   "skillName": "飞絮轻击",
+   "amount": 4703,
+   "crit": "none"
+  },
+  {
+   "t": 33112,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "lingbo-hanyu",
+   "skillName": "凌波·撼玉",
+   "amount": 25626,
+   "crit": "huiYi"
+  },
+  {
+   "t": 33224,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "huifeng-fuliu",
+   "skillName": "回风拂柳"
+  },
+  {
+   "t": 33344,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "huifeng-fuliu",
+   "skillName": "回风拂柳",
+   "amount": 4861,
+   "crit": "huiYi"
+  },
+  {
+   "t": 33359,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 33445,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 33464,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "huifeng-fuliu",
+   "skillName": "回风拂柳",
+   "amount": 3272,
+   "crit": "none"
+  },
+  {
+   "t": 33479,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 7096,
+   "crit": "huiXin"
+  },
+  {
+   "t": 33565,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 2048,
+   "crit": "none"
+  },
+  {
+   "t": 33988,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "pokong-zhi",
+   "skillName": "破空指"
+  },
+  {
+   "t": 33990,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢"
+  },
+  {
+   "t": 34000,
+   "type": "buffRemove",
+   "source": "p2",
+   "target": "boss",
+   "buffId": "yishang",
+   "buffName": "易伤"
+  },
+  {
+   "t": 34108,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "pokong-zhi",
+   "skillName": "破空指",
+   "amount": 3603,
+   "crit": "none"
+  },
+  {
+   "t": 34110,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢",
+   "amount": 1715,
+   "crit": "none"
+  },
+  {
+   "t": 34228,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "pokong-zhi",
+   "skillName": "破空指",
+   "amount": 5501,
+   "crit": "none"
+  },
+  {
+   "t": 34230,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢",
+   "amount": 1801,
+   "crit": "none"
+  },
+  {
+   "t": 34345,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 34350,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "yanjiu-shi",
+   "skillName": "衍九矢",
+   "amount": 1619,
+   "crit": "none"
+  },
+  {
+   "t": 34352,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "qingyin-fanchang",
+   "skillName": "清音梵唱"
+  },
+  {
+   "t": 34465,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 6661,
+   "crit": "huiXin"
+  },
+  {
+   "t": 34472,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "qingyin-fanchang",
+   "skillName": "清音梵唱",
+   "amount": 9453,
+   "crit": "both"
+  },
+  {
+   "t": 34527,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "feixu-qingji",
+   "skillName": "飞絮轻击"
+  },
+  {
+   "t": 34592,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "qingyin-fanchang",
+   "skillName": "清音梵唱",
+   "amount": 5500,
+   "crit": "none"
+  },
+  {
+   "t": 34647,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "feixu-qingji",
+   "skillName": "飞絮轻击",
+   "amount": 3262,
+   "crit": "none"
+  },
+  {
+   "t": 34674,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "wuhen-jianyi",
+   "skillName": "无痕剑意"
+  },
+  {
+   "t": 34794,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "wuhen-jianyi",
+   "skillName": "无痕剑意",
+   "amount": 12141,
+   "crit": "huiYi"
+  },
+  {
+   "t": 34857,
+   "type": "cast",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 34960,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "yinzhen-duxue",
+   "skillName": "银针渡穴"
+  },
+  {
+   "t": 34977,
+   "type": "hit",
+   "source": "p1",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 1098,
+   "crit": "none"
+  },
+  {
+   "t": 35080,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "yinzhen-duxue",
+   "skillName": "银针渡穴",
+   "amount": 5739,
+   "crit": "none"
+  },
+  {
+   "t": 35289,
+   "type": "cast",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击"
+  },
+  {
+   "t": 35409,
+   "type": "hit",
+   "source": "p2",
+   "target": "boss",
+   "skillId": "jichu-qingji",
+   "skillName": "基础轻击",
+   "amount": 8706,
+   "crit": "huiXin"
+  }
+ ]
+}
