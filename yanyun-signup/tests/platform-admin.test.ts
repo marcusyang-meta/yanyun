@@ -136,7 +136,7 @@ const ADMIN_Q = `query {
       subdomainLabel customDomainLabel
       enabledText disabledText webhookSetText webhookUnsetText
       runBackupLabel downloadLabel exportLabel
-      backfillReminderIdentityLabel backfillCreatorsLabel migrateBossGuidesLabel
+      backfillReminderIdentityLabel backfillCreatorsLabel backfillKunpengDexLabel migrateBossGuidesLabel
       statusOpenText statusResolvedText
       lastStatusLabel nextAlarmLabel periodEndLabel sourceLabel
       tierLabel planLabel hasCardText noCardText trialUsedText
@@ -174,7 +174,7 @@ describe('platform-admin surface', () => {
       'platformAdminUpdateReminder', 'platformAdminTestReminder', 'platformAdminUpdateHeirloom',
       'platformAdminTestHeirloom', 'platformAdminRunBackup', 'platformAdminSetRoster',
       'platformAdminBackfillReminderIdentity', 'platformAdminBackfillCreators',
-      'platformAdminMigrateBossGuides',
+      'platformAdminBackfillKunpengDex', 'platformAdminMigrateBossGuides',
     ]) {
       check(`mutation ${m}`, typeDefs.includes(m + '(') || typeDefs.includes(m + ':'));
     }

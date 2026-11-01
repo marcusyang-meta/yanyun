@@ -28,6 +28,10 @@ import type {
 } from './admin-service.ts';
 import {
   runReminderIdentityBackfill, runCreatorBackfillStamps, runBossGuideStructuredMigration,
+  runKunpengDexBackfill,
+} from './admin-backfills.ts';
+import type {
+  KunpengDexBackfillReport, KunpengDexBossEntry,
 } from './admin-backfills.ts';
 import { recentErrors } from './error-log.ts';
 import { listHubAuditPage } from './hub-audit.ts';
@@ -153,6 +157,7 @@ const PLATFORM_ADMIN_TEXT_SPEC: [string, string][] = [
   ['exportLabel', 'platformAdmin_exportLabel'],
   ['backfillReminderIdentityLabel', 'platformAdmin_backfillReminderIdentityLabel'],
   ['backfillCreatorsLabel', 'platformAdmin_backfillCreatorsLabel'],
+  ['backfillKunpengDexLabel', 'platformAdmin_backfillKunpengDexLabel'],
   ['migrateBossGuidesLabel', 'platformAdmin_migrateBossGuidesLabel'],
   ['statusOpenText', 'platformAdmin_statusOpenText'],
   ['statusResolvedText', 'platformAdmin_statusResolvedText'],
@@ -819,6 +824,35 @@ const platformAdminMutations = {
     };
   },
 
+  /* One-off dex content insert （鲲鹏图千山 + 两 boss): the service
+   * creates the rows through the dex repositories; a real run then
+   * chains the boss guide structured migration so the new guides are
+   * materialized in the same operator action, and the payload reports
+   * the materialized counts for the two bosses. */
+  platformAdminBackfillKunpengDex: async (_: unknown, args: { dryRun?: boolean }, ctx: Context) => {
+    const dryRun = !!args?.dryRun;
+    if (!(await viewerIsPlatformAdmin(ctx))) {
+      return {
+        ...denied(ctx), dryRun, dungeonCreated: false, dungeonName: '鲲鹏图千山',
+        bossesCreated: 0, previousCurrentCleared: false, bosses: [],
+      };
+    }
+    const report = await runKunpengDexBackfill(ctx.env.DB, dryRun);
+    let bosses = report.bosses;
+    if (!report.dryRun) {
+      const migration = await runBossGuideStructuredMigration(ctx.env.DB);
+      bosses = report.bosses.map((b) => {
+        const m = migration.migrated.find((e) => e.id === b.id);
+        return m ? { ...b, mechanics: m.mechanics, talents: m.talents, shouts: m.shouts } : b;
+      });
+    }
+    await audit(ctx, 'backfill.kunpeng_dex', '', {
+      dryRun: report.dryRun, dungeonCreated: report.dungeonCreated,
+      bossesCreated: report.bossesCreated, previousCurrentCleared: report.previousCurrentCleared,
+    });
+    return { ok: true, ...report, bosses };
+  },
+
   platformAdminMigrateBossGuides: async (_: any, __: any, ctx: Context) => {
     if (!(await viewerIsPlatformAdmin(ctx))) return { ...denied(ctx), migrated: [] };
     const report = await runBossGuideStructuredMigration(ctx.env.DB);
@@ -1004,6 +1038,25 @@ export const platformAdminTypes = {
     cars: (p: any) => p.cars, outcome: (p: any) => p.outcome,
     matchedDiscordId: (p: any) => p.matchedDiscordId ?? null,
     candidates: (p: any) => p.candidates,
+  },
+  PlatformKunpengDexBackfillPayload: {
+    ok: (p: KunpengDexBackfillReport & { ok: boolean; error?: string | null; errorCode?: string | null }) => p.ok,
+    error: (p: { error?: string | null }) => p.error ?? null,
+    errorCode: (p: { errorCode?: string | null }) => p.errorCode ?? null,
+    dryRun: (p: KunpengDexBackfillReport) => p.dryRun,
+    dungeonCreated: (p: KunpengDexBackfillReport) => p.dungeonCreated,
+    dungeonName: (p: KunpengDexBackfillReport) => p.dungeonName,
+    bossesCreated: (p: KunpengDexBackfillReport) => p.bossesCreated,
+    previousCurrentCleared: (p: KunpengDexBackfillReport) => p.previousCurrentCleared,
+    bosses: (p: KunpengDexBackfillReport) => p.bosses,
+  },
+  PlatformKunpengDexBossEntry: {
+    id: (p: KunpengDexBossEntry) => p.id, name: (p: KunpengDexBossEntry) => p.name,
+    created: (p: KunpengDexBossEntry) => p.created,
+    guideWritten: (p: KunpengDexBossEntry) => p.guideWritten,
+    mechanics: (p: KunpengDexBossEntry) => p.mechanics,
+    talents: (p: KunpengDexBossEntry) => p.talents,
+    shouts: (p: KunpengDexBossEntry) => p.shouts,
   },
   PlatformGuideMigrationPayload: {
     ok: (p: any) => p.ok, error: (p: any) => p.error ?? null,

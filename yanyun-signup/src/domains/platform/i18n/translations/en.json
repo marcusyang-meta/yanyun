@@ -18303,6 +18303,18 @@
       ],
       "types": []
     },
+    "Fak7cmpt8/dqQMJwFjwcrA==": {
+      "description": "Button label for the Kunpeng dex backfill on the platform admin page, used on the tool that inserts the Kunpeng dungeon and its two bosses into the boss compendium.",
+      "id": "platform/platformAdmin_backfillKunpengDexLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Backfill Kunpeng Dex (dungeon + two bosses)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
     "aWZny+jzI0YFap3dkARHhg==": {
       "description": "Button label for the boss guide structured migration on the platform admin page, used on the tool that parses guide text into structured mechanics, talents and shouts.",
       "id": "platform/platformAdmin_migrateBossGuidesLabel",

@@ -302,6 +302,7 @@ export type PlatformStringKey =
   | 'platformAdmin_exportLabel'
   | 'platformAdmin_backfillReminderIdentityLabel'
   | 'platformAdmin_backfillCreatorsLabel'
+  | 'platformAdmin_backfillKunpengDexLabel'
   | 'platformAdmin_migrateBossGuidesLabel'
   | 'platformAdmin_statusOpenText'
   | 'platformAdmin_statusResolvedText'
@@ -623,6 +624,7 @@ export const PLATFORM_STRING_KEYS: readonly PlatformStringKey[] = [
   'platformAdmin_exportLabel',
   'platformAdmin_backfillReminderIdentityLabel',
   'platformAdmin_backfillCreatorsLabel',
+  'platformAdmin_backfillKunpengDexLabel',
   'platformAdmin_migrateBossGuidesLabel',
   'platformAdmin_statusOpenText',
   'platformAdmin_statusResolvedText',

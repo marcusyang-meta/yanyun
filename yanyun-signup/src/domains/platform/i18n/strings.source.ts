@@ -351,6 +351,7 @@ export abstract class PlatformAdminFbtUtils {
   static exportLabel(fbs: FbsAPI) { return fbs("导出备份 JSON", "Button label for the streaming backup export on the platform admin page, used on the action that downloads a full JSON snapshot of the database."); }
   static backfillReminderIdentityLabel(fbs: FbsAPI) { return fbs("回填提醒身份（名册+座位戳）", "Button label for the reminder identity backfill on the platform admin page, used on the tool that seeds rosters and stamps signup seats with Discord IDs."); }
   static backfillCreatorsLabel(fbs: FbsAPI) { return fbs("回填车头身份戳", "Button label for the creator stamp backfill on the platform admin page, used on the tool that backfills creator Discord IDs for legacy squads."); }
+  static backfillKunpengDexLabel(fbs: FbsAPI) { return fbs("回填鲲鹏图千山图鉴（副本+双首领）", "Button label for the Kunpeng dex backfill on the platform admin page, used on the tool that inserts the Kunpeng dungeon and its two bosses into the boss compendium."); }
   static migrateBossGuidesLabel(fbs: FbsAPI) { return fbs("结构化首领攻略（从攻略文本生成）", "Button label for the boss guide structured migration on the platform admin page, used on the tool that parses guide text into structured mechanics, talents and shouts."); }
   static statusOpenText(fbs: FbsAPI) { return fbs("待处理", "Status text for an open feedback item on the platform admin page, used in the feedback triage list."); }
   static statusResolvedText(fbs: FbsAPI) { return fbs("已解决", "Status text for a resolved feedback item on the platform admin page, used in the feedback triage list."); }
