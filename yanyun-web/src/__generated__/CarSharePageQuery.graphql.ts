@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<b75da6fb825b0d168452aedb3147d1d0>>
+ * @generated SignedSource<<ca07c9c171333a5b3dbb9b3d17bd2ed5>>
  * @lightSyntaxTransform
  */
 
@@ -22,6 +22,11 @@ export type CarSharePageQuery$data = {
       readonly index: number;
       readonly occupied: boolean;
     }>;
+    readonly shareCopyFailedManual: string;
+    readonly shareImageFailed: string;
+    readonly shareImageLabel: string;
+    readonly shareImageSaved: string;
+    readonly shareImageUrl: string | null | undefined;
     readonly shareKicker: string;
     readonly shareLoginLabel: string;
     readonly shareNotFoundBody: string;
@@ -265,6 +270,41 @@ v1 = [
         "kind": "ScalarField",
         "name": "shareTypeLabel",
         "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "shareImageUrl",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "shareImageLabel",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "shareImageSaved",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "shareImageFailed",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "shareCopyFailedManual",
+        "storageKey": null
       }
     ],
     "storageKey": null
@@ -288,16 +328,16 @@ return {
     "selections": (v1/*:: as any*/)
   },
   "params": {
-    "cacheID": "fe0dd4909efdd6d51c7dcb9d2d249aea",
+    "cacheID": "bdb6e08f40d737ebe0d579d424023e9b",
     "id": null,
     "metadata": {},
     "name": "CarSharePageQuery",
     "operationKind": "query",
-    "text": "query CarSharePageQuery(\n  $code: String!\n) {\n  viewer {\n    user {\n      discordId\n    }\n  }\n  sharedGrouping(code: $code) {\n    exists\n    guildName\n    title\n    dungeonName\n    startsAt\n    status\n    occupiedCount\n    maxSlots\n    seats {\n      index\n      occupied\n    }\n    shareKicker\n    shareLoginLabel\n    shareOpenLabel\n    shareNotFoundTitle\n    shareNotFoundBody\n    shareReadonlyHint\n    shareStatusOpenLabel\n    shareStatusClosedLabel\n    shareStatusCompletedLabel\n    sharePeopleTemplate\n    shareSeatsTitle\n    shareTypeLabel\n  }\n}\n"
+    "text": "query CarSharePageQuery(\n  $code: String!\n) {\n  viewer {\n    user {\n      discordId\n    }\n  }\n  sharedGrouping(code: $code) {\n    exists\n    guildName\n    title\n    dungeonName\n    startsAt\n    status\n    occupiedCount\n    maxSlots\n    seats {\n      index\n      occupied\n    }\n    shareKicker\n    shareLoginLabel\n    shareOpenLabel\n    shareNotFoundTitle\n    shareNotFoundBody\n    shareReadonlyHint\n    shareStatusOpenLabel\n    shareStatusClosedLabel\n    shareStatusCompletedLabel\n    sharePeopleTemplate\n    shareSeatsTitle\n    shareTypeLabel\n    shareImageUrl\n    shareImageLabel\n    shareImageSaved\n    shareImageFailed\n    shareCopyFailedManual\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "66f24c4c5578d8a51283d59713f3b486";
+(node as any).hash = "6d54cdbc39111880013d63aa66537de0";
 
 export default node;

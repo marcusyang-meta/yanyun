@@ -528,6 +528,11 @@ type SharedGroupingPage {
   sharePeopleTemplate: String!
   shareSeatsTitle: String!
   shareTypeLabel: String!
+  shareImageUrl: String
+  shareImageLabel: String!
+  shareImageSaved: String!
+  shareImageFailed: String!
+  shareCopyFailedManual: String!
 }
 
 type SharedGroupingSeat {
@@ -539,6 +544,7 @@ type GroupingDetailPage {
   grouping: Grouping!
   schedulingAdvice: GroupingSchedulingAdviceResult
   shareUrl: String!
+  shareImageUrl: String
   blocks(blocksVersion: Int): [Block!]!
   manageActions: GroupingManageActions
   allySharing: AllySharingControl
@@ -550,6 +556,9 @@ type GroupingDetailPage {
   detailNotFoundText: String!
   detailBackToListLabel: String!
   detailShareLabel: String!
+  detailShareImageLabel: String!
+  detailShareImageSaved: String!
+  detailShareImageFailed: String!
   detailEditLabel: String!
   detailDisbandLabel: String!
   detailDisbandingLabel: String!

@@ -1,6 +1,8 @@
 import { graphql, usePreloadedQuery } from 'react-relay';
 import type { PreloadedQuery } from 'react-relay';
 import { fill, fmtDate, theme } from './lib/format.ts';
+import { runShareImage, browserShareImageDeps, shareImageFileName } from './lib/shareImage.ts';
+import { toast, ToastHost } from './guild/components/Toast.react.tsx';
 import type { CarSharePageQuery as CarSharePageQueryType } from './__generated__/CarSharePageQuery.graphql';
 
 /* Public car share page (/s/:code): the anonymous visiting surface
@@ -48,6 +50,11 @@ const CarSharePageQueryNode = graphql`
       sharePeopleTemplate
       shareSeatsTitle
       shareTypeLabel
+      shareImageUrl
+      shareImageLabel
+      shareImageSaved
+      shareImageFailed
+      shareCopyFailedManual
     }
   }
 `;
@@ -85,13 +92,40 @@ export default function CarSharePage({ queries, extraProps }: {
       ? page.shareStatusCompletedLabel
       : page.shareStatusClosedLabel;
 
+  // Share this squad's card image: native file share when the
+  // browser supports it, otherwise download the PNG + copy the short
+  // link (chat groups like WeChat show no link preview, so the card
+  // travels as a picture with the link pasted under it).
+  const shareCardImage = async () => {
+    const imageUrl = page.shareImageUrl;
+    if (!imageUrl) return;
+    const linkUrl = `${window.location.origin}${shortPath}`;
+    const result = await runShareImage(browserShareImageDeps(), {
+      imageUrl,
+      fileName: shareImageFileName(imageUrl),
+      shareText: `${page.title} ${linkUrl}`,
+      linkUrl,
+    });
+    if (result.kind === 'fallback') {
+      toast(result.copied ? page.shareImageSaved : page.shareCopyFailedManual);
+    } else if (result.kind === 'failed') {
+      toast(page.shareImageFailed);
+    }
+  };
+
   return (
     <div className="yy-page">
+      <ToastHost />
       <div style={{ maxWidth: 880, margin: '0 auto', padding: '16px 20px 48px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <span style={{ color: theme.muted, fontSize: 12, letterSpacing: 3 }}>{page.shareKicker}</span>
+          {page.exists && page.shareImageUrl && (
+            <button onClick={shareCardImage} style={{ ...btnGold, marginLeft: 'auto' }}>
+              {page.shareImageLabel}
+            </button>
+          )}
           {page.exists && (
-            <a href={ctaHref} style={{ ...btnGold, marginLeft: 'auto' }}>
+            <a href={ctaHref} style={{ ...btnGold, marginLeft: page.shareImageUrl ? undefined : 'auto' }}>
               {loggedIn ? page.shareOpenLabel : page.shareLoginLabel}
             </a>
           )}
