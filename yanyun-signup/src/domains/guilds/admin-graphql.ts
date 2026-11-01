@@ -56,7 +56,7 @@ import {
   sanitizeReminderCustomText, REMINDER_OFFSET_PRESETS,
   listLotteries, getLotteryByTenant, listLotteryEntries, listLotteryWinners,
   insertLottery, insertLotteryEntry, insertLotteryWinner, markLotteryDrawn,
-  drawWinners,
+  drawWinners, capturedTzOrNull,
 } from '../groupings/index.ts';
 import { listGuildMembers, getGuildMember, upsertGuildMember, listUserIdsByDiscordIds, getDiscordIdByUserId, getUserIdByDiscordId, ensureUserIdByDiscordId } from '../identity/index.ts';
 import { getGuildNick } from '../identity/auth.ts';
@@ -1571,6 +1571,9 @@ export const guildAdminMutations = {
       meet_info: s(input.meetInfo, 200),
       status: input.status === 'closed' ? 'closed' : 'open',
       origin: 'admin',
+      // Same home-timezone capture as member creation (car-tz.ts):
+      // the admin's client zone frames this car's card time.
+      created_tz: capturedTzOrNull(ctx.tz),
     };
     const r = await insertEvent(db, ev);
     const notice = notifyDiscord(ctx.env, g.access.slug, {

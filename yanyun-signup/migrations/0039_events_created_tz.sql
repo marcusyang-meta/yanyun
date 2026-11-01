@@ -1,0 +1,20 @@
+-- 0039: events.created_tz — the IANA timezone the car's start time
+-- was framed in, captured from the client (x-tz header) at creation
+-- and refreshed whenever the start time is edited.
+--
+-- Why: share cards (OG image + og:description) print the car's start
+-- as a wall-clock time. Printing it in UTC misleads the guild's own
+-- members (marcus ruling 2026-11-01: label the time in the timezone
+-- of the guild's people, never bare UTC). The platform stores no
+-- timezone profile anywhere (see the F24 checklist derivation: a
+-- viewer's zone arrives per request as x-tz and was presentation-only
+-- until now), so the framing zone has to be captured on the row at
+-- the moment a person sets the time. Resolution at render time:
+-- this column, else the creator's latest captured zone on another
+-- car in the same guild, else Asia/Shanghai (the platform default).
+--
+-- Shape: TEXT, nullable, no default — NULL means "never captured"
+-- (every pre-0039 row), which is exactly what the fallback chain
+-- keys on. Pure expand: one nullable column, nothing else changes;
+-- the previous release never reads it and is unaffected.
+ALTER TABLE events ADD COLUMN created_tz TEXT;

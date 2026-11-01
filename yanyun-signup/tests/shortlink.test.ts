@@ -11,8 +11,9 @@
 //  - crawler preview: recognised link-preview bot UAs instead get a
 //    200 document at the short URL itself carrying the car's share
 //    tags (dead codes: no named tags) plus a 0s meta refresh to the
-//    share page; human UAs keep the 302. Car times in share text
-//    carry an explicit UTC marker (fmtCarTimeUtc).
+//    share page; human UAs keep the 302. Car times in share text are
+//    rendered in the car's home timezone with a Chinese zone label
+//    (car-tz.ts; the formatter's own coverage lives in car-tz.test.ts).
 //    (This suite's fixture guild is UNBOUND. Under the original
 //    doctrine anonymous visitors passed its view gate and kept the
 //    canonical landing; the 2026-10-28 follow-up ruling — unbound
@@ -29,7 +30,6 @@ import {
   shortLinkUrl, canonicalGroupingUrl, SHORT_CODE_RE,
 } from '../src/domains/groupings/shortlinks.ts';
 import { isLinkPreviewBot } from '../src/domains/groupings/shortlink-routes.ts';
-import { fmtCarTimeUtc } from '../src/domains/platform/og.ts';
 
 function check(name: string, ok: boolean, extra = '') {
   expect(ok, extra ? `${name} — ${extra}` : name).toBe(true);
@@ -250,12 +250,10 @@ describe('shortlink', () => {
     check('普通 Chrome 不是爬虫', !isLinkPreviewBot('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36'));
     check('空 UA 不是爬虫', !isLinkPreviewBot(''));
 
-    // Time format: explicit UTC marker; empty stays empty.
-    eq('fmtCarTimeUtc 带 UTC 标注', fmtCarTimeUtc(1735689600), '周三 00:00 UTC');
-    eq('fmtCarTimeUtc 空值', fmtCarTimeUtc(0), '');
-    eq('fmtCarTimeUtc null', fmtCarTimeUtc(null), '');
-
     // A car with a concrete UTC start so the description carries the time.
+    // The fixture creator captured no timezone anywhere, so the car's
+    // home zone resolves down the chain to the platform default
+    // (Asia/Shanghai): 1735689600 = 周三 08:00 北京时间.
     state.events.push(ev(401, { title: '时区车', starts_at_utc: 1735689600 }));
     const tzLink = await mintShortLink(db, GID, 401);
     const callUa = (path, ua) => worker.fetch(new Request('http://local' + path, { headers: { 'user-agent': ua } }), env, ctx);
@@ -266,7 +264,7 @@ describe('shortlink', () => {
     check('爬虫文档是 HTML', (r.headers.get('content-type') || '').includes('text/html'));
     const doc = await r.text();
     check('og:title = 车名 · 百业名', doc.includes('<meta property="og:title" content="时区车 · 短链测试百业" />'), doc.slice(0, 400));
-    check('og:description 时间带 UTC 标注', doc.includes('双十人本 | 周三 00:00 UTC | 已报名 0/10'), doc.slice(0, 500));
+    check('og:description 时间按归属时区(回退北京)带中文标注', doc.includes('双十人本 | 周三 08:00 北京时间 | 已报名 0/10'), doc.slice(0, 500));
     check('og:image 指向 OG 车卡图', doc.includes(`https://og.yanyun.app/og/${SLUG}/car/401.png`), doc.slice(0, 500));
     check('带 0 秒 meta refresh 到分享页', doc.includes(`<meta http-equiv="refresh" content="0; url=http://local/s/${tzLink.code}" />`), doc.slice(0, 600));
     check('带可见跳转链接兜底', doc.includes(`<a href="http://local/s/${tzLink.code}">`), doc.slice(0, 600));

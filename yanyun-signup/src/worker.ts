@@ -69,8 +69,10 @@ app.all('/graphql', async (c: any) => {
       user: checked.user,
       locale: pref || browserLocale,
       browserLocale,
-      // Client timezone (IANA): used only so time copy in the mobile block
-      // tree is rendered in the viewer's timezone; web sends none.
+      // Client timezone (IANA): time copy in the mobile block tree is
+      // rendered in the viewer's timezone; grouping create/time-edit
+      // also captures it as the car's home timezone (car-tz.ts).
+      // Both clients send it (mobile relay + web relay).
       tz: c.req.header('x-tz') || null,
     },
   ));
