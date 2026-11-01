@@ -44,11 +44,34 @@ export const SCHEDULING_REQUIRED_TIER = 2;
 
 const reasonKeyToField = (key: string) => 'reason' + key.charAt(0).toUpperCase() + key.slice(1);
 
+/* The advice reasons carry the stored role vocabulary (the
+ * data-layer constants in scheduling.ts: 奶 / 输出 / 随意) as the
+ * {role} parameter. The stored token stays the match key everywhere
+ * it is compared or persisted; only the rendered parameter value is
+ * localized, through the same seat role labels the seat grid uses.
+ * A token outside the closed vocabulary passes through unchanged. */
+const ROLE_LABEL_KEYS: Record<string, string> = {
+  '奶': 'seat_roleHealer',
+  '输出': 'seat_roleDps',
+  '随意': 'seat_roleFlex',
+};
+
+export function adviceRoleLabel(t: (key: string, params?: any) => string, role: string): string {
+  const key = ROLE_LABEL_KEYS[role];
+  if (!key) return role;
+  try { return t(key); } catch { return role; }
+}
+
+export function renderAdviceReason(t: (key: string, params?: any) => string, r: AdviceReason): string {
+  const params = r.params && typeof r.params.role === 'string'
+    ? { ...r.params, role: adviceRoleLabel(t, r.params.role) }
+    : r.params;
+  try { return t('schedulingAdvice_' + reasonKeyToField(r.key), params); }
+  catch { return r.key; }
+}
+
 function renderReasons(ctx: Context, t: (key: string, params?: any) => string, reasons: AdviceReason[]): string[] {
-  return reasons.map((r) => {
-    try { return t('schedulingAdvice_' + reasonKeyToField(r.key), r.params); }
-    catch { return r.key; }
-  });
+  return reasons.map((r) => renderAdviceReason(t, r));
 }
 
 /* ---------------- locked shell (shared by all five) ---------------- */
