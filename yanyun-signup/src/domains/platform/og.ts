@@ -14,7 +14,10 @@ const SITE_URL = 'https://yanyun.app';
 const escHtml = (str: any) => String(str ?? '')
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-// Team time: unix seconds (UTC) -> weekday + HH:MM, same UTC wall-clock format as the OG worker
+// Team time: unix seconds (UTC) -> weekday + HH:MM with an explicit
+// UTC marker, same UTC wall-clock format as the OG worker's car card.
+// The marker matters: share cards travel across timezones, and an
+// unlabelled wall-clock time is meaningless to an out-of-zone viewer.
 export function fmtCarTimeUtc(sec: any) {
   const n = parseInt(sec, 10);
   if (!n) return '';
@@ -22,7 +25,7 @@ export function fmtCarTimeUtc(sec: any) {
   if (isNaN(d.getTime())) return '';
   const week = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
   const p = (x: number) => String(x).padStart(2, '0');
-  return `${week[d.getUTCDay()]} ${p(d.getUTCHours())}:${p(d.getUTCMinutes())}`;
+  return `${week[d.getUTCDay()]} ${p(d.getUTCHours())}:${p(d.getUTCMinutes())} UTC`;
 }
 
 const CAR_TYPE_LABEL: Record<string, string> = { activity: '双十人本', talent: '天赋组队', race: '竞速报名', tower: '爬塔' };
