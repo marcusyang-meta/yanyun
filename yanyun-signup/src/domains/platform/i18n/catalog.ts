@@ -1309,6 +1309,10 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "fr": "DPS",
       "zh-TW": "輸出"
     },
+    "roleFlex": {
+      "zh-CN": "随意",
+      "en": "Flex"
+    },
     "leader": {
       "zh-CN": "车头",
       "en": "Leader",

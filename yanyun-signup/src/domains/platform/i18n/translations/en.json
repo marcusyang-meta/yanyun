@@ -20126,6 +20126,18 @@
         }
       ],
       "types": []
+    },
+    "H1VA3RlkQVV5jXlgq0YdGg==": {
+      "description": "Role tag for seated members, used when the member can fill any role.",
+      "id": "groupings/seat_roleFlex",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Flex",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

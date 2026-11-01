@@ -162,6 +162,7 @@ export abstract class SeatFbtUtils {
   static leaveConfirmMessage(fbs: FbsAPI, p?: StringParams) { return fbs(["确定取消「", fbs.param("nickname", pv(p, "nickname")), "」的报名吗？"], "Confirmation message for leaving a seat, used in the dialog, where {nickname} is the seated member's nickname."); }
   static roleHealer(fbs: FbsAPI) { return fbs("奶", "Role tag for seated members, used on a seat cell when the member's sect is a healer."); }
   static roleDps(fbs: FbsAPI) { return fbs("输出", "Role tag for seated members, used on a seat cell when the member's sect is a damage dealer."); }
+  static roleFlex(fbs: FbsAPI) { return fbs("随意", "Role tag for seated members, used when the member can fill any role."); }
   static leader(fbs: FbsAPI) { return fbs("车头", "Tag text for the squad leader, used on the leader's seat cell and in roster views."); }
   static readyMark(fbs: FbsAPI) { return fbs("已就位", "Status text for seated members, used on a seat cell when the member is marked ready."); }
   static readyAction(fbs: FbsAPI) { return fbs("我已就位", "Button label for seat actions, used by a seated member to mark themselves ready."); }

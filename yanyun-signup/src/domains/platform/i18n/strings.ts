@@ -609,6 +609,9 @@ export abstract class SeatFbtUtils {
 	static roleDps(fbs: FbsRuntime) {
 		return fbs._("输出", null, { hk: "108M9t" });
 	}
+	static roleFlex(fbs: FbsRuntime) {
+		return fbs._("随意", null, { hk: "3u5DpG" });
+	}
 	static leader(fbs: FbsRuntime) {
 		return fbs._("车头", null, { hk: "1jG5Bx" });
 	}
@@ -5380,6 +5383,7 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"seat_leaveConfirmMessage": SeatFbtUtils.leaveConfirmMessage,
 	"seat_roleHealer": SeatFbtUtils.roleHealer,
 	"seat_roleDps": SeatFbtUtils.roleDps,
+	"seat_roleFlex": SeatFbtUtils.roleFlex,
 	"seat_leader": SeatFbtUtils.leader,
 	"seat_readyMark": SeatFbtUtils.readyMark,
 	"seat_readyAction": SeatFbtUtils.readyAction,

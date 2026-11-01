@@ -41,7 +41,7 @@ import {
 } from './index.ts';
 import { scheduleResolvers } from './schedule-graphql.ts';
 import { resolveSharedGrouping } from './shareview.ts';
-import { schedulingAdviceResolvers, composeGroupingSchedulingAdvice, composeCrossCarAdvice } from './scheduling-graphql.ts';
+import { schedulingAdviceResolvers, composeGroupingSchedulingAdvice, composeCrossCarAdvice, renderAdviceReason, adviceRoleLabel } from './scheduling-graphql.ts';
 import { buildMemberFacts, buildTeamDraft, rankSubstitutes } from './scheduling.ts';
 import { recapSurfaceForGrouping, recapResolvers } from './recap-graphql.ts';
 import { combatReportSurfaceForGrouping, combatResolvers } from './combat-graphql.ts';
@@ -663,12 +663,11 @@ export class GroupingDetailPageShell extends ShellBase {
             const seatedIds = new Set(rows.map((r: any) => String(r.discord_id || '')).filter(Boolean));
             const pool = facts.filter((f: any) => !seatedIds.has(f.discordId));
             const draft = buildTeamDraft(pool, ev.max_slots || 0);
-            const renderReason = (r: any) => {
-              try { return this.t('schedulingAdvice_reason' + r.key.charAt(0).toUpperCase() + r.key.slice(1), r.params); } catch { return r.key; }
-            };
+            const tt = (k: string, p?: any) => this.t(k, p);
+            const renderReason = (r: any) => renderAdviceReason(tt, r);
             const lines: any[] = [new SectionHeaderBlockShell(this.ctx, { textRef: ['schedulingAdvice_draftTitle'] })];
             for (const d of draft.slice(0, 5)) {
-              lines.push(new TextBlockShell(this.ctx, { variant: 'muted', text: `${d.facts.displayName} · ${d.role} · ${d.reasons.map(renderReason).join('；')}` }));
+              lines.push(new TextBlockShell(this.ctx, { variant: 'muted', text: `${d.facts.displayName} · ${adviceRoleLabel(tt, d.role)} · ${d.reasons.map(renderReason).join('；')}` }));
             }
             if (rows.length < (ev.max_slots || 0)) {
               const subs = rankSubstitutes(pool, '');
