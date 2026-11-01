@@ -257,7 +257,7 @@ async function fetchTeamCount(slug) {
 
 const CAR_TYPE_LABEL = { ACTIVITY: '双十人本', TALENT: '天赋组队', RACE: '竞速报名' };
 
-// 车时间格式化：与前端 fmtDate 同源（UTC 时间戳），OG 图用 UTC 墙钟时间，如“周六 20:00”
+// 车时间格式化：与前端 fmtDate 同源（UTC 时间戳），OG 图用 UTC 墙钟时间并显式标注 UTC，如“周六 20:00 UTC”——分享卡跨时区传播，无标注的墙钟时间对外时区观众没有意义。此函数仅车卡渲染调用（百业卡等不共用）。
 function formatCarTime(startsAt) {
   if (!startsAt) return '';
   const t = String(startsAt).trim();
@@ -268,7 +268,7 @@ function formatCarTime(startsAt) {
   const week = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
   const hh = String(d.getUTCHours()).padStart(2, '0');
   const mm = String(d.getUTCMinutes()).padStart(2, '0');
-  return `${week[d.getUTCDay()]} ${hh}:${mm}`;
+  return `${week[d.getUTCDay()]} ${hh}:${mm} UTC`;
 }
 
 /* 取车数据: 走 GraphQL ogCarCard (公开卡面窄口) — 服务端按 tenant
