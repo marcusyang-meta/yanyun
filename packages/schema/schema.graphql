@@ -4423,6 +4423,9 @@ type OgCarCard {
   occupiedCount: Int!
   maxSlots: Int!
   status: String!
+  # 本车已有短链的 code (只读解析, 永不在此铸造); 从未分享过的车为
+  # null, 其卡图不印二维码。OG worker 据此在卡面印短链二维码。
+  shareCode: String
 }
 
 # 方案分享卡: 只取卡面字段 (方案名/流派标签/毕业度快照), 永不下发

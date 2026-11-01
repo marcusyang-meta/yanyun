@@ -11,7 +11,7 @@ import { getTenantRow, getEffectiveWhiteLabelSettings, ogAccentHex } from '../gu
 import { listTenantsDirectory } from '../guilds/tenants.ts';
 import { getDevOnlySlugs } from './http.ts';
 import {
-  listEventsWeekView, getEventRowByTenant, countSignupsByEvent,
+  listEventsWeekView, getEventRowByTenant, countSignupsByEvent, getShortLinkByTarget,
 } from '../groupings/index.ts';
 import { resolveSharedBuild } from '../gear/index.ts';
 
@@ -72,6 +72,17 @@ export class OgCarCardShell extends ShellBase {
   genOccupiedCount(){ return this.data.occupiedCount || 0; }
   genMaxSlots(){ return this.data.max_slots || 0; }
   genStatus(){ return this.data.status || ''; }
+  /* The car's existing short-link code, resolved read-only: the OG
+   * worker prints it on the card as a QR code. A car nobody has
+   * shared yet has no code and its card renders without one —
+   * minting belongs to the share surfaces (the detail page's
+   * shareUrl), never to this data channel or an image GET. */
+  async genShareCode(){
+    const tenantId = this.data.tenantId;
+    if (!tenantId) return null;
+    const link = await getShortLinkByTarget(this.db, tenantId, this.data.id).catch(() => null);
+    return link ? link.code : null;
+  }
 }
 
 export const ogCardResolvers = {
@@ -95,7 +106,7 @@ export const ogCardResolvers = {
       const ev = await getEventRowByTenant(ctx.env.DB, parseInt(id, 10), tenant.id);
       if (!ev) return null;
       const occupiedCount = await countSignupsByEvent(ctx.env.DB, ev.id);
-      return new OgCarCardShell(ctx, { ...ev, occupiedCount });
+      return new OgCarCardShell(ctx, { ...ev, occupiedCount, tenantId: tenant.id });
     },
     /* Build share card: the share code is the capability — resolving
      * it yields only the card's printed fields (build name / target
@@ -140,6 +151,7 @@ export const ogCardResolvers = {
       occupiedCount: (p: any) => p.genOccupiedCount(),
       maxSlots: (p: any) => p.genMaxSlots(),
       status: (p: any) => p.genStatus(),
+      shareCode: (p: OgCarCardShell) => p.genShareCode(),
     },
   },
 };
