@@ -237,6 +237,9 @@ export type PlatformStringKey =
   | 'errors_recapNotEnabled'
   | 'errors_recapDailyLimit'
   | 'errors_recapProviderFailed'
+  | 'errors_combatReportForbidden'
+  | 'errors_combatEncounterNotFound'
+  | 'errors_combatTierLocked'
   | 'platformAdmin_entryLabel'
   | 'platformAdmin_title'
   | 'platformAdmin_subtitle'
@@ -548,6 +551,9 @@ export const PLATFORM_STRING_KEYS: readonly PlatformStringKey[] = [
   'errors_recapNotEnabled',
   'errors_recapDailyLimit',
   'errors_recapProviderFailed',
+  'errors_combatReportForbidden',
+  'errors_combatEncounterNotFound',
+  'errors_combatTierLocked',
   'platformAdmin_entryLabel',
   'platformAdmin_title',
   'platformAdmin_subtitle',

@@ -5038,6 +5038,18 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
     "recapProviderFailed": {
       "zh-CN": "复盘生成失败，请稍后重试",
       "en": "Recap generation failed; please try again later"
+    },
+    "combatReportForbidden": {
+      "zh-CN": "只有导入者本人、车头或本百业管理员可以删除这场报告",
+      "en": "Only the importer, the squad leader, or a guild admin of this guild can delete this report"
+    },
+    "combatEncounterNotFound": {
+      "zh-CN": "战斗报告不存在",
+      "en": "This combat report does not exist"
+    },
+    "combatTierLocked": {
+      "zh-CN": "该百业尚未开通战斗报告（进阶订阅档功能）",
+      "en": "This guild has not unlocked combat reports (an advanced subscription tier feature)"
     }
   },
   "guildAdmin": {
@@ -9068,6 +9080,312 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
     "adminParagraphCount": {
       "zh-CN": "{count} 段",
       "en": "{count} paragraphs"
+    }
+  },
+  "combatReport": {
+    "title": {
+      "zh-CN": "战斗报告",
+      "en": "Combat Reports"
+    },
+    "lockedTitle": {
+      "zh-CN": "战斗报告 · 订阅专属",
+      "en": "Combat Reports · Subscription Only"
+    },
+    "lockedBody": {
+      "zh-CN": "战斗报告是进阶订阅档（执事起）功能：导入一场的战斗事件文件后，生成技能构成、增益覆盖时间轴与 rDPS 归因表，帮全车看清每一份伤害的来历。",
+      "en": "Combat reports are an advanced subscription tier (T2 and up) feature: import a combat event file for an encounter to generate a skill breakdown, a buff-uptime timeline, and an rDPS attribution table, so the whole squad can see where every point of damage came from."
+    },
+    "emptyBody": {
+      "zh-CN": "本场车队还没有战斗报告。车队成员导入一场战斗的事件文件后，报告将展示在这里，全车队成员可见。",
+      "en": "This squad has no combat reports yet. Once a squad member imports a combat event file, the report will appear here, visible to the whole squad."
+    },
+    "failedHint": {
+      "zh-CN": "上次导入处理失败，可重新导入；已经生成的报告不受影响。",
+      "en": "The last import failed to process. You can import again; reports already generated are unaffected."
+    },
+    "encountersTitle": {
+      "zh-CN": "场次",
+      "en": "Encounters"
+    },
+    "viewReportLabel": {
+      "zh-CN": "查看完整报告",
+      "en": "View Full Report"
+    },
+    "resultKill": {
+      "zh-CN": "击杀",
+      "en": "Kill"
+    },
+    "resultWipe": {
+      "zh-CN": "团灭",
+      "en": "Wipe"
+    },
+    "resultUnknown": {
+      "zh-CN": "结果未记录",
+      "en": "Result Not Recorded"
+    },
+    "bossFallback": {
+      "zh-CN": "未知目标",
+      "en": "Unknown Target"
+    },
+    "summaryTeam": {
+      "zh-CN": "全队总伤 {total} · 秒伤 {dps}",
+      "en": "Team total {total} · DPS {dps}"
+    },
+    "summaryDuration": {
+      "zh-CN": "战斗时长 {duration}",
+      "en": "Duration {duration}"
+    },
+    "summaryPlayers": {
+      "zh-CN": "参战 {count} 人",
+      "en": "{count} players"
+    },
+    "summarySourceEvents": {
+      "zh-CN": "数据来源：战斗事件文件",
+      "en": "Source: Combat Event File"
+    },
+    "summarySourceOverlay": {
+      "zh-CN": "数据来源：屏幕视觉记录（官方团队面板口径）",
+      "en": "Source: Screen-Vision Recording (Official Team Panel Basis)"
+    },
+    "qualityUnclosed": {
+      "zh-CN": "数据提示：{count} 处增益区间未正常关闭，已按战斗结束时刻收口",
+      "en": "Data note: {count} buff intervals were not closed properly and were closed at the encounter end"
+    },
+    "modelVersionText": {
+      "zh-CN": "归因模型 v{version}",
+      "en": "Attribution model v{version}"
+    },
+    "startedAtText": {
+      "zh-CN": "开场于 {time}",
+      "en": "Started at {time}"
+    },
+    "importedAtText": {
+      "zh-CN": "导入于 {time}",
+      "en": "Imported at {time}"
+    },
+    "uploaderText": {
+      "zh-CN": "由 {name} 导入",
+      "en": "Imported by {name}"
+    },
+    "guestTag": {
+      "zh-CN": "访客",
+      "en": "Guest"
+    },
+    "multiplierUndetermined": {
+      "zh-CN": "倍率未定",
+      "en": "Multiplier Undetermined"
+    },
+    "applierSystem": {
+      "zh-CN": "系统",
+      "en": "System"
+    },
+    "panelSkillLabel": {
+      "zh-CN": "面板伤害",
+      "en": "Panel Damage"
+    },
+    "unnamedCast": {
+      "zh-CN": "未命名技能",
+      "en": "Unnamed Skill"
+    },
+    "importLabel": {
+      "zh-CN": "导入战斗报告",
+      "en": "Import Combat Report"
+    },
+    "importingLabel": {
+      "zh-CN": "导入中…",
+      "en": "Importing…"
+    },
+    "importHint": {
+      "zh-CN": "选择一场战斗的事件文件（JSON）或 overlay 会话导出，导入后全车队可见。",
+      "en": "Choose a combat event file (JSON) for one encounter, or an overlay session export. Once imported, the report is visible to the whole squad."
+    },
+    "toastImported": {
+      "zh-CN": "战斗报告已导入",
+      "en": "Combat report imported"
+    },
+    "toastImportFailedTemplate": {
+      "zh-CN": "导入失败：{error}",
+      "en": "Import failed: {error}"
+    },
+    "importErrorFormat": {
+      "zh-CN": "文件格式版本不受支持",
+      "en": "Unsupported file format version"
+    },
+    "importErrorValidation": {
+      "zh-CN": "文件内容校验未通过",
+      "en": "File content failed validation"
+    },
+    "importErrorLimit": {
+      "zh-CN": "今日导入次数已达上限",
+      "en": "Today's import limit has been reached"
+    },
+    "importErrorForbidden": {
+      "zh-CN": "没有导入权限",
+      "en": "You do not have permission to import"
+    },
+    "importErrorNotFound": {
+      "zh-CN": "车队不存在",
+      "en": "This squad does not exist"
+    },
+    "importErrorTier": {
+      "zh-CN": "本百业尚未开通战斗报告",
+      "en": "This guild has not unlocked combat reports"
+    },
+    "deleteLabel": {
+      "zh-CN": "删除",
+      "en": "Delete"
+    },
+    "deleteConfirmTitle": {
+      "zh-CN": "删除这场战斗报告？",
+      "en": "Delete this combat report?"
+    },
+    "deleteConfirmMessageTemplate": {
+      "zh-CN": "将删除「{boss}」的这场战斗报告，删除后不可恢复。",
+      "en": "This will delete the combat report for \"{boss}\", and it cannot be restored."
+    },
+    "toastDeleted": {
+      "zh-CN": "已删除",
+      "en": "Deleted"
+    },
+    "toastDeleteFailedTemplate": {
+      "zh-CN": "删除失败：{error}",
+      "en": "Delete failed: {error}"
+    },
+    "tabOverviewLabel": {
+      "zh-CN": "总览",
+      "en": "Overview"
+    },
+    "tabDamageLabel": {
+      "zh-CN": "伤害",
+      "en": "Damage"
+    },
+    "tabBuffsLabel": {
+      "zh-CN": "增益",
+      "en": "Buffs"
+    },
+    "tabCastsLabel": {
+      "zh-CN": "施法",
+      "en": "Casts"
+    },
+    "tabTimelineLabel": {
+      "zh-CN": "时间线",
+      "en": "Timeline"
+    },
+    "backLabel": {
+      "zh-CN": "返回车队",
+      "en": "Back to Squad"
+    },
+    "colPlayer": {
+      "zh-CN": "玩家",
+      "en": "Player"
+    },
+    "colTotal": {
+      "zh-CN": "总量",
+      "en": "Total"
+    },
+    "colActivity": {
+      "zh-CN": "活跃",
+      "en": "Activity"
+    },
+    "colDps": {
+      "zh-CN": "秒伤",
+      "en": "DPS"
+    },
+    "colRdps": {
+      "zh-CN": "rDPS",
+      "en": "rDPS"
+    },
+    "colRShare": {
+      "zh-CN": "rDPS 占比",
+      "en": "rDPS Share"
+    },
+    "colSkill": {
+      "zh-CN": "技能",
+      "en": "Skill"
+    },
+    "colCasts": {
+      "zh-CN": "次数",
+      "en": "Casts"
+    },
+    "colHits": {
+      "zh-CN": "命中",
+      "en": "Hits"
+    },
+    "colAvg": {
+      "zh-CN": "平均",
+      "en": "Average"
+    },
+    "colCrit": {
+      "zh-CN": "会心",
+      "en": "Critical"
+    },
+    "colSpec": {
+      "zh-CN": "会意",
+      "en": "Affinity"
+    },
+    "colMax": {
+      "zh-CN": "最高",
+      "en": "Max"
+    },
+    "colShare": {
+      "zh-CN": "占比",
+      "en": "Share"
+    },
+    "colBuff": {
+      "zh-CN": "增益",
+      "en": "Buff"
+    },
+    "colApplier": {
+      "zh-CN": "施加者",
+      "en": "Applier"
+    },
+    "colTarget": {
+      "zh-CN": "目标",
+      "en": "Target"
+    },
+    "colUptime": {
+      "zh-CN": "覆盖率",
+      "en": "Uptime"
+    },
+    "colTime": {
+      "zh-CN": "时刻",
+      "en": "Time"
+    },
+    "activityNote": {
+      "zh-CN": "活跃口径：以 1 秒为格，玩家在格内有施法、命中或施加增益事件即记为活跃。",
+      "en": "Activity basis: time is divided into 1-second cells; a player counts as active in a cell when they cast, land a hit, or apply a buff within it."
+    },
+    "rdpsNote": {
+      "zh-CN": "rDPS 口径：增益带来的额外伤害按各增益倍率的对数权重归还施加者；系统增益留在受益者名下，全队 rDPS 与总伤守恒。",
+      "en": "rDPS basis: the extra damage granted by a buff is credited back to its applier by the log-weights of each buff's multiplier; system buffs stay with the beneficiary, and team rDPS is conserved against total damage."
+    },
+    "castsLocalTitle": {
+      "zh-CN": "本地施法记录",
+      "en": "Local Cast Record"
+    },
+    "timelineTitle": {
+      "zh-CN": "每秒全队伤害",
+      "en": "Team Damage per Second"
+    },
+    "adminTabLabel": {
+      "zh-CN": "战斗报告",
+      "en": "Combat Reports"
+    },
+    "adminTitle": {
+      "zh-CN": "战斗报告记录",
+      "en": "Combat Report Records"
+    },
+    "adminEmptyText": {
+      "zh-CN": "暂无战斗报告记录。车队成员导入战斗报告后，会在这里汇总。",
+      "en": "No combat report records yet. Once squad members import combat reports, they will be collected here."
+    },
+    "adminStatusParsedText": {
+      "zh-CN": "已生成",
+      "en": "Generated"
+    },
+    "adminStatusFailedText": {
+      "zh-CN": "处理失败",
+      "en": "Processing Failed"
     }
   }
 };

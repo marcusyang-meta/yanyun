@@ -13,6 +13,9 @@ export * from './signups.ts';
 export * from './results.ts';
 export * from './recaps.ts';
 export * from './recap-service.ts';
+export * from './combat-reports.ts';
+export * from './combat-aggregate.ts';
+export * from './combat-report-service.ts';
 export * from './reminder.ts';
 export { GuildHub } from './guildhub.ts';
 export { SeatHub } from './seathub.ts';
@@ -23,3 +26,4 @@ export * from './graphql.ts';
 
 export * from "./scheduling.ts";
 export * from './recap-graphql.ts';
+export * from './combat-graphql.ts';

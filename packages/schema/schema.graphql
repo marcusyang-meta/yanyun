@@ -577,6 +577,11 @@ type Grouping {
 extend type Query {
   groupingDetailPage(slug: String, id: ID!): GroupingDetailPage!
   sharedGrouping(code: String!): SharedGroupingPage!
+  # Combat report page (/{slug}/car/{id}/report): the same union
+  # the detail page's combatReport field resolves; gating mirrors
+  # groupingDetailPage (tenant isolation + guild access), then
+  # the T2 composition runs — null below T2 with the paygate OFF.
+  combatReportPage(slug: String, groupingId: ID!, encounterId: ID): GroupingCombatReportResult
 }
 
 # ============ 页面：车队公开分享 ============
@@ -660,6 +665,16 @@ type GroupingDetailPage {
   # generate action object rides only Ready/Empty and only for the
   # leader or this guild's admins.
   recap: GroupingRecapResult
+  # Combat reports (premium T2): the union variant is the
+  # verdict — absent resolves null (below T2 with the paygate
+  # OFF: the section does not exist); Locked = below T2 with the
+  # paygate ON (sales copy only, zero encounter data read);
+  # Ready = stored encounters (member-visible, follows the
+  # grouping's own visibility); Empty = available, none imported
+  # yet. Imports arrive over HTTP (file upload); the delete
+  # action object rides a summary row only for viewers who may
+  # delete that encounter (uploader / leader / guild admin).
+  combatReport: GroupingCombatReportResult
   # 无管理码，人人可管
   # UI 文案: 全部由本页 shell 的 gen 方法按请求 locale 生成
   detailNotFoundText: String!
@@ -841,6 +856,238 @@ type RecapPayload {
   recap: GroupingRecapResult
   error: String
   errorCode: String
+}
+
+# ============ Combat reports (Premium T2) ============
+# One imported encounter file = one attempt; a grouping holds
+# many (1:N). The report body is computed data (damage numbers,
+# intervals), dispatched as structured fields for the client to
+# render; every label is composed by the backend per locale.
+
+union GroupingCombatReportResult = GroupingCombatReportReady | GroupingCombatReportLocked | GroupingCombatReportEmpty
+
+enum CombatEncounterResult {
+  KILL
+  WIPE
+  UNKNOWN
+}
+
+# Import/delete copy group: rides the Ready and Empty variants.
+# The import control posts the file to the HTTP import route;
+# every error reason the route can return has its label here, so
+# the client maps error codes to copy it was given, never its own.
+type CombatReportActions {
+  importLabel: String!
+  importingLabel: String!
+  importHint: String!
+  toastImported: String!
+  toastImportFailedTemplate: String!
+  importErrorFormat: String!
+  importErrorValidation: String!
+  importErrorLimit: String!
+  importErrorForbidden: String!
+  importErrorNotFound: String!
+  importErrorTier: String!
+  deleteLabel: String!
+  deleteConfirmTitle: String!
+  deleteConfirmMessageTemplate: String!
+  toastDeleted: String!
+  toastDeleteFailedTemplate: String!
+}
+
+# Per-encounter delete affordance: the object exists only on
+# rows the viewer may delete (uploader, leader, or this guild's
+# admin) — presence is the verdict, no flag is dispatched.
+type CombatEncounterDeleteAction {
+  deleteLabel: String!
+  confirmTitle: String!
+  confirmMessageTemplate: String!
+  toastDeleted: String!
+  toastDeleteFailedTemplate: String!
+}
+
+type CombatEncounterSummary {
+  id: ID!
+  bossName: String!
+  startedAtText: String!
+  durationText: String!
+  result: CombatEncounterResult!
+  resultText: String!
+  teamDpsText: String!
+  uploaderText: String!
+  sourceText: String!
+  deleteAction: CombatEncounterDeleteAction
+}
+
+type CombatPartyRow {
+  playerName: String!
+  # Roster display name when the character name matched a guild
+  # member at import time; null for guest actors (who carry the
+  # guestTag instead)
+  memberName: String
+  guestTag: String
+  total: Int!
+  activityPctText: String!
+  dpsText: String!
+  rdpsText: String!
+  rSharePctText: String!
+}
+
+type CombatSkillRow {
+  skillName: String!
+  total: Int!
+  casts: Int!
+  hits: Int!
+  avgText: String!
+  critPctText: String!
+  specPctText: String!
+  maxHit: Int!
+  dpsText: String!
+  sharePctText: String!
+}
+
+type CombatSkillTable {
+  playerName: String!
+  rows: [CombatSkillRow!]!
+}
+
+type CombatInterval {
+  startMs: Int!
+  endMs: Int!
+}
+
+type CombatBuffRow {
+  buffName: String!
+  applierName: String!
+  targetName: String!
+  # "×1.20" when the multiplier resolved (file dictionary first,
+  # then the platform dictionary); the backend's undetermined
+  # marker copy when neither knows it (attribution used 1.0)
+  multiplierText: String!
+  uptimePctText: String!
+  intervals: [CombatInterval!]!
+}
+
+type CombatCastRow {
+  timeText: String!
+  playerName: String!
+  skillName: String!
+}
+
+type CombatDpsPoint {
+  second: Int!
+  damage: Int!
+}
+
+type CombatEncounterDetail {
+  bossName: String!
+  resultText: String!
+  durationText: String!
+  startedAtText: String!
+  # Overview summary lines (composed by the backend from the
+  # stored snapshot, per locale)
+  overviewLines: [String!]!
+  modelVersionText: String!
+  activityNote: String!
+  rdpsNote: String!
+  colPlayer: String!
+  colTotal: String!
+  colActivity: String!
+  colDps: String!
+  colRdps: String!
+  colRShare: String!
+  colSkill: String!
+  colCasts: String!
+  colHits: String!
+  colAvg: String!
+  colCrit: String!
+  colSpec: String!
+  colMax: String!
+  colShare: String!
+  colBuff: String!
+  colApplier: String!
+  colTarget: String!
+  colUptime: String!
+  colTime: String!
+  # Heading for the casts tab of an overlay import (its cast
+  # points belong to the local player only); null for event-file
+  # imports, whose cast list is complete
+  castsLocalTitle: String
+  timelineTitle: String!
+  # Raw encounter length: the chart geometry input for the
+  # buff-tab gantt (all copy still arrives as text fields)
+  durationMs: Int!
+  partyRows: [CombatPartyRow!]!
+  skillTables: [CombatSkillTable!]!
+  buffRows: [CombatBuffRow!]!
+  castRows: [CombatCastRow!]!
+  dpsSeries: [CombatDpsPoint!]!
+}
+
+type GroupingCombatReportReady {
+  title: String!
+  encountersTitle: String!
+  viewReportLabel: String!
+  backLabel: String!
+  tabOverviewLabel: String!
+  tabDamageLabel: String!
+  tabBuffsLabel: String!
+  tabCastsLabel: String!
+  tabTimelineLabel: String!
+  encounters: [CombatEncounterSummary!]!
+  # The selected encounter (default: the latest attempt)
+  detail: CombatEncounterDetail
+  # Hint shown when the latest import failed during processing
+  # (stored reports are unaffected); null when no failure
+  failedHint: String
+  actions: CombatReportActions
+}
+
+type GroupingCombatReportEmpty {
+  title: String!
+  body: String!
+  failedHint: String
+  actions: CombatReportActions
+}
+
+# Below T2: locked copy only — zero encounter content.
+type GroupingCombatReportLocked {
+  title: String!
+  body: String!
+}
+
+type CombatReportPayload {
+  ok: Boolean!
+  combatReport: GroupingCombatReportResult
+  error: String
+  errorCode: String
+}
+
+# Combat report index: the Locked variant is the same type the
+# detail page uses.
+union GuildAdminCombatReportResult = GuildAdminCombatReportList | GroupingCombatReportLocked
+
+type GuildAdminCombatReportList {
+  title: String!
+  emptyText: String!
+  items: [GuildAdminCombatEncounter!]!
+}
+
+enum GuildAdminCombatStatus {
+  PARSED
+  FAILED
+}
+
+type GuildAdminCombatEncounter {
+  id: ID!
+  groupingId: ID!
+  groupingTitle: String!
+  bossName: String!
+  status: GuildAdminCombatStatus!
+  statusText: String!
+  resultText: String!
+  teamDpsText: String!
+  importedAtText: String!
 }
 
 # 管理动作 (编辑/完成/恢复/解散) 的文案组: 只随 GroupingDetailPage
@@ -1862,6 +2109,7 @@ type Mutation {
   disbandGrouping(id: ID!): DeletePayload!  # 解散车队：仅车头或本百业管理员可为，服务端复验
   completeGrouping(id: ID!): GroupingPayload!  # 完成车队：仅车头或本百业管理员可为，服务端复验；完成车不进列表、不发提醒
   generateGroupingRecap(id: ID!): RecapPayload!  # Generate/regenerate an AI recap (P18, T3): leader or this guild's admin only, completed groupings only, manual trigger; the server re-verifies tier and provider
+  deleteCombatEncounter(id: ID!): CombatReportPayload!  # Delete one combat encounter report: the uploader, the leader, or a guild admin only; the server re-verifies the tier write verdict
   reopenGrouping(id: ID!): GroupingPayload!  # 恢复车队（撤销完成，回到 open）：仅车头或本百业管理员可为，服务端复验
   joinGrouping(input: JoinGroupingInput!): SeatPayload!
   leaveGrouping(input: LeaveGroupingInput!): SeatPayload!
@@ -2737,6 +2985,11 @@ type GuildAdmin {
   # zero records read) / NotEnabled (no provider configured) /
   # List. GuildAdmin only — Locked carries zero recap fields.
   recaps: GuildAdminRecapResult
+  # Combat report index (combat reports v1, T2): the verdict
+  # composes like the detail surface — null (below T2, paygate
+  # OFF) / Locked (below T2, paygate ON, zero rows read) / List.
+  # GuildAdmin only — Locked carries zero encounter fields.
+  combatReports: GuildAdminCombatReportResult
   # 出勤统计 (Premium, 读侧门控): 总闸开且本百业未开通时组合为
   # GuildAdminStatsLocked (只有未开通文案, 零统计数据); 总闸关或
   # 已开通时与从前一致。结论只由响应类型表达, 无标志位下发。
@@ -2939,6 +3192,7 @@ type GuildAdmin {
   adminTabOfficerLabel: String!
   adminTabOpsLabel: String!
   adminTabRecapsLabel: String!
+  adminTabCombatReportsLabel: String!
   adminLotteryTitle: String!
   adminLotteryHint: String!
   adminLotteryEmptyText: String!

@@ -255,7 +255,83 @@ export type GroupingsStringKey =
   | 'recap_adminEmptyText'
   | 'recap_adminStatusReadyText'
   | 'recap_adminStatusFailedText'
-  | 'recap_adminParagraphCount';
+  | 'recap_adminParagraphCount'
+  | 'combatReport_title'
+  | 'combatReport_lockedTitle'
+  | 'combatReport_lockedBody'
+  | 'combatReport_emptyBody'
+  | 'combatReport_failedHint'
+  | 'combatReport_encountersTitle'
+  | 'combatReport_viewReportLabel'
+  | 'combatReport_resultKill'
+  | 'combatReport_resultWipe'
+  | 'combatReport_resultUnknown'
+  | 'combatReport_bossFallback'
+  | 'combatReport_summaryTeam'
+  | 'combatReport_summaryDuration'
+  | 'combatReport_summaryPlayers'
+  | 'combatReport_summarySourceEvents'
+  | 'combatReport_summarySourceOverlay'
+  | 'combatReport_qualityUnclosed'
+  | 'combatReport_modelVersionText'
+  | 'combatReport_startedAtText'
+  | 'combatReport_importedAtText'
+  | 'combatReport_uploaderText'
+  | 'combatReport_guestTag'
+  | 'combatReport_multiplierUndetermined'
+  | 'combatReport_applierSystem'
+  | 'combatReport_panelSkillLabel'
+  | 'combatReport_unnamedCast'
+  | 'combatReport_importLabel'
+  | 'combatReport_importingLabel'
+  | 'combatReport_importHint'
+  | 'combatReport_toastImported'
+  | 'combatReport_toastImportFailedTemplate'
+  | 'combatReport_importErrorFormat'
+  | 'combatReport_importErrorValidation'
+  | 'combatReport_importErrorLimit'
+  | 'combatReport_importErrorForbidden'
+  | 'combatReport_importErrorNotFound'
+  | 'combatReport_importErrorTier'
+  | 'combatReport_deleteLabel'
+  | 'combatReport_deleteConfirmTitle'
+  | 'combatReport_deleteConfirmMessageTemplate'
+  | 'combatReport_toastDeleted'
+  | 'combatReport_toastDeleteFailedTemplate'
+  | 'combatReport_tabOverviewLabel'
+  | 'combatReport_tabDamageLabel'
+  | 'combatReport_tabBuffsLabel'
+  | 'combatReport_tabCastsLabel'
+  | 'combatReport_tabTimelineLabel'
+  | 'combatReport_backLabel'
+  | 'combatReport_colPlayer'
+  | 'combatReport_colTotal'
+  | 'combatReport_colActivity'
+  | 'combatReport_colDps'
+  | 'combatReport_colRdps'
+  | 'combatReport_colRShare'
+  | 'combatReport_colSkill'
+  | 'combatReport_colCasts'
+  | 'combatReport_colHits'
+  | 'combatReport_colAvg'
+  | 'combatReport_colCrit'
+  | 'combatReport_colSpec'
+  | 'combatReport_colMax'
+  | 'combatReport_colShare'
+  | 'combatReport_colBuff'
+  | 'combatReport_colApplier'
+  | 'combatReport_colTarget'
+  | 'combatReport_colUptime'
+  | 'combatReport_colTime'
+  | 'combatReport_activityNote'
+  | 'combatReport_rdpsNote'
+  | 'combatReport_castsLocalTitle'
+  | 'combatReport_timelineTitle'
+  | 'combatReport_adminTabLabel'
+  | 'combatReport_adminTitle'
+  | 'combatReport_adminEmptyText'
+  | 'combatReport_adminStatusParsedText'
+  | 'combatReport_adminStatusFailedText';
 
 export const GROUPINGS_STRING_KEYS: readonly GroupingsStringKey[] = [
   'groupingType_tabActivity',
@@ -513,4 +589,80 @@ export const GROUPINGS_STRING_KEYS: readonly GroupingsStringKey[] = [
   'recap_adminStatusReadyText',
   'recap_adminStatusFailedText',
   'recap_adminParagraphCount',
+  'combatReport_title',
+  'combatReport_lockedTitle',
+  'combatReport_lockedBody',
+  'combatReport_emptyBody',
+  'combatReport_failedHint',
+  'combatReport_encountersTitle',
+  'combatReport_viewReportLabel',
+  'combatReport_resultKill',
+  'combatReport_resultWipe',
+  'combatReport_resultUnknown',
+  'combatReport_bossFallback',
+  'combatReport_summaryTeam',
+  'combatReport_summaryDuration',
+  'combatReport_summaryPlayers',
+  'combatReport_summarySourceEvents',
+  'combatReport_summarySourceOverlay',
+  'combatReport_qualityUnclosed',
+  'combatReport_modelVersionText',
+  'combatReport_startedAtText',
+  'combatReport_importedAtText',
+  'combatReport_uploaderText',
+  'combatReport_guestTag',
+  'combatReport_multiplierUndetermined',
+  'combatReport_applierSystem',
+  'combatReport_panelSkillLabel',
+  'combatReport_unnamedCast',
+  'combatReport_importLabel',
+  'combatReport_importingLabel',
+  'combatReport_importHint',
+  'combatReport_toastImported',
+  'combatReport_toastImportFailedTemplate',
+  'combatReport_importErrorFormat',
+  'combatReport_importErrorValidation',
+  'combatReport_importErrorLimit',
+  'combatReport_importErrorForbidden',
+  'combatReport_importErrorNotFound',
+  'combatReport_importErrorTier',
+  'combatReport_deleteLabel',
+  'combatReport_deleteConfirmTitle',
+  'combatReport_deleteConfirmMessageTemplate',
+  'combatReport_toastDeleted',
+  'combatReport_toastDeleteFailedTemplate',
+  'combatReport_tabOverviewLabel',
+  'combatReport_tabDamageLabel',
+  'combatReport_tabBuffsLabel',
+  'combatReport_tabCastsLabel',
+  'combatReport_tabTimelineLabel',
+  'combatReport_backLabel',
+  'combatReport_colPlayer',
+  'combatReport_colTotal',
+  'combatReport_colActivity',
+  'combatReport_colDps',
+  'combatReport_colRdps',
+  'combatReport_colRShare',
+  'combatReport_colSkill',
+  'combatReport_colCasts',
+  'combatReport_colHits',
+  'combatReport_colAvg',
+  'combatReport_colCrit',
+  'combatReport_colSpec',
+  'combatReport_colMax',
+  'combatReport_colShare',
+  'combatReport_colBuff',
+  'combatReport_colApplier',
+  'combatReport_colTarget',
+  'combatReport_colUptime',
+  'combatReport_colTime',
+  'combatReport_activityNote',
+  'combatReport_rdpsNote',
+  'combatReport_castsLocalTitle',
+  'combatReport_timelineTitle',
+  'combatReport_adminTabLabel',
+  'combatReport_adminTitle',
+  'combatReport_adminEmptyText',
+  'combatReport_adminStatusParsedText',
+  'combatReport_adminStatusFailedText',
 ];
