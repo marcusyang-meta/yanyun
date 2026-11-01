@@ -7,8 +7,10 @@ import resvgWasm from './resvg.wasm';
 // 冷/热请求都是亚秒级 200。
 import genericPng from './generic.png';
 import genericSvg from './generic.svg';
+import { qrPngDataUri } from './qr.js';
 
 const SITE_API = 'https://yanyun.tbdlab.workers.dev';
+const SITE_URL = 'https://yanyun.app';
 const GENERIC_MAX_AGE = 86400; // 通用图是静态资产: 长 TTL
 
 function genericResponse(url, maxAge = GENERIC_MAX_AGE) {
@@ -283,7 +285,7 @@ async function fetchGroupingData(slug, id) {
       query: `
         query($slug: String!, $id: ID!) {
           ogCarCard(slug: $slug, id: $id) {
-            title type startsAtUtc dungeonName occupiedCount maxSlots status
+            title type startsAtUtc dungeonName occupiedCount maxSlots status shareCode
           }
         }
       `,
@@ -300,6 +302,11 @@ async function fetchGroupingData(slug, id) {
     occupiedCount: ev.occupiedCount || 0,
     maxSlots: ev.maxSlots || 0,
     status: ev.status || '',
+    // The car's canonical short link, present only when a code was
+    // already minted through a share surface (the backend resolves
+    // it read-only and never mints for the card). Null -> the card
+    // renders without a QR code.
+    shareUrl: ev.shareCode ? `${SITE_URL}/c/${ev.shareCode}` : null,
   };
 }
 
@@ -636,6 +643,39 @@ async function handleCarImage(request, url, slug, id) {
       ],
     },
   };
+
+  // 短链二维码 (右下角, 浅色底衬与静区保证可扫): 卡图被发进微信等
+  // 无链接预览的场景时长按识码直达报名页, 卡图自包含。没有现成
+  // code 的车不印 (后端只读解析, 图片 GET 永不铸造)。QR 生成失败
+  // 只丢码, 不拖垮整张卡。
+  if (g.shareUrl) {
+    try {
+      const qrUri = await qrPngDataUri(g.shareUrl);
+      element.props.children.push({
+        type: 'div',
+        props: {
+          style: {
+            position: 'absolute', right: '36px', bottom: '36px',
+            display: 'flex', flexDirection: 'column', alignItems: 'center',
+            backgroundColor: '#f3ead3', borderRadius: '14px', padding: '14px 14px 10px',
+          },
+          children: [
+            {
+              type: 'img',
+              props: { src: qrUri, style: { width: '148px', height: '148px' } },
+            },
+            {
+              type: 'div',
+              props: {
+                style: { color: '#4a3a17', fontSize: '21px', letterSpacing: '4px', marginTop: '8px' },
+                children: '扫码报名',
+              },
+            },
+          ],
+        },
+      });
+    } catch { /* QR is additive: never break the card over it */ }
+  }
 
   const svg = await satori(element, {
     width: 1200, height: 630,
