@@ -4702,6 +4702,9 @@ export abstract class PlatformAdminFbtUtils {
 	static webhookUnsetText(fbs: FbsRuntime) {
 		return fbs._("Webhook 未配置", null, { hk: "3DoRYz" });
 	}
+	static webhookCustomAddressText(fbs: FbsRuntime) {
+		return fbs._("已配置（自定义地址）", null, { hk: "4tvExS" });
+	}
 	static runBackupLabel(fbs: FbsRuntime) {
 		return fbs._("立即备份", null, { hk: "2BM5nK" });
 	}
@@ -4731,6 +4734,24 @@ export abstract class PlatformAdminFbtUtils {
 	}
 	static nextAlarmLabel(fbs: FbsRuntime) {
 		return fbs._("下次提醒", null, { hk: "1ifqdt" });
+	}
+	static reminderErrorSendFailed(fbs: FbsRuntime) {
+		return fbs._("发送失败", null, { hk: "4abDsY" });
+	}
+	static reminderErrorRateLimited(fbs: FbsRuntime) {
+		return fbs._("Discord 限流 (429)", null, { hk: "12ZleY" });
+	}
+	static reminderErrorRateLimitedDetail(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("Discord 限流 (429): {detail}", [fbs._param("detail", pv(p, "detail"))], { hk: "eCfPj" });
+	}
+	static reminderErrorWebhookStatus(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("Webhook 返回 {status}", [fbs._param("status", pv(p, "status"))], { hk: "2acPH5" });
+	}
+	static reminderErrorWebhookStatusDetail(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("Webhook 返回 {status}: {detail}", [fbs._param("status", pv(p, "status")), fbs._param("detail", pv(p, "detail"))], { hk: "1S23wU" });
+	}
+	static reminderErrorRequestFailed(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("Webhook 请求失败: {detail}", [fbs._param("detail", pv(p, "detail"))], { hk: "3Am6ux" });
 	}
 	static periodEndLabel(fbs: FbsRuntime) {
 		return fbs._("周期结束", null, { hk: "1oygv2" });
@@ -6714,6 +6735,7 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"platformAdmin_disabledText": PlatformAdminFbtUtils.disabledText,
 	"platformAdmin_webhookSetText": PlatformAdminFbtUtils.webhookSetText,
 	"platformAdmin_webhookUnsetText": PlatformAdminFbtUtils.webhookUnsetText,
+	"platformAdmin_webhookCustomAddressText": PlatformAdminFbtUtils.webhookCustomAddressText,
 	"platformAdmin_runBackupLabel": PlatformAdminFbtUtils.runBackupLabel,
 	"platformAdmin_downloadLabel": PlatformAdminFbtUtils.downloadLabel,
 	"platformAdmin_exportLabel": PlatformAdminFbtUtils.exportLabel,
@@ -6724,6 +6746,12 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"platformAdmin_statusResolvedText": PlatformAdminFbtUtils.statusResolvedText,
 	"platformAdmin_lastStatusLabel": PlatformAdminFbtUtils.lastStatusLabel,
 	"platformAdmin_nextAlarmLabel": PlatformAdminFbtUtils.nextAlarmLabel,
+	"platformAdmin_reminderErrorSendFailed": PlatformAdminFbtUtils.reminderErrorSendFailed,
+	"platformAdmin_reminderErrorRateLimited": PlatformAdminFbtUtils.reminderErrorRateLimited,
+	"platformAdmin_reminderErrorRateLimitedDetail": PlatformAdminFbtUtils.reminderErrorRateLimitedDetail,
+	"platformAdmin_reminderErrorWebhookStatus": PlatformAdminFbtUtils.reminderErrorWebhookStatus,
+	"platformAdmin_reminderErrorWebhookStatusDetail": PlatformAdminFbtUtils.reminderErrorWebhookStatusDetail,
+	"platformAdmin_reminderErrorRequestFailed": PlatformAdminFbtUtils.reminderErrorRequestFailed,
 	"platformAdmin_periodEndLabel": PlatformAdminFbtUtils.periodEndLabel,
 	"platformAdmin_sourceLabel": PlatformAdminFbtUtils.sourceLabel,
 	"platformAdmin_tierLabel": PlatformAdminFbtUtils.tierLabel,

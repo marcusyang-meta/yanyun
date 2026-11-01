@@ -20150,6 +20150,90 @@
         }
       ],
       "types": []
+    },
+    "/kb11Qq4hps2tXa0zUivZg==": {
+      "description": "Status text for webhook state on the platform admin page, used when a guild's webhook URL does not match the standard Discord webhook shape, so only the fact that a custom address is configured can be shown.",
+      "id": "platform/platformAdmin_webhookCustomAddressText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Configured (custom address)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "t0CXEMuy8Ieoelm6yMpSzA==": {
+      "description": "Delivery error text for departure reminders on the platform admin page, used when a reminder send failed without a more specific recorded error.",
+      "id": "platform/platformAdmin_reminderErrorSendFailed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Send failed",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "dGuNWVRBVa1W9WxxripGQg==": {
+      "description": "Delivery error text for departure reminders on the platform admin page, used when Discord rate limited the guild's reminder webhook.",
+      "id": "platform/platformAdmin_reminderErrorRateLimited",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Discord rate limit (429)",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "nm//akjzKMy9hTIpQmDM3w==": {
+      "description": "Delivery error text for departure reminders on the platform admin page, used when Discord rate limited the guild's reminder webhook and returned a response body, where {detail} is Discord's response text.",
+      "id": "platform/platformAdmin_reminderErrorRateLimitedDetail",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Discord rate limit (429): {detail}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Sf/syU+N1j1TIvArWGTUCA==": {
+      "description": "Delivery error text for departure reminders on the platform admin page, used when the guild's reminder webhook answered with an HTTP error status, where {status} is the HTTP status code.",
+      "id": "platform/platformAdmin_reminderErrorWebhookStatus",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Webhook returned {status}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "AwZgRvperalK/x1dviverQ==": {
+      "description": "Delivery error text for departure reminders on the platform admin page, used when the guild's reminder webhook answered with an HTTP error status and a response body, where {status} is the HTTP status code and {detail} is the response text.",
+      "id": "platform/platformAdmin_reminderErrorWebhookStatusDetail",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Webhook returned {status}: {detail}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "az99tbaGbpVOwpqmtc6mHQ==": {
+      "description": "Delivery error text for departure reminders on the platform admin page, used when the request to the guild's reminder webhook failed before any response, where {detail} is the underlying error message.",
+      "id": "platform/platformAdmin_reminderErrorRequestFailed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Webhook request failed: {detail}",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }
