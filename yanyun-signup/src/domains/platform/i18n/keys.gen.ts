@@ -296,6 +296,7 @@ export type PlatformStringKey =
   | 'platformAdmin_disabledText'
   | 'platformAdmin_webhookSetText'
   | 'platformAdmin_webhookUnsetText'
+  | 'platformAdmin_webhookCustomAddressText'
   | 'platformAdmin_runBackupLabel'
   | 'platformAdmin_downloadLabel'
   | 'platformAdmin_exportLabel'
@@ -306,6 +307,12 @@ export type PlatformStringKey =
   | 'platformAdmin_statusResolvedText'
   | 'platformAdmin_lastStatusLabel'
   | 'platformAdmin_nextAlarmLabel'
+  | 'platformAdmin_reminderErrorSendFailed'
+  | 'platformAdmin_reminderErrorRateLimited'
+  | 'platformAdmin_reminderErrorRateLimitedDetail'
+  | 'platformAdmin_reminderErrorWebhookStatus'
+  | 'platformAdmin_reminderErrorWebhookStatusDetail'
+  | 'platformAdmin_reminderErrorRequestFailed'
   | 'platformAdmin_periodEndLabel'
   | 'platformAdmin_sourceLabel'
   | 'platformAdmin_tierLabel'
@@ -610,6 +617,7 @@ export const PLATFORM_STRING_KEYS: readonly PlatformStringKey[] = [
   'platformAdmin_disabledText',
   'platformAdmin_webhookSetText',
   'platformAdmin_webhookUnsetText',
+  'platformAdmin_webhookCustomAddressText',
   'platformAdmin_runBackupLabel',
   'platformAdmin_downloadLabel',
   'platformAdmin_exportLabel',
@@ -620,6 +628,12 @@ export const PLATFORM_STRING_KEYS: readonly PlatformStringKey[] = [
   'platformAdmin_statusResolvedText',
   'platformAdmin_lastStatusLabel',
   'platformAdmin_nextAlarmLabel',
+  'platformAdmin_reminderErrorSendFailed',
+  'platformAdmin_reminderErrorRateLimited',
+  'platformAdmin_reminderErrorRateLimitedDetail',
+  'platformAdmin_reminderErrorWebhookStatus',
+  'platformAdmin_reminderErrorWebhookStatusDetail',
+  'platformAdmin_reminderErrorRequestFailed',
   'platformAdmin_periodEndLabel',
   'platformAdmin_sourceLabel',
   'platformAdmin_tierLabel',

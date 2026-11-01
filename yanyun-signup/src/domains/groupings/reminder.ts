@@ -132,10 +132,18 @@ export function neutralizeMentions(text: string): string {
   return String(text || '').replace(/@/g, '@\u200b');
 }
 
+/* Fallback label for a configured webhook URL that does not match
+ * the standard Discord webhook shape. The service layer is
+ * locale-free, so this zh-CN literal doubles as the sentinel:
+ * locale-carrying surfaces (the platform admin shells) substitute
+ * the catalog text (platformAdmin_webhookCustomAddressText) when
+ * they render it. */
+export const WEBHOOK_CUSTOM_ADDRESS_LABEL = '已配置（自定义地址）';
+
 // Portal display mask: only host + webhook id + last 4 chars of the token are shown.
 export function maskWebhook(url: string): string {
 const m = String(url || '').match(/^https:\/\/discord\.com\/api\/webhooks\/(\d+)\/([\w-]+)$/);
-if (!m) return url? '已配置（自定义地址）': '';
+if (!m) return url? WEBHOOK_CUSTOM_ADDRESS_LABEL: '';
 const tail = m[2].slice(-4);
 return `discord.com/api/webhooks/${m[1]}/…${tail}`;
 }

@@ -8715,6 +8715,10 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-CN": "Webhook 未配置",
       "en": "Webhook not configured"
     },
+    "webhookCustomAddressText": {
+      "zh-CN": "已配置（自定义地址）",
+      "en": "Configured (custom address)"
+    },
     "runBackupLabel": {
       "zh-CN": "立即备份",
       "en": "Back Up Now"
@@ -8754,6 +8758,30 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
     "nextAlarmLabel": {
       "zh-CN": "下次提醒",
       "en": "Next reminder"
+    },
+    "reminderErrorSendFailed": {
+      "zh-CN": "发送失败",
+      "en": "Send failed"
+    },
+    "reminderErrorRateLimited": {
+      "zh-CN": "Discord 限流 (429)",
+      "en": "Discord rate limit (429)"
+    },
+    "reminderErrorRateLimitedDetail": {
+      "zh-CN": "Discord 限流 (429): {detail}",
+      "en": "Discord rate limit (429): {detail}"
+    },
+    "reminderErrorWebhookStatus": {
+      "zh-CN": "Webhook 返回 {status}",
+      "en": "Webhook returned {status}"
+    },
+    "reminderErrorWebhookStatusDetail": {
+      "zh-CN": "Webhook 返回 {status}: {detail}",
+      "en": "Webhook returned {status}: {detail}"
+    },
+    "reminderErrorRequestFailed": {
+      "zh-CN": "Webhook 请求失败: {detail}",
+      "en": "Webhook request failed: {detail}"
     },
     "periodEndLabel": {
       "zh-CN": "周期结束",

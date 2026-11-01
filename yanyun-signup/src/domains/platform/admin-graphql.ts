@@ -45,6 +45,7 @@ import {
 import { getUserIdByDiscordId, listDiscordIdsByUserIds } from '../identity/index.ts';
 import {
   getReminderConfig, setReminderSetting, postWebhook, WEBHOOK_RE, nudgeReminderHub,
+  WEBHOOK_CUSTOM_ADDRESS_LABEL,
 } from '../groupings/index.ts';
 import { getHeirloomConfig, sendHeirloomTest } from '../gear/index.ts';
 import {
@@ -397,15 +398,42 @@ export class PlatformAdminDungeonShell extends ShellBase {
   genVideoTitle() { return this.data.video_title || ''; }
 }
 
+/* Stored departure-reminder delivery errors are composed at send
+ * time — where no viewer locale exists — as a closed set of zh-CN
+ * labels, some carrying a dynamic tail (the HTTP status, Discord's
+ * response text, the transport error message). The admin surface
+ * re-renders the known labels in the viewer's locale and preserves
+ * the tail verbatim; the stored text itself is never rewritten, and
+ * anything outside the known set passes through unchanged. */
+function localizeReminderLastError(t: (key: string, params?: any) => string, raw: string): string {
+  if (!raw) return raw;
+  if (raw === '未知错误') return t('common_unknownError');
+  if (raw === '发送失败') return t('platformAdmin_reminderErrorSendFailed');
+  let m = raw.match(/^Discord 限流 \(429\)(?:: ([\s\S]+))?$/);
+  if (m) return m[1] ? t('platformAdmin_reminderErrorRateLimitedDetail', { detail: m[1] }) : t('platformAdmin_reminderErrorRateLimited');
+  m = raw.match(/^Webhook 返回 (\d+)(?:: ([\s\S]+))?$/);
+  if (m) return m[2] ? t('platformAdmin_reminderErrorWebhookStatusDetail', { status: m[1], detail: m[2] }) : t('platformAdmin_reminderErrorWebhookStatus', { status: m[1] });
+  m = raw.match(/^Webhook 请求失败: ([\s\S]+)$/);
+  if (m) return t('platformAdmin_reminderErrorRequestFailed', { detail: m[1] });
+  return raw;
+}
+
+/* The webhook mask is composed by the locale-free service layer;
+ * its one non-ASCII outcome is the custom-address fallback label,
+ * which the admin shells substitute with the catalog text. */
+function localizeWebhookMasked(t: (key: string, params?: any) => string, masked: string): string {
+  return masked === WEBHOOK_CUSTOM_ADDRESS_LABEL ? t('platformAdmin_webhookCustomAddressText') : masked;
+}
+
 export class PlatformAdminReminderShell extends ShellBase {
   genSlug() { return (this.data as PlatformReminderState).slug; }
   genGuildName() { return (this.data as PlatformReminderState).guildName || ''; }
   genWebhookSet() { return !!(this.data as PlatformReminderState).webhookSet; }
-  genWebhookMasked() { return (this.data as PlatformReminderState).webhookMasked || ''; }
+  genWebhookMasked() { return localizeWebhookMasked((k, p) => this.t(k, p), (this.data as PlatformReminderState).webhookMasked || ''); }
   genEnabled() { return !!(this.data as PlatformReminderState).enabled; }
   genLastAt() { return (this.data as PlatformReminderState).lastAt ?? null; }
   genLastStatus() { return (this.data as PlatformReminderState).lastStatus || ''; }
-  genLastError() { return (this.data as PlatformReminderState).lastError || ''; }
+  genLastError() { return localizeReminderLastError((k, p) => this.t(k, p), (this.data as PlatformReminderState).lastError || ''); }
   genLastEvent() { return (this.data as PlatformReminderState).lastEvent || ''; }
   genNextAlarmAt() { return (this.data as PlatformReminderState).nextAlarmAt ?? null; }
 }
@@ -414,7 +442,7 @@ export class PlatformAdminHeirloomShell extends ShellBase {
   genSlug() { return (this.data as PlatformHeirloomState).slug; }
   genGuildName() { return (this.data as PlatformHeirloomState).guildName || ''; }
   genWebhookSet() { return !!(this.data as PlatformHeirloomState).webhookSet; }
-  genWebhookMasked() { return (this.data as PlatformHeirloomState).webhookMasked || ''; }
+  genWebhookMasked() { return localizeWebhookMasked((k, p) => this.t(k, p), (this.data as PlatformHeirloomState).webhookMasked || ''); }
   genEnabled() { return !!(this.data as PlatformHeirloomState).enabled; }
   genLastAt() { return (this.data as PlatformHeirloomState).lastAt ?? null; }
   genLastStatus() { return (this.data as PlatformHeirloomState).lastStatus || ''; }
