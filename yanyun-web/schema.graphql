@@ -1904,6 +1904,7 @@ type Mutation {
   platformAdminSetRoster(discordIds: [String!]!): PlatformAdminRosterPayload!
   platformAdminBackfillReminderIdentity(dryRun: Boolean!): PlatformReminderIdentityBackfillPayload!
   platformAdminBackfillCreators(dryRun: Boolean!): PlatformCreatorBackfillPayload!
+  platformAdminBackfillKunpengDex(dryRun: Boolean!): PlatformKunpengDexBackfillPayload!
   platformAdminMigrateBossGuides: PlatformGuideMigrationPayload!
 }
 
@@ -4411,6 +4412,7 @@ type PlatformAdmin {
   exportLabel: String!
   backfillReminderIdentityLabel: String!
   backfillCreatorsLabel: String!
+  backfillKunpengDexLabel: String!
   migrateBossGuidesLabel: String!
   statusOpenText: String!
   statusResolvedText: String!
@@ -4701,6 +4703,28 @@ type PlatformGuideMigrationPayload {
 type PlatformGuideMigrationEntry {
   id: Int!
   name: String!
+  mechanics: Int!
+  talents: Int!
+  shouts: Int!
+}
+
+type PlatformKunpengDexBackfillPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  dryRun: Boolean!
+  dungeonCreated: Boolean!
+  dungeonName: String!
+  bossesCreated: Int!
+  previousCurrentCleared: Boolean!
+  bosses: [PlatformKunpengDexBossEntry!]!
+}
+
+type PlatformKunpengDexBossEntry {
+  id: Int
+  name: String!
+  created: Boolean!
+  guideWritten: Boolean!
   mechanics: Int!
   talents: Int!
   shouts: Int!

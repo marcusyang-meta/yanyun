@@ -89,6 +89,7 @@ const PlatformAdminPageQueryNode = graphql`
           exportLabel
           backfillReminderIdentityLabel
           backfillCreatorsLabel
+          backfillKunpengDexLabel
           migrateBossGuidesLabel
           statusOpenText
           statusResolvedText
@@ -232,6 +233,14 @@ const BackfillCreatorsNode = graphql`
   mutation PlatformAdminPageBackfillCreatorsMutation($dryRun: Boolean!) {
     platformAdminBackfillCreators(dryRun: $dryRun) {
       ok error errorCode dryRun events alreadyStamped considered backfilled placeholder noMatch ambiguous
+    }
+  }
+`;
+const BackfillKunpengDexNode = graphql`
+  mutation PlatformAdminPageBackfillKunpengDexMutation($dryRun: Boolean!) {
+    platformAdminBackfillKunpengDex(dryRun: $dryRun) {
+      ok error errorCode dryRun dungeonCreated dungeonName bossesCreated previousCurrentCleared
+      bosses { id name created guideWritten mechanics talents shouts }
     }
   }
 `;
@@ -663,6 +672,9 @@ export default function PlatformAdminPage() {
           </button>
           <button style={btnStyle} onClick={() => run(BackfillCreatorsNode, { dryRun }, 'platformAdminBackfillCreators')}>
             {a.backfillCreatorsLabel}
+          </button>
+          <button style={btnStyle} onClick={() => run(BackfillKunpengDexNode, { dryRun }, 'platformAdminBackfillKunpengDex')}>
+            {a.backfillKunpengDexLabel}
           </button>
           <button style={btnStyle} onClick={() => run(MigrateBossGuidesNode, {}, 'platformAdminMigrateBossGuides')}>
             {a.migrateBossGuidesLabel}
