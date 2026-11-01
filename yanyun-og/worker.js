@@ -839,6 +839,18 @@ async function handleGuildImage(request, url, slug) {
   } finally { releaseRenderSlot(); }
 }
 
+/* Share-card images are public by design (they are the og:image of
+ * public share pages), and the web share-image action fetches them
+ * as blobs cross-origin — so image responses carry a wildcard CORS
+ * header. Only the response on the wire is wrapped here; the render
+ * cache inside the handlers keeps storing the bare image response. */
+function withImageCors(res) {
+  if (!res || res.headers.get('Access-Control-Allow-Origin')) return res;
+  const headers = new Headers(res.headers);
+  headers.set('Access-Control-Allow-Origin', '*');
+  return new Response(res.body, { status: res.status, statusText: res.statusText, headers });
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -847,25 +859,25 @@ export default {
       // Route: /og/build/:code.png (装备方案分享图; 静态段须在百业路由之前)
       const buildMatch = path.match(/^\/og\/build\/([0-9A-Za-z]{7})\.png$/);
       if (buildMatch) {
-        return await handleBuildImage(request, url, buildMatch[1]);
+        return withImageCors(await handleBuildImage(request, url, buildMatch[1]));
       }
       // Route: /og/:slug/car/:id.png
       const carMatch = path.match(/^\/og\/([^\/]+)\/car\/(\d+)\.png$/);
       if (carMatch) {
-        return await handleCarImage(request, url, carMatch[1], carMatch[2]);
+        return withImageCors(await handleCarImage(request, url, carMatch[1], carMatch[2]));
       }
       // Route: /og/:slug.png
       const match = path.match(/^\/og\/([^\/]+)\.png$/);
       if (!match) {
         return new Response('Not found. Use /og/:slug.png or /og/:slug/car/:id.png', { status: 404 });
       }
-      return await handleGuildImage(request, url, match[1]);
+      return withImageCors(await handleGuildImage(request, url, match[1]));
     } catch (e) {
       // 图片路由永不 5xx: 任何渲染/数据/字体/WASM 故障一律降级为预渲染
       // 通用品牌图 (200 image/png), 只有明确判定「不存在」的 404 在
       // handler 内先行返回, 不经过这里。
       console.error('og render failed, serving generic fallback:', path, (e && e.message) || String(e));
-      if (/^\/og\/.+\.png$/.test(path)) return genericResponse(url);
+      if (/^\/og\/.+\.png$/.test(path)) return withImageCors(genericResponse(url));
       return new Response('Not found', { status: 404 });
     }
   },
