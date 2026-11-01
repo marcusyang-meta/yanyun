@@ -1,0 +1,152 @@
+// Build the platform combat-report buff dictionary (names +
+// damage multipliers) from the CN buff table extracted from game
+// data (~/workspace/yanyun-vision-proto/out/icon_refs/buffs_cn.tsv:
+// buff_id / name_cn / detail_cn / icon_file / source).
+//
+// The dictionary is a MAINTAINED platform artifact: event files
+// carry buff ids and display names but (formatVersion 1) no damage
+// multipliers, so the rDPS attribution model (DESIGN section 4)
+// resolves kind + multiplier here, keyed by buff name and by game
+// buff id. A multiplier enters the dictionary ONLY when the CN
+// effect text states it in one of the unambiguous shapes below;
+// conditional extra clauses (the "additionally +X% when ..." tail)
+// are not modeled — the stored value is the unconditional base,
+// matching the model's constant-multiplier simplification. Rows
+// whose text yields conflicting values, and names that map to more
+// than one distinct (kind, multiplier), are dropped rather than
+// guessed: at report time an unresolved buff falls back to
+// multiplier 1.0 and is flagged "multiplier undetermined" on the
+// report instead of being silently invented here.
+//
+// Usage:
+//   node scripts/build-combat-buff-dict.mjs [buffs_cn.tsv path]
+// Output: src/domains/groupings/combat-buff-dict.gen.ts (committed).
+import { readFileSync, writeFileSync } from 'node:fs';
+
+const SRC = process.argv[2]
+  || new URL('../../../yanyun-vision-proto/out/icon_refs/buffs_cn.tsv', import.meta.url).pathname;
+const OUT = new URL('../src/domains/groupings/combat-buff-dict.gen.ts', import.meta.url);
+
+const NUM = '(\\d+(?:\\.\\d+)?)';
+const TAKEN_PATTERNS = [
+  new RegExp(`受到的(?:气血和真气)?伤害提升\\s*${NUM}%`, 'g'),
+  new RegExp(`受到的(?:气血和真气)?伤害增加\\s*${NUM}%`, 'g'),
+  new RegExp(`所受(?:气血和真气)?伤害提升\\s*${NUM}%`, 'g'),
+];
+const DEALT_PATTERNS = [
+  new RegExp(`造成的伤害(?:额外)?提升\\s*${NUM}%`, 'g'),
+  new RegExp(`造成(?:气血|真气)?伤害增加\\s*${NUM}%`, 'g'),
+  new RegExp(`提升自身\\s*${NUM}%\\s*伤害`, 'g'),
+  new RegExp(`自身伤害提升\\s*${NUM}%`, 'g'),
+  new RegExp(`伤害加成\\+${NUM}%`, 'g'),
+  new RegExp(`^增伤\\s*${NUM}%`, 'g'),
+  new RegExp(`伤害提升\\s*${NUM}%`, 'g'),
+  new RegExp(`伤害增加\\s*${NUM}%`, 'g'),
+];
+
+function collect(text, patterns) {
+  const values = [];
+  for (const re of patterns) {
+    re.lastIndex = 0;
+    let m;
+    while ((m = re.exec(text)) !== null) values.push(Number(m[1]));
+  }
+  return values;
+}
+
+/** Mask the spans one pattern family matched, so the other family
+ *  cannot re-read the same clause (a taken clause like
+ *  "受到的气血和真气伤害提升8%" contains a bare "伤害提升8%"
+ *  substring that must not double-count as a dealt clause). */
+function maskMatches(text, patterns) {
+  let out = text;
+  for (const re of patterns) {
+    re.lastIndex = 0;
+    out = out.replace(re, (m) => ' '.repeat(m.length));
+  }
+  return out;
+}
+
+/** One row's verdict: { kind, multiplier } or null when the effect
+ *  text does not state a single unambiguous damage multiplier. */
+function parseRow(detail) {
+  if (!detail) return null;
+  const taken = [...new Set(collect(detail, TAKEN_PATTERNS))];
+  const dealt = [...new Set(collect(maskMatches(detail, TAKEN_PATTERNS), DEALT_PATTERNS))];
+  if (taken.length === 1 && dealt.length === 0) {
+    return { kind: 'damageTaken', multiplier: 1 + taken[0] / 100 };
+  }
+  if (dealt.length === 1 && taken.length === 0) {
+    return { kind: 'damageDealt', multiplier: 1 + dealt[0] / 100 };
+  }
+  return null;
+}
+
+const lines = readFileSync(SRC, 'utf8').split('\n');
+const header = lines[0].split('\t');
+const iId = header.indexOf('buff_id');
+const iName = header.indexOf('name_cn');
+const iDetail = header.indexOf('detail_cn');
+
+const byId = new Map();
+const nameVerdicts = new Map(); // name -> Map(key -> {kind, multiplier})
+let named = 0;
+let parsed = 0;
+for (const line of lines.slice(1)) {
+  if (!line.trim()) continue;
+  const cells = line.split('\t');
+  const id = cells[iId];
+  const name = (cells[iName] || '').trim();
+  const detail = (cells[iDetail] || '').trim();
+  if (!name) continue;
+  named++;
+  const verdict = parseRow(detail);
+  if (!verdict) continue;
+  parsed++;
+  byId.set(id, { name, ...verdict });
+  const key = `${verdict.kind}|${verdict.multiplier}`;
+  if (!nameVerdicts.has(name)) nameVerdicts.set(name, new Map());
+  nameVerdicts.get(name).set(key, verdict);
+}
+
+const byName = new Map();
+let ambiguousNames = 0;
+for (const [name, verdicts] of nameVerdicts) {
+  if (verdicts.size !== 1) { ambiguousNames++; continue; }
+  byName.set(name, [...verdicts.values()][0]);
+}
+
+const round = (m) => Math.round(m * 1e6) / 1e6;
+const byIdObj = {};
+for (const [id, v] of [...byId.entries()].sort((a, b) => Number(a[0]) - Number(b[0]))) {
+  byIdObj[id] = { name: v.name, kind: v.kind, multiplier: round(v.multiplier) };
+}
+const byNameObj = {};
+for (const [name, v] of [...byName.entries()].sort()) {
+  byNameObj[name] = { kind: v.kind, multiplier: round(v.multiplier) };
+}
+
+const out = `/* GENERATED by scripts/build-combat-buff-dict.mjs — do not edit
+ * by hand. Source: the CN buff table extracted from game data
+ * (buffs_cn.tsv; buff names are the dictionary's name truth).
+ * Regenerate with:
+ *   node scripts/build-combat-buff-dict.mjs [buffs_cn.tsv path]
+ *
+ * Platform-maintained buff dictionary for combat reports: the
+ * kind + damage multiplier the rDPS attribution model resolves
+ * for one buff, keyed by game buff id and by buff name. Entries
+ * exist only where the CN effect text states one unambiguous
+ * unconditional multiplier; unresolved buffs fall back to 1.0 at
+ * report time and are flagged there, never invented here. */
+export interface CombatBuffDictEntry {
+  kind: 'damageDealt' | 'damageTaken';
+  multiplier: number;
+}
+export interface CombatBuffDictIdEntry extends CombatBuffDictEntry {
+  name: string;
+}
+export const COMBAT_BUFF_DICT_BY_ID: Record<string, CombatBuffDictIdEntry> = ${JSON.stringify(byIdObj, null, 1)};
+export const COMBAT_BUFF_DICT_BY_NAME: Record<string, CombatBuffDictEntry> = ${JSON.stringify(byNameObj, null, 1)};
+`;
+writeFileSync(OUT, out);
+console.log(`named rows: ${named}, multiplier parsed: ${parsed}, by-id entries: ${byId.size}, by-name entries: ${byName.size}, ambiguous names dropped: ${ambiguousNames}`);

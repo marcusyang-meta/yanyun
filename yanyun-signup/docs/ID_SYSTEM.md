@@ -46,6 +46,7 @@ id = typeCode * 1_000_000_000 + dayIndex * 100_000 + sequence
 | 14 | custom signup field | `grouping_custom_fields` |
 | 15 | rotation advice record | `rotation_advice_records` |
 | 16 | grouping recap | `grouping_recaps` |
+| 17 | combat encounter | `combat_encounters` |
 | 20 | guild announcement | `guild_announcements` |
 | 30 | gear item | `user_gear_items` |
 | 31 | gear build | `user_gear_builds` |
