@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   planShareImage,
+  planShareImageFallback,
   runShareImage,
   shareImageFileName,
   type ShareImageDeps,
@@ -20,6 +21,8 @@ function fakeDeps(overrides: Partial<ShareImageDeps> = {}) {
     makeFile: vi.fn((b: Blob, name: string) => new File([b], name, { type: 'image/png' })),
     canShareFiles: vi.fn(() => false),
     shareFiles: vi.fn(async () => {}),
+    canCopyImage: vi.fn(() => false),
+    writeImageToClipboard: vi.fn(async () => {}),
     downloadBlob: vi.fn(),
     copyText: vi.fn(async () => true),
     ...overrides,
@@ -34,6 +37,16 @@ describe('planShareImage', () => {
 
   it('falls back to download + copy when file sharing is unavailable', () => {
     expect(planShareImage(false)).toBe('download-and-copy');
+  });
+});
+
+describe('planShareImageFallback', () => {
+  it('copies the image to the clipboard when image clipboard writes are available', () => {
+    expect(planShareImageFallback(true)).toBe('copy-image');
+  });
+
+  it('downloads + copies the link when image clipboard writes are unavailable', () => {
+    expect(planShareImageFallback(false)).toBe('download-and-copy');
   });
 });
 
@@ -104,6 +117,58 @@ describe('runShareImage', () => {
     expect(result).toEqual({ kind: 'failed' });
     expect(deps.downloadBlob).not.toHaveBeenCalled();
     expect(deps.shareFiles).not.toHaveBeenCalled();
+  });
+
+  it('copies the image to the clipboard on a desktop browser without file sharing', async () => {
+    const deps = fakeDeps({ canCopyImage: vi.fn(() => true) });
+    const result = await runShareImage(deps, REQ);
+    expect(result).toEqual({ kind: 'clipboard' });
+    expect(deps.writeImageToClipboard).toHaveBeenCalledTimes(1);
+    const [, text] = (deps.writeImageToClipboard as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(text).toBe(REQ.linkUrl);
+    expect(deps.downloadBlob).not.toHaveBeenCalled();
+    expect(deps.copyText).not.toHaveBeenCalled();
+    expect(deps.shareFiles).not.toHaveBeenCalled();
+  });
+
+  it('prefers the share sheet over the clipboard when both are available', async () => {
+    const deps = fakeDeps({
+      canShareFiles: vi.fn(() => true),
+      canCopyImage: vi.fn(() => true),
+    });
+    const result = await runShareImage(deps, REQ);
+    expect(result).toEqual({ kind: 'shared' });
+    expect(deps.writeImageToClipboard).not.toHaveBeenCalled();
+  });
+
+  it('tries the clipboard after a non-abort share failure before downloading', async () => {
+    const deps = fakeDeps({
+      canShareFiles: vi.fn(() => true),
+      shareFiles: vi.fn(async () => { throw new Error('NotAllowedError'); }),
+      canCopyImage: vi.fn(() => true),
+    });
+    const result = await runShareImage(deps, REQ);
+    expect(result).toEqual({ kind: 'clipboard' });
+    expect(deps.downloadBlob).not.toHaveBeenCalled();
+  });
+
+  it('downloads + copies the link when the clipboard write is rejected', async () => {
+    const deps = fakeDeps({
+      canCopyImage: vi.fn(() => true),
+      writeImageToClipboard: vi.fn(async () => { throw new Error('NotAllowedError'); }),
+    });
+    const result = await runShareImage(deps, REQ);
+    expect(result).toEqual({ kind: 'fallback', copied: true });
+    expect(deps.downloadBlob).toHaveBeenCalledTimes(1);
+    expect(deps.copyText).toHaveBeenCalledWith(REQ.linkUrl);
+  });
+
+  it('downloads + copies the link when ClipboardItem is unavailable', async () => {
+    const deps = fakeDeps({ canCopyImage: vi.fn(() => false) });
+    const result = await runShareImage(deps, REQ);
+    expect(result).toEqual({ kind: 'fallback', copied: true });
+    expect(deps.writeImageToClipboard).not.toHaveBeenCalled();
+    expect(deps.downloadBlob).toHaveBeenCalledTimes(1);
   });
 });
 

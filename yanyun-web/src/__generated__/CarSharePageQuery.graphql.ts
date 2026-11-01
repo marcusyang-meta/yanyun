@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<ca07c9c171333a5b3dbb9b3d17bd2ed5>>
+ * @generated SignedSource<<a7d87990eef0fc7d2684d388143c679e>>
  * @lightSyntaxTransform
  */
 
@@ -23,6 +23,7 @@ export type CarSharePageQuery$data = {
       readonly occupied: boolean;
     }>;
     readonly shareCopyFailedManual: string;
+    readonly shareImageCopied: string;
     readonly shareImageFailed: string;
     readonly shareImageLabel: string;
     readonly shareImageSaved: string;
@@ -296,6 +297,13 @@ v1 = [
         "alias": null,
         "args": null,
         "kind": "ScalarField",
+        "name": "shareImageCopied",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
         "name": "shareImageFailed",
         "storageKey": null
       },
@@ -328,16 +336,16 @@ return {
     "selections": (v1/*:: as any*/)
   },
   "params": {
-    "cacheID": "bdb6e08f40d737ebe0d579d424023e9b",
+    "cacheID": "f318ebf07a5e2c60a9db8b209a0e131a",
     "id": null,
     "metadata": {},
     "name": "CarSharePageQuery",
     "operationKind": "query",
-    "text": "query CarSharePageQuery(\n  $code: String!\n) {\n  viewer {\n    user {\n      discordId\n    }\n  }\n  sharedGrouping(code: $code) {\n    exists\n    guildName\n    title\n    dungeonName\n    startsAt\n    status\n    occupiedCount\n    maxSlots\n    seats {\n      index\n      occupied\n    }\n    shareKicker\n    shareLoginLabel\n    shareOpenLabel\n    shareNotFoundTitle\n    shareNotFoundBody\n    shareReadonlyHint\n    shareStatusOpenLabel\n    shareStatusClosedLabel\n    shareStatusCompletedLabel\n    sharePeopleTemplate\n    shareSeatsTitle\n    shareTypeLabel\n    shareImageUrl\n    shareImageLabel\n    shareImageSaved\n    shareImageFailed\n    shareCopyFailedManual\n  }\n}\n"
+    "text": "query CarSharePageQuery(\n  $code: String!\n) {\n  viewer {\n    user {\n      discordId\n    }\n  }\n  sharedGrouping(code: $code) {\n    exists\n    guildName\n    title\n    dungeonName\n    startsAt\n    status\n    occupiedCount\n    maxSlots\n    seats {\n      index\n      occupied\n    }\n    shareKicker\n    shareLoginLabel\n    shareOpenLabel\n    shareNotFoundTitle\n    shareNotFoundBody\n    shareReadonlyHint\n    shareStatusOpenLabel\n    shareStatusClosedLabel\n    shareStatusCompletedLabel\n    sharePeopleTemplate\n    shareSeatsTitle\n    shareTypeLabel\n    shareImageUrl\n    shareImageLabel\n    shareImageSaved\n    shareImageCopied\n    shareImageFailed\n    shareCopyFailedManual\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "6d54cdbc39111880013d63aa66537de0";
+(node as any).hash = "b8ea605f0fd0f5d4cfd010086ea52964";
 
 export default node;

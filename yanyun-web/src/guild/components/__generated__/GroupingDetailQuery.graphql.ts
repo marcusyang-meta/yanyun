@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<f88988e1ff7734a4582d8bb631901e33>>
+ * @generated SignedSource<<18cf8a6e6c711eadf1df54d54871c535>>
  * @lightSyntaxTransform
  */
 
@@ -108,6 +108,7 @@ export type GroupingDetailQuery$data = {
     readonly detailPeopleTemplate: string;
     readonly detailReadyProgressTemplate: string;
     readonly detailRestoreLabel: string;
+    readonly detailShareImageCopied: string;
     readonly detailShareImageFailed: string;
     readonly detailShareImageLabel: string;
     readonly detailShareImageSaved: string;
@@ -470,17 +471,24 @@ v12 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "detailShareImageFailed",
+  "name": "detailShareImageCopied",
   "storageKey": null
 },
 v13 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "toastFailedTemplate",
+  "name": "detailShareImageFailed",
   "storageKey": null
 },
 v14 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "toastFailedTemplate",
+  "storageKey": null
+},
+v15 = {
   "alias": null,
   "args": null,
   "concreteType": "GroupingTemplateSave",
@@ -523,743 +531,743 @@ v14 = {
       "name": "toastSaved",
       "storageKey": null
     },
-    (v13/*:: as any*/)
+    (v14/*:: as any*/)
   ],
-  "storageKey": null
-},
-v15 = {
-  "alias": null,
-  "args": null,
-  "kind": "ScalarField",
-  "name": "detailEditLabel",
   "storageKey": null
 },
 v16 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "detailDisbandLabel",
+  "name": "detailEditLabel",
   "storageKey": null
 },
 v17 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "detailDisbandingLabel",
+  "name": "detailDisbandLabel",
   "storageKey": null
 },
 v18 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "detailStatusOpenLabel",
+  "name": "detailDisbandingLabel",
   "storageKey": null
 },
 v19 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "detailPeopleTemplate",
+  "name": "detailStatusOpenLabel",
   "storageKey": null
 },
 v20 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "detailOpenHint",
+  "name": "detailPeopleTemplate",
   "storageKey": null
 },
 v21 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "detailToastDisbanded",
+  "name": "detailOpenHint",
   "storageKey": null
 },
 v22 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "detailToastDisbandFailedTemplate",
+  "name": "detailToastDisbanded",
   "storageKey": null
 },
 v23 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "detailLinkCopied",
+  "name": "detailToastDisbandFailedTemplate",
   "storageKey": null
 },
 v24 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "detailCopyFailedManual",
+  "name": "detailLinkCopied",
   "storageKey": null
 },
 v25 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "detailDisbandConfirmTitle",
+  "name": "detailCopyFailedManual",
   "storageKey": null
 },
 v26 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "detailDisbandConfirmMessageTemplate",
+  "name": "detailDisbandConfirmTitle",
   "storageKey": null
 },
 v27 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "detailCompleteLabel",
+  "name": "detailDisbandConfirmMessageTemplate",
   "storageKey": null
 },
 v28 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "detailCompletingLabel",
+  "name": "detailCompleteLabel",
   "storageKey": null
 },
 v29 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "detailStatusCompletedLabel",
+  "name": "detailCompletingLabel",
   "storageKey": null
 },
 v30 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "detailRestoreLabel",
+  "name": "detailStatusCompletedLabel",
   "storageKey": null
 },
 v31 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "detailCompleteConfirmTitle",
+  "name": "detailRestoreLabel",
   "storageKey": null
 },
 v32 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "detailCompleteConfirmMessageTemplate",
+  "name": "detailCompleteConfirmTitle",
   "storageKey": null
 },
 v33 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "detailToastCompleted",
+  "name": "detailCompleteConfirmMessageTemplate",
   "storageKey": null
 },
 v34 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "detailToastCompleteFailedTemplate",
+  "name": "detailToastCompleted",
   "storageKey": null
 },
 v35 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "detailToastRestored",
+  "name": "detailToastCompleteFailedTemplate",
   "storageKey": null
 },
 v36 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "detailToastRestoreFailedTemplate",
+  "name": "detailToastRestored",
   "storageKey": null
 },
 v37 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "detailCompletedHint",
+  "name": "detailToastRestoreFailedTemplate",
   "storageKey": null
 },
 v38 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "confirmOkLabel",
+  "name": "detailCompletedHint",
   "storageKey": null
 },
 v39 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "confirmCancelLabel",
+  "name": "confirmOkLabel",
   "storageKey": null
 },
 v40 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "typeShortActivity",
+  "name": "confirmCancelLabel",
   "storageKey": null
 },
 v41 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "typeShortTalent",
+  "name": "typeShortActivity",
   "storageKey": null
 },
 v42 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "typeShortRace",
+  "name": "typeShortTalent",
   "storageKey": null
 },
 v43 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "typeShortTower",
+  "name": "typeShortRace",
   "storageKey": null
 },
 v44 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "typeShortGather",
+  "name": "typeShortTower",
   "storageKey": null
 },
 v45 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "typeShortExplore",
+  "name": "typeShortGather",
   "storageKey": null
 },
 v46 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "seatEmptyJoinLabel",
+  "name": "typeShortExplore",
   "storageKey": null
 },
 v47 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "seatEmptyLabel",
+  "name": "seatEmptyJoinLabel",
   "storageKey": null
 },
 v48 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "seatModalTitleTemplate",
+  "name": "seatEmptyLabel",
   "storageKey": null
 },
 v49 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "seatModalSubtitle",
+  "name": "seatModalTitleTemplate",
   "storageKey": null
 },
 v50 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "seatNameLabel",
+  "name": "seatModalSubtitle",
   "storageKey": null
 },
 v51 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "seatNamePlaceholder",
+  "name": "seatNameLabel",
   "storageKey": null
 },
 v52 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "seatNameRequired",
+  "name": "seatNamePlaceholder",
   "storageKey": null
 },
 v53 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "seatSelfTabLabel",
+  "name": "seatNameRequired",
   "storageKey": null
 },
 v54 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "seatProxyTabLabel",
+  "name": "seatSelfTabLabel",
   "storageKey": null
 },
 v55 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "seatSelfNameHint",
+  "name": "seatProxyTabLabel",
   "storageKey": null
 },
 v56 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "seatProxySearchPlaceholder",
+  "name": "seatSelfNameHint",
   "storageKey": null
 },
 v57 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "seatProxyPickRequired",
+  "name": "seatProxySearchPlaceholder",
   "storageKey": null
 },
 v58 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "seatProxyEmptyText",
+  "name": "seatProxyPickRequired",
   "storageKey": null
 },
 v59 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "seatSectLabel",
+  "name": "seatProxyEmptyText",
   "storageKey": null
 },
 v60 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "seatCancelLabel",
+  "name": "seatSectLabel",
   "storageKey": null
 },
 v61 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "seatConfirmJoinLabel",
+  "name": "seatCancelLabel",
   "storageKey": null
 },
 v62 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "seatJoiningLabel",
+  "name": "seatConfirmJoinLabel",
   "storageKey": null
 },
 v63 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "seatToastSect",
+  "name": "seatJoiningLabel",
   "storageKey": null
 },
 v64 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "seatToastJoined",
+  "name": "seatToastSect",
   "storageKey": null
 },
 v65 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "seatToastJoinFailedTemplate",
+  "name": "seatToastJoined",
   "storageKey": null
 },
 v66 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "seatToastLeft",
+  "name": "seatToastJoinFailedTemplate",
   "storageKey": null
 },
 v67 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "seatToastLeaveFailedTemplate",
+  "name": "seatToastLeft",
   "storageKey": null
 },
 v68 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "seatLeaveConfirmTitle",
+  "name": "seatToastLeaveFailedTemplate",
   "storageKey": null
 },
 v69 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "seatLeaveConfirmMessageTemplate",
+  "name": "seatLeaveConfirmTitle",
   "storageKey": null
 },
 v70 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "detailReadyProgressTemplate",
+  "name": "seatLeaveConfirmMessageTemplate",
   "storageKey": null
 },
 v71 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "seatReadyLabel",
+  "name": "detailReadyProgressTemplate",
   "storageKey": null
 },
 v72 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "seatReadyActionLabel",
+  "name": "seatReadyLabel",
   "storageKey": null
 },
 v73 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "seatUnreadyActionLabel",
+  "name": "seatReadyActionLabel",
   "storageKey": null
 },
 v74 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "seatToastReady",
+  "name": "seatUnreadyActionLabel",
   "storageKey": null
 },
 v75 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "seatToastUnready",
+  "name": "seatToastReady",
   "storageKey": null
 },
 v76 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "seatToastReadyFailedTemplate",
+  "name": "seatToastUnready",
   "storageKey": null
 },
 v77 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formCreateTitle",
+  "name": "seatToastReadyFailedTemplate",
   "storageKey": null
 },
 v78 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formEditTitle",
+  "name": "formCreateTitle",
   "storageKey": null
 },
 v79 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formTypeLabel",
+  "name": "formEditTitle",
   "storageKey": null
 },
 v80 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formTypeActivityLabel",
+  "name": "formTypeLabel",
   "storageKey": null
 },
 v81 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formTypeTalentLabel",
+  "name": "formTypeActivityLabel",
   "storageKey": null
 },
 v82 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formTypeRaceLabel",
+  "name": "formTypeTalentLabel",
   "storageKey": null
 },
 v83 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formTypeTowerLabel",
+  "name": "formTypeRaceLabel",
   "storageKey": null
 },
 v84 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formCapacityTemplate",
+  "name": "formTypeTowerLabel",
   "storageKey": null
 },
 v85 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formHintActivity",
+  "name": "formCapacityTemplate",
   "storageKey": null
 },
 v86 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formHintDungeonTemplate",
+  "name": "formHintActivity",
   "storageKey": null
 },
 v87 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formHintTalent",
+  "name": "formHintDungeonTemplate",
   "storageKey": null
 },
 v88 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formHintRace",
+  "name": "formHintTalent",
   "storageKey": null
 },
 v89 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formHintTower",
+  "name": "formHintRace",
   "storageKey": null
 },
 v90 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formTitleLabel",
+  "name": "formHintTower",
   "storageKey": null
 },
 v91 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formTitlePlaceholder",
+  "name": "formTitleLabel",
   "storageKey": null
 },
 v92 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formStartsLabel",
+  "name": "formTitlePlaceholder",
   "storageKey": null
 },
 v93 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formMonthTemplate",
+  "name": "formStartsLabel",
   "storageKey": null
 },
 v94 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formDayTemplate",
+  "name": "formMonthTemplate",
   "storageKey": null
 },
 v95 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formHourTemplate",
+  "name": "formDayTemplate",
   "storageKey": null
 },
 v96 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formMinuteTemplate",
+  "name": "formHourTemplate",
   "storageKey": null
 },
 v97 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formDungeonLabel",
+  "name": "formMinuteTemplate",
   "storageKey": null
 },
 v98 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formDungeonNoneLabel",
+  "name": "formDungeonLabel",
   "storageKey": null
 },
 v99 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formNicknameLabel",
+  "name": "formDungeonNoneLabel",
   "storageKey": null
 },
 v100 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formNicknamePlaceholder",
+  "name": "formNicknameLabel",
   "storageKey": null
 },
 v101 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formSectLabel",
+  "name": "formNicknamePlaceholder",
   "storageKey": null
 },
 v102 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formCancelLabel",
+  "name": "formSectLabel",
   "storageKey": null
 },
 v103 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formSubmitCreateLabel",
+  "name": "formCancelLabel",
   "storageKey": null
 },
 v104 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formSubmitEditLabel",
+  "name": "formSubmitCreateLabel",
   "storageKey": null
 },
 v105 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formSubmittingLabel",
+  "name": "formSubmitEditLabel",
   "storageKey": null
 },
 v106 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formToastSect",
+  "name": "formSubmittingLabel",
   "storageKey": null
 },
 v107 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formToastSaved",
+  "name": "formToastSect",
   "storageKey": null
 },
 v108 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formToastSaveFailedTemplate",
+  "name": "formToastSaved",
   "storageKey": null
 },
 v109 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formToastPosted",
+  "name": "formToastSaveFailedTemplate",
   "storageKey": null
 },
 v110 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formToastCreateFailedTemplate",
+  "name": "formToastPosted",
   "storageKey": null
 },
 v111 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formTitleTemplate",
+  "name": "formToastCreateFailedTemplate",
   "storageKey": null
 },
 v112 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "rosterAnswersTitle",
+  "name": "formTitleTemplate",
   "storageKey": null
 },
 v113 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "__typename",
+  "name": "rosterAnswersTitle",
   "storageKey": null
 },
 v114 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "title",
+  "name": "__typename",
   "storageKey": null
 },
 v115 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
+  "name": "title",
+  "storageKey": null
+},
+v116 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
   "name": "body",
   "storageKey": null
 },
-v116 = [
-  (v114/*:: as any*/),
-  (v115/*:: as any*/)
+v117 = [
+  (v115/*:: as any*/),
+  (v116/*:: as any*/)
 ],
-v117 = {
+v118 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "failedHint",
   "storageKey": null
 },
-v118 = {
+v119 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "confirmTitle",
   "storageKey": null
 },
-v119 = {
+v120 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "confirmMessageTemplate",
   "storageKey": null
 },
-v120 = {
+v121 = {
   "alias": null,
   "args": null,
   "concreteType": "GroupingRecapActions",
@@ -1288,8 +1296,8 @@ v120 = {
       "name": "generatingLabel",
       "storageKey": null
     },
-    (v118/*:: as any*/),
     (v119/*:: as any*/),
+    (v120/*:: as any*/),
     {
       "alias": null,
       "args": null,
@@ -1297,11 +1305,11 @@ v120 = {
       "name": "toastGenerated",
       "storageKey": null
     },
-    (v13/*:: as any*/)
+    (v14/*:: as any*/)
   ],
   "storageKey": null
 },
-v121 = {
+v122 = {
   "alias": null,
   "args": null,
   "concreteType": null,
@@ -1309,26 +1317,26 @@ v121 = {
   "name": "recap",
   "plural": false,
   "selections": [
-    (v113/*:: as any*/),
+    (v114/*:: as any*/),
     {
       "kind": "InlineFragment",
-      "selections": (v116/*:: as any*/),
+      "selections": (v117/*:: as any*/),
       "type": "GroupingRecapLocked",
       "abstractKey": null
     },
     {
       "kind": "InlineFragment",
-      "selections": (v116/*:: as any*/),
+      "selections": (v117/*:: as any*/),
       "type": "GroupingRecapNotEnabled",
       "abstractKey": null
     },
     {
       "kind": "InlineFragment",
       "selections": [
-        (v114/*:: as any*/),
         (v115/*:: as any*/),
-        (v117/*:: as any*/),
-        (v120/*:: as any*/)
+        (v116/*:: as any*/),
+        (v118/*:: as any*/),
+        (v121/*:: as any*/)
       ],
       "type": "GroupingRecapEmpty",
       "abstractKey": null
@@ -1336,7 +1344,7 @@ v121 = {
     {
       "kind": "InlineFragment",
       "selections": [
-        (v114/*:: as any*/),
+        (v115/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -1372,8 +1380,8 @@ v121 = {
           "name": "versionText",
           "storageKey": null
         },
-        (v117/*:: as any*/),
-        (v120/*:: as any*/)
+        (v118/*:: as any*/),
+        (v121/*:: as any*/)
       ],
       "type": "GroupingRecapReady",
       "abstractKey": null
@@ -1381,7 +1389,7 @@ v121 = {
   ],
   "storageKey": null
 },
-v122 = {
+v123 = {
   "alias": null,
   "args": null,
   "concreteType": "CombatReportActions",
@@ -1469,14 +1477,14 @@ v122 = {
   ],
   "storageKey": null
 },
-v123 = {
+v124 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "id",
   "storageKey": null
 },
-v124 = {
+v125 = {
   "alias": null,
   "args": null,
   "concreteType": null,
@@ -1484,20 +1492,20 @@ v124 = {
   "name": "combatReport",
   "plural": false,
   "selections": [
-    (v113/*:: as any*/),
+    (v114/*:: as any*/),
     {
       "kind": "InlineFragment",
-      "selections": (v116/*:: as any*/),
+      "selections": (v117/*:: as any*/),
       "type": "GroupingCombatReportLocked",
       "abstractKey": null
     },
     {
       "kind": "InlineFragment",
       "selections": [
-        (v114/*:: as any*/),
         (v115/*:: as any*/),
-        (v117/*:: as any*/),
-        (v122/*:: as any*/)
+        (v116/*:: as any*/),
+        (v118/*:: as any*/),
+        (v123/*:: as any*/)
       ],
       "type": "GroupingCombatReportEmpty",
       "abstractKey": null
@@ -1505,7 +1513,7 @@ v124 = {
     {
       "kind": "InlineFragment",
       "selections": [
-        (v114/*:: as any*/),
+        (v115/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -1520,7 +1528,7 @@ v124 = {
           "name": "viewReportLabel",
           "storageKey": null
         },
-        (v117/*:: as any*/),
+        (v118/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -1529,7 +1537,7 @@ v124 = {
           "name": "encounters",
           "plural": true,
           "selections": [
-            (v123/*:: as any*/),
+            (v124/*:: as any*/),
             {
               "alias": null,
               "args": null,
@@ -1594,8 +1602,8 @@ v124 = {
                   "name": "deleteLabel",
                   "storageKey": null
                 },
-                (v118/*:: as any*/),
                 (v119/*:: as any*/),
+                (v120/*:: as any*/),
                 {
                   "alias": null,
                   "args": null,
@@ -1616,7 +1624,7 @@ v124 = {
           ],
           "storageKey": null
         },
-        (v122/*:: as any*/)
+        (v123/*:: as any*/)
       ],
       "type": "GroupingCombatReportReady",
       "abstractKey": null
@@ -1624,21 +1632,21 @@ v124 = {
   ],
   "storageKey": null
 },
-v125 = {
+v126 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "uid",
   "storageKey": null
 },
-v126 = {
+v127 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "nickname",
   "storageKey": null
 },
-v127 = {
+v128 = {
   "alias": null,
   "args": null,
   "concreteType": "RosterAnswer",
@@ -1646,8 +1654,8 @@ v127 = {
   "name": "rosterAnswers",
   "plural": true,
   "selections": [
-    (v125/*:: as any*/),
     (v126/*:: as any*/),
+    (v127/*:: as any*/),
     {
       "alias": null,
       "args": null,
@@ -1672,7 +1680,7 @@ v127 = {
   ],
   "storageKey": null
 },
-v128 = {
+v129 = {
   "alias": null,
   "args": null,
   "concreteType": "GroupingManageActions",
@@ -1753,14 +1761,14 @@ v128 = {
   ],
   "storageKey": null
 },
-v129 = {
+v130 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "hint",
   "storageKey": null
 },
-v130 = {
+v131 = {
   "alias": null,
   "args": null,
   "concreteType": "AllySharingControl",
@@ -1782,8 +1790,8 @@ v130 = {
       "name": "visitorSlots",
       "storageKey": null
     },
-    (v114/*:: as any*/),
-    (v129/*:: as any*/),
+    (v115/*:: as any*/),
+    (v130/*:: as any*/),
     {
       "alias": null,
       "args": null,
@@ -1808,42 +1816,42 @@ v130 = {
   ],
   "storageKey": null
 },
-v131 = {
+v132 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "displayName",
   "storageKey": null
 },
-v132 = {
+v133 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "role",
   "storageKey": null
 },
-v133 = {
+v134 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "weapon",
   "storageKey": null
 },
-v134 = {
+v135 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "score",
   "storageKey": null
 },
-v135 = {
+v136 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "reasons",
   "storageKey": null
 },
-v136 = {
+v137 = {
   "alias": null,
   "args": null,
   "concreteType": null,
@@ -1851,7 +1859,7 @@ v136 = {
   "name": "schedulingAdvice",
   "plural": false,
   "selections": [
-    (v113/*:: as any*/),
+    (v114/*:: as any*/),
     {
       "kind": "InlineFragment",
       "selections": [
@@ -1876,8 +1884,8 @@ v136 = {
     {
       "kind": "InlineFragment",
       "selections": [
-        (v114/*:: as any*/),
-        (v129/*:: as any*/),
+        (v115/*:: as any*/),
+        (v130/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -1936,11 +1944,11 @@ v136 = {
               "storageKey": null
             },
             (v2/*:: as any*/),
-            (v131/*:: as any*/),
             (v132/*:: as any*/),
             (v133/*:: as any*/),
             (v134/*:: as any*/),
-            (v135/*:: as any*/)
+            (v135/*:: as any*/),
+            (v136/*:: as any*/)
           ],
           "storageKey": null
         },
@@ -1953,11 +1961,11 @@ v136 = {
           "plural": true,
           "selections": [
             (v2/*:: as any*/),
-            (v131/*:: as any*/),
             (v132/*:: as any*/),
             (v133/*:: as any*/),
             (v134/*:: as any*/),
-            (v135/*:: as any*/)
+            (v135/*:: as any*/),
+            (v136/*:: as any*/)
           ],
           "storageKey": null
         },
@@ -1970,10 +1978,10 @@ v136 = {
           "plural": true,
           "selections": [
             (v2/*:: as any*/),
-            (v131/*:: as any*/),
             (v132/*:: as any*/),
-            (v134/*:: as any*/),
-            (v135/*:: as any*/)
+            (v133/*:: as any*/),
+            (v135/*:: as any*/),
+            (v136/*:: as any*/)
           ],
           "storageKey": null
         },
@@ -1985,7 +1993,7 @@ v136 = {
           "name": "rotationRecords",
           "plural": true,
           "selections": [
-            (v123/*:: as any*/),
+            (v124/*:: as any*/),
             {
               "alias": null,
               "args": null,
@@ -2003,63 +2011,63 @@ v136 = {
   ],
   "storageKey": null
 },
-v137 = {
+v138 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "type",
   "storageKey": null
 },
-v138 = {
+v139 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "creatorDiscordId",
   "storageKey": null
 },
-v139 = {
+v140 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "startsAt",
   "storageKey": null
 },
-v140 = {
+v141 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "name",
   "storageKey": null
 },
-v141 = {
+v142 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "occupiedCount",
   "storageKey": null
 },
-v142 = {
+v143 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "readyCount",
   "storageKey": null
 },
-v143 = {
+v144 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "maxSlots",
   "storageKey": null
 },
-v144 = {
+v145 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "status",
   "storageKey": null
 },
-v145 = {
+v146 = {
   "alias": null,
   "args": null,
   "concreteType": "Seat",
@@ -2074,10 +2082,10 @@ v145 = {
       "name": "index",
       "storageKey": null
     },
-    (v126/*:: as any*/),
+    (v127/*:: as any*/),
+    (v134/*:: as any*/),
     (v133/*:: as any*/),
-    (v132/*:: as any*/),
-    (v125/*:: as any*/),
+    (v126/*:: as any*/),
     {
       "alias": null,
       "args": null,
@@ -2102,7 +2110,7 @@ v145 = {
   ],
   "storageKey": null
 },
-v146 = {
+v147 = {
   "alias": null,
   "args": null,
   "concreteType": "CustomField",
@@ -2110,7 +2118,7 @@ v146 = {
   "name": "customFields",
   "plural": true,
   "selections": [
-    (v123/*:: as any*/),
+    (v124/*:: as any*/),
     {
       "alias": null,
       "args": null,
@@ -2169,7 +2177,7 @@ return {
           (v10/*:: as any*/),
           (v11/*:: as any*/),
           (v12/*:: as any*/),
-          (v14/*:: as any*/),
+          (v13/*:: as any*/),
           (v15/*:: as any*/),
           (v16/*:: as any*/),
           (v17/*:: as any*/),
@@ -2268,12 +2276,13 @@ return {
           (v110/*:: as any*/),
           (v111/*:: as any*/),
           (v112/*:: as any*/),
-          (v121/*:: as any*/),
-          (v124/*:: as any*/),
-          (v127/*:: as any*/),
+          (v113/*:: as any*/),
+          (v122/*:: as any*/),
+          (v125/*:: as any*/),
           (v128/*:: as any*/),
-          (v130/*:: as any*/),
-          (v136/*:: as any*/),
+          (v129/*:: as any*/),
+          (v131/*:: as any*/),
+          (v137/*:: as any*/),
           {
             "alias": null,
             "args": null,
@@ -2282,11 +2291,11 @@ return {
             "name": "grouping",
             "plural": false,
             "selections": [
-              (v123/*:: as any*/),
-              (v114/*:: as any*/),
-              (v137/*:: as any*/),
+              (v124/*:: as any*/),
+              (v115/*:: as any*/),
               (v138/*:: as any*/),
               (v139/*:: as any*/),
+              (v140/*:: as any*/),
               {
                 "alias": null,
                 "args": null,
@@ -2295,16 +2304,16 @@ return {
                 "name": "dungeon",
                 "plural": false,
                 "selections": [
-                  (v140/*:: as any*/)
+                  (v141/*:: as any*/)
                 ],
                 "storageKey": null
               },
-              (v141/*:: as any*/),
               (v142/*:: as any*/),
               (v143/*:: as any*/),
               (v144/*:: as any*/),
               (v145/*:: as any*/),
-              (v146/*:: as any*/)
+              (v146/*:: as any*/),
+              (v147/*:: as any*/)
             ],
             "storageKey": null
           }
@@ -2341,7 +2350,7 @@ return {
           (v10/*:: as any*/),
           (v11/*:: as any*/),
           (v12/*:: as any*/),
-          (v14/*:: as any*/),
+          (v13/*:: as any*/),
           (v15/*:: as any*/),
           (v16/*:: as any*/),
           (v17/*:: as any*/),
@@ -2440,12 +2449,13 @@ return {
           (v110/*:: as any*/),
           (v111/*:: as any*/),
           (v112/*:: as any*/),
-          (v121/*:: as any*/),
-          (v124/*:: as any*/),
-          (v127/*:: as any*/),
+          (v113/*:: as any*/),
+          (v122/*:: as any*/),
+          (v125/*:: as any*/),
           (v128/*:: as any*/),
-          (v130/*:: as any*/),
-          (v136/*:: as any*/),
+          (v129/*:: as any*/),
+          (v131/*:: as any*/),
+          (v137/*:: as any*/),
           {
             "alias": null,
             "args": null,
@@ -2454,11 +2464,11 @@ return {
             "name": "grouping",
             "plural": false,
             "selections": [
-              (v123/*:: as any*/),
-              (v114/*:: as any*/),
-              (v137/*:: as any*/),
+              (v124/*:: as any*/),
+              (v115/*:: as any*/),
               (v138/*:: as any*/),
               (v139/*:: as any*/),
+              (v140/*:: as any*/),
               {
                 "alias": null,
                 "args": null,
@@ -2467,17 +2477,17 @@ return {
                 "name": "dungeon",
                 "plural": false,
                 "selections": [
-                  (v140/*:: as any*/),
-                  (v123/*:: as any*/)
+                  (v141/*:: as any*/),
+                  (v124/*:: as any*/)
                 ],
                 "storageKey": null
               },
-              (v141/*:: as any*/),
               (v142/*:: as any*/),
               (v143/*:: as any*/),
               (v144/*:: as any*/),
               (v145/*:: as any*/),
-              (v146/*:: as any*/)
+              (v146/*:: as any*/),
+              (v147/*:: as any*/)
             ],
             "storageKey": null
           }
@@ -2487,16 +2497,16 @@ return {
     ]
   },
   "params": {
-    "cacheID": "cf90701fc33f04d02514c77b597c3095",
+    "cacheID": "04a4cd4acf434bb82fb6e2455da171b5",
     "id": null,
     "metadata": {},
     "name": "GroupingDetailQuery",
     "operationKind": "query",
-    "text": "query GroupingDetailQuery(\n  $slug: String\n  $id: ID!\n) {\n  viewer {\n    user {\n      discordId\n    }\n    commonUnknownErrorText\n  }\n  groupingDetailPage(slug: $slug, id: $id) {\n    detailNotFoundText\n    detailBackToListLabel\n    detailShareLabel\n    shareUrl\n    shareImageUrl\n    detailShareImageLabel\n    detailShareImageSaved\n    detailShareImageFailed\n    templateSave {\n      buttonLabel\n      dialogTitle\n      nameLabel\n      submitLabel\n      toastSaved\n      toastFailedTemplate\n    }\n    detailEditLabel\n    detailDisbandLabel\n    detailDisbandingLabel\n    detailStatusOpenLabel\n    detailPeopleTemplate\n    detailOpenHint\n    detailToastDisbanded\n    detailToastDisbandFailedTemplate\n    detailLinkCopied\n    detailCopyFailedManual\n    detailDisbandConfirmTitle\n    detailDisbandConfirmMessageTemplate\n    detailCompleteLabel\n    detailCompletingLabel\n    detailStatusCompletedLabel\n    detailRestoreLabel\n    detailCompleteConfirmTitle\n    detailCompleteConfirmMessageTemplate\n    detailToastCompleted\n    detailToastCompleteFailedTemplate\n    detailToastRestored\n    detailToastRestoreFailedTemplate\n    detailCompletedHint\n    confirmOkLabel\n    confirmCancelLabel\n    typeShortActivity\n    typeShortTalent\n    typeShortRace\n    typeShortTower\n    typeShortGather\n    typeShortExplore\n    seatEmptyJoinLabel\n    seatEmptyLabel\n    seatModalTitleTemplate\n    seatModalSubtitle\n    seatNameLabel\n    seatNamePlaceholder\n    seatNameRequired\n    seatSelfTabLabel\n    seatProxyTabLabel\n    seatSelfNameHint\n    seatProxySearchPlaceholder\n    seatProxyPickRequired\n    seatProxyEmptyText\n    seatSectLabel\n    seatCancelLabel\n    seatConfirmJoinLabel\n    seatJoiningLabel\n    seatToastSect\n    seatToastJoined\n    seatToastJoinFailedTemplate\n    seatToastLeft\n    seatToastLeaveFailedTemplate\n    seatLeaveConfirmTitle\n    seatLeaveConfirmMessageTemplate\n    detailReadyProgressTemplate\n    seatReadyLabel\n    seatReadyActionLabel\n    seatUnreadyActionLabel\n    seatToastReady\n    seatToastUnready\n    seatToastReadyFailedTemplate\n    formCreateTitle\n    formEditTitle\n    formTypeLabel\n    formTypeActivityLabel\n    formTypeTalentLabel\n    formTypeRaceLabel\n    formTypeTowerLabel\n    formCapacityTemplate\n    formHintActivity\n    formHintDungeonTemplate\n    formHintTalent\n    formHintRace\n    formHintTower\n    formTitleLabel\n    formTitlePlaceholder\n    formStartsLabel\n    formMonthTemplate\n    formDayTemplate\n    formHourTemplate\n    formMinuteTemplate\n    formDungeonLabel\n    formDungeonNoneLabel\n    formNicknameLabel\n    formNicknamePlaceholder\n    formSectLabel\n    formCancelLabel\n    formSubmitCreateLabel\n    formSubmitEditLabel\n    formSubmittingLabel\n    formToastSect\n    formToastSaved\n    formToastSaveFailedTemplate\n    formToastPosted\n    formToastCreateFailedTemplate\n    formTitleTemplate\n    rosterAnswersTitle\n    recap {\n      __typename\n      ... on GroupingRecapLocked {\n        title\n        body\n      }\n      ... on GroupingRecapNotEnabled {\n        title\n        body\n      }\n      ... on GroupingRecapEmpty {\n        title\n        body\n        failedHint\n        actions {\n          generateLabel\n          regenerateLabel\n          generatingLabel\n          confirmTitle\n          confirmMessageTemplate\n          toastGenerated\n          toastFailedTemplate\n        }\n      }\n      ... on GroupingRecapReady {\n        title\n        paragraphs\n        summaryLines\n        generatedAtText\n        providerText\n        versionText\n        failedHint\n        actions {\n          generateLabel\n          regenerateLabel\n          generatingLabel\n          confirmTitle\n          confirmMessageTemplate\n          toastGenerated\n          toastFailedTemplate\n        }\n      }\n    }\n    combatReport {\n      __typename\n      ... on GroupingCombatReportLocked {\n        title\n        body\n      }\n      ... on GroupingCombatReportEmpty {\n        title\n        body\n        failedHint\n        actions {\n          importLabel\n          importingLabel\n          importHint\n          toastImported\n          toastImportFailedTemplate\n          importErrorFormat\n          importErrorValidation\n          importErrorLimit\n          importErrorForbidden\n          importErrorNotFound\n          importErrorTier\n        }\n      }\n      ... on GroupingCombatReportReady {\n        title\n        encountersTitle\n        viewReportLabel\n        failedHint\n        encounters {\n          id\n          bossName\n          startedAtText\n          durationText\n          resultText\n          teamDpsText\n          uploaderText\n          sourceText\n          deleteAction {\n            deleteLabel\n            confirmTitle\n            confirmMessageTemplate\n            toastDeleted\n            toastDeleteFailedTemplate\n          }\n        }\n        actions {\n          importLabel\n          importingLabel\n          importHint\n          toastImported\n          toastImportFailedTemplate\n          importErrorFormat\n          importErrorValidation\n          importErrorLimit\n          importErrorForbidden\n          importErrorNotFound\n          importErrorTier\n        }\n      }\n    }\n    rosterAnswers {\n      uid\n      nickname\n      fieldId\n      fieldLabel\n      value\n    }\n    manageActions {\n      editLabel\n      completeLabel\n      completingLabel\n      restoreLabel\n      disbandLabel\n      disbandingLabel\n      disbandConfirmTitle\n      disbandConfirmMessageTemplate\n      completeConfirmTitle\n      completeConfirmMessageTemplate\n    }\n    allySharing {\n      allyVisible\n      visitorSlots\n      title\n      hint\n      allyVisibleLabel\n      visitorSlotsLabel\n      saveLabel\n    }\n    schedulingAdvice {\n      __typename\n      ... on SchedulingAdviceLocked {\n        lockedTitle\n        lockedBody\n      }\n      ... on GroupingSchedulingAdvice {\n        title\n        hint\n        draftTitle\n        draftApplyLabel\n        substitutesTitle\n        rotationTitle\n        rotationSaveLabel\n        rotationSavedText\n        draft {\n          seatIndex\n          discordId\n          displayName\n          role\n          weapon\n          score\n          reasons\n        }\n        substitutes {\n          discordId\n          displayName\n          role\n          weapon\n          score\n          reasons\n        }\n        rotation {\n          discordId\n          displayName\n          role\n          score\n          reasons\n        }\n        rotationRecords {\n          id\n          createdAtText\n        }\n      }\n    }\n    grouping {\n      id\n      title\n      type\n      creatorDiscordId\n      startsAt\n      dungeon {\n        name\n        id\n      }\n      occupiedCount\n      readyCount\n      maxSlots\n      status\n      seats {\n        index\n        nickname\n        weapon\n        role\n        uid\n        occupied\n        ready\n        mine\n      }\n      customFields {\n        id\n        label\n        fieldType\n        options\n        required\n      }\n    }\n  }\n}\n"
+    "text": "query GroupingDetailQuery(\n  $slug: String\n  $id: ID!\n) {\n  viewer {\n    user {\n      discordId\n    }\n    commonUnknownErrorText\n  }\n  groupingDetailPage(slug: $slug, id: $id) {\n    detailNotFoundText\n    detailBackToListLabel\n    detailShareLabel\n    shareUrl\n    shareImageUrl\n    detailShareImageLabel\n    detailShareImageSaved\n    detailShareImageCopied\n    detailShareImageFailed\n    templateSave {\n      buttonLabel\n      dialogTitle\n      nameLabel\n      submitLabel\n      toastSaved\n      toastFailedTemplate\n    }\n    detailEditLabel\n    detailDisbandLabel\n    detailDisbandingLabel\n    detailStatusOpenLabel\n    detailPeopleTemplate\n    detailOpenHint\n    detailToastDisbanded\n    detailToastDisbandFailedTemplate\n    detailLinkCopied\n    detailCopyFailedManual\n    detailDisbandConfirmTitle\n    detailDisbandConfirmMessageTemplate\n    detailCompleteLabel\n    detailCompletingLabel\n    detailStatusCompletedLabel\n    detailRestoreLabel\n    detailCompleteConfirmTitle\n    detailCompleteConfirmMessageTemplate\n    detailToastCompleted\n    detailToastCompleteFailedTemplate\n    detailToastRestored\n    detailToastRestoreFailedTemplate\n    detailCompletedHint\n    confirmOkLabel\n    confirmCancelLabel\n    typeShortActivity\n    typeShortTalent\n    typeShortRace\n    typeShortTower\n    typeShortGather\n    typeShortExplore\n    seatEmptyJoinLabel\n    seatEmptyLabel\n    seatModalTitleTemplate\n    seatModalSubtitle\n    seatNameLabel\n    seatNamePlaceholder\n    seatNameRequired\n    seatSelfTabLabel\n    seatProxyTabLabel\n    seatSelfNameHint\n    seatProxySearchPlaceholder\n    seatProxyPickRequired\n    seatProxyEmptyText\n    seatSectLabel\n    seatCancelLabel\n    seatConfirmJoinLabel\n    seatJoiningLabel\n    seatToastSect\n    seatToastJoined\n    seatToastJoinFailedTemplate\n    seatToastLeft\n    seatToastLeaveFailedTemplate\n    seatLeaveConfirmTitle\n    seatLeaveConfirmMessageTemplate\n    detailReadyProgressTemplate\n    seatReadyLabel\n    seatReadyActionLabel\n    seatUnreadyActionLabel\n    seatToastReady\n    seatToastUnready\n    seatToastReadyFailedTemplate\n    formCreateTitle\n    formEditTitle\n    formTypeLabel\n    formTypeActivityLabel\n    formTypeTalentLabel\n    formTypeRaceLabel\n    formTypeTowerLabel\n    formCapacityTemplate\n    formHintActivity\n    formHintDungeonTemplate\n    formHintTalent\n    formHintRace\n    formHintTower\n    formTitleLabel\n    formTitlePlaceholder\n    formStartsLabel\n    formMonthTemplate\n    formDayTemplate\n    formHourTemplate\n    formMinuteTemplate\n    formDungeonLabel\n    formDungeonNoneLabel\n    formNicknameLabel\n    formNicknamePlaceholder\n    formSectLabel\n    formCancelLabel\n    formSubmitCreateLabel\n    formSubmitEditLabel\n    formSubmittingLabel\n    formToastSect\n    formToastSaved\n    formToastSaveFailedTemplate\n    formToastPosted\n    formToastCreateFailedTemplate\n    formTitleTemplate\n    rosterAnswersTitle\n    recap {\n      __typename\n      ... on GroupingRecapLocked {\n        title\n        body\n      }\n      ... on GroupingRecapNotEnabled {\n        title\n        body\n      }\n      ... on GroupingRecapEmpty {\n        title\n        body\n        failedHint\n        actions {\n          generateLabel\n          regenerateLabel\n          generatingLabel\n          confirmTitle\n          confirmMessageTemplate\n          toastGenerated\n          toastFailedTemplate\n        }\n      }\n      ... on GroupingRecapReady {\n        title\n        paragraphs\n        summaryLines\n        generatedAtText\n        providerText\n        versionText\n        failedHint\n        actions {\n          generateLabel\n          regenerateLabel\n          generatingLabel\n          confirmTitle\n          confirmMessageTemplate\n          toastGenerated\n          toastFailedTemplate\n        }\n      }\n    }\n    combatReport {\n      __typename\n      ... on GroupingCombatReportLocked {\n        title\n        body\n      }\n      ... on GroupingCombatReportEmpty {\n        title\n        body\n        failedHint\n        actions {\n          importLabel\n          importingLabel\n          importHint\n          toastImported\n          toastImportFailedTemplate\n          importErrorFormat\n          importErrorValidation\n          importErrorLimit\n          importErrorForbidden\n          importErrorNotFound\n          importErrorTier\n        }\n      }\n      ... on GroupingCombatReportReady {\n        title\n        encountersTitle\n        viewReportLabel\n        failedHint\n        encounters {\n          id\n          bossName\n          startedAtText\n          durationText\n          resultText\n          teamDpsText\n          uploaderText\n          sourceText\n          deleteAction {\n            deleteLabel\n            confirmTitle\n            confirmMessageTemplate\n            toastDeleted\n            toastDeleteFailedTemplate\n          }\n        }\n        actions {\n          importLabel\n          importingLabel\n          importHint\n          toastImported\n          toastImportFailedTemplate\n          importErrorFormat\n          importErrorValidation\n          importErrorLimit\n          importErrorForbidden\n          importErrorNotFound\n          importErrorTier\n        }\n      }\n    }\n    rosterAnswers {\n      uid\n      nickname\n      fieldId\n      fieldLabel\n      value\n    }\n    manageActions {\n      editLabel\n      completeLabel\n      completingLabel\n      restoreLabel\n      disbandLabel\n      disbandingLabel\n      disbandConfirmTitle\n      disbandConfirmMessageTemplate\n      completeConfirmTitle\n      completeConfirmMessageTemplate\n    }\n    allySharing {\n      allyVisible\n      visitorSlots\n      title\n      hint\n      allyVisibleLabel\n      visitorSlotsLabel\n      saveLabel\n    }\n    schedulingAdvice {\n      __typename\n      ... on SchedulingAdviceLocked {\n        lockedTitle\n        lockedBody\n      }\n      ... on GroupingSchedulingAdvice {\n        title\n        hint\n        draftTitle\n        draftApplyLabel\n        substitutesTitle\n        rotationTitle\n        rotationSaveLabel\n        rotationSavedText\n        draft {\n          seatIndex\n          discordId\n          displayName\n          role\n          weapon\n          score\n          reasons\n        }\n        substitutes {\n          discordId\n          displayName\n          role\n          weapon\n          score\n          reasons\n        }\n        rotation {\n          discordId\n          displayName\n          role\n          score\n          reasons\n        }\n        rotationRecords {\n          id\n          createdAtText\n        }\n      }\n    }\n    grouping {\n      id\n      title\n      type\n      creatorDiscordId\n      startsAt\n      dungeon {\n        name\n        id\n      }\n      occupiedCount\n      readyCount\n      maxSlots\n      status\n      seats {\n        index\n        nickname\n        weapon\n        role\n        uid\n        occupied\n        ready\n        mine\n      }\n      customFields {\n        id\n        label\n        fieldType\n        options\n        required\n      }\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "41b03fad22a87654a5657348c7b7e71f";
+(node as any).hash = "ad569e0304e354b1fc31797efac24162";
 
 export default node;
