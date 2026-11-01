@@ -44,6 +44,14 @@ export interface EventRow {
   visitor_slots: number;
 }
 
+/* System default creator label written by the member create-grouping
+ * mutation: a member-created car carries no creator name of its own,
+ * so the row stores this placeholder. It is a storage sentinel, not
+ * display copy — presentation layers substitute the localized
+ * default name when they surface the value, and stored rows are
+ * never rewritten. */
+export const GROUPING_DEFAULT_CREATED_BY = '热心侠客';
+
 interface RunMeta {
   changes: number;
   last_row_id: number;

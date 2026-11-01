@@ -20138,6 +20138,18 @@
         }
       ],
       "types": []
+    },
+    "l6coIHTChtGkV9+VhPnTjg==": {
+      "description": "Default creator name for squads in the exported guild data package, used when a squad's stored creator label is the system default written at creation rather than a member's own name.",
+      "id": "guilds/officer_exportDefaultCreatorName",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Helpful Hand",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

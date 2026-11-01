@@ -1230,6 +1230,7 @@
   "3jb43g": "Export this guild's roster, grouping history and participation records, and member season goals (JSON file). Exports are recorded in the audit log.",
   "4kZDIz": "Export data package",
   "1ghuF0": "Guild data package export: this guild's roster, grouping history and participation records, and member season goals. Officer notes are an internal working record and are not included.",
+  "4oZ40A": "Helpful Hand",
   "VPNsC": "Member season goals",
   "11SEaw": "Season goals and progress members keep for themselves — read-only overview.",
   "259tzE": "No member has set a season goal yet.",

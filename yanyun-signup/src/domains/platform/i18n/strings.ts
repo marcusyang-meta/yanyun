@@ -3825,6 +3825,9 @@ export abstract class OfficerFbtUtils {
 	static exportAbout(fbs: FbsRuntime) {
 		return fbs._("百业数据包导出：包含本百业名册、组队历史与参与记录、成员赛季目标。军官备注为内部工作记录，不包含在本数据包内。", null, { hk: "1ghuF0" });
 	}
+	static exportDefaultCreatorName(fbs: FbsRuntime) {
+		return fbs._("热心侠客", null, { hk: "4oZ40A" });
+	}
 	static goalsTitle(fbs: FbsRuntime) {
 		return fbs._("成员赛季目标", null, { hk: "VPNsC" });
 	}
@@ -6426,6 +6429,7 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"officer_exportHint": OfficerFbtUtils.exportHint,
 	"officer_exportButton": OfficerFbtUtils.exportButton,
 	"officer_exportAbout": OfficerFbtUtils.exportAbout,
+	"officer_exportDefaultCreatorName": OfficerFbtUtils.exportDefaultCreatorName,
 	"officer_goalsTitle": OfficerFbtUtils.goalsTitle,
 	"officer_goalsHint": OfficerFbtUtils.goalsHint,
 	"officer_goalsEmpty": OfficerFbtUtils.goalsEmpty,

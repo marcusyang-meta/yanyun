@@ -348,6 +348,7 @@ export type GuildsStringKey =
   | 'officer_exportHint'
   | 'officer_exportButton'
   | 'officer_exportAbout'
+  | 'officer_exportDefaultCreatorName'
   | 'officer_goalsTitle'
   | 'officer_goalsHint'
   | 'officer_goalsEmpty'
@@ -925,6 +926,7 @@ export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'officer_exportHint',
   'officer_exportButton',
   'officer_exportAbout',
+  'officer_exportDefaultCreatorName',
   'officer_goalsTitle',
   'officer_goalsHint',
   'officer_goalsEmpty',
