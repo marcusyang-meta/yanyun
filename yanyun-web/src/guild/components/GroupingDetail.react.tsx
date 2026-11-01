@@ -8,6 +8,7 @@ import { fill, fmtDate, theme} from '../../lib/format';
 import { removeGroupingFromLists} from '../../lib/groupingStore';
 import { useGuildLive, executeQueryRefresh} from '../../lib/guildLive';
 import { toast, ConfirmDialog} from './Toast.react.tsx';
+import { runShareImage, browserShareImageDeps, shareImageFileName} from '../../lib/shareImage';
 import SeatGrid, { type SeatData} from './SeatGrid.react.tsx';
 import GroupingForm from './GroupingForm.react.tsx';
 import GuildRecapSection from './GuildRecapSection.react.tsx';
@@ -26,6 +27,10 @@ const GroupingDetailQueryNode = graphql`
       detailBackToListLabel
       detailShareLabel
       shareUrl
+      shareImageUrl
+      detailShareImageLabel
+      detailShareImageSaved
+      detailShareImageFailed
       templateSave {
         buttonLabel
         dialogTitle
@@ -570,6 +575,26 @@ toast(page.detailCopyFailedManual);
 }
 };
 
+// Share this grouping's card image: native file share when the
+// browser supports it, otherwise download the PNG + copy the short
+// link (chat groups like WeChat show no link preview, so the card
+// travels as a picture with the link pasted under it).
+const shareCardImage = async () => {
+const imageUrl = page.shareImageUrl;
+if (!imageUrl || !g) return;
+const result = await runShareImage(browserShareImageDeps(), {
+imageUrl,
+fileName: shareImageFileName(imageUrl),
+shareText: `${g.title} ${page.shareUrl}`,
+linkUrl: page.shareUrl,
+});
+if (result.kind === 'fallback') {
+toast(result.copied ? page.detailShareImageSaved : page.detailCopyFailedManual);
+} else if (result.kind === 'failed') {
+toast(page.detailShareImageFailed);
+}
+};
+
 if (!g) return (
 <div style={{ color: theme.muted, padding: 32, textAlign: 'center'}}>
 {page.detailNotFoundText}
@@ -612,6 +637,9 @@ verticalAlign: 'middle',
 </div>
 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap'}}>
 <button onClick={share} className="yy-btn yy-btn-gold" style={{ padding: '6px 16px', fontSize: 13 }}>{page.detailShareLabel}</button>
+{page.shareImageUrl && (
+<button onClick={shareCardImage} style={smBtn}>{page.detailShareImageLabel}</button>
+)}
 {page.templateSave && (
 <button onClick={() => { setTplName(g.title); setShowTplSave(true); }} style={smBtn}>{page.templateSave.buttonLabel}</button>
 )}
