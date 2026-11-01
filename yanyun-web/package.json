@@ -10,7 +10,8 @@
     "check-artifacts": "relay-compiler --validate",
     "build": "node scripts/sync-schema.mjs && relay-compiler && tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run"
   },
   "dependencies": {
     "babel-plugin-relay": "^21.0.1",
@@ -32,6 +33,7 @@
     "typescript": "~6.0.3",
     "vite": "^8.3.4",
     "vite-plugin-babel": "^1.7.3",
-    "vite-plugin-relay": "^2.2.1"
+    "vite-plugin-relay": "^2.2.1",
+    "vitest": "^3.2.7"
   }
 }
