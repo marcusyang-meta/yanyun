@@ -3,6 +3,7 @@
 // FakeDB routes by SQL substring; user/pref go through the real auth
 // helpers + real yoga.
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
 import { yoga } from '../src/graphql.ts';
 import { getUserLocalePref } from '../src/domains/identity/auth.ts';
 import { negotiateLocale, CATALOG, SUPPORTED_LOCALES, i18nProbe } from '../src/domains/platform/i18n.ts';
@@ -202,6 +203,24 @@ for (const loc of SUPPORTED_LOCALES) {
   eq(`viewer.userBarSettingsLabel @${loc}`, j.data?.viewer?.userBarSettingsLabel, CATALOG.userBar.settings[loc]);
   eq(`viewer.commonLoadingGuildText @${loc}`, j.data?.viewer?.commonLoadingGuildText, CATALOG.common.loadingGuild[loc]);
 }
+  });
+
+  it('(g) en key coverage: every declared string has an en entry', async () => {
+/* ---------------- (g) en key-coverage gate ----------------
+ * Every declared string (one hk per declaration in the compiled
+ * strings.ts) must have an entry in the compiled en catalog. A
+ * missing en key falls back per field to the zh-CN source at
+ * runtime, which is how whole sections (landing / announcements /
+ * ops / market / allies) shipped Chinese under an English UI:
+ * value-level checks cannot see a key that is absent entirely,
+ * so this gate asserts key-set coverage itself: the source hk
+ * set is a subset of the en catalog key set. */
+  const stringsSrc = readFileSync(new URL('../src/domains/platform/i18n/strings.ts', import.meta.url), 'utf8');
+  const hkSet = new Set([...stringsSrc.matchAll(/hk: "([^"]+)"/g)].map((m) => m[1]));
+  const enCatalog = JSON.parse(readFileSync(new URL('../src/domains/platform/i18n/catalogs/en.json', import.meta.url), 'utf8'));
+  const enKeys = new Set(Object.keys(enCatalog));
+  const missingHk = [...hkSet].filter((h) => !enKeys.has(h));
+  check(`en 键覆盖 100% (源串 hk ${hkSet.size} 条)`, hkSet.size > 0 && missingHk.length === 0, missingHk.slice(0, 10).join(','));
   });
 
 });
