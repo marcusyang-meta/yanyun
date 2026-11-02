@@ -31,6 +31,12 @@ export const users = sqliteTable('users', {
   createdAt: text('created_at').notNull().default(sql`(strftime('%s','now'))`),
   updatedAt: text('updated_at').notNull().default(sql`(strftime('%s','now'))`),
   localePref: text('locale_pref'),
+  // IANA timezone of the member's most recent signed-in request
+  // (migration 0040), captured from the x-tz header, change-only.
+  // NULL = never captured. Aggregate-only: it feeds the car home-zone
+  // resolution (creator ring + guild mode ring) and is never exposed
+  // as a per-member field on a surface. [alt 0040]
+  lastTz: text('last_tz'),
   // Account self-service deletion (migration 0003): epoch seconds of
   // the deletion request; NULL = no pending deletion (7-day cooling-off
   // runs from this timestamp). [alt 0003]

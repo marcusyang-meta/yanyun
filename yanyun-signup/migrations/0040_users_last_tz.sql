@@ -1,0 +1,26 @@
+-- 0040: users.last_tz — the IANA timezone of a member's most recent
+-- signed-in request, captured from the x-tz header on the GraphQL
+-- request path and overwritten only when it changes.
+--
+-- Why: share cards print a car's start time in the car's "home zone"
+-- (marcus ruling 2026-11-01: the timezone of the guild's people,
+-- never bare UTC). The 0039 capture put the framing zone on the car
+-- row itself, but a car whose row predates capture — or whose creator
+-- never framed a car from their own client — had nothing to resolve
+-- from: the platform persisted no member timezone anywhere, even
+-- though every signed-in request already carries one in x-tz (the
+-- availability/insights surfaces store UTC minutes only, by design).
+-- Persisting the member's latest zone gives the resolution chain two
+-- further rings (see groupings/car-tz.ts): the car creator's own
+-- persisted zone, then the mode zone across the guild's roster
+-- (guild_members joined to users), before the Asia/Shanghai default.
+--
+-- Privacy shape: this column is an aggregate-only input. It is read
+-- by the creator lookup and by a GROUP BY over one guild's roster;
+-- no surface exposes a single member's zone.
+--
+-- Shape: TEXT, nullable, no default — NULL means "never captured"
+-- (every pre-0040 row, and members who have not made a signed-in
+-- request since). Pure expand: one nullable column, nothing else
+-- changes; the previous release never reads it and is unaffected.
+ALTER TABLE users ADD COLUMN last_tz TEXT;
