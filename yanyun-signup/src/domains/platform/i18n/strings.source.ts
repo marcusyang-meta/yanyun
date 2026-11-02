@@ -123,6 +123,7 @@ export abstract class ErrorsFbtUtils {
   static groupingClosed(fbs: FbsAPI) { return fbs("该组队已截止报名", "Error message for squad signup, used when signing up for a squad whose signup deadline has passed."); }
   static nicknameRequired(fbs: FbsAPI) { return fbs("请填写游戏昵称", "Error message for signups, used when a signup or squad is submitted without a game nickname."); }
   static proxyTargetNotInRoster(fbs: FbsAPI) { return fbs("所选成员不在本百业名册中", "Error message for proxy signups, used when the picked member is not on the guild roster."); }
+  static seatNamesNotInRoster(fbs: FbsAPI, p?: StringParams) { return fbs(["以下名字不在本百业名册中，无法占座：", fbs.param("names", pv(p, "names")), "。请先将他们加入名册（或导入游戏名名册）后再保存"], "Error message for squad seat saves, used when a submitted seat name resolves to nobody on the guild roster or the game-name roster and the whole save is rejected, where {names} lists the unresolved names."); }
   static groupingFull(fbs: FbsAPI) { return fbs("名额已满或报名已截止", "Error message for squad signup, used when the squad is full or its signup has closed."); }
   static lastSeatHealer(fbs: FbsAPI) { return fbs("最后一个名额需要奶", "Error message for squad signup, used when the last remaining seat must be filled by a healer and the signup is not one."); }
   static alreadyJoined(fbs: FbsAPI) { return fbs("已报过名", "Error message for squad signup, used when a member signs up for a squad they already sit in."); }

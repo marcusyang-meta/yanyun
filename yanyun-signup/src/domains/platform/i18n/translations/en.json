@@ -20294,6 +20294,18 @@
         }
       ],
       "types": []
+    },
+    "TkxfRcF3llbJUxMUH9YWbQ==": {
+      "description": "Error message for squad seat saves, used when a submitted seat name resolves to nobody on the guild roster or the game-name roster and the whole save is rejected, where {names} lists the unresolved names.",
+      "id": "platform/errors_seatNamesNotInRoster",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "These names are not on this guild's roster and cannot take a seat: {names}. Add them to the roster (or import them into the game-name roster) first, then save again.",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

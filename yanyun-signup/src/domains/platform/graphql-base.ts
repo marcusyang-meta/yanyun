@@ -460,6 +460,13 @@ export class PayloadBase extends ShellBase {
   genErrorCode(){ return this.data.errorCode || null; }
 }
 export class GroupingPayloadShell extends PayloadBase {
+  /* Error copy may carry catalog params (the roster-only seat-name
+   * rejection lists the unresolved names in its message). */
+  genError(){
+    return this.data.errorCode
+      ? translateError(this.data.errorCode, (this.ctx && this.ctx.locale) || 'zh-CN', this.data.errorParams)
+      : null;
+  }
   genGrouping(){ return this.data.grouping || null; }
 }
 export class SeatPayloadShell extends PayloadBase {

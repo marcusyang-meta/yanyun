@@ -4264,6 +4264,10 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "fr": "Le membre sélectionné n’est pas dans la liste de cette guilde",
       "zh-TW": "所選成員不在本百業名冊中"
     },
+    "seatNamesNotInRoster": {
+      "zh-CN": "以下名字不在本百业名册中，无法占座：{names}。请先将他们加入名册（或导入游戏名名册）后再保存",
+      "en": "These names are not on this guild's roster and cannot take a seat: {names}. Add them to the roster (or import them into the game-name roster) first, then save again."
+    },
     "groupingFull": {
       "zh-CN": "名额已满或报名已截止",
       "en": "The squad is full or signups are closed",

@@ -16,10 +16,16 @@
 //     (Originally every other seat renamed freely; the generalized
 //     name lock — tests/namelock.test.ts — has since locked every
 //     identified person's seat the same way, and case 2 below now
-//     pins that: the stamped member seat is restored too, while an
-//     unstamped, non-resolving seat still renames freely.)
+//     pins that: the stamped member seat is restored too. The
+//     roster-only ruling (2026-11-02) has since closed the rest:
+//     an unstamped seat can only be re-pointed to a name that
+//     resolves on a roster — the renames below target game-name
+//     roster entries.)
 //  3) Legacy groupings with no creator record: the first seat's
-//     existing name is frozen; other seats still rename.
+//     existing name is frozen — but under the roster-only ruling a
+//     wholesale save only passes while every written name resolves
+//     on a roster, the frozen name included (case 6 pins both the
+//     rejection and the roster-backed pass).
 // Real yoga + real resolvers + a FakeDB that routes by SQL shape into
 // real in-memory tables (guildadmin-harness shape, extended with the
 // nickname snapshot table and real usernames).
@@ -65,13 +71,14 @@ function makeDb(fx = {}) {
     events: (fx.events || []).map((e) => ({ ...e })),
     signups: (fx.signups || []).map((r) => ({ ...r })),
     guildMembers: (fx.guildMembers || []).map((r) => ({ ...r })),
+    rosterEntries: (fx.rosterEntries || []).map((r) => ({ ...r })),
     mint: new Map(), // `${type_code}|${day_index}` -> last seq
   };
   let nextId = 5000;
   const unknownSql = new Set();
 
   function norm(sql) {
-    return sql.replace(/"/g, '').replace(/\b(tenants|settings|users|events|signups|guild_members|user_guild_nicks)\./g, '').replace(/\s+/g, ' ');
+    return sql.replace(/"/g, '').replace(/\b(tenants|settings|users|events|signups|guild_members|user_guild_nicks|guild_roster_entries)\./g, '').replace(/\s+/g, ' ');
   }
   function parseCols(list) {
     return list.split(',').map((c) => c.trim().split('.').pop());
@@ -169,6 +176,10 @@ function makeDb(fx = {}) {
       if (/discord_id = \?/i.test(sql) && b.length > 1) rows = rows.filter((x) => x.discord_id === String(b[1]));
       return kind === 'first' ? (rows[0] ?? null) : all(rows);
     }
+    if (/FROM guild_roster_entries/i.test(sql)) {
+      const rows = tables.rosterEntries.filter((x) => x.tenant === b[0]);
+      return kind === 'first' ? (rows[0] ?? null) : all(rows);
+    }
     if (/SELECT \* FROM events WHERE id = \?/i.test(sql)) {
       return first(tables.events.find((e) => e.id === Number(b[0])));
     }
@@ -244,6 +255,11 @@ function evRow(id, over = {}) {
 function seatRow(id, eventId, nickname, discordId, weapon = '破竹·樽') {
   return { id, event_id: eventId, nickname, uid: 'u' + id, role: '输出', weapon, discord_id: discordId, ready_at: null };
 }
+/* A game-name roster entry (name_norm mirrors normalizeRosterName
+ * for these CJK names: no whitespace, no case to fold). */
+function rosterEntry(id, displayName) {
+  return { id, tenant: GID.locktest, display_name: displayName, name_norm: displayName, source: 'manual', matched_discord_id: null, created_by_user_id: UID.UL, created_at: 1 };
+}
 
 const createMut = `mutation($input: CreateGroupingInput!) {
   createGrouping(input: $input) { ok error errorCode grouping { id } }
@@ -268,7 +284,9 @@ const seatsOf = (tables, eventId) => tables.signups.filter((r) => r.event_id ===
 describe('leader name lock', () => {
 
   it('create: forged leader nickname is replaced by the identity name', async () => {
-    const A = makeDb(baseFx());
+    // The pre-seated teammate sits via the game-name roster
+    // (roster-only ruling: a pre-seat must resolve on a roster).
+    const A = makeDb({ ...baseFx(), rosterEntries: [rosterEntry(1, '队友甲')] });
     const gql = makeGql({ DB: A.db });
     const r = await gql(createMut, {
       user: LEADER,
@@ -288,7 +306,7 @@ describe('leader name lock', () => {
     eq('座位数', seats.length, 2);
     eq('车头位落库为服务器昵称', seats[0]?.nickname, '服昵L');
     eq('车头位无条件盖创建人戳', seats[0]?.discord_id, 'UL');
-    eq('同车预置队员不受影响', seats[1]?.nickname, '队友甲');
+    eq('同车预置队员按游戏名名册落座', seats[1]?.nickname, '队友甲');
     eq('队员不被误盖戳', seats[1]?.discord_id ?? null, null);
   });
 
@@ -314,6 +332,9 @@ describe('leader name lock', () => {
   it('update: leader seat name is restored, stamped member seat is locked too', async () => {
     const A = makeDb({
       ...baseFx(),
+      // The unstamped seat's rename target lives on the game-name
+      // roster (roster-only ruling: renames must resolve on a roster).
+      rosterEntries: [rosterEntry(1, '队员甲改')],
       events: [evRow(301)],
       signups: [
         seatRow(1, 301, '服昵L', 'UL'),
@@ -340,7 +361,7 @@ describe('leader name lock', () => {
     eq('座位数', seats.length, 3);
     eq('车头名被恢复为身份名', seats[0]?.nickname, '服昵L');
     eq('车头戳按既有 carry 保留', seats[0]?.discord_id, 'UL');
-    eq('无戳队员甲改名成功', seats[1]?.nickname, '队员甲改');
+    eq('无戳队员甲改名到名册名成功', seats[1]?.nickname, '队员甲改');
     // Generalized lock: UM's seat carries UM's identity stamp, so the
     // submitted rename has no effect — the seat is written back under
     // UM's current identity name with the stamp kept.
@@ -351,6 +372,7 @@ describe('leader name lock', () => {
   it('update: a guild admin is bound by the same lock', async () => {
     const A = makeDb({
       ...baseFx(),
+      rosterEntries: [rosterEntry(1, '队员甲改')],
       events: [evRow(302)],
       signups: [
         seatRow(1, 302, '服昵L', 'UL'),
@@ -373,7 +395,7 @@ describe('leader name lock', () => {
     eq('管理员编辑 ok', r.data?.updateGrouping?.ok, true, JSON.stringify(r.errors || r.data).slice(0, 240));
     const seats = seatsOf(A.tables, 302);
     eq('管理员也改不动车头名', seats[0]?.nickname, '服昵L');
-    eq('队员改名成功', seats[1]?.nickname, '队员甲改');
+    eq('队员改名到名册名成功', seats[1]?.nickname, '队员甲改');
   });
 
   it('update: leader seat follows the creator’s current identity name', async () => {
@@ -382,6 +404,7 @@ describe('leader name lock', () => {
     // current name, not the name the seat happened to carry.
     const A = makeDb({
       ...baseFx(),
+      rosterEntries: [rosterEntry(1, '队员甲')],
       events: [evRow(303, { creator_user_id: UID.UL3 })],
       signups: [
         seatRow(1, 303, '旧服昵L3', 'UL3'),
@@ -409,6 +432,7 @@ describe('leader name lock', () => {
   it('update: leader seat located by unique identity name when its stamp is gone', async () => {
     const A = makeDb({
       ...baseFx(),
+      rosterEntries: [rosterEntry(1, '队员甲改')],
       events: [evRow(304)],
       signups: [
         seatRow(1, 304, '服昵L', null),
@@ -431,10 +455,14 @@ describe('leader name lock', () => {
     eq('编辑 ok', r.data?.updateGrouping?.ok, true, JSON.stringify(r.errors || r.data).slice(0, 240));
     const seats = seatsOf(A.tables, 304);
     eq('无戳车头名仍被恢复', seats[0]?.nickname, '服昵L');
-    eq('队员改名成功', seats[1]?.nickname, '队员甲改');
+    eq('队员改名到名册名成功', seats[1]?.nickname, '队员甲改');
   });
 
-  it('update: legacy car without a creator record freezes its first seat name', async () => {
+  it('update: legacy car save is rejected while a written name is on no roster', async () => {
+    // Neither the frozen first-seat name nor the submitted rename
+    // resolves on any roster: the whole save is refused and the
+    // error lists both names (the editor's fix list). The stored
+    // history itself is untouched — it just cannot pass an edit.
     const A = makeDb({
       ...baseFx(),
       events: [evRow(305, { creator_user_id: null })],
@@ -456,9 +484,40 @@ describe('leader name lock', () => {
         },
       },
     });
-    eq('管理员编辑无车头车 ok', r.data?.updateGrouping?.ok, true, JSON.stringify(r.errors || r.data).slice(0, 240));
+    eq('管理员编辑无车头车被拒', r.data?.updateGrouping?.ok, false, JSON.stringify(r.errors || r.data).slice(0, 240));
+    eq('错误码', r.data?.updateGrouping?.errorCode, 'seatNamesNotInRoster');
+    const errText = String(r.data?.updateGrouping?.error || '');
+    check('错误列出冻结名与改名', errText.includes('老车头') && errText.includes('老队员改'), errText);
     const seats = seatsOf(A.tables, 305);
+    eq('旧座位原样未动', seats.map((x) => x.nickname).join(','), '老车头,老队员');
+  });
+
+  it('update: legacy car first seat freezes once its name is on the game-name roster', async () => {
+    const A = makeDb({
+      ...baseFx(),
+      rosterEntries: [rosterEntry(1, '老车头'), rosterEntry(2, '老队员改')],
+      events: [evRow(306, { creator_user_id: null })],
+      signups: [
+        seatRow(1, 306, '老车头', null),
+        seatRow(2, 306, '老队员', null, '鸣金·虹'),
+      ],
+    });
+    const gql = makeGql({ DB: A.db });
+    const r = await gql(updateMut, {
+      user: ADMIN,
+      variables: {
+        id: '306',
+        input: {
+          seats: [
+            { nickname: '想改车头', weapon: '破竹·樽' },
+            { nickname: '老队员改', weapon: '鸣金·虹' },
+          ],
+        },
+      },
+    });
+    eq('管理员编辑无车头车 ok', r.data?.updateGrouping?.ok, true, JSON.stringify(r.errors || r.data).slice(0, 240));
+    const seats = seatsOf(A.tables, 306);
     eq('存量车车头名冻结', seats[0]?.nickname, '老车头');
-    eq('其他座位照常改名', seats[1]?.nickname, '老队员改');
+    eq('其他座位改名到名册名', seats[1]?.nickname, '老队员改');
   });
 });

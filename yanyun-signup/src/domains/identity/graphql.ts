@@ -13,6 +13,7 @@ import { evaluateHeirloomPushes } from '../gear/index.ts';
 import { translate, negotiateLocale, SUPPORTED_LOCALES, CATALOG } from '../platform/index.ts';
 import { logError } from '../platform/index.ts';
 import { getGuildAvatarMeta, avatarPath, getGuildIdBySlug } from '../guilds/index.ts';
+import { listGuildRosterEntries, normalizeRosterName } from '../guilds/index.ts';
 import { getSettingValue, setSettingValue, listSettingsByKey } from '../guilds/index.ts';
 import { getUsernameRow, listNicksByGuild, listUsersDirectory } from './index.ts';
 import { listGuildMembers, getGuildMember } from './index.ts';
@@ -185,6 +186,47 @@ export async function resolveUniqueNameOwner(db: any, slug: string, nickname: st
     if ((u.globalName && u.globalName === nm) || (u.nick && u.nick === nm)) hits.push(id);
   }
   return hits.length === 1 ? hits[0] : null;
+}
+
+/* ---------- Roster-only seat names (ruling 2026-11-02, closing the
+ * placeholder opening the 2026-11-01 name lock deliberately left) ----------
+ * Every seat name that gets written must resolve to a person on one
+ * of the guild's rosters; a hand-typed name that resolves to nobody
+ * may not be stored at all (the seat-writing mutations reject the
+ * whole save and list the unresolved names). Resolution order:
+ *  1. the platform identity chain — resolveUniqueNameOwner (unique
+ *     guild-roster match, then unique bound-server match), named by
+ *     identityNameForDiscordId;
+ *  2. this guild's game-name roster (guild_roster_entries — the
+ *     screenshot-imported names, which are a roster in their own
+ *     right; a person not on the platform must be on a roster before
+ *     they can be seated), matched by the roster module's own
+ *     normalized equality; the (tenant, name_norm) unique index
+ *     makes a hit unambiguous. The stored name is the entry's
+ *     recorded display name.
+ * Returns { discordId, name } — discordId is the resolved platform
+ * person when one exists (a game-roster entry may also carry a
+ * linked member), else null — or null when the name resolves to
+ * nobody anywhere. Resolution still never stamps anyone; callers
+ * keep the existing stamping rules. */
+export async function resolveSeatName(db: any, slug: string, nickname: string) {
+  const nm = String(nickname || '').trim();
+  if (!nm) return null;
+  const owner = await resolveUniqueNameOwner(db, slug, nm).catch(() => null);
+  if (owner) {
+    const name = (await identityNameForDiscordId(db, owner, slug).catch(() => '')).slice(0, 30);
+    if (name) return { discordId: owner as string, name };
+  }
+  const guildId = await getGuildIdBySlug(db, slug).catch(() => null);
+  if (guildId == null) return null;
+  const norm = normalizeRosterName(nm);
+  if (!norm) return null;
+  const entries = await listGuildRosterEntries(db, guildId).catch(() => []);
+  const hits = (entries || []).filter((e) => e && e.name_norm === norm);
+  if (hits.length !== 1) return null;
+  const name = String(hits[0].display_name || '').trim().slice(0, 30);
+  if (!name) return null;
+  return { discordId: hits[0].matched_discord_id ? String(hits[0].matched_discord_id) : null, name };
 }
 
 /* ---------- Guild roster recording (on entering a guild) ----------

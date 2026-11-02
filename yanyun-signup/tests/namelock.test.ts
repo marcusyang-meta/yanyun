@@ -10,9 +10,13 @@
 //     (unique roster match, then unique bound-server match — the
 //     reminder's resolution chain) is rewritten to that person's
 //     identity name; the resolution alone never stamps the seat.
-//  3) Ambiguous names (two roster members share them) and names
-//     resolving to nobody are NOT forced — placeholder text for
-//     people with no platform identity is unchanged pending ruling.
+//  3) Roster-only seat names (ruling 2026-11-02, superseding the
+//     placeholder opening point (3) used to record): a name that
+//     resolves to NOBODY — ambiguous names included — rejects the
+//     whole save (create or rewrite) with the names listed; nothing
+//     is written. Resolution gained a stage: after the identity
+//     chain, the guild's game-name roster (guild_roster_entries)
+//     counts as a roster, and its recorded display name is stored.
 //  4) createGrouping pre-seats follow the same rule (2)/(3), and
 //     pre-seating still never stamps another person.
 // Self/proxy signup naming was already server-decided and is pinned
@@ -69,13 +73,14 @@ function makeDb(fx = {}) {
     events: (fx.events || []).map((e) => ({ ...e })),
     signups: (fx.signups || []).map((r) => ({ ...r })),
     guildMembers: (fx.guildMembers || []).map((r) => ({ ...r })),
+    rosterEntries: (fx.rosterEntries || []).map((r) => ({ ...r })),
     mint: new Map(), // `${type_code}|${day_index}` -> last seq
   };
   let nextId = 5000;
   const unknownSql = new Set();
 
   function norm(sql) {
-    return sql.replace(/"/g, '').replace(/\b(tenants|settings|users|events|signups|guild_members|user_guild_nicks)\./g, '').replace(/\s+/g, ' ');
+    return sql.replace(/"/g, '').replace(/\b(tenants|settings|users|events|signups|guild_members|user_guild_nicks|guild_roster_entries)\./g, '').replace(/\s+/g, ' ');
   }
   function parseCols(list) {
     return list.split(',').map((c) => c.trim().split('.').pop());
@@ -178,6 +183,10 @@ function makeDb(fx = {}) {
       if (/discord_id = \?/i.test(sql) && b.length > 1) rows = rows.filter((x) => x.discord_id === String(b[1]));
       return kind === 'first' ? (rows[0] ?? null) : all(rows);
     }
+    if (/FROM guild_roster_entries/i.test(sql)) {
+      const rows = tables.rosterEntries.filter((x) => x.tenant === b[0]);
+      return kind === 'first' ? (rows[0] ?? null) : all(rows);
+    }
     if (/SELECT \* FROM events WHERE id = \?/i.test(sql)) {
       return first(tables.events.find((e) => e.id === Number(b[0])));
     }
@@ -243,6 +252,13 @@ function baseFx() {
       { tenant: GID.namelock, discord_id: 'UR', nick: '名册昵R', global_name: '全局R' },
       { tenant: GID.namelock, discord_id: 'UAMB1', nick: '', global_name: '重名' },
       { tenant: GID.namelock, discord_id: 'UAMB2', nick: '', global_name: '重名' },
+    ],
+    // Game-name roster (screenshot-imported names): one unlinked
+    // entry, one linked to UR whose game name differs from every
+    // Discord-side name UR carries.
+    rosterEntries: [
+      { id: 1, tenant: GID.namelock, display_name: '游戏名甲', name_norm: '游戏名甲', source: 'ocr', matched_discord_id: null, created_by_user_id: UID.UL, created_at: 1 },
+      { id: 2, tenant: GID.namelock, display_name: '游戏里的R', name_norm: '游戏里的r', source: 'ocr', matched_discord_id: 'UR', created_by_user_id: UID.UL, created_at: 1 },
     ],
   };
 }
@@ -428,7 +444,7 @@ describe('name lock for every identified person', () => {
     eq('仅凭解析命中不盖戳', seats[1]?.discord_id ?? null, null);
   });
 
-  it('update: an ambiguous name is not forced onto anyone', async () => {
+  it('update: an ambiguous name resolves to nobody and rejects the whole save', async () => {
     const A = makeDb({
       ...baseFx(),
       events: [evRow(406)],
@@ -445,19 +461,21 @@ describe('name lock for every identified person', () => {
         input: {
           seats: [
             { nickname: '服昵L', weapon: '破竹·樽' },
-            // Two roster members share this global name.
+            // Two roster members share this global name — it cannot
+            // be resolved to one person on any roster.
             { nickname: '重名', weapon: '鸣金·虹' },
           ],
         },
       },
     });
-    eq('编辑 ok', r.data?.updateGrouping?.ok, true, JSON.stringify(r.errors || r.data).slice(0, 240));
+    eq('编辑被拒', r.data?.updateGrouping?.ok, false, JSON.stringify(r.errors || r.data).slice(0, 240));
+    eq('错误码', r.data?.updateGrouping?.errorCode, 'seatNamesNotInRoster');
+    check('错误列出未解析的名字', String(r.data?.updateGrouping?.error || '').includes('重名'), String(r.data?.updateGrouping?.error || ''));
     const seats = seatsOf(A.tables, 406);
-    eq('重名不唯一命中任何人, 原样保留', seats[1]?.nickname, '重名');
-    eq('重名座位不盖戳', seats[1]?.discord_id ?? null, null);
+    eq('旧座位原样未动', seats.map((x) => x.nickname).join(','), '服昵L,旧占位');
   });
 
-  it('update: a placeholder name resolving to nobody stays as submitted', async () => {
+  it('update: a placeholder name resolving to nobody rejects the whole save, patch included', async () => {
     const A = makeDb({
       ...baseFx(),
       events: [evRow(407)],
@@ -472,17 +490,54 @@ describe('name lock for every identified person', () => {
       variables: {
         id: '407',
         input: {
+          title: '不该落库的标题',
           seats: [
             { nickname: '服昵L', weapon: '破竹·樽' },
             { nickname: '路人甲', weapon: '鸣金·虹' },
+            { nickname: '路人乙', weapon: '鸣金·虹' },
+          ],
+        },
+      },
+    });
+    eq('编辑被拒', r.data?.updateGrouping?.ok, false, JSON.stringify(r.errors || r.data).slice(0, 240));
+    eq('错误码', r.data?.updateGrouping?.errorCode, 'seatNamesNotInRoster');
+    const errText = String(r.data?.updateGrouping?.error || '');
+    check('错误列出全部未解析的名字', errText.includes('路人甲') && errText.includes('路人乙'), errText);
+    eq('连标题补丁也不落库', A.tables.events.find((e) => e.id === 407)?.title, '车407');
+    const seats = seatsOf(A.tables, 407);
+    eq('旧座位原样未动', seats.map((x) => x.nickname).join(','), '服昵L,旧占位');
+  });
+
+  it('update: a seat can be re-pointed to a game-name roster entry', async () => {
+    const A = makeDb({
+      ...baseFx(),
+      events: [evRow(408)],
+      signups: [
+        seatRow(1, 408, '服昵L', 'UL'),
+        seatRow(2, 408, '旧占位', null, '鸣金·虹'),
+      ],
+    });
+    const gql = makeGql({ DB: A.db });
+    const r = await gql(updateMut, {
+      user: LEADER,
+      variables: {
+        id: '408',
+        input: {
+          seats: [
+            { nickname: '服昵L', weapon: '破竹·樽' },
+            // On the game-name roster only (no platform identity):
+            // seated under the roster's recorded display name; the
+            // OCR-style spaced submission still matches by the
+            // roster's normalized equality.
+            { nickname: '游 戏名甲', weapon: '鸣金·虹' },
           ],
         },
       },
     });
     eq('编辑 ok', r.data?.updateGrouping?.ok, true, JSON.stringify(r.errors || r.data).slice(0, 240));
-    const seats = seatsOf(A.tables, 407);
-    eq('无身份占位名原样落库 (待裁定项, 现状保持)', seats[1]?.nickname, '路人甲');
-    eq('占位座位不盖戳', seats[1]?.discord_id ?? null, null);
+    const seats = seatsOf(A.tables, 408);
+    eq('落库为游戏名名册记录名', seats[1]?.nickname, '游戏名甲');
+    eq('游戏名名册落座不盖戳', seats[1]?.discord_id ?? null, null);
   });
 
   it('create: a pre-seat name uniquely matching a roster member is rewritten, never stamped', async () => {
@@ -496,7 +551,57 @@ describe('name lock for every identified person', () => {
           seats: [
             { nickname: '车头随便写', weapon: '破竹·樽' },
             { nickname: '全局R', weapon: '鸣金·虹' },
+          ],
+        },
+      },
+    });
+    eq('发车 ok', r.data?.createGrouping?.ok, true, JSON.stringify(r.errors || r.data).slice(0, 240));
+    const evId = Number(r.data?.createGrouping?.grouping?.id);
+    const seats = seatsOf(A.tables, evId);
+    eq('座位数', seats.length, 2);
+    eq('车头位落库为身份名', seats[0]?.nickname, '服昵L');
+    eq('预置命中名册者改写为身份名', seats[1]?.nickname, '名册昵R');
+    eq('预置他人不盖戳', seats[1]?.discord_id ?? null, null);
+  });
+
+  it('create: a placeholder pre-seat rejects the whole create, no car left behind', async () => {
+    const A = makeDb(baseFx());
+    const gql = makeGql({ DB: A.db });
+    const r = await gql(createMut, {
+      user: LEADER,
+      variables: {
+        input: {
+          slug: 'namelock', title: '占位发车', type: 'ACTIVITY', startsAt: startsAt(), dungeonId: null,
+          seats: [
+            { nickname: '车头随便写', weapon: '破竹·樽' },
+            { nickname: '全局R', weapon: '鸣金·虹' },
             { nickname: '路人甲', weapon: '鸣金·虹' },
+          ],
+        },
+      },
+    });
+    eq('发车被拒', r.data?.createGrouping?.ok, false, JSON.stringify(r.errors || r.data).slice(0, 240));
+    eq('错误码', r.data?.createGrouping?.errorCode, 'seatNamesNotInRoster');
+    check('错误列出未解析的名字', String(r.data?.createGrouping?.error || '').includes('路人甲'), String(r.data?.createGrouping?.error || ''));
+    eq('没有留下车', A.tables.events.length, 0);
+    eq('没有留下座位', A.tables.signups.length, 0);
+  });
+
+  it('create: game-name roster pre-seats land under the roster entry names', async () => {
+    const A = makeDb(baseFx());
+    const gql = makeGql({ DB: A.db });
+    const r = await gql(createMut, {
+      user: LEADER,
+      variables: {
+        input: {
+          slug: 'namelock', title: '游戏名名册车', type: 'ACTIVITY', startsAt: startsAt(), dungeonId: null,
+          seats: [
+            { nickname: '车头随便写', weapon: '破竹·樽' },
+            { nickname: '游戏名甲', weapon: '鸣金·虹' },
+            // The entry is linked to UR, but the stored name is the
+            // game-name roster's own recorded name, not UR's
+            // Discord-side identity name.
+            { nickname: '游戏里的R', weapon: '鸣金·虹' },
           ],
         },
       },
@@ -505,10 +610,9 @@ describe('name lock for every identified person', () => {
     const evId = Number(r.data?.createGrouping?.grouping?.id);
     const seats = seatsOf(A.tables, evId);
     eq('座位数', seats.length, 3);
-    eq('车头位落库为身份名', seats[0]?.nickname, '服昵L');
-    eq('预置命中名册者改写为身份名', seats[1]?.nickname, '名册昵R');
-    eq('预置他人不盖戳', seats[1]?.discord_id ?? null, null);
-    eq('预置占位名原样保留 (待裁定项, 现状保持)', seats[2]?.nickname, '路人甲');
-    eq('占位座位不盖戳', seats[2]?.discord_id ?? null, null);
+    eq('无链接条目落库为名册记录名', seats[1]?.nickname, '游戏名甲');
+    eq('无链接条目不盖戳', seats[1]?.discord_id ?? null, null);
+    eq('有链接条目落库为游戏名而非身份名', seats[2]?.nickname, '游戏里的R');
+    eq('预置他人不盖戳 (链接也不盖)', seats[2]?.discord_id ?? null, null);
   });
 });
