@@ -3,6 +3,8 @@ import {
   Alert, Modal, Pressable, RefreshControl, ScrollView, Share, StyleSheet, Text, TextInput, View,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { File, Paths } from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fetchQuery, useLazyLoadQuery, useRelayEnvironment } from 'react-relay';
 import { fonts, theme, SECTS } from '../theme';
@@ -14,6 +16,7 @@ import { BlockNode1View } from '../blocks/BlockRenderer';
 import type { ActionHandlers } from '../blocks/actions';
 import { AsyncBoundary, LoadingView } from '../components/AsyncBoundary';
 import { completeGrouping, disbandGrouping, joinGrouping, leaveGrouping, reopenGrouping, saveGroupingTemplate, setSeatReady } from '../api';
+import { deliverShareImage, type ShareImageDeps } from '../shareImage';
 import { useGuildLive } from '../live';
 import { useSession } from '../session';
 import type { documentsGroupingDetailBlocksQuery } from '../__generated__/documentsGroupingDetailBlocksQuery.graphql';
@@ -188,12 +191,32 @@ function BackLink({ label }: { label: string }) {
   );
 }
 
+// Production wiring for the share-image action (see src/shareImage.ts
+// for the branch logic): the card PNG lands in the cache directory via
+// expo-file-system's download (idempotent — re-tapping overwrites the
+// cached card instead of failing on the existing file), then
+// expo-sharing opens the system sheet on the local file. The link
+// fallback is the same RN Share call the plain share entry makes.
+const nativeShareImageDeps: ShareImageDeps = {
+  download: async (url, fileName) => {
+    const file = await File.downloadFileAsync(url, new File(Paths.cache, fileName), { idempotent: true });
+    return file.uri;
+  },
+  isSharingAvailable: () => Sharing.isAvailableAsync(),
+  shareFile: (uri, options) => Sharing.shareAsync(uri, options),
+  shareLink: async (url) => { await Share.share({ url, message: url }); },
+};
+
 // Header row: left back-to-list, right share (both labels supplied by the
 // detail page shell). Sharing uses the system sheet with the share URL
 // supplied by the detail page shell (the car's stable short link). The
 // save-as-template entry sits beside share: the shell's templateSave
 // object exists only for members who may create groupings in a writable
-// context (server-composed), so its presence gates the button.
+// context (server-composed), so its presence gates the button. The
+// share-image entry sits beside share too, gated on the shell's
+// shareImageUrl: it downloads the car's OG card PNG into the cache and
+// hands the local file to the system share sheet, so chat apps that
+// render no link preview still receive the card as a picture.
 function BackLinkLive({ slug, id }: { slug: string; id: string }) {
   const data = useLazyLoadQuery<documentsDetailPageTextQuery>(
     DetailPageTextQuery,
@@ -203,11 +226,32 @@ function BackLinkLive({ slug, id }: { slug: string; id: string }) {
   const page = data.groupingDetailPage;
   const shareLabel = page?.detailShareLabel;
   const shareUrl = page?.shareUrl;
+  const shareImageLabel = page?.detailShareImageLabel;
+  const shareImageUrl = page?.shareImageUrl;
   const [showTplSave, setShowTplSave] = useState(false);
+  const [shareImageBusy, setShareImageBusy] = useState(false);
   const onShare = useCallback(() => {
     if (!shareUrl) return;
     Share.share({ url: shareUrl, message: shareUrl }).catch(() => {});
   }, [shareUrl]);
+  const onShareImage = useCallback(() => {
+    if (!shareImageUrl || shareImageBusy) return;
+    setShareImageBusy(true);
+    void (async () => {
+      try {
+        const outcome = await deliverShareImage(nativeShareImageDeps, {
+          imageUrl: shareImageUrl,
+          linkUrl: shareUrl ?? null,
+          dialogTitle: shareImageLabel ?? '',
+        });
+        if (outcome === 'failed') {
+          Alert.alert(page?.detailShareImageFailed ?? data.viewer?.commonUnknownErrorText ?? '');
+        }
+      } finally {
+        setShareImageBusy(false);
+      }
+    })();
+  }, [shareImageUrl, shareImageBusy, shareUrl, shareImageLabel, page, data.viewer]);
   return (
     <View style={s.headerRow}>
       <BackLink label={page?.detailBackToListLabel ?? '‹ 返回车队列表'} />
@@ -220,6 +264,11 @@ function BackLinkLive({ slug, id }: { slug: string; id: string }) {
         {shareLabel ? (
           <Pressable onPress={onShare} hitSlop={10} style={s.backWrap}>
             <Text style={s.back}>{shareLabel}</Text>
+          </Pressable>
+        ) : null}
+        {shareImageLabel && shareImageUrl ? (
+          <Pressable onPress={onShareImage} hitSlop={10} style={s.backWrap} disabled={shareImageBusy}>
+            <Text style={[s.back, shareImageBusy && { opacity: 0.5 }]}>{shareImageLabel}</Text>
           </Pressable>
         ) : null}
       </View>
