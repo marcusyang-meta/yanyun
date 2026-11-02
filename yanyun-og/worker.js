@@ -259,7 +259,7 @@ async function fetchTeamCount(slug) {
 
 const CAR_TYPE_LABEL = { ACTIVITY: '双十人本', TALENT: '天赋组队', RACE: '竞速报名' };
 
-// 车时间格式化（旧格式，仅作回退）：卡面时间现在由后端按车的归属时区渲染成整串下发（ogCarCard.cardTimeText，如“周日 13:30 美西”，与 og:description 同源），本函数只在后端尚未提供该字段时兜底——即两个部署单元的滚动窗口内——仍按旧口径输出 UTC 墙钟并显式标注 UTC。此函数仅车卡渲染调用（百业卡等不共用）。
+// 车时间格式化（仅作回退）：卡面时间现在由后端渲染成整串下发（ogCarCard.cardTimeText，如“美东 周日 16:30 · 美西 周日 13:30”，与 og:description 同源），本函数只在后端尚未提供该字段时兜底——即两个部署单元的滚动窗口内——按同一临时口径输出美东+美西双时区并列（每段星期按各自时区的日历取）。此函数仅车卡渲染调用（百业卡等不共用）。
 function formatCarTime(startsAt) {
   if (!startsAt) return '';
   const t = String(startsAt).trim();
@@ -267,10 +267,18 @@ function formatCarTime(startsAt) {
   if (/^\d+$/.test(t)) d = new Date(parseInt(t, 10) * 1000);
   else d = new Date(t.replace(' ', 'T') + 'Z');
   if (isNaN(d.getTime())) return t;
-  const week = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
-  const hh = String(d.getUTCHours()).padStart(2, '0');
-  const mm = String(d.getUTCMinutes()).padStart(2, '0');
-  return `${week[d.getUTCDay()]} ${hh}:${mm} UTC`;
+  const weekZh = { Sun: '周日', Mon: '周一', Tue: '周二', Wed: '周三', Thu: '周四', Fri: '周五', Sat: '周六' };
+  const seg = (tz, label) => {
+    const parts = {};
+    const fmt = new Intl.DateTimeFormat('en-US', {
+      timeZone: tz, weekday: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+    });
+    for (const p of fmt.formatToParts(d)) parts[p.type] = p.value;
+    // 部分 ICU 在 h23 下会把午夜报成 24 时，归一化为 00。
+    const hour = parts.hour === '24' ? '00' : parts.hour;
+    return `${label} ${weekZh[parts.weekday] || ''} ${String(hour).padStart(2, '0')}:${String(parts.minute).padStart(2, '0')}`;
+  };
+  return `${seg('America/New_York', '美东')} · ${seg('America/Los_Angeles', '美西')}`;
 }
 
 /* 取车数据: 走 GraphQL ogCarCard (公开卡面窄口) — 服务端按 tenant
