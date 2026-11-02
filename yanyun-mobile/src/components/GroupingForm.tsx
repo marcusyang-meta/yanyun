@@ -217,7 +217,9 @@ export default function GroupingForm({
   // time (same concern as Web's date-parse fix).
   const [minute, setMinute] = useState(isEdit ? initDate.getMinutes() : 0);
   const [dungeonId, setDungeonId] = useState('');
-  const [nickname, setNickname] = useState(defaultNickname || '');
+  // Leader name is display-only: the server names the leader seat
+  // from the creator's identity and ignores any submitted value.
+  const [nickname] = useState(defaultNickname || '');
   const [sect, setSect] = useState('');
   const [titleErr, setTitleErr] = useState(false);
   const [nickErr, setNickErr] = useState(false);
@@ -514,7 +516,7 @@ export default function GroupingForm({
               <TextInput
                 style={[s.input, nickErr && s.inputErr]}
                 value={nickname}
-                onChangeText={(v) => { setNickname(v); setNickErr(false); }}
+                editable={false}
                 placeholder={text.formNicknamePlaceholder}
                 placeholderTextColor={theme.muted}
               />
