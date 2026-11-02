@@ -1,9 +1,12 @@
-// Car home timezone (0039 + car-tz.ts) acceptance:
+// Car home timezone (0039 + 0040 + car-tz.ts) acceptance:
 //  - capture rule: only runtime-known IANA zones are accepted from
 //    the client x-tz header; anything else counts as "not captured";
+//  - member capture: users.last_tz persists the signed-in member's
+//    latest zone, written only when it changes;
 //  - resolution chain: the car's own created_tz, else the creator's
-//    latest captured zone on another car in the SAME guild, else
-//    Asia/Shanghai — never borrowed across guilds;
+//    zone (persisted member zone first, then their latest captured
+//    zone on another car in the SAME guild), else the guild roster's
+//    mode zone, else Asia/Shanghai — never borrowed across guilds;
 //  - labels: recognised zones get their Chinese name (美西/美东/
 //    北京时间…), unmapped zones fall back to the real UTC offset at
 //    the printed instant, the UTC zone itself stays "UTC";
@@ -15,10 +18,13 @@
 // FakeDB routes by SQL shape (same pattern as shortlink.test.ts).
 import { describe, it, expect } from 'vitest';
 import {
-  isValidIanaTz, capturedTzOrNull, resolveCarHomeTz, carTzLabelZh,
+  isValidIanaTz, capturedTzOrNull, resolveCarHomeTz, pickGuildModeTz, carTzLabelZh,
   fmtCarTimeZoned, tzOffsetMinutes, CAR_HOME_TZ_FALLBACK,
 } from '../src/domains/groupings/car-tz.ts';
 import { insertEvent, updateEventFields, getEventRow } from '../src/domains/groupings/events.ts';
+import {
+  getUserLastTz, recordUserLastTzIfChanged, listGuildMemberTzStats,
+} from '../src/domains/identity/index.ts';
 
 function check(name: string, ok: boolean, extra = '') {
   expect(ok, extra ? `${name} — ${extra}` : name).toBe(true);
@@ -64,10 +70,28 @@ function toRawRows(sqlText: string, rows: any[]) {
     : Object.values(r)));
 }
 
-function makeDb(seed: any[] = []) {
-  const state = { events: seed.map((e) => ({ ...e })), counters: new Map<string, number>() };
+function userRow(id: number, over: Record<string, any> = {}) {
+  return {
+    id, discord_id: 'dc' + id, username: 'u' + id, avatar: '', guilds_json: '[]',
+    last_tz: null, updated_at: '1700000000', ...over,
+  };
+}
+
+function memberRow(tenant: number, discordId: string) {
+  return { tenant, discord_id: discordId, nick: '', global_name: '', updated_at: 1700000000 };
+}
+
+function makeDb(seed: any = []) {
+  const s = Array.isArray(seed) ? { events: seed } : seed;
+  const state = {
+    events: (s.events || []).map((e: any) => ({ ...e })),
+    users: (s.users || []).map((u: any) => ({ ...u })),
+    members: (s.members || []).map((m: any) => ({ ...m })),
+    counters: new Map<string, number>(),
+  };
   function route(kind: string, sqlRaw: string, b: any[]) {
-    const sql = sqlRaw.replace(/"/g, '').replace(/events\./g, '').replace(/id_mint_counters\./g, '');
+    const sql = sqlRaw.replace(/"/g, '').replace(/events\./g, '').replace(/id_mint_counters\./g, '')
+      .replace(/users\./g, '').replace(/guild_members\./g, '');
     if (/INSERT INTO id_mint_counters/.test(sql)) {
       const key = `${b[0]}/${b[1]}`;
       const next = (state.counters.get(key) || 0) + 1;
@@ -90,6 +114,36 @@ function makeDb(seed: any[] = []) {
       const row = state.events.find((e) => e.id === id);
       if (row) assigns.forEach((a, i) => { row[a.split('=')[0].trim()] = b[i]; });
       return { meta: { changes: row ? 1 : 0, last_row_id: 0 } };
+    }
+    if (/UPDATE users/.test(sql)) {
+      // recordUserLastTzIfChanged: SET last_tz = ? WHERE id = ? AND
+      // (last_tz IS NULL OR last_tz != ?) — apply the guard for real.
+      const [tz, userId] = b;
+      const row = state.users.find((u) => u.id === Number(userId));
+      const changed = !!row && (row.last_tz === null || row.last_tz !== tz);
+      if (changed && row) row.last_tz = tz;
+      return { meta: { changes: changed ? 1 : 0, last_row_id: 0 } };
+    }
+    if (/FROM guild_members/.test(sql)) {
+      // listGuildMemberTzStats: roster joined to users, grouped by zone.
+      const tenant = Number(b[0]);
+      const byZone = new Map<string, { tz: string; member_count: number; latest_active_at: number }>();
+      for (const m of state.members) {
+        if (m.tenant !== tenant) continue;
+        const u = state.users.find((x) => x.discord_id === m.discord_id);
+        if (!u || u.last_tz == null) continue;
+        const cur = byZone.get(u.last_tz) || { tz: u.last_tz, member_count: 0, latest_active_at: 0 };
+        cur.member_count += 1;
+        cur.latest_active_at = Math.max(cur.latest_active_at, parseInt(u.updated_at, 10) || 0);
+        byZone.set(u.last_tz, cur);
+      }
+      const rows = [...byZone.values()];
+      return kind === 'first' ? (rows[0] ?? null) : { results: rows };
+    }
+    if (/FROM users/.test(sql)) {
+      const row = state.users.find((u) => u.id === Number(b[0])) || null;
+      const shaped = row ? { last_tz: row.last_tz } : null;
+      return kind === 'first' ? shaped : { results: shaped ? [shaped] : [] };
     }
     if (/FROM events/.test(sql)) {
       // The resolver probe: latest captured zone of one creator in one guild.
@@ -213,5 +267,107 @@ describe('car-tz repository plumbing', () => {
 
     await updateEventFields(db, r.last_row_id, null, { starts_at_utc: 1999999999, created_tz: capturedTzOrNull('Asia/Taipei') });
     eq('改时间重落戳', (await getEventRow(db, r.last_row_id))?.created_tz, 'Asia/Taipei');
+  });
+});
+
+/* ================= member tz persistence (0040) ================= */
+describe('car-tz member persistence', () => {
+  it('records the member zone only when it changes', async () => {
+    const { db, state } = makeDb({ users: [userRow(UID1)] });
+    eq('从未捕获 -> 读为 null', await getUserLastTz(db, UID1), null);
+    eq('首次捕获落库', await recordUserLastTzIfChanged(db, UID1, 'America/Los_Angeles'), true);
+    eq('落库后读回', await getUserLastTz(db, UID1), 'America/Los_Angeles');
+    eq('同值重报不写', await recordUserLastTzIfChanged(db, UID1, 'America/Los_Angeles'), false);
+    eq('值仍在', await getUserLastTz(db, UID1), 'America/Los_Angeles');
+    eq('换区才再写', await recordUserLastTzIfChanged(db, UID1, 'Asia/Tokyo'), true);
+    eq('换区后读回', await getUserLastTz(db, UID1), 'Asia/Tokyo');
+    eq('不存在的用户不写', await recordUserLastTzIfChanged(db, 424242, 'Asia/Tokyo'), false);
+    check('未知用户没有被造出来', !state.users.some((u) => u.id === 424242));
+  });
+
+  it('guild tz stats join roster to users and skip uncaptured members', async () => {
+    const { db } = makeDb({
+      users: [
+        userRow(UID1, { last_tz: 'America/Los_Angeles', updated_at: '1700000100' }),
+        userRow(UID2, { last_tz: 'America/Los_Angeles', updated_at: '1700000200' }),
+        userRow(2030300001, { last_tz: 'Asia/Tokyo', updated_at: '1700000300' }),
+        userRow(2030400001, { last_tz: null }),
+        userRow(2030500001, { last_tz: 'Europe/Paris', updated_at: '1700000400' }), // not on this roster
+      ],
+      members: [
+        memberRow(GID, 'dc' + UID1), memberRow(GID, 'dc' + UID2),
+        memberRow(GID, 'dc2030300001'), memberRow(GID, 'dc2030400001'),
+        memberRow(GID2, 'dc2030500001'),
+      ],
+    });
+    const stats = await listGuildMemberTzStats(db, GID);
+    const la = stats.find((s) => s.tz === 'America/Los_Angeles');
+    const tyo = stats.find((s) => s.tz === 'Asia/Tokyo');
+    eq('统计只含本百业有投票的区', stats.length, 2);
+    eq('美西人数', la?.member_count, 2);
+    eq('美西最近活跃取成员最大值', la?.latest_active_at, 1700000200);
+    eq('东京人数', tyo?.member_count, 1);
+    eq('别百业成员不计入', await listGuildMemberTzStats(db, GID2).then((r) => r.length), 1);
+  });
+});
+
+/* ================= guild mode picker ================= */
+describe('car-tz guild mode picker', () => {
+  const stat = (tz: string, member_count: number, latest_active_at = 0) => ({ tz, member_count, latest_active_at });
+  it('picks deterministically: count, creator, recency, name', () => {
+    eq('人数多者胜', pickGuildModeTz([stat('Asia/Tokyo', 1), stat('America/Los_Angeles', 3)]), 'America/Los_Angeles');
+    eq('并列时创建者时区优先', pickGuildModeTz([stat('Asia/Tokyo', 2, 900), stat('America/Los_Angeles', 2, 100)], 'Asia/Tokyo'), 'Asia/Tokyo');
+    eq('创建者不在并列集内不生效', pickGuildModeTz([stat('Asia/Tokyo', 2, 900), stat('America/Los_Angeles', 2, 100)], 'Europe/Paris'), 'Asia/Tokyo');
+    eq('并列无创建者取最近活跃', pickGuildModeTz([stat('Asia/Tokyo', 2, 100), stat('America/Los_Angeles', 2, 900)]), 'America/Los_Angeles');
+    eq('活跃也并列取字典序第一', pickGuildModeTz([stat('Asia/Tokyo', 2, 100), stat('America/Los_Angeles', 2, 100)]), 'America/Los_Angeles');
+    eq('非法区不投票', pickGuildModeTz([stat('Bogus/Zone', 9), stat('Asia/Tokyo', 1)]), 'Asia/Tokyo');
+    eq('零人数不投票', pickGuildModeTz([stat('Asia/Tokyo', 0), stat('Asia/Seoul', 1)]), 'Asia/Seoul');
+    eq('无人投票 -> null', pickGuildModeTz([]), null);
+    eq('全非法 -> null', pickGuildModeTz([stat('Bogus/Zone', 3)]), null);
+  });
+});
+
+/* ================= resolution chain: member + guild rings ================= */
+describe('car-tz resolution chain (0040 rings)', () => {
+  it('creator persisted zone beats the fleet stamp; guild mode catches the rest', async () => {
+    const { db } = makeDb({
+      events: [
+        evRow(501, { created_tz: 'Asia/Tokyo' }), // creator UID1's older stamped car (fleet ring)
+      ],
+      users: [
+        userRow(UID1, { last_tz: 'America/New_York', updated_at: '1700000500' }),
+        userRow(UID2, { last_tz: 'America/Los_Angeles', updated_at: '1700000100' }),
+        userRow(2030300001, { last_tz: 'America/Los_Angeles', updated_at: '1700000200' }),
+        userRow(2030400001, { last_tz: 'Asia/Seoul', updated_at: '1700000300' }),
+        userRow(2030500001, { last_tz: 'Bogus/Zone', updated_at: '1700000400' }), // dirty stored value must never print
+      ],
+      members: [
+        memberRow(GID, 'dc' + UID1), memberRow(GID, 'dc' + UID2),
+        memberRow(GID, 'dc2030300001'), memberRow(GID, 'dc2030400001'),
+      ],
+    });
+    // UID1 created the car: persisted zone (New_York) is fresher than
+    // their own fleet stamp (Tokyo) — persisted wins.
+    eq('创建者已落库时区优先于其车队旧戳', await resolveCarHomeTz(db, evRow(601)), 'America/New_York');
+    // Unknown creator: no user row, no stamps — the guild mode (LA,
+    // 2 members) frames the car, not the platform default.
+    eq('创建者无数据 -> 百业众数', await resolveCarHomeTz(db, evRow(602, { creator_user_id: 2030999999 })), 'America/Los_Angeles');
+    // A creator whose persisted zone is garbage falls through to the
+    // guild mode instead of printing a bogus zone.
+    eq('创建者落库值非法 -> 继续下探到众数', await resolveCarHomeTz(db, evRow(603, { creator_user_id: 2030500001 })), 'America/Los_Angeles');
+  });
+
+  it('fleet stamp still beats the guild mode when the creator has no persisted zone', async () => {
+    const { db } = makeDb({
+      events: [evRow(501, { created_tz: 'Europe/Paris' })],
+      users: [
+        userRow(UID2, { last_tz: 'America/Los_Angeles', updated_at: '1700000100' }),
+        userRow(2030300001, { last_tz: 'America/Los_Angeles', updated_at: '1700000200' }),
+      ],
+      members: [memberRow(GID, 'dc' + UID2), memberRow(GID, 'dc2030300001')],
+    });
+    // UID1 (the creator) has no users row at all: their pre-0040 fleet
+    // stamp is the best signal of their zone and outranks the mode.
+    eq('创建者无落库时区 -> 车队旧戳优先于众数', await resolveCarHomeTz(db, evRow(601)), 'Europe/Paris');
   });
 });
