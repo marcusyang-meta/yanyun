@@ -1985,6 +1985,9 @@ export abstract class ErrorsFbtUtils {
 	static proxyTargetNotInRoster(fbs: FbsRuntime) {
 		return fbs._("所选成员不在本百业名册中", null, { hk: "28nCt9" });
 	}
+	static seatNamesNotInRoster(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("以下名字不在本百业名册中，无法占座：{names}。请先将他们加入名册（或导入游戏名名册）后再保存", [fbs._param("names", pv(p, "names"))], { hk: "3ziBlo" });
+	}
 	static groupingFull(fbs: FbsRuntime) {
 		return fbs._("名额已满或报名已截止", null, { hk: "15cLeP" });
 	}
@@ -5861,6 +5864,7 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"errors_groupingClosed": ErrorsFbtUtils.groupingClosed,
 	"errors_nicknameRequired": ErrorsFbtUtils.nicknameRequired,
 	"errors_proxyTargetNotInRoster": ErrorsFbtUtils.proxyTargetNotInRoster,
+	"errors_seatNamesNotInRoster": ErrorsFbtUtils.seatNamesNotInRoster,
 	"errors_groupingFull": ErrorsFbtUtils.groupingFull,
 	"errors_lastSeatHealer": ErrorsFbtUtils.lastSeatHealer,
 	"errors_alreadyJoined": ErrorsFbtUtils.alreadyJoined,

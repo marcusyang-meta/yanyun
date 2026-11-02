@@ -78,6 +78,7 @@ export type PlatformStringKey =
   | 'errors_groupingClosed'
   | 'errors_nicknameRequired'
   | 'errors_proxyTargetNotInRoster'
+  | 'errors_seatNamesNotInRoster'
   | 'errors_groupingFull'
   | 'errors_lastSeatHealer'
   | 'errors_alreadyJoined'
@@ -400,6 +401,7 @@ export const PLATFORM_STRING_KEYS: readonly PlatformStringKey[] = [
   'errors_groupingClosed',
   'errors_nicknameRequired',
   'errors_proxyTargetNotInRoster',
+  'errors_seatNamesNotInRoster',
   'errors_groupingFull',
   'errors_lastSeatHealer',
   'errors_alreadyJoined',

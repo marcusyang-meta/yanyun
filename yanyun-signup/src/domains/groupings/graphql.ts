@@ -83,7 +83,16 @@ import {
 } from '../platform/graphql-base.ts';
 import { BannerBlockShell, EmptyStateBlockShell, SectionHeaderBlockShell, NavigateActionShell, GroupingCardBlockShell, FallbackBlockShell, TextBlockShell, ChipRowBlockShell, SectionBlockShell, SeatGridBlockShell, SpacerBlockShell, ActionButtonBlockShell, UncompleteActionShell, EditActionShell, DisbandActionShell, CompleteActionShell, SeatEntryShell } from '../platform/index.ts';
 import { DungeonShell } from '../dex/index.ts';
-import { selfStampFor, identityNamesFor, canonicalSignupName, identityNameForDiscordId, resolveUniqueNameOwner } from '../identity/index.ts';
+import { selfStampFor, identityNamesFor, canonicalSignupName, identityNameForDiscordId, resolveSeatName } from '../identity/index.ts';
+
+/* Roster-only seat names (ruling 2026-11-02): a seat save carrying a
+ * name that resolves to nobody on the guild's rosters
+ * (identity chain / guild roster / game-name roster) is rejected as
+ * a whole — nothing is written — and the error lists the unresolved
+ * names so the editor knows exactly what to put on a roster first. */
+const seatNamesNotInRosterFail = (ctx: Context, names: string[]) => new GroupingPayloadShell(ctx, {
+  ok: false, errorCode: 'seatNamesNotInRoster', errorParams: { names: names.join('、') },
+});
 
 export class GroupingShell extends ShellBase {
   constructor(ctx: Context, ev: any){ super(ctx, ev); }
@@ -935,6 +944,67 @@ export const groupingsResolvers = {
       // Persist leader identity from the session (requireWrite guarantees login); re-verified at disband.
       const tenantRow = await getTenantRow(db, slug).catch(() => null);
       if (!tenantRow) return gFail(ctx, 'guildNotFound');
+      // Roster-only seat names (ruling 2026-11-02): the pre-seat plan
+      // is resolved and validated BEFORE the car exists — a submitted
+      // name that resolves to nobody on the guild's rosters rejects
+      // the whole create, and no car (or seat) is left behind.
+      let seatPlan: { nickname: string; weapon: string; discord_id: string | null }[] | null = null;
+      if (Array.isArray(input.seats)) {
+        // Leader-name lock (ruling 2026-11-01): the leader seat — seat
+        // 0 of the submitted list, where the create form auto-seats
+        // the creator — is named by the server from the creator's
+        // identity chain (the same canonicalSignupName the self-signup
+        // path uses: bound-server nickname, then the global name);
+        // whatever nickname the client sent for that seat is ignored,
+        // and the seat is stamped with the creator unconditionally,
+        // exactly like a self-signup. When no identity name resolves
+        // (the chain ends at the session name, so this is a degenerate
+        // case), the submitted name goes through the general
+        // resolution below like every other row. Other pre-seated rows
+        // pass through the general name lock below.
+        const leaderName = (await canonicalSignupName(db, ctx.user, slug).catch(() => '')).slice(0, 30);
+        const seatsIn = input.seats.slice(0, maxSlots);
+        // Name lock for every identified person (ruling 2026-11-01)
+        // + roster-only seat names (ruling 2026-11-02): a pre-seated
+        // name must resolve to a person on one of the guild's
+        // rosters (resolveSeatName: the identity chain first, then
+        // the game-name roster) and is rewritten to that person's
+        // roster/identity name; a name resolving to nobody rejects
+        // the whole create below — hand-typed placeholder names no
+        // longer land. Pre-seating still never stamps another person
+        // (the selfStampFor rule below is untouched).
+        const preSeatCache = new Map();
+        const resolvePreSeat = async (rawNm: string) => {
+          if (!preSeatCache.has(rawNm)) {
+            preSeatCache.set(rawNm, await resolveSeatName(db, slug, rawNm).catch(() => null));
+          }
+          return preSeatCache.get(rawNm);
+        };
+        const planned: { nickname: string; weapon: string; discord_id: string | null }[] = [];
+        const unresolved: string[] = [];
+        for (let i = 0; i < seatsIn.length; i++) {
+          const st = seatsIn[i];
+          let nm = s(st.nickname, 30);
+          const wp = s(st.weapon, 20);
+          if (!wp) continue;
+          if (i === 0 && leaderName) {
+            planned.push({ nickname: leaderName, weapon: wp, discord_id: String(ctx.user!.discordId) });
+            continue;
+          }
+          if (!nm) continue;
+          const resolved = await resolvePreSeat(nm);
+          if (!resolved) {
+            if (!unresolved.includes(nm)) unresolved.push(nm);
+            continue;
+          }
+          nm = resolved.name;
+          // Pre-seating at creation follows the join rule: stamp only when the nickname is the creator's own identity.
+          const stamp = await selfStampFor(db, ctx.user, slug, nm);
+          planned.push({ nickname: nm, weapon: wp, discord_id: stamp });
+        }
+        if (unresolved.length) return seatNamesNotInRosterFail(ctx, unresolved);
+        seatPlan = planned;
+      }
       const r = await insertEvent(db, {
         tenant: tenantRow.id, title, type, description: '', starts_at: '', starts_at_utc: utc,
         max_slots: maxSlots, status: 'open', origin: 'member', created_by: GROUPING_DEFAULT_CREATED_BY,
@@ -948,61 +1018,10 @@ export const groupingsResolvers = {
       if (fieldParse.defs.length) {
         await replaceCustomFields(db, 'event', eventId, fieldParse.defs);
       }
-      if (Array.isArray(input.seats)) {
-        // Leader-name lock (ruling 2026-11-01): the leader seat — seat
-        // 0 of the submitted list, where the create form auto-seats
-        // the creator — is named by the server from the creator's
-        // identity chain (the same canonicalSignupName the self-signup
-        // path uses: bound-server nickname, then the global name);
-        // whatever nickname the client sent for that seat is ignored,
-        // and the seat is stamped with the creator unconditionally,
-        // exactly like a self-signup. When no identity name resolves
-        // (the chain ends at the session name, so this is a degenerate
-        // case), the submitted name stands and the old conditional
-        // stamping applies. Other pre-seated rows pass through the
-        // general name lock below.
-        const leaderName = (await canonicalSignupName(db, ctx.user, slug).catch(() => '')).slice(0, 30);
-        const seatRows = [];
-        const seatsIn = input.seats.slice(0, maxSlots);
-        // Name lock for every identified person (ruling 2026-11-01):
-        // a pre-seated name that resolves to exactly ONE platform
-        // person (unique roster match, then unique bound-server
-        // match — the reminder's resolution chain) is rewritten to
-        // that person's identity-chain name; whoever it names, they
-        // are displayed under their identity name only. Names that
-        // resolve to nobody stay as submitted (placeholder seats for
-        // people with no platform identity — handling unchanged).
-        // Pre-seating still never stamps another person (the
-        // selfStampFor rule below is untouched).
-        const preSeatOwner = new Map();
-        const preSeatName = new Map();
-        const resolvePreSeat = async (rawNm: string) => {
-          if (!preSeatOwner.has(rawNm)) {
-            const owner = await resolveUniqueNameOwner(db, slug, rawNm).catch(() => null);
-            preSeatOwner.set(rawNm, owner);
-            preSeatName.set(rawNm, owner
-              ? (await identityNameForDiscordId(db, owner, slug).catch(() => '')).slice(0, 30)
-              : '');
-          }
-          return { owner: preSeatOwner.get(rawNm), name: preSeatName.get(rawNm) };
-        };
-        for (let i = 0; i < seatsIn.length; i++) {
-          const st = seatsIn[i];
-          let nm = s(st.nickname, 30);
-          const wp = s(st.weapon, 20);
-          if (!wp) continue;
-          if (i === 0 && leaderName) {
-            seatRows.push({ event_id: eventId, nickname: leaderName, uid: newUid(), role: roleOf(wp), weapon: wp, discord_id: String(ctx.user!.discordId) });
-            continue;
-          }
-          if (!nm) continue;
-          const resolved = await resolvePreSeat(nm);
-          if (resolved.owner && resolved.name) nm = resolved.name;
-          // Pre-seating at creation follows the join rule: stamp only when the nickname is the creator's own identity.
-          const stamp = await selfStampFor(db, ctx.user, slug, nm);
-          seatRows.push({ event_id: eventId, nickname: nm, uid: newUid(), role: roleOf(wp), weapon: wp, discord_id: stamp });
-        }
-        if (seatRows.length) await insertSignups(db, seatRows);
+      if (seatPlan && seatPlan.length) {
+        await insertSignups(db, seatPlan.map((p) => ({
+          event_id: eventId, nickname: p.nickname, uid: newUid(), role: roleOf(p.weapon), weapon: p.weapon, discord_id: p.discord_id,
+        })));
       }
       const ev = await getEventRow(db, eventId);
       publishGroupingEvent(ctx, slug, eventId, 'created');
@@ -1165,9 +1184,12 @@ export const groupingsResolvers = {
         }
       }
       if (ev.status === 'draft') set('status', 'open');
-      if (Object.keys(patch).length) {
-        await updateEventFields(db, gid, null, patch);
-      }
+      // Roster-only seat names (ruling 2026-11-02): when a seat table
+      // is submitted it is fully planned and validated BEFORE anything
+      // is written — the patch above included. A name resolving to
+      // nobody on the guild's rosters rejects the whole save (patch
+      // and seats alike), never a partial write.
+      let seatPlan: { nickname: string; weapon: string; discord_id: string | null }[] | null = null;
       if (Array.isArray(input.seats)) {
         // Identity stamps when the seat table is rewritten wholesale
         // (conservative): for seats NOT covered by the name lock below,
@@ -1212,14 +1234,22 @@ export const groupingsResolvers = {
         //     still follows the carry rules (editing never stamps).
         //     Legacy groupings with no (resolvable) creator record
         //     freeze their first seat's existing name (stamp: carry).
-        //  3. Any other submitted name that resolves to exactly ONE
-        //     platform person (resolveUniqueNameOwner: unique roster
-        //     match, then unique bound-server match) is rewritten to
-        //     that person's identity name; its stamp follows carry.
-        // Names resolving to nobody stay as submitted (placeholder
-        // seats for people with no platform identity — unchanged).
+        //  3. Any other submitted name that resolves to a person on
+        //     one of the guild's rosters (resolveSeatName: the
+        //     identity chain, then the game-name roster) is rewritten
+        //     to that person's roster/identity name; its stamp
+        //     follows carry.
+        // Roster-only seat names (ruling 2026-11-02): a name at a
+        // free position that resolves to NOBODY — and a legacy
+        // first seat whose frozen name resolves to nobody — rejects
+        // the whole save below; the error lists those names. Stored
+        // history is not rewritten on its own, but a stored
+        // placeholder name cannot pass a wholesale edit anymore: the
+        // editor removes the seat or puts the name on a roster
+        // first. Stamped and leader-located positions are identified
+        // by construction and are not re-checked.
         // The gate is unchanged: leader or guild admin, both bound by
-        // the lock alike; the save itself still succeeds.
+        // the lock alike.
         const oldOrdered = await listSignupSeats(db, gid);
         const evTenantRow = await getTenantRowById(db, ev.tenant).catch(() => null);
         const evSlug = evTenantRow ? evTenantRow.slug : '';
@@ -1230,7 +1260,7 @@ export const groupingsResolvers = {
           }
           return identityNameCache.get(did);
         };
-        const forcedByIdx = new Map<number, { name: string; stamp: string | null | undefined }>();
+        const forcedByIdx = new Map<number, { name: string; stamp: string | null | undefined; legacyFreeze?: boolean }>();
         for (let i = 0; i < oldOrdered.length; i++) {
           const r = oldOrdered[i];
           if (!r.discord_id) continue;
@@ -1262,24 +1292,20 @@ export const groupingsResolvers = {
             });
           }
         } else if (oldOrdered.length && !forcedByIdx.has(0)) {
-          forcedByIdx.set(0, { name: String(oldOrdered[0].nickname || '').slice(0, 30), stamp: undefined });
+          // Legacy freeze: no creator record ties this name to anyone,
+          // so unlike the identified positions above it is re-checked
+          // against the rosters when the plan is built.
+          forcedByIdx.set(0, { name: String(oldOrdered[0].nickname || '').slice(0, 30), stamp: undefined, legacyFreeze: true });
         }
         const resolveCache = new Map();
         const resolveSubmitted = async (rawNm: string) => {
           if (!resolveCache.has(rawNm)) {
-            const owner = await resolveUniqueNameOwner(db, evSlug, rawNm).catch(() => null);
-            resolveCache.set(rawNm, {
-              owner,
-              name: owner ? await identityNameOf(owner) : '',
-            });
+            resolveCache.set(rawNm, await resolveSeatName(db, evSlug, rawNm).catch(() => null));
           }
           return resolveCache.get(rawNm);
         };
-        await deleteSignupsByEvent(db, gid);
-        // F7: the rewrite re-mints every seat uid; answers keyed by
-        // the old uids would point at seats that no longer exist.
-        await deleteSignupAnswersByEvent(db, gid);
-        const seatRows = [];
+        const planned: { nickname: string; weapon: string; discord_id: string | null }[] = [];
+        const unresolved: string[] = [];
         let insertIdx = 0;
         for (const st of input.seats.slice(0, ev.max_slots)) {
           let nm = s(st.nickname, 30);
@@ -1292,19 +1318,39 @@ export const groupingsResolvers = {
             // stamp) comes from the lock, not the submission.
             nm = forced.name;
             stamp = forced.stamp !== undefined ? forced.stamp : await carryStamp(nm);
+            if (forced.legacyFreeze && nm) {
+              const resolved = await resolveSubmitted(nm);
+              if (!resolved && !unresolved.includes(nm)) unresolved.push(nm);
+            }
           } else {
             if (nm) {
               const resolved = await resolveSubmitted(nm);
-              if (resolved.owner && resolved.name) nm = resolved.name;
+              if (resolved) nm = resolved.name;
+              else if (!unresolved.includes(nm)) unresolved.push(nm);
             }
             if (!nm) continue;
             stamp = await carryStamp(nm);
           }
           if (!nm) continue;
-          seatRows.push({ event_id: gid, nickname: nm, uid: newUid(), role: roleOf(wp), weapon: wp, discord_id: stamp });
+          planned.push({ nickname: nm, weapon: wp, discord_id: stamp });
           insertIdx++;
         }
-        if (seatRows.length) await insertSignups(db, seatRows);
+        if (unresolved.length) return seatNamesNotInRosterFail(ctx, unresolved);
+        seatPlan = planned;
+      }
+      if (Object.keys(patch).length) {
+        await updateEventFields(db, gid, null, patch);
+      }
+      if (seatPlan) {
+        await deleteSignupsByEvent(db, gid);
+        // F7: the rewrite re-mints every seat uid; answers keyed by
+        // the old uids would point at seats that no longer exist.
+        await deleteSignupAnswersByEvent(db, gid);
+        if (seatPlan.length) {
+          await insertSignups(db, seatPlan.map((p) => ({
+            event_id: gid, nickname: p.nickname, uid: newUid(), role: roleOf(p.weapon), weapon: p.weapon, discord_id: p.discord_id,
+          })));
+        }
       }
       const nev = await getEventRow(db, gid);
       publishGroupingEvent(ctx, (await getTenantRowById(db, ev.tenant).catch(() => null))?.slug || '', gid, 'updated');
