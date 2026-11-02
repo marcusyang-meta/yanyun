@@ -19,7 +19,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   isValidIanaTz, capturedTzOrNull, resolveCarHomeTz, pickGuildModeTz, carTzLabelZh,
-  fmtCarTimeZoned, tzOffsetMinutes, CAR_HOME_TZ_FALLBACK,
+  fmtCarTimeZoned, fmtCarTimeDualZones, tzOffsetMinutes, CAR_HOME_TZ_FALLBACK,
 } from '../src/domains/groupings/car-tz.ts';
 import { insertEvent, updateEventFields, getEventRow } from '../src/domains/groupings/events.ts';
 import {
@@ -231,6 +231,33 @@ describe('car-tz zoned rendering', () => {
     // Weekday follows the ZONE's calendar day, not UTC's: late Sunday
     // UTC is already Monday in Shanghai.
     eq('星期按所在时区的日期算', fmtCarTimeZoned(sec('2026-11-01T21:30:00Z'), 'Asia/Shanghai'), '周一 05:30 北京时间');
+  });
+});
+
+/* ================= dual-zone rendering (interim ruling) ================= */
+describe('car-tz dual-zone rendering', () => {
+  it('renders US East first, US West second, each labelled', () => {
+    // The Jpx9mnv car: 2026-11-01T21:30Z — both zones already back
+    // on standard time (EST = UTC-5, PST = UTC-8).
+    eq('常规时刻', fmtCarTimeDualZones(sec('2026-11-01T21:30:00Z')), '美东 周日 16:30 · 美西 周日 13:30');
+    eq('字符串入参', fmtCarTimeDualZones('1762039800'), '美东 周六 19:30 · 美西 周六 16:30');
+    eq('空值 -> 空串', fmtCarTimeDualZones(0), '');
+    eq('null -> 空串', fmtCarTimeDualZones(null), '');
+  });
+
+  it('gives each zone its own weekday when the day differs', () => {
+    // 06:30Z: New York is already Monday 01:30 while Los Angeles is
+    // still Sunday 22:30 — the segments must not share a weekday.
+    eq('两地跨日', fmtCarTimeDualZones(sec('2026-11-02T06:30:00Z')), '美东 周一 01:30 · 美西 周日 22:30');
+  });
+
+  it('is correct across DST transition weeks', () => {
+    // Fall-back morning 2026: at 08:30Z New York has already fallen
+    // back to EST while Los Angeles is still on PDT — the two wall
+    // clocks sit 2h apart instead of the usual 3h.
+    eq('秋拨过渡 (两地偏移不同步)', fmtCarTimeDualZones(sec('2026-11-01T08:30:00Z')), '美东 周日 03:30 · 美西 周日 01:30');
+    // Spring-forward day: by 15:30Z both zones are on daylight time.
+    eq('春跳当天', fmtCarTimeDualZones(sec('2026-03-08T15:30:00Z')), '美东 周日 11:30 · 美西 周日 08:30');
   });
 });
 

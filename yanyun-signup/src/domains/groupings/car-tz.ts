@@ -29,6 +29,13 @@
  * single source: both card surfaces consume the finished string
  * (og.ts directly, the OG worker via ogCarCard.cardTimeText), so
  * the two can never drift apart.
+ *
+ * Interim display ruling (marcus, 2026-11-01, later the same day):
+ * the two share surfaces temporarily do NOT consume this chain —
+ * they print the start in US East + US West side by side
+ * (fmtCarTimeDualZones below). The chain and both captures stay in
+ * place untouched so the surfaces can switch back to single-zone
+ * home rendering without new plumbing.
  * =================================================== */
 import { getCreatorLatestCarTz, type EventRow } from './events.ts';
 import { getUserLastTz, listGuildMemberTzStats, type GuildMemberTzStat } from '../identity/index.ts';
@@ -181,26 +188,59 @@ export function carTzLabelZh(tz: string, epochSec: number): string {
   return m ? `UTC${sign}${h}:${String(m).padStart(2, '0')}` : `UTC${sign}${h}`;
 }
 
-/* "周日 13:30 美西" — weekday + wall clock in the car's home zone,
- * with the zone named in Chinese. Single formatter for both share
- * surfaces (og:description and, via ogCarCard.cardTimeText, the OG
- * card image), so they always agree. */
-export function fmtCarTimeZoned(epochSec: number | string | null | undefined, tz: string): string {
+const WEEK_ZH: Record<string, string> = {
+  Sun: '周日', Mon: '周一', Tue: '周二', Wed: '周三', Thu: '周四', Fri: '周五', Sat: '周六',
+};
+
+/* Normalise the accepted epoch inputs; 0 = "no usable instant". */
+function parseEpochSec(epochSec: number | string | null | undefined): number {
   const n = typeof epochSec === 'string' ? parseInt(epochSec, 10) : Math.floor(Number(epochSec ?? 0));
-  if (!Number.isFinite(n) || n <= 0) return '';
-  const d = new Date(n * 1000);
-  if (isNaN(d.getTime())) return '';
-  const zone = isValidIanaTz(tz) ? tz : CAR_HOME_TZ_FALLBACK;
+  if (!Number.isFinite(n) || n <= 0) return 0;
+  return isNaN(new Date(n * 1000).getTime()) ? 0 : n;
+}
+
+/* Weekday + wall clock of one instant in one zone, from the tz
+ * database — the weekday follows the ZONE's calendar day, never
+ * UTC's. */
+function zonedWeekdayTime(epochSec: number, tz: string): { weekZh: string; hhmm: string } {
   const parts: Record<string, string> = {};
   const fmt = new Intl.DateTimeFormat('en-US', {
-    timeZone: zone, weekday: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+    timeZone: tz, weekday: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
   });
-  for (const p of fmt.formatToParts(d)) parts[p.type] = p.value;
-  const weekZh: Record<string, string> = {
-    Sun: '周日', Mon: '周一', Tue: '周二', Wed: '周三', Thu: '周四', Fri: '周五', Sat: '周六',
-  };
+  for (const p of fmt.formatToParts(new Date(epochSec * 1000))) parts[p.type] = p.value;
   const p2 = (x: string) => String(x).padStart(2, '0');
   // Some ICU builds report midnight as hour 24 under h23; normalize.
   const hour = parts.hour === '24' ? '00' : parts.hour;
-  return `${weekZh[parts.weekday] || ''} ${p2(hour)}:${p2(parts.minute)} ${carTzLabelZh(zone, n)}`;
+  return { weekZh: WEEK_ZH[parts.weekday] || '', hhmm: `${p2(hour)}:${p2(parts.minute)}` };
+}
+
+/* "周日 13:30 美西" — weekday + wall clock in the car's home zone,
+ * with the zone named in Chinese. Kept for the eventual switch back
+ * to single-zone home rendering; the share surfaces currently print
+ * fmtCarTimeDualZones instead (interim ruling, see header). */
+export function fmtCarTimeZoned(epochSec: number | string | null | undefined, tz: string): string {
+  const n = parseEpochSec(epochSec);
+  if (!n) return '';
+  const zone = isValidIanaTz(tz) ? tz : CAR_HOME_TZ_FALLBACK;
+  const { weekZh, hhmm } = zonedWeekdayTime(n, zone);
+  return `${weekZh} ${hhmm} ${carTzLabelZh(zone, n)}`;
+}
+
+/* The interim dual-zone pair, East before West (marcus's wording:
+ * "先放美东和美西时间"). */
+export const CAR_TIME_DUAL_ZONES = ['America/New_York', 'America/Los_Angeles'] as const;
+
+/* "美东 周日 16:30 · 美西 周日 13:30" — one instant printed in US
+ * East and US West side by side, each segment labelled in Chinese
+ * and carrying ITS OWN zone's weekday (the two can differ across
+ * midnight). Single formatter for both share surfaces
+ * (og:description and, via ogCarCard.cardTimeText, the OG card
+ * image), so they always agree. */
+export function fmtCarTimeDualZones(epochSec: number | string | null | undefined): string {
+  const n = parseEpochSec(epochSec);
+  if (!n) return '';
+  return CAR_TIME_DUAL_ZONES.map((tz) => {
+    const { weekZh, hhmm } = zonedWeekdayTime(n, tz);
+    return `${carTzLabelZh(tz, n)} ${weekZh} ${hhmm}`;
+  }).join(' · ');
 }

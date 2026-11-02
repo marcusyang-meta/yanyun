@@ -12,7 +12,7 @@ import { listTenantsDirectory } from '../guilds/tenants.ts';
 import { getDevOnlySlugs } from './http.ts';
 import {
   listEventsWeekView, getEventRowByTenant, countSignupsByEvent, getShortLinkByTarget,
-  resolveCarHomeTz, fmtCarTimeZoned, CAR_HOME_TZ_FALLBACK,
+  fmtCarTimeDualZones,
 } from '../groupings/index.ts';
 import { startsAtEpoch } from './blocks.ts';
 import { resolveSharedBuild } from '../gear/index.ts';
@@ -70,16 +70,17 @@ export class OgCarCardShell extends ShellBase {
   genType(){ return this.data.type || ''; }
   genStartsAtUtc(){ return this.data.starts_at_utc ?? null; }
   genStartsAtText(){ return this.data.starts_at || ''; }
-  /* The card's time line, fully rendered by the backend in the car's
-   * home timezone with its Chinese label (car-tz.ts owns the chain
-   * and the labels): the OG worker prints this verbatim, so the card
-   * image and the og:description always agree and the label table
-   * exists exactly once. '' when the car has no start time. */
+  /* The card's time line, fully rendered by the backend in US East
+   * + US West side by side with Chinese labels (fmtCarTimeDualZones
+   * in car-tz.ts — interim ruling, marcus 2026-11-01; the home-zone
+   * chain stays in place for a later switch back): the OG worker
+   * prints this verbatim, so the card image and the og:description
+   * always agree and the label table exists exactly once. '' when
+   * the car has no start time. */
   async genCardTimeText(){
     const epoch = startsAtEpoch(this.data);
     if (!epoch) return '';
-    const tz = await resolveCarHomeTz(this.db, this.data).catch(() => CAR_HOME_TZ_FALLBACK);
-    return fmtCarTimeZoned(epoch, tz);
+    return fmtCarTimeDualZones(epoch);
   }
   genDungeonName(){ return this.data.dungeon || ''; }
   genOccupiedCount(){ return this.data.occupiedCount || 0; }

@@ -4,7 +4,7 @@
 import { getTenantRow } from '../guilds/index.ts';
 import { isDevOnlyTenant } from './http.ts';
 import { getDungeonByName } from '../dex/index.ts';
-import { getEventRowByTenant, getEventRow, listEventsWeekView, countActivityEventsInWindow, countSignupsByEvent, resolveSharedGrouping, resolveCarHomeTz, fmtCarTimeZoned } from '../groupings/index.ts';
+import { getEventRowByTenant, getEventRow, listEventsWeekView, countActivityEventsInWindow, countSignupsByEvent, resolveSharedGrouping, fmtCarTimeDualZones } from '../groupings/index.ts';
 import { resolveSharedBuild } from '../gear/index.ts';
 import { startsAtEpoch } from './blocks.ts';
 
@@ -15,13 +15,15 @@ const SITE_URL = 'https://yanyun.app';
 const escHtml = (str: any) => String(str ?? '')
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-// Team time on share text: the car's start rendered in its home
-// timezone with a Chinese zone label (e.g. 周日 13:30 美西) — the
-// resolution chain and the formatter live in the groupings data
-// layer (car-tz.ts) and are shared verbatim with the OG card image
-// via ogCarCard.cardTimeText, so text and image can never disagree.
-// (The previous UTC wall-clock format was retired by the 2026-11-01
-// ruling: card times follow the guild's own timezone, never UTC.)
+// Team time on share text: the car's start rendered in US East and
+// US West side by side with Chinese zone labels (e.g. 美东 周日 16:30
+// · 美西 周日 13:30) — interim ruling (marcus, 2026-11-01): "先放美东
+// 和美西时间". The formatter lives in the groupings data layer
+// (car-tz.ts, fmtCarTimeDualZones) and is shared verbatim with the
+// OG card image via ogCarCard.cardTimeText, so text and image can
+// never disagree. (The home-zone resolution chain in car-tz.ts
+// stays in place for a later switch back to single-zone rendering;
+// the earlier UTC wall-clock format stays retired.)
 
 const CAR_TYPE_LABEL: Record<string, string> = { activity: '双十人本', talent: '天赋组队', race: '竞速报名', tower: '爬塔' };
 
@@ -100,7 +102,7 @@ export async function carOgTags(env: any, slug: string, carId: any, pageUrl?: st
     }
     const typeLabel = CAR_TYPE_LABEL[ev.type] || '';
     const epoch = startsAtEpoch(ev);
-    const timeText = epoch ? fmtCarTimeZoned(epoch, await resolveCarHomeTz(env.DB, ev)) : '';
+    const timeText = epoch ? fmtCarTimeDualZones(epoch) : '';
     const descParts = [typeLabel, dungeonName, timeText, `已报名 ${cnt || 0}/${ev.max_slots}`].filter(Boolean);
     return [
       `<meta property="og:title" content="${escHtml(ev.title)} · ${escHtml(t.guild_name)}" />`,

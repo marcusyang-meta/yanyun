@@ -251,9 +251,9 @@ describe('shortlink', () => {
     check('空 UA 不是爬虫', !isLinkPreviewBot(''));
 
     // A car with a concrete UTC start so the description carries the time.
-    // The fixture creator captured no timezone anywhere, so the car's
-    // home zone resolves down the chain to the platform default
-    // (Asia/Shanghai): 1735689600 = 周三 08:00 北京时间.
+    // Share surfaces print the start in US East + US West side by side
+    // (interim dual-zone ruling; the home-zone chain is not consulted):
+    // 1735689600 = 美东 周二 19:00 · 美西 周二 16:00.
     state.events.push(ev(401, { title: '时区车', starts_at_utc: 1735689600 }));
     const tzLink = await mintShortLink(db, GID, 401);
     const callUa = (path, ua) => worker.fetch(new Request('http://local' + path, { headers: { 'user-agent': ua } }), env, ctx);
@@ -264,7 +264,7 @@ describe('shortlink', () => {
     check('爬虫文档是 HTML', (r.headers.get('content-type') || '').includes('text/html'));
     const doc = await r.text();
     check('og:title = 车名 · 百业名', doc.includes('<meta property="og:title" content="时区车 · 短链测试百业" />'), doc.slice(0, 400));
-    check('og:description 时间按归属时区(回退北京)带中文标注', doc.includes('双十人本 | 周三 08:00 北京时间 | 已报名 0/10'), doc.slice(0, 500));
+    check('og:description 时间为美东+美西双时区并列', doc.includes('双十人本 | 美东 周二 19:00 · 美西 周二 16:00 | 已报名 0/10'), doc.slice(0, 500));
     check('og:image 指向 OG 车卡图', doc.includes(`https://og.yanyun.app/og/${SLUG}/car/401.png`), doc.slice(0, 500));
     check('带 0 秒 meta refresh 到分享页', doc.includes(`<meta http-equiv="refresh" content="0; url=http://local/s/${tzLink.code}" />`), doc.slice(0, 600));
     check('带可见跳转链接兜底', doc.includes(`<a href="http://local/s/${tzLink.code}">`), doc.slice(0, 600));
