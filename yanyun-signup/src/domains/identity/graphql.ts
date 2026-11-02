@@ -14,7 +14,7 @@ import { translate, negotiateLocale, SUPPORTED_LOCALES, CATALOG } from '../platf
 import { logError } from '../platform/index.ts';
 import { getGuildAvatarMeta, avatarPath, getGuildIdBySlug } from '../guilds/index.ts';
 import { getSettingValue, setSettingValue, listSettingsByKey } from '../guilds/index.ts';
-import { getUsernameRow } from './index.ts';
+import { getUsernameRow, listNicksByGuild, listUsersDirectory } from './index.ts';
 import { listGuildMembers, getGuildMember } from './index.ts';
 import { getAccountRow } from './users.ts';
 import type { AccountRow } from './users.ts';
@@ -107,6 +107,84 @@ export async function canonicalSignupName(db: any, user: any, slug: any) {
   const u = await getUsernameRow(db, String(user.discordId)).catch(() => null);
   if (u && String(u.username || '').trim()) return String(u.username).trim();
   return String(user.name || '').trim();
+}
+
+/* ---------- Name lock for every identified person (ruling
+ * 2026-11-01, generalizing the leader-seat lock) ----------
+ * A person with a platform identity is displayed in a guild's
+ * context under exactly one name, decided by the identity chain —
+ * bound-server nickname snapshot, then this guild's roster nickname,
+ * then the roster global name, then the global username. No tool
+ * surface may write a different name for them. canonicalSignupName
+ * above remains the self-signup caliber (same chain head, ending at
+ * the session name); this resolver is the by-Discord-id form used
+ * when the person is not the caller (seat-table edits, pre-seating). */
+export async function identityNameForDiscordId(db: any, discordId: string, slug: string) {
+  const did = String(discordId || '').trim();
+  if (!did) return '';
+  const guildId = await getGuildIdBySlug(db, slug).catch(() => null);
+  const dgid = guildId == null ? '' : await getTenantSetting(db, guildId, 'discord_guild_id');
+  if (dgid) {
+    const nick = await getGuildNick(db, did, dgid).catch(() => null);
+    if (nick && String(nick).trim()) return String(nick).trim();
+  }
+  if (guildId != null) {
+    const m = await getGuildMember(db, guildId, did).catch(() => null);
+    if (m && String(m.nick || '').trim()) return String(m.nick).trim();
+    if (m && String(m.global_name || '').trim()) return String(m.global_name).trim();
+  }
+  const u = await getUsernameRow(db, did).catch(() => null);
+  if (u && String(u.username || '').trim()) return String(u.username).trim();
+  return '';
+}
+
+/* Resolve a written seat name to the ONE platform person it can
+ * only mean — the reminder's send-time chain applied at write time:
+ * a unique match in this guild's roster (roster nickname or global
+ * name) first, then a unique match among the bound server's known
+ * members (nickname snapshot or global username). A stage with no
+ * unique hit falls through to the next; ambiguous or unknown names
+ * resolve to null and stay plain placeholder text (the no-identity
+ * case — its handling is a separate ruling, untouched here). */
+export async function resolveUniqueNameOwner(db: any, slug: string, nickname: string) {
+  const nm = String(nickname || '').trim();
+  if (!nm) return null;
+  const guildId = await getGuildIdBySlug(db, slug).catch(() => null);
+  if (guildId == null) return null;
+  const roster = await listGuildMembers(db, guildId).catch(() => []);
+  const rosterHits = new Set<string>();
+  for (const r of roster || []) {
+    if (String(r.nick || '').trim() === nm || String(r.global_name || '').trim() === nm) {
+      rosterHits.add(String(r.discord_id));
+    }
+  }
+  if (rosterHits.size === 1) return [...rosterHits][0];
+  const dgid = await getTenantSetting(db, guildId, 'discord_guild_id');
+  if (!dgid) return null;
+  const pool = new Map<string, { globalName: string; nick: string }>();
+  const nicks = await listNicksByGuild(db, dgid).catch(() => []);
+  for (const r of nicks || []) {
+    pool.set(String(r.discord_id), { globalName: '', nick: String(r.nick || '') });
+  }
+  const users = await listUsersDirectory(db).catch(() => []);
+  for (const u of users || []) {
+    let member = pool.has(String(u.discord_id));
+    if (!member) {
+      try {
+        const gs = JSON.parse(u.guilds_json || '[]');
+        member = Array.isArray(gs) && gs.some((g) => String(g.id) === String(dgid));
+      } catch { /* unparseable -> not a member */ }
+    }
+    if (!member) continue;
+    const cur = pool.get(String(u.discord_id)) || { globalName: '', nick: '' };
+    cur.globalName = String(u.username || '');
+    pool.set(String(u.discord_id), cur);
+  }
+  const hits: string[] = [];
+  for (const [id, u] of pool) {
+    if ((u.globalName && u.globalName === nm) || (u.nick && u.nick === nm)) hits.push(id);
+  }
+  return hits.length === 1 ? hits[0] : null;
 }
 
 /* ---------- Guild roster recording (on entering a guild) ----------

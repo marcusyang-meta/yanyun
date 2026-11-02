@@ -2187,6 +2187,10 @@ input CreateGroupingInput {
 }
 
 input SeatInput {
+  # 名字锁 (2026-11-01): 有平台身份的人只能以身份链名字落座 — 带身份
+  # 戳的座位、以及按解析链唯一命中名册/同服成员的名字, 服务端一律改
+  # 写为该人的身份名, 客户端传值不作数; 解析不到任何人的名字按占位
+  # 名原样保留。
   nickname: String!
   weapon: String!
 }

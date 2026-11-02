@@ -83,7 +83,7 @@ import {
 } from '../platform/graphql-base.ts';
 import { BannerBlockShell, EmptyStateBlockShell, SectionHeaderBlockShell, NavigateActionShell, GroupingCardBlockShell, FallbackBlockShell, TextBlockShell, ChipRowBlockShell, SectionBlockShell, SeatGridBlockShell, SpacerBlockShell, ActionButtonBlockShell, UncompleteActionShell, EditActionShell, DisbandActionShell, CompleteActionShell, SeatEntryShell } from '../platform/index.ts';
 import { DungeonShell } from '../dex/index.ts';
-import { selfStampFor, identityNamesFor, canonicalSignupName } from '../identity/index.ts';
+import { selfStampFor, identityNamesFor, canonicalSignupName, identityNameForDiscordId, resolveUniqueNameOwner } from '../identity/index.ts';
 
 export class GroupingShell extends ShellBase {
   constructor(ctx: Context, ev: any){ super(ctx, ev); }
@@ -959,13 +959,36 @@ export const groupingsResolvers = {
         // exactly like a self-signup. When no identity name resolves
         // (the chain ends at the session name, so this is a degenerate
         // case), the submitted name stands and the old conditional
-        // stamping applies. Other pre-seated rows are untouched.
+        // stamping applies. Other pre-seated rows pass through the
+        // general name lock below.
         const leaderName = (await canonicalSignupName(db, ctx.user, slug).catch(() => '')).slice(0, 30);
         const seatRows = [];
         const seatsIn = input.seats.slice(0, maxSlots);
+        // Name lock for every identified person (ruling 2026-11-01):
+        // a pre-seated name that resolves to exactly ONE platform
+        // person (unique roster match, then unique bound-server
+        // match — the reminder's resolution chain) is rewritten to
+        // that person's identity-chain name; whoever it names, they
+        // are displayed under their identity name only. Names that
+        // resolve to nobody stay as submitted (placeholder seats for
+        // people with no platform identity — handling unchanged).
+        // Pre-seating still never stamps another person (the
+        // selfStampFor rule below is untouched).
+        const preSeatOwner = new Map();
+        const preSeatName = new Map();
+        const resolvePreSeat = async (rawNm: string) => {
+          if (!preSeatOwner.has(rawNm)) {
+            const owner = await resolveUniqueNameOwner(db, slug, rawNm).catch(() => null);
+            preSeatOwner.set(rawNm, owner);
+            preSeatName.set(rawNm, owner
+              ? (await identityNameForDiscordId(db, owner, slug).catch(() => '')).slice(0, 30)
+              : '');
+          }
+          return { owner: preSeatOwner.get(rawNm), name: preSeatName.get(rawNm) };
+        };
         for (let i = 0; i < seatsIn.length; i++) {
           const st = seatsIn[i];
-          const nm = s(st.nickname, 30);
+          let nm = s(st.nickname, 30);
           const wp = s(st.weapon, 20);
           if (!wp) continue;
           if (i === 0 && leaderName) {
@@ -973,6 +996,8 @@ export const groupingsResolvers = {
             continue;
           }
           if (!nm) continue;
+          const resolved = await resolvePreSeat(nm);
+          if (resolved.owner && resolved.name) nm = resolved.name;
           // Pre-seating at creation follows the join rule: stamp only when the nickname is the creator's own identity.
           const stamp = await selfStampFor(db, ctx.user, slug, nm);
           seatRows.push({ event_id: eventId, nickname: nm, uid: newUid(), role: roleOf(wp), weapon: wp, discord_id: stamp });
@@ -1145,11 +1170,12 @@ export const groupingsResolvers = {
       }
       if (Array.isArray(input.seats)) {
         // Identity stamps when the seat table is rewritten wholesale
-        // (conservative): keep a stamp only if the old seats held exactly
-        // one stamp for that nickname and the stamp owner's current
-        // identity name still equals it. A nickname changed to someone
-        // else, an ambiguous old stamp, or a renamed owner all drop the
-        // stamp. Editing itself never stamps (saving is not seating).
+        // (conservative): for seats NOT covered by the name lock below,
+        // keep a stamp only if the old seats held exactly one stamp for
+        // that nickname and the stamp owner's current identity name
+        // still equals it. An ambiguous old stamp or a renamed owner
+        // drops the stamp. Editing itself never stamps (saving is not
+        // seating).
         const oldSeats = await listSignupNamesStamps(db, gid);
         const stampByNick = new Map();
         for (const os of oldSeats || []) {
@@ -1167,42 +1193,88 @@ export const groupingsResolvers = {
           if (!carryCache.has(d)) carryCache.set(d, await identityNamesFor(db, d, dgidU));
           return carryCache.get(d).has(nm) ? d : null;
         };
-        // Leader-name lock (ruling 2026-11-01): the leader seat's name
-        // is not editable — not by the leader, not by a guild admin.
-        // The seat is located in the OLD table the same way the seat
-        // composition and the reminder identify it: the row stamped
-        // with the creator's discord_id, else the unique row carrying
-        // the creator's current identity name. Its position carries
-        // over to the rewritten table, where the submitted name for
-        // that position is replaced by the creator's CURRENT identity
-        // name (canonicalSignupName, resolved for the creator — the
-        // name follows the person, so a Discord rename moves it); if
-        // no identity name resolves, the old name is frozen in place
-        // instead. Legacy groupings with no (resolvable) creator
-        // record freeze their first seat's existing name. When no
-        // leader seat can be located (the creator is not seated),
-        // nothing is forced.
-        // Stamps are unaffected: the carry rules above still decide
-        // them (editing never stamps).
+        // Name lock for every identified person (ruling 2026-11-01,
+        // generalizing the leader-seat lock of the same day): a seat
+        // that belongs to a person with a platform identity can only
+        // ever carry that person's identity-chain name
+        // (identityNameForDiscordId). The rewrite is positional — row
+        // i of the submission replaces row i of the old table, the
+        // same doctrine the leader lock established — and three kinds
+        // of positions are locked:
+        //  1. Every OLD seat carrying an identity stamp: the position
+        //     is forced back to the stamp owner's CURRENT identity
+        //     name (a Discord rename moves it) and keeps its stamp.
+        //     If no identity name resolves, the old name is frozen.
+        //  2. The leader seat when it carries no stamp: located the
+        //     way the seat composition and the reminder identify it —
+        //     the unique row carrying one of the creator's current
+        //     identity names — and forced the same way; its stamp
+        //     still follows the carry rules (editing never stamps).
+        //     Legacy groupings with no (resolvable) creator record
+        //     freeze their first seat's existing name (stamp: carry).
+        //  3. Any other submitted name that resolves to exactly ONE
+        //     platform person (resolveUniqueNameOwner: unique roster
+        //     match, then unique bound-server match) is rewritten to
+        //     that person's identity name; its stamp follows carry.
+        // Names resolving to nobody stay as submitted (placeholder
+        // seats for people with no platform identity — unchanged).
+        // The gate is unchanged: leader or guild admin, both bound by
+        // the lock alike; the save itself still succeeds.
         const oldOrdered = await listSignupSeats(db, gid);
-        let leaderIdx = -1;
-        let leaderName = '';
+        const evTenantRow = await getTenantRowById(db, ev.tenant).catch(() => null);
+        const evSlug = evTenantRow ? evTenantRow.slug : '';
+        const identityNameCache = new Map();
+        const identityNameOf = async (did: string) => {
+          if (!identityNameCache.has(did)) {
+            identityNameCache.set(did, (await identityNameForDiscordId(db, did, evSlug).catch(() => '')).slice(0, 30));
+          }
+          return identityNameCache.get(did);
+        };
+        const forcedByIdx = new Map<number, { name: string; stamp: string | null | undefined }>();
+        for (let i = 0; i < oldOrdered.length; i++) {
+          const r = oldOrdered[i];
+          if (!r.discord_id) continue;
+          const d = String(r.discord_id);
+          const inm = await identityNameOf(d);
+          forcedByIdx.set(i, { name: inm || String(r.nickname || '').slice(0, 30), stamp: d });
+        }
         const creatorDiscordId = ev.creator_user_id
           ? await getDiscordIdByUserId(db, ev.creator_user_id).catch(() => null)
           : null;
         if (creatorDiscordId) {
-          leaderIdx = oldOrdered.findIndex((r) => r.discord_id && String(r.discord_id) === String(creatorDiscordId));
-          const evTenantRow = await getTenantRowById(db, ev.tenant).catch(() => null);
-          const identityName = (await canonicalSignupName(db, { discordId: String(creatorDiscordId), name: '' }, evTenantRow ? evTenantRow.slug : '').catch(() => '')).slice(0, 30);
-          if (leaderIdx < 0 && identityName) {
-            const sameName = oldOrdered.map((r, i) => (String(r.nickname || '').trim() === identityName ? i : -1)).filter((i) => i >= 0);
+          const cd = String(creatorDiscordId);
+          let leaderIdx = oldOrdered.findIndex((r) => r.discord_id && String(r.discord_id) === cd);
+          if (leaderIdx < 0) {
+            const names = await identityNamesFor(db, cd, dgidU).catch(() => new Set());
+            const inm = await identityNameOf(cd);
+            if (inm) names.add(inm);
+            const rm = await getGuildMember(db, ev.tenant, cd).catch(() => null);
+            if (rm && String(rm.nick || '').trim()) names.add(String(rm.nick).trim());
+            if (rm && String(rm.global_name || '').trim()) names.add(String(rm.global_name).trim());
+            const sameName = oldOrdered.map((r, i) => (names.has(String(r.nickname || '').trim()) ? i : -1)).filter((i) => i >= 0);
             if (sameName.length === 1) leaderIdx = sameName[0];
           }
-          if (leaderIdx >= 0) leaderName = identityName || String(oldOrdered[leaderIdx].nickname || '').slice(0, 30);
-        } else if (oldOrdered.length) {
-          leaderIdx = 0;
-          leaderName = String(oldOrdered[0].nickname || '').slice(0, 30);
+          if (leaderIdx >= 0 && !forcedByIdx.has(leaderIdx)) {
+            const inm = await identityNameOf(cd);
+            forcedByIdx.set(leaderIdx, {
+              name: inm || String(oldOrdered[leaderIdx].nickname || '').slice(0, 30),
+              stamp: undefined,
+            });
+          }
+        } else if (oldOrdered.length && !forcedByIdx.has(0)) {
+          forcedByIdx.set(0, { name: String(oldOrdered[0].nickname || '').slice(0, 30), stamp: undefined });
         }
+        const resolveCache = new Map();
+        const resolveSubmitted = async (rawNm: string) => {
+          if (!resolveCache.has(rawNm)) {
+            const owner = await resolveUniqueNameOwner(db, evSlug, rawNm).catch(() => null);
+            resolveCache.set(rawNm, {
+              owner,
+              name: owner ? await identityNameOf(owner) : '',
+            });
+          }
+          return resolveCache.get(rawNm);
+        };
         await deleteSignupsByEvent(db, gid);
         // F7: the rewrite re-mints every seat uid; answers keyed by
         // the old uids would point at seats that no longer exist.
@@ -1213,12 +1285,22 @@ export const groupingsResolvers = {
           let nm = s(st.nickname, 30);
           const wp = s(st.weapon, 20);
           if (!wp) continue;
-          // The leader position's name comes from the lock, not the
-          // submission (the save still succeeds; other seats rename
-          // freely).
-          if (insertIdx === leaderIdx && leaderName) nm = leaderName;
+          let stamp;
+          const forced = forcedByIdx.get(insertIdx);
+          if (forced) {
+            // The locked position's name (and, for stamped seats, its
+            // stamp) comes from the lock, not the submission.
+            nm = forced.name;
+            stamp = forced.stamp !== undefined ? forced.stamp : await carryStamp(nm);
+          } else {
+            if (nm) {
+              const resolved = await resolveSubmitted(nm);
+              if (resolved.owner && resolved.name) nm = resolved.name;
+            }
+            if (!nm) continue;
+            stamp = await carryStamp(nm);
+          }
           if (!nm) continue;
-          const stamp = await carryStamp(nm);
           seatRows.push({ event_id: gid, nickname: nm, uid: newUid(), role: roleOf(wp), weapon: wp, discord_id: stamp });
           insertIdx++;
         }
