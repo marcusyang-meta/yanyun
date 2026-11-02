@@ -268,7 +268,9 @@ interface Props {
   groupingId?: string;
   initial?: GroupingFormInitial;
   defaultType?: string;
-  // Nickname prefill: the guild server nickname (else the global name); initial value only, editable
+  // Nickname prefill: the guild server nickname (else the global name).
+  // Display only — the server names the leader seat from the creator's
+  // identity and ignores any submitted value, so the field is read-only.
   defaultNickname?: string;
   // Guild-shared templates (create mode only; the host list page passes
   // its query's groupingTemplates plus a refetch callback).
@@ -321,7 +323,7 @@ export default function GroupingForm({ slug, text, mode, groupingId, initial, de
   // preserved via state.
   const [minute, setMinute] = useState(isEdit ? initDate.getMinutes() : 0);
   const [dungeonId, setDungeonId] = useState('');
-  const [nickname, setNickname] = useState(defaultNickname || '');
+  const [nickname] = useState(defaultNickname || '');
   const [sect, setSect] = useState('');
   // Type short labels come from the backend typeShort* fields; edit mode always uses the grouping's original title, never the default.
   const typeShorts: Record<string, string> = {
@@ -620,7 +622,7 @@ export default function GroupingForm({ slug, text, mode, groupingId, initial, de
           <>
             <div style={{ marginBottom: 14 }}>
               <label style={labelStyle}>{text.formNicknameLabel}</label>
-              <input value={nickname} onChange={(e) => { setNickname(e.target.value); setNickErr(false); }}
+              <input value={nickname} readOnly
                 placeholder={text.formNicknamePlaceholder} style={{ ...inputStyle, ...(nickErr ? errStyle : {}) }} />
             </div>
             <div style={{ marginBottom: 20 }}>
