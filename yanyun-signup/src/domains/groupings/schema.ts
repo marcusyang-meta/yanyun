@@ -42,8 +42,9 @@ export const events = sqliteTable('events', {
   // The IANA timezone the car's start time was framed in [alt: 0039]:
   // captured from the creating/editing client's x-tz header. NULL =
   // never captured (every pre-0039 row); share-card time resolution
-  // falls back along the creator's other cars in the guild, then
-  // Asia/Shanghai (see groupings/car-tz.ts).
+  // falls back along the creator's zones (persisted member zone,
+  // then their other cars in the guild), the guild's mode zone, and
+  // finally Asia/Shanghai (see groupings/car-tz.ts).
   createdTz: text('created_tz'),
   reminderSentAt: integer('reminder_sent_at'),
   reminderError: text('reminder_error'),
