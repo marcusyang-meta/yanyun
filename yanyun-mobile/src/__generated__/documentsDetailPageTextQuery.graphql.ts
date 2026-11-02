@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<784180cfcb9c2b8a1bdaee99d1409908>>
+ * @generated SignedSource<<a8607ea780f0e7cbec652fd0e1d926c2>>
  * @lightSyntaxTransform
  */
 
@@ -17,6 +17,8 @@ export type documentsDetailPageTextQuery$variables = {
 export type documentsDetailPageTextQuery$data = {
   readonly groupingDetailPage: {
     readonly detailBackToListLabel: string;
+    readonly detailShareImageFailed: string;
+    readonly detailShareImageLabel: string;
     readonly detailShareLabel: string;
     readonly detailToastCompleteFailedTemplate: string;
     readonly detailToastDisbandFailedTemplate: string;
@@ -105,6 +107,7 @@ export type documentsDetailPageTextQuery$data = {
     readonly seatToastReadyFailedTemplate: string;
     readonly seatToastSect: string;
     readonly seatUnreadyActionLabel: string;
+    readonly shareImageUrl: string | null | undefined;
     readonly shareUrl: string;
     readonly templateSave: {
       readonly buttonLabel: string;
@@ -434,6 +437,27 @@ v3 = [
         "args": null,
         "kind": "ScalarField",
         "name": "shareUrl",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "shareImageUrl",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "detailShareImageLabel",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "detailShareImageFailed",
         "storageKey": null
       },
       {
@@ -902,16 +926,16 @@ return {
     "selections": (v3/*:: as any*/)
   },
   "params": {
-    "cacheID": "bfa99100ac24422498db4d16ea1e7bfe",
+    "cacheID": "d0bdde6a5ec0c8b297f7eb2546a8800c",
     "id": null,
     "metadata": {},
     "name": "documentsDetailPageTextQuery",
     "operationKind": "query",
-    "text": "query documentsDetailPageTextQuery(\n  $slug: String\n  $id: ID!\n) {\n  viewer {\n    commonUnknownErrorText\n  }\n  groupingDetailPage(slug: $slug, id: $id) {\n    grouping {\n      id\n      title\n      type\n      startsAt\n      customFields {\n        id\n        label\n        fieldType\n        options\n        required\n      }\n    }\n    rosterAnswersTitle\n    rosterAnswers {\n      uid\n      nickname\n      fieldId\n      fieldLabel\n      value\n    }\n    detailBackToListLabel\n    detailToastDisbanded\n    detailToastDisbandFailedTemplate\n    detailToastCompleteFailedTemplate\n    detailToastRestoreFailedTemplate\n    seatToastJoined\n    seatToastJoinFailedTemplate\n    seatToastLeft\n    seatToastLeaveFailedTemplate\n    seatEmptyJoinLabel\n    seatEmptyLabel\n    seatLeaderLabel\n    seatReadyLabel\n    seatReadyActionLabel\n    seatUnreadyActionLabel\n    seatToastReadyFailedTemplate\n    detailShareLabel\n    shareUrl\n    templateSave {\n      buttonLabel\n      dialogTitle\n      nameLabel\n      submitLabel\n      toastSaved\n      toastFailedTemplate\n    }\n    seatModalTitleTemplate\n    seatModalSubtitle\n    seatNameLabel\n    seatNamePlaceholder\n    seatNameRequired\n    seatSelfTabLabel\n    seatProxyTabLabel\n    seatSelfNameHint\n    seatProxySearchPlaceholder\n    seatProxyPickRequired\n    seatProxyEmptyText\n    seatSectLabel\n    seatCancelLabel\n    seatConfirmJoinLabel\n    seatJoiningLabel\n    seatToastSect\n    formCreateTitle\n    formEditTitle\n    formTypeLabel\n    formTypeActivityLabel\n    formTypeTalentLabel\n    formTypeRaceLabel\n    formTypeTowerLabel\n    formCapacityTemplate\n    formHintActivity\n    formHintDungeonTemplate\n    formHintTalent\n    formHintRace\n    formHintTower\n    formTitleLabel\n    formTitlePlaceholder\n    formStartsLabel\n    formMonthTemplate\n    formDayTemplate\n    formHourTemplate\n    formMinuteTemplate\n    formDungeonLabel\n    formDungeonNoneLabel\n    formNicknameLabel\n    formNicknamePlaceholder\n    formSectLabel\n    formCancelLabel\n    formSubmitCreateLabel\n    formSubmitEditLabel\n    formSubmittingLabel\n    formToastSect\n    formToastSaved\n    formToastSaveFailedTemplate\n    formToastPosted\n    formToastCreateFailedTemplate\n    formTitleTemplate\n    typeShortActivity\n    typeShortTalent\n    typeShortRace\n    typeShortTower\n  }\n}\n"
+    "text": "query documentsDetailPageTextQuery(\n  $slug: String\n  $id: ID!\n) {\n  viewer {\n    commonUnknownErrorText\n  }\n  groupingDetailPage(slug: $slug, id: $id) {\n    grouping {\n      id\n      title\n      type\n      startsAt\n      customFields {\n        id\n        label\n        fieldType\n        options\n        required\n      }\n    }\n    rosterAnswersTitle\n    rosterAnswers {\n      uid\n      nickname\n      fieldId\n      fieldLabel\n      value\n    }\n    detailBackToListLabel\n    detailToastDisbanded\n    detailToastDisbandFailedTemplate\n    detailToastCompleteFailedTemplate\n    detailToastRestoreFailedTemplate\n    seatToastJoined\n    seatToastJoinFailedTemplate\n    seatToastLeft\n    seatToastLeaveFailedTemplate\n    seatEmptyJoinLabel\n    seatEmptyLabel\n    seatLeaderLabel\n    seatReadyLabel\n    seatReadyActionLabel\n    seatUnreadyActionLabel\n    seatToastReadyFailedTemplate\n    detailShareLabel\n    shareUrl\n    shareImageUrl\n    detailShareImageLabel\n    detailShareImageFailed\n    templateSave {\n      buttonLabel\n      dialogTitle\n      nameLabel\n      submitLabel\n      toastSaved\n      toastFailedTemplate\n    }\n    seatModalTitleTemplate\n    seatModalSubtitle\n    seatNameLabel\n    seatNamePlaceholder\n    seatNameRequired\n    seatSelfTabLabel\n    seatProxyTabLabel\n    seatSelfNameHint\n    seatProxySearchPlaceholder\n    seatProxyPickRequired\n    seatProxyEmptyText\n    seatSectLabel\n    seatCancelLabel\n    seatConfirmJoinLabel\n    seatJoiningLabel\n    seatToastSect\n    formCreateTitle\n    formEditTitle\n    formTypeLabel\n    formTypeActivityLabel\n    formTypeTalentLabel\n    formTypeRaceLabel\n    formTypeTowerLabel\n    formCapacityTemplate\n    formHintActivity\n    formHintDungeonTemplate\n    formHintTalent\n    formHintRace\n    formHintTower\n    formTitleLabel\n    formTitlePlaceholder\n    formStartsLabel\n    formMonthTemplate\n    formDayTemplate\n    formHourTemplate\n    formMinuteTemplate\n    formDungeonLabel\n    formDungeonNoneLabel\n    formNicknameLabel\n    formNicknamePlaceholder\n    formSectLabel\n    formCancelLabel\n    formSubmitCreateLabel\n    formSubmitEditLabel\n    formSubmittingLabel\n    formToastSect\n    formToastSaved\n    formToastSaveFailedTemplate\n    formToastPosted\n    formToastCreateFailedTemplate\n    formTitleTemplate\n    typeShortActivity\n    typeShortTalent\n    typeShortRace\n    typeShortTower\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "2ed5b5c7c25b67890a199c5025821ab5";
+(node as any).hash = "d956380ae801ffcb75c22d9e26490b5d";
 
 export default node;

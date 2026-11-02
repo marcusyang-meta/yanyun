@@ -449,6 +449,9 @@ export const DetailPageTextQuery = graphql`
       seatToastReadyFailedTemplate
       detailShareLabel
       shareUrl
+      shareImageUrl
+      detailShareImageLabel
+      detailShareImageFailed
       templateSave {
         buttonLabel
         dialogTitle
