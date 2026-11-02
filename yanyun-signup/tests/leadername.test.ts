@@ -12,8 +12,12 @@
 //     definition), else by a unique match on the creator's current
 //     identity name; the rewritten seat at that position is forced
 //     back to the creator's CURRENT identity name (a Discord rename
-//     moves it), while every other seat renames freely and the save
-//     itself succeeds — for the leader and for a guild admin alike.
+//     moves it) — for the leader and for a guild admin alike.
+//     (Originally every other seat renamed freely; the generalized
+//     name lock — tests/namelock.test.ts — has since locked every
+//     identified person's seat the same way, and case 2 below now
+//     pins that: the stamped member seat is restored too, while an
+//     unstamped, non-resolving seat still renames freely.)
 //  3) Legacy groupings with no creator record: the first seat's
 //     existing name is frozen; other seats still rename.
 // Real yoga + real resolvers + a FakeDB that routes by SQL shape into
@@ -307,7 +311,7 @@ describe('leader name lock', () => {
     eq('车头位盖创建人戳', seats[0]?.discord_id, 'UL2');
   });
 
-  it('update: leader seat name is restored, other seats rename freely', async () => {
+  it('update: leader seat name is restored, stamped member seat is locked too', async () => {
     const A = makeDb({
       ...baseFx(),
       events: [evRow(301)],
@@ -336,8 +340,12 @@ describe('leader name lock', () => {
     eq('座位数', seats.length, 3);
     eq('车头名被恢复为身份名', seats[0]?.nickname, '服昵L');
     eq('车头戳按既有 carry 保留', seats[0]?.discord_id, 'UL');
-    eq('队员甲改名成功', seats[1]?.nickname, '队员甲改');
-    eq('队员乙改名成功', seats[2]?.nickname, '队员乙改');
+    eq('无戳队员甲改名成功', seats[1]?.nickname, '队员甲改');
+    // Generalized lock: UM's seat carries UM's identity stamp, so the
+    // submitted rename has no effect — the seat is written back under
+    // UM's current identity name with the stamp kept.
+    eq('带戳队员乙改名被写回身份名', seats[2]?.nickname, '服昵M');
+    eq('队员乙身份戳保留', seats[2]?.discord_id, 'UM');
   });
 
   it('update: a guild admin is bound by the same lock', async () => {
