@@ -6,7 +6,7 @@ import { sql } from 'drizzle-orm';
 import { createDb, schema } from '../../db/client.ts';
 import { mintPublicId } from '../platform/id-mint.ts';
 
-const { users, userOauth, userGuildNicks } = schema;
+const { users, userOauth, userGuildNicks, guildMembers } = schema;
 const col = (name: string) => sql.identifier(name);
 
 /* ---------- the single ID conversion point ----------
@@ -151,6 +151,71 @@ export async function setUserLocalePref(d1: D1Database, userId: number, pref: st
   await db.run(
     sql`UPDATE ${users} SET ${col('locale_pref')} = ${pref} WHERE ${col('id')} = ${userId}`,
   );
+}
+
+/* ---------- member timezone capture (migration 0040) ----------
+ * users.last_tz holds the IANA zone of the member's most recent
+ * signed-in request (the x-tz header, validated by the caller — the
+ * request edge — before it reaches this layer). It exists so the car
+ * home-zone resolution (groupings/car-tz.ts) can frame a share card
+ * in the zone of the guild's people. Aggregate-only by design: the
+ * reads below are a single-member lookup for the car's own creator
+ * and a GROUP BY over one guild's roster; no surface lists it. */
+
+export async function getUserLastTz(d1: D1Database, userId: number): Promise<string | null> {
+  const db = createDb(d1);
+  const row = await db.get<{ last_tz: string | null }>(
+    sql`SELECT ${col('last_tz')} FROM ${users} WHERE ${col('id')} = ${userId}`,
+  );
+  return row?.last_tz ?? null;
+}
+
+/** Persist the member's current zone, writing only on change: the
+ * WHERE guard makes the statement match solely when the stored value
+ * differs (or was never captured), so a request repeating the zone
+ * the member already has on file performs no write at all. Returns
+ * whether a write landed. */
+export async function recordUserLastTzIfChanged(
+  d1: D1Database, userId: number, tz: string,
+): Promise<boolean> {
+  const db = createDb(d1);
+  const r = await db.run(
+    sql`UPDATE ${users} SET ${col('last_tz')} = ${tz}
+        WHERE ${col('id')} = ${userId} AND (${col('last_tz')} IS NULL OR ${col('last_tz')} != ${tz})`,
+  );
+  return metaOf(r).changes > 0;
+}
+
+export interface GuildMemberTzStat {
+  tz: string;
+  member_count: number;
+  /** Epoch seconds of the most recent users-row update among the
+   * members carrying this zone (the roster's freshest activity
+   * signal for that zone); 0 when the stamp is unusable. */
+  latest_active_at: number;
+}
+
+/** Zone distribution over one guild's roster: members are the
+ * guild_members rows, joined to their users rows; members who never
+ * had a zone captured do not vote. One row per distinct zone with its
+ * headcount — the mode computation itself (ordering and tie-breaks)
+ * lives with the consumer in groupings/car-tz.ts. */
+export async function listGuildMemberTzStats(
+  d1: D1Database, tenant: number,
+): Promise<GuildMemberTzStat[]> {
+  const db = createDb(d1);
+  const rows = await db.all<GuildMemberTzStat>(
+    sql`SELECT ${users.lastTz} AS tz, COUNT(*) AS member_count,
+          MAX(CAST(${users.updatedAt} AS INTEGER)) AS latest_active_at
+        FROM ${guildMembers} JOIN ${users} ON ${users.discordId} = ${guildMembers.discordId}
+        WHERE ${guildMembers.tenant} = ${tenant} AND ${users.lastTz} IS NOT NULL
+        GROUP BY ${users.lastTz}`,
+  );
+  return (rows || []).map((r) => ({
+    tz: String(r.tz),
+    member_count: Number(r.member_count) || 0,
+    latest_active_at: Number(r.latest_active_at) || 0,
+  }));
 }
 
 export async function getUserGuildsJson(d1: D1Database, userId: number): Promise<string | null> {

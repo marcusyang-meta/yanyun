@@ -10,7 +10,8 @@ import { Hono } from 'hono';
 import { yoga } from './graphql.ts';
 import { getGuildAccess, negotiateLocale } from './domains/platform/graphql-base.ts';
 import { getSessionUserChecked, sessionCookieHeaders, handleDiscordLogin, handleDiscordCallback, handleLogout, getUserLocalePref } from './domains/identity/auth.ts';
-import { runDueAccountDeletions } from './domains/identity/index.ts';
+import { runDueAccountDeletions, recordUserLastTzIfChanged } from './domains/identity/index.ts';
+import { capturedTzOrNull } from './domains/groupings/index.ts';
 import { maybeRunCreatorBackfill } from './creatorbackfill.js';
 import { maybeRunCreatorManualFix } from './creatormanualfix.js';
 import { logError, runScheduledBackup, configureGateRuntime } from './domains/platform/index.ts';
@@ -60,6 +61,22 @@ app.all('/graphql', async (c: any) => {
   const pref = checked.user
     ? await getUserLocalePref(c.env, checked.user.userId).catch(() => null)
     : null;
+  // Member timezone capture (migration 0040): persist the signed-in
+  // member's current zone from this request's x-tz — change-only, in
+  // the background, never blocking or failing the request. This is
+  // what lets the car home-zone resolution use the guild's own
+  // people's zones (groupings/car-tz.ts rings 2-3); junk header
+  // values are rejected by the same validation as the car capture.
+  if (checked.user) {
+    const reqTz = capturedTzOrNull(c.req.header('x-tz'));
+    if (reqTz) {
+      try {
+        c.executionCtx.waitUntil(
+          recordUserLastTzIfChanged(c.env.DB, checked.user.userId, reqTz).catch(() => {}),
+        );
+      } catch { /* silent when there is no executionCtx */ }
+    }
+  }
   // Assembly edge: build the three-layer context once — RequestContext
   // (framework) wraps env/request/executionCtx, ViewerContext carries
   // identity only; resolvers and shells receive the Context layer.
