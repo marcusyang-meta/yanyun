@@ -330,6 +330,9 @@ export const ListPageTextQuery = graphql`
       formDayTemplate
       formHourTemplate
       formMinuteTemplate
+      formTzEastLabel
+      formTzWestLabel
+      formTzEchoTemplate
       formDungeonLabel
       formDungeonNoneLabel
       formNicknameLabel
@@ -496,6 +499,9 @@ export const DetailPageTextQuery = graphql`
       formDayTemplate
       formHourTemplate
       formMinuteTemplate
+      formTzEastLabel
+      formTzWestLabel
+      formTzEchoTemplate
       formDungeonLabel
       formDungeonNoneLabel
       formNicknameLabel
@@ -814,6 +820,9 @@ export const SchedulePageQuery = graphql`
       formDayTemplate
       formHourTemplate
       formMinuteTemplate
+      formTzEastLabel
+      formTzWestLabel
+      formTzEchoTemplate
       formDungeonLabel
       formDungeonNoneLabel
       formNicknameLabel

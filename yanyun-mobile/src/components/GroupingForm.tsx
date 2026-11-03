@@ -1,11 +1,16 @@
-import React, { Suspense, useCallback, useMemo, useState } from 'react';
+import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import type { NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fetchQuery, useLazyLoadQuery, useRelayEnvironment } from 'react-relay';
 import { fonts, theme, SECTS } from '../theme';
 import { GoldFill } from './ui';
 import { LoadingView } from './AsyncBoundary';
 import { parseStartsAt } from '../week';
+import { effectiveLocaleTag } from '../locale';
+import {
+  ECHO_TZ_EAST, ECHO_TZ_WEST, calendarDayDiff, dateStripDays, dateStripIndex, minuteWheelValues, startOfLocalDay, zonedEchoParts,
+} from '../groupingTime';
 import { createGrouping, createGroupingTemplate, deleteGroupingTemplate, updateGrouping, updateGroupingTemplate } from '../api';
 import { DetailPageTextQuery, FormDungeonsQuery, ListPageTextQuery } from '../documents';
 import type { documentsFormDungeonsQuery } from '../__generated__/documentsFormDungeonsQuery.graphql';
@@ -42,6 +47,9 @@ export interface GroupingFormText {
   formDayTemplate: string;
   formHourTemplate: string;
   formMinuteTemplate: string;
+  formTzEastLabel: string;
+  formTzWestLabel: string;
+  formTzEchoTemplate: string;
   formDungeonLabel: string;
   formDungeonNoneLabel: string;
   formNicknameLabel: string;
@@ -185,6 +193,62 @@ function fill(template: string, params: Record<string, string | number>): string
   return out;
 }
 
+const HOUR_VALUES: readonly number[] = Array.from({ length: 24 }, (_, i) => i);
+const DATE_CELL_W = 54;
+const DATE_CELL_GAP = 8;
+const WHEEL_ITEM_H = 44;
+
+/**
+ * One wheel column of the start-time picker: a vertical snap-scroll
+ * list three rows tall whose resting row is the value. The center
+ * band is painted behind the list; the value's own row carries the
+ * highlighted text. Scrolling settles through snap + momentum-end;
+ * tapping a row (or an outside change, e.g. a template) moves the
+ * value and the wheel follows. Pure RN — no native picker module.
+ */
+function WheelColumn({ values, value, onChange, format }: {
+  values: readonly number[];
+  value: number;
+  onChange: (n: number) => void;
+  format: (n: number) => string;
+}) {
+  const ref = useRef<React.ElementRef<typeof ScrollView>>(null);
+  const laidOut = useRef(false);
+  const index = Math.max(0, values.indexOf(value));
+  useEffect(() => {
+    if (!laidOut.current) return;
+    ref.current?.scrollTo({ y: index * WHEEL_ITEM_H, animated: true });
+  }, [index]);
+  const settle = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const i = Math.min(values.length - 1, Math.max(0, Math.round(e.nativeEvent.contentOffset.y / WHEEL_ITEM_H)));
+    if (values[i] !== value) onChange(values[i]);
+  };
+  return (
+    <View style={s.wheelCol}>
+      <View style={s.wheelBand} pointerEvents="none" />
+      <ScrollView
+        ref={ref}
+        nestedScrollEnabled
+        showsVerticalScrollIndicator={false}
+        snapToInterval={WHEEL_ITEM_H}
+        decelerationRate="fast"
+        contentContainerStyle={{ paddingVertical: WHEEL_ITEM_H }}
+        onLayout={() => {
+          laidOut.current = true;
+          ref.current?.scrollTo({ y: index * WHEEL_ITEM_H, animated: false });
+        }}
+        onMomentumScrollEnd={settle}
+      >
+        {values.map((n) => (
+          <Pressable key={n} style={s.wheelItem} onPress={() => onChange(n)}>
+            <Text style={[s.wheelItemText, n === value && s.wheelItemTextOn]}>{format(n)}</Text>
+          </Pressable>
+        ))}
+      </ScrollView>
+    </View>
+  );
+}
+
 const TYPE_KEYS = ['ACTIVITY', 'TALENT', 'RACE', 'TOWER'] as const;
 type GroupingTypeKey = (typeof TYPE_KEYS)[number];
 
@@ -209,8 +273,10 @@ export default function GroupingForm({
       ? (initial?.type || defaultType) as GroupingTypeKey
       : 'ACTIVITY',
   );
-  const [month, setMonth] = useState(initDate.getMonth() + 1);
-  const [day, setDay] = useState(initDate.getDate());
+  // The picked calendar day as a whole Date (local midnight): a bare
+  // month/day number pair cannot express a January pick made in late
+  // December — it would read as the January just past.
+  const [pickedDay, setPickedDay] = useState(() => startOfLocalDay(initDate));
   const [hour, setHour] = useState(isEdit ? initDate.getHours() : 20);
   // Web's edit form always resets minute to 0 -- here the original minute
   // is kept, so saving a title-only edit can't silently shift the start
@@ -271,8 +337,7 @@ export default function GroupingForm({
     setTitleTouched(true);
     setDungeonId(t.dungeonId ?? '');
     const target = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (t.startDaysAhead || 0));
-    setMonth(target.getMonth() + 1);
-    setDay(target.getDate());
+    setPickedDay(target);
     setHour(t.startHour);
     setMinute(t.startMinute);
     setAppliedTemplateId(t.id);
@@ -287,11 +352,14 @@ export default function GroupingForm({
     setTemplateName(t.name);
   };
 
-  const daysAheadFromForm = () => {
-    const picked = new Date(now.getFullYear(), month - 1, day);
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    return Math.max(0, Math.round((picked.getTime() - today.getTime()) / 86400000));
-  };
+  // The date strip's day window: always contains the picked day,
+  // extending past the default fortnight when an edit's date (or a
+  // far-ahead template) sits beyond it.
+  const stripDays = useMemo(() => dateStripDays(now, pickedDay), [now, pickedDay]);
+  const selectedStripIndex = dateStripIndex(stripDays, pickedDay);
+  const selectedDay = pickedDay;
+
+  const daysAheadFromForm = () => Math.max(0, calendarDayDiff(now, selectedDay));
 
   const saveTemplate = async () => {
     const t = shownTitle.trim();
@@ -370,7 +438,7 @@ export default function GroupingForm({
       setNickErr(false);
       if (!sect) { setNotice(text.formToastSect); return; }
     }
-    const dt = new Date(now.getFullYear(), month - 1, day, hour, minute, 0);
+    const dt = new Date(selectedDay.getFullYear(), selectedDay.getMonth(), selectedDay.getDate(), hour, minute, 0);
     const startsAt = String(Math.floor(dt.getTime() / 1000));
     setBusy(true); setNotice('');
     try {
@@ -395,25 +463,22 @@ export default function GroupingForm({
     } finally { setBusy(false); }
   };
 
-  const numRow = (
-    label: string,
-    values: number[],
-    value: number,
-    set: (n: number) => void,
-    fmt: (n: number) => string,
-  ) => (
-    <View style={s.numGroup}>
-      {!!label && <Text style={s.numLabel}>{label}</Text>}
-      <View style={s.chips}>
-        {values.map((n) => (
-          <Pressable key={n} style={[s.numChip, value === n && s.chipOn]} onPress={() => set(n)}>
-            {value === n && <GoldFill />}
-            <Text style={[s.numChipText, value === n && s.chipTextOn]}>{fmt(n)}</Text>
-          </Pressable>
-        ))}
-      </View>
-    </View>
-  );
+  // ---- Start picker: date strip + hour/minute wheels + zone echo ----
+  const locale = effectiveLocaleTag();
+  const weekdayFmt = useMemo(() => new Intl.DateTimeFormat(locale, { weekday: 'short' }), [locale]);
+  const stripRef = useRef<React.ElementRef<typeof ScrollView>>(null);
+  const stripLaidOut = useRef(false);
+  const stripScrollX = Math.max(0, selectedStripIndex * (DATE_CELL_W + DATE_CELL_GAP) - DATE_CELL_GAP);
+  // Follow outside moves of the picked day (template application);
+  // the initial positioning happens in the strip's onLayout.
+  useEffect(() => {
+    if (!stripLaidOut.current) return;
+    stripRef.current?.scrollTo({ x: stripScrollX, animated: true });
+  }, [stripScrollX]);
+
+  const echoInstant = new Date(selectedDay.getFullYear(), selectedDay.getMonth(), selectedDay.getDate(), hour, minute, 0);
+  const echoEast = zonedEchoParts(echoInstant, ECHO_TZ_EAST, locale);
+  const echoWest = zonedEchoParts(echoInstant, ECHO_TZ_WEST, locale);
 
   return (
     <View style={s.overlay}>
@@ -487,10 +552,47 @@ export default function GroupingForm({
           />
 
           <Text style={s.label}>{text.formStartsLabel}</Text>
-          {numRow('', Array.from({ length: 12 }, (_, i) => i + 1), month, setMonth, (n) => fill(text.formMonthTemplate, { n }))}
-          {numRow('', Array.from({ length: 31 }, (_, i) => i + 1), day, setDay, (n) => fill(text.formDayTemplate, { n }))}
-          {numRow('', Array.from({ length: 24 }, (_, i) => i), hour, setHour, (n) => fill(text.formHourTemplate, { n }))}
-          {numRow('', [0, 15, 30, 45], minute, setMinute, (n) => fill(text.formMinuteTemplate, { n }))}
+          <ScrollView
+            ref={stripRef}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={s.stripRow}
+            onLayout={() => {
+              stripLaidOut.current = true;
+              stripRef.current?.scrollTo({ x: stripScrollX, animated: false });
+            }}
+          >
+            {stripDays.map((d, i) => {
+              const on = i === selectedStripIndex;
+              return (
+                <Pressable key={d.getTime()} style={[s.dayCell, on && s.chipOn]} onPress={() => setPickedDay(d)}>
+                  {on && <GoldFill />}
+                  <Text style={[s.dayCellDate, on && s.chipTextOn]}>{`${d.getMonth() + 1}/${d.getDate()}`}</Text>
+                  <Text style={[s.dayCellWeekday, on && s.chipTextOn]}>{weekdayFmt.format(d)}</Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+          <View style={s.wheelsRow}>
+            <WheelColumn
+              values={HOUR_VALUES}
+              value={hour}
+              onChange={setHour}
+              format={(n) => fill(text.formHourTemplate, { n })}
+            />
+            <WheelColumn
+              values={minuteWheelValues(minute)}
+              value={minute}
+              onChange={setMinute}
+              format={(n) => fill(text.formMinuteTemplate, { n })}
+            />
+          </View>
+          <Text style={s.echoText}>
+            {fill(text.formTzEchoTemplate, {
+              eastLabel: text.formTzEastLabel, eastWeekday: echoEast.weekday, eastTime: echoEast.time,
+              westLabel: text.formTzWestLabel, westWeekday: echoWest.weekday, westTime: echoWest.time,
+            })}
+          </Text>
 
           {!isEdit && type !== 'ACTIVITY' && type !== 'TOWER' && (
             <>
@@ -774,14 +876,29 @@ const s = StyleSheet.create({
   chipOn: { borderColor: 'rgba(236,210,143,.5)' },
   chipText: { fontFamily: fonts.serif, color: theme.paper, fontSize: 14 },
   chipTextOn: { color: theme.onGold, fontWeight: '700' },
-  numGroup: { marginTop: 8 },
-  numLabel: { fontFamily: fonts.serif, color: theme.muted, fontSize: 12, marginBottom: 6 },
-  numChip: {
-    position: 'relative', overflow: 'hidden',
-    borderWidth: 1, borderColor: theme.border, borderRadius: 8,
-    paddingHorizontal: 10, paddingVertical: 7, minWidth: 44, alignItems: 'center',
+  stripRow: { flexDirection: 'row', gap: DATE_CELL_GAP, paddingVertical: 2 },
+  dayCell: {
+    position: 'relative', overflow: 'hidden', width: DATE_CELL_W,
+    borderWidth: 1, borderColor: theme.border, borderRadius: 10,
+    paddingVertical: 8, alignItems: 'center',
   },
-  numChipText: { fontFamily: fonts.serif, color: theme.paper, fontSize: 13.5 },
+  dayCellDate: { fontFamily: fonts.serif, color: theme.paper, fontSize: 15.5 },
+  dayCellWeekday: { fontFamily: fonts.serif, color: theme.muted, fontSize: 11.5, marginTop: 2 },
+  wheelsRow: { flexDirection: 'row', gap: 10, marginTop: 12 },
+  wheelCol: {
+    flex: 1, height: WHEEL_ITEM_H * 3, position: 'relative', overflow: 'hidden',
+    borderWidth: 1, borderColor: theme.border, borderRadius: 10,
+    backgroundColor: theme.inputFill,
+  },
+  wheelBand: {
+    position: 'absolute', top: WHEEL_ITEM_H, left: 8, right: 8, height: WHEEL_ITEM_H,
+    borderRadius: 8, borderWidth: 1, borderColor: 'rgba(236,210,143,.45)',
+    backgroundColor: 'rgba(201,163,92,.13)',
+  },
+  wheelItem: { height: WHEEL_ITEM_H, justifyContent: 'center', alignItems: 'center' },
+  wheelItemText: { fontFamily: fonts.serif, color: theme.muted, fontSize: 15 },
+  wheelItemTextOn: { color: theme.goldHi, fontSize: 17, fontWeight: '700' },
+  echoText: { fontFamily: fonts.serif, color: theme.gold, fontSize: 13.5, textAlign: 'center', marginTop: 12 },
   btns: { flexDirection: 'row', gap: 10, marginTop: 22 },
   cancelBtn: {
     flex: 1, borderWidth: 1, borderColor: theme.border, borderRadius: 10,
