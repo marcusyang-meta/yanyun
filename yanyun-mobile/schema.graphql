@@ -346,6 +346,9 @@ type GroupingListPage {
   formDayTemplate: String!
   formHourTemplate: String!
   formMinuteTemplate: String!
+  formTzEastLabel: String!
+  formTzWestLabel: String!
+  formTzEchoTemplate: String!
   formDungeonLabel: String!
   formDungeonNoneLabel: String!
   formNicknameLabel: String!
@@ -531,6 +534,7 @@ type SharedGroupingPage {
   shareImageUrl: String
   shareImageLabel: String!
   shareImageSaved: String!
+  shareImageCopied: String!
   shareImageFailed: String!
   shareCopyFailedManual: String!
 }
@@ -558,6 +562,7 @@ type GroupingDetailPage {
   detailShareLabel: String!
   detailShareImageLabel: String!
   detailShareImageSaved: String!
+  detailShareImageCopied: String!
   detailShareImageFailed: String!
   detailEditLabel: String!
   detailDisbandLabel: String!
@@ -642,6 +647,9 @@ type GroupingDetailPage {
   formDayTemplate: String!
   formHourTemplate: String!
   formMinuteTemplate: String!
+  formTzEastLabel: String!
+  formTzWestLabel: String!
+  formTzEchoTemplate: String!
   formDungeonLabel: String!
   formDungeonNoneLabel: String!
   formNicknameLabel: String!
@@ -1635,6 +1643,9 @@ type GuildSchedulePage {
   formDayTemplate: String!
   formHourTemplate: String!
   formMinuteTemplate: String!
+  formTzEastLabel: String!
+  formTzWestLabel: String!
+  formTzEchoTemplate: String!
   formDungeonLabel: String!
   formDungeonNoneLabel: String!
   formNicknameLabel: String!
@@ -3602,6 +3613,7 @@ type OgCarCard {
   maxSlots: Int!
   status: String!
   shareCode: String
+  cardTimeText: String!
 }
 
 type OgBuildCard {

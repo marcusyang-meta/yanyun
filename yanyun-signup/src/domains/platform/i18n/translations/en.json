@@ -20306,6 +20306,42 @@
         }
       ],
       "types": []
+    },
+    "D397I01DZmsu4MPhAk3aoA==": {
+      "description": "Zone label for the squad form, used in the start-time echo for the US Eastern timezone.",
+      "id": "groupings/groupingForm_tzEastLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "US East",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "0hpmrkYM1hMD8k1xetQdBg==": {
+      "description": "Zone label for the squad form, used in the start-time echo for the US Pacific timezone.",
+      "id": "groupings/groupingForm_tzWestLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "US West",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "C/vIbCaMs7xKT0eH0Q+x/Q==": {
+      "description": "Echo line for the squad form, used to restate the chosen start time in the US Eastern and Pacific timezones, where {eastLabel} and {westLabel} are the zone labels, {eastWeekday} and {westWeekday} the weekday in each zone's own calendar, and {eastTime} and {westTime} the wall-clock times.",
+      "id": "groupings/groupingForm_tzEcho",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{eastLabel} {eastWeekday} {eastTime} · {westLabel} {westWeekday} {westTime}",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

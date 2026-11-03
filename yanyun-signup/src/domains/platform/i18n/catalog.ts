@@ -1005,6 +1005,18 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "fr": ":{n} min",
       "zh-TW": "{n}分"
     },
+    "tzEastLabel": {
+      "zh-CN": "美东",
+      "en": "US East"
+    },
+    "tzWestLabel": {
+      "zh-CN": "美西",
+      "en": "US West"
+    },
+    "tzEcho": {
+      "zh-CN": "{eastLabel} {eastWeekday} {eastTime} · {westLabel} {westWeekday} {westTime}",
+      "en": "{eastLabel} {eastWeekday} {eastTime} · {westLabel} {westWeekday} {westTime}"
+    },
     "dungeonLabel": {
       "zh-CN": "副本（可选）",
       "en": "Dungeon (optional)",

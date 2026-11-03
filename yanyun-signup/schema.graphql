@@ -396,6 +396,9 @@ type GroupingListPage {
   formDayTemplate: String!
   formHourTemplate: String!
   formMinuteTemplate: String!
+  formTzEastLabel: String!
+  formTzWestLabel: String!
+  formTzEchoTemplate: String!
   formDungeonLabel: String!
   formDungeonNoneLabel: String!
   formNicknameLabel: String!
@@ -781,6 +784,9 @@ type GroupingDetailPage {
   formDayTemplate: String!
   formHourTemplate: String!
   formMinuteTemplate: String!
+  formTzEastLabel: String!
+  formTzWestLabel: String!
+  formTzEchoTemplate: String!
   formDungeonLabel: String!
   formDungeonNoneLabel: String!
   formNicknameLabel: String!
@@ -1956,6 +1962,9 @@ type GuildSchedulePage {
   formDayTemplate: String!
   formHourTemplate: String!
   formMinuteTemplate: String!
+  formTzEastLabel: String!
+  formTzWestLabel: String!
+  formTzEchoTemplate: String!
   formDungeonLabel: String!
   formDungeonNoneLabel: String!
   formNicknameLabel: String!

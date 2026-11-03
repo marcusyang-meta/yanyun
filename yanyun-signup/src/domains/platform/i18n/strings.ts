@@ -475,6 +475,22 @@ export abstract class GroupingFormFbtUtils {
 	static minuteOption(fbs: FbsRuntime, p?: StringParams) {
 		return fbs._("{n}分", [fbs._param("n", pv(p, "n"))], { hk: "TVPPL" });
 	}
+	static tzEastLabel(fbs: FbsRuntime) {
+		return fbs._("美东", null, { hk: "4n1BO7" });
+	}
+	static tzWestLabel(fbs: FbsRuntime) {
+		return fbs._("美西", null, { hk: "3uaFkc" });
+	}
+	static tzEcho(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("{eastLabel} {eastWeekday} {eastTime} · {westLabel} {westWeekday} {westTime}", [
+			fbs._param("eastLabel", pv(p, "eastLabel")),
+			fbs._param("eastWeekday", pv(p, "eastWeekday")),
+			fbs._param("eastTime", pv(p, "eastTime")),
+			fbs._param("westLabel", pv(p, "westLabel")),
+			fbs._param("westWeekday", pv(p, "westWeekday")),
+			fbs._param("westTime", pv(p, "westTime"))
+		], { hk: "4iFZUe" });
+	}
 	static dungeonLabel(fbs: FbsRuntime) {
 		return fbs._("副本（可选）", null, { hk: "2YRvK4" });
 	}
@@ -5381,6 +5397,9 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"groupingForm_dayOption": GroupingFormFbtUtils.dayOption,
 	"groupingForm_hourOption": GroupingFormFbtUtils.hourOption,
 	"groupingForm_minuteOption": GroupingFormFbtUtils.minuteOption,
+	"groupingForm_tzEastLabel": GroupingFormFbtUtils.tzEastLabel,
+	"groupingForm_tzWestLabel": GroupingFormFbtUtils.tzWestLabel,
+	"groupingForm_tzEcho": GroupingFormFbtUtils.tzEcho,
 	"groupingForm_dungeonLabel": GroupingFormFbtUtils.dungeonLabel,
 	"groupingForm_dungeonNone": GroupingFormFbtUtils.dungeonNone,
 	"groupingForm_nicknameLabel": GroupingFormFbtUtils.nicknameLabel,
