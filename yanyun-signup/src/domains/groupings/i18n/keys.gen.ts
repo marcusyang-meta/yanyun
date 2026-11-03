@@ -76,6 +76,9 @@ export type GroupingsStringKey =
   | 'groupingForm_dayOption'
   | 'groupingForm_hourOption'
   | 'groupingForm_minuteOption'
+  | 'groupingForm_tzEastLabel'
+  | 'groupingForm_tzWestLabel'
+  | 'groupingForm_tzEcho'
   | 'groupingForm_dungeonLabel'
   | 'groupingForm_dungeonNone'
   | 'groupingForm_nicknameLabel'
@@ -414,6 +417,9 @@ export const GROUPINGS_STRING_KEYS: readonly GroupingsStringKey[] = [
   'groupingForm_dayOption',
   'groupingForm_hourOption',
   'groupingForm_minuteOption',
+  'groupingForm_tzEastLabel',
+  'groupingForm_tzWestLabel',
+  'groupingForm_tzEcho',
   'groupingForm_dungeonLabel',
   'groupingForm_dungeonNone',
   'groupingForm_nicknameLabel',
