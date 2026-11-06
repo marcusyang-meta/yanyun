@@ -270,6 +270,21 @@ const GroupingDetailQueryNode = graphql`
         visitorSlotsLabel
         saveLabel
       }
+      merge {
+        buttonLabel
+        dialogTitle
+        emptyText
+        confirmTitle
+        confirmMessageTemplate
+        confirmSubmitLabel
+        toastMerged
+        toastFailedTemplate
+        candidates {
+          id
+          title
+          metaText
+        }
+      }
       schedulingAdvice {
         __typename
         ... on SchedulingAdviceLocked { lockedTitle lockedBody }
@@ -365,6 +380,24 @@ const GroupingDetailCompleteMutationNode = graphql`
 const GroupingDetailReopenMutationNode = graphql`
   mutation GroupingDetailReopenMutation($id: ID!) {
     reopenGrouping(id: $id) {
+      ok
+      error
+      grouping {
+        id
+        status
+      }
+    }
+  }
+`;
+
+// Merge another grouping into this one (free feature): the page's
+// merge object exists only when this grouping can take a merge and
+// the viewer may run it (server-composed candidates included), so
+// its presence gates the button; mergeGrouping re-verifies every
+// admission rule on the server.
+const GroupingDetailMergeMutationNode = graphql`
+  mutation GroupingDetailMergeMutation($input: MergeGroupingInput!) {
+    mergeGrouping(input: $input) {
       ok
       error
       grouping {
@@ -500,6 +533,36 @@ onError: (e: Error) => toast(fill(page.detailToastCompleteFailedTemplate ?? '', 
 // Restore the grouping (undo completion; leader or guild admin, server re-verifies in
 // reopenGrouping): no confirmation; on success, refetch.
 const [commitReopen, restoring] = useMutation(GroupingDetailReopenMutationNode);
+
+// Merge picker: two steps inside one overlay — pick a source
+// grouping from the server-composed candidate list, then confirm
+// with the consequence copy. On success the SOURCE grouping is
+// removed from every cached list (it is disbanded server-side) and
+// this page refetches in place (it is the surviving target).
+const mergeCtl = page?.merge ?? null;
+const [showMerge, setShowMerge] = useState(false);
+const [mergePick, setMergePick] = useState<any>(null);
+const [commitMerge, merging] = useMutation(GroupingDetailMergeMutationNode);
+const doMerge = () => {
+if (!mergeCtl || !mergePick || !g) return;
+const sourceId = mergePick.id;
+commitMerge({
+variables: { input: { targetId: g.id, sourceId } },
+updater: (store) => { removeGroupingFromLists(store, slug, sourceId); },
+onCompleted: (res: any) => {
+if (res.mergeGrouping?.ok) {
+toast(mergeCtl.toastMerged);
+setShowMerge(false);
+setMergePick(null);
+onChanged();
+} else {
+toast(fill(mergeCtl.toastFailedTemplate ?? '', { error: res.mergeGrouping?.error || unknownErrorText }));
+}
+},
+onError: (e: Error) => toast(fill(mergeCtl.toastFailedTemplate ?? '', { error: e.message })),
+});
+};
+
 const doRestore = () => {
 commitReopen({
 variables: { id: g!.id},
@@ -646,6 +709,9 @@ verticalAlign: 'middle',
 )}
 {page.templateSave && (
 <button onClick={() => { setTplName(g.title); setShowTplSave(true); }} style={smBtn}>{page.templateSave.buttonLabel}</button>
+)}
+{mergeCtl && (
+<button onClick={() => { setMergePick(null); setShowMerge(true); }} style={smBtn}>{mergeCtl.buttonLabel}</button>
 )}
 <>
 {canManage && g.status !== 'completed' && (
@@ -834,6 +900,60 @@ background: 'transparent', border: `1px solid ${theme.gold}`, color: theme.paper
 {page.templateSave.submitLabel}
 </button>
 </div>
+</div>
+</div>
+)}
+{showMerge && mergeCtl && (
+<div style={{
+position: 'fixed', inset: 0, background: 'rgba(0,0,0,.6)', zIndex: 9997,
+display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+}} onClick={() => setShowMerge(false)}>
+<div style={{
+background: '#1a1814', border: `1px solid ${theme.gold}`, borderRadius: 12,
+padding: 24, maxWidth: 400, width: '100%', maxHeight: '80vh', overflowY: 'auto',
+}} onClick={(e) => e.stopPropagation()}>
+{!mergePick ? (
+<>
+<div style={{ fontSize: 18, color: theme.goldHi, marginBottom: 16 }}>{mergeCtl.dialogTitle}</div>
+{mergeCtl.candidates.length === 0 ? (
+<div style={{ fontSize: 13.5, color: theme.muted, marginBottom: 20 }}>{mergeCtl.emptyText}</div>
+) : (
+<div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
+{mergeCtl.candidates.map((c: any) => (
+<button key={c.id} onClick={() => setMergePick(c)} style={{
+textAlign: 'left', background: 'transparent', border: theme.border, borderRadius: 8,
+padding: '10px 12px', cursor: 'pointer', width: '100%',
+}}>
+<div style={{ color: theme.goldHi, fontSize: 14.5 }}>{c.title}</div>
+<div style={{ color: theme.muted, fontSize: 12.5, marginTop: 2 }}>{c.metaText}</div>
+</button>
+))}
+</div>
+)}
+<div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
+<button onClick={() => setShowMerge(false)} style={{
+padding: '8px 20px', borderRadius: 8, cursor: 'pointer',
+background: 'transparent', border: `1px solid ${theme.gold}`, color: theme.paper,
+}}>{page.confirmCancelLabel}</button>
+</div>
+</>
+) : (
+<>
+<div style={{ fontSize: 18, color: theme.goldHi, marginBottom: 16 }}>{mergeCtl.confirmTitle}</div>
+<div style={{ fontSize: 13.5, color: theme.paper, lineHeight: 1.7, marginBottom: 20 }}>
+{fill(mergeCtl.confirmMessageTemplate ?? '', { title: mergePick.title })}
+</div>
+<div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
+<button onClick={() => setMergePick(null)} style={{
+padding: '8px 20px', borderRadius: 8, cursor: 'pointer',
+background: 'transparent', border: `1px solid ${theme.gold}`, color: theme.paper,
+}}>{page.confirmCancelLabel}</button>
+<button onClick={doMerge} disabled={merging} className="yy-btn yy-btn-gold" style={{ padding: '8px 20px', fontSize: 14 }}>
+{mergeCtl.confirmSubmitLabel}
+</button>
+</div>
+</>
+)}
 </div>
 </div>
 )}
