@@ -57,6 +57,7 @@ import {
   updateSignupWeaponRoleByUid, updateSignupReadyByEventDiscord,
 } from './index.ts';
 import { planCloneSeats, nextCloneDefaultStart } from './clone.ts';
+import { fmtCarTimeDualZones } from './car-tz.ts';
 import {
   listGearItems, insertGearItem, updateGearItemRow, deleteGearItemRow,
   listGearBuilds, insertGearBuild, deleteGearBuildRow,
@@ -528,6 +529,52 @@ export class GroupingDetailPageShell extends ShellBase {
         this.data.starts_at_utc ? Number(this.data.starts_at_utc) : null,
         Math.floor(Date.now() / 1000), this.ctx.tz ?? '',
       )),
+    };
+  }
+  // Sign-up nudge action set: composed only for viewers who may
+  // manage this car (the same verdict as manageActions). The text is
+  // generated here in full: the guild roster minus the members
+  // already signed up for this car, where "signed up" is judged by
+  // the identity stamps on the car's seats — the same caliber as
+  // the P8 targeted nudge's 'all' segment (ops.ts) — rendered as
+  // real Discord mentions (<@id>), the class-A mention path the
+  // reminder webhook uses. The platform sends nothing itself (there
+  // is no bot): the leader copies the text into Discord manually.
+  async genNudgeCopy(){
+    const verdict = await this.genManageVerdict();
+    if (!verdict.canManage) return null;
+    const seats = await listSignupsByEvent(this.db, Number(this.data.id)).catch(() => []);
+    const signedIds = new Set(
+      (seats || []).map((s2: any) => String(s2.discord_id || '')).filter(Boolean),
+    );
+    const roster = await listGuildMembers(this.db, Number(this.data.tenant)).catch(() => []);
+    const candidates: { discordId: string; displayName: string }[] = [];
+    for (const m of roster || []) {
+      const discordId = String((m as any).discord_id || '');
+      if (!discordId || signedIds.has(discordId)) continue;
+      const displayName = String((m as any).nick || '').trim()
+        || String((m as any).global_name || '').trim() || discordId;
+      candidates.push({ discordId, displayName });
+    }
+    candidates.sort((a, b) => a.displayName.localeCompare(b.displayName, 'zh-Hans-CN')
+      || (a.discordId < b.discordId ? -1 : 1));
+    const mentions = candidates.map((c) => `<@${c.discordId}>`).join(' ');
+    const title = this.data.title || '';
+    const startsAt = this.data.starts_at_utc ? Number(this.data.starts_at_utc) : null;
+    const text = candidates.length === 0 ? null : (startsAt
+      ? this.t('groupingDetail_nudgeMessage', {
+          title, time: fmtCarTimeDualZones(startsAt), mentions,
+        })
+      : this.t('groupingDetail_nudgeMessageNoTime', { title, mentions }));
+    return {
+      buttonLabel: this.t('groupingDetail_nudgeButton'),
+      dialogTitle: this.t('groupingDetail_nudgeDialogTitle'),
+      hintText: this.t('groupingDetail_nudgeHintText'),
+      text,
+      emptyText: candidates.length === 0 ? this.t('groupingDetail_nudgeEmptyText') : null,
+      copyLabel: this.t('groupingDetail_nudgeCopyLabel'),
+      copiedToast: this.t('groupingDetail_nudgeCopiedToast'),
+      candidateCount: candidates.length,
     };
   }
   // Save-as-template action set: composed only for viewers who may
@@ -2003,6 +2050,7 @@ export const groupingsResolvers = {
     shareImageUrl: (p: GroupingDetailPageShell) => p.genShareImageUrl(),
     templateSave: (p: any) => p.genTemplateSave(),
     cloneAction: (p: any) => p.genCloneAction(),
+    nudgeCopy: (p: any) => p.genNudgeCopy(),
     blocks: (p: any, args: any) => p.genBlocks(args),
     manageActions: (p: any) => p.genManageActions(),
     allySharing: (p: any) => p.genAllySharing(),
@@ -2106,6 +2154,18 @@ export const groupingsResolvers = {
     skippedNames: (p: any) => p.genSkippedNames(),
     error: (p: any) => p.genError(),
     errorCode: (p: any) => p.genErrorCode(),
+  },
+  // Plain-data nudge copy set: fields delegate to the object the
+  // detail shell composed for this grouping's managers only.
+  GroupingNudgeCopy: {
+    buttonLabel: (p: any) => p.buttonLabel,
+    dialogTitle: (p: any) => p.dialogTitle,
+    hintText: (p: any) => p.hintText,
+    text: (p: any) => p.text,
+    emptyText: (p: any) => p.emptyText,
+    copyLabel: (p: any) => p.copyLabel,
+    copiedToast: (p: any) => p.copiedToast,
+    candidateCount: (p: any) => p.candidateCount,
   },
   GroupingTemplatePayload: {
     ok: (p: any) => p.genOk(),

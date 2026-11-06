@@ -20594,6 +20594,102 @@
         }
       ],
       "types": []
+    },
+    "Aue5CTEYDtv2tUafJ/m49g==": {
+      "description": "Button label for the squad detail page, used to open the sign-up nudge dialog with copyable text mentioning roster members who have not signed up, shown to the leader or a guild admin.",
+      "id": "groupings/groupingDetail_nudgeButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Sign-up nudge",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "SQH2bSwkeKLMvFo4RHOc4Q==": {
+      "description": "Title text for the sign-up nudge dialog on the squad detail page, used as the heading above the generated mention text.",
+      "id": "groupings/groupingDetail_nudgeDialogTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Sign-up nudge",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "6hXM3KKRR3+TLl2DiVuX2Q==": {
+      "description": "Hint text for the sign-up nudge dialog on the squad detail page, used to explain that copying the text into Discord mentions the members who have not signed up yet.",
+      "id": "groupings/groupingDetail_nudgeHintText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Copy the text below into Discord to @ the members who have not signed up yet.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "0MJRTfg9o8d5B79pGDzP5w==": {
+      "description": "Empty-state text for the sign-up nudge dialog on the squad detail page, used when every roster member has already signed up for this squad.",
+      "id": "groupings/groupingDetail_nudgeEmptyText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Every roster member has already signed up — nobody to nudge.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "hTt2TOaJMVlZYMe5WGVb0w==": {
+      "description": "Button label for the sign-up nudge dialog on the squad detail page, used to copy the generated mention text to the clipboard.",
+      "id": "groupings/groupingDetail_nudgeCopyLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Copy text",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "KhgG3Imava15dsocAKl1ZQ==": {
+      "description": "Toast message for the squad detail page, used after the sign-up nudge text is copied to the clipboard.",
+      "id": "groupings/groupingDetail_nudgeCopiedToast",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Copied — paste it into Discord to send.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "B5aYYAGEyoIFU9utVel6nA==": {
+      "description": "Sign-up nudge message composed on the server for the squad detail page, pasted into Discord by the leader, where {title} is the squad title, {time} its departure time line and {mentions} the space-separated Discord mentions of roster members who have not signed up.",
+      "id": "groupings/groupingDetail_nudgeMessage",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "\"{title}\" departs at {time}. Still not signed up: {mentions} — grab a seat!",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "CVEUlzlTXuMANIKk+5x/LA==": {
+      "description": "Sign-up nudge message composed on the server for a squad without a departure time, pasted into Discord by the leader, where {title} is the squad title and {mentions} the space-separated Discord mentions of roster members who have not signed up.",
+      "id": "groupings/groupingDetail_nudgeMessageNoTime",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "\"{title}\" — still not signed up: {mentions} — grab a seat!",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

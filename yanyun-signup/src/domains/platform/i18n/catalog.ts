@@ -942,6 +942,38 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
     "cloneToastSkipped": {
       "zh-CN": "以下成员未能带入新车（请先加入名册）：{names}",
       "en": "These members could not be carried into the new squad (add them to the roster first): {names}"
+    },
+    "nudgeButton": {
+      "zh-CN": "催报名",
+      "en": "Sign-up nudge"
+    },
+    "nudgeDialogTitle": {
+      "zh-CN": "催报名",
+      "en": "Sign-up nudge"
+    },
+    "nudgeHintText": {
+      "zh-CN": "复制下面的文案到 Discord 发送，就能 @ 到还没报名的伙伴。",
+      "en": "Copy the text below into Discord to @ the members who have not signed up yet."
+    },
+    "nudgeMessage": {
+      "zh-CN": "「{title}」{time} 出发，还没报名的伙伴：{mentions}，快来占座！",
+      "en": "\"{title}\" departs at {time}. Still not signed up: {mentions} — grab a seat!"
+    },
+    "nudgeMessageNoTime": {
+      "zh-CN": "「{title}」还没报名的伙伴：{mentions}，快来占座！",
+      "en": "\"{title}\" — still not signed up: {mentions} — grab a seat!"
+    },
+    "nudgeEmptyText": {
+      "zh-CN": "名册成员都已报名，没有需要催的伙伴。",
+      "en": "Every roster member has already signed up — nobody to nudge."
+    },
+    "nudgeCopyLabel": {
+      "zh-CN": "复制文案",
+      "en": "Copy text"
+    },
+    "nudgeCopiedToast": {
+      "zh-CN": "已复制，去 Discord 粘贴发送吧",
+      "en": "Copied — paste it into Discord to send."
     }
   },
   "groupingForm": {

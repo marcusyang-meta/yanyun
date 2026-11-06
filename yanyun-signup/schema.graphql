@@ -538,6 +538,23 @@ type GroupingCloneAction {
   defaultStartsAt: String!
 }
 
+# 详情页「催报名」动作对象 (免费功能): 仅当观看者可管理本车时存在
+# (车头本人, 或本百业管理员), 否则为 null, 客户端不渲染入口。
+# text 是服务端整段生成好的催报名文案: 本百业名册中尚未报名本车
+# 的成员以真实 Discord 提及 (<@id>) 列出, 与提醒 webhook 同一提及
+# 口径; 客户端只负责复制, 平台不代发任何 Discord 消息。名册全员
+# 已报名时 text 为 null、emptyText 给出说明。
+type GroupingNudgeCopy {
+  buttonLabel: String!
+  dialogTitle: String!
+  hintText: String!
+  text: String
+  emptyText: String
+  copyLabel: String!
+  copiedToast: String!
+  candidateCount: Int!
+}
+
 type CloneGroupingPayload {
   ok: Boolean!
   grouping: Grouping
@@ -703,6 +720,10 @@ type GroupingDetailPage {
   # 再来一车动作对象: 仅当观看者可管理本车时存在 (车头 / 本百业管理员),
   # 否则 null; 默认出发时刻由服务端按观看者时区算好, mutation 处独立复验。
   cloneAction: GroupingCloneAction
+  # 催报名动作对象: 仅当观看者可管理本车时存在 (车头 / 本百业管理员),
+  # 否则 null; 文案由服务端按名册减去本车已报名 (以座位上的身份戳
+  # 判定, 与 P8 定向催报名的 'all' 段同一口径) 整段生成, 客户端只复制。
+  nudgeCopy: GroupingNudgeCopy
   # 报名表答案名册: 仅可管理本车的观看者 (车头 / 本百业管理员) 得到
   # 非空值; 其他观看者为 null, 答案不下发。mutation/查询处同一判定。
   rosterAnswers: [RosterAnswer!]
