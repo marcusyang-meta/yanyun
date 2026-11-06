@@ -563,6 +563,30 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
     }
   },
   "groupingList": {
+    "weekShareImageLabel": {
+      "zh-CN": "本周车队图",
+      "en": "This week's squads image"
+    },
+    "weekShareText": {
+      "zh-CN": "{name} 本周车队图",
+      "en": "{name} — this week's squads"
+    },
+    "weekShareImageSaved": {
+      "zh-CN": "图片已保存、链接已复制，去微信发图粘贴即可",
+      "en": "Image saved and link copied — post the image in WeChat and paste the link."
+    },
+    "weekShareImageCopied": {
+      "zh-CN": "图片已复制，去聊天里粘贴即可",
+      "en": "Image copied — paste it into a chat to send it."
+    },
+    "weekShareImageFailed": {
+      "zh-CN": "分享图获取失败，请重试",
+      "en": "Could not get the share image. Please try again."
+    },
+    "weekCopyFailedManual": {
+      "zh-CN": "复制失败，请手动复制地址栏链接",
+      "en": "Copy failed — please copy the address bar link manually"
+    },
     "prevWeek": {
       "zh-CN": "上一周",
       "en": "Previous week",

@@ -16,6 +16,7 @@ import {
 } from '../groupings/index.ts';
 import { startsAtEpoch } from './blocks.ts';
 import { resolveSharedBuild } from '../gear/index.ts';
+import { getDiscordIdByUserId, getGuildMember, getUsernameRow } from '../identity/index.ts';
 
 async function ogTenant(ctx: Context, slug: string) {
   const t = await getTenantRow(ctx.env.DB, s(slug, 40));
@@ -48,6 +49,27 @@ export class OgGuildCardShell extends ShellBase {
     });
     return rows.length;
   }
+  /* The weekly squad image's rows: this guild's OPEN cars whose
+   * start falls in the half-open window [fromUtc, toUtc) — the
+   * caller's window is the platform week (Monday 05:00 Beijing),
+   * computed by the OG worker exactly as for weekActivityCount.
+   * The week-view repository returns open + closed cars in the
+   * window (its <= upper bound is harmless: the half-open filter
+   * below is authoritative); the image lists open cars only, in
+   * departure order. Timeless cars cannot be placed in a week and
+   * are excluded. */
+  async genWeekCars({ fromUtc, toUtc }: any){
+    if (!this.data.tenant || !this.data.tenant.id) return [];
+    const rows = await listEventsWeekView(this.db, {
+      tenant: this.data.tenant.id, from: fromUtc, to: toUtc,
+    });
+    return rows
+      .filter((r: any) => r.status === 'open' && r.starts_at_utc != null
+        && Number(r.starts_at_utc) >= fromUtc && Number(r.starts_at_utc) < toUtc)
+      .sort((a: any, b: any) => (Number(a.starts_at_utc) - Number(b.starts_at_utc))
+        || (Number(a.id) - Number(b.id)))
+      .map((r: any) => new OgWeekCarShell(this.ctx, { ...r, tenantId: this.data.tenant.id }));
+  }
   /* White-label share-card customization: the resolved accent hex
    * ('' = no customization, the OG worker renders its default
    * template) and the title suffix ('' = none). Both come from the
@@ -62,6 +84,43 @@ export class OgGuildCardShell extends ShellBase {
     if (!this.data.tenant) return '';
     const wl = await getEffectiveWhiteLabelSettings(this.db, this.data.tenant.slug);
     return wl.ogTitleSuffix;
+  }
+}
+
+/* One row of the weekly squad image: card fields only, same narrow
+ * discipline as OgCarCardShell, plus the leader's name resolved
+ * through the identity chain (guild nick, then the member row's
+ * global name, then the account username; the creation-time stamp
+ * is the last resort for cars whose creator left no resolvable
+ * identity). The time line is the backend-rendered dual-zone
+ * string, printed verbatim by the OG worker. */
+export class OgWeekCarShell extends ShellBase {
+  genTitle(){ return this.data.title || ''; }
+  genType(){ return this.data.type || ''; }
+  genDungeonName(){ return this.data.dungeon || ''; }
+  genStartsAtUtc(){ return this.data.starts_at_utc ?? null; }
+  genCardTimeText(){
+    const epoch = startsAtEpoch(this.data);
+    return epoch ? fmtCarTimeDualZones(epoch) : '';
+  }
+  genOccupiedCount(){ return this.data.signup_count || 0; }
+  genMaxSlots(){ return this.data.max_slots || 0; }
+  async genLeaderName(){
+    const ev = this.data;
+    const cid = ev.creator_user_id
+      ? await getDiscordIdByUserId(this.db, ev.creator_user_id).catch(() => null)
+      : null;
+    if (cid) {
+      const m = await getGuildMember(this.db, this.data.tenantId, cid).catch(() => null);
+      const nick = m ? String(m.nick || '').trim() : '';
+      if (nick) return nick;
+      const globalName = m ? String(m.global_name || '').trim() : '';
+      if (globalName) return globalName;
+      const u = await getUsernameRow(this.db, String(cid)).catch(() => null);
+      const name = u ? String(u.username || '').trim() : '';
+      if (name) return name;
+    }
+    return ev.created_by || '';
   }
 }
 
@@ -145,8 +204,19 @@ export const ogCardResolvers = {
       name: (p: any) => p.genName(),
       slogan: (p: any) => p.genSlogan(),
       weekActivityCount: (p: any, a: any) => p.genWeekActivityCount(a),
+      weekCars: (p: any, a: any) => p.genWeekCars(a),
       ogAccentColor: (p: any) => p.genOgAccentColor(),
       ogTitleSuffix: (p: any) => p.genOgTitleSuffix(),
+    },
+    OgWeekCar: {
+      title: (p: any) => p.genTitle(),
+      type: (p: any) => p.genType(),
+      dungeonName: (p: any) => p.genDungeonName(),
+      startsAtUtc: (p: any) => p.genStartsAtUtc(),
+      cardTimeText: (p: any) => p.genCardTimeText(),
+      occupiedCount: (p: any) => p.genOccupiedCount(),
+      maxSlots: (p: any) => p.genMaxSlots(),
+      leaderName: (p: any) => p.genLeaderName(),
     },
     OgBuildCard: {
       name: (p: any) => p.name,

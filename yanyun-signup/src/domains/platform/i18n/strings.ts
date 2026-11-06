@@ -272,6 +272,24 @@ export abstract class GroupingTypeFbtUtils {
 	}
 }
 export abstract class GroupingListFbtUtils {
+	static weekShareImageLabel(fbs: FbsRuntime) {
+		return fbs._("本周车队图", null, { hk: "RqoyN" });
+	}
+	static weekShareText(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("{name} 本周车队图", [fbs._param("name", pv(p, "name"))], { hk: "3XW1hn" });
+	}
+	static weekShareImageSaved(fbs: FbsRuntime) {
+		return fbs._("图片已保存、链接已复制，去微信发图粘贴即可", null, { hk: "1KPa8j" });
+	}
+	static weekShareImageCopied(fbs: FbsRuntime) {
+		return fbs._("图片已复制，去聊天里粘贴即可", null, { hk: "1fgH4l" });
+	}
+	static weekShareImageFailed(fbs: FbsRuntime) {
+		return fbs._("分享图获取失败，请重试", null, { hk: "2Jycqw" });
+	}
+	static weekCopyFailedManual(fbs: FbsRuntime) {
+		return fbs._("复制失败，请手动复制地址栏链接", null, { hk: "4daQk8" });
+	}
 	static prevWeek(fbs: FbsRuntime) {
 		return fbs._("上一周", null, { hk: "1VIUgL" });
 	}
@@ -5423,6 +5441,12 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"groupingType_shortTower": GroupingTypeFbtUtils.shortTower,
 	"groupingType_shortGather": GroupingTypeFbtUtils.shortGather,
 	"groupingType_shortExplore": GroupingTypeFbtUtils.shortExplore,
+	"groupingList_weekShareImageLabel": GroupingListFbtUtils.weekShareImageLabel,
+	"groupingList_weekShareText": GroupingListFbtUtils.weekShareText,
+	"groupingList_weekShareImageSaved": GroupingListFbtUtils.weekShareImageSaved,
+	"groupingList_weekShareImageCopied": GroupingListFbtUtils.weekShareImageCopied,
+	"groupingList_weekShareImageFailed": GroupingListFbtUtils.weekShareImageFailed,
+	"groupingList_weekCopyFailedManual": GroupingListFbtUtils.weekCopyFailedManual,
 	"groupingList_prevWeek": GroupingListFbtUtils.prevWeek,
 	"groupingList_nextWeek": GroupingListFbtUtils.nextWeek,
 	"groupingList_weekHeader": GroupingListFbtUtils.weekHeader,

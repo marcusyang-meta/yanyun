@@ -11,6 +11,12 @@ export type GroupingsStringKey =
   | 'groupingType_shortTower'
   | 'groupingType_shortGather'
   | 'groupingType_shortExplore'
+  | 'groupingList_weekShareImageLabel'
+  | 'groupingList_weekShareText'
+  | 'groupingList_weekShareImageSaved'
+  | 'groupingList_weekShareImageCopied'
+  | 'groupingList_weekShareImageFailed'
+  | 'groupingList_weekCopyFailedManual'
   | 'groupingList_prevWeek'
   | 'groupingList_nextWeek'
   | 'groupingList_weekHeader'
@@ -373,6 +379,12 @@ export const GROUPINGS_STRING_KEYS: readonly GroupingsStringKey[] = [
   'groupingType_shortTower',
   'groupingType_shortGather',
   'groupingType_shortExplore',
+  'groupingList_weekShareImageLabel',
+  'groupingList_weekShareText',
+  'groupingList_weekShareImageSaved',
+  'groupingList_weekShareImageCopied',
+  'groupingList_weekShareImageFailed',
+  'groupingList_weekCopyFailedManual',
   'groupingList_prevWeek',
   'groupingList_nextWeek',
   'groupingList_weekHeader',

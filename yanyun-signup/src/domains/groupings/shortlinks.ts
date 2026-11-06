@@ -121,6 +121,10 @@ export function canonicalGroupingUrl(slug: string, eventId: number): string {
   return `${SITE_ORIGIN}/${encodeURIComponent(slug)}/car/${eventId}`;
 }
 
+export function canonicalGuildUrl(slug: string): string {
+  return `${SITE_ORIGIN}/${encodeURIComponent(slug)}`;
+}
+
 export function subdomainGroupingUrl(origin: string, eventId: number): string {
   return `${origin}/car/${eventId}`;
 }
