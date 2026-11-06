@@ -92,8 +92,8 @@
     "reason": "Discord OAuth payloads and JWT claims at the external boundary; narrowed immediately after parsing"
   },
   "src/domains/identity/graphql.ts": {
-    "max": 78,
-    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context). Raised for the account self-service surface (settingsPage account fields + export/deletion payload shells), written in this file's established resolver style + recruit line: the Viewer.guildRecruit resolver in the same pattern + availability relocation: the SettingsAvailabilityGuild shell and the two settingsPage availability resolvers in the same pattern + network line: the Viewer.fillMarket / Viewer.guildAllies resolvers and shell gens in the same pattern + platform-admin line (hub overhaul, 2026-10-28): the Viewer.platformAdmin resolver delegating to the platform domain, in the same parent/args pattern + name-lock line (2026-11-01): +2 for the identityNameForDiscordId / resolveUniqueNameOwner resolvers (their db params only, in this file's established db: any pattern; all other params typed string) + roster-only line (2026-11-02): +1 for the resolveSeatName resolver (its db param only, same pattern; the game-roster stage reuses the guilds roster repository's typed rows)"
+    "max": 86,
+    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context). Raised for the account self-service surface (settingsPage account fields + export/deletion payload shells), written in this file's established resolver style + recruit line: the Viewer.guildRecruit resolver in the same pattern + availability relocation: the SettingsAvailabilityGuild shell and the two settingsPage availability resolvers in the same pattern + network line: the Viewer.fillMarket / Viewer.guildAllies resolvers and shell gens in the same pattern + platform-admin line (hub overhaul, 2026-10-28): the Viewer.platformAdmin resolver delegating to the platform domain, in the same parent/args pattern + name-lock line (2026-11-01): +2 for the identityNameForDiscordId / resolveUniqueNameOwner resolvers (their db params only, in this file's established db: any pattern; all other params typed string) + roster-only line (2026-11-02): +1 for the resolveSeatName resolver (its db param only, same pattern; the game-roster stage reuses the guilds roster repository's typed rows) + calendar subscription line (2026-11-06): +8 for the settingsPage calendarFeed resolver, the CalendarFeedSettings url resolver, the ResetCalendarFeedPayload resolvers and the resetCalendarFeedToken mutation, in this file's established resolver style"
   },
   "src/domains/platform/blocks.ts": {
     "max": 10,
@@ -214,5 +214,9 @@
   "src/domains/platform/i18n/strings.source.ts": {
     "max": 1,
     "reason": "not a type any: the checker counts raw word occurrences, and the single hit is the word 'any' in the reminderErrorRequestFailed fbs description prose ('failed before any response'), added by the i18n display leak fix (2026-10-31)"
+  },
+  "src/domains/identity/calendar-routes.ts": {
+    "max": 1,
+    "reason": "The Hono route handler context parameter, in the established style of the sibling standalone route modules (guild avatar / short links)."
   }
 }

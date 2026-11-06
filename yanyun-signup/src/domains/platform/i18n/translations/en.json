@@ -20762,6 +20762,102 @@
         }
       ],
       "types": []
+    },
+    "CZRVgy9f0nG0caMHxwCi1w==": {
+      "description": "Section title in profile settings for the personal calendar subscription (an iCalendar feed of the cars the member has signed up for).",
+      "id": "identity/settings_calendarSectionTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Calendar subscription",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "9SY3KVZ3+YNceK1meTdcIw==": {
+      "description": "Hint text in profile settings explaining the calendar subscription link: pasting it into a calendar app's subscribe feature syncs the member's signed-up cars automatically, the link carries a personal credential that must not be shared, and resetting the link invalidates the old one immediately.",
+      "id": "identity/settings_calendarHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Paste this link into your calendar app's subscribe feature and the cars you sign up for will sync automatically. The link carries your personal credential — do not share it. If you suspect it leaked, reset the link; the old one stops working immediately.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "yoGdPkzOmGaTUbc6o9LjGA==": {
+      "description": "Button label in profile settings, used to copy the personal calendar subscription link to the clipboard.",
+      "id": "identity/settings_calendarCopyLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Copy subscription link",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "IW8Q8r94VYloaf90zw6hfQ==": {
+      "description": "Confirmation text in profile settings, used as a transient notice after the calendar subscription link is copied.",
+      "id": "identity/settings_calendarCopiedText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Subscription link copied",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "FXBt/FAsFXYNiT+f7q6TTA==": {
+      "description": "Button label in profile settings, used to reset the personal calendar subscription link (a new token is minted and the old link stops working).",
+      "id": "identity/settings_calendarResetLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Reset subscription link",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Hh+xvc0jaIgsrsvZjokMsw==": {
+      "description": "Confirmation text in profile settings, used as a transient notice after the calendar subscription link has been reset.",
+      "id": "identity/settings_calendarResetDoneText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Subscription link reset — the old link no longer works",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "PodEj3vc3lIERzLegyxQsg==": {
+      "description": "Calendar display name written into the personal iCalendar feed (X-WR-CALNAME), shown by calendar apps as the subscribed calendar's name.",
+      "id": "identity/settings_calendarName",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "My squads",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "mSzq7Xm8MDOMp4szlouRWg==": {
+      "description": "Note written into every event description of the personal iCalendar feed, stating that the duration is an estimate: cars have no set end time, so the feed counts two hours from the start.",
+      "id": "identity/settings_calendarDurationNote",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Duration is an estimate: cars have no set end time, so this event counts 2 hours from the start.",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

@@ -118,6 +118,30 @@ export abstract class SettingsFbtUtils {
 	static savedText(fbs: FbsRuntime) {
 		return fbs._("已保存", null, { hk: "2leaVp" });
 	}
+	static calendarSectionTitle(fbs: FbsRuntime) {
+		return fbs._("日历订阅", null, { hk: "m7S6c" });
+	}
+	static calendarHint(fbs: FbsRuntime) {
+		return fbs._("把这个链接粘贴到日历应用的「订阅日历」里，你报名的车队会自动同步过去。链接包含你的专属凭证，请勿外传；怀疑泄露时可重置链接，旧链接会立即失效。", null, { hk: "2OWvAR" });
+	}
+	static calendarCopyLabel(fbs: FbsRuntime) {
+		return fbs._("复制订阅链接", null, { hk: "1OebUy" });
+	}
+	static calendarCopiedText(fbs: FbsRuntime) {
+		return fbs._("订阅链接已复制", null, { hk: "313p2k" });
+	}
+	static calendarResetLabel(fbs: FbsRuntime) {
+		return fbs._("重置订阅链接", null, { hk: "418T7R" });
+	}
+	static calendarResetDoneText(fbs: FbsRuntime) {
+		return fbs._("订阅链接已重置，旧链接已失效", null, { hk: "1kgzst" });
+	}
+	static calendarName(fbs: FbsRuntime) {
+		return fbs._("我的车队", null, { hk: "45LSjC" });
+	}
+	static calendarDurationNote(fbs: FbsRuntime) {
+		return fbs._("时长为预估：车队未设结束时间，按 2 小时计。", null, { hk: "15NlC4" });
+	}
 }
 export abstract class PickerFbtUtils {
 	static myGuilds(fbs: FbsRuntime) {
@@ -5393,6 +5417,14 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"settings_langEs": SettingsFbtUtils.langEs,
 	"settings_langFr": SettingsFbtUtils.langFr,
 	"settings_savedText": SettingsFbtUtils.savedText,
+	"settings_calendarSectionTitle": SettingsFbtUtils.calendarSectionTitle,
+	"settings_calendarHint": SettingsFbtUtils.calendarHint,
+	"settings_calendarCopyLabel": SettingsFbtUtils.calendarCopyLabel,
+	"settings_calendarCopiedText": SettingsFbtUtils.calendarCopiedText,
+	"settings_calendarResetLabel": SettingsFbtUtils.calendarResetLabel,
+	"settings_calendarResetDoneText": SettingsFbtUtils.calendarResetDoneText,
+	"settings_calendarName": SettingsFbtUtils.calendarName,
+	"settings_calendarDurationNote": SettingsFbtUtils.calendarDurationNote,
 	"picker_myGuilds": PickerFbtUtils.myGuilds,
 	"picker_myGuildsEn": PickerFbtUtils.myGuildsEn,
 	"picker_emptyTitle": PickerFbtUtils.emptyTitle,

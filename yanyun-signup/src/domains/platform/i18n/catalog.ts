@@ -227,6 +227,38 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "es": "Guardado",
       "fr": "Enregistré",
       "zh-TW": "已儲存"
+    },
+    "calendarSectionTitle": {
+      "zh-CN": "日历订阅",
+      "en": "Calendar subscription"
+    },
+    "calendarHint": {
+      "zh-CN": "把这个链接粘贴到日历应用的「订阅日历」里，你报名的车队会自动同步过去。链接包含你的专属凭证，请勿外传；怀疑泄露时可重置链接，旧链接会立即失效。",
+      "en": "Paste this link into your calendar app's subscribe feature and the cars you sign up for will sync automatically. The link carries your personal credential — do not share it. If you suspect it leaked, reset the link; the old one stops working immediately."
+    },
+    "calendarCopyLabel": {
+      "zh-CN": "复制订阅链接",
+      "en": "Copy subscription link"
+    },
+    "calendarCopiedText": {
+      "zh-CN": "订阅链接已复制",
+      "en": "Subscription link copied"
+    },
+    "calendarResetLabel": {
+      "zh-CN": "重置订阅链接",
+      "en": "Reset subscription link"
+    },
+    "calendarResetDoneText": {
+      "zh-CN": "订阅链接已重置，旧链接已失效",
+      "en": "Subscription link reset — the old link no longer works"
+    },
+    "calendarName": {
+      "zh-CN": "我的车队",
+      "en": "My squads"
+    },
+    "calendarDurationNote": {
+      "zh-CN": "时长为预估：车队未设结束时间，按 2 小时计。",
+      "en": "Duration is an estimate: cars have no set end time, so this event counts 2 hours from the start."
     }
   },
   "picker": {
