@@ -260,6 +260,19 @@ export const DisbandGroupingMutation = graphql`
   }
 `;
 
+export const MergeGroupingMutation = graphql`
+  mutation documentsMergeGroupingMutation($input: MergeGroupingInput!) {
+    mergeGrouping(input: $input) {
+      ok
+      error
+      grouping {
+        id
+        status
+      }
+    }
+  }
+`;
+
 export const CompleteGroupingMutation = graphql`
   mutation documentsCompleteGroupingMutation($id: ID!) {
     completeGrouping(id: $id) {
@@ -462,6 +475,21 @@ export const DetailPageTextQuery = graphql`
         submitLabel
         toastSaved
         toastFailedTemplate
+      }
+      merge {
+        buttonLabel
+        dialogTitle
+        emptyText
+        confirmTitle
+        confirmMessageTemplate
+        confirmSubmitLabel
+        toastMerged
+        toastFailedTemplate
+        candidates {
+          id
+          title
+          metaText
+        }
       }
       seatModalTitleTemplate
       seatModalSubtitle

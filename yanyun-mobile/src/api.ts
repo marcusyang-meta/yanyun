@@ -9,6 +9,7 @@ import {
   SaveGroupingTemplateMutation,
   CreateGuildMutation,
   DisbandGroupingMutation,
+  MergeGroupingMutation,
   JoinGroupingMutation,
   LeaveGroupingMutation,
   SetSeatReadyMutation,
@@ -64,6 +65,7 @@ import type { documentsJoinGroupingMutation } from './__generated__/documentsJoi
 import type { documentsLeaveGroupingMutation } from './__generated__/documentsLeaveGroupingMutation.graphql';
 import type { documentsSetSeatReadyMutation } from './__generated__/documentsSetSeatReadyMutation.graphql';
 import type { documentsDisbandGroupingMutation } from './__generated__/documentsDisbandGroupingMutation.graphql';
+import type { documentsMergeGroupingMutation } from './__generated__/documentsMergeGroupingMutation.graphql';
 import type { documentsCompleteGroupingMutation } from './__generated__/documentsCompleteGroupingMutation.graphql';
 import type { documentsReopenGroupingMutation } from './__generated__/documentsReopenGroupingMutation.graphql';
 import type { documentsCreateGroupingMutation } from './__generated__/documentsCreateGroupingMutation.graphql';
@@ -316,6 +318,13 @@ export async function setSeatReady(groupingId: string, ready: boolean): Promise<
 export async function disbandGrouping(id: string): Promise<{ ok: boolean; error?: string | null }> {
   const r = await commit<documentsDisbandGroupingMutation>(DisbandGroupingMutation, { id });
   return r.disbandGrouping;
+}
+
+export async function mergeGrouping(targetId: string, sourceId: string): Promise<{ ok: boolean; error?: string | null }> {
+  const r = await commit<documentsMergeGroupingMutation>(MergeGroupingMutation, {
+    input: { targetId, sourceId },
+  });
+  return r.mergeGrouping;
 }
 
 export async function completeGrouping(id: string): Promise<{ ok: boolean; error?: string | null }> {

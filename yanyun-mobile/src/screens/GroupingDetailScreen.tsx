@@ -15,7 +15,7 @@ import { EditGroupingFormMount } from '../components/GroupingForm';
 import { BlockNode1View } from '../blocks/BlockRenderer';
 import type { ActionHandlers } from '../blocks/actions';
 import { AsyncBoundary, LoadingView } from '../components/AsyncBoundary';
-import { completeGrouping, disbandGrouping, joinGrouping, leaveGrouping, reopenGrouping, saveGroupingTemplate, setSeatReady } from '../api';
+import { completeGrouping, disbandGrouping, joinGrouping, leaveGrouping, mergeGrouping, reopenGrouping, saveGroupingTemplate, setSeatReady } from '../api';
 import { deliverShareImage, type ShareImageDeps } from '../shareImage';
 import { useGuildLive } from '../live';
 import { useSession } from '../session';
@@ -229,6 +229,7 @@ function BackLinkLive({ slug, id }: { slug: string; id: string }) {
   const shareImageLabel = page?.detailShareImageLabel;
   const shareImageUrl = page?.shareImageUrl;
   const [showTplSave, setShowTplSave] = useState(false);
+  const [showMerge, setShowMerge] = useState(false);
   const [shareImageBusy, setShareImageBusy] = useState(false);
   const onShare = useCallback(() => {
     if (!shareUrl) return;
@@ -261,6 +262,11 @@ function BackLinkLive({ slug, id }: { slug: string; id: string }) {
             <Text style={s.back}>{page.templateSave.buttonLabel}</Text>
           </Pressable>
         ) : null}
+        {page?.merge ? (
+          <Pressable onPress={() => setShowMerge(true)} hitSlop={10} style={s.backWrap}>
+            <Text style={s.back}>{page.merge.buttonLabel}</Text>
+          </Pressable>
+        ) : null}
         {shareLabel ? (
           <Pressable onPress={onShare} hitSlop={10} style={s.backWrap}>
             <Text style={s.back}>{shareLabel}</Text>
@@ -278,6 +284,14 @@ function BackLinkLive({ slug, id }: { slug: string; id: string }) {
           groupingId={id}
           unknownErrorText={data.viewer?.commonUnknownErrorText ?? ''}
           onClose={() => setShowTplSave(false)}
+        />
+      )}
+      {showMerge && page?.merge && (
+        <MergeModal
+          page={page}
+          groupingId={id}
+          unknownErrorText={data.viewer?.commonUnknownErrorText ?? ''}
+          onClose={() => setShowMerge(false)}
         />
       )}
     </View>
@@ -340,6 +354,96 @@ function SaveTemplateModal({
               <Text style={s.submitText}>{ts.submitLabel}</Text>
             </Pressable>
           </View>
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
+}
+
+// Merge dialog (free feature): two steps in the save-template
+// modal's shape -- pick a source car from the shell's candidate
+// list (server-composed: same guild, same type, open, and managed
+// by the viewer; this car is the surviving target), then confirm
+// with the consequence copy. The shell's merge object exists only
+// when this car can take a merge and the viewer may run it, so its
+// presence gates the entry; mergeGrouping re-verifies everything.
+// On success the screen refreshes through the live channel (the
+// server publishes a seats event for the target), like any other
+// seat change.
+type MergeCandidate = { id: string; title: string; metaText: string };
+
+function MergeModal({
+  page, groupingId, unknownErrorText, onClose,
+}: {
+  page: DetailPageData;
+  groupingId: string;
+  unknownErrorText: string;
+  onClose: () => void;
+}) {
+  const mg = page.merge;
+  const [pick, setPick] = useState<MergeCandidate | null>(null);
+  const [notice, setNotice] = useState('');
+  const [busy, setBusy] = useState(false);
+  if (!mg) return null;
+  const candidates = (mg.candidates ?? []) as MergeCandidate[];
+  const doMerge = async () => {
+    if (!pick) return;
+    setBusy(true); setNotice('');
+    try {
+      const r = await mergeGrouping(groupingId, pick.id);
+      if (!r.ok) {
+        setNotice(fill(mg.toastFailedTemplate ?? '', { error: r.error || unknownErrorText }));
+        return;
+      }
+      onClose();
+      Alert.alert(mg.toastMerged);
+    } catch (e) {
+      setNotice(fill(mg.toastFailedTemplate ?? '', {
+        error: e instanceof Error ? e.message : unknownErrorText,
+      }));
+    } finally { setBusy(false); }
+  };
+  return (
+    <Modal visible transparent animationType="fade" onRequestClose={onClose}>
+      <Pressable style={s.overlay} onPress={onClose}>
+        <Pressable style={s.panel} onPress={() => {}}>
+          {!pick ? (
+            <>
+              <Text style={s.formTitle}>{mg.dialogTitle}</Text>
+              {candidates.length === 0 ? (
+                <Text style={s.label}>{mg.emptyText}</Text>
+              ) : (
+                <ScrollView style={{ maxHeight: 300, marginTop: 10 }}>
+                  {candidates.map((c) => (
+                    <Pressable key={c.id} style={s.memberRow} onPress={() => { setPick(c); setNotice(''); }}>
+                      <Text style={s.memberName}>{c.title}</Text>
+                      <Text style={s.memberSub}>{c.metaText}</Text>
+                    </Pressable>
+                  ))}
+                </ScrollView>
+              )}
+              <View style={[s.formBtns, { marginTop: 16 }]}>
+                <Pressable style={s.cancelBtn} onPress={onClose}>
+                  <Text style={s.cancelText}>{page.formCancelLabel ?? ''}</Text>
+                </Pressable>
+              </View>
+            </>
+          ) : (
+            <>
+              <Text style={s.formTitle}>{mg.confirmTitle}</Text>
+              <Text style={s.label}>{fill(mg.confirmMessageTemplate ?? '', { title: pick.title })}</Text>
+              {!!notice && <Text style={s.formNotice}>{notice}</Text>}
+              <View style={[s.formBtns, { marginTop: 16 }]}>
+                <Pressable style={s.cancelBtn} onPress={() => setPick(null)}>
+                  <Text style={s.cancelText}>{page.formCancelLabel ?? ''}</Text>
+                </Pressable>
+                <Pressable style={[s.submitBtn, busy && { opacity: 0.6 }]} onPress={doMerge} disabled={busy}>
+                  <GoldFill />
+                  <Text style={s.submitText}>{mg.confirmSubmitLabel}</Text>
+                </Pressable>
+              </View>
+            </>
+          )}
         </Pressable>
       </Pressable>
     </Modal>
