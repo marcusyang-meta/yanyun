@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<10da3d3a2975dd933286fb8223138678>>
+ * @generated SignedSource<<896d5895dac7d79959411a463fbe1619>>
  * @lightSyntaxTransform
  */
 
@@ -42,6 +42,15 @@ export type documentsProfilePageQuery$data = {
     readonly accountSubmitLabel: string;
     readonly accountUsernameLabel: string;
     readonly availabilityTitle: string;
+    readonly calendarFeed: {
+      readonly calendarCopiedText: string;
+      readonly calendarCopyLabel: string;
+      readonly calendarHintText: string;
+      readonly calendarResetDoneText: string;
+      readonly calendarResetLabel: string;
+      readonly calendarSectionTitle: string;
+      readonly calendarUrl: string;
+    } | null | undefined;
     readonly effectiveLocale: string;
     readonly feedbackEntryLabel: string;
     readonly freshAuthAt: number | null | undefined;
@@ -432,6 +441,66 @@ var v0 = [
           }
         ],
         "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "concreteType": "CalendarFeedSettings",
+        "kind": "LinkedField",
+        "name": "calendarFeed",
+        "plural": false,
+        "selections": [
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "calendarSectionTitle",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "calendarHintText",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "calendarUrl",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "calendarCopyLabel",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "calendarCopiedText",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "calendarResetLabel",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "calendarResetDoneText",
+            "storageKey": null
+          }
+        ],
+        "storageKey": null
       }
     ],
     "storageKey": null
@@ -473,16 +542,16 @@ return {
     "selections": (v0/*:: as any*/)
   },
   "params": {
-    "cacheID": "8fed8b488f6d769f47d51b2add231e3f",
+    "cacheID": "d1e262cde72fedc7830022ccd8df6b7a",
     "id": null,
     "metadata": {},
     "name": "documentsProfilePageQuery",
     "operationKind": "query",
-    "text": "query documentsProfilePageQuery {\n  viewer {\n    userBarLogoutLabel\n    userBarLoggingOutLabel\n    commonUnknownErrorText\n    footerDisclaimerText\n    footerTermsLabel\n    footerPrivacyLabel\n  }\n  settingsPage {\n    settingsTitle\n    settingsDiscordLabel\n    settingsLanguageLabel\n    settingsLanguageHint\n    settingsAutoLabel\n    settingsLangZhCnLabel\n    settingsLangZhTwLabel\n    settingsLangEnLabel\n    settingsLangEsLabel\n    settingsLangFrLabel\n    settingsSavedText\n    feedbackEntryLabel\n    availabilityTitle\n    localePref\n    effectiveLocale\n    accountSectionTitle\n    accountExportLabel\n    accountExportHint\n    accountDeleteLabel\n    accountDeleteHint\n    accountReauthLabel\n    accountReauthHint\n    accountConfirmTitle\n    accountConfirmIntro\n    accountConsequenceCars\n    accountConsequenceData\n    accountConsequenceGuilds\n    accountConsequenceResidual\n    accountConsequenceReregister\n    accountExportFirstHint\n    accountUsernameLabel\n    accountSubmitLabel\n    accountBackLabel\n    accountCancelDeletionLabel\n    accountDeletionRequestedText\n    accountDeletionCancelledText\n    freshAuthAt\n    accountPendingDeletion {\n      executesAt\n      daysLeft\n      accountPendingTitle\n      accountPendingBody\n    }\n  }\n  gradPage {\n    gearMyLibTitle\n  }\n}\n"
+    "text": "query documentsProfilePageQuery {\n  viewer {\n    userBarLogoutLabel\n    userBarLoggingOutLabel\n    commonUnknownErrorText\n    footerDisclaimerText\n    footerTermsLabel\n    footerPrivacyLabel\n  }\n  settingsPage {\n    settingsTitle\n    settingsDiscordLabel\n    settingsLanguageLabel\n    settingsLanguageHint\n    settingsAutoLabel\n    settingsLangZhCnLabel\n    settingsLangZhTwLabel\n    settingsLangEnLabel\n    settingsLangEsLabel\n    settingsLangFrLabel\n    settingsSavedText\n    feedbackEntryLabel\n    availabilityTitle\n    localePref\n    effectiveLocale\n    accountSectionTitle\n    accountExportLabel\n    accountExportHint\n    accountDeleteLabel\n    accountDeleteHint\n    accountReauthLabel\n    accountReauthHint\n    accountConfirmTitle\n    accountConfirmIntro\n    accountConsequenceCars\n    accountConsequenceData\n    accountConsequenceGuilds\n    accountConsequenceResidual\n    accountConsequenceReregister\n    accountExportFirstHint\n    accountUsernameLabel\n    accountSubmitLabel\n    accountBackLabel\n    accountCancelDeletionLabel\n    accountDeletionRequestedText\n    accountDeletionCancelledText\n    freshAuthAt\n    accountPendingDeletion {\n      executesAt\n      daysLeft\n      accountPendingTitle\n      accountPendingBody\n    }\n    calendarFeed {\n      calendarSectionTitle\n      calendarHintText\n      calendarUrl\n      calendarCopyLabel\n      calendarCopiedText\n      calendarResetLabel\n      calendarResetDoneText\n    }\n  }\n  gradPage {\n    gearMyLibTitle\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "d9bc47fa7c271026a1a52887e892771a";
+(node as any).hash = "6b766793d2ce2e2b2c5ca7adce1c2017";
 
 export default node;

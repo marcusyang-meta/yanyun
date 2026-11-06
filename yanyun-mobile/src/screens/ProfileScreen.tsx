@@ -6,6 +6,7 @@ import { useLazyLoadQuery, useRelayEnvironment } from 'react-relay';
 import { fetchQuery } from 'relay-runtime';
 import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
+import * as Clipboard from 'expo-clipboard';
 import { fonts, theme } from '../theme';
 import { AsyncBoundary, LoadingView } from '../components/AsyncBoundary';
 import { ProfilePageQuery } from '../documents';
@@ -15,6 +16,7 @@ import {
   cancelAccountDeletionRemote,
   exportMyDataRemote,
   requestAccountDeletionRemote,
+  resetCalendarFeedRemote,
   updateMyLocale,
 } from '../api';
 import { reauthWithDiscord } from '../auth';
@@ -152,6 +154,42 @@ function ProfileInner({ topInset, bottomInset }: { topInset: number; bottomInset
     } catch {
       setAcctError(viewer?.commonUnknownErrorText || '');
     } finally { setAcctBusy(false); }
+  };
+
+  // Calendar subscription: the member's own iCal feed URL with
+  // copy + token reset. The URL is composed by the backend (token
+  // lazy-minted on the settings read); copy goes to the clipboard
+  // with the backend's copied text as the inline confirmation, and
+  // reset rotates the token server-side, after which this page
+  // refetches and shows the backend's reset-done text.
+  const calFeed = page?.calendarFeed ?? null;
+  const [calCopied, setCalCopied] = useState(false);
+  const [calResetDone, setCalResetDone] = useState(false);
+  const [calError, setCalError] = useState('');
+  const [calBusy, setCalBusy] = useState(false);
+  const doCopyCalUrl = async () => {
+    if (!calFeed?.calendarUrl) return;
+    try {
+      await Clipboard.setStringAsync(calFeed.calendarUrl);
+      setCalCopied(true);
+    } catch { /* the URL stays selectable on screen for a manual copy */ }
+  };
+  const doResetCalUrl = async () => {
+    if (calBusy) return;
+    setCalError('');
+    setCalBusy(true);
+    try {
+      const payload = await resetCalendarFeedRemote();
+      if (payload.ok) {
+        setCalResetDone(true);
+        setCalCopied(false);
+        refetchSelf();
+      } else {
+        setCalError(payload.error || viewer?.commonUnknownErrorText || '');
+      }
+    } catch {
+      setCalError(viewer?.commonUnknownErrorText || '');
+    } finally { setCalBusy(false); }
   };
 
   const doCancelDeletion = async () => {
@@ -295,6 +333,29 @@ function ProfileInner({ topInset, bottomInset }: { topInset: number; bottomInset
           <Text style={s.entryChevron}>›</Text>
         </Pressable>
       </View>
+
+      {/* Calendar subscription: the member's personal iCal feed.
+          The section exists only when the backend composed it (a
+          signed-in member); the URL is the credential, so it renders
+          only here, in the owner's own profile. */}
+      {calFeed && (
+        <View style={s.gearZone}>
+          <Text style={s.langLabel}>{calFeed.calendarSectionTitle}</Text>
+          <Text style={s.calHint}>{calFeed.calendarHintText}</Text>
+          <Text style={s.calUrl} selectable>{calFeed.calendarUrl}</Text>
+          <View style={s.calRow}>
+            <Pressable style={s.calCopyBtn} onPress={() => void doCopyCalUrl()}>
+              <Text style={s.calCopyText}>{calFeed.calendarCopyLabel}</Text>
+            </Pressable>
+            <Pressable style={[s.calResetBtn, calBusy && s.btnDisabled]} onPress={() => void doResetCalUrl()} disabled={calBusy}>
+              <Text style={s.calResetText}>{calFeed.calendarResetLabel}</Text>
+            </Pressable>
+          </View>
+          {calCopied && <Text style={s.saved}>✓ {calFeed.calendarCopiedText}</Text>}
+          {calResetDone && <Text style={s.saved}>✓ {calFeed.calendarResetDoneText}</Text>}
+          {!!calError && <Text style={s.error}>{calError}</Text>}
+        </View>
+      )}
 
       {/* My Data: account export + deletion (self-service). The pending
           state arrives as data (accountPendingDeletion present/absent),
@@ -470,6 +531,24 @@ const s = StyleSheet.create({
     paddingVertical: 10, alignItems: 'center',
   },
   cancelDeletionText: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 13.5 },
+  calHint: { fontFamily: fonts.serif, color: theme.muted, fontSize: 13, lineHeight: 20, marginBottom: 12 },
+  calUrl: {
+    fontFamily: fonts.serif, color: theme.paper, fontSize: 12.5,
+    borderWidth: 1, borderColor: 'rgba(201,163,92,.25)', borderRadius: 8,
+    backgroundColor: 'rgba(255,255,255,.03)', paddingVertical: 10, paddingHorizontal: 12,
+    marginBottom: 10,
+  },
+  calRow: { flexDirection: 'row', gap: 8 },
+  calCopyBtn: {
+    flex: 1, borderWidth: 1, borderColor: theme.gold, borderRadius: 8,
+    paddingVertical: 10, alignItems: 'center',
+  },
+  calCopyText: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 13.5 },
+  calResetBtn: {
+    flex: 1, borderWidth: 1, borderColor: 'rgba(201,163,92,.3)', borderRadius: 8,
+    paddingVertical: 10, alignItems: 'center',
+  },
+  calResetText: { fontFamily: fonts.serif, color: theme.muted, fontSize: 13.5 },
   logoutZone: { borderTopWidth: 1, borderTopColor: 'rgba(201,163,92,.22)', marginTop: 26, paddingTop: 18 },
   logoutBtn: {
     borderWidth: 1, borderColor: 'rgba(201,163,92,.4)', borderRadius: 10,
