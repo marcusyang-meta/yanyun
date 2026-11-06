@@ -206,7 +206,7 @@ const WHEEL_ITEM_H = 44;
  * tapping a row (or an outside change, e.g. a template) moves the
  * value and the wheel follows. Pure RN — no native picker module.
  */
-function WheelColumn({ values, value, onChange, format }: {
+export function WheelColumn({ values, value, onChange, format }: {
   values: readonly number[];
   value: number;
   onChange: (n: number) => void;

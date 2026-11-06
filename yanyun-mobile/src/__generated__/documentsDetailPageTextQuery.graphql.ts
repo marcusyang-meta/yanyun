@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<67d733c2d89fe3a42af4d8166290a6d8>>
+ * @generated SignedSource<<98e0fa84cd43970bc99de08866f3ad2b>>
  * @lightSyntaxTransform
  */
 
@@ -16,6 +16,14 @@ export type documentsDetailPageTextQuery$variables = {
 };
 export type documentsDetailPageTextQuery$data = {
   readonly groupingDetailPage: {
+    readonly cloneAction: {
+      readonly buttonLabel: string;
+      readonly defaultStartsAt: string;
+      readonly dialogTitle: string;
+      readonly toastCloned: string;
+      readonly toastFailedTemplate: string;
+      readonly toastSkippedTemplate: string;
+    } | null | undefined;
     readonly detailBackToListLabel: string;
     readonly detailShareImageFailed: string;
     readonly detailShareImageLabel: string;
@@ -607,6 +615,41 @@ v7 = [
       {
         "alias": null,
         "args": null,
+        "concreteType": "GroupingCloneAction",
+        "kind": "LinkedField",
+        "name": "cloneAction",
+        "plural": false,
+        "selections": [
+          (v4/*:: as any*/),
+          (v5/*:: as any*/),
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "toastCloned",
+            "storageKey": null
+          },
+          (v6/*:: as any*/),
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "toastSkippedTemplate",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "defaultStartsAt",
+            "storageKey": null
+          }
+        ],
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
         "kind": "ScalarField",
         "name": "seatModalTitleTemplate",
         "storageKey": null
@@ -1038,16 +1081,16 @@ return {
     "selections": (v7/*:: as any*/)
   },
   "params": {
-    "cacheID": "6f904a5efc041c7185ace97a134e2113",
+    "cacheID": "a818eb7e71eb34116062cbaf3eaaebef",
     "id": null,
     "metadata": {},
     "name": "documentsDetailPageTextQuery",
     "operationKind": "query",
-    "text": "query documentsDetailPageTextQuery(\n  $slug: String\n  $id: ID!\n) {\n  viewer {\n    commonUnknownErrorText\n  }\n  groupingDetailPage(slug: $slug, id: $id) {\n    grouping {\n      id\n      title\n      type\n      startsAt\n      customFields {\n        id\n        label\n        fieldType\n        options\n        required\n      }\n    }\n    rosterAnswersTitle\n    rosterAnswers {\n      uid\n      nickname\n      fieldId\n      fieldLabel\n      value\n    }\n    detailBackToListLabel\n    detailToastDisbanded\n    detailToastDisbandFailedTemplate\n    detailToastCompleteFailedTemplate\n    detailToastRestoreFailedTemplate\n    seatToastJoined\n    seatToastJoinFailedTemplate\n    seatToastLeft\n    seatToastLeaveFailedTemplate\n    seatEmptyJoinLabel\n    seatEmptyLabel\n    seatLeaderLabel\n    seatReadyLabel\n    seatReadyActionLabel\n    seatUnreadyActionLabel\n    seatToastReadyFailedTemplate\n    detailShareLabel\n    shareUrl\n    shareImageUrl\n    detailShareImageLabel\n    detailShareImageFailed\n    templateSave {\n      buttonLabel\n      dialogTitle\n      nameLabel\n      submitLabel\n      toastSaved\n      toastFailedTemplate\n    }\n    merge {\n      buttonLabel\n      dialogTitle\n      emptyText\n      confirmTitle\n      confirmMessageTemplate\n      confirmSubmitLabel\n      toastMerged\n      toastFailedTemplate\n      candidates {\n        id\n        title\n        metaText\n      }\n    }\n    seatModalTitleTemplate\n    seatModalSubtitle\n    seatNameLabel\n    seatNamePlaceholder\n    seatNameRequired\n    seatSelfTabLabel\n    seatProxyTabLabel\n    seatSelfNameHint\n    seatProxySearchPlaceholder\n    seatProxyPickRequired\n    seatProxyEmptyText\n    seatSectLabel\n    seatCancelLabel\n    seatConfirmJoinLabel\n    seatJoiningLabel\n    seatToastSect\n    formCreateTitle\n    formEditTitle\n    formTypeLabel\n    formTypeActivityLabel\n    formTypeTalentLabel\n    formTypeRaceLabel\n    formTypeTowerLabel\n    formCapacityTemplate\n    formHintActivity\n    formHintDungeonTemplate\n    formHintTalent\n    formHintRace\n    formHintTower\n    formTitleLabel\n    formTitlePlaceholder\n    formStartsLabel\n    formMonthTemplate\n    formDayTemplate\n    formHourTemplate\n    formMinuteTemplate\n    formTzEastLabel\n    formTzWestLabel\n    formTzEchoTemplate\n    formDungeonLabel\n    formDungeonNoneLabel\n    formNicknameLabel\n    formNicknamePlaceholder\n    formSectLabel\n    formCancelLabel\n    formSubmitCreateLabel\n    formSubmitEditLabel\n    formSubmittingLabel\n    formToastSect\n    formToastSaved\n    formToastSaveFailedTemplate\n    formToastPosted\n    formToastCreateFailedTemplate\n    formTitleTemplate\n    typeShortActivity\n    typeShortTalent\n    typeShortRace\n    typeShortTower\n  }\n}\n"
+    "text": "query documentsDetailPageTextQuery(\n  $slug: String\n  $id: ID!\n) {\n  viewer {\n    commonUnknownErrorText\n  }\n  groupingDetailPage(slug: $slug, id: $id) {\n    grouping {\n      id\n      title\n      type\n      startsAt\n      customFields {\n        id\n        label\n        fieldType\n        options\n        required\n      }\n    }\n    rosterAnswersTitle\n    rosterAnswers {\n      uid\n      nickname\n      fieldId\n      fieldLabel\n      value\n    }\n    detailBackToListLabel\n    detailToastDisbanded\n    detailToastDisbandFailedTemplate\n    detailToastCompleteFailedTemplate\n    detailToastRestoreFailedTemplate\n    seatToastJoined\n    seatToastJoinFailedTemplate\n    seatToastLeft\n    seatToastLeaveFailedTemplate\n    seatEmptyJoinLabel\n    seatEmptyLabel\n    seatLeaderLabel\n    seatReadyLabel\n    seatReadyActionLabel\n    seatUnreadyActionLabel\n    seatToastReadyFailedTemplate\n    detailShareLabel\n    shareUrl\n    shareImageUrl\n    detailShareImageLabel\n    detailShareImageFailed\n    templateSave {\n      buttonLabel\n      dialogTitle\n      nameLabel\n      submitLabel\n      toastSaved\n      toastFailedTemplate\n    }\n    merge {\n      buttonLabel\n      dialogTitle\n      emptyText\n      confirmTitle\n      confirmMessageTemplate\n      confirmSubmitLabel\n      toastMerged\n      toastFailedTemplate\n      candidates {\n        id\n        title\n        metaText\n      }\n    }\n    cloneAction {\n      buttonLabel\n      dialogTitle\n      toastCloned\n      toastFailedTemplate\n      toastSkippedTemplate\n      defaultStartsAt\n    }\n    seatModalTitleTemplate\n    seatModalSubtitle\n    seatNameLabel\n    seatNamePlaceholder\n    seatNameRequired\n    seatSelfTabLabel\n    seatProxyTabLabel\n    seatSelfNameHint\n    seatProxySearchPlaceholder\n    seatProxyPickRequired\n    seatProxyEmptyText\n    seatSectLabel\n    seatCancelLabel\n    seatConfirmJoinLabel\n    seatJoiningLabel\n    seatToastSect\n    formCreateTitle\n    formEditTitle\n    formTypeLabel\n    formTypeActivityLabel\n    formTypeTalentLabel\n    formTypeRaceLabel\n    formTypeTowerLabel\n    formCapacityTemplate\n    formHintActivity\n    formHintDungeonTemplate\n    formHintTalent\n    formHintRace\n    formHintTower\n    formTitleLabel\n    formTitlePlaceholder\n    formStartsLabel\n    formMonthTemplate\n    formDayTemplate\n    formHourTemplate\n    formMinuteTemplate\n    formTzEastLabel\n    formTzWestLabel\n    formTzEchoTemplate\n    formDungeonLabel\n    formDungeonNoneLabel\n    formNicknameLabel\n    formNicknamePlaceholder\n    formSectLabel\n    formCancelLabel\n    formSubmitCreateLabel\n    formSubmitEditLabel\n    formSubmittingLabel\n    formToastSect\n    formToastSaved\n    formToastSaveFailedTemplate\n    formToastPosted\n    formToastCreateFailedTemplate\n    formTitleTemplate\n    typeShortActivity\n    typeShortTalent\n    typeShortRace\n    typeShortTower\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "f6269a6dc03a2f5a38dcede00ae181cb";
+(node as any).hash = "61d2080f222a859889f7645cfb767014";
 
 export default node;
