@@ -236,10 +236,15 @@ export type AccountFlow = 'export' | 'delete';
 // page plus the pages pushed over it inside the same dialog.
 export type DialogPage = 'main' | 'feedback' | 'gear' | 'goals' | 'availability' | 'internal';
 
-export default function SettingsDialog({ open, onClose, user, initialFlow, initialPage }: {
+export default function SettingsDialog({ open, onClose, user, initialFlow, initialPage, logoutText }: {
   open: boolean;
   onClose: () => void;
   user?: ViewerUser | null;
+  // Sign-out row copy (the UserBar's backend text fields, forwarded by
+  // the UserBar that hosts this dialog): the root page ends with a
+  // sign-out row so sign-out stays reachable on small screens, where
+  // the UserBar collapses to the avatar alone. Null = no row.
+  logoutText?: { logoutLabel: string; loggingOutLabel: string } | null;
   // Set when the dialog auto-opens after a fresh-OAuth round trip that
   // started here (the returnTo carries ?accountflow=export|delete and
   // UserBar forwards it): export resumes immediately, delete lands on
@@ -253,7 +258,7 @@ export default function SettingsDialog({ open, onClose, user, initialFlow, initi
   if (!open) return null;
   return (
     <Suspense fallback={<SettingsShellFallback onClose={onClose} />}>
-      <SettingsDialogInner onClose={onClose} user={user ?? null} initialFlow={initialFlow ?? null} initialPage={initialPage ?? null} />
+      <SettingsDialogInner onClose={onClose} user={user ?? null} initialFlow={initialFlow ?? null} initialPage={initialPage ?? null} logoutText={logoutText ?? null} />
     </Suspense>
   );
 }
@@ -278,11 +283,12 @@ function SettingsShellFallback({ onClose }: { onClose: () => void }) {
   );
 }
 
-function SettingsDialogInner({ onClose, user, initialFlow, initialPage }: {
+function SettingsDialogInner({ onClose, user, initialFlow, initialPage, logoutText }: {
   onClose: () => void;
   user: ViewerUser | null;
   initialFlow: AccountFlow | null;
   initialPage: DialogPage | null;
+  logoutText: { logoutLabel: string; loggingOutLabel: string } | null;
 }) {
   const data = useLazyLoadQuery<any>(SettingsDialogQueryNode, {});
   const viewer: any = data.viewer ?? {};
@@ -330,6 +336,15 @@ function SettingsDialogInner({ onClose, user, initialFlow, initialPage }: {
   const [fbDone, setFbDone] = useState(false);
 
   const openFeedback = () => { setFbDone(false); setFbError(''); pushPage('feedback'); };
+
+  // Sign-out (root page's last row): the same /auth/logout flow the
+  // UserBar button runs — POST, then land on the entry page either way.
+  const [leaving, setLeaving] = useState(false);
+  const doLogout = async () => {
+    setLeaving(true);
+    try { await fetch('/auth/logout', { method: 'POST' }); } catch { /* navigate back to the login page either way */ }
+    window.location.href = '/';
+  };
 
   /* Season goals page (F19): the member's own goals across their
    * guilds. Writes go through upsertMySeasonGoal / deleteMySeasonGoal;
@@ -835,6 +850,25 @@ function SettingsDialogInner({ onClose, user, initialFlow, initialPage }: {
           <div style={{ color: '#e58d7f', fontSize: 13, marginTop: 14 }}>{acctError}</div>
         )}
       </div>
+
+      {/* Sign-out row: on small screens the UserBar is avatar-only, so
+          this dialog is where sign-out lives there (the RN Profile page
+          holds it the same way). Copy is the UserBar's own backend
+          logout fields, forwarded by the hosting UserBar. */}
+      {logoutText && (
+        <div style={{ borderTop: '1px solid rgba(201,163,92,.22)', marginTop: 24, paddingTop: 18 }}>
+          <button
+            data-settings-logout
+            onClick={doLogout}
+            disabled={leaving}
+            style={{
+              width: '100%', padding: '11px 16px', borderRadius: 10, cursor: 'pointer',
+              background: 'transparent', border: '1px solid rgba(201,163,92,.4)',
+              color: theme.muted, fontSize: 14.5,
+            }}
+          >{leaving ? logoutText.loggingOutLabel : logoutText.logoutLabel}</button>
+        </div>
+      )}
     </>
   );
 

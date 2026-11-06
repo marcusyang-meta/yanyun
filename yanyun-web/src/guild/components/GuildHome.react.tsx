@@ -108,18 +108,18 @@ export default function GuildHome({ node, slug, carId, user, userBarText }: {
       <ToastHost />
       <div style={{ maxWidth: 860, margin: '0 auto', padding: '0 20px' }}>
         <header className="yy-anim-fade-up" style={{ padding: '36px 0 8px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div className="yy-guild-topbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+            <span className="yy-guild-topbar-left" style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
               {/* On this guild's own subdomain the root IS this page —
                   the back-to-hub link would point at itself, so it is
                   not rendered there. */}
               {hostGuildSlug() !== slug && (
-                <Link to="/" style={{ color: theme.muted, fontSize: 13, textDecoration: 'none', letterSpacing: '.1em' }}>
+                <Link to="/" className="yy-guild-topbar-link" style={{ color: theme.muted, fontSize: 13, textDecoration: 'none', letterSpacing: '.1em' }}>
                   {node.pageBackLabel}
                 </Link>
               )}
               {node.homeAdminLabel && (
-                <Link to={`/${slug}/admin`} style={{ color: theme.gold, fontSize: 13, textDecoration: 'none', letterSpacing: '.1em' }}>
+                <Link to={`/${slug}/admin`} className="yy-guild-topbar-link" style={{ color: theme.gold, fontSize: 13, textDecoration: 'none', letterSpacing: '.1em' }}>
                   {node.homeAdminLabel}
                 </Link>
               )}

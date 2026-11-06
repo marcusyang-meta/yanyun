@@ -380,7 +380,7 @@ export function GroupingListRoute({ slug, defaultNickname }: { slug: string; def
   return (
     <>
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
-        <button onClick={() => setShowForm(true)} className="yy-btn yy-btn-gold" style={{
+        <button onClick={() => setShowForm(true)} className="yy-btn yy-btn-gold yy-create-btn" style={{
           padding: '10px 24px', fontSize: 14,
         }}>{pageText.newCarLabel}</button>
       </div>
