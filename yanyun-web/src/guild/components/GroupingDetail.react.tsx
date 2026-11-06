@@ -48,6 +48,16 @@ const GroupingDetailQueryNode = graphql`
         toastSkippedTemplate
         defaultStartsAt
       }
+      nudgeCopy {
+        buttonLabel
+        dialogTitle
+        hintText
+        text
+        emptyText
+        copyLabel
+        copiedToast
+        candidateCount
+      }
       detailEditLabel
       detailDisbandLabel
       detailDisbandingLabel
@@ -518,6 +528,21 @@ toast(fill(ca.toastFailedTemplate ?? '', { error: res.cloneGrouping?.error || un
 onError: (e: Error) => toast(fill(ca.toastFailedTemplate ?? '', { error: e.message })),
 });
 };
+// Sign-up nudge: the text is fully composed by the server (mentions
+// included); the client only puts it on the clipboard for the
+// leader to paste into Discord. Nothing is sent from here.
+const [showNudge, setShowNudge] = useState(false);
+const copyNudge = async () => {
+const nc = page.nudgeCopy;
+if (!nc?.text) return;
+try {
+await navigator.clipboard.writeText(nc.text);
+toast(nc.copiedToast);
+} catch {
+const ta = document.getElementById('yy-nudge-text') as HTMLTextAreaElement | null;
+if (ta) { ta.focus(); ta.select(); }
+}
+};
 const data = usePreloadedQuery<GroupingDetailQueryType>(GroupingDetailQueryNode, queryRef);
 const page: any = (data as any)?.groupingDetailPage ?? {};
 const g = page?.grouping;
@@ -784,6 +809,9 @@ verticalAlign: 'middle',
 )}
 {page.cloneAction && (
 <button onClick={openClone} style={smBtn}>{page.cloneAction.buttonLabel}</button>
+)}
+{page.nudgeCopy && (
+<button onClick={() => setShowNudge(true)} style={smBtn}>{page.nudgeCopy.buttonLabel}</button>
 )}
 <>
 {canManage && g.status !== 'completed' && (
@@ -1068,6 +1096,47 @@ background: 'transparent', border: `1px solid ${theme.gold}`, color: theme.paper
 {page.formSubmitCreateLabel}
 </button>
 </div>
+</div>
+</div>
+)}
+{showNudge && page.nudgeCopy && (
+<div style={{
+position: 'fixed', inset: 0, background: 'rgba(0,0,0,.6)', zIndex: 9997,
+display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+}} onClick={() => setShowNudge(false)}>
+<div style={{
+background: '#1a1814', border: `1px solid ${theme.gold}`, borderRadius: 12,
+padding: 24, maxWidth: 440, width: '100%',
+}} onClick={(e) => e.stopPropagation()}>
+<div style={{ fontSize: 18, color: theme.goldHi, marginBottom: 10 }}>{page.nudgeCopy.dialogTitle}</div>
+<div style={{ fontSize: 13, color: theme.muted, marginBottom: 12, lineHeight: 1.6 }}>{page.nudgeCopy.hintText}</div>
+{page.nudgeCopy.text ? (
+<>
+<textarea id="yy-nudge-text" readOnly value={page.nudgeCopy.text} rows={5} style={{
+width: '100%', background: '#1e1b15', border: '1px solid rgba(201,163,92,.3)',
+color: theme.paper, borderRadius: 8, padding: '11px 10px', fontSize: 13.5, lineHeight: 1.7, boxSizing: 'border-box', marginBottom: 16, resize: 'vertical',
+}} />
+<div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
+<button onClick={() => setShowNudge(false)} style={{
+padding: '8px 20px', borderRadius: 8, cursor: 'pointer',
+background: 'transparent', border: `1px solid ${theme.gold}`, color: theme.paper,
+}}>{page.confirmCancelLabel}</button>
+<button onClick={copyNudge} className="yy-btn yy-btn-gold" style={{ padding: '8px 20px', fontSize: 14 }}>
+{page.nudgeCopy.copyLabel}
+</button>
+</div>
+</>
+) : (
+<>
+<div style={{ fontSize: 13.5, color: theme.paper, lineHeight: 1.7, marginBottom: 20 }}>{page.nudgeCopy.emptyText}</div>
+<div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
+<button onClick={() => setShowNudge(false)} style={{
+padding: '8px 20px', borderRadius: 8, cursor: 'pointer',
+background: 'transparent', border: `1px solid ${theme.gold}`, color: theme.paper,
+}}>{page.confirmCancelLabel}</button>
+</div>
+</>
+)}
 </div>
 </div>
 )}
