@@ -20,6 +20,7 @@ import { effectiveLocaleTag } from '../locale';
 import { BlockNode1View } from '../blocks/BlockRenderer';
 import type { ActionHandlers } from '../blocks/actions';
 import { AsyncBoundary, LoadingView } from '../components/AsyncBoundary';
+import * as Clipboard from 'expo-clipboard';
 import { cloneGrouping, completeGrouping, disbandGrouping, joinGrouping, leaveGrouping, mergeGrouping, reopenGrouping, saveGroupingTemplate, setSeatReady } from '../api';
 import { deliverShareImage, type ShareImageDeps } from '../shareImage';
 import { useGuildLive } from '../live';
@@ -236,6 +237,7 @@ function BackLinkLive({ slug, id }: { slug: string; id: string }) {
   const [showTplSave, setShowTplSave] = useState(false);
   const [showMerge, setShowMerge] = useState(false);
   const [showClone, setShowClone] = useState(false);
+  const [showNudge, setShowNudge] = useState(false);
   const [shareImageBusy, setShareImageBusy] = useState(false);
   const onShare = useCallback(() => {
     if (!shareUrl) return;
@@ -278,6 +280,11 @@ function BackLinkLive({ slug, id }: { slug: string; id: string }) {
             <Text style={s.back}>{page.cloneAction.buttonLabel}</Text>
           </Pressable>
         ) : null}
+        {page?.nudgeCopy ? (
+          <Pressable onPress={() => setShowNudge(true)} hitSlop={10} style={s.backWrap}>
+            <Text style={s.back}>{page.nudgeCopy.buttonLabel}</Text>
+          </Pressable>
+        ) : null}
         {shareLabel ? (
           <Pressable onPress={onShare} hitSlop={10} style={s.backWrap}>
             <Text style={s.back}>{shareLabel}</Text>
@@ -313,6 +320,9 @@ function BackLinkLive({ slug, id }: { slug: string; id: string }) {
           unknownErrorText={data.viewer?.commonUnknownErrorText ?? ''}
           onClose={() => setShowClone(false)}
         />
+      )}
+      {showNudge && page?.nudgeCopy && (
+        <NudgeModal page={page} onClose={() => setShowNudge(false)} />
       )}
     </View>
   );
@@ -464,6 +474,57 @@ function MergeModal({
               </View>
             </>
           )}
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
+}
+
+// Sign-up nudge dialog: the text is fully composed by the server
+// (roster members who have not signed up, as real Discord
+// mentions); this dialog only shows it and copies it to the
+// clipboard for the leader to paste into Discord. The platform
+// sends nothing itself. When everyone has signed up the shell
+// ships the empty text instead of a message.
+function NudgeModal({
+  page, onClose,
+}: {
+  page: DetailPageData;
+  onClose: () => void;
+}) {
+  const nc = page.nudgeCopy;
+  const [notice, setNotice] = useState('');
+  if (!nc) return null;
+  const doCopy = async () => {
+    if (!nc.text) return;
+    await Clipboard.setStringAsync(nc.text);
+    setNotice(nc.copiedToast);
+  };
+  return (
+    <Modal visible transparent animationType="fade" onRequestClose={onClose}>
+      <Pressable style={s.overlay} onPress={onClose}>
+        <Pressable style={s.panel} onPress={() => {}}>
+          <Text style={s.formTitle}>{nc.dialogTitle}</Text>
+          <Text style={s.label}>{nc.hintText}</Text>
+          {nc.text ? (
+            <ScrollView style={{ maxHeight: 260, marginTop: 10 }}>
+              <Text selectable style={[s.label, { lineHeight: 22 }]}>{nc.text}</Text>
+            </ScrollView>
+          ) : (
+            <Text style={[s.label, { marginTop: 10 }]}>{nc.emptyText}</Text>
+          )}
+          {!!notice && <Text style={s.formNotice}>{notice}</Text>}
+          <View style={[s.formBtns, { marginTop: 16 }]}>
+            <Pressable style={s.cancelBtn} onPress={onClose}>
+              <Text style={s.cancelText}>{page.formCancelLabel ?? ''}</Text>
+            </Pressable>
+            {nc.text ? (
+              <Pressable style={s.submitBtn} onPress={doCopy}>
+                <GoldFill />
+                <Text style={s.submitText}>{nc.copyLabel}</Text>
+              </Pressable>
+            ) : null}
+          </View>
         </Pressable>
       </Pressable>
     </Modal>

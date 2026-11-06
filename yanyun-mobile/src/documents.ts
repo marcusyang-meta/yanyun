@@ -499,6 +499,16 @@ export const DetailPageTextQuery = graphql`
         toastSkippedTemplate
         defaultStartsAt
       }
+      nudgeCopy {
+        buttonLabel
+        dialogTitle
+        hintText
+        text
+        emptyText
+        copyLabel
+        copiedToast
+        candidateCount
+      }
       seatModalTitleTemplate
       seatModalSubtitle
       seatNameLabel
