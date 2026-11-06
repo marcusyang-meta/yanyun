@@ -301,6 +301,14 @@ type SetReadyAction implements Action {
 
 type GroupingListPage {
   groupings: [Grouping!]!
+  weekShareImageLabel: String!
+  weekShareImageUrl: String!
+  weekShareText: String!
+  weekShareUrl: String!
+  weekShareImageSaved: String!
+  weekShareImageCopied: String!
+  weekShareImageFailed: String!
+  weekCopyFailedManual: String!
   crossCarAdvice: SchedulingCrossCarAdviceResult
   groupingTemplates: [GroupingTemplate!]!
   currentVersion: String!
@@ -3663,6 +3671,18 @@ type OgGuildCard {
   weekActivityCount(fromUtc: Int!, toUtc: Int!): Int!
   ogAccentColor: String!
   ogTitleSuffix: String!
+  weekCars(fromUtc: Int!, toUtc: Int!): [OgWeekCar!]!
+}
+
+type OgWeekCar {
+  title: String!
+  type: String!
+  dungeonName: String!
+  startsAtUtc: Int
+  cardTimeText: String!
+  occupiedCount: Int!
+  maxSlots: Int!
+  leaderName: String!
 }
 
 type OgCarCard {

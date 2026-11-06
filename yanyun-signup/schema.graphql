@@ -334,6 +334,17 @@ extend type Query {
 
 type GroupingListPage {
   groupings: [Grouping!]!
+  # 本周车队图 (免费功能): OG 周图地址 (og.yanyun.app/og/:slug/week.png)
+  # 与分享文案/落点链接, 服务端整串下发, 客户端只调用既有分享/
+  # 下载路径, 不自拼 URL。入口与单车分享图并列在列表页。
+  weekShareImageLabel: String!
+  weekShareImageUrl: String!
+  weekShareText: String!
+  weekShareUrl: String!
+  weekShareImageSaved: String!
+  weekShareImageCopied: String!
+  weekShareImageFailed: String!
+  weekCopyFailedManual: String!
   # Premium T2 cross-car advice (the P13 advice layer; the multi-car
   # overview itself stays free and unchanged): non-null only for guild
   # admins / leaders in this guild; full vs Locked shell as on the
@@ -4518,6 +4529,25 @@ type OgGuildCard {
   # 只下发色板校验后的值, 永不下发管理员原始输入。
   ogAccentColor: String!
   ogTitleSuffix: String!
+  # 本周车队图的数据口: 窗口内全部 open 车 (半开区间
+  # [fromUtc, toUtc), 与全站周界同口径), 按出发时间升序; 每台车
+  # 只带卡面字段 (标题/类型/副本/双时区时间串/人数/车头名), 与
+  # ogCarCard 同一窄口纪律。
+  weekCars(fromUtc: Int!, toUtc: Int!): [OgWeekCar!]!
+}
+
+# 本周车队图上的一台车: 时间串由后端按分享面双时区口径整串渲染
+# (cardTimeText, OG worker 逐字印), 车头名走身份链解析 (百业内
+# 昵称优先), 与车卡字段一一对应。
+type OgWeekCar {
+  title: String!
+  type: String!
+  dungeonName: String!
+  startsAtUtc: Int
+  cardTimeText: String!
+  occupiedCount: Int!
+  maxSlots: Int!
+  leaderName: String!
 }
 
 type OgCarCard {

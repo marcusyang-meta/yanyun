@@ -39,6 +39,11 @@ export function carDetailUrl(slug: string, eventId: number): string {
 export function carOgImageUrl(slug: string, eventId: number): string {
   return `${OG_WORKER}/og/${encodeURIComponent(slug)}/car/${eventId}.png`;
 }
+/* The guild's weekly squad image on the OG worker (all of this
+ * platform week's open cars on one card). */
+export function guildWeekOgImageUrl(slug: string): string {
+  return `${OG_WORKER}/og/${encodeURIComponent(slug)}/week.png`;
+}
 
 export async function upsertGuildMember(db: any, slug: string, discordId: unknown, nick: unknown, globalName: unknown) {
   const guildId = await getGuildIdBySlug(db, slug).catch(() => null);

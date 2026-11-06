@@ -44,6 +44,12 @@ export abstract class GroupingTypeFbtUtils {
 }
 
 export abstract class GroupingListFbtUtils {
+  static weekShareImageLabel(fbs: FbsAPI) { return fbs("本周车队图", "Button label for the squad list page, used to share or download the weekly squad image listing this guild's open squads for the current platform week."); }
+  static weekShareText(fbs: FbsAPI, p?: StringParams) { return fbs([fbs.param("name", pv(p, "name")), " 本周车队图"], "Share text for the weekly squad image on the squad list page, used as the message attached when sharing the image, where {name} is the guild name."); }
+  static weekShareImageSaved(fbs: FbsAPI) { return fbs("图片已保存、链接已复制，去微信发图粘贴即可", "Toast message for the weekly squad image action on the squad list page, used after the image is saved and the guild link copied, telling the user to post the image in WeChat and paste the link there."); }
+  static weekShareImageCopied(fbs: FbsAPI) { return fbs("图片已复制，去聊天里粘贴即可", "Toast message for the weekly squad image action on the squad list page, used after the image is copied to the system clipboard on desktop, telling the user to paste it into a chat window."); }
+  static weekShareImageFailed(fbs: FbsAPI) { return fbs("分享图获取失败，请重试", "Toast message for the weekly squad image action on the squad list page, used when the image cannot be fetched or shared."); }
+  static weekCopyFailedManual(fbs: FbsAPI) { return fbs("复制失败，请手动复制地址栏链接", "Hint text for the weekly squad image action on the squad list page, used when copying fails so the user copies the address bar link manually."); }
   static prevWeek(fbs: FbsAPI) { return fbs("上一周", "Button label for the squad list week navigation, used to move to the previous week."); }
   static nextWeek(fbs: FbsAPI) { return fbs("下一周", "Button label for the squad list week navigation, used to move to the next week."); }
   static weekHeader(fbs: FbsAPI, p?: StringParams) { return fbs([fbs.param("range", pv(p, "range")), " · ", fbs.param("count", pv(p, "count")), " 队"], "Header text for the squad list week view, used to show the week range and squad count, where {range} is the formatted Monday-to-Sunday range and {count} the number of squads."); }

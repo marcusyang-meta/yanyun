@@ -1,7 +1,7 @@
 import type { Context } from '../platform/context.ts';
 import { vcOf } from '../platform/context.ts';
  './events.ts';
-import { mintShortLink, shortLinkUrl, canonicalGroupingUrl, subdomainGroupingUrl } from './shortlinks.ts';
+import { mintShortLink, shortLinkUrl, canonicalGroupingUrl, canonicalGuildUrl, subdomainGroupingUrl } from './shortlinks.ts';
 import { GROUPING_DEFAULT_CREATED_BY } from './events.ts';
 /* groupings domain GraphQL: grouping shells, list/detail pages, and all grouping mutations. */
 import {
@@ -42,7 +42,7 @@ import {
   moveSignupAnswersToEvent,
   parseFieldOptions, type CustomFieldDef,
 } from './index.ts';
-import { carOgImageUrl } from './reminder.ts';
+import { carOgImageUrl, guildWeekOgImageUrl } from './reminder.ts';
 import { scheduleResolvers } from './schedule-graphql.ts';
 import { resolveSharedGrouping } from './shareview.ts';
 import { schedulingAdviceResolvers, composeGroupingSchedulingAdvice, composeCrossCarAdvice, renderAdviceReason, adviceRoleLabel } from './scheduling-graphql.ts';
@@ -334,6 +334,17 @@ export function touchGuildRoster(ctx: Context, access: any) {
 
 export class GroupingListPageShell extends ShellBase {
   constructor(ctx: Context, slug: any, tab: any){ super(ctx, { slug, tab }); }
+  // Weekly squad image (free feature): the OG worker renders this
+  // guild's open cars of the current platform week onto one card;
+  // the list page only wires the share/download flow to these
+  // server-composed strings, exactly like the detail page's
+  // shareImageUrl. The landing link is the guild's canonical page.
+  genWeekShareImageUrl(){ return guildWeekOgImageUrl(s(this.data.slug, 40)); }
+  genWeekShareUrl(){ return canonicalGuildUrl(s(this.data.slug, 40)); }
+  async genWeekShareText(){
+    const tRow = await getTenantRow(this.db, s(this.data.slug, 40)).catch(() => null);
+    return this.t('groupingList_weekShareText', { name: tRow ? tRow.guild_name || this.data.slug : this.data.slug });
+  }
   // Mobile Bloks-lite: block tree for this page's content area, composed per viewer (access decides nav params and empty states), then substituted by the client's blocksVersion.
   async genBlocks({ blocksVersion, weekOffset }: any = {}){
     const v = clampBlocksVersion(blocksVersion);
@@ -454,6 +465,11 @@ export const LIST_TEXT_RESOLVERS = {
     ...TYPE_SHORT_SPEC,
     ['prevWeekLabel', 'groupingList_prevWeek'],
     ['nextWeekLabel', 'groupingList_nextWeek'],
+    ['weekShareImageLabel', 'groupingList_weekShareImageLabel'],
+    ['weekShareImageSaved', 'groupingList_weekShareImageSaved'],
+    ['weekShareImageCopied', 'groupingList_weekShareImageCopied'],
+    ['weekShareImageFailed', 'groupingList_weekShareImageFailed'],
+    ['weekCopyFailedManual', 'groupingList_weekCopyFailedManual'],
     ['weekHeaderTemplate', 'groupingList_weekHeader'],
     ['dayGroupHeaderTemplate', 'groupingList_dayGroupHeader'],
     ['undatedGroupLabel', 'groupingList_undatedGroup'],
@@ -2034,6 +2050,9 @@ export const groupingsResolvers = {
   },
   GroupingListPage: {
     groupings: (p: any) => p.genGroupings(),
+    weekShareImageUrl: (p: any) => p.genWeekShareImageUrl(),
+    weekShareUrl: (p: any) => p.genWeekShareUrl(),
+    weekShareText: (p: any) => p.genWeekShareText(),
     crossCarAdvice: (p: any) => p.genCrossCarAdvice(),
     groupingTemplates: (p: any) => p.genGroupingTemplates(),
     currentVersion: (p: any) => p.genCurrentVersion(),

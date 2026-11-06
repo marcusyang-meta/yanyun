@@ -20690,6 +20690,78 @@
         }
       ],
       "types": []
+    },
+    "UCxJZOvnAp0BqBNxSfjH4g==": {
+      "description": "Button label for the squad list page, used to share or download the weekly squad image listing this guild's open squads for the current platform week.",
+      "id": "groupings/groupingList_weekShareImageLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "This week's squads image",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "t1xZ6mPzyNo19gHZZWEgLA==": {
+      "description": "Share text for the weekly squad image on the squad list page, used as the message attached when sharing the image, where {name} is the guild name.",
+      "id": "groupings/groupingList_weekShareText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{name} — this week's squads",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "kWynfPdUR0J+boUKi4Gobw==": {
+      "description": "Toast message for the weekly squad image action on the squad list page, used after the image is saved and the guild link copied, telling the user to post the image in WeChat and paste the link there.",
+      "id": "groupings/groupingList_weekShareImageSaved",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Image saved and link copied — post the image in WeChat and paste the link.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "7ItDbwVqden9G7YZR2+gjQ==": {
+      "description": "Toast message for the weekly squad image action on the squad list page, used after the image is copied to the system clipboard on desktop, telling the user to paste it into a chat window.",
+      "id": "groupings/groupingList_weekShareImageCopied",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Image copied — paste it into a chat to send it.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "bCfuOCnbsKiH5eJCebLQkQ==": {
+      "description": "Toast message for the weekly squad image action on the squad list page, used when the image cannot be fetched or shared.",
+      "id": "groupings/groupingList_weekShareImageFailed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Could not get the share image. Please try again.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "YJIys9eAQfISdudwHqYPUw==": {
+      "description": "Hint text for the weekly squad image action on the squad list page, used when copying fails so the user copies the address bar link manually.",
+      "id": "groupings/groupingList_weekCopyFailedManual",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Copy failed — please copy the address bar link manually",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }
