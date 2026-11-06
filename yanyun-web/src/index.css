@@ -439,6 +439,11 @@ body {
   border-radius: 999px;
   padding: 5px 10px 5px 12px;
 }
+/* UserBar avatar wrap: carries the settings onClick so the avatar can
+   be the settings entry on small screens, where the name and buttons
+   hide. At desktop widths it must stay inert — the bar's own buttons
+   are the entries there — so it only arms in the small-screen block. */
+.yy-userbar-avatar-wrap { display: inline-flex; pointer-events: none; }
 /* 全屏 hero (登录页): 山水铺满整屏, 登录卡浮在画上。
    高度来自登录页 .yy-page 的 flex 列 (撑满滚动区), 不再用视口单位。 */
 .yy-hero-full {
@@ -649,6 +654,24 @@ body {
     margin: 0 0 12px auto;
   }
   .yy-tab { padding: 9px 16px; font-size: 15px; }
+
+  /* Small screens mirror the RN shell (mobile ui.tsx UserBar /
+     SiteChrome and GroupingListScreen): the UserBar collapses to the
+     single 40px avatar, which becomes the settings entry (sign-out
+     lives on the settings dialog's root page); the guild top bar's
+     left links truncate instead of wrapping mid-word; the section tab
+     strip scrolls sideways instead of squeezing its labels into
+     two-line ovals; the create button takes the RN padding. */
+  .yy-userbar-avatar-wrap { pointer-events: auto; cursor: pointer; }
+  .yy-userbar .yy-userbar-avatar { width: 40px !important; height: 40px !important; }
+  .yy-userbar span.yy-userbar-avatar { font-size: 17px !important; }
+  .yy-userbar-wide { display: none !important; }
+  .yy-guild-topbar-left { min-width: 0; overflow: hidden; }
+  .yy-guild-topbar-link { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .yy-tabs { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+  .yy-tabs::-webkit-scrollbar { display: none; }
+  .yy-tab { white-space: nowrap; flex-shrink: 0; }
+  .yy-create-btn { padding: 10px 22px !important; }
 }
 
 /* ---------- 传家宝印章 (配装台第 27/30 节复刻) ----------
