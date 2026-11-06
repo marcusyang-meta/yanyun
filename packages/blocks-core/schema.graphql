@@ -552,6 +552,7 @@ type GroupingDetailPage {
   blocks(blocksVersion: Int): [Block!]!
   manageActions: GroupingManageActions
   allySharing: AllySharingControl
+  merge: GroupingMerge
   templateSave: GroupingTemplateSave
   rosterAnswers: [RosterAnswer!]
   rosterAnswersTitle: String!
@@ -934,6 +935,24 @@ type GroupingManageActions {
   disbandConfirmMessageTemplate: String!
   completeConfirmTitle: String!
   completeConfirmMessageTemplate: String!
+}
+
+type GroupingMerge {
+  buttonLabel: String!
+  dialogTitle: String!
+  emptyText: String!
+  confirmTitle: String!
+  confirmMessageTemplate: String!
+  confirmSubmitLabel: String!
+  toastMerged: String!
+  toastFailedTemplate: String!
+  candidates: [GroupingMergeCandidate!]!
+}
+
+type GroupingMergeCandidate {
+  id: ID!
+  title: String!
+  metaText: String!
 }
 
 type DexPage {
@@ -1797,6 +1816,7 @@ type Mutation {
   generateGroupingRecap(id: ID!): RecapPayload!
   deleteCombatEncounter(id: ID!): CombatReportPayload!
   reopenGrouping(id: ID!): GroupingPayload!
+  mergeGrouping(input: MergeGroupingInput!): GroupingPayload!
   joinGrouping(input: JoinGroupingInput!): SeatPayload!
   leaveGrouping(input: LeaveGroupingInput!): SeatPayload!
   updateSeatWeapon(input: UpdateSeatWeaponInput!): SeatPayload!
@@ -1968,6 +1988,11 @@ input UpdateGroupingInput {
   title: String
   startsAt: String
   seats: [SeatInput!]
+}
+
+input MergeGroupingInput {
+  targetId: ID!
+  sourceId: ID!
 }
 
 input JoinGroupingInput {

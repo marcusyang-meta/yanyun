@@ -227,3 +227,17 @@ export async function deleteSignupAnswersByEvent(
   );
   return metaOf(r);
 }
+
+/** Merge migration: a moved seat's answers are re-homed to the
+ * surviving car with it (the uid tie is unchanged; the field ids
+ * stay the source car's own, so the rows remain the seat's record
+ * even where the surviving car defines no matching field). */
+export async function moveSignupAnswersToEvent(
+  d1: D1Database, fromEventId: number, toEventId: number, signupUid: string,
+): Promise<RunMeta> {
+  const db = createDb(d1);
+  const r = await db.run(
+    sql`UPDATE ${signupAnswers} SET ${col('event_id')} = ${toEventId} WHERE ${col('event_id')} = ${fromEventId} AND ${col('signup_uid')} = ${signupUid}`,
+  );
+  return metaOf(r);
+}

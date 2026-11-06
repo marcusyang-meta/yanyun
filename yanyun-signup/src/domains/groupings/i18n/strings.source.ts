@@ -96,6 +96,14 @@ export abstract class GroupingDetailFbtUtils {
   static toastRestoreFailed(fbs: FbsAPI, p?: StringParams) { return fbs(["恢复失败：", fbs.param("error", pv(p, "error"))], "Toast message for the squad detail page, used when restoring fails, where {error} is the failure reason."); }
   static completedHint(fbs: FbsAPI) { return fbs("该车队已完成 · 已从列表隐藏，不再发送发车提醒", "Hint text for completed squads on the detail page, used to explain the squad is hidden from the list and no longer receives departure reminders."); }
   static rosterAnswersTitle(fbs: FbsAPI) { return fbs("报名表答案", "Title text for the roster answers section on the squad detail page, used above the per-seat custom signup answers shown to the leader and guild admins."); }
+  static merge(fbs: FbsAPI) { return fbs("合并车队", "Button label for the squad detail page, used to open the merge picker, shown to the leader or a guild admin."); }
+  static mergeDialogTitle(fbs: FbsAPI) { return fbs("选择要并入的车队", "Title text for the merge picker on the squad detail page, used as the dialog heading above the list of squads that can be merged into this one."); }
+  static mergeEmpty(fbs: FbsAPI) { return fbs("暂无可合并的车队", "Empty-state text for the merge picker on the squad detail page, used when no other squad in this guild can be merged into this one."); }
+  static mergeConfirmTitle(fbs: FbsAPI) { return fbs("确认合并", "Title text for the merge confirmation on the squad detail page, used as the confirmation step heading after a source squad is picked."); }
+  static mergeConfirmMessage(fbs: FbsAPI, p?: StringParams) { return fbs(["确定把「", fbs.param("title", pv(p, "title")), "」并入本车队吗？它的成员将整体迁入本车，同一人两边都有座位时以本车为准，超出本车人数上限的成员按报名顺序列在座位之后；合并后源车将解散。"], "Confirmation message for merging squads, used in the dialog to explain that the source squad's members move into this squad, this squad's seat wins for a person seated in both, members past this squad's capacity line up behind the seats in signup order, and the source squad is disbanded afterwards, where {title} is the source squad title."); }
+  static mergeConfirmSubmit(fbs: FbsAPI) { return fbs("确认合并", "Button label for the merge confirmation on the squad detail page, used to execute the merge."); }
+  static toastMerged(fbs: FbsAPI) { return fbs("车队已合并", "Toast message for the squad detail page, used after another squad is merged into this one."); }
+  static toastMergeFailed(fbs: FbsAPI, p?: StringParams) { return fbs(["合并失败：", fbs.param("error", pv(p, "error"))], "Toast message for the squad detail page, used when merging fails, where {error} is the failure reason."); }
 }
 
 export abstract class GroupingFormFbtUtils {
