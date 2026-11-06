@@ -449,6 +449,21 @@ export abstract class GroupingDetailFbtUtils {
 	static toastMergeFailed(fbs: FbsRuntime, p?: StringParams) {
 		return fbs._("合并失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "1LuwI7" });
 	}
+	static cloneButton(fbs: FbsRuntime) {
+		return fbs._("再来一车", null, { hk: "2KJYu1" });
+	}
+	static cloneDialogTitle(fbs: FbsRuntime) {
+		return fbs._("复制车队", null, { hk: "1wTWWO" });
+	}
+	static cloneToastCloned(fbs: FbsRuntime) {
+		return fbs._("已复制为新车", null, { hk: "48xe5N" });
+	}
+	static cloneToastFailed(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("复制失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "2bZWJJ" });
+	}
+	static cloneToastSkipped(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("以下成员未能带入新车（请先加入名册）：{names}", [fbs._param("names", pv(p, "names"))], { hk: "39eOzZ" });
+	}
 }
 export abstract class GroupingFormFbtUtils {
 	static createTitle(fbs: FbsRuntime) {
@@ -5437,6 +5452,11 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"groupingDetail_mergeConfirmSubmit": GroupingDetailFbtUtils.mergeConfirmSubmit,
 	"groupingDetail_toastMerged": GroupingDetailFbtUtils.toastMerged,
 	"groupingDetail_toastMergeFailed": GroupingDetailFbtUtils.toastMergeFailed,
+	"groupingDetail_cloneButton": GroupingDetailFbtUtils.cloneButton,
+	"groupingDetail_cloneDialogTitle": GroupingDetailFbtUtils.cloneDialogTitle,
+	"groupingDetail_cloneToastCloned": GroupingDetailFbtUtils.cloneToastCloned,
+	"groupingDetail_cloneToastFailed": GroupingDetailFbtUtils.cloneToastFailed,
+	"groupingDetail_cloneToastSkipped": GroupingDetailFbtUtils.cloneToastSkipped,
 	"groupingForm_createTitle": GroupingFormFbtUtils.createTitle,
 	"groupingForm_editTitle": GroupingFormFbtUtils.editTitle,
 	"groupingForm_typeLabel": GroupingFormFbtUtils.typeLabel,

@@ -523,6 +523,39 @@ type GroupingTemplateSave {
   toastFailedTemplate: String!
 }
 
+# 详情页「再来一车」动作对象: 仅当观看者可管理本车时存在 (与
+# manageActions 同一判定: 车头本人, 或本百业管理员); 否则为 null,
+# 客户端不渲染复制入口。cloneGrouping mutation 处独立复验。
+# defaultStartsAt 是服务端按观看者时区算出的默认出发时刻 (epoch 秒
+# 字符串): 沿用原车在其时区的时刻, 日期顺延到最近的同星期几 (原车
+# 无出发时间时为当天 20:00); 客户端的时间选择器以此为初值。
+type GroupingCloneAction {
+  buttonLabel: String!
+  dialogTitle: String!
+  toastCloned: String!
+  toastFailedTemplate: String!
+  toastSkippedTemplate: String!
+  defaultStartsAt: String!
+}
+
+type CloneGroupingPayload {
+  ok: Boolean!
+  grouping: Grouping
+  # 复制时没能带入新车的原车座位名字: 名字在各名册上解析不到任何人
+  # (存量占位名), 座位被跳过、名单回给操作者; 成功时可能为空表。
+  skippedNames: [String!]!
+  error: String
+  errorCode: String
+}
+
+input CloneGroupingInput {
+  groupingId: ID!
+  # 新车标题; 缺省沿用原车标题。
+  title: String
+  # 新车出发时刻 (epoch 秒字符串, 与 CreateGroupingInput.startsAt 同口径)。
+  startsAt: String!
+}
+
 type GroupingTemplatePayload {
   ok: Boolean!
   template: GroupingTemplate
@@ -667,6 +700,9 @@ type GroupingDetailPage {
   # 存为模板动作对象: 仅当观看者可在本百业写 (建车同权) 时存在, 否则 null;
   # 客户端据此渲染「存为模板」入口, mutation 处独立复验。
   templateSave: GroupingTemplateSave
+  # 再来一车动作对象: 仅当观看者可管理本车时存在 (车头 / 本百业管理员),
+  # 否则 null; 默认出发时刻由服务端按观看者时区算好, mutation 处独立复验。
+  cloneAction: GroupingCloneAction
   # 报名表答案名册: 仅可管理本车的观看者 (车头 / 本百业管理员) 得到
   # 非空值; 其他观看者为 null, 答案不下发。mutation/查询处同一判定。
   rosterAnswers: [RosterAnswer!]
@@ -2153,6 +2189,7 @@ extend type Mutation {
 type Mutation {
   # 组队（无管理码，人人可管；唯一例外：编辑/解散/完成/恢复仅车头或本百业管理员可为）
   createGrouping(input: CreateGroupingInput!): GroupingPayload!
+  cloneGrouping(input: CloneGroupingInput!): CloneGroupingPayload!  # 再来一车: 复制配置与座位名单为新车; 仅原车车头或本百业管理员, 服务端复验
   updateGrouping(id: ID!, input: UpdateGroupingInput!): GroupingPayload!
   disbandGrouping(id: ID!): DeletePayload!  # 解散车队：仅车头或本百业管理员可为，服务端复验
   completeGrouping(id: ID!): GroupingPayload!  # 完成车队：仅车头或本百业管理员可为，服务端复验；完成车不进列表、不发提醒

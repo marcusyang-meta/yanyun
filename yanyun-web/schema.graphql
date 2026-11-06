@@ -457,6 +457,29 @@ type GroupingTemplateSave {
   toastFailedTemplate: String!
 }
 
+type GroupingCloneAction {
+  buttonLabel: String!
+  dialogTitle: String!
+  toastCloned: String!
+  toastFailedTemplate: String!
+  toastSkippedTemplate: String!
+  defaultStartsAt: String!
+}
+
+type CloneGroupingPayload {
+  ok: Boolean!
+  grouping: Grouping
+  skippedNames: [String!]!
+  error: String
+  errorCode: String
+}
+
+input CloneGroupingInput {
+  groupingId: ID!
+  title: String
+  startsAt: String!
+}
+
 type GroupingTemplatePayload {
   ok: Boolean!
   template: GroupingTemplate
@@ -554,6 +577,7 @@ type GroupingDetailPage {
   allySharing: AllySharingControl
   merge: GroupingMerge
   templateSave: GroupingTemplateSave
+  cloneAction: GroupingCloneAction
   rosterAnswers: [RosterAnswer!]
   rosterAnswersTitle: String!
   recap: GroupingRecapResult
@@ -1810,6 +1834,7 @@ input VoteTimePollInput {
 
 type Mutation {
   createGrouping(input: CreateGroupingInput!): GroupingPayload!
+  cloneGrouping(input: CloneGroupingInput!): CloneGroupingPayload!
   updateGrouping(id: ID!, input: UpdateGroupingInput!): GroupingPayload!
   disbandGrouping(id: ID!): DeletePayload!
   completeGrouping(id: ID!): GroupingPayload!

@@ -68,6 +68,11 @@ export type GroupingsStringKey =
   | 'groupingDetail_mergeConfirmSubmit'
   | 'groupingDetail_toastMerged'
   | 'groupingDetail_toastMergeFailed'
+  | 'groupingDetail_cloneButton'
+  | 'groupingDetail_cloneDialogTitle'
+  | 'groupingDetail_cloneToastCloned'
+  | 'groupingDetail_cloneToastFailed'
+  | 'groupingDetail_cloneToastSkipped'
   | 'groupingForm_createTitle'
   | 'groupingForm_editTitle'
   | 'groupingForm_typeLabel'
@@ -417,6 +422,11 @@ export const GROUPINGS_STRING_KEYS: readonly GroupingsStringKey[] = [
   'groupingDetail_mergeConfirmSubmit',
   'groupingDetail_toastMerged',
   'groupingDetail_toastMergeFailed',
+  'groupingDetail_cloneButton',
+  'groupingDetail_cloneDialogTitle',
+  'groupingDetail_cloneToastCloned',
+  'groupingDetail_cloneToastFailed',
+  'groupingDetail_cloneToastSkipped',
   'groupingForm_createTitle',
   'groupingForm_editTitle',
   'groupingForm_typeLabel',

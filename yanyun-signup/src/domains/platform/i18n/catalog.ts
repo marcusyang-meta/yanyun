@@ -922,6 +922,26 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
     "toastMergeFailed": {
       "zh-CN": "合并失败：{error}",
       "en": "Merge failed: {error}"
+    },
+    "cloneButton": {
+      "zh-CN": "再来一车",
+      "en": "Run it again"
+    },
+    "cloneDialogTitle": {
+      "zh-CN": "复制车队",
+      "en": "Clone squad"
+    },
+    "cloneToastCloned": {
+      "zh-CN": "已复制为新车",
+      "en": "Cloned into a new squad"
+    },
+    "cloneToastFailed": {
+      "zh-CN": "复制失败：{error}",
+      "en": "Clone failed: {error}"
+    },
+    "cloneToastSkipped": {
+      "zh-CN": "以下成员未能带入新车（请先加入名册）：{names}",
+      "en": "These members could not be carried into the new squad (add them to the roster first): {names}"
     }
   },
   "groupingForm": {

@@ -104,6 +104,11 @@ export abstract class GroupingDetailFbtUtils {
   static mergeConfirmSubmit(fbs: FbsAPI) { return fbs("确认合并", "Button label for the merge confirmation on the squad detail page, used to execute the merge."); }
   static toastMerged(fbs: FbsAPI) { return fbs("车队已合并", "Toast message for the squad detail page, used after another squad is merged into this one."); }
   static toastMergeFailed(fbs: FbsAPI, p?: StringParams) { return fbs(["合并失败：", fbs.param("error", pv(p, "error"))], "Toast message for the squad detail page, used when merging fails, where {error} is the failure reason."); }
+  static cloneButton(fbs: FbsAPI) { return fbs("再来一车", "Button label for the squad detail page, used to start cloning this squad into a new one with the same roster, shown to the leader or a guild admin."); }
+  static cloneDialogTitle(fbs: FbsAPI) { return fbs("复制车队", "Title text for the clone dialog on the squad detail page, used as the heading of the dialog that posts the cloned squad."); }
+  static cloneToastCloned(fbs: FbsAPI) { return fbs("已复制为新车", "Toast message for the squad detail page, used after the squad is cloned into a new squad."); }
+  static cloneToastFailed(fbs: FbsAPI, p?: StringParams) { return fbs(["复制失败：", fbs.param("error", pv(p, "error"))], "Toast message for the squad detail page, used when cloning fails, where {error} is the failure reason."); }
+  static cloneToastSkipped(fbs: FbsAPI, p?: StringParams) { return fbs(["以下成员未能带入新车（请先加入名册）：", fbs.param("names", pv(p, "names"))], "Toast message for the squad detail page, used after a clone where some roster names resolved to nobody and their seats were skipped, where {names} lists the skipped members."); }
 }
 
 export abstract class GroupingFormFbtUtils {
