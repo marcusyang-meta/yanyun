@@ -315,6 +315,11 @@ export const ListPageTextQuery = graphql`
     }
     groupingListPage(slug: $slug, tab: $tab) {
       newCarLabel
+      weekShareImageLabel
+      weekShareImageUrl
+      weekShareText
+      weekShareUrl
+      weekShareImageFailed
       tabActivityLabel
       tabTalentLabel
       tabRaceLabel

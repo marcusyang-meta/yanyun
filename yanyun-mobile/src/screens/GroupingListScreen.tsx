@@ -1,5 +1,7 @@
 import React, { Suspense, useCallback, useEffect, useRef, useState } from 'react';
-import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, RefreshControl, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import { File, Paths } from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fetchQuery, useLazyLoadQuery, useRelayEnvironment } from 'react-relay';
@@ -19,6 +21,7 @@ import { BlockNode1View } from '../blocks/BlockRenderer';
 import type { ActionHandlers } from '../blocks/actions';
 import { AsyncBoundary, LoadingView } from '../components/AsyncBoundary';
 import { weekRangeLabel } from '../week';
+import { deliverShareImage, type ShareImageDeps } from '../shareImage';
 import { useGuildLive } from '../live';
 import type { documentsGroupingListBlocksQuery } from '../__generated__/documentsGroupingListBlocksQuery.graphql';
 
@@ -145,6 +148,9 @@ export default function GroupingListScreen({ slug, name, nick, gameVersion, avat
         <>
           <View style={s.createRow}>
             <Suspense fallback={null}>
+              <WeekShareButton slug={slug} />
+            </Suspense>
+            <Suspense fallback={null}>
               <CreateCarButton slug={slug} onPress={() => setShowCreate(true)} />
             </Suspense>
             <Suspense fallback={null}>
@@ -231,6 +237,59 @@ function GuildHeaderLive({ slug, name, fallbackVersion, avatarUrl }: { slug: str
     { fetchPolicy: 'store-or-network' },
   );
   return <GuildHeader name={name} version={data.groupingListPage?.currentVersion ?? fallbackVersion} avatarUrl={avatarUrl} />;
+}
+
+// Production wiring for the share-image action (same shape as the
+// detail screen's: download into the cache directory via
+// expo-file-system, hand the local file to expo-sharing; the link
+// fallback is the plain RN Share call).
+const nativeShareImageDeps: ShareImageDeps = {
+  download: async (url, fileName) => {
+    const file = await File.downloadFileAsync(url, new File(Paths.cache, fileName), { idempotent: true });
+    return file.uri;
+  },
+  isSharingAvailable: () => Sharing.isAvailableAsync(),
+  shareFile: (uri, options) => Sharing.shareAsync(uri, options),
+  shareLink: async (url) => { await Share.share({ url, message: url }); },
+};
+
+// Weekly squad image entry: beside the create button, mirroring
+// Web's list page. Runs the same deliverShareImage flow as the
+// detail page's share-image action with the list shell's composed
+// URL / text / guild link; only failure is surfaced (the share
+// sheet itself is the success feedback), like the detail action.
+function WeekShareButton({ slug }: { slug: string }) {
+  const data = useLazyLoadQuery<documentsListPageTextQuery>(
+    ListPageTextQuery,
+    { slug, tab: 'ACTIVITY' },
+    { fetchPolicy: 'store-or-network' },
+  );
+  const page = data.groupingListPage;
+  const [busy, setBusy] = useState(false);
+  if (!page?.weekShareImageLabel || !page?.weekShareImageUrl) return null;
+  const onShare = () => {
+    if (busy) return;
+    setBusy(true);
+    void (async () => {
+      try {
+        const outcome = await deliverShareImage(nativeShareImageDeps, {
+          imageUrl: page.weekShareImageUrl,
+          linkUrl: page.weekShareUrl ?? null,
+          dialogTitle: page.weekShareText ?? '',
+        });
+        if (outcome === 'failed') {
+          Alert.alert(page.weekShareImageFailed ?? '');
+        }
+      } finally {
+        setBusy(false);
+      }
+    })();
+  };
+  return (
+    <Pressable style={[s.weekShareBtn, busy && { opacity: 0.5 }]} onPress={onShare} disabled={busy}>
+      <Text style={s.weekShareBtnText}>{page.weekShareImageLabel}</Text>
+    </Pressable>
+  );
 }
 
 // New-grouping entry: same position as Web's list page (gold button,
@@ -414,6 +473,11 @@ const s = StyleSheet.create({
     paddingHorizontal: 22, paddingVertical: 10,
   },
   createBtnText: { fontFamily: fonts.serif, color: theme.onGold, fontSize: 14, fontWeight: '700' },
+  weekShareBtn: {
+    borderRadius: 10, borderWidth: 1, borderColor: 'rgba(201,163,92,.45)',
+    paddingHorizontal: 18, paddingVertical: 10, marginRight: 10,
+  },
+  weekShareBtnText: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 14 },
   // .yy-fchip row: left-aligned ghost chips; active = gold text + gold border + pale gold fill + 600
   chipsZone: { paddingHorizontal: 20, marginBottom: 16 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
