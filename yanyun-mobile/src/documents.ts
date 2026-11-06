@@ -754,6 +754,15 @@ export const ProfilePageQuery = graphql`
         accountPendingTitle
         accountPendingBody
       }
+      calendarFeed {
+        calendarSectionTitle
+        calendarHintText
+        calendarUrl
+        calendarCopyLabel
+        calendarCopiedText
+        calendarResetLabel
+        calendarResetDoneText
+      }
     }
     gradPage {
       gearMyLibTitle
@@ -1040,6 +1049,23 @@ export const RequestAccountDeletionMutation = graphql`
       error
       errorCode
       executesAt
+    }
+  }
+`;
+
+/* Calendar subscription: reset the member's feed token (the old
+   URL dies server-side at once); the payload carries the refreshed
+   section object with the new URL. */
+
+export const ResetCalendarFeedMutation = graphql`
+  mutation documentsResetCalendarFeedMutation {
+    resetCalendarFeedToken {
+      ok
+      error
+      errorCode
+      calendarFeed {
+        calendarUrl
+      }
     }
   }
 `;

@@ -21,6 +21,7 @@ import {
   ExportMyDataMutation,
   RequestAccountDeletionMutation,
   CancelAccountDeletionMutation,
+  ResetCalendarFeedMutation,
   UpdateGroupingMutation,
   UpdateMyLocaleMutation,
   ViewerQuery,
@@ -84,6 +85,7 @@ import type { documentsUnregisterPushTokenMutation } from './__generated__/docum
 import type { documentsExportMyDataMutation } from './__generated__/documentsExportMyDataMutation.graphql';
 import type { documentsRequestAccountDeletionMutation } from './__generated__/documentsRequestAccountDeletionMutation.graphql';
 import type { documentsCancelAccountDeletionMutation } from './__generated__/documentsCancelAccountDeletionMutation.graphql';
+import type { documentsResetCalendarFeedMutation } from './__generated__/documentsResetCalendarFeedMutation.graphql';
 import type { documentsPostGuildAnnouncementMutation } from './__generated__/documentsPostGuildAnnouncementMutation.graphql';
 import type { documentsApplyToGuildMutation } from './__generated__/documentsApplyToGuildMutation.graphql';
 import type { documentsMarkGuildAnnouncementReadMutation } from './__generated__/documentsMarkGuildAnnouncementReadMutation.graphql';
@@ -512,6 +514,20 @@ export async function requestAccountDeletionRemote(typedUsername: string): Promi
 export async function cancelAccountDeletionRemote(): Promise<AccountDeletionPayload> {
   const r = await commit<documentsCancelAccountDeletionMutation>(CancelAccountDeletionMutation, {});
   return r.cancelAccountDeletion as AccountDeletionPayload;
+}
+
+/* Calendar subscription reset: rotates the member's feed token;
+   the payload's calendarFeed carries the new subscription URL. */
+export type ResetCalendarFeedPayload = {
+  ok: boolean;
+  error?: string | null;
+  errorCode?: string | null;
+  calendarFeed?: { calendarUrl: string } | null;
+};
+
+export async function resetCalendarFeedRemote(): Promise<ResetCalendarFeedPayload> {
+  const r = await commit<documentsResetCalendarFeedMutation>(ResetCalendarFeedMutation, {});
+  return r.resetCalendarFeedToken as ResetCalendarFeedPayload;
 }
 
 
