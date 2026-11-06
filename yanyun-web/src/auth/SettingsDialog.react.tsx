@@ -149,6 +149,15 @@ const SettingsDialogQueryNode = graphql`
         guildName
         slots { weekday startMinute endMinute }
       }
+      calendarFeed {
+        calendarSectionTitle
+        calendarHintText
+        calendarUrl
+        calendarCopyLabel
+        calendarCopiedText
+        calendarResetLabel
+        calendarResetDoneText
+      }
     }
     gradPage {
       gearMyLibTitle
@@ -226,6 +235,19 @@ const SettingsDeleteGoalMutationNode = graphql`
       ok
       error
       errorCode
+    }
+  }
+`;
+
+const SettingsResetCalendarMutationNode = graphql`
+  mutation SettingsDialogResetCalendarMutation {
+    resetCalendarFeedToken {
+      ok
+      error
+      errorCode
+      calendarFeed {
+        calendarUrl
+      }
     }
   }
 `;
@@ -336,6 +358,46 @@ function SettingsDialogInner({ onClose, user, initialFlow, initialPage, logoutTe
   const [fbDone, setFbDone] = useState(false);
 
   const openFeedback = () => { setFbDone(false); setFbError(''); pushPage('feedback'); };
+
+  // Calendar subscription (root page section): the member's own
+  // iCal feed URL with copy + token reset. The URL is composed by
+  // the backend (token lazy-minted on the settings read); copy is
+  // a clipboard write with a select-the-text fallback, and reset
+  // goes through resetCalendarFeedToken, after which the dialog
+  // query refetches and the section re-renders with the new URL.
+  const calFeed: any = page.calendarFeed ?? null;
+  const calUrlRef = useRef<HTMLInputElement | null>(null);
+  const [commitCalReset, calResetInFlight] = useMutation<any>(SettingsResetCalendarMutationNode);
+  const [calCopied, setCalCopied] = useState(false);
+  const [calResetDone, setCalResetDone] = useState(false);
+  const [calError, setCalError] = useState('');
+  const copyCalUrl = async () => {
+    setCalCopied(false);
+    const url = calFeed?.calendarUrl || '';
+    try {
+      await navigator.clipboard.writeText(url);
+      setCalCopied(true);
+    } catch {
+      const el = calUrlRef.current;
+      if (el) { el.focus(); el.select(); try { document.execCommand('copy'); setCalCopied(true); } catch { /* selection stays for a manual copy */ } }
+    }
+  };
+  const resetCalUrl = () => {
+    setCalError('');
+    commitCalReset({
+      variables: {},
+      onCompleted: (resp: any) => {
+        if (resp?.resetCalendarFeedToken?.ok) {
+          setCalResetDone(true);
+          setCalCopied(false);
+          refetchSelf();
+        } else {
+          setCalError(resp?.resetCalendarFeedToken?.error || viewer.commonUnknownErrorText || '');
+        }
+      },
+      onError: () => setCalError(viewer.commonUnknownErrorText || ''),
+    });
+  };
 
   // Sign-out (root page's last row): the same /auth/logout flow the
   // UserBar button runs — POST, then land on the entry page either way.
@@ -731,6 +793,59 @@ function SettingsDialogInner({ onClose, user, initialFlow, initialPage, logoutTe
           </button>
         )}
       </div>
+
+      {/* Calendar subscription: the member's personal iCal feed.
+          The section exists only when the backend composed it (a
+          signed-in member); the URL itself is the credential, so it
+          renders only here, in the owner's own settings. */}
+      {calFeed && (
+        <div style={{ borderTop: '1px solid rgba(201,163,92,.22)', marginTop: 24, paddingTop: 18 }} data-calendar-section>
+          <div style={{ color: theme.paper, fontSize: 16, marginBottom: 6 }}>{calFeed.calendarSectionTitle}</div>
+          <div style={{ color: theme.muted, fontSize: 13, lineHeight: 1.7, marginBottom: 12 }}>{calFeed.calendarHintText}</div>
+          <input
+            ref={calUrlRef}
+            data-calendar-url
+            readOnly
+            value={calFeed.calendarUrl}
+            onFocus={(e) => e.target.select()}
+            style={{
+              width: '100%', boxSizing: 'border-box', padding: '10px 12px', borderRadius: 8,
+              background: 'rgba(255,255,255,.03)', border: '1px solid rgba(201,163,92,.25)',
+              color: theme.paper, fontSize: 12.5, marginBottom: 10,
+            }}
+          />
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              data-calendar-copy
+              onClick={copyCalUrl}
+              style={{
+                padding: '9px 16px', borderRadius: 8, cursor: 'pointer',
+                background: 'transparent', border: `1px solid ${theme.gold}`,
+                color: theme.goldHi, fontSize: 13.5,
+              }}
+            >{calFeed.calendarCopyLabel}</button>
+            <button
+              data-calendar-reset
+              onClick={resetCalUrl}
+              disabled={calResetInFlight}
+              style={{
+                padding: '9px 16px', borderRadius: 8, cursor: 'pointer',
+                background: 'transparent', border: '1px solid rgba(201,163,92,.3)',
+                color: theme.muted, fontSize: 13.5,
+              }}
+            >{calFeed.calendarResetLabel}</button>
+          </div>
+          {calCopied && (
+            <div style={{ color: '#7fb069', fontSize: 13, marginTop: 10 }}>✓ {calFeed.calendarCopiedText}</div>
+          )}
+          {calResetDone && (
+            <div style={{ color: '#7fb069', fontSize: 13, marginTop: 10 }}>✓ {calFeed.calendarResetDoneText}</div>
+          )}
+          {calError && (
+            <div style={{ color: '#e58d7f', fontSize: 13, marginTop: 10 }}>{calError}</div>
+          )}
+        </div>
+      )}
 
       {/* My Data: account export + deletion (self-service). The pending
           state arrives as data (accountPendingDeletion present/absent),

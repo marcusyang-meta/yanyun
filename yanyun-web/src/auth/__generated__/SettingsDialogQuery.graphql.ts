@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<bc7ccadf833139670ee63e3b3e3d80ae>>
+ * @generated SignedSource<<1378914133ed7f8e66f2b42016c30732>>
  * @lightSyntaxTransform
  */
 
@@ -61,6 +61,15 @@ export type SettingsDialogQuery$data = {
     readonly availabilitySavedText: string;
     readonly availabilityTitle: string;
     readonly availabilityWeekdayNames: ReadonlyArray<string>;
+    readonly calendarFeed: {
+      readonly calendarCopiedText: string;
+      readonly calendarCopyLabel: string;
+      readonly calendarHintText: string;
+      readonly calendarResetDoneText: string;
+      readonly calendarResetLabel: string;
+      readonly calendarSectionTitle: string;
+      readonly calendarUrl: string;
+    } | null | undefined;
     readonly effectiveLocale: string;
     readonly feedbackCategoryLabel: string;
     readonly feedbackCategoryOtherLabel: string;
@@ -913,6 +922,66 @@ v7 = [
           }
         ],
         "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "concreteType": "CalendarFeedSettings",
+        "kind": "LinkedField",
+        "name": "calendarFeed",
+        "plural": false,
+        "selections": [
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "calendarSectionTitle",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "calendarHintText",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "calendarUrl",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "calendarCopyLabel",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "calendarCopiedText",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "calendarResetLabel",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "calendarResetDoneText",
+            "storageKey": null
+          }
+        ],
+        "storageKey": null
       }
     ],
     "storageKey": null
@@ -954,16 +1023,16 @@ return {
     "selections": (v7/*:: as any*/)
   },
   "params": {
-    "cacheID": "f89a15be1327bda8ead6c4a878162e80",
+    "cacheID": "710a7d9b0b288d88e7aeb27798ef3796",
     "id": null,
     "metadata": {},
     "name": "SettingsDialogQuery",
     "operationKind": "query",
-    "text": "query SettingsDialogQuery {\n  viewer {\n    commonUnknownErrorText\n    platformAdmin {\n      __typename\n    }\n  }\n  settingsPage {\n    settingsTitle\n    settingsDiscordLabel\n    settingsLanguageLabel\n    settingsLanguageHint\n    settingsAutoLabel\n    settingsLangZhCnLabel\n    settingsLangZhTwLabel\n    settingsLangEnLabel\n    settingsLangEsLabel\n    settingsLangFrLabel\n    settingsSavedText\n    feedbackEntryLabel\n    feedbackTitle\n    feedbackCategoryLabel\n    feedbackCategoryProblemLabel\n    feedbackCategorySuggestionLabel\n    feedbackCategoryOtherLabel\n    feedbackPlaceholder\n    feedbackSubmitLabel\n    feedbackSubmittingLabel\n    feedbackSuccessText\n    localePref\n    effectiveLocale\n    accountSectionTitle\n    accountExportLabel\n    accountExportHint\n    accountDeleteLabel\n    accountDeleteHint\n    accountReauthLabel\n    accountReauthHint\n    accountConfirmTitle\n    accountConfirmIntro\n    accountConsequenceCars\n    accountConsequenceData\n    accountConsequenceGuilds\n    accountConsequenceResidual\n    accountConsequenceReregister\n    accountExportFirstHint\n    accountUsernameLabel\n    accountSubmitLabel\n    accountBackLabel\n    accountCancelDeletionLabel\n    accountDeletionRequestedText\n    accountDeletionCancelledText\n    freshAuthAt\n    seasonGoals {\n      entryLabel\n      title\n      hint\n      emptyText\n      guildLabel\n      goalTitleLabel\n      goalTitlePlaceholder\n      goalNoteLabel\n      goalNotePlaceholder\n      dungeonLabel\n      dungeonNoneLabel\n      statusLabel\n      addLabel\n      saveLabel\n      editLabel\n      deleteLabel\n      statusActiveLabel\n      statusDoneLabel\n      statusDroppedLabel\n      goals {\n        id\n        guildSlug\n        guildName\n        title\n        note\n        status\n        statusLabel\n        dungeonId\n        dungeonName\n        seasonName\n      }\n      guildOptions {\n        slug\n        name\n      }\n      dungeonOptions {\n        id\n        name\n        seasonName\n      }\n    }\n    accountPendingDeletion {\n      executesAt\n      daysLeft\n      accountPendingTitle\n      accountPendingBody\n    }\n    availabilityTitle\n    availabilityHint\n    availabilityWeekdayNames\n    availabilityAddSlotLabel\n    availabilityRemoveLabel\n    availabilitySaveLabel\n    availabilitySavedText\n    availabilitySaveFailedTemplate\n    availabilityEmptyText\n    availabilityNoGuildsText\n    availabilityGuilds {\n      slug\n      guildName\n      slots {\n        weekday\n        startMinute\n        endMinute\n      }\n    }\n  }\n  gradPage {\n    gearMyLibTitle\n  }\n}\n"
+    "text": "query SettingsDialogQuery {\n  viewer {\n    commonUnknownErrorText\n    platformAdmin {\n      __typename\n    }\n  }\n  settingsPage {\n    settingsTitle\n    settingsDiscordLabel\n    settingsLanguageLabel\n    settingsLanguageHint\n    settingsAutoLabel\n    settingsLangZhCnLabel\n    settingsLangZhTwLabel\n    settingsLangEnLabel\n    settingsLangEsLabel\n    settingsLangFrLabel\n    settingsSavedText\n    feedbackEntryLabel\n    feedbackTitle\n    feedbackCategoryLabel\n    feedbackCategoryProblemLabel\n    feedbackCategorySuggestionLabel\n    feedbackCategoryOtherLabel\n    feedbackPlaceholder\n    feedbackSubmitLabel\n    feedbackSubmittingLabel\n    feedbackSuccessText\n    localePref\n    effectiveLocale\n    accountSectionTitle\n    accountExportLabel\n    accountExportHint\n    accountDeleteLabel\n    accountDeleteHint\n    accountReauthLabel\n    accountReauthHint\n    accountConfirmTitle\n    accountConfirmIntro\n    accountConsequenceCars\n    accountConsequenceData\n    accountConsequenceGuilds\n    accountConsequenceResidual\n    accountConsequenceReregister\n    accountExportFirstHint\n    accountUsernameLabel\n    accountSubmitLabel\n    accountBackLabel\n    accountCancelDeletionLabel\n    accountDeletionRequestedText\n    accountDeletionCancelledText\n    freshAuthAt\n    seasonGoals {\n      entryLabel\n      title\n      hint\n      emptyText\n      guildLabel\n      goalTitleLabel\n      goalTitlePlaceholder\n      goalNoteLabel\n      goalNotePlaceholder\n      dungeonLabel\n      dungeonNoneLabel\n      statusLabel\n      addLabel\n      saveLabel\n      editLabel\n      deleteLabel\n      statusActiveLabel\n      statusDoneLabel\n      statusDroppedLabel\n      goals {\n        id\n        guildSlug\n        guildName\n        title\n        note\n        status\n        statusLabel\n        dungeonId\n        dungeonName\n        seasonName\n      }\n      guildOptions {\n        slug\n        name\n      }\n      dungeonOptions {\n        id\n        name\n        seasonName\n      }\n    }\n    accountPendingDeletion {\n      executesAt\n      daysLeft\n      accountPendingTitle\n      accountPendingBody\n    }\n    availabilityTitle\n    availabilityHint\n    availabilityWeekdayNames\n    availabilityAddSlotLabel\n    availabilityRemoveLabel\n    availabilitySaveLabel\n    availabilitySavedText\n    availabilitySaveFailedTemplate\n    availabilityEmptyText\n    availabilityNoGuildsText\n    availabilityGuilds {\n      slug\n      guildName\n      slots {\n        weekday\n        startMinute\n        endMinute\n      }\n    }\n    calendarFeed {\n      calendarSectionTitle\n      calendarHintText\n      calendarUrl\n      calendarCopyLabel\n      calendarCopiedText\n      calendarResetLabel\n      calendarResetDoneText\n    }\n  }\n  gradPage {\n    gearMyLibTitle\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "50f50c8b8dbc88b8dbe210033cdcbcb5";
+(node as any).hash = "90fb38a52b4e3686e783c2a81a649d09";
 
 export default node;
