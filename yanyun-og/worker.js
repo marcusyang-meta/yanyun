@@ -259,6 +259,47 @@ async function fetchTeamCount(slug) {
 
 const CAR_TYPE_LABEL = { ACTIVITY: '双十人本', TALENT: '天赋组队', RACE: '竞速报名' };
 
+/* 本周车队图的数据: ogGuildCard.weekCars (公开卡面窄口) — 窗口与
+ * fetchTeamCount 同一 weekWindowUtc (周一 05:00 北京, 半开区间),
+ * 后端只回 open 车且按出发时间升序, 每台车只带卡面字段。后端尚不
+ * 认识 weekCars 时整条查询报错 -> throw, 上层兜底通用图 (绝不渲
+ * 一张假的空图)。 */
+async function fetchWeekCars(slug) {
+  const [from, to] = weekWindowUtc();
+  const json = await fetchJson(`${SITE_API}/graphql`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      query: `
+        query($slug: String!, $from: Int!, $to: Int!) {
+          ogGuildCard(slug: $slug) {
+            weekCars(fromUtc: $from, toUtc: $to) {
+              title type dungeonName startsAtUtc cardTimeText occupiedCount maxSlots leaderName
+            }
+          }
+        }
+      `,
+      variables: { slug, from, to },
+    }),
+  });
+  const cars = json.data?.ogGuildCard?.weekCars;
+  if (!Array.isArray(cars)) throw new Error('weekCars missing in ogGuildCard response');
+  return cars;
+}
+
+/* 周图标题下的日期范围 (窗口首尾两天, 北京时间墙钟): 只标起止
+ * 日期, 不写相对说法 (与主站口径一致)。 */
+function weekRangeText() {
+  const [from, to] = weekWindowUtc();
+  const fmt = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Shanghai', month: 'numeric', day: 'numeric' });
+  const md = (epoch) => {
+    const parts = {};
+    for (const p of fmt.formatToParts(new Date(epoch * 1000))) parts[p.type] = p.value;
+    return `${parts.month}月${parts.day}日`;
+  };
+  return `${md(from)} – ${md(to - 86400)}`;
+}
+
 // 车时间格式化（仅作回退）：卡面时间现在由后端渲染成整串下发（ogCarCard.cardTimeText，如“美东 周日 16:30 · 美西 周日 13:30”，与 og:description 同源），本函数只在后端尚未提供该字段时兜底——即两个部署单元的滚动窗口内——按同一临时口径输出美东+美西双时区并列（每段星期按各自时区的日历取）。此函数仅车卡渲染调用（百业卡等不共用）。
 function formatCarTime(startsAt) {
   if (!startsAt) return '';
@@ -703,6 +744,191 @@ async function handleCarImage(request, url, slug, id) {
   } finally { releaseRenderSlot(); }
 }
 
+/* 本周车队图 (免费功能): 一张图列本百业本周全部 open 车 — 标题 /
+ * 分享面双时区时间串 (后端整串下发, 逐字印) / 报名人数 / 车头名,
+ * 墨金风格与车卡一致 (同底色、同强调色派生、同印章)。高度随行数
+ * 增长; 超过 WEEK_MAX_ROWS 的车只以下沿计数行带过。空周渲一张
+ * 带空态文案的同风格卡。 */
+const WEEK_MAX_ROWS = 10;
+async function handleWeekImage(request, url, slug) {
+  // Cache 10 分钟（与车卡同口径: 座位数变化快）
+  const cache = caches.default;
+  const cacheKey = new Request(url.toString(), request);
+  const cached = await cache.match(cacheKey);
+  if (cached) return cached;
+
+  // 百业不存在 -> 404; 基础设施故障 -> throw, 由顶层兜底通用图
+  const guild = await fetchGuildData(slug);
+  if (!guild) return new Response('Guild not found', { status: 404 });
+
+  const cars = await fetchWeekCars(slug);
+  const guildName = titleWithSuffix(guild.name || slug, guild);
+  const accent = accentOf(guild);
+  const shown = cars.slice(0, WEEK_MAX_ROWS);
+  const overflow = cars.length - shown.length;
+  // Row height budget: two text lines + padding; long titles may
+  // wrap to a second title line, budgeted taller.
+  const rowH = (c) => ((c.title || '').length > 22 ? 132 : 100);
+  const rowsH = shown.reduce((sum, c) => sum + rowH(c), 0);
+  const height = cars.length === 0
+    ? 630
+    : 300 + rowsH + (overflow > 0 ? 54 : 0) + 56;
+
+  await acquireRenderSlot();
+  try {
+  const font = await getFont(cache);
+  const brushFont = await getBrushFont(cache);
+
+  const rowEl = (c) => {
+    const typeLabel = CAR_TYPE_LABEL[String(c.type || '').toUpperCase()] || '';
+    const meta = [typeLabel, c.dungeonName || '', c.leaderName ? `车头 ${c.leaderName}` : '']
+      .filter(Boolean).join(' · ');
+    return {
+      type: 'div',
+      props: {
+        style: {
+          display: 'flex', flexDirection: 'column', width: '1088px',
+          padding: '16px 4px 14px', borderBottom: `1px solid ${rgbaOf(accent, 0.16)}`,
+        },
+        children: [
+          {
+            type: 'div',
+            props: {
+              style: { display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', width: '100%' },
+              children: [
+                {
+                  type: 'div',
+                  props: {
+                    style: { color: '#ece2cb', fontSize: '31px', fontWeight: 700, letterSpacing: '1px', maxWidth: '820px' },
+                    children: c.title || '',
+                  },
+                },
+                {
+                  type: 'div',
+                  props: {
+                    style: { color: accent, fontSize: '28px', letterSpacing: '2px', flexShrink: 0 },
+                    children: `${c.occupiedCount || 0}/${c.maxSlots || 0} 人`,
+                  },
+                },
+              ],
+            },
+          },
+          {
+            type: 'div',
+            props: {
+              style: { display: 'flex', flexDirection: 'row', marginTop: '8px', width: '100%' },
+              children: [
+                {
+                  type: 'div',
+                  props: {
+                    style: { color: '#b9a97f', fontSize: '25px', letterSpacing: '1px' },
+                    children: c.cardTimeText || '',
+                  },
+                },
+                ...(meta ? [{
+                  type: 'div',
+                  props: {
+                    style: { color: '#8f8570', fontSize: '25px', letterSpacing: '1px', marginLeft: '18px' },
+                    children: meta,
+                  },
+                }] : []),
+              ],
+            },
+          },
+        ],
+      },
+    };
+  };
+
+  const children = [
+    {
+      type: 'div',
+      props: {
+        style: {
+          position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+          background: `radial-gradient(ellipse at 30% 20%, ${rgbaOf(accent, 0.09)} 0%, transparent 60%)`,
+        },
+      },
+    },
+    // 百业名（小，强调色）
+    {
+      type: 'div',
+      props: {
+        style: { color: accent, fontSize: '30px', letterSpacing: '6px', marginBottom: '14px' },
+        children: guildName,
+      },
+    },
+    // 标题（毛笔体大金字）+ 印章
+    {
+      type: 'div',
+      props: {
+        style: { display: 'flex', flexDirection: 'row', alignItems: 'flex-end', marginBottom: '10px' },
+        children: [
+          {
+            type: 'div',
+            props: {
+              style: { color: '#ecd28f', fontSize: '76px', fontFamily: 'Ma Shan Zheng', letterSpacing: '2px' },
+              children: '本周车队',
+            },
+          },
+          {
+            type: 'div',
+            props: { style: { marginLeft: '18px', marginBottom: '8px', display: 'flex' }, children: sealElement(72) },
+          },
+        ],
+      },
+    },
+    // 日期范围（起止日期, 无相对说法）
+    {
+      type: 'div',
+      props: {
+        style: { color: '#b9a97f', fontSize: '27px', letterSpacing: '3px', marginBottom: '18px' },
+        children: weekRangeText(),
+      },
+    },
+    ...(cars.length === 0
+      ? [{
+          type: 'div',
+          props: {
+            style: { color: '#8f8570', fontSize: '30px', letterSpacing: '2px', marginTop: '90px' },
+            children: '本周暂无报名中的车队',
+          },
+        }]
+      : shown.map(rowEl)),
+    ...(overflow > 0 ? [{
+      type: 'div',
+      props: {
+        style: { color: '#8f8570', fontSize: '25px', letterSpacing: '2px', marginTop: '16px' },
+        children: `另有 ${overflow} 台车队`,
+      },
+    }] : []),
+  ];
+
+  const element = {
+    type: 'div',
+    props: {
+      style: {
+        width: '1200px', height: `${height}px`, display: 'flex', flexDirection: 'column',
+        alignItems: 'center', paddingTop: '54px',
+        backgroundColor: '#0c0b09', position: 'relative', fontFamily: 'Noto Sans SC',
+      },
+      children,
+    },
+  };
+
+  const svg = await satori(element, {
+    width: 1200, height,
+    fonts: [
+      { name: 'Noto Sans SC', data: font, weight: 700, style: 'normal' },
+      { name: 'Ma Shan Zheng', data: brushFont, weight: 400, style: 'normal' },
+    ],
+  });
+  const response = await svgToPngResponse(svg, url, 600);
+  await cache.put(cacheKey, response.clone());
+  return response;
+  } finally { releaseRenderSlot(); }
+}
+
 async function handleGuildImage(request, url, slug) {
   // Check cache (1 hour)
   const cache = caches.default;
@@ -918,6 +1144,11 @@ export default {
       const carMatch = path.match(/^\/og\/([^\/]+)\/car\/(\d+)\.png$/);
       if (carMatch) {
         return withImageCors(await handleCarImage(request, url, carMatch[1], carMatch[2]));
+      }
+      // Route: /og/:slug/week.png (本周车队图; 静态段须在百业路由之前)
+      const weekMatch = path.match(/^\/og\/([^\/]+)\/week\.png$/);
+      if (weekMatch) {
+        return withImageCors(await handleWeekImage(request, url, weekMatch[1]));
       }
       // Route: /og/:slug.png
       const match = path.match(/^\/og\/([^\/]+)\.png$/);
