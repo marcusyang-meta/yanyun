@@ -40,6 +40,14 @@ const GroupingDetailQueryNode = graphql`
         toastSaved
         toastFailedTemplate
       }
+      cloneAction {
+        buttonLabel
+        dialogTitle
+        toastCloned
+        toastFailedTemplate
+        toastSkippedTemplate
+        defaultStartsAt
+      }
       detailEditLabel
       detailDisbandLabel
       detailDisbandingLabel
@@ -364,6 +372,22 @@ const GroupingDetailSaveTemplateMutationNode = graphql`
   }
 `;
 
+// Clone this grouping ("run it again"): the page's cloneAction
+// object exists only for the grouping's managers (server-composed),
+// so its presence gates the button; the server re-verifies.
+const GroupingDetailCloneMutationNode = graphql`
+  mutation GroupingDetailCloneMutation($input: CloneGroupingInput!) {
+    cloneGrouping(input: $input) {
+      ok
+      error
+      skippedNames
+      grouping {
+        id
+      }
+    }
+  }
+`;
+
 const GroupingDetailCompleteMutationNode = graphql`
   mutation GroupingDetailCompleteMutation($id: ID!) {
     completeGrouping(id: $id) {
@@ -447,6 +471,51 @@ toast(fill(ts.toastFailedTemplate ?? '', { error: res.saveGroupingTemplate?.erro
 }
 },
 onError: (e: Error) => toast(fill(ts.toastFailedTemplate ?? '', { error: e.message })),
+});
+};
+// Clone ("run it again"): the dialog reuses the create form's
+// time-picker shape (month/day/hour/minute selects); its initial
+// value is the server-composed default start (source car's weekday
+// + time-of-day, nearest future one). On success the new car exists
+// in the list, so the flow returns there like disband does.
+const [showClone, setShowClone] = useState(false);
+const [cloneTitle, setCloneTitle] = useState('');
+const [cMonth, setCMonth] = useState(1);
+const [cDay, setCDay] = useState(1);
+const [cHour, setCHour] = useState(20);
+const [cMinute, setCMinute] = useState(0);
+const [commitClone, cloning] = useMutation(GroupingDetailCloneMutationNode);
+const openClone = () => {
+const ca = page.cloneAction;
+if (!ca || !g) return;
+setCloneTitle(g.title);
+const d = new Date((parseInt(ca.defaultStartsAt, 10) || 0) * 1000);
+setCMonth(d.getMonth() + 1);
+setCDay(d.getDate());
+setCHour(d.getHours());
+setCMinute(d.getMinutes());
+setShowClone(true);
+};
+const doClone = () => {
+const ca = page.cloneAction;
+if (!ca || !g) return;
+const now = new Date();
+const dt = new Date(now.getFullYear(), cMonth - 1, cDay, cHour, cMinute, 0);
+if (dt.getTime() < Date.now()) dt.setFullYear(dt.getFullYear() + 1);
+commitClone({
+variables: { input: { groupingId: g.id, title: cloneTitle.trim() || g.title, startsAt: String(Math.floor(dt.getTime() / 1000)) } },
+onCompleted: (res: any) => {
+if (res.cloneGrouping?.ok) {
+toast(ca.toastCloned);
+const skipped: string[] = res.cloneGrouping.skippedNames ?? [];
+if (skipped.length) toast(fill(ca.toastSkippedTemplate ?? '', { names: skipped.join('、') }));
+setShowClone(false);
+onBack();
+} else {
+toast(fill(ca.toastFailedTemplate ?? '', { error: res.cloneGrouping?.error || unknownErrorText }));
+}
+},
+onError: (e: Error) => toast(fill(ca.toastFailedTemplate ?? '', { error: e.message })),
 });
 };
 const data = usePreloadedQuery<GroupingDetailQueryType>(GroupingDetailQueryNode, queryRef);
@@ -713,6 +782,9 @@ verticalAlign: 'middle',
 {mergeCtl && (
 <button onClick={() => { setMergePick(null); setShowMerge(true); }} style={smBtn}>{mergeCtl.buttonLabel}</button>
 )}
+{page.cloneAction && (
+<button onClick={openClone} style={smBtn}>{page.cloneAction.buttonLabel}</button>
+)}
 <>
 {canManage && g.status !== 'completed' && (
 <button onClick={() => setShowEdit(true)} style={smBtn}>{ma.editLabel}</button>
@@ -954,6 +1026,48 @@ background: 'transparent', border: `1px solid ${theme.gold}`, color: theme.paper
 </div>
 </>
 )}
+</div>
+</div>
+)}
+{showClone && page.cloneAction && (
+<div style={{
+position: 'fixed', inset: 0, background: 'rgba(0,0,0,.6)', zIndex: 9997,
+display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+}} onClick={() => setShowClone(false)}>
+<div style={{
+background: '#1a1814', border: `1px solid ${theme.gold}`, borderRadius: 12,
+padding: 24, maxWidth: 360, width: '100%',
+}} onClick={(e) => e.stopPropagation()}>
+<div style={{ fontSize: 18, color: theme.goldHi, marginBottom: 16 }}>{page.cloneAction.dialogTitle}</div>
+<div style={{ fontSize: 13, color: theme.muted, marginBottom: 6 }}>{page.formTitleLabel}</div>
+<input value={cloneTitle} onChange={(e) => setCloneTitle(e.target.value)} style={{
+width: '100%', background: '#1e1b15', border: '1px solid rgba(201,163,92,.3)',
+color: theme.paper, borderRadius: 8, padding: '11px 10px', fontSize: 14, boxSizing: 'border-box', marginBottom: 14,
+}} />
+<div style={{ fontSize: 13, color: theme.muted, marginBottom: 6 }}>{page.formStartsLabel}</div>
+<div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
+<select value={cMonth} onChange={(e) => setCMonth(+e.target.value)} style={{ flex: 1, background: '#1e1b15', border: '1px solid rgba(201,163,92,.3)', color: theme.paper, borderRadius: 8, padding: '11px 10px', fontSize: 14 }}>
+{Array.from({ length: 12 }, (_, i) => <option key={i} value={i + 1}>{fill(page.formMonthTemplate ?? '', { n: i + 1 })}</option>)}
+</select>
+<select value={cDay} onChange={(e) => setCDay(+e.target.value)} style={{ flex: 1, background: '#1e1b15', border: '1px solid rgba(201,163,92,.3)', color: theme.paper, borderRadius: 8, padding: '11px 10px', fontSize: 14 }}>
+{Array.from({ length: 31 }, (_, i) => <option key={i} value={i + 1}>{fill(page.formDayTemplate ?? '', { n: i + 1 })}</option>)}
+</select>
+<select value={cHour} onChange={(e) => setCHour(+e.target.value)} style={{ flex: 1, background: '#1e1b15', border: '1px solid rgba(201,163,92,.3)', color: theme.paper, borderRadius: 8, padding: '11px 10px', fontSize: 14 }}>
+{Array.from({ length: 24 }, (_, i) => <option key={i} value={i}>{fill(page.formHourTemplate ?? '', { n: i })}</option>)}
+</select>
+<select value={cMinute} onChange={(e) => setCMinute(+e.target.value)} style={{ flex: 1, background: '#1e1b15', border: '1px solid rgba(201,163,92,.3)', color: theme.paper, borderRadius: 8, padding: '11px 10px', fontSize: 14 }}>
+{[...new Set([0, 15, 30, 45, cMinute])].sort((a, b) => a - b).map((m) => <option key={m} value={m}>{fill(page.formMinuteTemplate ?? '', { n: m })}</option>)}
+</select>
+</div>
+<div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
+<button onClick={() => setShowClone(false)} style={{
+padding: '8px 20px', borderRadius: 8, cursor: 'pointer',
+background: 'transparent', border: `1px solid ${theme.gold}`, color: theme.paper,
+}}>{page.confirmCancelLabel}</button>
+<button onClick={doClone} disabled={cloning} className="yy-btn yy-btn-gold" style={{ padding: '8px 20px', fontSize: 14 }}>
+{page.formSubmitCreateLabel}
+</button>
+</div>
 </div>
 </div>
 )}
