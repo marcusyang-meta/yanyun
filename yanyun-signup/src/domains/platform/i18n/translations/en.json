@@ -20534,6 +20534,66 @@
         }
       ],
       "types": []
+    },
+    "pRiZIiu1ZJaPdLLxK9kcqg==": {
+      "description": "Button label for the squad detail page, used to start cloning this squad into a new one with the same roster, shown to the leader or a guild admin.",
+      "id": "groupings/groupingDetail_cloneButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Run it again",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "QcbBm2pM3/O71w+obmVjJA==": {
+      "description": "Title text for the clone dialog on the squad detail page, used as the heading of the dialog that posts the cloned squad.",
+      "id": "groupings/groupingDetail_cloneDialogTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Clone squad",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Hm+85hDKRDO8G1EJsodR6w==": {
+      "description": "Toast message for the squad detail page, used after the squad is cloned into a new squad.",
+      "id": "groupings/groupingDetail_cloneToastCloned",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Cloned into a new squad",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "OQFQDFwPmtbrnD/uybpYag==": {
+      "description": "Toast message for the squad detail page, used when cloning fails, where {error} is the failure reason.",
+      "id": "groupings/groupingDetail_cloneToastFailed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Clone failed: {error}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "rEgWLzTL9JtS1WLNR+ITSg==": {
+      "description": "Toast message for the squad detail page, used after a clone where some roster names resolved to nobody and their seats were skipped, where {names} lists the skipped members.",
+      "id": "groupings/groupingDetail_cloneToastSkipped",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "These members could not be carried into the new squad (add them to the roster first): {names}",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

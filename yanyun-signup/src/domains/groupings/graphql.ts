@@ -56,6 +56,7 @@ import {
   deleteSignupByIdAndEvent, moveSignupToEvent,
   updateSignupWeaponRoleByUid, updateSignupReadyByEventDiscord,
 } from './index.ts';
+import { planCloneSeats, nextCloneDefaultStart } from './clone.ts';
 import {
   listGearItems, insertGearItem, updateGearItemRow, deleteGearItemRow,
   listGearBuilds, insertGearBuild, deleteGearBuildRow,
@@ -96,6 +97,13 @@ import { selfStampFor, identityNamesFor, canonicalSignupName, identityNameForDis
 const seatNamesNotInRosterFail = (ctx: Context, names: string[]) => new GroupingPayloadShell(ctx, {
   ok: false, errorCode: 'seatNamesNotInRoster', errorParams: { names: names.join('、') },
 });
+
+/* Clone payload: GroupingPayload plus the names whose seats could
+ * not be carried into the new car (reported back to the operator). */
+export class CloneGroupingPayloadShell extends GroupingPayloadShell {
+  genSkippedNames(){ return this.data.skippedNames || []; }
+}
+const cloneFail = (ctx: Context, code: any) => new CloneGroupingPayloadShell(ctx, { ok: false, errorCode: code });
 
 export class GroupingShell extends ShellBase {
   constructor(ctx: Context, ev: any){ super(ctx, ev); }
@@ -499,6 +507,27 @@ export class GroupingDetailPageShell extends ShellBase {
       disbandConfirmMessageTemplate: this.t('groupingDetail_disbandConfirmMessage'),
       completeConfirmTitle: this.t('groupingDetail_completeConfirmTitle'),
       completeConfirmMessageTemplate: this.t('groupingDetail_completeConfirmMessage'),
+    };
+  }
+  // Clone ("run it again") action set: composed only for viewers who
+  // may manage this car (the same verdict as manageActions); everyone
+  // else gets null and no copy of the default start is sent either.
+  // The default start is computed here in the viewer's timezone —
+  // the source car's time-of-day on the nearest future same weekday
+  // (see clone.ts) — so clients just seed their time picker with it.
+  async genCloneAction(){
+    const verdict = await this.genManageVerdict();
+    if (!verdict.canManage) return null;
+    return {
+      buttonLabel: this.t('groupingDetail_cloneButton'),
+      dialogTitle: this.t('groupingDetail_cloneDialogTitle'),
+      toastCloned: this.t('groupingDetail_cloneToastCloned'),
+      toastFailedTemplate: this.t('groupingDetail_cloneToastFailed'),
+      toastSkippedTemplate: this.t('groupingDetail_cloneToastSkipped'),
+      defaultStartsAt: String(nextCloneDefaultStart(
+        this.data.starts_at_utc ? Number(this.data.starts_at_utc) : null,
+        Math.floor(Date.now() / 1000), this.ctx.tz ?? '',
+      )),
     };
   }
   // Save-as-template action set: composed only for viewers who may
@@ -1068,6 +1097,77 @@ export const groupingsResolvers = {
       const ev = await getEventRow(db, eventId);
       publishGroupingEvent(ctx, slug, eventId, 'created');
       return new GroupingPayloadShell(ctx, { ok: true, grouping: toGrouping(ctx, ev) });
+    },
+
+    /* ---------- Clone a grouping ("run it again") ----------
+     * Copies a car's configuration (type / dungeon / capacity /
+     * visitor settings / custom-field definitions) AND its seat
+     * roster into a new car at a caller-chosen start. Gate: the
+     * source car's own manage verdict (its leader, or an admin of
+     * its guild — the same gate updateGrouping verifies), re-run
+     * here regardless of what the clients rendered. Official cars
+     * cannot be cloned (they are not member cars). The seat plan is
+     * resolved by planCloneSeats (clone.ts): stamped seats follow
+     * their owners' current identity names with stamps intact,
+     * unstamped names resolve like create-time pre-seats, and names
+     * resolving to nobody are skipped and reported — a clone never
+     * rejects wholesale the way a create does, and never smuggles a
+     * name past the roster-only closure either. */
+    cloneGrouping: async (_: any, { input }: any, ctx: Context) => {
+      const db = ctx.env.DB;
+      if (!rateLimit('mut:clone:' + getClientIp(ctx.request), 10)) {
+        return cloneFail(ctx, 'rateLimited');
+      }
+      const gid = parseInt(input.groupingId, 10) || 0;
+      const ev = await getEventRow(db, gid);
+      if (!ev) return cloneFail(ctx, 'groupingNotFound');
+      const manage = await groupingManageGate(db, ctx.user, ctx.request, vcOf(ctx), ev);
+      if (manage.writeCode) return cloneFail(ctx, manage.writeCode);
+      if (ev.origin !== 'member') return cloneFail(ctx, 'officialEvent');
+      if (!manage.canManage) {
+        return cloneFail(ctx, ev.creator_user_id ? 'leaderOnlyEdit' : 'noCreatorRecordedEdit');
+      }
+      let utc = parseInt(input.startsAt, 10) || 0;
+      if (!utc && input.startsAt) {
+        const ms = Date.parse(input.startsAt);
+        if (!Number.isNaN(ms)) utc = Math.floor(ms / 1000);
+      }
+      const now = Math.floor(Date.now() / 1000);
+      if (!utc || utc < now - 3600) return cloneFail(ctx, 'badStartTime');
+      if (utc > now + 60 * 86400) return cloneFail(ctx, 'startTimeTooFar');
+      const tenantRow = await getTenantRowById(db, ev.tenant).catch(() => null);
+      if (!tenantRow) return cloneFail(ctx, 'groupingNotFound');
+      const slug = tenantRow.slug;
+      const title = s(input.title, 40) || ev.title;
+      const rows = await listSignupsByEvent(db, ev.id);
+      const plan = await planCloneSeats(db, slug, rows as any);
+      const r = await insertEvent(db, {
+        tenant: ev.tenant, title, type: ev.type, description: '', starts_at: '', starts_at_utc: utc,
+        max_slots: ev.max_slots, status: 'open', origin: 'member', created_by: GROUPING_DEFAULT_CREATED_BY,
+        dungeon: ev.dungeon || '', creator_user_id: ctx.user!.userId,
+        created_tz: capturedTzOrNull(ctx.tz),
+        ally_visible: ev.ally_visible ? 1 : 0, visitor_slots: Number(ev.visitor_slots) || 0,
+      });
+      const eventId = r.last_row_id;
+      // F7: the new car carries its own copy of the source car's
+      // signup-field definitions (answers stay with the old car).
+      const carFields = await listCustomFields(db, 'event', ev.id);
+      if (carFields.length) {
+        await replaceCustomFields(db, 'event', eventId, carFields.map((f) => ({
+          label: f.label, fieldType: f.field_type === 'choice' ? 'choice' : 'text',
+          options: parseFieldOptions(f.options_json), required: !!f.required,
+        }) as CustomFieldDef));
+      }
+      if (plan.seats.length) {
+        await insertSignups(db, plan.seats.map((p) => ({
+          event_id: eventId, nickname: p.nickname, uid: newUid(), role: p.role || roleOf(p.weapon),
+          weapon: p.weapon, team_name: p.team_name, members: p.members, note: p.note,
+          discord_id: p.discord_id, is_visitor: p.is_visitor,
+        })));
+      }
+      const nev = await getEventRow(db, eventId);
+      publishGroupingEvent(ctx, slug, eventId, 'created');
+      return new CloneGroupingPayloadShell(ctx, { ok: true, grouping: toGrouping(ctx, nev), skippedNames: plan.skippedNames });
     },
 
     /* ---------- Grouping templates (guild-shared) ---------- */
@@ -1902,6 +2002,7 @@ export const groupingsResolvers = {
     shareUrl: (p: GroupingDetailPageShell) => p.genShareUrl(),
     shareImageUrl: (p: GroupingDetailPageShell) => p.genShareImageUrl(),
     templateSave: (p: any) => p.genTemplateSave(),
+    cloneAction: (p: any) => p.genCloneAction(),
     blocks: (p: any, args: any) => p.genBlocks(args),
     manageActions: (p: any) => p.genManageActions(),
     allySharing: (p: any) => p.genAllySharing(),
@@ -1988,6 +2089,23 @@ export const groupingsResolvers = {
     submitLabel: (p: any) => p.submitLabel,
     toastSaved: (p: any) => p.toastSaved,
     toastFailedTemplate: (p: any) => p.toastFailedTemplate,
+  },
+  // Plain-data clone action set: fields delegate to the object the
+  // detail shell composed for this grouping's managers only.
+  GroupingCloneAction: {
+    buttonLabel: (p: any) => p.buttonLabel,
+    dialogTitle: (p: any) => p.dialogTitle,
+    toastCloned: (p: any) => p.toastCloned,
+    toastFailedTemplate: (p: any) => p.toastFailedTemplate,
+    toastSkippedTemplate: (p: any) => p.toastSkippedTemplate,
+    defaultStartsAt: (p: any) => p.defaultStartsAt,
+  },
+  CloneGroupingPayload: {
+    ok: (p: any) => p.genOk(),
+    grouping: (p: any) => p.genGrouping(),
+    skippedNames: (p: any) => p.genSkippedNames(),
+    error: (p: any) => p.genError(),
+    errorCode: (p: any) => p.genErrorCode(),
   },
   GroupingTemplatePayload: {
     ok: (p: any) => p.genOk(),
