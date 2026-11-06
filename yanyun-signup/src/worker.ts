@@ -22,6 +22,7 @@ import { platformAdminBackupRoutes } from './domains/platform/admin-backup-route
 import { billingRoutes } from './domains/platform/billing-routes.ts';
 import { guildAvatarRoutes } from './domains/guilds/avatar-routes.ts';
 import { shortLinkRoutes } from './domains/groupings/shortlink-routes.ts';
+import { calendarFeedRoutes } from './domains/identity/calendar-routes.ts';
 import { combatReportRoutes } from './domains/groupings/combat-routes.ts';
 
 /* Hono app */
@@ -46,6 +47,7 @@ app.route('/api/platform-admin', platformAdminBackupRoutes); // backup file down
 app.route('/', billingRoutes); // Stripe webhook /stripe/webhook (signature-authenticated, no session)
 app.route('/', guildAvatarRoutes); // avatar public path /guilds/:slug/avatar (standalone, survives the REST shutdown)
 app.route('/', shortLinkRoutes); // share short links /c/:code -> 302 to the canonical car URL
+app.route('/', calendarFeedRoutes); // personal calendar subscription /calendar/<token>.ics (token-authenticated, read-only)
 app.route('/', combatReportRoutes); // combat report imports POST /api/groupings/:id/combat-reports (session + tier gate)
 
 app.all('/graphql', async (c: any) => {
@@ -192,7 +194,7 @@ async function handleFetch(request: Request, env: Env, ctx: ExecutionContext) {
       return handleGuildLive(request, env, slug);
     }
 
-    if (path.startsWith('/api/') || path === '/graphql' || path === '/stripe/webhook' || /^\/guilds\/[^/]+\/avatar$/.test(path) || /^\/c\/[^/]+$/.test(path)) {
+    if (path.startsWith('/api/') || path === '/graphql' || path === '/stripe/webhook' || /^\/guilds\/[^/]+\/avatar$/.test(path) || /^\/calendar\/[^/]+\.ics$/.test(path) || /^\/c\/[^/]+$/.test(path)) {
       return app.fetch(request, env, ctx);
     }
 

@@ -411,6 +411,31 @@ export async function listSignupsByDiscordId(d1: D1Database, discordId: string):
   return rows || [];
 }
 
+export interface CalendarSeatRow {
+  event_id: number;
+  tenant: number;
+  event_title: string;
+  event_status: string;
+  starts_at_utc: number | null;
+}
+
+/** Seats stamped with this user's discord_id, joined with the car
+ * fields the personal calendar feed prints (title / start / status
+ * / guild). Status and end-time filtering live in the caller (the
+ * feed's "not yet ended" rule: start + the assumed 2h duration is
+ * still ahead); this repo only reads. */
+export async function listCalendarSeatsByDiscordId(d1: D1Database, discordId: string): Promise<CalendarSeatRow[]> {
+  const db = createDb(d1);
+  const rows = await db.all<CalendarSeatRow>(
+    sql`SELECT ${events.id} AS event_id, ${events.tenant} AS tenant,
+               ${events.title} AS event_title, ${events.status} AS event_status,
+               ${events.startsAtUtc} AS starts_at_utc
+        FROM ${signups} JOIN ${events} ON ${events.id} = ${signups.eventId}
+        WHERE ${signups.discordId} = ${discordId} ORDER BY ${events.startsAtUtc} ASC`,
+  );
+  return rows || [];
+}
+
 /** Deletion Q2: seats are anonymized in place, never removed — the
  * car's roster history stays intact, only the identity link is cut:
  * nickname becomes the tombstone text, the discord stamp is nulled,

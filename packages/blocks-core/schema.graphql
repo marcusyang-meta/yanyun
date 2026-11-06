@@ -1272,6 +1272,24 @@ type SettingsPage {
   availabilityEmptyText: String!
   availabilityNoGuildsText: String!
   availabilityGuilds: [SettingsAvailabilityGuild!]!
+  calendarFeed: CalendarFeedSettings
+}
+
+type CalendarFeedSettings {
+  calendarSectionTitle: String!
+  calendarHintText: String!
+  calendarUrl: String!
+  calendarCopyLabel: String!
+  calendarCopiedText: String!
+  calendarResetLabel: String!
+  calendarResetDoneText: String!
+}
+
+type ResetCalendarFeedPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  calendarFeed: CalendarFeedSettings
 }
 
 type SettingsAvailabilityGuild {
@@ -1872,6 +1890,7 @@ type Mutation {
   deleteGroupingTemplate(id: ID!): DeletePayload!
   calcTiaolv(input: TiaolvInput!): TiaolvResult!
   calcGraduation(input: GraduationInput!): GraduationResult!
+  resetCalendarFeedToken: ResetCalendarFeedPayload!
   submitFeedback(category: FeedbackCategory!, text: String!): SubmitFeedbackPayload!
   updateMyLocale(locale: String): UpdateLocalePayload!
   exportMyData: ExportMyDataPayload!

@@ -24,6 +24,14 @@ export type IdentityStringKey =
   | 'settings_langEs'
   | 'settings_langFr'
   | 'settings_savedText'
+  | 'settings_calendarSectionTitle'
+  | 'settings_calendarHint'
+  | 'settings_calendarCopyLabel'
+  | 'settings_calendarCopiedText'
+  | 'settings_calendarResetLabel'
+  | 'settings_calendarResetDoneText'
+  | 'settings_calendarName'
+  | 'settings_calendarDurationNote'
   | 'picker_myGuilds'
   | 'picker_myGuildsEn'
   | 'picker_emptyTitle'
@@ -121,6 +129,14 @@ export const IDENTITY_STRING_KEYS: readonly IdentityStringKey[] = [
   'settings_langEs',
   'settings_langFr',
   'settings_savedText',
+  'settings_calendarSectionTitle',
+  'settings_calendarHint',
+  'settings_calendarCopyLabel',
+  'settings_calendarCopiedText',
+  'settings_calendarResetLabel',
+  'settings_calendarResetDoneText',
+  'settings_calendarName',
+  'settings_calendarDurationNote',
   'picker_myGuilds',
   'picker_myGuildsEn',
   'picker_emptyTitle',

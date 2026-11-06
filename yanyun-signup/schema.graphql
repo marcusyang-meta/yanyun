@@ -1563,6 +1563,36 @@ type SettingsPage {
   availabilityEmptyText: String!
   availabilityNoGuildsText: String!
   availabilityGuilds: [SettingsAvailabilityGuild!]!
+  # ---- 日历订阅 (免费功能): 本人的 iCal 订阅链接 (token 即凭证,
+  # 只读公开端点, 内容仅本人已报名的未结束车); 未登录为 null。
+  # token 首次读取时惰性生成, 重置走 resetCalendarFeedToken。
+  calendarFeed: CalendarFeedSettings
+}
+
+# 个人设置里的日历订阅区: 标题/说明/订阅链接 (绝对地址, 含
+# token — 只下发给本人)/复制与重置的文案。resetDoneText 在重置
+# 完成后由新 CalendarFeedSettings 一并回带。
+type CalendarFeedSettings {
+  calendarSectionTitle: String!
+  calendarHintText: String!
+  calendarUrl: String!
+  calendarCopyLabel: String!
+  calendarCopiedText: String!
+  calendarResetLabel: String!
+  calendarResetDoneText: String!
+}
+
+type ResetCalendarFeedPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  calendarFeed: CalendarFeedSettings
+}
+
+extend type Mutation {
+  # 重置本人的日历订阅 token: 旧链接立即失效, 返回带新链接的
+  # 订阅区对象; 未登录 errorCode = notLoggedIn。
+  resetCalendarFeedToken: ResetCalendarFeedPayload!
 }
 
 # 设置页里的一份可用时间: 一个本人所属百业 + 已存的 UTC 周时段。

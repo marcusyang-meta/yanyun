@@ -19,6 +19,7 @@ import { getUsernameRow, listNicksByGuild, listUsersDirectory } from './index.ts
 import { listGuildMembers, getGuildMember } from './index.ts';
 import { getAccountRow } from './users.ts';
 import type { AccountRow } from './users.ts';
+import { ensureCalendarToken, rotateCalendarToken, calendarFeedUrl } from './calendar.ts';
 import {
   exportMyData as exportMyDataService,
   requestAccountDeletion as requestAccountDeletionService,
@@ -443,6 +444,19 @@ export class SettingsPageShell extends ShellBase {
    * the guilds officer module; this shell only anchors it to the
    * settings surface. Anonymous viewers get the empty page shell. */
   genSeasonGoals(){ return new MySeasonGoalPageShell(this.ctx, {}); }
+  /* Calendar subscription (free feature): the member's personal
+   * iCal feed settings. The token is lazy-minted on this first
+   * read (same lazy-mint shape as the detail page's share short
+   * link); anonymous viewers get null — the section exists only
+   * for the signed-in member it belongs to. */
+  genCalendarFeed(){
+    return this.memo('calendarFeed', async () => {
+      const user = this.ctx.user;
+      if (!user) return null;
+      const token = await ensureCalendarToken(this.db, user.userId);
+      return new CalendarFeedSettingsShell(this.ctx, { url: calendarFeedUrl(token) });
+    });
+  }
   async genAccountPendingDeletion(){
     const row = await loadMyAccountRow(this.ctx);
     const executesAt = deletionExecutesAt(row);
@@ -531,6 +545,22 @@ export const PENDING_DELETION_TEXT_RESOLVERS = defineTextGens(AccountPendingDele
   ['accountPendingTitle', 'account_pendingTitle'],
 ]);
 
+/* ---------- Calendar subscription (free feature) ---------- */
+export class CalendarFeedSettingsShell extends ShellBase {
+  genCalendarUrl(){ return this.data.url; }
+}
+export const CALENDAR_FEED_TEXT_RESOLVERS = defineTextGens(CalendarFeedSettingsShell, [
+  ['calendarSectionTitle', 'settings_calendarSectionTitle'],
+  ['calendarHintText', 'settings_calendarHint'],
+  ['calendarCopyLabel', 'settings_calendarCopyLabel'],
+  ['calendarCopiedText', 'settings_calendarCopiedText'],
+  ['calendarResetLabel', 'settings_calendarResetLabel'],
+  ['calendarResetDoneText', 'settings_calendarResetDoneText'],
+]);
+export class ResetCalendarFeedPayloadShell extends PayloadBase {
+  genCalendarFeed(){ return this.data.feed ?? null; }
+}
+
 /* ---------- Account self-service payloads ---------- */
 export class ExportMyDataPayloadShell extends PayloadBase {
   genJson(){ return this.data.json ?? null; }
@@ -563,6 +593,18 @@ export const identityResolvers = {
     settingsPage: (_: any, __: any, ctx: Context) => new SettingsPageShell(ctx, {}),
   },
   Mutation: {
+    /* Calendar subscription reset: rotate the member's token in
+     * place (the old feed URL dies at once) and hand back the
+     * refreshed settings object carrying the new URL. */
+    resetCalendarFeedToken: async (_: any, __: any, ctx: Context) => {
+      if (!ctx.user) return new ResetCalendarFeedPayloadShell(ctx, { ok: false, errorCode: 'loginRequired' });
+      const token = await rotateCalendarToken(ctx.env.DB, ctx.user.userId);
+      return new ResetCalendarFeedPayloadShell(ctx, {
+        ok: true, errorCode: null,
+        feed: new CalendarFeedSettingsShell(ctx, { url: calendarFeedUrl(token) }),
+      });
+    },
+
     updateMyLocale: async (_: any, { locale }: any, ctx: Context) => {
       const browser = ctx.browserLocale || ctx.locale || 'zh-CN';
       if (!ctx.user) return uFail(ctx, 'loginRequired', browser);
@@ -615,7 +657,18 @@ export const identityResolvers = {
     seasonGoals: (p: SettingsPageShell) => p.genSeasonGoals(),
     availabilityGuilds: (p: any) => p.genAvailabilityGuilds(),
     availabilityWeekdayNames: (p: any) => p.genAvailabilityWeekdayNames(),
+    calendarFeed: (p: any) => p.genCalendarFeed(),
     ...SETTINGS_TEXT_RESOLVERS,
+  },
+  CalendarFeedSettings: {
+    calendarUrl: (p: any) => p.genCalendarUrl(),
+    ...CALENDAR_FEED_TEXT_RESOLVERS,
+  },
+  ResetCalendarFeedPayload: {
+    ok: (p: any) => p.genOk(),
+    error: (p: any) => p.genError(),
+    errorCode: (p: any) => p.genErrorCode(),
+    calendarFeed: (p: any) => p.genCalendarFeed(),
   },
   SettingsAvailabilityGuild: {
     slug: (p: any) => p.genSlug(),

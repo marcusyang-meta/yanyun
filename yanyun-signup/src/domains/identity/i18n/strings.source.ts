@@ -63,6 +63,14 @@ export abstract class SettingsFbtUtils {
   static langEs(fbs: FbsAPI) { return fbs("Español", "Option label for the language selector, used for the Spanish choice."); }
   static langFr(fbs: FbsAPI) { return fbs("Français", "Option label for the language selector, used for the French choice."); }
   static savedText(fbs: FbsAPI) { return fbs("已保存", "Confirmation text for profile settings, used as a transient notice after a change is saved."); }
+  static calendarSectionTitle(fbs: FbsAPI) { return fbs("日历订阅", "Section title in profile settings for the personal calendar subscription (an iCalendar feed of the cars the member has signed up for)."); }
+  static calendarHint(fbs: FbsAPI) { return fbs("把这个链接粘贴到日历应用的「订阅日历」里，你报名的车队会自动同步过去。链接包含你的专属凭证，请勿外传；怀疑泄露时可重置链接，旧链接会立即失效。", "Hint text in profile settings explaining the calendar subscription link: pasting it into a calendar app's subscribe feature syncs the member's signed-up cars automatically, the link carries a personal credential that must not be shared, and resetting the link invalidates the old one immediately."); }
+  static calendarCopyLabel(fbs: FbsAPI) { return fbs("复制订阅链接", "Button label in profile settings, used to copy the personal calendar subscription link to the clipboard."); }
+  static calendarCopiedText(fbs: FbsAPI) { return fbs("订阅链接已复制", "Confirmation text in profile settings, used as a transient notice after the calendar subscription link is copied."); }
+  static calendarResetLabel(fbs: FbsAPI) { return fbs("重置订阅链接", "Button label in profile settings, used to reset the personal calendar subscription link (a new token is minted and the old link stops working)."); }
+  static calendarResetDoneText(fbs: FbsAPI) { return fbs("订阅链接已重置，旧链接已失效", "Confirmation text in profile settings, used as a transient notice after the calendar subscription link has been reset."); }
+  static calendarName(fbs: FbsAPI) { return fbs("我的车队", "Calendar display name written into the personal iCalendar feed (X-WR-CALNAME), shown by calendar apps as the subscribed calendar's name."); }
+  static calendarDurationNote(fbs: FbsAPI) { return fbs("时长为预估：车队未设结束时间，按 2 小时计。", "Note written into every event description of the personal iCalendar feed, stating that the duration is an estimate: cars have no set end time, so the feed counts two hours from the start."); }
 }
 
 export abstract class PickerFbtUtils {

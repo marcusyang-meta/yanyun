@@ -56,6 +56,18 @@ export const userOauth = sqliteTable('user_oauth', {
   updatedAt: integer('updated_at').notNull().default(0),
 });
 
+/* ------------- calendar feed tokens [ddl 0041] ------------------ */
+// One row per member: the bearer token for the member's personal
+// iCalendar subscription feed (migration 0041). The token is the
+// credential — unguessable, unique, resettable from personal
+// settings (overwrite in place). The feed serves only this
+// member's own signed-up, not-yet-ended cars.
+export const userCalendarTokens = sqliteTable('user_calendar_tokens', {
+  userId: integer('user_id').primaryKey(),
+  token: text('token').notNull().unique(),
+  updatedAt: integer('updated_at').notNull().default(0),
+});
+
 export const userGuildNicks = sqliteTable('user_guild_nicks', {
   discordId: text('discord_id').notNull(),
   guildId: text('guild_id').notNull(),
