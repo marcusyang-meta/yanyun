@@ -15,7 +15,7 @@ import { isValidPushToken, savePushToken, deletePushToken } from '../platform/in
 import { evaluateHeirloomPushes } from '../gear/index.ts';
 import { translate, negotiateLocale, SUPPORTED_LOCALES, CATALOG } from '../platform/index.ts';
 import { logError } from '../platform/index.ts';
-import { getGuildAvatarMeta, avatarPath } from '../guilds/index.ts';
+import { getGuildAvatarMeta, avatarPath, recordGuildAudit } from '../guilds/index.ts';
 import { getSettingValue, setSettingValue, listSettingsByKey, parseGuildSubdomainSlug, isGuildSubdomainEnabled, guildSubdomainOrigin, isLiveCustomDomainHost } from '../guilds/index.ts';
 import { getUsernameRow, getDiscordIdByUserId } from '../identity/index.ts';
 import { listGuildMembers, getGuildMember } from '../identity/index.ts';
@@ -39,6 +39,7 @@ import {
   listCustomFields, parseCustomFieldDefs, validateSignupAnswers,
   replaceCustomFields, insertSignupAnswer, listSignupAnswersByEvent,
   deleteSignupAnswersByEventUid, deleteSignupAnswersByEvent,
+  moveSignupAnswersToEvent,
   parseFieldOptions, type CustomFieldDef,
 } from './index.ts';
 import { carOgImageUrl } from './reminder.ts';
@@ -50,7 +51,9 @@ import { recapSurfaceForGrouping, recapResolvers } from './recap-graphql.ts';
 import { combatReportSurfaceForGrouping, combatResolvers } from './combat-graphql.ts';
 import {
   listSignupSeats, listSignupSeatsBasic, listSignupNamesStamps,
+  listSignupsByEvent, countSignupsByEvent,
   insertSignups, insertSignupWithCapacityGuard, deleteSignupByEventUid, deleteSignupsByEvent,
+  deleteSignupByIdAndEvent, moveSignupToEvent,
   updateSignupWeaponRoleByUid, updateSignupReadyByEventDiscord,
 } from './index.ts';
 import {
@@ -537,6 +540,45 @@ export class GroupingDetailPageShell extends ShellBase {
       allyVisibleLabel: this.t('allies_allyVisibleLabel'),
       visitorSlotsLabel: this.t('allies_visitorSlotsLabel'),
       saveLabel: this.t('allies_sharingSaveButton'),
+    };
+  }
+  // Merge surface (free feature): composed ONLY when this car can
+  // be a merge target and the viewer may manage it — a member car,
+  // open, and not a racing car (racing signups are whole teams, not
+  // seats; mergeGrouping refuses them). The candidates are the cars
+  // that may be merged INTO this one: same guild, same type, open
+  // member cars the viewer may ALSO manage (the mutation
+  // re-verifies both verdicts and every admission rule). Null =
+  // no entry is rendered anywhere.
+  async genMerge(){
+    const ev = this.data;
+    if (ev.origin !== 'member' || ev.status !== 'open' || ev.type === 'race') return null;
+    const verdict = await this.genManageVerdict();
+    if (!verdict.canManage) return null;
+    const rows = await listEventsByTenantType(this.db, ev.tenant, ev.type);
+    const candidates = [];
+    for (const r of rows) {
+      if (r.id === ev.id || r.status !== 'open' || r.origin !== 'member') continue;
+      const v = await getGroupingManageVerdict(this.db, this.ctx.user, this.ctx.request, this.vc, r);
+      if (!v.canManage) continue;
+      const occupied = await countSignupsByEvent(this.db, r.id);
+      const epoch = startsAtEpoch(r);
+      const people = this.t('groupingDetail_people', { occupied, max: r.max_slots });
+      candidates.push({
+        id: String(r.id), title: r.title,
+        metaText: epoch ? `${fmtStartsAt(epoch, this.locale, this.ctx.tz)} · ${people}` : people,
+      });
+    }
+    return {
+      buttonLabel: this.t('groupingDetail_merge'),
+      dialogTitle: this.t('groupingDetail_mergeDialogTitle'),
+      emptyText: this.t('groupingDetail_mergeEmpty'),
+      confirmTitle: this.t('groupingDetail_mergeConfirmTitle'),
+      confirmMessageTemplate: this.t('groupingDetail_mergeConfirmMessage'),
+      confirmSubmitLabel: this.t('groupingDetail_mergeConfirmSubmit'),
+      toastMerged: this.t('groupingDetail_toastMerged'),
+      toastFailedTemplate: this.t('groupingDetail_toastMergeFailed'),
+      candidates,
     };
   }
   // P18 AI recap (premium T3): the union variant is the verdict —
@@ -1439,6 +1481,98 @@ export const groupingsResolvers = {
       return new GroupingPayloadShell(ctx, { ok: true, grouping: toGrouping(ctx, nev) });
     },
 
+    // Merge (free feature): the source car's seats move into the
+    // target car, which survives with its own title / time /
+    // dungeon / capacity; the source is then closed out through
+    // the disband cascade, so its reminders, share link and list
+    // presence end exactly as a disbanded car's do. Admission:
+    // same guild, same type, both member cars, both open; racing
+    // cars are refused (their signups are whole teams, not seats).
+    // The operator must manage BOTH cars — each car's leader, or
+    // an admin of the guild (the shared verdict, re-verified here
+    // per car). There is no tier gate: merging is a free feature.
+    mergeGrouping: async (_: any, { input }: any, ctx: Context) => {
+      const db = ctx.env.DB;
+      if (!rateLimit('mut:merge:' + getClientIp(ctx.request), 10)) {
+        return gFail(ctx, 'rateLimited');
+      }
+      const targetId = parseInt(input && input.targetId, 10) || 0;
+      const sourceId = parseInt(input && input.sourceId, 10) || 0;
+      if (!targetId || !sourceId) return gFail(ctx, 'groupingNotFound');
+      if (targetId === sourceId) return gFail(ctx, 'mergeSameGrouping');
+      const target = await getEventRow(db, targetId);
+      if (!target) return gFail(ctx, 'groupingNotFound');
+      const source = await getEventRow(db, sourceId);
+      if (!source) return gFail(ctx, 'groupingNotFound');
+      // draft is invisible across the whole GraphQL surface (lists
+      // filter it): treat as nonexistent, as completeGrouping does.
+      if (target.status === 'draft' || source.status === 'draft') return gFail(ctx, 'groupingNotFound');
+      const tGate = await groupingManageGate(db, ctx.user, ctx.request, vcOf(ctx), target);
+      if (tGate.writeCode) return gFail(ctx, tGate.writeCode);
+      const sGate = await groupingManageGate(db, ctx.user, ctx.request, vcOf(ctx), source);
+      if (sGate.writeCode) return gFail(ctx, sGate.writeCode);
+      if (target.origin !== 'member' || source.origin !== 'member') return gFail(ctx, 'officialEvent');
+      if (!tGate.canManage) {
+        return gFail(ctx, target.creator_user_id ? 'leaderOnlyMerge' : 'noCreatorRecordedMerge');
+      }
+      if (!sGate.canManage) {
+        return gFail(ctx, source.creator_user_id ? 'leaderOnlyMerge' : 'noCreatorRecordedMerge');
+      }
+      if (source.tenant !== target.tenant) return gFail(ctx, 'mergeGuildMismatch');
+      if (source.type !== target.type) return gFail(ctx, 'mergeTypeMismatch');
+      if (target.type === 'race') return gFail(ctx, 'mergeRaceUnsupported');
+      if (target.status !== 'open' || source.status !== 'open') return gFail(ctx, 'mergeNotOpen');
+      // Seat plan, settled in full before any write: a person (by
+      // identity stamp) seated in BOTH cars keeps the target's
+      // seat, and their source seat is discarded with its answers;
+      // every other source seat moves as a whole row — id and uid
+      // survive, so readiness and custom-field answers follow, and
+      // the seat's place in the merged roster is its signup order,
+      // the id ordering every seat read uses. Unstamped seats
+      // cannot be proven to belong to anyone in the target and
+      // always move. No capacity cap is applied: past the target's
+      // maxSlots the rows are the platform's existing over-capacity
+      // seats (beyond the seat grid, counted in occupiedCount,
+      // sliding in as earlier seats leave), and visitor seats move
+      // with their marker, never re-checked against the target's
+      // visitor quota — the member is already seated. No seat-name
+      // validation runs here: a merge relocates stored rows and
+      // writes no name, so the roster-only rule (#124, a gate on
+      // submitted names at write time) is not re-run, and stored
+      // placeholder names cannot block a merge.
+      const targetRows = await listSignupsByEvent(db, targetId);
+      const sourceRows = await listSignupsByEvent(db, sourceId);
+      const targetPeople = new Set(
+        targetRows.map((r) => (r.discord_id ? String(r.discord_id) : '')).filter(Boolean),
+      );
+      for (const r of sourceRows) {
+        if (r.discord_id && targetPeople.has(String(r.discord_id))) {
+          await deleteSignupAnswersByEventUid(db, sourceId, r.uid);
+          await deleteSignupByIdAndEvent(db, r.id, sourceId);
+        } else {
+          await moveSignupAnswersToEvent(db, sourceId, targetId, r.uid);
+          await moveSignupToEvent(db, r.id, sourceId, targetId);
+        }
+      }
+      // Source close-out: the disband cascade removes the source's
+      // remaining signups (none — duplicates were deleted above and
+      // the rest re-homed), its results, and the car itself: the
+      // same teardown disbandGrouping runs.
+      await deleteEventCascade(db, sourceId, null);
+      const tenantRow = await getTenantRowById(db, target.tenant).catch(() => null);
+      const slug = tenantRow ? tenantRow.slug : '';
+      await recordGuildAudit(db, {
+        tenant: target.tenant,
+        actor: ctx.user ? { discordId: String(ctx.user.discordId), name: String(ctx.user.name || '') } : null,
+        action: 'event.merge', targetType: 'event', targetId: target.id,
+        targetLabel: `${source.title} → ${target.title}`,
+      });
+      publishGroupingEvent(ctx, slug, sourceId, 'deleted');
+      publishGroupingEvent(ctx, slug, targetId, 'seats');
+      const nev = await getEventRow(db, targetId);
+      return new GroupingPayloadShell(ctx, { ok: true, grouping: toGrouping(ctx, nev) });
+    },
+
     joinGrouping: async (_: any, { input }: any, ctx: Context) => {
       const db = ctx.env.DB;
       if (!rateLimit('mut:join:' + getClientIp(ctx.request), 30)) {
@@ -1771,6 +1905,7 @@ export const groupingsResolvers = {
     blocks: (p: any, args: any) => p.genBlocks(args),
     manageActions: (p: any) => p.genManageActions(),
     allySharing: (p: any) => p.genAllySharing(),
+    merge: (p: any) => p.genMerge(),
     ...DETAIL_TEXT_RESOLVERS,
   },
   SharedGroupingPage: {
@@ -1803,6 +1938,23 @@ export const groupingsResolvers = {
     allyVisibleLabel: (p: any) => p.allyVisibleLabel,
     visitorSlotsLabel: (p: any) => p.visitorSlotsLabel,
     saveLabel: (p: any) => p.saveLabel,
+  },
+  // Plain-data merge surface: fields delegate to the object the
+  // detail shell composed (present only when this car can take a
+  // merge and the viewer may run it; candidates included).
+  GroupingMerge: {
+    buttonLabel: (p: any) => p.buttonLabel,
+    dialogTitle: (p: any) => p.dialogTitle,
+    emptyText: (p: any) => p.emptyText,
+    confirmTitle: (p: any) => p.confirmTitle,
+    confirmMessageTemplate: (p: any) => p.confirmMessageTemplate,
+    confirmSubmitLabel: (p: any) => p.confirmSubmitLabel,
+    toastMerged: (p: any) => p.toastMerged,
+    toastFailedTemplate: (p: any) => p.toastFailedTemplate,
+    candidates: (p: any) => p.candidates,
+  },
+  GroupingMergeCandidate: {
+    id: (p: any) => p.id, title: (p: any) => p.title, metaText: (p: any) => p.metaText,
   },
   GroupingTemplate: {
     id: (p: any) => p.genId(),

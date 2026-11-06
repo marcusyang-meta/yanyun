@@ -425,6 +425,30 @@ export abstract class GroupingDetailFbtUtils {
 	static rosterAnswersTitle(fbs: FbsRuntime) {
 		return fbs._("报名表答案", null, { hk: "31Ych" });
 	}
+	static merge(fbs: FbsRuntime) {
+		return fbs._("合并车队", null, { hk: "3tEfjv" });
+	}
+	static mergeDialogTitle(fbs: FbsRuntime) {
+		return fbs._("选择要并入的车队", null, { hk: "21kLiG" });
+	}
+	static mergeEmpty(fbs: FbsRuntime) {
+		return fbs._("暂无可合并的车队", null, { hk: "3r6fZn" });
+	}
+	static mergeConfirmTitle(fbs: FbsRuntime) {
+		return fbs._("确认合并", null, { hk: "1DFhkC" });
+	}
+	static mergeConfirmMessage(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("确定把「{title}」并入本车队吗？它的成员将整体迁入本车，同一人两边都有座位时以本车为准，超出本车人数上限的成员按报名顺序列在座位之后；合并后源车将解散。", [fbs._param("title", pv(p, "title"))], { hk: "3YkBc0" });
+	}
+	static mergeConfirmSubmit(fbs: FbsRuntime) {
+		return fbs._("确认合并", null, { hk: "CDHrB" });
+	}
+	static toastMerged(fbs: FbsRuntime) {
+		return fbs._("车队已合并", null, { hk: "2Zlblf" });
+	}
+	static toastMergeFailed(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("合并失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "1LuwI7" });
+	}
 }
 export abstract class GroupingFormFbtUtils {
 	static createTitle(fbs: FbsRuntime) {
@@ -1988,6 +2012,27 @@ export abstract class ErrorsFbtUtils {
 	}
 	static groupingAlreadyCompleted(fbs: FbsRuntime) {
 		return fbs._("该车队已是完成状态", null, { hk: "2IGiQa" });
+	}
+	static noCreatorRecordedMerge(fbs: FbsRuntime) {
+		return fbs._("该车队未记录车头，无法合并，请联系管理员处理", null, { hk: "2jd3oo" });
+	}
+	static leaderOnlyMerge(fbs: FbsRuntime) {
+		return fbs._("只有车头或百业管理员可以合并车队", null, { hk: "12RSta" });
+	}
+	static mergeSameGrouping(fbs: FbsRuntime) {
+		return fbs._("不能把车队并入它自己", null, { hk: "1OzY7b" });
+	}
+	static mergeGuildMismatch(fbs: FbsRuntime) {
+		return fbs._("只能合并同一百业的车队", null, { hk: "1hx4Tq" });
+	}
+	static mergeTypeMismatch(fbs: FbsRuntime) {
+		return fbs._("只能合并相同类型的车队", null, { hk: "3OFVU8" });
+	}
+	static mergeRaceUnsupported(fbs: FbsRuntime) {
+		return fbs._("竞速车队暂不支持合并", null, { hk: "2YYqTf" });
+	}
+	static mergeNotOpen(fbs: FbsRuntime) {
+		return fbs._("只能合并报名中的车队", null, { hk: "bPWl4" });
 	}
 	static groupingNotCompleted(fbs: FbsRuntime) {
 		return fbs._("该车队尚未完成", null, { hk: "vjrAY" });
@@ -4488,6 +4533,9 @@ export abstract class GovernanceFbtUtils {
 	static actionEventDelete(fbs: FbsRuntime) {
 		return fbs._("删除活动", null, { hk: "1hiiau" });
 	}
+	static actionEventMerge(fbs: FbsRuntime) {
+		return fbs._("合并车队", null, { hk: "12Z1VP" });
+	}
 	static actionSignupRemove(fbs: FbsRuntime) {
 		return fbs._("移除报名", null, { hk: "1mLK3J" });
 	}
@@ -5381,6 +5429,14 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"groupingDetail_toastRestoreFailed": GroupingDetailFbtUtils.toastRestoreFailed,
 	"groupingDetail_completedHint": GroupingDetailFbtUtils.completedHint,
 	"groupingDetail_rosterAnswersTitle": GroupingDetailFbtUtils.rosterAnswersTitle,
+	"groupingDetail_merge": GroupingDetailFbtUtils.merge,
+	"groupingDetail_mergeDialogTitle": GroupingDetailFbtUtils.mergeDialogTitle,
+	"groupingDetail_mergeEmpty": GroupingDetailFbtUtils.mergeEmpty,
+	"groupingDetail_mergeConfirmTitle": GroupingDetailFbtUtils.mergeConfirmTitle,
+	"groupingDetail_mergeConfirmMessage": GroupingDetailFbtUtils.mergeConfirmMessage,
+	"groupingDetail_mergeConfirmSubmit": GroupingDetailFbtUtils.mergeConfirmSubmit,
+	"groupingDetail_toastMerged": GroupingDetailFbtUtils.toastMerged,
+	"groupingDetail_toastMergeFailed": GroupingDetailFbtUtils.toastMergeFailed,
 	"groupingForm_createTitle": GroupingFormFbtUtils.createTitle,
 	"groupingForm_editTitle": GroupingFormFbtUtils.editTitle,
 	"groupingForm_typeLabel": GroupingFormFbtUtils.typeLabel,
@@ -5879,6 +5935,13 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"errors_noCreatorRecordedReopen": ErrorsFbtUtils.noCreatorRecordedReopen,
 	"errors_leaderOnlyReopen": ErrorsFbtUtils.leaderOnlyReopen,
 	"errors_groupingAlreadyCompleted": ErrorsFbtUtils.groupingAlreadyCompleted,
+	"errors_noCreatorRecordedMerge": ErrorsFbtUtils.noCreatorRecordedMerge,
+	"errors_leaderOnlyMerge": ErrorsFbtUtils.leaderOnlyMerge,
+	"errors_mergeSameGrouping": ErrorsFbtUtils.mergeSameGrouping,
+	"errors_mergeGuildMismatch": ErrorsFbtUtils.mergeGuildMismatch,
+	"errors_mergeTypeMismatch": ErrorsFbtUtils.mergeTypeMismatch,
+	"errors_mergeRaceUnsupported": ErrorsFbtUtils.mergeRaceUnsupported,
+	"errors_mergeNotOpen": ErrorsFbtUtils.mergeNotOpen,
 	"errors_groupingNotCompleted": ErrorsFbtUtils.groupingNotCompleted,
 	"errors_groupingClosed": ErrorsFbtUtils.groupingClosed,
 	"errors_nicknameRequired": ErrorsFbtUtils.nicknameRequired,
@@ -6696,6 +6759,7 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"governance_actionEventCreate": GovernanceFbtUtils.actionEventCreate,
 	"governance_actionEventUpdate": GovernanceFbtUtils.actionEventUpdate,
 	"governance_actionEventDelete": GovernanceFbtUtils.actionEventDelete,
+	"governance_actionEventMerge": GovernanceFbtUtils.actionEventMerge,
 	"governance_actionSignupRemove": GovernanceFbtUtils.actionSignupRemove,
 	"governance_actionResultAdd": GovernanceFbtUtils.actionResultAdd,
 	"governance_actionResultDelete": GovernanceFbtUtils.actionResultDelete,

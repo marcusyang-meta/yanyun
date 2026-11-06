@@ -890,6 +890,38 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-CN": "报名表答案",
       "en": "Signup form answers",
       "zh-TW": "報名表答案"
+    },
+    "merge": {
+      "zh-CN": "合并车队",
+      "en": "Merge squad"
+    },
+    "mergeDialogTitle": {
+      "zh-CN": "选择要并入的车队",
+      "en": "Pick a squad to merge in"
+    },
+    "mergeEmpty": {
+      "zh-CN": "暂无可合并的车队",
+      "en": "No squad can be merged in right now"
+    },
+    "mergeConfirmTitle": {
+      "zh-CN": "确认合并",
+      "en": "Confirm merge"
+    },
+    "mergeConfirmMessage": {
+      "zh-CN": "确定把「{title}」并入本车队吗？它的成员将整体迁入本车，同一人两边都有座位时以本车为准，超出本车人数上限的成员按报名顺序列在座位之后；合并后源车将解散。",
+      "en": "Merge “{title}” into this squad? Its members will move into this squad as a whole; where a person sits in both, this squad's seat wins; members past this squad's capacity line up behind the seats in signup order. The source squad will be disbanded afterwards."
+    },
+    "mergeConfirmSubmit": {
+      "zh-CN": "确认合并",
+      "en": "Confirm merge"
+    },
+    "toastMerged": {
+      "zh-CN": "车队已合并",
+      "en": "Squad merged"
+    },
+    "toastMergeFailed": {
+      "zh-CN": "合并失败：{error}",
+      "en": "Merge failed: {error}"
     }
   },
   "groupingForm": {
@@ -4247,6 +4279,34 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "es": "Este equipo ya está completado",
       "fr": "Cette équipe est déjà terminée",
       "zh-TW": "該車隊已是完成狀態"
+    },
+    "noCreatorRecordedMerge": {
+      "zh-CN": "该车队未记录车头，无法合并，请联系管理员处理",
+      "en": "This squad has no recorded leader and cannot be merged; please ask an admin for help"
+    },
+    "leaderOnlyMerge": {
+      "zh-CN": "只有车头或百业管理员可以合并车队",
+      "en": "Only the squads' leaders or a guild admin can merge squads"
+    },
+    "mergeSameGrouping": {
+      "zh-CN": "不能把车队并入它自己",
+      "en": "A squad cannot be merged into itself"
+    },
+    "mergeGuildMismatch": {
+      "zh-CN": "只能合并同一百业的车队",
+      "en": "Only squads in the same guild can be merged"
+    },
+    "mergeTypeMismatch": {
+      "zh-CN": "只能合并相同类型的车队",
+      "en": "Only squads of the same type can be merged"
+    },
+    "mergeRaceUnsupported": {
+      "zh-CN": "竞速车队暂不支持合并",
+      "en": "Racing squads cannot be merged yet"
+    },
+    "mergeNotOpen": {
+      "zh-CN": "只能合并报名中的车队",
+      "en": "Only squads that are open for signup can be merged"
     },
     "groupingNotCompleted": {
       "zh-CN": "该车队尚未完成",
@@ -8395,6 +8455,10 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-CN": "删除活动",
       "en": "Delete event",
       "zh-TW": "刪除活動"
+    },
+    "actionEventMerge": {
+      "zh-CN": "合并车队",
+      "en": "Merge squad"
     },
     "actionSignupRemove": {
       "zh-CN": "移除报名",

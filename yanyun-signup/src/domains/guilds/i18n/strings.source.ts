@@ -608,6 +608,7 @@ export abstract class GovernanceFbtUtils {
   static actionEventCreate(fbs: FbsAPI) { return fbs("创建活动", "Audit action label for the guild audit log, used when an admin event is created."); }
   static actionEventUpdate(fbs: FbsAPI) { return fbs("修改活动", "Audit action label for the guild audit log, used when an admin event is edited."); }
   static actionEventDelete(fbs: FbsAPI) { return fbs("删除活动", "Audit action label for the guild audit log, used when an admin event is deleted."); }
+  static actionEventMerge(fbs: FbsAPI) { return fbs("合并车队", "Audit action label for the guild audit log, used when one squad is merged into another and the source squad is disbanded."); }
   static actionSignupRemove(fbs: FbsAPI) { return fbs("移除报名", "Audit action label for the guild audit log, used when a signup is removed from an event."); }
   static actionResultAdd(fbs: FbsAPI) { return fbs("登记竞速成绩", "Audit action label for the guild audit log, used when a race result is added to an event."); }
   static actionResultDelete(fbs: FbsAPI) { return fbs("删除竞速成绩", "Audit action label for the guild audit log, used when a race result is deleted."); }

@@ -79,6 +79,7 @@ export const AUDIT_ACTION_LABEL_FIELD: Record<string, string> = {
   'event.create': 'actionEventCreate',
   'event.update': 'actionEventUpdate',
   'event.delete': 'actionEventDelete',
+  'event.merge': 'actionEventMerge',
   'signup.remove': 'actionSignupRemove',
   'result.add': 'actionResultAdd',
   'result.delete': 'actionResultDelete',

@@ -659,6 +659,11 @@ type GroupingDetailPage {
   # manage this grouping (same verdict as manageActions); null
   # otherwise. setGroupingAllySharing re-verifies in the mutation.
   allySharing: AllySharingControl
+  # 合并车队动作对象 (免费功能): 仅当本车可被合并时存在——观看者可管理
+  # 本车、本车为成员车且报名中、且非竞速车; 候选为同百业同类型报名中、
+  # 且观看者同样可管理的车 (选中即并入本车, 本车为目标)。否则为 null,
+  # 客户端不渲染入口。mergeGrouping 在 mutation 处独立复验全部条件。
+  merge: GroupingMerge
   # 存为模板动作对象: 仅当观看者可在本百业写 (建车同权) 时存在, 否则 null;
   # 客户端据此渲染「存为模板」入口, mutation 处独立复验。
   templateSave: GroupingTemplateSave
@@ -1122,6 +1127,27 @@ type GroupingManageActions {
   disbandConfirmMessageTemplate: String!
   completeConfirmTitle: String!
   completeConfirmMessageTemplate: String!
+}
+
+# 合并车队动作对象: 文案组 + 可并入本车的候选列表, 只随
+# GroupingDetailPage.merge 下发, 对象在场本身即准入判定结果。
+type GroupingMerge {
+  buttonLabel: String!
+  dialogTitle: String!
+  emptyText: String!
+  confirmTitle: String!
+  confirmMessageTemplate: String!  # {title} = 源车标题
+  confirmSubmitLabel: String!
+  toastMerged: String!
+  toastFailedTemplate: String!     # {error} = 服务端错误文案
+  candidates: [GroupingMergeCandidate!]!
+}
+
+# 可并入本车的一辆候选源车 (同百业同类型报名中, 观看者可管理)。
+type GroupingMergeCandidate {
+  id: ID!
+  title: String!
+  metaText: String!  # 服务端拼好的时间 · 人数行
 }
 
 # ============ 页面：攻略（图鉴） ============
@@ -2133,6 +2159,7 @@ type Mutation {
   generateGroupingRecap(id: ID!): RecapPayload!  # Generate/regenerate an AI recap (P18, T3): leader or this guild's admin only, completed groupings only, manual trigger; the server re-verifies tier and provider
   deleteCombatEncounter(id: ID!): CombatReportPayload!  # Delete one combat encounter report: the uploader, the leader, or a guild admin only; the server re-verifies the tier write verdict
   reopenGrouping(id: ID!): GroupingPayload!  # 恢复车队（撤销完成，回到 open）：仅车头或本百业管理员可为，服务端复验
+  mergeGrouping(input: MergeGroupingInput!): GroupingPayload!  # 合并车队（免费）：源车座位整行并入目标车、源车按解散语义收尾；同百业同类型报名中、竞速不支持，操作者须对两车均可管理，服务端复验
   joinGrouping(input: JoinGroupingInput!): SeatPayload!
   leaveGrouping(input: LeaveGroupingInput!): SeatPayload!
   updateSeatWeapon(input: UpdateSeatWeaponInput!): SeatPayload!
@@ -2209,6 +2236,11 @@ input UpdateGroupingInput {
   title: String
   startsAt: String
   seats: [SeatInput!]
+}
+
+input MergeGroupingInput {
+  targetId: ID!  # 存续的目标车 (标题/时间/副本/容量以它为准)
+  sourceId: ID!  # 被并入的源车 (座位迁走后按解散语义收尾)
 }
 
 input JoinGroupingInput {

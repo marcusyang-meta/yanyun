@@ -20342,6 +20342,198 @@
         }
       ],
       "types": []
+    },
+    "gI5SH1vxw9C2s6OSOnQUGQ==": {
+      "description": "Button label for the squad detail page, used to open the merge picker, shown to the leader or a guild admin.",
+      "id": "groupings/groupingDetail_merge",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Merge squad",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "u2Z6XM08UoD4z7UehsgZ8Q==": {
+      "description": "Title text for the merge picker on the squad detail page, used as the dialog heading above the list of squads that can be merged into this one.",
+      "id": "groupings/groupingDetail_mergeDialogTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Pick a squad to merge in",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "QyX6CzhR+6n4YkhlR4gx8A==": {
+      "description": "Empty-state text for the merge picker on the squad detail page, used when no other squad in this guild can be merged into this one.",
+      "id": "groupings/groupingDetail_mergeEmpty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "No squad can be merged in right now",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "1DuE2u3mIuX9dbgEn8E+Fw==": {
+      "description": "Title text for the merge confirmation on the squad detail page, used as the confirmation step heading after a source squad is picked.",
+      "id": "groupings/groupingDetail_mergeConfirmTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Confirm merge",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "tIpEBtgVbihVQsJJwPpPBQ==": {
+      "description": "Button label for the merge confirmation on the squad detail page, used to execute the merge.",
+      "id": "groupings/groupingDetail_mergeConfirmSubmit",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Confirm merge",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Asj6a1XDDimoAjZ7o5ibTw==": {
+      "description": "Toast message for the squad detail page, used after another squad is merged into this one.",
+      "id": "groupings/groupingDetail_toastMerged",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Squad merged",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "HRcfW+A71OEEGlTCbbgDMQ==": {
+      "description": "Toast message for the squad detail page, used when merging fails, where {error} is the failure reason.",
+      "id": "groupings/groupingDetail_toastMergeFailed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Merge failed: {error}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "x1yPV8f/ybpl7YK56EHcgA==": {
+      "description": "Error message for legacy squads, used when merging a squad that has no recorded leader.",
+      "id": "platform/errors_noCreatorRecordedMerge",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "This squad has no recorded leader and cannot be merged; please ask an admin for help",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "2wUKdchh7OYXaBQ19/TJNQ==": {
+      "description": "Error message for squad merging, used when someone other than the leader of both squads or a guild admin tries to merge squads.",
+      "id": "platform/errors_leaderOnlyMerge",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Only the squads' leaders or a guild admin can merge squads",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "9CiX/zYCJJ1qKpguqLzD0Q==": {
+      "description": "Error message for squad merging, used when the source and target squads are the same squad.",
+      "id": "platform/errors_mergeSameGrouping",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "A squad cannot be merged into itself",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "8ND6Wzfe9jP7aDDOO/stfA==": {
+      "description": "Error message for squad merging, used when the source and target squads belong to different guilds.",
+      "id": "platform/errors_mergeGuildMismatch",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Only squads in the same guild can be merged",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "nH2gUxtyszr3GcQBpOq7Lg==": {
+      "description": "Error message for squad merging, used when the source and target squads have different types.",
+      "id": "platform/errors_mergeTypeMismatch",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Only squads of the same type can be merged",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "xOewKJFi0yXD2tJE/DcoXA==": {
+      "description": "Error message for squad merging, used when either squad is a racing squad, whose signups are whole teams rather than single seats.",
+      "id": "platform/errors_mergeRaceUnsupported",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Racing squads cannot be merged yet",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "i2N0VLBcEFEKV4PTGAlIHA==": {
+      "description": "Error message for squad merging, used when either squad is not open for signup.",
+      "id": "platform/errors_mergeNotOpen",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Only squads that are open for signup can be merged",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "RGxOwdhxy3P+iDtsjZ6A+w==": {
+      "description": "Audit action label for the guild audit log, used when one squad is merged into another and the source squad is disbanded.",
+      "id": "guilds/governance_actionEventMerge",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Merge squad",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "rLzfG1uuWCQK8gnC0xcXkQ==": {
+      "description": "Confirmation message for merging squads, used in the dialog to explain that the source squad's members move into this squad, this squad's seat wins for a person seated in both, members past this squad's capacity line up behind the seats in signup order, and the source squad is disbanded afterwards, where {title} is the source squad title.",
+      "id": "groupings/groupingDetail_mergeConfirmMessage",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Merge “{title}” into this squad? Its members will move into this squad as a whole; where a person sits in both, this squad's seat wins; members past this squad's capacity line up behind the seats in signup order. The source squad will be disbanded afterwards.",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

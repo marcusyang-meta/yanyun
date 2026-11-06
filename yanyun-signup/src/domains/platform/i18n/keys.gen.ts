@@ -74,6 +74,13 @@ export type PlatformStringKey =
   | 'errors_noCreatorRecordedReopen'
   | 'errors_leaderOnlyReopen'
   | 'errors_groupingAlreadyCompleted'
+  | 'errors_noCreatorRecordedMerge'
+  | 'errors_leaderOnlyMerge'
+  | 'errors_mergeSameGrouping'
+  | 'errors_mergeGuildMismatch'
+  | 'errors_mergeTypeMismatch'
+  | 'errors_mergeRaceUnsupported'
+  | 'errors_mergeNotOpen'
   | 'errors_groupingNotCompleted'
   | 'errors_groupingClosed'
   | 'errors_nicknameRequired'
@@ -397,6 +404,13 @@ export const PLATFORM_STRING_KEYS: readonly PlatformStringKey[] = [
   'errors_noCreatorRecordedReopen',
   'errors_leaderOnlyReopen',
   'errors_groupingAlreadyCompleted',
+  'errors_noCreatorRecordedMerge',
+  'errors_leaderOnlyMerge',
+  'errors_mergeSameGrouping',
+  'errors_mergeGuildMismatch',
+  'errors_mergeTypeMismatch',
+  'errors_mergeRaceUnsupported',
+  'errors_mergeNotOpen',
   'errors_groupingNotCompleted',
   'errors_groupingClosed',
   'errors_nicknameRequired',

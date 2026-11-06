@@ -119,6 +119,13 @@ export abstract class ErrorsFbtUtils {
   static noCreatorRecordedReopen(fbs: FbsAPI) { return fbs("该车队未记录车头，无法恢复，请联系管理员处理", "Error message for legacy squads, used when restoring a squad that has no recorded leader."); }
   static leaderOnlyReopen(fbs: FbsAPI) { return fbs("只有车头可以恢复车队", "Error message for squad restoring, used when someone other than the squad leader or a guild admin tries to restore a completed squad."); }
   static groupingAlreadyCompleted(fbs: FbsAPI) { return fbs("该车队已是完成状态", "Error message for squad completion, used when completing a squad that is already in the completed state."); }
+  static noCreatorRecordedMerge(fbs: FbsAPI) { return fbs("该车队未记录车头，无法合并，请联系管理员处理", "Error message for legacy squads, used when merging a squad that has no recorded leader."); }
+  static leaderOnlyMerge(fbs: FbsAPI) { return fbs("只有车头或百业管理员可以合并车队", "Error message for squad merging, used when someone other than the leader of both squads or a guild admin tries to merge squads."); }
+  static mergeSameGrouping(fbs: FbsAPI) { return fbs("不能把车队并入它自己", "Error message for squad merging, used when the source and target squads are the same squad."); }
+  static mergeGuildMismatch(fbs: FbsAPI) { return fbs("只能合并同一百业的车队", "Error message for squad merging, used when the source and target squads belong to different guilds."); }
+  static mergeTypeMismatch(fbs: FbsAPI) { return fbs("只能合并相同类型的车队", "Error message for squad merging, used when the source and target squads have different types."); }
+  static mergeRaceUnsupported(fbs: FbsAPI) { return fbs("竞速车队暂不支持合并", "Error message for squad merging, used when either squad is a racing squad, whose signups are whole teams rather than single seats."); }
+  static mergeNotOpen(fbs: FbsAPI) { return fbs("只能合并报名中的车队", "Error message for squad merging, used when either squad is not open for signup."); }
   static groupingNotCompleted(fbs: FbsAPI) { return fbs("该车队尚未完成", "Error message for squad restoring, used when restoring a squad that is not in the completed state."); }
   static groupingClosed(fbs: FbsAPI) { return fbs("该组队已截止报名", "Error message for squad signup, used when signing up for a squad whose signup deadline has passed."); }
   static nicknameRequired(fbs: FbsAPI) { return fbs("请填写游戏昵称", "Error message for signups, used when a signup or squad is submitted without a game nickname."); }

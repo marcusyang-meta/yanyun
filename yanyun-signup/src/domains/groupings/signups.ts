@@ -298,6 +298,21 @@ export async function deleteSignupByIdAndEvent(d1: D1Database, id: number, event
   return metaOf(r);
 }
 
+/* Merge migration: a seat row changes cars in place. The row id and
+ * uid survive the move, so everything keyed by the seat (the
+ * readiness state on the row itself, custom-field answers re-homed
+ * alongside) follows; the row's place in the surviving car is its
+ * signup order, the same id ordering every seat read uses. */
+export async function moveSignupToEvent(
+  d1: D1Database, signupId: number, fromEventId: number, toEventId: number,
+): Promise<RunMeta> {
+  const db = createDb(d1);
+  const r = await db.run(
+    sql`UPDATE ${signups} SET ${col('event_id')} = ${toEventId} WHERE ${col('id')} = ${signupId} AND ${col('event_id')} = ${fromEventId}`,
+  );
+  return metaOf(r);
+}
+
 export async function deleteSignupByEventNickUid(
   d1: D1Database, eventId: number, nickname: string, uid: string,
 ): Promise<RunMeta> {
