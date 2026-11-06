@@ -6,6 +6,8 @@ import { relayEnvironment } from '../../lib/relay';
 import { useGuildLive, executeQueryRefresh } from '../../lib/guildLive';
 import type { ViewerGuildGroupingsQuery as GroupingListQueryType } from './__generated__/ViewerGuildGroupingsQuery.graphql';
 import { fill, fmtDate, weekRangeLabel, getWeekRange, parseStartsAt, theme } from '../../lib/format';
+import { runShareImage, browserShareImageDeps, shareImageFileName } from '../../lib/shareImage';
+import { toast } from './Toast.react.tsx';
 import GroupingForm from './GroupingForm.react.tsx';
 
 const TABS = [
@@ -51,6 +53,14 @@ const GroupingListQueryNode = graphql`
             statusOpenLabel
             peopleTemplate
             newCarLabel
+            weekShareImageLabel
+            weekShareImageUrl
+            weekShareText
+            weekShareUrl
+            weekShareImageSaved
+            weekShareImageCopied
+            weekShareImageFailed
+            weekCopyFailedManual
             sealText
             formCreateTitle
             formEditTitle
@@ -377,9 +387,34 @@ export function GroupingListRoute({ slug, defaultNickname }: { slug: string; def
   const unknownErrorText: string = (routeData as any)?.viewer?.commonUnknownErrorText ?? '';
   const formText = { ...pageText, unknownErrorText };
 
+  // Weekly squad image: the same share/download flow as the
+  // single-car card image (detail page), fed with the list page's
+  // server-composed URL / text / guild link.
+  const shareWeekImage = async () => {
+    const imageUrl = pageText.weekShareImageUrl;
+    if (!imageUrl) return;
+    const result = await runShareImage(browserShareImageDeps(), {
+      imageUrl,
+      fileName: shareImageFileName(imageUrl),
+      shareText: `${pageText.weekShareText} ${pageText.weekShareUrl}`,
+      linkUrl: pageText.weekShareUrl,
+    });
+    if (result.kind === 'clipboard') {
+      toast(pageText.weekShareImageCopied);
+    } else if (result.kind === 'fallback') {
+      toast(result.copied ? pageText.weekShareImageSaved : pageText.weekCopyFailedManual);
+    } else if (result.kind === 'failed') {
+      toast(pageText.weekShareImageFailed);
+    }
+  };
+
   return (
     <>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginBottom: 12 }}>
+        <button onClick={shareWeekImage} className="yy-btn" style={{
+          padding: '10px 18px', fontSize: 14, background: 'transparent',
+          border: `1px solid ${theme.gold}`, color: theme.paper, borderRadius: 8, cursor: 'pointer',
+        }}>{pageText.weekShareImageLabel}</button>
         <button onClick={() => setShowForm(true)} className="yy-btn yy-btn-gold yy-create-btn" style={{
           padding: '10px 24px', fontSize: 14,
         }}>{pageText.newCarLabel}</button>
