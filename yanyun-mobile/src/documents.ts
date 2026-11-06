@@ -491,6 +491,14 @@ export const DetailPageTextQuery = graphql`
           metaText
         }
       }
+      cloneAction {
+        buttonLabel
+        dialogTitle
+        toastCloned
+        toastFailedTemplate
+        toastSkippedTemplate
+        defaultStartsAt
+      }
       seatModalTitleTemplate
       seatModalSubtitle
       seatNameLabel
@@ -627,6 +635,19 @@ export const SaveGroupingTemplateMutation = graphql`
       ok
       error
       template {
+        id
+      }
+    }
+  }
+`;
+
+export const CloneGroupingMutation = graphql`
+  mutation documentsCloneGroupingMutation($input: CloneGroupingInput!) {
+    cloneGrouping(input: $input) {
+      ok
+      error
+      skippedNames
+      grouping {
         id
       }
     }

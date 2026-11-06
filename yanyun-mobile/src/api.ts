@@ -7,6 +7,7 @@ import {
   UpdateGroupingTemplateMutation,
   DeleteGroupingTemplateMutation,
   SaveGroupingTemplateMutation,
+  CloneGroupingMutation,
   CreateGuildMutation,
   DisbandGroupingMutation,
   MergeGroupingMutation,
@@ -73,6 +74,7 @@ import type { documentsCreateGroupingTemplateMutation } from './__generated__/do
 import type { documentsUpdateGroupingTemplateMutation } from './__generated__/documentsUpdateGroupingTemplateMutation.graphql';
 import type { documentsDeleteGroupingTemplateMutation } from './__generated__/documentsDeleteGroupingTemplateMutation.graphql';
 import type { documentsSaveGroupingTemplateMutation } from './__generated__/documentsSaveGroupingTemplateMutation.graphql';
+import type { documentsCloneGroupingMutation } from './__generated__/documentsCloneGroupingMutation.graphql';
 import type { documentsCreateGuildMutation } from './__generated__/documentsCreateGuildMutation.graphql';
 import type { documentsUpdateGroupingMutation } from './__generated__/documentsUpdateGroupingMutation.graphql';
 import type { documentsUpdateMyLocaleMutation } from './__generated__/documentsUpdateMyLocaleMutation.graphql';
@@ -416,6 +418,25 @@ export async function saveGroupingTemplate(input: {
 }): Promise<TemplatePayload> {
   const r = await commit<documentsSaveGroupingTemplateMutation>(SaveGroupingTemplateMutation, { input });
   return r.saveGroupingTemplate as TemplatePayload;
+}
+
+export type ClonePayload = {
+  ok: boolean;
+  error?: string | null;
+  skippedNames?: string[] | null;
+  grouping?: { id: string } | null;
+};
+
+// Clone a grouping ("run it again"): same mutation as Web; the
+// server re-verifies the manage verdict and resolves the copied
+// roster through the roster-only seat rules.
+export async function cloneGrouping(input: {
+  groupingId: string;
+  title?: string;
+  startsAt: string;
+}): Promise<ClonePayload> {
+  const r = await commit<documentsCloneGroupingMutation>(CloneGroupingMutation, { input });
+  return r.cloneGrouping as ClonePayload;
 }
 
 export type LocalePayload = {

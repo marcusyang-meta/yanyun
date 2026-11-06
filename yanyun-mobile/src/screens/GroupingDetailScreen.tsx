@@ -1,4 +1,4 @@
-import React, { Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert, Modal, Pressable, RefreshControl, ScrollView, Share, StyleSheet, Text, TextInput, View,
 } from 'react-native';
@@ -11,11 +11,16 @@ import { fonts, theme, SECTS } from '../theme';
 import { Backdrop, GoldFill, GuildHeader, SiteChrome } from '../components/ui';
 import { BLOCKS_VERSION } from '../config';
 import { DetailPageTextQuery, GroupingDetailBlocksQuery, GuildRosterQuery } from '../documents';
-import { EditGroupingFormMount } from '../components/GroupingForm';
+import { EditGroupingFormMount, WheelColumn } from '../components/GroupingForm';
+import {
+  ECHO_TZ_EAST, ECHO_TZ_WEST, dateStripDays, dateStripIndex, minuteWheelValues, startOfLocalDay, zonedEchoParts,
+} from '../groupingTime';
+import { parseStartsAt } from '../week';
+import { effectiveLocaleTag } from '../locale';
 import { BlockNode1View } from '../blocks/BlockRenderer';
 import type { ActionHandlers } from '../blocks/actions';
 import { AsyncBoundary, LoadingView } from '../components/AsyncBoundary';
-import { completeGrouping, disbandGrouping, joinGrouping, leaveGrouping, mergeGrouping, reopenGrouping, saveGroupingTemplate, setSeatReady } from '../api';
+import { cloneGrouping, completeGrouping, disbandGrouping, joinGrouping, leaveGrouping, mergeGrouping, reopenGrouping, saveGroupingTemplate, setSeatReady } from '../api';
 import { deliverShareImage, type ShareImageDeps } from '../shareImage';
 import { useGuildLive } from '../live';
 import { useSession } from '../session';
@@ -230,6 +235,7 @@ function BackLinkLive({ slug, id }: { slug: string; id: string }) {
   const shareImageUrl = page?.shareImageUrl;
   const [showTplSave, setShowTplSave] = useState(false);
   const [showMerge, setShowMerge] = useState(false);
+  const [showClone, setShowClone] = useState(false);
   const [shareImageBusy, setShareImageBusy] = useState(false);
   const onShare = useCallback(() => {
     if (!shareUrl) return;
@@ -267,6 +273,11 @@ function BackLinkLive({ slug, id }: { slug: string; id: string }) {
             <Text style={s.back}>{page.merge.buttonLabel}</Text>
           </Pressable>
         ) : null}
+        {page?.cloneAction ? (
+          <Pressable onPress={() => setShowClone(true)} hitSlop={10} style={s.backWrap}>
+            <Text style={s.back}>{page.cloneAction.buttonLabel}</Text>
+          </Pressable>
+        ) : null}
         {shareLabel ? (
           <Pressable onPress={onShare} hitSlop={10} style={s.backWrap}>
             <Text style={s.back}>{shareLabel}</Text>
@@ -292,6 +303,15 @@ function BackLinkLive({ slug, id }: { slug: string; id: string }) {
           groupingId={id}
           unknownErrorText={data.viewer?.commonUnknownErrorText ?? ''}
           onClose={() => setShowMerge(false)}
+        />
+      )}
+      {showClone && page?.cloneAction && (
+        <CloneGroupingModal
+          page={page}
+          slug={slug}
+          groupingId={id}
+          unknownErrorText={data.viewer?.commonUnknownErrorText ?? ''}
+          onClose={() => setShowClone(false)}
         />
       )}
     </View>
@@ -444,6 +464,153 @@ function MergeModal({
               </View>
             </>
           )}
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
+}
+
+// Clone ("run it again") dialog: a title field plus the create
+// form's start picker (date strip + hour/minute wheels + dual-zone
+// echo), seeded from the shell's cloneAction default start — the
+// source car's weekday and time-of-day on the nearest future week,
+// computed server-side in the viewer's timezone. On success the app
+// lands on the new squad; seats the server could not resolve are
+// named in the confirmation alert (the clone still succeeds).
+const CLONE_CELL_W = 54;
+const CLONE_CELL_GAP = 8;
+const CLONE_HOURS: readonly number[] = Array.from({ length: 24 }, (_, i) => i);
+
+function CloneGroupingModal({
+  page, slug, groupingId, unknownErrorText, onClose,
+}: {
+  page: DetailPageData;
+  slug: string;
+  groupingId: string;
+  unknownErrorText: string;
+  onClose: () => void;
+}) {
+  const router = useRouter();
+  const ca = page.cloneAction;
+  const initDate = useMemo(
+    () => parseStartsAt(ca?.defaultStartsAt) ?? new Date(),
+    [ca?.defaultStartsAt],
+  );
+  const [title, setTitle] = useState(page.grouping?.title ?? '');
+  const [pickedDay, setPickedDay] = useState(() => startOfLocalDay(initDate));
+  const [hour, setHour] = useState(initDate.getHours());
+  const [minute, setMinute] = useState(initDate.getMinutes());
+  const [notice, setNotice] = useState('');
+  const [busy, setBusy] = useState(false);
+  const locale = effectiveLocaleTag();
+  const weekdayFmt = useMemo(() => new Intl.DateTimeFormat(locale, { weekday: 'short' }), [locale]);
+  const now = useMemo(() => new Date(), []);
+  const stripDays = useMemo(() => dateStripDays(now, pickedDay), [now, pickedDay]);
+  const selectedStripIndex = dateStripIndex(stripDays, pickedDay);
+  const stripRef = useRef<React.ElementRef<typeof ScrollView>>(null);
+  const stripLaidOut = useRef(false);
+  const stripScrollX = Math.max(0, selectedStripIndex * (CLONE_CELL_W + CLONE_CELL_GAP) - CLONE_CELL_GAP);
+  useEffect(() => {
+    if (!stripLaidOut.current) return;
+    stripRef.current?.scrollTo({ x: stripScrollX, animated: true });
+  }, [stripScrollX]);
+  if (!ca) return null;
+  const echoInstant = new Date(pickedDay.getFullYear(), pickedDay.getMonth(), pickedDay.getDate(), hour, minute, 0);
+  const echoEast = zonedEchoParts(echoInstant, ECHO_TZ_EAST, locale);
+  const echoWest = zonedEchoParts(echoInstant, ECHO_TZ_WEST, locale);
+  const doClone = async () => {
+    setBusy(true); setNotice('');
+    try {
+      const r = await cloneGrouping({
+        groupingId,
+        title: title.trim() || (page.grouping?.title ?? ''),
+        startsAt: String(Math.floor(echoInstant.getTime() / 1000)),
+      });
+      if (!r.ok) {
+        setNotice(fill(ca.toastFailedTemplate ?? '', { error: r.error || unknownErrorText }));
+        return;
+      }
+      const newId = r.grouping?.id;
+      const skipped = r.skippedNames ?? [];
+      onClose();
+      if (newId) {
+        router.replace({ pathname: '/guild/[slug]/grouping/[id]', params: { slug, id: newId } });
+      }
+      Alert.alert(
+        ca.toastCloned,
+        skipped.length ? fill(ca.toastSkippedTemplate ?? '', { names: skipped.join('、') }) : undefined,
+      );
+    } catch (e) {
+      setNotice(fill(ca.toastFailedTemplate ?? '', {
+        error: e instanceof Error ? e.message : unknownErrorText,
+      }));
+    } finally { setBusy(false); }
+  };
+  return (
+    <Modal visible transparent animationType="fade" onRequestClose={onClose}>
+      <Pressable style={s.overlay} onPress={onClose}>
+        <Pressable style={s.panel} onPress={() => {}}>
+          <Text style={s.formTitle}>{ca.dialogTitle}</Text>
+          <Text style={s.label}>{page.formTitleLabel ?? ''}</Text>
+          <TextInput
+            style={s.input}
+            value={title}
+            onChangeText={setTitle}
+            placeholder={page.formTitlePlaceholder ?? ''}
+            placeholderTextColor={theme.muted}
+          />
+          <Text style={s.label}>{page.formStartsLabel ?? ''}</Text>
+          <ScrollView
+            ref={stripRef}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={s.cloneStripRow}
+            onLayout={() => {
+              stripLaidOut.current = true;
+              stripRef.current?.scrollTo({ x: stripScrollX, animated: false });
+            }}
+          >
+            {stripDays.map((d, i) => {
+              const on = i === selectedStripIndex;
+              return (
+                <Pressable key={d.getTime()} style={[s.cloneDayCell, on && s.cloneDayCellOn]} onPress={() => setPickedDay(d)}>
+                  {on && <GoldFill />}
+                  <Text style={[s.cloneDayCellDate, on && s.cloneCellTextOn]}>{`${d.getMonth() + 1}/${d.getDate()}`}</Text>
+                  <Text style={[s.cloneDayCellWeekday, on && s.cloneCellTextOn]}>{weekdayFmt.format(d)}</Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+          <View style={s.cloneWheelsRow}>
+            <WheelColumn
+              values={CLONE_HOURS}
+              value={hour}
+              onChange={setHour}
+              format={(n) => fill(page.formHourTemplate ?? '', { n })}
+            />
+            <WheelColumn
+              values={minuteWheelValues(minute)}
+              value={minute}
+              onChange={setMinute}
+              format={(n) => fill(page.formMinuteTemplate ?? '', { n })}
+            />
+          </View>
+          <Text style={s.cloneEchoText}>
+            {fill(page.formTzEchoTemplate ?? '', {
+              eastLabel: page.formTzEastLabel ?? '', eastWeekday: echoEast.weekday, eastTime: echoEast.time,
+              westLabel: page.formTzWestLabel ?? '', westWeekday: echoWest.weekday, westTime: echoWest.time,
+            })}
+          </Text>
+          {!!notice && <Text style={s.formNotice}>{notice}</Text>}
+          <View style={s.formBtns}>
+            <Pressable style={s.cancelBtn} onPress={onClose}>
+              <Text style={s.cancelText}>{page.formCancelLabel ?? ''}</Text>
+            </Pressable>
+            <Pressable style={[s.submitBtn, busy && { opacity: 0.6 }]} onPress={doClone} disabled={busy}>
+              <GoldFill />
+              <Text style={s.submitText}>{page.formSubmitCreateLabel ?? ''}</Text>
+            </Pressable>
+          </View>
         </Pressable>
       </Pressable>
     </Modal>
@@ -748,6 +915,20 @@ const s = StyleSheet.create({
   formTitle: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 18, marginBottom: 4 },
   formSub: { fontFamily: fonts.serif, color: theme.muted, fontSize: 12, marginBottom: 16 },
   formNotice: { fontFamily: fonts.serif, color: theme.danger, fontSize: 12.5, marginTop: 4 },
+  // Clone dialog start picker: same values as the create form's
+  // date strip + echo line (GroupingForm styles).
+  cloneStripRow: { flexDirection: 'row', gap: CLONE_CELL_GAP, paddingVertical: 2 },
+  cloneDayCell: {
+    position: 'relative', overflow: 'hidden', width: CLONE_CELL_W,
+    borderWidth: 1, borderColor: theme.border, borderRadius: 10,
+    paddingVertical: 8, alignItems: 'center',
+  },
+  cloneDayCellOn: { borderColor: 'rgba(236,210,143,.5)' },
+  cloneDayCellDate: { fontFamily: fonts.serif, color: theme.paper, fontSize: 15.5 },
+  cloneDayCellWeekday: { fontFamily: fonts.serif, color: theme.muted, fontSize: 11.5, marginTop: 2 },
+  cloneCellTextOn: { color: theme.onGold, fontWeight: '700' },
+  cloneWheelsRow: { flexDirection: 'row', gap: 10, marginTop: 12 },
+  cloneEchoText: { fontFamily: fonts.serif, color: theme.gold, fontSize: 13.5, textAlign: 'center', marginTop: 12 },
   nameErr: { fontFamily: fonts.serif, color: '#e08080', fontSize: 12, marginTop: 4 },
   label: { fontFamily: fonts.serif, color: theme.paper, fontSize: 13, marginTop: 14, marginBottom: 6 },
   input: {
