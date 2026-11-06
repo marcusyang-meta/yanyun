@@ -73,6 +73,14 @@ export type GroupingsStringKey =
   | 'groupingDetail_cloneToastCloned'
   | 'groupingDetail_cloneToastFailed'
   | 'groupingDetail_cloneToastSkipped'
+  | 'groupingDetail_nudgeButton'
+  | 'groupingDetail_nudgeDialogTitle'
+  | 'groupingDetail_nudgeHintText'
+  | 'groupingDetail_nudgeMessage'
+  | 'groupingDetail_nudgeMessageNoTime'
+  | 'groupingDetail_nudgeEmptyText'
+  | 'groupingDetail_nudgeCopyLabel'
+  | 'groupingDetail_nudgeCopiedToast'
   | 'groupingForm_createTitle'
   | 'groupingForm_editTitle'
   | 'groupingForm_typeLabel'
@@ -427,6 +435,14 @@ export const GROUPINGS_STRING_KEYS: readonly GroupingsStringKey[] = [
   'groupingDetail_cloneToastCloned',
   'groupingDetail_cloneToastFailed',
   'groupingDetail_cloneToastSkipped',
+  'groupingDetail_nudgeButton',
+  'groupingDetail_nudgeDialogTitle',
+  'groupingDetail_nudgeHintText',
+  'groupingDetail_nudgeMessage',
+  'groupingDetail_nudgeMessageNoTime',
+  'groupingDetail_nudgeEmptyText',
+  'groupingDetail_nudgeCopyLabel',
+  'groupingDetail_nudgeCopiedToast',
   'groupingForm_createTitle',
   'groupingForm_editTitle',
   'groupingForm_typeLabel',

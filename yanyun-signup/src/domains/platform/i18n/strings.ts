@@ -464,6 +464,34 @@ export abstract class GroupingDetailFbtUtils {
 	static cloneToastSkipped(fbs: FbsRuntime, p?: StringParams) {
 		return fbs._("以下成员未能带入新车（请先加入名册）：{names}", [fbs._param("names", pv(p, "names"))], { hk: "39eOzZ" });
 	}
+	static nudgeButton(fbs: FbsRuntime) {
+		return fbs._("催报名", null, { hk: "2kzmsk" });
+	}
+	static nudgeDialogTitle(fbs: FbsRuntime) {
+		return fbs._("催报名", null, { hk: "ZeGoy" });
+	}
+	static nudgeHintText(fbs: FbsRuntime) {
+		return fbs._("复制下面的文案到 Discord 发送，就能 @ 到还没报名的伙伴。", null, { hk: "G2qUC" });
+	}
+	static nudgeMessage(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("「{title}」{time} 出发，还没报名的伙伴：{mentions}，快来占座！", [
+			fbs._param("title", pv(p, "title")),
+			fbs._param("time", pv(p, "time")),
+			fbs._param("mentions", pv(p, "mentions"))
+		], { hk: "339RPk" });
+	}
+	static nudgeMessageNoTime(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("「{title}」还没报名的伙伴：{mentions}，快来占座！", [fbs._param("title", pv(p, "title")), fbs._param("mentions", pv(p, "mentions"))], { hk: "U4CZm" });
+	}
+	static nudgeEmptyText(fbs: FbsRuntime) {
+		return fbs._("名册成员都已报名，没有需要催的伙伴。", null, { hk: "tEzL6" });
+	}
+	static nudgeCopyLabel(fbs: FbsRuntime) {
+		return fbs._("复制文案", null, { hk: "2ho77t" });
+	}
+	static nudgeCopiedToast(fbs: FbsRuntime) {
+		return fbs._("已复制，去 Discord 粘贴发送吧", null, { hk: "1UamFj" });
+	}
 }
 export abstract class GroupingFormFbtUtils {
 	static createTitle(fbs: FbsRuntime) {
@@ -5457,6 +5485,14 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"groupingDetail_cloneToastCloned": GroupingDetailFbtUtils.cloneToastCloned,
 	"groupingDetail_cloneToastFailed": GroupingDetailFbtUtils.cloneToastFailed,
 	"groupingDetail_cloneToastSkipped": GroupingDetailFbtUtils.cloneToastSkipped,
+	"groupingDetail_nudgeButton": GroupingDetailFbtUtils.nudgeButton,
+	"groupingDetail_nudgeDialogTitle": GroupingDetailFbtUtils.nudgeDialogTitle,
+	"groupingDetail_nudgeHintText": GroupingDetailFbtUtils.nudgeHintText,
+	"groupingDetail_nudgeMessage": GroupingDetailFbtUtils.nudgeMessage,
+	"groupingDetail_nudgeMessageNoTime": GroupingDetailFbtUtils.nudgeMessageNoTime,
+	"groupingDetail_nudgeEmptyText": GroupingDetailFbtUtils.nudgeEmptyText,
+	"groupingDetail_nudgeCopyLabel": GroupingDetailFbtUtils.nudgeCopyLabel,
+	"groupingDetail_nudgeCopiedToast": GroupingDetailFbtUtils.nudgeCopiedToast,
 	"groupingForm_createTitle": GroupingFormFbtUtils.createTitle,
 	"groupingForm_editTitle": GroupingFormFbtUtils.editTitle,
 	"groupingForm_typeLabel": GroupingFormFbtUtils.typeLabel,

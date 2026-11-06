@@ -466,6 +466,17 @@ type GroupingCloneAction {
   defaultStartsAt: String!
 }
 
+type GroupingNudgeCopy {
+  buttonLabel: String!
+  dialogTitle: String!
+  hintText: String!
+  text: String
+  emptyText: String
+  copyLabel: String!
+  copiedToast: String!
+  candidateCount: Int!
+}
+
 type CloneGroupingPayload {
   ok: Boolean!
   grouping: Grouping
@@ -578,6 +589,7 @@ type GroupingDetailPage {
   merge: GroupingMerge
   templateSave: GroupingTemplateSave
   cloneAction: GroupingCloneAction
+  nudgeCopy: GroupingNudgeCopy
   rosterAnswers: [RosterAnswer!]
   rosterAnswersTitle: String!
   recap: GroupingRecapResult
