@@ -20,7 +20,7 @@ import type { documentsListPageTextQuery } from '../__generated__/documentsListP
 import { BlockNode1View } from '../blocks/BlockRenderer';
 import type { ActionHandlers } from '../blocks/actions';
 import { AsyncBoundary, LoadingView } from '../components/AsyncBoundary';
-import { weekRangeLabel } from '../week';
+import { getWeekRange, weekRangeLabel } from '../week';
 import { deliverShareImage, type ShareImageDeps } from '../shareImage';
 import { useGuildLive } from '../live';
 import type { documentsGroupingListBlocksQuery } from '../__generated__/documentsGroupingListBlocksQuery.graphql';
@@ -148,7 +148,7 @@ export default function GroupingListScreen({ slug, name, nick, gameVersion, avat
         <>
           <View style={s.createRow}>
             <Suspense fallback={null}>
-              <WeekShareButton slug={slug} />
+              <WeekShareButton slug={slug} weekOffset={weekOffset} />
             </Suspense>
             <Suspense fallback={null}>
               <CreateCarButton slug={slug} onPress={() => setShowCreate(true)} />
@@ -258,7 +258,7 @@ const nativeShareImageDeps: ShareImageDeps = {
 // detail page's share-image action with the list shell's composed
 // URL / text / guild link; only failure is surfaced (the share
 // sheet itself is the success feedback), like the detail action.
-function WeekShareButton({ slug }: { slug: string }) {
+function WeekShareButton({ slug, weekOffset }: { slug: string; weekOffset: number }) {
   const data = useLazyLoadQuery<documentsListPageTextQuery>(
     ListPageTextQuery,
     { slug, tab: 'ACTIVITY' },
@@ -272,8 +272,16 @@ function WeekShareButton({ slug }: { slug: string }) {
     setBusy(true);
     void (async () => {
       try {
+        // The image follows the week on screen: carry the exact
+        // window this list is showing (getWeekRange on the current
+        // weekOffset) — the OG route validates it and falls back to
+        // the current week if the params are ever off.
+        const { start, end } = getWeekRange(weekOffset);
+        const baseUrl = page.weekShareImageUrl;
+        const sep = baseUrl.includes('?') ? '&' : '?';
+        const imageUrl = `${baseUrl}${sep}from=${Math.floor(start.getTime() / 1000)}&to=${Math.floor(end.getTime() / 1000)}`;
         const outcome = await deliverShareImage(nativeShareImageDeps, {
-          imageUrl: page.weekShareImageUrl,
+          imageUrl,
           linkUrl: page.weekShareUrl ?? null,
           dialogTitle: page.weekShareText ?? '',
         });
