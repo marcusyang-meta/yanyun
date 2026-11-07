@@ -108,8 +108,8 @@
     "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary"
   },
   "src/domains/platform/graphql-base.ts": {
-    "max": 74,
-    "reason": "framework internals: dynamic prototype generation (defineTextGens) and shell source records (ShellBase.data); +6 for the shared grouping-manage verdict/gate signatures (db/user/request params, same shape as getGuildAdminAccess); +1 for the TemplatePayloadShell failure helper (tFail, same shape as gFail/dFail)"
+    "max": 76,
+    "reason": "framework internals: dynamic prototype generation (defineTextGens) and shell source records (ShellBase.data); +6 for the shared grouping-manage verdict/gate signatures (db/user/request params, same shape as getGuildAdminAccess); +1 for the TemplatePayloadShell failure helper (tFail, same shape as gFail/dFail); +2 for the platform-admin lane env params on the same verdict/gate signatures (2026-11-07 ruling: platform admins manage groupings in every guild)"
   },
   "src/domains/platform/graphql.ts": {
     "max": 162,
