@@ -161,13 +161,20 @@ export async function stampEventCreators(
 
 /* REST weekly list: signup_count computed column; type/from/to are
  * optional filters assembled here. Ordering preserved: open first,
- * timeless last, newest first within a group. */
+ * timeless last, newest first within a group. Completed cars are
+ * excluded by default (the list surfaces are forward-looking);
+ * includeCompleted opts back in — the weekly squad image uses it,
+ * since the picture records the whole week, finished cars included.
+ * Drafts never ride either way, and disbanded cars are deleted rows,
+ * so they can never appear here. */
 export async function listEventsWeekView(
   d1: D1Database,
-  q: { tenant: number; type?: string; from?: number; to?: number },
+  q: { tenant: number; type?: string; from?: number; to?: number; includeCompleted?: boolean },
 ): Promise<(EventRow & { signup_count: number })[]> {
   const db = createDb(d1);
-  const query = sql`SELECT e.*, (SELECT COUNT(*) FROM ${signups} s WHERE s.event_id = e.id) AS signup_count FROM ${events} e WHERE e.tenant = ${q.tenant} AND e.status NOT IN ('draft', 'completed')`;
+  const query = q.includeCompleted
+    ? sql`SELECT e.*, (SELECT COUNT(*) FROM ${signups} s WHERE s.event_id = e.id) AS signup_count FROM ${events} e WHERE e.tenant = ${q.tenant} AND e.status NOT IN ('draft')`
+    : sql`SELECT e.*, (SELECT COUNT(*) FROM ${signups} s WHERE s.event_id = e.id) AS signup_count FROM ${events} e WHERE e.tenant = ${q.tenant} AND e.status NOT IN ('draft', 'completed')`;
   if (q.type) query.append(sql`AND e.type = ${q.type}`);
   if (q.from) query.append(sql`AND e.starts_at_utc >= ${q.from}`);
   if (q.to) query.append(sql`AND e.starts_at_utc <= ${q.to}`);

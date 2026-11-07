@@ -4578,6 +4578,7 @@ type OgWeekCar {
   occupiedCount: Int!
   maxSlots: Int!
   leaderName: String!
+  status: String!
 }
 
 type OgCarCard {
