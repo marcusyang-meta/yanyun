@@ -259,13 +259,13 @@ async function fetchTeamCount(slug) {
 
 const CAR_TYPE_LABEL = { ACTIVITY: '双十人本', TALENT: '天赋组队', RACE: '竞速报名' };
 
-/* 本周车队图的数据: ogGuildCard.weekCars (公开卡面窄口) — 窗口与
- * fetchTeamCount 同一 weekWindowUtc (周一 05:00 北京, 半开区间),
- * 后端只回 open 车且按出发时间升序, 每台车只带卡面字段。后端尚不
- * 认识 weekCars 时整条查询报错 -> throw, 上层兜底通用图 (绝不渲
- * 一张假的空图)。 */
-async function fetchWeekCars(slug) {
-  const [from, to] = weekWindowUtc();
+/* 本周车队图的数据: ogGuildCard.weekCars (公开卡面窄口) — 窗口
+ * 缺省与 fetchTeamCount 同一 weekWindowUtc (周一 05:00 北京, 半开
+ * 区间), 列表页分享时带所选周的 from/to 过来则按所给窗口走。后端
+ * 回 open / closed / completed 车且按出发时间升序 (草稿与已解散的
+ * 车不进), 每台车只带卡面字段。后端尚不认识 weekCars 时整条查询
+ * 报错 -> throw, 上层兜底通用图 (绝不渲一张假的空图)。 */
+async function fetchWeekCars(slug, from, to) {
   const json = await fetchJson(`${SITE_API}/graphql`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -274,7 +274,7 @@ async function fetchWeekCars(slug) {
         query($slug: String!, $from: Int!, $to: Int!) {
           ogGuildCard(slug: $slug) {
             weekCars(fromUtc: $from, toUtc: $to) {
-              title type dungeonName startsAtUtc cardTimeText occupiedCount maxSlots leaderName
+              title type dungeonName startsAtUtc cardTimeText occupiedCount maxSlots leaderName status
             }
           }
         }
@@ -287,10 +287,24 @@ async function fetchWeekCars(slug) {
   return cars;
 }
 
+/* 周图窗口: ?from / ?to (epoch 秒) 合法时用所给窗口 — 两者都须为
+ * 整数、to > from、跨度不超过 8 天; 任一不合法或缺失都回退当前周
+ * (weekWindowUtc), 绝不因脏参数报错或渲出失控窗口。 */
+const WEEK_WINDOW_MAX_SPAN = 8 * 86400;
+function parseWeekWindow(url) {
+  const fromRaw = url.searchParams.get('from');
+  const toRaw = url.searchParams.get('to');
+  if (fromRaw != null && toRaw != null && /^-?\d+$/.test(fromRaw) && /^-?\d+$/.test(toRaw)) {
+    const from = Number(fromRaw);
+    const to = Number(toRaw);
+    if (to > from && to - from <= WEEK_WINDOW_MAX_SPAN) return [from, to];
+  }
+  return weekWindowUtc();
+}
+
 /* 周图标题下的日期范围 (窗口首尾两天, 北京时间墙钟): 只标起止
  * 日期, 不写相对说法 (与主站口径一致)。 */
-function weekRangeText() {
-  const [from, to] = weekWindowUtc();
+function weekRangeText(from, to) {
   const fmt = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Shanghai', month: 'numeric', day: 'numeric' });
   const md = (epoch) => {
     const parts = {};
@@ -744,14 +758,16 @@ async function handleCarImage(request, url, slug, id) {
   } finally { releaseRenderSlot(); }
 }
 
-/* 本周车队图 (免费功能): 一张图列本百业本周全部 open 车 — 标题 /
+/* 本周车队图 (免费功能): 一张图列本百业所选周的车 (open / closed
+ * / completed, 已完成的车行淡化并在行尾标「已完成」) — 标题 /
  * 分享面双时区时间串 (后端整串下发, 逐字印) / 报名人数 / 车头名,
  * 墨金风格与车卡一致 (同底色、同强调色派生、同印章)。高度随行数
  * 增长; 超过 WEEK_MAX_ROWS 的车只以下沿计数行带过。空周渲一张
- * 带空态文案的同风格卡。 */
+ * 带空态文案的同风格卡。窗口缺省当前周, ?from/?to 合法时跟随。 */
 const WEEK_MAX_ROWS = 10;
 async function handleWeekImage(request, url, slug) {
-  // Cache 10 分钟（与车卡同口径: 座位数变化快）
+  // Cache 10 分钟（与车卡同口径: 座位数变化快）; 缓存键是完整 URL,
+  // 带窗口参数的请求天然各占一份缓存。
   const cache = caches.default;
   const cacheKey = new Request(url.toString(), request);
   const cached = await cache.match(cacheKey);
@@ -761,7 +777,8 @@ async function handleWeekImage(request, url, slug) {
   const guild = await fetchGuildData(slug);
   if (!guild) return new Response('Guild not found', { status: 404 });
 
-  const cars = await fetchWeekCars(slug);
+  const [from, to] = parseWeekWindow(url);
+  const cars = await fetchWeekCars(slug, from, to);
   const guildName = titleWithSuffix(guild.name || slug, guild);
   const accent = accentOf(guild);
   const shown = cars.slice(0, WEEK_MAX_ROWS);
@@ -781,7 +798,8 @@ async function handleWeekImage(request, url, slug) {
 
   const rowEl = (c) => {
     const typeLabel = CAR_TYPE_LABEL[String(c.type || '').toUpperCase()] || '';
-    const meta = [typeLabel, c.dungeonName || '', c.leaderName ? `车头 ${c.leaderName}` : '']
+    const done = c.status === 'completed';
+    const meta = [typeLabel, c.dungeonName || '', c.leaderName ? `车头 ${c.leaderName}` : '', done ? '已完成' : '']
       .filter(Boolean).join(' · ');
     return {
       type: 'div',
@@ -789,6 +807,7 @@ async function handleWeekImage(request, url, slug) {
         style: {
           display: 'flex', flexDirection: 'column', width: '1088px',
           padding: '16px 4px 14px', borderBottom: `1px solid ${rgbaOf(accent, 0.16)}`,
+          ...(done ? { opacity: 0.55 } : {}),
         },
         children: [
           {
@@ -883,7 +902,7 @@ async function handleWeekImage(request, url, slug) {
       type: 'div',
       props: {
         style: { color: '#b9a97f', fontSize: '27px', letterSpacing: '3px', marginBottom: '18px' },
-        children: weekRangeText(),
+        children: weekRangeText(from, to),
       },
     },
     ...(cars.length === 0
