@@ -261,7 +261,7 @@ export class GroupingTemplateShell extends ShellBase {
   // and the clients render no edit/delete entry; the mutations
   // re-verify with the same verdict.
   async genManageActions(){
-    const verdict = await getGroupingManageVerdict(this.db, this.ctx.user, this.ctx.request, this.vc, this.row);
+    const verdict = await getGroupingManageVerdict(this.db, this.ctx.user, this.ctx.request, this.vc, this.row, this.ctx.env);
     if (!verdict.canManage) return null;
     return {
       editLabel: this.t('groupingTemplate_edit'),
@@ -504,7 +504,7 @@ export class GroupingDetailPageShell extends ShellBase {
   // the web manageActions object below.
   genManageVerdict(){
     return this.memo('manageVerdict', async () => {
-      return getGroupingManageVerdict(this.db, this.ctx.user, this.ctx.request, this.vc, this.data);
+      return getGroupingManageVerdict(this.db, this.ctx.user, this.ctx.request, this.vc, this.data, this.ctx.env);
     });
   }
   // The manage action set as a composed object: present only when the
@@ -651,7 +651,7 @@ export class GroupingDetailPageShell extends ShellBase {
     const candidates = [];
     for (const r of rows) {
       if (r.id === ev.id || r.status !== 'open' || r.origin !== 'member') continue;
-      const v = await getGroupingManageVerdict(this.db, this.ctx.user, this.ctx.request, this.vc, r);
+      const v = await getGroupingManageVerdict(this.db, this.ctx.user, this.ctx.request, this.vc, r, this.ctx.env);
       if (!v.canManage) continue;
       const occupied = await countSignupsByEvent(this.db, r.id);
       const epoch = startsAtEpoch(r);
@@ -1184,7 +1184,7 @@ export const groupingsResolvers = {
       const gid = parseInt(input.groupingId, 10) || 0;
       const ev = await getEventRow(db, gid);
       if (!ev) return cloneFail(ctx, 'groupingNotFound');
-      const manage = await groupingManageGate(db, ctx.user, ctx.request, vcOf(ctx), ev);
+      const manage = await groupingManageGate(db, ctx.user, ctx.request, vcOf(ctx), ev, ctx.env);
       if (manage.writeCode) return cloneFail(ctx, manage.writeCode);
       if (ev.origin !== 'member') return cloneFail(ctx, 'officialEvent');
       if (!manage.canManage) {
@@ -1320,7 +1320,7 @@ export const groupingsResolvers = {
       const tid = parseInt(id, 10) || 0;
       const row = await getGroupingTemplate(db, tid);
       if (!row) return tFail(ctx, 'templateNotFound');
-      const manage = await groupingManageGate(db, ctx.user, ctx.request, vcOf(ctx), row);
+      const manage = await groupingManageGate(db, ctx.user, ctx.request, vcOf(ctx), row, ctx.env);
       if (manage.writeCode) return tFail(ctx, manage.writeCode);
       if (!manage.canManage) return tFail(ctx, 'templateForbidden');
       const parsed = await parseTemplateInput(db, input);
@@ -1348,7 +1348,7 @@ export const groupingsResolvers = {
       const tid = parseInt(id, 10) || 0;
       const row = await getGroupingTemplate(db, tid);
       if (!row) return dFail(ctx, 'templateNotFound');
-      const manage = await groupingManageGate(db, ctx.user, ctx.request, vcOf(ctx), row);
+      const manage = await groupingManageGate(db, ctx.user, ctx.request, vcOf(ctx), row, ctx.env);
       if (manage.writeCode) return dFail(ctx, manage.writeCode);
       if (!manage.canManage) return dFail(ctx, 'templateForbidden');
       await deleteGroupingTemplateRow(db, tid);
@@ -1363,7 +1363,7 @@ export const groupingsResolvers = {
       const gid = parseInt(id, 10) || 0;
       const ev = await getEventRow(db, gid);
       if (!ev) return gFail(ctx, 'groupingNotFound');
-      const manage = await groupingManageGate(db, ctx.user, ctx.request, vcOf(ctx), ev);
+      const manage = await groupingManageGate(db, ctx.user, ctx.request, vcOf(ctx), ev, ctx.env);
       if (manage.writeCode) return gFail(ctx, manage.writeCode);
       if (ev.origin !== 'member') return gFail(ctx, 'officialEvent');
       // Edit gating: the leader, or an admin of this grouping's own
@@ -1576,7 +1576,7 @@ export const groupingsResolvers = {
       const gid = parseInt(id, 10) || 0;
       const ev = await getEventTenantCreator(db, gid);
       if (!ev) return dFail(ctx, 'groupingNotFound');
-      const manage = await groupingManageGate(db, ctx.user, ctx.request, vcOf(ctx), ev);
+      const manage = await groupingManageGate(db, ctx.user, ctx.request, vcOf(ctx), ev, ctx.env);
       if (manage.writeCode) return dFail(ctx, manage.writeCode);
       if (!manage.canManage) {
         return dFail(ctx, ev.creator_user_id ? 'leaderOnlyDisband' : 'noCreatorRecorded');
@@ -1603,7 +1603,7 @@ export const groupingsResolvers = {
       const gid = parseInt(id, 10) || 0;
       const ev = await getEventRow(db, gid);
       if (!ev) return gFail(ctx, 'groupingNotFound');
-      const manage = await groupingManageGate(db, ctx.user, ctx.request, vcOf(ctx), ev);
+      const manage = await groupingManageGate(db, ctx.user, ctx.request, vcOf(ctx), ev, ctx.env);
       if (manage.writeCode) return gFail(ctx, manage.writeCode);
       if (ev.origin !== 'member') return gFail(ctx, 'officialEvent');
       if (!manage.canManage) {
@@ -1631,7 +1631,7 @@ export const groupingsResolvers = {
       const gid = parseInt(id, 10) || 0;
       const ev = await getEventRow(db, gid);
       if (!ev) return gFail(ctx, 'groupingNotFound');
-      const manage = await groupingManageGate(db, ctx.user, ctx.request, vcOf(ctx), ev);
+      const manage = await groupingManageGate(db, ctx.user, ctx.request, vcOf(ctx), ev, ctx.env);
       if (manage.writeCode) return gFail(ctx, manage.writeCode);
       if (ev.origin !== 'member') return gFail(ctx, 'officialEvent');
       if (!manage.canManage) {
@@ -1670,9 +1670,9 @@ export const groupingsResolvers = {
       // draft is invisible across the whole GraphQL surface (lists
       // filter it): treat as nonexistent, as completeGrouping does.
       if (target.status === 'draft' || source.status === 'draft') return gFail(ctx, 'groupingNotFound');
-      const tGate = await groupingManageGate(db, ctx.user, ctx.request, vcOf(ctx), target);
+      const tGate = await groupingManageGate(db, ctx.user, ctx.request, vcOf(ctx), target, ctx.env);
       if (tGate.writeCode) return gFail(ctx, tGate.writeCode);
-      const sGate = await groupingManageGate(db, ctx.user, ctx.request, vcOf(ctx), source);
+      const sGate = await groupingManageGate(db, ctx.user, ctx.request, vcOf(ctx), source, ctx.env);
       if (sGate.writeCode) return gFail(ctx, sGate.writeCode);
       if (target.origin !== 'member' || source.origin !== 'member') return gFail(ctx, 'officialEvent');
       if (!tGate.canManage) {

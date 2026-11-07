@@ -3,6 +3,7 @@
  * payload bases. Domain GraphQL modules import this file directly;
  * cross-domain services still go through the barrels. */
 import { vcOf, isOmniscientViewer } from './context.ts';
+import { isPlatformAdmin } from './admin-gate.ts';
 import type { Context, ViewerContext } from './context.ts';
 import { translate, translateError, negotiateLocale, SUPPORTED_LOCALES, CATALOG } from './i18n.ts';
 import { getSettingValue, setSettingValue, listSettingsByKey } from '../guilds/settings.ts';
@@ -256,17 +257,26 @@ export function hasCapability(verdict: OfficerVerdict, capability: OfficerCapabi
  * the caller happens to administer elsewhere. This one verdict backs
  * the four manage mutations (edit / disband / complete / reopen) and
  * the detail surfaces' action composition; do not re-derive it per
- * call site. */
-export async function getGroupingManageVerdict(db: any, user: any, request: any, vc: ViewerContext | null | undefined, ev: { tenant: number; creator_user_id?: number | null }): Promise<{ isLeader: boolean; isAdmin: boolean; isOfficer: boolean; canManage: boolean }> {
+ * call site.
+ *
+ * Platform-admin lane (ruling 2026-11-07): a platform admin (the
+ * admin-gate verdict — the PLATFORM_ADMIN_DISCORD_IDS env floor
+ * unioned with the living roster) manages groupings in EVERY guild.
+ * The lane is evaluated last, only when no guild-local lane passed,
+ * so isPlatformAdmin marks exactly the cases this lane decided; the
+ * guild-admin and officer verdicts above are untouched — this grants
+ * no guild governance, only car management. Callers that pass no env
+ * get no lane (fail closed: an unconfigured roster names nobody). */
+export async function getGroupingManageVerdict(db: any, user: any, request: any, vc: ViewerContext | null | undefined, ev: { tenant: number; creator_user_id?: number | null }, env?: any): Promise<{ isLeader: boolean; isAdmin: boolean; isOfficer: boolean; isPlatformAdmin: boolean; canManage: boolean }> {
   const isLeader = !!(user && ev.creator_user_id != null
     && Number(ev.creator_user_id) === Number(user.userId));
-  if (isLeader) return { isLeader: true, isAdmin: false, isOfficer: false, canManage: true };
+  if (isLeader) return { isLeader: true, isAdmin: false, isOfficer: false, isPlatformAdmin: false, canManage: true };
   // The admin verdict is slug-addressed; the event carries the
   // guild ID, so resolve its handle through the tenants row.
   const tenantRow = await getTenantRowById(db, ev.tenant).catch(() => null);
   const a = await getGuildAdminAccess(db, user, tenantRow ? tenantRow.slug : '', request, vc);
   const isAdmin = !!a.isAdmin;
-  if (isAdmin) return { isLeader: false, isAdmin, isOfficer: false, canManage: true };
+  if (isAdmin) return { isLeader: false, isAdmin, isOfficer: false, isPlatformAdmin: false, canManage: true };
   // P16 delegation: an officer holding the events capability of the
   // grouping's OWN guild manages its groupings like an admin does.
   // Same slug seam as the admin verdict above (getOfficerVerdict is
@@ -274,10 +284,13 @@ export async function getGroupingManageVerdict(db: any, user: any, request: any,
   if (user) {
     const v = await getOfficerVerdict(db, user, tenantRow ? tenantRow.slug : '', request, vc);
     if (hasCapability(v, 'events')) {
-      return { isLeader: false, isAdmin: false, isOfficer: true, canManage: true };
+      return { isLeader: false, isAdmin: false, isOfficer: true, isPlatformAdmin: false, canManage: true };
     }
   }
-  return { isLeader: false, isAdmin: false, isOfficer: false, canManage: false };
+  if (user && env && await isPlatformAdmin(env, String(user.userId)).catch(() => false)) {
+    return { isLeader: false, isAdmin: false, isOfficer: false, isPlatformAdmin: true, canManage: true };
+  }
+  return { isLeader: false, isAdmin: false, isOfficer: false, isPlatformAdmin: false, canManage: false };
 }
 
 /* The manage mutations' full gate: the membership write gate plus the
@@ -285,14 +298,23 @@ export async function getGroupingManageVerdict(db: any, user: any, request: any,
  * its session model cannot express a system viewer (user is null),
  * and the verdict below still decides, passing omni in full per the
  * omniscient doctrine. writeCode is the write gate's rejection code,
- * null when the caller passed it. */
-export async function groupingManageGate(db: any, user: any, request: any, vc: ViewerContext | null | undefined, ev: { tenant: number; creator_user_id?: number | null }): Promise<{ writeCode: string | null; isLeader: boolean; isAdmin: boolean; canManage: boolean }> {
-  if (!isOmniscientViewer(vc)) {
+ * null when the caller passed it.
+ *
+ * The write gate is also skipped for platform admins (ruling
+ * 2026-11-07, same lane as the verdict below): the admin roster names
+ * the platform owners through the Worker's secret configuration, the
+ * same list the destructive backfill mutations already trust, and a
+ * platform admin acting outside their own guilds would otherwise be
+ * stopped by a membership check that was never aimed at them. Their
+ * actions still land in the guild audit under their real identity. */
+export async function groupingManageGate(db: any, user: any, request: any, vc: ViewerContext | null | undefined, ev: { tenant: number; creator_user_id?: number | null }, env?: any): Promise<{ writeCode: string | null; isLeader: boolean; isAdmin: boolean; isOfficer: boolean; isPlatformAdmin: boolean; canManage: boolean }> {
+  const padmin = !!(user && env && await isPlatformAdmin(env, String(user.userId)).catch(() => false));
+  if (!isOmniscientViewer(vc) && !padmin) {
     const tenantRow = await getTenantRowById(db, ev.tenant).catch(() => null);
     const w = await requireWrite(db, user, tenantRow ? tenantRow.slug : '', request);
-    if (w) return { writeCode: w, isLeader: false, isAdmin: false, canManage: false };
+    if (w) return { writeCode: w, isLeader: false, isAdmin: false, isOfficer: false, isPlatformAdmin: false, canManage: false };
   }
-  const v = await getGroupingManageVerdict(db, user, request, vc, ev);
+  const v = await getGroupingManageVerdict(db, user, request, vc, ev, env);
   return { writeCode: null, ...v };
 }
 

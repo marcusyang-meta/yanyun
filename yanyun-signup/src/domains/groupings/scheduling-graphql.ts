@@ -116,7 +116,7 @@ export class GroupingSchedulingAdviceShell extends ShellBase {
 }
 
 export async function composeGroupingSchedulingAdvice(ctx: Context, ev: any): Promise<any> {
-  const verdict = await getGroupingManageVerdict(ctx.env.DB, ctx.user, ctx.request, vcOf(ctx), ev);
+  const verdict = await getGroupingManageVerdict(ctx.env.DB, ctx.user, ctx.request, vcOf(ctx), ev, ctx.env);
   if (!verdict.canManage) return null;
   const state = await tierSurfaceState(ctx.env.DB, ev.tenant, SCHEDULING_REQUIRED_TIER);
   if (state === 'absent') return null;
@@ -277,7 +277,7 @@ export const schedulingAdviceResolvers = {
       const { getEventRow } = await import('./index.ts');
       const ev: any = await getEventRow(db, groupingId).catch(() => null);
       if (!ev) return sFail(ctx, 'groupingNotFound');
-      const gate = await groupingManageGate(db, ctx.user, ctx.request, vcOf(ctx), { tenant: ev.tenant, creator_user_id: ev.creator_user_id });
+      const gate = await groupingManageGate(db, ctx.user, ctx.request, vcOf(ctx), { tenant: ev.tenant, creator_user_id: ev.creator_user_id }, ctx.env);
       if (gate.writeCode) return sFail(ctx, gate.writeCode);
       if (!gate.canManage) return sFail(ctx, 'groupingForbidden');
       if (await tierLocked(db, ev.tenant, SCHEDULING_REQUIRED_TIER)) return sFail(ctx, 'premiumRequired');

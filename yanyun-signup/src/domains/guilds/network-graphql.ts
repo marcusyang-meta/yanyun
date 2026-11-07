@@ -226,7 +226,7 @@ export class FillRequestShell extends ShellBase {
       if (!this.ctx.user) return null;
       const ev = await getEventRow(this.db, this.data.event_id).catch(() => null);
       if (!ev) return null;
-      const verdict = await getGroupingManageVerdict(this.db, this.ctx.user, this.ctx.request, this.vc, ev);
+      const verdict = await getGroupingManageVerdict(this.db, this.ctx.user, this.ctx.request, this.vc, ev, this.ctx.env);
       if (!verdict.canManage) return null;
       const invites = await listInvitesByRequest(this.db, this.data.id).catch(() => []);
       const inviteShells = [];
@@ -402,7 +402,7 @@ export async function fillMarketResult(ctx: Context, slug: string) {
   const open = (week || []).filter((ev) => ev.status === 'open');
   const mine: EventRow[] = [];
   for (const ev of open) {
-    const verdict = await getGroupingManageVerdict(ctx.env.DB, ctx.user, ctx.request, undefined, ev);
+    const verdict = await getGroupingManageVerdict(ctx.env.DB, ctx.user, ctx.request, undefined, ev, ctx.env);
     if (verdict.canManage) mine.push(ev);
   }
   if (mine.length) manageGroupings = mine;
@@ -683,7 +683,7 @@ export const networkMutations = {
     if (await tierLocked(db, a.tenant.id, 3)) return qFail(ctx, 'premiumRequired');
     const ev = await getEventRowByTenant(db, Number(groupingId), a.tenant.id).catch(() => null);
     if (!ev) return qFail(ctx, 'groupingNotFound');
-    const gate = await groupingManageGate(db, user, ctx.request, undefined, ev);
+    const gate = await groupingManageGate(db, user, ctx.request, undefined, ev, ctx.env);
     if (gate.writeCode) return qFail(ctx, gate.writeCode);
     if (!gate.canManage) return qFail(ctx, 'marketManageOnly');
     const role = s(neededRole, 10);
@@ -712,7 +712,7 @@ export const networkMutations = {
     if (!req) return nFail(ctx, 'fillRequestNotFound');
     const ev = await getEventRow(db, req.event_id).catch(() => null);
     if (!ev) return nFail(ctx, 'groupingNotFound');
-    const gate = await groupingManageGate(db, user, ctx.request, undefined, ev);
+    const gate = await groupingManageGate(db, user, ctx.request, undefined, ev, ctx.env);
     if (gate.writeCode) return nFail(ctx, gate.writeCode);
     if (!gate.canManage) return nFail(ctx, 'marketManageOnly');
     const r = await closeFillRequest(db, req.id, nowSec());
@@ -737,7 +737,7 @@ export const networkMutations = {
     if (req.status !== 'open') return iFail(ctx, 'fillRequestNotOpen');
     const ev = await getEventRow(db, req.event_id).catch(() => null);
     if (!ev) return iFail(ctx, 'groupingNotFound');
-    const gate = await groupingManageGate(db, user, ctx.request, undefined, ev);
+    const gate = await groupingManageGate(db, user, ctx.request, undefined, ev, ctx.env);
     if (gate.writeCode) return iFail(ctx, gate.writeCode);
     if (!gate.canManage) return iFail(ctx, 'marketManageOnly');
     const offer = await getFillOfferById(db, Number(offerId)).catch(() => null);
@@ -807,7 +807,7 @@ export const networkMutations = {
     if (inv.status !== 'accepted') return nFail(ctx, 'fillInviteNotAccepted');
     const ev = await getEventRow(db, inv.event_id).catch(() => null);
     if (!ev) return nFail(ctx, 'groupingNotFound');
-    const gate = await groupingManageGate(db, user, ctx.request, undefined, ev);
+    const gate = await groupingManageGate(db, user, ctx.request, undefined, ev, ctx.env);
     if (gate.writeCode) return nFail(ctx, gate.writeCode);
     if (!gate.canManage) return nFail(ctx, 'marketManageOnly');
     const supplierDiscordId = await getDiscordIdByUserId(db, inv.to_user_id).catch(() => null);
@@ -927,7 +927,7 @@ export const networkMutations = {
     if (await tierLocked(db, a.tenant.id, 3)) return nFail(ctx, 'premiumRequired');
     const ev = await getEventRowByTenant(db, Number(groupingId), a.tenant.id).catch(() => null);
     if (!ev) return nFail(ctx, 'groupingNotFound');
-    const gate = await groupingManageGate(db, user, ctx.request, undefined, ev);
+    const gate = await groupingManageGate(db, user, ctx.request, undefined, ev, ctx.env);
     if (gate.writeCode) return nFail(ctx, gate.writeCode);
     if (!gate.canManage) return nFail(ctx, 'marketManageOnly');
     const slots = Number(visitorSlots);
