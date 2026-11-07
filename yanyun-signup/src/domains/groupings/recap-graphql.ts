@@ -140,7 +140,7 @@ export async function recapSurfaceForGrouping(
   const paragraphs = row ? recapParagraphs(row) : [];
   let canManage = false;
   if (ev.status === 'completed') {
-    const verdict = await getGroupingManageVerdict(db, ctx.user, ctx.request, vcOf(ctx), ev);
+    const verdict = await getGroupingManageVerdict(db, ctx.user, ctx.request, vcOf(ctx), ev, ctx.env);
     canManage = verdict.canManage;
   }
   if (row && paragraphs.length) {
@@ -173,7 +173,7 @@ export const recapResolvers = {
       const gid = parseInt(id, 10) || 0;
       const ev = await getEventRow(db, gid);
       if (!ev) return rFail(ctx, 'groupingNotFound');
-      const manage = await groupingManageGate(db, ctx.user, ctx.request, vcOf(ctx), ev);
+      const manage = await groupingManageGate(db, ctx.user, ctx.request, vcOf(ctx), ev, ctx.env);
       if (manage.writeCode) return rFail(ctx, manage.writeCode);
       if (!manage.canManage) return rFail(ctx, 'recapForbidden');
       if (ev.origin !== 'member') return rFail(ctx, 'officialEvent');

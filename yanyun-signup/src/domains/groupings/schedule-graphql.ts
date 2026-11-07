@@ -102,7 +102,7 @@ export class TimePollShell extends ShellBase {
   genManageVerdict(){
     return this.memo('manageVerdict', async () => {
       return getGroupingManageVerdict(this.db, this.ctx.user, this.ctx.request, this.vc,
-        { tenant: this.row.tenant, creator_user_id: this.row.created_by_user_id });
+        { tenant: this.row.tenant, creator_user_id: this.row.created_by_user_id }, this.ctx.env);
     });
   }
   async genCloseActions(){
@@ -337,7 +337,7 @@ export const scheduleResolvers = {
       const poll = await getTimePoll(db, pollId);
       if (!poll) return pFail(ctx, 'pollNotFound');
       const manage = await groupingManageGate(db, ctx.user, ctx.request, vcOf(ctx),
-        { tenant: poll.tenant, creator_user_id: poll.created_by_user_id });
+        { tenant: poll.tenant, creator_user_id: poll.created_by_user_id }, ctx.env);
       if (manage.writeCode) return pFail(ctx, manage.writeCode);
       if (!manage.canManage) return pFail(ctx, 'pollForbidden');
       if (poll.status !== 'open') return pFail(ctx, 'pollClosed');

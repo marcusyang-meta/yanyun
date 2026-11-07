@@ -305,7 +305,7 @@ export async function combatReportSurfaceForGrouping(
     return new GroupingCombatReportEmptyShell(ctx, { failed: !!failed });
   }
   const verdict = ctx.user
-    ? await getGroupingManageVerdict(db, ctx.user, ctx.request, vcOf(ctx), ev).catch(() => null)
+    ? await getGroupingManageVerdict(db, ctx.user, ctx.request, vcOf(ctx), ev, ctx.env).catch(() => null)
     : null;
   const canManage = !!verdict?.canManage;
   const viewerId = ctx.user ? Number(ctx.user.userId) : 0;
@@ -386,7 +386,7 @@ export const combatResolvers = {
       if (await tierLocked(db, ev.tenant, 2)) return cFail(ctx, 'combatTierLocked');
       const isUploader = row.uploader_user_id === Number(ctx.user.userId);
       if (!isUploader) {
-        const manage = await groupingManageGate(db, ctx.user, ctx.request, vcOf(ctx), ev);
+        const manage = await groupingManageGate(db, ctx.user, ctx.request, vcOf(ctx), ev, ctx.env);
         if (manage.writeCode) return cFail(ctx, manage.writeCode);
         if (!manage.canManage) return cFail(ctx, 'combatReportForbidden');
       }
