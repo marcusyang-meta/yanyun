@@ -264,34 +264,39 @@ function BackLinkLive({ slug, id }: { slug: string; id: string }) {
   return (
     <View style={s.headerRow}>
       <BackLink label={page?.detailBackToListLabel ?? '‹ 返回车队列表'} />
-      <View style={{ flexDirection: 'row', gap: 16 }}>
+      {/* Action entries wrap onto extra lines instead of running off
+          the right edge: this row used to be a single no-wrap row next
+          to the back link, so once merge / clone / nudge joined the
+          older entries, the trailing ones (share, share image) were
+          clipped off-screen and unreachable on phone widths. */}
+      <View style={s.headLinks}>
         {page?.templateSave ? (
-          <Pressable onPress={() => setShowTplSave(true)} hitSlop={10} style={s.backWrap}>
+          <Pressable onPress={() => setShowTplSave(true)} hitSlop={10} style={s.headLink}>
             <Text style={s.back}>{page.templateSave.buttonLabel}</Text>
           </Pressable>
         ) : null}
         {page?.merge ? (
-          <Pressable onPress={() => setShowMerge(true)} hitSlop={10} style={s.backWrap}>
+          <Pressable onPress={() => setShowMerge(true)} hitSlop={10} style={s.headLink}>
             <Text style={s.back}>{page.merge.buttonLabel}</Text>
           </Pressable>
         ) : null}
         {page?.cloneAction ? (
-          <Pressable onPress={() => setShowClone(true)} hitSlop={10} style={s.backWrap}>
+          <Pressable onPress={() => setShowClone(true)} hitSlop={10} style={s.headLink}>
             <Text style={s.back}>{page.cloneAction.buttonLabel}</Text>
           </Pressable>
         ) : null}
         {page?.nudgeCopy ? (
-          <Pressable onPress={() => setShowNudge(true)} hitSlop={10} style={s.backWrap}>
+          <Pressable onPress={() => setShowNudge(true)} hitSlop={10} style={s.headLink}>
             <Text style={s.back}>{page.nudgeCopy.buttonLabel}</Text>
           </Pressable>
         ) : null}
         {shareLabel ? (
-          <Pressable onPress={onShare} hitSlop={10} style={s.backWrap}>
+          <Pressable onPress={onShare} hitSlop={10} style={s.headLink}>
             <Text style={s.back}>{shareLabel}</Text>
           </Pressable>
         ) : null}
         {shareImageLabel && shareImageUrl ? (
-          <Pressable onPress={onShareImage} hitSlop={10} style={s.backWrap} disabled={shareImageBusy}>
+          <Pressable onPress={onShareImage} hitSlop={10} style={s.headLink} disabled={shareImageBusy}>
             <Text style={[s.back, shareImageBusy && { opacity: 0.5 }]}>{shareImageLabel}</Text>
           </Pressable>
         ) : null}
@@ -959,7 +964,9 @@ function DetailBlocks({
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: theme.bg },
   headZone: { paddingHorizontal: 20 },
-  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  headerRow: { flexDirection: 'column' },
+  headLinks: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 16, rowGap: 2, marginBottom: 12 },
+  headLink: { paddingVertical: 4 },
   backWrap: { marginTop: 14, marginBottom: 12 },
   back: { fontFamily: fonts.serif, color: theme.gold, fontSize: 15 },
   // Seat dialog mirrors the Web modal: centered over a dark scrim; panel with ink-2 background, gold border and 2px gold top edge
