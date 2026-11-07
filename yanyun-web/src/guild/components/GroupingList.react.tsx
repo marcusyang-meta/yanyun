@@ -167,13 +167,18 @@ const GroupingListQueryNode = graphql`
   }
 `;
 
-function GroupingList({ queryRef, tab, onTabChange, onSelect }: {
+function GroupingList({ queryRef, tab, onTabChange, onSelect, weekOffset, onWeekOffsetChange }: {
   queryRef: PreloadedQuery<GroupingListQueryType>;
   tab: TabKey;
   onTabChange: (t: TabKey) => void;
   onSelect: (id: string) => void;
+  // The selected week lives in the route shell (like the tab): the
+  // shell's week-image share button needs the same weekOffset the
+  // list below is filtering by.
+  weekOffset: number;
+  onWeekOffsetChange: (updater: number | ((w: number) => number)) => void;
 }) {
-  const [weekOffset, setWeekOffset] = useState(0);
+  const setWeekOffset = onWeekOffsetChange;
   const data = usePreloadedQuery<GroupingListQueryType>(GroupingListQueryNode, queryRef);
   const page: any = (data as any)?.viewer?.guild?.groupings ?? {};
   const all: any[] = page?.groupings ?? [];
@@ -347,6 +352,7 @@ function GroupingList({ queryRef, tab, onTabChange, onSelect }: {
 
 export function GroupingListRoute({ slug, defaultNickname }: { slug: string; defaultNickname?: string }) {
   const [tab, setTab] = useState<TabKey>('ACTIVITY');
+  const [weekOffset, setWeekOffset] = useState(0);
   const [showForm, setShowForm] = useState(false);
   const navigate = useNavigate();
 
@@ -391,8 +397,16 @@ export function GroupingListRoute({ slug, defaultNickname }: { slug: string; def
   // single-car card image (detail page), fed with the list page's
   // server-composed URL / text / guild link.
   const shareWeekImage = async () => {
-    const imageUrl = pageText.weekShareImageUrl;
-    if (!imageUrl) return;
+    const baseUrl = pageText.weekShareImageUrl;
+    if (!baseUrl) return;
+    // The image follows the week on screen: carry the window for
+    // the weekOffset the list below is filtering by, computed with
+    // the same getWeekRange the list itself uses — the OG route
+    // validates it and falls back to the current week if the params
+    // are ever off.
+    const { start, end } = getWeekRange(weekOffset);
+    const sep = baseUrl.includes('?') ? '&' : '?';
+    const imageUrl = `${baseUrl}${sep}from=${Math.floor(start.getTime() / 1000)}&to=${Math.floor(end.getTime() / 1000)}`;
     const result = await runShareImage(browserShareImageDeps(), {
       imageUrl,
       fileName: shareImageFileName(imageUrl),
@@ -424,6 +438,8 @@ export function GroupingListRoute({ slug, defaultNickname }: { slug: string; def
         tab={tab}
         onTabChange={setTab}
         onSelect={(id) => navigate(`/${slug}/car/${id}`)}
+        weekOffset={weekOffset}
+        onWeekOffsetChange={setWeekOffset}
       />
       {showForm && (
         <GroupingForm
