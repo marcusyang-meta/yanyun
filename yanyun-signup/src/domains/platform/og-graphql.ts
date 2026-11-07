@@ -61,10 +61,10 @@ export class OgGuildCardShell extends ShellBase {
   async genWeekCars({ fromUtc, toUtc }: any){
     if (!this.data.tenant || !this.data.tenant.id) return [];
     const rows = await listEventsWeekView(this.db, {
-      tenant: this.data.tenant.id, from: fromUtc, to: toUtc,
+      tenant: this.data.tenant.id, from: fromUtc, to: toUtc, includeCompleted: true,
     });
     return rows
-      .filter((r: any) => r.status === 'open' && r.starts_at_utc != null
+      .filter((r: any) => (r.status === 'open' || r.status === 'closed' || r.status === 'completed') && r.starts_at_utc != null
         && Number(r.starts_at_utc) >= fromUtc && Number(r.starts_at_utc) < toUtc)
       .sort((a: any, b: any) => (Number(a.starts_at_utc) - Number(b.starts_at_utc))
         || (Number(a.id) - Number(b.id)))
@@ -96,6 +96,7 @@ export class OgGuildCardShell extends ShellBase {
  * string, printed verbatim by the OG worker. */
 export class OgWeekCarShell extends ShellBase {
   genTitle(){ return this.data.title || ''; }
+  genStatus(){ return this.data.status || ''; }
   genType(){ return this.data.type || ''; }
   genDungeonName(){ return this.data.dungeon || ''; }
   genStartsAtUtc(){ return this.data.starts_at_utc ?? null; }
@@ -210,6 +211,7 @@ export const ogCardResolvers = {
     },
     OgWeekCar: {
       title: (p: any) => p.genTitle(),
+      status: (p: any) => p.genStatus(),
       type: (p: any) => p.genType(),
       dungeonName: (p: any) => p.genDungeonName(),
       startsAtUtc: (p: any) => p.genStartsAtUtc(),

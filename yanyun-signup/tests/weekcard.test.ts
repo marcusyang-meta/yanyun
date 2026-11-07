@@ -4,8 +4,11 @@
 //     exactly at toUtc belongs to the NEXT week and is excluded,
 //     even though the week-view repository's upper bound is <=
 //     (the shell's filter is authoritative).
-//  2) Open cars only: closed / completed / draft and timeless
-//     cars never reach the image; other guilds' cars neither.
+//  2) The image records the whole week: open, closed and completed
+//     cars ride (status passthrough lets the renderer mark finished
+//     ones); draft and timeless cars never reach the image, other
+//     guilds' cars neither, and disbanded cars are deleted rows, so
+//     they cannot appear at all.
 //  3) Rows ride in departure order with card fields only; the
 //     leader name resolves through the identity chain (guild
 //     nick first) and falls back to the creation-time stamp.
@@ -180,7 +183,11 @@ function makeDb(fx = {}) {
     if (/FROM events e WHERE/i.test(sql) && /signup_count/i.test(sql)) {
       let rows = tables.events.filter((e) => e.tenant === b[0]);
       let bi = 1;
-      if (/e\.status NOT IN/i.test(sql)) rows = rows.filter((e) => !['draft', 'completed'].includes(e.status));
+      const notIn = /e\.status NOT IN \(([^)]+)\)/i.exec(sql);
+      if (notIn) {
+        const excluded = [...notIn[1].matchAll(/'(\w+)'/g)].map((x) => x[1]);
+        rows = rows.filter((e) => !excluded.includes(e.status));
+      }
       if (/e\.type = \?/i.test(sql)) { rows = rows.filter((e) => e.type === b[bi]); bi++; }
       if (/e\.starts_at_utc >= \?/i.test(sql)) { rows = rows.filter((e) => e.starts_at_utc != null && e.starts_at_utc >= b[bi]); bi++; }
       if (/e\.starts_at_utc <= \?/i.test(sql)) { rows = rows.filter((e) => e.starts_at_utc != null && e.starts_at_utc <= b[bi]); bi++; }
@@ -281,7 +288,7 @@ const weekQuery = `query($slug: String!, $from: Int!, $to: Int!) {
   ogGuildCard(slug: $slug) {
     exists
     weekCars(fromUtc: $from, toUtc: $to) {
-      title type dungeonName startsAtUtc cardTimeText occupiedCount maxSlots leaderName
+      title type dungeonName startsAtUtc cardTimeText occupiedCount maxSlots leaderName status
     }
   }
 }`;
@@ -304,13 +311,13 @@ function makeGql(env) {
 }
 
 describe('weekly squad image data channel', () => {
-  it('selects open cars in the half-open week window, in departure order', async () => {
+  it('selects the week cars that happened or will happen, in departure order', async () => {
     const { db } = makeDb(baseFx());
     const gql = makeGql({ DB: db });
     const r = await gql(weekQuery, { variables: { slug: 'weekguild', from: FROM, to: TO } });
     const cars = r.data.ogGuildCard.weekCars;
-    eq('three cars ride', cars.length, 3);
-    eq('departure order', JSON.stringify(cars.map((c) => c.title)), JSON.stringify(['边界早车', '佚名车头车', '压线晚车']));
+    eq('five cars ride', cars.length, 5);
+    eq('departure order', JSON.stringify(cars.map((c) => c.title)), JSON.stringify(['边界早车', '佚名车头车', '已截止车', '已完成车', '压线晚车']));
     const first = cars[0];
     eq('boundary car included', first.startsAtUtc, FROM);
     eq('occupied from signup rows', first.occupiedCount, 2);
@@ -318,8 +325,11 @@ describe('weekly squad image data channel', () => {
     check('dual-zone card time', first.cardTimeText.includes('美东') && first.cardTimeText.includes('美西'), first.cardTimeText);
     eq('leader name via guild nick', first.leaderName, '服昵L');
     eq('leader fallback to creation stamp', cars[1].leaderName, '热心侠客');
-    eq('race type passthrough', cars[2].type, 'race');
-    eq('late car occupied', cars[2].occupiedCount, 1);
+    eq('open status passthrough', first.status, 'open');
+    eq('closed car rides with its status', cars[2].status, 'closed');
+    eq('completed car rides with its status', cars[3].status, 'completed');
+    eq('race type passthrough', cars[4].type, 'race');
+    eq('late car occupied', cars[4].occupiedCount, 1);
   });
 
   it('unknown guild yields no cars', async () => {
