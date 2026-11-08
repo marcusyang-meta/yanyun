@@ -2612,6 +2612,7 @@ type GuildAdmin {
   announcements: GuildAnnouncementPage!
   officer: GuildOfficerPage!
   ops: GuildAdminOpsResult
+  seasonRollover: GuildAdminSeasonRollover!
   recaps: GuildAdminRecapResult
   combatReports: GuildAdminCombatReportResult
   stats: GuildAdminStatsResult!
@@ -4294,6 +4295,13 @@ type OpsRollover {
   gearNoteText: String!
   thresholdNoteText: String!
   lastText: String
+}
+
+type GuildAdminSeasonRollover {
+  title: String!
+  hint: String!
+  executeLabel: String!
+  rollover: OpsRollover!
 }
 
 type OpsContributionRule {

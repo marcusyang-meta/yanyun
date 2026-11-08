@@ -3137,6 +3137,9 @@ type GuildAdmin {
   # 字段, 成员变体 (Guild) 根本不带备注字段。
   officer: GuildOfficerPage!
   ops: GuildAdminOpsResult
+  # 赛季滚动 (P12, 2026-11-07 裁定转免费): 只挂 GuildAdmin — 管理员
+  # 判定即唯一的门, 不查档位/权益, 总闸任何状态下都完整下发。
+  seasonRollover: GuildAdminSeasonRollover!
   # AI recap index (P18, Premium T3): this guild's recap records;
   # the verdict composes in the same order as the detail page —
   # null (below T3, paygate OFF) / Locked (below T3, paygate ON,
@@ -5162,12 +5165,16 @@ extend type Mutation {
   revokeGearBuildShare(id: ID!): GearOkPayload!
 }
 
-# ============ Premium ops engine (P8/P11/P12/P14, T2) ============
+# ============ Premium ops engine (P8/P11/P14, T2) ============
 # The GuildAdmin.ops verdict is the type itself: below T2 with the
 # paygate ON it resolves only GuildAdminOpsLocked (lock copy only;
 # the engines are never computed or shipped); below T2 with the
 # paygate OFF it resolves null; at tier it resolves the full
 # GuildAdminOps.
+# P12 season rollover left this list on 2026-11-07 (now free): it
+# hangs off GuildAdmin directly as seasonRollover
+# (GuildAdminSeasonRollover below) with no tier verdict; the ops
+# page keeps the same data as a section for entitled guilds.
 
 union GuildAdminOpsResult = GuildAdminOps | GuildAdminOpsLocked
 
@@ -5240,6 +5247,15 @@ type OpsRollover {
   gearNoteText: String!
   thresholdNoteText: String!
   lastText: String
+}
+
+# Season rollover surface (P12, free): section copy + the rollover
+# plan. Only on GuildAdmin — the admin verdict is the whole gate.
+type GuildAdminSeasonRollover {
+  title: String!
+  hint: String!
+  executeLabel: String!
+  rollover: OpsRollover!
 }
 
 type OpsContributionRule {

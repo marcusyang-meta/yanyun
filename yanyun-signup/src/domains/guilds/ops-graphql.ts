@@ -1,6 +1,5 @@
 /* guilds domain GraphQL: the premium ops engine surface (T2) —
- * P8 targeted nudges, P11 churn warnings, P12 season rollover,
- * P14 contribution points.
+ * P8 targeted nudges, P11 churn warnings, P14 contribution points.
  *
  * Gating doctrine: the response type is the verdict.
  * GuildAdmin.ops composes by tierSurfaceState(db, slug, 2) from
@@ -14,6 +13,14 @@
  * writes refuse with premiumRequired in every paygate state.
  * (The older premiumGate surfaces keep their own paygate
  * semantics, untouched by this one.)
+ *
+ * P12 season rollover LEFT the paid list on 2026-11-07 (marcus
+ * ruling, now free): its read surface hangs off GuildAdmin
+ * directly (seasonRollover, composed below with no tier verdict
+ * in every paygate state) and executeSeasonRollover re-runs only
+ * the admin verdict. The ops page keeps the same rollover data
+ * as a section (GuildAdminOps.rollover) for entitled guilds;
+ * both surfaces share composeRollover.
  *
  * P14 split (DESIGN §9, records free / insight paid): the rules and
  * the guild-wide board live behind the T2 gate above; a member's
@@ -178,15 +185,7 @@ export class GuildAdminOpsShell extends ShellBase {
     });
   }
   genRollover(){
-    return this.memo('rollover', async () => {
-      const season = await loadSeasonContext(this.db);
-      const templates = await listGroupingTemplates(this.db, this.guildId());
-      const plan = planRollover(templates as any, season.seasonKey);
-      const last = await lastRollover(this.db, this.guildId());
-      return new OpsRolloverShell(this.ctx, {
-        seasonLabel: season.seasonLabel, targetSeasonKey: season.seasonKey, plan, last,
-      });
-    });
+    return this.memo('rollover', () => composeRollover(this.ctx, this.guildId()));
   }
   genNudgeEvents(){
     return this.memo('nudgeEvents', async () => {
@@ -222,6 +221,43 @@ export async function opsPageForAdmin(ctx: Context, slug: string) {
   }
   const guildId = await getGuildIdBySlug(ctx.env.DB, slug).catch(() => null);
   return new GuildAdminOpsShell(ctx, { slug, guildId });
+}
+
+/* ---------------- P12 season rollover (free) ----------------
+ * The rollover composition shared by the ops page section above
+ * and the free standalone surface below. */
+
+async function composeRollover(ctx: Context, guildId: number) {
+  const season = await loadSeasonContext(ctx.env.DB);
+  const templates = await listGroupingTemplates(ctx.env.DB, guildId);
+  const plan = planRollover(templates as any, season.seasonKey);
+  const last = await lastRollover(ctx.env.DB, guildId);
+  return new OpsRolloverShell(ctx, {
+    seasonLabel: season.seasonLabel, targetSeasonKey: season.seasonKey, plan, last,
+  });
+}
+
+const ROLLOVER_TEXT_SPEC: [string, string][] = [
+  ['title', 'ops_rolloverTitle'],
+  ['hint', 'ops_rolloverHint'],
+  ['executeLabel', 'ops_rolloverExecuteButton'],
+];
+
+export class GuildAdminSeasonRolloverShell extends ShellBase {
+  __typename = 'GuildAdminSeasonRollover';
+  genRollover(){
+    return this.memo('rollover', () => composeRollover(this.ctx, Number(this.data.guildId)));
+  }
+}
+
+export const ROLLOVER_TEXT_RESOLVERS = defineTextGens(GuildAdminSeasonRolloverShell, ROLLOVER_TEXT_SPEC);
+
+/** Compose the free season rollover field: the GuildAdmin type is
+ *  the only gate — no tier verdict, no entitlement read, in every
+ *  paygate state. */
+export async function seasonRolloverForAdmin(ctx: Context, slug: string) {
+  const guildId = await getGuildIdBySlug(ctx.env.DB, slug).catch(() => null);
+  return new GuildAdminSeasonRolloverShell(ctx, { guildId });
 }
 
 /* ---------------- nudge preview (argument-carrying query) -------- */
@@ -318,6 +354,10 @@ export const opsTypes = {
   GuildAdminOpsLocked: {
     premiumTitle: (p: GuildAdminOpsLockedShell) => p.genPremiumTitle(),
     premiumBody: (p: GuildAdminOpsLockedShell) => p.genPremiumBody(),
+  },
+  GuildAdminSeasonRollover: {
+    ...ROLLOVER_TEXT_RESOLVERS,
+    rollover: (p: GuildAdminSeasonRolloverShell) => p.genRollover(),
   },
   GuildAdminOps: {
     ...OPS_TEXT_RESOLVERS,
@@ -423,14 +463,26 @@ const opsOk = (ctx: Context, extra: any = {}) => new OpsPayloadShell(ctx, { ok: 
 const opsFail = (ctx: Context, code: string, params: any = undefined) =>
   new OpsPayloadShell(ctx, { ok: false, errorCode: code, errorParams: params });
 
-async function opsGate(ctx: Context, slug: string) {
+/* The ops mutations' shared front door: the guild must exist and
+ * the caller must clear the guild-admin verdict. */
+async function opsAdminGate(ctx: Context, slug: string) {
   const access = await getGuildAdminAccess(ctx.env.DB, ctx.user, slug, ctx.request, vcOf(ctx));
   if (!access.exists) return { fail: opsFail(ctx, 'guildNotFound') };
   if (!access.isAdmin) return { fail: opsFail(ctx, 'adminOnly') };
-  if (await tierLocked(ctx.env.DB, access.tenant.id, OPS_TIER)) {
+  return { access };
+}
+
+/* The paid engines (P8/P14) add the pure tier verdict on top, so
+ * unentitled writes refuse with premiumRequired in every paygate
+ * state. executeSeasonRollover deliberately stops at the admin
+ * gate — P12 is free since 2026-11-07. */
+async function opsGate(ctx: Context, slug: string) {
+  const g = await opsAdminGate(ctx, slug);
+  if ('fail' in g) return g;
+  if (await tierLocked(ctx.env.DB, g.access.tenant.id, OPS_TIER)) {
     return { fail: opsFail(ctx, 'premiumRequired') };
   }
-  return { access };
+  return g;
 }
 
 export const opsMutations = {
@@ -459,7 +511,7 @@ export const opsMutations = {
   },
 
   executeSeasonRollover: async (_: any, { slug }: any, ctx: Context) => {
-    const g = await opsGate(ctx, slug); if ((g as any).fail) return (g as any).fail;
+    const g = await opsAdminGate(ctx, slug); if ((g as any).fail) return (g as any).fail;
     const season = await loadSeasonContext(ctx.env.DB);
     const templates = await listGroupingTemplates(ctx.env.DB, g.access.tenant.id);
     const keys = new Map<string, number>();

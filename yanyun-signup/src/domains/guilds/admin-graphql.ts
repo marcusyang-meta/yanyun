@@ -83,7 +83,7 @@ import { announcementPageForAdmin, announcementPageForMember } from './announcem
 import { adminRecapsForGuild, adminCombatReportsForGuild } from '../groupings/index.ts';
 import { SeasonChecklistShell, GuildRosterShell } from './season-graphql.ts';
 import { officerPageForAdmin } from './officer-graphql.ts';
-import { opsPageForAdmin } from './ops-graphql.ts';
+import { opsPageForAdmin, seasonRolloverForAdmin } from './ops-graphql.ts';
 import type { GuildStatsWeek, GuildStatsBoardEntry } from './stats.ts';
 
 export async function guildAdminResult(ctx: Context, slug: string) {
@@ -804,11 +804,18 @@ export class GuildAdminShell extends ShellBase {
   /* Officer tools (F12/F11/F19, free — no gate): member notes, the
    * guild data export and the season-goal overview, composed as one
    * page object. Only on the GuildAdmin type, like announcements. */
-  /* Ops engine (P8/P11/P12/P14, T2): the surface state picks the
+  /* Ops engine (P8/P11/P14, T2): the surface state picks the
    * full shell vs the Locked shell vs absence inside
    * opsPageForAdmin — below tier the engines are never computed. */
   genOps(){
     return this.memo('ops', () => opsPageForAdmin(this.ctx, this.genSlug()));
+  }
+  /* Season rollover (P12, free since 2026-11-07): its own field,
+   * composed for every guild admin with no tier verdict — the
+   * GuildAdmin type is the only gate, like the season surface
+   * above. */
+  genSeasonRollover(){
+    return this.memo('seasonRollover', () => seasonRolloverForAdmin(this.ctx, this.genSlug()));
   }
   /* Premium insights (T1 data layer: P2 / P9 / P10 / P15): each
    * field composes through insights-graphql, where the surface
@@ -1057,6 +1064,7 @@ function contentResolvers() {
     announcements: (p: any) => p.genAnnouncements(),
     officer: (p: any) => p.genOfficer(),
     ops: (p: GuildAdminShell) => p.genOps(),
+    seasonRollover: (p: GuildAdminShell) => p.genSeasonRollover(),
     governance: (p: any) => p.genGovernance(),
     viewerCapabilities: (p: any) => p.genViewerCapabilities(),
     recaps: (p: GuildAdminShell) => p.genRecaps(),
