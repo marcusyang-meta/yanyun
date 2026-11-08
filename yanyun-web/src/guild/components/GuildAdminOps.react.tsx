@@ -8,10 +8,26 @@ import {
 } from './GuildAdminUi.react.tsx';
 
 // Premium ops engine panel (T2: P8 targeted nudges, P11 churn
-// warnings, P12 season rollover, P14 contribution points). The
-// server composes either the full GuildAdminOps object or the
-// GuildAdminOpsLocked variant — this component renders whichever it
-// receives; there is no tier logic here. All copy is backend fields.
+// warnings, P14 contribution points). The server composes either
+// the full GuildAdminOps object or the GuildAdminOpsLocked variant
+// — this component renders whichever it receives; there is no tier
+// logic here. All copy is backend fields.
+// The P12 season rollover left the paid list (free since
+// 2026-11-07): its section renders from the standalone
+// seasonRollover field in every tier state — below the rollover
+// section of the full panel, under the lock card, or alone when
+// the ops field itself is absent.
+export type RolloverData = {
+  seasonLabel: string; pendingCount: number; previewText: string; seasonText: string;
+  gearNoteText: string; thresholdNoteText: string; lastText: string | null;
+  pendingNames: string[];
+};
+export type SeasonRolloverPage = {
+  title?: string;
+  hint?: string;
+  executeLabel?: string;
+  rollover?: RolloverData;
+};
 export type OpsPage = {
   __typename: string;
   premiumTitle?: string;
@@ -38,11 +54,7 @@ export type OpsPage = {
   rolloverTitle?: string;
   rolloverHint?: string;
   rolloverExecuteLabel?: string;
-  rollover?: {
-    seasonLabel: string; pendingCount: number; previewText: string; seasonText: string;
-    gearNoteText: string; thresholdNoteText: string; lastText: string | null;
-    pendingNames: string[];
-  };
+  rollover?: RolloverData;
   pointsTitle?: string;
   pointsHint?: string;
   pointsBoardEmptyText?: string;
@@ -92,15 +104,64 @@ type Preview = {
   candidates: { discordId: string; displayName: string; knownWeapon: string; knownRole: string; lastText: string }[];
 };
 
-export default function GuildAdminOps({ slug, ops, commonText, refresh }: {
+/* The season rollover section (P12, free): one renderer for the
+ * full panel's section and the standalone seasonRollover field. */
+export function RolloverSection({ slug, title, hint, executeLabel, rollover, commonText, refresh }: {
+  slug: string;
+  title?: string;
+  hint?: string;
+  executeLabel?: string;
+  rollover?: RolloverData;
+  commonText: CommonText;
+  refresh: () => void;
+}) {
+  const [commitRollover] = useMutation(RolloverMutation);
+  const doRollover = () => {
+    commitRollover({
+      variables: { slug },
+      onCompleted: (resp: any) => {
+        const p = resp?.executeSeasonRollover;
+        if (p?.ok) refresh();
+        else toast(p?.error || commonText.unknownError);
+      },
+      onError: () => toast(commonText.unknownError),
+    });
+  };
+  return (
+    <section style={adminSectionStyle}>
+      <h2 style={adminSectionTitleStyle}>{title}</h2>
+      <p style={{ color: theme.muted, fontSize: 12, margin: '0 0 10px' }}>{hint}</p>
+      {rollover && (
+        <>
+          <p style={{ color: theme.paper, fontSize: 13.5, margin: '0 0 4px' }}>{rollover.seasonText}</p>
+          <p style={{ color: '#ecd28f', fontSize: 13, margin: '0 0 4px' }}>{rollover.previewText}</p>
+          {rollover.pendingNames.length > 0 && (
+            <p style={{ color: theme.muted, fontSize: 12.5, margin: '0 0 4px' }}>
+              {rollover.pendingNames.join('、')}
+            </p>
+          )}
+          <p style={{ color: theme.muted, fontSize: 12, margin: '0 0 2px' }}>{rollover.gearNoteText}</p>
+          <p style={{ color: theme.muted, fontSize: 12, margin: '0 0 10px' }}>{rollover.thresholdNoteText}</p>
+          {rollover.lastText && (
+            <p style={{ color: theme.muted, fontSize: 12, margin: '0 0 10px' }}>{rollover.lastText}</p>
+          )}
+          <ConfirmButton label={executeLabel || ''} confirmLabel={commonText.confirm}
+            onConfirm={doRollover} />
+        </>
+      )}
+    </section>
+  );
+}
+
+export default function GuildAdminOps({ slug, ops, seasonRollover, commonText, refresh }: {
   slug: string;
   ops: OpsPage | null;
+  seasonRollover?: SeasonRolloverPage | null;
   commonText: CommonText;
   refresh: () => void;
 }) {
   const environment = useRelayEnvironment();
   const [commitSend] = useMutation(SendMutation);
-  const [commitRollover] = useMutation(RolloverMutation);
   const [commitRule] = useMutation(RuleMutation);
   const runRule = useAdminMutation(commitRule, 'updateContributionRule', refresh, commonText.unknownError);
 
@@ -111,17 +172,27 @@ export default function GuildAdminOps({ slug, ops, commonText, refresh }: {
   const [previewBusy, setPreviewBusy] = useState(false);
   const [ruleDrafts, setRuleDrafts] = useState<Record<string, string>>({});
 
-  // Null = the surface does not exist for this guild (unentitled,
-  // paygate OFF); the parent only renders this panel when the
-  // field is present, so this is a defensive no-op (after hooks,
-  // so a refresh that lands the field cannot change hook order).
-  if (!ops) return null;
+  // The free rollover section rides along in every state (after
+  // hooks, so a refresh that lands the ops field cannot change
+  // hook order).
+  const freeRollover = seasonRollover ? (
+    <RolloverSection slug={slug} title={seasonRollover.title} hint={seasonRollover.hint}
+      executeLabel={seasonRollover.executeLabel} rollover={seasonRollover.rollover}
+      commonText={commonText} refresh={refresh} />
+  ) : null;
+  // Null = the paid surface does not exist for this guild
+  // (unentitled, paygate OFF); only the free rollover section
+  // remains on the tab.
+  if (!ops) return freeRollover;
   if (ops.__typename === 'GuildAdminOpsLocked') {
     return (
-      <section style={adminSectionStyle}>
-        <h2 style={adminSectionTitleStyle}>{ops.premiumTitle}</h2>
-        <p style={{ color: theme.muted, fontSize: 13, margin: 0 }}>{ops.premiumBody}</p>
-      </section>
+      <>
+        <section style={adminSectionStyle}>
+          <h2 style={adminSectionTitleStyle}>{ops.premiumTitle}</h2>
+          <p style={{ color: theme.muted, fontSize: 13, margin: 0 }}>{ops.premiumBody}</p>
+        </section>
+        {freeRollover}
+      </>
     );
   }
 
@@ -152,18 +223,6 @@ export default function GuildAdminOps({ slug, ops, commonText, refresh }: {
       onCompleted: (resp: any) => {
         const p = resp?.sendTargetedNudge;
         if (p?.ok) { setPreview(null); refresh(); }
-        else toast(p?.error || commonText.unknownError);
-      },
-      onError: () => toast(commonText.unknownError),
-    });
-  };
-
-  const doRollover = () => {
-    commitRollover({
-      variables: { slug },
-      onCompleted: (resp: any) => {
-        const p = resp?.executeSeasonRollover;
-        if (p?.ok) refresh();
         else toast(p?.error || commonText.unknownError);
       },
       onError: () => toast(commonText.unknownError),
@@ -260,28 +319,9 @@ export default function GuildAdminOps({ slug, ops, commonText, refresh }: {
         )}
       </section>
 
-      <section style={adminSectionStyle}>
-        <h2 style={adminSectionTitleStyle}>{ops.rolloverTitle}</h2>
-        <p style={{ color: theme.muted, fontSize: 12, margin: '0 0 10px' }}>{ops.rolloverHint}</p>
-        {ops.rollover && (
-          <>
-            <p style={{ color: theme.paper, fontSize: 13.5, margin: '0 0 4px' }}>{ops.rollover.seasonText}</p>
-            <p style={{ color: '#ecd28f', fontSize: 13, margin: '0 0 4px' }}>{ops.rollover.previewText}</p>
-            {ops.rollover.pendingNames.length > 0 && (
-              <p style={{ color: theme.muted, fontSize: 12.5, margin: '0 0 4px' }}>
-                {ops.rollover.pendingNames.join('、')}
-              </p>
-            )}
-            <p style={{ color: theme.muted, fontSize: 12, margin: '0 0 2px' }}>{ops.rollover.gearNoteText}</p>
-            <p style={{ color: theme.muted, fontSize: 12, margin: '0 0 10px' }}>{ops.rollover.thresholdNoteText}</p>
-            {ops.rollover.lastText && (
-              <p style={{ color: theme.muted, fontSize: 12, margin: '0 0 10px' }}>{ops.rollover.lastText}</p>
-            )}
-            <ConfirmButton label={ops.rolloverExecuteLabel || ''} confirmLabel={commonText.confirm}
-              onConfirm={doRollover} />
-          </>
-        )}
-      </section>
+      <RolloverSection slug={slug} title={ops.rolloverTitle} hint={ops.rolloverHint}
+        executeLabel={ops.rolloverExecuteLabel} rollover={ops.rollover}
+        commonText={commonText} refresh={refresh} />
 
       <section style={adminSectionStyle}>
         <h2 style={adminSectionTitleStyle}>{ops.pointsTitle}</h2>
