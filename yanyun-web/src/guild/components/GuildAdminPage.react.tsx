@@ -97,6 +97,10 @@ const GuildAdminPage_guildAdmin = graphql`
         contributionBoard { discordId displayName totalPoints entryCount }
       }
     }
+    seasonRollover {
+      title hint executeLabel
+      rollover { seasonLabel pendingCount previewText seasonText gearNoteText thresholdNoteText lastText pendingNames }
+    }
     adminTabGovernanceLabel
     viewerCapabilities
     governance {
@@ -1008,6 +1012,7 @@ export default function GuildAdminPage({ guildAdmin, slug, user, userBarText, co
           <GuildAdminOps
             slug={slug}
             ops={data.ops}
+            seasonRollover={data.seasonRollover}
             commonText={commonText}
             refresh={refresh}
           />
