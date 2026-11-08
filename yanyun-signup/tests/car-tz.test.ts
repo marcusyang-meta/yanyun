@@ -19,7 +19,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   isValidIanaTz, capturedTzOrNull, resolveCarHomeTz, pickGuildModeTz, carTzLabelZh,
-  fmtCarTimeZoned, fmtCarTimeDualZones, tzOffsetMinutes, CAR_HOME_TZ_FALLBACK,
+  fmtCarTimeZoned, fmtCarTimeDualZones, fmtCarTimeDualZonesCompact, tzOffsetMinutes, CAR_HOME_TZ_FALLBACK,
 } from '../src/domains/groupings/car-tz.ts';
 import { insertEvent, updateEventFields, getEventRow } from '../src/domains/groupings/events.ts';
 import {
@@ -258,6 +258,21 @@ describe('car-tz dual-zone rendering', () => {
     eq('秋拨过渡 (两地偏移不同步)', fmtCarTimeDualZones(sec('2026-11-01T08:30:00Z')), '美东 周日 03:30 · 美西 周日 01:30');
     // Spring-forward day: by 15:30Z both zones are on daylight time.
     eq('春跳当天', fmtCarTimeDualZones(sec('2026-03-08T15:30:00Z')), '美东 周日 11:30 · 美西 周日 08:30');
+  });
+
+  it('compact variant prints a shared weekday once, on the East segment', () => {
+    // Same instant as the base case above: both zones on Sunday, so
+    // the West segment drops its repeated weekday.
+    eq('同星期去重', fmtCarTimeDualZonesCompact(sec('2026-11-01T21:30:00Z')), '美东 周日 16:30 · 美西 13:30');
+    eq('空值 -> 空串', fmtCarTimeDualZonesCompact(0), '');
+    eq('null -> 空串', fmtCarTimeDualZonesCompact(null), '');
+  });
+
+  it('compact variant keeps both weekdays across midnight', () => {
+    // Same cross-day instant as the base formatter's case: New York
+    // Monday 01:30 vs Los Angeles Sunday 22:30 — weekdays differ, so
+    // neither segment may drop its own.
+    eq('跨日不去重', fmtCarTimeDualZonesCompact(sec('2026-11-02T06:30:00Z')), '美东 周一 01:30 · 美西 周日 22:30');
   });
 });
 

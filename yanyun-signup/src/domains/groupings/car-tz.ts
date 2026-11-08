@@ -244,3 +244,23 @@ export function fmtCarTimeDualZones(epochSec: number | string | null | undefined
     return `${carTzLabelZh(tz, n)} ${weekZh} ${hhmm}`;
   }).join(' · ');
 }
+
+/* og:description-only compact variant (marcus, 2026-11-07): when
+ * both zones fall on the same weekday the weekday prints once, on
+ * the East segment ("美东 周六 22:00 · 美西 19:00"); across midnight
+ * the weekdays differ and both segments keep theirs, so nothing is
+ * dropped. The OG card image and every other surface keep
+ * fmtCarTimeDualZones verbatim — this variant serves the meta
+ * description alone, where the repeated weekday only ate width. */
+export function fmtCarTimeDualZonesCompact(epochSec: number | string | null | undefined): string {
+  const n = parseEpochSec(epochSec);
+  if (!n) return '';
+  const segs = CAR_TIME_DUAL_ZONES.map((tz) => {
+    const { weekZh, hhmm } = zonedWeekdayTime(n, tz);
+    return { label: carTzLabelZh(tz, n), weekZh, hhmm };
+  });
+  const sameWeekday = segs[0].weekZh !== '' && segs[0].weekZh === segs[1].weekZh;
+  return segs
+    .map((s, i) => (i === 1 && sameWeekday ? `${s.label} ${s.hhmm}` : `${s.label} ${s.weekZh} ${s.hhmm}`))
+    .join(' · ');
+}

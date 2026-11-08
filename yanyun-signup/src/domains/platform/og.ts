@@ -4,7 +4,7 @@
 import { getTenantRow } from '../guilds/index.ts';
 import { isDevOnlyTenant } from './http.ts';
 import { getDungeonByName } from '../dex/index.ts';
-import { getEventRowByTenant, getEventRow, listEventsWeekView, countActivityEventsInWindow, countSignupsByEvent, resolveSharedGrouping, fmtCarTimeDualZones } from '../groupings/index.ts';
+import { getEventRowByTenant, getEventRow, listEventsWeekView, countActivityEventsInWindow, countSignupsByEvent, resolveSharedGrouping, fmtCarTimeDualZonesCompact } from '../groupings/index.ts';
 import { resolveSharedBuild } from '../gear/index.ts';
 import { startsAtEpoch } from './blocks.ts';
 
@@ -16,14 +16,16 @@ const escHtml = (str: any) => String(str ?? '')
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 // Team time on share text: the car's start rendered in US East and
-// US West side by side with Chinese zone labels (e.g. 美东 周日 16:30
-// · 美西 周日 13:30) — interim ruling (marcus, 2026-11-01): "先放美东
-// 和美西时间". The formatter lives in the groupings data layer
-// (car-tz.ts, fmtCarTimeDualZones) and is shared verbatim with the
-// OG card image via ogCarCard.cardTimeText, so text and image can
-// never disagree. (The home-zone resolution chain in car-tz.ts
-// stays in place for a later switch back to single-zone rendering;
-// the earlier UTC wall-clock format stays retired.)
+// US West side by side with Chinese zone labels — interim ruling
+// (marcus, 2026-11-01): "先放美东和美西时间". The formatters live in
+// the groupings data layer (car-tz.ts) and the OG card image prints
+// fmtCarTimeDualZones via ogCarCard.cardTimeText; the description
+// below prints the compact variant (fmtCarTimeDualZonesCompact),
+// which drops the West segment's weekday when both zones share it
+// (marcus, 2026-11-07) — same instant, same zones, less crowding.
+// (The home-zone resolution chain in car-tz.ts stays in place for a
+// later switch back to single-zone rendering; the earlier UTC
+// wall-clock format stays retired.)
 
 const CAR_TYPE_LABEL: Record<string, string> = { activity: '双十人本', talent: '天赋组队', race: '竞速报名', tower: '爬塔' };
 
@@ -102,11 +104,17 @@ export async function carOgTags(env: any, slug: string, carId: any, pageUrl?: st
     }
     const typeLabel = CAR_TYPE_LABEL[ev.type] || '';
     const epoch = startsAtEpoch(ev);
-    const timeText = epoch ? fmtCarTimeDualZones(epoch) : '';
+    const timeText = epoch ? fmtCarTimeDualZonesCompact(epoch) : '';
     const descParts = [typeLabel, dungeonName, timeText, `已报名 ${cnt || 0}/${ev.max_slots}`].filter(Boolean);
+    // Description spacing (marcus, 2026-11-07): parts breathe via a
+    // full-width separator with spaces, and the site name no longer
+    // rides the description tail (clients truncated it into an
+    // ellipsis) — it travels as og:site_name instead. Element set
+    // and order are unchanged.
     return [
       `<meta property="og:title" content="${escHtml(ev.title)} · ${escHtml(t.guild_name)}" />`,
-      `<meta property="og:description" content="${escHtml(descParts.join(' | '))} · 燕云十六声百业车队" />`,
+      '<meta property="og:site_name" content="燕云十六声百业" />',
+      `<meta property="og:description" content="${escHtml(descParts.join(' ｜ '))}" />`,
       `<meta property="og:image" content="${OG_WORKER}/og/${encodeURIComponent(slug)}/car/${encodeURIComponent(carId)}.png" />`,
       `<meta property="og:url" content="${pageUrl || `${SITE_URL}/${encodeURIComponent(slug)}/car/${encodeURIComponent(carId)}`}" />`,
       '<meta property="og:type" content="website" />',
