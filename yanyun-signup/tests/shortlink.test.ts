@@ -264,10 +264,22 @@ describe('shortlink', () => {
     check('爬虫文档是 HTML', (r.headers.get('content-type') || '').includes('text/html'));
     const doc = await r.text();
     check('og:title = 车名 · 百业名', doc.includes('<meta property="og:title" content="时区车 · 短链测试百业" />'), doc.slice(0, 400));
-    check('og:description 时间为美东+美西双时区并列', doc.includes('双十人本 | 美东 周二 19:00 · 美西 周二 16:00 | 已报名 0/10'), doc.slice(0, 500));
+    check('og:description 时间为美东+美西双时区并列 (同星期只写一次)', doc.includes('双十人本 ｜ 美东 周二 19:00 · 美西 16:00 ｜ 已报名 0/10'), doc.slice(0, 500));
+    check('og:site_name 独立承载站名', doc.includes('<meta property="og:site_name" content="燕云十六声百业" />'), doc.slice(0, 500));
+    check('og:description 不再带站名尾巴', !doc.includes('燕云十六声百业车队'), doc.slice(0, 500));
     check('og:image 指向 OG 车卡图', doc.includes(`https://og.yanyun.app/og/${SLUG}/car/401.png`), doc.slice(0, 500));
     check('带 0 秒 meta refresh 到分享页', doc.includes(`<meta http-equiv="refresh" content="0; url=http://local/s/${tzLink.code}" />`), doc.slice(0, 600));
     check('带可见跳转链接兜底', doc.includes(`<a href="http://local/s/${tzLink.code}">`), doc.slice(0, 600));
+
+    // Cross-midnight car: 1735970400 = 美东 周六 01:00 · 美西 周五 22:00.
+    // The two zones sit on different weekdays, so the description
+    // must keep BOTH weekdays — the compact dedupe never drops one.
+    state.events.push(ev(402, { title: '跨日车', starts_at_utc: 1735970400 }));
+    const crossLink = await mintShortLink(db, GID, 402);
+    r = await callUa(`/c/${crossLink.code}`, 'Discordbot/2.0; (+https://discordapp.com)');
+    eq('跨日车爬虫 UA -> 200', r.status, 200);
+    const crossDoc = await r.text();
+    check('og:description 跨日时两侧星期都保留', crossDoc.includes('双十人本 ｜ 美东 周六 01:00 · 美西 周五 22:00 ｜ 已报名 0/10'), crossDoc.slice(0, 500));
 
     r = await callUa(`/c/${tzLink.code}`, 'WhatsApp/2.23.20.0 A');
     eq('WhatsApp UA -> 200', r.status, 200);
