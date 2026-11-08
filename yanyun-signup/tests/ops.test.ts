@@ -1,4 +1,4 @@
-// Premium ops engine acceptance (T2 line: P8/P11/P12/P14):
+// Premium ops engine acceptance (T2 line: P8/P11/P14; P12 free):
 //  - Tier matrix: the tier derives from the entitlement plan value
 //    alone (tierLocked never consults the paygate master switch);
 //    composition resolves through tierSurfaceState, so an
@@ -9,7 +9,8 @@
 //    premium maps to tier 3, and a lapsed grant falls back to
 //    absent/locked by switch state. Mutations re-check the pure
 //    verdict: unentitled guilds get premiumRequired in every
-//    switch state, non-admins adminOnly.
+//    switch state, non-admins adminOnly — except P12's mutation,
+//    which stops at the admin verdict (free since 2026-11-07).
 //  - P8: segmentation is deterministic over unsigned members
 //    (all / school / role / lapsed); a send writes its frequency
 //    row first, the per-event 24h cooldown and the 3/day guild cap
@@ -17,9 +18,13 @@
 //  - P11: the churn rule is exercised end-to-end over a fixed
 //    8-week fixture (drop case, streak case, stable case, newcomer
 //    case) and unit-checked as a pure function.
-//  - P12: the dry-run preview count equals the executed copy count;
-//    a second execution copies nothing (idempotent); the stored
-//    report honestly marks gear tagging / threshold recalc skipped.
+//  - P12 (free since 2026-11-07): the dry-run preview count equals
+//    the executed copy count; a second execution copies nothing
+//    (idempotent); the stored report honestly marks gear tagging /
+//    threshold recalc skipped. The standalone seasonRollover field
+//    composes in full for an ungranted guild with the paygate OFF
+//    and ON alike, and its mutation never returns premiumRequired,
+//    while the paid engines keep their verdicts untouched.
 //  - P14: no backfill (pre-watermark history credits nothing),
 //    accrual from completed cars is idempotent under re-reads, rule
 //    edits change only future accruals, mentoring credits once per
@@ -539,10 +544,70 @@ const myQ = `query($slug: String!) { myContribution(slug: $slug) { __typename
 }
   });
 
+  it('P12 free: ungranted guild gets the full surface + mutation', async () => {
+/* ============ P12 free (2026-11-07 ruling): no tier verdict ============ */
+const rollM2 = `mutation($slug: String!) { executeSeasonRollover(slug: $slug) { ok errorCode copiedCount } }`;
+const freeQ = `query($slug: String!) { viewer { guildAdmin(slug: $slug) { __typename
+  ... on GuildAdmin { seasonRollover { title hint executeLabel
+      rollover { pendingCount totalCount copiedCount targetSeasonKey previewText lastText } }
+    ops { __typename } } } } }`;
+const setPlan2 = (plan, daysAhead = 30) => {
+  state.entitlements.length = 0;
+  if (plan) {
+    state.entitlements.push({
+      tenant: GID, plan, source: 'manual',
+      current_period_end: Math.floor(Date.now() / 1000) + daysAhead * 86400,
+      stripe_customer_id: '', stripe_subscription_id: '', updated_at: 0,
+    });
+  }
+};
+const getFree = () => gql(freeQ, { variables: { slug: 'alpha' } });
+{
+  // State inherited from the granted P12 block above: the rollover
+  // already executed once (4 templates, 2 on the target season).
+  setPlan2(null);
+  state.settings.delete('0|paygate_enabled');
+  const r = await getFree();
+  const sr = r.data?.viewer?.guildAdmin?.seasonRollover;
+  eq('P12 免费面: 未开通 + 总闸关, 段落文案完整下发', [sr?.title, sr?.executeLabel], ['赛季滚动', '执行赛季滚动']);
+  eq('P12 免费面: 预览数字与开通视角一致', [sr?.rollover?.pendingCount, sr?.rollover?.totalCount, sr?.rollover?.copiedCount], [0, 4, 2]);
+  check('P12 免费面: 上次执行留痕可见', !!sr?.rollover?.lastText);
+  eq('P12 免费面: 同一响应里付费引擎仍零足迹', r.data?.viewer?.guildAdmin?.ops ?? null, null);
+
+  const exFree = await gql(rollM2, { variables: { slug: 'alpha' } });
+  eq('P12 免费执行: 未开通不再 premiumRequired (幂等 0 拷贝)', [exFree.data?.executeSeasonRollover?.ok, exFree.data?.executeSeasonRollover?.errorCode, exFree.data?.executeSeasonRollover?.copiedCount], [true, null, 0]);
+  const exMember = await gql(rollM2, { user: member1, variables: { slug: 'alpha' } });
+  eq('P12 免费执行: 非管理员仍 adminOnly', exMember.data?.executeSeasonRollover?.errorCode, 'adminOnly');
+
+  state.settings.set('0|paygate_enabled', '1');
+  const rOn = await getFree();
+  eq('P12 免费面: 未开通 + 总闸开, 仍完整下发', rOn.data?.viewer?.guildAdmin?.seasonRollover?.rollover?.totalCount, 4);
+  eq('P12 免费面: 总闸开时付费引擎转 Locked (不变)', rOn.data?.viewer?.guildAdmin?.ops?.__typename, 'GuildAdminOpsLocked');
+  state.settings.delete('0|paygate_enabled');
+
+  setPlan2('t1');
+  const rT1 = await getFree();
+  eq('P12 免费面: T1 (低于 T2) 同样完整下发', rT1.data?.viewer?.guildAdmin?.seasonRollover?.rollover?.totalCount, 4);
+
+  // Negative controls: the paid engines' verdicts are untouched.
+  setPlan2(null);
+  const sendFree = await gql(`mutation($slug: String!, $e: ID!, $k: String!, $v: String) {
+    sendTargetedNudge(slug: $slug, eventId: $e, segmentKind: $k, segmentValue: $v) { ok errorCode } }`,
+    { variables: { slug: 'alpha', e: state.fixtureIds.open1, k: 'all', v: '' } });
+  eq('P8 不误伤: 未开通仍 premiumRequired', sendFree.data?.sendTargetedNudge?.errorCode, 'premiumRequired');
+  const ruleFree = await gql(`mutation($slug: String!, $a: String!, $p: Int!, $e: Boolean!) {
+    updateContributionRule(slug: $slug, actionKey: $a, points: $p, enabled: $e) { ok errorCode } }`,
+    { variables: { slug: 'alpha', a: 'attendance', p: 5, e: true } });
+  eq('P14 不误伤: 未开通仍 premiumRequired', ruleFree.data?.updateContributionRule?.errorCode, 'premiumRequired');
+  setPlan2('t2');
+}
+  });
+
   it('SDL shape', async () => {
 /* ============ SDL shape ============ */
 {
   check('SDL: ops 只挂 GuildAdmin (可空 = 零足迹)', (typeDefs.match(/\n  ops: GuildAdminOpsResult\n/g) || []).length === 1);
+  check('SDL: seasonRollover 只挂 GuildAdmin (免费面)', (typeDefs.match(/\n  seasonRollover: GuildAdminSeasonRollover!\n/g) || []).length === 1);
   check('SDL: 无物资/捐献概念', !/donation|物资|捐献/.test(typeDefs.replace(/贡献积分/g, '')));
   check('无未路由 SQL 泄漏 (近似): 引擎表名只出现在迁移与仓储', true);
 }
