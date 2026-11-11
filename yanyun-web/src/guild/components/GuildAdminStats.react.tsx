@@ -16,6 +16,7 @@ type StatsWeek = {
   carsTalent: number;
   carsRace: number;
   carsTower: number;
+  carsExplore: number;
   carsTotal: number;
   completedCount: number;
   totalSeats: number;
@@ -87,6 +88,7 @@ export default function GuildAdminStats({ text, stats }: { text: AdminText; stat
     [text.adminTypeTalentText, w.carsTalent],
     [text.adminTypeRaceText, w.carsRace],
     [text.adminTypeTowerText, w.carsTower],
+    [text.adminTypeExploreText, w.carsExplore],
   ].filter(([, n]) => (n as number) > 0).map(([label, n]) => `${label} ${n}`).join(' · ');
   return (
     <>

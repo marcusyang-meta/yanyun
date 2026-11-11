@@ -70,7 +70,7 @@ function downloadCsv(title: string, suffix: string, csv: string) {
   setTimeout(() => URL.revokeObjectURL(a.href), 4000);
 }
 
-const TYPE_KEYS = ['ACTIVITY', 'TALENT', 'RACE', 'TOWER'] as const;
+const TYPE_KEYS = ['ACTIVITY', 'TALENT', 'RACE', 'TOWER', 'EXPLORE'] as const;
 
 function EventForm({ text, initial, submitLabel, savedLabel, onSubmit }: {
   text: AdminText;
@@ -89,6 +89,7 @@ function EventForm({ text, initial, submitLabel, savedLabel, onSubmit }: {
   const typeLabels: Record<string, string> = {
     ACTIVITY: text.adminTypeActivityText, TALENT: text.adminTypeTalentText,
     RACE: text.adminTypeRaceText, TOWER: text.adminTypeTowerText,
+    EXPLORE: text.adminTypeExploreText,
   };
   return (
     <div>

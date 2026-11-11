@@ -184,6 +184,10 @@ export interface GroupingFormInitial {
   title: string;
   type: string;
   startsAt: string; // startsAt text as returned by the backend
+  // The grouping's own seat count (edit mode only): EXPLORE cars may
+  // seat 5, and the capacity hint must show the car's real size even
+  // though edits never submit capacity.
+  maxSlots?: number | null;
 }
 
 // Form copy bundle, delivered by the shell of the page that opens it (the
@@ -197,12 +201,16 @@ export interface GroupingFormText {
   formTypeTalentLabel: string;
   formTypeRaceLabel: string;
   formTypeTowerLabel: string;
+  formTypeExploreLabel: string;
   formCapacityTemplate: string;
   formHintActivity: string;
   formHintDungeonTemplate: string;
   formHintTalent: string;
   formHintRace: string;
   formHintTower: string;
+  formHintExplore: string;
+  formSizeLabel: string;
+  formSizeOptionTemplate: string;
   formTitleLabel: string;
   formTitlePlaceholder: string;
   formStartsLabel: string;
@@ -229,6 +237,7 @@ export interface GroupingFormText {
   typeShortTalent: string;
   typeShortRace: string;
   typeShortTower: string;
+  typeShortCoopExplore: string;
   unknownErrorText: string;
   // Template section copy (list-page shells only; absent on the detail
   // page, where the section never renders).
@@ -328,12 +337,14 @@ export default function GroupingForm({ slug, text, mode, groupingId, initial, de
   // Type short labels come from the backend typeShort* fields; edit mode always uses the grouping's original title, never the default.
   const typeShorts: Record<string, string> = {
     ACTIVITY: text.typeShortActivity, TALENT: text.typeShortTalent, RACE: text.typeShortRace, TOWER: text.typeShortTower,
+    EXPLORE: text.typeShortCoopExplore,
   };
   const TYPE_OPTS = [
     { key: 'ACTIVITY', label: text.formTypeActivityLabel },
     { key: 'TALENT', label: text.formTypeTalentLabel },
     { key: 'RACE', label: text.formTypeRaceLabel },
     { key: 'TOWER', label: text.formTypeTowerLabel },
+    { key: 'EXPLORE', label: text.formTypeExploreLabel },
   ];
   const autoTitle = fill(text.formTitleTemplate, { nickname: nickname.trim(), type: typeShorts[type] ?? '' });
   const shownTitle = isEdit || titleTouched ? title : autoTitle;
@@ -358,17 +369,25 @@ export default function GroupingForm({ slug, text, mode, groupingId, initial, de
   const [commitCreate, creating] = useMutation<GroupingFormCreateMutationType>(GroupingFormCreateMutationNode);
   const [commitUpdate, updating] = useMutation<GroupingFormUpdateMutationType>(GroupingFormUpdateMutationNode);
 
+  // EXPLORE （联机探索） is the one type whose size the creator picks:
+  // 5 or 10, default 10, no dungeon. The choice is submitted as
+  // maxSlots on create (and on template saves); every other type
+  // leaves it unset and the backend derives capacity as before.
+  const [exploreSize, setExploreSize] = useState(10);
+
   // Capacity rules must match the backend createGrouping: ACTIVITY/TOWER are
   // always 10 with no dungeon; TALENT/RACE use the chosen dungeon's size, or
   // the default when unspecified (TALENT 5 / RACE 10). Edit mode doesn't
   // submit capacity — this value is display-only hint text there.
   const selectedDungeon = (dungeons as any[]).find((d) => String(d.id) === String(dungeonId));
-  const maxSlots = type === 'ACTIVITY' || type === 'TOWER' ? 10
+  const maxSlots = type === 'EXPLORE' ? (isEdit ? (initial?.maxSlots ?? 10) : exploreSize)
+    : type === 'ACTIVITY' || type === 'TOWER' ? 10
     : selectedDungeon && (Number(selectedDungeon.size) === 5 || Number(selectedDungeon.size) === 10)
       ? Number(selectedDungeon.size)
       : type === 'TALENT' ? 5 : 10;
   const slotsHint = type === 'ACTIVITY' ? text.formHintActivity
     : type === 'TOWER' ? text.formHintTower
+    : type === 'EXPLORE' ? text.formHintExplore
     : selectedDungeon ? fill(text.formHintDungeonTemplate, { name: selectedDungeon.name, max: maxSlots })
     : type === 'TALENT' ? text.formHintTalent
     : text.formHintRace;
@@ -399,7 +418,8 @@ export default function GroupingForm({ slug, text, mode, groupingId, initial, de
         variables: {
           input: {
             slug, title: t, type: type as any, startsAt,
-            dungeonId: type === 'ACTIVITY' || type === 'TOWER' ? null : (dungeonId || null),
+            dungeonId: type === 'ACTIVITY' || type === 'TOWER' || type === 'EXPLORE' ? null : (dungeonId || null),
+            ...(type === 'EXPLORE' ? { maxSlots: exploreSize } : {}),
             seats: [{ nickname: nickname.trim(), weapon: sect }],
             customFields: fieldInputsFromDrafts(fieldDrafts),
           },
@@ -441,6 +461,7 @@ export default function GroupingForm({ slug, text, mode, groupingId, initial, de
     setType(t.type);
     setTitle(t.title);
     setTitleTouched(true);
+    if (t.type === 'EXPLORE' && (t.maxSlots === 5 || t.maxSlots === 10)) setExploreSize(t.maxSlots);
     setDungeonId(t.dungeonId ?? '');
     const target = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (t.startDaysAhead || 0));
     setMonth(target.getMonth() + 1);
@@ -469,7 +490,8 @@ export default function GroupingForm({ slug, text, mode, groupingId, initial, de
     if (!t) { setTitleErr(true); return; }
     const input = {
       name: templateName.trim() || t, type: type as any, title: t,
-      dungeonId: type === 'ACTIVITY' || type === 'TOWER' ? null : (dungeonId || null),
+      dungeonId: type === 'ACTIVITY' || type === 'TOWER' || type === 'EXPLORE' ? null : (dungeonId || null),
+      ...(type === 'EXPLORE' ? { maxSlots: exploreSize } : {}),
       startsInDays: daysAheadFromForm(), startHour: hour, startMinute: minute,
       customFields: fieldInputsFromDrafts(fieldDrafts),
     };
@@ -582,6 +604,21 @@ export default function GroupingForm({ slug, text, mode, groupingId, initial, de
             {TYPE_OPTS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
           </select>
           <div style={{ fontSize: 12, color: theme.muted, marginTop: 4 }}>{fill(text.formCapacityTemplate, { max: maxSlots, hint: slotsHint })}</div>
+          {!isEdit && type === 'EXPLORE' && (
+            <div style={{ marginTop: 10 }}>
+              <label style={labelStyle}>{text.formSizeLabel}</label>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {[5, 10].map((n) => (
+                  <button key={n} onClick={() => setExploreSize(n)} style={{
+                    padding: '9px 18px', borderRadius: 8, cursor: 'pointer', fontSize: 13.5,
+                    border: `1px solid ${exploreSize === n ? theme.gold : 'rgba(201,163,92,.25)'}`,
+                    background: exploreSize === n ? 'rgba(201,163,92,.25)' : 'transparent',
+                    color: exploreSize === n ? theme.goldHi : theme.paper,
+                  }}>{fill(text.formSizeOptionTemplate, { n })}</button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div style={{ marginBottom: 14 }}>
@@ -608,7 +645,7 @@ export default function GroupingForm({ slug, text, mode, groupingId, initial, de
           </div>
         </div>
 
-        {!isEdit && type !== 'ACTIVITY' && type !== 'TOWER' && (
+        {!isEdit && type !== 'ACTIVITY' && type !== 'TOWER' && type !== 'EXPLORE' && (
           <div style={{ marginBottom: 14 }}>
             <label style={labelStyle}>{text.formDungeonLabel}</label>
             <select value={dungeonId} onChange={(e) => setDungeonId(e.target.value)} style={inputStyle}>

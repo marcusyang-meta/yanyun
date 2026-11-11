@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<04824a0b07376394b06217f23f8f8269>>
+ * @generated SignedSource<<828f39efb33a03dcf1d027b069aea973>>
  * @lightSyntaxTransform
  */
 
@@ -9,8 +9,8 @@
 
 import { ConcreteRequest } from 'relay-runtime';
 export type CustomFieldType = "CHOICE" | "TEXT" | "%future added value";
-export type GroupingTab = "ACTIVITY" | "RACE" | "TALENT" | "TOWER" | "%future added value";
-export type GroupingType = "ACTIVITY" | "RACE" | "TALENT" | "TOWER" | "%future added value";
+export type GroupingTab = "ACTIVITY" | "EXPLORE" | "RACE" | "TALENT" | "TOWER" | "%future added value";
+export type GroupingType = "ACTIVITY" | "EXPLORE" | "RACE" | "TALENT" | "TOWER" | "%future added value";
 export type ViewerGuildGroupingsQuery$variables = {
   slug: string;
   tab: GroupingTab;
@@ -65,6 +65,7 @@ export type ViewerGuildGroupingsQuery$data = {
         readonly formEditTitle: string;
         readonly formHintActivity: string;
         readonly formHintDungeonTemplate: string;
+        readonly formHintExplore: string;
         readonly formHintRace: string;
         readonly formHintTalent: string;
         readonly formHintTower: string;
@@ -74,6 +75,8 @@ export type ViewerGuildGroupingsQuery$data = {
         readonly formNicknameLabel: string;
         readonly formNicknamePlaceholder: string;
         readonly formSectLabel: string;
+        readonly formSizeLabel: string;
+        readonly formSizeOptionTemplate: string;
         readonly formStartsLabel: string;
         readonly formSubmitCreateLabel: string;
         readonly formSubmitEditLabel: string;
@@ -87,6 +90,7 @@ export type ViewerGuildGroupingsQuery$data = {
         readonly formToastSaved: string;
         readonly formToastSect: string;
         readonly formTypeActivityLabel: string;
+        readonly formTypeExploreLabel: string;
         readonly formTypeLabel: string;
         readonly formTypeRaceLabel: string;
         readonly formTypeTalentLabel: string;
@@ -136,6 +140,7 @@ export type ViewerGuildGroupingsQuery$data = {
         readonly sealText: string;
         readonly statusOpenLabel: string;
         readonly tabActivityLabel: string;
+        readonly tabExploreLabel: string;
         readonly tabRaceLabel: string;
         readonly tabTalentLabel: string;
         readonly tabTowerLabel: string;
@@ -156,6 +161,7 @@ export type ViewerGuildGroupingsQuery$data = {
         readonly templateWhenTodayTemplate: string;
         readonly templateWhenTomorrowTemplate: string;
         readonly typeShortActivity: string;
+        readonly typeShortCoopExplore: string;
         readonly typeShortExplore: string;
         readonly typeShortGather: string;
         readonly typeShortRace: string;
@@ -372,626 +378,668 @@ v13 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "typeShortActivity",
+  "name": "tabExploreLabel",
   "storageKey": null
 },
 v14 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "typeShortTalent",
+  "name": "typeShortActivity",
   "storageKey": null
 },
 v15 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "typeShortRace",
+  "name": "typeShortTalent",
   "storageKey": null
 },
 v16 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "typeShortTower",
+  "name": "typeShortRace",
   "storageKey": null
 },
 v17 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "typeShortGather",
+  "name": "typeShortTower",
   "storageKey": null
 },
 v18 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "typeShortExplore",
+  "name": "typeShortCoopExplore",
   "storageKey": null
 },
 v19 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "prevWeekLabel",
+  "name": "typeShortGather",
   "storageKey": null
 },
 v20 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "nextWeekLabel",
+  "name": "typeShortExplore",
   "storageKey": null
 },
 v21 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "weekHeaderTemplate",
+  "name": "prevWeekLabel",
   "storageKey": null
 },
 v22 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "dayGroupHeaderTemplate",
+  "name": "nextWeekLabel",
   "storageKey": null
 },
 v23 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "weekdayNames",
+  "name": "weekHeaderTemplate",
   "storageKey": null
 },
 v24 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "undatedGroupLabel",
+  "name": "dayGroupHeaderTemplate",
   "storageKey": null
 },
 v25 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "emptyInteractiveText",
+  "name": "weekdayNames",
   "storageKey": null
 },
 v26 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "statusOpenLabel",
+  "name": "undatedGroupLabel",
   "storageKey": null
 },
 v27 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "peopleTemplate",
+  "name": "emptyInteractiveText",
   "storageKey": null
 },
 v28 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "newCarLabel",
+  "name": "statusOpenLabel",
   "storageKey": null
 },
 v29 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "weekShareImageLabel",
+  "name": "peopleTemplate",
   "storageKey": null
 },
 v30 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "weekShareImageUrl",
+  "name": "newCarLabel",
   "storageKey": null
 },
 v31 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "weekShareText",
+  "name": "weekShareImageLabel",
   "storageKey": null
 },
 v32 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "weekShareUrl",
+  "name": "weekShareImageUrl",
   "storageKey": null
 },
 v33 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "weekShareImageSaved",
+  "name": "weekShareText",
   "storageKey": null
 },
 v34 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "weekShareImageCopied",
+  "name": "weekShareUrl",
   "storageKey": null
 },
 v35 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "weekShareImageFailed",
+  "name": "weekShareImageSaved",
   "storageKey": null
 },
 v36 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "weekCopyFailedManual",
+  "name": "weekShareImageCopied",
   "storageKey": null
 },
 v37 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "sealText",
+  "name": "weekShareImageFailed",
   "storageKey": null
 },
 v38 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formCreateTitle",
+  "name": "weekCopyFailedManual",
   "storageKey": null
 },
 v39 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formEditTitle",
+  "name": "sealText",
   "storageKey": null
 },
 v40 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formTypeLabel",
+  "name": "formCreateTitle",
   "storageKey": null
 },
 v41 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formTypeActivityLabel",
+  "name": "formEditTitle",
   "storageKey": null
 },
 v42 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formTypeTalentLabel",
+  "name": "formTypeLabel",
   "storageKey": null
 },
 v43 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formTypeRaceLabel",
+  "name": "formTypeActivityLabel",
   "storageKey": null
 },
 v44 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formTypeTowerLabel",
+  "name": "formTypeTalentLabel",
   "storageKey": null
 },
 v45 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formCapacityTemplate",
+  "name": "formTypeRaceLabel",
   "storageKey": null
 },
 v46 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formHintActivity",
+  "name": "formTypeTowerLabel",
   "storageKey": null
 },
 v47 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formHintDungeonTemplate",
+  "name": "formTypeExploreLabel",
   "storageKey": null
 },
 v48 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formHintTalent",
+  "name": "formCapacityTemplate",
   "storageKey": null
 },
 v49 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formHintRace",
+  "name": "formHintActivity",
   "storageKey": null
 },
 v50 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formHintTower",
+  "name": "formHintDungeonTemplate",
   "storageKey": null
 },
 v51 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formTitleLabel",
+  "name": "formHintTalent",
   "storageKey": null
 },
 v52 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formTitlePlaceholder",
+  "name": "formHintRace",
   "storageKey": null
 },
 v53 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formStartsLabel",
+  "name": "formHintTower",
   "storageKey": null
 },
 v54 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formMonthTemplate",
+  "name": "formHintExplore",
   "storageKey": null
 },
 v55 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formDayTemplate",
+  "name": "formSizeLabel",
   "storageKey": null
 },
 v56 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formHourTemplate",
+  "name": "formSizeOptionTemplate",
   "storageKey": null
 },
 v57 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formMinuteTemplate",
+  "name": "formTitleLabel",
   "storageKey": null
 },
 v58 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formDungeonLabel",
+  "name": "formTitlePlaceholder",
   "storageKey": null
 },
 v59 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formDungeonNoneLabel",
+  "name": "formStartsLabel",
   "storageKey": null
 },
 v60 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formNicknameLabel",
+  "name": "formMonthTemplate",
   "storageKey": null
 },
 v61 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formNicknamePlaceholder",
+  "name": "formDayTemplate",
   "storageKey": null
 },
 v62 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formSectLabel",
+  "name": "formHourTemplate",
   "storageKey": null
 },
 v63 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formCancelLabel",
+  "name": "formMinuteTemplate",
   "storageKey": null
 },
 v64 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formSubmitCreateLabel",
+  "name": "formDungeonLabel",
   "storageKey": null
 },
 v65 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formSubmitEditLabel",
+  "name": "formDungeonNoneLabel",
   "storageKey": null
 },
 v66 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formSubmittingLabel",
+  "name": "formNicknameLabel",
   "storageKey": null
 },
 v67 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formToastSect",
+  "name": "formNicknamePlaceholder",
   "storageKey": null
 },
 v68 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formToastSaved",
+  "name": "formSectLabel",
   "storageKey": null
 },
 v69 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formToastSaveFailedTemplate",
+  "name": "formCancelLabel",
   "storageKey": null
 },
 v70 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formToastPosted",
+  "name": "formSubmitCreateLabel",
   "storageKey": null
 },
 v71 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formToastCreateFailedTemplate",
+  "name": "formSubmitEditLabel",
   "storageKey": null
 },
 v72 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formTitleTemplate",
+  "name": "formSubmittingLabel",
   "storageKey": null
 },
 v73 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formCustomFieldsTitle",
+  "name": "formToastSect",
   "storageKey": null
 },
 v74 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formCustomFieldAddLabel",
+  "name": "formToastSaved",
   "storageKey": null
 },
 v75 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formCustomFieldLabelPlaceholder",
+  "name": "formToastSaveFailedTemplate",
   "storageKey": null
 },
 v76 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formCustomFieldTypeText",
+  "name": "formToastPosted",
   "storageKey": null
 },
 v77 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formCustomFieldTypeChoice",
+  "name": "formToastCreateFailedTemplate",
   "storageKey": null
 },
 v78 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formCustomFieldOptionsPlaceholder",
+  "name": "formTitleTemplate",
   "storageKey": null
 },
 v79 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formCustomFieldRequiredLabel",
+  "name": "formCustomFieldsTitle",
   "storageKey": null
 },
 v80 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formCustomFieldRemoveLabel",
+  "name": "formCustomFieldAddLabel",
   "storageKey": null
 },
 v81 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "formCustomFieldEmptyText",
+  "name": "formCustomFieldLabelPlaceholder",
   "storageKey": null
 },
 v82 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "templateSectionTitle",
+  "name": "formCustomFieldTypeText",
   "storageKey": null
 },
 v83 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "templateNameLabel",
+  "name": "formCustomFieldTypeChoice",
   "storageKey": null
 },
 v84 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "templateNamePlaceholder",
+  "name": "formCustomFieldOptionsPlaceholder",
   "storageKey": null
 },
 v85 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "templateSaveLabel",
+  "name": "formCustomFieldRequiredLabel",
   "storageKey": null
 },
 v86 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "templateUpdateLabel",
+  "name": "formCustomFieldRemoveLabel",
   "storageKey": null
 },
 v87 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "templateEditingNoticeTemplate",
+  "name": "formCustomFieldEmptyText",
   "storageKey": null
 },
 v88 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "templateCancelEditLabel",
+  "name": "templateSectionTitle",
   "storageKey": null
 },
 v89 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "templateEmptyText",
+  "name": "templateNameLabel",
   "storageKey": null
 },
 v90 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "templateWhenTodayTemplate",
+  "name": "templateNamePlaceholder",
   "storageKey": null
 },
 v91 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "templateWhenTomorrowTemplate",
+  "name": "templateSaveLabel",
   "storageKey": null
 },
 v92 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "templateWhenDaysTemplate",
+  "name": "templateUpdateLabel",
   "storageKey": null
 },
 v93 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "templateToastSaved",
+  "name": "templateEditingNoticeTemplate",
   "storageKey": null
 },
 v94 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "templateToastSaveFailedTemplate",
+  "name": "templateCancelEditLabel",
   "storageKey": null
 },
 v95 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "templateToastDeleted",
+  "name": "templateEmptyText",
   "storageKey": null
 },
 v96 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "templateToastDeleteFailedTemplate",
+  "name": "templateWhenTodayTemplate",
   "storageKey": null
 },
 v97 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "templateMetaTemplate",
+  "name": "templateWhenTomorrowTemplate",
   "storageKey": null
 },
 v98 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "id",
+  "name": "templateWhenDaysTemplate",
   "storageKey": null
 },
 v99 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "name",
+  "name": "templateToastSaved",
   "storageKey": null
 },
 v100 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "type",
+  "name": "templateToastSaveFailedTemplate",
   "storageKey": null
 },
 v101 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "maxSlots",
+  "name": "templateToastDeleted",
   "storageKey": null
 },
 v102 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "templateToastDeleteFailedTemplate",
+  "storageKey": null
+},
+v103 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "templateMetaTemplate",
+  "storageKey": null
+},
+v104 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "id",
+  "storageKey": null
+},
+v105 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "name",
+  "storageKey": null
+},
+v106 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "type",
+  "storageKey": null
+},
+v107 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "maxSlots",
+  "storageKey": null
+},
+v108 = {
   "alias": null,
   "args": null,
   "concreteType": "GroupingTemplate",
@@ -999,9 +1047,9 @@ v102 = {
   "name": "groupingTemplates",
   "plural": true,
   "selections": [
-    (v98/*:: as any*/),
-    (v99/*:: as any*/),
-    (v100/*:: as any*/),
+    (v104/*:: as any*/),
+    (v105/*:: as any*/),
+    (v106/*:: as any*/),
     (v6/*:: as any*/),
     {
       "alias": null,
@@ -1017,7 +1065,7 @@ v102 = {
       "name": "dungeonId",
       "storageKey": null
     },
-    (v101/*:: as any*/),
+    (v107/*:: as any*/),
     {
       "alias": null,
       "args": null,
@@ -1054,7 +1102,7 @@ v102 = {
       "name": "customFields",
       "plural": true,
       "selections": [
-        (v98/*:: as any*/),
+        (v104/*:: as any*/),
         {
           "alias": null,
           "args": null,
@@ -1128,21 +1176,21 @@ v102 = {
   ],
   "storageKey": null
 },
-v103 = {
+v109 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "startsAt",
   "storageKey": null
 },
-v104 = {
+v110 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "occupiedCount",
   "storageKey": null
 },
-v105 = {
+v111 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
@@ -1273,7 +1321,13 @@ return {
                   (v95/*:: as any*/),
                   (v96/*:: as any*/),
                   (v97/*:: as any*/),
+                  (v98/*:: as any*/),
+                  (v99/*:: as any*/),
+                  (v100/*:: as any*/),
+                  (v101/*:: as any*/),
                   (v102/*:: as any*/),
+                  (v103/*:: as any*/),
+                  (v108/*:: as any*/),
                   {
                     "alias": null,
                     "args": null,
@@ -1282,10 +1336,10 @@ return {
                     "name": "groupings",
                     "plural": true,
                     "selections": [
-                      (v98/*:: as any*/),
+                      (v104/*:: as any*/),
                       (v6/*:: as any*/),
-                      (v100/*:: as any*/),
-                      (v103/*:: as any*/),
+                      (v106/*:: as any*/),
+                      (v109/*:: as any*/),
                       {
                         "alias": null,
                         "args": null,
@@ -1294,13 +1348,13 @@ return {
                         "name": "dungeon",
                         "plural": false,
                         "selections": [
-                          (v99/*:: as any*/)
+                          (v105/*:: as any*/)
                         ],
                         "storageKey": null
                       },
-                      (v104/*:: as any*/),
-                      (v101/*:: as any*/),
-                      (v105/*:: as any*/)
+                      (v110/*:: as any*/),
+                      (v107/*:: as any*/),
+                      (v111/*:: as any*/)
                     ],
                     "storageKey": null
                   }
@@ -1440,7 +1494,13 @@ return {
                   (v95/*:: as any*/),
                   (v96/*:: as any*/),
                   (v97/*:: as any*/),
+                  (v98/*:: as any*/),
+                  (v99/*:: as any*/),
+                  (v100/*:: as any*/),
+                  (v101/*:: as any*/),
                   (v102/*:: as any*/),
+                  (v103/*:: as any*/),
+                  (v108/*:: as any*/),
                   {
                     "alias": null,
                     "args": null,
@@ -1449,10 +1509,10 @@ return {
                     "name": "groupings",
                     "plural": true,
                     "selections": [
-                      (v98/*:: as any*/),
+                      (v104/*:: as any*/),
                       (v6/*:: as any*/),
-                      (v100/*:: as any*/),
-                      (v103/*:: as any*/),
+                      (v106/*:: as any*/),
+                      (v109/*:: as any*/),
                       {
                         "alias": null,
                         "args": null,
@@ -1461,14 +1521,14 @@ return {
                         "name": "dungeon",
                         "plural": false,
                         "selections": [
-                          (v99/*:: as any*/),
-                          (v98/*:: as any*/)
+                          (v105/*:: as any*/),
+                          (v104/*:: as any*/)
                         ],
                         "storageKey": null
                       },
-                      (v104/*:: as any*/),
-                      (v101/*:: as any*/),
-                      (v105/*:: as any*/)
+                      (v110/*:: as any*/),
+                      (v107/*:: as any*/),
+                      (v111/*:: as any*/)
                     ],
                     "storageKey": null
                   }
@@ -1484,16 +1544,16 @@ return {
     ]
   },
   "params": {
-    "cacheID": "c5b631a347073c008ecf28484cc2efdb",
+    "cacheID": "b88c88239dd8e184adcc16d810490563",
     "id": null,
     "metadata": {},
     "name": "ViewerGuildGroupingsQuery",
     "operationKind": "query",
-    "text": "query ViewerGuildGroupingsQuery(\n  $slug: String!\n  $tab: GroupingTab!\n) {\n  viewer {\n    commonUnknownErrorText\n    guild(slug: $slug) {\n      __typename\n      groupings(tab: $tab) {\n        currentVersion\n        crossCarAdvice {\n          __typename\n          ... on SchedulingAdviceLocked {\n            lockedTitle\n            lockedBody\n          }\n          ... on SchedulingCrossCarAdvice {\n            title\n            conflicts {\n              discordId\n              text\n            }\n            moves {\n              carId\n              text\n              entry {\n                displayName\n              }\n            }\n          }\n        }\n        tabActivityLabel\n        tabTalentLabel\n        tabRaceLabel\n        tabTowerLabel\n        typeShortActivity\n        typeShortTalent\n        typeShortRace\n        typeShortTower\n        typeShortGather\n        typeShortExplore\n        prevWeekLabel\n        nextWeekLabel\n        weekHeaderTemplate\n        dayGroupHeaderTemplate\n        weekdayNames\n        undatedGroupLabel\n        emptyInteractiveText\n        statusOpenLabel\n        peopleTemplate\n        newCarLabel\n        weekShareImageLabel\n        weekShareImageUrl\n        weekShareText\n        weekShareUrl\n        weekShareImageSaved\n        weekShareImageCopied\n        weekShareImageFailed\n        weekCopyFailedManual\n        sealText\n        formCreateTitle\n        formEditTitle\n        formTypeLabel\n        formTypeActivityLabel\n        formTypeTalentLabel\n        formTypeRaceLabel\n        formTypeTowerLabel\n        formCapacityTemplate\n        formHintActivity\n        formHintDungeonTemplate\n        formHintTalent\n        formHintRace\n        formHintTower\n        formTitleLabel\n        formTitlePlaceholder\n        formStartsLabel\n        formMonthTemplate\n        formDayTemplate\n        formHourTemplate\n        formMinuteTemplate\n        formDungeonLabel\n        formDungeonNoneLabel\n        formNicknameLabel\n        formNicknamePlaceholder\n        formSectLabel\n        formCancelLabel\n        formSubmitCreateLabel\n        formSubmitEditLabel\n        formSubmittingLabel\n        formToastSect\n        formToastSaved\n        formToastSaveFailedTemplate\n        formToastPosted\n        formToastCreateFailedTemplate\n        formTitleTemplate\n        formCustomFieldsTitle\n        formCustomFieldAddLabel\n        formCustomFieldLabelPlaceholder\n        formCustomFieldTypeText\n        formCustomFieldTypeChoice\n        formCustomFieldOptionsPlaceholder\n        formCustomFieldRequiredLabel\n        formCustomFieldRemoveLabel\n        formCustomFieldEmptyText\n        templateSectionTitle\n        templateNameLabel\n        templateNamePlaceholder\n        templateSaveLabel\n        templateUpdateLabel\n        templateEditingNoticeTemplate\n        templateCancelEditLabel\n        templateEmptyText\n        templateWhenTodayTemplate\n        templateWhenTomorrowTemplate\n        templateWhenDaysTemplate\n        templateToastSaved\n        templateToastSaveFailedTemplate\n        templateToastDeleted\n        templateToastDeleteFailedTemplate\n        templateMetaTemplate\n        groupingTemplates {\n          id\n          name\n          type\n          title\n          dungeonName\n          dungeonId\n          maxSlots\n          startDaysAhead\n          startHour\n          startMinute\n          creatorName\n          customFields {\n            id\n            label\n            fieldType\n            options\n            required\n          }\n          manageActions {\n            editLabel\n            deleteLabel\n            deleteConfirmTitle\n            deleteConfirmMessageTemplate\n          }\n        }\n        groupings {\n          id\n          title\n          type\n          startsAt\n          dungeon {\n            name\n            id\n          }\n          occupiedCount\n          maxSlots\n          status\n        }\n      }\n    }\n  }\n}\n"
+    "text": "query ViewerGuildGroupingsQuery(\n  $slug: String!\n  $tab: GroupingTab!\n) {\n  viewer {\n    commonUnknownErrorText\n    guild(slug: $slug) {\n      __typename\n      groupings(tab: $tab) {\n        currentVersion\n        crossCarAdvice {\n          __typename\n          ... on SchedulingAdviceLocked {\n            lockedTitle\n            lockedBody\n          }\n          ... on SchedulingCrossCarAdvice {\n            title\n            conflicts {\n              discordId\n              text\n            }\n            moves {\n              carId\n              text\n              entry {\n                displayName\n              }\n            }\n          }\n        }\n        tabActivityLabel\n        tabTalentLabel\n        tabRaceLabel\n        tabTowerLabel\n        tabExploreLabel\n        typeShortActivity\n        typeShortTalent\n        typeShortRace\n        typeShortTower\n        typeShortCoopExplore\n        typeShortGather\n        typeShortExplore\n        prevWeekLabel\n        nextWeekLabel\n        weekHeaderTemplate\n        dayGroupHeaderTemplate\n        weekdayNames\n        undatedGroupLabel\n        emptyInteractiveText\n        statusOpenLabel\n        peopleTemplate\n        newCarLabel\n        weekShareImageLabel\n        weekShareImageUrl\n        weekShareText\n        weekShareUrl\n        weekShareImageSaved\n        weekShareImageCopied\n        weekShareImageFailed\n        weekCopyFailedManual\n        sealText\n        formCreateTitle\n        formEditTitle\n        formTypeLabel\n        formTypeActivityLabel\n        formTypeTalentLabel\n        formTypeRaceLabel\n        formTypeTowerLabel\n        formTypeExploreLabel\n        formCapacityTemplate\n        formHintActivity\n        formHintDungeonTemplate\n        formHintTalent\n        formHintRace\n        formHintTower\n        formHintExplore\n        formSizeLabel\n        formSizeOptionTemplate\n        formTitleLabel\n        formTitlePlaceholder\n        formStartsLabel\n        formMonthTemplate\n        formDayTemplate\n        formHourTemplate\n        formMinuteTemplate\n        formDungeonLabel\n        formDungeonNoneLabel\n        formNicknameLabel\n        formNicknamePlaceholder\n        formSectLabel\n        formCancelLabel\n        formSubmitCreateLabel\n        formSubmitEditLabel\n        formSubmittingLabel\n        formToastSect\n        formToastSaved\n        formToastSaveFailedTemplate\n        formToastPosted\n        formToastCreateFailedTemplate\n        formTitleTemplate\n        formCustomFieldsTitle\n        formCustomFieldAddLabel\n        formCustomFieldLabelPlaceholder\n        formCustomFieldTypeText\n        formCustomFieldTypeChoice\n        formCustomFieldOptionsPlaceholder\n        formCustomFieldRequiredLabel\n        formCustomFieldRemoveLabel\n        formCustomFieldEmptyText\n        templateSectionTitle\n        templateNameLabel\n        templateNamePlaceholder\n        templateSaveLabel\n        templateUpdateLabel\n        templateEditingNoticeTemplate\n        templateCancelEditLabel\n        templateEmptyText\n        templateWhenTodayTemplate\n        templateWhenTomorrowTemplate\n        templateWhenDaysTemplate\n        templateToastSaved\n        templateToastSaveFailedTemplate\n        templateToastDeleted\n        templateToastDeleteFailedTemplate\n        templateMetaTemplate\n        groupingTemplates {\n          id\n          name\n          type\n          title\n          dungeonName\n          dungeonId\n          maxSlots\n          startDaysAhead\n          startHour\n          startMinute\n          creatorName\n          customFields {\n            id\n            label\n            fieldType\n            options\n            required\n          }\n          manageActions {\n            editLabel\n            deleteLabel\n            deleteConfirmTitle\n            deleteConfirmMessageTemplate\n          }\n        }\n        groupings {\n          id\n          title\n          type\n          startsAt\n          dungeon {\n            name\n            id\n          }\n          occupiedCount\n          maxSlots\n          status\n        }\n      }\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "0d20aeca323d64a25de0139ac27a4f9d";
+(node as any).hash = "09d9abaf19a5e82905d695650f5c6468";
 
 export default node;

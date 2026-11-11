@@ -87,6 +87,7 @@ const GroupingDetailQueryNode = graphql`
       typeShortTalent
       typeShortRace
       typeShortTower
+      typeShortCoopExplore
       typeShortGather
       typeShortExplore
       seatEmptyJoinLabel
@@ -127,12 +128,16 @@ const GroupingDetailQueryNode = graphql`
       formTypeTalentLabel
       formTypeRaceLabel
       formTypeTowerLabel
+      formTypeExploreLabel
       formCapacityTemplate
       formHintActivity
       formHintDungeonTemplate
       formHintTalent
       formHintRace
       formHintTower
+      formHintExplore
+      formSizeLabel
+      formSizeOptionTemplate
       formTitleLabel
       formTitlePlaceholder
       formStartsLabel
@@ -549,7 +554,7 @@ const g = page?.grouping;
 const unknownErrorText: string = (data as any)?.viewer?.commonUnknownErrorText ?? '';
 const typeShort: Record<string, string> = {
 ACTIVITY: page.typeShortActivity, TALENT: page.typeShortTalent, RACE: page.typeShortRace, TOWER: page.typeShortTower,
-GATHER: page.typeShortGather, EXPLORE: page.typeShortExplore,
+GATHER: page.typeShortGather, EXPLORE: page.typeShortCoopExplore,
 };
 const seatText = { ...page, unknownErrorText };
 const formText = { ...page, unknownErrorText };
@@ -1146,7 +1151,7 @@ slug=""
 text={formText}
 mode="edit"
 groupingId={g.id}
-initial={{ title: g.title ?? '', type: g.type, startsAt: g.startsAt ?? '' }}
+initial={{ title: g.title ?? '', type: g.type, startsAt: g.startsAt ?? '', maxSlots: g.maxSlots ?? null }}
 onClose={() => setShowEdit(false)}
 onDone={() => { setShowEdit(false); onChanged(); }}
 />

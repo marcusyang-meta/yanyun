@@ -49,12 +49,16 @@ const ScheduleQueryNode = graphql`
       formTypeTalentLabel
       formTypeRaceLabel
       formTypeTowerLabel
+      formTypeExploreLabel
       formCapacityTemplate
       formHintActivity
       formHintDungeonTemplate
       formHintTalent
       formHintRace
       formHintTower
+      formHintExplore
+      formSizeLabel
+      formSizeOptionTemplate
       formTitleLabel
       formTitlePlaceholder
       formStartsLabel
@@ -90,6 +94,7 @@ const ScheduleQueryNode = graphql`
       typeShortTalent
       typeShortRace
       typeShortTower
+      typeShortCoopExplore
       scheduleTitle
       scheduleMyTitle
       scheduleSlotRangeTemplate

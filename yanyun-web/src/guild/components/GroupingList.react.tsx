@@ -15,6 +15,7 @@ const TABS = [
   { key: 'TALENT' },
   { key: 'RACE' },
   { key: 'TOWER' },
+  { key: 'EXPLORE' },
 ] as const;
 
 type TabKey = typeof TABS[number]['key'];
@@ -37,10 +38,12 @@ const GroupingListQueryNode = graphql`
             tabTalentLabel
             tabRaceLabel
             tabTowerLabel
+            tabExploreLabel
             typeShortActivity
             typeShortTalent
             typeShortRace
             typeShortTower
+            typeShortCoopExplore
             typeShortGather
             typeShortExplore
             prevWeekLabel
@@ -69,12 +72,16 @@ const GroupingListQueryNode = graphql`
             formTypeTalentLabel
             formTypeRaceLabel
             formTypeTowerLabel
+            formTypeExploreLabel
             formCapacityTemplate
             formHintActivity
             formHintDungeonTemplate
             formHintTalent
             formHintRace
             formHintTower
+            formHintExplore
+            formSizeLabel
+            formSizeOptionTemplate
             formTitleLabel
             formTitlePlaceholder
             formStartsLabel
@@ -184,10 +191,11 @@ function GroupingList({ queryRef, tab, onTabChange, onSelect, weekOffset, onWeek
   const all: any[] = page?.groupings ?? [];
   const tabLabel: Record<string, string> = {
     ACTIVITY: page.tabActivityLabel, TALENT: page.tabTalentLabel, RACE: page.tabRaceLabel, TOWER: page.tabTowerLabel,
+    EXPLORE: page.tabExploreLabel,
   };
   const typeShort: Record<string, string> = {
     ACTIVITY: page.typeShortActivity, TALENT: page.typeShortTalent, RACE: page.typeShortRace, TOWER: page.typeShortTower,
-    GATHER: page.typeShortGather, EXPLORE: page.typeShortExplore,
+    GATHER: page.typeShortGather, EXPLORE: page.typeShortCoopExplore,
   };
   const { start, end } = getWeekRange(weekOffset);
   const events = all.filter((e) => {

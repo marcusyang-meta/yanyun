@@ -360,6 +360,7 @@ const GuildAdminPage_guildAdmin = graphql`
     adminTypeTalentText
     adminTypeRaceText
     adminTypeTowerText
+    adminTypeExploreText
     adminStatusOpenText
     adminStatusClosedText
     adminStatusCompletedText
@@ -476,6 +477,7 @@ const GuildAdminPage_guildAdmin = graphql`
         carsTalent
         carsRace
         carsTower
+        carsExplore
         carsTotal
         completedCount
         totalSeats
