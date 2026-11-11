@@ -8568,6 +8568,18 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-CN": "合并车队",
       "en": "Merge squad"
     },
+    "actionAgentJoin": {
+      "zh-CN": "经 Agent 报名",
+      "en": "Signed up via agent"
+    },
+    "actionAgentLeave": {
+      "zh-CN": "经 Agent 退报",
+      "en": "Withdrew via agent"
+    },
+    "actionAgentReady": {
+      "zh-CN": "经 Agent 调整就位",
+      "en": "Ready state changed via agent"
+    },
     "actionSignupRemove": {
       "zh-CN": "移除报名",
       "en": "Remove signup",
@@ -9630,6 +9642,92 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
     "adminStatusFailedText": {
       "zh-CN": "处理失败",
       "en": "Processing Failed"
+    }
+  },
+  "agent": {
+    "consentTitle": {
+      "zh-CN": "授权 Agent 访问",
+      "en": "Authorize Agent Access"
+    },
+    "consentIntro": {
+      "zh-CN": "{clientName} 希望以你的身份连接燕云百业。",
+      "en": "{clientName} wants to connect to Yanyun Guilds as you."
+    },
+    "consentIdentity": {
+      "zh-CN": "授权将绑定到你的 Discord 账号：{name}",
+      "en": "The grant will be bound to your Discord account: {name}"
+    },
+    "consentScopeTitle": {
+      "zh-CN": "同意后，该 Agent 将能够：",
+      "en": "After you approve, this agent will be able to:"
+    },
+    "consentScopeRead": {
+      "zh-CN": "查看你能看到的百业车队、名册与图鉴，并使用调律、毕业率计算",
+      "en": "View the guild groupings, rosters and compendium you can see, and use the tuning and graduation calculators"
+    },
+    "consentScopeSignup": {
+      "zh-CN": "以你的身份报名、退报、调整就位状态——只能操作你自己的座位，不能代他人报名，也不能管理车队",
+      "en": "Sign you up, withdraw you, and toggle your ready state — it can only touch your own seats, cannot sign up other members, and cannot manage groupings"
+    },
+    "consentApprove": {
+      "zh-CN": "同意授权",
+      "en": "Approve"
+    },
+    "consentDeny": {
+      "zh-CN": "拒绝",
+      "en": "Deny"
+    },
+    "consentErrorTitle": {
+      "zh-CN": "授权请求无效",
+      "en": "Invalid Authorization Request"
+    },
+    "consentErrorBody": {
+      "zh-CN": "这个授权请求缺少必要参数或已失效，请回到你的 Agent 重新发起。",
+      "en": "This authorization request is missing required parameters or has expired. Please start again from your agent."
+    },
+    "sectionTitle": {
+      "zh-CN": "我的 Agent 授权",
+      "en": "My Agent Grants"
+    },
+    "hint": {
+      "zh-CN": "通过 OAuth 授权给 Agent（如 Muse）的访问权会列在这里。吊销后，该 Agent 的访问与刷新令牌立即失效。",
+      "en": "Access granted to agents (such as Muse) via OAuth is listed here. Revoking a grant immediately invalidates that agent's access and refresh tokens."
+    },
+    "emptyText": {
+      "zh-CN": "还没有授权任何 Agent。",
+      "en": "No agent has been authorized yet."
+    },
+    "scopesReadLabel": {
+      "zh-CN": "只读",
+      "en": "Read only"
+    },
+    "scopesSignupLabel": {
+      "zh-CN": "只读 + 报名",
+      "en": "Read + sign-up"
+    },
+    "sourceOauthLabel": {
+      "zh-CN": "OAuth 授权",
+      "en": "OAuth grant"
+    },
+    "createdTemplate": {
+      "zh-CN": "授权于 {date}",
+      "en": "Authorized on {date}"
+    },
+    "lastUsedTemplate": {
+      "zh-CN": "最近使用：{date}",
+      "en": "Last used: {date}"
+    },
+    "neverUsedText": {
+      "zh-CN": "尚未使用",
+      "en": "Never used"
+    },
+    "revokeLabel": {
+      "zh-CN": "吊销",
+      "en": "Revoke"
+    },
+    "revokeDoneText": {
+      "zh-CN": "已吊销。",
+      "en": "Revoked."
     }
   }
 };

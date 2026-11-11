@@ -4621,6 +4621,15 @@ export abstract class GovernanceFbtUtils {
 	static actionEventMerge(fbs: FbsRuntime) {
 		return fbs._("合并车队", null, { hk: "12Z1VP" });
 	}
+	static actionAgentJoin(fbs: FbsRuntime) {
+		return fbs._("经 Agent 报名", null, { hk: "2GbMtA" });
+	}
+	static actionAgentLeave(fbs: FbsRuntime) {
+		return fbs._("经 Agent 退报", null, { hk: "4o19gm" });
+	}
+	static actionAgentReady(fbs: FbsRuntime) {
+		return fbs._("经 Agent 调整就位", null, { hk: "YFaGD" });
+	}
 	static actionSignupRemove(fbs: FbsRuntime) {
 		return fbs._("移除报名", null, { hk: "1mLK3J" });
 	}
@@ -5383,6 +5392,71 @@ export abstract class CombatReportFbtUtils {
 	}
 	static adminStatusFailedText(fbs: FbsRuntime) {
 		return fbs._("处理失败", null, { hk: "x42Ne" });
+	}
+}
+export abstract class AgentFbtUtils {
+	static consentTitle(fbs: FbsRuntime) {
+		return fbs._("授权 Agent 访问", null, { hk: "2CyHNh" });
+	}
+	static consentIntro(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("{clientName} 希望以你的身份连接燕云百业。", [fbs._param("clientName", pv(p, "clientName"))], { hk: "1ddfJt" });
+	}
+	static consentIdentity(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("授权将绑定到你的 Discord 账号：{name}", [fbs._param("name", pv(p, "name"))], { hk: "XbliS" });
+	}
+	static consentScopeTitle(fbs: FbsRuntime) {
+		return fbs._("同意后，该 Agent 将能够：", null, { hk: "1tdkpY" });
+	}
+	static consentScopeRead(fbs: FbsRuntime) {
+		return fbs._("查看你能看到的百业车队、名册与图鉴，并使用调律、毕业率计算", null, { hk: "1b5tBb" });
+	}
+	static consentScopeSignup(fbs: FbsRuntime) {
+		return fbs._("以你的身份报名、退报、调整就位状态——只能操作你自己的座位，不能代他人报名，也不能管理车队", null, { hk: "2FRWAm" });
+	}
+	static consentApprove(fbs: FbsRuntime) {
+		return fbs._("同意授权", null, { hk: "1RlFsD" });
+	}
+	static consentDeny(fbs: FbsRuntime) {
+		return fbs._("拒绝", null, { hk: "3fXEof" });
+	}
+	static consentErrorTitle(fbs: FbsRuntime) {
+		return fbs._("授权请求无效", null, { hk: "4mz133" });
+	}
+	static consentErrorBody(fbs: FbsRuntime) {
+		return fbs._("这个授权请求缺少必要参数或已失效，请回到你的 Agent 重新发起。", null, { hk: "24SXkc" });
+	}
+	static sectionTitle(fbs: FbsRuntime) {
+		return fbs._("我的 Agent 授权", null, { hk: "4hl3sZ" });
+	}
+	static hint(fbs: FbsRuntime) {
+		return fbs._("通过 OAuth 授权给 Agent（如 Muse）的访问权会列在这里。吊销后，该 Agent 的访问与刷新令牌立即失效。", null, { hk: "4tr8CE" });
+	}
+	static emptyText(fbs: FbsRuntime) {
+		return fbs._("还没有授权任何 Agent。", null, { hk: "unELY" });
+	}
+	static scopesReadLabel(fbs: FbsRuntime) {
+		return fbs._("只读", null, { hk: "4kpnLD" });
+	}
+	static scopesSignupLabel(fbs: FbsRuntime) {
+		return fbs._("只读 + 报名", null, { hk: "4fsQ0e" });
+	}
+	static sourceOauthLabel(fbs: FbsRuntime) {
+		return fbs._("OAuth 授权", null, { hk: "30nA5N" });
+	}
+	static createdTemplate(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("授权于 {date}", [fbs._param("date", pv(p, "date"))], { hk: "4ry54k" });
+	}
+	static lastUsedTemplate(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("最近使用：{date}", [fbs._param("date", pv(p, "date"))], { hk: "46GPdI" });
+	}
+	static neverUsedText(fbs: FbsRuntime) {
+		return fbs._("尚未使用", null, { hk: "2s1AtK" });
+	}
+	static revokeLabel(fbs: FbsRuntime) {
+		return fbs._("吊销", null, { hk: "1KnVQO" });
+	}
+	static revokeDoneText(fbs: FbsRuntime) {
+		return fbs._("已吊销。", null, { hk: "2uV6a5" });
 	}
 }
 export const STRING_FNS: Record<string, StringFn> = {
@@ -6872,6 +6946,9 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"governance_actionEventUpdate": GovernanceFbtUtils.actionEventUpdate,
 	"governance_actionEventDelete": GovernanceFbtUtils.actionEventDelete,
 	"governance_actionEventMerge": GovernanceFbtUtils.actionEventMerge,
+	"governance_actionAgentJoin": GovernanceFbtUtils.actionAgentJoin,
+	"governance_actionAgentLeave": GovernanceFbtUtils.actionAgentLeave,
+	"governance_actionAgentReady": GovernanceFbtUtils.actionAgentReady,
 	"governance_actionSignupRemove": GovernanceFbtUtils.actionSignupRemove,
 	"governance_actionResultAdd": GovernanceFbtUtils.actionResultAdd,
 	"governance_actionResultDelete": GovernanceFbtUtils.actionResultDelete,
@@ -7122,5 +7199,26 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"combatReport_adminTitle": CombatReportFbtUtils.adminTitle,
 	"combatReport_adminEmptyText": CombatReportFbtUtils.adminEmptyText,
 	"combatReport_adminStatusParsedText": CombatReportFbtUtils.adminStatusParsedText,
-	"combatReport_adminStatusFailedText": CombatReportFbtUtils.adminStatusFailedText
+	"combatReport_adminStatusFailedText": CombatReportFbtUtils.adminStatusFailedText,
+	"agent_consentTitle": AgentFbtUtils.consentTitle,
+	"agent_consentIntro": AgentFbtUtils.consentIntro,
+	"agent_consentIdentity": AgentFbtUtils.consentIdentity,
+	"agent_consentScopeTitle": AgentFbtUtils.consentScopeTitle,
+	"agent_consentScopeRead": AgentFbtUtils.consentScopeRead,
+	"agent_consentScopeSignup": AgentFbtUtils.consentScopeSignup,
+	"agent_consentApprove": AgentFbtUtils.consentApprove,
+	"agent_consentDeny": AgentFbtUtils.consentDeny,
+	"agent_consentErrorTitle": AgentFbtUtils.consentErrorTitle,
+	"agent_consentErrorBody": AgentFbtUtils.consentErrorBody,
+	"agent_sectionTitle": AgentFbtUtils.sectionTitle,
+	"agent_hint": AgentFbtUtils.hint,
+	"agent_emptyText": AgentFbtUtils.emptyText,
+	"agent_scopesReadLabel": AgentFbtUtils.scopesReadLabel,
+	"agent_scopesSignupLabel": AgentFbtUtils.scopesSignupLabel,
+	"agent_sourceOauthLabel": AgentFbtUtils.sourceOauthLabel,
+	"agent_createdTemplate": AgentFbtUtils.createdTemplate,
+	"agent_lastUsedTemplate": AgentFbtUtils.lastUsedTemplate,
+	"agent_neverUsedText": AgentFbtUtils.neverUsedText,
+	"agent_revokeLabel": AgentFbtUtils.revokeLabel,
+	"agent_revokeDoneText": AgentFbtUtils.revokeDoneText
 };

@@ -58,6 +58,9 @@ export const PUBLIC_ID_TYPE_CODES = {
   timePollOption: 62,
   feedback: 70,
   opsNudgeSend: 80,
+  agentApiToken: 81,
+  oauthClient: 82,
+  oauthAuthCode: 83,
 } as const;
 
 export type PublicIdType = keyof typeof PUBLIC_ID_TYPE_CODES;

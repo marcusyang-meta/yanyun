@@ -553,6 +553,9 @@ export type GuildsStringKey =
   | 'governance_actionEventUpdate'
   | 'governance_actionEventDelete'
   | 'governance_actionEventMerge'
+  | 'governance_actionAgentJoin'
+  | 'governance_actionAgentLeave'
+  | 'governance_actionAgentReady'
   | 'governance_actionSignupRemove'
   | 'governance_actionResultAdd'
   | 'governance_actionResultDelete'
@@ -1132,6 +1135,9 @@ export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'governance_actionEventUpdate',
   'governance_actionEventDelete',
   'governance_actionEventMerge',
+  'governance_actionAgentJoin',
+  'governance_actionAgentLeave',
+  'governance_actionAgentReady',
   'governance_actionSignupRemove',
   'governance_actionResultAdd',
   'governance_actionResultDelete',

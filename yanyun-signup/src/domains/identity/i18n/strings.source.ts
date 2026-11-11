@@ -160,3 +160,27 @@ export abstract class FeedbackFbtUtils {
   static success(fbs: FbsAPI) { return fbs("已收到，感谢你的反馈。", "Confirmation message for the feedback dialog, used after feedback is submitted successfully."); }
 }
 
+
+export abstract class AgentFbtUtils {
+  static consentTitle(fbs: FbsAPI) { return fbs("授权 Agent 访问", "Title text for the agent OAuth consent page, used as the heading when a member is asked to authorize an agent client."); }
+  static consentIntro(fbs: FbsAPI, p?: StringParams) { return fbs([fbs.param("clientName", pv(p, "clientName")), " 希望以你的身份连接燕云百业。"], "Intro text for the agent OAuth consent page, used to name the client asking for authorization, where {clientName} is the registered client name."); }
+  static consentIdentity(fbs: FbsAPI, p?: StringParams) { return fbs(["授权将绑定到你的 Discord 账号：", fbs.param("name", pv(p, "name"))], "Identity line for the agent OAuth consent page, used to state which Discord account the grant will belong to, where {name} is the member's platform display name."); }
+  static consentScopeTitle(fbs: FbsAPI) { return fbs("同意后，该 Agent 将能够：", "Lead-in text for the agent OAuth consent page, used above the list of things the authorized agent can do."); }
+  static consentScopeRead(fbs: FbsAPI) { return fbs("查看你能看到的百业车队、名册与图鉴，并使用调律、毕业率计算", "Scope bullet for the agent OAuth consent page, used to describe the read tier: viewing groupings, rosters and the compendium, and using the tuning and graduation calculators."); }
+  static consentScopeSignup(fbs: FbsAPI) { return fbs("以你的身份报名、退报、调整就位状态——只能操作你自己的座位，不能代他人报名，也不能管理车队", "Scope bullet for the agent OAuth consent page, used to describe the signup tier: signing up, withdrawing and toggling ready state as the member, limited to the member's own seats."); }
+  static consentApprove(fbs: FbsAPI) { return fbs("同意授权", "Button label for the agent OAuth consent page, used to approve the authorization request."); }
+  static consentDeny(fbs: FbsAPI) { return fbs("拒绝", "Button label for the agent OAuth consent page, used to deny the authorization request."); }
+  static consentErrorTitle(fbs: FbsAPI) { return fbs("授权请求无效", "Title text for the agent OAuth error page, used when an authorization request is malformed or expired."); }
+  static consentErrorBody(fbs: FbsAPI) { return fbs("这个授权请求缺少必要参数或已失效，请回到你的 Agent 重新发起。", "Body text for the agent OAuth error page, used to tell the member to restart the authorization from their agent."); }
+  static sectionTitle(fbs: FbsAPI) { return fbs("我的 Agent 授权", "Title text for the agent grants section in personal settings, used as the heading above the member's authorized agent clients."); }
+  static hint(fbs: FbsAPI) { return fbs("通过 OAuth 授权给 Agent（如 Muse）的访问权会列在这里。吊销后，该 Agent 的访问与刷新令牌立即失效。", "Hint text for the agent grants section in personal settings, used to explain that revoking a grant immediately invalidates the agent's access and refresh tokens."); }
+  static emptyText(fbs: FbsAPI) { return fbs("还没有授权任何 Agent。", "Empty-state text for the agent grants section in personal settings, used when the member has no active agent grants."); }
+  static scopesReadLabel(fbs: FbsAPI) { return fbs("只读", "Scope label for the agent grants section in personal settings, used for a grant that can only read."); }
+  static scopesSignupLabel(fbs: FbsAPI) { return fbs("只读 + 报名", "Scope label for the agent grants section in personal settings, used for a grant that can read and sign up."); }
+  static sourceOauthLabel(fbs: FbsAPI) { return fbs("OAuth 授权", "Source label for the agent grants section in personal settings, used for grants issued through the OAuth authorization flow."); }
+  static createdTemplate(fbs: FbsAPI, p?: StringParams) { return fbs(["授权于 ", fbs.param("date", pv(p, "date"))], "Created line for the agent grants section in personal settings, used to show when a grant was authorized, where {date} is the formatted authorization date."); }
+  static lastUsedTemplate(fbs: FbsAPI, p?: StringParams) { return fbs(["最近使用：", fbs.param("date", pv(p, "date"))], "Last-used line for the agent grants section in personal settings, used to show when a grant was last used, where {date} is the formatted date."); }
+  static neverUsedText(fbs: FbsAPI) { return fbs("尚未使用", "Last-used line for the agent grants section in personal settings, used when a grant has never been used."); }
+  static revokeLabel(fbs: FbsAPI) { return fbs("吊销", "Button label for the agent grants section in personal settings, used to revoke one agent grant."); }
+  static revokeDoneText(fbs: FbsAPI) { return fbs("已吊销。", "Confirmation text for the agent grants section in personal settings, used after a grant is revoked."); }
+}

@@ -4,4 +4,5 @@
 export * from './users.ts';
 export * from './guildMembers.ts';
 export * from './account.ts';
+export * from './agent-oauth.ts';
 export * from './graphql.ts';

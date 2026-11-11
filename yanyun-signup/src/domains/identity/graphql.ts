@@ -21,10 +21,15 @@ import { getAccountRow } from './users.ts';
 import type { AccountRow } from './users.ts';
 import { ensureCalendarToken, rotateCalendarToken, calendarFeedUrl } from './calendar.ts';
 import {
+  listUserAgentTokens, revokeAgentToken, parseScopes,
+  type AgentTokenRow,
+} from './agent-oauth.ts';
+import {
   exportMyData as exportMyDataService,
   requestAccountDeletion as requestAccountDeletionService,
   cancelAccountDeletion as cancelAccountDeletionService,
   deletionExecutesAt,
+  isFreshAuth,
 } from './account.ts';
 import { MySeasonGoalPageShell } from '../guilds/officer-graphql.ts';
 import { getBossById, listBossesByDungeon, listSchoolsFull, listSchoolsNameSlug, getSchoolNameBySlug, listSchoolBis, getSchoolBisJsonBySchool, listSchoolRotations, listSlotAffixByBuild, listAffixMax, listAffixMaxValues } from '../dex/index.ts';
@@ -457,6 +462,17 @@ export class SettingsPageShell extends ShellBase {
       return new CalendarFeedSettingsShell(this.ctx, { url: calendarFeedUrl(token) });
     });
   }
+  /* Agent grants (agent-native): the member's own OAuth grants
+   * for agent clients, metadata only — a grant's token values are
+   * never composed into any payload. Anonymous viewers get null. */
+  genAgentGrants(){
+    return this.memo('agentGrants', async () => {
+      const user = this.ctx.user;
+      if (!user) return null;
+      const rows = await listUserAgentTokens(this.db, user.userId);
+      return new AgentGrantsSettingsShell(this.ctx, { rows });
+    });
+  }
   async genAccountPendingDeletion(){
     const row = await loadMyAccountRow(this.ctx);
     const executesAt = deletionExecutesAt(row);
@@ -561,6 +577,57 @@ export class ResetCalendarFeedPayloadShell extends PayloadBase {
   genCalendarFeed(){ return this.data.feed ?? null; }
 }
 
+/* ---------- Agent grants (agent-native) ---------- */
+export class AgentGrantShell extends ShellBase {
+  fmtDate(sec: number){
+    try {
+      return new Intl.DateTimeFormat(this.locale, {
+        year: 'numeric', month: 'long', day: 'numeric',
+        timeZone: this.ctx.tz || 'Asia/Shanghai',
+      }).format(new Date(sec * 1000));
+    } catch { return new Date(sec * 1000).toISOString().slice(0, 10); }
+  }
+  row(): AgentTokenRow { return this.data.row; }
+  genId(){ return String(this.row().id); }
+  genClientName(){ return this.row().client_name || ''; }
+  genName(){ return this.row().name || ''; }
+  genScopesLabel(){
+    return parseScopes(this.row().scopes).has('signup')
+      ? this.t('agent_scopesSignupLabel')
+      : this.t('agent_scopesReadLabel');
+  }
+  genSourceLabel(){
+    return this.row().source === 'oauth' ? this.t('agent_sourceOauthLabel') : this.row().source;
+  }
+  genTokenPrefix(){ return this.row().access_prefix || ''; }
+  genCreatedText(){ return this.t('agent_createdTemplate', { date: this.fmtDate(this.row().created_at) }); }
+  genLastUsedText(){
+    const lastUsed = this.row().last_used_at;
+    return lastUsed != null
+      ? this.t('agent_lastUsedTemplate', { date: this.fmtDate(lastUsed) })
+      : this.t('agent_neverUsedText');
+  }
+}
+export const AGENT_GRANT_TEXT_RESOLVERS = defineTextGens(AgentGrantShell, [
+  ['revokeLabel', 'agent_revokeLabel'],
+]);
+
+export class AgentGrantsSettingsShell extends ShellBase {
+  genGrants(){
+    const rows: AgentTokenRow[] = this.data.rows || [];
+    return rows.map((row) => new AgentGrantShell(this.ctx, { row }));
+  }
+}
+export const AGENT_GRANTS_TEXT_RESOLVERS = defineTextGens(AgentGrantsSettingsShell, [
+  ['agentSectionTitle', 'agent_sectionTitle'],
+  ['agentHintText', 'agent_hint'],
+  ['agentEmptyText', 'agent_emptyText'],
+  ['agentRevokeDoneText', 'agent_revokeDoneText'],
+]);
+export class RevokeAgentGrantPayloadShell extends PayloadBase {
+  genAgentGrants(){ return this.data.grants ?? null; }
+}
+
 /* ---------- Account self-service payloads ---------- */
 export class ExportMyDataPayloadShell extends PayloadBase {
   genJson(){ return this.data.json ?? null; }
@@ -602,6 +669,29 @@ export const identityResolvers = {
       return new ResetCalendarFeedPayloadShell(ctx, {
         ok: true, errorCode: null,
         feed: new CalendarFeedSettingsShell(ctx, { url: calendarFeedUrl(token) }),
+      });
+    },
+
+    /* Agent grant revocation: killing a grant kills its access
+     * and refresh tokens together. Revocation is an unbind, so it
+     * demands fresh auth — the same tier as account deletion
+     * (ruling of 2026-11-10); the service refuses grants that are
+     * not the caller's own or already revoked. */
+    revokeAgentGrant: async (_: any, { id }: any, ctx: Context) => {
+      if (!ctx.user) return new RevokeAgentGrantPayloadShell(ctx, { ok: false, errorCode: 'loginRequired' });
+      const accountRow = await loadMyAccountRow(ctx);
+      if (!isFreshAuth(accountRow)) {
+        return new RevokeAgentGrantPayloadShell(ctx, { ok: false, errorCode: 'accountReauthRequired' });
+      }
+      const grantId = Number(id);
+      const revoked = Number.isFinite(grantId)
+        ? await revokeAgentToken(ctx.env.DB, ctx.user.userId, grantId)
+        : false;
+      if (!revoked) return new RevokeAgentGrantPayloadShell(ctx, { ok: false, errorCode: 'notFound' });
+      const rows = await listUserAgentTokens(ctx.env.DB, ctx.user.userId);
+      return new RevokeAgentGrantPayloadShell(ctx, {
+        ok: true, errorCode: null,
+        grants: new AgentGrantsSettingsShell(ctx, { rows }),
       });
     },
 
@@ -658,7 +748,29 @@ export const identityResolvers = {
     availabilityGuilds: (p: any) => p.genAvailabilityGuilds(),
     availabilityWeekdayNames: (p: any) => p.genAvailabilityWeekdayNames(),
     calendarFeed: (p: any) => p.genCalendarFeed(),
+    agentGrants: (p: SettingsPageShell) => p.genAgentGrants(),
     ...SETTINGS_TEXT_RESOLVERS,
+  },
+  AgentGrantsSettings: {
+    grants: (p: AgentGrantsSettingsShell) => p.genGrants(),
+    ...AGENT_GRANTS_TEXT_RESOLVERS,
+  },
+  AgentGrant: {
+    id: (p: AgentGrantShell) => p.genId(),
+    clientName: (p: AgentGrantShell) => p.genClientName(),
+    name: (p: AgentGrantShell) => p.genName(),
+    scopesLabel: (p: AgentGrantShell) => p.genScopesLabel(),
+    sourceLabel: (p: AgentGrantShell) => p.genSourceLabel(),
+    tokenPrefix: (p: AgentGrantShell) => p.genTokenPrefix(),
+    createdText: (p: AgentGrantShell) => p.genCreatedText(),
+    lastUsedText: (p: AgentGrantShell) => p.genLastUsedText(),
+    ...AGENT_GRANT_TEXT_RESOLVERS,
+  },
+  RevokeAgentGrantPayload: {
+    ok: (p: RevokeAgentGrantPayloadShell) => p.genOk(),
+    error: (p: RevokeAgentGrantPayloadShell) => p.genError(),
+    errorCode: (p: RevokeAgentGrantPayloadShell) => p.genErrorCode(),
+    agentGrants: (p: RevokeAgentGrantPayloadShell) => p.genAgentGrants(),
   },
   CalendarFeedSettings: {
     calendarUrl: (p: any) => p.genCalendarUrl(),
