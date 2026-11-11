@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<49c66043eccad2f6f5f6c807a74e56cd>>
+ * @generated SignedSource<<c3f5800209c287b5a7350bc9389915b4>>
  * @lightSyntaxTransform
  */
 
@@ -9,10 +9,11 @@
 
 import { ConcreteRequest } from 'relay-runtime';
 export type CustomFieldType = "CHOICE" | "TEXT" | "%future added value";
-export type GroupingType = "ACTIVITY" | "RACE" | "TALENT" | "TOWER" | "%future added value";
+export type GroupingType = "ACTIVITY" | "EXPLORE" | "RACE" | "TALENT" | "TOWER" | "%future added value";
 export type GroupingTemplateInput = {
   customFields?: ReadonlyArray<CustomFieldInput> | null | undefined;
   dungeonId?: string | null | undefined;
+  maxSlots?: number | null | undefined;
   name: string;
   startHour: number;
   startMinute: number;

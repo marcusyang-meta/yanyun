@@ -22,9 +22,12 @@ import type { documentsDetailPageTextQuery } from '../__generated__/documentsDet
 // fields (supplied by that page's query); this component holds no UI
 // copy. Rules follow the backend: activity/tower are always 10 seats
 // with no dungeon; talent/race seat count follows the picked dungeon's
-// size (defaults: talent 5 / race 10 when unpicked); the default title
-// "{nickname}'s {type} grouping" follows nickname/type until the user
-// edits it; edits submit only title + startsAt (type is immutable, as on Web).
+// size (defaults: talent 5 / race 10 when unpicked); explore （联机探索）
+// never picks a dungeon and its seat count is the creator's choice of
+// 5 or 10 (default 10), submitted as maxSlots like on Web; the default
+// title "{nickname}'s {type} grouping" follows nickname/type until the
+// user edits it; edits submit only title + startsAt (type is
+// immutable, as on Web).
 
 export interface GroupingFormText {
   formCreateTitle: string;
@@ -34,12 +37,16 @@ export interface GroupingFormText {
   formTypeTalentLabel: string;
   formTypeRaceLabel: string;
   formTypeTowerLabel: string;
+  formTypeExploreLabel: string;
   formCapacityTemplate: string;
   formHintActivity: string;
   formHintDungeonTemplate: string;
   formHintTalent: string;
   formHintRace: string;
   formHintTower: string;
+  formHintExplore: string;
+  formSizeLabel: string;
+  formSizeOptionTemplate: string;
   formTitleLabel: string;
   formTitlePlaceholder: string;
   formStartsLabel: string;
@@ -69,6 +76,7 @@ export interface GroupingFormText {
   typeShortTalent: string;
   typeShortRace: string;
   typeShortTower: string;
+  typeShortCoopExplore: string;
   // Template section copy (list-page shells only; absent on the detail
   // page, where the section never renders).
   templateSectionTitle?: string;
@@ -168,6 +176,10 @@ export interface GroupingFormInitial {
   title: string;
   type: string;
   startsAt: string; // startsAt text returned by the backend (epoch-seconds string)
+  // The grouping's own seat count (edit mode only): an EXPLORE car may
+  // seat 5, and the capacity hint must show its real size even though
+  // edits never submit capacity.
+  maxSlots?: number | null;
 }
 
 interface Props {
@@ -249,7 +261,7 @@ export function WheelColumn({ values, value, onChange, format }: {
   );
 }
 
-const TYPE_KEYS = ['ACTIVITY', 'TALENT', 'RACE', 'TOWER'] as const;
+const TYPE_KEYS = ['ACTIVITY', 'TALENT', 'RACE', 'TOWER', 'EXPLORE'] as const;
 type GroupingTypeKey = (typeof TYPE_KEYS)[number];
 
 export default function GroupingForm({
@@ -302,20 +314,28 @@ export default function GroupingForm({
 
   const typeLabels: Record<GroupingTypeKey, string> = {
     ACTIVITY: text.formTypeActivityLabel, TALENT: text.formTypeTalentLabel, RACE: text.formTypeRaceLabel, TOWER: text.formTypeTowerLabel,
+    EXPLORE: text.formTypeExploreLabel,
   };
   const typeShorts: Record<string, string> = {
     ACTIVITY: text.typeShortActivity, TALENT: text.typeShortTalent, RACE: text.typeShortRace, TOWER: text.typeShortTower,
+    EXPLORE: text.typeShortCoopExplore,
   };
   const autoTitle = fill(text.formTitleTemplate, { nickname: nickname.trim(), type: typeShorts[type] ?? '' });
   const shownTitle = isEdit || titleTouched ? title : autoTitle;
 
+  // EXPLORE seat choice (5 or 10, default 10), submitted as maxSlots
+  // on create and on template saves; no other type submits it.
+  const [exploreSize, setExploreSize] = useState(10);
+
   const selectedDungeon = dungeons.find((d) => String(d.id) === String(dungeonId));
-  const maxSlots = type === 'ACTIVITY' || type === 'TOWER' ? 10
+  const maxSlots = type === 'EXPLORE' ? (isEdit ? (initial?.maxSlots ?? 10) : exploreSize)
+    : type === 'ACTIVITY' || type === 'TOWER' ? 10
     : selectedDungeon && (Number(selectedDungeon.size) === 5 || Number(selectedDungeon.size) === 10)
       ? Number(selectedDungeon.size)
       : type === 'TALENT' ? 5 : 10;
   const slotsHint = type === 'ACTIVITY' ? text.formHintActivity
     : type === 'TOWER' ? text.formHintTower
+    : type === 'EXPLORE' ? text.formHintExplore
     : selectedDungeon ? fill(text.formHintDungeonTemplate, { name: selectedDungeon.name, max: maxSlots })
     : type === 'TALENT' ? text.formHintTalent
     : text.formHintRace;
@@ -335,6 +355,7 @@ export default function GroupingForm({
     if ((TYPE_KEYS as readonly string[]).includes(t.type)) setType(t.type as GroupingTypeKey);
     setTitle(t.title);
     setTitleTouched(true);
+    if (t.type === 'EXPLORE' && (t.maxSlots === 5 || t.maxSlots === 10)) setExploreSize(t.maxSlots);
     setDungeonId(t.dungeonId ?? '');
     const target = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (t.startDaysAhead || 0));
     setPickedDay(target);
@@ -369,7 +390,8 @@ export default function GroupingForm({
       const input = {
         name: templateName.trim() || t,
         type, title: t,
-        dungeonId: type === 'ACTIVITY' || type === 'TOWER' ? null : (dungeonId || null),
+        dungeonId: type === 'ACTIVITY' || type === 'TOWER' || type === 'EXPLORE' ? null : (dungeonId || null),
+        ...(type === 'EXPLORE' ? { maxSlots: exploreSize } : {}),
         startsInDays: daysAheadFromForm(), startHour: hour, startMinute: minute,
         customFields: fieldInputsFromDrafts(fieldDrafts),
       };
@@ -449,7 +471,8 @@ export default function GroupingForm({
       } else {
         const r = await createGrouping({
           slug, title: t, type, startsAt,
-          dungeonId: type === 'ACTIVITY' || type === 'TOWER' ? null : (dungeonId || null),
+          dungeonId: type === 'ACTIVITY' || type === 'TOWER' || type === 'EXPLORE' ? null : (dungeonId || null),
+          ...(type === 'EXPLORE' ? { maxSlots: exploreSize } : {}),
           seats: [{ nickname: nickname.trim(), weapon: sect }],
           customFields: fieldInputsFromDrafts(fieldDrafts),
         });
@@ -542,6 +565,24 @@ export default function GroupingForm({
           </View>
           <Text style={s.hint}>{fill(text.formCapacityTemplate, { max: maxSlots, hint: slotsHint })}</Text>
 
+          {!isEdit && type === 'EXPLORE' && (
+            <>
+              <Text style={s.label}>{text.formSizeLabel}</Text>
+              <View style={s.chips}>
+                {[5, 10].map((n) => (
+                  <Pressable
+                    key={n}
+                    style={[s.chip, exploreSize === n && s.chipOn]}
+                    onPress={() => setExploreSize(n)}
+                  >
+                    {exploreSize === n && <GoldFill />}
+                    <Text style={[s.chipText, exploreSize === n && s.chipTextOn]}>{fill(text.formSizeOptionTemplate, { n })}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </>
+          )}
+
           <Text style={s.label}>{text.formTitleLabel}</Text>
           <TextInput
             style={[s.input, titleErr && s.inputErr]}
@@ -594,7 +635,7 @@ export default function GroupingForm({
             })}
           </Text>
 
-          {!isEdit && type !== 'ACTIVITY' && type !== 'TOWER' && (
+          {!isEdit && type !== 'ACTIVITY' && type !== 'TOWER' && type !== 'EXPLORE' && (
             <>
               <Text style={s.label}>{text.formDungeonLabel}</Text>
               <View style={s.chips}>
@@ -752,7 +793,7 @@ export function CreateGroupingFormMount({
   slug, tab, defaultNickname, onClose, onDone,
 }: {
   slug: string;
-  tab: 'ACTIVITY' | 'TALENT' | 'RACE' | 'TOWER';
+  tab: 'ACTIVITY' | 'TALENT' | 'RACE' | 'TOWER' | 'EXPLORE';
   defaultNickname?: string;
   onClose: () => void;
   onDone: () => void;
@@ -768,7 +809,7 @@ function CreateGroupingFormInner({
   slug, tab, defaultNickname, onClose, onDone,
 }: {
   slug: string;
-  tab: 'ACTIVITY' | 'TALENT' | 'RACE' | 'TOWER';
+  tab: 'ACTIVITY' | 'TALENT' | 'RACE' | 'TOWER' | 'EXPLORE';
   defaultNickname?: string;
   onClose: () => void;
   onDone: () => void;
@@ -837,7 +878,7 @@ function EditGroupingFormInner({
       unknownErrorText={data.viewer?.commonUnknownErrorText ?? ''}
       mode="edit"
       groupingId={g.id}
-      initial={{ title: g.title, type: g.type, startsAt: g.startsAt }}
+      initial={{ title: g.title, type: g.type, startsAt: g.startsAt, maxSlots: g.maxSlots }}
       onClose={onClose}
       onDone={onDone}
     />

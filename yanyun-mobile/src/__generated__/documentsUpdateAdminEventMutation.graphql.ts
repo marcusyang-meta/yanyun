@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<6dc6d73f472f640514cc5e8c13b66bc4>>
+ * @generated SignedSource<<56fb10dceaf716a82b0a94d2b7e78530>>
  * @lightSyntaxTransform
  */
 
@@ -8,7 +8,7 @@
 // @ts-nocheck
 
 import { ConcreteRequest } from 'relay-runtime';
-export type GroupingType = "ACTIVITY" | "RACE" | "TALENT" | "TOWER" | "%future added value";
+export type GroupingType = "ACTIVITY" | "EXPLORE" | "RACE" | "TALENT" | "TOWER" | "%future added value";
 export type UpdateAdminEventInput = {
   description?: string | null | undefined;
   dungeon?: string | null | undefined;

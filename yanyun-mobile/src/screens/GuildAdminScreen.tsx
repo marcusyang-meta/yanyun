@@ -463,7 +463,7 @@ function parseLocalInput(v: string): number | null {
 }
 
 type AdminEventT = NonNullable<Admin['events']>[number];
-const TYPE_KEYS_M = ['ACTIVITY', 'TALENT', 'RACE', 'TOWER'] as const;
+const TYPE_KEYS_M = ['ACTIVITY', 'TALENT', 'RACE', 'TOWER', 'EXPLORE'] as const;
 
 function EventForm({ admin, initial, statusEditable, submitLabel, onSubmit }: {
   admin: Admin;
@@ -483,6 +483,7 @@ function EventForm({ admin, initial, statusEditable, submitLabel, onSubmit }: {
   const typeLabels: Record<string, string> = {
     ACTIVITY: admin.adminTypeActivityText ?? '', TALENT: admin.adminTypeTalentText ?? '',
     RACE: admin.adminTypeRaceText ?? '', TOWER: admin.adminTypeTowerText ?? '',
+    EXPLORE: admin.adminTypeExploreText ?? '',
   };
   return (
     <View>
@@ -989,6 +990,7 @@ function StatsPanel({ admin, premiumLocked, unknownError, onError }: {
     [admin.adminTypeTalentText, w.carsTalent],
     [admin.adminTypeRaceText, w.carsRace],
     [admin.adminTypeTowerText, w.carsTower],
+    [admin.adminTypeExploreText, w.carsExplore],
   ].filter(([, n]) => (n as number) > 0).map(([label, n]) => `${label} ${n}`).join(' · ');
   return (
     <View>

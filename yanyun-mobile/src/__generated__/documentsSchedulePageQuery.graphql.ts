@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<933e40b6a6441faf714ca960ccb1f9b0>>
+ * @generated SignedSource<<37ecc66061887a66109c065753cdc266>>
  * @lightSyntaxTransform
  */
 
@@ -40,6 +40,7 @@ export type documentsSchedulePageQuery$data = {
     readonly formEditTitle: string;
     readonly formHintActivity: string;
     readonly formHintDungeonTemplate: string;
+    readonly formHintExplore: string;
     readonly formHintRace: string;
     readonly formHintTalent: string;
     readonly formHintTower: string;
@@ -49,6 +50,8 @@ export type documentsSchedulePageQuery$data = {
     readonly formNicknameLabel: string;
     readonly formNicknamePlaceholder: string;
     readonly formSectLabel: string;
+    readonly formSizeLabel: string;
+    readonly formSizeOptionTemplate: string;
     readonly formStartsLabel: string;
     readonly formSubmitCreateLabel: string;
     readonly formSubmitEditLabel: string;
@@ -62,6 +65,7 @@ export type documentsSchedulePageQuery$data = {
     readonly formToastSaved: string;
     readonly formToastSect: string;
     readonly formTypeActivityLabel: string;
+    readonly formTypeExploreLabel: string;
     readonly formTypeLabel: string;
     readonly formTypeRaceLabel: string;
     readonly formTypeTalentLabel: string;
@@ -122,6 +126,7 @@ export type documentsSchedulePageQuery$data = {
     readonly scheduleToastVoted: string;
     readonly slug: string;
     readonly typeShortActivity: string;
+    readonly typeShortCoopExplore: string;
     readonly typeShortRace: string;
     readonly typeShortTalent: string;
     readonly typeShortTower: string;
@@ -438,6 +443,13 @@ v2 = [
         "alias": null,
         "args": null,
         "kind": "ScalarField",
+        "name": "formTypeExploreLabel",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
         "name": "formCapacityTemplate",
         "storageKey": null
       },
@@ -474,6 +486,27 @@ v2 = [
         "args": null,
         "kind": "ScalarField",
         "name": "formHintTower",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "formHintExplore",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "formSizeLabel",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "formSizeOptionTemplate",
         "storageKey": null
       },
       {
@@ -746,6 +779,13 @@ v2 = [
         "alias": null,
         "args": null,
         "kind": "ScalarField",
+        "name": "typeShortCoopExplore",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
         "name": "scheduleTitle",
         "storageKey": null
       },
@@ -967,16 +1007,16 @@ return {
     "selections": (v2/*:: as any*/)
   },
   "params": {
-    "cacheID": "c2177c3f1c479a4e5a9da0ca7acbb1d0",
+    "cacheID": "ee298d219a99dda5bf94533facf0b61a",
     "id": null,
     "metadata": {},
     "name": "documentsSchedulePageQuery",
     "operationKind": "query",
-    "text": "query documentsSchedulePageQuery(\n  $slug: String!\n) {\n  viewer {\n    commonUnknownErrorText\n  }\n  guildSchedulePage(slug: $slug) {\n    slug\n    weekdayNames\n    availabilitySummary {\n      discordId\n      displayName\n      slots {\n        weekday\n        startMinute\n        endMinute\n      }\n    }\n    polls {\n      id\n      title\n      status\n      creatorName\n      createdAtText\n      myOptionIds\n      options {\n        id\n        startsAtUtc\n        startsAtText\n        voteCount\n        voterNames\n        votedByMe\n      }\n      closeActions {\n        closeLabel\n      }\n      launchActions {\n        launchLabel\n      }\n    }\n    formCreateTitle\n    formEditTitle\n    formTypeLabel\n    formTypeActivityLabel\n    formTypeTalentLabel\n    formTypeRaceLabel\n    formTypeTowerLabel\n    formCapacityTemplate\n    formHintActivity\n    formHintDungeonTemplate\n    formHintTalent\n    formHintRace\n    formHintTower\n    formTitleLabel\n    formTitlePlaceholder\n    formStartsLabel\n    formMonthTemplate\n    formDayTemplate\n    formHourTemplate\n    formMinuteTemplate\n    formTzEastLabel\n    formTzWestLabel\n    formTzEchoTemplate\n    formDungeonLabel\n    formDungeonNoneLabel\n    formNicknameLabel\n    formNicknamePlaceholder\n    formSectLabel\n    formCancelLabel\n    formSubmitCreateLabel\n    formSubmitEditLabel\n    formSubmittingLabel\n    formToastSect\n    formToastSaved\n    formToastSaveFailedTemplate\n    formToastPosted\n    formToastCreateFailedTemplate\n    formTitleTemplate\n    formCustomFieldsTitle\n    formCustomFieldAddLabel\n    formCustomFieldLabelPlaceholder\n    formCustomFieldTypeText\n    formCustomFieldTypeChoice\n    formCustomFieldOptionsPlaceholder\n    formCustomFieldRequiredLabel\n    formCustomFieldRemoveLabel\n    formCustomFieldEmptyText\n    typeShortActivity\n    typeShortTalent\n    typeShortRace\n    typeShortTower\n    scheduleTitle\n    scheduleMyTitle\n    scheduleSlotRangeTemplate\n    scheduleRemoveLabel\n    scheduleSettingsLinkLabel\n    scheduleSummaryTitle\n    scheduleSummaryHint\n    scheduleSummaryEmptyText\n    schedulePollsTitle\n    schedulePollsHint\n    schedulePollEmptyText\n    schedulePollCreateLabel\n    schedulePollTitleLabel\n    schedulePollTitlePlaceholder\n    schedulePollCandidatesLabel\n    schedulePollAddCandidateLabel\n    schedulePollSubmitLabel\n    schedulePollVoteLabel\n    schedulePollVotedText\n    schedulePollStatusOpenText\n    schedulePollStatusClosedText\n    schedulePollCloseLabel\n    schedulePollVoteCountTemplate\n    schedulePollLaunchLabel\n    schedulePollCancelLabel\n    scheduleToastPollCreated\n    scheduleToastVoted\n    scheduleToastClosed\n    scheduleToastFailedTemplate\n  }\n}\n"
+    "text": "query documentsSchedulePageQuery(\n  $slug: String!\n) {\n  viewer {\n    commonUnknownErrorText\n  }\n  guildSchedulePage(slug: $slug) {\n    slug\n    weekdayNames\n    availabilitySummary {\n      discordId\n      displayName\n      slots {\n        weekday\n        startMinute\n        endMinute\n      }\n    }\n    polls {\n      id\n      title\n      status\n      creatorName\n      createdAtText\n      myOptionIds\n      options {\n        id\n        startsAtUtc\n        startsAtText\n        voteCount\n        voterNames\n        votedByMe\n      }\n      closeActions {\n        closeLabel\n      }\n      launchActions {\n        launchLabel\n      }\n    }\n    formCreateTitle\n    formEditTitle\n    formTypeLabel\n    formTypeActivityLabel\n    formTypeTalentLabel\n    formTypeRaceLabel\n    formTypeTowerLabel\n    formTypeExploreLabel\n    formCapacityTemplate\n    formHintActivity\n    formHintDungeonTemplate\n    formHintTalent\n    formHintRace\n    formHintTower\n    formHintExplore\n    formSizeLabel\n    formSizeOptionTemplate\n    formTitleLabel\n    formTitlePlaceholder\n    formStartsLabel\n    formMonthTemplate\n    formDayTemplate\n    formHourTemplate\n    formMinuteTemplate\n    formTzEastLabel\n    formTzWestLabel\n    formTzEchoTemplate\n    formDungeonLabel\n    formDungeonNoneLabel\n    formNicknameLabel\n    formNicknamePlaceholder\n    formSectLabel\n    formCancelLabel\n    formSubmitCreateLabel\n    formSubmitEditLabel\n    formSubmittingLabel\n    formToastSect\n    formToastSaved\n    formToastSaveFailedTemplate\n    formToastPosted\n    formToastCreateFailedTemplate\n    formTitleTemplate\n    formCustomFieldsTitle\n    formCustomFieldAddLabel\n    formCustomFieldLabelPlaceholder\n    formCustomFieldTypeText\n    formCustomFieldTypeChoice\n    formCustomFieldOptionsPlaceholder\n    formCustomFieldRequiredLabel\n    formCustomFieldRemoveLabel\n    formCustomFieldEmptyText\n    typeShortActivity\n    typeShortTalent\n    typeShortRace\n    typeShortTower\n    typeShortCoopExplore\n    scheduleTitle\n    scheduleMyTitle\n    scheduleSlotRangeTemplate\n    scheduleRemoveLabel\n    scheduleSettingsLinkLabel\n    scheduleSummaryTitle\n    scheduleSummaryHint\n    scheduleSummaryEmptyText\n    schedulePollsTitle\n    schedulePollsHint\n    schedulePollEmptyText\n    schedulePollCreateLabel\n    schedulePollTitleLabel\n    schedulePollTitlePlaceholder\n    schedulePollCandidatesLabel\n    schedulePollAddCandidateLabel\n    schedulePollSubmitLabel\n    schedulePollVoteLabel\n    schedulePollVotedText\n    schedulePollStatusOpenText\n    schedulePollStatusClosedText\n    schedulePollCloseLabel\n    schedulePollVoteCountTemplate\n    schedulePollLaunchLabel\n    schedulePollCancelLabel\n    scheduleToastPollCreated\n    scheduleToastVoted\n    scheduleToastClosed\n    scheduleToastFailedTemplate\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "db861288e8b27b5f3ff82d42aa2cf1f9";
+(node as any).hash = "5b4a4a3b20fd3534c4475b814ce0e0d9";
 
 export default node;
